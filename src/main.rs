@@ -7,7 +7,7 @@ mod commands;
 mod config;
 mod runtime;
 
-use commands::{ps, start, stop, status, config as config_cmd, project as project_cmd};
+use commands::{ps, start, stop, status, config as config_cmd, project as project_cmd, pool_status, run_pool, set_limits, check_limits};
 use runtime::ProcessPool;
 
 #[derive(Parser, Debug)]
@@ -123,6 +123,46 @@ enum Commands {
         #[arg(short, long)]
         force: bool,
     },
+
+    /// Show shared runtime pool status
+    Pool {
+        /// Harness type to check (node, bun)
+        #[arg(long)]
+        harness: Option<String>,
+    },
+
+    /// Run using pooled runtime
+    Run {
+        /// Harness type (node, bun)
+        #[arg(required = true)]
+        harness: String,
+
+        /// Project name
+        #[arg(required = true)]
+        project: String,
+    },
+
+    /// Set project resource limits
+    Limits {
+        /// Project name
+        #[arg(required = true)]
+        project: String,
+
+        /// Memory limit in MB
+        #[arg(short, long)]
+        memory: Option<u64>,
+
+        /// Max process count
+        #[arg(short, long)]
+        processes: Option<usize>,
+    },
+
+    /// Check project resource limits
+    Check {
+        /// Project name
+        #[arg(required = true)]
+        project: String,
+    },
 }
 
 #[tokio::main]
@@ -148,6 +188,10 @@ async fn main() -> Result<()> {
         Commands::Project { cmd } => project_cmd(cmd)?,
         Commands::Optimize { apply } => optimize(*apply).await?,
         Commands::Prune { idle_seconds, force } => prune(*idle_seconds, *force).await?,
+        Commands::Pool { harness: _ } => pool_status().await?,
+        Commands::Run { harness, project } => run_pool(harness, project).await?,
+        Commands::Limits { project, memory, processes } => set_limits(project, *memory, *processes).await?,
+        Commands::Check { project } => check_limits(project).await?,
     }
 
     Ok(())
