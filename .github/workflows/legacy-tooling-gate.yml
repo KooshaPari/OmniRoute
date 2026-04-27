@@ -19,10 +19,10 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Checkout phenotype/repos for shared tools
+      - name: Checkout phenoShared for shared tools
         uses: actions/checkout@v4
         with:
-          repository: kooshapari/phenotype
+          repository: KooshaPari/phenoShared
           path: phenotype-repos
           sparse-checkout: tooling/legacy-enforcement
 
