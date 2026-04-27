@@ -65,17 +65,17 @@ jobs:
           script: |
             const fs = require('fs');
             let report = '**Legacy Tooling Scan Report**\n\n';
-            
+
             try {
               const data = JSON.parse(fs.readFileSync('legacy_tooling_report.json', 'utf8'));
               const totals = data.totals || {};
-              
+
               report += `| Severity | Count |\n|----------|-------|\n`;
               report += `| Critical | ${totals.critical || 0} |\n`;
               report += `| High | ${totals.high || 0} |\n`;
               report += `| Medium | ${totals.medium || 0} |\n`;
               report += `| Low | ${totals.low || 0} |\n\n`;
-              
+
               const findings = data.findings || [];
               if (findings.length > 0) {
                 report += '**Top Violations:**\n';
@@ -88,12 +88,12 @@ jobs:
               } else {
                 report += 'No violations detected.\n';
               }
-              
+
               report += '\n*This is a WARN-mode scan. Fix before strict enforcement begins.*';
             } catch (e) {
               report += 'Could not parse scan results.';
             }
-            
+
             github.rest.issues.createComment({
               issue_number: context.issue.number,
               owner: context.repo.owner,

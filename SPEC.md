@@ -109,11 +109,11 @@ properties:
   want_to: Find a spec for a feature
   go_to: PhenoSpecs/specs/
   query: "spec search <domain>"
-  
+
   want_to: Learn a design pattern
   go_to: PhenoHandbook/patterns/
   query: "pattern list <domain>"
-  
+
   want_to: Get a code template
   go_to: HexaKit/by-language/
   query: "hexakit create <template> <name>"

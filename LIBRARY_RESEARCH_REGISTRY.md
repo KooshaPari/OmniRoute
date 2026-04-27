@@ -3,9 +3,9 @@
 > Comprehensive catalog of all libraries, dependencies, and research papers used across the Phenotype ecosystem.
 > Used for "wrap vs handroll" decisions and technology selection.
 
-**Registry Version:** 2026-04-05  
-**Repos Analyzed:** 100+  
-**Libraries Found:** 150+  
+**Registry Version:** 2026-04-05
+**Repos Analyzed:** 100+
+**Libraries Found:** 150+
 **Research Papers:** 40+
 
 ---
@@ -735,6 +735,6 @@ customization_depth: unlimited
 
 ---
 
-*Registry compiled: 2026-04-05*  
-*Maintained by: Phenotype Core Team*  
+*Registry compiled: 2026-04-05*
+*Maintained by: Phenotype Core Team*
 *Next review: Quarterly*
