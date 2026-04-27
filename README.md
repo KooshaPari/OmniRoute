@@ -181,3 +181,7 @@ All registries have:
 - [PhenoHandbook](https://github.com/KooshaPari/PhenoHandbook)
 - [HexaKit](https://github.com/KooshaPari/HexaKit)
 - [AgilePlus](https://github.com/KooshaPari/AgilePlus) - Spec-driven development
+
+## License
+
+MIT — see [LICENSE](./LICENSE).
