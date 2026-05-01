@@ -81,6 +81,10 @@ const MODEL_FAMILIES: Record<string, string[]> = {
   "claude-sonnet-4-6": ["claude-sonnet-4-5-20250929", "claude-sonnet-4-20250514"],
   "claude-sonnet-4-5-20250929": ["claude-sonnet-4-6", "claude-sonnet-4-20250514"],
 
+  // NVIDIA Minimax family
+  "minimaxai/minimax-m2.7": ["minimaxai/minimax-m2.5", "minimax-m2.7", "minimax-m2.5"],
+  "minimaxai/minimax-m2.5": ["minimaxai/minimax-m2.7", "minimax-m2.5", "minimax-m2.7"],
+
   // GPT-5 family
   "gpt-5": ["gpt-5-mini", "gpt-4o"],
   "gpt-5.1": ["gpt-5.1-mini", "gpt-5", "gpt-4o"],
@@ -107,6 +111,7 @@ const MODEL_UNAVAILABLE_FRAGMENTS = [
   "not enabled for",
   "access to model",
   "improperly formed request", // Kiro 400 (model unavailable)
+  "invalid argument", // Antigravity 400 (model unavailable)
 ];
 
 /**
