@@ -45,14 +45,14 @@ jobs:
         continue-on-error: true
 
       - name: Upload scan report (JSON)
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: legacy-tooling-report-json
           path: legacy_tooling_report.json
           retention-days: 30
 
       - name: Upload scan report (Markdown)
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: legacy-tooling-report-md
           path: legacy_tooling_report.md
