@@ -1,7 +1,7 @@
 {
   "name": "omniroute",
   "version": "3.7.7",
-  "description": "Smart AI Router with auto fallback \u2014 route to FREE & cheap models, zero downtime. Works with Cursor, Cline, Claude Desktop, Codex, and any OpenAI-compatible tool.",
+  "description": "Smart AI Router with auto fallback — route to FREE & cheap models, zero downtime. Works with Cursor, Cline, Claude Desktop, Codex, and any OpenAI-compatible tool.",
   "type": "module",
   "bin": {
     "omniroute": "bin/omniroute.mjs",
@@ -90,6 +90,7 @@
     "test:e2e": "node scripts/run-playwright-tests.mjs test tests/e2e/*.spec.ts",
     "test:protocols:e2e": "node scripts/run-protocol-clients-tests.mjs",
     "test:vitest": "vitest run --config vitest.mcp.config.ts",
+    "test:benchmarks": "cross-env DISABLE_SQLITE_AUTO_BACKUP=true node --import tsx/esm --test tests/unit/benchmarks.test.ts",
     "test:ecosystem": "node scripts/run-ecosystem-tests.mjs",
     "test:coverage": "c8 --output-dir coverage --exclude=tests/** --exclude=**/*.test.* --reporter=text-summary --reporter=html --reporter=json-summary --reporter=lcov --check-coverage --statements 60 --lines 60 --functions 60 --branches 60 node --import tsx/esm --test --test-concurrency=10 tests/unit/*.test.ts",
     "test:coverage:legacy": "c8 --output-dir coverage --exclude=open-sse --check-coverage --lines 50 --functions 50 --branches 50 node --import tsx/esm --test tests/unit/*.test.ts",
