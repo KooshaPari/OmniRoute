@@ -1,0 +1,13 @@
+version: 1
+# Disable high-entropy scanning (false positives in routing tables, compressed data)
+disable:
+  - entropy
+rules:
+  - path:
+      - "**/test*/**"
+      - "**/*_test.go"
+      - "**/examples/**"
+      - "**/*.md"
+      - ".git/**"
+    skip:
+      - entropy
