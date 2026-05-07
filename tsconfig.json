@@ -9,7 +9,7 @@
     "allowJs": true,
     "checkJs": false,
     "skipLibCheck": true,
-    "strict": false,
+    "strict": true,
     "noEmit": true,
     "esModuleInterop": true,
     "module": "esnext",
@@ -35,7 +35,9 @@
       {
         "name": "next"
       }
-    ]
+    ],
+    "noImplicitAny": true,
+    "strictNullChecks": true
   },
   "include": [
     "next-env.d.ts",
