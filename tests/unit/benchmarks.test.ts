@@ -7,7 +7,8 @@
  * Or with: npm run test:benchmarks
  */
 
-import { describe, it, expect, beforeEach } from "vitest";
+import assert from "node:assert/strict";
+import { beforeEach, describe, it } from "node:test";
 import {
   runBenchmark,
   runBenchmarks,
@@ -332,39 +333,39 @@ describe("OmniRoute Benchmarks", () => {
   describe("Request Routing Performance", () => {
     it("should benchmark policy engine evaluation", async () => {
       const result = await runBenchmark(routingBenchmarks.benchmarks[1]);
-      expect(result.success).toBe(true);
+      assert.equal(result.success, true);
       // Policy engine should handle 50K+ ops/sec
-      expect(result.opsPerSecond).toBeGreaterThan(10000);
+      assert.ok(result.opsPerSecond > 10000);
     });
 
     it("should benchmark model pattern matching", async () => {
       const result = await runBenchmark(routingBenchmarks.benchmarks[2]);
-      expect(result.success).toBe(true);
+      assert.equal(result.success, true);
       // Pattern matching should handle 10K+ ops/sec
-      expect(result.opsPerSecond).toBeGreaterThan(10000);
+      assert.ok(result.opsPerSecond > 10000);
     });
   });
 
   describe("Model Selection Latency", () => {
     it("should benchmark token estimation", async () => {
       const result = await runBenchmark(modelSelectionBenchmarks.benchmarks[4]);
-      expect(result.success).toBe(true);
+      assert.equal(result.success, true);
       // Token estimation should be very fast
-      expect(result.opsPerSecond).toBeGreaterThan(50000);
+      assert.ok(result.opsPerSecond > 50000);
     });
 
     it("should benchmark cost calculation", async () => {
       const result = await runBenchmark(modelSelectionBenchmarks.benchmarks[5]);
-      expect(result.success).toBe(true);
-      expect(result.opsPerSecond).toBeGreaterThan(50000);
+      assert.equal(result.success, true);
+      assert.ok(result.opsPerSecond > 50000);
     });
   });
 
   describe("Provider Fallback Chains", () => {
     it("should benchmark fallback chain resolution", async () => {
       const result = await runBenchmark(fallbackBenchmarks.benchmarks[0]);
-      expect(result.success).toBe(true);
-      expect(result.opsPerSecond).toBeGreaterThan(10000);
+      assert.equal(result.success, true);
+      assert.ok(result.opsPerSecond > 10000);
     });
   });
 
@@ -375,7 +376,7 @@ describe("OmniRoute Benchmarks", () => {
       }, 1000);
 
       // p99 should be under 1ms for simple policy evaluation
-      expect(result.p99).toBeLessThan(1);
+      assert.ok(result.p99 < 1);
 
       console.log(formatLatencyReport("Policy Evaluation", result));
     });
@@ -385,7 +386,7 @@ describe("OmniRoute Benchmarks", () => {
         getNextFallback("gpt-4o", []);
       }, 1000);
 
-      expect(result.p99).toBeLessThan(0.5);
+      assert.ok(result.p99 < 0.5);
 
       console.log(formatLatencyReport("Fallback Chain", result));
     });
@@ -399,7 +400,7 @@ describe("OmniRoute Benchmarks", () => {
       console.log("\n" + report);
 
       // All should succeed
-      expect(results.every((r) => r.success)).toBe(true);
+      assert.ok(results.every((r) => r.success));
     });
 
     it("should run all model selection benchmarks", async () => {
@@ -408,7 +409,7 @@ describe("OmniRoute Benchmarks", () => {
       const report = formatBenchmarkReport(results);
       console.log("\n" + report);
 
-      expect(results.every((r) => r.success)).toBe(true);
+      assert.ok(results.every((r) => r.success));
     });
 
     it("should run all fallback benchmarks", async () => {
@@ -417,7 +418,7 @@ describe("OmniRoute Benchmarks", () => {
       const report = formatBenchmarkReport(results);
       console.log("\n" + report);
 
-      expect(results.every((r) => r.success)).toBe(true);
+      assert.ok(results.every((r) => r.success));
     });
 
     it("should run all data structure benchmarks", async () => {
@@ -426,7 +427,7 @@ describe("OmniRoute Benchmarks", () => {
       const report = formatBenchmarkReport(results);
       console.log("\n" + report);
 
-      expect(results.every((r) => r.success)).toBe(true);
+      assert.ok(results.every((r) => r.success));
     });
   });
 });
