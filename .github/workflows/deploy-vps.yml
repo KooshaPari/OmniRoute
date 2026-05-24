@@ -29,7 +29,7 @@ jobs:
           command_timeout: 5m
           script: |
             echo "=== Updating OmniRoute ==="
-            npm install -g omniroute@3.8.2 2>&1
+            npm install -g omniroute.8.2@latest 2>&1
             INSTALLED_VERSION=$(omniroute --version 2>/dev/null || echo "unknown")
             echo "Installed version: $INSTALLED_VERSION"
 
