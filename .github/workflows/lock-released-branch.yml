@@ -1,5 +1,9 @@
 name: Lock released branch
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 # Two responsibilities (defense in depth — Hard Rule #18 enforcement):
 #
 # 1. `on: release: published` — when a GitHub Release publishes tag v3.X.Y,
