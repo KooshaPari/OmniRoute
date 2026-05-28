@@ -1,0 +1,11 @@
+# Deep work starter FPL file
+# Valid FPL/Starlark file
+
+rule(
+    id = "deep-work-starter",
+    name = "Deep Work Starter",
+    trigger = on_event("focus:session_started"),
+    conditions = [],
+    actions = [block(apps = ["deep-work"], profile = "deep-work")],
+    enabled = 1,
+)

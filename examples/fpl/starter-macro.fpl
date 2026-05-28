@@ -1,0 +1,11 @@
+# Starter macro example
+# Valid FPL/Starlark file — rules are defined via macro_library
+
+rule(
+    id = "test-rule",
+    name = "Test Rule",
+    trigger = on_event("focus:session_started"),
+    conditions = [],
+    actions = [block(apps = ["social"], profile = "social")],
+    enabled = 1,
+)
