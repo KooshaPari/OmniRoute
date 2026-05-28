@@ -22,7 +22,7 @@ permissions:
 jobs:
   validate:
     name: Validate version
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     outputs:
       version: ${{ steps.validate.outputs.version }}
     steps:
@@ -187,7 +187,7 @@ jobs:
   release:
     name: Create Release
     needs: [validate, build]
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - name: Checkout
         uses: actions/checkout@v6
