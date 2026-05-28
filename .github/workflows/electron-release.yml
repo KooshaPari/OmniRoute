@@ -19,7 +19,8 @@ permissions:
 jobs:
   validate:
     name: Validate version
-    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    runs-on: ubuntu-24.04
     outputs:
       version: ${{ steps.validate.outputs.version }}
     steps:
@@ -47,13 +48,14 @@ jobs:
   build:
     name: Build Electron (${{ matrix.platform }})
     needs: validate
+    timeout-minutes: 15
     runs-on: ${{ matrix.runner }}
     strategy:
       fail-fast: false
       matrix:
         include:
           - platform: windows
-            runner: windows-latest
+            runner: windows-2022
             target: win
             ext: .exe
           - platform: macos-intel
@@ -65,7 +67,7 @@ jobs:
             target: mac-arm64
             ext: -arm64.dmg
           - platform: linux
-            runner: ubuntu-latest
+            runner: ubuntu-24.04
             target: linux
             ext: .AppImage
             deb_ext: .deb
@@ -183,7 +185,8 @@ jobs:
   release:
     name: Create Release
     needs: [validate, build]
-    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    runs-on: ubuntu-24.04
     steps:
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd

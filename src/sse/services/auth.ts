@@ -282,6 +282,12 @@ function resolveTerminalConnectionStatus(
   ) {
     return null;
   }
+  // SCP explicit-deny from AWS Bedrock — a security/organizational policy signal.
+  // Not terminal: falling back to another connection for the same provider will
+  // hit the same SCP block.  Mark non-terminal so the router tries other providers.
+  if (providerErrorType === PROVIDER_ERROR_TYPES.SCOPE_SCP_DENIED) {
+    return null;
+  }
   if (result.permanent || providerErrorType === PROVIDER_ERROR_TYPES.FORBIDDEN) {
     return "banned";
   }
@@ -1308,8 +1314,23 @@ export async function markAccountUnavailable(
       return { shouldFallback: true, cooldownMs: lockout.cooldownMs };
     }
 
+    // Resolve terminal status before the SCP-deny log so both variables exist
+    // for the final DB update below.
     const terminalStatus = resolveTerminalConnectionStatus(status, result, providerErrorType);
-    const cooldownMs = terminalStatus ? 0 : rawCooldownMs;
+    const fallbackCooldownMs =
+      providerErrorType === PROVIDER_ERROR_TYPES.SCOPE_SCP_DENIED ? 0 : rawCooldownMs;
+    const cooldownMs = terminalStatus ? 0 : fallbackCooldownMs;
+
+    if (providerErrorType === PROVIDER_ERROR_TYPES.SCOPE_SCP_DENIED) {
+      const normalizedProvider = String(provider || "unknown").toLowerCase();
+      log.warn("AUTH", `${normalizedProvider} [${status}] Bedrock SCP policy denied`, {
+        connectionId,
+        model,
+        status,
+        reason: "explicit_scp_deny",
+        snippet: typeof errorText === "string" ? errorText.slice(0, 240) : "non-string error payload",
+      });
+    }
 
     // ── 404 model-only lockout: connection stays active ──
     // For local providers (detected by URL), a 404 means the specific model

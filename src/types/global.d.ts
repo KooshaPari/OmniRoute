@@ -16,8 +16,9 @@ declare namespace NodeJS {
     NEXT_PUBLIC_BASE_URL?: string;
     PROMPT_CACHE_MAX_SIZE?: string;
     PROMPT_CACHE_TTL_MS?: string;
-    NEXT_PUBLIC_CLOUD_URL?: string;
     API_PORT?: string;
+    OMNIROUTE_PORT?: string;
+    CLOUDFLARED_TARGET_URL?: string;
     PORT?: string;
     API_HOST?: string;
     DASHBOARD_PORT?: string;
@@ -26,7 +27,6 @@ declare namespace NodeJS {
     OMNIROUTE_CGPT_WEB_IMAGE_CACHE_MAX_MB?: string;
     OMNIROUTE_BASE_URL?: string;
     OMNIROUTE_DISABLE_BACKGROUND_SERVICES?: string;
-    OMNIROUTE_PORT?: string;
     PRICING_SYNC_ENABLED?: string;
     NODE_ENV?: "development" | "production" | "test";
   }

@@ -58,6 +58,15 @@ export const PROVIDER_ERROR_TYPES = {
   CONTEXT_OVERFLOW: "context_overflow",
   OAUTH_INVALID_TOKEN: "oauth_invalid_token",
   EMPTY_CONTENT: "empty_content",
+  /**
+   * SCP (Service Control Policy) deny from AWS Bedrock — account/role has an
+   * explicit deny in an organization SCP that blocks the requested action.
+   * Unlike a generic 403, this is a security policy signal that will NOT be
+   * resolved by falling back to another credential for the same provider.
+   * Marked non-terminal so the router can try other providers rather than
+   * permanently banning the connection.
+   */
+  SCOPE_SCP_DENIED: "scope_scp_denied",
 };
 
 export const CONTEXT_OVERFLOW_SIGNALS = [
@@ -90,6 +99,21 @@ function responseBodyToString(responseBody: unknown): string {
     }
   }
   return "";
+}
+
+/**
+ * Detect AWS SCP (Service Control Policy) explicit-deny patterns in Bedrock
+ * error responses.  Returns true when the response body contains the
+ * signature of an AWS SCP block rather than a simple IAM permission issue.
+ */
+function isBedrockScpDeny(bodyStr: string, provider: string | null | undefined): boolean {
+  if (provider !== "bedrock") return false;
+  const lower = bodyStr.toLowerCase();
+  return (
+    lower.includes("accessdeniedexception") ||
+    (lower.includes("access denied") && lower.includes("explicit deny")) ||
+    lower.includes("explicit deny in a service control policy")
+  );
 }
 
 function shouldPreserveQuotaSignalsFor429(provider?: string | null): boolean {
@@ -140,6 +164,13 @@ export function classifyProviderError(
     return PROVIDER_ERROR_TYPES.ACCOUNT_DEACTIVATED;
   }
   if (statusCode === 403) {
+    // AWS SCP explicit deny — organization-level policy blocks this action.
+    // Scoped to "bedrock" so other providers are unaffected.  Marked
+    // non-terminal (scope_scp_denied) so the router can try other providers
+    // instead of permanently banning the connection.
+    if (isBedrockScpDeny(bodyStr, provider)) {
+      return PROVIDER_ERROR_TYPES.SCOPE_SCP_DENIED;
+    }
     if (bodyStr.includes("has not been used in project")) {
       return PROVIDER_ERROR_TYPES.PROJECT_ROUTE_ERROR;
     }

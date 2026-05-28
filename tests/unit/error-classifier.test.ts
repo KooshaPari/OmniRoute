@@ -73,11 +73,18 @@ test("classifyProviderError: 403 with 'has not been used in project' => PROJECT_
   assert.equal(result, PROVIDER_ERROR_TYPES.PROJECT_ROUTE_ERROR);
 });
 
-test("classifyProviderError: 403 plain => FORBIDDEN (terminal)", () => {
-  const result = classifyProviderError(403, {
-    error: { message: "The caller does not have permission" },
-  });
-  assert.equal(result, PROVIDER_ERROR_TYPES.FORBIDDEN);
+test("classifyProviderError: 403 bedrock explicit deny in service control policy => SCOPE_SCP_DENIED", () => {
+  const result = classifyProviderError(
+    403,
+    {
+      error: {
+        message:
+          "User: arn:aws:sts::123456789012:assumed-role/bedrockpartnerawsv1-ProxyApiHandlerServiceRole/session is not authorized to perform: bedrock:InvokeModelWithResponseStream on resource: arn:aws:bedrock:us-east-1::foundation-model/anthropic.claude-3-7-sonnet-20250219-v1: explicit deny in a service control policy",
+      },
+    },
+    "bedrock"
+  );
+  assert.equal(result, PROVIDER_ERROR_TYPES.SCOPE_SCP_DENIED);
 });
 
 test("classifyProviderError: API-key provider plain 403 is recoverable", () => {

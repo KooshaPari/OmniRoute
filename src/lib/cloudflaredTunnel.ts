@@ -172,6 +172,9 @@ export function getCloudflaredRuntimeDirs(): CloudflaredRuntimeDirs {
 }
 
 function getLocalTargetUrl() {
+  const overrideTargetUrl = String(process.env.CLOUDFLARED_TARGET_URL || "").trim();
+  if (overrideTargetUrl) return overrideTargetUrl.replace(/\/$/, "");
+
   const { apiPort } = getRuntimePorts();
   return `http://127.0.0.1:${apiPort}`;
 }

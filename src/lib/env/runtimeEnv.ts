@@ -67,11 +67,11 @@ export const webRuntimeEnvSchema = z.object({
   NEXT_PUBLIC_CLOUD_URL: optionalHttpUrl,
   OMNIROUTE_PUBLIC_BASE_URL: optionalHttpUrl,
   OMNIROUTE_BASE_URL: optionalHttpUrl,
-  BASE_URL: optionalHttpUrl,
-  NEXT_PUBLIC_BASE_URL: optionalHttpUrl,
   OMNIROUTE_PORT: optionalPortEnv,
   API_PORT: optionalPortEnv,
+  CLOUDFLARED_TARGET_URL: optionalHttpUrl,
   DASHBOARD_PORT: optionalPortEnv,
+
 });
 
 export type WebRuntimeEnv = z.infer<typeof webRuntimeEnvSchema>;

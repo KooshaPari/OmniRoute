@@ -20,7 +20,8 @@ permissions:
 jobs:
   docker:
     name: Build and Push Docker (multi-arch)
-    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    runs-on: ubuntu-24.04
     env:
       IMAGE_NAME: diegosouzapw/omniroute
     steps:

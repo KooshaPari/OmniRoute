@@ -87,6 +87,17 @@ type DeleteResult = {
 
 let logIdCounter = 0;
 
+const SQLITE_SAFE_DELETE_CHUNK_SIZE = 500;
+
+function chunkArray<T>(items: T[], size: number) {
+  if (!Number.isInteger(size) || size < 1) return [items];
+  const chunks: T[][] = [];
+  for (let index = 0; index < items.length; index += size) {
+    chunks.push(items.slice(index, index + size));
+  }
+  return chunks;
+}
+
 function asRecord(value: unknown): JsonRecord {
   return value && typeof value === "object" && !Array.isArray(value) ? (value as JsonRecord) : {};
 }
@@ -418,22 +429,29 @@ function deleteCallLogRowsByIds(ids: string[]): DeleteResult {
   }
 
   const db = getDbInstance();
-  const placeholders = ids.map(() => "?").join(", ");
-  const rows = db
-    .prepare(`SELECT artifact_relpath FROM call_logs WHERE id IN (${placeholders})`)
-    .all(...ids) as Array<{ artifact_relpath: string | null }>;
-
-  const result = db.prepare(`DELETE FROM call_logs WHERE id IN (${placeholders})`).run(...ids);
+  let deletedRows = 0;
   let deletedArtifacts = 0;
-  for (const row of rows) {
-    if (deleteCallArtifact(row.artifact_relpath)) {
-      deletedArtifacts++;
+
+  for (const batch of chunkArray(ids, SQLITE_SAFE_DELETE_CHUNK_SIZE)) {
+    const placeholders = batch.map(() => "?").join(", ");
+    const rows = db
+      .prepare(`SELECT artifact_relpath FROM call_logs WHERE id IN (${placeholders})`)
+      .all(...batch) as Array<{ artifact_relpath: string | null }>;
+
+    const result = db.prepare(`DELETE FROM call_logs WHERE id IN (${placeholders})`).run(...batch);
+    deletedRows += result.changes;
+
+    for (const row of rows) {
+      if (deleteCallArtifact(row.artifact_relpath)) {
+        deletedArtifacts++;
+      }
     }
   }
+
   cleanupEmptyCallLogDirs();
 
   return {
-    deletedRows: result.changes,
+    deletedRows,
     deletedArtifacts,
   };
 }

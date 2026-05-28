@@ -190,7 +190,36 @@ test("markAccountUnavailable treats API-key 403 as a recoverable cooldown", asyn
   assert.equal(after.lastErrorType ?? null, null);
 });
 
-test("markAccountUnavailable keeps Grok Web alias 403 errors mode-local", async () => {
+test("markAccountUnavailable treats Bedrock explicit SCP deny as non-terminal and retriable", async () => {
+  await resetStorage();
+
+  const conn = await providersDb.createProviderConnection({
+    provider: "bedrock",
+    authType: "apikey",
+    apiKey: "bedrock-key",
+    isActive: true,
+    testStatus: "active",
+  });
+
+  const result = await auth.markAccountUnavailable(
+    (conn as any).id,
+    403,
+    "User: arn:aws:sts::123456789012:assumed-role/bedrockpartnerawsv1-ProxyApiHandlerServiceRole/session is not authorized to perform: bedrock:InvokeModelWithResponseStream on resource: arn:aws:bedrock:us-east-1::foundation-model/anthropic.claude-3-7-sonnet-20250219-v1: explicit deny in a service control policy",
+    "bedrock",
+    "claude-3-7-sonnet-20250219-v1"
+  );
+
+  const after = await providersDb.getProviderConnectionById((conn as any).id);
+
+  assert.equal(result.shouldFallback, true);
+  assert.equal(result.cooldownMs, 0);
+  assert.equal(after.testStatus, "active");
+  assert.equal(after.lastErrorType, "scope_scp_denied");
+  // lastError is sliced to 100 chars.
+  assert.ok(after.lastError.includes("bedrockpartnerawsv1"));
+});
+
+test("markAccountUnavailable keeps grok-web alias 403 errors mode-local", async () => {
   await resetStorage();
 
   const conn = await providersDb.createProviderConnection({
