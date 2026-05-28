@@ -1,0 +1,99 @@
+import test from "node:test";
+import assert from "node:assert/strict";
+
+const {
+  clientWantsJsonResponse,
+  resolveStreamFlag,
+  resolveExplicitStreamAlias,
+  hasExplicitNoStreamParam,
+  stripMarkdownCodeFence,
+} = await import("../../open-sse/utils/aiSdkCompat.ts");
+
+test("T26: explicit stream:true takes priority over Accept application/json (#656)", () => {
+  assert.equal(clientWantsJsonResponse("application/json"), true);
+  // Body stream:true always wins — even with Accept: application/json
+  assert.equal(resolveStreamFlag(true, "application/json"), true);
+});
+
+test("T26: text/event-stream keeps SSE behavior", () => {
+  assert.equal(clientWantsJsonResponse("text/event-stream"), false);
+  assert.equal(resolveStreamFlag(true, "text/event-stream"), true);
+});
+
+test("T26: mixed Accept header prefers SSE only when text/event-stream is present", () => {
+  assert.equal(clientWantsJsonResponse("application/json, text/event-stream"), false);
+  assert.equal(resolveStreamFlag(true, "application/json, text/event-stream"), true);
+});
+
+test("T26: markdown code fence stripping unwraps Claude JSON blocks", () => {
+  const wrapped = '```json\n{"name":"omniroute"}\n```';
+  assert.equal(stripMarkdownCodeFence(wrapped), '{"name":"omniroute"}');
+});
+
+test("T26: non-fenced content is returned unchanged", () => {
+  const plain = '{"name":"omniroute"}';
+  assert.equal(stripMarkdownCodeFence(plain), plain);
+});
+
+test("T26: undefined stream falls back to Accept header heuristic (#656)", () => {
+  // No explicit stream param — Accept: application/json means no streaming
+  assert.equal(resolveStreamFlag(undefined, "application/json"), false);
+  // No explicit stream param + no JSON accept = stream by default
+  assert.equal(resolveStreamFlag(undefined, "text/event-stream"), true);
+  assert.equal(resolveStreamFlag(undefined, undefined), true);
+});
+
+test("T26: explicit stream:false always prevents streaming", () => {
+  assert.equal(resolveStreamFlag(false, "text/event-stream"), false);
+  assert.equal(resolveStreamFlag(false, undefined), false);
+});
+
+test("T26: sourceFormat=claude applies Anthropic Messages non-stream default (#2325)", () => {
+  // Anthropic Messages API spec: stream defaults to false when body omits it,
+  // regardless of Accept header. Previously OmniRoute defaulted to stream=true
+  // for Accept: */* or undefined, causing STREAM_EARLY_EOF on /v1/messages.
+
+  // Ambiguous cases must default to non-stream when sourceFormat is claude
+  assert.equal(resolveStreamFlag(undefined, undefined, "claude"), false);
+  assert.equal(resolveStreamFlag(undefined, "*/*", "claude"), false);
+  assert.equal(resolveStreamFlag(undefined, "application/json", "claude"), false);
+
+  // Explicit body stream still wins over format default
+  assert.equal(resolveStreamFlag(true, undefined, "claude"), true);
+  assert.equal(resolveStreamFlag(true, "*/*", "claude"), true);
+  assert.equal(resolveStreamFlag(false, "text/event-stream", "claude"), false);
+
+  // Accept: text/event-stream is honored as an explicit SSE opt-in
+  assert.equal(resolveStreamFlag(undefined, "text/event-stream", "claude"), true);
+  assert.equal(resolveStreamFlag(undefined, "application/json, text/event-stream", "claude"), true);
+});
+
+test("T26: non-claude sourceFormat preserves pre-#2325 streaming default", () => {
+  // OpenAI / Gemini / Codex callers keep the existing streaming-by-default heuristic
+  // so we don't break SDKs that omit `stream` and expect SSE.
+  assert.equal(resolveStreamFlag(undefined, undefined, "openai"), true);
+  assert.equal(resolveStreamFlag(undefined, "*/*", "openai"), true);
+  assert.equal(resolveStreamFlag(undefined, "application/json", "openai"), false);
+  assert.equal(resolveStreamFlag(undefined, undefined, "gemini"), true);
+  assert.equal(resolveStreamFlag(undefined, undefined, "codex"), true);
+  // Omitting sourceFormat reproduces the legacy two-arg behavior exactly
+  assert.equal(resolveStreamFlag(undefined, undefined), true);
+  assert.equal(resolveStreamFlag(undefined, "application/json"), false);
+});
+
+test("T26: explicit non-stream aliases are detected", () => {
+  assert.equal(hasExplicitNoStreamParam({ non_stream: true }), true);
+  assert.equal(hasExplicitNoStreamParam({ disable_stream: true }), true);
+  assert.equal(hasExplicitNoStreamParam({ disable_streaming: true }), true);
+  assert.equal(hasExplicitNoStreamParam({ streaming: false }), true);
+  assert.equal(hasExplicitNoStreamParam({ streaming: true }), false);
+  assert.equal(hasExplicitNoStreamParam({ stream: false }), false);
+  assert.equal(hasExplicitNoStreamParam({}), false);
+});
+
+test("T26: explicit stream aliases resolve true/false correctly", () => {
+  assert.equal(resolveExplicitStreamAlias({ streaming: true }), true);
+  assert.equal(resolveExplicitStreamAlias({ streaming: false }), false);
+  assert.equal(resolveExplicitStreamAlias({ disable_streaming: true }), false);
+  assert.equal(resolveExplicitStreamAlias({}), undefined);
+});
