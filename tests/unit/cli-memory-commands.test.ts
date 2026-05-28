@@ -87,13 +87,16 @@ test("runMemorySearch envia q e type na query", async () => {
 });
 
 test("runMemoryAdd envia POST com content e type", async () => {
+  // Plan 21 / D17: legacy 'user' type is mapped to canonical 'factual'.
   let capturedUrl = "";
   let capturedInit: any = null;
   const origFetch = globalThis.fetch;
   globalThis.fetch = ((url: string, init: any) => {
     capturedUrl = url;
     capturedInit = init;
-    return Promise.resolve(makeResp({ id: "mem_new", type: "user", content: "test content" }));
+    return Promise.resolve(
+      makeResp({ id: "mem_new", type: "factual", content: "test content" })
+    );
   }) as any;
 
   const { runMemoryAdd } = await import("../../bin/cli/commands/memory.mjs");
@@ -106,7 +109,8 @@ test("runMemoryAdd envia POST com content e type", async () => {
   assert.equal(capturedInit?.method, "POST");
   const body = JSON.parse(capturedInit?.body);
   assert.equal(body.content, "test content");
-  assert.equal(body.type, "user");
+  // Legacy 'user' is remapped to canonical 'factual' by CLI (plan 21 / D17).
+  assert.equal(body.type, "factual");
 });
 
 test("runMemoryList retorna items sem q", async () => {

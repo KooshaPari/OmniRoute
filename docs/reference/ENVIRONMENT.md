@@ -626,6 +626,21 @@ The logging system writes to both stdout and rotated log files. All configuratio
 | ------------------------------------- | ------- | ------------------------------------------------------------------------------------------------------------- |
 | `OMNIROUTE_RTK_TRUST_PROJECT_FILTERS` | unset   | Trust project `.rtk/filters.json` without a `.rtk/trust.json` hash. Use only in controlled local development. |
 
+### Memory Engine (plan 21)
+
+Embedding layer, vector store and reranking knobs for the persistent memory subsystem (`src/lib/memory/`).
+
+| Variable                        | Default                          | Description                                                                                                |
+| ------------------------------- | -------------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| `MEMORY_EMBEDDING_CACHE_TTL_MS` | `300000` (5 min)                 | TTL for the in-memory embedding cache (per source/model/dim signature).                                    |
+| `MEMORY_EMBEDDING_CACHE_MAX`    | `1000`                           | Max LRU entries kept in the embedding cache.                                                               |
+| `MEMORY_TRANSFORMERS_MODEL`     | `Xenova/all-MiniLM-L6-v2`        | HF repo id for the opt-in `@huggingface/transformers` local MiniLM pipeline (~23 MB int8, ~400 MB RAM).    |
+| `MEMORY_STATIC_MODEL`           | `minishlab/potion-base-8M`       | HF repo id for the static potion/Model2Vec lookup-table embedder. Downloaded lazily into the cache dir.    |
+| `MEMORY_STATIC_CACHE_DIR`       | `<DATA_DIR>/embeddings`          | Directory used to cache the static potion model files. Defaults under `DATA_DIR` when unset.               |
+| `MEMORY_VEC_TOP_K`              | `20`                             | Default top-K used by the `sqlite-vec` brute-force vector search inside `src/lib/memory/vectorStore.ts`.   |
+| `MEMORY_RRF_K`                  | `60`                             | Reciprocal Rank Fusion constant `k` for hybrid FTS5 + vector retrieval (sqlite-vec recipe).                |
+| `HF_HUB_ENDPOINT`               | `https://huggingface.co`         | Override Hugging Face Hub base URL used by `staticPotion.ts` (e.g. mirror endpoint for air-gapped setups). |
+
 ### Low-RAM Docker Example
 
 ```bash
