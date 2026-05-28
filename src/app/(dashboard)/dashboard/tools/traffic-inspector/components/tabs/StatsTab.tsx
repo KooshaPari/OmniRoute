@@ -1,6 +1,5 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 import type { InterceptedRequest } from "@/mitm/inspector/types";
 
@@ -8,121 +7,11 @@ interface StatsTabProps {
   requests: InterceptedRequest[];
 }
 
-// Recharts is lazy-loaded via dynamic() with ssr: false — avoids including the
-// full Recharts bundle in the initial page load.
-const _rechartsPreload = dynamic(() => import("recharts"), { ssr: false });
-void _rechartsPreload;
-
-// Using ComponentType<unknown> instead of any to satisfy strict lint rules.
-type AnyComponent = React.ComponentType<Record<string, unknown>>;
-
-interface RechartsLib {
-  ResponsiveContainer: AnyComponent;
-  BarChart: AnyComponent;
-  Bar: AnyComponent;
-  XAxis: AnyComponent;
-  YAxis: AnyComponent;
-  Tooltip: AnyComponent;
-  LineChart: AnyComponent;
-  Line: AnyComponent;
-}
-
-function StatsCharts({ requests }: StatsTabProps) {
-  const [lib, setLib] = useState<RechartsLib | null>(null);
-
-  useEffect(() => {
-    import("recharts").then((mod) => {
-      setLib(mod as unknown as RechartsLib);
-    });
-  }, []);
-
-  if (!lib) {
-    return <div className="p-4 text-sm text-text-muted animate-pulse">Loading charts…</div>;
-  }
-
-  const { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, LineChart, Line } = lib;
-
-  const statusDist = requests.reduce<Record<string, number>>((acc, r) => {
-    const key =
-      typeof r.status === "number" ? `${Math.floor(r.status / 100)}xx` : String(r.status);
-    acc[key] = (acc[key] ?? 0) + 1;
-    return acc;
-  }, {});
-  const statusData = Object.entries(statusDist).map(([name, count]) => ({ name, count }));
-
-  const latencyData = requests
-    .filter((r) => r.totalLatencyMs != null)
-    .slice(-50)
-    .map((r, i) => ({ i, ms: r.totalLatencyMs }));
-
-  return (
-    <div className="h-full overflow-auto p-4 space-y-6">
-      <div>
-        <h3 className="text-xs font-medium text-text-muted uppercase tracking-wider mb-3">
-          Status distribution
-        </h3>
-        <div style={{ height: 160 }}>
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={statusData}>
-              <XAxis dataKey="name" tick={{ fontSize: 11 }} />
-              <YAxis tick={{ fontSize: 11 }} />
-              <Tooltip />
-              <Bar dataKey="count" fill="#6366f1" radius={[4, 4, 0, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
-      </div>
-
-      {latencyData.length > 1 && (
-        <div>
-          <h3 className="text-xs font-medium text-text-muted uppercase tracking-wider mb-3">
-            Latency (last 50 requests)
-          </h3>
-          <div style={{ height: 160 }}>
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={latencyData}>
-                <XAxis dataKey="i" hide />
-                <YAxis tick={{ fontSize: 11 }} unit="ms" />
-                <Tooltip formatter={(v: unknown) => [`${String(v)}ms`, "latency"]} />
-                <Line
-                  type="monotone"
-                  dataKey="ms"
-                  stroke="#10b981"
-                  dot={false}
-                  strokeWidth={2}
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-      )}
-
-      <div className="grid grid-cols-3 gap-3 text-sm">
-        <div className="rounded border border-border bg-bg-subtle p-3">
-          <div className="text-2xl font-bold text-text-main">{requests.length}</div>
-          <div className="text-xs text-text-muted mt-1">Total requests</div>
-        </div>
-        <div className="rounded border border-border bg-bg-subtle p-3">
-          <div className="text-2xl font-bold text-green-400">
-            {requests.filter((r) => typeof r.status === "number" && r.status < 400).length}
-          </div>
-          <div className="text-xs text-text-muted mt-1">Successful</div>
-        </div>
-        <div className="rounded border border-border bg-bg-subtle p-3">
-          <div className="text-2xl font-bold text-red-400">
-            {
-              requests.filter(
-                (r) =>
-                  r.status === "error" || (typeof r.status === "number" && r.status >= 400),
-              ).length
-            }
-          </div>
-          <div className="text-xs text-text-muted mt-1">Errors</div>
-        </div>
-      </div>
-    </div>
-  );
-}
+// Recharts bundle is split via Next.js dynamic() — not included in the initial page chunk.
+const StatsCharts = dynamic(() => import("./StatsCharts"), {
+  ssr: false,
+  loading: () => <div className="p-4 text-sm text-muted-foreground">Loading charts…</div>,
+});
 
 export function StatsTab({ requests }: StatsTabProps) {
   if (requests.length === 0) {
