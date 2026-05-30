@@ -185,3 +185,11 @@ All registries have:
 ## License
 
 MIT — see [LICENSE](./LICENSE).
+
+---
+
+## Rich Media Stubs
+
+<!-- RICH-MEDIA-STUB type="annotated-screenshot" subject="Registry quickstart — install and first navigation" journey="" status="TODO" -->
+> **[RICH MEDIA PLACEHOLDER]** *Annotated screenshot of the docs site after `bun run dev`, highlighting the registry index.*
+<!-- END-RICH-MEDIA-STUB -->

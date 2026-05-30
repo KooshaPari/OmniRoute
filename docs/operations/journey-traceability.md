@@ -119,3 +119,11 @@ open issue or missing dependency. Do not silently omit the evidence.
 - `docs/governance/security-policy.md`
 - `hwLedger/docs-site/reference/cli.md`
 - `hwLedger/vendor/phenotype-journeys/README.md`
+
+---
+
+## Rich Media Stubs
+
+<!-- RICH-MEDIA-STUB type="recording-mp4" subject="Journey traceability — linking a manifest to code and docs" journey="" status="TODO" -->
+> **[RICH MEDIA PLACEHOLDER]** *Video showing how a journey manifest is traced from docs/journeys through to keyframe validation.*
+<!-- END-RICH-MEDIA-STUB -->

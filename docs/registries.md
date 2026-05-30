@@ -35,3 +35,11 @@ project structure.
 2. Handbook patterns explain the preferred implementation model.
 3. HexaKit templates scaffold projects that follow those patterns.
 4. Implementation repos link back to the source spec and pattern decisions.
+
+---
+
+## Rich Media Stubs
+
+<!-- RICH-MEDIA-STUB type="recording-gif" subject="Registry lookup workflow — finding a canonical source of truth" journey="" status="TODO" -->
+> **[RICH MEDIA PLACEHOLDER]** *GIF walkthrough of navigating from Registry Reference to the correct canonical repo.*
+<!-- END-RICH-MEDIA-STUB -->

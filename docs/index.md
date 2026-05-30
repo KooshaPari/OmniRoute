@@ -27,3 +27,11 @@ and library research into one reference surface.
 - Registry entries should explain why the destination exists and when to use it.
 - Library decisions should cite the evidence surface that informed them.
 - This docs shell is static and published through GitHub Pages.
+
+---
+
+## Rich Media Stubs
+
+<!-- RICH-MEDIA-STUB type="annotated-screenshot" subject="Phenotype Registry navigation hub overview" journey="" status="TODO" -->
+> **[RICH MEDIA PLACEHOLDER]** *Annotated screenshot of the registry hub showing the four registry tiles and quick-path navigation.*
+<!-- END-RICH-MEDIA-STUB -->
