@@ -1,0 +1,42 @@
+# Build artifacts
+target/
+dist/
+build/
+*.o
+*.so
+*.dylib
+*.rlib
+*.rmeta
+
+# Dependencies
+node_modules/
+vendor/
+.venv/
+venv/
+.env
+.env.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+
+# Test
+coverage/
+*.lcov
+.nyc_output/
+
+# Misc
+*.tmp
+*.bak
+*.orig
