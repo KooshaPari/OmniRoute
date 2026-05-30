@@ -2391,3 +2391,27 @@ MIT License - see [LICENSE](LICENSE) for details.
   <sub><a href="https://omniroute.online">omniroute.online</a></sub>
 </div>
 <!-- GitHub Discussions enabled for community Q&A -->
+
+---
+
+## Rich Media Stubs
+
+<!-- RICH-MEDIA-STUB type="recording-gif" subject="OmniRoute quickstart — install + first completion request with fallback" journey="" status="TODO" -->
+> **[RICH MEDIA PLACEHOLDER]** *GIF of installing OmniRoute and making a first chat completion request that triggers provider fallback.*
+<!-- END-RICH-MEDIA-STUB -->
+
+<!-- RICH-MEDIA-STUB type="annotated-screenshot" subject="Provider routing dashboard — 160+ provider grid with health indicators" journey="" status="TODO" -->
+> **[RICH MEDIA PLACEHOLDER]** *Annotated screenshot of the provider routing dashboard showing active/fallback providers.*
+<!-- END-RICH-MEDIA-STUB -->
+
+<!-- RICH-MEDIA-STUB type="recording-mp4" subject="MCP server walkthrough — 29 tools in action" journey="" status="TODO" -->
+> **[RICH MEDIA PLACEHOLDER]** *Video demonstration of the MCP server exposing all 29 tools to a Claude client.*
+<!-- END-RICH-MEDIA-STUB -->
+
+<!-- RICH-MEDIA-STUB type="recording-gif" subject="Automatic fallback — primary provider fails, OmniRoute reroutes live" journey="" status="TODO" -->
+> **[RICH MEDIA PLACEHOLDER]** *GIF showing a simulated provider outage and OmniRoute automatically rerouting to a backup.*
+<!-- END-RICH-MEDIA-STUB -->
+
+<!-- RICH-MEDIA-STUB type="annotated-screenshot" subject="OmniRoute architecture — proxy gateway + provider adapters diagram" journey="" status="TODO" -->
+> **[RICH MEDIA PLACEHOLDER]** *Annotated architecture diagram of the OmniRoute gateway and provider adapter layer.*
+<!-- END-RICH-MEDIA-STUB -->
