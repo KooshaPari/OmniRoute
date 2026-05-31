@@ -1,6 +1,9 @@
 # Phenotype Registry System - Master Index
 
 **Unified entry point for all Phenotype registries.**
+
+> **Absorbed (rationalization):** Per [RATIONALIZATION_PLAN.md](./RATIONALIZATION_PLAN.md), **PhenoHandbook** is collapsed into this registry **via index link** (its content stays as a standalone VitePress docs site — see [Absorbed: PhenoHandbook](#absorbed-phenohandbook-patterns--guidelines)). No subtree merge: the handbook is a ~740K living docs site (64 markdown docs) best browsed at its published URL, while this registry is the canonical markdown master index that surfaces it.
+
 ## Registry Files
 
 ### Core Registries
@@ -119,6 +122,30 @@ cat PhenoHandbook/checklists/deployment.md
 ```
 
 **Published Site:** https://kooshapari.com/handbook
+
+---
+
+### Absorbed: PhenoHandbook (Patterns & Guidelines)
+
+PhenoHandbook is absorbed into this registry **as an index link** (rationalization decision: index, not subtree — the handbook remains a standalone VitePress docs site, surfaced here as the canonical entry point). Browse it directly:
+
+- **Repo:** https://github.com/KooshaPari/PhenoHandbook
+- **Published site:** https://kooshapari.com/handbook (base `/handbook/`)
+
+**Handbook index map:**
+
+| Section | Link |
+|---------|------|
+| Patterns — architecture | [docs/patterns/architecture](https://github.com/KooshaPari/PhenoHandbook/tree/main/docs/patterns/architecture) |
+| Patterns — async | [docs/patterns/async](https://github.com/KooshaPari/PhenoHandbook/tree/main/docs/patterns/async) |
+| Patterns — auth | [docs/patterns/auth](https://github.com/KooshaPari/PhenoHandbook/tree/main/docs/patterns/auth) |
+| Patterns — caching | [docs/patterns/caching](https://github.com/KooshaPari/PhenoHandbook/tree/main/docs/patterns/caching) |
+| Patterns — observability | [docs/patterns/observability](https://github.com/KooshaPari/PhenoHandbook/tree/main/docs/patterns/observability) |
+| Patterns — testing | [docs/patterns/testing](https://github.com/KooshaPari/PhenoHandbook/tree/main/docs/patterns/testing) |
+| Governance (stacked PRs, traceability) | [docs/governance](https://github.com/KooshaPari/PhenoHandbook/tree/main/docs/governance) |
+| Guides & getting started | [docs/guide](https://github.com/KooshaPari/PhenoHandbook/tree/main/docs/guide) |
+| Methodologies & development | [docs/development](https://github.com/KooshaPari/PhenoHandbook/tree/main/docs/development) |
+| Reference & operations | [docs/reference](https://github.com/KooshaPari/PhenoHandbook/tree/main/docs/reference) |
 
 ### 3. HexaKit - Template Registry
 
