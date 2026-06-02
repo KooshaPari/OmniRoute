@@ -2,6 +2,21 @@
 
 **Unified entry point for all Phenotype registries.**
 
+> **Canonical ecosystem index:** [`ECOSYSTEM_MAP.md`](./ECOSYSTEM_MAP.md) — repo role classification + dependency graph for the whole org. Start there for "what exists and how it connects."
+
+## The 4-role spec/governance spine
+
+This registry is the **INDEX** of a four-repo spine. Each repo owns one role; they reference each other rather than maintaining competing copies.
+
+| Repo | Role | Owns |
+|------|------|------|
+| **phenotype-registry** (this repo) | **INDEX** | Canonical ecosystem map ([`ECOSYSTEM_MAP.md`](./ECOSYSTEM_MAP.md)) + dependency graph |
+| **PhenoSpecs** | **ADRs / contracts** | Architecture Decision Records (`adrs/`), API contracts, specs |
+| **PhenoHandbook** | **CONVENTIONS** | Patterns, methodologies — how we build |
+| **phenotype-org-governance** | **ENFORCEMENT** | Reusable policy workflows + `deny.toml`/license baseline |
+
+When two documents disagree, authority follows role. Note: `PhenoSpecs/registry.yaml` (linked below) is the spec↔implementation traceability index and is **stale (last updated 2026-04-04)** — it is not the ecosystem index; `ECOSYSTEM_MAP.md` is.
+
 > **Absorbed (rationalization):** Per [RATIONALIZATION_PLAN.md](./RATIONALIZATION_PLAN.md), **PhenoHandbook** is collapsed into this registry **via index link** (its content stays as a standalone VitePress docs site — see [Absorbed: PhenoHandbook](#absorbed-phenohandbook-patterns--guidelines)). No subtree merge: the handbook is a ~740K living docs site (64 markdown docs) best browsed at its published URL, while this registry is the canonical markdown master index that surfaces it.
 
 ## Registry Files
