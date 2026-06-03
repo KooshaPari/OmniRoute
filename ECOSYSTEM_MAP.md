@@ -134,13 +134,18 @@ graph TD
 
 ### Cluster A — LLM Routing (6 repos)
 
+> **Reconciled 2026-06-02** to the dom-services-routing convergence ruling (apex-approved) + OmniRoute `docs/ADR-001-canonical-routing.md`. The earlier "phenoAI canonical / archive OmniRoute" claim was STALE and is corrected below.
+
 | Repo | Status | Verdict |
 |------|--------|---------|
-| **phenoAI** (llm-router crate) | Active, Rust workspace | **CANONICAL** — keep, mature workspace |
-| phenoRouterMonitor | Active, Rust + Streamlit | Merge routing logic into phenoAI; keep dashboard UI as phenoAI/monitoring |
-| OmniRoute | Fork (upstream), TS | Archive — upstream-maintained; phenoAI supersedes |
-| bifrost | Fork (upstream), Go | Archive — upstream-maintained; use as vendored gateway only |
-| cliproxyapi-plusplus | Fork, Go | Superseded by phenoAI/bifrost; archive when vibeproxy retired |
+| **OmniRoute** (TS) | Active | **CANONICAL LLM router** — the org's routing framework. NOT archived; NOT superseded by phenoAI. |
+| **Tokn** — `tokenledger::routing` | Active, Rust | **CANONICAL Rust routing substrate** (hexagonal: `pareto_router`/ports/adapters). Resolve "Rust routing" here, not the dead bifrost-routing stub. |
+| phenoAI (llm-router crate) | Active, Rust workspace | **Consumer / skeleton** — 64-file skeleton, empty README; NOT the canonical router. May consume OmniRoute / Tokn routing. |
+| phenoRouterMonitor | Active, Rust + Streamlit | Monitoring dashboard; **remove its 15 local phenotype-* path-copies, depend on HexaKit** (see dup table). |
+| bifrost | Fork (upstream maxim hq), Go | **Non-peer vendored fork; gateway use only — NOT the routing referent.** |
+| bifrost-routing (crate) | — | **Dead stub** (no Cargo.toml; superseded). Not the Rust routing referent — Tokn is. |
+| helios-router | — | Archived / superseded by OmniRoute. |
+| cliproxyapi-plusplus | Fork, Go | AI-gateway fork; not a routing referent. |
 | helioscope / helios-cli | Forks of codex-monorepo | Keep as tooling entry-point; deduplicate into single helios repo |
 
 ### Cluster B — Agent Runtimes (5 repos)
@@ -276,7 +281,7 @@ These sub-projects live INSIDE repos but are reusable enough to extract or merge
 
 | Action | Repos affected | Notes |
 |--------|---------------|-------|
-| **Archive forks with no local modifications** | OmniRoute, Planify, portage, phenotype-omlx, phenotype-ops-mcp, agentapi-plusplus | All upstream-maintained; no meaningful local changes |
+| **Archive forks with no local modifications** | Planify, portage, phenotype-omlx, phenotype-ops-mcp, agentapi-plusplus | All upstream-maintained; no meaningful local changes. (OmniRoute REMOVED from this list 2026-06-02 — it is the canonical LLM router, see Cluster A.) |
 | **Merge pheno → HexaKit** | pheno | 21 crates overlap; HexaKit is the canonical infrakit; retire pheno |
 | **Merge PhenoAgent stub → Agentora** | PhenoAgent | Empty manifest; description says "extracted from phenotype-infra" |
 | **Merge Metron + Traceon → PhenoObservability** | Metron, Traceon | Both thin Rust wrappers; PhenoObservability is the workspace home |
@@ -321,7 +326,8 @@ INFRASTRUCTURE / TOOLING (5)
 AGENT PLATFORM (4)
   Agentora                 — Rust agent framework (canonical)
   thegent                  — Python agent runtime
-  phenoAI                  — LLM routing + MCP server + embeddings + router dashboard
+  OmniRoute                — CANONICAL LLM router (TS); Tokn tokenledger::routing = canonical Rust routing substrate
+  phenoAI                  — MCP server + embeddings + router-dashboard skeleton (consumes routing; NOT the canonical router)
   PhenoMCP                 — MCP server (Rust + Go)
 
 DATA / STORAGE (3)
