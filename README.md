@@ -1,3 +1,6 @@
+> **Work state:** ACTIVE · **Progress:** `█████████░ 90%`
+> Canonical ecosystem INDEX — ECOSYSTEM_MAP.md live (111 repos, regenerated 2026-05-30); 4-role spine authority declared · updated 2026-06-02
+
 # Phenotype Registry System - Master Index
 
 **Unified entry point for all Phenotype registries.**
