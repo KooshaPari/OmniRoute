@@ -5,7 +5,7 @@
 > - Branch protection: 1 reviewer required, no force-push
 > - Authority: phenotype-org-governance/SUPERSEDED.md
 
-> **Work state:** DORMANT · **Progress:** `█████████░ 85%`
+> **Work state:** ACTIVE · **Progress:** `█████████░ 85%`
 > Connector-first screen-time platform: portable Rust core (rules/ledger/audit-chain) + native iOS shell. Phase 1 ~85% but WORKSPACE DOES NOT COMPILE since 2026-04-23 (5 crates, E-series errors) — blocked until fixed. · updated 2026-06-02
 
 # FocalPoint
@@ -17,7 +17,7 @@
 [![Phenotype](https://img.shields.io/badge/Phenotype-org-blueviolet)](https://github.com/KooshaPari)
 
 **Status:** v0.0.5 — Phase 1 in progress (~85%).
-**⚠️ Compilation broken (2026-04-23).** 5 crates have unmerged E-series errors (backup borrow-check, rituals f32, connectors). See [honest_coverage.md](docs/reference/honest_coverage.md).
+**✅ Builds green** — `cargo build --workspace` Finished (verified 2026-06-02). NOTE: 11 crates use a relative cross-repo path-dep on `phenotype-observably-macros`, so **clone [PhenoObservability](https://github.com/KooshaPari/PhenoObservability) adjacent** (`../PhenoObservability`) before building. (Earlier "compilation broken" status is resolved.)
 
 Connector-first screen-time management platform. Native iOS enforcement built on a portable Rust core: rules engine, connector runtime, reward/penalty ledger, audit chain, mascot state machine.
 
