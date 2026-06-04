@@ -1,0 +1,15 @@
+# Enforces the org conventions via the governance reusable gate.
+name: conventions
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+    branches: ["**"]
+
+permissions:
+  contents: read
+
+jobs:
+  conventions:
+    uses: KooshaPari/phenotype-org-governance/.github/workflows/reusable-conventions-lint.yml@main
