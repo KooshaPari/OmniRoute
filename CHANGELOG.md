@@ -2,6 +2,14 @@
 
 ## [Unreleased]
 
+### 📝 Documentation
+
+- **governance:** add `CODEOWNERS` defaulting to `@KooshaPari` (so PRs without a more specific owner rule get auto-assigned to the org owner).
+
+### ⚡ Performance / CI
+
+- **ci:** add `.github/dependabot.yml` (weekly updates for `github-actions` and `npm` at the root, plus `npm` at `/electron`; 5-PR limit each). The root `npm` entry walks the `open-sse/` yarn workspace. `/desktop-electrobun` is intentionally not enabled (Bun project, no dependabot-supported lockfile) — see the YAML comment for the rationale and re-enable condition.
+
 ---
 
 ## [3.8.5] — 2026-05-27
