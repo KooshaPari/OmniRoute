@@ -1,4 +1,7 @@
 name: Publish to npm
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 on:
   # 'released' (not 'published') so editing/re-publishing old releases does NOT
@@ -37,27 +40,21 @@ on:
       NPM_TOKEN:
         required: true
 
-# Least-privilege default: read-only at the top level; each publish job grants the
-# id-token (npm provenance) / packages (GitHub Packages) writes it needs (Scorecard
-# TokenPermissions).
 permissions:
   contents: read
+  id-token: write
+  packages: write
 
 env:
   NPM_PUBLISH_NODE_VERSION: "24"
 
 jobs:
   publish:
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write # gh release upload (attach SBOM to the GitHub Release)
-      id-token: write # npm provenance
-      packages: write # publish to npm.pkg.github.com
+    runs-on: ubuntu-24.04
     steps:
       - name: Checkout
-        uses: actions/checkout@v7
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
         with:
-          persist-credentials: false
           # Need full tag history to compare against highest semver when
           # deciding whether this release should claim dist-tag `latest`.
           fetch-depth: 0
@@ -147,25 +144,6 @@ jobs:
         if: steps.resolve.outputs.skip != 'true'
         run: npm run check:pack-artifact
 
-      - name: Generate CycloneDX SBOM (npm)
-        if: steps.resolve.outputs.skip != 'true'
-        run: npx @cyclonedx/cyclonedx-npm --ignore-npm-errors --output-format JSON --output-file sbom-npm.cdx.json
-
-      - name: Upload SBOM (npm) as workflow artifact
-        if: steps.resolve.outputs.skip != 'true'
-        uses: actions/upload-artifact@v7
-        with:
-          name: sbom-npm
-          path: sbom-npm.cdx.json
-          if-no-files-found: error
-
-      - name: Attach SBOM to GitHub Release
-        if: steps.resolve.outputs.skip != 'true' && github.event_name == 'release'
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          TAG: ${{ github.ref_name }}
-        run: gh release upload "$TAG" sbom-npm.cdx.json --clobber
-
       - name: Publish to npm
         if: steps.resolve.outputs.skip != 'true'
         env:
@@ -177,7 +155,7 @@ jobs:
           # Always pass --tag explicitly. Defense in depth: even if VERSION is
           # accidentally an older release, `npm publish --tag historic` will
           # NOT promote it to `@latest`.
-          npm publish --provenance --access public --tag "$TAG"
+          npm publish --access public --tag "$TAG"
           echo "✅ Published omniroute@$VERSION (dist-tag=$TAG)"
 
       - name: Publish to GitHub Packages
@@ -196,64 +174,16 @@ jobs:
           echo "✅ Action finished for GitHub Packages"
 
   publish-opencode-plugin:
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      id-token: write # npm provenance
+    runs-on: ubuntu-24.04
     steps:
       - name: Checkout
-        uses: actions/checkout@v7
-        with:
-          persist-credentials: false
-          fetch-depth: 0
-          # Full history needed for auto-bump: git diff against previous release tag
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
 
       - name: Setup Node.js
         uses: actions/setup-node@v6
         with:
           node-version: ${{ env.NPM_PUBLISH_NODE_VERSION }}
           registry-url: https://registry.npmjs.org
-
-      - name: Auto-bump plugin version if plugin changed since last release
-        id: bump
-        working-directory: "@omniroute/opencode-plugin"
-        env:
-          CURRENT_TAG: ${{ github.ref_name }}
-        run: |
-          set -euo pipefail
-
-          PKG_VERSION=$(node -p "require('./package.json').version")
-          PKG_NAME=$(node -p "require('./package.json').name")
-
-          # 1) Skip if current version is not yet published (no bump needed)
-          PUBLISHED="$(npm view "${PKG_NAME}@${PKG_VERSION}" version 2>/dev/null || true)"
-          if [ "$PUBLISHED" != "$PKG_VERSION" ]; then
-            echo "✅ ${PKG_NAME}@${PKG_VERSION} is new — no bump needed."
-            echo "bumped=false" >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
-
-          # 2) Find the previous release tag (exclude the current one)
-          PREV_TAG=$(git tag -l 'v*' --sort=-version:refname \
-            | grep -v "^${CURRENT_TAG}$" | head -1 || echo "")
-          if [ -z "$PREV_TAG" ]; then
-            echo "No previous tag to compare — skipping bump."
-            echo "bumped=false" >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
-
-          # 3) Check if plugin dir actually changed since that tag
-          if git diff --quiet "$PREV_TAG" -- "@omniroute/opencode-plugin/"; then
-            echo "⏭️ No plugin changes since $PREV_TAG — nothing to publish."
-            echo "bumped=false" >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
-
-          # 4) Auto-bump patch version
-          npm version patch --no-git-tag-version --allow-same-version
-          NEW_VERSION=$(node -p "require('./package.json').version")
-          echo "bumped=true" >> "$GITHUB_OUTPUT"
-          echo "📦 Auto-bumped ${PKG_NAME} from ${PKG_VERSION} to ${NEW_VERSION}"
 
       - name: Install plugin dependencies
         working-directory: "@omniroute/opencode-plugin"
@@ -281,5 +211,5 @@ jobs:
             echo "⚠️ ${PKG_NAME}@${PKG_VERSION} is already published on npm — skipping."
             exit 0
           fi
-          npm publish --provenance --access public --ignore-scripts
+          npm publish --access public --ignore-scripts
           echo "✅ Published ${PKG_NAME}@${PKG_VERSION}"
