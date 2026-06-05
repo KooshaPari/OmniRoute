@@ -1,6 +1,17 @@
 name: Lock released branch
+
 on:
+  release:
+    types: [published]
+  push:
+    branches:
+      - "release/v*"
   workflow_dispatch:
+    inputs:
+      tag:
+        description: "Tag of the released version (e.g. v3.8.2)"
+        required: true
+        type: string
 
 permissions:
   contents: read
@@ -27,18 +38,6 @@ concurrency:
 # lock step will fail loudly (which is what we want — silent failure caused the
 # v3.8.3 incident on 2026-05-26 where 6 commits landed post-release).
 
-on:
-  release:
-    types: [published]
-  push:
-    branches:
-      - "release/v*"
-  workflow_dispatch:
-    inputs:
-      tag:
-        description: "Tag of the released version (e.g. v3.8.2)"
-        required: true
-        type: string
 jobs:
   # ─────────────────────────────────────────────────────────────────────────
   # Job 1 — Lock the release branch when a Release is published.
@@ -106,7 +105,7 @@ jobs:
     steps:
       - name: Reject push if matching release tag exists
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ github.token }}
           REPO: ${{ github.repository }}
           REF: ${{ github.ref_name }}
         run: |
