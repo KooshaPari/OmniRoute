@@ -10,6 +10,9 @@ on:
   pull_request:
     branches: [main, master]
   workflow_dispatch:
+permissions:
+  contents: read
+
 
 jobs:
   legacy-tooling-scan:
@@ -21,17 +24,17 @@ jobs:
       pull-requests: write
     steps:
       - name: Checkout repository
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v4
 
       - name: Checkout phenoShared for shared tools
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v4
         with:
           repository: KooshaPari/phenoShared
           path: phenotype-repos
           sparse-checkout: tooling/legacy-enforcement
 
       - name: Set up Python
-        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405
+        uses: actions/setup-python@c8813ba1bc76ebf779b911ad8ffccbf2e449cb48 # v-latest
         with:
           python-version: '3.12'
 
@@ -64,7 +67,7 @@ jobs:
 
       - name: Comment PR with findings
         if: github.event_name == 'pull_request'
-        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v-latest
         with:
           script: |
             const fs = require('fs');

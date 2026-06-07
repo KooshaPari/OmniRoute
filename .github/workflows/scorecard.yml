@@ -9,6 +9,9 @@ on:
     - cron: '17 3 * * 6'
   push:
     branches: [main]
+permissions:
+  contents: read
+
 
 permissions: read-all
 
@@ -23,11 +26,11 @@ jobs:
       actions: read
 
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v4
         with:
           persist-credentials: false
 
-      - uses: ossf/scorecard-action@f2ea147fec3c2f0d459703eba7405b5e9bcd8c8f
+      - uses: ossf/scorecard-action@af76153369ae1eb1eaffc4118046b7fda9a8419e # v-latest
         with:
           results_file: results.sarif
           results_format: sarif
