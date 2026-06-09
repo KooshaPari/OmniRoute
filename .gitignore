@@ -307,3 +307,5 @@ charts/*/requirements.lock
 # Local scripts
 scripts/local/
 scripts/*.local.*
+/worktrees/
+/*-wtrees/
