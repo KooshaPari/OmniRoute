@@ -1,0 +1,17 @@
+cff-version: 1.2.0
+message: "If you use OmniRoute in research, please cite it."
+title: "OmniRoute"
+type: software
+license: MIT
+repository-code: "https://github.com/diegosouzapw/OmniRoute"
+url: "https://github.com/diegosouzapw/OmniRoute"
+authors:
+  - family-names: "Souza"
+    given-names: "Diego"
+    alias: "diegosouzapw"
+keywords:
+  - ai-gateway
+  - llm-routing
+  - openai-compatible
+  - mcp
+  - a2a
