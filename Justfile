@@ -1,26 +1,37 @@
-# phenotype-registry Justfile
-set shell := ["bash", "-cu"]
+# phenotype-registry justfile
+# VitePress registry documentation
 
+set shell := ["bash", "-uc"]
+
+# List available recipes
 default:
     @just --list
 
-install:
-    npm install
+# Start VitePress dev server with hot reload
+dev:
+    bun run docs:dev
 
+# Build the VitePress static site
 build:
-    npm run build
+    bun run docs:build
 
+# Preview the built site locally
+preview:
+    bun run docs:preview
+
+# Run the test suite
 test:
-    npm test
+    @echo "No tests defined for phenotype-registry docs site"
 
+# Lint Markdown
 lint:
-    npx eslint . --ext .ts
-    npx prettier --check "**/*.ts"
+    bunx markdownlint-cli "**/*.md"
 
+# Apply formatter
 fmt:
-    npx prettier --write "**/*.ts"
+    bunx prettier --write "**/*.md" "**/*.json" "**/*.mjs"
 
-ci: install build test lint
-
+# Remove build artifacts
 clean:
-    rm -rf node_modules dist
+    rm -rf docs/.vitepress/cache docs/.vitepress/dist .vitepress/cache .vitepress/dist
+    @echo "Cleaned VitePress build artifacts"
