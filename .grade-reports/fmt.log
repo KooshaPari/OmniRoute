@@ -1,0 +1,3 @@
+Checking formatting...
+[[31merror[39m] No files matching the pattern were found: "**/*.ts".
+All matched files use Prettier code style!
