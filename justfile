@@ -1,34 +1,60 @@
-# FocalPoint Justfile
-set shell := ["bash", "-euo", "pipefail", "-c"]
+# Justfile — task runner for the FocalPoint project
+# See https://just.systems/man/en/
 
-# Show available commands
-default:
+set dotenv-load
+
+_default:
     @just --list
 
-# Build the workspace
-build:
-    cargo build --workspace
+# Run all CI checks locally
+ci: fmt-check lint test build
+    @echo "✓ CI checks pass"
 
-# Run all tests
-test:
-    cargo test --workspace
-
-# Run linting (clippy + fmt check)
-lint:
-    cargo fmt -- --check
-    cargo clippy --workspace --all-targets --all-features -- -D warnings
-
-# Auto-format code
+# Format code
 fmt:
-    cargo fmt
+    cargo fmt --all
 
-# Run cargo-deny audit
+# Check formatting
+fmt-check:
+    cargo fmt --all -- --check
+
+# Lint
+lint:
+    cargo clippy --all-targets --all-features -- -D warnings
+
+# Run tests
+test:
+    cargo test --all-features
+
+# Build release
+build:
+    cargo build --release
+
+# Audit dependencies for security advisories
 audit:
-    cargo deny check
+    cargo deny check advisories
 
-# CI-like run (build + test + lint + audit)
-ci: build test lint audit
+# Check licenses
+licenses:
+    cargo deny check licenses
 
-# Clean artifacts
+# Clean build artifacts
 clean:
     cargo clean
+# Grade targets (strictest checks — no caching)
+grade:
+    @echo "=== Running full grade ==="
+    ./grade.sh
+
+grade-fast:
+    @echo "=== Running fast grade ==="
+    ./grade.sh --fast
+
+grade-json:
+    @echo "=== Running grade (JSON) ==="
+    ./grade.sh --json
+
+grade-html:
+    @echo "=== Running grade (HTML) ==="
+    ./grade.sh --html
+
