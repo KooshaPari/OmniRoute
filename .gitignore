@@ -17,3 +17,7 @@ __pycache__/
 .venv/
 venv/
 # ===== End standard hygiene ignores =====
+# Grade artifacts (generated)
+.grade-reports/
+grade.sh
+lefthook.yml
