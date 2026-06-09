@@ -1,3 +1,14 @@
+## Work State
+
+| Field | Value |
+|---|---|
+| Last commit | 2026-06-08 |
+| Open issues | 0 |
+| Open PRs | 1 |
+| Focus | Multi-provider AI gateway, smart routing, MCP/A2A, governance |
+
+Progress: ████████░░ 80%
+
 > **Work state:** ACTIVE · **Progress:** `███████░░░ 70%`
 > **CANONICAL routing framework for the Phenotype org** (per [ADR-001](docs/ADR-001-canonical-routing.md)) — OpenAI-compatible AI gateway: smart routing, load-balancing, retries, multi-provider fallback. Other routers converge here; consume this surface, do not hand-roll. · updated 2026-06-02
 
