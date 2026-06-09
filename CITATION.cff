@@ -1,0 +1,17 @@
+cff-version: 1.2.0
+title: OmniRoute
+message: >-
+  If you use OmniRoute in academic work, please cite it using the metadata in this file.
+type: software
+version: 3.8.5
+date-released: 2026-06-08
+license: MIT
+repository-code: https://github.com/KooshaPari/OmniRoute
+keywords:
+  - ai-router
+  - llm-fallback
+  - openai-compatible
+  - mcp-server
+authors:
+  - name: OmniRoute Maintainers
+    alias: KooshaPari
