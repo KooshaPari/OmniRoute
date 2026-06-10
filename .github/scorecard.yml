@@ -1,0 +1,20 @@
+name: scorecard
+on:
+  branch_protection_rule:
+  schedule:
+    - cron: '17 6 * * *'
+permissions:
+  contents: read
+  id-token: write
+  actions: read
+  security-events: write
+jobs:
+  analysis:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Run analysis
+        uses: ossf/scorecard-action@4e7e316b1fcd3a4b6e10a49c3c9c5b8b6e6e6e6e
+        with:
+          results_file: results.sarif
+          results_format: sarif
+          publish_results: true
