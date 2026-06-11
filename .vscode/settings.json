@@ -1,48 +1,68 @@
 {
-  "workbench.sideBar.location": "left",
+  // Editor
+  "editor.formatOnSave": true,
+  "editor.rulers": [100],
+  "editor.tabSize": 2,
+  "files.insertFinalNewline": true,
+  "files.trimTrailingWhitespace": true,
   "css.lint.unknownAtRules": "ignore",
-  "sonarlint.rules": {
-    "css:S4662": {
-      "level": "off"
-    },
-    "javascript:S6747": {
-      "level": "off"
-    },
-    "javascript:S7764": {
-      "level": "off"
-    },
-    "javascript:S6772": {
-      "level": "off"
-    },
-    "javascript:S3776": {
-      "level": "off"
-    }
-  },
   "git.ignoreLimitWarning": true,
-  // "files.exclude": {
-  //   "**/_references": true,
-  //   "**/_mono_repo": true,
-  //   "**/electron": true,
-  //   "**/node_modules": true,
-  //   "**/.next": true,
-  //   "**/coverage": true,
-  //   "**/omniroute-*.tgz": true,
-  //   "**/_tasks": true
-  // },
+  // TypeScript/JavaScript
+  "[typescript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnSave": true,
+    "editor.rulers": [100],
+    "editor.tabSize": 2
+  },
+  "[typescriptreact]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnSave": true,
+    "editor.rulers": [100],
+    "editor.tabSize": 2
+  },
+  "[javascript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnSave": true,
+    "editor.rulers": [100],
+    "editor.tabSize": 2
+  },
+  "[javascriptreact]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnSave": true,
+    "editor.rulers": [100],
+    "editor.tabSize": 2
+  },
+  // Files
+  "files.exclude": {
+    "**/.git": true,
+    "**/node_modules": true,
+    "**/dist": true,
+    "**/.venv": true,
+    "**/_references": true,
+    "**/_mono_repo": true,
+    "**/electron": true,
+    "**/.next": true,
+    "**/coverage": true,
+    "**/_tasks": true
+  },
   "files.watcherExclude": {
+    "**/node_modules/**": true,
+    "**/dist/**": true,
     "**/_references/**": true,
     "**/_mono_repo/**": true,
     "**/electron/**": true,
-    "**/node_modules/**": true,
     "**/.next/**": true,
     "**/coverage/**": true,
     "**/_tasks/**": true
   },
+  // Search
   "search.exclude": {
+    "**/node_modules": true,
+    "**/dist": true,
+    "**/.git": true,
     "**/_references": true,
     "**/_mono_repo": true,
     "**/electron": true,
-    "**/node_modules": true,
     "**/.next": true,
     "**/coverage": true,
     "**/_tasks": true
