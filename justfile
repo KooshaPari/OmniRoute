@@ -1,34 +1,26 @@
-# justfile for OmniRoute — https://just.systems
-# Run `just` (or `just default`) to list recipes.
-
-set dotenv-load
-set shell := ["bash", "-uc"]
+# OmniRoute Justfile
+set shell := ["bash", "-cu"]
 
 default:
     @just --list
 
-# Start the Next.js dev server
-dev:
-    npm run dev
+install:
+    npm install
 
-# Produce release artifacts (Next.js isolated build)
 build:
     npm run build
 
-# Run the unit test suite
 test:
-    npm run test
+    npm test
 
-# Lint the project (ESLint)
 lint:
-    npm run lint
+    npx eslint . --ext .ts
+    npx prettier --check "**/*.ts"
 
-# Apply formatter (Prettier via eslint --fix when no standalone script)
 fmt:
-    npx --yes prettier --write .
+    npx prettier --write "**/*.ts"
 
-# Remove build artifacts and caches
+ci: install build test lint
+
 clean:
-    rm -rf .next .turbo out dist build node_modules/.cache
-    rm -rf open-sse/dist open-sse/build
-    rm -rf coverage
+    rm -rf node_modules dist
