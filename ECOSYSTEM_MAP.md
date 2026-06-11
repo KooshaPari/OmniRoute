@@ -158,20 +158,22 @@ graph TD
 | tehgent | Archived | Already retired |
 | thegent-sharecli | Archived | Already retired |
 
-### Cluster C — Resilience / Circuit-Breakers (4 repos)
+### Cluster C — Resilience / Circuit-Breakers (5 repos)
 
 | Repo | Status | Verdict |
 |------|--------|---------|
 | **pheno** (phenotype-retry crate) | Active workspace crate | **CANONICAL** — already inside HexaKit/pheno |
+| **phenotype-resilience** | New, Rust sub-crate (HexaKit-twin role) | **NEW CANONICAL HOME** — `ResilienceKit/rust/phenotype-resilience/`, new home for rate-limiter / circuit-breaker / bulkhead (formerly `tracely-sentinel`). Per `plans/2026-06-09-sentinel-resilience-relocation-plan-v1.md`. |
 | ResilienceKit | Active, Python SDK | Keep as Python wrapper over canonical Rust core |
 | Stashly | Active, Rust | Keep as standalone caching lib (different domain: cache ≠ resilience) |
 | phenotype-dep-guard | Active, Python | Different domain (supply chain), not resilience — reclassify as tooling |
 
-### Cluster D — Observability / Metrics (5 repos)
+### Cluster D — Observability / Metrics (6 repos)
 
 | Repo | Status | Verdict |
 |------|--------|---------|
 | **phenoObservability** | Active, Rust workspace | **CANONICAL** |
+| **phenotype-observability** | New, Rust sub-crate (HexaKit-twin role) | **NEW CANONICAL HOME** — `HexaKit/crates/phenotype-observability/`, lifts the working OTel init shape out of `phenotype-logging/src/otel.rs` into a dedicated crate. Per `plans/2026-06-09-hexakit-phenotype-observability-plan-v1.md`. |
 | ObservabilityKit | Active, Python SDK | Keep as Python facade |
 | Metron | Active, Rust (metrickit) | Merge into phenoObservability as metrics crate |
 | Traceon | Active, Rust (tracingkit) | Merge into phenoObservability as tracing crate |
@@ -273,7 +275,17 @@ These sub-projects live INSIDE repos but are reusable enough to extract or merge
 
 ---
 
-## 5. Rationalization Proposal
+## 5. Cross-Cutting Architectural Features
+
+These are **traits / interfaces** that span multiple repos in the ecosystem. They are not themselves a cluster (they are not a set of competing impls) — they are a **shared shape** that consumers can hold an `Arc<dyn Trait>` against and dispatch uniformly across heterogeneous impls.
+
+| Feature | Source / Home | Trait / Surface | Notes |
+|---------|---------------|-----------------|-------|
+| **Eidolon `VirtualStage`** | `Eidolon/crates/eidolon-core/src/virtual_stage.rs:35-72` | `pub trait VirtualStage: Send + Sync` — five required async methods: `get_viewport`, `screenshot`, `pointer`, `text`, `record_event`. Sub-traits: `MobileStage` (tap / swipe / input_text) and `SandboxStage` (get_metadata / start / stop / exec / resource_usage), both with default no-op impls. | Unified automation surface that absorbs the three historical automator traits (`DesktopAutomator`, `MobileAutomator`, `SandboxAutomator`) behind a single async handle. Consumers can hold `Arc<dyn VirtualStage>` and apply the same code across macOS / Windows / Linux / iOS / Android / Docker / nanoVMs / KVM impls. Per `Eidolon/docs/ADR-001-trait-based-core.md` and the trait's own module docstring at `Eidolon/crates/eidolon-core/src/virtual_stage.rs:1-31`. Historical traits remain in `Eidolon/crates/eidolon-core/src/traits/` for backward compatibility. |
+
+---
+
+## 6. Rationalization Proposal
 
 ### Current state: 111 repos → Target shape: ~45 canonical repos
 
@@ -391,7 +403,7 @@ ACTIVE FORKS (4)
 
 ---
 
-## 6. Worker Split Summary
+## 7. Worker Split Summary
 
 | Worker | Repos covered | Manifests fetched |
 |--------|-------------|------------------|
