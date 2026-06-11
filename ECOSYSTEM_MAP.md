@@ -27,7 +27,7 @@ Role split for the spec/governance spine (so indexes stop competing):
 
 | Role | Count | Repos |
 |------|-------|-------|
-| **shared-lib** | 22 | pheno, HexaKit, phenoShared, phenoUtils, phenoXddLib, Authvault, Stashly, Settly, Tasken, Traceon, Metron, Apisync, PhenoObservability, PhenoPlugins, phenoForge, FocalPoint, PhenoVCS, Benchora, phenotype-auth-ts, phenotype-journeys, phenotype-voxel, Compound-Spheres-3D |
+| **shared-lib** | 22 | pheno, HexaKit, phenoShared, phenoUtils, phenoXddLib, Authvault, Stashly, Settly, Tasken, Traceon, Metron, Apisync, phenoObservability, PhenoPlugins, phenoForge, FocalPoint, PhenoVCS, Benchora, phenotype-auth-ts, phenotype-journeys, phenotype-voxel, Compound-Spheres-3D |
 | **SDK** | 9 | AuthKit, DataKit, McpKit, ObservabilityKit, ResilienceKit, TestingKit, PlatformKit, PhenoKits, HexaKit |
 | **tooling** | 14 | AgilePlus, phenotype-dep-guard, phenotype-tooling, phenotype-infra, PhenoDevOps, BytePort, FocalPoint, Conft, phenoForge, worktree-manager, agent-devops-setups, PolicyStack, nanovms, helioscope |
 | **product / app** | 10 | Agentora, thegent, Tracera, AgilePlus, PlayCua, Dino, eyetracker, hwLedger, phenoRouterMonitor, slickport |
@@ -52,7 +52,7 @@ Notation: `A -> B` means A depends on B. Only cross-repo edges to other KooshaPa
 ```text
 phenotype-infra           -> (standalone IaC/spec, no code deps)
 phenotype-registry        -> PhenoSpecs, HexaKit, PhenoHandbook  [doc links]
-PhenoObservability        -> pheno (phenotype-errors), [phenotype-bus: local path]
+phenoObservability        -> pheno (phenotype-errors), [phenotype-bus: local path]
 PhenoProc (infrakit)      -> pheno (phenotype-error-core, phenotype-core, phenotype-contracts,
                               phenotype-config-core, phenotype-event-bus,
                               phenotype-http-client-core, phenotype-policy-engine,
@@ -93,7 +93,7 @@ graph TD
     pheno["pheno (shared crates monorepo)"]
     HexaKit["HexaKit (infra toolkit)"]
     PhenoProc["PhenoProc (infrakit)"]
-    PhenoObservability["PhenoObservability"]
+    phenoObservability["phenoObservability"]
     phenoRouterMonitor["phenoRouterMonitor"]
     phenoShared["phenoShared"]
     phenodocs["phenodocs"]
@@ -115,7 +115,7 @@ graph TD
     Tokn["Tokn"]
 
     PhenoProc --> pheno
-    PhenoObservability --> pheno
+    phenoObservability --> pheno
     phenoRouterMonitor --> pheno
     pheno -.-> HexaKit
     phenodocs --> phenoShared
@@ -171,10 +171,10 @@ graph TD
 
 | Repo | Status | Verdict |
 |------|--------|---------|
-| **PhenoObservability** | Active, Rust workspace | **CANONICAL** |
+| **phenoObservability** | Active, Rust workspace | **CANONICAL** |
 | ObservabilityKit | Active, Python SDK | Keep as Python facade |
-| Metron | Active, Rust (metrickit) | Merge into PhenoObservability as metrics crate |
-| Traceon | Active, Rust (tracingkit) | Merge into PhenoObservability as tracing crate |
+| Metron | Active, Rust (metrickit) | Merge into phenoObservability as metrics crate |
+| Traceon | Active, Rust (tracingkit) | Merge into phenoObservability as tracing crate |
 | Profila | Archived | Already retired |
 
 ### Cluster E — Auth (3 repos)
@@ -284,7 +284,7 @@ These sub-projects live INSIDE repos but are reusable enough to extract or merge
 | **Archive forks with no local modifications** | Planify, portage, phenotype-omlx, phenotype-ops-mcp, agentapi-plusplus | All upstream-maintained; no meaningful local changes. (OmniRoute REMOVED from this list 2026-06-02 — it is the canonical LLM router, see Cluster A.) |
 | **Merge pheno → HexaKit** | pheno | 21 crates overlap; HexaKit is the canonical infrakit; retire pheno |
 | **Merge PhenoAgent stub → Agentora** | PhenoAgent | Empty manifest; description says "extracted from phenotype-infra" |
-| **Merge Metron + Traceon → PhenoObservability** | Metron, Traceon | Both thin Rust wrappers; PhenoObservability is the workspace home |
+| **Merge Metron + Traceon → phenoObservability** | Metron, Traceon | Both thin Rust wrappers; phenoObservability is the workspace home |
 | **Consolidate 8 *Kit Python SDKs → phenotype-python-sdk** | AuthKit, DataKit, McpKit, ObservabilityKit, ResilienceKit, TestingKit + PlatformKit (Go) | One publish target per language |
 | **Merge phenoRouterMonitor Rust core → phenoAI** | phenoRouterMonitor | Keep Streamlit dashboard as phenoAI/monitoring subdir |
 | **Retire phenoStandards** | phenoStandards | Self-marked deprecated; content moved to HexaKit/governance |
@@ -340,7 +340,7 @@ SECURITY / AUTH (2)
   PolicyStack              — policy federation CLI
 
 OBSERVABILITY (2)
-  PhenoObservability       — metrics + tracing (absorbs Metron, Traceon)
+  phenoObservability       — metrics + tracing (absorbs Metron, Traceon)
   Tokn                     — LLM cost/usage tracking
 
 TESTING / QA (3)
@@ -379,7 +379,7 @@ ACTIVE FORKS (4)
 | P0 | Merge pheno → HexaKit (remove 21 duplicate crate copies) | Medium | 1 |
 | P1 | Consolidate *Kit Python SDKs → phenotype-python-sdk | Low | 5-6 |
 | P2 | Archive 6 unused upstream forks | Trivial | 6 |
-| P3 | Merge Metron + Traceon → PhenoObservability | Low | 2 |
+| P3 | Merge Metron + Traceon → phenoObservability | Low | 2 |
 | P4 | Consolidate 8 landing pages → phenotype-landing | Low | 7 |
 | P5 | Merge PhenoAgent stub → Agentora | Trivial | 1 |
 | P6 | Merge helioscope/heliosBench/heliosApp → phenotype-tooling / helios-cli | Low | 2-3 |
