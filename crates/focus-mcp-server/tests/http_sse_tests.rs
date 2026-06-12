@@ -21,7 +21,7 @@ async fn test_http_sse_server_starts() {
 
     // Verify tools can be built (server initialization phase)
     let mcp_tools = tools.build_mcp_tools();
-    assert!(!mcp_tools.tools.is_empty(), "Server should have at least one tool");
+    assert!(!mcp_tools.list_tools().is_empty(), "Server should have at least one tool");
 }
 
 #[tokio::test]
@@ -99,7 +99,7 @@ async fn test_http_tool_not_found_returns_404() {
     let mcp_tools = tools.build_mcp_tools();
 
     // Verify that tools are available (404 behavior would be at HTTP layer)
-    assert!(!mcp_tools.tools.is_empty(), "Should have tools for 404 detection");
+    assert!(!mcp_tools.list_tools().is_empty(), "Should have tools for 404 detection");
 }
 
 #[tokio::test]
@@ -109,7 +109,7 @@ async fn test_http_sse_tool_list_endpoint() {
     let mcp_tools = tools.build_mcp_tools();
 
     // Verify core tools are present
-    let tool_names: Vec<String> = mcp_tools.tools.iter().map(|t| t.name()).collect();
+    let tool_names: Vec<String> = mcp_tools.list_tools().iter().map(|t| t.name.clone()).collect();
 
     assert!(tool_names.contains(&"focalpoint.tasks.list".to_string()), "Should have tasks.list tool");
     assert!(tool_names.contains(&"focalpoint.rules.list".to_string()), "Should have rules.list tool");
