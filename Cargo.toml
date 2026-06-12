@@ -1,6 +1,6 @@
 [workspace]
 resolver = "2"
-exclude = ["tooling/fr-coverage", "tooling/target-pruner", "examples/rule-library/tests", "fuzz", "assets/motion"]
+exclude = ["tooling/fr-coverage", "tooling/target-pruner", "examples/rule-library/tests", "fuzz", "assets/motion", "phenotype-otel", "kmobile", "phenotype-voxel", "Pine"]
 members = [
     "tooling/agent-orchestrator",
     "tooling/bench-guard",
