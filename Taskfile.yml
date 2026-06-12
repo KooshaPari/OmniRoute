@@ -1,0 +1,39 @@
+# Taskfile.yml — phenotype-registry ecosystem validation
+# This file is a parallel entry point to Justfile so that fleet tooling
+# which expects `task <recipe>` can run the same validate recipe.
+#
+# Recipes:
+#   validate     — Run scripts/validate-ecosystem.sh against the 13 canonical repos
+#   validate:json — Same, machine-readable JSON output
+#   help         — List available recipes
+
+version: '3'
+
+vars:
+  SCRIPT: scripts/validate-ecosystem.sh
+
+tasks:
+  default:
+    desc: List available recipes
+    cmds:
+      - task --list
+
+  help:
+    desc: Show help for the validate script
+    cmds:
+      - '{{.SCRIPT}} --help'
+
+  validate:
+    desc: Validate all 13 canonical KooshaPari repos for GitHub reachability and meta-file presence
+    cmds:
+      - '{{.SCRIPT}}'
+
+  validate:json:
+    desc: Same as validate, but machine-readable JSON output
+    cmds:
+      - '{{.SCRIPT}} --json'
+
+  validate:no-color:
+    desc: Validate without ANSI color codes (for CI logs)
+    cmds:
+      - '{{.SCRIPT}} --no-color'

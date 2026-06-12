@@ -1,6 +1,7 @@
 # KooshaPari Ecosystem Map
 
-> Generated: 2026-05-30 | Repos audited: 111 | Workers: 3 parallel manifest-fetch agents (A: pheno\*, B: \*Kit+helios\*+agents, C: infra+apps+routing+forks+landing)
+> Generated: 2026-06-11 | Repos audited: 13 canonical (live, GitHub-reachable) | Validator: `task validate` → `scripts/validate-ecosystem.sh`
+> Last SSOT run: see `scripts/validate-ecosystem.sh --json` (re-run on every map edit)
 
 ---
 
