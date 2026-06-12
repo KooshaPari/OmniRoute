@@ -2,10 +2,10 @@
 version: 2
 jobs:
   security-scans:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - name: "Checkout Code"
-        uses: actions/checkout@v3
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
       - name: "Install Trufflehog"
         run: |-
           sudo apt-get update && \
