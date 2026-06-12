@@ -75,8 +75,9 @@ async fn main() -> Result<()> {
     let db_path = db_path.unwrap();
 
     // Load database adapter
+    let db_path_for_open = db_path.clone();
     let adapter = tokio::task::spawn_blocking(move || {
-        focus_storage::SqliteAdapter::open(&db_path)
+        focus_storage::SqliteAdapter::open(&db_path_for_open)
     })
     .await??;
 

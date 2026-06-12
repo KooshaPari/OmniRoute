@@ -17,7 +17,7 @@ async fn test_websocket_server_ready() {
     let tools = FocalPointToolsImpl::new(adapter);
 
     let mcp_tools = tools.build_mcp_tools();
-    assert!(!mcp_tools.tools.is_empty(), "Server should have tools for WS endpoint");
+    assert!(!mcp_tools.list_tools().is_empty(), "Server should have tools for WS endpoint");
 }
 
 #[tokio::test]
@@ -99,5 +99,5 @@ async fn test_websocket_full_duplex_session() {
     ];
 
     assert_eq!(requests.len(), 3, "Should have 3 test requests");
-    assert!(!mcp_tools.tools.is_empty(), "Server should handle multiple requests");
+    assert!(!mcp_tools.list_tools().is_empty(), "Server should handle multiple requests");
 }
