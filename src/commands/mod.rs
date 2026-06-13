@@ -1,12 +1,10 @@
 //! CLI commands for sharecli
 
-pub mod config;
-
 use crate::config::{Config, ConfigCmd, ProjectCmd};
-use anyhow::Result;
-use pheno_proc_core::{
+use crate::runtime::{
     ProcessFilter, ProcessInfo, ProcessPool, ProjectLimits, ProjectResources, SharedRuntime,
 };
+use anyhow::Result;
 use std::path::PathBuf;
 
 /// Shared runtime instance

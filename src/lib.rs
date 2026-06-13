@@ -1,19 +1,15 @@
 //! sharecli - Shared CLI process manager
 //!
-//! Thin CLI wrapper around PhenoProc registry.
+//! Thin CLI wrapper around local process runtime.
 //!
 //! Features:
-//! - Process management via pheno-proc-core
-//! - Command deduplication via pheno-proc-dedup
-//! - Priority-based task queuing via pheno-proc-queue
+//! - Process management via local runtime types
 //! - Multi-project orchestration
 
 pub mod commands;
 pub mod config;
+pub mod runtime;
+pub mod monitoring;
 
-// Re-export from PhenoProc registry
-pub use pheno_proc_core::{ManagedProcess, ProcessInfo, ProcessPool};
-pub use pheno_proc_dedup::{CommandLock, InMemoryLockAdapter, LockStatus};
-pub use pheno_proc_queue::{InMemoryQueueAdapter, Priority, QueueItem, QueueStats, QueueStatus};
-
+pub use runtime::{ManagedProcess, ProcessInfo, ProcessPool, ProcessFilter, SharedRuntime, ProjectLimits, ProjectResources};
 pub use anyhow::Result;

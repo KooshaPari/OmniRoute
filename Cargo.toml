@@ -21,16 +21,12 @@ serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 toml = "0.8"
 
-# Process management - via PhenoProc registry
-pheno-proc-core = { path = "../PhenoProc/crates/pheno-proc-core" }
-pheno-proc-dedup = { path = "../PhenoProc/crates/pheno-proc-dedup" }
-pheno-proc-queue = { path = "../PhenoProc/crates/pheno-proc-queue" }
+# Process management
+sysinfo = "0.30"
 
 # Utilities
 chrono = { version = "0.4", features = ["serde"] }
 dirs = "5"
-glob = "0.3"
-uuid = { version = "1", features = ["v4"] }
 
 [dev-dependencies]
 tempfile = "3"
@@ -42,7 +38,3 @@ codegen-units = 1
 
 [workspace]
 members = []
-
-[[bench]]
-name = "perf"
-harness = false
