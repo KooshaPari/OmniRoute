@@ -11,3 +11,6 @@ apps/ios/**/.build/
 **/.build/
 **/DerivedData/
 *.xcframework/
+
+# Local worktree directory
+FocalPoint-wtrees/

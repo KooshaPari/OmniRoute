@@ -1,0 +1,33 @@
+# llvm-cov.toml — cargo-llvm-cov configuration for the FocalPoint workspace
+# DAG Stage 3 (QA Hardening): baseline measurement configuration.
+# Consumed by `just coverage`, `just coverage-html`, `just coverage-check`,
+# and `just coverage-baseline`. Mirrors the coverage check in grade.sh.
+
+# Default flags applied to every `cargo llvm-cov` invocation.
+# `--workspace`     : aggregate across all 56 workspace crates
+# `--all-features`  : exercise feature-gated code paths in coverage
+default_flags = ["--workspace", "--all-features"]
+
+# Per-crate exclusions (paths relative to repo root).
+# These crates are infrastructure/tooling where line coverage is not meaningful
+# for the QA baseline (they have no runtime code under test).
+exclude = [
+    "tooling/release-cut",
+    "tooling/target-pruner",
+    "examples/rule-library/tests",
+    "fuzz",
+    "assets/motion",
+]
+
+# Threshold enforcement — matches the `--fail-under-lines 85` gate in grade.sh
+# and the `just coverage-check` recipe. Stage 3 baseline target.
+[threshold]
+lines    = 85
+branches = 80
+functions = 85
+
+# Report output conventions.
+[output]
+summary = "target/llvm-cov/summary.txt"
+json    = "target/llvm-cov/baseline.json"
+html    = "target/llvm-cov/html"
