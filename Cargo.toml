@@ -6,3 +6,5 @@ edition = "2021"
 [lib]
 name = "phenotype_registry"
 path = "src/lib.rs"
+
+[workspace]
