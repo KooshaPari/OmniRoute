@@ -70,6 +70,7 @@ members = [
     "crates/phenotype-derive",
     "crates/phenotype-workflow",
     "crates/phenotype-policy-engine",
+    "pheno-context",
 ]
 
 [workspace.package]
