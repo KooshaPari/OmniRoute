@@ -2,5 +2,20 @@
 # Default reviewers for changes in this repository.
 # See https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
 
-# Fallback reviewer for the whole repository
-*           @KooshaPari
+# Core application areas
+/src/providers/*     @KooshaPari
+/src/api/*            @KooshaPari
+/src/combo/*          @KooshaPari
+/src/resilience/*     @KooshaPari
+/src/security/*       @KooshaPari
+
+# Workspace / sub-packages
+/open-sse/*           @KooshaPari
+/electron/*           @KooshaPari
+/desktop-electrobun/* @KooshaPari
+
+# CI/CD and repository automation
+/.github/*            @KooshaPari
+
+# Fallback reviewer for everything else
+*                     @KooshaPari

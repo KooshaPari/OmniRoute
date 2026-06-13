@@ -16,6 +16,10 @@ updates:
         patterns: ["vitest*", "playwright*", "@testing-library/*", "jest*"]
       build-tools:
         patterns: ["vite*", "next*", "turbo*", "eslint*", "typescript*"]
+      mcp-stack:
+        patterns: ["mcp-*", "@modelcontextprotocol/*"]
+      tailwind:
+        patterns: ["tailwindcss", "@tailwindcss/*", "postcss"]
 
   - package-ecosystem: "npm"
     directory: "/open-sse"

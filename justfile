@@ -19,6 +19,10 @@ build:
 test:
     npm run test
 
+# Coverage report (SSOT for how to measure coverage).
+coverage:
+    npm test -- --coverage
+
 # Lint the project (ESLint)
 lint:
     npm run lint

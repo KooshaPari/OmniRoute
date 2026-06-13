@@ -2,6 +2,25 @@
 
 ## [Unreleased]
 
+### ✨ New Features
+
+- **hygiene:** Add CODEOWNERS subtree ownership, grouped dependabot (mcp-stack, tailwind), and OpenSSF scorecard workflow
+- **hygiene:** Add security-scans workflow (trufflehog, semgrep, cargo audit)
+- **hygiene:** Add CodeQL static analysis workflow
+- **hygiene:** Add Renovate alongside Dependabot for dual dependency automation
+- **hygiene:** Add release automation pipeline (release.yml, release-drafter, cliff.toml)
+- **hygiene:** Add PR labeler and issue template chooser
+- **hygiene:** Add FUNDING, CITATION.cff, SUPPORT.md governance files
+- **e2e:** Restore Nav Restructure refactor tests (memory-settings, resilience-plan, settings-toggles)
+- **hygiene:** Add pre-commit hooks (trailing-whitespace, EOF fixer, detect-private-key, eslint, prettier, cycle-check)
+- **hygiene:** Add CodeRabbit review config (.coderabbit.yaml) and Gemini context (.gemini/config.json, .gemini/prompts.md)
+- **hygiene:** Add ADR.md with fleet hygiene decisions (ADR-001 baseline, ADR-002 e2e restoration, ADR-003 dual dependency automation)
+- **e2e:** Remove orphaned testIgnore entries (analytics-tabs, protocol-visibility, skills-marketplace) whose specs no longer exist
+
+### 🔧 Bug Fixes
+
+- **ci:** Pin scorecard workflow to ubuntu-24.04
+
 ---
 
 ## [3.8.5] — 2026-05-27
