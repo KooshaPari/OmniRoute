@@ -1,0 +1,58 @@
+{
+  "generated_at": "2026-06-08T10:14:23Z",
+  "total_repos": 46,
+  "go_ctx_dupes": [
+    {
+      "pattern": "context.WithTimeout",
+      "repos": [
+        "HeliosCLI",
+        "HexaKit",
+        "KWatch",
+        "KodeVibe",
+        "MCPForge",
+        "McpKit",
+        "PhenoDevOps",
+        "PhenoKits",
+        "PhenoObservability",
+        "PhenoProc",
+        "PlatformKit",
+        "Pyron",
+        "Tracera",
+        "agentapi-plusplus",
+        "argis-extensions",
+        "cliproxyapi-plusplus",
+        "helioscope",
+        "kwality",
+        "pheno",
+        "thegent",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "pattern": "context.WithCancel",
+      "repos": [
+        "HexaKit",
+        "KWatch",
+        "MCPForge",
+        "McpKit",
+        "PhenoDevOps",
+        "PhenoProc",
+        "PlatformKit",
+        "Pyron",
+        "Tracera",
+        "agentapi-plusplus",
+        "argis-extensions",
+        "cliproxyapi-plusplus",
+        "pheno",
+        "thegent",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    }
+  ]
+}

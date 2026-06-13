@@ -1,0 +1,94 @@
+{
+  "task": "L2-31",
+  "name": "pheno-yamllint-baseline",
+  "date": "2026-06-08",
+  "generated_at": "2026-06-09T03:42:41Z",
+  "canonical_configs": {
+    "yamllint": "/Users/kooshapari/CodeProjects/Phenotype/repos/.claude/templates/.yamllint",
+    "yamlfmt": "/Users/kooshapari/CodeProjects/Phenotype/repos/.claude/templates/.yamlfmt",
+    "yamllint_bytes": 1790,
+    "yamlfmt_bytes": 433
+  },
+  "yamllint_rules": {
+    "extends": "default",
+    "indentation.spaces": 2,
+    "line-length.max": 120,
+    "truthy": true,
+    "comments": true,
+    "comments-indentation": "enable",
+    "document-start": "disable"
+  },
+  "yamlfmt_settings": {
+    "indent": 2,
+    "include_document_start_marker": false,
+    "retain_line_breaks_single": true,
+    "max_line_length": 120
+  },
+  "branch_template": "chore/yamllint-2026-06-08",
+  "commit_message": "chore(ci): add .yamllint + .yamlfmt baseline",
+  "pushed": false,
+  "repos": [
+    {
+      "name": "PhenoDevOps",
+      "path": "/Users/kooshapari/CodeProjects/Phenotype/repos/PhenoDevOps",
+      "branch": "chore/yamllint-2026-06-08",
+      "commit_sha": "8c30f22cdcef5927e4dd6ed51c6fe096acaccdc0",
+      "commit_short": "8c30f22",
+      "files": {
+        ".yamllint": 1790,
+        ".yamlfmt": 433
+      }
+    },
+    {
+      "name": "AgilePlus",
+      "path": "/Users/kooshapari/CodeProjects/Phenotype/repos/AgilePlus",
+      "branch": "chore/yamllint-2026-06-08",
+      "commit_sha": "d86f3123930304709929a64ff28e19fdf9f4440e",
+      "commit_short": "d86f312",
+      "files": {
+        ".yamllint": 1790,
+        ".yamlfmt": 433
+      }
+    },
+    {
+      "name": "pheno",
+      "path": "/Users/kooshapari/CodeProjects/Phenotype/repos/pheno",
+      "branch": "chore/yamllint-2026-06-08",
+      "commit_sha": "430f5b3154de1c3d20e5a2e125dbfff12402a797",
+      "commit_short": "430f5b3",
+      "files": {
+        ".yamllint": 1790,
+        ".yamlfmt": 433
+      }
+    },
+    {
+      "name": "Pyron",
+      "path": "/Users/kooshapari/CodeProjects/Phenotype/repos/Pyron",
+      "branch": "chore/yamllint-2026-06-08",
+      "commit_sha": "24a15e2c35b3ff7a39c77ffad8c228743d6050dc",
+      "commit_short": "24a15e2",
+      "files": {
+        ".yamllint": 1790,
+        ".yamlfmt": 433
+      }
+    },
+    {
+      "name": "FocalPoint",
+      "path": "/Users/kooshapari/CodeProjects/Phenotype/repos/FocalPoint",
+      "branch": "chore/yamllint-2026-06-08",
+      "commit_sha": "8437e3b3c57b2989e5ce231394ec3ea7d3cded7b",
+      "commit_short": "8437e3b",
+      "files": {
+        ".yamllint": 1790,
+        ".yamlfmt": 433
+      }
+    }
+  ],
+  "summary": {
+    "repo_count": 5,
+    "files_per_repo": 2,
+    "bytes_per_repo": 2223,
+    "total_commits": 5,
+    "all_pushed": false
+  }
+}

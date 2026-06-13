@@ -1,0 +1,342 @@
+version: "3"
+
+vars:
+  HAS_PYPROJECT:
+    sh: 'test -f pyproject.toml && echo 1 || echo 0'
+  HAS_ROOT_PACKAGE:
+    sh: 'test -f package.json && echo 1 || echo 0'
+  HAS_DOCS_APP:
+    sh: 'test -f docs/package.json && echo 1 || echo 0'
+  UV_CACHE_DIR:
+    sh: 'printf "%s" "${UV_CACHE_DIR:-${TMPDIR:-/tmp}/parpour-uv-cache}"'
+  PYTHON_REQUIRES:
+    sh: 'awk -F ''"'' ''/requires-python/ { print $2; found=1; exit } END { if (!found) print "unspecified" }'' pyproject.toml 2>/dev/null || echo unspecified'
+  ROOT_PACKAGE_MANAGER:
+    sh: 'test -f bun.lockb -o -f bun.lock && echo bun || echo npm'
+  DOCS_PACKAGE_MANAGER:
+    sh: 'test -f docs/bun.lockb -o -f docs/bun.lock && echo bun || echo npm'
+  ROOT_INSTALL_CMD:
+    sh: |
+      if [ "{{.ROOT_PACKAGE_MANAGER}}" = "bun" ]; then
+        printf 'bun install --frozen-lockfile'
+      elif [ -f package-lock.json ]; then
+        printf 'npm ci'
+      else
+        printf 'npm install'
+      fi
+  DOCS_INSTALL_CMD:
+    sh: |
+      if [ "{{.DOCS_PACKAGE_MANAGER}}" = "bun" ]; then
+        printf 'bun install --frozen-lockfile'
+      elif [ -f docs/package-lock.json ]; then
+        printf 'npm ci'
+      else
+        printf 'npm install'
+      fi
+  ROOT_HAS_BUILD:
+    sh: 'test -f package.json && node -e "process.exit(require(\"./package.json\").scripts?.build ? 0 : 1)" 2>/dev/null && echo 1 || echo 0'
+  ROOT_HAS_DOCS_BUILD:
+    sh: 'test -f package.json && node -e "process.exit(require(\"./package.json\").scripts?.[\"docs:build\"] ? 0 : 1)" 2>/dev/null && echo 1 || echo 0'
+  ROOT_BUILD_IS_DOCS_WRAPPER:
+    sh: |
+      if [ -f package.json ] && [ -f docs/package.json ]; then
+        node -e 'const pkg = require("./package.json"); process.exit(pkg.scripts?.build === "vitepress build docs" ? 0 : 1)' 2>/dev/null && echo 1 || echo 0
+      else
+        echo 0
+      fi
+  ROOT_HAS_TEST:
+    sh: 'test -f package.json && node -e "process.exit(require(\"./package.json\").scripts?.test ? 0 : 1)" 2>/dev/null && echo 1 || echo 0'
+  ROOT_HAS_LINT:
+    sh: 'test -f package.json && node -e "process.exit(require(\"./package.json\").scripts?.lint ? 0 : 1)" 2>/dev/null && echo 1 || echo 0'
+  DOCS_HAS_BUILD:
+    sh: 'test -f docs/package.json && (cd docs && node -e "process.exit(require(\"./package.json\").scripts?.[\"docs:build\"] ? 0 : 1)") 2>/dev/null && echo 1 || echo 0'
+  DOCS_HAS_UNIT_TEST:
+    sh: 'test -f docs/package.json && (cd docs && node -e "process.exit(require(\"./package.json\").scripts?.[\"docs:test:unit\"] ? 0 : 1)") 2>/dev/null && echo 1 || echo 0'
+  DOCS_HAS_COMPONENT_TEST:
+    sh: 'test -f docs/package.json && (cd docs && node -e "process.exit(require(\"./package.json\").scripts?.[\"docs:test:component\"] ? 0 : 1)") 2>/dev/null && echo 1 || echo 0'
+  DOCS_HAS_LINT:
+    sh: 'test -f docs/package.json && (cd docs && node -e "process.exit(require(\"./package.json\").scripts?.lint ? 0 : 1)") 2>/dev/null && echo 1 || echo 0'
+  LANGUAGE_TARGETS:
+    sh: |
+      targets=""
+      test -f pyproject.toml && targets="${targets}python "
+      test -f package.json && targets="${targets}node-root "
+      test -f docs/package.json && targets="${targets}vitepress-docs "
+      printf '%s' "${targets:-unknown}"
+  LANGUAGE_SUMMARY:
+    sh: |
+      summary=""
+      test -f pyproject.toml && summary="${summary}Python project (uv/pytest/ruff, requires {{.PYTHON_REQUIRES}}); "
+      test -f package.json && summary="${summary}root Node package ({{.ROOT_PACKAGE_MANAGER}}); "
+      test -f docs/package.json && summary="${summary}docs Node package ({{.DOCS_PACKAGE_MANAGER}}/VitePress); "
+      printf '%s' "${summary:-unknown}"
+
+tasks:
+  default:
+    desc: Show detected toolchain and common task entrypoints
+    cmds:
+      - 'echo "Detected targets: {{.LANGUAGE_TARGETS}}"'
+      - 'echo "Detected stack: {{.LANGUAGE_SUMMARY}}"'
+      - 'echo "Common tasks: build, test, lint, clean"'
+      - task --list
+    silent: true
+
+  language:
+    desc: Print detected language and toolchain targets
+    cmds:
+      - 'echo "Detected targets: {{.LANGUAGE_TARGETS}}"'
+      - 'echo "Detected stack: {{.LANGUAGE_SUMMARY}}"'
+    silent: true
+
+  build:
+    desc: Build detected project targets
+    summary: |
+      Builds the Python package when pyproject.toml is present and the
+      Bun/VitePress documentation app when docs/package.json is present.
+    cmds:
+      - |
+        set -eu
+        ran=0
+        if [ "{{.HAS_PYPROJECT}}" = "1" ]; then
+          echo "Building Python wheel via uv..."
+          mkdir -p dist
+          UV_CACHE_DIR="{{.UV_CACHE_DIR}}" TMPDIR="${TASK_TMPDIR:-/var/tmp}" uv build --wheel
+          ran=1
+        fi
+        if [ "{{.HAS_ROOT_PACKAGE}}" = "1" ] && [ "{{.ROOT_HAS_BUILD}}" = "1" ] && [ "{{.ROOT_BUILD_IS_DOCS_WRAPPER}}" != "1" ]; then
+          if [ ! -d node_modules ]; then
+            echo "Installing root package dependencies via {{.ROOT_PACKAGE_MANAGER}}..."
+            {{.ROOT_INSTALL_CMD}}
+          fi
+          echo "Building root package via {{.ROOT_PACKAGE_MANAGER}}..."
+          {{.ROOT_PACKAGE_MANAGER}} run build
+          ran=1
+        elif [ "{{.ROOT_BUILD_IS_DOCS_WRAPPER}}" = "1" ]; then
+          echo "Skipping root build wrapper; docs workspace build covers VitePress."
+        fi
+        if [ "{{.HAS_ROOT_PACKAGE}}" = "1" ] && [ "{{.ROOT_HAS_DOCS_BUILD}}" = "1" ] && [ "{{.HAS_DOCS_APP}}" != "1" ]; then
+          if [ ! -d node_modules ]; then
+            echo "Installing root package dependencies via {{.ROOT_PACKAGE_MANAGER}}..."
+            {{.ROOT_INSTALL_CMD}}
+          fi
+          echo "Building root docs via {{.ROOT_PACKAGE_MANAGER}}..."
+          {{.ROOT_PACKAGE_MANAGER}} run docs:build
+          ran=1
+        elif [ "{{.ROOT_HAS_DOCS_BUILD}}" = "1" ] && [ "{{.HAS_DOCS_APP}}" = "1" ]; then
+          echo "Skipping root docs build wrapper; docs workspace build covers VitePress."
+        fi
+        if [ "{{.HAS_DOCS_APP}}" = "1" ]; then
+          if [ ! -d docs/node_modules ]; then
+            echo "Installing docs dependencies via {{.DOCS_PACKAGE_MANAGER}}..."
+            (cd docs && {{.DOCS_INSTALL_CMD}})
+          fi
+          if [ "{{.DOCS_HAS_BUILD}}" != "1" ]; then
+            echo "No docs build script detected."
+            exit 1
+          fi
+          echo "Building docs site via {{.DOCS_PACKAGE_MANAGER}}..."
+          rm -rf docs/.vitepress/.temp docs/.vitepress/cache
+          (cd docs && {{.DOCS_PACKAGE_MANAGER}} run docs:build)
+          ran=1
+        fi
+        if [ "$ran" -eq 0 ]; then
+          echo "No supported build targets detected."
+          exit 1
+        fi
+
+  test:
+    desc: Run detected test suites
+    summary: |
+      Runs Python pytest coverage for the package and JavaScript documentation
+      tests using the runner detected from the docs workspace.
+    cmds:
+      - |
+        set -eu
+        ran=0
+        if [ "{{.HAS_PYPROJECT}}" = "1" ] && [ -d tests ]; then
+          echo "Running Python tests via uv run --extra dev python -m pytest..."
+          UV_CACHE_DIR="{{.UV_CACHE_DIR}}" uv run --extra dev python -m pytest
+          ran=1
+        fi
+        if [ "{{.HAS_ROOT_PACKAGE}}" = "1" ] && [ "{{.ROOT_HAS_TEST}}" = "1" ]; then
+          if [ ! -d node_modules ]; then
+            echo "Installing root package dependencies via {{.ROOT_PACKAGE_MANAGER}}..."
+            {{.ROOT_INSTALL_CMD}}
+          fi
+          echo "Running root package tests via {{.ROOT_PACKAGE_MANAGER}}..."
+          {{.ROOT_PACKAGE_MANAGER}} run test
+          ran=1
+        fi
+        if [ "{{.HAS_DOCS_APP}}" = "1" ] && [ -d docs/tests ]; then
+          if [ ! -d docs/node_modules ]; then
+            echo "Installing docs dependencies via {{.DOCS_PACKAGE_MANAGER}}..."
+            (cd docs && {{.DOCS_INSTALL_CMD}})
+          fi
+          if grep -R "Deno.test" docs/tests >/dev/null 2>&1; then
+            if ! command -v deno >/dev/null 2>&1; then
+              echo "Deno is required for docs tests that use Deno.test."
+              exit 1
+            fi
+            echo "Running docs unit/component tests via deno..."
+            (cd docs && deno test --allow-read tests/unit/*.test.mjs tests/component/*.test.mjs)
+          else
+            if [ "{{.DOCS_HAS_UNIT_TEST}}" = "1" ]; then
+              echo "Running docs unit tests via {{.DOCS_PACKAGE_MANAGER}}..."
+              (cd docs && {{.DOCS_PACKAGE_MANAGER}} run docs:test:unit)
+            elif [ -d docs/tests/unit ] && find docs/tests/unit -maxdepth 1 -name "*.test.mjs" | grep -q .; then
+              echo "Running docs unit tests via node..."
+              node --test docs/tests/unit/*.test.mjs
+            fi
+            if [ "{{.DOCS_HAS_COMPONENT_TEST}}" = "1" ]; then
+              echo "Running docs component tests via {{.DOCS_PACKAGE_MANAGER}}..."
+              (cd docs && {{.DOCS_PACKAGE_MANAGER}} run docs:test:component)
+            elif [ -d docs/tests/component ] && find docs/tests/component -maxdepth 1 -name "*.test.mjs" | grep -q .; then
+              echo "Running docs component tests via node..."
+              node --test docs/tests/component/*.test.mjs
+            fi
+          fi
+          if [ -n "${BASE_URL:-}" ] && [ -f docs/tests/playwright.config.ts ]; then
+            echo "Running docs e2e tests against ${BASE_URL}..."
+            docs/node_modules/.bin/playwright test --config docs/tests/playwright.config.ts
+          elif [ -f docs/tests/playwright.config.ts ]; then
+            echo "Skipping docs e2e tests because BASE_URL is not set."
+          fi
+          ran=1
+        fi
+        if [ "$ran" -eq 0 ]; then
+          echo "No supported test suites detected."
+          exit 1
+        fi
+
+  lint:
+    desc: Run detected linters
+    summary: |
+      Runs Ruff for Python sources and package-defined lint scripts when
+      JavaScript workspaces expose them.
+    cmds:
+      - |
+        set -eu
+        ran=0
+        if [ -f pyproject.toml ]; then
+          echo "Running Ruff via uv run --extra dev python -m ruff..."
+          UV_CACHE_DIR="{{.UV_CACHE_DIR}}" uv run --extra dev python -m ruff check .
+          ran=1
+        fi
+        if [ "{{.HAS_ROOT_PACKAGE}}" = "1" ] && [ "{{.ROOT_HAS_LINT}}" = "1" ]; then
+          if [ ! -d node_modules ]; then
+            echo "Installing root package dependencies via {{.ROOT_PACKAGE_MANAGER}}..."
+            {{.ROOT_INSTALL_CMD}}
+          fi
+          echo "Running root package lint via {{.ROOT_PACKAGE_MANAGER}}..."
+          {{.ROOT_PACKAGE_MANAGER}} run lint
+          ran=1
+        fi
+        if [ "{{.HAS_DOCS_APP}}" = "1" ] && [ "{{.DOCS_HAS_LINT}}" = "1" ]; then
+          if [ ! -d docs/node_modules ]; then
+            echo "Installing docs dependencies via {{.DOCS_PACKAGE_MANAGER}}..."
+            (cd docs && {{.DOCS_INSTALL_CMD}})
+          fi
+          echo "Running docs lint via {{.DOCS_PACKAGE_MANAGER}}..."
+          (cd docs && {{.DOCS_PACKAGE_MANAGER}} run lint)
+          ran=1
+        fi
+        if [ "$ran" -eq 0 ]; then
+          echo "No supported lint targets detected."
+          exit 1
+        fi
+
+  clean:
+    desc: Remove common build and cache artifacts
+    summary: |
+      Removes common Python, JavaScript, VitePress, and Task cache/build
+      artifacts while preserving tracked repository content.
+    cmds:
+      - |
+        set -eu
+        python - <<'PY'
+        from pathlib import Path
+        import shutil
+        import subprocess
+
+
+        def has_tracked_content(path: Path) -> bool:
+            result = subprocess.run(
+                ["git", "ls-files", "--", str(path)],
+                check=False,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.DEVNULL,
+                text=True,
+            )
+            return bool(result.stdout.strip())
+
+
+        def is_tracked_file(path: Path) -> bool:
+            result = subprocess.run(
+                ["git", "ls-files", "--error-unmatch", "--", str(path)],
+                check=False,
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+            )
+            return result.returncode == 0
+
+
+        def remove_untracked(path: Path) -> None:
+            if not path.exists():
+                return
+            if path.is_file() or path.is_symlink():
+                if not is_tracked_file(path):
+                    path.unlink(missing_ok=True)
+                return
+            if not has_tracked_content(path):
+                shutil.rmtree(path, ignore_errors=True)
+                return
+            for child in path.iterdir():
+                remove_untracked(child)
+            try:
+                path.rmdir()
+            except OSError:
+                pass
+
+        paths = [
+            ".pytest_cache",
+            ".ruff_cache",
+            ".mypy_cache",
+            ".uv",
+            ".uv-cache",
+            ".task",
+            ".coverage",
+            "coverage.xml",
+            "coverage",
+            "htmlcov",
+            "dist",
+            "build",
+            ".venv",
+            "node_modules",
+            "package-lock.json",
+            "docs/node_modules",
+            "docs/package-lock.json",
+            "docs/.vitepress/dist",
+            "docs/.vitepress/cache",
+            "docs/.vitepress/.temp",
+            "docs/docs/.vitepress/dist",
+            "docs/docs/.vitepress/cache",
+            "docs/docs/.vitepress/.temp",
+        ]
+        for path in paths:
+            remove_untracked(Path(path))
+
+        for cache_dir in Path(".").rglob("__pycache__"):
+            remove_untracked(cache_dir)
+
+        for pattern in ("*.pyc", "*.pyo"):
+            for file_path in Path(".").rglob(pattern):
+                remove_untracked(file_path)
+        PY
+        echo "Clean complete."
+
+  quality:
+    desc: Run build, test, and lint common checks
+    cmds:
+      - task: build
+      - task: test
+      - task: lint

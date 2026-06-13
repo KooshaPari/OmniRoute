@@ -1,0 +1,34 @@
+{
+  "generated_at": "2026-06-08T22:15:00Z",
+  "total_repos": 93,
+  "by_lib": {
+    "log": [
+      "Apisync",
+      "Eidolon",
+      "HeliosCLI",
+      "helioscope"
+    ],
+    "env_logger": [
+      "HeliosCLI",
+      "helioscope",
+      "kmobile"
+    ],
+    "slog": [],
+    "loguru": [
+      "Tracera",
+      "phenotype-py-extras"
+    ],
+    "structlog": [
+      "AgentMCP",
+      "Parpoura",
+      "Tracera",
+      "phenotype-py-extras",
+      "phenotype-request-id",
+      "thegent",
+      "thegent-clean-wt-idea",
+      "thegent-clean-wt-parallel",
+      "thegent-clean-wt-policy",
+      "thegent-clean-wt-ruff"
+    ]
+  }
+}

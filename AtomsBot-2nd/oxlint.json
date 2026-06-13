@@ -1,0 +1,13 @@
+{
+  "files": {
+    "ignore": [
+      "**/.history/**",
+      "dist/**",
+      "node_modules/**"
+    ]
+  },
+  "rules": {
+    "no-non-null-asserted-optional-chain": "warn",
+    "no-unused-vars": "warn"
+  }
+}

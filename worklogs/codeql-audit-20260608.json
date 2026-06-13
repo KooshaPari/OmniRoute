@@ -1,0 +1,523 @@
+{
+  "generated_at": "2026-06-08T00:00:00Z",
+  "total_repos": 133,
+  "with_codeql": [
+    "Parpoura",
+    "BytePort",
+    "AuthKit",
+    "PhenoProject",
+    "Sidekick",
+    "nanovms",
+    "PhenoMCP",
+    "phenoXdd",
+    "heliosApp",
+    "GDK",
+    "vibeproxy-monitoring-unified",
+    "phenoShared",
+    "thegent-clean-wt-docs",
+    "Tokn",
+    "AtomsBot",
+    "cheap-llm-mcp",
+    "foqos-private",
+    "phenokits-landing",
+    "agentapi-plusplus",
+    "PolicyStack",
+    "thegent-dispatch",
+    "hwLedger",
+    "phenoData",
+    "pheno",
+    "KaskMan",
+    "Apisync",
+    "phenotype-auth-ts",
+    "HeliosCLI",
+    "PhenoSpecs",
+    "phenodocs-scorecard-remediation",
+    "dinoforge-packs",
+    "phenoAI",
+    "thegent",
+    "heliosBench",
+    "HeliosLab",
+    "phenoUtils",
+    "phenoDesign",
+    "phenotype-hub",
+    "ObservabilityKit",
+    "thegent-clean-wt-ruff",
+    "PhenoObservability",
+    "HexaKit",
+    "PhenoDevOps",
+    "helioscope",
+    "PhenoAgent",
+    "PhenoMCP-cheap",
+    "Pyron",
+    "Eidolon",
+    "Dino",
+    "DevHex",
+    "Httpora",
+    "Agentora",
+    "Planify",
+    "McpKit",
+    "vibeproxy",
+    "phenodocs",
+    "phenotype-ops-mcp-t0",
+    "rich-cli-kit",
+    "MCPForge",
+    "thegent-clean-wt-policy",
+    "eyetracker",
+    "phenoForge",
+    "kwality",
+    "bare-cua",
+    "Civis",
+    "PlayCua",
+    "PhenoHandbook",
+    "AgentMCP",
+    "Benchora",
+    "phenoResearchEngine",
+    "phenotype-journeys",
+    "argis-extensions",
+    "cliproxyapi-plusplus",
+    "phenotype-registry",
+    "cheap-llm-mcp-deprecate",
+    "phenotype-shared",
+    "Metron",
+    "thegent-clean-wt-parallel",
+    "PhenoPlugins",
+    "phenotype-org-audits",
+    "PhenoRuntime",
+    "QuadSGM",
+    "Tracera",
+    "PhenoKits",
+    "TestingKit",
+    "PhenoCompose",
+    "Conft",
+    "agent-user-status",
+    "ResilienceKit",
+    "phenotype-bus",
+    "Paginary",
+    "phenotype-infra",
+    "PhenoProc",
+    "phenotype-tooling",
+    "Tracely",
+    "Tasken",
+    "OmniRoute",
+    "thegent-clean-wt-idea",
+    "portage",
+    "DataKit",
+    "KDesktopVirt",
+    "PhenoVCS",
+    "agent-devops-setups"
+  ],
+  "by_repo": [
+    {
+      "repo": "Parpoura",
+      "codeql_count": 1
+    },
+    {
+      "repo": "BytePort",
+      "codeql_count": 2
+    },
+    {
+      "repo": "AuthKit",
+      "codeql_count": 2
+    },
+    {
+      "repo": "PhenoProject",
+      "codeql_count": 1
+    },
+    {
+      "repo": "Sidekick",
+      "codeql_count": 3
+    },
+    {
+      "repo": "nanovms",
+      "codeql_count": 3
+    },
+    {
+      "repo": "PhenoMCP",
+      "codeql_count": 2
+    },
+    {
+      "repo": "phenoXdd",
+      "codeql_count": 1
+    },
+    {
+      "repo": "heliosApp",
+      "codeql_count": 1
+    },
+    {
+      "repo": "GDK",
+      "codeql_count": 2
+    },
+    {
+      "repo": "vibeproxy-monitoring-unified",
+      "codeql_count": 2
+    },
+    {
+      "repo": "phenoShared",
+      "codeql_count": 3
+    },
+    {
+      "repo": "thegent-clean-wt-docs",
+      "codeql_count": 5
+    },
+    {
+      "repo": "Tokn",
+      "codeql_count": 4
+    },
+    {
+      "repo": "AtomsBot",
+      "codeql_count": 1
+    },
+    {
+      "repo": "cheap-llm-mcp",
+      "codeql_count": 1
+    },
+    {
+      "repo": "foqos-private",
+      "codeql_count": 1
+    },
+    {
+      "repo": "phenokits-landing",
+      "codeql_count": 1
+    },
+    {
+      "repo": "agentapi-plusplus",
+      "codeql_count": 3
+    },
+    {
+      "repo": "PolicyStack",
+      "codeql_count": 5
+    },
+    {
+      "repo": "thegent-dispatch",
+      "codeql_count": 3
+    },
+    {
+      "repo": "hwLedger",
+      "codeql_count": 3
+    },
+    {
+      "repo": "phenoData",
+      "codeql_count": 3
+    },
+    {
+      "repo": "pheno",
+      "codeql_count": 7
+    },
+    {
+      "repo": "KaskMan",
+      "codeql_count": 2
+    },
+    {
+      "repo": "Apisync",
+      "codeql_count": 3
+    },
+    {
+      "repo": "phenotype-auth-ts",
+      "codeql_count": 1
+    },
+    {
+      "repo": "HeliosCLI",
+      "codeql_count": 7
+    },
+    {
+      "repo": "PhenoSpecs",
+      "codeql_count": 1
+    },
+    {
+      "repo": "phenodocs-scorecard-remediation",
+      "codeql_count": 2
+    },
+    {
+      "repo": "dinoforge-packs",
+      "codeql_count": 1
+    },
+    {
+      "repo": "phenoAI",
+      "codeql_count": 3
+    },
+    {
+      "repo": "thegent",
+      "codeql_count": 8
+    },
+    {
+      "repo": "heliosBench",
+      "codeql_count": 1
+    },
+    {
+      "repo": "HeliosLab",
+      "codeql_count": 4
+    },
+    {
+      "repo": "phenoUtils",
+      "codeql_count": 3
+    },
+    {
+      "repo": "phenoDesign",
+      "codeql_count": 2
+    },
+    {
+      "repo": "phenotype-hub",
+      "codeql_count": 1
+    },
+    {
+      "repo": "ObservabilityKit",
+      "codeql_count": 2
+    },
+    {
+      "repo": "thegent-clean-wt-ruff",
+      "codeql_count": 7
+    },
+    {
+      "repo": "PhenoObservability",
+      "codeql_count": 3
+    },
+    {
+      "repo": "HexaKit",
+      "codeql_count": 8
+    },
+    {
+      "repo": "PhenoDevOps",
+      "codeql_count": 6
+    },
+    {
+      "repo": "helioscope",
+      "codeql_count": 7
+    },
+    {
+      "repo": "PhenoAgent",
+      "codeql_count": 2
+    },
+    {
+      "repo": "PhenoMCP-cheap",
+      "codeql_count": 3
+    },
+    {
+      "repo": "Pyron",
+      "codeql_count": 6
+    },
+    {
+      "repo": "Eidolon",
+      "codeql_count": 2
+    },
+    {
+      "repo": "Dino",
+      "codeql_count": 3
+    },
+    {
+      "repo": "DevHex",
+      "codeql_count": 1
+    },
+    {
+      "repo": "Httpora",
+      "codeql_count": 1
+    },
+    {
+      "repo": "Agentora",
+      "codeql_count": 1
+    },
+    {
+      "repo": "Planify",
+      "codeql_count": 2
+    },
+    {
+      "repo": "McpKit",
+      "codeql_count": 1
+    },
+    {
+      "repo": "vibeproxy",
+      "codeql_count": 3
+    },
+    {
+      "repo": "phenodocs",
+      "codeql_count": 2
+    },
+    {
+      "repo": "phenotype-ops-mcp-t0",
+      "codeql_count": 2
+    },
+    {
+      "repo": "rich-cli-kit",
+      "codeql_count": 3
+    },
+    {
+      "repo": "MCPForge",
+      "codeql_count": 2
+    },
+    {
+      "repo": "thegent-clean-wt-policy",
+      "codeql_count": 3
+    },
+    {
+      "repo": "eyetracker",
+      "codeql_count": 3
+    },
+    {
+      "repo": "phenoForge",
+      "codeql_count": 1
+    },
+    {
+      "repo": "kwality",
+      "codeql_count": 2
+    },
+    {
+      "repo": "bare-cua",
+      "codeql_count": 3
+    },
+    {
+      "repo": "Civis",
+      "codeql_count": 2
+    },
+    {
+      "repo": "PlayCua",
+      "codeql_count": 3
+    },
+    {
+      "repo": "PhenoHandbook",
+      "codeql_count": 1
+    },
+    {
+      "repo": "AgentMCP",
+      "codeql_count": 1
+    },
+    {
+      "repo": "Benchora",
+      "codeql_count": 1
+    },
+    {
+      "repo": "phenoResearchEngine",
+      "codeql_count": 3
+    },
+    {
+      "repo": "phenotype-journeys",
+      "codeql_count": 3
+    },
+    {
+      "repo": "argis-extensions",
+      "codeql_count": 2
+    },
+    {
+      "repo": "cliproxyapi-plusplus",
+      "codeql_count": 4
+    },
+    {
+      "repo": "phenotype-registry",
+      "codeql_count": 1
+    },
+    {
+      "repo": "cheap-llm-mcp-deprecate",
+      "codeql_count": 1
+    },
+    {
+      "repo": "phenotype-shared",
+      "codeql_count": 1
+    },
+    {
+      "repo": "Metron",
+      "codeql_count": 2
+    },
+    {
+      "repo": "thegent-clean-wt-parallel",
+      "codeql_count": 8
+    },
+    {
+      "repo": "PhenoPlugins",
+      "codeql_count": 2
+    },
+    {
+      "repo": "phenotype-org-audits",
+      "codeql_count": 2
+    },
+    {
+      "repo": "PhenoRuntime",
+      "codeql_count": 1
+    },
+    {
+      "repo": "QuadSGM",
+      "codeql_count": 1
+    },
+    {
+      "repo": "Tracera",
+      "codeql_count": 3
+    },
+    {
+      "repo": "PhenoKits",
+      "codeql_count": 2
+    },
+    {
+      "repo": "TestingKit",
+      "codeql_count": 2
+    },
+    {
+      "repo": "PhenoCompose",
+      "codeql_count": 2
+    },
+    {
+      "repo": "Conft",
+      "codeql_count": 2
+    },
+    {
+      "repo": "agent-user-status",
+      "codeql_count": 1
+    },
+    {
+      "repo": "ResilienceKit",
+      "codeql_count": 2
+    },
+    {
+      "repo": "phenotype-bus",
+      "codeql_count": 3
+    },
+    {
+      "repo": "Paginary",
+      "codeql_count": 2
+    },
+    {
+      "repo": "phenotype-infra",
+      "codeql_count": 2
+    },
+    {
+      "repo": "PhenoProc",
+      "codeql_count": 2
+    },
+    {
+      "repo": "phenotype-tooling",
+      "codeql_count": 3
+    },
+    {
+      "repo": "Tracely",
+      "codeql_count": 3
+    },
+    {
+      "repo": "Tasken",
+      "codeql_count": 5
+    },
+    {
+      "repo": "OmniRoute",
+      "codeql_count": 1
+    },
+    {
+      "repo": "thegent-clean-wt-idea",
+      "codeql_count": 8
+    },
+    {
+      "repo": "portage",
+      "codeql_count": 3
+    },
+    {
+      "repo": "DataKit",
+      "codeql_count": 1
+    },
+    {
+      "repo": "KDesktopVirt",
+      "codeql_count": 3
+    },
+    {
+      "repo": "PhenoVCS",
+      "codeql_count": 3
+    },
+    {
+      "repo": "agent-devops-setups",
+      "codeql_count": 1
+    }
+  ]
+}

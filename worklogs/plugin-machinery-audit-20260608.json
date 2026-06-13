@@ -1,0 +1,41 @@
+{
+  "generated_at": "2026-06-08T16:40:00Z",
+  "total_repos": 131,
+  "by_lib": {
+    "wasmtime": [
+      "Civis",
+      "FocalPoint",
+      "ResilienceKit",
+      "crates",
+      "worktrees"
+    ],
+    "extism": [
+      "thegent",
+      "thegent-clean-wt-docs",
+      "thegent-clean-wt-idea",
+      "thegent-clean-wt-parallel",
+      "thegent-clean-wt-policy",
+      "thegent-clean-wt-ruff"
+    ],
+    "wasi": [
+      "FocalPoint",
+      "crates"
+    ],
+    "pyo3": [
+      "Conft",
+      "HeliosCLI",
+      "HeliosLab",
+      "KDesktopVirt",
+      "helioscope",
+      "thegent",
+      "thegent-clean-wt-docs",
+      "thegent-clean-wt-idea",
+      "thegent-clean-wt-parallel",
+      "thegent-clean-wt-policy",
+      "thegent-clean-wt-ruff",
+      "worktrees"
+    ],
+    "node-api": [],
+    "tauri-plugin": []
+  }
+}

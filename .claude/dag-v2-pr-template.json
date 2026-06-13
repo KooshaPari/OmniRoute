@@ -1,0 +1,255 @@
+{
+  "task": "DAG L2-26 pheno-pr-template-baseline",
+  "schema_version": "v2",
+  "generated_at": "2026-06-08T20:35:00-07:00",
+  "branch_name": "chore/pr-template-2026-06-08",
+  "commit_message": "chore(github): add PULL_REQUEST_TEMPLATE.md with conventional-commits checklist",
+  "canonical_template": {
+    "path": "/Users/kooshapari/CodeProjects/Phenotype/repos/.claude/templates/.github/PULL_REQUEST_TEMPLATE.md",
+    "relative_path": ".claude/templates/.github/PULL_REQUEST_TEMPLATE.md",
+    "size_bytes": 1532,
+    "lines": 38,
+    "sections": [
+      "Description",
+      "Type of Change",
+      "Testing",
+      "Checklist"
+    ],
+    "checklist_includes": [
+      "conventional-commits format",
+      "breaking change callout (BREAKING CHANGE: footer + migration notes)",
+      "tests added",
+      "docs updated"
+    ]
+  },
+  "l1_audit_set": {
+    "source": "/Users/kooshapari/CodeProjects/Phenotype/repos/.claude/dag-v2-audit-*.json",
+    "total_repos": 19,
+    "already_had_template": 18,
+    "missing_template": 1,
+    "created": 1
+  },
+  "repos": [
+    {
+      "name": "localbase3",
+      "path": "/Users/kooshapari/CodeProjects/Phenotype/repos/localbase3",
+      "action": "created",
+      "branch": "chore/pr-template-2026-06-08",
+      "base_branch": "main",
+      "base_sha": "3aa2d07b95b844dc0ec2afe403a854c0501ba92c",
+      "commit_sha": "1d8368268e788acf88712e16673c8b3ce88891f6",
+      "commit_author": "Forge <forge@phenotype.local>",
+      "commit_date": "2026-06-08T20:31:37-07:00",
+      "template_path": ".github/PULL_REQUEST_TEMPLATE.md",
+      "file_size_bytes": 1532,
+      "file_lines": 38,
+      "pushed": false
+    },
+    {
+      "name": "agent-user-status",
+      "path": "/Users/kooshapari/CodeProjects/Phenotype/repos/agent-user-status",
+      "action": "skipped_already_present",
+      "branch": null,
+      "commit_sha": "e6df834daa9e67eb8c6c1e141b5bd3c2dab89b0c",
+      "template_path": ".github/PULL_REQUEST_TEMPLATE.md",
+      "file_size_bytes": 1220,
+      "file_lines": 37
+    },
+    {
+      "name": "agentapi-plusplus",
+      "path": "/Users/kooshapari/CodeProjects/Phenotype/repos/agentapi-plusplus",
+      "action": "skipped_already_present",
+      "branch": null,
+      "commit_sha": "3b413fee1f2098419c7ce15e6494549e67b2667f",
+      "template_path": ".github/PULL_REQUEST_TEMPLATE.md",
+      "file_size_bytes": 526,
+      "file_lines": 30
+    },
+    {
+      "name": "AgilePlus",
+      "path": "/Users/kooshapari/CodeProjects/Phenotype/repos/AgilePlus",
+      "action": "skipped_already_present",
+      "branch": null,
+      "commit_sha": "fa1da1b3460777dca1ea35c5b0204168e1823849",
+      "template_path": ".github/PULL_REQUEST_TEMPLATE.md",
+      "file_size_bytes": 790,
+      "file_lines": 29
+    },
+    {
+      "name": "FocalPoint",
+      "path": "/Users/kooshapari/CodeProjects/Phenotype/repos/FocalPoint",
+      "action": "skipped_already_present",
+      "branch": null,
+      "commit_sha": "b84bae87625a1b565320fc18896e29605165798d",
+      "template_path": ".github/PULL_REQUEST_TEMPLATE.md",
+      "file_size_bytes": 691,
+      "file_lines": 28
+    },
+    {
+      "name": "HeliosCLI",
+      "path": "/Users/kooshapari/CodeProjects/Phenotype/repos/HeliosCLI",
+      "action": "skipped_already_present",
+      "branch": null,
+      "commit_sha": "bc550a8576ab30332a9d853c0ae7c62c87b7f591",
+      "template_path": ".github/PULL_REQUEST_TEMPLATE.md",
+      "file_size_bytes": 307,
+      "file_lines": 20
+    },
+    {
+      "name": "helioscope",
+      "path": "/Users/kooshapari/CodeProjects/Phenotype/repos/helioscope",
+      "action": "skipped_already_present",
+      "branch": null,
+      "commit_sha": "561d8d07e2ddd6e486683fbcf3f0926d0b83b0d6",
+      "template_path": ".github/PULL_REQUEST_TEMPLATE.md",
+      "file_size_bytes": 307,
+      "file_lines": 20
+    },
+    {
+      "name": "HexaKit",
+      "path": "/Users/kooshapari/CodeProjects/Phenotype/repos/HexaKit",
+      "action": "skipped_already_present",
+      "branch": null,
+      "commit_sha": "ad04418875d48b2eceed8c8ad1f81a59ca62dc1e",
+      "template_path": ".github/PULL_REQUEST_TEMPLATE.md",
+      "file_size_bytes": 307,
+      "file_lines": 20
+    },
+    {
+      "name": "pheno",
+      "path": "/Users/kooshapari/CodeProjects/Phenotype/repos/pheno",
+      "action": "skipped_already_present",
+      "branch": null,
+      "commit_sha": "5851a70c6c067624803c4c133eccf40e34573fd7",
+      "template_path": ".github/PULL_REQUEST_TEMPLATE.md",
+      "file_size_bytes": 307,
+      "file_lines": 20
+    },
+    {
+      "name": "PhenoDevOps",
+      "path": "/Users/kooshapari/CodeProjects/Phenotype/repos/PhenoDevOps",
+      "action": "skipped_already_present",
+      "branch": null,
+      "commit_sha": "161d23b5b8852525ea4df1a4f696e71193f55e4a",
+      "template_path": ".github/PULL_REQUEST_TEMPLATE.md",
+      "file_size_bytes": 307,
+      "file_lines": 20
+    },
+    {
+      "name": "PhenoKits",
+      "path": "/Users/kooshapari/CodeProjects/Phenotype/repos/PhenoKits",
+      "action": "skipped_already_present",
+      "branch": null,
+      "commit_sha": "bea8355ed76525c32cc7ab8426e3bb3d5ff76778",
+      "template_path": ".github/PULL_REQUEST_TEMPLATE.md",
+      "file_size_bytes": 307,
+      "file_lines": 20
+    },
+    {
+      "name": "PhenoObservability",
+      "path": "/Users/kooshapari/CodeProjects/Phenotype/repos/PhenoObservability",
+      "action": "skipped_already_present",
+      "branch": null,
+      "commit_sha": "cc01ff2455eaf6786d04a5ba70c9baf52e8e3ce3",
+      "template_path": ".github/PULL_REQUEST_TEMPLATE.md",
+      "file_size_bytes": 306,
+      "file_lines": 19
+    },
+    {
+      "name": "PhenoProc",
+      "path": "/Users/kooshapari/CodeProjects/Phenotype/repos/PhenoProc",
+      "action": "skipped_already_present",
+      "branch": null,
+      "commit_sha": "a07b24b052fe4080a0cef0060436a54b52fc5c77",
+      "template_path": ".github/PULL_REQUEST_TEMPLATE.md",
+      "file_size_bytes": 307,
+      "file_lines": 20
+    },
+    {
+      "name": "phenoRuntime",
+      "path": "/Users/kooshapari/CodeProjects/Phenotype/repos/phenoRuntime",
+      "action": "skipped_already_present",
+      "branch": null,
+      "commit_sha": "218a307da1d4a71c8c43ccf9fadcbeb0f0bf6316",
+      "template_path": ".github/PULL_REQUEST_TEMPLATE.md",
+      "file_size_bytes": 306,
+      "file_lines": 19
+    },
+    {
+      "name": "phenoShared",
+      "path": "/Users/kooshapari/CodeProjects/Phenotype/repos/phenoShared",
+      "action": "skipped_already_present",
+      "branch": null,
+      "commit_sha": "80bfb74bfdb00a42afe31796d712ce12611f5245",
+      "template_path": ".github/PULL_REQUEST_TEMPLATE.md",
+      "file_size_bytes": 352,
+      "file_lines": 19
+    },
+    {
+      "name": "Pyron",
+      "path": "/Users/kooshapari/CodeProjects/Phenotype/repos/Pyron",
+      "action": "skipped_already_present",
+      "branch": null,
+      "commit_sha": "24a15e2c35b3ff7a39c77ffad8c228743d6050dc",
+      "template_path": ".github/PULL_REQUEST_TEMPLATE.md",
+      "file_size_bytes": 549,
+      "file_lines": 19
+    },
+    {
+      "name": "thegent",
+      "path": "/Users/kooshapari/CodeProjects/Phenotype/repos/thegent",
+      "action": "skipped_already_present",
+      "branch": null,
+      "commit_sha": "8cf02e3cc2de0a8bb2db7b1420a35e705a81da4e",
+      "template_path": ".github/PULL_REQUEST_TEMPLATE.md",
+      "file_size_bytes": 307,
+      "file_lines": 20
+    },
+    {
+      "name": "Tracely",
+      "path": "/Users/kooshapari/CodeProjects/Phenotype/repos/Tracely",
+      "action": "skipped_already_present",
+      "branch": null,
+      "commit_sha": "47f50fb5d0fd2f739eccf2fef3433dc3df9f5e7e",
+      "template_path": ".github/PULL_REQUEST_TEMPLATE.md",
+      "file_size_bytes": 306,
+      "file_lines": 19
+    },
+    {
+      "name": "Tracera",
+      "path": "/Users/kooshapari/CodeProjects/Phenotype/repos/Tracera",
+      "action": "skipped_already_present",
+      "branch": null,
+      "commit_sha": "5a3ea1f051f47df6c45e32c0132ba93903a1ee46",
+      "template_path": ".github/PULL_REQUEST_TEMPLATE.md",
+      "file_size_bytes": 307,
+      "file_lines": 20
+    }
+  ],
+  "summary": {
+    "canonical_template_size_bytes": 1532,
+    "canonical_template_lines": 38,
+    "repos_created": ["localbase3"],
+    "repos_skipped_already_present": [
+      "agent-user-status",
+      "agentapi-plusplus",
+      "AgilePlus",
+      "FocalPoint",
+      "HeliosCLI",
+      "helioscope",
+      "HexaKit",
+      "pheno",
+      "PhenoDevOps",
+      "PhenoKits",
+      "PhenoObservability",
+      "PhenoProc",
+      "phenoRuntime",
+      "phenoShared",
+      "Pyron",
+      "thegent",
+      "Tracely",
+      "Tracera"
+    ],
+    "pushed": false
+  }
+}

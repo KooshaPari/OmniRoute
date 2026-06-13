@@ -1,0 +1,24 @@
+{
+  "generated_at": "2026-06-05T22:15:00Z",
+  "total_repos": 160,
+  "with_wasmtime": [
+    "FocalPoint",
+    "crates"
+  ],
+  "with_wasm_bindgen": [],
+  "with_wasmer": [],
+  "by_repo": [
+    {
+      "repo": "FocalPoint",
+      "libs": [
+        "wasmtime"
+      ]
+    },
+    {
+      "repo": "crates",
+      "libs": [
+        "wasmtime"
+      ]
+    }
+  ]
+}

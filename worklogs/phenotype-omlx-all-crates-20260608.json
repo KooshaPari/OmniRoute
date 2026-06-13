@@ -1,0 +1,36 @@
+{
+  "generated_at": "2026-06-09T03:58:05Z",
+  "top_level": [
+    "AGENTS.md",
+    "CHANGELOG.md",
+    "CLAUDE.md",
+    "CODE_OF_CONDUCT.md",
+    "CONTRIBUTING.md",
+    "FUNDING.yml",
+    "Formula",
+    "LICENSE",
+    "README.ja.md",
+    "README.ko.md",
+    "README.md",
+    "README.zh.md",
+    "SECURITY.md",
+    "Taskfile.yml",
+    "docs",
+    "mcp.example.json",
+    "omlx",
+    "omlx.egg-info",
+    "packaging",
+    "pyproject.toml",
+    "pytest.ini",
+    "renovate.json5",
+    "scripts",
+    "tests",
+    "trufflehog.yml",
+    "uv.lock"
+  ],
+  "cargo_toml_files": [],
+  "pyproject_files": [
+    "./pyproject.toml"
+  ],
+  "total": 1
+}

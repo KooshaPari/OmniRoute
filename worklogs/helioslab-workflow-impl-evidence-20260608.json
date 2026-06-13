@@ -1,0 +1,12 @@
+{
+  "generated_at": "2026-06-08T00:00:00Z",
+  "file_present": true,
+  "line_count": 21,
+  "uses_configure_pages": true,
+  "uses_upload_pages_artifact": true,
+  "uses_deploy_pages": true,
+  "has_github_pages_env": true,
+  "has_id_token_write": true,
+  "has_pages_write": true,
+  "validation_passed": true
+}

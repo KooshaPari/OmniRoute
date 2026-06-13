@@ -1,0 +1,463 @@
+{
+  "generated_at": "2026-06-08T00:00:00Z",
+  "by_repo": [
+    {
+      "repo": "phenotype-hub",
+      "pages_status": "none",
+      "first_deployment": "none",
+      "last_deployment": "none",
+      "workflows": [
+        {
+          "name": ".github/workflows/codeql.yml",
+          "state": "active"
+        },
+        {
+          "name": ".github/workflows/doc-links.yml",
+          "state": "active"
+        },
+        {
+          "name": ".github/workflows/fr-coverage.yml",
+          "state": "active"
+        },
+        {
+          "name": ".github/workflows/scorecard.yml",
+          "state": "active"
+        },
+        {
+          "name": ".github/workflows/secrets-scan.yml",
+          "state": "active"
+        },
+        {
+          "name": "TruffleHog Secrets Scan",
+          "state": "active"
+        },
+        {
+          "name": "VitePress Deploy",
+          "state": "active"
+        },
+        {
+          "name": "Copilot",
+          "state": "active"
+        },
+        {
+          "name": "Copilot code review",
+          "state": "active"
+        },
+        {
+          "name": "Dependabot Updates",
+          "state": "active"
+        }
+      ],
+      "open_issues": 10,
+      "open_prs": 6,
+      "docs_framework": "docs/",
+      "has_doc_links_workflow": true
+    },
+    {
+      "repo": "thegent",
+      "pages_status": "built",
+      "first_deployment": "2026-02-20T10:23:08Z",
+      "last_deployment": "2026-02-23T23:07:58Z",
+      "workflows": [
+        {
+          "name": ".github/workflows/ci.yml",
+          "state": "active"
+        },
+        {
+          "name": "Dependabot Updates",
+          "state": "active"
+        },
+        {
+          "name": "Release",
+          "state": "active"
+        },
+        {
+          "name": "pages-build-deployment",
+          "state": "active"
+        },
+        {
+          "name": "Stage Gates",
+          "state": "active"
+        },
+        {
+          "name": "Policy Gate",
+          "state": "active"
+        },
+        {
+          "name": "Copilot code review",
+          "state": "active"
+        },
+        {
+          "name": "Security Guard",
+          "state": "active"
+        },
+        {
+          "name": "CodeQL",
+          "state": "active"
+        },
+        {
+          "name": "Test Libs & Tools",
+          "state": "active"
+        },
+        {
+          "name": "Test Libs",
+          "state": "active"
+        },
+        {
+          "name": "Dependency Graph",
+          "state": "active"
+        },
+        {
+          "name": "CodeQL",
+          "state": "active"
+        },
+        {
+          "name": "SAST Quick Check",
+          "state": "active"
+        },
+        {
+          "name": "Fuzzing",
+          "state": "active"
+        },
+        {
+          "name": "IaC Scanning",
+          "state": "active"
+        },
+        {
+          "name": "License Compliance",
+          "state": "active"
+        },
+        {
+          "name": "SonarCloud",
+          "state": "active"
+        },
+        {
+          "name": "Trivy Scan",
+          "state": "active"
+        },
+        {
+          "name": "ZAP DAST",
+          "state": "active"
+        },
+        {
+          "name": "PR Governance Gate",
+          "state": "active"
+        },
+        {
+          "name": "Quality Gate",
+          "state": "active"
+        },
+        {
+          "name": "Testing Infrastructure",
+          "state": "active"
+        },
+        {
+          "name": ".github/workflows/security.yml",
+          "state": "active"
+        },
+        {
+          "name": "Security (SAST)",
+          "state": "active"
+        },
+        {
+          "name": "Coverage",
+          "state": "active"
+        },
+        {
+          "name": "Deep Security Scan",
+          "state": "active"
+        },
+        {
+          "name": "FR Traceability",
+          "state": "active"
+        },
+        {
+          "name": "Legacy Tooling Gate",
+          "state": "active"
+        },
+        {
+          "name": "Deploy VitePress Docs",
+          "state": "active"
+        }
+      ],
+      "open_issues": 10,
+      "open_prs": 2,
+      "docs_framework": "docs/",
+      "has_doc_links_workflow": false
+    },
+    {
+      "repo": "OmniRoute",
+      "pages_status": "none",
+      "first_deployment": "none",
+      "last_deployment": "none",
+      "workflows": [
+        {
+          "name": "Publish Fork Image to GHCR",
+          "state": "active"
+        },
+        {
+          "name": "CI",
+          "state": "active"
+        },
+        {
+          "name": "Claude Code",
+          "state": "active"
+        },
+        {
+          "name": "Publish to Docker Hub",
+          "state": "active"
+        },
+        {
+          "name": ".github/workflows/electron-release.yml",
+          "state": "active"
+        },
+        {
+          "name": "Lock released branch",
+          "state": "active"
+        },
+        {
+          "name": "Publish to npm",
+          "state": "active"
+        },
+        {
+          "name": "opencode-plugin CI",
+          "state": "active"
+        },
+        {
+          "name": "opencode-provider CI",
+          "state": "active"
+        },
+        {
+          "name": "TruffleHog Secrets Scan",
+          "state": "active"
+        },
+        {
+          "name": "Copilot",
+          "state": "active"
+        },
+        {
+          "name": "Copilot code review",
+          "state": "active"
+        }
+      ],
+      "open_issues": 3,
+      "open_prs": 3,
+      "docs_framework": "docs/",
+      "has_doc_links_workflow": false
+    },
+    {
+      "repo": "helioscope",
+      "pages_status": "none",
+      "first_deployment": "2026-03-25T02:26:26Z",
+      "last_deployment": "2026-05-28T11:39:22Z",
+      "workflows": [
+        {
+          "name": ".github/workflows/alert-sync-issues.yml",
+          "state": "active"
+        },
+        {
+          "name": "Bazel (experimental)",
+          "state": "active"
+        },
+        {
+          "name": "cargo-audit",
+          "state": "active"
+        },
+        {
+          "name": "cargo-deny",
+          "state": "active"
+        },
+        {
+          "name": "cargo-machete",
+          "state": "active"
+        },
+        {
+          "name": "cargo-semver-checks",
+          "state": "active"
+        },
+        {
+          "name": "CI",
+          "state": "active"
+        },
+        {
+          "name": "CLA Assistant",
+          "state": "active"
+        },
+        {
+          "name": "Close stale contributor PRs",
+          "state": "active"
+        },
+        {
+          "name": "CodeQL (Rust)",
+          "state": "active"
+        },
+        {
+          "name": "CodeQL",
+          "state": "active"
+        },
+        {
+          "name": "Codespell",
+          "state": "active"
+        },
+        {
+          "name": "CPU Profiling",
+          "state": "active"
+        },
+        {
+          "name": "Docs Site",
+          "state": "active"
+        },
+        {
+          "name": "Fuzzing",
+          "state": "active"
+        },
+        {
+          "name": "helios-cli-release",
+          "state": "active"
+        },
+        {
+          "name": "helios-cli",
+          "state": "active"
+        },
+        {
+          "name": "IaC Scanning",
+          "state": "active"
+        },
+        {
+          "name": "Issue Deduplicator",
+          "state": "active"
+        },
+        {
+          "name": "Issue Labeler",
+          "state": "active"
+        },
+        {
+          "name": "Journey Gate",
+          "state": "active"
+        },
+        {
+          "name": "Leak Detection",
+          "state": "active"
+        },
+        {
+          "name": "License Compliance",
+          "state": "active"
+        },
+        {
+          "name": "Network Optimization",
+          "state": "active"
+        },
+        {
+          "name": "Pages Deploy",
+          "state": "active"
+        },
+        {
+          "name": "Policy Gate",
+          "state": "active"
+        },
+        {
+          "name": "PR Babysit Watch",
+          "state": "active"
+        },
+        {
+          "name": "PR Governance Gate",
+          "state": "active"
+        },
+        {
+          "name": "Quality",
+          "state": "active"
+        },
+        {
+          "name": "Review Wave Orchestrator",
+          "state": "active"
+        }
+      ],
+      "open_issues": 23,
+      "open_prs": 0,
+      "docs_framework": "docs/",
+      "has_doc_links_workflow": false
+    },
+    {
+      "repo": "heliosBench",
+      "pages_status": "built",
+      "first_deployment": "2026-04-30T15:33:22Z",
+      "last_deployment": "2026-06-01T05:27:06Z",
+      "workflows": [
+        {
+          "name": ".github/workflows/alert-sync-issues.yml",
+          "state": "active"
+        },
+        {
+          "name": "CI",
+          "state": "active"
+        },
+        {
+          "name": "Dependency Review",
+          "state": "active"
+        },
+        {
+          "name": "Doc Links",
+          "state": "active"
+        },
+        {
+          "name": "FR Coverage",
+          "state": "active"
+        },
+        {
+          "name": "Journey Gate",
+          "state": "active"
+        },
+        {
+          "name": "Pages",
+          "state": "active"
+        },
+        {
+          "name": "Quality Gate",
+          "state": "active"
+        },
+        {
+          "name": "OpenSSF Scorecard",
+          "state": "active"
+        },
+        {
+          "name": "SonarCloud",
+          "state": "active"
+        },
+        {
+          "name": "TruffleHog Secrets Scan",
+          "state": "active"
+        },
+        {
+          "name": "Copilot",
+          "state": "active"
+        },
+        {
+          "name": "Copilot code review",
+          "state": "active"
+        },
+        {
+          "name": "Dependabot Updates",
+          "state": "active"
+        },
+        {
+          "name": "Dependency Graph",
+          "state": "active"
+        },
+        {
+          "name": "pages-build-deployment",
+          "state": "active"
+        }
+      ],
+      "open_issues": 30,
+      "open_prs": 0,
+      "docs_framework": "docs/",
+      "has_doc_links_workflow": false
+    }
+  ],
+  "aggregate": {
+    "total_open_issues": 76,
+    "total_open_prs": 11,
+    "deployed_count": 3,
+    "not_deployed_count": 2
+  }
+}

@@ -1,0 +1,204 @@
+{
+  "generated_at": "2026-06-05T22:15:00Z",
+  "total_repos": 168,
+  "with_parking_lot": [
+    ".claude",
+    "DataKit",
+    "Eventra",
+    "FocalPoint",
+    "GDK",
+    "HeliosCLI",
+    "HexaKit",
+    "Metron",
+    "PhenoDevOps",
+    "PhenoObservability",
+    "PhenoProc",
+    "Pyron",
+    "crates",
+    "helioscope",
+    "pheno",
+    "phenoShared",
+    "phenodocs",
+    "thegent",
+    "thegent-clean",
+    "thegent-clean-wt-docs",
+    "thegent-clean-wt-idea",
+    "thegent-clean-wt-parallel",
+    "thegent-clean-wt-policy",
+    "thegent-clean-wt-ruff",
+    "worktrees"
+  ],
+  "with_arc_swap": [
+    "Agentora",
+    "HeliosCLI",
+    "PhenoAgent",
+    "helioscope"
+  ],
+  "with_crossbeam": [],
+  "by_repo": [
+    {
+      "repo": ".claude",
+      "libs": [
+        "parking_lot"
+      ]
+    },
+    {
+      "repo": "Agentora",
+      "libs": [
+        "arc-swap"
+      ]
+    },
+    {
+      "repo": "DataKit",
+      "libs": [
+        "parking_lot"
+      ]
+    },
+    {
+      "repo": "Eventra",
+      "libs": [
+        "parking_lot"
+      ]
+    },
+    {
+      "repo": "FocalPoint",
+      "libs": [
+        "parking_lot"
+      ]
+    },
+    {
+      "repo": "GDK",
+      "libs": [
+        "parking_lot"
+      ]
+    },
+    {
+      "repo": "HeliosCLI",
+      "libs": [
+        "arc-swap",
+        "parking_lot"
+      ]
+    },
+    {
+      "repo": "HexaKit",
+      "libs": [
+        "parking_lot"
+      ]
+    },
+    {
+      "repo": "Metron",
+      "libs": [
+        "parking_lot"
+      ]
+    },
+    {
+      "repo": "PhenoAgent",
+      "libs": [
+        "arc-swap"
+      ]
+    },
+    {
+      "repo": "PhenoDevOps",
+      "libs": [
+        "parking_lot"
+      ]
+    },
+    {
+      "repo": "PhenoObservability",
+      "libs": [
+        "parking_lot"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "libs": [
+        "parking_lot"
+      ]
+    },
+    {
+      "repo": "Pyron",
+      "libs": [
+        "parking_lot"
+      ]
+    },
+    {
+      "repo": "crates",
+      "libs": [
+        "parking_lot"
+      ]
+    },
+    {
+      "repo": "helioscope",
+      "libs": [
+        "arc-swap",
+        "parking_lot"
+      ]
+    },
+    {
+      "repo": "pheno",
+      "libs": [
+        "parking_lot"
+      ]
+    },
+    {
+      "repo": "phenoShared",
+      "libs": [
+        "parking_lot"
+      ]
+    },
+    {
+      "repo": "phenodocs",
+      "libs": [
+        "parking_lot"
+      ]
+    },
+    {
+      "repo": "thegent",
+      "libs": [
+        "parking_lot"
+      ]
+    },
+    {
+      "repo": "thegent-clean",
+      "libs": [
+        "parking_lot"
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-docs",
+      "libs": [
+        "parking_lot"
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-idea",
+      "libs": [
+        "parking_lot"
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-parallel",
+      "libs": [
+        "parking_lot"
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-policy",
+      "libs": [
+        "parking_lot"
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-ruff",
+      "libs": [
+        "parking_lot"
+      ]
+    },
+    {
+      "repo": "worktrees",
+      "libs": [
+        "parking_lot"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,119 @@
+{
+  "repo": "HeliosLab",
+  "branch_audited": "main (4eef995)",
+  "audited_at": "2026-06-08",
+  "summary": "G1-G4 PASS, G5 PASS w/ 2 open PRs. e2e misrouted (CI checks root, tests live under docs/tests/e2e). 4 actionable findings.",
+  "gates": {
+    "G1_workflow_hygiene": {
+      "status": "PASS",
+      "evidence": [
+        "18/18 .github/workflows/*.yml parse cleanly under yq",
+        "All actions/checkout SHA-pinned to df4cb1c069e1874edd31b4311f1884172cec0e10 (# v4)",
+        "No @main / @vN tag rot, no trufflehog/actions references (trufflehog.yml delegates to KooshaPari/phenotype-tooling reusable@604fcb53)",
+        "Reusable workflow SHAs noted with '# pinned from @ref; org SHA may shift' comment in trufflehog/cargo-deny/journey-gate",
+        "Top-level `concurrency:` + `permissions: contents: read` present in 14/18; the 4 reusable-only files (alert-sync, journey-gate, cargo-deny, trufflehog) inherit the runner default which is acceptable for reusable-only files",
+        "ubuntu-24.04 runner in 14/18; build-release + scorecard inherit (build-release uses ubuntu-24.04 too)"
+      ]
+    },
+    "G2_governance_files": {
+      "status": "PASS",
+      "evidence": [
+        "LICENSE (MIT) + LICENSE-MIT + LICENSE-APACHE all present (PR #4eef995 added dual license)",
+        "CODE_OF_CONDUCT.md, CONTRIBUTING.md, SECURITY.md, FUNDING.yml all present",
+        "CODEOWNERS 2-line catch-all: '* @KooshaPari' (org standard)",
+        "SUPPORT.md MISSING locally (PR #114 open, MERGEABLE, awaiting review)",
+        "CITATION.cff references Apache-2.0; LICENSE file is MIT; Cargo.toml says 'MIT OR Apache-2.0' — three license signals, all consistent"
+      ]
+    },
+    "G3_security_scanning": {
+      "status": "PASS",
+      "evidence": [
+        "scorecard.yml (OpenSSF, cron 17 3 * * 6) - uses ossf/scorecard-action@af761533 SHA",
+        "codeql.yml + codeql-rust.yml - both with schedule + push + PR triggers, codeql-action SHA-pinned to 7c1e4cf0b (note: different SHA across the two files, intentional - both are valid upstream SHAs)",
+        "cargo-audit.yml (rustsec/audit-check@69366f33, weekly) + cargo-deny.yml (reusable, weekly implicit via PR+push)",
+        "trufflehog.yml (reusable KooshaPari/phenotype-tooling) + trufflehog scanner config at root",
+        "sast.yml: CodeQL javascript-typescript,python (the 'SAST' name is misleading - it IS CodeQL again, but covers more langs)",
+        "security-guard.yml + security-guard-hook-audit.yml run pre-commit hooks via pre-commit/action@2c7b3805",
+        "deny.toml allowlist covers 18 common licenses; ignores RUSTSEC-2024-0436 (paste, transitive ratatui)"
+      ]
+    },
+    "G4_quality_gates": {
+      "status": "PASS",
+      "evidence": [
+        "ci.yml: typecheck + lint (clippy -D warnings) + unit-tests + coverage placeholder + secret-scan placeholder + ci-summary aggregator",
+        "quality-gate.yml: 5-job matrix (unit/e2e/integration + FR-annotation + report)",
+        "FR-annotation check greps new test files for 'FR:' or '@FR'",
+        "coverage.yml: codecov/codecov-action@b9fd7d16 SHA-pinned",
+        "pre-commit-config: cargo-fmt + cargo-clippy + gitleaks v8.18.2 + standard hooks",
+        "clippy.toml: avoid-breaking-exported-api=false (correct for active dev)",
+        "deny.toml: bans multiple-versions=warn, wildcards=warn, workspace-default-features=warn"
+      ]
+    },
+    "G5_review_governance": {
+      "status": "PASS",
+      "evidence": [
+        ".coderabbit.yaml present (severity info per AGENTS.md mandate)",
+        ".gemini/ MISSING (but AGENTS.md mandates it - drift)",
+        "dependabot.yml: gomod + pip + npm + cargo daily",
+        "required-check-names-guard.yml: parses .github/required-checks.txt and asserts each (workflow_file|job_name) entry exists - meta-guard against required-check drift",
+        "ISSUE_TEMPLATE/ has bug.yml + config.yml + feature.yml (full set)",
+        "pull_request_template.md: 19-line stub, in the org-standard form",
+        "2 open PRs: #107 (Scorecard policy) MERGEABLE? Actually FAILED checks, #114 (SUPPORT.md) MERGEABLE"
+      ]
+    },
+    "e2e_end_to_end": {
+      "status": "DEGRADED",
+      "evidence": [
+        "quality-gate.yml:check-changes:33 checks `[ -d \"e2e\" ]` at REPO ROOT (and tests/ + integration/)",
+        "Actual e2e/ lives at docs/tests/e2e/ (docsite.spec.ts Playwright spec) - NOT at root",
+        "Actual unit/ lives at docs/tests/unit/ (site-meta.test.mjs) - NOT at root",
+        "Consequence: has_e2e=false, has_tests=false, has_integration=false on every run → e2e-tests + integration-tests jobs ALWAYS skip",
+        "Confirmed via PR #107 CI: 'E2E Tests' job reports 'skipping', 'Integration Tests' job reports 'skipping'",
+        "Only CI-run tests are the `cargo test --lib --all-features` unit-tests in quality-gate.yml:50 (Rust) — the docs site has no CI"
+      ]
+    }
+  },
+  "additional_findings": {
+    "local_branch_drift": "24+ stale local branches from prior agent runs (chore/*, ci/*, codex/*, docs/*, feat/*, fix/*). 7 are ahead of main and unpushed (marked '+' in git branch -vv). Per tick-19 policy these are vestigial but un-pushed local work.",
+    "duplicate_security_guard": ".github/hooks/security-guard.sh and .github/scripts/security-guard.sh are NOT byte-identical — they implement different scanners (pre-commit framework vs ggshield). The 'hook audit' workflow only checks the hooks/ path; the scripts/ copy is dead code on a different code path.",
+    "uncommitted_modification": "Working tree has 1 unstaged edit: pheno-cli/src/main.rs (current branch: chore/helioslab-pheno-cli-doctest-or-bench-20260608)",
+    "version_drift": "VERSION file says '0.14.11-canary.1' (from 2026-03-29); Cargo.toml workspace.package.version = '0.1.1' (from 2026-04-25 CHANGELOG entry). Two different version-of-record.",
+    "deploy_docs_duplicate_on": "deploy-docs.yml:2 has `on: workflow_dispatch:` and deploy-docs.yml:8 has `on: { push: { branches: [ main, master ] } }` — TWO top-level `on:` keys, the second silently overrides the first. workflow_dispatch is effectively dead.",
+    "release_drafter_orphan": "release.yml:52-63 has a `promote:` job commented out with NOTE: 'KooshaPari/phenotypeActions/promote returns 404'. Dead commented code should be removed."
+  },
+  "ci_status": {
+    "pr_107_scorecard_policy": {
+      "state": "OPEN",
+      "checks_failing": ["typecheck", "lint", "unit-tests", "ci-summary", "codeql", "Quality Report", "Unit Tests"],
+      "checks_passing": ["Analyze (rust)", "Analyze Rust", "CodeQL", "FR Annotation Check", "coverage", "guard", "secret-scan", "verify-required-check-names", "Semgrep", "SonarCloud", "Socket Security", "CodeRabbit", "Cursor Bugbot"],
+      "failing_duration_seconds": "4-8s each (fast fail, suggests compile or clippy error not flaky test)"
+    },
+    "pr_114_support_md": {
+      "state": "OPEN",
+      "mergeable": "MERGEABLE",
+      "blocking": "Branch protection requires human approval (1 reviewer, no force-push per README)"
+    }
+  },
+  "actions_recommended": [
+    {
+      "priority": "P0",
+      "title": "Fix e2e/tests detection path in quality-gate.yml",
+      "detail": "quality-gate.yml:33-35 checks for e2e/, tests/, integration/ at repo root. HeliosLab's tests live at docs/tests/{e2e,unit,helpers}/. Update check-changes to glob `**/tests/e2e`, `**/e2e`, or check docs/tests/e2e/docsite.spec.ts existence. Adds real e2e coverage to CI for the first time (currently the entire docs site test suite is dark-code).",
+      "estimated_effort": "5 min + add docs site Playwright run step (~30 min)"
+    },
+    {
+      "priority": "P1",
+      "title": "Land PR #114 (SUPPORT.md) — currently OPEN MERGEABLE",
+      "detail": "SUPPORT.md is the only org-mandated community file missing. PR #114 is in flight (commit 8d44423 on chore/support-file-2026-06-08, diff: +6 lines in hygiene2 worktree). Approve and admin-merge to bring HeliosLab to 100% G2.",
+      "estimated_effort": "1 click"
+    },
+    {
+      "priority": "P1",
+      "title": "Diagnose PR #107 CI failures (typecheck/lint/unit-tests/codeql)",
+      "detail": "All four jobs fail in 4-8s — almost certainly compile/clippy errors from the Scorecard-policy change, not flaky tests. Pull logs from run 27175345290 (typecheck 80222926805, lint 80222926821, unit-tests 80222926820). Likely 1-3 line fix.",
+      "estimated_effort": "10 min diagnostic + ~5 min fix"
+    }
+  ],
+  "deep_research": "HeliosLab sits in the Phenotype 'config/flags/secrets' family alongside HexaKit, PhenoKits, PhenoSchema, and pheno-crypto. Comparing against the tick-19 model repo (PhenoSpecs) and the previous HeliosLab-hygiene2 worktree (now merged to main via PR #106, commit 4eef995), the repo has reached a stable hygiene plateau. Every third-party action is SHA-pinned (the org standard 34e1148 / df4cb1c / 78ed0c7 / 7c1e4cf / af76153 / 043fb46d / b9fd7d16 / 0355742c / 27d5ce7 / 69366f33 / e9c66a37 / 3a2844b7 / 874b06e0 / 2c7b3805); all reusable workflow calls are SHA-pinned with a comment that the org SHA may shift; and the 4 reusable-only files correctly inherit the runner's default permissions (acceptable: they're not running user code). The trufflehog/actions rot that bit 17+ other repos in tick-17 is NOT present here — trufflehog.yml delegates to KooshaPari/phenotype-tooling at SHA 604fcb53. The CODEOWNERS is the 2-line org standard (62 other repos have the same). The required-checks.txt/required-check-names-guard pair is the org's meta-guard against branch-protection drift — present and verifying correctly. The biggest residual risk is the e2e detection bug: the repo's only e2e test (docsite.spec.ts Playwright) and only unit test for the docs (site-meta.test.mjs) live under docs/tests/ but quality-gate.yml:33 looks for them at the repo root. Result: every PR shows 'E2E Tests: SKIPPED' and 'Integration Tests: SKIPPED' in the Quality Report comment, and the docs-site test suite has never run in CI. This is a one-line fix that unlocks a coverage vector the repo currently advertises but doesn't enforce.",
+  "deep_research_cont": "Three secondary items: (1) deploy-docs.yml:2 + :8 has two top-level `on:` keys — the second silently overrides the first, so workflow_dispatch is dead code. (2) release.yml:52-63 has a commented-out `promote:` job referring to KooshaPari/phenotypeActions/promote@main, with a NOTE that the action returns 404. Per tick-16/17 this is the same 'phenotypeActions is gone' rot that hit trufflehog/actions. The comment should be deleted; the SHA pin is irrelevant since the repo is 404. (3) VERSION file holds '0.14.11-canary.1' (the old 0.14.x series) while Cargo.toml workspace.package.version = '0.1.1' (the new 0.1.x series). The two are inconsistent — likely a snapshot of the old pre-rebrand series. VERSION is referenced by CI scripts in some repos; here it's stale but unused. (4) The duplicate security-guard.sh pair is NOT actually a duplicate (different scanner impls: pre-commit framework vs ggshield). The scripts/ version is dead code — no workflow calls it. Recommend deleting .github/scripts/security-guard.sh since the hooks/ path is what security-guard.yml + security-guard-hook-audit.yml invoke. HeliosLab overall: hygiene score 4.6/5 (G1-G4 solid; G5 95% — only the open PRs are gaps; e2e test detection broken)."
+}

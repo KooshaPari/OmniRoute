@@ -1,0 +1,60 @@
+{
+  "generated_at": "2026-06-08T20:10:00Z",
+  "repo": "heliosBench",
+  "spec_count": 3,
+  "spec_files": [
+    "docs/operations/iconography/SPEC.md",
+    "docs/sessions/20260429-sladge-badge-rollout/02_SPECIFICATIONS.md",
+    "docs/sessions/20260428-taskfile-common-commands/02_SPECIFICATIONS.md"
+  ],
+  "worklog_count": 0,
+  "worklog_files": [],
+  "deploy_markers": [],
+  "health_endpoints": [],
+  "readme_sections": 8,
+  "readme_ux_markers": {
+    "screenshots": false,
+    "demo": false,
+    "quick_start": true,
+    "tutorial": false
+  },
+  "contributing_present": true,
+  "compliance": {
+    "codeowners": true,
+    "security": true,
+    "license": true,
+    "coc": true,
+    "funding": true,
+    "changelog": true,
+    "pr_template": true,
+    "issue_template": true,
+    "release_drafter": false
+  },
+  "workflows_present": [
+    "ci.yml",
+    "dependency-review.yml",
+    "journey-gate.yml",
+    "pages.yml",
+    "scorecard.yml",
+    "sonarcloud.yml",
+    "trufflehog.yml"
+  ],
+  "gaps": [
+    {"item": "worklogs/ directory", "severity": "high", "note": "No worklogs/ at repo root; required by Phenotype cross-project governance. session docs under docs/sessions/ are session-style, not worklog format."},
+    {"item": "deploy markers (Dockerfile, helm, k8s, vercel, netlify, render, fly)", "severity": "med", "note": "Pure Python package; docs/deployment.md states 'no Docker or Kubernetes manifests'. Acceptable for CLI library but blocks container scoring."},
+    {"item": "release-drafter workflow", "severity": "low", "note": "No .github/release-drafter.yml; changelog exists but release notes are manual."},
+    {"item": "health-endpoint / liveness probe", "severity": "low", "note": "No HTTP service; only internal 'healthy' boolean in src/helios_bench/__init__.py for leak detection. N/A for CLI but flagged for any future service."},
+    {"item": "openapi/swagger/proto API specs", "severity": "low", "note": "None present; no service API surface in this CLI harness."},
+    {"item": "README demo/screenshots", "severity": "med", "note": "No screenshots, demo gif, or tutorial link; UX richness is low (8 sections, text-only)."},
+    {"item": "ARCHITECTURE.md / ADR.md at root", "severity": "med", "note": "No root ADR docs; decisions scattered in docs/sessions/. Phenotype spec system expects root-level ARCHITECTURE."},
+    {"item": "behavior-spec (spec.md at root)", "severity": "med", "note": "No top-level spec.md; only sub-specs under docs/operations/ and docs/sessions/."}
+  ],
+  "strengths": [
+    "Full Phenotype Org compliance (CODEOWNERS, SECURITY, COC, FUNDING, LICENSE, PR/ISSUE templates, CHANGELOG, CITATION.cff)",
+    "Conventional Commits + branch discipline documented in CONTRIBUTING.md",
+    "Journey-gate workflow wired to phenotype-tooling reusable workflow",
+    "Local quality gates via Taskfile (build, test, lint, clean)",
+    "VitePress docsite with sessions, operations, journeys subdirs",
+    "Pre-commit, SonarCloud, TruffleHog, Dependabot, scorecard all in place"
+  ]
+}

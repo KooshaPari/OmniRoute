@@ -1,0 +1,16 @@
+{
+  "generated_at": "2026-06-08",
+  "total_repos": 1,
+  "with_utoipa": [
+    "AgilePlus"
+  ],
+  "with_aide": [],
+  "by_repo": [
+    {
+      "repo": "AgilePlus",
+      "libs": [
+        "utoipa"
+      ]
+    }
+  ]
+}

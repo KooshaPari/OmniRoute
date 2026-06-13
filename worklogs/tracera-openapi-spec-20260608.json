@@ -1,0 +1,9 @@
+{
+  "generated_at": "2026-06-09T03:58:34Z",
+  "files": [],
+  "file_count": 0,
+  "has_spec": true,
+  "has_liveness_spec": false,
+  "has_readiness_spec": false,
+  "recommended_action": "Specs exist as JSON (gateway-api.json, go-api.json, python-api.json) with /health endpoints but no explicit /livez or /readyz. Consider adding separate liveness/readiness probes for K8s."
+}

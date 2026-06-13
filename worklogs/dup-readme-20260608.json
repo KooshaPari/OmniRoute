@@ -1,0 +1,994 @@
+{
+  "generated_at": "2026-06-08",
+  "total_repos": 126,
+  "near_duplicate_readmes": [
+    {
+      "hash_or_signature": "0f4d0ea398ef77e16037fff6b4df3a15ef99ea015e4c2c92076a6ec6e39b9c7a",
+      "repos": [
+        ".pytest_cache",
+        ".pytest_cache",
+        ".pytest_cache"
+      ]
+    },
+    {
+      "hash_or_signature": "b8cf01d6f4639fe0abec931f26789787006e988afa3ec9fd2b41a04553fb22dc",
+      "repos": [
+        "AgentMCP",
+        "AgentMCP",
+        "AgentMCP"
+      ]
+    },
+    {
+      "hash_or_signature": "3f46dfa7530d1c657ec0692c97a81b49628d234b33683cee417ff782f6655534",
+      "repos": [
+        "Agentora",
+        "Agentora",
+        "Agentora"
+      ]
+    },
+    {
+      "hash_or_signature": "8cec188e91b402c77c43c46e5579e0082f6a0b8e877d9401ee81bf19e2fad526",
+      "repos": [
+        "AgilePlus",
+        "AgilePlus",
+        "AgilePlus"
+      ]
+    },
+    {
+      "hash_or_signature": "9579a0bab58b82190592c24c56ae602ef279fcca48bbd8029e47420ec53f2b43",
+      "repos": [
+        "Apisync",
+        "Apisync",
+        "Apisync"
+      ]
+    },
+    {
+      "hash_or_signature": "854ec7ba498aa70f0e183b46dc9e036472933b12837ecbd0b141c366e162a4f5",
+      "repos": [
+        "AppGen",
+        "AppGen",
+        "AppGen"
+      ]
+    },
+    {
+      "hash_or_signature": "34ce6b03269a6932edd3b42df1f1ee09ef503e9c9a2cf647c9ac4554463c58f6",
+      "repos": [
+        "AtomsBot",
+        "AtomsBot",
+        "AtomsBot"
+      ]
+    },
+    {
+      "hash_or_signature": "ad1b0fe8cd456ede525e2383f352217771ffca14341ea7a9468617e7c91d37b3",
+      "repos": [
+        "AuthKit",
+        "AuthKit",
+        "AuthKit"
+      ]
+    },
+    {
+      "hash_or_signature": "336fa0ba6050694e03bbd5de774a2501068af64ac5caddfd45ff1e1efd89afec",
+      "repos": [
+        "Benchora",
+        "Benchora",
+        "Benchora"
+      ]
+    },
+    {
+      "hash_or_signature": "561c08e3afeea5c1482578135602e7edefc83891fa63ed9a397419e1aa71720a",
+      "repos": [
+        "BytePort",
+        "BytePort",
+        "BytePort"
+      ]
+    },
+    {
+      "hash_or_signature": "16d5974025f4510b2732e5c34cca91083fed430e8bda13b6b7b48d5e9b40b21e",
+      "repos": [
+        "Civis",
+        "Civis",
+        "Civis"
+      ]
+    },
+    {
+      "hash_or_signature": "a48dba6ef1b3b5e3795b6704f733bb1d28275a46df9a7f39f5b0f0aebebc9648",
+      "repos": [
+        "Conft",
+        "Conft",
+        "Conft"
+      ]
+    },
+    {
+      "hash_or_signature": "6d3d1572ba23ff165800894047f023a537846efdd854b8a776b564d321295d7e",
+      "repos": [
+        "DINOForge-UnityDoorstop",
+        "DINOForge-UnityDoorstop",
+        "DINOForge-UnityDoorstop"
+      ]
+    },
+    {
+      "hash_or_signature": "3b92aaf0155c93dfa400118563fc485211f3c74c358356376aca6007b1735660",
+      "repos": [
+        "DataKit",
+        "DataKit",
+        "DataKit"
+      ]
+    },
+    {
+      "hash_or_signature": "a450a92a8fbae93b224d3e3a5220698680cffe40b288800939eedaa6a4651297",
+      "repos": [
+        "DevHex",
+        "DevHex",
+        "DevHex"
+      ]
+    },
+    {
+      "hash_or_signature": "1520e79c636dad0e587013d41c301394f4d2f1c7f2bd57e761cbac47784b5732",
+      "repos": [
+        "Dino",
+        "Dino",
+        "Dino"
+      ]
+    },
+    {
+      "hash_or_signature": "8fe718ea55d0d71a673d183a4e22633b82c547d26a8d71903947930a1c78f359",
+      "repos": [
+        "Eidolon",
+        "Eidolon",
+        "Eidolon"
+      ]
+    },
+    {
+      "hash_or_signature": "22e7f6f9e08bd4416f3cb8a6422d3e53cb6e1fa31b687e7ebcbd35dd44736c04",
+      "repos": [
+        "Eventra",
+        "Eventra",
+        "Eventra"
+      ]
+    },
+    {
+      "hash_or_signature": "8736e9e7b53255eeca08262834ee71b202cdf874d086f445894a9ea5c6b2a47c",
+      "repos": [
+        "FocalPoint",
+        "FocalPoint",
+        "FocalPoint"
+      ]
+    },
+    {
+      "hash_or_signature": "80e6ebe9021728490caf429d64747f3a7c18fff4ed9f0fb3e0128f0464ca5c30",
+      "repos": [
+        "GDK",
+        "GDK",
+        "GDK"
+      ]
+    },
+    {
+      "hash_or_signature": "ce4058d966266504b467f4ea7fd2273b8857062c8b59c8b1269c1687ffb9503d",
+      "repos": [
+        "HeliosCLI",
+        "HeliosCLI",
+        "HeliosCLI"
+      ]
+    },
+    {
+      "hash_or_signature": "3f66fdd91243ddb6c9a9efe04df3e8c4ff08c22cf5183097360bc8a20becaca6",
+      "repos": [
+        "HeliosLab",
+        "HeliosLab",
+        "HeliosLab"
+      ]
+    },
+    {
+      "hash_or_signature": "fcfcf698f705d1f838667488d6c768234df20fe1c8eb46f7840e43fe2bdcb21d",
+      "repos": [
+        "HexaKit",
+        "HexaKit",
+        "HexaKit"
+      ]
+    },
+    {
+      "hash_or_signature": "d8fa3aed3f08cb7018a8f2470800e8a8046c7495884c823bb4ce9d5ed74f900b",
+      "repos": [
+        "Httpora",
+        "Httpora",
+        "Httpora"
+      ]
+    },
+    {
+      "hash_or_signature": "2064e54200c36579177fe12306d74fb245e9c91321f3c76e7a6f96513d6c2399",
+      "repos": [
+        "KDesktopVirt",
+        "KDesktopVirt",
+        "KDesktopVirt"
+      ]
+    },
+    {
+      "hash_or_signature": "03937f4b7e2cdaf8d463aad79a5153667226f3e62f7eddd5e46f8de58e4d2ced",
+      "repos": [
+        "KWatch",
+        "KWatch",
+        "KWatch"
+      ]
+    },
+    {
+      "hash_or_signature": "41263c455fcc6dde8c72e2c4910a174628365d53643aa812d3eb983823842f21",
+      "repos": [
+        "KaskMan",
+        "KaskMan",
+        "KaskMan"
+      ]
+    },
+    {
+      "hash_or_signature": "c4a48d8dbd24066fe8f4756507c88681b7a72957240941a9fb297b2d95ef0229",
+      "repos": [
+        "KlipDot",
+        "KlipDot",
+        "KlipDot"
+      ]
+    },
+    {
+      "hash_or_signature": "76925963583add132df1988cfb36244e58dbc6739fbf69e53b32bd7cc77b2fa8",
+      "repos": [
+        "MCPForge",
+        "MCPForge",
+        "MCPForge"
+      ]
+    },
+    {
+      "hash_or_signature": "f174cffa79eb688594c26a5ebb17891118ec0f744020caa1db5b9a5afd4f2daf",
+      "repos": [
+        "McpKit",
+        "McpKit",
+        "McpKit"
+      ]
+    },
+    {
+      "hash_or_signature": "b4ed8909d981c2e3940a1b77328859837e8d7e0193bdc0a7a6bf617fe5c8f417",
+      "repos": [
+        "Metron",
+        "Metron",
+        "Metron"
+      ]
+    },
+    {
+      "hash_or_signature": "bfac9470e7b2442f874654fe58efe34c92120558595bd2d8d86fa2d1a011e8da",
+      "repos": [
+        "ObservabilityKit",
+        "ObservabilityKit",
+        "ObservabilityKit"
+      ]
+    },
+    {
+      "hash_or_signature": "f737980a42da34be97ab1552c22f86e3cb9353f0bd740384d38a9c3462291c7a",
+      "repos": [
+        "OmniRoute",
+        "OmniRoute",
+        "OmniRoute"
+      ]
+    },
+    {
+      "hash_or_signature": "96313bf752aa0e7a0ad327d4c4d22e2757a2493815e6fc14be9f64de008f20b2",
+      "repos": [
+        "Paginary",
+        "Paginary",
+        "Paginary"
+      ]
+    },
+    {
+      "hash_or_signature": "5b33f628c4266aaf481b9f55be3186b5d0448cfa007145778d6c3b57876f17bc",
+      "repos": [
+        "Parpoura",
+        "Parpoura",
+        "Parpoura"
+      ]
+    },
+    {
+      "hash_or_signature": "5409cacc4eb4a646f2c1a8c0c299087d5b99d0c817ecd7eb41eefc6b8123e7b5",
+      "repos": [
+        "PhenoAgent",
+        "PhenoAgent",
+        "PhenoAgent"
+      ]
+    },
+    {
+      "hash_or_signature": "b2aa5c186a8d178c3025cfe1626cad21f2d1fe867b5eee431195e394645afeb9",
+      "repos": [
+        "PhenoCompose",
+        "PhenoCompose",
+        "PhenoCompose"
+      ]
+    },
+    {
+      "hash_or_signature": "59a7f9f1ca394558d9a9099eb78d339257ebec91e383349d4b123bdb8d9a4895",
+      "repos": [
+        "PhenoDevOps",
+        "PhenoDevOps",
+        "PhenoDevOps"
+      ]
+    },
+    {
+      "hash_or_signature": "f39308eb2f6192512d7c383cd3ba865495c3415416a0e32bc3b04026d23a9367",
+      "repos": [
+        "PhenoHandbook",
+        "PhenoHandbook",
+        "PhenoHandbook"
+      ]
+    },
+    {
+      "hash_or_signature": "fb24c6c836d487ad77ad92eb68d7d1115fc6e00ca493b70d79edfdb03d3da015",
+      "repos": [
+        "PhenoKits",
+        "PhenoKits",
+        "PhenoKits"
+      ]
+    },
+    {
+      "hash_or_signature": "16e4effd45cd52ae9d3de3064f2b93806493a4db6c49ab4b79dbfde4ad8f5a08",
+      "repos": [
+        "PhenoMCP",
+        "PhenoMCP",
+        "PhenoMCP"
+      ]
+    },
+    {
+      "hash_or_signature": "fe2cb3b0eca4f9826d0998635bdc8ea578beb4d8e4a77914435069c38002a12b",
+      "repos": [
+        "PhenoObservability",
+        "PhenoObservability",
+        "PhenoObservability"
+      ]
+    },
+    {
+      "hash_or_signature": "1780c15da38eaa1d8d9a2a344ec920161955a42fa3ab0a3e1aad8ccb46a2c263",
+      "repos": [
+        "PhenoPlugins",
+        "PhenoPlugins",
+        "PhenoPlugins"
+      ]
+    },
+    {
+      "hash_or_signature": "00fca2221d2f315a679a57e53980fcf46bbf54428e61b68e32e802927e82707a",
+      "repos": [
+        "PhenoProc",
+        "PhenoProc",
+        "PhenoProc"
+      ]
+    },
+    {
+      "hash_or_signature": "8368e6fe452cb64591a8b48fdfe3cd05508bcd04f64314ee5d452893536c52b9",
+      "repos": [
+        "PhenoProject",
+        "PhenoProject",
+        "PhenoProject"
+      ]
+    },
+    {
+      "hash_or_signature": "0eb66b269b62ea3633a0ddbadb2bc878c269d93825c253933849f7113e1dba01",
+      "repos": [
+        "PhenoRuntime",
+        "PhenoRuntime",
+        "PhenoRuntime"
+      ]
+    },
+    {
+      "hash_or_signature": "fb68d8f3f39f5555b3e2632e6e570553550aee87f95493ecb912c2b7b2ec2274",
+      "repos": [
+        "PhenoSpecs",
+        "PhenoSpecs",
+        "PhenoSpecs"
+      ]
+    },
+    {
+      "hash_or_signature": "49842a7052211849ac2c7b1492904c1f653b40e443b59455f6164191df6b7d42",
+      "repos": [
+        "PhenoVCS",
+        "PhenoVCS",
+        "PhenoVCS"
+      ]
+    },
+    {
+      "hash_or_signature": "9a0fc03d1927064d19f81fe2579f3c1cc7ce4009f872716323204f7ceca57510",
+      "repos": [
+        "Pine",
+        "Pine",
+        "Pine"
+      ]
+    },
+    {
+      "hash_or_signature": "394e2efba32e682c27cfd6f333a3069be44b69d9ac0542c0b905803624b4159d",
+      "repos": [
+        "Planify",
+        "Planify",
+        "Planify"
+      ]
+    },
+    {
+      "hash_or_signature": "dc651fabcdca291b683a9325dc10cfb15b211776a3159dc640c9b668b1c3c889",
+      "repos": [
+        "PlatformKit",
+        "PlatformKit",
+        "PlatformKit"
+      ]
+    },
+    {
+      "hash_or_signature": "dc99f34a64b22868f73dfd9912d826b17308f99646cc57b6aa8191ded00fdd7c",
+      "repos": [
+        "PlayCua",
+        "PlayCua",
+        "PlayCua",
+        "bare-cua",
+        "bare-cua",
+        "bare-cua"
+      ]
+    },
+    {
+      "hash_or_signature": "84f810a295099ac41f36c3ee04d9337227a52abf1894d94daac92e168bb838f1",
+      "repos": [
+        "PolicyStack",
+        "PolicyStack",
+        "PolicyStack"
+      ]
+    },
+    {
+      "hash_or_signature": "3b33947543501cb67fecfddee3969f2b568801b31559b35d67c3cfc9bd5c70a3",
+      "repos": [
+        "Pyron",
+        "Pyron",
+        "Pyron"
+      ]
+    },
+    {
+      "hash_or_signature": "cd674c73741d0d45c24921fe9d80836246282a96ed636dad3959b616cffc14d0",
+      "repos": [
+        "QuadSGM",
+        "QuadSGM",
+        "QuadSGM"
+      ]
+    },
+    {
+      "hash_or_signature": "e69ec0d867ea74826fb89c6059bad0b7d5de9e254674ca43631fc0827807d5d4",
+      "repos": [
+        "ResilienceKit",
+        "ResilienceKit",
+        "ResilienceKit"
+      ]
+    },
+    {
+      "hash_or_signature": "7bca4511dff65d9655b960c0c2f40193a676dce53c12494865f89e5f9f2542a1",
+      "repos": [
+        "Sidekick",
+        "Sidekick",
+        "Sidekick"
+      ]
+    },
+    {
+      "hash_or_signature": "7a7e0e61bdae9e573c30bd67e74061de3ff216d775d94289090651338f6f8847",
+      "repos": [
+        "Tasken",
+        "Tasken",
+        "Tasken"
+      ]
+    },
+    {
+      "hash_or_signature": "4ddf0cc99bcda5641ef526b5f4c031792712b73fed2856bce66846af695fd834",
+      "repos": [
+        "TestingKit",
+        "TestingKit",
+        "TestingKit"
+      ]
+    },
+    {
+      "hash_or_signature": "14570d4ded51acf3dd361f349b2cfcfc0834ee5034a8540f101c04e4546207d8",
+      "repos": [
+        "Tokn",
+        "Tokn",
+        "Tokn"
+      ]
+    },
+    {
+      "hash_or_signature": "10bdb93c45c1c6ff661edd2105a090d62ae34dcf2aa0251b6e6030a44507fcc8",
+      "repos": [
+        "Tracely",
+        "Tracely",
+        "Tracely"
+      ]
+    },
+    {
+      "hash_or_signature": "d403949a3ffdb7251e9675aed1f337a18b5d7382fd45b92d45e200c6e7839506",
+      "repos": [
+        "Tracera",
+        "Tracera",
+        "Tracera"
+      ]
+    },
+    {
+      "hash_or_signature": "5564a3e791f440e69c67e708bb85d3775c183e2b53e451e9e8b0bb34de991c98",
+      "repos": [
+        "agent-devops-setups",
+        "agent-devops-setups",
+        "agent-devops-setups"
+      ]
+    },
+    {
+      "hash_or_signature": "1b52a466dccadb2242c59513e7e0a1fed27b9ec9ec82527751641834df8a5d6d",
+      "repos": [
+        "agent-user-status",
+        "agent-user-status",
+        "agent-user-status"
+      ]
+    },
+    {
+      "hash_or_signature": "523391909aa1907d9966267849e1c41492a9e95136f20c58efe21f648a324ff9",
+      "repos": [
+        "agentapi-plusplus",
+        "agentapi-plusplus",
+        "agentapi-plusplus"
+      ]
+    },
+    {
+      "hash_or_signature": "5a0dc32ed6b4938d1fa62bab3c9550b03fb9414c32155142ba36f12cb5de234c",
+      "repos": [
+        "agileplus-landing",
+        "agileplus-landing",
+        "agileplus-landing"
+      ]
+    },
+    {
+      "hash_or_signature": "7b439370928207dc0283faaa03a1d36bbad7524dd6c08480e2355fa65643eae3",
+      "repos": [
+        "agslag-docs",
+        "agslag-docs",
+        "agslag-docs"
+      ]
+    },
+    {
+      "hash_or_signature": "c5cdd43031b3db81985c99898bfc30cca7f495c909bcf1a64d55e71f99e623ca",
+      "repos": [
+        "argis-extensions",
+        "argis-extensions",
+        "argis-extensions"
+      ]
+    },
+    {
+      "hash_or_signature": "a0c29ed9523b7312a8dbca318a35a515c7367c2e884f490dbab7aec25e74c60b",
+      "repos": [
+        "byteport-landing",
+        "byteport-landing",
+        "byteport-landing"
+      ]
+    },
+    {
+      "hash_or_signature": "f82e5d9482833cef1ec30b6584694b3e0bdefb236097bc0630967f09309a72d3",
+      "repos": [
+        "chatta",
+        "chatta",
+        "chatta"
+      ]
+    },
+    {
+      "hash_or_signature": "ec7827f62cb0f166f25072dca2f330f924bd7d4c5eff330fc267e07f3290e2b6",
+      "repos": [
+        "cheap-llm-mcp",
+        "cheap-llm-mcp",
+        "cheap-llm-mcp"
+      ]
+    },
+    {
+      "hash_or_signature": "3da80397645a432a9d524b067ee717dd50e4e477a11952be4d832a0b6fe0f1d2",
+      "repos": [
+        "cliproxyapi-plusplus",
+        "cliproxyapi-plusplus",
+        "cliproxyapi-plusplus"
+      ]
+    },
+    {
+      "hash_or_signature": "d4d9dda2d05d545d4494922084f29a5a783d5e30ec86026c5d001e89bca39cd7",
+      "repos": [
+        "crates",
+        "crates",
+        "crates"
+      ]
+    },
+    {
+      "hash_or_signature": "56366ff1f81a0383d0b93b648eb89ad7e78fd8d6d174b3f17d6d39e1daa65a64",
+      "repos": [
+        "dinoforge-packs",
+        "dinoforge-packs",
+        "dinoforge-packs"
+      ]
+    },
+    {
+      "hash_or_signature": "8fc601b3ad9fcac141b8d0a1259dd283b769d494d02b688bfc8d34b11dbb1398",
+      "repos": [
+        "eyetracker",
+        "eyetracker",
+        "eyetracker"
+      ]
+    },
+    {
+      "hash_or_signature": "0b97b3a85eecfb15ab1685567cb082c5d54f7c4929daddfce1b5aa34f0d5933e",
+      "repos": [
+        "foqos-private",
+        "foqos-private",
+        "foqos-private"
+      ]
+    },
+    {
+      "hash_or_signature": "5633eae79ad8ad31cf0277d7004cdc850a235256500378bd5fd5cb79112b8ce9",
+      "repos": [
+        "helios-router",
+        "helios-router",
+        "helios-router"
+      ]
+    },
+    {
+      "hash_or_signature": "8ca1cda583e0daae3ff3399a8d1933d3ae96b7ec2b1ac9779e59b7d95f3a0b44",
+      "repos": [
+        "heliosApp",
+        "heliosApp",
+        "heliosApp"
+      ]
+    },
+    {
+      "hash_or_signature": "dcf604902032d63a7bf49dfe765cb0c20957c9ccb57a8f7251a80c472ad348a1",
+      "repos": [
+        "heliosBench",
+        "heliosBench",
+        "heliosBench"
+      ]
+    },
+    {
+      "hash_or_signature": "d2a49b072ac7c16d5acc107ffa068b7b79007d56e166e7e3945273f3d45c3af2",
+      "repos": [
+        "helioscope",
+        "helioscope",
+        "helioscope"
+      ]
+    },
+    {
+      "hash_or_signature": "c3762ceefdaf75595d837e0d668cc7f79082a391ecd82f5db1714244821033b4",
+      "repos": [
+        "hwLedger",
+        "hwLedger",
+        "hwLedger"
+      ]
+    },
+    {
+      "hash_or_signature": "d057ffa573611749e3e4db358f2b30351b1f2811ae429b7ccbb1eee6b7fb6ee4",
+      "repos": [
+        "kmobile",
+        "kmobile",
+        "kmobile"
+      ]
+    },
+    {
+      "hash_or_signature": "bc6a43e9d92d3b6c26ca87085ebcf7259e3b98e439052e18c93740112440c900",
+      "repos": [
+        "kwality",
+        "kwality",
+        "kwality"
+      ]
+    },
+    {
+      "hash_or_signature": "a40e732ab7d7abecdce115025b01e1b3cb91424f9077896f38e2b6f908484272",
+      "repos": [
+        "localbase3",
+        "localbase3",
+        "localbase3"
+      ]
+    },
+    {
+      "hash_or_signature": "6b6b7d666327e02e32f8b61967e2a6318ac095adaba58aca7c94057f67f3c46c",
+      "repos": [
+        "melosviz",
+        "melosviz",
+        "melosviz"
+      ]
+    },
+    {
+      "hash_or_signature": "a4501ad8170ba460e855495b19010d51715524fcb3ec2a1df89eef1a3d9e16f1",
+      "repos": [
+        "nanovms",
+        "nanovms",
+        "nanovms"
+      ]
+    },
+    {
+      "hash_or_signature": "1fd8a1a7259a8bd978bc320286cbb948bd69364bcfb6da65b34e92e76acde9b6",
+      "repos": [
+        "netweave-final2",
+        "netweave-final2",
+        "netweave-final2"
+      ]
+    },
+    {
+      "hash_or_signature": "10c4ad4292e9e82e5fada425ebd9f5f5ac07de7710ee6064ace80000a7bdf7bb",
+      "repos": [
+        "pheno",
+        "pheno",
+        "pheno"
+      ]
+    },
+    {
+      "hash_or_signature": "43b00ce324c09598a3ce504a77e9e7d643790ff6e5082d69a2ff7298c6b01e3d",
+      "repos": [
+        "phenoAI",
+        "phenoAI",
+        "phenoAI"
+      ]
+    },
+    {
+      "hash_or_signature": "59559abc7631fe9ca2037a6ff5e9a4b2e901c9d63f1b818861a19d3fe179f916",
+      "repos": [
+        "phenoData",
+        "phenoData",
+        "phenoData"
+      ]
+    },
+    {
+      "hash_or_signature": "52b676ee52a37b15c039451f19e5b11137ba029334fe63ee5e1cb25697f27869",
+      "repos": [
+        "phenoDesign",
+        "phenoDesign",
+        "phenoDesign"
+      ]
+    },
+    {
+      "hash_or_signature": "a10183c973c46cd415bc1fc210b3d18e9e7431299b1e195896291b7b6ccc646f",
+      "repos": [
+        "phenoForge",
+        "phenoForge",
+        "phenoForge"
+      ]
+    },
+    {
+      "hash_or_signature": "fcbd87dcce7c9e3f9ef08c102ef5d17fd67092305a256359af2ccea25d79807d",
+      "repos": [
+        "phenoResearchEngine",
+        "phenoResearchEngine",
+        "phenoResearchEngine"
+      ]
+    },
+    {
+      "hash_or_signature": "dfbf9c61a27408d7fbdb1a58faa7ac8bec4e07e6880b0c2517bd16191c83c0d2",
+      "repos": [
+        "phenoShared",
+        "phenoShared",
+        "phenoShared"
+      ]
+    },
+    {
+      "hash_or_signature": "03545ca9073c211b7b968ef6363d1db36f9448f00152d85d256f2b31f257aac6",
+      "repos": [
+        "phenoUtils",
+        "phenoUtils",
+        "phenoUtils"
+      ]
+    },
+    {
+      "hash_or_signature": "3ec3a92b3c57734e718742d518b0405fce3baf582ce481e2ed30da938c31c2ea",
+      "repos": [
+        "phenoXdd",
+        "phenoXdd",
+        "phenoXdd"
+      ]
+    },
+    {
+      "hash_or_signature": "a957d0f0fee0d02d368a1d386d972a74178cc4341fba20ac9b84cc40caca5a2e",
+      "repos": [
+        "phenodocs",
+        "phenodocs",
+        "phenodocs"
+      ]
+    },
+    {
+      "hash_or_signature": "b5a4f34e96e8f1fe70442d8a004cab7f08fdc814b87169c24d586b392540faa3",
+      "repos": [
+        "phenodocs-scorecard-remediation",
+        "phenodocs-scorecard-remediation",
+        "phenodocs-scorecard-remediation"
+      ]
+    },
+    {
+      "hash_or_signature": "42f5d7daedf2344ceb6a720b84c08b7f2da261a28ee66a893476e5f379549c93",
+      "repos": [
+        "phenokits-landing",
+        "phenokits-landing",
+        "phenokits-landing"
+      ]
+    },
+    {
+      "hash_or_signature": "cb7ebb6292e035ee7f98c662ac8b99fae5a501b4efda784cc893fe4014645e13",
+      "repos": [
+        "phenotype-auth-ts",
+        "phenotype-auth-ts",
+        "phenotype-auth-ts"
+      ]
+    },
+    {
+      "hash_or_signature": "75e195bbd2c856100213593b82f36500fc50af83e4d312d6aa7861e15f44ecfb",
+      "repos": [
+        "phenotype-bus",
+        "phenotype-bus",
+        "phenotype-bus"
+      ]
+    },
+    {
+      "hash_or_signature": "31cac92c2e05a49b3487b29c9adbc13fc6b8aa85fd4f121b25e45fab87bf71a4",
+      "repos": [
+        "phenotype-hub",
+        "phenotype-hub",
+        "phenotype-hub"
+      ]
+    },
+    {
+      "hash_or_signature": "17662da401470186d22d6296f001f5815249745098036dd5714af3d5f2e94d34",
+      "repos": [
+        "phenotype-infra",
+        "phenotype-infra",
+        "phenotype-infra"
+      ]
+    },
+    {
+      "hash_or_signature": "c9078eca4453b73440b5b9434c64aa24aebd77a99425f18fa11188e1d17996c1",
+      "repos": [
+        "phenotype-journeys",
+        "phenotype-journeys",
+        "phenotype-journeys"
+      ]
+    },
+    {
+      "hash_or_signature": "83c4339b5c72e99061dac7622d649703fee1818b55d6f42f8a6b10a4a8106615",
+      "repos": [
+        "phenotype-omlx",
+        "phenotype-omlx",
+        "phenotype-omlx"
+      ]
+    },
+    {
+      "hash_or_signature": "d748cbcbad18aaf68695afb0dd54d19704436e8061dd87c68ed98205894dba0b",
+      "repos": [
+        "phenotype-ops-mcp",
+        "phenotype-ops-mcp",
+        "phenotype-ops-mcp"
+      ]
+    },
+    {
+      "hash_or_signature": "bece90276be70252dc4439dace395db51f2c64bcccabb1d587620451585eba83",
+      "repos": [
+        "phenotype-org-audits",
+        "phenotype-org-audits",
+        "phenotype-org-audits"
+      ]
+    },
+    {
+      "hash_or_signature": "f3ccb2913ce8ed8fc157235fe2ba1b3984b06edeb47d4ea23cda9fa9d2d45367",
+      "repos": [
+        "phenotype-postfx",
+        "phenotype-postfx",
+        "phenotype-postfx"
+      ]
+    },
+    {
+      "hash_or_signature": "da40ee5e8e35fa8bd3a6549f6acdba0baaff80aec86608b7417911be9eb92893",
+      "repos": [
+        "phenotype-registry",
+        "phenotype-registry",
+        "phenotype-registry"
+      ]
+    },
+    {
+      "hash_or_signature": "8076e6ea027e0a84b0182e6f95df7ca30845e3bc7bfb4d79df55333c91f8fa81",
+      "repos": [
+        "phenotype-shared",
+        "phenotype-shared",
+        "phenotype-shared"
+      ]
+    },
+    {
+      "hash_or_signature": "acd9e416c26bf1db54630d340bf3998200d877b66acaa18e57cb9d8ed30bd55b",
+      "repos": [
+        "phenotype-terrain",
+        "phenotype-terrain",
+        "phenotype-terrain"
+      ]
+    },
+    {
+      "hash_or_signature": "cf1b82ef7cc7cd3519a9bddebbe3ad515e80e54c17f069402a010a8b10ec9aad",
+      "repos": [
+        "phenotype-tooling",
+        "phenotype-tooling",
+        "phenotype-tooling"
+      ]
+    },
+    {
+      "hash_or_signature": "e3acc6cca33e59b264a42b22fcf92b7df3e90952735a0571fc18584d4eebcf2e",
+      "repos": [
+        "phenotype-water",
+        "phenotype-water",
+        "phenotype-water"
+      ]
+    },
+    {
+      "hash_or_signature": "6d6a6375c5c20d0f3403d7e66e29d52f4d35798f1f583253080d22ff4fdb9488",
+      "repos": [
+        "portage",
+        "portage",
+        "portage"
+      ]
+    },
+    {
+      "hash_or_signature": "3c0db71682c75b2f9fb3044f69136a90a265ddb2ea6af8d54ea8f181cbe72c79",
+      "repos": [
+        "rich-cli-kit",
+        "rich-cli-kit",
+        "rich-cli-kit"
+      ]
+    },
+    {
+      "hash_or_signature": "14aa96c2085a4f16ba20dbe352a7a0ab04c98812935c65eb6edf8a7855f666d7",
+      "repos": [
+        "thegent",
+        "thegent",
+        "thegent",
+        "thegent-clean",
+        "thegent-clean",
+        "thegent-clean"
+      ]
+    },
+    {
+      "hash_or_signature": "8b8c3760543290fdc081434a7d4c282b443972cebb97e87bf619a1c9a8ff031e",
+      "repos": [
+        "thegent-clean-wt-docs",
+        "thegent-clean-wt-docs",
+        "thegent-clean-wt-docs",
+        "thegent-clean-wt-ruff",
+        "thegent-clean-wt-ruff",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "hash_or_signature": "8c839e9db52f0bb254dfd9e7340a71decf4164a52591c24b748146279cd1adfc",
+      "repos": [
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-parallel"
+      ]
+    },
+    {
+      "hash_or_signature": "ad363257b4ac136bec631124907bef2feb1240d71aee4ad8027e99e09d940aae",
+      "repos": [
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-policy"
+      ]
+    },
+    {
+      "hash_or_signature": "fd4fd5597a4e0fda5ef8e9ced659468b5ca8fe3b352659f568966300f4635a81",
+      "repos": [
+        "thegent-dispatch",
+        "thegent-dispatch",
+        "thegent-dispatch"
+      ]
+    },
+    {
+      "hash_or_signature": "8294f6263587cb4b8f1bd05c065475d0a8d8f04de7f0046f19dd084243f74950",
+      "repos": [
+        "vibeproxy",
+        "vibeproxy",
+        "vibeproxy"
+      ]
+    },
+    {
+      "hash_or_signature": "7216cad9233a9d63c93602685af039c8d57a38da3519ed8d42c7c419ceccc8a8",
+      "repos": [
+        "vibeproxy-monitoring-unified",
+        "vibeproxy-monitoring-unified",
+        "vibeproxy-monitoring-unified"
+      ]
+    }
+  ]
+}

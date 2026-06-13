@@ -1,0 +1,52 @@
+{
+  "generated_at": "2026-06-08T09:24:55Z",
+  "total_repos": 167,
+  "with_prometheus": [],
+  "with_prometheus_client": [],
+  "with_tracing_subscriber": [
+    "GDK",
+    "KDesktopVirt",
+    "KlipDot",
+    "kmobile",
+    "phenoForge",
+    "thegent-dispatch"
+  ],
+  "by_repo": [
+    {
+      "repo": "GDK",
+      "libs": [
+        "tracing-subscriber"
+      ]
+    },
+    {
+      "repo": "KDesktopVirt",
+      "libs": [
+        "tracing-subscriber"
+      ]
+    },
+    {
+      "repo": "KlipDot",
+      "libs": [
+        "tracing-subscriber"
+      ]
+    },
+    {
+      "repo": "kmobile",
+      "libs": [
+        "tracing-subscriber"
+      ]
+    },
+    {
+      "repo": "phenoForge",
+      "libs": [
+        "tracing-subscriber"
+      ]
+    },
+    {
+      "repo": "thegent-dispatch",
+      "libs": [
+        "tracing-subscriber"
+      ]
+    }
+  ]
+}

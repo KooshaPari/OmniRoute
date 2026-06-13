@@ -28,7 +28,7 @@ tokio = { workspace = true }
 chrono = { workspace = true }
 uuid = { workspace = true }
 tracing = { workspace = true }
-phenotype-observably-macros = { path = "../../../PhenoObservability/crates/phenotype-observably-macros" }
+phenotype-observably-macros = { path = "../../PhenoObservability/crates/phenotype-observably-macros" }
 url = "2.5"
 
 [dev-dependencies]

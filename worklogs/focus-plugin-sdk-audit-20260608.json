@@ -1,0 +1,11 @@
+{
+  "generated_at": "2026-06-08T10:53:54.521215Z",
+  "repos": [
+    "/Users/kooshapari/CodeProjects/Phenotype/repos/crates/focus-plugin-sdk",
+    "/Users/kooshapari/CodeProjects/Phenotype/repos/FocalPoint/crates/focus-plugin-sdk"
+  ],
+  "manifest_hash_match": true,
+  "src_hash_match": true,
+  "readme_hash_match": false,
+  "recommendation": "README.md is absent from both copies; add documentation or drop the requirement."
+}

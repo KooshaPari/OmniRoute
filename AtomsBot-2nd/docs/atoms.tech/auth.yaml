@@ -1,0 +1,153 @@
+openapi: 3.0.3
+info:
+    title: Atoms API - Auth & Profiles
+    version: 1.0.0
+servers:
+    - url: https://api.example.com
+paths:
+    /auth/register:
+        post:
+            summary: Register new user
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/RegisterRequest'
+            responses:
+                '201': { description: Created }
+    /auth/login:
+        post:
+            summary: Login
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/LoginRequest'
+            responses:
+                '200':
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/AuthTokens'
+    /auth/refresh:
+        post:
+            summary: Refresh token
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties:
+                                refreshToken:
+                                    type: string
+            responses:
+                '200':
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/AuthTokens'
+    /profiles/{id}:
+        get:
+            summary: Get profile by id
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  schema: { type: string }
+            responses:
+                '200':
+                    description: OK
+                    content:
+                        application/json:
+                            schema: { $ref: '#/components/schemas/Profile' }
+        patch:
+            summary: Update profile
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  schema: { type: string }
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/ProfileUpdate'
+            responses:
+                '200': { description: Updated }
+    /profiles:
+        get:
+            summary: List profiles (admin)
+            parameters:
+                - in: query
+                  name: q
+                  schema: { type: string }
+            responses:
+                '200':
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                type: array
+                                items: { $ref: '#/components/schemas/Profile' }
+    /profiles/{id}/approval:
+        post:
+            summary: Set approval flag
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  schema: { type: string }
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties:
+                                isApproved: { type: boolean }
+            responses:
+                '204': { description: No Content }
+components:
+    schemas:
+        RegisterRequest:
+            type: object
+            required: [email, password]
+            properties:
+                email: { type: string, format: email }
+                password: { type: string, format: password }
+                fullName: { type: string }
+        LoginRequest:
+            type: object
+            required: [email, password]
+            properties:
+                email: { type: string, format: email }
+                password: { type: string, format: password }
+        AuthTokens:
+            type: object
+            properties:
+                accessToken: { type: string }
+                refreshToken: { type: string }
+                expiresIn: { type: integer }
+        Profile:
+            type: object
+            properties:
+                id: { type: string }
+                email: { type: string }
+                full_name: { type: string, nullable: true }
+                avatar_url: { type: string, nullable: true }
+                current_organization_id: { type: string, nullable: true }
+                personal_organization_id: { type: string, nullable: true }
+                pinned_organization_id: { type: string, nullable: true }
+                is_approved: { type: boolean }
+        ProfileUpdate:
+            type: object
+            properties:
+                full_name: { type: string }
+                avatar_url: { type: string }
+                pinned_organization_id: { type: string, nullable: true }

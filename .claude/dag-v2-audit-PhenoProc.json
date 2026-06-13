@@ -1,0 +1,131 @@
+{
+  "repo": "PhenoProc",
+  "repo_path": "/Users/kooshapari/CodeProjects/Phenotype/repos/PhenoProc",
+  "remote": "https://github.com/KooshaPari/PhenoProc.git",
+  "branch": "chore/audit-PhenoProc-2026-06-08",
+  "base_branch": "main",
+  "head_sha": "1d6296276d3bfb1ec396383ce877b46e7d97571b",
+  "head_sha_short": "1d629627",
+  "last_commit_date": "2026-06-08T19:18:27-07:00",
+  "last_commit_date_utc": "2026-06-09T02:18:27Z",
+  "audit_date": "2026-06-08",
+  "audit_task": "DAG-L1-12",
+  "language_stack": {
+    "primary": ["rust", "python", "go"],
+    "primary_evidence": "1385 .rs files in crates/ (27+ workspace members) + 2217 .py files in python/ (16 pheno-* packages) + 7+ go.mod files in crates/mcp-forge, apps/pheno-cli, phenotype-validation/go (plus vendored 11580 .go in crates/byteport submodule)",
+    "secondary": ["typescript", "javascript"],
+    "secondary_evidence": "1896 .ts + 1064 .js — predominantly VitePress docs sites (helmo, phenotype-gauge, phenotype-shared) + prismal/cursora/phenotype-infrakit TS packages; 86 .yaml + 191 .yml",
+    "build_systems": ["cargo", "uv", "go", "pnpm", "bun", "vitepress"],
+    "msrv": "1.80 (rust-toolchain.toml pins stable)",
+    "edition": "2021",
+    "eval_orchestrator": "Evalora/ is a vendored eval-orchestrator workspace (Rust, with Cargo.toml + AGENTS.md + cliff.toml + mise.toml); listed in .git/modules but .gitmodules has no entry — submodule mapping is broken (git submodule status errors: 'fatal: no submodule mapping found')",
+    "stale_claim": "CLAUDE.md:7 asserts 'Language Stack: Go, Python' but the actual primary stack is Rust + Python + Go; README.md and AGENTS.md are accurate (Rust Edition 2024). CLAUDE.md is stale and contradicts the workspace manifest."
+  },
+  "hygiene_score": {
+    "score": 100,
+    "max": 100,
+    "checks": {
+      "LICENSE": {"present": true, "points": 10, "detail": "LICENSE (1068B) + LICENSE-APACHE (11358B) + LICENSE-MIT (1066B) — dual MIT/Apache-2.0"},
+      "README": {"present": true, "points": 10, "detail": "README.md (5283B, with pinned-references block, status 'maintenance', badges, quick-start, technology stack, project structure, use cases, related projects, license)"},
+      "CHANGELOG": {"present": true, "points": 10, "detail": "CHANGELOG.md (4615B, 91 lines) + cliff.toml (1421B, git-cliff conventional-commits config)"},
+      "editorconfig": {"present": true, "points": 10, "detail": ".editorconfig (547B) — root=true, rules for py (4-space), ts/js (2-space), go (tab), yml/yaml/json (2-space), Makefile (tab), md (no trim)"},
+      "CI": {"present": true, "points": 10, "detail": ".github/workflows/ — 13 workflows: ci.yml, cargo-audit.yml, cargo-deny.yml, codeql.yml, codeql-rust.yml, doc-links.yml, fr-coverage.yml, legacy-tooling-gate.yml, pages-deploy.yml, quality-gate.yml, scorecard.yml, secrets-scan.yml, trufflehog.yml, vitepress-deploy.yml"},
+      "dependabot": {"present": true, "points": 10, "detail": ".github/dependabot.yml (cargo ecosystem, weekly, 10 PR limit, chore(deps) prefix); only cargo ecosystem covered — no gomod/npm/pip/github-actions ecosystems (gap)"},
+      "CODEOWNERS": {"present": true, "points": 10, "detail": "CODEOWNERS (172B): '* @KooshaPari' default + per-language drill-down (rs, py)"},
+      "CONTRIBUTING": {"present": true, "points": 10, "detail": "CONTRIBUTING.md (812B) — branch policy + PR review"},
+      "SECURITY": {"present": true, "points": 10, "detail": "SECURITY.md (690B) — disclosure policy"},
+      "FUNDING": {"present": true, "points": 10, "detail": "FUNDING.yml (19B) — github: KooshaPari (minimal)"}
+    }
+  },
+  "dup_exposure": {
+    "rationale": "PhenoProc vendors seven pheno-* stub directories at repo root (pheno-caching, pheno-credentials, pheno-database, pheno-shared, pheno-storage, pheno-validation, pheno-workflow) and 16 pheno-* Python packages under python/. These overlap with both workspace crates (phenotype-validation, phenotype-shared, etc.) and the org-wide pheno-* library fleet. All are candidates for upstream consumption rather than local duplication.",
+    "consumable": [
+      {"lib": "phenotype-bus / phenotype-event-bus", "replaces": "ad-hoc pub-sub in phenotype-router-monitor + phenotype-colab-extensions (event sourcing + replay)", "effort_to_adopt": "M"},
+      {"lib": "phenotype-dep-guard", "replaces": "standalone deny.toml + cargo-deny.yml + cargo-audit.yml workflows (ad-hoc per-repo dep policy)", "effort_to_adopt": "S"},
+      {"lib": "phenotype-request-id", "replaces": "scattered request/run_id string threading in proc-uds handlers and proc-queue task contexts", "effort_to_adopt": "S"},
+      {"lib": "phenotype-registry", "replaces": "phenotype-project-registry (which is local); the org crate subsumes it", "effort_to_adopt": "S"},
+      {"lib": "phenotype-errors / phenotype-error-core", "replaces": "thiserror wrappers diverged across 27 workspace crates (no canonical taxonomy applied)", "effort_to_adopt": "M"},
+      {"lib": "phenotype-port-traits / phenotype-ports-canonical", "replaces": "local port-traits + proc-core ManagedProcess trait (duplicate trait surface)", "effort_to_adopt": "M"},
+      {"lib": "phenotype-tooling (phenotype.just)", "replaces": "PhenoProc/justfile is 3 lines (imports the shared library) — already adopted; could extend coverage", "effort_to_adopt": "S"},
+      {"lib": "phenotype-journeys", "replaces": "no FR/journey-traceable tests in proc-core; fr-coverage.yml workflow exists but no journey tests", "effort_to_adopt": "M"},
+      {"lib": "pheno-validation (python/)", "replaces": "root /pheno-validation/ stub dir + crates/phenotype-validation (3 forms of the same lib — should be one source of truth)", "effort_to_adopt": "L"},
+      {"lib": "pheno-shared / phenotype-shared", "replaces": "root /pheno-shared/ stub + crates/phenotype-shared (TS/JS workspace) + pheno-shared python/ — three forms of the same name", "effort_to_adopt": "L"},
+      {"lib": "pheno-workflow (python/)", "replaces": "root /pheno-workflow/ stub (build + src + tests dirs) — duplicate of python/pheno-workflow package", "effort_to_adopt": "M"},
+      {"lib": "pheno-credentials / pheno-caching / pheno-database / pheno-storage", "replaces": "four top-level stub dirs with src/ trees that don't appear in any workspace manifest — likely dead vendor drops", "effort_to_adopt": "L"}
+    ]
+  },
+  "sota_gaps": {
+    "rationale": "Compared to a state-of-the-art process orchestrator in 2026 (Bun's process manager, Deno's worker pool, Tokio + sysinfo, Ray, Temporal, litestream-fuse, Nomad), PhenoProc's proc-core / proc-uds / proc-shm / proc-queue lack the following capabilities.",
+    "gaps": [
+      {"id": "sota-1", "feature": "Linux cgroup v2 resource limits per pool (cpu/memory/pids quota)", "severity": "P0", "evidence": "pheno-proc-core ManagedProcess spawns raw tokio::process::Command with no cgroup scoping; README:44 promises 'recycling policies' but no resource-quota enforcement"},
+      {"id": "sota-2", "feature": "Linux namespace + seccomp + capability dropping (sandboxed worker pools)", "severity": "P0", "evidence": "pheno-proc-core/src/lib.rs spawns without unshare() / prctl(PR_CAPBSET_DROP); no landlock profile; proc-uds is a pure IPC library with no isolation model"},
+      {"id": "sota-3", "feature": "OpenTelemetry-native trace propagation across UDS / SHM / queue boundaries", "severity": "P1", "evidence": "phenotype-telemetry exists in workspace but no #[instrument] in proc-uds handlers; no W3C traceparent propagation across process boundaries"},
+      {"id": "sota-4", "feature": "WASM/WIT component model for proc plugin sandboxing", "severity": "P1", "evidence": "No wasm32 target in any crate; no wit-bindgen dep; phenotype-colab-extensions is a TypeScript service, not a WASM host"},
+      {"id": "sota-5", "feature": "Structured concurrency (Tokio JoinSet, cancellation tokens) in proc-queue worker pools", "severity": "P1", "evidence": "pheno-proc-queue/src/lib.rs lacks explicit TaskGroup/JointError patterns; cancellation only by dropping the queue handle"},
+      {"id": "sota-6", "feature": "Adaptive pool sizing (kuber-style HPA for process pools based on queue depth/latency)", "severity": "P1", "evidence": "pheno-proc-core has 'configurable concurrency' (README:41) but no autoscaler loop; no metric-driven scaling"},
+      {"id": "sota-7", "feature": "Cross-platform process primitives (macOS/Windows) — currently Linux-only (UDS, SHM, signals)", "severity": "P2", "evidence": "pheno-proc-uds and pheno-proc-shm use Unix-only APIs (libc::socketpair, shm_open); no cfg(windows) fallback; README does not declare platform support matrix"},
+      {"id": "sota-8", "feature": "Graceful shutdown choreography (drain → SIGTERM → SIGKILL timeout) for dependent process trees", "severity": "P1", "evidence": "README:42 claims 'graceful shutdown' but proc-core shutdown path is implicit (Drop) — no explicit drain phase, no child-of-child reaping"},
+      {"id": "sota-9", "feature": "Hot-reload of process definitions / queue rules (no restart of pool)", "severity": "P2", "evidence": "phenotype-config-loader exists but no SIGHUP-style config reload wiring; pool must be destroyed + recreated"},
+      {"id": "sota-10", "feature": "eBPF-based observability (perf_event_open, tracepoints for syscall latency) for proc-shm / proc-uds", "severity": "P2", "evidence": "No bpf/aya dep; phenotype-telemetry is a thin wrapper over tracing crate, not a kernel-level probe"},
+      {"id": "sota-11", "feature": "OOM-aware recycling (proc-self-memgroup, cgroup.memory.events detection)", "severity": "P2", "evidence": "pheno-proc-core has no OOM callback; process death detection is via wait() only"},
+      {"id": "sota-12", "feature": "Fix broken Evalora submodule mapping (.gitmodules missing entry causes 'fatal: no submodule mapping found')", "severity": "P0", "evidence": "git ls-files --stage shows Evalora is a 160000 gitlink at 7d6939e6... but .gitmodules only declares worktree-manager + crates/byteport; 'git submodule status' fails"}
+    ]
+  },
+  "convergence_cluster": {
+    "label": "multi-stack",
+    "rationale": "PhenoProc is a 3-language multi-stack: Rust (1385 .rs in 27-crate workspace) is the primary authored stack; Python (2217 .py in 16-package python/ tree) is the interop/bindings layer; Go (crates/mcp-forge + apps/pheno-cli + phenotype-validation/go) is the eval-orchestrator + CLI surface. TypeScript appears only in vendored docs sites (helmo, phenotype-gauge) and node_modules, not as an authored stack. Too heterogeneous for 'web-stack'; not actively 'live' (workspace status is 'maintenance'); better fit than 'convergence' (which would imply a single product surface). Best fit: multi-stack.",
+    "secondary_candidates": ["convergence"]
+  },
+  "action_items": [
+    {
+      "priority": "P0",
+      "task": "Fix broken Evalora submodule mapping — add Evalora entry to .gitmodules so 'git submodule status' no longer errors (fatal: no submodule mapping found in .gitmodules for path 'Evalora')",
+      "effort": "S",
+      "owner_hint": "platform",
+      "blocks": ["adopt .gitmodules as source of truth for vendored workspaces", "SOTA gap sota-12"]
+    },
+    {
+      "priority": "P0",
+      "task": "Update CLAUDE.md to reflect actual language stack (Rust + Python + Go, not 'Go, Python') so agent routing matches workspace reality",
+      "effort": "S",
+      "owner_hint": "docs",
+      "blocks": ["agent dispatch accuracy for PhenoProc tasks"]
+    },
+    {
+      "priority": "P1",
+      "task": "Consolidate seven pheno-* stub directories at repo root (pheno-caching, pheno-credentials, pheno-database, pheno-shared, pheno-storage, pheno-validation, pheno-workflow) — either delete as dead-vendor drops, or convert to git submodules/path-deps pointing to canonical phenotype-org pheno-* libs (resolves the 3-form pheno-shared/phenotype-shared/pheno-validation duplication)",
+      "effort": "L",
+      "owner_hint": "platform",
+      "blocks": ["dup_exposure: 3-form pheno-shared, pheno-validation"]
+    },
+    {
+      "priority": "P1",
+      "task": "Add cgroup v2 resource limits + namespace/capability dropping in pheno-proc-core ManagedProcess (closes sota-1 + sota-2 together — single sysctl-style PR)",
+      "effort": "L",
+      "owner_hint": "proc-core",
+      "blocks": ["SOTA gaps sota-1, sota-2"]
+    },
+    {
+      "priority": "P1",
+      "task": "Wire OpenTelemetry traceparent propagation across proc-uds / proc-queue / proc-shm boundaries using phenotype-telemetry + W3C trace context (closes sota-3) and extend .github/dependabot.yml to cover gomod/npm/pip/github-actions ecosystems in the same PR (multi-stack dep freshness)",
+      "effort": "M",
+      "owner_hint": "telemetry",
+      "blocks": ["SOTA gap sota-3", "multi-stack dependabot coverage"]
+    }
+  ],
+  "metadata": {
+    "schema_version": "dag-v2-audit-1",
+    "audited_by": "forge",
+    "audit_session": "dag-v2-L1-12-PhenoProc",
+    "push": false,
+    "branch_created": "chore/audit-PhenoProc-2026-06-08",
+    "files_committed": [".claude/dag-v2-audit-PhenoProc.json"],
+    "workspace_crate_count": 27,
+    "python_packages_count": 16,
+    "go_modules_count": 4,
+    "vendored_submodules": ["Evalora", "worktree-manager", "crates/byteport"],
+    "workflows_count": 13,
+    "broken_submodule_mappings": ["Evalora"],
+    "stale_claim": "CLAUDE.md:7 'Language Stack: Go, Python' is wrong; actual primary stack is Rust+Python+Go"
+  }
+}

@@ -1,0 +1,110 @@
+{
+  "browsers": {
+    "chromium": {
+      "enabled": true,
+      "headless": true,
+      "args": [
+        "--no-sandbox",
+        "--disable-setuid-sandbox",
+        "--disable-dev-shm-usage",
+        "--disable-background-timer-throttling",
+        "--disable-backgrounding-occluded-windows",
+        "--disable-renderer-backgrounding"
+      ],
+      "timeout": 30000,
+      "viewport": {
+        "width": 1280,
+        "height": 720
+      }
+    },
+    "firefox": {
+      "enabled": true,
+      "headless": true,
+      "args": [],
+      "timeout": 30000,
+      "viewport": {
+        "width": 1280,
+        "height": 720
+      }
+    },
+    "webkit": {
+      "enabled": true,
+      "headless": true,
+      "args": [],
+      "timeout": 30000,
+      "viewport": {
+        "width": 1280,
+        "height": 720
+      }
+    }
+  },
+  "contexts": {
+    "default": {
+      "viewport": {
+        "width": 1280,
+        "height": 720
+      },
+      "userAgent": null,
+      "locale": "en-US",
+      "timezone": "UTC",
+      "permissions": [],
+      "geolocation": null,
+      "colorScheme": "light",
+      "reducedMotion": "no-preference",
+      "forcedColors": "none"
+    }
+  },
+  "screenshots": {
+    "enabled": true,
+    "format": "png",
+    "quality": 90,
+    "fullPage": false,
+    "path": "/Users/kooshapari/temp-PRODVERCEL/485/kush/Kwality/screenshots"
+  },
+  "downloads": {
+    "enabled": true,
+    "path": "/Users/kooshapari/temp-PRODVERCEL/485/kush/Kwality/downloads"
+  },
+  "traces": {
+    "enabled": false,
+    "path": "/Users/kooshapari/temp-PRODVERCEL/485/kush/Kwality/traces",
+    "screenshots": true,
+    "snapshots": true,
+    "sources": true
+  },
+  "videos": {
+    "enabled": false,
+    "path": "/Users/kooshapari/temp-PRODVERCEL/485/kush/Kwality/videos",
+    "size": {
+      "width": 1280,
+      "height": 720
+    }
+  },
+  "mcp": {
+    "enabled": true,
+    "port": 3001,
+    "host": "localhost",
+    "tools": {
+      "navigation": true,
+      "interaction": true,
+      "evaluation": true,
+      "screenshots": true,
+      "management": true
+    }
+  },
+  "security": {
+    "allowInsecureContent": false,
+    "bypassCSP": false,
+    "ignoreHTTPSErrors": false,
+    "maxConcurrentBrowsers": 5,
+    "maxConcurrentContexts": 10,
+    "maxConcurrentPages": 20,
+    "sessionTimeout": 3600000
+  },
+  "performance": {
+    "enableHar": false,
+    "enableCoverage": false,
+    "enableMetrics": true,
+    "enableTracing": false
+  }
+}

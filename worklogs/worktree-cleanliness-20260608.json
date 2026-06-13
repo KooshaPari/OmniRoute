@@ -1,0 +1,6 @@
+{
+  "generated_at": "2026-06-08 22:15",
+  "total_repos": 179,
+  "with_wtrees": ["heliosApp", "HeliosCLI", "helioscope", "portage", "thegent", "Tracera"],
+  "by_repo": [{"repo": "heliosApp", "wtree_count": 1}, {"repo": "HeliosCLI", "wtree_count": 1}, {"repo": "helioscope", "wtree_count": 1}, {"repo": "portage", "wtree_count": 1}, {"repo": "thegent", "wtree_count": 1}, {"repo": "Tracera", "wtree_count": 1}]
+}

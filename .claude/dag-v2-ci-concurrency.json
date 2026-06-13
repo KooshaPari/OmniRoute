@@ -1,0 +1,104 @@
+{
+  "task": "DAG L2-33 pheno-ci-concurrency",
+  "schema_version": "v2",
+  "generated_at": "2026-06-08T21:30:00Z",
+  "objective": "Add concurrency: block to CI workflows that lack it (per FLEET_100TASK_DAG_V2_MERGED.md L2 task #33)",
+  "source_audit": "worklogs/ci-concurrency-audit-20260608.json (117/230 repos with concurrency-cancel)",
+  "l1_audit_set": [
+    "agent-user-status", "agentapi-plusplus", "Agentora", "AgilePlus", "HexaKit",
+    "PhenoDevOps", "Pyron", "pheno", "FocalPoint", "HeliosCLI",
+    "helioscope", "PhenoProc", "PhenoKits", "localbase3", "phenoRuntime",
+    "Tracera", "phenoShared", "PhenoObservability", "Tracely", "thegent"
+  ],
+  "concurrency_block_added": [
+    "concurrency:",
+    "  group: ${{ github.workflow }}-${{ github.ref }}",
+    "  cancel-in-progress: ${{ github.event_name == 'pull_request' }}"
+  ],
+  "commit_message": "chore(ci): add concurrency block to cancel superseded PR runs",
+  "branch_name": "chore/ci-concurrency-2026-06-08",
+  "pushed": false,
+  "results": [
+    {
+      "repo": "agent-user-status",
+      "repo_path": "/Users/kooshapari/CodeProjects/Phenotype/repos/agent-user-status",
+      "branch_base": "main",
+      "branch": "chore/ci-concurrency-2026-06-08",
+      "commit_sha": "a6d0888ee16d2dda173bffd52190daf382526968",
+      "commit_short": "a6d0888",
+      "lines_added": 5,
+      "lines_removed": 0,
+      "file": ".github/workflows/ci.yml",
+      "pushed": false
+    },
+    {
+      "repo": "agentapi-plusplus",
+      "repo_path": "/Users/kooshapari/CodeProjects/Phenotype/repos/agentapi-plusplus",
+      "branch_base": "main",
+      "branch": "chore/ci-concurrency-2026-06-08",
+      "commit_sha": "af89ec2d87ca5ebd780bb43005f8a9bdaec692f1",
+      "commit_short": "af89ec2",
+      "lines_added": 5,
+      "lines_removed": 0,
+      "file": ".github/workflows/ci.yml",
+      "pushed": false
+    },
+    {
+      "repo": "HeliosCLI",
+      "repo_path": "/Users/kooshapari/CodeProjects/Phenotype/repos/HeliosCLI",
+      "branch_base": "main",
+      "branch": "chore/ci-concurrency-2026-06-08",
+      "commit_sha": "80f2b2e1cee175e302b8690f90ad1819d0713164",
+      "commit_short": "80f2b2e",
+      "lines_added": 5,
+      "lines_removed": 0,
+      "file": ".github/workflows/ci.yml",
+      "pushed": false
+    },
+    {
+      "repo": "helioscope",
+      "repo_path": "/Users/kooshapari/CodeProjects/Phenotype/repos/helioscope",
+      "branch_base": "main",
+      "branch": "chore/ci-concurrency-2026-06-08",
+      "commit_sha": "68d5d18ce692414fddeaca1127d3a4c5d3571490",
+      "commit_short": "68d5d18",
+      "lines_added": 5,
+      "lines_removed": 0,
+      "file": ".github/workflows/ci.yml",
+      "pushed": false
+    },
+    {
+      "repo": "PhenoKits",
+      "repo_path": "/Users/kooshapari/CodeProjects/Phenotype/repos/PhenoKits",
+      "branch_base": "main",
+      "branch": "chore/ci-concurrency-2026-06-08",
+      "commit_sha": "d4e49e2de169eb6e13677627d832dd0bdeadad2d",
+      "commit_short": "d4e49e2",
+      "lines_added": 5,
+      "lines_removed": 0,
+      "file": ".github/workflows/ci.yml",
+      "pushed": false
+    }
+  ],
+  "summary": {
+    "repos_processed": 5,
+    "branches_created": 5,
+    "commits_made": 5,
+    "lines_added_total": 25,
+    "lines_removed_total": 0,
+    "pushed": false
+  },
+  "excluded_repos_with_existing_concurrency": [
+    "Agentora", "AgilePlus", "HexaKit", "PhenoDevOps", "Pyron", "pheno",
+    "FocalPoint", "PhenoProc", "phenoRuntime", "Tracera", "PhenoObservability",
+    "Tracely", "thegent"
+  ],
+  "excluded_repos_no_ci_yml": ["localbase3"],
+  "excluded_repos_reusable_workflow": ["phenoShared (workflow_call only)"],
+  "notes": [
+    "Branches created locally; not pushed (per task constraint).",
+    "agent-user-status, HeliosCLI had leftover uncommitted work from prior L2-35 (permissions) task; stashed/reverted to keep the L2-33 commit scope to concurrency only.",
+    "All 5 commits are 5 lines added / 0 removed = the concurrency block + 1 comment header line.",
+    "Concurrency block placement: after `permissions:`, before `env:`/`jobs:` (consistent with HeliosCLI reference impl)."
+  ]
+}

@@ -1,0 +1,13 @@
+{
+  "generated_at": "2026-06-08T04:35:00Z",
+  "has_vercel": true,
+  "framework": "astro",
+  "build_command": "bun run build",
+  "output_dir": "dist",
+  "deploy_url": "https://thegent.kooshapari.com",
+  "health_endpoints": [
+    "https://thegent.kooshapari.com/ (200 OK)",
+    "https://thegent.kooshapari.com/health (404)",
+    "https://thegent.kooshapari.com/api/health (404)"
+  ]
+}

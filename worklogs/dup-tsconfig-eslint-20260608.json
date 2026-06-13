@@ -1,0 +1,33 @@
+{
+  "generated_at": "2026-06-08T00:00:00Z",
+  "total_repos_scanned": 160,
+  "total_configs_found": 22,
+  "near_duplicate_configs": [
+    {
+      "name": "tsconfig.json",
+      "hash": "b5b0a5b04a14cddd",
+      "repos": [
+        "byteport-landing/tsconfig.json",
+        "phenokits-landing/tsconfig.json"
+      ]
+    },
+    {
+      "name": "tsconfig.json",
+      "hash": "b82a4620bee1f180",
+      "repos": [
+        "thegent-clean/tsconfig.json",
+        "thegent/tsconfig.json"
+      ]
+    },
+    {
+      "name": "tsconfig.json",
+      "hash": "851295c069b3a71e",
+      "repos": [
+        "thegent-clean-wt-idea/tsconfig.json",
+        "thegent-clean-wt-parallel/tsconfig.json",
+        "thegent-clean-wt-policy/tsconfig.json",
+        "thegent-clean-wt-ruff/tsconfig.json"
+      ]
+    }
+  ]
+}

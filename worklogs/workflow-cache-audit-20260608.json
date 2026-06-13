@@ -1,0 +1,153 @@
+{
+  "generated_at": "2026-06-08T23:22:22Z",
+  "total_repos": 29,
+  "with_cache": [
+    "AgilePlus",
+    "Dino",
+    "HeliosCLI",
+    "HeliosLab",
+    "HexaKit",
+    "KDesktopVirt",
+    "KlipDot",
+    "OmniRoute",
+    "OmniRoute-dependabot",
+    "PhenoDevOps",
+    "Planify",
+    "PolicyStack",
+    "Pyron",
+    "Tokn",
+    "Tracely",
+    "Tracera",
+    "cliproxyapi-plusplus",
+    "heliosApp",
+    "helioscope",
+    "kmobile",
+    "kwality",
+    "pheno",
+    "phenotype-voxel",
+    "thegent",
+    "thegent-clean-wt-docs",
+    "thegent-clean-wt-idea",
+    "thegent-clean-wt-parallel",
+    "thegent-clean-wt-ruff",
+    "vibeproxy"
+  ],
+  "by_repo": [
+    {
+      "repo": "AgilePlus",
+      "cache_count": 4
+    },
+    {
+      "repo": "Dino",
+      "cache_count": 9
+    },
+    {
+      "repo": "HeliosCLI",
+      "cache_count": 11
+    },
+    {
+      "repo": "HeliosLab",
+      "cache_count": 4
+    },
+    {
+      "repo": "HexaKit",
+      "cache_count": 1
+    },
+    {
+      "repo": "KDesktopVirt",
+      "cache_count": 2
+    },
+    {
+      "repo": "KlipDot",
+      "cache_count": 3
+    },
+    {
+      "repo": "OmniRoute",
+      "cache_count": 1
+    },
+    {
+      "repo": "OmniRoute-dependabot",
+      "cache_count": 1
+    },
+    {
+      "repo": "PhenoDevOps",
+      "cache_count": 1
+    },
+    {
+      "repo": "Planify",
+      "cache_count": 7
+    },
+    {
+      "repo": "PolicyStack",
+      "cache_count": 1
+    },
+    {
+      "repo": "Pyron",
+      "cache_count": 1
+    },
+    {
+      "repo": "Tokn",
+      "cache_count": 1
+    },
+    {
+      "repo": "Tracely",
+      "cache_count": 1
+    },
+    {
+      "repo": "Tracera",
+      "cache_count": 21
+    },
+    {
+      "repo": "cliproxyapi-plusplus",
+      "cache_count": 1
+    },
+    {
+      "repo": "heliosApp",
+      "cache_count": 1
+    },
+    {
+      "repo": "helioscope",
+      "cache_count": 11
+    },
+    {
+      "repo": "kmobile",
+      "cache_count": 3
+    },
+    {
+      "repo": "kwality",
+      "cache_count": 2
+    },
+    {
+      "repo": "pheno",
+      "cache_count": 1
+    },
+    {
+      "repo": "phenotype-voxel",
+      "cache_count": 1
+    },
+    {
+      "repo": "thegent",
+      "cache_count": 1
+    },
+    {
+      "repo": "thegent-clean-wt-docs",
+      "cache_count": 1
+    },
+    {
+      "repo": "thegent-clean-wt-idea",
+      "cache_count": 1
+    },
+    {
+      "repo": "thegent-clean-wt-parallel",
+      "cache_count": 1
+    },
+    {
+      "repo": "thegent-clean-wt-ruff",
+      "cache_count": 1
+    },
+    {
+      "repo": "vibeproxy",
+      "cache_count": 1
+    }
+  ]
+}

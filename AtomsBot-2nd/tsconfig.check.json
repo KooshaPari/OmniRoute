@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "strict": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "isolatedModules": true,
+    "noEmit": true,
+    "lib": ["ES2022", "DOM"]
+  },
+  "files": [
+    "src/pm/provider.ts",
+    "src/pm/facade.ts",
+    "src/pm/interfaces.ts",
+    "src/pm/adapters/JiraAdapter.ts",
+    "src/pm/adapters/GitHubIssuesAdapter.ts",
+    "src/pm/adapters/GitHubProjectsAdapter.ts",
+    "src/pm/adapters/LinearAdapter.ts",
+    "src/pm/adapters/CodaAdapter.ts",
+    "src/pm/adapters/AtomsAdapter.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist"
+  ]
+}

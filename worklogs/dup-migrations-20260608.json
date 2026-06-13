@@ -1,0 +1,13 @@
+{
+  "generated_at": "2026-06-08T09:47:37Z",
+  "total_repos": 164,
+  "near_duplicate_migrations": [
+    {
+      "name": "0001_init.sql",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    }
+  ]
+}

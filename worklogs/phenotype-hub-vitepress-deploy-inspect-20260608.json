@@ -1,0 +1,18 @@
+{
+  "generated_at": "2026-06-08T00:00:00Z",
+  "vitepress_config_present": false,
+  "deploy_yaml_present": true,
+  "deploy_steps": [
+    "actions/checkout@v4 (fetch-depth 0)",
+    "actions/setup-node@v4 (node 20)",
+    "actions/configure-pages@v5",
+    "Install dependencies (npm ci if docs/package.json else npm install -g vitepress)",
+    "Build VitePress site (npm run docs:build else npx vitepress build docs)",
+    "actions/upload-pages-artifact@v3 with path: docs/.vitepress/dist",
+    "actions/deploy-pages@v4"
+  ],
+  "push_target": "none (uses actions/deploy-pages@v4 official Pages publisher; no git push to gh-pages)",
+  "expected_pages_path": "docs/.vitepress/dist",
+  "root_cause_404": "Repo has no vitepress.config.{ts,js,mjs} and docs/ contains no .vitepress/ directory. The build step npx vitepress build docs has no config to consume, so the artifact uploaded from docs/.vitepress/dist is either empty or never produced; the deployed Pages site therefore serves no index.html, producing 404.",
+  "fix_recommendation": "Add a real VitePress project at docs/.vitepress/config.ts with at minimum { title, srcDir, outDir: 'docs/.vitepress/dist' } and an index.md under docs/, or change the build step to point at an existing srcDir. Until then the deploy workflow will continue to publish an empty/garbage artifact and the Pages URL will 404."
+}

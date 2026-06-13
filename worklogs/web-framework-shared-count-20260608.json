@@ -1,0 +1,17 @@
+{
+  "generated_at": "2026-06-08T00:00:00Z",
+  "total_repos": 48,
+  "combined": [
+    {
+      "repo": "OmniRoute",
+      "web_lib": [
+        "next",
+        "react",
+        "react-dom"
+      ],
+      "state_lib": [
+        "zustand"
+      ]
+    }
+  ]
+}

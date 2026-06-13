@@ -1,0 +1,148 @@
+{
+  "generated_at": "2026-06-08T08:51:10Z",
+  "total_repos": 132,
+  "with_sqlx": [
+    "Conft",
+    "HeliosCLI",
+    "HexaKit",
+    "KDesktopVirt",
+    "PhenoKits",
+    "crates",
+    "helioscope",
+    "worktrees"
+  ],
+  "with_rusqlite": [
+    "Agentora",
+    "AgilePlus",
+    "FocalPoint",
+    "HeliosLab",
+    "HexaKit",
+    "McpKit",
+    "PhenoDevOps",
+    "PhenoPlugins",
+    "PhenoProc",
+    "Pyron",
+    "Tracera",
+    "crates",
+    "pheno"
+  ],
+  "with_libsql": [],
+  "by_repo": [
+    {
+      "repo": "Agentora",
+      "libs": [
+        "rusqlite"
+      ]
+    },
+    {
+      "repo": "AgilePlus",
+      "libs": [
+        "rusqlite"
+      ]
+    },
+    {
+      "repo": "Conft",
+      "libs": [
+        "sqlx"
+      ]
+    },
+    {
+      "repo": "FocalPoint",
+      "libs": [
+        "rusqlite"
+      ]
+    },
+    {
+      "repo": "HeliosCLI",
+      "libs": [
+        "sqlx"
+      ]
+    },
+    {
+      "repo": "HeliosLab",
+      "libs": [
+        "rusqlite"
+      ]
+    },
+    {
+      "repo": "HexaKit",
+      "libs": [
+        "rusqlite",
+        "sqlx"
+      ]
+    },
+    {
+      "repo": "KDesktopVirt",
+      "libs": [
+        "sqlx"
+      ]
+    },
+    {
+      "repo": "McpKit",
+      "libs": [
+        "rusqlite"
+      ]
+    },
+    {
+      "repo": "PhenoDevOps",
+      "libs": [
+        "rusqlite"
+      ]
+    },
+    {
+      "repo": "PhenoKits",
+      "libs": [
+        "sqlx"
+      ]
+    },
+    {
+      "repo": "PhenoPlugins",
+      "libs": [
+        "rusqlite"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "libs": [
+        "rusqlite"
+      ]
+    },
+    {
+      "repo": "Pyron",
+      "libs": [
+        "rusqlite"
+      ]
+    },
+    {
+      "repo": "Tracera",
+      "libs": [
+        "rusqlite"
+      ]
+    },
+    {
+      "repo": "crates",
+      "libs": [
+        "rusqlite",
+        "sqlx"
+      ]
+    },
+    {
+      "repo": "helioscope",
+      "libs": [
+        "sqlx"
+      ]
+    },
+    {
+      "repo": "pheno",
+      "libs": [
+        "rusqlite"
+      ]
+    },
+    {
+      "repo": "worktrees",
+      "libs": [
+        "sqlx"
+      ]
+    }
+  ]
+}

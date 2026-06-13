@@ -1,0 +1,26 @@
+{
+    "$schema": "https://raw.githubusercontent.com/RicoSuter/NSwag/master/src/NSwag.Core/NSwagDocument.schema.json",
+    "runtime": "Net60",
+    "documentGenerator": {
+        "fromDocument": {
+            "url": "${Input}",
+            "output": null
+        }
+    },
+    "codeGenerators": {
+        "openApiToCSharpClient": {
+            "className": "${ClassName}",
+            "namespace": "${Namespace}",
+            "generateClientInterfaces": true,
+            "generateExceptionClasses": true,
+            "useBaseUrl": true,
+            "disposeHttpClient": false,
+            "injectHttpClient": true,
+            "useHttpRequestMessageCreationMethod": true,
+            "useCancellationToken": true,
+            "generateOptionalParameters": true,
+            "dateTimeType": "System.DateTimeOffset",
+            "output": "${Output}"
+        }
+    }
+}

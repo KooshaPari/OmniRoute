@@ -1,0 +1,13 @@
+{
+  "generated_at": "2026-06-08T10:33:17.940657Z",
+  "total_repos": 160,
+  "native_ui_dupes": [
+    {
+      "pattern": "SwiftUI View struct: SettingsView",
+      "repos": [
+        "foqos-private",
+        "vibeproxy"
+      ]
+    }
+  ]
+}

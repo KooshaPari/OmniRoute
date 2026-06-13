@@ -1,0 +1,817 @@
+{
+  "generated_at": "2026-06-09T03:11:16Z",
+  "total_repos": 54,
+  "with_description": [
+    "AgentMCP",
+    "HeliosCLI",
+    "HexaKit",
+    "Httpora",
+    "ObservabilityKit",
+    "Parpoura",
+    "Parpoura-3rd",
+    "Parpoura-4th",
+    "Parpoura-hygiene",
+    "PhenoDevOps",
+    "PhenoKits",
+    "PhenoObservability",
+    "PlayCua",
+    "PolicyStack",
+    "Pyron",
+    "QuadSGM",
+    "Tasken",
+    "Tasken-3rd",
+    "Tracera",
+    "agent-platform",
+    "agent-user-status",
+    "bare-cua",
+    "cheap-llm-mcp",
+    "cheap-llm-mcp-deprecate",
+    "cheap-llm-mcp-t1-19",
+    "dispatch-mcp",
+    "dispatch-mcp-t1-0",
+    "dispatch-mcp-t1-1",
+    "dispatch-mcp-t1-2",
+    "dispatch-mcp-t1-3",
+    "dispatch-mcp-t1-4",
+    "dispatch-mcp-t1-5",
+    "heliosBench",
+    "helioscope",
+    "localbase3",
+    "melosviz",
+    "pheno",
+    "phenoResearchEngine",
+    "phenodocs",
+    "phenodocs-scorecard-remediation",
+    "phenotype-dep-guard",
+    "phenotype-omlx",
+    "phenotype-py-extras",
+    "phenotype-python-sdk",
+    "phenotype-request-id",
+    "portage",
+    "rich-cli-kit",
+    "thegent",
+    "thegent-security-fixes"
+  ],
+  "with_long_description": [],
+  "with_homepage_url": [
+    "HeliosCLI",
+    "ObservabilityKit",
+    "PlayCua",
+    "bare-cua",
+    "cheap-llm-mcp-deprecate",
+    "cheap-llm-mcp-t1-19",
+    "helioscope",
+    "phenotype-omlx",
+    "thegent",
+    "thegent-security-fixes"
+  ],
+  "with_docs_url": [
+    "phenotype-omlx",
+    "thegent",
+    "thegent-security-fixes"
+  ],
+  "all_classifiers": [
+    "Development Status :: 2 - Pre-Alpha",
+    "Development Status :: 3 - Alpha",
+    "Development Status :: 4 - Beta",
+    "Environment :: Console",
+    "Framework :: AsyncIO",
+    "Framework :: FastAPI",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "Intended Audience :: System Administrators",
+    "License :: OSI Approved :: Apache Software License",
+    "License :: OSI Approved :: MIT License",
+    "Natural Language :: English",
+    "Operating System :: MacOS",
+    "Operating System :: OS Independent",
+    "Private :: Do Not Upload",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Topic :: Internet :: WWW/HTTP :: WSGI :: Application",
+    "Topic :: Office/Business",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: Software Development :: Quality Assurance",
+    "Topic :: Software Development :: Testing",
+    "Topic :: System :: Monitoring"
+  ],
+  "repos": {
+    "AgentMCP": {
+      "description": "Agentic Model Context Protocol framework for the Phenotype ecosystem",
+      "long_description": null,
+      "classifiers": [
+        "Development Status :: 2 - Pre-Alpha",
+        "Intended Audience :: Developers",
+        "License :: OSI Approved :: MIT License",
+        "Programming Language :: Python :: 3.11",
+        "Programming Language :: Python :: 3.12",
+        "Programming Language :: Python :: 3.13"
+      ],
+      "urls": {
+        "Homepage": null,
+        "Repository": null,
+        "Documentation": null
+      }
+    },
+    "AuthKit": {
+      "description": null,
+      "long_description": null,
+      "classifiers": [],
+      "urls": {
+        "Homepage": null,
+        "Repository": null,
+        "Documentation": null
+      }
+    },
+    "HeliosCLI": {
+      "description": "Helios CLI Benchmark Harness - Terminal Bench style",
+      "long_description": null,
+      "classifiers": [
+        "Development Status :: 3 - Alpha",
+        "Intended Audience :: Developers",
+        "License :: OSI Approved :: MIT License",
+        "Programming Language :: Python :: 3.14",
+        "Topic :: Software Development :: Libraries :: Python Modules",
+        "Topic :: Scientific/Engineering :: Artificial Intelligence",
+        "Operating System :: OS Independent"
+      ],
+      "urls": {
+        "Homepage": "https://github.com/kooshapari/helios-router",
+        "Repository": "https://github.com/kooshapari/helios-router",
+        "Documentation": null
+      }
+    },
+    "HexaKit": {
+      "description": "AgilePlus Python components: gRPC proto stubs and MCP service",
+      "long_description": null,
+      "classifiers": [],
+      "urls": {
+        "Homepage": null,
+        "Repository": null,
+        "Documentation": null
+      }
+    },
+    "Httpora": {
+      "description": "{{ project_description }}",
+      "long_description": null,
+      "classifiers": [],
+      "urls": {
+        "Homepage": null,
+        "Repository": null,
+        "Documentation": null
+      }
+    },
+    "McpKit": {
+      "description": null,
+      "long_description": null,
+      "classifiers": [],
+      "urls": {
+        "Homepage": null,
+        "Repository": null,
+        "Documentation": null
+      }
+    },
+    "ObservabilityKit": {
+      "description": "Performance monitoring and analysis toolkit for Python applications",
+      "long_description": null,
+      "classifiers": [
+        "Development Status :: 4 - Beta",
+        "Intended Audience :: Developers",
+        "License :: OSI Approved :: MIT License",
+        "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 3.11",
+        "Programming Language :: Python :: 3.12",
+        "Programming Language :: Python :: 3.13",
+        "Topic :: Software Development :: Testing",
+        "Topic :: System :: Monitoring"
+      ],
+      "urls": {
+        "Homepage": "https://github.com/KooshaPari/ObservabilityKit",
+        "Repository": "https://github.com/KooshaPari/ObservabilityKit",
+        "Documentation": null
+      }
+    },
+    "Parpoura": {
+      "description": "Autonomous AI economic civilization platform",
+      "long_description": null,
+      "classifiers": [
+        "Private :: Do Not Upload"
+      ],
+      "urls": {
+        "Homepage": null,
+        "Repository": null,
+        "Documentation": null
+      }
+    },
+    "Parpoura-3rd": {
+      "description": "Autonomous AI economic civilization platform",
+      "long_description": null,
+      "classifiers": [
+        "Private :: Do Not Upload"
+      ],
+      "urls": {
+        "Homepage": null,
+        "Repository": null,
+        "Documentation": null
+      }
+    },
+    "Parpoura-4th": {
+      "description": "Autonomous AI economic civilization platform",
+      "long_description": null,
+      "classifiers": [
+        "Private :: Do Not Upload"
+      ],
+      "urls": {
+        "Homepage": null,
+        "Repository": null,
+        "Documentation": null
+      }
+    },
+    "Parpoura-hygiene": {
+      "description": "Autonomous AI economic civilization platform",
+      "long_description": null,
+      "classifiers": [
+        "Private :: Do Not Upload"
+      ],
+      "urls": {
+        "Homepage": null,
+        "Repository": null,
+        "Documentation": null
+      }
+    },
+    "PhenoDevOps": {
+      "description": "AgilePlus Python components: gRPC proto stubs and MCP service",
+      "long_description": null,
+      "classifiers": [],
+      "urls": {
+        "Homepage": null,
+        "Repository": null,
+        "Documentation": null
+      }
+    },
+    "PhenoKits": {
+      "description": "Test suite for PhenoKits monorepo",
+      "long_description": null,
+      "classifiers": [],
+      "urls": {
+        "Homepage": null,
+        "Repository": null,
+        "Documentation": null
+      }
+    },
+    "PhenoMCP": {
+      "description": null,
+      "long_description": null,
+      "classifiers": [],
+      "urls": {
+        "Homepage": null,
+        "Repository": null,
+        "Documentation": null
+      }
+    },
+    "PhenoMCP-cheap": {
+      "description": null,
+      "long_description": null,
+      "classifiers": [],
+      "urls": {
+        "Homepage": null,
+        "Repository": null,
+        "Documentation": null
+      }
+    },
+    "PhenoObservability": {
+      "description": "AI Prompt Logger - Scrapes and stores prompts from various AI agent platforms",
+      "long_description": null,
+      "classifiers": [],
+      "urls": {
+        "Homepage": null,
+        "Repository": null,
+        "Documentation": null
+      }
+    },
+    "PhenoRuntime": {
+      "description": null,
+      "long_description": null,
+      "classifiers": [],
+      "urls": {
+        "Homepage": null,
+        "Repository": null,
+        "Documentation": null
+      }
+    },
+    "PlayCua": {
+      "description": "CUA fork - bare metal computer-use agent without VM layer",
+      "long_description": null,
+      "classifiers": [
+        "Development Status :: 3 - Alpha",
+        "Intended Audience :: Developers",
+        "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 3.11",
+        "Programming Language :: Python :: 3.12",
+        "Programming Language :: Python :: 3.13"
+      ],
+      "urls": {
+        "Homepage": "https://github.com/KooshaPari/bare-cua",
+        "Repository": "https://github.com/KooshaPari/bare-cua",
+        "Documentation": null
+      }
+    },
+    "PolicyStack": {
+      "description": "Agent policy federation",
+      "long_description": null,
+      "classifiers": [],
+      "urls": {
+        "Homepage": null,
+        "Repository": null,
+        "Documentation": null
+      }
+    },
+    "Pyron": {
+      "description": "AgilePlus Python components: gRPC proto stubs and MCP service",
+      "long_description": null,
+      "classifiers": [],
+      "urls": {
+        "Homepage": null,
+        "Repository": null,
+        "Documentation": null
+      }
+    },
+    "QuadSGM": {
+      "description": "4SGM - LangGraph + MCP Server",
+      "long_description": null,
+      "classifiers": [],
+      "urls": {
+        "Homepage": null,
+        "Repository": null,
+        "Documentation": null
+      }
+    },
+    "Tasken": {
+      "description": "Phenotype REPO package",
+      "long_description": null,
+      "classifiers": [
+        "Development Status :: 3 - Alpha",
+        "Intended Audience :: Developers",
+        "License :: OSI Approved :: MIT License",
+        "Programming Language :: Python :: 3.10",
+        "Programming Language :: Python :: 3.11",
+        "Programming Language :: Python :: 3.12"
+      ],
+      "urls": {
+        "Homepage": null,
+        "Repository": null,
+        "Documentation": null
+      }
+    },
+    "Tasken-3rd": {
+      "description": "Phenotype REPO package",
+      "long_description": null,
+      "classifiers": [
+        "Development Status :: 3 - Alpha",
+        "Intended Audience :: Developers",
+        "License :: OSI Approved :: MIT License",
+        "Programming Language :: Python :: 3.10",
+        "Programming Language :: Python :: 3.11",
+        "Programming Language :: Python :: 3.12"
+      ],
+      "urls": {
+        "Homepage": null,
+        "Repository": null,
+        "Documentation": null
+      }
+    },
+    "Tracera": {
+      "description": "Agent-native, multi-view requirements traceability and project management system",
+      "long_description": null,
+      "classifiers": [
+        "Development Status :: 3 - Alpha",
+        "Intended Audience :: Developers",
+        "License :: OSI Approved :: MIT License",
+        "Programming Language :: Python :: 3.14",
+        "Topic :: Software Development :: Quality Assurance",
+        "Environment :: Console",
+        "Intended Audience :: System Administrators",
+        "Natural Language :: English",
+        "Operating System :: OS Independent",
+        "Topic :: Office/Business"
+      ],
+      "urls": {
+        "Homepage": null,
+        "Repository": null,
+        "Documentation": null
+      }
+    },
+    "agent-platform": {
+      "description": "Python wrapper for the agent-platform monorepo binary.",
+      "long_description": null,
+      "classifiers": [],
+      "urls": {
+        "Homepage": null,
+        "Repository": null,
+        "Documentation": null
+      }
+    },
+    "agent-user-status": {
+      "description": "Local user-status, iMessage, and native monitor runtime for coding agents.",
+      "long_description": null,
+      "classifiers": [],
+      "urls": {
+        "Homepage": null,
+        "Repository": null,
+        "Documentation": null
+      }
+    },
+    "bare-cua": {
+      "description": "CUA fork - bare metal computer-use agent without VM layer",
+      "long_description": null,
+      "classifiers": [
+        "Development Status :: 3 - Alpha",
+        "Intended Audience :: Developers",
+        "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 3.11",
+        "Programming Language :: Python :: 3.12",
+        "Programming Language :: Python :: 3.13"
+      ],
+      "urls": {
+        "Homepage": "https://github.com/KooshaPari/bare-cua",
+        "Repository": "https://github.com/KooshaPari/bare-cua",
+        "Documentation": null
+      }
+    },
+    "cheap-llm-mcp": {
+      "description": "MCP server exposing Minimax + Kimi + Fireworks as a cheap Haiku-replacement reasoner",
+      "long_description": null,
+      "classifiers": [],
+      "urls": {
+        "Homepage": null,
+        "Repository": null,
+        "Documentation": null
+      }
+    },
+    "cheap-llm-mcp-deprecate": {
+      "description": "DEPRECATED 2026-06-08: see DEPRECATED.md — graduated into pheno-mcp[cheap-llm]",
+      "long_description": null,
+      "classifiers": [],
+      "urls": {
+        "Homepage": "https://github.com/KooshaPari/cheap-llm-mcp",
+        "Repository": "https://github.com/KooshaPari/cheap-llm-mcp",
+        "Documentation": null
+      }
+    },
+    "cheap-llm-mcp-t1-19": {
+      "description": "DEPRECATED 2026-06-08: see DEPRECATED.md — graduated into pheno-mcp[cheap-llm]",
+      "long_description": null,
+      "classifiers": [],
+      "urls": {
+        "Homepage": "https://github.com/KooshaPari/cheap-llm-mcp",
+        "Repository": "https://github.com/KooshaPari/cheap-llm-mcp",
+        "Documentation": null
+      }
+    },
+    "dispatch-mcp": {
+      "description": "MCP service for tier-based dispatch delegation",
+      "long_description": null,
+      "classifiers": [
+        "License :: OSI Approved :: Apache Software License",
+        "Programming Language :: Python :: 3.13"
+      ],
+      "urls": {
+        "Homepage": null,
+        "Repository": null,
+        "Documentation": null
+      }
+    },
+    "dispatch-mcp-t1-0": {
+      "description": "MCP service for tier-based dispatch delegation",
+      "long_description": null,
+      "classifiers": [
+        "License :: OSI Approved :: Apache Software License",
+        "Programming Language :: Python :: 3.13"
+      ],
+      "urls": {
+        "Homepage": null,
+        "Repository": null,
+        "Documentation": null
+      }
+    },
+    "dispatch-mcp-t1-1": {
+      "description": "MCP service for tier-based dispatch delegation",
+      "long_description": null,
+      "classifiers": [
+        "License :: OSI Approved :: Apache Software License",
+        "Programming Language :: Python :: 3.13"
+      ],
+      "urls": {
+        "Homepage": null,
+        "Repository": null,
+        "Documentation": null
+      }
+    },
+    "dispatch-mcp-t1-2": {
+      "description": "MCP service for tier-based dispatch delegation",
+      "long_description": null,
+      "classifiers": [
+        "License :: OSI Approved :: Apache Software License",
+        "Programming Language :: Python :: 3.13"
+      ],
+      "urls": {
+        "Homepage": null,
+        "Repository": null,
+        "Documentation": null
+      }
+    },
+    "dispatch-mcp-t1-3": {
+      "description": "MCP service for tier-based dispatch delegation",
+      "long_description": null,
+      "classifiers": [
+        "License :: OSI Approved :: Apache Software License",
+        "Programming Language :: Python :: 3.13"
+      ],
+      "urls": {
+        "Homepage": null,
+        "Repository": null,
+        "Documentation": null
+      }
+    },
+    "dispatch-mcp-t1-4": {
+      "description": "MCP service for tier-based dispatch delegation",
+      "long_description": null,
+      "classifiers": [
+        "License :: OSI Approved :: Apache Software License",
+        "Programming Language :: Python :: 3.13"
+      ],
+      "urls": {
+        "Homepage": null,
+        "Repository": null,
+        "Documentation": null
+      }
+    },
+    "dispatch-mcp-t1-5": {
+      "description": "MCP service for tier-based dispatch delegation",
+      "long_description": null,
+      "classifiers": [
+        "License :: OSI Approved :: Apache Software License",
+        "Programming Language :: Python :: 3.13"
+      ],
+      "urls": {
+        "Homepage": null,
+        "Repository": null,
+        "Documentation": null
+      }
+    },
+    "heliosBench": {
+      "description": "Helios CLI Benchmark Harness - Terminal Bench style",
+      "long_description": null,
+      "classifiers": [],
+      "urls": {
+        "Homepage": null,
+        "Repository": null,
+        "Documentation": null
+      }
+    },
+    "helioscope": {
+      "description": "Helios CLI Benchmark Harness - Terminal Bench style",
+      "long_description": null,
+      "classifiers": [
+        "Development Status :: 3 - Alpha",
+        "Intended Audience :: Developers",
+        "License :: OSI Approved :: MIT License",
+        "Programming Language :: Python :: 3.14",
+        "Topic :: Software Development :: Libraries :: Python Modules",
+        "Topic :: Scientific/Engineering :: Artificial Intelligence",
+        "Operating System :: OS Independent"
+      ],
+      "urls": {
+        "Homepage": "https://github.com/kooshapari/helios-router",
+        "Repository": "https://github.com/kooshapari/helios-router",
+        "Documentation": null
+      }
+    },
+    "localbase3": {
+      "description": "LocalBase Provider Node",
+      "long_description": null,
+      "classifiers": [
+        "Development Status :: 3 - Alpha",
+        "Intended Audience :: Developers",
+        "License :: OSI Approved :: MIT License",
+        "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python :: 3.9",
+        "Programming Language :: Python :: 3.10"
+      ],
+      "urls": {
+        "Homepage": null,
+        "Repository": null,
+        "Documentation": null
+      }
+    },
+    "melosviz": {
+      "description": "Melosviz backend package.",
+      "long_description": null,
+      "classifiers": [],
+      "urls": {
+        "Homepage": null,
+        "Repository": null,
+        "Documentation": null
+      }
+    },
+    "pheno": {
+      "description": "AgilePlus Python components: gRPC proto stubs and MCP service",
+      "long_description": null,
+      "classifiers": [],
+      "urls": {
+        "Homepage": null,
+        "Repository": null,
+        "Documentation": null
+      }
+    },
+    "phenoResearchEngine": {
+      "description": "Phenotype REPO package",
+      "long_description": null,
+      "classifiers": [
+        "Development Status :: 3 - Alpha",
+        "Intended Audience :: Developers",
+        "License :: OSI Approved :: MIT License",
+        "Programming Language :: Python :: 3.10",
+        "Programming Language :: Python :: 3.11",
+        "Programming Language :: Python :: 3.12"
+      ],
+      "urls": {
+        "Homepage": null,
+        "Repository": null,
+        "Documentation": null
+      }
+    },
+    "phenodocs": {
+      "description": "Tooling and scripts for the PhenoDocs VitePress hub (uv + CPython 3.14+).",
+      "long_description": null,
+      "classifiers": [],
+      "urls": {
+        "Homepage": null,
+        "Repository": null,
+        "Documentation": null
+      }
+    },
+    "phenodocs-scorecard-remediation": {
+      "description": "Tooling and scripts for the PhenoDocs VitePress hub (uv + CPython 3.14+).",
+      "long_description": null,
+      "classifiers": [],
+      "urls": {
+        "Homepage": null,
+        "Repository": null,
+        "Documentation": null
+      }
+    },
+    "phenotype-dep-guard": {
+      "description": "Malicious dependency analysis and supply chain security guard",
+      "long_description": null,
+      "classifiers": [],
+      "urls": {
+        "Homepage": null,
+        "Repository": null,
+        "Documentation": null
+      }
+    },
+    "phenotype-omlx": {
+      "description": "LLM inference server, optimized for your Mac",
+      "long_description": null,
+      "classifiers": [
+        "Development Status :: 3 - Alpha",
+        "Intended Audience :: Developers",
+        "Intended Audience :: Science/Research",
+        "License :: OSI Approved :: Apache Software License",
+        "Operating System :: MacOS",
+        "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 3.10",
+        "Programming Language :: Python :: 3.11",
+        "Programming Language :: Python :: 3.12",
+        "Programming Language :: Python :: 3.13",
+        "Topic :: Scientific/Engineering :: Artificial Intelligence"
+      ],
+      "urls": {
+        "Homepage": "https://github.com/jundot/omlx",
+        "Repository": "https://github.com/jundot/omlx",
+        "Documentation": "https://github.com/jundot/omlx#readme"
+      }
+    },
+    "phenotype-py-extras": {
+      "description": "Shared Python extras (CLI, MCP, web, testing) for the Phenotype ecosystem.",
+      "long_description": null,
+      "classifiers": [
+        "Development Status :: 3 - Alpha",
+        "Intended Audience :: Developers",
+        "License :: OSI Approved :: MIT License",
+        "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 3.11",
+        "Programming Language :: Python :: 3.12",
+        "Programming Language :: Python :: 3.13",
+        "Topic :: Software Development :: Libraries :: Python Modules"
+      ],
+      "urls": {
+        "Homepage": null,
+        "Repository": null,
+        "Documentation": null
+      }
+    },
+    "phenotype-python-sdk": {
+      "description": "Phenotype org Python SDK monorepo workspace",
+      "long_description": null,
+      "classifiers": [],
+      "urls": {
+        "Homepage": null,
+        "Repository": null,
+        "Documentation": null
+      }
+    },
+    "phenotype-request-id": {
+      "description": "Zero-dep request-ID propagation (contextvars) for Python ASGI apps, with optional FastAPI/structlog integrations.",
+      "long_description": null,
+      "classifiers": [
+        "Framework :: FastAPI",
+        "Framework :: AsyncIO",
+        "Intended Audience :: Developers",
+        "License :: OSI Approved :: MIT License",
+        "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 3.11",
+        "Programming Language :: Python :: 3.12",
+        "Programming Language :: Python :: 3.13",
+        "Topic :: Internet :: WWW/HTTP :: WSGI :: Application",
+        "Topic :: Software Development :: Libraries :: Python Modules"
+      ],
+      "urls": {
+        "Homepage": null,
+        "Repository": null,
+        "Documentation": null
+      }
+    },
+    "portage": {
+      "description": "A framework for evaluating and optimizing agents and models using sandboxed environments.",
+      "long_description": null,
+      "classifiers": [],
+      "urls": {
+        "Homepage": null,
+        "Repository": null,
+        "Documentation": null
+      }
+    },
+    "rich-cli-kit": {
+      "description": "FastMCP server exposing rich-cli-kit (rck) to agents",
+      "long_description": null,
+      "classifiers": [],
+      "urls": {
+        "Homepage": null,
+        "Repository": null,
+        "Documentation": null
+      }
+    },
+    "thegent": {
+      "description": "Unified agent orchestration CLI for Factory skills, droids, and multi-agent workflows",
+      "long_description": null,
+      "classifiers": [
+        "Development Status :: 4 - Beta",
+        "Intended Audience :: Developers",
+        "License :: OSI Approved :: MIT License",
+        "Programming Language :: Python :: 3.11",
+        "Programming Language :: Python :: 3.12",
+        "Programming Language :: Python :: 3.13",
+        "Programming Language :: Python :: 3.14",
+        "Topic :: Software Development :: Libraries :: Python Modules",
+        "Topic :: Scientific/Engineering :: Artificial Intelligence",
+        "Operating System :: OS Independent"
+      ],
+      "urls": {
+        "Homepage": "https://github.com/kooshapari/thegent",
+        "Repository": "https://github.com/kooshapari/thegent",
+        "Documentation": "https://github.com/kooshapari/thegent#readme"
+      }
+    },
+    "thegent-security-fixes": {
+      "description": "Unified agent orchestration CLI for Factory skills, droids, and multi-agent workflows",
+      "long_description": null,
+      "classifiers": [
+        "Development Status :: 4 - Beta",
+        "Intended Audience :: Developers",
+        "License :: OSI Approved :: MIT License",
+        "Programming Language :: Python :: 3.11",
+        "Programming Language :: Python :: 3.12",
+        "Programming Language :: Python :: 3.13",
+        "Programming Language :: Python :: 3.14",
+        "Topic :: Software Development :: Libraries :: Python Modules",
+        "Topic :: Scientific/Engineering :: Artificial Intelligence",
+        "Operating System :: OS Independent"
+      ],
+      "urls": {
+        "Homepage": "https://github.com/kooshapari/thegent",
+        "Repository": "https://github.com/kooshapari/thegent",
+        "Documentation": "https://github.com/kooshapari/thegent#readme"
+      }
+    }
+  }
+}

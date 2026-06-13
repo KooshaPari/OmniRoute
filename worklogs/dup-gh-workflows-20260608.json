@@ -1,0 +1,1044 @@
+{
+  "generated_at": "2026-06-08T09:50:05Z",
+  "total_repos": 125,
+  "near_duplicate_workflows": [
+    {
+      "name": "ai-testing.yml",
+      "hash": "dcb0efe8e1635b805de29eef2f95c99449d875350b1811b4f6874bc0fbbbac2b",
+      "repos": [
+        "thegent",
+        "thegent-clean"
+      ]
+    },
+    {
+      "name": "alert-sync-issues.yml",
+      "hash": "6832b8bdfee6cb124965104ee564476837ebae9b3a1d1502e1bffb0588a033ac",
+      "repos": [
+        "QuadSGM",
+        "portage"
+      ]
+    },
+    {
+      "name": "alert-sync-issues.yml",
+      "hash": "e71be90e2b8c9d5328ecfee97dcf58665fb089186e733bd9dece0437f82a6fdc",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "bazel.yml",
+      "hash": "ddb99a6d3a342c8ed483298f7a5c8a2ef5e051cda82114d143f05d3f00135285",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "cargo-audit.yml",
+      "hash": "1602cd2d444a8b3960896b8ead82eae0657799ccb4a324fff45a644d7abaa185",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "cargo-audit.yml",
+      "hash": "1fb2f5ace57eccef547deceba2d84d08aa89e35cd5e6194597589d62d2f095c7",
+      "repos": [
+        "PlayCua",
+        "bare-cua"
+      ]
+    },
+    {
+      "name": "cargo-audit.yml",
+      "hash": "6035401c91777508d0e34e79561db350a54079ce57b2bebdee028d3ccb1148f0",
+      "repos": [
+        "phenoAI",
+        "phenoData"
+      ]
+    },
+    {
+      "name": "cargo-deny.yml",
+      "hash": "0781564fe395b44b617f1c791b43e2a42a9966806100e171e5d35afcdd5b3be8",
+      "repos": [
+        "Tokn",
+        "phenoAI",
+        "phenoData"
+      ]
+    },
+    {
+      "name": "cargo-deny.yml",
+      "hash": "9dc4f402ad502993d03d71c2a94b5279e36d65db6d52859c909ecdacb5845acc",
+      "repos": [
+        "thegent",
+        "thegent-clean"
+      ]
+    },
+    {
+      "name": "cargo-deny.yml",
+      "hash": "a8592a49062b75fd4cea418964c0b88263fb29473e2bbf610ca34b3466fd810d",
+      "repos": [
+        "PlayCua",
+        "bare-cua"
+      ]
+    },
+    {
+      "name": "cargo-deny.yml",
+      "hash": "f7673be907eb4d1fbfdaeb2e219cf78852bf93b45cf5c647bd6345e7df98cc2c",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "cargo-machete.yml",
+      "hash": "01705a825a2dd25a7db3fe770603efaa96ecca90fa664710f1e43454a8a98a49",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "cargo-machete.yml",
+      "hash": "66531a009befd86b5fca8a6a1b0b116154b00054d3b7c92446a9a1e13ce619a8",
+      "repos": [
+        "PlayCua",
+        "bare-cua"
+      ]
+    },
+    {
+      "name": "cargo-machete.yml",
+      "hash": "cfce190d000133961c3176faacb7e8bbeb3e72b8fd108fa96a0715239ad292c8",
+      "repos": [
+        "phenoAI",
+        "phenoData"
+      ]
+    },
+    {
+      "name": "cargo-semver-checks.yml",
+      "hash": "048eeb6fc9497ea894260e682eff7586b9a3c00491e9fe4949b993d0d6f24646",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "cargo-semver-checks.yml",
+      "hash": "1efc8139a322fbdc320f317ec2cec9303cca923b5e1f8c95645ae334285bcdea",
+      "repos": [
+        "PlayCua",
+        "bare-cua"
+      ]
+    },
+    {
+      "name": "cargo-semver-checks.yml",
+      "hash": "d89c013794e3eb67c26c022311482c16f1f4f4b4dd691f9548f1d463ad2a6712",
+      "repos": [
+        "phenoAI",
+        "phenoData"
+      ]
+    },
+    {
+      "name": "ci.yml",
+      "hash": "005dfa8217d1e65d61f57dbeb1ff43481d4af3cfbafe78aec7ab975d97b5dbb7",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "ci.yml",
+      "hash": "67d1f2215abfa4143d379bf0a78ecc7953f19ad7fa99b9a6151caec6ae45fa3d",
+      "repos": [
+        "PlatformKit",
+        "agslag-docs"
+      ]
+    },
+    {
+      "name": "ci.yml",
+      "hash": "79fadb20c922748fce6ba4564918e037bd1f6cad2c4bd01192ea1e0888e288d5",
+      "repos": [
+        "thegent",
+        "thegent-clean"
+      ]
+    },
+    {
+      "name": "cla.yml",
+      "hash": "944592215232a0440003b7b5b00b7d87d23bf448e9bf52878b01c7f93ae91528",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "close-stale-contributor-prs.yml",
+      "hash": "0277c9c4b5dda6137d568d30aec0a9ff2a2ef86be20a9135c6a7442135fc7ae1",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "codeql-rust.yml",
+      "hash": "30e7b5c3f9ecba1aeca6d38dfa53852c319d1a42068dfa9b7320b1f86e73abe2",
+      "repos": [
+        "PlayCua",
+        "bare-cua"
+      ]
+    },
+    {
+      "name": "codeql-rust.yml",
+      "hash": "7717387ba36ec39f56aacc5efb81e095fe243b2dd9a1a679b0b69e90e31c4f15",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "codeql-rust.yml",
+      "hash": "bcda06b0f3d9d7c04e0ae12870c251d526c71e33c9a4337801f3f6178c8bdf07",
+      "repos": [
+        "phenoAI",
+        "phenoData"
+      ]
+    },
+    {
+      "name": "codeql.yml",
+      "hash": "c84e42176620f6c0a8496cf25cc3ff9e2f2bfd3143c54c1126dddfde031e22c6",
+      "repos": [
+        "PlayCua",
+        "bare-cua"
+      ]
+    },
+    {
+      "name": "codeql.yml",
+      "hash": "f947abe770a8e163d3043badb599872cd449bbc88f02198fe966f5f1aec7f2fb",
+      "repos": [
+        "thegent",
+        "thegent-clean"
+      ]
+    },
+    {
+      "name": "codeql.yml",
+      "hash": "f9ea6b9e75400db1fe223fc5b17fd45c6aaa8519819dc86029332304e1e3d585",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "codespell.yml",
+      "hash": "fc69e356f4edd531ea3ff1ee5161a15d604ca0f8a06e39b76b902589f0166c14",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "conventions.yml",
+      "hash": "d532e736ac5c58991ce467f7f314e2a86eb92d5d672999d2ee30fe07cca594bc",
+      "repos": [
+        "PhenoHandbook",
+        "phenotype-registry"
+      ]
+    },
+    {
+      "name": "coverage.yml",
+      "hash": "21d0073fefc0a749188be3f38f87d8f01afb9acb501481eb68d15fe90f52f746",
+      "repos": [
+        "thegent",
+        "thegent-clean"
+      ]
+    },
+    {
+      "name": "cpu-profiling.yml",
+      "hash": "0df4b5aafb97b9449d0f31341fec5970216e4d5c5a86cf11de3b0e56470b5084",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "doc-links.yml",
+      "hash": "640e80e60850be33281b2b94cb99eb5fcfde9ec7baaf83411aa824bb691002f9",
+      "repos": [
+        "AuthKit",
+        "ObservabilityKit",
+        "PhenoPlugins"
+      ]
+    },
+    {
+      "name": "doc-links.yml",
+      "hash": "99eb031dcbb1a5a3ae5fef44cd2c0eac567c7d2ee4d7e6184492fceb9262a2a0",
+      "repos": [
+        "Metron",
+        "PhenoAgent",
+        "kwality"
+      ]
+    },
+    {
+      "name": "doc-links.yml",
+      "hash": "d7b188948ed1df85389db9d217e694a1f4309333dc7347d7216c3885cf716fc2",
+      "repos": [
+        "PhenoProc",
+        "phenotype-infra"
+      ]
+    },
+    {
+      "name": "docs-site.yml",
+      "hash": "ba892fd1599dd69ece21e39010b9ebb74170362dd457bd902072853fab6c19e9",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "fr-coverage.yml",
+      "hash": "74a8f3f0ad145fbd58f92b402a5991942ed3a5e8c678f1cfe0e136583089d4fa",
+      "repos": [
+        "Metron",
+        "PhenoAgent",
+        "kwality"
+      ]
+    },
+    {
+      "name": "fr-coverage.yml",
+      "hash": "c5e8f661dfadc204b225ab7ebf4f461b345b6a847d24b687a184bb1e9662eaf5",
+      "repos": [
+        "PhenoProc",
+        "phenotype-infra"
+      ]
+    },
+    {
+      "name": "fr-coverage.yml",
+      "hash": "c6e3c48d534a5e5ae1cdb795daf3c0562ad8268377601e7e9a6997cc734c0f11",
+      "repos": [
+        "PlayCua",
+        "bare-cua"
+      ]
+    },
+    {
+      "name": "fr-coverage.yml",
+      "hash": "dc9788e7cf5cb1c9516c7f84a6409acafb313a03de1ab52dfbe32ddfc82b4f88",
+      "repos": [
+        "AuthKit",
+        "ObservabilityKit",
+        "PhenoPlugins"
+      ]
+    },
+    {
+      "name": "fuzzing.yml",
+      "hash": "5674905ad6bc9e74b6117aed15307e115916f2f2066f25903bb41de18fac2cec",
+      "repos": [
+        "thegent",
+        "thegent-clean"
+      ]
+    },
+    {
+      "name": "fuzzing.yml",
+      "hash": "7cf507c4515e194c374c7f497171c1113264d97c5f226d2e302c20b7fe781200",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "helios-cli-release.yml",
+      "hash": "65f2a4111b41a3edc9e7e6157314e8e2b0344598076fe2af9aae835a410ea4d9",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "helios-cli.yml",
+      "hash": "e1fa5406f08e946bf8b75a70150864baad42353e1fc67f223daa5d527ae6a9e7",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "iac-scan.yml",
+      "hash": "1ab765b1692efbe35830f2ddac0facd096d5f50dc907164b150a697878b1de5c",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "iac-scan.yml",
+      "hash": "e8ee6e97116c3a34003ad68f9354a43f5543bf445250fbd2612ad1718d337819",
+      "repos": [
+        "thegent",
+        "thegent-clean"
+      ]
+    },
+    {
+      "name": "issue-deduplicator.yml",
+      "hash": "e514c73087f39076989784e643281e18ab5a472cf36e0849718dc26438dcebd5",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "issue-labeler.yml",
+      "hash": "370c4e752ad9cf995afb69d8d8e96df9f6193faa10eac1e66832cea24a6cf210",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "journey-gate.yml",
+      "hash": "7ded4b8074e87a92bb4ea049fe90c7e16176b43b4224775e4bf49bb61ad77f03",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "journey-gate.yml",
+      "hash": "95e8dd9168ecd1221d9d3092ef0d66fafd224b695d44cb92f8b7c1c06c7b09d6",
+      "repos": [
+        "agent-user-status",
+        "heliosApp"
+      ]
+    },
+    {
+      "name": "leak-detection.yml",
+      "hash": "1d2f41939d78a6471cbdb920bb4369a4ce23113d33b28748c903993c0e3e7b7c",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "legacy-tooling-gate.yml",
+      "hash": "c6541c20db2ebb2ee870ecde87b53b7510d695b5d6d250dc11a17c5cb70edef9",
+      "repos": [
+        "PlayCua",
+        "bare-cua"
+      ]
+    },
+    {
+      "name": "license-compliance.yml",
+      "hash": "704169394a15e66cc6ffd8484fdcf6edf8d064fc96126aab295971ff1db1856a",
+      "repos": [
+        "thegent",
+        "thegent-clean"
+      ]
+    },
+    {
+      "name": "license-compliance.yml",
+      "hash": "a9dffb07728b030b17ffc31ae2fd59df9d3e96926db4f4911610cb05e9165c1a",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "network-optimization.yml",
+      "hash": "c5afbe28c45e562b9363d14b87e2bad5c99959e7f6701b229fbbbb29b56c9c27",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "pages-deploy.yml",
+      "hash": "5334d0fd9730b05ae8e3c1b0010089be1cd2fd1d5073f5ac2292c1deabb7f793",
+      "repos": [
+        "thegent",
+        "thegent-clean"
+      ]
+    },
+    {
+      "name": "pages.yml",
+      "hash": "8cec086748682d212cf6eee6f5f5e045af2763921d026afed0e7390bfb35aa13",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "pages.yml",
+      "hash": "dc923f7885d39d77a7ac8fb1d37dfdec84a848006cbb6ba2efb78db0bb436934",
+      "repos": [
+        "PhenoRuntime",
+        "phenotype-registry"
+      ]
+    },
+    {
+      "name": "policy-gate.yml",
+      "hash": "91a06e7a93f9b0ce8416159588a30d567b8d3b0584447f36b1baaa995107187d",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "policy-gate.yml",
+      "hash": "9bcf447b0a0ab89933c45d2a198e2c1f42c9268a5c88e21f5d87200103d8a867",
+      "repos": [
+        "thegent",
+        "thegent-clean"
+      ]
+    },
+    {
+      "name": "pr-babysit-watch.yml",
+      "hash": "951ec468163b22177077dd94b2ee34515667b61689def2ef9e1e18c783f07170",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "pr-governance-gate.yml",
+      "hash": "020c5c917bd60adf7070411a7566d77890a14b2c50a250969889e828531d1a6b",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "pr-governance-gate.yml",
+      "hash": "68999b5b49b63212d18713ca8ee2802eb65734964ece5831f7823f068ed5562b",
+      "repos": [
+        "thegent",
+        "thegent-clean"
+      ]
+    },
+    {
+      "name": "quality-gate.yml",
+      "hash": "25af99fe12b7f7b3803e254b31c54a15f0a9215a6987d60abc217091c81a53f9",
+      "repos": [
+        "PlayCua",
+        "bare-cua"
+      ]
+    },
+    {
+      "name": "quality-gate.yml",
+      "hash": "2defefbb4826911b2d05f96e8e1c2eba766f64a09e4dda2af367d454069eb85b",
+      "repos": [
+        "PhenoAgent",
+        "kwality"
+      ]
+    },
+    {
+      "name": "quality-gate.yml",
+      "hash": "40ec92449cab42f7e67f5321e4024c7fedf416161208152daf809234bb86c61e",
+      "repos": [
+        "PhenoProc",
+        "phenotype-infra"
+      ]
+    },
+    {
+      "name": "quality-gate.yml",
+      "hash": "803c488640838841b74c9d9f5d73d08fa3a169a0df0633cad744ad0cc3ee3e0a",
+      "repos": [
+        "thegent",
+        "thegent-clean"
+      ]
+    },
+    {
+      "name": "quality-gate.yml",
+      "hash": "b4d9361d118b732a4b557ae140c59ea1c1910c39f198fae359483f04df605204",
+      "repos": [
+        "AuthKit",
+        "ObservabilityKit",
+        "PhenoPlugins"
+      ]
+    },
+    {
+      "name": "quality.yml",
+      "hash": "88ea3b9eeb0ea779c84c3386a5dbedf8000cf5ff87e42dbd90172080e84049de",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "release-drafter.yml",
+      "hash": "c0f41405c49919316403edebbc47a4260e90f8e365d2c9f4c415355dcdfe027b",
+      "repos": [
+        "Civis",
+        "agent-devops-setups"
+      ]
+    },
+    {
+      "name": "release.yml",
+      "hash": "8cb777337d60c4749b70c707fa4b56ea31db2b27d750ab2b28eecf966f2c1967",
+      "repos": [
+        "thegent",
+        "thegent-clean"
+      ]
+    },
+    {
+      "name": "review-wave-orchestrator.yml",
+      "hash": "ed255e86820732cc720f3b6be358f8ed71ed8a2a67f3d804fc0437c54d1afcf1",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "rust-ci.yml",
+      "hash": "3a8755c53e5363db82f178af2156899ef439faa63a64a3a3fda97c9f2eba8e6a",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "rust-release-prepare.yml",
+      "hash": "501bed543772a5be94853bb00b165782d85b3087170d326432345335457b773d",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "rust-release-windows.yml",
+      "hash": "71f682346edf14509c6d9907a77fa19e032ec6b5e976513e10bb13cce1ad07ec",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "rust-release.yml",
+      "hash": "44af392b2181c82ab33c11c1f5b396994eb9427df59ee299225eb1f59e383512",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "sast-full.yml",
+      "hash": "5628e4e2429f5185f3ef7aa9af1b0de65f6800ed31e719926bf53ee51978387f",
+      "repos": [
+        "thegent",
+        "thegent-clean"
+      ]
+    },
+    {
+      "name": "sast-full.yml",
+      "hash": "cc4fc56079d16a53f76a650b81a7cda27db7c063fd38a5d15cc5e77080d8a0b6",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "sast-quick.yml",
+      "hash": "1255451e1515c9f07c170e49e414e9e483a3554a53d7038592be463618a302e3",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "sast-quick.yml",
+      "hash": "7cf336ab28a9d410779ec176c4001cab82fd5c8c0dbea5b2b5b3a2d5d733ddae",
+      "repos": [
+        "thegent",
+        "thegent-clean"
+      ]
+    },
+    {
+      "name": "sast.yml",
+      "hash": "027f45e6a51f5b8e0779b941e0d35a5708a5c395682edfe9b628d85d47fb2988",
+      "repos": [
+        "thegent",
+        "thegent-clean"
+      ]
+    },
+    {
+      "name": "scorecard.yml",
+      "hash": "06a67ad081f323f90d3e3982ed19866de43e8f7caee040c19a25070c28a04f82",
+      "repos": [
+        "Sidekick",
+        "phenoAI"
+      ]
+    },
+    {
+      "name": "scorecard.yml",
+      "hash": "0faa1349bb355dd815bd430099f978618b7d4dd415ec637f66967371448dca9c",
+      "repos": [
+        "thegent",
+        "thegent-clean"
+      ]
+    },
+    {
+      "name": "scorecard.yml",
+      "hash": "2c85aa3b179b274141e579316edc8e86a3b94a987f4fdaa41558514d6d655a63",
+      "repos": [
+        "McpKit",
+        "pheno"
+      ]
+    },
+    {
+      "name": "scorecard.yml",
+      "hash": "4482da2de3b6c3a99f184d81f82f46a64be80d6e632f1623165d5023d1a0ca64",
+      "repos": [
+        "PhenoAgent",
+        "PhenoHandbook"
+      ]
+    },
+    {
+      "name": "scorecard.yml",
+      "hash": "6846e516bc1892821d294b2ad99121919a59b22b323ac9a4ede3bad8adfdca88",
+      "repos": [
+        "DataKit",
+        "dinoforge-packs"
+      ]
+    },
+    {
+      "name": "scorecard.yml",
+      "hash": "7e8011726b17c703ee528d6550776ddbe4a91804300bc8376be747cc619bd837",
+      "repos": [
+        "PlayCua",
+        "bare-cua"
+      ]
+    },
+    {
+      "name": "scorecard.yml",
+      "hash": "a4fa96d700072b1419cd1eee46f21cad2e03d4809fb1be05dd553b821396a8cd",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "scorecard.yml",
+      "hash": "ab21e18f61875e6214d1e0aa58fbf179326e040864c70d202133ce9c7f6e271c",
+      "repos": [
+        "Httpora",
+        "PhenoSpecs"
+      ]
+    },
+    {
+      "name": "scorecard.yml",
+      "hash": "bb63ec5b58e0800767477974f6f377dac131321f5acdde51cc381147d6d276a6",
+      "repos": [
+        "phenotype-omlx",
+        "phenotype-ops-mcp"
+      ]
+    },
+    {
+      "name": "sdk.yml",
+      "hash": "d8ad6df87a0e4eeddd1c951718732cd046ee58876a011a4881d82412ff4cf9ef",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "security-deep-scan.yml",
+      "hash": "09e5d9b3437649d95c025fd8d106963d71874c9f10e664f413af88e7f4067ff2",
+      "repos": [
+        "thegent",
+        "thegent-clean"
+      ]
+    },
+    {
+      "name": "security-guard-hook-audit.yml",
+      "hash": "0f2878491f0af384ad223005f6dbc7417f75c701ff314753344693e02c6a29dc",
+      "repos": [
+        "HexaKit",
+        "QuadSGM"
+      ]
+    },
+    {
+      "name": "security-guard-hook-audit.yml",
+      "hash": "adc89f41950665419a3e697a6a9285dd8fd2de796d1b627ac3472b5ba3f28fd5",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "security-guard-hook-audit.yml",
+      "hash": "bf052b933b0a9caa21f275a3b5795a2ee1af68d7cd6e9073189f4ed792a05ca0",
+      "repos": [
+        "Tokn",
+        "agent-devops-setups"
+      ]
+    },
+    {
+      "name": "security-guard.yml",
+      "hash": "0025dec55bc11a684dee6c51c962c24c67ee695073b7bd7fa1531b23fe280a33",
+      "repos": [
+        "PolicyStack",
+        "Tokn"
+      ]
+    },
+    {
+      "name": "security-guard.yml",
+      "hash": "44ce49baacfc0f5dee491df6504944597a06098f7f1750ecacbc5296adb01a5f",
+      "repos": [
+        "thegent",
+        "thegent-clean"
+      ]
+    },
+    {
+      "name": "security-guard.yml",
+      "hash": "c3874c8b38009791a9cae44c7c5eb026df17e956355c52bb31c533513dabe92a",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "security.yml",
+      "hash": "d3caaa056e7ff941354c3d417965aa809261d89f2ffcc354566c648b1841de52",
+      "repos": [
+        "thegent",
+        "thegent-clean"
+      ]
+    },
+    {
+      "name": "sentry-error-tracking.yml",
+      "hash": "8400a88cdf61917508053367a1015aa7806ebfb33353450076b24c4b12efeba5",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "shell-tool-mcp-ci.yml",
+      "hash": "77880ab970c4b9d4b88554981921a4e45d23b8f708afb6130452b11b761e78f9",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "shell-tool-mcp.yml",
+      "hash": "47e6fc776868707804b18f2209412a2f1d08a39f4e796b111f95108f34f880cf",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "snyk-scan.yml",
+      "hash": "de03da66d43fa6b15ab97b18a8453c6732068b901e2452abc6e242c02e04bd23",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "sonarcloud.yml",
+      "hash": "006bb0cdb69b3c4bd7452c5361732af44e14fced7cb95ab1b0be8945c4f8f404",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "sonarcloud.yml",
+      "hash": "681531f2ccdba6b5b1b7f79ae752587ef297ae3d816c42f964e8f8de1d75c74b",
+      "repos": [
+        "Planify",
+        "Tokn",
+        "heliosBench",
+        "phenodocs",
+        "phenotype-auth-ts",
+        "phenotype-journeys"
+      ]
+    },
+    {
+      "name": "sonarcloud.yml",
+      "hash": "c6a4cd7c8cc11dfe306d8fdcfe336cac230085fff341be7c1a6bdef2924f0e43",
+      "repos": [
+        "thegent",
+        "thegent-clean"
+      ]
+    },
+    {
+      "name": "sonarcloud.yml",
+      "hash": "f848777520809adac60b7a567dc47d3679dd054d917b64cc6d6a08e8430df304",
+      "repos": [
+        "Agentora",
+        "PhenoObservability"
+      ]
+    },
+    {
+      "name": "stage-gates.yml",
+      "hash": "6e3614854f13ccc5f15aaf858608fa572b581b0ee92e45a9997993c4f536378e",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "tag-automation.yml",
+      "hash": "bfdea9989437f70dd867e8f2c428b172c9816d7436a3c3634c1621835900e026",
+      "repos": [
+        "Civis",
+        "agent-devops-setups"
+      ]
+    },
+    {
+      "name": "trivy-scan.yml",
+      "hash": "0c47b78a8ac9b985a829b353cdce876abf3e137a33a1f2a2200cea06df20b650",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "trivy-scan.yml",
+      "hash": "51edc564cf52f744bfc9f759964641319f0bc72168e6228993c4d159c49adf4b",
+      "repos": [
+        "thegent",
+        "thegent-clean"
+      ]
+    },
+    {
+      "name": "trufflehog.yml",
+      "hash": "06548c6e3979c1249e9cea4e315526e1e2b5411cacfbcd1dca20ef981a491484",
+      "repos": [
+        "ObservabilityKit",
+        "PhenoAgent",
+        "TestingKit",
+        "nanovms",
+        "phenokits-landing"
+      ]
+    },
+    {
+      "name": "trufflehog.yml",
+      "hash": "10799d8d5323813812e276a37ccafe83d2cd0e13f904ccddd996ed618be935e2",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "trufflehog.yml",
+      "hash": "12598352faf52e02d9ef60a2f625d3a4ce9f9c9ed2311bdc307d860c30b5a561",
+      "repos": [
+        "phenodocs",
+        "phenotype-auth-ts"
+      ]
+    },
+    {
+      "name": "trufflehog.yml",
+      "hash": "26d9441b96bab2974f9b78199547f33e77f8f208c24c2afd86c1fd057081320a",
+      "repos": [
+        "KDesktopVirt",
+        "Pine",
+        "agent-devops-setups",
+        "phenoData",
+        "phenoResearchEngine",
+        "portage"
+      ]
+    },
+    {
+      "name": "trufflehog.yml",
+      "hash": "5b8e7eb7d4f8b9e3614d527471168ff8433a32b2b3b319affb92bc2dc08ecd68",
+      "repos": [
+        "DevHex",
+        "Httpora",
+        "agent-user-status"
+      ]
+    },
+    {
+      "name": "trufflehog.yml",
+      "hash": "71dd1cea073e023076971badafb2a443b4c29f291136e2ed39f2a4c44f86b4ce",
+      "repos": [
+        "Paginary",
+        "PhenoProject",
+        "dinoforge-packs"
+      ]
+    },
+    {
+      "name": "trufflehog.yml",
+      "hash": "83f5fc586d2c53a73995f0136f37044cdda9384149614f04b10ca0a0af6c7f41",
+      "repos": [
+        "thegent",
+        "thegent-clean"
+      ]
+    },
+    {
+      "name": "trufflehog.yml",
+      "hash": "9352f872ce63ee15fdb9fa237dd0ae1b17a2ae805d05d49851f81fc572a1961e",
+      "repos": [
+        "Tokn",
+        "phenoAI",
+        "thegent-dispatch"
+      ]
+    },
+    {
+      "name": "trufflehog.yml",
+      "hash": "a70d1a6510cd804415daf0f8ac0476f9fb75a80db263b60aad5fa99db25591a8",
+      "repos": [
+        "argis-extensions",
+        "eyetracker"
+      ]
+    },
+    {
+      "name": "trufflehog.yml",
+      "hash": "bf62a3c8b57aa8c7f8f744f699a62175bebd75ac80b1df5890c09f6efe815d77",
+      "repos": [
+        "phenotype-hub",
+        "vibeproxy-monitoring-unified"
+      ]
+    },
+    {
+      "name": "trufflehog.yml",
+      "hash": "d1929b4795728c95c2771b5fd7a910d4d9914e1586a9fae07565b9f86430a7e0",
+      "repos": [
+        "DataKit",
+        "KlipDot",
+        "agileplus-landing",
+        "heliosApp"
+      ]
+    },
+    {
+      "name": "vitepress-deploy.yml",
+      "hash": "27a98d62cb4994316d23015e0c82f701ad4e437a5714a04121479b83e2c7e7e7",
+      "repos": [
+        "phenotype-hub",
+        "vibeproxy-monitoring-unified"
+      ]
+    },
+    {
+      "name": "workflow-maintenance.yml",
+      "hash": "e64b78b16ba7aa53cbfe34bd7e182078e5ab0961ab50f71f1b14108392d33226",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "workflow-sync.yml",
+      "hash": "ba95c4b72db427d4051117df73b499eee836bc24a80ad21a96e0a083aa56ddf2",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "zap-dast.yml",
+      "hash": "142f2b15b6fb2ded21f9195523180386ce37a8cf2a99a30aba7672df07a4c09b",
+      "repos": [
+        "thegent",
+        "thegent-clean"
+      ]
+    },
+    {
+      "name": "zap-dast.yml",
+      "hash": "d854dae2799ef93ef5133a019c6e969abeb6469f12c576592db565d417f01e3e",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    }
+  ]
+}

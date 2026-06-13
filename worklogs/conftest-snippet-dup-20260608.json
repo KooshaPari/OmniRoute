@@ -1,0 +1,138 @@
+{
+  "generated_at": "2026-06-08T22:30:00Z",
+  "total_repos": 162,
+  "with_conftest": [
+    "Dino",
+    "HeliosCLI",
+    "HexaKit",
+    "Httpora",
+    "McpKit",
+    "Parpoura",
+    "PhenoDevOps",
+    "PhenoKits",
+    "PhenoMCP",
+    "PhenoProject",
+    "Planify",
+    "PlatformKit",
+    "PolicyStack",
+    "Pyron",
+    "QuadSGM",
+    "ResilienceKit",
+    "Sidekick",
+    "Tracera",
+    "agent-user-status",
+    "cheap-llm-mcp",
+    "helioscope",
+    "localbase3",
+    "pheno",
+    "phenoResearchEngine",
+    "phenotype-omlx",
+    "phenotype-tooling",
+    "portage",
+    "thegent",
+    "thegent-clean-wt-docs",
+    "thegent-clean-wt-idea",
+    "thegent-clean-wt-parallel",
+    "thegent-clean-wt-policy",
+    "thegent-clean-wt-ruff"
+  ],
+  "dup_intros": [
+    {
+      "hash": "bee540f622af13fa",
+      "repos": [
+        "thegent",
+        "thegent-clean-wt-docs",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "hash": "a2f79fbc2b0644c4",
+      "repos": [
+        "thegent",
+        "thegent-clean-wt-docs",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "hash": "387818f79cccf6f7",
+      "repos": [
+        "thegent",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "hash": "c7815efc0796fccb",
+      "repos": [
+        "thegent",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "hash": "0573e183c951aab4",
+      "repos": [
+        "HexaKit",
+        "PhenoDevOps",
+        "Pyron",
+        "pheno"
+      ]
+    },
+    {
+      "hash": "9e4364e6fa925306",
+      "repos": [
+        "HexaKit",
+        "PhenoDevOps",
+        "Pyron",
+        "pheno"
+      ]
+    },
+    {
+      "hash": "225dfafb14a5ca52",
+      "repos": [
+        "thegent",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "hash": "485d0be950ed8671",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "hash": "509b52d3d54a77a3",
+      "repos": [
+        "PhenoProject",
+        "Planify"
+      ]
+    },
+    {
+      "hash": "7a3dcb3179b27483",
+      "repos": [
+        "PolicyStack",
+        "phenotype-tooling"
+      ]
+    },
+    {
+      "hash": "bdd38308255405b4",
+      "repos": [
+        "Sidekick",
+        "cheap-llm-mcp"
+      ]
+    }
+  ]
+}

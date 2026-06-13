@@ -1,0 +1,423 @@
+import{_ as n,o as a,c as e,ag as t}from"./chunks/framework.CmQHR1bQ.js";const u=JSON.parse('{"title":"Venture Self-Funding Mechanics: The Complete Economic Model","description":"","frontmatter":{},"headers":[],"relativePath":"reference/VENTURE_SELF_FUNDING_MECHANICS.md","filePath":"reference/VENTURE_SELF_FUNDING_MECHANICS.md"}'),i={name:"reference/VENTURE_SELF_FUNDING_MECHANICS.md"};function p(l,s,r,o,c,d){return a(),e("div",null,[...s[0]||(s[0]=[t(`<h1 id="venture-self-funding-mechanics-the-complete-economic-model" tabindex="-1">Venture Self-Funding Mechanics: The Complete Economic Model <a class="header-anchor" href="#venture-self-funding-mechanics-the-complete-economic-model" aria-label="Permalink to &quot;Venture Self-Funding Mechanics: The Complete Economic Model&quot;">​</a></h1><p><strong>Date:</strong> 2026-02-21 <strong>Status:</strong> ACTIVE <strong>Owner:</strong> Venture Economics &amp; Sustainability Team <strong>Audience:</strong> Product, Engineering, Operations, Finance</p><hr><h2 id="executive-summary" tabindex="-1">Executive Summary <a class="header-anchor" href="#executive-summary" aria-label="Permalink to &quot;Executive Summary&quot;">​</a></h2><p>Venture is architected as a <strong>self-sustaining autonomous economic system</strong> that earns revenue through agent labor commodification, manages its own treasury, and reinvests surplus capital to expand capacity. This document defines the complete mechanics:</p><ol><li><strong>Labor Commodification Model</strong>: How agent work hours are priced and sold</li><li><strong>Revenue Streams</strong>: Five venture types with distinct margin profiles</li><li><strong>Treasury Optimization Loop</strong>: Daily/weekly cycle of measure → allocate → reinvest</li><li><strong>Agent Limitation Factors</strong>: Hard and soft constraints on system capacity</li><li><strong>Cash Flow Model</strong>: P&amp;L structure, reserve policies, drawdown triggers</li><li><strong>Portfolio Risk Management</strong>: Concentration limits, scenario testing</li><li><strong>Reinvestment Strategy</strong>: How surplus is deployed back into capacity</li></ol><p>This model ensures Venture can operate without external funding indefinitely while maintaining operational stability and preventing catastrophic failure modes.</p><hr><h2 id="part-1-the-labor-commodification-model" tabindex="-1">Part 1: The Labor Commodification Model <a class="header-anchor" href="#part-1-the-labor-commodification-model" aria-label="Permalink to &quot;Part 1: The Labor Commodification Model&quot;">​</a></h2><h3 id="_1-1-core-unit-the-agent-hour-ah" tabindex="-1">1.1 Core Unit: The Agent-Hour (AH) <a class="header-anchor" href="#_1-1-core-unit-the-agent-hour-ah" aria-label="Permalink to &quot;1.1 Core Unit: The Agent-Hour (AH)&quot;">​</a></h3><p>All internal accounting in Venture is denominated in <strong>agent-hours (AH)</strong>, a normalized unit of compute capacity:</p><div class="language- vp-adaptive-theme"><button title="Copy Code" class="copy"></button><span class="lang"></span><pre class="shiki shiki-themes github-light github-dark vp-code" tabindex="0"><code><span class="line"><span>1 AH = 1 agent running for 1 hour at standard model config (Claude 3.5 Sonnet)</span></span></code></pre></div><p><strong>Time Units:</strong></p><ul><li><strong>Wall-clock hour</strong>: Real time (60 minutes)</li><li><strong>Compute hour (CH)</strong>: Normalized to 1.0 Sonnet-equivalent at standard config</li><li><strong>Billable hour (BH)</strong>: What clients pay for (market-dependent)</li></ul><p><strong>Conversion Examples:</strong></p><ul><li>1 agent running Claude Opus 4.6 for 1 hour = 1.2 AH (premium model surcharge)</li><li>1 agent running Claude Haiku 4.5 for 1 hour = 0.4 AH (cost-optimized model)</li><li>2 agents running Sonnet for 0.5 hours = 1.0 AH (parallelism)</li></ul><p><strong>Pricing Stack per AH:</strong></p><table tabindex="0"><thead><tr><th>Cost Layer</th><th>Amount</th><th>Notes</th></tr></thead><tbody><tr><td>API Cost (LLM calls)</td><td>$0.08</td><td>1000K input tokens @ $0.003, 10K output tokens @ $0.015 (average per AH)</td></tr><tr><td>Infrastructure (compute, memory, networking)</td><td>$0.04</td><td>Amortized across all AH; includes cloud VM, storage, bandwidth</td></tr><tr><td>Tools &amp; Integrations (external APIs, DB calls)</td><td>$0.03</td><td>Web search, file uploads, LLM tool calls</td></tr><tr><td>Operations &amp; Support (staff, monitoring, incident response)</td><td>$0.05</td><td>Allocated per AH at run rate</td></tr><tr><td><strong>Total Cost per AH</strong></td><td><strong>$0.20</strong></td><td>Direct + allocated overhead</td></tr></tbody></table><p><strong>Market Rates per AH (by venture type):</strong></p><table tabindex="0"><thead><tr><th>Venture Type</th><th>Rate ($/AH)</th><th>Margin</th><th>Target Utilization</th></tr></thead><tbody><tr><td>V1: Research-as-a-Service</td><td>$1.50</td><td>86%</td><td>70%</td></tr><tr><td>V2: Code-as-a-Service</td><td>$2.00</td><td>90%</td><td>75%</td></tr><tr><td>V3: Content Production</td><td>$1.20</td><td>83%</td><td>60%</td></tr><tr><td>V4: Data Processing</td><td>$0.80</td><td>75%</td><td>80%</td></tr><tr><td>V5: Agent Orchestration (B2B)</td><td>$3.00</td><td>93%</td><td>50% (intentional)</td></tr><tr><td><strong>Portfolio Average (weighted)</strong></td><td><strong>$1.60</strong></td><td><strong>~86%</strong></td><td><strong>70%</strong></td></tr></tbody></table><h3 id="_1-2-system-capacity-throughput" tabindex="-1">1.2 System Capacity &amp; Throughput <a class="header-anchor" href="#_1-2-system-capacity-throughput" aria-label="Permalink to &quot;1.2 System Capacity &amp; Throughput&quot;">​</a></h3><p><strong>Current Capacity (v1 baseline):</strong></p><ul><li>Max concurrent agents: 20 (at standard model)</li><li>Average session duration: 45 minutes</li><li>Average sessions per day: 48 (assuming 16-hour operations window)</li><li><strong>Daily AH production (max capacity):</strong> 36 AH/day</li></ul><p><strong>Realistic Operations Profile:</strong></p><ul><li>Average utilization: 60% (accounting for queue variance, scheduling gaps)</li><li>Daily AH production (realistic): 21.6 AH/day</li><li>Annual AH production (at 60% util): 7,884 AH/year</li><li><strong>Annual Revenue (at blended $1.60/AH):</strong> ~$12,600</li></ul><p><strong>Growth Path (Year 1-3):</strong></p><table tabindex="0"><thead><tr><th>Milestone</th><th>Concurrent Agents</th><th>Daily AH</th><th>Annual AH</th><th>Est. Revenue</th></tr></thead><tbody><tr><td>v1 launch (now)</td><td>20</td><td>21.6</td><td>7,884</td><td>$12,600</td></tr><tr><td>Q2 2026</td><td>40</td><td>43.2</td><td>15,768</td><td>$25,200</td></tr><tr><td>Q4 2026</td><td>80</td><td>86.4</td><td>31,536</td><td>$50,400</td></tr><tr><td>Q2 2027</td><td>150</td><td>162</td><td>59,130</td><td>$94,608</td></tr><tr><td>Q4 2027</td><td>250</td><td>270</td><td>98,550</td><td>$157,680</td></tr></tbody></table><h3 id="_1-3-margin-calculation-optimization" tabindex="-1">1.3 Margin Calculation &amp; Optimization <a class="header-anchor" href="#_1-3-margin-calculation-optimization" aria-label="Permalink to &quot;1.3 Margin Calculation &amp; Optimization&quot;">​</a></h3><p><strong>Gross Margin per Venture Type:</strong></p><div class="language- vp-adaptive-theme"><button title="Copy Code" class="copy"></button><span class="lang"></span><pre class="shiki shiki-themes github-light github-dark vp-code" tabindex="0"><code><span class="line"><span>Gross Margin = (Revenue - COGS) / Revenue</span></span>
+<span class="line"><span>             = (Market_Rate - Cost_Per_AH) / Market_Rate</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>V1 Research: ($1.50 - $0.20) / $1.50 = 86.7%</span></span>
+<span class="line"><span>V2 Code:     ($2.00 - $0.20) / $2.00 = 90.0%</span></span>
+<span class="line"><span>V3 Content:  ($1.20 - $0.20) / $1.20 = 83.3%</span></span>
+<span class="line"><span>V4 Data:     ($0.80 - $0.20) / $0.80 = 75.0%</span></span>
+<span class="line"><span>V5 Orch:     ($3.00 - $0.20) / $3.00 = 93.3%</span></span></code></pre></div><p><strong>Operating Margin (after allocated overhead):</strong></p><p>Once overhead is allocated (allocations happen daily):</p><div class="language- vp-adaptive-theme"><button title="Copy Code" class="copy"></button><span class="lang"></span><pre class="shiki shiki-themes github-light github-dark vp-code" tabindex="0"><code><span class="line"><span>Operating Margin = (Gross Margin - Allocated Overhead) / Revenue</span></span>
+<span class="line"><span>                 = (GM - Overhead_per_AH / Market_Rate) / 1</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>V1: (0.867 - 0.05/1.50) = 0.833 (83.3% op margin)</span></span>
+<span class="line"><span>V2: (0.900 - 0.05/2.00) = 0.875 (87.5% op margin)</span></span>
+<span class="line"><span>V5: (0.933 - 0.05/3.00) = 0.916 (91.6% op margin)</span></span></code></pre></div><p><strong>Optimization Target:</strong></p><p>The system continuously evaluates which venture types are actually being demanded vs. capacity available:</p><div class="language- vp-adaptive-theme"><button title="Copy Code" class="copy"></button><span class="lang"></span><pre class="shiki shiki-themes github-light github-dark vp-code" tabindex="0"><code><span class="line"><span>Daily Allocation Algorithm:</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>1. Measure: demand_by_venture = [v1_requests, v2_requests, ..., v5_requests]</span></span>
+<span class="line"><span>2. Measure: available_AH = current_utilization * max_capacity</span></span>
+<span class="line"><span>3. Score each venture: score = (margin * demand / max_request_size)</span></span>
+<span class="line"><span>4. Allocate: fill highest-scored ventures first until capacity exhausted</span></span>
+<span class="line"><span>5. Repeat: weekly if demand profile shifts significantly</span></span></code></pre></div><p>Example:</p><div class="language- vp-adaptive-theme"><button title="Copy Code" class="copy"></button><span class="lang"></span><pre class="shiki shiki-themes github-light github-dark vp-code" tabindex="0"><code><span class="line"><span>Day 1: V2 Code has 8 requests (5 AH each = 40 AH demand), V1 Research has 3 requests (2 AH each = 6 AH demand)</span></span>
+<span class="line"><span>Available: 15 AH</span></span>
+<span class="line"><span>Score(V2) = 0.90 * (8/5) = 1.44</span></span>
+<span class="line"><span>Score(V1) = 0.867 * (3/2) = 1.30</span></span>
+<span class="line"><span>→ Allocate 8 AH to V2 (fulfill 1 request + part of second), 7 AH to V1 (fulfill all 3 requests)</span></span></code></pre></div><hr><h2 id="part-2-revenue-streams-—-the-five-venture-types" tabindex="-1">Part 2: Revenue Streams — The Five Venture Types <a class="header-anchor" href="#part-2-revenue-streams-—-the-five-venture-types" aria-label="Permalink to &quot;Part 2: Revenue Streams — The Five Venture Types&quot;">​</a></h2><h3 id="_2-1-v1-research-as-a-service" tabindex="-1">2.1 V1: Research-as-a-Service <a class="header-anchor" href="#_2-1-v1-research-as-a-service" aria-label="Permalink to &quot;2.1 V1: Research-as-a-Service&quot;">​</a></h3><p><strong>Definition:</strong> Agents conduct research, synthesize findings, produce structured reports (slide decks, timelines, analysis docs).</p><p><strong>Client Profile:</strong> Knowledge workers, consultants, academics, investors (due diligence).</p><p><strong>Pricing Model:</strong></p><ul><li>Base: $1.50/AH (market rate)</li><li>Typical engagement: 10-30 AH per research project</li><li>Project fee: $150-$450 per project (at baseline execution)</li><li>Margin per project: ~$130-$390 (86% gross margin)</li></ul><p><strong>Work Breakdown:</strong></p><ol><li>Research planning (1-2 AH)</li><li>Primary/secondary research (4-10 AH)</li><li>Analysis &amp; synthesis (3-8 AH)</li><li>Artifact generation (2-5 AH)</li><li>Revision &amp; polish (1-3 AH)</li></ol><p><strong>Key Constraints:</strong></p><ul><li>Context window limits task scope (max 20K tokens of research material per session)</li><li>Error rate on fact-checking: ~3-5% (requires human review for compliance)</li><li>Typical utilization: 70% (many projects have &quot;waiting for client feedback&quot; gaps)</li></ul><p><strong>Revenue Concentration Risk:</strong> V1 is currently 35% of projected portfolio → monitor for over-concentration.</p><p><strong>Growth Levers:</strong></p><ul><li>Recurring research (monthly reports for clients) → moves from project to subscription</li><li>Template reuse (after 5 similar projects, execution time drops 30%)</li><li>Horizontal scaling: add more agents → linear growth up to infrastructure limits</li></ul><h3 id="_2-2-v2-code-as-a-service" tabindex="-1">2.2 V2: Code-as-a-Service <a class="header-anchor" href="#_2-2-v2-code-as-a-service" aria-label="Permalink to &quot;2.2 V2: Code-as-a-Service&quot;">​</a></h3><p><strong>Definition:</strong> Agents write, test, refactor, and deploy code for clients (CLIs, libraries, scripts, API integrations).</p><p><strong>Client Profile:</strong> Startups, solo developers, internal teams at larger orgs needing outsourced dev.</p><p><strong>Pricing Model:</strong></p><ul><li>Base: $2.00/AH (premium over research due to code review demand)</li><li>Typical engagement: 20-80 AH per project</li><li>Project fee: $400-$1,600</li><li>Margin per project: ~$360-$1,440 (90% gross margin)</li></ul><p><strong>Work Breakdown:</strong></p><ol><li>Requirements clarification (2 AH)</li><li>Architecture &amp; API design (3-5 AH)</li><li>Implementation (10-40 AH)</li><li>Testing &amp; refactoring (5-15 AH)</li><li>Documentation &amp; deployment (3-8 AH)</li></ol><p><strong>Key Constraints:</strong></p><ul><li>Language/framework specificity (not all agents are equally competent in all stacks)</li><li>Integration testing with external services (requires test credentials, which are high-privilege)</li><li>Deployment permissions (agents can&#39;t push to production without explicit authorization)</li></ul><p><strong>Revenue Concentration Risk:</strong> V2 is highest-margin but lowest volume → currently 25% of portfolio.</p><p><strong>Growth Levers:</strong></p><ul><li>Subscription maintenance (client retains agent 10 hours/month for bug fixes, feature requests)</li><li>Templated project types (CRUD API in {X} framework → reduced uncertainty, faster execution)</li><li>Multi-agent collaboration (larger projects use 2-3 agents in task DAG → bill 2-3x AH but complete faster)</li></ul><h3 id="_2-3-v3-content-production" tabindex="-1">2.3 V3: Content Production <a class="header-anchor" href="#_2-3-v3-content-production" aria-label="Permalink to &quot;2.3 V3: Content Production&quot;">​</a></h3><p><strong>Definition:</strong> Agents produce written content (blog posts, scripts, slide decks, marketing copy, technical documentation).</p><p><strong>Client Profile:</strong> Content agencies, small publishers, indie creators, marketing teams.</p><p><strong>Pricing Model:</strong></p><ul><li>Base: $1.20/AH</li><li>Typical engagement: 5-20 AH per piece</li><li>Content type pricing varies: <ul><li>Blog post (1,500 words): 4 AH → $4.80 (or $150-250 depending on research depth)</li><li>Video script + storyboard: 8 AH → $9.60</li><li>Marketing deck (20 slides): 6 AH → $7.20</li></ul></li><li>Margin per piece: ~$3.50-$18 (83% gross margin)</li></ul><p><strong>Work Breakdown:</strong></p><ol><li>Outline &amp; research (1-3 AH)</li><li>First draft (2-6 AH)</li><li>Revision &amp; editing (1-3 AH)</li><li>Asset generation (media, graphics) (1-2 AH)</li><li>Publication formatting (0.5-1 AH)</li></ol><p><strong>Key Constraints:</strong></p><ul><li>Quality variance is high (agent skill at specific content type matters)</li><li>Context window limits single-session output (can&#39;t write 50,000-word book in one session)</li><li>Human review required for brand voice, fact accuracy, tone (not fully autonomous)</li></ul><p><strong>Revenue Concentration Risk:</strong> V3 is high-volume but lower-margin → currently 20% of portfolio.</p><p><strong>Growth Levers:</strong></p><ul><li>Subscription retainers (client reserves 5 AH/week for ongoing content → predictable revenue)</li><li>Content templates (e.g., &quot;weekly newsletter&quot; → 3 AH/week, 156 AH/year = $187/month recurring)</li><li>Bulk packages (e.g., &quot;50 blog posts&quot; at volume discount → $6,000 commitment, 200 AH allocated over 6 months)</li></ul><h3 id="_2-4-v4-data-processing" tabindex="-1">2.4 V4: Data Processing <a class="header-anchor" href="#_2-4-v4-data-processing" aria-label="Permalink to &quot;2.4 V4: Data Processing&quot;">​</a></h3><p><strong>Definition:</strong> Agents clean, transform, analyze, validate large datasets; produce data quality reports; generate dashboards and metrics.</p><p><strong>Client Profile:</strong> Startups with data pipelines, analysts, small BI teams.</p><p><strong>Pricing Model:</strong></p><ul><li>Base: $0.80/AH (lowest margin—high-throughput, lower-skill-required work)</li><li>Typical engagement: 30-100 AH per project</li><li>Project fee: $2,400-$8,000 (but negotiated as per-dataset or per-TB)</li><li>Margin per project: ~$1,800-$6,000 (75% gross margin)</li></ul><p><strong>Work Breakdown:</strong></p><ol><li>Data exploration &amp; profiling (3-5 AH)</li><li>Cleaning pipeline development (8-15 AH)</li><li>Transformation logic (10-25 AH)</li><li>Validation &amp; QA (5-10 AH)</li><li>Reporting &amp; documentation (5-10 AH)</li></ol><p><strong>Key Constraints:</strong></p><ul><li>Large file handling (context limits how much raw data can be processed per session → chunking required)</li><li>External data source dependencies (APIs, databases—credentials and permissions management)</li><li>Reproducibility (clients need replayable, deterministic pipelines → agents must document parameter space)</li></ul><p><strong>Revenue Concentration Risk:</strong> V4 is high-volume, low-margin → currently 15% of portfolio. Risk is dilution of margins if market rates drop.</p><p><strong>Growth Levers:</strong></p><ul><li>Automated pipeline templates (client uploads CSV/JSON → agent auto-detects schema, suggests transforms → 1 AH instead of 10)</li><li>Recurring data ingestion (monthly/weekly data arrival → maintain standing pipeline for client → ~5 AH/week)</li><li>Horizontal scaling (this venture type scales linearly with agent count—highest utilization potential)</li></ul><h3 id="_2-5-v5-agent-orchestration-b2b" tabindex="-1">2.5 V5: Agent Orchestration (B2B) <a class="header-anchor" href="#_2-5-v5-agent-orchestration-b2b" aria-label="Permalink to &quot;2.5 V5: Agent Orchestration (B2B)&quot;">​</a></h3><p><strong>Definition:</strong> Venture sells its entire orchestration platform (control plane, agent coordination, compliance machine) to other organizations as a service.</p><p><strong>Client Profile:</strong> Enterprises, SaaS companies, research institutions wanting to deploy autonomous agents internally.</p><p><strong>Pricing Model:</strong></p><ul><li>Base: $3.00/AH (highest margin—clients pay for platform, not just labor)</li><li>Typical engagement: variable (clients license by agent-hour tier)</li><li>Tier pricing: <ul><li>Starter: 500 AH/month → $1,500/month</li><li>Pro: 2,000 AH/month → $5,000/month</li><li>Enterprise: custom (e.g., 10,000 AH/month → $25,000/month)</li></ul></li><li>Margin per customer: 93% (highest—platform cost per AH is same, but clients absorb infrastructure cost)</li></ul><p><strong>Work Breakdown:</strong></p><ol><li>Customer onboarding &amp; setup (20 AH, one-time)</li><li>Agent pool provisioning (10 AH, one-time)</li><li>Policy pack customization (10-20 AH, ongoing as customer tweaks rules)</li><li>Monitoring &amp; incident response (5-10 AH/month)</li><li>Billing &amp; reconciliation (2 AH/month)</li></ol><p><strong>Key Constraints:</strong></p><ul><li>Platform stability required (SLA = 99.5% uptime)</li><li>Multi-tenancy isolation (strong cryptographic separation of customer workloads and data)</li><li>Compliance customization (each enterprise customer may have different regulatory requirements)</li><li>Intentional low utilization (50% target utilization—keep 50% of capacity reserved for spikes, maintenance, redundancy)</li></ul><p><strong>Revenue Concentration Risk:</strong> V5 is highest-margin but lowest volume (fewer customers, but larger contract sizes). Currently 10% of portfolio. Risk is customer churn (even 1 enterprise loss = $25k/month hit).</p><p><strong>Growth Levers:</strong></p><ul><li>Multi-product bundles (e.g., &quot;Venture Agent Platform + managed research pipeline&quot; → upsell to existing customer)</li><li>Managed service expansion (take over customer&#39;s entire autonomous agent workload → full AH capacity → shift from AH unit price to managed service fee)</li><li>Vertical specialization (e.g., &quot;Venture for Legal Tech&quot; → pre-built policy packs, legal research templates → premium pricing)</li></ul><hr><h2 id="part-3-treasury-optimization-loop" tabindex="-1">Part 3: Treasury Optimization Loop <a class="header-anchor" href="#part-3-treasury-optimization-loop" aria-label="Permalink to &quot;Part 3: Treasury Optimization Loop&quot;">​</a></h2><h3 id="_3-1-daily-measurement-allocation-cycle" tabindex="-1">3.1 Daily Measurement &amp; Allocation Cycle <a class="header-anchor" href="#_3-1-daily-measurement-allocation-cycle" aria-label="Permalink to &quot;3.1 Daily Measurement &amp; Allocation Cycle&quot;">​</a></h3><p><strong>Frequency:</strong> Daily at 23:59 UTC (end of operational day)</p><p><strong>Inputs:</strong></p><ol><li>Daily revenue by venture: sum of all completed projects, aggregated by type</li><li>Daily COGS by venture: sum of API costs, infrastructure, tooling</li><li>Current reserve balance</li><li>Current AH utilization rate</li><li>Outstanding commitments (projects in progress, reserved capacity)</li></ol><p><strong>Process:</strong></p><div class="language- vp-adaptive-theme"><button title="Copy Code" class="copy"></button><span class="lang"></span><pre class="shiki shiki-themes github-light github-dark vp-code" tabindex="0"><code><span class="line"><span>STEP 1: Calculate Daily P&amp;L</span></span>
+<span class="line"><span>────────────────────────────</span></span>
+<span class="line"><span>gross_revenue = sum(venture_revenue)</span></span>
+<span class="line"><span>cogs = sum(venture_cogs)</span></span>
+<span class="line"><span>gross_margin = (gross_revenue - cogs) / gross_revenue</span></span>
+<span class="line"><span>operating_expenses = today_allocated_overhead</span></span>
+<span class="line"><span>operating_income = gross_margin - operating_expenses</span></span>
+<span class="line"><span>net_income = operating_income - tax_accrual</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>Log: Daily P&amp;L Event</span></span>
+<span class="line"><span>{</span></span>
+<span class="line"><span>  date: 2026-02-21,</span></span>
+<span class="line"><span>  gross_revenue: $37.50 (25 AH @ avg $1.50),</span></span>
+<span class="line"><span>  cogs: $5.00 (25 AH @ $0.20),</span></span>
+<span class="line"><span>  gross_margin: $32.50,</span></span>
+<span class="line"><span>  operating_expenses: $1.80 (overhead),</span></span>
+<span class="line"><span>  operating_income: $30.70,</span></span>
+<span class="line"><span>  net_income: $25.34 (after 17.5% tax accrual)</span></span>
+<span class="line"><span>}</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>STEP 2: Update Reserve</span></span>
+<span class="line"><span>──────────────────────</span></span>
+<span class="line"><span>reserve_balance += net_income</span></span>
+<span class="line"><span>reserve_runway_days = reserve_balance / daily_operating_expense</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>Event: treasure.daily_closing.v1</span></span>
+<span class="line"><span>{</span></span>
+<span class="line"><span>  reserve_balance: $4,362.15,</span></span>
+<span class="line"><span>  reserve_runway_days: 42.7,</span></span>
+<span class="line"><span>  status: &quot;healthy&quot; (&gt;30 days)</span></span>
+<span class="line"><span>}</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>STEP 3: Evaluate Venture Performance</span></span>
+<span class="line"><span>─────────────────────────────────────</span></span>
+<span class="line"><span>For each venture type:</span></span>
+<span class="line"><span>  utilization_rate = hours_completed / hours_available</span></span>
+<span class="line"><span>  margin_realized = (revenue - cogs) / revenue</span></span>
+<span class="line"><span>  demand_score = pending_requests / completed_this_week</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>  score = (margin_realized * utilization_rate * demand_score)</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>V1 Score: (0.867 * 0.68 * 1.2) = 0.71</span></span>
+<span class="line"><span>V2 Score: (0.900 * 0.75 * 0.8) = 0.54</span></span>
+<span class="line"><span>V3 Score: (0.833 * 0.65 * 1.5) = 0.81</span></span>
+<span class="line"><span>V4 Score: (0.750 * 0.80 * 2.0) = 1.20</span></span>
+<span class="line"><span>V5 Score: (0.933 * 0.45 * 0.1) = 0.04</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>Rank by score: V4 &gt; V3 &gt; V1 &gt; V2 &gt; V5</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>STEP 4: Allocate Tomorrow&#39;s Capacity</span></span>
+<span class="line"><span>─────────────────────────────────────</span></span>
+<span class="line"><span>available_AH = (max_agents * 24 * 0.6_utilization_factor) / 1440</span></span>
+<span class="line"><span>            = (20 * 0.6 * utilization_efficiency)</span></span>
+<span class="line"><span>            ≈ 21.6 AH available tomorrow</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>For each venture in rank order:</span></span>
+<span class="line"><span>  if pending_requests &gt; 0:</span></span>
+<span class="line"><span>    allocate min(pending_requests, available_AH)</span></span>
+<span class="line"><span>    available_AH -= allocated</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>Allocation tomorrow:</span></span>
+<span class="line"><span>  V4: 8 AH (1 large data processing project)</span></span>
+<span class="line"><span>  V3: 6 AH (2 content projects)</span></span>
+<span class="line"><span>  V1: 4 AH (1 research project)</span></span>
+<span class="line"><span>  V2: 2 AH (reservation for code support tickets)</span></span>
+<span class="line"><span>  V5: 1.6 AH (platform maintenance)</span></span>
+<span class="line"><span>  Reserve: 0 AH (full capacity allocated)</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>Event: venture.allocation.daily.v1</span></span>
+<span class="line"><span>{</span></span>
+<span class="line"><span>  date: 2026-02-22,</span></span>
+<span class="line"><span>  allocations: { v1: 4, v2: 2, v3: 6, v4: 8, v5: 1.6 },</span></span>
+<span class="line"><span>  reserve_ah: 0,</span></span>
+<span class="line"><span>  confidence: 0.92</span></span>
+<span class="line"><span>}</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>STEP 5: Reinvestment Decision Gate</span></span>
+<span class="line"><span>───────────────────────────────────</span></span>
+<span class="line"><span>if reserve_runway_days &gt; 60 and operating_income &gt; 0:</span></span>
+<span class="line"><span>  → Check reinvestment policy (see 3.2)</span></span>
+<span class="line"><span>else if reserve_runway_days &lt; 15:</span></span>
+<span class="line"><span>  → Trigger emergency cash preservation mode</span></span></code></pre></div><h3 id="_3-2-reinvestment-policy-scaling-strategy" tabindex="-1">3.2 Reinvestment Policy &amp; Scaling Strategy <a class="header-anchor" href="#_3-2-reinvestment-policy-scaling-strategy" aria-label="Permalink to &quot;3.2 Reinvestment Policy &amp; Scaling Strategy&quot;">​</a></h3><p><strong>Reserve Tiers &amp; Behavior:</strong></p><table tabindex="0"><thead><tr><th>Runway Days</th><th>Mode</th><th>Decision</th></tr></thead><tbody><tr><td>&gt;90</td><td>Aggressive Growth</td><td>Reinvest 70% of surplus; pause reinvestment only if cap utilization &gt;80%</td></tr><tr><td>60-90</td><td>Balanced Growth</td><td>Reinvest 50% of surplus; evaluate market conditions before major commitments</td></tr><tr><td>30-60</td><td>Conservative</td><td>Reinvest 20% of surplus; prioritize cash preservation</td></tr><tr><td>15-30</td><td>Defensive</td><td>Pause all reinvestment; activate cost reduction measures</td></tr><tr><td>&lt;15</td><td>Emergency</td><td>Freeze hiring, pause new ventures, negotiate payment terms; daily board alert</td></tr></tbody></table><p><strong>Reinvestment Options (Priority Order):</strong></p><ol><li><p><strong>New Agent Allocation</strong> (Primary growth lever)</p><ul><li>Cost: $800/new agent (setup, licensing, training)</li><li>Expected ROI: 6 months (agent reaches 60% utilization)</li><li>Trigger: If utilization &gt;75% AND reserve &gt;60 days</li><li>Example: Q1 2026 projects 25.2 AH daily demand → add 2 agents ($1,600 investment → ROI ~9 months)</li></ul></li><li><p><strong>Model Premium Upgrade</strong> (If margins compress)</p><ul><li>Cost: $0.02-0.05 per AH for better model (e.g., Opus vs Sonnet)</li><li>Expected uplift: 5-10% margin improvement on code/research ventures</li><li>Trigger: If margin compression detected OR customer feedback on quality</li><li>Example: Upgrade V2 agents to Opus → $0.20/AH → $0.24/AH cost, but raise market rate to $2.40 → net +15% margin</li></ul></li><li><p><strong>Specialized Tool Licensing</strong> (Venture-type specific)</p><ul><li>Cost: $200-2,000/tool license (e.g., premium data analysis library, specialized research API)</li><li>Expected uplift: 10-20% faster execution time on specific venture type</li><li>Trigger: If market rate increase possible OR if bottleneck identified</li><li>Example: License Perplexity API ($500/month) for V1 research → 15% faster research → +$2,250/month revenue upside</li></ul></li><li><p><strong>Infrastructure Expansion</strong> (If scalability bottleneck emerges)</p><ul><li>Cost: +$500/month for additional cloud capacity (more concurrent agents)</li><li>Expected ROI: Enables 2-3 additional concurrent agents</li><li>Trigger: Only if scheduling delays observed OR 90%+ infrastructure utilization</li><li>Example: Q3 2026 if we hit 80 concurrent agents → infrastructure may become bottleneck</li></ul></li><li><p><strong>Compliance/Operations Tooling</strong> (Risk mitigation)</p><ul><li>Cost: $100-500/month (audit, security, monitoring tools)</li><li>Expected benefit: Risk reduction (99.5% vs 99% uptime), audit efficiency</li><li>Trigger: Only after reaching 100 AH/day revenue OR if compliance cases increase</li><li>Example: 2027 → enterprise customers require SOC2 compliance → invest in tooling</li></ul></li></ol><p><strong>Reinvestment Decision Logic:</strong></p><div class="language-python vp-adaptive-theme"><button title="Copy Code" class="copy"></button><span class="lang">python</span><pre class="shiki shiki-themes github-light github-dark vp-code" tabindex="0"><code><span class="line"><span style="--shiki-light:#D73A49;--shiki-dark:#F97583;">def</span><span style="--shiki-light:#6F42C1;--shiki-dark:#B392F0;"> daily_reinvestment_decision</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">(reserve_balance, daily_operating_expense, surplus):</span></span>
+<span class="line"><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">    runway </span><span style="--shiki-light:#D73A49;--shiki-dark:#F97583;">=</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;"> reserve_balance </span><span style="--shiki-light:#D73A49;--shiki-dark:#F97583;">/</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;"> daily_operating_expense</span></span>
+<span class="line"></span>
+<span class="line"><span style="--shiki-light:#D73A49;--shiki-dark:#F97583;">    if</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;"> runway </span><span style="--shiki-light:#D73A49;--shiki-dark:#F97583;">&gt;</span><span style="--shiki-light:#005CC5;--shiki-dark:#79B8FF;"> 90</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">:</span></span>
+<span class="line"><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">        reinvest_ratio </span><span style="--shiki-light:#D73A49;--shiki-dark:#F97583;">=</span><span style="--shiki-light:#005CC5;--shiki-dark:#79B8FF;"> 0.70</span></span>
+<span class="line"><span style="--shiki-light:#D73A49;--shiki-dark:#F97583;">    elif</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;"> runway </span><span style="--shiki-light:#D73A49;--shiki-dark:#F97583;">&gt;</span><span style="--shiki-light:#005CC5;--shiki-dark:#79B8FF;"> 60</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">:</span></span>
+<span class="line"><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">        reinvest_ratio </span><span style="--shiki-light:#D73A49;--shiki-dark:#F97583;">=</span><span style="--shiki-light:#005CC5;--shiki-dark:#79B8FF;"> 0.50</span></span>
+<span class="line"><span style="--shiki-light:#D73A49;--shiki-dark:#F97583;">    elif</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;"> runway </span><span style="--shiki-light:#D73A49;--shiki-dark:#F97583;">&gt;</span><span style="--shiki-light:#005CC5;--shiki-dark:#79B8FF;"> 30</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">:</span></span>
+<span class="line"><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">        reinvest_ratio </span><span style="--shiki-light:#D73A49;--shiki-dark:#F97583;">=</span><span style="--shiki-light:#005CC5;--shiki-dark:#79B8FF;"> 0.20</span></span>
+<span class="line"><span style="--shiki-light:#D73A49;--shiki-dark:#F97583;">    else</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">:</span></span>
+<span class="line"><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">        reinvest_ratio </span><span style="--shiki-light:#D73A49;--shiki-dark:#F97583;">=</span><span style="--shiki-light:#005CC5;--shiki-dark:#79B8FF;"> 0.0</span><span style="--shiki-light:#6A737D;--shiki-dark:#6A737D;">  # Preserve cash</span></span>
+<span class="line"></span>
+<span class="line"><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">    reinvestment_pool </span><span style="--shiki-light:#D73A49;--shiki-dark:#F97583;">=</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;"> surplus </span><span style="--shiki-light:#D73A49;--shiki-dark:#F97583;">*</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;"> reinvest_ratio</span></span>
+<span class="line"></span>
+<span class="line"><span style="--shiki-light:#6A737D;--shiki-dark:#6A737D;">    # Rank available options by ROI</span></span>
+<span class="line"><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">    options </span><span style="--shiki-light:#D73A49;--shiki-dark:#F97583;">=</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;"> [</span></span>
+<span class="line"><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">        (</span><span style="--shiki-light:#032F62;--shiki-dark:#9ECBFF;">&quot;new_agent&quot;</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">, roi=</span><span style="--shiki-light:#B31D28;--shiki-light-font-style:italic;--shiki-dark:#FDAEB7;--shiki-dark-font-style:italic;">6_months</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">, cost=</span><span style="--shiki-light:#005CC5;--shiki-dark:#79B8FF;">800</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">, impact=</span><span style="--shiki-light:#032F62;--shiki-dark:#9ECBFF;">&quot;capacity&quot;</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">),</span></span>
+<span class="line"><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">        (</span><span style="--shiki-light:#032F62;--shiki-dark:#9ECBFF;">&quot;model_upgrade&quot;</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">, roi=</span><span style="--shiki-light:#B31D28;--shiki-light-font-style:italic;--shiki-dark:#FDAEB7;--shiki-dark-font-style:italic;">3_weeks</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">, cost=</span><span style="--shiki-light:#005CC5;--shiki-dark:#79B8FF;">50</span><span style="--shiki-light:#D73A49;--shiki-dark:#F97583;">/</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">month, impact=</span><span style="--shiki-light:#032F62;--shiki-dark:#9ECBFF;">&quot;margin&quot;</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">),</span></span>
+<span class="line"><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">        (</span><span style="--shiki-light:#032F62;--shiki-dark:#9ECBFF;">&quot;tool_license&quot;</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">, roi=</span><span style="--shiki-light:#B31D28;--shiki-light-font-style:italic;--shiki-dark:#FDAEB7;--shiki-dark-font-style:italic;">2_months</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">, cost=</span><span style="--shiki-light:#005CC5;--shiki-dark:#79B8FF;">500</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">, impact=</span><span style="--shiki-light:#032F62;--shiki-dark:#9ECBFF;">&quot;efficiency&quot;</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">),</span></span>
+<span class="line"><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">        (</span><span style="--shiki-light:#032F62;--shiki-dark:#9ECBFF;">&quot;infrastructure&quot;</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">, roi=</span><span style="--shiki-light:#B31D28;--shiki-light-font-style:italic;--shiki-dark:#FDAEB7;--shiki-dark-font-style:italic;">4_months</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">, cost=</span><span style="--shiki-light:#005CC5;--shiki-dark:#79B8FF;">500</span><span style="--shiki-light:#D73A49;--shiki-dark:#F97583;">/</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">month, impact=</span><span style="--shiki-light:#032F62;--shiki-dark:#9ECBFF;">&quot;scalability&quot;</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">),</span></span>
+<span class="line"><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">    ]</span></span>
+<span class="line"></span>
+<span class="line"><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">    allocated </span><span style="--shiki-light:#D73A49;--shiki-dark:#F97583;">=</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;"> allocate_pool(reinvestment_pool, options)</span></span>
+<span class="line"></span>
+<span class="line"><span style="--shiki-light:#D73A49;--shiki-dark:#F97583;">    return</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;"> {</span></span>
+<span class="line"><span style="--shiki-light:#032F62;--shiki-dark:#9ECBFF;">        &quot;reinvest_ratio&quot;</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">: reinvest_ratio,</span></span>
+<span class="line"><span style="--shiki-light:#032F62;--shiki-dark:#9ECBFF;">        &quot;reinvestment_pool&quot;</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">: reinvestment_pool,</span></span>
+<span class="line"><span style="--shiki-light:#032F62;--shiki-dark:#9ECBFF;">        &quot;allocations&quot;</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">: allocated,</span></span>
+<span class="line"><span style="--shiki-light:#032F62;--shiki-dark:#9ECBFF;">        &quot;cash_preserved&quot;</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">: reserve_balance </span><span style="--shiki-light:#D73A49;--shiki-dark:#F97583;">-</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;"> reinvestment_pool,</span></span>
+<span class="line"><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">    }</span></span></code></pre></div><p><strong>Example Scenario (Q2 2026):</strong></p><div class="language- vp-adaptive-theme"><button title="Copy Code" class="copy"></button><span class="lang"></span><pre class="shiki shiki-themes github-light github-dark vp-code" tabindex="0"><code><span class="line"><span>Starting reserve: $8,500</span></span>
+<span class="line"><span>Daily operating expense: $80</span></span>
+<span class="line"><span>Monthly P&amp;L: $950 gross margin (40 AH/day @ $1.60 blended)</span></span>
+<span class="line"><span>Runway: 8,500 / 80 = 106 days → Aggressive Growth Mode</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>Month: May 2026</span></span>
+<span class="line"><span>- Gross margin: $22,500 (750 AH @ $1.60)</span></span>
+<span class="line"><span>- Operating expenses: $2,400 (overhead)</span></span>
+<span class="line"><span>- Operating income: $20,100</span></span>
+<span class="line"><span>- Net income: $16,600 (after tax)</span></span>
+<span class="line"><span>- Surplus to reinvest: 16,600 * 0.70 = $11,620</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>Reinvestment allocation:</span></span>
+<span class="line"><span>  New agents (2x @ $800): $1,600 → adds 4 AH/day capacity → +$26/day revenue potential</span></span>
+<span class="line"><span>  Model upgrades (V2): $500/month → estimated +$150/month margin</span></span>
+<span class="line"><span>  Tool licenses: $2,000 (Perplexity, premium APIs) → estimated +$300/month revenue</span></span>
+<span class="line"><span>  Infrastructure expansion: $1,200 → prepay cloud capacity</span></span>
+<span class="line"><span>  Cash preservation: 11,620 - 5,300 = $6,320 returned to reserves</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>New reserve: $8,500 + 6,320 = $14,820 (runway increases to 185 days)</span></span>
+<span class="line"><span>New capacity: 25.6 → 29.6 AH/day (by month-end with agent onboarding)</span></span></code></pre></div><hr><h2 id="part-4-agent-limitation-factors" tabindex="-1">Part 4: Agent Limitation Factors <a class="header-anchor" href="#part-4-agent-limitation-factors" aria-label="Permalink to &quot;Part 4: Agent Limitation Factors&quot;">​</a></h2><h3 id="_4-1-hard-constraints-cannot-be-overcome" tabindex="-1">4.1 Hard Constraints (Cannot be overcome) <a class="header-anchor" href="#_4-1-hard-constraints-cannot-be-overcome" aria-label="Permalink to &quot;4.1 Hard Constraints (Cannot be overcome)&quot;">​</a></h3><p><strong>Context Window Limits:</strong></p><ul><li>Sonnet 3.5: 200K input, 8K output <ul><li>Max task input: 180K tokens (safety margin)</li><li>Max single-session output: 8K tokens</li><li>Impact: Large research synthesis requires multiple sessions (2-3x AH cost)</li><li>Workaround: Break into subtasks; use external memory/database</li></ul></li></ul><p><strong>Concurrency Limits:</strong></p><ul><li>Current: 20 agents max (licensing, billing, infrastructure)</li><li>Scaling path: +10 agents per quarter (capacity planning constraint)</li><li>Impact: Cannot exceed 20 concurrent sessions; excess requests queue with 5-60 min wait</li></ul><p><strong>Tool Permission Constraints:</strong></p><ul><li>Agents cannot modify production databases (read-only)</li><li>Agents cannot execute arbitrary code on customer infrastructure</li><li>Agents cannot access credentials directly (must use Venture secret manager)</li><li>Impact: Some venture types (deploy code to production) require human approval gate</li></ul><h3 id="_4-2-soft-constraints-can-be-improved-through-training-tuning" tabindex="-1">4.2 Soft Constraints (Can be improved through training/tuning) <a class="header-anchor" href="#_4-2-soft-constraints-can-be-improved-through-training-tuning" aria-label="Permalink to &quot;4.2 Soft Constraints (Can be improved through training/tuning)&quot;">​</a></h3><p><strong>Error Rates by Venture Type:</strong></p><table tabindex="0"><thead><tr><th>Venture</th><th>Error Rate</th><th>Impact</th><th>Mitigation</th></tr></thead><tbody><tr><td>V1 Research</td><td>3-5% (fact-checking failures)</td><td>Requires human review</td><td>Structured knowledge base; fact verification step</td></tr><tr><td>V2 Code</td><td>2-3% (logic bugs, API integration errors)</td><td>Regression tests catch most; some ship</td><td>Expand test suite; peer review layer</td></tr><tr><td>V3 Content</td><td>5-8% (tone mismatch, style consistency)</td><td>Human editing required</td><td>Style guides; prompt engineering</td></tr><tr><td>V4 Data</td><td>1-2% (data transformation errors)</td><td>Schema mismatch, silent data loss</td><td>Validation framework; test cases</td></tr><tr><td>V5 Orch</td><td>0.5% (routing errors, timeout handling)</td><td>Operational incidents</td><td>Chaos engineering; redundancy</td></tr></tbody></table><p><strong>Model-Specific Performance Variance:</strong></p><div class="language- vp-adaptive-theme"><button title="Copy Code" class="copy"></button><span class="lang"></span><pre class="shiki shiki-themes github-light github-dark vp-code" tabindex="0"><code><span class="line"><span>Task Complexity → Optimal Model</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>Simple (data entry, formatting):   Haiku (0.4 AH cost) → 95% success</span></span>
+<span class="line"><span>Moderate (research, writing):      Sonnet (1.0 AH cost) → 92% success</span></span>
+<span class="line"><span>Complex (architecture, debugging): Opus (1.2 AH cost) → 96% success</span></span></code></pre></div><p><strong>Rate Limits &amp; Throughput Caps:</strong></p><table tabindex="0"><thead><tr><th>Resource</th><th>Limit</th><th>AH Impact</th></tr></thead><tbody><tr><td>LLM API (Anthropic)</td><td>10 req/sec, 2M tokens/min</td><td>V2 Code can hit limit with 10+ concurrent agents</td></tr><tr><td>Web search (Perplexity)</td><td>500 requests/day</td><td>V1 Research limited to ~20 projects/day</td></tr><tr><td>External integrations (Stripe, GitHub)</td><td>API-specific</td><td>Some ventures blocked if rate-limited</td></tr></tbody></table><p><strong>Reliability/Uptime:</strong></p><ul><li>Target: 99.5% uptime (4.4 hours downtime/month)</li><li>Current SLA for clients: 95% (best-effort, no compensation)</li><li>Impact: 5% average revenue loss due to incidents and maintenance windows</li></ul><h3 id="_4-3-capability-gaps-expansion-roadmap" tabindex="-1">4.3 Capability Gaps &amp; Expansion Roadmap <a class="header-anchor" href="#_4-3-capability-gaps-expansion-roadmap" aria-label="Permalink to &quot;4.3 Capability Gaps &amp; Expansion Roadmap&quot;">​</a></h3><p><strong>Current Gaps (v1):</strong></p><ul><li>No autonomous deployment (code agents can&#39;t push to production)</li><li>No real-time interaction (all work is batch/async)</li><li>No vision/image generation (content production limited to text/slides)</li><li>No voice interaction (audio content scripting only, no TTS)</li><li>No multi-agent consensus (single agent per task; no voting/debate)</li></ul><p><strong>Roadmap to Fill Gaps:</strong></p><table tabindex="0"><thead><tr><th>Gap</th><th>Expansion</th><th>Timeline</th><th>Revenue Unlock</th></tr></thead><tbody><tr><td>Autonomous deployment</td><td>CI/CD integration, approval workflows</td><td>Q3 2026</td><td>+20% V2 Code capacity</td></tr><tr><td>Real-time interaction</td><td>WebSocket support, streaming UI</td><td>Q4 2026</td><td>New venture: &quot;Live Coding&quot;</td></tr><tr><td>Vision/image generation</td><td>Multimodal models, image APIs</td><td>Q2 2027</td><td>V3 Content uplift to $1.80/AH</td></tr><tr><td>Voice interaction</td><td>TTS, speech-to-text integration</td><td>Q3 2027</td><td>New venture: &quot;Audio Production&quot;</td></tr><tr><td>Multi-agent consensus</td><td>Task coordination, voting logic</td><td>Q1 2027</td><td>+15% code quality, +25% complex task capacity</td></tr></tbody></table><hr><h2 id="part-5-cash-flow-model-reserve-policies" tabindex="-1">Part 5: Cash Flow Model &amp; Reserve Policies <a class="header-anchor" href="#part-5-cash-flow-model-reserve-policies" aria-label="Permalink to &quot;Part 5: Cash Flow Model &amp; Reserve Policies&quot;">​</a></h2><h3 id="_5-1-standard-p-l-structure" tabindex="-1">5.1 Standard P&amp;L Structure <a class="header-anchor" href="#_5-1-standard-p-l-structure" aria-label="Permalink to &quot;5.1 Standard P&amp;L Structure&quot;">​</a></h3><p><strong>Daily P&amp;L:</strong></p><div class="language- vp-adaptive-theme"><button title="Copy Code" class="copy"></button><span class="lang"></span><pre class="shiki shiki-themes github-light github-dark vp-code" tabindex="0"><code><span class="line"><span>Gross Revenue (from clients)</span></span>
+<span class="line"><span>  - Research-as-a-Service:      +$30/day (20 AH/day @ $1.50)</span></span>
+<span class="line"><span>  - Code-as-a-Service:          +$40/day (20 AH/day @ $2.00)</span></span>
+<span class="line"><span>  - Content Production:          +$12/day (10 AH/day @ $1.20)</span></span>
+<span class="line"><span>  - Data Processing:             +$16/day (20 AH/day @ $0.80)</span></span>
+<span class="line"><span>  - Agent Orchestration:         +$45/day (15 AH/day @ $3.00)</span></span>
+<span class="line"><span>────────────────────────────────────</span></span>
+<span class="line"><span>Gross Revenue (total):           +$143/day</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>Cost of Goods Sold (COGS)</span></span>
+<span class="line"><span>  - LLM API calls:              -$18/day (90 AH @ $0.20)</span></span>
+<span class="line"><span>  - Infrastructure:             -$10/day (allocated)</span></span>
+<span class="line"><span>  - Tools &amp; integrations:       -$7/day (allocated)</span></span>
+<span class="line"><span>────────────────────────────────</span></span>
+<span class="line"><span>COGS (total):                   -$35/day</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>Gross Profit:                    $108/day (75.5% margin)</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>Operating Expenses (Venture-allocated overhead)</span></span>
+<span class="line"><span>  - Staff (product, ops):        -$20/day ($7,300/year for 1 FTE)</span></span>
+<span class="line"><span>  - Monitoring, incident response: -$3/day</span></span>
+<span class="line"><span>  - Facilities, utilities:        -$2/day</span></span>
+<span class="line"><span>  - Professional services:        -$2/day</span></span>
+<span class="line"><span>────────────────────────────────</span></span>
+<span class="line"><span>Total Operating Expense:         -$27/day</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>Operating Income:                $81/day (56.6% margin)</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>Taxes &amp; Accruals</span></span>
+<span class="line"><span>  - Federal income tax (21%):    -$17/day</span></span>
+<span class="line"><span>  - State tax:                   -$3/day</span></span>
+<span class="line"><span>  - Payroll tax reserve:         -$5/day</span></span>
+<span class="line"><span>────────────────────────────────</span></span>
+<span class="line"><span>Total Tax Accrual:               -$25/day</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>Net Income:                      $56/day (~$20,440/year at steady state)</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>════════════════════════════════════════</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>Weekly P&amp;L (7x daily):</span></span>
+<span class="line"><span>  Net Income:                    +$392/week</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>Monthly P&amp;L (30x daily):</span></span>
+<span class="line"><span>  Net Income:                    +$1,680/month</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>Annual P&amp;L (365x daily):</span></span>
+<span class="line"><span>  Net Income:                    +$20,440/year</span></span></code></pre></div><p><strong>Note:</strong> This assumes 85 AH/day sustained production and zero growth reinvestment. Real operations will vary daily; monthly averaging smooths volatility.</p><h3 id="_5-2-reserve-policy-runway-management" tabindex="-1">5.2 Reserve Policy &amp; Runway Management <a class="header-anchor" href="#_5-2-reserve-policy-runway-management" aria-label="Permalink to &quot;5.2 Reserve Policy &amp; Runway Management&quot;">​</a></h3><p><strong>Reserve Requirement Matrix:</strong></p><table tabindex="0"><thead><tr><th>Runway Days</th><th>Required Action</th><th>Reserve as % of Monthly Burn</th></tr></thead><tbody><tr><td>&gt;90</td><td>Aggressive growth mode (invest 70% of surplus)</td><td>300%</td></tr><tr><td>60-90</td><td>Balanced growth (invest 50% of surplus)</td><td>200%</td></tr><tr><td>30-60</td><td>Conservative (invest 20% of surplus)</td><td>100%</td></tr><tr><td>15-30</td><td>Defensive (pause all growth)</td><td>50%</td></tr><tr><td>&lt;15</td><td>Emergency (alert stakeholders)</td><td>25%</td></tr></tbody></table><p><strong>Current State (as of 2026-02-21):</strong></p><ul><li>Reserve balance: ~$4,500 (estimated)</li><li>Daily operating expense: ~$80</li><li>Runway: 56 days → <strong>Balanced Growth Mode</strong></li><li>Action: Invest 50% of surplus into new agents + tool licenses</li></ul><p><strong>Drawdown Triggers &amp; Response:</strong></p><div class="language- vp-adaptive-theme"><button title="Copy Code" class="copy"></button><span class="lang"></span><pre class="shiki shiki-themes github-light github-dark vp-code" tabindex="0"><code><span class="line"><span>ALERT LEVEL 1 (Runway &lt; 30 days)</span></span>
+<span class="line"><span>──────────────────────────────</span></span>
+<span class="line"><span>Trigger: reserve_days &lt; 30</span></span>
+<span class="line"><span>Action:</span></span>
+<span class="line"><span>  1. Pause new agent hiring</span></span>
+<span class="line"><span>  2. Negotiate payment terms (extend DPO)</span></span>
+<span class="line"><span>  3. Accelerate high-margin venture work (V2 Code, V5 Orch)</span></span>
+<span class="line"><span>  4. Review COGS optimization (model switches, API batching)</span></span>
+<span class="line"><span>  5. Daily executive review of P&amp;L</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>Response Time: Immediate (same day)</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>ALERT LEVEL 2 (Runway &lt; 15 days)</span></span>
+<span class="line"><span>────────────────────────────────</span></span>
+<span class="line"><span>Trigger: reserve_days &lt; 15</span></span>
+<span class="line"><span>Action:</span></span>
+<span class="line"><span>  1. Freeze all new projects</span></span>
+<span class="line"><span>  2. Reduce operating expenses (pause paid tools, reduce cloud capacity)</span></span>
+<span class="line"><span>  3. Contact investors/lenders for emergency credit line</span></span>
+<span class="line"><span>  4. Daily cash reconciliation</span></span>
+<span class="line"><span>  5. Executive + Board alert</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>Response Time: Same day, escalation to board within 24 hours</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>EMERGENCY (Runway &lt; 7 days)</span></span>
+<span class="line"><span>───────────────────────────</span></span>
+<span class="line"><span>Trigger: reserve_days &lt; 7</span></span>
+<span class="line"><span>Action:</span></span>
+<span class="line"><span>  1. All-hands review of situation</span></span>
+<span class="line"><span>  2. Activate emergency financing agreement</span></span>
+<span class="line"><span>  3. Negotiate payment plans with vendors</span></span>
+<span class="line"><span>  4. Consider reduced operations or wind-down</span></span>
+<span class="line"><span>  5. Hourly cash tracking</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>Response Time: Immediate, all-hands assembly</span></span></code></pre></div><h3 id="_5-3-cash-flow-scenarios" tabindex="-1">5.3 Cash Flow Scenarios <a class="header-anchor" href="#_5-3-cash-flow-scenarios" aria-label="Permalink to &quot;5.3 Cash Flow Scenarios&quot;">​</a></h3><p><strong>Scenario A: Baseline Growth (Most Likely)</strong></p><div class="language- vp-adaptive-theme"><button title="Copy Code" class="copy"></button><span class="lang"></span><pre class="shiki shiki-themes github-light github-dark vp-code" tabindex="0"><code><span class="line"><span>Q1 2026:</span></span>
+<span class="line"><span>  Jan: 15 AH/day avg, $24/day net income, $720/month</span></span>
+<span class="line"><span>  Feb: 18 AH/day avg, $31/day net income, $930/month</span></span>
+<span class="line"><span>  Mar: 20 AH/day avg, $35/day net income, $1,050/month</span></span>
+<span class="line"><span>  Quarterly Net: $2,700</span></span>
+<span class="line"><span>  Runway at Mar 31: 75 days (reinvest 50% of surplus)</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>Q2 2026:</span></span>
+<span class="line"><span>  Reinvest $1,350 into 2 new agents</span></span>
+<span class="line"><span>  Apr-Jun: 28 AH/day avg, $48/day net income, $1,440/month</span></span>
+<span class="line"><span>  Quarterly Net: $4,320</span></span>
+<span class="line"><span>  Runway at Jun 30: 85 days</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>Q3 2026:</span></span>
+<span class="line"><span>  Market conditions stabilize; V2 Code demand surges (+30%)</span></span>
+<span class="line"><span>  Jul-Sep: 45 AH/day avg, $78/day net income, $2,340/month</span></span>
+<span class="line"><span>  Quarterly Net: $7,020</span></span>
+<span class="line"><span>  Runway at Sep 30: 150+ days (aggressive growth mode activated)</span></span>
+<span class="line"><span>  Reinvest $4,900 into 4 new agents, infrastructure</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>Year-End 2026:</span></span>
+<span class="line"><span>  Projected AH/day: 60-70 AH/day</span></span>
+<span class="line"><span>  Projected annual net income: ~$30,000-$35,000</span></span>
+<span class="line"><span>  Reserve: $25,000+ (9+ months runway)</span></span></code></pre></div><p><strong>Scenario B: Market Contraction (Recession / Loss of Key Customer)</strong></p><div class="language- vp-adaptive-theme"><button title="Copy Code" class="copy"></button><span class="lang"></span><pre class="shiki shiki-themes github-light github-dark vp-code" tabindex="0"><code><span class="line"><span>Q2 2026 event: Largest V5 Orch customer (20% revenue) churns without replacement</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>Impact:</span></span>
+<span class="line"><span>  Revenue drops 20% overnight ($143/day → $114/day)</span></span>
+<span class="line"><span>  Operating expenses don&#39;t drop immediately (staff, infra fixed at $27/day)</span></span>
+<span class="line"><span>  Net income: $56/day → $17/day (70% decline)</span></span>
+<span class="line"><span>  Runway shrinks: 75 days → 26 days (ALERT LEVEL 1)</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>Response (automated):</span></span>
+<span class="line"><span>  1. Pause hiring (cancel 2 planned agents = $1,600 saved)</span></span>
+<span class="line"><span>  2. Reduce COGS through model switches (Sonnet → Haiku for V3/V4) = $3/day savings</span></span>
+<span class="line"><span>  3. Optimize staff allocation (1 FTE → 0.75 FTE consultant) = $5/day savings</span></span>
+<span class="line"><span>  4. Emergency sales push (target replacement revenue) = +$15/day goal</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>Outcome after 30 days:</span></span>
+<span class="line"><span>  Net income: $17 → $25/day (re-balance achieved)</span></span>
+<span class="line"><span>  Runway: 26 → 45 days (acceptable, but still conservative mode)</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>Path to Recovery:</span></span>
+<span class="line"><span>  Month 1-2: Aggressive sales to replace $30/day lost revenue</span></span>
+<span class="line"><span>  Month 3: If successful, return to balanced growth</span></span>
+<span class="line"><span>  If unsuccessful, consider wind-down or merger</span></span></code></pre></div><p><strong>Scenario C: Rapid Growth / Venture Success</strong></p><div class="language- vp-adaptive-theme"><button title="Copy Code" class="copy"></button><span class="lang"></span><pre class="shiki shiki-themes github-light github-dark vp-code" tabindex="0"><code><span class="line"><span>Q1 2026: V2 Code venture catches attention; enterprise customer wants pilot</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>Event: $100k annual contract (8,300 AH/year reservation)</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>Impact:</span></span>
+<span class="line"><span>  Immediate revenue: +$12,450/year net (after COGS)</span></span>
+<span class="line"><span>  Runway increases to 6+ months</span></span>
+<span class="line"><span>  Utilization challenges: need 23 AH/day for customer alone</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>Response:</span></span>
+<span class="line"><span>  Hire 4 new agents aggressively (2-week onboarding)</span></span>
+<span class="line"><span>  Add code-specific infrastructure (GitHub integration, CI/CD setup) = $2,000 investment</span></span>
+<span class="line"><span>  Bring on contract staff for operations (1-2 FTE) = $3,000/month</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>Outcome:</span></span>
+<span class="line"><span>  New baseline: 65 AH/day (up from 20)</span></span>
+<span class="line"><span>  New net income: $112/day (+100%)</span></span>
+<span class="line"><span>  Runway: 150+ days</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>Growth trajectory:</span></span>
+<span class="line"><span>  Month 2: Attract 2 more enterprise customers (follow-on deals)</span></span>
+<span class="line"><span>  Year-end: 3-4 enterprise customers, 150+ AH/day capacity, $150k+ annual run rate</span></span></code></pre></div><hr><h2 id="part-6-portfolio-risk-management" tabindex="-1">Part 6: Portfolio Risk Management <a class="header-anchor" href="#part-6-portfolio-risk-management" aria-label="Permalink to &quot;Part 6: Portfolio Risk Management&quot;">​</a></h2><h3 id="_6-1-concentration-limits-diversification" tabindex="-1">6.1 Concentration Limits &amp; Diversification <a class="header-anchor" href="#_6-1-concentration-limits-diversification" aria-label="Permalink to &quot;6.1 Concentration Limits &amp; Diversification&quot;">​</a></h3><p><strong>Herfindahl-Hirschman Index (HHI) - Concentration Measure:</strong></p><div class="language- vp-adaptive-theme"><button title="Copy Code" class="copy"></button><span class="lang"></span><pre class="shiki shiki-themes github-light github-dark vp-code" tabindex="0"><code><span class="line"><span>HHI = sum of (market_share_i)^2</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>Interpretation:</span></span>
+<span class="line"><span>  HHI &lt; 1500: Highly competitive (good diversification)</span></span>
+<span class="line"><span>  1500-2500: Moderate concentration (acceptable)</span></span>
+<span class="line"><span>  &gt; 2500: High concentration (risk)</span></span>
+<span class="line"><span>  &gt; 5000: Extreme concentration (dangerous)</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>Current Portfolio (as of Feb 2026):</span></span>
+<span class="line"><span>  V1 Research: 35% → (0.35)^2 = 0.1225</span></span>
+<span class="line"><span>  V2 Code: 25% → (0.25)^2 = 0.0625</span></span>
+<span class="line"><span>  V3 Content: 20% → (0.20)^2 = 0.0400</span></span>
+<span class="line"><span>  V4 Data: 15% → (0.15)^2 = 0.0225</span></span>
+<span class="line"><span>  V5 Orch: 10% → (0.10)^2 = 0.0100</span></span>
+<span class="line"><span>  ───────────────────────────────</span></span>
+<span class="line"><span>  HHI = 1575 (Moderate concentration → ACCEPTABLE)</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>Target HHI (by end 2026): 1400 (better balance)</span></span>
+<span class="line"><span>  V1: 25%</span></span>
+<span class="line"><span>  V2: 25%</span></span>
+<span class="line"><span>  V3: 20%</span></span>
+<span class="line"><span>  V4: 20%</span></span>
+<span class="line"><span>  V5: 10%</span></span>
+<span class="line"><span>  HHI = 0.0625 + 0.0625 + 0.0400 + 0.0400 + 0.0100 = 1475</span></span></code></pre></div><p><strong>Single-Customer Risk Limit:</strong></p><ul><li>Max: 20% of monthly revenue from any single customer</li><li>Current top customer: 18% of V5 Orch revenue (9% of total portfolio)</li><li>Action: Identify replacement customers to reduce concentration</li></ul><p><strong>Venture Type Risk Tiers:</strong></p><table tabindex="0"><thead><tr><th>Tier</th><th>Ventures</th><th>Risk Level</th><th>Min/Max Allocation</th></tr></thead><tbody><tr><td>High-Margin, Lower-Volume</td><td>V2 Code, V5 Orch</td><td>Medium (customer concentration)</td><td>Min 20%, Max 35%</td></tr><tr><td>Stable, Recurring</td><td>V3 Content (retainers), V4 Data</td><td>Low (commodity market)</td><td>Min 30%, Max 45%</td></tr><tr><td>Growth/Unpredictable</td><td>V1 Research</td><td>Medium (project-based demand)</td><td>Min 15%, Max 40%</td></tr></tbody></table><p><strong>Quarterly Rebalancing:</strong></p><p>Every quarter (end of Mar/Jun/Sep/Dec), evaluate portfolio and reallocate:</p><div class="language- vp-adaptive-theme"><button title="Copy Code" class="copy"></button><span class="lang"></span><pre class="shiki shiki-themes github-light github-dark vp-code" tabindex="0"><code><span class="line"><span>Current Mix (Q1 2026): V1=35%, V2=25%, V3=20%, V4=15%, V5=10% (HHI=1575)</span></span>
+<span class="line"><span>Target Mix (Q2 2026): V1=28%, V2=27%, V3=22%, V4=18%, V5=5% (HHI=1443)</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>Realignment Actions:</span></span>
+<span class="line"><span>  - Reduce V1 allocation by 7% (shift 2-3 agents to V2/V4)</span></span>
+<span class="line"><span>  - Increase V2 by 2% (focus on enterprise customers)</span></span>
+<span class="line"><span>  - Increase V4 by 3% (tap growing data science demand)</span></span>
+<span class="line"><span>  - Reduce V5 by 5% (one enterprise contract was anomaly, de-allocate)</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>Result (by Jun 30): HHI=1443 (more balanced, less concentration risk)</span></span></code></pre></div><h3 id="_6-2-scenario-testing-stress-tests" tabindex="-1">6.2 Scenario Testing &amp; Stress Tests <a class="header-anchor" href="#_6-2-scenario-testing-stress-tests" aria-label="Permalink to &quot;6.2 Scenario Testing &amp; Stress Tests&quot;">​</a></h3><p><strong>Annual Stress Test (run Q1, Q3):</strong></p><div class="language- vp-adaptive-theme"><button title="Copy Code" class="copy"></button><span class="lang"></span><pre class="shiki shiki-themes github-light github-dark vp-code" tabindex="0"><code><span class="line"><span>Test 1: Single Largest Venture Type Fails</span></span>
+<span class="line"><span>──────────────────────────────────────────</span></span>
+<span class="line"><span>Scenario: V2 Code market collapses (e.g., GitHub Copilot kills demand)</span></span>
+<span class="line"><span>  Current V2 revenue: $40/day (28% of portfolio)</span></span>
+<span class="line"><span>  Impact: Revenue drops to $103/day (from $143/day)</span></span>
+<span class="line"><span>  Net income: $56/day → $32/day (43% drop)</span></span>
+<span class="line"><span>  Runway: 75 days → 47 days</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>  Recovery path:</span></span>
+<span class="line"><span>    1. Reallocate 40 AH/day to V1, V3, V4 (less efficient, but keeps cash flowing)</span></span>
+<span class="line"><span>    2. Reduce COGS by model switching: -$3/day</span></span>
+<span class="line"><span>    3. Reduce headcount: -$10/day operating expense</span></span>
+<span class="line"><span>    4. New equilibrium: $114/day revenue, $18/day net (stable, but no growth)</span></span>
+<span class="line"><span>    5. Time to recovery: 4-6 months to rebuild via new markets</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>Test 2: Reserve Exhaustion Scenario</span></span>
+<span class="line"><span>────────────────────────────────────</span></span>
+<span class="line"><span>Scenario: Two consecutive months of negative revenue (e.g., system outage, regulatory action)</span></span>
+<span class="line"><span>  Reserve: $4,500</span></span>
+<span class="line"><span>  Daily burn (no revenue): $27 (COGS) + $27 (ops) = $54/day</span></span>
+<span class="line"><span>  Runway: 4,500 / 54 = 83 days</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>  If no recovery: Forced wind-down or acquisition by month 3</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>Test 3: Customer Churn Cascade</span></span>
+<span class="line"><span>──────────────────────────────</span></span>
+<span class="line"><span>Scenario: 3 of 5 largest customers churn in same quarter (e.g., poor service quality)</span></span>
+<span class="line"><span>  Current top 5 customers: 55% of revenue</span></span>
+<span class="line"><span>  Churn of 3: -33% revenue overnight</span></span>
+<span class="line"><span>  Revenue: $143/day → $96/day</span></span>
+<span class="line"><span>  Net income: $56/day → -$2/day (BREAK-EVEN)</span></span>
+<span class="line"><span>  Runway: Stable (not declining, but no growth)</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>  Recovery path:</span></span>
+<span class="line"><span>    1. Implement SLA improvements (99.5% uptime guarantee)</span></span>
+<span class="line"><span>    2. Hire customer success manager (1 FTE = $50k/year)</span></span>
+<span class="line"><span>    3. Sales blitz: target 5 new customers @ $3k/month each = +$15k/month</span></span>
+<span class="line"><span>    4. Time to recovery: 2-3 months</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>Test 4: Inflation / COGS Shock</span></span>
+<span class="line"><span>───────────────────────────────</span></span>
+<span class="line"><span>Scenario: LLM API costs increase 50% due to market pressure</span></span>
+<span class="line"><span>  Current COGS: $35/day</span></span>
+<span class="line"><span>  New COGS: $52.50/day</span></span>
+<span class="line"><span>  Revenue: $143/day</span></span>
+<span class="line"><span>  New net income: $56/day → $39/day (30% drop)</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>  Response options:</span></span>
+<span class="line"><span>    1. Raise prices (risky; customers shop for alternatives)</span></span>
+<span class="line"><span>    2. Switch to cheaper models (reduce quality)</span></span>
+<span class="line"><span>    3. Reduce utilization temporarily; invest in efficiency improvements</span></span>
+<span class="line"><span>    4. Negotiate volume discount with API providers</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>  Implemented: Model optimization + volume discount negotiation</span></span>
+<span class="line"><span>  Result: COGS increase to $42/day (only 20% impact), net income $47/day</span></span></code></pre></div><hr><h2 id="part-7-implementation-guardrails-policies" tabindex="-1">Part 7: Implementation Guardrails &amp; Policies <a class="header-anchor" href="#part-7-implementation-guardrails-policies" aria-label="Permalink to &quot;Part 7: Implementation Guardrails &amp; Policies&quot;">​</a></h2><h3 id="_7-1-decision-rules-for-operational-decisions" tabindex="-1">7.1 Decision Rules for Operational Decisions <a class="header-anchor" href="#_7-1-decision-rules-for-operational-decisions" aria-label="Permalink to &quot;7.1 Decision Rules for Operational Decisions&quot;">​</a></h3><p><strong>Auto-Scaling Policy:</strong></p><div class="language- vp-adaptive-theme"><button title="Copy Code" class="copy"></button><span class="lang"></span><pre class="shiki shiki-themes github-light github-dark vp-code" tabindex="0"><code><span class="line"><span>if utilization_rate &gt; 75% and runway &gt; 60 days:</span></span>
+<span class="line"><span>  → evaluate_and_propose_new_agent()</span></span>
+<span class="line"><span>  cost: $800</span></span>
+<span class="line"><span>  expected_payback: 6 months</span></span>
+<span class="line"><span>  authority: Director of Operations (or above)</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>if utilization_rate &gt; 90% and runway &lt; 30 days:</span></span>
+<span class="line"><span>  → skip_new_agent_investment()</span></span>
+<span class="line"><span>  reason: &quot;Cash preservation priority&quot;</span></span></code></pre></div><p><strong>Venture Type Discontinuation Policy:</strong></p><div class="language- vp-adaptive-theme"><button title="Copy Code" class="copy"></button><span class="lang"></span><pre class="shiki shiki-themes github-light github-dark vp-code" tabindex="0"><code><span class="line"><span>if (venture_margin &lt; 0.70 and venture_revenue &lt; 10% of portfolio)</span></span>
+<span class="line"><span>   or (customer_satisfaction &lt; 4.0/5.0 for 2+ consecutive months):</span></span>
+<span class="line"><span>  → propose_discontinuation()</span></span>
+<span class="line"><span>  review_period: 30 days</span></span>
+<span class="line"><span>  approval: CEO + 1 other executive</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>Example: V4 Data if margin drops due to price war</span></span>
+<span class="line"><span>  → If sustainable improvement unlikely, de-allocate</span></span>
+<span class="line"><span>  → Free 15+ AH/day for V2/V5 reallocation</span></span></code></pre></div><p><strong>Emergency Mode Triggers:</strong></p><div class="language- vp-adaptive-theme"><button title="Copy Code" class="copy"></button><span class="lang"></span><pre class="shiki shiki-themes github-light github-dark vp-code" tabindex="0"><code><span class="line"><span>if reserve_days &lt; 15:</span></span>
+<span class="line"><span>  → activate_emergency_mode()</span></span>
+<span class="line"><span>  → freeze_all_hiring()</span></span>
+<span class="line"><span>  → freeze_all_capex()</span></span>
+<span class="line"><span>  → escalate_to_board()</span></span>
+<span class="line"><span>  → daily_cash_reporting()</span></span>
+<span class="line"><span>  → renegotiate_vendor_contracts()</span></span></code></pre></div><h3 id="_7-2-financial-governance-audit" tabindex="-1">7.2 Financial Governance &amp; Audit <a class="header-anchor" href="#_7-2-financial-governance-audit" aria-label="Permalink to &quot;7.2 Financial Governance &amp; Audit&quot;">​</a></h3><p><strong>Monthly Close (Last Business Day):</strong></p><ol><li>Reconcile revenue by venture type</li><li>Reconcile COGS against invoices</li><li>Update reserve balance</li><li>Calculate HHI (concentration)</li><li>Assess runway and mode</li><li>Review deviations from plan</li><li>Generate management report for board</li></ol><p><strong>Quarterly Business Review (15 days after quarter-end):</strong></p><ol><li>Full P&amp;L presentation</li><li>Venture type performance review</li><li>Customer retention analysis</li><li>Stress test results</li><li>Board recommendations for Q+1 strategy</li><li>Update 12-month rolling forecast</li></ol><p><strong>Annual Audit:</strong></p><ol><li>Full financial audit by external firm</li><li>Tax return preparation</li><li>Compliance assessment</li><li>Risk assessment update</li><li>Strategic plan for following year</li></ol><hr><h2 id="summary-quick-reference" tabindex="-1">Summary &amp; Quick Reference <a class="header-anchor" href="#summary-quick-reference" aria-label="Permalink to &quot;Summary &amp; Quick Reference&quot;">​</a></h2><p><strong>Key Metrics to Monitor Daily:</strong></p><table tabindex="0"><thead><tr><th>Metric</th><th>Target</th><th>Warning Threshold</th><th>Emergency Threshold</th></tr></thead><tbody><tr><td>Revenue per AH (blended)</td><td>$1.60</td><td>&lt;$1.50</td><td>&lt;$1.30</td></tr><tr><td>Gross Margin %</td><td>75%</td><td>&lt;72%</td><td>&lt;65%</td></tr><tr><td>Operating Margin %</td><td>56%</td><td>&lt;50%</td><td>&lt;35%</td></tr><tr><td>Utilization Rate</td><td>70%</td><td>&lt;60%</td><td>&lt;40%</td></tr><tr><td>Reserve Runway (days)</td><td>75</td><td>30</td><td>15</td></tr><tr><td>Portfolio HHI</td><td>&lt;1400</td><td>1500</td><td>2000</td></tr><tr><td>Customer Concentration (top 1)</td><td>&lt;15%</td><td>20%</td><td>30%</td></tr></tbody></table><p><strong>Venture Type Margin Ranking (for allocation priority):</strong></p><div class="language- vp-adaptive-theme"><button title="Copy Code" class="copy"></button><span class="lang"></span><pre class="shiki shiki-themes github-light github-dark vp-code" tabindex="0"><code><span class="line"><span>1. V5 Org (93% margin) — highest</span></span>
+<span class="line"><span>2. V2 Code (90% margin)</span></span>
+<span class="line"><span>3. V1 Research (87% margin)</span></span>
+<span class="line"><span>4. V3 Content (83% margin)</span></span>
+<span class="line"><span>5. V4 Data (75% margin) — lowest</span></span></code></pre></div><p><strong>Reserve Management Rules of Thumb:</strong></p><ul><li>Add 1 new agent for every 60 days of runway above 90 days</li><li>Reinvest surplus only if runway ≥ 60 days</li><li>Freeze all growth if runway &lt; 30 days</li><li>Escalate to board if runway &lt; 15 days</li><li>Consider emergency financing if runway &lt; 7 days</li></ul>`,199)])])}const g=n(i,[["render",p]]);export{u as __pageData,g as default};

@@ -1,0 +1,50 @@
+{
+  "generated_at": "2026-06-08T12:00:00Z",
+  "total_repos": 173,
+  "with_python_requires": [
+    "HeliosCLI",
+    "Httpora",
+    "Parpoura",
+    "PhenoMCP",
+    "PhenoRuntime",
+    "QuadSGM",
+    "Tracera",
+    "agent-user-status",
+    "cheap-llm-mcp",
+    "dispatch-mcp",
+    "heliosBench",
+    "helioscope",
+    "phenoResearchEngine",
+    "phenodocs",
+    "phenodocs-scorecard-remediation",
+    "phenotype-dep-guard",
+    "phenotype-omlx",
+    "phenotype-py-extras",
+    "phenotype-request-id",
+    "portage",
+    "thegent",
+    "thegent-clean-wt-idea",
+    "thegent-clean-wt-parallel",
+    "thegent-clean-wt-policy",
+    "thegent-clean-wt-ruff"
+  ],
+  "with_requires_python": [],
+  "pinned_to_3_12": [
+    "Httpora",
+    "agent-user-status",
+    "cheap-llm-mcp",
+    "heliosBench",
+    "phenotype-dep-guard",
+    "portage"
+  ],
+  "pinned_to_3_13": [
+    "QuadSGM",
+    "Tracera",
+    "dispatch-mcp",
+    "thegent",
+    "thegent-clean-wt-idea",
+    "thegent-clean-wt-parallel",
+    "thegent-clean-wt-policy",
+    "thegent-clean-wt-ruff"
+  ]
+}

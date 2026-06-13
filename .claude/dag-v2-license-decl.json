@@ -1,0 +1,139 @@
+{
+  "task": "DAG L2-21 (pheno-license-decl)",
+  "schema_version": "v2",
+  "generated_at": "2026-06-08T21:13:30-07:00",
+  "branch_name": "chore/license-2026-06-08",
+  "commit_message": "chore(license): add dual MIT/Apache-2.0 license files",
+  "pushed": false,
+  "canonical_license_texts": {
+    "LICENSE-MIT": {
+      "source": "https://opensource.org/license/mit/ (SPDX: MIT)",
+      "copyright_holder": "KooshaPari",
+      "copyright_year": 2026,
+      "size_bytes": 1067,
+      "sha256": "f5b9f053051962b52309d086e148a01f8f25ec943321b3a51100eddcdaceaf3c",
+      "git_blob_sha1": "98a9ea2eb8330671bc3d1b48d9c387ae80a2636e"
+    },
+    "LICENSE-APACHE": {
+      "source": "https://www.apache.org/licenses/LICENSE-2.0.txt (SPDX: Apache-2.0)",
+      "copyright_holder": "KooshaPari",
+      "copyright_year": 2026,
+      "size_bytes": 10957,
+      "sha256": "6aba039755337e5db6af30474f49e3e0ff07b3864e91fc30eea3b194198e2817",
+      "git_blob_sha1": "f467fa5074a3551407753631be8c17c65b9adeb5"
+    }
+  },
+  "repos": [
+    {
+      "repo": "AgilePlus",
+      "repo_path": "/Users/kooshapari/CodeProjects/Phenotype/repos/AgilePlus",
+      "l1_audit": ".claude/dag-v2-audit-AgilePlus.json",
+      "l1_hygiene_score": 80,
+      "l1_license_state": "MISSING (declared in [workspace.package] but no top-level LICENSE file)",
+      "branch": "chore/license-2026-06-08",
+      "base_branch_audited": "chore/audit-AgilePlus-2026-06-08",
+      "parent_commit": "5d03f018526ffefad822d1b0d423804b6984a363",
+      "commit_sha": "52cdaac77af59584a37fe0c61991f336a9148e20",
+      "commit_short": "52cdaac7",
+      "commit_author": "Recovery Script <recovery@phenotype.local>",
+      "files_added": [
+        "LICENSE-MIT",
+        "LICENSE-APACHE"
+      ],
+      "pre_existing_license_file": null,
+      "validation": {
+        "LICENSE-MIT_sha256": "f5b9f053051962b52309d086e148a01f8f25ec943321b3a51100eddcdaceaf3c",
+        "LICENSE-MIT_sha256_match": true,
+        "LICENSE-APACHE_sha256": "6aba039755337e5db6af30474f49e3e0ff07b3864e91fc30eea3b194198e2817",
+        "LICENSE-APACHE_sha256_match": true,
+        "git_blob_identical_across_repos": true
+      }
+    },
+    {
+      "repo": "pheno",
+      "repo_path": "/Users/kooshapari/CodeProjects/Phenotype/repos/pheno",
+      "l1_audit": ".claude/dag-v2-audit-pheno.json",
+      "l1_hygiene_score": 84,
+      "l1_license_state": "WEAK (workspace.package declares MIT, top-level LICENSE-MIT present 1066B; adding canonical dual-license files for explicit SPDX declaration)",
+      "branch": "chore/license-2026-06-08",
+      "base_branch_audited": "chore/audit-pheno-2026-06-08",
+      "parent_commit": "42b4b0e",
+      "commit_sha": "057c615f833e860467a4f9b78cd399257c607d10",
+      "commit_short": "057c615f",
+      "commit_author": "pheno Decomposition <decompose@phenotype.local>",
+      "files_added": [
+        "LICENSE-MIT",
+        "LICENSE-APACHE"
+      ],
+      "pre_existing_license_file": "LICENSE (1066B, MIT, 2026 Phenotype) — preserved; not overwritten",
+      "validation": {
+        "LICENSE-MIT_sha256": "f5b9f053051962b52309d086e148a01f8f25ec943321b3a51100eddcdaceaf3c",
+        "LICENSE-MIT_sha256_match": true,
+        "LICENSE-APACHE_sha256": "6aba039755337e5db6af30474f49e3e0ff07b3864e91fc30eea3b194198e2817",
+        "LICENSE-APACHE_sha256_match": true,
+        "git_blob_identical_across_repos": true
+      },
+      "notes": [
+        "First commit (633c90e) accidentally included .yamlfmt + .yamllint staged by the parallel yamllint L2 agent; soft-reset to parent, unstaged those, recommitted cleanly as 057c615f."
+      ]
+    },
+    {
+      "repo": "localbase3",
+      "repo_path": "/Users/kooshapari/CodeProjects/Phenotype/repos/localbase3",
+      "l1_audit": ".claude/dag-v2-audit-localbase3.json",
+      "l1_hygiene_score": 71,
+      "l1_license_state": "WEAK (top-level LICENSE present 11358B MIT, but SPDX-2.0 dual-license declaration missing)",
+      "branch": "chore/license-2026-06-08",
+      "base_branch_audited": "chore/audit-localbase3-2026-06-08",
+      "parent_commit": "b2540acfe35d1f0a8fd853d47aa132dc63127b21",
+      "commit_sha": "63a9cf52ae3e1d140c92dd20fa08f37145f87de2",
+      "commit_short": "63a9cf5",
+      "commit_author": "pheno-auditor <kooshapari@pheno.dev>",
+      "files_added": [
+        "LICENSE-MIT",
+        "LICENSE-APACHE"
+      ],
+      "pre_existing_license_file": "LICENSE (11358B, MIT) — preserved; not overwritten",
+      "validation": {
+        "LICENSE-MIT_sha256": "f5b9f053051962b52309d086e148a01f8f25ec943321b3a51100eddcdaceaf3c",
+        "LICENSE-MIT_sha256_match": true,
+        "LICENSE-APACHE_sha256": "6aba039755337e5db6af30474f49e3e0ff07b3864e91fc30eea3b194198e2817",
+        "LICENSE-APACHE_sha256_match": true,
+        "git_blob_identical_across_repos": true
+      }
+    },
+    {
+      "repo": "Pyron",
+      "repo_path": "/Users/kooshapari/CodeProjects/Phenotype/repos/Pyron",
+      "l1_audit": ".claude/dag-v2-audit-Pyron.json",
+      "l1_hygiene_score": 80,
+      "l1_license_state": "WEAK (top-level LICENSE present 1066B MIT, but SPDX-2.0 dual-license declaration missing)",
+      "branch": "chore/license-2026-06-08",
+      "base_branch_audited": "main",
+      "parent_commit": "24a15e2c35b3ff7a39c77ffad8c228743d6050dc",
+      "commit_sha": "835b628ab6df7c12ca06b8d0873480ddf25cca4d",
+      "commit_short": "835b628",
+      "commit_author": "DAG-Audit <audit@phenotype.local>",
+      "files_added": [
+        "LICENSE-MIT",
+        "LICENSE-APACHE"
+      ],
+      "pre_existing_license_file": "LICENSE (1066B, MIT) — preserved; not overwritten",
+      "validation": {
+        "LICENSE-MIT_sha256": "f5b9f053051962b52309d086e148a01f8f25ec943321b3a51100eddcdaceaf3c",
+        "LICENSE-MIT_sha256_match": true,
+        "LICENSE-APACHE_sha256": "6aba039755337e5db6af30474f49e3e0ff07b3864e91fc30eea3b194198e2817",
+        "LICENSE-APACHE_sha256_match": true,
+        "git_blob_identical_across_repos": true
+      }
+    }
+  ],
+  "summary": {
+    "repos_processed": 4,
+    "commits_created": 4,
+    "files_added_total": 8,
+    "push_status": "NOT_PUSHED (per task instructions)",
+    "canonical_text_hash_match": "ALL 8 FILES MATCH canonical sha256 of standard MIT and Apache-2.0 texts (Copyright 2026 KooshaPari)",
+    "validation_passed": true
+  }
+}

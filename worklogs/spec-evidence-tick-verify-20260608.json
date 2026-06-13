@@ -1,0 +1,14 @@
+{
+  "generated_at": "2026-06-08T00:00:00Z",
+  "file": "PHENO_LAB_TICK.md",
+  "present": [
+    "heliosBench/SPEC.md",
+    "heliosBench/worklogs/",
+    "OmniRoute/worklogs/",
+    "helioscope/SPEC.md",
+    "phenotype-hub/SPEC.md",
+    "thegent/SPEC.md appendix",
+    "OmniRoute/SPEC.md appendix"
+  ],
+  "missing": []
+}

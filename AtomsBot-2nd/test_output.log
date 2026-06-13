@@ -1,0 +1,662 @@
+
+⎯⎯⎯⎯⎯⎯ Failed Tests 37 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/discord/framework/__tests__/ModalFormManager.test.ts > ModalFormManager > Form Lifecycle - Step Navigation > should skip step when condition returns false
+AssertionError: expected +0 to be 1 // Object.is equality
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 1[39m
+[31m+ 0[39m
+
+ ❯ src/discord/framework/__tests__/ModalFormManager.test.ts:277:45
+    275|       expect(activeSubmission).toBeDefined();
+    276|       expect(activeSubmission!.data).toEqual({ shouldShow: false });
+    277|       expect(activeSubmission!.currentStep).toBe(1);
+       |                                             ^
+    278|     });
+    279| 
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/37]⎯
+
+ FAIL  src/discord/framework/__tests__/ModalFormManager.test.ts > ModalFormManager > Form Lifecycle - Step Navigation > should complete form when all steps are skipped
+AssertionError: expected "emit" to be called with arguments: [ 'formCompleted', Any<Object> ][90m
+
+Received: 
+
+[1m  1st emit call:
+
+[22m[2m  [[22m
+[32m-   "formCompleted",[90m
+[32m-   Any<Object>,[90m
+[31m+   "templateRegistered",[90m
+[31m+   {[90m
+[31m+     "category": "test",[90m
+[31m+     "description": "A test form template",[90m
+[31m+     "id": "test-template",[90m
+[31m+     "name": "Test Template",[90m
+[31m+     "steps": [[90m
+[31m+       {[90m
+[31m+         "condition": [Function condition],[90m
+[31m+         "fields": [[90m
+[31m+           {[90m
+[31m+             "id": "test-field",[90m
+[31m+             "label": "Test Field",[90m
+[31m+             "maxLength": 100,[90m
+[31m+             "minLength": 1,[90m
+[31m+             "placeholder": "Enter text",[90m
+[31m+             "required": true,[90m
+[31m+             "style": 1,[90m
+[31m+             "type": "text",[90m
+[31m+           },[90m
+[31m+         ],[90m
+[31m+         "id": "conditional-step",[90m
+[31m+         "title": "Conditional Step",[90m
+[31m+       },[90m
+[31m+     ],[90m
+[31m+     "tags": [[90m
+[31m+       "test",[90m
+[31m+       "sample",[90m
+[31m+     ],[90m
+[31m+   },[90m
+[2m  ][22m
+
+[1m  2nd emit call:
+
+[22m[2m  [[22m
+[32m-   "formCompleted",[90m
+[32m-   Any<Object>,[90m
+[31m+   "formStarted",[90m
+[31m+   {[90m
+[31m+     "completed": false,[90m
+[31m+     "currentStep": 0,[90m
+[31m+     "data": {},[90m
+[31m+     "formId": "test-template",[90m
+[31m+     "timestamp": 2025-09-03T23:34:53.335Z,[90m
+[31m+     "userId": "user123",[90m
+[31m+   },[90m
+[2m  ][22m
+[39m[90m
+
+Number of calls: [1m2[22m
+[39m
+ ❯ src/discord/framework/__tests__/ModalFormManager.test.ts:298:23
+    296|       // Allow any immediate synchronous emits to be captured before a…
+    297|       await waitForPredicate(() => emitSpy.mock.calls.some(c => c[0] =…
+    298|       expect(emitSpy).toHaveBeenCalledWith("formCompleted", expect.any…
+       |                       ^
+    299|     });
+    300| 
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/37]⎯
+
+ FAIL  src/discord/framework/__tests__/ModalFormManager.test.ts > ModalFormManager > Form Lifecycle - Step Navigation > should throw error for invalid step
+AssertionError: promise resolved "undefined" instead of rejecting
+
+[32m- Expected:[39m 
+Error {
+  "message": "rejected promise",
+}
+
+[31m+ Received:[39m 
+undefined
+
+ ❯ src/discord/framework/__tests__/ModalFormManager.test.ts:310:7
+    308|       await expect(
+    309|         manager["showStep"](mockInteraction, sampleFormTemplate, submi…
+    310|       ).rejects.toThrow("Step 999 not found in template test-template"…
+       |       ^
+    311|     });
+    312|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/37]⎯
+
+ FAIL  src/discord/framework/__tests__/ModalFormManager.test.ts > ModalFormManager > Modal Submit Handling > should handle modal submit successfully
+AssertionError: expected "spy" to be called at least once
+ ❯ src/discord/framework/__tests__/ModalFormManager.test.ts:344:48
+    342| 
+    343|       // Check if any reply was called at all
+    344|       expect(mockModalSubmitInteraction.reply).toHaveBeenCalled();
+       |                                                ^
+    345|     });
+    346| 
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/37]⎯
+
+ FAIL  src/discord/framework/__tests__/ModalFormManager.test.ts > ModalFormManager > Modal Submit Handling > should handle invalid modal custom ID
+AssertionError: expected "spy" to be called with arguments: [ { …(2) } ][90m
+
+Number of calls: [1m0[22m
+[39m
+ ❯ src/discord/framework/__tests__/ModalFormManager.test.ts:352:48
+    350|       await manager.handleModalSubmit(mockModalSubmitInteraction);
+    351| 
+    352|       expect(mockModalSubmitInteraction.reply).toHaveBeenCalledWith({
+       |                                                ^
+    353|         content: "❌ Invalid form submission.",
+    354|         flags: MessageFlags.Ephemeral,
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/37]⎯
+
+ FAIL  src/discord/framework/__tests__/ModalFormManager.test.ts > ModalFormManager > Modal Submit Handling > should handle missing template
+AssertionError: expected "spy" to be called with arguments: [ { …(2) } ][90m
+
+Number of calls: [1m0[22m
+[39m
+ ❯ src/discord/framework/__tests__/ModalFormManager.test.ts:362:48
+    360|       await manager.handleModalSubmit(mockModalSubmitInteraction);
+    361| 
+    362|       expect(mockModalSubmitInteraction.reply).toHaveBeenCalledWith({
+       |                                                ^
+    363|         content: "❌ Form session not found or expired.",
+    364|         flags: MessageFlags.Ephemeral,
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/37]⎯
+
+ FAIL  src/discord/framework/__tests__/ModalFormManager.test.ts > ModalFormManager > Modal Submit Handling > should handle missing submission
+AssertionError: expected "spy" to be called with arguments: [ { …(2) } ][90m
+
+Number of calls: [1m0[22m
+[39m
+ ❯ src/discord/framework/__tests__/ModalFormManager.test.ts:374:48
+    372|       await manager.handleModalSubmit(mockModalSubmitInteraction);
+    373| 
+    374|       expect(mockModalSubmitInteraction.reply).toHaveBeenCalledWith({
+       |                                                ^
+    375|         content: "❌ Form session not found or expired.",
+    376|         flags: MessageFlags.Ephemeral,
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/37]⎯
+
+ FAIL  src/discord/framework/__tests__/ModalFormManager.test.ts > ModalFormManager > Modal Submit Handling > should handle invalid step index
+AssertionError: expected "spy" to be called with arguments: [ { …(2) } ][90m
+
+Number of calls: [1m0[22m
+[39m
+ ❯ src/discord/framework/__tests__/ModalFormManager.test.ts:388:48
+    386|       await manager.handleModalSubmit(mockModalSubmitInteraction);
+    387| 
+    388|       expect(mockModalSubmitInteraction.reply).toHaveBeenCalledWith({
+       |                                                ^
+    389|         content: "❌ Invalid form step.",
+    390|         flags: MessageFlags.Ephemeral,
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/37]⎯
+
+ FAIL  src/discord/framework/__tests__/ModalFormManager.test.ts > ModalFormManager > Modal Submit Handling > should handle validation errors
+AssertionError: expected "spy" to be called with arguments: [ { …(2) } ][90m
+
+Number of calls: [1m0[22m
+[39m
+ ❯ src/discord/framework/__tests__/ModalFormManager.test.ts:413:48
+    411|       await manager.handleModalSubmit(mockModalSubmitInteraction);
+    412| 
+    413|       expect(mockModalSubmitInteraction.reply).toHaveBeenCalledWith({
+       |                                                ^
+    414|         content: expect.stringContaining("Validation Errors"),
+    415|         flags: MessageFlags.Ephemeral,
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[9/37]⎯
+
+ FAIL  src/discord/framework/__tests__/ModalFormManager.test.ts > ModalFormManager > Modal Submit Handling > should handle multi-step form progression
+AssertionError: expected "spy" to be called with arguments: [ { …(3) } ][90m
+
+Number of calls: [1m0[22m
+[39m
+ ❯ src/discord/framework/__tests__/ModalFormManager.test.ts:436:48
+    434|       await manager.handleModalSubmit(mockModalSubmitInteraction);
+    435| 
+    436|       expect(mockModalSubmitInteraction.reply).toHaveBeenCalledWith({
+       |                                                ^
+    437|         content: expect.stringContaining("Step 1 completed"),
+    438|         flags: MessageFlags.Ephemeral,
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[10/37]⎯
+
+ FAIL  src/discord/framework/__tests__/ModalFormManager.test.ts > ModalFormManager > Modal Submit Handling > should handle already replied interaction
+AssertionError: expected "spy" to be called with arguments: [ { …(2) } ][90m
+
+Number of calls: [1m0[22m
+[39m
+ ❯ src/discord/framework/__tests__/ModalFormManager.test.ts:453:51
+    451|       await manager.handleModalSubmit(mockModalSubmitInteraction);
+    452| 
+    453|       expect(mockModalSubmitInteraction.followUp).toHaveBeenCalledWith…
+       |                                                   ^
+    454|         content: expect.stringContaining("Something went wrong"),
+    455|         flags: MessageFlags.Ephemeral,
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[11/37]⎯
+
+ FAIL  src/discord/framework/__tests__/ModalFormManager.test.ts > ModalFormManager > Modal Submit Handling > should handle modal submit errors gracefully
+AssertionError: expected "spy" to be called with arguments: [ …(2) ][90m
+
+Number of calls: [1m0[22m
+[39m
+ ❯ src/discord/framework/__tests__/ModalFormManager.test.ts:469:26
+    467|       await manager.handleModalSubmit(mockModalSubmitInteraction);
+    468| 
+    469|       expect(consoleSpy).toHaveBeenCalledWith(
+       |                          ^
+    470|         "[ModalFormManager] Error handling modal submit:",
+    471|         expect.any(Error)
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[12/37]⎯
+
+ FAIL  src/discord/framework/__tests__/ModalFormManager.test.ts > ModalFormManager > Modal Submit Handling > should handle reply failures during error handling
+AssertionError: expected "spy" to be called with arguments: [ …(2) ][90m
+
+Number of calls: [1m0[22m
+[39m
+ ❯ src/discord/framework/__tests__/ModalFormManager.test.ts:488:26
+    486|       await manager.handleModalSubmit(mockModalSubmitInteraction);
+    487| 
+    488|       expect(consoleSpy).toHaveBeenCalledWith(
+       |                          ^
+    489|         "[ModalFormManager] Failed to send error response:",
+    490|         expect.any(Error)
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[13/37]⎯
+
+ FAIL  src/discord/framework/__tests__/ModalFormManager.test.ts > ModalFormManager > Field Validation > should validate required fields
+AssertionError: expected [ { field: 'Test Field', …(1) }, …(1) ] to have a length of 1 but got 2
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 1[39m
+[31m+ 2[39m
+
+ ❯ src/discord/framework/__tests__/ModalFormManager.test.ts:514:29
+    512| 
+    513|       expect(result.isValid).toBe(false);
+    514|       expect(result.errors).toHaveLength(1);
+       |                             ^
+    515|       expect(result.errors[0].message).toBe("This field is required");
+    516|     });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[14/37]⎯
+
+ FAIL  src/discord/framework/__tests__/ModalFormManager.test.ts > ModalFormManager > Field Validation > should validate email format
+AssertionError: expected true to be false // Object.is equality
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- false[39m
+[31m+ true[39m
+
+ ❯ src/discord/framework/__tests__/ModalFormManager.test.ts:562:30
+    560|       mockModalSubmitInteraction.fields.getTextInputValue.mockReturnVa…
+    561|       let result = manager["validateStep"](mockModalSubmitInteraction,…
+    562|       expect(result.isValid).toBe(false);
+       |                              ^
+    563|       expect(result.errors[0].message).toBe("Invalid email format");
+    564| 
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[15/37]⎯
+
+ FAIL  src/discord/framework/__tests__/ModalFormManager.test.ts > ModalFormManager > Field Validation > should validate URL format
+AssertionError: expected true to be false // Object.is equality
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- false[39m
+[31m+ true[39m
+
+ ❯ src/discord/framework/__tests__/ModalFormManager.test.ts:608:32
+    606|         mockModalSubmitInteraction.fields.getTextInputValue.mockReturn…
+    607|         const result = manager["validateStep"](mockModalSubmitInteract…
+    608|         expect(result.isValid).toBe(false);
+       |                                ^
+    609|         expect(result.errors[0].message).toBe("Please provide a valid …
+    610|       });
+ ❯ src/discord/framework/__tests__/ModalFormManager.test.ts:605:19
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[16/37]⎯
+
+ FAIL  src/discord/framework/__tests__/ModalFormManager.test.ts > ModalFormManager > Field Validation > should validate number format
+AssertionError: expected true to be false // Object.is equality
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- false[39m
+[31m+ true[39m
+
+ ❯ src/discord/framework/__tests__/ModalFormManager.test.ts:627:30
+    625|       mockModalSubmitInteraction.fields.getTextInputValue.mockReturnVa…
+    626|       let result = manager["validateStep"](mockModalSubmitInteraction,…
+    627|       expect(result.isValid).toBe(false);
+       |                              ^
+    628|       expect(result.errors[0].message).toBe("Must be a valid number");
+    629| 
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[17/37]⎯
+
+ FAIL  src/discord/framework/__tests__/ModalFormManager.test.ts > ModalFormManager > Field Validation > should validate with pattern regex
+AssertionError: expected true to be false // Object.is equality
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- false[39m
+[31m+ true[39m
+
+ ❯ src/discord/framework/__tests__/ModalFormManager.test.ts:655:30
+    653|       mockModalSubmitInteraction.fields.getTextInputValue.mockReturnVa…
+    654|       let result = manager["validateStep"](mockModalSubmitInteraction,…
+    655|       expect(result.isValid).toBe(false);
+       |                              ^
+    656|       expect(result.errors[0].message).toBe("Invalid format");
+    657| 
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[18/37]⎯
+
+ FAIL  src/discord/framework/__tests__/ModalFormManager.test.ts > ModalFormManager > Field Validation > should validate with custom validator returning boolean
+AssertionError: expected true to be false // Object.is equality
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- false[39m
+[31m+ true[39m
+
+ ❯ src/discord/framework/__tests__/ModalFormManager.test.ts:680:30
+    678|       mockModalSubmitInteraction.fields.getTextInputValue.mockReturnVa…
+    679|       let result = manager["validateStep"](mockModalSubmitInteraction,…
+    680|       expect(result.isValid).toBe(false);
+       |                              ^
+    681|       expect(result.errors[0].message).toBe("Invalid value");
+    682| 
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[19/37]⎯
+
+ FAIL  src/discord/framework/__tests__/ModalFormManager.test.ts > ModalFormManager > Field Validation > should validate with custom validator returning string
+AssertionError: expected true to be false // Object.is equality
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- false[39m
+[31m+ true[39m
+
+ ❯ src/discord/framework/__tests__/ModalFormManager.test.ts:705:30
+    703|       mockModalSubmitInteraction.fields.getTextInputValue.mockReturnVa…
+    704|       const result = manager["validateStep"](mockModalSubmitInteractio…
+    705|       expect(result.isValid).toBe(false);
+       |                              ^
+    706|       expect(result.errors[0].message).toBe("Too short!");
+    707|     });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[20/37]⎯
+
+ FAIL  src/discord/framework/__tests__/ModalFormManager.test.ts > ModalFormManager > Form Completion > should complete form successfully
+AssertionError: expected "emit" to be called with arguments: [ 'formCompleted', …(1) ][90m
+
+Number of calls: [1m0[22m
+[39m
+ ❯ src/discord/framework/__tests__/ModalFormManager.test.ts:777:23
+    775|       await manager.handleModalSubmit(mockModalSubmitInteraction);
+    776| 
+    777|       expect(emitSpy).toHaveBeenCalledWith("formCompleted", {
+       |                       ^
+    778|         template: sampleFormTemplate,
+    779|         submission: expect.any(Object),
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[21/37]⎯
+
+ FAIL  src/discord/framework/__tests__/ModalFormManager.test.ts > ModalFormManager > Form Completion > should handle completion acknowledgment failure
+AssertionError: expected "warn" to be called with arguments: [ …(2) ][90m
+
+Number of calls: [1m0[22m
+[39m
+ ❯ src/discord/framework/__tests__/ModalFormManager.test.ts:802:26
+    800|       await manager.handleModalSubmit(mockModalSubmitInteraction);
+    801| 
+    802|       expect(consoleSpy).toHaveBeenCalledWith(
+       |                          ^
+    803|         "ModalFormManager: failed to ack modal submission",
+    804|         expect.any(Error)
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[22/37]⎯
+
+ FAIL  src/discord/framework/__tests__/ModalFormManager.test.ts > ModalFormManager > Form Completion > should send summary embed for non-bug templates
+AssertionError: expected "spy" to be called with arguments: [ { embeds: Any<Array>, flags: 64 } ][90m
+
+Number of calls: [1m0[22m
+[39m
+ ❯ src/discord/framework/__tests__/ModalFormManager.test.ts:836:51
+    834|       await manager.handleModalSubmit(mockModalSubmitInteraction);
+    835| 
+    836|       expect(mockModalSubmitInteraction.followUp).toHaveBeenCalledWith…
+       |                                                   ^
+    837|         embeds: expect.any(Array),
+    838|         flags: MessageFlags.Ephemeral,
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[23/37]⎯
+
+ FAIL  src/discord/framework/__tests__/ModalFormManager.test.ts > ModalFormManager > Form Completion > should handle summary follow-up failure
+AssertionError: expected "warn" to be called with arguments: [ …(2) ][90m
+
+Number of calls: [1m0[22m
+[39m
+ ❯ src/discord/framework/__tests__/ModalFormManager.test.ts:852:26
+    850|       await manager.handleModalSubmit(mockModalSubmitInteraction);
+    851| 
+    852|       expect(consoleSpy).toHaveBeenCalledWith(
+       |                          ^
+    853|         "ModalFormManager: failed to send summary follow-up",
+    854|         expect.any(Error)
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[24/37]⎯
+
+ FAIL  src/discord/framework/__tests__/ModalFormManager.test.ts > ModalFormManager > Form Completion > should filter complex objects from summary
+AssertionError: expected "spy" to be called with arguments: [][90m
+
+Number of calls: [1m0[22m
+[39m
+ ❯ src/discord/framework/__tests__/ModalFormManager.test.ts:875:28
+    873| 
+    874|       // Should only include simple fields in summary
+    875|       expect(EmbedBuilder).toHaveBeenCalledWith();
+       |                            ^
+    876|     });
+    877|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[25/37]⎯
+
+ FAIL  src/discord/framework/__tests__/ModalFormManager.test.ts > ModalFormManager > Submission Management > should get user submissions
+AssertionError: expected [] to have a length of 1 but got +0
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 1[39m
+[31m+ 0[39m
+
+ ❯ src/discord/framework/__tests__/ModalFormManager.test.ts:918:27
+    916| 
+    917|       const submissions = manager.getUserSubmissions("user123");
+    918|       expect(submissions).toHaveLength(1);
+       |                           ^
+    919|       expect(submissions[0].userId).toBe("user123");
+    920|     });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[26/37]⎯
+
+ FAIL  src/discord/framework/__tests__/ModalFormManager.test.ts > ModalFormManager > Submission Management > should get template submissions
+AssertionError: expected [] to have a length of 1 but got +0
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 1[39m
+[31m+ 0[39m
+
+ ❯ src/discord/framework/__tests__/ModalFormManager.test.ts:928:27
+    926| 
+    927|       const submissions = manager.getTemplateSubmissions("test-templat…
+    928|       expect(submissions).toHaveLength(1);
+       |                           ^
+    929|       expect(submissions[0].formId).toBe("test-template");
+    930|     });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[27/37]⎯
+
+ FAIL  src/discord/framework/__tests__/ModalFormManager.test.ts > ModalFormManager > Additional Coverage Tests > should handle validation with null interaction fields
+AssertionError: expected [ { field: 'Test Field', …(1) }, …(1) ] to have a length of 1 but got 2
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 1[39m
+[31m+ 2[39m
+
+ ❯ src/discord/framework/__tests__/ModalFormManager.test.ts:982:29
+    980|       const result = manager["validateStep"](nullFieldsInteraction, te…
+    981|       expect(result.isValid).toBe(false);
+    982|       expect(result.errors).toHaveLength(1);
+       |                             ^
+    983|     });
+    984| 
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[28/37]⎯
+
+ FAIL  src/discord/framework/__tests__/ModalFormManager.test.ts > ModalFormManager > Additional Coverage Tests > should handle form completion with null followUp method
+AssertionError: expected "warn" to be called with arguments: [ …(2) ][90m
+
+Number of calls: [1m0[22m
+[39m
+ ❯ src/discord/framework/__tests__/ModalFormManager.test.ts:1066:26
+    1064|       await manager.handleModalSubmit(mockModalSubmitInteraction);
+    1065| 
+    1066|       expect(consoleSpy).toHaveBeenCalledWith(
+       |                          ^
+    1067|         "ModalFormManager: failed to send summary follow-up",
+    1068|         expect.any(Error)
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[29/37]⎯
+
+ FAIL  src/discord/framework/__tests__/ModalFormManager.test.ts > ModalFormManager > Additional Coverage Tests > should handle template condition function errors
+AssertionError: expected "spy" to be called at least once
+ ❯ src/discord/framework/__tests__/ModalFormManager.test.ts:1095:26
+    1093| 
+    1094|       // Should handle condition errors gracefully
+    1095|       expect(consoleSpy).toHaveBeenCalled();
+       |                          ^
+    1096|       consoleSpy.mockRestore();
+    1097|     });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[30/37]⎯
+
+ FAIL  src/discord/framework/__tests__/ModalFormManager.test.ts > ModalFormManager > Additional Coverage Tests > should handle complex validation chains with dependencies
+AssertionError: expected "spy" to be called with arguments: [ { …(2) } ][90m
+
+Number of calls: [1m0[22m
+[39m
+ ❯ src/discord/framework/__tests__/ModalFormManager.test.ts:1269:50
+    1267|         await manager.handleModalSubmit(mockModalSubmitInteraction);
+    1268| 
+    1269|         expect(mockModalSubmitInteraction.reply).toHaveBeenCalledWith({
+       |                                                  ^
+    1270|           content: expect.stringContaining("Validation Errors"),
+    1271|           flags: MessageFlags.Ephemeral,
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[31/37]⎯
+
+ FAIL  src/discord/framework/__tests__/ModalFormManager.test.ts > ModalFormManager > Additional Coverage Tests > should handle multi-step forms with complex branching logic
+AssertionError: expected +0 to be 1 // Object.is equality
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 1[39m
+[31m+ 0[39m
+
+ ❯ src/discord/framework/__tests__/ModalFormManager.test.ts:1452:39
+    1450|       
+    1451|       let submission = manager.getActiveSubmission("user123");
+    1452|       expect(submission?.currentStep).toBe(1); // Should go to path A
+       |                                       ^
+    1453| 
+    1454|       // Test Path B by cancelling and restarting
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[32/37]⎯
+
+ FAIL  src/discord/framework/__tests__/ModalFormManager.test.ts > ModalFormManager > Global Instance > should have cleanup interval setup
+TypeError: [Function setInterval] is not a spy or a call to a spy!
+ ❯ src/discord/framework/__tests__/ModalFormManager.test.ts:1558:27
+    1556|     it("should have cleanup interval setup", () => {
+    1557|       // The global instance should have the interval set up
+    1558|       expect(setInterval).toHaveBeenCalled();
+       |                           ^
+    1559|     });
+    1560|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[33/37]⎯
+
+ FAIL  src/discord/framework/__tests__/ModalFormManager.test.ts > ModalFormManager > Edge Cases and Error Scenarios > should handle submissions with no data fields
+AssertionError: expected "spy" to be called at least once
+ ❯ src/discord/framework/__tests__/ModalFormManager.test.ts:1766:39
+    1764|       await manager.handleModalSubmit(customInteraction);
+    1765| 
+    1766|       expect(customInteraction.reply).toHaveBeenCalled();
+       |                                       ^
+    1767|     });
+    1768|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[34/37]⎯
+
+ FAIL  src/discord/framework/__tests__/ModalFormManager.test.ts > ModalFormManager > Multi-Step Form Complex Scenarios > should handle multi-step form with mixed conditions
+AssertionError: expected +0 to be 1 // Object.is equality
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 1[39m
+[31m+ 0[39m
+
+ ❯ src/discord/framework/__tests__/ModalFormManager.test.ts:1809:39
+    1807|       // Should continue to step 3 (index 2)
+    1808|       const submission = manager.getActiveSubmission("user123");
+    1809|       expect(submission!.currentStep).toBe(1); // Will be incremented …
+       |                                       ^
+    1810|     });
+    1811| 
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[35/37]⎯
+
+ FAIL  src/discord/framework/__tests__/ModalFormManager.test.ts > ModalFormManager > Multi-Step Form Complex Scenarios > should handle button callback for next step
+AssertionError: expected 0 to be greater than 0
+ ❯ src/discord/framework/__tests__/ModalFormManager.test.ts:1848:37
+    1846|           const sub = manager.getActiveSubmission('user123');
+    1847|           if (sub) {
+    1848|             expect(sub.currentStep).toBeGreaterThan(0);
+       |                                     ^
+    1849|           } else {
+    1850|             // Assert the manager flagged readiness for next step
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[36/37]⎯
+
+ FAIL  src/discord/framework/__tests__/ModalFormManager.test.ts > ModalFormManager > Multi-Step Form Complex Scenarios > should handle button callback errors
+AssertionError: expected false to be true // Object.is equality
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- true[39m
+[31m+ false[39m
+
+ ❯ src/discord/framework/__tests__/ModalFormManager.test.ts:1929:66
+    1927|         if (!rowReply) {
+    1928|           const cont = (manager as any).__testLastContinuePayload;
+    1929|           expect((manager as any).__testNextStepReady || !!cont).toBe(…
+       |                                                                  ^
+    1930|         } else {
+    1931|           expect(rowReply).toBeDefined();
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[37/37]⎯
+

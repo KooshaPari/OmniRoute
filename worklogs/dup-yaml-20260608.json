@@ -1,0 +1,4917 @@
+{
+  "generated_at": "2026-06-08T09:48:07Z",
+  "total_repos": 126,
+  "near_duplicate_yamls": [
+    {
+      "name": "--bug-report.yaml",
+      "repos": [
+        "AgilePlus",
+        "PhenoProject",
+        "Planify"
+      ]
+    },
+    {
+      "name": "--feature-request.yaml",
+      "repos": [
+        "AgilePlus",
+        "PhenoProject",
+        "Planify"
+      ]
+    },
+    {
+      "name": ".coderabbit.yaml",
+      "repos": [
+        "Civis",
+        "Dino",
+        "HeliosCLI",
+        "HeliosLab",
+        "HexaKit",
+        "Parpoura",
+        "PhenoDevOps",
+        "PhenoProc",
+        "Pyron",
+        "QuadSGM",
+        "Tokn",
+        "Tracera",
+        "agentapi-plusplus",
+        "cliproxyapi-plusplus",
+        "heliosApp",
+        "helioscope",
+        "pheno",
+        "phenodocs",
+        "phenodocs-scorecard-remediation",
+        "phenotype-tooling",
+        "portage"
+      ]
+    },
+    {
+      "name": ".commitlintrc.yml",
+      "repos": [
+        "Dino",
+        "HexaKit",
+        "PhenoDevOps",
+        "Pyron",
+        "pheno"
+      ]
+    },
+    {
+      "name": ".fossa.yaml",
+      "repos": [
+        "PhenoDevOps",
+        "PhenoProc",
+        "Pyron",
+        "pheno"
+      ]
+    },
+    {
+      "name": ".gitguardian.yml",
+      "repos": [
+        "heliosApp",
+        "phenotype-tooling"
+      ]
+    },
+    {
+      "name": ".golangci.yml",
+      "repos": [
+        "HexaKit",
+        "MCPForge",
+        "PhenoDevOps",
+        "PhenoMCP",
+        "PhenoRuntime",
+        "Tokn",
+        "Tracera",
+        "agentapi-plusplus",
+        "cliproxyapi-plusplus",
+        "kwality",
+        "phenotype-ops-mcp",
+        "thegent",
+        "thegent-clean",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "name": ".goreleaser.yaml",
+      "repos": [
+        "PlatformKit",
+        "argis-extensions"
+      ]
+    },
+    {
+      "name": ".markdownlint-cli2.yaml",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "name": ".markdownlint.yaml",
+      "repos": [
+        "phenodocs",
+        "phenodocs-scorecard-remediation"
+      ]
+    },
+    {
+      "name": ".mcp-testing.yaml",
+      "repos": [
+        "HexaKit",
+        "Pyron",
+        "pheno"
+      ]
+    },
+    {
+      "name": ".pre-commit-config.base.yaml",
+      "repos": [
+        "HexaKit",
+        "PhenoDevOps",
+        "Pyron",
+        "pheno",
+        "thegent",
+        "thegent-clean",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "name": ".pre-commit-config.yaml",
+      "repos": [
+        "Agentora",
+        "AgilePlus",
+        "Apisync",
+        "AtomsBot",
+        "AuthKit",
+        "Benchora",
+        "BytePort",
+        "Civis",
+        "Conft",
+        "DataKit",
+        "DevHex",
+        "Dino",
+        "Eidolon",
+        "FocalPoint",
+        "GDK",
+        "HeliosCLI",
+        "HeliosLab",
+        "HexaKit",
+        "Httpora",
+        "KDesktopVirt",
+        "KlipDot",
+        "MCPForge",
+        "McpKit",
+        "Metron",
+        "ObservabilityKit",
+        "Paginary",
+        "Parpoura",
+        "PhenoAgent",
+        "PhenoCompose",
+        "PhenoDevOps",
+        "PhenoHandbook",
+        "PhenoKits",
+        "PhenoMCP",
+        "PhenoObservability",
+        "PhenoPlugins",
+        "PhenoProc",
+        "PhenoProject",
+        "PhenoRuntime",
+        "PhenoSpecs",
+        "PhenoVCS",
+        "Planify",
+        "PlayCua",
+        "PolicyStack",
+        "Pyron",
+        "QuadSGM",
+        "ResilienceKit",
+        "Sidekick",
+        "Tasken",
+        "Tokn",
+        "Tracely",
+        "Tracera",
+        "agent-devops-setups",
+        "agent-user-status",
+        "agentapi-plusplus",
+        "argis-extensions",
+        "bare-cua",
+        "byteport-landing",
+        "cheap-llm-mcp",
+        "cliproxyapi-plusplus",
+        "dinoforge-packs",
+        "eyetracker",
+        "foqos-private",
+        "heliosApp",
+        "heliosBench",
+        "helioscope",
+        "kwality",
+        "nanovms",
+        "netweave-final2",
+        "pheno",
+        "phenoAI",
+        "phenoData",
+        "phenoDesign",
+        "phenoForge",
+        "phenoResearchEngine",
+        "phenoShared",
+        "phenoUtils",
+        "phenoXdd",
+        "phenodocs",
+        "phenodocs-scorecard-remediation",
+        "phenokits-landing",
+        "phenotype-auth-ts",
+        "phenotype-bus",
+        "phenotype-hub",
+        "phenotype-infra",
+        "phenotype-journeys",
+        "phenotype-org-audits",
+        "phenotype-registry",
+        "phenotype-tooling",
+        "portage",
+        "rich-cli-kit",
+        "thegent",
+        "thegent-clean",
+        "thegent-clean-wt-docs",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff",
+        "thegent-dispatch",
+        "vibeproxy",
+        "vibeproxy-monitoring-unified"
+      ]
+    },
+    {
+      "name": ".pre-commit-hooks.yaml",
+      "repos": [
+        "phenoShared",
+        "phenodocs"
+      ]
+    },
+    {
+      "name": ".qodo.yaml",
+      "repos": [
+        "thegent",
+        "thegent-clean",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "name": ".rubocop.yml",
+      "repos": [
+        "thegent",
+        "thegent-clean",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "name": ".semgrep.yml",
+      "repos": [
+        "HexaKit",
+        "PhenoDevOps",
+        "PhenoKits",
+        "PhenoProc",
+        "PolicyStack",
+        "Pyron",
+        "Tracera",
+        "pheno",
+        "phenotype-tooling"
+      ]
+    },
+    {
+      "name": ".template.ci.yml",
+      "repos": [
+        "HexaKit",
+        "Pyron",
+        "pheno"
+      ]
+    },
+    {
+      "name": ".template.pre-commit.yaml",
+      "repos": [
+        "HexaKit",
+        "Pyron",
+        "pheno"
+      ]
+    },
+    {
+      "name": ".test-config.yaml",
+      "repos": [
+        "thegent",
+        "thegent-clean",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "name": ".trufflehog.yml",
+      "repos": [
+        "Agentora",
+        "AgilePlus",
+        "AuthKit",
+        "Benchora",
+        "MCPForge",
+        "PhenoMCP",
+        "PhenoObservability",
+        "PhenoPlugins",
+        "PhenoProc",
+        "Planify",
+        "cliproxyapi-plusplus",
+        "heliosApp",
+        "phenoShared",
+        "phenodocs",
+        "phenotype-tooling",
+        "thegent",
+        "thegent-clean"
+      ]
+    },
+    {
+      "name": "1-codex-app.yml",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "2-extension.yml",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "3-cli.yml",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "4-bug-report.yml",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "5-feature-request.yml",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "6-docs-issue.yml",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "CONSTITUTION.yaml",
+      "repos": [
+        "heliosApp",
+        "phenotype-tooling",
+        "thegent",
+        "thegent-clean",
+        "thegent-clean-wt-docs",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "name": "FUNDING.yml",
+      "repos": [
+        "AgentMCP",
+        "Agentora",
+        "Apisync",
+        "AtomsBot",
+        "AuthKit",
+        "Benchora",
+        "BytePort",
+        "Civis",
+        "Conft",
+        "DINOForge-UnityDoorstop",
+        "DataKit",
+        "DevHex",
+        "Dino",
+        "Eidolon",
+        "Eventra",
+        "FocalPoint",
+        "GDK",
+        "HeliosCLI",
+        "HeliosLab",
+        "HexaKit",
+        "Httpora",
+        "KDesktopVirt",
+        "KaskMan",
+        "KlipDot",
+        "MCPForge",
+        "McpKit",
+        "Metron",
+        "ObservabilityKit",
+        "Paginary",
+        "Parpoura",
+        "PhenoAgent",
+        "PhenoCompose",
+        "PhenoDevOps",
+        "PhenoHandbook",
+        "PhenoKits",
+        "PhenoMCP",
+        "PhenoObservability",
+        "PhenoPlugins",
+        "PhenoProc",
+        "PhenoProject",
+        "PhenoRuntime",
+        "PhenoSpecs",
+        "PhenoVCS",
+        "Pine",
+        "Planify",
+        "PlayCua",
+        "PolicyStack",
+        "QuadSGM",
+        "ResilienceKit",
+        "Sidekick",
+        "Tasken",
+        "TestingKit",
+        "Tokn",
+        "Tracely",
+        "Tracera",
+        "agent-devops-setups",
+        "agent-user-status",
+        "agentapi-plusplus",
+        "agileplus-landing",
+        "argis-extensions",
+        "bare-cua",
+        "byteport-landing",
+        "chatta",
+        "cheap-llm-mcp",
+        "cliproxyapi-plusplus",
+        "dinoforge-packs",
+        "eyetracker",
+        "foqos-private",
+        "heliosApp",
+        "heliosBench",
+        "helioscope",
+        "hwLedger",
+        "kwality",
+        "localbase3",
+        "nanovms",
+        "pheno",
+        "phenoAI",
+        "phenoData",
+        "phenoDesign",
+        "phenoForge",
+        "phenoResearchEngine",
+        "phenoShared",
+        "phenoUtils",
+        "phenoXdd",
+        "phenodocs",
+        "phenodocs-scorecard-remediation",
+        "phenokits-landing",
+        "phenotype-auth-ts",
+        "phenotype-bus",
+        "phenotype-hub",
+        "phenotype-infra",
+        "phenotype-journeys",
+        "phenotype-omlx",
+        "phenotype-ops-mcp",
+        "phenotype-org-audits",
+        "phenotype-registry",
+        "phenotype-tooling",
+        "portage",
+        "rich-cli-kit",
+        "thegent",
+        "thegent-clean",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-ruff",
+        "thegent-dispatch",
+        "vibeproxy",
+        "vibeproxy-monitoring-unified"
+      ]
+    },
+    {
+      "name": "PHASE1_TRACKER.yml",
+      "repos": [
+        "HexaKit",
+        "PhenoDevOps",
+        "Pyron",
+        "pheno"
+      ]
+    },
+    {
+      "name": "TASK_CLASSIFIER_SCHEMA.yaml",
+      "repos": [
+        "thegent",
+        "thegent-clean",
+        "thegent-clean-wt-docs",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "name": "Taskfile.bash.yml",
+      "repos": [
+        "thegent",
+        "thegent-clean",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "name": "Taskfile.distribute.yml",
+      "repos": [
+        "thegent",
+        "thegent-clean",
+        "thegent-clean-wt-docs",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "name": "Taskfile.go.yml",
+      "repos": [
+        "thegent",
+        "thegent-clean",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "name": "Taskfile.python.yml",
+      "repos": [
+        "thegent",
+        "thegent-clean",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "name": "Taskfile.quality.yml",
+      "repos": [
+        "thegent",
+        "thegent-clean",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "name": "Taskfile.rust.yml",
+      "repos": [
+        "thegent",
+        "thegent-clean",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "name": "Taskfile.typescript.yml",
+      "repos": [
+        "thegent",
+        "thegent-clean",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "name": "Taskfile.yml",
+      "repos": [
+        "Agentora",
+        "Apisync",
+        "AuthKit",
+        "Benchora",
+        "BytePort",
+        "Civis",
+        "Conft",
+        "DataKit",
+        "DevHex",
+        "Dino",
+        "Eidolon",
+        "GDK",
+        "HeliosCLI",
+        "HeliosLab",
+        "HexaKit",
+        "KDesktopVirt",
+        "MCPForge",
+        "McpKit",
+        "Metron",
+        "NetScript",
+        "ObservabilityKit",
+        "Paginary",
+        "Parpoura",
+        "PhenoAgent",
+        "PhenoCompose",
+        "PhenoDevOps",
+        "PhenoHandbook",
+        "PhenoKits",
+        "PhenoMCP",
+        "PhenoObservability",
+        "PhenoPlugins",
+        "PhenoProc",
+        "PhenoProject",
+        "PhenoSpecs",
+        "PhenoVCS",
+        "Planify",
+        "PlatformKit",
+        "PlayCua",
+        "PolicyStack",
+        "Pyron",
+        "QuadSGM",
+        "ResilienceKit",
+        "Sidekick",
+        "Tasken",
+        "TestingKit",
+        "Tokn",
+        "Tracely",
+        "Tracera",
+        "agent-devops-setups",
+        "agent-user-status",
+        "agentapi-plusplus",
+        "agileplus-landing",
+        "agslag-docs",
+        "argis-extensions",
+        "bare-cua",
+        "byteport-landing",
+        "chatta",
+        "cheap-llm-mcp",
+        "cliproxyapi-plusplus",
+        "dinoforge-packs",
+        "eyetracker",
+        "foqos-private",
+        "forgecode",
+        "heliosApp",
+        "heliosBench",
+        "helioscope",
+        "nanovms",
+        "pheno",
+        "phenoAI",
+        "phenoData",
+        "phenoDesign",
+        "phenoResearchEngine",
+        "phenoShared",
+        "phenoUtils",
+        "phenoXdd",
+        "phenodocs",
+        "phenodocs-scorecard-remediation",
+        "phenokits-landing",
+        "phenotype-auth-ts",
+        "phenotype-bus",
+        "phenotype-infra",
+        "phenotype-journeys",
+        "phenotype-omlx",
+        "phenotype-ops-mcp",
+        "phenotype-org-audits",
+        "phenotype-tooling",
+        "portage",
+        "rich-cli-kit",
+        "thegent",
+        "thegent-clean",
+        "thegent-clean-wt-docs",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff",
+        "thegent-dispatch"
+      ]
+    },
+    {
+      "name": "Taskfile.zig.yml",
+      "repos": [
+        "thegent",
+        "thegent-clean",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "name": "action.yml",
+      "repos": [
+        "HeliosCLI",
+        "HexaKit",
+        "Pyron",
+        "helioscope",
+        "pheno"
+      ]
+    },
+    {
+      "name": "adr_001.yaml",
+      "repos": [
+        "PhenoPlugins",
+        "PhenoProc",
+        "Tracely",
+        "phenoResearchEngine"
+      ]
+    },
+    {
+      "name": "adr_002.yaml",
+      "repos": [
+        "PhenoProc",
+        "phenoResearchEngine"
+      ]
+    },
+    {
+      "name": "agent-dir-guard.yml",
+      "repos": [
+        "heliosApp",
+        "phenotype-tooling"
+      ]
+    },
+    {
+      "name": "ai-testing-orchestration.yml",
+      "repos": [
+        "HexaKit",
+        "Pyron",
+        "pheno"
+      ]
+    },
+    {
+      "name": "ai-testing.yml",
+      "repos": [
+        "AgilePlus",
+        "HexaKit",
+        "Pyron",
+        "nanovms",
+        "pheno",
+        "phenotype-tooling",
+        "thegent",
+        "thegent-clean",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "name": "ai-traceability.yaml",
+      "repos": [
+        "Conft",
+        "PhenoProc",
+        "PolicyStack",
+        "Tokn",
+        "phenotype-tooling"
+      ]
+    },
+    {
+      "name": "alert-sync-issues.yml",
+      "repos": [
+        "Civis",
+        "Conft",
+        "HeliosCLI",
+        "HeliosLab",
+        "HexaKit",
+        "MCPForge",
+        "ObservabilityKit",
+        "Parpoura",
+        "PhenoDevOps",
+        "PhenoObservability",
+        "PhenoProject",
+        "Pyron",
+        "QuadSGM",
+        "Tokn",
+        "Tracera",
+        "agentapi-plusplus",
+        "cliproxyapi-plusplus",
+        "dinoforge-packs",
+        "heliosApp",
+        "helioscope",
+        "pheno",
+        "phenoShared",
+        "phenodocs",
+        "phenodocs-scorecard-remediation",
+        "phenotype-tooling",
+        "portage"
+      ]
+    },
+    {
+      "name": "application.yaml",
+      "repos": [
+        "HexaKit",
+        "PhenoKits"
+      ]
+    },
+    {
+      "name": "architecture-violations.yml",
+      "repos": [
+        "HexaKit",
+        "PhenoDevOps",
+        "PhenoProc",
+        "Pyron",
+        "cliproxyapi-plusplus",
+        "pheno",
+        "thegent",
+        "thegent-clean",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "name": "audit-hooks.yaml",
+      "repos": [
+        "PolicyStack",
+        "phenotype-tooling"
+      ]
+    },
+    {
+      "name": "audit.yml",
+      "repos": [
+        "HexaKit",
+        "PhenoDevOps",
+        "Pyron",
+        "pheno"
+      ]
+    },
+    {
+      "name": "auto-merge.yml",
+      "repos": [
+        "Conft",
+        "HexaKit",
+        "PhenoProc",
+        "QuadSGM",
+        "Tasken",
+        "cliproxyapi-plusplus"
+      ]
+    },
+    {
+      "name": "barracks.yaml",
+      "repos": [
+        "Dino",
+        "dinoforge-packs"
+      ]
+    },
+    {
+      "name": "base.yaml",
+      "repos": [
+        "PolicyStack",
+        "phenotype-tooling"
+      ]
+    },
+    {
+      "name": "bazel.yml",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "benchmark.yml",
+      "repos": [
+        "HexaKit",
+        "PhenoDevOps",
+        "PhenoKits",
+        "PhenoProc",
+        "PolicyStack",
+        "Pyron",
+        "Tokn",
+        "pheno",
+        "phenoForge",
+        "phenotype-tooling"
+      ]
+    },
+    {
+      "name": "benchmarks.yml",
+      "repos": [
+        "Conft",
+        "Dino",
+        "HexaKit",
+        "PhenoProc",
+        "Tasken",
+        "Tracera"
+      ]
+    },
+    {
+      "name": "blasters.yaml",
+      "repos": [
+        "Dino",
+        "dinoforge-packs"
+      ]
+    },
+    {
+      "name": "bounded-contexts.yaml",
+      "repos": [
+        "thegent",
+        "thegent-clean",
+        "thegent-clean-wt-docs",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "name": "branch-protection-audit.yml",
+      "repos": [
+        "HexaKit",
+        "PhenoKits",
+        "PhenoProc"
+      ]
+    },
+    {
+      "name": "buf.gen.yaml",
+      "repos": [
+        "HexaKit",
+        "PhenoDevOps",
+        "PhenoProc",
+        "Pyron",
+        "Tracera",
+        "argis-extensions",
+        "pheno"
+      ]
+    },
+    {
+      "name": "buf.yaml",
+      "repos": [
+        "HexaKit",
+        "PhenoDevOps",
+        "PhenoProc",
+        "Pyron",
+        "Tracera",
+        "argis-extensions",
+        "pheno",
+        "thegent",
+        "thegent-clean",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "name": "bug-report.yml",
+      "repos": [
+        "PhenoDevOps",
+        "PhenoPlugins",
+        "PhenoProc",
+        "Tracely",
+        "phenoDesign",
+        "phenoForge",
+        "phenodocs",
+        "thegent",
+        "thegent-clean",
+        "thegent-clean-wt-docs",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "name": "bug.yml",
+      "repos": [
+        "Apisync",
+        "Conft",
+        "HeliosLab",
+        "HexaKit",
+        "PhenoPlugins",
+        "PhenoProc",
+        "PolicyStack",
+        "Tasken",
+        "Tokn",
+        "Tracely",
+        "argis-extensions",
+        "pheno",
+        "phenoResearchEngine",
+        "phenoShared",
+        "phenodocs",
+        "phenotype-tooling",
+        "portage",
+        "thegent",
+        "thegent-clean",
+        "thegent-clean-wt-docs",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "name": "bug_report.yml",
+      "repos": [
+        "Benchora",
+        "BytePort",
+        "Civis",
+        "Conft",
+        "DataKit",
+        "Dino",
+        "HeliosCLI",
+        "HexaKit",
+        "OmniRoute",
+        "Parpoura",
+        "PhenoDevOps",
+        "PhenoObservability",
+        "PhenoProc",
+        "Pyron",
+        "QuadSGM",
+        "Tracera",
+        "agent-devops-setups",
+        "agentapi-plusplus",
+        "cliproxyapi-plusplus",
+        "heliosApp",
+        "helioscope",
+        "hwLedger",
+        "pheno",
+        "phenoXdd",
+        "phenotype-tooling",
+        "portage"
+      ]
+    },
+    {
+      "name": "build-branch.yml",
+      "repos": [
+        "PhenoProject",
+        "Planify"
+      ]
+    },
+    {
+      "name": "build.yml",
+      "repos": [
+        "PhenoProject",
+        "Planify",
+        "Tracera",
+        "chatta"
+      ]
+    },
+    {
+      "name": "cargo-audit.yml",
+      "repos": [
+        "AgilePlus",
+        "BytePort",
+        "Civis",
+        "Eidolon",
+        "FocalPoint",
+        "GDK",
+        "HeliosCLI",
+        "HeliosLab",
+        "HexaKit",
+        "KDesktopVirt",
+        "Metron",
+        "PhenoKits",
+        "PhenoMCP",
+        "PhenoObservability",
+        "PhenoPlugins",
+        "PhenoProc",
+        "PhenoRuntime",
+        "PhenoVCS",
+        "PlayCua",
+        "Sidekick",
+        "Tasken",
+        "Tracely",
+        "bare-cua",
+        "eyetracker",
+        "helioscope",
+        "hwLedger",
+        "pheno",
+        "phenoAI",
+        "phenoData",
+        "phenoShared",
+        "phenoUtils",
+        "phenodocs",
+        "phenotype-bus",
+        "phenotype-journeys",
+        "phenotype-tooling",
+        "rich-cli-kit",
+        "thegent-dispatch"
+      ]
+    },
+    {
+      "name": "cargo-deny.yml",
+      "repos": [
+        "Agentora",
+        "Apisync",
+        "AuthKit",
+        "Benchora",
+        "BytePort",
+        "Civis",
+        "DataKit",
+        "Eidolon",
+        "FocalPoint",
+        "GDK",
+        "HeliosCLI",
+        "HeliosLab",
+        "HexaKit",
+        "KDesktopVirt",
+        "KlipDot",
+        "McpKit",
+        "Metron",
+        "ObservabilityKit",
+        "PhenoAgent",
+        "PhenoDevOps",
+        "PhenoKits",
+        "PhenoMCP",
+        "PhenoObservability",
+        "PhenoPlugins",
+        "PhenoProc",
+        "PhenoRuntime",
+        "PhenoVCS",
+        "PlayCua",
+        "ResilienceKit",
+        "Sidekick",
+        "Tasken",
+        "TestingKit",
+        "Tokn",
+        "Tracely",
+        "bare-cua",
+        "eyetracker",
+        "helioscope",
+        "hwLedger",
+        "pheno",
+        "phenoAI",
+        "phenoData",
+        "phenoForge",
+        "phenoShared",
+        "phenoUtils",
+        "phenodocs",
+        "phenotype-bus",
+        "phenotype-journeys",
+        "phenotype-tooling",
+        "rich-cli-kit",
+        "thegent",
+        "thegent-clean",
+        "thegent-dispatch"
+      ]
+    },
+    {
+      "name": "cargo-machete.yml",
+      "repos": [
+        "AgilePlus",
+        "AuthKit",
+        "BytePort",
+        "Civis",
+        "Eidolon",
+        "GDK",
+        "HeliosCLI",
+        "HexaKit",
+        "KDesktopVirt",
+        "Metron",
+        "PhenoKits",
+        "PhenoMCP",
+        "PhenoObservability",
+        "PhenoPlugins",
+        "PhenoRuntime",
+        "PhenoVCS",
+        "PlayCua",
+        "Sidekick",
+        "Tasken",
+        "Tracely",
+        "bare-cua",
+        "eyetracker",
+        "helioscope",
+        "pheno",
+        "phenoAI",
+        "phenoData",
+        "phenoShared",
+        "phenodocs",
+        "phenotype-bus",
+        "phenotype-journeys",
+        "phenotype-tooling",
+        "rich-cli-kit",
+        "thegent-dispatch"
+      ]
+    },
+    {
+      "name": "cargo-semver-checks.yml",
+      "repos": [
+        "BytePort",
+        "Civis",
+        "Eidolon",
+        "GDK",
+        "HeliosCLI",
+        "HexaKit",
+        "KDesktopVirt",
+        "Metron",
+        "PhenoKits",
+        "PhenoMCP",
+        "PhenoObservability",
+        "PhenoPlugins",
+        "PhenoRuntime",
+        "PhenoVCS",
+        "PlayCua",
+        "Sidekick",
+        "Tasken",
+        "Tracely",
+        "bare-cua",
+        "eyetracker",
+        "helioscope",
+        "pheno",
+        "phenoAI",
+        "phenoData",
+        "phenoShared",
+        "phenoUtils",
+        "phenodocs",
+        "phenotype-bus",
+        "phenotype-journeys",
+        "phenotype-tooling",
+        "rich-cli-kit",
+        "thegent-dispatch"
+      ]
+    },
+    {
+      "name": "catalog-info.yaml",
+      "repos": [
+        "HexaKit",
+        "Paginary",
+        "PhenoHandbook",
+        "PhenoSpecs"
+      ]
+    },
+    {
+      "name": "changelog.yml",
+      "repos": [
+        "HexaKit",
+        "PhenoDevOps",
+        "Pyron",
+        "pheno"
+      ]
+    },
+    {
+      "name": "check-version.yml",
+      "repos": [
+        "PhenoProject",
+        "Planify"
+      ]
+    },
+    {
+      "name": "check.yml",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "chromatic.yml",
+      "repos": [
+        "AgilePlus",
+        "HexaKit",
+        "PhenoDevOps",
+        "Pyron",
+        "Tracera",
+        "pheno"
+      ]
+    },
+    {
+      "name": "ci-cd.yml",
+      "repos": [
+        "Tracera",
+        "kwality"
+      ]
+    },
+    {
+      "name": "ci.python.yml",
+      "repos": [
+        "thegent",
+        "thegent-clean",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "name": "ci.typescript.yml",
+      "repos": [
+        "thegent",
+        "thegent-clean",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "name": "ci.yaml",
+      "repos": [
+        "PhenoProc",
+        "thegent",
+        "thegent-clean",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "name": "ci.yml",
+      "repos": [
+        "Agentora",
+        "AgilePlus",
+        "Apisync",
+        "AuthKit",
+        "Benchora",
+        "BytePort",
+        "Conft",
+        "DataKit",
+        "Dino",
+        "Eidolon",
+        "Eventra",
+        "FocalPoint",
+        "GDK",
+        "HeliosCLI",
+        "HeliosLab",
+        "HexaKit",
+        "Httpora",
+        "KDesktopVirt",
+        "KWatch",
+        "KaskMan",
+        "KlipDot",
+        "MCPForge",
+        "McpKit",
+        "Metron",
+        "NetScript",
+        "ObservabilityKit",
+        "OmniRoute",
+        "Paginary",
+        "PhenoCompose",
+        "PhenoDevOps",
+        "PhenoHandbook",
+        "PhenoKits",
+        "PhenoMCP",
+        "PhenoObservability",
+        "PhenoPlugins",
+        "PhenoProc",
+        "PhenoProject",
+        "PhenoRuntime",
+        "PhenoVCS",
+        "PlatformKit",
+        "PolicyStack",
+        "Pyron",
+        "QuadSGM",
+        "ResilienceKit",
+        "Sidekick",
+        "Tasken",
+        "TestingKit",
+        "Tokn",
+        "Tracely",
+        "Tracera",
+        "agent-user-status",
+        "agentapi-plusplus",
+        "agileplus-landing",
+        "agslag-docs",
+        "argis-extensions",
+        "byteport-landing",
+        "cheap-llm-mcp",
+        "cliproxyapi-plusplus",
+        "dinoforge-packs",
+        "forgecode",
+        "helios-router",
+        "heliosApp",
+        "heliosBench",
+        "helioscope",
+        "kmobile",
+        "kwality",
+        "nanovms",
+        "pheno",
+        "phenoData",
+        "phenoDesign",
+        "phenoForge",
+        "phenoResearchEngine",
+        "phenoShared",
+        "phenoXdd",
+        "phenodocs",
+        "phenokits-landing",
+        "phenotype-bus",
+        "phenotype-infra",
+        "phenotype-journeys",
+        "phenotype-omlx",
+        "phenotype-ops-mcp",
+        "phenotype-postfx",
+        "phenotype-shared",
+        "phenotype-tooling",
+        "portage",
+        "thegent",
+        "thegent-clean",
+        "thegent-clean-wt-docs",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff",
+        "vibeproxy",
+        "vibeproxy-monitoring-unified"
+      ]
+    },
+    {
+      "name": "cis.yaml",
+      "repos": [
+        "Dino",
+        "dinoforge-packs"
+      ]
+    },
+    {
+      "name": "cis_buildings.yaml",
+      "repos": [
+        "Dino",
+        "dinoforge-packs"
+      ]
+    },
+    {
+      "name": "cis_doctrines.yaml",
+      "repos": [
+        "Dino",
+        "dinoforge-packs"
+      ]
+    },
+    {
+      "name": "cis_units.yaml",
+      "repos": [
+        "Dino",
+        "dinoforge-packs"
+      ]
+    },
+    {
+      "name": "cla.yml",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "clang-tidy.yaml",
+      "repos": [
+        "thegent",
+        "thegent-clean",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "name": "claude-code.yaml",
+      "repos": [
+        "PolicyStack",
+        "Tracera",
+        "phenotype-tooling"
+      ]
+    },
+    {
+      "name": "claude.yaml",
+      "repos": [
+        "PolicyStack",
+        "phenotype-tooling"
+      ]
+    },
+    {
+      "name": "claude.yml",
+      "repos": [
+        "OmniRoute",
+        "portage"
+      ]
+    },
+    {
+      "name": "clone_wars_waves.yaml",
+      "repos": [
+        "Dino",
+        "dinoforge-packs"
+      ]
+    },
+    {
+      "name": "close-stale-contributor-prs.yml",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "code-scanning-results.yml",
+      "repos": [
+        "HexaKit",
+        "PhenoDevOps",
+        "Pyron",
+        "pheno"
+      ]
+    },
+    {
+      "name": "codecov.yml",
+      "repos": [
+        "Apisync",
+        "Conft",
+        "Dino",
+        "HeliosCLI",
+        "HexaKit",
+        "PhenoCompose",
+        "PhenoDevOps",
+        "PhenoKits",
+        "PhenoProc",
+        "PolicyStack",
+        "Pyron",
+        "Tasken",
+        "Tokn",
+        "Tracera",
+        "helioscope",
+        "nanovms",
+        "pheno",
+        "phenoDesign",
+        "phenoForge",
+        "phenodocs",
+        "phenotype-tooling",
+        "thegent",
+        "thegent-clean",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "name": "codeql-config.yml",
+      "repos": [
+        "AuthKit",
+        "Dino",
+        "cliproxyapi-plusplus",
+        "phenodocs",
+        "phenodocs-scorecard-remediation"
+      ]
+    },
+    {
+      "name": "codeql-rust.yml",
+      "repos": [
+        "Civis",
+        "GDK",
+        "HeliosCLI",
+        "HeliosLab",
+        "HexaKit",
+        "KDesktopVirt",
+        "Metron",
+        "PhenoMCP",
+        "PhenoObservability",
+        "PhenoPlugins",
+        "PhenoProc",
+        "PhenoRuntime",
+        "PhenoVCS",
+        "PlayCua",
+        "Sidekick",
+        "Tasken",
+        "Tracely",
+        "bare-cua",
+        "eyetracker",
+        "helioscope",
+        "hwLedger",
+        "phenoAI",
+        "phenoData",
+        "phenoUtils",
+        "phenotype-bus",
+        "phenotype-journeys",
+        "phenotype-tooling",
+        "rich-cli-kit",
+        "thegent-dispatch"
+      ]
+    },
+    {
+      "name": "codeql.yml",
+      "repos": [
+        "Agentora",
+        "AuthKit",
+        "Benchora",
+        "BytePort",
+        "Civis",
+        "Conft",
+        "DataKit",
+        "DevHex",
+        "Dino",
+        "Eidolon",
+        "GDK",
+        "HeliosCLI",
+        "HeliosLab",
+        "HexaKit",
+        "Httpora",
+        "KDesktopVirt",
+        "MCPForge",
+        "McpKit",
+        "Metron",
+        "ObservabilityKit",
+        "Paginary",
+        "Parpoura",
+        "PhenoAgent",
+        "PhenoCompose",
+        "PhenoDevOps",
+        "PhenoKits",
+        "PhenoMCP",
+        "PhenoObservability",
+        "PhenoPlugins",
+        "PhenoProc",
+        "PhenoProject",
+        "PhenoRuntime",
+        "PhenoSpecs",
+        "PhenoVCS",
+        "Planify",
+        "PlayCua",
+        "PolicyStack",
+        "Pyron",
+        "QuadSGM",
+        "ResilienceKit",
+        "Sidekick",
+        "Tasken",
+        "TestingKit",
+        "Tokn",
+        "Tracely",
+        "Tracera",
+        "agent-user-status",
+        "agentapi-plusplus",
+        "bare-cua",
+        "cliproxyapi-plusplus",
+        "eyetracker",
+        "foqos-private",
+        "helioscope",
+        "hwLedger",
+        "pheno",
+        "phenoAI",
+        "phenoData",
+        "phenoShared",
+        "phenoUtils",
+        "phenodocs",
+        "phenodocs-scorecard-remediation",
+        "phenotype-auth-ts",
+        "phenotype-bus",
+        "phenotype-hub",
+        "phenotype-infra",
+        "phenotype-journeys",
+        "phenotype-ops-mcp",
+        "phenotype-org-audits",
+        "phenotype-registry",
+        "phenotype-tooling",
+        "rich-cli-kit",
+        "thegent",
+        "thegent-clean",
+        "thegent-clean-wt-docs",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff",
+        "thegent-dispatch",
+        "vibeproxy",
+        "vibeproxy-monitoring-unified"
+      ]
+    },
+    {
+      "name": "coderabbit-rate-limit-retry.yml",
+      "repos": [
+        "agentapi-plusplus",
+        "cliproxyapi-plusplus"
+      ]
+    },
+    {
+      "name": "codespell.yml",
+      "repos": [
+        "HeliosCLI",
+        "PhenoProc",
+        "PhenoProject",
+        "Planify",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "codex.yaml",
+      "repos": [
+        "PolicyStack",
+        "Tracera",
+        "phenotype-tooling"
+      ]
+    },
+    {
+      "name": "compliance-check.yml",
+      "repos": [
+        "heliosApp",
+        "phenotype-tooling"
+      ]
+    },
+    {
+      "name": "comprehensive-testing.yml",
+      "repos": [
+        "thegent",
+        "thegent-clean",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "name": "config.example.yaml",
+      "repos": [
+        "cliproxyapi-plusplus",
+        "localbase3"
+      ]
+    },
+    {
+      "name": "config.yaml",
+      "repos": [
+        "AgilePlus",
+        "Civis",
+        "HeliosCLI",
+        "Parpoura",
+        "PhenoProc",
+        "PhenoProject",
+        "Planify",
+        "QuadSGM",
+        "Tokn",
+        "Tracera",
+        "cliproxyapi-plusplus",
+        "helioscope",
+        "thegent",
+        "thegent-clean",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff",
+        "vibeproxy"
+      ]
+    },
+    {
+      "name": "config.yml",
+      "repos": [
+        "AgentMCP",
+        "AtomsBot",
+        "Benchora",
+        "BytePort",
+        "Conft",
+        "DataKit",
+        "DevHex",
+        "Dino",
+        "Eidolon",
+        "GDK",
+        "HeliosLab",
+        "HexaKit",
+        "KWatch",
+        "MCPForge",
+        "ObservabilityKit",
+        "PhenoDevOps",
+        "PhenoMCP",
+        "PhenoObservability",
+        "PhenoRuntime",
+        "PhenoVCS",
+        "Planify",
+        "PlayCua",
+        "Pyron",
+        "ResilienceKit",
+        "Sidekick",
+        "TestingKit",
+        "Tracera",
+        "agent-user-status",
+        "bare-cua",
+        "pheno",
+        "phenoDesign",
+        "phenoShared",
+        "phenoXdd",
+        "phenodocs",
+        "phenotype-auth-ts",
+        "phenotype-infra",
+        "phenotype-journeys",
+        "phenotype-org-audits",
+        "phenotype-registry",
+        "phenotype-terrain",
+        "phenotype-tooling",
+        "phenotype-water",
+        "rich-cli-kit",
+        "thegent",
+        "thegent-clean",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff",
+        "vibeproxy"
+      ]
+    },
+    {
+      "name": "configmap.yaml",
+      "repos": [
+        "KDesktopVirt",
+        "Tracera"
+      ]
+    },
+    {
+      "name": "constitution.yaml",
+      "repos": [
+        "thegent",
+        "thegent-clean",
+        "thegent-clean-wt-docs",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "name": "conventions.yml",
+      "repos": [
+        "PhenoHandbook",
+        "PhenoSpecs",
+        "phenotype-registry"
+      ]
+    },
+    {
+      "name": "conversations.yaml",
+      "repos": [
+        "thegent",
+        "thegent-clean",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "name": "copier.yml",
+      "repos": [
+        "thegent",
+        "thegent-clean",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "name": "copyright-check.yml",
+      "repos": [
+        "PhenoProject",
+        "Planify"
+      ]
+    },
+    {
+      "name": "coverage.yml",
+      "repos": [
+        "Apisync",
+        "Conft",
+        "GDK",
+        "HeliosLab",
+        "HexaKit",
+        "PhenoDevOps",
+        "PhenoObservability",
+        "PhenoPlugins",
+        "PhenoProc",
+        "PolicyStack",
+        "QuadSGM",
+        "ResilienceKit",
+        "Tasken",
+        "TestingKit",
+        "Tokn",
+        "Tracely",
+        "argis-extensions",
+        "nanovms",
+        "pheno",
+        "phenoResearchEngine",
+        "phenoShared",
+        "phenodocs",
+        "phenotype-tooling",
+        "portage",
+        "thegent",
+        "thegent-clean",
+        "thegent-clean-wt-docs",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "name": "cpu-profiling.yml",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "cursor-agent.yaml",
+      "repos": [
+        "PolicyStack",
+        "phenotype-tooling"
+      ]
+    },
+    {
+      "name": "dart-analysis.yaml",
+      "repos": [
+        "thegent",
+        "thegent-clean",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "name": "default.yaml",
+      "repos": [
+        "Civis",
+        "Tracera"
+      ]
+    },
+    {
+      "name": "defenders.yaml",
+      "repos": [
+        "Dino",
+        "dinoforge-packs"
+      ]
+    },
+    {
+      "name": "dependabot.yaml",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "dependabot.yml",
+      "repos": [
+        "Agentora",
+        "AgilePlus",
+        "Apisync",
+        "AppGen",
+        "AtomsBot",
+        "AuthKit",
+        "Benchora",
+        "BytePort",
+        "Civis",
+        "Conft",
+        "DINOForge-UnityDoorstop",
+        "DataKit",
+        "DevHex",
+        "Dino",
+        "Eidolon",
+        "FocalPoint",
+        "GDK",
+        "HeliosCLI",
+        "HeliosLab",
+        "HexaKit",
+        "Httpora",
+        "KDesktopVirt",
+        "KWatch",
+        "KaskMan",
+        "KlipDot",
+        "MCPForge",
+        "McpKit",
+        "Metron",
+        "ObservabilityKit",
+        "Paginary",
+        "Parpoura",
+        "PhenoAgent",
+        "PhenoCompose",
+        "PhenoDevOps",
+        "PhenoHandbook",
+        "PhenoKits",
+        "PhenoMCP",
+        "PhenoObservability",
+        "PhenoPlugins",
+        "PhenoProc",
+        "PhenoProject",
+        "PhenoRuntime",
+        "PhenoSpecs",
+        "PhenoVCS",
+        "Pine",
+        "Planify",
+        "PlatformKit",
+        "PlayCua",
+        "PolicyStack",
+        "Pyron",
+        "QuadSGM",
+        "ResilienceKit",
+        "Sidekick",
+        "Tasken",
+        "TestingKit",
+        "Tokn",
+        "Tracely",
+        "Tracera",
+        "agent-devops-setups",
+        "agent-user-status",
+        "agentapi-plusplus",
+        "agileplus-landing",
+        "agslag-docs",
+        "argis-extensions",
+        "bare-cua",
+        "byteport-landing",
+        "chatta",
+        "cheap-llm-mcp",
+        "cliproxyapi-plusplus",
+        "dinoforge-packs",
+        "eyetracker",
+        "foqos-private",
+        "heliosApp",
+        "heliosBench",
+        "helioscope",
+        "hwLedger",
+        "kwality",
+        "localbase3",
+        "nanovms",
+        "pheno",
+        "phenoAI",
+        "phenoData",
+        "phenoDesign",
+        "phenoForge",
+        "phenoResearchEngine",
+        "phenoShared",
+        "phenoUtils",
+        "phenoXdd",
+        "phenodocs",
+        "phenodocs-scorecard-remediation",
+        "phenokits-landing",
+        "phenotype-auth-ts",
+        "phenotype-bus",
+        "phenotype-hub",
+        "phenotype-infra",
+        "phenotype-journeys",
+        "phenotype-omlx",
+        "phenotype-ops-mcp",
+        "phenotype-org-audits",
+        "phenotype-registry",
+        "phenotype-terrain",
+        "phenotype-tooling",
+        "phenotype-water",
+        "portage",
+        "rich-cli-kit",
+        "thegent",
+        "thegent-clean",
+        "thegent-clean-wt-docs",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff",
+        "thegent-dispatch",
+        "vibeproxy",
+        "vibeproxy-monitoring-unified"
+      ]
+    },
+    {
+      "name": "dependency-review.yml",
+      "repos": [
+        "ResilienceKit",
+        "TestingKit",
+        "cheap-llm-mcp",
+        "heliosBench",
+        "phenotype-tooling"
+      ]
+    },
+    {
+      "name": "depguard-rules.yml",
+      "repos": [
+        "thegent",
+        "thegent-clean",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "name": "deploy-docs.yml",
+      "repos": [
+        "HeliosLab",
+        "hwLedger",
+        "thegent-clean-wt-docs"
+      ]
+    },
+    {
+      "name": "deploy.yml",
+      "repos": [
+        "AgilePlus",
+        "Dino",
+        "HexaKit",
+        "PhenoDevOps",
+        "Pyron",
+        "localbase3",
+        "pheno",
+        "phenodocs",
+        "phenodocs-scorecard-remediation"
+      ]
+    },
+    {
+      "name": "deployment.yaml",
+      "repos": [
+        "KDesktopVirt",
+        "PolicyStack",
+        "Tracera",
+        "phenotype-tooling"
+      ]
+    },
+    {
+      "name": "detekt.yml",
+      "repos": [
+        "thegent",
+        "thegent-clean",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "name": "dev-fast.yaml",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "dev-full.yaml",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "devops-shared.yaml",
+      "repos": [
+        "PolicyStack",
+        "phenotype-tooling"
+      ]
+    },
+    {
+      "name": "devops.yaml",
+      "repos": [
+        "PolicyStack",
+        "phenotype-tooling"
+      ]
+    },
+    {
+      "name": "doc-links.yml",
+      "repos": [
+        "Agentora",
+        "AgilePlus",
+        "AppGen",
+        "AtomsBot",
+        "AuthKit",
+        "BytePort",
+        "Civis",
+        "DINOForge-UnityDoorstop",
+        "DataKit",
+        "DevHex",
+        "Eidolon",
+        "GDK",
+        "HexaKit",
+        "KDesktopVirt",
+        "KlipDot",
+        "MCPForge",
+        "Metron",
+        "ObservabilityKit",
+        "Paginary",
+        "Parpoura",
+        "PhenoAgent",
+        "PhenoCompose",
+        "PhenoDevOps",
+        "PhenoHandbook",
+        "PhenoObservability",
+        "PhenoPlugins",
+        "PhenoProc",
+        "PhenoProject",
+        "PhenoRuntime",
+        "PlayCua",
+        "Sidekick",
+        "Tracely",
+        "bare-cua",
+        "chatta",
+        "cheap-llm-mcp",
+        "dinoforge-packs",
+        "foqos-private",
+        "heliosApp",
+        "kwality",
+        "netweave-final2",
+        "phenoAI",
+        "phenoData",
+        "phenoDesign",
+        "phenoUtils",
+        "phenodocs",
+        "phenodocs-scorecard-remediation",
+        "phenotype-auth-ts",
+        "phenotype-hub",
+        "phenotype-infra",
+        "phenotype-journeys",
+        "phenotype-ops-mcp",
+        "phenotype-registry",
+        "phenotype-tooling",
+        "rich-cli-kit",
+        "thegent-dispatch",
+        "vibeproxy-monitoring-unified"
+      ]
+    },
+    {
+      "name": "docker-compose-local.yml",
+      "repos": [
+        "PhenoProject",
+        "Planify"
+      ]
+    },
+    {
+      "name": "docker-compose.dev.yml",
+      "repos": [
+        "Tracera",
+        "thegent",
+        "thegent-clean",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "name": "docker-compose.plane.yml",
+      "repos": [
+        "HexaKit",
+        "PhenoDevOps",
+        "Pyron",
+        "pheno"
+      ]
+    },
+    {
+      "name": "docker-compose.prod.yml",
+      "repos": [
+        "OmniRoute",
+        "Tracera"
+      ]
+    },
+    {
+      "name": "docker-compose.test.yml",
+      "repos": [
+        "HexaKit",
+        "PhenoDevOps",
+        "Pyron",
+        "Tracera",
+        "pheno"
+      ]
+    },
+    {
+      "name": "docker-compose.yaml",
+      "repos": [
+        "HeliosCLI",
+        "helioscope",
+        "portage"
+      ]
+    },
+    {
+      "name": "docker-compose.yml",
+      "repos": [
+        "HexaKit",
+        "KDesktopVirt",
+        "OmniRoute",
+        "PhenoDevOps",
+        "PhenoProject",
+        "Planify",
+        "Pyron",
+        "QuadSGM",
+        "Tracera",
+        "argis-extensions",
+        "cliproxyapi-plusplus",
+        "kwality",
+        "pheno",
+        "thegent",
+        "thegent-clean",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "name": "docs-deploy.yml",
+      "repos": [
+        "PhenoKits",
+        "Tracera",
+        "phenoShared",
+        "phenodocs",
+        "portage"
+      ]
+    },
+    {
+      "name": "docs-site.yml",
+      "repos": [
+        "Civis",
+        "HeliosCLI",
+        "Parpoura",
+        "QuadSGM",
+        "agentapi-plusplus",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "docs.yml",
+      "repos": [
+        "HexaKit",
+        "PhenoDevOps",
+        "PlatformKit",
+        "Pyron",
+        "Tokn",
+        "cliproxyapi-plusplus",
+        "pheno"
+      ]
+    },
+    {
+      "name": "document_queue.yaml",
+      "repos": [
+        "thegent",
+        "thegent-clean",
+        "thegent-clean-wt-docs",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "name": "doppler.yaml",
+      "repos": [
+        "PhenoProject",
+        "Planify"
+      ]
+    },
+    {
+      "name": "e2-command-map-schema.yaml",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "e6-failure-budget.yaml",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "environment-overrides.yaml",
+      "repos": [
+        "BytePort",
+        "thegent",
+        "thegent-clean",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "name": "evidence-capture.yml",
+      "repos": [
+        "AgilePlus",
+        "HexaKit",
+        "PhenoDevOps",
+        "Pyron",
+        "pheno"
+      ]
+    },
+    {
+      "name": "example-reusable.yml",
+      "repos": [
+        "HexaKit",
+        "Pyron",
+        "pheno"
+      ]
+    },
+    {
+      "name": "exceptions.yaml",
+      "repos": [
+        "phenoShared",
+        "phenodocs"
+      ]
+    },
+    {
+      "name": "factory-droid.yaml",
+      "repos": [
+        "PolicyStack",
+        "phenotype-tooling"
+      ]
+    },
+    {
+      "name": "feature-deployment.yml",
+      "repos": [
+        "PhenoProject",
+        "Planify"
+      ]
+    },
+    {
+      "name": "feature-request.yml",
+      "repos": [
+        "PhenoDevOps",
+        "PhenoPlugins",
+        "PhenoProc",
+        "Tracely",
+        "phenoDesign",
+        "phenoForge",
+        "phenodocs",
+        "thegent",
+        "thegent-clean",
+        "thegent-clean-wt-docs",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "name": "feature.yml",
+      "repos": [
+        "Apisync",
+        "Conft",
+        "HeliosLab",
+        "HexaKit",
+        "PhenoPlugins",
+        "PhenoProc",
+        "PolicyStack",
+        "Tasken",
+        "Tokn",
+        "Tracely",
+        "argis-extensions",
+        "pheno",
+        "phenoResearchEngine",
+        "phenoShared",
+        "phenodocs",
+        "phenotype-tooling",
+        "portage",
+        "thegent",
+        "thegent-clean",
+        "thegent-clean-wt-docs",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "name": "feature_request.yml",
+      "repos": [
+        "Benchora",
+        "BytePort",
+        "Civis",
+        "Conft",
+        "DataKit",
+        "Dino",
+        "HeliosCLI",
+        "HexaKit",
+        "Parpoura",
+        "PhenoDevOps",
+        "PhenoObservability",
+        "PhenoProc",
+        "Pyron",
+        "QuadSGM",
+        "Tracera",
+        "agent-devops-setups",
+        "agentapi-plusplus",
+        "cliproxyapi-plusplus",
+        "heliosApp",
+        "helioscope",
+        "hwLedger",
+        "pheno",
+        "phenoXdd",
+        "phenotype-tooling",
+        "portage"
+      ]
+    },
+    {
+      "name": "format-check.yml",
+      "repos": [
+        "heliosApp",
+        "phenotype-tooling"
+      ]
+    },
+    {
+      "name": "fossa.yml",
+      "repos": [
+        "PhenoDevOps",
+        "PhenoProc",
+        "Pyron",
+        "pheno"
+      ]
+    },
+    {
+      "name": "fr-coverage.yml",
+      "repos": [
+        "Agentora",
+        "AgilePlus",
+        "AppGen",
+        "AtomsBot",
+        "AuthKit",
+        "BytePort",
+        "Civis",
+        "DataKit",
+        "DevHex",
+        "Eidolon",
+        "GDK",
+        "HexaKit",
+        "KDesktopVirt",
+        "KlipDot",
+        "MCPForge",
+        "Metron",
+        "ObservabilityKit",
+        "Paginary",
+        "Parpoura",
+        "PhenoAgent",
+        "PhenoCompose",
+        "PhenoDevOps",
+        "PhenoHandbook",
+        "PhenoObservability",
+        "PhenoPlugins",
+        "PhenoProc",
+        "PhenoProject",
+        "PhenoRuntime",
+        "PlayCua",
+        "ResilienceKit",
+        "Sidekick",
+        "TestingKit",
+        "Tokn",
+        "Tracely",
+        "bare-cua",
+        "chatta",
+        "cheap-llm-mcp",
+        "dinoforge-packs",
+        "heliosApp",
+        "kwality",
+        "netweave-final2",
+        "phenoAI",
+        "phenoData",
+        "phenoDesign",
+        "phenoUtils",
+        "phenodocs",
+        "phenodocs-scorecard-remediation",
+        "phenotype-auth-ts",
+        "phenotype-bus",
+        "phenotype-hub",
+        "phenotype-infra",
+        "phenotype-journeys",
+        "phenotype-ops-mcp",
+        "phenotype-registry",
+        "phenotype-tooling",
+        "rich-cli-kit",
+        "thegent-dispatch",
+        "vibeproxy-monitoring-unified"
+      ]
+    },
+    {
+      "name": "fr_001.yaml",
+      "repos": [
+        "PhenoPlugins",
+        "PhenoProc",
+        "Tracely",
+        "phenoResearchEngine"
+      ]
+    },
+    {
+      "name": "fuzzing.yml",
+      "repos": [
+        "HeliosCLI",
+        "HexaKit",
+        "PhenoDevOps",
+        "Pyron",
+        "agentapi-plusplus",
+        "helioscope",
+        "pheno",
+        "thegent",
+        "thegent-clean",
+        "thegent-clean-wt-docs",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "name": "gate-check.yml",
+      "repos": [
+        "HexaKit",
+        "PhenoDevOps",
+        "Pyron",
+        "pheno"
+      ]
+    },
+    {
+      "name": "gca.yml",
+      "repos": [
+        "heliosApp",
+        "phenotype-tooling"
+      ]
+    },
+    {
+      "name": "generate-sdks.yaml",
+      "repos": [
+        "agentapi-plusplus",
+        "cliproxyapi-plusplus"
+      ]
+    },
+    {
+      "name": "go-ci.yml",
+      "repos": [
+        "BytePort",
+        "HexaKit",
+        "Pyron",
+        "pheno",
+        "phenotype-tooling"
+      ]
+    },
+    {
+      "name": "go.yml",
+      "repos": [
+        "MCPForge",
+        "PhenoProc"
+      ]
+    },
+    {
+      "name": "golangci.yml",
+      "repos": [
+        "BytePort",
+        "MCPForge",
+        "PhenoMCP",
+        "PhenoProc",
+        "Pyron",
+        "pheno",
+        "phenotype-tooling",
+        "thegent",
+        "thegent-clean",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "name": "hadolint.yaml",
+      "repos": [
+        "thegent",
+        "thegent-clean",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "name": "health-compose.yaml",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "health.kubernetes.yaml",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "helios-cli-release.yml",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "helios-cli.yml",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "hook-config.yaml",
+      "repos": [
+        "thegent",
+        "thegent-clean",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "name": "hpa.yaml",
+      "repos": [
+        "KDesktopVirt",
+        "Tracera"
+      ]
+    },
+    {
+      "name": "iac-scan.yml",
+      "repos": [
+        "HeliosCLI",
+        "HexaKit",
+        "PhenoDevOps",
+        "Pyron",
+        "agentapi-plusplus",
+        "helioscope",
+        "pheno",
+        "thegent",
+        "thegent-clean",
+        "thegent-clean-wt-docs",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "name": "index.yaml",
+      "repos": [
+        "PhenoPlugins",
+        "PhenoProc",
+        "Tracely",
+        "phenoResearchEngine"
+      ]
+    },
+    {
+      "name": "issue-deduplicator.yml",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "issue-labeler.yml",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "journey-gate.yml",
+      "repos": [
+        "Agentora",
+        "Civis",
+        "FocalPoint",
+        "HeliosCLI",
+        "HeliosLab",
+        "HexaKit",
+        "Metron",
+        "PhenoAgent",
+        "PhenoKits",
+        "PhenoMCP",
+        "PhenoObservability",
+        "PhenoRuntime",
+        "PhenoVCS",
+        "Tasken",
+        "TestingKit",
+        "Tokn",
+        "Tracera",
+        "agent-user-status",
+        "agentapi-plusplus",
+        "argis-extensions",
+        "cheap-llm-mcp",
+        "cliproxyapi-plusplus",
+        "eyetracker",
+        "heliosApp",
+        "heliosBench",
+        "helioscope",
+        "netweave-final2",
+        "phenotype-journeys",
+        "phenotype-tooling",
+        "rich-cli-kit"
+      ]
+    },
+    {
+      "name": "kwatch.yaml",
+      "repos": [
+        "AtomsBot",
+        "KWatch"
+      ]
+    },
+    {
+      "name": "leak-detection.yml",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "lefthook.yml",
+      "repos": [
+        "Civis",
+        "Dino"
+      ]
+    },
+    {
+      "name": "legacy-tooling-gate-warn.yml",
+      "repos": [
+        "phenoShared",
+        "phenodocs"
+      ]
+    },
+    {
+      "name": "legacy-tooling-gate.yml",
+      "repos": [
+        "AppGen",
+        "AtomsBot",
+        "BytePort",
+        "Civis",
+        "Conft",
+        "GDK",
+        "HexaKit",
+        "KDesktopVirt",
+        "KlipDot",
+        "PhenoDevOps",
+        "PhenoHandbook",
+        "PhenoKits",
+        "PhenoPlugins",
+        "PhenoProc",
+        "PhenoSpecs",
+        "PhenoVCS",
+        "PlayCua",
+        "PolicyStack",
+        "Tokn",
+        "Tracely",
+        "argis-extensions",
+        "bare-cua",
+        "chatta",
+        "kwality",
+        "netweave-final2",
+        "phenoDesign",
+        "phenoForge",
+        "phenoShared",
+        "phenoXdd",
+        "phenodocs",
+        "phenodocs-scorecard-remediation",
+        "phenotype-registry",
+        "phenotype-tooling",
+        "portage"
+      ]
+    },
+    {
+      "name": "libs-activation-ci.yml",
+      "repos": [
+        "HexaKit",
+        "Pyron",
+        "pheno"
+      ]
+    },
+    {
+      "name": "license-compliance.yml",
+      "repos": [
+        "HeliosCLI",
+        "HexaKit",
+        "PhenoDevOps",
+        "Pyron",
+        "agentapi-plusplus",
+        "helioscope",
+        "pheno",
+        "thegent",
+        "thegent-clean",
+        "thegent-clean-wt-docs",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "name": "lint-test.yml",
+      "repos": [
+        "agentapi-plusplus",
+        "cliproxyapi-plusplus",
+        "heliosApp",
+        "phenotype-tooling",
+        "portage"
+      ]
+    },
+    {
+      "name": "lint.yml",
+      "repos": [
+        "BytePort",
+        "Dino",
+        "MCPForge",
+        "PhenoDevOps",
+        "PhenoMCP",
+        "PhenoRuntime",
+        "chatta",
+        "cliproxyapi-plusplus",
+        "phenotype-ops-mcp",
+        "phenotype-tooling"
+      ]
+    },
+    {
+      "name": "main.yml",
+      "repos": [
+        "Civis",
+        "HeliosCLI",
+        "HexaKit",
+        "Parpoura",
+        "PhenoDevOps",
+        "Pyron",
+        "QuadSGM",
+        "Tokn",
+        "Tracera",
+        "cliproxyapi-plusplus",
+        "heliosApp",
+        "helioscope",
+        "pheno",
+        "phenodocs",
+        "phenodocs-scorecard-remediation",
+        "phenotype-tooling",
+        "thegent",
+        "thegent-clean",
+        "thegent-clean-wt-docs",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "name": "manifest.yaml",
+      "repos": [
+        "Dino",
+        "Tracera",
+        "dinoforge-packs"
+      ]
+    },
+    {
+      "name": "melee-buff.yaml",
+      "repos": [
+        "Dino",
+        "dinoforge-packs"
+      ]
+    },
+    {
+      "name": "metadata.yaml",
+      "repos": [
+        "HeliosCLI",
+        "PhenoProc",
+        "helioscope",
+        "thegent",
+        "thegent-clean",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "name": "militia.yaml",
+      "repos": [
+        "Dino",
+        "dinoforge-packs"
+      ]
+    },
+    {
+      "name": "mission.yaml",
+      "repos": [
+        "HeliosCLI",
+        "PhenoProc",
+        "helioscope",
+        "thegent",
+        "thegent-clean",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "name": "mkdocs.yml",
+      "repos": [
+        "Paginary",
+        "PhenoHandbook",
+        "thegent",
+        "thegent-clean",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "name": "multi-cloud-deployment.yaml",
+      "repos": [
+        "BytePort",
+        "thegent",
+        "thegent-clean",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "name": "namespace.yaml",
+      "repos": [
+        "KDesktopVirt",
+        "Tracera"
+      ]
+    },
+    {
+      "name": "network-optimization.yml",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "node.js.yml",
+      "repos": [
+        "AppGen",
+        "Tracera"
+      ]
+    },
+    {
+      "name": "offers.schema.yaml",
+      "repos": [
+        "thegent",
+        "thegent-clean",
+        "thegent-clean-wt-docs",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "name": "openai.yaml",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "openapi.yaml",
+      "repos": [
+        "KDesktopVirt",
+        "OmniRoute",
+        "QuadSGM",
+        "Tracera",
+        "cliproxyapi-plusplus",
+        "portage",
+        "thegent",
+        "thegent-clean",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "name": "org-default.yaml",
+      "repos": [
+        "PolicyStack",
+        "phenotype-tooling"
+      ]
+    },
+    {
+      "name": "pack.yaml",
+      "repos": [
+        "Dino",
+        "dinoforge-packs"
+      ]
+    },
+    {
+      "name": "pages-deploy.yml",
+      "repos": [
+        "Agentora",
+        "Apisync",
+        "Civis",
+        "Conft",
+        "HexaKit",
+        "Httpora",
+        "KDesktopVirt",
+        "McpKit",
+        "PhenoDevOps",
+        "PhenoProc",
+        "PolicyStack",
+        "Pyron",
+        "QuadSGM",
+        "Tasken",
+        "Tokn",
+        "agent-devops-setups",
+        "agentapi-plusplus",
+        "cliproxyapi-plusplus",
+        "nanovms",
+        "pheno",
+        "phenoForge",
+        "phenoXdd",
+        "phenotype-tooling",
+        "thegent",
+        "thegent-clean",
+        "thegent-clean-wt-docs",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "name": "pages.yml",
+      "repos": [
+        "Civis",
+        "HeliosCLI",
+        "Parpoura",
+        "PhenoMCP",
+        "PhenoRuntime",
+        "QuadSGM",
+        "helios-router",
+        "heliosBench",
+        "helioscope",
+        "phenoData",
+        "phenokits-landing",
+        "phenotype-org-audits",
+        "phenotype-registry",
+        "phenotype-tooling"
+      ]
+    },
+    {
+      "name": "phenotype-canonical-write-guard.yaml",
+      "repos": [
+        "PolicyStack",
+        "phenotype-tooling"
+      ]
+    },
+    {
+      "name": "phenotype-quality-gate.yml",
+      "repos": [
+        "PolicyStack",
+        "phenotype-tooling"
+      ]
+    },
+    {
+      "name": "phenotype-worktrees.yaml",
+      "repos": [
+        "PolicyStack",
+        "phenotype-tooling"
+      ]
+    },
+    {
+      "name": "plans.schema.yaml",
+      "repos": [
+        "thegent",
+        "thegent-clean",
+        "thegent-clean-wt-docs",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "name": "pnpm-lock.yaml",
+      "repos": [
+        "AgilePlus",
+        "HeliosCLI",
+        "HexaKit",
+        "PhenoProject",
+        "Planify",
+        "helioscope",
+        "thegent",
+        "thegent-clean",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "name": "pnpm-workspace.yaml",
+      "repos": [
+        "AgilePlus",
+        "HeliosCLI",
+        "PhenoProject",
+        "Planify",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "policy-contract-governance.yml",
+      "repos": [
+        "PolicyStack",
+        "phenotype-tooling"
+      ]
+    },
+    {
+      "name": "policy-gate.yml",
+      "repos": [
+        "Civis",
+        "Dino",
+        "HeliosCLI",
+        "HexaKit",
+        "Parpoura",
+        "PhenoDevOps",
+        "PhenoKits",
+        "PhenoProc",
+        "Pyron",
+        "QuadSGM",
+        "Tokn",
+        "Tracera",
+        "agent-devops-setups",
+        "agentapi-plusplus",
+        "cliproxyapi-plusplus",
+        "heliosApp",
+        "helioscope",
+        "pheno",
+        "phenodocs",
+        "phenodocs-scorecard-remediation",
+        "phenotype-tooling",
+        "portage",
+        "thegent",
+        "thegent-clean",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "name": "port.yaml",
+      "repos": [
+        "AgilePlus",
+        "HexaKit",
+        "PhenoProc",
+        "ResilienceKit",
+        "pheno",
+        "rich-cli-kit"
+      ]
+    },
+    {
+      "name": "pr-babysit-watch.yml",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "pr-checks.yml",
+      "repos": [
+        "KaskMan",
+        "thegent",
+        "thegent-clean",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "name": "pr-governance-gate.yml",
+      "repos": [
+        "Civis",
+        "HeliosCLI",
+        "HexaKit",
+        "Pyron",
+        "heliosApp",
+        "helioscope",
+        "pheno",
+        "phenotype-tooling",
+        "thegent",
+        "thegent-clean",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "name": "pre-commit-config.yaml",
+      "repos": [
+        "PhenoProc",
+        "Pyron",
+        "pheno",
+        "phenodocs",
+        "phenodocs-scorecard-remediation",
+        "thegent",
+        "thegent-clean",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "name": "pre-commit.yml",
+      "repos": [
+        "Conft",
+        "HexaKit",
+        "PhenoProc",
+        "Tasken",
+        "Tracera"
+      ]
+    },
+    {
+      "name": "process-compose.backend.yml",
+      "repos": [
+        "thegent",
+        "thegent-clean",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "name": "process-compose.base.yaml",
+      "repos": [
+        "thegent",
+        "thegent-clean",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "name": "process-compose.mcp.yml",
+      "repos": [
+        "thegent",
+        "thegent-clean",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "name": "process-compose.metrics.yml",
+      "repos": [
+        "thegent",
+        "thegent-clean",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "name": "process-compose.yaml",
+      "repos": [
+        "Civis",
+        "HeliosCLI",
+        "Parpoura",
+        "QuadSGM",
+        "Tracera",
+        "cliproxyapi-plusplus",
+        "helioscope",
+        "portage"
+      ]
+    },
+    {
+      "name": "process-compose.yml",
+      "repos": [
+        "HexaKit",
+        "PhenoDevOps",
+        "PhenoKits",
+        "PhenoProc",
+        "PolicyStack",
+        "Pyron",
+        "Tokn",
+        "Tracera",
+        "pheno",
+        "phenotype-tooling"
+      ]
+    },
+    {
+      "name": "project.local.yml",
+      "repos": [
+        "Dino",
+        "FocalPoint",
+        "HeliosCLI",
+        "agslag-docs",
+        "helioscope",
+        "phenoDesign",
+        "phenodocs"
+      ]
+    },
+    {
+      "name": "project.yml",
+      "repos": [
+        "Dino",
+        "HeliosCLI",
+        "HexaKit",
+        "PhenoDevOps",
+        "Pyron",
+        "QuadSGM",
+        "Tokn",
+        "Tracera",
+        "agentapi-plusplus",
+        "agslag-docs",
+        "heliosApp",
+        "helioscope",
+        "pheno",
+        "phenoDesign",
+        "phenodocs",
+        "phenotype-tooling",
+        "portage",
+        "thegent",
+        "thegent-clean",
+        "thegent-clean-wt-docs",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "name": "prometheus.yml",
+      "repos": [
+        "HeliosCLI",
+        "KDesktopVirt",
+        "Tracera",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "promote.yml",
+      "repos": [
+        "HexaKit",
+        "PhenoDevOps",
+        "Pyron",
+        "pheno"
+      ]
+    },
+    {
+      "name": "publish-package.yml",
+      "repos": [
+        "phenodocs",
+        "phenodocs-scorecard-remediation"
+      ]
+    },
+    {
+      "name": "publish.yml",
+      "repos": [
+        "HexaKit",
+        "PhenoDevOps",
+        "PhenoKits",
+        "PhenoObservability",
+        "Pyron",
+        "Tracera",
+        "pheno"
+      ]
+    },
+    {
+      "name": "pull-request-build-lint-api.yml",
+      "repos": [
+        "PhenoProject",
+        "Planify"
+      ]
+    },
+    {
+      "name": "pull-request-build-lint-web-apps.yml",
+      "repos": [
+        "PhenoProject",
+        "Planify"
+      ]
+    },
+    {
+      "name": "python-ci.yml",
+      "repos": [
+        "HexaKit",
+        "Pyron",
+        "pheno"
+      ]
+    },
+    {
+      "name": "qa-governance.yml",
+      "repos": [
+        "QuadSGM",
+        "Tracera"
+      ]
+    },
+    {
+      "name": "quality-dag.yaml",
+      "repos": [
+        "Tracera",
+        "thegent",
+        "thegent-clean",
+        "thegent-clean-wt-docs",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "name": "quality-fix-dag.yaml",
+      "repos": [
+        "Tracera",
+        "thegent",
+        "thegent-clean",
+        "thegent-clean-wt-docs",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "name": "quality-gate.yml",
+      "repos": [
+        "Agentora",
+        "AgilePlus",
+        "Apisync",
+        "AppGen",
+        "AtomsBot",
+        "AuthKit",
+        "BytePort",
+        "Civis",
+        "Conft",
+        "DataKit",
+        "DevHex",
+        "Eidolon",
+        "GDK",
+        "HeliosLab",
+        "HexaKit",
+        "KDesktopVirt",
+        "KlipDot",
+        "MCPForge",
+        "ObservabilityKit",
+        "Paginary",
+        "Parpoura",
+        "PhenoAgent",
+        "PhenoCompose",
+        "PhenoDevOps",
+        "PhenoHandbook",
+        "PhenoKits",
+        "PhenoObservability",
+        "PhenoPlugins",
+        "PhenoProc",
+        "PhenoProject",
+        "PhenoRuntime",
+        "PlayCua",
+        "PolicyStack",
+        "Pyron",
+        "QuadSGM",
+        "ResilienceKit",
+        "Sidekick",
+        "Tasken",
+        "TestingKit",
+        "Tokn",
+        "Tracely",
+        "agent-devops-setups",
+        "agentapi-plusplus",
+        "argis-extensions",
+        "bare-cua",
+        "chatta",
+        "cheap-llm-mcp",
+        "cliproxyapi-plusplus",
+        "dinoforge-packs",
+        "heliosApp",
+        "kwality",
+        "nanovms",
+        "netweave-final2",
+        "pheno",
+        "phenoAI",
+        "phenoData",
+        "phenoDesign",
+        "phenoForge",
+        "phenoResearchEngine",
+        "phenoXdd",
+        "phenodocs",
+        "phenodocs-scorecard-remediation",
+        "phenotype-auth-ts",
+        "phenotype-bus",
+        "phenotype-infra",
+        "phenotype-journeys",
+        "phenotype-ops-mcp",
+        "phenotype-tooling",
+        "portage",
+        "rich-cli-kit",
+        "thegent",
+        "thegent-clean",
+        "thegent-clean-wt-docs",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-ruff",
+        "thegent-dispatch"
+      ]
+    },
+    {
+      "name": "quality-gates.yml",
+      "repos": [
+        "heliosApp",
+        "phenotype-tooling",
+        "thegent",
+        "thegent-clean",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "name": "quality.yml",
+      "repos": [
+        "Civis",
+        "HeliosCLI",
+        "Parpoura",
+        "Tracera",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "query.yaml",
+      "repos": [
+        "PolicyStack",
+        "phenotype-tooling"
+      ]
+    },
+    {
+      "name": "reconcile.rules.yaml",
+      "repos": [
+        "HexaKit",
+        "PhenoKits",
+        "PhenoProc"
+      ]
+    },
+    {
+      "name": "registry.yaml",
+      "repos": [
+        "AuthKit",
+        "HexaKit",
+        "McpKit",
+        "Paginary",
+        "PhenoSpecs",
+        "PolicyStack",
+        "phenotype-tooling"
+      ]
+    },
+    {
+      "name": "release-drafter.yml",
+      "repos": [
+        "AtomsBot",
+        "AuthKit",
+        "BytePort",
+        "Civis",
+        "Conft",
+        "Dino",
+        "HexaKit",
+        "PhenoDevOps",
+        "PhenoProc",
+        "Pyron",
+        "QuadSGM",
+        "Tasken",
+        "Tokn",
+        "Tracera",
+        "agent-devops-setups",
+        "agentapi-plusplus",
+        "argis-extensions",
+        "cheap-llm-mcp",
+        "cliproxyapi-plusplus",
+        "heliosApp",
+        "kwality",
+        "pheno",
+        "phenoShared",
+        "phenodocs",
+        "phenotype-tooling",
+        "portage",
+        "vibeproxy"
+      ]
+    },
+    {
+      "name": "release-dry-run.yml",
+      "repos": [
+        "PhenoObservability",
+        "PhenoSpecs"
+      ]
+    },
+    {
+      "name": "release.yml",
+      "repos": [
+        "Apisync",
+        "AtomsBot",
+        "AuthKit",
+        "BytePort",
+        "Civis",
+        "Conft",
+        "DataKit",
+        "Dino",
+        "GDK",
+        "HeliosLab",
+        "HexaKit",
+        "Httpora",
+        "KlipDot",
+        "PhenoDevOps",
+        "PhenoKits",
+        "PhenoPlugins",
+        "PhenoProc",
+        "PhenoRuntime",
+        "PhenoVCS",
+        "PlatformKit",
+        "PolicyStack",
+        "Pyron",
+        "Tasken",
+        "Tokn",
+        "Tracely",
+        "Tracera",
+        "agentapi-plusplus",
+        "argis-extensions",
+        "cheap-llm-mcp",
+        "pheno",
+        "phenoAI",
+        "phenoForge",
+        "phenoResearchEngine",
+        "phenoShared",
+        "phenoXdd",
+        "phenodocs",
+        "phenotype-tooling",
+        "portage",
+        "thegent",
+        "thegent-clean",
+        "thegent-clean-wt-docs",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-ruff",
+        "vibeproxy",
+        "vibeproxy-monitoring-unified"
+      ]
+    },
+    {
+      "name": "repo.yaml",
+      "repos": [
+        "PolicyStack",
+        "phenotype-tooling"
+      ]
+    },
+    {
+      "name": "republic.yaml",
+      "repos": [
+        "Dino",
+        "dinoforge-packs"
+      ]
+    },
+    {
+      "name": "republic_buildings.yaml",
+      "repos": [
+        "Dino",
+        "dinoforge-packs"
+      ]
+    },
+    {
+      "name": "republic_doctrines.yaml",
+      "repos": [
+        "Dino",
+        "dinoforge-packs"
+      ]
+    },
+    {
+      "name": "republic_units.yaml",
+      "repos": [
+        "Dino",
+        "dinoforge-packs"
+      ]
+    },
+    {
+      "name": "required-check-names-guard.yml",
+      "repos": [
+        "HeliosLab",
+        "cliproxyapi-plusplus",
+        "heliosApp",
+        "phenotype-tooling"
+      ]
+    },
+    {
+      "name": "required-checks-bridge.yml",
+      "repos": [
+        "heliosApp",
+        "phenotype-tooling"
+      ]
+    },
+    {
+      "name": "reusable-legacy-tooling-gate.yml",
+      "repos": [
+        "phenoShared",
+        "phenodocs"
+      ]
+    },
+    {
+      "name": "reusable-policy-gate.yml",
+      "repos": [
+        "PhenoKits",
+        "portage"
+      ]
+    },
+    {
+      "name": "reusable-release-drafter.yml",
+      "repos": [
+        "phenoShared",
+        "phenodocs"
+      ]
+    },
+    {
+      "name": "review-wave-orchestrator.yml",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "roles.schema.yaml",
+      "repos": [
+        "thegent",
+        "thegent-clean",
+        "thegent-clean-wt-docs",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "name": "routing-matrix.yaml",
+      "repos": [
+        "HexaKit",
+        "PhenoDevOps",
+        "Pyron",
+        "pheno"
+      ]
+    },
+    {
+      "name": "rubocop.yml",
+      "repos": [
+        "thegent",
+        "thegent-clean",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "name": "rules.yaml",
+      "repos": [
+        "Tracera",
+        "phenoShared",
+        "phenodocs"
+      ]
+    },
+    {
+      "name": "rules.yml",
+      "repos": [
+        "heliosApp",
+        "phenotype-tooling"
+      ]
+    },
+    {
+      "name": "run-metadata-signature.yaml",
+      "repos": [
+        "PolicyStack",
+        "phenotype-tooling"
+      ]
+    },
+    {
+      "name": "run-metadata.yaml",
+      "repos": [
+        "PolicyStack",
+        "phenotype-tooling"
+      ]
+    },
+    {
+      "name": "rust-ci.yml",
+      "repos": [
+        "HeliosCLI",
+        "HexaKit",
+        "Pyron",
+        "helioscope",
+        "pheno"
+      ]
+    },
+    {
+      "name": "rust-quality.yml",
+      "repos": [
+        "HexaKit",
+        "PhenoDevOps",
+        "PhenoProc",
+        "Pyron",
+        "pheno",
+        "phenoShared",
+        "phenodocs"
+      ]
+    },
+    {
+      "name": "rust-release-prepare.yml",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "rust-release-windows.yml",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "rust-release.yml",
+      "repos": [
+        "HeliosCLI",
+        "HexaKit",
+        "Pyron",
+        "helioscope",
+        "pheno",
+        "phenoShared",
+        "phenodocs"
+      ]
+    },
+    {
+      "name": "rust-security.yml",
+      "repos": [
+        "AgilePlus",
+        "HexaKit",
+        "PhenoDevOps",
+        "Pyron",
+        "pheno"
+      ]
+    },
+    {
+      "name": "rust.yml",
+      "repos": [
+        "PhenoKits",
+        "PhenoProc"
+      ]
+    },
+    {
+      "name": "sample.yaml",
+      "repos": [
+        "PolicyStack",
+        "phenotype-tooling"
+      ]
+    },
+    {
+      "name": "sast-full.yml",
+      "repos": [
+        "HeliosCLI",
+        "HexaKit",
+        "PhenoDevOps",
+        "PhenoProc",
+        "Pyron",
+        "cliproxyapi-plusplus",
+        "helioscope",
+        "pheno",
+        "thegent",
+        "thegent-clean",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "name": "sast-quick.yml",
+      "repos": [
+        "AgilePlus",
+        "HeliosCLI",
+        "HexaKit",
+        "PhenoDevOps",
+        "PhenoProc",
+        "Pyron",
+        "cliproxyapi-plusplus",
+        "helioscope",
+        "pheno",
+        "thegent",
+        "thegent-clean",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "name": "sast.yml",
+      "repos": [
+        "Apisync",
+        "Conft",
+        "HeliosLab",
+        "HexaKit",
+        "PhenoPlugins",
+        "PhenoProc",
+        "PolicyStack",
+        "Tasken",
+        "Tokn",
+        "Tracely",
+        "argis-extensions",
+        "nanovms",
+        "pheno",
+        "phenoResearchEngine",
+        "phenoShared",
+        "phenodocs",
+        "phenotype-tooling",
+        "portage",
+        "thegent",
+        "thegent-clean",
+        "thegent-clean-wt-docs",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "name": "sbom-refresh.yml",
+      "repos": [
+        "BytePort",
+        "Eidolon",
+        "Paginary",
+        "PhenoObservability",
+        "Sidekick",
+        "Tokn",
+        "heliosApp",
+        "phenoData",
+        "phenotype-shared",
+        "phenotype-tooling"
+      ]
+    },
+    {
+      "name": "sbom.yml",
+      "repos": [
+        "Dino",
+        "HexaKit",
+        "PhenoDevOps",
+        "Pyron",
+        "pheno"
+      ]
+    },
+    {
+      "name": "scorecard.yml",
+      "repos": [
+        "AgentMCP",
+        "Agentora",
+        "Apisync",
+        "AuthKit",
+        "Benchora",
+        "BytePort",
+        "Civis",
+        "Conft",
+        "DataKit",
+        "DevHex",
+        "Dino",
+        "Eidolon",
+        "FocalPoint",
+        "GDK",
+        "HeliosCLI",
+        "HeliosLab",
+        "HexaKit",
+        "Httpora",
+        "KDesktopVirt",
+        "MCPForge",
+        "McpKit",
+        "Metron",
+        "ObservabilityKit",
+        "Paginary",
+        "Parpoura",
+        "PhenoAgent",
+        "PhenoCompose",
+        "PhenoHandbook",
+        "PhenoKits",
+        "PhenoMCP",
+        "PhenoObservability",
+        "PhenoPlugins",
+        "PhenoProc",
+        "PhenoProject",
+        "PhenoRuntime",
+        "PhenoSpecs",
+        "PhenoVCS",
+        "Planify",
+        "PlayCua",
+        "PolicyStack",
+        "QuadSGM",
+        "ResilienceKit",
+        "Sidekick",
+        "Tasken",
+        "TestingKit",
+        "Tokn",
+        "Tracely",
+        "Tracera",
+        "agent-devops-setups",
+        "agent-user-status",
+        "agentapi-plusplus",
+        "argis-extensions",
+        "bare-cua",
+        "cheap-llm-mcp",
+        "cliproxyapi-plusplus",
+        "dinoforge-packs",
+        "eyetracker",
+        "foqos-private",
+        "heliosApp",
+        "heliosBench",
+        "helioscope",
+        "hwLedger",
+        "nanovms",
+        "pheno",
+        "phenoAI",
+        "phenoData",
+        "phenoDesign",
+        "phenoResearchEngine",
+        "phenoShared",
+        "phenoUtils",
+        "phenodocs",
+        "phenodocs-scorecard-remediation",
+        "phenokits-landing",
+        "phenotype-auth-ts",
+        "phenotype-bus",
+        "phenotype-hub",
+        "phenotype-infra",
+        "phenotype-journeys",
+        "phenotype-omlx",
+        "phenotype-ops-mcp",
+        "phenotype-org-audits",
+        "phenotype-registry",
+        "phenotype-tooling",
+        "portage",
+        "rich-cli-kit",
+        "thegent",
+        "thegent-clean",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-ruff",
+        "thegent-dispatch",
+        "vibeproxy",
+        "vibeproxy-monitoring-unified"
+      ]
+    },
+    {
+      "name": "sdk.yml",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "secret-scanning.yml",
+      "repos": [
+        "Tokn",
+        "Tracera"
+      ]
+    },
+    {
+      "name": "secrets-detection.yml",
+      "repos": [
+        "HexaKit",
+        "PhenoDevOps",
+        "PhenoProc",
+        "Pyron",
+        "cliproxyapi-plusplus",
+        "pheno",
+        "thegent",
+        "thegent-clean",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "name": "secrets-scan.yml",
+      "repos": [
+        "Benchora",
+        "BytePort",
+        "DataKit",
+        "DevHex",
+        "GDK",
+        "HexaKit",
+        "Httpora",
+        "McpKit",
+        "Metron",
+        "PhenoCompose",
+        "PhenoKits",
+        "PhenoProc",
+        "PhenoRuntime",
+        "PhenoSpecs",
+        "agent-user-status",
+        "agentapi-plusplus",
+        "foqos-private",
+        "phenoAI",
+        "phenoData",
+        "phenoShared",
+        "phenodocs",
+        "phenotype-auth-ts",
+        "phenotype-hub",
+        "phenotype-journeys",
+        "phenotype-ops-mcp",
+        "phenotype-registry",
+        "phenotype-tooling",
+        "vibeproxy",
+        "vibeproxy-monitoring-unified"
+      ]
+    },
+    {
+      "name": "security-deep-scan.yml",
+      "repos": [
+        "Apisync",
+        "Conft",
+        "HexaKit",
+        "PhenoDevOps",
+        "PhenoPlugins",
+        "PhenoProc",
+        "PolicyStack",
+        "Tokn",
+        "Tracely",
+        "nanovms",
+        "phenoResearchEngine",
+        "phenoXdd",
+        "phenotype-tooling",
+        "portage",
+        "thegent",
+        "thegent-clean",
+        "thegent-clean-wt-docs",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-ruff",
+        "vibeproxy",
+        "vibeproxy-monitoring-unified"
+      ]
+    },
+    {
+      "name": "security-guard-hook-audit.yml",
+      "repos": [
+        "Civis",
+        "Conft",
+        "HeliosCLI",
+        "HeliosLab",
+        "HexaKit",
+        "Parpoura",
+        "PhenoDevOps",
+        "PhenoKits",
+        "PhenoProc",
+        "Pyron",
+        "QuadSGM",
+        "Tokn",
+        "Tracera",
+        "agent-devops-setups",
+        "cliproxyapi-plusplus",
+        "heliosApp",
+        "helioscope",
+        "pheno",
+        "phenoDesign",
+        "phenoShared",
+        "phenodocs",
+        "phenodocs-scorecard-remediation",
+        "phenotype-tooling",
+        "portage"
+      ]
+    },
+    {
+      "name": "security-guard.yml",
+      "repos": [
+        "AgilePlus",
+        "Apisync",
+        "Civis",
+        "Conft",
+        "Dino",
+        "HeliosCLI",
+        "HeliosLab",
+        "HexaKit",
+        "Parpoura",
+        "PhenoDevOps",
+        "PhenoKits",
+        "PhenoPlugins",
+        "PhenoProc",
+        "PolicyStack",
+        "Pyron",
+        "QuadSGM",
+        "Tasken",
+        "Tokn",
+        "Tracely",
+        "Tracera",
+        "agent-devops-setups",
+        "agentapi-plusplus",
+        "cliproxyapi-plusplus",
+        "heliosApp",
+        "helioscope",
+        "nanovms",
+        "pheno",
+        "phenoDesign",
+        "phenoResearchEngine",
+        "phenoXdd",
+        "phenodocs",
+        "phenodocs-scorecard-remediation",
+        "phenotype-tooling",
+        "portage",
+        "thegent",
+        "thegent-clean",
+        "thegent-clean-wt-docs",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "name": "security-scan.yml",
+      "repos": [
+        "HexaKit",
+        "Pyron",
+        "pheno",
+        "phenoShared",
+        "phenodocs"
+      ]
+    },
+    {
+      "name": "security.yml",
+      "repos": [
+        "Conft",
+        "HexaKit",
+        "PhenoDevOps",
+        "PhenoKits",
+        "PhenoPlugins",
+        "PhenoProc",
+        "PolicyStack",
+        "Pyron",
+        "Tasken",
+        "Tokn",
+        "Tracely",
+        "chatta",
+        "pheno",
+        "phenoDesign",
+        "phenoForge",
+        "phenodocs",
+        "phenotype-tooling",
+        "thegent",
+        "thegent-clean",
+        "thegent-clean-wt-docs",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "name": "self-merge-gate.yml",
+      "repos": [
+        "AgilePlus",
+        "Civis",
+        "HexaKit",
+        "PhenoDevOps",
+        "Pyron",
+        "QuadSGM",
+        "agent-devops-setups",
+        "agentapi-plusplus",
+        "cliproxyapi-plusplus",
+        "heliosApp",
+        "pheno",
+        "phenoShared",
+        "phenodocs",
+        "phenotype-tooling",
+        "portage"
+      ]
+    },
+    {
+      "name": "semgrep-rules.yaml",
+      "repos": [
+        "thegent",
+        "thegent-clean",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "name": "sentry-error-tracking.yml",
+      "repos": [
+        "HeliosCLI",
+        "HexaKit",
+        "PhenoDevOps",
+        "PhenoProc",
+        "Pyron",
+        "helioscope",
+        "pheno"
+      ]
+    },
+    {
+      "name": "service.yaml",
+      "repos": [
+        "KDesktopVirt",
+        "Tracera"
+      ]
+    },
+    {
+      "name": "shell-tool-mcp-ci.yml",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "shell-tool-mcp.yml",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "shot-annotations.yaml",
+      "repos": [
+        "Dino",
+        "Paginary",
+        "phenotype-journeys"
+      ]
+    },
+    {
+      "name": "simple-deployment.yaml",
+      "repos": [
+        "BytePort",
+        "thegent",
+        "thegent-clean",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "name": "simple.yaml",
+      "repos": [
+        "Tracera",
+        "portage"
+      ]
+    },
+    {
+      "name": "snyk-scan.yml",
+      "repos": [
+        "AgilePlus",
+        "HeliosCLI",
+        "HexaKit",
+        "PhenoDevOps",
+        "PhenoProc",
+        "Pyron",
+        "helioscope",
+        "pheno"
+      ]
+    },
+    {
+      "name": "sonarcloud.yml",
+      "repos": [
+        "Agentora",
+        "AgilePlus",
+        "BytePort",
+        "HeliosCLI",
+        "HexaKit",
+        "PhenoDevOps",
+        "PhenoObservability",
+        "Planify",
+        "Pyron",
+        "Tokn",
+        "agentapi-plusplus",
+        "heliosBench",
+        "helioscope",
+        "pheno",
+        "phenodocs",
+        "phenotype-auth-ts",
+        "phenotype-journeys",
+        "thegent",
+        "thegent-clean",
+        "thegent-clean-wt-docs",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "name": "spec-validation.yml",
+      "repos": [
+        "HexaKit",
+        "PhenoDevOps",
+        "Pyron",
+        "pheno"
+      ]
+    },
+    {
+      "name": "sqlc.yaml",
+      "repos": [
+        "Tracera",
+        "argis-extensions"
+      ]
+    },
+    {
+      "name": "stage-gates.yml",
+      "repos": [
+        "HeliosCLI",
+        "HeliosLab",
+        "QuadSGM",
+        "heliosApp",
+        "helioscope",
+        "phenotype-tooling",
+        "portage"
+      ]
+    },
+    {
+      "name": "strict-quality.yml",
+      "repos": [
+        "heliosApp",
+        "phenotype-tooling"
+      ]
+    },
+    {
+      "name": "swarm_controller_config.yaml",
+      "repos": [
+        "thegent",
+        "thegent-clean",
+        "thegent-clean-wt-docs",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "name": "swiftlint.yml",
+      "repos": [
+        "thegent",
+        "thegent-clean",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "name": "sync-canary.yml",
+      "repos": [
+        "AgilePlus",
+        "HexaKit",
+        "PhenoDevOps",
+        "Pyron",
+        "pheno"
+      ]
+    },
+    {
+      "name": "sync-repo-pr.yml",
+      "repos": [
+        "PhenoProject",
+        "Planify"
+      ]
+    },
+    {
+      "name": "sync-repo.yml",
+      "repos": [
+        "PhenoProject",
+        "Planify"
+      ]
+    },
+    {
+      "name": "system.yaml",
+      "repos": [
+        "PolicyStack",
+        "phenotype-tooling"
+      ]
+    },
+    {
+      "name": "tag-automation.yml",
+      "repos": [
+        "AgilePlus",
+        "Civis",
+        "HexaKit",
+        "PhenoDevOps",
+        "Pyron",
+        "QuadSGM",
+        "agent-devops-setups",
+        "agentapi-plusplus",
+        "cliproxyapi-plusplus",
+        "heliosApp",
+        "pheno",
+        "phenoShared",
+        "phenodocs",
+        "phenotype-tooling",
+        "portage"
+      ]
+    },
+    {
+      "name": "teammate.yaml",
+      "repos": [
+        "thegent",
+        "thegent-clean",
+        "thegent-clean-wt-docs",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "name": "test-config.yaml",
+      "repos": [
+        "PhenoCompose",
+        "nanovms",
+        "phenotype-tooling"
+      ]
+    },
+    {
+      "name": "test.yml",
+      "repos": [
+        "PhenoObservability",
+        "Tracera",
+        "chatta",
+        "localbase3",
+        "thegent",
+        "thegent-clean",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "name": "thegent.yaml",
+      "repos": [
+        "PolicyStack",
+        "phenotype-tooling"
+      ]
+    },
+    {
+      "name": "traceability-gate.yml",
+      "repos": [
+        "HexaKit",
+        "Pyron",
+        "pheno"
+      ]
+    },
+    {
+      "name": "traceability-matrix.yaml",
+      "repos": [
+        "PhenoPlugins",
+        "PhenoProc",
+        "Tracely",
+        "phenoResearchEngine"
+      ]
+    },
+    {
+      "name": "traceability.yml",
+      "repos": [
+        "Conft",
+        "PhenoProc",
+        "PolicyStack",
+        "Tokn",
+        "phenotype-tooling"
+      ]
+    },
+    {
+      "name": "trivy-scan.yml",
+      "repos": [
+        "HeliosCLI",
+        "HexaKit",
+        "PhenoDevOps",
+        "Pyron",
+        "agentapi-plusplus",
+        "helioscope",
+        "pheno",
+        "thegent",
+        "thegent-clean",
+        "thegent-clean-wt-docs",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "name": "trufflehog.yml",
+      "repos": [
+        "Agentora",
+        "AgilePlus",
+        "Apisync",
+        "AppGen",
+        "AtomsBot",
+        "AuthKit",
+        "Benchora",
+        "BytePort",
+        "Civis",
+        "Conft",
+        "DINOForge-UnityDoorstop",
+        "DataKit",
+        "DevHex",
+        "Dino",
+        "Eidolon",
+        "FocalPoint",
+        "GDK",
+        "HeliosCLI",
+        "HeliosLab",
+        "HexaKit",
+        "Httpora",
+        "KDesktopVirt",
+        "KlipDot",
+        "MCPForge",
+        "McpKit",
+        "Metron",
+        "ObservabilityKit",
+        "Paginary",
+        "Parpoura",
+        "PhenoAgent",
+        "PhenoCompose",
+        "PhenoDevOps",
+        "PhenoHandbook",
+        "PhenoKits",
+        "PhenoMCP",
+        "PhenoObservability",
+        "PhenoPlugins",
+        "PhenoProc",
+        "PhenoProject",
+        "PhenoVCS",
+        "Pine",
+        "Planify",
+        "PolicyStack",
+        "QuadSGM",
+        "ResilienceKit",
+        "Sidekick",
+        "Tasken",
+        "TestingKit",
+        "Tokn",
+        "Tracely",
+        "Tracera",
+        "agent-devops-setups",
+        "agent-user-status",
+        "agentapi-plusplus",
+        "agileplus-landing",
+        "argis-extensions",
+        "byteport-landing",
+        "chatta",
+        "cheap-llm-mcp",
+        "cliproxyapi-plusplus",
+        "dinoforge-packs",
+        "eyetracker",
+        "heliosApp",
+        "heliosBench",
+        "helioscope",
+        "hwLedger",
+        "kwality",
+        "localbase3",
+        "nanovms",
+        "phenoAI",
+        "phenoData",
+        "phenoDesign",
+        "phenoForge",
+        "phenoResearchEngine",
+        "phenoShared",
+        "phenoUtils",
+        "phenoXdd",
+        "phenodocs",
+        "phenodocs-scorecard-remediation",
+        "phenokits-landing",
+        "phenotype-auth-ts",
+        "phenotype-bus",
+        "phenotype-hub",
+        "phenotype-infra",
+        "phenotype-journeys",
+        "phenotype-omlx",
+        "phenotype-ops-mcp",
+        "phenotype-org-audits",
+        "phenotype-registry",
+        "phenotype-tooling",
+        "portage",
+        "rich-cli-kit",
+        "thegent",
+        "thegent-clean",
+        "thegent-dispatch",
+        "vibeproxy",
+        "vibeproxy-monitoring-unified"
+      ]
+    },
+    {
+      "name": "typescript-ci.yml",
+      "repos": [
+        "HexaKit",
+        "Pyron",
+        "pheno"
+      ]
+    },
+    {
+      "name": "typescript.yml",
+      "repos": [
+        "PhenoKits",
+        "PolicyStack",
+        "phenotype-tooling"
+      ]
+    },
+    {
+      "name": "unsafe-patterns.yml",
+      "repos": [
+        "HexaKit",
+        "PhenoDevOps",
+        "PhenoProc",
+        "Pyron",
+        "cliproxyapi-plusplus",
+        "pheno",
+        "thegent",
+        "thegent-clean",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "name": "us_001.yaml",
+      "repos": [
+        "PhenoPlugins",
+        "PhenoProc",
+        "Tracely",
+        "phenoResearchEngine"
+      ]
+    },
+    {
+      "name": "user.yaml",
+      "repos": [
+        "PolicyStack",
+        "phenotype-tooling"
+      ]
+    },
+    {
+      "name": "validate-policy.yml",
+      "repos": [
+        "PhenoDevOps",
+        "agent-devops-setups"
+      ]
+    },
+    {
+      "name": "visual-config.yaml",
+      "repos": [
+        "HexaKit",
+        "Pyron",
+        "pheno"
+      ]
+    },
+    {
+      "name": "vitepress-deploy.yml",
+      "repos": [
+        "PhenoProc",
+        "phenoResearchEngine",
+        "phenotype-auth-ts",
+        "phenotype-hub",
+        "phenotype-journeys",
+        "phenotype-registry",
+        "vibeproxy",
+        "vibeproxy-monitoring-unified"
+      ]
+    },
+    {
+      "name": "vitepress-pages.yml",
+      "repos": [
+        "Tracera",
+        "heliosApp",
+        "phenoShared",
+        "phenodocs",
+        "phenotype-tooling"
+      ]
+    },
+    {
+      "name": "workflow-maintenance.yml",
+      "repos": [
+        "HeliosCLI",
+        "HexaKit",
+        "PhenoDevOps",
+        "Pyron",
+        "helioscope",
+        "pheno"
+      ]
+    },
+    {
+      "name": "workflow-permissions.yml",
+      "repos": [
+        "HexaKit",
+        "PhenoDevOps",
+        "PhenoKits",
+        "PhenoProc",
+        "PolicyStack",
+        "Pyron",
+        "pheno",
+        "phenoDesign",
+        "phenodocs",
+        "phenodocs-scorecard-remediation",
+        "phenotype-tooling",
+        "portage"
+      ]
+    },
+    {
+      "name": "workflow-sync.yml",
+      "repos": [
+        "HeliosCLI",
+        "HexaKit",
+        "PhenoDevOps",
+        "Pyron",
+        "helioscope",
+        "pheno"
+      ]
+    },
+    {
+      "name": "workspace_boundaries.yaml",
+      "repos": [
+        "thegent",
+        "thegent-clean",
+        "thegent-clean-wt-docs",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "name": "zap-dast.yml",
+      "repos": [
+        "HeliosCLI",
+        "HexaKit",
+        "PhenoDevOps",
+        "Pyron",
+        "agentapi-plusplus",
+        "helioscope",
+        "pheno",
+        "thegent",
+        "thegent-clean",
+        "thegent-clean-wt-docs",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-ruff"
+      ]
+    }
+  ]
+}

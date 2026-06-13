@@ -1,0 +1,825 @@
+{
+  "generated_at": "2026-06-09T02:54:26.289624Z",
+  "total_repos": 204,
+  "with_helm": [
+    "KDesktopVirt"
+  ],
+  "by_repo": [
+    {
+      "repo": ".agileplus",
+      "chart_count": 0
+    },
+    {
+      "repo": ".claude",
+      "chart_count": 0
+    },
+    {
+      "repo": ".git",
+      "chart_count": 0
+    },
+    {
+      "repo": ".github",
+      "chart_count": 0
+    },
+    {
+      "repo": ".mypy_cache",
+      "chart_count": 0
+    },
+    {
+      "repo": ".pytest_cache",
+      "chart_count": 0
+    },
+    {
+      "repo": ".remember",
+      "chart_count": 0
+    },
+    {
+      "repo": ".serena",
+      "chart_count": 0
+    },
+    {
+      "repo": "AgentMCP",
+      "chart_count": 0
+    },
+    {
+      "repo": "Agentora",
+      "chart_count": 0
+    },
+    {
+      "repo": "AgilePlus",
+      "chart_count": 0
+    },
+    {
+      "repo": "Apisync",
+      "chart_count": 0
+    },
+    {
+      "repo": "AppGen",
+      "chart_count": 0
+    },
+    {
+      "repo": "AtomsBot",
+      "chart_count": 0
+    },
+    {
+      "repo": "AuthKit",
+      "chart_count": 0
+    },
+    {
+      "repo": "Benchora",
+      "chart_count": 0
+    },
+    {
+      "repo": "BytePort",
+      "chart_count": 0
+    },
+    {
+      "repo": "Civis",
+      "chart_count": 0
+    },
+    {
+      "repo": "Conft",
+      "chart_count": 0
+    },
+    {
+      "repo": "Conft-hygiene",
+      "chart_count": 0
+    },
+    {
+      "repo": "DINOForge-UnityDoorstop",
+      "chart_count": 0
+    },
+    {
+      "repo": "DataKit",
+      "chart_count": 0
+    },
+    {
+      "repo": "DevHex",
+      "chart_count": 0
+    },
+    {
+      "repo": "Dino",
+      "chart_count": 0
+    },
+    {
+      "repo": "Eidolon",
+      "chart_count": 0
+    },
+    {
+      "repo": "Eventra",
+      "chart_count": 0
+    },
+    {
+      "repo": "FocalPoint",
+      "chart_count": 0
+    },
+    {
+      "repo": "GDK",
+      "chart_count": 0
+    },
+    {
+      "repo": "HeliosCLI",
+      "chart_count": 0
+    },
+    {
+      "repo": "HeliosLab",
+      "chart_count": 0
+    },
+    {
+      "repo": "HeliosLab-hygiene2",
+      "chart_count": 0
+    },
+    {
+      "repo": "HexaKit",
+      "chart_count": 0
+    },
+    {
+      "repo": "Httpora",
+      "chart_count": 0
+    },
+    {
+      "repo": "KDesktopVirt",
+      "chart_count": 1
+    },
+    {
+      "repo": "KWatch",
+      "chart_count": 0
+    },
+    {
+      "repo": "KWatch-docs",
+      "chart_count": 0
+    },
+    {
+      "repo": "KaskMan",
+      "chart_count": 0
+    },
+    {
+      "repo": "KlipDot",
+      "chart_count": 0
+    },
+    {
+      "repo": "KodeVibe",
+      "chart_count": 0
+    },
+    {
+      "repo": "KodeVibe-security-fixes",
+      "chart_count": 0
+    },
+    {
+      "repo": "MCPForge",
+      "chart_count": 0
+    },
+    {
+      "repo": "McpKit",
+      "chart_count": 0
+    },
+    {
+      "repo": "Metron",
+      "chart_count": 0
+    },
+    {
+      "repo": "NetScript",
+      "chart_count": 0
+    },
+    {
+      "repo": "ObservabilityKit",
+      "chart_count": 0
+    },
+    {
+      "repo": "Observably",
+      "chart_count": 0
+    },
+    {
+      "repo": "OmniRoute",
+      "chart_count": 0
+    },
+    {
+      "repo": "OmniRoute-2nd",
+      "chart_count": 0
+    },
+    {
+      "repo": "OmniRoute-3rd",
+      "chart_count": 0
+    },
+    {
+      "repo": "OmniRoute-dependabot",
+      "chart_count": 0
+    },
+    {
+      "repo": "OmniRoute-latest",
+      "chart_count": 0
+    },
+    {
+      "repo": "Paginary",
+      "chart_count": 0
+    },
+    {
+      "repo": "Parpoura",
+      "chart_count": 0
+    },
+    {
+      "repo": "Parpoura-3rd",
+      "chart_count": 0
+    },
+    {
+      "repo": "Parpoura-hygiene",
+      "chart_count": 0
+    },
+    {
+      "repo": "PhenoAgent",
+      "chart_count": 0
+    },
+    {
+      "repo": "PhenoCompose",
+      "chart_count": 0
+    },
+    {
+      "repo": "PhenoContracts",
+      "chart_count": 0
+    },
+    {
+      "repo": "PhenoControl",
+      "chart_count": 0
+    },
+    {
+      "repo": "PhenoDevOps",
+      "chart_count": 0
+    },
+    {
+      "repo": "PhenoEvents",
+      "chart_count": 0
+    },
+    {
+      "repo": "PhenoHandbook",
+      "chart_count": 0
+    },
+    {
+      "repo": "PhenoKits",
+      "chart_count": 0
+    },
+    {
+      "repo": "PhenoLang",
+      "chart_count": 0
+    },
+    {
+      "repo": "PhenoMCP",
+      "chart_count": 0
+    },
+    {
+      "repo": "PhenoMCP-cheap",
+      "chart_count": 0
+    },
+    {
+      "repo": "PhenoObservability",
+      "chart_count": 0
+    },
+    {
+      "repo": "PhenoPlugins",
+      "chart_count": 0
+    },
+    {
+      "repo": "PhenoProc",
+      "chart_count": 0
+    },
+    {
+      "repo": "PhenoProc-security-fixes",
+      "chart_count": 0
+    },
+    {
+      "repo": "PhenoProject",
+      "chart_count": 0
+    },
+    {
+      "repo": "PhenoRuntime",
+      "chart_count": 0
+    },
+    {
+      "repo": "PhenoSchema",
+      "chart_count": 0
+    },
+    {
+      "repo": "PhenoSpecs",
+      "chart_count": 0
+    },
+    {
+      "repo": "PhenoVCS",
+      "chart_count": 0
+    },
+    {
+      "repo": "PhenoVCS-3rd",
+      "chart_count": 0
+    },
+    {
+      "repo": "PhenoVCS-hygiene",
+      "chart_count": 0
+    },
+    {
+      "repo": "Pine",
+      "chart_count": 0
+    },
+    {
+      "repo": "Planify",
+      "chart_count": 0
+    },
+    {
+      "repo": "Planify-hygiene",
+      "chart_count": 0
+    },
+    {
+      "repo": "PlatformKit",
+      "chart_count": 0
+    },
+    {
+      "repo": "PlayCua",
+      "chart_count": 0
+    },
+    {
+      "repo": "PolicyStack",
+      "chart_count": 0
+    },
+    {
+      "repo": "Pyron",
+      "chart_count": 0
+    },
+    {
+      "repo": "QuadSGM",
+      "chart_count": 0
+    },
+    {
+      "repo": "ResilienceKit",
+      "chart_count": 0
+    },
+    {
+      "repo": "Sidekick",
+      "chart_count": 0
+    },
+    {
+      "repo": "Sidekick-3rd",
+      "chart_count": 0
+    },
+    {
+      "repo": "Tasken",
+      "chart_count": 0
+    },
+    {
+      "repo": "TestingKit",
+      "chart_count": 0
+    },
+    {
+      "repo": "Tokn",
+      "chart_count": 0
+    },
+    {
+      "repo": "Tracely",
+      "chart_count": 0
+    },
+    {
+      "repo": "Tracera",
+      "chart_count": 0
+    },
+    {
+      "repo": "ValidationKit",
+      "chart_count": 0
+    },
+    {
+      "repo": "agent-devops-setups",
+      "chart_count": 0
+    },
+    {
+      "repo": "agent-platform",
+      "chart_count": 0
+    },
+    {
+      "repo": "agent-user-status",
+      "chart_count": 0
+    },
+    {
+      "repo": "agentapi-plusplus",
+      "chart_count": 0
+    },
+    {
+      "repo": "agentops-policy-federation",
+      "chart_count": 0
+    },
+    {
+      "repo": "agileplus-agents",
+      "chart_count": 0
+    },
+    {
+      "repo": "agslag-docs",
+      "chart_count": 0
+    },
+    {
+      "repo": "apps",
+      "chart_count": 0
+    },
+    {
+      "repo": "argis-extensions",
+      "chart_count": 0
+    },
+    {
+      "repo": "bare-cua",
+      "chart_count": 0
+    },
+    {
+      "repo": "chatta",
+      "chart_count": 0
+    },
+    {
+      "repo": "cheap-llm-mcp",
+      "chart_count": 0
+    },
+    {
+      "repo": "cheap-llm-mcp-deprecate",
+      "chart_count": 0
+    },
+    {
+      "repo": "cheap-llm-mcp-t1-19",
+      "chart_count": 0
+    },
+    {
+      "repo": "cliproxyapi-plusplus",
+      "chart_count": 0
+    },
+    {
+      "repo": "crates",
+      "chart_count": 0
+    },
+    {
+      "repo": "default",
+      "chart_count": 0
+    },
+    {
+      "repo": "dinoforge-packs",
+      "chart_count": 0
+    },
+    {
+      "repo": "dispatch-mcp",
+      "chart_count": 0
+    },
+    {
+      "repo": "dispatch-mcp-t1-0",
+      "chart_count": 0
+    },
+    {
+      "repo": "dispatch-mcp-t1-1",
+      "chart_count": 0
+    },
+    {
+      "repo": "dispatch-mcp-t1-2",
+      "chart_count": 0
+    },
+    {
+      "repo": "dispatch-mcp-t1-3",
+      "chart_count": 0
+    },
+    {
+      "repo": "dispatch-mcp-t1-4",
+      "chart_count": 0
+    },
+    {
+      "repo": "dispatch-mcp-t1-5",
+      "chart_count": 0
+    },
+    {
+      "repo": "docs",
+      "chart_count": 0
+    },
+    {
+      "repo": "docs-site",
+      "chart_count": 0
+    },
+    {
+      "repo": "examples",
+      "chart_count": 0
+    },
+    {
+      "repo": "eyetracker",
+      "chart_count": 0
+    },
+    {
+      "repo": "forgecode",
+      "chart_count": 0
+    },
+    {
+      "repo": "frontend",
+      "chart_count": 0
+    },
+    {
+      "repo": "fuzz",
+      "chart_count": 0
+    },
+    {
+      "repo": "helios-router",
+      "chart_count": 0
+    },
+    {
+      "repo": "heliosApp",
+      "chart_count": 0
+    },
+    {
+      "repo": "heliosBench",
+      "chart_count": 0
+    },
+    {
+      "repo": "heliosHarness",
+      "chart_count": 0
+    },
+    {
+      "repo": "helioscope",
+      "chart_count": 0
+    },
+    {
+      "repo": "hwLedger",
+      "chart_count": 0
+    },
+    {
+      "repo": "kmobile",
+      "chart_count": 0
+    },
+    {
+      "repo": "libs",
+      "chart_count": 0
+    },
+    {
+      "repo": "localbase3",
+      "chart_count": 0
+    },
+    {
+      "repo": "melosviz",
+      "chart_count": 0
+    },
+    {
+      "repo": "nanovms",
+      "chart_count": 0
+    },
+    {
+      "repo": "netweave-final2",
+      "chart_count": 0
+    },
+    {
+      "repo": "pheno",
+      "chart_count": 0
+    },
+    {
+      "repo": "phenoAI",
+      "chart_count": 0
+    },
+    {
+      "repo": "phenoData",
+      "chart_count": 0
+    },
+    {
+      "repo": "phenoData-t1-15",
+      "chart_count": 0
+    },
+    {
+      "repo": "phenoData-t1-16",
+      "chart_count": 0
+    },
+    {
+      "repo": "phenoData-t1-17",
+      "chart_count": 0
+    },
+    {
+      "repo": "phenoData-t1-18",
+      "chart_count": 0
+    },
+    {
+      "repo": "phenoDesign",
+      "chart_count": 0
+    },
+    {
+      "repo": "phenoDesign-t1-10",
+      "chart_count": 0
+    },
+    {
+      "repo": "phenoDesign-t1-6",
+      "chart_count": 0
+    },
+    {
+      "repo": "phenoDesign-t1-7",
+      "chart_count": 0
+    },
+    {
+      "repo": "phenoDesign-t1-8",
+      "chart_count": 0
+    },
+    {
+      "repo": "phenoDesign-t1-9",
+      "chart_count": 0
+    },
+    {
+      "repo": "phenoForge",
+      "chart_count": 0
+    },
+    {
+      "repo": "phenoResearchEngine",
+      "chart_count": 0
+    },
+    {
+      "repo": "phenoShared",
+      "chart_count": 0
+    },
+    {
+      "repo": "phenoUtils",
+      "chart_count": 0
+    },
+    {
+      "repo": "phenoXdd",
+      "chart_count": 0
+    },
+    {
+      "repo": "phenodocs",
+      "chart_count": 0
+    },
+    {
+      "repo": "phenodocs-scorecard-remediation",
+      "chart_count": 0
+    },
+    {
+      "repo": "phenotype-auth-ts",
+      "chart_count": 0
+    },
+    {
+      "repo": "phenotype-bus",
+      "chart_count": 0
+    },
+    {
+      "repo": "phenotype-dep-guard",
+      "chart_count": 0
+    },
+    {
+      "repo": "phenotype-go-sdk",
+      "chart_count": 0
+    },
+    {
+      "repo": "phenotype-hub",
+      "chart_count": 0
+    },
+    {
+      "repo": "phenotype-icons",
+      "chart_count": 0
+    },
+    {
+      "repo": "phenotype-infra",
+      "chart_count": 0
+    },
+    {
+      "repo": "phenotype-journeys",
+      "chart_count": 0
+    },
+    {
+      "repo": "phenotype-landing",
+      "chart_count": 0
+    },
+    {
+      "repo": "phenotype-omlx",
+      "chart_count": 0
+    },
+    {
+      "repo": "phenotype-ops-mcp",
+      "chart_count": 0
+    },
+    {
+      "repo": "phenotype-ops-mcp-t0",
+      "chart_count": 0
+    },
+    {
+      "repo": "phenotype-ops-mcp-t1-11",
+      "chart_count": 0
+    },
+    {
+      "repo": "phenotype-ops-mcp-t1-12",
+      "chart_count": 0
+    },
+    {
+      "repo": "phenotype-ops-mcp-t1-13",
+      "chart_count": 0
+    },
+    {
+      "repo": "phenotype-ops-mcp-t1-14",
+      "chart_count": 0
+    },
+    {
+      "repo": "phenotype-org-audits",
+      "chart_count": 0
+    },
+    {
+      "repo": "phenotype-postfx",
+      "chart_count": 0
+    },
+    {
+      "repo": "phenotype-py-extras",
+      "chart_count": 0
+    },
+    {
+      "repo": "phenotype-python-sdk",
+      "chart_count": 0
+    },
+    {
+      "repo": "phenotype-registry",
+      "chart_count": 0
+    },
+    {
+      "repo": "phenotype-request-id",
+      "chart_count": 0
+    },
+    {
+      "repo": "phenotype-shared",
+      "chart_count": 0
+    },
+    {
+      "repo": "phenotype-skills",
+      "chart_count": 0
+    },
+    {
+      "repo": "phenotype-terrain",
+      "chart_count": 0
+    },
+    {
+      "repo": "phenotype-tooling",
+      "chart_count": 0
+    },
+    {
+      "repo": "phenotype-voxel",
+      "chart_count": 0
+    },
+    {
+      "repo": "phenotype-water",
+      "chart_count": 0
+    },
+    {
+      "repo": "plans",
+      "chart_count": 0
+    },
+    {
+      "repo": "portage",
+      "chart_count": 0
+    },
+    {
+      "repo": "rich-cli-kit",
+      "chart_count": 0
+    },
+    {
+      "repo": "rust",
+      "chart_count": 0
+    },
+    {
+      "repo": "services",
+      "chart_count": 0
+    },
+    {
+      "repo": "src",
+      "chart_count": 0
+    },
+    {
+      "repo": "target",
+      "chart_count": 0
+    },
+    {
+      "repo": "tests",
+      "chart_count": 0
+    },
+    {
+      "repo": "thegent",
+      "chart_count": 0
+    },
+    {
+      "repo": "thegent-dispatch",
+      "chart_count": 0
+    },
+    {
+      "repo": "thegent-fresh",
+      "chart_count": 0
+    },
+    {
+      "repo": "thegent-jsonl",
+      "chart_count": 0
+    },
+    {
+      "repo": "thegent-security-fixes",
+      "chart_count": 0
+    },
+    {
+      "repo": "tooling",
+      "chart_count": 0
+    },
+    {
+      "repo": "vendor",
+      "chart_count": 0
+    },
+    {
+      "repo": "vibeproxy",
+      "chart_count": 0
+    },
+    {
+      "repo": "vibeproxy-monitoring-unified",
+      "chart_count": 0
+    },
+    {
+      "repo": "worktrees",
+      "chart_count": 0
+    }
+  ]
+}

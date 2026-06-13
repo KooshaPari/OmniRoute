@@ -1,0 +1,17 @@
+{
+  "generated_at": "2026-06-05T22:15:00Z",
+  "total_repos": 46,
+  "with_csv": [
+    "FocalPoint"
+  ],
+  "with_polars": [],
+  "with_datafusion": [],
+  "by_repo": [
+    {
+      "repo": "FocalPoint",
+      "libs": [
+        "csv"
+      ]
+    }
+  ]
+}

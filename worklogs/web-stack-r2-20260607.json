@@ -1,0 +1,248 @@
+{
+  "generated_at": "2026-06-07T09:18:40Z",
+  "total_repos": 167,
+  "with_axum": [
+    ".claude",
+    "AgilePlus",
+    "Conft",
+    "FocalPoint",
+    "HeliosCLI",
+    "KDesktopVirt",
+    "McpKit",
+    "ObservabilityKit",
+    "PhenoDevOps",
+    "PhenoKits",
+    "PhenoObservability",
+    "Pyron",
+    "crates",
+    "helioscope",
+    "kmobile",
+    "pheno",
+    "thegent",
+    "thegent-clean",
+    "thegent-clean-wt-docs",
+    "thegent-clean-wt-idea",
+    "thegent-clean-wt-parallel",
+    "thegent-clean-wt-policy",
+    "thegent-clean-wt-ruff",
+    "worktrees"
+  ],
+  "with_tower": [
+    ".claude",
+    "AgilePlus",
+    "Conft",
+    "FocalPoint",
+    "KDesktopVirt",
+    "McpKit",
+    "PhenoDevOps",
+    "PhenoKits",
+    "PhenoObservability",
+    "Pyron",
+    "crates",
+    "kmobile",
+    "pheno",
+    "worktrees"
+  ],
+  "with_tower_http": [
+    ".claude",
+    "AgilePlus",
+    "FocalPoint",
+    "KDesktopVirt",
+    "ObservabilityKit",
+    "PhenoDevOps",
+    "PhenoKits",
+    "PhenoObservability",
+    "Pyron",
+    "crates",
+    "kmobile",
+    "pheno",
+    "thegent",
+    "thegent-clean",
+    "thegent-clean-wt-docs",
+    "thegent-clean-wt-idea",
+    "thegent-clean-wt-parallel",
+    "thegent-clean-wt-policy",
+    "thegent-clean-wt-ruff",
+    "worktrees"
+  ],
+  "by_repo": [
+    {
+      "repo": ".claude",
+      "libs": [
+        "axum",
+        "tower",
+        "tower-http"
+      ]
+    },
+    {
+      "repo": "AgilePlus",
+      "libs": [
+        "axum",
+        "tower",
+        "tower-http"
+      ]
+    },
+    {
+      "repo": "Conft",
+      "libs": [
+        "axum",
+        "tower"
+      ]
+    },
+    {
+      "repo": "FocalPoint",
+      "libs": [
+        "axum",
+        "tower",
+        "tower-http"
+      ]
+    },
+    {
+      "repo": "HeliosCLI",
+      "libs": [
+        "axum"
+      ]
+    },
+    {
+      "repo": "KDesktopVirt",
+      "libs": [
+        "axum",
+        "tower",
+        "tower-http"
+      ]
+    },
+    {
+      "repo": "McpKit",
+      "libs": [
+        "axum",
+        "tower"
+      ]
+    },
+    {
+      "repo": "ObservabilityKit",
+      "libs": [
+        "axum",
+        "tower-http"
+      ]
+    },
+    {
+      "repo": "PhenoDevOps",
+      "libs": [
+        "axum",
+        "tower",
+        "tower-http"
+      ]
+    },
+    {
+      "repo": "PhenoKits",
+      "libs": [
+        "axum",
+        "tower",
+        "tower-http"
+      ]
+    },
+    {
+      "repo": "PhenoObservability",
+      "libs": [
+        "axum",
+        "tower",
+        "tower-http"
+      ]
+    },
+    {
+      "repo": "Pyron",
+      "libs": [
+        "axum",
+        "tower",
+        "tower-http"
+      ]
+    },
+    {
+      "repo": "crates",
+      "libs": [
+        "axum",
+        "tower",
+        "tower-http"
+      ]
+    },
+    {
+      "repo": "helioscope",
+      "libs": [
+        "axum"
+      ]
+    },
+    {
+      "repo": "kmobile",
+      "libs": [
+        "axum",
+        "tower",
+        "tower-http"
+      ]
+    },
+    {
+      "repo": "pheno",
+      "libs": [
+        "axum",
+        "tower",
+        "tower-http"
+      ]
+    },
+    {
+      "repo": "thegent",
+      "libs": [
+        "axum",
+        "tower-http"
+      ]
+    },
+    {
+      "repo": "thegent-clean",
+      "libs": [
+        "axum",
+        "tower-http"
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-docs",
+      "libs": [
+        "axum",
+        "tower-http"
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-idea",
+      "libs": [
+        "axum",
+        "tower-http"
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-parallel",
+      "libs": [
+        "axum",
+        "tower-http"
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-policy",
+      "libs": [
+        "axum",
+        "tower-http"
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-ruff",
+      "libs": [
+        "axum",
+        "tower-http"
+      ]
+    },
+    {
+      "repo": "worktrees",
+      "libs": [
+        "axum",
+        "tower",
+        "tower-http"
+      ]
+    }
+  ]
+}

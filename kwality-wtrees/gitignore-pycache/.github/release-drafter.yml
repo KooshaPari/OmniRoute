@@ -1,0 +1,224 @@
+name-template: 'Kwality v$RESOLVED_VERSION'
+tag-template: 'v$RESOLVED_VERSION'
+
+categories:
+  - title: '🚀 Features'
+    labels:
+      - 'feature'
+      - 'enhancement'
+  - title: '🐛 Bug Fixes'
+    labels:
+      - 'fix'
+      - 'bugfix'
+      - 'bug'
+  - title: '🔒 Security'
+    labels:
+      - 'security'
+  - title: '📚 Documentation'
+    labels:
+      - 'documentation'
+      - 'docs'
+  - title: '🏗️ Infrastructure'
+    labels:
+      - 'infrastructure'
+      - 'ci'
+      - 'cd'
+      - 'docker'
+      - 'k8s'
+  - title: '⚡ Performance'
+    labels:
+      - 'performance'
+      - 'optimization'
+  - title: '🧪 Testing'
+    labels:
+      - 'test'
+      - 'testing'
+  - title: '🔧 Maintenance'
+    labels:
+      - 'maintenance'
+      - 'chore'
+      - 'dependencies'
+
+change-template: '- $TITLE @$AUTHOR (#$NUMBER)'
+
+change-title-escapes: '\<*_&' # You can add # and @ to disable mentions, and add ` to disable code blocks.
+
+version-resolver:
+  major:
+    labels:
+      - 'major'
+      - 'breaking'
+  minor:
+    labels:
+      - 'minor'
+      - 'feature'
+      - 'enhancement'
+  patch:
+    labels:
+      - 'patch'
+      - 'fix'
+      - 'bugfix'
+      - 'bug'
+      - 'security'
+      - 'maintenance'
+      - 'chore'
+  default: patch
+
+template: |
+  ## What's Changed
+
+  $CHANGES
+
+  ## 📊 Validation Metrics
+
+  This release includes improvements to the Kwality AI codebase validation platform:
+
+  - **Static Analysis**: Enhanced multi-language code quality checking
+  - **Runtime Validation**: Improved containerized execution safety
+  - **Security Scanning**: Advanced vulnerability detection and secrets scanning
+  - **Performance**: Optimized validation pipeline performance
+
+  ## 🚀 Quick Start
+
+  ### Docker Deployment
+  ```bash
+  # Clone the repository
+  git clone https://github.com/KooshaPari/kwality.git
+  cd kwality
+
+  # Deploy with Docker Compose
+  ./scripts/deploy-kwality.sh deploy
+
+  # Access the platform
+  curl http://localhost:8080/health
+  ```
+
+  ### Kubernetes Deployment
+  ```bash
+  # Deploy to Kubernetes
+  kubectl apply -f k8s/kwality-deployment.yaml
+
+  # Check deployment status
+  kubectl get pods -n kwality
+  ```
+
+  ## 📋 API Usage
+
+  ### Validate a Codebase
+  ```bash
+  curl -X POST http://localhost:8080/api/v1/validate/codebase \
+    -H "Content-Type: application/json" \
+    -d '{
+      "name": "my-ai-service",
+      "source": {
+        "type": "git",
+        "repository": {
+          "url": "https://github.com/example/ai-service.git"
+        }
+      },
+      "config": {
+        "enabled_engines": ["static", "runtime", "security"],
+        "timeout": "10m"
+      }
+    }'
+  ```
+
+  ### Check Validation Results
+  ```bash
+  curl http://localhost:8080/api/v1/validate/{task-id}
+  ```
+
+  ## 🔧 Configuration
+
+  Update your `.env` file with your specific configuration:
+
+  ```env
+  # Database Configuration
+  POSTGRES_DB=kwality
+  POSTGRES_USER=postgres
+  POSTGRES_PASSWORD=your_secure_password
+
+  # Container Configuration
+  RUNTIME_MEMORY_LIMIT_MB=512
+  RUNTIME_CPU_LIMIT_CORES=1.0
+  RUNTIME_TIMEOUT_SECONDS=300
+
+  # Security Configuration
+  SECURITY_SECRETS_DETECTION=true
+  SECURITY_ENABLED_SCANNERS=semgrep,gosec,bandit
+  ```
+
+  ## 🏗️ Architecture
+
+  Kwality uses a multi-engine validation approach:
+
+  - **Go Orchestration Layer**: Coordinates validation workflows
+  - **Rust Runtime Validator**: Safe containerized code execution
+  - **Multi-Language Support**: Go, Rust, Python, JavaScript, Java, and more
+  - **Security-First Design**: Isolated execution with comprehensive monitoring
+
+  ## 📈 Performance Benchmarks
+
+  | Metric | This Release | Previous Release | Improvement |
+  |--------|-------------|------------------|-------------|
+  | Validation Speed | TBD | TBD | TBD |
+  | Memory Usage | TBD | TBD | TBD |
+  | Concurrent Validations | TBD | TBD | TBD |
+
+  ## 🔒 Security Notes
+
+  - All code execution happens in isolated Docker containers
+  - Network isolation prevents external connectivity during validation
+  - Comprehensive security scanning with multiple engines
+  - Secrets detection and vulnerability analysis included
+
+  ## 🆕 Breaking Changes
+
+  $BREAKING_CHANGES
+
+  ## 🙏 Contributors
+
+  Thanks to all contributors who made this release possible:
+
+  $CONTRIBUTORS
+
+  **Full Changelog**: https://github.com/KooshaPari/kwality/compare/$PREVIOUS_TAG...v$RESOLVED_VERSION
+
+autolabeler:
+  - label: 'chore'
+    files:
+      - '*.md'
+      - 'docs/**/*'
+      - '.github/**/*'
+  - label: 'bug'
+    branch:
+      - '/fix\/.+/'
+    title:
+      - '/fix/i'
+  - label: 'enhancement'
+    branch:
+      - '/feature\/.+/'
+    title:
+      - '/feat/i'
+  - label: 'documentation'
+    files:
+      - 'docs/**/*'
+      - '*.md'
+  - label: 'infrastructure'
+    files:
+      - 'docker-compose*.yml'
+      - 'Dockerfile*'
+      - 'k8s/**/*'
+      - '.github/workflows/*'
+      - 'scripts/**/*'
+  - label: 'go'
+    files:
+      - '**/*.go'
+      - 'go.mod'
+      - 'go.sum'
+  - label: 'rust'
+    files:
+      - 'engines/runtime-validator/**/*'
+      - '**/*.rs'
+      - '**/Cargo.toml'
+      - '**/Cargo.lock'

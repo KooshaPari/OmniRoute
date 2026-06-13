@@ -1,0 +1,28 @@
+{
+  "generated_at": "2026-06-08T11:19:15.378683Z",
+  "total_repos": 171,
+  "with_smoke": [
+    "AgentMCP",
+    "agent-user-status"
+  ],
+  "with_integration": [
+    "AgentMCP",
+    "AtomsBot",
+    "HexaKit",
+    "OmniRoute",
+    "Parpoura",
+    "PhenoDevOps",
+    "PolicyStack",
+    "Pyron",
+    "Tracera",
+    "kwality",
+    "pheno",
+    "phenotype-omlx",
+    "portage",
+    "thegent",
+    "thegent-clean-wt-idea",
+    "thegent-clean-wt-parallel",
+    "thegent-clean-wt-policy",
+    "thegent-clean-wt-ruff"
+  ]
+}

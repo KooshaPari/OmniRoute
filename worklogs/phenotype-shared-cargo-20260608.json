@@ -1,0 +1,12 @@
+{
+  "generated_at": "2026-06-09T04:23:14Z",
+  "crate_count": 1,
+  "crate_names": [
+    "phenotype-migrations"
+  ],
+  "workspace_members": [],
+  "recommended_lib_candidates": [
+    "phenotype-migrations (sole crate; single workspace candidate)"
+  ],
+  "notes": "phenotype-shared has no root Cargo.toml; only crates/phenotype-migrations/Cargo.toml found. version.workspace/ edition.workspace are referenced but no [workspace] block exists \u2014 workspace member resolution is currently broken at the phenotype-shared level."
+}

@@ -1,0 +1,166 @@
+{
+  "repo": "thegent",
+  "repo_path": "/Users/kooshapari/CodeProjects/Phenotype/repos/thegent",
+  "remote": "https://github.com/KooshaPari/thegent.git",
+  "branch": "chore/audit-thegent-2026-06-08",
+  "base_branch": "main",
+  "base_head_sha": "078aad11bba27c557f612e82da572a8b91c0f26c",
+  "base_head_sha_short": "078aad11",
+  "head_sha": "078aad11bba27c557f612e82da572a8b91c0f26c",
+  "last_commit_date": "2026-06-08T19:02:43-07:00",
+  "last_commit_date_utc": "2026-06-09T02:02:43Z",
+  "last_commit_subject": "Merge branch 'main' of github.com:KooshaPari/thegent",
+  "audit_date": "2026-06-08",
+  "audit_task": "DAG-L1-20",
+  "language_stack": {
+    "primary": "python",
+    "primary_evidence": "2118 .py files; pyproject.toml thegent v0.x Python CLI (typer, fastmcp, pydantic, opentelemetry); 24+ thegent-* Rust crates expose Python bindings via thegent.rust_wrappers:clode/roid/droid/dex/anen/fanta/antigma",
+    "secondary": ["rust", "typescript", "javascript", "shell"],
+    "secondary_evidence": "192 .rs files under crates/ (24-crate workspace: thegent-parser, thegent-discovery, thegent-git, thegent-cache, thegent-crypto, thegent-fs, thegent-hooks, thegent-tui, thegent-memory, thegent-router, thegent-metrics, thegent-policy, thegent-shm, thegent-zmx, thegent-plugin-host, etc.); 49 .ts/.tsx + VitePress site under docs/; extensive zsh/bash dotfiles in dotfiles/ and shell/",
+    "build_systems": ["uv", "cargo", "pnpm", "vitepress", "just", "pre-commit"],
+    "notable_deps": {
+      "typer": "CLI framework",
+      "fastmcp": "MCP server (v3.0.0+ with tasks)",
+      "granian": "Rust-based ASGI server",
+      "pydantic": "schema validation",
+      "opentelemetry-api/sdk": "telemetry primitives",
+      "gix": "pure-Rust git (gitoxide)",
+      "criterion": "Rust benchmarks",
+      "vitepress": "TS docs site"
+    },
+    "size_signal": "1.3GB on disk; 1993 commits; apps/byteport + apps/landing + services/argisroute + services/colab + sub-projects/thegent-sharecli co-located",
+    "mirror_worktrees": [
+      {
+        "path": "/Users/kooshapari/CodeProjects/Phenotype/repos/thegent",
+        "head_sha": "d7e62bc34b55ceef66a923c311f76c405e7c268e",
+        "branch": "landing-config",
+        "note": "main checkout (5 commits ahead of main)"
+      },
+      {
+        "path": "/Users/kooshapari/CodeProjects/Phenotype/repos/thegent-security-fixes",
+        "head_sha": "a2af7ccad8b6723824231f763c6bf4d8db8c9fa5",
+        "branch": "chore/security-2026-06-08",
+        "note": "security fixes working tree (4 commits ahead of main)"
+      },
+      {
+        "path": "/Users/kooshapari/CodeProjects/Phenotype/repos/thegent-security-fixes-wtrees/profile-tighten-2026-06-08",
+        "head_sha": "437a34de6d0aa651555d82ca44006b34af6c07f1",
+        "branch": "chore/profile-tighten-2026-06-08",
+        "note": "EXACT MIRROR of thegent-wtrees/profile-tighten-2026-06-08 (same SHA, same branch)"
+      },
+      {
+        "path": "/Users/kooshapari/CodeProjects/Phenotype/repos/thegent-wtrees/profile-tighten-2026-06-08",
+        "head_sha": "437a34de6d0aa651555d82ca44006b34af6c07f1",
+        "branch": "chore/profile-tighten-2026-06-08",
+        "note": "EXACT MIRROR of thegent-security-fixes-wtrees/profile-tighten-2026-06-08 (same SHA, same branch)"
+      }
+    ]
+  },
+  "hygiene_score": {
+    "score": 100,
+    "max": 100,
+    "checks": {
+      "LICENSE": {"present": true, "points": 10, "detail": "LICENSE (1075b, MIT)"},
+      "README": {"present": true, "points": 10, "detail": "README.md 13334b with work-state header, mermaid architecture diagram, CLI command reference, dotfile/template coverage"},
+      "CHANGELOG": {"present": true, "points": 10, "detail": "CHANGELOG.md 3778b"},
+      "editorconfig": {"present": true, "points": 10, "detail": ".editorconfig 262b"},
+      "CI": {"present": true, "points": 10, "detail": ".github/workflows/ has 20+ workflows: ci.yml, codeql.yml, scorecard.yml, cargo-deny.yml, quality-gate.yml, policy-gate.yml, pr-governance-gate.yml, license-compliance.yml, fuzzing.yml, coverage.yml, sast*.yml, security-guard.yml, security-deep-scan.yml, iac-scan.yml, release.yml, pages-deploy.yml, ai-testing.yml"},
+      "dependabot": {"present": true, "points": 10, "detail": ".github/dependabot.yml 1640b"},
+      "CODEOWNERS": {"present": true, "points": 10, "detail": "CODEOWNERS 1460b (multi-path ownership)"},
+      "CONTRIBUTING": {"present": true, "points": 10, "detail": "CONTRIBUTING.md 1291b"},
+      "SECURITY": {"present": true, "points": 10, "detail": "SECURITY.md 975b"},
+      "FUNDING": {"present": true, "points": 10, "detail": "FUNDING.yml 64b (github: KooshaPari)"}
+    }
+  },
+  "hygiene_notes": [
+    "All 10 hygiene artifacts present and substantive — thegent is the best-in-fleet on hygiene signals.",
+    "README has explicit `Work state: ACTIVE · Progress: 60%` header aligned with the fleet-wide work-state convention.",
+    "CI is over-provisioned: 20+ workflows plus a policy-gate and pr-governance-gate — a candidate for rationalization if CI minutes become a cost concern."
+  ],
+  "dup_exposure": {
+    "rationale": "thegent is the polyglot development hub of the Phenotype fleet and ships its own event bus, request-id, registry, metrics, and tooling layers. Sibling phenotype-* / pheno* libraries cover most of these surfaces and represent convergence opportunities.",
+    "consumable": [
+      {"lib": "phenotype-bus", "replaces": "thegent-router + thegent-runtime inline pub-sub + thegent-events / thegent-maif event fan-out", "effort_to_adopt": "M"},
+      {"lib": "phenotype-dep-guard", "replaces": "manual cargo-deny + ad-hoc dependabot config in crates/Cargo.toml", "effort_to_adopt": "S"},
+      {"lib": "phenotype-request-id", "replaces": "scattered `run_id` / `request_id` string threading across thegent_*.py modules", "effort_to_adopt": "S"},
+      {"lib": "phenotype-registry", "replaces": "thegent-discovery + thegent-runtime service registry (subset of surface)", "effort_to_adopt": "M"},
+      {"lib": "phenotype-icons", "replaces": "any icon set duplicated in apps/landing or docs/ that the team re-uses", "effort_to_adopt": "S"},
+      {"lib": "phenotype-tooling", "replaces": "scripts/* + Justfile + Taskfile.yml + pre-commit-config.yaml overlap (Justfile is a recent add per DAG stage 4 commit)", "effort_to_adopt": "M"},
+      {"lib": "phenoShared", "replaces": "crates/thegent-utils + duplicated helper modules in thegent-tui / thegent-fs / thegent-router", "effort_to_adopt": "M"},
+      {"lib": "phenotype-skills", "replaces": "thegent agent-role specs scattered under src/agent_roles and thegent_agents.py", "effort_to_adopt": "M"},
+      {"lib": "phenotype-org-audits", "replaces": "apps/byteport ad-hoc audit logging in backend/ + audit_trail hooks in governance/", "effort_to_adopt": "M"},
+      {"lib": "phenodocs", "replaces": "scripts/vitepress-agent-workflow.py + scripts/generate-* + docs/ — the entire docs tooling stack", "effort_to_adopt": "L"}
+    ],
+    "mirror_worktree_collapse_flag": {
+      "priority": "P0",
+      "issue": "thegent ships 4 sibling worktree directories; two of them are EXACT mirrors (same SHA 437a34de6d0aa651555d82ca44006b34af6c07f1 and same branch chore/profile-tighten-2026-06-08): thegent-security-fixes-wtrees/profile-tighten-2026-06-08 and thegent-wtrees/profile-tighten-2026-06-08. thegent-security-fixes (chore/security-2026-06-08) is a third worktree on the same repo. Only the first one (thegent/) is the canonical checkout; the other three are worktree mirrors that should be collapsed via `git worktree remove` once their branches are merged or rebased onto main.",
+      "evidence": "`git worktree list` shows 4 entries; 2 share both SHA and branch; 1 extra sits on a different branch on the same SHA family (a2af7ccad).",
+      "remediation": "Run `git worktree remove` on the two exact-mirror worktrees after merging chore/profile-tighten-2026-06-08 into main; remove the third (thegent-security-fixes) once chore/security-2026-06-08 lands."
+    }
+  },
+  "sota_gaps": {
+    "rationale": "Compared to state-of-the-art CLI agent harnesses in 2026 (claude-code, codex exec, gemini-cli, aider, goose, kilo) and to the fleet-wide phenotype-* SOTA baseline, the following capabilities are missing or stubbed in thegent.",
+    "gaps": [
+      {"id": "sota-1", "feature": "MLX / OMLX local model provider first-class support", "severity": "P1", "evidence": "phenotype-omlx exists in the fleet; thegent's pyproject has litellm==1.87.1 as a dev dep but no OMLX/MLX provider wired into the provider router (thegent-router / model_providers)"},
+      {"id": "sota-2", "feature": "Plugin / extension marketplace with declarative manifests and signed bundles", "severity": "P2", "evidence": "thegent-plugin-host crate exists but no manifest schema or signature verification; extensions/ + plugins/ dirs scattered without a unifying protocol"},
+      {"id": "sota-3", "feature": "Multi-modal input (image, PDF, audio attachments) end-to-end", "severity": "P2", "evidence": "FastMCP resources and pydantic schemas in place, but no renderer/attachment pipeline in the CLI or docs/ frontend"},
+      {"id": "sota-4", "feature": "OTEL OTLP exporter wired to phenotype-bus (telemetry beyond local handlers)", "severity": "P1", "evidence": "opentelemetry-api/sdk in pyproject; thegent-metrics crate present; no OTLP exporter wired to a shared bus"},
+      {"id": "sota-5", "feature": "Sandboxed tool execution (seatbelt/bubblewrap/landlock profiles per-platform)", "severity": "P1", "evidence": "thegent-subprocess crate present; no checked-in SBPL/seatbelt profile or landlock rule set; no bubblewrap wrapper"},
+      {"id": "sota-6", "feature": "Structured-output / JSON-schema strict tool calling with auto-retry on schema mismatch", "severity": "P1", "evidence": "pydantic available; no centralized schema-validation retry loop surfaced in the provider router"},
+      {"id": "sota-7", "feature": "Headless non-interactive exec mode (`thegent exec --quiet --json`) for CI parity", "severity": "P1", "evidence": "thegent.cli.apps.main:app entrypoint; no documented --json / non-interactive contract for automation consumers"},
+      {"id": "sota-8", "feature": "Nix `apps.*` + `packages.*` outputs and cross-platform single-binary release", "severity": "P2", "evidence": "no flake.nix declared at root; release.yml exists but no cargo-dist / nix app outputs surfaced"},
+      {"id": "sota-9", "feature": "Voice / push-to-talk input mode", "severity": "P3", "evidence": "thegent-tui crate present; no audio capture or whisper-backed transcript pipeline"},
+      {"id": "sota-10", "feature": "Workstream autosync bidirectional (GitHub Projects + Linear) hardened for org-scale", "severity": "P2", "evidence": "README mentions 'Workstream Autosync' under core; no schema for conflict resolution surfaced; phenotype-org-audits in fleet could converge here"}
+    ]
+  },
+  "convergence_cluster": {
+    "label": "multi-stack",
+    "rationale": "Single repo spans 3+ language stacks (Python CLI/Rust crates/TypeScript VitePress) plus extensive shell dotfiles and per-app satellites (apps/byteport, apps/landing, services/argisroute, services/colab, sub-projects/thegent-sharecli). It is the polyglot hub of the fleet, not a single converged product surface — too heterogeneous for 'web-stack' and not a deployed production system for 'live'. Best fit: multi-stack.",
+    "secondary_candidates": ["convergence"]
+  },
+  "action_items": [
+    {
+      "priority": "P0",
+      "task": "Collapse the 4 thegent worktrees — `git worktree remove` the two exact mirrors at thegent-wtrees/profile-tighten-2026-06-08 and thegent-security-fixes-wtrees/profile-tighten-2026-06-08 (both at SHA 437a34de6 on chore/profile-tighten-2026-06-08), then merge that branch into main and remove the third (thegent-security-fixes) once chore/security-2026-06-08 lands",
+      "effort": "1h",
+      "owner_hint": "platform",
+      "blocks": ["adopt phenotype-bus", "reduce disk pressure on repos/"]
+    },
+    {
+      "priority": "P1",
+      "task": "Wire MLX / OMLX local model provider into the provider router and the Rust thegent-router crate so thegent exposes phenotype-omlx end-to-end",
+      "effort": "M",
+      "owner_hint": "ml-stack",
+      "blocks": ["SOTA gap sota-1"]
+    },
+    {
+      "priority": "P1",
+      "task": "Adopt phenotype-bus + phenotype-request-id across thegent-router, thegent-runtime, thegent-tui, and the Python thegent_*.py modules to drop local re-implementations",
+      "effort": "M",
+      "owner_hint": "platform",
+      "blocks": ["SOTA gap sota-4"]
+    },
+    {
+      "priority": "P1",
+      "task": "Add SBPL/seatbelt (macOS) and landlock (Linux) sandbox profiles for thegent-subprocess + thegent-cli, and gate tool execution on them",
+      "effort": "M",
+      "owner_hint": "platform",
+      "blocks": ["SOTA gap sota-5"]
+    },
+    {
+      "priority": "P2",
+      "task": "Stabilize `thegent exec --quiet --json` non-interactive output contract and document it for fleet automation consumers (KWatch, heliosBench, phenoDevOps)",
+      "effort": "S",
+      "owner_hint": "cli",
+      "blocks": ["SOTA gap sota-7"]
+    }
+  ],
+  "metadata": {
+    "schema_version": "dag-v2-audit-1",
+    "audited_by": "forge",
+    "audit_session": "dag-v2-L1-20-thegent",
+    "push": false,
+    "branch_created": "chore/audit-thegent-2026-06-08",
+    "files_committed": [".claude/dag-v2-audit-thegent.json"]
+  }
+}

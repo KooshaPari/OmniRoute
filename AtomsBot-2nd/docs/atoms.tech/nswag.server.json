@@ -1,0 +1,23 @@
+{
+    "$schema": "https://raw.githubusercontent.com/RicoSuter/NSwag/master/src/NSwag.Core/NSwagDocument.schema.json",
+    "runtime": "Net60",
+    "documentGenerator": {
+        "fromDocument": {
+            "url": "${Input}",
+            "output": null
+        }
+    },
+    "codeGenerators": {
+        "openApiToCSharpController": {
+            "controllerStyle": "Abstract",
+            "useCancellationToken": true,
+            "className": "${ClassName}",
+            "namespace": "App.Api.Controllers",
+            "generateOptionalParameters": true,
+            "useActionResultType": true,
+            "useProblemDetailsAsDefaultResponse": true,
+            "aspNetNamespace": "Microsoft.AspNetCore.Mvc",
+            "output": "${Output}"
+        }
+    }
+}

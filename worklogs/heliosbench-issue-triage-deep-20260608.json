@@ -1,0 +1,63 @@
+{
+  "generated_at": "2026-06-09T03:42:54Z",
+  "total_open": 120,
+  "top_5_oldest": [
+    {
+      "number": 80,
+      "title": "Item: helios-bench 47",
+      "created_at": "2026-02-24T10:31:42Z",
+      "age_days": 104
+    },
+    {
+      "number": 79,
+      "title": "Item: helios-bench 57",
+      "created_at": "2026-02-24T10:31:42Z",
+      "age_days": 104
+    },
+    {
+      "number": 78,
+      "title": "Item: helios-bench 85",
+      "created_at": "2026-02-24T10:31:42Z",
+      "age_days": 104
+    },
+    {
+      "number": 77,
+      "title": "Item: helios-bench 55",
+      "created_at": "2026-02-24T10:31:42Z",
+      "age_days": 104
+    },
+    {
+      "number": 76,
+      "title": "Item: helios-bench 97",
+      "created_at": "2026-02-24T10:31:42Z",
+      "age_days": 104
+    }
+  ],
+  "top_5_recent": [
+    {
+      "number": 120,
+      "title": "Item: heliosBench 102",
+      "updated_at": "2026-02-24T10:38:18Z"
+    },
+    {
+      "number": 119,
+      "title": "Item: heliosBench 107",
+      "updated_at": "2026-02-24T10:38:18Z"
+    },
+    {
+      "number": 118,
+      "title": "Item: heliosBench 112",
+      "updated_at": "2026-02-24T10:38:18Z"
+    },
+    {
+      "number": 117,
+      "title": "Item: heliosBench 88",
+      "updated_at": "2026-02-24T10:38:18Z"
+    },
+    {
+      "number": 116,
+      "title": "Item: heliosBench 115",
+      "updated_at": "2026-02-24T10:38:18Z"
+    }
+  ]
+}

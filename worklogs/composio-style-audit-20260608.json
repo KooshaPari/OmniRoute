@@ -1,0 +1,40 @@
+{
+  "generated_at": "2026-06-08T22:15:00Z",
+  "total_repos": 158,
+  "with_provider_trait": [],
+  "with_action_enum": [
+    "FocalPoint",
+    "crates"
+  ],
+  "with_tool_trait": [
+    "Agentora",
+    "McpKit"
+  ],
+  "with_connector": [
+    "DataKit",
+    "FocalPoint",
+    "HeliosCLI",
+    "OmniRoute",
+    "OmniRoute-latest",
+    "Paginary",
+    "PhenoObservability",
+    "Tracera",
+    "apps",
+    "cliproxyapi-plusplus",
+    "crates",
+    "helioscope",
+    "hwLedger",
+    "libs",
+    "phenotype-tooling",
+    "tests",
+    "thegent",
+    "tooling"
+  ],
+  "scanned_files": 150213,
+  "evidence_counts": {
+    "provider_trait": 0,
+    "action_enum": 2,
+    "tool_trait": 2,
+    "connector": 156
+  }
+}

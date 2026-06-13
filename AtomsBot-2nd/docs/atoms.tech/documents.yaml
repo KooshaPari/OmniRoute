@@ -1,0 +1,219 @@
+openapi: 3.0.3
+info:
+    title: Atoms API - Documents, Blocks, Columns
+    version: 1.0.0
+servers:
+    - url: https://api.example.com
+paths:
+    /documents:
+        get:
+            summary: List documents by project
+            parameters:
+                - in: query
+                  name: projectId
+                  schema: { type: string }
+            responses:
+                '200':
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                type: array
+                                items: { $ref: '#/components/schemas/Document' }
+        post:
+            summary: Create document
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema: { $ref: '#/components/schemas/DocumentCreate' }
+            responses:
+                '201': { description: Created }
+    /documents/{id}:
+        get:
+            summary: Get document
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  schema: { type: string }
+            responses:
+                '200':
+                    description: OK
+                    content:
+                        application/json:
+                            schema: { $ref: '#/components/schemas/Document' }
+        patch:
+            summary: Update document
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  schema: { type: string }
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema: { $ref: '#/components/schemas/DocumentUpdate' }
+            responses:
+                '200': { description: Updated }
+        delete:
+            summary: Soft delete document
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  schema: { type: string }
+            responses:
+                '204': { description: No Content }
+    /blocks:
+        get:
+            summary: List blocks by document
+            parameters:
+                - in: query
+                  name: documentId
+                  required: true
+                  schema: { type: string }
+            responses:
+                '200':
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                type: array
+                                items: { $ref: '#/components/schemas/Block' }
+        post:
+            summary: Create block
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema: { $ref: '#/components/schemas/BlockCreate' }
+            responses:
+                '201': { description: Created }
+    /blocks/{id}:
+        patch:
+            summary: Update block
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  schema: { type: string }
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema: { $ref: '#/components/schemas/BlockUpdate' }
+            responses:
+                '200': { description: Updated }
+        delete:
+            summary: Soft delete block
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  schema: { type: string }
+            responses:
+                '204': { description: No Content }
+    /columns:
+        get:
+            summary: List columns by block
+            parameters:
+                - in: query
+                  name: blockId
+                  required: true
+                  schema: { type: string }
+            responses:
+                '200':
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                type: array
+                                items: { $ref: '#/components/schemas/Column' }
+        post:
+            summary: Create column
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema: { $ref: '#/components/schemas/ColumnCreate' }
+            responses:
+                '201': { description: Created }
+    /columns/{id}:
+        delete:
+            summary: Delete column
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  schema: { type: string }
+            responses:
+                '204': { description: No Content }
+components:
+    schemas:
+        Document:
+            type: object
+            properties:
+                id: { type: string }
+                project_id: { type: string }
+                name: { type: string }
+                description: { type: string, nullable: true }
+                is_deleted: { type: boolean, nullable: true }
+        DocumentCreate:
+            type: object
+            required: [project_id, name]
+            properties:
+                project_id: { type: string }
+                name: { type: string }
+                description: { type: string }
+        DocumentUpdate:
+            type: object
+            properties:
+                name: { type: string }
+                description: { type: string }
+        Block:
+            type: object
+            properties:
+                id: { type: string }
+                document_id: { type: string }
+                type: { type: string, enum: [table, text] }
+                position: { type: integer }
+                content: { type: object, additionalProperties: true, nullable: true }
+                is_deleted: { type: boolean, nullable: true }
+        BlockCreate:
+            type: object
+            required: [document_id, type]
+            properties:
+                document_id: { type: string }
+                type: { type: string }
+                position: { type: integer }
+                content: { type: object, additionalProperties: true }
+        BlockUpdate:
+            type: object
+            properties:
+                position: { type: integer }
+                content: { type: object, additionalProperties: true }
+                name: { type: string }
+        Column:
+            type: object
+            properties:
+                id: { type: string }
+                block_id: { type: string }
+                property_id: { type: string }
+                position: { type: integer }
+                width: { type: integer, nullable: true }
+                is_hidden: { type: boolean, nullable: true }
+                is_pinned: { type: boolean, nullable: true }
+                default_value: { type: string, nullable: true }
+        ColumnCreate:
+            type: object
+            required: [block_id, property_id]
+            properties:
+                block_id: { type: string }
+                property_id: { type: string }
+                position: { type: integer }
+                width: { type: integer }
+                is_hidden: { type: boolean }
+                is_pinned: { type: boolean }
+                default_value: { type: string }

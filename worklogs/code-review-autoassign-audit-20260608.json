@@ -1,0 +1,16 @@
+{
+  "generated_at": "2026-06-09T03:03:36Z",
+  "total_repos": 167,
+  "with_auto_assign": [],
+  "with_codeowners_enforcement": [
+    "Apisync",
+    "Dino",
+    "Httpora"
+  ],
+  "with_reviewer_bot": [
+    "HeliosCLI",
+    "QuadSGM",
+    "helioscope",
+    "portage"
+  ]
+}

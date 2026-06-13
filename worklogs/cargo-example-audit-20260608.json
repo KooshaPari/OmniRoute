@@ -1,0 +1,6 @@
+{
+  "generated_at": "2026-06-08 22:15",
+  "total_repos": 179,
+  "with_examples": ["agentapi-plusplus", "AtomsBot", "BytePort", "HeliosCLI", "helioscope", "KDesktopVirt", "KWatch", "PhenoObservability", "phenoShared", "phenotype-voxel", "target", "Tokn"],
+  "by_repo": [{"repo": "agentapi-plusplus", "example_count": 2}, {"repo": "AtomsBot", "example_count": 2}, {"repo": "BytePort", "example_count": 11}, {"repo": "HeliosCLI", "example_count": 1}, {"repo": "helioscope", "example_count": 1}, {"repo": "KDesktopVirt", "example_count": 16}, {"repo": "KWatch", "example_count": 4}, {"repo": "PhenoObservability", "example_count": 1}, {"repo": "phenoShared", "example_count": 1}, {"repo": "phenotype-voxel", "example_count": 1}, {"repo": "target", "example_count": 2}, {"repo": "Tokn", "example_count": 2}]
+}

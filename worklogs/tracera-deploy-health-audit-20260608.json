@@ -1,0 +1,73 @@
+{
+  "generated_at": "2026-06-08T00:00:00Z",
+  "pages_present": true,
+  "pages_url": "https://kooshapari.github.io/Tracera/",
+  "pages_status": "built",
+  "pages_build_type": "workflow",
+  "pages_https_enforced": true,
+  "deployments_count": 37,
+  "last_deployment": "2026-06-06T09:50:49Z",
+  "last_deployment_environment": "github-pages",
+  "health_endpoints": [
+    {
+      "path": "/health",
+      "file": "src/tracertm/api/routers/health.py:28",
+      "method": "GET",
+      "type": "basic_health"
+    },
+    {
+      "path": "/ready",
+      "file": "src/tracertm/api/routers/health.py:58",
+      "method": "GET",
+      "type": "readiness"
+    },
+    {
+      "path": "/api/v1/health",
+      "file": "src/tracertm/api/routers/health.py:102",
+      "method": "GET",
+      "type": "comprehensive_health"
+    },
+    {
+      "path": "/metrics",
+      "file": "src/tracertm/api/routers/health.py:42",
+      "method": "GET",
+      "type": "prometheus"
+    },
+    {
+      "path": "/health/readiness",
+      "file": "src/tracertm/api/routers/health_canary.py:172",
+      "method": "GET",
+      "type": "k8s_readiness"
+    },
+    {
+      "path": "/health/liveness",
+      "file": "src/tracertm/api/routers/health_canary.py:193",
+      "method": "GET",
+      "type": "k8s_liveness"
+    },
+    {
+      "path": "/health/canary",
+      "file": "src/tracertm/api/routers/health_canary.py:94",
+      "method": "GET",
+      "type": "canary"
+    },
+    {
+      "path": "/mcp/health",
+      "file": "src/tracertm/api/routers/mcp.py:480",
+      "method": "GET",
+      "type": "mcp_health"
+    },
+    {
+      "path": "/health/{project_id}",
+      "file": "src/tracertm/api/routers/analysis.py:172",
+      "method": "GET",
+      "type": "project_health"
+    }
+  ],
+  "source_dirs_scanned": [
+    "src/",
+    "app/",
+    "cmd/"
+  ],
+  "notes": "app/ and cmd/ not present at repo root; backend/cmd found but contains setup tool not health endpoints. All health endpoints are FastAPI routers under src/tracertm/api/routers/."
+}

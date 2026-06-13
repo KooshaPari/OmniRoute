@@ -1,0 +1,180 @@
+openapi: 3.0.3
+info:
+    title: Atoms API - Projects
+    version: 1.0.0
+servers:
+    - url: https://api.example.com
+paths:
+    /projects:
+        get:
+            summary: List projects by org or membership
+            parameters:
+                - in: query
+                  name: orgId
+                  schema: { type: string }
+                - in: query
+                  name: userId
+                  schema: { type: string }
+            responses:
+                '200':
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                type: array
+                                items: { $ref: '#/components/schemas/Project' }
+        post:
+            summary: Create project
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema: { $ref: '#/components/schemas/ProjectCreate' }
+            responses:
+                '201': { description: Created }
+    /projects/{id}:
+        get:
+            summary: Get project
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  schema: { type: string }
+            responses:
+                '200':
+                    description: OK
+                    content:
+                        application/json:
+                            schema: { $ref: '#/components/schemas/Project' }
+        patch:
+            summary: Update project
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  schema: { type: string }
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema: { $ref: '#/components/schemas/ProjectUpdate' }
+            responses:
+                '200': { description: Updated }
+        delete:
+            summary: Soft delete project
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  schema: { type: string }
+            responses:
+                '204': { description: No Content }
+    /projects/{id}/members:
+        get:
+            summary: List members
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  schema: { type: string }
+            responses:
+                '200':
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                type: array
+                                items: { $ref: '#/components/schemas/ProjectMember' }
+        post:
+            summary: Add member
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  schema: { type: string }
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema: { $ref: '#/components/schemas/ProjectMemberCreate' }
+            responses:
+                '201': { description: Created }
+    /projects/{id}/members/{userId}:
+        patch:
+            summary: Set member role
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  schema: { type: string }
+                - in: path
+                  name: userId
+                  required: true
+                  schema: { type: string }
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties:
+                                role: { type: string, enum: [owner, editor, viewer] }
+            responses:
+                '204': { description: No Content }
+        delete:
+            summary: Remove member
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  schema: { type: string }
+                - in: path
+                  name: userId
+                  required: true
+                  schema: { type: string }
+            responses:
+                '204': { description: No Content }
+components:
+    schemas:
+        Project:
+            type: object
+            properties:
+                id: { type: string }
+                organization_id: { type: string }
+                name: { type: string }
+                slug: { type: string }
+                visibility: { type: string, enum: [private, org, public] }
+                status: { type: string, enum: [active, archived, draft, deleted] }
+                metadata: { type: object, additionalProperties: true, nullable: true }
+        ProjectCreate:
+            type: object
+            required: [name, slug, organization_id]
+            properties:
+                organization_id: { type: string }
+                name: { type: string }
+                slug: { type: string }
+                visibility: { type: string }
+                status: { type: string }
+                metadata: { type: object, additionalProperties: true }
+        ProjectUpdate:
+            type: object
+            properties:
+                name: { type: string }
+                description: { type: string }
+                visibility: { type: string }
+                status: { type: string }
+                metadata: { type: object, additionalProperties: true }
+        ProjectMember:
+            type: object
+            properties:
+                project_id: { type: string }
+                user_id: { type: string }
+                role: { type: string, enum: [owner, editor, viewer] }
+                status: { type: string, enum: [active, invited] }
+        ProjectMemberCreate:
+            type: object
+            required: [user_id, role]
+            properties:
+                user_id: { type: string }
+                role: { type: string, enum: [owner, editor, viewer] }
+                status: { type: string, enum: [active, invited], default: active }

@@ -1,0 +1,4 @@
+# GitHub Sponsors / funding configuration.
+# Schema: https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/displaying-a-sponsor-button-in-your-repository
+github: [KooshaPari]
+custom: ['https://phenotype.ai/donate']

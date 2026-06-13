@@ -1,0 +1,32 @@
+{
+  "generated_at": "2026-06-08T04:35:00Z",
+  "rationale": "A reusable starter enforcing Phenotype Org + AgilePlus compliance for new KooshaPari repos. Reference pattern distilled from focalpoint, phenotype-infra, phenotype-registry, phenotype-tooling, phenotype-hub. Provides community health files (LICENSE/README/CONTRIBUTING/SECURITY/CoC/FUNDING), governance (CODEOWNERS, CHANGELOG, SPEC), GitHub community (PR template, bug+feature issue forms), supply-chain automation (Dependabot, Renovate, Release Drafter), and the Phenotype-mandated health surfaces (CI, OpenSSF Scorecard, repo health). All five reference repos converge on this exact file set; adopting it removes drift before the first commit.",
+  "recommended_files": [
+    {"path": "LICENSE", "content_excerpt": "MIT License — Copyright (c) 2026 KooshaPari. Permission is hereby granted, free of charge, to any person obtaining a copy of this software..."},
+    {"path": "README.md", "content_excerpt": "# <repo-name>\n\n> One-line tagline. Phenotype-org project under [KooshaPari](https://github.com/KooshaPari).\n\n## Status\n![CI](https://github.com/KooshaPari/<repo>/actions/workflows/ci.yml/badge.svg) ![Scorecard](https://img.shields.io/ossf-scorecard?...)\n\n## Quick start\n## Governance — see AGENTS.md, CLAUDE.md, SPEC.md, CHANGELOG.md\n## License — MIT"},
+    {"path": "CONTRIBUTING.md", "content_excerpt": "Conventional Commits (`feat:`, `fix:`, `chore:`, `docs:`, `refactor:`). ADR before implementation; SPEC before code. Run `vale .` and `actionlint .github/workflows/` locally. See AGENTS.md, CLAUDE.md, SETUP_STEPS.md."},
+    {"path": "SECURITY.md", "content_excerpt": "Report vulnerabilities privately to kooshapari@gmail.com. Acknowledge within 48h. Scope: <repo> does NOT hold application secrets — see Vaultwarden rotation policy in docs/governance/security-policy.md."},
+    {"path": "CODE_OF_CONDUCT.md", "content_excerpt": "Contributor Covenant v2.1. Report concerns privately via SECURITY.md or GitHub Security Advisory."},
+    {"path": "FUNDING.yml", "content_excerpt": "github: KooshaPari"},
+    {"path": "CHANGELOG.md", "content_excerpt": "# Changelog\nAll notable changes documented here.\n\n## [Unreleased]\n## [0.1.0] - <date>\n- Initial release"},
+    {"path": ".github/CODEOWNERS", "content_excerpt": "* @KooshaPari\n/src/ @KooshaPari\n/tests/ @KooshaPari\n/docs/ @KooshaPari\n/.github/ @KooshaPari\n/SECURITY.md @KooshaPari\n/.github/workflows/ @KooshaPari"},
+    {"path": ".github/PULL_REQUEST_TEMPLATE.md", "content_excerpt": "## Summary / ## Type of change (bug/feature/docs/chore/breaking) / ## Test plan (fmt+clippy+test+deny) / ## Related Closes #issue"},
+    {"path": ".github/ISSUE_TEMPLATE/bug_report.md", "content_excerpt": "name: 🐛 Bug report / Describe / To Reproduce / Expected / Environment (OS, Version)"},
+    {"path": ".github/ISSUE_TEMPLATE/feature_request.md", "content_excerpt": "name: 🚀 Feature request / Problem / Solution / Alternatives considered"},
+    {"path": ".github/dependabot.yml", "content_excerpt": "version: 2 / updates: github-actions, cargo, npm, terraform, docker — weekly schedule, open-pull-requests-limit: 5"},
+    {"path": ".github/renovate.json5", "content_excerpt": "{ extends: ['config:recommended'], labels: ['deps'], schedule: 'weekend', packageRules: [{ matchDatasources: ['docker','github-tags'], automerge: false }] }"},
+    {"path": ".github/release-drafter.yml", "content_excerpt": "name-template: 'v$RESOLVED_VERSION' / tag-template: 'v$RESOLVED_VERSION' / categories: [{title: '🚀 Features', labels: ['feature']}, {title: '🐛 Fixes', labels: ['bug','fix']}, {title: '📦 Dependencies', labels: ['deps']}] / change-template: '* $TITLE (#$NUMBER) @$AUTHOR'"},
+    {"path": ".github/workflows/ci.yml", "content_excerpt": "name: CI / concurrency cancel-in-progress / push+PR to main / jobs call KooshaPari/phenoShared/.github/workflows/reusable/ci.yml@<sha> (thin caller)"},
+    {"path": ".github/workflows/scorecard.yml", "content_excerpt": "name: OpenSSF Scorecard / weekly cron 17 3 * * 6 + push main / ubuntu-24.04 / permissions: security-events:write, id-token:write / uses ossf/scorecard-action@v2.4.3"},
+    {"path": ".github/workflows/health.yml", "content_excerpt": "name: Repo Health / weekly cron / checks: CODEOWNERS present, no workflows on >7d-stale, Dependabot enabled, branch protection admin-enforced, stale-bot config, SECURITY.md age <180d"},
+    {"path": "SPEC.md", "content_excerpt": "# SPEC: <repo-name>\n## Meta — ID, Title, State (specified), Version 1.0.0, Language\n## Overview — purpose, scope, non-goals\n## ASCII architecture diagram\n## Phased WBS — Discovery / Design / Build / Test / Deploy"},
+    {"path": "worklogs/README.md", "content_excerpt": "# Worklogs — research, decisions, architecture, completion notes. Categories: ARCHITECTURE, RESEARCH, GOVERNANCE, DUPLICATION, DEPENDENCIES, INTEGRATION, PERFORMANCE. See ../../INDEX.md for cross-repo index."}
+  ],
+  "adopters": [
+    "focalpoint",
+    "phenotype-infra",
+    "phenotype-registry",
+    "phenotype-tooling",
+    "phenotype-hub"
+  ]
+}

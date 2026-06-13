@@ -1,0 +1,53 @@
+{
+  "generated_at": "2026-06-09T03:58:59.587914+00:00",
+  "by_repo": [
+    {
+      "repo": "AppGen",
+      "has_root_spec": false,
+      "has_docs_spec": false,
+      "has_subspec": false,
+      "has_openapi": false,
+      "has_proto": false,
+      "total_specs": 0
+    },
+    {
+      "repo": "BytePort",
+      "has_root_spec": true,
+      "has_docs_spec": false,
+      "has_subspec": false,
+      "has_openapi": false,
+      "has_proto": false,
+      "total_specs": 2
+    },
+    {
+      "repo": "chatta",
+      "has_root_spec": true,
+      "has_docs_spec": false,
+      "has_subspec": false,
+      "has_openapi": false,
+      "has_proto": false,
+      "total_specs": 2
+    },
+    {
+      "repo": "slickport",
+      "has_root_spec": false,
+      "has_docs_spec": false,
+      "has_subspec": false,
+      "has_openapi": false,
+      "has_proto": false,
+      "total_specs": 0
+    },
+    {
+      "repo": "localbase3",
+      "has_root_spec": false,
+      "has_docs_spec": false,
+      "has_subspec": false,
+      "has_openapi": false,
+      "has_proto": false,
+      "total_specs": 0
+    }
+  ],
+  "summary": {
+    "repos_with_root_spec": 2
+  }
+}

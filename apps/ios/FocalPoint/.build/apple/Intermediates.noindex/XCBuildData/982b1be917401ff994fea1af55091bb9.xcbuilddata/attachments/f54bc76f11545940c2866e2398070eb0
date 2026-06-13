@@ -1,4 +1,0 @@
-module Enforcement {
-    header "Enforcement-Swift.h"
-    export *
-}

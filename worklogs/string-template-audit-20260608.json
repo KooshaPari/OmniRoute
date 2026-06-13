@@ -1,0 +1,20 @@
+{
+  "generated_at": "2026-06-08T23:51:47Z",
+  "total_repos": 92,
+  "by_lib": {
+    "handlebars": [
+      "forgecode"
+    ],
+    "tera": [],
+    "askama": [
+      "HeliosCLI",
+      "helioscope"
+    ],
+    "minijinja": [],
+    "jinja2": [
+      "phenotype-omlx",
+      "portage"
+    ],
+    "mako": []
+  }
+}

@@ -1,0 +1,1808 @@
+{
+  "generated_at": "2026-06-08T22:15:00Z",
+  "total_repos": 161,
+  "with_ssot_doc": [
+    ".remember",
+    "AgilePlus",
+    "BytePort",
+    "Civis",
+    "DevHex",
+    "Dino",
+    "GDK",
+    "HeliosCLI",
+    "HexaKit",
+    "MCPForge",
+    "Metron",
+    "ObservabilityKit",
+    "OmniRoute",
+    "OmniRoute-latest",
+    "Paginary",
+    "Parpoura",
+    "PhenoCompose",
+    "PhenoDevOps",
+    "PhenoHandbook",
+    "PhenoKits",
+    "PhenoMCP",
+    "PhenoObservability",
+    "PhenoPlugins",
+    "PhenoProc",
+    "PhenoProject",
+    "PhenoRuntime",
+    "PhenoSpecs",
+    "PolicyStack",
+    "Pyron",
+    "QuadSGM",
+    "Sidekick",
+    "Tokn",
+    "Tracely",
+    "Tracera",
+    "agent-devops-setups",
+    "agent-user-status",
+    "agentapi-plusplus",
+    "argis-extensions",
+    "cheap-llm-mcp",
+    "cliproxyapi-plusplus",
+    "dinoforge-packs",
+    "heliosApp",
+    "helioscope",
+    "pheno",
+    "phenoAI",
+    "phenoData",
+    "phenoDesign",
+    "phenoResearchEngine",
+    "phenoShared",
+    "phenoUtils",
+    "phenoXdd",
+    "phenodocs",
+    "phenodocs-scorecard-remediation",
+    "phenotype-auth-ts",
+    "phenotype-bus",
+    "phenotype-hub",
+    "phenotype-infra",
+    "phenotype-journeys",
+    "phenotype-omlx",
+    "phenotype-ops-mcp",
+    "phenotype-org-audits",
+    "phenotype-registry",
+    "phenotype-shared",
+    "phenotype-tooling",
+    "portage",
+    "thegent",
+    "vibeproxy",
+    "vibeproxy-monitoring-unified"
+  ],
+  "with_dag_doc": [
+    ".remember",
+    "AgilePlus",
+    "AtomsBot",
+    "Civis",
+    "DataKit",
+    "DevHex",
+    "Dino",
+    "Eidolon",
+    "FocalPoint",
+    "HeliosCLI",
+    "HeliosLab",
+    "HexaKit",
+    "McpKit",
+    "OmniRoute",
+    "Parpoura",
+    "PhenoCompose",
+    "PhenoDevOps",
+    "PhenoHandbook",
+    "PhenoKits",
+    "PhenoMCP",
+    "PhenoObservability",
+    "PhenoProc",
+    "PhenoRuntime",
+    "Planify",
+    "PolicyStack",
+    "Pyron",
+    "QuadSGM",
+    "ResilienceKit",
+    "Sidekick",
+    "Tracera",
+    "agent-devops-setups",
+    "agent-user-status",
+    "agentapi-plusplus",
+    "argis-extensions",
+    "cheap-llm-mcp",
+    "cliproxyapi-plusplus",
+    "eyetracker",
+    "heliosApp",
+    "heliosBench",
+    "helioscope",
+    "hwLedger",
+    "pheno",
+    "phenoDesign",
+    "phenoShared",
+    "phenodocs",
+    "phenodocs-scorecard-remediation",
+    "phenotype-bus",
+    "phenotype-dep-guard",
+    "phenotype-infra",
+    "phenotype-journeys",
+    "phenotype-ops-mcp",
+    "phenotype-tooling",
+    "portage",
+    "rich-cli-kit",
+    "thegent",
+    "vibeproxy"
+  ],
+  "with_traceability_doc": [
+    "Agentora",
+    "AgilePlus",
+    "Apisync",
+    "AppGen",
+    "AtomsBot",
+    "AuthKit",
+    "Benchora",
+    "BytePort",
+    "Civis",
+    "Conft",
+    "DataKit",
+    "DevHex",
+    "Dino",
+    "Eidolon",
+    "FocalPoint",
+    "GDK",
+    "HeliosCLI",
+    "HeliosLab",
+    "HexaKit",
+    "Httpora",
+    "KDesktopVirt",
+    "KlipDot",
+    "KodeVibe",
+    "MCPForge",
+    "McpKit",
+    "Metron",
+    "ObservabilityKit",
+    "OmniRoute",
+    "Paginary",
+    "Parpoura",
+    "PhenoAgent",
+    "PhenoCompose",
+    "PhenoDevOps",
+    "PhenoHandbook",
+    "PhenoKits",
+    "PhenoMCP",
+    "PhenoObservability",
+    "PhenoPlugins",
+    "PhenoProc",
+    "PhenoProject",
+    "PhenoRuntime",
+    "PhenoSpecs",
+    "PhenoVCS",
+    "Pine",
+    "Planify",
+    "PolicyStack",
+    "Pyron",
+    "QuadSGM",
+    "ResilienceKit",
+    "Sidekick",
+    "Tasken",
+    "TestingKit",
+    "Tokn",
+    "Tracely",
+    "Tracera",
+    "agent-devops-setups",
+    "agent-user-status",
+    "agentapi-plusplus",
+    "agileplus-landing",
+    "argis-extensions",
+    "byteport-landing",
+    "chatta",
+    "cheap-llm-mcp",
+    "cliproxyapi-plusplus",
+    "dinoforge-packs",
+    "eyetracker",
+    "foqos-private",
+    "heliosApp",
+    "heliosBench",
+    "helioscope",
+    "hwLedger",
+    "kwality",
+    "nanovms",
+    "netweave-final2",
+    "pheno",
+    "phenoAI",
+    "phenoData",
+    "phenoDesign",
+    "phenoForge",
+    "phenoResearchEngine",
+    "phenoShared",
+    "phenoUtils",
+    "phenoXdd",
+    "phenodocs",
+    "phenodocs-scorecard-remediation",
+    "phenotype-auth-ts",
+    "phenotype-bus",
+    "phenotype-hub",
+    "phenotype-infra",
+    "phenotype-journeys",
+    "phenotype-omlx",
+    "phenotype-ops-mcp",
+    "phenotype-org-audits",
+    "phenotype-registry",
+    "phenotype-tooling",
+    "portage",
+    "rich-cli-kit",
+    "thegent",
+    "vibeproxy",
+    "vibeproxy-monitoring-unified"
+  ],
+  "by_repo": [
+    {
+      "repo": ".remember",
+      "ssot_paths": [
+        "ssot-unification-dag-2026-06-08.md",
+        "tooling-modernization-2026-06-08.md",
+        "unify-state-dag.md"
+      ]
+    },
+    {
+      "repo": "Agentora",
+      "ssot_paths": [
+        "agents/phenoagent/docs/operations/journey-traceability.md",
+        "docs/operations/journey-traceability.md"
+      ]
+    },
+    {
+      "repo": "AgilePlus",
+      "ssot_paths": [
+        "docs/journeys/README.md",
+        "docs/journeys/dashboard-health-check.md",
+        "docs/journeys/domain-models.md",
+        "docs/operations/journey-traceability.md",
+        "docs/requirements/agileplus-frnfr.md",
+        "docs/requirements/tracera-frnfr.md",
+        "docs/templates/journey-template.md",
+        "docs/traceability.md",
+        "extended_dag_v10.md",
+        "extended_dag_v6.md",
+        "findings/misc_audits_2026-05-05.md",
+        "specs/001-agileplus-core/FR-CORE-001-DOMAIN-MODELS.md",
+        "specs/002-agileplus-dashboard/FR-DASHBOARD-HEALTH-001.md",
+        "specs/002-agileplus-dashboard/FR-DOMAIN-001.md",
+        "specs/011-agileplus-import/FR-IMPORT-001.md",
+        "specs/012-agileplus-telemetry/FR-TELEMETRY-001.md",
+        "specs/013-agileplus-grpc/FR-GRPC-001.md",
+        "specs/014-agileplus-github/FR-GITHUB-001.md"
+      ]
+    },
+    {
+      "repo": "Apisync",
+      "ssot_paths": [
+        "docs/traceability/index.md"
+      ]
+    },
+    {
+      "repo": "AppGen",
+      "ssot_paths": [
+        "docs/FUNCTIONAL_REQUIREMENTS.md"
+      ]
+    },
+    {
+      "repo": "AtomsBot",
+      "ssot_paths": [
+        "docs/operations/journey-traceability.md",
+        "docs/sessions/20260429-atomsbot-sladge-badge/03_DAG_WBS.md"
+      ]
+    },
+    {
+      "repo": "AuthKit",
+      "ssot_paths": [
+        "docs/FUNCTIONAL_REQUIREMENTS.md",
+        "docs/operations/journey-traceability.md"
+      ]
+    },
+    {
+      "repo": "Benchora",
+      "ssot_paths": [
+        ".github/PULL_REQUEST_TEMPLATE.md",
+        "README.md",
+        "SPEC.md"
+      ]
+    },
+    {
+      "repo": "BytePort",
+      "ssot_paths": [
+        ".github/PULL_REQUEST_TEMPLATE.md",
+        "README.md",
+        "SPEC.md",
+        "docs/FUNCTIONAL_REQUIREMENTS.md",
+        "docs/operations/journey-traceability.md"
+      ]
+    },
+    {
+      "repo": "Civis",
+      "ssot_paths": [
+        ".github/PULL_REQUEST_TEMPLATE.md",
+        "docs/adr/ADR-002-joule-economy-as-allocator.md",
+        "docs/adr/ADR-003-deterministic-replay.md",
+        "docs/development-guide/fr-web-spectator.md",
+        "docs/fragemented/adr/ADR-002-joule-economy-as-allocator.md",
+        "docs/fragemented/adr/ADR-003-deterministic-replay.md",
+        "docs/fragemented/adr/merged.md",
+        "docs/fragemented/governance/merged.md",
+        "docs/fragemented/governance/track-c-civ-sim-closure.md",
+        "docs/fragemented/merged.md",
+        "docs/fragemented/models/civ-sim/OPS_GOVERNANCE_SPEC.md",
+        "docs/fragemented/models/civ-sim/merged.md",
+        "docs/fragemented/research/RND-002-hexagonal-grid-decision.md",
+        "docs/fragemented/research/merged.md",
+        "docs/fragemented/specs/CIV-0100-economy-v1.md",
+        "docs/fragemented/specs/merged.md",
+        "docs/fragemented/traceability/TRACEABILITY_MATRIX.md",
+        "docs/fragemented/traceability/index.md",
+        "docs/fragemented/traceability/merged.md",
+        "docs/fragemented/upstream-governance/thegent/CLAUDE.md",
+        "docs/fragemented/upstream-governance/thegent/merged.md",
+        "docs/governance/track-c-civ-sim-closure.md",
+        "docs/models/civ-sim/OPS_GOVERNANCE_SPEC.md",
+        "docs/models/civ-sim/fragemented/OPS_GOVERNANCE_SPEC.md",
+        "docs/models/civ-sim/fragemented/merged.md",
+        "docs/operations/journey-traceability.md",
+        "docs/research/RND-002-hexagonal-grid-decision.md",
+        "docs/research/fragemented/RND-002-hexagonal-grid-decision.md",
+        "docs/research/fragemented/merged.md",
+        "docs/roadmap/plan-3d-phases.md",
+        "docs/specs/CIV-0100-economy-v1.md",
+        "docs/traceability/TRACEABILITY_MATRIX.md",
+        "docs/traceability/index.md",
+        "docs/upstream-governance/thegent/CLAUDE.md",
+        "docs/upstream-governance/thegent/fragemented/CLAUDE.md",
+        "docs/upstream-governance/thegent/fragemented/merged.md"
+      ]
+    },
+    {
+      "repo": "Conft",
+      "ssot_paths": [
+        ".github/PULL_REQUEST_TEMPLATE.md",
+        "docs/operations/journey-traceability.md"
+      ]
+    },
+    {
+      "repo": "DataKit",
+      "ssot_paths": [
+        ".github/PULL_REQUEST_TEMPLATE.md",
+        "docs/sessions/20260428-taskfile-datakit/03_DAG_WBS.md"
+      ]
+    },
+    {
+      "repo": "DevHex",
+      "ssot_paths": [
+        "AGENTS.md",
+        "docs/operations/journey-traceability.md",
+        "docs/sessions/20260427-deps-2026-04-27/03_DAG_WBS.md"
+      ]
+    },
+    {
+      "repo": "Dino",
+      "ssot_paths": [
+        ".claude/PHASE_DEPENDENCY_DAG.md",
+        "docs/archive/complete-trace-report.md",
+        "docs/archive/rendering-trace-implementation.md",
+        "docs/operations/journey-traceability.md",
+        "docs/reference/asset-intake/unity-import-contract.md",
+        "docs/reference/schema-governance.md",
+        "docs/sessions/FINAL_RELEASE_VALIDATION_20260420_120000.md",
+        "docs/sessions/RELEASE_READINESS_SUMMARY.md",
+        "docs/sessions/TRACEABILITY_VERIFICATION_20260420.md",
+        "docs/specs/traceability-matrix.md",
+        "scripts/services/README.md"
+      ]
+    },
+    {
+      "repo": "Eidolon",
+      "ssot_paths": [
+        "docs/operations/journey-traceability.md",
+        "docs/sessions/20260429-eidolon-sladge-badge/03_DAG_WBS.md"
+      ]
+    },
+    {
+      "repo": "FocalPoint",
+      "ssot_paths": [
+        "docs/operations/journey-traceability.md",
+        "docs/sessions/20260429-focalpoint-sladge-badge/03_DAG_WBS.md"
+      ]
+    },
+    {
+      "repo": "GDK",
+      "ssot_paths": [
+        "AGENTS.md",
+        "docs/operations/journey-traceability.md"
+      ]
+    },
+    {
+      "repo": "HeliosCLI",
+      "ssot_paths": [
+        "docs/fragemented/research/harness-spec.md",
+        "docs/fragemented/research/helios-consolidated.md",
+        "docs/fragemented/research/merged.md",
+        "docs/fragemented/research/phase-2-reports/agent-d-harness-architecture.md",
+        "docs/fragemented/research/phase-2-reports/merged.md",
+        "docs/functional-requirements/FR-SPEC-001_SPEC_PARSER.md",
+        "docs/operations/journey-traceability.md",
+        "docs/sessions/2026-03-24-stabilization-qa/03_DAG_WBS.md",
+        "docs/sessions/20260303-absorb-stack-prep/03_DAG_WBS.md",
+        "docs/sessions/20260429-helioscli-sladge-badge/03_DAG_WBS.md",
+        "docs/user-stories/US-AUTO-001_SPEC_DRIVEN_EXECUTION.md",
+        "docs/user-stories/US-AUTO-002_CHECKPOINT_SYSTEM.md",
+        "docs/user-stories/US-AUTO-003_AUTOMATIC_ROLLBACK.md",
+        "research/harness-spec.md",
+        "research/helios-consolidated.md",
+        "research/phase-2-reports/agent-d-harness-architecture.md"
+      ]
+    },
+    {
+      "repo": "HeliosLab",
+      "ssot_paths": [
+        "docs/context/governance/git-backed-documentation/templates/PLAN_TEMPLATE.md",
+        "docs/operations/journey-traceability.md",
+        "docs/traceability/index.md"
+      ]
+    },
+    {
+      "repo": "HexaKit",
+      "ssot_paths": [
+        ".agileplus/specs/001-spec-driven-development-engine/spec.md",
+        ".archive/kitty-specs/001-spec-driven-development-engine/spec.md",
+        "FR_TRACEABILITY.md",
+        "FUNCTIONAL_REQUIREMENTS.md",
+        "Metron/AGENTS.md",
+        "Metron/docs/operations/journey-traceability.md",
+        "SPECS_REGISTRY.md",
+        "SSOT_DESIGN_SUMMARY.md",
+        "agileplus/FR_TRACEABILITY.md",
+        "agileplus/docs/reference/FR_TRACKER.md",
+        "agileplus/docs/reference/PLANNED_LIBS_DECISION.md",
+        "agileplus/docs/reports/FR_TRACEABILITY_COMPLETION.md",
+        "agileplus/docs/sessions/20260323-backlog-parity/03_DAG_WBS.md",
+        "agileplus/docs/sessions/20260323-config-module-split/03_DAG_WBS.md",
+        "agileplus/docs/sessions/20260327-open-work-ledger/03_DAG_WBS.md",
+        "agileplus/docs/sessions/20260327-plane-fork-pm-substrate/03_DAG_WBS.md",
+        "agileplus/docs/specs/001-spec-driven-development-engine/spec.md",
+        "agileplus/docs/traceability/index.md",
+        "apps/byteport/FUNCTIONAL_REQUIREMENTS.md",
+        "crates/cipher/ARCHIVED.md",
+        "docs/TEMPLATE_DEDUPLICATION_REPORT.md",
+        "docs/operations/journey-traceability.md",
+        "docs/reference/AUTO_MERGE_SERVICE_ARCHITECTURE.md",
+        "docs/reference/DEPENDENCY_PHASE2_VALIDATION.md",
+        "docs/reference/FR_TRACKER.md",
+        "docs/reference/POLYREPO_SSOT_ARCHITECTURE.md",
+        "docs/reference/SSOT_ARCHITECTURE_INDEX.md",
+        "docs/reference/SSOT_IMPLEMENTATION_ROADMAP.md",
+        "docs/reference/SSOT_PHASE1_AGENT_WORKFLOW.md",
+        "docs/reference/SSOT_PHASE1_DAY1_COMPLETION.md",
+        "docs/reference/SSOT_PHASE1_DAY2_3_COMPLETION.md",
+        "docs/reference/SSOT_PHASE1_EXECUTION_SUMMARY.md",
+        "docs/reference/SSOT_PHASE1_EXECUTIVE_SUMMARY.md",
+        "docs/reference/SSOT_PHASE1_IMPLEMENTATION_PLAN.md",
+        "docs/reference/SSOT_PHASE1_MASTER_INDEX.md",
+        "docs/reference/SSOT_PHASE1_WEEK1_OVERVIEW.md",
+        "docs/reference/SSOT_PHASE1_WORK_PACKAGES.md",
+        "docs/reference/SSOT_QUICK_REFERENCE.md",
+        "docs/reference/SSOT_VISUAL_GUIDE.md",
+        "docs/reference/TRACEABILITY_MAP.md",
+        "docs/reports/FR_TRACEABILITY_COMPLETION.md",
+        "docs/sessions/20260323-backlog-parity/03_DAG_WBS.md",
+        "docs/sessions/20260323-config-module-split/03_DAG_WBS.md",
+        "docs/sessions/20260327-open-work-ledger/03_DAG_WBS.md",
+        "docs/sessions/20260327-plane-fork-pm-substrate/03_DAG_WBS.md",
+        "docs/specs/001-spec-driven-development-engine/spec.md",
+        "docs/worklogs/.archive/PHASE4_VERIFICATION.md",
+        "docs/worklogs/INACTIVE_FOLDERS.md",
+        "docs/worklogs/PHASE4_VERIFICATION.md",
+        "docs/worklogs/RESEARCH.md",
+        "docs/worklogs/WorklogsIndex.md",
+        "kitty-specs/001-spec-driven-development-engine/spec.md",
+        "templates/go/AGENTS.md",
+        "templates/go/docs/sessions/2026-03-01-template-workflow-hardening/03_DAG_WBS.md",
+        "templates/go/docs/traceability/index.md",
+        "templates/hexagon/go/AGENTS.md",
+        "templates/hexagon/go/docs/traceability/index.md",
+        "templates/hexagon/python/docs/traceability/index.md",
+        "templates/hexagon/rust/AGENTS.md",
+        "templates/hexagon/rust/docs/traceability/index.md",
+        "templates/hexagon/typescript/AGENTS.md",
+        "templates/hexagon/typescript/docs/traceability/index.md",
+        "templates/kotlin/docs/sessions/2026-03-01-template-workflow-hardening/03_DAG_WBS.md",
+        "templates/kotlin/docs/traceability/index.md",
+        "templates/mojo/docs/sessions/2026-03-01-template-workflow-hardening/03_DAG_WBS.md",
+        "templates/mojo/docs/traceability/index.md",
+        "templates/swift/docs/sessions/2026-03-01-template-workflow-hardening/03_DAG_WBS.md",
+        "templates/swift/docs/traceability/index.md",
+        "templates/zig/docs/sessions/2026-03-01-template-workflow-hardening/03_DAG_WBS.md",
+        "templates/zig/docs/traceability/index.md"
+      ]
+    },
+    {
+      "repo": "Httpora",
+      "ssot_paths": [
+        "docs/operations/journey-traceability.md",
+        "docs/traceability/index.md"
+      ]
+    },
+    {
+      "repo": "KDesktopVirt",
+      "ssot_paths": [
+        "CHANGELOG.md",
+        "docs/operations/journey-traceability.md"
+      ]
+    },
+    {
+      "repo": "KlipDot",
+      "ssot_paths": [
+        "docs/operations/journey-traceability.md"
+      ]
+    },
+    {
+      "repo": "KodeVibe",
+      "ssot_paths": [
+        "engine/docs/traceability/index.md"
+      ]
+    },
+    {
+      "repo": "MCPForge",
+      "ssot_paths": [
+        "AGENTS.md",
+        "docs/operations/journey-traceability.md"
+      ]
+    },
+    {
+      "repo": "McpKit",
+      "ssot_paths": [
+        "docs/operations/journey-traceability.md",
+        "docs/sessions/20260428-taskfile-mcpkit/03_DAG_WBS.md",
+        "docs/sessions/20260429-mcpkit-sladge-badge/03_DAG_WBS.md"
+      ]
+    },
+    {
+      "repo": "Metron",
+      "ssot_paths": [
+        "AGENTS.md",
+        "docs/operations/journey-traceability.md"
+      ]
+    },
+    {
+      "repo": "ObservabilityKit",
+      "ssot_paths": [
+        "AGENTS.md",
+        "docs/operations/journey-traceability.md"
+      ]
+    },
+    {
+      "repo": "OmniRoute",
+      "ssot_paths": [
+        "docs/ADR-001-canonical-routing.md",
+        "docs/ROUTING-CONVERGENCE-STATUS.md",
+        "docs/diagrams/README.md",
+        "docs/guides/I18N.md",
+        "docs/i18n/ar/docs/guides/I18N.md",
+        "docs/i18n/az/docs/guides/I18N.md",
+        "docs/i18n/bg/docs/guides/I18N.md",
+        "docs/i18n/bn/docs/guides/I18N.md",
+        "docs/i18n/cs/docs/guides/I18N.md",
+        "docs/i18n/da/docs/guides/I18N.md",
+        "docs/i18n/de/docs/guides/I18N.md",
+        "docs/i18n/es/docs/guides/I18N.md",
+        "docs/i18n/fa/docs/guides/I18N.md",
+        "docs/i18n/fi/docs/guides/I18N.md",
+        "docs/i18n/fr/docs/guides/I18N.md",
+        "docs/i18n/gu/docs/guides/I18N.md",
+        "docs/i18n/he/docs/guides/I18N.md",
+        "docs/i18n/hi/docs/guides/I18N.md",
+        "docs/i18n/hu/docs/guides/I18N.md",
+        "docs/i18n/id/docs/guides/I18N.md",
+        "docs/i18n/in/docs/guides/I18N.md",
+        "docs/i18n/it/docs/guides/I18N.md",
+        "docs/i18n/ja/docs/guides/I18N.md",
+        "docs/i18n/ko/docs/guides/I18N.md",
+        "docs/i18n/mr/docs/guides/I18N.md",
+        "docs/i18n/ms/docs/guides/I18N.md",
+        "docs/i18n/nl/docs/guides/I18N.md",
+        "docs/i18n/no/docs/guides/I18N.md",
+        "docs/i18n/phi/docs/guides/I18N.md",
+        "docs/i18n/pl/docs/guides/I18N.md",
+        "docs/i18n/pt-BR/docs/guides/I18N.md",
+        "docs/i18n/pt/docs/guides/I18N.md",
+        "docs/i18n/ro/docs/guides/I18N.md",
+        "docs/i18n/ru/docs/guides/I18N.md",
+        "docs/i18n/sk/docs/guides/I18N.md",
+        "docs/i18n/sv/docs/guides/I18N.md",
+        "docs/i18n/sw/docs/guides/I18N.md",
+        "docs/i18n/ta/docs/guides/I18N.md",
+        "docs/i18n/te/docs/guides/I18N.md",
+        "docs/i18n/th/docs/guides/I18N.md",
+        "docs/i18n/tr/docs/guides/I18N.md",
+        "docs/i18n/uk-UA/docs/guides/I18N.md",
+        "docs/i18n/ur/docs/guides/I18N.md",
+        "docs/i18n/vi/docs/guides/I18N.md",
+        "docs/i18n/zh-CN/docs/guides/I18N.md",
+        "docs/operations/journey-traceability.md",
+        "docs/ops/journey-traceability.md",
+        "docs/reference/CLI-TOOLS.md",
+        "docs/sessions/20260507-omniroute-sladge-current/03_DAG_WBS.md"
+      ]
+    },
+    {
+      "repo": "OmniRoute-latest",
+      "ssot_paths": [
+        "OmniRoute/docs/diagrams/README.md",
+        "OmniRoute/docs/guides/I18N.md",
+        "OmniRoute/docs/i18n/ar/docs/guides/I18N.md",
+        "OmniRoute/docs/i18n/az/docs/guides/I18N.md",
+        "OmniRoute/docs/i18n/bg/docs/guides/I18N.md",
+        "OmniRoute/docs/i18n/bn/docs/guides/I18N.md",
+        "OmniRoute/docs/i18n/cs/docs/guides/I18N.md",
+        "OmniRoute/docs/i18n/da/docs/guides/I18N.md",
+        "OmniRoute/docs/i18n/de/docs/guides/I18N.md",
+        "OmniRoute/docs/i18n/es/docs/guides/I18N.md",
+        "OmniRoute/docs/i18n/fa/docs/guides/I18N.md",
+        "OmniRoute/docs/i18n/fi/docs/guides/I18N.md",
+        "OmniRoute/docs/i18n/fr/docs/guides/I18N.md",
+        "OmniRoute/docs/i18n/gu/docs/guides/I18N.md",
+        "OmniRoute/docs/i18n/he/docs/guides/I18N.md",
+        "OmniRoute/docs/i18n/hi/docs/guides/I18N.md",
+        "OmniRoute/docs/i18n/hu/docs/guides/I18N.md",
+        "OmniRoute/docs/i18n/id/docs/guides/I18N.md",
+        "OmniRoute/docs/i18n/in/docs/guides/I18N.md",
+        "OmniRoute/docs/i18n/it/docs/guides/I18N.md",
+        "OmniRoute/docs/i18n/ja/docs/guides/I18N.md",
+        "OmniRoute/docs/i18n/ko/docs/guides/I18N.md",
+        "OmniRoute/docs/i18n/mr/docs/guides/I18N.md",
+        "OmniRoute/docs/i18n/ms/docs/guides/I18N.md",
+        "OmniRoute/docs/i18n/nl/docs/guides/I18N.md",
+        "OmniRoute/docs/i18n/no/docs/guides/I18N.md",
+        "OmniRoute/docs/i18n/phi/docs/guides/I18N.md",
+        "OmniRoute/docs/i18n/pl/docs/guides/I18N.md",
+        "OmniRoute/docs/i18n/pt-BR/docs/guides/I18N.md",
+        "OmniRoute/docs/i18n/pt/docs/guides/I18N.md",
+        "OmniRoute/docs/i18n/ro/docs/guides/I18N.md",
+        "OmniRoute/docs/i18n/ru/docs/guides/I18N.md",
+        "OmniRoute/docs/i18n/sk/docs/guides/I18N.md",
+        "OmniRoute/docs/i18n/sv/docs/guides/I18N.md",
+        "OmniRoute/docs/i18n/sw/docs/guides/I18N.md",
+        "OmniRoute/docs/i18n/ta/docs/guides/I18N.md",
+        "OmniRoute/docs/i18n/te/docs/guides/I18N.md",
+        "OmniRoute/docs/i18n/th/docs/guides/I18N.md",
+        "OmniRoute/docs/i18n/tr/docs/guides/I18N.md",
+        "OmniRoute/docs/i18n/uk-UA/docs/guides/I18N.md",
+        "OmniRoute/docs/i18n/ur/docs/guides/I18N.md",
+        "OmniRoute/docs/i18n/vi/docs/guides/I18N.md",
+        "OmniRoute/docs/i18n/zh-CN/docs/guides/I18N.md",
+        "OmniRoute/docs/reference/CLI-TOOLS.md"
+      ]
+    },
+    {
+      "repo": "Paginary",
+      "ssot_paths": [
+        "apps/handbook/src/content/PLAN.md",
+        "apps/handbook/src/content/docs/FUNCTIONAL_REQUIREMENTS.md",
+        "apps/journeys/src/content/docs/FUNCTIONAL_REQUIREMENTS.md",
+        "apps/specs/src/content/PLAN.md",
+        "apps/specs/src/content/SPEC.md",
+        "apps/specs/src/content/adrs/006-traceability-first-development.md",
+        "apps/specs/src/content/archive/agent-wave/AGENTS.md",
+        "apps/specs/src/content/docs/FUNCTIONAL_REQUIREMENTS.md",
+        "apps/specs/src/content/docs/library-research/PLAN.md",
+        "apps/specs/src/content/docs/library-research/docs/adrs/ADR-002-traceability-first-documentation.md",
+        "apps/specs/src/content/specs/platform/001-spec-driven-development-engine/spec.md",
+        "apps/specs/src/content/specs/platform/008-temporal-deployment-workflow-migration/tasks/WP06-traces.md",
+        "apps/xdd/src/content/docs/FUNCTIONAL_REQUIREMENTS.md",
+        "docs/operations/journey-traceability.md"
+      ]
+    },
+    {
+      "repo": "Parpoura",
+      "ssot_paths": [
+        ".github/PULL_REQUEST_TEMPLATE.md",
+        "COMPARISON.md",
+        "FUNCTIONAL_REQUIREMENTS.md",
+        "docs/fragemented/governance/GOVERNANCE_SUMMARY.md",
+        "docs/fragemented/governance/merged.md",
+        "docs/fragemented/guides/agent-orchestration.md",
+        "docs/fragemented/guides/merged.md",
+        "docs/fragemented/merged.md",
+        "docs/fragemented/traceability/CROSS_PROJECT_TRACEABILITY.md",
+        "docs/fragemented/traceability/VENTURE_TRACEABILITY_MATRIX.md",
+        "docs/governance/GOVERNANCE_SUMMARY.md",
+        "docs/guides/agent-orchestration.md",
+        "docs/operations/journey-traceability.md",
+        "docs/traceability/CROSS_PROJECT_TRACEABILITY.md",
+        "docs/traceability/VENTURE_TRACEABILITY_MATRIX.md"
+      ]
+    },
+    {
+      "repo": "PhenoAgent",
+      "ssot_paths": [
+        "docs/operations/journey-traceability.md"
+      ]
+    },
+    {
+      "repo": "PhenoCompose",
+      "ssot_paths": [
+        "docs/journeys/game-automation.md",
+        "docs/journeys/quick-start.md",
+        "docs/operations/journey-traceability.md",
+        "docs/sessions/20260428-taskfile-pheno-compose/03_DAG_WBS.md",
+        "docs/traceability/index.md"
+      ]
+    },
+    {
+      "repo": "PhenoDevOps",
+      "ssot_paths": [
+        ".agileplus/specs/001-spec-driven-development-engine/spec.md",
+        ".archive/kitty-specs/001-spec-driven-development-engine/spec.md",
+        "FR_TRACEABILITY.md",
+        "FUNCTIONAL_REQUIREMENTS.md",
+        "SPECS_REGISTRY.md",
+        "SSOT_DESIGN_SUMMARY.md",
+        "agent-devops-setups/CLAUDE.md",
+        "agent-devops-setups/docs/sessions/20260328-root-docsites-worklog-consolidation/03_DAG_WBS.md",
+        "agent-devops-setups/docs/traceability/index.md",
+        "agileplus/FR_TRACEABILITY.md",
+        "agileplus/docs/reference/FR_TRACKER.md",
+        "agileplus/docs/reference/PLANNED_LIBS_DECISION.md",
+        "agileplus/docs/reports/FR_TRACEABILITY_COMPLETION.md",
+        "agileplus/docs/sessions/20260323-backlog-parity/03_DAG_WBS.md",
+        "agileplus/docs/sessions/20260323-config-module-split/03_DAG_WBS.md",
+        "agileplus/docs/sessions/20260327-open-work-ledger/03_DAG_WBS.md",
+        "agileplus/docs/sessions/20260327-plane-fork-pm-substrate/03_DAG_WBS.md",
+        "agileplus/docs/specs/001-spec-driven-development-engine/spec.md",
+        "apps/byteport/FUNCTIONAL_REQUIREMENTS.md",
+        "docs/operations/journey-traceability.md",
+        "docs/reference/AUTO_MERGE_SERVICE_ARCHITECTURE.md",
+        "docs/reference/DEPENDENCY_PHASE2_VALIDATION.md",
+        "docs/reference/FR_TRACKER.md",
+        "docs/reference/POLYREPO_SSOT_ARCHITECTURE.md",
+        "docs/reference/SSOT_ARCHITECTURE_INDEX.md",
+        "docs/reference/SSOT_IMPLEMENTATION_ROADMAP.md",
+        "docs/reference/SSOT_PHASE1_AGENT_WORKFLOW.md",
+        "docs/reference/SSOT_PHASE1_DAY1_COMPLETION.md",
+        "docs/reference/SSOT_PHASE1_DAY2_3_COMPLETION.md",
+        "docs/reference/SSOT_PHASE1_EXECUTION_SUMMARY.md",
+        "docs/reference/SSOT_PHASE1_EXECUTIVE_SUMMARY.md",
+        "docs/reference/SSOT_PHASE1_IMPLEMENTATION_PLAN.md",
+        "docs/reference/SSOT_PHASE1_MASTER_INDEX.md",
+        "docs/reference/SSOT_PHASE1_WEEK1_OVERVIEW.md",
+        "docs/reference/SSOT_PHASE1_WORK_PACKAGES.md",
+        "docs/reference/SSOT_QUICK_REFERENCE.md",
+        "docs/reference/SSOT_VISUAL_GUIDE.md",
+        "docs/reference/TRACEABILITY_MAP.md",
+        "docs/reports/FR_TRACEABILITY_COMPLETION.md",
+        "docs/sessions/20260323-backlog-parity/03_DAG_WBS.md",
+        "docs/sessions/20260323-config-module-split/03_DAG_WBS.md",
+        "docs/sessions/20260327-open-work-ledger/03_DAG_WBS.md",
+        "docs/sessions/20260327-plane-fork-pm-substrate/03_DAG_WBS.md",
+        "docs/specs/001-spec-driven-development-engine/spec.md",
+        "docs/worklogs/.archive/PHASE4_VERIFICATION.md",
+        "docs/worklogs/DUPLICATION.md",
+        "docs/worklogs/INACTIVE_FOLDERS.md",
+        "docs/worklogs/PHASE4_VERIFICATION.md",
+        "docs/worklogs/RESEARCH.md",
+        "docs/worklogs/WORK_LOG.md",
+        "docs/worklogs/WorklogsIndex.md",
+        "kitty-specs/001-spec-driven-development-engine/spec.md"
+      ]
+    },
+    {
+      "repo": "PhenoHandbook",
+      "ssot_paths": [
+        "PLAN.md",
+        "docs/governance/journey-traceability.md",
+        "docs/governance/stacked-prs/02-wbs-and-dag.md",
+        "docs/journeys/journey-traceability-catalog.md",
+        "docs/operations/journey-traceability.md",
+        "docs/sessions/2026-02-26-cliproxy-thegent-agentapi-reconcile-v2/00_SESSION_OVERVIEW.md",
+        "docs/sessions/2026-02-26-cliproxy-thegent-agentapi-reconcile-v3/00_SESSION_OVERVIEW.md"
+      ]
+    },
+    {
+      "repo": "PhenoKits",
+      "ssot_paths": [
+        "docs/governance/shared-crates-canonical-home-adr-2026-04.md",
+        "docs/governance/tracera-canonical-routing-2026-04-26.md",
+        "docs/governance/tracera-fresh-clone-compare-2026-04-26.md",
+        "docs/governance/tracera-recovery-disposition-2026-04-26.md",
+        "docs/guides/docs/sessions/2026-03-01-template-workflow-hardening/03_DAG_WBS.md",
+        "docs/guides/docs/traceability/index.md",
+        "docs/operations/journey-traceability.md",
+        "governance/AGENTS.md",
+        "hexagon/CONTRIBUTING.md",
+        "hexagon/FAQ.md",
+        "hexagon/README.md",
+        "hexagon/ROADMAP.md",
+        "hexagon/SECURITY.md",
+        "hexagon/docs/adr/ADR-001-multi-language-registry.md",
+        "hexagon/docs/adr/ADR-002-hexagonal-patterns.md",
+        "hexagon/docs/adr/ADR-003-documentation-tooling.md",
+        "hexagon/docs/adr/index.md",
+        "hexagon/templates/go/AGENTS.md",
+        "hexagon/templates/go/docs/traceability/index.md",
+        "hexagon/templates/rust/AGENTS.md",
+        "hexagon/templates/rust/docs/traceability/index.md",
+        "kitty-specs/forced-adoption-phase1-shared-crates/plan.md",
+        "kitty-specs/forced-adoption-phase1-shared-crates/spec.md",
+        "templates/webapp/AGENTS.md",
+        "templates/webapp/docs/sessions/2026-03-01-template-workflow-hardening/03_DAG_WBS.md"
+      ]
+    },
+    {
+      "repo": "PhenoMCP",
+      "ssot_paths": [
+        "README.md",
+        "docs/operations/journey-traceability.md",
+        "docs/sessions/20260429-sladge-badge/03_DAG_WBS.md"
+      ]
+    },
+    {
+      "repo": "PhenoObservability",
+      "ssot_paths": [
+        "ObservabilityKit/AGENTS.md",
+        "ObservabilityKit/docs/operations/journey-traceability.md",
+        "crates/helix-logging/ARCHIVED.md",
+        "crates/tracely-sentinel/docs/traceability/index.md",
+        "docs/operations/journey-traceability.md",
+        "docs/sessions/20260429-ai-prompt-logger-sladge-badge/03_DAG_WBS.md",
+        "docs/sessions/20260507-phenoobservability-sladge-main-refresh/03_DAG_WBS.md"
+      ]
+    },
+    {
+      "repo": "PhenoPlugins",
+      "ssot_paths": [
+        "AGENTS.md",
+        "crates/pheno-plugin-vessel/docs/traceability/index.md",
+        "docs/FUNCTIONAL_REQUIREMENTS.md",
+        "docs/operations/journey-traceability.md"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "ssot_paths": [
+        "Evalora/docs/traceability/index.md",
+        "crates/phenotype-cipher/ARCHIVED.md",
+        "crates/phenotype-cli-extensions/src/kitty-specs/002-phenotype-modular-arch/tasks/WP16-trace-code-intelligence.md",
+        "crates/phenotype-cli-extensions/src/kitty-specs/002-phenotype-modular-arch/tasks/WP20-portage-trace-quality.md",
+        "crates/phenotype-dep-guard/docs/sessions/2026-03-01-template-workflow-hardening/03_DAG_WBS.md",
+        "crates/phenotype-dep-guard/kitty-specs/layered-template-platform/WBS_DAG.md",
+        "crates/phenotype-gauge/AGENTS.md",
+        "crates/phenotype-gauge/PLAN.md",
+        "crates/phenotype-gauge/docs/reference/CODE_ENTITY_MAP.md",
+        "crates/phenotype-gauge/docs/sessions/20260328-root-docsites-worklog-consolidation/03_DAG_WBS.md",
+        "crates/phenotype-gauge/docs/traceability/index.md",
+        "crates/phenotype-infrakit/FUNCTIONAL_REQUIREMENTS.md",
+        "crates/phenotype-shared/docs/sessions/20260328-root-docsites-worklog-consolidation/03_DAG_WBS.md",
+        "crates/phenotype-vessel/docs/traceability/index.md",
+        "docs/operations/journey-traceability.md",
+        "python/pheno-infra/src/pheno_infra/README.md",
+        "worktree-manager/docs/traceability/index.md"
+      ]
+    },
+    {
+      "repo": "PhenoProject",
+      "ssot_paths": [
+        "AGENTS.md",
+        "docs/operations/journey-traceability.md"
+      ]
+    },
+    {
+      "repo": "PhenoRuntime",
+      "ssot_paths": [
+        "docs/operations/journey-traceability.md",
+        "docs/sessions/20260507-phenoruntime-sladge-current/03_DAG_WBS.md",
+        "docs/worklogs/README.md"
+      ]
+    },
+    {
+      "repo": "PhenoSpecs",
+      "ssot_paths": [
+        "PLAN.md",
+        "SPEC.md",
+        "adrs/006-traceability-first-development.md",
+        "archive/agent-wave/AGENTS.md",
+        "docs/FUNCTIONAL_REQUIREMENTS.md",
+        "docs/library-research/PLAN.md",
+        "docs/library-research/docs/adrs/ADR-002-traceability-first-documentation.md",
+        "docs/operations/journey-traceability.md",
+        "specs/platform/001-spec-driven-development-engine/spec.md",
+        "specs/platform/008-temporal-deployment-workflow-migration/tasks/WP06-traces.md"
+      ]
+    },
+    {
+      "repo": "PhenoVCS",
+      "ssot_paths": [
+        "docs/operations/journey-traceability.md"
+      ]
+    },
+    {
+      "repo": "Pine",
+      "ssot_paths": [
+        "docs/operations/journey-traceability.md"
+      ]
+    },
+    {
+      "repo": "Planify",
+      "ssot_paths": [
+        "docs/operations/journey-traceability.md",
+        "docs/sessions/20260428-taskfile-yml/03_DAG_WBS.md"
+      ]
+    },
+    {
+      "repo": "PolicyStack",
+      "ssot_paths": [
+        "README.md",
+        "docs/operations/journey-traceability.md",
+        "docs/sessions/2026-03-03-policy-wrapper-standardization/03_DAG_WBS.md",
+        "docs/traceability/index.md"
+      ]
+    },
+    {
+      "repo": "Pyron",
+      "ssot_paths": [
+        ".agileplus/specs/001-spec-driven-development-engine/spec.md",
+        ".archive/kitty-specs/001-spec-driven-development-engine/spec.md",
+        "FR_TRACEABILITY.md",
+        "FUNCTIONAL_REQUIREMENTS.md",
+        "SPECS_REGISTRY.md",
+        "SSOT_DESIGN_SUMMARY.md",
+        "agileplus/FR_TRACEABILITY.md",
+        "agileplus/docs/reference/FR_TRACKER.md",
+        "agileplus/docs/reference/PLANNED_LIBS_DECISION.md",
+        "agileplus/docs/reports/FR_TRACEABILITY_COMPLETION.md",
+        "agileplus/docs/sessions/20260323-backlog-parity/03_DAG_WBS.md",
+        "agileplus/docs/sessions/20260323-config-module-split/03_DAG_WBS.md",
+        "agileplus/docs/sessions/20260327-open-work-ledger/03_DAG_WBS.md",
+        "agileplus/docs/sessions/20260327-plane-fork-pm-substrate/03_DAG_WBS.md",
+        "agileplus/docs/specs/001-spec-driven-development-engine/spec.md",
+        "agileplus/docs/traceability/index.md",
+        "apps/byteport/FUNCTIONAL_REQUIREMENTS.md",
+        "docs/TEMPLATE_DEDUPLICATION_REPORT.md",
+        "docs/reference/AUTO_MERGE_SERVICE_ARCHITECTURE.md",
+        "docs/reference/DEPENDENCY_PHASE2_VALIDATION.md",
+        "docs/reference/FR_TRACKER.md",
+        "docs/reference/POLYREPO_SSOT_ARCHITECTURE.md",
+        "docs/reference/SSOT_ARCHITECTURE_INDEX.md",
+        "docs/reference/SSOT_IMPLEMENTATION_ROADMAP.md",
+        "docs/reference/SSOT_PHASE1_AGENT_WORKFLOW.md",
+        "docs/reference/SSOT_PHASE1_DAY1_COMPLETION.md",
+        "docs/reference/SSOT_PHASE1_DAY2_3_COMPLETION.md",
+        "docs/reference/SSOT_PHASE1_EXECUTION_SUMMARY.md",
+        "docs/reference/SSOT_PHASE1_EXECUTIVE_SUMMARY.md",
+        "docs/reference/SSOT_PHASE1_IMPLEMENTATION_PLAN.md",
+        "docs/reference/SSOT_PHASE1_MASTER_INDEX.md",
+        "docs/reference/SSOT_PHASE1_WEEK1_OVERVIEW.md",
+        "docs/reference/SSOT_PHASE1_WORK_PACKAGES.md",
+        "docs/reference/SSOT_QUICK_REFERENCE.md",
+        "docs/reference/SSOT_VISUAL_GUIDE.md",
+        "docs/reference/TRACEABILITY_MAP.md",
+        "docs/reports/FR_TRACEABILITY_COMPLETION.md",
+        "docs/sessions/20260323-backlog-parity/03_DAG_WBS.md",
+        "docs/sessions/20260323-config-module-split/03_DAG_WBS.md",
+        "docs/sessions/20260327-open-work-ledger/03_DAG_WBS.md",
+        "docs/sessions/20260327-plane-fork-pm-substrate/03_DAG_WBS.md",
+        "docs/specs/001-spec-driven-development-engine/spec.md",
+        "docs/worklogs/.archive/PHASE4_VERIFICATION.md",
+        "docs/worklogs/DUPLICATION.md",
+        "docs/worklogs/INACTIVE_FOLDERS.md",
+        "docs/worklogs/PHASE4_VERIFICATION.md",
+        "docs/worklogs/RESEARCH.md",
+        "docs/worklogs/WORK_LOG.md",
+        "docs/worklogs/WorklogsIndex.md",
+        "kitty-specs/001-spec-driven-development-engine/spec.md",
+        "phenotype-infrakit/FUNCTIONAL_REQUIREMENTS.md"
+      ]
+    },
+    {
+      "repo": "QuadSGM",
+      "ssot_paths": [
+        ".github/PULL_REQUEST_TEMPLATE.md",
+        "4sgm/docs/requirements/REQUIREMENTS_EXTRACTION_REPORT.md",
+        "4sgm/docs/requirements/TRACEABILITY_INDEX.md",
+        "4sgm/docs/requirements/TRACEABILITY_MATRIX.md",
+        "4sgm/docs/requirements/TRACEABILITY_VERIFICATION.md",
+        "4sgm/docs/requirements/traceability-matrix.md",
+        "docs/README.md",
+        "docs/context/governance/STACKED_PRS_AND_RELEASE_CHANNELS.md",
+        "docs/context/governance/git-backed-documentation/templates/PLAN_TEMPLATE.md",
+        "docs/operations/journey-traceability.md",
+        "docs/templates/FUNCTIONAL_REQUIREMENT_TEMPLATE.md",
+        "docs/templates/USER_STORY_TEMPLATE.md"
+      ]
+    },
+    {
+      "repo": "ResilienceKit",
+      "ssot_paths": [
+        "docs/operations/journey-traceability.md",
+        "docs/sessions/20260428-taskfile-resiliencekit/03_DAG_WBS.md"
+      ]
+    },
+    {
+      "repo": "Sidekick",
+      "ssot_paths": [
+        "crates/sidekick-presence/codex/AGENTS.user-status-snippet.md",
+        "crates/sidekick-presence/docs/sessions/20260423-real-eye-tracker/03_DAG_WBS.md",
+        "docs/operations/journey-traceability.md"
+      ]
+    },
+    {
+      "repo": "Tasken",
+      "ssot_paths": [
+        "docs/operations/journey-traceability.md"
+      ]
+    },
+    {
+      "repo": "TestingKit",
+      "ssot_paths": [
+        "docs/operations/journey-traceability.md"
+      ]
+    },
+    {
+      "repo": "Tokn",
+      "ssot_paths": [
+        "docs/operations/journey-traceability.md",
+        "docs/templates/FUNCTIONAL_REQUIREMENT_TEMPLATE.md",
+        "docs/templates/USER_STORY_TEMPLATE.md",
+        "docs/traceability/index.md",
+        "docs/worklogs/WORK_LOG.md"
+      ]
+    },
+    {
+      "repo": "Tracely",
+      "ssot_paths": [
+        "crates/helix-tracing/ARCHIVED.md",
+        "crates/tracely-sentinel/docs/traceability/index.md",
+        "docs/operations/journey-traceability.md"
+      ]
+    },
+    {
+      "repo": "Tracera",
+      "ssot_paths": [
+        ".archive/.bmad/.bmad/bmm/workflows/4-implementation/epic-tech-context/template.md",
+        ".archive/.bmad/.bmad/bmm/workflows/testarch/trace/checklist.md",
+        ".archive/.bmad/.bmad/bmm/workflows/testarch/trace/instructions.md",
+        ".archive/.bmad/.bmad/bmm/workflows/testarch/trace/trace-template.md",
+        ".archive/.bmad/bmm/workflows/4-implementation/epic-tech-context/template.md",
+        ".archive/.bmad/bmm/workflows/testarch/trace/checklist.md",
+        ".archive/.bmad/bmm/workflows/testarch/trace/instructions.md",
+        ".archive/.bmad/bmm/workflows/testarch/trace/trace-template.md",
+        ".remember/icon-assets-2026-06-08.md",
+        ".remember/within-tracera-dup-2026-06-08.md",
+        ".trace/ITEM_SPECIFICATIONS_REFERENCE.md",
+        "ARCHIVE/DOCUMENTATION/docs-site/DOCUMENTATION_INDEX.md",
+        "ARCHIVE/NOTES/ADVANCED_SERVICES_BATCH1_QUICK_REFERENCE.md",
+        "ARCHIVE/NOTES/TRACERTM_WEEK2_DASHBOARD.md",
+        "ARCHIVE/TEST_REPORTS/ADVANCED_SERVICES_BATCH1_TESTS_SUMMARY.md",
+        "ARCHIVE/TEST_REPORTS/ADVANCED_TRACEABILITY_TEST_REPORT.md",
+        "ARCHIVE/TEST_REPORTS/E2E_WORKFLOW_TESTS_REPORT.md",
+        "ARCHIVE/TEST_REPORTS/INTEGRATION_TESTS_COVERAGE_PLAN.md",
+        "COMPARISON.md",
+        "docs/02-architecture/ATOMIC_TRACE_ARCHITECTURE.md",
+        "docs/02-architecture/TRACE_SSOT_ARCHITECTURE_DEEP_DIVE.md",
+        "docs/02-architecture/archive/REQUIREMENTS_TRACEABILITY_ARCHITECTURE.md",
+        "docs/02-architecture/archive/REQUIREMENTS_TRACEABILITY_MASTER.md",
+        "docs/03-planning/COMPLETE_TRACERTM_FEATURES_AND_INFRASTRUCTURE.md",
+        "docs/03-planning/MASTER_PLAN_WBS_DAGS.md",
+        "docs/05-research/TRACE_ADVANCED_TOOLING_INTEGRATIONS.md",
+        "docs/05-research/TRACE_ARXIV_ACADEMIC_RESEARCH.md",
+        "docs/05-research/TRACE_COMPREHENSIVE_RESEARCH_SUMMARY.md",
+        "docs/05-research/TRACE_DEEP_RESEARCH_BLOGS_REDDIT_GITHUB.md",
+        "docs/05-research/TRACE_PACKAGES_TOOLS_ECOSYSTEM.md",
+        "docs/05-research/archive/TRACE_RESEARCH_INDEX.md",
+        "docs/05-research/archive/TRACE_SSOT_FEATURES_RESEARCH_INDEX.md",
+        "docs/05-research/rtm-deep-dives/archive/REQUIREMENTS_TRACEABILITY_BEST_PRACTICES.md",
+        "docs/05-research/rtm-deep-dives/archive/REQUIREMENTS_TRACEABILITY_COMPARISON.md",
+        "docs/05-research/rtm-deep-dives/archive/REQUIREMENTS_TRACEABILITY_GETTING_STARTED.md",
+        "docs/05-research/rtm-deep-dives/archive/REQUIREMENTS_TRACEABILITY_INDEX.md",
+        "docs/05-research/rtm-deep-dives/archive/REQUIREMENTS_TRACEABILITY_MVP.md",
+        "docs/05-research/rtm-deep-dives/archive/REQUIREMENTS_TRACEABILITY_RESEARCH.md",
+        "docs/05-research/rtm-deep-dives/archive/REQUIREMENTS_TRACEABILITY_ROADMAP.md",
+        "docs/05-research/rtm-deep-dives/archive/REQUIREMENTS_TRACEABILITY_SPEC.md",
+        "docs/05-research/rtm-deep-dives/archive/REQUIREMENTS_TRACEABILITY_SUMMARY.md",
+        "docs/05-research/rtm-deep-dives/archive/REQUIREMENTS_TRACEABILITY_USECASES.md",
+        "docs/05-research/rtm-deep-dives/archive/REQUIREMENTS_TRACEABILITY_VISUAL_GUIDE.md",
+        "docs/05-research/trace-research/TRACE_ATTACHED_LAYERS_MULTIVIEW.md",
+        "docs/05-research/trace-research/TRACE_CONSISTENCY_SYNCHRONIZATION_PATTERNS.md",
+        "docs/05-research/trace-research/TRACE_FEATURES_ALGORITHMS_DEEP_DIVE.md",
+        "docs/05-research/trace-research/TRACE_PM_TOOLING_RESEARCH.md",
+        "docs/05-research/trace-research/TRACE_PM_TOOLING_SUMMARY.md",
+        "docs/06-api-reference/README_STDIO_MCP_SERVER.md",
+        "docs/07-reports/archive/COMPLETE_TRACERTM_DOCUMENTATION_INDEX.md",
+        "docs/07-reports/archive/MASTER_INDEX_ALL_PLANS.md",
+        "docs/07-reports/archive/README_TRACERTM_COMPLETE.md",
+        "docs/07-reports/archive/TRACERTM_COMPLETE_RESEARCH_SUMMARY.md",
+        "docs/07-reports/archive/TRACERTM_PHASE_2_SUMMARY.md",
+        "docs/GUIDES-ROOT/TRACEABILITY_SSOT_WALKTHROUGH.md",
+        "docs/TRACERA_PLATFORM_RND.md",
+        "docs/adr/ADR-0001-tracertm-v2-architecture.md",
+        "docs/archive/test-docs/UNIFIED_TEST_CLI_PLAN_COMPLETE.md",
+        "docs/generated/LINK_INDEX.md",
+        "docs/generated/VALIDATION_REPORT.md",
+        "docs/guides/DISTRIBUTED_TRACING_GUIDE.md",
+        "docs/guides/GRAPH_PATTERNS_FOR_TRACERTM.md",
+        "docs/guides/INTEGRATION_GUIDE_FOR_TRACERTM.md",
+        "docs/guides/JAEGER_SETUP.md",
+        "docs/guides/PROJECT_SETUP_STYLE.md",
+        "docs/guides/QUICK_DB_REFERENCE.md",
+        "docs/guides/START_HERE_TRACERTM_2025.md",
+        "docs/guides/TRACEABILITY_SERVICE_IMPLEMENTATION.md",
+        "docs/guides/TRACEABILITY_SYSTEM_GUIDE.md",
+        "docs/guides/TRACERTM_AI_IMPLEMENTATION_GUIDE.md",
+        "docs/guides/TRACERTM_DOCS_IMPLEMENTATION_GUIDE.md",
+        "docs/guides/TRACERTM_WEEK1_CHECKLIST.md",
+        "docs/guides/UICodeTracePanel.README.md",
+        "docs/guides/WEB_SRC_COMPONENTS_GRAPH_EQUIVALENCE_IO_GUIDE.md",
+        "docs/guides/quick-start/TRACEABILITY_QUICK_START.md",
+        "docs/implementation/CANONICAL_SETUP_APPROACH.md",
+        "docs/implementation/DATABASE_SETUP.md",
+        "docs/implementation/NEO4J_TRACERTM_IMPLEMENTATION.md",
+        "docs/implementation/TRACERTM_2025_IMPLEMENTATION_ROADMAP.md",
+        "docs/operations/journey-traceability.md",
+        "docs/other/CANONICAL_SETUP_APPROACH.md",
+        "docs/other/DATABASE_SETUP.md",
+        "docs/other/NEO4J_TRACERTM_IMPLEMENTATION.md",
+        "docs/other/QUICK_DB_REFERENCE.md",
+        "docs/other/README_WIREFRAMES.md",
+        "docs/other/START_HERE_TRACERTM_2025.md",
+        "docs/other/TRACERTM_2025_IMPLEMENTATION_ROADMAP.md",
+        "docs/other/TRACERTM_AI_IMPLEMENTATION_GUIDE.md",
+        "docs/other/TRACERTM_ARCHITECTURE_2025.md",
+        "docs/other/TRACERTM_DOCS_EXPANSION_SUMMARY.md",
+        "docs/other/TRACERTM_DOCS_IMPLEMENTATION_GUIDE.md",
+        "docs/other/TRACERTM_DOCS_STRUCTURE_EXPANSION.md",
+        "docs/other/TRACERTM_IMMEDIATE_ACTIONS.md",
+        "docs/other/TRACERTM_WEEK1_CHECKLIST.md",
+        "docs/other/UNIFIED_TEST_CLI_PLAN_COMPLETE.md",
+        "docs/plans/2026-02-06-dependency-hardening-execution-plan.md",
+        "docs/reference/API_HOOKS_QUICK_REFERENCE.md",
+        "docs/reference/DESIGN_TRACEABILITY_ARCHITECTURE.md",
+        "docs/reference/FR_ADDITIONS_30_ENDPOINTS.md",
+        "docs/reference/FUNCTIONAL_REQUIREMENTS.md",
+        "docs/reference/GRAPH_QUICK_REFERENCE.md",
+        "docs/reference/JAEGER_QUICK_REFERENCE.md",
+        "docs/reference/MCP_TOOL_REFERENCE.md",
+        "docs/reference/MCP_UNIFICATION_SPEC.md",
+        "docs/reference/PROJECT_LOCAL_STORAGE.md",
+        "docs/reference/TRACEABILITY-MATRIX-MAPPED.md",
+        "docs/reference/TRACEABILITY-MATRIX.md",
+        "docs/reference/TRACERTM_CANONICAL_FORMAT.md",
+        "docs/reference/TRACERTM_CODEBASE_ENTITY_MAP.md",
+        "docs/reference/TRACE_DX_COMPONENTS_QUICK_REF.md",
+        "docs/reference/TRACING_QUICK_REFERENCE.md",
+        "docs/reference/UNIFIED_LOCAL_STORAGE_ARCHITECTURE.md",
+        "docs/reference/WIREFRAME_INTEGRATION.md",
+        "docs/reference/WIREFRAME_TRACEABILITY_DIAGRAM.md",
+        "docs/reference/product-brief-TraceRTM-2025-11-20.md",
+        "docs/reports/API_SPECIFICATION_COMPLETION_REPORT.md",
+        "docs/reports/COMPLETION_CHECKLIST.md",
+        "docs/reports/CORRECTED-FINAL-SUMMARY.md",
+        "docs/reports/COVERAGE_BASELINE_DELIVERY.md",
+        "docs/reports/FINAL-IMPLEMENTATION-SUMMARY.md",
+        "docs/reports/GENERATION_REPORT.md",
+        "docs/reports/IMPLEMENTATION_SUMMARY.UICodeTracePanel.md",
+        "docs/reports/PHASE_5_GAPS_5_1_5_2_ANALYSIS.md",
+        "docs/reports/PHASE_5_GAPS_IMPLEMENTATION_ROADMAP.md",
+        "docs/reports/PROJECT_COMPLETION_SUMMARY.md",
+        "docs/reports/REACT_QUERY_HOOKS.md",
+        "docs/reports/RESEARCH_SUMMARY_INDEX.md",
+        "docs/reports/SECURITY_AUDIT_DAG.md",
+        "docs/reports/SECURITY_AUDIT_FINDINGS_2026-05-04.md",
+        "docs/reports/SESSION_COMPLETION_2026-02-12.md",
+        "docs/reports/SWIFTRIDE_MASSIVE_ENHANCEMENT_COMPLETE.md",
+        "docs/reports/SWIFTRIDE_PRODUCT_LAYER_GENERATION_REPORT.md",
+        "docs/reports/UICodeTracePanel.COMPLETION_SUMMARY.md",
+        "docs/reports/WEB_SRC_API_README.md",
+        "docs/reports/WEB_SRC_COMPONENTS_GRAPH_UICodeTracePanel.md",
+        "docs/reports/complete-traceability-matrix.md",
+        "docs/reports/test-design-epic-1.md",
+        "docs/reports/test-design-epic-2.md",
+        "docs/reports/test-design-epic-3-to-8-summary.md",
+        "docs/reports/test-design-phase-2.md",
+        "docs/reports/test-traceability-complete.md",
+        "docs/requirements/tracera-frnfr.md",
+        "docs/research/3d-graph-libraries-evaluation.md",
+        "docs/research/ADVANCED_SPEC_OBJECTS_RESEARCH.md",
+        "docs/research/CODEINDEX_IMPLEMENTATION.md",
+        "docs/research/COVERAGE_DAG_PLAN.md",
+        "docs/research/ENTERPRISE_ALM_RESEARCH.md",
+        "docs/research/ITEM_SPEC_SCHEMAS_INDEX.md",
+        "docs/research/RESEARCH-SUMMARY.md",
+        "docs/research/TRACE_PROJECT_SPECIFIC_DX_COMPONENTS.md",
+        "docs/services/traceability_matrix_service.md",
+        "docs/sessions/20260423-tracera-recovery-modernization/01_RESEARCH.md",
+        "docs/sessions/20260423-tracera-recovery-modernization/03_DAG_WBS.md",
+        "docs/sessions/20260428-taskfile-language-detection/03_DAG_WBS.md",
+        "docs/templates/FUNCTIONAL_REQUIREMENT_TEMPLATE.md",
+        "docs/templates/USER_STORY_TEMPLATE.md",
+        "docs/unified-plan/03-UNIFIED-DAG.md",
+        "docs/unified-plan/05-ARCHITECTURE.md",
+        "scripts/mcp/COMPLETE_TRACERTM_ROADMAP_UPDATED.md",
+        "scripts/mcp/TRACERTM_BMM_OPENSPEC_INTEGRATION_ANALYSIS.md",
+        "scripts/mcp/TRACERTM_INTEGRATION_SUMMARY.md",
+        "scripts/mcp/TRACERTM_MCP_IMPLEMENTATION_GUIDE.md",
+        "scripts/mcp/TRACERTM_MCP_INDEX.md",
+        "scripts/mcp/TRACERTM_MCP_ROADMAP.md",
+        "scripts/mcp/TRACERTM_MCP_TOOLS_SUMMARY.md",
+        "scripts/mcp/TRACERTM_MCP_TOOL_REFERENCE.md",
+        "scripts/mcp/TRACERTM_MISSING_CORE_FEATURES_ANALYSIS.md",
+        "scripts/mcp/TRACE_RTM_MCP_DESIGN.md"
+      ]
+    },
+    {
+      "repo": "agent-devops-setups",
+      "ssot_paths": [
+        "CLAUDE.md",
+        "docs/operations/journey-traceability.md",
+        "docs/sessions/20260429-sladge-badge/03_DAG_WBS.md"
+      ]
+    },
+    {
+      "repo": "agent-user-status",
+      "ssot_paths": [
+        "codex/AGENTS.user-status-snippet.md",
+        "docs/operations/journey-traceability.md",
+        "docs/sessions/20260423-real-eye-tracker/03_DAG_WBS.md",
+        "docs/sessions/20260428-taskfile-common-commands/03_DAG_WBS.md"
+      ]
+    },
+    {
+      "repo": "agentapi-plusplus",
+      "ssot_paths": [
+        "CLAUDE.md",
+        "PLAN.md",
+        "docs/FUNCTIONAL_REQUIREMENTS.md",
+        "docs/README.md",
+        "docs/context/governance/git-backed-documentation/templates/PLAN_TEMPLATE.md",
+        "docs/operations/journey-traceability.md",
+        "docs/sessions/20260428-taskfile-agentapi-plusplus/03_DAG_WBS.md"
+      ]
+    },
+    {
+      "repo": "agileplus-landing",
+      "ssot_paths": [
+        "docs/operations/journey-traceability.md"
+      ]
+    },
+    {
+      "repo": "argis-extensions",
+      "ssot_paths": [
+        "CLAUDE.md",
+        "WARP.md",
+        "docs/operations/journey-traceability.md",
+        "docs/sessions/20260428-taskfile-common-tasks/03_DAG_WBS.md",
+        "docs/traceability/index.md"
+      ]
+    },
+    {
+      "repo": "byteport-landing",
+      "ssot_paths": [
+        "docs/operations/journey-traceability.md"
+      ]
+    },
+    {
+      "repo": "chatta",
+      "ssot_paths": [
+        "docs/FUNCTIONAL_REQUIREMENTS.md",
+        "docs/operations/journey-traceability.md"
+      ]
+    },
+    {
+      "repo": "cheap-llm-mcp",
+      "ssot_paths": [
+        "AGENTS.md",
+        "docs/FUNCTIONAL_REQUIREMENTS.md",
+        "docs/operations/journey-traceability.md",
+        "docs/sessions/20260428-taskfile-language-detection/03_DAG_WBS.md",
+        "docs/sessions/20260429-sladge-badge/03_DAG_WBS.md"
+      ]
+    },
+    {
+      "repo": "cliproxyapi-plusplus",
+      "ssot_paths": [
+        "CLAUDE.md",
+        "QA_MATRIX.md",
+        "docs/README.md",
+        "docs/operations/journey-traceability.md",
+        "docs/planning/DOCS_PARITY_P1_P2_PLAN_2026-02-23.md",
+        "docs/planning/issue-wave-codescan-0139-2026-02-23.md",
+        "docs/reference/DOCS_IA_CONTRACT.md",
+        "docs/sessions/2026-02-23-code-refactor-quality/03_DAG_WBS.md",
+        "docs/sessions/2026-04-01-pr-readiness-refresh/03_DAG_WBS.md",
+        "docs/sessions/20260429-sladge-badge/03_DAG_WBS.md",
+        "docs/traceability/index.md",
+        "journey-fix/CLAUDE.md",
+        "journey-fix/QA_MATRIX.md",
+        "journey-fix/docs/README.md",
+        "journey-fix/docs/operations/journey-traceability.md",
+        "journey-fix/docs/planning/DOCS_PARITY_P1_P2_PLAN_2026-02-23.md",
+        "journey-fix/docs/planning/issue-wave-codescan-0139-2026-02-23.md",
+        "journey-fix/docs/reference/DOCS_IA_CONTRACT.md",
+        "journey-fix/docs/sessions/2026-04-01-pr-readiness-refresh/03_DAG_WBS.md",
+        "journey-fix/docs/sessions/20260429-sladge-badge/03_DAG_WBS.md"
+      ]
+    },
+    {
+      "repo": "dinoforge-packs",
+      "ssot_paths": [
+        "AGENTS.md",
+        "docs/operations/journey-traceability.md"
+      ]
+    },
+    {
+      "repo": "eyetracker",
+      "ssot_paths": [
+        "docs/operations/journey-traceability.md",
+        "docs/sessions/20260429-sladge-badge-rollout/03_DAG_WBS.md"
+      ]
+    },
+    {
+      "repo": "foqos-private",
+      "ssot_paths": [
+        "docs/operations/journey-traceability.md"
+      ]
+    },
+    {
+      "repo": "heliosApp",
+      "ssot_paths": [
+        ".archive/kitty-specs/001-colab-agent-terminal-control-plane/tasks/WP07-protocol-boundary-delegation-and-traceability-gates.md",
+        ".archive/kitty-specs/kitty-specs/001-colab-agent-terminal-control-plane/tasks/WP07-protocol-boundary-delegation-and-traceability-gates.md",
+        "FUNCTIONAL_REQUIREMENTS.md",
+        "docs/operations/journey-traceability.md",
+        "docs/reference/FR_TRACEABILITY_GAPS.md",
+        "docs/sessions/20260226-helios-market-research/03_DAG_WBS.md",
+        "docs/sessions/20260226-helios-market-research/13_CROSS_REPO_ROLLOUT_MAP.md",
+        "docs/specs/001-colab-agent-terminal-control-plane/tasks/WP07-protocol-boundary-delegation-and-traceability-gates.md"
+      ]
+    },
+    {
+      "repo": "heliosBench",
+      "ssot_paths": [
+        "docs/operations/journey-traceability.md",
+        "docs/sessions/20260428-taskfile-common-commands/03_DAG_WBS.md",
+        "docs/sessions/20260429-sladge-badge-rollout/03_DAG_WBS.md"
+      ]
+    },
+    {
+      "repo": "helioscope",
+      "ssot_paths": [
+        "docs/fragemented/research/harness-spec.md",
+        "docs/fragemented/research/helios-consolidated.md",
+        "docs/fragemented/research/merged.md",
+        "docs/fragemented/research/phase-2-reports/agent-d-harness-architecture.md",
+        "docs/fragemented/research/phase-2-reports/merged.md",
+        "docs/functional-requirements/FR-SPEC-001_SPEC_PARSER.md",
+        "docs/operations/journey-traceability.md",
+        "docs/sessions/2026-03-24-stabilization-qa/03_DAG_WBS.md",
+        "docs/sessions/20260303-absorb-stack-prep/03_DAG_WBS.md",
+        "docs/sessions/20260429-helioscli-sladge-badge/03_DAG_WBS.md",
+        "docs/user-stories/US-AUTO-001_SPEC_DRIVEN_EXECUTION.md",
+        "docs/user-stories/US-AUTO-002_CHECKPOINT_SYSTEM.md",
+        "docs/user-stories/US-AUTO-003_AUTOMATIC_ROLLBACK.md",
+        "research/harness-spec.md",
+        "research/helios-consolidated.md",
+        "research/phase-2-reports/agent-d-harness-architecture.md"
+      ]
+    },
+    {
+      "repo": "hwLedger",
+      "ssot_paths": [
+        "README.md",
+        "docs/operations/journey-traceability.md",
+        "docs/sessions/20260430-sladge-badge-rollout/03_DAG_WBS.md"
+      ]
+    },
+    {
+      "repo": "kwality",
+      "ssot_paths": [
+        "FUNCTIONAL_REQUIREMENTS.md"
+      ]
+    },
+    {
+      "repo": "nanovms",
+      "ssot_paths": [
+        "docs/journeys/game-automation.md",
+        "docs/journeys/quick-start.md",
+        "docs/operations/journey-traceability.md",
+        "docs/traceability/index.md"
+      ]
+    },
+    {
+      "repo": "netweave-final2",
+      "ssot_paths": [
+        "docs/operations/journey-traceability.md"
+      ]
+    },
+    {
+      "repo": "pheno",
+      "ssot_paths": [
+        ".agileplus/specs/001-spec-driven-development-engine/spec.md",
+        ".archive/kitty-specs/001-spec-driven-development-engine/spec.md",
+        "FR_TRACEABILITY.md",
+        "FUNCTIONAL_REQUIREMENTS.md",
+        "SPECS_REGISTRY.md",
+        "SSOT_DESIGN_SUMMARY.md",
+        "agileplus/FR_TRACEABILITY.md",
+        "agileplus/docs/reference/FR_TRACKER.md",
+        "agileplus/docs/reference/PLANNED_LIBS_DECISION.md",
+        "agileplus/docs/reports/FR_TRACEABILITY_COMPLETION.md",
+        "agileplus/docs/sessions/20260323-backlog-parity/03_DAG_WBS.md",
+        "agileplus/docs/sessions/20260323-config-module-split/03_DAG_WBS.md",
+        "agileplus/docs/sessions/20260327-open-work-ledger/03_DAG_WBS.md",
+        "agileplus/docs/sessions/20260327-plane-fork-pm-substrate/03_DAG_WBS.md",
+        "agileplus/docs/specs/001-spec-driven-development-engine/spec.md",
+        "agileplus/docs/traceability/index.md",
+        "apps/byteport/FUNCTIONAL_REQUIREMENTS.md",
+        "crates/phenotype-config-core/CANONICAL.md",
+        "crates/phenotype-error-core/CANONICAL.md",
+        "crates/phenotype-health/CANONICAL.md",
+        "docs/TEMPLATE_DEDUPLICATION_REPORT.md",
+        "docs/operations/journey-traceability.md",
+        "docs/reference/AUTO_MERGE_SERVICE_ARCHITECTURE.md",
+        "docs/reference/DEPENDENCY_PHASE2_VALIDATION.md",
+        "docs/reference/POLYREPO_SSOT_ARCHITECTURE.md",
+        "docs/reference/SSOT_ARCHITECTURE_INDEX.md",
+        "docs/reference/SSOT_IMPLEMENTATION_ROADMAP.md",
+        "docs/reference/SSOT_PHASE1_AGENT_WORKFLOW.md",
+        "docs/reference/SSOT_PHASE1_DAY1_COMPLETION.md",
+        "docs/reference/SSOT_PHASE1_DAY2_3_COMPLETION.md",
+        "docs/reference/SSOT_PHASE1_EXECUTION_SUMMARY.md",
+        "docs/reference/SSOT_PHASE1_EXECUTIVE_SUMMARY.md",
+        "docs/reference/SSOT_PHASE1_IMPLEMENTATION_PLAN.md",
+        "docs/reference/SSOT_PHASE1_MASTER_INDEX.md",
+        "docs/reference/SSOT_PHASE1_WEEK1_OVERVIEW.md",
+        "docs/reference/SSOT_PHASE1_WORK_PACKAGES.md",
+        "docs/reference/SSOT_QUICK_REFERENCE.md",
+        "docs/reference/SSOT_VISUAL_GUIDE.md",
+        "docs/reference/TRACEABILITY_MAP.md",
+        "docs/reports/FR_TRACEABILITY_COMPLETION.md",
+        "docs/sessions/20260323-backlog-parity/03_DAG_WBS.md",
+        "docs/sessions/20260323-config-module-split/03_DAG_WBS.md",
+        "docs/sessions/20260327-open-work-ledger/03_DAG_WBS.md",
+        "docs/sessions/20260327-plane-fork-pm-substrate/03_DAG_WBS.md",
+        "docs/specs/001-spec-driven-development-engine/spec.md",
+        "docs/worklogs/.archive/PHASE4_VERIFICATION.md",
+        "docs/worklogs/INACTIVE_FOLDERS.md",
+        "docs/worklogs/PHASE4_VERIFICATION.md",
+        "docs/worklogs/RESEARCH.md",
+        "docs/worklogs/WorklogsIndex.md",
+        "kitty-specs/001-spec-driven-development-engine/spec.md",
+        "phenotype-infrakit/FUNCTIONAL_REQUIREMENTS.md",
+        "sharecli/docs/traceability/index.md",
+        "specs/FR-TRACE-BACKFILL-001.md"
+      ]
+    },
+    {
+      "repo": "phenoAI",
+      "ssot_paths": [
+        "AGENTS.md",
+        "docs/operations/journey-traceability.md"
+      ]
+    },
+    {
+      "repo": "phenoData",
+      "ssot_paths": [
+        "docs/operations/journey-traceability.md"
+      ]
+    },
+    {
+      "repo": "phenoDesign",
+      "ssot_paths": [
+        "AGENTS.md",
+        "docs/operations/journey-traceability.md",
+        "docs/sessions/20260428-taskfile-common-tasks/03_DAG_WBS.md",
+        "docs/traceability/index.md"
+      ]
+    },
+    {
+      "repo": "phenoForge",
+      "ssot_paths": [
+        "docs/journeys/traceability.md"
+      ]
+    },
+    {
+      "repo": "phenoResearchEngine",
+      "ssot_paths": [
+        "docs/operations/journey-traceability.md"
+      ]
+    },
+    {
+      "repo": "phenoShared",
+      "ssot_paths": [
+        "docs/operations/journey-traceability.md",
+        "docs/sessions/20260328-root-docsites-worklog-consolidation/03_DAG_WBS.md"
+      ]
+    },
+    {
+      "repo": "phenoUtils",
+      "ssot_paths": [
+        "AGENTS.md",
+        "docs/operations/journey-traceability.md"
+      ]
+    },
+    {
+      "repo": "phenoXdd",
+      "ssot_paths": [
+        "SPEC.md",
+        "docs/FUNCTIONAL_REQUIREMENTS.md",
+        "docs/operations/journey-traceability.md"
+      ]
+    },
+    {
+      "repo": "phenodocs",
+      "ssot_paths": [
+        "DOCUMENTATION_SYSTEM_HANDBOOK.md",
+        "docs/governance/stacked-prs/02-wbs-and-dag.md",
+        "docs/journeys/manifests/README.md",
+        "docs/journeys/phenodocs-bootstrap.md",
+        "docs/operations/journey-traceability.md",
+        "docs/sessions/2026-02-26-cliproxy-thegent-agentapi-reconcile-v2/00_SESSION_OVERVIEW.md",
+        "docs/sessions/2026-02-26-cliproxy-thegent-agentapi-reconcile-v3/00_SESSION_OVERVIEW.md",
+        "docs/sessions/20260507-phenodocs-sladge-fix-current/03_DAG_WBS.md",
+        "packages/design/AGENTS.md",
+        "packages/design/docs/operations/journey-traceability.md",
+        "packages/design/docs/sessions/20260428-taskfile-common-tasks/03_DAG_WBS.md",
+        "packages/design/docs/traceability/index.md",
+        "packages/shared-utils/docs/operations/journey-traceability.md",
+        "packages/shared-utils/docs/sessions/20260328-root-docsites-worklog-consolidation/03_DAG_WBS.md"
+      ]
+    },
+    {
+      "repo": "phenodocs-scorecard-remediation",
+      "ssot_paths": [
+        "DOCUMENTATION_SYSTEM_HANDBOOK.md",
+        "docs/governance/stacked-prs/02-wbs-and-dag.md",
+        "docs/operations/journey-traceability.md",
+        "docs/sessions/2026-02-26-cliproxy-thegent-agentapi-reconcile-v2/00_SESSION_OVERVIEW.md",
+        "docs/sessions/2026-02-26-cliproxy-thegent-agentapi-reconcile-v3/00_SESSION_OVERVIEW.md"
+      ]
+    },
+    {
+      "repo": "phenotype-auth-ts",
+      "ssot_paths": [
+        "docs/FUNCTIONAL_REQUIREMENTS.md",
+        "docs/operations/journey-traceability.md"
+      ]
+    },
+    {
+      "repo": "phenotype-bus",
+      "ssot_paths": [
+        "docs/integration_tests.md",
+        "docs/operations/journey-traceability.md",
+        "docs/sessions/20260430-sladge-badge-rollout/03_DAG_WBS.md"
+      ]
+    },
+    {
+      "repo": "phenotype-dep-guard",
+      "ssot_paths": [
+        "docs/sessions/2026-03-01-template-workflow-hardening/03_DAG_WBS.md",
+        "kitty-specs/layered-template-platform/WBS_DAG.md"
+      ]
+    },
+    {
+      "repo": "phenotype-hub",
+      "ssot_paths": [
+        "AGENTS.md",
+        "docs/operations/journey-traceability.md",
+        "docs/worklogs/README.md"
+      ]
+    },
+    {
+      "repo": "phenotype-infra",
+      "ssot_paths": [
+        "docs/adr/0006-vaultwarden-as-canonical-cred-store.md",
+        "docs/governance/journey-traceability-standard.md",
+        "docs/operations/journey-traceability.md",
+        "docs/runbooks/phase2-vaultwarden-canonical.md",
+        "docs/sessions/20260429-sladge-badge-rollout/03_DAG_WBS.md",
+        "docs/sessions/20260430-journey-traceability-standard/03_DAG_WBS.md"
+      ]
+    },
+    {
+      "repo": "phenotype-journeys",
+      "ssot_paths": [
+        "README.md",
+        "docs/FUNCTIONAL_REQUIREMENTS.md",
+        "docs/journey-traceability.md",
+        "docs/operations/journey-traceability.md",
+        "docs/sessions/20260507-phenotype-journeys-sladge-current-refresh/03_DAG_WBS.md"
+      ]
+    },
+    {
+      "repo": "phenotype-omlx",
+      "ssot_paths": [
+        "docs/operations/journey-traceability.md"
+      ]
+    },
+    {
+      "repo": "phenotype-ops-mcp",
+      "ssot_paths": [
+        "docs/operations/journey-traceability.md",
+        "docs/sessions/20260429-sladge-badge/03_DAG_WBS.md"
+      ]
+    },
+    {
+      "repo": "phenotype-org-audits",
+      "ssot_paths": [
+        "audits/2026-04-24/Tracely.md",
+        "audits/2026-04-24/WAVE_6_SUMMARY.md",
+        "docs/operations/journey-traceability.md",
+        "inventory/deleted_traces.md"
+      ]
+    },
+    {
+      "repo": "phenotype-registry",
+      "ssot_paths": [
+        "ECOSYSTEM_MAP.md",
+        "PLAN.md",
+        "docs/library-research.md",
+        "docs/operations/journey-traceability.md",
+        "scaffold/phenotype-hub/AGENTS.md",
+        "scaffold/phenotype-hub/docs/operations/journey-traceability.md",
+        "scaffold/phenotype-hub/docs/worklogs/README.md"
+      ]
+    },
+    {
+      "repo": "phenotype-shared",
+      "ssot_paths": [
+        "docs/STASHLY_MIGRATIONS_ADOPTIONS.md"
+      ]
+    },
+    {
+      "repo": "phenotype-tooling",
+      "ssot_paths": [
+        "crates/byteport/.github/PULL_REQUEST_TEMPLATE.md",
+        "crates/byteport/README.md",
+        "crates/byteport/SPEC.md",
+        "crates/byteport/docs/FUNCTIONAL_REQUIREMENTS.md",
+        "crates/byteport/docs/operations/journey-traceability.md",
+        "crates/heliosapp/.archive/kitty-specs/001-colab-agent-terminal-control-plane/tasks/WP07-protocol-boundary-delegation-and-traceability-gates.md",
+        "crates/heliosapp/.archive/kitty-specs/kitty-specs/001-colab-agent-terminal-control-plane/tasks/WP07-protocol-boundary-delegation-and-traceability-gates.md",
+        "crates/heliosapp/FUNCTIONAL_REQUIREMENTS.md",
+        "crates/heliosapp/docs/operations/journey-traceability.md",
+        "crates/heliosapp/docs/reference/FR_TRACEABILITY_GAPS.md",
+        "crates/heliosapp/docs/sessions/20260226-helios-market-research/03_DAG_WBS.md",
+        "crates/heliosapp/docs/sessions/20260226-helios-market-research/13_CROSS_REPO_ROLLOUT_MAP.md",
+        "crates/heliosapp/docs/specs/001-colab-agent-terminal-control-plane/tasks/WP07-protocol-boundary-delegation-and-traceability-gates.md",
+        "crates/heliosbench/docs/operations/journey-traceability.md",
+        "crates/heliosbench/docs/sessions/20260428-taskfile-common-commands/03_DAG_WBS.md",
+        "crates/heliosbench/docs/sessions/20260429-sladge-badge-rollout/03_DAG_WBS.md",
+        "crates/nanovms/docs/journeys/game-automation.md",
+        "crates/nanovms/docs/journeys/quick-start.md",
+        "crates/nanovms/docs/operations/journey-traceability.md",
+        "crates/nanovms/docs/traceability/index.md",
+        "crates/policystack/README.md",
+        "crates/policystack/docs/operations/journey-traceability.md",
+        "crates/policystack/docs/sessions/2026-03-03-policy-wrapper-standardization/03_DAG_WBS.md",
+        "crates/policystack/docs/traceability/index.md",
+        "crates/worktree-manager/docs/traceability/index.md",
+        "docs/operations/journey-traceability.md",
+        "docs/sessions/20260429-sladge-badge-rollout/03_DAG_WBS.md",
+        "docs/tools.md"
+      ]
+    },
+    {
+      "repo": "portage",
+      "ssot_paths": [
+        "FUNCTIONAL_REQUIREMENTS.md",
+        "agileplus/002-portage-multi-runtime-execution-stack/evidence/README.md",
+        "docs/README.md",
+        "docs/context/governance/STACKED_PRS_AND_RELEASE_CHANNELS.md",
+        "docs/context/governance/git-backed-documentation/templates/PLAN_TEMPLATE.md",
+        "docs/operations/journey-traceability.md",
+        "docs/sessions/20260303-portage-runtime-followup/03_DAG_WBS.md",
+        "docs/sessions/20260303-portage-runtime-followup/artifacts/packet-r-closeout-trace-index.md",
+        "docs/sessions/20260303-portage-runtime-followup/artifacts/packet-r-release-closeout-trace.md",
+        "docs/traceability/index.md",
+        "heliosBench/docs/README.md",
+        "heliosBench/docs/context/governance/git-backed-documentation/templates/PLAN_TEMPLATE.md"
+      ]
+    },
+    {
+      "repo": "rich-cli-kit",
+      "ssot_paths": [
+        "docs/operations/journey-traceability.md",
+        "docs/sessions/20260507-rich-cli-kit-sladge-current-refresh/03_DAG_WBS.md"
+      ]
+    },
+    {
+      "repo": "thegent",
+      "ssot_paths": [
+        ".archive/README.md",
+        "ADR.md",
+        "FR_TRACEABILITY.md",
+        "MASTER_INDEX_UNIFIED.md",
+        "agents/CLAUDE/AGENTS.md",
+        "agents/CLAUDE/CLAUDE.md",
+        "agents/CLAUDE/WARP.md",
+        "apps/byteport/FUNCTIONAL_REQUIREMENTS.md",
+        "docs/MISE_INSTALLATION_INTEGRATION.md",
+        "docs/README.md",
+        "docs/WORKLOG.md",
+        "docs/architecture/agent-identity.md",
+        "docs/architecture/fragemented/agent-identity.md",
+        "docs/architecture/fragemented/merged.md",
+        "docs/architecture/fragemented/multi-tenant.md",
+        "docs/architecture/multi-tenant.md",
+        "docs/changes/phench-module-composition-v2/tasks.md",
+        "docs/changes/shared-modules/thegent-module-lane-bootstraps-v1/next24_dag_wbs.md",
+        "docs/context/governance/git-backed-documentation/templates/PLAN_TEMPLATE.md",
+        "docs/contracts/ATOMS_CLEAN_DEPLOY_KNOWLEDGE_BASE.md",
+        "docs/governance/GOVERNANCE_ROADMAP_DAG.md",
+        "docs/guides/CHANGELOG_PROCESS.md",
+        "docs/guides/PROJECT_SETUP_STYLE.md",
+        "docs/guides/QUALITY_ASSURANCE.md",
+        "docs/guides/THGENT_CLI_REFERENCE.md",
+        "docs/guides/VITEPRESS_DOCS_GOVERNANCE.md",
+        "docs/operations/journey-traceability.md",
+        "docs/planning/DOCS_PARITY_P1_P2_PLAN_2026-02-23.md",
+        "docs/plans/03-UNIFIED-DAG.md",
+        "docs/plans/2026-02-21-CLAUDE-INSTRUCTION-ARCHITECTURE-DX-AX-UX-PLAN.md",
+        "docs/plans/2026-02-21-MODERNIZATION-MASTER-PLAN.md",
+        "docs/plans/2026-02-21-SCAFFOLDER-QUESTIONNAIRE-DX-AX-UX-IMPLEMENTATION-PLAN.md",
+        "docs/plans/2026-02-21-doc-system-design.md",
+        "docs/plans/2026-02-22-research-intel-and-agent-roles-plan.md",
+        "docs/plans/CLIPROXY_API_AND_THGENT_UNIFIED_PLAN.md",
+        "docs/plans/DOC_CONSOLIDATION_AND_IMPLEMENTATION_WBS.md",
+        "docs/plans/WL-123-RETIRE-DEPRECATED-QUALITY-ALIASES-PLAN.md",
+        "docs/plans/fragemented/2026-02-21-doc-system-design.md",
+        "docs/plans/fragemented/merged.md",
+        "docs/plans/refactor-analysis-trace-ast.md",
+        "docs/reference/CANONICAL_INVARIANT_PROSE.md",
+        "docs/reference/DOCS_IA_CONTRACT.md",
+        "docs/reference/TRACE_FORMAT_SPEC.md",
+        "docs/reference/api/dag_prioritization_api.md",
+        "docs/reference/api/trace_api.md",
+        "docs/reference/api/traceability_api.md",
+        "docs/references/fragemented/glossary.md",
+        "docs/references/fragemented/merged.md",
+        "docs/references/glossary.md",
+        "docs/reports/2026-02-21-B90-W3-D1-dead-code-inventory.md",
+        "docs/reports/2026-02-21-B90-W3-F2-toolchain-bootstrap.md",
+        "docs/research/AGENT_DEV_HANDBOOK_CHATGPT_CONTEXT.md",
+        "docs/research/AGENT_ORCHESTRATION_PATTERNS.md",
+        "docs/research/COMPREHENSIVE_NON_CANONICAL_AUDIT.md",
+        "docs/research/PHASE_2_MANUAL_REPO_DEEP_READ_RESULTS_2026-02-23.md",
+        "docs/research/SMART_CONTRACT_THGENT_TRACE_heliosShield.md",
+        "docs/research/TOOLCHAIN_AND_BUNDLE_GOVERNANCE_STRATEGY_2026-02-20.md",
+        "docs/research/ZSH_AND_MODERN_CLI_RESEARCH_2026-02-22.md",
+        "docs/research/claudecode_6lane_formal_report_2026-02.md",
+        "docs/research/fragemented/AGENT_DEV_HANDBOOK_CHATGPT_CONTEXT.md",
+        "docs/research/fragemented/merged.md",
+        "docs/sessions/20260302-phench-modularization/03_DAG_WBS.md",
+        "docs/sessions/20260323-agileplus-entity-surface/03_DAG_WBS.md",
+        "docs/sessions/20260324-phenotype-local-worktree-forest-inventory/03_DAG_WBS.md",
+        "docs/sessions/20260324-worktree-governance-legacy-remediation/00_SESSION_OVERVIEW.md",
+        "docs/sessions/20260324-worktree-governance-legacy-remediation/03_DAG_WBS.md",
+        "docs/sessions/20260428-taskfile-common-tasks/03_DAG_WBS.md",
+        "docs/sessions/20260429-sladge-badge/03_DAG_WBS.md",
+        "docs/specs/prds/crun_prd.md",
+        "docs/traceability/index.md",
+        "governance/templates/FR.template.md",
+        "templates/operational/process-compose/README.md",
+        "templates/projects/ag-dd/FUNCTIONAL_REQUIREMENTS.md",
+        "thegent/docs/context/governance/git-backed-documentation/templates/PLAN_TEMPLATE.md"
+      ]
+    },
+    {
+      "repo": "vibeproxy",
+      "ssot_paths": [
+        "AGENTS.md",
+        "CLAUDE.md",
+        "WARP.md",
+        "docs/operations/journey-traceability.md",
+        "docs/sessions/20260507-vibeproxy-sladge-current/03_DAG_WBS.md",
+        "docs/traceability/index.md"
+      ]
+    },
+    {
+      "repo": "vibeproxy-monitoring-unified",
+      "ssot_paths": [
+        "AGENTS.md",
+        "docs/operations/journey-traceability.md",
+        "docs/worklogs/README.md"
+      ]
+    }
+  ]
+}

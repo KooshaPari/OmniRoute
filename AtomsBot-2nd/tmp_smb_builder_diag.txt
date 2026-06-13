@@ -1,0 +1,30 @@
+{
+  "keys": [
+    "_events",
+    "_eventsCount",
+    "_maxListeners",
+    "actionRows",
+    "fields",
+    "config",
+    "state",
+    "on",
+    "removeAllListeners",
+    "_embed"
+  ],
+  "hasEmbedProp": false,
+  "typeofEmbed": "object",
+  "hasGetEmbed": "function",
+  "props": [
+    "_events",
+    "_eventsCount",
+    "_maxListeners",
+    "actionRows",
+    "fields",
+    "config",
+    "state",
+    "on",
+    "removeAllListeners",
+    "_embed",
+    "constructor"
+  ]
+}

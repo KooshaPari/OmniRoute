@@ -1,0 +1,237 @@
+{
+  "generated_at": "2026-06-07T00:00:00Z",
+  "total_repos": 32,
+  "with_reqwest": [
+    "Agentora",
+    "AgilePlus",
+    "AuthKit",
+    "FocalPoint",
+    "HeliosCLI",
+    "HexaKit",
+    "KDesktopVirt",
+    "McpKit",
+    "Paginary",
+    "PhenoDevOps",
+    "PhenoMCP",
+    "PhenoObservability",
+    "PhenoProc",
+    "PhenoRuntime",
+    "Pyron",
+    "Tokn",
+    "Tracera",
+    "crates",
+    "helioscope",
+    "kmobile",
+    "kwality",
+    "pheno",
+    "phenoAI",
+    "phenoShared",
+    "phenoUtils",
+    "phenodocs",
+    "phenotype-infra",
+    "phenotype-journeys",
+    "phenotype-tooling",
+    "thegent",
+    "thegent-clean",
+    "tooling"
+  ],
+  "with_surf": [],
+  "with_ureq": [
+    "phenotype-infra"
+  ],
+  "by_repo": [
+    {
+      "repo": "Agentora",
+      "libs": [
+        "reqwest"
+      ]
+    },
+    {
+      "repo": "AgilePlus",
+      "libs": [
+        "reqwest"
+      ]
+    },
+    {
+      "repo": "AuthKit",
+      "libs": [
+        "reqwest"
+      ]
+    },
+    {
+      "repo": "FocalPoint",
+      "libs": [
+        "reqwest"
+      ]
+    },
+    {
+      "repo": "HeliosCLI",
+      "libs": [
+        "reqwest"
+      ]
+    },
+    {
+      "repo": "HexaKit",
+      "libs": [
+        "reqwest"
+      ]
+    },
+    {
+      "repo": "KDesktopVirt",
+      "libs": [
+        "reqwest"
+      ]
+    },
+    {
+      "repo": "McpKit",
+      "libs": [
+        "reqwest"
+      ]
+    },
+    {
+      "repo": "Paginary",
+      "libs": [
+        "reqwest"
+      ]
+    },
+    {
+      "repo": "PhenoDevOps",
+      "libs": [
+        "reqwest"
+      ]
+    },
+    {
+      "repo": "PhenoMCP",
+      "libs": [
+        "reqwest"
+      ]
+    },
+    {
+      "repo": "PhenoObservability",
+      "libs": [
+        "reqwest"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "libs": [
+        "reqwest"
+      ]
+    },
+    {
+      "repo": "PhenoRuntime",
+      "libs": [
+        "reqwest"
+      ]
+    },
+    {
+      "repo": "Pyron",
+      "libs": [
+        "reqwest"
+      ]
+    },
+    {
+      "repo": "Tokn",
+      "libs": [
+        "reqwest"
+      ]
+    },
+    {
+      "repo": "Tracera",
+      "libs": [
+        "reqwest"
+      ]
+    },
+    {
+      "repo": "crates",
+      "libs": [
+        "reqwest"
+      ]
+    },
+    {
+      "repo": "helioscope",
+      "libs": [
+        "reqwest"
+      ]
+    },
+    {
+      "repo": "kmobile",
+      "libs": [
+        "reqwest"
+      ]
+    },
+    {
+      "repo": "kwality",
+      "libs": [
+        "reqwest"
+      ]
+    },
+    {
+      "repo": "pheno",
+      "libs": [
+        "reqwest"
+      ]
+    },
+    {
+      "repo": "phenoAI",
+      "libs": [
+        "reqwest"
+      ]
+    },
+    {
+      "repo": "phenoShared",
+      "libs": [
+        "reqwest"
+      ]
+    },
+    {
+      "repo": "phenoUtils",
+      "libs": [
+        "reqwest"
+      ]
+    },
+    {
+      "repo": "phenodocs",
+      "libs": [
+        "reqwest"
+      ]
+    },
+    {
+      "repo": "phenotype-infra",
+      "libs": [
+        "reqwest",
+        "ureq"
+      ]
+    },
+    {
+      "repo": "phenotype-journeys",
+      "libs": [
+        "reqwest"
+      ]
+    },
+    {
+      "repo": "phenotype-tooling",
+      "libs": [
+        "reqwest"
+      ]
+    },
+    {
+      "repo": "thegent",
+      "libs": [
+        "reqwest"
+      ]
+    },
+    {
+      "repo": "thegent-clean",
+      "libs": [
+        "reqwest"
+      ]
+    },
+    {
+      "repo": "tooling",
+      "libs": [
+        "reqwest"
+      ]
+    }
+  ]
+}

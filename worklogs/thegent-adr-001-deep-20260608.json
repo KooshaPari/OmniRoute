@@ -1,0 +1,24 @@
+{
+  "generated_at": "2026-06-08",
+  "title": "ADR-001: Layer 7 HTTP Routing",
+  "status": "Accepted",
+  "date": "2026-04-05",
+  "decision": "Implement Layer 7 HTTP routing with: (1) path and method-based matching, (2) middleware support, (3) context propagation, (4) error handling integration. Concretely, a Router struct holds routes []Route and middleware []Middleware, with Route carrying Method, Path, Handler, and Middleware fields. The Handle(method, path, handler) method appends to r.routes.",
+  "consequences": [
+    "Routers can express HTTP traffic for API services with path-based dispatch",
+    "Middleware chains are first-class, enabling cross-cutting concerns (auth, logging) per route or globally",
+    "Context propagation is explicit, simplifying request-scoped values across handlers",
+    "Error handling integrates with the routing layer for uniform failure responses",
+    "Cleanly fits Go web frameworks via the HandlerFunc/Middleware shape"
+  ],
+  "alternatives": [
+    "Layer 3/4 (transport-level) routing — too low-level for HTTP service semantics such as path/method matching and middleware",
+    "Framework-default router (e.g., net/http ServeMux) — insufficient for the middleware chain, context propagation, and error-handling integration requirements",
+    "Third-party Go routers (e.g., gorilla/mux, chi) — viable but add external dependency; custom Router keeps stack lean and tailored",
+    "RPC/gRPC-based dispatch — rejected; HTTP traffic and path-based routing are explicit requirements"
+  ],
+  "related": [
+    "ADR-002: Middleware Architecture",
+    "ADR-003: Load Balancing Integration"
+  ]
+}

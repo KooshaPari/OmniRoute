@@ -1,0 +1,10 @@
+# Global code owners for KooshaPari org
+* @KooshaPari
+
+# Infrastructure as code
+/iac/ @KooshaPari
+/.github/ @KooshaPari
+
+# Security-sensitive
+/SECURITY.md @KooshaPari
+/.github/dependabot.yml @KooshaPari

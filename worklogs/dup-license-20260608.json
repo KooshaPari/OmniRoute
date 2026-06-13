@@ -1,0 +1,537 @@
+{
+  "generated_at": "2026-06-08T09:58:28Z",
+  "total_repos": 161,
+  "near_duplicate_licenses": [
+    {
+      "hash": "0a4acb10f33c93841a8eedac172152096383ceaf7eb5a0aa7e303951cf204c7e",
+      "repos": [
+        "PhenoProject",
+        "Planify"
+      ],
+      "paths": [
+        "PhenoProject/rust/Planify/LICENSE.txt",
+        "Planify/LICENSE.txt"
+      ]
+    },
+    {
+      "hash": "2128757058174d295ce068537198c70f2be13d616eae8604d6ff808718804cf6",
+      "repos": [
+        "BytePort",
+        "PhenoProc",
+        "phenotype-tooling",
+        "thegent",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ],
+      "paths": [
+        "BytePort/LICENSE",
+        "PhenoProc/crates/byteport/LICENSE",
+        "phenotype-tooling/crates/byteport/LICENSE",
+        "thegent-clean-wt-idea/apps/byteport/LICENSE",
+        "thegent-clean-wt-parallel/apps/byteport/LICENSE",
+        "thegent-clean-wt-policy/apps/byteport/LICENSE",
+        "thegent-clean-wt-ruff/apps/byteport/LICENSE",
+        "thegent/apps/byteport/LICENSE"
+      ]
+    },
+    {
+      "hash": "2971234380c28f1e343f9b926c6402bb0c8dc70c2c0fad2c68ff62a3faad0055",
+      "repos": [
+        "Agentora",
+        "Apisync",
+        "AppGen",
+        "AtomsBot",
+        "AuthKit",
+        "Benchora",
+        "Civis",
+        "Conft",
+        "DataKit",
+        "DevHex",
+        "Eidolon",
+        "FocalPoint",
+        "GDK",
+        "HexaKit",
+        "Httpora",
+        "KlipDot",
+        "Metron",
+        "ObservabilityKit",
+        "Paginary",
+        "PhenoCompose",
+        "PhenoHandbook",
+        "PhenoKits",
+        "PhenoObservability",
+        "PhenoPlugins",
+        "PhenoProc",
+        "PhenoProject",
+        "PhenoRuntime",
+        "PhenoSpecs",
+        "PhenoVCS",
+        "Planify",
+        "PlatformKit",
+        "PlayCua",
+        "PolicyStack",
+        "ResilienceKit",
+        "Sidekick",
+        "Tasken",
+        "Tokn",
+        "agent-devops-setups",
+        "agent-user-status",
+        "agentapi-plusplus",
+        "argis-extensions",
+        "bare-cua",
+        "chatta",
+        "cheap-llm-mcp",
+        "crates",
+        "dinoforge-packs",
+        "eyetracker",
+        "heliosBench",
+        "kwality",
+        "netweave-final2",
+        "phenoAI",
+        "phenoData",
+        "phenoShared",
+        "phenoUtils",
+        "phenodocs",
+        "phenotype-hub",
+        "phenotype-infra",
+        "phenotype-org-audits",
+        "phenotype-registry",
+        "phenotype-shared",
+        "phenotype-tooling",
+        "rich-cli-kit",
+        "thegent-dispatch"
+      ],
+      "paths": [
+        "Agentora/LICENSE",
+        "Agentora/crates/pheno-proc-runtime/LICENSE",
+        "Apisync/LICENSE",
+        "AppGen/LICENSE",
+        "AtomsBot/LICENSE",
+        "AuthKit/LICENSE",
+        "Benchora/LICENSE",
+        "Civis/LICENSE",
+        "Conft/LICENSE",
+        "Conft/rust/phenotype-config/LICENSE",
+        "DataKit/LICENSE",
+        "DevHex/LICENSE",
+        "Eidolon/LICENSE",
+        "FocalPoint/LICENSE",
+        "GDK/LICENSE",
+        "HexaKit/Metron/LICENSE",
+        "HexaKit/crates/settly/LICENSE",
+        "HexaKit/crates/stashly/LICENSE",
+        "HexaKit/templates/hexagon/go/LICENSE",
+        "HexaKit/templates/hexagon/python/LICENSE",
+        "HexaKit/templates/hexagon/rust/LICENSE",
+        "HexaKit/templates/hexagon/typescript/LICENSE",
+        "Httpora/LICENSE",
+        "KlipDot/LICENSE",
+        "Metron/LICENSE",
+        "ObservabilityKit/LICENSE",
+        "Paginary/LICENSE",
+        "PhenoCompose/LICENSE",
+        "PhenoHandbook/LICENSE",
+        "PhenoKits/LICENSE",
+        "PhenoKits/hexagon/templates/go/LICENSE",
+        "PhenoKits/hexagon/templates/rust/LICENSE",
+        "PhenoObservability/LICENSE",
+        "PhenoObservability/ObservabilityKit/LICENSE",
+        "PhenoPlugins/LICENSE",
+        "PhenoProc/Evalora/LICENSE",
+        "PhenoProc/LICENSE",
+        "PhenoProc/crates/Cmdra/LICENSE",
+        "PhenoProc/crates/phenotype-shared/LICENSE",
+        "PhenoProject/LICENSE",
+        "PhenoRuntime/LICENSE",
+        "PhenoSpecs/LICENSE",
+        "PhenoVCS/LICENSE",
+        "Planify/LICENSE",
+        "PlatformKit/LICENSE",
+        "PlayCua/LICENSE",
+        "PolicyStack/LICENSE",
+        "ResilienceKit/LICENSE",
+        "Sidekick/LICENSE",
+        "Sidekick/crates/sidekick-cheap-llm/LICENSE",
+        "Tasken/LICENSE",
+        "Tokn/LICENSE",
+        "agent-devops-setups/LICENSE",
+        "agent-user-status/LICENSE",
+        "agentapi-plusplus/LICENSE",
+        "argis-extensions/LICENSE",
+        "bare-cua/LICENSE",
+        "chatta/LICENSE",
+        "cheap-llm-mcp/LICENSE",
+        "crates/phenotype-config/LICENSE",
+        "dinoforge-packs/LICENSE",
+        "eyetracker/LICENSE",
+        "heliosBench/LICENSE",
+        "kwality/LICENSE",
+        "netweave-final2/LICENSE",
+        "phenoAI/LICENSE",
+        "phenoData/LICENSE",
+        "phenoShared/LICENSE",
+        "phenoUtils/LICENSE",
+        "phenodocs/packages/shared-utils/LICENSE",
+        "phenotype-hub/LICENSE",
+        "phenotype-infra/LICENSE",
+        "phenotype-org-audits/LICENSE",
+        "phenotype-registry/LICENSE",
+        "phenotype-registry/scaffold/phenotype-hub/LICENSE",
+        "phenotype-shared/LICENSE",
+        "phenotype-tooling/crates/heliosbench/LICENSE",
+        "phenotype-tooling/crates/policystack/LICENSE",
+        "rich-cli-kit/LICENSE",
+        "thegent-dispatch/LICENSE"
+      ]
+    },
+    {
+      "hash": "2c8f1ceb836e7ec3bef31a40f4c3cda9a389b81f6838be561ea16caed0116ca5",
+      "repos": [
+        "PhenoDevOps",
+        "heliosApp",
+        "phenotype-tooling"
+      ],
+      "paths": [
+        "PhenoDevOps/agent-devops-setups/LICENSE",
+        "heliosApp/LICENSE",
+        "phenotype-tooling/crates/heliosapp/LICENSE"
+      ]
+    },
+    {
+      "hash": "304a0e8b42ed6edce585416dd3ce3471014edfe333d725cda0ca1f281fd661a0",
+      "repos": [
+        "Paginary",
+        "phenotype-journeys"
+      ],
+      "paths": [
+        "Paginary/apps/journeys/src/content/LICENSE",
+        "phenotype-journeys/LICENSE"
+      ]
+    },
+    {
+      "hash": "331312c214f14dc1455a0e45e3a66f4b70bbc73916cffd525570e8cdb9d63bf4",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ],
+      "paths": [
+        "HeliosCLI/third_party/wezterm/LICENSE",
+        "helioscope/third_party/wezterm/LICENSE"
+      ]
+    },
+    {
+      "hash": "45201123f806b39a275ac6d39196196ed90d7f183d5f29bfee32de47291c3ae2",
+      "repos": [
+        "phenodocs",
+        "phenodocs-scorecard-remediation"
+      ],
+      "paths": [
+        "phenodocs-scorecard-remediation/LICENSE",
+        "phenodocs/LICENSE"
+      ]
+    },
+    {
+      "hash": "5d8182403f0d402fd5da42be8228fefb89c06450ff9cfcfd5ccbff33dc05a656",
+      "repos": [
+        "Pine",
+        "TestingKit",
+        "Tracera",
+        "hwLedger",
+        "nanovms",
+        "phenotype-auth-ts",
+        "phenotype-tooling",
+        "vibeproxy-monitoring-unified"
+      ],
+      "paths": [
+        "Pine/LICENSE",
+        "TestingKit/LICENSE",
+        "Tracera/LICENSE",
+        "hwLedger/LICENSE",
+        "nanovms/LICENSE",
+        "phenotype-auth-ts/LICENSE",
+        "phenotype-tooling/crates/nanovms/LICENSE",
+        "vibeproxy-monitoring-unified/LICENSE"
+      ]
+    },
+    {
+      "hash": "60db76ca423bb78ba039ff37ff18b9aec3252fdd7f362ad5e503656a5e97b75e",
+      "repos": [
+        "OmniRoute",
+        "OmniRoute-latest"
+      ],
+      "paths": [
+        "OmniRoute-latest/OmniRoute/@omniroute/opencode-plugin/LICENSE",
+        "OmniRoute-latest/OmniRoute/@omniroute/opencode-provider/LICENSE",
+        "OmniRoute/@omniroute/opencode-plugin/LICENSE",
+        "OmniRoute/@omniroute/opencode-provider/LICENSE"
+      ]
+    },
+    {
+      "hash": "684a8a1166fc0e2005fe1568224329155a77b2b5c68364216857b3de958aa702",
+      "repos": [
+        "MCPForge",
+        "McpKit",
+        "PhenoProc"
+      ],
+      "paths": [
+        "MCPForge/LICENSE",
+        "McpKit/rust/mcp-forge/LICENSE",
+        "PhenoProc/crates/mcp-forge/LICENSE"
+      ]
+    },
+    {
+      "hash": "74d5196f3f3360e0ce3953d746b806b92329b36dc313edc1c1bd6d9838fd988f",
+      "repos": [
+        "KaskMan",
+        "PhenoProject"
+      ],
+      "paths": [
+        "KaskMan/LICENSE",
+        "PhenoProject/go/KaskMan/LICENSE"
+      ]
+    },
+    {
+      "hash": "8dbc995eb1c55a9bfbb2656dd23ad29355deadc14f1c03bffe2046e8a8a85cc1",
+      "repos": [
+        "Agentora",
+        "McpKit",
+        "PhenoAgent",
+        "Tracely"
+      ],
+      "paths": [
+        "Agentora/agents/phenoagent/LICENSE",
+        "Agentora/crates/pheno-agent/LICENSE",
+        "McpKit/LICENSE",
+        "PhenoAgent/LICENSE",
+        "Tracely/LICENSE"
+      ]
+    },
+    {
+      "hash": "911f8f5782931320f5b8d1160a76365b83aea6447ee6c04fa6d5591467db9dad",
+      "repos": [
+        "MCPForge",
+        "McpKit",
+        "PhenoProc"
+      ],
+      "paths": [
+        "MCPForge/cmd/generate/LICENSE",
+        "MCPForge/internal/protocol/LICENSE",
+        "McpKit/rust/mcp-forge/cmd/generate/LICENSE",
+        "McpKit/rust/mcp-forge/internal/protocol/LICENSE",
+        "PhenoProc/crates/mcp-forge/cmd/generate/LICENSE",
+        "PhenoProc/crates/mcp-forge/internal/protocol/LICENSE"
+      ]
+    },
+    {
+      "hash": "a7040a814eeed4f224f94337032645099bce3852f8661e1469d0f86df258ba72",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ],
+      "paths": [
+        "HeliosCLI/third_party/meriyah/LICENSE",
+        "helioscope/third_party/meriyah/LICENSE"
+      ]
+    },
+    {
+      "hash": "adc37366f403835c1470ab2df93d3837d4719372fc1ef8593d922e06f033f8b2",
+      "repos": [
+        "HexaKit",
+        "PhenoDevOps",
+        "PhenoObservability",
+        "PhenoPlugins",
+        "PhenoProc",
+        "Pyron",
+        "Tracely",
+        "pheno",
+        "phenoForge",
+        "thegent",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ],
+      "paths": [
+        "HexaKit/crates/cipher/LICENSE",
+        "HexaKit/libs/nexus/LICENSE",
+        "PhenoDevOps/libs/nexus/LICENSE",
+        "PhenoDevOps/rust/forge/LICENSE",
+        "PhenoObservability/crates/tracely-sentinel/LICENSE",
+        "PhenoPlugins/crates/pheno-plugin-vessel/LICENSE",
+        "PhenoProc/crates/cryptora/LICENSE",
+        "PhenoProc/crates/diffuse/LICENSE",
+        "PhenoProc/crates/forge/LICENSE",
+        "PhenoProc/crates/guardrail/LICENSE",
+        "PhenoProc/crates/holdr/LICENSE",
+        "PhenoProc/crates/phenotype-cipher/LICENSE",
+        "PhenoProc/crates/phenotype-forge/LICENSE",
+        "PhenoProc/crates/phenotype-gauge/LICENSE",
+        "PhenoProc/crates/phenotype-patch/LICENSE",
+        "PhenoProc/crates/phenotype-vessel/LICENSE",
+        "PhenoProc/crates/servion/LICENSE",
+        "Pyron/libs/nexus/LICENSE",
+        "Tracely/crates/tracely-sentinel/LICENSE",
+        "pheno/libs/nexus/LICENSE",
+        "phenoForge/LICENSE",
+        "thegent-clean-wt-idea/libs/nexus/LICENSE",
+        "thegent-clean-wt-parallel/libs/nexus/LICENSE",
+        "thegent-clean-wt-policy/libs/nexus/LICENSE",
+        "thegent-clean-wt-ruff/libs/nexus/LICENSE",
+        "thegent/libs/nexus/LICENSE"
+      ]
+    },
+    {
+      "hash": "b65332b2b3af4736707d06d26eea788b93cfc96bdeda3a656d26c78c0d2371d7",
+      "repos": [
+        "phenoDesign",
+        "phenodocs"
+      ],
+      "paths": [
+        "phenoDesign/LICENSE",
+        "phenodocs/packages/design/LICENSE"
+      ]
+    },
+    {
+      "hash": "bb06f18426e42da172068a5a0ec58740a56db63cf2a01f57d960ce8b3c3434d8",
+      "repos": [
+        "HexaKit",
+        "PhenoDevOps",
+        "Pyron",
+        "pheno"
+      ],
+      "paths": [
+        "HexaKit/LICENSE",
+        "HexaKit/agileplus/LICENSE",
+        "PhenoDevOps/LICENSE",
+        "PhenoDevOps/agileplus/LICENSE",
+        "Pyron/LICENSE",
+        "Pyron/agileplus/LICENSE",
+        "pheno/LICENSE",
+        "pheno/agileplus/LICENSE"
+      ]
+    },
+    {
+      "hash": "be8596279d806d3f0b1ea85bbef5666401f4968bd5eff6cccb20165430144111",
+      "repos": [
+        "Paginary",
+        "PhenoProc",
+        "PhenoSchema",
+        "Pyron",
+        "pheno",
+        "phenoResearchEngine",
+        "phenoXdd"
+      ],
+      "paths": [
+        "Paginary/apps/xdd/src/content/LICENSE",
+        "PhenoProc/crates/phenotype-hub/LICENSE",
+        "PhenoProc/crates/phenotype-infrakit/LICENSE",
+        "PhenoProc/crates/phenotype-router-monitor/LICENSE",
+        "PhenoProc/phenotype-router-monitor/LICENSE",
+        "PhenoProc/phenotype-router-monitor/phenotype-router-monitor/LICENSE",
+        "PhenoSchema/pheno-xdd-lib/LICENSE",
+        "PhenoSchema/pheno-xdd/LICENSE",
+        "Pyron/phenotype-hub/LICENSE",
+        "Pyron/phenotype-infrakit/LICENSE",
+        "Pyron/phenotype-router-monitor/LICENSE",
+        "pheno/phenotype-hub/LICENSE",
+        "pheno/phenotype-infrakit/LICENSE",
+        "pheno/phenotype-router-monitor/LICENSE",
+        "phenoResearchEngine/LICENSE",
+        "phenoXdd/LICENSE"
+      ]
+    },
+    {
+      "hash": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4",
+      "repos": [
+        "Tracera",
+        "phenotype-ops-mcp",
+        "portage"
+      ],
+      "paths": [
+        "Tracera/ARCHIVE/CONFIG/default/b4a@1.7.3@@@1/LICENSE",
+        "Tracera/ARCHIVE/CONFIG/default/bare-events@2.8.2@@@1/LICENSE",
+        "Tracera/ARCHIVE/CONFIG/default/baseline-browser-mapping@2.8.32@@@1/LICENSE.txt",
+        "Tracera/ARCHIVE/CONFIG/default/events-universal@1.0.1@@@1/LICENSE",
+        "Tracera/ARCHIVE/CONFIG/default/text-decoder@1.2.3@@@1/LICENSE",
+        "Tracera/default/@eslint/config-array@0.21.1@@@1/LICENSE",
+        "Tracera/default/@eslint/config-array@0.23.1@@@1/LICENSE",
+        "Tracera/default/@eslint/config-helpers@0.4.2@@@1/LICENSE",
+        "Tracera/default/@eslint/config-helpers@0.5.2@@@1/LICENSE",
+        "Tracera/default/@eslint/core@0.17.0@@@1/LICENSE",
+        "Tracera/default/@eslint/core@1.1.0@@@1/LICENSE",
+        "Tracera/default/@eslint/object-schema@2.1.7@@@1/LICENSE",
+        "Tracera/default/@eslint/object-schema@3.0.1@@@1/LICENSE",
+        "Tracera/default/@eslint/plugin-kit@0.4.1@@@1/LICENSE",
+        "Tracera/default/@eslint/plugin-kit@0.6.0@@@1/LICENSE",
+        "Tracera/default/@humanfs/core@0.19.1@@@1/LICENSE",
+        "Tracera/default/@humanfs/node@0.16.7@@@1/LICENSE",
+        "Tracera/default/@humanwhocodes/module-importer@1.0.1@@@1/LICENSE",
+        "Tracera/default/@humanwhocodes/retry@0.4.3@@@1/LICENSE",
+        "Tracera/default/eslint-plugin-check-file@2.1.0@@@1/LICENSE",
+        "phenotype-ops-mcp/LICENSE",
+        "portage/LICENSE"
+      ]
+    },
+    {
+      "hash": "d17f227e4df5da1600391338865ce0f3055211760a36688f816941d58232d8dc",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ],
+      "paths": [
+        "HeliosCLI/LICENSE",
+        "helioscope/LICENSE"
+      ]
+    },
+    {
+      "hash": "f5b9f053051962b52309d086e148a01f8f25ec943321b3a51100eddcdaceaf3c",
+      "repos": [
+        "Parpoura",
+        "QuadSGM",
+        "agileplus-landing",
+        "byteport-landing",
+        "phenokits-landing",
+        "thegent",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel"
+      ],
+      "paths": [
+        "Parpoura/LICENSE",
+        "QuadSGM/LICENSE",
+        "agileplus-landing/LICENSE",
+        "byteport-landing/LICENSE",
+        "phenokits-landing/LICENSE",
+        "thegent-clean-wt-idea/apps/landing/LICENSE",
+        "thegent-clean-wt-parallel/apps/landing/LICENSE",
+        "thegent/apps/landing/LICENSE"
+      ]
+    },
+    {
+      "hash": "fede99381492ea0c1bfbfaeb9af56b9be672eb0924db96c1bf991f69c1568ea3",
+      "repos": [
+        "AgentMCP",
+        "PhenoProc",
+        "phenotype-dep-guard",
+        "thegent",
+        "thegent-clean-wt-docs",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ],
+      "paths": [
+        "AgentMCP/LICENSE",
+        "PhenoProc/crates/phenotype-dep-guard/LICENSE",
+        "phenotype-dep-guard/LICENSE",
+        "thegent-clean-wt-docs/LICENSE",
+        "thegent-clean-wt-idea/LICENSE",
+        "thegent-clean-wt-parallel/LICENSE",
+        "thegent-clean-wt-policy/LICENSE",
+        "thegent-clean-wt-ruff/LICENSE",
+        "thegent/LICENSE"
+      ]
+    }
+  ]
+}

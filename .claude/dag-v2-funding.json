@@ -1,0 +1,87 @@
+{
+  "task": "DAG L2-30",
+  "title": "pheno-funder-template",
+  "schema_version": "v2",
+  "generated_at": "2026-06-08T20:48:00-07:00",
+  "operator": "Forge",
+  "operator_email": "kooshapari@gmail.com",
+  "scope": "L1 audit set",
+  "l1_audit_set": [
+    "agent-user-status",
+    "agentapi-plusplus",
+    "AgilePlus",
+    "FocalPoint",
+    "HeliosCLI",
+    "helioscope",
+    "HexaKit",
+    "localbase3",
+    "pheno",
+    "PhenoDevOps",
+    "PhenoKits",
+    "PhenoObservability",
+    "PhenoProc",
+    "phenoRuntime",
+    "phenoShared",
+    "Pyron",
+    "thegent",
+    "Tracely",
+    "Tracera"
+  ],
+  "canonical_template": {
+    "path": "/Users/kooshapari/CodeProjects/Phenotype/repos/.claude/templates/.github/FUNDING.yml",
+    "github": ["KooshaPari"],
+    "patreon": null,
+    "open_collective": null,
+    "custom": ["https://phenotype.ai/donate"]
+  },
+  "branch_name": "chore/funding-2026-06-08",
+  "commit_message": "chore(github): add FUNDING.yml for sponsorship links",
+  "pushed": false,
+  "repos_skipped_already_have_dot_github_funding": [
+    "agent-user-status",
+    "agentapi-plusplus",
+    "FocalPoint",
+    "HeliosCLI",
+    "helioscope",
+    "HexaKit",
+    "localbase3",
+    "pheno",
+    "PhenoDevOps",
+    "PhenoKits",
+    "PhenoObservability",
+    "PhenoProc",
+    "phenoRuntime",
+    "phenoShared",
+    "thegent",
+    "Tracely",
+    "Tracera"
+  ],
+  "repos_updated": [
+    {
+      "repo": "AgilePlus",
+      "repo_path": "/Users/kooshapari/CodeProjects/Phenotype/repos/AgilePlus",
+      "branch": "chore/funding-2026-06-08",
+      "base_branch": "main",
+      "base_sha": "fa1da1b3460777dca1ea35c5b0204168e1823849",
+      "commit_sha": "1c74b617d7d389191aeaa38c620b41c29f719c79",
+      "files_added": [".github/FUNDING.yml"],
+      "pushed": false
+    },
+    {
+      "repo": "Pyron",
+      "repo_path": "/Users/kooshapari/CodeProjects/Phenotype/repos/Pyron",
+      "branch": "chore/funding-2026-06-08",
+      "base_branch": "main",
+      "base_sha": "77bc22bd1046327fed1eba92ad5772e0c7bf1a94",
+      "commit_sha": "bcacf7a7136a5ef54766d69e5e44c588939c5de8",
+      "files_added": [".github/FUNDING.yml"],
+      "pushed": false
+    }
+  ],
+  "verification": {
+    "agileplus_commit_files": [".github/FUNDING.yml"],
+    "pyron_commit_files": [".github/FUNDING.yml"],
+    "trufflehog_agileplus": "0 verified secrets",
+    "pre_commit_hooks_passed": true
+  }
+}

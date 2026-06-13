@@ -1,0 +1,146 @@
+{
+  "task": "DAG L2-32",
+  "schema_version": "v2",
+  "generated_at": "2026-06-08T20:50:00-07:00",
+  "action": "Add Swatinem/rust-cache@v2 to Rust repos lacking cargo caching in CI",
+  "cache_step": {
+    "name": "Cache cargo",
+    "uses": "Swatinem/rust-cache@v2",
+    "with": {
+      "cache-on-failure": "true",
+      "cache-all-crates": "true",
+      "shared-key": "cargo-${{ matrix.rust }}"
+    }
+  },
+  "repos": [
+    {
+      "rank": 1,
+      "name": "PhenoKits",
+      "branch": "chore/ci-cargo-cache-2026-06-08",
+      "commit_sha": "cc572f7a67e0bfa4cb9d2a34d1fb9d6375d7e4ba",
+      "workflow_file": ".github/workflows/ci.yml",
+      "lines_added": 7,
+      "lines_removed": 0,
+      "matrix_key": "matrix.rust (placeholder; PhenoKits ci.yml has no Rust matrix, but shared-key still resolves safely to 'cargo-')",
+      "source": "user_preference_4",
+      "notes": "Inserted between actions/checkout and the first cargo metadata step. PhenoKits ci.yml uses cargo metadata (not cargo build) for repo hygiene validation; rust-cache still useful for the cargo metadata and any future cargo invocations."
+    },
+    {
+      "rank": 2,
+      "name": "phenoShared",
+      "branch": "chore/ci-cargo-cache-2026-06-08",
+      "commit_sha": "beec5b68478644dbbcaab2428e27cee2a372b5a3",
+      "workflow_file": ".github/workflows/ci.yml",
+      "lines_added": 7,
+      "lines_removed": 0,
+      "matrix_key": "matrix.rust-version (matches the strategy.matrix.rust-version key in the reusable workflow)",
+      "source": "constraint_fit",
+      "notes": "Reusable Rust CI workflow. rust-cache step inserted after actions/checkout and before Setup Rust; placed before toolchain so cache is warm when cargo build/test/clippy run."
+    },
+    {
+      "rank": 3,
+      "name": "PhenoMCP",
+      "branch": "chore/ci-cargo-cache-2026-06-08",
+      "commit_sha": "483005fe5407f5b7836c714b32366638b69c0c36",
+      "workflow_file": ".github/workflows/ci.yml",
+      "lines_added": 6,
+      "lines_removed": 0,
+      "matrix_key": "matrix.rust (placeholder; PhenoMCP has no matrix but shared-key is consistent with org template)",
+      "source": "constraint_fit",
+      "notes": "Inserted into the 'rust' job of the polyglot CI; python job unchanged."
+    },
+    {
+      "rank": 4,
+      "name": "phenoRuntime",
+      "branch": "chore/ci-cargo-cache-2026-06-08",
+      "commit_sha": "820a30ab2949d8a1168e267a97dbce32c26c7978",
+      "workflow_file": ".github/workflows/ci.yml",
+      "lines_added": 6,
+      "lines_removed": 0,
+      "matrix_key": "matrix.rust (placeholder; phenoRuntime has no matrix but shared-key is consistent with org template)",
+      "source": "constraint_fit",
+      "notes": "Inserted into the 'rust' job of the polyglot CI between actions/checkout and dtolnay/rust-toolchain."
+    },
+    {
+      "rank": 5,
+      "name": "Tracely",
+      "branch": "chore/ci-cargo-cache-2026-06-08",
+      "commit_sha": "3e63fe4110f9c61163a7dd948a329a07c4dfe930",
+      "workflow_file": ".github/workflows/ci.yml",
+      "lines_added": 4,
+      "lines_removed": 8,
+      "matrix_key": "matrix.rust (placeholder; Tracely uses single toolchain 'stable' but shared-key retained for future matrix expansion)",
+      "source": "constraint_fit",
+      "notes": "Replaced the legacy actions/cache@v4 step (which manually cached ~/.cargo/registry, ~/.cargo/git, target via hashFiles('**/Cargo.lock')) with Swatinem/rust-cache@v2. Net delta: +4/-8 lines, but adds Swatinem's content-addressed caching and automatic restore-keys."
+    },
+    {
+      "rank": 6,
+      "name": "Pyron",
+      "branch": "chore/ci-cargo-cache-2026-06-08",
+      "commit_sha": "de7106af4f8409e6b524209e76ece7c41fa80b7d",
+      "workflow_file": ".github/workflows/libs-activation-ci.yml",
+      "lines_added": 6,
+      "lines_removed": 0,
+      "matrix_key": "matrix.rust (placeholder; libs-activation-ci has no matrix but shared-key retained for consistency)",
+      "source": "user_preference_1",
+      "notes": "Pyron's ci.yml already has Swatinem/rust-cache@v2 (9 invocations). Added it to libs-activation-ci.yml (path-triggered on libs/** changes) which runs cargo build --release for phenotype-auth and phenotype-observability. The CI is JS-only was an audit concern; this is a real cargo build pipeline that previously recompiled from scratch on every path-filtered push."
+    },
+    {
+      "rank": 7,
+      "name": "FocalPoint",
+      "branch": "chore/ci-cargo-cache-2026-06-08",
+      "commit_sha": "956b43f33fc9e41cba8904ea9e503f55e60c696b",
+      "workflow_file": ".github/workflows/journey-gate.yml",
+      "lines_added": 7,
+      "lines_removed": 0,
+      "matrix_key": "matrix.rust (placeholder; journey-gate has no matrix)",
+      "source": "user_preference_2",
+      "notes": "FocalPoint's ci.yml already has Swatinem/rust-cache@v2. Added to journey-gate.yml which runs `cargo install phenotype-journey --locked` to bootstrap the journey CLI; caching the cargo registry shrinks that install step substantially."
+    },
+    {
+      "rank": 8,
+      "name": "agentapi-plusplus",
+      "branch": "chore/ci-cargo-cache-2026-06-08",
+      "commit_sha": "25f0f780942bb0688db9a78a215d18ff7d828ade",
+      "workflow_file": ".github/workflows/fuzzing.yml",
+      "lines_added": 6,
+      "lines_removed": 0,
+      "matrix_key": "matrix.rust (placeholder; fuzzing has no matrix)",
+      "source": "user_preference_3",
+      "notes": "agentapi-plusplus is primarily Go, but its fuzzing.yml runs `cargo install cargo-fuzz` and `cargo fuzz run all` against any .rs files in the repo. Added rust-cache to speed up the cargo install step on cron-scheduled fuzz runs."
+    }
+  ],
+  "skipped": [
+    {
+      "name": "localbase3",
+      "user_preference_position": 5,
+      "reason": "Constraint unsatisfiable. localbase3 has no Rust workflows (only test.yml + trufflehog.yml), no Cargo.toml, and zero 'rust'/'cargo' references anywhere in .github/workflows/. The user's stated preference for 'localbase3 Go side' confirms the Go side of the polyglot (localbase-chain) is the target, but that runs on Cosmos SDK and has no cargo workflow either.",
+      "alternative_considered": "Could add a new fuzzing/cargo workflow, but task scope is 'add rust-cache to existing workflows', not 'create new workflows'. Out of scope."
+    }
+  ],
+  "selection_rationale": {
+    "user_preference": ["Pyron", "FocalPoint", "agentapi-plusplus", "PhenoKits", "localbase3 (Go side)"],
+    "constraint": "Repos from L1 audit set that have a Rust/cargo workflow AND do not use Swatinem/rust-cache@v2 in that workflow",
+    "resolution_strategy": "Where user preference name had a candidate workflow without rust-cache (Pyron libs-activation-ci, FocalPoint journey-gate, agentapi-plusplus fuzzing.yml, PhenoKits ci.yml), use it. Where preference had no Rust at all (localbase3), document the skip. Filled the remaining 4 slots with best-fit Rust repos (phenoShared, PhenoMCP, phenoRuntime, Tracely) that lacked rust-cache.",
+    "mismatch_notes": [
+      "Pyron's ci.yml already has Swatinem/rust-cache@v2 (9 invocations); used libs-activation-ci.yml instead.",
+      "FocalPoint's ci.yml already has Swatinem/rust-cache@v2; used journey-gate.yml instead.",
+      "agentapi-plusplus is Go-primary; only has Rust code via cargo-fuzz target in fuzzing.yml.",
+      "localbase3 has no Rust at all in .github/workflows/."
+    ]
+  },
+  "pushed": false,
+  "verification_status": {
+    "all_branches_created": true,
+    "all_commits_landed": true,
+    "branch_label_corrected_post_automation": {
+      "PhenoKits": "A parallel forge agent checked out chore/ci-timeout-2026-06-08 onto the shared PhenoKits working tree after my initial commit landed; force-moved branch chore/ci-cargo-cache-2026-06-08 to point at commit cc572f7a (verified via git show)."
+    }
+  },
+  "totals": {
+    "repos_modified": 8,
+    "repos_skipped": 1,
+    "lines_added_total": 49,
+    "lines_removed_total": 8
+  }
+}

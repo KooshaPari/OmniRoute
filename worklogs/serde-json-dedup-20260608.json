@@ -1,0 +1,22 @@
+{
+  "generated_at": "2026-06-08T00:00:00Z",
+  "total_repos": 60,
+  "dup_structs": [
+    {
+      "struct_name": "BoundingBox",
+      "fields_signature": "pub x: i32, pub y: i32, pub width: i32, pub height: i32,",
+      "repos": [
+        "KDesktopVirt",
+        "kmobile"
+      ]
+    },
+    {
+      "struct_name": "MetricType",
+      "fields_signature": "Counter, Gauge, Histogram, Summary,",
+      "repos": [
+        "KDesktopVirt",
+        "Metron"
+      ]
+    }
+  ]
+}

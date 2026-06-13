@@ -1,0 +1,91 @@
+{
+  "generated_at": "2026-06-08T23:58:00Z",
+  "repo": "cheap-llm-mcp-deprecate",
+  "branch_audited": "main",
+  "audit_type": "hygiene",
+  "template": "G1-G5 + e2e + 2-paragraph deep research + 3 actions",
+  "summary": "G1 FAIL on SHA corruption across 4+ workflows (@v4@sha form, fake setup-go SHA, tag-pinned scorecard/release-drafter); G2 strong (DEPRECATED.md exemplary, 1-line gap); G3 PARTIAL (trufflehog+scorecard+dep-review, no codeql, no SBOM); G4 FAIL (quality-gate.yml is Rust-shaped in a Python repo); G5 PARTIAL (dependabot github-actions only); e2e PARTIAL (fr-coverage.py + pytest, no dedicated e2e). 3 actions, P0=2.",
+  "gates": {
+    "G1_workflow_hygiene": {
+      "status": "FAIL",
+      "evidence": [
+        "10 .github/workflows/*.yml: ci, dependency-review, doc-links, fr-coverage, journey-gate (11KB — oversized), quality-gate, release-drafter, release, scorecard, trufflehog",
+        "SHA rot: doc-links.yml/fr-coverage.yml/quality-gate.yml/release.yml/scorecard.yml use `actions/checkout@b4ffde65f...@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.1.1` — the @<sha> is prefixed by a stray `@` (looks like split-then-append). journey-gate.yml:11 has `actions/checkout@v4@11bd7...` (tag+SHA concatenated, parser-hostile).",
+        "trufflehog.yml:8 `actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683` — SHA only, no `# v4.1.1` comment (drift). trufflehog.yml:14 `actions/setup-go@0a12ed9e1a4ce4b1a02a5f2dd1e3a9c9e6c7f8b1` — too-uniform fake SHA (entropy failure).",
+        "Tag-pinned: ci.yml:14/17 `actions/checkout@v4` + `actions/setup-python@v5` + `astral-sh/setup-uv@v5`; release-drafter.yml:13 `release-drafter/release-drafter@v6`; scorecard.yml:30 `ossf/scorecard-action@v2.4.2`; release.yml `softprops/action-gh-release@v2`. Only 4/10 are SHA-pinned, the rest drift.",
+        "permissions block: 5/10 (dependency-review, doc-links, fr-coverage, quality-gate, scorecard). concurrency: only 2/10 (release, scorecard)."
+      ]
+    },
+    "G2_governance_files": {
+      "status": "PARTIAL",
+      "evidence": [
+        "LICENSE, CODE_OF_CONDUCT.md, CONTRIBUTING.md, SECURITY.md, FUNDING.yml, DEPRECATED.md (5758 bytes, exemplary), FUNCTIONAL_REQUIREMENTS.md, CHANGELOG.md (Unreleased populated with deprecation entry), CITATION.cff all present.",
+        "CODEOWNERS: 2-line `* @KooshaPari` (org-standard 62-repo pattern).",
+        "pyproject.toml [project.urls] points Source to upstream successor + Migration guide (org-best-practice for deprecated packages).",
+        "ISSUE_TEMPLATE/: bug_report.md + feature_request.md — config.yml MISSING (org 3-template set). SUPPORT.md MISSING. PULL_REQUEST_TEMPLATE.md present."
+      ]
+    },
+    "G3_security_scanning": {
+      "status": "PARTIAL",
+      "evidence": [
+        "scorecard.yml (cron weekly, ossf/scorecard-action) + trufflehog.yml (trufflesecurity/trufflehog — but with the fake setup-go SHA) + dependency-review.yml present.",
+        "No codeql workflow (acceptable for a small Python shim). No SBOM (cyclonedx/syft) — gap consistent with the 168/168 fleet finding.",
+        "No dependabot ecosystems for pip — legacy v0.4.0 (DEB/PEP740) still needs CVE scanning for users mid-migration."
+      ]
+    },
+    "G4_quality_gates": {
+      "status": "FAIL",
+      "evidence": [
+        "ruff.toml (E/F/I/B/UP/SIM/RUF, line-length 100) + .pre-commit-config.yaml (pre-commit-hooks v4.5.0) present and well-configured.",
+        "fr-coverage.yml: 872 bytes, parses FRs from FUNCTIONAL_REQUIREMENTS.md and asserts each has a test marker — strong org-unique gate.",
+        "quality-gate.yml: dtolnay/rust-toolchain@stable + cargo build --release --bin quality-gate for a Python project. Same Rust-shaped-gate-in-non-Rust-repo anti-pattern as argis-extensions. Every step exits 0; gate is dead code.",
+        "Taskfile.yml + Makefile coexist (org-canonical is Taskfile; Makefile could be merged). Test count: 11 pytest files, 1788 LoC. No e2e/ directory."
+      ]
+    },
+    "G5_review_governance": {
+      "status": "PARTIAL",
+      "evidence": [
+        "dependabot.yml: github-actions weekly, 2 labels (org-standard is 4-6 ecosystems + pip).",
+        "PULL_REQUEST_TEMPLATE.md present. ISSUE_TEMPLATE: bug + feature (no config.yml).",
+        "MISSING: .coderabbit.yaml, .gemini/, branch-protection meta-guard, required-check-names-guard.",
+        "CHANGELOG.md Unreleased section is actively maintained with the deprecation entry — better than the median repo."
+      ]
+    },
+    "e2e_end_to_end": {
+      "status": "PARTIAL",
+      "evidence": [
+        "test_server_integration.py (50 LoC) is the only integration-shaped test; rest are unit tests with respx mocks.",
+        "fr-coverage.yml is the strongest cross-cutting gate: every FR in FUNCTIONAL_REQUIREMENTS.md must have a `@pytest.mark.requirement('FR-X')` test. Closes the FR↔test traceability loop org-wide.",
+        "No dedicated e2e/ harness, no playwright, no docker-compose. Conftest injects fake API keys (MINIMAX/MOONSHOT/FIREWORKS) — good test isolation.",
+        "Deprecation hygiene: DEPRECATED.md covers install diff, env vars, ledger paths, tool names, sunset at 0.6.0. README 'Quickstart' is a 3-line pointer. _deprecation.py uses importlib.util.find_spec() (no eager import) + runpy fallback for in-process legacy run."
+      ]
+    }
+  },
+  "additional_findings": {
+    "deprecation_hygiene_quality": "DEPRECATED.md is the gold standard for org deprecation notices: 5.7KB, byte-for-byte compatibility claim, install diff, optional adapter-discovery API, what-stays-vs-moves, and a 2-release sunset window (0.6.0). _deprecation.py is 111 LoC, well-documented, uses importlib.util.find_spec() to avoid forcing pheno_mcp into the process, and falls back to runpy for the legacy module so v0.4.0 installs stay non-breaking.",
+    "quality_gate_rust_rot": "quality-gate.yml:13 uses `dtolnay/rust-toolchain@stable` + `cargo build --release --bin quality-gate` in a Python repo with no Cargo.toml. The 'Note: quality-gate not available; skipping && exit 0' line guarantees the gate is green. Same anti-pattern observed in argis-extensions and HeliosLab — the org-canonical quality-gate tool is being copy-pasted across language boundaries without adaptation.",
+    "dependabot_undersized": "Only github-actions ecosystem. For a deprecated PyPI package still on v0.4.0, missing pip ecosystem means CVEs in fastmcp/httpx/pydantic don't surface as PRs. The upstream pheno-mcp[cheap-llm] handles this, but the 2-release sunset window leaves users exposed if they delay migration."
+  },
+  "actions_recommended": [
+    {
+      "priority": "P0",
+      "title": "Repair SHA corruption in 6+ workflows and align to org-canonical pins",
+      "detail": "Strip stray `@` from `actions/checkout@v4@<sha>` → `actions/checkout@<sha> # v4.1.1` in journey-gate.yml, doc-links.yml, fr-coverage.yml, quality-gate.yml, release.yml, scorecard.yml. Replace the uniform fake `setup-go@0a12ed9e...` with the org-canonical `actions/setup-go@<sha>`. SHA-pin ci.yml (currently `@v4/@v5`), release-drafter (`@v6`), scorecard-action (`@v2.4.2`), action-gh-release (`@v2`). Replaces 3+ tag-only workflows. Align checkout to org-canonical `actions/checkout=34e114876b0b11c390a56381ad16ebd13914f8d5` per the argis-extensions baseline.",
+      "estimated_effort": "45-60 min across 6 files + yq validate + watch green CI"
+    },
+    {
+      "priority": "P0",
+      "title": "Replace quality-gate.yml's Rust toolchain + cargo steps with a Python-shaped gate (pytest + ruff)",
+      "detail": "quality-gate.yml:13 `dtolnay/rust-toolchain@stable` + `cargo build --release --bin quality-gate` is dead code for a Python shim. Either (a) replace the inner `run:` with `ruff check . && pytest -q --no-header -m requirement --tb=short` (reuses fr-coverage.yml logic locally) or (b) delete quality-gate.yml entirely — fr-coverage.yml + ci.yml's pytest run already cover the quality story for a 1788-LoC deprecation shim. Closes G4 + frees ~1.5min/CI run.",
+      "estimated_effort": "20 min: rewrite or delete + verify ci.yml runs pytest already"
+    },
+    {
+      "priority": "P1",
+      "title": "Add pip ecosystem to dependabot.yml + drop in SUPPORT.md and ISSUE_TEMPLATE/config.yml",
+      "detail": "dependabot.yml: add `package-ecosystem: pip` (directory: /) + `package-ecosystem: github-actions` (already there) so legacy v0.4.0 users get CVE PRs during the 2-release sunset window. Add SUPPORT.md (HeliosLab PR #114 as model) for the deprecation-window support burden. Add ISSUE_TEMPLATE/config.yml to round out the org 3-template set. Closes G2 + G3 + G5 gaps, no CI impact.",
+      "estimated_effort": "15 min: 1 yml block + 2 template files"
+    }
+  ],
+  "deep_research": "Cheap-llm-mcp-deprecate is unique in the fleet: it is the org's first PyPI-to-monorepo graduation, deprecated 2026-06-08 and shimmed to delegate to pheno-mcp[cheap-llm] via _deprecation.py (111 LoC). DEPRECATED.md (5758 bytes) is the gold standard for deprecation notices — install diff, byte-for-byte compatibility claim, optional adapter-discovery API, and a 2-release sunset at 0.6.0. The console scripts in pyproject.toml now point at the shim, which uses importlib.util.find_spec() to detect pheno_mcp without forcing an import, then either re-invokes the upstream binary (if installed) or runpy-fallbacks to the legacy in-repo module. The repo deliberately downscopes from active to maintenance posture. Against the tick-19 fleet baselines: 10 workflows, 4/10 SHA-pinned, 1 with the `@v4@<sha>` corruption, 1 with a too-uniform fake setup-go SHA — same SHA-rot cluster as 5 other repos audited in this batch. The standout hygiene failure is quality-gate.yml:13's `dtolnay/rust-toolchain@stable` + `cargo build --release --bin quality-gate` in a Python repo with no Cargo.toml — identical anti-pattern to argis-extensions (their quality-gate.yml is the 196-line Rust gate imported wholesale). The fr-coverage.yml gate (872 bytes) is org-unique and strong: it parses FUNCTIONAL_REQUIREMENTS.md, asserts each FR has a `@pytest.mark.requirement('FR-X')` test, and posts the matrix as a PR comment. CODEOWNERS is the 2-line `* @KooshaPari` shared with 62 other repos. CHANGELOG.md Unreleased is actively maintained with the deprecation entry — above the median. Pyproject.toml [project.urls] is the only one in the fleet that names an Upstream successor + Migration guide, modeling the deprecation pattern for future graduations.",
+  "deep_research_cont": "The e2e story is partial but honest. test_server_integration.py is the only integration-shaped test (50 LoC); the rest are respx-mocked unit tests, and conftest.py injects fake MINIMAX/MOONSHOT/FIREWORKS keys for isolation. There is no e2e/ directory, no playwright, no docker-compose test runner — acceptable for a deprecation shim that delegates the real work to pheno-mcp[cheap-llm]. The real cross-cutting safety net is the fr-coverage.yml gate combined with conftest's @pytest.mark.requirement marker convention, which closes the FR↔test traceability loop that most repos leave open. Two structural risks remain: (1) dependabot.yml covers only github-actions — for users still on v0.4.0 mid-migration, CVEs in fastmcp/httpx/pydantic will not surface as PRs in this repo, and they may not have switched to pheno-mcp[cheap-llm] yet; adding the pip ecosystem closes the 2-release sunset window exposure. (2) The quality-gate.yml Rust rot is structurally dead code but visually communicates 'this repo has quality gates' — a maintainer who doesn't read it will assume the gate is real. Replacing or deleting it in the same PR as the SHA fix removes a misleading signal. Sunset plan: when pheno-mcp[cheap-llm] ships 0.6.0, archive this repo (don't delete — PyPI v0.4.0 stays published for legacy callers per the byte-for-byte compatibility claim). Hygiene score: 3.4/5 (G1 1/5, G2 4/5, G3 3/5, G4 2/5, G5 3/5, e2e 3/5; P0+P1 lifts to 4.4/5)."
+}

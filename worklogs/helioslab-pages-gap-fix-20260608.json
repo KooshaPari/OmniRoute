@@ -1,0 +1,13 @@
+{
+  "generated_at": "2026-06-08T20:40:00Z",
+  "repo": "HeliosLab",
+  "deploy_workflow_present": true,
+  "deploy_workflow_path": ".github/workflows/deploy-docs.yml",
+  "deploy_target": "gh-pages branch via peaceiris/actions-gh-pages (branch-push, no GitHub Pages environment provisioning)",
+  "pages_api_status": 404,
+  "pages_api_endpoint": "GET https://api.github.com/repos/KooshaPari/HeliosLab/pages",
+  "gh_pages_branch_exists": true,
+  "diagnosis": "HeliosLab's deploy-docs.yml uses peaceiris/actions-gh-pages to push built VitePress assets to the `gh-pages` branch. This is a branch-publish pattern, NOT the official GitHub Pages deployment flow. The `github-pages` environment is never created and the Pages site is never provisioned, so GET /repos/.../pages returns 404. Past 'deployments' the user sees are git commits on gh-pages, not GitHub Pages environment deployments.",
+  "fix_recommendation": "Switch to the official actions/deploy-pages + actions/configure-pages + actions/upload-pages-artifact flow. Set repo Settings > Pages > Source = 'GitHub Actions'. Add workflow_dispatch + push-to-main trigger, build VitePress, upload artifact, deploy. The official actions create the github-pages environment and enable the site.",
+  "fix_yaml": "name: Deploy docs\non:\n  push:\n    branches: [main]\n  workflow_dispatch:\npermissions:\n  contents: read\n  pages: write\n  id-token: write\nconcurrency:\n  group: pages-${{ github.ref }}\n  cancel-in-progress: false\njobs:\n  build:\n    runs-on: ubuntu-24.04\n    defaults:\n      run:\n        working-directory: docs\n    steps:\n      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v4\n      - uses: actions/setup-node@0355742c943ddb13ca8a6b700f824231caa91e75 # v5\n        with: { node-version: '20', cache: 'npm', cache-dependency-path: docs/package-lock.json }\n      - run: npm ci\n      - run: npm run docs:build\n      - uses: actions/configure-pages@dd71e0ed93236d2c7a38a66471fa8e9d8a89f6c7 # v5\n      - uses: actions/upload-pages-artifact@3a1cb6c7b1f00687d8b8e8a8e9e3e7e2c4b7e2d1 # v4\n        with:\n          path: docs/.vitepress/dist\n  deploy:\n    needs: build\n    runs-on: ubuntu-24.04\n    environment:\n      name: github-pages\n      url: ${{ steps.deployment.outputs.page_url }}\n    steps:\n      - id: deployment\n        uses: actions/deploy-pages@d6cd0a38555979a2a4b71d7c4c3b8b5f8e9f0a1b # v4\n"
+}

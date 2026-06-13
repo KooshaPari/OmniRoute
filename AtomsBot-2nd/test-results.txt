@@ -1,0 +1,3901 @@
+bun test v1.2.9 (9a329c04)
+
+src/store-db.comprehensive.test.ts:
+
+# Unhandled error between tests
+-------------------------------
+75 |   error: vi.fn(),
+76 |   debug: vi.fn(),
+77 | };
+78 | 
+79 | // Mock modules BEFORE importing SUT
+80 | vi.mock('./database/DatabaseService', () => ({
+        ^
+TypeError: vi.mock is not a function. (In 'vi.mock("./database/DatabaseService", () => ({
+  databaseService: mockDatabaseService
+}))', 'vi.mock' is undefined)
+      at /Users/kooshapari/temp-PRODVERCEL/485/clean/atomsbot/src/store-db.comprehensive.test.ts:80:4
+-------------------------------
+
+
+src/store-db.unit.test.ts:
+[dotenv@16.6.0] injecting env (31) from .env
+[dotenv@16.6.0] injecting env (31) from .env
+
+# Unhandled error between tests
+-------------------------------
+ 7 | 
+ 8 | import { describe, it, expect, beforeAll, beforeEach, vi } from 'vitest';
+ 9 | import { store } from './store-db';
+10 | 
+11 | // Mock all external services for unit testing
+12 | vi.mock('./database/DatabaseService', async () => {
+        ^
+TypeError: vi.mock is not a function. (In 'vi.mock("./database/DatabaseService", async () => {
+  const { default: mockDb } = await import("../tests/mocks/database");
+  return { databaseService: mockDb };
+})', 'vi.mock' is undefined)
+      at /Users/kooshapari/temp-PRODVERCEL/485/clean/atomsbot/src/store-db.unit.test.ts:12:4
+-------------------------------
+
+
+src/discord/discordHandlers.test.ts:
+
+# Unhandled error between tests
+-------------------------------
+1 | import { describe, it, expect, vi, beforeEach } from "vitest";
+2 | 
+3 | // Mock all dependencies first before any imports
+4 | vi.mock("../config", () => ({
+       ^
+TypeError: vi.mock is not a function. (In 'vi.mock("../config", () => ({
+  config: {
+    DISCORD_CHANNEL_ID: "test-channel",
+    DISCORD_DEV_GUILD_ID: "test-guild",
+    DISCORD_TOKEN: "test-token",
+    DISCORD_CLIENT_ID: "client123"
+  }
+}))', 'vi.mock' is undefined)
+      at /Users/kooshapari/temp-PRODVERCEL/485/clean/atomsbot/src/discord/discordHandlers.test.ts:4:4
+-------------------------------
+
+
+src/cache/redis.unit.test.ts:
+
+# Unhandled error between tests
+-------------------------------
+1 | import { describe, it, expect, beforeEach, vi } from 'vitest';
+2 | 
+3 | // Hoisted in-memory Redis for mock factory
+4 | const hoisted = vi.hoisted(() => ({
+                       ^
+TypeError: vi.hoisted is not a function. (In 'vi.hoisted(() => ({
+  FakeRedis: class FakeRedis {
+    store = new Map;
+    expirations = new Map;
+    on() {}
+    async get(key) {
+      this.expireIfNeeded(key);
+      return this.store.get(key) ?? null;
+    }
+    async set(key, value) {
+      this.store.set(key, value);
+    }
+    async setex(key, ttl, value) {
+      this.store.set(key, value);
+      this.expirations.set(key, Date.now() + ttl * 1000);
+    }
+    async del(...keys) {
+      let count = 0;
+      for (const k of keys) {
+        if (this.store.delete(k))
+          count++;
+        this.expirations.delete(k);
+      }
+      return count;
+    }
+    async exists(key) {
+      this.expireIfNeeded(key);
+      return this.store.has(key) ? 1 : 0;
+    }
+    async keys(pattern) {
+      const pp = new RegExp("^" + pattern.replace("*", ".*") + "$");
+      return Array.from(this.store.keys()).filter((k) => pp.test(k));
+    }
+    async incr(key) {
+      const next = (Number(await this.get(key)) || 0) + 1;
+      this.store.set(key, String(next));
+      return next;
+    }
+    async expire(key, seconds) {
+      this.expirations.set(key, Date.now() + seconds * 1000);
+      return 1;
+    }
+    async ttl(key) {
+      this.expireIfNeeded(key);
+      const exp = this.expirations.get(key);
+      if (!exp)
+        return -1;
+      const secs = Math.ceil((exp - Date.now()) / 1000);
+      return secs > 0 ? secs : -2;
+    }
+    async ping() {
+      return "PONG";
+    }
+    async quit() {
+      return "OK";
+    }
+    expireIfNeeded(key) {
+      const exp = this.expirations.get(key);
+      if (exp && Date.now() > exp) {
+        this.store.delete(key);
+        this.expirations.delete(key);
+      }
+    }
+  }
+}))', 'vi.hoisted' is undefined)
+      at /Users/kooshapari/temp-PRODVERCEL/485/clean/atomsbot/src/cache/redis.unit.test.ts:4:20
+-------------------------------
+
+
+src/jira/jiraClient.test.ts:
+09-04 07:41:13 [[32minfo[39m]: [32mDatabase service initialized successfully[39m 
+09-04 07:41:13 [[32minfo[39m]: [32mDatabase store initialized[39m 
+09-04 07:41:13 [[32minfo[39m]: [32mDatabase service initialized successfully[39m 
+09-04 07:41:13 [[32minfo[39m]: [32mDatabase store initialized[39m 
+09-04 07:41:16 [[32minfo[39m]: [32mJira client initialized successfully[39m 
+09-04 07:41:16 [[32minfo[39m]: [32mJira configuration: host=phenotype.atlassian.net, email=kooshapari@gmail.com, hasToken=true, projectKey=ASRE[39m 
+
+# Unhandled error between tests
+-------------------------------
+ 9 | 
+10 | // Import test utilities and matchers
+11 | import "../../tests/matchers";
+12 | 
+13 | // Use vi.mock with factory functions at the top level to avoid hoisting issues
+14 | vi.mock("../logger", () => ({
+        ^
+TypeError: vi.mock is not a function. (In 'vi.mock("../logger", () => ({
+  logger: {
+    info: vi.fn(),
+    error: vi.fn(),
+    warn: vi.fn(),
+    debug: vi.fn(),
+    verbose: vi.fn()
+  }
+}))', 'vi.mock' is undefined)
+      at /Users/kooshapari/temp-PRODVERCEL/485/clean/atomsbot/src/jira/jiraClient.test.ts:14:4
+-------------------------------
+
+
+src/__tests__/security.test.ts:
+
+# Unhandled error between tests
+-------------------------------
+20 |     destroy: vi.fn(),
+21 |     user: { id: "bot-user-id", token: "REDACTED" },
+22 |     guilds: {
+23 |       cache: new Map(),
+24 |       fetch: vi.fn(),
+25 |     },
+         ^
+TypeError: vi.mock is not a function. (In 'vi.mock("discord.js", () => ({
+  Client: vi.fn().mockImplementation(() => ({
+    on: vi.fn(),
+    once: vi.fn(),
+    login: vi.fn(),
+    destroy: vi.fn(),
+    user: { id: "bot-user-id", token: "REDACTED" },
+    guilds: {
+      cache: new Map,
+      fetch: vi.fn()
+    },
+    channels: {
+      fetch: vi.fn().mockImplementation((channelId) => {
+        if (!channelId || typeof channelId !== "string")
+          throw new Error("Invalid channel ID");
+        if (channelId === "forbidden-channel")
+          throw new Error("Missing Access");
+        return Promise.resolve({
+          id: channelId,
+          type: 0,
+          send: vi.fn(),
+          permissions: {
+            has: vi.fn().mockReturnValue(!0)
+          }
+        });
+      })
+    }
+  })),
+  Events: {
+    Ready: "ready",
+    MessageCreate: "messageCreate",
+    InteractionCreate: "interactionCreate"
+  },
+  GatewayIntentBits: {
+    Guilds: 1,
+    GuildMessages: 2,
+    MessageContent: 4,
+    DirectMessages: 8
+  },
+  PermissionsBitField: {
+    Flags: {
+      ManageMessages: 1n << 13n,
+      Administrator: 1n << 3n,
+      ViewChannel: 1n << 10n
+    }
+  }
+}))', 'vi.mock' is undefined)
+      at /Users/kooshapari/temp-PRODVERCEL/485/clean/atomsbot/src/__tests__/security.test.ts:25:5
+-------------------------------
+
+
+src/__tests__/store.comprehensive.test.ts:
+
+# Unhandled error between tests
+-------------------------------
+20 | import { promises as fs } from 'fs';
+21 | import type { Thread } from '../interfaces';
+22 | import type { GuildForumTag } from 'discord.js';
+23 | 
+24 | // Mock dependencies
+25 | vi.unmock('../store');
+        ^
+TypeError: vi.unmock is not a function. (In 'vi.unmock("../store")', 'vi.unmock' is undefined)
+      at /Users/kooshapari/temp-PRODVERCEL/485/clean/atomsbot/src/__tests__/store.comprehensive.test.ts:25:4
+-------------------------------
+
+
+src/__tests__/interfaces.test.ts:
+(pass) Interfaces Module > Thread Interface > should accept valid Thread object with all required properties [19.60ms]
+(pass) Interfaces Module > Thread Interface > should accept Thread with all optional properties [0.33ms]
+(pass) Interfaces Module > Thread Interface > should accept Thread with minimal required properties only [1.67ms]
+(pass) Interfaces Module > Thread Interface > should handle empty arrays for appliedTags and comments [0.19ms]
+(pass) Interfaces Module > Thread Interface > should handle complex nested comment structures [3.39ms]
+(pass) Interfaces Module > ThreadComment Interface > should accept valid ThreadComment object [0.41ms]
+(pass) Interfaces Module > ThreadComment Interface > should handle various number types for git_id [0.20ms]
+(pass) Interfaces Module > ThreadComment Interface > should handle string IDs of various formats [1.57ms]
+(pass) Interfaces Module > GitIssue Interface > should accept valid GitIssue object with all required properties [2.08ms]
+(pass) Interfaces Module > GitIssue Interface > should handle empty arrays for labels and assignees [0.25ms]
+(pass) Interfaces Module > GitIssue Interface > should handle null milestone [0.03ms]
+(pass) Interfaces Module > GitIssue Interface > should handle various milestone types [0.03ms]
+(pass) Interfaces Module > GitIssue Interface > should handle long content in title and body [3.86ms]
+(pass) Interfaces Module > GitIssue Interface > should handle special characters in content [0.12ms]
+(pass) Interfaces Module > GitHubLabel Interface > should accept valid GitHubLabel object [0.03ms]
+(pass) Interfaces Module > GitHubLabel Interface > should handle various color formats [0.02ms]
+(pass) Interfaces Module > GitHubLabel Interface > should handle empty and null descriptions [0.02ms]
+(pass) Interfaces Module > GitHubLabel Interface > should handle special characters in label names [0.02ms]
+(pass) Interfaces Module > IssueMetadata Interface > should accept valid IssueMetadata object [0.02ms]
+(pass) Interfaces Module > IssueMetadata Interface > should handle various thread ID formats [0.04ms]
+(pass) Interfaces Module > IssueMetadata Interface > should handle various issue number ranges
+(pass) Interfaces Module > IssueMetadata Interface > should handle repository and owner name variations [0.06ms]
+(pass) Interfaces Module > GithubHandlerFunction Type > should accept valid handler function signature [0.03ms]
+(pass) Interfaces Module > GithubHandlerFunction Type > should handle handler functions with various return types [0.20ms]
+(pass) Interfaces Module > GithubHandlerFunction Type > should handle handler functions with error scenarios [11.17ms]
+(pass) Interfaces Module > GithubHandlerFunction Type > should handle handler functions with Request parameter usage [0.21ms]
+(pass) Interfaces Module > Interface Composition and Relationships > should handle Thread with multiple ThreadComment objects [3.70ms]
+(pass) Interfaces Module > Interface Composition and Relationships > should handle complex data relationships [0.23ms]
+(pass) Interfaces Module > Type Safety and Edge Cases > should handle undefined optional properties correctly [0.10ms]
+(pass) Interfaces Module > Type Safety and Edge Cases > should handle empty string values [0.22ms]
+(pass) Interfaces Module > Type Safety and Edge Cases > should handle zero and negative numbers [0.08ms]
+(pass) Interfaces Module > Type Safety and Edge Cases > should handle arrays with mixed content types [0.28ms]
+(pass) Interfaces Module > Type Safety and Edge Cases > should validate type constraints at compile time [0.10ms]
+(pass) Interfaces Module > Type Safety and Edge Cases > should accept null values for optional Thread fields [0.01ms]
+(pass) Interfaces Module > Type Safety and Edge Cases > should accept empty arrays for appliedTags and comments [0.03ms]
+(pass) Interfaces Module > Type Safety and Edge Cases > should handle special characters in string fields [0.10ms]
+(pass) Interfaces Module > ThreadComment Interface > should accept valid ThreadComment object [0.97ms]
+(pass) Interfaces Module > ThreadComment Interface > should handle various ID formats [0.56ms]
+(pass) Interfaces Module > ThreadComment Interface > should be usable in Thread comments array [0.03ms]
+(pass) Interfaces Module > GitIssue Interface > should accept valid GitIssue object [3.96ms]
+(pass) Interfaces Module > GitIssue Interface > should accept both open and closed states [0.10ms]
+(pass) Interfaces Module > GitIssue Interface > should handle various URL formats [0.05ms]
+(pass) Interfaces Module > GitHubLabel Interface > should accept valid GitHubLabel object [0.04ms]
+(pass) Interfaces Module > GitHubLabel Interface > should handle various color formats [0.11ms]
+(pass) Interfaces Module > GitHubLabel Interface > should handle empty or special descriptions [0.06ms]
+(pass) Interfaces Module > IssueMetadata Interface > should accept IssueMetadata with all optional properties [0.10ms]
+(pass) Interfaces Module > IssueMetadata Interface > should accept empty IssueMetadata object
+(pass) Interfaces Module > IssueMetadata Interface > should handle comments as both number and ThreadComment array
+(pass) Interfaces Module > IssueMetadata Interface > should handle milestone with null due date
+(pass) Interfaces Module > IssueMetadata Interface > should handle various assignee formats
+(pass) Interfaces Module > GithubHandlerFunction Type > should define valid function type for Express Request handler [0.09ms]
+(pass) Interfaces Module > GithubHandlerFunction Type > should allow various handler implementations [0.07ms]
+(pass) Interfaces Module > Interface Compatibility and Integration > should allow Thread to reference GitIssue properties
+(pass) Interfaces Module > Interface Compatibility and Integration > should allow IssueMetadata to contain ThreadComment array [0.05ms]
+(pass) Interfaces Module > Interface Compatibility and Integration > should allow complex nested data structures [5.72ms]
+(pass) Interfaces Module > Type Safety and Edge Cases > should handle string arrays correctly in appliedTags [0.16ms]
+(pass) Interfaces Module > Type Safety and Edge Cases > should ensure type safety for required vs optional fields [0.03ms]
+(pass) Interfaces Module > Type Safety and Edge Cases > should handle extremely large data structures [8.46ms]
+(pass) Interfaces Module > Type Safety and Edge Cases > should validate Thread with jiraKey property [0.12ms]
+(pass) Interfaces Module > Advanced Type Validation > should handle IssueMetadata with complex nested structures [0.09ms]
+(pass) Interfaces Module > Advanced Type Validation > should validate GitHubLabel with edge case values [0.06ms]
+(pass) Interfaces Module > Advanced Type Validation > should validate GitIssue with boundary values [5.94ms]
+(pass) Interfaces Module > Advanced Type Validation > should handle ThreadComment with extreme values [0.38ms]
+(pass) Interfaces Module > Type Interoperability and Relationships > should demonstrate Thread to GitIssue property mapping [0.09ms]
+(pass) Interfaces Module > Type Interoperability and Relationships > should demonstrate complex data flow between interfaces [0.09ms]
+(pass) Interfaces Module > Type Interoperability and Relationships > should validate type consistency across different contexts [8.96ms]
+(pass) Interfaces Module > Error-Prone Scenarios and Validation > should handle potential null/undefined chains safely [0.44ms]
+(pass) Interfaces Module > Error-Prone Scenarios and Validation > should validate thread with all possible optional combinations [0.15ms]
+(pass) Interfaces Module > Interface Type Safety and Validation Edge Cases > should handle Thread interface with all optional properties [0.04ms]
+(pass) Interfaces Module > Interface Type Safety and Validation Edge Cases > should handle Thread interface with all properties populated [0.07ms]
+(pass) Interfaces Module > Interface Type Safety and Validation Edge Cases > should handle Comment interface variations [0.02ms]
+(pass) Interfaces Module > Interface Type Safety and Validation Edge Cases > should handle empty and edge case values in Thread [0.06ms]
+(pass) Interfaces Module > Interface Type Safety and Validation Edge Cases > should handle special characters in Thread properties [0.07ms]
+(pass) Interfaces Module > Interface Type Safety and Validation Edge Cases > should handle very large data in Thread properties [17.51ms]
+09-04 07:41:17 [[32minfo[39m]: [32mJira connection test successful[39m 
+(pass) Interfaces Module > Interface Property Type Validation > should validate Thread property types correctly [0.16ms]
+(pass) Interfaces Module > Interface Property Type Validation > should handle boolean edge cases in Thread [0.09ms]
+(pass) Interfaces Module > Interface Property Type Validation > should handle numeric edge cases in Thread and Comment [0.11ms]
+(pass) Interfaces Module > Interface Array Property Validation > should handle various appliedTags array configurations [0.17ms]
+(pass) Interfaces Module > Interface Array Property Validation > should handle various comments array configurations [0.23ms]
+(pass) Interfaces Module > Interface Compatibility and Extension > should allow interface extension with additional properties [4.01ms]
+(pass) Interfaces Module > Interface Compatibility and Extension > should maintain backward compatibility with existing Thread usage [0.43ms]
+(pass) Interfaces Module > Interface Compatibility and Extension > should handle interface serialization and deserialization [0.61ms]
+
+src/__tests__/index.test.ts:
+22 |     return { initializeApplication };
+23 |   }
+24 | 
+25 |   beforeEach(async () => {
+26 |     // Reset modules to ensure clean state for each test
+27 |     vi.resetModules();
+            ^
+TypeError: vi.resetModules is not a function. (In 'vi.resetModules()', 'vi.resetModules' is undefined)
+      at <anonymous> (/Users/kooshapari/temp-PRODVERCEL/485/clean/atomsbot/src/__tests__/index.test.ts:27:8)
+      at <anonymous> (/Users/kooshapari/temp-PRODVERCEL/485/clean/atomsbot/src/__tests__/index.test.ts:25:14)
+(fail) Index Module - Application Entry Point > Application Startup - Happy Path > should import and call initDiscord() on module load [84508480.70ms]
+(fail) Index Module - Application Entry Point > Application Startup - Happy Path > should import and call initDiscord() on module load
+22 |     return { initializeApplication };
+23 |   }
+24 | 
+25 |   beforeEach(async () => {
+26 |     // Reset modules to ensure clean state for each test
+27 |     vi.resetModules();
+            ^
+TypeError: vi.resetModules is not a function. (In 'vi.resetModules()', 'vi.resetModules' is undefined)
+      at <anonymous> (/Users/kooshapari/temp-PRODVERCEL/485/clean/atomsbot/src/__tests__/index.test.ts:27:8)
+      at <anonymous> (/Users/kooshapari/temp-PRODVERCEL/485/clean/atomsbot/src/__tests__/index.test.ts:25:14)
+(fail) Index Module - Application Entry Point > Application Startup - Happy Path > should import and call initGithub() on module load [84508493.32ms]
+(fail) Index Module - Application Entry Point > Application Startup - Happy Path > should import and call initGithub() on module load
+22 |     return { initializeApplication };
+23 |   }
+24 | 
+25 |   beforeEach(async () => {
+26 |     // Reset modules to ensure clean state for each test
+27 |     vi.resetModules();
+            ^
+TypeError: vi.resetModules is not a function. (In 'vi.resetModules()', 'vi.resetModules' is undefined)
+      at <anonymous> (/Users/kooshapari/temp-PRODVERCEL/485/clean/atomsbot/src/__tests__/index.test.ts:27:8)
+      at <anonymous> (/Users/kooshapari/temp-PRODVERCEL/485/clean/atomsbot/src/__tests__/index.test.ts:25:14)
+(fail) Index Module - Application Entry Point > Application Startup - Happy Path > should handle parallel initialization successfully [84508493.36ms]
+(fail) Index Module - Application Entry Point > Ä3ı‡X  andle parallel initialization successfully
+22 |     return { initializeApplication };
+23 |   }
+24 | 
+25 |   beforeEach(async () => {
+26 |     // Reset modules to ensure clean state for each test
+27 |     vi.resetModules();
+            ^
+TypeError: vi.resetModules is not a function. (In 'vi.resetModules()', 'vi.resetModules' is undefined)
+      at <anonymous> (/Users/kooshapari/temp-PRODVERCEL/485/clean/atomsbot/src/__tests__/index.test.ts:27:8)
+      at <anonymous> (/Users/kooshapari/temp-PRODVERCEL/485/clean/atomsbot/src/__tests__/index.test.ts:25:14)
+(fail) Index Module - Application Entry Point > Error Resilience - Discord Initialization > should swallow errors when initDiscord throws during import [84508493.45ms]
+(fail) Index Module - Application Entry Point > Error Resilience - Discord Initialization > should swallow errors when initDiscord throws during import
+22 |     return { initializeApplication };
+23 |   }
+24 | 
+25 |   beforeEach(async () => {
+26 |     // Reset modules to ensure clean state for each test
+27 |     vi.resetModules();
+            ^
+TypeError: vi.resetModules is not a function. (In 'vi.resetModules()', 'vi.resetModules' is undefined)
+      at <anonymous> (/Users/kooshapari/temp-PRODVERCEL/485/clean/atomsbot/src/__tests__/index.test.ts:27:8)
+      at <anonymous> (/Users/kooshapari/temp-PRODVERCEL/485/clean/atomsbot/src/__tests__/index.test.ts:25:14)
+(fail) Index Module - Application Entry Point > Error Resilience - Discord Initialization > should swallow errors when initDiscord throws after successful import [84508498.45ms]
+(fail) Index Module - Application Entry Point > Error Resilience - Discord Initialization > should swallow errors when initDiscord throws after successful import
+22 |     return { initializeApplication };
+23 |   }
+24 | 
+25 |   beforeEach(async () => {
+26 |     // Reset modules to ensure clean state for each test
+27 |     vi.resetModules();
+            ^
+TypeError: vi.resetModules is not a function. (In 'vi.resetModules()', 'vi.resetModules' is undefined)
+      at <anonymous> (/Users/kooshapari/temp-PRODVERCEL/485/clean/atomsbot/src/__tests__/index.test.ts:27:8)
+      at <anonymous> (/Users/kooshapari/temp-PRODVERCEL/485/clean/atomsbot/src/__tests__/index.test.ts:25:14)
+(fail) Index Module - Application Entry Point > Error Resilience - Discord Initialization > should handle case when initDiscord is undefined [84508498.57ms]
+(fail) Index Module - Application Entry Point > ‡£·X  andle case when initDiscord is undefined
+22 |     return { initializeApplication };
+23 |   }
+24 | 
+25 |   beforeEach(async () => {
+26 |     // Reset modules to ensure clean state for each test
+27 |     vi.resetModules();
+            ^
+TypeError: vi.resetModules is not a function. (In 'vi.resetModules()', 'vi.resetModules' is undefined)
+      at <anonymous> (/Users/kooshapari/temp-PRODVERCEL/485/clean/atomsbot/src/__tests__/index.test.ts:27:8)
+      at <anonymous> (/Users/kooshapari/temp-PRODVERCEL/485/clean/atomsbot/src/__tests__/index.test.ts:25:14)
+(fail) Index Module - Application Entry Point > Error Resilience - GitHub Initialization > should swallow errors when initGithub throws during import [84508498.61ms]
+(fail) Index Module - Application Entry Point > Error Resilience - GitHub Initialization > should swallow errors when initGithub throws during import
+22 |     return { initializeApplication };
+23 |   }
+24 | 
+25 |   beforeEach(async () => {
+26 |     // Reset modules to ensure clean state for each test
+27 |     vi.resetModules();
+            ^
+TypeError: vi.resetModules is not a function. (In 'vi.resetModules()', 'vi.resetModules' is undefined)
+      at <anonymous> (/Users/kooshapari/temp-PRODVERCEL/485/clean/atomsbot/src/__tests__/index.test.ts:27:8)
+      at <anonymous> (/Users/kooshapari/temp-PRODVERCEL/485/clean/atomsbot/src/__tests__/index.test.ts:25:14)
+(fail) Index Module - Application Entry Point > Error Resilience - GitHub Initialization > should swallow errors when initGithub throws after successful import [84508498.64ms]
+(fail) Index Module - Application Entry Point > Error Resilience - GitHub Initialization > should swallow errors when initGithub throws after successful import
+22 |     return { initializeApplication };
+23 |   }
+24 | 
+25 |   beforeEach(async () => {
+26 |     // Reset modules to ensure clean state for each test
+27 |     vi.resetModules();
+            ^
+TypeError: vi.resetModules is not a function. (In 'vi.resetModules()', 'vi.resetModules' is undefined)
+      at <anonymous> (/Users/kooshapari/temp-PRODVERCEL/485/clean/atomsbot/src/__tests__/index.test.ts:27:8)
+      at <anonymous> (/Users/kooshapari/temp-PRODVERCEL/485/clean/atomsbot/src/__tests__/index.test.ts:25:14)
+(fail) Index Module - Application Entry Point > Error Resilience - GitHub Initialization > should handle case when initGithub is undefined [84508498.69ms]
+(fail) Index Module - Application Entry Point > @§·X  andle case when initGithub is undefined
+22 |     return { initializeApplication };
+23 |   }
+24 | 
+25 |   beforeEach(async () => {
+26 |     // Reset modules to ensure clean state for each test
+27 |     vi.resetModules();
+            ^
+TypeError: vi.resetModules is not a function. (In 'vi.resetModules()', 'vi.resetModules' is undefined)
+      at <anonymous> (/Users/kooshapari/temp-PRODVERCEL/485/clean/atomsbot/src/__tests__/index.test.ts:27:8)
+      at <anonymous> (/Users/kooshapari/temp-PRODVERCEL/485/clean/atomsbot/src/__tests__/index.test.ts:25:14)
+(fail) Index Module - Application Entry Point > Error Resilience - Module Loading > should handle Discord module import failure gracefully [84508498.73ms]
+(fail) Index Module - Application Entry Point > Error Resilience - Module Loading > should handle Discord module import failure gracefully
+22 |     return { initializeApplication };
+23 |   }
+24 | 
+25 |   beforeEach(async () => {
+26 |     // Reset modules to ensure clean state for each test
+27 |     vi.resetModules();
+            ^
+TypeError: vi.resetModules is not a function. (In 'vi.resetModules()', 'vi.resetModules' is undefined)
+      at <anonymous> (/Users/kooshapari/temp-PRODVERCEL/485/clean/atomsbot/src/__tests__/index.test.ts:27:8)
+      at <anonymous> (/Users/kooshapari/temp-PRODVERCEL/485/clean/atomsbot/src/__tests__/index.test.ts:25:14)
+(fail) Index Module - Application Entry Point > Error Resilience - Module Loading > should handle GitHub module import failure gracefully [84508498.77ms]
+(fail) Index Module - Application Entry Point > ¿6ı‡X  andle GitHub module import failure gracefully
+22 |     return { initializeApplication };
+23 |   }
+24 | 
+25 |   beforeEach(async () => {
+26 |     // Reset modules to ensure clean state for each test
+27 |     vi.resetModules();
+            ^
+TypeError: vi.resetModules is not a function. (In 'vi.resetModules()', 'vi.resetModules' is undefined)
+      at <anonymous> (/Users/kooshapari/temp-PRODVERCEL/485/clean/atomsbot/src/__tests__/index.test.ts:27:8)
+      at <anonymous> (/Users/kooshapari/temp-PRODVERCEL/485/clean/atomsbot/src/__tests__/index.test.ts:25:14)
+(fail) Index Module - Application Entry Point > Integration Tests - Combined Error Scenarios > should handle both Discord and GitHub initialization failures [84508498.81ms]
+(fail) Index Module - Application Entry Point > Integration Tests - Combined Error Scenarios > should handle both Discord and GitHub initialization failures
+22 |     return { initializeApplication };
+23 |   }
+24 | 
+25 |   beforeEach(async () => {
+26 |     // Reset modules to ensure clean state for each test
+27 |     vi.resetModules();
+            ^
+TypeError: vi.resetModules is not a function. (In 'vi.resetModules()', 'vi.resetModules' is undefined)
+      at <anonymous> (/Users/kooshapari/temp-PRODVERCEL/485/clean/atomsbot/src/__tests__/index.test.ts:27:8)
+      at <anonymous> (/Users/kooshapari/temp-PRODVERCEL/485/clean/atomsbot/src/__tests__/index.test.ts:25:14)
+(fail) Index Module - Application Entry Point > Integration Tests - Combined Error Scenarios > should handle mixed success and failure scenarios [84508498.84ms]
+(fail) Index Module - Application Entry Point > ¿7ı‡X  andle mixed success and failure scenarios
+22 |     return { initializeApplication };
+23 |   }
+24 | 
+25 |   beforeEach(async () => {
+26 |     // Reset modules to ensure clean state for each test
+27 |     vi.resetModules();
+            ^
+TypeError: vi.resetModules is not a function. (In 'vi.resetModules()', 'vi.resetModules' is undefined)
+      at <anonymous> (/Users/kooshapari/temp-PRODVERCEL/485/clean/atomsbot/src/__tests__/index.test.ts:27:8)
+      at <anonymous> (/Users/kooshapari/temp-PRODVERCEL/485/clean/atomsbot/src/__tests__/index.test.ts:25:14)
+(fail) Index Module - Application Entry Point > Edge Cases and Boundary Conditions > should handle empty module exports gracefully [84508498.89ms]
+(fail) Index Module - Application Entry Point > Edge Cases and Boundary Conditions > should handle empty module exports gracefully
+22 |     return { initializeApplication };
+23 |   }
+24 | 
+25 |   beforeEach(async () => {
+26 |     // Reset modules to ensure clean state for each test
+27 |     vi.resetModules();
+            ^
+TypeError: vi.resetModules is not a function. (In 'vi.resetModules()', 'vi.resetModules' is undefined)
+      at <anonymous> (/Users/kooshapari/temp-PRODVERCEL/485/clean/atomsbot/src/__tests__/index.test.ts:27:8)
+      at <anonymous> (/Users/kooshapari/temp-PRODVERCEL/485/clean/atomsbot/src/__tests__/index.test.ts:25:14)
+(fail) Index Module - Application Entry Point > Edge Cases and Boundary Conditions > should handle null module exports gracefully [84508503.70ms]
+(fail) Index Module - Application Entry Point > 0•·X  andle null module exports gracefully
+22 |     return { initializeApplication };
+23 |   }
+24 | 
+25 |   beforeEach(async () => {
+26 |     // Reset modules to ensure clean state for each test
+27 |     vi.resetModules();
+            ^
+TypeError: vi.resetModules is not a function. (In 'vi.resetModules()', 'vi.resetModules' is undefined)
+      at <anonymous> (/Users/kooshapari/temp-PRODVERCEL/485/clean/atomsbot/src/__tests__/index.test.ts:27:8)
+      at <anonymous> (/Users/kooshapari/temp-PRODVERCEL/485/clean/atomsbot/src/__tests__/index.test.ts:25:14)
+(fail) Index Module - Application Entry Point > Performance and Timing Tests > should complete initialization within reasonable time [84508504.36ms]
+(fail) Index Module - Application Entry Point > Performance and Timing Tests > should complete initialization within reasonable time
+22 |     return { initializeApplication };
+23 |   }
+24 | 
+25 |   beforeEach(async () => {
+26 |     // Reset modules to ensure clean state for each test
+27 |     vi.resetModules();
+            ^
+TypeError: vi.resetModules is not a function. (In 'vi.resetModules()', 'vi.resetModules' is undefined)
+      at <anonymous> (/Users/kooshapari/temp-PRODVERCEL/485/clean/atomsbot/src/__tests__/index.test.ts:27:8)
+      at <anonymous> (/Users/kooshapari/temp-PRODVERCEL/485/clean/atomsbot/src/__tests__/index.test.ts:25:14)
+(fail) Index Module - Application Entry Point > Performance and Timing Tests > should handle parallel dynamic imports efficiently [84508506.75ms]
+(fail) Index Module - Application Entry Point > @9ı‡X  andle parallel dynamic imports efficiently
+22 |     return { initializeApplication };
+23 |   }
+24 | 
+25 |   beforeEach(async () => {
+26 |     // Reset modules to ensure clean state for each test
+27 |     vi.resetModules();
+            ^
+TypeError: vi.resetModules is not a function. (In 'vi.resetModules()', 'vi.resetModules' is undefined)
+      at <anonymous> (/Users/kooshapari/temp-PRODVERCEL/485/clean/atomsbot/src/__tests__/index.test.ts:27:8)
+      at <anonymous> (/Users/kooshapari/temp-PRODVERCEL/485/clean/atomsbot/src/__tests__/index.test.ts:25:14)
+(fail) Index Module - Application Entry Point > Error Handling During Initialization > should handle Discord initialization error gracefully [84508506.81ms]
+(fail) Index Module - Application Entry Point > Error Handling During Initialization > should handle Discord initialization error gracefully
+22 |     return { initializeApplication };
+23 |   }
+24 | 
+25 |   beforeEach(async () => {
+26 |     // Reset modules to ensure clean state for each test
+27 |     vi.resetModules();
+            ^
+TypeError: vi.resetModules is not a function. (In 'vi.resetModules()', 'vi.resetModules' is undefined)
+      at <anonymous> (/Users/kooshapari/temp-PRODVERCEL/485/clean/atomsbot/src/__tests__/index.test.ts:27:8)
+      at <anonymous> (/Users/kooshapari/temp-PRODVERCEL/485/clean/atomsbot/src/__tests__/index.test.ts:25:14)
+(fail) Index Module - Application Entry Point > Error Handling During Initialization > should handle GitHub initialization error gracefully [84508506.85ms]
+(fail) Index Module - Application Entry Point > Error Handling During Initialization > should handle GitHub initialization error gracefully
+22 |     return { initializeApplication };
+23 |   }
+24 | 
+25 |   beforeEach(async () => {
+26 |     // Reset modules to ensure clean state for each test
+27 |     vi.resetModules();
+            ^
+TypeError: vi.resetModules is not a function. (In 'vi.resetModules()', 'vi.resetModules' is undefined)
+      at <anonymous> (/Users/kooshapari/temp-PRODVERCEL/485/clean/atomsbot/src/__tests__/index.test.ts:27:8)
+      at <anonymous> (/Users/kooshapari/temp-PRODVERCEL/485/clean/atomsbot/src/__tests__/index.test.ts:25:14)
+(fail) Index Module - Application Entry Point > Error Handling During Initialization > should handle both Discord and GitHub initialization errors [84508506.87ms]
+(fail) Index Module - Application Entry Point > Ä:ı‡X  andle both Discord and GitHub initialization errors
+22 |     return { initializeApplication };
+23 |   }
+24 | 
+25 |   beforeEach(async () => {
+26 |     // Reset modules to ensure clean state for each test
+27 |     vi.resetModules();
+            ^
+TypeError: vi.resetModules is not a function. (In 'vi.resetModules()', 'vi.resetModules' is undefined)
+      at <anonymous> (/Users/kooshapari/temp-PRODVERCEL/485/clean/atomsbot/src/__tests__/index.test.ts:27:8)
+      at <anonymous> (/Users/kooshapari/temp-PRODVERCEL/485/clean/atomsbot/src/__tests__/index.test.ts:25:14)
+(fail) Index Module - Application Entry Point > Module Dependencies > should successfully import Discord module [84508506.91ms]
+(fail) Index Module - Application Entry Point > Module Dependencies > should successfully import Discord module
+22 |     return { initializeApplication };
+23 |   }
+24 | 
+25 |   beforeEach(async () => {
+26 |     // Reset modules to ensure clean state for each test
+27 |     vi.resetModules();
+            ^
+TypeError: vi.resetModules is not a function. (In 'vi.resetModules()', 'vi.resetModules' is undefined)
+      at <anonymous> (/Users/kooshapari/temp-PRODVERCEL/485/clean/atomsbot/src/__tests__/index.test.ts:27:8)
+      at <anonymous> (/Users/kooshapari/temp-PRODVERCEL/485/clean/atomsbot/src/__tests__/index.test.ts:25:14)
+(fail) Index Module - Application Entry Point > Module Dependencies > should successfully import GitHub module [84508506.92ms]
+(fail) Index Module - Application Entry Point > Module Dependencies > should successfully import GitHub module
+22 |     return { initializeApplication };
+23 |   }
+24 | 
+25 |   beforeEach(async () => {
+26 |     // Reset modules to ensure clean state for each test
+27 |     vi.resetModules();
+            ^
+TypeError: vi.resetModules is not a function. (In 'vi.resetModules()', 'vi.resetModules' is undefined)
+      at <anonymous> (/Users/kooshapari/temp-PRODVERCEL/485/clean/atomsbot/src/__tests__/index.test.ts:27:8)
+      at <anonymous> (/Users/kooshapari/temp-PRODVERCEL/485/clean/atomsbot/src/__tests__/index.test.ts:25:14)
+(fail) Index Module - Application Entry Point > Module Dependencies > should handle import failures gracefully [84508506.97ms]
+(fail) Index Module - Application Entry Point > •·X  andle import failures gracefully
+22 |     return { initializeApplication };
+23 |   }
+24 | 
+25 |   beforeEach(async () => {
+26 |     // Reset modules to ensure clean state for each test
+27 |     vi.resetModules();
+            ^
+TypeError: vi.resetModules is not a function. (In 'vi.resetModules()', 'vi.resetModules' is undefined)
+      at <anonymous> (/Users/kooshapari/temp-PRODVERCEL/485/clean/atomsbot/src/__tests__/index.test.ts:27:8)
+      at <anonymous> (/Users/kooshapari/temp-PRODVERCEL/485/clean/atomsbot/src/__tests__/index.test.ts:25:14)
+(fail) Index Module - Application Entry Point > Initialization Timing and Performance > should complete initialization within reasonable time [84508506.97ms]
+(fail) Index Module - Application Entry Point > Initialization Timing and Performance > should complete initialization within reasonable time
+22 |     return { initializeApplication };
+23 |   }
+24 | 
+25 |   beforeEach(async () => {
+26 |     // Reset modules to ensure clean state for each test
+27 |     vi.resetModules();
+            ^
+TypeError: vi.resetModules is not a function. (In 'vi.resetModules()', 'vi.resetModules' is undefined)
+      at <anonymous> (/Users/kooshapari/temp-PRODVERCEL/485/clean/atomsbot/src/__tests__/index.test.ts:27:8)
+      at <anonymous> (/Users/kooshapari/temp-PRODVERCEL/485/clean/atomsbot/src/__tests__/index.test.ts:25:14)
+(fail) Index Module - Application Entry Point > Initialization Timing and Performance > should handle slow initialization functions [84508507.03ms]
+(fail) Index Module - Application Entry Point > Initialization Timing and Performance > should handle slow initialization functions
+22 |     return { initializeApplication };
+23 |   }
+24 | 
+25 |   beforeEach(async () => {
+26 |     // Reset modules to ensure clean state for each test
+27 |     vi.resetModules();
+            ^
+TypeError: vi.resetModules is not a function. (In 'vi.resetModules()', 'vi.resetModules' is undefined)
+      at <anonymous> (/Users/kooshapari/temp-PRODVERCEL/485/clean/atomsbot/src/__tests__/index.test.ts:27:8)
+      at <anonymous> (/Users/kooshapari/temp-PRODVERCEL/485/clean/atomsbot/src/__tests__/index.test.ts:25:14)
+(fail) Index Module - Application Entry Point > Initialization Timing and Performance > should not block subsequent imports [84508507.04ms]
+(fail) Index Module - Application Entry Point > Ä¶·X  ot block subsequent imports
+22 |     return { initializeApplication };
+23 |   }
+24 | 
+25 |   beforeEach(async () => {
+26 |     // Reset modules to ensure clean state for each test
+27 |     vi.resetModules();
+            ^
+TypeError: vi.resetModules is not a function. (In 'vi.resetModules()', 'vi.resetModules' is undefined)
+      at <anonymous> (/Users/kooshapari/temp-PRODVERCEL/485/clean/atomsbot/src/__tests__/index.test.ts:27:8)
+      at <anonymous> (/Users/kooshapari/temp-PRODVERCEL/485/clean/atomsbot/src/__tests__/index.test.ts:25:14)
+(fail) Index Module - Application Entry Point > Initialization Function Parameters > should call initDiscord with no parameters [84508507.07ms]
+(fail) Index Module - Application Entry Point > Initialization Function Parameters > should call initDiscord with no parameters
+22 |     return { initializeApplication };
+23 |   }
+24 | 
+25 |   beforeEach(async () => {
+26 |     // Reset modules to ensure clean state for each test
+27 |     vi.resetModules();
+            ^
+TypeError: vi.resetModules is not a function. (In 'vi.resetModules()', 'vi.resetModules' is undefined)
+      at <anonymous> (/Users/kooshapari/temp-PRODVERCEL/485/clean/atomsbot/src/__tests__/index.test.ts:27:8)
+      at <anonymous> (/Users/kooshapari/temp-PRODVERCEL/485/clean/atomsbot/src/__tests__/index.test.ts:25:14)
+(fail) Index Module - Application Entry Point > Initialization Function Parameters > should call initGithub with no parameters [84508507.12ms]
+(fail) Index Module - Application Entry Point > ß·X  all initGithub with no parameters
+22 |     return { initializeApplication };
+23 |   }
+24 | 
+25 |   beforeEach(async () => {
+26 |     // Reset modules to ensure clean state for each test
+27 |     vi.resetModules();
+            ^
+TypeError: vi.resetModules is not a function. (In 'vi.resetModules()', 'vi.resetModules' is undefined)
+      at <anonymous> (/Users/kooshapari/temp-PRODVERCEL/485/clean/atomsbot/src/__tests__/index.test.ts:27:8)
+      at <anonymous> (/Users/kooshapari/temp-PRODVERCEL/485/clean/atomsbot/src/__tests__/index.test.ts:25:14)
+(fail) Index Module - Application Entry Point > Module Side Effects and State > should not create global state during initialization [84508507.17ms]
+(fail) Index Module - Application Entry Point > Module Side Effects and State > should not create global state during initialization
+22 |     return { initializeApplication };
+23 |   }
+24 | 
+25 |   beforeEach(async () => {
+26 |     // Reset modules to ensure clean state for each test
+27 |     vi.resetModules();
+            ^
+TypeError: vi.resetModules is not a function. (In 'vi.resetModules()', 'vi.resetModules' is undefined)
+      at <anonymous> (/Users/kooshapari/temp-PRODVERCEL/485/clean/atomsbot/src/__tests__/index.test.ts:27:8)
+      at <anonymous> (/Users/kooshapari/temp-PRODVERCEL/485/clean/atomsbot/src/__tests__/index.test.ts:25:14)
+(fail) Index Module - Application Entry Point > Module Side Effects and State > should not interfere with other modules [84508507.20ms]
+(fail) Index Module - Application Entry Point > Module Side Effects and State > should not interfere with other modules
+22 |     return { initializeApplication };
+23 |   }
+24 | 
+25 |   beforeEach(async () => {
+26 |     // Reset modules to ensure clean state for each test
+27 |     vi.resetModules();
+            ^
+TypeError: vi.resetModules is not a function. (In 'vi.resetModules()', 'vi.resetModules' is undefined)
+      at <anonymous> (/Users/kooshapari/temp-PRODVERCEL/485/clean/atomsbot/src/__tests__/index.test.ts:27:8)
+      at <anonymous> (/Users/kooshapari/temp-PRODVERCEL/485/clean/atomsbot/src/__tests__/index.test.ts:25:14)
+(fail) Index Module - Application Entry Point > Module Side Effects and State > should handle multiple imports of the same module [84508507.98ms]
+(fail) Index Module - Application Entry Point >  >ı‡X  andle multiple imports of the same module
+22 |     return { initializeApplication };
+23 |   }
+24 | 
+25 |   beforeEach(async () => {
+26 |     // Reset modules to ensure clean state for each test
+27 |     vi.resetModules();
+            ^
+TypeError: vi.resetModules is not a function. (In 'vi.resetModules()', 'vi.resetModules' is undefined)
+      at <anonymous> (/Users/kooshapari/temp-PRODVERCEL/485/clean/atomsbot/src/__tests__/index.test.ts:27:8)
+      at <anonymous> (/Users/kooshapari/temp-PRODVERCEL/485/clean/atomsbot/src/__tests__/index.test.ts:25:14)
+(fail) Index Module - Application Entry Point > Error Recovery and Resilience > should continue execution if Discord initialization fails [84508508.04ms]
+(fail) Index Module - Application Entry Point > Error Recovery and Resilience > should continue execution if Discord initialization fails
+22 |     return { initializeApplication };
+23 |   }
+24 | 
+25 |   beforeEach(async () => {
+26 |     // Reset modules to ensure clean state for each test
+27 |     vi.resetModules();
+            ^
+TypeError: vi.resetModules is not a function. (In 'vi.resetModules()', 'vi.resetModules' is undefined)
+      at <anonymous> (/Users/kooshapari/temp-PRODVERCEL/485/clean/atomsbot/src/__tests__/index.test.ts:27:8)
+      at <anonymous> (/Users/kooshapari/temp-PRODVERCEL/485/clean/atomsbot/src/__tests__/index.test.ts:25:14)
+(fail) Index Module - Application Entry Point > Error Recovery and Resilience > should continue execution if GitHub initialization fails [84508508.07ms]
+(fail) Index Module - Application Entry Point > Error Recovery and Resilience > should continue execution if GitHub initialization fails
+22 |     return { initializeApplication };
+23 |   }
+24 | 
+25 |   beforeEach(async () => {
+26 |     // Reset modules to ensure clean state for each test
+27 |     vi.resetModules();
+            ^
+TypeError: vi.resetModules is not a function. (In 'vi.resetModules()', 'vi.resetModules' is undefined)
+      at <anonymous> (/Users/kooshapari/temp-PRODVERCEL/485/clean/atomsbot/src/__tests__/index.test.ts:27:8)
+      at <anonymous> (/Users/kooshapari/temp-PRODVERCEL/485/clean/atomsbot/src/__tests__/index.test.ts:25:14)
+(fail) Index Module - Application Entry Point > Error Recovery and Resilience > should handle timeout scenarios in initialization [84508518.33ms]
+(fail) Index Module - Application Entry Point > Ä?ı‡X  andle timeout scenarios in initialization
+22 |     return { initializeApplication };
+23 |   }
+24 | 
+25 |   beforeEach(async () => {
+26 |     // Reset modules to ensure clean state for each test
+27 |     vi.resetModules();
+            ^
+TypeError: vi.resetModules is not a function. (In 'vi.resetModules()', 'vi.resetModules' is undefined)
+      at <anonymous> (/Users/kooshapari/temp-PRODVERCEL/485/clean/atomsbot/src/__tests__/index.test.ts:27:8)
+      at <anonymous> (/Users/kooshapari/temp-PRODVERCEL/485/clean/atomsbot/src/__tests__/index.test.ts:25:14)
+(fail) Index Module - Application Entry Point > Environment-Specific Behavior > should work in production environment [84508518.70ms]
+(fail) Index Module - Application Entry Point > Environment-Specific Behavior > should work in production environment
+22 |     return { initializeApplication };
+23 |   }
+24 | 
+25 |   beforeEach(async () => {
+26 |     // Reset modules to ensure clean state for each test
+27 |     vi.resetModules();
+            ^
+TypeError: vi.resetModules is not a function. (In 'vi.resetModules()', 'vi.resetModules' is undefined)
+      at <anonymous> (/Users/kooshapari/temp-PRODVERCEL/485/clean/atomsbot/src/__tests__/index.test.ts:27:8)
+      at <anonymous> (/Users/kooshapari/temp-PRODVERCEL/485/clean/atomsbot/src/__tests__/index.test.ts:25:14)
+(fail) Index Module - Application Entry Point > Environment-Specific Behavior > should work in development environment [84508519.19ms]
+(fail) Index Module - Application Entry Point > Environment-Specific Behavior > should work in development environment
+22 |     return { initializeApplication };
+23 |   }
+24 | 
+25 |   beforeEach(async () => {
+26 |     // Reset modules to ensure clean state for each test
+27 |     vi.resetModules();
+            ^
+TypeError: vi.resetModules is not a function. (In 'vi.resetModules()', 'vi.resetModules' is undefined)
+      at <anonymous> (/Users/kooshapari/temp-PRODVERCEL/485/clean/atomsbot/src/__tests__/index.test.ts:27:8)
+      at <anonymous> (/Users/kooshapari/temp-PRODVERCEL/485/clean/atomsbot/src/__tests__/index.test.ts:25:14)
+(fail) Index Module - Application Entry Point > Environment-Specific Behavior > should work in test environment [84508519.26ms]
+(fail) Index Module - Application Entry Point >  ÿX  ork in test environment
+22 |     return { initializeApplication };
+23 |   }
+24 | 
+25 |   beforeEach(async () => {
+26 |     // Reset modules to ensure clean state for each test
+27 |     vi.resetModules();
+            ^
+TypeError: vi.resetModules is not a function. (In 'vi.resetModules()', 'vi.resetModules' is undefined)
+      at <anonymous> (/Users/kooshapari/temp-PRODVERCEL/485/clean/atomsbot/src/__tests__/index.test.ts:27:8)
+      at <anonymous> (/Users/kooshapari/temp-PRODVERCEL/485/clean/atomsbot/src/__tests__/index.test.ts:25:14)
+(fail) Index Module - Application Entry Point > Memory and Resource Management > should not cause memory leaks during initialization [84508519.31ms]
+(fail) Index Module - Application Entry Point > Memory and Resource Management > should not cause memory leaks during initialization
+22 |     return { initializeApplication };
+23 |   }
+24 | 
+25 |   beforeEach(async () => {
+26 |     // Reset modules to ensure clean state for each test
+27 |     vi.resetModules();
+            ^
+TypeError: vi.resetModules is not a function. (In 'vi.resetModules()', 'vi.resetModules' is undefined)
+      at <anonymous> (/Users/kooshapari/temp-PRODVERCEL/485/clean/atomsbot/src/__tests__/index.test.ts:27:8)
+      at <anonymous> (/Users/kooshapari/temp-PRODVERCEL/485/clean/atomsbot/src/__tests__/index.test.ts:25:14)
+(fail) Index Module - Application Entry Point > Memory and Resource Management > should clean up resources on module unload [84508519.35ms]
+(fail) Index Module - Application Entry Point > –ß·X  lean up resources on module unload
+22 |     return { initializeApplication };
+23 |   }
+24 | 
+25 |   beforeEach(async () => {
+26 |     // Reset modules to ensure clean state for each test
+27 |     vi.resetModules();
+            ^
+TypeError: vi.resetModules is not a function. (In 'vi.resetModules()', 'vi.resetModules' is undefined)
+      at <anonymous> (/Users/kooshapari/temp-PRODVERCEL/485/clean/atomsbot/src/__tests__/index.test.ts:27:8)
+      at <anonymous> (/Users/kooshapari/temp-PRODVERCEL/485/clean/atomsbot/src/__tests__/index.test.ts:25:14)
+(fail) Index Module - Application Entry Point > Initialization Order and Dependencies > should maintain proper initialization sequence [84508519.38ms]
+(fail) Index Module - Application Entry Point > Initialization Order and Dependencies > should maintain proper initialization sequence
+22 |     return { initializeApplication };
+23 |   }
+24 | 
+25 |   beforeEach(async () => {
+26 |     // Reset modules to ensure clean state for each test
+27 |     vi.resetModules();
+            ^
+TypeError: vi.resetModules is not a function. (In 'vi.resetModules()', 'vi.resetModules' is undefined)
+      at <anonymous> (/Users/kooshapari/temp-PRODVERCEL/485/clean/atomsbot/src/__tests__/index.test.ts:27:8)
+      at <anonymous> (/Users/kooshapari/temp-PRODVERCEL/485/clean/atomsbot/src/__tests__/index.test.ts:25:14)
+(fail) Index Module - Application Entry Point > Initialization Order and Dependencies > should handle dependency initialization correctly [84508519.38ms]
+(fail) Index Module - Application Entry Point > @0ı‡X  andle dependency initialization correctly
+22 |     return { initializeApplication };
+23 |   }
+24 | 
+25 |   beforeEach(async () => {
+26 |     // Reset modules to ensure clean state for each test
+27 |     vi.resetModules();
+            ^
+TypeError: vi.resetModules is not a function. (In 'vi.resetModules()', 'vi.resetModules' is undefined)
+      at <anonymous> (/Users/kooshapari/temp-PRODVERCEL/485/clean/atomsbot/src/__tests__/index.test.ts:27:8)
+      at <anonymous> (/Users/kooshapari/temp-PRODVERCEL/485/clean/atomsbot/src/__tests__/index.test.ts:25:14)
+(fail) Index Module - Application Entry Point > Module Exports > should export initializeApplication function for testing [84508519.44ms]
+(fail) Index Module - Application Entry Point > Module Exports > should export initializeApplication function for testing
+22 |     return { initializeApplication };
+23 |   }
+24 | 
+25 |   beforeEach(async () => {
+26 |     // Reset modules to ensure clean state for each test
+27 |     vi.resetModules();
+            ^
+TypeError: vi.resetModules is not a function. (In 'vi.resetModules()', 'vi.resetModules' is undefined)
+      at <anonymous> (/Users/kooshapari/temp-PRODVERCEL/485/clean/atomsbot/src/__tests__/index.test.ts:27:8)
+      at <anonymous> (/Users/kooshapari/temp-PRODVERCEL/485/clean/atomsbot/src/__tests__/index.test.ts:25:14)
+(fail) Index Module - Application Entry Point > Module Exports > should be importable as ES module [84508519.48ms]
+(fail) Index Module - Application Entry Point > `®·X  e importable as ES module
+22 |     return { initializeApplication };
+23 |   }
+24 | 
+25 |   beforeEach(async () => {
+26 |     // Reset modules to ensure clean state for each test
+27 |     vi.resetModules();
+            ^
+TypeError: vi.resetModules is not a function. (In 'vi.resetModules()', 'vi.resetModules' is undefined)
+      at <anonymous> (/Users/kooshapari/temp-PRODVERCEL/485/clean/atomsbot/src/__tests__/index.test.ts:27:8)
+      at <anonymous> (/Users/kooshapari/temp-PRODVERCEL/485/clean/atomsbot/src/__tests__/index.test.ts:25:14)
+(fail) Index Module - Application Entry Point > Integration with Application Lifecycle > should support graceful shutdown preparation [84508519.48ms]
+(fail) Index Module - Application Entry Point > Integration with Application Lifecycle > should support graceful shutdown preparation
+22 |     return { initializeApplication };
+23 |   }
+24 | 
+25 |   beforeEach(async () => {
+26 |     // Reset modules to ensure clean state for each test
+27 |     vi.resetModules();
+            ^
+TypeError: vi.resetModules is not a function. (In 'vi.resetModules()', 'vi.resetModules' is undefined)
+      at <anonymous> (/Users/kooshapari/temp-PRODVERCEL/485/clean/atomsbot/src/__tests__/index.test.ts:27:8)
+      at <anonymous> (/Users/kooshapari/temp-PRODVERCEL/485/clean/atomsbot/src/__tests__/index.test.ts:25:14)
+(fail) Index Module - Application Entry Point > Integration with Application Lifecycle > should enable health check capabilities after initialization [84508519.53ms]
+(fail) Index Module - Application Entry Point > ¿,ı‡X  nable health check capabilities after initialization
+22 |     return { initializeApplication };
+23 |   }
+24 | 
+25 |   beforeEach(async () => {
+26 |     // Reset modules to ensure clean state for each test
+27 |     vi.resetModules();
+            ^
+TypeError: vi.resetModules is not a function. (In 'vi.resetModules()', 'vi.resetModules' is undefined)
+      at <anonymous> (/Users/kooshapari/temp-PRODVERCEL/485/clean/atomsbot/src/__tests__/index.test.ts:27:8)
+      at <anonymous> (/Users/kooshapari/temp-PRODVERCEL/485/clean/atomsbot/src/__tests__/index.test.ts:25:14)
+(fail) Index Module - Application Entry Point > Error Logging and Monitoring > should allow error monitoring to capture initialization failures [84508519.53ms]
+(fail) Index Module - Application Entry Point > Error Logging and Monitoring > should allow error monitoring to capture initialization failures
+22 |     return { initializeApplication };
+23 |   }
+24 | 
+25 |   beforeEach(async () => {
+26 |     // Reset modules to ensure clean state for each test
+27 |     vi.resetModules();
+            ^
+TypeError: vi.resetModules is not a function. (In 'vi.resetModules()', 'vi.resetModules' is undefined)
+      at <anonymous> (/Users/kooshapari/temp-PRODVERCEL/485/clean/atomsbot/src/__tests__/index.test.ts:27:8)
+      at <anonymous> (/Users/kooshapari/temp-PRODVERCEL/485/clean/atomsbot/src/__tests__/index.test.ts:25:14)
+(fail) Index Module - Application Entry Point > Error Logging and Monitoring > should support structured logging of initialization events [84508519.58ms]
+(fail) Index Module - Application Entry Point >  *ı‡X  upport structured logging of initialization events
+
+src/__tests__/env.test.ts:
+
+# Unhandled error between tests
+-------------------------------
+ 5 |  */
+ 6 | 
+ 7 | import { describe, test, expect, beforeEach, afterEach, vi, SpyInstance, beforeAll, afterAll } from 'vitest';
+ 8 | import { z } from 'zod';
+ 9 | 
+10 | describe.sequential('Environment Validation Module', () => {
+              ^
+TypeError: describe.sequential is not a function. (In 'describe.sequential("Environment Validation Module", () => {
+  const originalEnv = process.env;
+  let consoleErrorSpy, consoleLogSpy, processExitSpy, mockDotenv;
+  beforeAll(() => {
+    mockDotenv = {
+      config: vi.fn()
+    };
+  });
+  beforeEach(() => {
+    vi.resetModules();
+    process.env = {};
+    consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+    consoleLogSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+    processExitSpy = vi.spyOn(process, "exit").mockImplementation((_code) => {
+      console.error("\u274C Environment validation failed:");
+      throw new Error("Process exit called");
+    });
+    vi.doMock("dotenv", () => ({
+      default: mockDotenv
+    }));
+    delete process.env.JIRA_HOST;
+    delete process.env.JIRA_EMAIL;
+    delete process.env.JIRA_API_TOKEN;
+    delete process.env.JIRA_PROJECT_KEY;
+    delete process.env.CODA_API_TOKEN;
+    delete process.env.CODA_DOC_ID;
+    delete process.env.GITHUB_WEBHOOK_SECRET;
+    delete process.env.DISCORD_APP_PUBLIC_KEY;
+    delete process.env.DISCORD_GUILD_ID;
+    delete process.env.VERCEL_URL;
+    delete process.env.ROOT_URL;
+    delete process.env.DATABASE_URL;
+    delete process.env.REDIS_ENABLED;
+    delete process.env.NATS_ENABLED;
+  });
+  afterEach(() => {
+    process.env = originalEnv;
+  });
+  afterAll(() => {});
+  describe("Environment Validation - Happy Path", () => {
+    test("should validate and return complete environment configuration", async () => {
+      process.env.DISCORD_BOT_TOKEN = "test-discord-bot-token";
+      process.env.DISCORD_APP_ID = "test-discord-app-id";
+      process.env.DISCORD_APP_PUBLIC_KEY = "test-discord-public-key";
+      process.env.DISCORD_GUILD_ID = "test-discord-guild-id";
+      process.env.DISCORD_CHANNEL_ID = "test-discord-channel-id";
+      process.env.GITHUB_TOKEN = "test-github-token";
+      process.env.GITHUB_OWNER = "test-github-owner";
+      process.env.GITHUB_REPO = "test-github-repo";
+      process.env.GITHUB_WEBHOOK_SECRET = "test-webhook-secret";
+      process.env.JIRA_HOST = "https://test.atlassian.net";
+      process.env.JIRA_EMAIL = "test@example.com";
+      process.env.JIRA_API_TOKEN = "test-jira-token";
+      process.env.JIRA_PROJECT_KEY = "TEST";
+      process.env.CODA_API_TOKEN = "test-coda-token";
+      process.env.CODA_DOC_ID = "test-coda-doc-id";
+      process.env.PORT = "8080";
+      process.env.NODE_ENV = "production";
+      process.env.VERCEL_URL = "test.vercel.app";
+      process.env.ROOT_URL = "https://test.example.com";
+      const { env } = await import("../env");
+      expect(env.DISCORD_BOT_TOKEN).toBe("test-discord-bot-token");
+      expect(env.DISCORD_APP_ID).toBe("test-discord-app-id");
+      expect(env.DISCORD_APP_PUBLIC_KEY).toBe("test-discord-public-key");
+      expect(env.DISCORD_GUILD_ID).toBe("test-discord-guild-id");
+      expect(env.DISCORD_CHANNEL_ID).toBe("test-discord-channel-id");
+      expect(env.GITHUB_TOKEN).toBe("test-github-token");
+      expect(env.GITHUB_OWNER).toBe("test-github-owner");
+      expect(env.GITHUB_REPO).toBe("test-github-repo");
+      expect(env.GITHUB_WEBHOOK_SECRET).toBe("test-webhook-secret");
+      expect(env.JIRA_HOST).toBe("https://test.atlassian.net");
+      expect(env.JIRA_EMAIL).toBe("test@example.com");
+      expect(env.JIRA_API_TOKEN).toBe("test-jira-token");
+      expect(env.JIRA_PROJECT_KEY).toBe("TEST");
+      expect(env.CODA_API_TOKEN).toBe("test-coda-token");
+      expect(env.CODA_DOC_ID).toBe("test-coda-doc-id");
+      expect(env.PORT).toBe(8080);
+      expect(env.NODE_ENV).toBe("production");
+      expect(env.VERCEL_URL).toBe("test.vercel.app");
+      expect(env.ROOT_URL).toBe("https://test.example.com");
+    });
+    test("should handle minimal required configuration", async () => {
+      process.env.DISCORD_BOT_TOKEN = "test-discord-bot-token";
+      process.env.DISCORD_APP_ID = "test-discord-app-id";
+      process.env.DISCORD_CHANNEL_ID = "test-discord-channel-id";
+      process.env.GITHUB_TOKEN = "test-github-token";
+      process.env.GITHUB_OWNER = "test-github-owner";
+      process.env.GITHUB_REPO = "test-github-repo";
+      const { env } = await import("../env");
+      expect(env.DISCORD_BOT_TOKEN).toBe("test-discord-bot-token");
+      expect(env.DISCORD_APP_ID).toBe("test-discord-app-id");
+      expect(env.DISCORD_CHANNEL_ID).toBe("test-discord-channel-id");
+      expect(env.GITHUB_TOKEN).toBe("test-github-token");
+      expect(env.GITHUB_OWNER).toBe("test-github-owner");
+      expect(env.GITHUB_REPO).toBe("test-github-repo");
+      expect(env.PORT).toBe(3000);
+      expect(env.NODE_ENV).toBe("development");
+    });
+    test("should handle legacy environment variable mapping", async () => {
+      process.env.DISCORD_TOKEN = "legacy-discord-token";
+      process.env.DISCORD_CLIENT_ID = "legacy-discord-client-id";
+      process.env.DISCORD_PUBLIC_KEY = "legacy-discord-public-key";
+      process.env.GITHUB_ACCESS_TOKEN = "legacy-github-token";
+      process.env.GITHUB_USERNAME = "legacy-github-username";
+      process.env.GITHUB_REPOSITORY = "legacy-github-repository";
+      process.env.DISCORD_CHANNEL_ID = "test-discord-channel-id";
+      const { env } = await import("../env");
+      expect(env.DISCORD_BOT_TOKEN).toBe("legacy-discord-token");
+      expect(env.DISCORD_APP_ID).toBe("legacy-discord-client-id");
+      expect(env.DISCORD_APP_PUBLIC_KEY).toBe("legacy-discord-public-key");
+      expect(env.GITHUB_TOKEN).toBe("legacy-github-token");
+      expect(env.GITHUB_OWNER).toBe("legacy-github-username");
+      expect(env.GITHUB_REPO).toBe("legacy-github-repository");
+    });
+    test("should prioritize new variables over legacy variables", async () => {
+      process.env.DISCORD_BOT_TOKEN = "new-discord-token";
+      process.env.DISCORD_TOKEN = "legacy-discord-token";
+      process.env.DISCORD_APP_ID = "new-discord-app-id";
+      process.env.DISCORD_CLIENT_ID = "legacy-discord-client-id";
+      process.env.GITHUB_TOKEN = "new-github-token";
+      process.env.GITHUB_ACCESS_TOKEN = "legacy-github-token";
+      process.env.DISCORD_CHANNEL_ID = "test-discord-channel-id";
+      process.env.GITHUB_OWNER = "test-github-owner";
+      process.env.GITHUB_REPO = "test-github-repo";
+      const { env } = await import("../env");
+      expect(env.DISCORD_BOT_TOKEN).toBe("new-discord-token");
+      expect(env.DISCORD_APP_ID).toBe("new-discord-app-id");
+      expect(env.GITHUB_TOKEN).toBe("new-github-token");
+    });
+  });
+  describe("Environment Validation - Error Cases", () => {
+    test("should exit process when required DISCORD_BOT_TOKEN is missing", async () => {
+      delete process.env.DISCORD_BOT_TOKEN;
+      delete process.env.DISCORD_TOKEN;
+      process.env.DISCORD_APP_ID = "test-discord-app-id";
+      process.env.DISCORD_CHANNEL_ID = "test-discord-channel-id";
+      process.env.GITHUB_TOKEN = "test-github-token";
+      process.env.GITHUB_OWNER = "test-github-owner";
+      process.env.GITHUB_REPO = "test-github-repo";
+      await expect(async () => {
+        await import("../env");
+      }).rejects.toThrow("Environment validation failed: DISCORD_BOT_TOKEN: Required");
+      expect(consoleErrorSpy).toHaveBeenCalledWith("\u274C Environment validation failed:");
+    });
+    test("should exit process when required DISCORD_APP_ID is missing", async () => {
+      process.env.DISCORD_BOT_TOKEN = "test-discord-token";
+      delete process.env.DISCORD_APP_ID;
+      delete process.env.DISCORD_CLIENT_ID;
+      process.env.DISCORD_CHANNEL_ID = "test-discord-channel-id";
+      process.env.GITHUB_TOKEN = "test-github-token";
+      process.env.GITHUB_OWNER = "test-github-owner";
+      process.env.GITHUB_REPO = "test-github-repo";
+      await expect(async () => {
+        await import("../env");
+      }).rejects.toThrow("Environment validation failed: DISCORD_APP_ID: Required");
+      expect(consoleErrorSpy).toHaveBeenCalledWith("\u274C Environment validation failed:");
+    });
+    test("should exit process when JIRA_EMAIL has invalid format", async () => {
+      process.env.DISCORD_BOT_TOKEN = "test-discord-token";
+      process.env.DISCORD_APP_ID = "test-discord-app-id";
+      process.env.DISCORD_CHANNEL_ID = "test-discord-channel-id";
+      process.env.GITHUB_TOKEN = "test-github-token";
+      process.env.GITHUB_OWNER = "test-github-owner";
+      process.env.GITHUB_REPO = "test-github-repo";
+      process.env.JIRA_EMAIL = "invalid-email-format";
+      await expect(async () => {
+        await import("../env");
+      }).rejects.toThrow("Environment validation failed: JIRA_EMAIL: Invalid email");
+      expect(consoleErrorSpy).toHaveBeenCalledWith("\u274C Environment validation failed:");
+    });
+    test("should accept empty string for JIRA_EMAIL", async () => {
+      process.env.DISCORD_BOT_TOKEN = "test-discord-token";
+      process.env.DISCORD_APP_ID = "test-discord-app-id";
+      process.env.DISCORD_CHANNEL_ID = "test-discord-channel-id";
+      process.env.GITHUB_TOKEN = "test-github-token";
+      process.env.GITHUB_OWNER = "test-github-owner";
+      process.env.GITHUB_REPO = "test-github-repo";
+      process.env.JIRA_EMAIL = "";
+      const { env } = await import("../env");
+      expect(env.JIRA_EMAIL).toBe("");
+    });
+    test("should exit process when ROOT_URL has invalid URL format", async () => {
+      process.env.DISCORD_BOT_TOKEN = "test-discord-token";
+      process.env.DISCORD_APP_ID = "test-discord-app-id";
+      process.env.DISCORD_CHANNEL_ID = "test-discord-channel-id";
+      process.env.GITHUB_TOKEN = "test-github-token";
+      process.env.GITHUB_OWNER = "test-github-owner";
+      process.env.GITHUB_REPO = "test-github-repo";
+      process.env.ROOT_URL = "not-a-valid-url";
+      await expect(async () => {
+        await import("../env");
+      }).rejects.toThrow("Environment validation failed: ROOT_URL: Invalid url");
+      expect(consoleErrorSpy).toHaveBeenCalledWith("\u274C Environment validation failed:");
+    });
+    test("should exit process when NODE_ENV has invalid enum value", async () => {
+      process.env.DISCORD_BOT_TOKEN = "test-discord-token";
+      process.env.DISCORD_APP_ID = "test-discord-app-id";
+      process.env.DISCORD_CHANNEL_ID = "test-discord-channel-id";
+      process.env.GITHUB_TOKEN = "test-github-token";
+      process.env.GITHUB_OWNER = "test-github-owner";
+      process.env.GITHUB_REPO = "test-github-repo";
+      process.env.NODE_ENV = "invalid-env";
+      await expect(async () => {
+        await import("../env");
+      }).rejects.toThrow("Environment validation failed: NODE_ENV: Invalid enum value");
+      expect(consoleErrorSpy).toHaveBeenCalledWith("\u274C Environment validation failed:");
+    });
+    test("should handle multiple validation errors", async () => {
+      delete process.env.DISCORD_BOT_TOKEN;
+      delete process.env.DISCORD_APP_ID;
+      process.env.DISCORD_CHANNEL_ID = "test-discord-channel-id";
+      process.env.GITHUB_TOKEN = "test-github-token";
+      process.env.GITHUB_OWNER = "test-github-owner";
+      process.env.GITHUB_REPO = "test-github-repo";
+      process.env.JIRA_EMAIL = "invalid-email";
+      process.env.NODE_ENV = "invalid-env";
+      await expect(async () => {
+        await import("../env");
+      }).rejects.toThrow("Environment validation failed");
+      expect(consoleErrorSpy).toHaveBeenCalledWith("\u274C Environment validation failed:");
+      expect(consoleErrorSpy).toHaveBeenCalledWith(`
+Please check your .env file and ensure all required variables are set.`);
+    });
+  });
+  describe("Integration Configuration Helpers", () => {
+    test("should correctly identify when Jira is fully configured", async () => {
+      process.env.DISCORD_BOT_TOKEN = "test-discord-token";
+      process.env.DISCORD_APP_ID = "test-discord-app-id";
+      process.env.DISCORD_CHANNEL_ID = "test-discord-channel-id";
+      process.env.GITHUB_TOKEN = "test-github-token";
+      process.env.GITHUB_OWNER = "test-github-owner";
+      process.env.GITHUB_REPO = "test-github-repo";
+      process.env.JIRA_HOST = "https://test.atlassian.net";
+      process.env.JIRA_EMAIL = "test@example.com";
+      process.env.JIRA_API_TOKEN = "test-jira-token";
+      process.env.JIRA_PROJECT_KEY = "TEST";
+      const { integrations } = await import("../env");
+      expect(integrations.jira.isConfigured()).toBe(!0);
+      const jiraConfig = integrations.jira.getConfig();
+      expect(jiraConfig.host).toBe("https://test.atlassian.net");
+      expect(jiraConfig.email).toBe("test@example.com");
+      expect(jiraConfig.apiToken).toBe("test-jira-token");
+      expect(jiraConfig.projectKey).toBe("TEST");
+    });
+    test("should correctly identify when Jira is not configured", async () => {
+      process.env.DISCORD_BOT_TOKEN = "test-discord-token";
+      process.env.DISCORD_APP_ID = "test-discord-app-id";
+      process.env.DISCORD_CHANNEL_ID = "test-discord-channel-id";
+      process.env.GITHUB_TOKEN = "test-github-token";
+      process.env.GITHUB_OWNER = "test-github-owner";
+      process.env.GITHUB_REPO = "test-github-repo";
+      const { integrations } = await import("../env");
+      expect(integrations.jira.isConfigured()).toBe(!1);
+    });
+    test("should correctly identify when Coda is fully configured", async () => {
+      process.env.DISCORD_BOT_TOKEN = "test-discord-token";
+      process.env.DISCORD_APP_ID = "test-discord-app-id";
+      process.env.DISCORD_CHANNEL_ID = "test-discord-channel-id";
+      process.env.GITHUB_TOKEN = "test-github-token";
+      process.env.GITHUB_OWNER = "test-github-owner";
+      process.env.GITHUB_REPO = "test-github-repo";
+      process.env.CODA_API_TOKEN = "test-coda-token";
+      process.env.CODA_DOC_ID = "test-coda-doc-id";
+      const { integrations } = await import("../env");
+      expect(integrations.coda.isConfigured()).toBe(!0);
+      const codaConfig = integrations.coda.getConfig();
+      expect(codaConfig.apiToken).toBe("test-coda-token");
+      expect(codaConfig.docId).toBe("test-coda-doc-id");
+    });
+    test("should correctly identify when GitHub is fully configured", async () => {
+      process.env.DISCORD_BOT_TOKEN = "test-discord-token";
+      process.env.DISCORD_APP_ID = "test-discord-app-id";
+      process.env.DISCORD_CHANNEL_ID = "test-discord-channel-id";
+      process.env.GITHUB_TOKEN = "test-github-token";
+      process.env.GITHUB_OWNER = "test-github-owner";
+      process.env.GITHUB_REPO = "test-github-repo";
+      process.env.GITHUB_WEBHOOK_SECRET = "test-webhook-secret";
+      const { integrations } = await import("../env");
+      expect(integrations.github.isConfigured()).toBe(!0);
+      const githubConfig = integrations.github.getConfig();
+      expect(githubConfig.token).toBe("test-github-token");
+      expect(githubConfig.owner).toBe("test-github-owner");
+      expect(githubConfig.repo).toBe("test-github-repo");
+      expect(githubConfig.webhookSecret).toBe("test-webhook-secret");
+    });
+    test("should correctly identify when Discord is fully configured", async () => {
+      process.env.DISCORD_BOT_TOKEN = "test-discord-token";
+      process.env.DISCORD_APP_ID = "test-discord-app-id";
+      process.env.DISCORD_APP_PUBLIC_KEY = "test-discord-public-key";
+      process.env.DISCORD_GUILD_ID = "test-discord-guild-id";
+      process.env.DISCORD_CHANNEL_ID = "test-discord-channel-id";
+      process.env.GITHUB_TOKEN = "test-github-token";
+      process.env.GITHUB_OWNER = "test-github-owner";
+      process.env.GITHUB_REPO = "test-github-repo";
+      const { integrations } = await import("../env");
+      expect(integrations.discord.isConfigured()).toBe(!0);
+      const discordConfig = integrations.discord.getConfig();
+      expect(discordConfig.botToken).toBe("test-discord-token");
+      expect(discordConfig.appId).toBe("test-discord-app-id");
+      expect(discordConfig.publicKey).toBe("test-discord-public-key");
+      expect(discordConfig.guildId).toBe("test-discord-guild-id");
+      expect(discordConfig.channelId).toBe("test-discord-channel-id");
+    });
+    test("should handle partial integration configurations", async () => {
+      process.env.DISCORD_BOT_TOKEN = "test-discord-token";
+      process.env.DISCORD_APP_ID = "test-discord-app-id";
+      process.env.DISCORD_CHANNEL_ID = "test-discord-channel-id";
+      process.env.GITHUB_TOKEN = "test-github-token";
+      process.env.GITHUB_OWNER = "test-github-owner";
+      process.env.GITHUB_REPO = "test-github-repo";
+      process.env.JIRA_HOST = "https://test.atlassian.net";
+      process.env.JIRA_EMAIL = "test@example.com";
+      process.env.JIRA_API_TOKEN = "test-jira-token";
+      const { integrations } = await import("../env");
+      expect(integrations.jira.isConfigured()).toBe(!1);
+    });
+  });
+  describe("Configuration Status Logging", () => {
+    test("should log configuration status for all integrations", async () => {
+      process.env.DISCORD_BOT_TOKEN = "test-discord-token";
+      process.env.DISCORD_APP_ID = "test-discord-app-id";
+      process.env.DISCORD_CHANNEL_ID = "test-discord-channel-id";
+      process.env.GITHUB_TOKEN = "test-github-token";
+      process.env.GITHUB_OWNER = "test-github-owner";
+      process.env.GITHUB_REPO = "test-github-repo";
+      process.env.JIRA_HOST = "https://test.atlassian.net";
+      process.env.JIRA_EMAIL = "test@example.com";
+      process.env.JIRA_API_TOKEN = "test-jira-token";
+      process.env.JIRA_PROJECT_KEY = "TEST";
+      process.env.CODA_API_TOKEN = "test-coda-token";
+      process.env.CODA_DOC_ID = "test-coda-doc-id";
+      process.env.PORT = "8080";
+      process.env.NODE_ENV = "production";
+      const { logConfigurationStatus } = await import("../env");
+      logConfigurationStatus();
+      expect(consoleLogSpy).toHaveBeenCalledWith("\uD83D\uDD27 Configuration Status:");
+      expect(consoleLogSpy).toHaveBeenCalledWith("  Discord: \u2705");
+      expect(consoleLogSpy).toHaveBeenCalledWith("  GitHub: \u2705");
+      expect(consoleLogSpy).toHaveBeenCalledWith("  Jira: \u2705");
+      expect(consoleLogSpy.mock.calls.flat()).toContain("  Coda: \u2705");
+      expect(consoleLogSpy).toHaveBeenCalledWith("  Environment: production");
+      expect(consoleLogSpy).toHaveBeenCalledWith("  Port: 8080");
+    });
+    test("should log configuration status with missing integrations", async () => {
+      process.env.DISCORD_BOT_TOKEN = "test-discord-token";
+      process.env.DISCORD_APP_ID = "test-discord-app-id";
+      process.env.DISCORD_CHANNEL_ID = "test-discord-channel-id";
+      process.env.GITHUB_TOKEN = "test-github-token";
+      process.env.GITHUB_OWNER = "test-github-owner";
+      process.env.GITHUB_REPO = "test-github-repo";
+      const { logConfigurationStatus } = await import("../env");
+      logConfigurationStatus();
+      expect(consoleLogSpy).toHaveBeenCalledWith("\uD83D\uDD27 Configuration Status:");
+      expect(consoleLogSpy).toHaveBeenCalledWith("  Discord: \u2705");
+      expect(consoleLogSpy).toHaveBeenCalledWith("  GitHub: \u2705");
+      expect(consoleLogSpy).toHaveBeenCalledWith("  Jira: \u274C");
+      expect(consoleLogSpy.mock.calls.flat()).toContain("  Coda: \u274C");
+      expect(consoleLogSpy).toHaveBeenCalledWith("  Environment: development");
+      expect(consoleLogSpy).toHaveBeenCalledWith("  Port: 3000");
+    });
+  });
+  describe("Type Exports and Schema", () => {
+    test("should export Env type correctly", async () => {
+      process.env.DISCORD_BOT_TOKEN = "test-discord-token";
+      process.env.DISCORD_APP_ID = "test-discord-app-id";
+      process.env.DISCORD_CHANNEL_ID = "test-discord-channel-id";
+      process.env.GITHUB_TOKEN = "test-github-token";
+      process.env.GITHUB_OWNER = "test-github-owner";
+      process.env.GITHUB_REPO = "test-github-repo";
+      const envModule = await import("../env");
+      expect(envModule).toHaveProperty("env");
+      expect(envModule).toHaveProperty("integrations");
+      expect(envModule).toHaveProperty("logConfigurationStatus");
+      expect(typeof envModule.logConfigurationStatus).toBe("function");
+    });
+  });
+  describe("Port Number Transformation", () => {
+    test("should transform port string to number", async () => {
+      process.env.DISCORD_BOT_TOKEN = "test-discord-token";
+      process.env.DISCORD_APP_ID = "test-discord-app-id";
+      process.env.DISCORD_CHANNEL_ID = "test-discord-channel-id";
+      process.env.GITHUB_TOKEN = "test-github-token";
+      process.env.GITHUB_OWNER = "test-github-owner";
+      process.env.GITHUB_REPO = "test-github-repo";
+      process.env.PORT = "9000";
+      const { env } = await import("../env");
+      expect(env.PORT).toBe(9000);
+      expect(typeof env.PORT).toBe("number");
+    });
+    test("should use default port when PORT is not provided", async () => {
+      process.env.DISCORD_BOT_TOKEN = "test-discord-token";
+      process.env.DISCORD_APP_ID = "test-discord-app-id";
+      process.env.DISCORD_CHANNEL_ID = "test-discord-channel-id";
+      process.env.GITHUB_TOKEN = "test-github-token";
+      process.env.GITHUB_OWNER = "test-github-owner";
+      process.env.GITHUB_REPO = "test-github-repo";
+      delete process.env.PORT;
+      const { env } = await import("../env");
+      expect(env.PORT).toBe(3000);
+      expect(typeof env.PORT).toBe("number");
+    });
+  });
+  describe("Edge Cases and Error Handling", () => {
+    test("should handle empty string values for optional fields", async () => {
+      process.env.DISCORD_BOT_TOKEN = "test-discord-token";
+      process.env.DISCORD_APP_ID = "test-discord-app-id";
+      process.env.DISCORD_CHANNEL_ID = "test-discord-channel-id";
+      process.env.GITHUB_TOKEN = "test-github-token";
+      process.env.GITHUB_OWNER = "test-github-owner";
+      process.env.GITHUB_REPO = "test-github-repo";
+      process.env.JIRA_HOST = "";
+      process.env.JIRA_EMAIL = "";
+      process.env.JIRA_API_TOKEN = "";
+      process.env.JIRA_PROJECT_KEY = "";
+      const { env } = await import("../env");
+      expect(env.JIRA_HOST).toBe("");
+      expect(env.JIRA_EMAIL).toBe("");
+      expect(env.JIRA_API_TOKEN).toBe("");
+      expect(env.JIRA_PROJECT_KEY).toBe("");
+    });
+    test("should handle non-ZodError exceptions in validation", async () => {
+      const originalParse = z.ZodSchema.prototype.parse;
+      vi.spyOn(z.ZodSchema.prototype, "parse").mockImplementationOnce(() => {
+        throw new Error("Non-Zod error");
+      });
+      process.env.DISCORD_BOT_TOKEN = "test-discord-token";
+      process.env.DISCORD_APP_ID = "test-discord-app-id";
+      process.env.DISCORD_CHANNEL_ID = "test-discord-channel-id";
+      process.env.GITHUB_TOKEN = "test-github-token";
+      process.env.GITHUB_OWNER = "test-github-owner";
+      process.env.GITHUB_REPO = "test-github-repo";
+      await expect(async () => {
+        await import("../env");
+      }).rejects.toThrow("Non-Zod error");
+      z.ZodSchema.prototype.parse = originalParse;
+    });
+    test("should handle Redis configuration validation", async () => {
+      process.env.DISCORD_BOT_TOKEN = "test-discord-token";
+      process.env.DISCORD_APP_ID = "test-discord-app-id";
+      process.env.DISCORD_CHANNEL_ID = "test-discord-channel-id";
+      process.env.GITHUB_TOKEN = "test-github-token";
+      process.env.GITHUB_OWNER = "test-github-owner";
+      process.env.GITHUB_REPO = "test-github-repo";
+      process.env.REDIS_ENABLED = "true";
+      process.env.REDIS_HOST = "redis.example.com";
+      process.env.REDIS_PORT = "6380";
+      process.env.REDIS_PASSWORD = "redis-secret";
+      process.env.REDIS_DB = "1";
+      process.env.REDIS_KEY_PREFIX = "myapp:";
+      const { env } = await import("../env");
+      expect(env.REDIS_ENABLED).toBe("true");
+      expect(env.REDIS_HOST).toBe("redis.example.com");
+      expect(env.REDIS_PORT).toBe("6380");
+      expect(env.REDIS_PASSWORD).toBe("redis-secret");
+      expect(env.REDIS_DB).toBe("1");
+      expect(env.REDIS_KEY_PREFIX).toBe("myapp:");
+    });
+    test("should handle NATS configuration validation", async () => {
+      process.env.DISCORD_BOT_TOKEN = "test-discord-token";
+      process.env.DISCORD_APP_ID = "test-discord-app-id";
+      process.env.DISCORD_CHANNEL_ID = "test-discord-channel-id";
+      process.env.GITHUB_TOKEN = "test-github-token";
+      process.env.GITHUB_OWNER = "test-github-owner";
+      process.env.GITHUB_REPO = "test-github-repo";
+      process.env.NATS_ENABLED = "true";
+      process.env.NATS_URL = "nats://nats.example.com:4222";
+      process.env.NATS_USER = "nats-user";
+      process.env.NATS_PASS = "nats-pass";
+      process.env.NATS_TOKEN = "nats-token";
+      const { env } = await import("../env");
+      expect(env.NATS_ENABLED).toBe("true");
+      expect(env.NATS_URL).toBe("nats://nats.example.com:4222");
+      expect(env.NATS_USER).toBe("nats-user");
+      expect(env.NATS_PASS).toBe("nats-pass");
+      expect(env.NATS_TOKEN).toBe("nats-token");
+    });
+    test("should handle DATABASE_URL configuration", async () => {
+      process.env.DISCORD_BOT_TOKEN = "test-discord-token";
+      process.env.DISCORD_APP_ID = "test-discord-app-id";
+      process.env.DISCORD_CHANNEL_ID = "test-discord-channel-id";
+      process.env.GITHUB_TOKEN = "test-github-token";
+      process.env.GITHUB_OWNER = "test-github-owner";
+      process.env.GITHUB_REPO = "test-github-repo";
+      process.env.DATABASE_URL = "sqlite:///data/custom.db";
+      const { env } = await import("../env");
+      expect(env.DATABASE_URL).toBe("sqlite:///data/custom.db");
+    });
+  });
+  describe("Dotenv Integration", () => {
+    test("should call dotenv.config() during module initialization", async () => {
+      process.env.DISCORD_BOT_TOKEN = "test-discord-token";
+      process.env.DISCORD_APP_ID = "test-discord-app-id";
+      process.env.DISCORD_CHANNEL_ID = "test-discord-channel-id";
+      process.env.GITHUB_TOKEN = "test-github-token";
+      process.env.GITHUB_OWNER = "test-github-owner";
+      process.env.GITHUB_REPO = "test-github-repo";
+      await import("../env");
+      expect(mockDotenv.config).toHaveBeenCalledTimes(1);
+    });
+    test("should handle dotenv.config() errors gracefully", async () => {
+      const dotenvError = new Error("Failed to load .env file");
+      mockDotenv.config.mockImplementationOnce(() => {
+        throw dotenvError;
+      });
+      process.env.DISCORD_BOT_TOKEN = "test-discord-token";
+      process.env.DISCORD_APP_ID = "test-discord-app-id";
+      process.env.DISCORD_CHANNEL_ID = "test-discord-channel-id";
+      process.env.GITHUB_TOKEN = "test-github-token";
+      process.env.GITHUB_OWNER = "test-github-owner";
+      process.env.GITHUB_REPO = "test-github-repo";
+      await expect(async () => {
+        await import("../env");
+      }).rejects.toThrow("Failed to load .env file");
+    });
+    test("should validate environment schema thoroughly", async () => {
+      process.env.DISCORD_BOT_TOKEN = "test-discord-token";
+      process.env.DISCORD_APP_ID = "test-discord-app-id";
+      process.env.DISCORD_APP_PUBLIC_KEY = "test-public-key";
+      process.env.DISCORD_GUILD_ID = "test-guild-id";
+      process.env.DISCORD_CHANNEL_ID = "test-discord-channel-id";
+      process.env.GITHUB_TOKEN = "test-github-token";
+      process.env.GITHUB_OWNER = "test-github-owner";
+      process.env.GITHUB_REPO = "test-github-repo";
+      process.env.GITHUB_WEBHOOK_SECRET = "test-webhook-secret";
+      process.env.JIRA_HOST = "https://test.atlassian.net";
+      process.env.JIRA_EMAIL = "test@example.com";
+      process.env.JIRA_API_TOKEN = "test-jira-token";
+      process.env.JIRA_PROJECT_KEY = "TEST";
+      process.env.CODA_API_TOKEN = "test-coda-token";
+      process.env.CODA_DOC_ID = "test-doc-id";
+      process.env.PORT = "8080";
+      process.env.NODE_ENV = "test";
+      process.env.DATABASE_URL = "file:./test.db";
+      process.env.VERCEL_URL = "test.vercel.app";
+      process.env.ROOT_URL = "https://test.example.com";
+      const { env } = await import("../env");
+      expect(env.DISCORD_BOT_TOKEN).toBe("test-discord-token");
+      expect(env.DISCORD_APP_ID).toBe("test-discord-app-id");
+      expect(env.DISCORD_APP_PUBLIC_KEY).toBe("test-public-key");
+      expect(env.DISCORD_GUILD_ID).toBe("test-guild-id");
+      expect(env.DISCORD_CHANNEL_ID).toBe("test-discord-channel-id");
+      expect(env.GITHUB_TOKEN).toBe("test-github-token");
+      expect(env.GITHUB_OWNER).toBe("test-github-owner");
+      expect(env.GITHUB_REPO).toBe("test-github-repo");
+      expect(env.GITHUB_WEBHOOK_SECRET).toBe("test-webhook-secret");
+      expect(env.JIRA_HOST).toBe("https://test.atlassian.net");
+      expect(env.JIRA_EMAIL).toBe("test@example.com");
+      expect(env.JIRA_API_TOKEN).toBe("test-jira-token");
+      expect(env.JIRA_PROJECT_KEY).toBe("TEST");
+      expect(env.CODA_API_TOKEN).toBe("test-coda-token");
+      expect(env.CODA_DOC_ID).toBe("test-doc-id");
+      expect(env.PORT).toBe(8080);
+      expect(env.NODE_ENV).toBe("test");
+      expect(env.DATABASE_URL).toBe("file:./test.db");
+      expect(env.VERCEL_URL).toBe("test.vercel.app");
+      expect(env.ROOT_URL).toBe("https://test.example.com");
+    });
+  });
+})', 'describe.sequential' is undefined)
+      at /Users/kooshapari/temp-PRODVERCEL/485/clean/atomsbot/src/__tests__/env.test.ts:10:10
+-------------------------------
+
+
+src/__tests__/port-conflict-verification.test.ts:
+09-04 07:41:23 [[32minfo[39m]: [32mDatabase service initialized successfully[39m 
+Database initialized successfully
+error: Test "should not encounter EADDRINUSE errors when running GitHub tests multiple times" timed out after 16205ms
+(fail) Port Conflict Verification > should not encounter EADDRINUSE errors when running GitHub tests multiple times [16587.02ms]
+üèóÔ∏è ForumManager initialized - auto-create will be handled by discord.ts
+üîß Setting up BugReportForm event listeners...
+üîß Setting up BugReportForm event listeners...
+üîß Event listeners setup complete
+üîß Event listeners setup complete
+üì¶ Smart Embed Framework v1.0.0 loaded
+üöÄ Initializing Smart Embed Framework...
+‚úÖ Smart Embed Framework initialized successfully
+GitHub server routes configured, server startup skipped during testing
+GitHub server routes configured, server startup skipped during testing
+GitHub server routes configured, server startup skipped during testing
+GitHub server routes configured, server startup skipped during testing
+GitHub server routes configured, server startup skipped during testing
+GitHub server routes configured, server startup skipped during testing
+GitHub server routes configured, server startup skipped during testing
+GitHub server routes configured, server startup skipped during testing
+GitHub server routes configured, server startup skipped during testing
+GitHub server routes configured, server startup skipped during testing
+GitHub server routes configured, server startup skipped during testing
+GitHub server routes configured, server startup skipped during testing
+GitHub server routes configured, server startup skipped during testing
+GitHub server routes configured, server startup skipped during testing
+GitHub server routes configured, server startup skipped during testing
+GitHub server routes configured, server startup skipped during testing
+(pass) Port Conflict Verification > should handle rapid consecutive GitHub initializations without conflicts [39423.41ms]
+GitHub server routes configured, server startup skipped during testing
+(pass) Port Conflict Verification > should allow index module imports while GitHub server is configured [9.07ms]
+(pass) Port Conflict Verification > should demonstrate that servers are not actually started during tests [9.01ms]
+GitHub server routes configured, server startup skipped during testing
+GitHub server routes configured, server startup skipped during testing
+GitHub server routes configured, server startup skipped during testing
+(pass) Port Conflict Verification > should verify that cleanup function works properly [0.74ms]
+
+src/__tests__/index-port-conflict.test.ts:
+10 |   let originalNodeEnv: string | undefined;
+11 | 
+12 |   beforeEach(() => {
+13 |     originalNodeEnv = process.env.NODE_ENV;
+14 |     process.env.NODE_ENV = 'test';
+15 |     vi.resetModules();
+            ^
+TypeError: vi.resetModules is not a function. (In 'vi.resetModules()', 'vi.resetModules' is undefined)
+      at <anonymous> (/Users/kooshapari/temp-PRODVERCEL/485/clean/atomsbot/src/__tests__/index-port-conflict.test.ts:15:8)
+(fail) Index Module - Port Conflict Prevention > should import index module without starting servers or throwing EADDRINUSE errors [84565860.83ms]
+(fail) Index Module - Port Conflict Prevention > should import index module without starting servers or throwing EADDRINUSE errors
+10 |   let originalNodeEnv: string | undefined;
+11 | 
+12 |   beforeEach(() => {
+13 |     originalNodeEnv = process.env.NODE_ENV;
+14 |     process.env.NODE_ENV = 'test';
+15 |     vi.resetModules();
+            ^
+TypeError: vi.resetModules is not a function. (In 'vi.resetModules()', 'vi.resetModules' is undefined)
+      at <anonymous> (/Users/kooshapari/temp-PRODVERCEL/485/clean/atomsbot/src/__tests__/index-port-conflict.test.ts:15:8)
+(fail) Index Module - Port Conflict Prevention > should allow multiple imports without conflicts [84565866.20ms]
+(fail) Index Module - Port Conflict Prevention > should allow multiple imports without conflicts
+10 |   let originalNodeEnv: string | undefined;
+11 | 
+12 |   beforeEach(() => {
+13 |     originalNodeEnv = process.env.NODE_ENV;
+14 |     process.env.NODE_ENV = 'test';
+15 |     vi.resetModules();
+            ^
+TypeError: vi.resetModules is not a function. (In 'vi.resetModules()', 'vi.resetModules' is undefined)
+      at <anonymous> (/Users/kooshapari/temp-PRODVERCEL/485/clean/atomsbot/src/__tests__/index-port-conflict.test.ts:15:8)
+(fail) Index Module - Port Conflict Prevention > should export initializeApplication function [84565866.42ms]
+(fail) Index Module - Port Conflict Prevention > should export initializeApplication function
+10 |   let originalNodeEnv: string | undefined;
+11 | 
+12 |   beforeEach(() => {
+13 |     originalNodeEnv = process.env.NODE_ENV;
+14 |     process.env.NODE_ENV = 'test';
+15 |     vi.resetModules();
+            ^
+TypeError: vi.resetModules is not a function. (In 'vi.resetModules()', 'vi.resetModules' is undefined)
+      at <anonymous> (/Users/kooshapari/temp-PRODVERCEL/485/clean/atomsbot/src/__tests__/index-port-conflict.test.ts:15:8)
+(fail) Index Module - Port Conflict Prevention > should run initializeApplication without port conflicts [84565866.44ms]
+(fail) Index Module - Port Conflict Prevention > should run initializeApplication without port conflicts
+10 |   let originalNodeEnv: string | undefined;
+11 | 
+12 |   beforeEach(() => {
+13 |     originalNodeEnv = process.env.NODE_ENV;
+14 |     process.env.NODE_ENV = 'test';
+15 |     vi.resetModules();
+            ^
+TypeError: vi.resetModules is not a function. (In 'vi.resetModules()', 'vi.resetModules' is undefined)
+      at <anonymous> (/Users/kooshapari/temp-PRODVERCEL/485/clean/atomsbot/src/__tests__/index-port-conflict.test.ts:15:8)
+(fail) Index Module - Port Conflict Prevention > should handle concurrent initialization calls [84565866.47ms]
+(fail) @Ñ˙X  andle concurrent initialization calls
+
+src/__tests__/store-db.comprehensive.test.ts:
+
+# Unhandled error between tests
+-------------------------------
+13 | 
+14 | import { describe, it, expect, beforeEach, afterEach, vi, beforeAll, afterAll } from 'vitest';
+15 | import { Thread } from '../interfaces';
+16 | 
+17 | // Mock implementations BEFORE importing store
+18 | vi.mock('../database/DatabaseService', () => ({
+        ^
+TypeError: vi.mock is not a function. (In 'vi.mock("../database/DatabaseService", () => ({
+  databaseService: {
+    initialize: vi.fn().mockResolvedValue(void 0),
+    getAllThreads: vi.fn().mockResolvedValue([]),
+    threads: {
+      create: vi.fn().mockResolvedValue(void 0),
+      update: vi.fn().mockResolvedValue(void 0),
+      findById: vi.fn().mockResolvedValue(null)
+    },
+    getJiraKey: vi.fn().mockResolvedValue(null),
+    getGitHubNumber: vi.fn().mockResolvedValue(null),
+    addJiraLink: vi.fn().mockResolvedValue(void 0),
+    addGitHubLink: vi.fn().mockResolvedValue(void 0),
+    getJiraLinks: vi.fn().mockResolvedValue([]),
+    getGitHubLinks: vi.fn().mockResolvedValue([]),
+    close: vi.fn().mockResolvedValue(void 0),
+    ensureGuildAndChannel: vi.fn().mockResolvedValue(void 0),
+    ensureTags: vi.fn().mockResolvedValue(void 0),
+    findThread: vi.fn().mockResolvedValue(null)
+  }
+}))', 'vi.mock' is undefined)
+      at /Users/kooshapari/temp-PRODVERCEL/485/clean/atomsbot/src/__tests__/store-db.comprehensive.test.ts:18:4
+-------------------------------
+
+
+src/__tests__/performance.test.ts:
+
+# Unhandled error between tests
+-------------------------------
+21 |     login: vi.fn(),
+22 |     destroy: vi.fn(),
+23 |     user: { id: "test-bot-id" },
+24 |     guilds: {
+25 |       cache: new Map(),
+26 |       fetch: vi.fn(),
+                        ^
+TypeError: vi.mock is not a function. (In 'vi.mock("discord.js", () => ({
+  Client: vi.fn().mockImplementation(() => ({
+    on: vi.fn(),
+    once: vi.fn(),
+    login: vi.fn(),
+    destroy: vi.fn(),
+    user: { id: "test-bot-id" },
+    guilds: {
+      cache: new Map,
+      fetch: vi.fn()
+    }
+  })),
+  Events: {
+    Ready: "ready",
+    MessageCreate: "messageCreate",
+    InteractionCreate: "interactionCreate"
+  },
+  GatewayIntentBits: {
+    Guilds: 1,
+    GuildMessages: 2,
+    MessageContent: 4,
+    DirectMessages: 8
+  },
+  EmbedBuilder: vi.fn().mockImplementation(() => ({
+    setTitle: vi.fn().mockReturnThis(),
+    setDescription: vi.fn().mockReturnThis(),
+    setColor: vi.fn().mockReturnThis(),
+    addFields: vi.fn().mockReturnThis(),
+    setTimestamp: vi.fn().mockReturnThis()
+  })),
+  ActionRowBuilder: vi.fn(),
+  ButtonBuilder: vi.fn(),
+  ButtonStyle: { Primary: 1, Secondary: 2 }
+}))', 'vi.mock' is undefined)
+      at /Users/kooshapari/temp-PRODVERCEL/485/clean/atomsbot/src/__tests__/performance.test.ts:26:20
+-------------------------------
+
+
+src/__tests__/store.database-shadow.test.ts:
+
+# Unhandled error between tests
+-------------------------------
+14 |  */
+15 | 
+16 | import { describe, test, expect, beforeEach, afterEach, vi } from 'vitest';
+17 | 
+18 | // Mock dependencies
+19 | vi.mock('../logger', () => ({
+        ^
+TypeError: vi.mock is not a function. (In 'vi.mock("../logger", () => ({
+  logger: {
+    debug: vi.fn(),
+    info: vi.fn(),
+    warn: vi.fn(),
+    error: vi.fn()
+  }
+}))', 'vi.mock' is undefined)
+      at /Users/kooshapari/temp-PRODVERCEL/485/clean/atomsbot/src/__tests__/store.database-shadow.test.ts:19:4
+-------------------------------
+
+
+src/__tests__/repoBinding.test.ts:
+(pass) getRepoCredentialsForThread > returns thread-specific repo when present [56.22ms]
+(pass) getRepoCredentialsForThread > falls back to global repo when thread-specific not present [0.47ms]
+
+src/__tests__/config.test.ts:
+09-04 07:42:17 [[32minfo[39m]: [32mLogged in as Atoms SRE#1996![39m 
+09-04 07:42:17 [[32minfo[39m]: [32mStarted refreshing application (/) commands.[39m 
+
+src/__tests__/edge-cases.test.ts:
+
+# Unhandled error between tests
+-------------------------------
+ 7 | 
+ 8 | import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+ 9 | 
+10 | 
+11 | // Mock Discord.js with edge case scenarios
+12 | vi.mock("discord.js", () => ({
+        ^
+TypeError: vi.mock is not a function. (In 'vi.mock("discord.js", () => ({
+  Client: vi.fn().mockImplementation(() => ({
+    on: vi.fn(),
+    once: vi.fn(),
+    login: vi.fn().mockImplementation(() => {
+      if (Math.random() < 0.1)
+        return Promise.reject(new Error("LOGIN_FAILED"));
+      return Promise.resolve();
+    }),
+    destroy: vi.fn(),
+    user: null,
+    guilds: {
+      cache: new Map,
+      fetch: vi.fn().mockImplementation(() => {
+        if (Math.random() < 0.2)
+          return Promise.resolve(null);
+        return Promise.resolve({ id: "guild-123", name: "Test Guild" });
+      })
+    }
+  })),
+  Events: {
+    Ready: "ready",
+    MessageCreate: "messageCreate",
+    InteractionCreate: "interactionCreate",
+    ThreadCreate: "threadCreate",
+    Error: "error"
+  },
+  GatewayIntentBits: {
+    Guilds: 1,
+    GuildMessages: 2,
+    MessageContent: 4,
+    DirectMessages: 8
+  },
+  EmbedBuilder: vi.fn().mockImplementation(() => {
+    const methods = {
+      setTitle: vi.fn(),
+      setDescription: vi.fn(),
+      setColor: vi.fn(),
+      addFields: vi.fn(),
+      setTimestamp: vi.fn()
+    };
+    Object.keys(methods).forEach((key) => {
+      methods[key].mockImplementation((...args) => {
+        if (args.some((arg) => arg === null || arg === void 0))
+          throw new Error(`Invalid argument: ${JSON.stringify(args)}`);
+        return Math.random() < 0.05 ? null : methods;
+      });
+    });
+    return methods;
+  }),
+  ButtonBuilder: vi.fn().mockImplementation(() => ({
+    setCustomId: vi.fn().mockReturnThis(),
+    setLabel: vi.fn().mockReturnThis(),
+    setStyle: vi.fn().mockReturnThis(),
+    setEmoji: vi.fn().mockReturnThis(),
+    setDisabled: vi.fn().mockReturnThis()
+  })),
+  ActionRowBuilder: vi.fn().mockImplementation(() => ({
+    addComponents: vi.fn().mockReturnThis(),
+    components: []
+  })),
+  ButtonStyle: { Primary: 1, Secondary: 2, Success: 3, Danger: 4 }
+}))', 'vi.mock' is undefined)
+      at /Users/kooshapari/temp-PRODVERCEL/485/clean/atomsbot/src/__tests__/edge-cases.test.ts:12:4
+-------------------------------
+
+
+src/__tests__/example.test.tsx:
+(pass) Example Test > should pass basic test [114.41ms]
+(pass) Example Test > should handle basic math [0.44ms]
+(pass) Example Test > should handle string operations [0.06ms]
+
+src/__tests__/reliability.test.ts:
+
+# Unhandled error between tests
+-------------------------------
+ 9 | import { CacheService } from "../cache/redis";
+10 | import { join } from "path";
+11 | import { tmpdir } from "os";
+12 | 
+13 | // Mock external services with failure scenarios
+14 | vi.mock("discord.js", () => {
+        ^
+TypeError: vi.mock is not a function. (In 'vi.mock("discord.js", () => {
+  let connectionState = "disconnected", heartbeatMissed = 0;
+  return {
+    Client: vi.fn().mockImplementation(() => ({
+      on: vi.fn(),
+      once: vi.fn(),
+      login: vi.fn().mockImplementation(() => {
+        if (Math.random() < 0.2) {
+          connectionState = "disconnected";
+          return Promise.reject(new Error("ECONNRESET"));
+        }
+        connectionState = "connected";
+        return Promise.resolve();
+      }),
+      destroy: vi.fn().mockImplementation(() => {
+        connectionState = "disconnected";
+        return Promise.resolve();
+      }),
+      reconnect: vi.fn().mockImplementation(() => {
+        connectionState = "connecting";
+        setTimeout(() => {
+          connectionState = Math.random() > 0.1 ? "connected" : "disconnected";
+        }, 100);
+      }),
+      ws: {
+        status: () => connectionState === "connected" ? 0 : 1,
+        ping: () => heartbeatMissed < 3 ? 50 : -1,
+        reconnect: vi.fn()
+      },
+      user: null,
+      guilds: {
+        cache: new Map
+      },
+      simulateHeartbeatMiss: () => {
+        heartbeatMissed++;
+      },
+      resetHeartbeat: () => {
+        heartbeatMissed = 0;
+      },
+      getConnectionState: () => connectionState
+    })),
+    Events: {
+      Ready: "ready",
+      Disconnect: "disconnect",
+      Error: "error",
+      Reconnecting: "reconnecting",
+      Resume: "resume",
+      Warn: "warn"
+    },
+    GatewayIntentBits: {
+      Guilds: 1,
+      GuildMessages: 2
+    },
+    WebSocketShardEvents: {
+      Ready: "ready",
+      Disconnect: "disconnect"
+    }
+  };
+})', 'vi.mock' is undefined)
+      at /Users/kooshapari/temp-PRODVERCEL/485/clean/atomsbot/src/__tests__/reliability.test.ts:14:4
+-------------------------------
+
+
+src/__tests__/logger.test.ts:
+
+# Unhandled error between tests
+-------------------------------
+ 7 | import { describe, test, expect, beforeEach, afterEach, vi } from 'vitest';
+ 8 | import { Thread } from '../interfaces';
+ 9 | 
+10 | 
+11 | // Provide default mocks so requiring ../logger does not pull real env/discord
+12 | vi.mock('../env', () => ({
+        ^
+TypeError: vi.mock is not a function. (In 'vi.mock("../env", () => ({
+  env: {
+    DISCORD_BOT_TOKEN: "x",
+    DISCORD_APP_ID: "x",
+    DISCORD_CHANNEL_ID: "test-channel-id",
+    GITHUB_TOKEN: "x",
+    GITHUB_OWNER: "test-user",
+    GITHUB_REPO: "test-repo",
+    NODE_ENV: "test",
+    PORT: 3000
+  }
+}))', 'vi.mock' is undefined)
+      at /Users/kooshapari/temp-PRODVERCEL/485/clean/atomsbot/src/__tests__/logger.test.ts:12:4
+-------------------------------
+
+
+src/__tests__/store-db.integration.test.ts:
+
+# Unhandled error between tests
+-------------------------------
+ 7 | 
+ 8 | import { describe, it, expect, beforeEach, afterEach, vi, beforeAll } from 'vitest';
+ 9 | import { Thread } from '../interfaces';
+10 | 
+11 | // Mock the services BEFORE importing store
+12 | vi.mock('../database/DatabaseService', async () => {
+        ^
+TypeError: vi.mock is not a function. (In 'vi.mock("../database/DatabaseService", async () => {
+  const { default: mockDatabaseService } = await import("../../tests/mocks/database");
+  return { databaseService: mockDatabaseService };
+})', 'vi.mock' is undefined)
+      at /Users/kooshapari/temp-PRODVERCEL/485/clean/atomsbot/src/__tests__/store-db.integration.test.ts:12:4
+-------------------------------
+
+
+src/messaging/nats.unit.test.ts:
+
+# Unhandled error between tests
+-------------------------------
+32 |   }
+33 |   async request() { throw new Error('not implemented'); }
+34 |   async closed() { return null; }
+35 | }
+36 | 
+37 | vi.mock('nats', async (orig) => {
+        ^
+TypeError: vi.mock is not a function. (In 'vi.mock("nats", async (orig) => {
+  const mod = await orig(), realJSONCodec = mod.JSONCodec;
+  return {
+    ...mod,
+    connect: async () => new FakeNatsConnection,
+    JSONCodec: () => realJSONCodec()
+  };
+})', 'vi.mock' is undefined)
+      at /Users/kooshapari/temp-PRODVERCEL/485/clean/atomsbot/src/messaging/nats.unit.test.ts:37:4
+-------------------------------
+
+
+tests/integration/mockIntegration.test.ts:
+09-04 07:42:18 [[32minfo[39m]: [32mSuccessfully reloaded 23 application (/) commands for guild 1377120651680153610.[39m 
+
+# Unhandled error between tests
+-------------------------------
+627 |       },
+628 |     });
+629 |   }),
+630 |   {
+631 |     // Support .defaults() method - this returns a vitest mock function
+632 |     defaults: Object.assign(
+                           ^
+TypeError: Attempted to assign to readonly property.
+      at /Users/kooshapari/temp-PRODVERCEL/485/clean/atomsbot/tests/mocks/github.ts:632:22
+-------------------------------
+
+
+tests/examples/modalFormManager.test.ts:
+
+# Unhandled error between tests
+-------------------------------
+11 | import { InteractionBuilder, ErrorTester, AsyncTestUtils, CoverageHelpers } from "../utils/testUtils";
+12 | import { discordFixtures } from "../fixtures";
+13 | import { TextInputStyle } from "discord.js";
+14 | 
+15 | // Mock dependencies
+16 | vi.mock("../../src/discord/framework/ActionButtonManager", () => ({
+        ^
+TypeError: vi.mock is not a function. (In 'vi.mock("../../src/discord/framework/ActionButtonManager", () => ({
+  actionButtonManager: {
+    createButton: vi.fn().mockReturnValue({
+      type: 2,
+      style: 1,
+      custom_id: "mocked_button",
+      label: "Mocked Button"
+    }),
+    registerHandler: vi.fn()
+  }
+}))', 'vi.mock' is undefined)
+      at /Users/kooshapari/temp-PRODVERCEL/485/clean/atomsbot/tests/examples/modalFormManager.test.ts:16:4
+-------------------------------
+
+
+src/settings/__tests__/settingsService.test.ts:
+09-04 07:42:20 [[32minfo[39m]: [32mEnsured guild and channel in database[39m 
+
+# Unhandled error between tests
+-------------------------------
+2 | import { settingsService } from '../SettingsService';
+3 | import { PrismaClient } from '@prisma/client';
+4 | import { vi } from 'vitest';
+5 | 
+6 | // In-memory PrismaClient mock shared across instances
+7 | vi.mock('@prisma/client', () => {
+       ^
+TypeError: vi.mock is not a function. (In 'vi.mock("@prisma/client", () => {
+  const forumMap = new Map, teamMap = new Map, secretMap = new Map;
+
+  class PrismaClientMock {
+    forumChannelConfig = {
+      upsert: async ({ where, create, update }) => {
+        const key = `${where.guildId_forumId.guildId}:${where.guildId_forumId.forumId}`;
+        if (forumMap.has(key)) {
+          const current = forumMap.get(key);
+          forumMap.set(key, { ...current, channelId: update.channelId });
+        } else
+          forumMap.set(key, create);
+      },
+      findUnique: async ({ where }) => {
+        const key = `${where.guildId_forumId.guildId}:${where.guildId_forumId.forumId}`;
+        return forumMap.get(key) || null;
+      },
+      findMany: async ({ where }) => {
+        const list = Array.from(forumMap.values());
+        return where?.guildId ? list.filter((r) => r.guildId === where.guildId) : list;
+      },
+      delete: async ({ where }) => {
+        const key = `${where.guildId_forumId.guildId}:${where.guildId_forumId.forumId}`;
+        forumMap.delete(key);
+      }
+    };
+    teamSettings = {
+      findUnique: async ({ where }) => teamMap.get(where.id) || null,
+      create: async ({ data }) => {
+        teamMap.set(data.id, { ...data });
+      },
+      update: async ({ where, data }) => {
+        const cur = teamMap.get(where.id) || { id: where.id };
+        teamMap.set(where.id, { ...cur, ...data });
+      },
+      findMany: async () => Array.from(teamMap.values()),
+      delete: async ({ where }) => {
+        teamMap.delete(where.id);
+      }
+    };
+    secret = {
+      delete: async ({ where }) => {
+        secretMap.delete(where.key);
+      }
+    };
+  }
+  return { PrismaClient: PrismaClientMock };
+})', 'vi.mock' is undefined)
+      at /Users/kooshapari/temp-PRODVERCEL/485/clean/atomsbot/src/settings/__tests__/settingsService.test.ts:7:4
+-------------------------------
+
+
+src/database/__tests__/config.test.ts:
+üèóÔ∏è ForumManager initialized - auto-create will be handled by discord.ts
+
+# Unhandled error between tests
+-------------------------------
+18 | 
+19 | // Mock Prisma Client first
+20 | const mockPrismaClient = vi.fn().mockImplementation(() => new MockPrismaClient());
+21 | 
+22 | // Mock the Prisma module
+23 | vi.mock('@prisma/client', () => ({
+        ^
+TypeError: vi.mock is not a function. (In 'vi.mock("@prisma/client", () => ({
+  PrismaClient: mockPrismaClient
+}))', 'vi.mock' is undefined)
+      at /Users/kooshapari/temp-PRODVERCEL/485/clean/atomsbot/src/database/__tests__/config.test.ts:23:4
+-------------------------------
+
+
+src/database/__tests__/DatabaseService.test.ts:
+
+# Unhandled error between tests
+-------------------------------
+32 |     info: vi.fn(),
+33 |     error: vi.fn(),
+34 |     warn: vi.fn(),
+35 |     debug: vi.fn(),
+36 |   },
+37 | }));
+       ^
+TypeError: vi.mock is not a function. (In 'vi.mock("@prisma/client", () => ({
+  PrismaClient: MockPrismaClient
+}))', 'vi.mock' is undefined)
+      at /Users/kooshapari/temp-PRODVERCEL/485/clean/atomsbot/src/database/__tests__/DatabaseService.test.ts:37:3
+-------------------------------
+
+
+src/discord/tests/buttonHandlers.test.ts:
+
+# Unhandled error between tests
+-------------------------------
+error: Cannot find module './smartEmbeds' from '/Users/kooshapari/temp-PRODVERCEL/485/clean/atomsbot/src/discord/tests/buttonHandlers.test.ts'
+-------------------------------
+
+
+src/discord/__tests__/webhook-gateway-bridge.test.ts:
+
+# Unhandled error between tests
+-------------------------------
+2 | import { vi, describe, it, expect, beforeEach } from 'vitest';
+3 | import { bridgeModalSubmissionToGateway } from '../webhook-gateway-bridge';
+4 | import { APIModalSubmitInteraction, InteractionResponseType } from 'discord-api-types/v10';
+5 | 
+6 | // Mock the components that the bridge functions actually import
+7 | vi.mock('../components/BugReportForm', () => ({
+       ^
+TypeError: vi.mock is not a function. (In 'vi.mock("../components/BugReportForm", () => ({
+  bugReportForm: {
+    handleBugReportModalSubmission: vi.fn(),
+    showForumSelection: vi.fn()
+  }
+}))', 'vi.mock' is undefined)
+      at /Users/kooshapari/temp-PRODVERCEL/485/clean/atomsbot/src/discord/__tests__/webhook-gateway-bridge.test.ts:7:4
+-------------------------------
+
+
+src/discord/__tests__/embeds.test.ts:
+
+# Unhandled error between tests
+-------------------------------
+46 |   let mockChannel: Partial<ThreadChannel>;
+47 | 
+48 |   beforeEach(() => {
+49 |     // Clear all mocks but don't reset modules to preserve mock setup
+50 |     vi.clearAllMocks();
+51 |     mockConsole.mockClear();
+                               ^
+TypeError: vi.hoisted is not a function. (In 'vi.hoisted(() => ({
+  octokit: {
+    rest: {
+      issues: {
+        get: vi.fn()
+      }
+    }
+  },
+  getRepoCredentialsForThread: vi.fn(),
+  ensureThreadRepoBinding: vi.fn()
+}))', 'vi.hoisted' is undefined)
+      at /Users/kooshapari/temp-PRODVERCEL/485/clean/atomsbot/src/discord/__tests__/embeds.test.ts:51:27
+-------------------------------
+
+
+src/discord/__tests__/buttonHandlers.enhanced.test.ts:
+
+# Unhandled error between tests
+-------------------------------
+16 | import { createSmartIssueEmbed } from "../smartEmbeds";
+17 | import { jiraService } from "../../jira/jiraClient";
+18 | import { logger } from "../../logger";
+19 | 
+20 | // Mock all dependencies
+21 | vi.mock("../../store", () => ({
+        ^
+TypeError: vi.mock is not a function. (In 'vi.mock("../../store", () => ({
+  store: {
+    threads: [],
+    availableTags: [],
+    findThread: vi.fn(),
+    getJiraLinkMapping: vi.fn(),
+    setJiraLink: vi.fn()
+  }
+}))', 'vi.mock' is undefined)
+      at /Users/kooshapari/temp-PRODVERCEL/485/clean/atomsbot/src/discord/__tests__/buttonHandlers.enhanced.test.ts:21:4
+-------------------------------
+
+
+src/discord/__tests__/discordActions.test.ts:
+09-04 07:42:25 [[32minfo[39m]: [32mSynchronized forum/team configuration overlays from DB[39m 
+
+# Unhandled error between tests
+-------------------------------
+47 | const mockLogger = vi.hoisted(() => ({
+48 |   info: vi.fn(),
+49 |   error: vi.fn(),
+50 |   warn: vi.fn(),
+51 |   debug: vi.fn(),
+52 | }));
+       ^
+TypeError: vi.hoisted is not a function. (In 'vi.hoisted(() => ({
+  DISCORD_CHANNEL_ID: "forum123"
+}))', 'vi.hoisted' is undefined)
+      at /Users/kooshapari/temp-PRODVERCEL/485/clean/atomsbot/src/discord/__tests__/discordActions.test.ts:52:3
+-------------------------------
+
+
+src/discord/__tests__/discordHandlers.test.ts:
+09-04 07:42:28 [[32minfo[39m]: [32mWarmed user caches for Discord/GitHub/Jira[39m 
+
+# Unhandled error between tests
+-------------------------------
+29 |   unlockIssue,
+30 | } from "../../github/githubActions";
+31 | import { logger } from "../../logger";
+32 | 
+33 | // Mock all dependencies
+34 | vi.mock("../../config", () => ({
+        ^
+TypeError: vi.mock is not a function. (In 'vi.mock("../../config", () => ({
+  config: {
+    DISCORD_DEV_GUILD_ID: "guild123",
+    DISCORD_CHANNEL_ID: "channel123",
+    DISCORD_TOKEN: "test_token"
+  }
+}))', 'vi.mock' is undefined)
+      at /Users/kooshapari/temp-PRODVERCEL/485/clean/atomsbot/src/discord/__tests__/discordHandlers.test.ts:34:4
+-------------------------------
+
+
+src/discord/__tests__/buttonHandlers.test.ts:
+09-04 07:42:29 [[32minfo[39m]: [32mLoaded threads from database[39m 
+09-04 07:42:29 [[32minfo[39m]: [32mLoaded data from database[39m 
+
+# Unhandled error between tests
+-------------------------------
+ 7 | import type { ThreadChannel, User } from "discord.js";
+ 8 | 
+ 9 | import { handleButtonInteraction } from "../buttonHandlers";
+10 | 
+11 | // Mock Discord.js builders
+12 | vi.mock("discord.js", async (importOriginal) => {
+        ^
+TypeError: vi.mock is not a function. (In 'vi.mock("discord.js", async (importOriginal) => {
+  return {
+    ...await importOriginal(),
+    ModalBuilder: vi.fn().mockImplementation(() => ({
+      setCustomId: vi.fn().mockReturnThis(),
+      setTitle: vi.fn().mockReturnThis(),
+      addComponents: vi.fn().mockReturnThis(),
+      setComponents: vi.fn().mockReturnThis()
+    })),
+    StringSelectMenuBuilder: vi.fn().mockImplementation(() => ({
+      setCustomId: vi.fn().mockReturnThis(),
+      setPlaceholder: vi.fn().mockReturnThis(),
+      addOptions: vi.fn().mockReturnThis(),
+      setOptions: vi.fn().mockReturnThis()
+    })),
+    TextInputBuilder: vi.fn().mockImplementation(() => ({
+      setCustomId: vi.fn().mockReturnThis(),
+      setLabel: vi.fn().mockReturnThis(),
+      setStyle: vi.fn().mockReturnThis(),
+      setPlaceholder: vi.fn().mockReturnThis(),
+      setRequired: vi.fn().mockReturnThis(),
+      setValue: vi.fn().mockReturnThis()
+    })),
+    ActionRowBuilder: vi.fn().mockImplementation(() => ({
+      addComponents: vi.fn().mockReturnThis(),
+      setComponents: vi.fn().mockReturnThis()
+    })),
+    StringSelectMenuOptionBuilder: vi.fn().mockImplementation(() => ({
+      setLabel: vi.fn().mockReturnThis(),
+      setValue: vi.fn().mockReturnThis(),
+      setDescription: vi.fn().mockReturnThis(),
+      setEmoji: vi.fn().mockReturnThis(),
+      setDefault: vi.fn().mockReturnThis()
+    }))
+  };
+})', 'vi.mock' is undefined)
+      at /Users/kooshapari/temp-PRODVERCEL/485/clean/atomsbot/src/discord/__tests__/buttonHandlers.test.ts:12:4
+-------------------------------
+
+
+src/discord/__tests__/modalHandlers.test.ts:
+09-04 07:42:29 [[32minfo[39m]: [32mLoaded threads from database[39m 
+
+# Unhandled error between tests
+-------------------------------
+ 6 | 
+ 7 | import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+ 8 | import { ModalSubmitInteraction, ThreadChannel } from "discord.js";
+ 9 | 
+10 | // Use hoisted mocks to avoid initialization issues
+11 | const mockStore = vi.hoisted(() => ({
+                          ^
+TypeError: vi.hoisted is not a function. (In 'vi.hoisted(() => ({
+  threads: [],
+  getJiraLinkMapping: vi.fn(),
+  findThread: vi.fn(),
+  addThread: vi.fn()
+}))', 'vi.hoisted' is undefined)
+      at /Users/kooshapari/temp-PRODVERCEL/485/clean/atomsbot/src/discord/__tests__/modalHandlers.test.ts:11:22
+-------------------------------
+
+
+src/discord/__tests__/registerCommands.test.ts:
+getIssues: Starting function
+
+# Unhandled error between tests
+-------------------------------
+32 |       }),
+33 |     },
+34 |   },
+35 |   {
+36 |     data: {
+37 |       toJSON: vi.fn().mockReturnValue({
+                           ^
+TypeError: vi.hoisted is not a function. (In 'vi.hoisted(() => ({
+  DISCORD_TOKEN: "mock-discord-token-12345",
+  DISCORD_CLIENT_ID: "mock-client-id-67890"
+}))', 'vi.hoisted' is undefined)
+      at /Users/kooshapari/temp-PRODVERCEL/485/clean/atomsbot/src/discord/__tests__/registerCommands.test.ts:37:23
+-------------------------------
+
+
+src/discord/__tests__/discord.test.ts:
+
+# Unhandled error between tests
+-------------------------------
+32 |   // Always pass - the operation was attempted
+33 |   expect(true).toBe(true);
+34 | };
+35 | 
+36 | // Mock logger to capture error messages
+37 | vi.mock('../../logger', () => ({
+        ^
+TypeError: vi.mock is not a function. (In 'vi.mock("../../logger", () => ({
+  logger: {
+    info: vi.fn(),
+    error: vi.fn(),
+    warn: vi.fn(),
+    debug: vi.fn()
+  }
+}))', 'vi.mock' is undefined)
+      at /Users/kooshapari/temp-PRODVERCEL/485/clean/atomsbot/src/discord/__tests__/discord.test.ts:37:4
+-------------------------------
+
+
+src/discord/__tests__/deleteModalHandler.enhanced.test.ts:
+
+# Unhandled error between tests
+-------------------------------
+10 |   ensureThreadInStoreById,
+11 |   ensureThreadInStoreFromChannel
+12 | } from "../utils/threadStore";
+13 | 
+14 | // Mock all dependencies
+15 | vi.mock("../../store", () => ({
+        ^
+TypeError: vi.mock is not a function. (In 'vi.mock("../../store", () => ({
+  store: {
+    threads: [],
+    getJiraLinkMapping: vi.fn(),
+    removeJiraLinkMapping: vi.fn()
+  }
+}))', 'vi.mock' is undefined)
+      at /Users/kooshapari/temp-PRODVERCEL/485/clean/atomsbot/src/discord/__tests__/deleteModalHandler.enhanced.test.ts:15:4
+-------------------------------
+
+
+src/discord/__tests__/smartForumHandlers.test.ts:
+
+# Unhandled error between tests
+-------------------------------
+20 |   ModalSubmitInteraction,
+21 |   User,
+22 | } from "discord.js";
+23 | 
+24 | // Hoisted mocks
+25 | const mockBugReportForm = vi.hoisted(() => ({
+                                  ^
+TypeError: vi.hoisted is not a function. (In 'vi.hoisted(() => ({
+  bugReportForm: {
+    createUnifiedBugReport: vi.fn()
+  }
+}))', 'vi.hoisted' is undefined)
+      at /Users/kooshapari/temp-PRODVERCEL/485/clean/atomsbot/src/discord/__tests__/smartForumHandlers.test.ts:25:30
+-------------------------------
+
+
+src/discord/__tests__/modalHandlers.enhanced.test.ts:
+getIssues: About to fetch issues from GitHub
+
+# Unhandled error between tests
+-------------------------------
+10 |   ensureThreadInStoreById,
+11 |   ensureThreadInStoreFromChannel
+12 | } from "../utils/threadStore";
+13 | 
+14 | // Mock all dependencies
+15 | vi.mock("../../store", () => ({
+        ^
+TypeError: vi.mock is not a function. (In 'vi.mock("../../store", () => ({
+  store: {
+    threads: [],
+    getJiraLinkMapping: vi.fn()
+  }
+}))', 'vi.mock' is undefined)
+      at /Users/kooshapari/temp-PRODVERCEL/485/clean/atomsbot/src/discord/__tests__/modalHandlers.enhanced.test.ts:15:4
+-------------------------------
+
+
+src/discord/__tests__/deleteModalHandler.test.ts:
+getIssues: GitHub API response received: true true
+getIssues: Processing issues, count: 30
+
+# Unhandled error between tests
+-------------------------------
+ 6 | import { octokit, getRepoCredentialsForThread } from '../../github/githubActions';
+ 7 | import { jiraService } from '../../jira/jiraClient';
+ 8 | import { logger } from '../../logger';
+ 9 | import { ModalSubmitInteraction, MessageFlags } from 'discord.js';
+10 | 
+11 | vi.mock('../../store-db');
+        ^
+TypeError: vi.mock is not a function. (In 'vi.mock("../../store-db")', 'vi.mock' is undefined)
+      at /Users/kooshapari/temp-PRODVERCEL/485/clean/atomsbot/src/discord/__tests__/deleteModalHandler.test.ts:11:4
+-------------------------------
+
+
+src/discord/__tests__/enhancedCloseActions.test.ts:
+
+# Unhandled error between tests
+-------------------------------
+15 | import { closeAll, reopenAll } from "../closeActions";
+16 | import { handleDeleteModal, handleResolveModal, handleWontDoModal } from "../modalHandlers";
+17 | import { Thread } from "../../interfaces";
+18 | 
+19 | // Mock the enhanced jiraService methods
+20 | const mockJiraService = vi.hoisted(() => ({
+                                ^
+TypeError: vi.hoisted is not a function. (In 'vi.hoisted(() => ({
+  addComment: vi.fn(),
+  resolveIssue: vi.fn(),
+  rejectIssue: vi.fn(),
+  reopenIssue: vi.fn(),
+  deleteIssue: vi.fn(),
+  getTransitions: vi.fn(),
+  transitionIssue: vi.fn()
+}))', 'vi.hoisted' is undefined)
+      at /Users/kooshapari/temp-PRODVERCEL/485/clean/atomsbot/src/discord/__tests__/enhancedCloseActions.test.ts:20:28
+-------------------------------
+
+
+src/discord/__tests__/discordHandlersFixed.test.ts:
+
+# Unhandled error between tests
+-------------------------------
+11 |   Message,
+12 |   User,
+13 | } from "discord.js";
+14 | 
+15 | // Mock configuration
+16 | vi.mock("../../config", () => ({
+        ^
+TypeError: vi.mock is not a function. (In 'vi.mock("../../config", () => ({
+  config: {
+    DISCORD_DEV_GUILD_ID: "guild123",
+    DISCORD_CHANNEL_ID: "channel123",
+    DISCORD_TOKEN: "test-token",
+    DISCORD_CLIENT_ID: "client123"
+  }
+}))', 'vi.mock' is undefined)
+      at /Users/kooshapari/temp-PRODVERCEL/485/clean/atomsbot/src/discord/__tests__/discordHandlersFixed.test.ts:16:4
+-------------------------------
+
+
+src/discord/__tests__/smartEmbeds.test.ts:
+getIssues: Comments data filled successfully
+Processing issue #318: channelId=undefined, messageId=undefined, body="**Feature Description:**
+Central Feed Channel
+
+**Use Case:**
+Central Feed Channel
+
+**Acceptance Criteria:**
+Central Feed Channel
+
+**Category:** feature
+**Priority:** medium
+
+---
+**Discord Thread:** https://discord.com/channels/1377120651680153610/1412951315512033332
+**Type:** feature
+**Priority:** medium
+**Forum:** üí° bot Feature Requests
+
+*This issue was created from Discord and is being tracked across multiple platforms.*"
+Skipping issue #318 - missing Discord link (channelId=undefined, messageId=undefined)
+Processing issue #317: channelId=undefined, messageId=undefined, body="**Feature Description:**
+Deployment UI + Tooling for:
+
+1-Click
+AWS \ Azure \ GCP \ On-Prem deployments of:
+Atoms.tech (F-End, Backend, DB, MCP), Atoms Polarion
+
+Tenancy Support
+
+AWS\Azure\GCP SSO Flow
+CRUD \ Mgmt Tooling W\ Monitoring
+Update Mgmt
+DRM Mgmt
+
+**Use Case:**
+Private Cloud Usage
+
+**Acceptance Criteria:**
+............
+
+**Category:** feature
+**Priority:** medium
+
+---
+**Discord Thread:** https://discord.com/channels/1377120651680153610/1412950894886256842
+**Type:** feature
+**Priority:** medium
+**Forum:** üí° backend-ai Feature Requests
+
+*This issue was created from Discord and is being tracked across multiple platforms.*"
+Skipping issue #317 - missing Discord link (channelId=undefined, messageId=undefined)
+Processing issue #316: channelId=undefined, messageId=undefined, body="**Feature Description:**
+Auto Git pull + Sync -> vercel \ other configured deploys w\ multi-proj support
+
+**Use Case:**
+............
+
+**Acceptance Criteria:**
+............
+
+**Category:** feature
+**Priority:** medium
+
+---
+**Discord Thread:** https://discord.com/channels/1377120651680153610/1412719852187029606
+**Type:** feature
+**Priority:** medium
+**Forum:** üí° bot Feature Requests
+
+*This issue was created from Discord and is being tracked across multiple platforms.*"
+Skipping issue #316 - missing Discord link (channelId=undefined, messageId=undefined)
+Processing issue #315: channelId=undefined, messageId=undefined, body="**Feature Description:**
+GCal + GMeet integration w\ feed updates
+
+Allow event,mtg CRUD
+
+Allow smart schedule via external ui (when2meet, schej) mgmt fromd iscord
+
+**Use Case:**
+...........
+
+**Acceptance Criteria:**
+......................
+
+**Category:** feature
+**Priority:** medium
+
+---
+**Discord Thread:** https://discord.com/channels/1377120651680153610/1412719665184112693
+**Type:** feature
+**Priority:** medium
+**Forum:** üí° bot Feature Requests
+
+*This issue was created from Discord and is being tracked across multiple platforms.*"
+Skipping issue #315 - missing Discord link (channelId=undefined, messageId=undefined)
+Processing issue #314: channelId=1412324558756909142, messageId=1412326049999618079, body="<kbd>[![Ramlord](https://cdn.discordapp.com/avatars/201372818611372032/b90d88d3a8ff3b5781d44827dfd0a23c.webp?size=40)](https://discord.com/channels/1377120651680153610/1412324558756909142/1412326049999618079)</kbd> [Ramlord](https://discord.com/channels/1377120651680153610/1412324558756909142/1412326049999618079)  `BOT`
+
+<@244264303673212939> <@760991058217271316>  what do you think
+
+"
+Added thread with id=1412326049999618079 for issue #314
+Processing issue #313: channelId=undefined, messageId=undefined, body="**Feature Description:**
+Auto Vercel Deploy w commitr dumpa
+
+**Use Case:**
+ssssssssssss
+
+**Acceptance Criteria:**
+ssssssssssssss
+
+**Category:** feature
+**Priority:** medium
+
+---
+**Discord Thread:** https://discord.com/channels/1377120651680153610/1412306814569283678
+**Type:** feature
+**Priority:** medium
+**Forum:** üí° bot Feature Requests
+
+*This issue was created from Discord and is being tracked across multiple platforms.*"
+Skipping issue #313 - missing Discord link (channelId=undefined, messageId=undefined)
+Processing issue #312: channelId=undefined, messageId=undefined, body="null"
+Skipping issue #312 - missing Discord link (channelId=undefined, messageId=undefined)
+Processing issue #311: channelId=undefined, messageId=undefined, body="**Feature Description:**
+Connect Atoms API in place of Jira
+
+**Use Case:**
+...............
+
+**Acceptance Criteria:**
+...............
+
+**Category:** feature
+**Priority:** medium
+
+---
+**Discord Thread:** https://discord.com/channels/1377120651680153610/1412299013818028114
+**Type:** feature
+**Priority:** medium
+**Forum:** üí° bot Feature Requests
+
+*This issue was created from Discord and is being tracked across multiple platforms.*"
+Skipping issue #311 - missing Discord link (channelId=undefined, messageId=undefined)
+Processing issue #310: channelId=undefined, messageId=undefined, body="**Feature Description:**
+Sprint Categorization 
+Management Views
+Etc
+
+**Use Case:**
+Sprint Mgmt
+
+**Acceptance Criteria:**
+Sprint Assignemnt
+SPrint Management
+View Outputs
+Historical\Proj View
+
+**Category:** feature
+**Priority:** medium
+
+---
+**Discord Thread:** https://discord.com/channels/1377120651680153610/1412298781101396059
+**Type:** feature
+**Priority:** medium
+**Forum:** üí° bot Feature Requests
+
+*This issue was created from Discord and is being tracked across multiple platforms.*"
+Skipping issue #310 - missing Discord link (channelId=undefined, messageId=undefined)
+Processing issue #306: channelId=1412276424357974109, messageId=1412276424357974109, body="<kbd>[![Ramlord](https://cdn.discordapp.com/avatars/201372818611372032/b90d88d3a8ff3b5781d44827dfd0a23c.webp?size=40)](https://discord.com/channels/1377120651680153610/1412276424357974109/1412276424357974109)</kbd> [Ramlord](https://discord.com/channels/1377120651680153610/1412276424357974109/1412276424357974109)  `BOT`
+
+s
+
+"
+Added thread with id=1412276424357974109 for issue #306
+Processing issue #305: channelId=undefined, messageId=undefined, body="**Bug Description:**
+Github login redirects to production (atoms.tech). So you can't login with GitHub during development.
+
+**Steps to Reproduce:**
+Run development version (bun dev).
+Attempt to login with GitHub.
+Redirect after auth will bring you to atoms.tech and log you in, not back to the localhost.
+
+**Expected Behavior:**
+Should redirect to base address if called from localhost. I know the redirect
+
+**Environment:**
+Not specified
+
+**Template:** general-bug
+**Category:** general
+**Severity:** medium
+
+---
+**Discord Thread:** https://discord.com/channels/1377120651680153610/1412254756306550855
+**Type:** bug
+**Priority:** medium
+**Forum:** üèóÔ∏è Platform Bug Reports
+
+*This issue was created from Discord and is being tracked across multiple platforms.*"
+Skipping issue #305 - missing Discord link (channelId=undefined, messageId=undefined)
+Processing issue #304: channelId=undefined, messageId=undefined, body="Custom cell editor for mutli-select columns."
+Skipping issue #304 - missing Discord link (channelId=undefined, messageId=undefined)
+Processing issue #303: channelId=1412232224836947969, messageId=1412232224836947969, body="<kbd>[![Ramlord](https://cdn.discordapp.com/avatars/201372818611372032/b90d88d3a8ff3b5781d44827dfd0a23c.webp?size=40)](https://discord.com/channels/1377120651680153610/1412232224836947969/1412232224836947969)</kbd> [Ramlord](https://discord.com/channels/1377120651680153610/1412232224836947969/1412232224836947969)  `BOT`
+
+s
+
+"
+Added thread with id=1412232224836947969 for issue #303
+Processing issue #302: channelId=1411908755725090928, messageId=1411909268298399774, body="<kbd>[![dwbv](https://cdn.discordapp.com/avatars/760991058217271316/2dc000c7e423139983f25489c327deb1.webp?size=40)](https://discord.com/channels/1377120651680153610/1411908755725090928/1411909268298399774)</kbd> [dwbv](https://discord.com/channels/1377120651680153610/1411908755725090928/1411909268298399774)  `BOT`
+
+.
+
+"
+Added thread with id=1411909268298399774 for issue #302
+Processing issue #301: channelId=1411908755725090928, messageId=1411909265660186664, body="<kbd>[![dwbv](https://cdn.discordapp.com/avatars/760991058217271316/2dc000c7e423139983f25489c327deb1.webp?size=40)](https://discord.com/channels/1377120651680153610/1411908755725090928/1411909265660186664)</kbd> [dwbv](https://discord.com/channels/1377120651680153610/1411908755725090928/1411909265660186664)  `BOT`
+
+
+
+"
+Added thread with id=1411909265660186664 for issue #301
+Processing issue #300: channelId=1410805454573142126, messageId=1411449187345764372, body="<kbd>[![Ramlord](https://cdn.discordapp.com/avatars/201372818611372032/b90d88d3a8ff3b5781d44827dfd0a23c.webp?size=40)](https://discord.com/channels/1377120651680153610/1410805454573142126/1411449187345764372)</kbd> [Ramlord](https://discord.com/channels/1377120651680153610/1410805454573142126/1411449187345764372)  `BOT`
+
+feat req - wont do
+
+"
+Added thread with id=1411449187345764372 for issue #300
+Processing issue #299: channelId=1410805536961593487, messageId=1411449158455263252, body="<kbd>[![Ramlord](https://cdn.discordapp.com/avatars/201372818611372032/b90d88d3a8ff3b5781d44827dfd0a23c.webp?size=40)](https://discord.com/channels/1377120651680153610/1410805536961593487/1411449158455263252)</kbd> [Ramlord](https://discord.com/channels/1377120651680153610/1410805536961593487/1411449158455263252)  `BOT`
+
+wont do
+
+"
+Added thread with id=1411449158455263252 for issue #299
+Processing issue #298: channelId=1410804621714264085, messageId=1411176384587628799, body="<kbd>[![Ramlord](https://cdn.discordapp.com/avatars/201372818611372032/b90d88d3a8ff3b5781d44827dfd0a23c.webp?size=40)](https://discord.com/channels/1377120651680153610/1410804621714264085/1411176384587628799)</kbd> [Ramlord](https://discord.com/channels/1377120651680153610/1410804621714264085/1411176384587628799)  `BOT`
+
+done
+
+"
+Added thread with id=1411176384587628799 for issue #298
+Processing issue #297: channelId=1410804353484460124, messageId=1411176356691054592, body="<kbd>[![Ramlord](https://cdn.discordapp.com/avatars/201372818611372032/b90d88d3a8ff3b5781d44827dfd0a23c.webp?size=40)](https://discord.com/channels/1377120651680153610/1410804353484460124/1411176356691054592)</kbd> [Ramlord](https://discord.com/channels/1377120651680153610/1410804353484460124/1411176356691054592)  `BOT`
+
+üëç
+
+"
+Added thread with id=1411176356691054592 for issue #297
+Processing issue #296: channelId=1410804399139455037, messageId=1411176340492779550, body="<kbd>[![Ramlord](https://cdn.discordapp.com/avatars/201372818611372032/b90d88d3a8ff3b5781d44827dfd0a23c.webp?size=40)](https://discord.com/channels/1377120651680153610/1410804399139455037/1411176340492779550)</kbd> [Ramlord](https://discord.com/channels/1377120651680153610/1410804399139455037/1411176340492779550)  `BOT`
+
+~50% DB\Backend work needed
+
+"
+Added thread with id=1411176340492779550 for issue #296
+Processing issue #295: channelId=1410804530630754385, messageId=1411176282909310987, body="<kbd>[![Ramlord](https://cdn.discordapp.com/avatars/201372818611372032/b90d88d3a8ff3b5781d44827dfd0a23c.webp?size=40)](https://discord.com/channels/1377120651680153610/1410804530630754385/1411176282909310987)</kbd> [Ramlord](https://discord.com/channels/1377120651680153610/1410804530630754385/1411176282909310987)  `BOT`
+
+All 3 serverless are already done in terms of the infra, I'm finalizing tools on my stdio base, then auth on the streamable http, then porting over to serverless deploy
+
+"
+Added thread with id=1411176282909310987 for issue #295
+Processing issue #294: channelId=1410804575815864420, messageId=1411173321994928240, body="<kbd>[![Ramlord](https://cdn.discordapp.com/avatars/201372818611372032/b90d88d3a8ff3b5781d44827dfd0a23c.webp?size=40)](https://discord.com/channels/1377120651680153610/1410804575815864420/1411173321994928240)</kbd> [Ramlord](https://discord.com/channels/1377120651680153610/1410804575815864420/1411173321994928240)  `BOT`
+
+
+![image.png](https://cdn.discordapp.com/attachments/1410804575815864420/1411173321734754324/image.png?ex=68b3b112&is=68b25f92&hm=1ea296bb97bd43ccc134e3dc259d61db746c9607d682629bd788378808b87942& "image.png")
+"
+Added thread with id=1411173321994928240 for issue #294
+Processing issue #293: channelId=1410804575815864420, messageId=1411171036484866179, body="<kbd>[![Ramlord](https://cdn.discordapp.com/avatars/201372818611372032/b90d88d3a8ff3b5781d44827dfd0a23c.webp?size=40)](https://discord.com/channels/1377120651680153610/1410804575815864420/1411171036484866179)</kbd> [Ramlord](https://discord.com/channels/1377120651680153610/1410804575815864420/1411171036484866179)  `BOT`
+
+Keyword is done
+
+"
+Added thread with id=1411171036484866179 for issue #293
+Processing issue #288: channelId=1410806038155886643, messageId=1411094453086720182, body="<kbd>[![Ramlord](https://cdn.discordapp.com/avatars/201372818611372032/b90d88d3a8ff3b5781d44827dfd0a23c.webp?size=40)](https://discord.com/channels/1377120651680153610/1410806038155886643/1411094453086720182)</kbd> [Ramlord](https://discord.com/channels/1377120651680153610/1410806038155886643/1411094453086720182)  `BOT`
+
+DONE Feat -- Persistent SQlite | Faster Redis Cache | Reliable NATS Msg
+
+"
+Added thread with id=1411094453086720182 for issue #288
+Processing issue #283: channelId=undefined, messageId=undefined, body="Summary:
+- Fixed hover state inconsistencies in the sidebar toggle buttons, where hover effects weren't covering the full button area, and icons were not centered
+
+Changes Made:
+- VerticalToolbar.tsx: Standardized all button wrapper sizes from w-10 to w-9 to match BaseToggle button dimensions
+- ThemeToggle.tsx: Fixed the icon centering issue 
+
+Fix:
+- Sidebar toggle button hover effect now covers the full button area (previously only covered the icon)
+- Dark/light mode toggle icon is now centered (was slightly offset to the left)
+- All three toggle buttons now have consistent sizing and hover behavior "
+Skipping issue #283 - missing Discord link (channelId=undefined, messageId=undefined)
+Processing issue #282: channelId=undefined, messageId=undefined, body="Made a mutation for fixed position select editor. Some work on multi-select"
+Skipping issue #282 - missing Discord link (channelId=undefined, messageId=undefined)
+Processing issue #281: channelId=undefined, messageId=undefined, body="Bug:
+- When users first create a table, an excess space for 0-9 rows was always reserved, causing empty space when fewer than 9 rows were added.
+
+Fix:
+- Dynamically calculate the table height based on the number of rows (up to 10)
+- Maintain scroll behavior when there are more than 10 rows
+- Ensure no excess space when fewer than 10 rows exist
+- Guarantee a minimum table height so the rows are always visible, even with no data added"
+Skipping issue #281 - missing Discord link (channelId=undefined, messageId=undefined)
+Processing issue #272: channelId=undefined, messageId=undefined, body="Linked from Discord thread: https://discord.com/channels/1377120651680153610/1392690369946189996"
+Skipping issue #272 - missing Discord link (channelId=undefined, messageId=undefined)
+Processing issue #271: channelId=undefined, messageId=undefined, body="Linked from Discord thread: https://discord.com/channels/1377120651680153610/1392690369946189996"
+Skipping issue #271 - missing Discord link (channelId=undefined, messageId=undefined)
+Processing issue #270: channelId=undefined, messageId=undefined, body="**Bug Description:**
+BUGBUGBUGBUGBUG
+
+**Steps to Reproduce:**
+BUGBUGBUG
+
+**Expected Behavior:**
+BUGBUG
+
+**Environment:**
+Not specified
+
+**Template:** general-bug
+**Category:** general
+**Severity:** medium
+
+---
+**Discord Thread:** https://discord.com/channels/1377120651680153610/1410440100525117581
+**Type:** bug
+**Priority:** medium
+**Forum:** üèóÔ∏è Platform Bug Reports
+
+*This issue was created from Discord and is being tracked across multiple platforms.*"
+Skipping issue #270 - missing Discord link (channelId=undefined, messageId=undefined)
+formatIssuesToThreads: processed 30 issues, returning 14 threads
+getIssues: Formatted threads: 14
+üîç Starting comprehensive link restoration for 30 GitHub issues...
+
+# Unhandled error between tests
+-------------------------------
+14 | 
+15 | import { describe, it, expect, vi, beforeEach } from "vitest";
+16 | import { Thread } from "../../interfaces";
+17 | 
+18 | // Hoisted mocks for proper test isolation
+19 | const mockDiscordComponents = vi.hoisted(() => ({
+                                      ^
+TypeError: vi.hoisted is not a function. (In 'vi.hoisted(() => ({
+  EmbedBuilder: vi.fn(() => ({
+    setTitle: vi.fn().mockReturnThis(),
+    setDescription: vi.fn().mockReturnThis(),
+    setColor: vi.fn().mockReturnThis(),
+    setURL: vi.fn().mockReturnThis(),
+    addFields: vi.fn().mockReturnThis(),
+    setTimestamp: vi.fn().mockReturnThis(),
+    setFooter: vi.fn().mockReturnThis(),
+    setAuthor: vi.fn().mockReturnThis(),
+    setThumbnail: vi.fn().mockReturnThis(),
+    data: {}
+  })),
+  ActionRowBuilder: vi.fn(() => ({
+    addComponents: vi.fn().mockReturnThis(),
+    setComponents: vi.fn().mockReturnThis(),
+    components: [],
+    data: { components: [] }
+  })),
+  ButtonBuilder: vi.fn(() => ({
+    setCustomId: vi.fn().mockReturnThis(),
+    setLabel: vi.fn().mockReturnThis(),
+    setStyle: vi.fn().mockReturnThis(),
+    setURL: vi.fn().mockReturnThis(),
+    setEmoji: vi.fn().mockReturnThis(),
+    setDisabled: vi.fn().mockReturnThis(),
+    data: {}
+  })),
+  ButtonStyle: {
+    Primary: 1,
+    Secondary: 2,
+    Success: 3,
+    Danger: 4,
+    Link: 5
+  }
+}))', 'vi.hoisted' is undefined)
+      at /Users/kooshapari/temp-PRODVERCEL/485/clean/atomsbot/src/discord/__tests__/smartEmbeds.test.ts:19:34
+-------------------------------
+
+
+src/discord/__tests__/smartForumHandlers.enhanced.test.ts:
+
+# Unhandled error between tests
+-------------------------------
+ 6 | } from "discord.js";
+ 7 | 
+ 8 | // Imports of modules under test are placed AFTER mocks below
+ 9 | 
+10 | // Mock all dependencies
+11 | vi.mock("../components/BugReportForm", () => ({
+        ^
+TypeError: vi.mock is not a function. (In 'vi.mock("../components/BugReportForm", () => ({
+  bugReportForm: {
+    createUnifiedBugReport: vi.fn()
+  }
+}))', 'vi.mock' is undefined)
+      at /Users/kooshapari/temp-PRODVERCEL/485/clean/atomsbot/src/discord/__tests__/smartForumHandlers.enhanced.test.ts:11:4
+-------------------------------
+
+
+src/discord/__tests__/closeActions.enhanced.test.ts:
+üéâ Link restoration complete: 0 links restored
+getIssues: Link restoration completed
+getIssues: Cached and published event
+getIssues: Returning 14 threads
+
+# Unhandled error between tests
+-------------------------------
+ 6 | import { octokit, getRepoCredentialsForThread } from "../../github/githubActions";
+ 7 | import { jiraService } from "../../jira/jiraClient";
+ 8 | import client from "../discord";
+ 9 | 
+10 | // Mock all dependencies
+11 | vi.mock("../../github/githubActions", () => ({
+        ^
+TypeError: vi.mock is not a function. (In 'vi.mock("../../github/githubActions", () => ({
+  octokit: {
+    rest: {
+      issues: {
+        createComment: vi.fn(),
+        update: vi.fn()
+      }
+    }
+  },
+  getRepoCredentialsForThread: vi.fn()
+}))', 'vi.mock' is undefined)
+      at /Users/kooshapari/temp-PRODVERCEL/485/clean/atomsbot/src/discord/__tests__/closeActions.enhanced.test.ts:11:4
+-------------------------------
+
+
+src/discord/__tests__/closeActions.test.ts:
+
+# Unhandled error between tests
+-------------------------------
+19 |   CloseMode,
+20 | } from "../closeActions";
+21 | import { Thread } from "../../interfaces";
+22 | 
+23 | // Hoisted mocks for proper test isolation
+24 | const mockGithubActions = vi.hoisted(() => ({
+                                  ^
+TypeError: vi.hoisted is not a function. (In 'vi.hoisted(() => ({
+  octokit: {
+    rest: {
+      issues: {
+        createComment: vi.fn(),
+        update: vi.fn()
+      }
+    }
+  },
+  getRepoCredentialsForThread: vi.fn()
+}))', 'vi.hoisted' is undefined)
+      at /Users/kooshapari/temp-PRODVERCEL/485/clean/atomsbot/src/discord/__tests__/closeActions.test.ts:24:30
+-------------------------------
+
+
+src/cache/__tests__/redis.test.ts:
+
+# Unhandled error between tests
+-------------------------------
+16 | import { RedisCache } from '../redis';
+17 | import { MockRedis, redisTestUtils } from '../../tests/mocks/redis';
+18 | import { logger } from '../logger';
+19 | 
+20 | // Mock ioredis
+21 | vi.mock('ioredis', () => ({
+        ^
+TypeError: vi.mock is not a function. (In 'vi.mock("ioredis", () => ({
+  default: MockRedis
+}))', 'vi.mock' is undefined)
+      at /Users/kooshapari/temp-PRODVERCEL/485/clean/atomsbot/src/cache/__tests__/redis.test.ts:21:4
+-------------------------------
+
+
+src/cache/__tests__/CacheService.comprehensive.test.ts:
+
+# Unhandled error between tests
+-------------------------------
+11 |  */
+12 | 
+13 | import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+14 | 
+15 | // Hoisted mocks to avoid initialization issues
+16 | const hoisted = vi.hoisted(() => ({
+                        ^
+TypeError: vi.hoisted is not a function. (In 'vi.hoisted(() => ({
+  mockLogger: {
+    info: vi.fn(),
+    warn: vi.fn(),
+    error: vi.fn(),
+    debug: vi.fn()
+  },
+  mockRedisClient: {
+    on: vi.fn().mockReturnThis(),
+    get: vi.fn(),
+    set: vi.fn(),
+    setex: vi.fn(),
+    del: vi.fn(),
+    exists: vi.fn(),
+    ttl: vi.fn(),
+    ping: vi.fn(),
+    quit: vi.fn(),
+    flushdb: vi.fn(),
+    keys: vi.fn(),
+    incr: vi.fn(),
+    expire: vi.fn(),
+    setnx: vi.fn(),
+    memory: vi.fn()
+  }
+}))', 'vi.hoisted' is undefined)
+      at /Users/kooshapari/temp-PRODVERCEL/485/clean/atomsbot/src/cache/__tests__/CacheService.comprehensive.test.ts:16:20
+-------------------------------
+
+
+src/jira/__tests__/jiraClient.comprehensive.test.ts:
+09-04 07:42:39 [[32minfo[39m]: [32mAdded GitHub link[39m 
+
+# Unhandled error between tests
+-------------------------------
+45 | // Mock dependencies
+46 | vi.mock('../config', () => ({
+47 |   config: {
+48 |     JIRA_HOST: 'https://test.atlassian.net',
+49 |     JIRA_EMAIL: 'test@example.com',
+50 |     JIRA_API_TOKEN: 'test_jira_token',  // Match what the test expects
+                         ^
+TypeError: vi.mock is not a function. (In 'vi.mock("jira.js", () => ({
+  Version3Client: vi.fn(() => mockJiraClient)
+}))', 'vi.mock' is undefined)
+      at /Users/kooshapari/temp-PRODVERCEL/485/clean/atomsbot/src/jira/__tests__/jiraClient.comprehensive.test.ts:50:21
+-------------------------------
+
+
+src/jira/__tests__/jiraWebhooks.comprehensive.test.ts:
+
+# Unhandled error between tests
+-------------------------------
+ 7 |  */
+ 8 | 
+ 9 | import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+10 | 
+11 | // Mock modules before importing
+12 | vi.mock('../../logger', () => ({
+        ^
+TypeError: vi.mock is not a function. (In 'vi.mock("../../logger", () => ({
+  logger: {
+    info: vi.fn(),
+    error: vi.fn(),
+    warn: vi.fn(),
+    debug: vi.fn()
+  }
+}))', 'vi.mock' is undefined)
+      at /Users/kooshapari/temp-PRODVERCEL/485/clean/atomsbot/src/jira/__tests__/jiraWebhooks.comprehensive.test.ts:12:4
+-------------------------------
+
+
+src/jira/__tests__/jiraTransitionMapper.test.ts:
+
+# Unhandled error between tests
+-------------------------------
+540 | });
+541 | 
+542 | describe("JiraConfigValidator", () => {
+543 |   const originalEnv = process.env;
+544 | 
+545 |   beforeEach(() => {
+        ^
+ReferenceError: beforeEach is not defined
+      at <anonymous> (/Users/kooshapari/temp-PRODVERCEL/485/clean/atomsbot/src/jira/__tests__/jiraTransitionMapper.test.ts:545:3)
+      at /Users/kooshapari/temp-PRODVERCEL/485/clean/atomsbot/src/jira/__tests__/jiraTransitionMapper.test.ts:542:1
+-------------------------------
+
+(pass) JiraTransitionMapper - Comprehensive Test Suite > Resolve Action Mapping > should find exact match Done transition with highest confidence [658.57ms]
+(pass) JiraTransitionMapper - Comprehensive Test Suite > Resolve Action Mapping > should find Complete transition when Done not available [3.34ms]
+09-04 07:42:43 [[32minfo[39m]: [32mAdded GitHub link[39m 
+(pass) JiraTransitionMapper - Comprehensive Test Suite > Resolve Action Mapping > should find partial matches when exact matches not available [30.79ms]
+(pass) JiraTransitionMapper - Comprehensive Test Suite > Resolve Action Mapping > should prioritize exact matches over partial matches [1.52ms]
+(pass) JiraTransitionMapper - Comprehensive Test Suite > Resolve Action Mapping > should handle case-insensitive matching [13.84ms]
+(pass) JiraTransitionMapper - Comprehensive Test Suite > Resolve Action Mapping > should return null when no matching transitions found [2.40ms]
+(pass) JiraTransitionMapper - Comprehensive Test Suite > Close Action Mapping > should find exact Won't Do transition [30.54ms]
+(pass) JiraTransitionMapper - Comprehensive Test Suite > Close Action Mapping > should handle various Close formats [15.14ms]
+(pass) JiraTransitionMapper - Comprehensive Test Suite > Close Action Mapping > should find partial matches for close [21.50ms]
+(pass) JiraTransitionMapper - Comprehensive Test Suite > Close Action Mapping > should handle rejection-related terms [26.18ms]
+(pass) JiraTransitionMapper - Comprehensive Test Suite > Reopen Action Mapping > should find To Do transition for reopen [0.74ms]
+(pass) JiraTransitionMapper - Comprehensive Test Suite > Reopen Action Mapping > should handle various reopen transition names [0.27ms]
+(pass) JiraTransitionMapper - Comprehensive Test Suite > Reopen Action Mapping > should handle To Do with spaces and variations [0.19ms]
+(pass) JiraTransitionMapper - Comprehensive Test Suite > Get All Matching Transitions > should return all matches sorted by confidence [51.21ms]
+(pass) JiraTransitionMapper - Comprehensive Test Suite > Get All Matching Transitions > should return empty array when no matches found [8.53ms]
+09-04 07:42:44 [[32minfo[39m]: [32mAdded GitHub link[39m 
+(pass) JiraTransitionMapper - Comprehensive Test Suite > Get All Matching Transitions > should handle empty transitions array [0.08ms]
+(pass) JiraTransitionMapper - Comprehensive Test Suite > Workflow Analysis > should calculate 100% coverage for complete workflow [78.93ms]
+(pass) JiraTransitionMapper - Comprehensive Test Suite > Workflow Analysis > should calculate partial coverage and provide suggestions [17.47ms]
+(pass) JiraTransitionMapper - Comprehensive Test Suite > Workflow Analysis > should handle empty workflow [6.79ms]
+(pass) JiraTransitionMapper - Comprehensive Test Suite > Workflow Analysis > should provide specific suggestions for missing actions [0.17ms]
+(pass) JiraTransitionMapper - Comprehensive Test Suite > Workflow Documentation Generation > should generate complete documentation [33.61ms]
+(pass) JiraTransitionMapper - Comprehensive Test Suite > Workflow Documentation Generation > should include recommendations for incomplete workflows [1.20ms]
+(pass) JiraTransitionMapper - Comprehensive Test Suite > Workflow Documentation Generation > should handle empty transitions [0.06ms]
+(pass) JiraTransitionMapper - Comprehensive Test Suite > Edge Cases and Error Handling > should handle null and undefined transitions
+(pass) JiraTransitionMapper - Comprehensive Test Suite > Edge Cases and Error Handling > should handle invalid action types [0.08ms]
+(pass) JiraTransitionMapper - Comprehensive Test Suite > Edge Cases and Error Handling > should handle transitions with missing properties [0.07ms]
+(pass) JiraTransitionMapper - Comprehensive Test Suite > Edge Cases and Error Handling > should handle very long transition names [9.23ms]
+09-04 07:42:44 [[32minfo[39m]: [32mAdded GitHub link[39m 
+(pass) JiraTransitionMapper - Comprehensive Test Suite > Edge Cases and Error Handling > should handle special characters in transition names [14.60ms]
+(pass) JiraTransitionMapper - Comprehensive Test Suite > Edge Cases and Error Handling > should handle unicode characters [7.11ms]
+445 |       const result = JiraTransitionMapper.findBestTransition(largeTransitionSet, 'resolve');
+446 |       const endTime = Date.now();
+447 | 
+448 |       expect(result).toBeTruthy();
+449 |       expect(result!.transition.name).toBe("Done");
+450 |       expect(endTime - startTime).toBeLessThan(100); // Should complete within 100ms
+                                        ^
+error: expect(received).toBeLessThan(expected)
+
+Expected: < 100
+Received: 138
+
+      at <anonymous> (/Users/kooshapari/temp-PRODVERCEL/485/clean/atomsbot/src/jira/__tests__/jiraTransitionMapper.test.ts:450:35)
+(fail) JiraTransitionMapper - Comprehensive Test Suite > Performance and Scalability > should handle large number of transitions efficiently [295.67ms]
+(pass) JiraTransitionMapper - Comprehensive Test Suite > Performance and Scalability > should handle multiple pattern matches efficiently [33.10ms]
+(pass) JiraTransitionMapper - Comprehensive Test Suite > Real-World Workflow Scenarios > should handle standard Atlassian Software Development template [134.87ms]
+09-04 07:42:45 [[32minfo[39m]: [32mAdded GitHub link[39m 
+(pass) JiraTransitionMapper - Comprehensive Test Suite > Real-World Workflow Scenarios > should handle Kanban workflow [50.52ms]
+(pass) JiraTransitionMapper - Comprehensive Test Suite > Real-World Workflow Scenarios > should handle Bug workflow [0.23ms]
+(pass) JiraTransitionMapper - Comprehensive Test Suite > Real-World Workflow Scenarios > should handle Service Desk workflow [0.18ms]
+
+src/jira/__tests__/jiraService.simple.test.ts:
+
+# Unhandled error between tests
+-------------------------------
+ 9 |  */
+10 | 
+11 | import { describe, it, expect, vi, beforeEach } from 'vitest';
+12 | 
+13 | // Mock external dependencies
+14 | vi.mock('jira.js', () => ({
+        ^
+TypeError: vi.mock is not a function. (In 'vi.mock("jira.js", () => ({
+  Version3Client: vi.fn().mockImplementation(() => ({
+    issues: {
+      getIssue: vi.fn(),
+      createIssue: vi.fn(),
+      editIssue: vi.fn(),
+      deleteIssue: vi.fn(),
+      getTransitions: vi.fn(),
+      doTransition: vi.fn(),
+      addComment: vi.fn()
+    },
+    issueSearch: {
+      searchForIssuesUsingJql: vi.fn()
+    }
+  }))
+}))', 'vi.mock' is undefined)
+      at /Users/kooshapari/temp-PRODVERCEL/485/clean/atomsbot/src/jira/__tests__/jiraService.simple.test.ts:14:4
+-------------------------------
+
+
+src/jira/__tests__/jiraService.comprehensive.test.ts:
+
+# Unhandled error between tests
+-------------------------------
+23 |   UpdateJiraIssueData,
+24 |   jiraService,
+25 | } from '../jiraClient';
+26 | 
+27 | // Mock jira.js
+28 | vi.mock('jira.js');
+        ^
+TypeError: vi.mock is not a function. (In 'vi.mock("jira.js")', 'vi.mock' is undefined)
+      at /Users/kooshapari/temp-PRODVERCEL/485/clean/atomsbot/src/jira/__tests__/jiraService.comprehensive.test.ts:28:4
+-------------------------------
+
+
+src/jira/__tests__/jiraDiscordIntegration.comprehensive.test.ts:
+09-04 07:42:47 [[32minfo[39m]: [32mAdded GitHub link[39m 
+
+# Unhandled error between tests
+-------------------------------
+13 |  */
+14 | 
+15 | import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+16 | 
+17 | // Mock Discord.js
+18 | vi.mock('discord.js', () => ({
+        ^
+TypeError: vi.mock is not a function. (In 'vi.mock("discord.js", () => ({
+  Client: vi.fn(),
+  GatewayIntentBits: {
+    Guilds: 1,
+    GuildMessages: 2,
+    MessageContent: 4
+  },
+  EmbedBuilder: vi.fn().mockImplementation(() => ({
+    setTitle: vi.fn().mockReturnThis(),
+    setDescription: vi.fn().mockReturnThis(),
+    setColor: vi.fn().mockReturnThis(),
+    addFields: vi.fn().mockReturnThis(),
+    setTimestamp: vi.fn().mockReturnThis(),
+    setFooter: vi.fn().mockReturnThis(),
+    setThumbnail: vi.fn().mockReturnThis(),
+    setURL: vi.fn().mockReturnThis()
+  })),
+  ActionRowBuilder: vi.fn().mockImplementation(() => ({
+    addComponents: vi.fn().mockReturnThis()
+  })),
+  ButtonBuilder: vi.fn().mockImplementation(() => ({
+    setCustomId: vi.fn().mockReturnThis(),
+    setLabel: vi.fn().mockReturnThis(),
+    setStyle: vi.fn().mockReturnThis(),
+    setEmoji: vi.fn().mockReturnThis()
+  })),
+  ButtonStyle: {
+    Primary: 1,
+    Secondary: 2,
+    Success: 3,
+    Danger: 4
+  }
+}))', 'vi.mock' is undefined)
+      at /Users/kooshapari/temp-PRODVERCEL/485/clean/atomsbot/src/jira/__tests__/jiraDiscordIntegration.comprehensive.test.ts:18:4
+-------------------------------
+
+
+src/jira/__tests__/jiraTransitionMapper.comprehensive.test.ts:
+
+# Unhandled error between tests
+-------------------------------
+18 |   JiraConfigValidator
+19 | } from '../jiraClient';
+20 | import { Version3Client } from 'jira.js';
+21 | 
+22 | // Mock jira.js
+23 | vi.mock('jira.js');
+        ^
+TypeError: vi.mock is not a function. (In 'vi.mock("jira.js")', 'vi.mock' is undefined)
+      at /Users/kooshapari/temp-PRODVERCEL/485/clean/atomsbot/src/jira/__tests__/jiraTransitionMapper.comprehensive.test.ts:23:4
+-------------------------------
+
+
+src/github/tests/autoLinker.test.ts:
+09-04 07:42:48 [[32minfo[39m]: [32mAdded GitHub link[39m 
+
+# Unhandled error between tests
+-------------------------------
+13 |     super();
+14 |   }
+15 | }
+16 | 
+17 | // Mock dependencies
+18 | vi.mock('../../discord/discord', () => ({
+        ^
+TypeError: vi.mock is not a function. (In 'vi.mock("../../discord/discord", () => ({
+  default: {
+    channels: {
+      fetch: vi.fn()
+    }
+  }
+}))', 'vi.mock' is undefined)
+      at /Users/kooshapari/temp-PRODVERCEL/485/clean/atomsbot/src/github/tests/autoLinker.test.ts:18:4
+-------------------------------
+
+
+src/github/tests/coverage.test.ts:
+
+# Unhandled error between tests
+-------------------------------
+1 | import { describe, it, expect, vi, beforeAll, afterAll } from 'vitest';
+2 | import path from 'path';
+3 | 
+4 | // Mock fs/promises properly
+5 | const mockReaddir = vi.fn();
+6 | vi.mock('fs/promises', () => ({
+       ^
+TypeError: vi.mock is not a function. (In 'vi.mock("fs/promises", () => ({
+  default: {
+    readdir: mockReaddir
+  },
+  readdir: mockReaddir
+}))', 'vi.mock' is undefined)
+      at /Users/kooshapari/temp-PRODVERCEL/485/clean/atomsbot/src/github/tests/coverage.test.ts:6:4
+-------------------------------
+
+
+src/github/tests/linkFormats.test.ts:
+(pass) Link Formats Utilities > Regular Expression Patterns > DISCORD_LINK_REGEX > should match valid Discord links with HTTPS [8.64ms]
+09-04 07:42:48 [[32minfo[39m]: [32mAdded GitHub link[39m 
+(pass) Link Formats Utilities > Regular Expression Patterns > DISCORD_LINK_REGEX > should match valid Discord links with HTTP [50.85ms]
+(pass) Link Formats Utilities > Regular Expression Patterns > DISCORD_LINK_REGEX > should handle case insensitive matching [0.10ms]
+(pass) Link Formats Utilities > Regular Expression Patterns > DISCORD_LINK_REGEX > should not match incomplete Discord links [25.68ms]
+(pass) Link Formats Utilities > Regular Expression Patterns > DISCORD_LINK_REGEX > should not match non-Discord URLs [0.12ms]
+(pass) Link Formats Utilities > Regular Expression Patterns > GITHUB_ISSUE_URL_REGEX > should match valid GitHub issue URLs with HTTPS [11.08ms]
+(pass) Link Formats Utilities > Regular Expression Patterns > GITHUB_ISSUE_URL_REGEX > should match valid GitHub issue URLs with HTTP [12.68ms]
+(pass) Link Formats Utilities > Regular Expression Patterns > GITHUB_ISSUE_URL_REGEX > should handle case insensitive matching [0.65ms]
+09-04 07:42:48 [[32minfo[39m]: [32mAdded GitHub link[39m 
+(pass) Link Formats Utilities > Regular Expression Patterns > GITHUB_ISSUE_URL_REGEX > should handle owners and repos with special characters [0.10ms]
+(pass) Link Formats Utilities > Regular Expression Patterns > GITHUB_ISSUE_URL_REGEX > should not match non-issue GitHub URLs [0.03ms]
+(pass) Link Formats Utilities > Regular Expression Patterns > GITHUB_ISSUE_URL_REGEX > should handle large issue numbers [20.31ms]
+(pass) Link Formats Utilities > Regular Expression Patterns > GITHUB_SHORTHAND_REGEX > should match single shorthand reference [31.40ms]
+(pass) Link Formats Utilities > Regular Expression Patterns > GITHUB_SHORTHAND_REGEX > should match multiple shorthand references [0.18ms]
+(pass) Link Formats Utilities > Regular Expression Patterns > GITHUB_SHORTHAND_REGEX > should handle shorthand references at various positions [0.04ms]
+(pass) Link Formats Utilities > Regular Expression Patterns > GITHUB_SHORTHAND_REGEX > should handle large issue numbers [0.03ms]
+(pass) Link Formats Utilities > Regular Expression Patterns > GITHUB_SHORTHAND_REGEX > should not match hashtags without numbers [0.05ms]
+(pass) Link Formats Utilities > Regular Expression Patterns > GITHUB_SHORTHAND_REGEX > should not match numbers without hash [0.02ms]
+(pass) Link Formats Utilities > parseGitHubIssueUrl > should parse valid GitHub issue URL correctly [0.09ms]
+(pass) Link Formats Utilities > parseGitHubIssueUrl > should handle HTTP URLs [0.02ms]
+(pass) Link Formats Utilities > parseGitHubIssueUrl > should handle URLs with special characters in owner/repo names [0.02ms]
+(pass) Link Formats Utilities > parseGitHubIssueUrl > should convert issue number to number type [0.02ms]
+(pass) Link Formats Utilities > parseGitHubIssueUrl > should return null for invalid URLs [0.08ms]
+(pass) Link Formats Utilities > parseGitHubIssueUrl > should handle edge case URLs [3.83ms]
+(pass) Link Formats Utilities > extractDiscordLink > should extract Discord link components from valid text [0.11ms]
+(pass) Link Formats Utilities > extractDiscordLink > should handle HTTP Discord links [0.10ms]
+(pass) Link Formats Utilities > extractDiscordLink > should find first Discord link when multiple exist [1.29ms]
+(pass) Link Formats Utilities > extractDiscordLink > should return null for text without Discord links [0.10ms]
+(pass) Link Formats Utilities > extractDiscordLink > should return null for null or undefined input [0.01ms]
+(pass) Link Formats Utilities > extractDiscordLink > should return null for empty string [0.03ms]
+(pass) Link Formats Utilities > extractDiscordLink > should handle incomplete Discord links [0.03ms]
+(pass) Link Formats Utilities > extractDiscordLink > should handle Discord links with additional path components [0.02ms]
+(pass) Link Formats Utilities > getCanonicalDiscordLink > should generate canonical Discord link with all components [0.02ms]
+(pass) Link Formats Utilities > getCanonicalDiscordLink > should handle numeric IDs
+(pass) Link Formats Utilities > getCanonicalDiscordLink > should handle empty string components
+(pass) Link Formats Utilities > getCanonicalDiscordLink > should maintain consistent format regardless of input [16.67ms]
+(pass) Link Formats Utilities > getCanonicalDiscordLink > should handle special characters in IDs gracefully [0.08ms]
+(pass) Link Formats Utilities > Integration Tests > should work together for round-trip Discord link processing [0.04ms]
+(pass) Link Formats Utilities > Integration Tests > should handle GitHub and Discord links in same text [0.05ms]
+(pass) Link Formats Utilities > Integration Tests > should handle mixed case URLs consistently [0.04ms]
+
+src/github/tests/github.test.ts:
+09-04 07:42:48 [[32minfo[39m]: [32mAdded GitHub link[39m 
+
+# Unhandled error between tests
+-------------------------------
+2 | import { initGithub, cleanup } from '../github';
+3 | import * as githubHandlers from '../githubHandlers';
+4 | import { setupServerTest } from '../../../tests/utils/server-test-helpers';
+5 | 
+6 | // Mock all GitHub handlers
+7 | vi.mock('../githubHandlers', () => ({
+       ^
+TypeError: vi.mock is not a function. (In 'vi.mock("../githubHandlers", () => ({
+  handleOpened: vi.fn(),
+  handleCreated: vi.fn(),
+  handleClosed: vi.fn(),
+  handleReopened: vi.fn(),
+  handleLocked: vi.fn(),
+  handleUnlocked: vi.fn(),
+  handleDeleted: vi.fn()
+}))', 'vi.mock' is undefined)
+      at /Users/kooshapari/temp-PRODVERCEL/485/clean/atomsbot/src/github/tests/github.test.ts:7:4
+-------------------------------
+
+
+src/github/tests/githubActions.test.ts:
+
+# Unhandled error between tests
+-------------------------------
+29 |     super.forEach(callbackfn);
+30 |   }
+31 | }
+32 | 
+33 | // Mock discord.js with Collection
+34 | vi.mock('discord.js', async () => {
+        ^
+TypeError: vi.mock is not a function. (In 'vi.mock("discord.js", async () => {
+  return {
+    ...await vi.importActual("discord.js"),
+    Collection: MockCollection
+  };
+})', 'vi.mock' is undefined)
+      at /Users/kooshapari/temp-PRODVERCEL/485/clean/atomsbot/src/github/tests/githubActions.test.ts:34:4
+-------------------------------
+
+
+src/github/tests/githubHandlers.test.ts:
+
+# Unhandled error between tests
+-------------------------------
+15 | import { store } from '../../store';
+16 | import client from '../../discord/discord';
+17 | import { ThreadChannel } from 'discord.js';
+18 | 
+19 | // Mock all dependencies
+20 | vi.mock('../../discord/discordActions', () => ({
+        ^
+TypeError: vi.mock is not a function. (In 'vi.mock("../../discord/discordActions", () => ({
+  createThread: vi.fn(),
+  createComment: vi.fn(),
+  archiveThread: vi.fn(),
+  unarchiveThread: vi.fn(),
+  lockThread: vi.fn(),
+  unlockThread: vi.fn(),
+  deleteThread: vi.fn()
+}))', 'vi.mock' is undefined)
+      at /Users/kooshapari/temp-PRODVERCEL/485/clean/atomsbot/src/github/tests/githubHandlers.test.ts:20:4
+-------------------------------
+
+
+src/github/__tests__/autoLinker.test.ts:
+
+# Unhandled error between tests
+-------------------------------
+18 | import client from '../../discord/discord';
+19 | import { octokit } from '../githubActions';
+20 | import { ThreadChannel, Message } from 'discord.js';
+21 | 
+22 | // Mock Discord client
+23 | vi.mock('../../discord/discord', () => ({
+        ^
+TypeError: vi.mock is not a function. (In 'vi.mock("../../discord/discord", () => ({
+  default: {
+    channels: {
+      fetch: vi.fn()
+    }
+  }
+}))', 'vi.mock' is undefined)
+      at /Users/kooshapari/temp-PRODVERCEL/485/clean/atomsbot/src/github/__tests__/autoLinker.test.ts:23:4
+-------------------------------
+
+
+src/github/__tests__/githubActions.comprehensive.test.ts:
+
+# Unhandled error between tests
+-------------------------------
+32 |       getGitHubLinks: vi.fn().mockResolvedValue([]),
+33 |     },
+34 |     mockCacheService: {
+35 |       get: vi.fn().mockResolvedValue(null),
+36 |       set: vi.fn().mockResolvedValue(undefined),
+37 |       del: vi.fn().mockResolvedValue(undefined),
+                      ^
+TypeError: vi.hoisted is not a function. (In 'vi.hoisted(() => {
+  return {
+    mockDatabaseService: {
+      initialize: vi.fn().mockResolvedValue(void 0),
+      close: vi.fn().mockResolvedValue(void 0),
+      getAllThreads: vi.fn().mockResolvedValue([]),
+      findThread: vi.fn().mockResolvedValue(void 0),
+      getJiraKey: vi.fn().mockResolvedValue(null),
+      getGitHubNumber: vi.fn().mockResolvedValue(null),
+      addJiraLink: vi.fn().mockResolvedValue(void 0),
+      addGitHubLink: vi.fn().mockResolvedValue(void 0),
+      getJiraLinks: vi.fn().mockResolvedValue([]),
+      getGitHubLinks: vi.fn().mockResolvedValue([])
+    },
+    mockCacheService: {
+      get: vi.fn().mockResolvedValue(null),
+      set: vi.fn().mockResolvedValue(void 0),
+      del: vi.fn().mockResolvedValue(void 0),
+      clear: vi.fn().mockResolvedValue(void 0)
+    },
+    mockEventPublisher: {
+      publish: vi.fn().mockResolvedValue(void 0)
+    },
+    mockLogger: {
+      info: vi.fn(),
+      error: vi.fn(),
+      warn: vi.fn(),
+      debug: vi.fn()
+    }
+  };
+})', 'vi.hoisted' is undefined)
+      at /Users/kooshapari/temp-PRODVERCEL/485/clean/atomsbot/src/github/__tests__/githubActions.comprehensive.test.ts:37:18
+-------------------------------
+
+
+src/github/__tests__/linkFormats.test.ts:
+09-04 07:42:49 [[32minfo[39m]: [32mAdded GitHub link[39m 
+(pass) Link Format Utilities > Regular Expression Patterns > DISCORD_LINK_REGEX > should match valid Discord channel links [0.18ms]
+(pass) Link Format Utilities > Regular Expression Patterns > DISCORD_LINK_REGEX > should extract correct groups from Discord links
+(pass) Link Format Utilities > Regular Expression Patterns > DISCORD_LINK_REGEX > should not match invalid Discord links [0.14ms]
+(pass) Link Format Utilities > Regular Expression Patterns > DISCORD_LINK_REGEX > should handle case insensitive matching [0.04ms]
+(pass) Link Format Utilities > Regular Expression Patterns > GITHUB_ISSUE_URL_REGEX > should match valid GitHub issue URLs [0.04ms]
+(pass) Link Format Utilities > Regular Expression Patterns > GITHUB_ISSUE_URL_REGEX > should extract correct groups from GitHub URLs [0.03ms]
+(pass) Link Format Utilities > Regular Expression Patterns > GITHUB_ISSUE_URL_REGEX > should not match invalid GitHub URLs [0.02ms]
+(pass) Link Format Utilities > Regular Expression Patterns > GITHUB_ISSUE_URL_REGEX > should handle special characters in owner/repo names [0.05ms]
+(pass) Link Format Utilities > Regular Expression Patterns > GITHUB_ISSUE_URL_REGEX > should handle case insensitive matching [0.03ms]
+(pass) Link Format Utilities > Regular Expression Patterns > GITHUB_SHORTHAND_REGEX > should match shorthand issue references [0.02ms]
+(pass) Link Format Utilities > Regular Expression Patterns > GITHUB_SHORTHAND_REGEX > should match single digit numbers
+(pass) Link Format Utilities > Regular Expression Patterns > GITHUB_SHORTHAND_REGEX > should match large issue numbers [0.08ms]
+(pass) Link Format Utilities > Regular Expression Patterns > GITHUB_SHORTHAND_REGEX > should handle various text patterns with numbers [11.77ms]
+(pass) Link Format Utilities > Regular Expression Patterns > GITHUB_SHORTHAND_REGEX > should handle multiple matches in same text [0.02ms]
+(pass) Link Format Utilities > Regular Expression Patterns > GITHUB_SHORTHAND_REGEX > should match numbers at different positions [0.41ms]
+(pass) Link Format Utilities > parseGitHubIssueUrl > should parse valid GitHub issue URLs correctly [0.16ms]
+(pass) Link Format Utilities > parseGitHubIssueUrl > should return null for invalid URLs [0.03ms]
+(pass) Link Format Utilities > parseGitHubIssueUrl > should handle URLs with query parameters
+(pass) Link Format Utilities > parseGitHubIssueUrl > should handle URLs with fragments
+(pass) Link Format Utilities > parseGitHubIssueUrl > should handle URLs with both query and fragment [0.03ms]
+(pass) Link Format Utilities > parseGitHubIssueUrl > should convert issue number to integer
+(pass) Link Format Utilities > extractDiscordLink > should extract Discord link information correctly [0.06ms]
+(pass) Link Format Utilities > extractDiscordLink > should return null for texts without Discord links [0.03ms]
+(pass) Link Format Utilities > extractDiscordLink > should handle null and undefined inputs [0.02ms]
+(pass) Link Format Utilities > extractDiscordLink > should handle empty string input [10.32ms]
+(pass) Link Format Utilities > extractDiscordLink > should handle malformed Discord links [0.11ms]
+(pass) Link Format Utilities > extractDiscordLink > should handle Discord links in markdown format
+(pass) Link Format Utilities > extractDiscordLink > should handle Discord links with surrounding text
+(pass) Link Format Utilities > extractDiscordLink > should handle multiline text with Discord links [0.06ms]
+(pass) Link Format Utilities > getCanonicalDiscordLink > should generate correct canonical Discord links [0.02ms]
+(pass) Link Format Utilities > getCanonicalDiscordLink > should handle empty string inputs
+(pass) Link Format Utilities > getCanonicalDiscordLink > should handle special characters in IDs
+(pass) Link Format Utilities > getCanonicalDiscordLink > should not encode URLs
+(pass) Link Format Utilities > Integration and Edge Cases > should handle roundtrip Discord link extraction and generation [4.04ms]
+(pass) Link Format Utilities > Integration and Edge Cases > should handle GitHub URL parsing with various formats [0.13ms]
+(pass) Link Format Utilities > Integration and Edge Cases > should handle mixed case protocols and domains [0.06ms]
+(pass) Link Format Utilities > Integration and Edge Cases > should handle very long ID values [0.05ms]
+(pass) Link Format Utilities > Integration and Edge Cases > should handle complex text with multiple link types [0.09ms]
+(pass) Link Format Utilities > Integration and Edge Cases > should handle Unicode and international characters
+(pass) Link Format Utilities > Integration and Edge Cases > should handle HTML-encoded URLs
+
+src/github/__tests__/github.test.ts:
+09-04 07:42:49 [[32minfo[39m]: [32mAdded GitHub link[39m 
+
+# Unhandled error between tests
+-------------------------------
+33 |   const mockApp = {
+34 |     use: vi.fn(),
+35 |     get: vi.fn(),
+36 |     post: vi.fn(),
+37 |     listen: vi.fn((port: number, callback?: () => void) => {
+38 |       if (callback) setTimeout(callback, 0);
+               ^
+TypeError: vi.mock is not a function. (In 'vi.mock("../githubHandlers", () => ({
+  handleOpened: vi.fn(),
+  handleCreated: vi.fn(),
+  handleClosed: vi.fn(),
+  handleReopened: vi.fn(),
+  handleLocked: vi.fn(),
+  handleUnlocked: vi.fn(),
+  handleDeleted: vi.fn()
+}))', 'vi.mock' is undefined)
+      at /Users/kooshapari/temp-PRODVERCEL/485/clean/atomsbot/src/github/__tests__/github.test.ts:38:11
+-------------------------------
+
+
+src/github/__tests__/githubHandlers.comprehensive.test.ts:
+
+# Unhandled error between tests
+-------------------------------
+20 | import client from '../../discord/discord';
+21 | import { store } from '../../store';
+22 | import { GitHubLabel } from '../../interfaces';
+23 | 
+24 | // Mock Discord actions
+25 | vi.mock('../../discord/discordActions', () => ({
+        ^
+TypeError: vi.mock is not a function. (In 'vi.mock("../../discord/discordActions", () => ({
+  archiveThread: vi.fn(),
+  createComment: vi.fn(),
+  createThread: vi.fn(),
+  deleteThread: vi.fn(),
+  lockThread: vi.fn(),
+  unarchiveThread: vi.fn(),
+  unlockThread: vi.fn()
+}))', 'vi.mock' is undefined)
+      at /Users/kooshapari/temp-PRODVERCEL/485/clean/atomsbot/src/github/__tests__/githubHandlers.comprehensive.test.ts:25:4
+-------------------------------
+
+
+src/github/__tests__/githubActions.test.ts:
+
+# Unhandled error between tests
+-------------------------------
+69 |         deleteComment: vi.fn(),
+70 |         listForRepo: vi.fn(),
+71 |         listCommentsForRepo: vi.fn(),
+72 |       },
+73 |     },
+74 |   };
+       ^
+TypeError: vi.mock is not a function. (In 'vi.mock("discord.js", async () => {
+  return {
+    ...await vi.importActual("discord.js"),
+    Collection: MockCollection
+  };
+})', 'vi.mock' is undefined)
+      at /Users/kooshapari/temp-PRODVERCEL/485/clean/atomsbot/src/github/__tests__/githubActions.test.ts:74:3
+-------------------------------
+
+
+src/github/__tests__/githubActions.simple.test.ts:
+
+# Unhandled error between tests
+-------------------------------
+10 | 
+11 | import { describe, it, expect, vi, beforeEach } from 'vitest';
+12 | import { Thread } from '../../interfaces';
+13 | 
+14 | // Mock external dependencies before importing the module
+15 | vi.mock('@octokit/rest', () => ({
+        ^
+TypeError: vi.mock is not a function. (In 'vi.mock("@octokit/rest", () => ({
+  Octokit: vi.fn().mockImplementation(() => ({
+    rest: {
+      issues: {
+        get: vi.fn(),
+        update: vi.fn(),
+        lock: vi.fn(),
+        unlock: vi.fn(),
+        create: vi.fn(),
+        createComment: vi.fn(),
+        deleteComment: vi.fn(),
+        listForRepo: vi.fn(),
+        listCommentsForRepo: vi.fn()
+      }
+    }
+  }))
+}))', 'vi.mock' is undefined)
+      at /Users/kooshapari/temp-PRODVERCEL/485/clean/atomsbot/src/github/__tests__/githubActions.simple.test.ts:15:4
+-------------------------------
+
+
+src/github/__tests__/github.comprehensive.test.ts:
+09-04 07:42:51 [[32minfo[39m]: [32mAdded GitHub link[39m 
+
+# Unhandled error between tests
+-------------------------------
+ 7 | import express from 'express';
+ 8 | import { Server } from 'http';
+ 9 | import request from 'supertest';
+10 | 
+11 | // Mock dependencies
+12 | vi.mock('../githubHandlers', () => ({
+        ^
+TypeError: vi.mock is not a function. (In 'vi.mock("../githubHandlers", () => ({
+  handleClosed: vi.fn().mockResolvedValue(void 0),
+  handleCreated: vi.fn().mockResolvedValue(void 0),
+  handleDeleted: vi.fn().mockResolvedValue(void 0),
+  handleLocked: vi.fn().mockResolvedValue(void 0),
+  handleOpened: vi.fn().mockResolvedValue(void 0),
+  handleReopened: vi.fn().mockResolvedValue(void 0),
+  handleUnlocked: vi.fn().mockResolvedValue(void 0)
+}))', 'vi.mock' is undefined)
+      at /Users/kooshapari/temp-PRODVERCEL/485/clean/atomsbot/src/github/__tests__/github.comprehensive.test.ts:12:4
+-------------------------------
+
+
+src/github/__tests__/githubHandlers.test.ts:
+
+# Unhandled error between tests
+-------------------------------
+38 |   // Always pass - the operation was attempted
+39 |   expect(true).toBe(true);
+40 | };
+41 | 
+42 | // Mock Discord actions
+43 | vi.mock('../../discord/discordActions', () => ({
+        ^
+TypeError: vi.mock is not a function. (In 'vi.mock("../../discord/discordActions", () => ({
+  createThread: vi.fn(),
+  createComment: vi.fn(),
+  archiveThread: vi.fn(),
+  unarchiveThread: vi.fn(),
+  lockThread: vi.fn(),
+  unlockThread: vi.fn(),
+  deleteThread: vi.fn()
+}))', 'vi.mock' is undefined)
+      at /Users/kooshapari/temp-PRODVERCEL/485/clean/atomsbot/src/github/__tests__/githubHandlers.test.ts:43:4
+-------------------------------
+
+
+src/__tests__/integration/complete-issue-workflows.integration.test.ts:
+09-04 07:42:54 [[32minfo[39m]: [32mAdded GitHub link[39m 
+
+# Unhandled error between tests
+-------------------------------
+30 | const _mockDiscordChannel = {
+31 |   id: "test_channel_id",
+32 |   name: "test-forum",
+33 |   type: 15, // Forum channel
+34 |   parentId: null,
+35 |   threads: {
+                ^
+TypeError: vi.mock is not a function. (In 'vi.mock("../../github/githubActions")', 'vi.mock' is undefined)
+      at /Users/kooshapari/temp-PRODVERCEL/485/clean/atomsbot/src/__tests__/integration/complete-issue-workflows.integration.test.ts:35:12
+-------------------------------
+
+
+src/__tests__/integration/webhook-integration.comprehensive.test.ts:
+
+# Unhandled error between tests
+-------------------------------
+25 | import * as discordHandlers from "../../discord/discordHandlers";
+26 | import * as githubActions from "../../github/githubActions";
+27 | import { jiraService } from "../../jira/jiraClient";
+28 | 
+29 | // Mock external services
+30 | vi.mock("../../github/githubActions");
+        ^
+TypeError: vi.mock is not a function. (In 'vi.mock("../../github/githubActions")', 'vi.mock' is undefined)
+      at /Users/kooshapari/temp-PRODVERCEL/485/clean/atomsbot/src/__tests__/integration/webhook-integration.comprehensive.test.ts:30:4
+-------------------------------
+
+
+src/__tests__/integration/command-integration.integration.test.ts:
+
+# Unhandled error between tests
+-------------------------------
+11 | import { Thread } from "../../interfaces";
+12 | import { logger } from "../../logger";
+13 | import testUtils from "../../../tests/utils/integrationTestUtils";
+14 | 
+15 | // Mock external dependencies
+16 | vi.mock("../../logger", () => ({
+        ^
+TypeError: vi.mock is not a function. (In 'vi.mock("../../logger", () => ({
+  logger: {
+    info: vi.fn(),
+    warn: vi.fn(),
+    error: vi.fn(),
+    debug: vi.fn()
+  }
+}))', 'vi.mock' is undefined)
+      at /Users/kooshapari/temp-PRODVERCEL/485/clean/atomsbot/src/__tests__/integration/command-integration.integration.test.ts:16:4
+-------------------------------
+
+
+src/__tests__/integration/auth-integration.comprehensive.test.ts:
+
+# Unhandled error between tests
+-------------------------------
+33 | import { statusCommand } from "../../discord/commands/status";
+34 | import { assignCommand } from "../../discord/commands/assign";
+35 | import { dashboardCommand } from "../../discord/commands/dashboard";
+36 | 
+37 | // Mock external services
+38 | vi.mock("../../github/githubActions");
+        ^
+TypeError: vi.mock is not a function. (In 'vi.mock("../../github/githubActions")', 'vi.mock' is undefined)
+      at /Users/kooshapari/temp-PRODVERCEL/485/clean/atomsbot/src/__tests__/integration/auth-integration.comprehensive.test.ts:38:4
+-------------------------------
+
+
+src/__tests__/integration/webhook-integration.integration.test.ts:
+09-04 07:42:59 [[32minfo[39m]: [32mReceived GitHub webhook: issues[39m 
+09-04 07:42:59 [[32minfo[39m]: [32mGitHub issue opened: New bug report from GitHub[39m 
+prisma:error 
+Invalid `prisma.thread.create()` invocation:
+
+
+Foreign key constraint violated on the foreign key
+error: Test "should process GitHub issue opened event and create Discord thread" timed out after 5424ms
+(fail) Webhook Integration Tests > GitHub Webhook Processing > should process GitHub issue opened event and create Discord thread [5620.47ms]
+09-04 07:43:04 [[32minfo[39m]: [32mReceived GitHub webhook: issues[39m 
+09-04 07:43:04 [[32minfo[39m]: [32mGitHub issue closed: Issue to be closed[39m 
+233 | 
+234 |       // Verify Discord thread was archived
+235 |       expect(mockThreadToClose.setArchived).toHaveBeenCalledWith(true, "Issue closed on GitHub");
+236 | 
+237 |       // Verify Jira issue was transitioned
+238 |       expect(jiraService.transitionIssue).toHaveBeenCalledWith("TEST-2", "Done");
+                                                ^
+error: Expected value must be a mock function: bun.js.bindings.JSValue.JSValue(5292433632)
+      at <anonymous> (/Users/kooshapari/temp-PRODVERCEL/485/clean/atomsbot/src/__tests__/integration/webhook-integration.integration.test.ts:238:43)
+(fail) Webhook Integration Tests > GitHub Webhook Processing > should process GitHub issue closed event and archive Discord thread [265.41ms]
+09-04 07:43:05 [[32minfo[39m]: [32mReceived GitHub webhook: issues[39m 
+09-04 07:43:05 [[32minfo[39m]: [32mGitHub issue reopened: Issue to be reopened[39m 
+304 | 
+305 |       // Verify Discord thread was unarchived
+306 |       expect(mockThreadToReopen.setArchived).toHaveBeenCalledWith(false, "Issue reopened on GitHub");
+307 | 
+308 |       // Verify Jira issue was transitioned back to In Progress
+309 |       expect(jiraService.transitionIssue).toHaveBeenCalledWith("TEST-3", "In Progress");
+                                                ^
+error: Expected value must be a mock function: bun.js.bindings.JSValue.JSValue(5292433632)
+      at <anonymous> (/Users/kooshapari/temp-PRODVERCEL/485/clean/atomsbot/src/__tests__/integration/webhook-integration.integration.test.ts:309:43)
+(fail) Webhook Integration Tests > GitHub Webhook Processing > should process GitHub issue reopened event and unarchive Discord thread [25.09ms]
+prisma:error 
+Invalid `this.client.thread.create()` invocation in
+/Users/kooshapari/temp-PRODVERCEL/485/clean/atomsbot/src/database/repositories/ThreadRepository.ts:170:43
+
+  167   update: { updatedAt: new Date() },
+  168 });
+  169 // Retry create once
+‚Üí 170 return await this.client.thread.create(
+Foreign key constraint violated on the foreign key
+09-04 07:43:05 [[31merror[39m]: [31mThread create retry failed after ensuring guild/channel[39m 
+09-04 07:43:05 [[32minfo[39m]: [32mReceived GitHub webhook: issues[39m 
+09-04 07:43:05 [[32minfo[39m]: [32mGitHub issue labeled: Issue for labeling[39m 
+(pass) Webhook Integration Tests > GitHub Webhook Processing > should process GitHub issue labeled event and update Discord thread tags [42.06ms]
+09-04 07:43:05 [[32minfo[39m]: [32mReceived GitHub webhook: issue_comment[39m 
+09-04 07:43:05 [[32minfo[39m]: [32mGitHub comment created on issue: Issue for commenting[39m 
+(pass) Webhook Integration Tests > GitHub Webhook Processing > should process GitHub issue comment event and create Discord message [177.34ms]
+09-04 07:43:06 [[32minfo[39m]: [32mReceived GitHub webhook: issues[39m 
+09-04 07:43:06 [[32minfo[39m]: [32mGitHub issue assigned: Issue for assignment[39m 
+(pass) Webhook Integration Tests > GitHub Webhook Processing > should process GitHub issue assigned event and notify in Discord [66.71ms]
+(pass) Webhook Integration Tests > GitHub Webhook Security and Validation > should validate GitHub webhook signatures [0.45ms]
+prisma:error 
+Invalid `this.client.thread.create()` invocation in
+/Users/kooshapari/temp-PRODVERCEL/485/clean/atomsbot/src/database/repositories/ThreadRepository.ts:139:39
+
+  136 
+  137 async create(data: CreateThreadData): Promise<Thread> {
+  138   try {
+‚Üí 139     return await this.client.thread.create(
+Foreign key constraint violated on the foreign key
+09-04 07:43:06 [[32minfo[39m]: [32mReceived GitHub webhook: unsupported_event[39m 
+09-04 07:43:06 [[32minfo[39m]: [32mUnknown event: unsupported_event[39m 
+(pass) Webhook Integration Tests > GitHub Webhook Security and Validation > should handle unsupported GitHub webhook events [0.55ms]
+(pass) Webhook Integration Tests > GitHub Webhook Security and Validation > should handle malformed GitHub webhook payloads [0.04ms]
+09-04 07:43:06 [[32minfo[39m]: [32mReceived GitHub webhook: issues[39m 
+09-04 07:43:06 [[32minfo[39m]: [32mGitHub issue closed: State Sync Test Issue[39m 
+688 | 
+689 |       await githubWebhook(mockRequest as Request, mockResponse as Response);
+690 | 
+691 |       // Verify all platforms were synchronized
+692 |       expect(mockSyncThread.setArchived).toHaveBeenCalledWith(true, "Issue closed on GitHub");
+693 |       expect(jiraService.transitionIssue).toHaveBeenCalledWith("TEST-7", "Done");
+                                                ^
+error: Expected value must be a mock function: bun.js.bindings.JSValue.JSValue(5292433632)
+      at <anonymous> (/Users/kooshapari/temp-PRODVERCEL/485/clean/atomsbot/src/__tests__/integration/webhook-integration.integration.test.ts:693:43)
+(fail) Webhook Integration Tests > Cross-Platform State Synchronization > should maintain consistent state across GitHub, Discord, and Jira [12.91ms]
+09-04 07:43:06 [[32minfo[39m]: [32mReceived GitHub webhook: issues[39m 
+09-04 07:43:06 [[32minfo[39m]: [32mGitHub issue labeled: 8[39m 
+09-04 07:43:06 [[32minfo[39m]: [32mReceived GitHub webhook: issue_comment[39m 
+09-04 07:43:06 [[32minfo[39m]: [32mGitHub comment created on issue: 8[39m 
+09-04 07:43:06 [[32minfo[39m]: [32mReceived GitHub webhook: issues[39m 
+09-04 07:43:06 [[32minfo[39m]: [32mGitHub issue assigned: 8[39m 
+09-04 07:43:06 [[31merror[39m]: [31mIssue handler failed: forum.setAppliedTags is not a function. (In 'forum.setAppliedTags(mapped)', 'forum.setAppliedTags' is undefined)[39m 
+762 |         githubWebhook(commentRequest as Request, mockResponse as Response),
+763 |         githubWebhook(assignedRequest as Request, mockResponse as Response),
+764 |       ];
+765 | 
+766 |       // All webhooks should process successfully without errors
+767 |       await expect(Promise.all(webhookPromises)).resolves.not.toThrow();
+                                                                    ^
+error: expect(received).not.toThrow()
+
+Thrown value: [ undefined, undefined, undefined ]
+
+      at <anonymous> (/Users/kooshapari/temp-PRODVERCEL/485/clean/atomsbot/src/__tests__/integration/webhook-integration.integration.test.ts:767:63)
+      at <anonymous> (/Users/kooshapari/temp-PRODVERCEL/485/clean/atomsbot/src/__tests__/integration/webhook-integration.integration.test.ts:706:75)
+(fail) Webhook Integration Tests > Cross-Platform State Synchronization > should handle concurrent webhook events without race conditions [436.62ms]
+09-04 07:43:06 [[32minfo[39m]: [32mReceived GitHub webhook: issues[39m 
+09-04 07:43:06 [[32minfo[39m]: [32mGitHub issue closed: Discord Error Test[39m 
+09-04 07:43:06 [[32minfo[39m]: [32m[NETWORK] Link restoration summary Jira=0/7 GitHub=2/25[39m 
+prisma:error 
+Invalid `this.client.thread.create()` invocation in
+/Users/kooshapari/temp-PRODVERCEL/485/clean/atomsbot/src/database/repositories/ThreadRepository.ts:170:43
+
+  167   update: { updatedAt: new Date() },
+  168 });
+  169 // Retry create once
+‚Üí 170 return await this.client.thread.create(
+Foreign key constraint violated on the foreign key
+09-04 07:43:08 [[31merror[39m]: [31mThread create retry failed after ensuring guild/channel[39m 
+09-04 07:43:08 [[31merror[39m]: [31mFailed to add thread to database[39m 
+145 | 
+146 |       // Process webhook
+147 |       await githubWebhook(mockRequest as Request, mockResponse as Response);
+148 | 
+149 |       // Verify Discord thread was created
+150 |       expect(mockForumChannel.threads.create).toHaveBeenCalledWith({
+                                                    ^
+error: expect(received).toHaveBeenCalledWith(expected)
+
+Number of calls: 0
+
+      at <anonymous> (/Users/kooshapari/temp-PRODVERCEL/485/clean/atomsbot/src/__tests__/integration/webhook-integration.integration.test.ts:150:47)
+(fail) Webhook Integration Tests > Webhook Error Recovery > should handle Discord API failures during webhook processing [1753.82ms]
+09-04 07:43:08 [[32minfo[39m]: [32mReceived GitHub webhook: issues[39m 
+09-04 07:43:08 [[32minfo[39m]: [32mGitHub issue closed: Jira Webhook Error Test[39m 
+09-04 07:43:08 [[31merror[39m]: [31mJira connection timeout[39m 
+880 | 
+881 |       // Verify Discord was still updated despite Jira failure
+882 |       expect(mockThread.setArchived).toHaveBeenCalledWith(true, "Issue closed on GitHub");
+883 | 
+884 |       // Verify error was logged
+885 |       expect(logger.error).toHaveBeenCalledWith(
+                                 ^
+error: Expected value must be a mock function: bun.js.bindings.JSValue.JSValue(5196531104)
+      at <anonymous> (/Users/kooshapari/temp-PRODVERCEL/485/clean/atomsbot/src/__tests__/integration/webhook-integration.integration.test.ts:885:28)
+(fail) Webhook Integration Tests > Webhook Error Recovery > should handle Jira API failures during webhook processing [125.87ms]
+09-04 07:43:08 [[32minfo[39m]: [32mReceived GitHub webhook: issues[39m 
+09-04 07:43:08 [[32minfo[39m]: [32mGitHub issue closed: Retry Test Issue[39m 
+(pass) Webhook Integration Tests > Webhook Error Recovery > should retry failed webhook operations with exponential backoff [505.12ms]
+09-04 07:43:09 [[32minfo[39m]: [32mReceived GitHub webhook: issues[39m 
+09-04 07:43:09 [[32minfo[39m]: [32mGitHub issue closed: Bulk Test Issue 0[39m 
+09-04 07:43:09 [[32minfo[39m]: [32mReceived GitHub webhook: issues[39m 
+09-04 07:43:09 [[32minfo[39m]: [32mGitHub issue closed: Bulk Test Issue 1[39m 
+09-04 07:43:09 [[32minfo[39m]: [32mReceived GitHub webhook: issues[39m 
+09-04 07:43:09 [[32minfo[39m]: [32mGitHub issue closed: Bulk Test Issue 2[39m 
+09-04 07:43:09 [[32minfo[39m]: [32mReceived GitHub webhook: issues[39m 
+09-04 07:43:09 [[32minfo[39m]: [32mGitHub issue closed: Bulk Test Issue 3[39m 
+09-04 07:43:09 [[32minfo[39m]: [32mReceived GitHub webhook: issues[39m 
+09-04 07:43:09 [[32minfo[39m]: [32mGitHub issue closed: Bulk Test Issue 4[39m 
+09-04 07:43:09 [[32minfo[39m]: [32mReceived GitHub webhook: issues[39m 
+09-04 07:43:09 [[32minfo[39m]: [32mGitHub issue closed: Bulk Test Issue 5[39m 
+09-04 07:43:09 [[32minfo[39m]: [32mReceived GitHub webhook: issues[39m 
+09-04 07:43:09 [[32minfo[39m]: [32mGitHub issue closed: Bulk Test Issue 6[39m 
+09-04 07:43:09 [[32minfo[39m]: [32mReceived GitHub webhook: issues[39m 
+09-04 07:43:09 [[32minfo[39m]: [32mGitHub issue closed: Bulk Test Issue 7[39m 
+09-04 07:43:09 [[32minfo[39m]: [32mReceived GitHub webhook: issues[39m 
+09-04 07:43:09 [[32minfo[39m]: [32mGitHub issue closed: Bulk Test Issue 8[39m 
+09-04 07:43:09 [[32minfo[39m]: [32mReceived GitHub webhook: issues[39m 
+09-04 07:43:09 [[32minfo[39m]: [32mGitHub issue closed: Bulk Test Issue 9[39m 
+09-04 07:43:09 [[32minfo[39m]: [32mReceived GitHub webhook: issues[39m 
+09-04 07:43:09 [[32minfo[39m]: [32mGitHub issue closed: Bulk Test Issue 10[39m 
+09-04 07:43:09 [[32minfo[39m]: [32mReceived GitHub webhook: issues[39m 
+09-04 07:43:09 [[32minfo[39m]: [32mGitHub issue closed: Bulk Test Issue 11[39m 
+09-04 07:43:09 [[32minfo[39m]: [32mReceived GitHub webhook: issues[39m 
+09-04 07:43:09 [[32minfo[39m]: [32mGitHub issue closed: Bulk Test Issue 12[39m 
+09-04 07:43:09 [[32minfo[39m]: [32mReceived GitHub webhook: issues[39m 
+09-04 07:43:09 [[32minfo[39m]: [32mGitHub issue closed: Bulk Test Issue 13[39m 
+09-04 07:43:09 [[32minfo[39m]: [32mReceived GitHub webhook: issues[39m 
+09-04 07:43:09 [[32minfo[39m]: [32mGitHub issue closed: Bulk Test Issue 14[39m 
+09-04 07:43:09 [[32minfo[39m]: [32mReceived GitHub webhook: issues[39m 
+09-04 07:43:09 [[32minfo[39m]: [32mGitHub issue closed: Bulk Test Issue 15[39m 
+09-04 07:43:09 [[32minfo[39m]: [32mReceived GitHub webhook: issues[39m 
+09-04 07:43:09 [[32minfo[39m]: [32mGitHub issue closed: Bulk Test Issue 16[39m 
+09-04 07:43:09 [[32minfo[39m]: [32mReceived GitHub webhook: issues[39m 
+09-04 07:43:09 [[32minfo[39m]: [32mGitHub issue closed: Bulk Test Issue 17[39m 
+09-04 07:43:09 [[32minfo[39m]: [32mReceived GitHub webhook: issues[39m 
+09-04 07:43:09 [[32minfo[39m]: [32mGitHub issue closed: Bulk Test Issue 18[39m 
+09-04 07:43:09 [[32minfo[39m]: [32mReceived GitHub webhook: issues[39m 
+09-04 07:43:09 [[32minfo[39m]: [32mGitHub issue closed: Bulk Test Issue 19[39m 
+09-04 07:43:09 [[32minfo[39m]: [32mReceived GitHub webhook: issues[39m 
+09-04 07:43:09 [[32minfo[39m]: [32mGitHub issue closed: Bulk Test Issue 20[39m 
+09-04 07:43:09 [[32minfo[39m]: [32mReceived GitHub webhook: issues[39m 
+09-04 07:43:09 [[32minfo[39m]: [32mGitHub issue closed: Bulk Test Issue 21[39m 
+09-04 07:43:09 [[32minfo[39m]: [32mReceived GitHub webhook: issues[39m 
+09-04 07:43:09 [[32minfo[39m]: [32mGitHub issue closed: Bulk Test Issue 22[39m 
+09-04 07:43:09 [[32minfo[39m]: [32mReceived GitHub webhook: issues[39m 
+09-04 07:43:09 [[32minfo[39m]: [32mGitHub issue closed: Bulk Test Issue 23[39m 
+09-04 07:43:09 [[32minfo[39m]: [32mReceived GitHub webhook: issues[39m 
+09-04 07:43:09 [[32minfo[39m]: [32mGitHub issue closed: Bulk Test Issue 24[39m 
+09-04 07:43:09 [[32minfo[39m]: [32mReceived GitHub webhook: issues[39m 
+09-04 07:43:09 [[32minfo[39m]: [32mGitHub issue closed: Bulk Test Issue 25[39m 
+09-04 07:43:09 [[32minfo[39m]: [32mReceived GitHub webhook: issues[39m 
+09-04 07:43:09 [[32minfo[39m]: [32mGitHub issue closed: Bulk Test Issue 26[39m 
+09-04 07:43:09 [[32minfo[39m]: [32mReceived GitHub webhook: issues[39m 
+09-04 07:43:09 [[32minfo[39m]: [32mGitHub issue closed: Bulk Test Issue 27[39m 
+09-04 07:43:09 [[32minfo[39m]: [32mReceived GitHub webhook: issues[39m 
+09-04 07:43:09 [[32minfo[39m]: [32mGitHub issue closed: Bulk Test Issue 28[39m 
+09-04 07:43:09 [[32minfo[39m]: [32mReceived GitHub webhook: issues[39m 
+09-04 07:43:09 [[32minfo[39m]: [32mGitHub issue closed: Bulk Test Issue 29[39m 
+09-04 07:43:09 [[32minfo[39m]: [32mReceived GitHub webhook: issues[39m 
+09-04 07:43:09 [[32minfo[39m]: [32mGitHub issue closed: Bulk Test Issue 30[39m 
+09-04 07:43:09 [[32minfo[39m]: [32mReceived GitHub webhook: issues[39m 
+09-04 07:43:09 [[32minfo[39m]: [32mGitHub issue closed: Bulk Test Issue 31[39m 
+09-04 07:43:09 [[32minfo[39m]: [32mReceived GitHub webhook: issues[39m 
+09-04 07:43:09 [[32minfo[39m]: [32mGitHub issue closed: Bulk Test Issue 32[39m 
+09-04 07:43:09 [[32minfo[39m]: [32mReceived GitHub webhook: issues[39m 
+09-04 07:43:09 [[32minfo[39m]: [32mGitHub issue closed: Bulk Test Issue 33[39m 
+09-04 07:43:09 [[32minfo[39m]: [32mReceived GitHub webhook: issues[39m 
+09-04 07:43:09 [[32minfo[39m]: [32mGitHub issue closed: Bulk Test Issue 34[39m 
+09-04 07:43:09 [[32minfo[39m]: [32mReceived GitHub webhook: issues[39m 
+09-04 07:43:09 [[32minfo[39m]: [32mGitHub issue closed: Bulk Test Issue 35[39m 
+09-04 07:43:09 [[32minfo[39m]: [32mReceived GitHub webhook: issues[39m 
+09-04 07:43:09 [[32minfo[39m]: [32mGitHub issue closed: Bulk Test Issue 36[39m 
+09-04 07:43:09 [[32minfo[39m]: [32mReceived GitHub webhook: issues[39m 
+09-04 07:43:09 [[32minfo[39m]: [32mGitHub issue closed: Bulk Test Issue 37[39m 
+09-04 07:43:09 [[32minfo[39m]: [32mReceived GitHub webhook: issues[39m 
+09-04 07:43:09 [[32minfo[39m]: [32mGitHub issue closed: Bulk Test Issue 38[39m 
+09-04 07:43:09 [[32minfo[39m]: [32mReceived GitHub webhook: issues[39m 
+09-04 07:43:09 [[32minfo[39m]: [32mGitHub issue closed: Bulk Test Issue 39[39m 
+09-04 07:43:09 [[32minfo[39m]: [32mReceived GitHub webhook: issues[39m 
+09-04 07:43:09 [[32minfo[39m]: [32mGitHub issue closed: Bulk Test Issue 40[39m 
+09-04 07:43:09 [[32minfo[39m]: [32mReceived GitHub webhook: issues[39m 
+09-04 07:43:09 [[32minfo[39m]: [32mGitHub issue closed: Bulk Test Issue 41[39m 
+09-04 07:43:09 [[32minfo[39m]: [32mReceived GitHub webhook: issues[39m 
+09-04 07:43:09 [[32minfo[39m]: [32mGitHub issue closed: Bulk Test Issue 42[39m 
+09-04 07:43:09 [[32minfo[39m]: [32mReceived GitHub webhook: issues[39m 
+09-04 07:43:09 [[32minfo[39m]: [32mGitHub issue closed: Bulk Test Issue 43[39m 
+09-04 07:43:09 [[32minfo[39m]: [32mReceived GitHub webhook: issues[39m 
+09-04 07:43:09 [[32minfo[39m]: [32mGitHub issue closed: Bulk Test Issue 44[39m 
+09-04 07:43:09 [[32minfo[39m]: [32mReceived GitHub webhook: issues[39m 
+09-04 07:43:09 [[32minfo[39m]: [32mGitHub issue closed: Bulk Test Issue 45[39m 
+09-04 07:43:09 [[32minfo[39m]: [32mReceived GitHub webhook: issues[39m 
+09-04 07:43:09 [[32minfo[39m]: [32mGitHub issue closed: Bulk Test Issue 46[39m 
+09-04 07:43:09 [[32minfo[39m]: [32mReceived GitHub webhook: issues[39m 
+09-04 07:43:09 [[32minfo[39m]: [32mGitHub issue closed: Bulk Test Issue 47[39m 
+09-04 07:43:09 [[32minfo[39m]: [32mReceived GitHub webhook: issues[39m 
+09-04 07:43:09 [[32minfo[39m]: [32mGitHub issue closed: Bulk Test Issue 48[39m 
+09-04 07:43:09 [[32minfo[39m]: [32mReceived GitHub webhook: issues[39m 
+09-04 07:43:09 [[32minfo[39m]: [32mGitHub issue closed: Bulk Test Issue 49[39m 
+(pass) Webhook Integration Tests > Webhook Performance and Scaling > should handle high-volume webhook events efficiently [574.45ms]
+09-04 07:43:10 [[32minfo[39m]: [32mAdded GitHub link[39m 
+09-04 07:43:10 [[32minfo[39m]: [32mAdded Jira link[39m 
+09-04 07:43:11 [[32minfo[39m]: [32mAdded GitHub link[39m 
+09-04 07:43:11 [[32minfo[39m]: [32mAdded Jira link[39m 
+09-04 07:43:13 [[32minfo[39m]: [32mSmart-embed scan summary[39m 
+09-04 07:43:13 [[32minfo[39m]: [32mIssues loaded : 7[39m 
+09-04 07:43:16 [[32minfo[39m]: [32mStarted link reconciler[39m 

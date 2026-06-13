@@ -1,0 +1,24 @@
+
+> gitbot@1.0.0 test
+> vitest run --reporter=json
+
+7:04:54 PM [vite] (ssr) warning: This assignment will throw because "ENVIRONMENT_CONFIG" is an import
+129 |  
+130 |      // Mock environment config
+131 |      (ENVIRONMENT_CONFIG as any) = {
+    |       ^
+132 |        FORUM_CHANNEL_IDS: {
+133 |          "test-forum-1": "channel-123",
+
+  Plugin: vite:esbuild
+  File: /Users/kooshapari/temp-PRODVERCEL/485/clean/atomsbot/src/discord/components/tests/ForumManager.test.ts
+
+⎯⎯⎯⎯ Unhandled Rejection ⎯⎯⎯⎯⎯
+Error: Terminating worker thread
+ ❯ Object.ThreadTermination node_modules/tinypool/dist/index.js:393:27
+ ❯ node_modules/tinypool/dist/index.js:432:73
+ ❯ process.processTicksAndRejections node:internal/process/task_queues:105:5
+
+
+
+

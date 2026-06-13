@@ -1,0 +1,465 @@
+{
+  "generated_at": "2026-06-07T05:36:31Z",
+  "total_repos": 59,
+  "with_tokio": [
+    "Agentora",
+    "AgilePlus",
+    "AuthKit",
+    "Benchora",
+    "Conft",
+    "DataKit",
+    "Eidolon",
+    "FocalPoint",
+    "GDK",
+    "HeliosCLI",
+    "HexaKit",
+    "KDesktopVirt",
+    "KlipDot",
+    "McpKit",
+    "Metron",
+    "ObservabilityKit",
+    "PhenoAgent",
+    "PhenoDevOps",
+    "PhenoKits",
+    "PhenoMCP",
+    "PhenoObservability",
+    "PhenoPlugins",
+    "PhenoProc",
+    "PhenoRuntime",
+    "PhenoSchema",
+    "PlayCua",
+    "Pyron",
+    "ResilienceKit",
+    "Sidekick",
+    "Tasken",
+    "TestingKit",
+    "Tokn",
+    "Tracely",
+    "Tracera",
+    "bare-cua",
+    "crates",
+    "helioscope",
+    "kmobile",
+    "kwality",
+    "pheno",
+    "phenoAI",
+    "phenoData",
+    "phenoForge",
+    "phenoShared",
+    "phenoUtils",
+    "phenotype-bus",
+    "phenotype-infra",
+    "phenotype-journeys",
+    "phenotype-shared",
+    "phenotype-tooling",
+    "rich-cli-kit",
+    "thegent",
+    "thegent-clean",
+    "thegent-clean-wt-docs",
+    "thegent-clean-wt-idea",
+    "thegent-clean-wt-parallel",
+    "thegent-clean-wt-policy",
+    "thegent-clean-wt-ruff",
+    "vibeproxy"
+  ],
+  "with_tokio_util": [
+    "Agentora",
+    "GDK",
+    "HeliosCLI",
+    "HexaKit",
+    "McpKit",
+    "PhenoAgent",
+    "PhenoDevOps",
+    "PhenoKits",
+    "PhenoProc",
+    "Pyron",
+    "helioscope",
+    "pheno"
+  ],
+  "with_tokio_stream": [
+    "AgilePlus",
+    "HeliosCLI",
+    "HexaKit",
+    "McpKit",
+    "PhenoDevOps",
+    "Pyron",
+    "helioscope",
+    "pheno"
+  ],
+  "by_repo": [
+    {
+      "repo": "Agentora",
+      "libs": [
+        "tokio",
+        "tokio-util"
+      ]
+    },
+    {
+      "repo": "AgilePlus",
+      "libs": [
+        "tokio",
+        "tokio-stream"
+      ]
+    },
+    {
+      "repo": "AuthKit",
+      "libs": [
+        "tokio"
+      ]
+    },
+    {
+      "repo": "Benchora",
+      "libs": [
+        "tokio"
+      ]
+    },
+    {
+      "repo": "Conft",
+      "libs": [
+        "tokio"
+      ]
+    },
+    {
+      "repo": "DataKit",
+      "libs": [
+        "tokio"
+      ]
+    },
+    {
+      "repo": "Eidolon",
+      "libs": [
+        "tokio"
+      ]
+    },
+    {
+      "repo": "FocalPoint",
+      "libs": [
+        "tokio"
+      ]
+    },
+    {
+      "repo": "GDK",
+      "libs": [
+        "tokio",
+        "tokio-util"
+      ]
+    },
+    {
+      "repo": "HeliosCLI",
+      "libs": [
+        "tokio",
+        "tokio-stream",
+        "tokio-util"
+      ]
+    },
+    {
+      "repo": "HexaKit",
+      "libs": [
+        "tokio",
+        "tokio-stream",
+        "tokio-util"
+      ]
+    },
+    {
+      "repo": "KDesktopVirt",
+      "libs": [
+        "tokio"
+      ]
+    },
+    {
+      "repo": "KlipDot",
+      "libs": [
+        "tokio"
+      ]
+    },
+    {
+      "repo": "McpKit",
+      "libs": [
+        "tokio",
+        "tokio-stream",
+        "tokio-util"
+      ]
+    },
+    {
+      "repo": "Metron",
+      "libs": [
+        "tokio"
+      ]
+    },
+    {
+      "repo": "ObservabilityKit",
+      "libs": [
+        "tokio"
+      ]
+    },
+    {
+      "repo": "PhenoAgent",
+      "libs": [
+        "tokio",
+        "tokio-util"
+      ]
+    },
+    {
+      "repo": "PhenoDevOps",
+      "libs": [
+        "tokio",
+        "tokio-stream",
+        "tokio-util"
+      ]
+    },
+    {
+      "repo": "PhenoKits",
+      "libs": [
+        "tokio",
+        "tokio-util"
+      ]
+    },
+    {
+      "repo": "PhenoMCP",
+      "libs": [
+        "tokio"
+      ]
+    },
+    {
+      "repo": "PhenoObservability",
+      "libs": [
+        "tokio"
+      ]
+    },
+    {
+      "repo": "PhenoPlugins",
+      "libs": [
+        "tokio"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "libs": [
+        "tokio",
+        "tokio-util"
+      ]
+    },
+    {
+      "repo": "PhenoRuntime",
+      "libs": [
+        "tokio"
+      ]
+    },
+    {
+      "repo": "PhenoSchema",
+      "libs": [
+        "tokio"
+      ]
+    },
+    {
+      "repo": "PlayCua",
+      "libs": [
+        "tokio"
+      ]
+    },
+    {
+      "repo": "Pyron",
+      "libs": [
+        "tokio",
+        "tokio-stream",
+        "tokio-util"
+      ]
+    },
+    {
+      "repo": "ResilienceKit",
+      "libs": [
+        "tokio"
+      ]
+    },
+    {
+      "repo": "Sidekick",
+      "libs": [
+        "tokio"
+      ]
+    },
+    {
+      "repo": "Tasken",
+      "libs": [
+        "tokio"
+      ]
+    },
+    {
+      "repo": "TestingKit",
+      "libs": [
+        "tokio"
+      ]
+    },
+    {
+      "repo": "Tokn",
+      "libs": [
+        "tokio"
+      ]
+    },
+    {
+      "repo": "Tracely",
+      "libs": [
+        "tokio"
+      ]
+    },
+    {
+      "repo": "Tracera",
+      "libs": [
+        "tokio"
+      ]
+    },
+    {
+      "repo": "bare-cua",
+      "libs": [
+        "tokio"
+      ]
+    },
+    {
+      "repo": "crates",
+      "libs": [
+        "tokio"
+      ]
+    },
+    {
+      "repo": "helioscope",
+      "libs": [
+        "tokio",
+        "tokio-stream",
+        "tokio-util"
+      ]
+    },
+    {
+      "repo": "kmobile",
+      "libs": [
+        "tokio"
+      ]
+    },
+    {
+      "repo": "kwality",
+      "libs": [
+        "tokio"
+      ]
+    },
+    {
+      "repo": "pheno",
+      "libs": [
+        "tokio",
+        "tokio-stream",
+        "tokio-util"
+      ]
+    },
+    {
+      "repo": "phenoAI",
+      "libs": [
+        "tokio"
+      ]
+    },
+    {
+      "repo": "phenoData",
+      "libs": [
+        "tokio"
+      ]
+    },
+    {
+      "repo": "phenoForge",
+      "libs": [
+        "tokio"
+      ]
+    },
+    {
+      "repo": "phenoShared",
+      "libs": [
+        "tokio"
+      ]
+    },
+    {
+      "repo": "phenoUtils",
+      "libs": [
+        "tokio"
+      ]
+    },
+    {
+      "repo": "phenotype-bus",
+      "libs": [
+        "tokio"
+      ]
+    },
+    {
+      "repo": "phenotype-infra",
+      "libs": [
+        "tokio"
+      ]
+    },
+    {
+      "repo": "phenotype-journeys",
+      "libs": [
+        "tokio"
+      ]
+    },
+    {
+      "repo": "phenotype-shared",
+      "libs": [
+        "tokio"
+      ]
+    },
+    {
+      "repo": "phenotype-tooling",
+      "libs": [
+        "tokio"
+      ]
+    },
+    {
+      "repo": "rich-cli-kit",
+      "libs": [
+        "tokio"
+      ]
+    },
+    {
+      "repo": "thegent",
+      "libs": [
+        "tokio"
+      ]
+    },
+    {
+      "repo": "thegent-clean",
+      "libs": [
+        "tokio"
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-docs",
+      "libs": [
+        "tokio"
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-idea",
+      "libs": [
+        "tokio"
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-parallel",
+      "libs": [
+        "tokio"
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-policy",
+      "libs": [
+        "tokio"
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-ruff",
+      "libs": [
+        "tokio"
+      ]
+    },
+    {
+      "repo": "vibeproxy",
+      "libs": [
+        "tokio"
+      ]
+    }
+  ]
+}

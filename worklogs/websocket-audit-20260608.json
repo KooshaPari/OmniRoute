@@ -1,0 +1,31 @@
+{
+  "generated_at": "2026-06-08T22:15:00Z",
+  "total_repos": 163,
+  "by_lib": {
+    "tokio_tungstenite": [
+      "Civis",
+      "Conft",
+      "FocalPoint",
+      "HeliosCLI",
+      "KDesktopVirt",
+      "crates",
+      "kmobile"
+    ],
+    "actix_ws": [],
+    "websockets": [],
+    "socket_io": [
+      "KaskMan",
+      "PhenoProject"
+    ],
+    "ws": [
+      "KodeVibe",
+      "OmniRoute-latest",
+      "Planify"
+    ],
+    "aiohttp": [
+      "Civis",
+      "QuadSGM",
+      "TestingKit"
+    ]
+  }
+}

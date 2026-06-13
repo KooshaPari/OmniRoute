@@ -1,0 +1,60 @@
+{
+  "generated_at": "2026-06-09T02:26:52+00:00",
+  "total_repos": 168,
+  "with_vercel": [
+    {
+      "repo": "QuadSGM",
+      "files": [
+        "4sgm/vercel.json"
+      ]
+    },
+    {
+      "repo": "Tracera",
+      "files": [
+        "frontend/apps/docs/vercel.json"
+      ]
+    },
+    {
+      "repo": "argis-extensions",
+      "files": [
+        "vercel.json"
+      ]
+    },
+    {
+      "repo": "localbase3",
+      "files": [
+        "localbase-docs/vercel.json"
+      ]
+    },
+    {
+      "repo": "pheno",
+      "files": [
+        "pheno-wtrees/dedupe-phenotype-error-core-2026-06-08/koosha-portfolio/vercel.json",
+        "koosha-portfolio/vercel.json"
+      ]
+    },
+    {
+      "repo": "phenotype-landing",
+      "files": [
+        "sites/phenokits-landing/vercel.json",
+        "sites/thegent-landing/vercel.json",
+        "sites/projects-landing/vercel.json",
+        "sites/agileplus-landing/vercel.json",
+        "sites/hwledger-landing/vercel.json",
+        "sites/byteport-landing/vercel.json"
+      ]
+    },
+    {
+      "repo": "thegent",
+      "files": [
+        "apps/landing/vercel.json"
+      ]
+    },
+    {
+      "repo": "thegent-security-fixes",
+      "files": [
+        "apps/landing/vercel.json"
+      ]
+    }
+  ]
+}

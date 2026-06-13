@@ -1,0 +1,12 @@
+{
+  "generated_at": "2026-06-08T00:00:00Z",
+  "total_repos": 228,
+  "by_lib": {
+    "lettre": [],
+    "sendgrid": [],
+    "mailgun": [],
+    "postmark": [],
+    "twilio": []
+  },
+  "notes": "Scanned 341 Cargo.toml/pyproject.toml/package.json files under /Users/kooshapari/CodeProjects/Phenotype/repos/*/ (maxdepth 3, excluding *-wtrees/, worklogs/, node_modules/, target/). Zero occurrences of lettre, sendgrid, mailgun, postmark, or twilio found in any manifest. Unique top-level repos covered: 228."
+}

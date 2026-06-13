@@ -1,0 +1,39 @@
+{
+  "generated_at": "2026-06-08T11:30:56.358861Z",
+  "total_repos": 171,
+  "with_cargo_bin": [
+    "Agentora",
+    "GDK",
+    "KDesktopVirt",
+    "KlipDot",
+    "kmobile",
+    "phenoForge",
+    "PhenoMCP",
+    "PhenoRuntime",
+    "thegent-dispatch"
+  ],
+  "with_pyproject_scripts": [
+    "agent-user-status",
+    "cheap-llm-mcp",
+    "dispatch-mcp",
+    "heliosBench",
+    "HeliosCLI",
+    "helioscope",
+    "PhenoMCP",
+    "phenotype-dep-guard",
+    "phenotype-omlx",
+    "portage",
+    "QuadSGM",
+    "thegent",
+    "thegent-clean-wt-idea",
+    "thegent-clean-wt-parallel",
+    "thegent-clean-wt-policy",
+    "thegent-clean-wt-ruff",
+    "Tracera"
+  ],
+  "with_pkg_bin": [
+    "KaskMan",
+    "KWatch",
+    "OmniRoute"
+  ]
+}

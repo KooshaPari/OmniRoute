@@ -1,0 +1,234 @@
+{
+  "generated_at": "2026-06-08T00:00:00Z",
+  "total_repos": 177,
+  "by_repo": [
+    {
+      "repo": "Agentora",
+      "pinned_count": 269
+    },
+    {
+      "repo": "AgilePlus",
+      "pinned_count": 657
+    },
+    {
+      "repo": "Benchora",
+      "pinned_count": 153
+    },
+    {
+      "repo": "BytePort",
+      "pinned_count": 523
+    },
+    {
+      "repo": "Civis",
+      "pinned_count": 1026
+    },
+    {
+      "repo": "Eidolon",
+      "pinned_count": 120
+    },
+    {
+      "repo": "Eventra",
+      "pinned_count": 90
+    },
+    {
+      "repo": "FocalPoint",
+      "pinned_count": 765
+    },
+    {
+      "repo": "GDK",
+      "pinned_count": 245
+    },
+    {
+      "repo": "HeliosCLI",
+      "pinned_count": 210
+    },
+    {
+      "repo": "HeliosLab",
+      "pinned_count": 174
+    },
+    {
+      "repo": "HexaKit",
+      "pinned_count": 587
+    },
+    {
+      "repo": "KDesktopVirt",
+      "pinned_count": 586
+    },
+    {
+      "repo": "KlipDot",
+      "pinned_count": 254
+    },
+    {
+      "repo": "Metron",
+      "pinned_count": 91
+    },
+    {
+      "repo": "NetScript",
+      "pinned_count": 74
+    },
+    {
+      "repo": "Observably",
+      "pinned_count": 193
+    },
+    {
+      "repo": "PhenoAgent",
+      "pinned_count": 273
+    },
+    {
+      "repo": "PhenoControl",
+      "pinned_count": 1060
+    },
+    {
+      "repo": "PhenoDevOps",
+      "pinned_count": 47
+    },
+    {
+      "repo": "PhenoKits",
+      "pinned_count": 1
+    },
+    {
+      "repo": "PhenoMCP",
+      "pinned_count": 504
+    },
+    {
+      "repo": "PhenoMCP-cheap",
+      "pinned_count": 503
+    },
+    {
+      "repo": "PhenoObservability",
+      "pinned_count": 343
+    },
+    {
+      "repo": "PhenoPlugins",
+      "pinned_count": 193
+    },
+    {
+      "repo": "PhenoProc",
+      "pinned_count": 268
+    },
+    {
+      "repo": "PhenoRuntime",
+      "pinned_count": 352
+    },
+    {
+      "repo": "PhenoVCS",
+      "pinned_count": 119
+    },
+    {
+      "repo": "PlayCua",
+      "pinned_count": 325
+    },
+    {
+      "repo": "Pyron",
+      "pinned_count": 405
+    },
+    {
+      "repo": "Sidekick",
+      "pinned_count": 42
+    },
+    {
+      "repo": "Tasken",
+      "pinned_count": 107
+    },
+    {
+      "repo": "Tokn",
+      "pinned_count": 255
+    },
+    {
+      "repo": "Tracely",
+      "pinned_count": 155
+    },
+    {
+      "repo": "agileplus-agents",
+      "pinned_count": 252
+    },
+    {
+      "repo": "bare-cua",
+      "pinned_count": 325
+    },
+    {
+      "repo": "eyetracker",
+      "pinned_count": 101
+    },
+    {
+      "repo": "forgecode",
+      "pinned_count": 896
+    },
+    {
+      "repo": "helios-router",
+      "pinned_count": 250
+    },
+    {
+      "repo": "heliosHarness",
+      "pinned_count": 261
+    },
+    {
+      "repo": "helioscope",
+      "pinned_count": 210
+    },
+    {
+      "repo": "kmobile",
+      "pinned_count": 813
+    },
+    {
+      "repo": "pheno",
+      "pinned_count": 297
+    },
+    {
+      "repo": "phenoAI",
+      "pinned_count": 200
+    },
+    {
+      "repo": "phenoData",
+      "pinned_count": 548
+    },
+    {
+      "repo": "phenoForge",
+      "pinned_count": 106
+    },
+    {
+      "repo": "phenoShared",
+      "pinned_count": 417
+    },
+    {
+      "repo": "phenoUtils",
+      "pinned_count": 290
+    },
+    {
+      "repo": "phenotype-bus",
+      "pinned_count": 39
+    },
+    {
+      "repo": "phenotype-journeys",
+      "pinned_count": 404
+    },
+    {
+      "repo": "phenotype-shared",
+      "pinned_count": 66
+    },
+    {
+      "repo": "phenotype-tooling",
+      "pinned_count": 322
+    },
+    {
+      "repo": "phenotype-voxel",
+      "pinned_count": 284
+    },
+    {
+      "repo": "rich-cli-kit",
+      "pinned_count": 89
+    },
+    {
+      "repo": "rust",
+      "pinned_count": 121
+    },
+    {
+      "repo": "thegent-dispatch",
+      "pinned_count": 104
+    },
+    {
+      "repo": "thegent-jsonl",
+      "pinned_count": 79
+    }
+  ]
+}

@@ -1,0 +1,1027 @@
+{
+  "generated_at": "2026-06-09T03:03:51.357622+00:00",
+  "by_repo": [
+    {
+      "repo": "heliosBench",
+      "open_issues": 120,
+      "oldest_open": "2026-02-24T10:31:42Z"
+    },
+    {
+      "repo": "PhenoDevOps",
+      "open_issues": 99,
+      "oldest_open": "2026-05-02T11:58:11Z"
+    },
+    {
+      "repo": "Pyron",
+      "open_issues": 29,
+      "oldest_open": "2026-04-04T05:36:14Z"
+    },
+    {
+      "repo": "HeliosCLI",
+      "open_issues": 23,
+      "oldest_open": "2026-03-26T14:00:35Z"
+    },
+    {
+      "repo": "helioscope",
+      "open_issues": 23,
+      "oldest_open": "2026-03-26T14:00:35Z"
+    },
+    {
+      "repo": "Tracera",
+      "open_issues": 10,
+      "oldest_open": "2026-03-27T12:20:49Z"
+    },
+    {
+      "repo": "phenodocs",
+      "open_issues": 10,
+      "oldest_open": "2026-04-25T03:32:42Z"
+    },
+    {
+      "repo": "QuadSGM",
+      "open_issues": 8,
+      "oldest_open": "2026-04-01T03:51:21Z"
+    },
+    {
+      "repo": "thegent",
+      "open_issues": 8,
+      "oldest_open": "2026-05-07T05:19:08Z"
+    },
+    {
+      "repo": "Conft",
+      "open_issues": 6,
+      "oldest_open": "2026-05-07T05:19:39Z"
+    },
+    {
+      "repo": "DataKit",
+      "open_issues": 6,
+      "oldest_open": "2026-05-07T05:19:37Z"
+    },
+    {
+      "repo": "DevHex",
+      "open_issues": 6,
+      "oldest_open": "2026-05-07T05:19:35Z"
+    },
+    {
+      "repo": "Eidolon",
+      "open_issues": 6,
+      "oldest_open": "2026-05-07T05:19:34Z"
+    },
+    {
+      "repo": "McpKit",
+      "open_issues": 6,
+      "oldest_open": "2026-05-07T05:19:29Z"
+    },
+    {
+      "repo": "ObservabilityKit",
+      "open_issues": 6,
+      "oldest_open": "2026-05-07T05:19:27Z"
+    },
+    {
+      "repo": "Paginary",
+      "open_issues": 6,
+      "oldest_open": "2026-05-07T05:19:25Z"
+    },
+    {
+      "repo": "PhenoHandbook",
+      "open_issues": 6,
+      "oldest_open": "2026-05-07T05:19:24Z"
+    },
+    {
+      "repo": "PhenoPlugins",
+      "open_issues": 6,
+      "oldest_open": "2026-05-07T05:19:19Z"
+    },
+    {
+      "repo": "PhenoProc",
+      "open_issues": 6,
+      "oldest_open": "2026-05-07T05:19:17Z"
+    },
+    {
+      "repo": "PhenoSpecs",
+      "open_issues": 6,
+      "oldest_open": "2026-05-07T05:19:13Z"
+    },
+    {
+      "repo": "Pine",
+      "open_issues": 6,
+      "oldest_open": "2026-05-07T05:19:12Z"
+    },
+    {
+      "repo": "PlatformKit",
+      "open_issues": 6,
+      "oldest_open": "2026-05-07T05:19:10Z"
+    },
+    {
+      "repo": "agentapi-plusplus",
+      "open_issues": 6,
+      "oldest_open": "2026-03-29T09:55:10Z"
+    },
+    {
+      "repo": "cheap-llm-mcp",
+      "open_issues": 6,
+      "oldest_open": "2026-05-07T05:19:32Z"
+    },
+    {
+      "repo": "hwLedger",
+      "open_issues": 6,
+      "oldest_open": "2026-05-07T05:19:22Z"
+    },
+    {
+      "repo": "pheno",
+      "open_issues": 6,
+      "oldest_open": "2026-05-07T05:19:15Z"
+    },
+    {
+      "repo": "PhenoObservability",
+      "open_issues": 5,
+      "oldest_open": "2026-05-07T05:24:03Z"
+    },
+    {
+      "repo": "PolicyStack",
+      "open_issues": 5,
+      "oldest_open": "2026-05-07T05:21:17Z"
+    },
+    {
+      "repo": "Agentora",
+      "open_issues": 4,
+      "oldest_open": "2026-05-07T05:20:14Z"
+    },
+    {
+      "repo": "Apisync",
+      "open_issues": 4,
+      "oldest_open": "2026-05-07T05:22:29Z"
+    },
+    {
+      "repo": "AuthKit",
+      "open_issues": 4,
+      "oldest_open": "2026-05-07T05:20:13Z"
+    },
+    {
+      "repo": "Civis",
+      "open_issues": 4,
+      "oldest_open": "2026-04-01T03:53:28Z"
+    },
+    {
+      "repo": "Eventra",
+      "open_issues": 4,
+      "oldest_open": "2026-05-07T05:22:37Z"
+    },
+    {
+      "repo": "HexaKit",
+      "open_issues": 4,
+      "oldest_open": "2026-05-07T05:20:29Z"
+    },
+    {
+      "repo": "KDesktopVirt",
+      "open_issues": 4,
+      "oldest_open": "2026-05-07T05:20:30Z"
+    },
+    {
+      "repo": "KWatch",
+      "open_issues": 4,
+      "oldest_open": "2026-05-07T05:22:33Z"
+    },
+    {
+      "repo": "KodeVibe",
+      "open_issues": 4,
+      "oldest_open": "2026-05-07T05:23:17Z"
+    },
+    {
+      "repo": "PlayCua",
+      "open_issues": 4,
+      "oldest_open": "2026-05-07T05:20:16Z"
+    },
+    {
+      "repo": "Sidekick",
+      "open_issues": 4,
+      "oldest_open": "2026-05-07T05:20:33Z"
+    },
+    {
+      "repo": "Tasken",
+      "open_issues": 4,
+      "oldest_open": "2026-05-07T05:21:25Z"
+    },
+    {
+      "repo": "TestingKit",
+      "open_issues": 4,
+      "oldest_open": "2026-05-07T05:22:12Z"
+    },
+    {
+      "repo": "Tokn",
+      "open_issues": 4,
+      "oldest_open": "2026-05-07T05:22:25Z"
+    },
+    {
+      "repo": "Tracely",
+      "open_issues": 4,
+      "oldest_open": "2026-05-07T05:20:35Z"
+    },
+    {
+      "repo": "agent-devops-setups",
+      "open_issues": 4,
+      "oldest_open": "2026-05-07T05:21:16Z"
+    },
+    {
+      "repo": "agent-user-status",
+      "open_issues": 4,
+      "oldest_open": "2026-05-07T05:20:37Z"
+    },
+    {
+      "repo": "agslag-docs",
+      "open_issues": 4,
+      "oldest_open": "2026-05-07T05:23:18Z"
+    },
+    {
+      "repo": "bare-cua",
+      "open_issues": 4,
+      "oldest_open": "2026-05-07T05:20:16Z"
+    },
+    {
+      "repo": "eyetracker",
+      "open_issues": 4,
+      "oldest_open": "2026-05-07T05:21:14Z"
+    },
+    {
+      "repo": "netweave-final2",
+      "open_issues": 4,
+      "oldest_open": "2026-05-07T05:20:27Z"
+    },
+    {
+      "repo": "phenoAI",
+      "open_issues": 4,
+      "oldest_open": "2026-05-07T05:22:18Z"
+    },
+    {
+      "repo": "phenoForge",
+      "open_issues": 4,
+      "oldest_open": "2026-05-07T05:22:16Z"
+    },
+    {
+      "repo": "phenoResearchEngine",
+      "open_issues": 4,
+      "oldest_open": "2026-05-07T05:20:36Z"
+    },
+    {
+      "repo": "phenoShared",
+      "open_issues": 4,
+      "oldest_open": "2026-05-07T05:20:26Z"
+    },
+    {
+      "repo": "phenotype-dep-guard",
+      "open_issues": 4,
+      "oldest_open": "2026-05-07T05:21:34Z"
+    },
+    {
+      "repo": "phenotype-hub",
+      "open_issues": 4,
+      "oldest_open": "2026-05-07T05:22:19Z"
+    },
+    {
+      "repo": "phenotype-infra",
+      "open_issues": 4,
+      "oldest_open": "2026-05-07T05:21:40Z"
+    },
+    {
+      "repo": "phenotype-org-audits",
+      "open_issues": 4,
+      "oldest_open": "2026-05-07T05:22:13Z"
+    },
+    {
+      "repo": "phenotype-registry",
+      "open_issues": 4,
+      "oldest_open": "2026-05-07T05:21:11Z"
+    },
+    {
+      "repo": "phenotype-shared",
+      "open_issues": 4,
+      "oldest_open": "2026-05-07T05:20:26Z"
+    },
+    {
+      "repo": "vibeproxy-monitoring-unified",
+      "open_issues": 4,
+      "oldest_open": "2026-05-07T05:22:22Z"
+    },
+    {
+      "repo": "Dino",
+      "open_issues": 3,
+      "oldest_open": "2026-04-02T04:29:38Z"
+    },
+    {
+      "repo": "Parpoura",
+      "open_issues": 3,
+      "oldest_open": "2026-04-01T03:51:53Z"
+    },
+    {
+      "repo": "cliproxyapi-plusplus",
+      "open_issues": 3,
+      "oldest_open": "2026-02-24T13:59:29Z"
+    },
+    {
+      "repo": "heliosApp",
+      "open_issues": 2,
+      "oldest_open": "2026-03-25T08:19:18Z"
+    },
+    {
+      "repo": "AgilePlus",
+      "open_issues": 1,
+      "oldest_open": "2026-06-05T17:30:26Z"
+    },
+    {
+      "repo": "AtomsBot-2nd",
+      "open_issues": 1,
+      "oldest_open": "{\"message\":\"Not Found\",\"documentation_url\":\"https://docs.github.com/rest/issues/issues#list-repository-issues\",\"status\":\"404\"}"
+    },
+    {
+      "repo": "Conft-4th",
+      "open_issues": 1,
+      "oldest_open": "{\"message\":\"Not Found\",\"documentation_url\":\"https://docs.github.com/rest/issues/issues#list-repository-issues\",\"status\":\"404\"}"
+    },
+    {
+      "repo": "Conft-hygiene",
+      "open_issues": 1,
+      "oldest_open": "{\"message\":\"Not Found\",\"documentation_url\":\"https://docs.github.com/rest/issues/issues#list-repository-issues\",\"status\":\"404\"}"
+    },
+    {
+      "repo": "HeliosLab-3rd",
+      "open_issues": 1,
+      "oldest_open": "{\"message\":\"Not Found\",\"documentation_url\":\"https://docs.github.com/rest/issues/issues#list-repository-issues\",\"status\":\"404\"}"
+    },
+    {
+      "repo": "HeliosLab-4th",
+      "open_issues": 1,
+      "oldest_open": "{\"message\":\"Not Found\",\"documentation_url\":\"https://docs.github.com/rest/issues/issues#list-repository-issues\",\"status\":\"404\"}"
+    },
+    {
+      "repo": "HeliosLab-hygiene2",
+      "open_issues": 1,
+      "oldest_open": "{\"message\":\"Not Found\",\"documentation_url\":\"https://docs.github.com/rest/issues/issues#list-repository-issues\",\"status\":\"404\"}"
+    },
+    {
+      "repo": "KWatch-docs",
+      "open_issues": 1,
+      "oldest_open": "{\"message\":\"Not Found\",\"documentation_url\":\"https://docs.github.com/rest/issues/issues#list-repository-issues\",\"status\":\"404\"}"
+    },
+    {
+      "repo": "KodeVibe-security-fixes",
+      "open_issues": 1,
+      "oldest_open": "{\"message\":\"Not Found\",\"documentation_url\":\"https://docs.github.com/rest/issues/issues#list-repository-issues\",\"status\":\"404\"}"
+    },
+    {
+      "repo": "Observably",
+      "open_issues": 1,
+      "oldest_open": "{\"message\":\"Not Found\",\"documentation_url\":\"https://docs.github.com/rest/issues/issues#list-repository-issues\",\"status\":\"404\"}"
+    },
+    {
+      "repo": "OmniRoute-2nd",
+      "open_issues": 1,
+      "oldest_open": "{\"message\":\"Not Found\",\"documentation_url\":\"https://docs.github.com/rest/issues/issues#list-repository-issues\",\"status\":\"404\"}"
+    },
+    {
+      "repo": "OmniRoute-3rd",
+      "open_issues": 1,
+      "oldest_open": "{\"message\":\"Not Found\",\"documentation_url\":\"https://docs.github.com/rest/issues/issues#list-repository-issues\",\"status\":\"404\"}"
+    },
+    {
+      "repo": "OmniRoute-dependabot",
+      "open_issues": 1,
+      "oldest_open": "{\"message\":\"Not Found\",\"documentation_url\":\"https://docs.github.com/rest/issues/issues#list-repository-issues\",\"status\":\"404\"}"
+    },
+    {
+      "repo": "OmniRoute-latest",
+      "open_issues": 1,
+      "oldest_open": "{\"message\":\"Not Found\",\"documentation_url\":\"https://docs.github.com/rest/issues/issues#list-repository-issues\",\"status\":\"404\"}"
+    },
+    {
+      "repo": "Parpoura-3rd",
+      "open_issues": 1,
+      "oldest_open": "{\"message\":\"Not Found\",\"documentation_url\":\"https://docs.github.com/rest/issues/issues#list-repository-issues\",\"status\":\"404\"}"
+    },
+    {
+      "repo": "Parpoura-hygiene",
+      "open_issues": 1,
+      "oldest_open": "{\"message\":\"Not Found\",\"documentation_url\":\"https://docs.github.com/rest/issues/issues#list-repository-issues\",\"status\":\"404\"}"
+    },
+    {
+      "repo": "PhenoContracts",
+      "open_issues": 1,
+      "oldest_open": "{\"message\":\"Not Found\",\"documentation_url\":\"https://docs.github.com/rest/issues/issues#list-repository-issues\",\"status\":\"404\"}"
+    },
+    {
+      "repo": "PhenoControl",
+      "open_issues": 1,
+      "oldest_open": "{\"message\":\"Not Found\",\"documentation_url\":\"https://docs.github.com/rest/issues/issues#list-repository-issues\",\"status\":\"404\"}"
+    },
+    {
+      "repo": "PhenoEvents",
+      "open_issues": 1,
+      "oldest_open": "{\"message\":\"Not Found\",\"documentation_url\":\"https://docs.github.com/rest/issues/issues#list-repository-issues\",\"status\":\"404\"}"
+    },
+    {
+      "repo": "PhenoMCP-cheap",
+      "open_issues": 1,
+      "oldest_open": "{\"message\":\"Not Found\",\"documentation_url\":\"https://docs.github.com/rest/issues/issues#list-repository-issues\",\"status\":\"404\"}"
+    },
+    {
+      "repo": "PhenoProc-security-fixes",
+      "open_issues": 1,
+      "oldest_open": "{\"message\":\"Not Found\",\"documentation_url\":\"https://docs.github.com/rest/issues/issues#list-repository-issues\",\"status\":\"404\"}"
+    },
+    {
+      "repo": "PhenoSchema",
+      "open_issues": 1,
+      "oldest_open": "{\"message\":\"Not Found\",\"documentation_url\":\"https://docs.github.com/rest/issues/issues#list-repository-issues\",\"status\":\"404\"}"
+    },
+    {
+      "repo": "PhenoVCS-3rd",
+      "open_issues": 1,
+      "oldest_open": "{\"message\":\"Not Found\",\"documentation_url\":\"https://docs.github.com/rest/issues/issues#list-repository-issues\",\"status\":\"404\"}"
+    },
+    {
+      "repo": "PhenoVCS-4th",
+      "open_issues": 1,
+      "oldest_open": "{\"message\":\"Not Found\",\"documentation_url\":\"https://docs.github.com/rest/issues/issues#list-repository-issues\",\"status\":\"404\"}"
+    },
+    {
+      "repo": "PhenoVCS-hygiene",
+      "open_issues": 1,
+      "oldest_open": "{\"message\":\"Not Found\",\"documentation_url\":\"https://docs.github.com/rest/issues/issues#list-repository-issues\",\"status\":\"404\"}"
+    },
+    {
+      "repo": "Planify",
+      "open_issues": 1,
+      "oldest_open": "2026-06-02T07:55:35Z"
+    },
+    {
+      "repo": "Planify-hygiene",
+      "open_issues": 1,
+      "oldest_open": "{\"message\":\"Not Found\",\"documentation_url\":\"https://docs.github.com/rest/issues/issues#list-repository-issues\",\"status\":\"404\"}"
+    },
+    {
+      "repo": "Tasken-3rd",
+      "open_issues": 1,
+      "oldest_open": "{\"message\":\"Not Found\",\"documentation_url\":\"https://docs.github.com/rest/issues/issues#list-repository-issues\",\"status\":\"404\"}"
+    },
+    {
+      "repo": "ValidationKit",
+      "open_issues": 1,
+      "oldest_open": "{\"message\":\"Not Found\",\"documentation_url\":\"https://docs.github.com/rest/issues/issues#list-repository-issues\",\"status\":\"404\"}"
+    },
+    {
+      "repo": "agent-platform",
+      "open_issues": 1,
+      "oldest_open": "{\"message\":\"Not Found\",\"documentation_url\":\"https://docs.github.com/rest/issues/issues#list-repository-issues\",\"status\":\"404\"}"
+    },
+    {
+      "repo": "agentops-policy-federation",
+      "open_issues": 1,
+      "oldest_open": "{\"message\":\"Not Found\",\"documentation_url\":\"https://docs.github.com/rest/issues/issues#list-repository-issues\",\"status\":\"404\"}"
+    },
+    {
+      "repo": "agileplus-agents",
+      "open_issues": 1,
+      "oldest_open": "{\"message\":\"Not Found\",\"documentation_url\":\"https://docs.github.com/rest/issues/issues#list-repository-issues\",\"status\":\"404\"}"
+    },
+    {
+      "repo": "apps",
+      "open_issues": 1,
+      "oldest_open": "{\"message\":\"Not Found\",\"documentation_url\":\"https://docs.github.com/rest/issues/issues#list-repository-issues\",\"status\":\"404\"}"
+    },
+    {
+      "repo": "chatta",
+      "open_issues": 1,
+      "oldest_open": "2026-05-24T21:35:04Z"
+    },
+    {
+      "repo": "cheap-llm-mcp-deprecate",
+      "open_issues": 1,
+      "oldest_open": "{\"message\":\"Not Found\",\"documentation_url\":\"https://docs.github.com/rest/issues/issues#list-repository-issues\",\"status\":\"404\"}"
+    },
+    {
+      "repo": "cheap-llm-mcp-t1-19",
+      "open_issues": 1,
+      "oldest_open": "{\"message\":\"Not Found\",\"documentation_url\":\"https://docs.github.com/rest/issues/issues#list-repository-issues\",\"status\":\"404\"}"
+    },
+    {
+      "repo": "crates",
+      "open_issues": 1,
+      "oldest_open": "{\"message\":\"Not Found\",\"documentation_url\":\"https://docs.github.com/rest/issues/issues#list-repository-issues\",\"status\":\"404\"}"
+    },
+    {
+      "repo": "default",
+      "open_issues": 1,
+      "oldest_open": "{\"message\":\"Not Found\",\"documentation_url\":\"https://docs.github.com/rest/issues/issues#list-repository-issues\",\"status\":\"404\"}"
+    },
+    {
+      "repo": "dispatch-mcp-t1-0",
+      "open_issues": 1,
+      "oldest_open": "{\"message\":\"Not Found\",\"documentation_url\":\"https://docs.github.com/rest/issues/issues#list-repository-issues\",\"status\":\"404\"}"
+    },
+    {
+      "repo": "dispatch-mcp-t1-1",
+      "open_issues": 1,
+      "oldest_open": "{\"message\":\"Not Found\",\"documentation_url\":\"https://docs.github.com/rest/issues/issues#list-repository-issues\",\"status\":\"404\"}"
+    },
+    {
+      "repo": "dispatch-mcp-t1-2",
+      "open_issues": 1,
+      "oldest_open": "{\"message\":\"Not Found\",\"documentation_url\":\"https://docs.github.com/rest/issues/issues#list-repository-issues\",\"status\":\"404\"}"
+    },
+    {
+      "repo": "dispatch-mcp-t1-3",
+      "open_issues": 1,
+      "oldest_open": "{\"message\":\"Not Found\",\"documentation_url\":\"https://docs.github.com/rest/issues/issues#list-repository-issues\",\"status\":\"404\"}"
+    },
+    {
+      "repo": "dispatch-mcp-t1-4",
+      "open_issues": 1,
+      "oldest_open": "{\"message\":\"Not Found\",\"documentation_url\":\"https://docs.github.com/rest/issues/issues#list-repository-issues\",\"status\":\"404\"}"
+    },
+    {
+      "repo": "dispatch-mcp-t1-5",
+      "open_issues": 1,
+      "oldest_open": "{\"message\":\"Not Found\",\"documentation_url\":\"https://docs.github.com/rest/issues/issues#list-repository-issues\",\"status\":\"404\"}"
+    },
+    {
+      "repo": "docs",
+      "open_issues": 1,
+      "oldest_open": "{\"message\":\"Not Found\",\"documentation_url\":\"https://docs.github.com/rest/issues/issues#list-repository-issues\",\"status\":\"404\"}"
+    },
+    {
+      "repo": "docs-site",
+      "open_issues": 1,
+      "oldest_open": "{\"message\":\"Not Found\",\"documentation_url\":\"https://docs.github.com/rest/issues/issues#list-repository-issues\",\"status\":\"404\"}"
+    },
+    {
+      "repo": "examples",
+      "open_issues": 1,
+      "oldest_open": "{\"message\":\"Not Found\",\"documentation_url\":\"https://docs.github.com/rest/issues/issues#list-repository-issues\",\"status\":\"404\"}"
+    },
+    {
+      "repo": "frontend",
+      "open_issues": 1,
+      "oldest_open": "{\"message\":\"Not Found\",\"documentation_url\":\"https://docs.github.com/rest/issues/issues#list-repository-issues\",\"status\":\"404\"}"
+    },
+    {
+      "repo": "fuzz",
+      "open_issues": 1,
+      "oldest_open": "{\"message\":\"Not Found\",\"documentation_url\":\"https://docs.github.com/rest/issues/issues#list-repository-issues\",\"status\":\"404\"}"
+    },
+    {
+      "repo": "libs",
+      "open_issues": 1,
+      "oldest_open": "{\"message\":\"Not Found\",\"documentation_url\":\"https://docs.github.com/rest/issues/issues#list-repository-issues\",\"status\":\"404\"}"
+    },
+    {
+      "repo": "phenoData-t1-15",
+      "open_issues": 1,
+      "oldest_open": "{\"message\":\"Not Found\",\"documentation_url\":\"https://docs.github.com/rest/issues/issues#list-repository-issues\",\"status\":\"404\"}"
+    },
+    {
+      "repo": "phenoData-t1-16",
+      "open_issues": 1,
+      "oldest_open": "{\"message\":\"Not Found\",\"documentation_url\":\"https://docs.github.com/rest/issues/issues#list-repository-issues\",\"status\":\"404\"}"
+    },
+    {
+      "repo": "phenoData-t1-17",
+      "open_issues": 1,
+      "oldest_open": "{\"message\":\"Not Found\",\"documentation_url\":\"https://docs.github.com/rest/issues/issues#list-repository-issues\",\"status\":\"404\"}"
+    },
+    {
+      "repo": "phenoData-t1-18",
+      "open_issues": 1,
+      "oldest_open": "{\"message\":\"Not Found\",\"documentation_url\":\"https://docs.github.com/rest/issues/issues#list-repository-issues\",\"status\":\"404\"}"
+    },
+    {
+      "repo": "phenoDesign-t1-10",
+      "open_issues": 1,
+      "oldest_open": "{\"message\":\"Not Found\",\"documentation_url\":\"https://docs.github.com/rest/issues/issues#list-repository-issues\",\"status\":\"404\"}"
+    },
+    {
+      "repo": "phenoDesign-t1-6",
+      "open_issues": 1,
+      "oldest_open": "{\"message\":\"Not Found\",\"documentation_url\":\"https://docs.github.com/rest/issues/issues#list-repository-issues\",\"status\":\"404\"}"
+    },
+    {
+      "repo": "phenoDesign-t1-7",
+      "open_issues": 1,
+      "oldest_open": "{\"message\":\"Not Found\",\"documentation_url\":\"https://docs.github.com/rest/issues/issues#list-repository-issues\",\"status\":\"404\"}"
+    },
+    {
+      "repo": "phenoDesign-t1-8",
+      "open_issues": 1,
+      "oldest_open": "{\"message\":\"Not Found\",\"documentation_url\":\"https://docs.github.com/rest/issues/issues#list-repository-issues\",\"status\":\"404\"}"
+    },
+    {
+      "repo": "phenoDesign-t1-9",
+      "open_issues": 1,
+      "oldest_open": "{\"message\":\"Not Found\",\"documentation_url\":\"https://docs.github.com/rest/issues/issues#list-repository-issues\",\"status\":\"404\"}"
+    },
+    {
+      "repo": "phenodocs-scorecard-remediation",
+      "open_issues": 1,
+      "oldest_open": "{\"message\":\"Not Found\",\"documentation_url\":\"https://docs.github.com/rest/issues/issues#list-repository-issues\",\"status\":\"404\"}"
+    },
+    {
+      "repo": "phenotype-icons",
+      "open_issues": 1,
+      "oldest_open": "{\"message\":\"Not Found\",\"documentation_url\":\"https://docs.github.com/rest/issues/issues#list-repository-issues\",\"status\":\"404\"}"
+    },
+    {
+      "repo": "phenotype-journeys",
+      "open_issues": 1,
+      "oldest_open": "2026-05-07T05:20:32Z"
+    },
+    {
+      "repo": "phenotype-journeys-2nd",
+      "open_issues": 1,
+      "oldest_open": "{\"message\":\"Not Found\",\"documentation_url\":\"https://docs.github.com/rest/issues/issues#list-repository-issues\",\"status\":\"404\"}"
+    },
+    {
+      "repo": "phenotype-ops-mcp-t0",
+      "open_issues": 1,
+      "oldest_open": "{\"message\":\"Not Found\",\"documentation_url\":\"https://docs.github.com/rest/issues/issues#list-repository-issues\",\"status\":\"404\"}"
+    },
+    {
+      "repo": "phenotype-ops-mcp-t1-11",
+      "open_issues": 1,
+      "oldest_open": "{\"message\":\"Not Found\",\"documentation_url\":\"https://docs.github.com/rest/issues/issues#list-repository-issues\",\"status\":\"404\"}"
+    },
+    {
+      "repo": "phenotype-ops-mcp-t1-12",
+      "open_issues": 1,
+      "oldest_open": "{\"message\":\"Not Found\",\"documentation_url\":\"https://docs.github.com/rest/issues/issues#list-repository-issues\",\"status\":\"404\"}"
+    },
+    {
+      "repo": "phenotype-ops-mcp-t1-13",
+      "open_issues": 1,
+      "oldest_open": "{\"message\":\"Not Found\",\"documentation_url\":\"https://docs.github.com/rest/issues/issues#list-repository-issues\",\"status\":\"404\"}"
+    },
+    {
+      "repo": "phenotype-ops-mcp-t1-14",
+      "open_issues": 1,
+      "oldest_open": "{\"message\":\"Not Found\",\"documentation_url\":\"https://docs.github.com/rest/issues/issues#list-repository-issues\",\"status\":\"404\"}"
+    },
+    {
+      "repo": "phenotype-py-extras",
+      "open_issues": 1,
+      "oldest_open": "{\"message\":\"Not Found\",\"documentation_url\":\"https://docs.github.com/rest/issues/issues#list-repository-issues\",\"status\":\"404\"}"
+    },
+    {
+      "repo": "phenotype-request-id",
+      "open_issues": 1,
+      "oldest_open": "{\"message\":\"Not Found\",\"documentation_url\":\"https://docs.github.com/rest/issues/issues#list-repository-issues\",\"status\":\"404\"}"
+    },
+    {
+      "repo": "phenotype-skills",
+      "open_issues": 1,
+      "oldest_open": "{\"message\":\"Not Found\",\"documentation_url\":\"https://docs.github.com/rest/issues/issues#list-repository-issues\",\"status\":\"404\"}"
+    },
+    {
+      "repo": "plans",
+      "open_issues": 1,
+      "oldest_open": "{\"message\":\"Not Found\",\"documentation_url\":\"https://docs.github.com/rest/issues/issues#list-repository-issues\",\"status\":\"404\"}"
+    },
+    {
+      "repo": "rust",
+      "open_issues": 1,
+      "oldest_open": "{\"message\":\"Not Found\",\"documentation_url\":\"https://docs.github.com/rest/issues/issues#list-repository-issues\",\"status\":\"404\"}"
+    },
+    {
+      "repo": "services",
+      "open_issues": 1,
+      "oldest_open": "{\"message\":\"Not Found\",\"documentation_url\":\"https://docs.github.com/rest/issues/issues#list-repository-issues\",\"status\":\"404\"}"
+    },
+    {
+      "repo": "src",
+      "open_issues": 1,
+      "oldest_open": "{\"message\":\"Not Found\",\"documentation_url\":\"https://docs.github.com/rest/issues/issues#list-repository-issues\",\"status\":\"404\"}"
+    },
+    {
+      "repo": "target",
+      "open_issues": 1,
+      "oldest_open": "{\"message\":\"Not Found\",\"documentation_url\":\"https://docs.github.com/rest/issues/issues#list-repository-issues\",\"status\":\"404\"}"
+    },
+    {
+      "repo": "tests",
+      "open_issues": 1,
+      "oldest_open": "{\"message\":\"Not Found\",\"documentation_url\":\"https://docs.github.com/rest/issues/issues#list-repository-issues\",\"status\":\"404\"}"
+    },
+    {
+      "repo": "thegent-fresh",
+      "open_issues": 1,
+      "oldest_open": "{\"message\":\"Not Found\",\"documentation_url\":\"https://docs.github.com/rest/issues/issues#list-repository-issues\",\"status\":\"404\"}"
+    },
+    {
+      "repo": "thegent-jsonl",
+      "open_issues": 1,
+      "oldest_open": "{\"message\":\"Not Found\",\"documentation_url\":\"https://docs.github.com/rest/issues/issues#list-repository-issues\",\"status\":\"404\"}"
+    },
+    {
+      "repo": "thegent-security-fixes",
+      "open_issues": 1,
+      "oldest_open": "{\"message\":\"Not Found\",\"documentation_url\":\"https://docs.github.com/rest/issues/issues#list-repository-issues\",\"status\":\"404\"}"
+    },
+    {
+      "repo": "tooling",
+      "open_issues": 1,
+      "oldest_open": "{\"message\":\"Not Found\",\"documentation_url\":\"https://docs.github.com/rest/issues/issues#list-repository-issues\",\"status\":\"404\"}"
+    },
+    {
+      "repo": "vendor",
+      "open_issues": 1,
+      "oldest_open": "{\"message\":\"Not Found\",\"documentation_url\":\"https://docs.github.com/rest/issues/issues#list-repository-issues\",\"status\":\"404\"}"
+    },
+    {
+      "repo": "worktrees",
+      "open_issues": 1,
+      "oldest_open": "{\"message\":\"Not Found\",\"documentation_url\":\"https://docs.github.com/rest/issues/issues#list-repository-issues\",\"status\":\"404\"}"
+    },
+    {
+      "repo": "AgentMCP",
+      "open_issues": 0,
+      "oldest_open": null
+    },
+    {
+      "repo": "AppGen",
+      "open_issues": 0,
+      "oldest_open": null
+    },
+    {
+      "repo": "AtomsBot",
+      "open_issues": 0,
+      "oldest_open": null
+    },
+    {
+      "repo": "Benchora",
+      "open_issues": 0,
+      "oldest_open": null
+    },
+    {
+      "repo": "BytePort",
+      "open_issues": 0,
+      "oldest_open": null
+    },
+    {
+      "repo": "DINOForge-UnityDoorstop",
+      "open_issues": 0,
+      "oldest_open": null
+    },
+    {
+      "repo": "FocalPoint",
+      "open_issues": 0,
+      "oldest_open": null
+    },
+    {
+      "repo": "GDK",
+      "open_issues": 0,
+      "oldest_open": null
+    },
+    {
+      "repo": "HeliosLab",
+      "open_issues": 0,
+      "oldest_open": null
+    },
+    {
+      "repo": "Httpora",
+      "open_issues": 0,
+      "oldest_open": null
+    },
+    {
+      "repo": "KaskMan",
+      "open_issues": 0,
+      "oldest_open": null
+    },
+    {
+      "repo": "KlipDot",
+      "open_issues": 0,
+      "oldest_open": null
+    },
+    {
+      "repo": "MCPForge",
+      "open_issues": 0,
+      "oldest_open": null
+    },
+    {
+      "repo": "Metron",
+      "open_issues": 0,
+      "oldest_open": null
+    },
+    {
+      "repo": "NetScript",
+      "open_issues": 0,
+      "oldest_open": null
+    },
+    {
+      "repo": "OmniRoute",
+      "open_issues": 0,
+      "oldest_open": null
+    },
+    {
+      "repo": "PhenoAgent",
+      "open_issues": 0,
+      "oldest_open": null
+    },
+    {
+      "repo": "PhenoCompose",
+      "open_issues": 0,
+      "oldest_open": null
+    },
+    {
+      "repo": "PhenoKits",
+      "open_issues": 0,
+      "oldest_open": null
+    },
+    {
+      "repo": "PhenoLang",
+      "open_issues": 0,
+      "oldest_open": null
+    },
+    {
+      "repo": "PhenoMCP",
+      "open_issues": 0,
+      "oldest_open": null
+    },
+    {
+      "repo": "PhenoProject",
+      "open_issues": 0,
+      "oldest_open": null
+    },
+    {
+      "repo": "PhenoRuntime",
+      "open_issues": 0,
+      "oldest_open": null
+    },
+    {
+      "repo": "PhenoVCS",
+      "open_issues": 0,
+      "oldest_open": null
+    },
+    {
+      "repo": "ResilienceKit",
+      "open_issues": 0,
+      "oldest_open": null
+    },
+    {
+      "repo": "argis-extensions",
+      "open_issues": 0,
+      "oldest_open": null
+    },
+    {
+      "repo": "dinoforge-packs",
+      "open_issues": 0,
+      "oldest_open": null
+    },
+    {
+      "repo": "dispatch-mcp",
+      "open_issues": 0,
+      "oldest_open": null
+    },
+    {
+      "repo": "forgecode",
+      "open_issues": 0,
+      "oldest_open": null
+    },
+    {
+      "repo": "helios-router",
+      "open_issues": 0,
+      "oldest_open": null
+    },
+    {
+      "repo": "heliosHarness",
+      "open_issues": 0,
+      "oldest_open": null
+    },
+    {
+      "repo": "kmobile",
+      "open_issues": 0,
+      "oldest_open": null
+    },
+    {
+      "repo": "localbase3",
+      "open_issues": 0,
+      "oldest_open": null
+    },
+    {
+      "repo": "melosviz",
+      "open_issues": 0,
+      "oldest_open": null
+    },
+    {
+      "repo": "nanovms",
+      "open_issues": 0,
+      "oldest_open": null
+    },
+    {
+      "repo": "phenoData",
+      "open_issues": 0,
+      "oldest_open": null
+    },
+    {
+      "repo": "phenoDesign",
+      "open_issues": 0,
+      "oldest_open": null
+    },
+    {
+      "repo": "phenoUtils",
+      "open_issues": 0,
+      "oldest_open": null
+    },
+    {
+      "repo": "phenoXdd",
+      "open_issues": 0,
+      "oldest_open": null
+    },
+    {
+      "repo": "phenotype-auth-ts",
+      "open_issues": 0,
+      "oldest_open": null
+    },
+    {
+      "repo": "phenotype-bus",
+      "open_issues": 0,
+      "oldest_open": null
+    },
+    {
+      "repo": "phenotype-go-sdk",
+      "open_issues": 0,
+      "oldest_open": null
+    },
+    {
+      "repo": "phenotype-landing",
+      "open_issues": 0,
+      "oldest_open": null
+    },
+    {
+      "repo": "phenotype-omlx",
+      "open_issues": 0,
+      "oldest_open": null
+    },
+    {
+      "repo": "phenotype-ops-mcp",
+      "open_issues": 0,
+      "oldest_open": null
+    },
+    {
+      "repo": "phenotype-postfx",
+      "open_issues": 0,
+      "oldest_open": null
+    },
+    {
+      "repo": "phenotype-python-sdk",
+      "open_issues": 0,
+      "oldest_open": null
+    },
+    {
+      "repo": "phenotype-terrain",
+      "open_issues": 0,
+      "oldest_open": null
+    },
+    {
+      "repo": "phenotype-tooling",
+      "open_issues": 0,
+      "oldest_open": null
+    },
+    {
+      "repo": "phenotype-voxel",
+      "open_issues": 0,
+      "oldest_open": null
+    },
+    {
+      "repo": "phenotype-water",
+      "open_issues": 0,
+      "oldest_open": null
+    },
+    {
+      "repo": "portage",
+      "open_issues": 0,
+      "oldest_open": null
+    },
+    {
+      "repo": "rich-cli-kit",
+      "open_issues": 0,
+      "oldest_open": null
+    },
+    {
+      "repo": "thegent-dispatch",
+      "open_issues": 0,
+      "oldest_open": null
+    },
+    {
+      "repo": "vibeproxy",
+      "open_issues": 0,
+      "oldest_open": null
+    }
+  ],
+  "top_pressure": [
+    "heliosBench",
+    "PhenoDevOps",
+    "Pyron",
+    "HeliosCLI",
+    "helioscope",
+    "Tracera",
+    "phenodocs",
+    "QuadSGM",
+    "thegent",
+    "Conft"
+  ]
+}

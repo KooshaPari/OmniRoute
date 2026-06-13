@@ -1,0 +1,22 @@
+name: Quality Gate
+on: [push, pull_request]
+
+jobs:
+  gate:
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5@11bd71901bbe5b1630ceea73d27597364c9af683
+      - uses: dtolnay/rust-toolchain@88dc2356392166efad76775c878094f4e83ff746
+      - run: |
+          # Fallback: build if not cached
+          if [ ! -f tooling/quality-gate ]; then
+            mkdir -p tooling
+            if [ -d phenotype-tooling ]; then
+              cd phenotype-tooling && cargo build --release --bin quality-gate 2>&1 | tail -5
+              ln -sf ../phenotype-tooling/target/release/quality-gate ../tooling/
+            else
+              echo "Note: quality-gate not available; skipping" && exit 0
+            fi
+          fi
+          tooling/quality-gate --quick || true

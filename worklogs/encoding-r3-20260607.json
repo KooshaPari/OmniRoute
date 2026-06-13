@@ -1,0 +1,89 @@
+{
+  "generated_at": "2026-06-07T00:00:00Z",
+  "total_repos": 11,
+  "with_simd_json": [
+    "GDK",
+    "thegent",
+    "thegent-clean",
+    "thegent-clean-wt-docs",
+    "thegent-clean-wt-idea",
+    "thegent-clean-wt-parallel",
+    "thegent-clean-wt-policy",
+    "thegent-clean-wt-ruff"
+  ],
+  "with_rmp_serde": [
+    "Agentora",
+    "PhenoAgent"
+  ],
+  "with_bincode": [
+    "Civis"
+  ],
+  "by_repo": [
+    {
+      "repo": "Agentora",
+      "libs": [
+        "rmp-serde"
+      ]
+    },
+    {
+      "repo": "Civis",
+      "libs": [
+        "bincode"
+      ]
+    },
+    {
+      "repo": "GDK",
+      "libs": [
+        "simd-json"
+      ]
+    },
+    {
+      "repo": "PhenoAgent",
+      "libs": [
+        "rmp-serde"
+      ]
+    },
+    {
+      "repo": "thegent",
+      "libs": [
+        "simd-json"
+      ]
+    },
+    {
+      "repo": "thegent-clean",
+      "libs": [
+        "simd-json"
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-docs",
+      "libs": [
+        "simd-json"
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-idea",
+      "libs": [
+        "simd-json"
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-parallel",
+      "libs": [
+        "simd-json"
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-policy",
+      "libs": [
+        "simd-json"
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-ruff",
+      "libs": [
+        "simd-json"
+      ]
+    }
+  ]
+}

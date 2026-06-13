@@ -1,0 +1,16 @@
+[
+  {
+    "id": "backend-ai",
+    "name": "Backend/AI Team",
+    "bugForumId": "backend-ai-bugs",
+    "bugChannelId": "123456789012345678",
+    "featureForumId": "backend-ai-features",
+    "featureChannelId": "234567890123456789",
+    "githubOwner": "your-org",
+    "githubRepo": "your-repo",
+    "jiraProjectKey": "BEAI",
+    "emoji": "🧠",
+    "color": 3674134
+  }
+]
+

@@ -1,0 +1,338 @@
+{
+  "generated_at": "2026-06-06T00:00:00Z",
+  "total_repos": 167,
+  "with_async_trait": [
+    ".claude",
+    "Agentora",
+    "AgilePlus",
+    "Apisync",
+    "AuthKit",
+    "Benchora",
+    "Conft",
+    "DataKit",
+    "Eidolon",
+    "Eventra",
+    "FocalPoint",
+    "GDK",
+    "HeliosCLI",
+    "HexaKit",
+    "KDesktopVirt",
+    "McpKit",
+    "ObservabilityKit",
+    "PhenoDevOps",
+    "PhenoKits",
+    "PhenoMCP",
+    "PhenoObservability",
+    "PhenoPlugins",
+    "PhenoProc",
+    "PhenoRuntime",
+    "PhenoSchema",
+    "PlayCua",
+    "Pyron",
+    "ResilienceKit",
+    "Tasken",
+    "TestingKit",
+    "Tokn",
+    "bare-cua",
+    "crates",
+    "helioscope",
+    "kwality",
+    "pheno",
+    "phenoAI",
+    "phenoShared",
+    "phenoUtils",
+    "phenodocs",
+    "thegent",
+    "thegent-clean",
+    "thegent-clean-wt-docs",
+    "thegent-clean-wt-idea",
+    "thegent-clean-wt-parallel",
+    "thegent-clean-wt-policy",
+    "thegent-clean-wt-ruff"
+  ],
+  "with_async_recursion": [],
+  "by_repo": [
+    {
+      "repo": ".claude",
+      "libs": [
+        "async-trait"
+      ]
+    },
+    {
+      "repo": "Agentora",
+      "libs": [
+        "async-trait"
+      ]
+    },
+    {
+      "repo": "AgilePlus",
+      "libs": [
+        "async-trait"
+      ]
+    },
+    {
+      "repo": "Apisync",
+      "libs": [
+        "async-trait"
+      ]
+    },
+    {
+      "repo": "AuthKit",
+      "libs": [
+        "async-trait"
+      ]
+    },
+    {
+      "repo": "Benchora",
+      "libs": [
+        "async-trait"
+      ]
+    },
+    {
+      "repo": "Conft",
+      "libs": [
+        "async-trait"
+      ]
+    },
+    {
+      "repo": "DataKit",
+      "libs": [
+        "async-trait"
+      ]
+    },
+    {
+      "repo": "Eidolon",
+      "libs": [
+        "async-trait"
+      ]
+    },
+    {
+      "repo": "Eventra",
+      "libs": [
+        "async-trait"
+      ]
+    },
+    {
+      "repo": "FocalPoint",
+      "libs": [
+        "async-trait"
+      ]
+    },
+    {
+      "repo": "GDK",
+      "libs": [
+        "async-trait"
+      ]
+    },
+    {
+      "repo": "HeliosCLI",
+      "libs": [
+        "async-trait"
+      ]
+    },
+    {
+      "repo": "HexaKit",
+      "libs": [
+        "async-trait"
+      ]
+    },
+    {
+      "repo": "KDesktopVirt",
+      "libs": [
+        "async-trait"
+      ]
+    },
+    {
+      "repo": "McpKit",
+      "libs": [
+        "async-trait"
+      ]
+    },
+    {
+      "repo": "ObservabilityKit",
+      "libs": [
+        "async-trait"
+      ]
+    },
+    {
+      "repo": "PhenoDevOps",
+      "libs": [
+        "async-trait"
+      ]
+    },
+    {
+      "repo": "PhenoKits",
+      "libs": [
+        "async-trait"
+      ]
+    },
+    {
+      "repo": "PhenoMCP",
+      "libs": [
+        "async-trait"
+      ]
+    },
+    {
+      "repo": "PhenoObservability",
+      "libs": [
+        "async-trait"
+      ]
+    },
+    {
+      "repo": "PhenoPlugins",
+      "libs": [
+        "async-trait"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "libs": [
+        "async-trait"
+      ]
+    },
+    {
+      "repo": "PhenoRuntime",
+      "libs": [
+        "async-trait"
+      ]
+    },
+    {
+      "repo": "PhenoSchema",
+      "libs": [
+        "async-trait"
+      ]
+    },
+    {
+      "repo": "PlayCua",
+      "libs": [
+        "async-trait"
+      ]
+    },
+    {
+      "repo": "Pyron",
+      "libs": [
+        "async-trait"
+      ]
+    },
+    {
+      "repo": "ResilienceKit",
+      "libs": [
+        "async-trait"
+      ]
+    },
+    {
+      "repo": "Tasken",
+      "libs": [
+        "async-trait"
+      ]
+    },
+    {
+      "repo": "TestingKit",
+      "libs": [
+        "async-trait"
+      ]
+    },
+    {
+      "repo": "Tokn",
+      "libs": [
+        "async-trait"
+      ]
+    },
+    {
+      "repo": "bare-cua",
+      "libs": [
+        "async-trait"
+      ]
+    },
+    {
+      "repo": "crates",
+      "libs": [
+        "async-trait"
+      ]
+    },
+    {
+      "repo": "helioscope",
+      "libs": [
+        "async-trait"
+      ]
+    },
+    {
+      "repo": "kwality",
+      "libs": [
+        "async-trait"
+      ]
+    },
+    {
+      "repo": "pheno",
+      "libs": [
+        "async-trait"
+      ]
+    },
+    {
+      "repo": "phenoAI",
+      "libs": [
+        "async-trait"
+      ]
+    },
+    {
+      "repo": "phenoShared",
+      "libs": [
+        "async-trait"
+      ]
+    },
+    {
+      "repo": "phenoUtils",
+      "libs": [
+        "async-trait"
+      ]
+    },
+    {
+      "repo": "phenodocs",
+      "libs": [
+        "async-trait"
+      ]
+    },
+    {
+      "repo": "thegent",
+      "libs": [
+        "async-trait"
+      ]
+    },
+    {
+      "repo": "thegent-clean",
+      "libs": [
+        "async-trait"
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-docs",
+      "libs": [
+        "async-trait"
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-idea",
+      "libs": [
+        "async-trait"
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-parallel",
+      "libs": [
+        "async-trait"
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-policy",
+      "libs": [
+        "async-trait"
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-ruff",
+      "libs": [
+        "async-trait"
+      ]
+    }
+  ]
+}

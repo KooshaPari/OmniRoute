@@ -1,0 +1,51 @@
+{
+  "generated_at": "2026-06-08T23:53:28Z",
+  "by_repo": [
+    {
+      "repo": "AppGen",
+      "worklog_dir": null,
+      "worklog_files": [],
+      "file_count": 0,
+      "has_index": false
+    },
+    {
+      "repo": "BytePort",
+      "worklog_dir": null,
+      "worklog_files": [],
+      "file_count": 0,
+      "has_index": false
+    },
+    {
+      "repo": "chatta",
+      "worklog_dir": null,
+      "worklog_files": [],
+      "file_count": 0,
+      "has_index": false
+    },
+    {
+      "repo": "slickport",
+      "worklog_dir": null,
+      "worklog_files": [],
+      "file_count": 0,
+      "has_index": false
+    },
+    {
+      "repo": "localbase3",
+      "worklog_dir": null,
+      "worklog_files": [],
+      "file_count": 0,
+      "has_index": false
+    },
+    {
+      "repo": "phenotype-hub/docs/worklogs",
+      "worklog_dir": "phenotype-hub/docs/worklogs",
+      "worklog_files": ["README.md", "worklog.md"],
+      "file_count": 2,
+      "has_index": true
+    }
+  ],
+  "summary": {
+    "repos_with_worklogs": 1,
+    "total_worklog_files": 2
+  }
+}

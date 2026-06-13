@@ -1,0 +1,99 @@
+{
+  "generated_at": "2026-06-05",
+  "total_repos": 176,
+  "with_k8s": [
+    "Dino",
+    "KDesktopVirt",
+    "PolicyStack",
+    "Tracera",
+    "phenodocs",
+    "phenotype-tooling"
+  ],
+  "by_repo": [
+    {
+      "repo": "Dino",
+      "manifest_count": 1,
+      "files": [
+        "manifests/asset-intake/source-rules.yaml"
+      ]
+    },
+    {
+      "repo": "KDesktopVirt",
+      "manifest_count": 9,
+      "files": [
+        "helm/kvirtualstage/templates/deployment.yaml",
+        "helm/kvirtualstage/templates/service.yaml",
+        "k8s/configmap.yaml",
+        "k8s/deployment.yaml",
+        "k8s/hpa.yaml",
+        "k8s/namespace.yaml",
+        "k8s/network-policy.yaml",
+        "k8s/redis-statefulset.yaml",
+        "k8s/service.yaml"
+      ]
+    },
+    {
+      "repo": "PolicyStack",
+      "manifest_count": 3,
+      "files": [
+        "extensions/manifests/audit-hooks.yaml",
+        "extensions/manifests/run-metadata-signature.yaml",
+        "policy-config/task-domain/deployment.yaml"
+      ]
+    },
+    {
+      "repo": "Tracera",
+      "manifest_count": 32,
+      "files": [
+        "ARCHIVE/INFRASTRUCTURE/k8s/api-deployment.yaml",
+        "ARCHIVE/INFRASTRUCTURE/k8s/backend-deployment.yaml",
+        "ARCHIVE/INFRASTRUCTURE/k8s/configmap.yaml",
+        "ARCHIVE/INFRASTRUCTURE/k8s/deployment.yaml",
+        "ARCHIVE/INFRASTRUCTURE/k8s/hpa.yaml",
+        "ARCHIVE/INFRASTRUCTURE/k8s/ingress.yaml",
+        "ARCHIVE/INFRASTRUCTURE/k8s/monitoring.yaml",
+        "ARCHIVE/INFRASTRUCTURE/k8s/namespace.yaml",
+        "ARCHIVE/INFRASTRUCTURE/k8s/nats-deployment.yaml",
+        "ARCHIVE/INFRASTRUCTURE/k8s/networkpolicy.yaml",
+        "ARCHIVE/INFRASTRUCTURE/k8s/postgres-deployment.yaml",
+        "ARCHIVE/INFRASTRUCTURE/k8s/redis-deployment.yaml",
+        "deploy/infrastructure/k8s/00-namespace.yaml",
+        "deploy/infrastructure/k8s/01-configmaps.yaml",
+        "deploy/infrastructure/k8s/03-postgres.yaml",
+        "deploy/infrastructure/k8s/04-redis.yaml",
+        "deploy/infrastructure/k8s/05-nats.yaml",
+        "deploy/infrastructure/k8s/06-go-backend.yaml",
+        "deploy/infrastructure/k8s/07-python-backend.yaml",
+        "deploy/infrastructure/k8s/08-ingress.yaml",
+        "deploy/infrastructure/k8s/09-monitoring.yaml",
+        "deploy/infrastructure/k8s/10-network-policies.yaml",
+        "deploy/k8s/base/configmap.yaml",
+        "deploy/k8s/base/deployment-go-backend.yaml",
+        "deploy/k8s/base/deployment.yaml",
+        "deploy/k8s/base/ingress.yaml",
+        "deploy/k8s/base/prometheusrule.yaml",
+        "deploy/k8s/base/service.yaml",
+        "deploy/k8s/base/servicemonitor.yaml",
+        "deploy/k8s/chaos/chaos-mesh-example.yml",
+        "deploy/k8s/chaos/toxiproxy-deployment.yml",
+        "deploy/k8s/overlays/canary/deployment-canary.yaml"
+      ]
+    },
+    {
+      "repo": "phenodocs",
+      "manifest_count": 1,
+      "files": [
+        "docs/journeys/manifests/phenodocs-bootstrap.journey.yaml"
+      ]
+    },
+    {
+      "repo": "phenotype-tooling",
+      "manifest_count": 3,
+      "files": [
+        "crates/policystack/extensions/manifests/audit-hooks.yaml",
+        "crates/policystack/extensions/manifests/run-metadata-signature.yaml",
+        "crates/policystack/policy-config/task-domain/deployment.yaml"
+      ]
+    }
+  ]
+}

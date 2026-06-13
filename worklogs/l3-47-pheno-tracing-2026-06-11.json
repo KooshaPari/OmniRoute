@@ -1,0 +1,80 @@
+{
+  "task_id": "L3-47",
+  "date": "2026-06-11",
+  "title": "Author canonical pheno-tracing Rust crate",
+  "status": "completed",
+  "branch": "chore/l3-47-pheno-tracing-2026-06-11",
+  "commit": "3aecb78778b57f461e6e182c427359ffe64ef242",
+  "author": "forge",
+  "refs": {
+    "dag": "FLEET_100TASK_DAG_V3.md#L3-#47",
+    "downstream": ["L5-#81", "L5-#82", "L5-#83", "L5-#84", "L5-#85"]
+  },
+  "summary": "Authored the canonical pheno-tracing workspace crate consolidating the tracing-subscriber + EnvFilter + tracing-appender init pattern into a one-liner: pheno_tracing::init().",
+  "scope": {
+    "created": [
+      "pheno-tracing/Cargo.toml",
+      "pheno-tracing/README.md",
+      "pheno-tracing/src/lib.rs",
+      "pheno-tracing/tests/init_test.rs"
+    ],
+    "modified": [
+      "Cargo.toml"
+    ]
+  },
+  "public_api": {
+    "init": "pheno_tracing::init() - pretty console + RUST_LOG (default info)",
+    "init_json": "pheno_tracing::init_json() - structured JSON output",
+    "init_with_file": "pheno_tracing::init_with_file(path: &Path) - daily-rotated log file appender"
+  },
+  "dependencies": {
+    "tracing": "0.1",
+    "tracing-subscriber": "0.3 (features: env-filter, json)",
+    "tracing-appender": "0.2"
+  },
+  "test_results": {
+    "command": "cargo test -p pheno-tracing",
+    "unit_tests": 2,
+    "integration_tests": 6,
+    "doctests": 1,
+    "total": 9,
+    "passed": 9,
+    "failed": 0
+  },
+  "test_coverage": [
+    "default_env_filter_is_info",
+    "default_env_filter_honors_rust_log",
+    "init_does_not_panic",
+    "pretty_format_emits_known_log_line",
+    "init_json_does_not_panic",
+    "json_format_emits_known_log_line",
+    "file_writer_appends_log_line_to_disk",
+    "init_with_file_does_not_panic",
+    "doctest: lib.rs line 6"
+  ],
+  "idempotency": "All three init paths use tracing_subscriber::fmt::try_init (TryInit), so repeated calls in a process are no-ops after the first success.",
+  "consolidation_targets": [
+    "crates/focus-observability (replaced by pheno_tracing::init_json + tracing::info! calls in handlers)",
+    "focus-telemetry (uses pheno_tracing::init_with_file for daily-rotated logs)"
+  ],
+  "downstream_consumers": [
+    "L5-#81 - focus-app integration",
+    "L5-#82 - focus-cli integration",
+    "L5-#83 - focus-tunnel integration",
+    "L5-#84 - focus-cloud integration",
+    "L5-#85 - focus-mcp integration"
+  ],
+  "verification": {
+    "cargo_check": "ok",
+    "cargo_test": "9/9 pass",
+    "cargo_clippy": "clean (no warnings)",
+    "rust_edition": "2021",
+    "rust_msrv": "1.75.0"
+  },
+  "notes": "Replaces ad-hoc tracing setup patterns duplicated across focus-observability and focus-telemetry. Uses try_init for process-level idempotency. All three modes read RUST_LOG via EnvFilter; default level is INFO when RUST_LOG is unset. The file writer uses tracing_appender::rolling::daily for automatic daily rotation.",
+  "no_touch": [
+    "Other L3 tasks (L3-#46, L3-#48, L3-#49, etc.)",
+    "focus-observability crate (will be migrated in a follow-up L3 task)",
+    "focus-telemetry crate (will be migrated in a follow-up L3 task)"
+  ]
+}

@@ -1,0 +1,139 @@
+{
+  "generated_at": "2026-06-08T10:01:09Z",
+  "near_duplicate_gomods": [
+    {
+      "hash": "1347d5d5aadce3ad2ffd92bfaa98640394919b456c7950a897413c3ae01fea87",
+      "repos": [
+        "thegent-clean-wt-idea/apps/byteport/backend/api/go.mod",
+        "thegent-clean-wt-parallel/apps/byteport/backend/api/go.mod",
+        "thegent/apps/byteport/backend/api/go.mod"
+      ]
+    },
+    {
+      "hash": "865da3902c4f1052e7de68f74de616e83ff1eacda8e4bac925d18037f94aaa57",
+      "repos": [
+        "BytePort/backend/bytebridge/ByteBridge/go.mod",
+        "PhenoProc/crates/byteport/backend/bytebridge/ByteBridge/go.mod",
+        "phenotype-tooling/crates/byteport/backend/bytebridge/ByteBridge/go.mod"
+      ]
+    },
+    {
+      "hash": "b72df900f4da44bad0df269931fecc3fc5b78bb40fe3edda8e528c4d459581b9",
+      "repos": [
+        "PhenoProc/apps/pheno-cli/go.mod",
+        "Pyron/pheno-cli/go.mod",
+        "pheno/pheno-cli/go.mod"
+      ]
+    },
+    {
+      "hash": "c9f309ab6abe04aeea99123f34ea38c9a615a0587351b3ec888a5c9149fc8849",
+      "repos": [
+        "MCPForge/integrationtests/workspaces/go/go.mod",
+        "McpKit/rust/mcp-forge/integrationtests/workspaces/go/go.mod",
+        "PhenoProc/crates/mcp-forge/integrationtests/workspaces/go/go.mod"
+      ]
+    },
+    {
+      "hash": "d62464fc6ee097798a89329335e708fe085140a192d376fd187adc03b0dc3047",
+      "repos": [
+        "HexaKit/agileplus/pheno-cli/go.mod",
+        "PhenoDevOps/pheno-cli/go.mod",
+        "pheno/agileplus/pheno-cli/go.mod"
+      ]
+    },
+    {
+      "hash": "e0a6befea9391e1f89f9904e9247ad4850b0843f04fb083dfdb22fb74425a748",
+      "repos": [
+        "BytePort/backend/nvms/Builder/go.mod",
+        "PhenoProc/crates/byteport/backend/nvms/Builder/go.mod",
+        "phenotype-tooling/crates/byteport/backend/nvms/Builder/go.mod"
+      ]
+    },
+    {
+      "hash": "f73da8c79a1f06321c187baca65e78874d2bebe6beeef8a33f454d78c3af709e",
+      "repos": [
+        "thegent-clean-wt-idea/apps/byteport/sdk/go/go.mod",
+        "thegent-clean-wt-parallel/apps/byteport/sdk/go/go.mod",
+        "thegent/apps/byteport/sdk/go/go.mod"
+      ]
+    },
+    {
+      "hash": "183013f9511ded49a28dd557e3b9ff580b1ae493c24d364df7f431c8e6f2264d",
+      "repos": [
+        "HexaKit/templates/hexagon/go/go.mod",
+        "PhenoKits/hexagon/templates/go/go.mod"
+      ]
+    },
+    {
+      "hash": "31a3dea2484a671c3a66ded994621bd2d11add0c196e756e522c992b4c7eea50",
+      "repos": [
+        "PhenoDevOps/agileplus/pheno-cli/go.mod",
+        "Pyron/agileplus/pheno-cli/go.mod"
+      ]
+    },
+    {
+      "hash": "52ef92441a908cf3364aee4175e9cabe4627274ffbd8bbfd7522c79bbc7b59ee",
+      "repos": [
+        "thegent-clean-wt-policy/apps/byteport/sdk/go/go.mod",
+        "thegent-clean-wt-ruff/apps/byteport/sdk/go/go.mod"
+      ]
+    },
+    {
+      "hash": "60378a0eb863eb4aece816cffab26933c5d01695f930a6f21905c545f58aeca6",
+      "repos": [
+        "BytePort/backend/nvms/Provisioner/go.mod",
+        "phenotype-tooling/crates/byteport/backend/nvms/Provisioner/go.mod"
+      ]
+    },
+    {
+      "hash": "72f7f0b757077517453821ec2ce299ed9ea055e740fdf082e295b0723c399624",
+      "repos": [
+        "nanovms/go.mod",
+        "phenotype-tooling/crates/nanovms/go.mod"
+      ]
+    },
+    {
+      "hash": "73a0eba832cd7f1062fa7599c28ae0f623a9c4cb157e5401f963e95173ccde88",
+      "repos": [
+        ".remember/phenotype-tooling-byteport-untracked/backend/byteport/go.mod",
+        "phenotype-tooling/crates/byteport/backend/byteport/go.mod"
+      ]
+    },
+    {
+      "hash": "81ba9a86a237954429c1b7b6c3e5978db51e0234fc4c5cad44bbe5cf4da2a4d8",
+      "repos": [
+        "McpKit/rust/mcp-forge/go.mod",
+        "PhenoProc/crates/mcp-forge/go.mod"
+      ]
+    },
+    {
+      "hash": "b63e5bd6f7b2be511d5555c5080ce13244aabb22417f9d7a172f4e5061a79fcd",
+      "repos": [
+        "phenodocs-scorecard-remediation/libs/docslib/go.mod",
+        "phenodocs/libs/docslib/go.mod"
+      ]
+    },
+    {
+      "hash": "b8c3bd131cb645ca77b447dd8a11a6c64c5eadd1539ae60351aae42fc448a22a",
+      "repos": [
+        "BytePort/backend/nvms/Demonstrator/go.mod",
+        "phenotype-tooling/crates/byteport/backend/nvms/Demonstrator/go.mod"
+      ]
+    },
+    {
+      "hash": "c66415373ac8122e9e2c67df46cbfea61f90f240dcea2f613bdc30c7ec3c8265",
+      "repos": [
+        "cliproxyapi-plusplus/journey-fix/third_party/phenotype-go-auth/go.mod",
+        "cliproxyapi-plusplus/third_party/phenotype-go-auth/go.mod"
+      ]
+    },
+    {
+      "hash": "ffa195cdaf9fd0a284630d9e5de83d1faad1e5d0a9820dd096b8adb099612bd4",
+      "repos": [
+        "PolicyStack/wrappers/go/go.mod",
+        "phenotype-tooling/crates/policystack/wrappers/go/go.mod"
+      ]
+    }
+  ],
+  "total_repos": 38
+}

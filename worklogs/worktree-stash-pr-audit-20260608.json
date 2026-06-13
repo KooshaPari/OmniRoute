@@ -1,0 +1,46 @@
+{
+  "generated_at": "2026-06-08T10:24:32Z",
+  "total_repos": 4,
+  "with_worktrees": [
+    "/Users/kooshapari/CodeProjects/Phenotype/repos/Agentora",
+    "/Users/kooshapari/CodeProjects/Phenotype/repos/OmniRoute",
+    "/Users/kooshapari/CodeProjects/Phenotype/repos/cliproxyapi-plusplus",
+    "/Users/kooshapari/CodeProjects/Phenotype/repos/phenodocs"
+  ],
+  "with_stashes": [
+    "/Users/kooshapari/CodeProjects/Phenotype/repos/OmniRoute",
+    "/Users/kooshapari/CodeProjects/Phenotype/repos/cliproxyapi-plusplus",
+    "/Users/kooshapari/CodeProjects/Phenotype/repos/phenodocs"
+  ],
+  "with_open_prs": [
+    "/Users/kooshapari/CodeProjects/Phenotype/repos/Agentora",
+    "/Users/kooshapari/CodeProjects/Phenotype/repos/cliproxyapi-plusplus",
+    "/Users/kooshapari/CodeProjects/Phenotype/repos/phenodocs"
+  ],
+  "by_repo": [
+    {
+      "repo": "/Users/kooshapari/CodeProjects/Phenotype/repos/Agentora",
+      "worktree_count": 2,
+      "stash_count": 0,
+      "open_pr_count": 1
+    },
+    {
+      "repo": "/Users/kooshapari/CodeProjects/Phenotype/repos/OmniRoute",
+      "worktree_count": 1,
+      "stash_count": 1,
+      "open_pr_count": 0
+    },
+    {
+      "repo": "/Users/kooshapari/CodeProjects/Phenotype/repos/cliproxyapi-plusplus",
+      "worktree_count": 1,
+      "stash_count": 1,
+      "open_pr_count": 9
+    },
+    {
+      "repo": "/Users/kooshapari/CodeProjects/Phenotype/repos/phenodocs",
+      "worktree_count": 3,
+      "stash_count": 2,
+      "open_pr_count": 4
+    }
+  ]
+}

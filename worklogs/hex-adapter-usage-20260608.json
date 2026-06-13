@@ -1,0 +1,214 @@
+{
+  "generated_at": "2026-06-08T10:58:55.616877Z",
+  "total_repos": 26,
+  "hex_imports": [
+    {
+      "repo": "Agentora",
+      "rs_files": 17,
+      "port_imports": 0,
+      "adapter_imports": 0,
+      "domain_imports": 62,
+      "application_imports": 1
+    },
+    {
+      "repo": "AgilePlus",
+      "rs_files": 1,
+      "port_imports": 0,
+      "adapter_imports": 0,
+      "domain_imports": 0,
+      "application_imports": 0
+    },
+    {
+      "repo": "Apisync",
+      "rs_files": 13,
+      "port_imports": 16,
+      "adapter_imports": 0,
+      "domain_imports": 5,
+      "application_imports": 0
+    },
+    {
+      "repo": "Benchora",
+      "rs_files": 7,
+      "port_imports": 0,
+      "adapter_imports": 0,
+      "domain_imports": 3,
+      "application_imports": 0
+    },
+    {
+      "repo": "Dino",
+      "rs_files": 1,
+      "port_imports": 0,
+      "adapter_imports": 0,
+      "domain_imports": 0,
+      "application_imports": 0
+    },
+    {
+      "repo": "Eventra",
+      "rs_files": 15,
+      "port_imports": 0,
+      "adapter_imports": 0,
+      "domain_imports": 5,
+      "application_imports": 1
+    },
+    {
+      "repo": "GDK",
+      "rs_files": 12,
+      "port_imports": 0,
+      "adapter_imports": 0,
+      "domain_imports": 0,
+      "application_imports": 0
+    },
+    {
+      "repo": "HexaKit",
+      "rs_files": 9,
+      "port_imports": 0,
+      "adapter_imports": 0,
+      "domain_imports": 0,
+      "application_imports": 0
+    },
+    {
+      "repo": "KDesktopVirt",
+      "rs_files": 46,
+      "port_imports": 0,
+      "adapter_imports": 0,
+      "domain_imports": 0,
+      "application_imports": 0
+    },
+    {
+      "repo": "KlipDot",
+      "rs_files": 12,
+      "port_imports": 0,
+      "adapter_imports": 0,
+      "domain_imports": 0,
+      "application_imports": 0
+    },
+    {
+      "repo": "Metron",
+      "rs_files": 12,
+      "port_imports": 0,
+      "adapter_imports": 0,
+      "domain_imports": 2,
+      "application_imports": 1
+    },
+    {
+      "repo": "NetScript",
+      "rs_files": 2,
+      "port_imports": 0,
+      "adapter_imports": 0,
+      "domain_imports": 0,
+      "application_imports": 0
+    },
+    {
+      "repo": "PhenoDevOps",
+      "rs_files": 9,
+      "port_imports": 0,
+      "adapter_imports": 0,
+      "domain_imports": 0,
+      "application_imports": 0
+    },
+    {
+      "repo": "PhenoKits",
+      "rs_files": 1,
+      "port_imports": 0,
+      "adapter_imports": 0,
+      "domain_imports": 0,
+      "application_imports": 0
+    },
+    {
+      "repo": "PhenoMCP",
+      "rs_files": 1,
+      "port_imports": 0,
+      "adapter_imports": 0,
+      "domain_imports": 0,
+      "application_imports": 0
+    },
+    {
+      "repo": "PhenoObservability",
+      "rs_files": 1,
+      "port_imports": 0,
+      "adapter_imports": 0,
+      "domain_imports": 0,
+      "application_imports": 0
+    },
+    {
+      "repo": "PhenoRuntime",
+      "rs_files": 1,
+      "port_imports": 0,
+      "adapter_imports": 0,
+      "domain_imports": 0,
+      "application_imports": 0
+    },
+    {
+      "repo": "Pyron",
+      "rs_files": 6,
+      "port_imports": 0,
+      "adapter_imports": 0,
+      "domain_imports": 0,
+      "application_imports": 0
+    },
+    {
+      "repo": "Tasken",
+      "rs_files": 21,
+      "port_imports": 0,
+      "adapter_imports": 0,
+      "domain_imports": 5,
+      "application_imports": 1
+    },
+    {
+      "repo": "Tokn",
+      "rs_files": 29,
+      "port_imports": 0,
+      "adapter_imports": 0,
+      "domain_imports": 0,
+      "application_imports": 0
+    },
+    {
+      "repo": "kmobile",
+      "rs_files": 21,
+      "port_imports": 0,
+      "adapter_imports": 0,
+      "domain_imports": 0,
+      "application_imports": 0
+    },
+    {
+      "repo": "pheno",
+      "rs_files": 6,
+      "port_imports": 0,
+      "adapter_imports": 0,
+      "domain_imports": 0,
+      "application_imports": 0
+    },
+    {
+      "repo": "phenoForge",
+      "rs_files": 2,
+      "port_imports": 0,
+      "adapter_imports": 0,
+      "domain_imports": 0,
+      "application_imports": 0
+    },
+    {
+      "repo": "phenotype-bus",
+      "rs_files": 1,
+      "port_imports": 0,
+      "adapter_imports": 0,
+      "domain_imports": 0,
+      "application_imports": 0
+    },
+    {
+      "repo": "phenotype-voxel",
+      "rs_files": 15,
+      "port_imports": 0,
+      "adapter_imports": 0,
+      "domain_imports": 0,
+      "application_imports": 0
+    },
+    {
+      "repo": "thegent-dispatch",
+      "rs_files": 5,
+      "port_imports": 0,
+      "adapter_imports": 0,
+      "domain_imports": 0,
+      "application_imports": 0
+    }
+  ]
+}

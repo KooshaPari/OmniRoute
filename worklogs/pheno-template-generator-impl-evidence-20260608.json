@@ -1,0 +1,28 @@
+{
+  "generated_at": "2026-06-09T04:23:59Z",
+  "file_present": true,
+  "line_count": 327,
+  "files_emitted": [
+    "LICENSE",
+    "README.md",
+    "CONTRIBUTING.md",
+    "SECURITY.md",
+    "CODEOWNERS",
+    "CODE_OF_CONDUCT.md",
+    ".github/FUNDING.yml",
+    "CHANGELOG.md",
+    ".github/PULL_REQUEST_TEMPLATE.md",
+    ".github/ISSUE_TEMPLATE/bug_report.md",
+    ".github/ISSUE_TEMPLATE/feature_request.md",
+    ".github/dependabot.yml",
+    "renovate.json5",
+    ".github/release-drafter.yml",
+    ".github/workflows/ci.yml",
+    ".github/workflows/scorecard.yml",
+    ".github/workflows/health.yml",
+    "SPEC.md",
+    "worklogs/README.md"
+  ],
+  "total_files_emitted": 19,
+  "validation_passed": true
+}

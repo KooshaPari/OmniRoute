@@ -1,0 +1,86 @@
+{
+  "repo": "libs",
+  "branch_audited": "(no git repo — git init absent; 2026-06-08 mtime sweep)",
+  "audited_at": "2026-06-08",
+  "summary": "G1-G5 all FAIL (phantom directory: 0 source files, 0 governance, 0 CI, 0 git, 676 MB of Python .venv/.mypy_cache/.coverage rot in 8 empty Rust-named crate slots). e2e NIL. 1 P0, 2 P1. Score 0.2/5.",
+  "gates": {
+    "G1_workflow_hygiene": {
+      "status": "FAIL",
+      "evidence": [
+        "No .github/workflows/, no .gitlab-ci.yml, no .circleci/, no Taskfile, no Justfile, no Makefile at root or in any subdir",
+        "8 subdirs (pheno_adapters, pheno_agent, pheno_cache, pheno_config, pheno_governance, pheno_http, pheno_llm, pheno_retry) all EMPTY of source: ls -la each shows only .coverage + .mypy_cache + .venv",
+        "Not a git repo: `git status` returns nothing, `git log` resolves to parent monorepo (Planify commits), zero commits scoped to libs/*",
+        "No SHA pins because no workflows exist; no concurrency/permissions to audit; no runner pinning"
+      ]
+    },
+    "G2_governance_files": {
+      "status": "FAIL",
+      "evidence": [
+        "Root has zero governance: no LICENSE, no README.md, no CHANGELOG.md, no AGENTS.md, no CLAUDE.md, no CODEOWNERS, no SECURITY.md, no CONTRIBUTING.md, no CODE_OF_CONDUCT.md, no FUNDING.yml, no .editorconfig, no .gitattributes, no .pre-commit-config.yaml, no .gitignore, no CITATION.cff, no docs/",
+        "No ISSUES_TEMPLATE/, no PULL_REQUEST_TEMPLATE.md; no ADRs; no rust-toolchain.toml, no clippy.toml, no deny.toml, no tarpaulin.toml",
+        "Subdirs are folder-skeletons named like intended Rust crates (pheno_cache, pheno_http, pheno_llm, pheno_retry suggest future Cargo workspaces) but no Cargo.toml, no src/, no benches/, no examples/, no tests/ in any of them"
+      ]
+    },
+    "G3_security_scanning": {
+      "status": "FAIL",
+      "evidence": [
+        "No scorecard.yml, no codeql.yml, no secrets-scan.yml, no gitleaks.yml, no cargo-audit/deny/machete/semver-checks (no Cargo.toml to scan anyway)",
+        "No dependabot.yml, no renovate.json5; no SBOM workflow; no DependGuard",
+        "No .trufflehog.yml, no .gitleaks.toml, no .semgrep.yml; 676 MB of unchecked venv bytecode (potential supply-chain noise) on disk"
+      ]
+    },
+    "G4_quality_gates": {
+      "status": "FAIL",
+      "evidence": [
+        "No ci.yml, no coverage.yml, no pre-commit-config, no fmt/clippy/test workflows (nothing to format/lint/test — zero source files)",
+        "No deny.toml license allowlist; no rustfmt.toml; no .editorconfig; no turbo.json / nx.json / moon.yml (no monorepo tooling either)",
+        "No CODEOWNERS = no required-reviewer gate; no branch-protection meta-guard"
+      ]
+    },
+    "G5_review_governance": {
+      "status": "FAIL",
+      "evidence": [
+        "No .coderabbit.yaml, no .gemini/ (AGENTS.md mandate doesn't apply — there is no AGENTS.md); no CODEOWNERS",
+        "No PULL_REQUEST_TEMPLATE.md, no ISSUE_TEMPLATE/, no stale-bot config, no auto-assign",
+        "No branch-protection meta-guard workflow; no require-status-checks"
+      ]
+    },
+    "e2e_end_to_end": {
+      "status": "NIL",
+      "evidence": [
+        "Zero integration tests, zero unit tests, zero examples, zero benches across all 8 subdirs",
+        "No tests/ directory anywhere; no .github/workflows/ to gate them",
+        "The .coverage files present are Python coverage JSON (53-69 KB each) — left over from a prior Python dev session in each empty subdir; the actual .py sources are gone, only the cache survived",
+        "676 MB on disk, ~0 bytes of real code: pheno_adapters 234M, pheno_agent 183M, pheno_http 84M, pheno_llm 94M, pheno_retry 28M, pheno_config 52M, pheno_governance 152K, pheno_cache 456K (all from .venv + .mypy_cache)"
+      ]
+    }
+  },
+  "additional_findings": {
+    "phantom_directory": "libs/ is not a git repo and contains 8 folder-skeletons named like planned Rust crates. The naming pattern (pheno_cache, pheno_http, pheno_llm, pheno_retry, pheno_adapters, pheno_agent, pheno_config, pheno_governance) is consistent with a future 'pheno-libs' Cargo workspace. All 8 are empty of source but loaded with stale Python dev artifacts (.venv, .mypy_cache, .coverage from 2026-04-30/05-01).",
+    "size_to_code_ratio": "676 MB disk / 0 source bytes = infinite waste ratio. .venv directories (Python 3.11/3.13 byte-compiled deps) account for ~95% of the size.",
+    "parent_gitignore_gap": "Parent monorepo's .gitignore does not appear to ignore libs/ or its .venv subdirs, so if this dir ever IS added to git, the 676 MB of caches will be staged unless explicitly excluded.",
+    "naming_collision_risk": "Folders named pheno_cache / pheno_http / pheno_llm / pheno_retry may collide with sibling real repos in repos/ (need cross-check against phenoVCS, phenoProc, etc.) — high risk of confusion and accidental commits."
+  },
+  "actions_recommended": [
+    {
+      "priority": "P0",
+      "title": "Decide: repurpose as real Cargo workspace or delete",
+      "detail": "Two clean paths. (A) Keep: `git init` libs/, write root Cargo.toml as a virtual workspace with members = [pheno_adapters, pheno_agent, pheno_cache, pheno_config, pheno_governance, pheno_http, pheno_llm, pheno_retry], add a README.md stating intent ('planned low-level utility crates, no source yet'), and `git rm -r --cached` / physically `rm -rf` the .venv .mypy_cache .coverage rot inside each subdir (saves ~670 MB). (B) Delete: `rm -rf libs/` and recreate the Rust workspace elsewhere (e.g. inside phenoShared/). Half-measures (leaving it as a phantom) guarantee this audit will repeat next cycle. Net: closes P0 and recovers ~670 MB of disk.",
+      "estimated_effort": "20 min"
+    },
+    {
+      "priority": "P1",
+      "title": "If keeping: seed minimum governance + ignore rot",
+      "detail": "After P0(A): add root LICENSE (MIT, matching 62-repo org standard), README.md, AGENTS.md (with crate-by-crate ownership table), CODEOWNERS `* @KooshaPari`, .gitignore covering .venv/ .mypy_cache/ .coverage __pycache__/ *.pyc, .editorconfig, and a stub .github/workflows/ci.yml that runs `cargo fmt --check && cargo clippy -D warnings && cargo test --workspace` once the first crate has real code. Until then, mark the repo as 'scaffolded / no source' in README so future audits don't re-flag.",
+      "estimated_effort": "30 min"
+    },
+    {
+      "priority": "P1",
+      "title": "Sweep Python dev rot from every pheno_* subdir",
+      "detail": "Run from libs/: `find . -type d \\( -name .venv -o -name .mypy_cache -o -name __pycache__ \\) -exec rm -rf {} + 2>/dev/null; find . -name .coverage -delete`. This reclaims ~670 MB and removes a class of false-positive 'tests exist' signals (the .coverage files imply tests ran, but the .py sources are gone). Idempotent and safe — these are cache artifacts only.",
+      "estimated_effort": "5 min"
+    }
+  ],
+  "deep_research": "libs/ at 0.2/5 is the lowest-scoring repo in the tick-25 wave and a near-total hygiene failure: it is not even a git repository, has zero source files, and contains 676 MB of stale Python dev caches (.venv, .mypy_cache, .coverage from 2026-04-30/05-01) inside 8 folder-skeletons named like intended Rust crates (pheno_adapters, pheno_agent, pheno_cache, pheno_config, pheno_governance, pheno_http, pheno_llm, pheno_retry). All five gates (G1 workflows, G2 governance, G3 security, G4 quality, G5 review) FAIL because the preconditions for them are absent: no .github/workflows, no LICENSE/README/AGENTS.md/CLAUDE.md/CODEOWNERS/SECURITY.md/CONTRIBUTING.md, no Cargo.toml anywhere, no CI, no dependabot, no CODEOWNERS, no .coderabbit.yaml, no .gemini/. The e2e gate is NIL — no tests, no examples, no benches, no integration surface at all; the .coverage files that do exist are misleading Python coverage JSONs whose source .py files have been deleted, leaving only the cache. The naming pattern strongly suggests a planned 'pheno-libs' Rust workspace that was scaffolded but never populated, with someone (or an LLM session) using each empty folder as a Python scratch dir and abandoning the venvs in place.",
+  "deep_research_cont": "Three concrete follow-ups: (P0) make the keep/delete decision and execute it — `git init` + root Cargo.toml as a virtual workspace plus cache sweep if kept, or `rm -rf libs/` and reroute the planned crates into phenoShared/ if not; (P1) on the keep path, seed minimum governance (LICENSE MIT, README, AGENTS.md, CODEOWNERS, .gitignore covering .venv/.mypy_cache/.coverage, stub ci.yml) so the repo stops being an audit false-positive each cycle; (P1) regardless of keep/delete, run the cache sweep (`find . -type d \\( -name .venv -o -name .mypy_cache -o -name __pycache__ \\) -exec rm -rf {} +`) to reclaim ~670 MB and remove the misleading .coverage files. Also worth flagging: parent monorepo .gitignore does not exclude libs/.venv, so any future `git add libs/` would attempt to stage ~670 MB of byte-compiled Python — adding libs/ to the parent ignore (or doing the P0 git init inside libs/) is the durable fix. After P0 + 2 P1, libs/ moves from 'phantom with rot' to either 'deleted, problem gone' or 'scaffolded Rust workspace, ready to receive code,' and won't reappear on the next tick-25 audit."
+}

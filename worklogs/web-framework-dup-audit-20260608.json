@@ -1,0 +1,81 @@
+{
+  "generated_at": "2026-06-08T06:10:00Z",
+  "total_repos": 164,
+  "multi_web": [
+    {
+      "repo": "AuthKit",
+      "frameworks": [
+        "chi",
+        "fastapi"
+      ]
+    },
+    {
+      "repo": "Civis",
+      "frameworks": [
+        "aiohttp",
+        "axum",
+        "fastapi",
+        "starlette"
+      ]
+    },
+    {
+      "repo": "HexaKit",
+      "frameworks": [
+        "actix-web",
+        "axum",
+        "chi"
+      ]
+    },
+    {
+      "repo": "PhenoKits",
+      "frameworks": [
+        "axum",
+        "chi",
+        "fastapi"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "frameworks": [
+        "aiohttp",
+        "gin"
+      ]
+    },
+    {
+      "repo": "Pyron",
+      "frameworks": [
+        "actix-web",
+        "axum"
+      ]
+    },
+    {
+      "repo": "QuadSGM",
+      "frameworks": [
+        "aiohttp",
+        "fastapi"
+      ]
+    },
+    {
+      "repo": "TestingKit",
+      "frameworks": [
+        "aiohttp",
+        "fastapi"
+      ]
+    },
+    {
+      "repo": "argis-extensions",
+      "frameworks": [
+        "chi",
+        "echo",
+        "fastapi"
+      ]
+    },
+    {
+      "repo": "portage",
+      "frameworks": [
+        "aiohttp",
+        "fastapi"
+      ]
+    }
+  ]
+}

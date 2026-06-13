@@ -1,0 +1,27 @@
+{
+  "generated_at": "2026-06-09T04:10:33.516878+00:00",
+  "files": [
+    "README.md",
+    "2026-06-09-initial-spec-rollout.md",
+    "2026-06-09-120-issue-triage.md"
+  ],
+  "total_size_bytes": 4822,
+  "cross_links": [
+    "README.md -> 2026-06-09-initial-spec-rollout.md",
+    "README.md -> 2026-06-09-120-issue-triage.md",
+    "2026-06-09-initial-spec-rollout.md -> 2026-06-09-120-issue-triage.md",
+    "2026-06-09-initial-spec-rollout.md -> docs/operations/iconography/SPEC.md",
+    "2026-06-09-initial-spec-rollout.md -> helios_bench.healthy (PhenoMCP/PhenoDevOps)",
+    "README.md -> pheno/worklogs/ (sibling index)",
+    "README.md -> thegent/docs/worklogs/ (sibling index)",
+    "README.md -> helioscope/worklogs/ (sibling index)",
+    "README.md -> OmniRoute/worklogs/ (sibling index)",
+    "README.md -> phenotype-hub/docs/worklogs/ (sibling index)",
+    "README.md -> /Users/kooshapari/CodeProjects/Phenotype/repos/worklogs/ (lab index)",
+    "2026-06-09-120-issue-triage.md -> ROADMAP.md (forward ref)",
+    "2026-06-09-120-issue-triage.md -> ARCHITECTURE.md (forward ref)",
+    "2026-06-09-120-issue-triage.md -> pheno-issue-triage-board (TBD repo)"
+  ],
+  "compliance_with_pheno_org": true,
+  "all_present": true
+}

@@ -1,0 +1,31 @@
+[package]
+name = "pheno-config"
+version = "0.1.0"
+edition = "2021"
+license = "MIT OR Apache-2.0"
+description = "Canonical typed-config loader for the pheno-* fleet. Reads <PREFIX>_* env vars (with a ConfigBuilder for programmatic construction) and JSON config files, returning a Config struct with url/port/log_level/db_path/feature_flags."
+repository = "https://github.com/KooshaPari/phenotype"
+keywords = ["config", "phenotype", "pheno-config", "env", "settings"]
+categories = ["config", "rust-patterns"]
+publish = false
+rust-version = "1.82"
+
+# Empty [workspace] table declares this crate as a standalone package,
+# intentionally NOT a member of the root FocalPoint/Phenotype workspace
+# (which contains 56+ focus-* / connector-* crates and is concurrently
+# being modified by sibling L3 agents). Consumers add it to their own
+# workspace or depend on it via a path/git dep. This mirrors the
+# standalone pattern used by L3 #46 (pheno-errors).
+[workspace]
+
+[lib]
+name = "pheno_config"
+path = "src/lib.rs"
+
+[dependencies]
+thiserror = "1.0"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+
+[dev-dependencies]
+serde_json = "1.0"

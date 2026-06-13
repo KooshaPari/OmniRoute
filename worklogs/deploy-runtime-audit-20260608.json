@@ -1,0 +1,12 @@
+{
+  "generated_at": "2026-06-08",
+  "total_repos": 170,
+  "by_lib": {
+    "lambda_runtime": [],
+    "pulumi": [],
+    "serverless": [],
+    "aws-lambda-rust-runtime": [],
+    "chalice": [],
+    "cdktf": []
+  }
+}

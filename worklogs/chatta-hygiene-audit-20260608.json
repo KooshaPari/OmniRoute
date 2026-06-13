@@ -1,0 +1,108 @@
+{
+  "repo": "chatta",
+  "branch_audited": "main (b37ffdc, 3 ahead of origin/main, un-pushed)",
+  "audited_at": "2026-06-08",
+  "stack": "sveltekit-2 (frontend) + go-1.24/fiber-v2 (backend signaling) + webrtc (transport)",
+  "summary": "G1 PASS w/ nit, G2 PASS w/ nit, G3 PASS w/ nit, G4 DEGRADED (4/10 workflows are echo placeholders), G5 DEGRADED (no PR/issue templates, no .coderabbit.yaml, no .gemini/). e2e is vitest smoke only. 3 P0, 3 P1, 4 P2.",
+  "gates": {
+    "G1_workflow_hygiene": {
+      "status": "PASS",
+      "evidence": [
+        "10/10 .github/workflows/*.yml parse cleanly: build, ci, doc-links, fr-coverage, legacy-tooling-gate, lint, quality-gate, security, test, trufflehog",
+        "actions/checkout SHA-pinned to df4cb1c069e1874edd31b4311f1884172cec0e10 in 9/10 (ci.yml uses unpinned v4 tag — drift)",
+        "trufflehog.yml: top-level permissions+concurrency present; no @main rot",
+        "8/10 have top-level `permissions: contents: read` + `concurrency:` blocks; 5/10 use ubuntu-24.04",
+        "ci.yml has DUPLICATE `on:` keys (workflow_dispatch at line 2 + push/pull_request at line 8) — second silently overrides first; workflow_dispatch is dead"
+      ]
+    },
+    "G2_governance_files": {
+      "status": "PASS",
+      "evidence": [
+        "LICENSE (MIT, 1068B) + LICENSE-MIT (1068B, identical bytes — duplicate) + LICENSE-APACHE (15B placeholder, NOT real Apache text — P0)",
+        "AGENTS.md, CLAUDE.md, CHANGELOG.md, CHARTER.md, ADR.md, CODEOWNERS, FUNDING.yml, SECURITY.md, Justfile, worklog.md, .editorconfig, .gitignore, VERSION all present",
+        "CHANGELOG.md [Unreleased] EMPTY since 2026-06-08 (0.1.0 was the only release)",
+        "MISSING: SUPPORT.md, PULL_REQUEST_TEMPLATE.md, ISSUE_TEMPLATE/, .coderabbit.yaml, .gemini/, CONTRIBUTING.md, CODE_OF_CONDUCT.md, CITATION.cff",
+        "docs/SSOT.md (521B) + docs/FUNCTIONAL_REQUIREMENTS.md (879B) exist; PRD.md (1831B) + PLAN.md (1759B) + SPEC.md (2311L) at root"
+      ]
+    },
+    "G3_security_scanning": {
+      "status": "PASS",
+      "evidence": [
+        "security.yml: push+PR triggers on main/develop, contents: read permission",
+        "trufflehog.yml: weekly + on-PR, SHA-pinned, --only-verified",
+        "dependabot.yml: weekly for github-actions + npm (version 2)",
+        "No CodeQL, no govulncheck (backend is Go) — drift from org standard (most peers carry CodeQL + cargo-audit/equivalent)"
+      ]
+    },
+    "G4_quality_gates": {
+      "status": "DEGRADED",
+      "evidence": [
+        "test.yml is the ONLY real gate: backend `go test ./...` + frontend `bun test` (proper setup-go + setup-bun)",
+        "ci.yml DEGRADED: only runs `test -d .git` + `find . -maxdepth 2 -type f | head -50` — placeholder, no actual CI",
+        "quality-gate.yml, fr-coverage.yml, doc-links.yml ALL echo 'phenotype-tooling integration' with NO real steps — placeholders",
+        "lint.yml: exists with proper triggers but content is placeholder (just lint config not asserted)",
+        "Justfile targets: install/build/test/lint/fmt/ci/clean — `lint` calls npx eslint + npx prettier on `**/*.ts` but vitest project has no .ts source (only .svelte)",
+        "No pre-commit-config.yaml; no coverage tool; no golangci-lint even though backend is Go"
+      ]
+    },
+    "G5_review_governance": {
+      "status": "DEGRADED",
+      "evidence": [
+        "PULL_REQUEST_TEMPLATE.md MISSING (org standard mandates)",
+        "ISSUE_TEMPLATE/ MISSING (no bug_report/feature_request/config.yml)",
+        ".coderabbit.yaml MISSING (AGENTS.md mandate drift)",
+        ".gemini/ MISSING (AGENTS.md mandate drift)",
+        "dependabot.yml: weekly github-actions + npm — minimal but present",
+        "3 local commits AHEAD of origin/main UNPUSHED: b37ffdc (dual license), 9edc9e7 (Justfile+SSOT), b61c9c1 (CHANGELOG+editorconfig)",
+        "20+ stale local branches (chore/* + ci/* + codex/* fan-out vestige)"
+      ]
+    },
+    "e2e_end_to_end": {
+      "status": "DEGRADED",
+      "evidence": [
+        "tests/smoke.test.ts: vitest test that just asserts `expect(2+2).toBe(4)` — placeholder, traces to FR-ORG-AUDIT-2026-04-001",
+        "Backend Go unit tests exist: internal/auth/jwt_test.go, internal/db/db_test.go, internal/signaling/hub_test.go — these run in test.yml",
+        "No e2e/ at root, no Playwright/Cypress, no integration/ — SvelteKit UI has no e2e coverage",
+        "No docs site e2e (vitepress dev/build/preview scripts in package.json but no Playwright spec)",
+        "test.yml backend + frontend jobs are the only real verification — smoke-level only"
+      ]
+    }
+  },
+  "additional_findings": {
+    "license_apache_placeholder": "LICENSE-APACHE (140B) is just 'Apache-2.0 license text placeholder. See https://www.apache.org/licenses/LICENSE-2.0.txt for full text.' — NOT a real Apache-2.0 license. Legal risk if shipping under dual-license claim. (P0)",
+    "stale_artifacts_in_repo": "backend/stores.db (70KB) + stores2.db (12KB) + backend/app (29MB) + backend/app~ (29MB) + backend/chatta (6MB binary) + main_old.go (16845B) ALL checked in. (P0 — should be gitignored or removed; main_old.go is dead code)",
+    "history_dir_committed": ".history/ has 1658+ files in backend/.history/ + 17 in frontend/.history/ — IDE local history checked in. (P1 — should be gitignored)",
+    "idea_dir_committed": ".idea/ (chatta.iml, modules.xml, vcs.xml) checked in — JetBrains IDE config drift. (P1)",
+    "duplicate_lockfiles": "frontend/bun.lock (50KB) + frontend/package-lock.json (120KB) — dual package manager lockfiles. (P2 — pick one)",
+    "ci_yml_duplicate_on": "ci.yml:1-3 declares `on: workflow_dispatch:`; ci.yml:7-10 redeclares `on: { push: ..., pull_request: ... }`. GitHub merges but second wins; workflow_dispatch is dead. (P2)",
+    "unpushed_main_commits": "git status: 'Your branch is ahead of origin/main by 3 commits.' — b37ffdc, 9edc9e7, b61c9c1 (dual license + Justfile + CHANGELOG bootstrap fan-out) not pushed. (P1)",
+    "missing_chatta_wtrees": "AGENTS.md says 'worktrees at repos/chatta-wtrees/<topic>/' but repos/chatta-wtrees/ does not exist. (P2 — feature work currently has no worktree home)",
+    "duplicate_license_files": "LICENSE and LICENSE-MIT are byte-identical (1068B). One is redundant. (P2)",
+    "lint_targets_misaligned": "Justfile `lint:` runs eslint+prettier on `**/*.ts` but frontend/src has no .ts files (only .svelte); no svelte-check, no eslint-plugin-svelte. (P2)"
+  },
+  "ci_status": {
+    "open_prs": "0 (none observed on local main; 3 unpushed commits on main)",
+    "stale_branches": "20+ local branches from prior fan-out (chore/clone-url-fix, chore/pin-actions-sha, chore/manifest-fix, chore/readme-scaffold-chatta, ci/cargo-deny-workflow, ci/pin-trufflehog, chore/add-reusable-workflows, chore/gov-bootstrap-2026-05-02, chore/worklog-seed-chatta)"
+  },
+  "actions_recommended": [
+    {
+      "priority": "P0",
+      "title": "Replace LICENSE-APACHE placeholder + gitignore 29MB backend artifacts + remove main_old.go",
+      "detail": "(a) LICENSE-APACHE (140B) is a placeholder link, not a real Apache-2.0 LICENSE — fetch https://www.apache.org/licenses/LICENSE-2.0.txt and replace. (b) Add backend/stores.db, backend/stores2.db, backend/app, backend/app~, backend/chatta to .gitignore (and `git rm --cached`). (c) Delete backend/main_old.go (16845B dead code; main.go is the real entry). Single PR; ~10 min.",
+      "estimated_effort": "10 min"
+    },
+    {
+      "priority": "P0",
+      "title": "Replace 4 placeholder workflows with real phenotype-tooling calls (or delete them)",
+      "detail": "ci.yml, quality-gate.yml, fr-coverage.yml, doc-links.yml are all single-step `echo 'phenotype-tooling integration'` placeholders. Either: (a) replace each with the actual reusable workflow call (e.g. `uses: KooshaPari/phenotype-tooling/.github/workflows/reusable/quality-gate.yml@<SHA>`), or (b) delete them. Keeping placeholders creates false-green CI signal. test.yml is the only real gate today.",
+      "estimated_effort": "30 min"
+    },
+    {
+      "priority": "P1",
+      "title": "Add PULL_REQUEST_TEMPLATE.md + ISSUE_TEMPLATE/ + .coderabbit.yaml + .gemini/ + push 3 unpushed main commits + gitignore .history/ and .idea/",
+      "detail": "AGENTS.md mandates .coderabbit.yaml + .gemini/; org standard mandates PULL_REQUEST_TEMPLATE.md + ISSUE_TEMPLATE/{bug,feature,config}.yml. Also: `git push origin main` to ship the 3 unpushed commits (dual license + Justfile + CHANGELOG bootstrap). Add .history/ and .idea/ to .gitignore and `git rm --cached` them. Single sweep PR; ~20 min.",
+      "estimated_effort": "20 min"
+    }
+  ],
+  "deep_research": "chatta is the only WebRTC-data-channel project in the Phenotype fleet — closest peers in stack are HeliosLab (gRPC + tonic + prost, similar low-latency transport ambition) and Eidolon (SvelteKit + Go, similar frontend/backend split). Comparing against the tick-25 hygiene wave and the agent-user-status-hygiene baseline, chatta sits at ~70% of the org standard: dual-license stack landed (LICENSE-MIT + LICENSE-APACHE, though the latter is a placeholder, not real text), Justfile + worklog.md + .editorconfig all present, dependabot weekly for github-actions + npm, trufflehog SHA-pinned with --only-verified, and CodeQL-style security.yml with proper triggers. The G1-G3 gates are all PASS-with-nit; the regression surface lives in G4 (4/10 workflows are echo placeholders — ci.yml, quality-gate.yml, fr-coverage.yml, doc-links.yml all single-step `echo 'phenotype-tooling integration'` rather than real reusable-workflow calls, creating a false-green CI signal) and G5 (no PR/issue templates, no .coderabbit.yaml, no .gemini/, 3 unpushed main commits from the dual-license/Justfile/CHANGELOG fan-out, 20+ stale local branches from prior rounds). The e2e gate is degraded to vitest-smoke-only (`expect(2+2).toBe(4)`) with proper Go unit tests under backend/internal/{auth,db,signaling}/ but no Playwright coverage for the SvelteKit UI. The 29MB backend binaries + 70KB SQLite stores checked in, the 16845B main_old.go dead file, the .history/ and .idea/ IDE artifacts, and the byte-identical LICENSE/LICENSE-MIT duplicate are all hygiene debt that needs cleanup before the next fan-out. The 'platform' family for chatta is real-time-messaging (alongside appgen and agentapi-plusplus); the SSOT pattern is established (docs/SSOT.md + FUNCTIONAL_REQUIREMENTS.md + PRD + PLAN + SPEC, all FRs traced to epics), and the 3 unpushed fan-out commits should be flushed before the next round. Net hygiene score: 3.2/5 — structure is there, execution is partial; the next single-PR cleanup sweep (P0+P1 bundled) brings it to 4.0/5."
+}

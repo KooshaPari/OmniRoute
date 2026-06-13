@@ -1,0 +1,14 @@
+{
+  "generated_at": "2026-06-08T22:15:00Z",
+  "total_repos": 51,
+  "with_cdylib": [],
+  "with_staticlib": [],
+  "with_multi_bin": [
+    "GDK",
+    "KDesktopVirt",
+    "kmobile"
+  ],
+  "with_target_deps": [
+    "KlipDot"
+  ]
+}

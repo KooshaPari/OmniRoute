@@ -1,0 +1,32 @@
+# justfile for AtomsBot
+# Wrapper around existing npm/bun scripts. See package.json for full script list.
+
+set shell := ["bash", "-uc"]
+
+# Default: list available recipes.
+default:
+    @just --list
+
+# Start the dev server / watch mode (tsup --watch).
+dev:
+    bun run dev
+
+# Produce release artifacts (rimraf dist && tsup).
+build:
+    bun run build
+
+# Run the test suite (vitest run).
+test:
+    bun run test
+
+# Run the linter (oxlint).
+lint:
+    bun run lint
+
+# Apply the formatter (prettier).
+fmt:
+    bun run format
+
+# Remove build artifacts (rimraf dist).
+clean:
+    bun run clean

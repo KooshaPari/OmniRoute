@@ -1,0 +1,29 @@
+name: 'Close Stale Issues / PRs'
+description: 'Mark issues and PRs as stale after 30 days of inactivity, close them 7 days later. Exempts security, pinned, and in-progress items.'
+
+on:
+  schedule:
+    - cron: '0 0 * * *'  # Daily at 00:00 UTC
+  workflow_dispatch:
+
+permissions:
+  issues: write
+  pull-requests: write
+
+jobs:
+  stale:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Mark and close stale issues / PRs
+        uses: actions/stale@28ca1036281a5e5922ead5184a1bbf96e5fc984e  # v9.0.0
+        with:
+          days-before-stale: 30
+          days-before-close: 7
+          stale-issue-label: 'stale'
+          close-issue-label: 'closed-stale'
+          exempt-issue-labels: 'security,pinned,in-progress'
+          exempt-pr-labels: 'security,pinned,in-progress'
+          operations-per-run: 100
+          remove-stale-when-updated: true
+          # Mark both issues and PRs
+          only: 'issues, pulls'

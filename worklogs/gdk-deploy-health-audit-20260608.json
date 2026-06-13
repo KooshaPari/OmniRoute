@@ -1,0 +1,9 @@
+{
+  "generated_at": "2026-06-09T03:33:02Z",
+  "repo": "KooshaPari/GDK",
+  "pages_present": false,
+  "deployments_count": 0,
+  "last_deployment": "",
+  "health_endpoints": [],
+  "notes": "Pages API returned 404 (no GitHub Pages site). Deployments API returned empty list (no GitHub Actions/Deployments recorded). GDK exposes no HTTP /health, /ready, or /live routes — it is a Rust CLI library (src/core.rs, src/agent.rs, src/bin/main.rs) whose 'health_score' is a domain metric, not a network endpoint. CLI flag 'show_health' (src/bin/main.rs:70) only prints metrics to stdout."
+}

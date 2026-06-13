@@ -1,0 +1,44 @@
+{
+  "generated_at": "2026-06-08T09:26:17Z",
+  "total_repos": 5,
+  "with_pulldown_cmark": [
+    "FocalPoint",
+    "HeliosCLI",
+    "helioscope",
+    "phenotype-tooling",
+    "tooling"
+  ],
+  "with_comrak": [],
+  "by_repo": [
+    {
+      "repo": "FocalPoint",
+      "libs": [
+        "pulldown-cmark"
+      ]
+    },
+    {
+      "repo": "HeliosCLI",
+      "libs": [
+        "pulldown-cmark"
+      ]
+    },
+    {
+      "repo": "helioscope",
+      "libs": [
+        "pulldown-cmark"
+      ]
+    },
+    {
+      "repo": "phenotype-tooling",
+      "libs": [
+        "pulldown-cmark"
+      ]
+    },
+    {
+      "repo": "tooling",
+      "libs": [
+        "pulldown-cmark"
+      ]
+    }
+  ]
+}

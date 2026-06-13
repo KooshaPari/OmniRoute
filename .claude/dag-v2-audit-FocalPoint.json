@@ -1,0 +1,124 @@
+{
+  "task": "DAG L1-9 audit",
+  "schema_version": "v2",
+  "generated_at": "2026-06-08T00:00:00Z",
+  "repo": "FocalPoint",
+  "repo_path": "/Users/kooshapari/CodeProjects/Phenotype/repos/FocalPoint",
+  "branch": "main",
+  "head_sha": "96ec73c2048656845eea505db41099d333b8e6e7",
+  "last_commit_date": "2026-06-08T19:23:26-07:00",
+  "last_commit_subject": "chore: add dual MIT/Apache-2.0 license files",
+  "last_commit_author": "Forge",
+  "remotes": {
+    "origin": "https://github.com/KooshaPari/FocalPoint.git",
+    "upstream": "https://github.com/Phenotype/FocalPoint.git"
+  },
+  "language_stack": {
+    "detected": ["rust", "swift", "go", "typescript", "toml", "markdown"],
+    "primary": "rust",
+    "secondary": ["swift", "go", "typescript"],
+    "rust": {
+      "toolchain": "1.82 (pinned in rust-toolchain.toml)",
+      "workspace_cargo_toml": "Cargo.toml",
+      "crates_dir_count": 52,
+      "workspace_members_total": 55,
+      "notes": "CLAUDE.md claims 56 crates; `crates/` actually has 52 crate dirs (53 entries incl. README.md). Workspace Cargo.toml lists 55 members incl. 3 tooling crates and tests/e2e."
+    },
+    "swift": {
+      "xcode_project": "apps/ios/FocalPoint/FocalPoint.xcodeproj",
+      "swift_file_count": 18,
+      "ui": "SwiftUI",
+      "platforms": ["iOS", "macOS"]
+    },
+    "go": {
+      "services": ["services/graphql-gateway", "services/templates-registry"]
+    },
+    "typescript": {
+      "surfaces": ["docs-site (VitePress)", "Builder web task editor (ReactFlow, dist/ shipped)"]
+    },
+    "db": ["SQLite (rusqlite, bundled)", "PostgreSQL (referenced)", "SurrealDB (referenced)"]
+  },
+  "hygiene_score": 92,
+  "hygiene_breakdown": [
+    {"item": "LICENSE", "present": true, "points": 10, "evidence": ["LICENSE (MIT)", "LICENSE-MIT", "LICENSE-APACHE"]},
+    {"item": "README", "present": true, "points": 10, "evidence": ["README.md (170 lines)"]},
+    {"item": "CHANGELOG", "present": true, "points": 5, "evidence": ["CHANGELOG.md exists; only 2 entries ([Unreleased] empty, [0.1.0] single bullet); version mismatch with workspace (CHANGELOG=0.1.0, Cargo=0.0.12)"]},
+    {"item": ".editorconfig", "present": true, "points": 10, "evidence": [".editorconfig with rust+toml+md sections"]},
+    {"item": "CI", "present": true, "points": 10, "evidence": ["6 workflows: ci, cargo-audit, cargo-deny, journey-gate, scorecard, trufflehog"]},
+    {"item": "dependabot", "present": true, "points": 7, "evidence": [".github/dependabot.yml covers cargo weekly; no swift/github-actions ecosystems"]},
+    {"item": "CODEOWNERS", "present": true, "points": 10, "evidence": ["CODEOWNERS = '* @KooshaPari'"]},
+    {"item": "CONTRIBUTING", "present": true, "points": 10, "evidence": ["CONTRIBUTING.md with conventional-commits spec"]},
+    {"item": "SECURITY", "present": true, "points": 10, "evidence": ["SECURITY.md with advisory flow + cargo-deny/CodeQL refs"]},
+    {"item": "FUNDING", "present": true, "points": 10, "evidence": ["FUNDING.yml + .github/FUNDING.yml (github: KooshaPari)"]}
+  ],
+  "dup_exposure": {
+    "candidates": [
+      {"lib": "phenotype-bus", "use_case": "Replace ad-hoc focus-events/ focus-sync-store pub-sub with canonical bus"},
+      {"lib": "phenotype-request-id", "use_case": "Propagate request IDs across Rust crates + Swift FFI boundary for tracing"},
+      {"lib": "phenotype-icons", "use_case": "Consume shared icon set instead of building focus-icon-gen from scratch"},
+      {"lib": "phenotype-postfx", "use_case": "Asset post-processing for focus-asset-fetcher output"},
+      {"lib": "phenotype-observability", "use_case": "Consolidate focus-observability + focus-telemetry + the relative path-dep on PhenoObservability into one local lib"},
+      {"lib": "phenotype-registry", "use_case": "Unify ConnectorRegistry / webhook-server / template-pack registries under one registry contract"},
+      {"lib": "phenotype-dep-guard", "use_case": "Centralize deny.toml + cargo-deny.yml + supply-chain policy"},
+      {"lib": "phenotype-tooling", "use_case": "Roll tooling/agent-orchestrator, tooling/bench-guard, tooling/release-cut under shared tooling lib"},
+      {"lib": "phenotype-journeys", "use_case": "Wire the Swift journey-gate (XCUITest journeys already in apps/ios/FocalPoint/Tests/FocalPointJourneyTests) to phenotype-journeys"},
+      {"lib": "phenotype-skills", "use_case": "Expose Coachy state machine + ritual logic as phenotype skills"}
+    ]
+  },
+  "sota_gaps": [
+    "Apple FamilyControls entitlement not yet approved (gates real-device enforcement; #if FOCALPOINT_HAS_FAMILYCONTROLS everywhere)",
+    "Zero onboarding screens (Users cannot self-serve setup today; Canvas button only)",
+    "Simulator-only QA (no real-device test matrix; entitlement required)",
+    "GCal + GitHub OAuth flows incomplete (buttons present, flows scaffolded only)",
+    "Coachy mascot Rive animation pending designer (SwiftUI placeholder in use)",
+    "No WidgetKit / Live Activities / Dynamic Island surface for focus sessions or streaks",
+    "No Apple Watch companion (referenced in design docs, not built)",
+    "No App Intents / Shortcuts integration (Siri 'Start Focus Session' missing)",
+    "No push notifications for rituals / sync (morning-brief, evening-shutdown are pull-only)",
+    "No iCloud / CloudKit sync (current sync is ad-hoc heartbeat only)",
+    "Localization limited to en + es + ja (no FR/DE/ZH/HI/PT-BR)",
+    "No TestFlight / App Store Connect distribution pipeline (no fastlane or equivalent)",
+    "No iPad / multi-window layout (iPhone-only SwiftUI shell)",
+    "Path-dep on sibling PhenoObservability is required for cargo build --workspace (fragile cross-repo coupling)"
+  ],
+  "convergence_cluster": "multi-stack",
+  "convergence_rationale": "Rust core (52 crates) + Swift iOS/macOS shell (18 .swift files) + Go services (graphql-gateway, templates-registry) + TypeScript web surfaces (docs-site VitePress + Builder ReactFlow) + GraphQL gateway + MCP server (focus-mcp-server) + cargo-deny/audit/clippy toolchain. Touches at least 5 stacks.",
+  "action_items": [
+    {
+      "priority": 1,
+      "title": "Stabilize cargo workspace build & decouple from PhenoObservability path-dep",
+      "effort": "M",
+      "details": "Verify `cargo build --workspace` is green on a fresh clone with no adjacent PhenoObservability checkout. Vendor macros in-tree or publish a workspace-internal `focus-observability-macros` crate. Target: single-`git clone` builds."
+    },
+    {
+      "priority": 2,
+      "title": "Ship iOS onboarding flow (3-5 screens)",
+      "effort": "M",
+      "details": "Self-serve setup: FamilyControls permission explainer, connector pair wizard (Canvas first), rule preset chooser, Coachy intro, daily schedule gate. Removes 'Canvas button only' blocker from README."
+    },
+    {
+      "priority": 3,
+      "title": "Complete GCal + GitHub OAuth flows end-to-end",
+      "effort": "S",
+      "details": "Both connectors are scaffold-only. Wire ASWebAuthenticationSession callback, keychain persistence, event list sync, and connector-runtime dispatch. Mirror the Canvas connector (44 wiremock tests) as the pattern."
+    },
+    {
+      "priority": 4,
+      "title": "Add WidgetKit + Live Activities for focus sessions & streaks",
+      "effort": "M",
+      "details": "Lock-screen Live Activity for active focus session timer + Dynamic Island compact/expanded. Home-screen WidgetKit for streak, today's rule status, evening-shutdown countdown. Pure additive; no entitlement blocker."
+    },
+    {
+      "priority": 5,
+      "title": "Apply Apple FamilyControls entitlement & unblock real-device QA",
+      "effort": "L",
+      "details": "Submit/complete FamilyControls entitlement review, drop #if FOCALPOINT_HAS_FAMILYCONTROLS guard, build TestFlight pipeline (fastlane or xcodebuild distribute), and run an iOS 17+ / iPhone 15 device matrix."
+    }
+  ],
+  "notes": [
+    "Source-of-truth crate count: `ls crates/` = 52; workspace Cargo.toml members = 55 (incl. 3 tooling/* + tests/e2e). CLAUDE.md '56 crates' is stale.",
+    "Workspace package version 0.0.12 vs CHANGELOG 0.1.0 vs README status banner v0.0.5 — three different version numbers in the repo.",
+    "build*/ folders under apps/ios/FocalPoint/ are leftover artifacts; not gitignored (see apps/ios/.gitignore check recommended).",
+    "AGENTS.md exists at repo root but is project-level (macOS Focus app), diverging from Cargo-workspace reality; consider refreshing."
+  ]
+}

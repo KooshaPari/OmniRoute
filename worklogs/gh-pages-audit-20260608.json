@@ -1,0 +1,12 @@
+{
+  "generated_at": "2026-06-08T22:15:00Z",
+  "total_repos": 179,
+  "with_mkdocs": [
+    "PhenoHandbook"
+  ],
+  "with_hugo": [],
+  "with_docusaurus": [
+    "localbase3/localbase-docs"
+  ],
+  "notes": "Scanned mkdocs.yml, docs/_config.yml, docusaurus.config.{js,ts}, hugo.{toml,yaml}, config.toml (maxdepth 4) under /Users/kooshapari/CodeProjects/Phenotype/repos excluding *-wtrees and worklogs/. Two SSG configs found: PhenoHandbook (mkdocs.yml) and localbase3/localbase-docs (docusaurus.config.js). Only localbase3/localbase-docs has a GitHub Pages deployment workflow (.github/workflows/deploy.yml using peaceiris/actions-gh-pages@v3 publishing ./build to gh-pages branch). PhenoHandbook has no Pages deploy workflow. No Hugo or Jekyll/Next-docs configs detected. Result: 1 repo with full SSG+GH-Pages, 1 with SSG only (mkdocs). 179 total repo top-level directories observed."
+}

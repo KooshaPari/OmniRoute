@@ -1,0 +1,70 @@
+{
+  "generated_at": "2026-06-08T10:24:30Z",
+  "total_repos": 58,
+  "with_serde_json_value": [
+    {
+      "repo": "Agentora",
+      "count": 7
+    },
+    {
+      "repo": "Benchora",
+      "count": 2
+    },
+    {
+      "repo": "Eventra",
+      "count": 4
+    },
+    {
+      "repo": "KDesktopVirt",
+      "count": 150
+    },
+    {
+      "repo": "Tasken",
+      "count": 13
+    },
+    {
+      "repo": "Tokn",
+      "count": 2
+    },
+    {
+      "repo": "kmobile",
+      "count": 32
+    }
+  ],
+  "with_anyhow_error": [
+    {
+      "repo": "GDK",
+      "count": 3
+    }
+  ],
+  "with_boxed_error": [
+    {
+      "repo": "Apisync",
+      "count": 1
+    },
+    {
+      "repo": "GDK",
+      "count": 4
+    },
+    {
+      "repo": "KDesktopVirt",
+      "count": 5
+    },
+    {
+      "repo": "KlipDot",
+      "count": 2
+    },
+    {
+      "repo": "Metron",
+      "count": 1
+    },
+    {
+      "repo": "Tokn",
+      "count": 2
+    },
+    {
+      "repo": "kmobile",
+      "count": 2
+    }
+  ]
+}

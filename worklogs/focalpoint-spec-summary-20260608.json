@@ -1,0 +1,52 @@
+{
+  "generated_at": "2026-06-08T00:00:00Z",
+  "spec_size_bytes": 19163,
+  "scope": "Connector-first screen-time management platform with native iOS enforcement on a portable Rust core (54 crates). In-scope: DSL rules engine with triggers/conditions/actions/priority/cooldowns, connector runtime (OAuth2/polling/webhook, verification tiers, registry), reward wallet and penalty ledger with rigidity tiers, SHA-256 hash-chained audit, SwiftUI iOS shell with FamilyControls (gated), CLI, MCP server (type-only), and 10 multi-agent tooling crates. Out-of-scope: Android runtime, full backend services (sync-api/auth-broker are placeholders), GCal/GitHub production OAuth (scaffolded), external security audit.",
+  "surface": "Rust cargo workspace (54 crates under crates/ + 10 tooling/ binaries), UniFFI FFI to Swift/SwiftUI iOS app, focus-cli binary, focus-mcp-server (MCP type-defined, transport pending), Go services/ stubs, optional PostgreSQL alongside SQLite. CI: clippy/fmt/Vale/commit-msg/deny/SBOM. Spec status: implemented per adea91bc62 (2026-05-06).",
+  "cross_repo_roles": [
+    "Rust core crates reused/shared across mobile, CLI, and MCP",
+    "UniFFI FFI boundary to iOS SwiftUI consumer (apps/ios)",
+    "focus-cli exposed for automation in repos/orchestration",
+    "focus-mcp-server intended as tool surface for AI agents in other repos",
+    "Tooling crates (agent-orchestrator, bench-guard, target-pruner, disk-check, quality-gate) shared across Phenotype multi-repo workflows",
+    "SBOM (CycloneDX) and fr-coverage feeding cross-repo governance",
+    "Canvas/GCal/GitHub/Fitbit/Strava/Readwise/Notion/Linear connectors ingest signals from external platforms"
+  ],
+  "compliance_present": [
+    "Clippy lint (green when compiles)",
+    "cargo fmt (green)",
+    "Vale markdown lint (green)",
+    "commit-msg conventional-format validator (green)",
+    "FR coverage mapping via tooling/fr-coverage",
+    "cargo-deny (deny.toml configured)",
+    "CycloneDX SBOM generation (tooling/sbom-gen)",
+    "Hash-chained tamper-evident audit (focus-audit)",
+    "Wallet invariants (balance>=0, spent<=earned, multiplier>=0, NaN rejected)",
+    "Connector verification tiers (Official > Verified > MCPBridged > Private)",
+    "Webhook signature verification before dispatch"
+  ],
+  "compliance_missing": [
+    "Workspace does not fully compile: 5 E-series errors (focus-backup E0505, focus-rituals E0277, connector-gcal/connector-github/connector-canvas type errors)",
+    "FamilyControls enforcement gated behind #if FOCALPOINT_HAS_FAMILYCONTROLS pending Apple entitlement",
+    "GCal and GitHub OAuth flows scaffolded but non-functional",
+    "No onboarding screens shipped (users cannot self-serve setup)",
+    "FR-CONN-004 (Canvas OAuth2 cursor sync) contains unimplemented!()",
+    "MCP server transport layer not started (type-only)",
+    "tooling/fr-coverage and tooling/doc-link-check binaries not built by default",
+    "External security audit not performed",
+    "Production LLM endpoint for coaching provider not configured (Stub/Noop only)",
+    "Real-device QA absent (simulator-only)",
+    "Android native runtime absent (JNI stubs only)",
+    "Backend services (auth-broker, sync-api) are placeholders only"
+  ],
+  "top_gaps": [
+    "Fix 5 E-series compilation errors — blocks all testing and downstream CI",
+    "Obtain and merge FamilyControls entitlement (Apple SLA 1-4 weeks) — core enforcement feature gated",
+    "Complete GCal and GitHub OAuth flows — only Canvas is functional",
+    "Ship onboarding UX (currently zero screens) — blocks self-serve adoption",
+    "Implement MCP server transport layer (RFC-0001) — exposes core to AI agents across repos",
+    "Resolve FR-CONN-004 unimplemented!() and build tooling/fr-coverage + doc-link-check by default",
+    "Coachy Rive animation asset (designer pending) and real-device QA pass",
+    "External security audit before any production release"
+  ]
+}

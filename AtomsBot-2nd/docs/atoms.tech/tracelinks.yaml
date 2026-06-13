@@ -1,0 +1,81 @@
+openapi: 3.0.3
+info:
+    title: Atoms API - Trace Links
+    version: 1.0.0
+servers:
+    - url: https://api.example.com
+paths:
+    /trace-links:
+        get:
+            summary: List trace links by source or target
+            parameters:
+                - in: query
+                  name: sourceId
+                  schema: { type: string }
+                - in: query
+                  name: targetId
+                  schema: { type: string }
+            responses:
+                '200':
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                type: array
+                                items: { $ref: '#/components/schemas/TraceLink' }
+        post:
+            summary: Create trace link
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema: { $ref: '#/components/schemas/TraceLinkCreate' }
+            responses:
+                '201': { description: Created }
+    /trace-links/{id}:
+        patch:
+            summary: Update trace link (e.g., status/metadata)
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  schema: { type: string }
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema: { $ref: '#/components/schemas/TraceLinkUpdate' }
+            responses:
+                '200': { description: Updated }
+        delete:
+            summary: Soft delete trace link
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  schema: { type: string }
+            responses:
+                '204': { description: No Content }
+components:
+    schemas:
+        TraceLink:
+            type: object
+            properties:
+                id: { type: string }
+                source_id: { type: string }
+                source_type: { type: string, enum: [requirement, document] }
+                target_id: { type: string }
+                target_type: { type: string, enum: [requirement, document] }
+                is_deleted: { type: boolean }
+        TraceLinkCreate:
+            type: object
+            required: [source_id, source_type, target_id, target_type]
+            properties:
+                source_id: { type: string }
+                source_type: { type: string }
+                target_id: { type: string }
+                target_type: { type: string }
+        TraceLinkUpdate:
+            type: object
+            properties:
+                metadata: { type: object, additionalProperties: true }

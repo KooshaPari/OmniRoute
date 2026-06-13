@@ -1,0 +1,44 @@
+{
+  "generated_at": "2026-06-08T22:15:00Z",
+  "total_repos": 48,
+  "with_dashmap": [
+    "GDK",
+    "HexaKit",
+    "PhenoDevOps",
+    "PhenoProc",
+    "Pyron",
+    "pheno",
+    "phenoShared"
+  ],
+  "with_arc_swap": [
+    "HexaKit",
+    "Pyron",
+    "pheno"
+  ],
+  "with_parking_lot": [
+    "Eventra",
+    "FocalPoint",
+    "GDK",
+    "HexaKit",
+    "Metron",
+    "PhenoDevOps",
+    "PhenoObservability",
+    "Pyron",
+    "pheno",
+    "phenoShared"
+  ],
+  "with_crossbeam": [],
+  "with_once_cell": [
+    "GDK",
+    "HexaKit",
+    "KlipDot",
+    "PhenoDevOps",
+    "Pyron",
+    "pheno"
+  ],
+  "with_tokio_rwlock": [
+    "KDesktopVirt",
+    "Tokn",
+    "kmobile"
+  ]
+}

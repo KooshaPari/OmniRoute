@@ -1,0 +1,11 @@
+{
+  "generated_at": "2026-06-08T23:49:59Z",
+  "total_repos": 169,
+  "by_lib": {
+    "s3": [],
+    "boto3": [],
+    "azure_blob": [],
+    "gcs": [],
+    "minio": []
+  }
+}

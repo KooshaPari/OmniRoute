@@ -1,0 +1,33 @@
+{
+  "generated_at": "2026-06-09T02:26:08.466249+00:00",
+  "total_repos": 132,
+  "with_matrix": [
+    "AuthKit",
+    "Dino",
+    "Httpora",
+    "KDesktopVirt",
+    "KlipDot",
+    "McpKit",
+    "Tracera",
+    "kmobile",
+    "portage"
+  ],
+  "with_multi_os": [
+    "KDesktopVirt",
+    "KlipDot",
+    "kmobile"
+  ],
+  "with_multi_python": [
+    "AuthKit",
+    "Dino",
+    "Httpora",
+    "McpKit",
+    "Tracera",
+    "portage"
+  ],
+  "with_multi_rust": [
+    "KDesktopVirt",
+    "KlipDot",
+    "kmobile"
+  ]
+}

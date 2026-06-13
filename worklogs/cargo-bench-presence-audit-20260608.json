@@ -1,0 +1,28 @@
+{
+  "generated_at": "2026-06-08T00:00:00Z",
+  "total_repos": 166,
+  "with_bench": [
+    "Apisync",
+    "Benchora",
+    "KDesktopVirt",
+    "PhenoSchema",
+    "crates",
+    "pheno",
+    "phenotype-voxel"
+  ],
+  "with_criterion_dep": [
+    "Apisync",
+    "Benchora",
+    "FocalPoint",
+    "GDK",
+    "HexaKit",
+    "KDesktopVirt",
+    "Pyron",
+    "crates",
+    "pheno",
+    "phenotype-voxel",
+    "thegent",
+    "thegent-security-fixes",
+    "worktrees"
+  ]
+}

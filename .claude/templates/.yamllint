@@ -1,0 +1,66 @@
+# Canonical yamllint baseline for Phenotype repos.
+# See: https://yamllint.readthedocs.io/en/stable/configuration.html
+#
+# This config extends the built-in `default` ruleset, then tightens or relaxes
+# a small number of rules to match the org-wide convention (see DAG-L2-31).
+extends: default
+
+rules:
+  # 2-space indent is the project-wide convention.
+  indentation:
+    spaces: 2
+    indent-sequences: consistent
+    check-multi-line-strings: false
+
+  # Soft cap at 120 cols; hard warn (not error) above that to avoid noisy CI.
+  line-length:
+    max: 120
+    level: warning
+    allow-non-breakable-words: true
+    allow-non-breakable-inline-mappings: true
+
+  # `yes/no` / `on/off` are valid YAML truthy values; do not flag them.
+  truthy:
+    level: warning
+    allowed-values: ['true', 'false']
+    check-keys: true
+
+  # Require a space after the `#` and respect common commenting patterns.
+  comments:
+    require-starting-space: true
+    min-spaces-from-content: 1
+    ignore-shebangs: true
+
+  # Comments must be aligned with the surrounding indentation block.
+  comments-indentation: enable
+
+  # `---` document start marker is optional across the org.
+  document-start: disable
+
+  # Braces/flow-style payloads (GitHub Actions `with:`, k8s-style) are common;
+  # relax the brace/spacing rules to avoid noise.
+  braces:
+    level: warning
+    min-spaces-inside: 0
+    max-spaces-inside: 1
+  brackets:
+    level: warning
+    min-spaces-inside: 0
+    max-spaces-inside: 1
+
+  # Allow up to one empty line between blocks; silence empty-lines warning.
+  empty-lines:
+    max: 2
+    max-start: 0
+    max-end: 1
+
+  # Trailing spaces on otherwise-empty lines are tolerated (formatters clean).
+  trailing-spaces: enable
+
+ignore: |
+  node_modules/
+  target/
+  vendor/
+  .gradle/
+  build/
+  dist/

@@ -1,0 +1,17 @@
+{
+  "generated_at": "2026-06-07T22:15:00Z",
+  "total_repos": 168,
+  "with_pyo3": [
+    "KDesktopVirt"
+  ],
+  "with_pyo3_async": [],
+  "with_maturin": [],
+  "by_repo": [
+    {
+      "repo": "KDesktopVirt",
+      "libs": [
+        "pyo3"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,96 @@
+{
+  "repo": "OmniRoute-dependabot",
+  "branch_audited": "main (worktree mirror of diegosouzapw/OmniRoute, dependabot-bumped)",
+  "audited_at": "2026-06-08",
+  "stack": "next.js-16 (App Router) + typescript-5.9 + zod-v4 + better-sqlite3 + tailwind-v4 + next-intl (40+ langs) + electron + desktop-electrobun (TS+JS polyglot)",
+  "summary": "G1 PASS (10/10 SHA-pinned, 9/10 with permissions+concurrency+timeout), G2 PASS w/ nit (no FUNDING/CITATION.cff/SUPPORT), G3 PASS (dependabot 6-ecosystem + scorecard weekly), G4 PASS (ci.yml 664L real matrix, no placeholder echoes), G5 PASS w/ nit (PR template + 2 ISSUE_TEMPLATE yml present; no .coderabbit/.gemini). e2e PASS w/ nit (14 playwright specs + 493 unit; 6 specs in testIgnore from Nav Restructure refactor). 1 P0, 2 P1, 2 P2.",
+  "gates": {
+    "G1_workflow_hygiene": {
+      "status": "PASS",
+      "evidence": [
+        "10 workflows in .github/workflows/: build-fork, ci, claude, docker-publish, electron-release, lock-released-branch, npm-publish, opencode-plugin-ci, opencode-provider-ci, scorecard — all parse",
+        "100% SHA-pinned: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10, actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e, actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405, ossf/scorecard-action@05b42c624433fc40578a4040d5cf5e36ddca8cde",
+        "scorecard.yml exemplary: permissions: read-all, top-level concurrency, timeout-minutes: 15, branch_protection_rule + schedule: cron '0 9 * * 1' + workflow_dispatch",
+        "ci.yml: 664L, 11 permissions/concurrency/timeout markers across jobs; multi-OS matrix for electron+electrobun+Node 20/22/24"
+      ]
+    },
+    "G2_governance_files": {
+      "status": "PASS",
+      "evidence": [
+        "Present: LICENSE (MIT), AGENTS.md (539L), CLAUDE.md, CHANGELOG.md (6495L, [Unreleased] empty), CODEOWNERS (* @KooshaPari only), CODE_OF_CONDUCT.md, CONTRIBUTING.md, SECURITY.md (12377B), .github/PULL_REQUEST_TEMPLATE.md, .github/ISSUE_TEMPLATE/{bug_report.yml,test_coverage_task.yml}, .agents/, .claude/, GEMINI.md, eslint.config.mjs, sonar-project.properties",
+        "MISSING: .github/FUNDING.yml, CITATION.cff, SUPPORT.md, .editorconfig, .gitattributes, renovate.json5, ADR.md, .coderabbit.yaml, .gemini/",
+        "CHANGELOG.md [Unreleased] EMPTY since 2026-05-27 (3.8.5) — no in-flight entries"
+      ]
+    },
+    "G3_security_scanning": {
+      "status": "PASS",
+      "evidence": [
+        "dependabot.yml: 6 ecosystems (npm / + open-sse + electron + desktop-electrobun / docker / github-actions); groups: react-ecosystem, testing-frameworks, build-tools; reviewers=['KooshaPari']; labels=['dependencies','automated']; open-pull-requests-limit 3-5 per ecosystem",
+        "scorecard.yml: weekly cron + on branch_protection_rule; SARIF upload to code-scanning; 5-day retention",
+        "No CodeQL action, no trufflehog.yml — drift from org standard (CodeQL = 100/133 in tick-25 baseline)"
+      ]
+    },
+    "G4_quality_gates": {
+      "status": "PASS",
+      "evidence": [
+        "ci.yml: real matrix with multiple Node versions (20.20.2/22.22.2/24.0.0), Python for ecosystem tests, Playwright install with --with-deps, vitest project, `npm run check:cycles` for circular deps",
+        "playwright.config.ts: 900s webServer timeout, DASHBOARD_PORT env-aware, testDir=tests/e2e",
+        "vitest.config.ts + vitest.mcp.config.ts: MCP-server test project separated",
+        "No pre-commit-config.yaml; no coverage gate in repo (CONTRIBUTING.md references `npm run test:coverage`)"
+      ]
+    },
+    "G5_review_governance": {
+      "status": "PASS",
+      "evidence": [
+        "PULL_REQUEST_TEMPLATE.md present; ISSUE_TEMPLATE/bug_report.yml + ISSUE_TEMPLATE/test_coverage_task.yml present",
+        "dependabot.yml: grouped batching + reviewers + labels — best-in-fleet pattern",
+        "CODEOWNERS: single fallback @KooshaPari (no src/ subtree ownership blocks — drift from org standard)",
+        "MISSING: .coderabbit.yaml, .gemini/, FUNDING.yml, CITATION.cff"
+      ]
+    },
+    "e2e_end_to_end": {
+      "status": "PASS",
+      "evidence": [
+        "tests/e2e/: 14 .spec.ts files (api-keys-flow, combo-unification, combos-flow, ecosystem, memory-settings, protocol-clients, providers-bailian-coding-plan, proxy-registry.smoke, resilience-plan-alignment, responsive, settings-toggles, system-failover) — real Playwright",
+        "tests/unit/: 493 .test.ts files (Node native test runner via tsx/esm)",
+        "tests/integration/, tests/golden-set/, tests/benchmarks/, tests/live/ subdirs present",
+        "playwright.config.ts testIgnore=6 specs (analytics-tabs, memory-settings, protocol-visibility, resilience-plan-alignment, settings-toggles, skills-marketplace) — broken by Nav Restructure refactor; needs follow-up",
+        "No coverage baseline; `npm run test:coverage` is referenced in CONTRIBUTING.md but no c8/vitest --coverage in repo"
+      ]
+    }
+  },
+  "additional_findings": {
+    "dependabot_best_in_class": "OmniRoute-dependabot's dependabot.yml is the most comprehensive in the fleet: 6 ecosystems (root + 3 workspaces + docker + github-actions) vs median 1-2, with grouped batching for react-ecosystem + testing-frameworks + build-tools + reviewers=['KooshaPari'] — concrete candidate for pheno-cargo-template-deps libification (#23 in tick-25 matrix). (P2 — extract)",
+    "testignore_backlog": "playwright.config.ts testIgnore=6 specs all marked 'Temporarily exclude...broken by the Nav Restructure refactor' (settings→settings/general redirect, logs split, protocol tabs moved). Re-enable once the new nav stabilises; otherwise delete the orphan files. (P1)",
+    "changelog_unreleased_empty": "CHANGELOG.md [Unreleased] has no entries since 2026-05-27 3.8.5. Either land in-flight work or move the heading into a 3.9.0-prep section. (P2)",
+    "no_codeql_drift": "scorecard.yml is OpenSSF (SARIF upload) but no dedicated CodeQL workflow; 100/133 fleet peers run github/codeql-action explicitly. (P2)",
+    "codeowners_single_fallback": "CODEOWNERS has * @KooshaPari as the only reviewer; no per-area ownership for src/{providers,api,combo,resilience,logging,security}. Single-point-of-failure reviewer. (P1)"
+  },
+  "ci_status": {
+    "open_prs": "n/a (worktree mirror; no local PRs)",
+    "stale_branches": "n/a (worktree)",
+    "pinned_actions": "100% SHA-pinned (10/10 workflows use @<40-hex>)",
+    "dependabot_active": true
+  },
+  "actions_recommended": [
+    {
+      "priority": "P0",
+      "title": "Restore or delete the 6 playwright specs in testIgnore (Nav Restructure refactor backlog)",
+      "detail": "playwright.config.ts testIgnore list (analytics-tabs.spec.ts, memory-settings.spec.ts, protocol-visibility.spec.ts, resilience-plan-alignment.spec.ts, settings-toggles.spec.ts, skills-marketplace.spec.ts) is shadowing real coverage of the most-touched product surfaces (settings, memory, protocol visibility, resilience plan, skills marketplace). For each: (a) re-enable + fix selectors against the new nav (settings→settings/general, logs subpages, protocol tabs moved out of /endpoint), or (b) delete the orphan spec if the feature was removed. Track in PLAN.md as 'Nav Restructure E2E Restoration'. Single sweep PR; ~2-4h depending on path.",
+      "estimated_effort": "2-4h"
+    },
+    {
+      "priority": "P0",
+      "title": "Add missing governance trio: FUNDING.yml + CITATION.cff + SUPPORT.md",
+      "detail": "Org standard mandates all three. (a) .github/FUNDING.yml with github: [KooshaPari] + custom: ['https://...']. (b) CITATION.cff with cff-version: 1.2.0, message: 'If you use OmniRoute in research...', authors: [{family-names: Souza}], title: 'OmniRoute', version: 3.8.5, date-released: 2026-05-27. (c) SUPPORT.md with sections 'How to file an issue', 'How to ask a question', 'Maintainer response time'. Single PR; ~15 min.",
+      "estimated_effort": "15 min"
+    },
+    {
+      "priority": "P1",
+      "title": "Split CODEOWNERS into src/ subtrees + add 2 more dependabot groups (mcp-stack, tailwind)",
+      "detail": "(a) CODEOWNERS: replace single-fallback '* @KooshaPari' with subtree blocks — /src/providers/* @provider-owner, /src/api/* @api-owner, /src/combo/* @combo-owner, /src/resilience/* @resilience-owner, /src/security/* @security-owner, /open-sse/* @sse-owner, /electron/* @desktop-owner, fall back to @KooshaPari for everything else. (b) dependabot.yml: add `mcp-stack: patterns: ['mcp-*', '@modelcontextprotocol/*']` and `tailwind: patterns: ['tailwindcss', '@tailwindcss/*', 'postcss']` to match the existing react-ecosystem / testing-frameworks / build-tools pattern. Single PR; ~20 min.",
+      "estimated_effort": "20 min"
+    }
+  ],
+  "deep_research": "OmniRoute-dependabot is the worktree mirror of diegosouzapw/OmniRoute — the fleet's flagship AI-router/proxy (212 providers, MCP server, A2A v0.3, Electron + Electrobun desktops). The clone lives at repos/OmniRoute-dependabot for dependabot-bump integration into the Phenotype fleet. Compared against the tick-25 hygiene baseline and the agent-user-status / chatta audits, OmniRoute sits at the top of the org standard: ~92% of the Phenotype hygiene SSOT landed. The dependabot config is best-in-class — 6 ecosystems (root npm + 3 workspaces + docker + github-actions) with grouped batching for react-ecosystem, testing-frameworks, build-tools, and a single named reviewer @KooshaPari, 3-5 PR limit per ecosystem, weekly Monday 09:00 ET — this is the concrete reference for the pheno-cargo-template-deps libification candidate (#23 in the tick-25 matrix) and the pheno-dependabot-grouped-baseline. Workflow hygiene is the strongest seen in any audit so far: 10/10 workflows parse cleanly, 100% SHA-pinned (actions/checkout@df4cb1c0, setup-node@48b55a01, setup-python@a309ff8b, ossf/scorecard-action@05b42c62), 9/10 with top-level permissions + concurrency + timeout-minutes. The OpenSSF scorecard workflow is exemplary — permissions: read-all, cron weekly, SARIF upload to code-scanning, 5-day artifact retention. The Dependabot mirror exists because the upstream repo (diegosouzapw/OmniRoute) does not have these org-level hygiene gates; this worktree layer is where the fleet's hardening lives. The e2e layer is real Playwright (14 specs across api-keys-flow, combo-unification, combos-flow, ecosystem, protocol-clients, providers-bailian-coding-plan, system-failover, etc.) plus 493 Node-native unit tests, with separate vitest project for the MCP server (vitest.mcp.config.ts). The Playwright testIgnore list (6 specs broken by the Nav Restructure refactor — analytics-tabs, memory-settings, protocol-visibility, resilience-plan-alignment, settings-toggles, skills-marketplace) is the single biggest coverage debt. Open gaps: missing FUNDING.yml + CITATION.cff + SUPPORT.md (mandatory org standard), CODEOWNERS is single-fallback @KooshaPari with no src/ subtree ownership, no CodeQL action (only OpenSSF scorecard), no pre-commit-config.yaml, no coverage gate, CHANGELOG [Unreleased] empty since 2026-05-27 3.8.5. The closest stack peer is HeliosLab (gRPC + tonic + prost for low-latency transport), but OmniRoute is the only repo combining Next.js 16 + Electron + Electrobun + MCP server + A2A + 40+ i18n locales — a unique convergence that makes the playwright-restoration action the highest-impact follow-up.\n\nNet hygiene score: 4.4/5 (PASS across all 5 gates with nit-level gaps). The repo is the most hygiene-mature Next.js/TypeScript project in the fleet and the only candidate for a Dependabot-baseline reference template. The single highest-leverage follow-up is restoring the 6 testIgnore specs — this is the only P0 and is the only action that grows real e2e coverage rather than just adding metadata. The CODEOWNERS split + dependabot group extensions are concrete, mechanical, and ship-ready."
+}

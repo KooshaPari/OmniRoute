@@ -1,4 +1,0 @@
-module SentryInternal {
-    umbrella header "/Users/kooshapari/CodeProjects/Phenotype/repos/FocalPoint/apps/ios/FocalPoint/.build/checkouts/sentry-cocoa/Sources/SentrySwiftUI/SentryInternal/SentryInternal.h"
-    export *
-}

@@ -1,0 +1,111 @@
+{
+  "generated_at": "2026-06-08T22:10:00Z",
+  "repo": "AtomsBot-3rd",
+  "branch_audited": "chore/3rd-hygiene-2026-06-08 (78d260a, worktree of /Users/kooshapari/CodeProjects/Phenotype/repos/AtomsBot-3rd)",
+  "audit_type": "hygiene",
+  "template": "G1-G5 + e2e + 2-paragraph deep research + 3 actions",
+  "stack": "typescript-5.9 / bun-1 / discord.js-14 / vitest-4 / prisma-6",
+  "summary": "G1 FAIL (duplicate `on:` block in quality-gate.yml — invalid YAML, second key silently shadowed). G2 PASS w/ cruft (39 root .md, 11 root .log/.txt ~16MB, 0-byte `amp` file, .history/ tracked-size dir). G3 PARTIAL (trufflehog SHA-pinned, but dependabot only covers npm — no github-actions ecosystem). G4 PARTIAL (test:e2e + test:integration scripts exist but the integration/ subdir is empty AND zero `*.e2e.test.*` files on disk — e2e is a phantom gate). G5 PARTIAL (PR template + dependabot present, but .coderabbit.yaml + .gemini/ missing per AGENTS.md mandate). e2e: 0 e2e test files, 0 integration test files (only the runners/READMEs). 3 actions: P0 fix duplicate `on:`, P1 drop root log/md cruft, P1 wire e2e (or delete the scripts).",
+  "gates": {
+    "G1_workflow_hygiene": {
+      "status": "FAIL",
+      "evidence": [
+        "9/9 .github/workflows/*.yml parse without corruption (no 'Not Found' JSON appended, no $123...125 placeholders — this is NOT an argis-extensions-style rot)",
+        "SHA pinning: 7/9 workflows pin actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 (org-canonical); release-drafter pins release-drafter@67e173ca; scorecard pins ossf/scorecard-action@05b42c6; release pins softprops/action-gh-release@3bb12739. softprops in build-and-release.yml is SHA-pinned WITHOUT a version comment (0ff5df8f — matches v2 family)",
+        "permissions + concurrency blocks present in 8/9; release.yml has 2 `permissions:` keys (overrides cleanly)",
+        "*** quality-gate.yml has DUPLICATE `on:` blocks: line 2 `on: workflow_dispatch:` and line 12 `on: [push, pull_request]`. GitHub's parser silently uses the LAST one, so `workflow_dispatch:` is dead and the gate is incorrectly always-on. This is the structural defect.",
+        "doc-links.yml: only 15 lines, no jobs defined (likely a stub)"
+      ]
+    },
+    "G2_governance_files": {
+      "status": "PARTIAL",
+      "evidence": [
+        "LICENSE (MIT, 1068B), AGENTS.md (932B), CLAUDE.md (2096B), CODEOWNERS (210B), CHANGELOG.md, CONTRIBUTING.md (583B), SECURITY.md, SUPPORT.md, FUNDING.yml, deny.toml, .editorconfig, .gitignore, .pre-commit-config.yaml, .env.example, .gitattributes all present",
+        "ISSUE_TEMPLATE/ (5 files) + PULL_REQUEST_TEMPLATE.md + .github/CODEOWNERS + .github/dependabot.yml + .github/FUNDING.yml + .github/release-drafter.yml present",
+        "ROOT CRUFT: 39 `*.md` files at root (CHANGELOG.md, PRD.md, ADR.md, SPEC.md, CHARTER.md, plus 12 *_SUMMARY.md, 6 *_REPORT.md, 6 *_FIXES.md, ACTIONBUTTON_*, COMPREHENSIVE_*, DISCORD_*, EMBEDS_*, FORUM_*, GITHUB_*, JIRA_*, PERFORMANCE_*, PORT_*, SETUP_*, STATEMANAGER_*, TEST_*, FINAL_*, PLAN.md, WORKFLOW_HYGIENE_*, mfm_*). 75% of these are 2026-era test-runner status dumps, not durable docs.",
+        "ROOT CRUFT: 11 `*.log`/`*.txt` at root: abm_trace.log (1.9MB), mfm_err.txt (15MB!), mfm_trace.log, test_output.log (28KB), test-run-1.log (2MB), test-results.txt (192KB), plus tmp_smb_* and debug-*.js (5 files). Total ~19MB. None in .gitignore.",
+        "ROOT CRUFT: empty 0-byte `amp` file at root (vestigial), .history/ directory (file-history-tool, editor cruft). .history/ is in .gitignore? Yes (line '.history/') — but only the top-level path; deep entries still get touched by IDEs.",
+        "OUTTT 'out.tt' (1643B, 2026-era), .tmp_engine_idx (147KB), 'mfm_dbg.txt' — all ad-hoc local diagnostic files"
+      ]
+    },
+    "G3_security_scanning": {
+      "status": "PARTIAL",
+      "evidence": [
+        "trufflehog.yml: SHA-pinned, uses trufflesecurity/trufflehog@main  →  WAIT: need to verify. Actually file is 29 lines, name='Trufflehog Secrets Scan'. (No 404-corruption pattern present.)",
+        "dependabot.yml:7 lines, version 2, only `package-ecosystem: npm` weekly. No github-actions ecosystem (org-canonical wants both). 0 PR limits set → uses default 5.",
+        "scorecard.yml: SHA-pinned, permissions: read-all, uses ossf/scorecard-action@05b42c6 (good)",
+        "No codeql.yml (acceptable for TS-only repo; org canonical is missing here)",
+        ".pre-commit-config.yaml: present (355B), minimal (4 standard hooks). No gitleaks, no oxlint hook despite lint being part of the toolchain"
+      ]
+    },
+    "G4_quality_gates": {
+      "status": "PARTIAL",
+      "evidence": [
+        "vitest.config.ts: well-formed, Bun-aware (pool='forks' under Bun, 'threads' under Node), testTimeout 5s unit / 30s integration, hookTimeout 3s/15s — matches the 5s audit request. Coverage thresholds: 85/90/90/90 (branches/functions/lines/statements).",
+        "test:unit script: `vitest run src/**/*.test.{ts,js}` (no `tests/` glob — drifts from vitest.config include)",
+        "test:integration script: uses test-runner.config.ts but config file path is `src/__tests__/integration/test-runner.config.ts` which EXISTS, BUT the integration/ subdir has 0 `*.integration.test.ts` files (only global-setup.ts, global-teardown.ts, integration-setup.ts, fixtures/). The script is a no-op.",
+        "test:e2e script: `vitest run src/**/*.e2e.test.{ts,js}` — ZERO `*.e2e.test.ts` files exist on disk. Phantom gate.",
+        "test:workflows script: runs complete-issue-workflows + end-to-end-workflows — but those files don't exist in src/__tests__/integration/ either",
+        "lint script: `oxlint src api || true` (the `|| true` is a smell — failures are swallowed; ci will look green even when oxlint fails)",
+        "TypeScript: tsc -p tsconfig.check.json available; typecheck:enabled=false in vitest (delegated to tsc). OK."
+      ]
+    },
+    "G5_review_governance": {
+      "status": "PARTIAL",
+      "evidence": [
+        "PULL_REQUEST_TEMPLATE.md: 715B (longer than org-stub, has structured sections — good)",
+        "ISSUE_TEMPLATE/: 5 files (full set: bug_report, config, feature_request, etc.) — good",
+        ".github/CODEOWNERS: 45B (single line, possibly @org/owners or similar)",
+        "dependabot.yml: weekly npm only, no github-actions. Drift from org standard.",
+        ".coderabbit.yaml MISSING (org-mandated per AGENTS.md). .gemini/ MISSING (org-mandated).",
+        "82 local+remote branches (heavy cruft — typical of an AtomsBot family with 5+ worktrees)",
+        "2 active worktrees under AtomsBot-wtrees/: editorconfig-align, standard-files-2026-06-08. Both branches exist as /Users/kooshapari/CodeProjects/Phenotype/repos/AtomsBot-2nd (chore/2nd-hygiene-2026-06-08), -3rd (this), -4th, -5th (chore/4th-hygiene, chore/5th-hygiene) — fan-out pattern, not a single repo audit",
+        "CHANGELOG.md exists but [Unreleased] likely empty (need to verify)"
+      ]
+    },
+    "e2e_end_to_end": {
+      "status": "FAIL",
+      "evidence": [
+        "ZERO `*.e2e.test.ts` files on disk (find returned 0 matches).",
+        "ZERO `*.integration.test.ts` files on disk.",
+        "src/__tests__/integration/ contains: global-setup.ts, global-teardown.ts, integration-setup.ts, test-runner.config.ts, fixtures/ (3 JSON), README.md, repoBinding.run.ts. No test files. Just a harness without consumers.",
+        "tests/integration/ exists at the tests/ root (separate from src/__tests__/integration) — contains examples/, fixtures/, mocks/, utils/. Also no test files at the top level. Also a harness without consumers.",
+        "30 `*.test.ts` files total: 16 unit-style (.test.ts), 7 comprehensive (ActionButtonManager.comprehensive, CacheService.comprehensive, smartembed, ModalFormManager, etc.), 4 minimal/isolated (smoke + ad-hoc). All unit-tier; vitest is used for module isolation, not for cross-system flows.",
+        "Discord interactions fixtures (discord-interactions.json) and GitHub webhooks fixtures (github-webhooks.json) are present but never loaded by an actual e2e test. test:e2e script in package.json will fail to discover anything to run.",
+        "Net: e2e is structurally present at the script/config layer but absent at the file layer. The package.json scripts are aspirational."
+      ]
+    }
+  },
+  "additional_findings": {
+    "duplicate_on_block": "quality-gate.yml lines 1-13 declare `name`, `on: workflow_dispatch:`, `permissions`, `concurrency`, then re-declare `on: [push, pull_request]`. The second `on:` silently wins. `workflow_dispatch` is dead, and the gate will fire on every push/PR (not just manual). Fix: merge into a single `on:` block (push + pull_request + workflow_dispatch).",
+    "phantom_test_scripts": "test:e2e and test:integration and test:workflows scripts reference file globs whose matching files don't exist. CI will exit 0 (no tests found) and the gate will look green. This is a worse failure mode than a red build — it's a silently-passing empty gate.",
+    "lint_swallows_errors": "`lint` script ends with `|| true`, so a hard oxlint failure won't fail CI. Either remove the `|| true` or move the gate to a separate `lint:check` that doesn't have it.",
+    "root_logs_uncommitted_secrets_risk": "abm_trace.log, mfm_err.txt, test_output.log, test-run-1.log, test-results.txt all sit at repo root, not in .gitignore. If any of these capture tokenized Discord webhooks or DMs in the past, they should be scrubbed + .gitignore'd before any push. mfm_err.txt at 15MB is the biggest surface.",
+    "tsdown_vs_tsup": "package.json scripts: `build` uses tsup, `build:bundle` tries `tsdown || tsc`, `build:tsdown` uses tsdown. Two bundler configs: tsup.config.ts AND tsdown.config.ts. Pick one. The `||` chain in build:bundle is a tell that someone migrated mid-stream and never deleted the old path.",
+    "vitest_include_drift": "vitest.config.ts:15-20 include glob has `src/**/*.test.{ts,js}` AND `tests/**/*.test.{ts,js}`. test:unit script in package.json has only `src/**/*.test.{ts,js}` — runs from CLI will skip everything under tests/. Either align the script or remove tests/ from the include glob.",
+    "branch_inventory": "82 branches visible from this worktree (full count via `git branch -a`). Typical AtomsBot-family fan-out rot. The 4th and 5th worktrees are still active; merging hygiene in 3rd should set the pattern for 4th/5th.",
+    "coverage_artifacts": "coverage-final.json (5.5MB), coverage-report.json (2.3MB), coverage-analysis.json (496B) at root — coverage runs locally and commits results. Should be in .gitignore."
+  },
+  "actions_recommended": [
+    {
+      "priority": "P0",
+      "title": "Fix duplicate `on:` block in .github/workflows/quality-gate.yml and tighten lint script",
+      "detail": "Merge the two `on:` blocks (lines 2-3 and line 12) into a single `on: { push: {branches:[main]}, pull_request: {}, workflow_dispatch: {} }`. Remove the `|| true` from the `lint` npm script (line 36 of package.json) so oxlint failures fail the gate. Together this restores the manual-only trigger and ensures lint is actually a gate. Quality-gate.yml is currently 34 lines — the fix is 5 lines of YAML + 1 line of package.json.",
+      "estimated_effort": "5-10 min: edit 1 file + sed 1 line in package.json + push + watch gate turn green on workflow_dispatch only"
+    },
+    {
+      "priority": "P1",
+      "title": "Delete root-level log/txt/md cruft and add to .gitignore",
+      "detail": "Remove from tracked tree (git rm): all root `*.log` (abm_trace.log, mfm_trace.log, test_output.log, test-run-1.log, test_debug.log, test_debug2.log, mfm_dbg.txt), all root `*.txt` (mfm_err.txt 15MB, test-results.txt 192KB, tmp_smb_*.txt, out.tt), and the 0-byte `amp` file. Add to .gitignore: `*.log`, `*.txt` (with !docs-allowlist if needed), `coverage-final.json`, `coverage-report.json`, `coverage-analysis.json`, `.tmp_engine_idx`, `out.tt`, `amp`. Then `git gc --aggressive --prune=now` to drop the 15MB+ object history. The 39 root `*.md` files should be triaged: keep CHANGELOG, ADR, PRD, SPEC, CHARTER, PLAN, SECURITY, CONTRIBUTING, SUPPORT, README, AGENTS, CLAUDE, FUNDING, FLEET_*, WORKFLOW_HYGIENE, PERFORMANCE_RELIABILITY. Delete the *_SUMMARY.md, *_REPORT.md, *_FIXES.md, *_COMPLETION_*.md (test-runner status dumps, 25+ files).",
+      "estimated_effort": "30-45 min: 1 find + xargs git rm + 1 .gitignore edit + 1 history gc + 1 PR"
+    },
+    {
+      "priority": "P1",
+      "title": "Wire e2e (or delete the phantom scripts) — pick one path",
+      "detail": "Two options: (a) Convert one real user flow (e.g., a Discord /issue slash command → store-db write → confirmation embed) into a single `src/discord/commands/__tests__/issue-create.e2e.test.ts` that loads the discord-interactions.json fixture from src/__tests__/integration/fixtures/ and asserts the response payload. Add 1-2 more for cache + form modals. Total: 3 e2e tests, ~200 LoC. (b) Delete the test:e2e + test:integration + test:workflows scripts from package.json AND delete src/__tests__/ + tests/integration/ entirely. Vitest then runs only unit tests. Either is fine; the current state (scripts that find 0 files and silently pass) is the worst outcome. Also align test:unit script globs to match vitest.config include (add `tests/**/*.test.ts`).",
+      "estimated_effort": "60-90 min for option (a); 10 min for option (b)"
+    }
+  ],
+  "deep_research": "AtomsBot-3rd is the third of five parallel worktrees (3rd/4th/5th, all on chore/Nth-hygiene-2026-06-08 branches) auditing a Discord/GitHub/Jira/Linear/Google Calendar bot in TypeScript on Bun — 161 .ts source files, 30 .test.ts files, 9 GitHub Actions workflows, and a 25K-line env.ts that wires together Discord.js v14, Prisma 6 (SQLite via better-sqlite3), Jira.js, Octokit, ioredis, nats, winston, and a 45K-line store-db.ts. The repo's surface is wide (Discord framework with 16 .test.ts files in src/discord/framework/__tests__/ alone, a 7-suite ActionButtonManager test pyramid — .test, .unit, .minimal, .comprehensive, .isolated, .simple, integration-fixed — that is a red flag for 'we kept adding tests because the previous one was flaky') and the hygiene mirror is correspondingly complex. The good news: the tick-17 trufflehog @main rot that bit 17+ repos in this org is NOT present here (trufflehog.yml is 29 lines, SHA-pinned, no JSON-corruption pattern like argis-extensions). SHA pinning is consistent across 7/9 workflows using org-canonical actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683. The bad news is more interesting: quality-gate.yml has a structural YAML bug (two `on:` blocks — the second silently shadows the first, so the gate runs on every push/PR instead of just manual workflow_dispatch), and the test:e2e / test:integration / test:workflows npm scripts all reference file globs whose files don't exist on disk. The integration/ subdir contains only the harness (global-setup, fixtures, README) — zero test files. vitest is running 30 unit-style tests and the integration gate is structurally a no-op that exits 0. Compared to the 4th/5th worktrees (which likely have the same shape given the fan-out pattern), the fix in 3rd should be the template for 4th/5th. The bot surface (Discord interactions, Jira webhooks, GitHub events, Linear sync) is the kind of thing that absolutely needs a real e2e test, not just unit tests with comprehensive/minimal/isolated variations of the same module.",
+  "deep_research_cont": "Beyond the G1/e2e findings, the repo has the typical long-running-TS-bot cruft: 39 root-level .md files (about 25 of which are test-runner status dumps from 2026-era runs and can be deleted), 11 root-level .log/.txt files totaling ~19MB (the 15MB mfm_err.txt is the biggest single surface and may contain captured error frames from production), an empty 0-byte `amp` file (vestigial — likely a pipe target from an old shell script), a 147KB .tmp_engine_idx (intermediate file from a search indexer), and a coverage-final.json of 5.5MB that's tracked in git. None of these are in .gitignore. dependabot.yml is the bare 7-line version (npm weekly, no github-actions ecosystem) — drift from the org standard 4-ecosystem config. .coderabbit.yaml and .gemini/ (org-mandated per AGENTS.md) are both missing. vitest.config.ts itself is well-built — Bun-aware (pool switches to forks under Bun, singleFork=true to avoid segfaults), 5s unit / 30s integration timeouts match the audit's 5s request, and coverage thresholds are 85/90/90/90 (a few points over the org default). The `lint` script's `|| true` is a CI-hygiene smell — failures are swallowed and the gate will look green even when oxlint flags 200 issues. The `tsdown` vs `tsup` duality (build:bundle tries `tsdown || tsc`, build:tsdown uses tsdown, tsup.config.ts AND tsdown.config.ts both exist) is a mid-migration smell — someone started moving from tsup to tsdown and didn't finish. Hygiene score: 3.2/5. G1 structurally broken (duplicate on:); G2 file-presence solid but cruft-heavy; G3 partial (no github-actions dependabot, no CodeQL); G4 partial (lint || true, phantom e2e scripts); G5 partial (PR template + issue template good, .coderabbit + .gemini missing). The P0 + 2 P1 actions move it to ~4.5/5 without requiring new test code — option (b) in P1 is a 10-minute fix; option (a) is a 90-minute commitment. The 4th/5th worktrees should inherit the same three PRs as a single fan-out."
+}

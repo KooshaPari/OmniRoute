@@ -1,0 +1,51 @@
+ot % npm run dev-api
+
+> gitbot@1.0.0 dev-api
+> tsx local-server.js
+
+🚀 Local API server running on http://localhost:3100
+📱 Discord interactions: http://localhost:3100/api/discord/interactions
+🔗 GitHub webhooks: http://localhost:3100/api/webhooks/github
+🔷 Jira webhooks: http://localhost:3100/api/webhooks/jira
+
+🔍 === DISCORD REQUEST DEBUG ===
+Headers: {
+  'content-type': 'application/json',
+  'user-agent': 'Discord-Interactions/1.0 (+https://discord.com)',
+  'x-signature-ed25519': 'present',
+  'x-signature-timestamp': 'present'
+}
+Config check: {
+  hasSignature: true,
+  hasTimestamp: true,
+  hasPublicKey: true,
+  publicKeyLength: 64
+}
+Body: {"app_permissions":"562949953601536","application_id":"1387251526438748232","attachment_size_limit":524288000,"authorizing_integration_owners":{},"entitlements":[],"id":"1387919406666878977","token":"...
+Signature verification: ✅ VALID
+Interaction type: 1
+🏓 PING -> PONG
+✅ PONG sent successfully
+=== END DEBUG ===
+
+
+🔍 === DISCORD REQUEST DEBUG ===
+Headers: {
+  'content-type': 'application/json',
+  'user-agent': 'Discord-Interactions/1.0 (+https://discord.com)',
+  'x-signature-ed25519': 'present',
+  'x-signature-timestamp': 'present'
+}
+Config check: {
+  hasSignature: true,
+  hasTimestamp: true,
+  hasPublicKey: true,
+  publicKeyLength: 64
+}
+Body: {"app_permissions":"562949953601536","application_id":"1387251526438748232","attachment_size_limit":524288000,"authorizing_integration_owners":{},"entitlements":[],"id":"1387919406666878976","token":"...
+Signature verification: ✅ VALID
+Interaction type: 1
+🏓 PING -> PONG
+✅ PONG sent successfully
+=== END DEBUG ===
+

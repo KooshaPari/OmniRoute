@@ -1,0 +1,29 @@
+{
+  "generated_at": "2026-06-08T23:51:05.825777+00:00",
+  "total_repos": 129,
+  "by_lib": {
+    "candle": [],
+    "fastembed": [],
+    "sentence-transformers": [
+      "Tracera"
+    ],
+    "openai": [
+      "Agentora",
+      "HeliosCLI",
+      "McpKit",
+      "OmniRoute",
+      "OmniRoute-dependabot",
+      "OmniRoute-latest",
+      "PhenoProc",
+      "PlayCua",
+      "QuadSGM",
+      "argis-extensions",
+      "bare-cua",
+      "forgecode",
+      "helioscope",
+      "localbase3",
+      "phenotype-omlx"
+    ],
+    "voyageai": []
+  }
+}

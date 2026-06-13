@@ -1,0 +1,117 @@
+{
+  "repo": "phenoRuntime",
+  "branch": "chore/audit-phenoRuntime-2026-06-08",
+  "head_sha": "6fcbe46b56b082e493aced69c67bcf0ad44a7a2c",
+  "last_commit_date": "2026-05-28T01:01:32-07:00",
+  "language_stack": {
+    "primary": ["rust"],
+    "secondary": ["typescript"],
+    "metadata_files": ["go", "python", "npm", "bun"],
+    "framework": "Cargo workspace (resolver=3) + Tokio async runtime + serde/serde_json contracts + thiserror error types + VitePress docs (Bun)",
+    "msrv": "1.85",
+    "edition": "2024"
+  },
+  "hygiene_score": 100,
+  "hygiene_breakdown": {
+    "LICENSE": 10,
+    "README": 10,
+    "CHANGELOG": 10,
+    "EDITORCONFIG": 10,
+    "CI": 10,
+    "DEPENDABOT": 10,
+    "CODEOWNERS": 10,
+    "CONTRIBUTING": 10,
+    "SECURITY": 10,
+    "FUNDING": 10
+  },
+  "hygiene_evidence": {
+    "LICENSE": "LICENSE (1068B, MIT/Apache-2.0 dual) + LICENSE-APACHE (11358B) + LICENSE-MIT (1066B)",
+    "README": "README.md (6622B, with badges, status block, quick-start, design principles)",
+    "CHANGELOG": "CHANGELOG.md (546B, Keep-a-Changelog with [Unreleased] entry referencing audit #206)",
+    "EDITORCONFIG": ".editorconfig (446B)",
+    "CI": ".github/workflows/ (17 workflows: ci, lint, quality-gate, journey-gate, codeql, codeql-rust, scorecard, secrets-scan, fr-coverage, doc-links, pages, release, cargo-audit, cargo-deny, cargo-machete, cargo-semver-checks, fr-coverage)",
+    "DEPENDABOT": ".github/dependabot.yml (cargo, gomod, npm, pip, github-actions — weekly, grouped)",
+    "CODEOWNERS": ".github/CODEOWNERS (* @KooshaPari)",
+    "CONTRIBUTING": "CONTRIBUTING.md (1231B, branch naming + conventional commits + PR checklist)",
+    "SECURITY": "SECURITY.md (867B, GitHub Security Advisories + 48h SLA + scanning matrix)",
+    "FUNDING": "FUNDING.yml (175B, blank_issues_enabled=false, Discussions contact_link)"
+  },
+  "dup_exposure": [
+    "phenotype-bus / phenotype-event-bus (event bus — pheno-nats could re-export rather than re-implement publisher traits)",
+    "phenotype-request-id (request/correlation ID propagation for adapter calls; required for trace stitching)",
+    "phenotype-registry (service-name resolution for adapter endpoints — pheno-nats/pheno-minio hand-roll URL config today)",
+    "phenotype-dep-guard (org-wide cargo-deny/audit/machete/semver-checks policy bundle — repo has its own .golangci.yml/deny.toml; would centralize)",
+    "phenotype-errors / phenotype-error-core (canonical error taxonomy; thiserror wrappers in each crate diverge today)",
+    "phenotype-port-interfaces from phenoShared (already referenced in README; not actually declared in any crate's Cargo.toml)",
+    "phenotype-postfx (post-effect runner that could host retry/circuit-breaker logic missing from adapters)",
+    "phenotype-tooling / phenotype.just (shared just recipes — repo has its own minimal justfile; could extend the org library variant)",
+    "phenotype-journeys (journey primitives — repo has journey-gate workflow but no FR/journey-traceable tests)",
+    "phenotype-llm-routing ports in PhenoObservability (phenotype-llm crate re-implements routing traits that already exist in observability-ports)"
+  ],
+  "sota_gaps": [
+    "Daemon not implemented — src/main.rs:1 is a `println!` placeholder; the 'runtime' crate name is aspirational, not actual",
+    "No crate publish path — release.yml exists but no crates.io publish step, no provenance attestation, no per-crate versioning",
+    "No OpenTelemetry / structured tracing — adapters log via println/eprintln only; no #[instrument], no OTel exporter, no span propagation across pheno-nats -> phenotype-llm",
+    "No retry/circuit-breaker/backoff — every adapter (pheno-nats, pheno-minio, phenotype-surrealdb, phenotype-llm) opens raw connections with no resilience layer",
+    "No schema validation — inter-crate data contracts (LLM request/response, MCP tool call, NATS envelope) are serde structs with no JSON-Schema or protobuf anchor",
+    "No e2e harness — integration tests are feature-gated per-crate; no docker-compose spanning NATS+SurrealDB+MinIO+MCP",
+    "No per-crate CHANGELOG — cliff.toml present (24 lines) but root CHANGELOG.md only has 1 Unreleased entry; consumers can't see per-crate deltas",
+    "No auto-instrumentation hooks — phenotype-mcp-server has no #[auto-instrument] for tool handlers; phenotype-llm has no token/cost span attributes",
+    "No rate limiting — public adapter APIs (e.g. pheno-nats publish, pheno-minio put) have no token-bucket or per-key QPS guard",
+    "No MCP server tooling split — phenotype-mcp-server is hosted here but NFR-OBS-010 says MCP server crates should live in PhenoMCP (domain squat)",
+    "Empty crates/phenotype-surrealdb + pheno-minio — only src/lib.rs stubs; no real SurrealDB/MinIO client implementation",
+    "No WASM/skill surface — README and CLAUDE.md mention 'daemon, skills, WASM' but only the daemon binary stub exists; no wasm32 target, no skill host"
+  ],
+  "convergence_cluster": "multi-stack",
+  "convergence_rationale": "Rust-core multi-crate workspace (5 adapters) with cross-ecosystem metadata (go.mod, package.json, pyproject.toml, bun.lock) for org-wide dependency scanning. Architectural intent is to be the runtime substrate for the entire Phenotype polyrepo, but the binary and 2 of 5 adapter crates are still stubs — production weight is concentrated in phenotype-llm + pheno-nats + phenotype-mcp-server. Multi-stack by surface, with a convergence trajectory toward 'the' runtime layer.",
+  "action_items": [
+    {
+      "rank": 1,
+      "title": "Replace src/main.rs:1 placeholder with a real daemon entrypoint (config load + signal handling + adapter bootstrap)",
+      "effort": "L (1-2w)",
+      "why": "The crate is named pheno-runtime and CLAUDE.md promises a daemon surface, but the binary is a one-liner. Without a real entrypoint the workspace cannot be consumed as a daemon and downstream consumers (PhenoAgent, PhenoProc) must hand-roll their own bootstrap.",
+      "file_refs": ["src/main.rs:1", "Cargo.toml:9-11", "CLAUDE.md:11-17"]
+    },
+    {
+      "rank": 2,
+      "title": "Adopt phenotype-port-interfaces from phenoShared across all 5 adapter crates and delete duplicated trait definitions",
+      "effort": "M (3-5d)",
+      "why": "README:91 promises 'hexagonal alignment' and ARCHITECTURE.md:5 repeats the claim, but no crate declares phenotype-port-interfaces in its Cargo.toml. Mainlining the org ports crate removes the trait duplication and makes phenoRuntime a true adapter layer.",
+      "file_refs": ["crates/phenotype-mcp-server/Cargo.toml", "crates/phenotype-llm/Cargo.toml", "crates/pheno-nats/Cargo.toml", "crates/pheno-minio/Cargo.toml", "crates/phenotype-surrealdb/Cargo.toml", "README.md:86-92"]
+    },
+    {
+      "rank": 3,
+      "title": "Add OpenTelemetry tracing + retry/circuit-breaker post-processor to all adapters via phenotype-observably-* or phenotype-postfx",
+      "effort": "M (3-5d)",
+      "why": "Two SOTA gaps (no tracing, no resilience) share a single wrapper layer (#[instrument] + tower/retry middleware). Building them together is cheaper than two passes and unifies the telemetry story across the org.",
+      "file_refs": ["crates/pheno-nats/src/lib.rs", "crates/phenotype-llm/src/lib.rs", "crates/phenotype-mcp-server/src/lib.rs"]
+    },
+    {
+      "rank": 4,
+      "title": "Wire release-plz (or cargo-release) to publish each adapter crate independently with provenance attestation",
+      "effort": "M (3-5d)",
+      "why": "release.yml exists but does not call cargo publish. Independent per-crate versioning unblocks downstream repos that currently pin to a git SHA (per README:60-67). Adds crates.io provenance + SBOM for free.",
+      "file_refs": [".github/workflows/release.yml", "cliff.toml", "README.md:58-67"]
+    },
+    {
+      "rank": 5,
+      "title": "Move phenotype-mcp-server out of phenoRuntime to PhenoMCP (resolve domain-squat per NFR-OBS-010)",
+      "effort": "S (1-2d)",
+      "why": "The MCP server is a domain application, not a runtime adapter; per NFR-OBS-010 it belongs in PhenoMCP. Moving it cleans the workspace's stated scope ('runtime substrate + adapters') and removes a directory-level conflict with the same crate name in PhenoObservability.",
+      "file_refs": ["crates/phenotype-mcp-server/", "Cargo.toml:14", "ARCHITECTURE.md:9-10"]
+    }
+  ],
+  "metadata": {
+    "audit_task": "DAG L1-15",
+    "audit_date": "2026-06-08",
+    "auditor": "forge",
+    "source_repo_path": "/Users/kooshapari/CodeProjects/Phenotype/repos/phenoRuntime",
+    "source_branch_audited": "main",
+    "workspace_crate_count": 5,
+    "adapter_crates": ["phenotype-mcp-server", "phenotype-llm", "pheno-nats", "pheno-minio", "phenotype-surrealdb"],
+    "stub_crates": ["pheno-minio", "phenotype-surrealdb"],
+    "binary_impl": "placeholder (src/main.rs:1)",
+    "workflows_count": 17,
+    "pushed": false
+  }
+}

@@ -1,4 +1,0 @@
-module SentryCppHelper {
-    header "SentryCppHelper-Swift.h"
-    export *
-}

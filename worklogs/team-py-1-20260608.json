@@ -1,0 +1,19 @@
+{
+  "generated_at": "2026-06-08T10:43:49.405879Z",
+  "total_repos": 169,
+  "llm_framework_dupes": [
+    {
+      "framework": "litellm",
+      "repos": [
+        "PhenoProc",
+        "TestingKit",
+        "portage",
+        "thegent",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    }
+  ]
+}

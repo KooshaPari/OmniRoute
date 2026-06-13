@@ -1,0 +1,121 @@
+{
+  "repo": "hwLedger",
+  "branch_audited": "main (be660d8d, clean, 0 ahead of origin/main); hwLedger-2nd worktree on chore/2nd-hygiene-2026-06-08 (3fbde0e6, 1 ahead with .editorconfig)",
+  "audited_at": "2026-06-08",
+  "stack": "rust-workspace (CLAIMED) + vitepress docs + astro landing + streamlit web + swiftui macos; ACTUAL: pre-alpha docs-only scaffold, 0 Cargo.toml, 0 .rs files, 51 tracked files",
+  "summary": "G1/G3 PASS w/ nit, G2 DEGRADED (codeql.yml duplicate top-level permissions; CHANGELOG [Unreleased] empty; AGENTS.md says 'hardware wallet companion', CLAUDE.md says 'LLM capacity planner' — contradictory; CLAUDE.md/README.md claim 11-crate Rust workspace that doesn't exist), G4 DEGRADED (no real CI — workflows audit deps only, no cargo test/build/lint, no test.yml/ci.yml/build.yml), G5 DEGRADED (35 stale local branches, no .editorconfig on main, no .gemini/.coderabbit.yaml, dependabot missing github-actions). e2e DEGRADED (no tests/, no crates/, no Playwright/Cypress, no XCUI source in apps/macos/HwLedgerUITests/, no smoke.sh). 2 P0, 5 P1, 5 P2.",
+  "gates": {
+    "G1_workflow_hygiene": {
+      "status": "PASS",
+      "evidence": [
+        "7/7 .github/workflows/*.yml parse cleanly: cargo-audit, cargo-deny, codeql, codeql-rust, deploy-docs, scorecard, trufflehog",
+        "All 7 have cron schedules; cargo-deny Mon 0 9, cargo-audit Wed 0 0, codeql-rust Tue 17 4, codeql Tue 0 12, scorecard Sun 0 0, trufflehog on-PR",
+        "5/7 SHA-pin actions/checkout to df4cb1c069e1874edd31b4311f1884172cec0e10 (decorative comment says 'v4@11bd71901...' but actual SHA df4cb1c... is NOT real — placeholder SHA drift per #97-#101 r1-r4 audit waves) (P1)",
+        "codeql.yml:9-10 + codeql.yml:17-20 declare DUPLICATE top-level `permissions:` blocks — YAML merges, second wins, first is dead (P1)",
+        "codeql.yml:4-5 `on: { push:, pull_request: }` has NO branches filter — runs on every push including forks (P1)",
+        "trufflehog.yml:14 uses `actions/checkout@v4` (tag, not SHA) — drift from org canonical (P2)",
+        "trufflehog.yml:9-10 + :23-28 place `permissions:` and `concurrency:` AFTER jobs block (non-standard layout; still parses) (P2)"
+      ]
+    },
+    "G2_governance_files": {
+      "status": "DEGRADED",
+      "evidence": [
+        "LICENSE (1068B MIT) + AGENTS.md + CLAUDE.md + CHANGELOG.md + CODEOWNERS + CODE_OF_CONDUCT.md + CONTRIBUTING.md + FUNDING.yml + SECURITY.md + clippy.toml + deny.toml + .gitattributes + .gitignore + .dockerignore + PULL_REQUEST_TEMPLATE.md + ISSUE_TEMPLATE/{bug_report,feature_request}.yml + .github/dependabot.yml ALL present",
+        "PULL_REQUEST_TEMPLATE.md structured (Summary/Changes/Test plan/Checklist) — good",
+        "ISSUE_TEMPLATE/bug_report.yml + feature_request.yml are real form schemas with severity/priority dropdowns — good",
+        "AGENTS.md says 'Hardware wallet ledger companion app — bridges hardware security devices with the Ledger ecosystem'; CLAUDE.md says 'LLM capacity planner + fleet ledger + desktop inference runtime' — CONTRADICTORY product definition (P0)",
+        "CLAUDE.md:7-9 + README.md:43 claim 'Rust workspace (hwledger-core, -arch, -ingest, -probe, -inference, -ledger, -fleet-proto, -agent, -server, -cli, -ffi)' — but `find hwLedger -name Cargo.toml` returns 0. NO Rust source committed anywhere (P0)",
+        "CHANGELOG.md [Unreleased] EMPTY (no Added/Changed/Fixed entries since 2026-05 fan-out) (P1)",
+        "MISSING: Justfile, .editorconfig (only in 2nd worktree, unpushed), .pre-commit-config.yaml, Taskfile.yml, rustfmt.toml, .coderabbit.yaml, .gemini/, SUPPORT.md, CITATION.cff — drift from org standard"
+      ]
+    },
+    "G3_security_scanning": {
+      "status": "PASS",
+      "evidence": [
+        "cargo-audit.yml (Wed 0 0 * * 3, push+PR on Cargo.toml/Cargo.lock) — rustsec/audit-check@v2 SHA-pinned",
+        "cargo-deny.yml (Mon 0 9 * * 1) — EmbarkStudios/cargo-deny-action@91bf2b620e09e18d6eb78b92e7861937469acedb SHA-pinned (v6)",
+        "codeql.yml + codeql-rust.yml (Tue weekly) — github/codeql-action/{init,analyze,autobuild}@v3, languages: rust",
+        "scorecard.yml (Sun 0 0 * * 0) — ossf/scorecard-action@v2.4.3 SHA-pinned, publish_results: true",
+        "trufflehog.yml — trufflesecurity/trufflehog@75add79b929b263dae147d2e5bcf0daf292165cf SHA-pinned (v3.95.2)",
+        "deny.toml allow-list is comprehensive (18 licenses: Apache-2.0, MIT, BSD*, MPL-2.0, Unicode, 0BSD, BlueOak, CDLA, Unlicense, WTFPL, etc.) — best-in-class",
+        "dependabot.yml: cargo only — MISSING github-actions ecosystem (P2)"
+      ]
+    },
+    "G4_quality_gates": {
+      "status": "DEGRADED",
+      "evidence": [
+        "ZERO code-level CI: no test.yml, no ci.yml, no build.yml — only 5 audit workflows (cargo-audit/deny, codeql/codeql-rust, scorecard, trufflehog, deploy-docs)",
+        "cargo-audit/deny/codeql paths-filter on Cargo.toml/Cargo.lock but those files don't exist — false-green signals",
+        "No pre-commit-config.yaml, no Justfile, no Taskfile.yml, no rustfmt.toml",
+        "No `cargo test --workspace`, no `cargo clippy --workspace -- -D warnings`, no `cargo fmt --check` automation (CLAUDE.md:33-34 mandates all 3)",
+        "No coverage tool; no cargo-bloat; no cargo-machete",
+        "clippy.toml: msrv=1.75, avoid-breaking-exported-api=true, allow-dbg-in-tests=true — minimal but org-aligned",
+        "deny.toml: [bans] multiple-versions=warn, wildcards=warn; [sources] unknown-git=deny, unknown-registry=warn — solid"
+      ]
+    },
+    "G5_review_governance": {
+      "status": "DEGRADED",
+      "evidence": [
+        "PULL_REQUEST_TEMPLATE.md structured (Summary/Changes/Test plan/Checklist with cargo test/clippy/fmt --check checkboxes) — good",
+        "ISSUE_TEMPLATE/{bug_report,feature_request}.yml both present with severity/priority dropdowns — good",
+        "CODEOWNERS: @KooshaPari on `*`, .github/, .github/workflows/, Cargo.toml, Cargo.lock, deny.toml, package.json — single-owner repo",
+        "dependabot.yml: cargo only (no github-actions ecosystem) (P2)",
+        "MISSING: .coderabbit.yaml, .gemini/, renovate.json5, SUPPORT.md (no AGENTS.md mandate, but org standard drift)",
+        "35 stale local branches (chore/2nd-hygiene-2026-06-08, cve-sweep-rsa, canonical-import-health, feat/journey-impl, feat/user-story-batch3-playwright-plugin, feat/user-story-batch4-5-xcuitest-plus-docs, fix/cargo-deny-ignores, fix/docs-build-timeouts, fix/gui-recorder-rehydrate, hygiene/cargo-deny-workflow-permissions, lockfile-retry, recovery/hwLedger-journey-impl-2026-06-06, wp05-math-core, etc.) — vestigial from r1-r4 audit fan-outs + active feature work",
+        "0 open PRs; 0 unpushed commits on main; working tree clean"
+      ]
+    },
+    "e2e_end_to_end": {
+      "status": "DEGRADED",
+      "evidence": [
+        "No tests/ at root; no crates/ at root; no apps/*/tests/; no integration/; no e2e/",
+        "apps/macos/HwLedgerUITests/ directory exists but is EMPTY (no XCUI test source committed)",
+        "No Playwright/Cypress/Detox/Maestro e2e suite (apps/streamlit/journeys/node_modules has playwright-core but no .spec.ts)",
+        "No smoke.sh, no integration harness, no contract test",
+        "No CI workflow that exercises a built binary (no `cargo run` + curl, no `streamlit run` + health, no `swift test`)",
+        "13 rich-media journey manifests spec'd in docs/journeys/manifests/ (first-plan, fleet-register, traceability-report, vram-reconcile, inference-run, fleet-probe, cost-model, audit-log, fleet-dispatch, model-ingest, telemetry-sync, kv-cache-plan, spot-price-scan) — 0 implementation",
+        "deploy-docs.yml ONLY exercises the VitePress docs site (bun install + bun run docs:build + upload-pages-artifact) — that's the closest thing to e2e"
+      ]
+    }
+  },
+  "additional_findings": {
+    "phantom_rust_workspace": "CLAUDE.md:7-9 + README.md:43 list 11 crates (hwledger-core, -arch, -ingest, -probe, -inference, -ledger, -fleet-proto, -agent, -server, -cli, -ffi). `find hwLedger -name 'Cargo.toml'` returns 0; `find -name '*.rs'` returns 0. README.md:29 Quickstart `cargo install --path crates/hwledger-cli` is broken — path doesn't exist. apps/ directory is NOT tracked in git (51 tracked files total, only sidecars/omlx-fork gitlink in sidecars/). The 'Rust workspace' is documentation-only. (P0)",
+    "contradictory_project_purpose": "AGENTS.md:5 says 'Hardware wallet ledger companion app — bridges hardware security devices with the Ledger ecosystem' (Ledger Nano/X hardware wallet). CLAUDE.md:3 + README.md:8 say 'LLM capacity planner + fleet ledger + desktop inference runtime'. Two different products. CLAUDE.md:54 says 'Tracked in AgilePlus: feature hwledger-v1-macos-mvp' — the AgilePlus tracking is for the LLM fleet ledger, so AGENTS.md is the vestigial fork artifact. (P0)",
+    "codeql_duplicate_permissions": "codeql.yml:9-10 declares `permissions: contents: read`; codeql.yml:17-20 redeclares `permissions: { actions: read, contents: read, security-events: write }`. YAML allows duplicate keys; second wins. The first block is dead. (P1)",
+    "codeql_no_branch_filter": "codeql.yml:4-5 `on: { push:, pull_request: }` has no `branches:` filter — runs on every push including forks. cargo-audit.yml + cargo-deny.yml have proper paths filters. (P1)",
+    "decorative_checkout_sha": "5/7 workflows use `actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v4@11bd71901bbe5b1630ceea73d27597364c9af683`. The actual SHA `df4cb1c...` is NOT a real actions/checkout commit (per the r1-r4 audit series in #97, #99, #101, #642de32f). The comment inlines the correct SHA `11bd71901...` but that's a string, not enforced. The r1-r4 audit series fixed placeholder SHAs but missed the SHA-vs-comment split. (P1)",
+    "trufflehog_v4_tag_drift": "trufflehog.yml:14 uses `actions/checkout@v4` (tag, not SHA) — drift from org canonical SHA-pin. Inconsistent with the other 6 workflows. (P2)",
+    "duplicate_2nd_worktree": "hwLedger-2nd/ is a worktree on branch `chore/2nd-hygiene-2026-06-08` with 1 ahead commit (3fbde0e6 .editorconfig) — UNPUSHED. The 2nd is byte-identical to main except for the new .editorconfig file. Should either fast-forward merge to main or be removed. (P1)",
+    "missing_github_actions_dependabot": "dependabot.yml only covers cargo. Org standard covers github-actions + cargo (most peers like chatta, agent-user-status have both). (P2)",
+    "changelog_unreleased_empty": "CHANGELOG.md [Unreleased] has 0 entries (no Added/Changed/Fixed) since 2026-05 fan-out. The 35-branch hygiene wave + #104 (journey specs) + #105 (landing.json) should have one-liner entries. (P1)",
+    "stale_working_tree_artifacts": "apps/landing/node_modules (193M) + apps/landing/dist/ + apps/streamlit/.venv/ + tools/journey-remotion/node_modules (321M) + apps/build/.hwledger-temp.dmg (12M) + apps/build/HwLedger.app/Contents/ — NOT in git, NOT in root .gitignore (.gitignore covers target/dist/build/node_modules but not .venv or .dmg). Working tree bloat. (P2)"
+  },
+  "ci_status": {
+    "open_prs": "0",
+    "unpushed_main": "0 (working tree clean on main; be660d8d == origin/main)",
+    "stale_branches": "35 local branches (chore/* + feat/* + fix/* + cve-sweep-rsa, canonical-import-health, lockfile-retry, recovery/hwLedger-journey-impl-2026-06-06, wp05-math-core, hygiene/cargo-deny-workflow-permissions) — vestigial from r1-r4 audit waves + active feature work",
+    "worktree_2nd": "hwLedger-2nd/ is a git worktree on chore/2nd-hygiene-2026-06-08 (3fbde0e6, 1 ahead: .editorconfig) — UNPUSHED, working tree clean"
+  },
+  "actions_recommended": [
+    {
+      "priority": "P0",
+      "title": "Reconcile AGENTS.md vs CLAUDE.md (which product?) + either commit the 11-crate Rust workspace or remove the claim",
+      "detail": "AGENTS.md says 'hardware wallet companion'; CLAUDE.md/README.md say 'LLM capacity planner + 11-crate Rust workspace' (hwledger-core, -arch, -ingest, -probe, -inference, -ledger, -fleet-proto, -agent, -server, -cli, -ffi). `find hwLedger -name Cargo.toml` returns 0. Three options: (a) commit a real `crates/hwledger-{core,arch,ingest,probe,inference,ledger,fleet-proto,agent,server,cli,ffi}/Cargo.toml` with stub source so Quickstart `cargo install --path crates/hwledger-cli` works; (b) update CLAUDE.md/README.md to mark the workspace as 'planned, not yet implemented' + remove the broken Quickstart cargo command; (c) delete the cargo-related workflows (cargo-audit, cargo-deny) until there is actual Rust code. Pick one. CLAUDE.md:54 confirms AgilePlus tracks 'hwledger-v1-macos-mvp' for the LLM fleet ledger, so AGENTS.md is the vestigial fork. Single decision PR; ~15 min.",
+      "estimated_effort": "15 min"
+    },
+    {
+      "priority": "P0",
+      "title": "Fix codeql.yml duplicate top-level permissions + add branches:[main] filter + replace decorative checkout SHA in 5/7 workflows + pin trufflehog checkout",
+      "detail": "(a) codeql.yml:9-10 and :17-20 both declare top-level `permissions:` — keep only the broader one (:17-20 with actions/contents/security-events). (b) codeql.yml:4-5 `on: { push:, pull_request: }` lacks `branches: [main]`; add it. (c) Replace `actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v4@11bd71901bbe5b1630ceea73d27597364c9af683` with `actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4` in 5/7 workflows (cargo-audit, codeql, codeql-rust, deploy-docs, scorecard). The r1-r4 audit series (#97, #99, #101, #642de32f) only fixed the placeholder-SHA rotation; the SHA-vs-comment split remains. (d) trufflehog.yml:14 use SHA `11bd71901bbe5b1630ceea73d27597364c9af683 # v4` for consistency. Single sweep PR; ~10 min.",
+      "estimated_effort": "10 min"
+    },
+    {
+      "priority": "P1",
+      "title": "Push .editorconfig from hwLedger-2nd worktree + add Justfile + populate CHANGELOG.md [Unreleased] + add github-actions to dependabot + delete 35 stale branches + add test.yml skeleton",
+      "detail": "(a) `cd hwLedger-2nd && git push origin chore/2nd-hygiene-2026-06-08 && gh pr create --base main` to land the .editorconfig (or fast-forward merge to main — 1 commit, no review). (b) Add Justfile with `build/test/lint/fmt/ci/clean` targets matching CLAUDE.md:18-35 dev commands. (c) Populate CHANGELOG.md [Unreleased] with one-liners for #97-#101 (workflow normalization r1-r4), #104 (journey specs), #105 (landing.json). (d) Add `package-ecosystem: github-actions, directory: /` block to dependabot.yml. (e) `git branch -D` the 32 stale local branches (keep feat/journey-impl + feat/user-story-batch3-4-5 + main + chore/2nd-hygiene — see list in ci_status.stale_branches). (f) Add a skeleton test.yml (cargo test --workspace + cargo clippy --workspace -- -D warnings + cargo fmt --check) so when the Rust workspace lands in the next round, CI is ready. Single sweep PR; ~25 min.",
+      "estimated_effort": "25 min"
+    }
+  ],
+  "deep_research": "hwLedger is the Phenotype fleet's most ambitious-but-empty repo — a 'pre-alpha Phase 0' scaffold that documents an 11-crate Rust LLM fleet ledger, ships VitePress docs, a Streamlit web fallback, an Astro landing page, a SwiftUI macOS app, and a forked oMlx sidecar, but has zero committed Rust source. `find hwLedger -name Cargo.toml` returns 0; the 11 crates CLAUDE.md:7-9 and README.md:43 describe exist only in markdown. Among 51 tracked files, the entire `apps/` tree is untracked — only `sidecars/omlx-fork` (gitlink/submodule) and the docs/specs/adr/manifests/SSOT/operations tree are committed. The recent r1-r4 workflow audit wave (commits #97 0d1487b8, #99 9ab3cc9e, #101 407450fc, #642de32f) is exemplary — the 7 workflows are well-structured with proper cron schedules, SHA-pinned third-party actions (trufflehog 75add79b, scorecard v2.4.3, cargo-deny 91bf2b62, cargo-audit v2), top-level permissions/concurrency, and a strong deny.toml 18-license allow-list (Apache-2.0, MIT, BSD*, MPL-2.0, Unicode, 0BSD, BlueOak, CDLA, Unlicense, WTFPL, CDLA-Permissive-2.0) — that is the best-in-class in the fleet, comparable to KWatch and phenotype-tooling. The G2 governance file set is also strong: PULL_REQUEST_TEMPLATE (cargo test/clippy/fmt checkboxes) + ISSUE_TEMPLATE (bug + feature with severity/priority dropdowns) + CONTRIBUTING + CODE_OF_CONDUCT + SECURITY + LICENSE + AGENTS/CLAUDE + dependabot + CODEOWNERS. The regression surface is in (a) the phantom Rust workspace — Quickstart `cargo install --path crates/hwledger-cli` is broken because the path doesn't exist; AGENTS.md says 'hardware wallet companion' (Ledger Nano/X) but CLAUDE.md/README.md say 'LLM capacity planner' — two contradictory product definitions in the same repo, with CLAUDE.md:54 confirming AgilePlus tracks 'hwledger-v1-macos-mvp' for the LLM scope, so AGENTS.md is the vestigial fork artifact; (b) the 5/7 decorative-checkout-SHA drift where the comment correctly names `11bd71901...` but the actual SHA is `df4cb1c...` (the r1-r4 audit series fixed placeholder SHAs but missed the SHA-vs-comment split, leaving the inline-SHA as decorative metadata); (c) codeql.yml has a duplicate top-level `permissions:` block (YAML merges, second wins, first is dead) and lacks a `branches: [main]` filter, so it runs on every push including forks; (d) the e2e gate is fully degraded: no tests/ at root, no crates/ at root, no Playwright/Cypress/Detox, no XCUI test source committed under apps/macos/HwLedgerUITests/, no smoke.sh, no CI workflow that exercises a built binary, and 13 spec'd journey manifests (first-plan, fleet-register, traceability-report, vram-reconcile, inference-run, fleet-probe, cost-model, audit-log, fleet-dispatch, model-ingest, telemetry-sync, kv-cache-plan, spot-price-scan) have zero implementation.",
+  "deep_research_cont": "Compared to peer fleet-ledger-adjacent repos, hwLedger sits below chatta (which has at least a vitest smoke + Go unit tests) and below HeliosLab (real Rust core + test coverage), and is in the same 'docs-only phantom workspace' bucket as phenotype-voxel-2nd (which has a similar 2nd-worktree-with-1-ahead pattern). The 35 stale branches and the unmerged 2nd-worktree .editorconfig are the typical pre-cleanup pattern. Net hygiene score: 2.8/5 — G1/G3 PASS, G2/G4/G5/e2e DEGRADED; the workflows and governance files are real, the code is vapor. The two most valuable short-term actions are: (1) reconcile the contradictory product description (AGENTS.md vs CLAUDE.md) and either commit a real stub `crates/hwledger-core/Cargo.toml` + 11 cargo entries OR remove the workspace claim — without this, contributor onboarding is impossible because the Quickstart `cargo install` command fails; (2) fix the 5/7 decorative-checkout-SHA + codeql.yml duplicate-permissions — these are 10-min mechanical fixes that the r1-r4 audit series missed. The e2e gate will require real engineering (a `crates/hwledger-core` with at least one test) and is the natural next-round task. The 13 journey manifests should drive the WP21 (Apple Developer cert blocker) + WP05 (math core) work packages tracked in AgilePlus (per CLAUDE.md:54-55). The .editorconfig in 2nd is correct and should land before the next fan-out. The hardware-wallet companion claim in AGENTS.md is vestigial — hwLedger's actual scope (per 100+ commits of .github/workflows/*.yml + docs/specs/FR-HWL-*.md + docs/journeys/manifests/*.md) is the LLM fleet ledger. The 'AI Slop Inside' badge (sladge.net) in README.md:6 is a Phenotype-org standard and a feature: it auto-flags the repo for downstream consumers. The .gitattributes `linguist-generated` marker on /bindings/ is forward-looking (UniFFI bindings planned but not committed). The TruffleHog SHA-pin + cargo-deny multiple-versions=warn + deny.toml 18-license allow-list + scorecard publish_results=true are all org-best-in-class — the workflows file is the strongest asset in the repo. After P0 + 2 P1 fixes, this repo moves from 'docs-only phantom workspace' to 'real-but-empty workspace with disciplined CI' and unlocks the next phase of cargo test adoption. Pushing the .editorconfig from 2nd + adding Justfile + test.yml skeleton + dep-guard rotation will close most of the tick-25 hygiene wave for hwLedger in a single 30-minute PR."
+}

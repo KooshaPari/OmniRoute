@@ -1,0 +1,130 @@
+{
+  "repo": "agent-user-status",
+  "branch": "chore/audit-agent-user-status-2026-06-08",
+  "head_sha": "73c7b74e49130f7e23824b4bd33d27445a532f6a",
+  "last_commit_date": "2026-06-08T19:14:27-07:00",
+  "language_stack": {
+    "primary": ["python"],
+    "secondary": ["swift", "shell"],
+    "auxiliary": ["yaml", "toml", "plist"],
+    "primary_version": "python>=3.12",
+    "swift_target": "Swift 6 (AppKit/SwiftUI macOS monitor under src/native/macos/)",
+    "framework": "Plain stdlib + http.server-style statusd on 127.0.0.1:8765; MediaPipe + OpenCV + pyobjc for opt-in webcam eye tracker; stdio MCP server under src/mcp/",
+    "runtime_surfaces": [
+      "agent-user-status (bootstrap CLI)",
+      "agent-imessage (iMessage/status CLI)",
+      "agent-user-statusd (local HTTP status daemon)",
+      "agent-user-status-cursor-tracker",
+      "agent-user-status-webcam-eye-tracker",
+      "agent-imessage-mcp (stdio MCP server)",
+      "AgentUserStatusMonitor.swift (macOS menu-bar app)"
+    ],
+    "deployment_target": "macOS-only for Swift surface and LaunchAgent lifecycle; Linux CI runs Python unit suite + loopback backend smoke"
+  },
+  "hygiene_score": 100,
+  "hygiene_breakdown": {
+    "LICENSE": 10,
+    "README": 10,
+    "CHANGELOG": 10,
+    "EDITORCONFIG": 10,
+    "CI": 10,
+    "DEPENDABOT": 10,
+    "CODEOWNERS": 10,
+    "CONTRIBUTING": 10,
+    "SECURITY": 10,
+    "FUNDING": 10
+  },
+  "hygiene_evidence": {
+    "LICENSE": "LICENSE (1068B, MIT) + LICENSE-MIT + LICENSE-APACHE (dual-licensed, added in 6cf1cf5)",
+    "README": "README.md (10028B, components, quick install, CLI lifecycle, privacy boundary, runtime URLs)",
+    "CHANGELOG": "CHANGELOG.md (399B, Keep-a-Changelog with Unreleased section; empty placeholders await first release entry)",
+    "EDITORCONFIG": ".editorconfig (214B, root=true, space indent, lf, utf-8, final newline, *.toml override)",
+    "CI": ".github/workflows/ (6 workflows: ci.yml with quality-gates + package-metadata + unit-tests + backend-smoke; codeql.yml; journey-gate.yml; scorecard.yml; secrets-scan.yml; trufflehog.yml)",
+    "DEPENDABOT": ".github/dependabot.yml (github-actions weekly + pip weekly)",
+    "CODEOWNERS": "CODEOWNERS (root: * @KooshaPari) + .github/CODEOWNERS",
+    "CONTRIBUTING": "CONTRIBUTING.md (1251B, workflow + validation + privacy checklist forbidding raw frames, screenshots, landmarks, embeddings, gaze, keystrokes, audio)",
+    "SECURITY": "SECURITY.md (231B, kooshapari@kooshapari.com + private advisory)",
+    "FUNDING": "FUNDING.yml (root, github: KooshaPari) + .github/FUNDING.yml"
+  },
+  "dup_exposure": [
+    "phenotype-bus / phenotype-event-bus (typed local event bus is the explicit long-term target per docs/architecture/LONG_TERM_PLAN.md; replacing the ad-hoc HTTP /dev/eye + /dev/state + /event fan-out would consolidate inter-module signals)",
+    "phenotype-request-id (request ID propagation on the loopback statusd at 127.0.0.1:8765; would let the menu-bar app and CLI correlate logs across processes)",
+    "phenotype-journeys (journey tracing primitives — CI already has .github/workflows/journey-gate.yml but no source-side journey emitter; could share the org journey vocabulary with the live session/event surface)",
+    "phenotype-registry (service registry for naming the statusd/mcp/monitor processes in journeys and observability payloads)",
+    "phenotype-shared / phenotype-tooling (shared Justfile/Taskfile/CI recipes — repo's Justfile is hand-rolled; the phenotype.just library extended variant is the org baseline)",
+    "phenotype-dep-guard (dependency policy; Python equivalent (pip-audit, safety) could share the org baseline; not yet wired in CI)",
+    "phenotype-postfx (post-effect / middleware runner for the boot CLI install/uninstall/doctor pipeline; currently each step is hand-orchestrated in scripts/)",
+    "phenotype-omlx (no clear overlap; flagged for review since both target local-first ML/mediapipe-y workloads on macOS)",
+    "phenotype-voxel / phenotype-terrain / phenotype-water (no current overlap; flagged for review only because the floating gaze dot UI could share voxel/terrain rendering primitives if the Swift monitor ever moves to a 3D workspace overlay)"
+  ],
+  "sota_gaps": [
+    "SSOT is a stub — docs/SSOT.md admits 'Hexagonal: in progress', 'Ports: N/A', 'Adapters: N/A', 'Domain: N/A'; needs a real architecture SSOT or removal in favor of the parent phenotype org SSOT",
+    "No coverage tooling — no coverage.py, no coverage-badge, no [tool.coverage.*] in pyproject.toml, no xml/html report; only ruff + pyright + pytest in CI",
+    "No pip-audit / safety / SBOM step — dependabot covers updates but no vulnerability scan in CI (no equivalent of cargo-audit for Python)",
+    "No yamllint for the 6 GitHub workflow files and packaging/*.yml — risk of drift given the heavy workflow-hygiene churn visible in branch list",
+    "No Swift lint/format — src/native/macos/*.swift (12 files) has no swift-format, no SwiftLint, no Xcode build in CI; the entire native UI surface is un-linted and un-built by automation",
+    "No macOS CI runner — only ubuntu-latest across all 6 workflows; the Swift monitor build and the install.sh launchd path are never exercised by CI",
+    "No [project.optional-dependencies].dev — pyproject.toml declares `eye` extras but no `dev` extras; CI installs pytest/ruff/pyright/numpy ad-hoc per step instead of `pip install -e .[dev]`",
+    "No pytest plugins — no pytest-cov, no pytest-xdist, no syrupy/snapshot, no pytest-mock, no pytest-asyncio; CLI flag-parser tests, gaze smoothing, and projection-hold recovery gate are all asserted by hand",
+    "Pyright is configured 'basic' (typeCheckingMode = 'basic') — no strict mode, no mypy, no incremental type-check gate",
+    "AGENTS.md / CLAUDE.md point at phenotype-dep-guard-style rules (no raw frames, no screenshots) but there is no automated redaction check in CI to enforce them on PRs",
+    "No release/publish workflow — no .github/workflows/release*.yml, no version bump automation, no PyPI trusted publishing, no signed tag flow (the 47-commit history has no annotated tags)",
+    "No SBOM / no CycloneDX / no in-toto attestation — only secrets-scan (trufflehog) + scorecard; supply-chain attestations are absent",
+    "Justfile and Taskfile.yml are duplicated — both already do the same polyglot-detect → install/build/test/lint dispatch; one should be removed or the other downgraded to a thin wrapper",
+    "Renovate config is just `{ extends: ['config:base'] }` (32B) — no grouping, no schedule pinning, no automerge, no php/js ecosystem rules despite this being a Python repo; functionally a no-op given dependabot.yml already exists",
+    "No pkg/dist build artifact verification in CI for the macOS .pkg builder in packaging/scripts/build-macos-pkg.sh — only `bash -n` syntax check + `--dry-run`"
+  ],
+  "convergence_cluster": "live",
+  "convergence_rationale": "Active, locally-installed macOS runtime (LaunchAgent-managed daemon + Swift menu-bar monitor + opt-in webcam eye tracker with a 9-point calibration) — not a library, not a web app. Production weight is concentrated in the loopback HTTP statusd, the stdio MCP server, and the Swift UI surface; the design goal is a real local event runtime that correlates input/output/env/agent signals. Best fits 'live' cluster: it has a live install under ~/.local, a live install script (scripts/install.sh), and a long-term plan to expand into native collectors per OS.",
+  "action_items": [
+    {
+      "rank": 1,
+      "title": "Add macOS CI runner + Swift build/test/lint for src/native/macos/",
+      "effort": "M (3-5d)",
+      "why": "Twelve Swift files define the entire user-visible menu-bar surface (gaze dot, status panel, calibration eval) and are never compiled in CI. The macOS-24.04 equivalent path needs swift-format, swift build, and an XCTest target for CalibrationEvalStats/VisualGazeFilter/MonitorUIStateStore so the projection-hold recovery gate changes (recent commit 29a03fa) ship with a regression test.",
+      "file_refs": [".github/workflows/ci.yml:9-118", "src/native/macos/"]
+    },
+    {
+      "rank": 2,
+      "title": "Add coverage, pip-audit, yamllint to CI quality-gates",
+      "effort": "S (1-2d)",
+      "why": "Closes the largest SOTA gaps in one PR: zero coverage tooling, zero Python vuln scanning, zero YAML lint. Adds coverage.py + pytest-cov, pip-audit (or `uv pip audit`), and yamllint with a .yamllint.yml baseline. Targets the 6 workflow files and packaging/*.yml that have been churned heavily (chore/workflow-hygiene-* branches visible).",
+      "file_refs": [".github/workflows/ci.yml:9-31", "pyproject.toml:5-26"]
+    },
+    {
+      "rank": 3,
+      "title": "Promote Justfile to consume phenotype.just library extended variant and remove Taskfile.yml duplication",
+      "effort": "S (1-2d)",
+      "why": "Justfile (73 lines) and Taskfile.yml (183 lines) both implement the same polyglot-detect → install/build/test/lint/clean dispatch. Consolidating on the org Justfile + phenotype.just library (already used by PhenoObservability) eliminates ~150 lines and aligns with the fleet baseline adopted in 73c7b74.",
+      "file_refs": ["Justfile:1-73", "Taskfile.yml:1-183"]
+    },
+    {
+      "rank": 4,
+      "title": "Replace SSOT stub with a real architecture SSOT (or link to parent phenotype SSOT)",
+      "effort": "S (1-2d)",
+      "why": "docs/SSOT.md:17-20 self-reports 'Hexagonal: in progress' / 'Ports: N/A' / 'Adapters: N/A' / 'Domain: N/A'. Either fill it in (long-term plan + current collectors + statusd HTTP surface as adapters) or replace it with a pointer to the parent phenotype org SSOT. Required before L2 tasks can depend on agent-user-status's hexagonal boundaries.",
+      "file_refs": ["docs/SSOT.md:1-33", "docs/architecture/LONG_TERM_PLAN.md"]
+    },
+    {
+      "rank": 5,
+      "title": "Add `[project.optional-dependencies].dev` and migrate CI to `pip install -e .[dev,eye]`",
+      "effort": "S (1d)",
+      "why": "pyproject.toml already has the `eye` extras group; adding a `dev` group (pytest, pytest-cov, ruff, pyright, mypy, syrupy, pip-audit, yamllint) and switching all 4 jobs in ci.yml to `pip install -e .[dev]` removes per-job ad-hoc pip install lines and makes local `pip install -e .[dev,eye]` a one-shot bootstrap matching the install.sh contract.",
+      "file_refs": ["pyproject.toml:5-26", ".github/workflows/ci.yml:21-22,60-63"]
+    }
+  ],
+  "metadata": {
+    "audit_task": "DAG L1-1",
+    "audit_date": "2026-06-08",
+    "auditor": "forge",
+    "source_repo_path": "/Users/kooshapari/CodeProjects/Phenotype/repos/agent-user-status",
+    "source_branch_audited": "main",
+    "total_commits": 47,
+    "python_files_in_src": 34,
+    "swift_files_in_src": 12,
+    "workflows_count": 6,
+    "open_local_branches": 19,
+    "remote": "https://github.com/KooshaPari/agent-user-status.git",
+    "pushed": false
+  }
+}

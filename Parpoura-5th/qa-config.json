@@ -1,0 +1,333 @@
+{
+  "project": "venture",
+  "description": "Venture Autonomy Platform — Spec-First Documentation & Governance QA",
+  "version": "1.0.0",
+  "date_created": "2026-02-21",
+  "config_purpose": "Spec validation, markdown linting, traceability checks, cross-reference audits, CIV integration validation",
+
+  "quality_gates": {
+    "enabled": true,
+    "order": [
+      "markdown_syntax",
+      "spec_completeness",
+      "markdown_linting",
+      "cross_reference_validation",
+      "traceability_check",
+      "civ_integration_alignment",
+      "adr_review",
+      "spec_versioning",
+      "full_suite"
+    ],
+    "fail_fast": false,
+    "verbose": true
+  },
+
+  "gates": {
+    "markdown_syntax": {
+      "enabled": true,
+      "description": "Validate markdown syntax and structure",
+      "tool": "markdownlint",
+      "files": [
+        "*.md",
+        "docs/**/*.md"
+      ],
+      "timeout_seconds": 30,
+      "rules": {
+        "md001": true,
+        "md003": true,
+        "md004": true,
+        "md005": true,
+        "md007": true,
+        "md009": true,
+        "md010": true,
+        "md011": true,
+        "md012": true,
+        "md013": {
+          "line_length": 120
+        },
+        "md014": true,
+        "md018": true,
+        "md019": true,
+        "md020": true,
+        "md021": true,
+        "md022": true,
+        "md023": true,
+        "md024": true,
+        "md025": true,
+        "md026": true,
+        "md027": true,
+        "md028": true,
+        "md029": true,
+        "md030": true,
+        "md031": true,
+        "md032": true,
+        "md033": true,
+        "md034": true,
+        "md035": true,
+        "md036": true,
+        "md037": true,
+        "md038": true,
+        "md039": true,
+        "md040": true,
+        "md041": true
+      },
+      "skip_on_ci": false
+    },
+
+    "spec_completeness": {
+      "enabled": true,
+      "description": "Verify all specs have required sections",
+      "files": [
+        "TECHNICAL_SPEC.md",
+        "ARTIFACT_COMPILER_SPEC.md",
+        "TRACK_A_ARTIFACT_DETERMINISM_SPEC.md",
+        "TRACK_B_TREASURY_COMPLIANCE_SPEC.md",
+        "TRACK_C_CONTROL_PLANE.md",
+        "API_EVENTS_SPEC.md",
+        "DATA_MODEL_DB_SPEC.md",
+        "OPS_COMPLIANCE_SPEC.md",
+        "USER_SPEC.md",
+        "ROLE_TOOL_ALLOWLIST_MATRIX.md",
+        "SCHEMA_PACK.md",
+        "PRODUCT_MODEL.md",
+        "IMPLEMENTATION_ROADMAP.md"
+      ],
+      "timeout_seconds": 30,
+      "required_sections": [
+        "^# ",
+        "^##\\s+(Overview|Introduction|Context)",
+        "^##\\s+(References|See Also|Related)"
+      ],
+      "required_metadata": [
+        "date:",
+        "status:"
+      ]
+    },
+
+    "markdown_linting": {
+      "enabled": true,
+      "description": "Lint all markdown files for consistency",
+      "tool": "markdownlint-cli",
+      "files": [
+        "*.md",
+        "docs/**/*.md"
+      ],
+      "timeout_seconds": 30,
+      "rules": {
+        "line_length": 120,
+        "trailing_spaces": true,
+        "no_hard_tabs": true,
+        "blanks_around_headings": true,
+        "no_multiple_blanks": true,
+        "no_missing_space_atx": true,
+        "no_space_after_code_fence": true
+      }
+    },
+
+    "cross_reference_validation": {
+      "enabled": true,
+      "description": "Verify all spec-to-spec links and references are valid",
+      "files": [
+        "*.md",
+        "docs/**/*.md"
+      ],
+      "timeout_seconds": 30,
+      "check_spec_files_exist": true,
+      "spec_files": [
+        "TECHNICAL_SPEC.md",
+        "ARTIFACT_COMPILER_SPEC.md",
+        "TRACK_A_ARTIFACT_DETERMINISM_SPEC.md",
+        "TRACK_B_TREASURY_COMPLIANCE_SPEC.md",
+        "TRACK_C_CONTROL_PLANE.md",
+        "API_EVENTS_SPEC.md",
+        "DATA_MODEL_DB_SPEC.md",
+        "OPS_COMPLIANCE_SPEC.md",
+        "USER_SPEC.md",
+        "ROLE_TOOL_ALLOWLIST_MATRIX.md",
+        "SCHEMA_PACK.md",
+        "PRODUCT_MODEL.md",
+        "IMPLEMENTATION_ROADMAP.md"
+      ],
+      "check_dependency_dag": true,
+      "warn_on_circular_deps": true
+    },
+
+    "traceability_check": {
+      "enabled": true,
+      "description": "Verify all specs have entries in TRACEABILITY_MATRIX.md",
+      "files": [
+        "docs/traceability/TRACEABILITY_MATRIX.md"
+      ],
+      "timeout_seconds": 30,
+      "required_entries": [
+        "TECHNICAL_SPEC.md",
+        "ARTIFACT_COMPILER_SPEC.md",
+        "TRACK_A_ARTIFACT_DETERMINISM_SPEC.md",
+        "TRACK_B_TREASURY_COMPLIANCE_SPEC.md",
+        "TRACK_C_CONTROL_PLANE.md",
+        "API_EVENTS_SPEC.md",
+        "DATA_MODEL_DB_SPEC.md",
+        "OPS_COMPLIANCE_SPEC.md",
+        "USER_SPEC.md",
+        "ROLE_TOOL_ALLOWLIST_MATRIX.md",
+        "SCHEMA_PACK.md",
+        "PRODUCT_MODEL.md",
+        "IMPLEMENTATION_ROADMAP.md"
+      ],
+      "required_fields": [
+        "Domain",
+        "Key Requirements",
+        "Dependencies",
+        "Impl. Phase",
+        "Cross-Track Links"
+      ]
+    },
+
+    "civ_integration_alignment": {
+      "enabled": true,
+      "description": "Verify all 5 CIV-Venture integration points are documented",
+      "files": [
+        "docs/traceability/TRACEABILITY_MATRIX.md",
+        "../SPECS_INDEX.md"
+      ],
+      "timeout_seconds": 30,
+      "integration_points": [
+        "Economy Ledger (CIV-0100 ↔ TRACK_B)",
+        "Simulation State & Workflow (CIV-0001, CIV-0100 ↔ TRACK_C)",
+        "Actor Lifecycle & Compliance (CIV-0103 ↔ USER_SPEC, OPS)",
+        "Resource Quotas & Energy (CIV-0102, CIV-0100 ↔ TRACK_B, TRACK_C)",
+        "Determinism & Constraints (CIV-0104 ↔ TRACK_A)"
+      ],
+      "check_adr_alignment": true,
+      "warn_on_missing_cross_ref": true
+    },
+
+    "adr_review": {
+      "enabled": true,
+      "description": "Verify all ADRs are complete and properly formatted",
+      "files": [
+        "docs/adr/*.md"
+      ],
+      "timeout_seconds": 30,
+      "required_sections": [
+        "^# ADR-",
+        "^\\*\\*date:",
+        "^\\*\\*status:",
+        "## Context",
+        "## Decision",
+        "## Rationale",
+        "## Consequences",
+        "## References"
+      ],
+      "status_values": [
+        "PROPOSED",
+        "ACCEPTED",
+        "DEPRECATED",
+        "SUPERSEDED"
+      ],
+      "major_decision_triggers": [
+        "artifact type",
+        "treasury",
+        "control plane",
+        "security",
+        "compliance"
+      ]
+    },
+
+    "spec_versioning": {
+      "enabled": true,
+      "description": "Check for version bumps on breaking changes",
+      "files": [
+        "*.md"
+      ],
+      "timeout_seconds": 30,
+      "breaking_change_keywords": [
+        "breaking change",
+        "deprecated",
+        "removed",
+        "no longer supported",
+        "migration required"
+      ],
+      "warn_on_breaking_without_adr": true,
+      "warn_on_version_missing": false
+    },
+
+    "full_suite": {
+      "enabled": true,
+      "description": "Run all quality gates in sequence",
+      "timeout_seconds": 300
+    }
+  },
+
+  "tools": {
+    "markdownlint": {
+      "version": ">=0.28.0",
+      "command": "markdownlint",
+      "available": true
+    }
+  },
+
+  "thresholds": {
+    "max_broken_links": 0,
+    "max_spec_completeness_errors": 0,
+    "max_linting_warnings": 10,
+    "max_civ_integration_gaps": 0,
+    "max_adr_issues": 0
+  },
+
+  "reporting": {
+    "format": "json",
+    "output_file": "docs/governance/QA_RESULTS.json",
+    "keep_history": true,
+    "include_timestamp": true,
+    "verbose_output": true
+  },
+
+  "hooks": {
+    "pre_commit": {
+      "enabled": true,
+      "run_gates": [
+        "markdown_syntax",
+        "spec_completeness",
+        "markdown_linting"
+      ]
+    },
+    "pre_merge": {
+      "enabled": true,
+      "run_gates": [
+        "markdown_syntax",
+        "spec_completeness",
+        "markdown_linting",
+        "cross_reference_validation",
+        "traceability_check"
+      ]
+    },
+    "ci": {
+      "enabled": true,
+      "run_gates": [
+        "full_suite"
+      ]
+    }
+  },
+
+  "exclusions": {
+    "files": [
+      "docs/research/CONVERSATION_DUMP_*.md",
+      "ChatGPT_Conversation_*.md"
+    ],
+    "paths": [
+      "node_modules/",
+      ".git/",
+      ".venv/"
+    ]
+  },
+
+  "documentation": {
+    "governance": "docs/governance/GOVERNANCE_SUMMARY.md",
+    "quality_gates_detail": "docs/governance/QUALITY_GATES.md",
+    "traceability": "docs/traceability/TRACEABILITY_MATRIX.md",
+    "adr_index": "docs/adr/",
+    "project_instructions": "CLAUDE.md",
+    "agent_guide": "AGENTS.md"
+  }
+}

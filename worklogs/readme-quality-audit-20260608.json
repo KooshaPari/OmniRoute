@@ -1,0 +1,1692 @@
+{
+  "generated_at": "2026-06-08T00:00:00Z",
+  "by_repo": [
+    {
+      "repo": "agent-devops-setups",
+      "sections": 29,
+      "has_install": true,
+      "has_usage": true,
+      "has_demo": false,
+      "has_contributing": true,
+      "has_license_mention": true,
+      "grade": "A"
+    },
+    {
+      "repo": "agent-platform",
+      "sections": 1,
+      "has_install": false,
+      "has_usage": false,
+      "has_demo": false,
+      "has_contributing": false,
+      "has_license_mention": true,
+      "grade": "D"
+    },
+    {
+      "repo": "agent-user-status",
+      "sections": 1,
+      "has_install": true,
+      "has_usage": false,
+      "has_demo": true,
+      "has_contributing": false,
+      "has_license_mention": false,
+      "grade": "C"
+    },
+    {
+      "repo": "agentapi-plusplus",
+      "sections": 5,
+      "has_install": true,
+      "has_usage": false,
+      "has_demo": false,
+      "has_contributing": false,
+      "has_license_mention": true,
+      "grade": "C"
+    },
+    {
+      "repo": "AgentMCP",
+      "sections": 1,
+      "has_install": true,
+      "has_usage": false,
+      "has_demo": false,
+      "has_contributing": true,
+      "has_license_mention": true,
+      "grade": "B"
+    },
+    {
+      "repo": "Agentora",
+      "sections": 6,
+      "has_install": true,
+      "has_usage": true,
+      "has_demo": false,
+      "has_contributing": false,
+      "has_license_mention": true,
+      "grade": "B"
+    },
+    {
+      "repo": "AgilePlus",
+      "sections": 5,
+      "has_install": true,
+      "has_usage": false,
+      "has_demo": false,
+      "has_contributing": false,
+      "has_license_mention": true,
+      "grade": "C"
+    },
+    {
+      "repo": "agslag-docs",
+      "sections": 1,
+      "has_install": false,
+      "has_usage": false,
+      "has_demo": false,
+      "has_contributing": false,
+      "has_license_mention": false,
+      "grade": "F"
+    },
+    {
+      "repo": "Apisync",
+      "sections": 5,
+      "has_install": true,
+      "has_usage": false,
+      "has_demo": false,
+      "has_contributing": false,
+      "has_license_mention": true,
+      "grade": "C"
+    },
+    {
+      "repo": "AppGen",
+      "sections": 1,
+      "has_install": true,
+      "has_usage": false,
+      "has_demo": false,
+      "has_contributing": false,
+      "has_license_mention": true,
+      "grade": "C"
+    },
+    {
+      "repo": "argis-extensions",
+      "sections": 6,
+      "has_install": true,
+      "has_usage": true,
+      "has_demo": false,
+      "has_contributing": false,
+      "has_license_mention": true,
+      "grade": "B"
+    },
+    {
+      "repo": "AtomsBot-2nd",
+      "sections": 1,
+      "has_install": true,
+      "has_usage": true,
+      "has_demo": true,
+      "has_contributing": false,
+      "has_license_mention": true,
+      "grade": "B"
+    },
+    {
+      "repo": "AtomsBot",
+      "sections": 1,
+      "has_install": true,
+      "has_usage": true,
+      "has_demo": true,
+      "has_contributing": false,
+      "has_license_mention": true,
+      "grade": "B"
+    },
+    {
+      "repo": "AuthKit",
+      "sections": 1,
+      "has_install": true,
+      "has_usage": false,
+      "has_demo": false,
+      "has_contributing": false,
+      "has_license_mention": true,
+      "grade": "C"
+    },
+    {
+      "repo": "bare-cua",
+      "sections": 2,
+      "has_install": true,
+      "has_usage": false,
+      "has_demo": true,
+      "has_contributing": false,
+      "has_license_mention": true,
+      "grade": "B"
+    },
+    {
+      "repo": "Benchora",
+      "sections": 4,
+      "has_install": true,
+      "has_usage": true,
+      "has_demo": false,
+      "has_contributing": true,
+      "has_license_mention": true,
+      "grade": "B"
+    },
+    {
+      "repo": "BytePort",
+      "sections": 2,
+      "has_install": true,
+      "has_usage": false,
+      "has_demo": true,
+      "has_contributing": false,
+      "has_license_mention": true,
+      "grade": "B"
+    },
+    {
+      "repo": "chatta",
+      "sections": 13,
+      "has_install": true,
+      "has_usage": false,
+      "has_demo": false,
+      "has_contributing": false,
+      "has_license_mention": true,
+      "grade": "C"
+    },
+    {
+      "repo": "cheap-llm-mcp-deprecate",
+      "sections": 6,
+      "has_install": true,
+      "has_usage": true,
+      "has_demo": false,
+      "has_contributing": false,
+      "has_license_mention": true,
+      "grade": "B"
+    },
+    {
+      "repo": "cheap-llm-mcp-t1-19",
+      "sections": 6,
+      "has_install": true,
+      "has_usage": true,
+      "has_demo": false,
+      "has_contributing": false,
+      "has_license_mention": true,
+      "grade": "B"
+    },
+    {
+      "repo": "cheap-llm-mcp",
+      "sections": 6,
+      "has_install": true,
+      "has_usage": true,
+      "has_demo": false,
+      "has_contributing": false,
+      "has_license_mention": true,
+      "grade": "B"
+    },
+    {
+      "repo": "Civis",
+      "sections": 1,
+      "has_install": true,
+      "has_usage": false,
+      "has_demo": true,
+      "has_contributing": true,
+      "has_license_mention": true,
+      "grade": "B"
+    },
+    {
+      "repo": "cliproxyapi-plusplus",
+      "sections": 9,
+      "has_install": true,
+      "has_usage": true,
+      "has_demo": false,
+      "has_contributing": true,
+      "has_license_mention": true,
+      "grade": "A"
+    },
+    {
+      "repo": "Conft-4th",
+      "sections": 1,
+      "has_install": true,
+      "has_usage": false,
+      "has_demo": false,
+      "has_contributing": false,
+      "has_license_mention": true,
+      "grade": "C"
+    },
+    {
+      "repo": "Conft",
+      "sections": 1,
+      "has_install": true,
+      "has_usage": false,
+      "has_demo": false,
+      "has_contributing": false,
+      "has_license_mention": true,
+      "grade": "C"
+    },
+    {
+      "repo": "DataKit",
+      "sections": 1,
+      "has_install": true,
+      "has_usage": false,
+      "has_demo": false,
+      "has_contributing": true,
+      "has_license_mention": true,
+      "grade": "B"
+    },
+    {
+      "repo": "DevHex",
+      "sections": 5,
+      "has_install": true,
+      "has_usage": true,
+      "has_demo": false,
+      "has_contributing": false,
+      "has_license_mention": true,
+      "grade": "B"
+    },
+    {
+      "repo": "Dino",
+      "sections": 7,
+      "has_install": true,
+      "has_usage": false,
+      "has_demo": true,
+      "has_contributing": true,
+      "has_license_mention": true,
+      "grade": "A"
+    },
+    {
+      "repo": "dinoforge-packs",
+      "sections": 1,
+      "has_install": true,
+      "has_usage": false,
+      "has_demo": true,
+      "has_contributing": false,
+      "has_license_mention": true,
+      "grade": "B"
+    },
+    {
+      "repo": "DINOForge-UnityDoorstop",
+      "sections": 0,
+      "has_install": true,
+      "has_usage": false,
+      "has_demo": false,
+      "has_contributing": false,
+      "has_license_mention": true,
+      "grade": "C"
+    },
+    {
+      "repo": "dispatch-mcp-t1-0",
+      "sections": 4,
+      "has_install": false,
+      "has_usage": false,
+      "has_demo": false,
+      "has_contributing": false,
+      "has_license_mention": false,
+      "grade": "F"
+    },
+    {
+      "repo": "dispatch-mcp-t1-1",
+      "sections": 4,
+      "has_install": false,
+      "has_usage": false,
+      "has_demo": false,
+      "has_contributing": false,
+      "has_license_mention": false,
+      "grade": "F"
+    },
+    {
+      "repo": "dispatch-mcp-t1-2",
+      "sections": 4,
+      "has_install": false,
+      "has_usage": false,
+      "has_demo": false,
+      "has_contributing": false,
+      "has_license_mention": false,
+      "grade": "F"
+    },
+    {
+      "repo": "dispatch-mcp-t1-3",
+      "sections": 4,
+      "has_install": false,
+      "has_usage": false,
+      "has_demo": false,
+      "has_contributing": false,
+      "has_license_mention": false,
+      "grade": "F"
+    },
+    {
+      "repo": "dispatch-mcp-t1-4",
+      "sections": 4,
+      "has_install": false,
+      "has_usage": false,
+      "has_demo": false,
+      "has_contributing": false,
+      "has_license_mention": false,
+      "grade": "F"
+    },
+    {
+      "repo": "dispatch-mcp-t1-5",
+      "sections": 4,
+      "has_install": false,
+      "has_usage": false,
+      "has_demo": false,
+      "has_contributing": false,
+      "has_license_mention": false,
+      "grade": "F"
+    },
+    {
+      "repo": "dispatch-mcp",
+      "sections": 9,
+      "has_install": true,
+      "has_usage": false,
+      "has_demo": false,
+      "has_contributing": false,
+      "has_license_mention": false,
+      "grade": "D"
+    },
+    {
+      "repo": "Eidolon",
+      "sections": 1,
+      "has_install": true,
+      "has_usage": true,
+      "has_demo": true,
+      "has_contributing": false,
+      "has_license_mention": true,
+      "grade": "B"
+    },
+    {
+      "repo": "Eventra",
+      "sections": 1,
+      "has_install": true,
+      "has_usage": true,
+      "has_demo": false,
+      "has_contributing": false,
+      "has_license_mention": true,
+      "grade": "B"
+    },
+    {
+      "repo": "eyetracker",
+      "sections": 2,
+      "has_install": true,
+      "has_usage": false,
+      "has_demo": false,
+      "has_contributing": true,
+      "has_license_mention": true,
+      "grade": "B"
+    },
+    {
+      "repo": "FocalPoint",
+      "sections": 2,
+      "has_install": true,
+      "has_usage": false,
+      "has_demo": true,
+      "has_contributing": false,
+      "has_license_mention": true,
+      "grade": "B"
+    },
+    {
+      "repo": "forgecode",
+      "sections": 5,
+      "has_install": true,
+      "has_usage": false,
+      "has_demo": false,
+      "has_contributing": false,
+      "has_license_mention": true,
+      "grade": "C"
+    },
+    {
+      "repo": "GDK",
+      "sections": 26,
+      "has_install": true,
+      "has_usage": true,
+      "has_demo": true,
+      "has_contributing": true,
+      "has_license_mention": true,
+      "grade": "A"
+    },
+    {
+      "repo": "helios-router",
+      "sections": 0,
+      "has_install": true,
+      "has_usage": false,
+      "has_demo": false,
+      "has_contributing": false,
+      "has_license_mention": false,
+      "grade": "D"
+    },
+    {
+      "repo": "heliosApp",
+      "sections": 15,
+      "has_install": true,
+      "has_usage": false,
+      "has_demo": true,
+      "has_contributing": false,
+      "has_license_mention": true,
+      "grade": "B"
+    },
+    {
+      "repo": "heliosBench",
+      "sections": 1,
+      "has_install": true,
+      "has_usage": true,
+      "has_demo": false,
+      "has_contributing": false,
+      "has_license_mention": false,
+      "grade": "C"
+    },
+    {
+      "repo": "HeliosCLI",
+      "sections": 16,
+      "has_install": true,
+      "has_usage": true,
+      "has_demo": false,
+      "has_contributing": false,
+      "has_license_mention": true,
+      "grade": "B"
+    },
+    {
+      "repo": "helioscope",
+      "sections": 16,
+      "has_install": true,
+      "has_usage": true,
+      "has_demo": false,
+      "has_contributing": false,
+      "has_license_mention": true,
+      "grade": "B"
+    },
+    {
+      "repo": "HeliosLab-3rd",
+      "sections": 1,
+      "has_install": true,
+      "has_usage": false,
+      "has_demo": false,
+      "has_contributing": false,
+      "has_license_mention": true,
+      "grade": "C"
+    },
+    {
+      "repo": "HeliosLab-4th",
+      "sections": 1,
+      "has_install": true,
+      "has_usage": false,
+      "has_demo": false,
+      "has_contributing": false,
+      "has_license_mention": true,
+      "grade": "C"
+    },
+    {
+      "repo": "HeliosLab-hygiene2",
+      "sections": 1,
+      "has_install": true,
+      "has_usage": false,
+      "has_demo": false,
+      "has_contributing": false,
+      "has_license_mention": true,
+      "grade": "C"
+    },
+    {
+      "repo": "HeliosLab",
+      "sections": 1,
+      "has_install": true,
+      "has_usage": false,
+      "has_demo": false,
+      "has_contributing": false,
+      "has_license_mention": true,
+      "grade": "C"
+    },
+    {
+      "repo": "HexaKit",
+      "sections": 1,
+      "has_install": true,
+      "has_usage": false,
+      "has_demo": true,
+      "has_contributing": false,
+      "has_license_mention": false,
+      "grade": "C"
+    },
+    {
+      "repo": "Httpora",
+      "sections": 9,
+      "has_install": true,
+      "has_usage": false,
+      "has_demo": false,
+      "has_contributing": true,
+      "has_license_mention": true,
+      "grade": "B"
+    },
+    {
+      "repo": "hwLedger",
+      "sections": 1,
+      "has_install": true,
+      "has_usage": false,
+      "has_demo": true,
+      "has_contributing": false,
+      "has_license_mention": true,
+      "grade": "B"
+    },
+    {
+      "repo": "KaskMan",
+      "sections": 14,
+      "has_install": true,
+      "has_usage": true,
+      "has_demo": false,
+      "has_contributing": true,
+      "has_license_mention": true,
+      "grade": "A"
+    },
+    {
+      "repo": "KDesktopVirt",
+      "sections": 17,
+      "has_install": true,
+      "has_usage": true,
+      "has_demo": true,
+      "has_contributing": true,
+      "has_license_mention": true,
+      "grade": "A"
+    },
+    {
+      "repo": "KlipDot",
+      "sections": 1,
+      "has_install": false,
+      "has_usage": false,
+      "has_demo": true,
+      "has_contributing": false,
+      "has_license_mention": true,
+      "grade": "C"
+    },
+    {
+      "repo": "kmobile",
+      "sections": 18,
+      "has_install": true,
+      "has_usage": true,
+      "has_demo": true,
+      "has_contributing": true,
+      "has_license_mention": true,
+      "grade": "A"
+    },
+    {
+      "repo": "KodeVibe-security-fixes",
+      "sections": 47,
+      "has_install": true,
+      "has_usage": true,
+      "has_demo": false,
+      "has_contributing": true,
+      "has_license_mention": true,
+      "grade": "A"
+    },
+    {
+      "repo": "KodeVibe",
+      "sections": 47,
+      "has_install": true,
+      "has_usage": true,
+      "has_demo": false,
+      "has_contributing": true,
+      "has_license_mention": true,
+      "grade": "A"
+    },
+    {
+      "repo": "KWatch-docs",
+      "sections": 61,
+      "has_install": true,
+      "has_usage": true,
+      "has_demo": true,
+      "has_contributing": false,
+      "has_license_mention": true,
+      "grade": "A"
+    },
+    {
+      "repo": "KWatch",
+      "sections": 61,
+      "has_install": true,
+      "has_usage": true,
+      "has_demo": true,
+      "has_contributing": false,
+      "has_license_mention": true,
+      "grade": "A"
+    },
+    {
+      "repo": "localbase3",
+      "sections": 8,
+      "has_install": true,
+      "has_usage": false,
+      "has_demo": false,
+      "has_contributing": true,
+      "has_license_mention": true,
+      "grade": "B"
+    },
+    {
+      "repo": "MCPForge",
+      "sections": 1,
+      "has_install": true,
+      "has_usage": true,
+      "has_demo": true,
+      "has_contributing": true,
+      "has_license_mention": true,
+      "grade": "B"
+    },
+    {
+      "repo": "McpKit",
+      "sections": 5,
+      "has_install": true,
+      "has_usage": false,
+      "has_demo": false,
+      "has_contributing": true,
+      "has_license_mention": true,
+      "grade": "B"
+    },
+    {
+      "repo": "melosviz",
+      "sections": 8,
+      "has_install": true,
+      "has_usage": false,
+      "has_demo": false,
+      "has_contributing": false,
+      "has_license_mention": true,
+      "grade": "C"
+    },
+    {
+      "repo": "Metron",
+      "sections": 7,
+      "has_install": true,
+      "has_usage": false,
+      "has_demo": false,
+      "has_contributing": false,
+      "has_license_mention": true,
+      "grade": "C"
+    },
+    {
+      "repo": "nanovms",
+      "sections": 6,
+      "has_install": true,
+      "has_usage": false,
+      "has_demo": false,
+      "has_contributing": true,
+      "has_license_mention": true,
+      "grade": "B"
+    },
+    {
+      "repo": "NetScript",
+      "sections": 5,
+      "has_install": true,
+      "has_usage": false,
+      "has_demo": false,
+      "has_contributing": false,
+      "has_license_mention": true,
+      "grade": "C"
+    },
+    {
+      "repo": "netweave-final2",
+      "sections": 9,
+      "has_install": true,
+      "has_usage": true,
+      "has_demo": false,
+      "has_contributing": true,
+      "has_license_mention": true,
+      "grade": "A"
+    },
+    {
+      "repo": "ObservabilityKit",
+      "sections": 10,
+      "has_install": true,
+      "has_usage": false,
+      "has_demo": true,
+      "has_contributing": false,
+      "has_license_mention": true,
+      "grade": "B"
+    },
+    {
+      "repo": "OmniRoute-2nd",
+      "sections": 21,
+      "has_install": true,
+      "has_usage": true,
+      "has_demo": true,
+      "has_contributing": true,
+      "has_license_mention": true,
+      "grade": "A"
+    },
+    {
+      "repo": "OmniRoute-3rd",
+      "sections": 21,
+      "has_install": true,
+      "has_usage": true,
+      "has_demo": true,
+      "has_contributing": true,
+      "has_license_mention": true,
+      "grade": "A"
+    },
+    {
+      "repo": "OmniRoute-dependabot",
+      "sections": 21,
+      "has_install": true,
+      "has_usage": true,
+      "has_demo": true,
+      "has_contributing": true,
+      "has_license_mention": true,
+      "grade": "A"
+    },
+    {
+      "repo": "OmniRoute",
+      "sections": 21,
+      "has_install": true,
+      "has_usage": true,
+      "has_demo": true,
+      "has_contributing": true,
+      "has_license_mention": true,
+      "grade": "A"
+    },
+    {
+      "repo": "Paginary",
+      "sections": 5,
+      "has_install": true,
+      "has_usage": false,
+      "has_demo": false,
+      "has_contributing": true,
+      "has_license_mention": true,
+      "grade": "B"
+    },
+    {
+      "repo": "Parpoura-3rd",
+      "sections": 8,
+      "has_install": true,
+      "has_usage": false,
+      "has_demo": false,
+      "has_contributing": false,
+      "has_license_mention": true,
+      "grade": "C"
+    },
+    {
+      "repo": "Parpoura-4th",
+      "sections": 8,
+      "has_install": true,
+      "has_usage": false,
+      "has_demo": false,
+      "has_contributing": false,
+      "has_license_mention": true,
+      "grade": "C"
+    },
+    {
+      "repo": "Parpoura-hygiene",
+      "sections": 8,
+      "has_install": true,
+      "has_usage": false,
+      "has_demo": false,
+      "has_contributing": false,
+      "has_license_mention": true,
+      "grade": "C"
+    },
+    {
+      "repo": "Parpoura",
+      "sections": 8,
+      "has_install": true,
+      "has_usage": false,
+      "has_demo": false,
+      "has_contributing": false,
+      "has_license_mention": true,
+      "grade": "C"
+    },
+    {
+      "repo": "pheno",
+      "sections": 1,
+      "has_install": false,
+      "has_usage": false,
+      "has_demo": false,
+      "has_contributing": false,
+      "has_license_mention": true,
+      "grade": "D"
+    },
+    {
+      "repo": "PhenoAgent",
+      "sections": 13,
+      "has_install": true,
+      "has_usage": false,
+      "has_demo": false,
+      "has_contributing": true,
+      "has_license_mention": true,
+      "grade": "B"
+    },
+    {
+      "repo": "phenoAI",
+      "sections": 9,
+      "has_install": true,
+      "has_usage": false,
+      "has_demo": false,
+      "has_contributing": true,
+      "has_license_mention": true,
+      "grade": "B"
+    },
+    {
+      "repo": "PhenoCompose",
+      "sections": 6,
+      "has_install": true,
+      "has_usage": false,
+      "has_demo": false,
+      "has_contributing": true,
+      "has_license_mention": true,
+      "grade": "B"
+    },
+    {
+      "repo": "phenoData-t1-15",
+      "sections": 4,
+      "has_install": true,
+      "has_usage": true,
+      "has_demo": false,
+      "has_contributing": false,
+      "has_license_mention": true,
+      "grade": "B"
+    },
+    {
+      "repo": "phenoData-t1-16",
+      "sections": 4,
+      "has_install": true,
+      "has_usage": true,
+      "has_demo": false,
+      "has_contributing": false,
+      "has_license_mention": true,
+      "grade": "B"
+    },
+    {
+      "repo": "phenoData-t1-17",
+      "sections": 4,
+      "has_install": true,
+      "has_usage": true,
+      "has_demo": false,
+      "has_contributing": false,
+      "has_license_mention": true,
+      "grade": "B"
+    },
+    {
+      "repo": "phenoData-t1-18",
+      "sections": 4,
+      "has_install": true,
+      "has_usage": true,
+      "has_demo": false,
+      "has_contributing": false,
+      "has_license_mention": true,
+      "grade": "B"
+    },
+    {
+      "repo": "phenoData",
+      "sections": 4,
+      "has_install": true,
+      "has_usage": true,
+      "has_demo": false,
+      "has_contributing": false,
+      "has_license_mention": true,
+      "grade": "B"
+    },
+    {
+      "repo": "phenoDesign-t1-10",
+      "sections": 1,
+      "has_install": true,
+      "has_usage": false,
+      "has_demo": false,
+      "has_contributing": false,
+      "has_license_mention": true,
+      "grade": "C"
+    },
+    {
+      "repo": "phenoDesign-t1-6",
+      "sections": 1,
+      "has_install": true,
+      "has_usage": false,
+      "has_demo": false,
+      "has_contributing": false,
+      "has_license_mention": true,
+      "grade": "C"
+    },
+    {
+      "repo": "phenoDesign-t1-7",
+      "sections": 1,
+      "has_install": true,
+      "has_usage": false,
+      "has_demo": false,
+      "has_contributing": false,
+      "has_license_mention": true,
+      "grade": "C"
+    },
+    {
+      "repo": "phenoDesign-t1-8",
+      "sections": 1,
+      "has_install": true,
+      "has_usage": false,
+      "has_demo": false,
+      "has_contributing": false,
+      "has_license_mention": true,
+      "grade": "C"
+    },
+    {
+      "repo": "phenoDesign-t1-9",
+      "sections": 1,
+      "has_install": true,
+      "has_usage": false,
+      "has_demo": false,
+      "has_contributing": false,
+      "has_license_mention": true,
+      "grade": "C"
+    },
+    {
+      "repo": "phenoDesign",
+      "sections": 1,
+      "has_install": true,
+      "has_usage": false,
+      "has_demo": false,
+      "has_contributing": false,
+      "has_license_mention": true,
+      "grade": "C"
+    },
+    {
+      "repo": "PhenoDevOps",
+      "sections": 1,
+      "has_install": false,
+      "has_usage": false,
+      "has_demo": false,
+      "has_contributing": false,
+      "has_license_mention": false,
+      "grade": "F"
+    },
+    {
+      "repo": "phenodocs-scorecard-remediation",
+      "sections": 9,
+      "has_install": true,
+      "has_usage": false,
+      "has_demo": true,
+      "has_contributing": true,
+      "has_license_mention": true,
+      "grade": "A"
+    },
+    {
+      "repo": "phenodocs",
+      "sections": 9,
+      "has_install": true,
+      "has_usage": false,
+      "has_demo": true,
+      "has_contributing": true,
+      "has_license_mention": true,
+      "grade": "A"
+    },
+    {
+      "repo": "phenoForge",
+      "sections": 10,
+      "has_install": true,
+      "has_usage": false,
+      "has_demo": false,
+      "has_contributing": false,
+      "has_license_mention": false,
+      "grade": "D"
+    },
+    {
+      "repo": "PhenoHandbook",
+      "sections": 10,
+      "has_install": true,
+      "has_usage": false,
+      "has_demo": false,
+      "has_contributing": true,
+      "has_license_mention": true,
+      "grade": "B"
+    },
+    {
+      "repo": "PhenoKits",
+      "sections": 9,
+      "has_install": true,
+      "has_usage": false,
+      "has_demo": false,
+      "has_contributing": false,
+      "has_license_mention": false,
+      "grade": "D"
+    },
+    {
+      "repo": "PhenoMCP-cheap",
+      "sections": 1,
+      "has_install": true,
+      "has_usage": false,
+      "has_demo": false,
+      "has_contributing": false,
+      "has_license_mention": true,
+      "grade": "C"
+    },
+    {
+      "repo": "PhenoMCP",
+      "sections": 1,
+      "has_install": true,
+      "has_usage": false,
+      "has_demo": false,
+      "has_contributing": false,
+      "has_license_mention": true,
+      "grade": "C"
+    },
+    {
+      "repo": "PhenoObservability",
+      "sections": 6,
+      "has_install": true,
+      "has_usage": false,
+      "has_demo": false,
+      "has_contributing": true,
+      "has_license_mention": true,
+      "grade": "B"
+    },
+    {
+      "repo": "PhenoPlugins",
+      "sections": 5,
+      "has_install": true,
+      "has_usage": false,
+      "has_demo": false,
+      "has_contributing": false,
+      "has_license_mention": true,
+      "grade": "C"
+    },
+    {
+      "repo": "PhenoProc-security-fixes",
+      "sections": 5,
+      "has_install": true,
+      "has_usage": false,
+      "has_demo": false,
+      "has_contributing": true,
+      "has_license_mention": true,
+      "grade": "B"
+    },
+    {
+      "repo": "PhenoProc",
+      "sections": 5,
+      "has_install": true,
+      "has_usage": false,
+      "has_demo": false,
+      "has_contributing": true,
+      "has_license_mention": true,
+      "grade": "B"
+    },
+    {
+      "repo": "PhenoProject",
+      "sections": 1,
+      "has_install": true,
+      "has_usage": false,
+      "has_demo": false,
+      "has_contributing": false,
+      "has_license_mention": true,
+      "grade": "C"
+    },
+    {
+      "repo": "phenoResearchEngine",
+      "sections": 3,
+      "has_install": false,
+      "has_usage": false,
+      "has_demo": false,
+      "has_contributing": false,
+      "has_license_mention": false,
+      "grade": "F"
+    },
+    {
+      "repo": "PhenoRuntime",
+      "sections": 5,
+      "has_install": true,
+      "has_usage": false,
+      "has_demo": false,
+      "has_contributing": true,
+      "has_license_mention": true,
+      "grade": "B"
+    },
+    {
+      "repo": "phenoShared",
+      "sections": 1,
+      "has_install": true,
+      "has_usage": true,
+      "has_demo": false,
+      "has_contributing": false,
+      "has_license_mention": true,
+      "grade": "B"
+    },
+    {
+      "repo": "PhenoSpecs",
+      "sections": 10,
+      "has_install": true,
+      "has_usage": true,
+      "has_demo": true,
+      "has_contributing": false,
+      "has_license_mention": true,
+      "grade": "A"
+    },
+    {
+      "repo": "phenotype-auth-ts",
+      "sections": 7,
+      "has_install": true,
+      "has_usage": true,
+      "has_demo": false,
+      "has_contributing": false,
+      "has_license_mention": true,
+      "grade": "B"
+    },
+    {
+      "repo": "phenotype-bus",
+      "sections": 1,
+      "has_install": false,
+      "has_usage": true,
+      "has_demo": false,
+      "has_contributing": false,
+      "has_license_mention": true,
+      "grade": "C"
+    },
+    {
+      "repo": "phenotype-dep-guard",
+      "sections": 30,
+      "has_install": true,
+      "has_usage": true,
+      "has_demo": false,
+      "has_contributing": true,
+      "has_license_mention": true,
+      "grade": "A"
+    },
+    {
+      "repo": "phenotype-go-sdk",
+      "sections": 1,
+      "has_install": true,
+      "has_usage": false,
+      "has_demo": false,
+      "has_contributing": false,
+      "has_license_mention": false,
+      "grade": "D"
+    },
+    {
+      "repo": "phenotype-hub",
+      "sections": 1,
+      "has_install": true,
+      "has_usage": false,
+      "has_demo": false,
+      "has_contributing": true,
+      "has_license_mention": false,
+      "grade": "C"
+    },
+    {
+      "repo": "phenotype-infra",
+      "sections": 5,
+      "has_install": true,
+      "has_usage": false,
+      "has_demo": false,
+      "has_contributing": true,
+      "has_license_mention": true,
+      "grade": "B"
+    },
+    {
+      "repo": "phenotype-journeys-2nd",
+      "sections": 6,
+      "has_install": true,
+      "has_usage": true,
+      "has_demo": false,
+      "has_contributing": false,
+      "has_license_mention": true,
+      "grade": "B"
+    },
+    {
+      "repo": "phenotype-journeys",
+      "sections": 6,
+      "has_install": true,
+      "has_usage": true,
+      "has_demo": false,
+      "has_contributing": false,
+      "has_license_mention": true,
+      "grade": "B"
+    },
+    {
+      "repo": "phenotype-landing",
+      "sections": 1,
+      "has_install": true,
+      "has_usage": false,
+      "has_demo": false,
+      "has_contributing": false,
+      "has_license_mention": true,
+      "grade": "C"
+    },
+    {
+      "repo": "phenotype-omlx",
+      "sections": 15,
+      "has_install": true,
+      "has_usage": true,
+      "has_demo": true,
+      "has_contributing": true,
+      "has_license_mention": true,
+      "grade": "A"
+    },
+    {
+      "repo": "phenotype-ops-mcp-t0",
+      "sections": 18,
+      "has_install": true,
+      "has_usage": true,
+      "has_demo": false,
+      "has_contributing": true,
+      "has_license_mention": true,
+      "grade": "A"
+    },
+    {
+      "repo": "phenotype-ops-mcp-t1-11",
+      "sections": 11,
+      "has_install": true,
+      "has_usage": true,
+      "has_demo": false,
+      "has_contributing": true,
+      "has_license_mention": true,
+      "grade": "A"
+    },
+    {
+      "repo": "phenotype-ops-mcp-t1-12",
+      "sections": 11,
+      "has_install": true,
+      "has_usage": true,
+      "has_demo": false,
+      "has_contributing": true,
+      "has_license_mention": true,
+      "grade": "A"
+    },
+    {
+      "repo": "phenotype-ops-mcp-t1-13",
+      "sections": 11,
+      "has_install": true,
+      "has_usage": true,
+      "has_demo": false,
+      "has_contributing": true,
+      "has_license_mention": true,
+      "grade": "A"
+    },
+    {
+      "repo": "phenotype-ops-mcp-t1-14",
+      "sections": 11,
+      "has_install": true,
+      "has_usage": true,
+      "has_demo": false,
+      "has_contributing": true,
+      "has_license_mention": true,
+      "grade": "A"
+    },
+    {
+      "repo": "phenotype-ops-mcp",
+      "sections": 11,
+      "has_install": true,
+      "has_usage": true,
+      "has_demo": false,
+      "has_contributing": true,
+      "has_license_mention": true,
+      "grade": "A"
+    },
+    {
+      "repo": "phenotype-org-audits",
+      "sections": 1,
+      "has_install": true,
+      "has_usage": false,
+      "has_demo": false,
+      "has_contributing": false,
+      "has_license_mention": true,
+      "grade": "C"
+    },
+    {
+      "repo": "phenotype-postfx",
+      "sections": 2,
+      "has_install": true,
+      "has_usage": true,
+      "has_demo": false,
+      "has_contributing": true,
+      "has_license_mention": true,
+      "grade": "B"
+    },
+    {
+      "repo": "phenotype-py-extras",
+      "sections": 7,
+      "has_install": true,
+      "has_usage": true,
+      "has_demo": false,
+      "has_contributing": false,
+      "has_license_mention": false,
+      "grade": "C"
+    },
+    {
+      "repo": "phenotype-python-sdk",
+      "sections": 2,
+      "has_install": true,
+      "has_usage": true,
+      "has_demo": false,
+      "has_contributing": false,
+      "has_license_mention": true,
+      "grade": "B"
+    },
+    {
+      "repo": "phenotype-registry",
+      "sections": 7,
+      "has_install": true,
+      "has_usage": true,
+      "has_demo": true,
+      "has_contributing": true,
+      "has_license_mention": true,
+      "grade": "A"
+    },
+    {
+      "repo": "phenotype-request-id",
+      "sections": 1,
+      "has_install": true,
+      "has_usage": false,
+      "has_demo": false,
+      "has_contributing": false,
+      "has_license_mention": false,
+      "grade": "D"
+    },
+    {
+      "repo": "phenotype-shared",
+      "sections": 11,
+      "has_install": true,
+      "has_usage": true,
+      "has_demo": false,
+      "has_contributing": true,
+      "has_license_mention": true,
+      "grade": "A"
+    },
+    {
+      "repo": "phenotype-terrain",
+      "sections": 1,
+      "has_install": true,
+      "has_usage": true,
+      "has_demo": false,
+      "has_contributing": true,
+      "has_license_mention": true,
+      "grade": "B"
+    },
+    {
+      "repo": "phenotype-tooling",
+      "sections": 6,
+      "has_install": true,
+      "has_usage": false,
+      "has_demo": false,
+      "has_contributing": false,
+      "has_license_mention": true,
+      "grade": "C"
+    },
+    {
+      "repo": "phenotype-voxel",
+      "sections": 1,
+      "has_install": true,
+      "has_usage": false,
+      "has_demo": false,
+      "has_contributing": false,
+      "has_license_mention": true,
+      "grade": "C"
+    },
+    {
+      "repo": "phenotype-water",
+      "sections": 1,
+      "has_install": true,
+      "has_usage": false,
+      "has_demo": false,
+      "has_contributing": false,
+      "has_license_mention": true,
+      "grade": "C"
+    },
+    {
+      "repo": "phenoUtils",
+      "sections": 8,
+      "has_install": true,
+      "has_usage": true,
+      "has_demo": false,
+      "has_contributing": false,
+      "has_license_mention": true,
+      "grade": "B"
+    },
+    {
+      "repo": "PhenoVCS-3rd",
+      "sections": 5,
+      "has_install": true,
+      "has_usage": false,
+      "has_demo": false,
+      "has_contributing": true,
+      "has_license_mention": true,
+      "grade": "B"
+    },
+    {
+      "repo": "PhenoVCS-hygiene",
+      "sections": 5,
+      "has_install": true,
+      "has_usage": false,
+      "has_demo": false,
+      "has_contributing": true,
+      "has_license_mention": true,
+      "grade": "B"
+    },
+    {
+      "repo": "PhenoVCS",
+      "sections": 5,
+      "has_install": true,
+      "has_usage": false,
+      "has_demo": false,
+      "has_contributing": true,
+      "has_license_mention": true,
+      "grade": "B"
+    },
+    {
+      "repo": "phenoXdd",
+      "sections": 8,
+      "has_install": true,
+      "has_usage": false,
+      "has_demo": false,
+      "has_contributing": true,
+      "has_license_mention": true,
+      "grade": "B"
+    },
+    {
+      "repo": "Pine",
+      "sections": 1,
+      "has_install": true,
+      "has_usage": false,
+      "has_demo": false,
+      "has_contributing": false,
+      "has_license_mention": false,
+      "grade": "D"
+    },
+    {
+      "repo": "Planify-hygiene",
+      "sections": 0,
+      "has_install": true,
+      "has_usage": true,
+      "has_demo": true,
+      "has_contributing": true,
+      "has_license_mention": true,
+      "grade": "B"
+    },
+    {
+      "repo": "Planify",
+      "sections": 0,
+      "has_install": true,
+      "has_usage": true,
+      "has_demo": true,
+      "has_contributing": true,
+      "has_license_mention": true,
+      "grade": "B"
+    },
+    {
+      "repo": "PlatformKit",
+      "sections": 9,
+      "has_install": true,
+      "has_usage": false,
+      "has_demo": false,
+      "has_contributing": true,
+      "has_license_mention": true,
+      "grade": "B"
+    },
+    {
+      "repo": "PlayCua",
+      "sections": 2,
+      "has_install": true,
+      "has_usage": false,
+      "has_demo": true,
+      "has_contributing": false,
+      "has_license_mention": true,
+      "grade": "B"
+    },
+    {
+      "repo": "PolicyStack",
+      "sections": 12,
+      "has_install": true,
+      "has_usage": false,
+      "has_demo": false,
+      "has_contributing": false,
+      "has_license_mention": false,
+      "grade": "D"
+    },
+    {
+      "repo": "portage",
+      "sections": 1,
+      "has_install": true,
+      "has_usage": false,
+      "has_demo": false,
+      "has_contributing": false,
+      "has_license_mention": true,
+      "grade": "C"
+    },
+    {
+      "repo": "Pyron",
+      "sections": 1,
+      "has_install": false,
+      "has_usage": false,
+      "has_demo": false,
+      "has_contributing": false,
+      "has_license_mention": false,
+      "grade": "F"
+    },
+    {
+      "repo": "QuadSGM",
+      "sections": 8,
+      "has_install": true,
+      "has_usage": false,
+      "has_demo": false,
+      "has_contributing": false,
+      "has_license_mention": true,
+      "grade": "C"
+    },
+    {
+      "repo": "ResilienceKit",
+      "sections": 5,
+      "has_install": true,
+      "has_usage": false,
+      "has_demo": false,
+      "has_contributing": false,
+      "has_license_mention": true,
+      "grade": "C"
+    },
+    {
+      "repo": "rich-cli-kit",
+      "sections": 5,
+      "has_install": true,
+      "has_usage": false,
+      "has_demo": true,
+      "has_contributing": false,
+      "has_license_mention": false,
+      "grade": "C"
+    },
+    {
+      "repo": "Sidekick",
+      "sections": 1,
+      "has_install": true,
+      "has_usage": false,
+      "has_demo": false,
+      "has_contributing": false,
+      "has_license_mention": true,
+      "grade": "C"
+    },
+    {
+      "repo": "Tasken-3rd",
+      "sections": 1,
+      "has_install": true,
+      "has_usage": true,
+      "has_demo": false,
+      "has_contributing": false,
+      "has_license_mention": true,
+      "grade": "B"
+    },
+    {
+      "repo": "Tasken",
+      "sections": 1,
+      "has_install": true,
+      "has_usage": true,
+      "has_demo": false,
+      "has_contributing": false,
+      "has_license_mention": true,
+      "grade": "B"
+    },
+    {
+      "repo": "TestingKit",
+      "sections": 1,
+      "has_install": true,
+      "has_usage": false,
+      "has_demo": false,
+      "has_contributing": true,
+      "has_license_mention": true,
+      "grade": "B"
+    },
+    {
+      "repo": "thegent-dispatch",
+      "sections": 1,
+      "has_install": true,
+      "has_usage": true,
+      "has_demo": false,
+      "has_contributing": false,
+      "has_license_mention": true,
+      "grade": "B"
+    },
+    {
+      "repo": "thegent-security-fixes",
+      "sections": 14,
+      "has_install": true,
+      "has_usage": false,
+      "has_demo": false,
+      "has_contributing": false,
+      "has_license_mention": true,
+      "grade": "C"
+    },
+    {
+      "repo": "thegent",
+      "sections": 14,
+      "has_install": true,
+      "has_usage": false,
+      "has_demo": false,
+      "has_contributing": false,
+      "has_license_mention": true,
+      "grade": "C"
+    },
+    {
+      "repo": "Tokn",
+      "sections": 6,
+      "has_install": true,
+      "has_usage": true,
+      "has_demo": false,
+      "has_contributing": false,
+      "has_license_mention": true,
+      "grade": "B"
+    },
+    {
+      "repo": "Tracely",
+      "sections": 5,
+      "has_install": true,
+      "has_usage": true,
+      "has_demo": false,
+      "has_contributing": false,
+      "has_license_mention": false,
+      "grade": "C"
+    },
+    {
+      "repo": "Tracera",
+      "sections": 10,
+      "has_install": true,
+      "has_usage": false,
+      "has_demo": true,
+      "has_contributing": true,
+      "has_license_mention": true,
+      "grade": "A"
+    },
+    {
+      "repo": "vibeproxy-monitoring-unified",
+      "sections": 1,
+      "has_install": true,
+      "has_usage": false,
+      "has_demo": false,
+      "has_contributing": true,
+      "has_license_mention": false,
+      "grade": "C"
+    },
+    {
+      "repo": "vibeproxy",
+      "sections": 1,
+      "has_install": true,
+      "has_usage": true,
+      "has_demo": true,
+      "has_contributing": false,
+      "has_license_mention": true,
+      "grade": "B"
+    }
+  ],
+  "grade_distribution": {
+    "A": 30,
+    "B": 66,
+    "C": 52,
+    "D": 10,
+    "F": 10
+  }
+}

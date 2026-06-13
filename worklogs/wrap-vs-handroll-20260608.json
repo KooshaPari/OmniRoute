@@ -1,0 +1,4717 @@
+{
+  "generated_at": "2026-06-08T10:32:03Z",
+  "total_repos": 102,
+  "hand_rolled_candidates": [
+    {
+      "repo": "AgilePlus",
+      "file": "crates/agileplus-cli/src/commands/validate/report.rs",
+      "library_replacement": "serde_json / encoding/json / json",
+      "pattern": "serde_json",
+      "evidence": [
+        "n(\"\\n\")     }      pub(crate) fn to_json(&self) -> String {         let missing: Vec<serde_json::Val"
+      ]
+    },
+    {
+      "repo": "AtomsBot",
+      "file": "src/utils/__tests__/helpers.comprehensive.test.ts",
+      "library_replacement": "serde_json / encoding/json / json",
+      "pattern": "serde_json",
+      "evidence": [
+        "deepClone: <T>(obj: T): T => JSON.parse(JSON.stringify(obj)),   merge: <T>(target: T, ...sources: Partial<T>[]): T"
+      ]
+    },
+    {
+      "repo": "AtomsBot",
+      "file": "src/discord/advanced/WorkflowAutomation.ts",
+      "library_replacement": "serde_json / encoding/json / json",
+      "pattern": "serde_json",
+      "evidence": [
+        "riables: workflow.variables ? JSON.parse(JSON.stringify(workflow.variables)) : {},     };      this.executions.set("
+      ]
+    },
+    {
+      "repo": "AtomsBot",
+      "file": "tests/utils/integrationTestUtils.ts",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "ivery': options.deliveryId || crypto.randomUUID(),         'x-hub-signature-256': `sha256=${signature}`,"
+      ]
+    },
+    {
+      "repo": "Benchora",
+      "file": "src/domain/mod.rs",
+      "library_replacement": "serde_json / encoding/json / json",
+      "pattern": "serde_json",
+      "evidence": [
+        "ey: impl Into<String>, value: impl Serialize) -> Self {         // Ensure context is an object         i"
+      ]
+    },
+    {
+      "repo": "Civis",
+      "file": "crates/mod-host/src/guest_state.rs",
+      "library_replacement": "serde_json / encoding/json / json",
+      "pattern": "serde_json",
+      "evidence": [
+        "00 persistence stubs.     pub fn to_json(&self) -> Result<String, serde_json::Error> {         serde"
+      ]
+    },
+    {
+      "repo": "Dino",
+      "file": "src/Tools/DinoforgeMcp/dinoforge_mcp/merkle.py",
+      "library_replacement": "serde_json / encoding/json / json",
+      "pattern": "serde_json",
+      "evidence": [
+        "e: Optional[dict] = None      def to_json(self, indent: int = 2) -> str:         d = asdict(self)"
+      ]
+    },
+    {
+      "repo": "FocalPoint",
+      "file": "tests/e2e/src/main.rs",
+      "library_replacement": "serde_json / encoding/json / json",
+      "pattern": "serde_json",
+      "evidence": [
+        ", name);         }     }      fn to_json(&self) -> Value {         json!({             \"timestamp\":"
+      ]
+    },
+    {
+      "repo": "HeliosCLI",
+      "file": "src/helios_router_ui/nats_client.py",
+      "library_replacement": "serde_json / encoding/json / json",
+      "pattern": "serde_json",
+      "evidence": [
+        "cnow().isoformat() + \"Z\"      def to_json(self) -> str:         return json.dumps(asdict(self))   @da"
+      ]
+    },
+    {
+      "repo": "HeliosCLI",
+      "file": "crates/harness_spec/src/parser.rs",
+      "library_replacement": "serde_json / encoding/json / json",
+      "pattern": "serde_json",
+      "evidence": [
+        "ication from JSON content pub fn parse_json(content: &str) -> Result<Specification> {     serde_json::f"
+      ]
+    },
+    {
+      "repo": "HeliosLab",
+      "file": "src/main/utils/terminalManager.ts",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "ring {     const terminalId = randomUUID();      // Determine shell     const defaultShell = process."
+      ]
+    },
+    {
+      "repo": "HexaKit",
+      "file": "crates/phenotype-telemetry/src/lib.rs",
+      "library_replacement": "serde_json / encoding/json / json",
+      "pattern": "serde_json",
+      "evidence": [
+        "ey: impl Into<String>, value: impl Serialize) -> Self {         if let Ok(v) = serde_json::to_value(valu"
+      ]
+    },
+    {
+      "repo": "HexaKit",
+      "file": "crates/phenotype-xdd-lib/src/domain/mod.rs",
+      "library_replacement": "serde_json / encoding/json / json",
+      "pattern": "serde_json",
+      "evidence": [
+        "ey: impl Into<String>, value: impl Serialize) -> Self {         let key_str = key.into();         let va"
+      ]
+    },
+    {
+      "repo": "HexaKit",
+      "file": "crates/settly/src/domain/config.rs",
+      "library_replacement": "serde_json / encoding/json / json",
+      "pattern": "serde_json",
+      "evidence": [
+        "nvert to JSON string.     pub fn to_json(&self) -> String {         serde_json::to_string_pretty(sel"
+      ]
+    },
+    {
+      "repo": "KDesktopVirt",
+      "file": "src/audio_video_integration.rs",
+      "library_replacement": "regex / regexp",
+      "pattern": "regex crate",
+      "evidence": [
+        ";         Ok(None)     }      fn match_pattern(&self, text: &str, pattern: &str) -> Option<Vec<String>> {"
+      ]
+    },
+    {
+      "repo": "KaskMan",
+      "file": "src/interfaces/core/auth-manager.js",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "defaultAdmin = {         id: crypto.randomUUID(),         username: 'admin',         email: 'admin@localho",
+        "const user = {         id: crypto.randomUUID(),         username: userData.username,         email: user",
+        "user) {     const sessionId = crypto.randomUUID();     const refreshToken = crypto.randomBytes(32).toString"
+      ]
+    },
+    {
+      "repo": "OmniRoute",
+      "file": "src/lib/semanticCache.ts",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "tDbInstance();     const id = crypto.randomUUID();     const promptHash = signature.slice(0, 16);     const"
+      ]
+    },
+    {
+      "repo": "OmniRoute",
+      "file": "src/domain/assessment/selfHealer.ts",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "tion {     return {       id: crypto.randomUUID(),       comboId,       actionType,       modelId,       pr"
+      ]
+    },
+    {
+      "repo": "OmniRoute",
+      "file": "src/domain/assessment/assessor.ts",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        ": AssessmentRun = {       id: crypto.randomUUID(),       startedAt: new Date().toISOString(),       complet"
+      ]
+    },
+    {
+      "repo": "OmniRoute",
+      "file": "src/lib/memory/store.ts",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "rd if not exists   const id = crypto.randomUUID();   const stmt = db.prepare(     \"INSERT INTO memories (id"
+      ]
+    },
+    {
+      "repo": "OmniRoute",
+      "file": "src/lib/gamification/servers.ts",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "verConnection> {   const id = crypto.randomUUID();   const apiKeyHash = crypto     .pbkdf2Sync(apiKey, \"omn"
+      ]
+    },
+    {
+      "repo": "OmniRoute",
+      "file": "src/lib/gamification/invites.ts",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "ashToken(token);   const id = crypto.randomUUID();    const { createInviteToken } = await import(\"../db/gam"
+      ]
+    },
+    {
+      "repo": "OmniRoute",
+      "file": "src/lib/gamification/sharing.ts",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "const key = idempotencyKey || crypto.randomUUID();    try {     const { transferTokens: dbTransfer } = awai"
+      ]
+    },
+    {
+      "repo": "OmniRoute",
+      "file": "src/lib/providers/validation.ts",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "false\",       \"x-session-id\": randomUUID(),     },     body: {       config: {         workingDir: \"/",
+        ": {       assistantMessageId: crypto.randomUUID(),       attachments: null,       clientLatitude: null,",
+        "null,       promptSessionId: crypto.randomUUID(),       promptType: null,       qplJoinId: null,       req"
+      ]
+    },
+    {
+      "repo": "OmniRoute",
+      "file": "src/lib/db/webhooks.ts",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "getDbInstance();   const id = crypto.randomUUID();   const secret = data.secret || `whsec_${crypto.randomBy"
+      ]
+    },
+    {
+      "repo": "OmniRoute",
+      "file": "src/lib/db/proxies.ts",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "getDbInstance();   const id = randomUUID();   const now = new Date().toISOString();    insertProxyRow",
+        "getDbInstance();   const id = randomUUID();   const now = new Date().toISOString();    const tx = db."
+      ]
+    },
+    {
+      "repo": "OmniRoute",
+      "file": "src/lib/db/freeProxies.ts",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "updated\" };   }    const id = randomUUID();   db.prepare(     `INSERT INTO free_proxies      (id, sou",
+        "ng();   const newRegistryId = randomUUID();    const result = db.transaction(() => {     const exists"
+      ]
+    },
+    {
+      "repo": "OmniRoute",
+      "file": "src/lib/db/commandCodeAuth.ts",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "AuthSafeStatus {   const id = randomUUID();   const now = nowIso();   db()     .prepare(       `INSER"
+      ]
+    },
+    {
+      "repo": "OmniRoute",
+      "file": "src/lib/db/evals.ts",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        ").toISOString();   const id = randomUUID();   const targetId =     typeof input.target.id === \"string",
+        "ength > 0 ? input.id.trim() : randomUUID();   const name = input.name.trim();   const description =",
+        "rawCase.id.trim()           : randomUUID();       const caseName = rawCase.name.trim();       const m"
+      ]
+    },
+    {
+      "repo": "OmniRoute",
+      "file": "src/lib/db/apiKeyGroups.ts",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "stance() as any;   const id = randomUUID();   const now = new Date().toISOString();    db.prepare(",
+        "stance() as any;   const id = randomUUID();   const now = new Date().toISOString();    db.prepare("
+      ]
+    },
+    {
+      "repo": "OmniRoute",
+      "file": "src/lib/db/oneproxy.ts",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "updated\" };   }    const id = randomUUID();   db.prepare(     `INSERT INTO proxy_registry      (id, n"
+      ]
+    },
+    {
+      "repo": "OmniRoute",
+      "file": "src/lib/skills/registry.ts",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "tDbInstance();     const id = randomUUID();     const now = new Date();      db.prepare(       `INSER"
+      ]
+    },
+    {
+      "repo": "OmniRoute",
+      "file": "src/lib/cloudAgent/agents/jules.ts",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "id: (act.id as string) || randomUUID(),     type,     content,     timestamp: (act.createTime as"
+      ]
+    },
+    {
+      "repo": "OmniRoute",
+      "file": "src/lib/oauth/providers/kimi-coding.ts",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "generateDeviceId() {   return randomUUID().replace(/-/g, \"\"); }  function getKimiDeviceId() {   const"
+      ]
+    },
+    {
+      "repo": "OmniRoute",
+      "file": "src/shared/services/modelSyncScheduler.ts",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "ModelSyncInternalAuthToken || randomUUID();     globalState.__omnirouteModelSyncInternalAuthToken = i"
+      ]
+    },
+    {
+      "repo": "OmniRoute",
+      "file": "src/server/ws/liveServer.ts",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "Result> {   const sessionId = randomUUID().slice(0, 8);    // Token MUST come from the Authorization"
+      ]
+    },
+    {
+      "repo": "OmniRoute",
+      "file": "src/app/api/evals/route.ts",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "d = targetsToRun.length > 1 ? randomUUID() : null;     const runs = await Promise.all(       targetsT"
+      ]
+    },
+    {
+      "repo": "OmniRoute",
+      "file": "src/app/api/models/test/route.ts",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "\"X-Request-Id\": `model-test-${randomUUID()}`,     },     body: JSON.stringify(testBody),     signal,",
+        "\"X-Request-Id\": `model-test-${randomUUID()}`,     },     body: JSON.stringify(testBody),     signal,"
+      ]
+    },
+    {
+      "repo": "OmniRoute",
+      "file": "src/app/api/combos/test/route.ts",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "\"X-Request-Id\": `combo-test-${randomUUID()}`,         },         body: JSON.stringify(testBody),"
+      ]
+    },
+    {
+      "repo": "OmniRoute",
+      "file": "src/app/api/v1/search/route.ts",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "ponse = {       id: `search-${crypto.randomUUID()}`,       ...searchResult,       cached,       usage: cach"
+      ]
+    },
+    {
+      "repo": "OmniRoute",
+      "file": "src/sse/services/auth.ts",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "const i =           parseInt(randomUUID().replace(/-/g, \"\").substring(0, 8), 16) % candidatePool.len",
+        "let j =           parseInt(randomUUID().replace(/-/g, \"\").substring(0, 8), 16) % (candidatePool.le",
+        "const idx =         parseInt(randomUUID().replace(/-/g, \"\").substring(0, 8), 16) % orderedConnection"
+      ]
+    },
+    {
+      "repo": "OmniRoute",
+      "file": "tests/unit/system-transforms.test.ts",
+      "library_replacement": "serde_json / encoding/json / json",
+      "pattern": "serde_json",
+      "evidence": [
+        "=> {   assert.deepEqual(     JSON.parse(JSON.stringify(DEFAULT_SYSTEM_TRANSFORMS_CONFIG)),     UI_DEFAULTS_SNAPSHO"
+      ]
+    },
+    {
+      "repo": "OmniRoute",
+      "file": "tests/unit/autocombo-unification.test.ts",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "nodes: [{ connectionId: crypto.randomUUID() }],       }).success,       true,       `legacy combo sch"
+      ]
+    },
+    {
+      "repo": "OmniRoute",
+      "file": "tests/unit/free-proxies-add-to-pool.test.ts",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "params: Promise.resolve({ id: randomUUID() }),   });   assert.equal(res.status, 404);   const body =",
+        "ulkAddRoute.POST(makeBulkReq([randomUUID(), randomUUID()]));   const body = await res.json();   asser",
+        "ST(makeBulkReq([randomUUID(), randomUUID()]));   const body = await res.json();   assert.equal(body.s"
+      ]
+    },
+    {
+      "repo": "OmniRoute",
+      "file": "tests/unit/combo-strategies.test.ts",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "const name = `least-used-${randomUUID()}`;   const busyModel = \"openai/gpt-4\";   const idleModel =",
+        "name: `context-optimized-${randomUUID()}`,     strategy: \"context-optimized\",     models: [\"test-c",
+        "eateCombo({     name: `auto-${randomUUID()}`,     strategy: \"auto\",     config: { auto: { exploration"
+      ]
+    },
+    {
+      "repo": "OmniRoute",
+      "file": "tests/unit/resilience-settings-upstream429-breaker.test.ts",
+      "library_replacement": "serde_json / encoding/json / json",
+      "pattern": "serde_json",
+      "evidence": [
+        "in JSON   const serialized = JSON.parse(JSON.stringify(next.connectionCooldown.oauth));   assert.equal(     \"useUp"
+      ]
+    },
+    {
+      "repo": "OmniRoute",
+      "file": "tests/unit/blackbox-web-validated-token.test.ts",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "lackboxValidatedToken();   // crypto.randomUUID() returns RFC 4122 v4 \u2014 8-4-4-4-12 hex   assert.match(token",
+        "LE, \"utf8\");   // The literal crypto.randomUUID() was replaced   assert.doesNotMatch(     source.split(\"tra",
+        "oxValidatedToken() instead of crypto.randomUUID() directly\"   );   assert.match(source, /validated: resolve"
+      ]
+    },
+    {
+      "repo": "OmniRoute",
+      "file": "tests/integration/_chatPipelineHarness.ts",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "s.apiKey || `sk-${provider}-${crypto.randomUUID().slice(0, 8)}`,       isActive: overrides.isActive ?? true"
+      ]
+    },
+    {
+      "repo": "PhenoDevOps",
+      "file": "crates/phenotype-telemetry/src/lib.rs",
+      "library_replacement": "serde_json / encoding/json / json",
+      "pattern": "serde_json",
+      "evidence": [
+        "ey: impl Into<String>, value: impl Serialize) -> Self {         if let Ok(v) = serde_json::to_value(valu"
+      ]
+    },
+    {
+      "repo": "PhenoDevOps",
+      "file": "crates/agileplus-cli/src/commands/validate.rs",
+      "library_replacement": "serde_json / encoding/json / json",
+      "pattern": "serde_json",
+      "evidence": [
+        "lines.join(\"\\n\")     }      fn to_json(&self) -> String {         let missing: Vec<serde_json::Val"
+      ]
+    },
+    {
+      "repo": "PhenoDevOps",
+      "file": "crates/agileplus-cli/src/commands/validate/report.rs",
+      "library_replacement": "serde_json / encoding/json / json",
+      "pattern": "serde_json",
+      "evidence": [
+        "n(\"\\n\")     }      pub(crate) fn to_json(&self) -> String {         let missing: Vec<serde_json::Val"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/phenotype-shared/packages/ids/tests/format.test.ts",
+      "library_replacement": "serde_json / encoding/json / json",
+      "pattern": "serde_json",
+      "evidence": [
+        "ateId(entityType); \t\t\t\texpect(JSON.parse(JSON.stringify(id))).toBe(id); \t\t\t} \t\t}); \t} });"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/phenotype-shared/crates/phenotype-port-interfaces/src/outbound/repository.rs",
+      "library_replacement": "regex / regexp",
+      "pattern": "regex crate",
+      "evidence": [
+        "ptional pagination.     async fn find_all(&self, page: u32, page_size: u32) -> Result<Vec<Self::Entit"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/phenotype-infrakit/crates/phenotype-http-client/src/types.rs",
+      "library_replacement": "serde_json / encoding/json / json",
+      "pattern": "serde_json",
+      "evidence": [
+        "arse the body as JSON     pub fn parse_json<T: serde::de::DeserializeOwned>(&self) -> Result<T> {"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/Cmdra/src/adapters/primary/cli.rs",
+      "library_replacement": "clap / argparse / commander",
+      "pattern": "clap CLI parser",
+      "evidence": [
+        "mmand: Option<String>, }  pub fn parse_cli_from_args(args: &[&str]) -> ParsedInput {     let cli = Cli"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/phenotype-gauge/src/domain/mod.rs",
+      "library_replacement": "serde_json / encoding/json / json",
+      "pattern": "serde_json",
+      "evidence": [
+        "ey: impl Into<String>, value: impl Serialize) -> Self {         if self.context.is_null() {"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/phenotype-project-registry/src/lib.rs",
+      "library_replacement": "serde_json / encoding/json / json",
+      "pattern": "serde_json",
+      "evidence": [
+        "/// Save to JSON     pub fn to_json(&self) -> Result<String, serde_json::Error> {         serde"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/deploy_20241225141328.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "loys()     }      deployID := uuid.New().String()     project.AppendDeploy(deployID,models.Instanc"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/deploy_20241224204237.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "\", readMeString) \tdeployID := uuid.New().String() \tproject.Deployments[deployID] =  models.Instanc"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/deploy_20241224203836.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "\", readMeString) \tdeployID := uuid.New().String() \tproject.Deployments[deployID] =  models.Instanc"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/deploy_20241225005105.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "tance)     }      deployID := uuid.New().String()     project.Deployments[deployID] = models.Insta"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/deploy_20241224203432.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "\", readMeString) \tdeployID := uuid.New().String() \tproject.Deployments[deployID] =  models.Instanc"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/deploy_20241224204252.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "\", readMeString) \tdeployID := uuid.New().String() \tproject.Deployments[deployID] =  models.Instanc"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/deploy_20241225005236.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "tance)     }      deployID := uuid.New().String()     project.AppendDeploy(deployID,models.Instanc"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/aws_20241218231432.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "ojectName) + \"-bytebucket-\" + uuid.New().String() \terr = s3Client.CreateBucket(ctx, bucketName) \ti"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/deploy_20241224203249.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "\", readMeString) \tnewUUID := uuid.New().String() \tproject.Deployments = append(project.Deployment"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/deploy_20241225004721.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "tance)     }      deployID := uuid.New().String()     project.Deployments[deployID] = models.Insta"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/aws_20241218231422.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "ojectName) + \"-bytebucket-\" + uuid.New().String() \terr = s3Client.CreateBucket(ctx, bucketName) \ti"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/deploy_20241225005958.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "loys()     }      deployID := uuid.New().String()     project.AppendDeploy(deployID,models.Instanc"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/deploy_20241225004715.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "tance)     }      deployID := uuid.New().String()     project.Deployments[deployID] = models.Insta"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/deploy_20241224204031.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "\", readMeString) \tdeployID := uuid.New().String() \tproject.Deployments[deployID] =  models.Instanc"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/deploy_20241224203812.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "\", readMeString) \tdeployID := uuid.New().String() \tproject.Deployments[deployID] =  models.Instanc"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/deploy_20241224204302.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "\", readMeString) \tdeployID := uuid.New().String() \tproject.Deployments[deployID] =  models.Instanc"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/deploy_20241225005115.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "tance)     }      deployID := uuid.New().String()     project.Deployments[deployID] = models.Insta"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/deploy_20241224204054.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "\", readMeString) \tdeployID := uuid.New().String() \tproject.Deployments[deployID] =  models.Instanc"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/deploy_20241225005243.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "oys())     }      deployID := uuid.New().String()     project.AppendDeploy(deployID,models.Instanc"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/deploy_20241224203447.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "\", readMeString) \tdeployID := uuid.New().String() \tproject.Deployments[deployID] =  models.Instanc"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/deploy_20241224204256.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "\", readMeString) \tdeployID := uuid.New().String() \tproject.Deployments[deployID] =  models.Instanc"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/deploy_20241225161735.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "loys()     }      deployID := uuid.New().String()     project.AppendDeploy(deployID,models.Instanc"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/deploy_20241224203527.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "\", readMeString) \tdeployID := uuid.New().String() \tproject.Deployments[deployID] =  models.Instanc"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/deploy_20241224203946.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "\", readMeString) \tdeployID := uuid.New().String() \tproject.Deployments[deployID] =  models.Instanc"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/deploy_20241224203857.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "\", readMeString) \tdeployID := uuid.New().String() \tproject.Deployments[deployID] =  models.Instanc"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/deploy_20241225005232.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "tance)     }      deployID := uuid.New().String()     project.AppendDeploy(deployID,models.Instanc"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/deploy_20241225161802.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "loys()     }      deployID := uuid.New().String()     project.AppendDeploy(deployID,models.Instanc"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/deploy_20241225005408.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "loys()     }      deployID := uuid.New().String()     project.AppendDeploy(deployID,models.Instanc"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/deploy_20241225162121.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "loys()     }      deployID := uuid.New().String()     project.AppendDeploy(deployID,models.Instanc"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/deploy_20241224204409.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "\", readMeString) \tdeployID := uuid.New().String() \tproject.Deployments[deployID] =  models.Instanc"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/deploy_20241225010033.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "loys()     }      deployID := uuid.New().String()     project.AppendDeploy(deployID,models.Instanc"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/deploy_20241224224125.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "tance)     }      deployID := uuid.New().String()     project.Deployments[deployID] = models.Insta"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/deploy_20241225004952.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "tance)     }      deployID := uuid.New().String()     project.Deployments[deployID] = models.Insta"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/deploy_20241225004711.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "tance)     }      deployID := uuid.New().String()     project.Deployments[deployID] = models.Insta"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/aws_20241218231443.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "ojectName) + \"-bytebucket-\" + uuid.New().String() \terr = s3Client.CreateBucket(ctx, bucketName) \ti"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/deploy_20241225004903.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "tance)     }      deployID := uuid.New().String()     project.Deployments[deployID] = models.Insta"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/aws_20241218231426.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "ojectName) + \"-bytebucket-\" + uuid.New().String() \terr = s3Client.CreateBucket(ctx, bucketName) \ti"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/deploy_20241224203630.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "\", readMeString) \tdeployID := uuid.New().String() \tproject.Deployments[deployID] =  models.Instanc"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/deploy_20241225161812.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "loys()     }      deployID := uuid.New().String()     project.AppendDeploy(deployID,models.Instanc"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/deploy_20241224203552.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "\", readMeString) \tdeployID := uuid.New().String() \tproject.Deployments[deployID] =  models.Instanc"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/deploy_20241224202958.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "models.Instance{ \t\t\t\tUUID: uuid.New().String(), \t\t\t\tName: \"main\", \t\t\t\tStatus: \"initializing\","
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/deploy_20241224204357.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "\", readMeString) \tdeployID := uuid.New().String() \tproject.Deployments[deployID] =  models.Instanc"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/deploy_20241224204306.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "\", readMeString) \tdeployID := uuid.New().String() \tproject.Deployments[deployID] =  models.Instanc"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/deploy_20241224203543.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "\", readMeString) \tdeployID := uuid.New().String() \tproject.Deployments[deployID] =  models.Instanc"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/deploy_20241224203403.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "\", readMeString) \tdeployID := uuid.New().String() \tproject.Deployments[deployID] =  models.Instanc"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/deploy_20241224203621.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "\", readMeString) \tdeployID := uuid.New().String() \tproject.Deployments[deployID] =  models.Instanc"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/aws_20241218231437.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "ojectName) + \"-bytebucket-\" + uuid.New().String() \terr = s3Client.CreateBucket(ctx, bucketName) \ti"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/deploy_20241225141432.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "loys()     }      deployID := uuid.New().String()     project.AppendDeploy(deployID,models.Instanc"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/deploy_20241225004813.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "tance)     }      deployID := uuid.New().String()     project.Deployments[deployID] = models.Insta"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/deploy_20241225162130.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "loys()     }      deployID := uuid.New().String()     project.AppendDeploy(deployID,models.Instanc"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/deploy_20241224224223.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "tance)     }      deployID := uuid.New().String()     project.Deployments[deployID] = models.Insta"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/deploy_20241225004724.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "tance)     }      deployID := uuid.New().String()     project.Deployments[deployID] = models.Insta"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/deploy_20241225003849.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "tance)     }      deployID := uuid.New().String()     project.Deployments[deployID] = models.Insta"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/deploy_20241225005246.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "loys()     }      deployID := uuid.New().String()     project.AppendDeploy(deployID,models.Instanc"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/deploy_20241224204111.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "\", readMeString) \tdeployID := uuid.New().String() \tproject.Deployments[deployID] =  models.Instanc"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/deploy_20241224203553.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "\", readMeString) \tdeployID := uuid.New().String() \tproject.Deployments[deployID] =  models.Instanc"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/deploy_20241224203605.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "\", readMeString) \tdeployID := uuid.New().String() \tproject.Deployments[deployID] =  models.Instanc"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/deploy_20241225005110.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "tance)     }      deployID := uuid.New().String()     project.Deployments[deployID] = models.Insta"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/deploy_20241225161936.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "loys()     }      deployID := uuid.New().String()     project.AppendDeploy(deployID,models.Instanc"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/deploy_20241225005050.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "tance)     }      deployID := uuid.New().String()     project.Deployments[deployID] = models.Insta"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/deploy_20241225005001.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "tance)     }      deployID := uuid.New().String()     project.Deployments[deployID] = models.Insta"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/deploy_20241224203547.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "\", readMeString) \tdeployID := uuid.New().String() \tproject.Deployments[deployID] =  models.Instanc"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/deploy_20241224204045.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "\", readMeString) \tdeployID := uuid.New().String() \tproject.Deployments[deployID] =  models.Instanc"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/deploy_20241224204313.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "\", readMeString) \tdeployID := uuid.New().String() \tproject.Deployments[deployID] =  models.Instanc"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/deploy_20241224203803.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "\", readMeString) \tdeployID := uuid.New().String() \tproject.Deployments[deployID] =  models.Instanc"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/deploy_20241225004704.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "tance)     }      deployID := uuid.New().String()     project.Deployments[deployID] = models.Insta"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/deploy_20241225133657.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "loys()     }      deployID := uuid.New().String()     project.AppendDeploy(deployID,models.Instanc"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/deploy_20241225004922.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "tance)     }      deployID := uuid.New().String()     project.Deployments[deployID] = models.Insta"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/deploy_20241224204948.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "\", readMeString) \tdeployID := uuid.New().String() \tproject.Deployments[deployID] =  models.Instanc"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/deploy_20241224203209.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "models.Instance{ \t\t\t\tUUID: uuid.New().String(), \t\t\t\tName: \"main\", \t\t\t\tStatus: \"initializing\","
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/deploy_20241225010002.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "loys()     }      deployID := uuid.New().String()     project.AppendDeploy(deployID,models.Instanc"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/deploy_20241224204958.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "\", readMeString) \tdeployID := uuid.New().String() \tproject.Deployments[deployID] =  models.Instanc"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/deploy_20241225133707.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "loys()     }      deployID := uuid.New().String()     project.AppendDeploy(deployID,models.Instanc"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/deploy_20241225010036.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "loys()     }      deployID := uuid.New().String()     project.AppendDeploy(deployID,models.Instanc"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/deploy_20241225162025.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "loys()     }      deployID := uuid.New().String()     project.AppendDeploy(deployID,models.Instanc"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/aws_20241218231446.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "ojectName) + \"-bytebucket-\" + uuid.New().String() \terr = s3Client.CreateBucket(ctx, bucketName) \ti"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/deploy_20241224203601.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "\", readMeString) \tdeployID := uuid.New().String() \tproject.Deployments[deployID] =  models.Instanc"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/deploy_20241224203842.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "\", readMeString) \tdeployID := uuid.New().String() \tproject.Deployments[deployID] =  models.Instanc"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/deploy_20241224203827.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "\", readMeString) \tdeployID := uuid.New().String() \tproject.Deployments[deployID] =  models.Instanc"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/aws_20241220152329.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "ojectName) + \"-bytebucket-\" + uuid.New().String() \terr = s3Client.CreateBucket(ctx, bucketName) \ti"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/deploy_20241225005031.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "tance)     }      deployID := uuid.New().String()     project.Deployments[deployID] = models.Insta"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/deploy_20241224203557.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "\", readMeString) \tdeployID := uuid.New().String() \tproject.Deployments[deployID] =  models.Instanc"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/deploy_20241224203327.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "\", readMeString) \tdeployID := uuid.New().String() \tproject.Deployments[deployID] =  models.Instanc"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/deploy_20241225004929.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "tance)     }      deployID := uuid.New().String()     project.Deployments[deployID] = models.Insta"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/deploy_20241224203020.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "models.Instance{ \t\t\t\tUUID: uuid.New().String(), \t\t\t\tName: \"main\", \t\t\t\tStatus: \"initializing\","
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/aws_20241218231438.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "ojectName) + \"-bytebucket-\" + uuid.New().String() \terr = s3Client.CreateBucket(ctx, bucketName) \ti"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/aws_20241218225627.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "ojectName) + \"-bytebucket-\" + uuid.New().String() \terr = s3Client.CreateBucket(ctx, bucketName) \ti"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/deploy_20241224205040.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "\", readMeString) \tdeployID := uuid.New().String() \tproject.Deployments[deployID] =  models.Instanc"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/deploy_20241224205100.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "\", readMeString) \tdeployID := uuid.New().String() \tproject.Deployments[deployID] =  models.Instanc"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/deploy_20241224205011.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "\", readMeString) \tdeployID := uuid.New().String() \tproject.Deployments[deployID] =  models.Instanc"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/aws_20241220152332.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "ojectName) + \"-bytebucket-\" + uuid.New().String() \terr = s3Client.CreateBucket(ctx, bucketName) \ti"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/deploy_20241224224546.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "tance)     }      deployID := uuid.New().String()     project.Deployments[deployID] = models.Insta"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/deploy_20241224221332.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "tance)     }      deployID := uuid.New().String()     project.Deployments[deployID] = models.Insta"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/deploy_20241224202946.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "models.Instance{ \t\t\t\tUUID: uuid.New().String(), \t\t\t\tName: \"main\", \t\t\t\tStatus: \"initializing\","
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/deploy_20241224204318.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "\", readMeString) \tdeployID := uuid.New().String() \tproject.Deployments[deployID] =  models.Instanc"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/deploy_20241224204308.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "\", readMeString) \tdeployID := uuid.New().String() \tproject.Deployments[deployID] =  models.Instanc"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/deploy_20241225161828.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "loys()     }      deployID := uuid.New().String()     project.AppendDeploy(deployID,models.Instanc"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/deploy_20241224204248.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "\", readMeString) \tdeployID := uuid.New().String() \tproject.Deployments[deployID] =  models.Instanc"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/deploy_20241224202956.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "models.Instance{ \t\t\t\tUUID: uuid.New().String(), \t\t\t\tName: \"main\", \t\t\t\tStatus: \"initializing\","
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/deploy_20241224230116.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "tance)     }      deployID := uuid.New().String()     project.Deployments[deployID] = models.Insta"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/deploy_20241224205141.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "\", readMeString) \tdeployID := uuid.New().String() \tproject.Deployments[deployID] =  models.Instanc"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/deploy_20241225141332.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "loys()     }      deployID := uuid.New().String()     project.AppendDeploy(deployID,models.Instanc"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/deploy_20241224205001.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "\", readMeString) \tdeployID := uuid.New().String() \tproject.Deployments[deployID] =  models.Instanc"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/deploy_20241225005358.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "loys()     }      deployID := uuid.New().String()     project.AppendDeploy(deployID,models.Instanc"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/aws_20241218225637.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "ojectName) + \"-bytebucket-\" + uuid.New().String() \terr = s3Client.CreateBucket(ctx, bucketName) \ti"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/deploy_20241225004939.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "tance)     }      deployID := uuid.New().String()     project.Deployments[deployID] = models.Insta"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/deploy_20241225005402.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "loys()     }      deployID := uuid.New().String()     project.AppendDeploy(deployID,models.Instanc"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/deploy_20241225005946.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "loys()     }      deployID := uuid.New().String()     project.AppendDeploy(deployID,models.Instanc"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/deploy_20241224204512.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "\", readMeString) \tdeployID := uuid.New().String() \tproject.Deployments[deployID] =  models.Instanc"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/deploy_20241225004859.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "tance)     }      deployID := uuid.New().String()     project.Deployments[deployID] = models.Insta"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/deploy_20241224220745.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "tance)     }      deployID := uuid.New().String()     project.Deployments[deployID] = models.Insta"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/aws_20241218225623.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "ojectName) + \"-bytebucket-\" + uuid.New().String() \terr = s3Client.CreateBucket(ctx, bucketName) \ti"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/deploy_20241224204239.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "\", readMeString) \tdeployID := uuid.New().String() \tproject.Deployments[deployID] =  models.Instanc"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/deploy_20241224203408.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "\", readMeString) \tdeployID := uuid.New().String() \tproject.Deployments[deployID] =  models.Instanc"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/deploy_20241225161958.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "loys()     }      deployID := uuid.New().String()     project.AppendDeploy(deployID,models.Instanc"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/deploy_20241224204338.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "\", readMeString) \tdeployID := uuid.New().String() \tproject.Deployments[deployID] =  models.Instanc"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/deploy_20241225003741.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "tance)     }      deployID := uuid.New().String()     project.Deployments[deployID] = models.Insta"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/deploy_20241225003842.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "tance)     }      deployID := uuid.New().String()     project.Deployments[deployID] = models.Insta"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/deploy_20241224203051.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "models.Instance{ \t\t\t\tUUID: uuid.New().String(), \t\t\t\tName: \"main\", \t\t\t\tStatus: \"initializing\","
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/deploy_20241224224228.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "tance)     }      deployID := uuid.New().String()     project.Deployments[deployID] = models.Insta"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/deploy_20241224204906.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "\", readMeString) \tdeployID := uuid.New().String() \tproject.Deployments[deployID] =  models.Instanc"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/deploy_20241224220730.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "tance)     }      deployID := uuid.New().String()     project.Deployments[deployID] = models.Insta"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/deploy_20241224204536.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "\", readMeString) \tdeployID := uuid.New().String() \tproject.Deployments[deployID] =  models.Instanc"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/deploy_20241224203316.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "\", readMeString) \tdeployID := uuid.New().String() \tproject.Deployments[deployID] = append(project."
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/deploy_20241224204857.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "\", readMeString) \tdeployID := uuid.New().String() \tproject.Deployments[deployID] =  models.Instanc"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/deploy_20241224204917.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "\", readMeString) \tdeployID := uuid.New().String() \tproject.Deployments[deployID] =  models.Instanc"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/deploy_20241224204946.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "\", readMeString) \tdeployID := uuid.New().String() \tproject.Deployments[deployID] =  models.Instanc"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/deploy_20241224203322.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "\", readMeString) \tdeployID := uuid.New().String() \tproject.Deployments[deployID] =  models.Instanc"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/deploy_20241224203233.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "{models.Instance{ \t\t\t\tUUID: uuid.New().String(), \t\t\t\tName: \"main\", \t\t\t\tStatus: \"initializing\","
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/deploy_20241225004809.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "tance)     }      deployID := uuid.New().String()     project.Deployments[deployID] = models.Insta"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/deploy_20241225004949.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "tance)     }      deployID := uuid.New().String()     project.Deployments[deployID] = models.Insta"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/deploy_20241225003836.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "tance)     }      deployID := uuid.New().String()     project.Deployments[deployID] = models.Insta"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/deploy_20241224202943.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "models.Instance{ \t\t\t\tUUID: uuid.New().String(), \t\t\t\tName: \"main\", \t\t\t\tStatus: \"initializing\","
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/deploy_20241224203518.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "\", readMeString) \tdeployID := uuid.New().String() \tproject.Deployments[deployID] =  models.Instanc"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/deploy_20241224203458.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "\", readMeString) \tdeployID := uuid.New().String() \tproject.Deployments[deployID] =  models.Instanc"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/deploy_20241224204329.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "\", readMeString) \tdeployID := uuid.New().String() \tproject.Deployments[deployID] =  models.Instanc"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/deploy_20241225161809.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "loys()     }      deployID := uuid.New().String()     project.AppendDeploy(deployID,models.Instanc"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/deploy_20241225161353.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "loys()     }      deployID := uuid.New().String()     project.AppendDeploy(deployID,models.Instanc"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/deploy_20241224203001.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "models.Instance{ \t\t\t\tUUID: uuid.New().String(), \t\t\t\tName: \"main\", \t\t\t\tStatus: \"initializing\","
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/deploy_20241224204816.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "\", readMeString) \tdeployID := uuid.New().String() \tproject.Deployments[deployID] =  models.Instanc"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/deploy_20241224203357.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "\", readMeString) \tdeployID := uuid.New().String() \tproject.Deployments[deployID] =  models.Instanc"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/deploy_20241224204457.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "\", readMeString) \tdeployID := uuid.New().String() \tproject.Deployments[deployID] =  models.Instanc"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/deploy_20241224204546.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "\", readMeString) \tdeployID := uuid.New().String() \tproject.Deployments[deployID] =  models.Instanc"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/deploy_20241224204432.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "\", readMeString) \tdeployID := uuid.New().String() \tproject.Deployments[deployID] =  models.Instanc"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/deploy_20241224204913.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "\", readMeString) \tdeployID := uuid.New().String() \tproject.Deployments[deployID] =  models.Instanc"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/aws_20241220152333.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "ojectName) + \"-bytebucket-\" + uuid.New().String() \terr = s3Client.CreateBucket(ctx, bucketName) \ti"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/deploy_20241224205206.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "\", readMeString) \tdeployID := uuid.New().String() \tproject.Deployments[deployID] =  models.Instanc"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/deploy_20241224204348.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "\", readMeString) \tdeployID := uuid.New().String() \tproject.Deployments[deployID] =  models.Instanc"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/deploy_20241224205135.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "\", readMeString) \tdeployID := uuid.New().String() \tproject.Deployments[deployID] =  models.Instanc"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/deploy_20241224204358.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "\", readMeString) \tdeployID := uuid.New().String() \tproject.Deployments[deployID] =  models.Instanc"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/deploy_20241224230032.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "tance)     }      deployID := uuid.New().String()     project.deployments[deployID] = models.Insta"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/deploy_20241224220735.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "tance)     }      deployID := uuid.New().String()     project.Deployments[deployID] = models.Insta"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/aws_20241218231429.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "ojectName) + \"-bytebucket-\" + uuid.New().String() \terr = s3Client.CreateBucket(ctx, bucketName) \ti"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/deploy_20241225010059.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "loys()     }      deployID := uuid.New().String()     project.AppendDeploy(deployID,models.Instanc"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/deploy_20241224204937.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "\", readMeString) \tdeployID := uuid.New().String() \tproject.Deployments[deployID] =  models.Instanc"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/deploy_20241225005953.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "loys()     }      deployID := uuid.New().String()     project.AppendDeploy(deployID,models.Instanc"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/deploy_20241224204854.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "\", readMeString) \tdeployID := uuid.New().String() \tproject.Deployments[deployID] =  models.Instanc"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/deploy_20241225004709.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "tance)     }      deployID := uuid.New().String()     project.Deployments[deployID] = models.Insta"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/deploy_20241225004758.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "tance)     }      deployID := uuid.New().String()     project.Deployments[deployID] = models.Insta"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/deploy_20241224204510.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "\", readMeString) \tdeployID := uuid.New().String() \tproject.Deployments[deployID] =  models.Instanc"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/deploy_20241224204450.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "\", readMeString) \tdeployID := uuid.New().String() \tproject.Deployments[deployID] =  models.Instanc"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/deploy_20241224204541.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "\", readMeString) \tdeployID := uuid.New().String() \tproject.Deployments[deployID] =  models.Instanc"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/deploy_20241225005944.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "loys()     }      deployID := uuid.New().String()     project.AppendDeploy(deployID,models.Instanc"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/deploy_20241224205132.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "\", readMeString) \tdeployID := uuid.New().String() \tproject.Deployments[deployID] =  models.Instanc"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/deploy_20241225003736.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "tance)     }      deployID := uuid.New().String()     project.Deployments[deployID] = models.Insta"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/deploy_20241224230100.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "tance)     }      deployID := uuid.New().String()     project.Deployments[deployID] = models.Insta"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/deploy_20241225003850.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "tance)     }      deployID := uuid.New().String()     project.Deployments[deployID] = models.Insta"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/deploy_20241224230025.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "tance)     }      deployID := uuid.New().String()     project.Deployments[deployID] = models.Insta"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/aws_20241218225621.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "ojectName) + \"-bytebucket-\" + uuid.New().String() \terr = s3Client.CreateBucket(ctx, bucketName) \ti"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/aws_20241218225631.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "ojectName) + \"-bytebucket-\" + uuid.New().String() \terr = s3Client.CreateBucket(ctx, bucketName) \ti"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/deploy_20241225003840.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "tance)     }      deployID := uuid.New().String()     project.Deployments[deployID] = models.Insta"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/deploy_20241224205116.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "\", readMeString) \tdeployID := uuid.New().String() \tproject.Deployments[deployID] =  models.Instanc"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/deploy_20241224230050.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "tance)     }      deployID := uuid.New().String()     project.Deployments[deployID] = models.Insta"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/deploy_20241225005059.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "tance)     }      deployID := uuid.New().String()     project.Deployments[deployID] = models.Insta"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/deploy_20241225162139.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "loys()     }      deployID := uuid.New().String()     project.AppendDeploy(deployID,models.Instanc"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/deploy_20241224204534.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "\", readMeString) \tdeployID := uuid.New().String() \tproject.Deployments[deployID] =  models.Instanc"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/deploy_20241224203305.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "\", readMeString) \tdeployID := uuid.New().String() \tproject.Deployments = append(project.Deployment"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/deploy_20241224203245.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "\", readMeString) \tnewUUID := uuid.New().String() \tproject.Deployments = append(project.Deployment",
+        "{models.Instance{ \t\t\t\tUUID: uuid.New().String(), \t\t\t\tName: \"main\", \t\t\t\tStatus: \"initializing\","
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/deploy_20241224220732.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "tance)     }      deployID := uuid.New().String()     project.Deployments[deployID] = models.Insta"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/deploy_20241224220743.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "tance)     }      deployID := uuid.New().String()     project.Deployments[deployID] = models.Insta"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/deploy_20241224204924.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "\", readMeString) \tdeployID := uuid.New().String() \tproject.Deployments[deployID] =  models.Instanc"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/deploy_20241224203325.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "\", readMeString) \tdeployID := uuid.New().String() \tproject.Deployments[deployID] =  models.Instanc"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/deploy_20241224204514.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "\", readMeString) \tdeployID := uuid.New().String() \tproject.Deployments[deployID] =  models.Instanc"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/deploy_20241224204454.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "\", readMeString) \tdeployID := uuid.New().String() \tproject.Deployments[deployID] =  models.Instanc"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/deploy_20241225162008.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "loys()     }      deployID := uuid.New().String()     project.AppendDeploy(deployID,models.Instanc"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/deploy_20241224203251.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "\", readMeString) \tnewUUID := uuid.New().String() \tproject.Deployments = append(project.Deployment"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/deploy_20241224205013.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "\", readMeString) \tdeployID := uuid.New().String() \tproject.Deployments[deployID] =  models.Instanc"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/deploy_20241224205102.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "\", readMeString) \tdeployID := uuid.New().String() \tproject.Deployments[deployID] =  models.Instanc"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/deploy_20241224224544.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "tance)     }      deployID := uuid.New().String()     project.Deployments[deployID] = models.Insta"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/deploy_20241225004002.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "tance)     }      deployID := uuid.New().String()     project.Deployments[deployID] = models.Insta"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/deploy_20241224203659.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "\", readMeString) \tdeployID := uuid.New().String() \tproject.Deployments[deployID] =  models.Instanc"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/deploy_20241225003844.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "tance)     }      deployID := uuid.New().String()     project.Deployments[deployID] = models.Insta"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/deploy_20241224202931.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "models.Instance{ \t\t\t\tUUID: uuid.New().String(), \t\t\t\tName: \"main\", \t\t\t\t  \t\t\t}, \t\t\t\t   \t\t}, \t\tSta"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/deploy_20241224203301.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "\", readMeString) \tdeployID := uuid.New().String() \tproject.Deployments = append(project.Deployment"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "file": "crates/byteport/.history/backend/nvms/Deploy/deploy_20241224204951.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "\", readMeString) \tdeployID := uuid.New().String() \tproject.Deployments[deployID] =  models.Instanc"
+      ]
+    },
+    {
+      "repo": "Planify",
+      "file": "apps/api/plane/utils/porters/exporter.py",
+      "library_replacement": "serde_json / encoding/json / json",
+      "pattern": "serde_json",
+      "evidence": [
+        "return formatter_class()      def serialize(self, queryset) -> List[Dict]:         \"\"\"QuerySet \u2192 list o"
+      ]
+    },
+    {
+      "repo": "Planify",
+      "file": "apps/api/plane/utils/exporters/schemas/base.py",
+      "library_replacement": "serde_json / encoding/json / json",
+      "pattern": "serde_json",
+      "evidence": [
+        ".context = context or {}      def serialize(self, obj: Any, fields: Optional[List[str]] = None) -> Dict",
+        "turn {}      @classmethod     def serialize_queryset(cls, queryset: QuerySet, fields: List[str] = None)"
+      ]
+    },
+    {
+      "repo": "Planify",
+      "file": "apps/live/src/controllers/pdf-export.controller.ts",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "onse) {     const requestId = crypto.randomUUID();      const effect = Effect.gen(this, function* () {"
+      ]
+    },
+    {
+      "repo": "Planify",
+      "file": "apps/web/core/store/favorite.store.ts",
+      "library_replacement": "serde_json / encoding/json / json",
+      "pattern": "serde_json",
+      "evidence": [
+        "iteId: string]: IFavorite } = JSON.parse(JSON.stringify(this.currentWorkspaceFavorites));      Object.values(data)."
+      ]
+    },
+    {
+      "repo": "Pyron",
+      "file": "crates/phenotype-telemetry/src/lib.rs",
+      "library_replacement": "serde_json / encoding/json / json",
+      "pattern": "serde_json",
+      "evidence": [
+        "ey: impl Into<String>, value: impl Serialize) -> Self {         if let Ok(v) = serde_json::to_value(valu"
+      ]
+    },
+    {
+      "repo": "Pyron",
+      "file": "crates/agileplus-cli/src/commands/validate.rs",
+      "library_replacement": "serde_json / encoding/json / json",
+      "pattern": "serde_json",
+      "evidence": [
+        "lines.join(\"\\n\")     }      fn to_json(&self) -> String {         let missing: Vec<serde_json::Val"
+      ]
+    },
+    {
+      "repo": "Pyron",
+      "file": "crates/agileplus-cli/src/commands/validate/report.rs",
+      "library_replacement": "serde_json / encoding/json / json",
+      "pattern": "serde_json",
+      "evidence": [
+        "n(\"\\n\")     }      pub(crate) fn to_json(&self) -> String {         let missing: Vec<serde_json::Val"
+      ]
+    },
+    {
+      "repo": "Tokn",
+      "file": "src/utils.rs",
+      "library_replacement": "serde_json / encoding/json / json",
+      "pattern": "serde_json",
+      "evidence": [
+        ";     }     Ok(events) }  pub fn parse_jsonl_file(path: &Path, out: &mut Vec<UsageEvent>) -> Result<()>"
+      ]
+    },
+    {
+      "repo": "Tokn",
+      "file": "crates/tokenledger/src/utils.rs",
+      "library_replacement": "serde_json / encoding/json / json",
+      "pattern": "serde_json",
+      "evidence": [
+        ";     }     Ok(events) }  pub fn parse_jsonl_file(path: &Path, out: &mut Vec<UsageEvent>) -> Result<()>"
+      ]
+    },
+    {
+      "repo": "Tracera",
+      "file": "src/tracertm/models/webhook_integration.py",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "odels.types import JSONType   def generate_uuid() -> str:     \"\"\"Generate a UUID string.\"\"\"     return str("
+      ]
+    },
+    {
+      "repo": "Tracera",
+      "file": "src/tracertm/models/test_coverage.py",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "odels.types import JSONType   def generate_uuid() -> str:     \"\"\"Generate a UUID string.\"\"\"     return str("
+      ]
+    },
+    {
+      "repo": "Tracera",
+      "file": "src/tracertm/models/test_run.py",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "odels.types import JSONType   def generate_uuid() -> str:     \"\"\"Generate a UUID string.\"\"\"     return str("
+      ]
+    },
+    {
+      "repo": "Tracera",
+      "file": "src/tracertm/models/test_suite.py",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "odels.types import JSONType   def generate_uuid() -> str:     \"\"\"Generate a UUID string.\"\"\"     return str("
+      ]
+    },
+    {
+      "repo": "Tracera",
+      "file": "src/tracertm/models/base.py",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "nullable=False,     )   def generate_uuid() -> uuid.UUID:     \"\"\"Generate a UUID.\"\"\"     return uuid."
+      ]
+    },
+    {
+      "repo": "Tracera",
+      "file": "src/tracertm/models/project.py",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "rtm.models.item import Item   def generate_uuid() -> uuid.UUID:     \"\"\"Generate a UUID for project ID.\"\"\""
+      ]
+    },
+    {
+      "repo": "Tracera",
+      "file": "src/tracertm/services/advanced_traceability_service.py",
+      "library_replacement": "regex / regexp",
+      "pattern": "regex crate",
+      "evidence": [
+        "epository(session)      async def find_all_paths(         self,         source_id: str | uuid.UUID,"
+      ]
+    },
+    {
+      "repo": "Tracera",
+      "file": "src/tracertm/services/shortest_path_service.py",
+      "library_replacement": "regex / regexp",
+      "pattern": "regex crate",
+      "evidence": [
+        "_exists,         )      async def find_all_shortest_paths(         self,         project_id: str | uui"
+      ]
+    },
+    {
+      "repo": "Tracera",
+      "file": "src/tracertm/validation/id_validator.py",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "turn id_str.strip().lower()   def generate_uuid() -> str:     \"\"\"Generate new UUID as string.      Returns:"
+      ]
+    },
+    {
+      "repo": "Tracera",
+      "file": "src/tracertm/api/handlers/items.py",
+      "library_replacement": "serde_json / encoding/json / json",
+      "pattern": "serde_json",
+      "evidence": [
+        "return total_count, items   def serialize_item_for_list(item: Item, project_id: str | None) -> dict[s"
+      ]
+    },
+    {
+      "repo": "Tracera",
+      "file": "tests/unit/test_error_path_cli_tui.py",
+      "library_replacement": "clap / argparse / commander",
+      "pattern": "clap CLI parser",
+      "evidence": [
+        "ument is missing.\"\"\"          def parse_args(args: Any) -> None:             if not args or \"project\" no",
+        "t has wrong type.\"\"\"          def parse_args(args: Any) -> None:             project_id = args.get(\"id\")",
+        "t requires value.\"\"\"          def parse_args(args: Any) -> None:             if \"--name\" in args:"
+      ]
+    },
+    {
+      "repo": "Tracera",
+      "file": "tests/integration/test_mcp_optimizations.py",
+      "library_replacement": "reqwest / urllib3 / net/http",
+      "pattern": "reqwest / urllib HTTP client",
+      "evidence": [
+        "urrent requests         async def make_request(_request_id: int) -> None:             conn = await pool.ac"
+      ]
+    },
+    {
+      "repo": "Tracera",
+      "file": "tests/load/test_mcp_http_load.py",
+      "library_replacement": "reqwest / urllib3 / net/http",
+      "pattern": "reqwest / urllib HTTP client",
+      "evidence": [
+        "=====================   async def make_request(     client: httpx.AsyncClient,     request_data: dict[str,"
+      ]
+    },
+    {
+      "repo": "Tracera",
+      "file": "tests/unit/core/test_async_concurrency_patterns.py",
+      "library_replacement": "reqwest / urllib3 / net/http",
+      "pattern": "reqwest / urllib HTTP client",
+      "evidence": [
+        "I requests.\"\"\"          async def make_request(request_id: int) -> dict:             await asyncio.sleep(0"
+      ]
+    },
+    {
+      "repo": "cliproxyapi-plusplus",
+      "file": "internal/auth/codebuddy/codebuddy_auth.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        ": %w\", err) \t}  \trequestID := uuid.NewString() \treq.Header.Set(\"Accept\", \"application/json, text/p",
+        "questID := strings.ReplaceAll(uuid.New().String(), \"-\", \"\") \treq.Header.Set(\"Accept\", \"application"
+      ]
+    },
+    {
+      "repo": "cliproxyapi-plusplus",
+      "file": "pkg/llmproxy/wsrelay/http.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "nil\") \t} \tmsg := Message{ID: uuid.NewString(), Type: MessageTypeHTTPReq, Payload: encodeRequest(r",
+        "nil\") \t} \tmsg := Message{ID: uuid.NewString(), Type: MessageTypeHTTPReq, Payload: encodeRequest(r"
+      ]
+    },
+    {
+      "repo": "cliproxyapi-plusplus",
+      "file": "pkg/llmproxy/executor/antigravity_executor.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        ") string { \treturn \"agent-\" + uuid.NewString() }  func generateImageGenRequestID() string { \tretur",
+        "/12\", time.Now().UnixMilli(), uuid.NewString()) }  func generateSessionID() string { \trandSourceMu",
+        "randomPart := strings.ToLower(uuid.NewString())[:5] \treturn adj + \"-\" + noun + \"-\" + randomPart }"
+      ]
+    },
+    {
+      "repo": "cliproxyapi-plusplus",
+      "file": "pkg/llmproxy/executor/kiro_executor.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        ".Set(\"Amz-Sdk-Invocation-Id\", uuid.New().String())  \t\t\t// Bearer token authentication for all auth"
+      ]
+    },
+    {
+      "repo": "cliproxyapi-plusplus",
+      "file": "pkg/llmproxy/executor/cursor_executor.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "rr)) \t}  \tid := \"chatcmpl-\" + uuid.New().String()[:28] \tcreated := time.Now().Unix() \topenaiResp,",
+        "64) \tchatId := \"chatcmpl-\" + uuid.New().String()[:28] \tcreated := time.Now().Unix()  \tvar streamP",
+        "chatId = \"chatcmpl-\" + uuid.New().String()[:28] \t\t\t\t\t\tcreated = time.Now().Unix() \t\t\t\t\t\tout"
+      ]
+    },
+    {
+      "repo": "cliproxyapi-plusplus",
+      "file": "pkg/llmproxy/executor/github_copilot_executor.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "r.Header.Set(\"X-Request-Id\", uuid.NewString())  \tinitiator := \"user\" \tif role := detectLastConver"
+      ]
+    },
+    {
+      "repo": "cliproxyapi-plusplus",
+      "file": "pkg/llmproxy/executor/iflow_executor.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "ates a random UUID v4 string. func generateUUID() string { \treturn uuid.New().String() }  func iflowCreds(a",
+        "nerateUUID() string { \treturn uuid.New().String() }  func iflowCreds(a *cliproxyauth.Auth) (apiKey"
+      ]
+    },
+    {
+      "repo": "cliproxyapi-plusplus",
+      "file": "pkg/llmproxy/executor/codex_websockets_executor.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "he = codexCache{ \t\t\t\t\tID:     uuid.New().String(), \t\t\t\t\tExpire: time.Now().Add(1 * time.Hour),",
+        "rs, ginHeaders, \"Session_id\", uuid.NewString()) \tensureHeaderWithConfigPrecedence(headers, ginHead"
+      ]
+    },
+    {
+      "repo": "cliproxyapi-plusplus",
+      "file": "pkg/llmproxy/executor/codex_executor.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "he = codexCache{ \t\t\t\t\tID:     uuid.New().String(), \t\t\t\t\tExpire: time.Now().Add(1 * time.Hour),",
+        "apiKey != \"\" { \t\t\tcache.ID = uuid.NewSHA1(uuid.NameSpaceOID, []byte(\"cli-proxy-api:codex:prompt-c",
+        "er, ginHeaders, \"Session_id\", uuid.NewString()) \tmisc.EnsureHeader(r.Header, ginHeaders, \"X-Codex-"
+      ]
+    },
+    {
+      "repo": "cliproxyapi-plusplus",
+      "file": "pkg/llmproxy/executor/kiro_streaming.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        ".Set(\"Amz-Sdk-Invocation-Id\", uuid.New().String())  \t\t\t// Bearer token authentication for all auth",
+        ".Set(\"Amz-Sdk-Invocation-Id\", uuid.New().String())  \t// 5. Authentication \treq.Header.Set(\"Authori"
+      ]
+    },
+    {
+      "repo": "cliproxyapi-plusplus",
+      "file": "pkg/llmproxy/executor/codex_executor_cache_test.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "errRead) \t}  \texpectedKey := uuid.NewSHA1(uuid.NameSpaceOID, []byte(\"cli-proxy-api:codex:prompt-c"
+      ]
+    },
+    {
+      "repo": "cliproxyapi-plusplus",
+      "file": "pkg/llmproxy/executor/cloak_utils.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "ing(hexBytes) \taccountUUID := uuid.New().String() \tsessionUUID := uuid.New().String() \treturn \"use",
+        "ew().String() \tsessionUUID := uuid.New().String() \treturn \"user_\" + hexPart + \"_account_\" + accoun"
+      ]
+    },
+    {
+      "repo": "cliproxyapi-plusplus",
+      "file": "pkg/llmproxy/translator/openai/gemini/openai_gemini_response.go",
+      "library_replacement": "serde_json / encoding/json / json",
+      "pattern": "serde_json",
+      "evidence": [
+        "and the index just after it. func parseJSONStringRunes(runes []rune, start int) (string, int) { \tif sta"
+      ]
+    },
+    {
+      "repo": "cliproxyapi-plusplus",
+      "file": "pkg/llmproxy/translator/openai/gemini/openai_gemini_response.go",
+      "library_replacement": "clap / argparse / commander",
+      "pattern": "clap CLI parser",
+      "evidence": [
+        "t be parsed as a JSON object. func parseArgsToObjectRaw(argsStr string) string { \ttrimmed := strings.Tri"
+      ]
+    },
+    {
+      "repo": "cliproxyapi-plusplus",
+      "file": "pkg/llmproxy/translator/kiro/claude/kiro_claude_stream.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "\"id\":            \"msg_\" + uuid.New().String()[:24], \t\t\t\"type\":          \"message\", \t\t\t\"role\":"
+      ]
+    },
+    {
+      "repo": "cliproxyapi-plusplus",
+      "file": "pkg/llmproxy/translator/kiro/claude/kiro_claude_response.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "{}{ \t\t\"id\":          \"msg_\" + uuid.New().String()[:24], \t\t\"type\":        \"message\", \t\t\"role\":"
+      ]
+    },
+    {
+      "repo": "cliproxyapi-plusplus",
+      "file": "pkg/llmproxy/translator/kiro/claude/kiro_websearch_handler.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        ".Set(\"Amz-Sdk-Invocation-Id\", uuid.New().String())  \t// 5. Authentication \treq.Header.Set(\"Authori"
+      ]
+    },
+    {
+      "repo": "cliproxyapi-plusplus",
+      "file": "pkg/llmproxy/translator/kiro/claude/kiro_claude_tools.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "ID \t\ttoolUseID := \"toolu_\" + uuid.New().String()[:12]  \t\t// Check for duplicates using name+input"
+      ]
+    },
+    {
+      "repo": "cliproxyapi-plusplus",
+      "file": "pkg/llmproxy/translator/kiro/claude/kiro_websearch.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "ateRandomID8() string { \tu := uuid.New() \treturn strings.ToLower(strings.ReplaceAll(u.String(), \"-",
+        "vtoolu_\" + strings.ReplaceAll(uuid.New().String(), \"-\", \"\")[:32]  \trequest := &McpRequest{ \t\tID:",
+        "{ \treturn strings.ReplaceAll(uuid.New().String(), \"-\", \"\")[:22] }  // ReplaceWebSearchToolDescrip"
+      ]
+    },
+    {
+      "repo": "cliproxyapi-plusplus",
+      "file": "pkg/llmproxy/translator/kiro/claude/kiro_claude_request.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "ID == \"\" { \t\tconversationID = uuid.New().String() \t}  \tpayload := KiroPayload{ \t\tConversationState"
+      ]
+    },
+    {
+      "repo": "cliproxyapi-plusplus",
+      "file": "pkg/llmproxy/translator/kiro/openai/kiro_openai_response.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "}{ \t\t\"id\":      \"chatcmpl-\" + uuid.New().String()[:24], \t\t\"object\":  \"chat.completion\", \t\t\"created",
+        "}{ \t\t\"id\":      \"chatcmpl-\" + uuid.New().String()[:12], \t\t\"object\":  \"chat.completion.chunk\", \t\t\"c",
+        "}{ \t\t\"id\":      \"chatcmpl-\" + uuid.New().String()[:12], \t\t\"object\":  \"chat.completion.chunk\", \t\t\"c"
+      ]
+    },
+    {
+      "repo": "cliproxyapi-plusplus",
+      "file": "pkg/llmproxy/translator/kiro/openai/kiro_openai_stream.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "ponseID:        \"chatcmpl-\" + uuid.New().String()[:24], \t\tCreated:           time.Now().Unix(), \t}"
+      ]
+    },
+    {
+      "repo": "cliproxyapi-plusplus",
+      "file": "pkg/llmproxy/translator/kiro/openai/kiro_openai_request.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "ID == \"\" { \t\tconversationID = uuid.New().String() \t}  \tpayload := KiroPayload{ \t\tConversationState"
+      ]
+    },
+    {
+      "repo": "cliproxyapi-plusplus",
+      "file": "pkg/llmproxy/translator/claude/gemini/claude_gemini_request.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "if account == \"\" { \t\tu, _ := uuid.NewRandom() \t\taccount = u.String() \t} \tif session == \"\" { \t\tu,",
+        "if session == \"\" { \t\tu, _ := uuid.NewRandom() \t\tsession = u.String() \t} \tif user == \"\" { \t\tsum :="
+      ]
+    },
+    {
+      "repo": "cliproxyapi-plusplus",
+      "file": "pkg/llmproxy/translator/claude/openai/responses/claude_openai-responses_request.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "if account == \"\" { \t\tu, _ := uuid.NewRandom() \t\taccount = u.String() \t} \tif session == \"\" { \t\tu,",
+        "if session == \"\" { \t\tu, _ := uuid.NewRandom() \t\tsession = u.String() \t} \tif user == \"\" { \t\tsum :="
+      ]
+    },
+    {
+      "repo": "cliproxyapi-plusplus",
+      "file": "pkg/llmproxy/translator/claude/openai/chat-completions/claude_openai_request.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "if account == \"\" { \t\tu, _ := uuid.NewRandom() \t\taccount = u.String() \t} \tif session == \"\" { \t\tu,",
+        "if session == \"\" { \t\tu, _ := uuid.NewRandom() \t\tsession = u.String() \t} \tif user == \"\" { \t\tsum :="
+      ]
+    },
+    {
+      "repo": "cliproxyapi-plusplus",
+      "file": "pkg/llmproxy/auth/kiro/runtime_helpers.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "} \treturn GenerateAccountKey(uuid.New().String()) }  // Process-wide FingerprintManager singleton",
+        ".Set(\"amz-sdk-invocation-id\", uuid.New().String()) \treq.Header.Set(\"amz-sdk-request\", \"attempt=1;"
+      ]
+    },
+    {
+      "repo": "cliproxyapi-plusplus",
+      "file": "pkg/llmproxy/auth/kimi/kimi.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "teDeviceID() string { \treturn uuid.New().String() }  // getDeviceModel returns a device model stri"
+      ]
+    },
+    {
+      "repo": "heliosApp",
+      "file": "apps/runtime/src/renderer/switch.ts",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "_000;   const correlationId = crypto.randomUUID();   const switchStart = Date.now();    const fromAdapter ="
+      ]
+    },
+    {
+      "repo": "heliosApp",
+      "file": "apps/runtime/src/renderer/switch_transaction.ts",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "itchTransaction = {       id: crypto.randomUUID(),       state: \"pending\",       sourceRendererId: request.",
+        "e.now(),       correlationId: crypto.randomUUID(),     };      this._activeTransaction = transaction;"
+      ]
+    },
+    {
+      "repo": "heliosApp",
+      "file": "apps/runtime/src/renderer/rollback.ts",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "e.now(),       correlationId: crypto.randomUUID(),       fromRenderer: targetAdapter.id,       toRenderer:"
+      ]
+    },
+    {
+      "repo": "heliosApp",
+      "file": "apps/runtime/src/pty/idle_monitor.ts",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "d,             correlationId: crypto.randomUUID(),           };           emitPtyEvent(this.bus, \"pty.state",
+        "correlationId: crypto.randomUUID(),             };             emitPtyEvent(this.bus, \"pty.i"
+      ]
+    },
+    {
+      "repo": "heliosApp",
+      "file": "apps/runtime/src/pty/spawn.ts",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "atePtyId(): string {   return crypto.randomUUID(); }  /**  * Spawn a new PTY process, register it, and retu"
+      ]
+    },
+    {
+      "repo": "heliosApp",
+      "file": "apps/runtime/src/pty/io.ts",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "minalId,       correlationId: crypto.randomUUID(),     };      emitPtyEvent(bus, \"pty.error\", correlation,"
+      ]
+    },
+    {
+      "repo": "heliosApp",
+      "file": "apps/runtime/src/pty/events.ts",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "vent: PtyBusEvent = {     id: crypto.randomUUID(),     type: \"event\",     ts: new Date().toISOString(),"
+      ]
+    },
+    {
+      "repo": "heliosApp",
+      "file": "apps/runtime/src/pty/index.ts",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "minalId,       correlationId: crypto.randomUUID(),     };      _emitPtyEvent(this.bus, \"pty.spawned\", corre"
+      ]
+    },
+    {
+      "repo": "heliosApp",
+      "file": "apps/runtime/src/pty/signals.ts",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "erminalId,     correlationId: crypto.randomUUID(),   };    // Deliver SIGWINCH to child process.   deliverS",
+        "erminalId,     correlationId: crypto.randomUUID(),   };    const checkAlive =     isAlive ??     ((pid: num",
+        "erminalId,     correlationId: crypto.randomUUID(),   };    return deliverSignal(record.pid, \"SIGHUP\", recor"
+      ]
+    },
+    {
+      "repo": "heliosApp",
+      "file": "apps/runtime/src/recovery/restoration.ts",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "this.bus.publish({       id: randomUUID(),       type: \"event\",       ts: new Date().toISOString(),",
+        "this.bus.publish({       id: randomUUID(),       type: \"event\",       ts: new Date().toISOString(),"
+      ]
+    },
+    {
+      "repo": "heliosApp",
+      "file": "apps/runtime/src/recovery/safe-mode.ts",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "his.bus.publish({         id: randomUUID(),         type: \"event\",         ts: new Date().toISOString",
+        "his.bus.publish({         id: randomUUID(),         type: \"event\",         ts: new Date().toISOString"
+      ]
+    },
+    {
+      "repo": "heliosApp",
+      "file": "apps/runtime/src/recovery/state-machine.ts",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "his.bus.publish({         id: randomUUID(),         type: \"event\",         ts: new Date().toISOString"
+      ]
+    },
+    {
+      "repo": "heliosApp",
+      "file": "apps/runtime/src/recovery/watchdog.ts",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "his.bus.publish({         id: randomUUID(),         type: \"event\",         ts: new Date().toISOString"
+      ]
+    },
+    {
+      "repo": "heliosApp",
+      "file": "apps/runtime/src/recovery/orphan-reconciler.ts",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "his.bus.publish({         id: randomUUID(),         type: \"event\",         ts: new Date().toISOString"
+      ]
+    },
+    {
+      "repo": "heliosApp",
+      "file": "apps/runtime/src/sessions/state_machine.ts",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        ");     const laneId = `lane_${crypto.randomUUID()}`;     const correlationId = `lane.create:${laneId}:${Dat"
+      ]
+    },
+    {
+      "repo": "heliosApp",
+      "file": "apps/runtime/src/sessions/registry.ts",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        ": string {     return `sess_${crypto.randomUUID()}`;   }    private generateCodexSessionId(): string {",
+        "string {     return `codex_${crypto.randomUUID()}`;   } }  export class RecoveryRegistry {   private reado"
+      ]
+    },
+    {
+      "repo": "heliosApp",
+      "file": "apps/runtime/src/audit/event.ts",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "or time-ordered IDs.   return randomUUID(); }"
+      ]
+    },
+    {
+      "repo": "heliosApp",
+      "file": "apps/runtime/src/registry/binding_events.ts",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "domUUID } from \"node:crypto\"; const uuidv4 = randomUUID; import type { BindingTriple, TerminalBinding }"
+      ]
+    },
+    {
+      "repo": "helioscope",
+      "file": "src/helios_router_ui/nats_client.py",
+      "library_replacement": "serde_json / encoding/json / json",
+      "pattern": "serde_json",
+      "evidence": [
+        "cnow().isoformat() + \"Z\"      def to_json(self) -> str:         return json.dumps(asdict(self))   @da"
+      ]
+    },
+    {
+      "repo": "helioscope",
+      "file": "crates/harness_spec/src/parser.rs",
+      "library_replacement": "serde_json / encoding/json / json",
+      "pattern": "serde_json",
+      "evidence": [
+        "ication from JSON content pub fn parse_json(content: &str) -> Result<Specification> {     serde_json::f"
+      ]
+    },
+    {
+      "repo": "kwality",
+      "file": "internal/middleware/request_id.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "uestID == \"\" { \t\t\trequestID = uuid.New().String() \t\t}  \t\tc.Set(\"request_id\", requestID) \t\tc.Header"
+      ]
+    },
+    {
+      "repo": "kwality",
+      "file": "internal/handlers/auth.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "(simplified) \trefreshToken := uuid.New().String()  \t// Update last login time \th.updateLastLogin(u",
+        "}  \t// Create user \tuserID := uuid.New().String() \terr = h.createUser(userID, req.Email, req.FullN"
+      ]
+    },
+    {
+      "repo": "kwality",
+      "file": "internal/orchestrator/orchestrator.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "&ValidationTask{ \t\tID:        uuid.New().String(), \t\tType:      TaskTypeFullValidation, \t\tCodebase"
+      ]
+    },
+    {
+      "repo": "pheno",
+      "file": "crates/phenotype-telemetry/src/lib.rs",
+      "library_replacement": "serde_json / encoding/json / json",
+      "pattern": "serde_json",
+      "evidence": [
+        "ey: impl Into<String>, value: impl Serialize) -> Self {         if let Ok(v) = serde_json::to_value(valu"
+      ]
+    },
+    {
+      "repo": "pheno",
+      "file": "crates/agileplus-cli/src/commands/validate.rs",
+      "library_replacement": "serde_json / encoding/json / json",
+      "pattern": "serde_json",
+      "evidence": [
+        "lines.join(\"\\n\")     }      fn to_json(&self) -> String {         let missing: Vec<serde_json::Val"
+      ]
+    },
+    {
+      "repo": "pheno",
+      "file": "crates/agileplus-cli/src/commands/validate/report.rs",
+      "library_replacement": "serde_json / encoding/json / json",
+      "pattern": "serde_json",
+      "evidence": [
+        "n(\"\\n\")     }      pub(crate) fn to_json(&self) -> String {         let missing: Vec<serde_json::Val"
+      ]
+    },
+    {
+      "repo": "phenoShared",
+      "file": "crates/phenotype-port-interfaces/src/outbound/repository.rs",
+      "library_replacement": "regex / regexp",
+      "pattern": "regex crate",
+      "evidence": [
+        "ptional pagination.     async fn find_all(&self, page: u32, page_size: u32) -> Result<Vec<Self::Entit"
+      ]
+    },
+    {
+      "repo": "phenotype-tooling",
+      "file": "crates/quality-gate/quality-gate/src/main.rs",
+      "library_replacement": "clap / argparse / commander",
+      "pattern": "clap CLI parser",
+      "evidence": [
+        "gate passed!\");     Ok(()) }  fn parse_args(args: &[String]) -> Config {     Config {         quick: ar"
+      ]
+    },
+    {
+      "repo": "phenotype-tooling",
+      "file": "crates/policystack/tools/federate_policy.py",
+      "library_replacement": "clap / argparse / commander",
+      "pattern": "clap CLI parser",
+      "evidence": [
+        "\"extensions\" / \"manifests\"   def parse_args() -> argparse.Namespace:     parser = argparse.ArgumentPars"
+      ]
+    },
+    {
+      "repo": "phenotype-tooling",
+      "file": "crates/policystack/tools/validate_policy_payload.py",
+      "library_replacement": "clap / argparse / commander",
+      "pattern": "clap CLI parser",
+      "evidence": [
+        "on from pathlib import Path   def parse_args() -> argparse.Namespace:     parser = argparse.ArgumentPars"
+      ]
+    },
+    {
+      "repo": "phenotype-tooling",
+      "file": "crates/policystack/tools/audit_policy_rotation.py",
+      "library_replacement": "clap / argparse / commander",
+      "pattern": "clap CLI parser",
+      "evidence": [
+        "ne from pathlib import Path   def parse_args() -> argparse.Namespace:     parser = argparse.ArgumentPars"
+      ]
+    },
+    {
+      "repo": "phenotype-tooling",
+      "file": "crates/policystack/scripts/lane4_policy_contract_pr_stack_audit.py",
+      "library_replacement": "clap / argparse / commander",
+      "pattern": "clap CLI parser",
+      "evidence": [
+        "trip(), proc.stderr.strip()   def parse_args() -> argparse.Namespace:     parser = argparse.ArgumentPars"
+      ]
+    },
+    {
+      "repo": "phenotype-tooling",
+      "file": "crates/policystack/scripts/ci/b82_signature_preflight_integrity_gate.py",
+      "library_replacement": "serde_json / encoding/json / json",
+      "pattern": "serde_json",
+      "evidence": [
+        "n import pathlib import sys   def parse_json(path: pathlib.Path) -> dict:     return json.loads(path.rea"
+      ]
+    },
+    {
+      "repo": "phenotype-tooling",
+      "file": "crates/heliosapp/apps/runtime/src/renderer/switch.ts",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "_000;   const correlationId = crypto.randomUUID();   const switchStart = Date.now();    const fromAdapter ="
+      ]
+    },
+    {
+      "repo": "phenotype-tooling",
+      "file": "crates/heliosapp/apps/runtime/src/renderer/switch_transaction.ts",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "itchTransaction = {       id: crypto.randomUUID(),       state: \"pending\",       sourceRendererId: request.",
+        "e.now(),       correlationId: crypto.randomUUID(),     };      this._activeTransaction = transaction;"
+      ]
+    },
+    {
+      "repo": "phenotype-tooling",
+      "file": "crates/heliosapp/apps/runtime/src/renderer/rollback.ts",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "e.now(),       correlationId: crypto.randomUUID(),       fromRenderer: targetAdapter.id,       toRenderer:"
+      ]
+    },
+    {
+      "repo": "phenotype-tooling",
+      "file": "crates/heliosapp/apps/runtime/src/pty/idle_monitor.ts",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "d,             correlationId: crypto.randomUUID(),           };           emitPtyEvent(this.bus, \"pty.state",
+        "correlationId: crypto.randomUUID(),             };             emitPtyEvent(this.bus, \"pty.i"
+      ]
+    },
+    {
+      "repo": "phenotype-tooling",
+      "file": "crates/heliosapp/apps/runtime/src/pty/spawn.ts",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "atePtyId(): string {   return crypto.randomUUID(); }  /**  * Spawn a new PTY process, register it, and retu"
+      ]
+    },
+    {
+      "repo": "phenotype-tooling",
+      "file": "crates/heliosapp/apps/runtime/src/pty/io.ts",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "minalId,       correlationId: crypto.randomUUID(),     };      emitPtyEvent(bus, \"pty.error\", correlation,"
+      ]
+    },
+    {
+      "repo": "phenotype-tooling",
+      "file": "crates/heliosapp/apps/runtime/src/pty/events.ts",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "vent: PtyBusEvent = {     id: crypto.randomUUID(),     type: \"event\",     ts: new Date().toISOString(),"
+      ]
+    },
+    {
+      "repo": "phenotype-tooling",
+      "file": "crates/heliosapp/apps/runtime/src/pty/index.ts",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "minalId,       correlationId: crypto.randomUUID(),     };      _emitPtyEvent(this.bus, \"pty.spawned\", corre"
+      ]
+    },
+    {
+      "repo": "phenotype-tooling",
+      "file": "crates/heliosapp/apps/runtime/src/pty/signals.ts",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "erminalId,     correlationId: crypto.randomUUID(),   };    // Deliver SIGWINCH to child process.   deliverS",
+        "erminalId,     correlationId: crypto.randomUUID(),   };    const checkAlive =     isAlive ??     ((pid: num",
+        "erminalId,     correlationId: crypto.randomUUID(),   };    return deliverSignal(record.pid, \"SIGHUP\", recor"
+      ]
+    },
+    {
+      "repo": "phenotype-tooling",
+      "file": "crates/heliosapp/apps/runtime/src/recovery/restoration.ts",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "this.bus.publish({       id: randomUUID(),       type: \"event\",       ts: new Date().toISOString(),",
+        "this.bus.publish({       id: randomUUID(),       type: \"event\",       ts: new Date().toISOString(),"
+      ]
+    },
+    {
+      "repo": "phenotype-tooling",
+      "file": "crates/heliosapp/apps/runtime/src/recovery/safe-mode.ts",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "his.bus.publish({         id: randomUUID(),         type: \"event\",         ts: new Date().toISOString",
+        "his.bus.publish({         id: randomUUID(),         type: \"event\",         ts: new Date().toISOString"
+      ]
+    },
+    {
+      "repo": "phenotype-tooling",
+      "file": "crates/heliosapp/apps/runtime/src/recovery/state-machine.ts",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "his.bus.publish({         id: randomUUID(),         type: \"event\",         ts: new Date().toISOString"
+      ]
+    },
+    {
+      "repo": "phenotype-tooling",
+      "file": "crates/heliosapp/apps/runtime/src/recovery/watchdog.ts",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "his.bus.publish({         id: randomUUID(),         type: \"event\",         ts: new Date().toISOString"
+      ]
+    },
+    {
+      "repo": "phenotype-tooling",
+      "file": "crates/heliosapp/apps/runtime/src/recovery/orphan-reconciler.ts",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "his.bus.publish({         id: randomUUID(),         type: \"event\",         ts: new Date().toISOString"
+      ]
+    },
+    {
+      "repo": "phenotype-tooling",
+      "file": "crates/heliosapp/apps/runtime/src/sessions/state_machine.ts",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        ");     const laneId = `lane_${crypto.randomUUID()}`;     const correlationId = `lane.create:${laneId}:${Dat"
+      ]
+    },
+    {
+      "repo": "phenotype-tooling",
+      "file": "crates/heliosapp/apps/runtime/src/sessions/registry.ts",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        ": string {     return `sess_${crypto.randomUUID()}`;   }    private generateCodexSessionId(): string {",
+        "string {     return `codex_${crypto.randomUUID()}`;   } }  export class RecoveryRegistry {   private reado"
+      ]
+    },
+    {
+      "repo": "phenotype-tooling",
+      "file": "crates/heliosapp/apps/runtime/src/audit/event.ts",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "or time-ordered IDs.   return randomUUID(); }"
+      ]
+    },
+    {
+      "repo": "phenotype-tooling",
+      "file": "crates/heliosapp/apps/runtime/src/registry/binding_events.ts",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "domUUID } from \"node:crypto\"; const uuidv4 = randomUUID; import type { BindingTriple, TerminalBinding }"
+      ]
+    },
+    {
+      "repo": "phenotype-tooling",
+      "file": "crates/heliosapp/packages/ids/tests/format.test.ts",
+      "library_replacement": "serde_json / encoding/json / json",
+      "pattern": "serde_json",
+      "evidence": [
+        "ateId(entityType); \t\t\t\texpect(JSON.parse(JSON.stringify(id))).toBe(id); \t\t\t} \t\t}); \t} });"
+      ]
+    },
+    {
+      "repo": "phenotype-tooling",
+      "file": "crates/heliosapp/.vitepress/cache/deps_temp_5b1507b1/vitepress___@vueuse_core.js",
+      "library_replacement": "serde_json / encoding/json / json",
+      "pattern": "serde_json",
+      "evidence": [
+        "loneFnJSON(source) {   return JSON.parse(JSON.stringify(source)); } function useCloned(source, options = {}) {   co"
+      ]
+    },
+    {
+      "repo": "phenotype-tooling",
+      "file": "crates/byteport/backend/nvms/projectManager/deploy.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "ateDeploys() \t}  \tdeployID := uuid.New().String() \tproject.AppendDeploy(deployID, models.Instance{"
+      ]
+    },
+    {
+      "repo": "phenotype-tooling",
+      "file": "crates/byteport/backend/nvms/models/projects.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "\"Generating UUID\") \t\tp.UUID = uuid.New().String() \t} \treturn nil }"
+      ]
+    },
+    {
+      "repo": "phenotype-tooling",
+      "file": "crates/byteport/backend/nvms/lib/aws.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "ojectName) + \"-bytebucket-\" + uuid.New().String() \terr = s3Client.CreateBucket(ctx, bucketName) \ti"
+      ]
+    },
+    {
+      "repo": "phenotype-tooling",
+      "file": "crates/byteport/backend/byteport/models/projects.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "\"Generating UUID\") \t\tp.UUID = uuid.New().String() \t} \treturn nil }  func (p *Project) AfterFind(tx"
+      ]
+    },
+    {
+      "repo": "phenotype-tooling",
+      "file": "crates/byteport/backend/byteport/routes/deployment.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "D == \"\" { \t\tfinalProject.ID = uuid.New().String() // Generate new UUID only if not present \t} \tfin"
+      ]
+    },
+    {
+      "repo": "phenotype-tooling",
+      "file": "crates/byteport/backend/byteport/routes/auth.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "r := models.User{ \t\tUUID:     uuid.NewString(), \t\tName:     req.Name, \t\tEmail:    req.Email, \t\tPas"
+      ]
+    },
+    {
+      "repo": "portage",
+      "file": "src/harbor/models/trajectories/trajectory.py",
+      "library_replacement": "serde_json / encoding/json / json",
+      "pattern": "serde_json",
+      "evidence": [
+        "ig = {\"extra\": \"forbid\"}      def to_json_dict(self, exclude_none: bool = True) -> dict[str, Any]:"
+      ]
+    },
+    {
+      "repo": "portage",
+      "file": "src/harbor/models/package/manifest.py",
+      "library_replacement": "serde_json / encoding/json / json",
+      "pattern": "serde_json",
+      "evidence": [
+        "rn f         return None      def to_json(self) -> str:         \"\"\"Serialize manifest to JSON string."
+      ]
+    },
+    {
+      "repo": "thegent",
+      "file": "src/thegent/infra/fast_http_client.py",
+      "library_replacement": "reqwest / urllib3 / net/http",
+      "pattern": "reqwest / urllib HTTP client",
+      "evidence": [
+        "ent   # Convenience functions def http_get(url: str, **kwargs) -> Any:     \"\"\"Perform GET request usin",
+        "client().get(url, **kwargs)   def http_post(url: str, **kwargs) -> Any:     \"\"\"Perform POST request usi",
+        "lient().post(url, **kwargs)   def http_request(method: str, url: str, **kwargs) -> Any:     \"\"\"Perform HTT"
+      ]
+    },
+    {
+      "repo": "thegent",
+      "file": "src/thegent/infra/fast_uuid.py",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "on.\"\"\"      @staticmethod     def uuid4() -> uuid.UUID:         \"\"\"Generate UUID4 (random UUID).",
+        "uid4()      @staticmethod     def uuid4_str() -> str:         \"\"\"Generate UUID4 as string.",
+        "())   # Convenience functions def uuid4() -> uuid.UUID:     \"\"\"Generate UUID4 using fastest availab"
+      ]
+    },
+    {
+      "repo": "thegent",
+      "file": "src/thegent/planning/board_artifact_integrator.py",
+      "library_replacement": "serde_json / encoding/json / json",
+      "pattern": "serde_json",
+      "evidence": [
+        "return items          def parse_json(self, file_path: Path) -> list[dict[str, Any]]:         \"\"\""
+      ]
+    },
+    {
+      "repo": "thegent",
+      "file": "src/thegent/utils/errors.py",
+      "library_replacement": "reqwest / urllib3 / net/http",
+      "pattern": "reqwest / urllib HTTP client",
+      "evidence": [
+        "_errors(NetworkError)         def fetch_url(url: str) -> str:             raise ValueError(\"invalid\")"
+      ]
+    },
+    {
+      "repo": "thegent",
+      "file": "src/thegent/utils/json_utils.py",
+      "library_replacement": "serde_json / encoding/json / json",
+      "pattern": "serde_json",
+      "evidence": [
+        "e_bytes(orjson.dumps(data))   def parse_json(text: str) -> dict[str, Any] | None:     \"\"\"Parse JSON text",
+        "eError:         return None   def parse_json_fast(text: str) -> dict[str, Any] | None:     \"\"\"Parse JSON",
+        "eError:         return None   def parse_json_lines(text: str) -> list[dict[str, Any]]:     \"\"\"Parse mult"
+      ]
+    },
+    {
+      "repo": "thegent",
+      "file": "src/thegent/utils/serialization_helpers.py",
+      "library_replacement": "serde_json / encoding/json / json",
+      "pattern": "serde_json",
+      "evidence": [
+        "json from typing import Any   def to_json(obj: Any, indent: int = 2) -> str:     \"\"\"Convert object to",
+        "return json.loads(text)   def to_json_file(obj: Any, path: str, **kwargs: Any) -> None:     \"\"\"Wr"
+      ]
+    },
+    {
+      "repo": "thegent",
+      "file": "src/thegent/integrations/workstream_autosync_shared.py",
+      "library_replacement": "serde_json / encoding/json / json",
+      "pattern": "serde_json",
+      "evidence": [
+        "sorted(set(candidates))      def parse_json_windows(raw: str | None) -> list[MaintenanceWindow]:"
+      ]
+    },
+    {
+      "repo": "thegent",
+      "file": "src/thegent/integrations/base.py",
+      "library_replacement": "serde_json / encoding/json / json",
+      "pattern": "serde_json",
+      "evidence": [
+        "urn self.copy(**updates)      def to_json(self, *, indent: int | None = None, sort_keys: bool = False",
+        "turn cls.from_dict(data)      def to_json_file(self, path: str | Path, *, indent: int = 2) -> None:"
+      ]
+    },
+    {
+      "repo": "thegent",
+      "file": "src/thegent/orchestration/protocol.py",
+      "library_replacement": "serde_json / encoding/json / json",
+      "pattern": "serde_json",
+      "evidence": [
+        "r sub-agent protocol.\"\"\"      def serialize(self, message: SubAgentRequest) -> bytes:         \"\"\"Serial",
+        "t.\"\"\"         return b\"\"      def deserialize(self, data: bytes) -> SubAgentRequest:         \"\"\"Deseriali"
+      ]
+    },
+    {
+      "repo": "thegent",
+      "file": "src/thegent/governance/slo_trend.py",
+      "library_replacement": "serde_json / encoding/json / json",
+      "pattern": "serde_json",
+      "evidence": [
+        "now(UTC).isoformat(),     )   def serialize_trend(trend: SloTrend) -> str:     \"\"\"Return a JSON string"
+      ]
+    },
+    {
+      "repo": "thegent",
+      "file": "src/thegent/cli/services/run_dag_helpers.py",
+      "library_replacement": "serde_json / encoding/json / json",
+      "pattern": "serde_json",
+      "evidence": [
+        "_impl._parse_dag_full(path)   def serialize_dag(doc: \"DagDocument\") -> str:     return dag_impl._serial"
+      ]
+    },
+    {
+      "repo": "thegent",
+      "file": "src/thegent/utils/routing_impl/route_executor.py",
+      "library_replacement": "serde_json / encoding/json / json",
+      "pattern": "serde_json",
+      "evidence": [
+        "return \"\\n\".join(lines)      def to_json(self) -> str:         \"\"\"Serialize to JSON for machine-read"
+      ]
+    },
+    {
+      "repo": "thegent",
+      "file": "src/thegent/utils/routing_impl/cost_tracker.py",
+      "library_replacement": "serde_json / encoding/json / json",
+      "pattern": "serde_json",
+      "evidence": [
+        "on_id: str | None = None      def to_json(self) -> dict[str, Any]:         \"\"\"Serialize entry to JSON"
+      ]
+    },
+    {
+      "repo": "thegent",
+      "file": "src/thegent/utils/routing_impl/alerting.py",
+      "library_replacement": "serde_json / encoding/json / json",
+      "pattern": "serde_json",
+      "evidence": [
+        "stamp: str | None = None      def to_json(self) -> dict[str, Any]:         \"\"\"Serialize alert to JSON"
+      ]
+    },
+    {
+      "repo": "thegent",
+      "file": "src/thegent/compositor/pane_manager/__init__.py",
+      "library_replacement": "serde_json / encoding/json / json",
+      "pattern": "serde_json",
+      "evidence": [
+        "f) -> dict[str, Any]:         def serialize(node: PaneNode) -> dict[str, Any]:             if node.is_l"
+      ]
+    },
+    {
+      "repo": "thegent",
+      "file": "crates/thegent-hooks/src/config.rs",
+      "library_replacement": "serde_json / encoding/json / json",
+      "pattern": "serde_json",
+      "evidence": [
+        "Parse JSON configuration     fn parse_json(contents: &str) -> Result<HookConfig, HookError> {"
+      ]
+    },
+    {
+      "repo": "thegent",
+      "file": "crates/thegent-parser/src/lib.rs",
+      "library_replacement": "serde_json / encoding/json / json",
+      "pattern": "serde_json",
+      "evidence": [
+        "t.join(\"\\n\") }  #[pyfunction] fn parse_jsonl_file(py: Python<'_>, path: String) -> PyResult<Py<PyAny>>"
+      ]
+    },
+    {
+      "repo": "thegent",
+      "file": "apps/byteport/backend/api/models_test.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        ":= models.User{ \t\t\tUUID:     uuid.New().String(), \t\t\tName:     \"Project Owner\", \t\t\tEmail:    \"own",
+        ":= models.Project{ \t\t\tUUID:  uuid.New().String(), \t\t\tName:  \"Test Project\", \t\t\tOwner: owner.UUID,",
+        ":= models.User{ \t\t\tUUID:     uuid.New().String(), \t\t\tName:     \"User With Projects\", \t\t\tEmail:"
+      ]
+    },
+    {
+      "repo": "thegent",
+      "file": "apps/byteport/backend/api/auth_handlers.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "Create new user \t\tnewUUID := uuid.New() \t\tuser = models.User{ \t\t\tUUID:  newUUID.String(), \t\t\tName"
+      ]
+    },
+    {
+      "repo": "thegent",
+      "file": "apps/byteport/backend/api/handlers.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        ":= &Deployment{ \t\t\tID:        uuid.New().String(), \t\t\tName:      req.Name, \t\t\tType:      req.Type,",
+        "ct := gin.H{ \t\t\"id\":          uuid.New().String(), \t\t\"name\":        req.Name, \t\t\"description\": req"
+      ]
+    },
+    {
+      "repo": "thegent",
+      "file": "apps/byteport/backend/api/legacy_auth_handlers_test.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "reate test user \t\tuserUUID := uuid.New().String() \t\tuser := models.User{ \t\t\tUUID:      userUUID,",
+        "ing.T) { \t\tnonExistentUUID := uuid.New().String()  \t\treq := httptest.NewRequest(http.MethodGet, \"/",
+        "// Create user \t\tuserUUID := uuid.New().String() \t\tuser := models.User{ \t\t\tUUID:     userUUID,"
+      ]
+    },
+    {
+      "repo": "thegent",
+      "file": "apps/byteport/backend/api/testhelpers/http.go",
+      "library_replacement": "serde_json / encoding/json / json",
+      "pattern": "serde_json",
+      "evidence": [
+        "s JSON response into a struct func ParseJSONResponse(t *testing.T, resp *httptest.ResponseRecorder, targ"
+      ]
+    },
+    {
+      "repo": "thegent",
+      "file": "apps/byteport/backend/api/testhelpers/fixtures.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "user := TestUser{ \t\tID:       uuid.New().String(), \t\tEmail:    \"test@example.com\", \t\tName:     \"Te",
+        "User\", \t\tWorkOSID: \"user_\" + uuid.New().String()[:10], \t\tIsActive: true, \t\tCreatedAt: time.Now(),",
+        "= TestProject{ \t\tID:          uuid.New().String(), \t\tName:        \"Test Project\", \t\tDescription: \""
+      ]
+    },
+    {
+      "repo": "thegent",
+      "file": "apps/byteport/backend/api/testhelpers/testhelpers_test.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "es(t *testing.T) { \tuserID := uuid.New().String()  \tuser := CreateTestUser( \t\tfunc(u *TestUser) {"
+      ]
+    },
+    {
+      "repo": "thegent",
+      "file": "apps/byteport/backend/api/repositories/deployment_repository.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        ".ID == \"\" { \t\tdeployment.ID = uuid.New().String() \t} \tdeployment.CreatedAt = time.Now() \tdeploymen",
+        ".ID == \"\" { \t\tdeployment.ID = uuid.New().String() \t} \tdeployment.CreatedAt = time.Now() \tdeploymen"
+      ]
+    },
+    {
+      "repo": "thegent",
+      "file": "apps/byteport/backend/api/repositories/deployment_repository_test.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "s:   \"deploying\", \t\tUserID:   uuid.New().String(), \t\tGitURL:   \"https://github.com/test/app.git\",",
+        "ployment, err := repo.GetByID(uuid.New().String()) \tis.NoErr(err)              // GetByID should n",
+        "us:   \"deployed\", \t\tUserID:   uuid.New().String(), \t}  \terr = repo.Create(testDeployment) \tis.NoEr"
+      ]
+    },
+    {
+      "repo": "thegent",
+      "file": "apps/byteport/backend/api/models/projects.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "\"Generating UUID\") \t\tp.UUID = uuid.New().String() \t} \treturn nil }  func (p *Project) AfterFind(tx"
+      ]
+    },
+    {
+      "repo": "thegent",
+      "file": "apps/byteport/backend/api/internal/domain/deployment/deployment.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "&Deployment{ \t\t\tuuid:        uuid.New().String(), \t\t\tname:        name, \t\t\towner:       owner,"
+      ]
+    },
+    {
+      "repo": "thegent",
+      "file": "apps/byteport/frontend/web-next/app/(auth)/login/login-client.tsx",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "try {       const state = crypto.randomUUID();       if (typeof window !== 'undefined') {         sessi"
+      ]
+    },
+    {
+      "repo": "thegent",
+      "file": "tests/test_unit_mcp.py",
+      "library_replacement": "serde_json / encoding/json / json",
+      "pattern": "serde_json",
+      "evidence": [
+        "CP-001         \"\"\"list_agents_impl serialized to JSON matches MCP tool contract.\"\"\"         agents = lis"
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-docs",
+      "file": "crates/thegent-hooks/src/config.rs",
+      "library_replacement": "serde_json / encoding/json / json",
+      "pattern": "serde_json",
+      "evidence": [
+        "Parse JSON configuration     fn parse_json(contents: &str) -> Result<HookConfig, HookError> {"
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-docs",
+      "file": "crates/thegent-parser/src/lib.rs",
+      "library_replacement": "serde_json / encoding/json / json",
+      "pattern": "serde_json",
+      "evidence": [
+        "t.join(\"\\n\") }  #[pyfunction] fn parse_jsonl_file(py: Python<'_>, path: String) -> PyResult<Py<PyAny>>"
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-idea",
+      "file": "src/thegent/infra/fast_http_client.py",
+      "library_replacement": "reqwest / urllib3 / net/http",
+      "pattern": "reqwest / urllib HTTP client",
+      "evidence": [
+        "ent   # Convenience functions def http_get(url: str, **kwargs) -> Any:     \"\"\"Perform GET request usin",
+        "client().get(url, **kwargs)   def http_post(url: str, **kwargs) -> Any:     \"\"\"Perform POST request usi",
+        "lient().post(url, **kwargs)   def http_request(method: str, url: str, **kwargs) -> Any:     \"\"\"Perform HTT"
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-idea",
+      "file": "src/thegent/infra/fast_uuid.py",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "on.\"\"\"      @staticmethod     def uuid4() -> uuid.UUID:         \"\"\"Generate UUID4 (random UUID).",
+        "uid4()      @staticmethod     def uuid4_str() -> str:         \"\"\"Generate UUID4 as string.",
+        "())   # Convenience functions def uuid4() -> uuid.UUID:     \"\"\"Generate UUID4 using fastest availab"
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-idea",
+      "file": "src/thegent/planning/board_artifact_integrator.py",
+      "library_replacement": "serde_json / encoding/json / json",
+      "pattern": "serde_json",
+      "evidence": [
+        "return items          def parse_json(self, file_path: Path) -> list[dict[str, Any]]:         \"\"\""
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-idea",
+      "file": "src/thegent/utils/errors.py",
+      "library_replacement": "reqwest / urllib3 / net/http",
+      "pattern": "reqwest / urllib HTTP client",
+      "evidence": [
+        "_errors(NetworkError)         def fetch_url(url: str) -> str:             raise ValueError(\"invalid\")"
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-idea",
+      "file": "src/thegent/utils/json_utils.py",
+      "library_replacement": "serde_json / encoding/json / json",
+      "pattern": "serde_json",
+      "evidence": [
+        "e_bytes(orjson.dumps(data))   def parse_json(text: str) -> dict[str, Any] | None:     \"\"\"Parse JSON text",
+        "eError:         return None   def parse_json_fast(text: str) -> dict[str, Any] | None:     \"\"\"Parse JSON",
+        "eError:         return None   def parse_json_lines(text: str) -> list[dict[str, Any]]:     \"\"\"Parse mult"
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-idea",
+      "file": "src/thegent/utils/serialization_helpers.py",
+      "library_replacement": "serde_json / encoding/json / json",
+      "pattern": "serde_json",
+      "evidence": [
+        "json from typing import Any   def to_json(obj: Any, indent: int = 2) -> str:     \"\"\"Convert object to",
+        "return json.loads(text)   def to_json_file(obj: Any, path: str, **kwargs: Any) -> None:     \"\"\"Wr"
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-idea",
+      "file": "src/thegent/integrations/workstream_autosync_shared.py",
+      "library_replacement": "serde_json / encoding/json / json",
+      "pattern": "serde_json",
+      "evidence": [
+        "sorted(set(candidates))      def parse_json_windows(raw: str | None) -> list[MaintenanceWindow]:"
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-idea",
+      "file": "src/thegent/integrations/base.py",
+      "library_replacement": "serde_json / encoding/json / json",
+      "pattern": "serde_json",
+      "evidence": [
+        "urn self.copy(**updates)      def to_json(self, *, indent: int | None = None, sort_keys: bool = False",
+        "turn cls.from_dict(data)      def to_json_file(self, path: str | Path, *, indent: int = 2) -> None:"
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-idea",
+      "file": "src/thegent/governance/slo_trend.py",
+      "library_replacement": "serde_json / encoding/json / json",
+      "pattern": "serde_json",
+      "evidence": [
+        "now(UTC).isoformat(),     )   def serialize_trend(trend: SloTrend) -> str:     \"\"\"Return a JSON string"
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-idea",
+      "file": "src/thegent/cli/services/run_dag_helpers.py",
+      "library_replacement": "serde_json / encoding/json / json",
+      "pattern": "serde_json",
+      "evidence": [
+        "_impl._parse_dag_full(path)   def serialize_dag(doc: \"DagDocument\") -> str:     return dag_impl._serial"
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-idea",
+      "file": "src/thegent/utils/routing_impl/route_executor.py",
+      "library_replacement": "serde_json / encoding/json / json",
+      "pattern": "serde_json",
+      "evidence": [
+        "return \"\\n\".join(lines)      def to_json(self) -> str:         \"\"\"Serialize to JSON for machine-read"
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-idea",
+      "file": "src/thegent/utils/routing_impl/cost_tracker.py",
+      "library_replacement": "serde_json / encoding/json / json",
+      "pattern": "serde_json",
+      "evidence": [
+        "on_id: str | None = None      def to_json(self) -> dict[str, Any]:         \"\"\"Serialize entry to JSON"
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-idea",
+      "file": "src/thegent/utils/routing_impl/alerting.py",
+      "library_replacement": "serde_json / encoding/json / json",
+      "pattern": "serde_json",
+      "evidence": [
+        "stamp: str | None = None      def to_json(self) -> dict[str, Any]:         \"\"\"Serialize alert to JSON"
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-idea",
+      "file": "crates/thegent-hooks/src/config.rs",
+      "library_replacement": "serde_json / encoding/json / json",
+      "pattern": "serde_json",
+      "evidence": [
+        "Parse JSON configuration     fn parse_json(contents: &str) -> Result<HookConfig, HookError> {"
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-idea",
+      "file": "crates/thegent-parser/src/lib.rs",
+      "library_replacement": "serde_json / encoding/json / json",
+      "pattern": "serde_json",
+      "evidence": [
+        "t.join(\"\\n\") }  #[pyfunction] fn parse_jsonl_file(py: Python<'_>, path: String) -> PyResult<Py<PyAny>>"
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-idea",
+      "file": "apps/byteport/backend/api/models_test.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        ":= models.User{ \t\t\tUUID:     uuid.New().String(), \t\t\tName:     \"Project Owner\", \t\t\tEmail:    \"own",
+        ":= models.Project{ \t\t\tUUID:  uuid.New().String(), \t\t\tName:  \"Test Project\", \t\t\tOwner: owner.UUID,",
+        ":= models.User{ \t\t\tUUID:     uuid.New().String(), \t\t\tName:     \"User With Projects\", \t\t\tEmail:"
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-idea",
+      "file": "apps/byteport/backend/api/auth_handlers.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "Create new user \t\tnewUUID := uuid.New() \t\tuser = models.User{ \t\t\tUUID:  newUUID.String(), \t\t\tName"
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-idea",
+      "file": "apps/byteport/backend/api/handlers.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        ":= &Deployment{ \t\t\tID:        uuid.New().String(), \t\t\tName:      req.Name, \t\t\tType:      req.Type,",
+        "ct := gin.H{ \t\t\"id\":          uuid.New().String(), \t\t\"name\":        req.Name, \t\t\"description\": req"
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-idea",
+      "file": "apps/byteport/backend/api/legacy_auth_handlers_test.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "reate test user \t\tuserUUID := uuid.New().String() \t\tuser := models.User{ \t\t\tUUID:      userUUID,",
+        "ing.T) { \t\tnonExistentUUID := uuid.New().String()  \t\treq := httptest.NewRequest(http.MethodGet, \"/",
+        "// Create user \t\tuserUUID := uuid.New().String() \t\tuser := models.User{ \t\t\tUUID:     userUUID,"
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-idea",
+      "file": "apps/byteport/backend/api/testhelpers/http.go",
+      "library_replacement": "serde_json / encoding/json / json",
+      "pattern": "serde_json",
+      "evidence": [
+        "s JSON response into a struct func ParseJSONResponse(t *testing.T, resp *httptest.ResponseRecorder, targ"
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-idea",
+      "file": "apps/byteport/backend/api/testhelpers/fixtures.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "user := TestUser{ \t\tID:       uuid.New().String(), \t\tEmail:    \"test@example.com\", \t\tName:     \"Te",
+        "User\", \t\tWorkOSID: \"user_\" + uuid.New().String()[:10], \t\tIsActive: true, \t\tCreatedAt: time.Now(),",
+        "= TestProject{ \t\tID:          uuid.New().String(), \t\tName:        \"Test Project\", \t\tDescription: \""
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-idea",
+      "file": "apps/byteport/backend/api/testhelpers/testhelpers_test.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "es(t *testing.T) { \tuserID := uuid.New().String()  \tuser := CreateTestUser( \t\tfunc(u *TestUser) {"
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-idea",
+      "file": "apps/byteport/backend/api/repositories/deployment_repository.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        ".ID == \"\" { \t\tdeployment.ID = uuid.New().String() \t} \tdeployment.CreatedAt = time.Now() \tdeploymen",
+        ".ID == \"\" { \t\tdeployment.ID = uuid.New().String() \t} \tdeployment.CreatedAt = time.Now() \tdeploymen"
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-idea",
+      "file": "apps/byteport/backend/api/repositories/deployment_repository_test.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "s:   \"deploying\", \t\tUserID:   uuid.New().String(), \t\tGitURL:   \"https://github.com/test/app.git\",",
+        "ployment, err := repo.GetByID(uuid.New().String()) \tis.NoErr(err)              // GetByID should n",
+        "us:   \"deployed\", \t\tUserID:   uuid.New().String(), \t}  \terr = repo.Create(testDeployment) \tis.NoEr"
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-idea",
+      "file": "apps/byteport/backend/api/models/projects.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "\"Generating UUID\") \t\tp.UUID = uuid.New().String() \t} \treturn nil }  func (p *Project) AfterFind(tx"
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-idea",
+      "file": "apps/byteport/backend/api/internal/domain/deployment/deployment.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "&Deployment{ \t\t\tuuid:        uuid.New().String(), \t\t\tname:        name, \t\t\towner:       owner,"
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-idea",
+      "file": "apps/byteport/frontend/web-next/app/(auth)/login/login-client.tsx",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "try {       const state = crypto.randomUUID();       if (typeof window !== 'undefined') {         sessi"
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-idea",
+      "file": "tests/test_unit_mcp.py",
+      "library_replacement": "serde_json / encoding/json / json",
+      "pattern": "serde_json",
+      "evidence": [
+        "CP-001         \"\"\"list_agents_impl serialized to JSON matches MCP tool contract.\"\"\"         agents = lis"
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-parallel",
+      "file": "src/thegent/infra/fast_http_client.py",
+      "library_replacement": "reqwest / urllib3 / net/http",
+      "pattern": "reqwest / urllib HTTP client",
+      "evidence": [
+        "ent   # Convenience functions def http_get(url: str, **kwargs) -> Any:     \"\"\"Perform GET request usin",
+        "client().get(url, **kwargs)   def http_post(url: str, **kwargs) -> Any:     \"\"\"Perform POST request usi",
+        "lient().post(url, **kwargs)   def http_request(method: str, url: str, **kwargs) -> Any:     \"\"\"Perform HTT"
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-parallel",
+      "file": "src/thegent/infra/fast_uuid.py",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "on.\"\"\"      @staticmethod     def uuid4() -> uuid.UUID:         \"\"\"Generate UUID4 (random UUID).",
+        "uid4()      @staticmethod     def uuid4_str() -> str:         \"\"\"Generate UUID4 as string.",
+        "())   # Convenience functions def uuid4() -> uuid.UUID:     \"\"\"Generate UUID4 using fastest availab"
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-parallel",
+      "file": "src/thegent/planning/board_artifact_integrator.py",
+      "library_replacement": "serde_json / encoding/json / json",
+      "pattern": "serde_json",
+      "evidence": [
+        "return items          def parse_json(self, file_path: Path) -> list[dict[str, Any]]:         \"\"\""
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-parallel",
+      "file": "src/thegent/utils/errors.py",
+      "library_replacement": "reqwest / urllib3 / net/http",
+      "pattern": "reqwest / urllib HTTP client",
+      "evidence": [
+        "_errors(NetworkError)         def fetch_url(url: str) -> str:             raise ValueError(\"invalid\")"
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-parallel",
+      "file": "src/thegent/utils/json_utils.py",
+      "library_replacement": "serde_json / encoding/json / json",
+      "pattern": "serde_json",
+      "evidence": [
+        "e_bytes(orjson.dumps(data))   def parse_json(text: str) -> dict[str, Any] | None:     \"\"\"Parse JSON text",
+        "eError:         return None   def parse_json_fast(text: str) -> dict[str, Any] | None:     \"\"\"Parse JSON",
+        "eError:         return None   def parse_json_lines(text: str) -> list[dict[str, Any]]:     \"\"\"Parse mult"
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-parallel",
+      "file": "src/thegent/utils/serialization_helpers.py",
+      "library_replacement": "serde_json / encoding/json / json",
+      "pattern": "serde_json",
+      "evidence": [
+        "json from typing import Any   def to_json(obj: Any, indent: int = 2) -> str:     \"\"\"Convert object to",
+        "return json.loads(text)   def to_json_file(obj: Any, path: str, **kwargs: Any) -> None:     \"\"\"Wr"
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-parallel",
+      "file": "src/thegent/integrations/workstream_autosync_shared.py",
+      "library_replacement": "serde_json / encoding/json / json",
+      "pattern": "serde_json",
+      "evidence": [
+        "sorted(set(candidates))      def parse_json_windows(raw: str | None) -> list[MaintenanceWindow]:"
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-parallel",
+      "file": "src/thegent/integrations/base.py",
+      "library_replacement": "serde_json / encoding/json / json",
+      "pattern": "serde_json",
+      "evidence": [
+        "urn self.copy(**updates)      def to_json(self, *, indent: int | None = None, sort_keys: bool = False",
+        "turn cls.from_dict(data)      def to_json_file(self, path: str | Path, *, indent: int = 2) -> None:"
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-parallel",
+      "file": "src/thegent/governance/slo_trend.py",
+      "library_replacement": "serde_json / encoding/json / json",
+      "pattern": "serde_json",
+      "evidence": [
+        "now(UTC).isoformat(),     )   def serialize_trend(trend: SloTrend) -> str:     \"\"\"Return a JSON string"
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-parallel",
+      "file": "src/thegent/cli/services/run_dag_helpers.py",
+      "library_replacement": "serde_json / encoding/json / json",
+      "pattern": "serde_json",
+      "evidence": [
+        "_impl._parse_dag_full(path)   def serialize_dag(doc: \"DagDocument\") -> str:     return dag_impl._serial"
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-parallel",
+      "file": "src/thegent/utils/routing_impl/route_executor.py",
+      "library_replacement": "serde_json / encoding/json / json",
+      "pattern": "serde_json",
+      "evidence": [
+        "return \"\\n\".join(lines)      def to_json(self) -> str:         \"\"\"Serialize to JSON for machine-read"
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-parallel",
+      "file": "src/thegent/utils/routing_impl/cost_tracker.py",
+      "library_replacement": "serde_json / encoding/json / json",
+      "pattern": "serde_json",
+      "evidence": [
+        "on_id: str | None = None      def to_json(self) -> dict[str, Any]:         \"\"\"Serialize entry to JSON"
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-parallel",
+      "file": "src/thegent/utils/routing_impl/alerting.py",
+      "library_replacement": "serde_json / encoding/json / json",
+      "pattern": "serde_json",
+      "evidence": [
+        "stamp: str | None = None      def to_json(self) -> dict[str, Any]:         \"\"\"Serialize alert to JSON"
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-parallel",
+      "file": "crates/thegent-hooks/src/config.rs",
+      "library_replacement": "serde_json / encoding/json / json",
+      "pattern": "serde_json",
+      "evidence": [
+        "Parse JSON configuration     fn parse_json(contents: &str) -> Result<HookConfig, HookError> {"
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-parallel",
+      "file": "crates/thegent-parser/src/lib.rs",
+      "library_replacement": "serde_json / encoding/json / json",
+      "pattern": "serde_json",
+      "evidence": [
+        "t.join(\"\\n\") }  #[pyfunction] fn parse_jsonl_file(py: Python<'_>, path: String) -> PyResult<Py<PyAny>>"
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-parallel",
+      "file": "apps/byteport/backend/api/models_test.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        ":= models.User{ \t\t\tUUID:     uuid.New().String(), \t\t\tName:     \"Project Owner\", \t\t\tEmail:    \"own",
+        ":= models.Project{ \t\t\tUUID:  uuid.New().String(), \t\t\tName:  \"Test Project\", \t\t\tOwner: owner.UUID,",
+        ":= models.User{ \t\t\tUUID:     uuid.New().String(), \t\t\tName:     \"User With Projects\", \t\t\tEmail:"
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-parallel",
+      "file": "apps/byteport/backend/api/auth_handlers.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "Create new user \t\tnewUUID := uuid.New() \t\tuser = models.User{ \t\t\tUUID:  newUUID.String(), \t\t\tName"
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-parallel",
+      "file": "apps/byteport/backend/api/handlers.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        ":= &Deployment{ \t\t\tID:        uuid.New().String(), \t\t\tName:      req.Name, \t\t\tType:      req.Type,",
+        "ct := gin.H{ \t\t\"id\":          uuid.New().String(), \t\t\"name\":        req.Name, \t\t\"description\": req"
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-parallel",
+      "file": "apps/byteport/backend/api/legacy_auth_handlers_test.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "reate test user \t\tuserUUID := uuid.New().String() \t\tuser := models.User{ \t\t\tUUID:      userUUID,",
+        "ing.T) { \t\tnonExistentUUID := uuid.New().String()  \t\treq := httptest.NewRequest(http.MethodGet, \"/",
+        "// Create user \t\tuserUUID := uuid.New().String() \t\tuser := models.User{ \t\t\tUUID:     userUUID,"
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-parallel",
+      "file": "apps/byteport/backend/api/testhelpers/http.go",
+      "library_replacement": "serde_json / encoding/json / json",
+      "pattern": "serde_json",
+      "evidence": [
+        "s JSON response into a struct func ParseJSONResponse(t *testing.T, resp *httptest.ResponseRecorder, targ"
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-parallel",
+      "file": "apps/byteport/backend/api/testhelpers/fixtures.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "user := TestUser{ \t\tID:       uuid.New().String(), \t\tEmail:    \"test@example.com\", \t\tName:     \"Te",
+        "User\", \t\tWorkOSID: \"user_\" + uuid.New().String()[:10], \t\tIsActive: true, \t\tCreatedAt: time.Now(),",
+        "= TestProject{ \t\tID:          uuid.New().String(), \t\tName:        \"Test Project\", \t\tDescription: \""
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-parallel",
+      "file": "apps/byteport/backend/api/testhelpers/testhelpers_test.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "es(t *testing.T) { \tuserID := uuid.New().String()  \tuser := CreateTestUser( \t\tfunc(u *TestUser) {"
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-parallel",
+      "file": "apps/byteport/backend/api/repositories/deployment_repository.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        ".ID == \"\" { \t\tdeployment.ID = uuid.New().String() \t} \tdeployment.CreatedAt = time.Now() \tdeploymen",
+        ".ID == \"\" { \t\tdeployment.ID = uuid.New().String() \t} \tdeployment.CreatedAt = time.Now() \tdeploymen"
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-parallel",
+      "file": "apps/byteport/backend/api/repositories/deployment_repository_test.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "s:   \"deploying\", \t\tUserID:   uuid.New().String(), \t\tGitURL:   \"https://github.com/test/app.git\",",
+        "ployment, err := repo.GetByID(uuid.New().String()) \tis.NoErr(err)              // GetByID should n",
+        "us:   \"deployed\", \t\tUserID:   uuid.New().String(), \t}  \terr = repo.Create(testDeployment) \tis.NoEr"
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-parallel",
+      "file": "apps/byteport/backend/api/models/projects.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "\"Generating UUID\") \t\tp.UUID = uuid.New().String() \t} \treturn nil }  func (p *Project) AfterFind(tx"
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-parallel",
+      "file": "apps/byteport/backend/api/internal/domain/deployment/deployment.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "&Deployment{ \t\t\tuuid:        uuid.New().String(), \t\t\tname:        name, \t\t\towner:       owner,"
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-parallel",
+      "file": "apps/byteport/frontend/web-next/app/(auth)/login/login-client.tsx",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "try {       const state = crypto.randomUUID();       if (typeof window !== 'undefined') {         sessi"
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-parallel",
+      "file": "tests/test_unit_mcp.py",
+      "library_replacement": "serde_json / encoding/json / json",
+      "pattern": "serde_json",
+      "evidence": [
+        "CP-001         \"\"\"list_agents_impl serialized to JSON matches MCP tool contract.\"\"\"         agents = lis"
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-policy",
+      "file": "src/thegent/infra/fast_http_client.py",
+      "library_replacement": "reqwest / urllib3 / net/http",
+      "pattern": "reqwest / urllib HTTP client",
+      "evidence": [
+        "ent   # Convenience functions def http_get(url: str, **kwargs) -> Any:     \"\"\"Perform GET request usin",
+        "client().get(url, **kwargs)   def http_post(url: str, **kwargs) -> Any:     \"\"\"Perform POST request usi",
+        "lient().post(url, **kwargs)   def http_request(method: str, url: str, **kwargs) -> Any:     \"\"\"Perform HTT"
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-policy",
+      "file": "src/thegent/infra/fast_uuid.py",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "on.\"\"\"      @staticmethod     def uuid4() -> uuid.UUID:         \"\"\"Generate UUID4 (random UUID).",
+        "uid4()      @staticmethod     def uuid4_str() -> str:         \"\"\"Generate UUID4 as string.",
+        "())   # Convenience functions def uuid4() -> uuid.UUID:     \"\"\"Generate UUID4 using fastest availab"
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-policy",
+      "file": "src/thegent/utils/errors.py",
+      "library_replacement": "reqwest / urllib3 / net/http",
+      "pattern": "reqwest / urllib HTTP client",
+      "evidence": [
+        "_errors(NetworkError)         def fetch_url(url: str) -> str:             raise ValueError(\"invalid\")"
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-policy",
+      "file": "src/thegent/utils/json_utils.py",
+      "library_replacement": "serde_json / encoding/json / json",
+      "pattern": "serde_json",
+      "evidence": [
+        "e_bytes(orjson.dumps(data))   def parse_json(text: str) -> dict[str, Any] | None:     \"\"\"Parse JSON text",
+        "eError:         return None   def parse_json_fast(text: str) -> dict[str, Any] | None:     \"\"\"Parse JSON",
+        "eError:         return None   def parse_json_lines(text: str) -> list[dict[str, Any]]:     \"\"\"Parse mult"
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-policy",
+      "file": "src/thegent/utils/serialization_helpers.py",
+      "library_replacement": "serde_json / encoding/json / json",
+      "pattern": "serde_json",
+      "evidence": [
+        "json from typing import Any   def to_json(obj: Any, indent: int = 2) -> str:     \"\"\"Convert object to",
+        "return json.loads(text)   def to_json_file(obj: Any, path: str, **kwargs: Any) -> None:     \"\"\"Wr"
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-policy",
+      "file": "src/thegent/integrations/workstream_autosync_shared.py",
+      "library_replacement": "serde_json / encoding/json / json",
+      "pattern": "serde_json",
+      "evidence": [
+        "sorted(set(candidates))      def parse_json_windows(raw: str | None) -> list[MaintenanceWindow]:"
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-policy",
+      "file": "src/thegent/integrations/base.py",
+      "library_replacement": "serde_json / encoding/json / json",
+      "pattern": "serde_json",
+      "evidence": [
+        "urn self.copy(**updates)      def to_json(self, *, indent: int | None = None, sort_keys: bool = False",
+        "turn cls.from_dict(data)      def to_json_file(self, path: str | Path, *, indent: int = 2) -> None:"
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-policy",
+      "file": "src/thegent/governance/slo_trend.py",
+      "library_replacement": "serde_json / encoding/json / json",
+      "pattern": "serde_json",
+      "evidence": [
+        "now(UTC).isoformat(),     )   def serialize_trend(trend: SloTrend) -> str:     \"\"\"Return a JSON string"
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-policy",
+      "file": "src/thegent/cli/services/run_dag_helpers.py",
+      "library_replacement": "serde_json / encoding/json / json",
+      "pattern": "serde_json",
+      "evidence": [
+        "_impl._parse_dag_full(path)   def serialize_dag(doc: \"DagDocument\") -> str:     return dag_impl._serial"
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-policy",
+      "file": "src/thegent/utils/routing_impl/route_executor.py",
+      "library_replacement": "serde_json / encoding/json / json",
+      "pattern": "serde_json",
+      "evidence": [
+        "return \"\\n\".join(lines)      def to_json(self) -> str:         \"\"\"Serialize to JSON for machine-read"
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-policy",
+      "file": "src/thegent/utils/routing_impl/cost_tracker.py",
+      "library_replacement": "serde_json / encoding/json / json",
+      "pattern": "serde_json",
+      "evidence": [
+        "on_id: str | None = None      def to_json(self) -> dict[str, Any]:         \"\"\"Serialize entry to JSON"
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-policy",
+      "file": "src/thegent/utils/routing_impl/alerting.py",
+      "library_replacement": "serde_json / encoding/json / json",
+      "pattern": "serde_json",
+      "evidence": [
+        "stamp: str | None = None      def to_json(self) -> dict[str, Any]:         \"\"\"Serialize alert to JSON"
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-policy",
+      "file": "crates/thegent-hooks/src/config.rs",
+      "library_replacement": "serde_json / encoding/json / json",
+      "pattern": "serde_json",
+      "evidence": [
+        "Parse JSON configuration     fn parse_json(contents: &str) -> Result<HookConfig, HookError> {"
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-policy",
+      "file": "crates/thegent-parser/src/lib.rs",
+      "library_replacement": "serde_json / encoding/json / json",
+      "pattern": "serde_json",
+      "evidence": [
+        "t.join(\"\\n\") }  #[pyfunction] fn parse_jsonl_file(py: Python<'_>, path: String) -> PyResult<Py<PyAny>>"
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-policy",
+      "file": "apps/byteport/backend/api/models_test.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        ":= models.User{ \t\t\tUUID:     uuid.New().String(), \t\t\tName:     \"Project Owner\", \t\t\tEmail:    \"own",
+        ":= models.Project{ \t\t\tUUID:  uuid.New().String(), \t\t\tName:  \"Test Project\", \t\t\tOwner: owner.UUID,",
+        ":= models.User{ \t\t\tUUID:     uuid.New().String(), \t\t\tName:     \"User With Projects\", \t\t\tEmail:"
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-policy",
+      "file": "apps/byteport/backend/api/auth_handlers.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "Create new user \t\tnewUUID := uuid.New() \t\tuser = models.User{ \t\t\tUUID:  newUUID.String(), \t\t\tName"
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-policy",
+      "file": "apps/byteport/backend/api/handlers.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        ":= &Deployment{ \t\t\tID:        uuid.New().String(), \t\t\tName:      req.Name, \t\t\tType:      req.Type,",
+        "ct := gin.H{ \t\t\"id\":          uuid.New().String(), \t\t\"name\":        req.Name, \t\t\"description\": req"
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-policy",
+      "file": "apps/byteport/backend/api/legacy_auth_handlers_test.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "reate test user \t\tuserUUID := uuid.New().String() \t\tuser := models.User{ \t\t\tUUID:      userUUID,",
+        "ing.T) { \t\tnonExistentUUID := uuid.New().String()  \t\treq := httptest.NewRequest(http.MethodGet, \"/",
+        "// Create user \t\tuserUUID := uuid.New().String() \t\tuser := models.User{ \t\t\tUUID:     userUUID,"
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-policy",
+      "file": "apps/byteport/backend/api/testhelpers/http.go",
+      "library_replacement": "serde_json / encoding/json / json",
+      "pattern": "serde_json",
+      "evidence": [
+        "s JSON response into a struct func ParseJSONResponse(t *testing.T, resp *httptest.ResponseRecorder, targ"
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-policy",
+      "file": "apps/byteport/backend/api/testhelpers/fixtures.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "user := TestUser{ \t\tID:       uuid.New().String(), \t\tEmail:    \"test@example.com\", \t\tName:     \"Te",
+        "User\", \t\tWorkOSID: \"user_\" + uuid.New().String()[:10], \t\tIsActive: true, \t\tCreatedAt: time.Now(),",
+        "= TestProject{ \t\tID:          uuid.New().String(), \t\tName:        \"Test Project\", \t\tDescription: \""
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-policy",
+      "file": "apps/byteport/backend/api/testhelpers/testhelpers_test.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "es(t *testing.T) { \tuserID := uuid.New().String()  \tuser := CreateTestUser( \t\tfunc(u *TestUser) {"
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-policy",
+      "file": "apps/byteport/backend/api/repositories/deployment_repository.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        ".ID == \"\" { \t\tdeployment.ID = uuid.New().String() \t} \tdeployment.CreatedAt = time.Now() \tdeploymen",
+        ".ID == \"\" { \t\tdeployment.ID = uuid.New().String() \t} \tdeployment.CreatedAt = time.Now() \tdeploymen"
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-policy",
+      "file": "apps/byteport/backend/api/repositories/deployment_repository_test.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "s:   \"deploying\", \t\tUserID:   uuid.New().String(), \t\tGitURL:   \"https://github.com/test/app.git\",",
+        "ployment, err := repo.GetByID(uuid.New().String()) \tis.NoErr(err)              // GetByID should n",
+        "us:   \"deployed\", \t\tUserID:   uuid.New().String(), \t}  \terr = repo.Create(testDeployment) \tis.NoEr"
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-policy",
+      "file": "apps/byteport/backend/api/models/projects.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "\"Generating UUID\") \t\tp.UUID = uuid.New().String() \t} \treturn nil }  func (p *Project) AfterFind(tx"
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-policy",
+      "file": "apps/byteport/backend/api/internal/domain/deployment/deployment.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "&Deployment{ \t\t\tuuid:        uuid.New().String(), \t\t\tname:        name, \t\t\towner:       owner,"
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-policy",
+      "file": "apps/byteport/frontend/web-next/app/(auth)/login/login-client.tsx",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "try {       const state = crypto.randomUUID();       if (typeof window !== 'undefined') {         sessi"
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-policy",
+      "file": "tests/test_unit_mcp.py",
+      "library_replacement": "serde_json / encoding/json / json",
+      "pattern": "serde_json",
+      "evidence": [
+        "CP-001         \"\"\"list_agents_impl serialized to JSON matches MCP tool contract.\"\"\"         agents = lis"
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-ruff",
+      "file": "src/thegent/infra/fast_http_client.py",
+      "library_replacement": "reqwest / urllib3 / net/http",
+      "pattern": "reqwest / urllib HTTP client",
+      "evidence": [
+        "ent   # Convenience functions def http_get(url: str, **kwargs) -> Any:     \"\"\"Perform GET request usin",
+        "client().get(url, **kwargs)   def http_post(url: str, **kwargs) -> Any:     \"\"\"Perform POST request usi",
+        "lient().post(url, **kwargs)   def http_request(method: str, url: str, **kwargs) -> Any:     \"\"\"Perform HTT"
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-ruff",
+      "file": "src/thegent/infra/fast_uuid.py",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "on.\"\"\"      @staticmethod     def uuid4() -> uuid.UUID:         \"\"\"Generate UUID4 (random UUID).",
+        "uid4()      @staticmethod     def uuid4_str() -> str:         \"\"\"Generate UUID4 as string.",
+        "())   # Convenience functions def uuid4() -> uuid.UUID:     \"\"\"Generate UUID4 using fastest availab"
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-ruff",
+      "file": "src/thegent/planning/board_artifact_integrator.py",
+      "library_replacement": "serde_json / encoding/json / json",
+      "pattern": "serde_json",
+      "evidence": [
+        "return items          def parse_json(self, file_path: Path) -> list[dict[str, Any]]:         \"\"\""
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-ruff",
+      "file": "src/thegent/utils/errors.py",
+      "library_replacement": "reqwest / urllib3 / net/http",
+      "pattern": "reqwest / urllib HTTP client",
+      "evidence": [
+        "_errors(NetworkError)         def fetch_url(url: str) -> str:             raise ValueError(\"invalid\")"
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-ruff",
+      "file": "src/thegent/utils/json_utils.py",
+      "library_replacement": "serde_json / encoding/json / json",
+      "pattern": "serde_json",
+      "evidence": [
+        "e_bytes(orjson.dumps(data))   def parse_json(text: str) -> dict[str, Any] | None:     \"\"\"Parse JSON text",
+        "eError:         return None   def parse_json_fast(text: str) -> dict[str, Any] | None:     \"\"\"Parse JSON",
+        "eError:         return None   def parse_json_lines(text: str) -> list[dict[str, Any]]:     \"\"\"Parse mult"
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-ruff",
+      "file": "src/thegent/utils/serialization_helpers.py",
+      "library_replacement": "serde_json / encoding/json / json",
+      "pattern": "serde_json",
+      "evidence": [
+        "json from typing import Any   def to_json(obj: Any, indent: int = 2) -> str:     \"\"\"Convert object to",
+        "return json.loads(text)   def to_json_file(obj: Any, path: str, **kwargs: Any) -> None:     \"\"\"Wr"
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-ruff",
+      "file": "src/thegent/integrations/workstream_autosync_shared.py",
+      "library_replacement": "serde_json / encoding/json / json",
+      "pattern": "serde_json",
+      "evidence": [
+        "sorted(set(candidates))      def parse_json_windows(raw: str | None) -> list[MaintenanceWindow]:"
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-ruff",
+      "file": "src/thegent/integrations/base.py",
+      "library_replacement": "serde_json / encoding/json / json",
+      "pattern": "serde_json",
+      "evidence": [
+        "urn self.copy(**updates)      def to_json(self, *, indent: int | None = None, sort_keys: bool = False",
+        "turn cls.from_dict(data)      def to_json_file(self, path: str | Path, *, indent: int = 2) -> None:"
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-ruff",
+      "file": "src/thegent/governance/slo_trend.py",
+      "library_replacement": "serde_json / encoding/json / json",
+      "pattern": "serde_json",
+      "evidence": [
+        "now(UTC).isoformat(),     )   def serialize_trend(trend: SloTrend) -> str:     \"\"\"Return a JSON string"
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-ruff",
+      "file": "src/thegent/cli/services/run_dag_helpers.py",
+      "library_replacement": "serde_json / encoding/json / json",
+      "pattern": "serde_json",
+      "evidence": [
+        "_impl._parse_dag_full(path)   def serialize_dag(doc: \"DagDocument\") -> str:     return dag_impl._serial"
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-ruff",
+      "file": "src/thegent/utils/routing_impl/route_executor.py",
+      "library_replacement": "serde_json / encoding/json / json",
+      "pattern": "serde_json",
+      "evidence": [
+        "return \"\\n\".join(lines)      def to_json(self) -> str:         \"\"\"Serialize to JSON for machine-read"
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-ruff",
+      "file": "src/thegent/utils/routing_impl/cost_tracker.py",
+      "library_replacement": "serde_json / encoding/json / json",
+      "pattern": "serde_json",
+      "evidence": [
+        "on_id: str | None = None      def to_json(self) -> dict[str, Any]:         \"\"\"Serialize entry to JSON"
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-ruff",
+      "file": "src/thegent/utils/routing_impl/alerting.py",
+      "library_replacement": "serde_json / encoding/json / json",
+      "pattern": "serde_json",
+      "evidence": [
+        "stamp: str | None = None      def to_json(self) -> dict[str, Any]:         \"\"\"Serialize alert to JSON"
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-ruff",
+      "file": "crates/thegent-hooks/src/config.rs",
+      "library_replacement": "serde_json / encoding/json / json",
+      "pattern": "serde_json",
+      "evidence": [
+        "Parse JSON configuration     fn parse_json(contents: &str) -> Result<HookConfig, HookError> {"
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-ruff",
+      "file": "crates/thegent-parser/src/lib.rs",
+      "library_replacement": "serde_json / encoding/json / json",
+      "pattern": "serde_json",
+      "evidence": [
+        "t.join(\"\\n\") }  #[pyfunction] fn parse_jsonl_file(py: Python<'_>, path: String) -> PyResult<Py<PyAny>>"
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-ruff",
+      "file": "apps/byteport/backend/api/models_test.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        ":= models.User{ \t\t\tUUID:     uuid.New().String(), \t\t\tName:     \"Project Owner\", \t\t\tEmail:    \"own",
+        ":= models.Project{ \t\t\tUUID:  uuid.New().String(), \t\t\tName:  \"Test Project\", \t\t\tOwner: owner.UUID,",
+        ":= models.User{ \t\t\tUUID:     uuid.New().String(), \t\t\tName:     \"User With Projects\", \t\t\tEmail:"
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-ruff",
+      "file": "apps/byteport/backend/api/auth_handlers.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "Create new user \t\tnewUUID := uuid.New() \t\tuser = models.User{ \t\t\tUUID:  newUUID.String(), \t\t\tName"
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-ruff",
+      "file": "apps/byteport/backend/api/handlers.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        ":= &Deployment{ \t\t\tID:        uuid.New().String(), \t\t\tName:      req.Name, \t\t\tType:      req.Type,",
+        "ct := gin.H{ \t\t\"id\":          uuid.New().String(), \t\t\"name\":        req.Name, \t\t\"description\": req"
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-ruff",
+      "file": "apps/byteport/backend/api/legacy_auth_handlers_test.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "reate test user \t\tuserUUID := uuid.New().String() \t\tuser := models.User{ \t\t\tUUID:      userUUID,",
+        "ing.T) { \t\tnonExistentUUID := uuid.New().String()  \t\treq := httptest.NewRequest(http.MethodGet, \"/",
+        "// Create user \t\tuserUUID := uuid.New().String() \t\tuser := models.User{ \t\t\tUUID:     userUUID,"
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-ruff",
+      "file": "apps/byteport/backend/api/testhelpers/http.go",
+      "library_replacement": "serde_json / encoding/json / json",
+      "pattern": "serde_json",
+      "evidence": [
+        "s JSON response into a struct func ParseJSONResponse(t *testing.T, resp *httptest.ResponseRecorder, targ"
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-ruff",
+      "file": "apps/byteport/backend/api/testhelpers/fixtures.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "user := TestUser{ \t\tID:       uuid.New().String(), \t\tEmail:    \"test@example.com\", \t\tName:     \"Te",
+        "User\", \t\tWorkOSID: \"user_\" + uuid.New().String()[:10], \t\tIsActive: true, \t\tCreatedAt: time.Now(),",
+        "= TestProject{ \t\tID:          uuid.New().String(), \t\tName:        \"Test Project\", \t\tDescription: \""
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-ruff",
+      "file": "apps/byteport/backend/api/testhelpers/testhelpers_test.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "es(t *testing.T) { \tuserID := uuid.New().String()  \tuser := CreateTestUser( \t\tfunc(u *TestUser) {"
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-ruff",
+      "file": "apps/byteport/backend/api/repositories/deployment_repository.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        ".ID == \"\" { \t\tdeployment.ID = uuid.New().String() \t} \tdeployment.CreatedAt = time.Now() \tdeploymen",
+        ".ID == \"\" { \t\tdeployment.ID = uuid.New().String() \t} \tdeployment.CreatedAt = time.Now() \tdeploymen"
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-ruff",
+      "file": "apps/byteport/backend/api/repositories/deployment_repository_test.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "s:   \"deploying\", \t\tUserID:   uuid.New().String(), \t\tGitURL:   \"https://github.com/test/app.git\",",
+        "ployment, err := repo.GetByID(uuid.New().String()) \tis.NoErr(err)              // GetByID should n",
+        "us:   \"deployed\", \t\tUserID:   uuid.New().String(), \t}  \terr = repo.Create(testDeployment) \tis.NoEr"
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-ruff",
+      "file": "apps/byteport/backend/api/models/projects.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "\"Generating UUID\") \t\tp.UUID = uuid.New().String() \t} \treturn nil }  func (p *Project) AfterFind(tx"
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-ruff",
+      "file": "apps/byteport/backend/api/internal/domain/deployment/deployment.go",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "&Deployment{ \t\t\tuuid:        uuid.New().String(), \t\t\tname:        name, \t\t\towner:       owner,"
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-ruff",
+      "file": "apps/byteport/frontend/web-next/app/(auth)/login/login-client.tsx",
+      "library_replacement": "uuid",
+      "pattern": "uuid crate",
+      "evidence": [
+        "try {       const state = crypto.randomUUID();       if (typeof window !== 'undefined') {         sessi"
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-ruff",
+      "file": "tests/test_unit_mcp.py",
+      "library_replacement": "serde_json / encoding/json / json",
+      "pattern": "serde_json",
+      "evidence": [
+        "CP-001         \"\"\"list_agents_impl serialized to JSON matches MCP tool contract.\"\"\"         agents = lis"
+      ]
+    }
+  ]
+}

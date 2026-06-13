@@ -1,0 +1,44 @@
+{
+  "generated_at": "2026-06-08T18:30:00Z",
+  "total_repos": 58,
+  "by_dir": {
+    "domain": [
+      "Agentora",
+      "Apisync",
+      "Benchora",
+      "Eventra",
+      "Metron",
+      "OmniRoute",
+      "Tasken",
+      "phenotype-auth-ts"
+    ],
+    "core": [],
+    "ports": [
+      "phenotype-auth-ts"
+    ],
+    "adapters": [
+      "Agentora",
+      "Apisync",
+      "Eventra",
+      "Metron",
+      "Tasken",
+      "phenoResearchEngine",
+      "phenotype-auth-ts"
+    ],
+    "driven": [],
+    "driving": [],
+    "infrastructure": [
+      "Agentora",
+      "Apisync",
+      "Eventra",
+      "Tasken"
+    ],
+    "application": [
+      "Agentora",
+      "Apisync",
+      "Eventra",
+      "Metron",
+      "Tasken"
+    ]
+  }
+}

@@ -1,0 +1,43 @@
+{
+  "generated_at": "2026-06-08",
+  "total_repos": 65,
+  "by_lib": {
+    "react": [
+      "AppGen",
+      "OmniRoute",
+      "OmniRoute-latest",
+      "Tracera",
+      "agentapi-plusplus",
+      "helios-router",
+      "localbase3",
+      "portage"
+    ],
+    "vue": [
+      "AgilePlus",
+      "Civis",
+      "Dino",
+      "KDesktopVirt",
+      "Paginary",
+      "PhenoCompose",
+      "PhenoProc",
+      "agentapi-plusplus",
+      "chatta",
+      "hwLedger",
+      "nanovms",
+      "phenoDesign",
+      "phenodocs",
+      "phenodocs-scorecard-remediation",
+      "phenotype-auth-ts",
+      "thegent",
+      "thegent-clean-wt-idea",
+      "thegent-clean-wt-parallel",
+      "thegent-clean-wt-policy",
+      "thegent-clean-wt-ruff"
+    ],
+    "svelte": [
+      "chatta"
+    ],
+    "solid": [],
+    "preact": []
+  }
+}

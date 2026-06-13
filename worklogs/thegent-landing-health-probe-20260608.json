@@ -1,0 +1,7 @@
+{
+  "generated_at": "2026-06-08",
+  "root": 200,
+  "/health": 404,
+  "/api/health": 404,
+  "recommended_action": "Root serves 200 but /health and /api/health return 404. Either the deployment is missing the health endpoint routes, or it serves them at a different path. Probe alternative paths (/api, /status, /v1/health) and inspect the deployed bundle/router config to confirm the health route is registered."
+}

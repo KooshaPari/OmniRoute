@@ -1,0 +1,742 @@
+{
+  "generated_at": "2026-06-08T11:31:03Z",
+  "total_repos_scanned": 173,
+  "with_rust_toolchain": [
+    "Agentora",
+    "AgilePlus",
+    "Apisync",
+    "AuthKit",
+    "BytePort",
+    "Civis",
+    "DINOForge-UnityDoorstop",
+    "DataKit",
+    "DevHex",
+    "Dino",
+    "Eidolon",
+    "Eventra",
+    "FocalPoint",
+    "GDK",
+    "HeliosCLI",
+    "HeliosLab",
+    "HexaKit",
+    "KDesktopVirt",
+    "KlipDot",
+    "MCPForge",
+    "McpKit",
+    "Metron",
+    "NetScript",
+    "ObservabilityKit",
+    "Parpoura",
+    "PhenoCompose",
+    "PhenoDevOps",
+    "PhenoHandbook",
+    "PhenoKits",
+    "PhenoMCP",
+    "PhenoObservability",
+    "PhenoPlugins",
+    "PhenoProc",
+    "PhenoRuntime",
+    "PhenoVCS",
+    "PlayCua",
+    "Pyron",
+    "Sidekick",
+    "Tasken",
+    "Tokn",
+    "Tracely",
+    "agentapi-plusplus",
+    "argis-extensions",
+    "bare-cua",
+    "cheap-llm-mcp",
+    "foqos-private",
+    "helioscope",
+    "hwLedger",
+    "kmobile",
+    "kwality",
+    "pheno",
+    "phenoAI",
+    "phenoData",
+    "phenoForge",
+    "phenoResearchEngine",
+    "phenoShared",
+    "phenoUtils",
+    "phenoXdd",
+    "phenodocs",
+    "phenodocs-scorecard-remediation",
+    "phenotype-bus",
+    "phenotype-infra",
+    "phenotype-journeys",
+    "phenotype-org-audits",
+    "phenotype-shared",
+    "phenotype-tooling",
+    "phenotype-voxel",
+    "rich-cli-kit",
+    "thegent",
+    "thegent-clean-wt-docs",
+    "thegent-clean-wt-idea",
+    "thegent-clean-wt-parallel",
+    "thegent-clean-wt-policy",
+    "thegent-clean-wt-ruff",
+    "thegent-dispatch",
+    "vibeproxy"
+  ],
+  "with_rust_lang_cargo_action": [],
+  "with_cargo_test": [
+    "Agentora",
+    "AgilePlus",
+    "Apisync",
+    "AuthKit",
+    "Civis",
+    "DataKit",
+    "Dino",
+    "Eidolon",
+    "Eventra",
+    "FocalPoint",
+    "GDK",
+    "HeliosCLI",
+    "HeliosLab",
+    "HexaKit",
+    "KDesktopVirt",
+    "KlipDot",
+    "McpKit",
+    "Metron",
+    "NetScript",
+    "PhenoDevOps",
+    "PhenoObservability",
+    "PhenoProc",
+    "PhenoRuntime",
+    "Pyron",
+    "QuadSGM",
+    "Sidekick",
+    "Tasken",
+    "Tokn",
+    "Tracely",
+    "argis-extensions",
+    "helioscope",
+    "kmobile",
+    "kwality",
+    "pheno",
+    "phenoData",
+    "phenoForge",
+    "phenoResearchEngine",
+    "phenoShared",
+    "phenoUtils",
+    "phenoXdd",
+    "phenotype-bus",
+    "phenotype-infra",
+    "phenotype-shared",
+    "phenotype-voxel",
+    "portage",
+    "thegent",
+    "thegent-clean-wt-idea",
+    "thegent-clean-wt-parallel",
+    "thegent-clean-wt-ruff",
+    "vibeproxy"
+  ],
+  "with_cargo_clippy": [
+    "Agentora",
+    "AgilePlus",
+    "Civis",
+    "DataKit",
+    "Eidolon",
+    "FocalPoint",
+    "GDK",
+    "HeliosCLI",
+    "HeliosLab",
+    "HexaKit",
+    "KDesktopVirt",
+    "KlipDot",
+    "PhenoDevOps",
+    "PhenoProc",
+    "PhenoRuntime",
+    "Pyron",
+    "QuadSGM",
+    "Sidekick",
+    "Tasken",
+    "Tokn",
+    "Tracely",
+    "helioscope",
+    "kmobile",
+    "kwality",
+    "pheno",
+    "phenoData",
+    "phenoForge",
+    "phenoShared",
+    "phenoUtils",
+    "phenotype-bus",
+    "phenotype-infra",
+    "phenotype-shared",
+    "phenotype-voxel",
+    "portage",
+    "thegent",
+    "thegent-clean-wt-idea",
+    "thegent-clean-wt-parallel",
+    "thegent-clean-wt-policy",
+    "thegent-clean-wt-ruff",
+    "vibeproxy"
+  ],
+  "with_cargo_fmt_check": [
+    "AgilePlus",
+    "Civis",
+    "DataKit",
+    "Eidolon",
+    "HexaKit",
+    "PhenoDevOps",
+    "PhenoProc",
+    "Pyron",
+    "QuadSGM",
+    "Tokn",
+    "pheno",
+    "phenotype-bus",
+    "phenotype-infra",
+    "phenotype-voxel",
+    "portage"
+  ],
+  "per_repo_match_counts": {
+    "Agentora": {
+      "rust_toolchain": 4,
+      "cargo_lang": 0,
+      "cargo_test": 1,
+      "cargo_clippy": 1,
+      "cargo_fmt": 0
+    },
+    "AgilePlus": {
+      "rust_toolchain": 16,
+      "cargo_lang": 0,
+      "cargo_test": 5,
+      "cargo_clippy": 5,
+      "cargo_fmt": 1
+    },
+    "Apisync": {
+      "rust_toolchain": 4,
+      "cargo_lang": 0,
+      "cargo_test": 4,
+      "cargo_clippy": 0,
+      "cargo_fmt": 0
+    },
+    "AuthKit": {
+      "rust_toolchain": 1,
+      "cargo_lang": 0,
+      "cargo_test": 1,
+      "cargo_clippy": 0,
+      "cargo_fmt": 0
+    },
+    "BytePort": {
+      "rust_toolchain": 1,
+      "cargo_lang": 0,
+      "cargo_test": 0,
+      "cargo_clippy": 0,
+      "cargo_fmt": 0
+    },
+    "Civis": {
+      "rust_toolchain": 7,
+      "cargo_lang": 0,
+      "cargo_test": 3,
+      "cargo_clippy": 2,
+      "cargo_fmt": 1
+    },
+    "DINOForge-UnityDoorstop": {
+      "rust_toolchain": 1,
+      "cargo_lang": 0,
+      "cargo_test": 0,
+      "cargo_clippy": 0,
+      "cargo_fmt": 0
+    },
+    "DataKit": {
+      "rust_toolchain": 1,
+      "cargo_lang": 0,
+      "cargo_test": 2,
+      "cargo_clippy": 2,
+      "cargo_fmt": 1
+    },
+    "DevHex": {
+      "rust_toolchain": 2,
+      "cargo_lang": 0,
+      "cargo_test": 0,
+      "cargo_clippy": 0,
+      "cargo_fmt": 0
+    },
+    "Dino": {
+      "rust_toolchain": 3,
+      "cargo_lang": 0,
+      "cargo_test": 2,
+      "cargo_clippy": 0,
+      "cargo_fmt": 0
+    },
+    "Eidolon": {
+      "rust_toolchain": 3,
+      "cargo_lang": 0,
+      "cargo_test": 1,
+      "cargo_clippy": 1,
+      "cargo_fmt": 1
+    },
+    "Eventra": {
+      "rust_toolchain": 1,
+      "cargo_lang": 0,
+      "cargo_test": 1,
+      "cargo_clippy": 0,
+      "cargo_fmt": 0
+    },
+    "FocalPoint": {
+      "rust_toolchain": 2,
+      "cargo_lang": 0,
+      "cargo_test": 1,
+      "cargo_clippy": 1,
+      "cargo_fmt": 0
+    },
+    "GDK": {
+      "rust_toolchain": 4,
+      "cargo_lang": 0,
+      "cargo_test": 1,
+      "cargo_clippy": 1,
+      "cargo_fmt": 0
+    },
+    "HeliosCLI": {
+      "rust_toolchain": 21,
+      "cargo_lang": 0,
+      "cargo_test": 6,
+      "cargo_clippy": 6,
+      "cargo_fmt": 0
+    },
+    "HeliosLab": {
+      "rust_toolchain": 7,
+      "cargo_lang": 0,
+      "cargo_test": 5,
+      "cargo_clippy": 1,
+      "cargo_fmt": 0
+    },
+    "HexaKit": {
+      "rust_toolchain": 20,
+      "cargo_lang": 0,
+      "cargo_test": 7,
+      "cargo_clippy": 4,
+      "cargo_fmt": 1
+    },
+    "KDesktopVirt": {
+      "rust_toolchain": 4,
+      "cargo_lang": 0,
+      "cargo_test": 2,
+      "cargo_clippy": 1,
+      "cargo_fmt": 0
+    },
+    "KlipDot": {
+      "rust_toolchain": 3,
+      "cargo_lang": 0,
+      "cargo_test": 3,
+      "cargo_clippy": 1,
+      "cargo_fmt": 0
+    },
+    "MCPForge": {
+      "rust_toolchain": 1,
+      "cargo_lang": 0,
+      "cargo_test": 0,
+      "cargo_clippy": 0,
+      "cargo_fmt": 0
+    },
+    "McpKit": {
+      "rust_toolchain": 1,
+      "cargo_lang": 0,
+      "cargo_test": 1,
+      "cargo_clippy": 0,
+      "cargo_fmt": 0
+    },
+    "Metron": {
+      "rust_toolchain": 1,
+      "cargo_lang": 0,
+      "cargo_test": 1,
+      "cargo_clippy": 0,
+      "cargo_fmt": 0
+    },
+    "NetScript": {
+      "rust_toolchain": 1,
+      "cargo_lang": 0,
+      "cargo_test": 1,
+      "cargo_clippy": 0,
+      "cargo_fmt": 0
+    },
+    "ObservabilityKit": {
+      "rust_toolchain": 1,
+      "cargo_lang": 0,
+      "cargo_test": 0,
+      "cargo_clippy": 0,
+      "cargo_fmt": 0
+    },
+    "Parpoura": {
+      "rust_toolchain": 2,
+      "cargo_lang": 0,
+      "cargo_test": 0,
+      "cargo_clippy": 0,
+      "cargo_fmt": 0
+    },
+    "PhenoCompose": {
+      "rust_toolchain": 2,
+      "cargo_lang": 0,
+      "cargo_test": 0,
+      "cargo_clippy": 0,
+      "cargo_fmt": 0
+    },
+    "PhenoDevOps": {
+      "rust_toolchain": 18,
+      "cargo_lang": 0,
+      "cargo_test": 4,
+      "cargo_clippy": 3,
+      "cargo_fmt": 1
+    },
+    "PhenoHandbook": {
+      "rust_toolchain": 3,
+      "cargo_lang": 0,
+      "cargo_test": 0,
+      "cargo_clippy": 0,
+      "cargo_fmt": 0
+    },
+    "PhenoKits": {
+      "rust_toolchain": 2,
+      "cargo_lang": 0,
+      "cargo_test": 0,
+      "cargo_clippy": 0,
+      "cargo_fmt": 0
+    },
+    "PhenoMCP": {
+      "rust_toolchain": 2,
+      "cargo_lang": 0,
+      "cargo_test": 0,
+      "cargo_clippy": 0,
+      "cargo_fmt": 0
+    },
+    "PhenoObservability": {
+      "rust_toolchain": 2,
+      "cargo_lang": 0,
+      "cargo_test": 1,
+      "cargo_clippy": 0,
+      "cargo_fmt": 0
+    },
+    "PhenoPlugins": {
+      "rust_toolchain": 1,
+      "cargo_lang": 0,
+      "cargo_test": 0,
+      "cargo_clippy": 0,
+      "cargo_fmt": 0
+    },
+    "PhenoProc": {
+      "rust_toolchain": 2,
+      "cargo_lang": 0,
+      "cargo_test": 1,
+      "cargo_clippy": 1,
+      "cargo_fmt": 1
+    },
+    "PhenoRuntime": {
+      "rust_toolchain": 5,
+      "cargo_lang": 0,
+      "cargo_test": 1,
+      "cargo_clippy": 1,
+      "cargo_fmt": 0
+    },
+    "PhenoVCS": {
+      "rust_toolchain": 3,
+      "cargo_lang": 0,
+      "cargo_test": 0,
+      "cargo_clippy": 0,
+      "cargo_fmt": 0
+    },
+    "PlayCua": {
+      "rust_toolchain": 4,
+      "cargo_lang": 0,
+      "cargo_test": 0,
+      "cargo_clippy": 0,
+      "cargo_fmt": 0
+    },
+    "Pyron": {
+      "rust_toolchain": 18,
+      "cargo_lang": 0,
+      "cargo_test": 6,
+      "cargo_clippy": 3,
+      "cargo_fmt": 1
+    },
+    "QuadSGM": {
+      "rust_toolchain": 0,
+      "cargo_lang": 0,
+      "cargo_test": 3,
+      "cargo_clippy": 1,
+      "cargo_fmt": 1
+    },
+    "Sidekick": {
+      "rust_toolchain": 2,
+      "cargo_lang": 0,
+      "cargo_test": 1,
+      "cargo_clippy": 1,
+      "cargo_fmt": 0
+    },
+    "Tasken": {
+      "rust_toolchain": 10,
+      "cargo_lang": 0,
+      "cargo_test": 5,
+      "cargo_clippy": 3,
+      "cargo_fmt": 0
+    },
+    "Tokn": {
+      "rust_toolchain": 9,
+      "cargo_lang": 0,
+      "cargo_test": 3,
+      "cargo_clippy": 2,
+      "cargo_fmt": 2
+    },
+    "Tracely": {
+      "rust_toolchain": 5,
+      "cargo_lang": 0,
+      "cargo_test": 1,
+      "cargo_clippy": 1,
+      "cargo_fmt": 0
+    },
+    "agentapi-plusplus": {
+      "rust_toolchain": 2,
+      "cargo_lang": 0,
+      "cargo_test": 0,
+      "cargo_clippy": 0,
+      "cargo_fmt": 0
+    },
+    "argis-extensions": {
+      "rust_toolchain": 3,
+      "cargo_lang": 0,
+      "cargo_test": 3,
+      "cargo_clippy": 0,
+      "cargo_fmt": 0
+    },
+    "bare-cua": {
+      "rust_toolchain": 4,
+      "cargo_lang": 0,
+      "cargo_test": 0,
+      "cargo_clippy": 0,
+      "cargo_fmt": 0
+    },
+    "cheap-llm-mcp": {
+      "rust_toolchain": 3,
+      "cargo_lang": 0,
+      "cargo_test": 0,
+      "cargo_clippy": 0,
+      "cargo_fmt": 0
+    },
+    "foqos-private": {
+      "rust_toolchain": 1,
+      "cargo_lang": 0,
+      "cargo_test": 0,
+      "cargo_clippy": 0,
+      "cargo_fmt": 0
+    },
+    "helioscope": {
+      "rust_toolchain": 21,
+      "cargo_lang": 0,
+      "cargo_test": 6,
+      "cargo_clippy": 6,
+      "cargo_fmt": 0
+    },
+    "hwLedger": {
+      "rust_toolchain": 1,
+      "cargo_lang": 0,
+      "cargo_test": 0,
+      "cargo_clippy": 0,
+      "cargo_fmt": 0
+    },
+    "kmobile": {
+      "rust_toolchain": 5,
+      "cargo_lang": 0,
+      "cargo_test": 1,
+      "cargo_clippy": 1,
+      "cargo_fmt": 0
+    },
+    "kwality": {
+      "rust_toolchain": 4,
+      "cargo_lang": 0,
+      "cargo_test": 1,
+      "cargo_clippy": 2,
+      "cargo_fmt": 0
+    },
+    "pheno": {
+      "rust_toolchain": 20,
+      "cargo_lang": 0,
+      "cargo_test": 7,
+      "cargo_clippy": 4,
+      "cargo_fmt": 1
+    },
+    "phenoAI": {
+      "rust_toolchain": 5,
+      "cargo_lang": 0,
+      "cargo_test": 0,
+      "cargo_clippy": 0,
+      "cargo_fmt": 0
+    },
+    "phenoData": {
+      "rust_toolchain": 5,
+      "cargo_lang": 0,
+      "cargo_test": 1,
+      "cargo_clippy": 1,
+      "cargo_fmt": 0
+    },
+    "phenoForge": {
+      "rust_toolchain": 8,
+      "cargo_lang": 0,
+      "cargo_test": 4,
+      "cargo_clippy": 1,
+      "cargo_fmt": 0
+    },
+    "phenoResearchEngine": {
+      "rust_toolchain": 3,
+      "cargo_lang": 0,
+      "cargo_test": 3,
+      "cargo_clippy": 0,
+      "cargo_fmt": 0
+    },
+    "phenoShared": {
+      "rust_toolchain": 3,
+      "cargo_lang": 0,
+      "cargo_test": 1,
+      "cargo_clippy": 1,
+      "cargo_fmt": 0
+    },
+    "phenoUtils": {
+      "rust_toolchain": 2,
+      "cargo_lang": 0,
+      "cargo_test": 1,
+      "cargo_clippy": 1,
+      "cargo_fmt": 0
+    },
+    "phenoXdd": {
+      "rust_toolchain": 1,
+      "cargo_lang": 0,
+      "cargo_test": 1,
+      "cargo_clippy": 0,
+      "cargo_fmt": 0
+    },
+    "phenodocs": {
+      "rust_toolchain": 2,
+      "cargo_lang": 0,
+      "cargo_test": 0,
+      "cargo_clippy": 0,
+      "cargo_fmt": 0
+    },
+    "phenodocs-scorecard-remediation": {
+      "rust_toolchain": 2,
+      "cargo_lang": 0,
+      "cargo_test": 0,
+      "cargo_clippy": 0,
+      "cargo_fmt": 0
+    },
+    "phenotype-bus": {
+      "rust_toolchain": 3,
+      "cargo_lang": 0,
+      "cargo_test": 2,
+      "cargo_clippy": 2,
+      "cargo_fmt": 1
+    },
+    "phenotype-infra": {
+      "rust_toolchain": 2,
+      "cargo_lang": 0,
+      "cargo_test": 4,
+      "cargo_clippy": 4,
+      "cargo_fmt": 2
+    },
+    "phenotype-journeys": {
+      "rust_toolchain": 1,
+      "cargo_lang": 0,
+      "cargo_test": 0,
+      "cargo_clippy": 0,
+      "cargo_fmt": 0
+    },
+    "phenotype-org-audits": {
+      "rust_toolchain": 1,
+      "cargo_lang": 0,
+      "cargo_test": 0,
+      "cargo_clippy": 0,
+      "cargo_fmt": 0
+    },
+    "phenotype-shared": {
+      "rust_toolchain": 1,
+      "cargo_lang": 0,
+      "cargo_test": 1,
+      "cargo_clippy": 1,
+      "cargo_fmt": 0
+    },
+    "phenotype-tooling": {
+      "rust_toolchain": 1,
+      "cargo_lang": 0,
+      "cargo_test": 0,
+      "cargo_clippy": 0,
+      "cargo_fmt": 0
+    },
+    "phenotype-voxel": {
+      "rust_toolchain": 1,
+      "cargo_lang": 0,
+      "cargo_test": 1,
+      "cargo_clippy": 1,
+      "cargo_fmt": 1
+    },
+    "portage": {
+      "rust_toolchain": 0,
+      "cargo_lang": 0,
+      "cargo_test": 3,
+      "cargo_clippy": 1,
+      "cargo_fmt": 1
+    },
+    "rich-cli-kit": {
+      "rust_toolchain": 2,
+      "cargo_lang": 0,
+      "cargo_test": 0,
+      "cargo_clippy": 0,
+      "cargo_fmt": 0
+    },
+    "thegent": {
+      "rust_toolchain": 5,
+      "cargo_lang": 0,
+      "cargo_test": 3,
+      "cargo_clippy": 1,
+      "cargo_fmt": 0
+    },
+    "thegent-clean-wt-docs": {
+      "rust_toolchain": 1,
+      "cargo_lang": 0,
+      "cargo_test": 0,
+      "cargo_clippy": 0,
+      "cargo_fmt": 0
+    },
+    "thegent-clean-wt-idea": {
+      "rust_toolchain": 5,
+      "cargo_lang": 0,
+      "cargo_test": 3,
+      "cargo_clippy": 1,
+      "cargo_fmt": 0
+    },
+    "thegent-clean-wt-parallel": {
+      "rust_toolchain": 5,
+      "cargo_lang": 0,
+      "cargo_test": 3,
+      "cargo_clippy": 1,
+      "cargo_fmt": 0
+    },
+    "thegent-clean-wt-policy": {
+      "rust_toolchain": 1,
+      "cargo_lang": 0,
+      "cargo_test": 0,
+      "cargo_clippy": 1,
+      "cargo_fmt": 0
+    },
+    "thegent-clean-wt-ruff": {
+      "rust_toolchain": 5,
+      "cargo_lang": 0,
+      "cargo_test": 3,
+      "cargo_clippy": 1,
+      "cargo_fmt": 0
+    },
+    "thegent-dispatch": {
+      "rust_toolchain": 2,
+      "cargo_lang": 0,
+      "cargo_test": 0,
+      "cargo_clippy": 0,
+      "cargo_fmt": 0
+    },
+    "vibeproxy": {
+      "rust_toolchain": 5,
+      "cargo_lang": 0,
+      "cargo_test": 3,
+      "cargo_clippy": 1,
+      "cargo_fmt": 0
+    }
+  }
+}

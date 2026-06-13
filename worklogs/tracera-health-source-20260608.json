@@ -1,0 +1,64 @@
+{
+  "generated_at": "2026-06-08",
+  "health_py_handlers": [
+    {
+      "path": "/health",
+      "method": "GET",
+      "response_model": "dict[str,str]",
+      "deps": [],
+      "response_shape": "{\"status\": \"healthy\", \"version\": \"1.0.0\", \"service\": \"TraceRTM API\"}"
+    },
+    {
+      "path": "/metrics",
+      "method": "GET",
+      "response_model": "Response",
+      "deps": [],
+      "response_shape": "Prometheus text exposition (generate_latest(REGISTRY)) with CONTENT_TYPE_LATEST media"
+    },
+    {
+      "path": "/ready",
+      "method": "GET",
+      "response_model": "None (dict[str,Any] | JSONResponse)",
+      "deps": ["get_db (AsyncSession)", "get_cache_service (CacheService)"],
+      "response_shape": "{\"status\": \"ready\"|\"not_ready\", \"ready\": bool, \"components\": {...}}; 503 with detail listing failed components when not ready"
+    },
+    {
+      "path": "/api/v1/health",
+      "method": "GET",
+      "response_model": "None (dict[str,Any] | JSONResponse)",
+      "deps": ["get_db (AsyncSession)", "get_cache_service (CacheService)", "Request (app.state.nats_client)"],
+      "response_shape": "{\"status\": \"healthy\"|\"unhealthy\", \"service\": \"tracertm-api\", \"components\": {...}}; 503 with failed list when unhealthy"
+    }
+  ],
+  "health_canary_py_handlers": [
+    {
+      "path": "/health/canary",
+      "method": "GET",
+      "response_model": "CanaryHealthResponse",
+      "deps": [],
+      "response_shape": "CanaryHealthResponse: {status, version, timestamp, deployment:{type,image_tag,start_time,uptime_seconds}, components, integration, metrics (canary only)}"
+    },
+    {
+      "path": "/health/readiness",
+      "method": "GET",
+      "response_model": "dict[str,Any]",
+      "deps": [],
+      "response_shape": "{\"status\": \"ready\"|\"not_ready\", \"message\": \"database not available\"}; placeholder db=None always returns ready"
+    },
+    {
+      "path": "/health/liveness",
+      "method": "GET",
+      "response_model": "dict[str,Any]",
+      "deps": [],
+      "response_shape": "{\"status\": \"alive\"}"
+    }
+  ],
+  "common_response": "{\"status\": <healthy|ready|alive|unhealthy|not_ready|degraded>, \"version\": str, \"service\": str, \"components\": {<component>: {status, message?, last_check?, ...}}}; failures surface as 503 JSONResponse with detail listing failed components",
+  "prometheus_metrics": [
+    "generate_latest(REGISTRY) — full Prometheus default registry exposition (CONTENT_TYPE_LATEST)",
+    "process metrics emitted via prometheus_client default collectors",
+    "CanaryMetrics: request_count, error_count, error_rate, avg_latency_ms, p95_latency_ms, p99_latency_ms, memory_usage_mb, cpu_usage_percent (placeholder zeros in current implementation)"
+  ],
+  "liveness_logic": "Pure static: /health returns fixed {status:healthy,version:1.0.0,service:TraceRTM API} and /health/liveness returns {status:alive}; no dependency probing, suitable as Kubernetes liveness probe.",
+  "readiness_logic": "Readiness probes critical dependencies only. /ready calls check_database(db) and check_redis(cache); ready iff every component.status == 'healthy', else returns 503 with detail listing failed components. /health/readiness (canary router) is a stub: db is hardcoded None, so it always returns {status:ready} without actually probing. /api/v1/health is the comprehensive probe (db, cache, nats_client, go backend, migrations) returning 503 if any component unhealthy."
+}

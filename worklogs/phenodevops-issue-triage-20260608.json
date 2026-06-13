@@ -1,0 +1,64 @@
+{
+  "generated_at": "2026-06-08T20:38:00Z",
+  "repo": "KooshaPari/PhenoDevOps",
+  "total_open": 108,
+  "label_summary": {
+    "auto-alert-sync": 99,
+    "source:codeql": 75,
+    "severity:medium": 63,
+    "source:ci": 24,
+    "severity:high": 8,
+    "dependencies": 7,
+    "severity:low": 4,
+    "size:M": 2,
+    "javascript": 1,
+    "python:uv": 1
+  },
+  "top_level": [
+    "repos", "migrations", "forgecode-fork", "vibeproxy-monitoring-unified",
+    "platforms", "crates", "docker", "dotfiles", "python", "kits", "KaskMan",
+    "PhenoDevOps-wtrees", "ci", "deploy", "rust", "harnesses", "pheno-cli",
+    "tests", "agileplus-agents", "zen", "libs", "thegent-plugin-host", "clikit",
+    "agileplus", "vibeproxy", "phenotype-router-monitor", "kitty-specs", "examples",
+    "proto", "docs"
+  ],
+  "top_5_labeled": [
+    {
+      "number": 190,
+      "title": "[CodeQL][high] LanguageSpecificPackageVulnerability",
+      "labels": ["auto-alert-sync", "source:codeql", "severity:high"],
+      "created_at": "2026-06-01T17:43:40Z"
+    },
+    {
+      "number": 189,
+      "title": "[CodeQL][high] LanguageSpecificPackageVulnerability",
+      "labels": ["auto-alert-sync", "source:codeql", "severity:high"],
+      "created_at": "2026-06-01T17:43:39Z"
+    },
+    {
+      "number": 187,
+      "title": "[CodeQL][high] LanguageSpecificPackageVulnerability",
+      "labels": ["auto-alert-sync", "source:codeql", "severity:high"],
+      "created_at": "2026-06-01T17:43:39Z"
+    },
+    {
+      "number": 120,
+      "title": "[CodeQL][high] LanguageSpecificPackageVulnerability",
+      "labels": ["auto-alert-sync", "source:codeql", "severity:high"],
+      "created_at": "2026-05-03T06:39:55Z"
+    },
+    {
+      "number": 91,
+      "title": "[CodeQL][high] Branch-Protection",
+      "labels": ["auto-alert-sync", "source:codeql", "severity:high"],
+      "created_at": "2026-05-02T11:58:30Z"
+    }
+  ],
+  "notes": [
+    "User-estimated 99 open; actual count is 108.",
+    "Ranking prioritizes severity:high > size:M > dependencies.",
+    "All top 5 are CodeQL auto-alert-sync items; 4 are LanguageSpecificPackageVulnerability, 1 is Branch-Protection.",
+    "8 high-severity open CodeQL items; 63 medium; 4 low.",
+    "24 source:ci items mostly CI-workflow failures on main; many likely billing-related per global constraint."
+  ]
+}

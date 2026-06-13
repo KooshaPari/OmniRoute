@@ -1,0 +1,665 @@
+{
+  "generated_at": "2026-06-08T10:27:08Z",
+  "total_repos": 128,
+  "dirty": [
+    "BytePort",
+    "Httpora",
+    "PhenoAgent",
+    "PhenoMCP",
+    "PhenoPlugins",
+    "PhenoProject",
+    "PhenoRuntime",
+    "PolicyStack",
+    "agent-user-status",
+    "agslag-docs",
+    "cliproxyapi-plusplus",
+    "phenoData",
+    "phenoShared",
+    "phenotype-infra",
+    "phenotype-journeys",
+    "phenotype-ops-mcp",
+    "vibeproxy"
+  ],
+  "by_repo": [
+    {
+      "repo": "AgentMCP",
+      "dirty_count": 0,
+      "total_commits": 18
+    },
+    {
+      "repo": "Agentora",
+      "dirty_count": 0,
+      "total_commits": 88
+    },
+    {
+      "repo": "AgilePlus",
+      "dirty_count": -1,
+      "total_commits": -1
+    },
+    {
+      "repo": "Apisync",
+      "dirty_count": 0,
+      "total_commits": 40
+    },
+    {
+      "repo": "AppGen",
+      "dirty_count": 0,
+      "total_commits": 53
+    },
+    {
+      "repo": "AtomsBot",
+      "dirty_count": 0,
+      "total_commits": 38
+    },
+    {
+      "repo": "AuthKit",
+      "dirty_count": -1,
+      "total_commits": -1
+    },
+    {
+      "repo": "Benchora",
+      "dirty_count": 0,
+      "total_commits": 55
+    },
+    {
+      "repo": "BytePort",
+      "dirty_count": 1,
+      "total_commits": 147
+    },
+    {
+      "repo": "Civis",
+      "dirty_count": -1,
+      "total_commits": 80
+    },
+    {
+      "repo": "Conft",
+      "dirty_count": 0,
+      "total_commits": 58
+    },
+    {
+      "repo": "DINOForge-UnityDoorstop",
+      "dirty_count": 0,
+      "total_commits": 150
+    },
+    {
+      "repo": "DataKit",
+      "dirty_count": 0,
+      "total_commits": 55
+    },
+    {
+      "repo": "DevHex",
+      "dirty_count": 0,
+      "total_commits": 55
+    },
+    {
+      "repo": "Dino",
+      "dirty_count": 0,
+      "total_commits": 1231
+    },
+    {
+      "repo": "Eidolon",
+      "dirty_count": 0,
+      "total_commits": 84
+    },
+    {
+      "repo": "Eventra",
+      "dirty_count": 0,
+      "total_commits": 7
+    },
+    {
+      "repo": "FocalPoint",
+      "dirty_count": -1,
+      "total_commits": 20
+    },
+    {
+      "repo": "GDK",
+      "dirty_count": 0,
+      "total_commits": 104
+    },
+    {
+      "repo": "HeliosCLI",
+      "dirty_count": 0,
+      "total_commits": 291
+    },
+    {
+      "repo": "HeliosLab",
+      "dirty_count": 0,
+      "total_commits": 75
+    },
+    {
+      "repo": "HexaKit",
+      "dirty_count": 0,
+      "total_commits": 448
+    },
+    {
+      "repo": "Httpora",
+      "dirty_count": 1,
+      "total_commits": 55
+    },
+    {
+      "repo": "KDesktopVirt",
+      "dirty_count": 0,
+      "total_commits": 107
+    },
+    {
+      "repo": "KWatch",
+      "dirty_count": 0,
+      "total_commits": 93
+    },
+    {
+      "repo": "KaskMan",
+      "dirty_count": 0,
+      "total_commits": 44
+    },
+    {
+      "repo": "KlipDot",
+      "dirty_count": 0,
+      "total_commits": 48
+    },
+    {
+      "repo": "KodeVibe",
+      "dirty_count": 0,
+      "total_commits": 8
+    },
+    {
+      "repo": "MCPForge",
+      "dirty_count": 0,
+      "total_commits": 152
+    },
+    {
+      "repo": "McpKit",
+      "dirty_count": 0,
+      "total_commits": 73
+    },
+    {
+      "repo": "Metron",
+      "dirty_count": 0,
+      "total_commits": 61
+    },
+    {
+      "repo": "NetScript",
+      "dirty_count": 0,
+      "total_commits": 2
+    },
+    {
+      "repo": "ObservabilityKit",
+      "dirty_count": 0,
+      "total_commits": 48
+    },
+    {
+      "repo": "OmniRoute",
+      "dirty_count": -1,
+      "total_commits": 3368
+    },
+    {
+      "repo": "Paginary",
+      "dirty_count": 0,
+      "total_commits": 49
+    },
+    {
+      "repo": "Parpoura",
+      "dirty_count": 0,
+      "total_commits": 98
+    },
+    {
+      "repo": "PhenoAgent",
+      "dirty_count": 2,
+      "total_commits": 49
+    },
+    {
+      "repo": "PhenoCompose",
+      "dirty_count": 0,
+      "total_commits": 55
+    },
+    {
+      "repo": "PhenoDevOps",
+      "dirty_count": 0,
+      "total_commits": 66
+    },
+    {
+      "repo": "PhenoHandbook",
+      "dirty_count": 0,
+      "total_commits": 82
+    },
+    {
+      "repo": "PhenoKits",
+      "dirty_count": 0,
+      "total_commits": 109
+    },
+    {
+      "repo": "PhenoMCP",
+      "dirty_count": 5,
+      "total_commits": 94
+    },
+    {
+      "repo": "PhenoObservability",
+      "dirty_count": 0,
+      "total_commits": 164
+    },
+    {
+      "repo": "PhenoPlugins",
+      "dirty_count": 4,
+      "total_commits": 83
+    },
+    {
+      "repo": "PhenoProc",
+      "dirty_count": -1,
+      "total_commits": 90
+    },
+    {
+      "repo": "PhenoProject",
+      "dirty_count": 1,
+      "total_commits": 72
+    },
+    {
+      "repo": "PhenoRuntime",
+      "dirty_count": 4,
+      "total_commits": 91
+    },
+    {
+      "repo": "PhenoSpecs",
+      "dirty_count": 0,
+      "total_commits": 67
+    },
+    {
+      "repo": "PhenoVCS",
+      "dirty_count": 0,
+      "total_commits": 81
+    },
+    {
+      "repo": "Pine",
+      "dirty_count": 0,
+      "total_commits": 13
+    },
+    {
+      "repo": "Planify",
+      "dirty_count": 0,
+      "total_commits": 7008
+    },
+    {
+      "repo": "PlatformKit",
+      "dirty_count": 0,
+      "total_commits": 12
+    },
+    {
+      "repo": "PlayCua",
+      "dirty_count": 0,
+      "total_commits": 90
+    },
+    {
+      "repo": "PolicyStack",
+      "dirty_count": 1,
+      "total_commits": 115
+    },
+    {
+      "repo": "Pyron",
+      "dirty_count": 0,
+      "total_commits": 66
+    },
+    {
+      "repo": "QuadSGM",
+      "dirty_count": 0,
+      "total_commits": 124
+    },
+    {
+      "repo": "ResilienceKit",
+      "dirty_count": 0,
+      "total_commits": 63
+    },
+    {
+      "repo": "Sidekick",
+      "dirty_count": 0,
+      "total_commits": 68
+    },
+    {
+      "repo": "Tasken",
+      "dirty_count": 0,
+      "total_commits": 66
+    },
+    {
+      "repo": "TestingKit",
+      "dirty_count": 0,
+      "total_commits": 56
+    },
+    {
+      "repo": "Tokn",
+      "dirty_count": 0,
+      "total_commits": 133
+    },
+    {
+      "repo": "Tracely",
+      "dirty_count": 0,
+      "total_commits": 69
+    },
+    {
+      "repo": "Tracera",
+      "dirty_count": -1,
+      "total_commits": 74
+    },
+    {
+      "repo": "agent-devops-setups",
+      "dirty_count": 0,
+      "total_commits": 76
+    },
+    {
+      "repo": "agent-user-status",
+      "dirty_count": 6,
+      "total_commits": 38
+    },
+    {
+      "repo": "agentapi-plusplus",
+      "dirty_count": 0,
+      "total_commits": 448
+    },
+    {
+      "repo": "agileplus-landing",
+      "dirty_count": 0,
+      "total_commits": 32
+    },
+    {
+      "repo": "agslag-docs",
+      "dirty_count": 1,
+      "total_commits": 7
+    },
+    {
+      "repo": "argis-extensions",
+      "dirty_count": 0,
+      "total_commits": 53
+    },
+    {
+      "repo": "bare-cua",
+      "dirty_count": 0,
+      "total_commits": 80
+    },
+    {
+      "repo": "byteport-landing",
+      "dirty_count": 0,
+      "total_commits": 38
+    },
+    {
+      "repo": "chatta",
+      "dirty_count": 0,
+      "total_commits": 34
+    },
+    {
+      "repo": "cheap-llm-mcp",
+      "dirty_count": 0,
+      "total_commits": 51
+    },
+    {
+      "repo": "cliproxyapi-plusplus",
+      "dirty_count": 26,
+      "total_commits": 2657
+    },
+    {
+      "repo": "dinoforge-packs",
+      "dirty_count": 0,
+      "total_commits": 43
+    },
+    {
+      "repo": "dispatch-mcp",
+      "dirty_count": 0,
+      "total_commits": 10
+    },
+    {
+      "repo": "eyetracker",
+      "dirty_count": 0,
+      "total_commits": 71
+    },
+    {
+      "repo": "foqos-private",
+      "dirty_count": 0,
+      "total_commits": 788
+    },
+    {
+      "repo": "forgecode",
+      "dirty_count": 0,
+      "total_commits": 2669
+    },
+    {
+      "repo": "helios-router",
+      "dirty_count": 0,
+      "total_commits": 147
+    },
+    {
+      "repo": "heliosApp",
+      "dirty_count": 0,
+      "total_commits": 1
+    },
+    {
+      "repo": "heliosBench",
+      "dirty_count": 0,
+      "total_commits": 42
+    },
+    {
+      "repo": "helioscope",
+      "dirty_count": 0,
+      "total_commits": 291
+    },
+    {
+      "repo": "hwLedger",
+      "dirty_count": 0,
+      "total_commits": 315
+    },
+    {
+      "repo": "kmobile",
+      "dirty_count": 0,
+      "total_commits": 20
+    },
+    {
+      "repo": "kwality",
+      "dirty_count": 0,
+      "total_commits": 85
+    },
+    {
+      "repo": "localbase3",
+      "dirty_count": 0,
+      "total_commits": 21
+    },
+    {
+      "repo": "melosviz",
+      "dirty_count": 0,
+      "total_commits": 1
+    },
+    {
+      "repo": "nanovms",
+      "dirty_count": 0,
+      "total_commits": 75
+    },
+    {
+      "repo": "netweave-final2",
+      "dirty_count": 0,
+      "total_commits": 16
+    },
+    {
+      "repo": "pheno",
+      "dirty_count": 0,
+      "total_commits": 414
+    },
+    {
+      "repo": "phenoAI",
+      "dirty_count": 0,
+      "total_commits": 62
+    },
+    {
+      "repo": "phenoData",
+      "dirty_count": 1,
+      "total_commits": 72
+    },
+    {
+      "repo": "phenoDesign",
+      "dirty_count": 0,
+      "total_commits": 27
+    },
+    {
+      "repo": "phenoForge",
+      "dirty_count": 0,
+      "total_commits": 61
+    },
+    {
+      "repo": "phenoResearchEngine",
+      "dirty_count": 0,
+      "total_commits": 62
+    },
+    {
+      "repo": "phenoShared",
+      "dirty_count": 4,
+      "total_commits": 194
+    },
+    {
+      "repo": "phenoUtils",
+      "dirty_count": 0,
+      "total_commits": 70
+    },
+    {
+      "repo": "phenoXdd",
+      "dirty_count": 0,
+      "total_commits": 26
+    },
+    {
+      "repo": "phenodocs",
+      "dirty_count": 0,
+      "total_commits": 96
+    },
+    {
+      "repo": "phenodocs-scorecard-remediation",
+      "dirty_count": 0,
+      "total_commits": 71
+    },
+    {
+      "repo": "phenokits-landing",
+      "dirty_count": 0,
+      "total_commits": 40
+    },
+    {
+      "repo": "phenotype-auth-ts",
+      "dirty_count": 0,
+      "total_commits": 74
+    },
+    {
+      "repo": "phenotype-bus",
+      "dirty_count": 0,
+      "total_commits": 67
+    },
+    {
+      "repo": "phenotype-dep-guard",
+      "dirty_count": 0,
+      "total_commits": 26
+    },
+    {
+      "repo": "phenotype-hub",
+      "dirty_count": 0,
+      "total_commits": 37
+    },
+    {
+      "repo": "phenotype-infra",
+      "dirty_count": 11,
+      "total_commits": 65
+    },
+    {
+      "repo": "phenotype-journeys",
+      "dirty_count": 3,
+      "total_commits": 46
+    },
+    {
+      "repo": "phenotype-omlx",
+      "dirty_count": 0,
+      "total_commits": 967
+    },
+    {
+      "repo": "phenotype-ops-mcp",
+      "dirty_count": 1,
+      "total_commits": 56
+    },
+    {
+      "repo": "phenotype-org-audits",
+      "dirty_count": 0,
+      "total_commits": 38
+    },
+    {
+      "repo": "phenotype-postfx",
+      "dirty_count": 0,
+      "total_commits": 10
+    },
+    {
+      "repo": "phenotype-registry",
+      "dirty_count": 0,
+      "total_commits": 51
+    },
+    {
+      "repo": "phenotype-terrain",
+      "dirty_count": 0,
+      "total_commits": 32
+    },
+    {
+      "repo": "phenotype-tooling",
+      "dirty_count": 0,
+      "total_commits": 126
+    },
+    {
+      "repo": "phenotype-voxel",
+      "dirty_count": 0,
+      "total_commits": 36
+    },
+    {
+      "repo": "phenotype-water",
+      "dirty_count": 0,
+      "total_commits": 38
+    },
+    {
+      "repo": "portage",
+      "dirty_count": 0,
+      "total_commits": 38
+    },
+    {
+      "repo": "rich-cli-kit",
+      "dirty_count": 0,
+      "total_commits": 55
+    },
+    {
+      "repo": "thegent",
+      "dirty_count": 0,
+      "total_commits": 1336
+    },
+    {
+      "repo": "thegent-clean-wt-docs",
+      "dirty_count": 0,
+      "total_commits": 0
+    },
+    {
+      "repo": "thegent-clean-wt-idea",
+      "dirty_count": 0,
+      "total_commits": 0
+    },
+    {
+      "repo": "thegent-clean-wt-parallel",
+      "dirty_count": 0,
+      "total_commits": 0
+    },
+    {
+      "repo": "thegent-clean-wt-policy",
+      "dirty_count": 0,
+      "total_commits": 0
+    },
+    {
+      "repo": "thegent-clean-wt-ruff",
+      "dirty_count": 0,
+      "total_commits": 0
+    },
+    {
+      "repo": "thegent-dispatch",
+      "dirty_count": 0,
+      "total_commits": 48
+    },
+    {
+      "repo": "vibeproxy",
+      "dirty_count": 4,
+      "total_commits": 791
+    },
+    {
+      "repo": "vibeproxy-monitoring-unified",
+      "dirty_count": 0,
+      "total_commits": 40
+    }
+  ]
+}

@@ -1,0 +1,29 @@
+{
+  "generated_at": "2026-06-08T10:20:11.180641+00:00",
+  "total_repos": 162,
+  "py_web_dupes": [
+    {
+      "framework": "FastAPI",
+      "repos": [
+        "AuthKit",
+        "Httpora",
+        "Parpoura",
+        "PhenoKits",
+        "PhenoProc",
+        "QuadSGM",
+        "TestingKit",
+        "Tracera",
+        "argis-extensions",
+        "localbase3",
+        "phenotype-omlx",
+        "portage"
+      ]
+    },
+    {
+      "framework": "Starlette",
+      "repos": [
+        "thegent"
+      ]
+    }
+  ]
+}

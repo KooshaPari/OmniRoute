@@ -1,0 +1,220 @@
+{
+  "generated_at": "2026-06-08",
+  "total_repos": 169,
+  "with_renovate": [
+    "BytePort",
+    "PhenoProject",
+    "Planify",
+    "ResilienceKit",
+    "agent-user-status",
+    "foqos-private",
+    "phenoShared",
+    "phenokits-landing",
+    "phenotype-auth-ts",
+    "phenotype-ops-mcp",
+    "phenotype-ops-mcp-t0"
+  ],
+  "by_repo": [
+    {
+      "repo": "BytePort",
+      "has_extends": true
+    },
+    {
+      "repo": "Civis",
+      "has_extends": false
+    },
+    {
+      "repo": "Eidolon",
+      "has_extends": false
+    },
+    {
+      "repo": "GDK",
+      "has_extends": false
+    },
+    {
+      "repo": "HeliosCLI",
+      "has_extends": false
+    },
+    {
+      "repo": "HexaKit",
+      "has_extends": false
+    },
+    {
+      "repo": "KDesktopVirt",
+      "has_extends": false
+    },
+    {
+      "repo": "Metron",
+      "has_extends": false
+    },
+    {
+      "repo": "PhenoKits",
+      "has_extends": false
+    },
+    {
+      "repo": "PhenoMCP",
+      "has_extends": false
+    },
+    {
+      "repo": "PhenoMCP-cheap",
+      "has_extends": false
+    },
+    {
+      "repo": "PhenoObservability",
+      "has_extends": false
+    },
+    {
+      "repo": "PhenoPlugins",
+      "has_extends": false
+    },
+    {
+      "repo": "PhenoProject",
+      "has_extends": true
+    },
+    {
+      "repo": "PhenoVCS",
+      "has_extends": false
+    },
+    {
+      "repo": "Planify",
+      "has_extends": true
+    },
+    {
+      "repo": "PlayCua",
+      "has_extends": false
+    },
+    {
+      "repo": "PolicyStack",
+      "has_extends": false
+    },
+    {
+      "repo": "ResilienceKit",
+      "has_extends": true
+    },
+    {
+      "repo": "Sidekick",
+      "has_extends": false
+    },
+    {
+      "repo": "Tasken",
+      "has_extends": false
+    },
+    {
+      "repo": "Tracely",
+      "has_extends": false
+    },
+    {
+      "repo": "agent-devops-setups",
+      "has_extends": false
+    },
+    {
+      "repo": "agent-user-status",
+      "has_extends": true
+    },
+    {
+      "repo": "bare-cua",
+      "has_extends": false
+    },
+    {
+      "repo": "cheap-llm-mcp",
+      "has_extends": false
+    },
+    {
+      "repo": "cheap-llm-mcp-deprecate",
+      "has_extends": false
+    },
+    {
+      "repo": "eyetracker",
+      "has_extends": false
+    },
+    {
+      "repo": "foqos-private",
+      "has_extends": true
+    },
+    {
+      "repo": "forgecode",
+      "has_extends": false
+    },
+    {
+      "repo": "heliosBench",
+      "has_extends": false
+    },
+    {
+      "repo": "helioscope",
+      "has_extends": false
+    },
+    {
+      "repo": "pheno",
+      "has_extends": false
+    },
+    {
+      "repo": "phenoAI",
+      "has_extends": false
+    },
+    {
+      "repo": "phenoData",
+      "has_extends": false
+    },
+    {
+      "repo": "phenoShared",
+      "has_extends": true
+    },
+    {
+      "repo": "phenoUtils",
+      "has_extends": false
+    },
+    {
+      "repo": "phenodocs",
+      "has_extends": false
+    },
+    {
+      "repo": "phenodocs-scorecard-remediation",
+      "has_extends": false
+    },
+    {
+      "repo": "phenokits-landing",
+      "has_extends": true
+    },
+    {
+      "repo": "phenotype-auth-ts",
+      "has_extends": true
+    },
+    {
+      "repo": "phenotype-bus",
+      "has_extends": false
+    },
+    {
+      "repo": "phenotype-journeys",
+      "has_extends": false
+    },
+    {
+      "repo": "phenotype-omlx",
+      "has_extends": false
+    },
+    {
+      "repo": "phenotype-ops-mcp",
+      "has_extends": true
+    },
+    {
+      "repo": "phenotype-ops-mcp-t0",
+      "has_extends": true
+    },
+    {
+      "repo": "phenotype-org-audits",
+      "has_extends": false
+    },
+    {
+      "repo": "phenotype-tooling",
+      "has_extends": false
+    },
+    {
+      "repo": "rich-cli-kit",
+      "has_extends": false
+    },
+    {
+      "repo": "thegent-dispatch",
+      "has_extends": false
+    }
+  ],
+  "with_renovate_count": 50
+}

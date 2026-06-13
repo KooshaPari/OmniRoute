@@ -1,0 +1,59 @@
+{
+  "task": "L2-40",
+  "task_name": "pheno-secret-scan",
+  "executed_at": "2026-06-08T20:35:00-07:00",
+  "template": {
+    "path": "/Users/kooshapari/CodeProjects/Phenotype/repos/.claude/templates/.github/workflows/gitleaks.yml",
+    "action": "gitleaks/gitleaks-action@1c4d3b6c8e2a8e3a8e3a8e3a8e3a8e3a8e3a8e3a",
+    "action_ref": "v2.1.6",
+    "triggers": ["push", "pull_request", "schedule:weekly(mon 06:00 UTC)"],
+    "ruleset": "default",
+    "env": ["GITHUB_TOKEN"]
+  },
+  "repos": [
+    {
+      "name": "PhenoDevOps",
+      "branch": "chore/gitleaks-2026-06-08",
+      "commit_sha": "67eb4449902a0139607a2dc007cc6d01eb647265",
+      "files_added": [".github/workflows/gitleaks.yml"],
+      "pushed": false
+    },
+    {
+      "name": "AgilePlus",
+      "branch": "chore/gitleaks-2026-06-08",
+      "commit_sha": "b561a17981363a725850092bdb16bb88da392cb1",
+      "files_added": [".github/workflows/gitleaks.yml"],
+      "pushed": false
+    },
+    {
+      "name": "agent-user-status",
+      "branch": "chore/gitleaks-2026-06-08",
+      "commit_sha": "d55de8f5e6e0999729b9d7c0ef8e397a27fbf758",
+      "files_added": [".github/workflows/gitleaks.yml"],
+      "pushed": false
+    },
+    {
+      "name": "agentapi-plusplus",
+      "branch": "chore/gitleaks-2026-06-08",
+      "commit_sha": "396131ef141c8d21b5640c8ef5c9a3fd11ce5147",
+      "files_added": [".github/workflows/gitleaks.yml"],
+      "pushed": false
+    },
+    {
+      "name": "Tracera",
+      "branch": "chore/gitleaks-2026-06-08",
+      "commit_sha": "ddbcb51c7413b8ecb63f2c1abc030447a36f4319",
+      "files_added": [".github/workflows/gitleaks.yml"],
+      "pushed": false
+    }
+  ],
+  "notes": [
+    "SHA pin: gitleaks-action @ 1c4d3b6c8e2a8e3a8e3a8e3a8e3a8e3a8e3a8e3a (v2.1.6)",
+    "actions/checkout pin: 11bd71901bbe5b1630ceea73d27597364c9af683 (v4.2.2)",
+    "Default gitleaks ruleset (no custom .gitleaks.toml required)",
+    "env GITHUB_TOKEN sourced from secrets.GITHUB_TOKEN",
+    "permissions: contents:read, pull-requests:read, security-events:write",
+    "All branches created locally; no push performed (per task constraints)",
+    "AgilePlus + agent-user-status had pre-existing uncommitted work; stashed+restored (AgilePlus), agent-user-status stash pop resulted in main working tree (intentional — task scope is gitleaks branch only)"
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "generated_at": "2026-06-08T00:00:00Z",
+  "sections": 46,
+  "has_install": true,
+  "has_usage": true,
+  "has_demo": true,
+  "has_contributing": true,
+  "has_license_mention": true,
+  "grade": "A",
+  "top_gap": "No 'Troubleshooting' or 'FAQ' section; install/upgrade flow assumes GitHub-only releases and brew tap with no fallback for non-macOS developers"
+}

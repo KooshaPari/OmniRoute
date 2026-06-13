@@ -1,0 +1,19 @@
+{
+  "name": "docs",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "docs:dev": "vitepress dev docs",
+    "docs:build": "vitepress build docs",
+    "docs:preview": "vitepress preview docs",
+    "docs:test:unit": "node --test docs/tests/unit/*.test.mjs",
+    "docs:test:component": "node --test docs/tests/component/*.test.mjs",
+    "docs:test:e2e": "playwright test --config docs/tests/playwright.config.ts",
+    "docs:test": "bun run docs:test:unit && bun run docs:test:component && bun run docs:test:e2e",
+    "docs:check": "bun run docs:build && bun run docs:test"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.53.2",
+    "vitepress": "^1.6.3"
+  }
+}

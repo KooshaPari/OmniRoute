@@ -1,0 +1,92 @@
+{
+  "repo": "PhenoSchema",
+  "branch_audited": "chore/dependabot-2026-06-08 (416b0f6, 1 ahead of main, UNPUSHED)",
+  "audited_at": "2026-06-08",
+  "stack": "meta-repo (umbrella) over Rust libs: pheno-xdd (CLI/docs) + pheno-xdd-lib (xDD utilities) + ports/ (hexagonal Schema port draft, 4 .rs files)",
+  "summary": "G1 PARTIAL (placeholder SHA + tag-pinned actions), G2 PARTIAL (sub-repos OK, root MISSING README/AGENTS/Cargo), G3 PARTIAL (root dependabot is over-broad for a non-buildable dir), G4 DEGRADED (no workflow covers ports/), G5 DEGRADED (no .coderabbit/.gemini, 2 prunable worktrees, 1 unpushed commit). 3 P0, 4 P1.",
+  "gates": {
+    "G1_workflow_hygiene": {
+      "status": "PARTIAL",
+      "evidence": [
+        "17 .github/workflows/*.yml across sub-repos (7 pheno-xdd + 10 pheno-xdd-lib) — all parse cleanly, NO @main rot, NO $123/$125 placeholders, NO 'Not Found' JSON appendices (this is the cleanest sub-fleet so far).",
+        "All actions use floating @v3/@v4/@v5 tags (actions/checkout, setup-python, upload-artifact, codeql-action, codecov, configure-pages, deploy-pages, upload-pages-artifact, github-script, gitleaks-action, cargo-deny-action, aquasecurity/trivy-action). Only dtolnay/rust-toolchain is SHA-pinned (3c5f7ea28cd621ae0bf5283f0e981fb97b8a7af9). Org-standard is full SHA-pinning.",
+        "P0: pheno-xdd-lib/.github/workflows/quality-gate.yml uses `uses: KooshaPari/phenotypeActions/promote@0000000000000000000000000000000000000000` with a comment 'placeholder SHA; source 404s; replace when reachable' — job is structurally dead, every PR will silently skip the promote step.",
+        "P1: aquasecurity/trivy-action is pinned to `bfa4b33a0e6c6c9c97c9d7e6e6f6c2d6a7c7c7c7 # pinned from @master` — close to org-canonical but a manually-copied SHA, no Renovate/dependabot refresh path.",
+        "Permissions + concurrency + workflow_dispatch present in 6/17 (legacy-tooling-gate, security-guard, security, ci in both). 11/17 still missing the permissions block."
+      ]
+    },
+    "G2_governance_files": {
+      "status": "PARTIAL",
+      "evidence": [
+        "PhenoSchema ROOT: NO README.md, NO AGENTS.md, NO Cargo.toml, NO LICENSE, NO CODEOWNERS, NO CONTRIBUTING.md, NO SECURITY.md. Only .github/dependabot.yml is tracked at root. Org standard requires root-level governance even for umbrella repos.",
+        "pheno-xdd + pheno-xdd-lib: AGENTS.md (71 lines each, both 71B — likely a copy), LICENSE (MIT), CONTRIBUTING.md, SECURITY.md, .github/CODEOWNERS (default `* @kooshapari`) all present.",
+        "MISSING org-wide at sub-repos: CODE_OF_CONDUCT.md, FUNDING.yml, CITATION.cff, SUPPORT.md, .coderabbit.yaml, .gemini/.",
+        "PULL_REQUEST_TEMPLATE.md present in pheno-xdd only (NOT in pheno-xdd-lib) — drift between siblings.",
+        "ports/ has NO Cargo.toml, NO README, NO manifest of any kind — orphan sub-dir that cannot be built/tested by `cargo test`."
+      ]
+    },
+    "G3_security_scanning": {
+      "status": "PARTIAL",
+      "evidence": [
+        "Sub-repos carry CodeQL (security-deep-scan.yml: rust+js matrix), gitleaks-action SHA-pinned (ff98106e4c7b2bc287b24eaf42907196329070c7 # v4), cargo-deny-action, trivy-action, security-guard.yml, security.yml — comprehensive.",
+        "dependabot.yml at ROOT covers cargo + pip + npm + gomod + github-actions (5 ecosystems, monthly). ports/ is NOT a buildable workspace — dependabot will spin empty PRs because there's no manifest to scan.",
+        "Sub-repos also have their own dependabot.yml (npm for pheno-xdd; cargo for pheno-xdd-lib) — 3 dependabot configs in one meta-repo with overlapping scopes."
+      ]
+    },
+    "G4_quality_gates": {
+      "status": "DEGRADED",
+      "evidence": [
+        "NO workflow at any level (root or sub-repo) exercises ports/ — `ports/tests/schema.rs` is the only test in the ports dir (5 cases per cc0ef98) but no CI runs them.",
+        "P0: ports/ has no Cargo.toml, so `cargo test -p ports` cannot resolve; the T68 port commit (cc0ef98) advertises '5 tests' but they will not be executed by any pipeline.",
+        "Sub-repo quality-gate.yml in pheno-xdd-lib is the only real `cargo test` runner, and it is degraded by the placeholder promote SHA (G1).",
+        "P1: coverage.yml in pheno-xdd-lib is a 456B stub — likely `echo 'configured'` placeholder, not wired to cargo-llvm-cov or tarpaulin."
+      ]
+    },
+    "G5_review_governance": {
+      "status": "DEGRADED",
+      "evidence": [
+        "1 unpushed local commit on chore/dependabot-2026-06-08: 416b0f6 (dependabot.yml 94 lines) — not on main, no open PR.",
+        "Sub-repos carry stale unmerged worktrees: pheno-xdd-lib has `phenotype-xdd-lib-docs` (prunable, 7f95d4b) and pheno-xdd has `phenotype-xdd-docs` (prunable, 647c393) — both `prunable` per `git worktree list`, vestigial from a docs-site fan-out.",
+        "ISSUE_TEMPLATE drift: pheno-xdd has 4 files (bug_report.md + bug_report.yml + feature_request.md + feature_request.yml — same content in two formats); pheno-xdd-lib has 3 (bug.md, bug_report.md, feature.yml, feature_request.md). No consistency.",
+        "PULL_REQUEST_TEMPLATE.md in pheno-xdd (present), MISSING in pheno-xdd-lib and root."
+      ]
+    },
+    "e2e_end_to_end": {
+      "status": "DEGRADED",
+      "evidence": [
+        "ports/tests/schema.rs is the only test exercising T68 (5 cases: validate ok/error paths across JsonSchema + Zod adapters). It runs nowhere in CI.",
+        "Sub-repo e2e: pheno-xdd-lib has tests/{property_tests.rs, contract_tests.rs, mutation_tests.rs} declared in Cargo.toml; pheno-xdd has tests/bdd/ — both run via sub-repo quality-gate.yml.",
+        "No Playwright/Cypress, no docker-compose test runner, no schema-validation integration harness — schema-validation gate is absent despite the port's whole purpose."
+      ]
+    }
+  },
+  "additional_findings": {
+    "root_is_unreadable_meta": "PhenoSchema is a meta-repo (umbrella over 2 sibling Rust projects + 1 ports/ draft) but ships no README, no AGENTS.md, no root Cargo.toml. A new contributor landing here cannot tell that pheno-xdd and pheno-xdd-lib are independent sub-repos with their own .git dirs (not git submodules — git worktree list shows each as a separate root).",
+    "ports_is_orphan": "ports/{src,tests} contains 4 .rs files (schema.rs + 2 adapters + 1 test) but no Cargo.toml and no parent workspace member declaration. cc0ef98 advertises 5 tests in T68; without a manifest they are dead code from any tooling perspective.",
+    "three_dependabot_configs": ".github/dependabot.yml (root, 5 ecosystems) + pheno-xdd/.github/dependabot.yml (npm) + pheno-xdd-lib/.github/dependabot.yml (cargo) — overlapping scopes, monthly schedule shared, but no consolidation comment explaining which ecosystem lives where.",
+    "issue_template_format_drift": "pheno-xdd has both .md and .yml forms for bug_report + feature_request; pheno-xdd-lib mixes bug.md + bug_report.md + feature.yml + feature_request.md. Org standard is 3-file .yml set (bug, feature, config).",
+    "vestigial_docs_worktrees": "phenotype-xdd-lib-docs (7f95d4b, prunable) + phenotype-xdd-docs (647c393, prunable) sit under repos/.worktrees/. Per tick-19 these are snapshot-era fan-out residue."
+  },
+  "actions_recommended": [
+    {
+      "priority": "P0",
+      "title": "Add Cargo.toml (or workspace member declaration) under ports/ AND a workflow that runs `cargo test -p pheno-schema`",
+      "detail": "ports/ has 4 .rs files and tests/schema.rs but no manifest — cc0ef98's '5 tests' are dead. Create ports/Cargo.toml (package name `pheno-schema` per the trait module), add it to a root [workspace] (or document it as a standalone crate), and add a ports.yml workflow that runs `cargo test -p pheno-schema`. Without this, T68 cannot be claimed shipped.",
+      "estimated_effort": "20 min"
+    },
+    {
+      "priority": "P0",
+      "title": "Replace placeholder promote SHA in pheno-xdd-lib quality-gate.yml",
+      "detail": "`uses: KooshaPari/phenotypeActions/promote@0000000000000000000000000000000000000000 # placeholder SHA; source 404s; replace when reachable` is silently making the promote job a no-op. Either pin the real SHA once the source is reachable or delete the step + the 'promote' job. Also pin all @v3/@v4/@v5 action refs to SHA per org standard.",
+      "estimated_effort": "30 min"
+    },
+    {
+      "priority": "P0",
+      "title": "Add root README.md, AGENTS.md, and Cargo.toml; push 1 unpushed commit; prune 2 vestigial worktrees",
+      "detail": "Root has zero governance docs. Add a short README.md explaining PhenoSchema is an umbrella (pheno-xdd + pheno-xdd-lib + ports/) with link-outs; add a root AGENTS.md that delegates to sub-repo AGENTS.md; add a root Cargo.toml declaring `[workspace] members = ['pheno-xdd', 'pheno-xdd-lib']` (exclude ports until P0-#1 lands). Then `git push origin chore/dependabot-2026-06-08` (or merge to main) for the dependabot.yml commit, and `git worktree prune` in both sub-repos to drop phenotype-xdd-lib-docs + phenotype-xdd-docs.",
+      "estimated_effort": "25 min"
+    }
+  ],
+  "deep_research": "PhenoSchema is the smallest meta-repo in the Phenotype umbrella fleet — 5 git-tracked files at root, 4 .rs files in ports/, plus two full sub-repos (pheno-xdd, pheno-xdd-lib) each under its own .git dir. It positions itself as the schema-validation port layer (T68 hexagonal Schema port, 3 adapters: JsonSchema, Zod, CborSchema per ports/src/schema.rs:11), but is structurally incomplete: ports/ has no Cargo.toml so the 5 tests cc0ef98 advertises run nowhere, and no workflow exercises the port. Compared to the tick-25 hygiene wave (chatta 3.2/5, argis-extensions 2.6/5 hard-fail on SHA rot), PhenoSchema is unique in being CLEAN on workflow corruption — zero @main rot, zero $123/$125 placeholders, zero 'Not Found' JSON appendices — but DEGRADED on meta-repo scaffolding: no root README/AGENTS.md/Cargo.toml, no root governance, and a placeholder promote SHA in pheno-xdd-lib quality-gate.yml that silently makes the promote job a no-op. Closest peers are FocalPoint and phenoXdd (single-subdir siblings) plus tick-22 SSOT work. The 3 dependabot configs (root cargo+pip+npm+gomod+github-actions; sub-repos npm or cargo alone) overlap and the root config will spin empty PRs against a non-buildable root.",
+  "deep_research_cont": "Two cross-cutting issues: (1) issue-template drift — pheno-xdd has .md+.yml duplicates, pheno-xdd-lib mixes bug.md+bug_report.md+feature.yml+feature_request.md, neither matches the org-standard 3-file .yml set; (2) 2 prunable sub-repo worktrees (phenotype-xdd-lib-docs, phenotype-xdd-docs), both the same docs-site fan-out, both `prunable` per `git worktree list` — tick-19 vestige. The single unpushed commit (416b0f6, dependabot.yml 94 lines) is benign. Sub-repos are individually healthy: AGENTS.md 71 lines each, MIT LICENSE, CodeQL + gitleaks + cargo-deny + trivy wired, dependabot monthly. Hygiene debt is concentrated in 3 spots: root is empty, ports/ has no manifest, pheno-xdd-lib quality-gate.yml carries a placeholder promote SHA. Net: 2.9/5 — workflow content clean, meta-repo scaffolding missing, T68 unverifiable until Cargo.toml + CI land."
+}

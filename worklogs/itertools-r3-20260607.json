@@ -1,0 +1,43 @@
+{
+  "generated_at": "2026-06-07T00:00:00Z",
+  "total_repos": 163,
+  "with_itertools": [
+    "HeliosCLI",
+    "helioscope",
+    "thegent",
+    "thegent-clean"
+  ],
+  "with_indexmap": [
+    "HeliosCLI",
+    "helioscope"
+  ],
+  "with_either": [],
+  "by_repo": [
+    {
+      "repo": "HeliosCLI",
+      "libs": [
+        "indexmap",
+        "itertools"
+      ]
+    },
+    {
+      "repo": "helioscope",
+      "libs": [
+        "indexmap",
+        "itertools"
+      ]
+    },
+    {
+      "repo": "thegent",
+      "libs": [
+        "itertools"
+      ]
+    },
+    {
+      "repo": "thegent-clean",
+      "libs": [
+        "itertools"
+      ]
+    }
+  ]
+}

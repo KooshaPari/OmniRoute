@@ -1,0 +1,69 @@
+.git
+.gitignore
+*.md
+.env*
+!.env.example
+# Build artifacts
+target/
+dist/
+build/
+*.o
+*.a
+*.so
+# IDE
+.vscode/
+.idea/
+*.swp
+.DS_Store
+# Test/nested
+**/node_modules
+**/target
+**/.pytest_cache
+**/__pycache__
+**/*.test
+**/tests/
+# Logs
+*.log
+**/*.log
+# Coverage reports
+coverage/
+.coverage
+*.coverage
+# Python virtual environments
+venv/
+env/
+virtualenv/
+# npm/yarn
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+# Rust
+**/.cargo
+**/Cargo.lock
+# Go
+go.sum
+vendor/
+go-build/
+# Java
+*.class
+**/.gradle
+**/build/
+**/target/
+**/.maven/
+# Node.js
+.next/
+.nuxt/
+/.output/
+.dist/
+# TypeScript
+**/tsconfig.tsbuildinfo
+# Docker compose
+docker-compose.override.yml
+# Local dev files
+local.env
+.env.local
+# Temp files
+*.tmp
+*.temp
+**/temp/
+**/tmp/

@@ -1,0 +1,920 @@
+{
+  "generated_at": "2026-06-08T18:30:00Z",
+  "total_repos": 165,
+  "dup_fixtures": [
+    {
+      "name": "event.valid.json",
+      "hash": "d4b630e1a9bc832703afba1dbf602546d37faf87ab5c7ce6bbb1549c1422fe33",
+      "repos": [
+        "thegent",
+        "thegent-clean-wt-docs",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "name": "harness-profile.valid.json",
+      "hash": "d5a827a3d40a967464bac8413ef54e10eed9069919426f1a064d34b2933a31e2",
+      "repos": [
+        "thegent",
+        "thegent-clean-wt-docs",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "name": "request.valid.json",
+      "hash": "e96f6699210184d36da3e800adc75dc4178eb447139d837c8aae88d57be50dd6",
+      "repos": [
+        "thegent",
+        "thegent-clean-wt-docs",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "name": "response.valid.json",
+      "hash": "b45982e895c20acd5852e4ed73b2462f49758f75209b2ceeced5a7ad44cd4469",
+      "repos": [
+        "thegent",
+        "thegent-clean-wt-docs",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "name": "route-candidate.valid.json",
+      "hash": "347ab551444badc63770b6fe8a0c9f567fd75eedecc3163c190d9826d966275c",
+      "repos": [
+        "thegent",
+        "thegent-clean-wt-docs",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "name": "test-policy.toml",
+      "hash": "d3f2338e090350f32d51341c518957e134c685a4afa6f229b069180a641b042b",
+      "repos": [
+        "thegent",
+        "thegent-clean-wt-docs",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "name": "fixture_digests.json",
+      "hash": "22b1f59749109d5fdcf8dbd5271a4e3947e4ba86eb2edc3cd4b1ab4a929b2200",
+      "repos": [
+        "thegent",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "name": "green_stable.jsonl",
+      "hash": "1847a3b407cd5fec284d27571478e3894ede9c8ea0b838f8ba059532dc84a71f",
+      "repos": [
+        "thegent",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "name": "red_interrupt.jsonl",
+      "hash": "7c4e0149b0b8c924f17f9b1a2a3bb8b7f185ec0ee097d9e606e3db27eb290edf",
+      "repos": [
+        "thegent",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "name": "remote_write_dead_letter_fixture.jsonl",
+      "hash": "dc9c0cddc888d268c606fc72c32be372c2e628b7f59aec0f8baf1a849a1cb9ba",
+      "repos": [
+        "thegent",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "name": "spiral_selector_contract_snapshot.json",
+      "hash": "e0ab0408518b74a966205934251bd5c3f55b8d8b6cbd3049c43eb849d30c5900",
+      "repos": [
+        "thegent",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "name": "spiral_trend_replay_manifest.json",
+      "hash": "69cedaf2822f4f59ef4c03bd48a3da8e10d6d39673eb1b507fbdc6845f321a58",
+      "repos": [
+        "thegent",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "name": "yellow_recovery.jsonl",
+      "hash": "2a320772d5fc6888eaf5a6c48f521565df7a0924177cf6ddaf715860607c9ea4",
+      "repos": [
+        "thegent",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "name": "zig_abi_error_envelope_fixture.json",
+      "hash": "8d225fa3794d67341bceb0b2f55f5f0f809a2e64c951f3a9f86b0f5911a016e8",
+      "repos": [
+        "thegent",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "name": "zig_abi_symbols_fixture.txt",
+      "hash": "fc6313085af3e07e348e42050cd38b2dfe3eccec59498b0629f83c276380d5df",
+      "repos": [
+        "thegent",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "name": "mod.rs",
+      "hash": "481cca14db40ec2a17f934d5fa394641fa8c0531ba442c0be73d68f506f84130",
+      "repos": [
+        "HexaKit",
+        "PhenoDevOps",
+        "Pyron",
+        "pheno"
+      ]
+    },
+    {
+      "name": "review-approval.json",
+      "hash": "b507f681238fc7d5b2e2fd80af3114ff8b44d9e78b0ca0d14a82fb6c1b1757a7",
+      "repos": [
+        "HexaKit",
+        "PhenoDevOps",
+        "Pyron",
+        "pheno"
+      ]
+    },
+    {
+      "name": "sample-audit-chain.jsonl",
+      "hash": "f5fa65595cab7cd3a1c20abf7215c63f93500801fa4e1f054a3f869609ce7773",
+      "repos": [
+        "HexaKit",
+        "PhenoDevOps",
+        "Pyron",
+        "pheno"
+      ]
+    },
+    {
+      "name": "sample-governance.json",
+      "hash": "1056867302f5d78ea871079397e05b49ec1c756a1ed2dc2ea7dfbcdb99da726b",
+      "repos": [
+        "HexaKit",
+        "PhenoDevOps",
+        "Pyron",
+        "pheno"
+      ]
+    },
+    {
+      "name": "sample-meta.json",
+      "hash": "23e861400ed6572bac0b4ff9bc20dec65febfb824fbb7f8727a056bb275ac968",
+      "repos": [
+        "HexaKit",
+        "PhenoDevOps",
+        "Pyron",
+        "pheno"
+      ]
+    },
+    {
+      "name": "sample-plan.md",
+      "hash": "57f05e9e2a5c71a4ef1f84ddd760b38a6934b20d3f717fe5ffe6e9c440f056be",
+      "repos": [
+        "HexaKit",
+        "PhenoDevOps",
+        "Pyron",
+        "pheno"
+      ]
+    },
+    {
+      "name": "sample-spec-revised.md",
+      "hash": "5d8b9b25f67c57c3ef4c432f581cf38f69a090912b7448aa86b4694a269c975f",
+      "repos": [
+        "HexaKit",
+        "PhenoDevOps",
+        "Pyron",
+        "pheno"
+      ]
+    },
+    {
+      "name": "sample-spec.md",
+      "hash": "56f0b876ee0713cc780068acf58a3a6c6f63a122a6cb3582106e2061b2e8b5dc",
+      "repos": [
+        "HexaKit",
+        "PhenoDevOps",
+        "Pyron",
+        "pheno"
+      ]
+    },
+    {
+      "name": "sample-spec.md",
+      "hash": "a10c3ced5c8d73aa112f74428e033ccda1239575b5a15caa748fb1d2b0c98b1e",
+      "repos": [
+        "HexaKit",
+        "PhenoDevOps",
+        "Pyron",
+        "pheno"
+      ]
+    },
+    {
+      "name": "test-results.json",
+      "hash": "719d7c1b16cfec555390d5ea2bf35cb9bc799c7ae645c48f9d86c89519d79ba6",
+      "repos": [
+        "HexaKit",
+        "PhenoDevOps",
+        "Pyron",
+        "pheno"
+      ]
+    },
+    {
+      "name": "test-results.json",
+      "hash": "f01ea6b05526f911eb86b8997b03c163073e0833569463b3a68f59b9f236b7f9",
+      "repos": [
+        "HexaKit",
+        "PhenoDevOps",
+        "Pyron",
+        "pheno"
+      ]
+    },
+    {
+      "name": "5447c5bda32b1225",
+      "hash": "5447c5bda32b1225e05291a1cfc18b6a581e0eb6314c146bff9c8e5370de93c3",
+      "repos": [
+        "phenodocs",
+        "phenodocs-scorecard-remediation",
+        "worktrees"
+      ]
+    },
+    {
+      "name": "assignments.json",
+      "hash": "acc9cf9d507b5622a20b89d6b2ec85104afbcfc56145fcba13a4d7f3a9f058e4",
+      "repos": [
+        ".claude",
+        "FocalPoint",
+        "crates"
+      ]
+    },
+    {
+      "name": "calendar_events.json",
+      "hash": "5fed754294e585b4ce54ca4ff0b50df3cb8c147eae3f5a26cd9663dc7eb96ff0",
+      "repos": [
+        ".claude",
+        "FocalPoint",
+        "crates"
+      ]
+    },
+    {
+      "name": "course_progress.json",
+      "hash": "57c86e503ff42c25724e4b86535015c70a2b72525d9510ef7e590c9c6ed58b0d",
+      "repos": [
+        ".claude",
+        "FocalPoint",
+        "crates"
+      ]
+    },
+    {
+      "name": "courses.json",
+      "hash": "b2e43b59923dca1cb31b628788cbdcbcaa7e2a38d9d2ca456ed17c60135704cc",
+      "repos": [
+        ".claude",
+        "FocalPoint",
+        "crates"
+      ]
+    },
+    {
+      "name": "enrollments.json",
+      "hash": "4dada125a2afc5fdf0a2142e0e3455f8ca17407fa6dc4b33cde9924bd3493cf9",
+      "repos": [
+        ".claude",
+        "FocalPoint",
+        "crates"
+      ]
+    },
+    {
+      "name": "submissions.json",
+      "hash": "200ce0d9aaece85f799d0ccd7347a0a6bf629dd565900bd796b054e876b371a8",
+      "repos": [
+        ".claude",
+        "FocalPoint",
+        "crates"
+      ]
+    },
+    {
+      "name": "user_grades.json",
+      "hash": "55ab8951a7d6e5a250779b5fe625f6cde6be7ac69e6c64d2fd6d789e5dcf19fc",
+      "repos": [
+        ".claude",
+        "FocalPoint",
+        "crates"
+      ]
+    },
+    {
+      "name": "user_profile.json",
+      "hash": "61512d1e1522f3ed58635f80cffcdb5ffc10d6a77e50c85fd52424f5358d2a15",
+      "repos": [
+        ".claude",
+        "FocalPoint",
+        "crates"
+      ]
+    },
+    {
+      "name": ".gitattributes",
+      "hash": "0ef5891aa857a59399d13b8153b8977a346eab2d58ed4a755b217bb5d1d06bda",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "name": ".gitignore",
+      "hash": "ae5d61bf89244b38a1d3e26599dfa8b5ac25c348b90f825a9e22df9a5a6dfeec",
+      "repos": [
+        "OmniRoute",
+        "OmniRoute-latest"
+      ]
+    },
+    {
+      "name": "README.md",
+      "hash": "7f26cc800f206369db4d34a7b2fadf55a922e63c175120d94f6f23e2e910fa10",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "apply_patch_freeform_final.txt",
+      "hash": "e5eaa1380a0af927062637cbe4d1b31f7a880de51d01adf2ac1b2b0d22ccf90c",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "bar.md",
+      "hash": "dd96989d943734993ecd4dfc86a3b6809640f9690690ae5579044525316d03ef",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "cli_responses_fixture.sse",
+      "hash": "6b8674ccdaedca5f2686b14c88499316f083606f6fb6cb3fb9e87c22ba510fac",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "condition_semantics_cases.json",
+      "hash": "c4efaa6acec2f7de95277fd033422fe11116293a9a7d6deef1da551c025b82dd",
+      "repos": [
+        "PolicyStack",
+        "phenotype-tooling"
+      ]
+    },
+    {
+      "name": "created.txt",
+      "hash": "5891b5b522d5df086d0ff0b110fbd9d21bb4fc7163af34d08286a2e846f6be03",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "delete.txt",
+      "hash": "abdcccf4a6a5fae3da2c8232d6fbf33b61d5db886742c35218e724b8e5c6b0e0",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "duplicate.txt",
+      "hash": "1c3ef9a7c817b4642bcb3cb1456fbce92a6f992df2e1d6ad9d8a2dfb4fdf42f6",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "duplicate.txt",
+      "hash": "40eda80edfc38b36bdcdc408aa6ff2cc40b708e46ece9dfd2b2801a05a18a5fc",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "file.txt",
+      "hash": "27dd8ed44a83ff94d557f9fd0412ed5a8cbca69ea04922d88c01184a07300a5a",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "file.txt",
+      "hash": "2c8b08da5ce60398e1f19af0e5dccc744df274b826abe585eaba68c525434806",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "foo.txt",
+      "hash": "01d09d19c2139a46aebfb577780d123d7396e97201bc7ead210a2ebff8239dee",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "foo.txt",
+      "hash": "2b92ea252be0fbc26f70317cdaa7b6411ea634b50d55338cd8c495e4dbf25d1d",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "foo.txt",
+      "hash": "6bc89526aeb4d8014b8e8afac4e7f1814bbab23e45ae6f8e37ef626da9f285ec",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "foo.txt",
+      "hash": "7aa7a5359173d05b63cfd682e3c38487f3cb4f7f1d60659fe59fab1505977d4c",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "foo.txt",
+      "hash": "e9014b085eebfaaf1ff77d8e6017f9ca544e21667e2a8516563eaab2fdb1262f",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "incomplete_sse.json",
+      "hash": "0a97306df7f3d9770aecad8f2d3c59b538b1d668d7efd5d48ad1caac599dc65c",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "input.txt",
+      "hash": "013834138420c9775178b8fcbcd6b03488b704fed7d44bf37dc385d53e443913",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "input.txt",
+      "hash": "2751a3a2f303ad21752038085e2b8c5f98ecff61a2e4ebbd43506a941725be80",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "invalid_bad_action.json",
+      "hash": "2430fa422b65c71f042ef5385cc594c166dff78cac288872d51ebe5b207b8015",
+      "repos": [
+        "PolicyStack",
+        "phenotype-tooling"
+      ]
+    },
+    {
+      "name": "invalid_missing_scope.json",
+      "hash": "c6af6a63ff1468c11b8cd55f56878a1b672621e06651d4167a2dbde47832b1c4",
+      "repos": [
+        "PolicyStack",
+        "phenotype-tooling"
+      ]
+    },
+    {
+      "name": "keep.txt",
+      "hash": "f660a7996deacfbc7560e4240054a8ad82eb02fe25a95064257e07084bcacb85",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "lines.txt",
+      "hash": "28387b210ad33ee091c9bc2b099fe33db9be20ef6c8de8427cec615cd87f775c",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "lines.txt",
+      "hash": "66663af9c7aa341431a8ee2ff27b72abd06c9218f517bb6fef948e4803c19e03",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "modify.txt",
+      "hash": "2751a3a2f303ad21752038085e2b8c5f98ecff61a2e4ebbd43506a941725be80",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "modify.txt",
+      "hash": "7c3bb4651da2a3024085602195a360e4e084aee735e236bb455f3b2687edf876",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "multi.txt",
+      "hash": "9a1fd5560147da610cde03a9e0cf1db3d4f93b53f46ac67e754cb42fb7fb911a",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "multi.txt",
+      "hash": "e32d16d64119533b3fd1521cb84c1850b15ed961381fc0dfe1d7cd9f3475e5b8",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "name.txt",
+      "hash": "40eda80edfc38b36bdcdc408aa6ff2cc40b708e46ece9dfd2b2801a05a18a5fc",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "name.txt",
+      "hash": "c85090422a84ecc24a6a47260e9fd590257f6e0e02dd774ccdcfb6a9d5e798b4",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "new.txt",
+      "hash": "59134a4054b27a3fc30e1ac81d9b9168dc0561f65982151324a021fe8ce88d06",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "no_newline.txt",
+      "hash": "4575dfcd1eb57fd3cf77e78f18f5bb0659ca38ace8564d5f53e42527c603629a",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "no_newline.txt",
+      "hash": "c2097f55f01fc297fc7f4acf21438123e06e4d409a818524428534e850642f4f",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "obsolete.txt",
+      "hash": "abdcccf4a6a5fae3da2c8232d6fbf33b61d5db886742c35218e724b8e5c6b0e0",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "oss-story.jsonl",
+      "hash": "815e563dc36b0b90982d381338443dfc7efb05ba14b28c3df5bd4a9875d56c8b",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "other.txt",
+      "hash": "6b48d86f459d6cab2a77f0cfccce4232d80d4047f3b5f11139a6b37fb9873a6e",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "patch.txt",
+      "hash": "19bec424380bc552ab1149500047502e9e6dd06952c6615553600df01e50d4b3",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "patch.txt",
+      "hash": "1f00db0e051d695801cc8607e1905d4c78b6e871bd91fad704585eaec14f2d5e",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "patch.txt",
+      "hash": "20f1032ab87728c78fe8c6428c853427441ba4297dd0efac72ab470ae76e9610",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "patch.txt",
+      "hash": "2307c079befb8bccd3dd81d9f31b6fc2352a91c37a96a5117f5a5375312f78c4",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "patch.txt",
+      "hash": "350b3b8a57211b8bf0d2a09a573b4bb69e3765979c94cb4fca00307ed7192f3c",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "patch.txt",
+      "hash": "3a3982b7bed7fe95be34c697a5b1b9d99bab69bf0387b8b5adfb10953494d730",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "patch.txt",
+      "hash": "454e38dc74d6b1943f464155c4e3c5705896941fa0f2c3116e8ccd23601387bb",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "patch.txt",
+      "hash": "49a76c72c335007415680f75399e2f74c5bccd6b4c4b34a7d4c3174bffbfee48",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "patch.txt",
+      "hash": "65ca3527c31b486bd893f0a323507a65ce698507e6c33db31c6d9ffd401f6ad0",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "patch.txt",
+      "hash": "6d6e6470a4368781be27f651176d9d7aefddadba6fbe62faa793e662cd7ac310",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "patch.txt",
+      "hash": "832ebaa947ae0cd9b328be202adcd59da66c5fcf2f0a3ba624dc466e30287cac",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "patch.txt",
+      "hash": "888228c23cf6db16ad3194af46d2b6b7567dac7691053c0b67be1f5df179acd9",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "patch.txt",
+      "hash": "9328b30823e578f20d2db55d35a15a1522eade17b5970ef5c76498f3aee00a96",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "patch.txt",
+      "hash": "950630eb84c42a5c347636fcc49678e34667dd7976e19d70a7c0ed03d61fa8b4",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "patch.txt",
+      "hash": "9ef1cc2e027d30b90db84ee02ff23bcb16382d490e554125d5fee89b272c2a31",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "patch.txt",
+      "hash": "aa18ebd5e858578e491321489cd17515e03da90c169eda64bbcdce7599c5261b",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "patch.txt",
+      "hash": "b80ae683dfd6e0cebe67997c81561a3d9ef9f55ef74673e327928677e7628b4f",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "patch.txt",
+      "hash": "b8fb2de70747f6316cec64bb3e13d5799c4ec5c4db760ff9016a28ec1acd5e97",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "patch.txt",
+      "hash": "c25c2ecd7e20f5e6dd846ee8f6596de766b443e9d9bdc8f0e0c391660826cc92",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "patch.txt",
+      "hash": "d09813e03aaa691a3a0b225edba50674b536701425e3cb5a44d4d22c8a4a9c28",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "patch.txt",
+      "hash": "d3477a702074b84a8aa62fed091b40c5f8f5b4a86bb6f49894d3f9bdd12f1084",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "patch.txt",
+      "hash": "d47d0fd818c62fcf0b9d751e7e5db78353885b6a86e6b5622a1dbe1cba23c60a",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "patch.txt",
+      "hash": "fe9d2c5f1f4ffff1c077bb857609abafc08b83cac3f1633843daaa6704ceb8df",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "static.html",
+      "hash": "05ca9d7e3e208c59ce64d2464a4d3e303063f982c426fcd149d2605261f95dd1",
+      "repos": [
+        "Paginary",
+        "phenotype-journeys"
+      ]
+    },
+    {
+      "name": "tail.txt",
+      "hash": "b8074f984c9d414b623d1ea91f01912de5972a208a962cd66bf7ae0b467f6cd5",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "tail.txt",
+      "hash": "dbea9325179efe46ea2add94f7b6b745ca983fabb208dc6d34aa064623d7ee23",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "task_details_with_diff.json",
+      "hash": "0c69dcbd9a8302c2eae3db2d40620df95694f4615602f6f94751d43bd92759c2",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "task_details_with_error.json",
+      "hash": "e5ec4ca5f621121f04e12991b0c92ef7cf1d4351c18bb098fee58e1ada4062ed",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "traceability-report-broken-ocr.txt",
+      "hash": "87aff825dc4e8034ee78eb48756901608d5841afede14d57488acf7014bbca03",
+      "repos": [
+        "Paginary",
+        "phenotype-journeys"
+      ]
+    },
+    {
+      "name": "valid_commands.json",
+      "hash": "d0793a68719f55705134da8a165fc448cf3eeeece1758692c2a31cbb42902932",
+      "repos": [
+        "PolicyStack",
+        "phenotype-tooling"
+      ]
+    },
+    {
+      "name": "valid_minimal.json",
+      "hash": "2241510ad5c081c4d7c7f79b5ee00b75c9f9bd97bbf9dc98efaeaa5deb56240a",
+      "repos": [
+        "PolicyStack",
+        "phenotype-tooling"
+      ]
+    }
+  ]
+}

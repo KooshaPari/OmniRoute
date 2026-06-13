@@ -1,0 +1,119 @@
+{
+  "task": "DAG L2-24 pheno-changelog-template",
+  "schema_version": "v2",
+  "generated_at": "2026-06-08T21:30:00-07:00",
+  "spec": "Keep-a-Changelog 1.1.0",
+  "spec_url": "https://keepachangelog.com/en/1.1.0/",
+  "template_path": "/Users/kooshapari/CodeProjects/Phenotype/repos/.claude/templates/CHANGELOG.md",
+  "manifest_path": "/Users/kooshapari/CodeProjects/Phenotype/repos/.claude/dag-v2-changelog.json",
+  "pushed": false,
+  "repos": [
+    {
+      "name": "agentapi-plusplus",
+      "path": "/Users/kooshapari/CodeProjects/Phenotype/repos/agentapi-plusplus",
+      "branch": "chore/changelog-2026-06-08",
+      "base_branch": "chore/audit-agentapi-plusplus-2026-06-08",
+      "base_sha": "01563195d59708d983cebbc6b60251fac9af38cf",
+      "commit_sha": "e44fa373c86d0034a569e7fc310659b9e9d5d8c0",
+      "commit_short": "e44fa37",
+      "hygiene_score_before": 95,
+      "l1_audit_path": "/Users/kooshapari/CodeProjects/Phenotype/repos/.claude/dag-v2-audit-agentapi-plusplus.json",
+      "existing_entries_preserved": [
+        "## [Unreleased] (normalized from '## Unreleased' to Keep-a-Changelog 1.1.0)",
+        "### Fixes (Unreleased): nil-pointer panic on SIGINT for --experimental-acp; agentapi build coordination across e2e subtests",
+        "### Features (Unreleased): chi RequestID middleware + requestLogger; lib/logctx helpers; slog.DiscardHandler migration",
+        "### Documentation (Unreleased): examples/ quick-start snippets for 10+ agents and ACP variants",
+        "## v0.12.2, v0.12.1, v0.12.0, v0.11.8, v0.11.7, v0.11.6, v0.11.5, v0.11.4, v0.11.3, v0.11.2, v0.11.1, v0.11.0, v0.10.2, v0.10.1, v0.10.0, v0.9.0, v0.8.0, v0.7.1, v0.7.0, v0.6.3, v0.6.2, v0.6.1, v0.6.0, v0.5.0, v0.4.1, v0.4.0 (all original subsections preserved)"
+      ],
+      "changes_summary": "Added Keep-a-Changelog 1.1.0 spec header (All notable changes, format/semver links) under existing '# Changelog'; normalized '## Unreleased' to '## [Unreleased]'; appended link-reference footers for all 26 prior version tags",
+      "files_changed": ["CHANGELOG.md"],
+      "diff_stats": {"CHANGELOG.md": "35 +,1 -"}
+    },
+    {
+      "name": "AgilePlus",
+      "path": "/Users/kooshapari/CodeProjects/Phenotype/repos/AgilePlus",
+      "branch": "chore/changelog-2026-06-08",
+      "base_branch": "chore/audit-AgilePlus-2026-06-08",
+      "base_sha": "8881276fcb371d3084faa4ca267253453b3c8df4",
+      "commit_sha": "749faccb4cab632f89668e1643b1c98de772e6ef",
+      "commit_short": "749facc",
+      "hygiene_score_before": 80,
+      "l1_audit_path": "/Users/kooshapari/CodeProjects/Phenotype/repos/.claude/dag-v2-audit-AgilePlus.json",
+      "existing_entries_preserved": [
+        "## [Unreleased] (empty section, kept as anchor)"
+      ],
+      "changes_summary": "Promoted '## [Unreleased]' stub to full Keep-a-Changelog 1.1.0 with all six standard subsections (Added/Changed/Deprecated/Removed/Fixed/Security); added spec header and [Unreleased] compare-link footer",
+      "files_changed": ["CHANGELOG.md"],
+      "diff_stats": {"CHANGELOG.md": "16 +"}
+    },
+    {
+      "name": "pheno",
+      "path": "/Users/kooshapari/CodeProjects/Phenotype/repos/pheno",
+      "branch": "chore/changelog-2026-06-08",
+      "base_branch": "chore/audit-pheno-2026-06-08",
+      "base_sha": "42b4b0e113a63ddcc8f75f4004e0d2e42ea39084",
+      "commit_sha": "a039e72204ec2fc9a097b9094e32e3cbcd66e4e6",
+      "commit_short": "a039e72",
+      "hygiene_score_before": 84,
+      "l1_audit_path": "/Users/kooshapari/CodeProjects/Phenotype/repos/.claude/dag-v2-audit-pheno.json",
+      "existing_entries_preserved": [
+        "## [Unreleased] with all six Keep-a-Changelog 1.1.0 subsections (added back the standard Added/Changed/Deprecated/Removed/Fixed/Security headers that existed in the prior stub)",
+        "## 2026-04-29 (three bullets: doc/worklog surface cleanup, stale shelf-catalog removal, agileplus docs rewrite)"
+      ],
+      "changes_summary": "Renamed '# pheno Changelog' to canonical '# Changelog'; inserted Keep-a-Changelog 1.1.0 spec header lines; preserved both existing sections; appended [Unreleased] compare-link footer",
+      "files_changed": ["CHANGELOG.md"],
+      "diff_stats": {"CHANGELOG.md": "8 +,1 -"}
+    },
+    {
+      "name": "localbase3",
+      "path": "/Users/kooshapari/CodeProjects/Phenotype/repos/localbase3",
+      "branch": "chore/changelog-2026-06-08",
+      "base_branch": "chore/audit-localbase3-2026-06-08",
+      "base_sha": "52ec20a6e5abfd5b4c80c46d571798537487b006",
+      "commit_sha": "3ecab39da30b4b0a48f70a78846fcc84d875a98f",
+      "commit_short": "3ecab39",
+      "hygiene_score_before": 71,
+      "l1_audit_path": "/Users/kooshapari/CodeProjects/Phenotype/repos/.claude/dag-v2-audit-localbase3.json",
+      "existing_entries_preserved": [
+        "## [Unreleased] (empty section, kept as anchor)"
+      ],
+      "changes_summary": "Promoted '## [Unreleased]' stub to full Keep-a-Changelog 1.1.0 with all six standard subsections; added spec header and [Unreleased] compare-link footer",
+      "files_changed": ["CHANGELOG.md"],
+      "diff_stats": {"CHANGELOG.md": "16 +"}
+    },
+    {
+      "name": "FocalPoint",
+      "path": "/Users/kooshapari/CodeProjects/Phenotype/repos/FocalPoint",
+      "branch": "chore/changelog-2026-06-08",
+      "base_branch": "main",
+      "base_sha": "0e143fb905c9e4f6239f26b4eb43d19f2475f457",
+      "commit_sha": "1b6a4333c92405fb46b25ab303a47802a1a9dc77",
+      "commit_short": "1b6a433",
+      "hygiene_score_before": 92,
+      "l1_audit_path": "/Users/kooshapari/CodeProjects/Phenotype/repos/.claude/dag-v2-audit-FocalPoint.json",
+      "existing_entries_preserved": [
+        "## [Unreleased] with all six Keep-a-Changelog 1.1.0 subsections (already present from a prior partial update)",
+        "## [0.0.12] - 2026-05-06 (the version-correct entry that fixes the prior CHANGELOG/Cargo 0.1.0 vs 0.0.12 mismatch flagged in L1 audit)"
+      ],
+      "changes_summary": "Added [Unreleased] and [0.0.12] link-reference footers (compare v0.0.12...HEAD and tag v0.0.12); no other changes needed — header, spec lines, and standard subsections were already in place",
+      "files_changed": ["CHANGELOG.md"],
+      "diff_stats": {"CHANGELOG.md": "3 +"}
+    }
+  ],
+  "summary": {
+    "repos_processed": 5,
+    "commits_created": 5,
+    "pushed": false,
+    "all_commits_modify_only_changelog": true,
+    "all_branches_anchored_to_audit_or_main": true,
+    "spec_compliance": "Keep-a-Changelog 1.1.0 (## [Unreleased] with Added/Changed/Deprecated/Removed/Fixed/Security subsections; version link footers where version history exists)"
+  },
+  "notes": [
+    "agentapi-plusplus '## Unreleased' was normalized to '## [Unreleased]' (1.1.0 spec); all 26 historical version sections preserved verbatim",
+    "pheno '# pheno Changelog' header was renamed to canonical '# Changelog' for spec compliance; 2026-04-29 non-versioned section preserved as-is (pre-dates spec adoption)",
+    "FocalPoint's existing 0.0.12 entry (the version-correct tag) was preserved; the [Unreleased] link reference closes the spec loop",
+    "agileplus and localbase3 had no historical version sections, so no version-link footers were added beyond [Unreleased]",
+    "The fleet 'Recovery Script' wrapper occasionally redirected the active branch after commit; the target branch ref was forced via 'git update-ref refs/heads/chore/changelog-2026-06-08 <sha>' in those cases to ensure the deliverable branch points at the intended commit",
+    "All commits authored as 'Recovery Script <recovery@phenotype.local>' (the monorepo's conventional-commits enforcement wrapper); this is the standard author identity for in-fleet commits"
+  ]
+}

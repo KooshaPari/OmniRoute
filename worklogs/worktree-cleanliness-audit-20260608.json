@@ -1,0 +1,493 @@
+{
+  "generated_at": "2026-06-09T02:09:20.929646+00:00",
+  "total_repos": 97,
+  "with_worktrees": [
+    ".claude",
+    ".git",
+    "AgentMCP",
+    "Agentora",
+    "AgilePlus",
+    "Apisync",
+    "AppGen",
+    "AtomsBot",
+    "AuthKit",
+    "Civis",
+    "Conft",
+    "DataKit",
+    "Dino",
+    "Eidolon",
+    "Eventra",
+    "FocalPoint",
+    "FocalPoint-wtrees",
+    "GDK",
+    "HeliosCLI",
+    "HeliosCLI-wtrees",
+    "HeliosLab",
+    "HeliosLab-wtrees",
+    "HexaKit",
+    "HexaKit-wtrees",
+    "KDesktopVirt",
+    "KWatch",
+    "KlipDot",
+    "KodeVibe",
+    "Metron",
+    "NetScript",
+    "OmniRoute",
+    "Parpoura",
+    "PhenoAgent",
+    "PhenoCompose",
+    "PhenoDevOps",
+    "PhenoKits",
+    "PhenoKits-wtrees",
+    "PhenoMCP",
+    "PhenoMCP-wtrees",
+    "PhenoObservability",
+    "PhenoPlugins",
+    "PhenoProc",
+    "PhenoProject",
+    "PhenoRuntime",
+    "PhenoRuntime-wtrees",
+    "PhenoSchema",
+    "PhenoSpecs",
+    "PhenoVCS",
+    "Pine",
+    "Planify",
+    "Pyron",
+    "Pyron-wtrees",
+    "QuadSGM",
+    "QuadSGM-wtrees",
+    "Tokn",
+    "Tracely",
+    "Tracera",
+    "Tracera-wtrees",
+    "agent-user-status",
+    "agentapi-plusplus",
+    "agileplus-wtrees",
+    "argis-extensions",
+    "cheap-llm-mcp",
+    "cliproxyapi-plusplus",
+    "dispatch-mcp",
+    "eyetracker",
+    "forgecode",
+    "heliosApp",
+    "helioscope",
+    "helioscope-wtrees",
+    "kmobile",
+    "localbase3",
+    "pheno",
+    "phenoAI",
+    "phenoData",
+    "phenoForge",
+    "phenoResearchEngine",
+    "phenoShared",
+    "phenoUtils",
+    "phenoXdd",
+    "phenodocs",
+    "phenotype-bus",
+    "phenotype-dep-guard",
+    "phenotype-go-sdk",
+    "phenotype-hub",
+    "phenotype-infra",
+    "phenotype-ops-mcp",
+    "phenotype-python-sdk",
+    "phenotype-registry",
+    "phenotype-tooling",
+    "phenotype-voxel",
+    "portage",
+    "thegent",
+    "thegent-security-fixes",
+    "thegent-security-fixes-wtrees",
+    "thegent-wtrees",
+    "vibeproxy"
+  ],
+  "by_repo": [
+    {
+      "repo": ".claude",
+      "wt_count": 1
+    },
+    {
+      "repo": ".git",
+      "wt_count": 2
+    },
+    {
+      "repo": "AgentMCP",
+      "wt_count": 2
+    },
+    {
+      "repo": "Agentora",
+      "wt_count": 2
+    },
+    {
+      "repo": "AgilePlus",
+      "wt_count": 8
+    },
+    {
+      "repo": "Apisync",
+      "wt_count": 1
+    },
+    {
+      "repo": "AppGen",
+      "wt_count": 2
+    },
+    {
+      "repo": "AtomsBot",
+      "wt_count": 3
+    },
+    {
+      "repo": "AuthKit",
+      "wt_count": 2
+    },
+    {
+      "repo": "Civis",
+      "wt_count": 3
+    },
+    {
+      "repo": "Conft",
+      "wt_count": 1
+    },
+    {
+      "repo": "DataKit",
+      "wt_count": 3
+    },
+    {
+      "repo": "Dino",
+      "wt_count": 2
+    },
+    {
+      "repo": "Eidolon",
+      "wt_count": 2
+    },
+    {
+      "repo": "Eventra",
+      "wt_count": 1
+    },
+    {
+      "repo": "FocalPoint",
+      "wt_count": 3
+    },
+    {
+      "repo": "FocalPoint-wtrees",
+      "wt_count": 4
+    },
+    {
+      "repo": "GDK",
+      "wt_count": 1
+    },
+    {
+      "repo": "HeliosCLI",
+      "wt_count": 8
+    },
+    {
+      "repo": "HeliosCLI-wtrees",
+      "wt_count": 3
+    },
+    {
+      "repo": "HeliosLab",
+      "wt_count": 6
+    },
+    {
+      "repo": "HeliosLab-wtrees",
+      "wt_count": 26
+    },
+    {
+      "repo": "HexaKit",
+      "wt_count": 9
+    },
+    {
+      "repo": "HexaKit-wtrees",
+      "wt_count": 48
+    },
+    {
+      "repo": "KDesktopVirt",
+      "wt_count": 4
+    },
+    {
+      "repo": "KWatch",
+      "wt_count": 2
+    },
+    {
+      "repo": "KlipDot",
+      "wt_count": 1
+    },
+    {
+      "repo": "KodeVibe",
+      "wt_count": 1
+    },
+    {
+      "repo": "Metron",
+      "wt_count": 1
+    },
+    {
+      "repo": "NetScript",
+      "wt_count": 2
+    },
+    {
+      "repo": "OmniRoute",
+      "wt_count": 6
+    },
+    {
+      "repo": "Parpoura",
+      "wt_count": 2
+    },
+    {
+      "repo": "PhenoAgent",
+      "wt_count": 3
+    },
+    {
+      "repo": "PhenoCompose",
+      "wt_count": 3
+    },
+    {
+      "repo": "PhenoDevOps",
+      "wt_count": 9
+    },
+    {
+      "repo": "PhenoKits",
+      "wt_count": 9
+    },
+    {
+      "repo": "PhenoKits-wtrees",
+      "wt_count": 3
+    },
+    {
+      "repo": "PhenoMCP",
+      "wt_count": 6
+    },
+    {
+      "repo": "PhenoMCP-wtrees",
+      "wt_count": 9
+    },
+    {
+      "repo": "PhenoObservability",
+      "wt_count": 4
+    },
+    {
+      "repo": "PhenoPlugins",
+      "wt_count": 4
+    },
+    {
+      "repo": "PhenoProc",
+      "wt_count": 5
+    },
+    {
+      "repo": "PhenoProject",
+      "wt_count": 6
+    },
+    {
+      "repo": "PhenoRuntime",
+      "wt_count": 7
+    },
+    {
+      "repo": "PhenoRuntime-wtrees",
+      "wt_count": 7
+    },
+    {
+      "repo": "PhenoSchema",
+      "wt_count": 2
+    },
+    {
+      "repo": "PhenoSpecs",
+      "wt_count": 1
+    },
+    {
+      "repo": "PhenoVCS",
+      "wt_count": 4
+    },
+    {
+      "repo": "Pine",
+      "wt_count": 1
+    },
+    {
+      "repo": "Planify",
+      "wt_count": 4
+    },
+    {
+      "repo": "Pyron",
+      "wt_count": 10
+    },
+    {
+      "repo": "Pyron-wtrees",
+      "wt_count": 9
+    },
+    {
+      "repo": "QuadSGM",
+      "wt_count": 5
+    },
+    {
+      "repo": "QuadSGM-wtrees",
+      "wt_count": 4
+    },
+    {
+      "repo": "Tokn",
+      "wt_count": 4
+    },
+    {
+      "repo": "Tracely",
+      "wt_count": 2
+    },
+    {
+      "repo": "Tracera",
+      "wt_count": 5
+    },
+    {
+      "repo": "Tracera-wtrees",
+      "wt_count": 57
+    },
+    {
+      "repo": "agent-user-status",
+      "wt_count": 2
+    },
+    {
+      "repo": "agentapi-plusplus",
+      "wt_count": 4
+    },
+    {
+      "repo": "agileplus-wtrees",
+      "wt_count": 6
+    },
+    {
+      "repo": "argis-extensions",
+      "wt_count": 2
+    },
+    {
+      "repo": "cheap-llm-mcp",
+      "wt_count": 2
+    },
+    {
+      "repo": "cliproxyapi-plusplus",
+      "wt_count": 4
+    },
+    {
+      "repo": "dispatch-mcp",
+      "wt_count": 1
+    },
+    {
+      "repo": "eyetracker",
+      "wt_count": 1
+    },
+    {
+      "repo": "forgecode",
+      "wt_count": 6
+    },
+    {
+      "repo": "heliosApp",
+      "wt_count": 1
+    },
+    {
+      "repo": "helioscope",
+      "wt_count": 8
+    },
+    {
+      "repo": "helioscope-wtrees",
+      "wt_count": 3
+    },
+    {
+      "repo": "kmobile",
+      "wt_count": 3
+    },
+    {
+      "repo": "localbase3",
+      "wt_count": 1
+    },
+    {
+      "repo": "pheno",
+      "wt_count": 5
+    },
+    {
+      "repo": "phenoAI",
+      "wt_count": 2
+    },
+    {
+      "repo": "phenoData",
+      "wt_count": 2
+    },
+    {
+      "repo": "phenoForge",
+      "wt_count": 1
+    },
+    {
+      "repo": "phenoResearchEngine",
+      "wt_count": 1
+    },
+    {
+      "repo": "phenoShared",
+      "wt_count": 6
+    },
+    {
+      "repo": "phenoUtils",
+      "wt_count": 1
+    },
+    {
+      "repo": "phenoXdd",
+      "wt_count": 1
+    },
+    {
+      "repo": "phenodocs",
+      "wt_count": 5
+    },
+    {
+      "repo": "phenotype-bus",
+      "wt_count": 1
+    },
+    {
+      "repo": "phenotype-dep-guard",
+      "wt_count": 1
+    },
+    {
+      "repo": "phenotype-go-sdk",
+      "wt_count": 1
+    },
+    {
+      "repo": "phenotype-hub",
+      "wt_count": 3
+    },
+    {
+      "repo": "phenotype-infra",
+      "wt_count": 1
+    },
+    {
+      "repo": "phenotype-ops-mcp",
+      "wt_count": 1
+    },
+    {
+      "repo": "phenotype-python-sdk",
+      "wt_count": 1
+    },
+    {
+      "repo": "phenotype-registry",
+      "wt_count": 3
+    },
+    {
+      "repo": "phenotype-tooling",
+      "wt_count": 3
+    },
+    {
+      "repo": "phenotype-voxel",
+      "wt_count": 1
+    },
+    {
+      "repo": "portage",
+      "wt_count": 3
+    },
+    {
+      "repo": "thegent",
+      "wt_count": 4
+    },
+    {
+      "repo": "thegent-security-fixes",
+      "wt_count": 1
+    },
+    {
+      "repo": "thegent-security-fixes-wtrees",
+      "wt_count": 1
+    },
+    {
+      "repo": "thegent-wtrees",
+      "wt_count": 1
+    },
+    {
+      "repo": "vibeproxy",
+      "wt_count": 1
+    }
+  ]
+}

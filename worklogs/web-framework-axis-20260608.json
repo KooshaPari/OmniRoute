@@ -1,0 +1,131 @@
+{
+  "generated_at": "2026-06-08T11:31:50.571171Z",
+  "total_repos": 171,
+  "web_plus_cli": [
+    {
+      "repo": ".claude",
+      "web": "axum",
+      "cli": "rust-bin"
+    },
+    {
+      "repo": "AgilePlus",
+      "web": "axum",
+      "cli": "rust-bin"
+    },
+    {
+      "repo": "Civis",
+      "web": "axum",
+      "cli": "rust-bin"
+    },
+    {
+      "repo": "Conft",
+      "web": "axum",
+      "cli": "clap"
+    },
+    {
+      "repo": "crates",
+      "web": "axum",
+      "cli": "rust-bin"
+    },
+    {
+      "repo": "FocalPoint",
+      "web": "axum",
+      "cli": "rust-bin"
+    },
+    {
+      "repo": "HeliosCLI",
+      "web": "axum",
+      "cli": "rust-bin"
+    },
+    {
+      "repo": "helioscope",
+      "web": "axum",
+      "cli": "rust-bin"
+    },
+    {
+      "repo": "HexaKit",
+      "web": "axum",
+      "cli": "rust-bin"
+    },
+    {
+      "repo": "KDesktopVirt",
+      "web": "axum",
+      "cli": "rust-bin"
+    },
+    {
+      "repo": "kmobile",
+      "web": "axum",
+      "cli": "rust-bin"
+    },
+    {
+      "repo": "McpKit",
+      "web": "axum",
+      "cli": "rust-bin"
+    },
+    {
+      "repo": "ObservabilityKit",
+      "web": "axum",
+      "cli": "python-script"
+    },
+    {
+      "repo": "pheno",
+      "web": "axum",
+      "cli": "rust-bin"
+    },
+    {
+      "repo": "PhenoDevOps",
+      "web": "axum",
+      "cli": "rust-bin"
+    },
+    {
+      "repo": "PhenoKits",
+      "web": "axum",
+      "cli": "rust-bin"
+    },
+    {
+      "repo": "PhenoObservability",
+      "web": "axum",
+      "cli": "rust-bin"
+    },
+    {
+      "repo": "Pyron",
+      "web": "axum",
+      "cli": "rust-bin"
+    },
+    {
+      "repo": "QuadSGM",
+      "web": "fastapi",
+      "cli": "python-script"
+    },
+    {
+      "repo": "thegent",
+      "web": "axum",
+      "cli": "rust-bin"
+    },
+    {
+      "repo": "thegent-clean-wt-docs",
+      "web": "axum",
+      "cli": "rust-bin"
+    },
+    {
+      "repo": "thegent-clean-wt-idea",
+      "web": "axum",
+      "cli": "rust-bin"
+    },
+    {
+      "repo": "thegent-clean-wt-parallel",
+      "web": "axum",
+      "cli": "rust-bin"
+    },
+    {
+      "repo": "thegent-clean-wt-policy",
+      "web": "axum",
+      "cli": "rust-bin"
+    },
+    {
+      "repo": "thegent-clean-wt-ruff",
+      "web": "axum",
+      "cli": "rust-bin"
+    }
+  ]
+}

@@ -1,0 +1,8 @@
+{
+  "generated_at": "2026-06-08T20:35:00Z",
+  "pages_present": false,
+  "deployments_count": 0,
+  "last_deployment": "",
+  "health_endpoints": [],
+  "notes": "phenotype-landing is a monorepo of static Astro+Bun landing sites (sites/*) plus packages/{ui,github-fetcher,design-tokens}. No server runtime, no src/app/cmd layout. /health, /ready, /live handlers: none. The only API route is sites/projects-landing/api/cron-refresh.ts (scheduled data refresh, not a probe). GitHub Pages API returns 404 (no Pages configured at repo level). Deployments API returns empty array. Per-site Astro builds run under .github/workflows/ci.yml, not as repo-level deployments."
+}

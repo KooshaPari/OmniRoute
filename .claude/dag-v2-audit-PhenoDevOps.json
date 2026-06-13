@@ -1,0 +1,159 @@
+{
+  "repo": "PhenoDevOps",
+  "branch": "main",
+  "head_sha": "ad8a8c82676f5437e504bce62b594009c99e457d",
+  "last_commit_date": "2026-06-08T19:12:39-07:00",
+  "language_stack": {
+    "rust": {
+      "present": true,
+      "build_system": "cargo-workspace",
+      "members": 61,
+      "declared_workspace_deps": ["serde", "serde_json", "thiserror", "anyhow", "tokio", "dashmap", "parking_lot", "lru", "toml", "regex", "tempfile", "sha2", "tracing", "tracing-subscriber", "futures", "strum", "once_cell", "blake3", "hex", "zstd", "unicode-normalization", "async-trait", "chrono", "uuid", "dirs"],
+      "member_declared_deps": ["axum", "axum-extra", "tower", "tower-http", "tonic", "tonic-build", "prost", "askama", "sqlx", "opentelemetry", "opentelemetry_sdk", "tracing-opentelemetry", "sysinfo", "tokio-stream", "hyper"],
+      "workspace_status": "broken: axum/tonic/tower/tonic-build/prost/askama/sqlx/opentelemetry referenced by crates but missing from [workspace.dependencies]; cargo metadata fails",
+      "primary_crates": [
+        "agileplus-api (REST/axum)",
+        "agileplus-grpc (gRPC/tonic)",
+        "agileplus-dashboard (axum + askama templates)",
+        "agileplus-domain",
+        "agileplus-cli",
+        "agileplus-events",
+        "agileplus-git",
+        "agileplus-github",
+        "agileplus-graph",
+        "agileplus-nats",
+        "agileplus-plane",
+        "agileplus-sqlite",
+        "agileplus-telemetry",
+        "agileplus-triage",
+        "phenotype-config-core",
+        "phenotype-event-sourcing",
+        "phenotype-policy-engine",
+        "phenotype-rate-limit",
+        "phenotype-retry",
+        "phenotype-mcp"
+      ]
+    },
+    "python": {
+      "present": true,
+      "build_system": "uv + pyproject",
+      "packages": ["pheno-core", "pheno-llm", "pheno-atoms", "pheno-mcp", "phenosdk"],
+      "lockfile": "uv.lock",
+      "primary_test_dirs": ["python/tests/integration", "python/tests/contract", "python/tests/pheno"]
+    },
+    "typescript": {
+      "present": true,
+      "subprojects": ["phenotype-cli-extensions", "phenotype-config-ts", "phenotype-dep-guard", "phenotype-patch"],
+      "lockfile": "bun.lock"
+    },
+    "go": {
+      "present": true,
+      "modules": ["pheno-cli (github.com/KooshaPari/pheno-devops go 1.25)", "root go.mod (testify only)"],
+      "primary_module": "pheno-cli"
+    },
+    "protobuf": {
+      "present": true,
+      "tooling": "buf v2",
+      "service_files": [
+        "proto/agileplus/v1/core.proto",
+        "proto/agileplus/v1/agents.proto",
+        "proto/agileplus/v1/integrations.proto",
+        "proto/agileplus/v1/common.proto"
+      ],
+      "codegen_targets": ["rust/prost+tonic", "python/protobuf+grpc"]
+    },
+    "full_stack_summary": "gRPC+REST full-stack: Rust (tokio+axum REST + tonic gRPC + prost/tonic-build codegen), Python (uv + grpc-python clients from same protos), TypeScript (bun, CLI extensions), Go (pheno-cli), Protobuf (buf v2 IDL with 4 v1 services). Confirmed full tokio+axum+tonic stack at the *crate* level; workspace manifest is incomplete."
+  },
+  "hygiene_score": 95,
+  "hygiene_breakdown": {
+    "LICENSE": {"present": true, "score": 10, "evidence": "LICENSE-MIT, LICENSE-APACHE (dual); root LICENSE stubs"},
+    "README": {"present": true, "score": 10, "evidence": "README.md (3.5KB); notes: content reads as 'repos shelf' not PhenoDevOps-specific — but file exists and is non-empty"},
+    "CHANGELOG": {"present": true, "score": 10, "evidence": "CHANGELOG.md with CalVer format, Unreleased section"},
+    "editorconfig": {"present": true, "score": 10, "evidence": ".editorconfig (262 bytes)"},
+    "CI": {"present": true, "score": 10, "evidence": "43 workflows under .github/workflows/ (ci.yml, codeql.yml, fuzzing.yml, cargo-deny.yml, license-compliance.yml, policy-gate.yml, gate-check.yml, etc.)"},
+    "dependabot": {"present": true, "score": 10, "evidence": ".github/dependabot.yml with cargo + pip + github-actions ecosystems"},
+    "CODEOWNERS": {"present": true, "score": 10, "evidence": "root CODEOWNERS + .github/CODEOWNERS, scoped by path"},
+    "CONTRIBUTING": {"present": true, "score": 5, "evidence": "CONTRIBUTING.md is 288 bytes — stub, brief"},
+    "SECURITY": {"present": true, "score": 10, "evidence": "SECURITY.md (709 bytes) with GitHub security advisory link"},
+    "FUNDING": {"present": true, "score": 10, "evidence": "root FUNDING.yml + .github/FUNDING.yml (github: KooshaPari)"}
+  },
+  "dup_exposure": [
+    {"lib": "pheno-cli (Go)", "local_copy": "pheno-cli/", "sibling_repo": "pheno-cli", "replacement_priority": "high"},
+    {"lib": "pheno-core (Python)", "local_copy": "python/pheno-core/", "sibling_repo": "pheno", "replacement_priority": "high"},
+    {"lib": "pheno-llm (Python)", "local_copy": "python/pheno-llm/", "sibling_repo": "phenoAI", "replacement_priority": "high"},
+    {"lib": "pheno-atoms (Python)", "local_copy": "python/pheno-atoms/", "sibling_repo": "phenoData", "replacement_priority": "high"},
+    {"lib": "pheno-mcp (Python)", "local_copy": "python/pheno-mcp/", "sibling_repo": "PhenoMCP", "replacement_priority": "high"},
+    {"lib": "phenosdk (Python)", "local_copy": "python/phenosdk/", "sibling_repo": "phenotype-python-sdk", "replacement_priority": "high"},
+    {"lib": "phenotype-config-ts (TS)", "local_copy": "ts/phenotype-config-ts/", "sibling_repo": "phenotype-config-ts", "replacement_priority": "medium"},
+    {"lib": "phenotype-dep-guard (TS)", "local_copy": "ts/phenotype-dep-guard/", "sibling_repo": "phenotype-dep-guard", "replacement_priority": "medium"},
+    {"lib": "phenotype-cli-extensions (TS)", "local_copy": "ts/phenotype-cli-extensions/", "sibling_repo": "phenotype-cli-extensions", "replacement_priority": "medium"},
+    {"lib": "phenotype-patch (TS)", "local_copy": "ts/phenotype-patch/", "sibling_repo": "phenotype-patch", "replacement_priority": "medium"},
+    {"lib": "phenotype-bus", "local_copy": null, "sibling_repo": "phenotype-bus", "replacement_priority": "low (Rust crate can re-export)"},
+    {"lib": "phenotype-hub", "local_copy": null, "sibling_repo": "phenotype-hub", "replacement_priority": "low"},
+    {"lib": "phenotype-registry", "local_copy": null, "sibling_repo": "phenotype-registry", "replacement_priority": "medium (proto IDL)"},
+    {"lib": "phenotype-go-sdk", "local_copy": null, "sibling_repo": "phenotype-go-sdk", "replacement_priority": "medium"},
+    {"lib": "phenotype-python-sdk", "local_copy": null, "sibling_repo": "phenotype-python-sdk", "replacement_priority": "medium"},
+    {"lib": "phenotype-infra", "local_copy": "phenotype-infrakit/", "sibling_repo": "phenotype-infra", "replacement_priority": "high"},
+    {"lib": "phenotype-router-monitor", "local_copy": "phenotype-router-monitor/", "sibling_repo": null, "replacement_priority": "keep (local-only)"},
+    {"lib": "phenotype-ops-mcp", "local_copy": "agileplus-mcp/ (partially)", "sibling_repo": "phenotype-ops-mcp", "replacement_priority": "medium"}
+  ],
+  "sota_gaps": [
+    "Broken Cargo workspace: crates/agileplus-api, agileplus-grpc, agileplus-dashboard, etc. declare axum/tonic/tower/tonic-build/prost/askuma/sqlx/opentelemetry/tonic-build but [workspace.dependencies] in root Cargo.toml is missing these entries — `cargo metadata` fails",
+    "Stale root Cargo.lock: only 47 packages resolved (aead/aes-gcm/blake3 — root phenodevops crypto crate); missing tonic/axum/tokio/tower/hyper/prost entirely; needs `cargo update` against full workspace",
+    "Root README.md describes a 'repos shelf' polyrepo concept — does not describe PhenoDevOps, its crates, or how to build/test; needs PhenoDevOps-specific rewrite",
+    "CONTRIBUTING.md is a 288-byte stub — should follow the same template as PhenoProject/PhenoMCP",
+    "No OTLP/HTTP exporter wired in agileplus-telemetry (opentelemetry feature 'trace' present but no opentelemetry-otlp dep); observability data cannot be exported off-host",
+    "Proto surface is small (4 v1 services in proto/agileplus/v1/) for a monorepo with 23 agileplus-* domain crates; many crates (github, git, plane, nats) have no corresponding proto service",
+    "No released crates.io pipeline — release-drafter.yml exists but no .github/workflows/release.yml with `cargo publish` step",
+    "No unified cross-language test harness — Rust (cargo test), Python (uv run pytest), TS (bun test), Go (go test) run in separate CI jobs with no aggregate coverage reporter",
+    "pheno-cli (Go) does not consume generated gRPC clients from buf; should generate Go gRPC stubs and switch CLI to gRPC for core service calls (currently REST-only via HTTP)",
+    "No dprint / Prettier formatter — only oxlint (lint) and ruff (py lint) configured; no canonical form across langs",
+    "phenotype-router-monitor exists in repo root but appears orphaned (no other crates depend on it)"
+  ],
+  "convergence_cluster": "convergence",
+  "convergence_rationale": "Single monorepo hosting 4 language runtimes (Rust/Python/TS/Go) all bound to a shared Protobuf IDL (buf v2) with codegen to Rust (prost+tonic) and Python (grpc-python). REST surface via axum in agileplus-api, gRPC surface via tonic in agileplus-grpc. This is the gRPC+REST convergence pattern — not a single web stack, not 'multi-stack' (no per-language sub-product), but full-stack convergence on a shared IDL.",
+  "action_items": [
+    {
+      "priority": "P0",
+      "title": "Repair Cargo workspace: add missing [workspace.dependencies] entries and regenerate Cargo.lock",
+      "detail": "Add axum, axum-extra, tonic, tonic-build, tonic-reflection, prost, prost-types, tower, tower-http, tower-http/trace/cors/fs, askama, sqlx, opentelemetry, opentelemetry_sdk, opentelemetry-otlp, opentelemetry-stdout, tracing-opentelemetry, sysinfo, tokio-stream, hyper to root Cargo.toml [workspace.dependencies]. Run `cargo update` and `cargo metadata` to verify resolution.",
+      "effort": "S (2h)",
+      "blocks": ["L2 audit", "CI green", "all Rust builds"]
+    },
+    {
+      "priority": "P0",
+      "title": "Replace root README.md 'repos shelf' content with PhenoDevOps-specific README",
+      "detail": "Document monorepo layout (crates/, python/, ts/, proto/, pheno-cli/, phenotype-router-monitor/), quickstart (`cargo build --workspace`, `uv sync`, `bun install`, `buf generate`), architecture diagram (gRPC+REST via tonic/axum with protobuf IDL), and link to docs/.",
+      "effort": "S (1h)",
+      "blocks": ["onboarding", "external contributors"]
+    },
+    {
+      "priority": "P1",
+      "title": "Wire OTLP/HTTP exporter in agileplus-telemetry and propagate to agileplus-api",
+      "detail": "Add opentelemetry-otlp with http-proto feature; construct TracerProvider with OTLP exporter; expose OTEL_EXPORTER_OTLP_ENDPOINT env var; verify spans export in dev (stdout fallback) and prod (OTLP/HTTP).",
+      "effort": "M (4h)",
+      "blocks": ["production observability", "Sentry/OTLP dashboards"]
+    },
+    {
+      "priority": "P1",
+      "title": "Consolidate duplicate pheno-* Python/TS/Go subprojects into sibling repos",
+      "detail": "Replace local copies in python/ (pheno-core, pheno-llm, pheno-atoms, pheno-mcp, phenosdk), ts/ (phenotype-config-ts, phenotype-dep-guard, phenotype-cli-extensions, phenotype-patch), and pheno-cli/ (Go) with path/git deps on the canonical sibling repos. Reduces drift and unblocks per-repo release pipelines.",
+      "effort": "L (1d)",
+      "blocks": ["independent release cadence per subproject"]
+    },
+    {
+      "priority": "P2",
+      "title": "Expand proto IDL to cover missing agileplus-* domains (github, git, plane, nats)",
+      "detail": "Add proto/agileplus/v1/{github,git,plane,nats}.proto with services mirroring the Rust crate surface; regenerate Rust and Python stubs via buf. Required for true convergence — currently only 4 of ~20 domains are exposed via gRPC.",
+      "effort": "L (2d)",
+      "blocks": ["full gRPC surface", "Python SDK coverage"]
+    }
+  ],
+  "audit_metadata": {
+    "audited_by": "DAG task L1-6 (PhenoDevOps state snapshot)",
+    "audited_at": "2026-06-08",
+    "scoring_formula": "10pts each for LICENSE, README, CHANGELOG, .editorconfig, CI, dependabot, CODEOWNERS, CONTRIBUTING, SECURITY, FUNDING (max 100); CONTRIBUTING deducted 5pts (288-byte stub)",
+    "head_sha_verified": true,
+    "files_sampled": ["Cargo.toml", "Cargo.lock", "go.mod", "buf.yaml", "buf.gen.yaml", "crates/agileplus-grpc/Cargo.toml", "crates/agileplus-api/Cargo.toml", "crates/agileplus-dashboard/Cargo.toml", ".github/dependabot.yml", ".github/workflows/ci.yml", "README.md", "CHANGELOG.md", "CONTRIBUTING.md", "SECURITY.md", "CODEOWNERS", "FUNDING.yml", ".editorconfig"]
+  }
+}

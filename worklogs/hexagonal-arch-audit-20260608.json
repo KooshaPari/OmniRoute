@@ -1,0 +1,69 @@
+{
+  "generated_at": "2026-06-08T10:22:38Z",
+  "total_repos": 161,
+  "with_domain": [
+    "Agentora",
+    "Apisync",
+    "Benchora",
+    "Eventra",
+    "Metron",
+    "OmniRoute",
+    "Tasken",
+    "phenotype-auth-ts",
+    "portage",
+    "thegent",
+    "thegent-clean-wt-idea",
+    "thegent-clean-wt-parallel",
+    "thegent-clean-wt-policy",
+    "thegent-clean-wt-ruff"
+  ],
+  "with_ports": [
+    "Agentora",
+    "phenotype-auth-ts",
+    "portage",
+    "thegent"
+  ],
+  "with_adapters": [
+    "Agentora",
+    "Apisync",
+    "AtomsBot",
+    "Eventra",
+    "Metron",
+    "OmniRoute",
+    "Tasken",
+    "Tracera",
+    "phenoResearchEngine",
+    "phenotype-auth-ts",
+    "portage",
+    "thegent",
+    "thegent-clean-wt-idea",
+    "thegent-clean-wt-parallel",
+    "thegent-clean-wt-policy",
+    "thegent-clean-wt-ruff"
+  ],
+  "with_infrastructure": [
+    "Agentora",
+    "Apisync",
+    "Eventra",
+    "Tasken",
+    "Tracera",
+    "portage",
+    "thegent"
+  ],
+  "with_application": [
+    "Agentora",
+    "Apisync",
+    "Eventra",
+    "Metron",
+    "Tasken"
+  ],
+  "with_interfaces": [
+    "KaskMan"
+  ],
+  "domain_count": 14,
+  "ports_count": 4,
+  "adapters_count": 16,
+  "infrastructure_count": 7,
+  "application_count": 5,
+  "interfaces_count": 1
+}

@@ -1,0 +1,756 @@
+{
+  "generated_at": "2026-06-09T03:03:31Z",
+  "total_repos": 211,
+  "with_renovate": [
+    {
+      "repo": "BytePort",
+      "files": [
+        "/Users/kooshapari/CodeProjects/Phenotype/repos/BytePort/renovate.json5"
+      ]
+    },
+    {
+      "repo": "Civis",
+      "files": [
+        "/Users/kooshapari/CodeProjects/Phenotype/repos/Civis/renovate.json5"
+      ]
+    },
+    {
+      "repo": "Eidolon",
+      "files": [
+        "/Users/kooshapari/CodeProjects/Phenotype/repos/Eidolon/renovate.json5"
+      ]
+    },
+    {
+      "repo": "GDK",
+      "files": [
+        "/Users/kooshapari/CodeProjects/Phenotype/repos/GDK/renovate.json5"
+      ]
+    },
+    {
+      "repo": "HeliosCLI",
+      "files": [
+        "/Users/kooshapari/CodeProjects/Phenotype/repos/HeliosCLI/renovate.json5"
+      ]
+    },
+    {
+      "repo": "HexaKit",
+      "files": [
+        "/Users/kooshapari/CodeProjects/Phenotype/repos/HexaKit/renovate.json5"
+      ]
+    },
+    {
+      "repo": "KDesktopVirt",
+      "files": [
+        "/Users/kooshapari/CodeProjects/Phenotype/repos/KDesktopVirt/renovate.json5"
+      ]
+    },
+    {
+      "repo": "Metron",
+      "files": [
+        "/Users/kooshapari/CodeProjects/Phenotype/repos/Metron/renovate.json5"
+      ]
+    },
+    {
+      "repo": "PhenoKits",
+      "files": [
+        "/Users/kooshapari/CodeProjects/Phenotype/repos/PhenoKits/renovate.json5"
+      ]
+    },
+    {
+      "repo": "PhenoMCP",
+      "files": [
+        "/Users/kooshapari/CodeProjects/Phenotype/repos/PhenoMCP/renovate.json5"
+      ]
+    },
+    {
+      "repo": "PhenoMCP-cheap",
+      "files": [
+        "/Users/kooshapari/CodeProjects/Phenotype/repos/PhenoMCP-cheap/renovate.json5"
+      ]
+    },
+    {
+      "repo": "PhenoObservability",
+      "files": [
+        "/Users/kooshapari/CodeProjects/Phenotype/repos/PhenoObservability/renovate.json5"
+      ]
+    },
+    {
+      "repo": "PhenoPlugins",
+      "files": [
+        "/Users/kooshapari/CodeProjects/Phenotype/repos/PhenoPlugins/renovate.json5"
+      ]
+    },
+    {
+      "repo": "PhenoProject",
+      "files": [
+        "/Users/kooshapari/CodeProjects/Phenotype/repos/PhenoProject/renovate.json5"
+      ]
+    },
+    {
+      "repo": "PhenoVCS",
+      "files": [
+        "/Users/kooshapari/CodeProjects/Phenotype/repos/PhenoVCS/renovate.json5"
+      ]
+    },
+    {
+      "repo": "PhenoVCS-3rd",
+      "files": [
+        "/Users/kooshapari/CodeProjects/Phenotype/repos/PhenoVCS-3rd/renovate.json5"
+      ]
+    },
+    {
+      "repo": "PhenoVCS-hygiene",
+      "files": [
+        "/Users/kooshapari/CodeProjects/Phenotype/repos/PhenoVCS-hygiene/renovate.json5"
+      ]
+    },
+    {
+      "repo": "Planify",
+      "files": [
+        "/Users/kooshapari/CodeProjects/Phenotype/repos/Planify/renovate.json5"
+      ]
+    },
+    {
+      "repo": "Planify-hygiene",
+      "files": [
+        "/Users/kooshapari/CodeProjects/Phenotype/repos/Planify-hygiene/renovate.json5"
+      ]
+    },
+    {
+      "repo": "PlayCua",
+      "files": [
+        "/Users/kooshapari/CodeProjects/Phenotype/repos/PlayCua/renovate.json5"
+      ]
+    },
+    {
+      "repo": "PolicyStack",
+      "files": [
+        "/Users/kooshapari/CodeProjects/Phenotype/repos/PolicyStack/renovate.json5"
+      ]
+    },
+    {
+      "repo": "ResilienceKit",
+      "files": [
+        "/Users/kooshapari/CodeProjects/Phenotype/repos/ResilienceKit/renovate.json5"
+      ]
+    },
+    {
+      "repo": "Sidekick",
+      "files": [
+        "/Users/kooshapari/CodeProjects/Phenotype/repos/Sidekick/renovate.json5"
+      ]
+    },
+    {
+      "repo": "Tasken",
+      "files": [
+        "/Users/kooshapari/CodeProjects/Phenotype/repos/Tasken/renovate.json5"
+      ]
+    },
+    {
+      "repo": "Tasken-3rd",
+      "files": [
+        "/Users/kooshapari/CodeProjects/Phenotype/repos/Tasken-3rd/renovate.json5"
+      ]
+    },
+    {
+      "repo": "Tracely",
+      "files": [
+        "/Users/kooshapari/CodeProjects/Phenotype/repos/Tracely/renovate.json5"
+      ]
+    },
+    {
+      "repo": "agent-devops-setups",
+      "files": [
+        "/Users/kooshapari/CodeProjects/Phenotype/repos/agent-devops-setups/renovate.json5"
+      ]
+    },
+    {
+      "repo": "agent-user-status",
+      "files": [
+        "/Users/kooshapari/CodeProjects/Phenotype/repos/agent-user-status/renovate.json5"
+      ]
+    },
+    {
+      "repo": "bare-cua",
+      "files": [
+        "/Users/kooshapari/CodeProjects/Phenotype/repos/bare-cua/renovate.json5"
+      ]
+    },
+    {
+      "repo": "cheap-llm-mcp",
+      "files": [
+        "/Users/kooshapari/CodeProjects/Phenotype/repos/cheap-llm-mcp/renovate.json5"
+      ]
+    },
+    {
+      "repo": "cheap-llm-mcp-deprecate",
+      "files": [
+        "/Users/kooshapari/CodeProjects/Phenotype/repos/cheap-llm-mcp-deprecate/renovate.json5"
+      ]
+    },
+    {
+      "repo": "cheap-llm-mcp-t1-19",
+      "files": [
+        "/Users/kooshapari/CodeProjects/Phenotype/repos/cheap-llm-mcp-t1-19/renovate.json5"
+      ]
+    },
+    {
+      "repo": "eyetracker",
+      "files": [
+        "/Users/kooshapari/CodeProjects/Phenotype/repos/eyetracker/renovate.json5"
+      ]
+    },
+    {
+      "repo": "forgecode",
+      "files": [
+        "/Users/kooshapari/CodeProjects/Phenotype/repos/forgecode/renovate.json"
+      ]
+    },
+    {
+      "repo": "heliosBench",
+      "files": [
+        "/Users/kooshapari/CodeProjects/Phenotype/repos/heliosBench/renovate.json5"
+      ]
+    },
+    {
+      "repo": "helioscope",
+      "files": [
+        "/Users/kooshapari/CodeProjects/Phenotype/repos/helioscope/renovate.json5"
+      ]
+    },
+    {
+      "repo": "pheno",
+      "files": [
+        "/Users/kooshapari/CodeProjects/Phenotype/repos/pheno/renovate.json5"
+      ]
+    },
+    {
+      "repo": "phenoAI",
+      "files": [
+        "/Users/kooshapari/CodeProjects/Phenotype/repos/phenoAI/renovate.json5"
+      ]
+    },
+    {
+      "repo": "phenoData",
+      "files": [
+        "/Users/kooshapari/CodeProjects/Phenotype/repos/phenoData/renovate.json5"
+      ]
+    },
+    {
+      "repo": "phenoData-t1-15",
+      "files": [
+        "/Users/kooshapari/CodeProjects/Phenotype/repos/phenoData-t1-15/renovate.json5"
+      ]
+    },
+    {
+      "repo": "phenoData-t1-16",
+      "files": [
+        "/Users/kooshapari/CodeProjects/Phenotype/repos/phenoData-t1-16/renovate.json5"
+      ]
+    },
+    {
+      "repo": "phenoData-t1-17",
+      "files": [
+        "/Users/kooshapari/CodeProjects/Phenotype/repos/phenoData-t1-17/renovate.json5"
+      ]
+    },
+    {
+      "repo": "phenoData-t1-18",
+      "files": [
+        "/Users/kooshapari/CodeProjects/Phenotype/repos/phenoData-t1-18/renovate.json5"
+      ]
+    },
+    {
+      "repo": "phenoShared",
+      "files": [
+        "/Users/kooshapari/CodeProjects/Phenotype/repos/phenoShared/renovate.json5"
+      ]
+    },
+    {
+      "repo": "phenoUtils",
+      "files": [
+        "/Users/kooshapari/CodeProjects/Phenotype/repos/phenoUtils/renovate.json5"
+      ]
+    },
+    {
+      "repo": "phenodocs",
+      "files": [
+        "/Users/kooshapari/CodeProjects/Phenotype/repos/phenodocs/renovate.json5"
+      ]
+    },
+    {
+      "repo": "phenodocs-scorecard-remediation",
+      "files": [
+        "/Users/kooshapari/CodeProjects/Phenotype/repos/phenodocs-scorecard-remediation/renovate.json5"
+      ]
+    },
+    {
+      "repo": "phenotype-auth-ts",
+      "files": [
+        "/Users/kooshapari/CodeProjects/Phenotype/repos/phenotype-auth-ts/renovate.json5"
+      ]
+    },
+    {
+      "repo": "phenotype-bus",
+      "files": [
+        "/Users/kooshapari/CodeProjects/Phenotype/repos/phenotype-bus/renovate.json5"
+      ]
+    },
+    {
+      "repo": "phenotype-journeys",
+      "files": [
+        "/Users/kooshapari/CodeProjects/Phenotype/repos/phenotype-journeys/renovate.json5"
+      ]
+    },
+    {
+      "repo": "phenotype-journeys-2nd",
+      "files": [
+        "/Users/kooshapari/CodeProjects/Phenotype/repos/phenotype-journeys-2nd/renovate.json5"
+      ]
+    },
+    {
+      "repo": "phenotype-omlx",
+      "files": [
+        "/Users/kooshapari/CodeProjects/Phenotype/repos/phenotype-omlx/renovate.json5"
+      ]
+    },
+    {
+      "repo": "phenotype-ops-mcp",
+      "files": [
+        "/Users/kooshapari/CodeProjects/Phenotype/repos/phenotype-ops-mcp/renovate.json5"
+      ]
+    },
+    {
+      "repo": "phenotype-ops-mcp-t0",
+      "files": [
+        "/Users/kooshapari/CodeProjects/Phenotype/repos/phenotype-ops-mcp-t0/renovate.json5"
+      ]
+    },
+    {
+      "repo": "phenotype-ops-mcp-t1-11",
+      "files": [
+        "/Users/kooshapari/CodeProjects/Phenotype/repos/phenotype-ops-mcp-t1-11/renovate.json5"
+      ]
+    },
+    {
+      "repo": "phenotype-ops-mcp-t1-12",
+      "files": [
+        "/Users/kooshapari/CodeProjects/Phenotype/repos/phenotype-ops-mcp-t1-12/renovate.json5"
+      ]
+    },
+    {
+      "repo": "phenotype-ops-mcp-t1-13",
+      "files": [
+        "/Users/kooshapari/CodeProjects/Phenotype/repos/phenotype-ops-mcp-t1-13/renovate.json5"
+      ]
+    },
+    {
+      "repo": "phenotype-ops-mcp-t1-14",
+      "files": [
+        "/Users/kooshapari/CodeProjects/Phenotype/repos/phenotype-ops-mcp-t1-14/renovate.json5"
+      ]
+    },
+    {
+      "repo": "phenotype-org-audits",
+      "files": [
+        "/Users/kooshapari/CodeProjects/Phenotype/repos/phenotype-org-audits/renovate.json5"
+      ]
+    },
+    {
+      "repo": "phenotype-tooling",
+      "files": [
+        "/Users/kooshapari/CodeProjects/Phenotype/repos/phenotype-tooling/renovate.json5"
+      ]
+    },
+    {
+      "repo": "rich-cli-kit",
+      "files": [
+        "/Users/kooshapari/CodeProjects/Phenotype/repos/rich-cli-kit/renovate.json5"
+      ]
+    },
+    {
+      "repo": "thegent-dispatch",
+      "files": [
+        "/Users/kooshapari/CodeProjects/Phenotype/repos/thegent-dispatch/renovate.json5"
+      ]
+    }
+  ],
+  "by_format": {
+    "json5": [
+      {
+        "repo": "BytePort",
+        "files": [
+          "/Users/kooshapari/CodeProjects/Phenotype/repos/BytePort/renovate.json5"
+        ]
+      },
+      {
+        "repo": "Civis",
+        "files": [
+          "/Users/kooshapari/CodeProjects/Phenotype/repos/Civis/renovate.json5"
+        ]
+      },
+      {
+        "repo": "Eidolon",
+        "files": [
+          "/Users/kooshapari/CodeProjects/Phenotype/repos/Eidolon/renovate.json5"
+        ]
+      },
+      {
+        "repo": "GDK",
+        "files": [
+          "/Users/kooshapari/CodeProjects/Phenotype/repos/GDK/renovate.json5"
+        ]
+      },
+      {
+        "repo": "HeliosCLI",
+        "files": [
+          "/Users/kooshapari/CodeProjects/Phenotype/repos/HeliosCLI/renovate.json5"
+        ]
+      },
+      {
+        "repo": "HexaKit",
+        "files": [
+          "/Users/kooshapari/CodeProjects/Phenotype/repos/HexaKit/renovate.json5"
+        ]
+      },
+      {
+        "repo": "KDesktopVirt",
+        "files": [
+          "/Users/kooshapari/CodeProjects/Phenotype/repos/KDesktopVirt/renovate.json5"
+        ]
+      },
+      {
+        "repo": "Metron",
+        "files": [
+          "/Users/kooshapari/CodeProjects/Phenotype/repos/Metron/renovate.json5"
+        ]
+      },
+      {
+        "repo": "PhenoKits",
+        "files": [
+          "/Users/kooshapari/CodeProjects/Phenotype/repos/PhenoKits/renovate.json5"
+        ]
+      },
+      {
+        "repo": "PhenoMCP",
+        "files": [
+          "/Users/kooshapari/CodeProjects/Phenotype/repos/PhenoMCP/renovate.json5"
+        ]
+      },
+      {
+        "repo": "PhenoMCP-cheap",
+        "files": [
+          "/Users/kooshapari/CodeProjects/Phenotype/repos/PhenoMCP-cheap/renovate.json5"
+        ]
+      },
+      {
+        "repo": "PhenoObservability",
+        "files": [
+          "/Users/kooshapari/CodeProjects/Phenotype/repos/PhenoObservability/renovate.json5"
+        ]
+      },
+      {
+        "repo": "PhenoPlugins",
+        "files": [
+          "/Users/kooshapari/CodeProjects/Phenotype/repos/PhenoPlugins/renovate.json5"
+        ]
+      },
+      {
+        "repo": "PhenoProject",
+        "files": [
+          "/Users/kooshapari/CodeProjects/Phenotype/repos/PhenoProject/renovate.json5"
+        ]
+      },
+      {
+        "repo": "PhenoVCS",
+        "files": [
+          "/Users/kooshapari/CodeProjects/Phenotype/repos/PhenoVCS/renovate.json5"
+        ]
+      },
+      {
+        "repo": "PhenoVCS-3rd",
+        "files": [
+          "/Users/kooshapari/CodeProjects/Phenotype/repos/PhenoVCS-3rd/renovate.json5"
+        ]
+      },
+      {
+        "repo": "PhenoVCS-hygiene",
+        "files": [
+          "/Users/kooshapari/CodeProjects/Phenotype/repos/PhenoVCS-hygiene/renovate.json5"
+        ]
+      },
+      {
+        "repo": "Planify",
+        "files": [
+          "/Users/kooshapari/CodeProjects/Phenotype/repos/Planify/renovate.json5"
+        ]
+      },
+      {
+        "repo": "Planify-hygiene",
+        "files": [
+          "/Users/kooshapari/CodeProjects/Phenotype/repos/Planify-hygiene/renovate.json5"
+        ]
+      },
+      {
+        "repo": "PlayCua",
+        "files": [
+          "/Users/kooshapari/CodeProjects/Phenotype/repos/PlayCua/renovate.json5"
+        ]
+      },
+      {
+        "repo": "PolicyStack",
+        "files": [
+          "/Users/kooshapari/CodeProjects/Phenotype/repos/PolicyStack/renovate.json5"
+        ]
+      },
+      {
+        "repo": "ResilienceKit",
+        "files": [
+          "/Users/kooshapari/CodeProjects/Phenotype/repos/ResilienceKit/renovate.json5"
+        ]
+      },
+      {
+        "repo": "Sidekick",
+        "files": [
+          "/Users/kooshapari/CodeProjects/Phenotype/repos/Sidekick/renovate.json5"
+        ]
+      },
+      {
+        "repo": "Tasken",
+        "files": [
+          "/Users/kooshapari/CodeProjects/Phenotype/repos/Tasken/renovate.json5"
+        ]
+      },
+      {
+        "repo": "Tasken-3rd",
+        "files": [
+          "/Users/kooshapari/CodeProjects/Phenotype/repos/Tasken-3rd/renovate.json5"
+        ]
+      },
+      {
+        "repo": "Tracely",
+        "files": [
+          "/Users/kooshapari/CodeProjects/Phenotype/repos/Tracely/renovate.json5"
+        ]
+      },
+      {
+        "repo": "agent-devops-setups",
+        "files": [
+          "/Users/kooshapari/CodeProjects/Phenotype/repos/agent-devops-setups/renovate.json5"
+        ]
+      },
+      {
+        "repo": "agent-user-status",
+        "files": [
+          "/Users/kooshapari/CodeProjects/Phenotype/repos/agent-user-status/renovate.json5"
+        ]
+      },
+      {
+        "repo": "bare-cua",
+        "files": [
+          "/Users/kooshapari/CodeProjects/Phenotype/repos/bare-cua/renovate.json5"
+        ]
+      },
+      {
+        "repo": "cheap-llm-mcp",
+        "files": [
+          "/Users/kooshapari/CodeProjects/Phenotype/repos/cheap-llm-mcp/renovate.json5"
+        ]
+      },
+      {
+        "repo": "cheap-llm-mcp-deprecate",
+        "files": [
+          "/Users/kooshapari/CodeProjects/Phenotype/repos/cheap-llm-mcp-deprecate/renovate.json5"
+        ]
+      },
+      {
+        "repo": "cheap-llm-mcp-t1-19",
+        "files": [
+          "/Users/kooshapari/CodeProjects/Phenotype/repos/cheap-llm-mcp-t1-19/renovate.json5"
+        ]
+      },
+      {
+        "repo": "eyetracker",
+        "files": [
+          "/Users/kooshapari/CodeProjects/Phenotype/repos/eyetracker/renovate.json5"
+        ]
+      },
+      {
+        "repo": "heliosBench",
+        "files": [
+          "/Users/kooshapari/CodeProjects/Phenotype/repos/heliosBench/renovate.json5"
+        ]
+      },
+      {
+        "repo": "helioscope",
+        "files": [
+          "/Users/kooshapari/CodeProjects/Phenotype/repos/helioscope/renovate.json5"
+        ]
+      },
+      {
+        "repo": "pheno",
+        "files": [
+          "/Users/kooshapari/CodeProjects/Phenotype/repos/pheno/renovate.json5"
+        ]
+      },
+      {
+        "repo": "phenoAI",
+        "files": [
+          "/Users/kooshapari/CodeProjects/Phenotype/repos/phenoAI/renovate.json5"
+        ]
+      },
+      {
+        "repo": "phenoData",
+        "files": [
+          "/Users/kooshapari/CodeProjects/Phenotype/repos/phenoData/renovate.json5"
+        ]
+      },
+      {
+        "repo": "phenoData-t1-15",
+        "files": [
+          "/Users/kooshapari/CodeProjects/Phenotype/repos/phenoData-t1-15/renovate.json5"
+        ]
+      },
+      {
+        "repo": "phenoData-t1-16",
+        "files": [
+          "/Users/kooshapari/CodeProjects/Phenotype/repos/phenoData-t1-16/renovate.json5"
+        ]
+      },
+      {
+        "repo": "phenoData-t1-17",
+        "files": [
+          "/Users/kooshapari/CodeProjects/Phenotype/repos/phenoData-t1-17/renovate.json5"
+        ]
+      },
+      {
+        "repo": "phenoData-t1-18",
+        "files": [
+          "/Users/kooshapari/CodeProjects/Phenotype/repos/phenoData-t1-18/renovate.json5"
+        ]
+      },
+      {
+        "repo": "phenoShared",
+        "files": [
+          "/Users/kooshapari/CodeProjects/Phenotype/repos/phenoShared/renovate.json5"
+        ]
+      },
+      {
+        "repo": "phenoUtils",
+        "files": [
+          "/Users/kooshapari/CodeProjects/Phenotype/repos/phenoUtils/renovate.json5"
+        ]
+      },
+      {
+        "repo": "phenodocs",
+        "files": [
+          "/Users/kooshapari/CodeProjects/Phenotype/repos/phenodocs/renovate.json5"
+        ]
+      },
+      {
+        "repo": "phenodocs-scorecard-remediation",
+        "files": [
+          "/Users/kooshapari/CodeProjects/Phenotype/repos/phenodocs-scorecard-remediation/renovate.json5"
+        ]
+      },
+      {
+        "repo": "phenotype-auth-ts",
+        "files": [
+          "/Users/kooshapari/CodeProjects/Phenotype/repos/phenotype-auth-ts/renovate.json5"
+        ]
+      },
+      {
+        "repo": "phenotype-bus",
+        "files": [
+          "/Users/kooshapari/CodeProjects/Phenotype/repos/phenotype-bus/renovate.json5"
+        ]
+      },
+      {
+        "repo": "phenotype-journeys",
+        "files": [
+          "/Users/kooshapari/CodeProjects/Phenotype/repos/phenotype-journeys/renovate.json5"
+        ]
+      },
+      {
+        "repo": "phenotype-journeys-2nd",
+        "files": [
+          "/Users/kooshapari/CodeProjects/Phenotype/repos/phenotype-journeys-2nd/renovate.json5"
+        ]
+      },
+      {
+        "repo": "phenotype-omlx",
+        "files": [
+          "/Users/kooshapari/CodeProjects/Phenotype/repos/phenotype-omlx/renovate.json5"
+        ]
+      },
+      {
+        "repo": "phenotype-ops-mcp",
+        "files": [
+          "/Users/kooshapari/CodeProjects/Phenotype/repos/phenotype-ops-mcp/renovate.json5"
+        ]
+      },
+      {
+        "repo": "phenotype-ops-mcp-t0",
+        "files": [
+          "/Users/kooshapari/CodeProjects/Phenotype/repos/phenotype-ops-mcp-t0/renovate.json5"
+        ]
+      },
+      {
+        "repo": "phenotype-ops-mcp-t1-11",
+        "files": [
+          "/Users/kooshapari/CodeProjects/Phenotype/repos/phenotype-ops-mcp-t1-11/renovate.json5"
+        ]
+      },
+      {
+        "repo": "phenotype-ops-mcp-t1-12",
+        "files": [
+          "/Users/kooshapari/CodeProjects/Phenotype/repos/phenotype-ops-mcp-t1-12/renovate.json5"
+        ]
+      },
+      {
+        "repo": "phenotype-ops-mcp-t1-13",
+        "files": [
+          "/Users/kooshapari/CodeProjects/Phenotype/repos/phenotype-ops-mcp-t1-13/renovate.json5"
+        ]
+      },
+      {
+        "repo": "phenotype-ops-mcp-t1-14",
+        "files": [
+          "/Users/kooshapari/CodeProjects/Phenotype/repos/phenotype-ops-mcp-t1-14/renovate.json5"
+        ]
+      },
+      {
+        "repo": "phenotype-org-audits",
+        "files": [
+          "/Users/kooshapari/CodeProjects/Phenotype/repos/phenotype-org-audits/renovate.json5"
+        ]
+      },
+      {
+        "repo": "phenotype-tooling",
+        "files": [
+          "/Users/kooshapari/CodeProjects/Phenotype/repos/phenotype-tooling/renovate.json5"
+        ]
+      },
+      {
+        "repo": "rich-cli-kit",
+        "files": [
+          "/Users/kooshapari/CodeProjects/Phenotype/repos/rich-cli-kit/renovate.json5"
+        ]
+      },
+      {
+        "repo": "thegent-dispatch",
+        "files": [
+          "/Users/kooshapari/CodeProjects/Phenotype/repos/thegent-dispatch/renovate.json5"
+        ]
+      }
+    ],
+    "json": [
+      {
+        "repo": "forgecode",
+        "files": [
+          "/Users/kooshapari/CodeProjects/Phenotype/repos/forgecode/renovate.json"
+        ]
+      }
+    ]
+  }
+}

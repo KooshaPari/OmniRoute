@@ -1,0 +1,21 @@
+{
+  "generated_at": "2026-06-08",
+  "workflow_files": [
+    "ci.yml",
+    "reusable-scorecard.yml",
+    "sbom-refresh.yml"
+  ],
+  "reusable_scorecard_inputs": {
+    "declared_inputs": "none — workflow_call has no `inputs:` block; consumers invoke with no parameters. Trigger: workflow_call only. Implicit inputs available to consumers: none. Workflow-level concurrency: group=${{ github.workflow }}-${{ github.ref }}, cancel-in-progress=true."
+  },
+  "reusable_scorecard_outputs": {
+    "declared_outputs": "none — no `outputs:` block defined at workflow or job level. No `outputs.*` exposed to caller workflows. Side effects: uploads SARIF artifact (`SARIF file`, path=results.sarif, retention=5d) and uploads to code-scanning via github/codeql-action/upload-sarif@fee9466b8957867761f2d78f922ab084e3e2dd17 (sarif_file=results.sarif)."
+  },
+  "recommended_additional_reusables": [
+    "reusable-policy-check.yml — invoke OpenSSF best-practices/badge/compliance checks (branch protection, dependencies, SAST/secret-scan) with input: target_branch (default: main), strictness (default: high).",
+    "reusable-sbom.yml — extract the logic in sbom-refresh.yml into a reusable with inputs: image_or_path (required), format (cyclonedx|spdx, default: cyclonedx), output_path (default: bom.sarif), attach_to_release (default: false); output: sbom_artifact_name, attestation_id.",
+    "reusable-license-audit.yml — wrap dependency license scanning (cargo-deny, pip-licenses, go-licence-checker) with inputs: ecosystem (auto|rust|python|go|node), fail_on (forbidden|copyleft|none, default: forbidden), output_format (json|sarif).",
+    "reusable-vuln-scan.yml — gated Grype/Trivy scan, inputs: target (image|dir|sbom), severity_threshold (low|medium|high|critical, default: high), upload_sarif (bool, default: true); output: vuln_count, highest_severity.",
+    "reusable-ci-summary.yml — aggregate per-job results from ci.yml into a single status badge/JSON with inputs: workflows (list, required), branch (default: main), lookback_hours (default: 24); output: pass_rate, flaky_jobs."
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "generated_at": "2026-06-08T18:30:00Z",
+  "total_repos": 177,
+  "by_lib": {
+    "rdkafka": [],
+    "aiokafka": [],
+    "faust": []
+  }
+}

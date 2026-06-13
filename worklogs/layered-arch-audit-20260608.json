@@ -1,0 +1,15 @@
+{
+  "generated_at": "2026-06-08T22:15:00Z",
+  "total_repos": 58,
+  "with_core_dir": [],
+  "with_lib_dir": [
+    "OmniRoute",
+    "phenokits-landing",
+    "thegent"
+  ],
+  "with_services_dir": [
+    "localbase3"
+  ],
+  "with_controllers_dir": [],
+  "with_repositories_dir": []
+}

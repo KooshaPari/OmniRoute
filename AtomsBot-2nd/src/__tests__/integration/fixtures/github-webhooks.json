@@ -1,0 +1,37 @@
+{
+  "issueOpened": {
+    "action": "opened",
+    "issue": {
+      "id": 123456,
+      "number": 1,
+      "title": "Test Issue",
+      "body": "Test issue body",
+      "state": "open",
+      "html_url": "https://github.com/test/repo/issues/1",
+      "user": {
+        "login": "test_user",
+        "id": 12345
+      }
+    },
+    "repository": {
+      "name": "test_repo",
+      "full_name": "test_user/test_repo",
+      "owner": {
+        "login": "test_user",
+        "id": 12345
+      }
+    }
+  },
+  "issueClosed": {
+    "action": "closed",
+    "issue": {
+      "id": 123456,
+      "number": 1,
+      "title": "Test Issue",
+      "body": "Test issue body",
+      "state": "closed",
+      "html_url": "https://github.com/test/repo/issues/1",
+      "closed_at": "2025-09-08T01:48:10.375Z"
+    }
+  }
+}

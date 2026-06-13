@@ -1,0 +1,128 @@
+{
+  "generated_at": "2026-06-08T09:56:29.429901Z",
+  "total_repos": 159,
+  "near_duplicate_buildfiles": [
+    {
+      "name": "justfile",
+      "repos": [
+        "AgilePlus",
+        "AppGen",
+        "AtomsBot",
+        "OmniRoute",
+        "chatta"
+      ]
+    },
+    {
+      "name": "justfile",
+      "repos": [
+        "BytePort",
+        "Eidolon",
+        "GDK",
+        "HeliosLab",
+        "HexaKit",
+        "KDesktopVirt",
+        "Metron",
+        "PhenoKits",
+        "PhenoObservability",
+        "PhenoPlugins",
+        "PhenoProc",
+        "PhenoRuntime",
+        "PhenoVCS",
+        "PlayCua",
+        "Sidekick",
+        "Tasken",
+        "Tracely",
+        "bare-cua",
+        "eyetracker",
+        "pheno",
+        "phenoAI",
+        "phenoData",
+        "phenoShared",
+        "phenoUtils",
+        "phenodocs",
+        "phenotype-bus",
+        "phenotype-journeys",
+        "phenotype-tooling",
+        "rich-cli-kit",
+        "thegent-dispatch"
+      ]
+    },
+    {
+      "name": "justfile",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "justfile",
+      "repos": [
+        "MCPForge",
+        "McpKit",
+        "PhenoProc"
+      ]
+    },
+    {
+      "name": "justfile",
+      "repos": [
+        "PolicyStack",
+        "phenotype-tooling"
+      ]
+    },
+    {
+      "name": "justfile",
+      "repos": [
+        "heliosApp",
+        "phenotype-tooling"
+      ]
+    },
+    {
+      "name": "Makefile",
+      "repos": [
+        "HexaKit",
+        "PhenoKits"
+      ]
+    },
+    {
+      "name": "Makefile",
+      "repos": [
+        "MCPForge",
+        "McpKit",
+        "PhenoProc"
+      ]
+    },
+    {
+      "name": "Makefile",
+      "repos": [
+        "PhenoCompose",
+        "nanovms",
+        "phenotype-tooling"
+      ]
+    },
+    {
+      "name": "Makefile",
+      "repos": [
+        "PhenoProc",
+        "phenoShared",
+        "phenodocs"
+      ]
+    },
+    {
+      "name": "Makefile",
+      "repos": [
+        "Sidekick",
+        "cheap-llm-mcp"
+      ]
+    },
+    {
+      "name": "race-detector.mk",
+      "repos": [
+        "thegent",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    }
+  ]
+}

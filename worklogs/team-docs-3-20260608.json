@@ -1,0 +1,446 @@
+{
+  "generated_at": "2026-06-08T10:11:17Z",
+  "total_repos": 160,
+  "issue_template_dupes": [
+    {
+      "name": "1-codex-app.yml",
+      "hash": "677ddce56b60cb5fa51d002276fb29dfb0a698691568b0e0bbee6beffe309d33",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "2-extension.yml",
+      "hash": "34f254f39f79be39fa55cb6b64ecba502b310d037c803f4e9cece033c8744f88",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "3-cli.yml",
+      "hash": "53095981c36b513b8ec6d04f7cd9fdd7fccdf3d30553217820c5ea4e7f7eec1d",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "4-bug-report.yml",
+      "hash": "f2d19db32038d0180a89d682dc88a6461b0851c54fd8dfb6fc3b2ce62a46809f",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "5-feature-request.yml",
+      "hash": "26892a62b8f53e7aec796e7548aeb29c09c05696a057910abfc7e9ca8dfbe3e7",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "6-docs-issue.yml",
+      "hash": "eb6c96dd741ccf55009b730aa70bd0c5688c3d4ace0d41808f40e8223a11bd2c",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "bug-report.yml",
+      "hash": "28e0ff6a5fbde74445bfc689a58386aaf392b60a46c1b8873e9065559e528857",
+      "repos": [
+        "phenoDesign",
+        "phenoForge",
+        "thegent",
+        "thegent-clean-wt-docs",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "name": "bug.md",
+      "hash": "2fc8a996457f50860d71907e8dd3a8e9ed9411e6925e625ed8a2a8251ab1f65d",
+      "repos": [
+        "Metron",
+        "PhenoKits",
+        "PhenoProc",
+        "PhenoRuntime",
+        "Tracely",
+        "eyetracker",
+        "phenoAI",
+        "phenoData",
+        "phenoUtils",
+        "phenotype-bus",
+        "thegent-dispatch"
+      ]
+    },
+    {
+      "name": "bug.yml",
+      "hash": "69eb338c12fc21730d8ce456502d92649f06642bc614364865fbfa3a6abe922c",
+      "repos": [
+        "Apisync",
+        "HeliosLab",
+        "PolicyStack",
+        "Tasken",
+        "Tokn",
+        "argis-extensions",
+        "phenoResearchEngine",
+        "phenoShared",
+        "portage",
+        "thegent",
+        "thegent-clean-wt-docs",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "name": "bug_report.md",
+      "hash": "4a5ee9904c12870b34feb6819e183c82f52e9a5a435360dce4e41ac7799ed127",
+      "repos": [
+        "phenoResearchEngine",
+        "phenoShared",
+        "phenoXdd"
+      ]
+    },
+    {
+      "name": "bug_report.md",
+      "hash": "a38aed6900bddf26ea26e1e9150d83950a1b96840bb15d6259478c97fdbd5a81",
+      "repos": [
+        "AuthKit",
+        "MCPForge",
+        "McpKit",
+        "Paginary",
+        "PhenoCompose",
+        "PhenoHandbook",
+        "PhenoProject",
+        "PhenoSpecs",
+        "cheap-llm-mcp",
+        "dinoforge-packs",
+        "heliosBench",
+        "phenotype-auth-ts",
+        "phenotype-infra",
+        "phenotype-ops-mcp"
+      ]
+    },
+    {
+      "name": "bug_report.md",
+      "hash": "a891eafd715ef077763c5d40212b8ae68494f6c29acca04dffd754da273f46c3",
+      "repos": [
+        "HexaKit",
+        "ObservabilityKit",
+        "PhenoDevOps",
+        "PlayCua",
+        "Pyron",
+        "ResilienceKit",
+        "Sidekick",
+        "bare-cua",
+        "pheno"
+      ]
+    },
+    {
+      "name": "bug_report.md",
+      "hash": "c93c00d34b458edc2440ddcfdb893b1ce6d883887de42149648eabb49aeaa901",
+      "repos": [
+        "AgentMCP",
+        "DevHex",
+        "Eidolon",
+        "GDK",
+        "PhenoMCP",
+        "PhenoVCS",
+        "TestingKit"
+      ]
+    },
+    {
+      "name": "bug_report.md",
+      "hash": "d9a9931270d305c5d62dc4289db8fb03d746e65dc6c6efe126398839b51ea6d9",
+      "repos": [
+        "Agentora",
+        "FocalPoint",
+        "KDesktopVirt",
+        "agileplus-landing",
+        "phenodocs",
+        "phenodocs-scorecard-remediation",
+        "phenokits-landing",
+        "phenotype-journeys",
+        "phenotype-registry",
+        "phenotype-tooling",
+        "rich-cli-kit"
+      ]
+    },
+    {
+      "name": "bug_report.yml",
+      "hash": "9f6d3f7aba56c57cf709e689c385fdf3fb4d689f49387797af573e1f28032726",
+      "repos": [
+        "HexaKit",
+        "PhenoDevOps",
+        "Pyron",
+        "agent-devops-setups",
+        "agentapi-plusplus",
+        "cliproxyapi-plusplus",
+        "heliosApp",
+        "pheno",
+        "portage"
+      ]
+    },
+    {
+      "name": "bug_report.yml",
+      "hash": "af03d5b305dfd329a23c1ca1eb3a3d464da3b95558131c40bc49fa72ecf0b339",
+      "repos": [
+        "Civis",
+        "HeliosCLI",
+        "Parpoura",
+        "QuadSGM",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "bug_report.yml",
+      "hash": "f4b30f6e6fc71b994deb91dea08223c26a84fa44a24b85c42f01ec6988582a51",
+      "repos": [
+        "Benchora",
+        "BytePort",
+        "Conft",
+        "DataKit"
+      ]
+    },
+    {
+      "name": "config.yml",
+      "hash": "c544bf92e2ce33cbf6f3134114cb409f4c97d8e8af1cc4421d9a6bc7f9d2d556",
+      "repos": [
+        "HexaKit",
+        "ObservabilityKit",
+        "PhenoDevOps",
+        "PlayCua",
+        "Pyron",
+        "ResilienceKit",
+        "Sidekick",
+        "bare-cua",
+        "pheno"
+      ]
+    },
+    {
+      "name": "config.yml",
+      "hash": "ec20616b9d849f3d645a0875e483868d04baed88da7baba16198a5b873118347",
+      "repos": [
+        "AgentMCP",
+        "AtomsBot",
+        "DevHex",
+        "Eidolon",
+        "GDK",
+        "HeliosLab",
+        "MCPForge",
+        "PhenoMCP",
+        "PhenoObservability",
+        "PhenoRuntime",
+        "PhenoVCS",
+        "Planify",
+        "TestingKit",
+        "nanovms",
+        "phenoDesign",
+        "phenoShared",
+        "phenoXdd",
+        "phenodocs",
+        "phenotype-auth-ts",
+        "phenotype-infra",
+        "phenotype-journeys",
+        "phenotype-org-audits",
+        "phenotype-registry",
+        "phenotype-tooling",
+        "rich-cli-kit",
+        "thegent",
+        "vibeproxy"
+      ]
+    },
+    {
+      "name": "epic_teammate_system.md",
+      "hash": "8e69434b6058ce46a0703ee9bddfd3a3c8b84239073ec3779ace8d2afca99e22",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "feature-request.yml",
+      "hash": "14b910738deeaa7337a270190cf0e89619dd4a62f64d5dba70ef5ebfc2cff493",
+      "repos": [
+        "phenoDesign",
+        "phenoForge",
+        "thegent",
+        "thegent-clean-wt-docs",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "name": "feature.md",
+      "hash": "cc7fc087e8e8c0ad00cd5e497f96784336fc74f6afc58f0c847fb095f965f1c6",
+      "repos": [
+        "Metron",
+        "PhenoKits",
+        "PhenoProc",
+        "PhenoRuntime",
+        "Tracely",
+        "eyetracker",
+        "phenoAI",
+        "phenoData",
+        "phenoUtils",
+        "phenotype-bus",
+        "thegent-dispatch"
+      ]
+    },
+    {
+      "name": "feature.yml",
+      "hash": "3aa980cf00018283bc9029c78d985921dd389070ae51899070c5e0114e95fcdd",
+      "repos": [
+        "Apisync",
+        "HeliosLab",
+        "PolicyStack",
+        "Tasken",
+        "Tokn",
+        "argis-extensions",
+        "phenoResearchEngine",
+        "phenoShared",
+        "portage",
+        "thegent",
+        "thegent-clean-wt-docs",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "name": "feature_multi_level_cache.md",
+      "hash": "d6f805822e14c412136e8a1570a34bba683c5144ff3a8f4db6c98a59171fd4b1",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "feature_request.md",
+      "hash": "24f41d7e29740af8fc401d56dba1f6effee79fd49966212153c4dc3beeaa2f62",
+      "repos": [
+        "phenoResearchEngine",
+        "phenoShared",
+        "phenoXdd"
+      ]
+    },
+    {
+      "name": "feature_request.md",
+      "hash": "6ec48ce5ebcd3a0d608807e699d8e18668e6fabfd8b2e9e1dc73e1f0e3ce187f",
+      "repos": [
+        "HexaKit",
+        "ObservabilityKit",
+        "PhenoDevOps",
+        "PlayCua",
+        "Pyron",
+        "ResilienceKit",
+        "Sidekick",
+        "bare-cua",
+        "pheno"
+      ]
+    },
+    {
+      "name": "feature_request.md",
+      "hash": "7e6a400fb8a86b5346ca78ba9176032a4354af03621da729e2fb0354e0ec8008",
+      "repos": [
+        "AuthKit",
+        "MCPForge",
+        "McpKit",
+        "Paginary",
+        "PhenoCompose",
+        "PhenoHandbook",
+        "PhenoProject",
+        "PhenoSpecs",
+        "cheap-llm-mcp",
+        "dinoforge-packs",
+        "heliosBench",
+        "phenotype-auth-ts",
+        "phenotype-infra",
+        "phenotype-ops-mcp"
+      ]
+    },
+    {
+      "name": "feature_request.md",
+      "hash": "a4d63bec59e5589a387c342deb63690b4ba5cc3012d862a142842869c0cb55f9",
+      "repos": [
+        "AgentMCP",
+        "DevHex",
+        "Eidolon",
+        "GDK",
+        "PhenoMCP",
+        "PhenoVCS",
+        "TestingKit"
+      ]
+    },
+    {
+      "name": "feature_request.md",
+      "hash": "fbb94f9fd5c2bc564008ded43da16d1b3f9ba8a07d79d806a600327d9636dfc5",
+      "repos": [
+        "Agentora",
+        "FocalPoint",
+        "KDesktopVirt",
+        "agileplus-landing",
+        "phenodocs",
+        "phenodocs-scorecard-remediation",
+        "phenokits-landing",
+        "phenotype-journeys",
+        "phenotype-registry",
+        "phenotype-tooling",
+        "rich-cli-kit"
+      ]
+    },
+    {
+      "name": "feature_request.yml",
+      "hash": "11ba4e879f4189c63f4d6d0fbd02d52d38040df18b48468baf73bc08a349d832",
+      "repos": [
+        "Benchora",
+        "BytePort",
+        "Conft",
+        "DataKit"
+      ]
+    },
+    {
+      "name": "feature_request.yml",
+      "hash": "ebb19c4442addc1c78e45ca77cfbeaf9ec232c3c7298a12019fd4b210b5536e5",
+      "repos": [
+        "HexaKit",
+        "PhenoDevOps",
+        "Pyron",
+        "agent-devops-setups",
+        "agentapi-plusplus",
+        "cliproxyapi-plusplus",
+        "heliosApp",
+        "pheno",
+        "portage"
+      ]
+    },
+    {
+      "name": "feature_request.yml",
+      "hash": "ee4e1212ac6160724ebc4f5d7f93a3a22d24440692222513feaa5113562c47be",
+      "repos": [
+        "Civis",
+        "HeliosCLI",
+        "Parpoura",
+        "QuadSGM",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "teammate_subagent_system.md",
+      "hash": "e3c2194cdd40c409cb39d7ee14071606cf3b111734653a53d02945944038f2ec",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,181 @@
+{
+  "task": "DAG L2-25",
+  "task_name": "pheno-issue-template-baseline",
+  "schema_version": "v2",
+  "generated_at": "2026-06-08T20:34:00-07:00",
+  "audit_set": {
+    "source": ".claude/dag-v2-audit-*.json",
+    "repo_count": 19,
+    "repos": [
+      "agent-user-status",
+      "agentapi-plusplus",
+      "AgilePlus",
+      "FocalPoint",
+      "HeliosCLI",
+      "helioscope",
+      "HexaKit",
+      "localbase3",
+      "pheno",
+      "PhenoDevOps",
+      "PhenoKits",
+      "PhenoObservability",
+      "PhenoProc",
+      "phenoRuntime",
+      "phenoShared",
+      "Pyron",
+      "thegent",
+      "Tracely",
+      "Tracera"
+    ]
+  },
+  "canonical_templates": {
+    "location": ".claude/templates/.github/ISSUE_TEMPLATE/",
+    "files": [
+      {
+        "path": ".claude/templates/.github/ISSUE_TEMPLATE/bug-report.yml",
+        "name": "Bug report",
+        "labels": [
+          "bug"
+        ],
+        "body_sections": [
+          "version",
+          "environment",
+          "env-version",
+          "repro",
+          "expected",
+          "actual",
+          "logs",
+          "context",
+          "checklist"
+        ]
+      },
+      {
+        "path": ".claude/templates/.github/ISSUE_TEMPLATE/feature-request.yml",
+        "name": "Feature request",
+        "labels": [
+          "enhancement"
+        ],
+        "body_sections": [
+          "summary",
+          "area",
+          "problem",
+          "proposed",
+          "alternatives",
+          "impact",
+          "context",
+          "checklist"
+        ]
+      }
+    ]
+  },
+  "applied_to": [
+    {
+      "repo": "AgilePlus",
+      "repo_path": "/Users/kooshapari/CodeProjects/Phenotype/repos/AgilePlus",
+      "branch": "chore/issue-templates-2026-06-08",
+      "base_ref": "chore/issue-templates-2026-06-08^",
+      "base_sha": "d86f3123930304709929a64ff28e19fdf9f4440e",
+      "head_sha": "5d03f018526ffefad822d1b0d423804b6984a363",
+      "head_sha_short": "5d03f018",
+      "files_added": [
+        ".github/ISSUE_TEMPLATE/bug-report.yml",
+        ".github/ISSUE_TEMPLATE/feature-request.yml"
+      ],
+      "commit_message": "chore(github): add bug-report + feature-request issue templates",
+      "pushed": false
+    },
+    {
+      "repo": "localbase3",
+      "repo_path": "/Users/kooshapari/CodeProjects/Phenotype/repos/localbase3",
+      "branch": "chore/issue-templates-2026-06-08",
+      "base_ref": "chore/issue-templates-2026-06-08^",
+      "base_sha": "199dec24ea5a3573a8e1a79a14e85e57a226d8de",
+      "head_sha": "b2540acfe35d1f0a8fd853d47aa132dc63127b21",
+      "head_sha_short": "b2540acf",
+      "files_added": [
+        ".github/ISSUE_TEMPLATE/bug-report.yml",
+        ".github/ISSUE_TEMPLATE/feature-request.yml"
+      ],
+      "commit_message": "chore(github): add bug-report + feature-request issue templates",
+      "pushed": false
+    }
+  ],
+  "skipped": [
+    {
+      "repo": "agent-user-status",
+      "reason": "already has .github/ISSUE_TEMPLATE/ (cross-checked against filesystem at L2-25 runtime)"
+    },
+    {
+      "repo": "agentapi-plusplus",
+      "reason": "already has .github/ISSUE_TEMPLATE/ (cross-checked against filesystem at L2-25 runtime)"
+    },
+    {
+      "repo": "FocalPoint",
+      "reason": "already has .github/ISSUE_TEMPLATE/ (cross-checked against filesystem at L2-25 runtime)"
+    },
+    {
+      "repo": "HeliosCLI",
+      "reason": "already has .github/ISSUE_TEMPLATE/ (cross-checked against filesystem at L2-25 runtime)"
+    },
+    {
+      "repo": "helioscope",
+      "reason": "already has .github/ISSUE_TEMPLATE/ (cross-checked against filesystem at L2-25 runtime)"
+    },
+    {
+      "repo": "HexaKit",
+      "reason": "already has .github/ISSUE_TEMPLATE/ (cross-checked against filesystem at L2-25 runtime)"
+    },
+    {
+      "repo": "pheno",
+      "reason": "already has .github/ISSUE_TEMPLATE/ (cross-checked against filesystem at L2-25 runtime)"
+    },
+    {
+      "repo": "PhenoDevOps",
+      "reason": "already has .github/ISSUE_TEMPLATE/ (cross-checked against filesystem at L2-25 runtime)"
+    },
+    {
+      "repo": "PhenoKits",
+      "reason": "already has .github/ISSUE_TEMPLATE/ (cross-checked against filesystem at L2-25 runtime)"
+    },
+    {
+      "repo": "PhenoObservability",
+      "reason": "already has .github/ISSUE_TEMPLATE/ (cross-checked against filesystem at L2-25 runtime)"
+    },
+    {
+      "repo": "PhenoProc",
+      "reason": "already has .github/ISSUE_TEMPLATE/ (cross-checked against filesystem at L2-25 runtime)"
+    },
+    {
+      "repo": "phenoRuntime",
+      "reason": "already has .github/ISSUE_TEMPLATE/ (cross-checked against filesystem at L2-25 runtime)"
+    },
+    {
+      "repo": "phenoShared",
+      "reason": "already has .github/ISSUE_TEMPLATE/ (cross-checked against filesystem at L2-25 runtime)"
+    },
+    {
+      "repo": "Pyron",
+      "reason": "already has .github/ISSUE_TEMPLATE/ (cross-checked against filesystem at L2-25 runtime)"
+    },
+    {
+      "repo": "thegent",
+      "reason": "already has .github/ISSUE_TEMPLATE/ (cross-checked against filesystem at L2-25 runtime)"
+    },
+    {
+      "repo": "Tracely",
+      "reason": "already has .github/ISSUE_TEMPLATE/ (cross-checked against filesystem at L2-25 runtime)"
+    },
+    {
+      "repo": "Tracera",
+      "reason": "already has .github/ISSUE_TEMPLATE/ (cross-checked against filesystem at L2-25 runtime)"
+    }
+  ],
+  "summary": {
+    "canonical_templates_authored": 2,
+    "repos_audited": 19,
+    "repos_modified": 2,
+    "repos_skipped": 17,
+    "commits_created": 2,
+    "push": false
+  }
+}

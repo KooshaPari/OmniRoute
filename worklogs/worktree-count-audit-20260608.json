@@ -1,0 +1,43 @@
+{
+  "generated_at": "2026-06-08T10:29:31Z",
+  "total_repos": 4,
+  "with_worktrees": [
+    "Agentora",
+    "OmniRoute",
+    "cliproxyapi-plusplus",
+    "phenodocs"
+  ],
+  "by_repo": [
+    {
+      "repo": "Agentora",
+      "worktree_count": 2,
+      "worktree_paths": [
+        "/Users/kooshapari/CodeProjects/Phenotype/repos/Agentora/.git/worktrees/deploy-marker-Agentora",
+        "/Users/kooshapari/CodeProjects/Phenotype/repos/Agentora/.git/worktrees/readme-scaffold-Agentora"
+      ]
+    },
+    {
+      "repo": "OmniRoute",
+      "worktree_count": 1,
+      "worktree_paths": [
+        "/Users/kooshapari/CodeProjects/Phenotype/repos/OmniRoute/.git/worktrees/agent-aa04a90c4451af493"
+      ]
+    },
+    {
+      "repo": "cliproxyapi-plusplus",
+      "worktree_count": 1,
+      "worktree_paths": [
+        "/Users/kooshapari/CodeProjects/Phenotype/repos/cliproxyapi-plusplus/.git/worktrees/journey-fix"
+      ]
+    },
+    {
+      "repo": "phenodocs",
+      "worktree_count": 3,
+      "worktree_paths": [
+        "/Users/kooshapari/CodeProjects/Phenotype/repos/phenodocs/.git/worktrees/phenodocs-scorecard-remediation",
+        "/Users/kooshapari/CodeProjects/Phenotype/repos/phenodocs/.git/worktrees/sladge-badge",
+        "/Users/kooshapari/CodeProjects/Phenotype/repos/phenodocs/.git/worktrees/sladge-current"
+      ]
+    }
+  ]
+}

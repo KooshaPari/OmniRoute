@@ -1,0 +1,17 @@
+{
+  "generated_at": "2026-06-08T09:24:02Z",
+  "total_repos_scanned": 196,
+  "with_libc": [
+    "KlipDot"
+  ],
+  "with_winapi": [],
+  "with_windows_sys": [],
+  "by_repo": [
+    {
+      "repo": "KlipDot",
+      "libs": [
+        "libc"
+      ]
+    }
+  ]
+}

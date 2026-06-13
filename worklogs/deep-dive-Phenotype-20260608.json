@@ -1,0 +1,60 @@
+{
+  "generated_at": "2026-06-09T03:06:23.040093Z",
+  "repo": "phenotype-hub",
+  "spec_count": 1,
+  "specs": [
+    "/Users/kooshapari/CodeProjects/Phenotype/repos/phenotype-hub/docs/operations/iconography/SPEC.md"
+  ],
+  "worklog_count": 2,
+  "worklogs": [
+    "/Users/kooshapari/CodeProjects/Phenotype/repos/phenotype-hub/docs/worklogs/README.md",
+    "/Users/kooshapari/CodeProjects/Phenotype/repos/phenotype-hub/docs/worklogs/worklog.md"
+  ],
+  "deploy_markers": [],
+  "health_endpoints": [],
+  "readme_sections": 6,
+  "contributing_present": true,
+  "compliance": {
+    "codeowners": true,
+    "security": true,
+    "license": true,
+    "coc": true,
+    "funding": true,
+    "changelog": true,
+    "pr_template": true,
+    "issue_template": false,
+    "release_drafter": false
+  },
+  "gaps": [
+    {
+      "item": "ISSUE_TEMPLATE",
+      "severity": "medium",
+      "note": "no .github/ISSUE_TEMPLATE directory"
+    },
+    {
+      "item": "release-drafter",
+      "severity": "low",
+      "note": "no release-drafter workflow"
+    },
+    {
+      "item": "deploy markers",
+      "severity": "low",
+      "note": "umbrella docs site; vitepress-deploy.yml present, no app deploy markers expected"
+    },
+    {
+      "item": "health endpoints",
+      "severity": "low",
+      "note": "docs-only umbrella, no runtime health endpoints"
+    }
+  ],
+  "workflows": [
+    "codeql.yml",
+    "doc-links.yml",
+    "fr-coverage.yml",
+    "scorecard.yml",
+    "secrets-scan.yml",
+    "trufflehog.yml",
+    "vitepress-deploy.yml"
+  ],
+  "helm_k8s_dirs": []
+}

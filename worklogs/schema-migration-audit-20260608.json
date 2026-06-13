@@ -1,0 +1,28 @@
+{
+  "generated_at": "2026-06-08T23:50:47Z",
+  "total_repos": 130,
+  "by_lib": {
+    "refinery": [],
+    "sqlx_migrate": [
+      "Civis",
+      "Conft",
+      "HeliosCLI",
+      "HexaKit",
+      "KDesktopVirt",
+      "PhenoKits",
+      "crates",
+      "helioscope",
+      "worktrees"
+    ],
+    "diesel_migrations": [
+      "forgecode"
+    ],
+    "alembic": [],
+    "prisma": [
+      "AtomsBot"
+    ],
+    "knex": [],
+    "dbmate": [],
+    "atlas": []
+  }
+}

@@ -1,0 +1,143 @@
+{
+  "task": "DAG L1-14 audit",
+  "schema_version": "v2",
+  "generated_at": "2026-06-08T00:00:00Z",
+  "repo": "localbase3",
+  "repo_path": "/Users/kooshapari/CodeProjects/Phenotype/repos/localbase3",
+  "branch": "main",
+  "head_sha": "3aa2d07b95b844dc0ec2afe403a854c0501ba92c",
+  "last_commit_date": "2026-06-01T21:23:42-07:00",
+  "last_commit_subject": "ci: bump Node 18.x (EOL) to 20.x LTS + fix npm cache path",
+  "last_commit_author": "KooshaPari",
+  "remotes": {
+    "origin": "git@github.com:KooshaPari/localbase3.git",
+    "upstream": null
+  },
+  "language_stack": {
+    "detected": ["typescript", "javascript", "go", "python", "shell", "sql", "toml", "markdown"],
+    "primary": "typescript",
+    "secondary": ["go", "python", "javascript"],
+    "frontend": {
+      "framework": "Next.js 15.5 + React 18 + TypeScript + Tailwind CSS",
+      "router": "Next.js App Router (app/) and Pages Router (pages-2/) coexisting",
+      "auth": "@supabase/auth-helpers-nextjs + @supabase/supabase-js",
+      "data_fetching": "SWR + axios",
+      "ui": "@headlessui/react + @heroicons/react + react-hook-form + react-chartjs-2 + zustand",
+      "testing": "jest + cypress (e2e + a11y) + lighthouse (perf) + axe-core"
+    },
+    "api": {
+      "framework": "Node.js 20 + Express 4 + helmet + express-rate-limit + jsonwebtoken",
+      "auth": "Supabase (supabase-js) + JWT",
+      "data_layer": "Supabase (Postgres) — no local SQLite present",
+      "load_testing": "k6 + supertest"
+    },
+    "blockchain": {
+      "framework": "Cosmos SDK v0.47.3 + CometBFT v0.38.21 + cosmjs clients",
+      "language": "Go 1.24.0",
+      "module": "github.com/localbase/localbase-chain",
+      "note": "Sixth Go service in the org; leverages cosmjs/stargate on the JS side"
+    },
+    "provider": {
+      "framework": "FastAPI 0.95+ + uvicorn + pydantic + typer + rich CLI (Python)",
+      "scope": "GPU provider agent for the marketplace",
+      "ml_stack": "transformers + torch + onnxruntime + huggingface-hub",
+      "blockchain_client": "cosmpy >=0.9.0"
+    },
+    "docs": {
+      "format": "Markdown (README.md, TEST-README.md, CHANGELOG.md, AGENTS.md, CLAUDE.md, SECURITY.md, .agileplus/specs)"
+    },
+    "db": ["Postgres via Supabase (cloud, not local)", "Cosmos SDK on-chain state (IAVL/pebble/badger)"],
+    "stack_mismatch_with_dag": "DAG L1-14 description says 'vue+fastapi, local SQLite' — actual repo is Next.js (React) + Express (Node) + Go (Cosmos SDK) + Python (FastAPI in provider only). No .vue files. No .sqlite files. Frontend is React, not Vue; API is Express, not FastAPI; DB is Supabase Postgres, not SQLite. The only FastAPI surface is localbase-provider/api_server.py (GPU provider agent)."
+  },
+  "hygiene_score": 71,
+  "hygiene_breakdown": [
+    {"item": "LICENSE", "present": true, "points": 10, "evidence": ["LICENSE (11358B, MIT)"]},
+    {"item": "README", "present": true, "points": 10, "evidence": ["README.md (3045B) — covers project structure, prereqs, install, run, test, deploy, license"]},
+    {"item": "CHANGELOG", "present": true, "points": 5, "evidence": ["CHANGELOG.md exists (100B) but only contains the heading + 'All notable changes...' boilerplate + '## [Unreleased]' — no released versions, no Keep-a-Changelog format"]},
+    {"item": ".editorconfig", "present": false, "points": 0, "evidence": ["missing at root — needed for the 4-language polyglot layout (TS/JS/Go/Python)"]},
+    {"item": "CI", "present": true, "points": 10, "evidence": [".github/workflows/test.yml (unit + e2e + accessibility + performance + load); .github/workflows/trufflehog.yml (secret scan); covers Next.js frontend + Express API only — no Go chain job, no Python provider job"]},
+    {"item": "dependabot", "present": true, "points": 6, "evidence": [".github/dependabot.yml — ecosystems: github-actions + cargo (weekly). MISSING: npm (frontend + api), pip (provider), gomod (chain). 4 of 6 ecosystems absent despite 4 active package manifests"]},
+    {"item": "CODEOWNERS", "present": true, "points": 10, "evidence": [".github/CODEOWNERS = '* @KooshaPari' (only at .github/, no root copy)"]},
+    {"item": "CONTRIBUTING", "present": false, "points": 0, "evidence": ["missing — README has a 4-step 'Contributing' subsection but no CONTRIBUTING.md, no PR template, no issue templates"]},
+    {"item": "SECURITY", "present": true, "points": 10, "evidence": ["SECURITY.md (510B) — supported-versions table, kooshapari@gmail.com contact, 48h SLA, vulnerability disclosure checklist"]},
+    {"item": "FUNDING", "present": true, "points": 10, "evidence": ["FUNDING.yml (github: [KooshaPari], custom: kooshapari.com/sponsor); .github/FUNDING.yml (28B)"]}
+  ],
+  "dup_exposure": {
+    "candidates": [
+      {"lib": "phenotype-bus", "use_case": "Replace ad-hoc Express+JS event channels and Python provider job events with a single bus contract (localbase-api/server.js:1 + localbase-provider/job_processor.py)"},
+      {"lib": "phenotype-request-id", "use_case": "Add correlation IDs across Express middleware (localbase-api/src/middleware/) → cosmpy client → Python provider — currently absent in any of the four runtimes"},
+      {"lib": "phenotype-auth-ts", "use_case": "Replace @supabase/auth-helpers-nextjs + @supabase/auth-ui-react with a TypeScript-native auth layer (Next.js 15 app/ uses supabase-js directly: app/actions/api-keys.ts, app/actions/jobs.ts)"},
+      {"lib": "phenotype-go-sdk", "use_case": "Adopt for the localbase-chain Go module (Go 1.24.0) — currently hand-rolled types in x/ modules; SDK scaffolds a Cosmos-compatible client"},
+      {"lib": "phenotype-python-sdk", "use_case": "Adopt for localbase-provider (FastAPI + pydantic + cosmpy) — Python provider duplicates request/response schemas across api_server.py + api.py"},
+      {"lib": "phenotype-registry", "use_case": "Consolidate provider registry (localbase-provider/provider.py), API key registry (localbase-api/src/models/), and Supabase table registry (localbase-frontend/supabase/) under one schema-registry contract"},
+      {"lib": "phenotype-dep-guard", "use_case": "Centralize the missing 4 dependabot ecosystems (npm, pip, gomod, github-actions) under the org dep-guard policy — current .github/dependabot.yml is hand-maintained and incomplete"},
+      {"lib": "phenotype-errors", "use_case": "Express error handler (localbase-api/src/app.js) + Go panic recovery (localbase-chain/x/) + Python FastAPI exception handlers (localbase-provider/api_server.py) all re-implement error envelopes — should consume a shared error taxonomy"},
+      {"lib": "phenotype-postfx", "use_case": "Express helmet + cors + rate-limit + body-parser middleware chain could be hosted by a shared postfx-style runner to match the rest of the Pheno org"},
+      {"lib": "phenotype-journeys", "use_case": "Cypress e2e journeys (localbase-frontend/cypress/e2e/) + k6 load tests (localbase-api/load-tests/) + Go integration tests (localbase-chain/x/) could emit journey traces via phenotype-journeys instead of running in isolation"},
+      {"lib": "phenotype-infra", "use_case": "Dockerfile / docker-compose infra (implied by README 'Docker for local development') is not in repo — vendor a base image / compose layer from phenotype-infra"}
+    ]
+  },
+  "sota_gaps": [
+    "DAG description drift: FLEET_100TASK_DAG_v2.md says 'localbase3 — audit (vue+fastapi, local SQLite)' but the repo is actually Next.js (React) + Express (Node) + Go (Cosmos SDK) + Python (FastAPI in provider). Zero .vue files, zero .sqlite files, zero FastAPI routes in localbase-api/. The DAG entry needs correction (line 90 of FLEET_100TASK_DAG_v2.md also references 'pheno-fastapi-base + pheno-zod-schemas + pheno-pydantic-models' for a repo that has no FastAPI surface outside the provider).",
+    "CI is JS-only: .github/workflows/test.yml has no jobs for the Go Cosmos SDK chain or the Python FastAPI provider. localbase-chain/go.mod and localbase-provider/requirements.txt are not built, vetted, or tested in CI.",
+    "Dependabot covers 2 of 6 ecosystems: only github-actions + cargo. The two largest package surfaces — npm (Next.js 15.5.15 + Express 4) and pip (FastAPI 0.95+, torch 2.0+, transformers 4.28+) — are unmonitored for upstream CVEs.",
+    "No observability / tracing: Express has no OTel, no request-ID middleware, no structured logger; Go chain has cosmos-sdk's default logging only; Python provider has no OpenTelemetry instrumentation. PhenoObservability not adopted.",
+    "No schema validation: API request/response shapes are inferred from Express route handlers + Supabase types. localbase-frontend has zustand stores but no zod schemas; localbase-provider has pydantic but does not export JSON-Schema to the frontend.",
+    "Two parallel frontend routers: app/ (App Router, 11 files) and pages-2/ (Pages Router, 2 files) coexist with no clear migration plan. pages-2/index.tsx and pages-2/marketplace.tsx look like leftover/experimental surfaces.",
+    "Auth sprawl: three different Supabase client packages (@supabase/auth-helpers-nextjs, @supabase/auth-helpers-react, @supabase/auth-ui-react, @supabase/supabase-js) pinned, with conflicting minor versions. No JWT refresh-token rotation policy in code.",
+    "No retry/circuit-breaker on cosmpy or cosmjs clients: API server (server.js) and frontend (lib/) call Cosmos chain endpoints directly; transient RPC failures are surfaced to the user.",
+    "No rate-limit telemetry: express-rate-limit is configured but logs are unstructured; no Prometheus/OTel metrics for 429s or per-route latency.",
+    "No e2e for blockchain: localbase-chain has no docker-compose harness; integration tests in localbase-tests/ exist but no CI job runs them against a real chain.",
+    "No security scanning beyond trufflehog: no CodeQL, no govulncheck, no cargo-audit, no pip-audit, no Bandit/Safety. Express+helmet+jsonwebtoken stack is well-known to have CVEs in the JWT library family.",
+    "No i18n / l10n: en-only copy across all four runtimes despite provider/README hinting at a global GPU marketplace.",
+    "No accessibility design system: cypress-axe runs in CI but the headlessui + heroicons + tailwind stack is not wrapped in a reusable a11y-tested component library.",
+    "No provenance / SBOM: no SLSA, no sigstore, no npm publish provenance, no Go module checksum verification step.",
+    "Provider ML stack is unpinned at the major: transformers >=4.28, torch >=2.0 — both have had breaking API changes within their 4.x / 2.x lines. A reproducible build requires exact pins."
+  ],
+  "convergence_cluster": "multi-stack",
+  "convergence_rationale": "Four-language polyglot monorepo: TypeScript (Next.js frontend), JavaScript (Express API), Go (Cosmos SDK blockchain, Go 1.24), Python (FastAPI provider with ML stack). Plus SQL (Supabase schema.sql), shell (run-*.sh test runners), and TOML (Cargo manifest for the chain's tooling, plus cosmos-sdk's transitive go.mod). Touches 4 primary runtimes + 1 docs surface = multi-stack. Note: DAG-tagged 'vue+fastapi' is incorrect (no Vue, FastAPI only in the provider sub-crate, DB is Supabase Postgres not SQLite).",
+  "action_items": [
+    {
+      "priority": 1,
+      "title": "Correct the DAG L1-14 description in FLEET_100TASK_DAG_v2.md and align adoption plan to actual stack",
+      "effort": "S (0.5d)",
+      "details": "Replace 'vue+fastapi, local SQLite' with 'Next.js (React) + Express + Cosmos SDK (Go) + Python FastAPI provider + Supabase Postgres'. Update line-90 adoption list from 'pheno-fastapi-base + pheno-zod-schemas + pheno-pydantic-models' to match the real surfaces (pheno-fastapi-base is irrelevant — only the provider has FastAPI; the API is Express). This is the highest-leverage 30-minute fix because every subsequent task in the DAG for this repo assumes the wrong stack.",
+      "file_refs": ["FLEET_100TASK_DAG_v2.md:90", "FLEET_100TASK_DAG_v2.md:14 (Layer 1 task list)"]
+    },
+    {
+      "priority": 2,
+      "title": "Add CI jobs for the Go chain and the Python provider",
+      "effort": "M (2-3d)",
+      "details": "Extend .github/workflows/test.yml with two new jobs: (a) localbase-chain: ubuntu-latest + actions/setup-go@v6 with go.mod cache, run `go build ./...` + `go test ./...` + `govulncheck ./...`; (b) localbase-provider: ubuntu-latest + actions/setup-python@v6 with pip cache, run `pip install -r requirements.txt` + `pytest` + `pip-audit`. Closes the 'CI is JS-only' SOTA gap and unblocks dependabot ecosystems for the missing runtimes.",
+      "file_refs": [".github/workflows/test.yml:1-203", "localbase-chain/go.mod:1-8", "localbase-provider/requirements.txt:1-32"]
+    },
+    {
+      "priority": 3,
+      "title": "Fill dependabot ecosystems (npm, pip, gomod) and add CodeQL + govulncheck",
+      "effort": "M (1-2d)",
+      "details": "Extend .github/dependabot.yml to cover: npm in /localbase-frontend + /localbase-api (weekly, grouped), pip in /localbase-provider (weekly, grouped), gomod in /localbase-chain (weekly, grouped). Add .github/workflows/codeql.yml (javascript + python) and a govulncheck job inside the new localbase-chain CI job from action #2. Brings the repo from 2/6 ecosystems to 6/6 and unblocks CVE detection for the two largest dependency surfaces.",
+      "file_refs": [".github/dependabot.yml:1-10", ".github/workflows/test.yml"]
+    },
+    {
+      "priority": 4,
+      "title": "Wire request-id propagation + OTel across all four runtimes via phenotype-request-id + phenotype-bus",
+      "effort": "M (3-5d)",
+      "details": "Add correlation-ID middleware in Express (localbase-api/src/middleware/), FastAPI dependency in provider (api_server.py), and a cosmos-sdk AnteHandler in Go chain (x/). Propagate the ID from the Next.js request → Express API → cosmpy RPC → Python provider. Adopt phenotype-bus for cross-runtime job events (replacing the ad-hoc Supabase Realtime channels in localbase-frontend/supabase/). Closes the 'no observability/tracing' SOTA gap and matches the PhenoObservability adoption pattern used in PhenoAgent/PhenoMCP.",
+      "file_refs": ["localbase-api/src/middleware/", "localbase-provider/api_server.py", "localbase-chain/x/", "localbase-frontend/supabase/"]
+    },
+    {
+      "priority": 5,
+      "title": "Add missing hygiene files (.editorconfig, CONTRIBUTING.md) and harden CHANGELOG.md",
+      "effort": "S (1d)",
+      "details": "Create a polyglot .editorconfig (TS/JS/Go/Python/MD/YAML sections) at repo root. Author CONTRIBUTING.md with conventional-commits spec + PR template (matches phenoShared/FocalPoint pattern). Replace the 5-line CHANGELOG.md placeholder with a Keep-a-Changelog 1.1.0 template (Unreleased + 0.1.0 entries). Adds ~25 hygiene points (current 72 → ~95/100) and is prerequisite for the org-wide template PRs in DAG task #24.",
+      "file_refs": ["CHANGELOG.md:1-5", "README.md:166-172 (Contributing stub)"]
+    }
+  ],
+  "notes": [
+    "Stack mismatch: DAG L1-14 calls this 'vue+fastapi, local SQLite'; actual repo has zero .vue files, zero .sqlite files, and the only FastAPI surface is localbase-provider/api_server.py. Frontend is Next.js 15.5.15 + React 18, API is Express 4.22, DB is Supabase Postgres (cloud). The DAG adoption plan (FLEET_100TASK_DAG_v2.md:90) lists 'pheno-fastapi-base + pheno-zod-schemas + pheno-pydantic-models' but Express has no pydantic surface and the frontend has no zod dependency. Action item #1 is to correct the DAG before any of the other action items are queued.",
+    "Two frontend routers coexist: app/ (App Router, 11 files including app/(dashboard)/layout.tsx, app/actions/api-keys.ts, app/actions/jobs.ts) and pages-2/ (Pages Router, 2 files: index.tsx + marketplace.tsx). pages-2/ looks like an experimental/draft surface and should either be merged or removed in a follow-up.",
+    "Block explorer / chain E2E: no docker-compose harness in repo despite README mentioning 'Docker (for local development)'. The Go chain integration tests live in localbase-tests/ but the localbase-chain/x/ directory has no testcontainers or dockertest setup.",
+    "Tracked files: 31 directories + 11 root files at HEAD. localbase-frontend has the largest tree (32 entries), followed by localbase-tests (64) and localbase-api (17). The .agileplus/specs/ subtree is the org's spec-kit-equivalent planning surface.",
+    "Most recent commit is a CI hygiene fix (Node 18.x → 20.x LTS), consistent with this audit's findings about CI being JS-only and needing the same Node-EOL treatment for the Go and Python runtimes."
+  ]
+}

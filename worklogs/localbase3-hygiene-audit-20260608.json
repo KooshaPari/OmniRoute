@@ -1,0 +1,106 @@
+{
+  "repo": "localbase3",
+  "branch_audited": "chore/audit-localbase3-2026-06-08 (ef50062, 2 ahead of main)",
+  "audited_at": "2026-06-08",
+  "stack": "typescript (next.js 15 + react 18) + node express + cosmos sdk (Go)",
+  "summary": "G1/G2/G5 DEGRADED (action tag-pinning, missing PR/issue templates), G3 P0 (trufflehog @main rot), G4 PASS w/ nit (no lint/typecheck step), e2e EXCELLENT (5-job matrix: unit+e2e+a11y+perf+load). 1 P0, 2 P1, 2 P2.",
+  "gates": {
+    "G1_workflow_hygiene": {
+      "status": "DEGRADED",
+      "evidence": [
+        "2/2 .github/workflows/*.yml parse: test.yml (5 jobs), trufflehog.yml (1 job)",
+        "test.yml uses actions/checkout@v6 + actions/setup-node@v6 + codecov/codecov-action@v6 + cypress-io/github-action@v7 + actions/upload-artifact@v7 — ALL TAG-PINNED (drift from org SHA-pin standard)",
+        "No top-level `permissions: contents: read` in test.yml (drift)",
+        "No `concurrency:` block in test.yml (drift)",
+        "No `timeout-minutes:` on any of 5 jobs (drift)",
+        "All 5 jobs on ubuntu-latest; matrix only varies node-version (no OS matrix needed since TS+Go both ubuntu-friendly)",
+        "test.yml has 5 jobs in DAG: unit-tests → {e2e-tests, accessibility-tests, performance-tests, load-tests} (excellent fan-out, but 4 jobs all `npm ci` + `npm run build` + `npm start & sleep 10` — duplicated setup, candidate for composite action)"
+      ]
+    },
+    "G2_governance_files": {
+      "status": "DEGRADED",
+      "evidence": [
+        "LICENSE (MIT) + .github/CODEOWNERS (1-liner `* @KooshaPari`) + SECURITY.md + FUNDING.yml + AGENTS.md (17 lines) + CLAUDE.md (31 lines) + dependabot.yml + .gitignore (9 lines) + CHANGELOG.md ([Unreleased] only, empty) + .editorconfig (just added ef50062) — all PRESENT",
+        "CONTRIBUTING.md MISSING, CODE_OF_CONDUCT.md MISSING, PULL_REQUEST_TEMPLATE.md MISSING, ISSUE_TEMPLATE/ MISSING (4 governance files absent)",
+        "No .pre-commit-config.yaml, no .gitattributes, no .nvmrc, no .node-version (drift from org standard)",
+        "CHANGELOG.md has only an empty [Unreleased] section despite 1-ahead commit + 20+ commit history (drift)"
+      ]
+    },
+    "G3_security_scanning": {
+      "status": "P0",
+      "evidence": [
+        "trufflehog.yml:14 uses `trufflehog/actions/setup@main` — NOT SHA-PINNED, @main rot (P0)",
+        "No codeql.yml, no scorecard.yml, no dependabot ignore (security scan coverage thin)",
+        "secrets-scan.yml: trufflehog github --only-verified --no-update (correct flags), but no schedule/cron (push/PR trigger only)",
+        "dependabot.yml: github-actions + cargo ecosystems weekly (drift: no npm, no gomod despite TS+Go monorepo)"
+      ]
+    },
+    "G4_quality_gates": {
+      "status": "DEGRADED",
+      "evidence": [
+        "test.yml runs: unit-tests (jest --coverage for frontend+api), e2e-tests (cypress against real build), accessibility-tests (cypress-axe), performance-tests (lighthouse), load-tests (k6) — EXCELLENT breadth, all 5 test types",
+        "codecov/codecov-action@v6 uploads frontend+api coverage with flags",
+        "NO LINT STEP (next lint exists in package.json:13 but not invoked in CI) — drift",
+        "NO TYPECHECK STEP (tsc --noEmit not in CI despite TS codebase)",
+        "NO BUILD GATE (build only happens inside cypress job, not a standalone check)",
+        "localbase-tests/ has 65 files: lots of `fix_*.py`, `create_*.py` one-off scripts + conftest.py + config.json — messy; NONE exercised in CI"
+      ]
+    },
+    "G5_review_governance": {
+      "status": "DEGRADED",
+      "evidence": [
+        "PULL_REQUEST_TEMPLATE.md MISSING (org standard requires structured Summary/Validation/Runtime Surface)",
+        "ISSUE_TEMPLATE/ MISSING (no bug_report.md, no feature_request.md, no config.yml)",
+        ".coderabbit.yaml MISSING (per AGENTS.md mandate, drift)",
+        ".gemini/ MISSING (per AGENTS.md mandate, drift)",
+        "renovate.json5 MISSING (no cargo/regex managers configured; dependabot covers github-actions+cargo but not npm+gomod)",
+        "dependabot.yml is thin (2 ecosystems, no ignore lists, no auto-merge)",
+        "20+ local branches including wip-localbase3-provider-tests (vestigial); chore/audit-localbase3-2026-06-08 is the audit snapshot branch itself"
+      ]
+    },
+    "e2e_end_to_end": {
+      "status": "PASS",
+      "evidence": [
+        "test.yml:51-83 e2e-tests job: cypress-io/github-action@v7 against `npm run build && npm start`, wait-on http://localhost:3000, browser: chrome, headed: false — REAL e2e in real browser",
+        "6 cypress specs: accessibility.cy.ts, api-keys.cy.ts, auth.cy.ts, dashboard.cy.ts, homepage.cy.ts, jobs.cy.ts",
+        "load-tests/ has api-load-test.js (k6) + run-load-tests.sh — invoked in test.yml:194-197 against real `npm start` API server (REAL load test, not mocked)",
+        "MISSING: no backend integration tests in CI (localbase-tests/ python dir is unexercised); no contract tests between frontend+api+chain; no smoke against running cosmos chain"
+      ]
+    }
+  },
+  "additional_findings": {
+    "package_json_issues": "localbase-frontend/package.json:29 axios ^1.16.0 (does not exist; latest is 1.7.x — likely typo for ^1.6.0); localbase-frontend/package.json:32 next 15.5.15 + eslint-config-next 14.0.3 (mismatch — 14.x config for 15.x next); localbase-frontend/package.json:33 react 18.2.0 pinned (good)",
+    "node_version_alignment": "test.yml matrix pinned to node 20.x; package-lock.json present in both localbase-frontend (198k) and localbase-api; no .nvmrc or engines field in package.json (drift)",
+    "localbase_tests_dir_mess": "65 files including 15+ `create_*.py` and 6+ `fix_*.py` one-off scripts — vestigial from prior `fix_localbase_tests.py` sh+py tooling at repo root. These are development debris, not real tests. Candidate for `localbase-tests/_archive/` move.",
+    "branch_inventory": "20+ local branches; wip-localbase3-provider-tests likely stalled; chore/audit-localbase3-2026-06-08 is the audit snapshot (1 ahead of main: 52ec20a 'chore(audit): localbase3 state snapshot').",
+    "license_signals": "LICENSE=MIT (full text); package.json license=MIT (localbase-api:24 only, localbase-frontend has no license field — drift, will block npm publish).",
+    "upstream_drift": "AGENTS.md is 17 lines (org standard is 30+); CLAUDE.md is 31 lines (org standard is 60+); CHANGELOG.md is 6 lines with empty [Unreleased]."
+  },
+  "ci_status": {
+    "open_prs_unknown": "git ls-remote not run; local state shows 20+ local branches, no PR list in audit scope",
+    "last_commit": "52ec20a chore(audit): localbase3 state snapshot (1 ahead of main)",
+    "workflows_passing": "test.yml + trufflehog.yml parse OK; trufflehog @main rot is latent P0"
+  },
+  "actions_recommended": [
+    {
+      "priority": "P0",
+      "title": "Fix trufflehog.yml:14 `@main` rot (duplicate of trufflehog/actions/setup@<SHA>)",
+      "detail": ".github/workflows/trufflehog.yml:14 uses `trufflehog/actions/setup@main` — NOT SHA-pinned. Org canonical is `trufflesecurity/trufflehog-actions/setup@<sha>` (the v3 line). Action: replace with SHA-pinned trufflehog/actions/setup, add schedule cron (e.g. '0 7 * * 1'), add top-level `permissions: contents: read`. Estimated effort: 5 min.",
+      "estimated_effort": "5 min"
+    },
+    {
+      "priority": "P1",
+      "title": "SHA-pin test.yml actions; add permissions + concurrency + timeout-minutes",
+      "detail": "test.yml uses 5 actions all tag-pinned (checkout@v6, setup-node@v6, codecov-action@v6, cypress-io/github-action@v7, upload-artifact@v7). Replace with SHA-pinned versions matching org canonical. Add top-level `permissions: contents: read` and `concurrency: group: ${{ github.workflow }}-${{ github.ref }}, cancel-in-progress: true`. Add `timeout-minutes: 30` to all 5 jobs (load-test job especially can hang on k6). Estimated effort: 15 min.",
+      "estimated_effort": "15 min"
+    },
+    {
+      "priority": "P1",
+      "title": "Add CONTRIBUTING.md + CODE_OF_CONDUCT.md + PULL_REQUEST_TEMPLATE.md + ISSUE_TEMPLATE/ + dependabot npm+gomod ecosystems",
+      "detail": "4 governance files missing. Add org-standard 2-line CONTRIBUTING + CODE_OF_CONDUCT, add structured PULL_REQUEST_TEMPLATE (Summary/Validation/Runtime Surface), add ISSUE_TEMPLATE/{bug_report.md, feature_request.md, config.yml}. Update dependabot.yml to add npm (localbase-frontend, localbase-api) + gomod (localbase-chain) ecosystems weekly; remove cargo (no Rust here). Estimated effort: 20 min.",
+      "estimated_effort": "20 min"
+    }
+  ],
+  "deep_research": "localbase3 sits in the Phenotype 'web+cosmos+provider' family — a 5-component monorepo (localbase-frontend Next.js 15 + localbase-api express + localbase-chain Cosmos SDK Go + localbase-provider + localbase-tests) targeting a decentralized AI compute marketplace. The closest peers in the fleet are OmniRoute (axum+tower+tower-http, modern web stack, 13-repo convergence cluster) and dispatch-mcp (Express + MCP server), but localbase3 is unusual in carrying the full web+cosmos+provider stack with 5 distinct test surfaces (unit, e2e, a11y, perf, load) — a test breadth that no other repo in the 167-repo fleet matches. Comparing against the tick-25 hygiene wave and the helioslab-hygiene baseline, localbase3 lands at 3.6/5 hygiene: G1/G2/G5 degraded by action tag-pinning + missing 4 governance files, G3 has a single P0 (trufflehog @main — the same rot that bit 17+ repos in tick-17 and is being closed across the org), G4 is strong on breadth (5-job matrix fan-out is exemplary — unit-tests as root, then e2e/a11y/perf/load as parallel leaves) but missing lint+typecheck+build gates. The e2e suite is the strongest part: real `npm run build && npm start` + wait-on:3000 + cypress-io/github-action@v7 with 6 specs covering accessibility, api-keys, auth, dashboard, homepage, jobs — plus a real k6 load test against the running API server. The localbase-tests/ dir (65 files, mostly `fix_*.py`/`create_*.py` one-off scripts) is development debris from the `fix_localbase_tests.sh` + `fix_localbase_tests.py` tooling at repo root and is not exercised in CI — candidate for archival. The package.json has 2 latent issues: `axios ^1.16.0` doesn't exist (typo for ^1.6.0) and `eslint-config-next 14.0.3` is mismatched against `next 15.5.15`. The 20+ local branches and 5-component scope make this a high-leverage cleanup: closing the 3 actions below moves localbase3 from 'mostly compliant with one critical rot' to 'fully compliant' and unblocks a clean dependabot-managed dependency update cycle across all 3 ecosystems (npm+npm+gomod).",
+  "deep_research_cont": "Net hygiene score: 3.6/5. G1/G2/G4/G5 degraded, G3 has P0, e2e is excellent. The test breadth (5 surfaces, all real) is a model for other Phenotype web+chain repos — OmniRoute, dispatch-mcp, pheno, and Pyron would all benefit from adopting localbase3's e2e+a11y+perf+load fan-out pattern. Three secondary items: (1) the localbase-tests/ python dir is 65 files of mostly one-off scripts with no CI entry — either integrate it as a real backend integration test surface (pytest in test.yml after the unit-tests job) or move it to localbase-tests/_archive/ to stop the visual noise. (2) package.json license field is missing in localbase-frontend (localbase-api has it) — will block `npm publish` if this is ever intended to ship to the registry. (3) The 5-job test.yml duplicates the `actions/checkout@v6` + `actions/setup-node@v6` + `npm ci` pattern 5 times — candidate for a composite action at `.github/actions/setup-node-monorepo/` that takes one path arg. After P0 + 2 P1 fixes, localbase3 moves to 4.5/5 hygiene and unlocks the dependabot multi-ecosystem story as a side effect. The 1-ahead-of-main state on chore/audit-localbase3-2026-06-08 (52ec20a) is the audit snapshot itself, which can be squashed/merged once the 3 action PRs land."
+}

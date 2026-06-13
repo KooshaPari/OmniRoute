@@ -1,0 +1,42 @@
+{
+  "generated_at": "2026-06-08T00:00:00Z",
+  "readme_first_100_lines_summary": "AgilePlus is a local-first, AI-native, spec-driven PM platform for agent+human teams. It uses a Cargo workspace with hexagonal (ports-and-adapters) architecture: agileplus-domain and agileplus-application have no framework deps; everything else is an adapter. Features include HTTP API, gRPC (tonic), CLI, Askama+React/TS web dashboard, Electrobun desktop app, SQLite/NATS persistence, GitHub/Plane sync, P2P merge, governance/release channels. Branching: main protected, prefixes feat/fix/chore/ci/docs. Quality: clippy -D warnings, cargo fmt, cargo-deny, weekly cargo-audit. Files UTF-8 no BOM. Active work state at 70% with CI partially red; one of three Phenotype PM frontend candidates alongside Tracera and Planify.",
+  "crate_count": 28,
+  "crate_names": [
+    "agileplus-api",
+    "agileplus-application",
+    "agileplus-artifacts",
+    "agileplus-benchmarks",
+    "agileplus-cache",
+    "agileplus-cli",
+    "agileplus-config",
+    "agileplus-contract-tests",
+    "agileplus-dashboard",
+    "agileplus-domain",
+    "agileplus-events",
+    "agileplus-fixtures",
+    "agileplus-git",
+    "agileplus-github",
+    "agileplus-governance",
+    "agileplus-graph",
+    "agileplus-grpc",
+    "agileplus-import",
+    "agileplus-integration-tests",
+    "agileplus-nats",
+    "agileplus-p2p",
+    "agileplus-plane",
+    "agileplus-proto",
+    "agileplus-sqlite",
+    "agileplus-subcmds",
+    "agileplus-sync",
+    "agileplus-telemetry",
+    "agileplus-triage"
+  ],
+  "recommended_lib_candidates": [
+    "agileplus-domain",
+    "agileplus-application",
+    "agileplus-events",
+    "agileplus-config",
+    "agileplus-telemetry"
+  ]
+}

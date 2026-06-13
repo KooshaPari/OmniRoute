@@ -1,0 +1,100 @@
+{
+  "generated_at": "2026-06-09T03:50:05Z",
+  "recommended_endpoints": [
+    {
+      "path": "/api/v1/health",
+      "method": "GET",
+      "response": {
+        "status": "healthy|degraded|unhealthy",
+        "version": "string",
+        "timestamp": "RFC3339",
+        "components": {
+          "<name>": {
+            "status": "healthy|degraded|unhealthy",
+            "latency_ms": 0,
+            "message": "string?",
+            "last_check": "RFC3339"
+          }
+        }
+      },
+      "use_case": "Aggregate dependency health (db, cache, queue, external APIs) for dashboards and triage",
+      "auth": "none"
+    },
+    {
+      "path": "/api/v1/health/live",
+      "method": "GET",
+      "response": {"status": "alive", "timestamp": "RFC3339"},
+      "use_case": "K8s/load-balancer liveness probe; never touches deps, 200 while process is up",
+      "auth": "none"
+    },
+    {
+      "path": "/api/v1/health/ready",
+      "method": "GET",
+      "response": {"status": "ready|not_ready", "timestamp": "RFC3339", "missing": ["<component>"]},
+      "use_case": "K8s readiness probe; 503 when any required dependency is unreachable",
+      "auth": "none"
+    },
+    {
+      "path": "/api/v1/health/startup",
+      "method": "GET",
+      "response": {"status": "started|starting", "elapsed_s": 0},
+      "use_case": "Slow-start probe (migrations, warmup); succeeds only after first-time init completes",
+      "auth": "none"
+    },
+    {
+      "path": "/api/v1/health/canary",
+      "method": "GET",
+      "response": {
+        "status": "healthy|degraded|unhealthy",
+        "version": "string",
+        "deployment": {"type": "stable|canary", "image_tag": "string", "uptime": "string"},
+        "metrics": {"request_count": 0, "error_rate": 0.0, "p95_latency_ms": 0.0, "p99_latency_ms": 0.0, "memory_mb": 0.0, "cpu_pct": 0.0}
+      },
+      "use_case": "Canary deployment gating; compare against stable cohort pre-rollout",
+      "auth": "bearer (internal mesh only)"
+    },
+    {
+      "path": "/api/v1/version",
+      "method": "GET",
+      "response": {"service": "string", "version": "string", "commit": "string", "build_date": "RFC3339"},
+      "use_case": "Build provenance for SRE incident response and release tagging",
+      "auth": "none"
+    },
+    {
+      "path": "/api/v1/status",
+      "method": "GET",
+      "response": {"status": "ok|degraded|outage", "incidents": [{"id": "string", "severity": "string", "url": "string"}]},
+      "use_case": "User-facing status summary linking to incident tracker (Statuspage-style)",
+      "auth": "none"
+    },
+    {
+      "path": "/api/v1/dependencies",
+      "method": "GET",
+      "response": {"edges": [{"from": "service", "to": "service", "required": true, "health": "healthy|degraded|unhealthy"}]},
+      "use_case": "Cross-service dep graph snapshot for blast-radius and runbook lookup",
+      "auth": "bearer (internal mesh only)"
+    },
+    {
+      "path": "/api/v1/metrics",
+      "method": "GET",
+      "response": "Prometheus text exposition format (text/plain; version=0.0.4)",
+      "use_case": "Prometheus/Mimir scrape endpoint emitting RED metrics",
+      "auth": "bearer (scraper only)"
+    }
+  ],
+  "rationale": "Tracera's 9-route health surface (live, ready, health, canary, metrics, versions, status, dependencies, search/health) splits process liveness from dep readiness from deployment-gated canary health - the right shape for a mixed K8s/native fleet. /api/v1 prefix plus three auth tiers (none/bearer-mesh/bearer-scraper) lets one OpenAPI fragment and one Prometheus scrape config cover the whole fleet. PhenoDevOps' phenotype-router-monitor partially implements this already (uses /api/v1/health, /api/v1/routers/{id}/metrics); promote to canonical and backport the gap. Components is a name-keyed map so adopters declare their own deps with no schema churn. Canary and dependencies are bearer-protected to keep internal topology out of public responses.",
+  "adopters": [
+    "heliosBench",
+    "OmniRoute",
+    "thegent",
+    "helios-router",
+    "GDK",
+    "Agentora",
+    "PhenoDevOps",
+    "Tracera",
+    "AgilePlus",
+    "Planify",
+    "phenoShared",
+    "phenotype-hub"
+  ]
+}

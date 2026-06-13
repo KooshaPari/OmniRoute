@@ -1,0 +1,19 @@
+{
+  "generated_at": "2026-06-08T00:00:00Z",
+  "spec_present": true,
+  "worklog_readme_present": true,
+  "worklog_120_triage_present": true,
+  "compliance_table_present": true,
+  "with_health_endpoint": false,
+  "deployments_pages": true,
+  "last_deployment": "2026-06-01T05:27:06Z",
+  "open_issues": 120,
+  "gaps": [
+    "release-drafter.yml MISSING (low)",
+    "Top-level ARCHITECTURE.md MISSING (med)",
+    "Top-level ROADMAP.md MISSING (med)",
+    "README media (screenshots/demos) MISSING (med)",
+    "worklogs/ top-level entry listed as MISSING in compliance table but worklogs/README.md actually exists on disk (compliance-table self-contradiction)"
+  ],
+  "notes": "SPEC.md sections 4 and 5/6/7/8 confirmed: has Phenotype Org + AgilePlus compliance table (Section 4), references worklogs/ in Sections 5 and 8. worklogs/README.md index present and references 2026-06-09-120-issue-triage.md. Deployment fetched via gh api: id=4885769683, environment=github-pages, created_at=2026-06-01T05:27:06Z. Open issues counted via pagination (page1=100, page2=20, page3=0) = 120, matches SPEC.md claim and worklog title."
+}

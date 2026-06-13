@@ -1,0 +1,603 @@
+{
+  "generated_at": "2026-06-08T00:00:00Z",
+  "total_repos": 133,
+  "with_reusable": [
+    "AgilePlus",
+    "Apisync",
+    "Benchora",
+    "BytePort",
+    "Civis",
+    "Conft",
+    "DataKit",
+    "DevHex",
+    "Dino",
+    "Eidolon",
+    "FocalPoint",
+    "GDK",
+    "HeliosCLI",
+    "HexaKit",
+    "Httpora",
+    "MCPForge",
+    "Metron",
+    "OmniRoute",
+    "OmniRoute-dependabot",
+    "Parpoura",
+    "PhenoDevOps",
+    "PhenoHandbook",
+    "PhenoKits",
+    "PhenoMCP",
+    "PhenoObservability",
+    "PhenoPlugins",
+    "PhenoProject",
+    "PhenoRuntime",
+    "PhenoSpecs",
+    "PhenoVCS",
+    "Pyron",
+    "ResilienceKit",
+    "Sidekick",
+    "Tasken",
+    "TestingKit",
+    "Tokn",
+    "Tracely",
+    "agent-devops-setups",
+    "agentapi-plusplus",
+    "argis-extensions",
+    "cliproxyapi-plusplus",
+    "dinoforge-packs",
+    "foqos-private",
+    "heliosApp",
+    "heliosBench",
+    "helioscope",
+    "nanovms",
+    "pheno",
+    "phenoData",
+    "phenoForge",
+    "phenoResearchEngine",
+    "phenoShared",
+    "phenotype-dep-guard",
+    "phenotype-registry",
+    "phenotype-shared",
+    "phenotype-tooling",
+    "portage",
+    "thegent",
+    "thegent-clean-wt-docs",
+    "thegent-clean-wt-idea",
+    "thegent-clean-wt-parallel",
+    "thegent-clean-wt-ruff",
+    "vibeproxy-monitoring-unified"
+  ],
+  "by_repo": [
+    {
+      "repo": "pheno",
+      "reusable_count": 12
+    },
+    {
+      "repo": "HexaKit",
+      "reusable_count": 10
+    },
+    {
+      "repo": "Civis",
+      "reusable_count": 5
+    },
+    {
+      "repo": "Tokn",
+      "reusable_count": 5
+    },
+    {
+      "repo": "heliosApp",
+      "reusable_count": 5
+    },
+    {
+      "repo": "Conft",
+      "reusable_count": 4
+    },
+    {
+      "repo": "HeliosCLI",
+      "reusable_count": 4
+    },
+    {
+      "repo": "PhenoDevOps",
+      "reusable_count": 4
+    },
+    {
+      "repo": "PhenoObservability",
+      "reusable_count": 4
+    },
+    {
+      "repo": "PhenoPlugins",
+      "reusable_count": 4
+    },
+    {
+      "repo": "agent-devops-setups",
+      "reusable_count": 4
+    },
+    {
+      "repo": "helioscope",
+      "reusable_count": 4
+    },
+    {
+      "repo": "portage",
+      "reusable_count": 4
+    },
+    {
+      "repo": "Apisync",
+      "reusable_count": 3
+    },
+    {
+      "repo": "Benchora",
+      "reusable_count": 3
+    },
+    {
+      "repo": "GDK",
+      "reusable_count": 3
+    },
+    {
+      "repo": "PhenoVCS",
+      "reusable_count": 3
+    },
+    {
+      "repo": "nanovms",
+      "reusable_count": 3
+    },
+    {
+      "repo": "AgilePlus",
+      "reusable_count": 2
+    },
+    {
+      "repo": "MCPForge",
+      "reusable_count": 2
+    },
+    {
+      "repo": "Parpoura",
+      "reusable_count": 2
+    },
+    {
+      "repo": "PhenoKits",
+      "reusable_count": 2
+    },
+    {
+      "repo": "PhenoProject",
+      "reusable_count": 2
+    },
+    {
+      "repo": "Pyron",
+      "reusable_count": 2
+    },
+    {
+      "repo": "ResilienceKit",
+      "reusable_count": 2
+    },
+    {
+      "repo": "Tasken",
+      "reusable_count": 2
+    },
+    {
+      "repo": "TestingKit",
+      "reusable_count": 2
+    },
+    {
+      "repo": "cliproxyapi-plusplus",
+      "reusable_count": 2
+    },
+    {
+      "repo": "dinoforge-packs",
+      "reusable_count": 2
+    },
+    {
+      "repo": "heliosBench",
+      "reusable_count": 2
+    },
+    {
+      "repo": "phenoShared",
+      "reusable_count": 2
+    },
+    {
+      "repo": "phenotype-tooling",
+      "reusable_count": 2
+    },
+    {
+      "repo": "BytePort",
+      "reusable_count": 1
+    },
+    {
+      "repo": "DataKit",
+      "reusable_count": 1
+    },
+    {
+      "repo": "DevHex",
+      "reusable_count": 1
+    },
+    {
+      "repo": "Dino",
+      "reusable_count": 1
+    },
+    {
+      "repo": "Eidolon",
+      "reusable_count": 1
+    },
+    {
+      "repo": "FocalPoint",
+      "reusable_count": 1
+    },
+    {
+      "repo": "Httpora",
+      "reusable_count": 1
+    },
+    {
+      "repo": "Metron",
+      "reusable_count": 1
+    },
+    {
+      "repo": "OmniRoute",
+      "reusable_count": 1
+    },
+    {
+      "repo": "OmniRoute-dependabot",
+      "reusable_count": 1
+    },
+    {
+      "repo": "PhenoHandbook",
+      "reusable_count": 1
+    },
+    {
+      "repo": "PhenoMCP",
+      "reusable_count": 1
+    },
+    {
+      "repo": "PhenoRuntime",
+      "reusable_count": 1
+    },
+    {
+      "repo": "PhenoSpecs",
+      "reusable_count": 1
+    },
+    {
+      "repo": "Sidekick",
+      "reusable_count": 1
+    },
+    {
+      "repo": "Tracely",
+      "reusable_count": 1
+    },
+    {
+      "repo": "agentapi-plusplus",
+      "reusable_count": 1
+    },
+    {
+      "repo": "argis-extensions",
+      "reusable_count": 1
+    },
+    {
+      "repo": "foqos-private",
+      "reusable_count": 1
+    },
+    {
+      "repo": "phenoData",
+      "reusable_count": 1
+    },
+    {
+      "repo": "phenoForge",
+      "reusable_count": 1
+    },
+    {
+      "repo": "phenoResearchEngine",
+      "reusable_count": 1
+    },
+    {
+      "repo": "phenotype-dep-guard",
+      "reusable_count": 1
+    },
+    {
+      "repo": "phenotype-registry",
+      "reusable_count": 1
+    },
+    {
+      "repo": "phenotype-shared",
+      "reusable_count": 1
+    },
+    {
+      "repo": "thegent",
+      "reusable_count": 1
+    },
+    {
+      "repo": "thegent-clean-wt-docs",
+      "reusable_count": 1
+    },
+    {
+      "repo": "thegent-clean-wt-idea",
+      "reusable_count": 1
+    },
+    {
+      "repo": "thegent-clean-wt-parallel",
+      "reusable_count": 1
+    },
+    {
+      "repo": "thegent-clean-wt-ruff",
+      "reusable_count": 1
+    },
+    {
+      "repo": "vibeproxy-monitoring-unified",
+      "reusable_count": 1
+    },
+    {
+      "repo": ".",
+      "reusable_count": 0
+    },
+    {
+      "repo": "AgentMCP",
+      "reusable_count": 0
+    },
+    {
+      "repo": "Agentora",
+      "reusable_count": 0
+    },
+    {
+      "repo": "AppGen",
+      "reusable_count": 0
+    },
+    {
+      "repo": "AtomsBot",
+      "reusable_count": 0
+    },
+    {
+      "repo": "AuthKit",
+      "reusable_count": 0
+    },
+    {
+      "repo": "DINOForge-UnityDoorstop",
+      "reusable_count": 0
+    },
+    {
+      "repo": "Eventra",
+      "reusable_count": 0
+    },
+    {
+      "repo": "HeliosLab",
+      "reusable_count": 0
+    },
+    {
+      "repo": "KDesktopVirt",
+      "reusable_count": 0
+    },
+    {
+      "repo": "KWatch",
+      "reusable_count": 0
+    },
+    {
+      "repo": "KaskMan",
+      "reusable_count": 0
+    },
+    {
+      "repo": "KlipDot",
+      "reusable_count": 0
+    },
+    {
+      "repo": "KodeVibe",
+      "reusable_count": 0
+    },
+    {
+      "repo": "McpKit",
+      "reusable_count": 0
+    },
+    {
+      "repo": "NetScript",
+      "reusable_count": 0
+    },
+    {
+      "repo": "ObservabilityKit",
+      "reusable_count": 0
+    },
+    {
+      "repo": "Paginary",
+      "reusable_count": 0
+    },
+    {
+      "repo": "PhenoAgent",
+      "reusable_count": 0
+    },
+    {
+      "repo": "PhenoCompose",
+      "reusable_count": 0
+    },
+    {
+      "repo": "PhenoMCP-cheap",
+      "reusable_count": 0
+    },
+    {
+      "repo": "PhenoProc",
+      "reusable_count": 0
+    },
+    {
+      "repo": "Pine",
+      "reusable_count": 0
+    },
+    {
+      "repo": "Planify",
+      "reusable_count": 0
+    },
+    {
+      "repo": "PlatformKit",
+      "reusable_count": 0
+    },
+    {
+      "repo": "PlayCua",
+      "reusable_count": 0
+    },
+    {
+      "repo": "PolicyStack",
+      "reusable_count": 0
+    },
+    {
+      "repo": "QuadSGM",
+      "reusable_count": 0
+    },
+    {
+      "repo": "Tracera",
+      "reusable_count": 0
+    },
+    {
+      "repo": "agent-user-status",
+      "reusable_count": 0
+    },
+    {
+      "repo": "agileplus-landing",
+      "reusable_count": 0
+    },
+    {
+      "repo": "bare-cua",
+      "reusable_count": 0
+    },
+    {
+      "repo": "byteport-landing",
+      "reusable_count": 0
+    },
+    {
+      "repo": "chatta",
+      "reusable_count": 0
+    },
+    {
+      "repo": "cheap-llm-mcp",
+      "reusable_count": 0
+    },
+    {
+      "repo": "cheap-llm-mcp-deprecate",
+      "reusable_count": 0
+    },
+    {
+      "repo": "dispatch-mcp",
+      "reusable_count": 0
+    },
+    {
+      "repo": "eyetracker",
+      "reusable_count": 0
+    },
+    {
+      "repo": "forgecode",
+      "reusable_count": 0
+    },
+    {
+      "repo": "helios-router",
+      "reusable_count": 0
+    },
+    {
+      "repo": "hwLedger",
+      "reusable_count": 0
+    },
+    {
+      "repo": "kmobile",
+      "reusable_count": 0
+    },
+    {
+      "repo": "kwality",
+      "reusable_count": 0
+    },
+    {
+      "repo": "localbase3",
+      "reusable_count": 0
+    },
+    {
+      "repo": "melosviz",
+      "reusable_count": 0
+    },
+    {
+      "repo": "netweave-final2",
+      "reusable_count": 0
+    },
+    {
+      "repo": "phenoAI",
+      "reusable_count": 0
+    },
+    {
+      "repo": "phenoDesign",
+      "reusable_count": 0
+    },
+    {
+      "repo": "phenoUtils",
+      "reusable_count": 0
+    },
+    {
+      "repo": "phenoXdd",
+      "reusable_count": 0
+    },
+    {
+      "repo": "phenodocs",
+      "reusable_count": 0
+    },
+    {
+      "repo": "phenodocs-scorecard-remediation",
+      "reusable_count": 0
+    },
+    {
+      "repo": "phenokits-landing",
+      "reusable_count": 0
+    },
+    {
+      "repo": "phenotype-auth-ts",
+      "reusable_count": 0
+    },
+    {
+      "repo": "phenotype-bus",
+      "reusable_count": 0
+    },
+    {
+      "repo": "phenotype-hub",
+      "reusable_count": 0
+    },
+    {
+      "repo": "phenotype-infra",
+      "reusable_count": 0
+    },
+    {
+      "repo": "phenotype-journeys",
+      "reusable_count": 0
+    },
+    {
+      "repo": "phenotype-omlx",
+      "reusable_count": 0
+    },
+    {
+      "repo": "phenotype-ops-mcp",
+      "reusable_count": 0
+    },
+    {
+      "repo": "phenotype-ops-mcp-t0",
+      "reusable_count": 0
+    },
+    {
+      "repo": "phenotype-org-audits",
+      "reusable_count": 0
+    },
+    {
+      "repo": "phenotype-postfx",
+      "reusable_count": 0
+    },
+    {
+      "repo": "phenotype-terrain",
+      "reusable_count": 0
+    },
+    {
+      "repo": "phenotype-voxel",
+      "reusable_count": 0
+    },
+    {
+      "repo": "phenotype-water",
+      "reusable_count": 0
+    },
+    {
+      "repo": "rich-cli-kit",
+      "reusable_count": 0
+    },
+    {
+      "repo": "thegent-clean-wt-policy",
+      "reusable_count": 0
+    },
+    {
+      "repo": "thegent-dispatch",
+      "reusable_count": 0
+    },
+    {
+      "repo": "vibeproxy",
+      "reusable_count": 0
+    }
+  ]
+}

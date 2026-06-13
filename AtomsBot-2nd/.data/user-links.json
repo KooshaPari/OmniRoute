@@ -1,0 +1,77 @@
+{
+  "users": [
+    {
+      "discordId": "201372818611372032",
+      "discordTag": "ramlord#0",
+      "github": "KooshaPari",
+      "jira": "5ffcd674208dbf0107e1835f",
+      "team": "platform"
+    },
+    {
+      "discordId": "244264303673212939",
+      "discordTag": "coolwolfy96#0",
+      "github": "ChristopherCaperlac",
+      "jira": "712020:06694634-899f-4cca-8063-d232e176170a",
+      "team": "platform"
+    },
+    {
+      "discordId": "184870660336648192",
+      "discordTag": "flama_purklin#0",
+      "github": "jrpii",
+      "jira": "712020:fb7e844a-fec4-4b2f-befe-53b30b74997e",
+      "team": "platform"
+    },
+    {
+      "discordId": "376602902946512896",
+      "discordTag": "greyapples#0",
+      "github": "greyulibarri",
+      "jira": "712020:69e821c6-77e4-44b0-9fd9-118b4fc2dea1",
+      "team": "platform"
+    },
+    {
+      "discordId": "379546855836745730",
+      "discordTag": "jun_song_#0",
+      "github": "songjeongjun320",
+      "jira": "712020:824c2079-a62e-4312-9088-283eb1efee03",
+      "team": "platform"
+    },
+    {
+      "discordId": "820165003990532176",
+      "discordTag": "cathyyvo#0",
+      "github": "cathyvo",
+      "jira": "712020:2dd98870-7339-4b2f-976f-4a83660903aa",
+      "team": "platform"
+    },
+    {
+      "discordId": "520813951097765889",
+      "discordTag": "drifthittman#0",
+      "github": "giohitt",
+      "jira": "712020:70184e1c-02a7-4b62-981b-d5be9df34cd0",
+      "team": "backend-ai"
+    },
+    {
+      "discordId": "563553957948162048",
+      "discordTag": "amcasta44669#0",
+      "github": "amcasta4",
+      "jira": "712020:a73b9cf3-8b81-4434-91a6-2d5117d85bc2",
+      "team": "backend-ai"
+    },
+    {
+      "discordId": "296408125928505344",
+      "discordTag": "unjogratistheforbiddenmonkeygod#0",
+      "github": "Evan-Espinosa",
+      "jira": "712020:998d8c37-38a8-4998-bbda-82d2c259fced",
+      "team": "backend-ai"
+    },
+    {
+      "discordId": "1143946431032471615",
+      "discordTag": "lilistein01#0",
+      "github": "SummerLi12",
+      "jira": "712020:16f2b9b4-1ff8-493a-911b-3e8665d2c3be",
+      "team": "backend-ai"
+    }
+  ],
+  "teams": [],
+  "version": 1,
+  "updatedAt": 1756783283248
+}

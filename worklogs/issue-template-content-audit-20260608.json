@@ -1,0 +1,2631 @@
+{
+  "generated_at": "2026-06-09T03:04:56Z",
+  "by_repo": [
+    {
+      "repo": "AgentMCP",
+      "templates": [
+        {
+          "name": "bug_report.md",
+          "has_repro": true,
+          "has_expected": false,
+          "has_actual": false,
+          "has_env": true
+        },
+        {
+          "name": "feature_request.md",
+          "has_repro": false,
+          "has_expected": false,
+          "has_actual": false,
+          "has_env": false
+        }
+      ]
+    },
+    {
+      "repo": "Agentora",
+      "templates": [
+        {
+          "name": "bug_report.md",
+          "has_repro": true,
+          "has_expected": true,
+          "has_actual": false,
+          "has_env": true
+        },
+        {
+          "name": "feature_request.md",
+          "has_repro": false,
+          "has_expected": false,
+          "has_actual": false,
+          "has_env": false
+        }
+      ]
+    },
+    {
+      "repo": "Apisync",
+      "templates": [
+        {
+          "name": "bug.yml",
+          "has_repro": true,
+          "has_expected": true,
+          "has_actual": true,
+          "has_env": false
+        },
+        {
+          "name": "feature.yml",
+          "has_repro": false,
+          "has_expected": false,
+          "has_actual": false,
+          "has_env": false
+        }
+      ]
+    },
+    {
+      "repo": "AtomsBot",
+      "templates": [
+        {
+          "name": "bug_report.md",
+          "has_repro": true,
+          "has_expected": true,
+          "has_actual": true,
+          "has_env": true
+        },
+        {
+          "name": "feature_request.md",
+          "has_repro": false,
+          "has_expected": false,
+          "has_actual": false,
+          "has_env": false
+        }
+      ]
+    },
+    {
+      "repo": "AtomsBot-2nd",
+      "templates": [
+        {
+          "name": "bug_report.md",
+          "has_repro": true,
+          "has_expected": true,
+          "has_actual": true,
+          "has_env": true
+        },
+        {
+          "name": "feature_request.md",
+          "has_repro": false,
+          "has_expected": false,
+          "has_actual": false,
+          "has_env": false
+        }
+      ]
+    },
+    {
+      "repo": "AuthKit",
+      "templates": [
+        {
+          "name": "bug_report.md",
+          "has_repro": true,
+          "has_expected": true,
+          "has_actual": false,
+          "has_env": true
+        },
+        {
+          "name": "feature_request.md",
+          "has_repro": false,
+          "has_expected": false,
+          "has_actual": false,
+          "has_env": false
+        }
+      ]
+    },
+    {
+      "repo": "Benchora",
+      "templates": [
+        {
+          "name": "bug_report.yml",
+          "has_repro": true,
+          "has_expected": true,
+          "has_actual": true,
+          "has_env": true
+        },
+        {
+          "name": "feature_request.yml",
+          "has_repro": false,
+          "has_expected": false,
+          "has_actual": false,
+          "has_env": false
+        }
+      ]
+    },
+    {
+      "repo": "BytePort",
+      "templates": [
+        {
+          "name": "bug_report.yml",
+          "has_repro": true,
+          "has_expected": true,
+          "has_actual": true,
+          "has_env": true
+        },
+        {
+          "name": "feature_request.yml",
+          "has_repro": false,
+          "has_expected": false,
+          "has_actual": false,
+          "has_env": false
+        }
+      ]
+    },
+    {
+      "repo": "Civis",
+      "templates": [
+        {
+          "name": "bug_report.yml",
+          "has_repro": true,
+          "has_expected": true,
+          "has_actual": false,
+          "has_env": false
+        },
+        {
+          "name": "feature_request.yml",
+          "has_repro": false,
+          "has_expected": false,
+          "has_actual": false,
+          "has_env": false
+        }
+      ]
+    },
+    {
+      "repo": "Conft",
+      "templates": [
+        {
+          "name": "bug_report.yml",
+          "has_repro": true,
+          "has_expected": true,
+          "has_actual": true,
+          "has_env": true
+        },
+        {
+          "name": "feature_request.yml",
+          "has_repro": false,
+          "has_expected": false,
+          "has_actual": false,
+          "has_env": false
+        }
+      ]
+    },
+    {
+      "repo": "Conft-4th",
+      "templates": [
+        {
+          "name": "bug_report.md",
+          "has_repro": true,
+          "has_expected": false,
+          "has_actual": false,
+          "has_env": true
+        },
+        {
+          "name": "bug_report.yml",
+          "has_repro": true,
+          "has_expected": true,
+          "has_actual": true,
+          "has_env": true
+        },
+        {
+          "name": "feature_request.yml",
+          "has_repro": false,
+          "has_expected": false,
+          "has_actual": false,
+          "has_env": false
+        }
+      ]
+    },
+    {
+      "repo": "DataKit",
+      "templates": [
+        {
+          "name": "bug_report.yml",
+          "has_repro": true,
+          "has_expected": true,
+          "has_actual": true,
+          "has_env": true
+        },
+        {
+          "name": "feature_request.yml",
+          "has_repro": false,
+          "has_expected": false,
+          "has_actual": false,
+          "has_env": false
+        }
+      ]
+    },
+    {
+      "repo": "DevHex",
+      "templates": [
+        {
+          "name": "bug_report.md",
+          "has_repro": true,
+          "has_expected": false,
+          "has_actual": false,
+          "has_env": true
+        },
+        {
+          "name": "feature_request.md",
+          "has_repro": false,
+          "has_expected": false,
+          "has_actual": false,
+          "has_env": false
+        }
+      ]
+    },
+    {
+      "repo": "Dino",
+      "templates": [
+        {
+          "name": "bug_report.md",
+          "has_repro": true,
+          "has_expected": true,
+          "has_actual": true,
+          "has_env": true
+        },
+        {
+          "name": "bug_report.yml",
+          "has_repro": true,
+          "has_expected": true,
+          "has_actual": true,
+          "has_env": false
+        },
+        {
+          "name": "feature_request.md",
+          "has_repro": false,
+          "has_expected": false,
+          "has_actual": false,
+          "has_env": false
+        },
+        {
+          "name": "feature_request.yml",
+          "has_repro": false,
+          "has_expected": false,
+          "has_actual": false,
+          "has_env": false
+        },
+        {
+          "name": "pack_feedback.md",
+          "has_repro": true,
+          "has_expected": false,
+          "has_actual": false,
+          "has_env": false
+        },
+        {
+          "name": "pack_submission.yml",
+          "has_repro": false,
+          "has_expected": false,
+          "has_actual": false,
+          "has_env": false
+        }
+      ]
+    },
+    {
+      "repo": "Eidolon",
+      "templates": [
+        {
+          "name": "bug_report.md",
+          "has_repro": true,
+          "has_expected": false,
+          "has_actual": false,
+          "has_env": true
+        },
+        {
+          "name": "feature_request.md",
+          "has_repro": false,
+          "has_expected": false,
+          "has_actual": false,
+          "has_env": false
+        }
+      ]
+    },
+    {
+      "repo": "FocalPoint",
+      "templates": [
+        {
+          "name": "bug_report.md",
+          "has_repro": true,
+          "has_expected": true,
+          "has_actual": false,
+          "has_env": true
+        },
+        {
+          "name": "feature_request.md",
+          "has_repro": false,
+          "has_expected": false,
+          "has_actual": false,
+          "has_env": false
+        }
+      ]
+    },
+    {
+      "repo": "GDK",
+      "templates": [
+        {
+          "name": "bug_report.md",
+          "has_repro": true,
+          "has_expected": false,
+          "has_actual": false,
+          "has_env": true
+        },
+        {
+          "name": "feature_request.md",
+          "has_repro": false,
+          "has_expected": false,
+          "has_actual": false,
+          "has_env": false
+        }
+      ]
+    },
+    {
+      "repo": "HeliosCLI",
+      "templates": [
+        {
+          "name": "4-bug-report.yml",
+          "has_repro": true,
+          "has_expected": true,
+          "has_actual": false,
+          "has_env": false
+        },
+        {
+          "name": "5-feature-request.yml",
+          "has_repro": false,
+          "has_expected": false,
+          "has_actual": false,
+          "has_env": false
+        },
+        {
+          "name": "6-docs-issue.yml",
+          "has_repro": false,
+          "has_expected": false,
+          "has_actual": false,
+          "has_env": false
+        },
+        {
+          "name": "bug_report.yml",
+          "has_repro": true,
+          "has_expected": true,
+          "has_actual": false,
+          "has_env": false
+        },
+        {
+          "name": "feature_multi_level_cache.md",
+          "has_repro": false,
+          "has_expected": false,
+          "has_actual": false,
+          "has_env": false
+        },
+        {
+          "name": "feature_request.yml",
+          "has_repro": false,
+          "has_expected": false,
+          "has_actual": false,
+          "has_env": false
+        }
+      ]
+    },
+    {
+      "repo": "HeliosLab",
+      "templates": [
+        {
+          "name": "bug.yml",
+          "has_repro": true,
+          "has_expected": true,
+          "has_actual": true,
+          "has_env": false
+        },
+        {
+          "name": "feature.yml",
+          "has_repro": false,
+          "has_expected": false,
+          "has_actual": false,
+          "has_env": false
+        }
+      ]
+    },
+    {
+      "repo": "HeliosLab-3rd",
+      "templates": [
+        {
+          "name": "bug.yml",
+          "has_repro": true,
+          "has_expected": true,
+          "has_actual": true,
+          "has_env": false
+        },
+        {
+          "name": "feature.yml",
+          "has_repro": false,
+          "has_expected": false,
+          "has_actual": false,
+          "has_env": false
+        }
+      ]
+    },
+    {
+      "repo": "HeliosLab-4th",
+      "templates": [
+        {
+          "name": "bug.yml",
+          "has_repro": true,
+          "has_expected": true,
+          "has_actual": true,
+          "has_env": false
+        },
+        {
+          "name": "feature.yml",
+          "has_repro": false,
+          "has_expected": false,
+          "has_actual": false,
+          "has_env": false
+        }
+      ]
+    },
+    {
+      "repo": "HeliosLab-hygiene2",
+      "templates": [
+        {
+          "name": "bug.yml",
+          "has_repro": true,
+          "has_expected": true,
+          "has_actual": true,
+          "has_env": false
+        },
+        {
+          "name": "feature.yml",
+          "has_repro": false,
+          "has_expected": false,
+          "has_actual": false,
+          "has_env": false
+        }
+      ]
+    },
+    {
+      "repo": "HexaKit",
+      "templates": [
+        {
+          "name": "bug_report.md",
+          "has_repro": true,
+          "has_expected": true,
+          "has_actual": true,
+          "has_env": true
+        },
+        {
+          "name": "bug_report.yml",
+          "has_repro": false,
+          "has_expected": false,
+          "has_actual": true,
+          "has_env": false
+        },
+        {
+          "name": "feature_request.md",
+          "has_repro": false,
+          "has_expected": false,
+          "has_actual": false,
+          "has_env": false
+        },
+        {
+          "name": "feature_request.yml",
+          "has_repro": false,
+          "has_expected": false,
+          "has_actual": false,
+          "has_env": false
+        }
+      ]
+    },
+    {
+      "repo": "KDesktopVirt",
+      "templates": [
+        {
+          "name": "bug_report.md",
+          "has_repro": true,
+          "has_expected": true,
+          "has_actual": false,
+          "has_env": true
+        },
+        {
+          "name": "feature_request.md",
+          "has_repro": false,
+          "has_expected": false,
+          "has_actual": false,
+          "has_env": false
+        }
+      ]
+    },
+    {
+      "repo": "MCPForge",
+      "templates": [
+        {
+          "name": "bug_report.md",
+          "has_repro": true,
+          "has_expected": true,
+          "has_actual": false,
+          "has_env": true
+        },
+        {
+          "name": "feature_request.md",
+          "has_repro": false,
+          "has_expected": false,
+          "has_actual": false,
+          "has_env": false
+        }
+      ]
+    },
+    {
+      "repo": "McpKit",
+      "templates": [
+        {
+          "name": "bug_report.md",
+          "has_repro": true,
+          "has_expected": true,
+          "has_actual": false,
+          "has_env": true
+        },
+        {
+          "name": "feature_request.md",
+          "has_repro": false,
+          "has_expected": false,
+          "has_actual": false,
+          "has_env": false
+        }
+      ]
+    },
+    {
+      "repo": "Metron",
+      "templates": [
+        {
+          "name": "bug.md",
+          "has_repro": true,
+          "has_expected": true,
+          "has_actual": true,
+          "has_env": true
+        },
+        {
+          "name": "feature.md",
+          "has_repro": false,
+          "has_expected": false,
+          "has_actual": false,
+          "has_env": false
+        }
+      ]
+    },
+    {
+      "repo": "ObservabilityKit",
+      "templates": [
+        {
+          "name": "bug_report.md",
+          "has_repro": true,
+          "has_expected": true,
+          "has_actual": true,
+          "has_env": true
+        },
+        {
+          "name": "feature_request.md",
+          "has_repro": false,
+          "has_expected": false,
+          "has_actual": false,
+          "has_env": false
+        }
+      ]
+    },
+    {
+      "repo": "OmniRoute",
+      "templates": [
+        {
+          "name": "bug_report.yml",
+          "has_repro": true,
+          "has_expected": true,
+          "has_actual": true,
+          "has_env": true
+        },
+        {
+          "name": "test_coverage_task.yml",
+          "has_repro": false,
+          "has_expected": false,
+          "has_actual": false,
+          "has_env": false
+        }
+      ]
+    },
+    {
+      "repo": "OmniRoute-2nd",
+      "templates": [
+        {
+          "name": "bug_report.yml",
+          "has_repro": true,
+          "has_expected": true,
+          "has_actual": true,
+          "has_env": true
+        },
+        {
+          "name": "test_coverage_task.yml",
+          "has_repro": false,
+          "has_expected": false,
+          "has_actual": false,
+          "has_env": false
+        }
+      ]
+    },
+    {
+      "repo": "OmniRoute-3rd",
+      "templates": [
+        {
+          "name": "bug_report.yml",
+          "has_repro": true,
+          "has_expected": true,
+          "has_actual": true,
+          "has_env": true
+        },
+        {
+          "name": "test_coverage_task.yml",
+          "has_repro": false,
+          "has_expected": false,
+          "has_actual": false,
+          "has_env": false
+        }
+      ]
+    },
+    {
+      "repo": "OmniRoute-dependabot",
+      "templates": [
+        {
+          "name": "bug_report.yml",
+          "has_repro": true,
+          "has_expected": true,
+          "has_actual": true,
+          "has_env": true
+        },
+        {
+          "name": "test_coverage_task.yml",
+          "has_repro": false,
+          "has_expected": false,
+          "has_actual": false,
+          "has_env": false
+        }
+      ]
+    },
+    {
+      "repo": "Paginary",
+      "templates": [
+        {
+          "name": "bug_report.md",
+          "has_repro": true,
+          "has_expected": true,
+          "has_actual": false,
+          "has_env": true
+        },
+        {
+          "name": "feature_request.md",
+          "has_repro": false,
+          "has_expected": false,
+          "has_actual": false,
+          "has_env": false
+        }
+      ]
+    },
+    {
+      "repo": "Parpoura",
+      "templates": [
+        {
+          "name": "bug_report.yml",
+          "has_repro": true,
+          "has_expected": true,
+          "has_actual": false,
+          "has_env": false
+        },
+        {
+          "name": "feature_request.yml",
+          "has_repro": false,
+          "has_expected": false,
+          "has_actual": false,
+          "has_env": false
+        }
+      ]
+    },
+    {
+      "repo": "Parpoura-3rd",
+      "templates": [
+        {
+          "name": "bug_report.yml",
+          "has_repro": true,
+          "has_expected": true,
+          "has_actual": false,
+          "has_env": false
+        },
+        {
+          "name": "feature_request.yml",
+          "has_repro": false,
+          "has_expected": false,
+          "has_actual": false,
+          "has_env": false
+        }
+      ]
+    },
+    {
+      "repo": "Parpoura-4th",
+      "templates": [
+        {
+          "name": "bug_report.yml",
+          "has_repro": true,
+          "has_expected": true,
+          "has_actual": false,
+          "has_env": false
+        },
+        {
+          "name": "feature_request.yml",
+          "has_repro": false,
+          "has_expected": false,
+          "has_actual": false,
+          "has_env": false
+        }
+      ]
+    },
+    {
+      "repo": "Parpoura-hygiene",
+      "templates": [
+        {
+          "name": "bug_report.yml",
+          "has_repro": true,
+          "has_expected": true,
+          "has_actual": false,
+          "has_env": false
+        },
+        {
+          "name": "feature_request.yml",
+          "has_repro": false,
+          "has_expected": false,
+          "has_actual": false,
+          "has_env": false
+        }
+      ]
+    },
+    {
+      "repo": "PhenoCompose",
+      "templates": [
+        {
+          "name": "bug_report.md",
+          "has_repro": true,
+          "has_expected": true,
+          "has_actual": false,
+          "has_env": true
+        },
+        {
+          "name": "feature_request.md",
+          "has_repro": false,
+          "has_expected": false,
+          "has_actual": false,
+          "has_env": false
+        }
+      ]
+    },
+    {
+      "repo": "PhenoDevOps",
+      "templates": [
+        {
+          "name": "bug_report.md",
+          "has_repro": true,
+          "has_expected": true,
+          "has_actual": true,
+          "has_env": true
+        },
+        {
+          "name": "bug_report.yml",
+          "has_repro": false,
+          "has_expected": false,
+          "has_actual": true,
+          "has_env": false
+        },
+        {
+          "name": "feature_request.md",
+          "has_repro": false,
+          "has_expected": false,
+          "has_actual": false,
+          "has_env": false
+        },
+        {
+          "name": "feature_request.yml",
+          "has_repro": false,
+          "has_expected": false,
+          "has_actual": false,
+          "has_env": false
+        }
+      ]
+    },
+    {
+      "repo": "PhenoHandbook",
+      "templates": [
+        {
+          "name": "bug_report.md",
+          "has_repro": true,
+          "has_expected": true,
+          "has_actual": false,
+          "has_env": true
+        },
+        {
+          "name": "feature_request.md",
+          "has_repro": false,
+          "has_expected": false,
+          "has_actual": false,
+          "has_env": false
+        }
+      ]
+    },
+    {
+      "repo": "PhenoKits",
+      "templates": [
+        {
+          "name": "bug.md",
+          "has_repro": true,
+          "has_expected": true,
+          "has_actual": true,
+          "has_env": true
+        },
+        {
+          "name": "feature.md",
+          "has_repro": false,
+          "has_expected": false,
+          "has_actual": false,
+          "has_env": false
+        }
+      ]
+    },
+    {
+      "repo": "PhenoMCP",
+      "templates": [
+        {
+          "name": "bug_report.md",
+          "has_repro": true,
+          "has_expected": false,
+          "has_actual": false,
+          "has_env": true
+        },
+        {
+          "name": "feature_request.md",
+          "has_repro": false,
+          "has_expected": false,
+          "has_actual": false,
+          "has_env": false
+        }
+      ]
+    },
+    {
+      "repo": "PhenoMCP-cheap",
+      "templates": [
+        {
+          "name": "bug_report.md",
+          "has_repro": true,
+          "has_expected": false,
+          "has_actual": false,
+          "has_env": true
+        },
+        {
+          "name": "feature_request.md",
+          "has_repro": false,
+          "has_expected": false,
+          "has_actual": false,
+          "has_env": false
+        }
+      ]
+    },
+    {
+      "repo": "PhenoObservability",
+      "templates": [
+        {
+          "name": "bug_report.yml",
+          "has_repro": true,
+          "has_expected": true,
+          "has_actual": false,
+          "has_env": true
+        },
+        {
+          "name": "feature_request.yml",
+          "has_repro": false,
+          "has_expected": false,
+          "has_actual": false,
+          "has_env": false
+        }
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "templates": [
+        {
+          "name": "bug.md",
+          "has_repro": true,
+          "has_expected": true,
+          "has_actual": true,
+          "has_env": true
+        },
+        {
+          "name": "feature.md",
+          "has_repro": false,
+          "has_expected": false,
+          "has_actual": false,
+          "has_env": false
+        }
+      ]
+    },
+    {
+      "repo": "PhenoProc-security-fixes",
+      "templates": [
+        {
+          "name": "bug.md",
+          "has_repro": true,
+          "has_expected": true,
+          "has_actual": true,
+          "has_env": true
+        },
+        {
+          "name": "feature.md",
+          "has_repro": false,
+          "has_expected": false,
+          "has_actual": false,
+          "has_env": false
+        }
+      ]
+    },
+    {
+      "repo": "PhenoProject",
+      "templates": [
+        {
+          "name": "bug_report.md",
+          "has_repro": true,
+          "has_expected": true,
+          "has_actual": false,
+          "has_env": true
+        },
+        {
+          "name": "feature_request.md",
+          "has_repro": false,
+          "has_expected": false,
+          "has_actual": false,
+          "has_env": false
+        }
+      ]
+    },
+    {
+      "repo": "PhenoRuntime",
+      "templates": [
+        {
+          "name": "bug.md",
+          "has_repro": true,
+          "has_expected": true,
+          "has_actual": true,
+          "has_env": true
+        },
+        {
+          "name": "feature.md",
+          "has_repro": false,
+          "has_expected": false,
+          "has_actual": false,
+          "has_env": false
+        }
+      ]
+    },
+    {
+      "repo": "PhenoSpecs",
+      "templates": [
+        {
+          "name": "bug_report.md",
+          "has_repro": true,
+          "has_expected": true,
+          "has_actual": false,
+          "has_env": true
+        },
+        {
+          "name": "feature_request.md",
+          "has_repro": false,
+          "has_expected": false,
+          "has_actual": false,
+          "has_env": false
+        }
+      ]
+    },
+    {
+      "repo": "PhenoVCS",
+      "templates": [
+        {
+          "name": "bug_report.md",
+          "has_repro": true,
+          "has_expected": false,
+          "has_actual": false,
+          "has_env": true
+        },
+        {
+          "name": "feature_request.md",
+          "has_repro": false,
+          "has_expected": false,
+          "has_actual": false,
+          "has_env": false
+        }
+      ]
+    },
+    {
+      "repo": "PhenoVCS-3rd",
+      "templates": [
+        {
+          "name": "bug_report.md",
+          "has_repro": true,
+          "has_expected": false,
+          "has_actual": false,
+          "has_env": true
+        },
+        {
+          "name": "feature_request.md",
+          "has_repro": false,
+          "has_expected": false,
+          "has_actual": false,
+          "has_env": false
+        }
+      ]
+    },
+    {
+      "repo": "PhenoVCS-hygiene",
+      "templates": [
+        {
+          "name": "bug_report.md",
+          "has_repro": true,
+          "has_expected": false,
+          "has_actual": false,
+          "has_env": true
+        },
+        {
+          "name": "feature_request.md",
+          "has_repro": false,
+          "has_expected": false,
+          "has_actual": false,
+          "has_env": false
+        }
+      ]
+    },
+    {
+      "repo": "Planify",
+      "templates": [
+        {
+          "name": "--bug-report.yaml",
+          "has_repro": true,
+          "has_expected": false,
+          "has_actual": true,
+          "has_env": true
+        },
+        {
+          "name": "--feature-request.yaml",
+          "has_repro": false,
+          "has_expected": false,
+          "has_actual": false,
+          "has_env": false
+        }
+      ]
+    },
+    {
+      "repo": "Planify-hygiene",
+      "templates": [
+        {
+          "name": "--bug-report.yaml",
+          "has_repro": true,
+          "has_expected": false,
+          "has_actual": true,
+          "has_env": true
+        },
+        {
+          "name": "--feature-request.yaml",
+          "has_repro": false,
+          "has_expected": false,
+          "has_actual": false,
+          "has_env": false
+        }
+      ]
+    },
+    {
+      "repo": "PlayCua",
+      "templates": [
+        {
+          "name": "bug_report.md",
+          "has_repro": true,
+          "has_expected": true,
+          "has_actual": true,
+          "has_env": true
+        },
+        {
+          "name": "feature_request.md",
+          "has_repro": false,
+          "has_expected": false,
+          "has_actual": false,
+          "has_env": false
+        }
+      ]
+    },
+    {
+      "repo": "PolicyStack",
+      "templates": [
+        {
+          "name": "bug.yml",
+          "has_repro": true,
+          "has_expected": true,
+          "has_actual": true,
+          "has_env": false
+        },
+        {
+          "name": "bug_report.md",
+          "has_repro": true,
+          "has_expected": true,
+          "has_actual": false,
+          "has_env": true
+        },
+        {
+          "name": "feature.yml",
+          "has_repro": false,
+          "has_expected": false,
+          "has_actual": false,
+          "has_env": false
+        },
+        {
+          "name": "feature_request.md",
+          "has_repro": false,
+          "has_expected": false,
+          "has_actual": false,
+          "has_env": false
+        }
+      ]
+    },
+    {
+      "repo": "Pyron",
+      "templates": [
+        {
+          "name": "bug_report.md",
+          "has_repro": true,
+          "has_expected": true,
+          "has_actual": true,
+          "has_env": true
+        },
+        {
+          "name": "bug_report.yml",
+          "has_repro": false,
+          "has_expected": false,
+          "has_actual": true,
+          "has_env": false
+        },
+        {
+          "name": "feature_request.md",
+          "has_repro": false,
+          "has_expected": false,
+          "has_actual": false,
+          "has_env": false
+        },
+        {
+          "name": "feature_request.yml",
+          "has_repro": false,
+          "has_expected": false,
+          "has_actual": false,
+          "has_env": false
+        }
+      ]
+    },
+    {
+      "repo": "QuadSGM",
+      "templates": [
+        {
+          "name": "bug_report.yml",
+          "has_repro": true,
+          "has_expected": true,
+          "has_actual": false,
+          "has_env": false
+        },
+        {
+          "name": "feature_request.yml",
+          "has_repro": false,
+          "has_expected": false,
+          "has_actual": false,
+          "has_env": false
+        }
+      ]
+    },
+    {
+      "repo": "ResilienceKit",
+      "templates": [
+        {
+          "name": "bug_report.md",
+          "has_repro": true,
+          "has_expected": true,
+          "has_actual": true,
+          "has_env": true
+        },
+        {
+          "name": "feature_request.md",
+          "has_repro": false,
+          "has_expected": false,
+          "has_actual": false,
+          "has_env": false
+        }
+      ]
+    },
+    {
+      "repo": "Sidekick",
+      "templates": [
+        {
+          "name": "bug_report.md",
+          "has_repro": true,
+          "has_expected": true,
+          "has_actual": true,
+          "has_env": true
+        },
+        {
+          "name": "feature_request.md",
+          "has_repro": false,
+          "has_expected": false,
+          "has_actual": false,
+          "has_env": false
+        }
+      ]
+    },
+    {
+      "repo": "Tasken",
+      "templates": [
+        {
+          "name": "bug.yml",
+          "has_repro": true,
+          "has_expected": true,
+          "has_actual": true,
+          "has_env": false
+        },
+        {
+          "name": "bug_report.md",
+          "has_repro": true,
+          "has_expected": true,
+          "has_actual": true,
+          "has_env": true
+        },
+        {
+          "name": "feature.yml",
+          "has_repro": false,
+          "has_expected": false,
+          "has_actual": false,
+          "has_env": false
+        },
+        {
+          "name": "feature_request.md",
+          "has_repro": false,
+          "has_expected": false,
+          "has_actual": false,
+          "has_env": false
+        }
+      ]
+    },
+    {
+      "repo": "Tasken-3rd",
+      "templates": [
+        {
+          "name": "bug.yml",
+          "has_repro": true,
+          "has_expected": true,
+          "has_actual": true,
+          "has_env": false
+        },
+        {
+          "name": "bug_report.md",
+          "has_repro": true,
+          "has_expected": true,
+          "has_actual": true,
+          "has_env": true
+        },
+        {
+          "name": "feature.yml",
+          "has_repro": false,
+          "has_expected": false,
+          "has_actual": false,
+          "has_env": false
+        },
+        {
+          "name": "feature_request.md",
+          "has_repro": false,
+          "has_expected": false,
+          "has_actual": false,
+          "has_env": false
+        }
+      ]
+    },
+    {
+      "repo": "TestingKit",
+      "templates": [
+        {
+          "name": "bug_report.md",
+          "has_repro": true,
+          "has_expected": false,
+          "has_actual": false,
+          "has_env": true
+        },
+        {
+          "name": "feature_request.md",
+          "has_repro": false,
+          "has_expected": false,
+          "has_actual": false,
+          "has_env": false
+        }
+      ]
+    },
+    {
+      "repo": "Tokn",
+      "templates": [
+        {
+          "name": "bug.yml",
+          "has_repro": true,
+          "has_expected": true,
+          "has_actual": true,
+          "has_env": false
+        },
+        {
+          "name": "feature.yml",
+          "has_repro": false,
+          "has_expected": false,
+          "has_actual": false,
+          "has_env": false
+        }
+      ]
+    },
+    {
+      "repo": "Tracely",
+      "templates": [
+        {
+          "name": "bug.md",
+          "has_repro": true,
+          "has_expected": true,
+          "has_actual": true,
+          "has_env": true
+        },
+        {
+          "name": "feature.md",
+          "has_repro": false,
+          "has_expected": false,
+          "has_actual": false,
+          "has_env": false
+        }
+      ]
+    },
+    {
+      "repo": "Tracera",
+      "templates": [
+        {
+          "name": "bug-report.md",
+          "has_repro": true,
+          "has_expected": true,
+          "has_actual": true,
+          "has_env": true
+        },
+        {
+          "name": "feature-request.md",
+          "has_repro": false,
+          "has_expected": false,
+          "has_actual": false,
+          "has_env": true
+        },
+        {
+          "name": "performance-regression.md",
+          "has_repro": true,
+          "has_expected": false,
+          "has_actual": false,
+          "has_env": true
+        }
+      ]
+    },
+    {
+      "repo": "agent-devops-setups",
+      "templates": [
+        {
+          "name": "bug_report.yml",
+          "has_repro": false,
+          "has_expected": false,
+          "has_actual": true,
+          "has_env": false
+        },
+        {
+          "name": "feature_request.yml",
+          "has_repro": false,
+          "has_expected": false,
+          "has_actual": false,
+          "has_env": false
+        }
+      ]
+    },
+    {
+      "repo": "agent-user-status",
+      "templates": [
+        {
+          "name": "bug_report.md",
+          "has_repro": true,
+          "has_expected": true,
+          "has_actual": true,
+          "has_env": false
+        },
+        {
+          "name": "feature_request.md",
+          "has_repro": false,
+          "has_expected": false,
+          "has_actual": false,
+          "has_env": false
+        }
+      ]
+    },
+    {
+      "repo": "agentapi-plusplus",
+      "templates": [
+        {
+          "name": "bug_report.yml",
+          "has_repro": false,
+          "has_expected": false,
+          "has_actual": true,
+          "has_env": false
+        },
+        {
+          "name": "feature_request.yml",
+          "has_repro": false,
+          "has_expected": false,
+          "has_actual": false,
+          "has_env": false
+        }
+      ]
+    },
+    {
+      "repo": "argis-extensions",
+      "templates": [
+        {
+          "name": "bug.yml",
+          "has_repro": true,
+          "has_expected": true,
+          "has_actual": true,
+          "has_env": false
+        },
+        {
+          "name": "feature.yml",
+          "has_repro": false,
+          "has_expected": false,
+          "has_actual": false,
+          "has_env": false
+        }
+      ]
+    },
+    {
+      "repo": "bare-cua",
+      "templates": [
+        {
+          "name": "bug_report.md",
+          "has_repro": true,
+          "has_expected": true,
+          "has_actual": true,
+          "has_env": true
+        },
+        {
+          "name": "feature_request.md",
+          "has_repro": false,
+          "has_expected": false,
+          "has_actual": false,
+          "has_env": false
+        }
+      ]
+    },
+    {
+      "repo": "cheap-llm-mcp",
+      "templates": [
+        {
+          "name": "bug_report.md",
+          "has_repro": true,
+          "has_expected": true,
+          "has_actual": false,
+          "has_env": true
+        },
+        {
+          "name": "feature_request.md",
+          "has_repro": false,
+          "has_expected": false,
+          "has_actual": false,
+          "has_env": false
+        }
+      ]
+    },
+    {
+      "repo": "cheap-llm-mcp-deprecate",
+      "templates": [
+        {
+          "name": "bug_report.md",
+          "has_repro": true,
+          "has_expected": true,
+          "has_actual": false,
+          "has_env": true
+        },
+        {
+          "name": "feature_request.md",
+          "has_repro": false,
+          "has_expected": false,
+          "has_actual": false,
+          "has_env": false
+        }
+      ]
+    },
+    {
+      "repo": "cheap-llm-mcp-t1-19",
+      "templates": [
+        {
+          "name": "bug_report.md",
+          "has_repro": true,
+          "has_expected": true,
+          "has_actual": false,
+          "has_env": true
+        },
+        {
+          "name": "feature_request.md",
+          "has_repro": false,
+          "has_expected": false,
+          "has_actual": false,
+          "has_env": false
+        }
+      ]
+    },
+    {
+      "repo": "cliproxyapi-plusplus",
+      "templates": [
+        {
+          "name": "bug_report.md",
+          "has_repro": false,
+          "has_expected": true,
+          "has_actual": false,
+          "has_env": false
+        },
+        {
+          "name": "bug_report.yml",
+          "has_repro": false,
+          "has_expected": false,
+          "has_actual": true,
+          "has_env": false
+        },
+        {
+          "name": "feature_request.yml",
+          "has_repro": false,
+          "has_expected": false,
+          "has_actual": false,
+          "has_env": false
+        }
+      ]
+    },
+    {
+      "repo": "dinoforge-packs",
+      "templates": [
+        {
+          "name": "bug_report.md",
+          "has_repro": true,
+          "has_expected": true,
+          "has_actual": false,
+          "has_env": true
+        },
+        {
+          "name": "feature_request.md",
+          "has_repro": false,
+          "has_expected": false,
+          "has_actual": false,
+          "has_env": false
+        }
+      ]
+    },
+    {
+      "repo": "eyetracker",
+      "templates": [
+        {
+          "name": "bug.md",
+          "has_repro": true,
+          "has_expected": true,
+          "has_actual": true,
+          "has_env": true
+        },
+        {
+          "name": "feature.md",
+          "has_repro": false,
+          "has_expected": false,
+          "has_actual": false,
+          "has_env": false
+        }
+      ]
+    },
+    {
+      "repo": "forgecode",
+      "templates": [
+        {
+          "name": "bug_report.yml",
+          "has_repro": true,
+          "has_expected": true,
+          "has_actual": true,
+          "has_env": false
+        },
+        {
+          "name": "documentation.yml",
+          "has_repro": false,
+          "has_expected": false,
+          "has_actual": false,
+          "has_env": false
+        },
+        {
+          "name": "feature_request.yml",
+          "has_repro": false,
+          "has_expected": false,
+          "has_actual": false,
+          "has_env": false
+        },
+        {
+          "name": "performance_issue.yml",
+          "has_repro": true,
+          "has_expected": false,
+          "has_actual": false,
+          "has_env": true
+        },
+        {
+          "name": "provider_integration.yml",
+          "has_repro": false,
+          "has_expected": false,
+          "has_actual": false,
+          "has_env": false
+        }
+      ]
+    },
+    {
+      "repo": "heliosApp",
+      "templates": [
+        {
+          "name": "bug_report.md",
+          "has_repro": true,
+          "has_expected": true,
+          "has_actual": false,
+          "has_env": true
+        },
+        {
+          "name": "bug_report.yml",
+          "has_repro": false,
+          "has_expected": false,
+          "has_actual": true,
+          "has_env": false
+        },
+        {
+          "name": "feature_request.md",
+          "has_repro": false,
+          "has_expected": false,
+          "has_actual": false,
+          "has_env": false
+        },
+        {
+          "name": "feature_request.yml",
+          "has_repro": false,
+          "has_expected": false,
+          "has_actual": false,
+          "has_env": false
+        }
+      ]
+    },
+    {
+      "repo": "heliosBench",
+      "templates": [
+        {
+          "name": "bug_report.md",
+          "has_repro": true,
+          "has_expected": true,
+          "has_actual": false,
+          "has_env": true
+        },
+        {
+          "name": "feature_request.md",
+          "has_repro": false,
+          "has_expected": false,
+          "has_actual": false,
+          "has_env": false
+        }
+      ]
+    },
+    {
+      "repo": "helioscope",
+      "templates": [
+        {
+          "name": "4-bug-report.yml",
+          "has_repro": true,
+          "has_expected": true,
+          "has_actual": false,
+          "has_env": false
+        },
+        {
+          "name": "5-feature-request.yml",
+          "has_repro": false,
+          "has_expected": false,
+          "has_actual": false,
+          "has_env": false
+        },
+        {
+          "name": "6-docs-issue.yml",
+          "has_repro": false,
+          "has_expected": false,
+          "has_actual": false,
+          "has_env": false
+        },
+        {
+          "name": "bug_report.yml",
+          "has_repro": true,
+          "has_expected": true,
+          "has_actual": false,
+          "has_env": false
+        },
+        {
+          "name": "feature_multi_level_cache.md",
+          "has_repro": false,
+          "has_expected": false,
+          "has_actual": false,
+          "has_env": false
+        },
+        {
+          "name": "feature_request.yml",
+          "has_repro": false,
+          "has_expected": false,
+          "has_actual": false,
+          "has_env": false
+        }
+      ]
+    },
+    {
+      "repo": "hwLedger",
+      "templates": [
+        {
+          "name": "bug_report.yml",
+          "has_repro": true,
+          "has_expected": true,
+          "has_actual": true,
+          "has_env": false
+        },
+        {
+          "name": "feature_request.yml",
+          "has_repro": false,
+          "has_expected": false,
+          "has_actual": false,
+          "has_env": false
+        }
+      ]
+    },
+    {
+      "repo": "pheno",
+      "templates": [
+        {
+          "name": "bug_report.md",
+          "has_repro": true,
+          "has_expected": true,
+          "has_actual": true,
+          "has_env": true
+        },
+        {
+          "name": "bug_report.yml",
+          "has_repro": false,
+          "has_expected": false,
+          "has_actual": true,
+          "has_env": false
+        },
+        {
+          "name": "feature_request.md",
+          "has_repro": false,
+          "has_expected": false,
+          "has_actual": false,
+          "has_env": false
+        },
+        {
+          "name": "feature_request.yml",
+          "has_repro": false,
+          "has_expected": false,
+          "has_actual": false,
+          "has_env": false
+        }
+      ]
+    },
+    {
+      "repo": "phenoAI",
+      "templates": [
+        {
+          "name": "bug.md",
+          "has_repro": true,
+          "has_expected": true,
+          "has_actual": true,
+          "has_env": true
+        },
+        {
+          "name": "feature.md",
+          "has_repro": false,
+          "has_expected": false,
+          "has_actual": false,
+          "has_env": false
+        }
+      ]
+    },
+    {
+      "repo": "phenoData",
+      "templates": [
+        {
+          "name": "bug.md",
+          "has_repro": true,
+          "has_expected": true,
+          "has_actual": true,
+          "has_env": true
+        },
+        {
+          "name": "feature.md",
+          "has_repro": false,
+          "has_expected": false,
+          "has_actual": false,
+          "has_env": false
+        }
+      ]
+    },
+    {
+      "repo": "phenoData-t1-15",
+      "templates": [
+        {
+          "name": "bug.md",
+          "has_repro": true,
+          "has_expected": true,
+          "has_actual": true,
+          "has_env": true
+        },
+        {
+          "name": "feature.md",
+          "has_repro": false,
+          "has_expected": false,
+          "has_actual": false,
+          "has_env": false
+        }
+      ]
+    },
+    {
+      "repo": "phenoData-t1-16",
+      "templates": [
+        {
+          "name": "bug.md",
+          "has_repro": true,
+          "has_expected": true,
+          "has_actual": true,
+          "has_env": true
+        },
+        {
+          "name": "feature.md",
+          "has_repro": false,
+          "has_expected": false,
+          "has_actual": false,
+          "has_env": false
+        }
+      ]
+    },
+    {
+      "repo": "phenoData-t1-17",
+      "templates": [
+        {
+          "name": "bug.md",
+          "has_repro": true,
+          "has_expected": true,
+          "has_actual": true,
+          "has_env": true
+        },
+        {
+          "name": "feature.md",
+          "has_repro": false,
+          "has_expected": false,
+          "has_actual": false,
+          "has_env": false
+        }
+      ]
+    },
+    {
+      "repo": "phenoData-t1-18",
+      "templates": [
+        {
+          "name": "bug.md",
+          "has_repro": true,
+          "has_expected": true,
+          "has_actual": true,
+          "has_env": true
+        },
+        {
+          "name": "feature.md",
+          "has_repro": false,
+          "has_expected": false,
+          "has_actual": false,
+          "has_env": false
+        }
+      ]
+    },
+    {
+      "repo": "phenoDesign",
+      "templates": [
+        {
+          "name": "bug-report.yml",
+          "has_repro": true,
+          "has_expected": true,
+          "has_actual": true,
+          "has_env": true
+        },
+        {
+          "name": "feature-request.yml",
+          "has_repro": false,
+          "has_expected": false,
+          "has_actual": false,
+          "has_env": false
+        }
+      ]
+    },
+    {
+      "repo": "phenoDesign-t1-10",
+      "templates": [
+        {
+          "name": "bug-report.yml",
+          "has_repro": true,
+          "has_expected": true,
+          "has_actual": true,
+          "has_env": true
+        },
+        {
+          "name": "feature-request.yml",
+          "has_repro": false,
+          "has_expected": false,
+          "has_actual": false,
+          "has_env": false
+        }
+      ]
+    },
+    {
+      "repo": "phenoDesign-t1-6",
+      "templates": [
+        {
+          "name": "bug-report.yml",
+          "has_repro": true,
+          "has_expected": true,
+          "has_actual": true,
+          "has_env": true
+        },
+        {
+          "name": "feature-request.yml",
+          "has_repro": false,
+          "has_expected": false,
+          "has_actual": false,
+          "has_env": false
+        }
+      ]
+    },
+    {
+      "repo": "phenoDesign-t1-7",
+      "templates": [
+        {
+          "name": "bug-report.yml",
+          "has_repro": true,
+          "has_expected": true,
+          "has_actual": true,
+          "has_env": true
+        },
+        {
+          "name": "feature-request.yml",
+          "has_repro": false,
+          "has_expected": false,
+          "has_actual": false,
+          "has_env": false
+        }
+      ]
+    },
+    {
+      "repo": "phenoDesign-t1-8",
+      "templates": [
+        {
+          "name": "bug-report.yml",
+          "has_repro": true,
+          "has_expected": true,
+          "has_actual": true,
+          "has_env": true
+        },
+        {
+          "name": "feature-request.yml",
+          "has_repro": false,
+          "has_expected": false,
+          "has_actual": false,
+          "has_env": false
+        }
+      ]
+    },
+    {
+      "repo": "phenoDesign-t1-9",
+      "templates": [
+        {
+          "name": "bug-report.yml",
+          "has_repro": true,
+          "has_expected": true,
+          "has_actual": true,
+          "has_env": true
+        },
+        {
+          "name": "feature-request.yml",
+          "has_repro": false,
+          "has_expected": false,
+          "has_actual": false,
+          "has_env": false
+        }
+      ]
+    },
+    {
+      "repo": "phenoForge",
+      "templates": [
+        {
+          "name": "bug-report.yml",
+          "has_repro": true,
+          "has_expected": true,
+          "has_actual": true,
+          "has_env": true
+        },
+        {
+          "name": "feature-request.yml",
+          "has_repro": false,
+          "has_expected": false,
+          "has_actual": false,
+          "has_env": false
+        }
+      ]
+    },
+    {
+      "repo": "phenoResearchEngine",
+      "templates": [
+        {
+          "name": "bug.yml",
+          "has_repro": true,
+          "has_expected": true,
+          "has_actual": true,
+          "has_env": false
+        },
+        {
+          "name": "bug_report.md",
+          "has_repro": true,
+          "has_expected": true,
+          "has_actual": false,
+          "has_env": false
+        },
+        {
+          "name": "feature.yml",
+          "has_repro": false,
+          "has_expected": false,
+          "has_actual": false,
+          "has_env": false
+        },
+        {
+          "name": "feature_request.md",
+          "has_repro": false,
+          "has_expected": false,
+          "has_actual": false,
+          "has_env": false
+        }
+      ]
+    },
+    {
+      "repo": "phenoShared",
+      "templates": [
+        {
+          "name": "bug.yml",
+          "has_repro": true,
+          "has_expected": true,
+          "has_actual": true,
+          "has_env": false
+        },
+        {
+          "name": "bug_report.md",
+          "has_repro": true,
+          "has_expected": true,
+          "has_actual": false,
+          "has_env": false
+        },
+        {
+          "name": "feature.yml",
+          "has_repro": false,
+          "has_expected": false,
+          "has_actual": false,
+          "has_env": false
+        },
+        {
+          "name": "feature_request.md",
+          "has_repro": false,
+          "has_expected": false,
+          "has_actual": false,
+          "has_env": false
+        }
+      ]
+    },
+    {
+      "repo": "phenoUtils",
+      "templates": [
+        {
+          "name": "bug.md",
+          "has_repro": true,
+          "has_expected": true,
+          "has_actual": true,
+          "has_env": true
+        },
+        {
+          "name": "feature.md",
+          "has_repro": false,
+          "has_expected": false,
+          "has_actual": false,
+          "has_env": false
+        }
+      ]
+    },
+    {
+      "repo": "phenodocs",
+      "templates": [
+        {
+          "name": "bug_report.md",
+          "has_repro": true,
+          "has_expected": true,
+          "has_actual": false,
+          "has_env": true
+        },
+        {
+          "name": "feature_request.md",
+          "has_repro": false,
+          "has_expected": false,
+          "has_actual": false,
+          "has_env": false
+        }
+      ]
+    },
+    {
+      "repo": "phenodocs-scorecard-remediation",
+      "templates": [
+        {
+          "name": "bug_report.md",
+          "has_repro": true,
+          "has_expected": true,
+          "has_actual": false,
+          "has_env": true
+        },
+        {
+          "name": "feature_request.md",
+          "has_repro": false,
+          "has_expected": false,
+          "has_actual": false,
+          "has_env": false
+        }
+      ]
+    },
+    {
+      "repo": "phenotype-auth-ts",
+      "templates": [
+        {
+          "name": "bug_report.md",
+          "has_repro": true,
+          "has_expected": true,
+          "has_actual": false,
+          "has_env": true
+        },
+        {
+          "name": "feature_request.md",
+          "has_repro": false,
+          "has_expected": false,
+          "has_actual": false,
+          "has_env": false
+        }
+      ]
+    },
+    {
+      "repo": "phenotype-bus",
+      "templates": [
+        {
+          "name": "bug.md",
+          "has_repro": true,
+          "has_expected": true,
+          "has_actual": true,
+          "has_env": true
+        },
+        {
+          "name": "feature.md",
+          "has_repro": false,
+          "has_expected": false,
+          "has_actual": false,
+          "has_env": false
+        }
+      ]
+    },
+    {
+      "repo": "phenotype-infra",
+      "templates": [
+        {
+          "name": "bug_report.md",
+          "has_repro": true,
+          "has_expected": true,
+          "has_actual": false,
+          "has_env": true
+        },
+        {
+          "name": "feature_request.md",
+          "has_repro": false,
+          "has_expected": false,
+          "has_actual": false,
+          "has_env": false
+        }
+      ]
+    },
+    {
+      "repo": "phenotype-journeys",
+      "templates": [
+        {
+          "name": "bug_report.md",
+          "has_repro": true,
+          "has_expected": true,
+          "has_actual": false,
+          "has_env": true
+        },
+        {
+          "name": "feature_request.md",
+          "has_repro": false,
+          "has_expected": false,
+          "has_actual": false,
+          "has_env": false
+        }
+      ]
+    },
+    {
+      "repo": "phenotype-journeys-2nd",
+      "templates": [
+        {
+          "name": "bug_report.md",
+          "has_repro": true,
+          "has_expected": true,
+          "has_actual": false,
+          "has_env": true
+        },
+        {
+          "name": "feature_request.md",
+          "has_repro": false,
+          "has_expected": false,
+          "has_actual": false,
+          "has_env": false
+        }
+      ]
+    },
+    {
+      "repo": "phenotype-omlx",
+      "templates": [
+        {
+          "name": "bug_report.md",
+          "has_repro": true,
+          "has_expected": true,
+          "has_actual": false,
+          "has_env": false
+        },
+        {
+          "name": "feature_request.md",
+          "has_repro": false,
+          "has_expected": false,
+          "has_actual": false,
+          "has_env": false
+        }
+      ]
+    },
+    {
+      "repo": "phenotype-ops-mcp",
+      "templates": [
+        {
+          "name": "bug_report.md",
+          "has_repro": true,
+          "has_expected": true,
+          "has_actual": false,
+          "has_env": true
+        },
+        {
+          "name": "feature_request.md",
+          "has_repro": false,
+          "has_expected": false,
+          "has_actual": false,
+          "has_env": false
+        }
+      ]
+    },
+    {
+      "repo": "phenotype-ops-mcp-t0",
+      "templates": [
+        {
+          "name": "bug_report.md",
+          "has_repro": true,
+          "has_expected": true,
+          "has_actual": false,
+          "has_env": true
+        },
+        {
+          "name": "feature_request.md",
+          "has_repro": false,
+          "has_expected": false,
+          "has_actual": false,
+          "has_env": false
+        }
+      ]
+    },
+    {
+      "repo": "phenotype-ops-mcp-t1-11",
+      "templates": [
+        {
+          "name": "bug_report.md",
+          "has_repro": true,
+          "has_expected": true,
+          "has_actual": false,
+          "has_env": true
+        },
+        {
+          "name": "feature_request.md",
+          "has_repro": false,
+          "has_expected": false,
+          "has_actual": false,
+          "has_env": false
+        }
+      ]
+    },
+    {
+      "repo": "phenotype-ops-mcp-t1-12",
+      "templates": [
+        {
+          "name": "bug_report.md",
+          "has_repro": true,
+          "has_expected": true,
+          "has_actual": false,
+          "has_env": true
+        },
+        {
+          "name": "feature_request.md",
+          "has_repro": false,
+          "has_expected": false,
+          "has_actual": false,
+          "has_env": false
+        }
+      ]
+    },
+    {
+      "repo": "phenotype-ops-mcp-t1-13",
+      "templates": [
+        {
+          "name": "bug_report.md",
+          "has_repro": true,
+          "has_expected": true,
+          "has_actual": false,
+          "has_env": true
+        },
+        {
+          "name": "feature_request.md",
+          "has_repro": false,
+          "has_expected": false,
+          "has_actual": false,
+          "has_env": false
+        }
+      ]
+    },
+    {
+      "repo": "phenotype-ops-mcp-t1-14",
+      "templates": [
+        {
+          "name": "bug_report.md",
+          "has_repro": true,
+          "has_expected": true,
+          "has_actual": false,
+          "has_env": true
+        },
+        {
+          "name": "feature_request.md",
+          "has_repro": false,
+          "has_expected": false,
+          "has_actual": false,
+          "has_env": false
+        }
+      ]
+    },
+    {
+      "repo": "phenotype-registry",
+      "templates": [
+        {
+          "name": "bug_report.md",
+          "has_repro": true,
+          "has_expected": true,
+          "has_actual": false,
+          "has_env": true
+        },
+        {
+          "name": "feature_request.md",
+          "has_repro": false,
+          "has_expected": false,
+          "has_actual": false,
+          "has_env": false
+        }
+      ]
+    },
+    {
+      "repo": "phenotype-terrain",
+      "templates": [
+        {
+          "name": "bug_report.md",
+          "has_repro": true,
+          "has_expected": true,
+          "has_actual": false,
+          "has_env": true
+        },
+        {
+          "name": "feature_request.md",
+          "has_repro": false,
+          "has_expected": false,
+          "has_actual": false,
+          "has_env": false
+        }
+      ]
+    },
+    {
+      "repo": "phenotype-tooling",
+      "templates": [
+        {
+          "name": "bug_report.md",
+          "has_repro": true,
+          "has_expected": true,
+          "has_actual": false,
+          "has_env": true
+        },
+        {
+          "name": "feature_request.md",
+          "has_repro": false,
+          "has_expected": false,
+          "has_actual": false,
+          "has_env": false
+        }
+      ]
+    },
+    {
+      "repo": "phenotype-water",
+      "templates": [
+        {
+          "name": "bug_report.md",
+          "has_repro": true,
+          "has_expected": true,
+          "has_actual": false,
+          "has_env": true
+        },
+        {
+          "name": "feature_request.md",
+          "has_repro": false,
+          "has_expected": false,
+          "has_actual": false,
+          "has_env": false
+        }
+      ]
+    },
+    {
+      "repo": "portage",
+      "templates": [
+        {
+          "name": "bug.yml",
+          "has_repro": true,
+          "has_expected": true,
+          "has_actual": true,
+          "has_env": false
+        },
+        {
+          "name": "bug_report.yml",
+          "has_repro": false,
+          "has_expected": false,
+          "has_actual": true,
+          "has_env": false
+        },
+        {
+          "name": "feature.yml",
+          "has_repro": false,
+          "has_expected": false,
+          "has_actual": false,
+          "has_env": false
+        },
+        {
+          "name": "feature_request.yml",
+          "has_repro": false,
+          "has_expected": false,
+          "has_actual": false,
+          "has_env": false
+        }
+      ]
+    },
+    {
+      "repo": "rich-cli-kit",
+      "templates": [
+        {
+          "name": "bug_report.md",
+          "has_repro": true,
+          "has_expected": true,
+          "has_actual": false,
+          "has_env": true
+        },
+        {
+          "name": "feature_request.md",
+          "has_repro": false,
+          "has_expected": false,
+          "has_actual": false,
+          "has_env": false
+        }
+      ]
+    },
+    {
+      "repo": "thegent",
+      "templates": [
+        {
+          "name": "bug-report.yml",
+          "has_repro": true,
+          "has_expected": true,
+          "has_actual": true,
+          "has_env": true
+        },
+        {
+          "name": "bug.yml",
+          "has_repro": true,
+          "has_expected": true,
+          "has_actual": true,
+          "has_env": false
+        },
+        {
+          "name": "feature-request.yml",
+          "has_repro": false,
+          "has_expected": false,
+          "has_actual": false,
+          "has_env": false
+        },
+        {
+          "name": "feature.yml",
+          "has_repro": false,
+          "has_expected": false,
+          "has_actual": false,
+          "has_env": false
+        }
+      ]
+    },
+    {
+      "repo": "thegent-dispatch",
+      "templates": [
+        {
+          "name": "bug.md",
+          "has_repro": true,
+          "has_expected": true,
+          "has_actual": true,
+          "has_env": true
+        },
+        {
+          "name": "feature.md",
+          "has_repro": false,
+          "has_expected": false,
+          "has_actual": false,
+          "has_env": false
+        }
+      ]
+    },
+    {
+      "repo": "thegent-security-fixes",
+      "templates": [
+        {
+          "name": "bug-report.yml",
+          "has_repro": true,
+          "has_expected": true,
+          "has_actual": true,
+          "has_env": true
+        },
+        {
+          "name": "bug.yml",
+          "has_repro": true,
+          "has_expected": true,
+          "has_actual": true,
+          "has_env": false
+        },
+        {
+          "name": "feature-request.yml",
+          "has_repro": false,
+          "has_expected": false,
+          "has_actual": false,
+          "has_env": false
+        },
+        {
+          "name": "feature.yml",
+          "has_repro": false,
+          "has_expected": false,
+          "has_actual": false,
+          "has_env": false
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,174 @@
+{
+  "task": "DAG L1-4 audit",
+  "schema_version": "v2",
+  "generated_at": "2026-06-08T00:00:00Z",
+  "repo": "AgilePlus",
+  "repo_path": "/Users/kooshapari/CodeProjects/Phenotype/repos/AgilePlus",
+  "branch_audited": "docs/landing-config",
+  "branch_artifact": "chore/audit-AgilePlus-2026-06-08",
+  "head_sha": "fa1da1b3460777dca1ea35c5b0204168e1823849",
+  "last_commit_date": "2026-06-08T19:01:37-07:00",
+  "last_commit_subject": "docs: add landing.json config for phenotype-landing generator",
+  "language_stack": {
+    "detected": ["rust", "typescript", "protobuf", "python", "toml", "markdown", "shell"],
+    "primary": ["rust"],
+    "secondary": ["typescript", "python", "protobuf"],
+    "rust": {
+      "toolchain": "pinned via rust-toolchain.toml (rust-version = 1.85)",
+      "workspace_cargo_toml": "Cargo.toml",
+      "workspace_members": 22,
+      "crates_under_crates_dir": 28,
+      "claimed_in_comment": 21,
+      "surface_split": {
+        "domain_application_core": [
+          "agileplus-domain", "agileplus-application", "agileplus-config",
+          "agileplus-events", "agileplus-proto", "agileplus-fixtures"
+        ],
+        "infrastructure_adapters": [
+          "agileplus-sqlite", "agileplus-cache", "agileplus-git", "agileplus-nats",
+          "agileplus-telemetry", "agileplus-import"
+        ],
+        "interfaces": [
+          "agileplus-api", "agileplus-grpc", "agileplus-dashboard",
+          "agileplus-github", "agileplus-plane", "agileplus-p2p", "agileplus-triage",
+          "agileplus-governance", "agileplus-sync", "agileplus-subcmds", "agileplus-artifacts",
+          "agileplus-benchmarks", "agileplus-contract-tests", "agileplus-integration-tests"
+        ],
+        "operations_dx": [
+          "agileplus-cli", "xtask-anti-patterns"
+        ]
+      },
+      "test_count_claimed": 646,
+      "linting": "cargo clippy --workspace --all-targets -- -D warnings + xtask-anti-patterns"
+    },
+    "typescript": {
+      "surfaces": [
+        "crates/agileplus-dashboard (React dashboard)",
+        "tools/planify-shim (Node helper)",
+        "docs (VitePress or similar)"
+      ]
+    },
+    "desktop": "Electrobun (per Cargo.toml header comment)",
+    "python": {
+      "path": "python/",
+      "dependabot_tracked": true
+    },
+    "proto": {
+      "path": "proto/",
+      "generated_into": "agileplus-proto via prost/tonic"
+    },
+    "datastores": ["SQLite (rusqlite, local)", "NATS (async-nats, pub/sub)", "libp2p (p2p sync)"]
+  },
+  "hygiene_score": 80,
+  "hygiene_breakdown": {
+    "LICENSE": 0,
+    "README": 10,
+    "CHANGELOG": 10,
+    "EDITORCONFIG": 0,
+    "CI": 10,
+    "DEPENDABOT": 10,
+    "CODEOWNERS": 10,
+    "CONTRIBUTING": 10,
+    "SECURITY": 10,
+    "FUNDING": 10
+  },
+  "hygiene_evidence": {
+    "LICENSE": "MISSING (no LICENSE / LICENSE.md / LICENSE.txt at repo root; license is declared as MIT in [workspace.package] but no top-level file)",
+    "README": "README.md present",
+    "CHANGELOG": "CHANGELOG.md present (Keep-a-Changelog style)",
+    "EDITORCONFIG": "MISSING (no .editorconfig at any depth)",
+    "CI": ".github/workflows/ (19 workflows: ai-testing, cargo-audit, cargo-machete, ci, deploy, doc-links, evidence-capture, fr-coverage, quality-gate, rust-security, sast-quick, security-guard, self-merge-gate, snyk-scan, sonarcloud, sync-canary, tag-automation, trufflehog)",
+    "DEPENDABOT": ".github/dependabot.yml (cargo + github-actions + pip ecosystems, weekly)",
+    "CODEOWNERS": "CODEOWNERS at root: '* @KooshaPari' (single-owner; no per-crate mapping)",
+    "CONTRIBUTING": "CONTRIBUTING.md present (conventions, branching, review flow)",
+    "SECURITY": "SECURITY.md present",
+    "FUNDING": "FUNDING.yml present (GitHub: KooshaPari)"
+  },
+  "dup_exposure": {
+    "candidates": [
+      {"lib": "phenotype-bus", "use_case": "Replace agileplus-events + agileplus-nats pub/sub envelope with canonical phenotype-bus contracts"},
+      {"lib": "phenotype-dep-guard", "use_case": "Retire xtask-anti-patterns in favor of phenotype-dep-guard (share deny.toml/audit policy with org baseline)"},
+      {"lib": "phenotype-request-id", "use_case": "Propagate request_id through Axum + tonic + NATS spans (agileplus-telemetry already wired)"},
+      {"lib": "phenotype-icons", "use_case": "Share icon set across dashboard (agileplus-dashboard) and Electrobun shell"},
+      {"lib": "phenotype-postfx", "use_case": "Middleware/post-effect runner for Axum + tonic + sync-pipeline interceptors"},
+      {"lib": "phenotype-journeys", "use_case": "Use shared journey DSL for end-to-end PR/findings/AGI agent flows already documented under findings/"},
+      {"lib": "phenotype-registry", "use_case": "Unify agileplus-import + agileplus-plane + agileplus-github adapter registries under one contract"},
+      {"lib": "phenotype-tooling", "use_case": "Consolidate scripts/ + tools/ (planify-shim, dispatch-mcp, etc.) under shared tooling lib"},
+      {"lib": "phenotype-org-audits", "use_case": "Capture dependency_hygiene_audit_2026-05-05.md, cargo_deny_staleness_audit_2026-05-05.md, etc. as org-audit findings"},
+      {"lib": "phenodocs", "use_case": "Generate API reference from SPEC.md / FUNCTIONAL_REQUIREMENTS.md / AGENTS.md instead of hand-maintained docs/"},
+      {"lib": "phenotype-landing", "use_case": "Replace docs/landing-config (current uncommitted work) with phenotype-landing generator; eliminates the WIP"},
+      {"lib": "phenotype-auth-ts", "use_case": "Single source of truth for dashboard auth (currently ad-hoc)"},
+      {"lib": "phenoShared", "use_case": "Consume pheno-shared / phenoShared types in the TS dashboard via path dep (eliminate hand-rolled TS types mirroring Rust domain)"},
+      {"lib": "phenoDesign", "use_case": "Design tokens for dashboard + Electrobun shell (one source, both surfaces)"},
+      {"lib": "phenoAI", "use_case": "Power agileplus-triage classifier and agileplus-governance rules engine"},
+      {"lib": "phenoData", "use_case": "Backfill / analytics pipelines over SQLite + Plane data"},
+      {"lib": "phenoForge", "use_case": "Shared build/test/recipe for the workspace; bring in justfile/mise/cliff/recipes"},
+      {"lib": "phenoResearchEngine", "use_case": "Drive agentic PR/findings flows (agileplus-agents)"},
+      {"lib": "phenotype-hub", "use_case": "Registry hub for the 22 workspace members (catalog/discover)"},
+      {"lib": "phenotype-skills", "use_case": "Expose agileplus-agents state machine + governance rules as phenotype skills"},
+      {"lib": "phenotype-ops-mcp", "use_case": "Replace bespoke dispatch-mcp + agileplus-mcp wrappers with phenotype-ops-mcp"}
+    ]
+  },
+  "sota_gaps": [
+    "No top-level LICENSE file (MIT is declared in [workspace.package] but no LICENSE / LICENSE.md / LICENSE.txt shipped; blocks crate publish + license-detection badges)",
+    "No .editorconfig (rust + ts + md + toml drift across contributors)",
+    "Single-owner CODEOWNERS (only @KooshaPari; no per-crate domain mapping -> no enforced review expertise on the 22-crate workspace)",
+    "xtask-anti-patterns duplicates phenotype-dep-guard intent; ad-hoc linter that should be consolidated",
+    "No coverage badge / no codecov in CI (workflows list has no coverage step; 646 tests claimed but no surface-level coverage report)",
+    "No release-plz / cargo-release automation (tag-automation.yml exists but no release-plz or changelog-on-tag pipeline)",
+    "No cliff.toml / no conventional-commits auto-generation (CHANGELOG.md is hand-maintained, drift risk across 22 crates)",
+    "No MSRV badge / no rust-version badge in README despite rust-version = 1.85 being pinned",
+    "No cargo-binstall or prebuilt-binary install instructions in README (22 crates but only cargo install --path pattern)",
+    "agileplus-p2p is built on libp2p but no benches/ for swarm convergence / discovery latency",
+    "agileplus-dashboard (React) has no Storybook / no visual regression contract for the UI surface",
+    "agileplus-telemetry is wired but no /metrics or /healthz endpoint shape is documented in SPEC.md (no SLO contract)",
+    "agileplus-plane + agileplus-github + agileplus-import each maintain their own connector registry; no shared trait surface for adapters",
+    "docs/landing-config is a current uncommitted WIP (per git status); phenotype-landing could absorb it",
+    "No mise.toml / justfile / Taskfile.yml (only scripts/ directory); no first-class DX for cargo run -p xtask-anti-patterns",
+    "Python surface under python/ has dependabot but no pytest workflow in .github/workflows/ (no test-python.yml)",
+    "No wasm target / no example consumer for agileplus-dashboard components (Electrobun is the only consumer; no embeddable story)",
+    "Electrobun shell is referenced in header comment but no apps/electrobun/ or similar surfacing in repo (likely lives in agileplus-dashboard or a sibling subtree)"
+  ],
+  "convergence_cluster": "multi-stack",
+  "convergence_rationale": "Rust core (22-crate workspace: domain + application + Axum/gRPC + SQLite/NATS/libp2p + 14 interface/adapter crates) + TypeScript (React dashboard, planify-shim, docs) + Python (python/) + protobuf (proto/ -> agileplus-proto) + Electrobun desktop shell + 19-workflow CI + xtask-anti-patterns. Touches at least 5 stacks with multi-transport (Axum, tonic, NATS, libp2p, GitHub webhooks, Plane adapter).",
+  "action_items": [
+    {
+      "priority": 1,
+      "title": "Ship top-level LICENSE + .editorconfig + per-crate CODEOWNERS",
+      "effort": "S",
+      "details": "Add LICENSE (MIT, sourced from [workspace.package].license), .editorconfig (rust + ts + md + toml + yaml sections), and refactor CODEOWNERS to map domain experts per crate (agileplus-domain, -api, -grpc, -nats, -p2p, -dashboard, etc.). Closes 2 zero-score hygiene items + single-owner bottleneck."
+    },
+    {
+      "priority": 2,
+      "title": "Retire xtask-anti-patterns; consume phenotype-dep-guard",
+      "effort": "M",
+      "details": "Move xtask-anti-patterns checks (cargo-deny, cargo-machete, anti-pattern lints) into phenotype-dep-guard as a workspace policy. Drop the in-tree xtask crate. Consolidate deny.toml with org baseline. Frees 1 of 22 members and aligns with org-wide dep-guard contract."
+    },
+    {
+      "priority": 3,
+      "title": "Wire agileplus-events + agileplus-nats to phenotype-bus",
+      "effort": "L",
+      "details": "Replace bespoke EventEnvelope / async-nats publisher with phenotype-bus contracts. agileplus-events becomes a thin re-export of phenotype-bus event taxonomy; agileplus-nats becomes a transport adapter. Unblocks cross-repo event observability and removes one duplicate taxonomy."
+    },
+    {
+      "priority": 4,
+      "title": "Add release-plz + cliff + MSRV badge + cargo-binstall instructions",
+      "effort": "M",
+      "details": "Add release-plz workflow, cliff.toml for conventional-commits-driven CHANGELOG, MSRV badge in README, and cargo-binstall install instructions for agileplus-cli. Closes 3 release-engineering gaps in one PR."
+    },
+    {
+      "priority": 5,
+      "title": "Unify adapter registries (plane, github, import) under phenotype-registry",
+      "effort": "L",
+      "details": "Refactor agileplus-plane + agileplus-github + agileplus-import to register connectors through phenotype-registry. Share trait surface, health checks, and Plane/GitHub webhook normalization. Removes 3 parallel connector registries and aligns with org registry contract."
+    }
+  ],
+  "notes": [
+    "Workspace Cargo.toml lists 22 members (21 crates under crates/ + xtask-anti-patterns at root). Header comment claims '21-crate'; close enough — minor doc drift.",
+    "crates/ dir has 28 entries including README.md / templates; only 21 of those are actual crate Cargo.toml roots.",
+    "agileplus-dashboard is BOTH a Rust crate (likely a build.rs + asset bundler) AND a React/TS surface; verify whether the TS source lives inside crates/agileplus-dashboard/ or a sibling path.",
+    "Electrobun is referenced in header comment but not surfaced in the listed crates; could be a separate workspace member or a future addition.",
+    "docs/landing-config is a current uncommitted WIP branch landing.json; absorbed by priority 1 follow-up (phenotype-landing).",
+    "22 crates / 19 workflows / 3 ecosystems in dependabot is already SOTA-class infra — gap is in consolidation (dep-guard, bus, registry) and release engineering (cliff, release-plz), not in coverage."
+  ]
+}

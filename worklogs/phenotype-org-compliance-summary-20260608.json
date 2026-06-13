@@ -1,0 +1,225 @@
+{
+  "generated_at": "2026-06-09T03:34:47.629809+00:00",
+  "by_repo": [
+    {
+      "repo": "focalpoint",
+      "present": [
+        "LICENSE",
+        "README.md",
+        "SPEC.md",
+        "CODEOWNERS",
+        "SECURITY.md",
+        "CODE_OF_CONDUCT.md",
+        "FUNDING.yml",
+        "CHANGELOG.md",
+        "CONTRIBUTING.md",
+        "PULL_REQUEST_TEMPLATE.md",
+        "ISSUE_TEMPLATE/"
+      ],
+      "missing": [
+        "worklogs/",
+        "release-drafter.yml",
+        ".github/workflows/*health*"
+      ],
+      "compliance_pct": 78.57
+    },
+    {
+      "repo": "phenotype-py-extras",
+      "present": [
+        "README.md"
+      ],
+      "missing": [
+        "LICENSE",
+        "SPEC.md",
+        "worklogs/",
+        "CODEOWNERS",
+        "SECURITY.md",
+        "CODE_OF_CONDUCT.md",
+        "FUNDING.yml",
+        "CHANGELOG.md",
+        "CONTRIBUTING.md",
+        "PULL_REQUEST_TEMPLATE.md",
+        "ISSUE_TEMPLATE/",
+        "release-drafter.yml",
+        ".github/workflows/*health*"
+      ],
+      "compliance_pct": 7.14
+    },
+    {
+      "repo": "phenotype-request-id",
+      "present": [
+        "README.md"
+      ],
+      "missing": [
+        "LICENSE",
+        "SPEC.md",
+        "worklogs/",
+        "CODEOWNERS",
+        "SECURITY.md",
+        "CODE_OF_CONDUCT.md",
+        "FUNDING.yml",
+        "CHANGELOG.md",
+        "CONTRIBUTING.md",
+        "PULL_REQUEST_TEMPLATE.md",
+        "ISSUE_TEMPLATE/",
+        "release-drafter.yml",
+        ".github/workflows/*health*"
+      ],
+      "compliance_pct": 7.14
+    },
+    {
+      "repo": "phenotype-water",
+      "present": [
+        "LICENSE",
+        "README.md",
+        "CODEOWNERS",
+        "SECURITY.md",
+        "CODE_OF_CONDUCT.md",
+        "CHANGELOG.md",
+        "CONTRIBUTING.md",
+        "PULL_REQUEST_TEMPLATE.md",
+        "ISSUE_TEMPLATE/"
+      ],
+      "missing": [
+        "SPEC.md",
+        "worklogs/",
+        "FUNDING.yml",
+        "release-drafter.yml",
+        ".github/workflows/*health*"
+      ],
+      "compliance_pct": 64.29
+    },
+    {
+      "repo": "phenotype-hub",
+      "present": [
+        "LICENSE",
+        "README.md",
+        "SPEC.md",
+        "CODEOWNERS",
+        "SECURITY.md",
+        "CODE_OF_CONDUCT.md",
+        "FUNDING.yml",
+        "CHANGELOG.md",
+        "CONTRIBUTING.md",
+        "PULL_REQUEST_TEMPLATE.md"
+      ],
+      "missing": [
+        "worklogs/",
+        "ISSUE_TEMPLATE/",
+        "release-drafter.yml",
+        ".github/workflows/*health*"
+      ],
+      "compliance_pct": 71.43
+    },
+    {
+      "repo": "phenotype-infra",
+      "present": [
+        "LICENSE",
+        "README.md",
+        "worklogs/",
+        "CODEOWNERS",
+        "SECURITY.md",
+        "CODE_OF_CONDUCT.md",
+        "FUNDING.yml",
+        "CHANGELOG.md",
+        "CONTRIBUTING.md",
+        "PULL_REQUEST_TEMPLATE.md",
+        "ISSUE_TEMPLATE/"
+      ],
+      "missing": [
+        "SPEC.md",
+        "release-drafter.yml",
+        ".github/workflows/*health*"
+      ],
+      "compliance_pct": 78.57
+    },
+    {
+      "repo": "phenotype-dep-guard",
+      "present": [
+        "LICENSE",
+        "README.md",
+        "CODEOWNERS",
+        "SECURITY.md",
+        "FUNDING.yml",
+        "CHANGELOG.md",
+        "CONTRIBUTING.md"
+      ],
+      "missing": [
+        "SPEC.md",
+        "worklogs/",
+        "CODE_OF_CONDUCT.md",
+        "PULL_REQUEST_TEMPLATE.md",
+        "ISSUE_TEMPLATE/",
+        "release-drafter.yml",
+        ".github/workflows/*health*"
+      ],
+      "compliance_pct": 50.0
+    },
+    {
+      "repo": "phenotype-registry",
+      "present": [
+        "LICENSE",
+        "README.md",
+        "SPEC.md",
+        "worklogs/",
+        "CODEOWNERS",
+        "SECURITY.md",
+        "FUNDING.yml",
+        "CHANGELOG.md",
+        "CONTRIBUTING.md",
+        "PULL_REQUEST_TEMPLATE.md",
+        "ISSUE_TEMPLATE/"
+      ],
+      "missing": [
+        "CODE_OF_CONDUCT.md",
+        "release-drafter.yml",
+        ".github/workflows/*health*"
+      ],
+      "compliance_pct": 78.57
+    },
+    {
+      "repo": "phenotype-tooling",
+      "present": [
+        "LICENSE",
+        "README.md",
+        "worklogs/",
+        "CODEOWNERS",
+        "SECURITY.md",
+        "CODE_OF_CONDUCT.md",
+        "FUNDING.yml",
+        "CHANGELOG.md",
+        "CONTRIBUTING.md",
+        "PULL_REQUEST_TEMPLATE.md",
+        "ISSUE_TEMPLATE/"
+      ],
+      "missing": [
+        "SPEC.md",
+        "release-drafter.yml",
+        ".github/workflows/*health*"
+      ],
+      "compliance_pct": 78.57
+    },
+    {
+      "repo": "phenotype-landing",
+      "present": [
+        "LICENSE",
+        "README.md"
+      ],
+      "missing": [
+        "SPEC.md",
+        "worklogs/",
+        "CODEOWNERS",
+        "SECURITY.md",
+        "CODE_OF_CONDUCT.md",
+        "FUNDING.yml",
+        "CHANGELOG.md",
+        "CONTRIBUTING.md",
+        "PULL_REQUEST_TEMPLATE.md",
+        "ISSUE_TEMPLATE/",
+        "release-drafter.yml",
+        ".github/workflows/*health*"
+      ],
+      "compliance_pct": 14.29
+    }
+  ]
+}

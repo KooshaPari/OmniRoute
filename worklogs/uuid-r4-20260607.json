@@ -1,0 +1,94 @@
+{
+  "generated_at": "2026-06-07T06:45:55Z",
+  "total_repos": 12,
+  "with_uuid": [
+    "Agentora",
+    "Eventra",
+    "GDK",
+    "HexaKit",
+    "KDesktopVirt",
+    "KlipDot",
+    "Tasken",
+    "crates",
+    "kmobile",
+    "pheno",
+    "tests",
+    "tooling"
+  ],
+  "with_nanoid": [],
+  "with_ulid": [],
+  "by_repo": [
+    {
+      "repo": "Agentora",
+      "libs": [
+        "uuid"
+      ]
+    },
+    {
+      "repo": "Eventra",
+      "libs": [
+        "uuid"
+      ]
+    },
+    {
+      "repo": "GDK",
+      "libs": [
+        "uuid"
+      ]
+    },
+    {
+      "repo": "HexaKit",
+      "libs": [
+        "uuid"
+      ]
+    },
+    {
+      "repo": "KDesktopVirt",
+      "libs": [
+        "uuid"
+      ]
+    },
+    {
+      "repo": "KlipDot",
+      "libs": [
+        "uuid"
+      ]
+    },
+    {
+      "repo": "Tasken",
+      "libs": [
+        "uuid"
+      ]
+    },
+    {
+      "repo": "crates",
+      "libs": [
+        "uuid"
+      ]
+    },
+    {
+      "repo": "kmobile",
+      "libs": [
+        "uuid"
+      ]
+    },
+    {
+      "repo": "pheno",
+      "libs": [
+        "uuid"
+      ]
+    },
+    {
+      "repo": "tests",
+      "libs": [
+        "uuid"
+      ]
+    },
+    {
+      "repo": "tooling",
+      "libs": [
+        "uuid"
+      ]
+    }
+  ]
+}

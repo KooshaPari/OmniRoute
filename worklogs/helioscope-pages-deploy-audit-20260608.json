@@ -1,0 +1,13 @@
+{
+  "generated_at": "2026-06-09T03:30:09Z",
+  "pages_api_status": 404,
+  "deploy_files_found": [
+    "index.html",
+    ".github/workflows/pages.yml",
+    "docs/index.md"
+  ],
+  "deploy_workflows": [
+    ".github/workflows/pages.yml"
+  ],
+  "recommended_action": "Run the pages.yml workflow (workflow_dispatch) to enable GitHub Pages; the API will return 404 until the first successful deploy provisions the site."
+}

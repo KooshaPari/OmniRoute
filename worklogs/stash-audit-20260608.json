@@ -1,0 +1,823 @@
+{
+  "generated_at": "2026-06-08T10:29:31Z",
+  "total_repos": 128,
+  "with_stashes": [
+    "AgilePlus",
+    "AtomsBot",
+    "BytePort",
+    "Dino",
+    "MCPForge",
+    "NetScript",
+    "OmniRoute",
+    "PhenoAgent",
+    "PhenoCompose",
+    "PhenoDevOps",
+    "PhenoKits",
+    "PhenoMCP",
+    "PhenoPlugins",
+    "PlayCua",
+    "PolicyStack",
+    "QuadSGM",
+    "ResilienceKit",
+    "Tasken",
+    "TestingKit",
+    "Tracera",
+    "agent-devops-setups",
+    "agent-user-status",
+    "argis-extensions",
+    "chatta",
+    "cheap-llm-mcp",
+    "cliproxyapi-plusplus",
+    "eyetracker",
+    "forgecode",
+    "heliosApp",
+    "heliosBench",
+    "nanovms",
+    "netweave-final2",
+    "phenoDesign",
+    "phenoForge",
+    "phenoResearchEngine",
+    "phenoShared",
+    "phenoUtils",
+    "phenoXdd",
+    "phenodocs",
+    "phenodocs-scorecard-remediation",
+    "phenotype-auth-ts",
+    "phenotype-bus",
+    "phenotype-hub",
+    "phenotype-infra",
+    "phenotype-omlx",
+    "phenotype-org-audits",
+    "phenotype-registry",
+    "phenotype-tooling",
+    "portage",
+    "thegent",
+    "thegent-dispatch",
+    "vibeproxy-monitoring-unified"
+  ],
+  "by_repo": [
+    {
+      "repo": "AgentMCP",
+      "stash_count": 0,
+      "stash_subjects": []
+    },
+    {
+      "repo": "Agentora",
+      "stash_count": 0,
+      "stash_subjects": []
+    },
+    {
+      "repo": "AgilePlus",
+      "stash_count": 6,
+      "stash_subjects": [
+        "On chore/fr-domain-001-traceability: doc-link-edits-for-clean-branch-20260606T073910Z",
+        "WIP on chore/fix-doc-links: 795d3867d chore(domain): add FR-DOMAIN-001 traceability for Event and Snapshot",
+        "On chore/fr-autograder-gate: save-spec-modules-019-020-WIP-20260606T070216Z",
+        "On main: pre-doc-link-fix-20260606T065832Z",
+        "On chore/fr-dashboard-health-traceability: pre-fr-stubs-working-state",
+        "On chore/spec-modules-011-014-fr-stubs: pre-existing-WIP-on-spec-modules-019-020-fr-stubs"
+      ]
+    },
+    {
+      "repo": "Apisync",
+      "stash_count": 0,
+      "stash_subjects": []
+    },
+    {
+      "repo": "AppGen",
+      "stash_count": 0,
+      "stash_subjects": []
+    },
+    {
+      "repo": "AtomsBot",
+      "stash_count": 1,
+      "stash_subjects": [
+        "WIP on fix/npm-high-vulns: 5490cc3 fix(deps): resolve high-severity npm vulnerabilities"
+      ]
+    },
+    {
+      "repo": "AuthKit",
+      "stash_count": 0,
+      "stash_subjects": []
+    },
+    {
+      "repo": "Benchora",
+      "stash_count": 0,
+      "stash_subjects": []
+    },
+    {
+      "repo": "BytePort",
+      "stash_count": 3,
+      "stash_subjects": [
+        "On fix/byteport-changelog-hygiene: tmp-lfs-ptr-build-artifact",
+        "WIP on dependabot/npm_and_yarn/frontend/web/npm-72d183bb36: 9ae3742f chore(deps): bump the npm group across 1 directory with 24 updates",
+        "WIP on dependabot/npm_and_yarn/frontend/web/npm-72d183bb36: 9ae3742f chore(deps): bump the npm group across 1 directory with 24 updates"
+      ]
+    },
+    {
+      "repo": "Civis",
+      "stash_count": 0,
+      "stash_subjects": []
+    },
+    {
+      "repo": "Conft",
+      "stash_count": 0,
+      "stash_subjects": []
+    },
+    {
+      "repo": "DINOForge-UnityDoorstop",
+      "stash_count": 0,
+      "stash_subjects": []
+    },
+    {
+      "repo": "DataKit",
+      "stash_count": 0,
+      "stash_subjects": []
+    },
+    {
+      "repo": "DevHex",
+      "stash_count": 0,
+      "stash_subjects": []
+    },
+    {
+      "repo": "Dino",
+      "stash_count": 1,
+      "stash_subjects": [
+        "WIP on main: 6dcc193c chore: commit untracked infrastructure files"
+      ]
+    },
+    {
+      "repo": "Eidolon",
+      "stash_count": 0,
+      "stash_subjects": []
+    },
+    {
+      "repo": "Eventra",
+      "stash_count": 0,
+      "stash_subjects": []
+    },
+    {
+      "repo": "FocalPoint",
+      "stash_count": 0,
+      "stash_subjects": []
+    },
+    {
+      "repo": "GDK",
+      "stash_count": 0,
+      "stash_subjects": []
+    },
+    {
+      "repo": "HeliosCLI",
+      "stash_count": 0,
+      "stash_subjects": []
+    },
+    {
+      "repo": "HeliosLab",
+      "stash_count": 0,
+      "stash_subjects": []
+    },
+    {
+      "repo": "HexaKit",
+      "stash_count": 0,
+      "stash_subjects": []
+    },
+    {
+      "repo": "Httpora",
+      "stash_count": 0,
+      "stash_subjects": []
+    },
+    {
+      "repo": "KDesktopVirt",
+      "stash_count": 0,
+      "stash_subjects": []
+    },
+    {
+      "repo": "KWatch",
+      "stash_count": 0,
+      "stash_subjects": []
+    },
+    {
+      "repo": "KaskMan",
+      "stash_count": 0,
+      "stash_subjects": []
+    },
+    {
+      "repo": "KlipDot",
+      "stash_count": 0,
+      "stash_subjects": []
+    },
+    {
+      "repo": "KodeVibe",
+      "stash_count": 0,
+      "stash_subjects": []
+    },
+    {
+      "repo": "MCPForge",
+      "stash_count": 1,
+      "stash_subjects": [
+        "On main: pre-upstream-sync stash"
+      ]
+    },
+    {
+      "repo": "McpKit",
+      "stash_count": 0,
+      "stash_subjects": []
+    },
+    {
+      "repo": "Metron",
+      "stash_count": 0,
+      "stash_subjects": []
+    },
+    {
+      "repo": "NetScript",
+      "stash_count": 1,
+      "stash_subjects": [
+        "On main: M Cargo.toml pre-audit 2026-06-08"
+      ]
+    },
+    {
+      "repo": "ObservabilityKit",
+      "stash_count": 0,
+      "stash_subjects": []
+    },
+    {
+      "repo": "OmniRoute",
+      "stash_count": 1,
+      "stash_subjects": [
+        "WIP on chore/audit-safe-workflows-0605-r2: a47e95bd9 chore(workflows): OmniRoute safe audit normalization (r2, parse-valid, no placeholder SHAs)"
+      ]
+    },
+    {
+      "repo": "Paginary",
+      "stash_count": 0,
+      "stash_subjects": []
+    },
+    {
+      "repo": "Parpoura",
+      "stash_count": 0,
+      "stash_subjects": []
+    },
+    {
+      "repo": "PhenoAgent",
+      "stash_count": 1,
+      "stash_subjects": [
+        "WIP on ci/pin-trufflehog: 71f3480 chore(PhenoAgent): pin CI action SHAs and update deny.toml"
+      ]
+    },
+    {
+      "repo": "PhenoCompose",
+      "stash_count": 1,
+      "stash_subjects": [
+        "WIP on fix/npm-name-collision: 04c0f87 fix(PhenoCompose): change module path to avoid collision with nanovms"
+      ]
+    },
+    {
+      "repo": "PhenoDevOps",
+      "stash_count": 3,
+      "stash_subjects": [
+        "WIP on main: 2d712404a fix(PhenoDevOps): replace corrupted CHANGELOG with clean monorepo scaffold",
+        "WIP on ci/add-golangci-lint: 174940aa2 fix: replace hardcoded agileplus credentials in .env.example with placeholders",
+        "WIP on main: 2430efd6e chore: remove stale RUSTSEC ignores [org-bootstrap-2026-05-03]"
+      ]
+    },
+    {
+      "repo": "PhenoHandbook",
+      "stash_count": 0,
+      "stash_subjects": []
+    },
+    {
+      "repo": "PhenoKits",
+      "stash_count": 1,
+      "stash_subjects": [
+        "WIP on main: 8a4ff865 chore: add concurrency to CI workflows"
+      ]
+    },
+    {
+      "repo": "PhenoMCP",
+      "stash_count": 1,
+      "stash_subjects": [
+        "WIP on ci/go-mod: bf62409 feat(PhenoMCP): implement session tools with error handling and add tests"
+      ]
+    },
+    {
+      "repo": "PhenoObservability",
+      "stash_count": 0,
+      "stash_subjects": []
+    },
+    {
+      "repo": "PhenoPlugins",
+      "stash_count": 1,
+      "stash_subjects": [
+        "WIP on chore/trufflehog-20260502: b175c4a chore: update GitHub workflows and Cargo dependencies"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "stash_count": 0,
+      "stash_subjects": []
+    },
+    {
+      "repo": "PhenoProject",
+      "stash_count": 0,
+      "stash_subjects": []
+    },
+    {
+      "repo": "PhenoRuntime",
+      "stash_count": 0,
+      "stash_subjects": []
+    },
+    {
+      "repo": "PhenoSpecs",
+      "stash_count": 0,
+      "stash_subjects": []
+    },
+    {
+      "repo": "PhenoVCS",
+      "stash_count": 0,
+      "stash_subjects": []
+    },
+    {
+      "repo": "Pine",
+      "stash_count": 0,
+      "stash_subjects": []
+    },
+    {
+      "repo": "Planify",
+      "stash_count": 0,
+      "stash_subjects": []
+    },
+    {
+      "repo": "PlatformKit",
+      "stash_count": 0,
+      "stash_subjects": []
+    },
+    {
+      "repo": "PlayCua",
+      "stash_count": 1,
+      "stash_subjects": [
+        "WIP on chore/pin-github-actions-shas: 6b1e55a chore(PlayCua): workflow hygiene \u2014 ubuntu-24.04, permissions"
+      ]
+    },
+    {
+      "repo": "PolicyStack",
+      "stash_count": 1,
+      "stash_subjects": [
+        "On main: PolicyStack: PULL_REQUEST_TEMPLATE.md local changes"
+      ]
+    },
+    {
+      "repo": "Pyron",
+      "stash_count": 0,
+      "stash_subjects": []
+    },
+    {
+      "repo": "QuadSGM",
+      "stash_count": 2,
+      "stash_subjects": [
+        "WIP on main: b9a97f8 chore: add concurrency to CI workflows",
+        "WIP on chore/trufflehog-20260502: 4990de4 chore: clean Next.js build artifacts and ignore rules"
+      ]
+    },
+    {
+      "repo": "ResilienceKit",
+      "stash_count": 1,
+      "stash_subjects": [
+        "WIP on main: 1e8b1e1 chore: add concurrency to CI workflows"
+      ]
+    },
+    {
+      "repo": "Sidekick",
+      "stash_count": 0,
+      "stash_subjects": []
+    },
+    {
+      "repo": "Tasken",
+      "stash_count": 3,
+      "stash_subjects": [
+        "On fix/workflow-hygiene-0605: pre-existing-wip-workflows-0605",
+        "WIP on main: 9a98347 chore: add missing deny.toml section",
+        "WIP on main: f227867 chore: remove stale RUSTSEC ignores [org-bootstrap-2026-05-03]"
+      ]
+    },
+    {
+      "repo": "TestingKit",
+      "stash_count": 1,
+      "stash_subjects": [
+        "WIP on main: 5bdd7d4 chore: add concurrency to CI workflows"
+      ]
+    },
+    {
+      "repo": "Tokn",
+      "stash_count": 0,
+      "stash_subjects": []
+    },
+    {
+      "repo": "Tracely",
+      "stash_count": 0,
+      "stash_subjects": []
+    },
+    {
+      "repo": "Tracera",
+      "stash_count": 1,
+      "stash_subjects": [
+        "WIP on fix/add-metadata: 7ed2c0486 chore: update docs dependencies"
+      ]
+    },
+    {
+      "repo": "agent-devops-setups",
+      "stash_count": 1,
+      "stash_subjects": [
+        "WIP on ci/pin-trufflehog: 477d4a7 chore: add concurrency to CI workflows"
+      ]
+    },
+    {
+      "repo": "agent-user-status",
+      "stash_count": 1,
+      "stash_subjects": [
+        "WIP on ci/pin-trufflehog: f076f9a chore: add concurrency to CI workflows"
+      ]
+    },
+    {
+      "repo": "agentapi-plusplus",
+      "stash_count": 0,
+      "stash_subjects": []
+    },
+    {
+      "repo": "agileplus-landing",
+      "stash_count": 0,
+      "stash_subjects": []
+    },
+    {
+      "repo": "agslag-docs",
+      "stash_count": 0,
+      "stash_subjects": []
+    },
+    {
+      "repo": "argis-extensions",
+      "stash_count": 1,
+      "stash_subjects": [
+        "WIP on ci/add-golangci-lint: 0ce1cd9 chore: add concurrency to CI workflows"
+      ]
+    },
+    {
+      "repo": "bare-cua",
+      "stash_count": 0,
+      "stash_subjects": []
+    },
+    {
+      "repo": "byteport-landing",
+      "stash_count": 0,
+      "stash_subjects": []
+    },
+    {
+      "repo": "chatta",
+      "stash_count": 1,
+      "stash_subjects": [
+        "WIP on ci/pin-trufflehog: f5c55de chore: add concurrency and gitignore"
+      ]
+    },
+    {
+      "repo": "cheap-llm-mcp",
+      "stash_count": 1,
+      "stash_subjects": [
+        "WIP on ci/pin-trufflehog: 6a21d71 chore: update python version"
+      ]
+    },
+    {
+      "repo": "cliproxyapi-plusplus",
+      "stash_count": 1,
+      "stash_subjects": [
+        "On main: sync-20260528"
+      ]
+    },
+    {
+      "repo": "dinoforge-packs",
+      "stash_count": 0,
+      "stash_subjects": []
+    },
+    {
+      "repo": "dispatch-mcp",
+      "stash_count": 0,
+      "stash_subjects": []
+    },
+    {
+      "repo": "eyetracker",
+      "stash_count": 1,
+      "stash_subjects": [
+        "WIP on ci/pin-trufflehog: 4fd02ec chore: update eyetracker crate versions"
+      ]
+    },
+    {
+      "repo": "foqos-private",
+      "stash_count": 0,
+      "stash_subjects": []
+    },
+    {
+      "repo": "forgecode",
+      "stash_count": 1,
+      "stash_subjects": [
+        "On main: sync-forgecode-main-20260528034936"
+      ]
+    },
+    {
+      "repo": "helios-router",
+      "stash_count": 0,
+      "stash_subjects": []
+    },
+    {
+      "repo": "heliosApp",
+      "stash_count": 2,
+      "stash_subjects": [
+        "WIP on ci/pin-trufflehog: 176c39e fix(repo): remove git conflict markers from heliosApp/.oxfmtrc.json.bak",
+        "WIP on main: fbeef76 ci(legacy-enforcement): add legacy tooling anti-pattern gate (WARN mode)"
+      ]
+    },
+    {
+      "repo": "heliosBench",
+      "stash_count": 1,
+      "stash_subjects": [
+        "On feat/journey-impl: journey-impl uncommitted changes"
+      ]
+    },
+    {
+      "repo": "helioscope",
+      "stash_count": 0,
+      "stash_subjects": []
+    },
+    {
+      "repo": "hwLedger",
+      "stash_count": 0,
+      "stash_subjects": []
+    },
+    {
+      "repo": "kmobile",
+      "stash_count": 0,
+      "stash_subjects": []
+    },
+    {
+      "repo": "kwality",
+      "stash_count": 0,
+      "stash_subjects": []
+    },
+    {
+      "repo": "localbase3",
+      "stash_count": 0,
+      "stash_subjects": []
+    },
+    {
+      "repo": "melosviz",
+      "stash_count": 0,
+      "stash_subjects": []
+    },
+    {
+      "repo": "nanovms",
+      "stash_count": 1,
+      "stash_subjects": [
+        "WIP on ci/pin-trufflehog: e5a3e25 chore(nanovms): pin CI action SHAs and update deny.toml"
+      ]
+    },
+    {
+      "repo": "netweave-final2",
+      "stash_count": 2,
+      "stash_subjects": [
+        "On feat/journey-impl: netweave-final2 journey-impl uncommitted changes",
+        "WIP on ci/add-golangci-lint: 6060a54 chore: add concurrency to CI workflows"
+      ]
+    },
+    {
+      "repo": "pheno",
+      "stash_count": 0,
+      "stash_subjects": []
+    },
+    {
+      "repo": "phenoAI",
+      "stash_count": 0,
+      "stash_subjects": []
+    },
+    {
+      "repo": "phenoData",
+      "stash_count": 0,
+      "stash_subjects": []
+    },
+    {
+      "repo": "phenoDesign",
+      "stash_count": 1,
+      "stash_subjects": [
+        "WIP on ci/pin-trufflehog: 3b25c95 fix(docs): correct phenodocsTheme path to include docs/ segment"
+      ]
+    },
+    {
+      "repo": "phenoForge",
+      "stash_count": 1,
+      "stash_subjects": [
+        "WIP on main: 9998c24 chore: update pheno-forge crate metadata and documentation"
+      ]
+    },
+    {
+      "repo": "phenoResearchEngine",
+      "stash_count": 1,
+      "stash_subjects": [
+        "WIP on ci/add-mypy: 2854eff chore: add concurrency to CI workflows"
+      ]
+    },
+    {
+      "repo": "phenoShared",
+      "stash_count": 1,
+      "stash_subjects": [
+        "WIP on main: 9c946ed fix(phenoShared): rename to @phenotype/shared-utils to avoid npm collision"
+      ]
+    },
+    {
+      "repo": "phenoUtils",
+      "stash_count": 1,
+      "stash_subjects": [
+        "WIP on ci/add-push-pr-workflow: a03ead0 chore: add missing deny.toml section"
+      ]
+    },
+    {
+      "repo": "phenoXdd",
+      "stash_count": 1,
+      "stash_subjects": [
+        "WIP on docs/productization: 405121a chore(phenoXdd): pin CI action SHAs and update deny.toml"
+      ]
+    },
+    {
+      "repo": "phenodocs",
+      "stash_count": 2,
+      "stash_subjects": [
+        "WIP on ci/pin-trufflehog: f1723e6 fix(docs): define missing phenodocsRoot and phenodocsTheme variables",
+        "WIP on ci/add-mypy: d043e40 chore: add concurrency to CI workflows"
+      ]
+    },
+    {
+      "repo": "phenodocs-scorecard-remediation",
+      "stash_count": 2,
+      "stash_subjects": [
+        "WIP on ci/pin-trufflehog: f1723e6 fix(docs): define missing phenodocsRoot and phenodocsTheme variables",
+        "WIP on ci/add-mypy: d043e40 chore: add concurrency to CI workflows"
+      ]
+    },
+    {
+      "repo": "phenokits-landing",
+      "stash_count": 0,
+      "stash_subjects": []
+    },
+    {
+      "repo": "phenotype-auth-ts",
+      "stash_count": 1,
+      "stash_subjects": [
+        "WIP on main: 4db8fe2 chore: update dependencies"
+      ]
+    },
+    {
+      "repo": "phenotype-bus",
+      "stash_count": 1,
+      "stash_subjects": [
+        "WIP on ci/add-push-pr-workflow: 741cbba chore: add concurrency to CI workflows"
+      ]
+    },
+    {
+      "repo": "phenotype-dep-guard",
+      "stash_count": 0,
+      "stash_subjects": []
+    },
+    {
+      "repo": "phenotype-hub",
+      "stash_count": 1,
+      "stash_subjects": [
+        "WIP on main: e1f74ea chore: add concurrency to CI workflows"
+      ]
+    },
+    {
+      "repo": "phenotype-infra",
+      "stash_count": 1,
+      "stash_subjects": [
+        "WIP on (no branch): 66b8da0 chore: add concurrency to CI workflows"
+      ]
+    },
+    {
+      "repo": "phenotype-journeys",
+      "stash_count": 0,
+      "stash_subjects": []
+    },
+    {
+      "repo": "phenotype-omlx",
+      "stash_count": 1,
+      "stash_subjects": [
+        "WIP on main: f7f5ad1 chore(phenotype-omlx): pin CI action SHAs and update deny.toml"
+      ]
+    },
+    {
+      "repo": "phenotype-ops-mcp",
+      "stash_count": 0,
+      "stash_subjects": []
+    },
+    {
+      "repo": "phenotype-org-audits",
+      "stash_count": 1,
+      "stash_subjects": [
+        "WIP on main: 458a3b4 chore: add concurrency to CI workflows"
+      ]
+    },
+    {
+      "repo": "phenotype-postfx",
+      "stash_count": 0,
+      "stash_subjects": []
+    },
+    {
+      "repo": "phenotype-registry",
+      "stash_count": 1,
+      "stash_subjects": [
+        "WIP on fix/add-lock-file: 2fbdd935b chore: add concurrency to CI workflows"
+      ]
+    },
+    {
+      "repo": "phenotype-terrain",
+      "stash_count": 0,
+      "stash_subjects": []
+    },
+    {
+      "repo": "phenotype-tooling",
+      "stash_count": 1,
+      "stash_subjects": [
+        "WIP on main: 429213d chore: update GitHub workflows with concurrency control"
+      ]
+    },
+    {
+      "repo": "phenotype-voxel",
+      "stash_count": 0,
+      "stash_subjects": []
+    },
+    {
+      "repo": "phenotype-water",
+      "stash_count": 0,
+      "stash_subjects": []
+    },
+    {
+      "repo": "portage",
+      "stash_count": 2,
+      "stash_subjects": [
+        "WIP on main: 3da331e7 chore: bootstrap trufflehog.yml",
+        "WIP on main: 3da331e7 chore: bootstrap trufflehog.yml"
+      ]
+    },
+    {
+      "repo": "rich-cli-kit",
+      "stash_count": 0,
+      "stash_subjects": []
+    },
+    {
+      "repo": "thegent",
+      "stash_count": 2,
+      "stash_subjects": [
+        "WIP on main: 348263a9d fix(deps): sync bun lockfile in thegent",
+        "WIP on main: 348263a9d fix(deps): sync bun lockfile in thegent"
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-docs",
+      "stash_count": 0,
+      "stash_subjects": []
+    },
+    {
+      "repo": "thegent-clean-wt-idea",
+      "stash_count": 0,
+      "stash_subjects": []
+    },
+    {
+      "repo": "thegent-clean-wt-parallel",
+      "stash_count": 0,
+      "stash_subjects": []
+    },
+    {
+      "repo": "thegent-clean-wt-policy",
+      "stash_count": 0,
+      "stash_subjects": []
+    },
+    {
+      "repo": "thegent-clean-wt-ruff",
+      "stash_count": 0,
+      "stash_subjects": []
+    },
+    {
+      "repo": "thegent-dispatch",
+      "stash_count": 2,
+      "stash_subjects": [
+        "WIP on main: e824b97 chore: add .gitignore",
+        "WIP on ci/add-push-pr-workflow: 9587c02 ci(thegent-dispatch): add push/PR CI workflow"
+      ]
+    },
+    {
+      "repo": "vibeproxy",
+      "stash_count": 0,
+      "stash_subjects": []
+    },
+    {
+      "repo": "vibeproxy-monitoring-unified",
+      "stash_count": 1,
+      "stash_subjects": [
+        "WIP on main: 1317ca4 chore: add concurrency to CI workflows"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,495 @@
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import express from 'express';
+import request from 'supertest';
+import { initGithub } from '../github';
+import * as githubHandlers from '../githubHandlers';
+import githubApp from '../github';
+
+// Mock all GitHub handlers
+vi.mock('../githubHandlers', () => ({
+  handleOpened: vi.fn(),
+  handleCreated: vi.fn(),
+  handleClosed: vi.fn(),
+  handleReopened: vi.fn(),
+  handleLocked: vi.fn(),
+  handleUnlocked: vi.fn(),
+  handleDeleted: vi.fn(),
+}));
+
+// Mock Express and its methods
+const mockListen = vi.fn();
+const mockApp = {
+  use: vi.fn(),
+  get: vi.fn(),
+  post: vi.fn(),
+  listen: mockListen,
+};
+
+vi.mock('express', () => {
+  const mockExpress = vi.fn(() => mockApp);
+  mockExpress.json = vi.fn();
+  return { default: mockExpress };
+});
+
+describe('GitHub Webhook Integration', () => {
+  let originalEnv: NodeJS.ProcessEnv;
+  let consoleLogSpy: ReturnType<typeof vi.spyOn>;
+
+  beforeEach(() => {
+    // Store original environment
+    originalEnv = process.env;
+    // Reset all mocks
+    vi.clearAllMocks();
+    // Spy on console.log
+    consoleLogSpy = vi.spyOn(console, 'log');
+  });
+
+  afterEach(() => {
+    // Restore original environment
+    process.env = originalEnv;
+    // Restore console.log
+    consoleLogSpy.mockRestore();
+  });
+
+  describe('initGithub()', () => {
+    beforeEach(() => {
+      // Reset mocks before each test
+      vi.clearAllMocks();
+      // Mock app.listen to simulate server startup
+      mockListen.mockImplementation((port, callback) => {
+        if (callback) callback();
+        return { close: vi.fn() };
+      });
+      // Spy on console.log to capture server startup message
+      consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+    });
+
+    it('should initialize GitHub webhook server with default port', () => {
+      // Given - No PORT environment variable set
+      delete process.env.PORT;
+
+      // When - Initialize GitHub
+      initGithub();
+
+      // Then - Server should start on default port 3000
+      expect(mockListen).toHaveBeenCalledWith(3000, expect.any(Function));
+      expect(consoleLogSpy).toHaveBeenCalledWith('Server is running on port 3000');
+    });
+
+    it('should initialize GitHub webhook server with custom port from environment', () => {
+      // Given - PORT environment variable is set
+      process.env.PORT = '8080';
+
+      // When - Initialize GitHub
+      initGithub();
+
+      // Then - Server should start on custom port
+      expect(mockListen).toHaveBeenCalledWith('8080', expect.any(Function));
+      expect(consoleLogSpy).toHaveBeenCalledWith('Server is running on port 8080');
+    });
+
+    it('should use express.json() middleware for parsing JSON requests', () => {
+      // When - Initialize GitHub
+      initGithub();
+
+      // Then - Should set up JSON middleware
+      expect(mockApp.use).toHaveBeenCalled();
+      expect(express.json).toHaveBeenCalled();
+    });
+
+    it('should set up GET endpoint for health check', () => {
+      // When - Initialize GitHub
+      initGithub();
+
+      // Then - Should register GET route
+      expect(mockApp.get).toHaveBeenCalledWith('', expect.any(Function));
+    });
+
+    it('should set up POST endpoint for webhook handling', () => {
+      // When - Initialize GitHub
+      initGithub();
+
+      // Then - Should register POST route
+      expect(mockApp.post).toHaveBeenCalledWith('/', expect.any(Function));
+    });
+  });
+
+  describe('Route Handler Testing', () => {
+    it('should handle GET requests correctly', () => {
+      // Given - Initialize GitHub
+      initGithub();
+
+      // When - Getting the registered GET handler
+      const getHandler = mockApp.get.mock.calls[0][1];
+      const mockReq = {};
+      const mockRes = {
+        json: vi.fn()
+      };
+
+      // Execute the handler
+      getHandler(mockReq, mockRes);
+
+      // Then - Should return success message
+      expect(mockRes.json).toHaveBeenCalledWith({ msg: "github webhooks work" });
+    });
+
+    it('should handle POST webhook requests correctly', () => {
+      // Given - Initialize GitHub
+      initGithub();
+
+      // When - Getting the registered POST handler
+      const postHandler = mockApp.post.mock.calls[0][1];
+      const mockReq = {
+        body: { action: 'opened', issue: { node_id: 'test' } }
+      };
+      const mockRes = {
+        json: vi.fn()
+      };
+
+      // Execute the handler
+      postHandler(mockReq, mockRes);
+
+      // Then - Should return success message and call handler
+      expect(mockRes.json).toHaveBeenCalledWith({ msg: "ok" });
+      expect(githubHandlers.handleOpened).toHaveBeenCalledWith(mockReq);
+    });
+  });
+
+  describe('Webhook Action Handler Integration', () => {
+    let postHandler: any;
+
+    beforeEach(() => {
+      // Initialize and get the POST handler
+      initGithub();
+      postHandler = mockApp.post.mock.calls[0][1];
+
+      // Clear handler mocks
+      vi.clearAllMocks();
+    });
+
+    it('should handle opened action webhook', () => {
+      // Given - Webhook payload with opened action
+      const mockReq = {
+        body: {
+          action: 'opened',
+          issue: {
+            number: 123,
+            title: 'Test Issue',
+            body: 'Test body',
+            node_id: 'node_123',
+            user: { login: 'testuser' },
+            labels: []
+          }
+        }
+      };
+      const mockRes = { json: vi.fn() };
+
+      // When - Executing POST handler
+      postHandler(mockReq, mockRes);
+
+      // Then - Should return success response and call handler
+      expect(mockRes.json).toHaveBeenCalledWith({ msg: "ok" });
+      expect(githubHandlers.handleOpened).toHaveBeenCalledWith(mockReq);
+    });
+
+    it('should handle created action webhook', async () => {
+      // Given - Webhook payload with created action
+      const payload = {
+        action: 'created',
+        comment: {
+          id: 456,
+          body: 'Test comment',
+          user: { login: 'testuser', avatar_url: 'http://test.com/avatar.png' }
+        },
+        issue: { node_id: 'node_123' }
+      };
+
+      // When - Sending POST request
+      const response = await request(githubApp)
+        .post('/')
+        .send(payload)
+        .expect(200);
+
+      // Then - Should return success response
+      expect(response.body).toEqual({ msg: "ok" });
+      expect(githubHandlers.handleCreated).toHaveBeenCalledWith(expect.objectContaining({
+        body: payload
+      }));
+    });
+
+    it('should handle closed action webhook', async () => {
+      // Given - Webhook payload with closed action
+      const payload = {
+        action: 'closed',
+        issue: { node_id: 'node_123' }
+      };
+
+      // When - Sending POST request
+      const response = await request(githubApp)
+        .post('/')
+        .send(payload)
+        .expect(200);
+
+      // Then - Should return success response
+      expect(response.body).toEqual({ msg: "ok" });
+      expect(githubHandlers.handleClosed).toHaveBeenCalledWith(expect.objectContaining({
+        body: payload
+      }));
+    });
+
+    it('should handle reopened action webhook', async () => {
+      // Given - Webhook payload with reopened action
+      const payload = {
+        action: 'reopened',
+        issue: { node_id: 'node_123' }
+      };
+
+      // When - Sending POST request
+      const response = await request(githubApp)
+        .post('/')
+        .send(payload)
+        .expect(200);
+
+      // Then - Should return success response
+      expect(response.body).toEqual({ msg: "ok" });
+      expect(githubHandlers.handleReopened).toHaveBeenCalledWith(expect.objectContaining({
+        body: payload
+      }));
+    });
+
+    it('should handle locked action webhook', async () => {
+      // Given - Webhook payload with locked action
+      const payload = {
+        action: 'locked',
+        issue: { node_id: 'node_123' }
+      };
+
+      // When - Sending POST request
+      const response = await request(githubApp)
+        .post('/')
+        .send(payload)
+        .expect(200);
+
+      // Then - Should return success response
+      expect(response.body).toEqual({ msg: "ok" });
+      expect(githubHandlers.handleLocked).toHaveBeenCalledWith(expect.objectContaining({
+        body: payload
+      }));
+    });
+
+    it('should handle unlocked action webhook', async () => {
+      // Given - Webhook payload with unlocked action
+      const payload = {
+        action: 'unlocked',
+        issue: { node_id: 'node_123' }
+      };
+
+      // When - Sending POST request
+      const response = await request(githubApp)
+        .post('/')
+        .send(payload)
+        .expect(200);
+
+      // Then - Should return success response
+      expect(response.body).toEqual({ msg: "ok" });
+      expect(githubHandlers.handleUnlocked).toHaveBeenCalledWith(expect.objectContaining({
+        body: payload
+      }));
+    });
+
+    it('should handle deleted action webhook', async () => {
+      // Given - Webhook payload with deleted action
+      const payload = {
+        action: 'deleted',
+        issue: { node_id: 'node_123' }
+      };
+
+      // When - Sending POST request
+      const response = await request(githubApp)
+        .post('/')
+        .send(payload)
+        .expect(200);
+
+      // Then - Should return success response
+      expect(response.body).toEqual({ msg: "ok" });
+      expect(githubHandlers.handleDeleted).toHaveBeenCalledWith(expect.objectContaining({
+        body: payload
+      }));
+    });
+
+    it('should handle unknown action gracefully without calling any handler', async () => {
+      // Given - Webhook payload with unknown action
+      const payload = {
+        action: 'unknown_action',
+        issue: { node_id: 'node_123' }
+      };
+
+      // When - Sending POST request
+      const response = await request(githubApp)
+        .post('/')
+        .send(payload)
+        .expect(200);
+
+      // Then - Should return success response without calling handlers
+      expect(response.body).toEqual({ msg: "ok" });
+      expect(githubHandlers.handleOpened).not.toHaveBeenCalled();
+      expect(githubHandlers.handleCreated).not.toHaveBeenCalled();
+      expect(githubHandlers.handleClosed).not.toHaveBeenCalled();
+      expect(githubHandlers.handleReopened).not.toHaveBeenCalled();
+      expect(githubHandlers.handleLocked).not.toHaveBeenCalled();
+      expect(githubHandlers.handleUnlocked).not.toHaveBeenCalled();
+      expect(githubHandlers.handleDeleted).not.toHaveBeenCalled();
+    });
+
+    it('should handle malformed JSON gracefully', async () => {
+      // Given - App with error handling
+      const app = express();
+      app.use(express.json());
+      app.use((err: any, req: any, res: any, next: any) => {
+        res.status(400).json({ error: 'Bad Request' });
+      });
+      
+      app.post('/', (req, res) => {
+        res.json({ msg: "ok" });
+      });
+
+      // When - Sending malformed JSON
+      const response = await request(githubApp)
+        .post('/')
+        .send('invalid json')
+        .set('Content-Type', 'application/json');
+
+      // Then - Should handle error appropriately
+      expect(response.status).toBe(400);
+    });
+
+    it('should handle empty request body', async () => {
+      // Given - Empty payload
+      const payload = {};
+
+      // When - Sending empty POST request
+      const response = await request(githubApp)
+        .post('/')
+        .send(payload)
+        .expect(200);
+
+      // Then - Should return success response
+      expect(response.body).toEqual({ msg: "ok" });
+    });
+
+    it('should handle request body without action field', async () => {
+      // Given - Payload without action
+      const payload = {
+        issue: { node_id: 'node_123' },
+        repository: { name: 'test-repo' }
+      };
+
+      // When - Sending POST request
+      const response = await request(githubApp)
+        .post('/')
+        .send(payload)
+        .expect(200);
+
+      // Then - Should return success response without calling handlers
+      expect(response.body).toEqual({ msg: "ok" });
+      expect(githubHandlers.handleOpened).not.toHaveBeenCalled();
+    });
+
+    it('should handle multiple concurrent webhook requests', async () => {
+      // Given - Multiple webhook payloads
+      const payloads = [
+        { action: 'opened', issue: { node_id: 'node_1' } },
+        { action: 'closed', issue: { node_id: 'node_2' } },
+        { action: 'created', comment: { id: 1 }, issue: { node_id: 'node_3' } }
+      ];
+
+      // When - Sending multiple concurrent requests
+      const promises = payloads.map(payload =>
+        request(githubApp).post('/').send(payload)
+      );
+      const responses = await Promise.all(promises);
+
+      // Then - All should succeed
+      responses.forEach(response => {
+        expect(response.status).toBe(200);
+        expect(response.body).toEqual({ msg: "ok" });
+      });
+    });
+  });
+
+  describe('Error Handling', () => {
+    it('should handle handler function exceptions gracefully', async () => {
+      // Given - App with handler that throws
+      const app = express();
+      app.use(express.json());
+      
+      const throwingHandler = vi.fn().mockImplementation(() => {
+        throw new Error('Handler error');
+      });
+
+      app.post('/', async (req, res) => {
+        try {
+          const githubActions: { [key: string]: (req: any) => void } = {
+            opened: throwingHandler,
+          };
+          const githubAction = githubActions[req.body.action];
+          githubAction && githubAction(req);
+          res.json({ msg: "ok" });
+        } catch (error) {
+          res.status(500).json({ error: 'Internal Server Error' });
+        }
+      });
+
+      // When - Sending request that triggers throwing handler
+      const response = await request(githubApp)
+        .post('/')
+        .send({ action: 'opened', issue: { node_id: 'test' } });
+
+      // Then - Should handle error gracefully
+      expect(response.status).toBe(500);
+      expect(throwingHandler).toHaveBeenCalled();
+    });
+  });
+
+  describe('Content-Type Validation', () => {
+    let app: express.Application;
+
+    beforeEach(() => {
+      app = express();
+      app.use(express.json());
+      app.post('/', (req, res) => {
+        res.json({ msg: "ok", receivedBody: req.body });
+      });
+    });
+
+    it('should accept application/json content type', async () => {
+      // Given - JSON payload
+      const payload = { action: 'opened', issue: { node_id: 'test' } };
+
+      // When - Sending with JSON content type
+      const response = await request(githubApp)
+        .post('/')
+        .set('Content-Type', 'application/json')
+        .send(payload);
+
+      // Then - Should process correctly
+      expect(response.status).toBe(200);
+      expect(response.body.receivedBody).toEqual(payload);
+    });
+
+    it('should handle charset in content type', async () => {
+      // Given - JSON payload with charset
+      const payload = { action: 'opened', issue: { node_id: 'test' } };
+
+      // When - Sending with JSON content type including charset
+      const response = await request(githubApp)
+        .post('/')
+        .set('Content-Type', 'application/json; charset=utf-8')
+        .send(payload);
+
+      // Then - Should process correctly
+      expect(response.status).toBe(200);
+      expect(response.body.receivedBody).toEqual(payload);
+    });
+  });
+});

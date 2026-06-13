@@ -1,0 +1,55 @@
+{
+  "generated_at": "2026-06-09T02:25:58Z",
+  "total_repos": 130,
+  "by_lib": {
+    "mockall": [
+      "Agentora",
+      "FocalPoint",
+      "HexaKit",
+      "KlipDot",
+      "McpKit",
+      "PhenoKits",
+      "PhenoProc",
+      "Pyron",
+      "TestingKit",
+      "crates",
+      "kmobile",
+      "pheno",
+      "phenoShared",
+      "thegent",
+      "thegent-security-fixes"
+    ],
+    "mockito": [
+      "forgecode",
+      "thegent",
+      "thegent-security-fixes"
+    ],
+    "wiremock": [
+      "AgilePlus",
+      "FocalPoint",
+      "HeliosCLI",
+      "PhenoDevOps",
+      "PhenoObservability",
+      "PhenoProc",
+      "PhenoProc-security-fixes",
+      "Pyron",
+      "crates",
+      "helioscope",
+      "kmobile",
+      "pheno",
+      "phenoShared",
+      "phenoUtils"
+    ],
+    "pytest_mock": [
+      "ObservabilityKit",
+      "PhenoObservability",
+      "TestingKit",
+      "Tracera"
+    ],
+    "sinon": [
+      "Tracera"
+    ],
+    "jest": [],
+    "msw": []
+  }
+}

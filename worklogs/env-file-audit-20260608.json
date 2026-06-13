@@ -1,0 +1,43 @@
+{
+  "generated_at": "2026-06-08T00:00:00Z",
+  "total_repos": 174,
+  "with_env": [
+    "OmniRoute"
+  ],
+  "with_env_example": [
+    "Apisync",
+    "AtomsBot",
+    "Civis",
+    "HeliosCLI",
+    "HeliosLab",
+    "HexaKit",
+    "KaskMan",
+    "OmniRoute",
+    "OmniRoute-dependabot",
+    "Parpoura",
+    "PhenoDevOps",
+    "Planify",
+    "Planify-hygiene",
+    "PolicyStack",
+    "Pyron",
+    "QuadSGM",
+    "Tasken",
+    "Tokn",
+    "Tracera",
+    "agent-devops-setups",
+    "agentapi-plusplus",
+    "argis-extensions",
+    "cheap-llm-mcp",
+    "cheap-llm-mcp-deprecate",
+    "cliproxyapi-plusplus",
+    "dispatch-mcp",
+    "helioscope",
+    "pheno",
+    "phenoDesign",
+    "phenodocs",
+    "phenodocs-scorecard-remediation",
+    "portage",
+    "thegent",
+    "thegent-security-fixes"
+  ]
+}

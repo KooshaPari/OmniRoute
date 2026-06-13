@@ -1,0 +1,65 @@
+# Burr+pytest Integration Requirements
+# LLM Validation Platform - Python Test Dependencies
+
+# Core testing framework
+pytest>=7.4.0
+pytest-json-report>=1.5.0
+pytest-cov>=4.1.0
+pytest-xdist>=3.3.1
+pytest-mock>=3.11.1
+pytest-asyncio>=0.21.1
+
+# Burr state machine framework
+burr-framework>=0.1.0
+
+# LLM and AI testing
+openai>=1.0.0
+anthropic>=0.3.0
+langchain>=0.0.300
+huggingface-hub>=0.16.0
+
+# Data validation and testing
+pydantic>=2.3.0
+jsonschema>=4.19.0
+marshmallow>=3.20.0
+
+# HTTP testing
+requests>=2.31.0
+httpx>=0.24.0
+responses>=0.23.0
+
+# Performance testing
+locust>=2.16.0
+pytest-benchmark>=4.0.0
+
+# Security testing
+bandit>=1.7.5
+safety>=2.3.0
+
+# Code quality
+black>=23.7.0
+flake8>=6.0.0
+mypy>=1.5.0
+isort>=5.12.0
+
+# Documentation
+sphinx>=7.1.0
+sphinx-rtd-theme>=1.3.0
+
+# Utilities
+click>=8.1.0
+pyyaml>=6.0.1
+jinja2>=3.1.0
+rich>=13.5.0
+
+# Testing utilities
+factory-boy>=3.3.0
+faker>=19.3.0
+freezegun>=1.2.0
+
+# Optional dependencies for enhanced functionality
+# fastapi>=0.103.0  # For API testing
+# selenium>=4.11.0  # For web testing
+# playwright>=1.37.0  # For modern web testing
+authlib>=1.6.11 # not directly required, pinned by Snyk to avoid a vulnerability
+cryptography>=46.0.7 # not directly required, pinned by Snyk to avoid a vulnerability

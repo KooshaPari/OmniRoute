@@ -1,0 +1,33 @@
+{
+  "generated_at": "2026-06-08T22:15:00Z",
+  "total_repos": 170,
+  "with_git_deps": [
+    "Civis",
+    "ObservabilityKit",
+    "PhenoObservability",
+    "TestingKit",
+    "thegent-dispatch"
+  ],
+  "by_repo": [
+    {
+      "repo": "Civis",
+      "git_dep_count": 1
+    },
+    {
+      "repo": "ObservabilityKit",
+      "git_dep_count": 1
+    },
+    {
+      "repo": "PhenoObservability",
+      "git_dep_count": 1
+    },
+    {
+      "repo": "TestingKit",
+      "git_dep_count": 1
+    },
+    {
+      "repo": "thegent-dispatch",
+      "git_dep_count": 1
+    }
+  ]
+}

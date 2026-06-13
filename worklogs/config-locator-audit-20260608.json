@@ -1,0 +1,32 @@
+{
+  "generated_at": "2026-06-08T00:00:00Z",
+  "total_repos": 18,
+  "by_lib": {
+    "config": [
+      "AgilePlus",
+      "KDesktopVirt",
+      "PhenoKits",
+      "PhenoObservability",
+      "Tracera",
+      "kmobile",
+      "thegent",
+      "thegent-clean-wt-docs",
+      "thegent-clean-wt-idea",
+      "thegent-clean-wt-parallel",
+      "thegent-clean-wt-policy",
+      "thegent-clean-wt-ruff"
+    ],
+    "figment": [
+      "HexaKit",
+      "Pyron",
+      "pheno"
+    ],
+    "dotenv": [
+      "AtomsBot",
+      "Planify",
+      "Tracera",
+      "localbase3"
+    ],
+    "dynaconf": []
+  }
+}

@@ -1,0 +1,45 @@
+{
+  "generated_at": "2026-06-08T16:20:00Z",
+  "repo": "/Users/kooshapari/CodeProjects/Phenotype/repos/OmniRoute",
+  "spec_count": 3,
+  "spec_files": [
+    "SPEC.md",
+    "docs/specs/2026-05-16-adaptive-stream-readiness-design.md",
+    "docs/reference/openapi.yaml"
+  ],
+  "worklog_count": 0,
+  "worklog_files": [],
+  "deploy_markers": [
+    "Dockerfile",
+    ".github/workflows/ci.yml",
+    ".github/workflows/docker-publish.yml",
+    ".github/workflows/electron-release.yml",
+    ".github/workflows/npm-publish.yml",
+    ".github/workflows/claude.yml",
+    ".github/workflows/scorecard.yml"
+  ],
+  "health_endpoints": [],
+  "readme_sections": 126,
+  "contributing_present": true,
+  "contributing_sections": 39,
+  "compliance": {
+    "codeowners": true,
+    "security": true,
+    "license": true,
+    "coc": true,
+    "funding": false,
+    "changelog": true,
+    "pr_template": true,
+    "issue_template": true,
+    "release_drafter": false
+  },
+  "gaps": [
+    {"item": "worklogs/", "severity": "med", "note": "No worklog directory at repo root or in .work-audit; org mandate expects research/decisions logs for sweep traceability."},
+    {"item": ".github/FUNDING.yml", "severity": "low", "note": "Missing sponsor page; optional but commonly expected in OSS profile health."},
+    {"item": ".github/release-drafter.yml", "severity": "low", "note": "No release-drafter workflow; changelog present but auto-drafting absent."},
+    {"item": "Health/readiness workflow", "severity": "high", "note": "No workflow named or referencing health/readiness; deployment observability gap for live ops."},
+    {"item": "OpenSSF Scorecard healthcheck", "severity": "low", "note": "scorecard.yml exists but no explicit health probe step inside it."},
+    {"item": "Quick start / tutorial anchors in README", "severity": "low", "note": "126 H1s but no explicit '## Quick Start' or screenshot/demo link matched by keyword grep; onboarding surface may be buried."},
+    {"item": "Issue templates count", "severity": "low", "note": "Only bug_report.yml and test_coverage_task.yml present; no feature_request.yml or docs.yml."}
+  ]
+}

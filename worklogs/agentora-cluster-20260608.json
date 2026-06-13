@@ -1,0 +1,47 @@
+{
+  "generated_at": "2026-06-08T10:51:28.383780Z",
+  "manifest_dup": false,
+  "merge_recommendation": "No exact duplicate cluster found across Cargo.toml, src/, and README.md; keep repos separate pending deeper API/functionality review.",
+  "readme_dup": false,
+  "repos": [
+    {
+      "cargo_hash": "f8f5e8c1a1ee09bc71e7d0c3fa733109b8e4f946e75e297d25434004f8eff6a5",
+      "exists": true,
+      "name": "Agentora",
+      "path": "/Users/kooshapari/CodeProjects/Phenotype/repos/Agentora",
+      "readme_hash": "255a207758d833d25e29a05cd0ef45d45deb35f8dde5279129e8b2c3cedc18d5",
+      "src": {
+        "files": 17,
+        "hash": "60d36ccae9bf12c2801394524118370e35403b983585274435974a1be953c7b3"
+      }
+    },
+    {
+      "cargo_hash": null,
+      "exists": true,
+      "name": "phenoagent",
+      "path": "/Users/kooshapari/CodeProjects/Phenotype/repos/phenoagent",
+      "readme_hash": "8752573ca2dd9bf3e7d6c1f5175fc796d508f029d8daf4f4a2b4d4235cd310f1",
+      "src": null
+    },
+    {
+      "cargo_hash": null,
+      "exists": true,
+      "name": "agent-devops-setups",
+      "path": "/Users/kooshapari/CodeProjects/Phenotype/repos/agent-devops-setups",
+      "readme_hash": "4d0fdcc2e9b7f938085443eca8ee568f0ba137c7a87e80281a5da907e00dd9c9",
+      "src": null
+    },
+    {
+      "cargo_hash": null,
+      "exists": true,
+      "name": "agent-user-status",
+      "path": "/Users/kooshapari/CodeProjects/Phenotype/repos/agent-user-status",
+      "readme_hash": "192f32d63f5d51845380551cebac26886b2c8b9d2ba5f3d3ac9d1fa84291dbb8",
+      "src": {
+        "files": 102,
+        "hash": "ceabdfc0716831d2e89a378217bac3dd081c7c7140930c71a4ab74b007a60010"
+      }
+    }
+  ],
+  "src_dup": false
+}

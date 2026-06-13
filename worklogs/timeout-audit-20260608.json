@@ -1,0 +1,640 @@
+{
+  "generated_at": "2026-06-08T23:27:14Z",
+  "total_repos": 169,
+  "with_timeout": [
+    "Agentora",
+    "AgilePlus",
+    "AtomsBot",
+    "Benchora",
+    "BytePort",
+    "Civis",
+    "Conft",
+    "Dino",
+    "FocalPoint",
+    "GDK",
+    "HeliosCLI",
+    "HeliosLab",
+    "HexaKit",
+    "KDesktopVirt",
+    "KWatch",
+    "KaskMan",
+    "Metron",
+    "ObservabilityKit",
+    "OmniRoute",
+    "OmniRoute-dependabot",
+    "OmniRoute-latest",
+    "Paginary",
+    "PhenoAgent",
+    "PhenoCompose",
+    "PhenoDevOps",
+    "PhenoKits",
+    "PhenoMCP",
+    "PhenoMCP-cheap",
+    "PhenoObservability",
+    "PhenoPlugins",
+    "PhenoProc",
+    "PhenoProject",
+    "PhenoRuntime",
+    "PhenoVCS",
+    "Pine",
+    "Planify",
+    "PlayCua",
+    "PolicyStack",
+    "Pyron",
+    "QuadSGM",
+    "ResilienceKit",
+    "Sidekick",
+    "Tasken",
+    "TestingKit",
+    "Tokn",
+    "Tracely",
+    "Tracera",
+    "ValidationKit",
+    "agent-user-status",
+    "argis-extensions",
+    "bare-cua",
+    "cheap-llm-mcp",
+    "cheap-llm-mcp-deprecate",
+    "cliproxyapi-plusplus",
+    "dispatch-mcp",
+    "eyetracker",
+    "heliosApp",
+    "helioscope",
+    "hwLedger",
+    "melosviz",
+    "pheno",
+    "phenoAI",
+    "phenoData",
+    "phenoDesign",
+    "phenoUtils",
+    "phenodocs",
+    "phenotype-bus",
+    "phenotype-journeys",
+    "phenotype-omlx",
+    "phenotype-ops-mcp",
+    "phenotype-ops-mcp-t0",
+    "phenotype-postfx",
+    "phenotype-shared",
+    "phenotype-terrain",
+    "phenotype-tooling",
+    "phenotype-water",
+    "portage",
+    "rich-cli-kit",
+    "thegent",
+    "thegent-clean-wt-idea",
+    "thegent-clean-wt-parallel",
+    "thegent-clean-wt-policy",
+    "thegent-clean-wt-ruff",
+    "thegent-dispatch"
+  ],
+  "by_repo": [
+    {
+      "repo": "Civis",
+      "max_timeout": 360
+    },
+    {
+      "repo": "GDK",
+      "max_timeout": 360
+    },
+    {
+      "repo": "HeliosCLI",
+      "max_timeout": 360
+    },
+    {
+      "repo": "HeliosLab",
+      "max_timeout": 360
+    },
+    {
+      "repo": "HexaKit",
+      "max_timeout": 360
+    },
+    {
+      "repo": "KDesktopVirt",
+      "max_timeout": 360
+    },
+    {
+      "repo": "Metron",
+      "max_timeout": 360
+    },
+    {
+      "repo": "PhenoMCP",
+      "max_timeout": 360
+    },
+    {
+      "repo": "PhenoMCP-cheap",
+      "max_timeout": 360
+    },
+    {
+      "repo": "PhenoObservability",
+      "max_timeout": 360
+    },
+    {
+      "repo": "PhenoPlugins",
+      "max_timeout": 360
+    },
+    {
+      "repo": "PhenoProc",
+      "max_timeout": 360
+    },
+    {
+      "repo": "PhenoRuntime",
+      "max_timeout": 360
+    },
+    {
+      "repo": "PhenoVCS",
+      "max_timeout": 360
+    },
+    {
+      "repo": "PlayCua",
+      "max_timeout": 360
+    },
+    {
+      "repo": "ResilienceKit",
+      "max_timeout": 360
+    },
+    {
+      "repo": "Sidekick",
+      "max_timeout": 360
+    },
+    {
+      "repo": "Tasken",
+      "max_timeout": 360
+    },
+    {
+      "repo": "Tracely",
+      "max_timeout": 360
+    },
+    {
+      "repo": "bare-cua",
+      "max_timeout": 360
+    },
+    {
+      "repo": "eyetracker",
+      "max_timeout": 360
+    },
+    {
+      "repo": "helioscope",
+      "max_timeout": 360
+    },
+    {
+      "repo": "hwLedger",
+      "max_timeout": 360
+    },
+    {
+      "repo": "phenoAI",
+      "max_timeout": 360
+    },
+    {
+      "repo": "phenoData",
+      "max_timeout": 360
+    },
+    {
+      "repo": "phenoUtils",
+      "max_timeout": 360
+    },
+    {
+      "repo": "phenotype-bus",
+      "max_timeout": 360
+    },
+    {
+      "repo": "phenotype-journeys",
+      "max_timeout": 360
+    },
+    {
+      "repo": "phenotype-tooling",
+      "max_timeout": 360
+    },
+    {
+      "repo": "rich-cli-kit",
+      "max_timeout": 360
+    },
+    {
+      "repo": "thegent-dispatch",
+      "max_timeout": 360
+    },
+    {
+      "repo": "Dino",
+      "max_timeout": 60
+    },
+    {
+      "repo": "Tracera",
+      "max_timeout": 60
+    },
+    {
+      "repo": "AgilePlus",
+      "max_timeout": 45
+    },
+    {
+      "repo": "BytePort",
+      "max_timeout": 45
+    },
+    {
+      "repo": "phenotype-omlx",
+      "max_timeout": 45
+    },
+    {
+      "repo": "phenotype-shared",
+      "max_timeout": 45
+    },
+    {
+      "repo": "Benchora",
+      "max_timeout": 30
+    },
+    {
+      "repo": "ObservabilityKit",
+      "max_timeout": 30
+    },
+    {
+      "repo": "PhenoDevOps",
+      "max_timeout": 30
+    },
+    {
+      "repo": "Planify",
+      "max_timeout": 30
+    },
+    {
+      "repo": "Pyron",
+      "max_timeout": 30
+    },
+    {
+      "repo": "QuadSGM",
+      "max_timeout": 30
+    },
+    {
+      "repo": "cliproxyapi-plusplus",
+      "max_timeout": 30
+    },
+    {
+      "repo": "pheno",
+      "max_timeout": 30
+    },
+    {
+      "repo": "phenotype-ops-mcp",
+      "max_timeout": 30
+    },
+    {
+      "repo": "thegent",
+      "max_timeout": 30
+    },
+    {
+      "repo": "thegent-clean-wt-idea",
+      "max_timeout": 30
+    },
+    {
+      "repo": "thegent-clean-wt-parallel",
+      "max_timeout": 30
+    },
+    {
+      "repo": "thegent-clean-wt-policy",
+      "max_timeout": 30
+    },
+    {
+      "repo": "thegent-clean-wt-ruff",
+      "max_timeout": 30
+    },
+    {
+      "repo": "OmniRoute",
+      "max_timeout": 25
+    },
+    {
+      "repo": "OmniRoute-dependabot",
+      "max_timeout": 25
+    },
+    {
+      "repo": "OmniRoute-latest",
+      "max_timeout": 25
+    },
+    {
+      "repo": "PhenoProject",
+      "max_timeout": 25
+    },
+    {
+      "repo": "Conft",
+      "max_timeout": 20
+    },
+    {
+      "repo": "PhenoCompose",
+      "max_timeout": 20
+    },
+    {
+      "repo": "PolicyStack",
+      "max_timeout": 20
+    },
+    {
+      "repo": "heliosApp",
+      "max_timeout": 20
+    },
+    {
+      "repo": "phenoDesign",
+      "max_timeout": 20
+    },
+    {
+      "repo": "phenodocs",
+      "max_timeout": 20
+    },
+    {
+      "repo": "phenotype-ops-mcp-t0",
+      "max_timeout": 20
+    },
+    {
+      "repo": "Agentora",
+      "max_timeout": 15
+    },
+    {
+      "repo": "AtomsBot",
+      "max_timeout": 15
+    },
+    {
+      "repo": "FocalPoint",
+      "max_timeout": 15
+    },
+    {
+      "repo": "PhenoAgent",
+      "max_timeout": 15
+    },
+    {
+      "repo": "PhenoKits",
+      "max_timeout": 15
+    },
+    {
+      "repo": "TestingKit",
+      "max_timeout": 15
+    },
+    {
+      "repo": "Tokn",
+      "max_timeout": 15
+    },
+    {
+      "repo": "agent-user-status",
+      "max_timeout": 15
+    },
+    {
+      "repo": "argis-extensions",
+      "max_timeout": 15
+    },
+    {
+      "repo": "cheap-llm-mcp",
+      "max_timeout": 15
+    },
+    {
+      "repo": "cheap-llm-mcp-deprecate",
+      "max_timeout": 15
+    },
+    {
+      "repo": "dispatch-mcp",
+      "max_timeout": 15
+    },
+    {
+      "repo": "phenotype-postfx",
+      "max_timeout": 15
+    },
+    {
+      "repo": "portage",
+      "max_timeout": 15
+    },
+    {
+      "repo": "KWatch",
+      "max_timeout": 10
+    },
+    {
+      "repo": "Paginary",
+      "max_timeout": 10
+    },
+    {
+      "repo": "ValidationKit",
+      "max_timeout": 10
+    },
+    {
+      "repo": "melosviz",
+      "max_timeout": 10
+    },
+    {
+      "repo": "phenotype-terrain",
+      "max_timeout": 10
+    },
+    {
+      "repo": "phenotype-water",
+      "max_timeout": 10
+    },
+    {
+      "repo": "KaskMan",
+      "max_timeout": 5
+    },
+    {
+      "repo": "Pine",
+      "max_timeout": 5
+    },
+    {
+      "repo": "AgentMCP",
+      "max_timeout": 0
+    },
+    {
+      "repo": "Apisync",
+      "max_timeout": 0
+    },
+    {
+      "repo": "AppGen",
+      "max_timeout": 0
+    },
+    {
+      "repo": "AuthKit",
+      "max_timeout": 0
+    },
+    {
+      "repo": "DINOForge-UnityDoorstop",
+      "max_timeout": 0
+    },
+    {
+      "repo": "DataKit",
+      "max_timeout": 0
+    },
+    {
+      "repo": "DevHex",
+      "max_timeout": 0
+    },
+    {
+      "repo": "Eidolon",
+      "max_timeout": 0
+    },
+    {
+      "repo": "Eventra",
+      "max_timeout": 0
+    },
+    {
+      "repo": "Httpora",
+      "max_timeout": 0
+    },
+    {
+      "repo": "KlipDot",
+      "max_timeout": 0
+    },
+    {
+      "repo": "KodeVibe",
+      "max_timeout": 0
+    },
+    {
+      "repo": "MCPForge",
+      "max_timeout": 0
+    },
+    {
+      "repo": "McpKit",
+      "max_timeout": 0
+    },
+    {
+      "repo": "NetScript",
+      "max_timeout": 0
+    },
+    {
+      "repo": "Parpoura",
+      "max_timeout": 0
+    },
+    {
+      "repo": "PhenoHandbook",
+      "max_timeout": 0
+    },
+    {
+      "repo": "PhenoSchema",
+      "max_timeout": 0
+    },
+    {
+      "repo": "PhenoSpecs",
+      "max_timeout": 0
+    },
+    {
+      "repo": "PlatformKit",
+      "max_timeout": 0
+    },
+    {
+      "repo": "agent-devops-setups",
+      "max_timeout": 0
+    },
+    {
+      "repo": "agentapi-plusplus",
+      "max_timeout": 0
+    },
+    {
+      "repo": "agileplus-landing",
+      "max_timeout": 0
+    },
+    {
+      "repo": "byteport-landing",
+      "max_timeout": 0
+    },
+    {
+      "repo": "chatta",
+      "max_timeout": 0
+    },
+    {
+      "repo": "crates",
+      "max_timeout": 0
+    },
+    {
+      "repo": "dinoforge-packs",
+      "max_timeout": 0
+    },
+    {
+      "repo": "foqos-private",
+      "max_timeout": 0
+    },
+    {
+      "repo": "forgecode",
+      "max_timeout": 0
+    },
+    {
+      "repo": "helios-router",
+      "max_timeout": 0
+    },
+    {
+      "repo": "heliosBench",
+      "max_timeout": 0
+    },
+    {
+      "repo": "kmobile",
+      "max_timeout": 0
+    },
+    {
+      "repo": "kwality",
+      "max_timeout": 0
+    },
+    {
+      "repo": "localbase3",
+      "max_timeout": 0
+    },
+    {
+      "repo": "nanovms",
+      "max_timeout": 0
+    },
+    {
+      "repo": "netweave-final2",
+      "max_timeout": 0
+    },
+    {
+      "repo": "phenoForge",
+      "max_timeout": 0
+    },
+    {
+      "repo": "phenoResearchEngine",
+      "max_timeout": 0
+    },
+    {
+      "repo": "phenoShared",
+      "max_timeout": 0
+    },
+    {
+      "repo": "phenoXdd",
+      "max_timeout": 0
+    },
+    {
+      "repo": "phenodocs-scorecard-remediation",
+      "max_timeout": 0
+    },
+    {
+      "repo": "phenokits-landing",
+      "max_timeout": 0
+    },
+    {
+      "repo": "phenotype-auth-ts",
+      "max_timeout": 0
+    },
+    {
+      "repo": "phenotype-dep-guard",
+      "max_timeout": 0
+    },
+    {
+      "repo": "phenotype-hub",
+      "max_timeout": 0
+    },
+    {
+      "repo": "phenotype-infra",
+      "max_timeout": 0
+    },
+    {
+      "repo": "phenotype-org-audits",
+      "max_timeout": 0
+    },
+    {
+      "repo": "phenotype-registry",
+      "max_timeout": 0
+    },
+    {
+      "repo": "phenotype-voxel",
+      "max_timeout": 0
+    },
+    {
+      "repo": "thegent-clean-wt-docs",
+      "max_timeout": 0
+    },
+    {
+      "repo": "vibeproxy",
+      "max_timeout": 0
+    },
+    {
+      "repo": "vibeproxy-monitoring-unified",
+      "max_timeout": 0
+    },
+    {
+      "repo": "worktrees",
+      "max_timeout": 0
+    }
+  ]
+}

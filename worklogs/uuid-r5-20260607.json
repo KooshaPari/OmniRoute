@@ -1,0 +1,323 @@
+{
+  "generated_at": "2026-06-07T00:00:00Z",
+  "total_repos": 168,
+  "with_uuid": [
+    "Agentora",
+    "AgilePlus",
+    "AuthKit",
+    "Conft",
+    "DataKit",
+    "Eidolon",
+    "Eventra",
+    "FocalPoint",
+    "GDK",
+    "HeliosCLI",
+    "HexaKit",
+    "KDesktopVirt",
+    "KlipDot",
+    "McpKit",
+    "ObservabilityKit",
+    "PhenoDevOps",
+    "PhenoKits",
+    "PhenoObservability",
+    "PhenoProc",
+    "Pyron",
+    "ResilienceKit",
+    "Tasken",
+    "TestingKit",
+    "Tracely",
+    "Tracera",
+    "crates",
+    "helioscope",
+    "kmobile",
+    "kwality",
+    "pheno",
+    "phenoShared",
+    "phenodocs",
+    "phenotype-journeys",
+    "phenotype-tooling",
+    "tests",
+    "thegent",
+    "thegent-clean",
+    "thegent-clean-wt-docs",
+    "thegent-clean-wt-idea",
+    "thegent-clean-wt-parallel",
+    "thegent-clean-wt-policy",
+    "thegent-clean-wt-ruff",
+    "tooling",
+    "worktrees"
+  ],
+  "with_nanoid": [],
+  "with_ulid": [
+    "HexaKit",
+    "PhenoProc"
+  ],
+  "by_repo": [
+    {
+      "repo": "Agentora",
+      "libs": [
+        "uuid"
+      ]
+    },
+    {
+      "repo": "AgilePlus",
+      "libs": [
+        "uuid"
+      ]
+    },
+    {
+      "repo": "AuthKit",
+      "libs": [
+        "uuid"
+      ]
+    },
+    {
+      "repo": "Conft",
+      "libs": [
+        "uuid"
+      ]
+    },
+    {
+      "repo": "DataKit",
+      "libs": [
+        "uuid"
+      ]
+    },
+    {
+      "repo": "Eidolon",
+      "libs": [
+        "uuid"
+      ]
+    },
+    {
+      "repo": "Eventra",
+      "libs": [
+        "uuid"
+      ]
+    },
+    {
+      "repo": "FocalPoint",
+      "libs": [
+        "uuid"
+      ]
+    },
+    {
+      "repo": "GDK",
+      "libs": [
+        "uuid"
+      ]
+    },
+    {
+      "repo": "HeliosCLI",
+      "libs": [
+        "uuid"
+      ]
+    },
+    {
+      "repo": "HexaKit",
+      "libs": [
+        "ulid",
+        "uuid"
+      ]
+    },
+    {
+      "repo": "KDesktopVirt",
+      "libs": [
+        "uuid"
+      ]
+    },
+    {
+      "repo": "KlipDot",
+      "libs": [
+        "uuid"
+      ]
+    },
+    {
+      "repo": "McpKit",
+      "libs": [
+        "uuid"
+      ]
+    },
+    {
+      "repo": "ObservabilityKit",
+      "libs": [
+        "uuid"
+      ]
+    },
+    {
+      "repo": "PhenoDevOps",
+      "libs": [
+        "uuid"
+      ]
+    },
+    {
+      "repo": "PhenoKits",
+      "libs": [
+        "uuid"
+      ]
+    },
+    {
+      "repo": "PhenoObservability",
+      "libs": [
+        "uuid"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "libs": [
+        "ulid",
+        "uuid"
+      ]
+    },
+    {
+      "repo": "Pyron",
+      "libs": [
+        "uuid"
+      ]
+    },
+    {
+      "repo": "ResilienceKit",
+      "libs": [
+        "uuid"
+      ]
+    },
+    {
+      "repo": "Tasken",
+      "libs": [
+        "uuid"
+      ]
+    },
+    {
+      "repo": "TestingKit",
+      "libs": [
+        "uuid"
+      ]
+    },
+    {
+      "repo": "Tracely",
+      "libs": [
+        "uuid"
+      ]
+    },
+    {
+      "repo": "Tracera",
+      "libs": [
+        "uuid"
+      ]
+    },
+    {
+      "repo": "crates",
+      "libs": [
+        "uuid"
+      ]
+    },
+    {
+      "repo": "helioscope",
+      "libs": [
+        "uuid"
+      ]
+    },
+    {
+      "repo": "kmobile",
+      "libs": [
+        "uuid"
+      ]
+    },
+    {
+      "repo": "kwality",
+      "libs": [
+        "uuid"
+      ]
+    },
+    {
+      "repo": "pheno",
+      "libs": [
+        "uuid"
+      ]
+    },
+    {
+      "repo": "phenoShared",
+      "libs": [
+        "uuid"
+      ]
+    },
+    {
+      "repo": "phenodocs",
+      "libs": [
+        "uuid"
+      ]
+    },
+    {
+      "repo": "phenotype-journeys",
+      "libs": [
+        "uuid"
+      ]
+    },
+    {
+      "repo": "phenotype-tooling",
+      "libs": [
+        "uuid"
+      ]
+    },
+    {
+      "repo": "tests",
+      "libs": [
+        "uuid"
+      ]
+    },
+    {
+      "repo": "thegent",
+      "libs": [
+        "uuid"
+      ]
+    },
+    {
+      "repo": "thegent-clean",
+      "libs": [
+        "uuid"
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-docs",
+      "libs": [
+        "uuid"
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-idea",
+      "libs": [
+        "uuid"
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-parallel",
+      "libs": [
+        "uuid"
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-policy",
+      "libs": [
+        "uuid"
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-ruff",
+      "libs": [
+        "uuid"
+      ]
+    },
+    {
+      "repo": "tooling",
+      "libs": [
+        "uuid"
+      ]
+    },
+    {
+      "repo": "worktrees",
+      "libs": [
+        "uuid"
+      ]
+    }
+  ]
+}

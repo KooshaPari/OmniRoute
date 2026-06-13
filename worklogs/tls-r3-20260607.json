@@ -1,0 +1,31 @@
+{
+  "generated_at": "2026-06-08T09:02:51Z",
+  "total_repos": 54,
+  "with_native_tls": [],
+  "with_rustls": [
+    "HeliosCLI",
+    "helioscope",
+    "phenoData"
+  ],
+  "with_openssl": [],
+  "by_repo": [
+    {
+      "repo": "HeliosCLI",
+      "libs": [
+        "rustls"
+      ]
+    },
+    {
+      "repo": "helioscope",
+      "libs": [
+        "rustls"
+      ]
+    },
+    {
+      "repo": "phenoData",
+      "libs": [
+        "rustls"
+      ]
+    }
+  ]
+}

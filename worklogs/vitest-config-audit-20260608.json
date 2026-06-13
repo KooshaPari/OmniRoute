@@ -1,0 +1,22 @@
+{
+  "generated_at": "2026-06-08T00:00:00Z",
+  "total_repos": 177,
+  "with_vitest": [
+    "AppGen",
+    "AtomsBot",
+    "OmniRoute",
+    "OmniRoute-dependabot",
+    "PhenoCompose",
+    "PhenoHandbook",
+    "agileplus-landing",
+    "chatta",
+    "nanovms",
+    "phenoDesign",
+    "phenotype-auth-ts",
+    "thegent",
+    "thegent-clean-wt-idea",
+    "thegent-clean-wt-parallel",
+    "thegent-clean-wt-policy",
+    "thegent-clean-wt-ruff"
+  ]
+}

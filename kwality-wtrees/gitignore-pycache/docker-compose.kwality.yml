@@ -1,0 +1,345 @@
+version: '3.8'
+
+services:
+  # Kwality Go Orchestration Service
+  kwality-orchestrator:
+    build:
+      context: .
+      dockerfile: Dockerfile.go
+    container_name: kwality-orchestrator
+    ports:
+      - "8080:8080"
+    environment:
+      - KWALITY_PORT=8080
+      - KWALITY_ENV=production
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_DATABASE=kwality
+      - DB_USER=postgres
+      - DB_PASSWORD=${DB_PASSWORD:-postgres}
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=${REDIS_PASSWORD:-}
+      - RUNTIME_CONTAINER_IMAGE=kwality/runtime-validator:latest
+      - RUNTIME_MEMORY_LIMIT_MB=512
+      - RUNTIME_CPU_LIMIT_CORES=1.0
+      - RUNTIME_TIMEOUT_SECONDS=300
+      - SECURITY_ENABLED_SCANNERS=semgrep,gosec,bandit
+      - SECURITY_SECRETS_DETECTION=true
+      - DOCKER_HOST=unix:///var/run/docker.sock
+    depends_on:
+      - postgres
+      - redis
+      - kwality-runtime-validator
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./logs:/app/logs
+      - ./config:/app/config:ro
+    networks:
+      - kwality-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Kwality Rust Runtime Validator
+  kwality-runtime-validator:
+    build:
+      context: ./engines/runtime-validator
+      dockerfile: Dockerfile
+    image: kwality/runtime-validator:latest
+    container_name: kwality-runtime-validator
+    environment:
+      - RUST_LOG=info
+      - CONTAINER_RUNTIME=docker
+    privileged: true  # Required for container execution
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /tmp:/tmp
+      - ./engines/runtime-validator/config:/config:ro
+    networks:
+      - kwality-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "runtime-validator", "--health-check"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+  # PostgreSQL Database (shared)
+  postgres:
+    image: postgres:15-alpine
+    container_name: kwality-postgres
+    environment:
+      - POSTGRES_DB=kwality
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_INITDB_ARGS=--auth-host=scram-sha-256
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/schema:/docker-entrypoint-initdb.d
+    ports:
+      - "5432:5432"
+    networks:
+      - kwality-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Redis Cache (shared)
+  redis:
+    image: redis:7-alpine
+    container_name: kwality-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+      - ./config/redis.conf:/etc/redis/redis.conf
+    command: redis-server /etc/redis/redis.conf
+    networks:
+      - kwality-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Kwality Static Analysis Engine
+  kwality-static-analyzer:
+    image: kwality/static-analyzer:latest
+    build:
+      context: ./engines/static-analyzer
+      dockerfile: Dockerfile
+    container_name: kwality-static-analyzer
+    environment:
+      - ANALYZER_WORKERS=4
+      - MAX_FILE_SIZE=10MB
+      - MAX_FILES=1000
+    volumes:
+      - ./engines/static-analyzer/config:/config:ro
+      - /tmp/kwality-analysis:/workspace
+    networks:
+      - kwality-network
+    restart: unless-stopped
+
+  # Kwality Security Scanner
+  kwality-security-scanner:
+    image: kwality/security-scanner:latest
+    build:
+      context: ./engines/security-scanner
+      dockerfile: Dockerfile
+    container_name: kwality-security-scanner
+    environment:
+      - SCANNER_TIMEOUT=300
+      - ENABLE_SECRETS_DETECTION=true
+      - VULNERABILITY_DB_UPDATE=daily
+    volumes:
+      - ./engines/security-scanner/config:/config:ro
+      - ./engines/security-scanner/db:/db
+      - /tmp/kwality-security:/workspace
+    networks:
+      - kwality-network
+    restart: unless-stopped
+
+  # Multi-Language Runtime Containers
+  kwality-go-runner:
+    image: golang:1.21-alpine
+    container_name: kwality-go-runner
+    command: ["sleep", "infinity"]
+    volumes:
+      - /tmp/kwality-go:/workspace
+    networks:
+      - kwality-network
+    restart: unless-stopped
+
+  kwality-rust-runner:
+    image: rust:1.75-slim
+    container_name: kwality-rust-runner
+    command: ["sleep", "infinity"]
+    volumes:
+      - /tmp/kwality-rust:/workspace
+    networks:
+      - kwality-network
+    restart: unless-stopped
+
+  kwality-python-runner:
+    image: python:3.11-slim
+    container_name: kwality-python-runner
+    command: ["sleep", "infinity"]
+    volumes:
+      - /tmp/kwality-python:/workspace
+    networks:
+      - kwality-network
+    restart: unless-stopped
+
+  kwality-node-runner:
+    image: node:18-alpine
+    container_name: kwality-node-runner
+    command: ["sleep", "infinity"]
+    volumes:
+      - /tmp/kwality-node:/workspace
+    networks:
+      - kwality-network
+    restart: unless-stopped
+
+  kwality-java-runner:
+    image: openjdk:17-alpine
+    container_name: kwality-java-runner
+    command: ["sleep", "infinity"]
+    volumes:
+      - /tmp/kwality-java:/workspace
+    networks:
+      - kwality-network
+    restart: unless-stopped
+
+  # Prometheus Monitoring
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: kwality-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+      - '--web.console.templates=/usr/share/prometheus/consoles'
+      - '--web.enable-lifecycle'
+    networks:
+      - kwality-network
+    restart: unless-stopped
+
+  # Grafana Dashboard
+  grafana:
+    image: grafana/grafana:latest
+    container_name: kwality-grafana
+    ports:
+      - "3001:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning
+      - ./monitoring/grafana/dashboards:/var/lib/grafana/dashboards
+    depends_on:
+      - prometheus
+    networks:
+      - kwality-network
+    restart: unless-stopped
+
+  # Jaeger Distributed Tracing
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    container_name: kwality-jaeger
+    ports:
+      - "16686:16686"
+      - "14268:14268"
+    environment:
+      - COLLECTOR_OTLP_ENABLED=true
+    volumes:
+      - jaeger_data:/badger
+    networks:
+      - kwality-network
+    restart: unless-stopped
+
+  # NGINX Reverse Proxy
+  nginx:
+    image: nginx:alpine
+    container_name: kwality-nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/kwality-nginx.conf:/etc/nginx/nginx.conf
+      - ./nginx/ssl:/etc/nginx/ssl
+    depends_on:
+      - kwality-orchestrator
+      - grafana
+    networks:
+      - kwality-network
+    restart: unless-stopped
+
+  # Container Registry (for storing validation images)
+  registry:
+    image: registry:2
+    container_name: kwality-registry
+    ports:
+      - "5000:5000"
+    environment:
+      - REGISTRY_STORAGE_FILESYSTEM_ROOTDIRECTORY=/data
+    volumes:
+      - registry_data:/data
+    networks:
+      - kwality-network
+    restart: unless-stopped
+
+  # Kwality Worker Pool
+  kwality-worker-1:
+    build:
+      context: ./engines/runtime-validator
+      dockerfile: Dockerfile
+    container_name: kwality-worker-1
+    environment:
+      - WORKER_ID=1
+      - ORCHESTRATOR_URL=http://kwality-orchestrator:8080
+      - WORKER_CONCURRENCY=2
+    depends_on:
+      - kwality-orchestrator
+    privileged: true
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /tmp/kwality-worker-1:/workspace
+    networks:
+      - kwality-network
+    restart: unless-stopped
+
+  kwality-worker-2:
+    build:
+      context: ./engines/runtime-validator
+      dockerfile: Dockerfile
+    container_name: kwality-worker-2
+    environment:
+      - WORKER_ID=2
+      - ORCHESTRATOR_URL=http://kwality-orchestrator:8080
+      - WORKER_CONCURRENCY=2
+    depends_on:
+      - kwality-orchestrator
+    privileged: true
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /tmp/kwality-worker-2:/workspace
+    networks:
+      - kwality-network
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  prometheus_data:
+    driver: local
+  grafana_data:
+    driver: local
+  jaeger_data:
+    driver: local
+  registry_data:
+    driver: local
+
+networks:
+  kwality-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.21.0.0/16

@@ -1,0 +1,31 @@
+{
+  "generated_at": "2026-06-09T04:22:41Z",
+  "openapi_version": "3.0.3",
+  "title": "TraceRTM API (Gateway)",
+  "version": "1.0",
+  "top_20_paths": [
+    "/api/v1/ai/analyze",
+    "/api/v1/ai/stream-chat",
+    "/api/v1/auth/login",
+    "/api/v1/auth/logout",
+    "/api/v1/auth/me",
+    "/api/v1/auth/refresh",
+    "/api/v1/auth/verify",
+    "/api/v1/csrf-token",
+    "/api/v1/docs",
+    "/api/v1/docs/search",
+    "/api/v1/docs/{id}",
+    "/api/v1/graph/analysis/cache/invalidate",
+    "/api/v1/graph/analysis/centrality",
+    "/api/v1/graph/analysis/coverage",
+    "/api/v1/graph/analysis/cycles",
+    "/api/v1/graph/analysis/dependencies",
+    "/api/v1/graph/analysis/dependents",
+    "/api/v1/graph/analysis/impact",
+    "/api/v1/graph/analysis/metrics",
+    "/api/v1/graph/analysis/shortest-path"
+  ],
+  "has_health_path": true,
+  "has_livez": false,
+  "has_readyz": false
+}

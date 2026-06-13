@@ -1,0 +1,126 @@
+openapi: 3.0.3
+info:
+    title: Atoms API - Requirements
+    version: 1.0.0
+servers:
+    - url: https://api.example.com
+paths:
+    /requirements:
+        get:
+            summary: List requirements by document or project
+            parameters:
+                - in: query
+                  name: documentId
+                  schema: { type: string }
+                - in: query
+                  name: projectId
+                  schema: { type: string }
+            responses:
+                '200':
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                type: array
+                                items: { $ref: '#/components/schemas/Requirement' }
+        post:
+            summary: Create requirement
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema: { $ref: '#/components/schemas/RequirementCreate' }
+            responses:
+                '201': { description: Created }
+    /requirements/{id}:
+        get:
+            summary: Get requirement
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  schema: { type: string }
+            responses:
+                '200':
+                    description: OK
+                    content:
+                        application/json:
+                            schema: { $ref: '#/components/schemas/Requirement' }
+        patch:
+            summary: Update requirement
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  schema: { type: string }
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema: { $ref: '#/components/schemas/RequirementUpdate' }
+            responses:
+                '200': { description: Updated }
+        delete:
+            summary: Soft delete requirement
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  schema: { type: string }
+            responses:
+                '204': { description: No Content }
+    /requirements/positions:
+        patch:
+            summary: Update positions in bulk
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: array
+                            items:
+                                type: object
+                                required: [id, position]
+                                properties:
+                                    id: { type: string }
+                                    position: { type: integer }
+            responses:
+                '204': { description: No Content }
+components:
+    schemas:
+        Requirement:
+            type: object
+            properties:
+                id: { type: string }
+                document_id: { type: string }
+                block_id: { type: string }
+                name: { type: string }
+                description: { type: string, nullable: true }
+                external_id: { type: string, nullable: true }
+                status: { type: string }
+                priority: { type: string }
+                properties: { type: object, additionalProperties: true }
+                position: { type: integer }
+                ai_analysis: { type: object, additionalProperties: true }
+        RequirementCreate:
+            type: object
+            required: [document_id, block_id, name]
+            properties:
+                document_id: { type: string }
+                block_id: { type: string }
+                name: { type: string }
+                description: { type: string }
+                external_id: { type: string }
+                status: { type: string }
+                priority: { type: string }
+                properties: { type: object, additionalProperties: true }
+        RequirementUpdate:
+            type: object
+            properties:
+                name: { type: string }
+                description: { type: string }
+                external_id: { type: string }
+                status: { type: string }
+                priority: { type: string }
+                properties: { type: object, additionalProperties: true }
+                position: { type: integer }

@@ -1,0 +1,149 @@
+{
+  "generated_at": "2026-06-08T22:15:00Z",
+  "total_repos": 78,
+  "wrapper_crates": [
+    {
+      "repo": "phenotype-tooling",
+      "crate_name": "policy-wrapper-rust",
+      "wrapped_libs": []
+    },
+    {
+      "repo": "PhenoProc",
+      "crate_name": "phenotype-http-client-core",
+      "wrapped_libs": []
+    },
+    {
+      "repo": "Civis",
+      "crate_name": "civlab-sdk",
+      "wrapped_libs": []
+    },
+    {
+      "repo": "phenodocs",
+      "crate_name": "phenotype-nanovms-client",
+      "wrapped_libs": []
+    },
+    {
+      "repo": "Pyron",
+      "crate_name": "phenotype-http-client-core",
+      "wrapped_libs": []
+    },
+    {
+      "repo": "helioscope",
+      "crate_name": "codex-rmcp-client",
+      "wrapped_libs": []
+    },
+    {
+      "repo": "helioscope",
+      "crate_name": "codex-backend-client",
+      "wrapped_libs": [
+        "codex-backend-openapi-models"
+      ]
+    },
+    {
+      "repo": "helioscope",
+      "crate_name": "codex-app-server-test-client",
+      "wrapped_libs": []
+    },
+    {
+      "repo": "helioscope",
+      "crate_name": "codex-cloud-tasks-client",
+      "wrapped_libs": [
+        "backend-client"
+      ]
+    },
+    {
+      "repo": "helioscope",
+      "crate_name": "codex-client",
+      "wrapped_libs": []
+    },
+    {
+      "repo": "helioscope",
+      "crate_name": "codex-debug-client",
+      "wrapped_libs": []
+    },
+    {
+      "repo": "PhenoDevOps",
+      "crate_name": "phenotype-http-client-core",
+      "wrapped_libs": []
+    },
+    {
+      "repo": "PhenoDevOps",
+      "crate_name": "phenotype-casbin-wrapper",
+      "wrapped_libs": []
+    },
+    {
+      "repo": "HexaKit",
+      "crate_name": "phenotype-http-client-core",
+      "wrapped_libs": []
+    },
+    {
+      "repo": "HexaKit",
+      "crate_name": "phenotype-casbin-wrapper",
+      "wrapped_libs": []
+    },
+    {
+      "repo": "HeliosCLI",
+      "crate_name": "codex-rmcp-client",
+      "wrapped_libs": []
+    },
+    {
+      "repo": "HeliosCLI",
+      "crate_name": "codex-backend-client",
+      "wrapped_libs": [
+        "codex-backend-openapi-models"
+      ]
+    },
+    {
+      "repo": "HeliosCLI",
+      "crate_name": "codex-app-server-test-client",
+      "wrapped_libs": []
+    },
+    {
+      "repo": "HeliosCLI",
+      "crate_name": "codex-cloud-tasks-client",
+      "wrapped_libs": [
+        "backend-client"
+      ]
+    },
+    {
+      "repo": "HeliosCLI",
+      "crate_name": "codex-client",
+      "wrapped_libs": []
+    },
+    {
+      "repo": "HeliosCLI",
+      "crate_name": "codex-debug-client",
+      "wrapped_libs": []
+    },
+    {
+      "repo": "FocalPoint",
+      "crate_name": "focus-plugin-sdk",
+      "wrapped_libs": []
+    },
+    {
+      "repo": "pheno",
+      "crate_name": "phenotype-http-client-core",
+      "wrapped_libs": []
+    },
+    {
+      "repo": "pheno",
+      "crate_name": "phenotype-casbin-wrapper",
+      "wrapped_libs": []
+    },
+    {
+      "repo": "PolicyStack",
+      "crate_name": "policy-wrapper-rust",
+      "wrapped_libs": []
+    },
+    {
+      "repo": "crates",
+      "crate_name": "focus-plugin-sdk",
+      "wrapped_libs": []
+    },
+    {
+      "repo": "phenoShared",
+      "crate_name": "phenotype-nanovms-client",
+      "wrapped_libs": []
+    }
+  ]
+}

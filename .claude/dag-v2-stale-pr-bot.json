@@ -1,0 +1,46 @@
+{
+  "task": "L2-38",
+  "name": "pheno-stale-pr-bot",
+  "date": "2026-06-08",
+  "action": "actions/stale",
+  "action_version": "v9.0.0",
+  "action_sha_pinned": "28ca1036281a5e5922ead5184a1bbf96e5fc984e",
+  "config": {
+    "days_before_stale": 30,
+    "days_before_close": 7,
+    "stale_issue_label": "stale",
+    "close_issue_label": "closed-stale",
+    "exempt_labels": ["security", "pinned", "in-progress"]
+  },
+  "branch_name": "chore/stale-pr-bot-2026-06-08",
+  "commit_message": "chore(ci): add actions/stale bot (30-day idle, 7-day close)",
+  "pushed": false,
+  "canonical_template": ".claude/templates/.github/workflows/stale.yml",
+  "repos": {
+    "PhenoDevOps": {
+      "branch": "chore/stale-pr-bot-2026-06-08",
+      "commit": "161d23b5b8852525ea4df1a4f696e71193f55e4a",
+      "parent": "2c676f69f59a69f13dd5e833793b11891b4424f2"
+    },
+    "AgilePlus": {
+      "branch": "chore/stale-pr-bot-2026-06-08",
+      "commit": "33d160c8886924947d54945770a5063d82fa7bca",
+      "parent": "5d03f018526ffefad822d1b0d423804b6984a363"
+    },
+    "pheno": {
+      "branch": "chore/stale-pr-bot-2026-06-08",
+      "commit": "5851a70c6c067624803c4c133eccf40e34573fd7",
+      "parent": "430f5b3154de1c3d20e5a2e125dbfff12402a797"
+    },
+    "HeliosCLI": {
+      "branch": "chore/stale-pr-bot-2026-06-08",
+      "commit": "bc550a8576ab30332a9d853c0ae7c62c87b7f591",
+      "parent": "be2d47aa30e483e990b260d48b566a2b4f7323a2"
+    },
+    "FocalPoint": {
+      "branch": "chore/stale-pr-bot-2026-06-08",
+      "commit": "b84bae87625a1b565320fc18896e29605165798d",
+      "parent": "0e143fb905c9e4f6239f26b4eb43d19f2475f457"
+    }
+  }
+}

@@ -1,0 +1,49 @@
+{
+  "generated_at": "2026-06-08T23:56:26Z",
+  "total_repos": 166,
+  "by_lib": {
+    "uuid": [
+      "Agentora",
+      "AgilePlus",
+      "AuthKit",
+      "Conft",
+      "DataKit",
+      "Eidolon",
+      "Eventra",
+      "FocalPoint",
+      "GDK",
+      "HeliosCLI",
+      "HexaKit",
+      "KDesktopVirt",
+      "KlipDot",
+      "McpKit",
+      "ObservabilityKit",
+      "PhenoDevOps",
+      "PhenoKits",
+      "PhenoObservability",
+      "Pyron",
+      "ResilienceKit",
+      "Tasken",
+      "TestingKit",
+      "agent-platform",
+      "forgecode",
+      "helioscope",
+      "kmobile",
+      "kwality",
+      "pheno",
+      "phenoShared",
+      "phenodocs",
+      "phenotype-tooling"
+    ],
+    "ulid": [
+      "HexaKit",
+      "PhenoProc",
+      "Pyron",
+      "pheno"
+    ],
+    "nanoid": [],
+    "snowflake": [],
+    "ksuid": [],
+    "sqids": []
+  }
+}

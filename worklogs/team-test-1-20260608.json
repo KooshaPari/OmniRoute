@@ -1,0 +1,111 @@
+{
+  "generated_at": "2026-06-08T10:10:23.300227Z",
+  "total_repos": 128,
+  "rust_fixture_dupes": [
+    {
+      "filename": "fixture_digests.json",
+      "hash": "22b1f59749109d5fdcf8dbd5271a4e3947e4ba86eb2edc3cd4b1ab4a929b2200",
+      "repos": [
+        "thegent",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "filename": "review-approval.json",
+      "hash": "b507f681238fc7d5b2e2fd80af3114ff8b44d9e78b0ca0d14a82fb6c1b1757a7",
+      "repos": [
+        "HexaKit",
+        "PhenoDevOps",
+        "Pyron",
+        "pheno"
+      ]
+    },
+    {
+      "filename": "sample-governance.json",
+      "hash": "1056867302f5d78ea871079397e05b49ec1c756a1ed2dc2ea7dfbcdb99da726b",
+      "repos": [
+        "HexaKit",
+        "PhenoDevOps",
+        "Pyron",
+        "pheno"
+      ]
+    },
+    {
+      "filename": "sample-meta.json",
+      "hash": "23e861400ed6572bac0b4ff9bc20dec65febfb824fbb7f8727a056bb275ac968",
+      "repos": [
+        "HexaKit",
+        "PhenoDevOps",
+        "Pyron",
+        "pheno"
+      ]
+    },
+    {
+      "filename": "spiral_selector_contract_snapshot.json",
+      "hash": "e0ab0408518b74a966205934251bd5c3f55b8d8b6cbd3049c43eb849d30c5900",
+      "repos": [
+        "thegent",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "filename": "spiral_trend_replay_manifest.json",
+      "hash": "69cedaf2822f4f59ef4c03bd48a3da8e10d6d39673eb1b507fbdc6845f321a58",
+      "repos": [
+        "thegent",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "filename": "test-results.json",
+      "hash": "719d7c1b16cfec555390d5ea2bf35cb9bc799c7ae645c48f9d86c89519d79ba6",
+      "repos": [
+        "HexaKit",
+        "PhenoDevOps",
+        "Pyron",
+        "pheno"
+      ]
+    },
+    {
+      "filename": "test-results.json",
+      "hash": "f01ea6b05526f911eb86b8997b03c163073e0833569463b3a68f59b9f236b7f9",
+      "repos": [
+        "HexaKit",
+        "PhenoDevOps",
+        "Pyron",
+        "pheno"
+      ]
+    },
+    {
+      "filename": "zig_abi_error_envelope_fixture.json",
+      "hash": "8d225fa3794d67341bceb0b2f55f5f0f809a2e64c951f3a9f86b0f5911a016e8",
+      "repos": [
+        "thegent",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "filename": "zig_abi_symbols_fixture.txt",
+      "hash": "fc6313085af3e07e348e42050cd38b2dfe3eccec59498b0629f83c276380d5df",
+      "repos": [
+        "thegent",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    }
+  ]
+}

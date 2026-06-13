@@ -1,0 +1,548 @@
+{
+  "generated_at": "2026-06-08T00:00:00Z",
+  "total_repos": 134,
+  "with_schedule": [
+    "AgentMCP",
+    "Agentora",
+    "AgilePlus",
+    "Apisync",
+    "AtomsBot",
+    "AuthKit",
+    "Benchora",
+    "BytePort",
+    "Civis",
+    "Conft",
+    "DataKit",
+    "DevHex",
+    "Dino",
+    "Eidolon",
+    "FocalPoint",
+    "GDK",
+    "HeliosCLI",
+    "HeliosLab",
+    "HexaKit",
+    "Httpora",
+    "KDesktopVirt",
+    "KaskMan",
+    "KlipDot",
+    "MCPForge",
+    "McpKit",
+    "Metron",
+    "ObservabilityKit",
+    "OmniRoute",
+    "Paginary",
+    "Parpoura",
+    "PhenoAgent",
+    "PhenoCompose",
+    "PhenoDevOps",
+    "PhenoHandbook",
+    "PhenoKits",
+    "PhenoMCP",
+    "PhenoMCP-cheap",
+    "PhenoObservability",
+    "PhenoPlugins",
+    "PhenoProc",
+    "PhenoProject",
+    "PhenoRuntime",
+    "PhenoSpecs",
+    "PhenoVCS",
+    "Planify",
+    "PlayCua",
+    "PolicyStack",
+    "Pyron",
+    "QuadSGM",
+    "ResilienceKit",
+    "Sidekick",
+    "Tasken",
+    "TestingKit",
+    "Tokn",
+    "Tracely",
+    "Tracera",
+    "agent-devops-setups",
+    "agent-user-status",
+    "agentapi-plusplus",
+    "argis-extensions",
+    "bare-cua",
+    "cheap-llm-mcp",
+    "cheap-llm-mcp-deprecate",
+    "cliproxyapi-plusplus",
+    "dinoforge-packs",
+    "eyetracker",
+    "foqos-private",
+    "forgecode",
+    "heliosApp",
+    "heliosBench",
+    "helioscope",
+    "hwLedger",
+    "kwality",
+    "nanovms",
+    "pheno",
+    "phenoAI",
+    "phenoData",
+    "phenoDesign",
+    "phenoForge",
+    "phenoResearchEngine",
+    "phenoShared",
+    "phenoUtils",
+    "phenoXdd",
+    "phenodocs",
+    "phenodocs-scorecard-remediation",
+    "phenokits-landing",
+    "phenotype-auth-ts",
+    "phenotype-bus",
+    "phenotype-dep-guard",
+    "phenotype-hub",
+    "phenotype-infra",
+    "phenotype-journeys",
+    "phenotype-ops-mcp-t0",
+    "phenotype-org-audits",
+    "phenotype-registry",
+    "phenotype-shared",
+    "phenotype-tooling",
+    "portage",
+    "rich-cli-kit",
+    "thegent",
+    "thegent-clean-wt-docs",
+    "thegent-clean-wt-idea",
+    "thegent-clean-wt-parallel",
+    "thegent-clean-wt-policy",
+    "thegent-clean-wt-ruff",
+    "thegent-dispatch",
+    "vibeproxy",
+    "vibeproxy-monitoring-unified"
+  ],
+  "by_repo": [
+    {
+      "repo": "AgentMCP",
+      "schedule_count": 1
+    },
+    {
+      "repo": "Agentora",
+      "schedule_count": 1
+    },
+    {
+      "repo": "AgilePlus",
+      "schedule_count": 4
+    },
+    {
+      "repo": "Apisync",
+      "schedule_count": 5
+    },
+    {
+      "repo": "AtomsBot",
+      "schedule_count": 1
+    },
+    {
+      "repo": "AuthKit",
+      "schedule_count": 2
+    },
+    {
+      "repo": "Benchora",
+      "schedule_count": 3
+    },
+    {
+      "repo": "BytePort",
+      "schedule_count": 6
+    },
+    {
+      "repo": "Civis",
+      "schedule_count": 4
+    },
+    {
+      "repo": "Conft",
+      "schedule_count": 5
+    },
+    {
+      "repo": "DataKit",
+      "schedule_count": 2
+    },
+    {
+      "repo": "DevHex",
+      "schedule_count": 3
+    },
+    {
+      "repo": "Dino",
+      "schedule_count": 10
+    },
+    {
+      "repo": "Eidolon",
+      "schedule_count": 6
+    },
+    {
+      "repo": "FocalPoint",
+      "schedule_count": 3
+    },
+    {
+      "repo": "GDK",
+      "schedule_count": 6
+    },
+    {
+      "repo": "HeliosCLI",
+      "schedule_count": 17
+    },
+    {
+      "repo": "HeliosLab",
+      "schedule_count": 6
+    },
+    {
+      "repo": "HexaKit",
+      "schedule_count": 8
+    },
+    {
+      "repo": "Httpora",
+      "schedule_count": 3
+    },
+    {
+      "repo": "KDesktopVirt",
+      "schedule_count": 6
+    },
+    {
+      "repo": "KaskMan",
+      "schedule_count": 1
+    },
+    {
+      "repo": "KlipDot",
+      "schedule_count": 1
+    },
+    {
+      "repo": "MCPForge",
+      "schedule_count": 3
+    },
+    {
+      "repo": "McpKit",
+      "schedule_count": 2
+    },
+    {
+      "repo": "Metron",
+      "schedule_count": 7
+    },
+    {
+      "repo": "ObservabilityKit",
+      "schedule_count": 4
+    },
+    {
+      "repo": "OmniRoute",
+      "schedule_count": 1
+    },
+    {
+      "repo": "Paginary",
+      "schedule_count": 3
+    },
+    {
+      "repo": "Parpoura",
+      "schedule_count": 3
+    },
+    {
+      "repo": "PhenoAgent",
+      "schedule_count": 2
+    },
+    {
+      "repo": "PhenoCompose",
+      "schedule_count": 3
+    },
+    {
+      "repo": "PhenoDevOps",
+      "schedule_count": 6
+    },
+    {
+      "repo": "PhenoHandbook",
+      "schedule_count": 1
+    },
+    {
+      "repo": "PhenoKits",
+      "schedule_count": 5
+    },
+    {
+      "repo": "PhenoMCP",
+      "schedule_count": 6
+    },
+    {
+      "repo": "PhenoMCP-cheap",
+      "schedule_count": 6
+    },
+    {
+      "repo": "PhenoObservability",
+      "schedule_count": 6
+    },
+    {
+      "repo": "PhenoPlugins",
+      "schedule_count": 6
+    },
+    {
+      "repo": "PhenoProc",
+      "schedule_count": 6
+    },
+    {
+      "repo": "PhenoProject",
+      "schedule_count": 2
+    },
+    {
+      "repo": "PhenoRuntime",
+      "schedule_count": 6
+    },
+    {
+      "repo": "PhenoSpecs",
+      "schedule_count": 3
+    },
+    {
+      "repo": "PhenoVCS",
+      "schedule_count": 6
+    },
+    {
+      "repo": "Planify",
+      "schedule_count": 1
+    },
+    {
+      "repo": "PlayCua",
+      "schedule_count": 6
+    },
+    {
+      "repo": "PolicyStack",
+      "schedule_count": 6
+    },
+    {
+      "repo": "Pyron",
+      "schedule_count": 11
+    },
+    {
+      "repo": "QuadSGM",
+      "schedule_count": 3
+    },
+    {
+      "repo": "ResilienceKit",
+      "schedule_count": 2
+    },
+    {
+      "repo": "Sidekick",
+      "schedule_count": 7
+    },
+    {
+      "repo": "Tasken",
+      "schedule_count": 9
+    },
+    {
+      "repo": "TestingKit",
+      "schedule_count": 2
+    },
+    {
+      "repo": "Tokn",
+      "schedule_count": 9
+    },
+    {
+      "repo": "Tracely",
+      "schedule_count": 6
+    },
+    {
+      "repo": "Tracera",
+      "schedule_count": 8
+    },
+    {
+      "repo": "agent-devops-setups",
+      "schedule_count": 1
+    },
+    {
+      "repo": "agent-user-status",
+      "schedule_count": 3
+    },
+    {
+      "repo": "agentapi-plusplus",
+      "schedule_count": 9
+    },
+    {
+      "repo": "argis-extensions",
+      "schedule_count": 2
+    },
+    {
+      "repo": "bare-cua",
+      "schedule_count": 6
+    },
+    {
+      "repo": "cheap-llm-mcp",
+      "schedule_count": 1
+    },
+    {
+      "repo": "cheap-llm-mcp-deprecate",
+      "schedule_count": 1
+    },
+    {
+      "repo": "cliproxyapi-plusplus",
+      "schedule_count": 3
+    },
+    {
+      "repo": "dinoforge-packs",
+      "schedule_count": 2
+    },
+    {
+      "repo": "eyetracker",
+      "schedule_count": 6
+    },
+    {
+      "repo": "foqos-private",
+      "schedule_count": 3
+    },
+    {
+      "repo": "forgecode",
+      "schedule_count": 2
+    },
+    {
+      "repo": "heliosApp",
+      "schedule_count": 3
+    },
+    {
+      "repo": "heliosBench",
+      "schedule_count": 1
+    },
+    {
+      "repo": "helioscope",
+      "schedule_count": 17
+    },
+    {
+      "repo": "hwLedger",
+      "schedule_count": 5
+    },
+    {
+      "repo": "kwality",
+      "schedule_count": 1
+    },
+    {
+      "repo": "nanovms",
+      "schedule_count": 5
+    },
+    {
+      "repo": "pheno",
+      "schedule_count": 15
+    },
+    {
+      "repo": "phenoAI",
+      "schedule_count": 7
+    },
+    {
+      "repo": "phenoData",
+      "schedule_count": 9
+    },
+    {
+      "repo": "phenoDesign",
+      "schedule_count": 3
+    },
+    {
+      "repo": "phenoForge",
+      "schedule_count": 2
+    },
+    {
+      "repo": "phenoResearchEngine",
+      "schedule_count": 4
+    },
+    {
+      "repo": "phenoShared",
+      "schedule_count": 6
+    },
+    {
+      "repo": "phenoUtils",
+      "schedule_count": 5
+    },
+    {
+      "repo": "phenoXdd",
+      "schedule_count": 2
+    },
+    {
+      "repo": "phenodocs",
+      "schedule_count": 3
+    },
+    {
+      "repo": "phenodocs-scorecard-remediation",
+      "schedule_count": 3
+    },
+    {
+      "repo": "phenokits-landing",
+      "schedule_count": 1
+    },
+    {
+      "repo": "phenotype-auth-ts",
+      "schedule_count": 3
+    },
+    {
+      "repo": "phenotype-bus",
+      "schedule_count": 6
+    },
+    {
+      "repo": "phenotype-dep-guard",
+      "schedule_count": 1
+    },
+    {
+      "repo": "phenotype-hub",
+      "schedule_count": 3
+    },
+    {
+      "repo": "phenotype-infra",
+      "schedule_count": 2
+    },
+    {
+      "repo": "phenotype-journeys",
+      "schedule_count": 6
+    },
+    {
+      "repo": "phenotype-ops-mcp-t0",
+      "schedule_count": 4
+    },
+    {
+      "repo": "phenotype-org-audits",
+      "schedule_count": 3
+    },
+    {
+      "repo": "phenotype-registry",
+      "schedule_count": 1
+    },
+    {
+      "repo": "phenotype-shared",
+      "schedule_count": 1
+    },
+    {
+      "repo": "phenotype-tooling",
+      "schedule_count": 5
+    },
+    {
+      "repo": "portage",
+      "schedule_count": 4
+    },
+    {
+      "repo": "rich-cli-kit",
+      "schedule_count": 6
+    },
+    {
+      "repo": "thegent",
+      "schedule_count": 13
+    },
+    {
+      "repo": "thegent-clean-wt-docs",
+      "schedule_count": 9
+    },
+    {
+      "repo": "thegent-clean-wt-idea",
+      "schedule_count": 12
+    },
+    {
+      "repo": "thegent-clean-wt-parallel",
+      "schedule_count": 12
+    },
+    {
+      "repo": "thegent-clean-wt-policy",
+      "schedule_count": 3
+    },
+    {
+      "repo": "thegent-clean-wt-ruff",
+      "schedule_count": 11
+    },
+    {
+      "repo": "thegent-dispatch",
+      "schedule_count": 6
+    },
+    {
+      "repo": "vibeproxy",
+      "schedule_count": 8
+    },
+    {
+      "repo": "vibeproxy-monitoring-unified",
+      "schedule_count": 4
+    }
+  ]
+}

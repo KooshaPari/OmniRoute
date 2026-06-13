@@ -15,7 +15,7 @@ live-gcal = []
 focus-connectors = { path = "../focus-connectors" }
 focus-events = { path = "../focus-events" }
 focus-crypto = { path = "../focus-crypto", optional = true }
-phenotype-observably-macros = { path = "../../../PhenoObservability/crates/phenotype-observably-macros" }
+phenotype-observably-macros = { path = "../../PhenoObservability/crates/phenotype-observably-macros" }
 secrecy = { workspace = true, optional = true }
 serde = { workspace = true }
 serde_json = { workspace = true }

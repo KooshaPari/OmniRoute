@@ -1,0 +1,57 @@
+{
+  "task_id": "V3-DAG-L5-091",
+  "task": "Stash commit-or-discard post-merge cleanup",
+  "date": "2026-06-11",
+  "branch": "chore/l5-91-stash-cleanup-2026-06-11",
+  "source_decision_doc": "STASH_AUDIT_2026_06_10.md",
+  "cleanup_script": "scripts/l5_91_stash_cleanup.sh",
+  "summary": {
+    "sub_repos_verified": 55,
+    "final_dirty_sub_repos": 0,
+    "status": "complete"
+  },
+  "verification": {
+    "command": "git status --porcelain in each audit-listed sub-repo",
+    "result": "all audit-listed sub-repos returned empty porcelain status"
+  },
+  "committed_repos": [
+    {"repo": "Apisync", "commit": "2bce02cb57a489a84db857f5c1b9a7a1d18382d5", "subject": "chore: apply adapter audit cleanup"},
+    {"repo": "AtomsBot-2nd", "commit": "60c3de0ebef2e8077dcc6c9cca2e5c0cda5ad213", "subject": "test: apply test harness audit cleanup"},
+    {"repo": "AtomsBot-3rd", "commit": "d650e001a350fe7c94568fbb7c14d42acc56986c", "subject": "test: apply test harness audit cleanup"},
+    {"repo": "AtomsBot-5th", "commit": "1d4f2d71e808eb35224db8510bba5e1fc8e903cb", "subject": "test: apply test harness audit cleanup"},
+    {"repo": "AuthKit", "commit": "6d292e39c92b68163fd8f7af7b33f2d09974a9ff", "subject": "chore: apply stash audit cleanup"},
+    {"repo": "bare-cua", "commit": "cfc339923d1caf007459b37636ef4df4759c9a5e", "subject": "chore: apply repository audit cleanup"},
+    {"repo": "Civis", "commit": "be538efe5c2bc7834596be6b338d4c2289015c29", "subject": "ci: pin ubuntu-latest to ubuntu-24.04 + SHA-pin 5 mutable refs"},
+    {"repo": "dinoforge-packs", "commit": "a21b39bae95b0242c9b429d49855217c2c78a7d5", "subject": "ci: apply workflow audit cleanup"},
+    {"repo": "Eidolon", "commit": "f836390b0439bbbcd3384b092e8553970701873c", "subject": "test: apply stash audit cleanup"},
+    {"repo": "eyetracker", "commit": "badd516ff74922454a9c68367b25b618e5910287", "subject": "ci: apply stash audit cleanup"},
+    {"repo": "forgecode", "commit": "cb738fc02a51a6b98d237d908e466d53a6d52d99", "subject": "ci: apply stash audit cleanup"},
+    {"repo": "HexaKit", "commit": "6e55aab67af5dc559a0d89b151fe8f4738a99849", "subject": "docs: apply stash audit cleanup"},
+    {"repo": "KDesktopVirt", "commit": "015e2ff124a605bdf90fec286464dde482471834", "subject": "docs(KDesktopVirt): rename kvirtualstage -> kvdesktop in examples/README.md"},
+    {"repo": "MCPForge", "commit": "e073cf6fa74f0055a8b1f1a1095f306d6bfb9ebf", "subject": "ci: pin ubuntu-latest to ubuntu-24.04"},
+    {"repo": "nanovms", "commit": "f402d9519e05bcba5eb399d1dcc6ab7cf3fc5115", "subject": "chore: apply stash audit cleanup"},
+    {"repo": "OmniRoute-2nd", "commit": "f5c973ae6b85d0d507444fea18ea2562d5096602", "subject": "chore: apply stash audit cleanup"},
+    {"repo": "Parpoura-5th", "commit": "06997116bfa4498bfb6338d792eec07449b6931e", "subject": "chore: apply stash audit cleanup"},
+    {"repo": "PhenoDevOps", "commit": "9e6263c42d4da11b10a14f02cf87f3fd1f373dde", "subject": "ci: pin ubuntu-latest to ubuntu-24.04 + SHA-pin 5 mutable refs"},
+    {"repo": "PhenoProc", "commit": "85ec25461a255b3c6ebd84085b33bf9cd57daa44", "subject": "chore: apply stash audit cleanup"},
+    {"repo": "PhenoProc/Evalora", "commit": "016448cac64431178baebef6a03e6524264d0115", "subject": "chore: apply stash audit cleanup"},
+    {"repo": "phenotype-omlx", "commit": "6911304962efff2f30c18463071c77d6ba2b0af8", "subject": "chore: apply stash audit cleanup"},
+    {"repo": "phenotype-ops-mcp", "commit": "043eeb7bb975888760aa816c5091eccc8db6f75f", "subject": "ci: apply stash audit cleanup"},
+    {"repo": "portage", "commit": "7082e0225ff08f7942ef7e45b74a68f6ace91b11", "subject": "chore: apply stash audit cleanup"},
+    {"repo": "ResilienceKit", "commit": "54362aeb2867dce1ec336ebef298362af5bdd967", "subject": "test(ResilienceKit): add unit tests for TokenBucket + LeakyBucket rate limiters"},
+    {"repo": "thegent-security-fixes", "commit": "b844e5fa400a6d4739d2d8a10e9ecd003d741a01", "subject": "chore: apply stash audit cleanup"}
+  ],
+  "discarded_repos": [
+    "agent-platform", "AgilePlus", "agslag-docs", "apps", "AtomsBot", "BytePort", "cheap-llm-mcp", "Conft",
+    "dispatch-mcp", "FocalPoint", "heliosBench", "HeliosCLI", "KaskMan", "KWatch-docs", "localbase3", "melosviz",
+    "OmniRoute", "PhenoCompose", "PhenoHandbook", "PhenoKits", "PhenoMCP-2nd", "PhenoProject", "PhenoRuntime",
+    "PhenoSchema", "phenoShared", "phenotype-dep-guard", "phenotype-hub", "phenotype-infra", "phenotype-journeys",
+    "phenotype-tooling", "PlayCua"
+  ],
+  "notes": [
+    "Used stash push followed by stash drop for discard-decision repos where possible.",
+    "Used git restore and git clean -ffdx for discard-decision repos with residual ignored or nested worktree artifacts.",
+    "Removed stale zero-byte index.lock files left by interrupted git operations before retrying affected repos.",
+    "Root repository had substantial pre-existing dirty state; only this worklog and cleanup script were staged for the L5-091 root commit."
+  ]
+}

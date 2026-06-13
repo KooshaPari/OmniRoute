@@ -1,0 +1,95 @@
+name: Bug report
+description: Report a defect, regression, or unexpected behavior to help us reproduce and fix it.
+title: "[bug]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to file a bug report. Please fill out the sections
+        below so we can reproduce the issue. Issues missing the version or repro steps
+        will be triaged back to the reporter.
+  - type: input
+    id: version
+    attributes:
+      label: Affected version
+      description: The exact release, tag, or commit SHA where the bug is observed.
+      placeholder: "e.g. v0.4.2, abc1234, or `main @ 2026-06-08`"
+    validations:
+      required: true
+  - type: dropdown
+    id: environment
+    attributes:
+      label: Environment
+      description: Select the platform / runtime where the bug reproduces.
+      options:
+        - macOS
+        - Linux
+        - Windows
+        - iOS
+        - Android
+        - Web (browser)
+        - CLI
+        - CI / automation
+        - Other
+    validations:
+      required: true
+  - type: input
+    id: env-version
+    attributes:
+      label: OS / runtime version
+      description: OS version, language runtime, container image, or device model as relevant.
+      placeholder: "e.g. macOS 15.4, rustc 1.82, Node 22, iPhone 15 / iOS 18.1"
+    validations:
+      required: false
+  - type: textarea
+    id: repro
+    attributes:
+      label: Steps to reproduce
+      description: Minimal sequence of commands, clicks, or inputs that trigger the bug.
+      placeholder: |
+        1. Run `cargo run --example foo`
+        2. Pass `--flag bar`
+        3. Observe the crash...
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+      description: What you expected to happen after the steps above.
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+      description: What actually happened. Include error messages, stack traces, or screenshots.
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs, traces, and screenshots
+      description: Paste relevant output. For long traces, attach a file and link it here. Wrap code in triple backticks.
+      render: shell
+    validations:
+      required: false
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional context
+      description: Workarounds, related issues, frequency, impact, or anything else that helps us triage.
+    validations:
+      required: false
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Pre-submission checklist
+      options:
+        - label: I have searched existing issues and confirmed this is not a duplicate.
+          required: true
+        - label: I can reproduce this on the latest commit of the default branch.
+          required: false
+        - label: I am willing to open a PR with a fix or a regression test.
+          required: false

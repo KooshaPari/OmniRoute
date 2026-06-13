@@ -1,0 +1,173 @@
+{
+  "repo": "phenoShared",
+  "repo_path": "/Users/kooshapari/CodeProjects/Phenotype/repos/phenoShared",
+  "branch": "chore/audit-phenoShared-2026-06-08",
+  "source_branch_audited": "feat/phenoshared-build-default-http-client-20260608",
+  "head_sha": "172c3f5b9aad3dde20bab8fb93c9e5cc680f1d0e",
+  "last_commit_date": "2026-06-08T18:24:34-07:00",
+  "last_commit_subject": "feat(phenotype-logging): add canonical init_tracing() helper",
+  "remotes": {
+    "origin": "https://github.com/KooshaPari/phenoShared.git",
+    "github_actions_billing_blocked": true
+  },
+  "language_stack": {
+    "detected": ["rust", "typescript", "markdown", "toml", "yaml", "shell"],
+    "primary": "rust",
+    "secondary": ["typescript"],
+    "rust": {
+      "edition": "2021",
+      "msrv": "1.81",
+      "toolchain": "stable (rust-toolchain.toml pins fmt+clippy)",
+      "workspace_cargo_toml": "Cargo.toml",
+      "workspace_version": "0.1.0",
+      "crates_dir_count": 17,
+      "workspace_members": [
+        "ffi_utils",
+        "phenotype-application",
+        "phenotype-cache-adapter",
+        "phenotype-config-core",
+        "phenotype-contracts",
+        "phenotype-domain",
+        "phenotype-error-core",
+        "phenotype-event-sourcing",
+        "phenotype-health",
+        "phenotype-http-adapter",
+        "phenotype-logging",
+        "phenotype-nanovms-client",
+        "phenotype-policy-engine",
+        "phenotype-port-interfaces",
+        "phenotype-postgres-adapter",
+        "phenotype-redis-adapter",
+        "phenotype-state-machine"
+      ],
+      "framework_notes": "Hexagonal / clean architecture: domain → application → port-interfaces → adapter (postgres, redis, http, cache) + cross-cutting (logging, error, health, event-sourcing, state-machine, policy-engine, contracts, config-core, ffi_utils)"
+    },
+    "typescript": {
+      "packages_dir_count": 3,
+      "packages": [
+        {"name": "@phenotype/types", "version": "0.1.0", "runtime": "bun"},
+        {"name": "@phenotype/errors", "version": "0.1.0", "runtime": "bun"},
+        {"name": "@phenotype/ids", "version": "0.1.0", "runtime": "bun"}
+      ],
+      "tooling": "bun + @types/bun 1.3.13; bun.lock present at repo root"
+    },
+    "docs": {
+      "framework": "VitePress (1.6+)",
+      "locales": ["en", "fa", "fa-Latn", "zh-CN", "zh-TW"]
+    },
+    "ci": {
+      "platform": "GitHub Actions",
+      "workflow_count": 19,
+      "billing_status": "blocked org-wide (per STATUS.md); workflows enrolled but awaiting live runs"
+    }
+  },
+  "hygiene_score": 100,
+  "hygiene_breakdown": [
+    {"item": "LICENSE", "present": true, "points": 10, "evidence": ["LICENSE (1068B, MIT)"]},
+    {"item": "README", "present": true, "points": 10, "evidence": ["README.md (9457B, pinned-refs block, badges, 17-crate table, quick-start with git-deps)"]},
+    {"item": "CHANGELOG", "present": true, "points": 10, "evidence": ["CHANGELOG.md (2208B, Keep-a-Changelog format, 0.3.0 latest)"]},
+    {"item": ".editorconfig", "present": true, "points": 10, "evidence": [".editorconfig (524B, rust+toml+md+yaml sections)"]},
+    {"item": "CI", "present": true, "points": 10, "evidence": ["19 workflows: alert-sync-issues, cargo-audit, cargo-deny, cargo-machete, cargo-semver-checks, ci, codeql, docs-deploy, legacy-tooling-gate, release, reusable/, reusable-release-drafter, scorecard, secrets-scan, security-guard-hook-audit, self-merge-gate, tag-automation, trufflehog, vitepress-pages"]},
+    {"item": "dependabot", "present": true, "points": 10, "evidence": [".github/dependabot.yml (cargo + gomod + pip + npm, daily) + renovate.json5 (cargo + github-actions, weekly)"]},
+    {"item": "CODEOWNERS", "present": true, "points": 10, "evidence": ["root CODEOWNERS (131B) + .github/CODEOWNERS"]},
+    {"item": "CONTRIBUTING", "present": true, "points": 10, "evidence": ["CONTRIBUTING.md (1189B)"]},
+    {"item": "SECURITY", "present": true, "points": 10, "evidence": ["SECURITY.md (671B)"]},
+    {"item": "FUNDING", "present": true, "points": 10, "evidence": ["FUNDING.yml (root, 65B) + .github/FUNDING.yml"]}
+  ],
+  "dup_exposure": {
+    "rationale": "phenoShared is the org-wide convergence hub. The 'dup_exposure' lists pheno-* libs that this repo could itself consume (replace in-tree or git-only deps) and adjacent libs it could share config/build recipes with.",
+    "candidates": [
+      {"lib": "phenotype-bus", "use_case": "Replace ad-hoc tokio::mpsc in phenotype-application with canonical bus; current phenotype-bus is already git-pulled from HexaKit"},
+      {"lib": "phenotype-request-id", "use_case": "Propagate request IDs across domain/application crates; surfaces in error-envelope context for trace correlation"},
+      {"lib": "phenotype-dep-guard", "use_case": "Share deny.toml + cargo-deny + cargo-audit policy with the org baseline; only one deny.toml currently in repo root"},
+      {"lib": "phenotype-registry", "use_case": "Service-registry contract that phenotype-health (multi-checker compose) and phenotype-port-interfaces (outbound) could share"},
+      {"lib": "phenotype-postfx", "use_case": "Post-effect / middleware runner for #[instrument] wrappers on port traits, replacing manual layer stacking"},
+      {"lib": "phenotype-icons", "use_case": "Shared icon set for VitePress docs / reference pages"},
+      {"lib": "phenotype-journeys", "use_case": "Journey primitives to gate the existing FR-WS-XXX functional requirements"},
+      {"lib": "phenotype-tooling", "use_case": "Roll justfile + Makefile + Taskfile.yml + mise.toml under one shared tooling lib; this repo has 4 separate task-runner files today"},
+      {"lib": "phenotype-skills", "use_case": "Expose phenotype-* skills from the workspace as manifest entries"},
+      {"lib": "HexaKit", "use_case": "General hex toolkit; phenotype-error-core and phenotype-bus were originally pulled from it — risk of drift between this repo and HexaKit HEAD"},
+      {"lib": "Observably", "use_case": "Observability contract overlap with phenotype-logging + phenotype-port-interfaces/outbound/logger"},
+      {"lib": "phenoAI", "use_case": "AI/LLM utility surface that phenotype-port-interfaces/outbound could model an `LLMPort` against"},
+      {"lib": "phenoData", "use_case": "Data-pipeline traits reusable in phenotype-event-sourcing adapters"},
+      {"lib": "phenoDesign", "use_case": "Design tokens for the VitePress docs site (docs/ directory)"},
+      {"lib": "phenoForge", "use_case": "Build / codegen recipes that phenotype-config-core could host"},
+      {"lib": "phenoResearchEngine", "use_case": "Research / experiment harness; the pheno-shared TS surface overlaps the Python research side"},
+      {"lib": "phenodocs", "use_case": "VitePress pages host lives here; phenodocs could own the doc theme once"},
+      {"lib": "pheno / phenotype-shared (separate repo)", "use_case": "TypeScript counterpart of @phenotype/{types,errors,ids} exists in a sibling repo; risk of two TS-shared repos diverging"}
+    ]
+  },
+  "sota_gaps": [
+    "phenotype-event-sourcing has pre-existing compilation errors — phenotype-application/Cargo.toml:23 explicitly comments the path-dep out: '# NOTE: phenotype-event-sourcing has pre-existing compilation errors'. The whole event-sourcing crate is silently absent from the application layer.",
+    "Working-tree churn on the audited branch: feat/phenoshared-build-default-http-client-20260608 has ~50 modified files + 1 untracked (crates/phenotype-error-core/src/error_reporter.rs) on top of HEAD 172c3f5b; no commit has captured the in-flight work since 2026-06-08 18:24:34",
+    "Public error enums in phenotype-error-core/layered.rs (ApiError, ConfigError, DomainError, RepositoryError, StorageError) are not marked #[non_exhaustive] — consumers cannot compile against future variants added by the 0.x → 1.x migration",
+    "No property-based testing (proptest / quickcheck) for value-object invariants despite FR-DOM-002 requiring constructor validation; only hand-rolled #[test] cases exist",
+    "No fuzz harnesses for deserialization paths: phenotype-event-sourcing/event.rs, phenotype-contracts, phenotype-error-core/envelope.rs all deserialize untrusted input without cargo-fuzz coverage",
+    "Outbound port traits still use the #[async_trait] macro (phenotype-port-interfaces/outbound/*) rather than native async-fn-in-traits stabilized in Rust 1.75 — adds a transitive dep and breaks dyn-compat",
+    "phenotype-test-support is missing from the workspace (Cargo.toml:9-27 lists 17 members; commit fb74c41 'add phenotype-test-support' is on chore/remove-niche-subcrates but the crate is absent from HEAD 172c3f5)",
+    "No crates.io publish pipeline: README 'Quick Start' tells consumers to add crates as git deps (`{ git = \"...\" }`) — no semver, no `cargo publish` workflow, no release-plz / release-please automation (cliff.toml exists but is unused)",
+    "No cargo-semver-checks baseline checked into main; the cargo-semver-checks.yml workflow runs ad-hoc with no persisted API surface snapshot",
+    "TS packages (@phenotype/types, @phenotype/errors, @phenotype/ids) have no dedicated CI workflow; only vitepress-pages.yml touches the packages/ directory — typecheck/test not gated",
+    "CHANGELOG drift: workspace.package.version = 0.1.0, VERSION = 0.1.0, CHANGELOG last entry = [0.3.0] - 2026-03-28; 0.4.0 / 0.5.0 work since March is unrecorded",
+    "phenotype-nanovms-client is a thin wrapper that 'shells out to the ops CLI' (per crate description) rather than a native Rust SDK — process-spawn latency, no streaming, no shared type model",
+    "No SBOM emission: no cargo-cyclonedx, no cargo-metadata export step in ci.yml or release.yml; consumers cannot generate a signed CycloneDX for compliance",
+    "No OpenTelemetry exporter wiring in phenotype-logging (init_tracing exists but writes to stdout only — no OTLP layer, no exemplars, no log/metric correlation)",
+    "phenotype-cache-adapter advertises 'two-tier LRU + DashMap with TTL' (per AGENTS.md) but only moka+Lru+parking_lot+ttl in code — no cardinality cap, no LFU tier, no remote-cache backend",
+    "phenotype-state-machine has adapters/ + application/ + domain/ + prelude.rs but no macro / derive(StateMachine) for declarative FSMs — boilerplate-heavy for callers",
+    "phenotype-health/checkers.rs is missing a /ready vs /live split (k8s-style probes) and an aggregated-composition primitive beyond project.rs",
+    "phenotype-config-core has no remote-source loader (consul/etcd/vault/S3) — config is file/env only",
+    "phenotype-contracts is 'async trait contracts' but the TS wire schema in @phenotype/errors is hand-maintained, not generated from Rust types (no ts-rs / specta bridge)"
+  ],
+  "convergence_cluster": "convergence",
+  "convergence_rationale": "phenoShared is the explicit org-wide convergence point for shared infrastructure. It hosts 17 Rust crates spanning domain → application → port → adapter layers plus 3 TypeScript packages (@phenotype/{types,errors,ids}) and a VitePress docs site in 5 locales. The stated project goal (per AGENTS.md / CLAUDE.md) is to extract shared infrastructure from across the Phenotype polyrepo into one consumable hub. It is a pure convergence artifact — no deployable binary, no runtime product — built to be consumed by every other Pheno repo. The 'convergence' classification fits better than 'multi-stack' because the polyglot surface (Rust + TS + docs) is in service of a single library hub, not multiple deployable products.",
+  "action_items": [
+    {
+      "rank": 1,
+      "title": "Commit the in-flight working-tree churn on feat/phenoshared-build-default-http-client-20260608",
+      "effort": "S (0.5d)",
+      "why": "Source branch has 50+ modified files + 1 untracked (phenotype-error-core/src/error_reporter.rs) since 2026-06-08 18:24:34; an audit diff is meaningless while the worktree is dirty. Commit (or stash) first, then re-audit. Likely 2-3 logical commits (http-client, error-reporter, domain updates).",
+      "file_refs": ["crates/phenotype-application/src/handlers/agent.rs", "crates/phenotype-error-core/src/error_reporter.rs", "crates/phenotype-http-adapter/src/http_client.rs"]
+    },
+    {
+      "rank": 2,
+      "title": "Re-enable phenotype-event-sourcing in phenotype-application/Cargo.toml:23 and ship a fix release",
+      "effort": "M (2-3d)",
+      "why": "The path-dep is commented out with 'pre-existing compilation errors' — this silently disables the event-sourcing integration the application layer was designed around (see FUNCTIONAL_REQUIREMENTS FR-EVT-*). Trivial reproduction: `cargo build -p phenotype-application` succeeds, but `cargo build -p phenotype-application --features event-sourcing` (or similar) would fail. Diagnose, patch, uncomment, cut 0.2.0.",
+      "file_refs": ["crates/phenotype-application/Cargo.toml:23", "crates/phenotype-event-sourcing/src/lib.rs", "crates/phenotype-event-sourcing/src/event.rs"]
+    },
+    {
+      "rank": 3,
+      "title": "Add #[non_exhaustive] to public error enums + cut a 0.2.x → 0.3.x semver release",
+      "effort": "S (1d)",
+      "why": "phenotype-error-core/layered.rs is at 0.2.0 and exposes 5 enum types (ApiError, ConfigError, DomainError, RepositoryError, StorageError) without #[non_exhaustive]. Every downstream consumer compiles against a closed variant set. Adding the attribute is one-line per enum; the semver bump communicates the breaking change. This unblocks additive variants in 0.4+.",
+      "file_refs": ["crates/phenotype-error-core/src/layered.rs", "crates/phenotype-error-core/Cargo.toml"]
+    },
+    {
+      "rank": 4,
+      "title": "Add proptest coverage for value-object invariants (FR-DOM-002) and a workspace fuzz harness",
+      "effort": "M (3-4d)",
+      "why": "FR-DOM-002 requires constructor validation; the current tests are hand-rolled happy/sad paths. proptest would explore the full boundary space for AgentId / TaskId / WorkflowId / Timestamp / etc. and surface invariant violations. Pair with cargo-fuzz on the three deserialization paths (event-sourcing/event.rs, contracts, error-core/envelope.rs) — untrusted input from event-sourced streams and inbound HTTP makes this SOTA, not nice-to-have.",
+      "file_refs": ["crates/phenotype-domain/src/value_objects/", "crates/phenotype-event-sourcing/src/event.rs", "crates/phenotype-contracts/src/lib.rs"]
+    },
+    {
+      "rank": 5,
+      "title": "Add crates.io publish + release-plz automation (move consumers off git-only deps)",
+      "effort": "L (1-2w)",
+      "why": "README 'Quick Start' tells every consumer to use `{ git = \"https://github.com/KooshaPari/phenoShared\" }`. This pins every consumer to whatever HEAD exists at build time with no semver, no tag, no API guarantee. A release-plz (or release-please) workflow + first crates.io publish of all 17 crates removes the cross-repo coupling, makes `cargo update` useful, and unblocks CI in repos that need a deterministic dep source. Pairs with the existing cliff.toml.",
+      "file_refs": ["Cargo.toml:1-27", "cliff.toml", ".github/workflows/release.yml", "README.md:60-80"]
+    }
+  ],
+  "metadata": {
+    "audit_task": "DAG L1-17",
+    "audit_date": "2026-06-08",
+    "auditor": "forge (audit skill)",
+    "workspace_crate_count": 17,
+    "ts_package_count": 3,
+    "vitepress_locale_count": 5,
+    "workflow_count": 19,
+    "working_tree_dirty": true,
+    "working_tree_modified_files": 50,
+    "working_tree_untracked_files": 1,
+    "pushed": false
+  }
+}

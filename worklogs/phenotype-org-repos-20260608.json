@@ -1,0 +1,212 @@
+{
+  "generated_at": "2026-06-09T03:33:04.879285+00:00",
+  "org": "Phenotype",
+  "source": "https://api.github.com/orgs/Phenotype/repos (HTTP 404 \u2014 no such org)",
+  "fallback": "local_filesystem_scan",
+  "error": "github_org_phenotype_404",
+  "repos": [
+    {
+      "name": "agentora",
+      "pushed_at": "2026-06-09T02:30:41.947560+00:00",
+      "archived": null,
+      "description": "local clone present at repos/Agentora",
+      "error": "github_org_phenotype_404"
+    },
+    {
+      "name": "focalpoint",
+      "pushed_at": "2026-06-09T03:29:05.600998+00:00",
+      "archived": null,
+      "description": "local clone present at repos/FocalPoint",
+      "error": "github_org_phenotype_404"
+    },
+    {
+      "name": "phenotype-hub",
+      "pushed_at": "2026-06-09T03:25:26.008916+00:00",
+      "archived": null,
+      "description": "local clone present at repos/phenotype-hub",
+      "error": "github_org_phenotype_404"
+    },
+    {
+      "name": "phenotype-tooling",
+      "pushed_at": "2026-06-09T02:56:35.688090+00:00",
+      "archived": null,
+      "description": "local clone present at repos/phenotype-tooling",
+      "error": "github_org_phenotype_404"
+    },
+    {
+      "name": "phenotype-omlx",
+      "pushed_at": "2026-06-07T06:47:21.586807+00:00",
+      "archived": null,
+      "description": "local clone present at repos/phenotype-omlx",
+      "error": "github_org_phenotype_404"
+    },
+    {
+      "name": "phenotype-journeys",
+      "pushed_at": "2026-06-09T00:09:03.663018+00:00",
+      "archived": null,
+      "description": "local clone present at repos/phenotype-journeys",
+      "error": "github_org_phenotype_404"
+    },
+    {
+      "name": "phenotype-skills",
+      "pushed_at": "2026-06-06T10:13:31.244562+00:00",
+      "archived": null,
+      "description": "local clone present at repos/phenotype-skills",
+      "error": "github_org_phenotype_404"
+    },
+    {
+      "name": "phenotype-landing",
+      "pushed_at": "2026-06-09T02:47:31.453938+00:00",
+      "archived": null,
+      "description": "local clone present at repos/phenotype-landing",
+      "error": "github_org_phenotype_404"
+    },
+    {
+      "name": "phenotype-infra",
+      "pushed_at": "2026-06-09T03:20:49.288146+00:00",
+      "archived": null,
+      "description": "local clone present at repos/phenotype-infra",
+      "error": "github_org_phenotype_404"
+    },
+    {
+      "name": "phenotype-ops-mcp",
+      "pushed_at": "2026-06-09T02:14:24.551790+00:00",
+      "archived": null,
+      "description": "local clone present at repos/phenotype-ops-mcp",
+      "error": "github_org_phenotype_404"
+    },
+    {
+      "name": "phenotype-go-sdk",
+      "pushed_at": "2026-06-09T02:29:18.085838+00:00",
+      "archived": null,
+      "description": "local clone present at repos/phenotype-go-sdk",
+      "error": "github_org_phenotype_404"
+    },
+    {
+      "name": "phenotype-py-extras",
+      "pushed_at": "2026-06-09T03:28:08.487614+00:00",
+      "archived": null,
+      "description": "local clone present at repos/phenotype-py-extras",
+      "error": "github_org_phenotype_404"
+    },
+    {
+      "name": "phenotype-shared",
+      "pushed_at": "2026-06-06T10:13:31.227549+00:00",
+      "archived": null,
+      "description": "local clone present at repos/phenotype-shared",
+      "error": "github_org_phenotype_404"
+    },
+    {
+      "name": "phenotype-water",
+      "pushed_at": "2026-06-09T03:25:59.356590+00:00",
+      "archived": null,
+      "description": "local clone present at repos/phenotype-water",
+      "error": "github_org_phenotype_404"
+    },
+    {
+      "name": "phenotype-voxel",
+      "pushed_at": "2026-06-09T02:42:25.059380+00:00",
+      "archived": null,
+      "description": "local clone present at repos/phenotype-voxel",
+      "error": "github_org_phenotype_404"
+    },
+    {
+      "name": "phenotype-icons",
+      "pushed_at": "2026-06-06T10:13:31.184605+00:00",
+      "archived": null,
+      "description": "local clone present at repos/phenotype-icons",
+      "error": "github_org_phenotype_404"
+    },
+    {
+      "name": "phenotype-postfx",
+      "pushed_at": "2026-06-09T01:42:38.935605+00:00",
+      "archived": null,
+      "description": "local clone present at repos/phenotype-postfx",
+      "error": "github_org_phenotype_404"
+    },
+    {
+      "name": "phenotype-registry",
+      "pushed_at": "2026-06-09T02:56:39.297336+00:00",
+      "archived": null,
+      "description": "local clone present at repos/phenotype-registry",
+      "error": "github_org_phenotype_404"
+    },
+    {
+      "name": "phenotype-request-id",
+      "pushed_at": "2026-06-09T03:28:08.484667+00:00",
+      "archived": null,
+      "description": "local clone present at repos/phenotype-request-id",
+      "error": "github_org_phenotype_404"
+    },
+    {
+      "name": "phenotype-python-sdk",
+      "pushed_at": "2026-06-09T02:41:26.583251+00:00",
+      "archived": null,
+      "description": "local clone present at repos/phenotype-python-sdk",
+      "error": "github_org_phenotype_404"
+    },
+    {
+      "name": "phenotype-dep-guard",
+      "pushed_at": "2026-06-09T03:02:11.054309+00:00",
+      "archived": null,
+      "description": "local clone present at repos/phenotype-dep-guard",
+      "error": "github_org_phenotype_404"
+    },
+    {
+      "name": "phenotype-auth-ts",
+      "pushed_at": "2026-06-05T13:24:26.847626+00:00",
+      "archived": null,
+      "description": "local clone present at repos/phenotype-auth-ts",
+      "error": "github_org_phenotype_404"
+    },
+    {
+      "name": "phenotype-org-audits",
+      "pushed_at": "2026-05-28T10:02:28.232138+00:00",
+      "archived": null,
+      "description": "local clone present at repos/phenotype-org-audits",
+      "error": "github_org_phenotype_404"
+    },
+    {
+      "name": "phenotype-rev-svc",
+      "pushed_at": null,
+      "archived": null,
+      "description": "NOT FOUND LOCALLY",
+      "error": "github_org_phenotype_404"
+    },
+    {
+      "name": "phenotype-bench",
+      "pushed_at": null,
+      "archived": null,
+      "description": "NOT FOUND LOCALLY",
+      "error": "github_org_phenotype_404"
+    },
+    {
+      "name": "phenotype-shared-ui",
+      "pushed_at": null,
+      "archived": null,
+      "description": "NOT FOUND LOCALLY",
+      "error": "github_org_phenotype_404"
+    },
+    {
+      "name": "phenotype-ai",
+      "pushed_at": null,
+      "archived": null,
+      "description": "NOT FOUND LOCALLY",
+      "error": "github_org_phenotype_404"
+    },
+    {
+      "name": "phenotype-router",
+      "pushed_at": null,
+      "archived": null,
+      "description": "NOT FOUND LOCALLY",
+      "error": "github_org_phenotype_404"
+    },
+    {
+      "name": "phenotype-codegen",
+      "pushed_at": null,
+      "archived": null,
+      "description": "NOT FOUND LOCALLY",
+      "error": "github_org_phenotype_404"
+    }
+  ]
+}

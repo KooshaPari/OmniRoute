@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" role="img" aria-label="AtomsBot">
+  <title>AtomsBot</title>
+  <desc>AI-coded vector mark: a robot head as an atomic nucleus with three electron orbits, for bot automation. Hand-authored paths.</desc>
+  <defs>
+    <linearGradient id="ab-bg" x1="24" y1="24" x2="488" y2="488" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#10142B"/>
+      <stop offset="1" stop-color="#1B2350"/>
+    </linearGradient>
+    <linearGradient id="ab-orbit" x1="96" y1="96" x2="416" y2="416" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#22D3EE"/>
+      <stop offset="1" stop-color="#818CF8"/>
+    </linearGradient>
+  </defs>
+
+  <rect x="24" y="24" width="464" height="464" rx="108" ry="108" fill="url(#ab-bg)"/>
+  <rect x="24" y="24" width="464" height="464" rx="108" ry="108" fill="none" stroke="#2E3A78" stroke-width="2"/>
+
+  <!-- Electron orbits -->
+  <g fill="none" stroke="url(#ab-orbit)" stroke-width="9">
+    <ellipse cx="256" cy="256" rx="172" ry="66"/>
+    <ellipse cx="256" cy="256" rx="172" ry="66" transform="rotate(60 256 256)"/>
+    <ellipse cx="256" cy="256" rx="172" ry="66" transform="rotate(120 256 256)"/>
+  </g>
+  <!-- Electrons -->
+  <g fill="#67E8F9">
+    <circle cx="428" cy="256" r="14"/>
+    <circle cx="170" cy="107" r="14"/>
+    <circle cx="170" cy="405" r="14"/>
+  </g>
+
+  <!-- Bot head nucleus -->
+  <rect x="196" y="206" width="120" height="104" rx="26" fill="#E5E9FF" stroke="#A5B4FC" stroke-width="4"/>
+  <!-- Eyes -->
+  <circle cx="228" cy="252" r="14" fill="#1B2350"/>
+  <circle cx="284" cy="252" r="14" fill="#1B2350"/>
+  <!-- Mouth -->
+  <rect x="224" y="284" width="64" height="10" rx="5" fill="#1B2350"/>
+  <!-- Antenna -->
+  <path d="M 256 206 L 256 178" stroke="#A5B4FC" stroke-width="8" stroke-linecap="round"/>
+  <circle cx="256" cy="168" r="11" fill="#67E8F9"/>
+</svg>

@@ -1,0 +1,125 @@
+{
+  "generated_at": "2026-06-08T18:30:00Z",
+  "total_repos": 36,
+  "shared_features": [
+    {
+      "feature_name": "dev",
+      "repos": [
+        "HeliosCLI",
+        "Httpora",
+        "Parpoura",
+        "QuadSGM",
+        "Tracera",
+        "agileplus-mcp",
+        "ai-prompt-logger",
+        "cheap-llm-mcp",
+        "dispatch-mcp",
+        "heliosBench",
+        "helioscope",
+        "localbase-tests",
+        "phenotype-omlx",
+        "python",
+        "thegent",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "feature_name": "default",
+      "repos": [
+        "Agentora",
+        "Evalora",
+        "KDesktopVirt",
+        "Tasken",
+        "Traceon",
+        "cli_tools",
+        "connector-canvas",
+        "connector-gcal",
+        "connector-github",
+        "focus-mcp-server",
+        "kmobile",
+        "pheno-compose-driver",
+        "phenotype-daemon",
+        "phenotype-voxel"
+      ]
+    },
+    {
+      "feature_name": "fast",
+      "repos": [
+        "thegent",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "feature_name": "keychain",
+      "repos": [
+        "connector-canvas",
+        "connector-gcal",
+        "connector-github"
+      ]
+    },
+    {
+      "feature_name": "server",
+      "repos": [
+        "HeliosCLI",
+        "Httpora",
+        "helioscope"
+      ]
+    },
+    {
+      "feature_name": "tui",
+      "repos": [
+        "KDesktopVirt",
+        "Tracera",
+        "kmobile"
+      ]
+    },
+    {
+      "feature_name": "all",
+      "repos": [
+        "Tracera",
+        "python"
+      ]
+    },
+    {
+      "feature_name": "audio",
+      "repos": [
+        "kmobile",
+        "phenotype-omlx"
+      ]
+    },
+    {
+      "feature_name": "cli",
+      "repos": [
+        "ai-prompt-logger",
+        "kmobile"
+      ]
+    },
+    {
+      "feature_name": "mcp",
+      "repos": [
+        "kmobile",
+        "phenotype-omlx"
+      ]
+    },
+    {
+      "feature_name": "openai",
+      "repos": [
+        "Agentora",
+        "python"
+      ]
+    },
+    {
+      "feature_name": "test",
+      "repos": [
+        "Tracera",
+        "mcp"
+      ]
+    }
+  ]
+}

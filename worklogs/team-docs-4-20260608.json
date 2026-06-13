@@ -1,0 +1,88 @@
+{
+  "generated_at": "2026-06-08T10:10:36.184374Z",
+  "total_repos": 131,
+  "badge_dupes": [
+    {
+      "badge_set": [
+        "![AI Slop Inside](https://sladge.net/badge.svg)"
+      ],
+      "repos": [
+        "cliproxyapi-plusplus",
+        "eyetracker",
+        "heliosBench",
+        "hwLedger",
+        "nanovms",
+        "phenotype-ops-mcp",
+        "rich-cli-kit"
+      ]
+    },
+    {
+      "badge_set": [
+        "![CI](https://github.com/KooshaPari/thegent/actions/workflows/ci.yml/badge.svg)",
+        "![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)",
+        "![Rust](https://img.shields.io/badge/built%20with-Rust-orange.svg)",
+        "![Python 3.13+](https://img.shields.io/badge/python-3.13%2B-blue.svg)",
+        "![AI Slop Inside](https://sladge.net/badge.svg)"
+      ],
+      "repos": [
+        "thegent",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel"
+      ]
+    },
+    {
+      "badge_set": [
+        "![CI](https://github.com/KooshaPari/thegent/actions/workflows/ci.yml/badge.svg)",
+        "![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)",
+        "![Rust](https://img.shields.io/badge/built%20with-Rust-orange.svg)",
+        "![Python 3.13+](https://img.shields.io/badge/python-3.13%2B-blue.svg)"
+      ],
+      "repos": [
+        "thegent-clean-wt-docs",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "badge_set": [
+        "![Build](https://img.shields.io/github/actions/workflow/status/KooshaPari/heliosCLI/ci.yml?branch=main&label=build)",
+        "![Release](https://img.shields.io/github/v/release/KooshaPari/heliosCLI?include_prereleases&sort=semver)",
+        "![License](https://img.shields.io/github/license/KooshaPari/heliosCLI)",
+        "![Phenotype](https://img.shields.io/badge/Phenotype-org-blueviolet)",
+        "![AI Slop Inside](https://sladge.net/badge.svg)"
+      ],
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "badge_set": [
+        "![Build](https://img.shields.io/github/actions/workflow/status/KooshaPari/PlayCua/quality-gate.yml?branch=master&label=build)",
+        "![Release](https://img.shields.io/github/v/release/KooshaPari/PlayCua?include_prereleases&sort=semver)",
+        "![License](https://img.shields.io/github/license/KooshaPari/PlayCua)",
+        "![Phenotype](https://img.shields.io/badge/Phenotype-org-blueviolet)"
+      ],
+      "repos": [
+        "PlayCua",
+        "bare-cua"
+      ]
+    },
+    {
+      "badge_set": [
+        "![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)",
+        "![FR Coverage](https://github.com/KooshaPari/phenoUtils/actions/workflows/fr-coverage.yml/badge.svg)",
+        "![Rust](https://img.shields.io/badge/rust-1.75%2B-orange.svg)",
+        "![Build](https://img.shields.io/github/actions/workflow/status/KooshaPari/phenotype-infra/quality-gate.yml?branch=main&label=build)",
+        "![Release](https://img.shields.io/github/v/release/KooshaPari/phenotype-infra?include_prereleases&sort=semver)",
+        "![License](https://img.shields.io/github/license/KooshaPari/phenotype-infra)",
+        "![Phenotype](https://img.shields.io/badge/Phenotype-org-blueviolet)",
+        "![AI Slop Inside](https://sladge.net/badge.svg)"
+      ],
+      "repos": [
+        "agent-devops-setups",
+        "phenotype-dep-guard"
+      ]
+    }
+  ]
+}

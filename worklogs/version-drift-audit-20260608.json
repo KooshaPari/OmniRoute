@@ -1,0 +1,33 @@
+{
+  "generated_at": "2026-06-08T22:15:00Z",
+  "total_repos": 47,
+  "version_drift": [
+    {
+      "base_name": "phen",
+      "repos": [
+        "PhenoDevOps",
+        "PhenoKits",
+        "PhenoMCP",
+        "PhenoObservability",
+        "PhenoPlugins",
+        "PhenoProc",
+        "PhenoRuntime",
+        "PhenoVCS",
+        "pheno",
+        "phenoAI",
+        "phenoData",
+        "phenoForge",
+        "phenoShared",
+        "phenoUtils",
+        "phenotype-bus",
+        "phenotype-journeys",
+        "phenotype-tooling",
+        "phenotype-voxel"
+      ],
+      "versions": [
+        "0.1.0",
+        "0.2.0"
+      ]
+    }
+  ]
+}

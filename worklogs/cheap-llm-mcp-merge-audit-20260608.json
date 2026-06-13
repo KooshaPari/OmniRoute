@@ -1,0 +1,458 @@
+{
+  "generated_at": "2026-06-08T10:23:48.374215Z",
+  "overlap_with": [
+    {
+      "evidence": [
+        "AgentMCP: markers=['README.md']; matched_terms=['mcp', 'model context protocol', 'python']",
+        "McpKit: markers=['pyproject.toml', 'README.md']; matched_terms=['mcp', 'model context protocol', 'python']"
+      ],
+      "overlap_kind": [
+        "mcp-server/platform"
+      ],
+      "overlap_repo": "McpKit",
+      "target": "AgentMCP"
+    },
+    {
+      "evidence": [
+        "AgentMCP: markers=['README.md']; matched_terms=['mcp', 'model context protocol', 'python']",
+        "PhenoMCP: markers=['Cargo.toml', 'pyproject.toml', 'package.json', 'README.md']; matched_terms=['mcp', 'model context protocol', 'python']"
+      ],
+      "overlap_kind": [
+        "mcp-server/platform"
+      ],
+      "overlap_repo": "PhenoMCP",
+      "target": "AgentMCP"
+    },
+    {
+      "evidence": [
+        "AgentMCP: markers=['README.md']; matched_terms=['agent', 'mcp', 'python']",
+        "cheap-llm-mcp: markers=['pyproject.toml', 'README.md']; matched_terms=['agent', 'mcp', 'python']"
+      ],
+      "overlap_kind": [
+        "adjacent-tooling"
+      ],
+      "overlap_repo": "cheap-llm-mcp",
+      "target": "AgentMCP"
+    },
+    {
+      "evidence": [
+        "AgentMCP: markers=['README.md']; matched_terms=['agent', 'mcp', 'model context protocol']",
+        "phenotype-ops-mcp: markers=['README.md']; matched_terms=['agent', 'mcp', 'model context protocol']"
+      ],
+      "overlap_kind": [
+        "mcp-server/platform"
+      ],
+      "overlap_repo": "phenotype-ops-mcp",
+      "target": "AgentMCP"
+    },
+    {
+      "evidence": [
+        "MCPForge: markers=['README.md']; matched_terms=['cli', 'mcp', 'server']",
+        "McpKit: markers=['pyproject.toml', 'README.md']; matched_terms=['cli', 'mcp', 'server']"
+      ],
+      "overlap_kind": [
+        "mcp-server/platform"
+      ],
+      "overlap_repo": "McpKit",
+      "target": "MCPForge"
+    },
+    {
+      "evidence": [
+        "MCPForge: markers=['README.md']; matched_terms=['cli', 'llm', 'mcp', 'server']",
+        "cheap-llm-mcp: markers=['pyproject.toml', 'README.md']; matched_terms=['cli', 'llm', 'mcp', 'server']"
+      ],
+      "overlap_kind": [
+        "mcp-server/platform"
+      ],
+      "overlap_repo": "cheap-llm-mcp",
+      "target": "MCPForge"
+    },
+    {
+      "evidence": [
+        "MCPForge: markers=['README.md']; matched_terms=['mcp', 'server']",
+        "dispatch-mcp: markers=['pyproject.toml', 'README.md']; matched_terms=['mcp', 'server']"
+      ],
+      "overlap_kind": [
+        "mcp-server/platform"
+      ],
+      "overlap_repo": "dispatch-mcp",
+      "target": "MCPForge"
+    },
+    {
+      "evidence": [
+        "MCPForge: markers=['README.md']; matched_terms=['mcp', 'server']",
+        "phenotype-ops-mcp: markers=['README.md']; matched_terms=['mcp', 'server']"
+      ],
+      "overlap_kind": [
+        "mcp-server/platform"
+      ],
+      "overlap_repo": "phenotype-ops-mcp",
+      "target": "MCPForge"
+    },
+    {
+      "evidence": [
+        "McpKit: markers=['pyproject.toml', 'README.md']; matched_terms=['mcp', 'model context protocol', 'python']",
+        "AgentMCP: markers=['README.md']; matched_terms=['mcp', 'model context protocol', 'python']"
+      ],
+      "overlap_kind": [
+        "mcp-server/platform"
+      ],
+      "overlap_repo": "AgentMCP",
+      "target": "McpKit"
+    },
+    {
+      "evidence": [
+        "McpKit: markers=['pyproject.toml', 'README.md']; matched_terms=['cli', 'mcp', 'server']",
+        "MCPForge: markers=['README.md']; matched_terms=['cli', 'mcp', 'server']"
+      ],
+      "overlap_kind": [
+        "mcp-server/platform"
+      ],
+      "overlap_repo": "MCPForge",
+      "target": "McpKit"
+    },
+    {
+      "evidence": [
+        "McpKit: markers=['pyproject.toml', 'README.md']; matched_terms=['mcp', 'model context protocol', 'python', 'rust', 'tool', 'typescript']",
+        "PhenoMCP: markers=['Cargo.toml', 'pyproject.toml', 'package.json', 'README.md']; matched_terms=['mcp', 'model context protocol', 'python', 'rust', 'tool', 'typescript']"
+      ],
+      "overlap_kind": [
+        "mcp-server/platform"
+      ],
+      "overlap_repo": "PhenoMCP",
+      "target": "McpKit"
+    },
+    {
+      "evidence": [
+        "McpKit: markers=['pyproject.toml', 'README.md']; matched_terms=['cli', 'mcp', 'python', 'server', 'tool']",
+        "cheap-llm-mcp: markers=['pyproject.toml', 'README.md']; matched_terms=['cli', 'mcp', 'python', 'server', 'tool']"
+      ],
+      "overlap_kind": [
+        "mcp-server/platform"
+      ],
+      "overlap_repo": "cheap-llm-mcp",
+      "target": "McpKit"
+    },
+    {
+      "evidence": [
+        "McpKit: markers=['pyproject.toml', 'README.md']; matched_terms=['mcp', 'python', 'server', 'tool']",
+        "dispatch-mcp: markers=['pyproject.toml', 'README.md']; matched_terms=['mcp', 'python', 'server', 'tool']"
+      ],
+      "overlap_kind": [
+        "mcp-server/platform"
+      ],
+      "overlap_repo": "dispatch-mcp",
+      "target": "McpKit"
+    },
+    {
+      "evidence": [
+        "McpKit: markers=['pyproject.toml', 'README.md']; matched_terms=['mcp', 'model context protocol', 'server', 'tool']",
+        "phenotype-ops-mcp: markers=['README.md']; matched_terms=['mcp', 'model context protocol', 'server', 'tool']"
+      ],
+      "overlap_kind": [
+        "mcp-server/platform"
+      ],
+      "overlap_repo": "phenotype-ops-mcp",
+      "target": "McpKit"
+    },
+    {
+      "evidence": [
+        "PhenoMCP: markers=['Cargo.toml', 'pyproject.toml', 'package.json', 'README.md']; matched_terms=['mcp', 'model context protocol', 'python']",
+        "AgentMCP: markers=['README.md']; matched_terms=['mcp', 'model context protocol', 'python']"
+      ],
+      "overlap_kind": [
+        "mcp-server/platform"
+      ],
+      "overlap_repo": "AgentMCP",
+      "target": "PhenoMCP"
+    },
+    {
+      "evidence": [
+        "PhenoMCP: markers=['Cargo.toml', 'pyproject.toml', 'package.json', 'README.md']; matched_terms=['mcp', 'model context protocol', 'python', 'rust', 'tool', 'typescript']",
+        "McpKit: markers=['pyproject.toml', 'README.md']; matched_terms=['mcp', 'model context protocol', 'python', 'rust', 'tool', 'typescript']"
+      ],
+      "overlap_kind": [
+        "mcp-server/platform"
+      ],
+      "overlap_repo": "McpKit",
+      "target": "PhenoMCP"
+    },
+    {
+      "evidence": [
+        "PhenoMCP: markers=['Cargo.toml', 'pyproject.toml', 'package.json', 'README.md']; matched_terms=['mcp', 'python', 'tool']",
+        "cheap-llm-mcp: markers=['pyproject.toml', 'README.md']; matched_terms=['mcp', 'python', 'tool']"
+      ],
+      "overlap_kind": [
+        "adjacent-tooling"
+      ],
+      "overlap_repo": "cheap-llm-mcp",
+      "target": "PhenoMCP"
+    },
+    {
+      "evidence": [
+        "PhenoMCP: markers=['Cargo.toml', 'pyproject.toml', 'package.json', 'README.md']; matched_terms=['mcp', 'python', 'tool']",
+        "dispatch-mcp: markers=['pyproject.toml', 'README.md']; matched_terms=['mcp', 'python', 'tool']"
+      ],
+      "overlap_kind": [
+        "adjacent-tooling"
+      ],
+      "overlap_repo": "dispatch-mcp",
+      "target": "PhenoMCP"
+    },
+    {
+      "evidence": [
+        "PhenoMCP: markers=['Cargo.toml', 'pyproject.toml', 'package.json', 'README.md']; matched_terms=['mcp', 'model context protocol', 'tool']",
+        "phenotype-ops-mcp: markers=['README.md']; matched_terms=['mcp', 'model context protocol', 'tool']"
+      ],
+      "overlap_kind": [
+        "mcp-server/platform"
+      ],
+      "overlap_repo": "phenotype-ops-mcp",
+      "target": "PhenoMCP"
+    },
+    {
+      "evidence": [
+        "cheap-llm-mcp: markers=['pyproject.toml', 'README.md']; matched_terms=['agent', 'mcp', 'python']",
+        "AgentMCP: markers=['README.md']; matched_terms=['agent', 'mcp', 'python']"
+      ],
+      "overlap_kind": [
+        "adjacent-tooling"
+      ],
+      "overlap_repo": "AgentMCP",
+      "target": "cheap-llm-mcp"
+    },
+    {
+      "evidence": [
+        "cheap-llm-mcp: markers=['pyproject.toml', 'README.md']; matched_terms=['cli', 'llm', 'mcp', 'server']",
+        "MCPForge: markers=['README.md']; matched_terms=['cli', 'llm', 'mcp', 'server']"
+      ],
+      "overlap_kind": [
+        "mcp-server/platform"
+      ],
+      "overlap_repo": "MCPForge",
+      "target": "cheap-llm-mcp"
+    },
+    {
+      "evidence": [
+        "cheap-llm-mcp: markers=['pyproject.toml', 'README.md']; matched_terms=['cli', 'mcp', 'python', 'server', 'tool']",
+        "McpKit: markers=['pyproject.toml', 'README.md']; matched_terms=['cli', 'mcp', 'python', 'server', 'tool']"
+      ],
+      "overlap_kind": [
+        "mcp-server/platform"
+      ],
+      "overlap_repo": "McpKit",
+      "target": "cheap-llm-mcp"
+    },
+    {
+      "evidence": [
+        "cheap-llm-mcp: markers=['pyproject.toml', 'README.md']; matched_terms=['mcp', 'python', 'tool']",
+        "PhenoMCP: markers=['Cargo.toml', 'pyproject.toml', 'package.json', 'README.md']; matched_terms=['mcp', 'python', 'tool']"
+      ],
+      "overlap_kind": [
+        "adjacent-tooling"
+      ],
+      "overlap_repo": "PhenoMCP",
+      "target": "cheap-llm-mcp"
+    },
+    {
+      "evidence": [
+        "cheap-llm-mcp: markers=['pyproject.toml', 'README.md']; matched_terms=['mcp', 'python', 'server', 'tool']",
+        "dispatch-mcp: markers=['pyproject.toml', 'README.md']; matched_terms=['mcp', 'python', 'server', 'tool']"
+      ],
+      "overlap_kind": [
+        "mcp-server/platform"
+      ],
+      "overlap_repo": "dispatch-mcp",
+      "target": "cheap-llm-mcp"
+    },
+    {
+      "evidence": [
+        "cheap-llm-mcp: markers=['pyproject.toml', 'README.md']; matched_terms=['agent', 'mcp', 'server', 'tool']",
+        "phenotype-ops-mcp: markers=['README.md']; matched_terms=['agent', 'mcp', 'server', 'tool']"
+      ],
+      "overlap_kind": [
+        "mcp-server/platform"
+      ],
+      "overlap_repo": "phenotype-ops-mcp",
+      "target": "cheap-llm-mcp"
+    },
+    {
+      "evidence": [
+        "dispatch-mcp: markers=['pyproject.toml', 'README.md']; matched_terms=['mcp', 'server']",
+        "MCPForge: markers=['README.md']; matched_terms=['mcp', 'server']"
+      ],
+      "overlap_kind": [
+        "mcp-server/platform"
+      ],
+      "overlap_repo": "MCPForge",
+      "target": "dispatch-mcp"
+    },
+    {
+      "evidence": [
+        "dispatch-mcp: markers=['pyproject.toml', 'README.md']; matched_terms=['mcp', 'python', 'server', 'tool']",
+        "McpKit: markers=['pyproject.toml', 'README.md']; matched_terms=['mcp', 'python', 'server', 'tool']"
+      ],
+      "overlap_kind": [
+        "mcp-server/platform"
+      ],
+      "overlap_repo": "McpKit",
+      "target": "dispatch-mcp"
+    },
+    {
+      "evidence": [
+        "dispatch-mcp: markers=['pyproject.toml', 'README.md']; matched_terms=['mcp', 'python', 'tool']",
+        "PhenoMCP: markers=['Cargo.toml', 'pyproject.toml', 'package.json', 'README.md']; matched_terms=['mcp', 'python', 'tool']"
+      ],
+      "overlap_kind": [
+        "adjacent-tooling"
+      ],
+      "overlap_repo": "PhenoMCP",
+      "target": "dispatch-mcp"
+    },
+    {
+      "evidence": [
+        "dispatch-mcp: markers=['pyproject.toml', 'README.md']; matched_terms=['mcp', 'python', 'server', 'tool']",
+        "cheap-llm-mcp: markers=['pyproject.toml', 'README.md']; matched_terms=['mcp', 'python', 'server', 'tool']"
+      ],
+      "overlap_kind": [
+        "mcp-server/platform"
+      ],
+      "overlap_repo": "cheap-llm-mcp",
+      "target": "dispatch-mcp"
+    },
+    {
+      "evidence": [
+        "dispatch-mcp: markers=['pyproject.toml', 'README.md']; matched_terms=['mcp', 'server', 'tool']",
+        "phenotype-ops-mcp: markers=['README.md']; matched_terms=['mcp', 'server', 'tool']"
+      ],
+      "overlap_kind": [
+        "mcp-server/platform"
+      ],
+      "overlap_repo": "phenotype-ops-mcp",
+      "target": "dispatch-mcp"
+    },
+    {
+      "evidence": [
+        "phenotype-ops-mcp: markers=['README.md']; matched_terms=['agent', 'mcp', 'model context protocol']",
+        "AgentMCP: markers=['README.md']; matched_terms=['agent', 'mcp', 'model context protocol']"
+      ],
+      "overlap_kind": [
+        "mcp-server/platform"
+      ],
+      "overlap_repo": "AgentMCP",
+      "target": "phenotype-ops-mcp"
+    },
+    {
+      "evidence": [
+        "phenotype-ops-mcp: markers=['README.md']; matched_terms=['mcp', 'server']",
+        "MCPForge: markers=['README.md']; matched_terms=['mcp', 'server']"
+      ],
+      "overlap_kind": [
+        "mcp-server/platform"
+      ],
+      "overlap_repo": "MCPForge",
+      "target": "phenotype-ops-mcp"
+    },
+    {
+      "evidence": [
+        "phenotype-ops-mcp: markers=['README.md']; matched_terms=['mcp', 'model context protocol', 'server', 'tool']",
+        "McpKit: markers=['pyproject.toml', 'README.md']; matched_terms=['mcp', 'model context protocol', 'server', 'tool']"
+      ],
+      "overlap_kind": [
+        "mcp-server/platform"
+      ],
+      "overlap_repo": "McpKit",
+      "target": "phenotype-ops-mcp"
+    },
+    {
+      "evidence": [
+        "phenotype-ops-mcp: markers=['README.md']; matched_terms=['mcp', 'model context protocol', 'tool']",
+        "PhenoMCP: markers=['Cargo.toml', 'pyproject.toml', 'package.json', 'README.md']; matched_terms=['mcp', 'model context protocol', 'tool']"
+      ],
+      "overlap_kind": [
+        "mcp-server/platform"
+      ],
+      "overlap_repo": "PhenoMCP",
+      "target": "phenotype-ops-mcp"
+    },
+    {
+      "evidence": [
+        "phenotype-ops-mcp: markers=['README.md']; matched_terms=['agent', 'mcp', 'server', 'tool']",
+        "cheap-llm-mcp: markers=['pyproject.toml', 'README.md']; matched_terms=['agent', 'mcp', 'server', 'tool']"
+      ],
+      "overlap_kind": [
+        "mcp-server/platform"
+      ],
+      "overlap_repo": "cheap-llm-mcp",
+      "target": "phenotype-ops-mcp"
+    },
+    {
+      "evidence": [
+        "phenotype-ops-mcp: markers=['README.md']; matched_terms=['mcp', 'server', 'tool']",
+        "dispatch-mcp: markers=['pyproject.toml', 'README.md']; matched_terms=['mcp', 'server', 'tool']"
+      ],
+      "overlap_kind": [
+        "mcp-server/platform"
+      ],
+      "overlap_repo": "dispatch-mcp",
+      "target": "phenotype-ops-mcp"
+    }
+  ],
+  "target_repos": [
+    {
+      "name": "AgentMCP",
+      "path": "/Users/kooshapari/CodeProjects/Phenotype/repos/AgentMCP",
+      "structure": [
+        "README.md"
+      ]
+    },
+    {
+      "name": "MCPForge",
+      "path": "/Users/kooshapari/CodeProjects/Phenotype/repos/MCPForge",
+      "structure": [
+        "README.md"
+      ]
+    },
+    {
+      "name": "McpKit",
+      "path": "/Users/kooshapari/CodeProjects/Phenotype/repos/McpKit",
+      "structure": [
+        "pyproject.toml",
+        "README.md"
+      ]
+    },
+    {
+      "name": "PhenoMCP",
+      "path": "/Users/kooshapari/CodeProjects/Phenotype/repos/PhenoMCP",
+      "structure": [
+        "Cargo.toml",
+        "pyproject.toml",
+        "package.json",
+        "README.md"
+      ]
+    },
+    {
+      "name": "cheap-llm-mcp",
+      "path": "/Users/kooshapari/CodeProjects/Phenotype/repos/cheap-llm-mcp",
+      "structure": [
+        "pyproject.toml",
+        "README.md"
+      ]
+    },
+    {
+      "name": "dispatch-mcp",
+      "path": "/Users/kooshapari/CodeProjects/Phenotype/repos/dispatch-mcp",
+      "structure": [
+        "pyproject.toml",
+        "README.md"
+      ]
+    },
+    {
+      "name": "phenotype-ops-mcp",
+      "path": "/Users/kooshapari/CodeProjects/Phenotype/repos/phenotype-ops-mcp",
+      "structure": [
+        "README.md"
+      ]
+    }
+  ]
+}

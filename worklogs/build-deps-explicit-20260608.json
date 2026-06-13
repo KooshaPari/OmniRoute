@@ -1,0 +1,27 @@
+{
+  "generated_at": "2026-06-08T11:29:49Z",
+  "total_repos": 165,
+  "with_cargo_build_deps": [
+    "PhenoCompose",
+    "Tracera"
+  ],
+  "with_vite": [
+    "AgilePlus",
+    "AtomsBot",
+    "BytePort",
+    "PhenoMCP",
+    "PhenoProc"
+  ],
+  "with_esbuild": [
+    "HeliosLab",
+    "PhenoMCP",
+    "heliosApp",
+    "thegent",
+    "thegent-clean-wt-idea",
+    "thegent-clean-wt-parallel",
+    "thegent-clean-wt-policy",
+    "thegent-clean-wt-ruff"
+  ],
+  "with_webpack": [],
+  "with_rollup": []
+}

@@ -1,0 +1,122 @@
+{
+  "task": "L2-28",
+  "name": "pheno-contributing-baseline",
+  "description": "Author canonical CONTRIBUTING.md and add to repos with weak/missing contribution guidelines.",
+  "date": "2026-06-08",
+  "template": {
+    "path": "/Users/kooshapari/CodeProjects/Phenotype/repos/.claude/templates/CONTRIBUTING.md",
+    "size_bytes": 8927,
+    "lines": 217,
+    "sections": [
+      "Code of Conduct",
+      "Bug Reports",
+      "Feature Requests",
+      "Pull Request Process",
+      "Commit Messages (Conventional Commits)",
+      "Development Setup",
+      "Testing",
+      "Style"
+    ]
+  },
+  "commit_message": "chore(docs): add CONTRIBUTING.md with conventional-commits process",
+  "branch": "chore/contributing-2026-06-08",
+  "pushed": false,
+  "repos": [
+    {
+      "name": "agentapi-plusplus",
+      "path": "/Users/kooshapari/CodeProjects/Phenotype/repos/agentapi-plusplus",
+      "previous_state": {
+        "existed": true,
+        "size_bytes": 288,
+        "kind": "thin_stub"
+      },
+      "branch": "chore/contributing-2026-06-08",
+      "base_branch": "main",
+      "base_sha": "3b413fee1f2098419c7ce15e6494549e67b2667f",
+      "commit_sha": "67e515dcc560c202ce1ef0c8ae1dc8d69f9b300b",
+      "commit_short": "67e515d",
+      "file": "CONTRIBUTING.md",
+      "file_size_bytes": 8927,
+      "file_lines": 217,
+      "file_insertions": 215,
+      "file_deletions": 6,
+      "commit_count": 1,
+      "privacy_section_added": false,
+      "notes": "Replaced 288-byte stub with canonical template. Branch was temporarily advanced by a parallel agent with an unrelated changelog commit; reset to single-commit state for this task. Orphaned commit SHA preserved at /tmp/dag-v2-L2-28-orphaned.txt."
+    },
+    {
+      "name": "PhenoDevOps",
+      "path": "/Users/kooshapari/CodeProjects/Phenotype/repos/PhenoDevOps",
+      "previous_state": {
+        "existed": true,
+        "size_bytes": 288,
+        "kind": "thin_stub"
+      },
+      "branch": "chore/contributing-2026-06-08",
+      "base_branch": "main",
+      "base_sha": "ad8a8c82",
+      "commit_sha": "2c676f69f59a69f13dd5e833793b11891b4424f2",
+      "commit_short": "2c676f6",
+      "file": "CONTRIBUTING.md",
+      "file_size_bytes": 8927,
+      "file_lines": 217,
+      "file_insertions": 215,
+      "file_deletions": 6,
+      "commit_count": 1,
+      "privacy_section_added": false,
+      "notes": "Replaced 288-byte stub with canonical template."
+    },
+    {
+      "name": "localbase3",
+      "path": "/Users/kooshapari/CodeProjects/Phenotype/repos/localbase3",
+      "previous_state": {
+        "existed": false,
+        "size_bytes": 0,
+        "kind": "missing"
+      },
+      "branch": "chore/contributing-2026-06-08",
+      "base_branch": "main",
+      "base_sha": "3aa2d07b",
+      "commit_sha": "199dec24ea5a3573a8e1a79a14e85e57a226d8de",
+      "commit_short": "199dec2",
+      "file": "CONTRIBUTING.md",
+      "file_size_bytes": 8927,
+      "file_lines": 217,
+      "file_insertions": 217,
+      "file_deletions": 0,
+      "commit_count": 1,
+      "privacy_section_added": false,
+      "notes": "Created CONTRIBUTING.md from canonical template (file did not previously exist)."
+    },
+    {
+      "name": "agent-user-status",
+      "path": "/Users/kooshapari/CodeProjects/Phenotype/repos/agent-user-status",
+      "previous_state": {
+        "existed": true,
+        "size_bytes": 1251,
+        "kind": "present_but_repo_specific"
+      },
+      "branch": "chore/contributing-2026-06-08",
+      "base_branch": "main",
+      "base_sha": "73c7b74e",
+      "commit_sha": "e6df834daa9e67eb8c6c1e141b5bd3c2dab89b0c",
+      "commit_short": "e6df834",
+      "file": "CONTRIBUTING.md",
+      "file_size_bytes": 9606,
+      "file_lines": 241,
+      "file_insertions": 219,
+      "file_deletions": 20,
+      "commit_count": 1,
+      "privacy_section_added": true,
+      "notes": "Upgraded existing repo-specific CONTRIBUTING.md to canonical template while preserving the 'Privacy & Telemetry' section (no raw camera frames, screenshots, face/eye images, facial landmarks, biometric embeddings, raw gaze streams, typed text, or audio)."
+    }
+  ],
+  "summary": {
+    "repos_processed": 4,
+    "repos_replaced": 2,
+    "repos_created": 1,
+    "repos_upgraded": 1,
+    "total_commits": 4,
+    "pushed": false
+  }
+}

@@ -1,0 +1,49 @@
+{
+  "audit": "cross-pollination-candidates",
+  "date": "2026-06-08",
+  "scope": "Phenotype org (repos/*)",
+  "method": "read-only scan of 200+ repo READMEs + manifests; identified clusters solving the same problem with divergent approaches",
+  "clusters": [
+    {
+      "id": 1,
+      "problem": "Observability primitives (tracing + metrics + logs)",
+      "repos": ["Tracely", "PhenoObservability", "ObservabilityKit"],
+      "differences": "Tracely = Rust-only unified facade over tracing/metrics/opentelemetry. PhenoObservability = Rust observability stack with multi-lang bindings. ObservabilityKit = polyglot OTel SDKs (Rust/Py/Go/TS).",
+      "recommendation": "Tracely should be the canonical Rust facade; ObservabilityKit the polyglot SDK layer; PhenoObservability demoted to a thin PhenoKits re-export. Document the layering in an ADR."
+    },
+    {
+      "id": 2,
+      "problem": "Shared/utility Rust crates",
+      "repos": ["phenotype-shared", "phenoShared", "phenoUtils", "HexaKit", "phenotype-tooling"],
+      "differences": "phenotype-shared and phenoShared are duplicates (same name, same mission). phenoUtils = primitive tier (crypto/fs/net/shell). HexaKit = 46-crate hexagonal-ports workspace. phenotype-tooling = CI reusables.",
+      "recommendation": "Merge phenotype-shared into phenoShared (the active one); have HexaKit consume phenoUtils as the primitive tier; phenotype-tooling stays CI-only."
+    },
+    {
+      "id": 3,
+      "problem": "MCP server/framework surface",
+      "repos": ["PhenoMCP", "PhenoMCP-cheap", "McpKit", "AgentMCP", "cheap-llm-mcp", "dispatch-mcp"],
+      "differences": "PhenoMCP/PhenoMCP-cheap = Rust experimental scaffolds. McpKit = polyglot framework SDK. cheap-llm-mcp = Python FastMCP LLM router. dispatch-mcp = tier-dispatch tool. AgentMCP = empty placeholder.",
+      "recommendation": "Make McpKit the canonical MCP framework; retire PhenoMCP-cheap (it self-identifies as superseded by Python FastMCP); have cheap-llm-mcp + dispatch-mcp be McpKit consumers. Archive AgentMCP placeholder."
+    },
+    {
+      "id": 4,
+      "problem": "Agent framework / orchestration",
+      "repos": ["Agentora (agentkit)", "PhenoAgent", "phenoAI", "agent-platform"],
+      "differences": "Agentora = Rust hexagonal agent framework with skills/tool-registry/memory. PhenoAgent = distributed orchestration framework with plugins/skills/multi-model. phenoAI = AI provider client crates. agent-platform = hexagonal monorepo that explicitly absorbs the agent cluster.",
+      "recommendation": "agent-platform is the declared sink; migrate Agentora + PhenoAgent crates into it as adapters/ports. phenoAI becomes the LlmProvider port impl. Avoid three Rust agent frameworks."
+    },
+    {
+      "id": 5,
+      "problem": "Event/bus/messaging substrate",
+      "repos": ["phenotype-bus", "Eventra (eventkit)", "Tokn (tokenledger::routing)"],
+      "differences": "phenotype-bus = generic async pub/sub. Eventra = CQRS + event sourcing + projections. Tokn = token ledger but also contains the canonical Rust routing substrate per ADR-001.",
+      "recommendation": "phenotype-bus is the low-level transport; Eventra layers CQRS on top. Clarify in ADR that Tokn's routing module is the routing substrate (already canonical) and that phenotype-bus must not duplicate route selection."
+    }
+  ],
+  "additional_signals": [
+    "Three distinct 'shared' namespaces (phenotype-shared, phenoShared, phenotype-shared-TYPESCRIPT) are a documentation smell",
+    "heliosCLI and helioscope are the same README (helioscope is a redirect/fork)",
+    "AppGen self-identifies as archived-candidate — close the 6 stale Dependabot PRs"
+  ],
+  "next_steps": "Open one consolidation ADR per cluster; stage migrations in repo-specific worktrees per Worktree Commandments."
+}

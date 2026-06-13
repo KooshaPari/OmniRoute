@@ -1,0 +1,3395 @@
+{
+  "generated_at": "2026-06-07T05:38:19Z",
+  "total_repos": 125,
+  "green_count": 93,
+  "yellow_count": 0,
+  "red_count": 32,
+  "by_repo": [
+    {
+      "repo": "AgentMCP",
+      "signals": {
+        "readme": {
+          "present": true,
+          "file": "README.md",
+          "size": 1482
+        },
+        "cargo_deps": {
+          "present": false,
+          "has_dependencies": false,
+          "has_dev_dependencies": false
+        },
+        "ci": {
+          "present": true,
+          "workflow_count": 1
+        },
+        "deploy_marker": {
+          "present": false,
+          "markers": []
+        }
+      },
+      "status": "green"
+    },
+    {
+      "repo": "Agentora",
+      "signals": {
+        "readme": {
+          "present": true,
+          "file": "README.md",
+          "size": 17728
+        },
+        "cargo_deps": {
+          "present": true,
+          "has_dependencies": true,
+          "has_dev_dependencies": true
+        },
+        "ci": {
+          "present": true,
+          "workflow_count": 6
+        },
+        "deploy_marker": {
+          "present": true,
+          "markers": [
+            ".github/workflows/pages-deploy.yml"
+          ]
+        }
+      },
+      "status": "green"
+    },
+    {
+      "repo": "AgilePlus",
+      "signals": {
+        "readme": {
+          "present": true,
+          "file": "README.md",
+          "size": 3703
+        },
+        "cargo_deps": {
+          "present": true,
+          "has_dependencies": true,
+          "has_dev_dependencies": true
+        },
+        "ci": {
+          "present": true,
+          "workflow_count": 18
+        },
+        "deploy_marker": {
+          "present": true,
+          "markers": [
+            ".github/workflows/deploy.yml"
+          ]
+        }
+      },
+      "status": "green"
+    },
+    {
+      "repo": "Apisync",
+      "signals": {
+        "readme": {
+          "present": true,
+          "file": "README.md",
+          "size": 2759
+        },
+        "cargo_deps": {
+          "present": true,
+          "has_dependencies": true,
+          "has_dev_dependencies": true
+        },
+        "ci": {
+          "present": true,
+          "workflow_count": 11
+        },
+        "deploy_marker": {
+          "present": true,
+          "markers": [
+            ".github/workflows/release.yml",
+            ".github/workflows/pages-deploy.yml"
+          ]
+        }
+      },
+      "status": "green"
+    },
+    {
+      "repo": "AppGen",
+      "signals": {
+        "readme": {
+          "present": true,
+          "file": "README.md",
+          "size": 3193
+        },
+        "cargo_deps": {
+          "present": false,
+          "has_dependencies": false,
+          "has_dev_dependencies": false
+        },
+        "ci": {
+          "present": true,
+          "workflow_count": 7
+        },
+        "deploy_marker": {
+          "present": false,
+          "markers": []
+        }
+      },
+      "status": "green"
+    },
+    {
+      "repo": "AtomsBot",
+      "signals": {
+        "readme": {
+          "present": true,
+          "file": "README.md",
+          "size": 10258
+        },
+        "cargo_deps": {
+          "present": false,
+          "has_dependencies": false,
+          "has_dev_dependencies": false
+        },
+        "ci": {
+          "present": true,
+          "workflow_count": 8
+        },
+        "deploy_marker": {
+          "present": true,
+          "markers": [
+            "Dockerfile",
+            ".github/release-drafter.yml",
+            ".github/workflows/release.yml",
+            ".github/workflows/release-drafter.yml",
+            ".github/workflows/build-and-release.yml"
+          ]
+        }
+      },
+      "status": "green"
+    },
+    {
+      "repo": "AuthKit",
+      "signals": {
+        "readme": {
+          "present": true,
+          "file": "README.md",
+          "size": 2427
+        },
+        "cargo_deps": {
+          "present": false,
+          "has_dependencies": false,
+          "has_dev_dependencies": false
+        },
+        "ci": {
+          "present": true,
+          "workflow_count": 10
+        },
+        "deploy_marker": {
+          "present": true,
+          "markers": [
+            ".github/workflows/release.yml",
+            ".github/workflows/release-drafter.yml"
+          ]
+        }
+      },
+      "status": "green"
+    },
+    {
+      "repo": "Benchora",
+      "signals": {
+        "readme": {
+          "present": true,
+          "file": "README.md",
+          "size": 798
+        },
+        "cargo_deps": {
+          "present": true,
+          "has_dependencies": true,
+          "has_dev_dependencies": true
+        },
+        "ci": {
+          "present": true,
+          "workflow_count": 6
+        },
+        "deploy_marker": {
+          "present": false,
+          "markers": []
+        }
+      },
+      "status": "green"
+    },
+    {
+      "repo": "BytePort",
+      "signals": {
+        "readme": {
+          "present": true,
+          "file": "README.md",
+          "size": 28927
+        },
+        "cargo_deps": {
+          "present": true,
+          "has_dependencies": false,
+          "has_dev_dependencies": false
+        },
+        "ci": {
+          "present": true,
+          "workflow_count": 18
+        },
+        "deploy_marker": {
+          "present": true,
+          "markers": [
+            ".github/workflows/release.yml",
+            ".github/workflows/release-drafter.yml"
+          ]
+        }
+      },
+      "status": "red"
+    },
+    {
+      "repo": "Civis",
+      "signals": {
+        "readme": {
+          "present": false,
+          "file": null,
+          "size": 0
+        },
+        "cargo_deps": {
+          "present": false,
+          "has_dependencies": false,
+          "has_dev_dependencies": false
+        },
+        "ci": {
+          "present": true,
+          "workflow_count": 1
+        },
+        "deploy_marker": {
+          "present": false,
+          "markers": []
+        }
+      },
+      "status": "red"
+    },
+    {
+      "repo": "Conft",
+      "signals": {
+        "readme": {
+          "present": true,
+          "file": "README.md",
+          "size": 5107
+        },
+        "cargo_deps": {
+          "present": false,
+          "has_dependencies": false,
+          "has_dev_dependencies": false
+        },
+        "ci": {
+          "present": true,
+          "workflow_count": 7
+        },
+        "deploy_marker": {
+          "present": false,
+          "markers": []
+        }
+      },
+      "status": "green"
+    },
+    {
+      "repo": "DINOForge-UnityDoorstop",
+      "signals": {
+        "readme": {
+          "present": true,
+          "file": "README.md",
+          "size": 9118
+        },
+        "cargo_deps": {
+          "present": false,
+          "has_dependencies": false,
+          "has_dev_dependencies": false
+        },
+        "ci": {
+          "present": true,
+          "workflow_count": 3
+        },
+        "deploy_marker": {
+          "present": false,
+          "markers": []
+        }
+      },
+      "status": "green"
+    },
+    {
+      "repo": "DataKit",
+      "signals": {
+        "readme": {
+          "present": true,
+          "file": "README.md",
+          "size": 3469
+        },
+        "cargo_deps": {
+          "present": false,
+          "has_dependencies": false,
+          "has_dev_dependencies": false
+        },
+        "ci": {
+          "present": true,
+          "workflow_count": 10
+        },
+        "deploy_marker": {
+          "present": true,
+          "markers": [
+            ".github/workflows/release.yml"
+          ]
+        }
+      },
+      "status": "green"
+    },
+    {
+      "repo": "DevHex",
+      "signals": {
+        "readme": {
+          "present": true,
+          "file": "README.md",
+          "size": 7712
+        },
+        "cargo_deps": {
+          "present": false,
+          "has_dependencies": false,
+          "has_dev_dependencies": false
+        },
+        "ci": {
+          "present": true,
+          "workflow_count": 7
+        },
+        "deploy_marker": {
+          "present": false,
+          "markers": []
+        }
+      },
+      "status": "green"
+    },
+    {
+      "repo": "Dino",
+      "signals": {
+        "readme": {
+          "present": true,
+          "file": "README.md",
+          "size": 19138
+        },
+        "cargo_deps": {
+          "present": false,
+          "has_dependencies": false,
+          "has_dev_dependencies": false
+        },
+        "ci": {
+          "present": true,
+          "workflow_count": 49
+        },
+        "deploy_marker": {
+          "present": true,
+          "markers": [
+            "RELEASING.md",
+            "Dockerfile",
+            "RELEASE_NOTES_v0.23.0.md",
+            "src/Analyzers/AnalyzerReleases.Unshipped.md",
+            ".github/release-drafter.yml",
+            ".github/workflows/release.yml",
+            ".github/workflows/deploy.yml",
+            ".github/workflows/release-drafter.yml",
+            "scripts/game/README-deploy-handle-connect-fix.md",
+            "docs/RELEASE_AUTOMATION_SETUP.md"
+          ]
+        }
+      },
+      "status": "green"
+    },
+    {
+      "repo": "Eidolon",
+      "signals": {
+        "readme": {
+          "present": true,
+          "file": "README.md",
+          "size": 8249
+        },
+        "cargo_deps": {
+          "present": true,
+          "has_dependencies": false,
+          "has_dev_dependencies": false
+        },
+        "ci": {
+          "present": true,
+          "workflow_count": 12
+        },
+        "deploy_marker": {
+          "present": true,
+          "markers": [
+            "RELEASE.md"
+          ]
+        }
+      },
+      "status": "red"
+    },
+    {
+      "repo": "Eventra",
+      "signals": {
+        "readme": {
+          "present": true,
+          "file": "README.md",
+          "size": 2638
+        },
+        "cargo_deps": {
+          "present": true,
+          "has_dependencies": true,
+          "has_dev_dependencies": true
+        },
+        "ci": {
+          "present": true,
+          "workflow_count": 1
+        },
+        "deploy_marker": {
+          "present": false,
+          "markers": []
+        }
+      },
+      "status": "green"
+    },
+    {
+      "repo": "FocalPoint",
+      "signals": {
+        "readme": {
+          "present": true,
+          "file": "README.md",
+          "size": 10679
+        },
+        "cargo_deps": {
+          "present": true,
+          "has_dependencies": false,
+          "has_dev_dependencies": false
+        },
+        "ci": {
+          "present": true,
+          "workflow_count": 6
+        },
+        "deploy_marker": {
+          "present": false,
+          "markers": []
+        }
+      },
+      "status": "red"
+    },
+    {
+      "repo": "GDK",
+      "signals": {
+        "readme": {
+          "present": true,
+          "file": "README.md",
+          "size": 20726
+        },
+        "cargo_deps": {
+          "present": true,
+          "has_dependencies": true,
+          "has_dev_dependencies": true
+        },
+        "ci": {
+          "present": true,
+          "workflow_count": 16
+        },
+        "deploy_marker": {
+          "present": true,
+          "markers": [
+            ".github/workflows/release.yml"
+          ]
+        }
+      },
+      "status": "green"
+    },
+    {
+      "repo": "HeliosCLI",
+      "signals": {
+        "readme": {
+          "present": true,
+          "file": "README.md",
+          "size": 11446
+        },
+        "cargo_deps": {
+          "present": true,
+          "has_dependencies": false,
+          "has_dev_dependencies": false
+        },
+        "ci": {
+          "present": true,
+          "workflow_count": 54
+        },
+        "deploy_marker": {
+          "present": true,
+          "markers": [
+            "Dockerfile",
+            ".github/workflows/rust-release-windows.yml",
+            ".github/workflows/rust-release.yml",
+            ".github/workflows/helios-cli-release.yml",
+            ".github/workflows/rust-release-prepare.yml",
+            ".devcontainer/Dockerfile",
+            "docs/checklists/RELEASE_CHECKLIST.md",
+            "codex-cli/Dockerfile"
+          ]
+        }
+      },
+      "status": "red"
+    },
+    {
+      "repo": "HeliosLab",
+      "signals": {
+        "readme": {
+          "present": true,
+          "file": "README.md",
+          "size": 2276
+        },
+        "cargo_deps": {
+          "present": true,
+          "has_dependencies": false,
+          "has_dev_dependencies": false
+        },
+        "ci": {
+          "present": true,
+          "workflow_count": 19
+        },
+        "deploy_marker": {
+          "present": true,
+          "markers": [
+            ".github/workflows/release.yml",
+            ".github/workflows/deploy-docs.yml",
+            ".github/workflows/build-release.yml"
+          ]
+        }
+      },
+      "status": "red"
+    },
+    {
+      "repo": "HexaKit",
+      "signals": {
+        "readme": {
+          "present": true,
+          "file": "README.md",
+          "size": 5753
+        },
+        "cargo_deps": {
+          "present": true,
+          "has_dependencies": true,
+          "has_dev_dependencies": false
+        },
+        "ci": {
+          "present": true,
+          "workflow_count": 52
+        },
+        "deploy_marker": {
+          "present": true,
+          "markers": [
+            "SENTRY_DEPLOYMENT_SUMMARY.md",
+            "template-rust/.github/workflows/release.yml",
+            "agileplus-mcp/Dockerfile",
+            "agileplus-mcp/.github/workflows/release.yml",
+            "templates/hexagon/rust/Dockerfile",
+            "templates/hexagon/typescript/Dockerfile",
+            "templates/hexagon/python/Dockerfile",
+            "templates/hexagon/go/Dockerfile",
+            "templates/typescript/Dockerfile",
+            ".github/release-drafter.yml"
+          ]
+        }
+      },
+      "status": "green"
+    },
+    {
+      "repo": "Httpora",
+      "signals": {
+        "readme": {
+          "present": true,
+          "file": "README.md",
+          "size": 4234
+        },
+        "cargo_deps": {
+          "present": false,
+          "has_dependencies": false,
+          "has_dev_dependencies": false
+        },
+        "ci": {
+          "present": true,
+          "workflow_count": 7
+        },
+        "deploy_marker": {
+          "present": true,
+          "markers": [
+            ".github/workflows/release.yml",
+            ".github/workflows/pages-deploy.yml"
+          ]
+        }
+      },
+      "status": "green"
+    },
+    {
+      "repo": "KDesktopVirt",
+      "signals": {
+        "readme": {
+          "present": true,
+          "file": "README.md",
+          "size": 14637
+        },
+        "cargo_deps": {
+          "present": true,
+          "has_dependencies": true,
+          "has_dev_dependencies": true
+        },
+        "ci": {
+          "present": true,
+          "workflow_count": 14
+        },
+        "deploy_marker": {
+          "present": true,
+          "markers": [
+            "Dockerfile",
+            "helm/kvirtualstage/templates/deployment.yaml",
+            ".github/workflows/pages-deploy.yml",
+            "docs/DEPLOYMENT.md",
+            "k8s/deployment.yaml",
+            "docker/kubuntu/Dockerfile"
+          ]
+        }
+      },
+      "status": "green"
+    },
+    {
+      "repo": "KWatch",
+      "signals": {
+        "readme": {
+          "present": true,
+          "file": "README.md",
+          "size": 26272
+        },
+        "cargo_deps": {
+          "present": false,
+          "has_dependencies": false,
+          "has_dev_dependencies": false
+        },
+        "ci": {
+          "present": true,
+          "workflow_count": 1
+        },
+        "deploy_marker": {
+          "present": false,
+          "markers": []
+        }
+      },
+      "status": "green"
+    },
+    {
+      "repo": "KaskMan",
+      "signals": {
+        "readme": {
+          "present": true,
+          "file": "README.md",
+          "size": 6837
+        },
+        "cargo_deps": {
+          "present": false,
+          "has_dependencies": false,
+          "has_dev_dependencies": false
+        },
+        "ci": {
+          "present": true,
+          "workflow_count": 4
+        },
+        "deploy_marker": {
+          "present": false,
+          "markers": []
+        }
+      },
+      "status": "green"
+    },
+    {
+      "repo": "KlipDot",
+      "signals": {
+        "readme": {
+          "present": true,
+          "file": "README.md",
+          "size": 2503
+        },
+        "cargo_deps": {
+          "present": true,
+          "has_dependencies": true,
+          "has_dev_dependencies": true
+        },
+        "ci": {
+          "present": true,
+          "workflow_count": 8
+        },
+        "deploy_marker": {
+          "present": true,
+          "markers": [
+            ".github/workflows/release.yml"
+          ]
+        }
+      },
+      "status": "green"
+    },
+    {
+      "repo": "MCPForge",
+      "signals": {
+        "readme": {
+          "present": true,
+          "file": "README.md",
+          "size": 10536
+        },
+        "cargo_deps": {
+          "present": false,
+          "has_dependencies": false,
+          "has_dev_dependencies": false
+        },
+        "ci": {
+          "present": true,
+          "workflow_count": 10
+        },
+        "deploy_marker": {
+          "present": false,
+          "markers": []
+        }
+      },
+      "status": "green"
+    },
+    {
+      "repo": "McpKit",
+      "signals": {
+        "readme": {
+          "present": true,
+          "file": "README.md",
+          "size": 4911
+        },
+        "cargo_deps": {
+          "present": false,
+          "has_dependencies": false,
+          "has_dev_dependencies": false
+        },
+        "ci": {
+          "present": true,
+          "workflow_count": 6
+        },
+        "deploy_marker": {
+          "present": false,
+          "markers": []
+        }
+      },
+      "status": "green"
+    },
+    {
+      "repo": "Metron",
+      "signals": {
+        "readme": {
+          "present": true,
+          "file": "README.md",
+          "size": 6812
+        },
+        "cargo_deps": {
+          "present": true,
+          "has_dependencies": true,
+          "has_dev_dependencies": true
+        },
+        "ci": {
+          "present": true,
+          "workflow_count": 13
+        },
+        "deploy_marker": {
+          "present": false,
+          "markers": []
+        }
+      },
+      "status": "green"
+    },
+    {
+      "repo": "NetScript",
+      "signals": {
+        "readme": {
+          "present": false,
+          "file": null,
+          "size": 0
+        },
+        "cargo_deps": {
+          "present": true,
+          "has_dependencies": true,
+          "has_dev_dependencies": false
+        },
+        "ci": {
+          "present": true,
+          "workflow_count": 1
+        },
+        "deploy_marker": {
+          "present": false,
+          "markers": []
+        }
+      },
+      "status": "red"
+    },
+    {
+      "repo": "ObservabilityKit",
+      "signals": {
+        "readme": {
+          "present": true,
+          "file": "README.md",
+          "size": 7010
+        },
+        "cargo_deps": {
+          "present": false,
+          "has_dependencies": false,
+          "has_dev_dependencies": false
+        },
+        "ci": {
+          "present": true,
+          "workflow_count": 9
+        },
+        "deploy_marker": {
+          "present": false,
+          "markers": []
+        }
+      },
+      "status": "green"
+    },
+    {
+      "repo": "OmniRoute",
+      "signals": {
+        "readme": {
+          "present": true,
+          "file": "README.md",
+          "size": 123072
+        },
+        "cargo_deps": {
+          "present": false,
+          "has_dependencies": false,
+          "has_dev_dependencies": false
+        },
+        "ci": {
+          "present": true,
+          "workflow_count": 9
+        },
+        "deploy_marker": {
+          "present": true,
+          "markers": [
+            "Dockerfile",
+            ".github/workflows/electron-release.yml",
+            ".github/workflows/lock-released-branch.yml",
+            "docs/ops/RELEASE_CHECKLIST.md",
+            "docs/ops/FLY_IO_DEPLOYMENT_GUIDE.md",
+            "docs/ops/VM_DEPLOYMENT_GUIDE.md",
+            ".claude/commands/deploy-vps-local-cc.md",
+            ".claude/commands/capture-release-evidences-cc.md",
+            ".claude/commands/deploy-vps-akamai-cc.md",
+            ".claude/commands/generate-release-cc.md"
+          ]
+        }
+      },
+      "status": "green"
+    },
+    {
+      "repo": "Paginary",
+      "signals": {
+        "readme": {
+          "present": true,
+          "file": "README.md",
+          "size": 7994
+        },
+        "cargo_deps": {
+          "present": false,
+          "has_dependencies": false,
+          "has_dev_dependencies": false
+        },
+        "ci": {
+          "present": true,
+          "workflow_count": 8
+        },
+        "deploy_marker": {
+          "present": true,
+          "markers": [
+            "RELEASE.md"
+          ]
+        }
+      },
+      "status": "green"
+    },
+    {
+      "repo": "Parpoura",
+      "signals": {
+        "readme": {
+          "present": true,
+          "file": "README.md",
+          "size": 5041
+        },
+        "cargo_deps": {
+          "present": false,
+          "has_dependencies": false,
+          "has_dev_dependencies": false
+        },
+        "ci": {
+          "present": true,
+          "workflow_count": 13
+        },
+        "deploy_marker": {
+          "present": true,
+          "markers": [
+            "docs/checklists/RELEASE_CHECKLIST.md"
+          ]
+        }
+      },
+      "status": "green"
+    },
+    {
+      "repo": "PhenoAgent",
+      "signals": {
+        "readme": {
+          "present": true,
+          "file": "README.md",
+          "size": 5851
+        },
+        "cargo_deps": {
+          "present": false,
+          "has_dependencies": false,
+          "has_dev_dependencies": false
+        },
+        "ci": {
+          "present": true,
+          "workflow_count": 8
+        },
+        "deploy_marker": {
+          "present": false,
+          "markers": []
+        }
+      },
+      "status": "green"
+    },
+    {
+      "repo": "PhenoCompose",
+      "signals": {
+        "readme": {
+          "present": true,
+          "file": "README.md",
+          "size": 7431
+        },
+        "cargo_deps": {
+          "present": false,
+          "has_dependencies": false,
+          "has_dev_dependencies": false
+        },
+        "ci": {
+          "present": true,
+          "workflow_count": 8
+        },
+        "deploy_marker": {
+          "present": true,
+          "markers": [
+            "docs/adr/ADR-008-deployment-strategy.md"
+          ]
+        }
+      },
+      "status": "green"
+    },
+    {
+      "repo": "PhenoDevOps",
+      "signals": {
+        "readme": {
+          "present": true,
+          "file": "README.md",
+          "size": 3560
+        },
+        "cargo_deps": {
+          "present": true,
+          "has_dependencies": true,
+          "has_dev_dependencies": false
+        },
+        "ci": {
+          "present": true,
+          "workflow_count": 43
+        },
+        "deploy_marker": {
+          "present": true,
+          "markers": [
+            "SENTRY_DEPLOYMENT_SUMMARY.md",
+            "agent-devops-setups/Dockerfile",
+            "agent-devops-setups/.github/workflows/release.yml",
+            "agent-devops-setups/.github/workflows/release-drafter.yml",
+            "agent-devops-setups/.github/workflows/pages-deploy.yml",
+            "agileplus-mcp/Dockerfile",
+            ".github/release-drafter.yml",
+            ".github/workflows/release.yml",
+            ".github/workflows/deploy.yml",
+            ".github/workflows/release-drafter.yml"
+          ]
+        }
+      },
+      "status": "green"
+    },
+    {
+      "repo": "PhenoHandbook",
+      "signals": {
+        "readme": {
+          "present": true,
+          "file": "README.md",
+          "size": 6318
+        },
+        "cargo_deps": {
+          "present": false,
+          "has_dependencies": false,
+          "has_dev_dependencies": false
+        },
+        "ci": {
+          "present": true,
+          "workflow_count": 8
+        },
+        "deploy_marker": {
+          "present": true,
+          "markers": [
+            "adrs/006-deployment.md",
+            "docs/templates/release-matrix-template.md"
+          ]
+        }
+      },
+      "status": "green"
+    },
+    {
+      "repo": "PhenoKits",
+      "signals": {
+        "readme": {
+          "present": true,
+          "file": "README.md",
+          "size": 7067
+        },
+        "cargo_deps": {
+          "present": true,
+          "has_dependencies": false,
+          "has_dev_dependencies": false
+        },
+        "ci": {
+          "present": true,
+          "workflow_count": 13
+        },
+        "deploy_marker": {
+          "present": true,
+          "markers": [
+            ".github/workflows/docs-deploy.yml",
+            "configs/infra/Dockerfile",
+            "hexagon/templates/rust/Dockerfile",
+            "hexagon/templates/go/Dockerfile"
+          ]
+        }
+      },
+      "status": "red"
+    },
+    {
+      "repo": "PhenoMCP",
+      "signals": {
+        "readme": {
+          "present": true,
+          "file": "README.md",
+          "size": 6199
+        },
+        "cargo_deps": {
+          "present": true,
+          "has_dependencies": false,
+          "has_dev_dependencies": false
+        },
+        "ci": {
+          "present": true,
+          "workflow_count": 12
+        },
+        "deploy_marker": {
+          "present": false,
+          "markers": []
+        }
+      },
+      "status": "red"
+    },
+    {
+      "repo": "PhenoObservability",
+      "signals": {
+        "readme": {
+          "present": true,
+          "file": "README.md",
+          "size": 7194
+        },
+        "cargo_deps": {
+          "present": true,
+          "has_dependencies": false,
+          "has_dev_dependencies": false
+        },
+        "ci": {
+          "present": true,
+          "workflow_count": 19
+        },
+        "deploy_marker": {
+          "present": true,
+          "markers": [
+            "RELEASE.md",
+            ".github/workflows/release-dry-run.yml"
+          ]
+        }
+      },
+      "status": "red"
+    },
+    {
+      "repo": "PhenoPlugins",
+      "signals": {
+        "readme": {
+          "present": true,
+          "file": "README.md",
+          "size": 7515
+        },
+        "cargo_deps": {
+          "present": true,
+          "has_dependencies": false,
+          "has_dev_dependencies": false
+        },
+        "ci": {
+          "present": true,
+          "workflow_count": 13
+        },
+        "deploy_marker": {
+          "present": false,
+          "markers": []
+        }
+      },
+      "status": "red"
+    },
+    {
+      "repo": "PhenoProc",
+      "signals": {
+        "readme": {
+          "present": true,
+          "file": "README.md",
+          "size": 5283
+        },
+        "cargo_deps": {
+          "present": true,
+          "has_dependencies": false,
+          "has_dev_dependencies": false
+        },
+        "ci": {
+          "present": true,
+          "workflow_count": 14
+        },
+        "deploy_marker": {
+          "present": true,
+          "markers": [
+            "Evalora/.github/workflows/release.yml",
+            "Evalora/.github/workflows/release-drafter.yml",
+            "phenotype-config-ts/.github/workflows/release.yml",
+            "phenotype-cli-core/.github/workflows/release.yml",
+            "phenotype-cli-core/docs/governance/release-branch-governance.md",
+            ".github/workflows/pages-deploy.yml",
+            ".github/workflows/vitepress-deploy.yml",
+            "phenotype-router-monitor/.github/workflows/release.yml",
+            "worktree-manager/.github/workflows/release.yml",
+            "crates/Cmdra/Dockerfile"
+          ]
+        }
+      },
+      "status": "red"
+    },
+    {
+      "repo": "PhenoProject",
+      "signals": {
+        "readme": {
+          "present": true,
+          "file": "README.md",
+          "size": 1666
+        },
+        "cargo_deps": {
+          "present": false,
+          "has_dependencies": false,
+          "has_dev_dependencies": false
+        },
+        "ci": {
+          "present": true,
+          "workflow_count": 7
+        },
+        "deploy_marker": {
+          "present": false,
+          "markers": []
+        }
+      },
+      "status": "green"
+    },
+    {
+      "repo": "PhenoRuntime",
+      "signals": {
+        "readme": {
+          "present": true,
+          "file": "README.md",
+          "size": 6622
+        },
+        "cargo_deps": {
+          "present": true,
+          "has_dependencies": false,
+          "has_dev_dependencies": false
+        },
+        "ci": {
+          "present": true,
+          "workflow_count": 16
+        },
+        "deploy_marker": {
+          "present": true,
+          "markers": [
+            ".github/workflows/release.yml"
+          ]
+        }
+      },
+      "status": "red"
+    },
+    {
+      "repo": "PhenoSpecs",
+      "signals": {
+        "readme": {
+          "present": true,
+          "file": "README.md",
+          "size": 5653
+        },
+        "cargo_deps": {
+          "present": false,
+          "has_dependencies": false,
+          "has_dev_dependencies": false
+        },
+        "ci": {
+          "present": true,
+          "workflow_count": 6
+        },
+        "deploy_marker": {
+          "present": true,
+          "markers": [
+            "adrs/016-deployment-pipeline.md",
+            ".github/workflows/release-dry-run.yml"
+          ]
+        }
+      },
+      "status": "green"
+    },
+    {
+      "repo": "PhenoVCS",
+      "signals": {
+        "readme": {
+          "present": true,
+          "file": "README.md",
+          "size": 4253
+        },
+        "cargo_deps": {
+          "present": true,
+          "has_dependencies": false,
+          "has_dev_dependencies": false
+        },
+        "ci": {
+          "present": true,
+          "workflow_count": 12
+        },
+        "deploy_marker": {
+          "present": true,
+          "markers": [
+            ".github/workflows/release.yml"
+          ]
+        }
+      },
+      "status": "red"
+    },
+    {
+      "repo": "Pine",
+      "signals": {
+        "readme": {
+          "present": true,
+          "file": "README.md",
+          "size": 2205
+        },
+        "cargo_deps": {
+          "present": false,
+          "has_dependencies": false,
+          "has_dev_dependencies": false
+        },
+        "ci": {
+          "present": true,
+          "workflow_count": 1
+        },
+        "deploy_marker": {
+          "present": false,
+          "markers": []
+        }
+      },
+      "status": "green"
+    },
+    {
+      "repo": "Planify",
+      "signals": {
+        "readme": {
+          "present": true,
+          "file": "README.md",
+          "size": 7570
+        },
+        "cargo_deps": {
+          "present": false,
+          "has_dependencies": false,
+          "has_dev_dependencies": false
+        },
+        "ci": {
+          "present": true,
+          "workflow_count": 13
+        },
+        "deploy_marker": {
+          "present": true,
+          "markers": [
+            "deployments/aio/community/Dockerfile",
+            ".github/workflows/feature-deployment.yml",
+            ".claude/skills/release-notes.md"
+          ]
+        }
+      },
+      "status": "green"
+    },
+    {
+      "repo": "PlatformKit",
+      "signals": {
+        "readme": {
+          "present": true,
+          "file": "README.md",
+          "size": 4847
+        },
+        "cargo_deps": {
+          "present": false,
+          "has_dependencies": false,
+          "has_dev_dependencies": false
+        },
+        "ci": {
+          "present": true,
+          "workflow_count": 1
+        },
+        "deploy_marker": {
+          "present": true,
+          "markers": [
+            "go/devenv/.goreleaser.yaml"
+          ]
+        }
+      },
+      "status": "green"
+    },
+    {
+      "repo": "PlayCua",
+      "signals": {
+        "readme": {
+          "present": true,
+          "file": "README.md",
+          "size": 16054
+        },
+        "cargo_deps": {
+          "present": true,
+          "has_dependencies": false,
+          "has_dev_dependencies": false
+        },
+        "ci": {
+          "present": true,
+          "workflow_count": 11
+        },
+        "deploy_marker": {
+          "present": false,
+          "markers": []
+        }
+      },
+      "status": "red"
+    },
+    {
+      "repo": "PolicyStack",
+      "signals": {
+        "readme": {
+          "present": true,
+          "file": "README.md",
+          "size": 14104
+        },
+        "cargo_deps": {
+          "present": false,
+          "has_dependencies": false,
+          "has_dev_dependencies": false
+        },
+        "ci": {
+          "present": true,
+          "workflow_count": 18
+        },
+        "deploy_marker": {
+          "present": true,
+          "markers": [
+            "Dockerfile",
+            "policy-config/task-domain/deployment.yaml",
+            ".github/workflows/release.yml",
+            ".github/workflows/pages-deploy.yml"
+          ]
+        }
+      },
+      "status": "green"
+    },
+    {
+      "repo": "Pyron",
+      "signals": {
+        "readme": {
+          "present": true,
+          "file": "README.md",
+          "size": 3736
+        },
+        "cargo_deps": {
+          "present": true,
+          "has_dependencies": false,
+          "has_dev_dependencies": false
+        },
+        "ci": {
+          "present": true,
+          "workflow_count": 41
+        },
+        "deploy_marker": {
+          "present": true,
+          "markers": [
+            "SENTRY_DEPLOYMENT_SUMMARY.md",
+            "template-rust/.github/workflows/release.yml",
+            "agileplus-mcp/Dockerfile",
+            "agileplus-mcp/.github/workflows/release.yml",
+            "phenotype-infrakit/.github/workflows/release.yml",
+            ".github/release-drafter.yml",
+            ".github/workflows/release.yml",
+            ".github/workflows/deploy.yml",
+            ".github/workflows/release-drafter.yml",
+            ".github/workflows/reusable/rust-release.yml"
+          ]
+        }
+      },
+      "status": "red"
+    },
+    {
+      "repo": "QuadSGM",
+      "signals": {
+        "readme": {
+          "present": true,
+          "file": "README.md",
+          "size": 4411
+        },
+        "cargo_deps": {
+          "present": false,
+          "has_dependencies": false,
+          "has_dev_dependencies": false
+        },
+        "ci": {
+          "present": true,
+          "workflow_count": 20
+        },
+        "deploy_marker": {
+          "present": true,
+          "markers": [
+            ".github/workflows/release-drafter.yml",
+            ".github/workflows/pages-deploy.yml",
+            "docs/checklists/RELEASE_CHECKLIST.md",
+            "docs/context/governance/STACKED_PRS_AND_RELEASE_CHANNELS.md",
+            "4sgm/Dockerfile",
+            "4sgm/mcp_server/Dockerfile"
+          ]
+        }
+      },
+      "status": "green"
+    },
+    {
+      "repo": "ResilienceKit",
+      "signals": {
+        "readme": {
+          "present": true,
+          "file": "README.md",
+          "size": 4985
+        },
+        "cargo_deps": {
+          "present": false,
+          "has_dependencies": false,
+          "has_dev_dependencies": false
+        },
+        "ci": {
+          "present": true,
+          "workflow_count": 9
+        },
+        "deploy_marker": {
+          "present": false,
+          "markers": []
+        }
+      },
+      "status": "green"
+    },
+    {
+      "repo": "Sidekick",
+      "signals": {
+        "readme": {
+          "present": true,
+          "file": "README.md",
+          "size": 6827
+        },
+        "cargo_deps": {
+          "present": true,
+          "has_dependencies": false,
+          "has_dev_dependencies": false
+        },
+        "ci": {
+          "present": true,
+          "workflow_count": 13
+        },
+        "deploy_marker": {
+          "present": true,
+          "markers": [
+            "RELEASE.md"
+          ]
+        }
+      },
+      "status": "red"
+    },
+    {
+      "repo": "Tasken",
+      "signals": {
+        "readme": {
+          "present": true,
+          "file": "README.md",
+          "size": 5547
+        },
+        "cargo_deps": {
+          "present": true,
+          "has_dependencies": true,
+          "has_dev_dependencies": false
+        },
+        "ci": {
+          "present": true,
+          "workflow_count": 21
+        },
+        "deploy_marker": {
+          "present": true,
+          "markers": [
+            ".github/release-drafter.yml",
+            ".github/workflows/release.yml",
+            ".github/workflows/release-drafter.yml",
+            ".github/workflows/pages-deploy.yml"
+          ]
+        }
+      },
+      "status": "green"
+    },
+    {
+      "repo": "TestingKit",
+      "signals": {
+        "readme": {
+          "present": true,
+          "file": "README.md",
+          "size": 4063
+        },
+        "cargo_deps": {
+          "present": false,
+          "has_dependencies": false,
+          "has_dev_dependencies": false
+        },
+        "ci": {
+          "present": true,
+          "workflow_count": 10
+        },
+        "deploy_marker": {
+          "present": false,
+          "markers": []
+        }
+      },
+      "status": "green"
+    },
+    {
+      "repo": "Tokn",
+      "signals": {
+        "readme": {
+          "present": true,
+          "file": "README.md",
+          "size": 5160
+        },
+        "cargo_deps": {
+          "present": true,
+          "has_dependencies": false,
+          "has_dev_dependencies": false
+        },
+        "ci": {
+          "present": true,
+          "workflow_count": 29
+        },
+        "deploy_marker": {
+          "present": true,
+          "markers": [
+            "Dockerfile",
+            ".github/release-drafter.yml",
+            ".github/workflows/release.yml",
+            ".github/workflows/release-drafter.yml",
+            ".github/workflows/pages-deploy.yml"
+          ]
+        }
+      },
+      "status": "red"
+    },
+    {
+      "repo": "Tracely",
+      "signals": {
+        "readme": {
+          "present": true,
+          "file": "README.md",
+          "size": 3752
+        },
+        "cargo_deps": {
+          "present": true,
+          "has_dependencies": false,
+          "has_dev_dependencies": false
+        },
+        "ci": {
+          "present": true,
+          "workflow_count": 13
+        },
+        "deploy_marker": {
+          "present": false,
+          "markers": []
+        }
+      },
+      "status": "red"
+    },
+    {
+      "repo": "Tracera",
+      "signals": {
+        "readme": {
+          "present": true,
+          "file": "README.md",
+          "size": 7560
+        },
+        "cargo_deps": {
+          "present": false,
+          "has_dependencies": false,
+          "has_dev_dependencies": false
+        },
+        "ci": {
+          "present": true,
+          "workflow_count": 39
+        },
+        "deploy_marker": {
+          "present": true,
+          "markers": [
+            ".session/PRODUCTION_RELEASE_PREPARATION_SUMMARY.md",
+            ".factory/commands/release-checklist.md",
+            ".factory/droids/release-readiness-officer.md",
+            ".factory/personal/release-readiness-officer.md",
+            ".github/release-drafter.yml",
+            ".github/workflows/docs-deploy.yml",
+            ".github/workflows/release.yml",
+            ".github/workflows/deployment-rollback.yml",
+            ".github/workflows/release-drafter.yml",
+            ".github/workflows/canary-deploy.yml"
+          ]
+        }
+      },
+      "status": "green"
+    },
+    {
+      "repo": "agent-devops-setups",
+      "signals": {
+        "readme": {
+          "present": true,
+          "file": "README.md",
+          "size": 21012
+        },
+        "cargo_deps": {
+          "present": false,
+          "has_dependencies": false,
+          "has_dev_dependencies": false
+        },
+        "ci": {
+          "present": true,
+          "workflow_count": 11
+        },
+        "deploy_marker": {
+          "present": true,
+          "markers": [
+            ".github/workflows/release-drafter.yml",
+            ".github/workflows/pages-deploy.yml"
+          ]
+        }
+      },
+      "status": "green"
+    },
+    {
+      "repo": "agent-user-status",
+      "signals": {
+        "readme": {
+          "present": true,
+          "file": "README.md",
+          "size": 10028
+        },
+        "cargo_deps": {
+          "present": false,
+          "has_dependencies": false,
+          "has_dev_dependencies": false
+        },
+        "ci": {
+          "present": true,
+          "workflow_count": 6
+        },
+        "deploy_marker": {
+          "present": false,
+          "markers": []
+        }
+      },
+      "status": "green"
+    },
+    {
+      "repo": "agentapi-plusplus",
+      "signals": {
+        "readme": {
+          "present": true,
+          "file": "README.md",
+          "size": 8044
+        },
+        "cargo_deps": {
+          "present": false,
+          "has_dependencies": false,
+          "has_dev_dependencies": false
+        },
+        "ci": {
+          "present": true,
+          "workflow_count": 29
+        },
+        "deploy_marker": {
+          "present": true,
+          "markers": [
+            ".github/release-drafter.yml",
+            ".github/workflows/release.yml",
+            ".github/workflows/pr-preview-release.yml",
+            ".github/workflows/release-drafter.yml",
+            ".github/workflows/pages-deploy.yml"
+          ]
+        }
+      },
+      "status": "green"
+    },
+    {
+      "repo": "agileplus-landing",
+      "signals": {
+        "readme": {
+          "present": true,
+          "file": "README.md",
+          "size": 1568
+        },
+        "cargo_deps": {
+          "present": false,
+          "has_dependencies": false,
+          "has_dev_dependencies": false
+        },
+        "ci": {
+          "present": true,
+          "workflow_count": 2
+        },
+        "deploy_marker": {
+          "present": false,
+          "markers": []
+        }
+      },
+      "status": "green"
+    },
+    {
+      "repo": "agslag-docs",
+      "signals": {
+        "readme": {
+          "present": true,
+          "file": "README.md",
+          "size": 779
+        },
+        "cargo_deps": {
+          "present": false,
+          "has_dependencies": false,
+          "has_dev_dependencies": false
+        },
+        "ci": {
+          "present": true,
+          "workflow_count": 1
+        },
+        "deploy_marker": {
+          "present": false,
+          "markers": []
+        }
+      },
+      "status": "green"
+    },
+    {
+      "repo": "argis-extensions",
+      "signals": {
+        "readme": {
+          "present": true,
+          "file": "README.md",
+          "size": 2621
+        },
+        "cargo_deps": {
+          "present": false,
+          "has_dependencies": false,
+          "has_dev_dependencies": false
+        },
+        "ci": {
+          "present": true,
+          "workflow_count": 11
+        },
+        "deploy_marker": {
+          "present": true,
+          "markers": [
+            "Dockerfile",
+            "services/researchintel/Dockerfile",
+            "services/promptadapter/Dockerfile",
+            ".github/workflows/release.yml",
+            ".github/workflows/release-drafter.yml",
+            "docs/adr/ADR-008-Multi-Platform-Deployment.md",
+            "slm-server/.goreleaser.yaml",
+            "slm-server/Dockerfile"
+          ]
+        }
+      },
+      "status": "green"
+    },
+    {
+      "repo": "bare-cua",
+      "signals": {
+        "readme": {
+          "present": true,
+          "file": "README.md",
+          "size": 16054
+        },
+        "cargo_deps": {
+          "present": true,
+          "has_dependencies": false,
+          "has_dev_dependencies": false
+        },
+        "ci": {
+          "present": true,
+          "workflow_count": 11
+        },
+        "deploy_marker": {
+          "present": false,
+          "markers": []
+        }
+      },
+      "status": "red"
+    },
+    {
+      "repo": "byteport-landing",
+      "signals": {
+        "readme": {
+          "present": true,
+          "file": "README.md",
+          "size": 6231
+        },
+        "cargo_deps": {
+          "present": false,
+          "has_dependencies": false,
+          "has_dev_dependencies": false
+        },
+        "ci": {
+          "present": true,
+          "workflow_count": 2
+        },
+        "deploy_marker": {
+          "present": false,
+          "markers": []
+        }
+      },
+      "status": "green"
+    },
+    {
+      "repo": "chatta",
+      "signals": {
+        "readme": {
+          "present": true,
+          "file": "README.md",
+          "size": 6461
+        },
+        "cargo_deps": {
+          "present": false,
+          "has_dependencies": false,
+          "has_dev_dependencies": false
+        },
+        "ci": {
+          "present": true,
+          "workflow_count": 9
+        },
+        "deploy_marker": {
+          "present": false,
+          "markers": []
+        }
+      },
+      "status": "green"
+    },
+    {
+      "repo": "cheap-llm-mcp",
+      "signals": {
+        "readme": {
+          "present": true,
+          "file": "README.md",
+          "size": 6945
+        },
+        "cargo_deps": {
+          "present": false,
+          "has_dependencies": false,
+          "has_dev_dependencies": false
+        },
+        "ci": {
+          "present": true,
+          "workflow_count": 10
+        },
+        "deploy_marker": {
+          "present": true,
+          "markers": [
+            ".github/workflows/release.yml",
+            ".github/workflows/release-drafter.yml"
+          ]
+        }
+      },
+      "status": "green"
+    },
+    {
+      "repo": "cliproxyapi-plusplus",
+      "signals": {
+        "readme": {
+          "present": true,
+          "file": "README.md",
+          "size": 4653
+        },
+        "cargo_deps": {
+          "present": false,
+          "has_dependencies": false,
+          "has_dev_dependencies": false
+        },
+        "ci": {
+          "present": true,
+          "workflow_count": 29
+        },
+        "deploy_marker": {
+          "present": true,
+          "markers": [
+            "Dockerfile",
+            ".goreleaser.yml",
+            ".github/workflows/release-drafter.yml",
+            ".github/workflows/release.yaml",
+            ".github/workflows/release-batch.yaml",
+            ".github/workflows/pages-deploy.yml",
+            "docs/guides/release-batching.md",
+            "docs/operations/release-governance.md",
+            "journey-fix/Dockerfile",
+            "journey-fix/.goreleaser.yml"
+          ]
+        }
+      },
+      "status": "green"
+    },
+    {
+      "repo": "dinoforge-packs",
+      "signals": {
+        "readme": {
+          "present": true,
+          "file": "README.md",
+          "size": 1433
+        },
+        "cargo_deps": {
+          "present": false,
+          "has_dependencies": false,
+          "has_dev_dependencies": false
+        },
+        "ci": {
+          "present": true,
+          "workflow_count": 7
+        },
+        "deploy_marker": {
+          "present": false,
+          "markers": []
+        }
+      },
+      "status": "green"
+    },
+    {
+      "repo": "eyetracker",
+      "signals": {
+        "readme": {
+          "present": true,
+          "file": "README.md",
+          "size": 4519
+        },
+        "cargo_deps": {
+          "present": true,
+          "has_dependencies": false,
+          "has_dev_dependencies": false
+        },
+        "ci": {
+          "present": true,
+          "workflow_count": 9
+        },
+        "deploy_marker": {
+          "present": false,
+          "markers": []
+        }
+      },
+      "status": "red"
+    },
+    {
+      "repo": "foqos-private",
+      "signals": {
+        "readme": {
+          "present": true,
+          "file": "README.md",
+          "size": 9448
+        },
+        "cargo_deps": {
+          "present": false,
+          "has_dependencies": false,
+          "has_dev_dependencies": false
+        },
+        "ci": {
+          "present": true,
+          "workflow_count": 7
+        },
+        "deploy_marker": {
+          "present": false,
+          "markers": []
+        }
+      },
+      "status": "green"
+    },
+    {
+      "repo": "forgecode",
+      "signals": {
+        "readme": {
+          "present": false,
+          "file": null,
+          "size": 0
+        },
+        "cargo_deps": {
+          "present": false,
+          "has_dependencies": false,
+          "has_dev_dependencies": false
+        },
+        "ci": {
+          "present": true,
+          "workflow_count": 1
+        },
+        "deploy_marker": {
+          "present": false,
+          "markers": []
+        }
+      },
+      "status": "red"
+    },
+    {
+      "repo": "helios-router",
+      "signals": {
+        "readme": {
+          "present": true,
+          "file": "README.md",
+          "size": 398
+        },
+        "cargo_deps": {
+          "present": false,
+          "has_dependencies": false,
+          "has_dev_dependencies": false
+        },
+        "ci": {
+          "present": true,
+          "workflow_count": 2
+        },
+        "deploy_marker": {
+          "present": false,
+          "markers": []
+        }
+      },
+      "status": "green"
+    },
+    {
+      "repo": "heliosApp",
+      "signals": {
+        "readme": {
+          "present": true,
+          "file": "README.md",
+          "size": 15643
+        },
+        "cargo_deps": {
+          "present": false,
+          "has_dependencies": false,
+          "has_dev_dependencies": false
+        },
+        "ci": {
+          "present": true,
+          "workflow_count": 33
+        },
+        "deploy_marker": {
+          "present": true,
+          "markers": [
+            ".github/release-drafter.yml",
+            ".github/workflows/release-drafter.yml",
+            "docs/guides/journeys/deploying-to-production.md",
+            "docs/sessions/20260226-helios-market-research/18_RELEASE_SIGNOFF.md",
+            "docs/sessions/20260226-helios-market-research/17_RELEASE_CLOSURE_CHECKLIST.md",
+            "docs/sessions/20260226-helios-market-research/14_TS7_AND_RELEASE_CHANNEL_POLICY.md"
+          ]
+        }
+      },
+      "status": "green"
+    },
+    {
+      "repo": "heliosBench",
+      "signals": {
+        "readme": {
+          "present": true,
+          "file": "README.md",
+          "size": 2172
+        },
+        "cargo_deps": {
+          "present": false,
+          "has_dependencies": false,
+          "has_dev_dependencies": false
+        },
+        "ci": {
+          "present": true,
+          "workflow_count": 7
+        },
+        "deploy_marker": {
+          "present": true,
+          "markers": [
+            "docs/deployment.md"
+          ]
+        }
+      },
+      "status": "green"
+    },
+    {
+      "repo": "helioscope",
+      "signals": {
+        "readme": {
+          "present": true,
+          "file": "README.md",
+          "size": 10467
+        },
+        "cargo_deps": {
+          "present": true,
+          "has_dependencies": false,
+          "has_dev_dependencies": false
+        },
+        "ci": {
+          "present": true,
+          "workflow_count": 54
+        },
+        "deploy_marker": {
+          "present": true,
+          "markers": [
+            "Dockerfile",
+            ".github/workflows/rust-release-windows.yml",
+            ".github/workflows/rust-release.yml",
+            ".github/workflows/helios-cli-release.yml",
+            ".github/workflows/rust-release-prepare.yml",
+            ".devcontainer/Dockerfile",
+            "docs/checklists/RELEASE_CHECKLIST.md",
+            "codex-cli/Dockerfile"
+          ]
+        }
+      },
+      "status": "red"
+    },
+    {
+      "repo": "hwLedger",
+      "signals": {
+        "readme": {
+          "present": true,
+          "file": "README.md",
+          "size": 19599
+        },
+        "cargo_deps": {
+          "present": false,
+          "has_dependencies": false,
+          "has_dev_dependencies": false
+        },
+        "ci": {
+          "present": true,
+          "workflow_count": 7
+        },
+        "deploy_marker": {
+          "present": true,
+          "markers": [
+            ".github/workflows/deploy-docs.yml"
+          ]
+        }
+      },
+      "status": "green"
+    },
+    {
+      "repo": "kmobile",
+      "signals": {
+        "readme": {
+          "present": true,
+          "file": "README.md",
+          "size": 24668
+        },
+        "cargo_deps": {
+          "present": true,
+          "has_dependencies": true,
+          "has_dev_dependencies": true
+        },
+        "ci": {
+          "present": true,
+          "workflow_count": 1
+        },
+        "deploy_marker": {
+          "present": false,
+          "markers": []
+        }
+      },
+      "status": "green"
+    },
+    {
+      "repo": "kwality",
+      "signals": {
+        "readme": {
+          "present": true,
+          "file": "README.md",
+          "size": 5694
+        },
+        "cargo_deps": {
+          "present": false,
+          "has_dependencies": false,
+          "has_dev_dependencies": false
+        },
+        "ci": {
+          "present": true,
+          "workflow_count": 8
+        },
+        "deploy_marker": {
+          "present": true,
+          "markers": [
+            "Dockerfile",
+            ".github/release-drafter.yml",
+            "engines/runtime-validator/Dockerfile",
+            "docs/deployment-guide.md",
+            "docs/PRODUCTION-DEPLOYMENT-GUIDE.md",
+            "k8s/kwality-deployment.production.yaml",
+            "k8s/kwality-deployment.yaml"
+          ]
+        }
+      },
+      "status": "green"
+    },
+    {
+      "repo": "localbase3",
+      "signals": {
+        "readme": {
+          "present": true,
+          "file": "README.md",
+          "size": 3045
+        },
+        "cargo_deps": {
+          "present": false,
+          "has_dependencies": false,
+          "has_dev_dependencies": false
+        },
+        "ci": {
+          "present": true,
+          "workflow_count": 3
+        },
+        "deploy_marker": {
+          "present": true,
+          "markers": [
+            "localbase-docs/.github/workflows/deploy.yml"
+          ]
+        }
+      },
+      "status": "green"
+    },
+    {
+      "repo": "nanovms",
+      "signals": {
+        "readme": {
+          "present": true,
+          "file": "README.md",
+          "size": 4525
+        },
+        "cargo_deps": {
+          "present": false,
+          "has_dependencies": false,
+          "has_dev_dependencies": false
+        },
+        "ci": {
+          "present": true,
+          "workflow_count": 10
+        },
+        "deploy_marker": {
+          "present": true,
+          "markers": [
+            ".github/workflows/pages-deploy.yml",
+            "docs/adr/ADR-008-deployment-strategy.md"
+          ]
+        }
+      },
+      "status": "green"
+    },
+    {
+      "repo": "netweave-final2",
+      "signals": {
+        "readme": {
+          "present": true,
+          "file": "README.md",
+          "size": 11941
+        },
+        "cargo_deps": {
+          "present": false,
+          "has_dependencies": false,
+          "has_dev_dependencies": false
+        },
+        "ci": {
+          "present": true,
+          "workflow_count": 5
+        },
+        "deploy_marker": {
+          "present": false,
+          "markers": []
+        }
+      },
+      "status": "green"
+    },
+    {
+      "repo": "pheno",
+      "signals": {
+        "readme": {
+          "present": true,
+          "file": "README.md",
+          "size": 3843
+        },
+        "cargo_deps": {
+          "present": true,
+          "has_dependencies": false,
+          "has_dev_dependencies": false
+        },
+        "ci": {
+          "present": true,
+          "workflow_count": 48
+        },
+        "deploy_marker": {
+          "present": true,
+          "markers": [
+            "SENTRY_DEPLOYMENT_SUMMARY.md",
+            "template-rust/.github/workflows/release.yml",
+            "agileplus-mcp/Dockerfile",
+            "agileplus-mcp/.github/workflows/release.yml",
+            "sharecli/.github/workflows/release.yml",
+            "phenotype-infrakit/.github/workflows/release.yml",
+            ".github/release-drafter.yml",
+            ".github/workflows/release.yml",
+            ".github/workflows/rust-release.yml",
+            ".github/workflows/deploy.yml"
+          ]
+        }
+      },
+      "status": "red"
+    },
+    {
+      "repo": "phenoAI",
+      "signals": {
+        "readme": {
+          "present": true,
+          "file": "README.md",
+          "size": 9212
+        },
+        "cargo_deps": {
+          "present": true,
+          "has_dependencies": false,
+          "has_dev_dependencies": false
+        },
+        "ci": {
+          "present": true,
+          "workflow_count": 13
+        },
+        "deploy_marker": {
+          "present": true,
+          "markers": [
+            ".github/workflows/release.yml"
+          ]
+        }
+      },
+      "status": "red"
+    },
+    {
+      "repo": "phenoData",
+      "signals": {
+        "readme": {
+          "present": true,
+          "file": "README.md",
+          "size": 3169
+        },
+        "cargo_deps": {
+          "present": true,
+          "has_dependencies": false,
+          "has_dev_dependencies": false
+        },
+        "ci": {
+          "present": true,
+          "workflow_count": 15
+        },
+        "deploy_marker": {
+          "present": false,
+          "markers": []
+        }
+      },
+      "status": "red"
+    },
+    {
+      "repo": "phenoDesign",
+      "signals": {
+        "readme": {
+          "present": true,
+          "file": "README.md",
+          "size": 1117
+        },
+        "cargo_deps": {
+          "present": false,
+          "has_dependencies": false,
+          "has_dev_dependencies": false
+        },
+        "ci": {
+          "present": true,
+          "workflow_count": 11
+        },
+        "deploy_marker": {
+          "present": false,
+          "markers": []
+        }
+      },
+      "status": "green"
+    },
+    {
+      "repo": "phenoForge",
+      "signals": {
+        "readme": {
+          "present": true,
+          "file": "README.md",
+          "size": 11082
+        },
+        "cargo_deps": {
+          "present": true,
+          "has_dependencies": true,
+          "has_dev_dependencies": false
+        },
+        "ci": {
+          "present": true,
+          "workflow_count": 9
+        },
+        "deploy_marker": {
+          "present": true,
+          "markers": [
+            ".github/workflows/release.yml",
+            ".github/workflows/pages-deploy.yml"
+          ]
+        }
+      },
+      "status": "green"
+    },
+    {
+      "repo": "phenoResearchEngine",
+      "signals": {
+        "readme": {
+          "present": true,
+          "file": "README.md",
+          "size": 3529
+        },
+        "cargo_deps": {
+          "present": false,
+          "has_dependencies": false,
+          "has_dev_dependencies": false
+        },
+        "ci": {
+          "present": true,
+          "workflow_count": 10
+        },
+        "deploy_marker": {
+          "present": true,
+          "markers": [
+            ".github/workflows/release.yml",
+            ".github/workflows/vitepress-deploy.yml",
+            ".github/workflows/backup/release.yml"
+          ]
+        }
+      },
+      "status": "green"
+    },
+    {
+      "repo": "phenoShared",
+      "signals": {
+        "readme": {
+          "present": true,
+          "file": "README.md",
+          "size": 9288
+        },
+        "cargo_deps": {
+          "present": true,
+          "has_dependencies": false,
+          "has_dev_dependencies": false
+        },
+        "ci": {
+          "present": true,
+          "workflow_count": 18
+        },
+        "deploy_marker": {
+          "present": true,
+          "markers": [
+            ".github/workflows/docs-deploy.yml",
+            ".github/workflows/release.yml",
+            ".github/workflows/reusable-release-drafter.yml",
+            ".github/workflows/reusable/release.yml",
+            ".github/workflows/reusable/rust-release.yml",
+            ".github/workflows/reusable/release-drafter.yml"
+          ]
+        }
+      },
+      "status": "red"
+    },
+    {
+      "repo": "phenoUtils",
+      "signals": {
+        "readme": {
+          "present": true,
+          "file": "README.md",
+          "size": 6465
+        },
+        "cargo_deps": {
+          "present": true,
+          "has_dependencies": false,
+          "has_dev_dependencies": false
+        },
+        "ci": {
+          "present": true,
+          "workflow_count": 9
+        },
+        "deploy_marker": {
+          "present": false,
+          "markers": []
+        }
+      },
+      "status": "red"
+    },
+    {
+      "repo": "phenoXdd",
+      "signals": {
+        "readme": {
+          "present": true,
+          "file": "README.md",
+          "size": 25176
+        },
+        "cargo_deps": {
+          "present": false,
+          "has_dependencies": false,
+          "has_dev_dependencies": false
+        },
+        "ci": {
+          "present": true,
+          "workflow_count": 8
+        },
+        "deploy_marker": {
+          "present": true,
+          "markers": [
+            ".github/workflows/release.yml",
+            ".github/workflows/pages-deploy.yml"
+          ]
+        }
+      },
+      "status": "green"
+    },
+    {
+      "repo": "phenodocs",
+      "signals": {
+        "readme": {
+          "present": true,
+          "file": "README.md",
+          "size": 5628
+        },
+        "cargo_deps": {
+          "present": false,
+          "has_dependencies": false,
+          "has_dev_dependencies": false
+        },
+        "ci": {
+          "present": true,
+          "workflow_count": 15
+        },
+        "deploy_marker": {
+          "present": true,
+          "markers": [
+            ".github/workflows/deploy.yml",
+            "docs/templates/release-matrix-template.md"
+          ]
+        }
+      },
+      "status": "green"
+    },
+    {
+      "repo": "phenodocs-scorecard-remediation",
+      "signals": {
+        "readme": {
+          "present": true,
+          "file": "README.md",
+          "size": 5558
+        },
+        "cargo_deps": {
+          "present": false,
+          "has_dependencies": false,
+          "has_dev_dependencies": false
+        },
+        "ci": {
+          "present": true,
+          "workflow_count": 14
+        },
+        "deploy_marker": {
+          "present": true,
+          "markers": [
+            ".github/workflows/deploy.yml",
+            "docs/templates/release-matrix-template.md"
+          ]
+        }
+      },
+      "status": "green"
+    },
+    {
+      "repo": "phenokits-landing",
+      "signals": {
+        "readme": {
+          "present": true,
+          "file": "README.md",
+          "size": 3197
+        },
+        "cargo_deps": {
+          "present": false,
+          "has_dependencies": false,
+          "has_dev_dependencies": false
+        },
+        "ci": {
+          "present": true,
+          "workflow_count": 4
+        },
+        "deploy_marker": {
+          "present": false,
+          "markers": []
+        }
+      },
+      "status": "green"
+    },
+    {
+      "repo": "phenotype-auth-ts",
+      "signals": {
+        "readme": {
+          "present": true,
+          "file": "README.md",
+          "size": 8161
+        },
+        "cargo_deps": {
+          "present": false,
+          "has_dependencies": false,
+          "has_dev_dependencies": false
+        },
+        "ci": {
+          "present": true,
+          "workflow_count": 9
+        },
+        "deploy_marker": {
+          "present": true,
+          "markers": [
+            ".github/workflows/vitepress-deploy.yml"
+          ]
+        }
+      },
+      "status": "green"
+    },
+    {
+      "repo": "phenotype-bus",
+      "signals": {
+        "readme": {
+          "present": true,
+          "file": "README.md",
+          "size": 8190
+        },
+        "cargo_deps": {
+          "present": true,
+          "has_dependencies": true,
+          "has_dev_dependencies": true
+        },
+        "ci": {
+          "present": true,
+          "workflow_count": 11
+        },
+        "deploy_marker": {
+          "present": false,
+          "markers": []
+        }
+      },
+      "status": "green"
+    },
+    {
+      "repo": "phenotype-hub",
+      "signals": {
+        "readme": {
+          "present": true,
+          "file": "README.md",
+          "size": 1298
+        },
+        "cargo_deps": {
+          "present": false,
+          "has_dependencies": false,
+          "has_dev_dependencies": false
+        },
+        "ci": {
+          "present": true,
+          "workflow_count": 7
+        },
+        "deploy_marker": {
+          "present": true,
+          "markers": [
+            ".github/workflows/vitepress-deploy.yml"
+          ]
+        }
+      },
+      "status": "green"
+    },
+    {
+      "repo": "phenotype-infra",
+      "signals": {
+        "readme": {
+          "present": true,
+          "file": "README.md",
+          "size": 5524
+        },
+        "cargo_deps": {
+          "present": false,
+          "has_dependencies": false,
+          "has_dev_dependencies": false
+        },
+        "ci": {
+          "present": true,
+          "workflow_count": 11
+        },
+        "deploy_marker": {
+          "present": false,
+          "markers": []
+        }
+      },
+      "status": "green"
+    },
+    {
+      "repo": "phenotype-journeys",
+      "signals": {
+        "readme": {
+          "present": true,
+          "file": "README.md",
+          "size": 6786
+        },
+        "cargo_deps": {
+          "present": true,
+          "has_dependencies": false,
+          "has_dev_dependencies": false
+        },
+        "ci": {
+          "present": true,
+          "workflow_count": 17
+        },
+        "deploy_marker": {
+          "present": true,
+          "markers": [
+            ".github/workflows/vitepress-deploy.yml"
+          ]
+        }
+      },
+      "status": "red"
+    },
+    {
+      "repo": "phenotype-omlx",
+      "signals": {
+        "readme": {
+          "present": true,
+          "file": "README.md",
+          "size": 15075
+        },
+        "cargo_deps": {
+          "present": false,
+          "has_dependencies": false,
+          "has_dev_dependencies": false
+        },
+        "ci": {
+          "present": true,
+          "workflow_count": 4
+        },
+        "deploy_marker": {
+          "present": false,
+          "markers": []
+        }
+      },
+      "status": "green"
+    },
+    {
+      "repo": "phenotype-ops-mcp",
+      "signals": {
+        "readme": {
+          "present": true,
+          "file": "README.md",
+          "size": 7168
+        },
+        "cargo_deps": {
+          "present": false,
+          "has_dependencies": false,
+          "has_dev_dependencies": false
+        },
+        "ci": {
+          "present": true,
+          "workflow_count": 10
+        },
+        "deploy_marker": {
+          "present": false,
+          "markers": []
+        }
+      },
+      "status": "green"
+    },
+    {
+      "repo": "phenotype-org-audits",
+      "signals": {
+        "readme": {
+          "present": true,
+          "file": "README.md",
+          "size": 5971
+        },
+        "cargo_deps": {
+          "present": false,
+          "has_dependencies": false,
+          "has_dev_dependencies": false
+        },
+        "ci": {
+          "present": true,
+          "workflow_count": 5
+        },
+        "deploy_marker": {
+          "present": false,
+          "markers": []
+        }
+      },
+      "status": "green"
+    },
+    {
+      "repo": "phenotype-postfx",
+      "signals": {
+        "readme": {
+          "present": true,
+          "file": "README.md",
+          "size": 1789
+        },
+        "cargo_deps": {
+          "present": false,
+          "has_dependencies": false,
+          "has_dev_dependencies": false
+        },
+        "ci": {
+          "present": true,
+          "workflow_count": 1
+        },
+        "deploy_marker": {
+          "present": false,
+          "markers": []
+        }
+      },
+      "status": "green"
+    },
+    {
+      "repo": "phenotype-registry",
+      "signals": {
+        "readme": {
+          "present": true,
+          "file": "README.md",
+          "size": 11809
+        },
+        "cargo_deps": {
+          "present": false,
+          "has_dependencies": false,
+          "has_dev_dependencies": false
+        },
+        "ci": {
+          "present": true,
+          "workflow_count": 5
+        },
+        "deploy_marker": {
+          "present": false,
+          "markers": []
+        }
+      },
+      "status": "green"
+    },
+    {
+      "repo": "phenotype-terrain",
+      "signals": {
+        "readme": {
+          "present": true,
+          "file": "README.md",
+          "size": 1708
+        },
+        "cargo_deps": {
+          "present": false,
+          "has_dependencies": false,
+          "has_dev_dependencies": false
+        },
+        "ci": {
+          "present": true,
+          "workflow_count": 1
+        },
+        "deploy_marker": {
+          "present": false,
+          "markers": []
+        }
+      },
+      "status": "green"
+    },
+    {
+      "repo": "phenotype-tooling",
+      "signals": {
+        "readme": {
+          "present": true,
+          "file": "README.md",
+          "size": 5282
+        },
+        "cargo_deps": {
+          "present": true,
+          "has_dependencies": false,
+          "has_dev_dependencies": false
+        },
+        "ci": {
+          "present": true,
+          "workflow_count": 13
+        },
+        "deploy_marker": {
+          "present": true,
+          "markers": [
+            ".github/workflows/release.yml"
+          ]
+        }
+      },
+      "status": "red"
+    },
+    {
+      "repo": "phenotype-water",
+      "signals": {
+        "readme": {
+          "present": true,
+          "file": "README.md",
+          "size": 1797
+        },
+        "cargo_deps": {
+          "present": false,
+          "has_dependencies": false,
+          "has_dev_dependencies": false
+        },
+        "ci": {
+          "present": true,
+          "workflow_count": 1
+        },
+        "deploy_marker": {
+          "present": false,
+          "markers": []
+        }
+      },
+      "status": "green"
+    },
+    {
+      "repo": "portage",
+      "signals": {
+        "readme": {
+          "present": true,
+          "file": "README.md",
+          "size": 2691
+        },
+        "cargo_deps": {
+          "present": false,
+          "has_dependencies": false,
+          "has_dev_dependencies": false
+        },
+        "ci": {
+          "present": true,
+          "workflow_count": 29
+        },
+        "deploy_marker": {
+          "present": true,
+          "markers": [
+            ".github/release-drafter.yml",
+            ".github/workflows/docs-deploy.yml",
+            ".github/workflows/release.yml",
+            ".github/workflows/release-drafter.yml",
+            "agileplus/002-portage-multi-runtime-execution-stack/release-hardening-checklist.md",
+            "agileplus/002-portage-multi-runtime-execution-stack/tasks/WP06-migration-docs-and-release-validation.md",
+            "docs/release-hardening-checklist.md",
+            "docs/context/governance/STACKED_PRS_AND_RELEASE_CHANNELS.md"
+          ]
+        }
+      },
+      "status": "green"
+    },
+    {
+      "repo": "rich-cli-kit",
+      "signals": {
+        "readme": {
+          "present": true,
+          "file": "README.md",
+          "size": 5743
+        },
+        "cargo_deps": {
+          "present": true,
+          "has_dependencies": false,
+          "has_dev_dependencies": false
+        },
+        "ci": {
+          "present": true,
+          "workflow_count": 12
+        },
+        "deploy_marker": {
+          "present": false,
+          "markers": []
+        }
+      },
+      "status": "red"
+    },
+    {
+      "repo": "thegent",
+      "signals": {
+        "readme": {
+          "present": true,
+          "file": "README.md",
+          "size": 13334
+        },
+        "cargo_deps": {
+          "present": false,
+          "has_dependencies": false,
+          "has_dev_dependencies": false
+        },
+        "ci": {
+          "present": true,
+          "workflow_count": 24
+        },
+        "deploy_marker": {
+          "present": true,
+          "markers": [
+            "DEPLOYMENT_VERIFICATION_CHECKLIST.md",
+            ".github/workflows/release.yml",
+            ".github/workflows/pages-deploy.yml",
+            ".github/workflows/backup/release.yml",
+            ".github/workflows/backup/pages-deploy.yml",
+            "docs/FASTMCP_DEPLOYMENT_GUIDE.md",
+            "docs/reference/api/agent_deployer_api.md",
+            "docs/reference/api/release_packager_api.md",
+            "docs/governance/RELEASE_SUPPLY_CHAIN_CONTROLS.md",
+            "docs/deployment/deployment-overview.md"
+          ]
+        }
+      },
+      "status": "green"
+    },
+    {
+      "repo": "thegent-clean",
+      "signals": {
+        "readme": {
+          "present": true,
+          "file": "README.md",
+          "size": 13334
+        },
+        "cargo_deps": {
+          "present": false,
+          "has_dependencies": false,
+          "has_dev_dependencies": false
+        },
+        "ci": {
+          "present": true,
+          "workflow_count": 24
+        },
+        "deploy_marker": {
+          "present": true,
+          "markers": [
+            "DEPLOYMENT_VERIFICATION_CHECKLIST.md",
+            ".github/workflows/release.yml",
+            ".github/workflows/pages-deploy.yml",
+            ".github/workflows/backup/release.yml",
+            ".github/workflows/backup/pages-deploy.yml",
+            "docs/FASTMCP_DEPLOYMENT_GUIDE.md",
+            "docs/reference/api/agent_deployer_api.md",
+            "docs/reference/api/release_packager_api.md",
+            "docs/governance/RELEASE_SUPPLY_CHAIN_CONTROLS.md",
+            "docs/deployment/deployment-overview.md"
+          ]
+        }
+      },
+      "status": "green"
+    },
+    {
+      "repo": "thegent-clean-wt-docs",
+      "signals": {
+        "readme": {
+          "present": true,
+          "file": "README.md",
+          "size": 11285
+        },
+        "cargo_deps": {
+          "present": false,
+          "has_dependencies": false,
+          "has_dev_dependencies": false
+        },
+        "ci": {
+          "present": true,
+          "workflow_count": 17
+        },
+        "deploy_marker": {
+          "present": true,
+          "markers": [
+            "DEPLOYMENT_VERIFICATION_CHECKLIST.md",
+            ".github/workflows/release.yml",
+            ".github/workflows/deploy-docs.yml",
+            ".github/workflows/pages-deploy.yml",
+            ".github/workflows/backup/release.yml",
+            ".github/workflows/backup/pages-deploy.yml",
+            "docs/FASTMCP_DEPLOYMENT_GUIDE.md",
+            "docs/reference/api/agent_deployer_api.md",
+            "docs/reference/api/release_packager_api.md",
+            "docs/governance/RELEASE_SUPPLY_CHAIN_CONTROLS.md"
+          ]
+        }
+      },
+      "status": "green"
+    },
+    {
+      "repo": "thegent-clean-wt-idea",
+      "signals": {
+        "readme": {
+          "present": true,
+          "file": "README.md",
+          "size": 13148
+        },
+        "cargo_deps": {
+          "present": false,
+          "has_dependencies": false,
+          "has_dev_dependencies": false
+        },
+        "ci": {
+          "present": true,
+          "workflow_count": 22
+        },
+        "deploy_marker": {
+          "present": true,
+          "markers": [
+            "DEPLOYMENT_VERIFICATION_CHECKLIST.md",
+            ".github/workflows/release.yml",
+            ".github/workflows/pages-deploy.yml",
+            ".github/workflows/backup/release.yml",
+            ".github/workflows/backup/pages-deploy.yml",
+            "docs/FASTMCP_DEPLOYMENT_GUIDE.md",
+            "docs/reference/api/agent_deployer_api.md",
+            "docs/reference/api/release_packager_api.md",
+            "docs/governance/RELEASE_SUPPLY_CHAIN_CONTROLS.md",
+            "docs/deployment/deployment-overview.md"
+          ]
+        }
+      },
+      "status": "green"
+    },
+    {
+      "repo": "thegent-clean-wt-parallel",
+      "signals": {
+        "readme": {
+          "present": true,
+          "file": "README.md",
+          "size": 13148
+        },
+        "cargo_deps": {
+          "present": false,
+          "has_dependencies": false,
+          "has_dev_dependencies": false
+        },
+        "ci": {
+          "present": true,
+          "workflow_count": 22
+        },
+        "deploy_marker": {
+          "present": true,
+          "markers": [
+            "DEPLOYMENT_VERIFICATION_CHECKLIST.md",
+            ".github/workflows/release.yml",
+            ".github/workflows/pages-deploy.yml",
+            ".github/workflows/backup/release.yml",
+            ".github/workflows/backup/pages-deploy.yml",
+            "docs/FASTMCP_DEPLOYMENT_GUIDE.md",
+            "docs/reference/api/agent_deployer_api.md",
+            "docs/reference/api/release_packager_api.md",
+            "docs/governance/RELEASE_SUPPLY_CHAIN_CONTROLS.md",
+            "docs/deployment/deployment-overview.md"
+          ]
+        }
+      },
+      "status": "green"
+    },
+    {
+      "repo": "thegent-clean-wt-policy",
+      "signals": {
+        "readme": {
+          "present": true,
+          "file": "README.md",
+          "size": 11077
+        },
+        "cargo_deps": {
+          "present": false,
+          "has_dependencies": false,
+          "has_dev_dependencies": false
+        },
+        "ci": {
+          "present": true,
+          "workflow_count": 7
+        },
+        "deploy_marker": {
+          "present": true,
+          "markers": [
+            "DEPLOYMENT_VERIFICATION_CHECKLIST.md",
+            "docs/FASTMCP_DEPLOYMENT_GUIDE.md",
+            "docs/reference/api/agent_deployer_api.md",
+            "docs/reference/api/release_packager_api.md",
+            "docs/governance/RELEASE_SUPPLY_CHAIN_CONTROLS.md",
+            "docs/deployment/deployment-overview.md",
+            "docs/deployment/fragemented/deployment-overview.md",
+            "docs/guides/hooks/DEPLOYMENT.md",
+            "docs/contracts/ATOMS_CLEAN_DEPLOY_KNOWLEDGE_BASE.md",
+            "docs/plans/2026-02-16-AGENT_DEPLOYER_REVIEW.md"
+          ]
+        }
+      },
+      "status": "green"
+    },
+    {
+      "repo": "thegent-clean-wt-ruff",
+      "signals": {
+        "readme": {
+          "present": true,
+          "file": "README.md",
+          "size": 11285
+        },
+        "cargo_deps": {
+          "present": false,
+          "has_dependencies": false,
+          "has_dev_dependencies": false
+        },
+        "ci": {
+          "present": true,
+          "workflow_count": 21
+        },
+        "deploy_marker": {
+          "present": true,
+          "markers": [
+            "DEPLOYMENT_VERIFICATION_CHECKLIST.md",
+            ".github/workflows/release.yml",
+            ".github/workflows/pages-deploy.yml",
+            ".github/workflows/backup/release.yml",
+            ".github/workflows/backup/pages-deploy.yml",
+            "docs/FASTMCP_DEPLOYMENT_GUIDE.md",
+            "docs/reference/api/agent_deployer_api.md",
+            "docs/reference/api/release_packager_api.md",
+            "docs/governance/RELEASE_SUPPLY_CHAIN_CONTROLS.md",
+            "docs/deployment/deployment-overview.md"
+          ]
+        }
+      },
+      "status": "green"
+    },
+    {
+      "repo": "thegent-dispatch",
+      "signals": {
+        "readme": {
+          "present": true,
+          "file": "README.md",
+          "size": 2406
+        },
+        "cargo_deps": {
+          "present": true,
+          "has_dependencies": true,
+          "has_dev_dependencies": false
+        },
+        "ci": {
+          "present": true,
+          "workflow_count": 11
+        },
+        "deploy_marker": {
+          "present": false,
+          "markers": []
+        }
+      },
+      "status": "green"
+    },
+    {
+      "repo": "thegent-workspace",
+      "signals": {
+        "readme": {
+          "present": true,
+          "file": "README.md",
+          "size": 1152
+        },
+        "cargo_deps": {
+          "present": true,
+          "has_dependencies": false,
+          "has_dev_dependencies": false
+        },
+        "ci": {
+          "present": true,
+          "workflow_count": 11
+        },
+        "deploy_marker": {
+          "present": false,
+          "markers": []
+        }
+      },
+      "status": "red"
+    },
+    {
+      "repo": "vibeproxy",
+      "signals": {
+        "readme": {
+          "present": true,
+          "file": "README.md",
+          "size": 7596
+        },
+        "cargo_deps": {
+          "present": false,
+          "has_dependencies": false,
+          "has_dev_dependencies": false
+        },
+        "ci": {
+          "present": true,
+          "workflow_count": 13
+        },
+        "deploy_marker": {
+          "present": true,
+          "markers": [
+            ".github/release-drafter.yml",
+            ".github/workflows/auto-release.yml",
+            ".github/workflows/release.yml",
+            ".github/workflows/release-drafter.yml",
+            ".github/workflows/vitepress-deploy.yml"
+          ]
+        }
+      },
+      "status": "green"
+    },
+    {
+      "repo": "vibeproxy-monitoring-unified",
+      "signals": {
+        "readme": {
+          "present": true,
+          "file": "README.md",
+          "size": 2953
+        },
+        "cargo_deps": {
+          "present": false,
+          "has_dependencies": false,
+          "has_dev_dependencies": false
+        },
+        "ci": {
+          "present": true,
+          "workflow_count": 10
+        },
+        "deploy_marker": {
+          "present": true,
+          "markers": [
+            ".github/workflows/release.yml",
+            ".github/workflows/vitepress-deploy.yml"
+          ]
+        }
+      },
+      "status": "green"
+    }
+  ]
+}

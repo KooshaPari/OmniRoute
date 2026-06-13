@@ -1,0 +1,21 @@
+{
+  "generated_at": "2026-06-09T02:33:39.032260+00:00",
+  "total_repos": 136,
+  "by_lib": {
+    "docker_buildx": [
+      "KDesktopVirt",
+      "KlipDot",
+      "OmniRoute",
+      "OmniRoute-dependabot",
+      "OmniRoute-latest",
+      "PhenoProject",
+      "Planify",
+      "Planify-hygiene",
+      "Tracera",
+      "argis-extensions",
+      "cliproxyapi-plusplus"
+    ],
+    "kaniko": [],
+    "buildah": []
+  }
+}

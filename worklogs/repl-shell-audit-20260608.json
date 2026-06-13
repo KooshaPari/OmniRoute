@@ -1,0 +1,17 @@
+{
+  "generated_at": "2026-06-08T04:30:22",
+  "total_repos": 172,
+  "with_rustyline": [],
+  "with_reedline": [],
+  "with_prompt_toolkit": [],
+  "with_liner": [],
+  "with_pyrepl": [],
+  "with_click": [
+    "PhenoKits",
+    "PhenoProc",
+    "ResilienceKit",
+    "phenotype-dep-guard",
+    "phenotype-py-extras"
+  ],
+  "with_inquirer": []
+}

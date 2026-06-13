@@ -1,0 +1,483 @@
+{
+  "generated_at": "2026-06-08T09:22:57Z",
+  "total_repos": 167,
+  "with_anyhow": [
+    ".claude",
+    "Agentora",
+    "AgilePlus",
+    "DataKit",
+    "Eventra",
+    "FocalPoint",
+    "GDK",
+    "HeliosCLI",
+    "HexaKit",
+    "KDesktopVirt",
+    "KlipDot",
+    "ObservabilityKit",
+    "PhenoAgent",
+    "PhenoDevOps",
+    "PhenoKits",
+    "PhenoMCP",
+    "PhenoObservability",
+    "PhenoProc",
+    "PhenoRuntime",
+    "PhenoSchema",
+    "PhenoVCS",
+    "Pyron",
+    "ResilienceKit",
+    "Tracera",
+    "crates",
+    "helioscope",
+    "kmobile",
+    "kwality",
+    "pheno",
+    "phenotype-bus",
+    "phenotype-infra",
+    "phenotype-org-audits",
+    "phenotype-tooling",
+    "tests",
+    "thegent",
+    "thegent-clean",
+    "thegent-clean-wt-docs",
+    "thegent-clean-wt-idea",
+    "thegent-clean-wt-parallel",
+    "thegent-clean-wt-policy",
+    "thegent-clean-wt-ruff",
+    "thegent-dispatch",
+    "tooling",
+    "vibeproxy",
+    "worktrees"
+  ],
+  "with_thiserror": [
+    ".claude",
+    "Agentora",
+    "AgilePlus",
+    "AuthKit",
+    "Civis",
+    "DataKit",
+    "Eventra",
+    "FocalPoint",
+    "GDK",
+    "HeliosCLI",
+    "HeliosLab",
+    "HexaKit",
+    "KDesktopVirt",
+    "KlipDot",
+    "McpKit",
+    "Metron",
+    "ObservabilityKit",
+    "PhenoAgent",
+    "PhenoCompose",
+    "PhenoDevOps",
+    "PhenoKits",
+    "PhenoMCP",
+    "PhenoObservability",
+    "PhenoPlugins",
+    "PhenoProc",
+    "PhenoRuntime",
+    "PhenoSchema",
+    "PhenoVCS",
+    "Pyron",
+    "ResilienceKit",
+    "Tasken",
+    "TestingKit",
+    "Tracely",
+    "crates",
+    "helioscope",
+    "kmobile",
+    "kwality",
+    "pheno",
+    "phenoForge",
+    "phenotype-bus",
+    "phenotype-tooling",
+    "thegent",
+    "thegent-clean",
+    "thegent-clean-wt-docs",
+    "thegent-clean-wt-idea",
+    "thegent-clean-wt-parallel",
+    "thegent-clean-wt-policy",
+    "thegent-clean-wt-ruff",
+    "tooling",
+    "vibeproxy",
+    "worktrees"
+  ],
+  "with_eyre": [],
+  "by_repo": [
+    {
+      "repo": ".claude",
+      "libs": [
+        "anyhow",
+        "thiserror"
+      ]
+    },
+    {
+      "repo": "Agentora",
+      "libs": [
+        "anyhow",
+        "thiserror"
+      ]
+    },
+    {
+      "repo": "AgilePlus",
+      "libs": [
+        "anyhow",
+        "thiserror"
+      ]
+    },
+    {
+      "repo": "AuthKit",
+      "libs": [
+        "thiserror"
+      ]
+    },
+    {
+      "repo": "Civis",
+      "libs": [
+        "thiserror"
+      ]
+    },
+    {
+      "repo": "DataKit",
+      "libs": [
+        "anyhow",
+        "thiserror"
+      ]
+    },
+    {
+      "repo": "Eventra",
+      "libs": [
+        "anyhow",
+        "thiserror"
+      ]
+    },
+    {
+      "repo": "FocalPoint",
+      "libs": [
+        "anyhow",
+        "thiserror"
+      ]
+    },
+    {
+      "repo": "GDK",
+      "libs": [
+        "anyhow",
+        "thiserror"
+      ]
+    },
+    {
+      "repo": "HeliosCLI",
+      "libs": [
+        "anyhow",
+        "thiserror"
+      ]
+    },
+    {
+      "repo": "HeliosLab",
+      "libs": [
+        "thiserror"
+      ]
+    },
+    {
+      "repo": "HexaKit",
+      "libs": [
+        "anyhow",
+        "thiserror"
+      ]
+    },
+    {
+      "repo": "KDesktopVirt",
+      "libs": [
+        "anyhow",
+        "thiserror"
+      ]
+    },
+    {
+      "repo": "KlipDot",
+      "libs": [
+        "anyhow",
+        "thiserror"
+      ]
+    },
+    {
+      "repo": "McpKit",
+      "libs": [
+        "thiserror"
+      ]
+    },
+    {
+      "repo": "Metron",
+      "libs": [
+        "thiserror"
+      ]
+    },
+    {
+      "repo": "ObservabilityKit",
+      "libs": [
+        "anyhow",
+        "thiserror"
+      ]
+    },
+    {
+      "repo": "PhenoAgent",
+      "libs": [
+        "anyhow",
+        "thiserror"
+      ]
+    },
+    {
+      "repo": "PhenoCompose",
+      "libs": [
+        "thiserror"
+      ]
+    },
+    {
+      "repo": "PhenoDevOps",
+      "libs": [
+        "anyhow",
+        "thiserror"
+      ]
+    },
+    {
+      "repo": "PhenoKits",
+      "libs": [
+        "anyhow",
+        "thiserror"
+      ]
+    },
+    {
+      "repo": "PhenoMCP",
+      "libs": [
+        "anyhow",
+        "thiserror"
+      ]
+    },
+    {
+      "repo": "PhenoObservability",
+      "libs": [
+        "anyhow",
+        "thiserror"
+      ]
+    },
+    {
+      "repo": "PhenoPlugins",
+      "libs": [
+        "thiserror"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "libs": [
+        "anyhow",
+        "thiserror"
+      ]
+    },
+    {
+      "repo": "PhenoRuntime",
+      "libs": [
+        "anyhow",
+        "thiserror"
+      ]
+    },
+    {
+      "repo": "PhenoSchema",
+      "libs": [
+        "anyhow",
+        "thiserror"
+      ]
+    },
+    {
+      "repo": "PhenoVCS",
+      "libs": [
+        "anyhow",
+        "thiserror"
+      ]
+    },
+    {
+      "repo": "Pyron",
+      "libs": [
+        "anyhow",
+        "thiserror"
+      ]
+    },
+    {
+      "repo": "ResilienceKit",
+      "libs": [
+        "anyhow",
+        "thiserror"
+      ]
+    },
+    {
+      "repo": "Tasken",
+      "libs": [
+        "thiserror"
+      ]
+    },
+    {
+      "repo": "TestingKit",
+      "libs": [
+        "thiserror"
+      ]
+    },
+    {
+      "repo": "Tracely",
+      "libs": [
+        "thiserror"
+      ]
+    },
+    {
+      "repo": "Tracera",
+      "libs": [
+        "anyhow"
+      ]
+    },
+    {
+      "repo": "crates",
+      "libs": [
+        "anyhow",
+        "thiserror"
+      ]
+    },
+    {
+      "repo": "helioscope",
+      "libs": [
+        "anyhow",
+        "thiserror"
+      ]
+    },
+    {
+      "repo": "kmobile",
+      "libs": [
+        "anyhow",
+        "thiserror"
+      ]
+    },
+    {
+      "repo": "kwality",
+      "libs": [
+        "anyhow",
+        "thiserror"
+      ]
+    },
+    {
+      "repo": "pheno",
+      "libs": [
+        "anyhow",
+        "thiserror"
+      ]
+    },
+    {
+      "repo": "phenoForge",
+      "libs": [
+        "thiserror"
+      ]
+    },
+    {
+      "repo": "phenotype-bus",
+      "libs": [
+        "anyhow",
+        "thiserror"
+      ]
+    },
+    {
+      "repo": "phenotype-infra",
+      "libs": [
+        "anyhow"
+      ]
+    },
+    {
+      "repo": "phenotype-org-audits",
+      "libs": [
+        "anyhow"
+      ]
+    },
+    {
+      "repo": "phenotype-tooling",
+      "libs": [
+        "anyhow",
+        "thiserror"
+      ]
+    },
+    {
+      "repo": "tests",
+      "libs": [
+        "anyhow"
+      ]
+    },
+    {
+      "repo": "thegent",
+      "libs": [
+        "anyhow",
+        "thiserror"
+      ]
+    },
+    {
+      "repo": "thegent-clean",
+      "libs": [
+        "anyhow",
+        "thiserror"
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-docs",
+      "libs": [
+        "anyhow",
+        "thiserror"
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-idea",
+      "libs": [
+        "anyhow",
+        "thiserror"
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-parallel",
+      "libs": [
+        "anyhow",
+        "thiserror"
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-policy",
+      "libs": [
+        "anyhow",
+        "thiserror"
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-ruff",
+      "libs": [
+        "anyhow",
+        "thiserror"
+      ]
+    },
+    {
+      "repo": "thegent-dispatch",
+      "libs": [
+        "anyhow"
+      ]
+    },
+    {
+      "repo": "tooling",
+      "libs": [
+        "anyhow",
+        "thiserror"
+      ]
+    },
+    {
+      "repo": "vibeproxy",
+      "libs": [
+        "anyhow",
+        "thiserror"
+      ]
+    },
+    {
+      "repo": "worktrees",
+      "libs": [
+        "anyhow",
+        "thiserror"
+      ]
+    }
+  ]
+}

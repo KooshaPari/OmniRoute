@@ -1,0 +1,13 @@
+{
+  "generated_at": "2026-06-09T02:26:43Z",
+  "total_repos": 176,
+  "with_terraform": [
+    "phenotype-infra"
+  ],
+  "by_repo": [
+    {
+      "repo": "phenotype-infra",
+      "tf_file_count": 8
+    }
+  ]
+}

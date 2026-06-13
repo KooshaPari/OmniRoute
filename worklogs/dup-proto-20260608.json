@@ -1,0 +1,615 @@
+{
+  "generated_at": "2026-06-08T09:43:28Z",
+  "total_repos": 13,
+  "near_duplicate_protos": [
+    {
+      "name": "agents.proto",
+      "repos": [
+        ".archive",
+        "agileplus",
+        "agileplus-agents",
+        "apps",
+        "docs",
+        "kitty-specs",
+        "proto",
+        "specs"
+      ]
+    },
+    {
+      "name": "agileplus.proto",
+      "repos": [
+        ".archive",
+        "agileplus",
+        "apps",
+        "docs",
+        "kitty-specs",
+        "specs"
+      ]
+    },
+    {
+      "name": "annotations.proto",
+      "repos": [
+        ".agileplus",
+        "agileplus-mcp"
+      ]
+    },
+    {
+      "name": "any.proto",
+      "repos": [
+        "agileplus-mcp",
+        "python"
+      ]
+    },
+    {
+      "name": "api.proto",
+      "repos": [
+        "agileplus-mcp",
+        "python"
+      ]
+    },
+    {
+      "name": "attribute_context.proto",
+      "repos": [
+        ".agileplus",
+        "agileplus-mcp"
+      ]
+    },
+    {
+      "name": "audit_context.proto",
+      "repos": [
+        ".agileplus",
+        "agileplus-mcp"
+      ]
+    },
+    {
+      "name": "auth.proto",
+      "repos": [
+        ".agileplus",
+        "agileplus-mcp"
+      ]
+    },
+    {
+      "name": "backend.proto",
+      "repos": [
+        ".agileplus",
+        "agileplus-mcp"
+      ]
+    },
+    {
+      "name": "billing.proto",
+      "repos": [
+        ".agileplus",
+        "agileplus-mcp"
+      ]
+    },
+    {
+      "name": "calendar_period.proto",
+      "repos": [
+        ".agileplus",
+        "agileplus-mcp"
+      ]
+    },
+    {
+      "name": "client.proto",
+      "repos": [
+        ".agileplus",
+        "agileplus-mcp"
+      ]
+    },
+    {
+      "name": "code.proto",
+      "repos": [
+        ".agileplus",
+        "agileplus-mcp"
+      ]
+    },
+    {
+      "name": "color.proto",
+      "repos": [
+        ".agileplus",
+        "agileplus-mcp"
+      ]
+    },
+    {
+      "name": "common.proto",
+      "repos": [
+        ".archive",
+        "agileplus",
+        "agileplus-agents",
+        "apps",
+        "docs",
+        "kitty-specs",
+        "proto",
+        "specs"
+      ]
+    },
+    {
+      "name": "common_resources.proto",
+      "repos": [
+        ".agileplus",
+        "agileplus-mcp"
+      ]
+    },
+    {
+      "name": "config_change.proto",
+      "repos": [
+        ".agileplus",
+        "agileplus-mcp"
+      ]
+    },
+    {
+      "name": "consumer.proto",
+      "repos": [
+        ".agileplus",
+        "agileplus-mcp"
+      ]
+    },
+    {
+      "name": "context.proto",
+      "repos": [
+        ".agileplus",
+        "agileplus-mcp"
+      ]
+    },
+    {
+      "name": "control.proto",
+      "repos": [
+        ".agileplus",
+        "agileplus-mcp"
+      ]
+    },
+    {
+      "name": "core.proto",
+      "repos": [
+        ".archive",
+        "agileplus",
+        "agileplus-agents",
+        "apps",
+        "docs",
+        "kitty-specs",
+        "proto",
+        "specs"
+      ]
+    },
+    {
+      "name": "cpp_features.proto",
+      "repos": [
+        "agileplus-mcp",
+        "python"
+      ]
+    },
+    {
+      "name": "date.proto",
+      "repos": [
+        ".agileplus",
+        "agileplus-mcp"
+      ]
+    },
+    {
+      "name": "datetime.proto",
+      "repos": [
+        ".agileplus",
+        "agileplus-mcp"
+      ]
+    },
+    {
+      "name": "dayofweek.proto",
+      "repos": [
+        ".agileplus",
+        "agileplus-mcp"
+      ]
+    },
+    {
+      "name": "decimal.proto",
+      "repos": [
+        ".agileplus",
+        "agileplus-mcp"
+      ]
+    },
+    {
+      "name": "descriptor.proto",
+      "repos": [
+        "agileplus-mcp",
+        "python"
+      ]
+    },
+    {
+      "name": "distribution.proto",
+      "repos": [
+        ".agileplus",
+        "agileplus-mcp"
+      ]
+    },
+    {
+      "name": "documentation.proto",
+      "repos": [
+        ".agileplus",
+        "agileplus-mcp"
+      ]
+    },
+    {
+      "name": "duration.proto",
+      "repos": [
+        "agileplus-mcp",
+        "python"
+      ]
+    },
+    {
+      "name": "empty.proto",
+      "repos": [
+        "agileplus-mcp",
+        "python"
+      ]
+    },
+    {
+      "name": "endpoint.proto",
+      "repos": [
+        ".agileplus",
+        "agileplus-mcp"
+      ]
+    },
+    {
+      "name": "error_details.proto",
+      "repos": [
+        ".agileplus",
+        "agileplus-mcp"
+      ]
+    },
+    {
+      "name": "error_reason.proto",
+      "repos": [
+        ".agileplus",
+        "agileplus-mcp"
+      ]
+    },
+    {
+      "name": "expr.proto",
+      "repos": [
+        ".agileplus",
+        "agileplus-mcp"
+      ]
+    },
+    {
+      "name": "extended_operations.proto",
+      "repos": [
+        ".agileplus",
+        "agileplus-mcp"
+      ]
+    },
+    {
+      "name": "field_behavior.proto",
+      "repos": [
+        ".agileplus",
+        "agileplus-mcp"
+      ]
+    },
+    {
+      "name": "field_info.proto",
+      "repos": [
+        ".agileplus",
+        "agileplus-mcp"
+      ]
+    },
+    {
+      "name": "field_mask.proto",
+      "repos": [
+        "agileplus-mcp",
+        "python"
+      ]
+    },
+    {
+      "name": "fraction.proto",
+      "repos": [
+        ".agileplus",
+        "agileplus-mcp"
+      ]
+    },
+    {
+      "name": "gapic_metadata.proto",
+      "repos": [
+        ".agileplus",
+        "agileplus-mcp"
+      ]
+    },
+    {
+      "name": "go_features.proto",
+      "repos": [
+        "agileplus-mcp",
+        "python"
+      ]
+    },
+    {
+      "name": "http.proto",
+      "repos": [
+        ".agileplus",
+        "agileplus-mcp"
+      ]
+    },
+    {
+      "name": "http_request.proto",
+      "repos": [
+        ".agileplus",
+        "agileplus-mcp"
+      ]
+    },
+    {
+      "name": "httpbody.proto",
+      "repos": [
+        ".agileplus",
+        "agileplus-mcp"
+      ]
+    },
+    {
+      "name": "integrations.proto",
+      "repos": [
+        ".archive",
+        "agileplus",
+        "agileplus-agents",
+        "apps",
+        "docs",
+        "kitty-specs",
+        "proto",
+        "specs"
+      ]
+    },
+    {
+      "name": "interval.proto",
+      "repos": [
+        ".agileplus",
+        "agileplus-mcp"
+      ]
+    },
+    {
+      "name": "java_features.proto",
+      "repos": [
+        "agileplus-mcp",
+        "python"
+      ]
+    },
+    {
+      "name": "label.proto",
+      "repos": [
+        ".agileplus",
+        "agileplus-mcp"
+      ]
+    },
+    {
+      "name": "latlng.proto",
+      "repos": [
+        ".agileplus",
+        "agileplus-mcp"
+      ]
+    },
+    {
+      "name": "launch_stage.proto",
+      "repos": [
+        ".agileplus",
+        "agileplus-mcp"
+      ]
+    },
+    {
+      "name": "llmproxy.proto",
+      "repos": [
+        "api",
+        "journey-fix"
+      ]
+    },
+    {
+      "name": "localized_text.proto",
+      "repos": [
+        ".agileplus",
+        "agileplus-mcp"
+      ]
+    },
+    {
+      "name": "locations.proto",
+      "repos": [
+        ".agileplus",
+        "agileplus-mcp"
+      ]
+    },
+    {
+      "name": "log.proto",
+      "repos": [
+        ".agileplus",
+        "agileplus-mcp"
+      ]
+    },
+    {
+      "name": "log_severity.proto",
+      "repos": [
+        ".agileplus",
+        "agileplus-mcp"
+      ]
+    },
+    {
+      "name": "logging.proto",
+      "repos": [
+        ".agileplus",
+        "agileplus-mcp"
+      ]
+    },
+    {
+      "name": "metric.proto",
+      "repos": [
+        ".agileplus",
+        "agileplus-mcp"
+      ]
+    },
+    {
+      "name": "money.proto",
+      "repos": [
+        ".agileplus",
+        "agileplus-mcp"
+      ]
+    },
+    {
+      "name": "monitored_resource.proto",
+      "repos": [
+        ".agileplus",
+        "agileplus-mcp"
+      ]
+    },
+    {
+      "name": "monitoring.proto",
+      "repos": [
+        ".agileplus",
+        "agileplus-mcp"
+      ]
+    },
+    {
+      "name": "month.proto",
+      "repos": [
+        ".agileplus",
+        "agileplus-mcp"
+      ]
+    },
+    {
+      "name": "operations_proto.proto",
+      "repos": [
+        ".agileplus",
+        "agileplus-mcp"
+      ]
+    },
+    {
+      "name": "phone_number.proto",
+      "repos": [
+        ".agileplus",
+        "agileplus-mcp"
+      ]
+    },
+    {
+      "name": "plugin.proto",
+      "repos": [
+        "agileplus-mcp",
+        "python"
+      ]
+    },
+    {
+      "name": "policy.proto",
+      "repos": [
+        ".agileplus",
+        "agileplus-mcp"
+      ]
+    },
+    {
+      "name": "postal_address.proto",
+      "repos": [
+        ".agileplus",
+        "agileplus-mcp"
+      ]
+    },
+    {
+      "name": "quaternion.proto",
+      "repos": [
+        ".agileplus",
+        "agileplus-mcp"
+      ]
+    },
+    {
+      "name": "quota.proto",
+      "repos": [
+        ".agileplus",
+        "agileplus-mcp"
+      ]
+    },
+    {
+      "name": "resource.proto",
+      "repos": [
+        ".agileplus",
+        "agileplus-mcp"
+      ]
+    },
+    {
+      "name": "routing.proto",
+      "repos": [
+        ".agileplus",
+        "agileplus-mcp"
+      ]
+    },
+    {
+      "name": "service.proto",
+      "repos": [
+        ".agileplus",
+        "agileplus-mcp"
+      ]
+    },
+    {
+      "name": "source_context.proto",
+      "repos": [
+        "agileplus-mcp",
+        "python"
+      ]
+    },
+    {
+      "name": "source_info.proto",
+      "repos": [
+        ".agileplus",
+        "agileplus-mcp"
+      ]
+    },
+    {
+      "name": "status.proto",
+      "repos": [
+        ".agileplus",
+        "agileplus-mcp"
+      ]
+    },
+    {
+      "name": "struct.proto",
+      "repos": [
+        "agileplus-mcp",
+        "python"
+      ]
+    },
+    {
+      "name": "system_parameter.proto",
+      "repos": [
+        ".agileplus",
+        "agileplus-mcp"
+      ]
+    },
+    {
+      "name": "timeofday.proto",
+      "repos": [
+        ".agileplus",
+        "agileplus-mcp"
+      ]
+    },
+    {
+      "name": "timestamp.proto",
+      "repos": [
+        "agileplus-mcp",
+        "python"
+      ]
+    },
+    {
+      "name": "type.proto",
+      "repos": [
+        "agileplus-mcp",
+        "python"
+      ]
+    },
+    {
+      "name": "usage.proto",
+      "repos": [
+        ".agileplus",
+        "agileplus-mcp"
+      ]
+    },
+    {
+      "name": "visibility.proto",
+      "repos": [
+        ".agileplus",
+        "agileplus-mcp"
+      ]
+    },
+    {
+      "name": "wrappers.proto",
+      "repos": [
+        "agileplus-mcp",
+        "python"
+      ]
+    }
+  ]
+}

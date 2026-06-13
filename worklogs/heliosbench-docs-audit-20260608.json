@@ -1,0 +1,10 @@
+{
+  "generated_at": "2026-06-08T00:00:00Z",
+  "pages_status": "built",
+  "deploy_url": "https://kooshapari.github.io/heliosBench/",
+  "source_dir": "docs/.vitepress/dist",
+  "framework": "VitePress (Jekyll SEO meta in served HTML is an artifact of GitHub Pages legacy build wrapper; actual build is `bun run docs:build` from package.json)",
+  "has_index": true,
+  "last_deploy": "2026-06-01T05:29:09Z",
+  "notes": "Pages API: status=built, build_type=legacy, source branch=main path=/, https_enforced=true, public=true. Workflow .github/workflows/pages.yml: triggered on push to main, builds with bun + `bun run docs:build`, uploads artifact docs/.vitepress/dist via actions/upload-pages-artifact, deploys via actions/deploy-pages to github-pages env. Index at dist/index.html returns HTTP 200; served HTML page <h1> is 'Helios Benchmark Harness'. Repo is archived (409 on /pages/builds/latest). Cname=null, custom_404=false."
+}

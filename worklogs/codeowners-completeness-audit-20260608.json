@@ -1,0 +1,966 @@
+{
+  "generated_at": "2026-06-09T02:10:13.019749Z",
+  "total_repos": 166,
+  "with_codeowners": [
+    "agent-devops-setups",
+    "agent-platform",
+    "agent-user-status",
+    "agentapi-plusplus",
+    "AgentMCP",
+    "Agentora",
+    "AgilePlus",
+    "agslag-docs",
+    "Apisync",
+    "AppGen",
+    "argis-extensions",
+    "AtomsBot",
+    "AuthKit",
+    "bare-cua",
+    "Benchora",
+    "BytePort",
+    "chatta",
+    "cheap-llm-mcp",
+    "cheap-llm-mcp-deprecate",
+    "Civis",
+    "cliproxyapi-plusplus",
+    "Conft",
+    "crates",
+    "DataKit",
+    "DevHex",
+    "Dino",
+    "dinoforge-packs",
+    "DINOForge-UnityDoorstop",
+    "Eidolon",
+    "Eventra",
+    "eyetracker",
+    "FocalPoint",
+    "forgecode",
+    "GDK",
+    "heliosApp",
+    "heliosBench",
+    "HeliosCLI",
+    "helioscope",
+    "HeliosLab",
+    "HexaKit",
+    "Httpora",
+    "hwLedger",
+    "KaskMan",
+    "KDesktopVirt",
+    "KlipDot",
+    "kmobile",
+    "KodeVibe",
+    "KodeVibe-security-fixes",
+    "KWatch",
+    "KWatch-docs",
+    "localbase3",
+    "MCPForge",
+    "McpKit",
+    "Metron",
+    "nanovms",
+    "ObservabilityKit",
+    "OmniRoute",
+    "OmniRoute-dependabot",
+    "OmniRoute-latest",
+    "Paginary",
+    "Parpoura",
+    "pheno",
+    "PhenoAgent",
+    "phenoAI",
+    "PhenoCompose",
+    "phenoData",
+    "phenoDesign",
+    "PhenoDevOps",
+    "phenodocs",
+    "phenodocs-scorecard-remediation",
+    "phenoForge",
+    "PhenoHandbook",
+    "PhenoKits",
+    "PhenoMCP",
+    "PhenoMCP-cheap",
+    "PhenoObservability",
+    "PhenoPlugins",
+    "PhenoProc",
+    "PhenoProc-security-fixes",
+    "PhenoProject",
+    "phenoResearchEngine",
+    "PhenoRuntime",
+    "PhenoSchema",
+    "phenoShared",
+    "PhenoSpecs",
+    "phenotype-auth-ts",
+    "phenotype-bus",
+    "phenotype-dep-guard",
+    "phenotype-go-sdk",
+    "phenotype-hub",
+    "phenotype-infra",
+    "phenotype-journeys",
+    "phenotype-landing",
+    "phenotype-ops-mcp",
+    "phenotype-ops-mcp-t0",
+    "phenotype-org-audits",
+    "phenotype-postfx",
+    "phenotype-python-sdk",
+    "phenotype-registry",
+    "phenotype-terrain",
+    "phenotype-tooling",
+    "phenotype-voxel",
+    "phenotype-water",
+    "phenoUtils",
+    "PhenoVCS",
+    "phenoXdd",
+    "Pine",
+    "Planify",
+    "Planify-hygiene",
+    "PlatformKit",
+    "PlayCua",
+    "PolicyStack",
+    "portage",
+    "Pyron",
+    "QuadSGM",
+    "ResilienceKit",
+    "rich-cli-kit",
+    "Sidekick",
+    "Tasken",
+    "TestingKit",
+    "thegent",
+    "thegent-dispatch",
+    "thegent-security-fixes",
+    "Tokn",
+    "Tracely",
+    "Tracera",
+    "vibeproxy",
+    "vibeproxy-monitoring-unified"
+  ],
+  "by_repo": [
+    {
+      "repo": "agent-devops-setups",
+      "owners_count": 1,
+      "folder_count": 0
+    },
+    {
+      "repo": "agent-platform",
+      "owners_count": 1,
+      "folder_count": 1
+    },
+    {
+      "repo": "agent-user-status",
+      "owners_count": 1,
+      "folder_count": 0
+    },
+    {
+      "repo": "agentapi-plusplus",
+      "owners_count": 1,
+      "folder_count": 4
+    },
+    {
+      "repo": "AgentMCP",
+      "owners_count": 1,
+      "folder_count": 8
+    },
+    {
+      "repo": "agentops-policy-federation",
+      "owners_count": 0,
+      "folder_count": 0
+    },
+    {
+      "repo": "Agentora",
+      "owners_count": 1,
+      "folder_count": 0
+    },
+    {
+      "repo": "AgilePlus",
+      "owners_count": 1,
+      "folder_count": 9
+    },
+    {
+      "repo": "agileplus-agents",
+      "owners_count": 0,
+      "folder_count": 0
+    },
+    {
+      "repo": "agslag-docs",
+      "owners_count": 1,
+      "folder_count": 0
+    },
+    {
+      "repo": "Apisync",
+      "owners_count": 2,
+      "folder_count": 5
+    },
+    {
+      "repo": "AppGen",
+      "owners_count": 1,
+      "folder_count": 0
+    },
+    {
+      "repo": "apps",
+      "owners_count": 0,
+      "folder_count": 0
+    },
+    {
+      "repo": "argis-extensions",
+      "owners_count": 2,
+      "folder_count": 5
+    },
+    {
+      "repo": "AtomsBot",
+      "owners_count": 1,
+      "folder_count": 0
+    },
+    {
+      "repo": "AuthKit",
+      "owners_count": 1,
+      "folder_count": 7
+    },
+    {
+      "repo": "bare-cua",
+      "owners_count": 1,
+      "folder_count": 8
+    },
+    {
+      "repo": "Benchora",
+      "owners_count": 1,
+      "folder_count": 0
+    },
+    {
+      "repo": "BytePort",
+      "owners_count": 1,
+      "folder_count": 3
+    },
+    {
+      "repo": "chatta",
+      "owners_count": 1,
+      "folder_count": 0
+    },
+    {
+      "repo": "cheap-llm-mcp",
+      "owners_count": 1,
+      "folder_count": 0
+    },
+    {
+      "repo": "cheap-llm-mcp-deprecate",
+      "owners_count": 1,
+      "folder_count": 0
+    },
+    {
+      "repo": "Civis",
+      "owners_count": 1,
+      "folder_count": 3
+    },
+    {
+      "repo": "cliproxyapi-plusplus",
+      "owners_count": 1,
+      "folder_count": 7
+    },
+    {
+      "repo": "Conft",
+      "owners_count": 2,
+      "folder_count": 7
+    },
+    {
+      "repo": "crates",
+      "owners_count": 2,
+      "folder_count": 5
+    },
+    {
+      "repo": "DataKit",
+      "owners_count": 1,
+      "folder_count": 0
+    },
+    {
+      "repo": "default",
+      "owners_count": 0,
+      "folder_count": 0
+    },
+    {
+      "repo": "DevHex",
+      "owners_count": 1,
+      "folder_count": 0
+    },
+    {
+      "repo": "Dino",
+      "owners_count": 1,
+      "folder_count": 14
+    },
+    {
+      "repo": "dinoforge-packs",
+      "owners_count": 1,
+      "folder_count": 0
+    },
+    {
+      "repo": "DINOForge-UnityDoorstop",
+      "owners_count": 1,
+      "folder_count": 0
+    },
+    {
+      "repo": "dispatch-mcp",
+      "owners_count": 0,
+      "folder_count": 0
+    },
+    {
+      "repo": "docs",
+      "owners_count": 0,
+      "folder_count": 0
+    },
+    {
+      "repo": "docs-site",
+      "owners_count": 0,
+      "folder_count": 0
+    },
+    {
+      "repo": "Eidolon",
+      "owners_count": 1,
+      "folder_count": 1
+    },
+    {
+      "repo": "Eventra",
+      "owners_count": 1,
+      "folder_count": 0
+    },
+    {
+      "repo": "examples",
+      "owners_count": 0,
+      "folder_count": 0
+    },
+    {
+      "repo": "eyetracker",
+      "owners_count": 1,
+      "folder_count": 1
+    },
+    {
+      "repo": "FocalPoint",
+      "owners_count": 1,
+      "folder_count": 1
+    },
+    {
+      "repo": "forgecode",
+      "owners_count": 2,
+      "folder_count": 0
+    },
+    {
+      "repo": "frontend",
+      "owners_count": 0,
+      "folder_count": 0
+    },
+    {
+      "repo": "fuzz",
+      "owners_count": 0,
+      "folder_count": 0
+    },
+    {
+      "repo": "GDK",
+      "owners_count": 1,
+      "folder_count": 5
+    },
+    {
+      "repo": "helios-router",
+      "owners_count": 0,
+      "folder_count": 0
+    },
+    {
+      "repo": "heliosApp",
+      "owners_count": 1,
+      "folder_count": 5
+    },
+    {
+      "repo": "heliosBench",
+      "owners_count": 1,
+      "folder_count": 0
+    },
+    {
+      "repo": "HeliosCLI",
+      "owners_count": 1,
+      "folder_count": 8
+    },
+    {
+      "repo": "helioscope",
+      "owners_count": 1,
+      "folder_count": 8
+    },
+    {
+      "repo": "heliosHarness",
+      "owners_count": 0,
+      "folder_count": 0
+    },
+    {
+      "repo": "HeliosLab",
+      "owners_count": 1,
+      "folder_count": 5
+    },
+    {
+      "repo": "HexaKit",
+      "owners_count": 6,
+      "folder_count": 13
+    },
+    {
+      "repo": "Httpora",
+      "owners_count": 2,
+      "folder_count": 0
+    },
+    {
+      "repo": "hwLedger",
+      "owners_count": 1,
+      "folder_count": 1
+    },
+    {
+      "repo": "KaskMan",
+      "owners_count": 2,
+      "folder_count": 0
+    },
+    {
+      "repo": "KDesktopVirt",
+      "owners_count": 1,
+      "folder_count": 0
+    },
+    {
+      "repo": "KlipDot",
+      "owners_count": 1,
+      "folder_count": 0
+    },
+    {
+      "repo": "kmobile",
+      "owners_count": 1,
+      "folder_count": 0
+    },
+    {
+      "repo": "KodeVibe",
+      "owners_count": 1,
+      "folder_count": 5
+    },
+    {
+      "repo": "KodeVibe-security-fixes",
+      "owners_count": 1,
+      "folder_count": 5
+    },
+    {
+      "repo": "KWatch",
+      "owners_count": 1,
+      "folder_count": 0
+    },
+    {
+      "repo": "KWatch-docs",
+      "owners_count": 1,
+      "folder_count": 0
+    },
+    {
+      "repo": "libs",
+      "owners_count": 0,
+      "folder_count": 0
+    },
+    {
+      "repo": "localbase3",
+      "owners_count": 1,
+      "folder_count": 0
+    },
+    {
+      "repo": "MCPForge",
+      "owners_count": 1,
+      "folder_count": 0
+    },
+    {
+      "repo": "McpKit",
+      "owners_count": 1,
+      "folder_count": 0
+    },
+    {
+      "repo": "melosviz",
+      "owners_count": 0,
+      "folder_count": 0
+    },
+    {
+      "repo": "Metron",
+      "owners_count": 1,
+      "folder_count": 0
+    },
+    {
+      "repo": "nanovms",
+      "owners_count": 1,
+      "folder_count": 2
+    },
+    {
+      "repo": "NetScript",
+      "owners_count": 0,
+      "folder_count": 0
+    },
+    {
+      "repo": "netweave-final2",
+      "owners_count": 0,
+      "folder_count": 0
+    },
+    {
+      "repo": "ObservabilityKit",
+      "owners_count": 1,
+      "folder_count": 6
+    },
+    {
+      "repo": "Observably",
+      "owners_count": 0,
+      "folder_count": 0
+    },
+    {
+      "repo": "OmniRoute",
+      "owners_count": 1,
+      "folder_count": 9
+    },
+    {
+      "repo": "OmniRoute-dependabot",
+      "owners_count": 1,
+      "folder_count": 9
+    },
+    {
+      "repo": "OmniRoute-latest",
+      "owners_count": 1,
+      "folder_count": 0
+    },
+    {
+      "repo": "Paginary",
+      "owners_count": 1,
+      "folder_count": 0
+    },
+    {
+      "repo": "Parpoura",
+      "owners_count": 1,
+      "folder_count": 3
+    },
+    {
+      "repo": "pheno",
+      "owners_count": 2,
+      "folder_count": 9
+    },
+    {
+      "repo": "PhenoAgent",
+      "owners_count": 1,
+      "folder_count": 0
+    },
+    {
+      "repo": "phenoAI",
+      "owners_count": 1,
+      "folder_count": 0
+    },
+    {
+      "repo": "PhenoCompose",
+      "owners_count": 1,
+      "folder_count": 1
+    },
+    {
+      "repo": "PhenoContracts",
+      "owners_count": 0,
+      "folder_count": 0
+    },
+    {
+      "repo": "PhenoControl",
+      "owners_count": 0,
+      "folder_count": 0
+    },
+    {
+      "repo": "phenoData",
+      "owners_count": 1,
+      "folder_count": 0
+    },
+    {
+      "repo": "phenoDesign",
+      "owners_count": 2,
+      "folder_count": 2
+    },
+    {
+      "repo": "PhenoDevOps",
+      "owners_count": 2,
+      "folder_count": 4
+    },
+    {
+      "repo": "phenodocs",
+      "owners_count": 2,
+      "folder_count": 6
+    },
+    {
+      "repo": "phenodocs-scorecard-remediation",
+      "owners_count": 1,
+      "folder_count": 0
+    },
+    {
+      "repo": "PhenoEvents",
+      "owners_count": 0,
+      "folder_count": 0
+    },
+    {
+      "repo": "phenoForge",
+      "owners_count": 1,
+      "folder_count": 0
+    },
+    {
+      "repo": "PhenoHandbook",
+      "owners_count": 1,
+      "folder_count": 0
+    },
+    {
+      "repo": "PhenoKits",
+      "owners_count": 2,
+      "folder_count": 3
+    },
+    {
+      "repo": "PhenoLang",
+      "owners_count": 0,
+      "folder_count": 0
+    },
+    {
+      "repo": "PhenoMCP",
+      "owners_count": 1,
+      "folder_count": 8
+    },
+    {
+      "repo": "PhenoMCP-cheap",
+      "owners_count": 1,
+      "folder_count": 8
+    },
+    {
+      "repo": "PhenoObservability",
+      "owners_count": 1,
+      "folder_count": 13
+    },
+    {
+      "repo": "PhenoPlugins",
+      "owners_count": 1,
+      "folder_count": 7
+    },
+    {
+      "repo": "PhenoProc",
+      "owners_count": 8,
+      "folder_count": 10
+    },
+    {
+      "repo": "PhenoProc-security-fixes",
+      "owners_count": 3,
+      "folder_count": 5
+    },
+    {
+      "repo": "PhenoProject",
+      "owners_count": 2,
+      "folder_count": 5
+    },
+    {
+      "repo": "phenoResearchEngine",
+      "owners_count": 1,
+      "folder_count": 5
+    },
+    {
+      "repo": "PhenoRuntime",
+      "owners_count": 1,
+      "folder_count": 0
+    },
+    {
+      "repo": "PhenoSchema",
+      "owners_count": 2,
+      "folder_count": 5
+    },
+    {
+      "repo": "phenoShared",
+      "owners_count": 1,
+      "folder_count": 6
+    },
+    {
+      "repo": "PhenoSpecs",
+      "owners_count": 1,
+      "folder_count": 8
+    },
+    {
+      "repo": "phenotype-auth-ts",
+      "owners_count": 1,
+      "folder_count": 0
+    },
+    {
+      "repo": "phenotype-bus",
+      "owners_count": 1,
+      "folder_count": 0
+    },
+    {
+      "repo": "phenotype-dep-guard",
+      "owners_count": 1,
+      "folder_count": 3
+    },
+    {
+      "repo": "phenotype-go-sdk",
+      "owners_count": 1,
+      "folder_count": 0
+    },
+    {
+      "repo": "phenotype-hub",
+      "owners_count": 1,
+      "folder_count": 0
+    },
+    {
+      "repo": "phenotype-icons",
+      "owners_count": 0,
+      "folder_count": 0
+    },
+    {
+      "repo": "phenotype-infra",
+      "owners_count": 1,
+      "folder_count": 8
+    },
+    {
+      "repo": "phenotype-journeys",
+      "owners_count": 1,
+      "folder_count": 0
+    },
+    {
+      "repo": "phenotype-landing",
+      "owners_count": 1,
+      "folder_count": 0
+    },
+    {
+      "repo": "phenotype-omlx",
+      "owners_count": 0,
+      "folder_count": 0
+    },
+    {
+      "repo": "phenotype-ops-mcp",
+      "owners_count": 1,
+      "folder_count": 0
+    },
+    {
+      "repo": "phenotype-ops-mcp-t0",
+      "owners_count": 1,
+      "folder_count": 0
+    },
+    {
+      "repo": "phenotype-org-audits",
+      "owners_count": 1,
+      "folder_count": 0
+    },
+    {
+      "repo": "phenotype-postfx",
+      "owners_count": 1,
+      "folder_count": 0
+    },
+    {
+      "repo": "phenotype-py-extras",
+      "owners_count": 0,
+      "folder_count": 0
+    },
+    {
+      "repo": "phenotype-python-sdk",
+      "owners_count": 1,
+      "folder_count": 12
+    },
+    {
+      "repo": "phenotype-registry",
+      "owners_count": 1,
+      "folder_count": 0
+    },
+    {
+      "repo": "phenotype-request-id",
+      "owners_count": 0,
+      "folder_count": 0
+    },
+    {
+      "repo": "phenotype-shared",
+      "owners_count": 0,
+      "folder_count": 0
+    },
+    {
+      "repo": "phenotype-skills",
+      "owners_count": 0,
+      "folder_count": 0
+    },
+    {
+      "repo": "phenotype-terrain",
+      "owners_count": 1,
+      "folder_count": 0
+    },
+    {
+      "repo": "phenotype-tooling",
+      "owners_count": 2,
+      "folder_count": 16
+    },
+    {
+      "repo": "phenotype-voxel",
+      "owners_count": 1,
+      "folder_count": 0
+    },
+    {
+      "repo": "phenotype-water",
+      "owners_count": 1,
+      "folder_count": 0
+    },
+    {
+      "repo": "phenoUtils",
+      "owners_count": 1,
+      "folder_count": 0
+    },
+    {
+      "repo": "PhenoVCS",
+      "owners_count": 1,
+      "folder_count": 3
+    },
+    {
+      "repo": "phenoXdd",
+      "owners_count": 1,
+      "folder_count": 0
+    },
+    {
+      "repo": "Pine",
+      "owners_count": 1,
+      "folder_count": 0
+    },
+    {
+      "repo": "Planify",
+      "owners_count": 7,
+      "folder_count": 2
+    },
+    {
+      "repo": "Planify-hygiene",
+      "owners_count": 7,
+      "folder_count": 2
+    },
+    {
+      "repo": "PlatformKit",
+      "owners_count": 1,
+      "folder_count": 0
+    },
+    {
+      "repo": "PlayCua",
+      "owners_count": 1,
+      "folder_count": 8
+    },
+    {
+      "repo": "PolicyStack",
+      "owners_count": 2,
+      "folder_count": 5
+    },
+    {
+      "repo": "portage",
+      "owners_count": 1,
+      "folder_count": 6
+    },
+    {
+      "repo": "Pyron",
+      "owners_count": 2,
+      "folder_count": 4
+    },
+    {
+      "repo": "QuadSGM",
+      "owners_count": 1,
+      "folder_count": 3
+    },
+    {
+      "repo": "ResilienceKit",
+      "owners_count": 1,
+      "folder_count": 8
+    },
+    {
+      "repo": "rich-cli-kit",
+      "owners_count": 1,
+      "folder_count": 1
+    },
+    {
+      "repo": "rust",
+      "owners_count": 0,
+      "folder_count": 0
+    },
+    {
+      "repo": "services",
+      "owners_count": 0,
+      "folder_count": 0
+    },
+    {
+      "repo": "Sidekick",
+      "owners_count": 1,
+      "folder_count": 1
+    },
+    {
+      "repo": "src",
+      "owners_count": 0,
+      "folder_count": 0
+    },
+    {
+      "repo": "target",
+      "owners_count": 0,
+      "folder_count": 0
+    },
+    {
+      "repo": "Tasken",
+      "owners_count": 2,
+      "folder_count": 5
+    },
+    {
+      "repo": "TestingKit",
+      "owners_count": 1,
+      "folder_count": 4
+    },
+    {
+      "repo": "tests",
+      "owners_count": 0,
+      "folder_count": 0
+    },
+    {
+      "repo": "thegent",
+      "owners_count": 1,
+      "folder_count": 8
+    },
+    {
+      "repo": "thegent-dispatch",
+      "owners_count": 1,
+      "folder_count": 1
+    },
+    {
+      "repo": "thegent-fresh",
+      "owners_count": 0,
+      "folder_count": 0
+    },
+    {
+      "repo": "thegent-jsonl",
+      "owners_count": 0,
+      "folder_count": 0
+    },
+    {
+      "repo": "thegent-security-fixes",
+      "owners_count": 1,
+      "folder_count": 8
+    },
+    {
+      "repo": "Tokn",
+      "owners_count": 1,
+      "folder_count": 7
+    },
+    {
+      "repo": "tooling",
+      "owners_count": 0,
+      "folder_count": 0
+    },
+    {
+      "repo": "Tracely",
+      "owners_count": 1,
+      "folder_count": 5
+    },
+    {
+      "repo": "Tracera",
+      "owners_count": 1,
+      "folder_count": 6
+    },
+    {
+      "repo": "ValidationKit",
+      "owners_count": 0,
+      "folder_count": 0
+    },
+    {
+      "repo": "vendor",
+      "owners_count": 0,
+      "folder_count": 0
+    },
+    {
+      "repo": "vibeproxy",
+      "owners_count": 1,
+      "folder_count": 0
+    },
+    {
+      "repo": "vibeproxy-monitoring-unified",
+      "owners_count": 1,
+      "folder_count": 0
+    },
+    {
+      "repo": "worktrees",
+      "owners_count": 0,
+      "folder_count": 0
+    }
+  ]
+}

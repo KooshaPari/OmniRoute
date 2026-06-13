@@ -1,0 +1,847 @@
+{
+  "generated_at": "2026-06-08T08:55:32Z",
+  "total_repos": 163,
+  "with_serde": [
+    "Agentora",
+    "AgilePlus",
+    "Apisync",
+    "AuthKit/rust",
+    "Benchora",
+    "BytePort",
+    "DataKit/rust",
+    "Eventra",
+    "FocalPoint",
+    "GDK",
+    "HeliosCLI",
+    "HeliosCLI/codex-rs",
+    "HeliosLab",
+    "HeliosLab/pheno-core",
+    "HexaKit",
+    "HexaKit/Metron",
+    "HexaKit/Traceon",
+    "HexaKit/agileplus-agents",
+    "HexaKit/forgecode-fork",
+    "KDesktopVirt",
+    "KDesktopVirt/cli_tools",
+    "KlipDot",
+    "McpKit/rust",
+    "Metron",
+    "ObservabilityKit/rust",
+    "PhenoAgent/phenotype-daemon",
+    "PhenoAgent/phenotype-skills",
+    "PhenoCompose/pheno-compose-driver",
+    "PhenoDevOps",
+    "PhenoDevOps/agileplus-agents",
+    "PhenoDevOps/forgecode-fork",
+    "PhenoDevOps/phenotype-router-monitor",
+    "PhenoDevOps/rust",
+    "PhenoKits",
+    "PhenoMCP",
+    "PhenoObservability",
+    "PhenoObservability/rust",
+    "PhenoPlugins",
+    "PhenoProc",
+    "PhenoProc/Evalora",
+    "PhenoProc/phenotype-router-monitor",
+    "PhenoRuntime",
+    "PhenoSchema/pheno-xdd-lib",
+    "Pyron",
+    "Pyron/agileplus-agents",
+    "Pyron/forgecode-fork",
+    "Pyron/phenotype-router-monitor",
+    "ResilienceKit/rust",
+    "Sidekick",
+    "Tasken",
+    "TestingKit/rust",
+    "Tracely",
+    "crates/connector-canvas",
+    "crates/connector-gcal",
+    "crates/connector-github",
+    "crates/focus-always-on",
+    "crates/focus-asset-fetcher",
+    "crates/focus-backup",
+    "crates/focus-ci-watcher",
+    "crates/focus-icon-gen",
+    "crates/focus-observability",
+    "crates/focus-plugin-sdk",
+    "crates/focus-release-bot",
+    "crates/focus-sync-store",
+    "crates/focus-telemetry",
+    "crates/phenotype-config",
+    "eyetracker",
+    "helioscope",
+    "helioscope/codex-rs",
+    "kmobile",
+    "pheno",
+    "pheno/agileplus-agents",
+    "pheno/forgecode-fork",
+    "pheno/phenotype-router-monitor",
+    "pheno/sharecli",
+    "phenoAI",
+    "phenoData",
+    "phenoForge",
+    "phenoShared",
+    "phenoUtils",
+    "phenotype-bus",
+    "phenotype-infra/iac",
+    "phenotype-journeys",
+    "phenotype-tooling",
+    "thegent-clean/crates",
+    "thegent-dispatch",
+    "thegent/crates",
+    "tooling/agent-orchestrator",
+    "tooling/bench-guard",
+    "tooling/release-cut",
+    "tooling/target-pruner"
+  ],
+  "with_serde_json": [
+    "Agentora",
+    "AgilePlus",
+    "Apisync",
+    "AuthKit/rust",
+    "Benchora",
+    "BytePort",
+    "DataKit/rust",
+    "Eventra",
+    "FocalPoint",
+    "GDK",
+    "HeliosCLI",
+    "HeliosCLI/codex-rs",
+    "HeliosCLI/helios-rs",
+    "HeliosLab",
+    "HeliosLab/pheno-db",
+    "HexaKit",
+    "HexaKit/Traceon",
+    "HexaKit/agileplus-agents",
+    "KDesktopVirt",
+    "KDesktopVirt/cli_tools",
+    "KlipDot",
+    "McpKit/rust",
+    "ObservabilityKit/rust",
+    "PhenoAgent/phenotype-daemon",
+    "PhenoAgent/phenotype-skills",
+    "PhenoCompose/pheno-compose-driver",
+    "PhenoDevOps",
+    "PhenoDevOps/agileplus-agents",
+    "PhenoDevOps/phenotype-router-monitor",
+    "PhenoKits",
+    "PhenoMCP",
+    "PhenoObservability",
+    "PhenoObservability/rust",
+    "PhenoPlugins",
+    "PhenoProc",
+    "PhenoProc/Evalora",
+    "PhenoProc/phenotype-router-monitor",
+    "PhenoRuntime",
+    "PhenoSchema/pheno-xdd-lib",
+    "Pyron",
+    "Pyron/agileplus-agents",
+    "Pyron/phenotype-router-monitor",
+    "ResilienceKit/rust",
+    "Sidekick",
+    "Tasken",
+    "TestingKit/rust",
+    "Tracely",
+    "crates/connector-canvas",
+    "crates/connector-gcal",
+    "crates/connector-github",
+    "crates/focus-always-on",
+    "crates/focus-ci-watcher",
+    "crates/focus-icon-gen",
+    "crates/focus-observability",
+    "crates/focus-plugin-sdk",
+    "crates/focus-sync-store",
+    "crates/focus-telemetry",
+    "crates/phenotype-config",
+    "helioscope",
+    "helioscope/codex-rs",
+    "helioscope/helios-rs",
+    "kmobile",
+    "pheno",
+    "pheno/agileplus-agents",
+    "pheno/phenotype-router-monitor",
+    "pheno/sharecli",
+    "phenoAI",
+    "phenoData",
+    "phenoShared",
+    "phenoUtils",
+    "phenotype-bus",
+    "phenotype-infra/iac",
+    "phenotype-journeys",
+    "phenotype-tooling",
+    "tests/e2e",
+    "thegent-clean/crates",
+    "thegent-dispatch",
+    "thegent/crates",
+    "tooling/agent-orchestrator",
+    "tooling/quality-gate",
+    "tooling/sbom-gen"
+  ],
+  "with_simd_json": [
+    "GDK",
+    "thegent-clean/crates",
+    "thegent/crates"
+  ],
+  "by_repo": [
+    {
+      "repo": "Agentora",
+      "libs": [
+        "serde",
+        "serde_json"
+      ]
+    },
+    {
+      "repo": "AgilePlus",
+      "libs": [
+        "serde",
+        "serde_json"
+      ]
+    },
+    {
+      "repo": "Apisync",
+      "libs": [
+        "serde",
+        "serde_json"
+      ]
+    },
+    {
+      "repo": "AuthKit/rust",
+      "libs": [
+        "serde",
+        "serde_json"
+      ]
+    },
+    {
+      "repo": "Benchora",
+      "libs": [
+        "serde",
+        "serde_json"
+      ]
+    },
+    {
+      "repo": "BytePort",
+      "libs": [
+        "serde",
+        "serde_json"
+      ]
+    },
+    {
+      "repo": "DataKit/rust",
+      "libs": [
+        "serde",
+        "serde_json"
+      ]
+    },
+    {
+      "repo": "Eventra",
+      "libs": [
+        "serde",
+        "serde_json"
+      ]
+    },
+    {
+      "repo": "FocalPoint",
+      "libs": [
+        "serde",
+        "serde_json"
+      ]
+    },
+    {
+      "repo": "GDK",
+      "libs": [
+        "serde",
+        "serde_json",
+        "simd-json"
+      ]
+    },
+    {
+      "repo": "HeliosCLI",
+      "libs": [
+        "serde",
+        "serde_json"
+      ]
+    },
+    {
+      "repo": "HeliosCLI/codex-rs",
+      "libs": [
+        "serde",
+        "serde_json"
+      ]
+    },
+    {
+      "repo": "HeliosCLI/helios-rs",
+      "libs": [
+        "serde_json"
+      ]
+    },
+    {
+      "repo": "HeliosLab",
+      "libs": [
+        "serde",
+        "serde_json"
+      ]
+    },
+    {
+      "repo": "HeliosLab/pheno-core",
+      "libs": [
+        "serde"
+      ]
+    },
+    {
+      "repo": "HeliosLab/pheno-db",
+      "libs": [
+        "serde_json"
+      ]
+    },
+    {
+      "repo": "HexaKit",
+      "libs": [
+        "serde",
+        "serde_json"
+      ]
+    },
+    {
+      "repo": "HexaKit/Metron",
+      "libs": [
+        "serde"
+      ]
+    },
+    {
+      "repo": "HexaKit/Traceon",
+      "libs": [
+        "serde",
+        "serde_json"
+      ]
+    },
+    {
+      "repo": "HexaKit/agileplus-agents",
+      "libs": [
+        "serde",
+        "serde_json"
+      ]
+    },
+    {
+      "repo": "HexaKit/forgecode-fork",
+      "libs": [
+        "serde"
+      ]
+    },
+    {
+      "repo": "KDesktopVirt",
+      "libs": [
+        "serde",
+        "serde_json"
+      ]
+    },
+    {
+      "repo": "KDesktopVirt/cli_tools",
+      "libs": [
+        "serde",
+        "serde_json"
+      ]
+    },
+    {
+      "repo": "KlipDot",
+      "libs": [
+        "serde",
+        "serde_json"
+      ]
+    },
+    {
+      "repo": "McpKit/rust",
+      "libs": [
+        "serde",
+        "serde_json"
+      ]
+    },
+    {
+      "repo": "Metron",
+      "libs": [
+        "serde"
+      ]
+    },
+    {
+      "repo": "ObservabilityKit/rust",
+      "libs": [
+        "serde",
+        "serde_json"
+      ]
+    },
+    {
+      "repo": "PhenoAgent/phenotype-daemon",
+      "libs": [
+        "serde",
+        "serde_json"
+      ]
+    },
+    {
+      "repo": "PhenoAgent/phenotype-skills",
+      "libs": [
+        "serde",
+        "serde_json"
+      ]
+    },
+    {
+      "repo": "PhenoCompose/pheno-compose-driver",
+      "libs": [
+        "serde",
+        "serde_json"
+      ]
+    },
+    {
+      "repo": "PhenoDevOps",
+      "libs": [
+        "serde",
+        "serde_json"
+      ]
+    },
+    {
+      "repo": "PhenoDevOps/agileplus-agents",
+      "libs": [
+        "serde",
+        "serde_json"
+      ]
+    },
+    {
+      "repo": "PhenoDevOps/forgecode-fork",
+      "libs": [
+        "serde"
+      ]
+    },
+    {
+      "repo": "PhenoDevOps/phenotype-router-monitor",
+      "libs": [
+        "serde",
+        "serde_json"
+      ]
+    },
+    {
+      "repo": "PhenoDevOps/rust",
+      "libs": [
+        "serde"
+      ]
+    },
+    {
+      "repo": "PhenoKits",
+      "libs": [
+        "serde",
+        "serde_json"
+      ]
+    },
+    {
+      "repo": "PhenoMCP",
+      "libs": [
+        "serde",
+        "serde_json"
+      ]
+    },
+    {
+      "repo": "PhenoObservability",
+      "libs": [
+        "serde",
+        "serde_json"
+      ]
+    },
+    {
+      "repo": "PhenoObservability/rust",
+      "libs": [
+        "serde",
+        "serde_json"
+      ]
+    },
+    {
+      "repo": "PhenoPlugins",
+      "libs": [
+        "serde",
+        "serde_json"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "libs": [
+        "serde",
+        "serde_json"
+      ]
+    },
+    {
+      "repo": "PhenoProc/Evalora",
+      "libs": [
+        "serde",
+        "serde_json"
+      ]
+    },
+    {
+      "repo": "PhenoProc/phenotype-router-monitor",
+      "libs": [
+        "serde",
+        "serde_json"
+      ]
+    },
+    {
+      "repo": "PhenoRuntime",
+      "libs": [
+        "serde",
+        "serde_json"
+      ]
+    },
+    {
+      "repo": "PhenoSchema/pheno-xdd-lib",
+      "libs": [
+        "serde",
+        "serde_json"
+      ]
+    },
+    {
+      "repo": "Pyron",
+      "libs": [
+        "serde",
+        "serde_json"
+      ]
+    },
+    {
+      "repo": "Pyron/agileplus-agents",
+      "libs": [
+        "serde",
+        "serde_json"
+      ]
+    },
+    {
+      "repo": "Pyron/forgecode-fork",
+      "libs": [
+        "serde"
+      ]
+    },
+    {
+      "repo": "Pyron/phenotype-router-monitor",
+      "libs": [
+        "serde",
+        "serde_json"
+      ]
+    },
+    {
+      "repo": "ResilienceKit/rust",
+      "libs": [
+        "serde",
+        "serde_json"
+      ]
+    },
+    {
+      "repo": "Sidekick",
+      "libs": [
+        "serde",
+        "serde_json"
+      ]
+    },
+    {
+      "repo": "Tasken",
+      "libs": [
+        "serde",
+        "serde_json"
+      ]
+    },
+    {
+      "repo": "TestingKit/rust",
+      "libs": [
+        "serde",
+        "serde_json"
+      ]
+    },
+    {
+      "repo": "Tracely",
+      "libs": [
+        "serde",
+        "serde_json"
+      ]
+    },
+    {
+      "repo": "crates/connector-canvas",
+      "libs": [
+        "serde",
+        "serde_json"
+      ]
+    },
+    {
+      "repo": "crates/connector-gcal",
+      "libs": [
+        "serde",
+        "serde_json"
+      ]
+    },
+    {
+      "repo": "crates/connector-github",
+      "libs": [
+        "serde",
+        "serde_json"
+      ]
+    },
+    {
+      "repo": "crates/focus-always-on",
+      "libs": [
+        "serde",
+        "serde_json"
+      ]
+    },
+    {
+      "repo": "crates/focus-asset-fetcher",
+      "libs": [
+        "serde"
+      ]
+    },
+    {
+      "repo": "crates/focus-backup",
+      "libs": [
+        "serde"
+      ]
+    },
+    {
+      "repo": "crates/focus-ci-watcher",
+      "libs": [
+        "serde",
+        "serde_json"
+      ]
+    },
+    {
+      "repo": "crates/focus-icon-gen",
+      "libs": [
+        "serde",
+        "serde_json"
+      ]
+    },
+    {
+      "repo": "crates/focus-observability",
+      "libs": [
+        "serde",
+        "serde_json"
+      ]
+    },
+    {
+      "repo": "crates/focus-plugin-sdk",
+      "libs": [
+        "serde",
+        "serde_json"
+      ]
+    },
+    {
+      "repo": "crates/focus-release-bot",
+      "libs": [
+        "serde"
+      ]
+    },
+    {
+      "repo": "crates/focus-sync-store",
+      "libs": [
+        "serde",
+        "serde_json"
+      ]
+    },
+    {
+      "repo": "crates/focus-telemetry",
+      "libs": [
+        "serde",
+        "serde_json"
+      ]
+    },
+    {
+      "repo": "crates/phenotype-config",
+      "libs": [
+        "serde",
+        "serde_json"
+      ]
+    },
+    {
+      "repo": "eyetracker",
+      "libs": [
+        "serde"
+      ]
+    },
+    {
+      "repo": "helioscope",
+      "libs": [
+        "serde",
+        "serde_json"
+      ]
+    },
+    {
+      "repo": "helioscope/codex-rs",
+      "libs": [
+        "serde",
+        "serde_json"
+      ]
+    },
+    {
+      "repo": "helioscope/helios-rs",
+      "libs": [
+        "serde_json"
+      ]
+    },
+    {
+      "repo": "kmobile",
+      "libs": [
+        "serde",
+        "serde_json"
+      ]
+    },
+    {
+      "repo": "pheno",
+      "libs": [
+        "serde",
+        "serde_json"
+      ]
+    },
+    {
+      "repo": "pheno/agileplus-agents",
+      "libs": [
+        "serde",
+        "serde_json"
+      ]
+    },
+    {
+      "repo": "pheno/forgecode-fork",
+      "libs": [
+        "serde"
+      ]
+    },
+    {
+      "repo": "pheno/phenotype-router-monitor",
+      "libs": [
+        "serde",
+        "serde_json"
+      ]
+    },
+    {
+      "repo": "pheno/sharecli",
+      "libs": [
+        "serde",
+        "serde_json"
+      ]
+    },
+    {
+      "repo": "phenoAI",
+      "libs": [
+        "serde",
+        "serde_json"
+      ]
+    },
+    {
+      "repo": "phenoData",
+      "libs": [
+        "serde",
+        "serde_json"
+      ]
+    },
+    {
+      "repo": "phenoForge",
+      "libs": [
+        "serde"
+      ]
+    },
+    {
+      "repo": "phenoShared",
+      "libs": [
+        "serde",
+        "serde_json"
+      ]
+    },
+    {
+      "repo": "phenoUtils",
+      "libs": [
+        "serde",
+        "serde_json"
+      ]
+    },
+    {
+      "repo": "phenotype-bus",
+      "libs": [
+        "serde",
+        "serde_json"
+      ]
+    },
+    {
+      "repo": "phenotype-infra/iac",
+      "libs": [
+        "serde",
+        "serde_json"
+      ]
+    },
+    {
+      "repo": "phenotype-journeys",
+      "libs": [
+        "serde",
+        "serde_json"
+      ]
+    },
+    {
+      "repo": "phenotype-tooling",
+      "libs": [
+        "serde",
+        "serde_json"
+      ]
+    },
+    {
+      "repo": "tests/e2e",
+      "libs": [
+        "serde_json"
+      ]
+    },
+    {
+      "repo": "thegent-clean/crates",
+      "libs": [
+        "serde",
+        "serde_json",
+        "simd-json"
+      ]
+    },
+    {
+      "repo": "thegent-dispatch",
+      "libs": [
+        "serde",
+        "serde_json"
+      ]
+    },
+    {
+      "repo": "thegent/crates",
+      "libs": [
+        "serde",
+        "serde_json",
+        "simd-json"
+      ]
+    },
+    {
+      "repo": "tooling/agent-orchestrator",
+      "libs": [
+        "serde",
+        "serde_json"
+      ]
+    },
+    {
+      "repo": "tooling/bench-guard",
+      "libs": [
+        "serde"
+      ]
+    },
+    {
+      "repo": "tooling/quality-gate",
+      "libs": [
+        "serde_json"
+      ]
+    },
+    {
+      "repo": "tooling/release-cut",
+      "libs": [
+        "serde"
+      ]
+    },
+    {
+      "repo": "tooling/sbom-gen",
+      "libs": [
+        "serde_json"
+      ]
+    },
+    {
+      "repo": "tooling/target-pruner",
+      "libs": [
+        "serde"
+      ]
+    }
+  ]
+}

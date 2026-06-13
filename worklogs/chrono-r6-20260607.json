@@ -1,0 +1,73 @@
+{
+  "generated_at": "2026-06-07T02:15:00Z",
+  "total_repos": 46,
+  "with_chrono": [
+    "Agentora",
+    "AgilePlus",
+    "Eventra",
+    "GDK",
+    "KDesktopVirt",
+    "KlipDot",
+    "Metron",
+    "Tasken",
+    "kmobile"
+  ],
+  "with_time": [],
+  "with_dateparser": [],
+  "by_repo": [
+    {
+      "repo": "Agentora",
+      "libs": [
+        "chrono"
+      ]
+    },
+    {
+      "repo": "AgilePlus",
+      "libs": [
+        "chrono"
+      ]
+    },
+    {
+      "repo": "Eventra",
+      "libs": [
+        "chrono"
+      ]
+    },
+    {
+      "repo": "GDK",
+      "libs": [
+        "chrono"
+      ]
+    },
+    {
+      "repo": "KDesktopVirt",
+      "libs": [
+        "chrono"
+      ]
+    },
+    {
+      "repo": "KlipDot",
+      "libs": [
+        "chrono"
+      ]
+    },
+    {
+      "repo": "Metron",
+      "libs": [
+        "chrono"
+      ]
+    },
+    {
+      "repo": "Tasken",
+      "libs": [
+        "chrono"
+      ]
+    },
+    {
+      "repo": "kmobile",
+      "libs": [
+        "chrono"
+      ]
+    }
+  ]
+}

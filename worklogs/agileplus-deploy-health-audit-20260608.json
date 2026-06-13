@@ -1,0 +1,33 @@
+{
+  "generated_at": "2026-06-08T00:00:00Z",
+  "pages_present": true,
+  "deployments_count": 48,
+  "last_deployment": "2026-03-27T11:04:56Z",
+  "health_endpoints": [
+    {
+      "path": "/health",
+      "method": "GET",
+      "file": "crates/agileplus-api/src/router.rs:63",
+      "handler": "simple_health_handler",
+      "kind": "health"
+    }
+  ],
+  "notes": {
+    "pages_url": "https://kooshapari.github.io/AgilePlus/",
+    "pages_build_type": "workflow",
+    "last_deployment_environment": "github-pages",
+    "last_deployment_sha": "a96c986",
+    "last_deployment_task": "deploy",
+    "ready_endpoints_found": [],
+    "live_endpoints_found": [],
+    "search_scope": "AgilePlus/ (src/, app/, cmd/, crates/*, tools/*, python/, rust/, dispatch-mcp/, agileplus-mcp/, xtask-anti-patterns/, assets/brand/)",
+    "files_with_health_references": [
+      "crates/agileplus-api/src/router.rs (route registration)",
+      "crates/agileplus-api/tests/api_integration/core_routes.rs (test)",
+      "crates/agileplus-api/tests/api_integration.rs (test)",
+      "crates/agileplus-integration-tests/tests/service_failure.rs (test)",
+      "crates/agileplus-integration-tests/src/common/harness.rs (test harness)",
+      "crates/agileplus-telemetry/src/metrics/mod.rs (metrics labeling only)"
+    ]
+  }
+}

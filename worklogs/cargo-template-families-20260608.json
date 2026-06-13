@@ -1,0 +1,341 @@
+{
+  "generated_at": "2026-06-08T22:30:00Z",
+  "total_repos": 47,
+  "families": [
+    {
+      "header_hash": "09469b55c2dba26c",
+      "repos": [
+        "Tasken"
+      ],
+      "sample_header": {
+        "name": "taskkit",
+        "version": "0.1.0",
+        "authors": [
+          "Phenotype <dev@kooshapari.com>"
+        ],
+        "description": "Universal task execution framework with scheduling, workflow orchestration, and plugin support.",
+        "license": "MIT OR Apache-2.0",
+        "edition": "2021",
+        "repository": "https://github.com/phenotype-dev/Tasken"
+      }
+    },
+    {
+      "header_hash": "1fd610c98897afee",
+      "repos": [
+        "kmobile"
+      ],
+      "sample_header": {
+        "name": "kmobile",
+        "version": "0.1.0",
+        "authors": [
+          "KMobile Team"
+        ],
+        "description": "KMobile - Comprehensive mobile development and testing automation tool",
+        "license": "MIT",
+        "edition": "2021",
+        "repository": "https://github.com/kmobile-dev/kmobile"
+      }
+    },
+    {
+      "header_hash": "299e92c28614718f",
+      "repos": [
+        "Eventra"
+      ],
+      "sample_header": {
+        "name": "eventkit",
+        "version": "0.1.0",
+        "authors": [],
+        "description": "Event-driven architecture framework with CQRS and Event Sourcing",
+        "license": "MIT OR Apache-2.0",
+        "edition": "2021",
+        "repository": ""
+      }
+    },
+    {
+      "header_hash": "419e463c142ce8a5",
+      "repos": [
+        "phenoForge"
+      ],
+      "sample_header": {
+        "name": "phenotype-forge",
+        "version": "0.1.0",
+        "authors": [],
+        "description": "",
+        "license": null,
+        "edition": "2021",
+        "repository": ""
+      }
+    },
+    {
+      "header_hash": "58c243d084e76132",
+      "repos": [
+        "PhenoMCP"
+      ],
+      "sample_header": {
+        "name": "pheno-mcp",
+        "version": "0.1.0",
+        "authors": [],
+        "description": "PhenoMCP - Model Context Protocol",
+        "license": "MIT OR Apache-2.0",
+        "edition": "2024",
+        "repository": ""
+      }
+    },
+    {
+      "header_hash": "6a4fd6d98af79210",
+      "repos": [
+        "PhenoDevOps"
+      ],
+      "sample_header": {
+        "name": "phenodevops",
+        "version": "0.1.0",
+        "authors": [],
+        "description": "",
+        "license": null,
+        "edition": "2021",
+        "repository": ""
+      }
+    },
+    {
+      "header_hash": "74ae33b930713769",
+      "repos": [
+        "phenotype-bus"
+      ],
+      "sample_header": {
+        "name": "phenotype-bus",
+        "version": "0.1.0",
+        "authors": [
+          "Koosha Pari <kooshapari@gmail.com>"
+        ],
+        "description": "Generic pub/sub event bus for cross-collection communication in Phenotype",
+        "license": "Apache-2.0",
+        "edition": "2021",
+        "repository": "https://github.com/KooshaPari/phenotype-bus"
+      }
+    },
+    {
+      "header_hash": "81ba71a0cb244bae",
+      "repos": [
+        "AgilePlus"
+      ],
+      "sample_header": {
+        "name": "agileplus",
+        "version": {
+          "workspace": true
+        },
+        "authors": [],
+        "description": "",
+        "license": null,
+        "edition": {
+          "workspace": true
+        },
+        "repository": ""
+      }
+    },
+    {
+      "header_hash": "840864d1320f1692",
+      "repos": [
+        "PhenoRuntime"
+      ],
+      "sample_header": {
+        "name": "pheno-runtime",
+        "version": "0.1.0",
+        "authors": [],
+        "description": "PhenoRuntime - Daemon, Skills, WASM",
+        "license": "MIT OR Apache-2.0",
+        "edition": "2024",
+        "repository": ""
+      }
+    },
+    {
+      "header_hash": "849e6b38482a77e4",
+      "repos": [
+        "HexaKit"
+      ],
+      "sample_header": {
+        "name": "hexakit",
+        "version": "0.1.0",
+        "authors": [],
+        "description": "",
+        "license": null,
+        "edition": "2021",
+        "repository": ""
+      }
+    },
+    {
+      "header_hash": "a37b3b03653bd052",
+      "repos": [
+        "KlipDot"
+      ],
+      "sample_header": {
+        "name": "klipdot",
+        "version": "0.1.0",
+        "authors": [
+          "KlipDot Team <klipdot@example.com>"
+        ],
+        "description": "Universal terminal image interceptor that maps images to file paths for any CLI/TUI application",
+        "license": "MIT",
+        "edition": "2021",
+        "repository": "https://github.com/KooshaPari/KlipDot"
+      }
+    },
+    {
+      "header_hash": "b32db1b0c8b74be8",
+      "repos": [
+        "phenotype-voxel"
+      ],
+      "sample_header": {
+        "name": "phenotype-voxel",
+        "version": "0.1.0",
+        "authors": [
+          "Phenotype-org"
+        ],
+        "description": "Adaptive voxel substrate for Phenotype-org games: SVO + dense leaf chunks, deterministic dirty queue, per-engine mesher trait",
+        "license": "MIT OR Apache-2.0",
+        "edition": "2021",
+        "repository": "https://github.com/KooshaPari/phenotype-voxel"
+      }
+    },
+    {
+      "header_hash": "b83c0e38b61218f5",
+      "repos": [
+        "PhenoKits"
+      ],
+      "sample_header": {
+        "name": "phenokits",
+        "version": "0.1.0",
+        "authors": [],
+        "description": "",
+        "license": null,
+        "edition": "2021",
+        "repository": ""
+      }
+    },
+    {
+      "header_hash": "be5570e9ca5f7d3b",
+      "repos": [
+        "Apisync"
+      ],
+      "sample_header": {
+        "name": "apikit",
+        "version": "0.1.0",
+        "authors": [],
+        "description": "Universal API toolkit with REST, GraphQL, and WebSocket support",
+        "license": "MIT OR Apache-2.0",
+        "edition": "2021",
+        "repository": "https://github.com/KooshaPari/apikit"
+      }
+    },
+    {
+      "header_hash": "c11e760aa1d56f40",
+      "repos": [
+        "Metron"
+      ],
+      "sample_header": {
+        "name": "metrickit",
+        "version": "0.1.0",
+        "authors": [],
+        "description": "Metrics collection with Prometheus support",
+        "license": "MIT OR Apache-2.0",
+        "edition": "2021",
+        "repository": ""
+      }
+    },
+    {
+      "header_hash": "d652c050db38ccd7",
+      "repos": [
+        "Agentora"
+      ],
+      "sample_header": {
+        "name": "agentkit",
+        "version": "0.1.0",
+        "authors": [
+          "Phenotype Engineering"
+        ],
+        "description": "Agent framework with skill system and tool registry",
+        "license": "MIT OR Apache-2.0",
+        "edition": "2021",
+        "repository": "https://github.com/KooshaPari/agentkit"
+      }
+    },
+    {
+      "header_hash": "e3a00000e78ae140",
+      "repos": [
+        "Benchora"
+      ],
+      "sample_header": {
+        "name": "gauge",
+        "version": "0.2.0",
+        "authors": [],
+        "description": "Modern benchmarking + xDD testing framework for Rust",
+        "license": "MIT",
+        "edition": "2021",
+        "repository": "https://github.com/KooshaPari/gauge"
+      }
+    },
+    {
+      "header_hash": "f32b5a6e13c7e48e",
+      "repos": [
+        "NetScript"
+      ],
+      "sample_header": {
+        "name": "netscript",
+        "version": "0.1.0",
+        "authors": [],
+        "description": "",
+        "license": null,
+        "edition": "2021",
+        "repository": ""
+      }
+    },
+    {
+      "header_hash": "f4cdec174a09c21b",
+      "repos": [
+        "GDK"
+      ],
+      "sample_header": {
+        "name": "gdk",
+        "version": "1.0.0",
+        "authors": [
+          "GDK Team <team@gdk.dev>"
+        ],
+        "description": "Enterprise-ready Git Workflow Deep Knowledge system for AI agents with infinite monkey theorem convergence",
+        "license": "MIT OR Apache-2.0",
+        "edition": "2021",
+        "repository": "https://github.com/KooshaPari/GDK"
+      }
+    },
+    {
+      "header_hash": "f792d148f369d948",
+      "repos": [
+        "KDesktopVirt"
+      ],
+      "sample_header": {
+        "name": "kvirtualstage",
+        "version": "0.2.1",
+        "authors": [
+          "KVirtualStage Team"
+        ],
+        "description": "A Playwright-equivalent desktop automation platform for AI agents",
+        "license": "MIT",
+        "edition": "2021",
+        "repository": "https://github.com/KooshaPari/KVirtualStage"
+      }
+    },
+    {
+      "header_hash": "ff0d38d17e7731cf",
+      "repos": [
+        "thegent-dispatch"
+      ],
+      "sample_header": {
+        "name": "thegent-dispatch",
+        "version": "0.1.0",
+        "authors": [],
+        "description": "Unified CLI dispatcher: route prompts to Forge/Codex/Gemini/Copilot/Cursor/Droid",
+        "license": "MIT",
+        "edition": "2024",
+        "repository": ""
+      }
+    }
+  ]
+}

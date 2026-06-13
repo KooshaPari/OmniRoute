@@ -1,0 +1,276 @@
+{
+  "generated_at": "2026-06-06T00:00:00Z",
+  "total_repos": 167,
+  "with_clap": [
+    "Agentora",
+    "AgilePlus",
+    "Conft",
+    "FocalPoint",
+    "HeliosCLI",
+    "HeliosLab",
+    "KDesktopVirt",
+    "KlipDot",
+    "Paginary",
+    "PhenoAgent",
+    "PhenoDevOps",
+    "PhenoObservability",
+    "PhenoProc",
+    "PhenoVCS",
+    "PolicyStack",
+    "Pyron",
+    "Sidekick",
+    "Tasken",
+    "Tokn",
+    "crates",
+    "helioscope",
+    "kmobile",
+    "kwality",
+    "pheno",
+    "phenoForge",
+    "phenoUtils",
+    "phenotype-infra",
+    "phenotype-journeys",
+    "phenotype-tooling",
+    "thegent",
+    "thegent-clean",
+    "thegent-clean-wt-docs",
+    "thegent-clean-wt-idea",
+    "thegent-clean-wt-parallel",
+    "thegent-clean-wt-policy",
+    "thegent-clean-wt-ruff",
+    "thegent-dispatch",
+    "tooling"
+  ],
+  "with_structopt": [],
+  "with_argh": [],
+  "by_repo": [
+    {
+      "repo": "Agentora",
+      "libs": [
+        "clap"
+      ]
+    },
+    {
+      "repo": "AgilePlus",
+      "libs": [
+        "clap"
+      ]
+    },
+    {
+      "repo": "Conft",
+      "libs": [
+        "clap"
+      ]
+    },
+    {
+      "repo": "FocalPoint",
+      "libs": [
+        "clap"
+      ]
+    },
+    {
+      "repo": "HeliosCLI",
+      "libs": [
+        "clap"
+      ]
+    },
+    {
+      "repo": "HeliosLab",
+      "libs": [
+        "clap"
+      ]
+    },
+    {
+      "repo": "KDesktopVirt",
+      "libs": [
+        "clap"
+      ]
+    },
+    {
+      "repo": "KlipDot",
+      "libs": [
+        "clap"
+      ]
+    },
+    {
+      "repo": "Paginary",
+      "libs": [
+        "clap"
+      ]
+    },
+    {
+      "repo": "PhenoAgent",
+      "libs": [
+        "clap"
+      ]
+    },
+    {
+      "repo": "PhenoDevOps",
+      "libs": [
+        "clap"
+      ]
+    },
+    {
+      "repo": "PhenoObservability",
+      "libs": [
+        "clap"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "libs": [
+        "clap"
+      ]
+    },
+    {
+      "repo": "PhenoVCS",
+      "libs": [
+        "clap"
+      ]
+    },
+    {
+      "repo": "PolicyStack",
+      "libs": [
+        "clap"
+      ]
+    },
+    {
+      "repo": "Pyron",
+      "libs": [
+        "clap"
+      ]
+    },
+    {
+      "repo": "Sidekick",
+      "libs": [
+        "clap"
+      ]
+    },
+    {
+      "repo": "Tasken",
+      "libs": [
+        "clap"
+      ]
+    },
+    {
+      "repo": "Tokn",
+      "libs": [
+        "clap"
+      ]
+    },
+    {
+      "repo": "crates",
+      "libs": [
+        "clap"
+      ]
+    },
+    {
+      "repo": "helioscope",
+      "libs": [
+        "clap"
+      ]
+    },
+    {
+      "repo": "kmobile",
+      "libs": [
+        "clap"
+      ]
+    },
+    {
+      "repo": "kwality",
+      "libs": [
+        "clap"
+      ]
+    },
+    {
+      "repo": "pheno",
+      "libs": [
+        "clap"
+      ]
+    },
+    {
+      "repo": "phenoForge",
+      "libs": [
+        "clap"
+      ]
+    },
+    {
+      "repo": "phenoUtils",
+      "libs": [
+        "clap"
+      ]
+    },
+    {
+      "repo": "phenotype-infra",
+      "libs": [
+        "clap"
+      ]
+    },
+    {
+      "repo": "phenotype-journeys",
+      "libs": [
+        "clap"
+      ]
+    },
+    {
+      "repo": "phenotype-tooling",
+      "libs": [
+        "clap"
+      ]
+    },
+    {
+      "repo": "thegent",
+      "libs": [
+        "clap"
+      ]
+    },
+    {
+      "repo": "thegent-clean",
+      "libs": [
+        "clap"
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-docs",
+      "libs": [
+        "clap"
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-idea",
+      "libs": [
+        "clap"
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-parallel",
+      "libs": [
+        "clap"
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-policy",
+      "libs": [
+        "clap"
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-ruff",
+      "libs": [
+        "clap"
+      ]
+    },
+    {
+      "repo": "thegent-dispatch",
+      "libs": [
+        "clap"
+      ]
+    },
+    {
+      "repo": "tooling",
+      "libs": [
+        "clap"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,84 @@
+name: Feature request
+description: Propose a new capability, enhancement, or change in direction. Use this for ideas, not confirmed bugs.
+title: "[enhancement]: "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this template to propose a feature. Clearly state the problem you are
+        solving and the proposed direction. Alternatives help us converge on a
+        design that fits the project's constraints.
+  - type: input
+    id: summary
+    attributes:
+      label: Summary
+      description: One-sentence feature summary. This will also be the issue title.
+      placeholder: "e.g. Add OTLP exporter to the telemetry pipeline"
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      description: Which area of the project does this touch?
+      options:
+        - API / SDK
+        - CLI
+        - UI / UX
+        - Performance
+        - Security
+        - Observability
+        - Tooling / CI
+        - Documentation
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What problem or user pain does this feature solve? Why is it worth doing now?
+      placeholder: |
+        Users currently have to ... which causes ... in our top use case of ...
+    validations:
+      required: true
+  - type: textarea
+    id: proposed
+    attributes:
+      label: Proposed solution
+      description: Describe the desired behavior, the public surface, and how it integrates with the rest of the system. Pseudocode, diagrams, or screenshots are welcome.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: What other approaches did you consider, and why is the proposed one better? If you considered "do nothing", say so.
+    validations:
+      required: true
+  - type: textarea
+    id: impact
+    attributes:
+      label: Impact and scope
+      description: Affected components, breaking-change risk, migration story, expected effort (S/M/L), and any dependencies on other repos.
+    validations:
+      required: false
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional context
+      description: Links to design docs, prior discussions, related issues, or competitor implementations.
+    validations:
+      required: false
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Pre-submission checklist
+      options:
+        - label: I have searched existing issues and confirmed this is not a duplicate.
+          required: true
+        - label: I have linked the underlying problem (user report, design doc, or metric) backing this request.
+          required: false
+        - label: I am willing to drive the implementation or pair with a maintainer on it.
+          required: false

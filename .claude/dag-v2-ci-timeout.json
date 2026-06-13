@@ -1,0 +1,156 @@
+{
+  "task": "L2-34",
+  "task_id": "pheno-ci-timeout",
+  "date": "2026-06-08",
+  "branch_pattern": "chore/ci-timeout-2026-06-08",
+  "default_timeout_minutes": 30,
+  "lint_timeout_minutes": 10,
+  "integration_timeout_minutes": 60,
+  "github_runner_default_minutes": 360,
+  "pushed": false,
+  "audit": {
+    "scope": "priority fleet (L1 audit set) — 19 repos in scope",
+    "scanned_files": ".github/workflows/ci.yml per repo",
+    "selection_rule": "ci.yml with 0 timeout-minutes lines AND a defined jobs: section",
+    "candidates_lacking_timeout": [
+      "PhenoKits",
+      "PhenoObservability",
+      "thegent",
+      "helioscope",
+      "agent-user-status",
+      "Tracely",
+      "phenoRuntime",
+      "phenoShared",
+      "FocalPoint",
+      "HeliosCLI",
+      "PhenoProc",
+      "pheno",
+      "HexaKit",
+      "Pyron",
+      "agentapi-plusplus"
+    ],
+    "selected_5": [
+      "PhenoKits",
+      "PhenoObservability",
+      "thegent",
+      "helioscope",
+      "agent-user-status"
+    ]
+  },
+  "repos": [
+    {
+      "name": "PhenoKits",
+      "branch": "chore/ci-timeout-2026-06-08",
+      "parent_sha": "bea8355e",
+      "commit_sha": "0f19a7bcdc3852c971a75831fe792bd33f333593",
+      "commit_short": "0f19a7bc",
+      "file": ".github/workflows/ci.yml",
+      "diff_stat": "1 file changed, 1 insertion(+)",
+      "jobs": [
+        {
+          "id": "repo-hygiene",
+          "name": "Repository hygiene",
+          "timeout_minutes": 10,
+          "rationale": "lint-class: pure metadata validation (cargo metadata, bun install) — 10 min ample"
+        }
+      ]
+    },
+    {
+      "name": "PhenoObservability",
+      "branch": "chore/ci-timeout-2026-06-08",
+      "parent_sha": "cc01ff2",
+      "commit_sha": "46c6f9fbe9f6a7daa38202f5b4dc7ebbdbc8ca87",
+      "commit_short": "46c6f9f",
+      "file": ".github/workflows/ci.yml",
+      "diff_stat": "1 file changed, 1 insertion(+)",
+      "jobs": [
+        {
+          "id": "ci",
+          "name": "CI (reusable)",
+          "timeout_minutes": 30,
+          "rationale": "default CI: calls KooshaPari/phenotype-infrakit reusable ci.yaml — 30 min covers cargo build+test+clippy"
+        }
+      ]
+    },
+    {
+      "name": "thegent",
+      "branch": "chore/ci-timeout-2026-06-08",
+      "parent_sha": "078aad11b",
+      "commit_sha": "218ae4b8db63190cf618bd1525d83c0830847dd7",
+      "commit_short": "218ae4b8d",
+      "file": ".github/workflows/ci.yml",
+      "diff_stat": "1 file changed, 1 insertion(+)",
+      "jobs": [
+        {
+          "id": "ci",
+          "name": "CI (reusable rust-ci)",
+          "timeout_minutes": 30,
+          "rationale": "default CI: calls rust-ci reusable (placeholder SHA; rust version 1.75) — 30 min default"
+        }
+      ]
+    },
+    {
+      "name": "helioscope",
+      "branch": "chore/ci-timeout-2026-06-08",
+      "parent_sha": "18af289f",
+      "commit_sha": "b6a3d50758fe6338a48a11322e3d387ffe6339fc",
+      "commit_short": "b6a3d507",
+      "file": ".github/workflows/ci.yml",
+      "diff_stat": "1 file changed, 2 insertions(+)",
+      "jobs": [
+        {
+          "id": "test",
+          "name": "Test",
+          "timeout_minutes": 30,
+          "rationale": "default CI: cargo fmt+check+clippy+test+release build — 30 min default"
+        },
+        {
+          "id": "miri",
+          "name": "Miri",
+          "timeout_minutes": 60,
+          "rationale": "integration-class: nightly miri UB detector; known to be slow — 60 min"
+        }
+      ]
+    },
+    {
+      "name": "agent-user-status",
+      "branch": "chore/ci-timeout-2026-06-08",
+      "parent_sha": "73c7b74",
+      "commit_sha": "bed460a81d29e6530e29fdb42ea6ebcf63c02f73",
+      "commit_short": "bed460a",
+      "file": ".github/workflows/ci.yml",
+      "diff_stat": "1 file changed, 4 insertions(+)",
+      "jobs": [
+        {
+          "id": "quality-gates",
+          "name": "Quality gates",
+          "timeout_minutes": 10,
+          "rationale": "lint-class: ruff + pyright on small Python src — 10 min"
+        },
+        {
+          "id": "package-metadata",
+          "name": "Package metadata",
+          "timeout_minutes": 10,
+          "rationale": "lint-class: bash -n on 4 packaging scripts + 3 dry-run validators — 10 min"
+        },
+        {
+          "id": "unit-tests",
+          "name": "Unit tests",
+          "timeout_minutes": 20,
+          "rationale": "default CI: pytest tests/unit — 20 min (mid-default, smaller suite)"
+        },
+        {
+          "id": "backend-smoke",
+          "name": "Backend smoke",
+          "timeout_minutes": 30,
+          "rationale": "default CI: install.sh + serve + curl health-poll loop + smoke.sh — 30 min default"
+        }
+      ]
+    }
+  ],
+  "next_steps": [
+    "User reviews branches and (optionally) opens PRs to merge into main",
+    "After merge, sweep 10 remaining priority repos (Tracely, phenoRuntime, phenoShared, FocalPoint, HeliosCLI, PhenoProc, pheno, HexaKit, Pyron, agentapi-plusplus) per the same pattern",
+    "Then sweep active+new repos (AppGen, AuthKit, Benchora, BytePort, Civis, Conft, DataKit, DevHex, Eidolon, Eventra, plus Authvault, phenotype-landing, phenotype-gates, phenotype-runs, phenotype-org-governance)"
+  ]
+}

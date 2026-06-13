@@ -1,0 +1,159 @@
+{
+  "task": "DAG L1-8 audit",
+  "schema_version": "v2",
+  "generated_at": "2026-06-08T00:00:00Z",
+  "repo": "pheno",
+  "repo_path": "/Users/kooshapari/CodeProjects/Phenotype/repos/pheno",
+  "branch_audited": "main",
+  "head_sha": "175afc87ba8b1b2d51442c599e30840d045ee9f6",
+  "last_commit_date": "2026-06-08T18:19:49-07:00",
+  "last_commit_subject": "chore: merge phenoData into pheno as crates/pheno-data-from-phenoData/",
+  "last_commit_author": "pheno Decomposition",
+  "remotes": {
+    "origin": "https://github.com/KooshaPari/pheno.git"
+  },
+  "language_stack": {
+    "detected": ["rust", "python", "typescript", "go", "toml", "markdown", "yaml"],
+    "primary": "rust",
+    "secondary": ["python", "typescript"],
+    "rust": {
+      "toolchain": "nightly (pinned in rust-toolchain.toml)",
+      "msrv": "1.86 (per workspace.package)",
+      "edition": "2021",
+      "workspace_version": "0.2.0",
+      "workspace_members": 22,
+      "crates_dir_count": 69,
+      "phenotype_prefix_dirs": 44,
+      "agileplus_prefix_dirs": 23,
+      "git_submodules": 20,
+      "notes": "Largest monorepo in the fleet. Workspace Cargo.toml declares 22 members (the curated phenotype-* core). The on-disk crates/ directory has 69 entries — 22 workspace members + 23 agileplus-* sub-crates (tracked on disk but NOT in workspace) + 24 other phenotype-* dirs (either stale, in flight, or awaiting workspace promotion). 20 git submodules at root embed the historical pre-merger repos (Apisync, BytePort, Cmdra, Cursora, Datamold, Dino, Docuverse, Duple, Evalora, ...)."
+    },
+    "python": {
+      "subdir": "python/",
+      "purpose": "dedicated sub-template (Dockerfile.python, gen_protos.py, mise.toml) — sibling to /rust and /typescript"
+    },
+    "typescript": {
+      "subdirs": ["typescript/ (sub-template)", ".vitepress/ (docs site)"],
+      "surfaces": ["docs-site (VitePress)"]
+    },
+    "submodule_languages_sampled": ["go (bifrost, platforms/*)"],
+    "db": ["SQLite (rusqlite, bundled, in workspace)"]
+  },
+  "sample_crates": [
+    {"name": "phenotype-error-core", "lines_rust": 443, "role": "Canonical error types — supersedes top-level phenotype-errors and phenotype-error-core repos", "last_touched": "2026-04-25"},
+    {"name": "phenotype-string", "lines_rust": 438, "role": "String utilities (zstd compression, unicode normalization, regex) — recently refactored for clippy upper_case_acronyms", "last_touched": "2026-06-08"},
+    {"name": "phenotype-state-machine", "lines_rust": 506, "role": "State machine primitives (FSM + handoff)", "last_touched": "2026-03-31"},
+    {"name": "phenotype-telemetry", "lines_rust": 445, "role": "tracing/logging/metrics facade (OpenTelemetry substrate)", "last_touched": "2026-03-30"},
+    {"name": "phenotype-policy-engine", "lines_rust": 2228, "role": "Largest crate — policy/RBAC engine with optional casbin backend (cargo feature)", "last_touched": "2026-03-31"},
+    {"name": "phenotype-retry", "lines_rust": 1656, "role": "Retry / backoff / circuit-breaker primitives", "last_touched": "2026-03-30"},
+    {"name": "phenotype-validation", "lines_rust": 479, "role": "Input validation DSL with thiserror integration", "last_touched": "2026-03-30"},
+    {"name": "phenotype-casbin-wrapper", "lines_rust": 312, "role": "Casbin adapter bridge consumed by phenotype-policy-engine under casbin-backend feature", "last_touched": "2026-04-27"}
+  ],
+  "hygiene_score": 84,
+  "hygiene_breakdown": [
+    {"item": "LICENSE", "present": true, "points": 10, "evidence": ["LICENSE (1066B, MIT, 2026 Phenotype)"]},
+    {"item": "README", "present": true, "points": 5, "evidence": ["README.md (110 lines) present at root but content is MISMATCHED — describes a 'repos shelf' polyrepo of ~30 independent projects, not the actual pheno Rust monorepo per Cargo.toml workspace; stale from pre-consolidation state"]},
+    {"item": "CHANGELOG", "present": true, "points": 5, "evidence": ["CHANGELOG.md (22 lines) — only one dated entry (2026-04-29); [Unreleased] section exists but is empty despite 414 commits in the last 90 days"]},
+    {"item": ".editorconfig", "present": true, "points": 10, "evidence": [".editorconfig (23 lines) with full rust/toml/py/go/md/yaml/yaml/json/html/css/scss coverage; ts/tsx/js override to 2-space; Makefile tab override"]},
+    {"item": "CI", "present": true, "points": 10, "evidence": [".github/workflows/ contains 49 workflows (ci, quality-gate, cargo-audit, cargo-deny, cargo-machete, cargo-semver-checks, codeql, scorecard, sonarcloud, sbom, snyk-scan, trivy-scan, zap-dast, fuzzing, ai-testing-orchestration, etc.)"]},
+    {"item": "dependabot", "present": true, "points": 9, "evidence": [".github/dependabot.yml covers cargo (/rust), pip (/python), github-actions (/) — all weekly, pr-limit 5; /rust and /python are valid tracked sub-templates so paths are correct"]},
+    {"item": "CODEOWNERS", "present": true, "points": 7, "evidence": ["CODEOWNERS (10 lines) — only @KooshaPari assigned globally; no per-crate or per-domain ownership for the 22 workspace members"]},
+    {"item": "CONTRIBUTING", "present": true, "points": 10, "evidence": ["CONTRIBUTING.md (33 lines) with conventional commits, AgilePlus spec-first mandate, cargo fmt/clippy/test quality gates, PR review policy"]},
+    {"item": "SECURITY", "present": true, "points": 10, "evidence": ["SECURITY.md (124 lines) with reporting email, 48h ack / 7d assessment SLA, cargo-audit / pip-audit / npm-audit / CodeQL / Dependabot toolchain matrix"]},
+    {"item": "FUNDING", "present": true, "points": 8, "evidence": [".github/FUNDING.yml (github: KooshaPari + buymeacoffee) — present in .github/ but NOT at repo root; org-convention is dual-location"]}
+  ],
+  "hygiene_evidence": {
+    "LICENSE": "LICENSE (1066B, MIT, 2026 Phenotype)",
+    "README": "README.md (110 lines, mismatched content — describes a 'shelf' polyrepo, not the pheno Rust monorepo)",
+    "CHANGELOG": "CHANGELOG.md (22 lines, only one dated entry 2026-04-29; Unreleased section empty)",
+    "EDITORCONFIG": ".editorconfig (23 lines, multi-language with 2-space override for ts/tsx/js)",
+    "CI": ".github/workflows/ (49 workflows — among the most thorough in the fleet)",
+    "DEPENDABOT": ".github/dependabot.yml (cargo, pip, github-actions — all weekly, pr-limit 5)",
+    "CODEOWNERS": "CODEOWNERS (10 lines, only @KooshaPari globally — no per-crate ownership)",
+    "CONTRIBUTING": "CONTRIBUTING.md (33 lines, conventional commits + AgilePlus spec-first + quality gates)",
+    "SECURITY": "SECURITY.md (124 lines, reporting flow + toolchain matrix + 48h SLA)",
+    "FUNDING": ".github/FUNDING.yml (github + buymeacoffee — no root-level FUNDING.yml)"
+  },
+  "dup_exposure": {
+    "note": "pheno IS the convergence monorepo for the phenotype-* shared-crate family. The 'libs this repo could consume' framing is inverted: this audit lists the high-leverage crates inside pheno that the rest of the fleet should consume (or already consumes) FROM this monorepo — i.e., the consolidation surface. Items below also name the legacy top-level phenotype-* repos at the repos/ root that are now superseded and should be git-submodule-replaced or deprecated.",
+    "candidates": [
+      {"lib": "phenotype-error-core", "lines": 443, "supersedes": "top-level phenotype-errors and phenotype-error-core repos (already known duplicates per HexaKit audit)", "use_case": "Canonical error type shared across every Rust crate in the fleet"},
+      {"lib": "phenotype-string", "lines": 438, "supersedes": "no top-level duplicate, but is the canonical home for string/unicode/normalization utilities — prevent future sprawl (e.g., the recent clippy upper_case_acronyms rename touched this crate)", "use_case": "String utilities + zstd compression + regex helpers"},
+      {"lib": "phenotype-state-machine", "lines": 506, "supersedes": "no top-level duplicate; canonical FSM primitive", "use_case": "State machine + handoff for long-running workflows"},
+      {"lib": "phenotype-telemetry", "lines": 445, "supersedes": "phenotype-observability (top-level), PhenoObservability (telemetry provider)", "use_case": "OTel tracing/logging facade — already consumed by HexaKit and others"},
+      {"lib": "phenotype-policy-engine", "lines": 2228, "supersedes": "policy governance currently scattered across agileplus + multiple top-level repos", "use_case": "RBAC/ABAC with optional casbin backend; biggest single crate"},
+      {"lib": "phenotype-retry", "lines": 1656, "supersedes": "no top-level duplicate; should be the single source of truth for backoff/circuit-breaker", "use_case": "Retry/backoff primitives — consumed by any I/O bound crate"},
+      {"lib": "phenotype-validation", "lines": 479, "supersedes": "validation in PhenoKits / phenotype-bdd may overlap", "use_case": "Input validation DSL with thiserror integration"},
+      {"lib": "phenotype-casbin-wrapper", "lines": 312, "supersedes": "no top-level duplicate; backend for phenotype-policy-engine casbin-backend feature", "use_case": "Casbin RBAC adapter"}
+    ]
+  },
+  "sota_gaps": [
+    "All 22 workspace members are pre-1.0 (workspace.package version = 0.2.0); no SemVer stability promise to consumers — blocks external crates.io adoption",
+    "phenotype-async-traits crate (217 lines) is a backport: Rust 1.75+ supports native async fn in traits; crate is now legacy-by-design and should be sunset or scoped to dyn-compat use cases only",
+    "22 declared workspace members vs 69 on-disk crate dirs vs 20 git submodules — three competing sources of truth for 'what is a phenotype-* crate'; no machine-readable crate catalog (e.g., catalog.toml / .well-known/phenotype-crates.json) for fleet-wide discovery",
+    "agileplus-* (23 dirs on disk) live alongside phenotype-* (44 dirs) inside the same repo with no workspace-membership boundary; risk of cross-pollution and unclear ownership — needs explicit classification (workspace-member | tracked-experimental | git-submodule-foreign | archive)",
+    "dependabot config targets /rust and /python sub-templates; the ROOT Cargo.toml (the actual pheno workspace) is not under any dependabot ecosystem — dependency updates on the canonical workspace happen via renovate or manual bumps only",
+    "No workspace-level lints table (no [workspace.lints.rust] / [workspace.lints.clippy] block in Cargo.toml:1-136) — every member rolls its own clippy config, drift inevitable at 22 members",
+    "No `cargo-public-api` or generated API surface diff per crate; no public API stability contract enforced by CI (cargo-semver-checks workflow exists but coverage unclear)",
+    "No crates.io publish pipeline gating workspace — `publish.yml` workflow present but no version bump automation, no smoke test against published artifacts",
+    "CHANGELOG.md has been auto-generated by git-cliff (.cliff.toml + cliff.toml both present) but the checked-in file has only one entry since 2026-04-29 — release automation either broken or running on a different branch",
+    "Working tree dirty: 2 untracked files (grade.sh, lefthook.yml) + 1 modified (Taskfile.yml) at audit time on main — bypasses 'commit clean' invariant for a workspace-membership audit",
+    "README content drift: README.md describes a 'repos shelf' polyrepo with ~30 projects; Cargo.toml describes a single 22-crate Rust monorepo — new contributors cannot find their footing without reading both"
+  ],
+  "convergence_cluster": "convergence",
+  "convergence_rationale": "pheno is the named convergence target of the entire phenotype-* ecosystem. It hosts the canonical 22-member Rust workspace that supplies shared crates (errors, telemetry, state-machine, policy, validation, retry, ...) to every other Rust consumer in the fleet (HexaKit, PhenoObservability, PhenoKits, PhenoProc, PhenoDevOps, agent-user-status, agentapi-plusplus, ...). Surrounding the workspace sit 23 agileplus-* sub-crates, ~24 other phenotype-* dirs in various states of promotion, and 20 git submodules of the pre-merger single-purpose repos — the entire 'convergence in flight' is visible in this repo. The trajectory is unambiguously convergence (no longer a single-purpose project, not yet a clean published workspace).",
+  "action_items": [
+    {
+      "priority": 1,
+      "title": "Replace README.md with workspace-accurate content + generate crate catalog index",
+      "effort": "M",
+      "details": "Current README describes a 'repos shelf' polyrepo (stale from pre-consolidation). Rewrite to: (a) state the workspace is 22 phenotype-* Rust crates, (b) link crates.io / docs.rs, (c) emit a generated CRATE_INDEX.md from the workspace Cargo.toml (cargo metadata --format-version=1 → small post-processor) so consumers can find the right crate. Resolves the worst content-drift finding.",
+      "file_refs": ["README.md:1-110", "Cargo.toml:12-34"]
+    },
+    {
+      "priority": 2,
+      "title": "Promote workspace hygiene: add [workspace.lints], dependabot for root Cargo.toml, pre-1.0 → 0.3/1.0 version policy",
+      "effort": "M",
+      "details": "(a) Add [workspace.lints.rust] + [workspace.lints.clippy] tables to Cargo.toml and remove duplicated per-crate config. (b) Add a 4th dependabot ecosystem entry for the root / Cargo.toml (currently only /rust is covered). (c) Decide a 1.0 promotion policy: which 3-5 crates are stable enough to be 0.3/1.0 today (candidates: phenotype-error-core, phenotype-string, phenotype-retry, phenotype-validation, phenotype-time).",
+      "file_refs": ["Cargo.toml:1-136", ".github/dependabot.yml:1-28", "rust-toolchain.toml:1-3"]
+    },
+    {
+      "priority": 3,
+      "title": "Triage and classify the 47 non-workspace crate dirs (23 agileplus-* + ~24 phenotype-* in flight)",
+      "effort": "L",
+      "details": "For each of the 47 on-disk-but-not-in-workspace crate dirs, assign exactly one bucket: (i) promote to workspace member, (ii) git-submodule-replace the corresponding top-level phenotype-* repo, (iii) move to .archive/ or remove, (iv) keep as tracked-experimental with explicit .gitignore-style marker file. Produces a single CONTRIBUTING.md appendix + a small scripts/triage-crates.sh.",
+      "file_refs": ["crates/agileplus-api/", "crates/phenotype-bdd/", "crates/phenotype-mcp/", "crates/bifrost-routing/", "crates/forgecode-core/"]
+    },
+    {
+      "priority": 4,
+      "title": "Sunset phenotype-async-traits in favor of native async fn in traits (Rust 1.75+)",
+      "effort": "S",
+      "details": "Crate (217 lines, last touched 2026-03-31) is a backport of functionality that has been in stable Rust for almost a year. Either deprecate (issue deprecation lint, leave dyn-compat helpers only) or remove and migrate consumers. Update the workspace lints table to forbid `async-trait` for new code.",
+      "file_refs": ["crates/phenotype-async-traits/", "Cargo.toml:71"]
+    },
+    {
+      "priority": 5,
+      "title": "Repair the git-cliff release automation and populate CHANGELOG.md",
+      "effort": "S",
+      "details": ".cliff.toml + cliff.toml + changelog.yml workflow exist, but the tracked CHANGELOG.md has only one dated entry since 2026-04-29 despite 414 commits in the last 90 days. Either re-run cliff on a known-good range and commit the regenerated CHANGELOG, or disable the cliff configs and switch to release-please / hand-curated Keep-a-Changelog. Also clean the 2 untracked + 1 modified dirty working-tree items at audit time (grade.sh, lefthook.yml, Taskfile.yml).",
+      "file_refs": ["CHANGELOG.md:1-22", ".cliff.toml", "cliff.toml", ".github/workflows/changelog.yml"]
+    }
+  ],
+  "metadata": {
+    "audit_task": "DAG L1-8",
+    "audit_date": "2026-06-08",
+    "auditor": "forge (audit skill)",
+    "source_repo_path": "/Users/kooshapari/CodeProjects/Phenotype/repos/pheno",
+    "source_branch_audited": "main",
+    "head_sha_audited": "175afc87ba8b1b2d51442c599e30840d045ee9f6",
+    "workspace_member_count": 22,
+    "crates_dir_count": 69,
+    "phenotype_prefix_dir_count": 44,
+    "agileplus_prefix_dir_count": 23,
+    "git_submodule_count": 20,
+    "workflows_count": 49,
+    "commits_last_90_days": 414,
+    "dirty_working_tree_at_audit": ["grade.sh (untracked)", "lefthook.yml (untracked)", "Taskfile.yml (modified)"],
+    "pushed": false
+  }
+}

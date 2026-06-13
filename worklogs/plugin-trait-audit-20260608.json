@@ -1,0 +1,317 @@
+{
+  "generated_at": "2026-06-08T10:40:21Z",
+  "total_repos": 134,
+  "plugin_crates": [
+    {
+      "repo": "Agentora",
+      "plugin_count": 1,
+      "libs": [
+        "Box<dyn Trait>"
+      ]
+    },
+    {
+      "repo": "AgilePlus",
+      "plugin_count": 7,
+      "libs": [
+        "Box<dyn Trait>"
+      ]
+    },
+    {
+      "repo": "Apisync",
+      "plugin_count": 1,
+      "libs": [
+        "Box<dyn Trait>"
+      ]
+    },
+    {
+      "repo": "AuthKit",
+      "plugin_count": 1,
+      "libs": [
+        "Box<dyn Trait>"
+      ]
+    },
+    {
+      "repo": "BytePort",
+      "plugin_count": 1,
+      "libs": [
+        "tauri-plugin-log",
+        "tauri-plugin-os"
+      ]
+    },
+    {
+      "repo": "Conft",
+      "plugin_count": 1,
+      "libs": [
+        "Box<dyn Trait>"
+      ]
+    },
+    {
+      "repo": "DataKit",
+      "plugin_count": 2,
+      "libs": [
+        "Box<dyn Trait>"
+      ]
+    },
+    {
+      "repo": "Eventra",
+      "plugin_count": 1,
+      "libs": [
+        "Box<dyn Trait>"
+      ]
+    },
+    {
+      "repo": "FocalPoint",
+      "plugin_count": 2,
+      "libs": [
+        "Box<dyn Trait>"
+      ]
+    },
+    {
+      "repo": "HeliosCLI",
+      "plugin_count": 12,
+      "libs": [
+        "Box<dyn Trait>",
+        "ctor",
+        "inventory"
+      ]
+    },
+    {
+      "repo": "HexaKit",
+      "plugin_count": 11,
+      "libs": [
+        "Box<dyn Trait>"
+      ]
+    },
+    {
+      "repo": "KDesktopVirt",
+      "plugin_count": 1,
+      "libs": [
+        "Box<dyn Trait>"
+      ]
+    },
+    {
+      "repo": "McpKit",
+      "plugin_count": 2,
+      "libs": [
+        "Box<dyn Trait>"
+      ]
+    },
+    {
+      "repo": "ObservabilityKit",
+      "plugin_count": 1,
+      "libs": [
+        "Box<dyn Trait>"
+      ]
+    },
+    {
+      "repo": "Paginary",
+      "plugin_count": 1,
+      "libs": [
+        "Box<dyn Trait>"
+      ]
+    },
+    {
+      "repo": "PhenoDevOps",
+      "plugin_count": 9,
+      "libs": [
+        "Box<dyn Trait>"
+      ]
+    },
+    {
+      "repo": "PhenoMCP",
+      "plugin_count": 3,
+      "libs": [
+        "Box<dyn Trait>"
+      ]
+    },
+    {
+      "repo": "PhenoObservability",
+      "plugin_count": 3,
+      "libs": [
+        "Box<dyn Trait>"
+      ]
+    },
+    {
+      "repo": "PhenoPlugins",
+      "plugin_count": 1,
+      "libs": [
+        "Box<dyn Trait>"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "plugin_count": 8,
+      "libs": [
+        "Box<dyn Trait>",
+        "Plugin/Extension trait"
+      ]
+    },
+    {
+      "repo": "PlayCua",
+      "plugin_count": 1,
+      "libs": [
+        "Box<dyn Trait>"
+      ]
+    },
+    {
+      "repo": "Pyron",
+      "plugin_count": 9,
+      "libs": [
+        "Box<dyn Trait>"
+      ]
+    },
+    {
+      "repo": "ResilienceKit",
+      "plugin_count": 2,
+      "libs": [
+        "Box<dyn Trait>"
+      ]
+    },
+    {
+      "repo": "Tasken",
+      "plugin_count": 1,
+      "libs": [
+        "Box<dyn Trait>",
+        "Plugin/Extension trait"
+      ]
+    },
+    {
+      "repo": "Tracera",
+      "plugin_count": 1,
+      "libs": [
+        "tauri-plugin-deep-link",
+        "tauri-plugin-dialog",
+        "tauri-plugin-fs",
+        "tauri-plugin-notification",
+        "tauri-plugin-os",
+        "tauri-plugin-process",
+        "tauri-plugin-shell",
+        "tauri-plugin-sql",
+        "tauri-plugin-store",
+        "tauri-plugin-updater"
+      ]
+    },
+    {
+      "repo": "bare-cua",
+      "plugin_count": 1,
+      "libs": [
+        "Box<dyn Trait>"
+      ]
+    },
+    {
+      "repo": "crates",
+      "plugin_count": 3,
+      "libs": [
+        "Box<dyn Trait>"
+      ]
+    },
+    {
+      "repo": "helioscope",
+      "plugin_count": 12,
+      "libs": [
+        "Box<dyn Trait>",
+        "ctor",
+        "inventory"
+      ]
+    },
+    {
+      "repo": "kmobile",
+      "plugin_count": 1,
+      "libs": [
+        "Box<dyn Trait>"
+      ]
+    },
+    {
+      "repo": "kwality",
+      "plugin_count": 1,
+      "libs": [
+        "Box<dyn Trait>"
+      ]
+    },
+    {
+      "repo": "pheno",
+      "plugin_count": 9,
+      "libs": [
+        "Box<dyn Trait>"
+      ]
+    },
+    {
+      "repo": "phenoShared",
+      "plugin_count": 2,
+      "libs": [
+        "Box<dyn Trait>"
+      ]
+    },
+    {
+      "repo": "phenoUtils",
+      "plugin_count": 1,
+      "libs": [
+        "Box<dyn Trait>"
+      ]
+    },
+    {
+      "repo": "phenodocs",
+      "plugin_count": 2,
+      "libs": [
+        "Box<dyn Trait>"
+      ]
+    },
+    {
+      "repo": "phenotype-journeys",
+      "plugin_count": 1,
+      "libs": [
+        "Box<dyn Trait>"
+      ]
+    },
+    {
+      "repo": "phenotype-tooling",
+      "plugin_count": 1,
+      "libs": [
+        "tauri-plugin-log",
+        "tauri-plugin-os"
+      ]
+    },
+    {
+      "repo": "thegent",
+      "plugin_count": 2,
+      "libs": [
+        "Box<dyn Trait>"
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-idea",
+      "plugin_count": 1,
+      "libs": [
+        "Box<dyn Trait>"
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-parallel",
+      "plugin_count": 1,
+      "libs": [
+        "Box<dyn Trait>"
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-policy",
+      "plugin_count": 1,
+      "libs": [
+        "Box<dyn Trait>"
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-ruff",
+      "plugin_count": 1,
+      "libs": [
+        "Box<dyn Trait>"
+      ]
+    },
+    {
+      "repo": "worktrees",
+      "plugin_count": 1,
+      "libs": [
+        "Box<dyn Trait>"
+      ]
+    }
+  ]
+}

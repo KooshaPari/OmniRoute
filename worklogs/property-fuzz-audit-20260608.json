@@ -1,0 +1,31 @@
+{
+  "generated_at": "2026-06-08T00:00:00Z",
+  "total_repos": 193,
+  "by_lib": {
+    "proptest": [
+      "GDK",
+      "crates",
+      "pheno",
+      "Apisync",
+      "HexaKit",
+      "Pyron",
+      "Agentora",
+      "phenotype-voxel",
+      "worktrees",
+      "Benchora",
+      "NetScript",
+      "PhenoSchema",
+      "PhenoProc"
+    ],
+    "quickcheck": [
+      "Benchora",
+      "PhenoSchema"
+    ],
+    "hypothesis": [],
+    "cargo_fuzz": [
+      "Tokn",
+      "Apisync",
+      "NetScript"
+    ]
+  }
+}

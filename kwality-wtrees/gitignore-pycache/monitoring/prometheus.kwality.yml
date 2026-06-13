@@ -1,0 +1,101 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+rule_files:
+  - "kwality_rules.yml"
+
+scrape_configs:
+  # Kwality Orchestrator
+  - job_name: 'kwality-orchestrator'
+    static_configs:
+      - targets: ['kwality-orchestrator:8080']
+    metrics_path: '/metrics'
+    scrape_interval: 10s
+    scrape_timeout: 5s
+
+  # Kwality Runtime Validators
+  - job_name: 'kwality-runtime-validator'
+    static_configs:
+      - targets: ['kwality-runtime-validator:9090']
+    metrics_path: '/metrics'
+    scrape_interval: 10s
+    scrape_timeout: 5s
+
+  # Kwality Workers
+  - job_name: 'kwality-workers'
+    static_configs:
+      - targets: 
+          - 'kwality-worker-1:9090'
+          - 'kwality-worker-2:9090'
+    metrics_path: '/metrics'
+    scrape_interval: 10s
+    scrape_timeout: 5s
+
+  # Static Analyzer
+  - job_name: 'kwality-static-analyzer'
+    static_configs:
+      - targets: ['kwality-static-analyzer:9090']
+    metrics_path: '/metrics'
+    scrape_interval: 15s
+
+  # Security Scanner
+  - job_name: 'kwality-security-scanner'
+    static_configs:
+      - targets: ['kwality-security-scanner:9090']
+    metrics_path: '/metrics'
+    scrape_interval: 15s
+
+  # PostgreSQL
+  - job_name: 'postgres'
+    static_configs:
+      - targets: ['postgres:5432']
+    scrape_interval: 30s
+
+  # Redis
+  - job_name: 'redis'
+    static_configs:
+      - targets: ['redis:6379']
+    scrape_interval: 30s
+
+  # Container Registry
+  - job_name: 'registry'
+    static_configs:
+      - targets: ['registry:5000']
+    scrape_interval: 30s
+
+  # Prometheus self-monitoring
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+          - alertmanager:9093
+
+# Recording rules for Kwality metrics
+recording_rules:
+  - name: kwality.rules
+    rules:
+      - record: kwality:validation_rate
+        expr: rate(kwality_validations_total[5m])
+      
+      - record: kwality:error_rate
+        expr: rate(kwality_errors_total[5m])
+      
+      - record: kwality:avg_validation_duration
+        expr: avg(kwality_validation_duration_seconds)
+      
+      - record: kwality:cpu_usage_avg
+        expr: avg(kwality_cpu_usage_percent)
+      
+      - record: kwality:memory_usage_total
+        expr: sum(kwality_memory_usage_mb)
+      
+      - record: kwality:active_validations
+        expr: kwality_active_validations_total
+      
+      - record: kwality:queue_depth
+        expr: kwality_queue_depth_total

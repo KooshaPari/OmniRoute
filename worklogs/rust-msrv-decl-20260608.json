@@ -1,0 +1,575 @@
+{
+  "generated_at": "2026-06-09T02:04:52Z",
+  "total_repos": 42,
+  "with_rust_version": [
+    {
+      "path": "/Users/kooshapari/CodeProjects/Phenotype/repos/Cargo.toml",
+      "repo": ".",
+      "version": "1.82"
+    },
+    {
+      "path": "/Users/kooshapari/CodeProjects/Phenotype/repos/AuthKit/rust/Cargo.toml",
+      "repo": "AuthKit",
+      "version": "1.75"
+    },
+    {
+      "path": "/Users/kooshapari/CodeProjects/Phenotype/repos/GDK/Cargo.toml",
+      "repo": "GDK",
+      "version": "1.75"
+    },
+    {
+      "path": "/Users/kooshapari/CodeProjects/Phenotype/repos/phenoShared/Cargo.toml",
+      "repo": "phenoShared",
+      "version": "1.81"
+    },
+    {
+      "path": "/Users/kooshapari/CodeProjects/Phenotype/repos/phenoShared/crates/phenotype-nanovms-client/Cargo.toml",
+      "repo": "phenoShared",
+      "version": "1.75"
+    },
+    {
+      "path": "/Users/kooshapari/CodeProjects/Phenotype/repos/Tokn/Cargo.toml",
+      "repo": "Tokn",
+      "version": "1.75"
+    },
+    {
+      "path": "/Users/kooshapari/CodeProjects/Phenotype/repos/crates/focus-ci-watcher/Cargo.toml",
+      "repo": "crates",
+      "version": "1.82"
+    },
+    {
+      "path": "/Users/kooshapari/CodeProjects/Phenotype/repos/crates/phenotype-config/Cargo.toml",
+      "repo": "crates",
+      "version": "1.75"
+    },
+    {
+      "path": "/Users/kooshapari/CodeProjects/Phenotype/repos/pheno/Cargo.toml",
+      "repo": "pheno",
+      "version": "1.86"
+    },
+    {
+      "path": "/Users/kooshapari/CodeProjects/Phenotype/repos/pheno/crates/phenotype-http-client-core/Cargo.toml",
+      "repo": "pheno",
+      "version": "1.75"
+    },
+    {
+      "path": "/Users/kooshapari/CodeProjects/Phenotype/repos/pheno/crates/phenotype-error-macros/Cargo.toml",
+      "repo": "pheno",
+      "version": "1.75"
+    },
+    {
+      "path": "/Users/kooshapari/CodeProjects/Phenotype/repos/pheno/libs/nexus/Cargo.toml",
+      "repo": "pheno",
+      "version": "1.71"
+    },
+    {
+      "path": "/Users/kooshapari/CodeProjects/Phenotype/repos/FocalPoint/Cargo.toml",
+      "repo": "FocalPoint",
+      "version": "1.82"
+    },
+    {
+      "path": "/Users/kooshapari/CodeProjects/Phenotype/repos/FocalPoint/crates/focus-ci-watcher/Cargo.toml",
+      "repo": "FocalPoint",
+      "version": "1.82"
+    },
+    {
+      "path": "/Users/kooshapari/CodeProjects/Phenotype/repos/thegent-security-fixes/libs/nexus/Cargo.toml",
+      "repo": "thegent-security-fixes",
+      "version": "1.71"
+    },
+    {
+      "path": "/Users/kooshapari/CodeProjects/Phenotype/repos/HeliosCLI/Cargo.toml",
+      "repo": "HeliosCLI",
+      "version": "1.75"
+    },
+    {
+      "path": "/Users/kooshapari/CodeProjects/Phenotype/repos/phenoAI/Cargo.toml",
+      "repo": "phenoAI",
+      "version": "1.75"
+    },
+    {
+      "path": "/Users/kooshapari/CodeProjects/Phenotype/repos/thegent/libs/nexus/Cargo.toml",
+      "repo": "thegent",
+      "version": "1.71"
+    },
+    {
+      "path": "/Users/kooshapari/CodeProjects/Phenotype/repos/agent-platform/Cargo.toml",
+      "repo": "agent-platform",
+      "version": "1.75"
+    },
+    {
+      "path": "/Users/kooshapari/CodeProjects/Phenotype/repos/ObservabilityKit/rust/Cargo.toml",
+      "repo": "ObservabilityKit",
+      "version": "1.75"
+    },
+    {
+      "path": "/Users/kooshapari/CodeProjects/Phenotype/repos/PhenoObservability/Cargo.toml",
+      "repo": "PhenoObservability",
+      "version": "1.85"
+    },
+    {
+      "path": "/Users/kooshapari/CodeProjects/Phenotype/repos/PhenoObservability/rust/Cargo.toml",
+      "repo": "PhenoObservability",
+      "version": "1.85"
+    },
+    {
+      "path": "/Users/kooshapari/CodeProjects/Phenotype/repos/PhenoObservability/ObservabilityKit/rust/Cargo.toml",
+      "repo": "PhenoObservability",
+      "version": "1.75"
+    },
+    {
+      "path": "/Users/kooshapari/CodeProjects/Phenotype/repos/HexaKit/Cargo.toml",
+      "repo": "HexaKit",
+      "version": "1.75"
+    },
+    {
+      "path": "/Users/kooshapari/CodeProjects/Phenotype/repos/HexaKit/crates/phenotype-http-client-core/Cargo.toml",
+      "repo": "HexaKit",
+      "version": "1.75"
+    },
+    {
+      "path": "/Users/kooshapari/CodeProjects/Phenotype/repos/HexaKit/crates/phenotype-error-macros/Cargo.toml",
+      "repo": "HexaKit",
+      "version": "1.75"
+    },
+    {
+      "path": "/Users/kooshapari/CodeProjects/Phenotype/repos/HexaKit/libs/nexus/Cargo.toml",
+      "repo": "HexaKit",
+      "version": "1.71"
+    },
+    {
+      "path": "/Users/kooshapari/CodeProjects/Phenotype/repos/PhenoDevOps/Cargo.toml",
+      "repo": "PhenoDevOps",
+      "version": "1.75"
+    },
+    {
+      "path": "/Users/kooshapari/CodeProjects/Phenotype/repos/PhenoDevOps/crates/phenotype-http-client-core/Cargo.toml",
+      "repo": "PhenoDevOps",
+      "version": "1.75"
+    },
+    {
+      "path": "/Users/kooshapari/CodeProjects/Phenotype/repos/PhenoDevOps/crates/phenotype-error-macros/Cargo.toml",
+      "repo": "PhenoDevOps",
+      "version": "1.75"
+    },
+    {
+      "path": "/Users/kooshapari/CodeProjects/Phenotype/repos/PhenoDevOps/libs/nexus/Cargo.toml",
+      "repo": "PhenoDevOps",
+      "version": "1.71"
+    },
+    {
+      "path": "/Users/kooshapari/CodeProjects/Phenotype/repos/helioscope/Cargo.toml",
+      "repo": "helioscope",
+      "version": "1.75"
+    },
+    {
+      "path": "/Users/kooshapari/CodeProjects/Phenotype/repos/PhenoAgent/phenotype-daemon/Cargo.toml",
+      "repo": "PhenoAgent",
+      "version": "1.75"
+    },
+    {
+      "path": "/Users/kooshapari/CodeProjects/Phenotype/repos/PhenoProc-security-fixes/Cargo.toml",
+      "repo": "PhenoProc-security-fixes",
+      "version": "1.80"
+    },
+    {
+      "path": "/Users/kooshapari/CodeProjects/Phenotype/repos/forgecode/Cargo.toml",
+      "repo": "forgecode",
+      "version": "1.92"
+    },
+    {
+      "path": "/Users/kooshapari/CodeProjects/Phenotype/repos/Pyron/Cargo.toml",
+      "repo": "Pyron",
+      "version": "1.75"
+    },
+    {
+      "path": "/Users/kooshapari/CodeProjects/Phenotype/repos/Pyron/crates/phenotype-http-client-core/Cargo.toml",
+      "repo": "Pyron",
+      "version": "1.75"
+    },
+    {
+      "path": "/Users/kooshapari/CodeProjects/Phenotype/repos/Pyron/crates/phenotype-error-macros/Cargo.toml",
+      "repo": "Pyron",
+      "version": "1.75"
+    },
+    {
+      "path": "/Users/kooshapari/CodeProjects/Phenotype/repos/Pyron/libs/nexus/Cargo.toml",
+      "repo": "Pyron",
+      "version": "1.71"
+    },
+    {
+      "path": "/Users/kooshapari/CodeProjects/Phenotype/repos/Eidolon/Cargo.toml",
+      "repo": "Eidolon",
+      "version": "1.75"
+    },
+    {
+      "path": "/Users/kooshapari/CodeProjects/Phenotype/repos/Agentora/Cargo.toml",
+      "repo": "Agentora",
+      "version": "1.75"
+    },
+    {
+      "path": "/Users/kooshapari/CodeProjects/Phenotype/repos/AgilePlus/Cargo.toml",
+      "repo": "AgilePlus",
+      "version": "1.85"
+    },
+    {
+      "path": "/Users/kooshapari/CodeProjects/Phenotype/repos/McpKit/rust/phenotype-mcp-framework/Cargo.toml",
+      "repo": "McpKit",
+      "version": "1.75"
+    },
+    {
+      "path": "/Users/kooshapari/CodeProjects/Phenotype/repos/McpKit/rust/phenotype-mcp-asset/Cargo.toml",
+      "repo": "McpKit",
+      "version": "1.75"
+    },
+    {
+      "path": "/Users/kooshapari/CodeProjects/Phenotype/repos/phenotype-voxel/Cargo.toml",
+      "repo": "phenotype-voxel",
+      "version": "1.75"
+    },
+    {
+      "path": "/Users/kooshapari/CodeProjects/Phenotype/repos/phenodocs/packages/shared-utils/Cargo.toml",
+      "repo": "phenodocs",
+      "version": "1.81"
+    },
+    {
+      "path": "/Users/kooshapari/CodeProjects/Phenotype/repos/rich-cli-kit/Cargo.toml",
+      "repo": "rich-cli-kit",
+      "version": "1.75"
+    },
+    {
+      "path": "/Users/kooshapari/CodeProjects/Phenotype/repos/worktrees/phenotype-toolkit/Cargo.toml",
+      "repo": "worktrees",
+      "version": "1.85"
+    },
+    {
+      "path": "/Users/kooshapari/CodeProjects/Phenotype/repos/worktrees/flowra/Cargo.toml",
+      "repo": "worktrees",
+      "version": "1.85"
+    },
+    {
+      "path": "/Users/kooshapari/CodeProjects/Phenotype/repos/bare-cua/Cargo.toml",
+      "repo": "bare-cua",
+      "version": "1.75"
+    },
+    {
+      "path": "/Users/kooshapari/CodeProjects/Phenotype/repos/Civis/Cargo.toml",
+      "repo": "Civis",
+      "version": "1.75"
+    },
+    {
+      "path": "/Users/kooshapari/CodeProjects/Phenotype/repos/PlayCua/Cargo.toml",
+      "repo": "PlayCua",
+      "version": "1.75"
+    },
+    {
+      "path": "/Users/kooshapari/CodeProjects/Phenotype/repos/Benchora/Cargo.toml",
+      "repo": "Benchora",
+      "version": "1.75"
+    },
+    {
+      "path": "/Users/kooshapari/CodeProjects/Phenotype/repos/PhenoRuntime/Cargo.toml",
+      "repo": "PhenoRuntime",
+      "version": "1.85"
+    },
+    {
+      "path": "/Users/kooshapari/CodeProjects/Phenotype/repos/Conft/rust/phenotype-config/Cargo.toml",
+      "repo": "Conft",
+      "version": "1.75"
+    },
+    {
+      "path": "/Users/kooshapari/CodeProjects/Phenotype/repos/ResilienceKit/rust/Cargo.toml",
+      "repo": "ResilienceKit",
+      "version": "1.95"
+    },
+    {
+      "path": "/Users/kooshapari/CodeProjects/Phenotype/repos/phenotype-bus/Cargo.toml",
+      "repo": "phenotype-bus",
+      "version": "1.75"
+    },
+    {
+      "path": "/Users/kooshapari/CodeProjects/Phenotype/repos/PhenoProc/Cargo.toml",
+      "repo": "PhenoProc",
+      "version": "1.80"
+    },
+    {
+      "path": "/Users/kooshapari/CodeProjects/Phenotype/repos/phenotype-tooling/Cargo.toml",
+      "repo": "phenotype-tooling",
+      "version": "1.75"
+    },
+    {
+      "path": "/Users/kooshapari/CodeProjects/Phenotype/repos/Tasken/Cargo.toml",
+      "repo": "Tasken",
+      "version": "1.75"
+    },
+    {
+      "path": "/Users/kooshapari/CodeProjects/Phenotype/repos/PhenoVCS/Cargo.toml",
+      "repo": "PhenoVCS",
+      "version": "1.75"
+    }
+  ],
+  "by_version": {
+    "1.82": [
+      {
+        "path": "/Users/kooshapari/CodeProjects/Phenotype/repos/Cargo.toml",
+        "repo": "."
+      },
+      {
+        "path": "/Users/kooshapari/CodeProjects/Phenotype/repos/crates/focus-ci-watcher/Cargo.toml",
+        "repo": "crates"
+      },
+      {
+        "path": "/Users/kooshapari/CodeProjects/Phenotype/repos/FocalPoint/Cargo.toml",
+        "repo": "FocalPoint"
+      },
+      {
+        "path": "/Users/kooshapari/CodeProjects/Phenotype/repos/FocalPoint/crates/focus-ci-watcher/Cargo.toml",
+        "repo": "FocalPoint"
+      }
+    ],
+    "1.75": [
+      {
+        "path": "/Users/kooshapari/CodeProjects/Phenotype/repos/AuthKit/rust/Cargo.toml",
+        "repo": "AuthKit"
+      },
+      {
+        "path": "/Users/kooshapari/CodeProjects/Phenotype/repos/GDK/Cargo.toml",
+        "repo": "GDK"
+      },
+      {
+        "path": "/Users/kooshapari/CodeProjects/Phenotype/repos/phenoShared/crates/phenotype-nanovms-client/Cargo.toml",
+        "repo": "phenoShared"
+      },
+      {
+        "path": "/Users/kooshapari/CodeProjects/Phenotype/repos/Tokn/Cargo.toml",
+        "repo": "Tokn"
+      },
+      {
+        "path": "/Users/kooshapari/CodeProjects/Phenotype/repos/crates/phenotype-config/Cargo.toml",
+        "repo": "crates"
+      },
+      {
+        "path": "/Users/kooshapari/CodeProjects/Phenotype/repos/pheno/crates/phenotype-http-client-core/Cargo.toml",
+        "repo": "pheno"
+      },
+      {
+        "path": "/Users/kooshapari/CodeProjects/Phenotype/repos/pheno/crates/phenotype-error-macros/Cargo.toml",
+        "repo": "pheno"
+      },
+      {
+        "path": "/Users/kooshapari/CodeProjects/Phenotype/repos/HeliosCLI/Cargo.toml",
+        "repo": "HeliosCLI"
+      },
+      {
+        "path": "/Users/kooshapari/CodeProjects/Phenotype/repos/phenoAI/Cargo.toml",
+        "repo": "phenoAI"
+      },
+      {
+        "path": "/Users/kooshapari/CodeProjects/Phenotype/repos/agent-platform/Cargo.toml",
+        "repo": "agent-platform"
+      },
+      {
+        "path": "/Users/kooshapari/CodeProjects/Phenotype/repos/ObservabilityKit/rust/Cargo.toml",
+        "repo": "ObservabilityKit"
+      },
+      {
+        "path": "/Users/kooshapari/CodeProjects/Phenotype/repos/PhenoObservability/ObservabilityKit/rust/Cargo.toml",
+        "repo": "PhenoObservability"
+      },
+      {
+        "path": "/Users/kooshapari/CodeProjects/Phenotype/repos/HexaKit/Cargo.toml",
+        "repo": "HexaKit"
+      },
+      {
+        "path": "/Users/kooshapari/CodeProjects/Phenotype/repos/HexaKit/crates/phenotype-http-client-core/Cargo.toml",
+        "repo": "HexaKit"
+      },
+      {
+        "path": "/Users/kooshapari/CodeProjects/Phenotype/repos/HexaKit/crates/phenotype-error-macros/Cargo.toml",
+        "repo": "HexaKit"
+      },
+      {
+        "path": "/Users/kooshapari/CodeProjects/Phenotype/repos/PhenoDevOps/Cargo.toml",
+        "repo": "PhenoDevOps"
+      },
+      {
+        "path": "/Users/kooshapari/CodeProjects/Phenotype/repos/PhenoDevOps/crates/phenotype-http-client-core/Cargo.toml",
+        "repo": "PhenoDevOps"
+      },
+      {
+        "path": "/Users/kooshapari/CodeProjects/Phenotype/repos/PhenoDevOps/crates/phenotype-error-macros/Cargo.toml",
+        "repo": "PhenoDevOps"
+      },
+      {
+        "path": "/Users/kooshapari/CodeProjects/Phenotype/repos/helioscope/Cargo.toml",
+        "repo": "helioscope"
+      },
+      {
+        "path": "/Users/kooshapari/CodeProjects/Phenotype/repos/PhenoAgent/phenotype-daemon/Cargo.toml",
+        "repo": "PhenoAgent"
+      },
+      {
+        "path": "/Users/kooshapari/CodeProjects/Phenotype/repos/Pyron/Cargo.toml",
+        "repo": "Pyron"
+      },
+      {
+        "path": "/Users/kooshapari/CodeProjects/Phenotype/repos/Pyron/crates/phenotype-http-client-core/Cargo.toml",
+        "repo": "Pyron"
+      },
+      {
+        "path": "/Users/kooshapari/CodeProjects/Phenotype/repos/Pyron/crates/phenotype-error-macros/Cargo.toml",
+        "repo": "Pyron"
+      },
+      {
+        "path": "/Users/kooshapari/CodeProjects/Phenotype/repos/Eidolon/Cargo.toml",
+        "repo": "Eidolon"
+      },
+      {
+        "path": "/Users/kooshapari/CodeProjects/Phenotype/repos/Agentora/Cargo.toml",
+        "repo": "Agentora"
+      },
+      {
+        "path": "/Users/kooshapari/CodeProjects/Phenotype/repos/McpKit/rust/phenotype-mcp-framework/Cargo.toml",
+        "repo": "McpKit"
+      },
+      {
+        "path": "/Users/kooshapari/CodeProjects/Phenotype/repos/McpKit/rust/phenotype-mcp-asset/Cargo.toml",
+        "repo": "McpKit"
+      },
+      {
+        "path": "/Users/kooshapari/CodeProjects/Phenotype/repos/phenotype-voxel/Cargo.toml",
+        "repo": "phenotype-voxel"
+      },
+      {
+        "path": "/Users/kooshapari/CodeProjects/Phenotype/repos/rich-cli-kit/Cargo.toml",
+        "repo": "rich-cli-kit"
+      },
+      {
+        "path": "/Users/kooshapari/CodeProjects/Phenotype/repos/bare-cua/Cargo.toml",
+        "repo": "bare-cua"
+      },
+      {
+        "path": "/Users/kooshapari/CodeProjects/Phenotype/repos/Civis/Cargo.toml",
+        "repo": "Civis"
+      },
+      {
+        "path": "/Users/kooshapari/CodeProjects/Phenotype/repos/PlayCua/Cargo.toml",
+        "repo": "PlayCua"
+      },
+      {
+        "path": "/Users/kooshapari/CodeProjects/Phenotype/repos/Benchora/Cargo.toml",
+        "repo": "Benchora"
+      },
+      {
+        "path": "/Users/kooshapari/CodeProjects/Phenotype/repos/Conft/rust/phenotype-config/Cargo.toml",
+        "repo": "Conft"
+      },
+      {
+        "path": "/Users/kooshapari/CodeProjects/Phenotype/repos/phenotype-bus/Cargo.toml",
+        "repo": "phenotype-bus"
+      },
+      {
+        "path": "/Users/kooshapari/CodeProjects/Phenotype/repos/phenotype-tooling/Cargo.toml",
+        "repo": "phenotype-tooling"
+      },
+      {
+        "path": "/Users/kooshapari/CodeProjects/Phenotype/repos/Tasken/Cargo.toml",
+        "repo": "Tasken"
+      },
+      {
+        "path": "/Users/kooshapari/CodeProjects/Phenotype/repos/PhenoVCS/Cargo.toml",
+        "repo": "PhenoVCS"
+      }
+    ],
+    "1.81": [
+      {
+        "path": "/Users/kooshapari/CodeProjects/Phenotype/repos/phenoShared/Cargo.toml",
+        "repo": "phenoShared"
+      },
+      {
+        "path": "/Users/kooshapari/CodeProjects/Phenotype/repos/phenodocs/packages/shared-utils/Cargo.toml",
+        "repo": "phenodocs"
+      }
+    ],
+    "1.86": [
+      {
+        "path": "/Users/kooshapari/CodeProjects/Phenotype/repos/pheno/Cargo.toml",
+        "repo": "pheno"
+      }
+    ],
+    "1.71": [
+      {
+        "path": "/Users/kooshapari/CodeProjects/Phenotype/repos/pheno/libs/nexus/Cargo.toml",
+        "repo": "pheno"
+      },
+      {
+        "path": "/Users/kooshapari/CodeProjects/Phenotype/repos/thegent-security-fixes/libs/nexus/Cargo.toml",
+        "repo": "thegent-security-fixes"
+      },
+      {
+        "path": "/Users/kooshapari/CodeProjects/Phenotype/repos/thegent/libs/nexus/Cargo.toml",
+        "repo": "thegent"
+      },
+      {
+        "path": "/Users/kooshapari/CodeProjects/Phenotype/repos/HexaKit/libs/nexus/Cargo.toml",
+        "repo": "HexaKit"
+      },
+      {
+        "path": "/Users/kooshapari/CodeProjects/Phenotype/repos/PhenoDevOps/libs/nexus/Cargo.toml",
+        "repo": "PhenoDevOps"
+      },
+      {
+        "path": "/Users/kooshapari/CodeProjects/Phenotype/repos/Pyron/libs/nexus/Cargo.toml",
+        "repo": "Pyron"
+      }
+    ],
+    "1.85": [
+      {
+        "path": "/Users/kooshapari/CodeProjects/Phenotype/repos/PhenoObservability/Cargo.toml",
+        "repo": "PhenoObservability"
+      },
+      {
+        "path": "/Users/kooshapari/CodeProjects/Phenotype/repos/PhenoObservability/rust/Cargo.toml",
+        "repo": "PhenoObservability"
+      },
+      {
+        "path": "/Users/kooshapari/CodeProjects/Phenotype/repos/AgilePlus/Cargo.toml",
+        "repo": "AgilePlus"
+      },
+      {
+        "path": "/Users/kooshapari/CodeProjects/Phenotype/repos/worktrees/phenotype-toolkit/Cargo.toml",
+        "repo": "worktrees"
+      },
+      {
+        "path": "/Users/kooshapari/CodeProjects/Phenotype/repos/worktrees/flowra/Cargo.toml",
+        "repo": "worktrees"
+      },
+      {
+        "path": "/Users/kooshapari/CodeProjects/Phenotype/repos/PhenoRuntime/Cargo.toml",
+        "repo": "PhenoRuntime"
+      }
+    ],
+    "1.80": [
+      {
+        "path": "/Users/kooshapari/CodeProjects/Phenotype/repos/PhenoProc-security-fixes/Cargo.toml",
+        "repo": "PhenoProc-security-fixes"
+      },
+      {
+        "path": "/Users/kooshapari/CodeProjects/Phenotype/repos/PhenoProc/Cargo.toml",
+        "repo": "PhenoProc"
+      }
+    ],
+    "1.92": [
+      {
+        "path": "/Users/kooshapari/CodeProjects/Phenotype/repos/forgecode/Cargo.toml",
+        "repo": "forgecode"
+      }
+    ],
+    "1.95": [
+      {
+        "path": "/Users/kooshapari/CodeProjects/Phenotype/repos/ResilienceKit/rust/Cargo.toml",
+        "repo": "ResilienceKit"
+      }
+    ]
+  }
+}

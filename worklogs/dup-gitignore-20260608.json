@@ -1,0 +1,102 @@
+{
+  "generated_at": "2026-06-08T09:44:47.815182+00:00",
+  "total_repos": 117,
+  "near_duplicate_gitignores": [
+    {
+      "hash": "bd5dbeb1a15a26512e92ffdfc86aabb07d917ead47f64cf7ac458f93e12fe98c",
+      "repos": [
+        "PhenoAgent",
+        "PhenoPlugins",
+        "Pine",
+        "Tracely",
+        "eyetracker",
+        "nanovms",
+        "phenoAI",
+        "phenoUtils",
+        "phenotype-hub",
+        "thegent-dispatch",
+        "vibeproxy-monitoring-unified"
+      ]
+    },
+    {
+      "hash": "a38caa829ecdc7fdc18ad40bdb9d7e3da08b93cd712a558aabf524ac6e36037e",
+      "repos": [
+        "Apisync",
+        "Eventra",
+        "Metron",
+        "Tasken"
+      ]
+    },
+    {
+      "hash": "59b01b490a13b66c58110cc8b1c20f2cd4b45480bd85fa6c2a13636aada177b0",
+      "repos": [
+        "thegent-clean-wt-docs",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "hash": "f2ffe9609b5432bdf5387cae9431a1fdbd1a4a8bfae0e558ae506ef32a869fde",
+      "repos": [
+        "byteport-landing",
+        "phenokits-landing"
+      ]
+    },
+    {
+      "hash": "94da172981ca16c62ce6f59424224d0bcc5ff6b1d96eac02095d24535b312510",
+      "repos": [
+        "DevHex",
+        "hwLedger"
+      ]
+    },
+    {
+      "hash": "b63bc9a875cc5a44a4cb09f08f15e5a75ddefce0cbffbe1b9d3afd1b872b07ab",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "hash": "5daa60f6e6dd12e7db4f9e180570d748974aa535e22551de3631305264ff6a8f",
+      "repos": [
+        "Paginary",
+        "PhenoSpecs"
+      ]
+    },
+    {
+      "hash": "76ffbe80883fe62b7c5e0c8961f43b7da52254c3c793553b6a08afa7cd0153ae",
+      "repos": [
+        "phenodocs",
+        "phenodocs-scorecard-remediation"
+      ]
+    },
+    {
+      "hash": "1ac1384a81ce2f01d4a9243fdcbcd92fba306f2d72bd92337d0cad8a84a775fc",
+      "repos": [
+        "thegent",
+        "thegent-clean"
+      ]
+    },
+    {
+      "hash": "9905ea268eabf831871611d5d7574a4c9c1a78a280f3989279b0b2e5525c3b87",
+      "repos": [
+        "phenotype-terrain",
+        "phenotype-water"
+      ]
+    },
+    {
+      "hash": "8c33296f7e032073b265b2d3ba45cc8ed4b881096f11b42d4fba23996c7c7c11",
+      "repos": [
+        "PlayCua",
+        "bare-cua"
+      ]
+    },
+    {
+      "hash": "d9365878dac96c171d7ea7c28436c030c77f66f7af05a08a4b9782243b11e844",
+      "repos": [
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel"
+      ]
+    }
+  ]
+}

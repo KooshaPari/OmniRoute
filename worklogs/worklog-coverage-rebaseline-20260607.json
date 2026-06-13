@@ -1,0 +1,1307 @@
+{
+  "generated_at": "2026-06-06T22:50:00Z",
+  "total_repos": 153,
+  "with_worklog": [
+    "HeliosCLI",
+    "HexaKit",
+    "Httpora",
+    "Parpoura",
+    "PhenoCompose",
+    "PhenoKits",
+    "PlatformKit",
+    "Pyron",
+    "QuadSGM",
+    "Sidekick",
+    "Tasken",
+    "Tracera",
+    "agent-devops-setups",
+    "agentapi-plusplus",
+    "foqos-private",
+    "helioscope",
+    "nanovms",
+    "pheno",
+    "phenoData",
+    "phenoResearchEngine",
+    "phenoXdd",
+    "phenodocs",
+    "phenodocs-scorecard-remediation",
+    "phenotype-auth-ts",
+    "phenotype-bus",
+    "phenotype-infra",
+    "phenotype-journeys",
+    "phenotype-ops-mcp",
+    "phenotype-org-audits",
+    "phenotype-registry",
+    "phenotype-tooling",
+    "thegent",
+    "thegent-clean"
+  ],
+  "with_changelog": [
+    "AgentMCP",
+    "Agentora",
+    "AgilePlus",
+    "Apisync",
+    "AppGen",
+    "AtomsBot",
+    "AuthKit",
+    "Benchora",
+    "BytePort",
+    "Conft",
+    "DINOForge-UnityDoorstop",
+    "DataKit",
+    "DevHex",
+    "Dino",
+    "Eidolon",
+    "Eventra",
+    "FocalPoint",
+    "GDK",
+    "HeliosCLI",
+    "HeliosLab",
+    "HexaKit",
+    "Httpora",
+    "KDesktopVirt",
+    "KWatch",
+    "KaskMan",
+    "KlipDot",
+    "MCPForge",
+    "McpKit",
+    "Metron",
+    "ObservabilityKit",
+    "OmniRoute",
+    "Paginary",
+    "Parpoura",
+    "PhenoAgent",
+    "PhenoCompose",
+    "PhenoDevOps",
+    "PhenoHandbook",
+    "PhenoKits",
+    "PhenoMCP",
+    "PhenoObservability",
+    "PhenoPlugins",
+    "PhenoProc",
+    "PhenoProject",
+    "PhenoRuntime",
+    "PhenoSpecs",
+    "PhenoVCS",
+    "Pine",
+    "Planify",
+    "PlatformKit",
+    "PlayCua",
+    "PolicyStack",
+    "Pyron",
+    "QuadSGM",
+    "ResilienceKit",
+    "Sidekick",
+    "Tasken",
+    "TestingKit",
+    "Tokn",
+    "Tracely",
+    "Tracera",
+    "agent-devops-setups",
+    "agent-user-status",
+    "agentapi-plusplus",
+    "agileplus-landing",
+    "agslag-docs",
+    "argis-extensions",
+    "bare-cua",
+    "byteport-landing",
+    "chatta",
+    "cheap-llm-mcp",
+    "cliproxyapi-plusplus",
+    "dinoforge-packs",
+    "eyetracker",
+    "foqos-private",
+    "heliosApp",
+    "heliosBench",
+    "helioscope",
+    "hwLedger",
+    "kmobile",
+    "kwality",
+    "localbase3",
+    "nanovms",
+    "netweave-final2",
+    "pheno",
+    "phenoAI",
+    "phenoData",
+    "phenoDesign",
+    "phenoForge",
+    "phenoResearchEngine",
+    "phenoShared",
+    "phenoUtils",
+    "phenoXdd",
+    "phenodocs",
+    "phenodocs-scorecard-remediation",
+    "phenokits-landing",
+    "phenotype-auth-ts",
+    "phenotype-bus",
+    "phenotype-hub",
+    "phenotype-infra",
+    "phenotype-journeys",
+    "phenotype-omlx",
+    "phenotype-ops-mcp",
+    "phenotype-org-audits",
+    "phenotype-registry",
+    "phenotype-terrain",
+    "phenotype-tooling",
+    "phenotype-water",
+    "portage",
+    "rich-cli-kit",
+    "thegent",
+    "thegent-clean",
+    "thegent-dispatch",
+    "thegent-workspace",
+    "vibeproxy",
+    "vibeproxy-monitoring-unified"
+  ],
+  "by_repo": [
+    {
+      "repo": "AgentMCP",
+      "worklogs": [],
+      "changelogs": [
+        "CHANGELOG.md"
+      ]
+    },
+    {
+      "repo": "Agentora",
+      "worklogs": [],
+      "changelogs": [
+        "CHANGELOG.md"
+      ]
+    },
+    {
+      "repo": "AgilePlus",
+      "worklogs": [],
+      "changelogs": [
+        "CHANGELOG.md"
+      ]
+    },
+    {
+      "repo": "Apisync",
+      "worklogs": [],
+      "changelogs": [
+        "CHANGELOG.md"
+      ]
+    },
+    {
+      "repo": "AppGen",
+      "worklogs": [],
+      "changelogs": [
+        "CHANGELOG.md"
+      ]
+    },
+    {
+      "repo": "AtomsBot",
+      "worklogs": [],
+      "changelogs": [
+        "CHANGELOG.md"
+      ]
+    },
+    {
+      "repo": "AuthKit",
+      "worklogs": [],
+      "changelogs": [
+        "CHANGELOG.md"
+      ]
+    },
+    {
+      "repo": "Benchora",
+      "worklogs": [],
+      "changelogs": [
+        "CHANGELOG.md"
+      ]
+    },
+    {
+      "repo": "BytePort",
+      "worklogs": [],
+      "changelogs": [
+        "CHANGELOG.md"
+      ]
+    },
+    {
+      "repo": "Civis",
+      "worklogs": [],
+      "changelogs": []
+    },
+    {
+      "repo": "Conft",
+      "worklogs": [],
+      "changelogs": [
+        "CHANGELOG.md"
+      ]
+    },
+    {
+      "repo": "DINOForge-UnityDoorstop",
+      "worklogs": [],
+      "changelogs": [
+        "CHANGELOG.md"
+      ]
+    },
+    {
+      "repo": "DataKit",
+      "worklogs": [],
+      "changelogs": [
+        "CHANGELOG.md"
+      ]
+    },
+    {
+      "repo": "DevHex",
+      "worklogs": [],
+      "changelogs": [
+        "CHANGELOG.md"
+      ]
+    },
+    {
+      "repo": "Dino",
+      "worklogs": [],
+      "changelogs": [
+        "CHANGELOG.md"
+      ]
+    },
+    {
+      "repo": "Eidolon",
+      "worklogs": [],
+      "changelogs": [
+        "CHANGELOG.md"
+      ]
+    },
+    {
+      "repo": "Eventra",
+      "worklogs": [],
+      "changelogs": [
+        "CHANGELOG.md"
+      ]
+    },
+    {
+      "repo": "FocalPoint",
+      "worklogs": [],
+      "changelogs": [
+        "CHANGELOG.md"
+      ]
+    },
+    {
+      "repo": "GDK",
+      "worklogs": [],
+      "changelogs": [
+        "CHANGELOG.md"
+      ]
+    },
+    {
+      "repo": "HeliosCLI",
+      "worklogs": [
+        "worklogs/ARCHITECTURE.md",
+        "worklogs/GOVERNANCE.md",
+        "worklogs/README.md",
+        "worklogs/RESEARCH.md"
+      ],
+      "changelogs": [
+        "CHANGELOG.md"
+      ]
+    },
+    {
+      "repo": "HeliosLab",
+      "worklogs": [],
+      "changelogs": [
+        "CHANGELOG.md"
+      ]
+    },
+    {
+      "repo": "HexaKit",
+      "worklogs": [
+        "worklogs/PHASE2_COMPLETE_REPORT.md",
+        "worklogs/batch15-repo-remediation.md",
+        "worklogs/batch16-repo-remediation.md"
+      ],
+      "changelogs": [
+        "CHANGELOG.md"
+      ]
+    },
+    {
+      "repo": "Httpora",
+      "worklogs": [
+        "worklogs/ARCHITECTURE.md",
+        "worklogs/GOVERNANCE.md",
+        "worklogs/README.md",
+        "worklogs/RESEARCH.md"
+      ],
+      "changelogs": [
+        "CHANGELOG.md"
+      ]
+    },
+    {
+      "repo": "KDesktopVirt",
+      "worklogs": [],
+      "changelogs": [
+        "CHANGELOG.md"
+      ]
+    },
+    {
+      "repo": "KWatch",
+      "worklogs": [],
+      "changelogs": [
+        "CHANGELOG.md"
+      ]
+    },
+    {
+      "repo": "KaskMan",
+      "worklogs": [],
+      "changelogs": [
+        "CHANGELOG.md"
+      ]
+    },
+    {
+      "repo": "KlipDot",
+      "worklogs": [],
+      "changelogs": [
+        "CHANGELOG.md"
+      ]
+    },
+    {
+      "repo": "MCPForge",
+      "worklogs": [],
+      "changelogs": [
+        "CHANGELOG.md"
+      ]
+    },
+    {
+      "repo": "McpKit",
+      "worklogs": [],
+      "changelogs": [
+        "CHANGELOG.md"
+      ]
+    },
+    {
+      "repo": "Metron",
+      "worklogs": [],
+      "changelogs": [
+        "CHANGELOG.md"
+      ]
+    },
+    {
+      "repo": "NetScript",
+      "worklogs": [],
+      "changelogs": []
+    },
+    {
+      "repo": "ObservabilityKit",
+      "worklogs": [],
+      "changelogs": [
+        "CHANGELOG.md"
+      ]
+    },
+    {
+      "repo": "Observably",
+      "worklogs": [],
+      "changelogs": []
+    },
+    {
+      "repo": "OmniRoute",
+      "worklogs": [],
+      "changelogs": [
+        "CHANGELOG.md"
+      ]
+    },
+    {
+      "repo": "OmniRoute-latest",
+      "worklogs": [],
+      "changelogs": []
+    },
+    {
+      "repo": "Paginary",
+      "worklogs": [],
+      "changelogs": [
+        "CHANGELOG.md"
+      ]
+    },
+    {
+      "repo": "Parpoura",
+      "worklogs": [
+        "worklogs/ARCHITECTURE.md",
+        "worklogs/GOVERNANCE.md",
+        "worklogs/README.md",
+        "worklogs/RESEARCH.md"
+      ],
+      "changelogs": [
+        "CHANGELOG.md"
+      ]
+    },
+    {
+      "repo": "PhenoAgent",
+      "worklogs": [],
+      "changelogs": [
+        "CHANGELOG.md"
+      ]
+    },
+    {
+      "repo": "PhenoCompose",
+      "worklogs": [
+        "worklogs/ARCHITECTURE.md",
+        "worklogs/GOVERNANCE.md",
+        "worklogs/README.md",
+        "worklogs/RESEARCH.md"
+      ],
+      "changelogs": [
+        "CHANGELOG.md"
+      ]
+    },
+    {
+      "repo": "PhenoContracts",
+      "worklogs": [],
+      "changelogs": []
+    },
+    {
+      "repo": "PhenoControl",
+      "worklogs": [],
+      "changelogs": []
+    },
+    {
+      "repo": "PhenoDevOps",
+      "worklogs": [],
+      "changelogs": [
+        "CHANGELOG.md"
+      ]
+    },
+    {
+      "repo": "PhenoEvents",
+      "worklogs": [],
+      "changelogs": []
+    },
+    {
+      "repo": "PhenoHandbook",
+      "worklogs": [],
+      "changelogs": [
+        "CHANGELOG.md"
+      ]
+    },
+    {
+      "repo": "PhenoKits",
+      "worklogs": [
+        "worklogs/AGGREGATE_2026_04_25.md",
+        "worklogs/AGILEPLUS_SPECS_STATUS_2026_04_25.md",
+        "worklogs/ARCHITECTURE.md",
+        "worklogs/CARRY_OVER_2026_04_25.md",
+        "worklogs/GOVERNANCE.md",
+        "worklogs/P0_DRIFT_DISPOSITION_2026_04_26.md",
+        "worklogs/README.md",
+        "worklogs/RESEARCH.md",
+        "worklogs/SESSION_2026_04_25_OCI_AND_ORG_PAGES.md",
+        "worklogs/SUNSET_MATURITY_WBS_2026_04_26.md",
+        "worklogs/WORKTREE_QUARANTINE_LEDGER_2026_04_26.md"
+      ],
+      "changelogs": [
+        "CHANGELOG.md"
+      ]
+    },
+    {
+      "repo": "PhenoLang",
+      "worklogs": [],
+      "changelogs": []
+    },
+    {
+      "repo": "PhenoMCP",
+      "worklogs": [],
+      "changelogs": [
+        "CHANGELOG.md"
+      ]
+    },
+    {
+      "repo": "PhenoObservability",
+      "worklogs": [],
+      "changelogs": [
+        "CHANGELOG.md"
+      ]
+    },
+    {
+      "repo": "PhenoPlugins",
+      "worklogs": [],
+      "changelogs": [
+        "CHANGELOG.md"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "worklogs": [],
+      "changelogs": [
+        "CHANGELOG.md"
+      ]
+    },
+    {
+      "repo": "PhenoProject",
+      "worklogs": [],
+      "changelogs": [
+        "CHANGELOG.md"
+      ]
+    },
+    {
+      "repo": "PhenoRuntime",
+      "worklogs": [],
+      "changelogs": [
+        "CHANGELOG.md"
+      ]
+    },
+    {
+      "repo": "PhenoSchema",
+      "worklogs": [],
+      "changelogs": []
+    },
+    {
+      "repo": "PhenoSpecs",
+      "worklogs": [],
+      "changelogs": [
+        "CHANGELOG.md"
+      ]
+    },
+    {
+      "repo": "PhenoVCS",
+      "worklogs": [],
+      "changelogs": [
+        "CHANGELOG.md"
+      ]
+    },
+    {
+      "repo": "Pine",
+      "worklogs": [],
+      "changelogs": [
+        "CHANGELOG.md"
+      ]
+    },
+    {
+      "repo": "Planify",
+      "worklogs": [],
+      "changelogs": [
+        "CHANGELOG.md"
+      ]
+    },
+    {
+      "repo": "PlatformKit",
+      "worklogs": [
+        "worklogs/ARCHITECTURE.md",
+        "worklogs/GOVERNANCE.md",
+        "worklogs/README.md",
+        "worklogs/RESEARCH.md"
+      ],
+      "changelogs": [
+        "CHANGELOG.md"
+      ]
+    },
+    {
+      "repo": "PlayCua",
+      "worklogs": [],
+      "changelogs": [
+        "CHANGELOG.md"
+      ]
+    },
+    {
+      "repo": "PolicyStack",
+      "worklogs": [],
+      "changelogs": [
+        "CHANGELOG.md"
+      ]
+    },
+    {
+      "repo": "Pyron",
+      "worklogs": [
+        "worklogs/PHASE2_COMPLETE_REPORT.md",
+        "worklogs/batch15-repo-remediation.md",
+        "worklogs/batch16-repo-remediation.md"
+      ],
+      "changelogs": [
+        "CHANGELOG.md"
+      ]
+    },
+    {
+      "repo": "QuadSGM",
+      "worklogs": [
+        "worklogs/ARCHITECTURE.md",
+        "worklogs/GOVERNANCE.md",
+        "worklogs/README.md",
+        "worklogs/RESEARCH.md"
+      ],
+      "changelogs": [
+        "CHANGELOG.md"
+      ]
+    },
+    {
+      "repo": "ResilienceKit",
+      "worklogs": [],
+      "changelogs": [
+        "CHANGELOG.md"
+      ]
+    },
+    {
+      "repo": "Sidekick",
+      "worklogs": [
+        "worklogs/ARCHITECTURE.md",
+        "worklogs/GOVERNANCE.md",
+        "worklogs/README.md",
+        "worklogs/RESEARCH.md"
+      ],
+      "changelogs": [
+        "CHANGELOG.md"
+      ]
+    },
+    {
+      "repo": "Tasken",
+      "worklogs": [
+        "worklogs/ARCHITECTURE.md",
+        "worklogs/GOVERNANCE.md",
+        "worklogs/README.md",
+        "worklogs/RESEARCH.md"
+      ],
+      "changelogs": [
+        "CHANGELOG.md"
+      ]
+    },
+    {
+      "repo": "TestingKit",
+      "worklogs": [],
+      "changelogs": [
+        "CHANGELOG.md"
+      ]
+    },
+    {
+      "repo": "Tokn",
+      "worklogs": [],
+      "changelogs": [
+        "CHANGELOG.md"
+      ]
+    },
+    {
+      "repo": "Tracely",
+      "worklogs": [],
+      "changelogs": [
+        "CHANGELOG.md"
+      ]
+    },
+    {
+      "repo": "Tracera",
+      "worklogs": [
+        "worklogs/WORKLOG_phenotype_dev_migration_2026-05-02.md"
+      ],
+      "changelogs": [
+        "CHANGELOG.md"
+      ]
+    },
+    {
+      "repo": "ValidationKit",
+      "worklogs": [],
+      "changelogs": []
+    },
+    {
+      "repo": "agent-devops-setups",
+      "worklogs": [
+        "worklogs/ARCHITECTURE.md",
+        "worklogs/GOVERNANCE.md",
+        "worklogs/README.md",
+        "worklogs/RESEARCH.md"
+      ],
+      "changelogs": [
+        "CHANGELOG.md"
+      ]
+    },
+    {
+      "repo": "agent-user-status",
+      "worklogs": [],
+      "changelogs": [
+        "CHANGELOG.md"
+      ]
+    },
+    {
+      "repo": "agentapi-plusplus",
+      "worklogs": [
+        "WORKLOG.md"
+      ],
+      "changelogs": [
+        "CHANGELOG.md"
+      ]
+    },
+    {
+      "repo": "agentops-policy-federation",
+      "worklogs": [],
+      "changelogs": []
+    },
+    {
+      "repo": "agileplus-agents",
+      "worklogs": [],
+      "changelogs": []
+    },
+    {
+      "repo": "agileplus-landing",
+      "worklogs": [],
+      "changelogs": [
+        "CHANGELOG.md"
+      ]
+    },
+    {
+      "repo": "agslag-docs",
+      "worklogs": [],
+      "changelogs": [
+        "CHANGELOG.md"
+      ]
+    },
+    {
+      "repo": "apps",
+      "worklogs": [],
+      "changelogs": []
+    },
+    {
+      "repo": "argis-extensions",
+      "worklogs": [],
+      "changelogs": [
+        "CHANGELOG.md"
+      ]
+    },
+    {
+      "repo": "bare-cua",
+      "worklogs": [],
+      "changelogs": [
+        "CHANGELOG.md"
+      ]
+    },
+    {
+      "repo": "byteport-landing",
+      "worklogs": [],
+      "changelogs": [
+        "CHANGELOG.md"
+      ]
+    },
+    {
+      "repo": "chatta",
+      "worklogs": [],
+      "changelogs": [
+        "CHANGELOG.md"
+      ]
+    },
+    {
+      "repo": "cheap-llm-mcp",
+      "worklogs": [],
+      "changelogs": [
+        "CHANGELOG.md"
+      ]
+    },
+    {
+      "repo": "cliproxyapi-plusplus",
+      "worklogs": [],
+      "changelogs": [
+        "CHANGELOG.md"
+      ]
+    },
+    {
+      "repo": "crates",
+      "worklogs": [],
+      "changelogs": []
+    },
+    {
+      "repo": "default",
+      "worklogs": [],
+      "changelogs": []
+    },
+    {
+      "repo": "dinoforge-packs",
+      "worklogs": [],
+      "changelogs": [
+        "CHANGELOG.md"
+      ]
+    },
+    {
+      "repo": "dispatch-mcp",
+      "worklogs": [],
+      "changelogs": []
+    },
+    {
+      "repo": "docs",
+      "worklogs": [],
+      "changelogs": []
+    },
+    {
+      "repo": "docs-site",
+      "worklogs": [],
+      "changelogs": []
+    },
+    {
+      "repo": "examples",
+      "worklogs": [],
+      "changelogs": []
+    },
+    {
+      "repo": "eyetracker",
+      "worklogs": [],
+      "changelogs": [
+        "CHANGELOG.md"
+      ]
+    },
+    {
+      "repo": "foqos-private",
+      "worklogs": [
+        "worklogs/ARCHITECTURE.md",
+        "worklogs/GOVERNANCE.md",
+        "worklogs/README.md",
+        "worklogs/RESEARCH.md"
+      ],
+      "changelogs": [
+        "CHANGELOG.md"
+      ]
+    },
+    {
+      "repo": "forgecode",
+      "worklogs": [],
+      "changelogs": []
+    },
+    {
+      "repo": "frontend",
+      "worklogs": [],
+      "changelogs": []
+    },
+    {
+      "repo": "fuzz",
+      "worklogs": [],
+      "changelogs": []
+    },
+    {
+      "repo": "helios-router",
+      "worklogs": [],
+      "changelogs": []
+    },
+    {
+      "repo": "heliosApp",
+      "worklogs": [],
+      "changelogs": [
+        "CHANGELOG.md"
+      ]
+    },
+    {
+      "repo": "heliosBench",
+      "worklogs": [],
+      "changelogs": [
+        "CHANGELOG.md"
+      ]
+    },
+    {
+      "repo": "heliosHarness",
+      "worklogs": [],
+      "changelogs": []
+    },
+    {
+      "repo": "helioscope",
+      "worklogs": [
+        "worklogs/ARCHITECTURE.md",
+        "worklogs/GOVERNANCE.md",
+        "worklogs/README.md",
+        "worklogs/RESEARCH.md"
+      ],
+      "changelogs": [
+        "CHANGELOG.md"
+      ]
+    },
+    {
+      "repo": "hwLedger",
+      "worklogs": [],
+      "changelogs": [
+        "CHANGELOG.md"
+      ]
+    },
+    {
+      "repo": "kmobile",
+      "worklogs": [],
+      "changelogs": [
+        "CHANGELOG.md"
+      ]
+    },
+    {
+      "repo": "kwality",
+      "worklogs": [],
+      "changelogs": [
+        "CHANGELOG.md"
+      ]
+    },
+    {
+      "repo": "libs",
+      "worklogs": [],
+      "changelogs": []
+    },
+    {
+      "repo": "localbase3",
+      "worklogs": [],
+      "changelogs": [
+        "CHANGELOG.md"
+      ]
+    },
+    {
+      "repo": "melosviz",
+      "worklogs": [],
+      "changelogs": []
+    },
+    {
+      "repo": "nanovms",
+      "worklogs": [
+        "worklogs/ARCHITECTURE.md",
+        "worklogs/GOVERNANCE.md",
+        "worklogs/README.md",
+        "worklogs/RESEARCH.md"
+      ],
+      "changelogs": [
+        "CHANGELOG.md"
+      ]
+    },
+    {
+      "repo": "netweave-final2",
+      "worklogs": [],
+      "changelogs": [
+        "CHANGELOG.md"
+      ]
+    },
+    {
+      "repo": "pheno",
+      "worklogs": [
+        "worklogs/PHASE2_COMPLETE_REPORT.md",
+        "worklogs/batch15-repo-remediation.md",
+        "worklogs/batch16-repo-remediation.md"
+      ],
+      "changelogs": [
+        "CHANGELOG.md"
+      ]
+    },
+    {
+      "repo": "phenoAI",
+      "worklogs": [],
+      "changelogs": [
+        "CHANGELOG.md"
+      ]
+    },
+    {
+      "repo": "phenoData",
+      "worklogs": [
+        "worklogs/README.md"
+      ],
+      "changelogs": [
+        "CHANGELOG.md"
+      ]
+    },
+    {
+      "repo": "phenoDesign",
+      "worklogs": [],
+      "changelogs": [
+        "CHANGELOG.md"
+      ]
+    },
+    {
+      "repo": "phenoForge",
+      "worklogs": [],
+      "changelogs": [
+        "CHANGELOG.md"
+      ]
+    },
+    {
+      "repo": "phenoResearchEngine",
+      "worklogs": [
+        "worklogs/ARCHITECTURE.md",
+        "worklogs/GOVERNANCE.md",
+        "worklogs/README.md",
+        "worklogs/RESEARCH.md"
+      ],
+      "changelogs": [
+        "CHANGELOG.md"
+      ]
+    },
+    {
+      "repo": "phenoShared",
+      "worklogs": [],
+      "changelogs": [
+        "CHANGELOG.md"
+      ]
+    },
+    {
+      "repo": "phenoUtils",
+      "worklogs": [],
+      "changelogs": [
+        "CHANGELOG.md"
+      ]
+    },
+    {
+      "repo": "phenoXdd",
+      "worklogs": [
+        "worklogs/ARCHITECTURE.md",
+        "worklogs/GOVERNANCE.md",
+        "worklogs/README.md",
+        "worklogs/RESEARCH.md"
+      ],
+      "changelogs": [
+        "CHANGELOG.md"
+      ]
+    },
+    {
+      "repo": "phenodocs",
+      "worklogs": [
+        "worklogs/ARCHITECTURE.md",
+        "worklogs/GOVERNANCE.md",
+        "worklogs/README.md",
+        "worklogs/RESEARCH.md"
+      ],
+      "changelogs": [
+        "CHANGELOG.md"
+      ]
+    },
+    {
+      "repo": "phenodocs-scorecard-remediation",
+      "worklogs": [
+        "worklogs/ARCHITECTURE.md",
+        "worklogs/GOVERNANCE.md",
+        "worklogs/README.md",
+        "worklogs/RESEARCH.md"
+      ],
+      "changelogs": [
+        "CHANGELOG.md"
+      ]
+    },
+    {
+      "repo": "phenokits-landing",
+      "worklogs": [],
+      "changelogs": [
+        "CHANGELOG.md"
+      ]
+    },
+    {
+      "repo": "phenotype-auth-ts",
+      "worklogs": [
+        "worklogs/ARCHITECTURE.md",
+        "worklogs/GOVERNANCE.md",
+        "worklogs/README.md",
+        "worklogs/RESEARCH.md"
+      ],
+      "changelogs": [
+        "CHANGELOG.md"
+      ]
+    },
+    {
+      "repo": "phenotype-bus",
+      "worklogs": [
+        "worklogs/ARCHITECTURE.md",
+        "worklogs/GOVERNANCE.md",
+        "worklogs/README.md",
+        "worklogs/RESEARCH.md"
+      ],
+      "changelogs": [
+        "CHANGELOG.md"
+      ]
+    },
+    {
+      "repo": "phenotype-hub",
+      "worklogs": [],
+      "changelogs": [
+        "CHANGELOG.md"
+      ]
+    },
+    {
+      "repo": "phenotype-icons",
+      "worklogs": [],
+      "changelogs": []
+    },
+    {
+      "repo": "phenotype-infra",
+      "worklogs": [
+        "worklogs/ARCHITECTURE.md",
+        "worklogs/GOVERNANCE.md",
+        "worklogs/README.md",
+        "worklogs/RESEARCH.md"
+      ],
+      "changelogs": [
+        "CHANGELOG.md"
+      ]
+    },
+    {
+      "repo": "phenotype-journeys",
+      "worklogs": [
+        "worklogs/ARCHITECTURE.md",
+        "worklogs/GOVERNANCE.md",
+        "worklogs/README.md",
+        "worklogs/RESEARCH.md"
+      ],
+      "changelogs": [
+        "CHANGELOG.md"
+      ]
+    },
+    {
+      "repo": "phenotype-omlx",
+      "worklogs": [],
+      "changelogs": [
+        "CHANGELOG.md"
+      ]
+    },
+    {
+      "repo": "phenotype-ops-mcp",
+      "worklogs": [
+        "worklogs/ARCHITECTURE.md",
+        "worklogs/GOVERNANCE.md",
+        "worklogs/README.md",
+        "worklogs/RESEARCH.md"
+      ],
+      "changelogs": [
+        "CHANGELOG.md"
+      ]
+    },
+    {
+      "repo": "phenotype-org-audits",
+      "worklogs": [
+        "worklogs/ARCHITECTURE.md",
+        "worklogs/GOVERNANCE.md",
+        "worklogs/README.md",
+        "worklogs/RESEARCH.md"
+      ],
+      "changelogs": [
+        "CHANGELOG.md"
+      ]
+    },
+    {
+      "repo": "phenotype-postfx",
+      "worklogs": [],
+      "changelogs": []
+    },
+    {
+      "repo": "phenotype-registry",
+      "worklogs": [
+        "worklogs/ARCHITECTURE.md",
+        "worklogs/GOVERNANCE.md",
+        "worklogs/README.md",
+        "worklogs/RESEARCH.md"
+      ],
+      "changelogs": [
+        "CHANGELOG.md"
+      ]
+    },
+    {
+      "repo": "phenotype-shared",
+      "worklogs": [],
+      "changelogs": []
+    },
+    {
+      "repo": "phenotype-skills",
+      "worklogs": [],
+      "changelogs": []
+    },
+    {
+      "repo": "phenotype-terrain",
+      "worklogs": [],
+      "changelogs": [
+        "CHANGELOG.md"
+      ]
+    },
+    {
+      "repo": "phenotype-tooling",
+      "worklogs": [
+        "worklogs/ARCHITECTURE.md",
+        "worklogs/GOVERNANCE.md",
+        "worklogs/README.md",
+        "worklogs/RESEARCH.md"
+      ],
+      "changelogs": [
+        "CHANGELOG.md"
+      ]
+    },
+    {
+      "repo": "phenotype-water",
+      "worklogs": [],
+      "changelogs": [
+        "CHANGELOG.md"
+      ]
+    },
+    {
+      "repo": "portage",
+      "worklogs": [],
+      "changelogs": [
+        "CHANGELOG.md"
+      ]
+    },
+    {
+      "repo": "rich-cli-kit",
+      "worklogs": [],
+      "changelogs": [
+        "CHANGELOG.md"
+      ]
+    },
+    {
+      "repo": "rust",
+      "worklogs": [],
+      "changelogs": []
+    },
+    {
+      "repo": "services",
+      "worklogs": [],
+      "changelogs": []
+    },
+    {
+      "repo": "src",
+      "worklogs": [],
+      "changelogs": []
+    },
+    {
+      "repo": "tests",
+      "worklogs": [],
+      "changelogs": []
+    },
+    {
+      "repo": "thegent",
+      "worklogs": [
+        "WORKLOG.md"
+      ],
+      "changelogs": [
+        "CHANGELOG.md"
+      ]
+    },
+    {
+      "repo": "thegent-clean",
+      "worklogs": [
+        "WORKLOG.md"
+      ],
+      "changelogs": [
+        "CHANGELOG.md"
+      ]
+    },
+    {
+      "repo": "thegent-dispatch",
+      "worklogs": [],
+      "changelogs": [
+        "CHANGELOG.md"
+      ]
+    },
+    {
+      "repo": "thegent-fresh",
+      "worklogs": [],
+      "changelogs": []
+    },
+    {
+      "repo": "thegent-jsonl",
+      "worklogs": [],
+      "changelogs": []
+    },
+    {
+      "repo": "thegent-workspace",
+      "worklogs": [],
+      "changelogs": [
+        "CHANGELOG.md"
+      ]
+    },
+    {
+      "repo": "tooling",
+      "worklogs": [],
+      "changelogs": []
+    },
+    {
+      "repo": "vendor",
+      "worklogs": [],
+      "changelogs": []
+    },
+    {
+      "repo": "vibeproxy",
+      "worklogs": [],
+      "changelogs": [
+        "CHANGELOG.md"
+      ]
+    },
+    {
+      "repo": "vibeproxy-monitoring-unified",
+      "worklogs": [],
+      "changelogs": [
+        "CHANGELOG.md"
+      ]
+    }
+  ]
+}

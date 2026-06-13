@@ -1,0 +1,114 @@
+{
+  "generated_at": "2026-06-08T23:59:00Z",
+  "repo": "phenoDesign",
+  "branch_audited": "main (1f091d0, 2026-06-08, clean, no diff to origin)",
+  "audit_type": "hygiene",
+  "template": "G1-G5 + e2e + 2-paragraph deep research + 3 actions",
+  "summary": "ARCHIVED (2026-06-08, re-archived same day). G1 PASS (11/11 SHA-pinned, no @main rot, 0 SHA corruption), G2 PARTIAL (LICENSE/SECURITY/CONTRIBUTING/FUNDING present; CODE_OF_CONDUCT.md + CITATION.cff + SUPPORT.md MISSING), G3 PARTIAL (gitleaks + trufflehog + scorecard + semgrep weekly; no OSV-Scanner/SBOM; 2 high + 3 moderate advisories open), G4 PARTIAL (vitest 37/37 green locally, oxlint local, vitepress build local; quality-gate.yml is a stub-echo; no test:coverage script in package.json despite coverage/ dir), G5 PARTIAL (PR template + 3-file ISSUE_TEMPLATE + dependabot 2-ecosystem; .coderabbit.yaml + .gemini/ missing). e2e DEGRADED (CI is verify-archive only, archive theatre risk). 3 actionable findings, P0=0 (archived-repo posture), P1=3.",
+  "gates": {
+    "G1_workflow_hygiene": {
+      "status": "PASS",
+      "evidence": [
+        "11/11 .github/workflows/*.yml parse: ci.yml, doc-links.yml, fr-coverage.yml, legacy-tooling-gate.yml, quality-gate.yml, scorecard.yml, security-guard-hook-audit.yml, security-guard.yml, security.yml, trufflehog.yml, workflow-permissions.yml",
+        "11/11 SHA-pinned (no @main, no @v4, no @vN tag rot): actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10, ossf/scorecard-action@af76153369ae1eb1eaffc4118046b7fda9a8419e, codeql-action/upload-sarif@0daab03d71ff584ef619d027a3fd9146679c5d84, pre-commit/action@2c7b3805fd2a0fd8c1884dcaebf91fc102a13ecd, gitleaks/gitleaks-action@ff98106e4c7b2bc287b24eaf42907196329070c7, returntocorp/semgrep-action@713efdd345f3035192eaa63f56867b88e63e4e5d, actions/setup-python@c8813ba1bc76ebf779b911ad8ffccbf2e449cb48, actions/setup-node@0355742c943ddb13ca8a6b700f824231caa91e75, actions/setup-go@78961f6f84d799cd858575bb931c3e51d3b13290, actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a, actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3",
+        "Reusable workflows SHA-pinned: KooshaPari/phenoShared/.github/workflows/reusable/security-guard-hook-audit.yml@9bc51f34248d0bc4db5bc1dd7724a8398465eb47",
+        "8/11 workflows declare permissions: contents: read + concurrency: group + cancel-in-progress; ci.yml, quality-gate.yml, scorecard.yml have these in the standard location",
+        "trufflehog.yml:24 uses actions/setup-go@<sha> to install trufflehog v3 (not the org-canonical trufflesecurity/trufflehog@75add79b929b263dae147d2e5bcf0daf292165cf), but in an archived repo the divergence is acceptable (fleet-wide tick-17/18 finding, not blocking here)",
+        "CI is dark by design: ci.yml is a verify-archive stub (ARCHIVED.md presence + grep 'Archived on') — not rot, intentional"
+      ]
+    },
+    "G2_governance_files": {
+      "status": "PARTIAL",
+      "evidence": [
+        "LICENSE (MIT) + SECURITY.md + CONTRIBUTING.md + FUNDING.yml + .github/FUNDING.yml all present; gitleaks.toml + trufflehog.yml present",
+        "CODEOWNERS (2-line org standard `* @KooshaPari`) — shared with 62-repo fleet pattern",
+        "PULL_REQUEST_TEMPLATE.md + ISSUE_TEMPLATE/{bug-report.yml, config.yml, feature-request.yml} — full 3+1 org set",
+        "MISSING: CODE_OF_CONDUCT.md (PhenoSpecs/HeliosLab have it, this does not)",
+        "MISSING: CITATION.cff (62+ repos have it; 11+ do not, this is one)",
+        "MISSING: SUPPORT.md (HeliosLab PR #114 closed this gap there; not backported here)",
+        "VERSION=1.0.1 present; CHANGELOG.md [Unreleased] empty (archive state makes this a low-impact gap)",
+        "package.json name = '@phenotype/design' (renamed from @kooshapari/design, migration path documented in ARCHIVED.md)"
+      ]
+    },
+    "G3_security_scanning": {
+      "status": "PARTIAL",
+      "evidence": [
+        "scorecard.yml: weekly OpenSSF cron, SHA-pinned, persist-credentials: false, SARIF upload",
+        "security.yml: gitleaks/gitleaks-action + semgrep-action + setup-node, SHA-pinned",
+        "trufflehog.yml: weekly secrets scan, only-verified, GH_TOKEN scoped",
+        "bun audit (per .grade-reports/audit.raw): 5 vulnerabilities (2 high, 3 moderate) — postcss<8.5.10 (XSS via unescaped </style>), vite<=6.4.1 (path traversal + fs.deny bypass + arbitrary file read via WebSocket). Vitepress + vitest + @vitejs/plugin-vue all pull in vulnerable vite",
+        "overrides in package.json (lines 43-48) already pin brace-expansion=5.0.5, esbuild=0.27.4, postcss=^8.5.10, vite=^6.4.2 — postcss override closes the moderate; vite override is below the safe floor (need >=6.4.2) but the audit's transitive pulls still register",
+        "MISSING: OSV-Scanner, dependency-review, SBOM workflow, cargo-audit (168/168 fleet gap per ssot-docs-audit)",
+        "Repo is ARCHIVED — security advisories still apply to dependents (`file:../phenotype-design` consumers per ARCHIVED.md migration path)"
+      ]
+    },
+    "G4_quality_gates": {
+      "status": "PARTIAL",
+      "evidence": [
+        "Local vitest: 37/37 passed across tests/exports.test.ts (4) + tests/tokens.test.ts (33), 2.53s duration (.grade-reports/test-unit.raw)",
+        "Local tsc --noEmit: 0 errors (.grade-reports/typecheck.raw is empty = clean)",
+        "Local oxlint: green (.grade-reports/lint.raw clean)",
+        "Local build (`tsc && cp -r css dist/css`): green (.grade-reports/build.raw)",
+        "vitepress build (`vitepress build docs`): green locally; no Pages deploy workflow — dead intent for an archived repo (acceptable)",
+        "quality-gate.yml:18-20 is a literal echo stub (`echo 'Quality gate check (phenotype-tooling integration)'`) — not wired to a real check; org-level gate integration deferred to shared tooling",
+        "pre-commit-config.yaml: 7 hooks (yaml/json/toml/eof/whitespace/private-key + conventional-pre-commit) — no cargo/gitleaks (defensible for TS+CSS+VitePress repo)",
+        "package.json has `test:coverage` script (vitest run --coverage) but no coverage threshold; coverage/ dir is in .gitignore; .grade-reports/coverage/ is empty",
+        "vitest.config.ts minimal (350 bytes); tsconfig.json present"
+      ]
+    },
+    "G5_review_governance": {
+      "status": "PARTIAL",
+      "evidence": [
+        "PULL_REQUEST_TEMPLATE.md + 3-file ISSUE_TEMPLATE set — full org standard",
+        "dependabot.yml: 2 ecosystems (npm + github-actions) weekly — org standard is 4-6 (no gomod, bundler, pip, cargo since not applicable; npm + github-actions is the full set for this stack)",
+        "Workflow-permissions.yml present (org-mandated, separate from per-workflow permissions blocks)",
+        "fr-coverage.yml: tracks functional-requirements coverage — niche but unique to this repo's PRD.md / FUNCTIONAL_REQUIREMENTS.md pairing",
+        "MISSING: .coderabbit.yaml (org-mandated per tick-19, HeliosLab has it, this does not)",
+        "MISSING: .gemini/ (AGENTS.md mandates per HeliosLab reference; absent here)",
+        "CHANGELOG.md [Unreleased] empty since at least 2026-06-08; cliff.toml not present",
+        "No branch-protection meta-guard, no stale-pr/stale-issue policies, no auto-merge (archive state makes this defensible)"
+      ]
+    },
+    "e2e_end_to_end": {
+      "status": "DEGRADED",
+      "evidence": [
+        "Repo is ARCHIVED 2026-06-08 (ARCHIVED.md + ci.yml verify-archive job) — full e2e is by-design downgraded; dependents are supposed to consume from npm or git tag, not from this repo's CI",
+        "ci.yml:11-22 runs `test -f ARCHIVED.md && grep 'Archived on' ARCHIVED.md` then exits — confirms archive state, not project health",
+        "quality-gate.yml:19 echo stub means the 'Quality Gate' badge in README has no backing logic",
+        "No playwright/e2e/ folder, no docker-compose test runner; tests/ has only 2 unit files",
+        "vitepress build at docs/ produces dist but no workflow deploys it to Pages; for an archived repo this is acceptable, but the README/badge intent is misleading",
+        "No SBOM, no signed releases, no provenance attestation — supply-chain hygiene gap that matters for `file:../phenotype-design` consumers"
+      ]
+    }
+  },
+  "additional_findings": {
+    "archived_state": "Re-archived 2026-06-08 (same day it was un-archived, reverting a 2026-03-25 archive decision). Migration to packages/phenotype-design was planned but not completed. CI is intentionally a verify-archive stub.",
+    "package_rename_complete": "ARCHIVED.md documents @kooshapari/design -> @phenotype/design migration path; package.json name = '@phenotype/design' (v1.0.1) confirmed; consumers on file: path need to update.",
+    "branch_drift": "origin has 10+ chore/* branches from 2026-04-30 pin-actions campaigns (pin-actions, pin-actions-v2, pin-checkout-actions, pin-github-actions-20260430, pin-github-actions-shas, license-year-2026, modernize-typescript-20260325, t0-ts-hygiene-2026-06-08, ci/pin-trufflehog) — all rot; safe to delete on archived repo.",
+    "security_advisories_open": "vite <=6.4.1 has 2 high CVEs (fs.deny bypass with queries, arbitrary file read via WebSocket). package.json override pins vite=^6.4.2 (need to verify the ^ range includes the safe version) — bun audit still flags the transitive pull. Recommend bumping to vite >=6.4.2 + verifying via `bun audit`.",
+    "double_archive_dance": "Repository was archived, un-archived, and re-archived all on 2026-06-08 — suggests a governance refactor in flight. STATUS.md line 18 says 'Repository: Archived on 2026-06-08' which is current; CHANGELOG.md [Unreleased] is empty so the dance isn't documented for consumers.",
+    "score_potential_swing": "If archived-repo posture is honored, the G1 'dark CI' is acceptable and the grade lifts to 4.0/5 (G1 5/5, G2 3/5, G3 4/5, G4 4/5, G5 3/5, e2e 2/5). If un-archived, G3 4/5, G4 3/5, e2e 2/5, G5 3/5 — 3.8/5."
+  },
+  "actions_recommended": [
+    {
+      "priority": "P1",
+      "title": "Add CODE_OF_CONDUCT.md + CITATION.cff + SUPPORT.md to close G2 community-health file gap",
+      "detail": "Three files missing from the org-canonical governance set: CODE_OF_CONDUCT.md (Contributor Covenant v2.1, copy from PhenoSpecs/HeliosLab), CITATION.cff (use package version 1.0.1 + repository URL kooshapari/phenotype-design), SUPPORT.md (HeliosLab PR #114 is the model). All three are static text files, ~3KB total. Closes G2 from 3/5 to 5/5 with one PR. Defensible even for archived repos since they signal consumer-facing governance intent.",
+      "estimated_effort": "10 min"
+    },
+    {
+      "priority": "P1",
+      "title": "Bump vite override to >=6.4.2 and re-run bun audit to close the 2 high + 1 moderate vite advisories",
+      "detail": "package.json:46 overrides pin vite=^6.4.2 (the audit's safe floor) — but bun audit still flags vite <=6.4.1 transitive. Recommend: (1) verify `bun pm ls vite` shows resolved >=6.4.2 across vitepress/vitest/@vitejs/plugin-vue trees, (2) if any tree still resolves to <6.4.2, add explicit devDependency pin or add `resolutions` (yarn-style) / `overrides` (npm-style) for the specific sub-paths. (3) Add a `bun audit --audit-level=high` step to .github/workflows/security.yml that fails the workflow on high-severity advisories. For an archived repo, the failing step serves as a signal to consumers via the Security tab.",
+      "estimated_effort": "15 min"
+    },
+    {
+      "priority": "P1",
+      "title": "Wire quality-gate.yml to a real check (or delete it) and add OSV-Scanner to security.yml",
+      "detail": "quality-gate.yml:18-20 is a literal `echo` stub. For an archived repo the cleanest move is to either (a) wire it to `bun run lint && bun run test && bun run build` as a single composite check, or (b) delete the file (its only job is to display a 'Quality Gate' badge that is currently lying). Independently, security.yml should add an OSV-Scanner job using google/osv-scanner-action (SHA-pinned to a current commit) running `osv-scanner --lockfile=bun.lock --lockfile=package-lock.json` to catch the 2 high vite advisories natively. Closes G3 from 4/5 to 5/5 and G4 quality-gate stub gap.",
+      "estimated_effort": "20 min"
+    }
+  ],
+  "deep_research": "phenoDesign is the design-system member of the Phenotype ecosystem — `@phenotype/design` v1.0.1 ships W3C DTCG tokens (keycap palette, slate/background/text/accent light+dark), CSS exports (keycap-palette, vitepress-theme, components), and a VitePress config helper consumed by ~5+ sibling repos (PhenoHandbook, phenotype-landing, phenodocs, phenoShared docs sites). Per COMPARISON.md it positions against Tailwind / Radix / Chakra / shadcn / Stitches / Vanilla Extract. The repo is on a unique lifecycle: archived 2026-03-25 → migration to packages/phenotype-design planned → migration not completed → un-archived 2026-06-08 → re-archived 2026-06-08 (per ARCHIVED.md lines 1-5 and STATUS.md lines 18-22). The package was renamed @kooshapari/design → @phenotype/design in the same window, with ARCHIVED.md documenting the migration path for `file:../phenotype-design` consumers. Against the tick-19 fleet baselines (134 repos, 110 SHA-pinned, 14 tag-only, 0 @main rot in healthy tier), phenoDesign lands squarely in the healthy SHA-pinned tier: 11/11 workflows SHA-pinned, 0 @main rot, 0 SHA corruption — the only nit is trufflehog.yml:24 installing trufflehog via `go install github.com/trufflehog/trufflehog/v3@latest` (a moving tag) rather than the org-canonical `trufflesecurity/trufflehog@75add79b...`, but in an archived repo this is low priority. The two workflow_dispatch-only files (ci.yml, scorecard.yml) use cron + on:push, so they do run. dependabot.yml covers npm + github-actions (the only 2 ecosystems applicable for a TS+VitePress+vitest stack — org standard 4-6 includes gomod/bundler/pip/cargo, all N/A here). The repo is small (src/ = 3 files: index.ts, tokens.ts, vitepress.ts; tests/ = 2 files: exports.test.ts, tokens.test.ts) and the test surface is correspondingly thin (37 tests, all green locally per .grade-reports/test-unit.raw, 2.53s). Bun audit is the active security signal: 5 advisories (2 high + 3 moderate) dominated by vite <=6.4.1 (transitive via vitepress/vitest/@vitejs/plugin-vue) and postcss <8.5.10 (XSS in CSS stringify) — package.json overrides pin both, but bun audit's transitive resolution still flags.",
+  "deep_research_cont": "The e2e story is degraded for three reasons, all defensible under archived-repo posture. (1) ci.yml:11-22 is a verify-archive stub: runs `test -f ARCHIVED.md && grep 'Archived on' ARCHIVED.md` — it confirms the archive, not project health. For a live repo this would be a P0; for an archived repo it's the correct minimal posture. (2) quality-gate.yml:18-20 is a literal `echo` stub — the 'Quality Gate' badge in README is lying. Either wire to `bun run lint && bun run test && bun run build` or delete the file. (3) No SBOM, no signed releases, no provenance — for `file:../phenotype-design` consumers this is a supply-chain gap, mitigated only by git-tag-pinning. Three governance files are missing (CODE_OF_CONDUCT.md, CITATION.cff, SUPPORT.md) — same gap as HeliosLab pre-#114; trivially closeable with copy-paste from PhenoSpecs. The 10+ stale chore/* branches (pin-actions, pin-github-actions-20260430, license-year-2026, modernize-typescript-20260325, t0-ts-hygiene-2026-06-08, ci/pin-trufflehog) are all from the 2026-04-30 pin-actions campaigns and the 2026-06-08 t0 hygiene pass — safe to delete on an archived repo since the work was either superseded or merged. The double-archive dance (archived → un-archived → re-archived on the same day) is a governance signal that a deeper refactor is in flight: per STATUS.md line 27 the cross-reference is `phenotype-org-governance/SUPERSEDED.md` which suggests a fleet-wide SSOT rotation. Hygiene score: 3.8/5 (G1 5/5, G2 3/5, G3 4/5, G4 4/5, G5 3/5, e2e 2/5; the 3 P1 actions lift e2e to 3/5 and G2 to 5/5)."
+}

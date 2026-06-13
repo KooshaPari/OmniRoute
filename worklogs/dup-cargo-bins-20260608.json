@@ -1,0 +1,702 @@
+{
+  "generated_at": "2026-06-08T09:52:28.529798Z",
+  "total_repos": 77,
+  "near_duplicate_bins": [
+    {
+      "bin_name": "agentkit",
+      "repos": [
+        "Agentora",
+        "McpKit"
+      ]
+    },
+    {
+      "bin_name": "agileplus",
+      "repos": [
+        "pheno",
+        "PhenoDevOps",
+        "Pyron"
+      ]
+    },
+    {
+      "bin_name": "agileplus-agent-service",
+      "repos": [
+        "HexaKit",
+        "pheno",
+        "PhenoDevOps",
+        "Pyron"
+      ]
+    },
+    {
+      "bin_name": "apply_patch",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "bin_name": "audit-md-structure",
+      "repos": [
+        "thegent",
+        "thegent-clean",
+        "thegent-clean-wt-docs",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "bin_name": "bare-cua-native",
+      "repos": [
+        "bare-cua",
+        "PlayCua"
+      ]
+    },
+    {
+      "bin_name": "codex",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "bin_name": "codex-app-server",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "bin_name": "codex-command-runner",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "bin_name": "codex-exec",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "bin_name": "codex-execpolicy",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "bin_name": "codex-execpolicy-legacy",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "bin_name": "codex-execve-wrapper",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "bin_name": "codex-file-search",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "bin_name": "codex-linux-sandbox",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "bin_name": "codex-mcp-server",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "bin_name": "codex-responses-api-proxy",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "bin_name": "codex-stdio-to-uds",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "bin_name": "codex-tui",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "bin_name": "codex-windows-sandbox-setup",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "bin_name": "codex-write-config-schema",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "bin_name": "commit-msg-check",
+      "repos": [
+        "FocalPoint",
+        "phenotype-tooling",
+        "tooling"
+      ]
+    },
+    {
+      "bin_name": "complexity-ratchet",
+      "repos": [
+        "thegent",
+        "thegent-clean",
+        "thegent-clean-wt-docs",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "bin_name": "disk-check",
+      "repos": [
+        "FocalPoint",
+        "tooling"
+      ]
+    },
+    {
+      "bin_name": "doc-link-check",
+      "repos": [
+        "FocalPoint",
+        "phenotype-tooling",
+        "tooling"
+      ]
+    },
+    {
+      "bin_name": "focalpoint-fetch-assets",
+      "repos": [
+        "crates",
+        "FocalPoint"
+      ]
+    },
+    {
+      "bin_name": "focalpoint-icon-gen",
+      "repos": [
+        "crates",
+        "FocalPoint"
+      ]
+    },
+    {
+      "bin_name": "focalpoint-mcp-server",
+      "repos": [
+        "crates",
+        "FocalPoint"
+      ]
+    },
+    {
+      "bin_name": "focalpoint-webhook-server",
+      "repos": [
+        "crates",
+        "FocalPoint"
+      ]
+    },
+    {
+      "bin_name": "focus",
+      "repos": [
+        "crates",
+        "FocalPoint"
+      ]
+    },
+    {
+      "bin_name": "focus-ci-watcher",
+      "repos": [
+        "crates",
+        "FocalPoint"
+      ]
+    },
+    {
+      "bin_name": "fr-coverage",
+      "repos": [
+        "FocalPoint",
+        "phenotype-tooling",
+        "tooling"
+      ]
+    },
+    {
+      "bin_name": "harness-cache-key",
+      "repos": [
+        "thegent",
+        "thegent-clean",
+        "thegent-clean-wt-docs",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "bin_name": "harness-is-agent",
+      "repos": [
+        "thegent",
+        "thegent-clean",
+        "thegent-clean-wt-docs",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "bin_name": "helios",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "bin_name": "helios-shield",
+      "repos": [
+        "thegent",
+        "thegent-clean",
+        "thegent-clean-wt-docs",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "bin_name": "phenotype-daemon",
+      "repos": [
+        "Agentora",
+        "PhenoAgent"
+      ]
+    },
+    {
+      "bin_name": "phenotype-forge",
+      "repos": [
+        "PhenoDevOps",
+        "phenoForge"
+      ]
+    },
+    {
+      "bin_name": "phenotype-journey",
+      "repos": [
+        "Paginary",
+        "phenotype-journeys"
+      ]
+    },
+    {
+      "bin_name": "post-edit-checker",
+      "repos": [
+        "thegent",
+        "thegent-clean",
+        "thegent-clean-wt-docs",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "bin_name": "pre-write-validator",
+      "repos": [
+        "thegent",
+        "thegent-clean",
+        "thegent-clean-wt-docs",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "bin_name": "qa-policy-test",
+      "repos": [
+        "thegent",
+        "thegent-clean",
+        "thegent-clean-wt-docs",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "bin_name": "quality-gate",
+      "repos": [
+        "FocalPoint",
+        "phenotype-tooling",
+        "thegent",
+        "thegent-clean",
+        "thegent-clean-wt-docs",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff",
+        "tooling"
+      ]
+    },
+    {
+      "bin_name": "release-cut",
+      "repos": [
+        "FocalPoint",
+        "phenotype-tooling",
+        "tooling"
+      ]
+    },
+    {
+      "bin_name": "rtm-services",
+      "repos": [
+        "thegent",
+        "thegent-clean"
+      ]
+    },
+    {
+      "bin_name": "runtime-dispatch",
+      "repos": [
+        "thegent",
+        "thegent-clean",
+        "thegent-clean-wt-docs",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "bin_name": "sbom-gen",
+      "repos": [
+        "FocalPoint",
+        "phenotype-tooling",
+        "tooling"
+      ]
+    },
+    {
+      "bin_name": "security-pipeline",
+      "repos": [
+        "thegent",
+        "thegent-clean",
+        "thegent-clean-wt-docs",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "bin_name": "smoke",
+      "repos": [
+        "FocalPoint",
+        "tests"
+      ]
+    },
+    {
+      "bin_name": "spec-verifier",
+      "repos": [
+        "thegent",
+        "thegent-clean",
+        "thegent-clean-wt-docs",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "bin_name": "stop-reconcile",
+      "repos": [
+        "thegent",
+        "thegent-clean",
+        "thegent-clean-wt-docs",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "bin_name": "target-pruner",
+      "repos": [
+        "FocalPoint",
+        "tooling"
+      ]
+    },
+    {
+      "bin_name": "task-completion-verifier",
+      "repos": [
+        "thegent",
+        "thegent-clean",
+        "thegent-clean-wt-docs",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "bin_name": "thegent-agent",
+      "repos": [
+        "thegent",
+        "thegent-clean",
+        "thegent-clean-wt-docs",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "bin_name": "thegent-benchmark",
+      "repos": [
+        "thegent",
+        "thegent-clean",
+        "thegent-clean-wt-docs",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "bin_name": "thegent-discovery",
+      "repos": [
+        "thegent",
+        "thegent-clean",
+        "thegent-clean-wt-docs",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "bin_name": "thegent-docs",
+      "repos": [
+        "thegent",
+        "thegent-clean",
+        "thegent-clean-wt-docs",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "bin_name": "thegent-find",
+      "repos": [
+        "thegent",
+        "thegent-clean",
+        "thegent-clean-wt-docs",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "bin_name": "thegent-fs",
+      "repos": [
+        "thegent",
+        "thegent-clean",
+        "thegent-clean-wt-docs",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "bin_name": "thegent-git",
+      "repos": [
+        "thegent",
+        "thegent-clean",
+        "thegent-clean-wt-docs",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "bin_name": "thegent-git-checkout",
+      "repos": [
+        "thegent",
+        "thegent-clean",
+        "thegent-clean-wt-docs",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "bin_name": "thegent-grep",
+      "repos": [
+        "thegent",
+        "thegent-clean",
+        "thegent-clean-wt-docs",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "bin_name": "thegent-hooks",
+      "repos": [
+        "thegent",
+        "thegent-clean",
+        "thegent-clean-wt-docs",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "bin_name": "thegent-jsonl",
+      "repos": [
+        "thegent",
+        "thegent-clean",
+        "thegent-clean-wt-docs",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "bin_name": "thegent-monitor",
+      "repos": [
+        "thegent",
+        "thegent-clean",
+        "thegent-clean-wt-docs",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "bin_name": "thegent-offload",
+      "repos": [
+        "thegent",
+        "thegent-clean",
+        "thegent-clean-wt-docs",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "bin_name": "thegent-resources",
+      "repos": [
+        "thegent",
+        "thegent-clean",
+        "thegent-clean-wt-docs",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "bin_name": "thegent-shims",
+      "repos": [
+        "thegent",
+        "thegent-clean",
+        "thegent-clean-wt-docs",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "bin_name": "thegent-shm",
+      "repos": [
+        "thegent",
+        "thegent-clean",
+        "thegent-clean-wt-docs",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "bin_name": "thegent-tool-detect",
+      "repos": [
+        "thegent",
+        "thegent-clean",
+        "thegent-clean-wt-docs",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "bin_name": "thegent-tui",
+      "repos": [
+        "thegent",
+        "thegent-clean",
+        "thegent-clean-wt-docs",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "bin_name": "uniffi-bindgen",
+      "repos": [
+        "crates",
+        "eyetracker",
+        "FocalPoint"
+      ]
+    },
+    {
+      "bin_name": "wl138-decomposition-progress",
+      "repos": [
+        "thegent",
+        "thegent-clean",
+        "thegent-clean-wt-docs",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "bin_name": "wtm",
+      "repos": [
+        "PhenoProc",
+        "phenotype-tooling",
+        "PhenoVCS"
+      ]
+    }
+  ]
+}

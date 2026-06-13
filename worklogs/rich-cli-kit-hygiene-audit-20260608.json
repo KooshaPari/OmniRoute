@@ -1,0 +1,94 @@
+{
+  "generated_at": "2026-06-08T23:58:00Z",
+  "repo": "rich-cli-kit",
+  "branch_audited": "main (a83f352, ahead 0 of origin/main)",
+  "audit_type": "hygiene",
+  "template": "G1-G5 + e2e + 2-paragraph deep research + 3 actions",
+  "summary": "G1 FAIL: 6/12 workflows have `actions/checkout11bd...` (missing `@` symbol) — every checkouts fails to resolve. G3 PARTIAL: trufflehog pinned to tag, not SHA (tick-17 rot). G4 FAIL: no real `cargo test`/`cargo clippy` job anywhere; only echo stubs with `continue-on-error: true`. G2/G5/e2e otherwise solid. 3 actionable findings, P0=1.",
+  "gates": {
+    "G1_workflow_hygiene": {
+      "status": "FAIL",
+      "evidence": [
+        "6/12 workflows have malformed `uses: actions/checkout11bd71901bbe5b1630ceea73d27597364c9af683` (missing `@` between action name and SHA) — line refs: cargo-machete.yml:21, cargo-semver-checks.yml:16, doc-links.yml:11, fr-coverage.yml:11, quality-gate.yml:12, scorecard.yml:26. Every one of these jobs is non-functional: GitHub resolves the literal string `actions/checkout11bd...` and fails with 'Could not find action'.",
+        "6/12 correct (with `@`): cargo-audit.yml:24, cargo-deny.yml:23 (uses v6 SHA `de0fac2e4500dabe0009e67214ff5f5447ce83dd`, drift from v4 SHAs in the other 11), codeql-rust.yml:27, codeql.yml:31, journey-gate.yml:62, trufflehog.yml:15.",
+        "No 'Not Found' JSON corruption and no `$123...125` expression rot (this repo is clean of the tick-22 corruption pattern).",
+        "No trufflehog/actions rot (fixed per PR #41) — but trufflehog.yml:17 still uses `trufflesecurity/trufflehog@v3.88.27` (mutable tag, not SHA-pinned).",
+        "Permissions block missing in 8/12 workflows: cargo-deny, cargo-machete, cargo-semver-checks, doc-links, fr-coverage, journey-gate, quality-gate, trufflehog. Concurrency declared in 12/12 (good)."
+      ]
+    },
+    "G2_governance_files": {
+      "status": "PASS",
+      "evidence": [
+        "LICENSE (MIT), CODE_OF_CONDUCT.md, CONTRIBUTING.md, SECURITY.md, FUNDING.yml, CITATION.cff all present.",
+        ".github/CODEOWNERS present with @KooshaPari default + .github/workflows/ rule (correct location, not at root).",
+        ".github/PULL_REQUEST_TEMPLATE.md (org-stub) + ISSUE_TEMPLATE/{bug_report.md, config.yml, feature_request.md} (org-standard 3-file set).",
+        "SUPPORT.md MISSING (only org-mandated community-health file gap).",
+        "AGENTS.md header matches repo name `rich-cli-kit`; module path consistent. No naming drift."
+      ]
+    },
+    "G3_security_scanning": {
+      "status": "PARTIAL",
+      "evidence": [
+        "trufflehog.yml: present (push+pull_request) but uses `trufflesecurity/trufflehog@v3.88.27` (tag, not SHA) — tick-17 SHA-pinning rot. Org-canonical SHA: `75add79b929b263dae147d2e5bcf0daf292165cf`.",
+        "scorecard.yml: cron 17 3 * * 6, permissions: read-all, security-events/id-token write — well-shaped.",
+        "codeql-rust.yml: cron 17 4 * * 2, matrix `rust` only (correct for a Rust-only repo). CodeQL-Python `codeql.yml` also present (covers mcp/ Python subdir).",
+        "cargo-audit.yml: cron 0 2 * * 3, push to main, PR — but no permissions block.",
+        "cargo-deny.yml: cron present (per STATUS.md), no `permissions:` (G1c).",
+        "Renovate (renovate.json5) + Dependabot (dependabot.yml) BOTH configured for cargo + github-actions ecosystems (redundant but not broken)."
+      ]
+    },
+    "G4_quality_gates": {
+      "status": "FAIL",
+      "evidence": [
+        "NO workflow runs `cargo test`, `cargo build`, `cargo clippy -- -D warnings`, or `cargo fmt --check`. The full local CI sweep is in justfile (line 39: `ci: lint test audit unused`) and Taskfile.yml (task: ci), but neither runs in CI.",
+        "quality-gate.yml:12-13 has the broken checkout + a single `run: echo \"Quality gate check (phenotype-tooling integration)\"` step with `continue-on-error: true`. Pure stub.",
+        "fr-coverage.yml:10-11 same pattern: broken checkout + `echo \"FR coverage check...\"` stub. No FR mapping anywhere.",
+        "doc-links.yml: broken checkout only.",
+        "Pre-commit (.pre-commit-config.yaml) calls `cargo fmt` (via doublify/pre-commit-rust) and `cargo check` locally — but not clippy. justfile/Taskfile are the only real test/lint runners and they run client-side only.",
+        "deny.toml + clippy.toml + rustfmt.toml + rust-toolchain.toml (stable + clippy + rustfmt components) all present — config is good, just no CI job wires them."
+      ]
+    },
+    "G5_review_governance": {
+      "status": "PARTIAL",
+      "evidence": [
+        "renovate.json5 + dependabot.yml: cargo (weekly Tuesday) + github-actions (weekly Monday).",
+        "PULL_REQUEST_TEMPLATE.md: org-stub with Summary/Type-of-Change/Testing/Documentation sections.",
+        "ISSUE_TEMPLATE/: 3-file org set (bug_report.md, config.yml, feature_request.md).",
+        ".coderabbit.yaml MISSING (org-mandated). .gemini/ MISSING (org-mandated).",
+        "CHANGELOG.md present (cliff.toml uses git-cliff). cliff.toml:1 looks well-formed.",
+        "Local main 0 commits ahead of origin/main (a83f352 = 'docs: add one-line install to README #43'). Clean working tree."
+      ]
+    },
+    "e2e_end_to_end": {
+      "status": "DEGRADED",
+      "evidence": [
+        "tests/smoke_test.rs:9-14 is a single `#[test] fn smoke_test() { assert_eq!(2+2, 4, ...) }` — does not exercise rck-core or rck-cli. No unit tests inside crates/rck-core/src/*.rs or crates/rck-cli/src/main.rs (no `#[cfg(test)]` blocks found in 1891 LOC of source).",
+        "mcp/tests/test_rck_wrapper.py: exists (Python wrapper test) but no pytest step in any CI workflow.",
+        "No e2e/ or integration/ subdirs. No harness, no golden-output, no kitty-graphics-protocol fixture tests.",
+        "Consequence: the only 'CI' that runs is scorecard + codeql + trufflehog + cargo-audit/deny/machete/semver — all of which compile but don't run any test. Build correctness is unverified in CI."
+      ]
+    }
+  },
+  "actions_recommended": [
+    {
+      "priority": "P0",
+      "title": "Restore the missing `@` in 6/12 workflow files where `actions/checkout<sha>` is missing the separator",
+      "detail": "Files: cargo-machete.yml:21, cargo-semver-checks.yml:16, doc-links.yml:11, fr-coverage.yml:12, quality-gate.yml:12, scorecard.yml:26. The literal string `actions/checkout11bd71901bbe5b1630ceea73d27597364c9af683` is not a valid `uses:` ref — must be `actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683`. Once restored, every workflow resolves. Cargo-deny.yml:23 uses a different SHA (`de0fac2e...`) labelled v6 — verify it's the org-canonical v6 SHA before merging; if not, normalize to v4 `11bd71901bbe5b1630ceea73d27597364c9af683` for consistency.",
+      "estimated_effort": "5 min: sed -i '' 's|actions/checkout11bd|actions/checkout@11bd|g' on 6 files, then `actionlint` or push + watch the green CI"
+    },
+    {
+      "priority": "P1",
+      "title": "Pin trufflehog action to the org-canonical SHA and add a real Rust CI job (cargo test + cargo clippy -D warnings)",
+      "detail": "trufflehog.yml:17 — replace `trufflesecurity/trufflehog@v3.88.27` with `trufflesecurity/trufflehog@75add79b929b263dae147d2e5bcf0daf292165cf` (org-canonical per tick-17 SSOT). Then add a new `ci.yml` that runs the sweep that justfile:39 already defines: `cargo fmt --check && cargo clippy --workspace --all-targets -- -D warnings && cargo test --workspace --all-features`. This is the missing gate — without it, the repo has no test coverage in CI at all (smoke_test.rs is `2+2=4`; no other tests exist in 1891 LOC of source).",
+      "estimated_effort": "45 min: 1-line SHA swap + 40-line new ci.yml that mirrors the justfile ci target"
+    },
+    {
+      "priority": "P1",
+      "title": "Add SUPPORT.md, .coderabbit.yaml, and .gemini/ to close the org-mandated community-health gap",
+      "detail": "Per the audit pattern in argis-extensions and phenodocs, the three org-mandated files missing here are SUPPORT.md (12-line org-stub), .coderabbit.yaml (review-bot config with path filters and tool allowlist), and .gemini/config.yaml. Also add `permissions: read-all` (or a per-job permissions block) to the 8/12 workflows currently missing it (cargo-deny, cargo-machete, cargo-semver-checks, doc-links, fr-coverage, journey-gate, quality-gate, trufflehog). The mcp/ Python subproject would also benefit from a `mcp/.github/workflows/python-ci.yml` running `pytest mcp/tests/` — currently zero Python CI exists.",
+      "estimated_effort": "30 min: 3 stub files + permissions-block sed + 1 new mcp python-ci workflow"
+    }
+  ],
+  "deep_research": "Rich-cli-kit is a small but well-shaped Rust workspace (Cargo.toml:6 rust-version=1.75, edition 2021) that ships two crates — `rck-core` (capability detection + kitty-graphics encoder, 11 files, ~1.6k LOC) and `rck-cli` (clap-driven `rck` binary with subcommands detect | image | progress | panel | demo) — plus a Python FastMCP server in `mcp/rich_cli_mcp/` (rck.py + server.py) and a `shaders/` directory. It is the visual-output counterpart to the phenotype-* repos that focus on data and orchestration, and the architecture is sound: kitty-graphics-protocol emit falls back to plain ASCII, MCP exposure is one-to-one with the CLI surface, and rust-toolchain.toml pins stable + clippy + rustfmt. Compared to its peers (PhenoKits, phenodocs, PhenoRuntime), rich-cli-kit has the cleanest naming/identity (AGENTS.md, repo, and module path all agree on `rich-cli-kit`; no bifrost-style drift) and the smallest community-health gap (only SUPPORT.md, .coderabbit.yaml, .gemini/ missing — three files vs argis-extensions' four). The repo also escapes the tick-22 workflow-corruption pattern (no `Not Found` JSON objects, no `$123...125` placeholders) and the tick-17 trufflehog tag-vs-SHA pattern is partially fixed in PR #41 (trufflehog/actions/setup replaced) but the tag-vs-SHA pin issue in trufflehog.yml:17 is still open.",
+  "deep_research_cont": "However, rich-cli-kit has a unique and severe G1 failure that none of its siblings have: 6 of 12 workflows have a literal typo where `actions/checkout<sha>` is missing the `@` separator (cargo-machete.yml:21, cargo-semver-checks.yml:16, doc-links.yml:11, fr-coverage.yml:12, quality-gate.yml:12, scorecard.yml:26). The other 6 workflows (cargo-audit.yml, cargo-deny.yml [v6 SHA], codeql-rust.yml, codeql.yml, journey-gate.yml, trufflehog.yml) use the correct form. The typo is mechanical to fix (one sed) and is the single highest-leverage change: it unblocks 6 CI jobs in one PR. Layered on top of G1 is G4 — the repo has zero `cargo test` or `cargo clippy` jobs in CI, only `continue-on-error: true` echo stubs in quality-gate.yml and fr-coverage.yml; the only real test (tests/smoke_test.rs:9) is `assert_eq!(2+2, 4)`, and 1891 LOC of source have no `#[cfg(test)]` blocks. The combination means the repo has CI presence without CI substance — every gate runs but nothing actually verifies the code works. E2e is degraded: no e2e/ or integration/ dir, no golden-output fixture for the kitty-graphics encoder, no round-trip test for the MCP wrapper. Hygiene score: 2.4/5 (G1 fail, G4 fail, G3/G5 partial, G2 pass)."
+}

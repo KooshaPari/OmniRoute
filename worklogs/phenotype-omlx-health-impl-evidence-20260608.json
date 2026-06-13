@@ -1,0 +1,10 @@
+{
+  "generated_at": "2026-06-09T04:36:06.630954+00:00",
+  "has_health": true,
+  "has_ready": true,
+  "has_live": true,
+  "has_metrics": false,
+  "total_health_endpoints": 3,
+  "impl_path": "/Users/kooshapari/CodeProjects/Phenotype/repos/phenotype-omlx/omlx/server.py",
+  "validation_passed": true
+}

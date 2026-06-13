@@ -1,0 +1,126 @@
+{
+  "repo": "phenodocs",
+  "branch_audited": "main (2026-06-08)",
+  "audited_at": "2026-06-08",
+  "stack": "vitepress-1.5 (vue-3.5) + bun-1.3.10 + python-3.14 (uv) + markdownlint-cli-0.48 + oxlint-1.57 + vue-tsc-3.2 + typescript-6.0",
+  "summary": "G1/G4 P0 (MERGE CONFLICT MARKERS committed in 6 workflow files; workflows BROKEN at parse), G2 PARTIAL (no SUPPORT.md, no LICENSE-MIT/APACHE dual, CODEOWNERS in .github/ not root, AGENTS/CLAUDE thin), G3 PARTIAL (trufflehog reusable @main rot, codeql misconfig JS-TS on docs repo + has markers, dependabot 2/4-6 ecosystems), G4 PARTIAL (scripts/check_docs_links.py is 0 bytes but tests import from it; quality-gate/doc-links/fr-coverage all `|| true`), G5 PARTIAL (.gemini/ missing but gitignored, renovate extends nothing, sonar + legacy-tooling WARN mode), e2e DEGRADED (.broken_md_refs.txt 52KB/335 lines committed, link-check pipeline theatre, no pytest step in CI despite 2 test files). 3 actionable findings.",
+  "gates": {
+    "G1_workflow_hygiene": {
+      "status": "P0",
+      "evidence": [
+        "16/16 .github/workflows/*.yml present: alert-sync-issues, codeql, deploy, doc-links, fr-coverage, journey-verify, legacy-tooling-gate, policy-gate, publish-package, quality-gate, scorecard, security-guard, security-guard-hook-audit, sonarcloud, trufflehog, workflow-permissions",
+        "FAIL (P0): merge-conflict markers committed in 6 workflows — codeql.yml:2-10, quality-gate.yml:2-11, doc-links.yml:2-11, fr-coverage.yml:2-11, legacy-tooling-gate.yml:2-10, publish-package.yml:2-9. GitHub Actions parser REJECTS files with `<<<<<<< HEAD`; these 6 workflows are non-functional.",
+        "FAIL: scorecard.yml:13+17 duplicate `permissions:` blocks (`contents: read` then `read-all` — second wins, sloppy)",
+        "FAIL: workflow-permissions.yml:9+12 duplicate `concurrency:` + duplicate `on:` blocks (workflow name 'workflow-permissions' ironic given its own state)",
+        "FAIL: deploy.yml:2+13 duplicate `on:` + 8+19 duplicate `concurrency:` blocks",
+        "FAIL: alert-sync-issues.yml:2+13 duplicate `on:` blocks",
+        "FAIL: security-guard.yml:27 `actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405@a26af69be951a213d495a4c3e4e4022e16d87065` — TWO @ separators (SHA is decorative, v-latest tag is decorative)",
+        "FAIL: trufflehog.yml:13 reusable workflow at `KooshaPari/phenotype-tooling/.github/workflows/reusable/trufflehog.yml@main` — @main rot (P1, same family as trufflehog @main rot in 17+ repos)",
+        "FAIL: alert-sync-issues.yml:15 cron `17 * * * *` = HOURLY (1x/day would suffice for alert sync, ~24x cost reduction)",
+        "PASS: 14/16 have top-level `permissions: contents: read`; 14/16 have `concurrency: cancel-in-progress`; actions SHA-pinned throughout (df4cb1c0, af761533, 7211b7c8, 043fb46d, c8813ba1, 08807647, 0c5077e5, 3a2844b7, 98ef48e4, cd2ce8fc, de0fac2e, aa2faad9, 3c5f7ea, a309ff8b)"
+      ]
+    },
+    "G2_governance_files": {
+      "status": "PARTIAL",
+      "evidence": [
+        "LICENSE (MIT, single file — no LICENSE-MIT/LICENSE-APACHE dual), CODE_OF_CONDUCT.md, CONTRIBUTING.md (814B), SECURITY.md, FUNDING.yml, CHANGELOG.md ([Unreleased] only, 3 entries, no Keep-a-Changelog version sections), PULL_REQUEST_TEMPLATE.md (structured: Summary/Type/Testing/Checklist/Related), ISSUE_TEMPLATE/{bug_report.md, config.yml, feature_request.md} — all present",
+        "AGENTS.md (21 lines, org standard 30+) + CLAUDE.md (25 lines, org standard 60+) — both thinner than peer fleet repos",
+        "CODEOWNERS EXISTS at .github/CODEOWNERS (1 line `* @Phenotype-Enterprise/engineering-leads`) — NOT at repo root where GitHub auto-detects; many org tools miss .github/ path",
+        "MISSING: SUPPORT.md (peer repos: heliosrouter PR #114 model)",
+        "MISSING: CITATION.cff, catalog-info.yaml (Backstage)",
+        "VERSION=0.1.0 present"
+      ]
+    },
+    "G3_security_scanning": {
+      "status": "PARTIAL",
+      "evidence": [
+        "scorecard.yml: SHA-pinned ossf/scorecard-action@af761533 + actions/checkout@df4cb1c0 + actions/upload-artifact@043fb46d + github/codeql-action/upload-sarif@7211b7c8; cron `17 3 * * 6` (Sat weekly); permissions: read-all (job-scoped) — well-formed except duplicate top-level `permissions:` (see G1)",
+        "codeql.yml: SHA-pinned github/codeql-action/{init,analyze}@7211b7c8; cron `17 4 * * 1` (Mon weekly) — but (a) `languages: javascript-typescript` on a pure-Markdown/VitePress docs repo produces noise + false negatives, and (b) has merge-conflict markers → BROKEN",
+        "trufflehog.yml:13 reusable workflow `KooshaPari/phenotype-tooling/.github/workflows/reusable/trufflehog.yml@main` — @main rot (P1)",
+        "dependabot.yml: github-actions + npm only (2 of 4-6 standard ecosystems; missing pip, gomod)",
+        "MISSING: gitleaks, OSV-scanner, dependency-review-action, no SBOM workflow (matches fleet gap)",
+        "security-guard.yml + security-guard-hook-audit.yml: SHA-pinned setup-python@de0fac2e + astral-sh/setup-uv@08807647, runs pre-commit on PR/push — solid",
+        "alert-sync-issues.yml: actions/github-script@3a2844b7 SHA-pinned with comprehensive label/severity handling for CI/Dependabot/CodeQL alerts — unique & well-built (if not for duplicate `on:`)"
+      ]
+    },
+    "G4_quality_gates": {
+      "status": "PARTIAL",
+      "evidence": [
+        ".pre-commit-config.yaml: 7 standard hooks (trailing-ws, eof-fixer, check-yaml/json/toml, large-files, merge-conflict, private-key) + mypy (v1.14.0) + custom security-guard pre-commit/pre-push — decent for a docs-only repo",
+        ".markdownlint.json AND .markdownlint.yaml BOTH present — duplicate config (pick one; .json more concise at 14 lines vs .yaml at 25)",
+        "oxlint.json + ruff/pyright in pyproject.toml + mypy in pre-commit",
+        "FAIL: scripts/check_docs_links.py is 0 BYTES (empty file) but tests/test_check_docs_links.py:13-22 imports 8 symbols from it (KNOWN_PLACEHOLDERS, LinkResult, check_link, check_links_concurrent, collect_all_links, extract_links_from_file, is_placeholder_url, print_report) — tests will fail on import",
+        "FAIL: package.json:15 `bun run check` calls `uv run python scripts/check_docs_links.py` — calls empty file; deploy.yml:55 also calls `bun run check` → real e2e flow exercises a non-existent checker",
+        "FAIL: quality-gate.yml:24 `continue-on-error: true` + line 30-31 `bun run lint || true` + `bun run test || true` — soft-fail triple; gate name lies. Also has merge-conflict markers (BROKEN at parse).",
+        "FAIL: doc-links.yml:37 `tooling/doc-link-check docs/ || true` — exit code swallowed; merge-conflict markers (BROKEN)",
+        "FAIL: fr-coverage.yml:37 `tooling/fr-coverage --pr || true` — same swallow; merge-conflict markers (BROKEN)",
+        "FAIL: sonarcloud.yml:15 `continue-on-error: true` — gate name lies",
+        "FAIL: legacy-tooling-gate.yml:1 title says '(WARN Mode)' and step 65 `continue-on-error: true` — gate name honest but merge-conflict markers present (BROKEN)"
+      ]
+    },
+    "G5_review_governance": {
+      "status": "PARTIAL",
+      "evidence": [
+        ".coderabbit.yaml:213B: schema v2, `profile: assertive`, `request_changes_workflow: true`, `auto_review.enabled: true`, `auto_incremental_review: true` — fleet-leading",
+        "PULL_REQUEST_TEMPLATE.md structured (Summary, Type of Change, Testing, Checklist, Related Issues) — fleet-standard",
+        "ISSUE_TEMPLATE/: bug_report + feature_request + config.yml — full set (config.yml present is org positive)",
+        "dependabot.yml: github-actions + npm weekly (2/4-6 standard ecosystems; missing pip, gomod, cargo)",
+        "renovate.json5: 28B, `extends: config:base` only — no cargo/regex managers",
+        "policy-gate.yml: enforces fix/* → non-main policy + no-merge-commits in PR diff range + layered-pr-exception label — UNIQUE in fleet, useful",
+        "MISSING: .gemini/ (but `.gemini/` is in .gitignore:49, so n/a for git-tracked standards)",
+        "MISSING: required-check-names-guard.yml (HeliosLab meta-guard pattern absent)",
+        "MISSING: stale-pr/stale-issue policies, auto-merge config"
+      ]
+    },
+    "e2e_end_to_end": {
+      "status": "DEGRADED",
+      "evidence": [
+        "deploy.yml: REAL e2e for the docs site — `bun install --frozen-lockfile` + `bun run check` + `bun run build` (vitepress build) + `actions/upload-pages-artifact@98ef48e4` + `actions/deploy-pages@cd2ce8fc` to github-pages env — full VitePress → Pages pipeline, gated on push to main",
+        "FAIL: `bun run check` calls `uv run python scripts/check_docs_links.py` — script is 0 bytes (empty file). Real e2e flow runs a no-op. deploy.yml:55 is the only path that would surface this if `|| true` weren't on the call chain elsewhere",
+        "FAIL: .broken_md_refs.txt is 52KB / 335 lines COMMITTED — REAL scan output of broken md links (335 errors: CONTRIBUTING.md → ./CODE_OF_CONDUCT.md, SPEC.md → ./getting-started.md, ADR-001..008 → ../../ARCHITECTURE.md, ADR-001..005 → ../../docs/api-standards.md, etc.). Not in .gitignore. Real bugs, real scan, real noise — should be in .airlock/ or gitignored + a CI job should re-run and post to PRs.",
+        "FAIL: scripts/check_docs_links.py empty + tests/test_check_docs_links.py imports 8 symbols → pytest will fail on import. No workflow runs pytest (no `pytest` step in any of 16 workflows); tests are dead code.",
+        "FAIL: quality-gate.yml/doc-links.yml/fr-coverage.yml all `|| true` (see G4) — green CI achievable without execution",
+        "PASS: journey-verify.yml:24-55 is a real shell-based check (`set -euo pipefail`, greps `docs/journeys/manifests/*.journey.yaml` for required fields `id`/`intent`/`keyframe_count`, exits 1 on missing fields) — solid mini-e2e for journey manifests",
+        "PASS: security-guard.yml:40 runs `uv run pre-commit run --hook-stage pre-commit --config .pre-commit-config.yaml` on every PR — real pre-commit gate"
+      ]
+    }
+  },
+  "additional_findings": {
+    "merge_markers_everywhere": "6 workflow files have committed `<<<<<<< HEAD` / `=======` / `>>>>>>> origin/main` blocks (codeql, quality-gate, doc-links, fr-coverage, legacy-tooling-gate, publish-package). The pattern is uniform: HEAD side is a stripped-down `on: workflow_dispatch:`, origin/main side is the real schedule + concurrency. Looks like a botched merge of a workflow-simplification PR against main. ALL of these workflows are NON-FUNCTIONAL — GitHub Actions will refuse to parse them. This is the single most blocking issue in the repo.",
+    "empty_link_checker": "scripts/check_docs_links.py is 0 bytes. The 354-line tests/test_check_docs_links.py imports 8 symbols from it. deploy.yml:55 (`bun run check`) and package.json:15 (`check`) call this empty file. The most-cited gate in this repo runs an empty file.",
+    "duplicate_markdownlint_config": ".markdownlint.json (14 lines) AND .markdownlint.yaml (25 lines) both present — conflicting rule formats, only one is read by markdownlint-cli. Delete one (json preferred for compactness).",
+    "duplicate_top_level_keys": "5 workflows have duplicate top-level keys (permissions/concurrency/on) — scorecard.yml:13/17, workflow-permissions.yml:9/12, deploy.yml:2/13 + 8/19, alert-sync-issues.yml:2/13. YAML parser takes the last one, but it's sloppy and signals unmerged bot PRs.",
+    "invalid_setup_python_syntax": "security-guard.yml:27 `actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405@a26af69be951a213d495a4c3e4e4022e16d87065` — TWO @ separators. The SHA a309ff8b... is the real pin; the trailing `@a26af69b...` is an invalid comment that GitHub silently ignores. Drift from org canonical setup-python@c8813ba1.",
+    "broken_md_refs_committed": ".broken_md_refs.txt is real scan output of 335 broken md links (CONTRIBUTING/SPEC/ADR-* pointing to non-existent or moved files). Should be in .airlock/ or gitignored, and a CI step (in a fixed doc-links.yml) should regenerate it.",
+    "package_json_drift": "package.json:26 typescript ^6.0.2, vue-tsc ^3.2.6 — version numbers ahead of public release timelines (verify against registry). package.json:30 engines.node '>=20.0.0' but no .nvmrc / .node-version. license=MIT consistent with LICENSE.",
+    "local_licensing": "LICENSE is single MIT (no LICENSE-MIT/LICENSE-APACHE dual like 14+ fleet peers). drift vs the dual-license fan-out.",
+    "branch_inventory_unknown": "git ls-remote not run; local state not inspected beyond ls. 0 PRs visible in audit scope."
+  },
+  "ci_status": {
+    "workflows_parsing": "10/16 parse cleanly (alert-sync-issues, deploy, journey-verify, policy-gate, scorecard, security-guard, security-guard-hook-audit, sonarcloud, trufflehog, workflow-permissions). 6/16 have committed merge-conflict markers and will fail to parse in GitHub Actions (codeql, quality-gate, doc-links, fr-coverage, legacy-tooling-gate, publish-package).",
+    "open_prs_unknown": "git ls-remote not run in audit scope",
+    "last_commit": "no git log run; CI status inferred from workflow files + .git HEAD mtime"
+  },
+  "actions_recommended": [
+    {
+      "priority": "P0",
+      "title": "Resolve all 6 merge-conflict markers in committed workflows (repo is non-functional in CI)",
+      "detail": "Six .github/workflows/*.yml files have committed `<<<<<<< HEAD` / `=======` / `>>>>>>> origin/main` blocks: codeql.yml:2-10, quality-gate.yml:2-11, doc-links.yml:2-11, fr-coverage.yml:2-11, legacy-tooling-gate.yml:2-10, publish-package.yml:2-9. The HEAD side is a stripped `on: workflow_dispatch:` (effectively disabling the schedule), the origin/main side is the real schedule + concurrency. Action: for each file, delete the merge-marker block and keep the origin/main side (which has `concurrency: cancel-in-progress` + the real triggers). After resolution, all 6 workflows will parse, the schedule triggers (codeql Mon 04:17, etc.) will resume, and the CI will become functional. Also add `pre-commit`'s `check-merge-conflict` hook to .pre-commit-config.yaml:12 (already present, good) so this can't recur. Net: closes G1 in one PR, restores 6 workflows.",
+      "estimated_effort": "15 min"
+    },
+    {
+      "priority": "P0",
+      "title": "Replace empty scripts/check_docs_links.py with a real implementation + run pytest in CI",
+      "detail": "scripts/check_docs_links.py is 0 bytes. The 354-line tests/test_check_docs_links.py imports 8 symbols (KNOWN_PLACEHOLDERS, LinkResult, check_link, check_links_concurrent, collect_all_links, extract_links_from_file, is_placeholder_url, print_report) — all defined in the missing source. deploy.yml:55 (`bun run check`) and package.json:15 call this empty file, so the entire e2e link-check pipeline is theatre. Action: (1) restore scripts/check_docs_links.py with the 8 exported symbols that the test file imports (httpx-based async link checker per the test signatures — `check_link` takes AsyncMock client + URL, returns LinkResult dataclass with url/file_path/line_number/status_code/is_valid/error; `is_placeholder_url` matches the @pytest.mark.parametrize cases). (2) Add a `pytest tests/` step to quality-gate.yml (after fixing the merge markers) so the 2 test files (test_check_docs_links.py, test_vitepress_build.py) actually run. (3) Replace the `|| true` swallow in quality-gate.yml:30-31, doc-links.yml:37, fr-coverage.yml:37 with hard exits. Net: closes G4 + most of e2e in one PR.",
+      "estimated_effort": "30 min for the script restore (test file already documents the API) + 10 min for the workflow fix = 40 min"
+    },
+    {
+      "priority": "P1",
+      "title": "Delete committed .broken_md_refs.txt + gitignore + add SUPPORT.md + dedupe markdownlint config + pin trufflehog reusable",
+      "detail": "Five small hygiene fixes in one PR: (1) .broken_md_refs.txt is 52KB/335 lines of committed scan output (real bugs: CONTRIBUTING.md → ./CODE_OF_CONDUCT.md, SPEC.md → ./getting-started.md, ADR-001..008 → ../../ARCHITECTURE.md, ADR-001..005 → ../../docs/api-standards.md, docs/guide/getting-started.md → /guide/architecture.md, etc.) — `git rm` it, append `.broken_md_refs.txt` to .gitignore:33, move to .airlock/ alongside the other scan artifacts. (2) Add SUPPORT.md (heliosrouter PR #114 model). (3) Delete .markdownlint.yaml OR .markdownlint.json (duplicate config; pick the json for compactness). (4) Trufflehog.yml:13 reusable at `@main` — pin to SHA: `KooshaPari/phenotype-tooling/.github/workflows/reusable/trufflehog.yml@<sha>` (look up the org canonical pin). (5) Fix security-guard.yml:27 invalid two-`@` setup-python syntax — replace with `actions/setup-python@c8813ba1bc76ebf779b911ad8ffccbf2e449cb48 # v-latest@a26af69be951a213d495a4c3e4e4022e16d87065` (canonical org pin). (6) Calm alert-sync-issues.yml cron `17 * * * *` → `17 */6 * * *` (every 6h, ~4x cost reduction). Closes G2 + G3 + G5 + e2e in one PR.",
+      "estimated_effort": "20 min"
+    }
+  ],
+  "deep_research": "phenodocs is the VitePress-rendered docs site for the Phenotype fleet — a Vue 3.5 + VitePress 1.5 + Bun 1.3.10 + uv-managed Python 3.14 project that aggregates Markdown from across the org into a federation hub. It hosts 23 docs subdirs (adr, api, contributing, development, governance, guide, guides, index, journeys, operations, planning, public, quick-start, reference, research, roadmap, scripts, security, sessions, templates, views, wiki) plus a Python lib at libs/ and a workspace at packages/{design,docs,shared-utils} that publishes to GitHub Packages as `@phenotype/docs`. Comparing against the tick-25 hygiene wave, the helioslab-hygiene baseline, and the localbase3-hygiene (3.6/5) and phenodocs-scorecard-remediation-hygiene (3.6/5) audits — phenodocs itself is in worse shape: 6 of 16 workflows have committed `<<<<<<< HEAD` merge-conflict markers (codeql, quality-gate, doc-links, fr-coverage, legacy-tooling-gate, publish-package) which means GitHub Actions will refuse to parse them. The pattern is uniform — HEAD side is `on: workflow_dispatch:`, origin/main side is the real schedule + concurrency — strongly suggesting a botched merge of a workflow-simplification PR. Combined with scripts/check_docs_links.py being 0 bytes (the test file imports 8 symbols from it), the entire e2e link-check pipeline is theatre. The two structural positives are: (1) .coderabbit.yaml with `profile: assertive` + auto_review + auto_incremental_review is fleet-leading, and (2) policy-gate.yml with its fix/* → non-main enforcement + no-merge-commits check is unique in the fleet and worth keeping. The 52KB/335-line .broken_md_refs.txt committed at root is the most visible hygiene rot — it's a real scan output of 335 broken md links (CONTRIBUTING→CODE_OF_CONDUCT, SPEC→getting-started, ADR-001..008→ARCHITECTURE, etc.) and should be gitignored + regenerated by a fixed doc-links.yml on PR.",
+  "deep_research_cont": "Net hygiene score: 2.5/5 (G1 1.5/5 due to P0 merge-marker rot, G2 3.5/5, G3 3.5/5, G4 2/5, G5 3.5/5, e2e 2/5). The single highest-leverage PR is the merge-marker resolution (closes 6 broken workflows in 15 min, restores the entire CI surface). The second is restoring check_docs_links.py — the test file already documents the exact API surface, so the restore is largely transcription. After both P0 fixes, phenodocs moves to 4.5/5 (G1 4.5, G4 4, e2e 4) and the e2e story becomes real (VitePress build + Pages deploy + working link check + pytest in CI). The P1 fix sweeps up the residual hygiene debt (.broken_md_refs.txt, SUPPORT.md, markdownlint dedupe, trufflehog @main, two-@ setup-python syntax, alert-sync hourly cron) and lands the repo in the same shape as heliosrouter / localbase3 / phenodocs-scorecard-remediation after their respective PRs. No git ls-remote was run in audit scope, so open PR state is unknown; 0 PRs visible locally. Local branch inventory not inspected."
+}

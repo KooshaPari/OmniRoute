@@ -1,0 +1,84 @@
+openapi: 3.0.3
+info:
+    title: Atoms Backend API (Combined)
+    version: 1.0.0
+servers:
+    - url: https://api.example.com
+paths:
+    # Auth & Profiles
+    /auth/register: { $ref: './auth.yaml#/paths/~1auth~1register' }
+    /auth/login: { $ref: './auth.yaml#/paths/~1auth~1login' }
+    /auth/refresh: { $ref: './auth.yaml#/paths/~1auth~1refresh' }
+    /profiles/{id}: { $ref: './auth.yaml#/paths/~1profiles~1{id}' }
+    /profiles: { $ref: './auth.yaml#/paths/~1profiles' }
+    /profiles/{id}/approval: { $ref: './auth.yaml#/paths/~1profiles~1{id}~1approval' }
+
+    # Organizations
+    /orgs: { $ref: './organizations.yaml#/paths/~1orgs' }
+    /orgs/{id}: { $ref: './organizations.yaml#/paths/~1orgs~1{id}' }
+    /orgs/{id}/members: { $ref: './organizations.yaml#/paths/~1orgs~1{id}~1members' }
+    /orgs/{id}/members/{userId}:
+        { $ref: './organizations.yaml#/paths/~1orgs~1{id}~1members~1{userId}' }
+
+    # Projects
+    /projects: { $ref: './projects.yaml#/paths/~1projects' }
+    /projects/{id}: { $ref: './projects.yaml#/paths/~1projects~1{id}' }
+    /projects/{id}/members: { $ref: './projects.yaml#/paths/~1projects~1{id}~1members' }
+    /projects/{id}/members/{userId}:
+        { $ref: './projects.yaml#/paths/~1projects~1{id}~1members~1{userId}' }
+
+    # Documents / Blocks / Columns
+    /documents: { $ref: './documents.yaml#/paths/~1documents' }
+    /documents/{id}: { $ref: './documents.yaml#/paths/~1documents~1{id}' }
+    /blocks: { $ref: './documents.yaml#/paths/~1blocks' }
+    /blocks/{id}: { $ref: './documents.yaml#/paths/~1blocks~1{id}' }
+    /columns: { $ref: './documents.yaml#/paths/~1columns' }
+    /columns/{id}: { $ref: './documents.yaml#/paths/~1columns~1{id}' }
+
+    # Requirements
+    /requirements: { $ref: './requirements.yaml#/paths/~1requirements' }
+    /requirements/{id}: { $ref: './requirements.yaml#/paths/~1requirements~1{id}' }
+    /requirements/positions:
+        { $ref: './requirements.yaml#/paths/~1requirements~1positions' }
+
+    # Properties
+    /properties: { $ref: './properties.yaml#/paths/~1properties' }
+    /properties/{id}: { $ref: './properties.yaml#/paths/~1properties~1{id}' }
+    /properties/positions: { $ref: './properties.yaml#/paths/~1properties~1positions' }
+
+    # Testing, Relations, Views
+    /tests: { $ref: './testing.yaml#/paths/~1tests' }
+    /tests/{id}: { $ref: './testing.yaml#/paths/~1tests~1{id}' }
+    /requirement-tests: { $ref: './testing.yaml#/paths/~1requirement-tests' }
+    /requirement-tests/{requirementId}/{testId}:
+        { $ref: './testing.yaml#/paths/~1requirement-tests~1{requirementId}~1{testId}' }
+    /test-matrix-views: { $ref: './testing.yaml#/paths/~1test-matrix-views' }
+    /test-matrix-views/{id}: { $ref: './testing.yaml#/paths/~1test-matrix-views~1{id}' }
+
+    # Trace Links
+    /trace-links: { $ref: './tracelinks.yaml#/paths/~1trace-links' }
+    /trace-links/{id}: { $ref: './tracelinks.yaml#/paths/~1trace-links~1{id}' }
+
+    # Files / Storage / Diagrams
+    /external-docs/upload:
+        { $ref: './files-diagrams.yaml#/paths/~1external-docs~1upload' }
+    /external-docs/{id}: { $ref: './files-diagrams.yaml#/paths/~1external-docs~1{id}' }
+    /storage/public-url: { $ref: './files-diagrams.yaml#/paths/~1storage~1public-url' }
+    /diagrams: { $ref: './files-diagrams.yaml#/paths/~1diagrams' }
+    /diagrams/{id}: { $ref: './files-diagrams.yaml#/paths/~1diagrams~1{id}' }
+
+    # Agent Chat
+    /chat/sessions: { $ref: './chat.yaml#/paths/~1chat~1sessions' }
+    /chat/messages: { $ref: './chat.yaml#/paths/~1chat~1messages' }
+    /chat/stream: { $ref: './chat.yaml#/paths/~1chat~1stream' }
+
+    # Workflows
+    /workflows: { $ref: './workflows.yaml#/paths/~1workflows' }
+    /workflows/{id}: { $ref: './workflows.yaml#/paths/~1workflows~1{id}' }
+    /workflows/{id}/runs: { $ref: './workflows.yaml#/paths/~1workflows~1{id}~1runs' }
+    /workflow-runs/{runId}: { $ref: './workflows.yaml#/paths/~1workflow-runs~1{runId}' }
+
+components:
+    # Merge component schemas on bundle (use openapi-cli or swagger-cli to bundle).
+    # Example: openapi-generator-cli generate -i atoms-backend.yaml -g csharp -o out
+    schemas: {}

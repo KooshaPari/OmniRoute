@@ -1,0 +1,17 @@
+{
+  "by_lib": {
+    "flamegraph": [
+      "GDK"
+    ],
+    "memray": [],
+    "pprof": [
+      "GDK"
+    ],
+    "py_spy": [
+      "ObservabilityKit",
+      "PhenoObservability"
+    ]
+  },
+  "generated_at": "2026-06-09T00:00:59.885895Z",
+  "total_repos": 179
+}

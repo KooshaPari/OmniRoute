@@ -1,0 +1,118 @@
+{
+"mcpServers":{
+           "kmobile": {
+      "command": "kmobile",
+      "args": ["mcp", "--tools", "all", "--log-level", "info"]
+    }
+  },
+	"Context7": {
+            "autoApprove": ["resolve-library-id", "get-library-docs"],
+            "disabled": false,
+            "timeout": 60,
+            "command": "npx",
+            "args": ["-y", "@upstash/context7-mcp@latest"],
+            "transportType": "stdio"
+        },
+        "server-sequential-thinking": {
+            "autoApprove": ["sequentialthinking"],
+            "disabled": false,
+            "timeout": 60,
+            "command": "npx",
+            "args": ["-y", "@modelcontextprotocol/server-sequential-thinking"],
+            "transportType": "stdio"
+        },
+        "playwright-server": {
+            "autoApprove": [
+                "playwright_navigate",
+                "playwright_screenshot",
+                "playwright_click",
+                "playwright_fill",
+                "playwright_evaluate",
+                "playwright_click_text",
+                "playwright_get_text_content",
+                "playwright_get_html_content"
+            ],
+            "disabled": false,
+            "timeout": 60,
+            "command": "uvx",
+            "args": ["playwright-server"],
+            "transportType": "stdio"
+        },
+        "software-planning-mcp": {
+            "autoApprove": [
+                "start_planning",
+                "save_plan",
+                "add_todo",
+                "remove_todo",
+                "get_todos",
+                "update_todo_status"
+            ],
+            "disabled": false,
+            "timeout": 60,
+            "command": "node",
+            "args": ["/Users/kooshapari/Documents/Cline/MCP/Software-planning-mcp/build/index.js"],
+            "transportType": "stdio"
+        },
+        "fetch": {
+            "autoApprove": ["fetch"],
+            "disabled": false,
+            "timeout": 60,
+            "command": "uvx",
+            "args": ["mcp-server-fetch"],
+            "transportType": "stdio"
+        },
+        "playwright": {
+            "autoApprove": [
+                "browser_close",
+                "browser_resize",
+                "browser_console_messages",
+                "browser_handle_dialog",
+                "browser_file_upload",
+                "browser_install",
+                "browser_press_key",
+                "browser_navigate",
+                "browser_navigate_back",
+                "browser_navigate_forward",
+                "browser_network_requests",
+                "browser_pdf_save",
+                "browser_take_screenshot",
+                "browser_snapshot",
+                "browser_click",
+                "browser_drag",
+                "browser_hover",
+                "browser_type",
+                "browser_select_option",
+                "browser_tab_list",
+                "browser_tab_new",
+                "browser_tab_select",
+                "browser_tab_close",
+                "browser_generate_playwright_test",
+                "browser_wait_for"
+            ],
+            "disabled": false,
+            "timeout": 60,
+            "command": "npx",
+            "args": ["@playwright/mcp@latest"],
+            "transportType": "stdio"
+        },
+        "coda": {
+            "autoApprove": [
+                "coda_list_documents",
+                "coda_list_pages",
+                "coda_create_page",
+                "coda_get_page_content",
+                "coda_peek_page",
+                "coda_replace_page_content",
+                "coda_append_page_content",
+                "coda_duplicate_page",
+                "coda_rename_page"
+            ],
+            "disabled": false,
+            "timeout": 60,
+            "command": "npx",
+            "args": ["-y", "coda-mcp@latest"],
+            "env": {
+                "API_KEY": "00f5e184-3cd4-4b6e-ae34-33fc81940508"
+            },
+            "transportType": "stdio"
+        }}}

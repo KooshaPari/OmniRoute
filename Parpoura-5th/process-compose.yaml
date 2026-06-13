@@ -1,0 +1,453 @@
+version: "3.8"
+
+# Venture-Autonomy Platform: Full Service Infrastructure
+# Stack: Python (uv, FastAPI, FastMCP) + PostgreSQL + NATS JetStream + Redis
+# All services depend on infrastructure layer (postgres, nats, redis)
+# Startup order enforced via depends_on with condition: service_healthy
+
+services:
+  # ============================================================================
+  # INFRASTRUCTURE LAYER
+  # ============================================================================
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: venture_postgres
+    environment:
+      POSTGRES_USER: venture
+      POSTGRES_PASSWORD: venture_dev_pass
+      POSTGRES_DB: venture_platform
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8 --locale=en_US.UTF-8"
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./data/postgres:/var/lib/postgresql/data
+      - ./migrations:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "venture", "-d", "venture_platform"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 10s
+    restart: unless-stopped
+    networks:
+      - venture
+
+  nats:
+    image: nats:latest-alpine
+    container_name: venture_nats
+    command:
+      - -js
+      - -D
+      - -m
+      - "8222"
+      - --max_payload=67108864
+      - --jetstream_max_store=100GB
+      - --jetstream_max_mem=10GB
+    ports:
+      - "4222:4222"
+      - "8222:8222"
+    volumes:
+      - ./data/nats:/data
+      - ./config/nats.conf:/etc/nats.conf:ro
+    environment:
+      NATS_LOG_LEVEL: info
+    healthcheck:
+      test: ["CMD", "/nats-server", "-c", "/etc/nats.conf", "-test"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 10s
+    restart: unless-stopped
+    networks:
+      - venture
+
+  redis:
+    image: redis:7-alpine
+    container_name: venture_redis
+    command: redis-server --appendonly yes --maxmemory 2gb --maxmemory-policy allkeys-lru
+    ports:
+      - "6379:6379"
+    volumes:
+      - ./data/redis:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 10s
+    restart: unless-stopped
+    networks:
+      - venture
+
+  # ============================================================================
+  # CORE PLATFORM SERVICES
+  # ============================================================================
+
+  policy-engine:
+    build:
+      context: ./services/policy-engine
+      dockerfile: Dockerfile
+    container_name: venture_policy_engine
+    environment:
+      SERVICE_NAME: policy-engine
+      SERVICE_PORT: 8001
+      LOG_LEVEL: info
+      DATABASE_URL: postgresql://venture:venture_dev_pass@postgres:5432/venture_platform
+      NATS_URL: nats://nats:4222
+      REDIS_URL: redis://redis:6379/0
+      PYTHONUNBUFFERED: "1"
+      ENVIRONMENT: development
+    ports:
+      - "8001:8001"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      nats:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 15s
+    restart: unless-stopped
+    networks:
+      - venture
+    volumes:
+      - ./services/policy-engine:/app
+      - /app/.venv
+    command: uv run fastapi run app/main.py --host 0.0.0.0 --port 8001
+
+  agent-runtime:
+    build:
+      context: ./services/agent-runtime
+      dockerfile: Dockerfile
+    container_name: venture_agent_runtime
+    environment:
+      SERVICE_NAME: agent-runtime
+      LOG_LEVEL: info
+      DATABASE_URL: postgresql://venture:venture_dev_pass@postgres:5432/venture_platform
+      NATS_URL: nats://nats:4222
+      REDIS_URL: redis://redis:6379/1
+      POLICY_ENGINE_URL: http://policy-engine:8001
+      PYTHONUNBUFFERED: "1"
+      ENVIRONMENT: development
+      WORKER_THREADS: "4"
+    depends_on:
+      policy-engine:
+        condition: service_healthy
+      nats:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8002/health"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 15s
+    restart: unless-stopped
+    networks:
+      - venture
+    volumes:
+      - ./services/agent-runtime:/app
+      - /app/.venv
+    command: uv run python -m app.worker
+
+  artifact-compiler:
+    build:
+      context: ./services/artifact-compiler
+      dockerfile: Dockerfile
+    container_name: venture_artifact_compiler
+    environment:
+      SERVICE_NAME: artifact-compiler
+      SERVICE_PORT: 8002
+      LOG_LEVEL: info
+      DATABASE_URL: postgresql://venture:venture_dev_pass@postgres:5432/venture_platform
+      NATS_URL: nats://nats:4222
+      POLICY_ENGINE_URL: http://policy-engine:8001
+      PYTHONUNBUFFERED: "1"
+      ENVIRONMENT: development
+    ports:
+      - "8002:8002"
+    depends_on:
+      policy-engine:
+        condition: service_healthy
+      nats:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8002/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 15s
+    restart: unless-stopped
+    networks:
+      - venture
+    volumes:
+      - ./services/artifact-compiler:/app
+      - /app/.venv
+    command: uv run fastapi run app/main.py --host 0.0.0.0 --port 8002
+
+  treasury-api:
+    build:
+      context: ./services/treasury-api
+      dockerfile: Dockerfile
+    container_name: venture_treasury_api
+    environment:
+      SERVICE_NAME: treasury-api
+      SERVICE_PORT: 8003
+      LOG_LEVEL: info
+      DATABASE_URL: postgresql://venture:venture_dev_pass@postgres:5432/venture_platform
+      NATS_URL: nats://nats:4222
+      REDIS_URL: redis://redis:6379/2
+      POLICY_ENGINE_URL: http://policy-engine:8001
+      PYTHONUNBUFFERED: "1"
+      ENVIRONMENT: development
+    ports:
+      - "8003:8003"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      policy-engine:
+        condition: service_healthy
+      nats:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8003/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 15s
+    restart: unless-stopped
+    networks:
+      - venture
+    volumes:
+      - ./services/treasury-api:/app
+      - /app/.venv
+    command: uv run fastapi run app/main.py --host 0.0.0.0 --port 8003
+
+  compliance-engine:
+    build:
+      context: ./services/compliance-engine
+      dockerfile: Dockerfile
+    container_name: venture_compliance_engine
+    environment:
+      SERVICE_NAME: compliance-engine
+      SERVICE_PORT: 8004
+      LOG_LEVEL: info
+      DATABASE_URL: postgresql://venture:venture_dev_pass@postgres:5432/venture_platform
+      NATS_URL: nats://nats:4222
+      POLICY_ENGINE_URL: http://policy-engine:8001
+      PYTHONUNBUFFERED: "1"
+      ENVIRONMENT: development
+    ports:
+      - "8004:8004"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      policy-engine:
+        condition: service_healthy
+      nats:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8004/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 15s
+    restart: unless-stopped
+    networks:
+      - venture
+    volumes:
+      - ./services/compliance-engine:/app
+      - /app/.venv
+    command: uv run fastapi run app/main.py --host 0.0.0.0 --port 8004
+
+  venture-orchestrator:
+    build:
+      context: ./services/venture-orchestrator
+      dockerfile: Dockerfile
+    container_name: venture_orchestrator
+    environment:
+      SERVICE_NAME: venture-orchestrator
+      SERVICE_PORT: 8005
+      LOG_LEVEL: info
+      DATABASE_URL: postgresql://venture:venture_dev_pass@postgres:5432/venture_platform
+      NATS_URL: nats://nats:4222
+      REDIS_URL: redis://redis:6379/3
+      POLICY_ENGINE_URL: http://policy-engine:8001
+      TREASURY_API_URL: http://treasury-api:8003
+      ARTIFACT_COMPILER_URL: http://artifact-compiler:8002
+      COMPLIANCE_ENGINE_URL: http://compliance-engine:8004
+      AGENT_RUNTIME_URL: http://agent-runtime:8002
+      PYTHONUNBUFFERED: "1"
+      ENVIRONMENT: development
+    ports:
+      - "8005:8005"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      policy-engine:
+        condition: service_healthy
+      treasury-api:
+        condition: service_healthy
+      artifact-compiler:
+        condition: service_healthy
+      compliance-engine:
+        condition: service_healthy
+      nats:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8005/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 20s
+    restart: unless-stopped
+    networks:
+      - venture
+    volumes:
+      - ./services/venture-orchestrator:/app
+      - /app/.venv
+    command: uv run fastapi run app/main.py --host 0.0.0.0 --port 8005
+
+  control-plane-api:
+    build:
+      context: ./services/control-plane-api
+      dockerfile: Dockerfile
+    container_name: venture_control_plane_api
+    environment:
+      SERVICE_NAME: control-plane-api
+      SERVICE_PORT: 8000
+      LOG_LEVEL: info
+      DATABASE_URL: postgresql://venture:venture_dev_pass@postgres:5432/venture_platform
+      NATS_URL: nats://nats:4222
+      REDIS_URL: redis://redis:6379/4
+      POLICY_ENGINE_URL: http://policy-engine:8001
+      TREASURY_API_URL: http://treasury-api:8003
+      VENTURE_ORCHESTRATOR_URL: http://venture-orchestrator:8005
+      COMPLIANCE_ENGINE_URL: http://compliance-engine:8004
+      PYTHONUNBUFFERED: "1"
+      ENVIRONMENT: development
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      policy-engine:
+        condition: service_healthy
+      treasury-api:
+        condition: service_healthy
+      venture-orchestrator:
+        condition: service_healthy
+      compliance-engine:
+        condition: service_healthy
+      nats:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 20s
+    restart: unless-stopped
+    networks:
+      - venture
+    volumes:
+      - ./services/control-plane-api:/app
+      - /app/.venv
+    command: uv run fastapi run app/main.py --host 0.0.0.0 --port 8000
+
+  # ============================================================================
+  # OBSERVABILITY LAYER
+  # ============================================================================
+
+  metrics-exporter:
+    build:
+      context: ./services/metrics-exporter
+      dockerfile: Dockerfile
+    container_name: venture_metrics_exporter
+    environment:
+      SERVICE_NAME: metrics-exporter
+      SERVICE_PORT: 9090
+      LOG_LEVEL: info
+      NATS_URL: nats://nats:4222
+      DATABASE_URL: postgresql://venture:venture_dev_pass@postgres:5432/venture_platform
+      PYTHONUNBUFFERED: "1"
+      ENVIRONMENT: development
+    ports:
+      - "9090:9090"
+    depends_on:
+      nats:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9090/metrics"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 10s
+    restart: unless-stopped
+    networks:
+      - venture
+    volumes:
+      - ./services/metrics-exporter:/app
+      - /app/.venv
+    command: uv run python -m app.exporter
+
+  log-aggregator:
+    build:
+      context: ./services/log-aggregator
+      dockerfile: Dockerfile
+    container_name: venture_log_aggregator
+    environment:
+      SERVICE_NAME: log-aggregator
+      SERVICE_PORT: 5000
+      LOG_LEVEL: info
+      NATS_URL: nats://nats:4222
+      DATABASE_URL: postgresql://venture:venture_dev_pass@postgres:5432/venture_platform
+      PYTHONUNBUFFERED: "1"
+      ENVIRONMENT: development
+    ports:
+      - "5000:5000"
+    depends_on:
+      nats:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 10s
+    restart: unless-stopped
+    networks:
+      - venture
+    volumes:
+      - ./services/log-aggregator:/app
+      - /app/.venv
+    command: uv run python -m app.aggregator
+
+networks:
+  venture:
+    driver: bridge
+
+volumes:
+  postgres_data:
+    driver: local
+  nats_data:
+    driver: local
+  redis_data:
+    driver: local

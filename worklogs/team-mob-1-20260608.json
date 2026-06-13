@@ -1,0 +1,18 @@
+{
+  "generated_at": "2026-06-08T10:09:42.044189Z",
+  "total_repos": 167,
+  "rn_dupes": [
+    {
+      "framework": "react-native",
+      "repos": [
+        "AppGen"
+      ]
+    },
+    {
+      "framework": "expo",
+      "repos": [
+        "AppGen"
+      ]
+    }
+  ]
+}

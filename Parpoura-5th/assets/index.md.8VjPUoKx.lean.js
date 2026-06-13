@@ -1,0 +1,1 @@
+import{_ as e,o as t,c as r,ag as n}from"./chunks/framework.CmQHR1bQ.js";const _=JSON.parse('{"title":"parpour","description":"","frontmatter":{},"headers":[],"relativePath":"index.md","filePath":"index.md"}'),o={name:"index.md"};function i(s,a,p,c,l,d){return t(),r("div",null,[...a[0]||(a[0]=[n("",5)])])}const m=e(o,[["render",i]]);export{_ as __pageData,m as default};

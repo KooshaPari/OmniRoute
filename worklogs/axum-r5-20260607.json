@@ -1,0 +1,161 @@
+{
+  "generated_at": "2026-06-08T08:55:38Z",
+  "total_repos": 161,
+  "with_axum": [
+    "AgilePlus",
+    "Conft",
+    "FocalPoint",
+    "HeliosCLI",
+    "KDesktopVirt",
+    "McpKit",
+    "ObservabilityKit",
+    "PhenoDevOps",
+    "PhenoKits",
+    "PhenoObservability",
+    "Pyron",
+    "crates",
+    "helioscope",
+    "kmobile",
+    "thegent",
+    "thegent-clean"
+  ],
+  "with_axum_extra": [
+    "AgilePlus",
+    "PhenoDevOps",
+    "Pyron",
+    "pheno"
+  ],
+  "with_tower": [
+    "AgilePlus",
+    "Conft",
+    "FocalPoint",
+    "KDesktopVirt",
+    "McpKit",
+    "PhenoDevOps",
+    "PhenoKits",
+    "PhenoObservability",
+    "Pyron",
+    "crates",
+    "kmobile",
+    "pheno"
+  ],
+  "by_repo": [
+    {
+      "repo": "AgilePlus",
+      "libs": [
+        "axum",
+        "axum-extra",
+        "tower"
+      ]
+    },
+    {
+      "repo": "Conft",
+      "libs": [
+        "axum",
+        "tower"
+      ]
+    },
+    {
+      "repo": "FocalPoint",
+      "libs": [
+        "axum",
+        "tower"
+      ]
+    },
+    {
+      "repo": "HeliosCLI",
+      "libs": [
+        "axum"
+      ]
+    },
+    {
+      "repo": "KDesktopVirt",
+      "libs": [
+        "axum",
+        "tower"
+      ]
+    },
+    {
+      "repo": "McpKit",
+      "libs": [
+        "axum",
+        "tower"
+      ]
+    },
+    {
+      "repo": "ObservabilityKit",
+      "libs": [
+        "axum"
+      ]
+    },
+    {
+      "repo": "PhenoDevOps",
+      "libs": [
+        "axum",
+        "axum-extra",
+        "tower"
+      ]
+    },
+    {
+      "repo": "PhenoKits",
+      "libs": [
+        "axum",
+        "tower"
+      ]
+    },
+    {
+      "repo": "PhenoObservability",
+      "libs": [
+        "axum",
+        "tower"
+      ]
+    },
+    {
+      "repo": "Pyron",
+      "libs": [
+        "axum",
+        "axum-extra",
+        "tower"
+      ]
+    },
+    {
+      "repo": "crates",
+      "libs": [
+        "axum",
+        "tower"
+      ]
+    },
+    {
+      "repo": "helioscope",
+      "libs": [
+        "axum"
+      ]
+    },
+    {
+      "repo": "kmobile",
+      "libs": [
+        "axum",
+        "tower"
+      ]
+    },
+    {
+      "repo": "pheno",
+      "libs": [
+        "axum-extra",
+        "tower"
+      ]
+    },
+    {
+      "repo": "thegent",
+      "libs": [
+        "axum"
+      ]
+    },
+    {
+      "repo": "thegent-clean",
+      "libs": [
+        "axum"
+      ]
+    }
+  ]
+}

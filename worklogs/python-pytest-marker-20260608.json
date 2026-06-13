@@ -1,0 +1,28 @@
+{
+  "generated_at": "2026-06-08T00:00:00Z",
+  "total_repos": 178,
+  "with_markers": [
+    "AgentMCP",
+    "HeliosCLI",
+    "Parpoura",
+    "PhenoMCP",
+    "PhenoMCP-cheap",
+    "PolicyStack",
+    "QuadSGM",
+    "Tracera",
+    "cheap-llm-mcp",
+    "cheap-llm-mcp-deprecate",
+    "dispatch-mcp",
+    "heliosBench",
+    "helioscope",
+    "phenotype-omlx",
+    "phenotype-py-extras",
+    "phenotype-request-id",
+    "portage",
+    "thegent",
+    "thegent-clean-wt-idea",
+    "thegent-clean-wt-parallel",
+    "thegent-clean-wt-policy",
+    "thegent-clean-wt-ruff"
+  ]
+}

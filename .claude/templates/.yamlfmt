@@ -1,0 +1,13 @@
+# Canonical yamlfmt config for Phenotype repos.
+# See: https://github.com/google/yamlfmt
+#
+# Baseline style for the org (DAG-L2-31). 2-space indent, no leading `---`
+# document-start marker, retain single line breaks inside flow blocks.
+indent: 2
+include_document_start_marker: false
+retain_line_breaks_single: true
+retain_line_breaks: false
+line_ending: lf
+max_line_length: 120
+scan_folded_as_literal: true
+indentless_arrays: false

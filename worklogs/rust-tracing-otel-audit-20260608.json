@@ -1,0 +1,8 @@
+{
+  "generated_at": "2026-06-08T03:52:37",
+  "total_repos": 159,
+  "with_tracing_subscriber": [
+    "KDesktopVirt"
+  ],
+  "with_opentelemetry": []
+}

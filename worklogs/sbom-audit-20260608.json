@@ -1,0 +1,23 @@
+{
+  "generated_at": "2026-06-09T02:12:12Z",
+  "total_repos": 163,
+  "with_sbom": [
+    "Dino",
+    "HexaKit",
+    "Paginary",
+    "pheno",
+    "PhenoDevOps",
+    "Pyron"
+  ],
+  "by_format": {
+    "cyclonedx": [
+      "Dino",
+      "HexaKit",
+      "Paginary",
+      "pheno",
+      "PhenoDevOps",
+      "Pyron"
+    ],
+    "spdx": []
+  }
+}

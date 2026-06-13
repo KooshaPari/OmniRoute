@@ -1,0 +1,92 @@
+{
+  "generated_at": "2026-06-08T22:15:00Z",
+  "total_repos": 59,
+  "multi_stack": [
+    {
+      "repo": "HexaKit",
+      "stacks": [
+        "go",
+        "rust"
+      ]
+    },
+    {
+      "repo": "PhenoDevOps",
+      "stacks": [
+        "go",
+        "rust"
+      ]
+    },
+    {
+      "repo": "PhenoObservability",
+      "stacks": [
+        "python",
+        "rust"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "stacks": [
+        "go",
+        "python",
+        "rust"
+      ]
+    },
+    {
+      "repo": "Pyron",
+      "stacks": [
+        "go",
+        "rust"
+      ]
+    },
+    {
+      "repo": "kwality",
+      "stacks": [
+        "go",
+        "rust"
+      ]
+    },
+    {
+      "repo": "pheno",
+      "stacks": [
+        "go",
+        "python",
+        "rust"
+      ]
+    },
+    {
+      "repo": "thegent",
+      "stacks": [
+        "python",
+        "rust"
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-idea",
+      "stacks": [
+        "python",
+        "rust"
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-parallel",
+      "stacks": [
+        "python",
+        "rust"
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-policy",
+      "stacks": [
+        "python",
+        "rust"
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-ruff",
+      "stacks": [
+        "python",
+        "rust"
+      ]
+    }
+  ]
+}

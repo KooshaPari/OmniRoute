@@ -1,0 +1,89 @@
+{
+  "repo": "phenoData",
+  "branch_audited": "main (Jun 8 2026)",
+  "audited_at": "2026-06-08",
+  "summary": "G1-G4 PASS, G5 PARTIAL (no .coderabbit/.gemini), e2e DEGRADED (1/4 crates tested, 1 orphan). 1 P0 (orphan), 2 P1. Score 4.4/5.",
+  "gates": {
+    "G1_workflow_hygiene": {
+      "status": "PASS",
+      "evidence": [
+        "18/18 .github/workflows/*.yml parse; 0 @main / 0 @vN tag rot; 45 SHA-pinned action refs",
+        "Org-canonical actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 in 14+ files; trufflehog@75add79b929b263dae147d2e5bcf0daf292165cf SHA + --only-verified --fail",
+        "16/18 have top-level `concurrency:` + `permissions:`; ubuntu-24.04 runner in 14/18",
+        "windows-surreal.yml: `continue-on-error: true` on cargo test step (accepted, no C++/RocksDB on windows-latest per AGENTS.md)"
+      ]
+    },
+    "G2_governance_files": {
+      "status": "PASS",
+      "evidence": [
+        "LICENSE (MIT) + LICENSE-MIT + LICENSE-APACHE; CHANGELOG.md Keep-a-Changelog 1.1.0 with rich [Unreleased] (coverage, gitleaks, dependabot extension)",
+        "CODEOWNERS 2-line `* @KooshaPari` (62-repo org standard); SECURITY.md, CONTRIBUTING.md, CODE_OF_CONDUCT.md, FUNDING.yml, .editorconfig, .gitattributes, .pre-commit-config.yaml, .gitignore all present",
+        "AGENTS.md (46 lines, explicit guardrails) + CLAUDE.md + CITATION.cff + Taskfile.yml + Justfile + tarpaulin.toml all present",
+        "ISSUE_TEMPLATE/: bug.md, config.yml, feature.md (full set); PULL_REQUEST_TEMPLATE.md 24 lines with cargo-specific checklist",
+        "docs/adr/0001-record-architecture-decisions.md MADR-formatted; only 1 ADR though (data layer is otherwise undocumented at decision-level)"
+      ]
+    },
+    "G3_security_scanning": {
+      "status": "PASS",
+      "evidence": [
+        "scorecard.yml (OpenSSF weekly SHA-pinned); codeql.yml + codeql-rust.yml (languages: rust)",
+        "secrets-scan.yml: trufflehog SHA + --only-verified; gitleaks.yml: gitleaks/gitleaks-action SHA-pinned (NEW this cycle)",
+        "cargo-audit.yml + cargo-deny.yml + cargo-machete.yml + cargo-semver-checks.yml: full Rust supply-chain stack",
+        "sbom-refresh.yml present (closes fleet-wide SBOM gap); deny.toml 14-license allowlist; RUSTSEC-2023-0071 ignored with expires:2027-05-05 + rationale"
+      ]
+    },
+    "G4_quality_gates": {
+      "status": "PASS",
+      "evidence": [
+        "ci.yml: cargo build/test/workspace + clippy -D warnings on ubuntu-24.04; Swatinem/rust-cache SHA-pinned",
+        "coverage.yml: cargo-llvm-cov --fail-under-lines 60, lcov -> codecov (closes the 0/40 tarpaulin fleet gap, see tick-25)",
+        "tarpaulin.toml mirrors CI floor (informational); pre-commit-config: 6 standard hooks + gitleaks v8.21.2 + cargo-fmt + cargo-check",
+        "renovate.json5: group:allNonMajor + vulnerabilityAlerts; dependabot.yml: 3 ecosystems (cargo+npm+github-actions) weekly Monday, grouped with labels"
+      ]
+    },
+    "G5_review_governance": {
+      "status": "PARTIAL",
+      "evidence": [
+        "MISSING: .coderabbit.yaml (org standard per tick-19); MISSING: .gemini/ (AGENTS.md mandate, drift)",
+        "No branch-protection meta-guard (required-check-names-guard.yml absent); no stale-pr/stale-issue policies",
+        "dependabot.yml: 3 ecosystems — fleet standard is 4-6; no gomod/pip/docker (acceptable: pure Rust + VitePress sidecar)",
+        "PULL_REQUEST_TEMPLATE.md well-structured with cargo checklist; ISSUE_TEMPLATE/ full set"
+      ]
+    },
+    "e2e_end_to_end": {
+      "status": "DEGRADED",
+      "evidence": [
+        "smoke-tests crate has 4 integration tests covering pheno-query (plan_surreal, filter, plan_postgres pagination, crates_are_public) — the only test surface",
+        "ZERO tests for pg-bridge and surreal-bridge: only src/lib.rs + src/instrumented.rs; 60% coverage floor sustained by pheno-query alone",
+        "fr-coverage.yml: `|| true` + `exit 0` on missing binary — silent non-gate",
+        "windows-surreal.yml surreal-bridge test is `continue-on-error: true`; pgvector integration test documented as skip-on-missing-env (AGENTS.md L45)"
+      ]
+    }
+  },
+  "additional_findings": {
+    "orphan_crate": "crates/surreal-sql-macro/ has src/lib.rs (T38 `query!` proc-macro, compile-time SQL validation, --injection check) but NO Cargo.toml and NOT in [workspace.members] — dead code, not built by `cargo build --workspace`, rots",
+    "changelog_quality": "CHANGELOG.md [Unreleased] is rich — best in the data-layer family; serves as a model for sibling repos"
+  },
+  "actions_recommended": [
+    {
+      "priority": "P0",
+      "title": "Decide on crates/surreal-sql-macro/ — wire it in or delete it",
+      "detail": "crates/surreal-sql-macro/src/lib.rs implements a `query!` proc-macro (compile-time SQL validation, --injection check) but has no Cargo.toml and is absent from root [workspace.members]. `cargo build --workspace` does not touch it. Two paths: (1) add Cargo.toml + workspace member + dev-dep on `pheno-query` so `cargo test` exercises it; (2) git rm -r the directory. Choice (1) is correct — the macro closes the documented compile-time SQL-checking gap. Net: closes the orphan rot and adds real test surface to a 4th crate.",
+      "estimated_effort": "30 min"
+    },
+    {
+      "priority": "P1",
+      "title": "Add tests for pg-bridge + surreal-bridge; convert fr-coverage to a real gate",
+      "detail": "pg-bridge (lib.rs + instrumented.rs) and surreal-bridge (lib.rs only) have zero tests. Add `crates/pg-bridge/tests/` (mockable deadpool-postgres or trait-based) and `crates/surreal-bridge/tests/` (SurrealDB Mem backend, no C++). Also: fr-coverage.yml:32 `|| true` + L26 `exit 0` on missing binary — replace with `cargo install --git https://github.com/KooshaPari/phenotype-tooling fr-coverage` precondition or delete the workflow. Closes the bulk of the e2e DEGRADED band.",
+      "estimated_effort": "90 min"
+    },
+    {
+      "priority": "P1",
+      "title": "Seed .coderabbit.yaml + .gemini/; add 2nd ADR",
+      "detail": "AGENTS.md mandates .coderabbit.yaml (severity info) and .gemini/ (org standard); both missing. Add 2-line .coderabbit.yaml (review_profile: chill, path_filters: ['docs/**','*.md']) and an empty .gemini/ with a brief AGENTS.md cross-link. While there: add docs/adr/0002-data-layer-rationale.md (MADR: Context = SurrealDB embedded vs Postgres+pgvector decision; Decision = dual-stack; Consequences = 2x ops surface) — only ADR 0001 exists. Closes G5 PARTIAL -> PASS.",
+      "estimated_effort": "20 min"
+    }
+  ],
+  "deep_research": "phenoData lands at 4.4/5 against the tick-25 hygiene wave and helioslab-hygiene baseline. Workflow posture is the cleanest in the data-layer family: 45 SHA pins, 0 @main rot, 16/18 concurrency blocks, full Rust supply-chain stack (sbom-refresh + cargo-machete + cargo-semver-checks + cargo-audit + cargo-deny). Governance is exhaustive: dual license, CLAUDE.md + AGENTS.md, rich CHANGELOG [Unreleased] (best in family — coverage, gitleaks, dependabot extension, justfile recipes). Security is best-in-class for a maintenance-mode repo (OpenSSF + CodeQL rust + trufflehog SHA + gitleaks + SBOM). The two structural gaps are downstream of 'maintenance' status: (1) orphan `surreal-sql-macro` — proc-macro on disk with no Cargo.toml and not in workspace.members, nothing builds it; (2) only 1 of 4 crates is test-covered (pheno-query via smoke-tests), so the 60% coverage floor is sustained on pheno-query strength alone, masking the bridge-crate gap. fr-coverage.yml is a silent non-gate (`|| true` + `exit 0`), and windows-surreal's `continue-on-error: true` on surreal-bridge means the Windows path is best-effort (acceptable per AGENTS.md L45).",
+  "deep_research_cont": "Three concrete follow-ups: wire `surreal-sql-macro` into the workspace (preferred) or delete it — T38 proc-macro is a real asset; add integration tests for pg-bridge (mockable) and surreal-bridge (Mem backend) and either fix fr-coverage to be a real gate with `cargo install` precondition or remove it; seed .coderabbit.yaml + .gemini/ per AGENTS.md and add a 2nd MADR ADR for the SurrealDB-vs-Postgres dual-stack decision. The CHANGELOG is the model to seed in sibling repos. After P0 + 2 P1 fixes, phenoData moves from 'mostly compliant with one structural rot and a coverage gap' to 'fully compliant, e2e DEGRADED -> PARTIAL' and can serve as the data-layer hygiene baseline for any future repo wrapping SurrealDB or pgvector."
+}

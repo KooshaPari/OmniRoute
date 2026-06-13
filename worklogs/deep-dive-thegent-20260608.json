@@ -1,0 +1,58 @@
+{
+  "generated_at": "2026-06-09T03:02:13Z",
+  "repo": "thegent",
+  "spec_count": 142,
+  "worklog_count": 4,
+  "deploy_markers": [
+    "templates/operational/docker/Dockerfile.python",
+    "templates/operational/docker/Dockerfile.typescript",
+    "apps/landing/vercel.json"
+  ],
+  "health_endpoints": [],
+  "readme_sections": 31,
+  "contributing_present": true,
+  "compliance": {
+    "codeowners": true,
+    "security": true,
+    "license": true,
+    "coc": true,
+    "funding": true,
+    "changelog": true,
+    "pr_template": true,
+    "issue_template": true,
+    "release_drafter": false,
+    "dependabot": true
+  },
+  "gaps": [
+    {
+      "item": "health_endpoints",
+      "severity": "low",
+      "note": "No /health, /healthz, /ready, /liveness found in source. apps/landing is static; no health workflow present."
+    },
+    {
+      "item": "release-drafter",
+      "severity": "low",
+      "note": "No .github/release-drafter.yml or release-drafter workflow \u2014 release notes manual."
+    },
+    {
+      "item": "deploy_health_workflow",
+      "severity": "low",
+      "note": "No .github/workflows/*health* \u2014 only Dockerfile templates and Vercel static config; no live deploy/canary gate."
+    },
+    {
+      "item": "spec/ proto + openapi coverage",
+      "severity": "med",
+      "note": "Only 2 openapi.yaml (apps/byteport/backend/api) and 0 *.proto. Byteport is the only API surface with a machine-readable spec; rest is narrative Markdown."
+    },
+    {
+      "item": "demo/tutorial links in README",
+      "severity": "low",
+      "note": "Quick Start present; no screenshots/demo/tutorial video found in README."
+    },
+    {
+      "item": "worklog coverage",
+      "severity": "low",
+      "note": "Only 4 worklog files (ARCHITECTURE/GOVERNANCE/README/RESEARCH). No PERF, DEPENDENCIES, INTEGRATION, DUPLICATION categories."
+    }
+  ]
+}

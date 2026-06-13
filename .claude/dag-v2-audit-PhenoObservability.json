@@ -1,0 +1,116 @@
+{
+  "repo": "PhenoObservability",
+  "branch": "chore/audit-PhenoObservability-2026-06-08",
+  "head_sha": "ad3f21291925b59164d7eb9dbb4d648d9b1d5daa",
+  "last_commit_date": "2026-06-08T18:32:28-07:00",
+  "language_stack": {
+    "primary": ["rust"],
+    "secondary": ["python"],
+    "bindings_stub": ["go", "typescript", "mojo", "zig", "wasi"],
+    "telemetry_provider": true,
+    "framework": "OpenTelemetry (tracing + logs) + slog (structured JSON) + Prometheus (metrics) + QuestDB (metrics TSDB) + Dragonfly (metrics backend) + custom sentinel (alerting) + PyO3 (Python bridge)",
+    "msrv": "1.85",
+    "edition": "2021/2024"
+  },
+  "hygiene_score": 100,
+  "hygiene_breakdown": {
+    "LICENSE": 10,
+    "README": 10,
+    "CHANGELOG": 10,
+    "EDITORCONFIG": 10,
+    "CI": 10,
+    "DEPENDABOT": 10,
+    "CODEOWNERS": 10,
+    "CONTRIBUTING": 10,
+    "SECURITY": 10,
+    "FUNDING": 10
+  },
+  "hygiene_evidence": {
+    "LICENSE": "LICENSE (1068B, MIT/Apache-2.0)",
+    "README": "README.md (7422B, with work-state header, badges, status block)",
+    "CHANGELOG": "CHANGELOG.md (5682B, Keep-a-Changelog with Unreleased + 0.1.1 entries)",
+    "EDITORCONFIG": ".editorconfig (210B)",
+    "CI": ".github/workflows/ (19 workflows: ci, test, coverage, codeql, scorecard, sonarcloud, sbom-refresh, publish, release-dry-run, quality-gate, journey-gate, doc-links, trufflehog, cargo-audit, cargo-deny, cargo-machete, cargo-semver-checks, fr-coverage, codeql-rust)",
+    "DEPENDABOT": ".github/dependabot.yml (cargo ecosystem, weekly, groups minor-and-patch)",
+    "CODEOWNERS": "CODEOWNERS (root: * @KooshaPari) + .github/CODEOWNERS",
+    "CONTRIBUTING": "CONTRIBUTING.md (2383B, AgilePlus mandate)",
+    "SECURITY": "SECURITY.md (723B) + .github/SECURITY.md",
+    "FUNDING": "FUNDING.yml (root) + .github/FUNDING.yml (github: KooshaPari)"
+  },
+  "dup_exposure": [
+    "phenotype-bus / phenotype-event-bus (event bus; already pulled from HexaKit)",
+    "phenotype-errors / phenotype-error-core (error types; already pulled from HexaKit)",
+    "phenotype-request-id (request ID propagation for trace correlation)",
+    "phenotype-dep-guard (cargo-deny/audit policy enforcement; could share deny.toml/audit config with org baseline)",
+    "phenotype-registry (service registry for service-name resolution in spans/metrics)",
+    "phenotype-postfx (post-effect / middleware runner that could host #[instrument] wrappers)",
+    "phenotype-journeys (journey tracing primitives could be emitted via phenotype-observably-tracing)",
+    "phenotype-tooling / phenotype-shared (shared just/lint/CI recipes — repo already adopted phenotype.just library extended variant per ad3f212)",
+    "HexaKit (general hex toolkit; already a git dep for errors + bus)",
+    "Observably (peer observability provider — risk of overlapping API surface with phenotype-observably-*)"
+  ],
+  "sota_gaps": [
+    "Tail-based / adaptive sampling — only AlwaysSample and a planned ParentBased(TraceIDRatioBased(0.1)) are documented; no runtime cost-aware sampler",
+    "Exemplars (linking metrics ↔ traces) — Prometheus exporter path lacks exemplar support",
+    "OTel Logs protocol (not just traces) — only custom JSON stdout; no OTLP/logs exporter",
+    "eBPF / continuous-profiling signal — no profiler integration (Pyroscope, eBPF, OTLP profiling)",
+    "Real-User Monitoring (RUM) / browser SDK — ts/ exists but no end-user web vitals + session replay",
+    "Mobile SDKs (iOS/Android) — no native bindings; zig/wasi dirs are stubs",
+    "PII / data scrubbing / redaction engine — no automatic span/log field allow-list or hash-redaction",
+    "Cardinality control / metrics limits — no metric name/value cardinality guard",
+    "SLO primitives — no error-budget or burn-rate alert types in sentinel",
+    "GenAI cost & token tracking — phenotype-llm exists but no token/cost attributes on spans or cost dashboards",
+    "Auto-instrumentation — no #[auto-instrument] for common frameworks (axum, actix, tonic, sqlx) or Python (FastAPI, Django)",
+    "MCP server tooling split — phenotype-mcp-server is a domain squatter; per NFR-OBS-010 it is removed from workspace but directory persists (refactor/remove-domain-squatters PR open)"
+  ],
+  "convergence_cluster": "multi-stack",
+  "convergence_rationale": "Rust-core observability hub with polyglot binding surfaces (python via PyO3, plus stub dirs in go/ts/mojo/zig/wasi/ffi). The architectural intent is to be the cross-stack telemetry provider for the entire Phenotype ecosystem, but production weight is concentrated in Rust + Python — a multi-stack project with a convergence trajectory, not a true web-stack or live-project.",
+  "action_items": [
+    {
+      "rank": 1,
+      "title": "Delete / archive the phenotype-llm and phenotype-mcp-server crates",
+      "effort": "S (1-2d)",
+      "why": "Per NFR-OBS-010 these are domain squatters removed from the workspace; directories still exist and confuse new contributors. Resolves the open refactor/remove-domain-squatters PR.",
+      "file_refs": ["Cargo.toml:6-8", "crates/phenotype-llm/", "crates/phenotype-mcp-server/"]
+    },
+    {
+      "rank": 2,
+      "title": "Wire exemplar + OTLP-logs exporter into the metrics & logging crates",
+      "effort": "M (3-5d)",
+      "why": "Closes the two biggest SOTA gaps (exemplars, OTel logs protocol) and unlocks metric→trace correlation for downstream Prometheus/Grafana users.",
+      "file_refs": ["crates/phenotype-observably-logging/", "crates/pheno-dragonfly/"]
+    },
+    {
+      "rank": 3,
+      "title": "Extract a shared `phenotype-observably-ports` (already present) and migrate consumer repos to depend on it instead of duplicating trait crates",
+      "effort": "M (3-5d)",
+      "why": "ports crate exists at crates/phenotype-observably-ports but no consumer repo (PhenoAgent, PhenoMCP, PhenoProc) declares it — mainlining it removes duplicated trait definitions across 5+ other Pheno repos.",
+      "file_refs": ["crates/phenotype-observably-ports/", "Cargo.toml:17"]
+    },
+    {
+      "rank": 4,
+      "title": "Add PII redaction + cardinality limit middleware to tracely-core",
+      "effort": "M (3-5d)",
+      "why": "Two adjacent SOTA gaps (scrubbing, cardinality control) share a span/log/metric post-processor layer; building them together is cheaper than two passes.",
+      "file_refs": ["crates/tracely-core/"]
+    },
+    {
+      "rank": 5,
+      "title": "Implement tail-based sampler with cost feedback in phenotype-observably-tracing",
+      "effort": "L (1-2w)",
+      "why": "Replaces the planned static ParentBased(TraceIDRatioBased(0.1))) and is the highest-leverage production-readiness gap; also unblocks SLO error-budget alerts downstream.",
+      "file_refs": ["crates/phenotype-observably-tracing/", "ARCHITECTURE.md:59"]
+    }
+  ],
+  "metadata": {
+    "audit_task": "DAG L1-18",
+    "audit_date": "2026-06-08",
+    "auditor": "forge (audit skill)",
+    "source_repo_path": "/Users/kooshapari/CodeProjects/Phenotype/repos/PhenoObservability",
+    "source_branch_audited": "chore/gitignore-wtrees",
+    "workspace_crate_count": 11,
+    "deprecated_crates_present": ["helix-logging"],
+    "workflows_count": 19,
+    "pushed": false
+  }
+}

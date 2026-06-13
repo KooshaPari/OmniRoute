@@ -1,0 +1,30 @@
+{
+  "generated_at": "2026-06-08T22:15:00Z",
+  "total_repos": 165,
+  "with_playwright": [
+    "OmniRoute",
+    "PhenoCompose",
+    "heliosApp",
+    "nanovms",
+    "thegent",
+    "thegent-clean-wt-idea",
+    "thegent-clean-wt-parallel",
+    "thegent-clean-wt-policy",
+    "thegent-clean-wt-ruff"
+  ],
+  "with_cypress": [],
+  "with_e2e_dir": [
+    "AgentMCP",
+    "FocalPoint",
+    "OmniRoute",
+    "Planify",
+    "Tracera",
+    "agentapi-plusplus",
+    "tests",
+    "thegent",
+    "thegent-clean-wt-idea",
+    "thegent-clean-wt-parallel",
+    "thegent-clean-wt-policy",
+    "thegent-clean-wt-ruff"
+  ]
+}

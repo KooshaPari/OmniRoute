@@ -1,0 +1,839 @@
+{
+  "generated_at": "2026-06-07T05:36:50Z",
+  "total_repos": 155,
+  "with_specs": [
+    "Dino",
+    "OmniRoute",
+    "Parpoura",
+    "PolicyStack",
+    "hwLedger",
+    "pheno",
+    "phenotype-infra",
+    "thegent",
+    "thegent-clean"
+  ],
+  "total_specs": 37,
+  "by_repo": [
+    {
+      "repo": "AgentMCP",
+      "spec_count": 0,
+      "specs": []
+    },
+    {
+      "repo": "Agentora",
+      "spec_count": 0,
+      "specs": []
+    },
+    {
+      "repo": "AgilePlus",
+      "spec_count": 0,
+      "specs": []
+    },
+    {
+      "repo": "Apisync",
+      "spec_count": 0,
+      "specs": []
+    },
+    {
+      "repo": "AppGen",
+      "spec_count": 0,
+      "specs": []
+    },
+    {
+      "repo": "AtomsBot",
+      "spec_count": 0,
+      "specs": []
+    },
+    {
+      "repo": "AuthKit",
+      "spec_count": 0,
+      "specs": []
+    },
+    {
+      "repo": "Benchora",
+      "spec_count": 0,
+      "specs": []
+    },
+    {
+      "repo": "BytePort",
+      "spec_count": 0,
+      "specs": []
+    },
+    {
+      "repo": "Civis",
+      "spec_count": 0,
+      "specs": []
+    },
+    {
+      "repo": "Conft",
+      "spec_count": 0,
+      "specs": []
+    },
+    {
+      "repo": "DINOForge-UnityDoorstop",
+      "spec_count": 0,
+      "specs": []
+    },
+    {
+      "repo": "DataKit",
+      "spec_count": 0,
+      "specs": []
+    },
+    {
+      "repo": "DevHex",
+      "spec_count": 0,
+      "specs": []
+    },
+    {
+      "repo": "Dino",
+      "spec_count": 18,
+      "specs": [
+        "docs/specs/M13-runtime-survival-hmr-concurrency.md",
+        "docs/specs/SPEC-002-native-menu-injector.md",
+        "docs/specs/SPEC-003-prove-features-skill.md",
+        "docs/specs/SPEC-004-key-input-system.md",
+        "docs/specs/SPEC-005-duplicate-instance-bypass.md",
+        "docs/specs/SPEC-006-prove-features-video-pipeline.md",
+        "docs/specs/SPEC-007-runtime-features-baseline.md",
+        "docs/specs/SPEC-008-mod-conflict-detection-engine.md",
+        "docs/specs/SPEC-fix-f10-blank-labels.md",
+        "docs/specs/SPEC-fix-f9-empty-debug.md",
+        "docs/specs/SPEC-fix-mods-button-ux.md",
+        "docs/specs/SPEC-fix-vanilla-gameplay-bridge.md",
+        "docs/specs/index.md",
+        "docs/specs/technical-spec.md",
+        "docs/specs/traceability-matrix.md",
+        "docs/specs/user-spec.md",
+        "docs/specs/v0.27.0-full-conversion-epic.md",
+        "docs/specs/validation-matrix.md"
+      ]
+    },
+    {
+      "repo": "Eidolon",
+      "spec_count": 0,
+      "specs": []
+    },
+    {
+      "repo": "Eventra",
+      "spec_count": 0,
+      "specs": []
+    },
+    {
+      "repo": "FocalPoint",
+      "spec_count": 0,
+      "specs": []
+    },
+    {
+      "repo": "GDK",
+      "spec_count": 0,
+      "specs": []
+    },
+    {
+      "repo": "HeliosCLI",
+      "spec_count": 0,
+      "specs": []
+    },
+    {
+      "repo": "HeliosLab",
+      "spec_count": 0,
+      "specs": []
+    },
+    {
+      "repo": "HexaKit",
+      "spec_count": 0,
+      "specs": []
+    },
+    {
+      "repo": "Httpora",
+      "spec_count": 0,
+      "specs": []
+    },
+    {
+      "repo": "KDesktopVirt",
+      "spec_count": 0,
+      "specs": []
+    },
+    {
+      "repo": "KWatch",
+      "spec_count": 0,
+      "specs": []
+    },
+    {
+      "repo": "KaskMan",
+      "spec_count": 0,
+      "specs": []
+    },
+    {
+      "repo": "KlipDot",
+      "spec_count": 0,
+      "specs": []
+    },
+    {
+      "repo": "MCPForge",
+      "spec_count": 0,
+      "specs": []
+    },
+    {
+      "repo": "McpKit",
+      "spec_count": 0,
+      "specs": []
+    },
+    {
+      "repo": "Metron",
+      "spec_count": 0,
+      "specs": []
+    },
+    {
+      "repo": "NetScript",
+      "spec_count": 0,
+      "specs": []
+    },
+    {
+      "repo": "ObservabilityKit",
+      "spec_count": 0,
+      "specs": []
+    },
+    {
+      "repo": "Observably",
+      "spec_count": 0,
+      "specs": []
+    },
+    {
+      "repo": "OmniRoute",
+      "spec_count": 1,
+      "specs": [
+        "docs/specs/2026-05-16-adaptive-stream-readiness-design.md"
+      ]
+    },
+    {
+      "repo": "OmniRoute-latest",
+      "spec_count": 0,
+      "specs": []
+    },
+    {
+      "repo": "Paginary",
+      "spec_count": 0,
+      "specs": []
+    },
+    {
+      "repo": "Parpoura",
+      "spec_count": 1,
+      "specs": [
+        "docs/specs/index.md"
+      ]
+    },
+    {
+      "repo": "PhenoAgent",
+      "spec_count": 0,
+      "specs": []
+    },
+    {
+      "repo": "PhenoCompose",
+      "spec_count": 0,
+      "specs": []
+    },
+    {
+      "repo": "PhenoContracts",
+      "spec_count": 0,
+      "specs": []
+    },
+    {
+      "repo": "PhenoControl",
+      "spec_count": 0,
+      "specs": []
+    },
+    {
+      "repo": "PhenoDevOps",
+      "spec_count": 0,
+      "specs": []
+    },
+    {
+      "repo": "PhenoEvents",
+      "spec_count": 0,
+      "specs": []
+    },
+    {
+      "repo": "PhenoHandbook",
+      "spec_count": 0,
+      "specs": []
+    },
+    {
+      "repo": "PhenoKits",
+      "spec_count": 0,
+      "specs": []
+    },
+    {
+      "repo": "PhenoLang",
+      "spec_count": 0,
+      "specs": []
+    },
+    {
+      "repo": "PhenoMCP",
+      "spec_count": 0,
+      "specs": []
+    },
+    {
+      "repo": "PhenoObservability",
+      "spec_count": 0,
+      "specs": []
+    },
+    {
+      "repo": "PhenoPlugins",
+      "spec_count": 0,
+      "specs": []
+    },
+    {
+      "repo": "PhenoProc",
+      "spec_count": 0,
+      "specs": []
+    },
+    {
+      "repo": "PhenoProject",
+      "spec_count": 0,
+      "specs": []
+    },
+    {
+      "repo": "PhenoRuntime",
+      "spec_count": 0,
+      "specs": []
+    },
+    {
+      "repo": "PhenoSchema",
+      "spec_count": 0,
+      "specs": []
+    },
+    {
+      "repo": "PhenoSpecs",
+      "spec_count": 0,
+      "specs": []
+    },
+    {
+      "repo": "PhenoVCS",
+      "spec_count": 0,
+      "specs": []
+    },
+    {
+      "repo": "Pine",
+      "spec_count": 0,
+      "specs": []
+    },
+    {
+      "repo": "Planify",
+      "spec_count": 0,
+      "specs": []
+    },
+    {
+      "repo": "PlatformKit",
+      "spec_count": 0,
+      "specs": []
+    },
+    {
+      "repo": "PlayCua",
+      "spec_count": 0,
+      "specs": []
+    },
+    {
+      "repo": "PolicyStack",
+      "spec_count": 1,
+      "specs": [
+        "specs/README.md"
+      ]
+    },
+    {
+      "repo": "Pyron",
+      "spec_count": 0,
+      "specs": []
+    },
+    {
+      "repo": "QuadSGM",
+      "spec_count": 0,
+      "specs": []
+    },
+    {
+      "repo": "ResilienceKit",
+      "spec_count": 0,
+      "specs": []
+    },
+    {
+      "repo": "Sidekick",
+      "spec_count": 0,
+      "specs": []
+    },
+    {
+      "repo": "Tasken",
+      "spec_count": 0,
+      "specs": []
+    },
+    {
+      "repo": "TestingKit",
+      "spec_count": 0,
+      "specs": []
+    },
+    {
+      "repo": "Tokn",
+      "spec_count": 0,
+      "specs": []
+    },
+    {
+      "repo": "Tracely",
+      "spec_count": 0,
+      "specs": []
+    },
+    {
+      "repo": "Tracera",
+      "spec_count": 0,
+      "specs": []
+    },
+    {
+      "repo": "ValidationKit",
+      "spec_count": 0,
+      "specs": []
+    },
+    {
+      "repo": "agent-devops-setups",
+      "spec_count": 0,
+      "specs": []
+    },
+    {
+      "repo": "agent-user-status",
+      "spec_count": 0,
+      "specs": []
+    },
+    {
+      "repo": "agentapi-plusplus",
+      "spec_count": 0,
+      "specs": []
+    },
+    {
+      "repo": "agentops-policy-federation",
+      "spec_count": 0,
+      "specs": []
+    },
+    {
+      "repo": "agileplus-agents",
+      "spec_count": 0,
+      "specs": []
+    },
+    {
+      "repo": "agileplus-landing",
+      "spec_count": 0,
+      "specs": []
+    },
+    {
+      "repo": "agslag-docs",
+      "spec_count": 0,
+      "specs": []
+    },
+    {
+      "repo": "apps",
+      "spec_count": 0,
+      "specs": []
+    },
+    {
+      "repo": "argis-extensions",
+      "spec_count": 0,
+      "specs": []
+    },
+    {
+      "repo": "bare-cua",
+      "spec_count": 0,
+      "specs": []
+    },
+    {
+      "repo": "byteport-landing",
+      "spec_count": 0,
+      "specs": []
+    },
+    {
+      "repo": "chatta",
+      "spec_count": 0,
+      "specs": []
+    },
+    {
+      "repo": "cheap-llm-mcp",
+      "spec_count": 0,
+      "specs": []
+    },
+    {
+      "repo": "cliproxyapi-plusplus",
+      "spec_count": 0,
+      "specs": []
+    },
+    {
+      "repo": "crates",
+      "spec_count": 0,
+      "specs": []
+    },
+    {
+      "repo": "default",
+      "spec_count": 0,
+      "specs": []
+    },
+    {
+      "repo": "dinoforge-packs",
+      "spec_count": 0,
+      "specs": []
+    },
+    {
+      "repo": "dispatch-mcp",
+      "spec_count": 0,
+      "specs": []
+    },
+    {
+      "repo": "docs",
+      "spec_count": 0,
+      "specs": []
+    },
+    {
+      "repo": "docs-site",
+      "spec_count": 0,
+      "specs": []
+    },
+    {
+      "repo": "examples",
+      "spec_count": 0,
+      "specs": []
+    },
+    {
+      "repo": "eyetracker",
+      "spec_count": 0,
+      "specs": []
+    },
+    {
+      "repo": "foqos-private",
+      "spec_count": 0,
+      "specs": []
+    },
+    {
+      "repo": "forgecode",
+      "spec_count": 0,
+      "specs": []
+    },
+    {
+      "repo": "frontend",
+      "spec_count": 0,
+      "specs": []
+    },
+    {
+      "repo": "fuzz",
+      "spec_count": 0,
+      "specs": []
+    },
+    {
+      "repo": "helios-router",
+      "spec_count": 0,
+      "specs": []
+    },
+    {
+      "repo": "heliosApp",
+      "spec_count": 0,
+      "specs": []
+    },
+    {
+      "repo": "heliosBench",
+      "spec_count": 0,
+      "specs": []
+    },
+    {
+      "repo": "heliosHarness",
+      "spec_count": 0,
+      "specs": []
+    },
+    {
+      "repo": "helioscope",
+      "spec_count": 0,
+      "specs": []
+    },
+    {
+      "repo": "hwLedger",
+      "spec_count": 3,
+      "specs": [
+        "docs/specs/FR-HWL-CAPACITY-001.md",
+        "docs/specs/FR-HWL-FLEET-001.md",
+        "docs/specs/FR-HWL-INFERENCE-001.md"
+      ]
+    },
+    {
+      "repo": "kmobile",
+      "spec_count": 0,
+      "specs": []
+    },
+    {
+      "repo": "kwality",
+      "spec_count": 0,
+      "specs": []
+    },
+    {
+      "repo": "libs",
+      "spec_count": 0,
+      "specs": []
+    },
+    {
+      "repo": "localbase3",
+      "spec_count": 0,
+      "specs": []
+    },
+    {
+      "repo": "melosviz",
+      "spec_count": 0,
+      "specs": []
+    },
+    {
+      "repo": "nanovms",
+      "spec_count": 0,
+      "specs": []
+    },
+    {
+      "repo": "netweave-final2",
+      "spec_count": 0,
+      "specs": []
+    },
+    {
+      "repo": "pheno",
+      "spec_count": 1,
+      "specs": [
+        "specs/FR-TRACE-BACKFILL-001.md"
+      ]
+    },
+    {
+      "repo": "phenoAI",
+      "spec_count": 0,
+      "specs": []
+    },
+    {
+      "repo": "phenoData",
+      "spec_count": 0,
+      "specs": []
+    },
+    {
+      "repo": "phenoDesign",
+      "spec_count": 0,
+      "specs": []
+    },
+    {
+      "repo": "phenoForge",
+      "spec_count": 0,
+      "specs": []
+    },
+    {
+      "repo": "phenoResearchEngine",
+      "spec_count": 0,
+      "specs": []
+    },
+    {
+      "repo": "phenoShared",
+      "spec_count": 0,
+      "specs": []
+    },
+    {
+      "repo": "phenoUtils",
+      "spec_count": 0,
+      "specs": []
+    },
+    {
+      "repo": "phenoXdd",
+      "spec_count": 0,
+      "specs": []
+    },
+    {
+      "repo": "phenodocs",
+      "spec_count": 0,
+      "specs": []
+    },
+    {
+      "repo": "phenodocs-scorecard-remediation",
+      "spec_count": 0,
+      "specs": []
+    },
+    {
+      "repo": "phenokits-landing",
+      "spec_count": 0,
+      "specs": []
+    },
+    {
+      "repo": "phenotype-auth-ts",
+      "spec_count": 0,
+      "specs": []
+    },
+    {
+      "repo": "phenotype-bus",
+      "spec_count": 0,
+      "specs": []
+    },
+    {
+      "repo": "phenotype-hub",
+      "spec_count": 0,
+      "specs": []
+    },
+    {
+      "repo": "phenotype-icons",
+      "spec_count": 0,
+      "specs": []
+    },
+    {
+      "repo": "phenotype-infra",
+      "spec_count": 4,
+      "specs": [
+        "docs/specs/compute-mesh-spec.md",
+        "docs/specs/credential-inventory.md",
+        "docs/specs/rollback-kill-switch-spec.md",
+        "docs/specs/runner-routing-spec.md"
+      ]
+    },
+    {
+      "repo": "phenotype-journeys",
+      "spec_count": 0,
+      "specs": []
+    },
+    {
+      "repo": "phenotype-omlx",
+      "spec_count": 0,
+      "specs": []
+    },
+    {
+      "repo": "phenotype-ops-mcp",
+      "spec_count": 0,
+      "specs": []
+    },
+    {
+      "repo": "phenotype-org-audits",
+      "spec_count": 0,
+      "specs": []
+    },
+    {
+      "repo": "phenotype-postfx",
+      "spec_count": 0,
+      "specs": []
+    },
+    {
+      "repo": "phenotype-registry",
+      "spec_count": 0,
+      "specs": []
+    },
+    {
+      "repo": "phenotype-shared",
+      "spec_count": 0,
+      "specs": []
+    },
+    {
+      "repo": "phenotype-skills",
+      "spec_count": 0,
+      "specs": []
+    },
+    {
+      "repo": "phenotype-terrain",
+      "spec_count": 0,
+      "specs": []
+    },
+    {
+      "repo": "phenotype-tooling",
+      "spec_count": 0,
+      "specs": []
+    },
+    {
+      "repo": "phenotype-water",
+      "spec_count": 0,
+      "specs": []
+    },
+    {
+      "repo": "portage",
+      "spec_count": 0,
+      "specs": []
+    },
+    {
+      "repo": "rich-cli-kit",
+      "spec_count": 0,
+      "specs": []
+    },
+    {
+      "repo": "rust",
+      "spec_count": 0,
+      "specs": []
+    },
+    {
+      "repo": "services",
+      "spec_count": 0,
+      "specs": []
+    },
+    {
+      "repo": "src",
+      "spec_count": 0,
+      "specs": []
+    },
+    {
+      "repo": "tests",
+      "spec_count": 0,
+      "specs": []
+    },
+    {
+      "repo": "thegent",
+      "spec_count": 4,
+      "specs": [
+        "docs/specs/README.md",
+        "docs/specs/SPECS_GENERATION_SUMMARY.md",
+        "docs/specs/UNIFIED_WORK_STREAM.md",
+        "specs/README.md"
+      ]
+    },
+    {
+      "repo": "thegent-clean",
+      "spec_count": 4,
+      "specs": [
+        "docs/specs/README.md",
+        "docs/specs/SPECS_GENERATION_SUMMARY.md",
+        "docs/specs/UNIFIED_WORK_STREAM.md",
+        "specs/README.md"
+      ]
+    },
+    {
+      "repo": "thegent-dispatch",
+      "spec_count": 0,
+      "specs": []
+    },
+    {
+      "repo": "thegent-fresh",
+      "spec_count": 0,
+      "specs": []
+    },
+    {
+      "repo": "thegent-jsonl",
+      "spec_count": 0,
+      "specs": []
+    },
+    {
+      "repo": "thegent-workspace",
+      "spec_count": 0,
+      "specs": []
+    },
+    {
+      "repo": "tooling",
+      "spec_count": 0,
+      "specs": []
+    },
+    {
+      "repo": "vendor",
+      "spec_count": 0,
+      "specs": []
+    },
+    {
+      "repo": "vibeproxy",
+      "spec_count": 0,
+      "specs": []
+    },
+    {
+      "repo": "vibeproxy-monitoring-unified",
+      "spec_count": 0,
+      "specs": []
+    },
+    {
+      "repo": "worklogs",
+      "spec_count": 0,
+      "specs": []
+    },
+    {
+      "repo": "worktrees",
+      "spec_count": 0,
+      "specs": []
+    }
+  ]
+}

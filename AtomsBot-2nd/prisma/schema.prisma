@@ -1,0 +1,609 @@
+// Prisma Schema for Discord Bot Database
+// Supports SQLite for development and PostgreSQL for production
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite" // Change to "postgresql" for production
+  url      = env("DATABASE_URL")
+}
+
+// ============================================================================
+// CORE DISCORD ENTITIES
+// ============================================================================
+
+model Guild {
+  id        String @id
+  name      String
+  icon      String?
+  ownerId   String? @map("owner_id")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  channels Channel[]
+
+  // Sprint settings
+  defaultSprintId     String?   @unique @map("default_sprint_id")
+  autoAssignNewIssues Boolean   @default(false) @map("auto_assign_new_issues")
+  sprints             Sprint[]  @relation("GuildSprints")
+  defaultSprint       Sprint?   @relation("GuildDefaultSprint", fields: [defaultSprintId], references: [id])
+
+  @@map("guilds")
+}
+
+model Channel {
+  id        String @id
+  guildId   String @map("guild_id")
+  name      String
+  type      Int
+  topic     String?
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  guild   Guild       @relation(fields: [guildId], references: [id], onDelete: Cascade)
+  threads Thread[]
+  tags    ForumTag[]
+
+  @@map("channels")
+}
+
+model ForumTag {
+  id          String  @id
+  channelId   String  @map("channel_id")
+  name        String
+  emojiId     String? @map("emoji_id")
+  emojiName   String? @map("emoji_name")
+  moderated   Boolean @default(false)
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  channel     Channel      @relation(fields: [channelId], references: [id], onDelete: Cascade)
+  threadTags  ThreadTag[]
+
+  @@map("forum_tags")
+}
+
+model Thread {
+  id                  String  @id
+  channelId           String  @map("channel_id")
+  title               String
+  archived            Boolean @default(false)
+  locked              Boolean @default(false)
+  autoArchiveDuration Int?    @map("auto_archive_duration")
+  messageCount        Int     @default(0) @map("message_count")
+  memberCount         Int     @default(0) @map("member_count")
+  createdAt           DateTime @default(now()) @map("created_at")
+  updatedAt           DateTime @updatedAt @map("updated_at")
+
+  channel         Channel             @relation(fields: [channelId], references: [id], onDelete: Cascade)
+  messages        Message[]
+  tags            ThreadTag[]
+  githubLinks     ThreadGithubLink[]
+  jiraLinks       ThreadJiraLink[]
+  sprintId        String?   @map("sprint_id")
+  sprint          Sprint?   @relation(fields: [sprintId], references: [id])
+
+  @@map("threads")
+  @@index([sprintId])
+}
+
+model ThreadTag {
+  threadId  String   @map("thread_id")
+  tagId     String   @map("tag_id")
+  appliedAt DateTime @default(now()) @map("applied_at")
+
+  thread Thread   @relation(fields: [threadId], references: [id], onDelete: Cascade)
+  tag    ForumTag @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([threadId, tagId])
+  @@map("thread_tags")
+}
+
+model Message {
+  id              String    @id
+  threadId        String    @map("thread_id")
+  authorId        String    @map("author_id")
+  authorUsername  String?   @map("author_username")
+  content         String?
+  editedAt        DateTime? @map("edited_at")
+  deletedAt       DateTime? @map("deleted_at")
+  createdAt       DateTime  @default(now()) @map("created_at")
+
+  thread Thread @relation(fields: [threadId], references: [id], onDelete: Cascade)
+
+  @@map("messages")
+}
+
+// ============================================================================
+// INTEGRATION ENTITIES
+// ============================================================================
+
+model GithubIssue {
+  id             Int       @id
+  number         Int
+  owner          String
+  repo           String
+  title          String
+  body           String?
+  state          String
+  locked         Boolean   @default(false)
+  assigneeLogin  String?   @map("assignee_login")
+  labels         String?   // JSON array
+  milestoneTitle String?   @map("milestone_title")
+  createdAt      DateTime  @map("created_at")
+  updatedAt      DateTime  @map("updated_at")
+  closedAt       DateTime? @map("closed_at")
+
+  threadLinks ThreadGithubLink[]
+  jiraLinks   GithubJiraLink[]
+
+  @@unique([owner, repo, number])
+  @@map("github_issues")
+}
+
+model JiraIssue {
+  id            String    @id
+  key           String    @unique
+  projectKey    String    @map("project_key")
+  summary       String
+  description   String?
+  status        String
+  priority      String?
+  assigneeEmail String?   @map("assignee_email")
+  reporterEmail String?   @map("reporter_email")
+  labels        String?   // JSON array
+  createdAt     DateTime  @map("created_at")
+  updatedAt     DateTime  @map("updated_at")
+  resolvedAt    DateTime? @map("resolved_at")
+
+  threadLinks   ThreadJiraLink[]
+  githubLinks   GithubJiraLink[]
+
+  @@map("jira_issues")
+}
+
+// ============================================================================
+// LINKING TABLES
+// ============================================================================
+
+model ThreadGithubLink {
+  threadId      String   @map("thread_id")
+  githubIssueId Int      @map("github_issue_id")
+  createdAt     DateTime @default(now()) @map("created_at")
+  createdBy     String?  @map("created_by")
+
+  thread      Thread      @relation(fields: [threadId], references: [id], onDelete: Cascade)
+  githubIssue GithubIssue @relation(fields: [githubIssueId], references: [id], onDelete: Cascade)
+
+  @@id([threadId, githubIssueId])
+  @@map("thread_github_links")
+}
+
+model ThreadJiraLink {
+  threadId    String   @map("thread_id")
+  jiraIssueId String   @map("jira_issue_id")
+  createdAt   DateTime @default(now()) @map("created_at")
+  createdBy   String?  @map("created_by")
+
+  thread    Thread    @relation(fields: [threadId], references: [id], onDelete: Cascade)
+  jiraIssue JiraIssue @relation(fields: [jiraIssueId], references: [id], onDelete: Cascade)
+
+  @@id([threadId, jiraIssueId])
+  @@map("thread_jira_links")
+}
+
+model GithubJiraLink {
+  githubIssueId Int      @map("github_issue_id")
+  jiraIssueId   String   @map("jira_issue_id")
+  createdAt     DateTime @default(now()) @map("created_at")
+  createdBy     String?  @map("created_by")
+
+  githubIssue GithubIssue @relation(fields: [githubIssueId], references: [id], onDelete: Cascade)
+  jiraIssue   JiraIssue   @relation(fields: [jiraIssueId], references: [id], onDelete: Cascade)
+
+  @@id([githubIssueId, jiraIssueId])
+  @@map("github_jira_links")
+}
+
+// ============================================================================
+// SPRINT MANAGEMENT
+// ============================================================================
+
+model Sprint {
+  id              String    @id @default(cuid())
+  guildId         String    @map("guild_id")
+  name            String
+  goal            String?
+  state           String    @default("planned")
+  startDate       DateTime? @map("start_date")
+  endDate         DateTime? @map("end_date")
+  velocityTarget  Int?      @map("velocity_target")
+  teamId          String?   @map("team_id")
+  githubMilestone String?   @map("github_milestone")
+  jiraBoardId     String?   @map("jira_board_id")
+  jiraSprintId    String?   @map("jira_sprint_id")
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+
+  guild   Guild    @relation("GuildSprints", fields: [guildId], references: [id], onDelete: Cascade)
+  // Optional backref for guild.defaultSprint relation
+  defaultForGuild Guild?   @relation("GuildDefaultSprint")
+  threads Thread[]
+  events  SprintEvent[]
+
+  @@unique([guildId, name])
+  @@map("sprints")
+}
+
+model SprintEvent {
+  id         String   @id @default(cuid())
+  sprintId   String   @map("sprint_id")
+  type       String
+  entityType String   @map("entity_type")
+  entityId   String   @map("entity_id")
+  payload    String?
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  sprint Sprint @relation(fields: [sprintId], references: [id], onDelete: Cascade)
+
+  @@map("sprint_events")
+}
+
+// ============================================================================
+// USER & SESSION MANAGEMENT
+// ============================================================================
+
+model DiscordUser {
+  id            String    @id
+  username      String
+  discriminator String?
+  globalName    String?   @map("global_name")
+  avatar        String?
+  bot           Boolean   @default(false)
+  lastSeenAt    DateTime? @map("last_seen_at")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  sessions     UserSession[]
+  activityLogs ActivityLog[]
+
+  @@map("discord_users")
+}
+
+model UserSession {
+  id          String   @id
+  userId      String   @map("user_id")
+  sessionType String   @map("session_type")
+  sessionData String?  @map("session_data") // JSON
+  expiresAt   DateTime @map("expires_at")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  user DiscordUser @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_sessions")
+}
+
+
+// ============================================================================
+// USER LINKING & TEAMS (for assignTo system)
+// ============================================================================
+
+model Team {
+  id        String   @id
+  name      String   @unique
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  members   UserLink[]
+
+  @@map("teams")
+}
+
+model UserLink {
+  id         String   @id // discordId or generated ID; we will use discordId for simplicity
+  discordId  String   @unique @map("discord_id")
+  discordTag String?  @map("discord_tag")
+  github     String?
+  jira       String?  // prefer Jira accountId when available; may hold email as fallback
+  teamId     String?  @map("team_id")
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  team Team? @relation(fields: [teamId], references: [id])
+
+  @@map("user_links")
+}
+
+// ============================================================================
+// SETTINGS & CONFIGURATION
+// ============================================================================
+
+model Secret {
+  key       String   @id
+  value     String
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("secrets")
+}
+
+model ForumChannelConfig {
+  id        String   @id @default(cuid())
+  guildId   String   @map("guild_id")
+  forumId   String   @map("forum_id")
+  channelId String   @map("channel_id")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@unique([guildId, forumId])
+  @@map("forum_channel_config")
+}
+
+model TeamSettings {
+  id                     String   @id
+  name                   String
+  description            String?
+  color                  Int?
+  emoji                  String?
+  roleId                 String?  @map("role_id")
+  bugForumId             String?  @map("bug_forum_id")
+  featureForumId         String?  @map("feature_forum_id")
+  bugForumChannelId      String?  @map("bug_forum_channel_id")
+  featureForumChannelId  String?  @map("feature_forum_channel_id")
+  githubOwner            String?  @map("github_owner")
+  githubRepo             String?  @map("github_repo")
+  githubLabelPrefix      String?  @map("github_label_prefix")
+  jiraProjectKey         String?  @map("jira_project_key")
+  jiraBoardId            String?  @map("jira_board_id")
+  // Provider mapping (for precise team resolution)
+  linearTeamId           String?  @map("linear_team_id")
+  linearProjectId        String?  @map("linear_project_id")
+  ghProjectsOrg          String?  @map("gh_projects_org")
+  ghProjectsId           String?  @map("gh_projects_id")
+  ghProjectsNumber       String?  @map("gh_projects_number")
+  // Repair/conflict policy: provider_wins | coda_wins | most_recent
+  pmConflictPolicy      String?  @map("pm_conflict_policy")
+  // PM provider configuration (centralized source of truth)
+  pmProvider             String?  @map("pm_provider")
+  pmSync                 Boolean? @map("pm_sync")
+  // Coda mapping (per-team doc and tables)
+  codaDocId              String?  @map("coda_doc_id")
+  codaIssuesTableId      String?  @map("coda_issues_table_id")
+  codaCommentsTableId    String?  @map("coda_comments_table_id")
+  codaUsersTableId       String?  @map("coda_users_table_id")
+  // Optional per-team column mappings
+  codaIssueKeyColumn         String?  @map("coda_issue_key_column")
+  codaIssueTitleColumn       String?  @map("coda_issue_title_column")
+  codaIssueStatusColumn      String?  @map("coda_issue_status_column")
+  codaIssuePriorityColumn    String?  @map("coda_issue_priority_column")
+  codaIssueAssigneeColumn    String?  @map("coda_issue_assignee_column")
+  codaIssueUpdatedAtColumn   String?  @map("coda_issue_updated_at_column")
+  createdAt              DateTime @default(now()) @map("created_at")
+  updatedAt              DateTime @updatedAt @map("updated_at")
+
+  @@map("team_settings")
+}
+
+// ============================================================================
+// AUDIT & LOGGING
+// ============================================================================
+
+model ActivityLog {
+  id         Int      @id @default(autoincrement())
+  entityType String   @map("entity_type")
+  entityId   String   @map("entity_id")
+  action     String
+  actorId    String?  @map("actor_id")
+  actorType  String   @default("user") @map("actor_type")
+  details    String?  // JSON
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  actor       DiscordUser?  @relation(fields: [actorId], references: [id])
+
+  @@map("activity_log")
+}
+
+// ============================================================================
+// DEPLOYMENTS & NOTIFICATIONS
+// ============================================================================
+
+model DeploymentRun {
+  id                 String    @id @default(cuid())
+  guildId            String    @map("guild_id")
+  forumThreadId      String?   @map("forum_thread_id")
+  repoOwner          String?   @map("repo_owner")
+  repoName           String?   @map("repo_name")
+  env                String
+  provider           String
+  workdirPath        String?   @map("workdir_path")
+  branch             String
+  baseBranch         String    @default("production") @map("base_branch")
+  headBranch         String    @default("main") @map("head_branch")
+  beforeSha          String?   @map("before_sha")
+  afterSha           String?   @map("after_sha")
+  commitsCount       Int?      @map("commits_count")
+  vercelDeploymentId String?   @map("vercel_deployment_id")
+  vercelUrl          String?   @map("vercel_url")
+  status             String    @default("queued")
+  error              String?
+  startedAt          DateTime  @default(now()) @map("started_at")
+  finishedAt         DateTime? @map("finished_at")
+
+  @@map("deployment_runs")
+  @@index([guildId])
+}
+
+model EventMessage {
+  id         String   @id @default(cuid())
+  guildId    String   @map("guild_id")
+  eventType  String   @map("event_type")
+  eventId    String   @map("event_id")
+  channelId  String   @map("channel_id")
+  messageId  String   @map("message_id")
+  metadata   String?  // JSON metadata about the event
+  lastUpdated DateTime @default(now()) @map("last_updated")
+
+  @@unique([guildId, eventType, eventId])
+  @@map("event_messages")
+  @@index([channelId])
+}
+
+// ============================================================================
+// GOOGLE CALENDAR INTEGRATION
+// ============================================================================
+
+model CalendarAccount {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  refreshToken String   @map("refresh_token")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  syncStates   CalendarSyncState[]
+  events       CalendarEvent[]
+}
+
+model CalendarSyncState {
+  id                String   @id @default(cuid())
+  accountId         String   @map("account_id")
+  calendarId        String   @map("calendar_id")
+  syncToken         String?  @map("sync_token")
+  channelId         String?  @map("channel_id")
+  resourceId        String?  @map("resource_id")
+  channelExpiration DateTime? @map("channel_expiration")
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
+
+  account CalendarAccount @relation(fields: [accountId], references: [id], onDelete: Cascade)
+
+  @@unique([calendarId, accountId])
+  @@map("calendar_sync_states")
+}
+
+model CalendarEvent {
+  id            String   @id @default(cuid())
+  accountId     String   @map("account_id")
+  calendarId    String   @map("calendar_id")
+  eventId       String   @map("event_id")
+  summary       String?
+  description   String?
+  startTime     DateTime? @map("start_time")
+  endTime       DateTime? @map("end_time")
+  status        String?
+  htmlLink      String?   @map("html_link")
+  conferenceUrl String?   @map("conference_url")
+  attachments   String?   // JSON
+  atomsFlag     Boolean   @default(false) @map("atoms_flag")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+  createdAt     DateTime  @default(now()) @map("created_at")
+
+  account CalendarAccount @relation(fields: [accountId], references: [id], onDelete: Cascade)
+
+  @@unique([calendarId, eventId, accountId])
+  @@index([startTime, endTime])
+  @@map("calendar_events")
+}
+
+model MeetingDiscordMap {
+  id         String   @id @default(cuid())
+  accountId  String   @map("account_id")
+  calendarId String   @map("calendar_id")
+  eventId    String   @map("event_id")
+  guildId    String   @map("guild_id")
+  channelId  String   @map("channel_id")
+  messageId  String   @map("message_id")
+  threadId   String?  @map("thread_id")
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  @@unique([accountId, calendarId, eventId])
+  @@map("meeting_discord_map")
+}
+
+model ReminderDelivery {
+  id           String   @id @default(cuid())
+  accountId    String   @map("account_id")
+  calendarId   String   @map("calendar_id")
+  eventId      String   @map("event_id")
+  offsetMinute Int      @map("offset_minute")
+  deliveredAt  DateTime @map("delivered_at")
+
+  @@unique([accountId, calendarId, eventId, offsetMinute])
+  @@map("reminder_delivery")
+}
+
+// ============================================================================
+// SMART SCHEDULING (GCal Provider)
+// ============================================================================
+
+model SchedulingPreference {
+  id            String   @id @default(cuid())
+  userId        String   @map("user_id") // Discord user id
+  timezone      String   @default("UTC")
+  workStartMin  Int      @default(540)  @map("work_start_min") // minutes since midnight
+  workEndMin    Int      @default(1020) @map("work_end_min")
+  bufferMinutes Int      @default(15)    @map("buffer_minutes")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt      @map("updated_at")
+
+  @@unique([userId])
+  @@map("scheduling_prefs")
+}
+
+model AvailabilityWindow {
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id")
+  start     DateTime
+  end       DateTime
+  reason    String?
+  kind      String   @default("block") // block|focus|ooo
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([userId, start, end])
+  @@map("availability_windows")
+}
+
+model MeetingTemplate {
+  id          String   @id @default(cuid())
+  name        String
+  durationMin Int      @map("duration_min")
+  description String?
+  publicSlug  String?  @unique @map("public_slug")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@map("meeting_templates")
+}
+
+model HoldReservation {
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id")
+  slotStart DateTime @map("slot_start")
+  slotEnd   DateTime @map("slot_end")
+  expiresAt DateTime @map("expires_at")
+  status    String   @default("held")
+  provider  String   @default("gcal")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([userId, expiresAt])
+  @@map("hold_reservations")
+}
+
+model Booking {
+  id           String   @id @default(cuid())
+  userId       String   @map("user_id")
+  slotStart    DateTime @map("slot_start")
+  slotEnd      DateTime @map("slot_end")
+  title        String
+  description  String?
+  attendees    String?  // JSON array of emails
+  provider     String   @default("gcal")
+  eventId      String   @map("event_id")
+  htmlLink     String?  @map("html_link")
+  conferenceUrl String? @map("conference_url")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  @@index([userId, slotStart])
+  @@map("bookings")
+}

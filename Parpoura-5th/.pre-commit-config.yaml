@@ -1,0 +1,61 @@
+# trace -- Pre-commit hooks (Gates 1-3: syntax, lint, type)
+# Stack: Shell/Bash with Python tooling
+
+repos:
+  # --- Base hooks (syntax validation - Gate 1) ---
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.6.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-json
+      - id: check-toml
+      - id: check-added-large-files
+        args: ["--maxkb=500"]
+      - id: check-merge-conflict
+      - id: detect-private-key
+      - id: no-commit-to-branch
+        args: ["--branch", "main", "--branch", "master"]
+
+  # --- Shell linting (Gate 2) ---
+  - repo: https://github.com/pre-commit/mirrors-shellcheck
+    rev: v0.10.0
+    hooks:
+      - id: shellcheck
+        args: ["--enable=all", "--severity=warning"]
+
+  # --- Shell formatting ---
+  - repo: https://github.com/scop/pre-commit-shfmt
+    rev: v3.9.0-1
+    hooks:
+      - id: shfmt
+        args: ["-i", "2", "-ci", "-bn"]
+
+  # --- Python lint (for test/tooling scripts) (Gate 2) ---
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.8.0
+    hooks:
+      - id: ruff
+        args: ["--fix", "--exit-non-zero-on-fix"]
+      - id: ruff-format
+
+  # --- Local hooks ---
+  - repo: local
+    hooks:
+      - id: bash-syntax
+        name: Validate bash syntax (Gate 1)
+        entry: bash -n
+        language: system
+        types: [bash]
+        stages: [pre-commit]
+
+# Local security and fast gate hooks for pre-commit and pre-push stages
+  - repo: local
+    hooks:
+      - id: security-guard-pre-commit-pre-push
+        name: security-guard pre-commit/pre-push
+        entry: .github/scripts/security-guard.sh
+        language: script
+        pass_filenames: false
+        stages: [pre-commit, pre-push]

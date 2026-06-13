@@ -1,0 +1,38 @@
+{
+  "typeofExport": "function",
+  "name": "spy",
+  "hasProtoBuild": "undefined",
+  "keysProto": [
+    "constructor"
+  ]
+}[register] id=test-embed-1
+[get] id=test-embed-1 direct=true removed=false
+[register] id=test-embed-1
+[get] id=test-embed-1 direct=true removed=false
+[register] id=test-embed-1
+[get] id=test-embed-1 direct=true removed=false
+[register] id=test-embed-1
+[register] id=test-embed-1
+[register] id=test-embed-1
+[register] id=test-embed-1
+[register] id=auto-update-test
+[register] id=auto-refresh
+[register] id=error-auto-update
+[register] id=test-embed-1
+[register] id=test-embed-1
+[register] id=no-message
+[register] id=test-embed-1
+[register] id=test-embed-1
+[register] id=auto-remove-test
+[get] id=auto-remove-test direct=false removed=true
+[register] id=test-embed-1
+[register] id=stats-test
+[register] id=test-embed-1
+[register] id=cleanup-test
+[register] id=test-embed-1
+[get] id=test-embed-1 direct=true removed=false
+[get] id=test-embed-1 direct=false removed=true
+[register] id=test-embed
+[register] id=test-embed
+[get] id=test-embed direct=true removed=false
+[get] id=test-embed direct=true removed=false

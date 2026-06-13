@@ -1,0 +1,151 @@
+{
+  "generated_at": "2026-06-07T00:00:00Z",
+  "total_repos": 14,
+  "with_anyhow": [
+    "AgilePlus",
+    "Eventra",
+    "GDK",
+    "KDesktopVirt",
+    "KlipDot",
+    "kmobile",
+    "phenotype-bus",
+    "thegent-dispatch"
+  ],
+  "with_thiserror": [
+    "Agentora",
+    "AgilePlus",
+    "Eventra",
+    "GDK",
+    "HexaKit",
+    "KDesktopVirt",
+    "KlipDot",
+    "Metron",
+    "PhenoDevOps",
+    "Tasken",
+    "kmobile",
+    "phenoForge",
+    "phenotype-bus"
+  ],
+  "with_eyre": [],
+  "by_repo": [
+    {
+      "repo": "Agentora",
+      "crate": "Agentora",
+      "cargo_toml": "Agentora/Cargo.toml",
+      "libs": [
+        "thiserror"
+      ]
+    },
+    {
+      "repo": "AgilePlus",
+      "crate": "AgilePlus",
+      "cargo_toml": "AgilePlus/Cargo.toml",
+      "libs": [
+        "anyhow",
+        "thiserror"
+      ]
+    },
+    {
+      "repo": "Eventra",
+      "crate": "Eventra",
+      "cargo_toml": "Eventra/Cargo.toml",
+      "libs": [
+        "anyhow",
+        "thiserror"
+      ]
+    },
+    {
+      "repo": "GDK",
+      "crate": "GDK",
+      "cargo_toml": "GDK/Cargo.toml",
+      "libs": [
+        "anyhow",
+        "thiserror"
+      ]
+    },
+    {
+      "repo": "HexaKit",
+      "crate": "HexaKit",
+      "cargo_toml": "HexaKit/Cargo.toml",
+      "libs": [
+        "thiserror"
+      ]
+    },
+    {
+      "repo": "KDesktopVirt",
+      "crate": "KDesktopVirt",
+      "cargo_toml": "KDesktopVirt/Cargo.toml",
+      "libs": [
+        "anyhow",
+        "thiserror"
+      ]
+    },
+    {
+      "repo": "KlipDot",
+      "crate": "KlipDot",
+      "cargo_toml": "KlipDot/Cargo.toml",
+      "libs": [
+        "anyhow",
+        "thiserror"
+      ]
+    },
+    {
+      "repo": "Metron",
+      "crate": "Metron",
+      "cargo_toml": "Metron/Cargo.toml",
+      "libs": [
+        "thiserror"
+      ]
+    },
+    {
+      "repo": "PhenoDevOps",
+      "crate": "PhenoDevOps",
+      "cargo_toml": "PhenoDevOps/Cargo.toml",
+      "libs": [
+        "thiserror"
+      ]
+    },
+    {
+      "repo": "Tasken",
+      "crate": "Tasken",
+      "cargo_toml": "Tasken/Cargo.toml",
+      "libs": [
+        "thiserror"
+      ]
+    },
+    {
+      "repo": "kmobile",
+      "crate": "kmobile",
+      "cargo_toml": "kmobile/Cargo.toml",
+      "libs": [
+        "anyhow",
+        "thiserror"
+      ]
+    },
+    {
+      "repo": "phenoForge",
+      "crate": "phenoForge",
+      "cargo_toml": "phenoForge/Cargo.toml",
+      "libs": [
+        "thiserror"
+      ]
+    },
+    {
+      "repo": "phenotype-bus",
+      "crate": "phenotype-bus",
+      "cargo_toml": "phenotype-bus/Cargo.toml",
+      "libs": [
+        "anyhow",
+        "thiserror"
+      ]
+    },
+    {
+      "repo": "thegent-dispatch",
+      "crate": "thegent-dispatch",
+      "cargo_toml": "thegent-dispatch/Cargo.toml",
+      "libs": [
+        "anyhow"
+      ]
+    }
+  ]
+}

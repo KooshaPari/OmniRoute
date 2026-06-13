@@ -1,0 +1,285 @@
+openapi: 3.0.3
+info:
+    title: Atoms API - Testing & Relations
+    version: 1.0.0
+servers:
+    - url: https://api.example.com
+paths:
+    /tests:
+        get:
+            summary: List tests by project with filters
+            parameters:
+                - in: query
+                  name: projectId
+                  required: true
+                  schema: { type: string }
+                - in: query
+                  name: status
+                  schema:
+                      type: array
+                      items: { type: string }
+                  style: form
+                  explode: true
+                - in: query
+                  name: priority
+                  schema:
+                      type: array
+                      items: { type: string }
+                  style: form
+                  explode: true
+                - in: query
+                  name: search
+                  schema: { type: string }
+                - in: query
+                  name: page
+                  schema: { type: integer, default: 1 }
+                - in: query
+                  name: pageSize
+                  schema: { type: integer, default: 10 }
+            responses:
+                '200':
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    data:
+                                        type: array
+                                        items: { $ref: '#/components/schemas/Test' }
+                                    count: { type: integer }
+        post:
+            summary: Create test
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema: { $ref: '#/components/schemas/TestCreate' }
+            responses:
+                '201': { description: Created }
+    /tests/{id}:
+        patch:
+            summary: Update test
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  schema: { type: string }
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema: { $ref: '#/components/schemas/TestUpdate' }
+            responses:
+                '200': { description: Updated }
+        delete:
+            summary: Soft delete test
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  schema: { type: string }
+            responses:
+                '204': { description: No Content }
+    /requirement-tests:
+        get:
+            summary: List relations by test or requirement
+            parameters:
+                - in: query
+                  name: testId
+                  schema: { type: string }
+                - in: query
+                  name: requirementId
+                  schema: { type: string }
+            responses:
+                '200':
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                type: array
+                                items: { $ref: '#/components/schemas/RequirementTest' }
+        post:
+            summary: Create relation
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema: { $ref: '#/components/schemas/RequirementTestCreate' }
+            responses:
+                '201': { description: Created }
+    /requirement-tests/{requirementId}/{testId}:
+        patch:
+            summary: Update relation
+            parameters:
+                - in: path
+                  name: requirementId
+                  required: true
+                  schema: { type: string }
+                - in: path
+                  name: testId
+                  required: true
+                  schema: { type: string }
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema: { $ref: '#/components/schemas/RequirementTestUpdate' }
+            responses:
+                '200': { description: Updated }
+        delete:
+            summary: Delete relation
+            parameters:
+                - in: path
+                  name: requirementId
+                  required: true
+                  schema: { type: string }
+                - in: path
+                  name: testId
+                  required: true
+                  schema: { type: string }
+            responses:
+                '204': { description: No Content }
+    /test-matrix-views:
+        get:
+            summary: List views by project
+            parameters:
+                - in: query
+                  name: projectId
+                  required: true
+                  schema: { type: string }
+            responses:
+                '200':
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                type: array
+                                items: { $ref: '#/components/schemas/TestMatrixView' }
+        post:
+            summary: Create view
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema: { $ref: '#/components/schemas/TestMatrixViewCreate' }
+            responses:
+                '201': { description: Created }
+    /test-matrix-views/{id}:
+        get:
+            summary: Get view
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  schema: { type: string }
+            responses:
+                '200':
+                    {
+                        description: OK,
+                        content:
+                            {
+                                application/json:
+                                    {
+                                        schema:
+                                            {
+                                                $ref: '#/components/schemas/TestMatrixView',
+                                            },
+                                    },
+                            },
+                    }
+        patch:
+            summary: Update view
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  schema: { type: string }
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema: { $ref: '#/components/schemas/TestMatrixViewUpdate' }
+            responses:
+                '200': { description: Updated }
+        delete:
+            summary: Soft delete view
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  schema: { type: string }
+            responses:
+                '204': { description: No Content }
+components:
+    schemas:
+        Test:
+            type: object
+            properties:
+                id: { type: string }
+                project_id: { type: string }
+                title: { type: string }
+                description: { type: string }
+                status: { type: string }
+                priority: { type: string }
+                test_type: { type: string }
+                is_active: { type: boolean }
+        TestCreate:
+            type: object
+            required: [project_id, title]
+            properties:
+                project_id: { type: string }
+                title: { type: string }
+                description: { type: string }
+                status: { type: string }
+                priority: { type: string }
+                test_type: { type: string }
+        TestUpdate:
+            type: object
+            properties:
+                title: { type: string }
+                description: { type: string }
+                status: { type: string }
+                priority: { type: string }
+                test_type: { type: string }
+                is_active: { type: boolean }
+        RequirementTest:
+            type: object
+            properties:
+                requirement_id: { type: string }
+                test_id: { type: string }
+                status: { type: string }
+        RequirementTestCreate:
+            type: object
+            required: [requirement_id, test_id]
+            properties:
+                requirement_id: { type: string }
+                test_id: { type: string }
+                status: { type: string }
+        RequirementTestUpdate:
+            type: object
+            properties:
+                status: { type: string }
+        TestMatrixView:
+            type: object
+            properties:
+                id: { type: string }
+                project_id: { type: string }
+                name: { type: string }
+                configuration: { type: object, additionalProperties: true }
+                is_active: { type: boolean }
+                is_default: { type: boolean }
+        TestMatrixViewCreate:
+            type: object
+            required: [project_id, name, configuration]
+            properties:
+                project_id: { type: string }
+                name: { type: string }
+                configuration: { type: object, additionalProperties: true }
+                is_default: { type: boolean }
+        TestMatrixViewUpdate:
+            type: object
+            properties:
+                name: { type: string }
+                configuration: { type: object, additionalProperties: true }
+                is_default: { type: boolean }

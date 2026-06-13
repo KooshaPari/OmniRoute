@@ -1,0 +1,29 @@
+{
+  "generated_at": "2026-06-07T00:00:00Z",
+  "total_repos": 46,
+  "with_tower": [
+    "kmobile",
+    "KDesktopVirt"
+  ],
+  "with_tower_http": [
+    "kmobile",
+    "KDesktopVirt"
+  ],
+  "with_tower_governor": [],
+  "by_repo": [
+    {
+      "repo": "kmobile",
+      "libs": [
+        "tower",
+        "tower-http"
+      ]
+    },
+    {
+      "repo": "KDesktopVirt",
+      "libs": [
+        "tower",
+        "tower-http"
+      ]
+    }
+  ]
+}

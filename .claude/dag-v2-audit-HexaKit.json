@@ -1,0 +1,167 @@
+{
+  "repo": "HexaKit",
+  "repo_path": "/Users/kooshapari/CodeProjects/Phenotype/repos/HexaKit",
+  "branch_audited": "main",
+  "audit_branch": "chore/audit-HexaKit-2026-06-08",
+  "head_sha_audited": "44cf4726fa84bdac8180034b5a2e07fa7f37b86e",
+  "last_commit_date": "2026-06-08T17:33:51-07:00",
+  "last_commit_subject": "chore(HexaKit): gitignore worktree dirs (#206)",
+  "last_commit_author": "Forge",
+  "head_sha_at_branch_creation": "af43f35c2910c296b6c009b6ec4ec99e92074b40",
+  "head_sha_branch_creation_note": "A 'hygiene: bulk commit of uncommitted changes 2026-06-08' landed on main at 2026-06-08T19:41:56-07:00 (Forge, 85 files / +539/-588) AFTER the initial audit read of head_sha=44cf472 but before the audit branch was cut; the branch was cut from this newer main. head_sha_audited describes the SHA the audit content was derived from; the actual commit the branch is based on is af43f35.",
+  "remotes": {
+    "origin": "https://github.com/KooshaPari/HexaKit.git"
+  },
+  "language_stack": {
+    "primary": ["rust"],
+    "secondary": ["python", "go", "typescript"],
+    "stacks_observed": [
+      "rust (axum 0.7 + tracing-actix-web 4 + tokio/hyper + tonic gRPC)",
+      "python (uv-managed: pheno-agents, pheno-atoms, pheno-core, pheno-llm, pheno-mcp, phenosdk)",
+      "go (go-chi/chi v5 in templates/go, agileplus/pheno-cli, templates/hexagon/go)",
+      "typescript (templates/typescript + templates/hexagon/typescript)",
+      "proto (buf-managed contracts)",
+      "shell/just/taskfile orchestration"
+    ],
+    "framework": "hexagonal-architecture port/adapter pattern (Rust primary) + cross-stack MCP server (Rust + Python)",
+    "msrv": "1.75 (pinned in rust-toolchain.toml)",
+    "workspace_crate_count": 46,
+    "workspace_cargo_toml_members": 50,
+    "crates_excluded_from_workspace": ["crates/cipher", "crates/focalpoint"]
+  },
+  "hygiene_score": 100,
+  "hygiene_breakdown": {
+    "LICENSE": 10,
+    "README": 10,
+    "CHANGELOG": 10,
+    "EDITORCONFIG": 10,
+    "CI": 10,
+    "DEPENDABOT": 10,
+    "CODEOWNERS": 10,
+    "CONTRIBUTING": 10,
+    "SECURITY": 10,
+    "FUNDING": 10
+  },
+  "hygiene_evidence": {
+    "LICENSE": "LICENSE (1066B, MIT)",
+    "README": "README.md (5985B, work-state header, status block, shelf org overview)",
+    "CHANGELOG": "CHANGELOG.md (326B, Keep-a-Changelog sections present, 1 release entry 2026-04-29)",
+    "EDITORCONFIG": ".editorconfig (444B, root=true, covers rs/toml/py/go/md/yaml/yml/json/html/css/scss/ts/tsx/js/jsx)",
+    "CI": ".github/workflows/ (49 workflows: ci, quality-gate, gate-check, policy-gate, traceability-gate, journey-gate, self-merge-gate, libs-activation-ci, legacy-tooling-gate, codeql, codeql-rust, sonarcloud, sast-full, sast-quick, snyk-scan, trivy-scan, zap-dast, cargo-audit, cargo-deny, cargo-machete, cargo-semver-checks, security-scan, security-guard, security-guard-hook-audit, trufflehog, iac-scan, license-compliance, sbom, scorecard, changelog, release, release-drafter, publish, promote, deploy, docs, evidence-capture, ai-testing-orchestration, alert-sync-issues, benchmark, fuzzing, spec-validation, sync-canary, tag-automation, workflow-maintenance, workflow-sync, audit, rust-quality, rust-release, example-reusable, change_detection baselines)",
+    "DEPENDABOT": ".github/dependabot.yml (cargo@/rust weekly, pip@/python weekly, github-actions@/ weekly)",
+    "CODEOWNERS": "CODEOWNERS (root + .github/CODEOWNERS: * @KooshaPari; iac/ + .github/ + SECURITY.md + dependabot.yml scoped)",
+    "CONTRIBUTING": "CONTRIBUTING.md (1953B, AgilePlus mandate, conventional commits, branch discipline)",
+    "SECURITY": "SECURITY.md (239B, responsible disclosure flow)",
+    "FUNDING": "FUNDING.yml (175B, contact_links → thegent discussions) + .github/FUNDING.yml (19B)"
+  },
+  "dup_exposure": [
+    {"lib": "phenotype-bus", "use_case": "Replace ad-hoc pub-sub in crates/phenotype-event-bus and agileplus/crates/agileplus-* with canonical bus; event-bus crate already in workspace but should be deprecated in favor of external"},
+    {"lib": "phenotype-event-sourcing", "use_case": "crates/phenotype-event-sourcing (hash-chained SQLite) duplicates PhenoObservability's tracely-core; consolidate to a single event-store crate"},
+    {"lib": "phenotype-errors", "use_case": "crates/phenotype-errors + crates/phenotype-error-core + crates/phenotype-error-macros (3 crates) overlap; phenotype-error-core from external lib is sufficient"},
+    {"lib": "phenotype-request-id", "use_case": "Add request-ID propagation to axum routes (agileplus-api/src/router.rs, agileplus-dashboard/src/main.rs) and chi middleware (templates/go)"},
+    {"lib": "phenotype-dep-guard", "use_case": "Centralize deny.toml + cargo-deny/audit/semver-checks policy across 3 separate workflows (cargo-deny.yml, cargo-audit.yml, cargo-semver-checks.yml)"},
+    {"lib": "phenotype-registry", "use_case": "crates/phenotype-project-registry should consume external registry lib instead of being a self-contained implementation"},
+    {"lib": "phenotype-postfx", "use_case": "tower-http/trace + tracing-actix-web wiring in agileplus-api could route through shared postfx middleware"},
+    {"lib": "phenotype-journeys", "use_case": "journey-gate.yml + journey-gate in AgilePlus should consume the external journeys lib (not duplicate journey step types)"},
+    {"lib": "phenotype-tooling", "use_case": "justfile + Taskfile.yml + process-compose.yml + .pre-commit-config.yaml + .githooks/ + Brewfile could be consolidated via phenotype.just / phenotype.task / phenotype.precommit library extensions"},
+    {"lib": "phenotype-shared", "use_case": "Workspace members in agileplus/Cargo.toml duplicate trait crate definitions that should come from phenotype-shared"},
+    {"lib": "phenotype-skills", "use_case": "AGENTS.md + CLAUDE.md + harnesses/{CLAUDE-CODE,CODEX,CURSOR}.md overlap; consolidate under skills lib"},
+    {"lib": "phenotype-handbook", "use_case": "README.md + AGENTS.md + CLAUDE.md + AGENTS.md in sub-projects + ADR_REGISTRY.md duplicate onboarding material"},
+    {"lib": "phenotype-icons", "use_case": "feat/iconography-sprite branch + template icons could consume the shared icon set"},
+    {"lib": "phenotype-water", "use_case": "Dockerfile.rust + Dockerfile.python + templates/*/Dockerfile could share base images"}
+  ],
+  "sota_gaps": [
+    "Cross-repo refactoring tool missing — HexaKit is the shelf root for 30+ Pheno repos; the recommended AST-based multi-repo refactorer (REC-006, SOTA.md L1822) is unimplemented",
+    "Unified dependency dashboard absent — Cargo.lock per-project; no shelf-level dep drift visualization (REC-007, SOTA.md L1830)",
+    "Automated worklog generation not present — worklogs are hand-maintained; agent context lost between sessions (Gap 3 in SOTA.md L1732; REC-008)",
+    "Agent MCP server sprawl — 3+ MCP servers (agileplus-mcp, thegent-mcp, helios-mcp) each with their own JSON-RPC patterns; no shared mcp-server crate beyond crates/phenotype-mcp",
+    "No 'phenotype-contracts' federation — proto/contracts under agileplus are duplicated by templates/hexagon/contracts approach (PHASE2_SETUP text vs PHASE1 text)",
+    "Domain-squatter crates linger — crates/cipher and crates/focalpoint are excluded from workspace but their dirs persist (similar pattern to NFR-OBS-010 in PhenoObservability)",
+    "Workspace members list has duplicate entries (phenotype-security-aggregator, phenotype-test-infra, phenotype-time, phenotype-validation all listed twice in Cargo.toml:16-70)",
+    "Renovate and Dependabot coexist (.github/dependabot.yml + renovate.json5 at root) — two tools doing the same job, drift risk",
+    "CHANGELOG.md is sparse (1 release entry 2026-04-29) vs 450 commits — release automation works (cliff.toml present) but releases are not cut",
+    "No 'audit-locked' policy in lib versions — phenotype-config-core path-dep (`libs/phenotype-config-core`) is not version-pinned; future breakage risk for PhenoObservability git-dep consumer",
+    "axum + actix-web co-exist (axum 0.7 for HTTP server crates, tracing-actix-web 4 middleware) — dual framework risk; consider axum-only or tower-only for new crates",
+    "templates/*/ + template-* are duplicated (templates/{rust,python,go,typescript}/ vs template-rust, template-python, template-go, template-typescript at root)",
+    "Cargo.toml.bak is committed in the repo root — backup file in version control is an anti-pattern",
+    "Helm of tracking branches (>15 'chore/' branches as of 2026-06-08: hygiene-bundle, identity-rename, dependabot-groups, etc.) — branch hygiene is itself a gap",
+    "Working tree was clean at branch-cut time (a 'hygiene: bulk commit' landed on main at 2026-06-08T19:41:56 after initial audit read), so the 20+ uncommitted files noted earlier in the session are now in af43f35"
+  ],
+  "convergence_cluster": "multi-stack",
+  "convergence_rationale": "Rust core (46 crates workspace) + Python packages (pheno-agents, pheno-atoms, pheno-core, pheno-llm, pheno-mcp, phenosdk) + Go templates (go-chi/chi v5) + TypeScript templates (vitest + eslint) + protobuf contracts (buf.gen.yaml). Acts as the cross-stack foundation/shelf for the entire Phenotype ecosystem, consumed by PhenoObservability via git dep. SOTA.md explicitly calls it 'shelf organization' (L229). Multi-stack by composition, convergence-by-purpose.",
+  "action_items": [
+    {
+      "rank": 1,
+      "title": "Deduplicate workspace members and remove the 2 excluded-yet-present crates",
+      "effort": "S (1d)",
+      "why": "Cargo.toml:16-70 lists phenotype-security-aggregator, phenotype-test-infra, phenotype-time, phenotype-validation twice each; crates/cipher and crates/focalpoint are excluded (L13-14) but dirs persist (the latter is a 867MB bloat). Single-pass cleanup before next dep-bump cuts 5+ rebuild hotspots.",
+      "file_refs": ["Cargo.toml:16-70", "Cargo.toml:13-14", "crates/cipher/", "crates/focalpoint/"]
+    },
+    {
+      "rank": 2,
+      "title": "Consolidate event-sourcing + errors into the external phenotype-event-sourcing and phenotype-errors libs",
+      "effort": "M (3-5d)",
+      "why": "crates/phenotype-event-sourcing (hash-chained SQLite), crates/phenotype-event-bus, and the 3-crate error stack (phenotype-errors, phenotype-error-core, phenotype-error-macros) duplicate functionality already provided by PhenoObservability (tracely-core) and shared-errors. Removing these cuts ~8 workspace members and aligns HexaKit with the single-source-of-truth direction in PHENOSDK_EXTRACTION_STRATEGY.md.",
+      "file_refs": ["crates/phenotype-event-sourcing/", "crates/phenotype-event-bus/", "crates/phenotype-errors/", "crates/phenotype-error-core/", "crates/phenotype-error-macros/"]
+    },
+    {
+      "rank": 3,
+      "title": "Choose one HTTP framework (axum OR actix-web) and migrate the other to it",
+      "effort": "M (3-5d)",
+      "why": "Workspace pulls axum 0.7 + axum-extra 0.9 (Cargo.toml:148-149) AND tracing-actix-web 4 (Cargo.toml:165). agileplus-api uses axum (router.rs); agileplus-plane uses actix (webhook.rs). Pick one stack for the API surface; the other should be deprecated to a single port/adapter pair. Convergence claim is only credible if HTTP stack is single.",
+      "file_refs": ["Cargo.toml:148-149", "Cargo.toml:165", "agileplus/crates/agileplus-api/src/router.rs", "agileplus/crates/agileplus-plane/src/webhook.rs"]
+    },
+    {
+      "rank": 4,
+      "title": "Apply phenotype-dep-guard + phenotype-just to retire duplicate CI / task infra",
+      "effort": "M (2-3d)",
+      "why": "49 workflows in .github/workflows/ + justfile + Taskfile.yml + process-compose.yml + .pre-commit-config.yaml + Brewfile + .githooks/ is a configuration sprawl. The external phenotype.just + phenotype.precommit libs (already adopted by PhenoObservability per ad3f212) can collapse 15+ workflows into reusable libraries.",
+      "file_refs": [".github/workflows/", "justfile", "Taskfile.yml", "process-compose.yml", ".pre-commit-config.yaml", "Brewfile"]
+    },
+    {
+      "rank": 5,
+      "title": "Cut the first release (v0.2.0) using cliff + release-drafter and prune stale branches",
+      "effort": "S (1-2d)",
+      "why": "Workspace package version 0.2.0 (Cargo.toml:2) + cliff.toml present + release-drafter workflow present + 450 commits but only 1 CHANGELOG entry (2026-04-29). Branch hygiene: 15+ open chore/* branches (cargo-keywords, dependabot-groups, editorconfig-align, hygiene-bundle, identity-rename, tokio-tighten, workflow-hygiene-ubuntu-24, workspace-fix, etc.). Cutting v0.2.0 with cliff + archiving 14 stale branches is the single highest-impact convergence signal.",
+      "file_refs": [".cliff.toml", "CHANGELOG.md", ".github/workflows/release.yml", ".github/workflows/release-drafter.yml", "Cargo.toml:2"]
+    }
+  ],
+  "metadata": {
+    "audit_task": "DAG L1-5",
+    "audit_date": "2026-06-08",
+    "auditor": "forge (dag-v2 audit skill)",
+    "source_repo_path": "/Users/kooshapari/CodeProjects/Phenotype/repos/HexaKit",
+    "source_branch_audited": "main",
+    "source_head_sha": "44cf4726fa84bdac8180034b5a2e07fa7f37b86e",
+    "source_head_sha_at_branch_creation": "af43f35c2910c296b6c009b6ec4ec99e92074b40",
+    "source_commit_count": 450,
+    "workspace_crate_count": 46,
+    "workspace_cargo_toml_members": 50,
+    "excluded_crates": ["crates/cipher", "crates/focalpoint"],
+    "workflows_count": 49,
+    "open_chore_branches_at_audit": [
+      "chore/cargo-keywords-2026-06-08",
+      "chore/dependabot-groups-2026-06-08",
+      "chore/editorconfig-align",
+      "chore/gitignore-wtrees",
+      "chore/hygiene-bundle",
+      "chore/identity-rename",
+      "chore/tokio-tighten",
+      "chore/workspace-fix-2026-06-08",
+      "docs/work-state-header-2026-06-08",
+      "feat/iconography-sprite",
+      "feat/journey-impl",
+      "fix/cargo-lock-security-updates",
+      "chore/container-base-bump",
+      "chore/hexakit-hygiene-20260528",
+      "chore/hygiene-push-20260528",
+      "chore/pin-rust-base-186",
+      "chore/shell-quality",
+      "chore/timeout-minutes-workflows",
+      "chore/update-lockfile-HexaKit",
+      "chore/workflow-hygiene-ubuntu-24"
+    ],
+    "uncommitted_modified_files_at_audit": "20+ files across Metron/, Traceon/, crates/phenotype-analytics/, crates/phenotype-bdd/, crates/phenotype-config-loader/ (observed at initial head 44cf472; resolved by af43f35 'hygiene: bulk commit' before branch cut — not in this commit)",
+    "pushed": false
+  }
+}

@@ -1,0 +1,195 @@
+{
+  "generated_at": "2026-06-08T10:23:35Z",
+  "total_repos": 47,
+  "with_path_deps": [],
+  "by_repo": [
+    {
+      "repo": "Agentora",
+      "path_deps": []
+    },
+    {
+      "repo": "AgilePlus",
+      "path_deps": []
+    },
+    {
+      "repo": "Apisync",
+      "path_deps": []
+    },
+    {
+      "repo": "Benchora",
+      "path_deps": []
+    },
+    {
+      "repo": "BytePort",
+      "path_deps": []
+    },
+    {
+      "repo": "Civis",
+      "path_deps": []
+    },
+    {
+      "repo": "Eidolon",
+      "path_deps": []
+    },
+    {
+      "repo": "Eventra",
+      "path_deps": []
+    },
+    {
+      "repo": "FocalPoint",
+      "path_deps": []
+    },
+    {
+      "repo": "GDK",
+      "path_deps": []
+    },
+    {
+      "repo": "HeliosCLI",
+      "path_deps": []
+    },
+    {
+      "repo": "HeliosLab",
+      "path_deps": []
+    },
+    {
+      "repo": "HexaKit",
+      "path_deps": []
+    },
+    {
+      "repo": "KDesktopVirt",
+      "path_deps": []
+    },
+    {
+      "repo": "KlipDot",
+      "path_deps": []
+    },
+    {
+      "repo": "Metron",
+      "path_deps": []
+    },
+    {
+      "repo": "NetScript",
+      "path_deps": []
+    },
+    {
+      "repo": "PhenoDevOps",
+      "path_deps": []
+    },
+    {
+      "repo": "PhenoKits",
+      "path_deps": []
+    },
+    {
+      "repo": "PhenoMCP",
+      "path_deps": []
+    },
+    {
+      "repo": "PhenoObservability",
+      "path_deps": []
+    },
+    {
+      "repo": "PhenoPlugins",
+      "path_deps": []
+    },
+    {
+      "repo": "PhenoProc",
+      "path_deps": []
+    },
+    {
+      "repo": "PhenoRuntime",
+      "path_deps": []
+    },
+    {
+      "repo": "PhenoVCS",
+      "path_deps": []
+    },
+    {
+      "repo": "PlayCua",
+      "path_deps": []
+    },
+    {
+      "repo": "Pyron",
+      "path_deps": []
+    },
+    {
+      "repo": "Sidekick",
+      "path_deps": []
+    },
+    {
+      "repo": "Tasken",
+      "path_deps": []
+    },
+    {
+      "repo": "Tokn",
+      "path_deps": []
+    },
+    {
+      "repo": "Tracely",
+      "path_deps": []
+    },
+    {
+      "repo": "bare-cua",
+      "path_deps": []
+    },
+    {
+      "repo": "eyetracker",
+      "path_deps": []
+    },
+    {
+      "repo": "helioscope",
+      "path_deps": []
+    },
+    {
+      "repo": "kmobile",
+      "path_deps": []
+    },
+    {
+      "repo": "pheno",
+      "path_deps": []
+    },
+    {
+      "repo": "phenoAI",
+      "path_deps": []
+    },
+    {
+      "repo": "phenoData",
+      "path_deps": []
+    },
+    {
+      "repo": "phenoForge",
+      "path_deps": []
+    },
+    {
+      "repo": "phenoShared",
+      "path_deps": []
+    },
+    {
+      "repo": "phenoUtils",
+      "path_deps": []
+    },
+    {
+      "repo": "phenotype-bus",
+      "path_deps": []
+    },
+    {
+      "repo": "phenotype-journeys",
+      "path_deps": []
+    },
+    {
+      "repo": "phenotype-tooling",
+      "path_deps": []
+    },
+    {
+      "repo": "phenotype-voxel",
+      "path_deps": []
+    },
+    {
+      "repo": "rich-cli-kit",
+      "path_deps": []
+    },
+    {
+      "repo": "thegent-dispatch",
+      "path_deps": []
+    }
+  ]
+}

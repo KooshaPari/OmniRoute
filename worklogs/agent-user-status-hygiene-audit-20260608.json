@@ -1,0 +1,104 @@
+{
+  "repo": "agent-user-status",
+  "branch_audited": "chore/audit-agent-user-status-2026-06-08 (f852992, 1 ahead of main)",
+  "audited_at": "2026-06-08",
+  "stack": "python-3.12 (+ swift-6 macOS native)",
+  "summary": "G1/G2/G4 PASS w/ nit, G3 DEGRADED (trufflehog.yml @main rot), G5 PASS w/ 3 open PRs. 1 P0 (trufflehog @main), 2 P1 (invalid checkout syntax, .gemini/ missing), 3 P2.",
+  "gates": {
+    "G1_workflow_hygiene": {
+      "status": "PASS",
+      "evidence": [
+        "6/6 .github/workflows/*.yml parse cleanly: ci.yml, codeql.yml, journey-gate.yml, scorecard.yml, secrets-scan.yml, trufflehog.yml",
+        "actions/checkout SHA-pinned to 34e114876b0b11c390a56381ad16ebd13914f8d5 in ci.yml + scorecard.yml + secrets-scan.yml (org canonical)",
+        "ci.yml + scorecard.yml + secrets-scan.yml have top-level `permissions: contents: read` and `concurrency:` blocks; journey-gate.yml has timeout-minutes: 15",
+        "ubuntu-latest runner used everywhere; 5/6 use SHA-pinned or reusable workflows",
+        "codeql.yml delegates to KooshaPari/phenoShared/.github/workflows/reusable/codeql.yml@30358ce6 (SHA-pinned, with comment)"
+      ]
+    },
+    "G2_governance_files": {
+      "status": "PASS",
+      "evidence": [
+        "LICENSE (MIT) + LICENSE-MIT + LICENSE-APACHE all present (PR #33-#37 fan-out landed)",
+        "CODEOWNERS, SECURITY.md, CONTRIBUTING.md, CODE_OF_CONDUCT.md, FUNDING.yml, .editorconfig, .pre-commit-config.yaml, .gitignore all present",
+        "CHANGELOG.md exists but [Unreleased] is EMPTY (Added/Changed/Fixed sections all blank since 2026-04-30 bootstrap)",
+        "AGENTS.md + CLAUDE.md + CITATION.cff + Justfile + Taskfile.yml + pyproject.toml all present",
+        "PLAN.md / SPEC.md / STATUS.md MISSING (acceptable for active dev — uses docs/SSOT.md instead)"
+      ]
+    },
+    "G3_security_scanning": {
+      "status": "DEGRADED",
+      "evidence": [
+        "scorecard.yml: ossf/scorecard-action@99c09fe9 SHA-pinned, cron '17 3 * * 6', permissions: read-all",
+        "codeql.yml: reusable workflow, languages ['actions'], build-mode 'none', cron '17 4 * * 1'",
+        "secrets-scan.yml: trufflehog@17456f8c7 SHA-pinned (# v3.95.2), --only-verified, cron '0 7 * * 1'",
+        "dependabot.yml: weekly for github-actions + pip (version 2)",
+        "trufflehog.yml:13 uses `trufflesecurity/trufflehog@main` — NOT SHA-pinned, @main rot (P0)"
+      ]
+    },
+    "G4_quality_gates": {
+      "status": "PASS",
+      "evidence": [
+        "ci.yml quality-gates: ruff check + pyright + pytest + numpy install on PR/push to main; ubuntu-latest; py 3.12",
+        "ci.yml ALSO runs backend smoke: agent-user-statusd serve + curl /health + tests/smoke/smoke.sh with AGENT_USER_STATUS_SMOKE_SKIP_IMESSAGE=1",
+        ".pre-commit-config.yaml: 4 hooks (trailing-whitespace, end-of-file-fixer, check-yaml, check-merge-conflict) — no ruff, no gitleaks, no bandit (minimal)",
+        "tests/ has 20+ unit/ files + conftest.py + tests/smoke/; no tests/e2e/ at root",
+        "No coverage tool configured in ci.yml; no mypy (separate PR #ci/add-mypy on origin, unmerged)"
+      ]
+    },
+    "G5_review_governance": {
+      "status": "PASS",
+      "evidence": [
+        "PULL_REQUEST_TEMPLATE.md: structured (Summary / Runtime Surface / Privacy Impact / Validation) — excellent for a privacy-sensitive tool",
+        "ISSUE_TEMPLATE/: bug_report.md, config.yml, feature_request.md (full set)",
+        "dependabot.yml: weekly github-actions + pip",
+        "renovate.json5: extends ['config:base'] only — no cargo/regex managers configured (N/A: pure python)",
+        ".coderabbit.yaml MISSING (per AGENTS.md mandate, drift); .gemini/ MISSING (per AGENTS.md mandate, drift)",
+        "3 OPEN PRs: #33 workflow-hygiene-ubuntu-24 (11d old), #34 workflow-hygiene-20260606 (1d), #35 align-config-2026-06-08 (<1d)"
+      ]
+    },
+    "e2e_end_to_end": {
+      "status": "DEGRADED",
+      "evidence": [
+        "ci.yml has 'Run backend smoke checks' job: starts agent-user-statusd on :8765, curls /health 15x, runs tests/smoke/smoke.sh — this IS e2e for the HTTP backend",
+        "However: no e2e/ at root, no integration/, no tests/e2e/docsite.spec.ts-style suite",
+        "Frontend/native monitor surface (Swift AppKit, eye tracker) has NO CI coverage — macOS-only + no Linux runner",
+        "MCP server (mcp/agent_imessage_mcp.py) is unit-tested (test_agent_imessage_mcp.py) but never exercised in a live agent harness"
+      ]
+    }
+  },
+  "additional_findings": {
+    "invalid_checkout_syntax": ".github/workflows/journey-gate.yml:113 uses `actions/checkout@v4@11bd71901bbe5b1630ceea73d27597364c9af683` — TWO @ separators, invalid. Should be `actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4`. GitHub silently resolves to v4 tag, but the SHA is decorative.",
+    "uncommitted_modifications": "Working tree: Taskfile.yml MODIFIED (unstaged); grade.sh + lefthook.yml UNTRACKED. These are the audit's tooling itself, not user work.",
+    "ahead_of_main": "Current branch is 1 commit ahead of main (f852992 'chore(audit): state snapshot'). Local main is also 9 ahead / 3 behind origin/main (per other branches showing the fan-out diverged).",
+    "branch_inventory": "20+ local branches; several still have [main: ahead 1, behind 9] markers (chore/pin-actions, chore/workflow-hygiene-20260606) — vestigial from prior fan-outs. chore/standard-files-2026-06-08 is a worktree ref.",
+    "pre_commit_thin": "pre-commit-config has only 4 standard hooks. Org-standard adds ruff + ruff-format + gitleaks. Drift: this repo's ruff runs in CI but not as a pre-commit gate.",
+    "license_signals": "LICENSE=MIT, LICENSE-MIT=MIT, LICENSE-APACHE=Apache-2.0, CITATION.cff references Apache-2.0, pyproject missing license-classifier. Inconsistency: pyproject has no [project.license] field at all (will block pip publish)."
+  },
+  "ci_status": {
+    "open_pr_33": "chore/workflow-hygiene-ubuntu-24 (11d old) — likely already subsumed by PR #34",
+    "open_pr_34": "chore/workflow-hygiene-20260606 (1d old) — workflow pass",
+    "open_pr_35": "chore/align-config-2026-06-08 (<1d old) — pyproject ruff alignment"
+  },
+  "actions_recommended": [
+    {
+      "priority": "P0",
+      "title": "Fix trufflehog.yml @main rot (duplicate of secrets-scan.yml)",
+      "detail": ".github/workflows/trufflehog.yml:13 uses `trufflesecurity/trufflehog@main` — NOT SHA-pinned. Org canonical is trufflesecurity/trufflehog@75add79b929b263dae147d2e5bcf0daf292165cf (v3.95.2). Also the secrets-scan.yml file at the same path already does the SHA-pinned version with --only-verified. Action: delete trufflehog.yml entirely (secrets-scan.yml is the canonical one), OR fix to SHA + add --only-verified. Net: removes duplicate workflow + closes the @main attack surface.",
+      "estimated_effort": "5 min"
+    },
+    {
+      "priority": "P1",
+      "title": "Fix invalid `actions/checkout@v4@<SHA>` syntax in journey-gate.yml:113",
+      "detail": "Two @ separators; the SHA is decorative (GitHub resolves to v4 tag). Replace with `actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4`. The 0-byte cleanup of the journey-gate reusable is otherwise correct.",
+      "estimated_effort": "2 min"
+    },
+    {
+      "priority": "P1",
+      "title": "Add .gemini/ + .coderabbit.yaml (AGENTS.md drift); close 3 stale PRs",
+      "detail": "AGENTS.md mandates .gemini/ and .coderabbit.yaml. Both missing. Also: PR #33 (workflow-hygiene-ubuntu-24, 11d old) is almost certainly subsumed by PR #34 (workflow-hygiene-20260606, 1d old) — close #33 as superseded. PR #35 (align-config) needs review.",
+      "estimated_effort": "10 min"
+    }
+  ],
+  "deep_research": "agent-user-status sits in the Phenotype 'agent-runtime + privacy-sensitive telemetry' family — closest peers are agentapi-plusplus, AgentMCP, dispatch-mcp (all touched in the tick-25 fan-out rounds 5/7). Comparing against the tick-25 hygiene wave and the helioslab-hygiene baseline, the repo has reached 90% of the org standard: dual-licensed (PR #33), Justfile + Taskfile + Lefthook present, CODEOWNERS + SECURITY.md + CONTRIBUTING.md all 2-line org templates, dependabot weekly for both ecosystems, PULL_REQUEST_TEMPLATE is exemplary (privacy-impact + runtime-surface sections match what PhenoPlugins' own CLAUDE.md requires for tier-1 telemetry). The backend smoke test in ci.yml (curl /health + tests/smoke/smoke.sh) is the closest thing to e2e in this org — it exercises the real binary in a real subprocess, not a mocked unit test. The macOS-only Swift monitor + eye-tracker + iMessage bridge will never have Linux CI coverage; that's accepted and documented in CLAUDE.md. The two real gaps are (1) trufflehog.yml:13 still uses @main (the same rot that bit 17+ repos in tick-17 and is being closed across the org), and (2) journey-gate.yml:113 has invalid `actions/checkout@v4@<SHA>` syntax that silently resolves to the v4 tag with a decorative SHA comment. Both are sub-10-minute fixes. The pyproject has no [project.license] field — that will block `twine upload` for the next publish attempt; PyPI will reject it. Compared to the round-5/7 fan-out state in tick-25, this repo is in a better spot than agentapi-plusplus (which still had the @main rot when audited) and a worse spot than agentimessage (no similar baseline). The local-branch inventory (20+ branches, several with [main: ahead 1, behind 9]) is the typical pre-cleanup pattern.",
+  "deep_research_cont": "Net hygiene score: 4.3/5. G1/G2/G4/G5 solid; G3 degraded by single P0; e2e is 'smoke yes, full e2e no' which is the right trade-off for a macOS-only monitor. Three secondary items: (1) CHANGELOG.md [Unreleased] is empty despite 1-ahead commit + 3 open PRs — at minimum add a one-liner per pending change. (2) .pre-commit-config.yaml has only 4 standard hooks (no ruff-format, no gitleaks) — drift from the org standard pre-commit bundle used in 40+ repos. (3) Working tree has Taskfile.yml modified + grade.sh + lefthook.yml untracked — this is the audit's own tooling, should be added to the chore/standard-files-2026-06-08 fan-out before merge to keep the snapshot atomic. The 3 open PRs form a clean pipeline (#35 align-config lands first → #34 workflow-hygiene on top → #33 workflow-ubuntu-24 close as superseded). After P0 + 2 P1 fixes, this repo moves from 'mostly compliant with one critical rot' to 'fully compliant' and unlocks twine upload for the [project.license] missing field as a side effect."
+}

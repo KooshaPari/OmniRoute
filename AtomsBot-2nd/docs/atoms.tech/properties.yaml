@@ -1,0 +1,131 @@
+openapi: 3.0.3
+info:
+    title: Atoms API - Properties
+    version: 1.0.0
+servers:
+    - url: https://api.example.com
+paths:
+    /properties:
+        get:
+            summary: List properties
+            parameters:
+                - in: query
+                  name: documentId
+                  schema: { type: string }
+                - in: query
+                  name: orgId
+                  schema: { type: string }
+                - in: query
+                  name: isBase
+                  schema: { type: boolean }
+            responses:
+                '200':
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                type: array
+                                items: { $ref: '#/components/schemas/Property' }
+        post:
+            summary: Create properties (batch)
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: array
+                            items: { $ref: '#/components/schemas/PropertyCreate' }
+            responses:
+                '201': { description: Created }
+    /properties/{id}:
+        get:
+            summary: Get property
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  schema: { type: string }
+            responses:
+                '200':
+                    {
+                        description: OK,
+                        content:
+                            {
+                                application/json:
+                                    { schema: { $ref: '#/components/schemas/Property' } },
+                            },
+                    }
+        patch:
+            summary: Update property
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  schema: { type: string }
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema: { $ref: '#/components/schemas/PropertyUpdate' }
+            responses:
+                '200': { description: Updated }
+        delete:
+            summary: Soft delete property
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  schema: { type: string }
+            responses:
+                '204': { description: No Content }
+    /properties/positions:
+        patch:
+            summary: Update property positions (batch)
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: array
+                            items:
+                                type: object
+                                required: [id, position]
+                                properties:
+                                    id: { type: string }
+                                    position: { type: integer }
+            responses:
+                '204': { description: No Content }
+components:
+    schemas:
+        Property:
+            type: object
+            properties:
+                id: { type: string }
+                name: { type: string }
+                property_type:
+                    { type: string, enum: [text, number, select, multi_select, date] }
+                scope: { type: string }
+                org_id: { type: string }
+                project_id: { type: string, nullable: true }
+                document_id: { type: string, nullable: true }
+                options: { type: object, additionalProperties: true, nullable: true }
+                is_base: { type: boolean, nullable: true }
+                position: { type: integer }
+        PropertyCreate:
+            type: object
+            required: [name, property_type, org_id]
+            properties:
+                name: { type: string }
+                property_type: { type: string }
+                scope: { type: string }
+                org_id: { type: string }
+                project_id: { type: string }
+                document_id: { type: string }
+                options: { type: object, additionalProperties: true }
+                is_base: { type: boolean }
+        PropertyUpdate:
+            type: object
+            properties:
+                name: { type: string }
+                options: { type: object, additionalProperties: true }
+                position: { type: integer }

@@ -1,0 +1,25 @@
+{
+  "generated_at": "2026-06-08T10:28:37Z",
+  "total_repos": 169,
+  "py_orm_dupes": [
+    {
+      "framework": "sqlalchemy",
+      "repos": [
+        "/Users/kooshapari/CodeProjects/Phenotype/repos/AuthKit",
+        "/Users/kooshapari/CodeProjects/Phenotype/repos/DataKit",
+        "/Users/kooshapari/CodeProjects/Phenotype/repos/Parpoura",
+        "/Users/kooshapari/CodeProjects/Phenotype/repos/PhenoKits",
+        "/Users/kooshapari/CodeProjects/Phenotype/repos/PhenoProc",
+        "/Users/kooshapari/CodeProjects/Phenotype/repos/QuadSGM",
+        "/Users/kooshapari/CodeProjects/Phenotype/repos/ResilienceKit"
+      ]
+    },
+    {
+      "framework": "django",
+      "repos": [
+        "/Users/kooshapari/CodeProjects/Phenotype/repos/PhenoProc",
+        "/Users/kooshapari/CodeProjects/Phenotype/repos/Planify"
+      ]
+    }
+  ]
+}

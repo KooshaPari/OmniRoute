@@ -1,0 +1,90 @@
+{
+  "generated_at": "2026-06-09T03:04:19.576085Z",
+  "repo": "helioscope",
+  "spec_count": 5,
+  "spec_files": [
+    "docs/SPEC.md",
+    "docs/specs/001-codex-tui-renderer-optimization/spec.md",
+    "docs/specs/001-codex-tui-renderer-optimization/research.md",
+    "docs/specs/001-codex-tui-renderer-optimization/data-model.md",
+    "docs/specs/001-codex-tui-renderer-optimization/pr-layered-strategy.md",
+    "docs/specs/001-codex-tui-renderer-optimization/checklists/requirements.md",
+    "docs/specs/002-chat-composer-decomposition/spec.md",
+    "docs/operations/iconography/SPEC.md"
+  ],
+  "worklog_count": 4,
+  "worklog_files": [
+    "worklogs/README.md",
+    "worklogs/ARCHITECTURE.md",
+    "worklogs/GOVERNANCE.md",
+    "worklogs/RESEARCH.md"
+  ],
+  "deploy_markers": [
+    "Dockerfile",
+    "codex-cli/Dockerfile",
+    ".devcontainer/Dockerfile",
+    "docker-compose.yaml",
+    "process-compose.yaml",
+    ".process-compose/",
+    "harness/health.dockerfile",
+    "harness/health.kubernetes.yaml",
+    "flake.nix",
+    "Taskfile.yml",
+    "justfile"
+  ],
+  "health_endpoints": [
+    "harness/src/harness/health.py::/health",
+    "harness/src/harness/health.py::/ready",
+    "harness/src/harness/health.py::/live",
+    "harness/src/harness/health.py::/metrics"
+  ],
+  "health_workflows": [],
+  "readme_sections": 41,
+  "readme_ux_signals": {
+    "screenshots": false,
+    "demo_links": false,
+    "quick_start": false,
+    "tutorial": false
+  },
+  "contributing_present": true,
+  "contributing_sections": 5,
+  "compliance": {
+    "codeowners": true,
+    "security": true,
+    "license": true,
+    "coc": true,
+    "funding": true,
+    "changelog": true,
+    "pr_template": true,
+    "issue_template": true,
+    "release_drafter": false
+  },
+  "openapi_proto_swagger": false,
+  "gaps": [
+    {
+      "item": "release-drafter",
+      "severity": "low",
+      "note": "No .github/release-drafter.yml \u2014 release notes are manual."
+    },
+    {
+      "item": "openapi/proto/swagger specs",
+      "severity": "med",
+      "note": "No machine-readable API spec files (*.proto, openapi*, swagger*)."
+    },
+    {
+      "item": "README UX richness",
+      "severity": "med",
+      "note": "No screenshots, demo, quick-start, or tutorial sections \u2014 only architecture prose."
+    },
+    {
+      "item": "health-check workflow",
+      "severity": "low",
+      "note": "harness exposes /health, /ready, /live, /metrics but no .github/workflows/*health* to exercise them in CI."
+    },
+    {
+      "item": "CONTRIBUTING thin",
+      "severity": "low",
+      "note": "Only 5 short sections; no link to spec-kitty workflow, testing policy, or DCO/CLA."
+    }
+  ]
+}

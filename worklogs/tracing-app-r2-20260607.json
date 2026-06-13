@@ -1,0 +1,72 @@
+{
+  "generated_at": "2026-06-08T09:26:25Z",
+  "total_repos": 165,
+  "with_tracing_appender": [
+    "HeliosCLI",
+    "ObservabilityKit",
+    "PhenoDevOps",
+    "PhenoObservability",
+    "PhenoProc",
+    "Pyron",
+    "helioscope",
+    "pheno",
+    "phenoForge"
+  ],
+  "with_tracing_log": [],
+  "by_repo": [
+    {
+      "repo": "HeliosCLI",
+      "libs": [
+        "tracing-appender"
+      ]
+    },
+    {
+      "repo": "ObservabilityKit",
+      "libs": [
+        "tracing-appender"
+      ]
+    },
+    {
+      "repo": "PhenoDevOps",
+      "libs": [
+        "tracing-appender"
+      ]
+    },
+    {
+      "repo": "PhenoObservability",
+      "libs": [
+        "tracing-appender"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "libs": [
+        "tracing-appender"
+      ]
+    },
+    {
+      "repo": "Pyron",
+      "libs": [
+        "tracing-appender"
+      ]
+    },
+    {
+      "repo": "helioscope",
+      "libs": [
+        "tracing-appender"
+      ]
+    },
+    {
+      "repo": "pheno",
+      "libs": [
+        "tracing-appender"
+      ]
+    },
+    {
+      "repo": "phenoForge",
+      "libs": [
+        "tracing-appender"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,181 @@
+{
+  "task": "DAG L1-16 audit",
+  "schema_version": "v2",
+  "generated_at": "2026-06-08T00:00:00Z",
+  "repo": "Tracera",
+  "repo_path": "/Users/kooshapari/CodeProjects/Phenotype/repos/Tracera",
+  "branch": "chore/audit-Tracera-2026-06-08",
+  "branch_base": "main",
+  "head_sha": "5a3ea1f051f47df6c45e32c0132ba93903a1ee46",
+  "last_commit_date": "2026-06-08T18:58:12-07:00",
+  "last_commit_subject": "docs: add SSOT.md",
+  "last_commit_author": "Phenotype Agent",
+  "remotes": {
+    "origin": "https://github.com/KooshaPari/Tracera.git"
+  },
+  "divergence": {
+    "local_ahead_of_origin": 6,
+    "origin_ahead_of_local": 8
+  },
+  "language_stack": {
+    "detected": [
+      "python",
+      "go",
+      "typescript",
+      "rust",
+      "shell",
+      "toml",
+      "markdown",
+      "yaml",
+      "github-actions-yaml"
+    ],
+    "primary": ["python", "go", "typescript"],
+    "secondary": ["rust", "shell"],
+    "python": {
+      "src_root": "src/tracertm",
+      "framework": "FastAPI >=0.136 (src/tracertm/api/main.py:24) + SQLAlchemy async + Alembic",
+      "deps_of_note": [
+        "fastapi>=0.136.0",
+        "torch>=2.10.0 (declared, transitive ML dep — only repo in org with torch)",
+        "sentence-transformers>=5.2.2 (declared, used lazily in src/tracertm/api/routers/blockchain.py:427-429)",
+        "opentelemetry-instrumentation-fastapi>=0.52b0",
+        "anthropic-sdk (via src/tracertm/services/ai_service.py — AI chat with tool use)"
+      ],
+      "layout": "src/tracertm/{api,agent,agents,core,services,repositories,models,workflows,mcp,schemas,observability,grpc,storage,vault,validation}",
+      "mcp_native": true,
+      "fastmcp_version": "2.14+ (per CHANGELOG 2.0.0 entry)"
+    },
+    "go": {
+      "backend_root": "backend/",
+      "framework": "Gin or chi (main.go Swagger comments reference @host localhost:8080, /api/v1); NATS + MinIO + WebSocket realtime",
+      "module": "github.com/kooshapari/tracertm-backend",
+      "subdirs": ["backend/cmd/{setup,migrate,nats-test,create-minio-bucket,packager,...}", "backend/internal/", "backend/pkg/", "backend/e2e/"]
+    },
+    "typescript": {
+      "frontend_root": "frontend/",
+      "framework": "React 19.2 + TypeScript + Vite + Turbo monorepo (NOT Vue)",
+      "apps": ["web", "desktop", "docs", "storybook", "desktop-electrobun"],
+      "packages": ["ui", "types", "config", "state", "api-client", "env-manager"],
+      "ui_libs": ["@radix-ui/react-accordion", "@radix-ui/react-collapsible", "oxlint-tsgolint"],
+      "state_mgmt": "MobX (per CHANGELOG 2.0.0 entry)",
+      "viz": "Cytoscape.js + Monaco code editor + MSW for API mocking"
+    },
+    "rust": {
+      "presence": "minimal — no workspace Cargo.toml; a few `crates/` dirs and toolchain pin in rust-toolchain.toml (root)",
+      "evidence": "rust-toolchain.toml at repo root; crates/ dir exists; not a primary stack"
+    },
+    "db": ["PostgreSQL (with pgvector — embedding vectors via sentence-transformers)", "alembic migrations", "SQLite (tests only)"],
+    "infrastructure": ["NATS (messaging + WebSocket fanout)", "MinIO (S3-compatible object storage)", "Process Compose orchestration", "Taskfile.yml + Makefile + docker-compose (3 variants) + docker-compose.chaos.yml"],
+    "desktop": "Electron (apps/desktop) + Electrobun (apps/desktop-electrobun)",
+    "ci": "GitHub Actions — 40 workflows in .github/workflows/ (architecture, ci-cd, chroma tic, codeql, contract-tests, contracts, deployment-rollback, docs-deploy, docs-performance, journey-gate, load-test, policy-gate, release, security-guard, test, trufflehog, desktop-electrobun-release, ...)"
+  },
+  "hygiene_score": 100,
+  "hygiene_breakdown": [
+    {"item": "LICENSE", "present": true, "points": 10, "evidence": ["LICENSE (21 lines, MIT)", "LICENSE-APACHE (dual-license backup)", "LICENSE-MIT"]},
+    {"item": "README", "present": true, "points": 10, "evidence": ["README.md (239 lines, 7560 B) — work-state header pinned, build/security/policy badges, full arch section (Go+TS+Python), key features, TOC"]},
+    {"item": "CHANGELOG", "present": true, "points": 10, "evidence": ["CHANGELOG.md (90 lines, Keep-a-Changelog 1.1.0 format) — 2.0.0 entry rich with Features (TraceRTM v2, FastMCP, BDD, Visual UI), cliff.toml present for auto-gen"]},
+    {"item": ".editorconfig", "present": true, "points": 10, "evidence": [".editorconfig (15 lines, root=true, per-language indent_size 4 vs 2 for ts/js/yaml)"]},
+    {"item": "CI", "present": true, "points": 10, "evidence": ["40 workflows in .github/workflows/ — comprehensive: ci-cd, test, contract-tests, codeql, security-guard, trufflehog, policy-gate, journey-gate, architecture, release, deployment-rollback, load-test, docs-deploy, docs-performance, alert-sync-issues, desktop-electrobun-release, ... (org-leading count)"]},
+    {"item": "dependabot", "present": true, "points": 10, "evidence": [".github/dependabot.yml — 12 ecosystems: npm (3 dirs), pip (2 dirs), gomod (5 dirs), github-actions, docker — weekly, grouped (react-ecosystem, etc.)"]},
+    {"item": "CODEOWNERS", "present": true, "points": 10, "evidence": ["CODEOWNERS (root, * @KooshaPari) + .github/CODEOWNERS (per-language drill-down: rust/go/python/ts)"]},
+    {"item": "CONTRIBUTING", "present": true, "points": 10, "evidence": ["CONTRIBUTING.md (58 lines, 2123 B) — code of conduct, polyglot dev setup (Task + Process Compose), conventional-commits, fork workflow"]},
+    {"item": "SECURITY", "present": true, "points": 10, "evidence": ["SECURITY.md (38 lines, 1604 B) — supported-versions table, private disclosure to kooshapari@gmail.com, 48h ack, SLSA/Rekor/Vault hardening measures listed"]},
+    {"item": "FUNDING", "present": true, "points": 10, "evidence": ["FUNDING.yml (root, github: KooshaPari + custom https://kooshapari.com/sponsor) + .github/FUNDING.yml"]}
+  ],
+  "dup_exposure": [
+    "phenotype-bus (event bus for AI agent lifecycle / RTM update events — src/tracertm/agent/events.py and src/tracertm/agent/agent_service.py re-implement publish/subscribe over NATS instead of consuming the canonical phenotype-bus abstraction)",
+    "phenotype-request-id (correlation IDs for cross-service request tracing — Tracera's own uuid4() in services/ai_service.py and codex_service.py should consume phenotype-request-id type for org-wide correlation)",
+    "phenotype-registry (service-name registry — hard-coded service names in FastAPI app factory and Go main.go; could resolve from central registry for label hygiene)",
+    "phenotype-dep-guard (deny.toml + audit-check policy — Tracera has its own .semgrep.yml + security_check.sh + ruff; candidate for unification under dep-guard baseline)",
+    "phenotype-tooling (shared just/lint/CI recipes — Tracera uses Taskfile.yml + Makefile + process-compose.yml; could consume phenotype-tooling conventions)",
+    "phenotype-journeys (journey tracing primitives — journey-gate workflow already exists; agent_service workflows could emit typed journey spans via phenotype-journeys)",
+    "phenotype-postfx (post-effect / middleware runner — FastAPI Depends() chain in src/tracertm/api/deps.py and Go middleware in backend/internal/ would be natural consumers of a shared postfx contract)",
+    "phenotype-shared / phenoShared (shared types — Tracera's py.typed src/tracertm/__init__.py is mature; a few canonical types (correlation id, audit event) belong in phenotype-shared)",
+    "phenotype-icons (UI asset library — frontend/packages/ui ships local icons; phenotype-icons could subsume the asset surface)",
+    "phenotype-omlx (OmniRoute MLX LLM bridge — Tracera's ai_service.py wraps Anthropic SDK directly; phenotype-omlx would unify the chat-completion surface with the rest of org's agent fleet)",
+    "phenotype-ops-mcp (MCP tooling — Tracera already exposes 50+ FastMCP tools (per CHANGELOG); could expose them through the ops-mcp federation layer for cross-agent discovery)",
+    "phenotype-python-sdk / phenotype-py-extras (Python SDK — Tracera is the org's flagship FastAPI service and a natural SDK home for the WorkOS / NATS / RTM primitives it wraps)",
+    "phenotype-infra (deployment / compose / process-compose — Tracera's docker-compose (3 variants) + Taskfile + process-compose could be unified under phenotype-infra templates)"
+  ],
+  "sota_gaps": [
+    "torch declared but unused — pyproject.toml pins torch>=2.10.0 and sentence-transformers>=5.2.2, but only one router (src/tracertm/api/routers/blockchain.py:427-429) imports them lazily. Either wire embeddings into the search/RTM-graph code paths or drop the dep (~250MB saved in CI image).",
+    "Embedding lifecycle not managed — SentenceTransformer('request.model_name') is loaded on every request inside the handler; no model cache, no warm-up, no eviction policy, no GPU/CPU device selection. Production-grade embeddings need a singleton loader with device awareness.",
+    "No embeddings index abstraction — pgvector column exists in schema, but the write path (insert embedding on requirement/FR save) is absent; embeddings appear to be query-only / on-demand, not a first-class index.",
+    "No agent evaluation harness — src/tracertm/services/agents/codex_service.py shells out to OpenAI Codex CLI but has no eval set, no regression tests on model outputs, no version pinning of prompts.",
+    "Anthropic SDK is direct-coupled — src/tracertm/services/ai_service.py uses anthropic SDK directly; no abstraction over the LLM provider, so swapping models or adding OpenAI/local-MLX requires code edits across services.",
+    "FastMCP surface not auto-discoverable — 50+ MCP tools exposed but no MCP manifest, no OpenAPI↔MCP bridge, no schema versioning of the tool surface.",
+    "MCP transports partially wired — CHANGELOG claims stdio/HTTP/SSE; only server-side dispatch is visible. SSE reconnection / auth refresh flow is not visible in src/tracertm/mcp/.",
+    "Local main diverged 6/8 from origin — branch is 6 commits ahead, origin 8 ahead. No auto-rebase; drift compounds.",
+    "Backend-Go and backend-Python duplicate business logic — REST surface in backend/internal/ (Go) and src/tracertm/api/routers/ (Python) overlap; no SSOT for handlers.",
+    "No GPU/CPU device selection for torch — fine for dev, breaks for prod at scale; no torch.set_default_device or device_map in any code path.",
+    "Sentence-transformers not pinned by model hash — request.model_name is a free string; no allow-list of vetted embedding models; supply-chain risk.",
+    "No batching for embeddings — handler loads model, encodes one item at a time; no async batching queue; will not scale past single-digit QPS on CPU.",
+    "Frontend viz libs (Cytoscape, Monaco) shipped as one bundle — no dynamic import; no SSR/streaming; Storybook has no visual regression baseline in CI despite Chromatic config.",
+    "No model cards / dataset cards — torch + sentence-transformers pulled in, but no documentation of which model is the org-canonical embedding, no license attestation for the chosen weights.",
+    "Tach module boundaries declared (tach.toml) but not enforced in CI — boundary enforcement is doc-only; risks a future leak between agent/api/core layers.",
+    "Three dependency manifests (pyproject.toml + go.mod + frontend/package.json) with no central bill-of-materials — SBOM generation not in any CI workflow."
+  ],
+  "convergence_cluster": "convergence",
+  "convergence_rationale": "Multi-language service (Python FastAPI + Go + React/TS) with the org's only torch + sentence-transformers surface (ML-compute). Despite the polyglot stack, the architectural role is convergence: it absorbs agent, embedding, MCP, RTM, WorkOS, NATS, MinIO, vault, and observability concerns into one platform, and the only thing it can 'converge to' is itself (it is the only ML compute target in the org — other repos would consume Tracera's embeddings, not the reverse). It is a stable product repo (v2.0.0), not a template (multi-stack), not web-only, not live-only. The 'convergence' cluster fits: large surface, high-leverage dup-exposure for phenotype-bus / phenotype-omlx / phenotype-ops-mcp / phenotype-python-sdk consumers, and a clear product-boundary target for the org.",
+  "action_items": [
+    {
+      "priority": 1,
+      "title": "Decide canonical home for torch + sentence-transformers in Tracera (wire or drop)",
+      "effort": "M (3-5d)",
+      "why": "torch>=2.10.0 + sentence-transformers>=5.2.2 are declared deps but only one router uses them lazily. Either: (a) wire embeddings into the RTM/requirements search index with a singleton model loader + device awareness + allow-list, or (b) drop both deps and route embedding calls through a phenotype-omlx MLX bridge (consumes the org's compute substrate). The 250MB CI-image win alone justifies the decision.",
+      "file_refs": ["pyproject.toml (torch, sentence-transformers pins)", "src/tracertm/api/routers/blockchain.py:427-429", "src/tracertm/services/ai_service.py"]
+    },
+    {
+      "priority": 2,
+      "title": "Reconcile local main divergence (6 ahead, 8 behind origin) and rebase audit branch",
+      "effort": "S (1-2d)",
+      "why": "Local main is 6 commits ahead of origin and 8 behind. Drift compounds every round. Decide: rebase onto origin/main (lose local 6) or push local 6 (lose origin 8). The current 6-commit lead is mostly chore/governance (editorconfig, gitignore, SSOT, CODEOWNERS) and is safe to keep — but the audit branch must be rebased on the chosen base before any future merge.",
+      "file_refs": ["main (local HEAD 5a3ea1f)", "origin/main (8 commits ahead)"]
+    },
+    {
+      "priority": 3,
+      "title": "Wrap anthropic SDK in src/tracertm/services/ai_service.py behind a provider-port (consume phenotype-omlx)",
+      "effort": "M (3-5d)",
+      "why": "Direct anthropic SDK coupling means every model swap or A/B test is a code change. A ChatProvider port (Protocol) backed by anthropic / openai / mlx / omlx implementations unifies the chat-completion surface with the rest of the org's agent fleet and unlocks cross-provider eval.",
+      "file_refs": ["src/tracertm/services/ai_service.py", "src/tracertm/services/ai_tools.py"]
+    },
+    {
+      "priority": 4,
+      "title": "Replace local uuid4() correlation IDs in agent_service / codex_service with phenotype-request-id type",
+      "effort": "S (1-2d)",
+      "why": "src/tracertm/agent/agent_service.py and src/tracertm/services/agents/codex_service.py each roll their own uuid4() for execution_id / session_id. The org's canonical request-id type lives in phenotype-request-id. Migrating aligns the surface with phenotype-bus consumers and unblocks cross-service journey correlation.",
+      "file_refs": ["src/tracertm/agent/agent_service.py", "src/tracertm/services/agents/codex_service.py", "src/tracertm/agent/events.py"]
+    },
+    {
+      "priority": 5,
+      "title": "Enforce tach.toml module boundaries in CI and add SBOM generation to release workflow",
+      "effort": "M (3-5d)",
+      "why": "tach.toml declares the hexagonal boundaries but no CI gate enforces them — boundary drift is silent. Combined with: pyproject.toml + go.mod + frontend/package.json producing no SBOM, the org has no way to detect supply-chain regressions on the only ML-compute repo. Two small CI steps (tach check + cyclonedx-py + cyclonedx-gomod + @cyclonedx/cyclonedx-npm) close the gap.",
+      "file_refs": ["tach.toml", ".github/workflows/ci-cd.yml", ".github/workflows/release.yml"]
+    }
+  ],
+  "notes": [
+    "Local main HEAD = 5a3ea1f 'docs: add SSOT.md' on 2026-06-08 18:58:12 PDT by 'Phenotype Agent <agent@phenotype.ai>'. Author/committer differ from Forge default — use repo's existing identity when committing on this branch.",
+    "Tracera is the ONLY repo in the org with torch + sentence-transformers declared. Confirmed by scanning the L1 audit set: no other PhenoKits/Tracely/PhenoObservability/etc. pins torch. This makes Tracera the org's ML-compute anchor.",
+    "Frontend is React 19 (NOT Vue as task description hinted) — verified via frontend/apps/web/package.json: react: ^19.2.0. The task description's 'Vue+FastAPI' is inaccurate for the JS layer; React+FastAPI+Go+Electron is the truth.",
+    "CHANGELOG.md jumps from 2.0.0 (2026-02-23) straight to the current Unreleased — intermediate versions are auto-generated by cliff.toml and git-cliff CI; no manual drift.",
+    "src/tracertm is a true Python package (py.typed, _version.py, alembic/ migrations, OpenAPI/grpc/proto generation) — production-grade layout, not a prototype.",
+    "Sentence-transformers usage is a single lazy import in one router; the dep is essentially a 250MB no-op in the current code. Either commit to it (rank-1 action) or drop it.",
+    "Dependabot covers 12 ecosystems (org-leading). No cargo ecosystem because no real Rust workspace exists, only a stale toolchain pin.",
+    "Two CODEOWNERS files (root + .github/) — root is single-line, .github/ has per-language drill-down. The duplication is intentional (GitHub reads .github/CODEOWNERS only; root CODEOWNERS is a back-up for org tools)."
+  ],
+  "metadata": {
+    "audit_task": "DAG L1-16",
+    "audit_date": "2026-06-08",
+    "auditor": "forge (workflow tracer)",
+    "source_repo_path": "/Users/kooshapari/CodeProjects/Phenotype/repos/Tracera",
+    "source_branch_audited": "main",
+    "workflows_count": 40,
+    "dependabot_ecosystems": 12,
+    "ml_compute": true,
+    "ml_libs_declared": ["torch>=2.10.0", "sentence-transformers>=5.2.2"],
+    "ml_libs_used_in_src": ["sentence-transformers (1 file: src/tracertm/api/routers/blockchain.py:427-429)"],
+    "is_only_torch_repo_in_org": true,
+    "pushed": false
+  }
+}

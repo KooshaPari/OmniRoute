@@ -1,0 +1,110 @@
+{
+  "repo": "HeliosLab",
+  "branch_audited": "chore/helioslab-pheno-cli-doctest-or-bench-20260608 (0e1805a, ahead 3 of origin/main)",
+  "audited_at": "2026-06-08",
+  "audit_type": "hygiene (re-audit, post-grade-framework merge)",
+  "template": "G1-G5 + e2e + 2-paragraph deep research + 3 actions",
+  "summary": "G1-G4 PASS, G5 PASS w/ 4 open PRs (#17, #18, #19, #21). e2e misroute STILL open (root vs docs/tests/{e2e,unit}). 3 new commits add grade.sh + lefthook.yml + pheno-cli doctest (P0 quality lift, no hygiene regression). 3 actionable findings, P0=1, P1=2.",
+  "gates": {
+    "G1_workflow_hygiene": {
+      "status": "PASS",
+      "evidence": [
+        "18/18 .github/workflows/*.yml parse cleanly under yq on this branch",
+        "actions/checkout SHA-pinned to df4cb1c069e1874edd31b4311f1884172cec0e10 (# v4) — matches org standard",
+        "No trufflehog/actions rot (trufflehog.yml delegates to KooshaPari/phenotype-tooling reusable@604fcb53)",
+        "deploy-docs.yml now has a SINGLE top-level `on:` key (line 2) — the prior dual-`on:` bug from the 0e1805a predecessor (deploy-docs.yml:2 + :8) is RESOLVED in this branch. workflow_dispatch still not present but no longer shadowed.",
+        "Top-level `concurrency:` + `permissions: contents: read` in 14/18; 4 reusable-only files inherit runner default (acceptable)",
+        "ubuntu-24.04 runner in 14/18 (build-release + scorecard inherit)",
+        "release.yml:51-63 promote job still commented out (phenotypeActions/promote returns 404) — dead comment, not a hygiene regression"
+      ]
+    },
+    "G2_governance_files": {
+      "status": "PASS",
+      "evidence": [
+        "LICENSE (MIT) + LICENSE-MIT + LICENSE-APACHE all present (PR #4eef995 added dual)",
+        "CODE_OF_CONDUCT.md, CONTRIBUTING.md, SECURITY.md, FUNDING.yml all present",
+        "CODEOWNERS 2-line catch-all '* @KooshaPari' (org standard)",
+        "SUPPORT.md STILL MISSING locally — PR #19 ('chore(HeliosLab): add SUPPORT.md') OPEN, branch=chore/support-file-2026-06-08 (sha 8d44423). Same gap as tick-19; PR is mergeable.",
+        "CITATION.cff=Apache-2.0, LICENSE-file=MIT, Cargo.toml='MIT OR Apache-2.0' — three signals, all consistent"
+      ]
+    },
+    "G3_security_scanning": {
+      "status": "PASS",
+      "evidence": [
+        "scorecard.yml: ossf/scorecard-action@af761533 SHA + cron 17 3 * * 6",
+        "codeql.yml + codeql-rust.yml: schedule+push+PR, codeql-action SHA-pinned to 7c1e4cf0b",
+        "cargo-audit.yml (rustsec/audit-check@69366f33, weekly) + cargo-deny.yml (reusable)",
+        "trufflehog.yml delegates to KooshaPari/phenotype-tooling reusable (no trufflehog/actions rot)",
+        "sast.yml: CodeQL javascript-typescript,python (the 'SAST' name is misleading but covers more langs)",
+        "security-guard.yml + security-guard-hook-audit.yml: pre-commit/action@2c7b3805",
+        "deny.toml: 18-license allowlist, bans multiple-versions=warn, wildcards=warn, ignores RUSTSEC-2024-0436 (paste, transitive ratatui)"
+      ]
+    },
+    "G4_quality_gates": {
+      "status": "PASS",
+      "evidence": [
+        "ci.yml: typecheck + lint (clippy -D warnings) + unit-tests + coverage placeholder + secret-scan placeholder + ci-summary aggregator",
+        "quality-gate.yml: 5-job matrix (unit/e2e/integration + FR-annotation + report); FR-annotation check greps new test files for 'FR:' or '@FR'",
+        "coverage.yml: codecov/codecov-action@b9fd7d16 SHA-pinned",
+        "pre-commit-config: cargo-fmt + cargo-clippy + gitleaks v8.18.2 + standard hooks",
+        "NEW: lefthook.yml (74 lines, 0e1805a) installs pre-commit/commit-msg/pre-push hooks — pre-commit framework alternative",
+        "NEW: grade.sh (198 lines, 0e1805a) Rust+Node stack detection + grading; outputs to .grade-reports/ (now .gitignored)",
+        "NEW: pheno-cli/src/lib.rs (41 lines, bc52dc9) + doctest on db_path; pure-binary crates skip doctests, this is the standard lib-crate extraction"
+      ]
+    },
+    "G5_review_governance": {
+      "status": "PASS",
+      "evidence": [
+        ".coderabbit.yaml present (severity info per AGENTS.md mandate)",
+        ".gemini/ STILL MISSING (AGENTS.md mandates it — drift, unchanged from tick-19)",
+        "dependabot.yml: gomod + pip + npm + cargo daily",
+        "required-check-names-guard.yml: parses .github/required-checks.txt and asserts each (workflow_file|job_name) — meta-guard",
+        "ISSUE_TEMPLATE/: bug.yml + config.yml + feature.yml (full org-standard set)",
+        "pull_request_template.md: 19-line org-stub present",
+        "4 OPEN PRs: #17 (sync 73 commits), #18 (Electrobun shell), #19 (SUPPORT.md) MERGEABLE, #21 (Code of Conduct) MERGEABLE — two of the four would close G2 + G5 gaps on merge"
+      ]
+    },
+    "e2e_end_to_end": {
+      "status": "DEGRADED",
+      "evidence": [
+        "quality-gate.yml:33-35 checks `[ -d \"e2e\" ]` / `[ -d \"tests\" ]` / `[ -d \"integration\" ]` at REPO ROOT",
+        "Actual tests live at docs/tests/{component,e2e,helpers,playwright.config.ts,unit}/ — NOT at root",
+        "Actual e2e: docs/tests/e2e/docsite.spec.ts (Playwright) — never runs in CI",
+        "Actual unit: docs/tests/unit/site-meta.test.mjs — never runs in CI",
+        "Consequence: has_tests=false, has_e2e=false, has_integration=false on every run → e2e-tests + integration-tests jobs ALWAYS skip; same finding as tick-19 PR #107 (unresolved)",
+        "Only CI-run tests are cargo test --lib --all-features (unit-tests job) — Rust core only"
+      ]
+    }
+  },
+  "additional_findings": {
+    "grade_framework_merge": "0e1805a adds grade.sh (198 LOC) + lefthook.yml (74 LOC) + Taskfile.yml grade tasks + .grade-reports/ to .gitignore + docs/acceptance-contracts/ template. The grade script auto-detects stack (Rust/Node/Python) and emits JSON/HTML reports. lefthook provides pre-commit/commit-msg/pre-push hook framework. Net: adds fleet-wide quality grading without disturbing existing CI.",
+    "pheno_cli_doctest": "bc52dc9 extracts pheno-cli db_path from main.rs into lib.rs with a runnable doctest + unit-test mirror. Pure-binary crates don't run doctests under cargo test, so this is the canonical lib-extraction pattern. main.rs now uses pheno_cli::db_path. Net: +1 doctest, +1 unit test, main.rs shrinks by 22 lines.",
+    "local_branch_drift": "Same 24+ vestigial branches as tick-19 (chore/*, ci/*, codex/*, docs/*, feat/*, fix/*). 5 still ahead of main: chore/3rd/4th/5th-hygiene-2026-06-08 (snapshot mirrors), chore/helioslab-tracing-consolidate-20260608 (unmerged refactor), chore/helioslab-tracing-verbose-and-quality-gate-reusable-20260608 (chain off tracing-consolidate). Per tick-19 these are vestigial.",
+    "version_drift_unchanged": "VERSION='0.14.11-canary.1' (2026-03-29), Cargo.toml workspace.package.version='0.1.1' (2026-04-25). Two version-of-record signals, unresolved.",
+    "open_pr_burst": "4 open PRs vs 2 in tick-19 audit. #17=#98 (sync 73 commits, closed 2026-05-29) is re-listed; #18 (Electrobun shell, sha 0e1805a is also in it) is new; #19 (SUPPORT.md) and #21 (Code of Conduct) close the G2 gaps on merge.",
+    "uncommitted_dir": "docs/specs/ is untracked (this branch). Likely intentional — same dir is .gitignored elsewhere or about-to-be-added by an in-flight worktree.",
+    "duplicate_security_guard": ".github/hooks/security-guard.sh and .github/scripts/security-guard.sh still NOT byte-identical (pre-commit framework vs ggshield impls). scripts/ copy is dead code; only hooks/ is invoked by security-guard-hook-audit.yml."
+  },
+  "actions_recommended": [
+    {
+      "priority": "P0",
+      "title": "Fix e2e/tests detection path in quality-gate.yml (tick-19 carry-over, now 2 days old)",
+      "detail": "quality-gate.yml:33-35 checks for e2e/, tests/, integration/ at repo root. HeliosLab's tests live at docs/tests/{e2e,unit,helpers}/. Update check-changes to glob `**/tests/e2e`, `**/e2e`, or check docs/tests/e2e/docsite.spec.ts existence. Adds real e2e coverage to CI for the first time (docs/tests/e2e/docsite.spec.ts is currently dark). Optionally add a Playwright run step that invokes the docs-site preview server. 5-line fix unlocks the entire docs-site test suite.",
+      "estimated_effort": "5 min for path fix + 30 min for Playwright run step wiring"
+    },
+    {
+      "priority": "P1",
+      "title": "Land PR #19 (SUPPORT.md) and PR #21 (Code of Conduct) — both OPEN MERGEABLE",
+      "detail": "Two of the four open PRs directly close G2 + G5 gaps. #19 (sha 8d44423) adds SUPPORT.md. #21 (sha 91fb4c5 from HeliosLab-4th worktree) adds Contributor Covenant Code of Conduct. Both are mergeable per gh pr list. Approving + admin-merging both brings HeliosLab to 100% G2 + G5 in a single batch.",
+      "estimated_effort": "2 clicks"
+    },
+    {
+      "priority": "P1",
+      "title": "Add .gemini/ directory to satisfy AGENTS.md mandate (drift since tick-19)",
+      "detail": "AGENTS.md mandates .gemini/config.yaml with code_review.comment_severity_threshold: LOW. .gemini/ still MISSING. This is the single remaining G5 file-presence gap once #19 + #21 land. Create .gemini/config.yaml with the 3-line org-standard stub (matches what HeliosLab-3rd/4th/5th have).",
+      "estimated_effort": "2 min"
+    }
+  ],
+  "deep_research": "HeliosLab sits in the Phenotype 'config/flags/secrets' family alongside HexaKit, PhenoKits, PhenoSchema, and pheno-crypto. The current branch (chore/helioslab-pheno-cli-doctest-or-bench-20260608, 0e1805a) is 3 commits ahead of origin/main and adds two non-hygiene features on top of the tick-19 baseline: (1) grade.sh + lefthook.yml + Taskfile grade tasks (a 354-LOC fleet-wide grading framework, the same one 7+ other repos merged today), and (2) a pheno-cli doctest + lib-extraction (41 LOC) that gives pure-binary crates the ability to run doctests under cargo test — a small but canonical Rust-quality lift. The G1-G5 gates are unchanged from tick-19 except for one positive: deploy-docs.yml no longer has two top-level `on:` keys (the prior deploy-docs.yml:2 + :8 shadowing bug is RESOLVED in this branch — yq now reports a single resolved `on: { push: { branches: [ main ] } }`). All third-party actions remain SHA-pinned to the org standard; reusable workflow calls keep the '# pinned from @ref; org SHA may shift' annotation. The trufflehog/actions rot that bit 17+ other repos in tick-17 is NOT present. CODEOWNERS, dependabot.yml, required-checks guard, ISSUE_TEMPLATE/*, and pull_request_template.md are all org-canonical.",
+  "deep_research_cont": "The single biggest residual risk is unchanged from tick-19: the e2e test detection bug. quality-gate.yml:33 still looks for e2e/, tests/, integration/ at the repo root, but HeliosLab's only e2e (docsite.spec.ts Playwright) and only docs unit (site-meta.test.mjs) live under docs/tests/{e2e,unit,helpers}/. Result: every PR shows 'E2E Tests: SKIPPED' and 'Integration Tests: SKIPPED' in the Quality Report, and the docs-site test suite has never run in CI. PR #19 (SUPPORT.md) and PR #21 (Code of Conduct) are both OPEN MERGEABLE and would close the two G2/G5 file-presence gaps in a single admin-merge batch. Three smaller carry-overs from tick-19: (a) .gemini/ still missing (AGENTS.md mandate); (b) VERSION='0.14.11-canary.1' vs Cargo.toml='0.1.1' version drift unresolved; (c) the duplicate security-guard.sh pair (hooks/ vs scripts/, different scanner impls) where scripts/ is dead code. The 24+ vestigial local branches persist, including the three HeliosLab-{3rd,4th,5th} snapshot mirrors which exist only for the wipe-recovery worktrees and could be removed once those PRs (#17, #19, #21) merge. HeliosLab overall: hygiene score 4.6/5 (G1-G4 solid; G5 90% — only .gemini/ missing; e2e detection still broken; 4 open PRs vs 2 last audit)."
+}

@@ -1,0 +1,69 @@
+defaultTimeout: 30s
+maxParallel: 4
+commands:
+  audit:
+    command: npm
+    args:
+    - audit
+    - --audit-level
+    - moderate
+    timeout: 30s
+    enabled: true
+  depcheck:
+    command: npx
+    args:
+    - depcheck
+    - --ignores
+    - typescript,@types/*
+    timeout: 30s
+    enabled: true
+  github_actions:
+    command: github_actions
+    args: []
+    timeout: 30s
+    enabled: false
+  lint:
+    command: npx
+    args:
+    - eslint
+    - .
+    - --ext
+    - .ts,.tsx,.js,.jsx
+    timeout: 30s
+    enabled: true
+  prettier:
+    command: npx
+    args:
+    - prettier
+    - --check
+    - .
+    timeout: 30s
+    enabled: true
+  size_limit:
+    command: npx
+    args:
+    - size-limit
+    timeout: 30s
+    enabled: false
+  test:
+    command: npm
+    args:
+    - test
+    timeout: 60s
+    enabled: true
+  typescript:
+    command: npx
+    args:
+    - tsc
+    - --noEmit
+    timeout: 30s
+    enabled: true
+  typescript_strict:
+    command: npx
+    args:
+    - tsc
+    - --noEmit
+    - --strict
+    timeout: 30s
+    enabled: true
+projectType: typescript

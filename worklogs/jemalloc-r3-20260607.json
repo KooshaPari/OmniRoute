@@ -1,0 +1,17 @@
+{
+  "generated_at": "2026-06-08T02:30:00Z",
+  "total_repos": 46,
+  "with_jemalloc": [],
+  "with_mimalloc": [],
+  "with_libc": [
+    "KlipDot"
+  ],
+  "by_repo": [
+    {
+      "repo": "KlipDot",
+      "libs": [
+        "libc"
+      ]
+    }
+  ]
+}

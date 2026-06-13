@@ -1,0 +1,526 @@
+{
+  "generated_at": "2026-06-07T00:00:00Z",
+  "total_repos": 159,
+  "with_serde": [
+    "Agentora",
+    "AgilePlus",
+    "Apisync",
+    "AuthKit",
+    "Benchora",
+    "BytePort",
+    "Conft",
+    "DataKit",
+    "Dino",
+    "Eidolon",
+    "Eventra",
+    "FocalPoint",
+    "GDK",
+    "HeliosCLI",
+    "HeliosLab",
+    "HexaKit",
+    "KDesktopVirt",
+    "KlipDot",
+    "McpKit",
+    "Metron",
+    "ObservabilityKit",
+    "Paginary",
+    "PhenoAgent",
+    "PhenoCompose",
+    "PhenoDevOps",
+    "PhenoKits",
+    "PhenoMCP",
+    "PhenoObservability",
+    "PhenoPlugins",
+    "PhenoProc",
+    "PhenoRuntime",
+    "PhenoSchema",
+    "PhenoVCS",
+    "PlayCua",
+    "PolicyStack",
+    "Pyron",
+    "ResilienceKit",
+    "Sidekick",
+    "Tasken",
+    "TestingKit",
+    "Tokn",
+    "Tracely",
+    "Tracera",
+    "bare-cua",
+    "crates",
+    "eyetracker",
+    "helioscope",
+    "kmobile",
+    "kwality",
+    "pheno",
+    "phenoAI",
+    "phenoData",
+    "phenoForge",
+    "phenoShared",
+    "phenoUtils",
+    "phenodocs",
+    "phenotype-bus",
+    "phenotype-infra",
+    "phenotype-journeys",
+    "phenotype-org-audits",
+    "phenotype-shared",
+    "phenotype-tooling",
+    "rich-cli-kit",
+    "thegent",
+    "thegent-clean",
+    "thegent-clean-wt-docs",
+    "thegent-clean-wt-idea",
+    "thegent-clean-wt-parallel",
+    "thegent-clean-wt-policy",
+    "thegent-clean-wt-ruff",
+    "thegent-dispatch",
+    "tooling",
+    "vibeproxy"
+  ],
+  "with_derive_more": [
+    "HeliosCLI",
+    "helioscope"
+  ],
+  "with_educe": [],
+  "by_repo": [
+    {
+      "repo": "Agentora",
+      "libs": [
+        "serde"
+      ]
+    },
+    {
+      "repo": "AgilePlus",
+      "libs": [
+        "serde"
+      ]
+    },
+    {
+      "repo": "Apisync",
+      "libs": [
+        "serde"
+      ]
+    },
+    {
+      "repo": "AuthKit",
+      "libs": [
+        "serde"
+      ]
+    },
+    {
+      "repo": "Benchora",
+      "libs": [
+        "serde"
+      ]
+    },
+    {
+      "repo": "BytePort",
+      "libs": [
+        "serde"
+      ]
+    },
+    {
+      "repo": "Conft",
+      "libs": [
+        "serde"
+      ]
+    },
+    {
+      "repo": "DataKit",
+      "libs": [
+        "serde"
+      ]
+    },
+    {
+      "repo": "Dino",
+      "libs": [
+        "serde"
+      ]
+    },
+    {
+      "repo": "Eidolon",
+      "libs": [
+        "serde"
+      ]
+    },
+    {
+      "repo": "Eventra",
+      "libs": [
+        "serde"
+      ]
+    },
+    {
+      "repo": "FocalPoint",
+      "libs": [
+        "serde"
+      ]
+    },
+    {
+      "repo": "GDK",
+      "libs": [
+        "serde"
+      ]
+    },
+    {
+      "repo": "HeliosCLI",
+      "libs": [
+        "derive_more",
+        "serde"
+      ]
+    },
+    {
+      "repo": "HeliosLab",
+      "libs": [
+        "serde"
+      ]
+    },
+    {
+      "repo": "HexaKit",
+      "libs": [
+        "serde"
+      ]
+    },
+    {
+      "repo": "KDesktopVirt",
+      "libs": [
+        "serde"
+      ]
+    },
+    {
+      "repo": "KlipDot",
+      "libs": [
+        "serde"
+      ]
+    },
+    {
+      "repo": "McpKit",
+      "libs": [
+        "serde"
+      ]
+    },
+    {
+      "repo": "Metron",
+      "libs": [
+        "serde"
+      ]
+    },
+    {
+      "repo": "ObservabilityKit",
+      "libs": [
+        "serde"
+      ]
+    },
+    {
+      "repo": "Paginary",
+      "libs": [
+        "serde"
+      ]
+    },
+    {
+      "repo": "PhenoAgent",
+      "libs": [
+        "serde"
+      ]
+    },
+    {
+      "repo": "PhenoCompose",
+      "libs": [
+        "serde"
+      ]
+    },
+    {
+      "repo": "PhenoDevOps",
+      "libs": [
+        "serde"
+      ]
+    },
+    {
+      "repo": "PhenoKits",
+      "libs": [
+        "serde"
+      ]
+    },
+    {
+      "repo": "PhenoMCP",
+      "libs": [
+        "serde"
+      ]
+    },
+    {
+      "repo": "PhenoObservability",
+      "libs": [
+        "serde"
+      ]
+    },
+    {
+      "repo": "PhenoPlugins",
+      "libs": [
+        "serde"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "libs": [
+        "serde"
+      ]
+    },
+    {
+      "repo": "PhenoRuntime",
+      "libs": [
+        "serde"
+      ]
+    },
+    {
+      "repo": "PhenoSchema",
+      "libs": [
+        "serde"
+      ]
+    },
+    {
+      "repo": "PhenoVCS",
+      "libs": [
+        "serde"
+      ]
+    },
+    {
+      "repo": "PlayCua",
+      "libs": [
+        "serde"
+      ]
+    },
+    {
+      "repo": "PolicyStack",
+      "libs": [
+        "serde"
+      ]
+    },
+    {
+      "repo": "Pyron",
+      "libs": [
+        "serde"
+      ]
+    },
+    {
+      "repo": "ResilienceKit",
+      "libs": [
+        "serde"
+      ]
+    },
+    {
+      "repo": "Sidekick",
+      "libs": [
+        "serde"
+      ]
+    },
+    {
+      "repo": "Tasken",
+      "libs": [
+        "serde"
+      ]
+    },
+    {
+      "repo": "TestingKit",
+      "libs": [
+        "serde"
+      ]
+    },
+    {
+      "repo": "Tokn",
+      "libs": [
+        "serde"
+      ]
+    },
+    {
+      "repo": "Tracely",
+      "libs": [
+        "serde"
+      ]
+    },
+    {
+      "repo": "Tracera",
+      "libs": [
+        "serde"
+      ]
+    },
+    {
+      "repo": "bare-cua",
+      "libs": [
+        "serde"
+      ]
+    },
+    {
+      "repo": "crates",
+      "libs": [
+        "serde"
+      ]
+    },
+    {
+      "repo": "eyetracker",
+      "libs": [
+        "serde"
+      ]
+    },
+    {
+      "repo": "helioscope",
+      "libs": [
+        "derive_more",
+        "serde"
+      ]
+    },
+    {
+      "repo": "kmobile",
+      "libs": [
+        "serde"
+      ]
+    },
+    {
+      "repo": "kwality",
+      "libs": [
+        "serde"
+      ]
+    },
+    {
+      "repo": "pheno",
+      "libs": [
+        "serde"
+      ]
+    },
+    {
+      "repo": "phenoAI",
+      "libs": [
+        "serde"
+      ]
+    },
+    {
+      "repo": "phenoData",
+      "libs": [
+        "serde"
+      ]
+    },
+    {
+      "repo": "phenoForge",
+      "libs": [
+        "serde"
+      ]
+    },
+    {
+      "repo": "phenoShared",
+      "libs": [
+        "serde"
+      ]
+    },
+    {
+      "repo": "phenoUtils",
+      "libs": [
+        "serde"
+      ]
+    },
+    {
+      "repo": "phenodocs",
+      "libs": [
+        "serde"
+      ]
+    },
+    {
+      "repo": "phenotype-bus",
+      "libs": [
+        "serde"
+      ]
+    },
+    {
+      "repo": "phenotype-infra",
+      "libs": [
+        "serde"
+      ]
+    },
+    {
+      "repo": "phenotype-journeys",
+      "libs": [
+        "serde"
+      ]
+    },
+    {
+      "repo": "phenotype-org-audits",
+      "libs": [
+        "serde"
+      ]
+    },
+    {
+      "repo": "phenotype-shared",
+      "libs": [
+        "serde"
+      ]
+    },
+    {
+      "repo": "phenotype-tooling",
+      "libs": [
+        "serde"
+      ]
+    },
+    {
+      "repo": "rich-cli-kit",
+      "libs": [
+        "serde"
+      ]
+    },
+    {
+      "repo": "thegent",
+      "libs": [
+        "serde"
+      ]
+    },
+    {
+      "repo": "thegent-clean",
+      "libs": [
+        "serde"
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-docs",
+      "libs": [
+        "serde"
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-idea",
+      "libs": [
+        "serde"
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-parallel",
+      "libs": [
+        "serde"
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-policy",
+      "libs": [
+        "serde"
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-ruff",
+      "libs": [
+        "serde"
+      ]
+    },
+    {
+      "repo": "thegent-dispatch",
+      "libs": [
+        "serde"
+      ]
+    },
+    {
+      "repo": "tooling",
+      "libs": [
+        "serde"
+      ]
+    },
+    {
+      "repo": "vibeproxy",
+      "libs": [
+        "serde"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,42 @@
+{
+  "bug": {
+    "id": "10001",
+    "key": "TEST-1",
+    "fields": {
+      "summary": "Test Bug Issue",
+      "description": "Test bug description",
+      "status": {
+        "name": "To Do",
+        "id": "1"
+      },
+      "priority": {
+        "name": "Medium",
+        "id": "3"
+      },
+      "issuetype": {
+        "name": "Bug",
+        "id": "10004"
+      }
+    }
+  },
+  "story": {
+    "id": "10002",
+    "key": "TEST-2",
+    "fields": {
+      "summary": "Test Feature Story",
+      "description": "Test feature description",
+      "status": {
+        "name": "To Do",
+        "id": "1"
+      },
+      "priority": {
+        "name": "Medium",
+        "id": "3"
+      },
+      "issuetype": {
+        "name": "Story",
+        "id": "10001"
+      }
+    }
+  }
+}

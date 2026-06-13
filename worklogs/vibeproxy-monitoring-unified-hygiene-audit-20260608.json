@@ -1,0 +1,122 @@
+{
+  "repo": "vibeproxy-monitoring-unified",
+  "branch_audited": "main (759112d, clean, 2 ahead of origin/main: 759112d chore(governance): confirm shared CODEOWNERS template is in use + 9ad2467 chore(snapshot): preserve local dirty state 2026-06-07); 1 open PR #38 (workflow-hygiene ubuntu-24.04 + permissions)",
+  "audited_at": "2026-06-08",
+  "stack": "CLAIMED: monitoring configuration scaffold (Prometheus/Grafana/K8s probes). ACTUAL: pure governance/spec/docs scaffold, 0 source files (.rs/.ts/.py/.go), 0 tests, 0 dashboards, 0 alert rules, 0 deployable runtime; 35 tracked files (10 workflows, 2 governance stubs, 1 SPEC, 1 FR, 1 CHANGELOG, 1 README, 1 worklog stub, 2 journey stubs, 1 iconography stub, 1 traceability stub)",
+  "summary": "G1 DEGRADED (10/10 workflows use decorative placeholder checkout SHA `df4cb1c069e1874edd31b4311f1884172cec0e10` — comment inlines the real SHA `11bd71901bbe5b1630ceea73d27597364c9af683` but pin is the placeholder, not enforced; vitepress-deploy.yml:12 uses `@v4` tag unpinned; ci.yml:25 + release.yml:41 call `KooshaPari/phenotypeActions/...@00000000...` placeholder SHAs that 404), G1 DEGRADED (4 workflows have DUPLICATE top-level `permissions:` blocks — scorecard.yml:8+:16, release.yml:9+:17, doc-links.yml:3+:12 duplicate `on:` keys, fr-coverage.yml:3+:12 duplicate `on:` keys; vitepress-deploy.yml:6-7 has `pages: write`/`id-token: write` as top-level keys not under `permissions:` — invalid scope syntax), G2 DEGRADED (CHANGELOG [Unreleased] EMPTY, FR-001..FR-007 all 'Backlog' + all 7 test-traceability rows 'Pending', SPEC.md 18 lines thin, docs/journeys/manifests/README.md is 1 line, worklog.md references worklogs/{ARCHITECTURE,DUPLICATION,DEPENDENCIES,INTEGRATION,PERFORMANCE,RESEARCH,GOVERNANCE}.md that DO NOT EXIST), G3 PASS (secrets-scan + trufflehog + security-deep-scan daily Trivy/CodeQL/TruffleHog, dependabot covers cargo+gitsubmodule+github-actions, .pre-commit-config v5.0.0 + conventional-pre-commit v4.0.0, .editorconfig full per-language matrix, trufflehog.yml excludes node_modules/target/.venv), G4 DEGRADED (mise.toml:6 tasks all EMPTY — no `run` line, `cargo clippy/fmt/test` from CLAUDE.md:32-36 unrunnable because no Cargo.toml, no ci.yml test job executes anything — step 21 is bare `actions/checkout`, ci.yml:25 `phenotype-validate` step is 1-line placeholder-SHA reference to 404 source), G5 DEGRADED (CODEOWNERS+SECURITY.md+FUNDING.yml each duplicated at root AND .github/ with different content — root SECURITY.md is scope-only thin, .github/SECURITY.md has version table + email; root FUNDING.yml adds `custom:` URL, .github/FUNDING.yml is 1 line github-only; 9 stale local branches). e2e DEGRADED (no tests/, no e2e/, no integration/, no apps/, no src/, no crates/, no Playwright/Cypress/Detox; vitepress-deploy.yml is the only e2e-adjacent workflow but builds `docs/.vitepress/dist` which DOES NOT EXIST — no docs/ contents, no package.json — workflow is decorative). 4 P0, 6 P1, 4 P2.",
+  "gates": {
+    "G1_workflow_hygiene": {
+      "status": "DEGRADED",
+      "evidence": [
+        "10/10 workflows parse cleanly; cron schedules ok (codeql Mon 17:04, scorecard Sat 17:03, secrets-scan Mon 07:00, security-deep-scan daily 00:00, trufflehog on-PR, vitepress-deploy on-main+dispatch)",
+        "9/10 workflows use `actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v4@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.1.1` — SHA `df4cb1c...` is NOT a real actions/checkout commit; comment inlines the real `11bd71901...` but pin string is the placeholder (P0)",
+        "vitepress-deploy.yml:12 uses `actions/checkout@v4` (tag, not SHA) — only unpinned workflow in set (P1)",
+        "ci.yml:25 calls `KooshaPari/phenotypeActions/.github/workflows/validate-governance.yml@0000000000000000000000000000000000000000` — 40-zero placeholder SHA, source 404s (P0)",
+        "release.yml:41 calls `KooshaPari/phenotypeActions/promote@00000000...` — same 40-zero placeholder, source 404s (P0)",
+        "release.yml:26 `$123steps.version.outputs.version125` is malformed `${{ }}` syntax — job reference broken, version resolution will fail at runtime (P0)",
+        "scorecard.yml:8 + :16 declare DUPLICATE top-level `permissions:` (contents:read then read-all) — YAML merges, second wins (P1)",
+        "release.yml:9 + :17 declare DUPLICATE top-level `permissions:` (contents:read then contents:write+packages:write) — second widens (P1)",
+        "doc-links.yml:3 `on: workflow_dispatch:` + :12 `on: [push, pull_request]` — DUPLICATE `on:` key, second wins (P1)",
+        "fr-coverage.yml:3 + :12 same duplicate-`on:`-key pattern (P1)",
+        "vitepress-deploy.yml:6-7 has `pages: write`/`id-token: write` as TOP-LEVEL keys (not nested under `permissions:`) — invalid scope syntax; GitHub silently ignores (P1)",
+        "ci.yml:17-21 test job is bare `actions/checkout` with NO test/lint/fmt/clippy step — job passes by doing nothing (P0)"
+      ]
+    },
+    "G2_governance_files": {
+      "status": "DEGRADED",
+      "evidence": [
+        "LICENSE+AGENTS.md+CLAUDE.md+CHANGELOG.md+CODEOWNERS+CODE_OF_CONDUCT.md+CONTRIBUTING.md+SECURITY.md+FUNDING.yml+.gitignore+cliff.toml+mise.toml+.editorconfig+.pre-commit-config.yaml+trufflehog.yml+.github/{CODEOWNERS,dependabot.yml,FUNDING.yml,PULL_REQUEST_TEMPLATE.md,SECURITY.md} ALL present",
+        "PULL_REQUEST_TEMPLATE.md:12-15 has lint/test/smoke-test checkboxes — good",
+        "AGENTS.md:47-49 mandates `docs/{guides,reports,research,reference,checklists}/` org structure — only `docs/{journeys,operations,worklogs}/` exist, missing 5/7 mandated subdirs (P1)",
+        "CHANGELOG.md [Unreleased] EMPTY (no Added/Changed/Fixed since 2026-05 fan-out) (P1)",
+        "FUNCTIONAL_REQUIREMENTS.md: 7/7 FRs status=Backlog, 7/7 test-traceability rows status=Pending (P1)",
+        "SPEC.md: only 18 lines — title + Overview + Contents bullet list (monitoring configs / alert configs / dashboard definitions) + Usage — no acceptance criteria, no schema, no SLO definitions (P1)",
+        "worklog.md:12-21 references `worklogs/{ARCHITECTURE,DUPLICATION,DEPENDENCIES,INTEGRATION,PERFORMANCE,RESEARCH,GOVERNANCE}.md` — only `worklog.md` exists, the 7 category files DO NOT EXIST (P0)",
+        "docs/journeys/manifests/README.md is 1-line stub — no manifests committed (P1)",
+        "docs/operations/{journey-traceability,iconography}/SPEC.md are 1-2 paragraph stubs that link to phenotype-infra canonical — pure placeholders (P2)"
+      ]
+    },
+    "G3_security_scanning": {
+      "status": "PASS",
+      "evidence": [
+        "trufflehog.yml: uses trufflesecurity/trufflehog@75add79b929b263dae147d2e5bcf0daf292165cf (v3.95.2) SHA-pinned in both secrets-scan.yml:17 and security-deep-scan.yml:48",
+        "secrets-scan.yml: Mon cron 0 7 * * 1 + on-PR; security-deep-scan.yml: daily 0 0 * * 4 jobs (Trivy fs + Trivy container + CodeQL matrix rust/go/python/typescript + TruffleHog)",
+        "dependabot.yml: cargo + gitsubmodule + github-actions — full 3-ecosystem coverage, weekly schedule (best-in-class)",
+        ".pre-commit-config.yaml: pre-commit-hooks v5.0.0 (trailing-ws/EOL/yaml/toml/merge-conflict/large-files 500KB) + conventional-pre-commit v4.0.0 (feat/fix/docs/style/refactor/perf/test/chore/ci/build/revert) — solid",
+        ".editorconfig: per-language matrix (py=4sp, ts/js=2sp, go=tab, yml=2sp, json=2sp, Makefile=tab, md=no trim) — good",
+        "trufflehog.yml:12 `allowlist: false` (strict), scan_depth: 4, excludes node_modules/target/.venv/.git/__pycache__ — solid"
+      ]
+    },
+    "G4_quality_gates": {
+      "status": "DEGRADED",
+      "evidence": [
+        "mise.toml:6 tasks declared (`format`, `lint`, `test`, `build`, `audit`, `docs:build`) but ZERO `run =` line on any — `mise run test` is a no-op (P0)",
+        "CLAUDE.md:32-36 mandates `cargo clippy --workspace -- -D warnings` + `cargo fmt --check` + `cargo test --workspace` + `vale docs/` — UNRUNNABLE, no Cargo.toml exists",
+        "ci.yml:17-21 test job: ONLY `actions/checkout` — no mise, no pre-commit, no clippy, no test step. `phenotype-validate` step at :25 is a placeholder-SHA reusable call to 404 source (P0)",
+        "fr-coverage.yml:18 `run: echo \"FR coverage check (phenotype-tooling integration)\"` — decorative echo, no real coverage check (P1)",
+        "doc-links.yml:18 `run: echo \"Doc link check (phenotype-tooling integration)\"` — same decorative echo pattern (P1)",
+        "release.yml triggers on commit message contains `release:` OR `chore(release)` — depends on cliff.toml which is well-configured (conventional_commits, tag_pattern v[0].*) but never invoked in ci.yml"
+      ]
+    },
+    "G5_review_governance": {
+      "status": "DEGRADED",
+      "evidence": [
+        "PULL_REQUEST_TEMPLATE.md:20 `Closes #` is a soft instruction but no required-test-IDs field; fr-coverage.yml cannot link PR→FR (P1)",
+        "dependabot.yml: full 3-ecosystem (cargo+gitsubmodule+github-actions) — best-in-class",
+        "CODEOWNERS at BOTH /CODEOWNERS (1 line `* @KooshaPari`) AND /.github/CODEOWNERS (2 lines, comment `# CODEOWNERS — Phenotype-org default`) — DRIFT, root version is org-canonical (P1)",
+        "SECURITY.md at BOTH root (21 lines, scope-only thin) AND /.github/SECURITY.md (18 lines, version table 0.x.x+1.x.x both ✅, email `kooshapari@kooshapari.com`) — DRIFT, .github/ is more complete (P1)",
+        "FUNDING.yml at BOTH root (`github: [KooshaPari] + custom: [https://kooshapari.com/sponsor]`) AND /.github/FUNDING.yml (`github: [\"KooshaPari\"]` only) — DRIFT (P1)",
+        "9 stale local branches: archive/vibeproxy-local-readme-9618a6c, chore/workflow-hygiene-ubuntu-24, chore/worklog-seed-vibeproxy-monitoring-unified, codex/readme-hygiene-round-8-canon, codex/workflow-hygiene, codex/worklog-index, dependabot/dependabot-yml, feat/journey-impl, hygiene/preserve-canonical-20260605",
+        "MISSING: .coderabbit.yaml, .gemini/, SUPPORT.md, ISSUE_TEMPLATE/{bug_report,feature_request}.yml, Justfile/Taskfile, renovate.json5 — drift from org standard"
+      ]
+    },
+    "e2e_end_to_end": {
+      "status": "DEGRADED",
+      "evidence": [
+        "No tests/, test/, e2e/, integration/, apps/, src/, crates/ at root",
+        "No Playwright/Cypress/Detox/Maestro/XCUI/streamlit runbook/vitest/jest/smoke.sh",
+        "vitepress-deploy.yml:23-26 builds `docs/.vitepress/dist` — but `docs/` contains only `journeys/`, `operations/`, `worklogs/` (no `.vitepress/`, no `package.json`) — workflow deploys empty Pages (P0)",
+        "fr-coverage.yml + doc-links.yml are the only PR-gated workflows and both end in `echo` — no real assertions",
+        "security-deep-scan.yml is daily + on-PR but is 100% static (no built binary is run, no smoke test)",
+        "0 of 7 FRs have a test, 0 of 7 journey manifest slots are filled"
+      ]
+    }
+  },
+  "additional_findings": {
+    "placeholder_checkout_sha": "9/10 workflows pin `actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10`. `df4cb1c...` is NOT a real commit on actions/checkout; the real v4 SHA is `11bd71901bbe5b1630ceea73d27597364c9af683`, which IS the comment string. The pin and comment are swapped — mechanical fix: replace pin with `11bd71901bbe5b1630ceea73d27597364c9af683 # v4`. Same audit finding as hwLedger-2nd and several other repos this week. (P0)",
+    "phenotypeActions_404_chain": "ci.yml:25 (`validate-governance.yml@00000000...`) and release.yml:41 (`promote@00000000...`) reference `KooshaPari/phenotypeActions` with 40-zero placeholder SHAs. The repo does not expose these workflow paths. Both jobs will fail at the `uses:` step on first run. Maintainer should either (a) point to a real source, (b) inline the logic, or (c) delete the steps. (P0)",
+    "vitepress_deploy_decorative": "vitepress-deploy.yml runs `actions/setup-node@v4` + `npx vitepress build docs` (via `if [ -f docs/package.json ]` else-branch) — but there is no `docs/package.json` and no `docs/.vitepress/config.ts`. The Pages artifact `docs/.vitepress/dist` will be empty/absent. Workflow has been green because the deploy-pages step accepts an empty artifact. (P0)",
+    "release_malformed_expr": "release.yml:26 `outputs: version: $123steps.version.outputs.version125` — should be `${{ steps.version.outputs.version }}` (the `$123` and `125` suffixes look like a macro-expansion artifact where `${{` was eaten). Combined with no preceding `version` step in the `release` job, the `promote` job's `needs.release.outputs.version` will resolve to empty and `promote@promote` with `version: ` will fail. (P0)",
+    "duplicate_on_key_in_4_workflows": "doc-links.yml:3+:12 and fr-coverage.yml:3+:12 both declare `on:` twice (first `on: workflow_dispatch:`, second bare `on: [push, pull_request]`). YAML allows duplicates; second wins. First is dead. scorecard.yml:8+:16 + release.yml:9+:17 do the same with `permissions:`. (P1)",
+    "worklog_category_files_missing": "worklog.md:12-21 documents a 7-category worklog taxonomy (`worklogs/ARCHITECTURE.md`, `DUPLICATION.md`, `DEPENDENCIES.md`, `INTEGRATION.md`, `PERFORMANCE.md`, `RESEARCH.md`, `GOVERNANCE.md`) but only `worklog.md` itself exists. Any future entry must choose one of 7 phantom files; 0/7 created. AGENTS.md:23 references `docs/worklogs/README.md` as the worklog surface but the README is the index, not the partitioned log. (P0)",
+    "duplicate_governance_files": "CODEOWNERS + SECURITY.md + FUNDING.yml each exist at BOTH root AND .github/ with different content. GitHub only honors /.github/CODEOWNERS, /.github/SECURITY.md, /.github/FUNDING.yml. Root copies are non-canonical drift. (P1)",
+    "changelog_unreleased_empty": "CHANGELOG.md:8 [Unreleased] section has 0 entries (no Added/Changed/Fixed/Security) across the 2026-05/06 fan-out (commits 759112d, 9ad2467, ffe6c6c, 35e7068, 7488fdc, plus 9 stale branches worth of work). (P1)",
+    "mise_tasks_empty": "mise.toml:6 task blocks declared (`format`, `lint`, `test`, `build`, `audit`, `docs:build`) but none have a `run =` line. `mise run test` exits 0 with no work. CLAUDE.md:32-36 mandates commands that mise.toml is supposed to wrap. (P0)"
+  },
+  "ci_status": {
+    "open_prs": "1 (PR #38 chore(vibeproxy-monitoring-unified): workflow hygiene — ubuntu-24.04, permissions)",
+    "unpushed_main": "2 (759112d chore(governance): confirm shared CODEOWNERS template is in use; 9ad2467 chore(snapshot): preserve vibeproxy-monitoring-unified local dirty state 2026-06-07)",
+    "stale_branches": "9 local branches (archive/vibeproxy-local-readme-9618a6c, chore/workflow-hygiene-ubuntu-24, chore/worklog-seed-vibeproxy-monitoring-unified, codex/readme-hygiene-round-8-canon, codex/workflow-hygiene, codex/worklog-index, dependabot/dependabot-yml, feat/journey-impl, hygiene/preserve-canonical-20260605) — 3 already on origin, 6 local-only; working tree clean on main"
+  },
+  "actions_recommended": [
+    {
+      "priority": "P0",
+      "title": "Sweep workflow hygiene: replace decorative placeholder checkout SHA in 9/10 workflows + delete or inline the 2 placeholder-SHA phenotypeActions calls + fix release.yml malformed `${{ }}` expression + delete the 4 duplicate `on:`/`permissions:` keys + extract the 7 phantom worklog category files",
+      "detail": "(a) In 9/10 workflows (ci/codeql/doc-links/fr-coverage/release/scorecard/secrets-scan/security-deep-scan/trufflehog) replace `actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v4@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.1.1` with `actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4`. vitepress-deploy.yml:12 stays at `@v4` (P1). (b) ci.yml:25 + release.yml:41 — `KooshaPari/phenotypeActions/...@00000000...` 404s. Either point to a real SHA, inline the validate/promote logic, or delete the steps. (c) release.yml:26 fix `$123steps.version.outputs.version125` → `${{ steps.version.outputs.version }}` and add a real `version` step (e.g., `git-cliff` per cliff.toml). (d) scorecard.yml:8+:16 / release.yml:9+:17 duplicate `permissions:` — keep the wider scope (release needs contents:write+packages:write, scorecard needs read-all); delete the narrower. doc-links.yml:3+:12 / fr-coverage.yml:3+:12 duplicate `on:` — keep the broader `on: [push, pull_request]`. (e) worklog.md:12-21 references 7 worklog category files that don't exist — either create the 7 partitions with template headers, or rewrite the taxonomy to use a single `worklog.md` partitioned by `## CATEGORY` headers. Single sweep PR; ~30 min.",
+      "estimated_effort": "30 min"
+    },
+    {
+      "priority": "P0",
+      "title": "Make vitepress-deploy.yml + ci.yml + mise.toml real: add `docs/.vitepress/config.ts` + `docs/package.json` + populate 6 mise.toml tasks with `run =` lines + populate CHANGELOG.md [Unreleased] + populate FUNCTIONAL_REQUIREMENTS.md with status updates + condense or delete SECURITY.md/CODEOWNERS/FUNDING.yml root duplicates",
+      "detail": "(a) vitepress-deploy.yml is decorative because `docs/.vitepress/` doesn't exist — add a minimal `docs/.vitepress/config.ts` (VitePress base config) and `docs/package.json` with `vitepress` dep, OR delete the workflow. (b) mise.toml:1-23 has 6 task blocks with no `run` lines — add `run = \"cargo test --workspace\"` etc (or `echo \"no code yet\"` for the spec-only repo). CLAUDE.md:32-36's `cargo clippy/fmt/test` commands will then at least dispatch through mise. (c) ci.yml:17-21 test job needs real steps (checkout → setup-node → `npm ci` → `npm test` once vitepress is wired, OR `mise run lint && mise run test`). (d) CHANGELOG.md [Unreleased] — add 5 one-liner entries for commits 759112d, 9ad2467, ffe6c6c, 35e7068, 7488fdc under Added/Changed. (e) FUNCTIONAL_REQUIREMENTS.md — mark FR-007 (Worklog routing) as 'In Progress' (docs/worklogs/worklog.md + README.md exist), the other 6 stay Backlog; add `Test Name` placeholders pointing to planned `tests/fr-{001..007}.spec.ts` files. (f) Delete the root `CODEOWNERS`, `SECURITY.md`, `FUNDING.yml` files — keep only the .github/ versions. Single sweep PR; ~45 min.",
+      "estimated_effort": "45 min"
+    },
+    {
+      "priority": "P1",
+      "title": "Delete 9 stale local branches + push the 2 unpushed commits + create 6 planned worklog category files + add missing AGENTS.md-mandated docs/{guides,reports,research,reference,checklists}/ skeletons + add .coderabbit.yaml + add SUPPORT.md + add ISSUE_TEMPLATE/{bug,feature}.yml",
+      "detail": "(a) `git branch -D` 9 stale local branches: archive/vibeproxy-local-readme-9618a6c, chore/workflow-hygiene-ubuntu-24 (now superseded by PR #38), chore/worklog-seed-vibeproxy-monitoring-unified, codex/readme-hygiene-round-8-canon, codex/workflow-hygiene, codex/worklog-index, dependabot/dependabot-yml, feat/journey-impl, hygiene/preserve-canonical-20260605. (b) `git push origin main` to land 759112d + 9ad2467. (c) Create worklogs/{ARCHITECTURE,DUPLICATION,DEPENDENCIES,INTEGRATION,PERFORMANCE,RESEARCH,GOVERNANCE}.md (one-liner headers + first entry stubs) so the taxonomy in worklog.md:12-21 is satisfied. (d) Add empty `docs/{guides,reports,research,reference,checklists}/.gitkeep` files to satisfy AGENTS.md:47. (e) Add .coderabbit.yaml (or .gemini/review.yaml) so PR review automation is in scope — peer repos use this. (f) Add SUPPORT.md, ISSUE_TEMPLATE/bug_report.yml + feature_request.yml to match the org standard. Single sweep PR; ~25 min.",
+      "estimated_effort": "25 min"
+    }
+  ],
+  "deep_research": "vibeproxy-monitoring-unified is a 'governance-only scaffold' — it documents 7 functional requirements (FR-001 monitoring governance surface, FR-002 dashboard ownership, FR-003 probe semantics, FR-004 alerting guidance, FR-005 metrics normalization, FR-006 validation docs, FR-007 worklog routing) but commits 0 source files, 0 dashboards, 0 alert rules, 0 tests, and 0 Prometheus recording rules. Among 35 tracked files, the entire content tree is `docs/{journeys,operations,worklogs}/` (4 stub files, 1 line each) + governance files (AGENTS.md, CLAUDE.md, README.md, SPEC.md, CHANGELOG.md, FUNCTIONAL_REQUIREMENTS.md, CONTRIBUTING.md, CODE_OF_CONDUCT.md, SECURITY.md, CODEOWNERS, FUNDING.yml, LICENSE, cliff.toml, mise.toml, .pre-commit-config.yaml, .editorconfig, trufflehog.yml, .github/dependabot.yml, .github/PULL_REQUEST_TEMPLATE.md) + 10 GitHub Actions workflows. The strength of the repo is in (a) the security perimeter — daily Trivy + multi-language CodeQL matrix + dual TruffleHog (secrets-scan.yml + security-deep-scan.yml) + dependabot covering all 3 ecosystems (cargo, gitsubmodule, github-actions) + a strict allowlist:false trufflehog.yml + .pre-commit-config v5 + conventional-pre-commit v4 + a full per-language .editorconfig matrix, comparable to the best in the fleet (KWatch, hwLedger, phenotype-tooling); and (b) the governance taxonomy — AGENTS.md mandates a 7-directory docs/ structure, worklog.md prescribes a 7-category partitioned worklog (ARCHITECTURE/DUPLICATION/DEPENDENCIES/INTEGRATION/PERFORMANCE/RESEARCH/GOVERNANCE), CLAUDE.md mandates AgilePlus tracking + quality checks. The weakness is that almost every prescriptive surface is a hollow shell: CHANGELOG.md [Unreleased] is empty; FUNCTIONAL_REQUIREMENTS.md has 7/7 FRs in 'Backlog' and 7/7 test-traceability rows in 'Pending'; SPEC.md is 18 lines of bullets; mise.toml declares 6 tasks with no `run` lines; the worklog taxonomy references 7 phantom files; AGENTS.md's mandated `docs/{guides,reports,research,reference,checklists}/` subdirs are missing (only 3/7 exist); and 3 governance files (CODEOWNERS, SECURITY.md, FUNDING.yml) are duplicated at root and .github/ with conflicting content.\n\nThe 10-workflow set has the same r1-r4 hygiene regression pattern seen across the fleet this week: 9/10 pin a placeholder `actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10` whose correct SHA (`11bd71901bbe5b1630ceea73d27597364c9af683`) is only present in the comment string — the pin and comment are swapped. Two workflows (ci.yml:25 `KooshaPari/phenotypeActions/.github/workflows/validate-governance.yml@00000000...` and release.yml:41 `KooshaPari/phenotypeActions/promote@00000000...`) call placeholder-SHA reusable workflows that 404; release.yml:26 has a malformed `$123steps.version.outputs.version125` expression; 4 workflows have duplicate top-level keys (`on:` in doc-links.yml:3+:12 and fr-coverage.yml:3+:12, `permissions:` in scorecard.yml:8+:16 and release.yml:9+:17) where YAML merges and the second wins. vitepress-deploy.yml is structurally decorative — it builds `docs/.vitepress/dist` but no `docs/.vitepress/config.ts` and no `docs/package.json` exist, so the Pages artifact is empty. The repo's own `pr-template/bootstrap`, `add-trufflehog-2026-05-02`, `chore/changelog-stub` branch names suggest an active 'stubs everywhere' maintenance posture; PR #38 (open, workflow-hygiene ubuntu-24.04 + permissions) confirms the maintainer is aware. Compared to peer scaffolds (Phenotype-org, FocalPoint, Conft), this repo has a more complete security perimeter (daily Trivy + 3-ecosystem dependabot + strict trufflehog allowlist) but a less complete code surface (0 tests, 0 binaries, 0 e2e) — it is the cleanest 'pure governance' scaffold in the fleet but is still a scaffold. Net hygiene score: 2.0/5 — G1/G2/G4/G5/e2e all DEGRADED, G3 PASS; 4 P0s and 6 P1s concentrated in the workflow-hygiene sweep and the vitepress/mise/ci.yml real-vs-decorative gap; the two highest-leverage actions are (1) the workflow SHA sweep + placeholder-SHA `phenotypeActions` deletion (30 min, 4 P0s closed) and (2) the vitepress/mise/ci.yml/CHANGELOG/FR real-content pass (45 min, 4 more P0s/P1s closed)."
+}

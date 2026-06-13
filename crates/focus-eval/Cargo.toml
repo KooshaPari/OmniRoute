@@ -15,7 +15,7 @@ focus-rules = { path = "../focus-rules" }
 focus-storage = { path = "../focus-storage" }
 focus-sync = { path = "../focus-sync" }
 focus-observability = { path = "../focus-observability" }
-phenotype-observably-macros = { path = "../../../PhenoObservability/crates/phenotype-observably-macros" }
+phenotype-observably-macros = { path = "../../PhenoObservability/crates/phenotype-observably-macros" }
 serde.workspace = true
 serde_json.workspace = true
 chrono.workspace = true

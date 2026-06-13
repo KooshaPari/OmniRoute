@@ -1,0 +1,107 @@
+{
+  "generated_at": "2026-06-08T02:15:00Z",
+  "total_repos": 125,
+  "with_wiremock": [
+    "AgilePlus",
+    "FocalPoint",
+    "HeliosCLI",
+    "HexaKit",
+    "PhenoDevOps",
+    "PhenoObservability",
+    "PhenoProc",
+    "Pyron",
+    "helioscope",
+    "kmobile",
+    "pheno",
+    "phenoShared",
+    "phenoUtils",
+    "phenodocs"
+  ],
+  "with_httpmock": [],
+  "by_repo": [
+    {
+      "repo": "AgilePlus",
+      "libs": [
+        "wiremock"
+      ]
+    },
+    {
+      "repo": "FocalPoint",
+      "libs": [
+        "wiremock"
+      ]
+    },
+    {
+      "repo": "HeliosCLI",
+      "libs": [
+        "wiremock"
+      ]
+    },
+    {
+      "repo": "HexaKit",
+      "libs": [
+        "wiremock"
+      ]
+    },
+    {
+      "repo": "PhenoDevOps",
+      "libs": [
+        "wiremock"
+      ]
+    },
+    {
+      "repo": "PhenoObservability",
+      "libs": [
+        "wiremock"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "libs": [
+        "wiremock"
+      ]
+    },
+    {
+      "repo": "Pyron",
+      "libs": [
+        "wiremock"
+      ]
+    },
+    {
+      "repo": "helioscope",
+      "libs": [
+        "wiremock"
+      ]
+    },
+    {
+      "repo": "kmobile",
+      "libs": [
+        "wiremock"
+      ]
+    },
+    {
+      "repo": "pheno",
+      "libs": [
+        "wiremock"
+      ]
+    },
+    {
+      "repo": "phenoShared",
+      "libs": [
+        "wiremock"
+      ]
+    },
+    {
+      "repo": "phenoUtils",
+      "libs": [
+        "wiremock"
+      ]
+    },
+    {
+      "repo": "phenodocs",
+      "libs": [
+        "wiremock"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,836 @@
+{
+  "generated_at": "2026-06-07T00:00:00Z",
+  "total_repos": 167,
+  "with_chrono": [
+    ".claude",
+    "Agentora",
+    "AgilePlus",
+    "AuthKit",
+    "Conft",
+    "DataKit",
+    "Eventra",
+    "FocalPoint",
+    "GDK",
+    "HeliosCLI",
+    "HeliosLab",
+    "HexaKit",
+    "KDesktopVirt",
+    "KlipDot",
+    "McpKit",
+    "Metron",
+    "ObservabilityKit",
+    "Paginary",
+    "PhenoDevOps",
+    "PhenoKits",
+    "PhenoObservability",
+    "PhenoProc",
+    "PhenoRuntime",
+    "PhenoVCS",
+    "Pyron",
+    "ResilienceKit",
+    "Tasken",
+    "TestingKit",
+    "Tokn",
+    "Tracely",
+    "Tracera",
+    "crates",
+    "helioscope",
+    "kmobile",
+    "kwality",
+    "pheno",
+    "phenoShared",
+    "phenodocs",
+    "phenotype-infra",
+    "phenotype-journeys",
+    "phenotype-shared",
+    "phenotype-tooling",
+    "tests",
+    "thegent",
+    "thegent-clean",
+    "thegent-clean-wt-docs",
+    "thegent-clean-wt-idea",
+    "thegent-clean-wt-parallel",
+    "thegent-clean-wt-policy",
+    "thegent-clean-wt-ruff",
+    "tooling"
+  ],
+  "with_time": [
+    "HeliosCLI",
+    "helioscope"
+  ],
+  "with_dateparser": [],
+  "by_repo": [
+    {
+      "repo": ".agileplus",
+      "libs": []
+    },
+    {
+      "repo": ".claude",
+      "libs": [
+        "chrono"
+      ]
+    },
+    {
+      "repo": ".git",
+      "libs": []
+    },
+    {
+      "repo": ".github",
+      "libs": []
+    },
+    {
+      "repo": ".mypy_cache",
+      "libs": []
+    },
+    {
+      "repo": ".pytest_cache",
+      "libs": []
+    },
+    {
+      "repo": ".remember",
+      "libs": []
+    },
+    {
+      "repo": ".serena",
+      "libs": []
+    },
+    {
+      "repo": "AgentMCP",
+      "libs": []
+    },
+    {
+      "repo": "Agentora",
+      "libs": [
+        "chrono"
+      ]
+    },
+    {
+      "repo": "AgilePlus",
+      "libs": [
+        "chrono"
+      ]
+    },
+    {
+      "repo": "Apisync",
+      "libs": []
+    },
+    {
+      "repo": "AppGen",
+      "libs": []
+    },
+    {
+      "repo": "AtomsBot",
+      "libs": []
+    },
+    {
+      "repo": "AuthKit",
+      "libs": [
+        "chrono"
+      ]
+    },
+    {
+      "repo": "Benchora",
+      "libs": []
+    },
+    {
+      "repo": "BytePort",
+      "libs": []
+    },
+    {
+      "repo": "Civis",
+      "libs": []
+    },
+    {
+      "repo": "Conft",
+      "libs": [
+        "chrono"
+      ]
+    },
+    {
+      "repo": "DINOForge-UnityDoorstop",
+      "libs": []
+    },
+    {
+      "repo": "DataKit",
+      "libs": [
+        "chrono"
+      ]
+    },
+    {
+      "repo": "DevHex",
+      "libs": []
+    },
+    {
+      "repo": "Dino",
+      "libs": []
+    },
+    {
+      "repo": "Eidolon",
+      "libs": []
+    },
+    {
+      "repo": "Eventra",
+      "libs": [
+        "chrono"
+      ]
+    },
+    {
+      "repo": "FocalPoint",
+      "libs": [
+        "chrono"
+      ]
+    },
+    {
+      "repo": "GDK",
+      "libs": [
+        "chrono"
+      ]
+    },
+    {
+      "repo": "HeliosCLI",
+      "libs": [
+        "chrono",
+        "time"
+      ]
+    },
+    {
+      "repo": "HeliosLab",
+      "libs": [
+        "chrono"
+      ]
+    },
+    {
+      "repo": "HexaKit",
+      "libs": [
+        "chrono"
+      ]
+    },
+    {
+      "repo": "Httpora",
+      "libs": []
+    },
+    {
+      "repo": "KDesktopVirt",
+      "libs": [
+        "chrono"
+      ]
+    },
+    {
+      "repo": "KWatch",
+      "libs": []
+    },
+    {
+      "repo": "KaskMan",
+      "libs": []
+    },
+    {
+      "repo": "KlipDot",
+      "libs": [
+        "chrono"
+      ]
+    },
+    {
+      "repo": "MCPForge",
+      "libs": []
+    },
+    {
+      "repo": "McpKit",
+      "libs": [
+        "chrono"
+      ]
+    },
+    {
+      "repo": "Metron",
+      "libs": [
+        "chrono"
+      ]
+    },
+    {
+      "repo": "NetScript",
+      "libs": []
+    },
+    {
+      "repo": "ObservabilityKit",
+      "libs": [
+        "chrono"
+      ]
+    },
+    {
+      "repo": "Observably",
+      "libs": []
+    },
+    {
+      "repo": "OmniRoute",
+      "libs": []
+    },
+    {
+      "repo": "OmniRoute-latest",
+      "libs": []
+    },
+    {
+      "repo": "Paginary",
+      "libs": [
+        "chrono"
+      ]
+    },
+    {
+      "repo": "Parpoura",
+      "libs": []
+    },
+    {
+      "repo": "PhenoAgent",
+      "libs": []
+    },
+    {
+      "repo": "PhenoCompose",
+      "libs": []
+    },
+    {
+      "repo": "PhenoContracts",
+      "libs": []
+    },
+    {
+      "repo": "PhenoControl",
+      "libs": []
+    },
+    {
+      "repo": "PhenoDevOps",
+      "libs": [
+        "chrono"
+      ]
+    },
+    {
+      "repo": "PhenoEvents",
+      "libs": []
+    },
+    {
+      "repo": "PhenoHandbook",
+      "libs": []
+    },
+    {
+      "repo": "PhenoKits",
+      "libs": [
+        "chrono"
+      ]
+    },
+    {
+      "repo": "PhenoLang",
+      "libs": []
+    },
+    {
+      "repo": "PhenoMCP",
+      "libs": []
+    },
+    {
+      "repo": "PhenoObservability",
+      "libs": [
+        "chrono"
+      ]
+    },
+    {
+      "repo": "PhenoPlugins",
+      "libs": []
+    },
+    {
+      "repo": "PhenoProc",
+      "libs": [
+        "chrono"
+      ]
+    },
+    {
+      "repo": "PhenoProject",
+      "libs": []
+    },
+    {
+      "repo": "PhenoRuntime",
+      "libs": [
+        "chrono"
+      ]
+    },
+    {
+      "repo": "PhenoSchema",
+      "libs": []
+    },
+    {
+      "repo": "PhenoSpecs",
+      "libs": []
+    },
+    {
+      "repo": "PhenoVCS",
+      "libs": [
+        "chrono"
+      ]
+    },
+    {
+      "repo": "Pine",
+      "libs": []
+    },
+    {
+      "repo": "Planify",
+      "libs": []
+    },
+    {
+      "repo": "PlatformKit",
+      "libs": []
+    },
+    {
+      "repo": "PlayCua",
+      "libs": []
+    },
+    {
+      "repo": "PolicyStack",
+      "libs": []
+    },
+    {
+      "repo": "Pyron",
+      "libs": [
+        "chrono"
+      ]
+    },
+    {
+      "repo": "QuadSGM",
+      "libs": []
+    },
+    {
+      "repo": "ResilienceKit",
+      "libs": [
+        "chrono"
+      ]
+    },
+    {
+      "repo": "Sidekick",
+      "libs": []
+    },
+    {
+      "repo": "Tasken",
+      "libs": [
+        "chrono"
+      ]
+    },
+    {
+      "repo": "TestingKit",
+      "libs": [
+        "chrono"
+      ]
+    },
+    {
+      "repo": "Tokn",
+      "libs": [
+        "chrono"
+      ]
+    },
+    {
+      "repo": "Tracely",
+      "libs": [
+        "chrono"
+      ]
+    },
+    {
+      "repo": "Tracera",
+      "libs": [
+        "chrono"
+      ]
+    },
+    {
+      "repo": "ValidationKit",
+      "libs": []
+    },
+    {
+      "repo": "agent-devops-setups",
+      "libs": []
+    },
+    {
+      "repo": "agent-user-status",
+      "libs": []
+    },
+    {
+      "repo": "agentapi-plusplus",
+      "libs": []
+    },
+    {
+      "repo": "agentops-policy-federation",
+      "libs": []
+    },
+    {
+      "repo": "agileplus-agents",
+      "libs": []
+    },
+    {
+      "repo": "agileplus-landing",
+      "libs": []
+    },
+    {
+      "repo": "agslag-docs",
+      "libs": []
+    },
+    {
+      "repo": "apps",
+      "libs": []
+    },
+    {
+      "repo": "argis-extensions",
+      "libs": []
+    },
+    {
+      "repo": "bare-cua",
+      "libs": []
+    },
+    {
+      "repo": "byteport-landing",
+      "libs": []
+    },
+    {
+      "repo": "chatta",
+      "libs": []
+    },
+    {
+      "repo": "cheap-llm-mcp",
+      "libs": []
+    },
+    {
+      "repo": "cliproxyapi-plusplus",
+      "libs": []
+    },
+    {
+      "repo": "crates",
+      "libs": [
+        "chrono"
+      ]
+    },
+    {
+      "repo": "default",
+      "libs": []
+    },
+    {
+      "repo": "dinoforge-packs",
+      "libs": []
+    },
+    {
+      "repo": "dispatch-mcp",
+      "libs": []
+    },
+    {
+      "repo": "docs",
+      "libs": []
+    },
+    {
+      "repo": "docs-site",
+      "libs": []
+    },
+    {
+      "repo": "examples",
+      "libs": []
+    },
+    {
+      "repo": "eyetracker",
+      "libs": []
+    },
+    {
+      "repo": "foqos-private",
+      "libs": []
+    },
+    {
+      "repo": "forgecode",
+      "libs": []
+    },
+    {
+      "repo": "frontend",
+      "libs": []
+    },
+    {
+      "repo": "fuzz",
+      "libs": []
+    },
+    {
+      "repo": "helios-router",
+      "libs": []
+    },
+    {
+      "repo": "heliosApp",
+      "libs": []
+    },
+    {
+      "repo": "heliosBench",
+      "libs": []
+    },
+    {
+      "repo": "heliosHarness",
+      "libs": []
+    },
+    {
+      "repo": "helioscope",
+      "libs": [
+        "chrono",
+        "time"
+      ]
+    },
+    {
+      "repo": "hwLedger",
+      "libs": []
+    },
+    {
+      "repo": "kmobile",
+      "libs": [
+        "chrono"
+      ]
+    },
+    {
+      "repo": "kwality",
+      "libs": [
+        "chrono"
+      ]
+    },
+    {
+      "repo": "libs",
+      "libs": []
+    },
+    {
+      "repo": "localbase3",
+      "libs": []
+    },
+    {
+      "repo": "melosviz",
+      "libs": []
+    },
+    {
+      "repo": "nanovms",
+      "libs": []
+    },
+    {
+      "repo": "netweave-final2",
+      "libs": []
+    },
+    {
+      "repo": "pheno",
+      "libs": [
+        "chrono"
+      ]
+    },
+    {
+      "repo": "phenoAI",
+      "libs": []
+    },
+    {
+      "repo": "phenoData",
+      "libs": []
+    },
+    {
+      "repo": "phenoDesign",
+      "libs": []
+    },
+    {
+      "repo": "phenoForge",
+      "libs": []
+    },
+    {
+      "repo": "phenoResearchEngine",
+      "libs": []
+    },
+    {
+      "repo": "phenoShared",
+      "libs": [
+        "chrono"
+      ]
+    },
+    {
+      "repo": "phenoUtils",
+      "libs": []
+    },
+    {
+      "repo": "phenoXdd",
+      "libs": []
+    },
+    {
+      "repo": "phenodocs",
+      "libs": [
+        "chrono"
+      ]
+    },
+    {
+      "repo": "phenodocs-scorecard-remediation",
+      "libs": []
+    },
+    {
+      "repo": "phenokits-landing",
+      "libs": []
+    },
+    {
+      "repo": "phenotype-auth-ts",
+      "libs": []
+    },
+    {
+      "repo": "phenotype-bus",
+      "libs": []
+    },
+    {
+      "repo": "phenotype-hub",
+      "libs": []
+    },
+    {
+      "repo": "phenotype-icons",
+      "libs": []
+    },
+    {
+      "repo": "phenotype-infra",
+      "libs": [
+        "chrono"
+      ]
+    },
+    {
+      "repo": "phenotype-journeys",
+      "libs": [
+        "chrono"
+      ]
+    },
+    {
+      "repo": "phenotype-omlx",
+      "libs": []
+    },
+    {
+      "repo": "phenotype-ops-mcp",
+      "libs": []
+    },
+    {
+      "repo": "phenotype-org-audits",
+      "libs": []
+    },
+    {
+      "repo": "phenotype-postfx",
+      "libs": []
+    },
+    {
+      "repo": "phenotype-registry",
+      "libs": []
+    },
+    {
+      "repo": "phenotype-shared",
+      "libs": [
+        "chrono"
+      ]
+    },
+    {
+      "repo": "phenotype-skills",
+      "libs": []
+    },
+    {
+      "repo": "phenotype-terrain",
+      "libs": []
+    },
+    {
+      "repo": "phenotype-tooling",
+      "libs": [
+        "chrono"
+      ]
+    },
+    {
+      "repo": "phenotype-water",
+      "libs": []
+    },
+    {
+      "repo": "portage",
+      "libs": []
+    },
+    {
+      "repo": "rich-cli-kit",
+      "libs": []
+    },
+    {
+      "repo": "rust",
+      "libs": []
+    },
+    {
+      "repo": "services",
+      "libs": []
+    },
+    {
+      "repo": "src",
+      "libs": []
+    },
+    {
+      "repo": "tests",
+      "libs": [
+        "chrono"
+      ]
+    },
+    {
+      "repo": "thegent",
+      "libs": [
+        "chrono"
+      ]
+    },
+    {
+      "repo": "thegent-clean",
+      "libs": [
+        "chrono"
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-docs",
+      "libs": [
+        "chrono"
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-idea",
+      "libs": [
+        "chrono"
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-parallel",
+      "libs": [
+        "chrono"
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-policy",
+      "libs": [
+        "chrono"
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-ruff",
+      "libs": [
+        "chrono"
+      ]
+    },
+    {
+      "repo": "thegent-dispatch",
+      "libs": []
+    },
+    {
+      "repo": "thegent-fresh",
+      "libs": []
+    },
+    {
+      "repo": "thegent-jsonl",
+      "libs": []
+    },
+    {
+      "repo": "thegent-workspace",
+      "libs": []
+    },
+    {
+      "repo": "tooling",
+      "libs": [
+        "chrono"
+      ]
+    },
+    {
+      "repo": "vendor",
+      "libs": []
+    },
+    {
+      "repo": "vibeproxy",
+      "libs": []
+    },
+    {
+      "repo": "vibeproxy-monitoring-unified",
+      "libs": []
+    },
+    {
+      "repo": "worklogs",
+      "libs": []
+    }
+  ]
+}

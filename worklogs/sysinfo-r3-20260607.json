@@ -1,0 +1,17 @@
+{
+  "generated_at": "2026-06-08T09:23:11Z",
+  "total_repos": 46,
+  "with_sysinfo": [
+    "kmobile"
+  ],
+  "with_psutil": [],
+  "with_heater": [],
+  "by_repo": [
+    {
+      "repo": "kmobile",
+      "libs": [
+        "sysinfo"
+      ]
+    }
+  ]
+}

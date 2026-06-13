@@ -1,0 +1,12 @@
+{
+  "generated_at": "2026-06-08T22:15:00Z",
+  "total_repos": 170,
+  "by_lib": {
+    "vuetify": [],
+    "naive-ui": [],
+    "element-plus": [],
+    "quasar": [],
+    "primevue": [],
+    "ant-design-vue": []
+  }
+}

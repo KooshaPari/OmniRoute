@@ -1,0 +1,31 @@
+{
+  "generated_at": "2026-06-08T20:45:00Z",
+  "terraform_files": [
+    "iac/terraform/providers.tf",
+    "iac/terraform/tailscale.tf",
+    "iac/terraform/aws/lambda-webhook.tf",
+    "iac/terraform/cloudflare/versions.tf",
+    "iac/terraform/cloudflare/workers.tf",
+    "iac/terraform/cloudflare/tunnel.tf",
+    "iac/terraform/gcp/e2-micro.tf",
+    "iac/terraform/oci/ampere-primary.tf",
+    "iac/terraform/oci/ampere-secondary.tf"
+  ],
+  "ansible_files": [
+    "iac/ansible/inventory.yml.example",
+    "iac/ansible/README.md",
+    "iac/ansible/group_vars/oci_primary.yml.example",
+    "iac/ansible/playbooks/site.yml",
+    "iac/ansible/playbooks/common.yml",
+    "iac/ansible/playbooks/oci-baseline.yml",
+    "iac/ansible/playbooks/install-tailscale.yml",
+    "iac/ansible/playbooks/install-cloudflared.yml",
+    "iac/ansible/playbooks/install-caddy.yml",
+    "iac/ansible/playbooks/install-forgejo.yml",
+    "iac/ansible/playbooks/install-gitea-runner.yml",
+    "iac/ansible/playbooks/install-vaultwarden.yml",
+    "iac/ansible/playbooks/install-woodpecker.yml"
+  ],
+  "state": "local_only_no_remote_backend_configured; providers.tf comment states state is snapshotted to Vaultwarden; no .tfstate or backend.tf files present in iac/",
+  "recommended_state_backend": "S3 with DynamoDB lock table (or Terraform Cloud free tier) for collaborative state, with Vaultwarden as the secrets-vault bootstrap. Concrete recommendation: add an aws/ backend block using a dedicated s3://phenotype-infra-tfstate bucket with dynamodb_table=phenotype-tflock in us-east-1; fall back to local-only if the bootstrap AWS account is unavailable."
+}

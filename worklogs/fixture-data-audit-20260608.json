@@ -1,0 +1,16 @@
+{
+  "generated_at": "2026-06-08T18:30:00Z",
+  "total_repos": 172,
+  "with_fake": [
+    "HexaKit",
+    "PhenoDevOps",
+    "Pyron",
+    "QuadSGM",
+    "TestingKit",
+    "pheno"
+  ],
+  "with_factory_boy": [
+    "TestingKit"
+  ],
+  "with_mimesis": []
+}

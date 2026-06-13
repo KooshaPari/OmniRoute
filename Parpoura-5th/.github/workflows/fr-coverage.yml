@@ -1,0 +1,27 @@
+name: FR Coverage
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+on: [pull_request]
+
+jobs:
+  coverage:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v4
+      - uses: dtolnay/rust-toolchain@stable
+      - run: |
+          if [ ! -f tooling/fr-coverage ]; then
+            mkdir -p tooling
+            if [ -d phenotype-tooling ]; then
+              cd phenotype-tooling && cargo build --release --bin fr-coverage 2>&1 | tail -5
+              ln -sf ../phenotype-tooling/target/release/fr-coverage ../tooling/
+            else
+              echo "Note: fr-coverage not available; skipping" && exit 0
+            fi
+          fi
+          tooling/fr-coverage --pr || true

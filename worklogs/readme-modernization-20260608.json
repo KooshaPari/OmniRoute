@@ -1,0 +1,726 @@
+{
+  "generated_at": "2026-06-08T10:29:32Z",
+  "total_repos": 129,
+  "with_readme": [
+    ".pytest_cache",
+    "AgentMCP",
+    "Agentora",
+    "AgilePlus",
+    "Apisync",
+    "AppGen",
+    "AtomsBot",
+    "AuthKit",
+    "Benchora",
+    "BytePort",
+    "Civis",
+    "Conft",
+    "DINOForge-UnityDoorstop",
+    "DataKit",
+    "DevHex",
+    "Dino",
+    "Eidolon",
+    "Eventra",
+    "FocalPoint",
+    "GDK",
+    "HeliosCLI",
+    "HeliosLab",
+    "HexaKit",
+    "Httpora",
+    "KDesktopVirt",
+    "KWatch",
+    "KaskMan",
+    "KlipDot",
+    "KodeVibe",
+    "MCPForge",
+    "McpKit",
+    "Metron",
+    "ObservabilityKit",
+    "OmniRoute",
+    "Paginary",
+    "Parpoura",
+    "PhenoAgent",
+    "PhenoCompose",
+    "PhenoDevOps",
+    "PhenoHandbook",
+    "PhenoKits",
+    "PhenoMCP",
+    "PhenoObservability",
+    "PhenoPlugins",
+    "PhenoProc",
+    "PhenoProject",
+    "PhenoRuntime",
+    "PhenoSpecs",
+    "PhenoVCS",
+    "Pine",
+    "Planify",
+    "PlatformKit",
+    "PlayCua",
+    "PolicyStack",
+    "Pyron",
+    "QuadSGM",
+    "ResilienceKit",
+    "Sidekick",
+    "Tasken",
+    "TestingKit",
+    "Tokn",
+    "Tracely",
+    "Tracera",
+    "agent-devops-setups",
+    "agent-user-status",
+    "agentapi-plusplus",
+    "agileplus-landing",
+    "agslag-docs",
+    "argis-extensions",
+    "bare-cua",
+    "byteport-landing",
+    "chatta",
+    "cheap-llm-mcp",
+    "cliproxyapi-plusplus",
+    "crates",
+    "dinoforge-packs",
+    "dispatch-mcp",
+    "eyetracker",
+    "foqos-private",
+    "helios-router",
+    "heliosApp",
+    "heliosBench",
+    "helioscope",
+    "hwLedger",
+    "kmobile",
+    "kwality",
+    "localbase3",
+    "melosviz",
+    "nanovms",
+    "netweave-final2",
+    "pheno",
+    "phenoAI",
+    "phenoData",
+    "phenoDesign",
+    "phenoForge",
+    "phenoResearchEngine",
+    "phenoShared",
+    "phenoUtils",
+    "phenoXdd",
+    "phenodocs",
+    "phenodocs-scorecard-remediation",
+    "phenokits-landing",
+    "phenotype-auth-ts",
+    "phenotype-bus",
+    "phenotype-dep-guard",
+    "phenotype-hub",
+    "phenotype-infra",
+    "phenotype-journeys",
+    "phenotype-omlx",
+    "phenotype-ops-mcp",
+    "phenotype-org-audits",
+    "phenotype-postfx",
+    "phenotype-registry",
+    "phenotype-shared",
+    "phenotype-terrain",
+    "phenotype-tooling",
+    "phenotype-voxel",
+    "phenotype-water",
+    "portage",
+    "rich-cli-kit",
+    "thegent",
+    "thegent-clean-wt-docs",
+    "thegent-clean-wt-idea",
+    "thegent-clean-wt-parallel",
+    "thegent-clean-wt-policy",
+    "thegent-clean-wt-ruff",
+    "thegent-dispatch",
+    "vibeproxy",
+    "vibeproxy-monitoring-unified"
+  ],
+  "with_badges": [
+    "Agentora",
+    "AtomsBot",
+    "AuthKit",
+    "BytePort",
+    "Civis",
+    "DINOForge-UnityDoorstop",
+    "DataKit",
+    "DevHex",
+    "Dino",
+    "Eidolon",
+    "FocalPoint",
+    "GDK",
+    "HeliosCLI",
+    "HeliosLab",
+    "Httpora",
+    "KDesktopVirt",
+    "KlipDot",
+    "MCPForge",
+    "McpKit",
+    "Metron",
+    "ObservabilityKit",
+    "OmniRoute",
+    "Paginary",
+    "PhenoAgent",
+    "PhenoCompose",
+    "PhenoHandbook",
+    "PhenoMCP",
+    "PhenoObservability",
+    "PhenoPlugins",
+    "PhenoProc",
+    "PhenoProject",
+    "PhenoRuntime",
+    "PhenoSpecs",
+    "PhenoVCS",
+    "Planify",
+    "PlayCua",
+    "Sidekick",
+    "Tasken",
+    "Tokn",
+    "Tracera",
+    "agent-devops-setups",
+    "bare-cua",
+    "byteport-landing",
+    "chatta",
+    "cheap-llm-mcp",
+    "heliosApp",
+    "helioscope",
+    "kmobile",
+    "phenoAI",
+    "phenoData",
+    "phenoShared",
+    "phenoUtils",
+    "phenoXdd",
+    "phenodocs",
+    "phenodocs-scorecard-remediation",
+    "phenokits-landing",
+    "phenotype-bus",
+    "phenotype-dep-guard",
+    "phenotype-infra",
+    "phenotype-journeys",
+    "phenotype-omlx",
+    "phenotype-tooling",
+    "phenotype-voxel",
+    "portage",
+    "thegent",
+    "thegent-clean-wt-docs",
+    "thegent-clean-wt-idea",
+    "thegent-clean-wt-parallel",
+    "thegent-clean-wt-policy",
+    "thegent-clean-wt-ruff",
+    "vibeproxy"
+  ],
+  "by_repo": [
+    {
+      "repo": ".pytest_cache",
+      "badge_count": 0
+    },
+    {
+      "repo": "AgentMCP",
+      "badge_count": 0
+    },
+    {
+      "repo": "Agentora",
+      "badge_count": 5
+    },
+    {
+      "repo": "AgilePlus",
+      "badge_count": 0
+    },
+    {
+      "repo": "Apisync",
+      "badge_count": 0
+    },
+    {
+      "repo": "AppGen",
+      "badge_count": 0
+    },
+    {
+      "repo": "AtomsBot",
+      "badge_count": 3
+    },
+    {
+      "repo": "AuthKit",
+      "badge_count": 5
+    },
+    {
+      "repo": "Benchora",
+      "badge_count": 0
+    },
+    {
+      "repo": "BytePort",
+      "badge_count": 5
+    },
+    {
+      "repo": "Civis",
+      "badge_count": 5
+    },
+    {
+      "repo": "Conft",
+      "badge_count": 0
+    },
+    {
+      "repo": "DINOForge-UnityDoorstop",
+      "badge_count": 3
+    },
+    {
+      "repo": "DataKit",
+      "badge_count": 5
+    },
+    {
+      "repo": "DevHex",
+      "badge_count": 8
+    },
+    {
+      "repo": "Dino",
+      "badge_count": 9
+    },
+    {
+      "repo": "Eidolon",
+      "badge_count": 3
+    },
+    {
+      "repo": "Eventra",
+      "badge_count": 0
+    },
+    {
+      "repo": "FocalPoint",
+      "badge_count": 5
+    },
+    {
+      "repo": "GDK",
+      "badge_count": 3
+    },
+    {
+      "repo": "HeliosCLI",
+      "badge_count": 5
+    },
+    {
+      "repo": "HeliosLab",
+      "badge_count": 2
+    },
+    {
+      "repo": "HexaKit",
+      "badge_count": 0
+    },
+    {
+      "repo": "Httpora",
+      "badge_count": 3
+    },
+    {
+      "repo": "KDesktopVirt",
+      "badge_count": 5
+    },
+    {
+      "repo": "KWatch",
+      "badge_count": 0
+    },
+    {
+      "repo": "KaskMan",
+      "badge_count": 0
+    },
+    {
+      "repo": "KlipDot",
+      "badge_count": 1
+    },
+    {
+      "repo": "KodeVibe",
+      "badge_count": 0
+    },
+    {
+      "repo": "MCPForge",
+      "badge_count": 2
+    },
+    {
+      "repo": "McpKit",
+      "badge_count": 5
+    },
+    {
+      "repo": "Metron",
+      "badge_count": 3
+    },
+    {
+      "repo": "ObservabilityKit",
+      "badge_count": 5
+    },
+    {
+      "repo": "OmniRoute",
+      "badge_count": 14
+    },
+    {
+      "repo": "Paginary",
+      "badge_count": 3
+    },
+    {
+      "repo": "Parpoura",
+      "badge_count": 0
+    },
+    {
+      "repo": "PhenoAgent",
+      "badge_count": 3
+    },
+    {
+      "repo": "PhenoCompose",
+      "badge_count": 8
+    },
+    {
+      "repo": "PhenoDevOps",
+      "badge_count": 0
+    },
+    {
+      "repo": "PhenoHandbook",
+      "badge_count": 3
+    },
+    {
+      "repo": "PhenoKits",
+      "badge_count": 0
+    },
+    {
+      "repo": "PhenoMCP",
+      "badge_count": 8
+    },
+    {
+      "repo": "PhenoObservability",
+      "badge_count": 3
+    },
+    {
+      "repo": "PhenoPlugins",
+      "badge_count": 8
+    },
+    {
+      "repo": "PhenoProc",
+      "badge_count": 3
+    },
+    {
+      "repo": "PhenoProject",
+      "badge_count": 5
+    },
+    {
+      "repo": "PhenoRuntime",
+      "badge_count": 3
+    },
+    {
+      "repo": "PhenoSpecs",
+      "badge_count": 3
+    },
+    {
+      "repo": "PhenoVCS",
+      "badge_count": 5
+    },
+    {
+      "repo": "Pine",
+      "badge_count": 0
+    },
+    {
+      "repo": "Planify",
+      "badge_count": 5
+    },
+    {
+      "repo": "PlatformKit",
+      "badge_count": 0
+    },
+    {
+      "repo": "PlayCua",
+      "badge_count": 5
+    },
+    {
+      "repo": "PolicyStack",
+      "badge_count": 0
+    },
+    {
+      "repo": "Pyron",
+      "badge_count": 0
+    },
+    {
+      "repo": "QuadSGM",
+      "badge_count": 0
+    },
+    {
+      "repo": "ResilienceKit",
+      "badge_count": 0
+    },
+    {
+      "repo": "Sidekick",
+      "badge_count": 3
+    },
+    {
+      "repo": "Tasken",
+      "badge_count": 3
+    },
+    {
+      "repo": "TestingKit",
+      "badge_count": 0
+    },
+    {
+      "repo": "Tokn",
+      "badge_count": 3
+    },
+    {
+      "repo": "Tracely",
+      "badge_count": 0
+    },
+    {
+      "repo": "Tracera",
+      "badge_count": 5
+    },
+    {
+      "repo": "agent-devops-setups",
+      "badge_count": 8
+    },
+    {
+      "repo": "agent-user-status",
+      "badge_count": 0
+    },
+    {
+      "repo": "agentapi-plusplus",
+      "badge_count": 0
+    },
+    {
+      "repo": "agileplus-landing",
+      "badge_count": 0
+    },
+    {
+      "repo": "agslag-docs",
+      "badge_count": 0
+    },
+    {
+      "repo": "argis-extensions",
+      "badge_count": 0
+    },
+    {
+      "repo": "bare-cua",
+      "badge_count": 5
+    },
+    {
+      "repo": "byteport-landing",
+      "badge_count": 4
+    },
+    {
+      "repo": "chatta",
+      "badge_count": 3
+    },
+    {
+      "repo": "cheap-llm-mcp",
+      "badge_count": 4
+    },
+    {
+      "repo": "cliproxyapi-plusplus",
+      "badge_count": 0
+    },
+    {
+      "repo": "crates",
+      "badge_count": 0
+    },
+    {
+      "repo": "dinoforge-packs",
+      "badge_count": 0
+    },
+    {
+      "repo": "dispatch-mcp",
+      "badge_count": 0
+    },
+    {
+      "repo": "eyetracker",
+      "badge_count": 0
+    },
+    {
+      "repo": "foqos-private",
+      "badge_count": 0
+    },
+    {
+      "repo": "helios-router",
+      "badge_count": 0
+    },
+    {
+      "repo": "heliosApp",
+      "badge_count": 5
+    },
+    {
+      "repo": "heliosBench",
+      "badge_count": 0
+    },
+    {
+      "repo": "helioscope",
+      "badge_count": 5
+    },
+    {
+      "repo": "hwLedger",
+      "badge_count": 0
+    },
+    {
+      "repo": "kmobile",
+      "badge_count": 3
+    },
+    {
+      "repo": "kwality",
+      "badge_count": 0
+    },
+    {
+      "repo": "localbase3",
+      "badge_count": 0
+    },
+    {
+      "repo": "melosviz",
+      "badge_count": 0
+    },
+    {
+      "repo": "nanovms",
+      "badge_count": 0
+    },
+    {
+      "repo": "netweave-final2",
+      "badge_count": 0
+    },
+    {
+      "repo": "pheno",
+      "badge_count": 0
+    },
+    {
+      "repo": "phenoAI",
+      "badge_count": 3
+    },
+    {
+      "repo": "phenoData",
+      "badge_count": 4
+    },
+    {
+      "repo": "phenoDesign",
+      "badge_count": 0
+    },
+    {
+      "repo": "phenoForge",
+      "badge_count": 0
+    },
+    {
+      "repo": "phenoResearchEngine",
+      "badge_count": 0
+    },
+    {
+      "repo": "phenoShared",
+      "badge_count": 5
+    },
+    {
+      "repo": "phenoUtils",
+      "badge_count": 3
+    },
+    {
+      "repo": "phenoXdd",
+      "badge_count": 3
+    },
+    {
+      "repo": "phenodocs",
+      "badge_count": 6
+    },
+    {
+      "repo": "phenodocs-scorecard-remediation",
+      "badge_count": 6
+    },
+    {
+      "repo": "phenokits-landing",
+      "badge_count": 4
+    },
+    {
+      "repo": "phenotype-auth-ts",
+      "badge_count": 0
+    },
+    {
+      "repo": "phenotype-bus",
+      "badge_count": 4
+    },
+    {
+      "repo": "phenotype-dep-guard",
+      "badge_count": 8
+    },
+    {
+      "repo": "phenotype-hub",
+      "badge_count": 0
+    },
+    {
+      "repo": "phenotype-infra",
+      "badge_count": 5
+    },
+    {
+      "repo": "phenotype-journeys",
+      "badge_count": 3
+    },
+    {
+      "repo": "phenotype-omlx",
+      "badge_count": 3
+    },
+    {
+      "repo": "phenotype-ops-mcp",
+      "badge_count": 0
+    },
+    {
+      "repo": "phenotype-org-audits",
+      "badge_count": 0
+    },
+    {
+      "repo": "phenotype-postfx",
+      "badge_count": 0
+    },
+    {
+      "repo": "phenotype-registry",
+      "badge_count": 0
+    },
+    {
+      "repo": "phenotype-shared",
+      "badge_count": 0
+    },
+    {
+      "repo": "phenotype-terrain",
+      "badge_count": 0
+    },
+    {
+      "repo": "phenotype-tooling",
+      "badge_count": 5
+    },
+    {
+      "repo": "phenotype-voxel",
+      "badge_count": 1
+    },
+    {
+      "repo": "phenotype-water",
+      "badge_count": 0
+    },
+    {
+      "repo": "portage",
+      "badge_count": 2
+    },
+    {
+      "repo": "rich-cli-kit",
+      "badge_count": 0
+    },
+    {
+      "repo": "thegent",
+      "badge_count": 4
+    },
+    {
+      "repo": "thegent-clean-wt-docs",
+      "badge_count": 4
+    },
+    {
+      "repo": "thegent-clean-wt-idea",
+      "badge_count": 4
+    },
+    {
+      "repo": "thegent-clean-wt-parallel",
+      "badge_count": 4
+    },
+    {
+      "repo": "thegent-clean-wt-policy",
+      "badge_count": 4
+    },
+    {
+      "repo": "thegent-clean-wt-ruff",
+      "badge_count": 4
+    },
+    {
+      "repo": "thegent-dispatch",
+      "badge_count": 0
+    },
+    {
+      "repo": "vibeproxy",
+      "badge_count": 4
+    },
+    {
+      "repo": "vibeproxy-monitoring-unified",
+      "badge_count": 0
+    }
+  ]
+}

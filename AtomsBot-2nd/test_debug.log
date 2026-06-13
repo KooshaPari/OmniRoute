@@ -1,0 +1,18 @@
+ DEPRECATED  'basic' reporter is deprecated and will be removed in Vitest v3.
+Remove 'basic' from 'reporters' option. To match 'basic' reporter 100%, use configuration:
+{
+  "test": {
+    "reporters": [
+      [
+        "default",
+        {
+          "summary": false
+        }
+      ]
+    ]
+  }
+}
+[GITHUB WEBHOOK] Handling issues event with action: closed
+[GITHUB WEBHOOK] handleIssueEvent called with action: closed
+[GITHUB WEBHOOK] Processing closed action
+[GITHUB WEBHOOK] Found thread: undefined, store: true

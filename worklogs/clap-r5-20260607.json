@@ -1,0 +1,59 @@
+{
+  "generated_at": "2026-06-08T09:24:05Z",
+  "total_repos": 46,
+  "with_clap": [
+    "GDK",
+    "KDesktopVirt",
+    "KlipDot",
+    "Tasken",
+    "kmobile",
+    "phenoForge",
+    "thegent-dispatch"
+  ],
+  "with_structopt": [],
+  "with_argh": [],
+  "by_repo": [
+    {
+      "repo": "GDK",
+      "libs": [
+        "clap"
+      ]
+    },
+    {
+      "repo": "KDesktopVirt",
+      "libs": [
+        "clap"
+      ]
+    },
+    {
+      "repo": "KlipDot",
+      "libs": [
+        "clap"
+      ]
+    },
+    {
+      "repo": "Tasken",
+      "libs": [
+        "clap"
+      ]
+    },
+    {
+      "repo": "kmobile",
+      "libs": [
+        "clap"
+      ]
+    },
+    {
+      "repo": "phenoForge",
+      "libs": [
+        "clap"
+      ]
+    },
+    {
+      "repo": "thegent-dispatch",
+      "libs": [
+        "clap"
+      ]
+    }
+  ]
+}

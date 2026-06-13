@@ -1,0 +1,250 @@
+{
+  "generated_at": "2026-06-08T22:15:00Z",
+  "total_repos": 170,
+  "candidates": [
+    {
+      "repo": "Civis",
+      "paths": [
+        "docs/.vitepress/dist/assets/architecture_WORKSPACE_LAYOUT.md.gISCApOp.js",
+        "docs/.vitepress/dist/assets/architecture_WORKSPACE_LAYOUT.md.gISCApOp.lean.js",
+        "docs/.vitepress/dist/assets/architecture_fragemented_README.md.Q4Y6ICOd.js",
+        "docs/.vitepress/dist/assets/architecture_fragemented_README.md.Q4Y6ICOd.lean.js",
+        "docs/.vitepress/dist/assets/architecture_fragemented_WORKSPACE_LAYOUT.md.C6CmgHxX.js",
+        "docs/.vitepress/dist/assets/architecture_fragemented_WORKSPACE_LAYOUT.md.C6CmgHxX.lean.js",
+        "docs/.vitepress/dist/assets/architecture_fragemented_explanation.md.CBGgTzWU.js",
+        "docs/.vitepress/dist/assets/architecture_fragemented_explanation.md.CBGgTzWU.lean.js",
+        "docs/.vitepress/dist/assets/architecture_fragemented_index.md.Dt2VrqSV.js",
+        "docs/.vitepress/dist/assets/architecture_fragemented_index.md.Dt2VrqSV.lean.js",
+        "docs/.vitepress/dist/assets/architecture_fragemented_merged.md.N14N616q.js",
+        "docs/.vitepress/dist/assets/architecture_fragemented_merged.md.N14N616q.lean.js"
+      ]
+    },
+    {
+      "repo": "Dino",
+      "paths": [
+        "docs/concepts/architecture.md"
+      ]
+    },
+    {
+      "repo": "HexaKit",
+      "paths": [
+        "docs/architecture.md",
+        "docs/reference/SSOT_ARCHITECTURE_INDEX.md",
+        "docs/reference/SSOT_IMPLEMENTATION_ROADMAP.md",
+        "docs/reference/SSOT_PHASE1_AGENT_WORKFLOW.md",
+        "docs/reference/SSOT_PHASE1_DAY1_COMPLETION.md",
+        "docs/reference/SSOT_PHASE1_DAY2_3_COMPLETION.md",
+        "docs/reference/SSOT_PHASE1_EXECUTION_SUMMARY.md",
+        "docs/reference/SSOT_PHASE1_EXECUTIVE_SUMMARY.md",
+        "docs/reference/SSOT_PHASE1_IMPLEMENTATION_PLAN.md",
+        "docs/reference/SSOT_PHASE1_MASTER_INDEX.md",
+        "docs/reference/SSOT_PHASE1_WEEK1_OVERVIEW.md",
+        "docs/reference/SSOT_PHASE1_WORK_PACKAGES.md",
+        "docs/reference/SSOT_QUICK_REFERENCE.md",
+        "docs/reference/SSOT_VISUAL_GUIDE.md"
+      ]
+    },
+    {
+      "repo": "PhenoCompose",
+      "paths": [
+        "docs/reference/architecture.md"
+      ]
+    },
+    {
+      "repo": "PhenoDevOps",
+      "paths": [
+        "docs/architecture.md",
+        "docs/reference/SSOT_ARCHITECTURE_INDEX.md",
+        "docs/reference/SSOT_IMPLEMENTATION_ROADMAP.md",
+        "docs/reference/SSOT_PHASE1_AGENT_WORKFLOW.md",
+        "docs/reference/SSOT_PHASE1_DAY1_COMPLETION.md",
+        "docs/reference/SSOT_PHASE1_DAY2_3_COMPLETION.md",
+        "docs/reference/SSOT_PHASE1_EXECUTION_SUMMARY.md",
+        "docs/reference/SSOT_PHASE1_EXECUTIVE_SUMMARY.md",
+        "docs/reference/SSOT_PHASE1_IMPLEMENTATION_PLAN.md",
+        "docs/reference/SSOT_PHASE1_MASTER_INDEX.md",
+        "docs/reference/SSOT_PHASE1_WEEK1_OVERVIEW.md",
+        "docs/reference/SSOT_PHASE1_WORK_PACKAGES.md",
+        "docs/reference/SSOT_QUICK_REFERENCE.md",
+        "docs/reference/SSOT_VISUAL_GUIDE.md"
+      ]
+    },
+    {
+      "repo": "PhenoHandbook",
+      "paths": [
+        "docs/.vitepress/dist/guide/architecture.html",
+        "docs/guide/architecture.md"
+      ]
+    },
+    {
+      "repo": "Pyron",
+      "paths": [
+        "docs/architecture.md",
+        "docs/reference/SSOT_ARCHITECTURE_INDEX.md",
+        "docs/reference/SSOT_IMPLEMENTATION_ROADMAP.md",
+        "docs/reference/SSOT_PHASE1_AGENT_WORKFLOW.md",
+        "docs/reference/SSOT_PHASE1_DAY1_COMPLETION.md",
+        "docs/reference/SSOT_PHASE1_DAY2_3_COMPLETION.md",
+        "docs/reference/SSOT_PHASE1_EXECUTION_SUMMARY.md",
+        "docs/reference/SSOT_PHASE1_EXECUTIVE_SUMMARY.md",
+        "docs/reference/SSOT_PHASE1_IMPLEMENTATION_PLAN.md",
+        "docs/reference/SSOT_PHASE1_MASTER_INDEX.md",
+        "docs/reference/SSOT_PHASE1_WEEK1_OVERVIEW.md",
+        "docs/reference/SSOT_PHASE1_WORK_PACKAGES.md",
+        "docs/reference/SSOT_QUICK_REFERENCE.md",
+        "docs/reference/SSOT_VISUAL_GUIDE.md"
+      ]
+    },
+    {
+      "repo": "Tracera",
+      "paths": [
+        "docs/docsets/developer/internal/architecture.md",
+        "docs/reference/architecture.md"
+      ]
+    },
+    {
+      "repo": "agent-devops-setups",
+      "paths": [
+        "docs/architecture.md"
+      ]
+    },
+    {
+      "repo": "cliproxyapi-plusplus",
+      "paths": [
+        "docs/docsets/developer/internal/architecture.md"
+      ]
+    },
+    {
+      "repo": "nanovms",
+      "paths": [
+        "docs/reference/architecture.md"
+      ]
+    },
+    {
+      "repo": "pheno",
+      "paths": [
+        "docs/.vitepress/dist/architecture.html",
+        "docs/.vitepress/dist/assets/architecture.md.DBJRf-3W.js",
+        "docs/.vitepress/dist/assets/architecture.md.DBJRf-3W.lean.js",
+        "docs/.vitepress/dist/assets/architecture_domain-model.md.BRIj-oMg.js",
+        "docs/.vitepress/dist/assets/architecture_domain-model.md.BRIj-oMg.lean.js",
+        "docs/.vitepress/dist/assets/architecture_overview.md.L1B5udH0.js",
+        "docs/.vitepress/dist/assets/architecture_overview.md.L1B5udH0.lean.js",
+        "docs/.vitepress/dist/assets/architecture_ports.md.CT3C-1NO.js",
+        "docs/.vitepress/dist/assets/architecture_ports.md.CT3C-1NO.lean.js",
+        "docs/.vitepress/dist/assets/chunks/architectureDiagram-2XIMDMQ5.Bhl9fhY0.js",
+        "docs/architecture.md",
+        "docs/reference/SSOT_ARCHITECTURE_INDEX.md",
+        "docs/reference/SSOT_IMPLEMENTATION_ROADMAP.md",
+        "docs/reference/SSOT_PHASE1_AGENT_WORKFLOW.md",
+        "docs/reference/SSOT_PHASE1_DAY1_COMPLETION.md",
+        "docs/reference/SSOT_PHASE1_DAY2_3_COMPLETION.md",
+        "docs/reference/SSOT_PHASE1_EXECUTION_SUMMARY.md",
+        "docs/reference/SSOT_PHASE1_EXECUTIVE_SUMMARY.md",
+        "docs/reference/SSOT_PHASE1_IMPLEMENTATION_PLAN.md",
+        "docs/reference/SSOT_PHASE1_MASTER_INDEX.md",
+        "docs/reference/SSOT_PHASE1_WEEK1_OVERVIEW.md",
+        "docs/reference/SSOT_PHASE1_WORK_PACKAGES.md",
+        "docs/reference/SSOT_QUICK_REFERENCE.md",
+        "docs/reference/SSOT_VISUAL_GUIDE.md"
+      ]
+    },
+    {
+      "repo": "phenodocs",
+      "paths": [
+        "docs/guide/architecture.md"
+      ]
+    },
+    {
+      "repo": "phenodocs-scorecard-remediation",
+      "paths": [
+        "docs/guide/architecture.md"
+      ]
+    },
+    {
+      "repo": "thegent",
+      "paths": [
+        "docs/.vitepress/dist/docsets/developer/internal/architecture.html",
+        "docs/.vitepress/dist/guide/architecture.html",
+        "docs/docsets/developer/internal/architecture.md",
+        "docs/guides/architecture-enforcement.md",
+        "docs/public/guide/architecture.html",
+        "docs/reference/api/architecture_generator_api.md",
+        "docs/reference/api/ts-stubs/architecture_generator-examples.ts",
+        "docs/reference/api/ts-stubs/architecture_generator.d.ts",
+        "docs/references/fragemented/glossary.md",
+        "docs/references/glossary.md",
+        "docs/site/guide/architecture.md"
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-docs",
+      "paths": [
+        "docs/docsets/developer/internal/architecture.md",
+        "docs/guides/architecture-enforcement.md",
+        "docs/public/guide/architecture.html",
+        "docs/reference/api/architecture_generator_api.md",
+        "docs/reference/api/ts-stubs/architecture_generator-examples.ts",
+        "docs/reference/api/ts-stubs/architecture_generator.d.ts",
+        "docs/references/fragemented/glossary.md",
+        "docs/references/glossary.md"
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-idea",
+      "paths": [
+        "docs/docsets/developer/internal/architecture.md",
+        "docs/guides/architecture-enforcement.md",
+        "docs/public/guide/architecture.html",
+        "docs/reference/api/architecture_generator_api.md",
+        "docs/reference/api/ts-stubs/architecture_generator-examples.ts",
+        "docs/reference/api/ts-stubs/architecture_generator.d.ts",
+        "docs/references/fragemented/glossary.md",
+        "docs/references/glossary.md",
+        "docs/site/guide/architecture.md"
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-parallel",
+      "paths": [
+        "docs/docsets/developer/internal/architecture.md",
+        "docs/guides/architecture-enforcement.md",
+        "docs/public/guide/architecture.html",
+        "docs/reference/api/architecture_generator_api.md",
+        "docs/reference/api/ts-stubs/architecture_generator-examples.ts",
+        "docs/reference/api/ts-stubs/architecture_generator.d.ts",
+        "docs/references/fragemented/glossary.md",
+        "docs/references/glossary.md",
+        "docs/site/guide/architecture.md"
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-policy",
+      "paths": [
+        "docs/docsets/developer/internal/architecture.md",
+        "docs/guides/architecture-enforcement.md",
+        "docs/public/guide/architecture.html",
+        "docs/reference/api/architecture_generator_api.md",
+        "docs/reference/api/ts-stubs/architecture_generator-examples.ts",
+        "docs/reference/api/ts-stubs/architecture_generator.d.ts",
+        "docs/references/fragemented/glossary.md",
+        "docs/references/glossary.md",
+        "docs/site/guide/architecture.md"
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-ruff",
+      "paths": [
+        "docs/docsets/developer/internal/architecture.md",
+        "docs/guides/architecture-enforcement.md",
+        "docs/public/guide/architecture.html",
+        "docs/reference/api/architecture_generator_api.md",
+        "docs/reference/api/ts-stubs/architecture_generator-examples.ts",
+        "docs/reference/api/ts-stubs/architecture_generator.d.ts",
+        "docs/references/fragemented/glossary.md",
+        "docs/references/glossary.md",
+        "docs/site/guide/architecture.md"
+      ]
+    }
+  ]
+}

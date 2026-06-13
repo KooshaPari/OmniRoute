@@ -1,0 +1,58 @@
+{
+  "generated_at": "2026-06-08T22:15:00Z",
+  "total_repos": 97,
+  "by_lib": {
+    "react_hook_form": [
+      "Planify",
+      "Tracera",
+      "localbase3"
+    ],
+    "formik": [],
+    "zod": [
+      "BytePort",
+      "Conft",
+      "HeliosCLI",
+      "OmniRoute",
+      "OmniRoute-latest",
+      "PhenoKits",
+      "PhenoProc",
+      "Planify",
+      "QuadSGM",
+      "Tracera",
+      "forgecode",
+      "helioscope"
+    ],
+    "yup": [],
+    "joi": [],
+    "pydantic": [
+      "AuthKit",
+      "Civis",
+      "Dino",
+      "HexaKit",
+      "Parpoura",
+      "PhenoDevOps",
+      "PhenoKits",
+      "PhenoObservability",
+      "PhenoProc",
+      "Pyron",
+      "QuadSGM",
+      "ResilienceKit",
+      "Sidekick",
+      "TestingKit",
+      "Tracera",
+      "argis-extensions",
+      "cheap-llm-mcp",
+      "pheno",
+      "phenotype-dep-guard",
+      "phenotype-py-extras",
+      "portage",
+      "thegent",
+      "thegent-clean-wt-idea",
+      "thegent-clean-wt-parallel",
+      "thegent-clean-wt-policy",
+      "thegent-clean-wt-ruff"
+    ],
+    "marshmallow": [],
+    "cerberus": []
+  }
+}

@@ -1,0 +1,1951 @@
+{
+  "generated_at": "2026-06-08T11:31:26Z",
+  "total_repos": 128,
+  "with_required_checks": [
+    {
+      "repo": "OmniRoute",
+      "files": [
+        ".github/workflows/lock-released-branch.yml",
+        ".github/workflows/build-fork.yml",
+        ".github/workflows/claude.yml",
+        ".github/workflows/ci.yml",
+        ".github/workflows/opencode-plugin-ci.yml"
+      ]
+    }
+  ],
+  "with_strict_required": [],
+  "with_main_branch_filter": [
+    {
+      "repo": "Agentora",
+      "files": [
+        ".github/workflows/cargo-deny.yml",
+        ".github/workflows/trufflehog.yml",
+        ".github/workflows/sonarcloud.yml",
+        ".github/workflows/pages-deploy.yml",
+        ".github/workflows/ci.yml",
+        ".github/workflows/scorecard.yml"
+      ]
+    },
+    {
+      "repo": "AgilePlus",
+      "files": [
+        ".github/workflows/doc-links.yml",
+        ".github/workflows/snyk-scan.yml",
+        ".github/workflows/sonarcloud.yml",
+        ".github/workflows/security-guard.yml",
+        ".github/workflows/cargo-machete.yml",
+        ".github/workflows/fr-coverage.yml",
+        ".github/workflows/sast-quick.yml",
+        ".github/workflows/evidence-capture.yml",
+        ".github/workflows/deploy.yml",
+        ".github/workflows/rust-security.yml",
+        ".github/workflows/sync-canary.yml",
+        ".github/workflows/cargo-audit.yml",
+        ".github/workflows/ci.yml"
+      ]
+    },
+    {
+      "repo": "Apisync",
+      "files": [
+        ".github/workflows/release.yml",
+        ".github/workflows/quality-gate.yml",
+        ".github/workflows/cargo-deny.yml",
+        ".github/workflows/trufflehog.yml",
+        ".github/workflows/security-deep-scan.yml",
+        ".github/workflows/security-guard.yml",
+        ".github/workflows/sast.yml",
+        ".github/workflows/pages-deploy.yml",
+        ".github/workflows/ci.yml",
+        ".github/workflows/scorecard.yml"
+      ]
+    },
+    {
+      "repo": "AppGen",
+      "files": [
+        ".github/workflows/node.js.yml",
+        ".github/workflows/quality-gate.yml",
+        ".github/workflows/trufflehog.yml",
+        ".github/workflows/doc-links.yml",
+        ".github/workflows/legacy-tooling-gate.yml",
+        ".github/workflows/fr-coverage.yml",
+        ".github/workflows/npm-publish-github-packages.yml"
+      ]
+    },
+    {
+      "repo": "AtomsBot",
+      "files": [
+        ".github/workflows/trufflehog.yml",
+        ".github/workflows/doc-links.yml",
+        ".github/workflows/legacy-tooling-gate.yml",
+        ".github/workflows/fr-coverage.yml",
+        ".github/workflows/release-drafter.yml",
+        ".github/workflows/build-and-release.yml"
+      ]
+    },
+    {
+      "repo": "AuthKit",
+      "files": [
+        ".github/workflows/cargo-deny.yml",
+        ".github/workflows/trufflehog.yml",
+        ".github/workflows/doc-links.yml",
+        ".github/workflows/codeql.yml",
+        ".github/workflows/fr-coverage.yml",
+        ".github/workflows/release-drafter.yml",
+        ".github/workflows/ci.yml",
+        ".github/workflows/scorecard.yml"
+      ]
+    },
+    {
+      "repo": "Benchora",
+      "files": [
+        ".github/workflows/cargo-deny.yml",
+        ".github/workflows/trufflehog.yml",
+        ".github/workflows/codeql.yml",
+        ".github/workflows/secrets-scan.yml",
+        ".github/workflows/ci.yml",
+        ".github/workflows/scorecard.yml"
+      ]
+    },
+    {
+      "repo": "BytePort",
+      "files": [
+        ".github/workflows/codeql.yml",
+        ".github/workflows/cargo-machete.yml",
+        ".github/workflows/fr-coverage.yml",
+        ".github/workflows/release-drafter.yml",
+        ".github/workflows/secrets-scan.yml",
+        ".github/workflows/cargo-audit.yml",
+        ".github/workflows/ci.yml",
+        ".github/workflows/cargo-semver-checks.yml",
+        ".github/workflows/scorecard.yml"
+      ]
+    },
+    {
+      "repo": "Civis",
+      "files": [
+        ".github/workflows/policy-gate.yml",
+        ".github/workflows/release.yml",
+        ".github/workflows/quality-gate.yml",
+        ".github/workflows/cargo-deny.yml",
+        ".github/workflows/self-merge-gate.yml",
+        ".github/workflows/trufflehog.yml",
+        ".github/workflows/tag-automation.yml",
+        ".github/workflows/alert-sync-issues.yml",
+        ".github/workflows/pages.yml",
+        ".github/workflows/doc-links.yml",
+        ".github/workflows/legacy-tooling-gate.yml",
+        ".github/workflows/pr-governance-gate.yml",
+        ".github/workflows/codeql.yml",
+        ".github/workflows/journey-gate.yml",
+        ".github/workflows/security-guard.yml",
+        ".github/workflows/cargo-machete.yml",
+        ".github/workflows/fr-coverage.yml",
+        ".github/workflows/quality.yml",
+        ".github/workflows/docs-site.yml",
+        ".github/workflows/release-drafter.yml",
+        ".github/workflows/unreal-build.yml",
+        ".github/workflows/security-guard-hook-audit.yml",
+        ".github/workflows/pages-deploy.yml",
+        ".github/workflows/cargo-audit.yml",
+        ".github/workflows/cargo-semver-checks.yml",
+        ".github/workflows/codeql-rust.yml",
+        ".github/workflows/scorecard.yml"
+      ]
+    },
+    {
+      "repo": "Conft",
+      "files": [
+        ".github/workflows/trufflehog.yml",
+        ".github/workflows/alert-sync-issues.yml",
+        ".github/workflows/codeql.yml",
+        ".github/workflows/sast.yml",
+        ".github/workflows/security-guard-hook-audit.yml",
+        ".github/workflows/ci.yml",
+        ".github/workflows/scorecard.yml"
+      ]
+    },
+    {
+      "repo": "DataKit",
+      "files": [
+        ".github/workflows/cargo-deny.yml",
+        ".github/workflows/trufflehog.yml",
+        ".github/workflows/doc-links.yml",
+        ".github/workflows/codeql.yml",
+        ".github/workflows/fr-coverage.yml",
+        ".github/workflows/secrets-scan.yml",
+        ".github/workflows/ci.yml",
+        ".github/workflows/scorecard.yml"
+      ]
+    },
+    {
+      "repo": "DevHex",
+      "files": [
+        ".github/workflows/codeql.yml",
+        ".github/workflows/fr-coverage.yml",
+        ".github/workflows/secrets-scan.yml",
+        ".github/workflows/scorecard.yml"
+      ]
+    },
+    {
+      "repo": "Dino",
+      "files": [
+        ".github/workflows/unbounded-constraints.yml",
+        ".github/workflows/policy-gate.yml",
+        ".github/workflows/mcp-pytest.yml",
+        ".github/workflows/pack-screenshots.yml",
+        ".github/workflows/validate-packs.yml",
+        ".github/workflows/test-isolation.yml",
+        ".github/workflows/release.yml",
+        ".github/workflows/mutation-test.yml",
+        ".github/workflows/agent-merge-on-bot-approve.yml",
+        ".github/workflows/orphan-process-start.yml",
+        ".github/workflows/trufflehog.yml",
+        ".github/workflows/asset-pipeline.yml",
+        ".github/workflows/lint.yml",
+        ".github/workflows/game-automation.yml",
+        ".github/workflows/ci-status-badges.yml",
+        ".github/workflows/codeql.yml",
+        ".github/workflows/configureawait.yml",
+        ".github/workflows/journey-quality-gates.yml",
+        ".github/workflows/build-gate.yml",
+        ".github/workflows/proof-gate.yml",
+        ".github/workflows/security-guard.yml",
+        ".github/workflows/benchmark-regression-gate.yml",
+        ".github/workflows/tcs-sync-continuation.yml",
+        ".github/workflows/schema-drift.yml",
+        ".github/workflows/direct-datetime.yml",
+        ".github/workflows/deploy.yml",
+        ".github/workflows/changelog-lint.yml",
+        ".github/workflows/pattern-gates.yml",
+        ".github/workflows/ui-automation.yml",
+        ".github/workflows/game-launch-validation.yml",
+        ".github/workflows/pack-validation.yml",
+        ".github/workflows/logerror-no-stack.yml",
+        ".github/workflows/api-docs.yml",
+        ".github/workflows/release-drafter.yml",
+        ".github/workflows/sbom.yml",
+        ".github/workflows/version-bump.yml",
+        ".github/workflows/benchmarks.yml",
+        ".github/workflows/inline-json-options.yml",
+        ".github/workflows/framework-version.yml",
+        ".github/workflows/unguarded-deserialize.yml",
+        ".github/workflows/fuzz.yml",
+        ".github/workflows/polyglot-build.yml",
+        ".github/workflows/dashboard.yml",
+        ".github/workflows/perf-benchmarks.yml",
+        ".github/workflows/ci.yml",
+        ".github/workflows/stringly-enums.yml",
+        ".github/workflows/tautological-test.yml",
+        ".github/workflows/game-launch.yml",
+        ".github/workflows/scorecard.yml"
+      ]
+    },
+    {
+      "repo": "Eidolon",
+      "files": [
+        ".github/workflows/trufflehog.yml",
+        ".github/workflows/doc-links.yml",
+        ".github/workflows/codeql.yml",
+        ".github/workflows/cargo-machete.yml",
+        ".github/workflows/fr-coverage.yml",
+        ".github/workflows/cargo-audit.yml",
+        ".github/workflows/ci.yml",
+        ".github/workflows/cargo-semver-checks.yml",
+        ".github/workflows/scorecard.yml"
+      ]
+    },
+    {
+      "repo": "FocalPoint",
+      "files": [
+        ".github/workflows/trufflehog.yml",
+        ".github/workflows/journey-gate.yml",
+        ".github/workflows/cargo-audit.yml",
+        ".github/workflows/ci.yml",
+        ".github/workflows/scorecard.yml"
+      ]
+    },
+    {
+      "repo": "GDK",
+      "files": [
+        ".github/workflows/cargo-deny.yml",
+        ".github/workflows/trufflehog.yml",
+        ".github/workflows/doc-links.yml",
+        ".github/workflows/legacy-tooling-gate.yml",
+        ".github/workflows/codeql.yml",
+        ".github/workflows/cargo-machete.yml",
+        ".github/workflows/fr-coverage.yml",
+        ".github/workflows/secrets-scan.yml",
+        ".github/workflows/cargo-audit.yml",
+        ".github/workflows/ci.yml",
+        ".github/workflows/cargo-semver-checks.yml",
+        ".github/workflows/codeql-rust.yml",
+        ".github/workflows/scorecard.yml"
+      ]
+    },
+    {
+      "repo": "HeliosCLI",
+      "files": [
+        ".github/workflows/trufflehog.yml",
+        ".github/workflows/issue-deduplicator.yml",
+        ".github/workflows/zap-dast.yml",
+        ".github/workflows/alert-sync-issues.yml",
+        ".github/workflows/pages.yml",
+        ".github/workflows/stage-gates.yml",
+        ".github/workflows/iac-scan.yml",
+        ".github/workflows/network-optimization.yml",
+        ".github/workflows/sast-full.yml",
+        ".github/workflows/bazel.yml",
+        ".github/workflows/rust-release-windows.yml",
+        ".github/workflows/pr-governance-gate.yml",
+        ".github/workflows/codeql.yml",
+        ".github/workflows/journey-gate.yml",
+        ".github/workflows/issue-labeler.yml",
+        ".github/workflows/snyk-scan.yml",
+        ".github/workflows/sonarcloud.yml",
+        ".github/workflows/sentry-error-tracking.yml",
+        ".github/workflows/rust-release.yml",
+        ".github/workflows/security-guard.yml",
+        ".github/workflows/cla.yml",
+        ".github/workflows/cargo-machete.yml",
+        ".github/workflows/fuzzing.yml",
+        ".github/workflows/shell-tool-mcp.yml",
+        ".github/workflows/quality.yml",
+        ".github/workflows/sast-quick.yml",
+        ".github/workflows/helios-cli-release.yml",
+        ".github/workflows/docs-site.yml",
+        ".github/workflows/license-compliance.yml",
+        ".github/workflows/codespell.yml",
+        ".github/workflows/workflow-sync.yml",
+        ".github/workflows/sdk.yml",
+        ".github/workflows/security-guard-hook-audit.yml",
+        ".github/workflows/review-wave-orchestrator.yml",
+        ".github/workflows/rust-ci.yml",
+        ".github/workflows/trivy-scan.yml",
+        ".github/workflows/close-stale-contributor-prs.yml",
+        ".github/workflows/cargo-audit.yml",
+        ".github/workflows/ci.yml",
+        ".github/workflows/helios-cli.yml",
+        ".github/workflows/cargo-semver-checks.yml",
+        ".github/workflows/codeql-rust.yml",
+        ".github/workflows/leak-detection.yml",
+        ".github/workflows/workflow-maintenance.yml",
+        ".github/workflows/rust-release-prepare.yml",
+        ".github/workflows/scorecard.yml",
+        ".github/workflows/pr-babysit-watch.yml"
+      ]
+    },
+    {
+      "repo": "HeliosLab",
+      "files": [
+        ".github/workflows/release.yml",
+        ".github/workflows/quality-gate.yml",
+        ".github/workflows/cargo-deny.yml",
+        ".github/workflows/deploy-docs.yml",
+        ".github/workflows/trufflehog.yml",
+        ".github/workflows/alert-sync-issues.yml",
+        ".github/workflows/codeql.yml",
+        ".github/workflows/journey-gate.yml",
+        ".github/workflows/security-guard.yml",
+        ".github/workflows/sast.yml",
+        ".github/workflows/security-guard-hook-audit.yml",
+        ".github/workflows/build-release.yml",
+        ".github/workflows/cargo-audit.yml",
+        ".github/workflows/ci.yml",
+        ".github/workflows/codeql-rust.yml",
+        ".github/workflows/required-check-names-guard.yml",
+        ".github/workflows/scorecard.yml"
+      ]
+    },
+    {
+      "repo": "HexaKit",
+      "files": [
+        ".github/workflows/security.yml",
+        ".github/workflows/cargo-deny.yml",
+        ".github/workflows/self-merge-gate.yml",
+        ".github/workflows/publish.yml",
+        ".github/workflows/trufflehog.yml",
+        ".github/workflows/example-reusable.yml",
+        ".github/workflows/tag-automation.yml",
+        ".github/workflows/zap-dast.yml",
+        ".github/workflows/alert-sync-issues.yml",
+        ".github/workflows/changelog.yml",
+        ".github/workflows/iac-scan.yml",
+        ".github/workflows/legacy-tooling-gate.yml",
+        ".github/workflows/sast-full.yml",
+        ".github/workflows/codeql.yml",
+        ".github/workflows/journey-gate.yml",
+        ".github/workflows/snyk-scan.yml",
+        ".github/workflows/sonarcloud.yml",
+        ".github/workflows/rust-release.yml",
+        ".github/workflows/security-guard.yml",
+        ".github/workflows/cargo-machete.yml",
+        ".github/workflows/fuzzing.yml",
+        ".github/workflows/docs.yml",
+        ".github/workflows/gate-check.yml",
+        ".github/workflows/benchmark.yml",
+        ".github/workflows/sast-quick.yml",
+        ".github/workflows/libs-activation-ci.yml",
+        ".github/workflows/evidence-capture.yml",
+        ".github/workflows/deploy.yml",
+        ".github/workflows/audit.yml",
+        ".github/workflows/license-compliance.yml",
+        ".github/workflows/release-drafter.yml",
+        ".github/workflows/sbom.yml",
+        ".github/workflows/traceability-gate.yml",
+        ".github/workflows/workflow-sync.yml",
+        ".github/workflows/promote.yml",
+        ".github/workflows/security-guard-hook-audit.yml",
+        ".github/workflows/security-scan.yml",
+        ".github/workflows/trivy-scan.yml",
+        ".github/workflows/ai-testing-orchestration.yml",
+        ".github/workflows/spec-validation.yml",
+        ".github/workflows/sync-canary.yml",
+        ".github/workflows/cargo-audit.yml",
+        ".github/workflows/ci.yml",
+        ".github/workflows/cargo-semver-checks.yml",
+        ".github/workflows/codeql-rust.yml",
+        ".github/workflows/workflow-maintenance.yml",
+        ".github/workflows/scorecard.yml"
+      ]
+    },
+    {
+      "repo": "Httpora",
+      "files": [
+        ".github/workflows/release.yml",
+        ".github/workflows/trufflehog.yml",
+        ".github/workflows/codeql.yml",
+        ".github/workflows/secrets-scan.yml",
+        ".github/workflows/pages-deploy.yml",
+        ".github/workflows/ci.yml",
+        ".github/workflows/scorecard.yml"
+      ]
+    },
+    {
+      "repo": "KDesktopVirt",
+      "files": [
+        ".github/workflows/trufflehog.yml",
+        ".github/workflows/doc-links.yml",
+        ".github/workflows/legacy-tooling-gate.yml",
+        ".github/workflows/codeql.yml",
+        ".github/workflows/cargo-machete.yml",
+        ".github/workflows/fr-coverage.yml",
+        ".github/workflows/pages-deploy.yml",
+        ".github/workflows/cargo-audit.yml",
+        ".github/workflows/ci.yml",
+        ".github/workflows/cargo-semver-checks.yml",
+        ".github/workflows/codeql-rust.yml",
+        ".github/workflows/scorecard.yml"
+      ]
+    },
+    {
+      "repo": "KlipDot",
+      "files": [
+        ".github/workflows/cargo-deny.yml",
+        ".github/workflows/trufflehog.yml",
+        ".github/workflows/doc-links.yml",
+        ".github/workflows/legacy-tooling-gate.yml",
+        ".github/workflows/fr-coverage.yml",
+        ".github/workflows/ci.yml"
+      ]
+    },
+    {
+      "repo": "KodeVibe",
+      "files": [
+        ".github/workflows/go-engine.yml"
+      ]
+    },
+    {
+      "repo": "MCPForge",
+      "files": [
+        ".github/workflows/trufflehog.yml",
+        ".github/workflows/alert-sync-issues.yml",
+        ".github/workflows/lint.yml",
+        ".github/workflows/doc-links.yml",
+        ".github/workflows/codeql.yml",
+        ".github/workflows/go.yml",
+        ".github/workflows/fr-coverage.yml",
+        ".github/workflows/ci.yml",
+        ".github/workflows/scorecard.yml"
+      ]
+    },
+    {
+      "repo": "McpKit",
+      "files": [
+        ".github/workflows/cargo-deny.yml",
+        ".github/workflows/trufflehog.yml",
+        ".github/workflows/codeql.yml",
+        ".github/workflows/secrets-scan.yml",
+        ".github/workflows/ci.yml",
+        ".github/workflows/scorecard.yml"
+      ]
+    },
+    {
+      "repo": "Metron",
+      "files": [
+        ".github/workflows/codeql.yml",
+        ".github/workflows/journey-gate.yml",
+        ".github/workflows/cargo-machete.yml",
+        ".github/workflows/fr-coverage.yml",
+        ".github/workflows/secrets-scan.yml",
+        ".github/workflows/cargo-audit.yml",
+        ".github/workflows/ci.yml",
+        ".github/workflows/cargo-semver-checks.yml",
+        ".github/workflows/codeql-rust.yml",
+        ".github/workflows/scorecard.yml"
+      ]
+    },
+    {
+      "repo": "ObservabilityKit",
+      "files": [
+        ".github/workflows/cargo-deny.yml",
+        ".github/workflows/trufflehog.yml",
+        ".github/workflows/alert-sync-issues.yml",
+        ".github/workflows/doc-links.yml",
+        ".github/workflows/codeql.yml",
+        ".github/workflows/fr-coverage.yml",
+        ".github/workflows/ci.yml",
+        ".github/workflows/scorecard.yml"
+      ]
+    },
+    {
+      "repo": "OmniRoute",
+      "files": [
+        ".github/workflows/lock-released-branch.yml",
+        ".github/workflows/build-fork.yml",
+        ".github/workflows/claude.yml",
+        ".github/workflows/ci.yml",
+        ".github/workflows/opencode-plugin-ci.yml"
+      ]
+    },
+    {
+      "repo": "Paginary",
+      "files": [
+        ".github/workflows/trufflehog.yml",
+        ".github/workflows/doc-links.yml",
+        ".github/workflows/codeql.yml",
+        ".github/workflows/fr-coverage.yml",
+        ".github/workflows/ci.yml",
+        ".github/workflows/scorecard.yml"
+      ]
+    },
+    {
+      "repo": "Parpoura",
+      "files": [
+        ".github/workflows/trufflehog.yml",
+        ".github/workflows/alert-sync-issues.yml",
+        ".github/workflows/pages.yml",
+        ".github/workflows/doc-links.yml",
+        ".github/workflows/codeql.yml",
+        ".github/workflows/security-guard.yml",
+        ".github/workflows/fr-coverage.yml",
+        ".github/workflows/quality.yml",
+        ".github/workflows/docs-site.yml",
+        ".github/workflows/security-guard-hook-audit.yml",
+        ".github/workflows/scorecard.yml"
+      ]
+    },
+    {
+      "repo": "PhenoAgent",
+      "files": [
+        ".github/workflows/cargo-deny.yml",
+        ".github/workflows/trufflehog.yml",
+        ".github/workflows/doc-links.yml",
+        ".github/workflows/codeql.yml",
+        ".github/workflows/journey-gate.yml",
+        ".github/workflows/fr-coverage.yml",
+        ".github/workflows/scorecard.yml"
+      ]
+    },
+    {
+      "repo": "PhenoCompose",
+      "files": [
+        ".github/workflows/trufflehog.yml",
+        ".github/workflows/doc-links.yml",
+        ".github/workflows/codeql.yml",
+        ".github/workflows/fr-coverage.yml",
+        ".github/workflows/secrets-scan.yml",
+        ".github/workflows/ci.yml",
+        ".github/workflows/scorecard.yml"
+      ]
+    },
+    {
+      "repo": "PhenoDevOps",
+      "files": [
+        ".github/workflows/security.yml",
+        ".github/workflows/cargo-deny.yml",
+        ".github/workflows/self-merge-gate.yml",
+        ".github/workflows/publish.yml",
+        ".github/workflows/trufflehog.yml",
+        ".github/workflows/tag-automation.yml",
+        ".github/workflows/zap-dast.yml",
+        ".github/workflows/alert-sync-issues.yml",
+        ".github/workflows/changelog.yml",
+        ".github/workflows/lint.yml",
+        ".github/workflows/iac-scan.yml",
+        ".github/workflows/doc-links.yml",
+        ".github/workflows/sast-full.yml",
+        ".github/workflows/codeql.yml",
+        ".github/workflows/snyk-scan.yml",
+        ".github/workflows/sonarcloud.yml",
+        ".github/workflows/security-guard.yml",
+        ".github/workflows/fuzzing.yml",
+        ".github/workflows/docs.yml",
+        ".github/workflows/fr-coverage.yml",
+        ".github/workflows/gate-check.yml",
+        ".github/workflows/benchmark.yml",
+        ".github/workflows/sast-quick.yml",
+        ".github/workflows/evidence-capture.yml",
+        ".github/workflows/deploy.yml",
+        ".github/workflows/audit.yml",
+        ".github/workflows/license-compliance.yml",
+        ".github/workflows/release-drafter.yml",
+        ".github/workflows/sbom.yml",
+        ".github/workflows/workflow-permissions.yml",
+        ".github/workflows/workflow-sync.yml",
+        ".github/workflows/promote.yml",
+        ".github/workflows/security-guard-hook-audit.yml",
+        ".github/workflows/trivy-scan.yml",
+        ".github/workflows/spec-validation.yml",
+        ".github/workflows/sync-canary.yml",
+        ".github/workflows/ci.yml",
+        ".github/workflows/workflow-maintenance.yml"
+      ]
+    },
+    {
+      "repo": "PhenoHandbook",
+      "files": [
+        ".github/workflows/trufflehog.yml",
+        ".github/workflows/conventions.yml",
+        ".github/workflows/doc-links.yml",
+        ".github/workflows/legacy-tooling-gate.yml",
+        ".github/workflows/fr-coverage.yml",
+        ".github/workflows/ci.yml",
+        ".github/workflows/scorecard.yml"
+      ]
+    },
+    {
+      "repo": "PhenoKits",
+      "files": [
+        ".github/workflows/docs-deploy.yml",
+        ".github/workflows/quality-gate.yml",
+        ".github/workflows/cargo-deny.yml",
+        ".github/workflows/publish.yml",
+        ".github/workflows/trufflehog.yml",
+        ".github/workflows/codeql.yml",
+        ".github/workflows/journey-gate.yml",
+        ".github/workflows/cargo-machete.yml",
+        ".github/workflows/secrets-scan.yml",
+        ".github/workflows/cargo-audit.yml",
+        ".github/workflows/ci.yml",
+        ".github/workflows/cargo-semver-checks.yml",
+        ".github/workflows/scorecard.yml"
+      ]
+    },
+    {
+      "repo": "PhenoMCP",
+      "files": [
+        ".github/workflows/trufflehog.yml",
+        ".github/workflows/pages.yml",
+        ".github/workflows/lint.yml",
+        ".github/workflows/codeql.yml",
+        ".github/workflows/journey-gate.yml",
+        ".github/workflows/cargo-machete.yml",
+        ".github/workflows/cargo-audit.yml",
+        ".github/workflows/ci.yml",
+        ".github/workflows/cargo-semver-checks.yml",
+        ".github/workflows/codeql-rust.yml",
+        ".github/workflows/scorecard.yml"
+      ]
+    },
+    {
+      "repo": "PhenoObservability",
+      "files": [
+        ".github/workflows/cargo-deny.yml",
+        ".github/workflows/publish.yml",
+        ".github/workflows/sbom-refresh.yml",
+        ".github/workflows/trufflehog.yml",
+        ".github/workflows/doc-links.yml",
+        ".github/workflows/test.yml",
+        ".github/workflows/codeql.yml",
+        ".github/workflows/journey-gate.yml",
+        ".github/workflows/sonarcloud.yml",
+        ".github/workflows/cargo-machete.yml",
+        ".github/workflows/fr-coverage.yml",
+        ".github/workflows/release-dry-run.yml",
+        ".github/workflows/cargo-audit.yml",
+        ".github/workflows/ci.yml",
+        ".github/workflows/cargo-semver-checks.yml",
+        ".github/workflows/codeql-rust.yml",
+        ".github/workflows/scorecard.yml"
+      ]
+    },
+    {
+      "repo": "PhenoPlugins",
+      "files": [
+        ".github/workflows/trufflehog.yml",
+        ".github/workflows/doc-links.yml",
+        ".github/workflows/legacy-tooling-gate.yml",
+        ".github/workflows/codeql.yml",
+        ".github/workflows/cargo-machete.yml",
+        ".github/workflows/fr-coverage.yml",
+        ".github/workflows/cargo-audit.yml",
+        ".github/workflows/ci.yml",
+        ".github/workflows/cargo-semver-checks.yml",
+        ".github/workflows/codeql-rust.yml",
+        ".github/workflows/scorecard.yml"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "files": [
+        ".github/workflows/trufflehog.yml",
+        ".github/workflows/doc-links.yml",
+        ".github/workflows/legacy-tooling-gate.yml",
+        ".github/workflows/codeql.yml",
+        ".github/workflows/fr-coverage.yml",
+        ".github/workflows/secrets-scan.yml",
+        ".github/workflows/pages-deploy.yml",
+        ".github/workflows/vitepress-deploy.yml",
+        ".github/workflows/cargo-audit.yml",
+        ".github/workflows/ci.yml",
+        ".github/workflows/codeql-rust.yml",
+        ".github/workflows/scorecard.yml"
+      ]
+    },
+    {
+      "repo": "PhenoProject",
+      "files": [
+        ".github/workflows/trufflehog.yml",
+        ".github/workflows/alert-sync-issues.yml",
+        ".github/workflows/doc-links.yml",
+        ".github/workflows/fr-coverage.yml",
+        ".github/workflows/ci.yml",
+        ".github/workflows/scorecard.yml"
+      ]
+    },
+    {
+      "repo": "PhenoRuntime",
+      "files": [
+        ".github/workflows/pages.yml",
+        ".github/workflows/lint.yml",
+        ".github/workflows/doc-links.yml",
+        ".github/workflows/codeql.yml",
+        ".github/workflows/journey-gate.yml",
+        ".github/workflows/cargo-machete.yml",
+        ".github/workflows/fr-coverage.yml",
+        ".github/workflows/secrets-scan.yml",
+        ".github/workflows/cargo-audit.yml",
+        ".github/workflows/ci.yml",
+        ".github/workflows/cargo-semver-checks.yml",
+        ".github/workflows/codeql-rust.yml",
+        ".github/workflows/scorecard.yml"
+      ]
+    },
+    {
+      "repo": "PhenoSpecs",
+      "files": [
+        ".github/workflows/codeql.yml",
+        ".github/workflows/release-dry-run.yml",
+        ".github/workflows/secrets-scan.yml",
+        ".github/workflows/scorecard.yml"
+      ]
+    },
+    {
+      "repo": "PhenoVCS",
+      "files": [
+        ".github/workflows/trufflehog.yml",
+        ".github/workflows/legacy-tooling-gate.yml",
+        ".github/workflows/codeql.yml",
+        ".github/workflows/journey-gate.yml",
+        ".github/workflows/cargo-machete.yml",
+        ".github/workflows/cargo-audit.yml",
+        ".github/workflows/ci.yml",
+        ".github/workflows/cargo-semver-checks.yml",
+        ".github/workflows/codeql-rust.yml",
+        ".github/workflows/scorecard.yml"
+      ]
+    },
+    {
+      "repo": "Pine",
+      "files": [
+        ".github/workflows/trufflehog.yml"
+      ]
+    },
+    {
+      "repo": "Planify",
+      "files": [
+        ".github/workflows/trufflehog.yml",
+        ".github/workflows/pull-request-build-lint-api.yml",
+        ".github/workflows/check-version.yml",
+        ".github/workflows/codeql.yml",
+        ".github/workflows/sonarcloud.yml",
+        ".github/workflows/codespell.yml",
+        ".github/workflows/pull-request-build-lint-web-apps.yml",
+        ".github/workflows/sync-repo.yml",
+        ".github/workflows/sync-repo-pr.yml",
+        ".github/workflows/scorecard.yml",
+        ".github/workflows/copyright-check.yml"
+      ]
+    },
+    {
+      "repo": "PlayCua",
+      "files": [
+        ".github/workflows/cargo-machete.yml",
+        ".github/workflows/fr-coverage.yml",
+        ".github/workflows/cargo-audit.yml",
+        ".github/workflows/cargo-semver-checks.yml",
+        ".github/workflows/codeql-rust.yml",
+        ".github/workflows/scorecard.yml"
+      ]
+    },
+    {
+      "repo": "PolicyStack",
+      "files": [
+        ".github/workflows/release.yml",
+        ".github/workflows/quality-gate.yml",
+        ".github/workflows/security.yml",
+        ".github/workflows/trufflehog.yml",
+        ".github/workflows/security-deep-scan.yml",
+        ".github/workflows/legacy-tooling-gate.yml",
+        ".github/workflows/codeql.yml",
+        ".github/workflows/security-guard.yml",
+        ".github/workflows/benchmark.yml",
+        ".github/workflows/policy-contract-governance.yml",
+        ".github/workflows/traceability.yml",
+        ".github/workflows/workflow-permissions.yml",
+        ".github/workflows/sast.yml",
+        ".github/workflows/pages-deploy.yml",
+        ".github/workflows/phenotype-quality-gate.yml",
+        ".github/workflows/ci.yml",
+        ".github/workflows/scorecard.yml"
+      ]
+    },
+    {
+      "repo": "Pyron",
+      "files": [
+        ".github/workflows/security.yml",
+        ".github/workflows/self-merge-gate.yml",
+        ".github/workflows/publish.yml",
+        ".github/workflows/example-reusable.yml",
+        ".github/workflows/tag-automation.yml",
+        ".github/workflows/zap-dast.yml",
+        ".github/workflows/alert-sync-issues.yml",
+        ".github/workflows/changelog.yml",
+        ".github/workflows/iac-scan.yml",
+        ".github/workflows/sast-full.yml",
+        ".github/workflows/codeql.yml",
+        ".github/workflows/snyk-scan.yml",
+        ".github/workflows/sonarcloud.yml",
+        ".github/workflows/security-guard.yml",
+        ".github/workflows/fuzzing.yml",
+        ".github/workflows/docs.yml",
+        ".github/workflows/gate-check.yml",
+        ".github/workflows/benchmark.yml",
+        ".github/workflows/sast-quick.yml",
+        ".github/workflows/libs-activation-ci.yml",
+        ".github/workflows/evidence-capture.yml",
+        ".github/workflows/deploy.yml",
+        ".github/workflows/audit.yml",
+        ".github/workflows/license-compliance.yml",
+        ".github/workflows/release-drafter.yml",
+        ".github/workflows/sbom.yml",
+        ".github/workflows/workflow-permissions.yml",
+        ".github/workflows/traceability-gate.yml",
+        ".github/workflows/workflow-sync.yml",
+        ".github/workflows/promote.yml",
+        ".github/workflows/security-guard-hook-audit.yml",
+        ".github/workflows/trivy-scan.yml",
+        ".github/workflows/ai-testing-orchestration.yml",
+        ".github/workflows/spec-validation.yml",
+        ".github/workflows/sync-canary.yml",
+        ".github/workflows/ci.yml",
+        ".github/workflows/workflow-maintenance.yml"
+      ]
+    },
+    {
+      "repo": "QuadSGM",
+      "files": [
+        ".github/workflows/trufflehog.yml",
+        ".github/workflows/tag-automation.yml",
+        ".github/workflows/alert-sync-issues.yml",
+        ".github/workflows/pages.yml",
+        ".github/workflows/stage-gates.yml",
+        ".github/workflows/codeql.yml",
+        ".github/workflows/security-guard.yml",
+        ".github/workflows/self-hosted.yml",
+        ".github/workflows/auto-merge.yml",
+        ".github/workflows/docs-site.yml",
+        ".github/workflows/release-drafter.yml",
+        ".github/workflows/qa-governance.yml",
+        ".github/workflows/security-guard-hook-audit.yml",
+        ".github/workflows/pages-deploy.yml",
+        ".github/workflows/ci.yml",
+        ".github/workflows/scorecard.yml"
+      ]
+    },
+    {
+      "repo": "ResilienceKit",
+      "files": [
+        ".github/workflows/cargo-deny.yml",
+        ".github/workflows/trufflehog.yml",
+        ".github/workflows/codeql.yml",
+        ".github/workflows/dependency-review.yml",
+        ".github/workflows/fr-coverage.yml",
+        ".github/workflows/ci.yml",
+        ".github/workflows/scorecard.yml"
+      ]
+    },
+    {
+      "repo": "Sidekick",
+      "files": [
+        ".github/workflows/trufflehog.yml",
+        ".github/workflows/doc-links.yml",
+        ".github/workflows/codeql.yml",
+        ".github/workflows/cargo-machete.yml",
+        ".github/workflows/fr-coverage.yml",
+        ".github/workflows/cargo-audit.yml",
+        ".github/workflows/ci.yml",
+        ".github/workflows/cargo-semver-checks.yml",
+        ".github/workflows/codeql-rust.yml",
+        ".github/workflows/scorecard.yml"
+      ]
+    },
+    {
+      "repo": "Tasken",
+      "files": [
+        ".github/workflows/release.yml",
+        ".github/workflows/quality-gate.yml",
+        ".github/workflows/security.yml",
+        ".github/workflows/cargo-deny.yml",
+        ".github/workflows/trufflehog.yml",
+        ".github/workflows/codeql.yml",
+        ".github/workflows/journey-gate.yml",
+        ".github/workflows/security-guard.yml",
+        ".github/workflows/cargo-machete.yml",
+        ".github/workflows/auto-merge.yml",
+        ".github/workflows/pre-commit.yml",
+        ".github/workflows/release-drafter.yml",
+        ".github/workflows/sast.yml",
+        ".github/workflows/benchmarks.yml",
+        ".github/workflows/pages-deploy.yml",
+        ".github/workflows/cargo-audit.yml",
+        ".github/workflows/ci.yml",
+        ".github/workflows/cargo-semver-checks.yml",
+        ".github/workflows/codeql-rust.yml",
+        ".github/workflows/scorecard.yml"
+      ]
+    },
+    {
+      "repo": "TestingKit",
+      "files": [
+        ".github/workflows/cargo-deny.yml",
+        ".github/workflows/trufflehog.yml",
+        ".github/workflows/codeql.yml",
+        ".github/workflows/journey-gate.yml",
+        ".github/workflows/dependency-review.yml",
+        ".github/workflows/fr-coverage.yml",
+        ".github/workflows/ci.yml",
+        ".github/workflows/scorecard.yml"
+      ]
+    },
+    {
+      "repo": "Tokn",
+      "files": [
+        ".github/workflows/release.yml",
+        ".github/workflows/quality-gate.yml",
+        ".github/workflows/security.yml",
+        ".github/workflows/cargo-deny.yml",
+        ".github/workflows/sbom-refresh.yml",
+        ".github/workflows/trufflehog.yml",
+        ".github/workflows/alert-sync-issues.yml",
+        ".github/workflows/security-deep-scan.yml",
+        ".github/workflows/ledger-diff-check.yml",
+        ".github/workflows/legacy-tooling-gate.yml",
+        ".github/workflows/codeql.yml",
+        ".github/workflows/journey-gate.yml",
+        ".github/workflows/sonarcloud.yml",
+        ".github/workflows/security-guard.yml",
+        ".github/workflows/docs.yml",
+        ".github/workflows/fr-coverage.yml",
+        ".github/workflows/benchmark.yml",
+        ".github/workflows/pricing-governance-check.yml",
+        ".github/workflows/release-drafter.yml",
+        ".github/workflows/traceability.yml",
+        ".github/workflows/sast.yml",
+        ".github/workflows/security-guard-hook-audit.yml",
+        ".github/workflows/pages-deploy.yml",
+        ".github/workflows/ci.yml",
+        ".github/workflows/secret-scanning.yml",
+        ".github/workflows/scorecard.yml"
+      ]
+    },
+    {
+      "repo": "Tracely",
+      "files": [
+        ".github/workflows/trufflehog.yml",
+        ".github/workflows/doc-links.yml",
+        ".github/workflows/legacy-tooling-gate.yml",
+        ".github/workflows/codeql.yml",
+        ".github/workflows/cargo-machete.yml",
+        ".github/workflows/fr-coverage.yml",
+        ".github/workflows/cargo-audit.yml",
+        ".github/workflows/ci.yml",
+        ".github/workflows/cargo-semver-checks.yml",
+        ".github/workflows/codeql-rust.yml",
+        ".github/workflows/scorecard.yml"
+      ]
+    },
+    {
+      "repo": "Tracera",
+      "files": [
+        ".github/workflows/journey-gate.yml",
+        ".github/workflows/load-test.yml",
+        ".github/workflows/security-guard.yml",
+        ".github/workflows/desktop-electrobun-release.yml",
+        ".github/workflows/pre-commit.yml",
+        ".github/workflows/quality.yml",
+        ".github/workflows/openapi-docs.yml",
+        ".github/workflows/dependabot-auto-merge.yml",
+        ".github/workflows/schema-validation.yml",
+        ".github/workflows/release-drafter.yml",
+        ".github/workflows/qa-governance.yml",
+        ".github/workflows/test-pyramid.yml",
+        ".github/workflows/benchmarks.yml",
+        ".github/workflows/security-guard-hook-audit.yml",
+        ".github/workflows/tests.yml",
+        ".github/workflows/test-validation.yml",
+        ".github/workflows/naming-guard.yml",
+        ".github/workflows/security-scans.yml",
+        ".github/workflows/chaos-tests.yml",
+        ".github/workflows/canary-deploy.yml",
+        ".github/workflows/ci.yml",
+        ".github/workflows/vitepress-pages.yml",
+        ".github/workflows/go-tests.yml",
+        ".github/workflows/performance-regression.yml",
+        ".github/workflows/secret-scanning.yml",
+        ".github/workflows/scorecard.yml"
+      ]
+    },
+    {
+      "repo": "agent-devops-setups",
+      "files": [
+        ".github/workflows/trufflehog.yml",
+        ".github/workflows/tag-automation.yml",
+        ".github/workflows/validate-policy.yml",
+        ".github/workflows/security-guard.yml",
+        ".github/workflows/release-drafter.yml",
+        ".github/workflows/security-guard-hook-audit.yml",
+        ".github/workflows/pages-deploy.yml",
+        ".github/workflows/scorecard.yml"
+      ]
+    },
+    {
+      "repo": "agent-user-status",
+      "files": [
+        ".github/workflows/codeql.yml",
+        ".github/workflows/journey-gate.yml",
+        ".github/workflows/secrets-scan.yml",
+        ".github/workflows/ci.yml",
+        ".github/workflows/scorecard.yml"
+      ]
+    },
+    {
+      "repo": "agentapi-plusplus",
+      "files": [
+        ".github/workflows/release.yml",
+        ".github/workflows/coderabbit-rate-limit-retry.yml",
+        ".github/workflows/quality-gate.yml",
+        ".github/workflows/self-merge-gate.yml",
+        ".github/workflows/go-test.yml",
+        ".github/workflows/trufflehog.yml",
+        ".github/workflows/tag-automation.yml",
+        ".github/workflows/zap-dast.yml",
+        ".github/workflows/alert-sync-issues.yml",
+        ".github/workflows/iac-scan.yml",
+        ".github/workflows/codeql.yml",
+        ".github/workflows/journey-gate.yml",
+        ".github/workflows/sonarcloud.yml",
+        ".github/workflows/security-guard.yml",
+        ".github/workflows/fuzzing.yml",
+        ".github/workflows/pr-preview-release.yml",
+        ".github/workflows/docs-site.yml",
+        ".github/workflows/license-compliance.yml",
+        ".github/workflows/release-drafter.yml",
+        ".github/workflows/secrets-scan.yml",
+        ".github/workflows/pages-deploy.yml",
+        ".github/workflows/trivy-scan.yml",
+        ".github/workflows/lint-test.yml",
+        ".github/workflows/ci.yml",
+        ".github/workflows/pr-preview-build.yml",
+        ".github/workflows/pr-preview-cleanup.yml",
+        ".github/workflows/scorecard.yml",
+        ".github/workflows/generate-sdks.yaml"
+      ]
+    },
+    {
+      "repo": "agileplus-landing",
+      "files": [
+        ".github/workflows/trufflehog.yml",
+        ".github/workflows/ci.yml"
+      ]
+    },
+    {
+      "repo": "argis-extensions",
+      "files": [
+        ".github/workflows/release.yml",
+        ".github/workflows/cd.yml",
+        ".github/workflows/quality-gate.yml",
+        ".github/workflows/trufflehog.yml",
+        ".github/workflows/legacy-tooling-gate.yml",
+        ".github/workflows/journey-gate.yml",
+        ".github/workflows/release-drafter.yml",
+        ".github/workflows/sast.yml",
+        ".github/workflows/ci.yml",
+        ".github/workflows/scorecard.yml"
+      ]
+    },
+    {
+      "repo": "bare-cua",
+      "files": [
+        ".github/workflows/cargo-machete.yml",
+        ".github/workflows/fr-coverage.yml",
+        ".github/workflows/cargo-audit.yml",
+        ".github/workflows/cargo-semver-checks.yml",
+        ".github/workflows/codeql-rust.yml",
+        ".github/workflows/scorecard.yml"
+      ]
+    },
+    {
+      "repo": "byteport-landing",
+      "files": [
+        ".github/workflows/ci.yml"
+      ]
+    },
+    {
+      "repo": "chatta",
+      "files": [
+        ".github/workflows/trufflehog.yml",
+        ".github/workflows/lint.yml",
+        ".github/workflows/doc-links.yml",
+        ".github/workflows/legacy-tooling-gate.yml",
+        ".github/workflows/test.yml",
+        ".github/workflows/fr-coverage.yml",
+        ".github/workflows/ci.yml",
+        ".github/workflows/build.yml"
+      ]
+    },
+    {
+      "repo": "cheap-llm-mcp",
+      "files": [
+        ".github/workflows/trufflehog.yml",
+        ".github/workflows/doc-links.yml",
+        ".github/workflows/journey-gate.yml",
+        ".github/workflows/dependency-review.yml",
+        ".github/workflows/fr-coverage.yml",
+        ".github/workflows/release-drafter.yml",
+        ".github/workflows/ci.yml",
+        ".github/workflows/scorecard.yml"
+      ]
+    },
+    {
+      "repo": "cliproxyapi-plusplus",
+      "files": [
+        ".github/workflows/trufflehog.yml",
+        ".github/workflows/tag-automation.yml",
+        ".github/workflows/alert-sync-issues.yml",
+        ".github/workflows/lint.yml",
+        ".github/workflows/sast-full.yml",
+        ".github/workflows/codeql.yml",
+        ".github/workflows/journey-gate.yml",
+        ".github/workflows/security-guard.yml",
+        ".github/workflows/auto-merge.yml",
+        ".github/workflows/docs.yml",
+        ".github/workflows/sast-quick.yml",
+        ".github/workflows/release-drafter.yml",
+        ".github/workflows/security-guard-hook-audit.yml",
+        ".github/workflows/ci-rerun-flaky.yml",
+        ".github/workflows/pages-deploy.yml",
+        ".github/workflows/pr-test-build.yml",
+        ".github/workflows/lint-test.yml",
+        ".github/workflows/ci.yml",
+        ".github/workflows/docker-image.yml",
+        ".github/workflows/required-check-names-guard.yml",
+        ".github/workflows/scorecard.yml",
+        ".github/workflows/generate-sdks.yaml",
+        ".github/workflows/release.yaml",
+        ".github/workflows/release-batch.yaml"
+      ]
+    },
+    {
+      "repo": "dinoforge-packs",
+      "files": [
+        ".github/workflows/trufflehog.yml",
+        ".github/workflows/alert-sync-issues.yml",
+        ".github/workflows/doc-links.yml",
+        ".github/workflows/fr-coverage.yml",
+        ".github/workflows/ci.yml",
+        ".github/workflows/scorecard.yml"
+      ]
+    },
+    {
+      "repo": "dispatch-mcp",
+      "files": [
+        ".github/workflows/ci.yml"
+      ]
+    },
+    {
+      "repo": "eyetracker",
+      "files": [
+        ".github/workflows/cargo-deny.yml",
+        ".github/workflows/trufflehog.yml",
+        ".github/workflows/codeql.yml",
+        ".github/workflows/journey-gate.yml",
+        ".github/workflows/cargo-machete.yml",
+        ".github/workflows/cargo-audit.yml",
+        ".github/workflows/cargo-semver-checks.yml",
+        ".github/workflows/codeql-rust.yml",
+        ".github/workflows/scorecard.yml"
+      ]
+    },
+    {
+      "repo": "foqos-private",
+      "files": [
+        ".github/workflows/codeql.yml",
+        ".github/workflows/secrets-scan.yml",
+        ".github/workflows/pr-check.yml",
+        ".github/workflows/scorecard.yml"
+      ]
+    },
+    {
+      "repo": "helios-router",
+      "files": [
+        ".github/workflows/pages.yml",
+        ".github/workflows/ci.yml"
+      ]
+    },
+    {
+      "repo": "heliosApp",
+      "files": [
+        ".github/workflows/self-merge-gate.yml",
+        ".github/workflows/sbom-refresh.yml",
+        ".github/workflows/required-checks-bridge.yml",
+        ".github/workflows/trufflehog.yml",
+        ".github/workflows/tag-automation.yml",
+        ".github/workflows/format-check.yml",
+        ".github/workflows/alert-sync-issues.yml",
+        ".github/workflows/stage-gates.yml",
+        ".github/workflows/doc-links.yml",
+        ".github/workflows/pr-governance-gate.yml",
+        ".github/workflows/journey-gate.yml",
+        ".github/workflows/security-guard.yml",
+        ".github/workflows/quality-gates.yml",
+        ".github/workflows/compliance-check.yml",
+        ".github/workflows/fr-coverage.yml",
+        ".github/workflows/release-drafter.yml",
+        ".github/workflows/agent-dir-guard.yml",
+        ".github/workflows/security-guard-hook-audit.yml",
+        ".github/workflows/gca.yml",
+        ".github/workflows/strict-quality.yml",
+        ".github/workflows/lint-test.yml",
+        ".github/workflows/ci.yml",
+        ".github/workflows/vitepress-pages.yml",
+        ".github/workflows/required-check-names-guard.yml",
+        ".github/workflows/scorecard.yml"
+      ]
+    },
+    {
+      "repo": "heliosBench",
+      "files": [
+        ".github/workflows/trufflehog.yml",
+        ".github/workflows/pages.yml",
+        ".github/workflows/journey-gate.yml",
+        ".github/workflows/dependency-review.yml",
+        ".github/workflows/sonarcloud.yml",
+        ".github/workflows/ci.yml",
+        ".github/workflows/scorecard.yml"
+      ]
+    },
+    {
+      "repo": "helioscope",
+      "files": [
+        ".github/workflows/trufflehog.yml",
+        ".github/workflows/issue-deduplicator.yml",
+        ".github/workflows/zap-dast.yml",
+        ".github/workflows/alert-sync-issues.yml",
+        ".github/workflows/pages.yml",
+        ".github/workflows/stage-gates.yml",
+        ".github/workflows/iac-scan.yml",
+        ".github/workflows/network-optimization.yml",
+        ".github/workflows/sast-full.yml",
+        ".github/workflows/bazel.yml",
+        ".github/workflows/rust-release-windows.yml",
+        ".github/workflows/pr-governance-gate.yml",
+        ".github/workflows/codeql.yml",
+        ".github/workflows/journey-gate.yml",
+        ".github/workflows/issue-labeler.yml",
+        ".github/workflows/snyk-scan.yml",
+        ".github/workflows/sonarcloud.yml",
+        ".github/workflows/sentry-error-tracking.yml",
+        ".github/workflows/rust-release.yml",
+        ".github/workflows/security-guard.yml",
+        ".github/workflows/cla.yml",
+        ".github/workflows/cargo-machete.yml",
+        ".github/workflows/fuzzing.yml",
+        ".github/workflows/shell-tool-mcp.yml",
+        ".github/workflows/quality.yml",
+        ".github/workflows/sast-quick.yml",
+        ".github/workflows/helios-cli-release.yml",
+        ".github/workflows/docs-site.yml",
+        ".github/workflows/license-compliance.yml",
+        ".github/workflows/codespell.yml",
+        ".github/workflows/workflow-sync.yml",
+        ".github/workflows/sdk.yml",
+        ".github/workflows/security-guard-hook-audit.yml",
+        ".github/workflows/review-wave-orchestrator.yml",
+        ".github/workflows/rust-ci.yml",
+        ".github/workflows/trivy-scan.yml",
+        ".github/workflows/close-stale-contributor-prs.yml",
+        ".github/workflows/cargo-audit.yml",
+        ".github/workflows/ci.yml",
+        ".github/workflows/helios-cli.yml",
+        ".github/workflows/cargo-semver-checks.yml",
+        ".github/workflows/codeql-rust.yml",
+        ".github/workflows/leak-detection.yml",
+        ".github/workflows/workflow-maintenance.yml",
+        ".github/workflows/rust-release-prepare.yml",
+        ".github/workflows/scorecard.yml",
+        ".github/workflows/pr-babysit-watch.yml"
+      ]
+    },
+    {
+      "repo": "hwLedger",
+      "files": [
+        ".github/workflows/deploy-docs.yml",
+        ".github/workflows/trufflehog.yml",
+        ".github/workflows/codeql.yml",
+        ".github/workflows/cargo-audit.yml",
+        ".github/workflows/codeql-rust.yml",
+        ".github/workflows/scorecard.yml"
+      ]
+    },
+    {
+      "repo": "kmobile",
+      "files": [
+        ".github/workflows/ci.yml"
+      ]
+    },
+    {
+      "repo": "kwality",
+      "files": [
+        ".github/workflows/trufflehog.yml",
+        ".github/workflows/doc-links.yml",
+        ".github/workflows/legacy-tooling-gate.yml",
+        ".github/workflows/ci-cd.yml",
+        ".github/workflows/ci-cd-production.yml",
+        ".github/workflows/fr-coverage.yml",
+        ".github/workflows/ci.yml"
+      ]
+    },
+    {
+      "repo": "localbase3",
+      "files": [
+        ".github/workflows/trufflehog.yml",
+        ".github/workflows/test.yml"
+      ]
+    },
+    {
+      "repo": "nanovms",
+      "files": [
+        ".github/workflows/ai-testing.yml",
+        ".github/workflows/trufflehog.yml",
+        ".github/workflows/security-deep-scan.yml",
+        ".github/workflows/security-guard.yml",
+        ".github/workflows/sast.yml",
+        ".github/workflows/pages-deploy.yml",
+        ".github/workflows/ci.yml",
+        ".github/workflows/scorecard.yml"
+      ]
+    },
+    {
+      "repo": "netweave-final2",
+      "files": [
+        ".github/workflows/journey-gate.yml",
+        ".github/workflows/fr-coverage.yml"
+      ]
+    },
+    {
+      "repo": "pheno",
+      "files": [
+        ".github/workflows/security.yml",
+        ".github/workflows/cargo-deny.yml",
+        ".github/workflows/self-merge-gate.yml",
+        ".github/workflows/publish.yml",
+        ".github/workflows/example-reusable.yml",
+        ".github/workflows/tag-automation.yml",
+        ".github/workflows/zap-dast.yml",
+        ".github/workflows/alert-sync-issues.yml",
+        ".github/workflows/changelog.yml",
+        ".github/workflows/iac-scan.yml",
+        ".github/workflows/sast-full.yml",
+        ".github/workflows/codeql.yml",
+        ".github/workflows/snyk-scan.yml",
+        ".github/workflows/sonarcloud.yml",
+        ".github/workflows/rust-release.yml",
+        ".github/workflows/security-guard.yml",
+        ".github/workflows/cargo-machete.yml",
+        ".github/workflows/fuzzing.yml",
+        ".github/workflows/docs.yml",
+        ".github/workflows/gate-check.yml",
+        ".github/workflows/benchmark.yml",
+        ".github/workflows/sast-quick.yml",
+        ".github/workflows/libs-activation-ci.yml",
+        ".github/workflows/evidence-capture.yml",
+        ".github/workflows/deploy.yml",
+        ".github/workflows/audit.yml",
+        ".github/workflows/license-compliance.yml",
+        ".github/workflows/release-drafter.yml",
+        ".github/workflows/sbom.yml",
+        ".github/workflows/traceability-gate.yml",
+        ".github/workflows/workflow-sync.yml",
+        ".github/workflows/promote.yml",
+        ".github/workflows/security-guard-hook-audit.yml",
+        ".github/workflows/security-scan.yml",
+        ".github/workflows/trivy-scan.yml",
+        ".github/workflows/ai-testing-orchestration.yml",
+        ".github/workflows/spec-validation.yml",
+        ".github/workflows/sync-canary.yml",
+        ".github/workflows/cargo-audit.yml",
+        ".github/workflows/ci.yml",
+        ".github/workflows/cargo-semver-checks.yml",
+        ".github/workflows/workflow-maintenance.yml",
+        ".github/workflows/scorecard.yml"
+      ]
+    },
+    {
+      "repo": "phenoAI",
+      "files": [
+        ".github/workflows/codeql.yml",
+        ".github/workflows/cargo-machete.yml",
+        ".github/workflows/fr-coverage.yml",
+        ".github/workflows/secrets-scan.yml",
+        ".github/workflows/cargo-audit.yml",
+        ".github/workflows/cargo-semver-checks.yml",
+        ".github/workflows/codeql-rust.yml",
+        ".github/workflows/scorecard.yml"
+      ]
+    },
+    {
+      "repo": "phenoData",
+      "files": [
+        ".github/workflows/trufflehog.yml",
+        ".github/workflows/pages.yml",
+        ".github/workflows/doc-links.yml",
+        ".github/workflows/codeql.yml",
+        ".github/workflows/cargo-machete.yml",
+        ".github/workflows/fr-coverage.yml",
+        ".github/workflows/secrets-scan.yml",
+        ".github/workflows/cargo-audit.yml",
+        ".github/workflows/ci.yml",
+        ".github/workflows/cargo-semver-checks.yml",
+        ".github/workflows/codeql-rust.yml",
+        ".github/workflows/scorecard.yml"
+      ]
+    },
+    {
+      "repo": "phenoForge",
+      "files": [
+        ".github/workflows/release.yml",
+        ".github/workflows/quality-gate.yml",
+        ".github/workflows/security.yml",
+        ".github/workflows/cargo-deny.yml",
+        ".github/workflows/trufflehog.yml",
+        ".github/workflows/legacy-tooling-gate.yml",
+        ".github/workflows/benchmark.yml",
+        ".github/workflows/pages-deploy.yml",
+        ".github/workflows/ci.yml"
+      ]
+    },
+    {
+      "repo": "phenoResearchEngine",
+      "files": [
+        ".github/workflows/release.yml",
+        ".github/workflows/quality-gate.yml",
+        ".github/workflows/trufflehog.yml",
+        ".github/workflows/security-deep-scan.yml",
+        ".github/workflows/security-guard.yml",
+        ".github/workflows/sast.yml",
+        ".github/workflows/vitepress-deploy.yml",
+        ".github/workflows/ci.yml",
+        ".github/workflows/scorecard.yml"
+      ]
+    },
+    {
+      "repo": "phenoShared",
+      "files": [
+        ".github/workflows/docs-deploy.yml",
+        ".github/workflows/release.yml",
+        ".github/workflows/cargo-deny.yml",
+        ".github/workflows/self-merge-gate.yml",
+        ".github/workflows/trufflehog.yml",
+        ".github/workflows/tag-automation.yml",
+        ".github/workflows/alert-sync-issues.yml",
+        ".github/workflows/legacy-tooling-gate.yml",
+        ".github/workflows/codeql.yml",
+        ".github/workflows/cargo-machete.yml",
+        ".github/workflows/secrets-scan.yml",
+        ".github/workflows/security-guard-hook-audit.yml",
+        ".github/workflows/reusable-release-drafter.yml",
+        ".github/workflows/cargo-audit.yml",
+        ".github/workflows/ci.yml",
+        ".github/workflows/cargo-semver-checks.yml",
+        ".github/workflows/vitepress-pages.yml",
+        ".github/workflows/scorecard.yml"
+      ]
+    },
+    {
+      "repo": "phenoUtils",
+      "files": [
+        ".github/workflows/trufflehog.yml",
+        ".github/workflows/doc-links.yml",
+        ".github/workflows/codeql.yml",
+        ".github/workflows/fr-coverage.yml",
+        ".github/workflows/cargo-audit.yml",
+        ".github/workflows/ci.yml",
+        ".github/workflows/cargo-semver-checks.yml",
+        ".github/workflows/codeql-rust.yml",
+        ".github/workflows/scorecard.yml"
+      ]
+    },
+    {
+      "repo": "phenoXdd",
+      "files": [
+        ".github/workflows/release.yml",
+        ".github/workflows/quality-gate.yml",
+        ".github/workflows/trufflehog.yml",
+        ".github/workflows/security-deep-scan.yml",
+        ".github/workflows/legacy-tooling-gate.yml",
+        ".github/workflows/security-guard.yml",
+        ".github/workflows/pages-deploy.yml",
+        ".github/workflows/ci.yml"
+      ]
+    },
+    {
+      "repo": "phenodocs",
+      "files": [
+        ".github/workflows/trufflehog.yml",
+        ".github/workflows/alert-sync-issues.yml",
+        ".github/workflows/publish-package.yml",
+        ".github/workflows/doc-links.yml",
+        ".github/workflows/legacy-tooling-gate.yml",
+        ".github/workflows/codeql.yml",
+        ".github/workflows/sonarcloud.yml",
+        ".github/workflows/security-guard.yml",
+        ".github/workflows/fr-coverage.yml",
+        ".github/workflows/deploy.yml",
+        ".github/workflows/workflow-permissions.yml",
+        ".github/workflows/security-guard-hook-audit.yml",
+        ".github/workflows/journey-verify.yml",
+        ".github/workflows/scorecard.yml"
+      ]
+    },
+    {
+      "repo": "phenodocs-scorecard-remediation",
+      "files": [
+        ".github/workflows/trufflehog.yml",
+        ".github/workflows/alert-sync-issues.yml",
+        ".github/workflows/publish-package.yml",
+        ".github/workflows/doc-links.yml",
+        ".github/workflows/legacy-tooling-gate.yml",
+        ".github/workflows/codeql.yml",
+        ".github/workflows/security-guard.yml",
+        ".github/workflows/fr-coverage.yml",
+        ".github/workflows/deploy.yml",
+        ".github/workflows/workflow-permissions.yml",
+        ".github/workflows/security-guard-hook-audit.yml",
+        ".github/workflows/scorecard.yml"
+      ]
+    },
+    {
+      "repo": "phenokits-landing",
+      "files": [
+        ".github/workflows/trufflehog.yml",
+        ".github/workflows/pages.yml",
+        ".github/workflows/ci.yml",
+        ".github/workflows/scorecard.yml"
+      ]
+    },
+    {
+      "repo": "phenotype-auth-ts",
+      "files": [
+        ".github/workflows/quality-gate.yml",
+        ".github/workflows/trufflehog.yml",
+        ".github/workflows/doc-links.yml",
+        ".github/workflows/codeql.yml",
+        ".github/workflows/sonarcloud.yml",
+        ".github/workflows/fr-coverage.yml",
+        ".github/workflows/secrets-scan.yml",
+        ".github/workflows/vitepress-deploy.yml",
+        ".github/workflows/scorecard.yml"
+      ]
+    },
+    {
+      "repo": "phenotype-bus",
+      "files": [
+        ".github/workflows/trufflehog.yml",
+        ".github/workflows/codeql.yml",
+        ".github/workflows/cargo-machete.yml",
+        ".github/workflows/fr-coverage.yml",
+        ".github/workflows/cargo-audit.yml",
+        ".github/workflows/ci.yml",
+        ".github/workflows/cargo-semver-checks.yml",
+        ".github/workflows/codeql-rust.yml",
+        ".github/workflows/scorecard.yml"
+      ]
+    },
+    {
+      "repo": "phenotype-dep-guard",
+      "files": [
+        ".github/workflows/policy-gate.yml",
+        ".github/workflows/trufflehog.yml",
+        ".github/workflows/branch-protection-audit.yml",
+        ".github/workflows/reusable-dep-guard.yml",
+        ".github/workflows/ci.yml"
+      ]
+    },
+    {
+      "repo": "phenotype-hub",
+      "files": [
+        ".github/workflows/trufflehog.yml",
+        ".github/workflows/doc-links.yml",
+        ".github/workflows/codeql.yml",
+        ".github/workflows/fr-coverage.yml",
+        ".github/workflows/secrets-scan.yml",
+        ".github/workflows/vitepress-deploy.yml",
+        ".github/workflows/scorecard.yml"
+      ]
+    },
+    {
+      "repo": "phenotype-infra",
+      "files": [
+        ".github/workflows/trufflehog.yml",
+        ".github/workflows/doc-links.yml",
+        ".github/workflows/codeql.yml",
+        ".github/workflows/fr-coverage.yml",
+        ".github/workflows/terraform-plan.yml",
+        ".github/workflows/docs-lint.yml",
+        ".github/workflows/iac-rust.yml",
+        ".github/workflows/scorecard.yml"
+      ]
+    },
+    {
+      "repo": "phenotype-journeys",
+      "files": [
+        ".github/workflows/trufflehog.yml",
+        ".github/workflows/doc-links.yml",
+        ".github/workflows/codeql.yml",
+        ".github/workflows/journey-gate.yml",
+        ".github/workflows/sonarcloud.yml",
+        ".github/workflows/cargo-machete.yml",
+        ".github/workflows/fr-coverage.yml",
+        ".github/workflows/secrets-scan.yml",
+        ".github/workflows/publish-npm.yml",
+        ".github/workflows/vitepress-deploy.yml",
+        ".github/workflows/cargo-audit.yml",
+        ".github/workflows/ci.yml",
+        ".github/workflows/cargo-semver-checks.yml",
+        ".github/workflows/codeql-rust.yml",
+        ".github/workflows/scorecard.yml"
+      ]
+    },
+    {
+      "repo": "phenotype-omlx",
+      "files": [
+        ".github/workflows/ci.yml",
+        ".github/workflows/scorecard.yml"
+      ]
+    },
+    {
+      "repo": "phenotype-ops-mcp",
+      "files": [
+        ".github/workflows/manifest-check.yml",
+        ".github/workflows/ci.yml",
+        ".github/workflows/scorecard.yml"
+      ]
+    },
+    {
+      "repo": "phenotype-org-audits",
+      "files": [
+        ".github/workflows/trufflehog.yml",
+        ".github/workflows/pages.yml",
+        ".github/workflows/codeql.yml",
+        ".github/workflows/quarterly-audit.yml",
+        ".github/workflows/scorecard.yml"
+      ]
+    },
+    {
+      "repo": "phenotype-postfx",
+      "files": [
+        ".github/workflows/ci.yml"
+      ]
+    },
+    {
+      "repo": "phenotype-registry",
+      "files": [
+        ".github/workflows/pages.yml",
+        ".github/workflows/legacy-tooling-gate.yml",
+        ".github/workflows/scorecard.yml"
+      ]
+    },
+    {
+      "repo": "phenotype-shared",
+      "files": [
+        ".github/workflows/ci.yml",
+        ".github/workflows/reusable-scorecard.yml"
+      ]
+    },
+    {
+      "repo": "phenotype-tooling",
+      "files": [
+        ".github/workflows/cargo-deny.yml",
+        ".github/workflows/trufflehog.yml",
+        ".github/workflows/alert-sync-issues.yml",
+        ".github/workflows/pages.yml",
+        ".github/workflows/doc-links.yml",
+        ".github/workflows/codeql.yml",
+        ".github/workflows/reusable-journey-gate.yml",
+        ".github/workflows/fr-coverage.yml",
+        ".github/workflows/reusable-trufflehog.yml",
+        ".github/workflows/cargo-audit.yml",
+        ".github/workflows/ci.yml",
+        ".github/workflows/codeql-rust.yml",
+        ".github/workflows/scorecard.yml"
+      ]
+    },
+    {
+      "repo": "phenotype-voxel",
+      "files": [
+        ".github/workflows/ci.yml"
+      ]
+    },
+    {
+      "repo": "portage",
+      "files": [
+        ".github/workflows/docs-deploy.yml",
+        ".github/workflows/coverage.yml",
+        ".github/workflows/ty.yml",
+        ".github/workflows/pytest.yml",
+        ".github/workflows/policy-gate.yml",
+        ".github/workflows/release.yml",
+        ".github/workflows/sync-registry.yml",
+        ".github/workflows/quality-gate.yml",
+        ".github/workflows/self-merge-gate.yml",
+        ".github/workflows/verify-merge-token.yml",
+        ".github/workflows/trufflehog.yml",
+        ".github/workflows/tag-automation.yml",
+        ".github/workflows/alert-sync-issues.yml",
+        ".github/workflows/security-deep-scan.yml",
+        ".github/workflows/stage-gates.yml",
+        ".github/workflows/legacy-tooling-gate.yml",
+        ".github/workflows/security-guard.yml",
+        ".github/workflows/reusable-policy-gate.yml",
+        ".github/workflows/claude-code-review.yml",
+        ".github/workflows/release-drafter.yml",
+        ".github/workflows/ruff-format.yml",
+        ".github/workflows/claude.yml",
+        ".github/workflows/workflow-permissions.yml",
+        ".github/workflows/sast.yml",
+        ".github/workflows/security-guard-hook-audit.yml",
+        ".github/workflows/issue-merge-token.yml",
+        ".github/workflows/lint-test.yml",
+        ".github/workflows/ci.yml",
+        ".github/workflows/scorecard.yml"
+      ]
+    },
+    {
+      "repo": "rich-cli-kit",
+      "files": [
+        ".github/workflows/trufflehog.yml",
+        ".github/workflows/doc-links.yml",
+        ".github/workflows/codeql.yml",
+        ".github/workflows/journey-gate.yml",
+        ".github/workflows/cargo-machete.yml",
+        ".github/workflows/fr-coverage.yml",
+        ".github/workflows/cargo-audit.yml",
+        ".github/workflows/cargo-semver-checks.yml",
+        ".github/workflows/codeql-rust.yml",
+        ".github/workflows/scorecard.yml"
+      ]
+    },
+    {
+      "repo": "thegent",
+      "files": [
+        ".github/workflows/release.yml",
+        ".github/workflows/quality-gate.yml",
+        ".github/workflows/ai-testing.yml",
+        ".github/workflows/security.yml",
+        ".github/workflows/cargo-deny.yml",
+        ".github/workflows/trufflehog.yml",
+        ".github/workflows/zap-dast.yml",
+        ".github/workflows/security-deep-scan.yml",
+        ".github/workflows/iac-scan.yml",
+        ".github/workflows/sast-full.yml",
+        ".github/workflows/pr-governance-gate.yml",
+        ".github/workflows/codeql.yml",
+        ".github/workflows/sonarcloud.yml",
+        ".github/workflows/security-guard.yml",
+        ".github/workflows/fuzzing.yml",
+        ".github/workflows/sast-quick.yml",
+        ".github/workflows/license-compliance.yml",
+        ".github/workflows/sast.yml",
+        ".github/workflows/pages-deploy.yml",
+        ".github/workflows/trivy-scan.yml",
+        ".github/workflows/ci.yml",
+        ".github/workflows/scorecard.yml"
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-docs",
+      "files": [
+        ".github/workflows/release.yml",
+        ".github/workflows/quality-gate.yml",
+        ".github/workflows/security.yml",
+        ".github/workflows/deploy-docs.yml",
+        ".github/workflows/zap-dast.yml",
+        ".github/workflows/security-deep-scan.yml",
+        ".github/workflows/iac-scan.yml",
+        ".github/workflows/codeql.yml",
+        ".github/workflows/sonarcloud.yml",
+        ".github/workflows/security-guard.yml",
+        ".github/workflows/fuzzing.yml",
+        ".github/workflows/license-compliance.yml",
+        ".github/workflows/sast.yml",
+        ".github/workflows/pages-deploy.yml",
+        ".github/workflows/trivy-scan.yml",
+        ".github/workflows/ci.yml"
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-idea",
+      "files": [
+        ".github/workflows/release.yml",
+        ".github/workflows/quality-gate.yml",
+        ".github/workflows/ai-testing.yml",
+        ".github/workflows/security.yml",
+        ".github/workflows/zap-dast.yml",
+        ".github/workflows/security-deep-scan.yml",
+        ".github/workflows/iac-scan.yml",
+        ".github/workflows/sast-full.yml",
+        ".github/workflows/pr-governance-gate.yml",
+        ".github/workflows/codeql.yml",
+        ".github/workflows/sonarcloud.yml",
+        ".github/workflows/security-guard.yml",
+        ".github/workflows/fuzzing.yml",
+        ".github/workflows/sast-quick.yml",
+        ".github/workflows/license-compliance.yml",
+        ".github/workflows/sast.yml",
+        ".github/workflows/pages-deploy.yml",
+        ".github/workflows/trivy-scan.yml",
+        ".github/workflows/ci.yml",
+        ".github/workflows/scorecard.yml"
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-parallel",
+      "files": [
+        ".github/workflows/release.yml",
+        ".github/workflows/quality-gate.yml",
+        ".github/workflows/ai-testing.yml",
+        ".github/workflows/security.yml",
+        ".github/workflows/zap-dast.yml",
+        ".github/workflows/security-deep-scan.yml",
+        ".github/workflows/iac-scan.yml",
+        ".github/workflows/sast-full.yml",
+        ".github/workflows/pr-governance-gate.yml",
+        ".github/workflows/codeql.yml",
+        ".github/workflows/sonarcloud.yml",
+        ".github/workflows/security-guard.yml",
+        ".github/workflows/fuzzing.yml",
+        ".github/workflows/sast-quick.yml",
+        ".github/workflows/license-compliance.yml",
+        ".github/workflows/sast.yml",
+        ".github/workflows/pages-deploy.yml",
+        ".github/workflows/trivy-scan.yml",
+        ".github/workflows/ci.yml",
+        ".github/workflows/scorecard.yml"
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-policy",
+      "files": [
+        ".github/workflows/sast-quick.yml"
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-ruff",
+      "files": [
+        ".github/workflows/release.yml",
+        ".github/workflows/quality-gate.yml",
+        ".github/workflows/ai-testing.yml",
+        ".github/workflows/security.yml",
+        ".github/workflows/zap-dast.yml",
+        ".github/workflows/security-deep-scan.yml",
+        ".github/workflows/iac-scan.yml",
+        ".github/workflows/sast-full.yml",
+        ".github/workflows/pr-governance-gate.yml",
+        ".github/workflows/sonarcloud.yml",
+        ".github/workflows/security-guard.yml",
+        ".github/workflows/fuzzing.yml",
+        ".github/workflows/sast-quick.yml",
+        ".github/workflows/license-compliance.yml",
+        ".github/workflows/sast.yml",
+        ".github/workflows/pages-deploy.yml",
+        ".github/workflows/trivy-scan.yml",
+        ".github/workflows/ci.yml",
+        ".github/workflows/scorecard.yml"
+      ]
+    },
+    {
+      "repo": "thegent-dispatch",
+      "files": [
+        ".github/workflows/codeql.yml",
+        ".github/workflows/cargo-machete.yml",
+        ".github/workflows/fr-coverage.yml",
+        ".github/workflows/cargo-audit.yml",
+        ".github/workflows/cargo-semver-checks.yml",
+        ".github/workflows/codeql-rust.yml",
+        ".github/workflows/scorecard.yml"
+      ]
+    },
+    {
+      "repo": "vibeproxy",
+      "files": [
+        ".github/workflows/trufflehog.yml",
+        ".github/workflows/security-deep-scan.yml",
+        ".github/workflows/codeql.yml",
+        ".github/workflows/release-drafter.yml",
+        ".github/workflows/secrets-scan.yml",
+        ".github/workflows/update-cliproxyapi.yml",
+        ".github/workflows/linux-build.yml",
+        ".github/workflows/vitepress-deploy.yml",
+        ".github/workflows/ci.yml",
+        ".github/workflows/cross-platform-test.yml",
+        ".github/workflows/scorecard.yml"
+      ]
+    },
+    {
+      "repo": "vibeproxy-monitoring-unified",
+      "files": [
+        ".github/workflows/release.yml",
+        ".github/workflows/trufflehog.yml",
+        ".github/workflows/security-deep-scan.yml",
+        ".github/workflows/doc-links.yml",
+        ".github/workflows/codeql.yml",
+        ".github/workflows/fr-coverage.yml",
+        ".github/workflows/secrets-scan.yml",
+        ".github/workflows/vitepress-deploy.yml",
+        ".github/workflows/ci.yml",
+        ".github/workflows/scorecard.yml"
+      ]
+    }
+  ]
+}

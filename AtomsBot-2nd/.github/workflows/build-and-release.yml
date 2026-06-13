@@ -1,0 +1,62 @@
+name: Build and Release
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+on:
+  push:
+    branches:
+      - main
+permissions:
+  contents: read
+
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+
+    strategy:
+      matrix:
+        node-version: [20]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@735bb779f4f6a9451ceffbd9ea1e6dca87cf6d25 # v2
+        with:
+          bun-version: latest
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Build project
+        run: bun run build
+
+      - name: Prepare release artifacts
+        run: |
+          mkdir -p dist/release
+          cp -a dist/index.js dist/index.d.ts dist/release/
+          cp .env.example dist/release/.env
+          cp deploy-assets/run.bat dist/release/run.bat
+          cp deploy-assets/run.sh dist/release/run.sh
+          tar -czvf dist/release.tar.gz -C dist/release .
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@0ff5df8f4ef8a8f9f5f8f8d7f5f5de0f6ab4f9eb
+        with:
+          files: dist/release.tar.gz
+          tag_name: v${{ github.run_number }}
+          name: Release ${{ github.run_number }}
+          draft: false
+          prerelease: false
+          token: ${{ github.token }}

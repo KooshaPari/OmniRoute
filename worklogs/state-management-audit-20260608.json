@@ -1,0 +1,15 @@
+{
+  "generated_at": "2026-06-05T22:15:00Z",
+  "total_repos": 162,
+  "by_lib": {
+    "redux": [],
+    "zustand": [
+      "OmniRoute"
+    ],
+    "jotai": [],
+    "recoil": [],
+    "pinia": [],
+    "vuex": [],
+    "mobx": []
+  }
+}

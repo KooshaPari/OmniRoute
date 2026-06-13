@@ -1,0 +1,104 @@
+{
+  "generated_at": "2026-06-08T23:55:00Z",
+  "repo": "argis-extensions",
+  "branch_audited": "main (2f848cc, ahead 3 of origin/main)",
+  "audit_type": "hygiene",
+  "template": "G1-G5 + e2e + 2-paragraph deep research + 3 actions",
+  "summary": "G1-G4 FAIL on critical SHA/expression corruption (54 'Not Found' JSON objects appended to every SHA, 14+ ${{ }} expressions stripped to $123...125 placeholders). G2-G5 otherwise pass at the file-existence layer. e2e misrouted (quality-gate.yml is Rust-shaped; this is a Go-only repo). 3 actionable findings, P0=1.",
+  "gates": {
+    "G1_workflow_hygiene": {
+      "status": "FAIL",
+      "evidence": [
+        "11/11 .github/workflows/*.yml have a corruption: SHA hashes have a 404 JSON object appended (e.g. 'actions/checkout@b4ffde65f...11@{\"message\":\"Not Found\",...,\"status\":\"404\"}'). 54 'Not Found' occurrences total: cd.yml=12, ci.yml=4, coverage.yml=2, journey-gate.yml=1, legacy-tooling-gate.yml=6, quality-gate.yml=14, release-drafter.yml=1, release.yml=4, sast.yml=4, scorecard.yml=4, trufflehog.yml=2.",
+        "GitHub Actions expressions stripped: ci.yml:18 ('$123matrix.go-version125'), release.yml:18/30/50/56 (${{ steps.version.outputs.version }} / ${{ needs.release.outputs.version }}), quality-gate.yml. Most ${{ }} -> $123...125 across all workflows.",
+        "Result: every workflow is non-functional (action resolver sees an invalid ref; expression parser sees a literal string). Branch is 'ahead 3 of origin/main' but CI is dark.",
+        "Trufflehog rot present: trufflehog.yml uses trufflehog/actions/setup@<broken> (org-canonical is trufflesecurity/trufflehog@75add79b929b263dae147d2e5bcf0daf292165cf).",
+        "Workflow_dispatch + concurrency + permissions present only in cd.yml, scorecard.yml, legacy-tooling-gate.yml (4/11). ci.yml + release.yml + quality-gate.yml + sast.yml missing permissions block."
+      ]
+    },
+    "G2_governance_files": {
+      "status": "PASS",
+      "evidence": [
+        "LICENSE (MIT) + LICENSE-MIT + LICENSE-APACHE all present (PR a74146a added dual).",
+        "CODE_OF_CONDUCT.md, CONTRIBUTING.md, SECURITY.md, FUNDING.yml, CITATION.cff all present.",
+        "CODEOWNERS at .github/CODEOWNERS only (org-canonical also wants /CODEOWNERS at root — minor drift).",
+        "pull_request_template.md (19-line org-stub) + ISSUE_TEMPLATE/{bug,config,feature}.yml present.",
+        "SUPPORT.md MISSING (the only org-mandated community-health file gap).",
+        "Naming drift: AGENTS.md header = 'bifrost-extensions', module path = 'github.com/kooshapari/bifrost-extensions', repo name = 'argis-extensions', SSOT.md = 'argis-extensions'. Three names for one project."
+      ]
+    },
+    "G3_security_scanning": {
+      "status": "PARTIAL",
+      "evidence": [
+        "scorecard.yml present (cron 17 3 * * 6, ossf/scorecard-action + upload-sarif) — but its checkout step is corrupted by G1.",
+        "sast.yml: CodeQL for typescript/python/rust/go — but this is a Go-only repo (no TS/Python/Rust sources), so 75% of the matrix is dead.",
+        "legacy-tooling-gate.yml: scans tooling/legacy-enforcement rules.yaml — referenced checkout of kooshapari/phenotype is also corrupted.",
+        "trufflehog.yml: trufflehog/actions rot (same as tick-17/18 finding across 17+ repos).",
+        "dependabot.yml: gomod + pip + npm + cargo, all daily. No github-actions ecosystem (no Renovate either)."
+      ]
+    },
+    "G4_quality_gates": {
+      "status": "PARTIAL",
+      "evidence": [
+        "ci.yml: test job runs `go test ./... -v -race -coverprofile=coverage.out` on Go 1.21/1.22 (go.mod says 1.25.0 — matrix is stale by 3 minor versions).",
+        "quality-gate.yml: cargo-tarpaulin + cargo test --lib + codecov. This is a Rust-shaped gate in a Go-only repo: every job will skip. (Same anti-pattern as HeliosLab's docs/tests misroute.)",
+        "coverage.yml: 'echo Coverage check configured' stub — not wired to any tool.",
+        "pre-commit-config.yaml: invokes `task ci` and `task security` (org-standard local hooks). .githooks/pre-commit + pre-push present and executable.",
+        "deny.toml MISSING (no Rust deny config to enforce). .air.toml present."
+      ]
+    },
+    "G5_review_governance": {
+      "status": "PARTIAL",
+      "evidence": [
+        "dependabot.yml: 4 ecosystems daily (gomod/pip/npm/cargo).",
+        "pull_request_template.md: 19-line org-stub present.",
+        "ISSUE_TEMPLATE/: bug.yml + config.yml + feature.yml (org-standard 3-file set).",
+        ".coderabbit.yaml MISSING (org-mandated by AGENTS.md; HeliosLab has it).",
+        ".gemini/ MISSING (org-mandated).",
+        "CHANGELOG.md [Unreleased] empty since 2026-05-04. cliff.toml present (uses git-cliff for release notes).",
+        "Local main 3 commits ahead of origin/main (a74146a dual-license, 4ef9955 SSOT, 2f848cc Justfile) — unpushed, no open PR."
+      ]
+    },
+    "e2e_end_to_end": {
+      "status": "DEGRADED",
+      "evidence": [
+        "quality-gate.yml:23-30 check-changes: [ -d \"tests\" ] / [ -d \"e2e\" ] / [ -d \"integration\" ] at REPO ROOT. e2e/ and integration/ do NOT exist; tests/ has only test_integration.py.",
+        "Actual test code: 13 _test.go files under cmd/bifrost/cli/ (config/dataset/deploy/init/integration/plugin/etc.) + 1 under server/ + 1 under infra/redis/. None at root.",
+        "Consequence: has_tests=true (tests/ exists) but has_e2e=false, has_integration=false. e2e-tests + integration-tests jobs in quality-gate.yml always skip.",
+        "Only actually-running CI is ci.yml:11-37 (`go test ./... -v -race`) — a single Go test job. No separate e2e harness, no playwright, no docker-compose test runner."
+      ]
+    }
+  },
+  "additional_findings": {
+    "naming_drift": "AGENTS.md line 3 says 'bifrost-extensions'; go.mod line 1 says 'github.com/kooshapari/bifrost-extensions'; repo is named 'argis-extensions'; SSOT.md is 'argis-extensions'. Module imports will break if the repo is renamed (it's the wrong way around — repo name = directory name = the AGENTS.md should follow).",
+    "build_system_triad": "Justfile (added 2f848cc) + Makefile.cli + Taskfile.yml coexist. Taskfile.yml is the primary (Task 3.x, org-standard). Justfile duplicates task detection (find . -name go.mod). Makefile.cli unused per AGENTS.md.",
+    "stale_readme_state": "README.md 'Work State' table: 'Last commit 2026-05-04, Open PRs 7, Progress 60%'. Local main is 2026-06-08 (2f848cc), SSOT.md says 0 open PRs. README drift.",
+    "go_version_matrix_stale": "ci.yml:17 matrix is Go 1.21/1.22; go.mod line 3 says 'go 1.25.0'. Matrix is 3 minors behind; the 1.25 toolchain doesn't exist publicly yet (training-data assumption), so the matrix may be deliberate — but if not, it should match.",
+    "go_only_repo_with_rust_gates": "quality-gate.yml runs cargo test --lib --all-features + cargo-tarpaulin + cargo-llvm-cov. No Cargo.toml exists. The gate is structurally dead code for this repo — every step echoes 'skipping'.",
+    "vestigial_local_branches": "21+ diverged local branches (chore/editorconfig-align, chore/gitignore-wtrees, chore/infra-cleanup-20260504, chore/pin-actions [ahead 6, behind 7], chore/worklog-seed-argis-extensions [ahead 6, behind 7], ci/add-golangci-lint, codex/dependabot-hatchet-*, dependabot-*, docs/argis-extensions-sladge-badge [ahead 25, behind 60], feat/journey-impl [ahead 4, behind 10], hygiene/20260430-ad10fc1, recovery/*). Per tick-19 policy these are vestigial. Many marked 'gone' on origin.",
+    "worktrees_present_and_merged": "2 active worktrees: editorconfig-align, work-state-header. Both branches already merged to main (commit a1ae37b / 194df2d reachable from main). .gitignore line excludes *-wtrees/ (5b14f16).",
+    "duplicate_infra_subdirs": "infra/{circuitbreaker,graceful,hatchet,nats,neo4j,redis,upstash} — 7 sub-dirs, mostly empty (just client.go or client.go+cache.go). Inconsistent population; some have docker-compose, some don't."
+  },
+  "actions_recommended": [
+    {
+      "priority": "P0",
+      "title": "Repair the 54 corrupted SHAs and ~14 ${{ }} expression placeholders across .github/workflows/*.yml",
+      "detail": "Every 'uses: org/action@<sha>@{\"message\":\"Not Found\",...,\"status\":\"404\"}' must be stripped back to 'uses: org/action@<sha>'. Every '${{ x.y.z }}' must be restored from '$123x.y.z125'. Then align the SHAs to the org-canonical set: actions/checkout=34e114876b0b11c390a56381ad16ebd13914f8d5 (current df4cb1c069e... is drift), and replace trufflehog/actions/setup with trufflesecurity/trufflehog@75add79b929b263dae147d2e5bcf0daf292165cf. This single PR unblocks the entire CI fleet for argis-extensions.",
+      "estimated_effort": "60-90 min: sed across 11 files + yq re-validate + push + watch green CI"
+    },
+    {
+      "priority": "P1",
+      "title": "Delete or replace quality-gate.yml with a Go-shaped gate; drop the cargo-tarpaulin/cargo-llvm-cov steps that have no Cargo.toml to act on",
+      "detail": "quality-gate.yml is a 196-line Rust gate (cargo test --lib --all-features, cargo-tarpaulin, codecov) imported wholesale from a Rust model repo. Argis-extensions is Go-only. Either (a) replace it with a Go gate (golangci-lint, go test ./... -race -coverprofile, codecov) or (b) delete the file. Keep check-changes job (the tests/e2e/integration detection) but adjust paths to also detect cmd/bifrost/cli/*_test.go.",
+      "estimated_effort": "30 min: rewrite or delete, validate check-changes against real test paths"
+    },
+    {
+      "priority": "P1",
+      "title": "Resolve naming drift: AGENTS.md says 'bifrost-extensions' but repo+SSOT say 'argis-extensions'",
+      "detail": "AGENTS.md line 3, go.mod line 1, and the directory all use 'bifrost-extensions'; the repo name and SSOT.md use 'argis-extensions'. Pick one. Recommend renaming go.mod module to 'github.com/kooshapari/argis-extensions' to match the repo + SSOT, and updating AGENTS.md line 3 to match. This avoids future import-path rot.",
+      "estimated_effort": "10 min: 1 go.mod line + 1 AGENTS.md line + 1 quick search/replace for any internal imports"
+    }
+  ],
+  "deep_research": "Argis-extensions is a Bifrost LLM-gateway extension layer in Go (cmd/bifrost, plugins/{contentsafety,contextfolding,intelligentrouter,learning,promptadapter,researchintel,smartfallback,toolrouter,voyage}, api/{connect,rest,graphql}, infra/{circuitbreaker,graceful,hatchet,nats,neo4j,redis,upstash}) with a 109KB SPEC.md and 92KB WARP.md that document a much larger surface than the code actually ships. Compared to its sibling repos in the Bifrost cluster (HeliosCLI, helioscope, kDesktopVirt, PhenoProc), argis-extensions has the worst workflow-file corruption I've seen: 11/11 yml files have a 404-JSON object appended to the SHA, 14+ ${{ }} expressions are stripped to $123...125 placeholders, and the result is that every CI job is dark. The corruption pattern looks like an agent or pre-commit hook that called the GitHub API for action-version lookup, got a 404, and concatenated the error JSON into the YAML. The SHAs themselves are still real (b4ffde65..., df4cb1c..., ea165f8d...) and could be restored by removing everything after the @ — the fix is mechanical. The org-canonical alignment is the harder part: current actions/checkout SHA is df4cb1c069... but the org-canonical (per the dup-cargo-toml and the tick-19/22 SSOT work) is 34e114876b...; the same is true for setup-go, codecov-action, and the docker/* actions. The trufflehog rot from tick-17 is also present and should be fixed in the same pass.",
+  "deep_research_cont": "Beyond the SHA rot, the repo has structural hygiene debt: (1) quality-gate.yml is a Rust gate imported wholesale from a Rust model repo, in a Go-only project — every cargo step echoes 'skipping', and the check-changes tests/e2e/integration detection never fires for the real test paths under cmd/bifrost/cli/*.go. (2) Three competing build systems coexist (Taskfile.yml + Makefile.cli + Justfile, the latter just added 2f848cc); Taskfile is the org-canonical and the others should be either merged or deleted. (3) Naming drift: AGENTS.md line 3 still says 'bifrost-extensions' but the repo and SSOT.md say 'argis-extensions' — three different names for the same project, with the module path being the most likely to bite at import time. (4) 21+ vestigial local branches (codex/*, dependabot-*, hygiene/*, recovery/*, chore/infra-cleanup-20260504, docs/argis-extensions-sladge-badge [ahead 25, behind 60]); per tick-19 these are the '5+5+5' snapshot-era rot pattern. (5) 2 active worktrees (editorconfig-align, work-state-header) — both branches are already merged to main, so the worktrees can be removed. (6) The README 'Work State' table says 'Last commit 2026-05-04, Open PRs 7' but local main is 2f848cc (2026-06-08) and SSOT.md says 0 open PRs — drift between the human-facing README and the SSOT. Hygiene score: 2.6/5 (G1 hard-fail on the SHA rot; G2 solid; G3/G4/G5 partial on file presence but degraded on the same corruption)."
+}

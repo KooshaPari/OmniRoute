@@ -1,0 +1,234 @@
+version: '3.8'
+
+services:
+  # Kwality Go Orchestration Service
+  kwality-orchestrator:
+    build:
+      context: .
+      dockerfile: Dockerfile.go
+    container_name: kwality-orchestrator
+    ports:
+      - "8080:8080"
+    environment:
+      - KWALITY_PORT=8080
+      - KWALITY_ENV=production
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_DATABASE=kwality
+      - DB_USERNAME=kwality
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_SSL_MODE=require
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+      - JWT_SECRET=${JWT_SECRET}
+      - CORS_ORIGINS=${CORS_ORIGINS:-}
+      - RUNTIME_CONTAINER_IMAGE=kwality/runtime-validator:latest
+      - RUNTIME_MEMORY_LIMIT_MB=1024
+      - RUNTIME_CPU_LIMIT_CORES=2.0
+      - RUNTIME_TIMEOUT_SECONDS=600
+      - RUNTIME_NETWORK_ISOLATION=true
+      - SECURITY_ENABLED_SCANNERS=semgrep,gosec,bandit,trivy
+      - SECURITY_SECRETS_DETECTION=true
+      - LOG_LEVEL=info
+      - LOG_FORMAT=json
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./logs:/app/logs
+      - ./config:/app/config:ro
+      - /etc/ssl/certs:/etc/ssl/certs:ro
+    networks:
+      - kwality-backend
+      - kwality-frontend
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    read_only: true
+    tmpfs:
+      - /tmp:noexec,nosuid,size=100m
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Kwality Rust Runtime Validator
+  kwality-runtime-validator:
+    build:
+      context: ./engines/runtime-validator
+      dockerfile: Dockerfile.production
+    image: kwality/runtime-validator:latest
+    container_name: kwality-runtime-validator
+    environment:
+      - RUST_LOG=info
+      - CONTAINER_RUNTIME=docker
+    # NOTE: Removed privileged mode - use Docker-in-Docker pattern instead
+    volumes:
+      - ./engines/runtime-validator/config:/config:ro
+      - validation_workspace:/workspace
+    networks:
+      - kwality-backend
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    healthcheck:
+      test: ["CMD", "runtime-validator", "--health-check"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+  # PostgreSQL Database with Security Hardening
+  postgres:
+    image: postgres:15-alpine
+    container_name: kwality-postgres
+    environment:
+      - POSTGRES_DB=kwality
+      - POSTGRES_USER=kwality
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+      - POSTGRES_INITDB_ARGS=--auth-host=scram-sha-256
+      - PGDATA=/var/lib/postgresql/data/pgdata
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/schema:/docker-entrypoint-initdb.d:ro
+      - ./config/postgresql.conf:/etc/postgresql/postgresql.conf:ro
+    ports:
+      - "127.0.0.1:5432:5432"  # Bind to localhost only
+    networks:
+      - kwality-backend
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U kwality -d kwality"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Redis Cache with Authentication
+  redis:
+    image: redis:7-alpine
+    container_name: kwality-redis
+    ports:
+      - "127.0.0.1:6379:6379"  # Bind to localhost only
+    environment:
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+    volumes:
+      - redis_data:/data
+      - ./config/redis.production.conf:/etc/redis/redis.conf:ro
+    command: redis-server /etc/redis/redis.conf --requirepass ${REDIS_PASSWORD}
+    networks:
+      - kwality-backend
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    healthcheck:
+      test: ["CMD", "redis-cli", "--no-auth-warning", "-a", "${REDIS_PASSWORD}", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # NGINX Reverse Proxy with SSL
+  nginx:
+    image: nginx:alpine
+    container_name: kwality-nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      - SSL_CERT_PATH=/etc/ssl/certs/kwality.crt
+      - SSL_KEY_PATH=/etc/ssl/private/kwality.key
+    volumes:
+      - ./nginx/production.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/ssl:/etc/ssl:ro
+      - nginx_logs:/var/log/nginx
+    depends_on:
+      - kwality-orchestrator
+    networks:
+      - kwality-frontend
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+
+  # Prometheus with Security
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: kwality-prometheus
+    ports:
+      - "127.0.0.1:9090:9090"  # Bind to localhost only
+    volumes:
+      - ./monitoring/prometheus.production.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+      - '--web.console.templates=/usr/share/prometheus/consoles'
+      - '--web.enable-lifecycle'
+      - '--storage.tsdb.retention.time=30d'
+      - '--web.external-url=https://monitoring.yourdomain.com/prometheus'
+    networks:
+      - kwality-backend
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+
+  # Grafana with Secure Admin Account
+  grafana:
+    image: grafana/grafana:latest
+    container_name: kwality-grafana
+    ports:
+      - "127.0.0.1:3000:3000"  # Bind to localhost only
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD}
+      - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_SERVER_ROOT_URL=https://monitoring.yourdomain.com/grafana
+      - GF_SECURITY_DISABLE_GRAVATAR=true
+      - GF_ANALYTICS_REPORTING_ENABLED=false
+      - GF_ANALYTICS_CHECK_FOR_UPDATES=false
+      - GF_SECURITY_COOKIE_SECURE=true
+      - GF_SECURITY_COOKIE_SAMESITE=strict
+      - GF_SERVER_SERVE_FROM_SUB_PATH=true
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./monitoring/grafana/dashboards:/var/lib/grafana/dashboards:ro
+    depends_on:
+      - prometheus
+    networks:
+      - kwality-backend
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  prometheus_data:
+    driver: local
+  grafana_data:
+    driver: local
+  nginx_logs:
+    driver: local
+  validation_workspace:
+    driver: local
+
+networks:
+  kwality-backend:
+    driver: bridge
+    internal: true  # No external access
+    ipam:
+      config:
+        - subnet: 172.21.0.0/24
+  kwality-frontend:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.22.0.0/24

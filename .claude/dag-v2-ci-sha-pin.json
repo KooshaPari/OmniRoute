@@ -1,0 +1,169 @@
+{
+  "task": "L2-36-pheno-ci-sha-pin",
+  "executed_at": "2026-06-08",
+  "scope": "tag-only Action refs (branch refs @main/@master/@stable intentionally out of scope)",
+  "branch_name": "chore/ci-sha-pin-2026-06-08",
+  "pushed": false,
+  "sha_resolution_command": "git ls-remote https://github.com/<owner>/<repo> refs/tags/<tag>",
+  "pinned_shas": {
+    "actions/checkout@v4": "34e114876b0b11c390a56381ad16ebd13914f8d5",
+    "actions/checkout@v6": "df4cb1c069e1874edd31b4311f1884172cec0e10",
+    "actions/setup-go@v4": "7b8cf10d4e4a01d4992d18a89f4d7dc5a3e6d6f4",
+    "actions/setup-go@v5": "40f1582b2485089dde7abd97c1529aa768e1baff",
+    "actions/setup-node@v4": "49933ea5288caeca8642d1e84afbd3f7d6820020",
+    "actions/setup-node@v6": "48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e",
+    "actions/setup-python@v5": "a26af69be951a213d495a4c3e4e4022e16d87065",
+    "codecov/codecov-action@v6": "f2274c2c340e0c81c8f7dc407b2a477b8935f171",
+    "github/codeql-action@v2": "b8d3b6e8af63cde30bdc382c0bc28114f4346c88",
+    "peter-evans/create-pull-request@v8": "5f6978faf089d4d20b00c7766989d076bb2fc7f1",
+    "returntocorp/semgrep-action@v1": "713efdd345f3035192eaa63f56867b88e63e4e5d",
+    "EmbarkStudios/cargo-deny-action@v2": "8f84122a46a358a27cb0625d85ad60ab436a1b87",
+    "Swatinem/rust-cache@v2": "42dc69e1aa15d09112580998cf2ef0119e2e91ae",
+    "softprops/action-gh-release@v2": "3bb12739c298aeb8a4eeaf626c5b8d85266b0e65"
+  },
+  "repos": {
+    "KaskMan": {
+      "branch": "chore/ci-sha-pin-2026-06-08",
+      "branched_from": "main",
+      "commit_sha": "4441ea49469fe9bbcaf16f93669ad85aa91cc7f8",
+      "commit_message": "chore(ci): SHA-pin all third-party GitHub Actions",
+      "files_changed": [
+        ".github/workflows/ci.yml",
+        ".github/workflows/dependency-update.yml",
+        ".github/workflows/pr-checks.yml"
+      ],
+      "actions_pinned_count": 27,
+      "unique_actions_pinned": 7,
+      "unique_shas": [
+        "df4cb1c069e1874edd31b4311f1884172cec0e10",
+        "48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e",
+        "f2274c2c340e0c81c8f7dc407b2a477b8935f171",
+        "b8d3b6e8af63cde30bdc382c0bc28114f4346c88",
+        "7b8cf10d4e4a01d4992d18a89f4d7dc5a3e6d6f4",
+        "5f6978faf089d4d20b00c7766989d076bb2fc7f1",
+        "713efdd345f3035192eaa63f56867b88e63e4e5d"
+      ],
+      "actions_pinned": {
+        "actions/checkout@v6": {"sha": "df4cb1c069e1874edd31b4311f1884172cec0e10", "occurrences": 10},
+        "actions/setup-node@v6": {"sha": "48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e", "occurrences": 9},
+        "github/codeql-action/upload-sarif@v2": {"sha": "b8d3b6e8af63cde30bdc382c0bc28114f4346c88", "occurrences": 2},
+        "github/codeql-action/analyze@v2": {"sha": "b8d3b6e8af63cde30bdc382c0bc28114f4346c88", "occurrences": 1},
+        "codecov/codecov-action@v6": {"sha": "f2274c2c340e0c81c8f7dc407b2a477b8935f171", "occurrences": 1},
+        "actions/setup-go@v4": {"sha": "7b8cf10d4e4a01d4992d18a89f4d7dc5a3e6d6f4", "occurrences": 1},
+        "peter-evans/create-pull-request@v8": {"sha": "5f6978faf089d4d20b00c7766989d076bb2fc7f1", "occurrences": 1},
+        "returntocorp/semgrep-action@v1": {"sha": "713efdd345f3035192eaa63f56867b88e63e4e5d", "occurrences": 1}
+      },
+      "branch_refs_left_intact": [
+        "aquasecurity/trivy-action@master",
+        "SonarSource/sonarcloud-github-action@master",
+        "trufflesecurity/trufflehog@main"
+      ]
+    },
+    "KodeVibe": {
+      "branch": "chore/ci-sha-pin-2026-06-08",
+      "branched_from": "chore/dependabot-2026-06-08",
+      "commit_sha": "96bb3ddb579609f188ab30ca06bb574988fc9f33",
+      "commit_message": "chore(ci): SHA-pin all third-party GitHub Actions",
+      "files_changed": [
+        ".github/workflows/go-engine.yml"
+      ],
+      "actions_pinned_count": 2,
+      "unique_actions_pinned": 2,
+      "unique_shas": [
+        "34e114876b0b11c390a56381ad16ebd13914f8d5",
+        "40f1582b2485089dde7abd97c1529aa768e1baff"
+      ],
+      "actions_pinned": {
+        "actions/checkout@v4": {"sha": "34e114876b0b11c390a56381ad16ebd13914f8d5", "occurrences": 1},
+        "actions/setup-go@v5": {"sha": "40f1582b2485089dde7abd97c1529aa768e1baff", "occurrences": 1}
+      }
+    },
+    "NetScript": {
+      "branch": "chore/ci-sha-pin-2026-06-08",
+      "branched_from": "chore/dependabot-2026-06-08",
+      "commit_sha": "4e242f266b485b40f445f45b802ef958e0219b3b",
+      "commit_message": "chore(ci): SHA-pin all third-party GitHub Actions",
+      "files_changed": [
+        ".github/workflows/ci.yml",
+        ".github/workflows/release.yml"
+      ],
+      "actions_pinned_count": 10,
+      "unique_actions_pinned": 4,
+      "unique_shas": [
+        "34e114876b0b11c390a56381ad16ebd13914f8d5",
+        "8f84122a46a358a27cb0625d85ad60ab436a1b87",
+        "42dc69e1aa15d09112580998cf2ef0119e2e91ae",
+        "3bb12739c298aeb8a4eeaf626c5b8d85266b0e65"
+      ],
+      "actions_pinned": {
+        "actions/checkout@v4": {"sha": "34e114876b0b11c390a56381ad16ebd13914f8d5", "occurrences": 6},
+        "EmbarkStudios/cargo-deny-action@v2": {"sha": "8f84122a46a358a27cb0625d85ad60ab436a1b87", "occurrences": 1},
+        "Swatinem/rust-cache@v2": {"sha": "42dc69e1aa15d09112580998cf2ef0119e2e91ae", "occurrences": 2},
+        "softprops/action-gh-release@v2": {"sha": "3bb12739c298aeb8a4eeaf626c5b8d85266b0e65", "occurrences": 1}
+      },
+      "branch_refs_left_intact": [
+        "dtolnay/rust-toolchain@stable (x4)"
+      ]
+    },
+    "melosviz": {
+      "branch": "chore/ci-sha-pin-2026-06-08",
+      "branched_from": "chore/dependabot-2026-06-08",
+      "commit_sha": "80e114725dcc964d11efe04fc2a93fa7cee4c844",
+      "commit_message": "chore(ci): SHA-pin all third-party GitHub Actions",
+      "files_changed": [
+        ".github/workflows/ci.yml",
+        ".github/workflows/release.yml"
+      ],
+      "actions_pinned_count": 12,
+      "unique_actions_pinned": 4,
+      "unique_shas": [
+        "34e114876b0b11c390a56381ad16ebd13914f8d5",
+        "a26af69be951a213d495a4c3e4e4022e16d87065",
+        "49933ea5288caeca8642d1e84afbd3f7d6820020",
+        "3bb12739c298aeb8a4eeaf626c5b8d85266b0e65"
+      ],
+      "actions_pinned": {
+        "actions/checkout@v4": {"sha": "34e114876b0b11c390a56381ad16ebd13914f8d5", "occurrences": 7},
+        "actions/setup-python@v5": {"sha": "a26af69be951a213d495a4c3e4e4022e16d87065", "occurrences": 2},
+        "actions/setup-node@v4": {"sha": "49933ea5288caeca8642d1e84afbd3f7d6820020", "occurrences": 2},
+        "softprops/action-gh-release@v2": {"sha": "3bb12739c298aeb8a4eeaf626c5b8d85266b0e65", "occurrences": 1}
+      },
+      "branch_refs_left_intact": [
+        "dtolnay/rust-toolchain@stable (x2)"
+      ]
+    },
+    "phenotype-dep-guard": {
+      "branch": "chore/ci-sha-pin-2026-06-08",
+      "branched_from": "main",
+      "commit_sha": "cb1f6072fdfe6126db071468e83da0b8e8482872",
+      "commit_message": "chore(ci): SHA-pin all third-party GitHub Actions",
+      "files_changed": [
+        ".github/workflows/ci.yml",
+        ".github/workflows/policy-gate.yml",
+        ".github/workflows/reusable-dep-guard.yml",
+        ".github/workflows/trufflehog.yml"
+      ],
+      "actions_pinned_count": 6,
+      "unique_actions_pinned": 2,
+      "unique_shas": [
+        "34e114876b0b11c390a56381ad16ebd13914f8d5",
+        "a26af69be951a213d495a4c3e4e4022e16d87065"
+      ],
+      "actions_pinned": {
+        "actions/checkout@v4": {"sha": "34e114876b0b11c390a56381ad16ebd13914f8d5", "occurrences": 5},
+        "actions/setup-python@v5": {"sha": "a26af69be951a213d495a4c3e4e4022e16d87065", "occurrences": 1}
+      },
+      "branch_refs_left_intact": [
+        "KooshaPari/template-commons/.github/workflows/reusable-branch-protection-audit.yml@main (reusable workflow, cross-repo branch ref)",
+        "trufflesecurity/trufflehog@main"
+      ]
+    }
+  },
+  "totals": {
+    "repos_modified": 5,
+    "files_changed": 11,
+    "actions_pinned_occurrences": 57,
+    "unique_actions_pinned": 11,
+    "unique_shas_used": 14
+  }
+}

@@ -1,0 +1,159 @@
+# Basic Kwality Validation Configuration
+# This example shows a simple validation setup for general-purpose code validation
+
+validation:
+  # Enable all validation engines
+  enabled_engines:
+    - static
+    - runtime
+    - security
+  
+  # Maximum time allowed for complete validation
+  timeout: "10m"
+  
+  # Run engines in parallel for faster execution
+  parallel: true
+  
+  # Cleanup containers and temporary files after validation
+  cleanup: true
+
+# Static analysis configuration
+static_analysis:
+  # Language-specific linters to enable
+  linters:
+    - golangci-lint    # Go
+    - eslint           # JavaScript/TypeScript
+    - pylint           # Python
+    - clippy           # Rust
+    - checkstyle       # Java
+  
+  # Maximum file size to analyze (prevents memory issues)
+  max_file_size: "10MB"
+  
+  # Maximum number of files to analyze
+  max_files: 1000
+  
+  # Code quality thresholds
+  quality_gates:
+    min_score: 70.0
+    max_issues_per_file: 10
+    max_complexity: 15
+
+# Runtime validation configuration
+runtime_validation:
+  # Container image for code execution
+  container_image: "kwality/runner:latest"
+  
+  # Resource limits
+  timeout_seconds: 300
+  memory_limit_mb: 512
+  cpu_limit_cores: 1.0
+  
+  # Security settings
+  network_isolation: true
+  readonly_filesystem: false
+  
+  # Temporary storage limit
+  temp_dir_size_mb: 100
+  
+  # Environment variables for execution
+  environment:
+    NODE_ENV: "test"
+    PYTHONPATH: "/workspace"
+    GOPATH: "/go"
+
+# Security scanning configuration
+security_scanning:
+  # Security scanners to enable
+  scanners:
+    - semgrep          # Static analysis security scanner
+    - gosec            # Go security checker
+    - bandit           # Python security scanner
+    - cargo-audit      # Rust security audit
+    - npm-audit        # Node.js security audit
+  
+  # Vulnerability databases to check against
+  vulnerability_dbs:
+    - nvd              # National Vulnerability Database
+    - ghsa             # GitHub Security Advisories
+    - osv              # Open Source Vulnerabilities
+  
+  # Enable secrets detection
+  secrets_detection: true
+  
+  # Minimum severity level to report
+  min_severity: "medium"
+  
+  # Security quality gates
+  security_gates:
+    max_critical_issues: 0
+    max_high_issues: 2
+    max_medium_issues: 10
+    min_security_score: 80.0
+
+# Performance analysis (optional)
+performance_analysis:
+  enabled: false
+  
+  # Performance benchmarking
+  benchmarks:
+    cpu_intensive: true
+    memory_allocation: true
+    io_operations: true
+  
+  # Performance thresholds
+  thresholds:
+    max_execution_time: "30s"
+    max_memory_usage: "256MB"
+    max_cpu_usage: "80%"
+
+# Integration testing (optional)
+integration_testing:
+  enabled: false
+  
+  # Test frameworks to use
+  frameworks:
+    - pytest          # Python
+    - jest            # JavaScript
+    - go-test         # Go
+    - cargo-test      # Rust
+  
+  # Test execution timeout
+  test_timeout: "5m"
+
+# Reporting configuration
+reporting:
+  # Output formats
+  formats:
+    - json
+    - html
+    - markdown
+  
+  # Include detailed findings
+  detailed_findings: true
+  
+  # Include remediation suggestions
+  include_remediation: true
+  
+  # Generate executive summary
+  executive_summary: true
+
+# Notification settings (optional)
+notifications:
+  enabled: false
+  
+  # Webhook for validation completion
+  webhook_url: "https://your-webhook-endpoint.com"
+  
+  # Slack integration
+  slack:
+    enabled: false
+    webhook_url: "https://hooks.slack.com/your-webhook"
+    channel: "#validation-alerts"
+  
+  # Email notifications
+  email:
+    enabled: false
+    smtp_server: "smtp.example.com"
+    recipients:
+      - "dev-team@example.com"

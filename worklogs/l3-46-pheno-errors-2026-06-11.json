@@ -1,0 +1,35 @@
+{
+  "status": "completed",
+  "task_id": "L3-046",
+  "agent_id": "codex-l3-subagent-46",
+  "files_changed": [
+    "pheno-errors/Cargo.toml",
+    "pheno-errors/src/lib.rs",
+    "pheno-errors/tests/smoke.rs",
+    "worklogs/l3-46-pheno-errors-2026-06-11.json",
+    "V3_EXECUTION_LOG_2026_06_10.md"
+  ],
+  "commit_sha": "8b339aa2aaf710623726575d9538eafa322f657e",
+  "verification_result": {
+    "status": "passed",
+    "commands": [
+      "cargo test --manifest-path pheno-errors/Cargo.toml",
+      "cargo clippy --manifest-path pheno-errors/Cargo.toml --all-targets -- -D warnings",
+      "rustfmt pheno-errors/src/lib.rs pheno-errors/tests/smoke.rs",
+      "cargo fmt --manifest-path pheno-errors/Cargo.toml -- --check"
+    ],
+    "notes": "All 14 tests pass (8 inline + 6 smoke). Clippy clean (no warnings). rustfmt clean. The crate builds as a standalone package via an empty [workspace] table in its own Cargo.toml, so it does NOT pull the 56+ crates in the root FocalPoint/Phenotype workspace into the build. The 5 variants (Domain, NotFound, Conflict, Validation, Storage) are exactly the L3 DAG's spec; a 6th variant would break the `kind_is_total_over_all_5_variants` tripwire test."
+  },
+  "started_at": "2026-06-11T03:42:00Z",
+  "completed_at": "2026-06-11T03:55:00Z",
+  "branch": "chore/l3-46-pheno-errors-2026-06-11",
+  "notes": [
+    "V3 DAG L3 #46 — author canonical pheno-errors Rust crate consolidating the 5 most-common error patterns.",
+    "Crate is intentionally STANDALONE (empty [workspace] in its own Cargo.toml), not a member of the root Cargo.toml's [workspace.members] — to avoid touching the in-progress root Cargo.toml that another L3 agent is concurrently modifying, and to keep the new crate's test/build loop independent of the 56-crate root workspace.",
+    "The 5 variants borrow their shape from phenoShared/crates/phenotype-error-core (which uses 7 variants in DomainError: Validation, InvariantViolation, NotFound, Duplicate, InvalidStateTransition, NotPermitted, PolicyEvaluation, Other). The new crate flattens to the L3 DAG's canonical 5: Domain, NotFound, Conflict, Validation, Storage. Downstream L5 lanes can re-export from the shared crate to unify.",
+    "From impls: std::io::Error -> AppError::Storage, anyhow::Error -> AppError::Domain (walks .chain() to preserve the full causal trail), &'static str -> AppError::Domain, String -> AppError::Domain. Deliberately NO blanket From<E: Error + Send + Sync + 'static> for AppError because that would conflict with the concrete std::io::Error impl under Rust's coherence rules.",
+    "anyhow::Context works automatically: anyhow's blanket impl From<E: Error + Send + Sync + 'static> for anyhow::Error covers AppError, so .context() / .with_context() on Result<T, AppError> produces an anyhow::Error that round-trips back to AppError via the explicit From<anyhow::Error> impl.",
+    "The kind() method is a stable snake_case tag (Domain, not_found, conflict, validation, storage) suitable for log fields and metrics labels. Do NOT use it as a wire code; phenotype-error-core::ErrorCode is the canonical wire vocabulary.",
+    "Branch created at chore/l3-46-pheno-errors-2026-06-11, off chore/l5-91-stash-cleanup-2026-06-11. Per task directive: branch is local-only, NOT pushed."
+  ]
+}

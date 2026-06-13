@@ -1,0 +1,116 @@
+{
+  "repo": "docs-site",
+  "branch_audited": "main (2026-06-08)",
+  "audited_at": "2026-06-08",
+  "stack": "vitepress-theme-only (vue-3.5 import, no config.ts) + 6 recording-manifests + 3 journey-mds + 2 research-mds + 9 SVGs, no package.json/Cargo.toml/pyproject.toml",
+  "summary": "G1 P0 (ZERO .github/workflows/ — site has no CI at all, only dependabot.yml), G2 FAIL (NO README.md/LICENSE/AGENTS.md/CLAUDE.md/SECURITY.md/CODEOWNERS/CONTRIBUTING.md/CHANGELOG.md at root; CODEOWNERS in .github/ not root), G3 PARTIAL (dependabot cargo+pip+npm+gomod+github-actions present, but no codeql/gitleaks/trufflehog/scorecard workflows because there are NO workflows), G4 FAIL (no .markdownlint config, no .pre-commit-config.yaml, no .editorconfig, no .gitignore, no .markdownlint-cli — and .vitepress/cache/ is committed in 2 of 4 paths meaning no .gitignore at all), G5 FAIL (no PULL_REQUEST_TEMPLATE.md, no ISSUE_TEMPLATE/, no .coderabbit.yaml, no policy-gate, no FUNDING.yml, no renovate.json5), e2e FAIL (VitePress config.ts is MISSING from .vitepress/ — only cache/ and theme/ exist; theme/index.ts:7 imports vue + vitepress/theme but the site has no entry config; .broken_md_refs.txt absent but every journey md lacks an `index.md` and the `journeys/` dir is not registered in any nav). 3 actionable findings.",
+  "gates": {
+    "G1_workflow_hygiene": {
+      "status": "P0",
+      "evidence": [
+        "ZERO .github/workflows/*.yml files. `ls .github/` returns only `dependabot.yml` (1.8KB). No codeql.yml, no deploy.yml, no quality-gate.yml, no scorecard.yml, no security-guard.yml — site has NO CI surface.",
+        "PASS: dependabot.yml:1-94 covers 5 ecosystems (cargo, pip, npm, gomod, github-actions) on monthly Monday cadence, with `open-pull-requests-limit: 5`, grouped `deps-weekly` for minor+patch, semver-major ignored, prefixes `chore(deps)` + `chore(ci)` — fleet-standard dependabot config.",
+        "FAIL: Without a workflows/ directory, dependabot.yml will open PRs that cannot be auto-merged, tested, or gated. The whole automation story is open-loop (PRs land → no CI → human review only).",
+        "FAIL: No `actions/cache` workflow, no `actions/deploy-pages` workflow, no `actions/upload-pages-artifact` workflow — VitePress site cannot deploy to GitHub Pages without manual `pnpm build && gh-deploy` invocation.",
+        "FAIL: No merge-conflict check, no pre-commit hook, no policy-gate (fix/* → non-main, no-merge-commits). Matches the fleet-wide gap pattern from prior sweeps."
+      ]
+    },
+    "G2_governance_files": {
+      "status": "FAIL",
+      "evidence": [
+        "ROOT INVENTORY: `.git`, `.github/`, `.vitepress/`, `journeys/`, `public/`, `recordings/`, `research/`. ZERO governance files at root.",
+        "MISSING: README.md (peer fleet: every other docs repo has one — heliosrouter, localbase3, phenodocs all have full READMEs with build/deploy/test instructions).",
+        "MISSING: LICENSE (peer fleet: 122/128 LICENSE files, this repo has 0). Unclear licensing posture for the journey content + SVG assets.",
+        "MISSING: AGENTS.md + CLAUDE.md (peer fleet: phenodocs has 21+25 lines; this repo has neither).",
+        "MISSING: CHANGELOG.md, CONTRIBUTING.md, CODE_OF_CONDUCT.md, SECURITY.md, CODEOWNERS, FUNDING.yml.",
+        "PRESENT: only `.github/dependabot.yml` (already cited in G1).",
+        "No `VERSION` file, no `catalog-info.yaml` (Backstage), no `CITATION.cff`."
+      ]
+    },
+    "G3_security_scanning": {
+      "status": "PARTIAL",
+      "evidence": [
+        "PASS: dependabot.yml:1-94 covers 5 ecosystems (cargo, pip, npm, gomod, github-actions) — better than 17% of fleet (most cover 1-2).",
+        "FAIL: No codeql.yml workflow. A pure-Markdown/VitePress site should still run `github/codeql-action` on `.github/workflows/*.yml` (which is empty) + on JS/TS in `.vitepress/theme/`. Matches phenodocs-hygiene finding (codeql on JS-TS in a docs repo is correct posture).",
+        "FAIL: No gitleaks, no trufflehog, no OSV-scanner, no dependency-review-action, no SBOM workflow. Standard fleet gaps apply.",
+        "FAIL: No secret-scan gate; SVG assets in public/icons/ + public/images/ could embed metadata but are not scanned.",
+        "FAIL: No `permissions:` block anywhere (no workflows to scope)."
+      ]
+    },
+    "G4_quality_gates": {
+      "status": "FAIL",
+      "evidence": [
+        "MISSING: .gitignore (CRITICAL). `.vitepress/cache/` is a dir at root — VitePress cache should NEVER be committed. `ls .vitepress/` returns `cache/` and `theme/` only, meaning the build cache is tracked in git. Also no `node_modules/` ignore because there's no `package.json` yet, but the moment one is added, this gap becomes a P0 leak.",
+        "MISSING: .editorconfig (peer fleet: most repos have one).",
+        "MISSING: .pre-commit-config.yaml (peer fleet: 161/163 have one; this repo has 0).",
+        "MISSING: .markdownlint.json / .markdownlint.yaml (peer fleet: most docs repos have one; phenodocs has both — this repo has neither).",
+        "MISSING: .markdownlint-cli config; 3 journeys + 2 research mds have ~965 lines of prose with no linter enforcing MD013/MD024/MD041.",
+        "MISSING: oxlint / ruff / pyright config (none of these configs exist anywhere in the repo).",
+        "PASS-by-default: journeys/*.md are 120-176 lines each (well-structured), research/*.md are 255-311 lines (long-form OK). No `|| true` soft-fails because there are no scripts to soft-fail."
+      ]
+    },
+    "G5_review_governance": {
+      "status": "FAIL",
+      "evidence": [
+        "MISSING: PULL_REQUEST_TEMPLATE.md (peer fleet: phenodocs has structured Summary/Type/Testing/Checklist/Related).",
+        "MISSING: ISSUE_TEMPLATE/{bug_report.md, feature_request.md, config.yml}.",
+        "MISSING: .coderabbit.yaml (peer fleet: phenodocs has 213B with `profile: assertive`; this repo has 0).",
+        "MISSING: .gemini/ (but n/a if gitignored — verify after .gitignore is added).",
+        "MISSING: dependabot ignore for major versions beyond the wildcard `*` pattern (current config is OK but coarse).",
+        "MISSING: renovate.json5 (peer fleet: 50/169 use renovate; this repo has 0).",
+        "MISSING: stale-pr / stale-issue / auto-merge config.",
+        "MISSING: required-check-names-guard.yml (HeliosLab meta-guard pattern absent).",
+        "MISSING: policy-gate.yml (the unique fix/* → non-main enforcer in phenodocs is not ported)."
+      ]
+    },
+    "e2e_end_to_end": {
+      "status": "DEGRADED",
+      "evidence": [
+        "FAIL (CRITICAL): `.vitepress/config.ts` (or `.js`/`.mjs`) does NOT exist. `ls .vitepress/` returns only `cache/` and `theme/`. VitePress REQUIRES a config file at `.vitepress/config.{ts,js,mjs}` — without it, `vitepress build` exits with `ERR_VITEPRESS_NO_CONFIG`. The site is non-buildable from a clean checkout.",
+        "FAIL: `.vitepress/theme/index.ts:7-9` imports `from 'vue'` and `from 'vitepress/theme'` and `./custom.css` — but no `package.json` exists, so `node_modules/` is empty, so `vite build` will fail on the import. The whole theme is dead code at HEAD.",
+        "FAIL: No `index.md` at the project root. VitePress default `srcDir: '.'` requires `index.md` (or `README.md` — also MISSING) to exist. Both are absent.",
+        "FAIL: 3 journeys in `journeys/` (`morning-brief.md`, `focus-session.md`, `evening-shutdown.md`) but `journeys/` is NOT registered in any VitePress nav because there is no `config.ts` `nav:[]` / `sidebar:{}` block. The journeys are unreachable from the (also missing) home page.",
+        "FAIL: 6 recording-manifest JSONs in `recordings/*/manifest.json` (123-162 lines each) reference FocalPoint iOS journey recordings (`apps/ios/FocalPointUITests/journeys/focus-session`) — but no `recordings/` page exists in any nav. The recordings are orphaned metadata.",
+        "FAIL: 2 research docs in `research/` (`13-user-journey-harness-2026.md`, `14-svg-graphics-style-guide.md`) total 566 lines of substantive research content — also orphaned, no nav, no link from any page.",
+        "PASS-by-content: journey mds have well-formed front-matter (id/persona/steps/expected_visible_change); recording manifests are JSON-schema-consistent (id/title/persona/platform/duration_seconds/recording_date/status/repository_path + intent.steps[].{index,slug,intent,precondition,expected_visible_change}); 9 SVGs are tracked (process-diagram, journeys-hero, app-screens-hero, focalpoint-{logo-mark,app-icon,icon-mono,favicon,icon-dark}).",
+        "PASS: `public/mockups/README.md` exists (57 lines) — only governance-shaped file in the public/ tree."
+      ]
+    }
+  },
+  "additional_findings": {
+    "no_vitepress_config": "`.vitepress/config.ts` is the entry point for VitePress. It is missing. Without it: (1) `vitepress dev` exits with `ERR_VITEPRESS_NO_CONFIG`, (2) `vitepress build` same, (3) the entire `theme/index.ts` custom-layout code is unreachable. This is the single most blocking finding.",
+    "no_package_json": "No `package.json`. No devDependencies, no scripts, no engines.node, no license field. The 28-line `theme/index.ts` references `vue` + `vitepress/theme` but neither is declared. Cannot `pnpm install` to bootstrap.",
+    "committed_vitepress_cache": "`.vitepress/cache/` is a tracked directory. VitePress writes build artifacts here on `dev` and `build`. A `.gitignore` line `/.vitepress/cache/` is the standard fix; until then, every `vitepress dev` pollutes git status.",
+    "zero_ci_zero_gates": "No workflows + no pre-commit + no markdownlint + no editorconfig + no .gitignore = site is effectively un-engineered. Every change to a journey md or recording manifest bypasses every gate.",
+    "rich_content_orphaned": "1862 lines of substantive content (journeys 447 + research 566 + recording manifests 764 + mockups readme 57 + theme 28 = 1862) exist but cannot be served because the build is non-functional. Highest-leverage fix: add config.ts + package.json, the content already exists.",
+    "git_log_minimal": "`git log --oneline` shows only 2 commits: `47b15d5 chore(ci): add dependabot.yml` and `f8741af feat(docs-site): R3 cross-project consumption spec (T41-T60)`. Both 2026-06-08. Fresh repo.",
+    "branch_inventory_unknown": "git ls-remote not run; local state not inspected beyond ls. 0 PRs visible in audit scope."
+  },
+  "ci_status": {
+    "workflows_parsing": "0 workflows present. GitHub Actions will report no checks.",
+    "open_prs_unknown": "git ls-remote not run in audit scope",
+    "last_commit": "47b15d5 (2026-06-08) — both commits same day, both touching the docs-site"
+  },
+  "actions_recommended": [
+    {
+      "priority": "P0",
+      "title": "Add VitePress config + package.json so the site can build (1 PR closes the entire e2e block)",
+      "detail": "Three files are missing to make this site buildable: (1) `.vitepress/config.ts` (entry point — define `title: 'FocalPoint Docs'`, `srcDir: '.'`, `themeConfig: { nav: [...], sidebar: { '/journeys/': [...] } }` to expose the 3 journeys, `'/recordings/': [...]` for the 6 manifests, `'/research/': [...]` for the 2 research docs). (2) `package.json` with `name: 'docs-site'`, `private: true`, `type: 'module'`, `scripts: { 'dev': 'vitepress dev', 'build': 'vitepress build', 'preview': 'vitepress preview' }`, `devDependencies: { 'vitepress': '^1.5.0', 'vue': '^3.5.0' }`, `engines: { node: '>=20' }`, `license: 'MIT'`. (3) `index.md` (or `README.md`) at project root with a hero section linking to the journeys, recordings, and research. After this PR, `pnpm install && pnpm build` produces a static site, and the existing 1862 lines of content become reachable. Net: closes e2e from DEGRADED to GREEN in one PR (~30 min).",
+      "estimated_effort": "30 min"
+    },
+    {
+      "priority": "P0",
+      "title": "Add .gitignore + remove tracked .vitepress/cache/ + add .editorconfig + .markdownlint.json (1 PR restores G4)",
+      "detail": "Four small files in one PR: (1) `.gitignore` with `node_modules/`, `/.vitepress/cache/`, `/.vitepress/dist/`, `.DS_Store`, `*.log`, `.env*`, `.broken_md_refs.txt`. Then `git rm -r --cached .vitepress/cache/` to untrack the committed cache. (2) `.editorconfig` with `root = true`, `[*.md] trim_trailing_whitespace = true`, `[*.{yml,yaml,json,ts,vue}] indent_style = space, indent_size = 2`. (3) `.markdownlint.json` with `{ 'default': true, 'MD013': { 'line_length': 120, 'tables': false }, 'MD024': { 'siblings_only': true }, 'MD041': false }` — applied to the 3 journeys + 2 research docs (965 lines). (4) `.pre-commit-config.yaml` mirroring phenodocs' 7-hook standard (trailing-ws, eof-fixer, check-yaml/json/toml, large-files, merge-conflict, private-key). Net: closes G4 from FAIL to PARTIAL, prevents the .vitepress/cache/ leak from recurring.",
+      "estimated_effort": "15 min"
+    },
+    {
+      "priority": "P1",
+      "title": "Seed governance files (README/LICENSE/AGENTS/CLAUDE/CHANGELOG/SECURITY/CODEOWNERS/CONTRIBUTING) + workflows/ skeleton (1 PR restores G1+G2+G5)",
+      "detail": "Two coupled additions: (a) Governance bundle: `README.md` (build/deploy/contribute per phenodocs model), `LICENSE` (MIT, matching the dependabot `chore(deps)` posture), `AGENTS.md` (30+ lines, fleet standard), `CLAUDE.md` (60+ lines, fleet standard), `CHANGELOG.md` (Keep-a-Changelog with [Unreleased]), `SECURITY.md` (vuln-reporting policy), `CODEOWNERS` at ROOT (not .github/) with `* @Phenotype-Enterprise/engineering-leads`, `CONTRIBUTING.md` (peer fleet: 104/160), `FUNDING.yml`. (b) Workflows skeleton mirroring phenodocs: `.github/workflows/codeql.yml` (codeql-action SHA-pinned, weekly Mon cron), `.github/workflows/scorecard.yml` (ossf/scorecard-action SHA-pinned, weekly Sat cron), `.github/workflows/quality-gate.yml` (markdownlint + pre-commit on PR), `.github/workflows/deploy.yml` (vitepress build → github-pages env, gated on push to main), `.github/workflows/security-guard.yml` (pre-commit on PR/push), `.github/workflows/trufflehog.yml` (reusable @SHA, not @main). (c) PR template + issue templates + .coderabbit.yaml. Net: closes G1 (skeleton) + G2 (governance bundle) + G5 (review config) in one PR; the repo jumps from 1.5/5 to ~4/5 hygiene.",
+      "estimated_effort": "60 min (governance bundle 30 min, workflow skeleton 20 min, templates 10 min)"
+    }
+  ],
+  "deep_research": "docs-site is the VitePress-rendered docs hub for the Phenotype/FocalPoint product — a federated site that aggregates journeys, recordings, research, and SVG assets into a single static site. Today it is an extreme case of `content-without-engineering`: 1862 lines of substantive prose, JSON manifests, and SVG graphics exist (journeys 447 + research 566 + recording-manifests 764 + mockups readme 57 + theme 28 = 1862) but the build surface is non-functional — `.vitepress/config.ts` is missing entirely, no `package.json` is present, no `index.md` exists, and `.vitepress/cache/` is committed (no `.gitignore`). The git log shows only 2 commits, both 2026-06-08: `f8741af feat(docs-site): R3 cross-project consumption spec (T41-T60)` and `47b15d5 chore(ci): add dependabot.yml`. Comparing to fleet siblings: phenodocs-hygiene scored 2.5/5 (P0 merge-marker rot in 6 workflows), localbase3-hygiene scored 3.6/5, phenodocs-scorecard-remediation-hygiene scored 3.6/5 — but this docs-site is below all of them because phenodocs at least has a buildable surface. The most striking positive is the dependabot.yml (94 lines, 5 ecosystems, monthly cadence, semver-major ignored, grouped `deps-weekly`) which is fleet-grade automation — but it's a tree falling in an empty forest without workflows to consume the PRs. The second positive is content quality: the 6 recording manifests are JSON-schema-consistent (id/title/persona/platform/duration_seconds/recording_date/status/repository_path + intent.steps[].{index,slug,intent,precondition,expected_visible_change}), the 3 journeys are well-structured front-matter md, the 2 research docs are 255-311 lines of substantive content, and the 9 SVGs in public/{icons,images}/ are tracked. All of this is orphaned from the build. The single highest-leverage PR is the P0 `add VitePress config + package.json + index.md` — it converts 1862 lines of dead content into a buildable static site in ~30 min.",
+  "deep_research_cont": "Net hygiene score: 1.5/5 (G1 1/5 because 0 workflows = no CI surface, G2 1/5 because 0 governance files, G3 2.5/5 dependabot present but no scanners, G4 1/5 no .gitignore + committed .vitepress/cache/, G5 1/5 no templates + no coderabbit, e2e 1/5 no config.ts = non-buildable). After the 3 recommended actions land, projected score is 4.0-4.5/5: (a) P0 add VitePress config + package.json + index.md → e2e GREEN, G1 still 1/5 (no CI), (b) P0 add .gitignore + remove cache + .editorconfig + .markdownlint.json + .pre-commit-config.yaml → G4 PARTIAL, prevents cache leak, (c) P1 governance bundle + workflow skeleton + PR/issue templates → G1 PARTIAL (5 workflows), G2 GREEN (8 governance files), G5 PARTIAL (templates + coderabbit). The repo is well-positioned for `pheno-cargo-template` libification (165/170 repos are registry-pinned; this repo has no Cargo.toml so the pattern doesn't apply) and for `pheno-ci-templates` rollout (one of the canonical-reference repos in the 106-group dedup map per `ci-template-dedup` sweep — AgilePlus is the canonical, but docs-site could match the 127-with-workflows tier with the workflow skeleton). No git ls-remote was run in audit scope, so open PR state is unknown; 0 PRs visible locally. Local branch inventory not inspected. The 2-commit fresh-repo posture suggests this is a brand-new site (likely the focalpoint-docs iteration mentioned in the 5repo-modernization plan)."
+}

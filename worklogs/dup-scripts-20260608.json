@@ -1,0 +1,1331 @@
+{
+  "generated_at": "2026-06-08T10:05:27.902196Z",
+  "total_repos": 67,
+  "near_duplicate_scripts": [
+    {
+      "name": "INSTALL.sh",
+      "repos": [
+        "thegent",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "name": "agent-orchestrator.sh",
+      "repos": [
+        "Civis",
+        "Parpoura"
+      ]
+    },
+    {
+      "name": "aggregate.sh",
+      "repos": [
+        "AgilePlus",
+        "HexaKit",
+        "PhenoDevOps",
+        "Pyron",
+        "pheno"
+      ]
+    },
+    {
+      "name": "agileplus-cycle.sh",
+      "repos": [
+        "thegent",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "name": "async-test-runner.sh",
+      "repos": [
+        "thegent",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "name": "audit_scope.sh",
+      "repos": [
+        "HexaKit",
+        "PhenoDevOps",
+        "Pyron",
+        "pheno"
+      ]
+    },
+    {
+      "name": "auto-launch-trigger.sh",
+      "repos": [
+        "thegent",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "name": "babysit-open-prs.sh",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "bats-config.bash",
+      "repos": [
+        "thegent",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "name": "bench_roid_help.sh",
+      "repos": [
+        "thegent",
+        "thegent-clean-wt-docs",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "name": "bench_stop_fast.sh",
+      "repos": [
+        "thegent",
+        "thegent-clean-wt-docs",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "name": "bench_stop_ultrafast.sh",
+      "repos": [
+        "thegent",
+        "thegent-clean-wt-docs",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "name": "bootstrap-dev.sh",
+      "repos": [
+        "HeliosCLI",
+        "HeliosLab",
+        "HexaKit",
+        "Parpoura",
+        "PhenoDevOps",
+        "PhenoProc",
+        "PolicyStack",
+        "Pyron",
+        "helioscope",
+        "pheno",
+        "phenoDesign",
+        "phenodocs",
+        "phenotype-tooling"
+      ]
+    },
+    {
+      "name": "bootstrap-project.sh",
+      "repos": [
+        "thegent",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "name": "build-all.sh",
+      "repos": [
+        "Dino",
+        "vibeproxy"
+      ]
+    },
+    {
+      "name": "build-docs.sh",
+      "repos": [
+        "KDesktopVirt",
+        "thegent",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "name": "build.sh",
+      "repos": [
+        "Civis",
+        "DINOForge-UnityDoorstop",
+        "Planify",
+        "thegent",
+        "thegent-clean-wt-docs",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "name": "build_container.sh",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "check-module-bazel-lock.sh",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "check-native-macos.sh",
+      "repos": [
+        "Sidekick",
+        "agent-user-status"
+      ]
+    },
+    {
+      "name": "check-service-role.sh",
+      "repos": [
+        "thegent",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "name": "ci-local.sh",
+      "repos": [
+        "PhenoProc",
+        "phenoShared",
+        "phenodocs"
+      ]
+    },
+    {
+      "name": "ci_local_gha.sh",
+      "repos": [
+        "thegent",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "name": "clean-git-locks.sh",
+      "repos": [
+        "HexaKit",
+        "PhenoDevOps",
+        "Pyron",
+        "pheno"
+      ]
+    },
+    {
+      "name": "clone-devenv-abstraction-worktree.sh",
+      "repos": [
+        "HexaKit",
+        "PhenoDevOps",
+        "Pyron",
+        "pheno"
+      ]
+    },
+    {
+      "name": "codex_exec_guard.sh",
+      "repos": [
+        "PolicyStack",
+        "agentops-policy-federation"
+      ]
+    },
+    {
+      "name": "codex_network_guard.sh",
+      "repos": [
+        "PolicyStack",
+        "agentops-policy-federation"
+      ]
+    },
+    {
+      "name": "codex_write_guard.sh",
+      "repos": [
+        "PolicyStack",
+        "agentops-policy-federation"
+      ]
+    },
+    {
+      "name": "common.sh",
+      "repos": [
+        "Parpoura",
+        "thegent",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "name": "complexity-ratchet.sh",
+      "repos": [
+        "thegent",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "name": "continuous-work-guard.sh",
+      "repos": [
+        "thegent",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "name": "dag-compile.sh",
+      "repos": [
+        "thegent",
+        "thegent-clean-wt-docs",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "name": "debug-codex.sh",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "deploy.sh",
+      "repos": [
+        "Dino",
+        "Tracera"
+      ]
+    },
+    {
+      "name": "dev-up.sh",
+      "repos": [
+        "HexaKit",
+        "PhenoDevOps",
+        "Pyron",
+        "pheno"
+      ]
+    },
+    {
+      "name": "devops-checker.sh",
+      "repos": [
+        "HeliosCLI",
+        "cliproxyapi-plusplus",
+        "heliosApp",
+        "helioscope",
+        "phenotype-tooling",
+        "portage"
+      ]
+    },
+    {
+      "name": "distribute.sh",
+      "repos": [
+        "thegent",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "name": "docs-build.sh",
+      "repos": [
+        "KDesktopVirt",
+        "thegent",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "name": "doctor.sh",
+      "repos": [
+        "Sidekick",
+        "agent-user-status"
+      ]
+    },
+    {
+      "name": "execute-phase-2-harness.sh",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "gardener-continuity.sh",
+      "repos": [
+        "thegent",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "name": "gardener-parallel.sh",
+      "repos": [
+        "thegent",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "name": "gardener-scan.sh",
+      "repos": [
+        "thegent",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "name": "gardener-spawn-manager.sh",
+      "repos": [
+        "thegent",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "name": "gardener-spawn.sh",
+      "repos": [
+        "thegent",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "name": "gardener-xp.sh",
+      "repos": [
+        "thegent",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "name": "generate-doc-index.sh",
+      "repos": [
+        "Civis",
+        "HeliosCLI",
+        "HeliosLab",
+        "Parpoura",
+        "PhenoHandbook",
+        "QuadSGM",
+        "Tokn",
+        "Tracera",
+        "agentapi-plusplus",
+        "heliosApp",
+        "helioscope",
+        "phenodocs",
+        "phenodocs-scorecard-remediation",
+        "portage",
+        "thegent",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "name": "generate-evidence.sh",
+      "repos": [
+        "HexaKit",
+        "PhenoDevOps",
+        "Pyron",
+        "pheno"
+      ]
+    },
+    {
+      "name": "generate-specs-from-git.sh",
+      "repos": [
+        "HexaKit",
+        "PhenoDevOps",
+        "Pyron",
+        "pheno"
+      ]
+    },
+    {
+      "name": "generate-workspace-sboms.sh",
+      "repos": [
+        "HexaKit",
+        "PhenoDevOps",
+        "Pyron",
+        "pheno"
+      ]
+    },
+    {
+      "name": "gh_archive_proposed_archive_github.sh",
+      "repos": [
+        "thegent",
+        "thegent-clean-wt-docs",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "name": "gh_archive_remaining_stale_proposed.sh",
+      "repos": [
+        "thegent",
+        "thegent-clean-wt-docs",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "name": "git-worktree-health.sh",
+      "repos": [
+        "HexaKit",
+        "PhenoDevOps",
+        "Pyron",
+        "pheno"
+      ]
+    },
+    {
+      "name": "governance-gates.sh",
+      "repos": [
+        "thegent",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "name": "health-check.sh",
+      "repos": [
+        "QuadSGM",
+        "phenotype-infra"
+      ]
+    },
+    {
+      "name": "hook-watcher.sh",
+      "repos": [
+        "thegent",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "name": "husky.sh",
+      "repos": [
+        "OmniRoute",
+        "OmniRoute-latest"
+      ]
+    },
+    {
+      "name": "init_firewall.sh",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "install-helios-dev.sh",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "install-musl-build-tools.sh",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "install-zsh-plugin.sh",
+      "repos": [
+        "thegent",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "name": "install.sh",
+      "repos": [
+        "Dino",
+        "HeliosCLI",
+        "KlipDot",
+        "KodeVibe",
+        "Planify",
+        "Sidekick",
+        "Tracera",
+        "agent-user-status",
+        "helioscope",
+        "netweave-final2",
+        "thegent",
+        "thegent-clean-wt-docs",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "name": "ios-bindings.sh",
+      "repos": [
+        "FocalPoint",
+        "crates"
+      ]
+    },
+    {
+      "name": "ledger-init.sh",
+      "repos": [
+        "thegent",
+        "thegent-clean-wt-docs",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "name": "lint.sh",
+      "repos": [
+        "cliproxyapi-plusplus",
+        "phenodocs",
+        "phenodocs-scorecard-remediation"
+      ]
+    },
+    {
+      "name": "litellm-harvest-stop.sh",
+      "repos": [
+        "thegent",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "name": "matrix_onboard.sh",
+      "repos": [
+        "PhenoDevOps",
+        "agent-devops-setups"
+      ]
+    },
+    {
+      "name": "normalize-item.sh",
+      "repos": [
+        "thegent",
+        "thegent-clean-wt-docs",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "name": "notary_helpers.sh",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "onboard_repos.sh",
+      "repos": [
+        "PhenoDevOps",
+        "agent-devops-setups"
+      ]
+    },
+    {
+      "name": "orb-down.sh",
+      "repos": [
+        "HexaKit",
+        "PhenoDevOps",
+        "Pyron",
+        "pheno"
+      ]
+    },
+    {
+      "name": "orb-up.sh",
+      "repos": [
+        "HexaKit",
+        "PhenoDevOps",
+        "Pyron",
+        "pheno"
+      ]
+    },
+    {
+      "name": "phenotype_minimax_harness.sh",
+      "repos": [
+        "thegent",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "name": "phenotype_secrets_init.sh",
+      "repos": [
+        "thegent",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "name": "policy-wrapper-dispatch.sh",
+      "repos": [
+        "PolicyStack",
+        "phenotype-tooling"
+      ]
+    },
+    {
+      "name": "post-agent-run-vetter.sh",
+      "repos": [
+        "thegent",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "name": "post-commit-worklog.sh",
+      "repos": [
+        "thegent",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "name": "post-tag-changelog.sh",
+      "repos": [
+        "thegent",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "name": "prdset-compile.sh",
+      "repos": [
+        "thegent",
+        "thegent-clean-wt-docs",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "name": "pre-commit-docs.sh",
+      "repos": [
+        "thegent",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "name": "pre-commit-quality.sh",
+      "repos": [
+        "thegent",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "name": "pre-push-quality.sh",
+      "repos": [
+        "thegent",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "name": "prune-orphans-stop.sh",
+      "repos": [
+        "thegent",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "name": "push-heliosapp-with-fallback.sh",
+      "repos": [
+        "heliosApp",
+        "phenotype-tooling"
+      ]
+    },
+    {
+      "name": "push-helioscli-with-fallback.sh",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "qa-cross-schema-validator.sh",
+      "repos": [
+        "thegent",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "name": "quality-gate.base.sh",
+      "repos": [
+        "HexaKit",
+        "PhenoDevOps",
+        "Pyron",
+        "pheno",
+        "thegent",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "name": "quality-gate.sh",
+      "repos": [
+        "AgilePlus",
+        "Civis",
+        "HexaKit",
+        "Parpoura",
+        "PhenoDevOps",
+        "PhenoMCP",
+        "PhenoObservability",
+        "PhenoVCS",
+        "PolicyStack",
+        "Pyron",
+        "QuadSGM",
+        "agentapi-plusplus",
+        "heliosApp",
+        "pheno",
+        "phenotype-journeys",
+        "phenotype-tooling",
+        "portage",
+        "thegent",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "name": "quick_fix.sh",
+      "repos": [
+        "thegent",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "name": "repo-devops-checker.sh",
+      "repos": [
+        "PhenoDevOps",
+        "agent-devops-setups"
+      ]
+    },
+    {
+      "name": "repo-push-fallback.sh",
+      "repos": [
+        "PhenoDevOps",
+        "agent-devops-setups"
+      ]
+    },
+    {
+      "name": "resolve_check.sh",
+      "repos": [
+        "PolicyStack",
+        "phenotype-tooling"
+      ]
+    },
+    {
+      "name": "run-tests.sh",
+      "repos": [
+        "QuadSGM",
+        "localbase3"
+      ]
+    },
+    {
+      "name": "run_in_container.sh",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "run_massive_scrape.sh",
+      "repos": [
+        "thegent",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "name": "run_massive_scrape_v2.sh",
+      "repos": [
+        "thegent",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "name": "run_phase1_minimal_tooling_split.sh",
+      "repos": [
+        "thegent",
+        "thegent-clean-wt-docs",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "name": "run_phase1_tooling_split.sh",
+      "repos": [
+        "thegent",
+        "thegent-clean-wt-docs",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "name": "run_phase2_expand_tooling_split.sh",
+      "repos": [
+        "thegent",
+        "thegent-clean-wt-docs",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "name": "scaffold-smoke.sh",
+      "repos": [
+        "PhenoKits",
+        "PhenoProc",
+        "phenotype-dep-guard"
+      ]
+    },
+    {
+      "name": "scripts-required-check-parity.sh",
+      "repos": [
+        "heliosApp",
+        "phenotype-tooling"
+      ]
+    },
+    {
+      "name": "security-guard.sh",
+      "repos": [
+        "Civis",
+        "HeliosCLI",
+        "HeliosLab",
+        "HexaKit",
+        "Parpoura",
+        "PhenoDevOps",
+        "Pyron",
+        "QuadSGM",
+        "Tokn",
+        "Tracera",
+        "agent-devops-setups",
+        "agentapi-plusplus",
+        "cliproxyapi-plusplus",
+        "heliosApp",
+        "helioscope",
+        "pheno",
+        "phenoDesign",
+        "phenodocs",
+        "phenodocs-scorecard-remediation",
+        "portage"
+      ]
+    },
+    {
+      "name": "security-pipeline.sh",
+      "repos": [
+        "thegent",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "name": "seed-projects.sh",
+      "repos": [
+        "HexaKit",
+        "PhenoDevOps",
+        "Pyron",
+        "pheno"
+      ]
+    },
+    {
+      "name": "services.sh",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "session-cleanup.sh",
+      "repos": [
+        "thegent",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "name": "session-end-write-dump.sh",
+      "repos": [
+        "thegent",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "name": "session-start-pending-notice.sh",
+      "repos": [
+        "thegent",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "name": "session-start-research-inject.sh",
+      "repos": [
+        "thegent",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "name": "session-start-spotlight-exclude.sh",
+      "repos": [
+        "thegent",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "name": "setup-eye-tracker.sh",
+      "repos": [
+        "Sidekick",
+        "agent-user-status"
+      ]
+    },
+    {
+      "name": "setup-headscale-vm.sh",
+      "repos": [
+        "thegent",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "name": "setup-plane.sh",
+      "repos": [
+        "HexaKit",
+        "PhenoDevOps",
+        "Pyron",
+        "pheno"
+      ]
+    },
+    {
+      "name": "setup-tailscale.sh",
+      "repos": [
+        "thegent",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "name": "setup-test-repo.sh",
+      "repos": [
+        "HexaKit",
+        "PhenoDevOps",
+        "Pyron",
+        "pheno"
+      ]
+    },
+    {
+      "name": "setup.sh",
+      "repos": [
+        "PhenoProject",
+        "Planify",
+        "thegent",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "name": "smoke_dispatch_host_hook.sh",
+      "repos": [
+        "PolicyStack",
+        "phenotype-tooling"
+      ]
+    },
+    {
+      "name": "speculative-stop-prewarmer.sh",
+      "repos": [
+        "thegent",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "name": "spiral-config.sh",
+      "repos": [
+        "thegent",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "name": "stage-npm-packages.sh",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "start.sh",
+      "repos": [
+        "Planify",
+        "localbase3",
+        "thegent",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "name": "suppress-custom-retry.sh",
+      "repos": [
+        "Civis",
+        "Parpoura"
+      ]
+    },
+    {
+      "name": "suppress-direct-http.sh",
+      "repos": [
+        "Civis",
+        "Parpoura"
+      ]
+    },
+    {
+      "name": "suppress-hardcoded-strings.sh",
+      "repos": [
+        "Civis",
+        "Parpoura"
+      ]
+    },
+    {
+      "name": "suppress-isolated-classes.sh",
+      "repos": [
+        "Civis",
+        "Parpoura"
+      ]
+    },
+    {
+      "name": "suppress-print-statements.sh",
+      "repos": [
+        "Civis",
+        "Parpoura"
+      ]
+    },
+    {
+      "name": "suppress-v2-files.sh",
+      "repos": [
+        "Civis",
+        "Parpoura"
+      ]
+    },
+    {
+      "name": "sync_policy.sh",
+      "repos": [
+        "PhenoDevOps",
+        "agent-devops-setups"
+      ]
+    },
+    {
+      "name": "task_surface.sh",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "thegent.sh",
+      "repos": [
+        "thegent",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "name": "tooling-dispatch.sh",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "tts.sh",
+      "repos": [
+        "thegent",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "name": "uncrustify.sh",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "uninstall.sh",
+      "repos": [
+        "Sidekick",
+        "agent-user-status"
+      ]
+    },
+    {
+      "name": "validate-domains.sh",
+      "repos": [
+        "PhenoProc",
+        "phenotype-dep-guard"
+      ]
+    },
+    {
+      "name": "validate-foundation.sh",
+      "repos": [
+        "PhenoProc",
+        "phenotype-dep-guard"
+      ]
+    },
+    {
+      "name": "validate-governance.sh",
+      "repos": [
+        "HeliosCLI",
+        "HeliosLab",
+        "HexaKit",
+        "Parpoura",
+        "PhenoDevOps",
+        "PhenoProc",
+        "PolicyStack",
+        "Pyron",
+        "helioscope",
+        "pheno",
+        "phenoDesign",
+        "phenodocs",
+        "phenotype-tooling"
+      ]
+    },
+    {
+      "name": "validate-sync.sh",
+      "repos": [
+        "thegent",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "name": "validate.sh",
+      "repos": [
+        "Dino",
+        "Tracera"
+      ]
+    }
+  ]
+}

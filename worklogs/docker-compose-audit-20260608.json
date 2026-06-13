@@ -1,0 +1,67 @@
+{
+  "generated_at": "2026-06-09T02:24:45.941903+00:00",
+  "total_repos": 168,
+  "with_compose": [
+    {
+      "repo": "pheno",
+      "files": [
+        "agileplus/docker-compose.yml"
+      ]
+    },
+    {
+      "repo": "HexaKit",
+      "files": [
+        "agileplus/docker-compose.yml"
+      ]
+    },
+    {
+      "repo": "PhenoDevOps",
+      "files": [
+        "docker/docker-compose.yml",
+        "agileplus/docker-compose.yml"
+      ]
+    },
+    {
+      "repo": "Pyron",
+      "files": [
+        "agileplus/docker-compose.yml"
+      ]
+    },
+    {
+      "repo": "KodeVibe-security-fixes",
+      "files": [
+        "engine/docker-compose.yml"
+      ]
+    },
+    {
+      "repo": "OmniRoute-latest",
+      "files": [
+        "OmniRoute/docker-compose.yml"
+      ]
+    },
+    {
+      "repo": "argis-extensions",
+      "files": [
+        "slm-server/docker-compose.yml"
+      ]
+    },
+    {
+      "repo": "cliproxyapi-plusplus",
+      "files": [
+        "journey-fix/docker-compose.yml"
+      ]
+    },
+    {
+      "repo": "Tracera",
+      "files": [
+        ".devcontainer/docker-compose.yml"
+      ]
+    },
+    {
+      "repo": "KodeVibe",
+      "files": [
+        "engine/docker-compose.yml"
+      ]
+    }
+  ]
+}

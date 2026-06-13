@@ -1,0 +1,21 @@
+{
+  "generated_at": "2026-06-08T16:51:50-0700",
+  "total_repos": 6,
+  "by_lib": {
+    "qdrant": [
+      "PhenoMCP",
+      "PhenoMCP-cheap"
+    ],
+    "weaviate": [],
+    "chroma": [
+      "BytePort",
+      "Planify",
+      "Tracera"
+    ],
+    "milvus": [],
+    "pgvector": [
+      "phenoData"
+    ],
+    "pinecone": []
+  }
+}

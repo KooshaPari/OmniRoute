@@ -1,0 +1,36 @@
+# justfile — Parpoura
+# Standard Phenotype org recipes. Run `just` to list.
+
+set shell := ["bash", "-uc"]
+
+# Default recipe — list available recipes
+default:
+	@just --list
+
+# Build docs
+build:
+	bun run build
+
+# Run tests
+test:
+	bun run test
+
+# Lint
+lint:
+	bun run lint
+
+# Format
+fmt:
+	bun run fmt
+
+# Security audit
+audit:
+	bash scripts/quality-gate.sh
+
+# Quality gate
+quality: build test lint
+	@echo "quality gate OK"
+
+# Clean
+clean:
+	rm -rf docs/.vitepress/cache docs/.vitepress/dist

@@ -1,0 +1,45 @@
+node_modules
+
+.env
+.env.local
+.env.development
+.env.production
+package-lock.json
+yarn.lock
+
+dist
+logs
+.vercel
+
+
+
+
+# Editor history
+.history/
+
+# TS incremental build
+*.tsbuildinfo
+
+# Local dev bridge script
+src/discord/webhook-gateway-bridge.ts
+
+
+# Build artifacts
+dist/
+.cache/
+
+# ===== Standard auto-generated hygiene ignores (do not edit manually) =====
+.DS_Store
+.env.*
+!.env.example
+node_modules/
+target/
+build/
+coverage/
+.pytest_cache/
+__pycache__/
+.mypy_cache/
+.ruff_cache/
+.venv/
+venv/
+# ===== End standard hygiene ignores =====

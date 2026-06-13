@@ -1,0 +1,77 @@
+// Canonical renovate.json5 for phenotype org repos.
+// Schema: https://docs.renovatebot.com/renovate-schema.json
+{
+  $schema: "https://docs.renovatebot.com/renovate-schema.json",
+  extends: [
+    "config:recommended",
+    ":automergeMinor",
+    ":automergePatch",
+    ":enableVulnerabilityAlertsWithLabel(security)",
+  ],
+
+  // Run weekly, early Monday morning, low-traffic window.
+  schedule: ["before 6am on monday"],
+
+  // Keep lockfiles (Cargo.lock, uv.lock, package-lock.json, go.sum) tidy.
+  lockFileMaintenance: {
+    enabled: true,
+    schedule: ["before 6am on monday"],
+  },
+
+  // Group noise-y dependency updates so PRs stay reviewable.
+  prConcurrentLimit: 10,
+  prHourlyLimit: 5,
+  rangeStrategy: "bump",
+  labels: ["dependencies"],
+
+  // Per-manager rules: each core ecosystem groups under "deps" and
+  // automerges non-major / digest updates. GitHub Actions never auto.
+  packageRules: [
+    {
+      // Rust workspace members.
+      matchManagers: ["cargo"],
+      groupName: "deps",
+      matchUpdateTypes: ["minor", "patch", "digest"],
+      automerge: true,
+    },
+    {
+      // Python (pip / uv / poetry / pdm / pipenv / requirements).
+      matchManagers: ["pip_requirements", "pipenv", "poetry", "pdm", "uv"],
+      groupName: "deps",
+      matchUpdateTypes: ["minor", "patch", "digest"],
+      automerge: true,
+    },
+    {
+      // JavaScript / TypeScript.
+      matchManagers: ["npm", "yarn", "pnpm", "bun"],
+      groupName: "deps",
+      matchUpdateTypes: ["minor", "patch", "digest"],
+      automerge: true,
+    },
+    {
+      // Go modules.
+      matchManagers: ["gomod"],
+      groupName: "deps",
+      matchUpdateTypes: ["minor", "patch", "digest"],
+      automerge: true,
+    },
+    {
+      // GitHub Actions — pin freshness + digest bumps, never automerge.
+      matchManagers: ["github-actions"],
+      groupName: "deps",
+      matchUpdateTypes: ["minor", "patch", "digest"],
+      automerge: false,
+    },
+    {
+      // Never automerge major version bumps anywhere.
+      matchUpdateTypes: ["major"],
+      automerge: false,
+      labels: ["dependencies", "breaking"],
+    },
+  ],
+
+  // Patch updates across all four core ecosystems may be automerged.
+  automerge: true,
+  automergeType: "pr",
+  automergeStrategy: "squash",
+}

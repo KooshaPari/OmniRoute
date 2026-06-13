@@ -1,0 +1,42 @@
+{
+  "generated_at": "2026-06-05T22:15:00Z",
+  "total_repos": 170,
+  "with_docker": [
+    "AtomsBot",
+    "Dino",
+    "HeliosCLI",
+    "HexaKit",
+    "KDesktopVirt",
+    "OmniRoute",
+    "PhenoDevOps",
+    "PolicyStack",
+    "Pyron",
+    "Tokn",
+    "argis-extensions",
+    "cliproxyapi-plusplus",
+    "helioscope",
+    "kwality",
+    "pheno"
+  ],
+  "with_k8s": [
+    "Dino",
+    "KDesktopVirt",
+    "kwality"
+  ],
+  "with_compose": [
+    "HeliosCLI",
+    "HexaKit",
+    "KDesktopVirt",
+    "OmniRoute",
+    "PhenoDevOps",
+    "Planify",
+    "Pyron",
+    "QuadSGM",
+    "Tracera",
+    "argis-extensions",
+    "cliproxyapi-plusplus",
+    "helioscope",
+    "kwality",
+    "pheno"
+  ]
+}

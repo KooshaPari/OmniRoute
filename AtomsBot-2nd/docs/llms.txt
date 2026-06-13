@@ -1,0 +1,13 @@
+AtomsBot is LLM-friendly:
+- Clear, test-defined behavior for commands (assign, label, status, link)
+- Modular GitHub/Jira actions via helpers (githubActions, jiraClient)
+- Auto-linker provides deterministic context resolution
+- Webhooks provide an event-driven backbone
+
+When integrating with agent CLIs (Cursor, auggie, codex/code), follow these:
+1) Drive development via tests in src/**/__tests__
+2) Respect Discord interaction patterns (defer + edit)
+3) Centralize repo resolution with getRepoCredentialsForThread
+4) Mock external clients in tests/setup.ts
+5) Document changes in docs/* and update coverage if needed
+

@@ -1,0 +1,124 @@
+{
+  "repo": "PhenoKits",
+  "branch": "chore/audit-PhenoKits-2026-06-08",
+  "head_sha": "18154a28076b415051c1689b437527d440d031ab",
+  "last_commit_date": "2026-06-08T19:18:00-07:00",
+  "language_stack": {
+    "primary": ["rust", "python", "go", "typescript"],
+    "secondary": ["markdown", "yaml", "json", "toml"],
+    "web_frameworks_detected": {
+      "rust": "axum 0.7 (hexagon/templates/rust/Cargo.toml:9, with tokio + tower-http + hyper + sqlx)",
+      "go": "go-chi/chi/v5 5.2.5 (libs/go/phenotype-go-kit/go.mod + libs/go/phenotype-go-middleware/go.mod, with go-chi/cors 1.2.2)",
+      "python": "fastapi >=0.128.0 (libs/python/phenotype-py-kit/pyproject.toml, templates/phenotype-api/pyproject.toml, templates/hexagonal/hexagonal-python/pyproject.toml, templates/microservice-scaffold/python/pyproject.toml)"
+    },
+    "framework": "multi-web (axum + chi + fastapi across 3 languages)",
+    "workspace_kind": "virtual Cargo workspace (root Cargo.toml members = []); buildable surfaces are HexaKit/ (submodule) and per-language libs/{rust,go,python,typescript} sub-workspaces",
+    "msrv": "stable (rust-toolchain.toml pinned)",
+    "edition": "2021/2024"
+  },
+  "hygiene_score": 100,
+  "hygiene_breakdown": {
+    "LICENSE": 10,
+    "README": 10,
+    "CHANGELOG": 10,
+    "EDITORCONFIG": 10,
+    "CI": 10,
+    "DEPENDABOT": 10,
+    "CODEOWNERS": 10,
+    "CONTRIBUTING": 10,
+    "SECURITY": 10,
+    "FUNDING": 10
+  },
+  "hygiene_evidence": {
+    "LICENSE": "LICENSE (1068B, MIT, Copyright 2026 Koosha Pari) + LICENSE-MIT + LICENSE-APACHE",
+    "README": "README.md (7067B, 160 lines, work-state header pinned to MSRV/deny/audit, 12-category matrix, agent interaction matrix, dual-role clarification, quick-start)",
+    "CHANGELOG": "CHANGELOG.md (Keep-a-Changelog 1.1.0 format, Unreleased section + cliff.toml present for auto-gen)",
+    "EDITORCONFIG": ".editorconfig (446B, root=true, per-language indent_size 4 vs 2 for ts/js)",
+    "CI": ".github/workflows/ (15 workflows: ci, cargo-deny, cargo-audit, cargo-machete, cargo-semver-checks, codeql, docs-deploy, journey-gate, publish, quality-gate, scorecard, secrets-scan, trufflehog + 2 more)",
+    "DEPENDABOT": ".github/dependabot.yml (multi-ecosystem: cargo, 5x gomod, npm - weekly, grouped)",
+    "CODEOWNERS": "CODEOWNERS (root, * @KooshaPari) + .github/CODEOWNERS, per-language drill-down for *.rs and *.py",
+    "CONTRIBUTING": "CONTRIBUTING.md (1095B, layer-contract-aware, semver policy) - NOTE: content is stale (still references 'template-commons' predecessor name) but file is substantive",
+    "SECURITY": "SECURITY.md (894B, GitHub Security Advisories preferred channel, 2-day ack / 5-day triage SLA, supported-versions table, repo security rules)",
+    "FUNDING": "FUNDING.yml (root, github: KooshaPari + custom sponsor URL) + .github/FUNDING.yml"
+  },
+  "dup_exposure": [
+    "phenotype-request-id (request ID propagation - should be wired into all 3 web templates: axum middleware, chi middleware, FastAPI middleware)",
+    "phenotype-postfx (middleware runner / post-effect chain - natural fit for libs/go/phenotype-go-middleware chi chain and FastAPI Depends() chain)",
+    "phenotype-bus (event bus primitives - hexagon templates do not publish request lifecycle events; chi and fastapi templates are silent)",
+    "phenotype-registry (service registry - phenotype-go-kit/phenotype-py-kit could resolve service names into tracing/metrics labels automatically)",
+    "phenotype-dep-guard (org-wide deny.toml + audit-check config - PhenoKits' deny.toml could be a thin overlay on the dep-guard baseline)",
+    "phenotype-journeys (journey tracing primitives - could be emitted from the 3 web templates with zero per-stack code)",
+    "phenotype-shared / phenotype-tooling (shared just/lint/CI recipes - PhenoKits has its own justfile and Taskfile.yml; candidate for consolidation)",
+    "phenotype-hub (federated registry/CLI - could subsume the HexaKit template CLI surface)",
+    "phenotype-icons (UI asset library - could be consumed by docs/guides and any webapp template)",
+    "phenotype-omlx (OmniRoute MLX LLM bridge - could power an 'LLM-enabled phenotype-api' variant of templates/phenotype-api)",
+    "phenotype-ops-mcp (MCP tooling - could expose a 'scaffold new pheno project' tool that picks the right template from this monorepo)"
+  ],
+  "sota_gaps": [
+    "No shared cross-stack HTTP middleware contract - axum, chi, and FastAPI each define their own middleware composition with no shared trait/port; no phenotype-http-ports (Rust) or analogue in py/ts",
+    "No auto-instrumentation in any of the 3 web templates - tracing is declared in hexagon/templates/rust/Cargo.toml:30 but no #[instrument] macros or tower-http::trace middleware wired into example handlers; FastAPI has no structlog/timing middleware in phenotype-api; chi has no OTel middleware in phenotype-go-middleware",
+    "PII redaction / span field allow-list - none of the 3 web templates redact Authorization headers, query params, or body fields before logging",
+    "No tail-based or adaptive sampling guidance in any template - every template uses AlwaysOn or unspecified default",
+    "Exemplars (metric->trace correlation) - no metric instrumentation in any web template that would emit exemplars",
+    "No service-name resolution / registry bootstrap - FastAPI app factory and chi router both hard-code service names; phenotype-registry is unconsumed",
+    "No event-bus integration in any web template - request lifecycle events (start/finish/error) are not published to phenotype-bus in any of the 3 stacks",
+    "Dependabot only watches cargo and gomod ecosystems - libs/python (pip) and libs/typescript (npm) are unmonitored for upstream security updates; phenotype-py-kit pins fastapi>=0.128 with no auto-PR",
+    "CONTRIBUTING.md and COMPARISON.md are stale - both still reference 'template-commons', a predecessor identity that confuses new contributors",
+    "CHANGELOG.md is scaffold-only - 'Initial CHANGELOG scaffold' is the only entry; cliff.toml is configured but no auto-generated 0.1.0 release notes exist",
+    "No PII scrubbing / cardinality guard in any of the 3 web templates - high-cardinality path params flow straight into logs",
+    "No MCP server / registry bridge for the 12-category artifacts - agents cannot enumerate available templates/configs/libs at runtime; they have to read the README matrix",
+    "HexaKit submodule is the only 'real' buildable surface; root Cargo.toml has members=[] which makes cargo metadata report 'workspace has no members' - confusing for first-time contributors"
+  ],
+  "convergence_cluster": "multi-stack",
+  "convergence_rationale": "Three independent web stacks (axum/Rust + chi/Go + fastapi/Python) coexist with no shared HTTP middleware trait, no shared request-id propagation, and no shared service-name registry bootstrap. The repo is the org's template + artifact monorepo, not a single web service, and the architectural intent across the 3 stacks is convergence (one observability/registry/bus contract) but the implementation is still stack-local. This matches the multi-stack pattern, with a clear convergence trajectory.",
+  "action_items": [
+    {
+      "rank": 1,
+      "title": "Wire phenotype-request-id and phenotype-postfx into all 3 web templates (axum + chi + fastapi)",
+      "effort": "M (3-5d)",
+      "why": "Highest-leverage dup-exposure win. Each web template currently has its own (or absent) request-id middleware; centralizing eliminates ~150 lines of duplicated code and unlocks trace correlation across stacks.",
+      "file_refs": ["hexagon/templates/rust/src/main.rs", "libs/go/phenotype-go-middleware/middleware.go", "libs/python/phenotype-py-kit/src/phenotype_kit/api.py", "templates/phenotype-api/src/phenotype_api/api.py"]
+    },
+    {
+      "rank": 2,
+      "title": "Add pip and npm ecosystems to .github/dependabot.yml",
+      "effort": "S (1-2d)",
+      "why": "Closes a real security gap - libs/python (fastapi, structlog) and libs/typescript (3 packages) currently have no automated dependency-update coverage. Dead-simple config change with high blast radius.",
+      "file_refs": [".github/dependabot.yml"]
+    },
+    {
+      "rank": 3,
+      "title": "Author a phenotype-http-ports trait crate (Rust) + Python Protocol + TS interface to unify the 3 web stacks",
+      "effort": "L (1-2w)",
+      "why": "The convergence play. A shared HttpMiddleware/RequestContext/ResponseContext port lets axum, chi (via go bindings), and FastAPI all consume the same observability/registry/bus primitives. Largest single convergence unlock.",
+      "file_refs": ["libs/rust/phenotype-http-ports/Cargo.toml (new)", "libs/python/phenotype-http-ports/pyproject.toml (new)", "libs/typescript/phenotype-http-ports/package.json (new)"]
+    },
+    {
+      "rank": 4,
+      "title": "Migrate CONTRIBUTING.md and COMPARISON.md off the stale 'template-commons' predecessor name",
+      "effort": "S (1-2d)",
+      "why": "Both files still reference 'template-commons' which is the predecessor identity; new contributors hit a naming mismatch with the README. Trivial text edit but high signal-to-noise for repo polish.",
+      "file_refs": ["CONTRIBUTING.md:1-9", "COMPARISON.md:5,9,20,40"]
+    },
+    {
+      "rank": 5,
+      "title": "Populate CHANGELOG.md with a real 0.1.0 release entry and add phenotype-registry service-name bootstrap to phenotype-api and phenotype-go-kit",
+      "effort": "S (1-2d)",
+      "why": "Resolves the 'scaffold-only CHANGELOG' hygiene nit and lands the first concrete dup-exposure consumer of phenotype-registry, which unblocks metric label hygiene across all 3 web stacks.",
+      "file_refs": ["CHANGELOG.md:8-22", "templates/phenotype-api/src/phenotype_api/api.py", "libs/go/phenotype-go-kit/bootstrap.go"]
+    }
+  ],
+  "metadata": {
+    "audit_task": "DAG L1-13",
+    "audit_date": "2026-06-08",
+    "auditor": "forge (audit skill)",
+    "source_repo_path": "/Users/kooshapari/CodeProjects/Phenotype/repos/PhenoKits",
+    "source_branch_audited": "chore/phenokits-cheap-win-20260608",
+    "workspace_crate_count": "virtual (members=[]) + HexaKit submodule + 4 per-language libs sub-workspaces",
+    "template_count": 5,
+    "category_count": 12,
+    "workflows_count": 15,
+    "web_stacks_count": 3,
+    "pushed": false
+  }
+}

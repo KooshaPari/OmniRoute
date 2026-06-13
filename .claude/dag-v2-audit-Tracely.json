@@ -1,0 +1,133 @@
+{
+  "task": "DAG L1-19 audit",
+  "schema_version": "v2",
+  "generated_at": "2026-06-08T00:00:00Z",
+  "repo": "Tracely",
+  "repo_path": "/Users/kooshapari/CodeProjects/Phenotype/repos/Tracely",
+  "branch": "chore/audit-Tracely-2026-06-08",
+  "head_sha": "1af3d2c9d75352fd63812a8ba8ba54f6867988ec",
+  "last_commit_date": "2026-06-08T04:25:16-07:00",
+  "last_commit_subject": "fix(ci): replace placeholder SHAs with inline workflow",
+  "last_commit_author": "kooshapari",
+  "remotes": {
+    "origin": "https://github.com/KooshaPari/Tracely.git"
+  },
+  "language_stack": {
+    "detected": ["rust", "toml", "github-actions-yaml", "markdown", "yaml", "shell"],
+    "primary": "rust",
+    "secondary": ["toml", "github-actions-yaml"],
+    "rust": {
+      "edition": "2021",
+      "msrv": "stable (rust-toolchain.toml present, no explicit pin)",
+      "workspace_cargo_toml": "Cargo.toml",
+      "workspace_members": 3,
+      "workspace_members_list": ["crates/helix-tracing", "crates/tracely-core", "crates/tracely-sentinel"],
+      "rust_file_count": 13,
+      "rust_loc_total": 1785,
+      "key_deps": ["tracing 0.1", "tracing-subscriber 0.3", "log 0.4", "env_logger 0.11", "uuid 1", "chrono 0.4", "serde 1.0", "serde_json 1.0", "opentelemetry 0.27 (optional)", "prometheus 0.13 (optional)", "metrics 0.24 (optional)"],
+      "features": ["otel", "prometheus", "metrics", "full"]
+    },
+    "toml": "Cargo.toml + 16 nested Cargo.toml/clippy.toml/rustfmt.toml/deny.toml/typos.toml/mise.toml",
+    "ci": "GitHub Actions (14 workflows: ci, cargo-audit, cargo-deny, cargo-machete, cargo-semver-checks, codeql, codeql-rust, doc-links, fr-coverage, legacy-tooling-gate, quality-gate, scorecard, trufflehog, plus ISSUE_TEMPLATE/ + PULL_REQUEST_TEMPLATE)"
+  },
+  "hygiene_score": 100,
+  "hygiene_breakdown": [
+    {"item": "LICENSE", "present": true, "points": 10, "evidence": ["LICENSE (1067B, MIT, Copyright 2024 KooshaPari)"]},
+    {"item": "README", "present": true, "points": 10, "evidence": ["README.md (104 lines) with pinned-references header, stack table, quick-start, related projects"]},
+    {"item": "CHANGELOG", "present": true, "points": 10, "evidence": ["CHANGELOG.md (82 lines, Keep-a-Changelog-style, organized by Features/Bug Fixes/Docs/Other)"]},
+    {"item": ".editorconfig", "present": true, "points": 10, "evidence": [".editorconfig (rs/go indent=4, md trim-trailing=false, Makefile tab)"]},
+    {"item": "CI", "present": true, "points": 10, "evidence": ["14 workflows incl. ci.yml (build/test/clippy/fmt/audit/deny + phenotype-validate governance)"]},
+    {"item": "dependabot", "present": true, "points": 10, "evidence": [".github/dependabot.yml (cargo + github-actions ecosystems, weekly, patch+minor groups)"]},
+    {"item": "CODEOWNERS", "present": true, "points": 10, "evidence": ["CODEOWNERS (root: * @KooshaPari) + .github/CODEOWNERS"]},
+    {"item": "CONTRIBUTING", "present": true, "points": 10, "evidence": ["CONTRIBUTING.md (23 lines, conventional-commits, fork workflow)"]},
+    {"item": "SECURITY", "present": true, "points": 10, "evidence": ["SECURITY.md (24 lines, GitHub Security Advisories + cargo-deny/CodeQL refs)"]},
+    {"item": "FUNDING", "present": true, "points": 10, "evidence": ["FUNDING.yml (github: KooshaPari) + .github/FUNDING.yml"]}
+  ],
+  "dup_exposure": [
+    "phenotype-request-id (correlation ID type; overlaps with tracely-core::LogContext::correlation_id and TraceContext::trace_id/span_id — could consume the canonical type)",
+    "phenotype-bus / phenotype-event-bus (event bus for emitting trace/metric events; also noted in PhenoObservability's dup_exposure list)",
+    "PhenoObservability (parent platform; Cargo.toml ships tracely-core + tracely-sentinel + helix-logging crates — direct overlap with this repo's crates; convergence target)",
+    "Tracera (distributed-tracing backend/storage that Tracely producers are meant to feed; consumer-side coupling)",
+    "phenotype-shared / phenoShared (shared types; potential home for TraceContext/LogContext adapters)",
+    "phenotype-dep-guard (cargo-deny/audit policy enforcement; could share org baseline with Tracely's deny.toml)",
+    "phenotype-tooling (shared just/lint/CI recipes; Tracely already uses quality-gate + fr-coverage + legacy-tooling-gate workflows)",
+    "phenotype-journeys (journey-tracing primitives could be emitted as spans/logs via tracely-core)",
+    "phenotype-postfx (post-effect / middleware runner that could host #[instrument] wrappers or redaction middleware)",
+    "phenotype-skills (agent-skill alignment; Tracely could expose observability playbooks as phenotype skills)"
+  ],
+  "sota_gaps": [
+    "OTLP exporter not implemented — OpenTelemetry is an optional dep (0.27) but no OTLP/HTTP or OTLP/g exporter wires traces/metrics/logs off-process; README claims 'OTLP, Prometheus, Jaeger, Zipkin' support but the code only ships env_logger + tracing-subscriber fmt layer",
+    "Prometheus exporter not implemented — prometheus is an optional dep (0.13) but no prometheus::Registry or /metrics HTTP handler exists in tracely-core or any workspace crate",
+    "Jaeger / Zipkin exporters missing — README claims them; code has none",
+    "Tail-based / adaptive sampling — only EnvFilter-level filtering exists; no Sampler trait, no ParentBased(TraceIDRatioBased), no cost-aware sampling",
+    "Exemplars (metric↔trace linking) — no exemplar field on metrics; Prometheus exporter path lacks exemplar support",
+    "OTel Logs protocol — only custom `log_json!` macro to stdout; no OTLP/logs exporter and no bridge from `log` crate to opentelemetry-appender",
+    "PII / data scrubbing / redaction — no automatic span/log field allow-list, hash-redaction, or value-pattern masking",
+    "Cardinality control / metrics limits — no metric-name or label-value cardinality guard rails",
+    "SLO primitives — tracely-sentinel ships rate-limiter/circuit-breaker/bulkhead but no error-budget or burn-rate alert types",
+    "Auto-instrumentation — no #[auto-instrument] for axum/actix/tonic/sqlx; consumers must hand-instrument",
+    "Log-to-trace correlation — LogContext::correlation_id and TraceContext::trace_id are independent UUIDs; no auto-stitching of log fields into active spans",
+    "Dynamic reconfiguration (hot-reload of TracingConfig/LoggerConfig) — init helpers are fire-and-forget; no file-watch or admin endpoint",
+    "Profile / continuous-profiling signal — no eBPF, Pyroscope, or OTLP profiling integration",
+    "Real-User Monitoring (RUM) / web SDK — no browser surface; no web-vitals or session-replay",
+    "Mobile SDKs (iOS/Android) — no native bindings; zero zig/wasi surface (stubs directories only)"
+  ],
+  "convergence_cluster": "convergence",
+  "convergence_rationale": "Pure-Rust observability primitives hub. The repo is a consolidation target: it absorbed helix-logging + helix-tracing (archived 2026-03-26) and now also carries tracely-sentinel (circuit-breaker/rate-limiter/bulkhead/validation) and helix-tracing crate. It is the producer-side counterpart to Tracera (consumer) and the consumer-side leaf of PhenoObservability (which contains the same tracely-core/tracely-sentinel crates — strong consolidation signal). Language stack is rust-only (no polyglot bindings, no stubs of weight), so not multi-stack; not a web or live product; lives in the convergence lane with PhenoObservability.",
+  "action_items": [
+    {
+      "priority": 1,
+      "title": "Decide Tracely vs PhenoObservability ownership of tracely-core / tracely-sentinel / helix-tracing",
+      "effort": "M (3-5d)",
+      "why": "Both repos carry the same crate names (PhenoObservability/Cargo.toml:6-8 lists tracely-core + tracely-sentinel; this repo's Cargo.toml:3-7 lists the same). Two sources of truth will drift. Pick one as canonical, move the other to a path-dep or remove. The local branch is 2 commits ahead of origin/main — fold those into the consolidation PR.",
+      "file_refs": ["Cargo.toml:3-7", "crates/tracely-core/", "crates/tracely-sentinel/", "crates/helix-tracing/"]
+    },
+    {
+      "priority": 2,
+      "title": "Implement OTLP/HTTP (and gRPC) exporter for traces + metrics + logs",
+      "effort": "L (1-2w)",
+      "why": "Closes the largest SOTA gap: README promises 'OTLP, Prometheus, Jaeger, Zipkin' but only env_logger + tracing-subscriber fmt are wired. An OTLP exporter unblocks off-process span shipping and aligns with OpenTelemetry 0.27's opentelemetry-otlp / opentelemetry-appender crates. Use tonic for gRPC, reqwest for HTTP.",
+      "file_refs": ["crates/tracely-core/Cargo.toml:23-25", "crates/tracely-core/src/lib.rs:1-28"]
+    },
+    {
+      "priority": 3,
+      "title": "Replace tracely-core's local LogContext::correlation_id with phenotype-request-id",
+      "effort": "S (1-2d)",
+      "why": "LogContext and TraceContext each roll their own UUID-based correlation fields. The Phenotype ecosystem has phenotype-request-id as the canonical type. Migrating aligns the surface with phenotype-bus / phenotype-journeys consumers and unblocks cross-service correlation across the org.",
+      "file_refs": ["crates/tracely-core/src/logging.rs:73-86", "crates/tracely-core/src/tracing.rs:131-148"]
+    },
+    {
+      "priority": 4,
+      "title": "Add PII redaction + cardinality-limit middleware to tracely-core",
+      "effort": "M (3-5d)",
+      "why": "Two adjacent SOTA gaps (scrubbing, cardinality control) share a span/log/metric post-processor layer. Building them together is cheaper than two passes; both are blockers for production data-handling review (PII risk today).",
+      "file_refs": ["crates/tracely-core/src/tracing.rs:81-98", "crates/tracely-core/src/logging.rs:35-50"]
+    },
+    {
+      "priority": 5,
+      "title": "Implement a Sampler trait + tail-based sampler with cost feedback",
+      "effort": "L (1-2w)",
+      "why": "Replaces the static EnvFilter with a real Sampler (ParentBased(TraceIDRatioBased) default + tail-based span-keep evaluator). Highest-leverage production-readiness gap; also unblocks SLO error-budget alerts downstream in tracely-sentinel.",
+      "file_refs": ["crates/tracely-core/src/tracing.rs:84-97", "crates/tracely-sentinel/"]
+    }
+  ],
+  "notes": [
+    "Local branch is 2 commits ahead of origin/main (bda57db + 1af3d2c). The 'chore(snapshot): preserve Tracely local dirty state 2026-06-07 r2' commit is a local-state preservation commit — fold or rebase before publishing the audit branch.",
+    "Workspace lists 3 members (helix-tracing, tracely-core, tracely-sentinel) but Cargo.lock shows only tracely-core + tracely-sentinel resolved; helix-tracing is still on disk as a stale crate from before the 0.2.0 absorb (per CHANGELOG: feat: absorb helix-logging and helix-tracing into tracely, 8542609). Verify with `cargo metadata` and prune.",
+    "phenotype-logging-zig/ and zerokit/ directories exist in crates/ but are empty (64 B each, no Cargo.toml) — confirm whether they are intentional stubs to keep or stale dirs to delete.",
+    "CHANGELOG.md is generated (cliff.toml present) — release automation is set up but no recent release tag visible (VERSION file = '0.0.0' while tracely-core/Cargo.toml:6 = '0.2.0' — version drift).",
+    "AGENTS.md at repo root (18993B) is extensive and overrides the project_guidelines in this audit; trust the in-repo AGENTS.md over the system-level one for repo-specific commands."
+  ],
+  "metadata": {
+    "audit_task": "DAG L1-19",
+    "audit_date": "2026-06-08",
+    "auditor": "forge (workflow tracer)",
+    "source_repo_path": "/Users/kooshapari/CodeProjects/Phenotype/repos/Tracely",
+    "source_branch_audited": "main",
+    "workspace_crate_count": 3,
+    "rust_file_count": 13,
+    "rust_loc_total": 1785,
+    "workflows_count": 14,
+    "pushed": false
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "generated_at": "2026-06-08T22:15:00Z",
+  "total_repos": 170,
+  "with_migrations": [
+    "HeliosCLI",
+    "helioscope"
+  ],
+  "dup_migrations": [
+    {
+      "name": "0001_init.sql",
+      "hash": "375a548dc4edee966e3fbdfe95fb4ec9ce70db6d28b774ffe343d7949b71eaea",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    }
+  ]
+}

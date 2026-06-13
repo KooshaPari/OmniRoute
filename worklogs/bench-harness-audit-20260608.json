@@ -1,0 +1,38 @@
+{
+  "generated_at": "2026-06-08T00:00:00Z",
+  "total_repos": 164,
+  "with_criterion": [
+    "AgilePlus",
+    "Apisync",
+    "Benchora",
+    "Conft",
+    "Dino",
+    "FocalPoint",
+    "GDK",
+    "HeliosCLI",
+    "HexaKit",
+    "KDesktopVirt",
+    "PhenoDevOps",
+    "PhenoObservability",
+    "PhenoPlugins",
+    "PhenoProc",
+    "PhenoSchema",
+    "Pyron",
+    "Tracely",
+    "helioscope",
+    "kwality",
+    "pheno",
+    "phenotype-voxel",
+    "thegent"
+  ],
+  "with_pytest_bench": [
+    "Civis",
+    "ObservabilityKit",
+    "PhenoObservability",
+    "TestingKit",
+    "Tracera",
+    "thegent"
+  ],
+  "with_codspeed": [],
+  "with_divan": []
+}

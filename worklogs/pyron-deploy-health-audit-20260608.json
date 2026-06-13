@@ -1,0 +1,34 @@
+{
+  "generated_at": "2026-06-09T03:37:49.343192+00:00",
+  "pages_present": false,
+  "deployments_count": 0,
+  "last_deployment": "",
+  "health_endpoints": [
+    {
+      "path": "/health",
+      "method": "GET",
+      "service": "agileplus-api",
+      "file": "crates/agileplus-api/src/router.rs:64",
+      "auth_required": false
+    },
+    {
+      "path": "/api/dashboard/health",
+      "method": "GET",
+      "service": "agileplus-dashboard",
+      "file": "crates/agileplus-dashboard/src/routes.rs:2073",
+      "auth_required": false
+    },
+    {
+      "path": "/api/dashboard/health.json",
+      "method": "GET",
+      "service": "agileplus-dashboard",
+      "file": "crates/agileplus-dashboard/src/routes.rs:2078",
+      "auth_required": false
+    }
+  ],
+  "notes": {
+    "pages_api_response": "404 Not Found — no GitHub Pages enabled on KooshaPari/Pyron",
+    "deployments_api_response": "[] — no deployments recorded",
+    "ready_live_endpoints": "No /ready, /live, /livez, /readyz, /healthz routes registered. Only /health (and dashboard-prefixed variants) are exposed."
+  }
+}

@@ -1,0 +1,50 @@
+{
+  "generated_at": "2026-06-08T10:29:36Z",
+  "total_repos": 46,
+  "go_log_dupes": [
+    {
+      "framework": "slog.Handler",
+      "repos": [
+        "PhenoProc",
+        "PlatformKit",
+        "agentapi-plusplus",
+        "kwality"
+      ],
+      "details": {
+        "PhenoProc": {
+          "files": 1,
+          "config_struct_files": 0
+        },
+        "PlatformKit": {
+          "files": 1,
+          "config_struct_files": 0
+        },
+        "agentapi-plusplus": {
+          "files": 1,
+          "config_struct_files": 0
+        },
+        "kwality": {
+          "files": 1,
+          "config_struct_files": 0
+        }
+      }
+    },
+    {
+      "framework": "zap.Logger",
+      "repos": [
+        "PhenoKits",
+        "Tracera"
+      ],
+      "details": {
+        "PhenoKits": {
+          "files": 1,
+          "config_struct_files": 0
+        },
+        "Tracera": {
+          "files": 2,
+          "config_struct_files": 0
+        }
+      }
+    }
+  ]
+}

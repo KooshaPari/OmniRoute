@@ -1,0 +1,61 @@
+openapi: 3.0.3
+info:
+    title: Atoms API - Agent Chat
+    version: 1.0.0
+servers:
+    - url: https://api.example.com
+paths:
+    /chat/sessions:
+        post:
+            summary: Create chat session
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties:
+                                organizationId: { type: string }
+                                projectId: { type: string }
+            responses:
+                '201':
+                    description: Created
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    sessionId: { type: string }
+    /chat/messages:
+        post:
+            summary: Send a user message to the agent
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            required: [sessionId, content]
+                            properties:
+                                sessionId: { type: string }
+                                content: { type: string }
+                                context:
+                                    type: object
+                                    additionalProperties: true
+            responses:
+                '202': { description: Accepted }
+    /chat/stream:
+        get:
+            summary: Stream agent responses (SSE)
+            parameters:
+                - in: query
+                  name: sessionId
+                  required: true
+                  schema: { type: string }
+            responses:
+                '200':
+                    description: OK (text/event-stream)
+                    content:
+                        text/event-stream:
+                            schema:
+                                type: string

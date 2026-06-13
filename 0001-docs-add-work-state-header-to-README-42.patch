@@ -1,0 +1,24 @@
+From 5301d01a40d4ca9678695c574dd490b7eff39509 Mon Sep 17 00:00:00 2001
+From: KooshaPari <42529354+KooshaPari@users.noreply.github.com>
+Date: Tue, 2 Jun 2026 16:09:00 -0700
+Subject: [PATCH] docs: add work-state header to README (#42)
+
+Co-authored-by: Claude Opus 4.8 <noreply@anthropic.com>
+---
+ README.md | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/README.md b/README.md
+index 91117c2..6e3f5bb 100644
+--- a/README.md
++++ b/README.md
+@@ -1,3 +1,6 @@
++> **Work state:** ACTIVE · **Progress:** `█████░░░░░ 50%`
++> Rust configuration framework (layered config/env/secrets); pre-1.0 · updated 2026-06-02
++
+ > **Pinned references (Phenotype-org)**
+ > - MSRV: see rust-toolchain.toml
+ > - cargo-deny config: see deny.toml
+-- 
+2.50.1 (Apple Git-155)
+

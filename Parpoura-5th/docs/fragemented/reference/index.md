@@ -1,0 +1,16 @@
+# Consolidated Index
+
+## Files
+
+* `CIVLAB_GAME_DESIGN.md`
+* `ECOSYSTEM_MAP.md`
+* `INFRASTRUCTURE_SPEC.md`
+* `INTERFACE_CONTRACTS.md`
+* `LIBRARY_MANIFEST.md`
+* `SECURITY_THREAT_MODEL.md`
+* `SERVICE_CATALOG.md`
+* `VENTURE_SELF_FUNDING_MECHANICS.md`
+* `WORK_STREAM.md`
+
+## Subdirectories
+

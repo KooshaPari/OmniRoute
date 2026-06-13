@@ -1,0 +1,137 @@
+[
+  {
+    "chunk": 1,
+    "filename": "chunk_001.md",
+    "line_start": 8,
+    "line_end": 588,
+    "lines": 581,
+    "first_speaker": "You",
+    "label": "Marketing / rich materials such as"
+  },
+  {
+    "chunk": 2,
+    "filename": "chunk_002.md",
+    "line_start": 589,
+    "line_end": 734,
+    "lines": 146,
+    "first_speaker": "You",
+    "label": "Yep \u2014 you can slot NanoBanana (image) + Veo (video) into a fully headless \u201cartifact compiler\u201d pipeline cleanly. The key "
+  },
+  {
+    "chunk": 3,
+    "filename": "chunk_003.md",
+    "line_start": 735,
+    "line_end": 891,
+    "lines": 157,
+    "first_speaker": "You",
+    "label": "Cool \u2014 Veo 3.1 is actually built for exactly this: headless, async jobs, and it supports image-to-video, up to 3 referen"
+  },
+  {
+    "chunk": 4,
+    "filename": "chunk_004.md",
+    "line_start": 892,
+    "line_end": 1085,
+    "lines": 194,
+    "first_speaker": "You",
+    "label": "Here\u2019s a practical walk-through of building, launching, selling, and marketing a mobile application \u2014 both to business c"
+  },
+  {
+    "chunk": 5,
+    "filename": "chunk_005.md",
+    "line_start": 1086,
+    "line_end": 1395,
+    "lines": 310,
+    "first_speaker": "You",
+    "label": "Here\u2019s a straight, no-BS guide to designing, building, and selling a mobile app where every part of the process is drive"
+  },
+  {
+    "chunk": 6,
+    "filename": "chunk_006.md",
+    "line_start": 1396,
+    "line_end": 1912,
+    "lines": 517,
+    "first_speaker": "You",
+    "label": "Alright. If you want fully agent-driven, no human-in-the-loop (no HITL), you\u2019re basically building a company-in-a-box th"
+  },
+  {
+    "chunk": 7,
+    "filename": "chunk_007.md",
+    "line_start": 1913,
+    "line_end": 2328,
+    "lines": 416,
+    "first_speaker": "You",
+    "label": "Good. Now we\u2019re talking about building a fully autonomous digital commerce organism, not just a mobile app factory."
+  },
+  {
+    "chunk": 8,
+    "filename": "chunk_008.md",
+    "line_start": 2329,
+    "line_end": 12839,
+    "lines": 10511,
+    "first_speaker": "You",
+    "label": "Alright. Now we\u2019re leaving \u201cdigital commerce\u201d and entering autonomous physical production + commerce systems."
+  },
+  {
+    "chunk": 9,
+    "filename": "chunk_009.md",
+    "line_start": 12840,
+    "line_end": 13947,
+    "lines": 1108,
+    "first_speaker": "You",
+    "label": "Here are some real-world research benchmarks and simulation environments in economics and autonomous agents that you can"
+  },
+  {
+    "chunk": 10,
+    "filename": "chunk_010.md",
+    "line_start": 13948,
+    "line_end": 14904,
+    "lines": 957,
+    "first_speaker": "You",
+    "label": "Below is a 5-year \u201clabor + services class map\u201d for a zero-HITL venture organism, grounded in real vendor categories and "
+  },
+  {
+    "chunk": 11,
+    "filename": "chunk_011.md",
+    "line_start": 14905,
+    "line_end": 16004,
+    "lines": 1100,
+    "first_speaker": "You",
+    "label": "Here\u2019s the current landscape of agent frameworks / orchestration systems / security tooling / SaaS primitives that are a"
+  },
+  {
+    "chunk": 12,
+    "filename": "chunk_012.md",
+    "line_start": 16005,
+    "line_end": 16485,
+    "lines": 481,
+    "first_speaker": "You",
+    "label": "Here\u2019s the clean way to do agent governance / identity / isolation (the \u201calways-on office\u201d control plane), plus prompt-i"
+  },
+  {
+    "chunk": 13,
+    "filename": "chunk_013.md",
+    "line_start": 16486,
+    "line_end": 19688,
+    "lines": 3203,
+    "first_speaker": "You",
+    "label": "Cool \u2014 \u201c2\u201d = most programmable means you\u2019re basically building a programmable treasury + spend firewall where agents onl"
+  },
+  {
+    "chunk": 14,
+    "filename": "chunk_014.md",
+    "line_start": 19689,
+    "line_end": 19796,
+    "lines": 108,
+    "first_speaker": "You",
+    "label": "Yes \u2014 you want real banking infrastructure, but agents should never have direct bank access. They should only hit a narr"
+  },
+  {
+    "chunk": 15,
+    "filename": "chunk_015.md",
+    "line_start": 19797,
+    "line_end": 22205,
+    "lines": 2409,
+    "first_speaker": "You",
+    "label": "You can get way further with boring compliance automation than with clever \u201coptimization.\u201d For a zero-HITL system, the g"
+  }
+]

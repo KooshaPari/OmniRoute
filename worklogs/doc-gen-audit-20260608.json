@@ -1,0 +1,11 @@
+{
+  "generated_at": "2026-06-08 11:19 UTC",
+  "total_repos": 173,
+  "by_lib": {
+    "mdbook": [],
+    "sphinx": [],
+    "mkdocs": [],
+    "docusaurus": [],
+    "rustdoc": []
+  }
+}

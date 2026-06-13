@@ -1,0 +1,57 @@
+{
+  "generated_at": "2026-06-08T00:00:00Z",
+  "adrs": [
+    {
+      "filename": "ADR-001-architecture-overview.md",
+      "title": "Architecture Overview and System Design",
+      "status": "accepted",
+      "date": "unknown (template $(date +%Y-%m-%d) placeholder unrendered)",
+      "summary": "Adopts a layered modular architecture (Presentation / Application / Domain / Infrastructure) with DDD, hexagonal ports-and-adapters, event-driven inter-module communication, and configuration-as-code. Rejects simple monolithic, microservices, and serverless/FaaS as either too coupled or excessive for scope. Targets sub-100ms p99 latency, 10k+ concurrent ops, 99.9% availability, and SOC2 Type II compliance."
+    },
+    {
+      "filename": "ADR-002-technology-stack.md",
+      "title": "Technology Stack Selection",
+      "status": "accepted",
+      "date": "unknown (template $(date +%Y-%m-%d) placeholder unrendered)",
+      "summary": "Selects a stack with strong static typing, performance, and Phenotype-ecosystem fit. Covers type-safe config, structured logging/metrics/tracing, serialization/validation, caching, containerized deploy, modern orchestration, and CI/CD. Rejects cutting-edge experimental libs (immature), minimalist stdlib-only (delivery risk), and legacy stacks (technical debt)."
+    },
+    {
+      "filename": "ADR-003-data-persistence.md",
+      "title": "Data Persistence Strategy",
+      "status": "accepted",
+      "date": "unknown (template $(date +%Y-%m-%d) placeholder unrendered)",
+      "summary": "Polyglot persistence: relational primary store for ACID + referential integrity, in-memory cache for hot data (sub-10ms), optional append-only event store for audit/event sourcing, read replicas, and cold archive. Lifecycle: hot/warm/cold tiers with soft-delete + audit. Rejects single document store, pure event sourcing, key-value-only, and graph DB as either too weak or over-scoped."
+    },
+    {
+      "filename": "ADR-004-error-handling.md",
+      "title": "Error Handling and Recovery Strategy",
+      "status": "accepted",
+      "date": "unknown (template $(date +%Y-%m-%d) placeholder unrendered)",
+      "summary": "Explicit hierarchical error taxonomy (DomainError, InfrastructureError, SystemError, UserError) classified by origin/severity/recoverability. Principles: fail-fast, clear messages, context preservation, no silent failures, graceful degradation. Recovery: exponential backoff retry, circuit breakers, cache fallback, operator escalation. Standardized JSON error envelope with code/message/details/request_id/timestamp. Rejects exceptions-as-flow-control, bare error codes, and panic-on-everything."
+    },
+    {
+      "filename": "ADR-005-integration-api.md",
+      "title": "Integration and API Design",
+      "status": "accepted",
+      "date": "unknown (template $(date +%Y-%m-%d) placeholder unrendered)",
+      "summary": "Multi-protocol: RESTful HTTP/JSON as primary public API with OAuth2/JWT, gRPC for high-perf internal service-to-service (protobuf contracts, bidi streaming, service mesh), and async event messaging (at-least-once, DLQs, schema evolution) plus webhooks. URL versioning /api/v{N}/ with 6-month deprecation window. Standardized data+meta response envelope with pagination. Rejects GraphQL-only, SOAP/XML, and custom binary protocols."
+    }
+  ],
+  "themes": [
+    "Phenotype ecosystem alignment is the dominant selection criterion across every ADR (stack, persistence, integration).",
+    "Hexagonal/layered architecture + DDD + ports-and-adapters is the foundational shape; all other decisions flow from domain-logic isolation.",
+    "Polyglot-by-design: multiple protocols (REST/gRPC/events), multiple storage tiers (DB/cache/event store/archive), and multiple error categories — uniformity achieved through typed interfaces and standardized envelopes.",
+    "Observability is non-negotiable: every ADR repeats structured logging, distributed tracing, metrics, and alerting as first-class requirements.",
+    "Operational resilience patterns recur: circuit breakers, exponential backoff, graceful degradation, retry-with-jitter, health checks.",
+    "All ADRs explicitly reject three alternatives in a parallel structure, suggesting a templated/boilerplate origin rather than hand-authored decisions."
+  ],
+  "open_questions": [
+    "All five ADRs use the literal string '$(date +%Y-%m-%d)' in Last Updated and Changelog fields — shell placeholders were never expanded. Real decision dates are unrecorded; provenance and author are unverifiable.",
+    "ADR-002 defers primary-language selection ('Determined by project requirements and ecosystem alignment') and ADR-001 defers concrete technology stack — what actually got built?",
+    "ADR-003 marks the event store as 'Optional' — is it in scope for argisroute, and if so, which events flow through it?",
+    "ADR-001 states argisroute is part of the Phenotype ecosystem, but does not name sibling services or shared infra (DB clusters, message bus, identity provider) it depends on.",
+    "The templated structure, identical 'Additional Implementation Considerations' / 'Decision Validation Criteria' / 'Future Considerations' sections copied verbatim across ADR-001, 002, and 003, and unrendered date placeholders suggest these were auto-generated stubs, not real deliberations. Do they reflect the team's actual reasoning, or were they backfilled from a template?",
+    "ADR-004 rejects exception-based handling 'because explicit error types provide better documentation and force handling' — which language is this targeting, since Go/Rust/Zig all use return-value errors while Java/JS/Python default to exceptions?",
+    "No ADR addresses deployment topology (single-region vs multi-region, active-active vs active-passive), data residency, or disaster-recovery RTO/RPO targets."
+  ]
+}

@@ -1,0 +1,198 @@
+{
+  "repo": "helioscope",
+  "repo_path": "/Users/kooshapari/CodeProjects/Phenotype/repos/helioscope",
+  "remote": "https://github.com/KooshaPari/helioscope.git",
+  "branch": "chore/audit-helioscope-2026-06-08",
+  "base_branch": "main",
+  "head_sha": "18af289fcc59f173f18a68e8d244443911058810",
+  "head_sha_short": "18af289f",
+  "last_commit_date": "2026-06-08T19:12:20-07:00",
+  "last_commit_date_utc": "2026-06-09T02:12:20Z",
+  "audit_date": "2026-06-08",
+  "audit_task": "DAG-L1-11",
+  "language_stack": {
+    "primary": "rust",
+    "primary_evidence": "1124 .rs files; codex-rs/* + crates/* (thegent-*, harness-*, arch_test, adrs, api)",
+    "secondary": ["typescript", "python", "javascript", "go", "html", "toml"],
+    "secondary_evidence": "526 .ts, 103 .py, 356 .js, 120 .toml, ~10 .go files (go/harness)",
+    "build_systems": ["bazel", "cargo", "pnpm", "uv", "go"],
+    "notable_deps": {
+      "derive_more": "2 (codex-rs/Cargo.toml)",
+      "tokio": "async runtime",
+      "ratatui": "TUI",
+      "mcp_types": "MCP protocol types"
+    },
+    "mirror_of": "HeliosCLI (per AGENTS.md / HELIOSCLI_README.md; codex-rs/ + codex-cli/ subtree matches openai/codex layout)"
+  },
+  "hygiene_score": {
+    "score": 100,
+    "max": 100,
+    "checks": {
+      "LICENSE": {"present": true, "points": 10, "detail": "LICENSE (10926b) + dual LICENSE-APACHE / LICENSE-MIT"},
+      "README": {"present": true, "points": 10, "detail": "README.md 10467b"},
+      "CHANGELOG": {"present": true, "points": 10, "detail": "CHANGELOG.md 2523b + CHANGELOG.html"},
+      "editorconfig": {"present": true, "points": 10, "detail": ".editorconfig 210b"},
+      "CI": {"present": true, "points": 10, "detail": ".github/workflows/ 50+ workflows (bazel, ci, codeql, cargo-deny/audit, snyk, sonarcloud, codeql-rust, dast)"},
+      "dependabot": {"present": true, "points": 10, "detail": ".github/dependabot.yml + .github/dependabot.yaml + renovate.json5"},
+      "CODEOWNERS": {"present": true, "points": 10, "detail": "CODEOWNERS 14b: '* @KooshaPari' (functional single-owner)"},
+      "CONTRIBUTING": {"present": true, "points": 10, "detail": "CONTRIBUTING.md 400b (branching + PR policy)"},
+      "SECURITY": {"present": true, "points": 10, "detail": "SECURITY.md 697b"},
+      "FUNDING": {"present": true, "points": 10, "detail": "FUNDING.yml 65b (github: KooshaPari + custom URL)"}
+    }
+  },
+  "dup_exposure": {
+    "rationale": "HeliosCLI/helioscope carries locally-forked re-implementations of capabilities that already exist in the phenotype-* / pheno* library family. These are candidates for upstream consumption rather than local duplication.",
+    "consumable": [
+      {
+        "lib": "phenotype-bus",
+        "replaces": "thegent-* eventing + thegent-router / thegent-runtime local pub-sub + custom request_id propagation",
+        "effort_to_adopt": "M"
+      },
+      {
+        "lib": "phenotype-dep-guard",
+        "replaces": "ad-hoc cargo-deny/audit + manual dep pinning in Cargo.toml / Cargo.lock / pnpm-lock.yaml",
+        "effort_to_adopt": "S"
+      },
+      {
+        "lib": "phenotype-request-id",
+        "replaces": "scattered `request_id` / `run_id` string threading in thegent-* and harness_* crates",
+        "effort_to_adopt": "S"
+      },
+      {
+        "lib": "phenotype-icons",
+        "replaces": "vp-icons.css (empty stub) + assets/icons/* in 367-dir assets/ tree",
+        "effort_to_adopt": "S"
+      },
+      {
+        "lib": "phenotype-tooling",
+        "replaces": "scripts/* + Taskfile.yml + justfile + process-compose.yaml + Make-equivalents (Taskfile, justfile, ruff, mypy, codespell overlap)",
+        "effort_to_adopt": "M"
+      },
+      {
+        "lib": "phenotype-registry",
+        "replaces": "thegent-discovery + thegent-runtime service registry (subset)",
+        "effort_to_adopt": "M"
+      },
+      {
+        "lib": "phenotype-shared / phenoShared",
+        "replaces": "crates/utils/* + crates/harness_utils + crates/thegent-utils-style helpers",
+        "effort_to_adopt": "M"
+      }
+    ]
+  },
+  "sota_gaps": {
+    "rationale": "Compared to a state-of-the-art CLI agent harness in 2026 (codex, claude-code, gemini-cli, aider, goose), the following capabilities are absent or only stubbed in this HeliosCLI mirror.",
+    "gaps": [
+      {
+        "id": "sota-1",
+        "feature": "MCP server lifecycle hardening (stdio child reaping, OAuth refresh, streamable-HTTP transport)",
+        "severity": "P1",
+        "evidence": "MCP type usage present (mcp_types), but no centralized mcp-server manager in codex-rs/mcp-client* surface; only prototype in codex-rs/rmcp-client"
+      },
+      {
+        "id": "sota-2",
+        "feature": "Sandboxed tool execution (seatbelt / bubblewrap / landlock profiles per-platform)",
+        "severity": "P1",
+        "evidence": "codex-rs/linux-sandbox + codex-rs/process-hardening exist but no declared SBPL profile checked in; macOS seatbelt policy absent"
+      },
+      {
+        "id": "sota-3",
+        "feature": "Multi-modal input (image, PDF, audio attachments) end-to-end",
+        "severity": "P2",
+        "evidence": "codex-rs/protocol mentions images; no renderer-side attachment pipeline in codex-cli/TS"
+      },
+      {
+        "id": "sota-4",
+        "feature": "Voice / push-to-talk input mode",
+        "severity": "P3",
+        "evidence": "Not present; only TUI + CLI surfaces"
+      },
+      {
+        "id": "sota-5",
+        "feature": "Local-model provider (ollama / llama.cpp / MLX) first-class support",
+        "severity": "P1",
+        "evidence": "phenotype-omlx exists in fleet but no OMLX/MLX provider wired into codex-rs/model_providers"
+      },
+      {
+        "id": "sota-6",
+        "feature": "Plugin / extension marketplace (declarative plugin manifests, signed bundles)",
+        "severity": "P2",
+        "evidence": "extensions/ + plugins/ dirs exist but no manifest schema or signature verification"
+      },
+      {
+        "id": "sota-7",
+        "feature": "Structured output / JSON-schema strict tool calling with auto-retry on schema mismatch",
+        "severity": "P1",
+        "evidence": "tool_call types in protocol, no centralized schema-validation retry loop surfaced"
+      },
+      {
+        "id": "sota-8",
+        "feature": "Telemetry / OTEL spans exported via phenotype-bus",
+        "severity": "P2",
+        "evidence": "thegent-metrics + helios.db (sqlite) present; no OTEL exporter wired to phenotype-bus"
+      },
+      {
+        "id": "sota-9",
+        "feature": "Headless non-interactive exec mode (--quiet --json) for CI/automation parity with codex exec",
+        "severity": "P1",
+        "evidence": "codex-rs/exec exists but JSON output schema is undocumented / unstable"
+      },
+      {
+        "id": "sota-10",
+        "feature": "Cross-platform single binary release (cargo dist / nix flake app) — flake.nix exists but no app outputs",
+        "severity": "P2",
+        "evidence": "flake.nix present; no `apps.*` or `packages.*` outputs declared"
+      }
+    ]
+  },
+  "convergence_cluster": {
+    "label": "multi-stack",
+    "rationale": "Single repo spans 5+ language stacks (Rust codex-rs, TypeScript codex-cli, Python harness/, Go go/harness, JS/HTML assets) under Bazel + Cargo + pnpm + uv. Too heterogeneous for 'web-stack'; not actively live-deployable (no 'live'); functions as a multi-stack mirror of HeliosCLI/codex rather than a converged single-product monorepo. Best fit: multi-stack.",
+    "secondary_candidates": ["convergence"]
+  },
+  "action_items": [
+    {
+      "priority": "P0",
+      "task": "Pin and adopt phenotype-dep-guard + phenotype-request-id across codex-rs and thegent-* crates to drop local reimplementations",
+      "effort": "S",
+      "owner_hint": "platform",
+      "blocks": ["adopt phenotype-bus"]
+    },
+    {
+      "priority": "P0",
+      "task": "Wire MLX / OMLX local model provider into codex-rs/model_providers so helioscope exposes phenotype-omlx end-to-end",
+      "effort": "M",
+      "owner_hint": "ml-stack",
+      "blocks": ["SOTA gap sota-5"]
+    },
+    {
+      "priority": "P1",
+      "task": "Adopt phenotype-bus in thegent-router + thegent-runtime; remove inline pub-sub from thegent-runtime and route telemetry + audit events through the shared bus",
+      "effort": "M",
+      "owner_hint": "platform",
+      "blocks": ["SOTA gap sota-8"]
+    },
+    {
+      "priority": "P1",
+      "task": "Stabilize `codex exec --json` output schema and document it; align with heliosBench/perf-results harness for CI parity",
+      "effort": "S",
+      "owner_hint": "cli",
+      "blocks": ["SOTA gap sota-9"]
+    },
+    {
+      "priority": "P2",
+      "task": "Add Nix `apps.*` + `packages.*` outputs to flake.nix; publish single-binary cross-platform builds via cargo-dist",
+      "effort": "M",
+      "owner_hint": "release",
+      "blocks": ["SOTA gap sota-10"]
+    }
+  ],
+  "metadata": {
+    "schema_version": "dag-v2-audit-1",
+    "audited_by": "forge",
+    "audit_session": "dag-v2-L1-11-helioscope",
+    "push": false,
+    "branch_created": "chore/audit-helioscope-2026-06-08",
+    "files_committed": [".claude/dag-v2-audit-helioscope.json"]
+  }
+}

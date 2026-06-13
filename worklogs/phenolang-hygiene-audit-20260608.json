@@ -1,0 +1,107 @@
+{
+  "repo": "PhenoLang",
+  "branch_audited": "n/a (no .git directory in working tree)",
+  "audited_at": "2026-06-08",
+  "stack": "rust (intended) — single crate `crates/omniroute-core` v0.1.0 per Cargo.lock",
+  "summary": "G1 FAIL (no .github/workflows/), G2 FAIL (no LICENSE/README/AGENTS.md/CHANGELOG.md/CODEOWNERS — repo is ungoverned), G3 FAIL (no security scanning, no dependabot, no CodeQL), G4 FAIL (no Cargo.toml, no test workflow, no quality gate), G5 FAIL (no PULL_REQUEST_TEMPLATE.md, no ISSUE_TEMPLATE/, no .coderabbit.yaml, no .gemini/). e2e FAIL (no tests/, no benches source, only stale target/ + Cargo.lock remnants). The working tree is gutted: 286-package + 325-package lockfiles + a target/ build dir are the only artifacts; every .rs/.toml/.md source has been removed. 5 P0, 4 P1, 2 P2.",
+  "gates": {
+    "G1_workflow_hygiene": {
+      "status": "FAIL",
+      "evidence": [
+        ".github/ directory does not exist (no workflows/, no dependabot.yml, no CODEOWNERS, no PULL_REQUEST_TEMPLATE.md)",
+        "0 reusable-workflow calls to phenotype-tooling (no quality-gate, no fr-coverage, no doc-links, no security, no lint, no test)",
+        "No CI signal of any kind — no build, no test, no security gate, no supply-chain check",
+        "0 workflow files = 0 drift surface, but 0 enforcement either"
+      ]
+    },
+    "G2_governance_files": {
+      "status": "FAIL",
+      "evidence": [
+        "NO LICENSE (legal risk for any published artifact)",
+        "NO README.md, NO AGENTS.md, NO CLAUDE.md, NO CHANGELOG.md, NO CODE_OF_CONDUCT.md, NO CONTRIBUTING.md, NO SECURITY.md, NO SUPPORT.md",
+        "NO CODEOWNERS, NO FUNDING.yml, NO ADR.md, NO CHARTER.md, NO VERSION",
+        "NO .editorconfig, NO .gitignore (so Cargo.lock + target/ would get re-committed if anyone runs `git add .`)",
+        "docs/ does not exist; no SSOT.md, no FUNCTIONAL_REQUIREMENTS.md, no PRD, no PLAN, no SPEC",
+        "Only files present: crates/Cargo.lock (71KB, 286 pkgs), crates/omniroute-core/benchmarks/Cargo.lock (80KB, 325 pkgs), crates/omniroute-core/benchmarks/target/ (build artifacts)"
+      ]
+    },
+    "G3_security_scanning": {
+      "status": "FAIL",
+      "evidence": [
+        "No security.yml, no CodeQL, no trufflehog, no govulncheck/cargo-audit/cargo-deny",
+        "No dependabot.yml for cargo (workspace pulls 286 deps including anyhow/tokio/serde — unmonitored)",
+        "No secret scanning, no SBOM, no SLSA provenance",
+        "Repo would fail any org security baseline"
+      ]
+    },
+    "G4_quality_gates": {
+      "status": "FAIL",
+      "evidence": [
+        "NO Cargo.toml at root or in crates/ — workspace file missing",
+        "NO Cargo.toml in crates/omniroute-core/ — crate manifest missing",
+        "NO Cargo.toml in crates/omniroute-core/benchmarks/ — bench manifest missing",
+        "No test/ directory, no benches/ source, no examples/ — only stale `target/` build cache remains",
+        "No Justfile, no Makefile, no xtask, no task runner of any kind",
+        "No pre-commit-config.yaml, no rustfmt.toml, no clippy.toml override",
+        "Lockfiles reference crates.io packages including `omniroute-core v0.1.0` but no source can be built — repo is in a build-broken state"
+      ]
+    },
+    "G5_review_governance": {
+      "status": "FAIL",
+      "evidence": [
+        "No PULL_REQUEST_TEMPLATE.md (org standard requires)",
+        "No ISSUE_TEMPLATE/{bug,feature,config}.yml",
+        "No .coderabbit.yaml, no .gemini/, no .claude/ — all AGENTS.md mandates missing because AGENTS.md is missing",
+        "No .git directory in working tree, so no branch inventory, no stale-branch audit, no unpushed-commit audit possible",
+        "PhenoLang-wtrees/ does NOT exist on disk (AGENTS.md in peer repos mandates repos/<name>-wtrees/ scaffolding)"
+      ]
+    },
+    "e2e_end_to_end": {
+      "status": "FAIL",
+      "evidence": [
+        "tests/ directory does not exist at root or in any crate",
+        "crates/omniroute-core/benchmarks/ has Cargo.lock + target/ but NO benches/*.rs source",
+        "No integration/, no examples/, no doc-tests (no source to doc-test)",
+        "No Playwright/Cypress/vitest/anything — no end-to-end harness of any kind",
+        "The 325-package benchmark lockfile (criterion/divan/iai/etc.) is orphaned — cannot be exercised"
+      ]
+    }
+  },
+  "additional_findings": {
+    "git_repo_missing": "No .git directory inside /Users/kooshapari/CodeProjects/Phenotype/repos/PhenoLang. The working tree is a leftover checkout OR was deinit'd — no history, no remotes, no branches recoverable from here. (P0)",
+    "source_gutted_only_lockfiles_remain": "crates/Cargo.lock (286 packages) and crates/omniroute-core/benchmarks/Cargo.lock (325 packages) both reference `omniroute-core v0.1.0` but no source files (lib.rs, main.rs, mod.rs, Cargo.toml) exist anywhere in the tree. Repo is build-broken and unreadable. (P0)",
+    "build_artifacts_committed": "crates/omniroute-core/benchmarks/target/ contains .rustc_info.json + CACHEDIR.TAG + debug/.cargo-lock — generated build cache that should never be in a source tree. (P0)",
+    "phenoLang_wtrees_missing": "Peer pattern (AGENTS.md of chatta/argis-extensions/etc. — see worklogs/agent-user-status-hygiene-audit-20260608.json) mandates repos/PhenoLang-wtrees/<topic>/ scaffolding for parallel work. Directory does not exist. (P1)",
+    "zero_docs_zero_specs": "No docs/, no specs/, no FUNCTIONAL_REQUIREMENTS.md, no PRD, no PLAN, no SPEC, no SSOT, no ADR. The crate `omniroute-core` is undefined — no surface area, no FRs, no acceptance criteria. (P1)",
+    "orphan_workspace_layout": "Workspace root has `crates/` but no top-level Cargo.toml declaring `[workspace]`. The nested Cargo.lock files cannot resolve. (P1)",
+    "stale_omniroute_brand_collision": "Crate name `omniroute-core` collides with the existing OmniRoute/ project family (OmniRoute, OmniRoute-2nd, OmniRoute-latest, OmniRoute-wtrees, etc. — see repos/). If PhenoLang was meant to be the lang/FFI binding layer for OmniRoute, the naming and ownership are unclear. (P1)",
+    "no_changelog_no_version": "Even the stub 0.1.0 from Cargo.lock has no CHANGELOG.md entry, no git tag, no release artifact. (P2)",
+    "no_resilience_no_observability_baseline": "No tracing, no metrics, no telemetry hooks. Phenotype-fleet peers (PhenoObservability, ResilienceKit) are not pulled in. (P2)"
+  },
+  "ci_status": {
+    "open_prs": "n/a (no .git, no GitHub remote recoverable from this working tree)",
+    "stale_branches": "n/a (no .git)",
+    "local_unpushed": "n/a (no .git)"
+  },
+  "actions_recommended": [
+    {
+      "priority": "P0",
+      "title": "Decide repo fate: rehydrate from origin OR scaffold from scratch (governance + Cargo workspace + crate manifest + sources)",
+      "detail": "Two paths. (a) REHYDRATE: `cd /Users/kooshapari/CodeProjects/Phenotype/repos/PhenoLang && git init && git remote add origin <url> && git fetch origin && git reset --hard origin/main` — recovers the deleted sources and history. (b) SCAFFOLD: write the full minimum-viable Rust crate by hand — root Cargo.toml with [workspace] members = [\"crates/omniroute-core\", \"crates/omniroute-core/benchmarks\"], crates/omniroute-core/Cargo.toml (name = \"omniroute-core\", version = \"0.1.0\", edition = \"2021\"), crates/omniroute-core/src/lib.rs (placeholder), README.md, AGENTS.md, CLAUDE.md, CHANGELOG.md, LICENSE (MIT), CODEOWNERS, SECURITY.md, .gitignore (target/, Cargo.lock if library-only per rust convention flip OR keep both lockfiles), .editorconfig. Pick (a) first — almost certainly faster and preserves whatever FRs/specs existed. ~15 min for rehydrate, ~60 min for full scaffold.",
+      "estimated_effort": "15-60 min"
+    },
+    {
+      "priority": "P0",
+      "title": "Bootstrap governance + hygiene baseline (AGENTS.md, README.md, CHANGELOG.md, LICENSE, CODEOWNERS, .gitignore, .editorconfig, Justfile, rust-toolchain.toml, deny.toml, clippy.toml)",
+      "detail": "Org standard (see chatta-hygiene-audit-20260608.json, libs-hygiene-audit-20260608.json, phenoschema-hygiene-audit-20260608.json) requires the full governance stack on day 0. Copy from a Rust peer — phenoschema or phenoAI are the closest in stack. Specifically: AGENTS.md (with hygiene checklist, worktree convention repos/PhenoLang-wtrees/<topic>/, agent dispatch pattern), README.md, CHANGELOG.md ([Unreleased] section, Keep-a-Changelog format), LICENSE (MIT), CODEOWNERS, SECURITY.md, CONTRIBUTING.md, CODE_OF_CONDUCT.md, SUPPORT.md, FUNDING.yml, .gitignore (target/, *.swp, .idea/, .vscode/, .DS_Store), .editorconfig, Justfile (install/build/test/lint/fmt/ci/clean targets, run `cargo test` + `cargo clippy -- -D warnings` + `cargo fmt --check` + `cargo deny check`), rust-toolchain.toml (stable channel pinned), deny.toml (cargo-deny config matching phenoschema), clippy.toml. Single PR; ~30 min.",
+      "estimated_effort": "30 min"
+    },
+    {
+      "priority": "P1",
+      "title": "Bootstrap CI + supply-chain security (GitHub workflows: ci, test, lint, quality-gate, security, dependabot, plus PULL_REQUEST_TEMPLATE.md + ISSUE_TEMPLATE/ + .coderabbit.yaml + .gemini/)",
+      "detail": "Create .github/workflows/{ci,test,lint,quality-gate,security}.yml using reusable-workflow calls to phenotype-tooling (mirror chatta-hygiene baseline). Specifically: ci.yml (push+PR triggers, ubuntu-24.04, `cargo check --workspace`), test.yml (`cargo test --workspace --all-features`), lint.yml (`cargo fmt --check && cargo clippy --workspace --all-targets -- -D warnings`), quality-gate.yml (calls reusable phenotype-tooling quality-gate), security.yml (CodeQL for Rust + cargo-audit + cargo-deny check). Add .github/dependabot.yml (weekly cargo + github-actions). Add PULL_REQUEST_TEMPLATE.md, ISSUE_TEMPLATE/{bug_report,feature_request,config}.yml, .coderabbit.yaml, .gemini/config.yaml. SHA-pin every actions/checkout + actions/setup-rust call (per chatta-hygiene G1 nit). Then create PhenoLang-wtrees/ scaffolding (mkdir -p /Users/kooshapari/CodeProjects/Phenotype/repos/PhenoLang-wtrees). ~45 min.",
+      "estimated_effort": "45 min"
+    }
+  ],
+  "deep_research": "PhenoLang sits in the Phenotype 'lang' family (alongside PhenoContracts, PhenoSchema, PhenoSpecs, PhenoKits) and was apparently intended to be the Rust FFI/IDL layer for the OmniRoute routing core — the surviving Cargo.lock pins a single crate `omniroute-core v0.1.0` pulling anyhow/tokio/serde/tracing, and the `benchmarks/Cargo.lock` adds criterion/divan/iai — exactly the dependency shape of a low-latency FFI core that needs criterion-style micro-benchmarks. Peer comparison: phenoschema (closest stack match — Rust crate, governance-heavy, AGENTS.md mandates the full hygiene stack), phenoAI (Rust + tokio + tracing), phenoForge (Rust workspace, multi-crate). Against the tick-25 hygiene wave (chatta, libs, argis-extensions, agent-user-status, hwledger, localbase3, OmniRoute-dependabot, phenodata, phenoDesign, phenodocs, phenoschema, phenospecs, phenotype-omlx, resiliencekit, rich-cli-kit, thegent-jsonl — see /Users/kooshapari/CodeProjects/Phenotype/repos/worklogs/*-hygiene-audit-20260608.json), PhenoLang is the **only repo scoring 0/5 across every gate** — every other audited repo at minimum has AGENTS.md + README + a .github/workflows/ surface (degraded, not absent). The 286-package + 325-package lockfiles indicate a real, sizable buildable workspace existed at some point and was either force-checkout'd to a fresh tree, accidentally `git clean -fdx`'d, or had its source files deleted wholesale; the stale `target/` cache with .rustc_info.json proves a `cargo build` was run here. The crate name `omniroute-core` is a direct collision with the OmniRoute/ family of repos (OmniRoute, OmniRoute-2nd, OmniRoute-3rd, OmniRoute-4th, OmniRoute-latest, OmniRoute-wtrees, OmniRoute-dependabot) — the lang/FFI binding should probably be named `phenoLang-omniroute-ffi` or moved under phenoForge as a sub-crate. Net hygiene score: 0.5/5 — only the lockfiles + target/ remain, and they cannot be exercised because the manifests and source are gone; the first action must be rehydrate-or-scaffold, after which the standard phenoschema-tier governance+CI+security baseline can be applied in a single sweep PR."
+}

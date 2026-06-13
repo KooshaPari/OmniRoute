@@ -1,0 +1,58 @@
+{
+  "generated_at": "2026-06-07T00:00:00Z",
+  "total_repos": 159,
+  "with_validator": [
+    "Conft",
+    "HexaKit",
+    "PhenoKits",
+    "PhenoProc",
+    "crates",
+    "phenoShared",
+    "phenodocs"
+  ],
+  "with_garde": [],
+  "by_repo": [
+    {
+      "repo": "Conft",
+      "libs": [
+        "validator"
+      ]
+    },
+    {
+      "repo": "HexaKit",
+      "libs": [
+        "validator"
+      ]
+    },
+    {
+      "repo": "PhenoKits",
+      "libs": [
+        "validator"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "libs": [
+        "validator"
+      ]
+    },
+    {
+      "repo": "crates",
+      "libs": [
+        "validator"
+      ]
+    },
+    {
+      "repo": "phenoShared",
+      "libs": [
+        "validator"
+      ]
+    },
+    {
+      "repo": "phenodocs",
+      "libs": [
+        "validator"
+      ]
+    }
+  ]
+}

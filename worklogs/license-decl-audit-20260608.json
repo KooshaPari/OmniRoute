@@ -1,0 +1,985 @@
+{
+  "generated_at": "2026-06-08T00:00:00Z",
+  "total_repos": 174,
+  "with_license_count": 121,
+  "without_license_count": 53,
+  "with_license": [
+    {
+      "repo": "AgentMCP",
+      "files": [
+        "LICENSE"
+      ],
+      "type": "mit"
+    },
+    {
+      "repo": "Agentora",
+      "files": [
+        "LICENSE"
+      ],
+      "type": "mit"
+    },
+    {
+      "repo": "Apisync",
+      "files": [
+        "LICENSE"
+      ],
+      "type": "mit"
+    },
+    {
+      "repo": "AppGen",
+      "files": [
+        "LICENSE"
+      ],
+      "type": "mit"
+    },
+    {
+      "repo": "AtomsBot",
+      "files": [
+        "LICENSE"
+      ],
+      "type": "mit"
+    },
+    {
+      "repo": "AuthKit",
+      "files": [
+        "LICENSE"
+      ],
+      "type": "mit"
+    },
+    {
+      "repo": "Benchora",
+      "files": [
+        "LICENSE"
+      ],
+      "type": "mit"
+    },
+    {
+      "repo": "BytePort",
+      "files": [
+        "LICENSE"
+      ],
+      "type": "apache2"
+    },
+    {
+      "repo": "Civis",
+      "files": [
+        "LICENSE"
+      ],
+      "type": "mit"
+    },
+    {
+      "repo": "Conft",
+      "files": [
+        "LICENSE"
+      ],
+      "type": "mit"
+    },
+    {
+      "repo": "DINOForge-UnityDoorstop",
+      "files": [
+        "LICENSE"
+      ],
+      "type": "other"
+    },
+    {
+      "repo": "DataKit",
+      "files": [
+        "LICENSE"
+      ],
+      "type": "mit"
+    },
+    {
+      "repo": "DevHex",
+      "files": [
+        "LICENSE"
+      ],
+      "type": "mit"
+    },
+    {
+      "repo": "Dino",
+      "files": [
+        "LICENSE"
+      ],
+      "type": "mit"
+    },
+    {
+      "repo": "Eidolon",
+      "files": [
+        "LICENSE"
+      ],
+      "type": "mit"
+    },
+    {
+      "repo": "FocalPoint",
+      "files": [
+        "LICENSE"
+      ],
+      "type": "mit"
+    },
+    {
+      "repo": "GDK",
+      "files": [
+        "LICENSE"
+      ],
+      "type": "mit"
+    },
+    {
+      "repo": "HeliosCLI",
+      "files": [
+        "LICENSE",
+        "docs/license.md"
+      ],
+      "type": "apache2"
+    },
+    {
+      "repo": "HeliosLab",
+      "files": [
+        "LICENSE"
+      ],
+      "type": "mit"
+    },
+    {
+      "repo": "HexaKit",
+      "files": [
+        "LICENSE"
+      ],
+      "type": "mit"
+    },
+    {
+      "repo": "Httpora",
+      "files": [
+        "LICENSE"
+      ],
+      "type": "mit"
+    },
+    {
+      "repo": "KDesktopVirt",
+      "files": [
+        "LICENSE"
+      ],
+      "type": "mit"
+    },
+    {
+      "repo": "KaskMan",
+      "files": [
+        "LICENSE"
+      ],
+      "type": "mit"
+    },
+    {
+      "repo": "KlipDot",
+      "files": [
+        "LICENSE"
+      ],
+      "type": "mit"
+    },
+    {
+      "repo": "KodeVibe",
+      "files": [
+        "LICENSE"
+      ],
+      "type": "mit"
+    },
+    {
+      "repo": "KodeVibe-security-fixes",
+      "files": [
+        "LICENSE"
+      ],
+      "type": "mit"
+    },
+    {
+      "repo": "MCPForge",
+      "files": [
+        "LICENSE"
+      ],
+      "type": "bsd"
+    },
+    {
+      "repo": "McpKit",
+      "files": [
+        "LICENSE"
+      ],
+      "type": "mit"
+    },
+    {
+      "repo": "Metron",
+      "files": [
+        "LICENSE"
+      ],
+      "type": "mit"
+    },
+    {
+      "repo": "ObservabilityKit",
+      "files": [
+        "LICENSE"
+      ],
+      "type": "mit"
+    },
+    {
+      "repo": "Paginary",
+      "files": [
+        "LICENSE"
+      ],
+      "type": "mit"
+    },
+    {
+      "repo": "Parpoura",
+      "files": [
+        "LICENSE"
+      ],
+      "type": "mit"
+    },
+    {
+      "repo": "PhenoAgent",
+      "files": [
+        "LICENSE"
+      ],
+      "type": "mit"
+    },
+    {
+      "repo": "PhenoCompose",
+      "files": [
+        "LICENSE"
+      ],
+      "type": "mit"
+    },
+    {
+      "repo": "PhenoDevOps",
+      "files": [
+        "LICENSE"
+      ],
+      "type": "mit"
+    },
+    {
+      "repo": "PhenoHandbook",
+      "files": [
+        "LICENSE"
+      ],
+      "type": "mit"
+    },
+    {
+      "repo": "PhenoKits",
+      "files": [
+        "LICENSE"
+      ],
+      "type": "mit"
+    },
+    {
+      "repo": "PhenoMCP",
+      "files": [
+        "LICENSE"
+      ],
+      "type": "apache2"
+    },
+    {
+      "repo": "PhenoMCP-cheap",
+      "files": [
+        "LICENSE"
+      ],
+      "type": "apache2"
+    },
+    {
+      "repo": "PhenoObservability",
+      "files": [
+        "LICENSE"
+      ],
+      "type": "mit"
+    },
+    {
+      "repo": "PhenoPlugins",
+      "files": [
+        "LICENSE"
+      ],
+      "type": "mit"
+    },
+    {
+      "repo": "PhenoProc",
+      "files": [
+        "LICENSE"
+      ],
+      "type": "mit"
+    },
+    {
+      "repo": "PhenoProc-security-fixes",
+      "files": [
+        "LICENSE"
+      ],
+      "type": "mit"
+    },
+    {
+      "repo": "PhenoProject",
+      "files": [
+        "LICENSE"
+      ],
+      "type": "mit"
+    },
+    {
+      "repo": "PhenoRuntime",
+      "files": [
+        "LICENSE"
+      ],
+      "type": "mit"
+    },
+    {
+      "repo": "PhenoSpecs",
+      "files": [
+        "LICENSE"
+      ],
+      "type": "mit"
+    },
+    {
+      "repo": "PhenoVCS",
+      "files": [
+        "LICENSE"
+      ],
+      "type": "mit"
+    },
+    {
+      "repo": "Pine",
+      "files": [
+        "LICENSE"
+      ],
+      "type": "mit"
+    },
+    {
+      "repo": "Planify",
+      "files": [
+        "LICENSE",
+        "LICENSE.txt"
+      ],
+      "type": "mit"
+    },
+    {
+      "repo": "Planify-hygiene",
+      "files": [
+        "LICENSE",
+        "LICENSE.txt"
+      ],
+      "type": "mit"
+    },
+    {
+      "repo": "PlatformKit",
+      "files": [
+        "LICENSE"
+      ],
+      "type": "mit"
+    },
+    {
+      "repo": "PlayCua",
+      "files": [
+        "LICENSE"
+      ],
+      "type": "mit"
+    },
+    {
+      "repo": "PolicyStack",
+      "files": [
+        "LICENSE"
+      ],
+      "type": "mit"
+    },
+    {
+      "repo": "Pyron",
+      "files": [
+        "LICENSE"
+      ],
+      "type": "mit"
+    },
+    {
+      "repo": "QuadSGM",
+      "files": [
+        "LICENSE"
+      ],
+      "type": "mit"
+    },
+    {
+      "repo": "ResilienceKit",
+      "files": [
+        "LICENSE"
+      ],
+      "type": "mit"
+    },
+    {
+      "repo": "Sidekick",
+      "files": [
+        "LICENSE"
+      ],
+      "type": "mit"
+    },
+    {
+      "repo": "Tasken",
+      "files": [
+        "LICENSE"
+      ],
+      "type": "mit"
+    },
+    {
+      "repo": "TestingKit",
+      "files": [
+        "LICENSE"
+      ],
+      "type": "mit"
+    },
+    {
+      "repo": "Tokn",
+      "files": [
+        "LICENSE"
+      ],
+      "type": "mit"
+    },
+    {
+      "repo": "Tracely",
+      "files": [
+        "LICENSE"
+      ],
+      "type": "mit"
+    },
+    {
+      "repo": "Tracera",
+      "files": [
+        "LICENSE"
+      ],
+      "type": "mit"
+    },
+    {
+      "repo": "agent-devops-setups",
+      "files": [
+        "LICENSE"
+      ],
+      "type": "mit"
+    },
+    {
+      "repo": "agent-platform",
+      "files": [
+        "LICENSE"
+      ],
+      "type": "mit"
+    },
+    {
+      "repo": "agent-user-status",
+      "files": [
+        "LICENSE"
+      ],
+      "type": "mit"
+    },
+    {
+      "repo": "agentapi-plusplus",
+      "files": [
+        "LICENSE"
+      ],
+      "type": "mit"
+    },
+    {
+      "repo": "argis-extensions",
+      "files": [
+        "LICENSE"
+      ],
+      "type": "mit"
+    },
+    {
+      "repo": "bare-cua",
+      "files": [
+        "LICENSE"
+      ],
+      "type": "mit"
+    },
+    {
+      "repo": "chatta",
+      "files": [
+        "LICENSE"
+      ],
+      "type": "mit"
+    },
+    {
+      "repo": "cheap-llm-mcp",
+      "files": [
+        "LICENSE"
+      ],
+      "type": "mit"
+    },
+    {
+      "repo": "cheap-llm-mcp-deprecate",
+      "files": [
+        "LICENSE"
+      ],
+      "type": "mit"
+    },
+    {
+      "repo": "cliproxyapi-plusplus",
+      "files": [
+        "LICENSE"
+      ],
+      "type": "mit"
+    },
+    {
+      "repo": "dinoforge-packs",
+      "files": [
+        "LICENSE"
+      ],
+      "type": "mit"
+    },
+    {
+      "repo": "dispatch-mcp",
+      "files": [
+        "LICENSE"
+      ],
+      "type": "apache2"
+    },
+    {
+      "repo": "eyetracker",
+      "files": [
+        "LICENSE"
+      ],
+      "type": "mit"
+    },
+    {
+      "repo": "forgecode",
+      "files": [
+        "LICENSE"
+      ],
+      "type": "apache2"
+    },
+    {
+      "repo": "heliosApp",
+      "files": [
+        "LICENSE"
+      ],
+      "type": "other"
+    },
+    {
+      "repo": "heliosBench",
+      "files": [
+        "LICENSE"
+      ],
+      "type": "mit"
+    },
+    {
+      "repo": "helioscope",
+      "files": [
+        "LICENSE",
+        "docs/license.md"
+      ],
+      "type": "apache2"
+    },
+    {
+      "repo": "hwLedger",
+      "files": [
+        "LICENSE"
+      ],
+      "type": "mit"
+    },
+    {
+      "repo": "kmobile",
+      "files": [
+        "LICENSE"
+      ],
+      "type": "mit"
+    },
+    {
+      "repo": "localbase3",
+      "files": [
+        "LICENSE"
+      ],
+      "type": "apache2"
+    },
+    {
+      "repo": "nanovms",
+      "files": [
+        "LICENSE"
+      ],
+      "type": "mit"
+    },
+    {
+      "repo": "netweave-final2",
+      "files": [
+        "LICENSE"
+      ],
+      "type": "mit"
+    },
+    {
+      "repo": "pheno",
+      "files": [
+        "LICENSE"
+      ],
+      "type": "mit"
+    },
+    {
+      "repo": "phenoAI",
+      "files": [
+        "LICENSE"
+      ],
+      "type": "mit"
+    },
+    {
+      "repo": "phenoData",
+      "files": [
+        "LICENSE"
+      ],
+      "type": "mit"
+    },
+    {
+      "repo": "phenoDesign",
+      "files": [
+        "LICENSE"
+      ],
+      "type": "mit"
+    },
+    {
+      "repo": "phenoForge",
+      "files": [
+        "LICENSE"
+      ],
+      "type": "other"
+    },
+    {
+      "repo": "phenoResearchEngine",
+      "files": [
+        "LICENSE"
+      ],
+      "type": "mit"
+    },
+    {
+      "repo": "phenoShared",
+      "files": [
+        "LICENSE"
+      ],
+      "type": "mit"
+    },
+    {
+      "repo": "phenoUtils",
+      "files": [
+        "LICENSE"
+      ],
+      "type": "mit"
+    },
+    {
+      "repo": "phenoXdd",
+      "files": [
+        "LICENSE"
+      ],
+      "type": "mit"
+    },
+    {
+      "repo": "phenodocs",
+      "files": [
+        "LICENSE"
+      ],
+      "type": "mit"
+    },
+    {
+      "repo": "phenodocs-scorecard-remediation",
+      "files": [
+        "LICENSE"
+      ],
+      "type": "mit"
+    },
+    {
+      "repo": "phenotype-auth-ts",
+      "files": [
+        "LICENSE"
+      ],
+      "type": "mit"
+    },
+    {
+      "repo": "phenotype-bus",
+      "files": [
+        "LICENSE"
+      ],
+      "type": "apache2"
+    },
+    {
+      "repo": "phenotype-dep-guard",
+      "files": [
+        "LICENSE"
+      ],
+      "type": "mit"
+    },
+    {
+      "repo": "phenotype-hub",
+      "files": [
+        "LICENSE"
+      ],
+      "type": "mit"
+    },
+    {
+      "repo": "phenotype-infra",
+      "files": [
+        "LICENSE"
+      ],
+      "type": "mit"
+    },
+    {
+      "repo": "phenotype-journeys",
+      "files": [
+        "LICENSE"
+      ],
+      "type": "apache2"
+    },
+    {
+      "repo": "phenotype-landing",
+      "files": [
+        "LICENSE"
+      ],
+      "type": "mit"
+    },
+    {
+      "repo": "phenotype-omlx",
+      "files": [
+        "LICENSE"
+      ],
+      "type": "apache2"
+    },
+    {
+      "repo": "phenotype-ops-mcp",
+      "files": [
+        "LICENSE"
+      ],
+      "type": "apache2"
+    },
+    {
+      "repo": "phenotype-ops-mcp-t0",
+      "files": [
+        "LICENSE"
+      ],
+      "type": "apache2"
+    },
+    {
+      "repo": "phenotype-org-audits",
+      "files": [
+        "LICENSE"
+      ],
+      "type": "mit"
+    },
+    {
+      "repo": "phenotype-postfx",
+      "files": [
+        "LICENSE"
+      ],
+      "type": "mit"
+    },
+    {
+      "repo": "phenotype-python-sdk",
+      "files": [
+        "LICENSE"
+      ],
+      "type": "mit"
+    },
+    {
+      "repo": "phenotype-registry",
+      "files": [
+        "LICENSE"
+      ],
+      "type": "mit"
+    },
+    {
+      "repo": "phenotype-shared",
+      "files": [
+        "LICENSE"
+      ],
+      "type": "mit"
+    },
+    {
+      "repo": "phenotype-terrain",
+      "files": [
+        "LICENSE"
+      ],
+      "type": "mit"
+    },
+    {
+      "repo": "phenotype-tooling",
+      "files": [
+        "LICENSE"
+      ],
+      "type": "mit"
+    },
+    {
+      "repo": "phenotype-voxel",
+      "files": [
+        "LICENSE"
+      ],
+      "type": "mit"
+    },
+    {
+      "repo": "phenotype-water",
+      "files": [
+        "LICENSE"
+      ],
+      "type": "mit"
+    },
+    {
+      "repo": "portage",
+      "files": [
+        "LICENSE"
+      ],
+      "type": "apache2"
+    },
+    {
+      "repo": "rich-cli-kit",
+      "files": [
+        "LICENSE"
+      ],
+      "type": "mit"
+    },
+    {
+      "repo": "thegent",
+      "files": [
+        "LICENSE"
+      ],
+      "type": "mit"
+    },
+    {
+      "repo": "thegent-dispatch",
+      "files": [
+        "LICENSE"
+      ],
+      "type": "mit"
+    },
+    {
+      "repo": "thegent-security-fixes",
+      "files": [
+        "LICENSE"
+      ],
+      "type": "mit"
+    },
+    {
+      "repo": "vibeproxy",
+      "files": [
+        "LICENSE"
+      ],
+      "type": "mit"
+    },
+    {
+      "repo": "vibeproxy-monitoring-unified",
+      "files": [
+        "LICENSE"
+      ],
+      "type": "mit"
+    }
+  ],
+  "by_type": {
+    "mit": [
+      "AgentMCP",
+      "Agentora",
+      "Apisync",
+      "AppGen",
+      "AtomsBot",
+      "AuthKit",
+      "Benchora",
+      "Civis",
+      "Conft",
+      "DataKit",
+      "DevHex",
+      "Dino",
+      "Eidolon",
+      "FocalPoint",
+      "GDK",
+      "HeliosLab",
+      "HexaKit",
+      "Httpora",
+      "KDesktopVirt",
+      "KaskMan",
+      "KlipDot",
+      "KodeVibe",
+      "KodeVibe-security-fixes",
+      "McpKit",
+      "Metron",
+      "ObservabilityKit",
+      "Paginary",
+      "Parpoura",
+      "PhenoAgent",
+      "PhenoCompose",
+      "PhenoDevOps",
+      "PhenoHandbook",
+      "PhenoKits",
+      "PhenoObservability",
+      "PhenoPlugins",
+      "PhenoProc",
+      "PhenoProc-security-fixes",
+      "PhenoProject",
+      "PhenoRuntime",
+      "PhenoSpecs",
+      "PhenoVCS",
+      "Pine",
+      "Planify",
+      "Planify-hygiene",
+      "PlatformKit",
+      "PlayCua",
+      "PolicyStack",
+      "Pyron",
+      "QuadSGM",
+      "ResilienceKit",
+      "Sidekick",
+      "Tasken",
+      "TestingKit",
+      "Tokn",
+      "Tracely",
+      "Tracera",
+      "agent-devops-setups",
+      "agent-platform",
+      "agent-user-status",
+      "agentapi-plusplus",
+      "argis-extensions",
+      "bare-cua",
+      "chatta",
+      "cheap-llm-mcp",
+      "cheap-llm-mcp-deprecate",
+      "cliproxyapi-plusplus",
+      "dinoforge-packs",
+      "eyetracker",
+      "heliosBench",
+      "hwLedger",
+      "kmobile",
+      "nanovms",
+      "netweave-final2",
+      "pheno",
+      "phenoAI",
+      "phenoData",
+      "phenoDesign",
+      "phenoResearchEngine",
+      "phenoShared",
+      "phenoUtils",
+      "phenoXdd",
+      "phenodocs",
+      "phenodocs-scorecard-remediation",
+      "phenotype-auth-ts",
+      "phenotype-dep-guard",
+      "phenotype-hub",
+      "phenotype-infra",
+      "phenotype-landing",
+      "phenotype-org-audits",
+      "phenotype-postfx",
+      "phenotype-python-sdk",
+      "phenotype-registry",
+      "phenotype-shared",
+      "phenotype-terrain",
+      "phenotype-tooling",
+      "phenotype-voxel",
+      "phenotype-water",
+      "rich-cli-kit",
+      "thegent",
+      "thegent-dispatch",
+      "thegent-security-fixes",
+      "vibeproxy",
+      "vibeproxy-monitoring-unified"
+    ],
+    "apache2": [
+      "BytePort",
+      "HeliosCLI",
+      "PhenoMCP",
+      "PhenoMCP-cheap",
+      "dispatch-mcp",
+      "forgecode",
+      "helioscope",
+      "localbase3",
+      "phenotype-bus",
+      "phenotype-journeys",
+      "phenotype-omlx",
+      "phenotype-ops-mcp",
+      "phenotype-ops-mcp-t0",
+      "portage"
+    ],
+    "bsd": [
+      "MCPForge"
+    ]
+  }
+}

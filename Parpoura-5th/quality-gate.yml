@@ -1,0 +1,71 @@
+# quality-gate.yml — Configuration for parpour quality gates
+# Adapted for spec-driven documentation workspace.
+# Thresholds optimized for markdown/spec validation over code metrics.
+
+thresholds:
+  # Gate 1: Spec completeness (%)
+  spec_completeness: 100
+
+  # Gate 2: Coverage of NEXT_STEPS.md requirements to specs (%)
+  traceability: 100
+
+  # Gate 3: Markdown lint errors
+  markdown_lint_errors: 0
+
+  # Gate 4: Broken links in specs
+  broken_links: 0
+
+  # Gate 5: Open questions assigned (%) — all Q1-Q8 must have owner + due date
+  open_questions_assigned: 100
+
+  # Per-gate timeout in seconds
+  timeout_per_gate: 60
+
+# Tool versions (for reproducibility)
+tools:
+  markdownlint: ">=0.34.0"
+  shellcheck: ">=0.10.0"
+
+# Gate behavior
+behavior:
+  # Stop on first gate failure
+  fail_fast: false
+  # Verbose output (show PASS gates too)
+  verbose: false
+
+# Per-check overrides (optional)
+overrides:
+  markdown:
+    # Rules to enforce
+    rules:
+      - MD001  # Heading increments by one level
+      - MD003  # Heading style consistency
+      - MD004  # Unordered list style
+      - MD005  # List indentation
+      - MD007  # List indentation (spaces)
+      - MD009  # Trailing spaces
+      - MD010  # Hard tabs
+      - MD011  # Reversed link syntax
+      - MD012  # Multiple consecutive blank lines
+      - MD013  # Line too long (120 char limit for specs)
+      - MD018  # No space after hash
+      - MD019  # Multiple spaces after hash
+      - MD020  # No space inside hashes
+      - MD021  # Multiple spaces inside hashes
+      - MD022  # Headings should be surrounded by blank lines
+      - MD025  # Multiple top-level headings
+      - MD026  # Trailing punctuation in headings
+      - MD027  # Multiple spaces after blockquote
+      - MD028  # Blank line inside blockquote
+      - MD029  # Ordered list item prefix
+      - MD030  # Spaces after list markers
+      - MD031  # Fenced code blocks
+      - MD032  # Blanks around lists
+      - MD033  # Inline HTML
+      - MD034  # Bare URLs
+      - MD035  # Horizontal rule style
+      - MD036  # Emphasis used instead of heading
+      - MD037  # Spaces inside emphasis
+      - MD039  # Spaces inside link text
+      - MD040  # Fenced code language specified
+      - MD041  # First line in file should be top level heading

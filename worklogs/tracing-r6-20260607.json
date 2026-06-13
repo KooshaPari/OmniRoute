@@ -1,0 +1,455 @@
+{
+  "generated_at": "2026-06-08T09:00:33Z",
+  "total_repos": 73,
+  "with_tracing": [
+    "Agentora",
+    "AgilePlus",
+    "Apisync",
+    "AuthKit",
+    "Conft",
+    "DataKit",
+    "FocalPoint",
+    "GDK",
+    "HeliosCLI",
+    "HexaKit",
+    "KDesktopVirt",
+    "KlipDot",
+    "McpKit",
+    "ObservabilityKit",
+    "PhenoAgent",
+    "PhenoDevOps",
+    "PhenoKits",
+    "PhenoMCP",
+    "PhenoObservability",
+    "PhenoProc",
+    "PhenoRuntime",
+    "PhenoSchema",
+    "PhenoVCS",
+    "PlayCua",
+    "Pyron",
+    "ResilienceKit",
+    "Sidekick",
+    "TestingKit",
+    "Tokn",
+    "Tracely",
+    "bare-cua",
+    "crates",
+    "helioscope",
+    "kmobile",
+    "kwality",
+    "pheno",
+    "phenoAI",
+    "phenoForge",
+    "phenoShared",
+    "phenoUtils",
+    "phenodocs",
+    "phenotype-bus",
+    "phenotype-infra",
+    "phenotype-journeys",
+    "phenotype-tooling",
+    "thegent",
+    "thegent-clean",
+    "thegent-dispatch",
+    "tooling",
+    "vibeproxy",
+    "worktrees"
+  ],
+  "with_tracing_subscriber": [
+    "Agentora",
+    "AgilePlus",
+    "FocalPoint",
+    "GDK",
+    "HeliosCLI",
+    "HeliosLab",
+    "HexaKit",
+    "KDesktopVirt",
+    "KlipDot",
+    "McpKit",
+    "ObservabilityKit",
+    "PhenoAgent",
+    "PhenoDevOps",
+    "PhenoKits",
+    "PhenoObservability",
+    "PhenoProc",
+    "PhenoSchema",
+    "PhenoVCS",
+    "PlayCua",
+    "Pyron",
+    "Sidekick",
+    "TestingKit",
+    "Tokn",
+    "Tracely",
+    "bare-cua",
+    "crates",
+    "helioscope",
+    "kmobile",
+    "kwality",
+    "pheno",
+    "phenoForge",
+    "phenoUtils",
+    "phenotype-infra",
+    "phenotype-journeys",
+    "phenotype-tooling",
+    "thegent",
+    "thegent-clean",
+    "thegent-dispatch",
+    "tooling",
+    "vibeproxy",
+    "worktrees"
+  ],
+  "with_tracing_futures": [],
+  "by_repo": [
+    {
+      "repo": "Agentora",
+      "libs": [
+        "tracing",
+        "tracing-subscriber"
+      ]
+    },
+    {
+      "repo": "AgilePlus",
+      "libs": [
+        "tracing",
+        "tracing-subscriber"
+      ]
+    },
+    {
+      "repo": "Apisync",
+      "libs": [
+        "tracing"
+      ]
+    },
+    {
+      "repo": "AuthKit",
+      "libs": [
+        "tracing"
+      ]
+    },
+    {
+      "repo": "Conft",
+      "libs": [
+        "tracing"
+      ]
+    },
+    {
+      "repo": "DataKit",
+      "libs": [
+        "tracing"
+      ]
+    },
+    {
+      "repo": "FocalPoint",
+      "libs": [
+        "tracing",
+        "tracing-subscriber"
+      ]
+    },
+    {
+      "repo": "GDK",
+      "libs": [
+        "tracing",
+        "tracing-subscriber"
+      ]
+    },
+    {
+      "repo": "HeliosCLI",
+      "libs": [
+        "tracing",
+        "tracing-subscriber"
+      ]
+    },
+    {
+      "repo": "HeliosLab",
+      "libs": [
+        "tracing-subscriber"
+      ]
+    },
+    {
+      "repo": "HexaKit",
+      "libs": [
+        "tracing",
+        "tracing-subscriber"
+      ]
+    },
+    {
+      "repo": "KDesktopVirt",
+      "libs": [
+        "tracing",
+        "tracing-subscriber"
+      ]
+    },
+    {
+      "repo": "KlipDot",
+      "libs": [
+        "tracing",
+        "tracing-subscriber"
+      ]
+    },
+    {
+      "repo": "McpKit",
+      "libs": [
+        "tracing",
+        "tracing-subscriber"
+      ]
+    },
+    {
+      "repo": "ObservabilityKit",
+      "libs": [
+        "tracing",
+        "tracing-subscriber"
+      ]
+    },
+    {
+      "repo": "PhenoAgent",
+      "libs": [
+        "tracing",
+        "tracing-subscriber"
+      ]
+    },
+    {
+      "repo": "PhenoDevOps",
+      "libs": [
+        "tracing",
+        "tracing-subscriber"
+      ]
+    },
+    {
+      "repo": "PhenoKits",
+      "libs": [
+        "tracing",
+        "tracing-subscriber"
+      ]
+    },
+    {
+      "repo": "PhenoMCP",
+      "libs": [
+        "tracing"
+      ]
+    },
+    {
+      "repo": "PhenoObservability",
+      "libs": [
+        "tracing",
+        "tracing-subscriber"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "libs": [
+        "tracing",
+        "tracing-subscriber"
+      ]
+    },
+    {
+      "repo": "PhenoRuntime",
+      "libs": [
+        "tracing"
+      ]
+    },
+    {
+      "repo": "PhenoSchema",
+      "libs": [
+        "tracing",
+        "tracing-subscriber"
+      ]
+    },
+    {
+      "repo": "PhenoVCS",
+      "libs": [
+        "tracing",
+        "tracing-subscriber"
+      ]
+    },
+    {
+      "repo": "PlayCua",
+      "libs": [
+        "tracing",
+        "tracing-subscriber"
+      ]
+    },
+    {
+      "repo": "Pyron",
+      "libs": [
+        "tracing",
+        "tracing-subscriber"
+      ]
+    },
+    {
+      "repo": "ResilienceKit",
+      "libs": [
+        "tracing"
+      ]
+    },
+    {
+      "repo": "Sidekick",
+      "libs": [
+        "tracing",
+        "tracing-subscriber"
+      ]
+    },
+    {
+      "repo": "TestingKit",
+      "libs": [
+        "tracing",
+        "tracing-subscriber"
+      ]
+    },
+    {
+      "repo": "Tokn",
+      "libs": [
+        "tracing",
+        "tracing-subscriber"
+      ]
+    },
+    {
+      "repo": "Tracely",
+      "libs": [
+        "tracing",
+        "tracing-subscriber"
+      ]
+    },
+    {
+      "repo": "bare-cua",
+      "libs": [
+        "tracing",
+        "tracing-subscriber"
+      ]
+    },
+    {
+      "repo": "crates",
+      "libs": [
+        "tracing",
+        "tracing-subscriber"
+      ]
+    },
+    {
+      "repo": "helioscope",
+      "libs": [
+        "tracing",
+        "tracing-subscriber"
+      ]
+    },
+    {
+      "repo": "kmobile",
+      "libs": [
+        "tracing",
+        "tracing-subscriber"
+      ]
+    },
+    {
+      "repo": "kwality",
+      "libs": [
+        "tracing",
+        "tracing-subscriber"
+      ]
+    },
+    {
+      "repo": "pheno",
+      "libs": [
+        "tracing",
+        "tracing-subscriber"
+      ]
+    },
+    {
+      "repo": "phenoAI",
+      "libs": [
+        "tracing"
+      ]
+    },
+    {
+      "repo": "phenoForge",
+      "libs": [
+        "tracing",
+        "tracing-subscriber"
+      ]
+    },
+    {
+      "repo": "phenoShared",
+      "libs": [
+        "tracing"
+      ]
+    },
+    {
+      "repo": "phenoUtils",
+      "libs": [
+        "tracing",
+        "tracing-subscriber"
+      ]
+    },
+    {
+      "repo": "phenodocs",
+      "libs": [
+        "tracing"
+      ]
+    },
+    {
+      "repo": "phenotype-bus",
+      "libs": [
+        "tracing"
+      ]
+    },
+    {
+      "repo": "phenotype-infra",
+      "libs": [
+        "tracing",
+        "tracing-subscriber"
+      ]
+    },
+    {
+      "repo": "phenotype-journeys",
+      "libs": [
+        "tracing",
+        "tracing-subscriber"
+      ]
+    },
+    {
+      "repo": "phenotype-tooling",
+      "libs": [
+        "tracing",
+        "tracing-subscriber"
+      ]
+    },
+    {
+      "repo": "thegent",
+      "libs": [
+        "tracing",
+        "tracing-subscriber"
+      ]
+    },
+    {
+      "repo": "thegent-clean",
+      "libs": [
+        "tracing",
+        "tracing-subscriber"
+      ]
+    },
+    {
+      "repo": "thegent-dispatch",
+      "libs": [
+        "tracing",
+        "tracing-subscriber"
+      ]
+    },
+    {
+      "repo": "tooling",
+      "libs": [
+        "tracing",
+        "tracing-subscriber"
+      ]
+    },
+    {
+      "repo": "vibeproxy",
+      "libs": [
+        "tracing",
+        "tracing-subscriber"
+      ]
+    },
+    {
+      "repo": "worktrees",
+      "libs": [
+        "tracing",
+        "tracing-subscriber"
+      ]
+    }
+  ]
+}

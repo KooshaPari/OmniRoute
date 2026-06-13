@@ -1,0 +1,86 @@
+{
+  "task_id": "L2-37",
+  "task_name": "pheno-ossf-scorecard",
+  "status": "completed",
+  "completed_at": "2026-06-08",
+  "canonical_template": {
+    "path": ".claude/templates/.github/workflows/scorecard.yml",
+    "action": "ossf/scorecard-action@62b2cac7ed8198b15735ed49ab1e5cf35480ba46",
+    "action_version": "v2.4.0",
+    "checkout_action": "actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683",
+    "checkout_version": "v4.2.2",
+    "schedule": "30 1 * * 1",
+    "publish_results": true,
+    "results_file": "results.sarif",
+    "results_format": "sarif"
+  },
+  "repos": [
+    {
+      "name": "PhenoDevOps",
+      "path": "PhenoDevOps",
+      "branch": "chore/ossf-scorecard-2026-06-08",
+      "base_branch": "chore/stale-pr-bot-2026-06-08",
+      "base_sha": "161d23b5b8852525ea4df1a4f696e71193f55e4a",
+      "commit_sha": "8ab42a506a1a3658937f3611f3b4e65aad3f8acb",
+      "commit_message": "chore(ci): add OpenSSF Scorecard workflow (weekly)",
+      "change_type": "added",
+      "files_changed": 1,
+      "pushed": false
+    },
+    {
+      "name": "AgilePlus",
+      "path": "AgilePlus",
+      "branch": "chore/ossf-scorecard-2026-06-08",
+      "base_branch": "chore/stale-pr-bot-2026-06-08",
+      "base_sha": "5d03f018526ffefad822d1b0d423804b6984a363",
+      "commit_sha": "04b56c46e73a59b3d675592d14ca7f8298c775d6",
+      "commit_message": "chore(ci): add OpenSSF Scorecard workflow (weekly)",
+      "change_type": "added",
+      "files_changed": 1,
+      "pushed": false
+    },
+    {
+      "name": "pheno",
+      "path": "pheno",
+      "branch": "chore/ossf-scorecard-2026-06-08",
+      "base_branch": "chore/stale-pr-bot-2026-06-08",
+      "base_sha": "5851a70c6c067624803c4c133eccf40e34573fd7",
+      "commit_sha": "a80161c1e275f6ec26089900bff2a325e93c19b1",
+      "commit_message": "chore(ci): add OpenSSF Scorecard workflow (weekly)",
+      "change_type": "modified",
+      "files_changed": 1,
+      "pushed": false
+    },
+    {
+      "name": "HeliosCLI",
+      "path": "HeliosCLI",
+      "branch": "chore/ossf-scorecard-2026-06-08",
+      "base_branch": "chore/helioscli-use-phenoshared-logging-20260608",
+      "base_sha": "be2d47aa30e483e990b260d48b566a2b4f7323a2",
+      "commit_sha": "96765980393b321b4a2f796069cad5256dfd7c57",
+      "commit_message": "chore(ci): add OpenSSF Scorecard workflow (weekly)",
+      "change_type": "modified",
+      "files_changed": 1,
+      "pushed": false
+    },
+    {
+      "name": "Tracera",
+      "path": "Tracera",
+      "branch": "chore/ossf-scorecard-2026-06-08",
+      "base_branch": "chore/gitleaks-2026-06-08",
+      "base_sha": "5a3ea1f051f47df6c45e32c0132ba93903a1ee46",
+      "commit_sha": "8e35ad97994d0c969470b47e607131dfa1b966f9",
+      "commit_message": "chore(ci): add OpenSSF Scorecard workflow (weekly)",
+      "change_type": "modified",
+      "files_changed": 1,
+      "pushed": false
+    }
+  ],
+  "pushed_to_remote": false,
+  "notes": [
+    "Branches created locally; no push performed per task constraints.",
+    "pheno: required rebase/amend to drop LICENSE files that another agent had staged in the index; LICENSE branch (chore/license-2026-06-08) preserved via reflog recovery.",
+    "Tracera: required rebase to drop .claude/dag-v2-audit-Tracera.json that another agent had staged in the index.",
+    "Scorecard action SHA verified via shallow clone of github.com/ossf/scorecard-action @ v2.4.0."
+  ]
+}

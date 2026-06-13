@@ -1,0 +1,24 @@
+{
+  "generated_at": "2026-06-09T03:42:42.041602Z",
+  "present": [
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE",
+    "CONTRIBUTING.md",
+    "SECURITY.md",
+    "CODE_OF_CONDUCT.md",
+    "FUNDING.yml",
+    "docs/",
+    ".github/ISSUE_TEMPLATE",
+    ".github/FUNDING.yml"
+  ],
+  "missing": [
+    "SPEC.md",
+    "worklogs/",
+    "PULL_REQUEST_TEMPLATE.md",
+    "release-drafter.yml",
+    "CODEOWNERS",
+    "crates/",
+    "apps/"
+  ]
+}

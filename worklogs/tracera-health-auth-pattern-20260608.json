@@ -1,0 +1,15 @@
+{
+  "generated_at": "2026-06-08T00:00:00Z",
+  "scope_note": "Premise said 9 handlers; TraceRTM routers/ contains only 2 health files (health.py, health_canary.py) with 6 handlers total. Analysis covers all of them.",
+  "common_response_shape": "JSON object with at minimum {'status': str} and optional 'version', 'service', 'components' (dict of {name: {status, message, last_check}}). Comprehensive endpoints add 'ready': bool, 'timestamp', 'deployment' (canary), and 'metrics'. Failure path returns the same body with HTTP 503 and a 'detail' field listing failed components (CLAUDE.md 'fail clearly' mandate). Basic /health is a static 3-key dict: {status, version, service}.",
+  "auth_pattern": "None. No JWT, no API key, no Depends-based auth on any health route. Only DI dependencies are AsyncSession (get_db) and CacheService (get_cache_service). Endpoints are intentionally unauthenticated so orchestrators (k8s probes, Prometheus, load balancers) can reach them. This is the correct posture; do not add auth.",
+  "observability_hooks": [
+    "Prometheus /metrics endpoint exposing REGISTRY output (prometheus_client CONTENT_TYPE_LATEST)",
+    "Component-level status dict: each checker (check_database, check_redis, check_nats, check_go_backend, check_temporal) returns {status: healthy|degraded|unhealthy, message, last_check}",
+    "SERVICE_START_TIME + uptime_seconds in canary response for process-age telemetry",
+    "Deployment metadata (type, image_tag, start_time) sourced from APP_VERSION and CANARY_DEPLOYMENT env vars",
+    "No explicit structlog/logging calls in routers; observability is implicit via component dict + 503 signaling"
+  ],
+  "liveness_vs_readiness": "Liveness is /health/canary/liveness (health_canary.py:193) returning {'status': 'alive'} — process is up, no dependency checks. Readiness is /ready (health.py:58) AND /health/readiness (health_canary.py:172) which probe critical deps (db, cache) and return 503 with {status: 'not_ready', detail: ...} on failure. /api/v1/health is the deep comprehensive check (all deps incl. NATS, Temporal, Go backend) used for dashboards, not k8s probes.",
+  "recommended_omlx_replication": "Mirror the two-tier split: (1) unauthenticated liveness returning static {'status': 'alive','service': <name>,'version': <ver>}; (2) unauthenticated readiness calling only cheap critical deps (db ping, cache ping) with 503 + failed-component detail on failure; (3) optional comprehensive /api/v1/health aggregating db, redis/cache, nats, temporal, downstream go/rust services. Use APIGateway/Response with JSON shape {status, ready?, service, components, timestamp}. Expose /metrics via prometheus_client REGISTRY. No auth on any probe route; gate metrics on internal network or scrape token if exposed publicly."
+}

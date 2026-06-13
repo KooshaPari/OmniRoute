@@ -1,0 +1,94 @@
+{
+  "repo": "PhenoSpecs",
+  "branch_audited": "main (b7cdfd3, 2026-06-08 17:10 PDT)",
+  "audited_at": "2026-06-08",
+  "summary": "G1 PARTIAL (1 @main rot in conventions.yml), G2-G4 PARTIAL w/ gaps, G5 PARTIAL (no coderabbit/.gemini), e2e DEGRADED (release-dry-run is theatre). 3 actionable findings.",
+  "gates": {
+    "G1_workflow_hygiene": {
+      "status": "PARTIAL",
+      "evidence": [
+        "6/6 .github/workflows/*.yml parse (codeql, conventions, legacy-tooling-gate, release-dry-run, scorecard, secrets-scan)",
+        "5/6 actions SHA-pinned: actions/checkout@de0fac2e4, setup-python@a26af69b, upload-artifact@043fb46d, codeql-action@v4, scorecard-action@v2.4.3, trufflehog@9f0b97f, codeql reusable @30358ce6",
+        "FAIL: conventions.yml:13 uses `KooshaPari/phenotype-org-governance/...reusable-conventions-lint.yml@main` — only @main in repo, breaks tick-19 SHA-pin posture (134 repos fleet: 110 SHA-pinned, 14 tag-only)",
+        "release-dry-run.yml uses `actions/checkout@v4` tag form (one of two repos where v4 slipped)",
+        "4/6 have `concurrency:` + `permissions: contents: read`; release-dry-run.yml and conventions.yml missing both"
+      ]
+    },
+    "G2_governance_files": {
+      "status": "PARTIAL",
+      "evidence": [
+        "LICENSE + LICENSE-MIT + LICENSE-APACHE all present; CODE_OF_CONDUCT.md, CONTRIBUTING.md, SECURITY.md, FUNDING.yml all present",
+        "CODEOWNERS 2-line org standard `* @KooshaPari` (62-repo shared pattern)",
+        "ISSUE_TEMPLATE: bug_report.md + feature_request.md present; config.yml MISSING",
+        "MISSING: SUPPORT.md (HeliosLab has PR #114 for same gap)",
+        "PULL_REQUEST_TEMPLATE.md, catalog-info.yaml (Backstage), CITATION.cff, CHANGELOG.md (Keep-a-Changelog 1.1.0), VERSION=0.1.0 all present"
+      ]
+    },
+    "G3_security_scanning": {
+      "status": "PARTIAL",
+      "evidence": [
+        "scorecard.yml (OpenSSF, weekly) SHA-pinned",
+        "codeql.yml reuses phenoShared @30358ce6 SHA-pinned, BUT inherits javascript-typescript language for a pure-Markdown/YAML repo — misconfig, wastes CI",
+        "secrets-scan.yml: trufflehog@9f0b97f SHA-pinned, --only-verified, weekly",
+        "MISSING: cargo-audit, gitleaks, OSV-scanner, dependency-review; no SBOM workflow (168/168 fleet gap per ssot-docs-audit)"
+      ]
+    },
+    "G4_quality_gates": {
+      "status": "PARTIAL",
+      "evidence": [
+        "Taskfile.yml `task test` validates registry.yaml keys (registry_version/system/domains/specs) + required files via Python heredoc",
+        "Taskfile.yml `task lint` runs yamllint + markdownlint with skip-on-missing — green CI possible with zero actual coverage",
+        "conventions.yml delegates linting to org-governance@main (G1 rot, propagates here)",
+        "legacy-tooling-gate.yml uses `continue-on-error: true` — WARN mode, never blocks merge",
+        "pre-commit-config.yaml: yaml/json/toml/eof/whitespace/private-key + conventional-pre-commit; no cargo/gitleaks (defensible for Markdown-only repo)"
+      ]
+    },
+    "G5_review_governance": {
+      "status": "PARTIAL",
+      "evidence": [
+        "MISSING: .coderabbit.yaml (org standard per tick-19)",
+        "MISSING: .gemini/ (AGENTS.md mandates per HeliosLab reference)",
+        "MISSING: required-check-names-guard.yml (HeliosLab meta-guard absent here)",
+        "dependabot.yml: only github-actions ecosystem, weekly, 2 labels (org standard is 4-6 ecosystems)",
+        "No branch-protection meta-guard, no stale-pr/stale-issue policies, no auto-merge"
+      ]
+    },
+    "e2e_end_to_end": {
+      "status": "DEGRADED",
+      "evidence": [
+        "release-dry-run.yml is theatre: hard-codes VERSION=0.0.1 when no Cargo.toml/package.json (always true here); echoes `✅ Dry-run passed` regardless of actual VERSION=0.1.0",
+        "VitePress site at docs/ referenced via `npm run docs:build` in CLAUDE.md, but NO Pages deploy workflow — dead intent",
+        "README quickstart references `spec-links`/`spec-new` tooling that per AGENTS.md lives in sibling repos — quickstart non-functional from clone alone",
+        "Taskfile.yml test/lint silently skip on missing tools — green CI without coverage possible"
+      ]
+    }
+  },
+  "additional_findings": {
+    "adr_stubs": "ADRs 007-010 are 40-61 byte stubs (evaluation, realtime-sync, audit-hash-chain, storage-dual-engine) — registry claims 16 ADRs but 4 are empty",
+    "stale_branches": "8+ stale branches: backup/20260426-reconcile-b364b6c (6w), 3x chore/phenospecs-*-20260425 (6w), wip-PhenoSpecs-charter (6w), release/adopt-release-cut (6w), feat/journey-impl (5w)",
+    "registry_drift": "registry.yaml v2.0.0 hand-curated to mirror ECOSYSTEM_MAP.md; no `task registry:sync` — drift structurally guaranteed",
+    "codeql_lang_misconfig": "codeql.yml reuses javascript-typescript for docs-only repo"
+  },
+  "actions_recommended": [
+    {
+      "priority": "P0",
+      "title": "SHA-pin conventions.yml + flesh out ADR stubs 007-010",
+      "detail": "conventions.yml:13 uses `@main` — pin to current main SHA of KooshaPari/phenotype-org-governance. Same PR: convert 4 ADR stubs (40-61 bytes: evaluation, realtime-sync, audit-hash-chain, storage-dual-engine) to MADR-format decisions with Context/Decision/Consequences, update adrs/README.md + registry.yaml `specs:` list. Closes G1 + ADR gap in one PR.",
+      "estimated_effort": "20 min SHA + 90 min ADR fills"
+    },
+    {
+      "priority": "P0",
+      "title": "Fix release-dry-run.yml to read VERSION file (kill 0.0.1 theatre)",
+      "detail": "release-dry-run.yml:19-24 falls through to `VERSION=0.0.1` when no Cargo.toml/package.json (always true). Replace with `VERSION=$(cat VERSION 2>/dev/null || echo 0.0.1)`. Then dry-run validates the real 0.1.0. Add `concurrency:` + `permissions: contents: read` to close G1 gaps.",
+      "estimated_effort": "5 min"
+    },
+    {
+      "priority": "P1",
+      "title": "Add SUPPORT.md + ISSUE_TEMPLATE/config.yml + drop JS CodeQL language",
+      "detail": "Add SUPPORT.md (HeliosLab PR #114 as model). Add ISSUE_TEMPLATE/config.yml for full 3-template set. In codeql.yml override `languages: '[]'` or delete (docs repo doesn't need CodeQL). Closes G2 + G3 + G5 gaps, saves ~3min/CI run.",
+      "estimated_effort": "10 min"
+    }
+  ],
+  "deep_research": "PhenoSpecs is the spec-of-record member of the Phenotype governance spine alongside phenotype-registry (ECOSYSTEM_MAP) and phenoShared (reusable CI), referenced by 18+ sibling repos. Comparing against tick-19 fleet baselines: 6 workflows, 5/6 SHA-pinned — the lone `@main` is conventions.yml:13 referencing `KooshaPari/phenotype-org-governance/...reusable-conventions-lint.yml@main`. Per workflow-pin-audit (134 repos, 110 SHA-pinned, 14 tag-only), this puts PhenoSpecs in the 14-repo tag-only cluster; the gap is unique and trivially closeable. 4 ADR stubs (007-010 = 40-61 bytes) are the only content gaps in the 16-ADR MADR set; registry.yaml v2.0.0 lists them as decisions but they are empty. CODEOWNERS is the 2-line org standard shared with 62 other repos. ISSUES_TEMPLATE/ has bug + feature but no config (org full set is 3); SUPPORT.md is missing (same gap as HeliosLab pre-#114). .pre-commit-config.yaml runs 7 hooks (yaml/json/toml/eof/whitespace/private-key + conventional-pre-commit) but no cargo/gitleaks — defensible for Markdown-only. dependabot.yml covers only github-actions (1 of 4-6 standard ecosystems) — fine since no manifest, but gomod would round it out.",
+  "deep_research_cont": "The e2e story is degraded in three concrete ways. (1) release-dry-run.yml is theatre: the `Extract version` step falls through to `VERSION=0.0.1` because no Cargo.toml/package.json exists; the `Validate release plan` step echoes `✅ Dry-run passed` regardless of the actual VERSION=0.1.0 in the VERSION file — release gating is a no-op echo. (2) The VitePress site under docs/ is referenced in CLAUDE.md via `npm run docs:build`, but no workflow publishes to GitHub Pages — the `legacy-tooling-gate` badge in README implies a deploy that does not exist. (3) The README quickstart references `spec-links`/`spec-new` tooling that AGENTS.md documents as living in sibling repos — a fresh clone of PhenoSpecs has broken quickstart commands. (4) Taskfile.yml `task lint` silently skips on missing yamllint/markdownlint — green CI without coverage is achievable. (5) codeql.yml reuses the phenoShared CodeQL workflow at SHA 30358ce6 with `javascript-typescript` language for a pure-Markdown/YAML repo — wasted CI minutes. Two structural drift risks: registry.yaml is hand-curated to mirror ECOSYSTEM_MAP.md, and ADRs 007-010 are empty — both closable in single PRs. Hygiene score: 4.2/5 (G1 4/5, G2 4/5, G3 4/5, G4 4/5, G5 3/5, e2e 2/5; 3 PRs lift e2e to 4/5)."
+}

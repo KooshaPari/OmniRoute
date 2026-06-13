@@ -1,0 +1,33 @@
+{
+  "generated_at": "2026-06-08T23:25:38Z",
+  "total_repos": 169,
+  "with_composite": [
+    "HeliosCLI",
+    "HexaKit",
+    "Pyron",
+    "helioscope",
+    "pheno"
+  ],
+  "by_repo": [
+    {
+      "repo": "HeliosCLI",
+      "composite_count": 4
+    },
+    {
+      "repo": "HexaKit",
+      "composite_count": 5
+    },
+    {
+      "repo": "Pyron",
+      "composite_count": 5
+    },
+    {
+      "repo": "helioscope",
+      "composite_count": 4
+    },
+    {
+      "repo": "pheno",
+      "composite_count": 5
+    }
+  ]
+}

@@ -1,0 +1,2007 @@
+{
+  "generated_at": "2026-06-09T03:02:31Z",
+  "by_repo": [
+    {
+      "repo": "AgentMCP",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "AgentMCP-wtrees",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "Agentora",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "AgilePlus",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "Apisync",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "AppGen",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "AppGen-wtrees",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "AtomsBot",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": true
+    },
+    {
+      "repo": "AtomsBot-2nd",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": true
+    },
+    {
+      "repo": "AtomsBot-wtrees",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "AuthKit",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "Benchora",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "BytePort",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "Civis",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "Civis-wtrees",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "Conft",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "Conft-4th",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "Conft-hygiene",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "Conft-wtrees",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "DINOForge-UnityDoorstop",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "DataKit",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "DataKit-wtrees",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "DevHex",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "Dino",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "Dino-wtrees",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "Eidolon",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": true
+    },
+    {
+      "repo": "Eidolon-wtrees",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "Eventra",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "Eventra-wtrees",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "FocalPoint",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": true,
+      "has_getting_started": false
+    },
+    {
+      "repo": "FocalPoint-wtrees",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "GDK",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "GDK-wtrees",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "HeliosCLI",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": true
+    },
+    {
+      "repo": "HeliosCLI-wtrees",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "HeliosLab",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "HeliosLab-3rd",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "HeliosLab-4th",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "HeliosLab-hygiene2",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "HeliosLab-wtrees",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "HexaKit",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "HexaKit-wtrees",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "Httpora",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "KDesktopVirt",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": true,
+      "has_getting_started": false
+    },
+    {
+      "repo": "KDesktopVirt-wtrees",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "KWatch",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": true,
+      "has_getting_started": false
+    },
+    {
+      "repo": "KWatch-docs",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": true,
+      "has_getting_started": false
+    },
+    {
+      "repo": "KWatch-wtrees",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "KaskMan",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "KlipDot",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "KlipDot-wtrees",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "KodeVibe",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "KodeVibe-security-fixes",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "MCPForge",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "McpKit",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "Metron",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "Metron-wtrees",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "NetScript",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "NetScript-wtrees",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "ObservabilityKit",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "Observably",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "OmniRoute",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": true,
+      "has_getting_started": false
+    },
+    {
+      "repo": "OmniRoute-2nd",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": true,
+      "has_getting_started": false
+    },
+    {
+      "repo": "OmniRoute-3rd",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": true,
+      "has_getting_started": false
+    },
+    {
+      "repo": "OmniRoute-dependabot",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": true,
+      "has_getting_started": false
+    },
+    {
+      "repo": "OmniRoute-latest",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "OmniRoute-wtrees",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "Paginary",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": true
+    },
+    {
+      "repo": "Parpoura",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "Parpoura-3rd",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "Parpoura-hygiene",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "Parpoura-wtrees",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "PhenoAgent",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "PhenoAgent-wtrees",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "PhenoCompose",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "PhenoCompose-wtrees",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "PhenoContracts",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "PhenoControl",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "PhenoDevOps",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": true,
+      "has_getting_started": false
+    },
+    {
+      "repo": "PhenoDevOps-wtrees",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "PhenoEvents",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "PhenoHandbook",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "PhenoKits",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "PhenoKits-wtrees",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "PhenoLang",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "PhenoMCP",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "PhenoMCP-cheap",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "PhenoMCP-wtrees",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "PhenoObservability",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": true,
+      "has_getting_started": false
+    },
+    {
+      "repo": "PhenoObservability-wtrees",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "PhenoPlugins",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "PhenoPlugins-wtrees",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "PhenoProc",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "PhenoProc-security-fixes",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "PhenoProc-wtrees",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "PhenoProject",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "PhenoProject-wtrees",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "PhenoRuntime",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "PhenoRuntime-wtrees",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "PhenoSchema",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "PhenoSpecs",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "PhenoSpecs-wtrees",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "PhenoVCS",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "PhenoVCS-3rd",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "PhenoVCS-4th",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "PhenoVCS-hygiene",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "PhenoVCS-wtrees",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "Pine",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "Pine-wtrees",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "Planify",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "Planify-hygiene",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "Planify-wtrees",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "PlatformKit",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "PlayCua",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "PolicyStack",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "Pyron",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "Pyron-wtrees",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "QuadSGM",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "QuadSGM-wtrees",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "ResilienceKit",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "Sidekick",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": true
+    },
+    {
+      "repo": "Sidekick-wtrees",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "Tasken",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "Tasken-3rd",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "Tasken-wtrees",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "TestingKit",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "Tokn",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": true,
+      "has_getting_started": false
+    },
+    {
+      "repo": "Tokn-wtrees",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "Tracely",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "Tracely-wtrees",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "Tracera",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "Tracera-wtrees",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "ValidationKit",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "agent-devops-setups",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "agent-platform",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "agent-user-status",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "agent-user-status-wtrees",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "agentapi-plusplus",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": true,
+      "has_getting_started": false
+    },
+    {
+      "repo": "agentapi-plusplus-wtrees",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "agentops-policy-federation",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "agileplus-agents",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "agileplus-wtrees",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "agslag-docs",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "apps",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "argis-extensions",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "argis-extensions-wtrees",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "bare-cua",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "chatta",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": true
+    },
+    {
+      "repo": "cheap-llm-mcp",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "cheap-llm-mcp-deprecate",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "cheap-llm-mcp-t1-19",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "cheap-llm-mcp-wtrees",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "cliproxyapi-plusplus",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": true,
+      "has_getting_started": true
+    },
+    {
+      "repo": "cliproxyapi-plusplus-wtrees",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "crates",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "default",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "dinoforge-packs",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "dispatch-mcp",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "dispatch-mcp-t1-0",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "dispatch-mcp-t1-1",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "dispatch-mcp-t1-2",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "dispatch-mcp-t1-3",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "dispatch-mcp-t1-4",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "dispatch-mcp-t1-5",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "dispatch-mcp-wtrees",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "docs",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "docs-site",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "examples",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "eyetracker",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "eyetracker-wtrees",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "forgecode",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "forgecode-wtrees",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "frontend",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "fuzz",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "helios-router",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "heliosApp",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "heliosApp-wtrees",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "heliosBench",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "heliosHarness",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "helioscope",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": true
+    },
+    {
+      "repo": "helioscope-wtrees",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "hub-wtrees",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "hwLedger",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "justfile-wtrees",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "kmobile",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "kmobile-wtrees",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "kwality-wtrees",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "libs",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "localbase3",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "localbase3-wtrees",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "melosviz",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "nanovms",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "netweave-final2",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "pheno",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "pheno-wtrees",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "phenoAI",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "phenoAI-wtrees",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "phenoData",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "phenoData-t0-wtrees",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "phenoData-t1-15",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "phenoData-t1-16",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "phenoData-t1-17",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "phenoData-t1-18",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "phenoData-wtrees",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "phenoDesign",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "phenoDesign-t1-10",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "phenoDesign-t1-6",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "phenoDesign-t1-7",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "phenoDesign-t1-8",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "phenoDesign-t1-9",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "phenoForge",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "phenoForge-wtrees",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "phenoResearchEngine",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "phenoResearchEngine-wtrees",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "phenoShared",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "phenoShared-wtrees",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "phenoUtils",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "phenoUtils-wtrees",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "phenoXdd",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "phenoXdd-wtrees",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "phenodocs",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "phenodocs-scorecard-remediation",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "phenodocs-wtrees",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "phenotype-auth-ts",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": true
+    },
+    {
+      "repo": "phenotype-bus",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "phenotype-bus-wtrees",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "phenotype-dep-guard",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "phenotype-dep-guard-wtrees",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "phenotype-go-sdk",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "phenotype-go-sdk-wtrees",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "phenotype-hub",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "phenotype-hub-wtrees",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "phenotype-icons",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "phenotype-infra",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "phenotype-infra-wtrees",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "phenotype-journeys",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "phenotype-journeys-2nd",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "phenotype-landing",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "phenotype-landing-wtrees",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "phenotype-omlx",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "phenotype-ops-mcp",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "phenotype-ops-mcp-t0",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "phenotype-ops-mcp-t1-11",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "phenotype-ops-mcp-t1-12",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "phenotype-ops-mcp-t1-13",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "phenotype-ops-mcp-t1-14",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "phenotype-org-audits",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "phenotype-postfx",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "phenotype-py-extras",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "phenotype-python-sdk",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "phenotype-python-sdk-wtrees",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "phenotype-registry",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "phenotype-registry-wtrees",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "phenotype-request-id",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "phenotype-shared",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "phenotype-skills",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "phenotype-terrain",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "phenotype-tooling",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "phenotype-tooling-wtrees",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "phenotype-voxel",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": true,
+      "has_getting_started": false
+    },
+    {
+      "repo": "phenotype-voxel-wtrees",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "phenotype-water",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "plans",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "portage",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": true,
+      "has_getting_started": false
+    },
+    {
+      "repo": "registry-wtrees",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "rich-cli-kit",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "rust",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "services",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "spec-kitty-wtrees",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "src",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "target",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "tests",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "thegent",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "thegent-dispatch",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "thegent-fresh",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "thegent-jsonl",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "thegent-security-fixes",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "thegent-security-fixes-wtrees",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "thegent-wtrees",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "tooling",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "tooling-wtrees",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "vendor",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "vibeproxy",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "vibeproxy-monitoring-unified",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "vibeproxy-wtrees",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    },
+    {
+      "repo": "worktrees",
+      "has_quickstart": false,
+      "has_tutorial": false,
+      "has_examples": false,
+      "has_getting_started": false
+    }
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "bugReportModal": {
+    "customId": "smart_bug_test_user_123",
+    "fields": {
+      "title": "Test Bug Report",
+      "stepsToReproduce": "1. Do something\n2. See error",
+      "expectedBehavior": "Should work correctly",
+      "actualBehavior": "Error occurs",
+      "environment": "Test environment"
+    }
+  },
+  "featureRequestModal": {
+    "customId": "smart_feature_test_user_456",
+    "fields": {
+      "title": "Test Feature Request",
+      "description": "Add new functionality",
+      "benefits": "Improved user experience",
+      "implementation": "Use modern tech stack",
+      "priority": "Medium"
+    }
+  }
+}

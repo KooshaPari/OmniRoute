@@ -1,0 +1,41 @@
+.DS_Store
+*.log
+.env
+.task/
+.uv-cache/
+node_modules/
+docs/node_modules/
+docs-dist/
+
+# generated/runtime
+coverage/
+.tmp/
+
+
+# Added by Spec Kitty CLI (auto-managed)
+.opencode/
+.windsurf/
+.qwen/
+.augment/
+.roo/
+.amazonq/
+.github/copilot/
+.kittify/.dashboard
+
+
+# AI tool artifacts
+.claude/
+.codex/
+.cursor/
+.gemini/
+.kittify/
+.kilocode/
+.github/prompts/
+.github/copilot-instructions.md
+.claudeignore
+.llmignore
+worktrees/
+
+# Build artifacts (added 2026-06-08)
+__pycache__/
+target/

@@ -1,0 +1,135 @@
+{
+  "generated_at": "2026-06-08T00:00:00Z",
+  "total_repos": 170,
+  "with_dockerfile": [
+    "AtomsBot",
+    "Dino",
+    "HeliosCLI",
+    "HexaKit",
+    "KDesktopVirt",
+    "KodeVibe",
+    "OmniRoute",
+    "OmniRoute-latest",
+    "PhenoDevOps",
+    "PhenoSchema",
+    "PolicyStack",
+    "Pyron",
+    "QuadSGM",
+    "Tokn",
+    "Tracera",
+    "argis-extensions",
+    "cliproxyapi-plusplus",
+    "helioscope",
+    "kwality",
+    "pheno"
+  ],
+  "shared_bases": [
+    {
+      "from_line": "python:3.12-slim",
+      "repos": [
+        "HeliosCLI",
+        "HexaKit",
+        "PhenoDevOps",
+        "Pyron",
+        "QuadSGM",
+        "helioscope",
+        "pheno"
+      ]
+    },
+    {
+      "from_line": "python:3.14-slim",
+      "repos": [
+        "HexaKit",
+        "PhenoDevOps",
+        "Pyron",
+        "pheno"
+      ]
+    },
+    {
+      "from_line": "rust:slim",
+      "repos": [
+        "HexaKit",
+        "PhenoDevOps",
+        "Pyron",
+        "pheno"
+      ]
+    },
+    {
+      "from_line": "--platform=$BUILDPLATFORM",
+      "repos": [
+        "Tokn",
+        "argis-extensions"
+      ]
+    },
+    {
+      "from_line": "alpine:3.19",
+      "repos": [
+        "KDesktopVirt",
+        "argis-extensions"
+      ]
+    },
+    {
+      "from_line": "base",
+      "repos": [
+        "OmniRoute",
+        "OmniRoute-latest"
+      ]
+    },
+    {
+      "from_line": "debian:bookworm-slim",
+      "repos": [
+        "KDesktopVirt",
+        "PhenoSchema"
+      ]
+    },
+    {
+      "from_line": "golang:1.23-alpine",
+      "repos": [
+        "Tracera",
+        "argis-extensions"
+      ]
+    },
+    {
+      "from_line": "golang:1.26-alpine",
+      "repos": [
+        "KodeVibe",
+        "cliproxyapi-plusplus"
+      ]
+    },
+    {
+      "from_line": "node:24-trixie-slim",
+      "repos": [
+        "OmniRoute",
+        "OmniRoute-latest"
+      ]
+    },
+    {
+      "from_line": "node:25-slim",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "from_line": "runner-base",
+      "repos": [
+        "OmniRoute",
+        "OmniRoute-latest"
+      ]
+    },
+    {
+      "from_line": "ubuntu:22.04",
+      "repos": [
+        "KDesktopVirt",
+        "Tracera"
+      ]
+    },
+    {
+      "from_line": "ubuntu:24.04",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    }
+  ]
+}

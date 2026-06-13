@@ -1,0 +1,34 @@
+name: Quality Gate
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+on: [push, pull_request]
+jobs:
+  gate:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@735bb779f4f6a9451ceffbd9ea1e6dca87cf6d25 # v2
+        with:
+          bun-version: latest
+      - name: Setup Node
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 20
+      - name: Install packages
+        run: bun install --frozen-lockfile
+      - name: Lint
+        run: bun run lint
+      - name: Test
+        run: bun run test:unit
+      - name: Coverage (smoke)
+        run: bun run test:coverage

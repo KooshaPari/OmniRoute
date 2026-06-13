@@ -1,0 +1,413 @@
+{
+  "task": "L2-23",
+  "name": "pheno-dependabot-bump",
+  "date": "2026-06-08",
+  "description": "Add .github/dependabot.yml to repos that lack one. Canonical config: monthly schedule, cargo+pip+npm+gomod+github-actions, open-pull-request-limit=5, deps-weekly group (minor+patch), labels=[dependencies].",
+  "template": {
+    "path": ".claude/templates/dependabot.yml",
+    "ecosystems": [
+      "cargo",
+      "pip",
+      "npm",
+      "gomod",
+      "github-actions"
+    ],
+    "schedule_interval": "monthly",
+    "open_pull_requests_limit": 5,
+    "groups": {
+      "deps-weekly": {
+        "update-types": [
+          "minor",
+          "patch"
+        ]
+      }
+    },
+    "labels": [
+      "dependencies"
+    ]
+  },
+  "branch": "chore/dependabot-2026-06-08",
+  "pushed": false,
+  "repos": [
+    {
+      "repo": "Eventra",
+      "start_branch": "fix/eventra-compile-errors-20260608",
+      "start_sha": "2e4ae965d51d9fe74a4286f69117f1b8e146ca92",
+      "branch": "chore/dependabot-2026-06-08",
+      "commit_sha": "6336a73f191633443a6dffc9512f1926fbdc3fd1",
+      "commit_message": "chore(ci): add dependabot.yml for ecosystem automation",
+      "file": ".github/dependabot.yml",
+      "ecosystems": [
+        "cargo",
+        "pip",
+        "npm",
+        "gomod",
+        "github-actions"
+      ],
+      "remote": "origin"
+    },
+    {
+      "repo": "KWatch",
+      "start_branch": "chore/kwatch-structured-logging-20260608",
+      "start_sha": "5dff1a1d1ee8d2f8d3ec141a0b62e97cc9f30c47",
+      "branch": "chore/dependabot-2026-06-08",
+      "commit_sha": "00f53f8980ed3217662ebc733e3603c17aae79ea",
+      "commit_message": "chore(ci): add dependabot.yml for ecosystem automation",
+      "file": ".github/dependabot.yml",
+      "ecosystems": [
+        "cargo",
+        "pip",
+        "npm",
+        "gomod",
+        "github-actions"
+      ],
+      "remote": "origin"
+    },
+    {
+      "repo": "KodeVibe",
+      "start_branch": "main",
+      "start_sha": "53366c2f1c9a949ab72510cbdcb4bd54d3a176a0",
+      "branch": "chore/dependabot-2026-06-08",
+      "commit_sha": "0c4aff0b6a223bc81d03742a7ba0e6e3431e638a",
+      "commit_message": "chore(ci): add dependabot.yml for ecosystem automation",
+      "file": ".github/dependabot.yml",
+      "ecosystems": [
+        "cargo",
+        "pip",
+        "npm",
+        "gomod",
+        "github-actions"
+      ],
+      "remote": "origin"
+    },
+    {
+      "repo": "NetScript",
+      "start_branch": "main",
+      "start_sha": "af993d7713861b6544726f1fd320349cb2966cae",
+      "branch": "chore/dependabot-2026-06-08",
+      "commit_sha": "68d95b83190c60b258c90d7549665e6368bc7194",
+      "commit_message": "chore(ci): add dependabot.yml for ecosystem automation",
+      "file": ".github/dependabot.yml",
+      "ecosystems": [
+        "cargo",
+        "pip",
+        "npm",
+        "gomod",
+        "github-actions"
+      ],
+      "remote": "origin"
+    },
+    {
+      "repo": "PhenoContracts",
+      "start_branch": "main",
+      "start_sha": "bb72fc3626212b8ecc60b872b06ce0ff99781918",
+      "branch": "chore/dependabot-2026-06-08",
+      "commit_sha": "42898b8de825ecc209643f354e8c8639473fb5b3",
+      "commit_message": "chore(ci): add dependabot.yml for ecosystem automation",
+      "file": ".github/dependabot.yml",
+      "ecosystems": [
+        "cargo",
+        "pip",
+        "npm",
+        "gomod",
+        "github-actions"
+      ],
+      "remote": null
+    },
+    {
+      "repo": "PhenoEvents",
+      "start_branch": "main",
+      "start_sha": "64e99a60bab35060f1c0b950d0890ed75d8ca672",
+      "branch": "chore/dependabot-2026-06-08",
+      "commit_sha": "b5a4abc614ecaaa4467f95a8ae11c1f131a2cf5e",
+      "commit_message": "chore(ci): add dependabot.yml for ecosystem automation",
+      "file": ".github/dependabot.yml",
+      "ecosystems": [
+        "cargo",
+        "pip",
+        "npm",
+        "gomod",
+        "github-actions"
+      ],
+      "remote": null
+    },
+    {
+      "repo": "PhenoSchema",
+      "start_branch": "main",
+      "start_sha": "cc0ef9874ae5888f97b4fafc159856dbcd0a60ee",
+      "branch": "chore/dependabot-2026-06-08",
+      "commit_sha": "416b0f683c165035bdb19793cca758e882d56359",
+      "commit_message": "chore(ci): add dependabot.yml for ecosystem automation",
+      "file": ".github/dependabot.yml",
+      "ecosystems": [
+        "cargo",
+        "pip",
+        "npm",
+        "gomod",
+        "github-actions"
+      ],
+      "remote": null
+    },
+    {
+      "repo": "agent-platform",
+      "start_branch": "main",
+      "start_sha": "54c54eee1f2ec799c9e66883275f6c906920dffa",
+      "branch": "chore/dependabot-2026-06-08",
+      "commit_sha": "e6bd7d1751b22895be2670cb093fa091ffbb228d",
+      "commit_message": "chore(ci): add dependabot.yml for ecosystem automation",
+      "file": ".github/dependabot.yml",
+      "ecosystems": [
+        "cargo",
+        "pip",
+        "npm",
+        "gomod",
+        "github-actions"
+      ],
+      "remote": null
+    },
+    {
+      "repo": "agslag-docs",
+      "start_branch": "main",
+      "start_sha": "f242d8a996e66d24bc34212ba52ac0fdea6b7efe",
+      "branch": "chore/dependabot-2026-06-08",
+      "commit_sha": "7aa6500eb8497b58952f1077f1d0ab6efc70ac8a",
+      "commit_message": "chore(ci): add dependabot.yml for ecosystem automation",
+      "file": ".github/dependabot.yml",
+      "ecosystems": [
+        "cargo",
+        "pip",
+        "npm",
+        "gomod",
+        "github-actions"
+      ],
+      "remote": "origin"
+    },
+    {
+      "repo": "apps",
+      "start_branch": "main",
+      "start_sha": "1f052bf46c38423771feab445b953c5a7affc2bb",
+      "branch": "chore/dependabot-2026-06-08",
+      "commit_sha": "10bf4bf72dbe2e151cbbc47b88fa3aed2d13ba80",
+      "commit_message": "chore(ci): add dependabot.yml for ecosystem automation",
+      "file": ".github/dependabot.yml",
+      "ecosystems": [
+        "cargo",
+        "pip",
+        "npm",
+        "gomod",
+        "github-actions"
+      ],
+      "remote": null
+    },
+    {
+      "repo": "docs-site",
+      "start_branch": "main",
+      "start_sha": "f8741af0bc5c62b6b08cd1a60095d76ae750bc89",
+      "branch": "chore/dependabot-2026-06-08",
+      "commit_sha": "47b15d505e0db6b62c6ba9c40b4e26ef7ee0909f",
+      "commit_message": "chore(ci): add dependabot.yml for ecosystem automation",
+      "file": ".github/dependabot.yml",
+      "ecosystems": [
+        "cargo",
+        "pip",
+        "npm",
+        "gomod",
+        "github-actions"
+      ],
+      "remote": null
+    },
+    {
+      "repo": "helios-router",
+      "start_branch": "chore/helios-router-archive-finalize-20260608",
+      "start_sha": "b903c60c5da5d4c208abc0d254428d3f09fe73d9",
+      "branch": "chore/dependabot-2026-06-08",
+      "commit_sha": "d2cc43785b329fc86277ad5b3b4567394de76ab4",
+      "commit_message": "chore(ci): add dependabot.yml for ecosystem automation",
+      "file": ".github/dependabot.yml",
+      "ecosystems": [
+        "cargo",
+        "pip",
+        "npm",
+        "gomod",
+        "github-actions"
+      ],
+      "remote": "origin"
+    },
+    {
+      "repo": "kmobile",
+      "start_branch": "main",
+      "start_sha": "3989d42da261bbef5c369ea71d85c0777ee0fb42",
+      "branch": "chore/dependabot-2026-06-08",
+      "commit_sha": "f455ca8cfd96445dcb98877d8832daebf6be90b4",
+      "commit_message": "chore(ci): add dependabot.yml for ecosystem automation",
+      "file": ".github/dependabot.yml",
+      "ecosystems": [
+        "cargo",
+        "pip",
+        "npm",
+        "gomod",
+        "github-actions"
+      ],
+      "remote": "origin"
+    },
+    {
+      "repo": "melosviz",
+      "start_branch": "main",
+      "start_sha": "c76f9e5dee61b4eb0a5cb6126d145cf352153597",
+      "branch": "chore/dependabot-2026-06-08",
+      "commit_sha": "115ba3c263311dd18ef464ac017b88675c383c56",
+      "commit_message": "chore(ci): add dependabot.yml for ecosystem automation",
+      "file": ".github/dependabot.yml",
+      "ecosystems": [
+        "cargo",
+        "pip",
+        "npm",
+        "gomod",
+        "github-actions"
+      ],
+      "remote": "origin"
+    },
+    {
+      "repo": "netweave-final2",
+      "start_branch": "docs/fix-gap-2026-06-08",
+      "start_sha": "d13992d016c6f6ea4d5ac513d7b5a42607b8f475",
+      "branch": "chore/dependabot-2026-06-08",
+      "commit_sha": "30e9ed30633ebfe5b7867795d671f29f4b36d790",
+      "commit_message": "chore(ci): add dependabot.yml for ecosystem automation",
+      "file": ".github/dependabot.yml",
+      "ecosystems": [
+        "cargo",
+        "pip",
+        "npm",
+        "gomod",
+        "github-actions"
+      ],
+      "remote": "origin"
+    },
+    {
+      "repo": "phenotype-go-sdk",
+      "start_branch": "main",
+      "start_sha": "1298056e3f527629e17359d9c9f149d4e8f14991",
+      "branch": "chore/dependabot-2026-06-08",
+      "commit_sha": "54cb698aa0ac1d0c9c0775b696f3d13f33c7c7ba",
+      "commit_message": "chore(ci): add dependabot.yml for ecosystem automation",
+      "file": ".github/dependabot.yml",
+      "ecosystems": [
+        "cargo",
+        "pip",
+        "npm",
+        "gomod",
+        "github-actions"
+      ],
+      "remote": "origin"
+    },
+    {
+      "repo": "phenotype-landing",
+      "start_branch": "main",
+      "start_sha": "6ba257ec13a8bdd5f0ff9329efd06346d38ce28e",
+      "branch": "chore/dependabot-2026-06-08",
+      "commit_sha": "bd5c6a5b97d4ef3372d524cb9b8bece33ec2b50f",
+      "commit_message": "chore(ci): add dependabot.yml for ecosystem automation",
+      "file": ".github/dependabot.yml",
+      "ecosystems": [
+        "cargo",
+        "pip",
+        "npm",
+        "gomod",
+        "github-actions"
+      ],
+      "remote": "origin"
+    },
+    {
+      "repo": "phenotype-py-extras",
+      "start_branch": "main",
+      "start_sha": "d2b70709a8c7035cbb32d6c1d95a2255ea191a91",
+      "branch": "chore/dependabot-2026-06-08",
+      "commit_sha": "ac9f06335a5f2153c9835dd9218de4bee18815b7",
+      "commit_message": "chore(ci): add dependabot.yml for ecosystem automation",
+      "file": ".github/dependabot.yml",
+      "ecosystems": [
+        "cargo",
+        "pip",
+        "npm",
+        "gomod",
+        "github-actions"
+      ],
+      "remote": null
+    },
+    {
+      "repo": "phenotype-python-sdk",
+      "start_branch": "main",
+      "start_sha": "b886c8f6afc81bb4e387c8ccace3998eec9cd82c",
+      "branch": "chore/dependabot-2026-06-08",
+      "commit_sha": "613c5f4dc85accae08e76f51bca707b29066fc3a",
+      "commit_message": "chore(ci): add dependabot.yml for ecosystem automation",
+      "file": ".github/dependabot.yml",
+      "ecosystems": [
+        "cargo",
+        "pip",
+        "npm",
+        "gomod",
+        "github-actions"
+      ],
+      "remote": "origin"
+    },
+    {
+      "repo": "phenotype-request-id",
+      "start_branch": "main",
+      "start_sha": "c8c071d474ae6560ce4671cb8abb1abb938ea3d5",
+      "branch": "chore/dependabot-2026-06-08",
+      "commit_sha": "b43672cbd5e8329aebeb5b3052da03693790e70f",
+      "commit_message": "chore(ci): add dependabot.yml for ecosystem automation",
+      "file": ".github/dependabot.yml",
+      "ecosystems": [
+        "cargo",
+        "pip",
+        "npm",
+        "gomod",
+        "github-actions"
+      ],
+      "remote": null
+    },
+    {
+      "repo": "phenotype-voxel",
+      "start_branch": "chore/editorconfig-2026-06-08",
+      "start_sha": "50d7b31a92f0d319a1b7c56e188a9710a3bc921c",
+      "branch": "chore/dependabot-2026-06-08",
+      "commit_sha": "67a8a106b48c2e024eb4ebecde9b391533124998",
+      "commit_message": "chore(ci): add dependabot.yml for ecosystem automation",
+      "file": ".github/dependabot.yml",
+      "ecosystems": [
+        "cargo",
+        "pip",
+        "npm",
+        "gomod",
+        "github-actions"
+      ],
+      "remote": "origin"
+    },
+    {
+      "repo": "services",
+      "start_branch": "main",
+      "start_sha": "436ca7f2164f369abef5f92d020c8d901a6f4e0f",
+      "branch": "chore/dependabot-2026-06-08",
+      "commit_sha": "45344773527a90a801cdd8e63da96cb3816ab471",
+      "commit_message": "chore(ci): add dependabot.yml for ecosystem automation",
+      "file": ".github/dependabot.yml",
+      "ecosystems": [
+        "cargo",
+        "pip",
+        "npm",
+        "gomod",
+        "github-actions"
+      ],
+      "remote": null
+    }
+  ],
+  "summary": {
+    "total": 22,
+    "with_remote": 13,
+    "without_remote": 9,
+    "ecosystems_per_repo": 5
+  }
+}

@@ -1,0 +1,62 @@
+{
+  "generated_at": "2026-06-08T09:44:11Z",
+  "total_repos": 46,
+  "near_duplicate_headers": [
+    {
+      "field": "license",
+      "value": "MIT OR Apache-2.0",
+      "repos": [
+        "Agentora",
+        "Apisync",
+        "Eventra",
+        "GDK",
+        "Metron",
+        "PhenoMCP",
+        "PhenoRuntime",
+        "Tasken"
+      ]
+    },
+    {
+      "field": "license",
+      "value": "MIT",
+      "repos": [
+        "Benchora",
+        "KDesktopVirt",
+        "KlipDot",
+        "kmobile",
+        "thegent-dispatch"
+      ]
+    },
+    {
+      "field": "edition",
+      "value": "2021",
+      "repos": [
+        "Agentora",
+        "Apisync",
+        "Benchora",
+        "Eventra",
+        "GDK",
+        "HexaKit",
+        "KDesktopVirt",
+        "KlipDot",
+        "Metron",
+        "NetScript",
+        "PhenoDevOps",
+        "PhenoKits",
+        "Tasken",
+        "kmobile",
+        "phenoForge",
+        "phenotype-bus"
+      ]
+    },
+    {
+      "field": "edition",
+      "value": "2024",
+      "repos": [
+        "PhenoMCP",
+        "PhenoRuntime",
+        "thegent-dispatch"
+      ]
+    }
+  ]
+}

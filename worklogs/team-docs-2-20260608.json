@@ -1,0 +1,90 @@
+{
+  "generated_at": "2026-06-08T10:10:05.136515Z",
+  "total_repos": 169,
+  "contributing_template_dupes": [
+    {
+      "template_hash": "1bf08bea5b903f1ba81fa5207e6c7c54f86dfbe278a1a596022f17c80196c650",
+      "repos": [
+        "Apisync",
+        "argis-extensions",
+        "Httpora",
+        "PolicyStack",
+        "Tasken",
+        "Tokn"
+      ]
+    },
+    {
+      "template_hash": "78a8de5ecfed67e93c31a4a5d336c9ba68df613b74454b94133425e0c24b78d0",
+      "repos": [
+        "Civis",
+        "HeliosCLI",
+        "helioscope",
+        "Parpoura",
+        "QuadSGM"
+      ]
+    },
+    {
+      "template_hash": "feea9c1b3aa975da13311e5f697317f3c04ef31e94f72c5a97159ff1ef185977",
+      "repos": [
+        "agent-devops-setups",
+        "agentapi-plusplus",
+        "PhenoDevOps",
+        "portage",
+        "Pyron"
+      ]
+    },
+    {
+      "template_hash": "2d53d132ef77a440d9d9c9da10adfa5e51a5711d6c629f13aceb50e8c5ecbf7b",
+      "repos": [
+        "thegent",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "template_hash": "4b1f912c00952776e9da8ed1980f84975253cfd4cf0f3918caf5586e67a33c21",
+      "repos": [
+        "agileplus-landing",
+        "FocalPoint",
+        "phenokits-landing"
+      ]
+    },
+    {
+      "template_hash": "533c4acf9dc1b5f7dd476e1f1f33e0ef0e252916d3336e9d655163a214125fa5",
+      "repos": [
+        "AtomsBot",
+        "KlipDot",
+        "phenotype-omlx"
+      ]
+    },
+    {
+      "template_hash": "1aeb3bb7021f16b0430f9a3e77627ae7f8acacb4e344dde7e19180e43a94397c",
+      "repos": [
+        "bare-cua",
+        "PlayCua"
+      ]
+    },
+    {
+      "template_hash": "32954375958dcfabbaa5579deb62ccfeb2188067e06759d5926ef5711a5e9279",
+      "repos": [
+        "phenodocs",
+        "phenodocs-scorecard-remediation"
+      ]
+    },
+    {
+      "template_hash": "784eb9b34ee07e347fe41e1f28c5a826bc8b9203d92983cd48db18a14bc16a67",
+      "repos": [
+        "nanovms",
+        "PhenoCompose"
+      ]
+    },
+    {
+      "template_hash": "e52d61bbca97bc0e6c8e06ced837292c5b4efe8df2e12438ce59d2f4f5d8267b",
+      "repos": [
+        "thegent-clean-wt-docs",
+        "thegent-clean-wt-policy"
+      ]
+    }
+  ]
+}

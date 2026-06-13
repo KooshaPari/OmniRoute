@@ -1,0 +1,44 @@
+{
+  "by_lib": {
+    "aws_lc_rs": [
+      "PhenoMCP",
+      "PhenoMCP-cheap"
+    ],
+    "cryptography": [
+      "AuthKit",
+      "HexaKit",
+      "Parpoura",
+      "PhenoProc",
+      "TestingKit",
+      "Tracera"
+    ],
+    "libsodium": [],
+    "openssl": [
+      "HeliosCLI",
+      "PhenoMCP",
+      "PhenoMCP-cheap",
+      "helioscope"
+    ],
+    "ring": [
+      ".claude",
+      "FocalPoint",
+      "HeliosCLI",
+      "KDesktopVirt",
+      "crates",
+      "forgecode",
+      "helioscope"
+    ],
+    "rustls": [
+      "HeliosCLI",
+      "PhenoRuntime",
+      "forgecode",
+      "helioscope",
+      "phenoAI",
+      "phenoData",
+      "phenoShared",
+      "phenoUtils"
+    ]
+  },
+  "generated_at": "2026-06-08T23:49:53.180923Z",
+  "total_repos": 98
+}

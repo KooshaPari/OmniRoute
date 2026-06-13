@@ -1,0 +1,114 @@
+{
+  "repo": "phenodocs-scorecard-remediation",
+  "branch_audited": "main (2026-06-08)",
+  "audited_at": "2026-06-08",
+  "summary": "G1 PARTIAL (all 14 workflows SHA-pinned but quality-gate/doc-links/fr-coverage are soft-fail theatre, scorecard.yml + codeql.yml have duplicate blocks), G2 PARTIAL (no CODEOWNERS @root, no SUPPORT.md, no ISSUE_TEMPLATE/config.yml), G3 PARTIAL (codeql misconfigured for docs-only repo; no SBOM/gitleaks), G4 PARTIAL (check_docs_links.py is a stub, 3 workflows swallow exit codes), G5 PARTIAL (.coderabbit.yaml present, no .gemini/, no branch-protection meta-guard), e2e DEGRADED (.broken_md_refs.txt is a 52KB committed leak of the OLD phenodocs/ tree including node_modules; stub script + soft gates = green without execution). 3 actionable findings.",
+  "gates": {
+    "G1_workflow_hygiene": {
+      "status": "PARTIAL",
+      "evidence": [
+        "14/14 .github/workflows/*.yml parse (alert-sync-issues, codeql, deploy, doc-links, fr-coverage, legacy-tooling-gate, policy-gate, publish-package, quality-gate, scorecard, security-guard-hook-audit, security-guard, trufflehog, workflow-permissions)",
+        "All actions SHA-pinned: actions/checkout@df4cb1c0, ossf/scorecard-action@af761533, codeql-action/upload-sarif@e46ed2cb, actions/upload-artifact@043fb46d, setup-python@c8813ba1, astral-sh/setup-uv@08807647, oven-sh/setup-bun@0c5077e5, dtolnay/rust-toolchain@3c5f7ea, actions/github-script@3a2844b7",
+        "FAIL: scorecard.yml:8-15 has DUPLICATE `permissions:` blocks (`contents: read` then `permissions: read-all`) — second wins but is sloppy",
+        "FAIL: codeql.yml:3-15 has DUPLICATE `on:` blocks (`workflow_dispatch` once, then `push/pull_request/schedule` again) — last wins, schedule cron may be lost",
+        "FAIL: quality-gate.yml uses `continue-on-error: true` + `bun run lint || true` + `bun run test || true` — WARN mode, never blocks merge (G4 rot propagates here)",
+        "FAIL: doc-links.yml `tooling/doc-link-check docs/ || true` — exit code swallowed, green CI without coverage",
+        "FAIL: fr-coverage.yml `tooling/fr-coverage --pr || true` — same swallow pattern",
+        "13/14 have `concurrency:` + `permissions: contents: read`; alert-sync-issues.yml missing concurrency (G1 gap)",
+        "alert-sync-issues.yml cron `17 * * * *` = HOURLY — wastes CI minutes (1x/day would suffice for alert sync)"
+      ]
+    },
+    "G2_governance_files": {
+      "status": "PARTIAL",
+      "evidence": [
+        "LICENSE + LICENSE-MIT + LICENSE-APACHE all present; CODE_OF_CONDUCT.md, CONTRIBUTING.md, SECURITY.md, CHANGELOG.md, FUNDING.yml all present",
+        "CODEOWNERS EXISTS but at .github/CODEOWNERS (1-line `* @Phenotype-Enterprise/engineering-leads`), NOT at repo root where GitHub auto-detects; many tools miss the .github/ path",
+        "PULL_REQUEST_TEMPLATE.md present",
+        "ISSUE_TEMPLATE/: bug_report.md + feature_request.md present; config.yml MISSING (org full set is 3)",
+        "MISSING: SUPPORT.md (org gap, HeliosLab has PR #114 for same)",
+        "MISSING: CITATION.cff, catalog-info.yaml (Backstage)",
+        "CHANGELOG.md has 3 entries in `## Unreleased` only — no Keep-a-Changelog 1.1.0 version sections",
+        "VERSION=0.1.0 present"
+      ]
+    },
+    "G3_security_scanning": {
+      "status": "PARTIAL",
+      "evidence": [
+        "scorecard.yml (OpenSSF, weekly Sat 03:17) SHA-pinned with proper permissions: actions/checks/pull-requests read + security-events/id-token write",
+        "codeql.yml SHA-pinned BUT misconfigured: `languages: javascript-typescript` on a pure Markdown/YAML/VitePress docs repo — wasted CI, may produce false negatives, and DUPLICATE `on:` block (see G1)",
+        "trufflehog.yml SHA-pinned (need to verify pin in full read; weekly Mon schedule)",
+        "security-guard.yml runs pre-commit hooks on PR/push — SHA-pinned setup-python + setup-uv",
+        "security-guard-hook-audit.yml present (hook drift detector)",
+        "MISSING: gitleaks, OSV-scanner, cargo-audit, dependency-review-action, no SBOM workflow (168/168 fleet gap per ssot-docs-audit)",
+        "dependabot.yml: github-actions + npm (2 ecosystems, weekly) — org standard is 4-6; gomod + pip would round it out for this Python/Rust project"
+      ]
+    },
+    "G4_quality_gates": {
+      "status": "PARTIAL",
+      "evidence": [
+        "Taskfile.yml present (4KB) with `task test` / `task lint` wiring",
+        ".pre-commit-config.yaml: yaml/json/toml/eof/whitespace/private-key + conventional-pre-commit (defensible for Markdown-only)",
+        ".markdownlint.yaml + .markdownlint.json both present (duplicate config — pick one)",
+        "oxlint.json present; ruff/pyright via pyproject.toml",
+        "FAIL: quality-gate.yml soft-fails (`continue-on-error: true` + `|| true` on both lint + test) — gate name lies, never blocks",
+        "FAIL: doc-links.yml `|| true` — gate name lies",
+        "FAIL: fr-coverage.yml `|| true` — gate name lies",
+        "FAIL: scripts/check_docs_links.py is a STUB — body is just `print('stub OK')` + return 0. Test file tests/test_check_docs_links.py mocks the imports but the underlying function is theatre",
+        "FAIL: tests/test_vitepress_build.py present but no clear CI runner in any workflow that invokes pytest/vitest"
+      ]
+    },
+    "G5_review_governance": {
+      "status": "PARTIAL",
+      "evidence": [
+        ".coderabbit.yaml present (213B, schema v2, profile: assertive, auto_review enabled, request_changes_workflow: true) — good baseline",
+        "policy-gate.yml: enforces layered fix/* → non-main policy via env-var shell script — unique to this fleet, useful",
+        "dependabot.yml: github-actions + npm weekly",
+        "security-guard hook + security-guard-hook-audit workflow present (hook drift coverage)",
+        "MISSING: .gemini/ (AGENTS.md mandates per HeliosLab reference)",
+        "MISSING: required-check-names-guard.yml (HeliosLab meta-guard absent here)",
+        "MISSING: branch-protection meta-guard, stale-pr/stale-issue policies, auto-merge",
+        "workflow-permissions.yml exists (likely meta-guard for the 14 workflows themselves)"
+      ]
+    },
+    "e2e_end_to_end": {
+      "status": "DEGRADED",
+      "evidence": [
+        ".broken_md_refs.txt is a 52KB / 335-line committed artifact pointing to /Users/kooshapari/CodeProjects/Phenotype/repos/phenodocs/... (the OLD repo path, includes node_modules/.bun/markdownlint@*/..., katex@*/...). Leaked dependency tree, stale scan output, should be in .gitignore or .airlock/",
+        "scripts/check_docs_links.py is a stub (returns 0 unconditionally) — the entire doc-link check pipeline is theatre",
+        "quality-gate.yml / doc-links.yml / fr-coverage.yml all `|| true` — green CI without execution is achievable",
+        "alert-sync-issues.yml cron `17 * * * *` is hourly — sync could be daily, ~24x cost reduction",
+        "codeql.yml misconfig (JS-TS on docs repo) + duplicate `on:` block — wasted CI, possible silent coverage loss",
+        "Tests exist (test_check_docs_links.py, test_vitepress_build.py) but no workflow runs pytest — tests are committed but not executed in CI",
+        "deploy.yml present but not verified for actual Pages deploy; .vitepress/config.mts exists suggesting VitePress site"
+      ]
+    }
+  },
+  "additional_findings": {
+    "stale_artifact": ".broken_md_refs.txt (52KB, 335 lines) is the dominant e2e rot — committed scan output from the old phenodocs/ tree, including node_modules, should be gitignored",
+    "stub_script": "scripts/check_docs_links.py body is `print('check-docs-links: stub OK')` + `return 0` — the most-cited docs link checker is a no-op",
+    "duplicate_config": ".markdownlint.yaml AND .markdownlint.json both present — pick one (yaml preferred)",
+    "codeowners_location": "CODEOWNERS in .github/ not repo root — GitHub detects both, but org tooling may miss the .github/ path; many fleets require root"
+  },
+  "actions_recommended": [
+    {
+      "priority": "P0",
+      "title": "Kill the soft-fail triple + turn check_docs_links.py into a real checker",
+      "detail": "Three workflows are theatre gates: (1) quality-gate.yml — drop `continue-on-error: true`, replace `bun run lint || true` / `bun run test || true` with hard `bun run lint` / `bun run test`; (2) doc-links.yml — remove trailing `|| true` on `tooling/doc-link-check docs/`; (3) fr-coverage.yml — remove trailing `|| true` on `tooling/fr-coverage --pr`. Then replace scripts/check_docs_links.py stub with a real implementation (httpx + beautifulsoup or `linkinator` for HTML pages + a custom glob walker for .md relative refs), update tests/test_check_docs_links.py mocks to match. Add a `pytest` step to quality-gate.yml so tests/test_vitepress_build.py actually runs. Closes G4 + most of e2e in one PR.",
+      "estimated_effort": "30 min workflows + 2-3h real link checker"
+    },
+    {
+      "priority": "P0",
+      "title": "Delete .broken_md_refs.txt + add to .gitignore + re-scan this repo",
+      "detail": ".broken_md_refs.txt (52KB, 335 lines) is committed scan output from the OLD `phenodocs/` path including node_modules/.bun/markdownlint@* and katex@* — leaked dependency tree, stale artifact. `git rm` it, append `.broken_md_refs.txt` to .gitignore, then re-run the linker against THIS repo (phenodocs-scorecard-remediation) and stash the new output in .airlock/ (already exists with lint.sh + workflows). Closes the most obvious e2e leak.",
+      "estimated_effort": "10 min"
+    },
+    {
+      "priority": "P1",
+      "title": "Fix workflow defects: dedupe scorecard.yml + codeql.yml, calm alert-sync cron, add governance files",
+      "detail": "scorecard.yml:9-15 — collapse duplicate `permissions:` to a single block. codeql.yml:3-17 — collapse duplicate `on:` and override `languages: '[]'` (or delete the workflow, since this is a docs-only repo and CodeQL JS-TS produces only noise). alert-sync-issues.yml cron `17 * * * *` → `17 */6 * * *` (every 6h, ~4x CI reduction). Add CODEOWNERS to repo ROOT (copy from .github/CODEOWNERS). Add SUPPORT.md (HeliosLab PR #114 as model). Add .github/ISSUE_TEMPLATE/config.yml. Pick one markdownlint config (delete .markdownlint.json or .markdownlint.yaml). Closes G1 + G2 + G3 + G5 + alert-sync waste in one PR.",
+      "estimated_effort": "20 min"
+    }
+  ],
+  "deep_research": "phenodocs-scorecard-remediation is the VitePress-rendered docs site for the Phenotype fleet (docs/ has adr, api, api-standards.md, contributing, development, governance, guide, guides, index, journeys, operations, planning, public, quick-start, reference, research, roadmap, scripts, security) plus a small Python lib at libs/docslib and one package at packages/docs. Per tick-19 fleet baselines (134 repos, 110 SHA-pinned), this repo is fully SHA-pinned — 14 workflows, all actions on commit SHAs (df4cb1c0, af761533, e46ed2cb, 043fb46d, c8813ba1, 08807647, 0c5077e5, 3c5f7ea, 3a2844b7). It runs 14 distinct gates (most in the fleet) including OpenSSF scorecard, CodeQL, Trufflehog, security-guard, policy-gate, quality-gate, doc-links, fr-coverage, alert-sync-issues, deploy, publish-package, workflow-permissions, legacy-tooling-gate, security-guard-hook-audit. Dependabot covers github-actions + npm (2 of the 4-6 standard ecosystems). CODEOWNERS lives at .github/CODEOWNERS (1 line, `* @Phenotype-Enterprise/engineering-leads`) — not at repo root where some org tooling expects it.",
+  "deep_research_cont": "The e2e story is degraded in four concrete, easily-fixable ways. (1) The headline artefact, `.broken_md_refs.txt` (52KB, 335 lines, committed), is a leak from a previous scan against the OLD `phenodocs/` repo path — it includes node_modules/.bun/markdownlint@0.40.0/... and katex@0.16.40/... which are dependency-tree internals, not user content. The file should be gitignored or moved to .airlock/. (2) scripts/check_docs_links.py is a stub — its body is `print('check-docs-links: stub OK')` + `return 0`. The companion test tests/test_check_docs_links.py mocks the imports and tests the would-be logic, but no workflow runs pytest, and the script itself never fails. (3) Three gate workflows (quality-gate, doc-links, fr-coverage) use trailing `|| true`, and quality-gate additionally has `continue-on-error: true` — the gate names imply blocking, the behaviour is WARN-mode theatre. (4) Two workflow files have duplicate top-level keys that violate the workflow schema informally: scorecard.yml has two `permissions:` blocks (the second `read-all` wins), and codeql.yml has two `on:` blocks (the second wins, but the schedule cron is duplicated). Combined with the hourly alert-sync cron and the JS-TS CodeQL config on a docs-only repo, this is the most-closable hygiene debt in the fleet. Two structural positives: .coderabbit.yaml uses `profile: assertive` with auto_review enabled (above fleet average), and policy-gate.yml enforces a layered fix/* → non-main policy unique to this fleet. Hygiene score: 3.6/5 (G1 3.5/5, G2 3.5/5, G3 3.5/5, G4 2.5/5, G5 3.5/5, e2e 2/5; the 3 PRs lift e2e to 4.5/5 and G4 to 4/5)."
+}

@@ -1,0 +1,103 @@
+{
+  "generated_at": "2026-06-08T00:00:00Z",
+  "total_repos": 36,
+  "with_examples": [
+    "AgilePlus",
+    "AtomsBot",
+    "BytePort",
+    "DINOForge-UnityDoorstop",
+    "Dino",
+    "FocalPoint",
+    "HeliosCLI",
+    "HexaKit",
+    "KDesktopVirt",
+    "KWatch",
+    "KWatch-docs",
+    "OmniRoute",
+    "OmniRoute-dependabot",
+    "OmniRoute-latest",
+    "PhenoDevOps",
+    "PhenoObservability",
+    "PhenoProc",
+    "PhenoProc-security-fixes",
+    "Pyron",
+    "Tokn",
+    "Tracera",
+    "agentapi-plusplus",
+    "cliproxyapi-plusplus",
+    "crates",
+    "helioscope",
+    "hwLedger",
+    "melosviz",
+    "pheno",
+    "phenoShared",
+    "phenodocs",
+    "phenotype-tooling",
+    "phenotype-voxel",
+    "portage",
+    "thegent",
+    "thegent-security-fixes"
+  ],
+  "by_repo": [
+    {
+      "repo": "FocalPoint",
+      "examples_count": 11,
+      "crate_example_entries": 0
+    },
+    {
+      "repo": "KDesktopVirt",
+      "examples_count": 9,
+      "crate_example_entries": 0
+    },
+    {
+      "repo": "PhenoDevOps",
+      "examples_count": 2,
+      "crate_example_entries": 0
+    },
+    {
+      "repo": "PhenoProc",
+      "examples_count": 2,
+      "crate_example_entries": 0
+    },
+    {
+      "repo": "PhenoProc-security-fixes",
+      "examples_count": 2,
+      "crate_example_entries": 0
+    },
+    {
+      "repo": "Pyron",
+      "examples_count": 1,
+      "crate_example_entries": 0
+    },
+    {
+      "repo": "Tracera",
+      "examples_count": 16,
+      "crate_example_entries": 0
+    },
+    {
+      "repo": "crates",
+      "examples_count": 7,
+      "crate_example_entries": 0
+    },
+    {
+      "repo": "phenoShared",
+      "examples_count": 2,
+      "crate_example_entries": 1
+    },
+    {
+      "repo": "phenodocs",
+      "examples_count": 1,
+      "crate_example_entries": 1
+    },
+    {
+      "repo": "phenotype-voxel",
+      "examples_count": 1,
+      "crate_example_entries": 1
+    },
+    {
+      "repo": "portage",
+      "examples_count": 6,
+      "crate_example_entries": 0
+    }
+  ]
+}

@@ -1,0 +1,295 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  create-release:
+    name: Create Release
+    runs-on: ubuntu-latest
+    outputs:
+      upload_url: ${{ steps.create_release.outputs.upload_url }}
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5@11bd71901bbe5b1630ceea73d27597364c9af683
+    
+    - name: Create Release
+      id: create_release
+      uses: actions/create-release@0cb9c9b65d5d1901c1f53e5e66eaf4afd303e70e
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ github.ref }}
+        release_name: KlipDot ${{ github.ref }}
+        draft: false
+        prerelease: false
+        body: |
+          ## KlipDot Release ${{ github.ref_name }}
+          
+          Universal terminal image interceptor that automatically intercepts image pastes and file operations, replacing them with file paths for any CLI/TUI application.
+          
+          ### Installation
+          
+          1. Download the appropriate binary for your platform
+          2. Extract the archive
+          3. Move the binary to a directory in your PATH (e.g., `/usr/local/bin`)
+          4. Make it executable: `chmod +x klipdot`
+          5. Run `klipdot install` to set up shell hooks
+          6. Start the service with `klipdot start`
+          
+          ### Features
+          
+          - **Universal Image Interception**: Works with any CLI/TUI application
+          - **Cross-Platform**: Linux, macOS, and Windows support
+          - **Shell Integration**: Automatic ZSH and Bash hooks
+          - **Comprehensive Coverage**: Clipboard, file operations, drag-drop, STDIN monitoring
+          - **Service Management**: Daemon mode with automatic startup
+          - **Configuration**: Flexible JSON-based configuration
+          
+          ### Usage
+          
+          ```bash
+          # Install shell hooks
+          klipdot install
+          
+          # Start the service
+          klipdot start
+          
+          # Check status
+          klipdot status
+          
+          # Stop the service
+          klipdot stop
+          
+          # Show configuration
+          klipdot config show
+          
+          # Clean up old screenshots
+          klipdot cleanup
+          ```
+          
+          ### Changes
+          
+          See [CHANGELOG.md](https://github.com/KooshaPari/KlipDot/blob/main/CHANGELOG.md) for detailed changes.
+
+  build-and-upload:
+    name: Build and Upload
+    needs: create-release
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+            artifact_name: klipdot
+            asset_name: klipdot-linux-x86_64
+          - os: ubuntu-latest
+            target: aarch64-unknown-linux-gnu
+            artifact_name: klipdot
+            asset_name: klipdot-linux-aarch64
+          - os: macos-latest
+            target: x86_64-apple-darwin
+            artifact_name: klipdot
+            asset_name: klipdot-macos-x86_64
+          - os: macos-latest
+            target: aarch64-apple-darwin
+            artifact_name: klipdot
+            asset_name: klipdot-macos-aarch64
+          - os: windows-latest
+            target: x86_64-pc-windows-msvc
+            artifact_name: klipdot.exe
+            asset_name: klipdot-windows-x86_64.exe
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5@11bd71901bbe5b1630ceea73d27597364c9af683
+    
+    - name: Install Rust toolchain
+      uses: actions-rs/toolchain@88dc2356392166efad76775c878094f4e83ff746
+      with:
+        profile: minimal
+        toolchain: stable
+        override: true
+        target: ${{ matrix.target }}
+    
+    - name: Install cross-compilation tools (Linux ARM64)
+      if: matrix.os == 'ubuntu-latest' && matrix.target == 'aarch64-unknown-linux-gnu'
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y gcc-aarch64-linux-gnu
+        echo "CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER=aarch64-linux-gnu-gcc" >> $GITHUB_ENV
+    
+    - name: Install system dependencies (Linux)
+      if: matrix.os == 'ubuntu-latest'
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y \
+          xclip \
+          libxcb-shape0-dev \
+          libxcb-xfixes0-dev \
+          libxcb1-dev \
+          libx11-dev \
+          pkg-config \
+          libasound2-dev
+    
+    - name: Install system dependencies (macOS)
+      if: matrix.os == 'macos-latest'
+      run: |
+        brew install fswatch
+    
+    - name: Build release binary
+      run: cargo build --release --target ${{ matrix.target }} --all-features
+    
+    - name: Strip binary (Linux/macOS)
+      if: matrix.os != 'windows-latest'
+      run: |
+        strip target/${{ matrix.target }}/release/${{ matrix.artifact_name }}
+    
+    - name: Create archive (Linux/macOS)
+      if: matrix.os != 'windows-latest'
+      run: |
+        cd target/${{ matrix.target }}/release
+        tar -czf ../../../${{ matrix.asset_name }}.tar.gz ${{ matrix.artifact_name }}
+        cd ../../../
+        sha256sum ${{ matrix.asset_name }}.tar.gz > ${{ matrix.asset_name }}.tar.gz.sha256
+    
+    - name: Create archive (Windows)
+      if: matrix.os == 'windows-latest'
+      run: |
+        cd target/${{ matrix.target }}/release
+        7z a ../../../${{ matrix.asset_name }}.zip ${{ matrix.artifact_name }}
+        cd ../../../
+        certutil -hashfile ${{ matrix.asset_name }}.zip SHA256 > ${{ matrix.asset_name }}.zip.sha256
+    
+    - name: Upload release asset (Linux/macOS)
+      if: matrix.os != 'windows-latest'
+      uses: actions/upload-release-asset@e8f9f06c4b078e705bd2ea027f0926603fc9b4d5
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ needs.create-release.outputs.upload_url }}
+        asset_path: ./${{ matrix.asset_name }}.tar.gz
+        asset_name: ${{ matrix.asset_name }}.tar.gz
+        asset_content_type: application/gzip
+    
+    - name: Upload release asset checksum (Linux/macOS)
+      if: matrix.os != 'windows-latest'
+      uses: actions/upload-release-asset@e8f9f06c4b078e705bd2ea027f0926603fc9b4d5
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ needs.create-release.outputs.upload_url }}
+        asset_path: ./${{ matrix.asset_name }}.tar.gz.sha256
+        asset_name: ${{ matrix.asset_name }}.tar.gz.sha256
+        asset_content_type: text/plain
+    
+    - name: Upload release asset (Windows)
+      if: matrix.os == 'windows-latest'
+      uses: actions/upload-release-asset@e8f9f06c4b078e705bd2ea027f0926603fc9b4d5
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ needs.create-release.outputs.upload_url }}
+        asset_path: ./${{ matrix.asset_name }}.zip
+        asset_name: ${{ matrix.asset_name }}.zip
+        asset_content_type: application/zip
+    
+    - name: Upload release asset checksum (Windows)
+      if: matrix.os == 'windows-latest'
+      uses: actions/upload-release-asset@e8f9f06c4b078e705bd2ea027f0926603fc9b4d5
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ needs.create-release.outputs.upload_url }}
+        asset_path: ./${{ matrix.asset_name }}.zip.sha256
+        asset_name: ${{ matrix.asset_name }}.zip.sha256
+        asset_content_type: text/plain
+
+  publish-crate:
+    name: Publish to crates.io
+    needs: create-release
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5@11bd71901bbe5b1630ceea73d27597364c9af683
+    
+    - name: Install Rust toolchain
+      uses: actions-rs/toolchain@88dc2356392166efad76775c878094f4e83ff746
+      with:
+        profile: minimal
+        toolchain: stable
+        override: true
+    
+    - name: Install system dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y \
+          xclip \
+          libxcb-shape0-dev \
+          libxcb-xfixes0-dev \
+          libxcb1-dev \
+          libx11-dev \
+          pkg-config \
+          libasound2-dev
+    
+    - name: Publish to crates.io
+      run: cargo publish --token ${{ secrets.CRATES_IO_TOKEN }}
+
+  update-homebrew:
+    name: Update Homebrew Formula
+    needs: [create-release, build-and-upload]
+    runs-on: ubuntu-latest
+    steps:
+    - name: Update Homebrew Formula
+      uses: mislav/bump-homebrew-formula-action@c7b9693c4ff4ba1334c8c0bb8dc3ba869b205ba7
+      with:
+        formula-name: klipdot
+        homebrew-tap: KooshaPari/homebrew-klipdot
+        download-url: https://github.com/KooshaPari/KlipDot/releases/download/${{ github.ref_name }}/klipdot-macos-x86_64.tar.gz
+        commit-message: |
+          KlipDot ${{ github.ref_name }}
+          
+          Universal terminal image interceptor
+      env:
+        COMMITTER_TOKEN: ${{ secrets.COMMITTER_TOKEN }}
+
+  update-aur:
+    name: Update AUR Package
+    needs: [create-release, build-and-upload]
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout AUR repository
+      uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5@11bd71901bbe5b1630ceea73d27597364c9af683
+      with:
+        repository: KooshaPari/aur-klipdot
+        token: ${{ secrets.AUR_TOKEN }}
+    
+    - name: Update PKGBUILD
+      run: |
+        # Update version and checksums in PKGBUILD
+        VERSION=${{ github.ref_name }}
+        VERSION=${VERSION#v}
+        
+        # Download the Linux x86_64 tarball to get the checksum
+        wget -O klipdot-linux-x86_64.tar.gz https://github.com/KooshaPari/KlipDot/releases/download/${{ github.ref_name }}/klipdot-linux-x86_64.tar.gz
+        SHA256=$(sha256sum klipdot-linux-x86_64.tar.gz | cut -d' ' -f1)
+        
+        # Update PKGBUILD
+        sed -i "s/pkgver=.*/pkgver=$VERSION/" PKGBUILD
+        sed -i "s/sha256sums=.*/sha256sums=('$SHA256')/" PKGBUILD
+        
+        # Update .SRCINFO
+        makepkg --printsrcinfo > .SRCINFO
+    
+    - name: Commit and push changes
+      run: |
+        git config user.name "GitHub Actions"
+        git config user.email "actions@github.com"
+        git add PKGBUILD .SRCINFO
+        git commit -m "Update to version ${{ github.ref_name }}"
+        git push

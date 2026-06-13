@@ -1,0 +1,45 @@
+{
+  "generated_at": "2026-06-08T20:40:00Z",
+  "r5_specs_files": [
+    "T100_scorecard.md",
+    "T81_chaos_tests.md",
+    "T82_rust_190.md",
+    "T83_bun_node_sota.md",
+    "T84_phenotype_just_v1.md",
+    "T85_cargo_workspace.md",
+    "T86_renovate.md",
+    "T87_cosign.md",
+    "T88_slsa.md",
+    "T89_ts_strict.md",
+    "T90_pyright.md",
+    "T91_coverage_80.md",
+    "T92_proptests.md",
+    "T93_mutation.md",
+    "T94_fuzz.md",
+    "T95_otel_collector.md",
+    "T96_continuous_bench.md",
+    "T97_sbom.md",
+    "T98_security_cron.md",
+    "T99_release_please.md"
+  ],
+  "has_setup_steps": true,
+  "worklog_files": [
+    "ARCHITECTURE.md",
+    "GOVERNANCE.md",
+    "README.md",
+    "RESEARCH.md"
+  ],
+  "iac_subdirs": [
+    "ansible",
+    "data",
+    "landing-bootstrap",
+    "oci-lottery",
+    "oci-post-acquire",
+    "scripts",
+    "tailscale",
+    "target",
+    "terraform"
+  ],
+  "has_gitleaks": false,
+  "recommended_action": "Repository phenotype-infra has 20 r5_specs files (T81-T100) covering chaos tests, Rust 1.90, bun/node, just v1, cargo workspace, renovate, cosign, SLSA, TS strict, pyright, coverage, proptests, mutation, fuzz, otel, continuous bench, SBOM, security cron, release-please, and a scorecard. SETUP_STEPS.md is present (Apr 24). worklogs/ has 4 files (ARCHITECTURE, GOVERNANCE, README, RESEARCH). iac/ contains 9 subdirs (ansible, data, landing-bootstrap, oci-lottery, oci-post-acquire, scripts, tailscale, target, terraform) plus a Cargo workspace. No gitleaks config. Recommended: review r5_specs to prioritize specs for implementation, extend worklogs/DEPENDENCIES.md and worklogs/PERFORMANCE.md per the worklog mandate, and add gitleaks pre-commit config for parity with other Phenotype repos."
+}

@@ -1,0 +1,147 @@
+openapi: 3.0.3
+info:
+    title: Atoms API - Workflows
+    version: 1.0.0
+servers:
+    - url: https://api.example.com
+paths:
+    /workflows:
+        get:
+            summary: List workflows
+            parameters:
+                - in: query
+                  name: organizationId
+                  schema: { type: string }
+                - in: query
+                  name: projectId
+                  schema: { type: string }
+            responses:
+                '200':
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                type: array
+                                items: { $ref: '#/components/schemas/Workflow' }
+        post:
+            summary: Create workflow
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema: { $ref: '#/components/schemas/WorkflowCreate' }
+            responses:
+                '201': { description: Created }
+    /workflows/{id}:
+        get:
+            summary: Get workflow
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  schema: { type: string }
+            responses:
+                '200':
+                    description: OK
+                    content:
+                        application/json:
+                            schema: { $ref: '#/components/schemas/Workflow' }
+        patch:
+            summary: Update workflow
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  schema: { type: string }
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema: { $ref: '#/components/schemas/WorkflowUpdate' }
+            responses:
+                '200': { description: Updated }
+        delete:
+            summary: Delete workflow
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  schema: { type: string }
+            responses:
+                '204': { description: No Content }
+    /workflows/{id}/runs:
+        post:
+            summary: Start a workflow run
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  schema: { type: string }
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties:
+                                input: { type: object, additionalProperties: true }
+            responses:
+                '202':
+                    description: Accepted
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    runId: { type: string }
+    /workflow-runs/{runId}:
+        get:
+            summary: Get run status
+            parameters:
+                - in: path
+                  name: runId
+                  required: true
+                  schema: { type: string }
+            responses:
+                '200':
+                    description: OK
+                    content:
+                        application/json:
+                            schema: { $ref: '#/components/schemas/WorkflowRun' }
+components:
+    schemas:
+        Workflow:
+            type: object
+            properties:
+                id: { type: string }
+                organization_id: { type: string }
+                project_id: { type: string, nullable: true }
+                name: { type: string }
+                version: { type: string }
+                definition: { type: object, additionalProperties: true }
+        WorkflowCreate:
+            type: object
+            required: [organization_id, name, definition]
+            properties:
+                organization_id: { type: string }
+                project_id: { type: string }
+                name: { type: string }
+                version: { type: string }
+                definition: { type: object, additionalProperties: true }
+        WorkflowUpdate:
+            type: object
+            properties:
+                name: { type: string }
+                version: { type: string }
+                definition: { type: object, additionalProperties: true }
+        WorkflowRun:
+            type: object
+            properties:
+                runId: { type: string }
+                workflow_id: { type: string }
+                status:
+                    { type: string, enum: [queued, running, succeeded, failed, canceled] }
+                started_at: { type: string, format: date-time }
+                finished_at: { type: string, format: date-time, nullable: true }
+                input: { type: object, additionalProperties: true }
+                output: { type: object, additionalProperties: true, nullable: true }

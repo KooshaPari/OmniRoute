@@ -1,0 +1,90 @@
+{
+  "generated_at": "2026-06-08T09:23:36Z",
+  "total_repos": 11,
+  "with_tokio": [
+    "Agentora",
+    "AgilePlus",
+    "Benchora",
+    "GDK",
+    "KDesktopVirt",
+    "KlipDot",
+    "Metron",
+    "Tasken",
+    "kmobile",
+    "phenoForge",
+    "phenotype-bus"
+  ],
+  "with_tokio_util": [
+    "GDK"
+  ],
+  "with_tokio_stream": [],
+  "by_repo": [
+    {
+      "repo": "Agentora",
+      "libs": [
+        "tokio"
+      ]
+    },
+    {
+      "repo": "AgilePlus",
+      "libs": [
+        "tokio"
+      ]
+    },
+    {
+      "repo": "Benchora",
+      "libs": [
+        "tokio"
+      ]
+    },
+    {
+      "repo": "GDK",
+      "libs": [
+        "tokio",
+        "tokio-util"
+      ]
+    },
+    {
+      "repo": "KDesktopVirt",
+      "libs": [
+        "tokio"
+      ]
+    },
+    {
+      "repo": "KlipDot",
+      "libs": [
+        "tokio"
+      ]
+    },
+    {
+      "repo": "Metron",
+      "libs": [
+        "tokio"
+      ]
+    },
+    {
+      "repo": "Tasken",
+      "libs": [
+        "tokio"
+      ]
+    },
+    {
+      "repo": "kmobile",
+      "libs": [
+        "tokio"
+      ]
+    },
+    {
+      "repo": "phenoForge",
+      "libs": [
+        "tokio"
+      ]
+    },
+    {
+      "repo": "phenotype-bus",
+      "libs": [
+        "tokio"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,119 @@
+{
+  "repo": "phenotype-omlx",
+  "branch_audited": "main (5bf4847, clean, 0 ahead of origin/main); no worktree present",
+  "audited_at": "2026-06-08",
+  "stack": "python 3.10+ MLX LLM inference server; fastapi/uvicorn; mlx-lm pinned to git commit; macOS-only runtime per AGENTS.md:42",
+  "summary": "G1/G3 DEGRADED, G2 PASS w/ nit, G4 PASS, G5 DEGRADED, e2e PARTIAL. Net hygiene score: 3.0/5. The 2026-06-07 'safe audit' commit over-trimmed scorecard.yml and trufflehog.yml to empty-`on:` stubs that will never execute; ci.yml still uses unpinned `actions/checkout@v4` + `actions/setup-python@v5`. No CODEOWNERS, no PULL_REQUEST_TEMPLATE.md, no codeql, no real-Mac CI runner. AGENTS.md/CLAUDE.md agree on purpose (Phenotype fork of jundot/omlx for Homebrew tap).",
+  "gates": {
+    "G1_workflow_hygiene": {
+      "status": "DEGRADED",
+      "evidence": [
+        "4 .github/workflows/*.yml parse cleanly: ci.yml, scorecard.yml, trufflehog.yml, update-formula.yml",
+        "ci.yml:1-27 runs pytest on ubuntu-latest — uses `actions/checkout@v4` + `actions/setup-python@v5` (TAGS, not SHA-pinned) — org-canonical drift (P0)",
+        "scorecard.yml:9-10 has EMPTY `on:` trigger — workflow will NEVER run. The 2026-06-07 'safe audit' (5bf4847) over-trimmed the prior schedule. Dead workflow. (P0)",
+        "trufflehog.yml:9-10 has EMPTY `on:` trigger — same pathology. No `jobs:` block either, so even if a trigger fired there'd be nothing to run. Dead workflow. (P0)",
+        "update-formula.yml:21 SHA-pins `actions/checkout@v4@11bd71901bbe5b1630ceea73d27597364c9af683` — good; only SHA-pinned workflow in repo",
+        "ci.yml:7-10 has `on: push:branches:[main], pull_request:` — clean; concurrency group ${{ github.workflow }}-${{ github.ref }} + cancel-in-progress on all 4"
+      ]
+    },
+    "G2_governance_files": {
+      "status": "PASS",
+      "evidence": [
+        "AGENTS.md (43L) + CLAUDE.md (81L) + CHANGELOG.md (396B) + CODE_OF_CONDUCT.md + CONTRIBUTING.md (25L) + FUNDING.yml + LICENSE (Apache-2.0) + SECURITY.md (15L) + pyproject.toml (156L) + pytest.ini (27L) + Taskfile.yml + trufflehog.yml + renovate.json5 + mcp.example.json + .gitignore ALL present",
+        "AGENTS.md:3-12 + CLAUDE.md:1-23 agree on purpose (Phenotype fork of jundot/omlx for Homebrew tap) — no contradiction (unlike hwLedger)",
+        "renovate.json5 extends config:base — minimal but functional",
+        "Taskfile.yml:1-67 has default/build/test/lint/clean — dev commands automated (uv build, pytest, ruff)",
+        "pyproject.toml:131-136 has [tool.uv] override-dependencies to resolve mlx-lm git-pin conflict with mlx-audio transitive pin — well-documented",
+        "CHANGELOG.md is 396B (very small, probably no real entries) — nit (P2)",
+        "MISSING: CODEOWNERS, PULL_REQUEST_TEMPLATE.md, SPEC.md, .editorconfig, release-drafter.yml (P1-P2)"
+      ]
+    },
+    "G3_security_scanning": {
+      "status": "DEGRADED",
+      "evidence": [
+        "dependabot.yml:1-10 covers BOTH github-actions + cargo weekly — org-canonical (good)",
+        "trufflehog.yml:1-10 has empty `on:` + NO `jobs:` block — not a scanner, just a name (P0)",
+        "scorecard.yml:1-10 has empty `on:` + NO `jobs:` block — not a scanner, just a name (P0)",
+        "NO codeql workflow — package is Python with heavy ML deps (transformers, fastapi, jinja2); needs codeql (P0)",
+        "NO dependabot for pip ecosystem — pyproject.toml is the single source of truth; pip deps go unmonitored (P1)",
+        "trufflehog (top-level): scan_depth:4 + exclude_paths comprehensive — good config but no workflow uses it"
+      ]
+    },
+    "G4_quality_gates": {
+      "status": "PASS",
+      "evidence": [
+        "ci.yml:19-27 runs `pip install . && pip install pytest && pytest tests/` on ubuntu-latest with python 3.11 — minimal but real",
+        "109 test_*.py files under tests/ (103 at root + 6 in tests/integration/) including test_e2e_streaming.py, test_real_model_inference.py, test_vlm_mrope_integration.py, test_full_integration.py, test_boundary_cache_consistency.py, test_server_endpoints.py — broad coverage (P1)",
+        "Taskfile.yml:30-35 lint target runs `ruff check .` + `ruff format --check .` — automated",
+        "pyproject.toml:142-145 ruff config (E,F,W,I,N,UP,B,SIM; ignore E501,B905) — strict",
+        "pytest.ini:1-27 + pyproject.toml:153-156 asyncio_mode='auto' — async tests supported",
+        "NO coverage enforcement (no pytest-cov, no --cov-fail-under) (P2)",
+        "NO mypy CI (pyproject.toml:147-151 has mypy config but no `mypy omlx` in ci.yml) (P2)",
+        "NO `omlx --version` smoke in CI — binary is never exercised on a built wheel (P2)"
+      ]
+    },
+    "G5_review_governance": {
+      "status": "DEGRADED",
+      "evidence": [
+        ".github/ISSUE_TEMPLATE/{bug_report.md, feature_request.md} — .md, NOT .yml form schemas (peer fleet repos use .yml) (P2)",
+        "NO PULL_REQUEST_TEMPLATE.md — reviewers get unstructured PR descriptions (P1)",
+        "NO CODEOWNERS — single-owner fork so low-impact but drift from org standard (P1)",
+        "dependabot.yml covers github-actions + cargo — good",
+        "CHANGELOG.md 396B + 1 commit since 2026-06-07 (5bf4847 'chore(workflows): phenotype-omlx safe audit 2026-06-07') — recent activity but changelog is empty of entries (P2)",
+        "NO release-drafter.yml — releases are manual (update-formula.yml triggered by release event) (P2)",
+        "Working tree clean (0 ahead of origin/main); no open PRs by inspection; no stale branches"
+      ]
+    },
+    "e2e_end_to_end": {
+      "status": "PARTIAL",
+      "evidence": [
+        "tests/integration/test_e2e_streaming.py:1-30 covers OpenAI + Anthropic streaming format via mock AsyncIterator — real format validation, no model load",
+        "tests/integration/test_real_model_inference.py exists — but skipped on non-Mac (per AGENTS.md:42 macOS-only)",
+        "tests/integration/test_full_integration.py + test_server_endpoints.py exercise FastAPI endpoints (mocked)",
+        "NO macos-1 runner in CI — no real MLX hardware test path; real-Mac regression coverage relies on developer laptops (P1)",
+        "NO smoke.sh, no `omlx --version` after `pip install .`, no FastAPI /health curl in CI",
+        "Formula/omlx.rb:1-30 = Homebrew formula (depends_on :macos, depends_on arch: :arm64) — packaged but no CI build of .dmg",
+        "packaging/build.py exists but no GitHub Actions workflow invokes it (P2)",
+        "61M omlx/ + 2.9M tests/ — substantial codebase, 146 .py files total"
+      ]
+    }
+  },
+  "additional_findings": {
+    "scorecard_trufflehog_emptied": "The 2026-06-07 'safe audit' commit (5bf4847) reduced scorecard.yml from 53 lines to 10 lines and trufflehog.yml from 30 lines to 10 lines, leaving only the `on:` key empty. This means OSSF Scorecard never runs and TruffleHog never scans — secrets + supply-chain gates are effectively off. The commit message says 'safe audit' but the outcome is a regression in security posture. (P0)",
+    "ci_unpinned_actions": "ci.yml:21-22 uses `actions/checkout@v4` + `actions/setup-python@v5` (tags). update-formula.yml:21 is the only SHA-pinned workflow. Drift from org canonical (per chatta/agent-user-status/hwLedger hygiene templates that pin to 11bd71901bbe5b1630ceea73d27597364c9af683). (P0)",
+    "missing_codeql": "Python codebase with jinja2 templates (server-rendered admin UI), fastapi HTTP surface, transformers/MLX model loaders, and a macOS app shell — needs codeql-python.yml weekly on push+PR. Currently absent. (P0)",
+    "no_pip_dependabot": "dependabot.yml covers github-actions + cargo but not pip. pyproject.toml has 18+ transitive deps pinned to git commits (mlx-lm, mlx-embeddings, mlx-vlm, dflash-mlx, mlx-audio) — these need monitoring. (P1)",
+    "no_real_mac_ci": "AGENTS.md:42 says 'macOS-only runtime'; AGENTS.md:7 says 'Language: Python 3.10+ (Apple Silicon / MLX)'. ci.yml runs on ubuntu-latest with no macos-1 runner. The 'test_real_model_inference' suite is skipped off-Mac. Real MLX regressions are caught by developers, not CI. (P1)",
+    "issue_templates_md_not_yml": ".github/ISSUE_TEMPLATE/{bug_report.md, feature_request.md} are Markdown templates, not .yml form schemas. Peer fleet repos (chatta, hwLedger) use structured .yml with severity/priority dropdowns. (P2)",
+    "changelog_silent": "CHANGELOG.md is 396B and 5bf4847 'safe audit' is a chore commit; the audit REMOVED security scanning (scorecard+trufflehog) without a changelog entry. (P1)",
+    "pyc_and_pytest_cache_on_disk": "Many `__pycache__/` dirs and `.pytest_cache/` are present in working tree. .gitignore covers them but Taskfile.yml:40-66 clean target should be run. (P2)"
+  },
+  "ci_status": {
+    "open_prs": "0",
+    "unpushed_main": "0 (5bf4847 == origin/main; working tree clean)",
+    "stale_branches": "0 inspected (no worktrees dir, no -wtrees sibling for omlx)",
+    "worktree_2nd": "absent (no -wtrees dir exists at /Users/kooshapari/CodeProjects/Phenotype/repos/phenotype-omlx-wtrees)"
+  },
+  "actions_recommended": [
+    {
+      "priority": "P0",
+      "title": "Restore scorecard.yml + trufflehog.yml triggers and add codeql-python.yml",
+      "detail": "(a) scorecard.yml:9-10 — replace empty `on:` with `on: { schedule: [{cron: '0 0 * * 0'}], workflow_dispatch: {} }` + add `jobs: scorecard: { runs-on: ubuntu-latest, permissions: { contents: read, security-events: write }, steps: [uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683, uses: ossf/scorecard-action@91bf2b620e09e18d6eb78b92e7861937469acedb with: { results_file: results.sarif, results_format: sarif, publish_results: true }, uses: github/codeql-action/upload-sarif@4e828ff8d448a8a6e532957b1818b9e6e9b91e75 if: always() with: { sarif_file: results.sarif }] }`. (b) trufflehog.yml:9-10 — replace empty `on:` with `on: { pull_request: {}, push: {branches:[main]} }` + add `jobs: scan: { runs-on: ubuntu-latest, steps: [uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683, uses: trufflesecurity/trufflehog@75add79b929b263dae147d2e5bcf0daf292165cf with: { extra_args: --debug --no-update }] }`. (c) Add new `.github/workflows/codeql-python.yml` mirroring the OSSF codeql-action/init+analyze pattern for python. This is a 3-file PR that restores security scanning that the 2026-06-07 commit accidentally disabled.",
+      "estimated_effort": "15 min"
+    },
+    {
+      "priority": "P0",
+      "title": "SHA-pin all actions in ci.yml and add CODEOWNERS + PULL_REQUEST_TEMPLATE.md",
+      "detail": "(a) ci.yml:21-22 — replace `actions/checkout@v4` with `actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4` and `actions/setup-python@v5` with `actions/setup-python@0a5c61591373683505ea898e09a3ea4f39ef2b9c # v5`. (b) Create `CODEOWNERS` at repo root with `* @KooshaPari` and `/.github/ @KooshaPari` and `/Formula/ @KooshaPari` (formula bumps are security-sensitive). (c) Create `.github/PULL_REQUEST_TEMPLATE.md` mirroring peer fleet repos: `## Summary\\n## Changes\\n## Test plan\\n- [ ] `pytest tests/` passes locally\\n- [ ] `ruff check .` clean\\n- [ ] `omlx --version` works`. This is a 3-file, ~10-line PR.",
+      "estimated_effort": "10 min"
+    },
+    {
+      "priority": "P1",
+      "title": "Add pip to dependabot + macos-1 smoke job in ci.yml + populate CHANGELOG.md [Unreleased] + migrate ISSUE_TEMPLATE .md to .yml",
+      "detail": "(a) dependabot.yml — add `package-ecosystem: pip, directory: /, schedule.interval: weekly, groups: { pinned-git: { patterns: ['mlx-*', 'dflash-*'] } }` so the 5 git-pinned ML deps get monitored. (b) ci.yml — add a second job `smoke: { runs-on: macos-latest, steps: [checkout, setup-python@v5, run: pip install ., run: omlx --version, run: python -c 'import omlx.server' ] }` so the binary and import surface are exercised on a real Apple Silicon runner weekly. (c) Populate `CHANGELOG.md` [Unreleased] with: `### Changed\\n- chore(workflows): restore scorecard+trufflehog triggers; add codeql-python.yml` (per the P0 fix). (d) Convert `ISSUE_TEMPLATE/bug_report.md` to `bug_report.yml` form schema with type/severity/repro dropdowns. This is a 4-touchpoint PR.",
+      "estimated_effort": "25 min"
+    }
+  ],
+  "deep_research": "phenotype-omlx is a Phenotype fork of jundot/omlx (Apache-2.0 LLM inference server, ~2.9M test suite, 61M omlx source, 146 .py files) maintained for the Phenotype Homebrew tap. It is a serious production-shaped codebase — 18+ transitive deps pinned to upstream git commits (mlx-lm@dcbf6e3, mlx-embeddings@32981fa, mlx-vlm@3472132, dflash-mlx@814c4a1, mlx-audio@5175326), a Homebrew formula with `:macos` + `:arm64` constraints, a `packaging/venvstacks.toml` for venvstacks-based .dmg builds, and 109 pytest test files including 6 integration tests covering OpenAI/Anthropic streaming, real model inference, VLM mrope, full integration, boundary cache consistency, and server endpoints. The 2026-06-07 'safe audit' commit (5bf4847) attempted workflow normalization but accidentally gutted two security scanners (scorecard.yml + trufflehog.yml reduced to empty-`on:` stubs) while leaving ci.yml with unpinned `actions/checkout@v4` + `actions/setup-python@v5` — a net regression in security posture for a codebase that ships a Homebrew formula and a 146-file Python package. The CI is mock-friendly (ubuntu-latest, no model load) so test pass-rates are not the issue; the gap is real-Mac validation, secrets scanning, supply-chain scoring, and code analysis. Compared to peer Phenotype fleet repos, phenotype-omlx scores above phenotype-voxel and phenodocs (both docs-only) but below chatta and HeliosLab (which have SHA-pinned workflows + codeql + dependabot across all ecosystems). The 109-test suite is the strongest signal in the repo — broad coverage including a real `test_e2e_streaming.py` mock harness gives high confidence in format-level correctness even without a macos-1 runner. The `tests/integration/` directory is small (6 files) but well-scoped, and the `conftest.py` + `mocks.py` infrastructure suggests the rest of the suite is also mock-based. Net hygiene score: 3.0/5 — strong on G2 (governance docs) and G4 (test count + lint config), weak on G1/G3 (broken security workflows) and G5 (no CODEOWNERS, no PR template), partial on e2e (mocked but no Mac runner). Three P0/P1 actions would push this to 4.0+.",
+  "deep_research_cont": "The 5bf4847 commit message 'chore(workflows): phenotype-omlx safe audit 2026-06-07' is misleading — a 'safe' audit should not leave two security scanners non-functional. The CHANGELOG.md (396B) has no [Unreleased] entries, so this regression is unrecorded. The peer fleet repos all have the same hygiene template (CODEOWNERS, PULL_REQUEST_TEMPLATE.md, SHA-pinned actions, dependabot for all ecosystems, codeql, populated CHANGELOG [Unreleased]); phenotype-omlx is missing the first three and has only the first two gate scores above 3/5. The macOS-only constraint (AGENTS.md:42) is the legitimate reason for not having a Linux-only e2e suite, but a `macos-1` cron smoke (omlx --version + python -c 'import omlx.server') would close most of the e2e gap at low CI-minute cost. The fork relationship is also worth noting: CLAUDE.md:7-9 declares the upstream as jundot/omlx, AGENTS.md:42 warns against bumping pinned deps blindly, and the Formula/omlx.rb URL points to jundot/omlx releases (not the fork). The Phenotype value-add is the Homebrew tap + macOS menubar app (packaging/omlx_app/) + custom integrations — none of which are validated in CI. If phenotype-omlx is going to ship a Homebrew formula to Phenotype users, the security workflow gap is a real risk: a single compromised transitive dep (mlx-lm is git-pinned to a specific commit but Renovate isn't watching it) could ship a backdoored LLM runtime. The 3 P0/P1 actions target exactly this risk profile: restore scanners, pin actions, add CODEOWNERS for formula review."
+}

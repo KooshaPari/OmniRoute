@@ -1,0 +1,28 @@
+{
+  "generated_at": "2026-06-08T23:56:13Z",
+  "total_repos": 65,
+  "with_tower": [
+    "FocalPoint",
+    "HexaKit",
+    "KDesktopVirt",
+    "Pyron",
+    "crates",
+    "kmobile",
+    "pheno"
+  ],
+  "with_tower_http": [
+    "FocalPoint",
+    "HexaKit",
+    "KDesktopVirt",
+    "Pyron",
+    "crates",
+    "kmobile",
+    "pheno"
+  ],
+  "with_axum_extra": [
+    "HexaKit",
+    "Pyron",
+    "pheno"
+  ],
+  "with_warp": []
+}

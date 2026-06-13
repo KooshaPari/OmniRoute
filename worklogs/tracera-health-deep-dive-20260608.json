@@ -1,0 +1,2493 @@
+{
+  "generated_at": "2026-06-08T00:00:00Z",
+  "routes": [
+    {
+      "path": "/",
+      "method": "GET",
+      "response_shape": "unknown",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/accounts.py"
+    },
+    {
+      "path": "/",
+      "method": "POST",
+      "response_shape": "unknown",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/accounts.py"
+    },
+    {
+      "path": "/{account_id}/switch",
+      "method": "POST",
+      "response_shape": "unknown",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/accounts.py"
+    },
+    {
+      "path": "/api/v1",
+      "method": "POST",
+      "response_shape": "dict[str, Any]",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/adrs.py"
+    },
+    {
+      "path": "/api/v1/{adr_id}",
+      "method": "GET",
+      "response_shape": "dict[str, Any]",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/adrs.py"
+    },
+    {
+      "path": "/api/v1/{adr_id}/activities",
+      "method": "GET",
+      "response_shape": "dict[str, Any]",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/adrs.py"
+    },
+    {
+      "path": "/api/v1/{adr_id}",
+      "method": "PUT",
+      "response_shape": "dict[str, Any]",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/adrs.py"
+    },
+    {
+      "path": "/api/v1/{adr_id}",
+      "method": "DELETE",
+      "response_shape": "None",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/adrs.py"
+    },
+    {
+      "path": "/api/v1",
+      "method": "GET",
+      "response_shape": "dict[str, Any]",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/adrs.py"
+    },
+    {
+      "path": "/api/v1/sessions",
+      "method": "POST",
+      "response_shape": "dict[str, Any]",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/agent.py"
+    },
+    {
+      "path": "/api/v1/sessions/{session_id}",
+      "method": "GET",
+      "response_shape": "dict[str, Any]",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/agent.py"
+    },
+    {
+      "path": "/api/v1/sessions",
+      "method": "GET",
+      "response_shape": "dict[str, Any]",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/agent.py"
+    },
+    {
+      "path": "/api/v1/sessions/{session_id}",
+      "method": "DELETE",
+      "response_shape": "None",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/agent.py"
+    },
+    {
+      "path": "/api/v1/run",
+      "method": "POST",
+      "response_shape": "dict[str, Any]",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/agent.py"
+    },
+    {
+      "path": "/gaps",
+      "method": "GET",
+      "response_shape": "unknown",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/analysis.py"
+    },
+    {
+      "path": "/trace-matrix",
+      "method": "GET",
+      "response_shape": "unknown",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/analysis.py"
+    },
+    {
+      "path": "/trace-matrix/export",
+      "method": "GET",
+      "response_shape": "unknown",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/analysis.py"
+    },
+    {
+      "path": "/reverse-impact/{item_id}",
+      "method": "GET",
+      "response_shape": "unknown",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/analysis.py"
+    },
+    {
+      "path": "/health/{project_id}",
+      "method": "GET",
+      "response_shape": "unknown",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/analysis.py"
+    },
+    {
+      "path": "/impact/{item_id}",
+      "method": "GET",
+      "response_shape": "unknown",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/analysis.py"
+    },
+    {
+      "path": "/cycles/{project_id}",
+      "method": "GET",
+      "response_shape": "unknown",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/analysis.py"
+    },
+    {
+      "path": "/device/code",
+      "method": "POST",
+      "response_shape": "DeviceCodeResponse",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/auth.py"
+    },
+    {
+      "path": "/device/token",
+      "method": "POST",
+      "response_shape": "TokenResponse",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/auth.py"
+    },
+    {
+      "path": "/device/complete",
+      "method": "POST",
+      "response_shape": "DeviceCompleteResponse",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/auth.py"
+    },
+    {
+      "path": "/me",
+      "method": "GET",
+      "response_shape": "MeResponse",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/auth.py"
+    },
+    {
+      "path": "/refresh",
+      "method": "POST",
+      "response_shape": "TokenResponse",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/auth.py"
+    },
+    {
+      "path": "/revoke",
+      "method": "POST",
+      "response_shape": "dict[str, Any]",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/auth.py"
+    },
+    {
+      "path": "/logout",
+      "method": "POST",
+      "response_shape": "LogoutResponse",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/auth.py"
+    },
+    {
+      "path": "/logout-expired",
+      "method": "POST",
+      "response_shape": "LogoutResponse",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/auth.py"
+    },
+    {
+      "path": "/refresh",
+      "method": "POST",
+      "response_shape": "unknown",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/auth_refresh.py"
+    },
+    {
+      "path": "/csrf-token",
+      "method": "GET",
+      "response_shape": "dict[str, Any]",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/auth_session.py"
+    },
+    {
+      "path": "/auth/callback",
+      "method": "POST",
+      "response_shape": "unknown",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/auth_session.py"
+    },
+    {
+      "path": "/api/v1/projects/{project_id}/baselines",
+      "method": "POST",
+      "response_shape": "dict[str, Any]",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/blockchain.py"
+    },
+    {
+      "path": "/api/v1/projects/{project_id}/baselines",
+      "method": "GET",
+      "response_shape": "dict[str, Any]",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/blockchain.py"
+    },
+    {
+      "path": "/api/v1/projects/{project_id}/baselines/{baseline_id}",
+      "method": "GET",
+      "response_shape": "dict[str, Any]",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/blockchain.py"
+    },
+    {
+      "path": "/api/v1/projects/{project_id}/baselines/{baseline_id}",
+      "method": "DELETE",
+      "response_shape": "None",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/blockchain.py"
+    },
+    {
+      "path": "/api/v1/projects/{project_id}/embeddings/generate",
+      "method": "POST",
+      "response_shape": "dict[str, Any]",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/blockchain.py"
+    },
+    {
+      "path": "/api/v1/projects/{project_id}/embeddings/stats",
+      "method": "GET",
+      "response_shape": "dict[str, Any]",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/blockchain.py"
+    },
+    {
+      "path": "/api/v1/projects/{project_id}/embeddings",
+      "method": "DELETE",
+      "response_shape": "None",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/blockchain.py"
+    },
+    {
+      "path": "/api/v1/projects/{project_id}/version-chains/stats",
+      "method": "GET",
+      "response_shape": "dict[str, Any]",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/blockchain.py"
+    },
+    {
+      "path": "/cache/stats",
+      "method": "GET",
+      "response_shape": "dict[str, Any]",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/cache.py"
+    },
+    {
+      "path": "/cache/clear",
+      "method": "POST",
+      "response_shape": "dict[str, Any]",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/cache.py"
+    },
+    {
+      "path": "/stream",
+      "method": "POST",
+      "response_shape": "StreamingResponse",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/chat.py"
+    },
+    {
+      "path": "/",
+      "method": "POST",
+      "response_shape": "dict[str, object]",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/chat.py"
+    },
+    {
+      "path": "/code-trace/{component_id}",
+      "method": "GET",
+      "response_shape": "dict[str, Any]",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/code_trace.py"
+    },
+    {
+      "path": "/review-image",
+      "method": "POST",
+      "response_shape": "unknown",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/codex.py"
+    },
+    {
+      "path": "/review-video",
+      "method": "POST",
+      "response_shape": "unknown",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/codex.py"
+    },
+    {
+      "path": "/interactions",
+      "method": "GET",
+      "response_shape": "unknown",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/codex.py"
+    },
+    {
+      "path": "/auth-status",
+      "method": "GET",
+      "response_shape": "unknown",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/codex.py"
+    },
+    {
+      "path": "/",
+      "method": "GET",
+      "response_shape": "list[Any]",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/comments.py"
+    },
+    {
+      "path": "/",
+      "method": "POST",
+      "response_shape": "Any",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/comments.py"
+    },
+    {
+      "path": "/{comment_id}",
+      "method": "DELETE",
+      "response_shape": "None",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/comments.py"
+    },
+    {
+      "path": "/api/v1",
+      "method": "POST",
+      "response_shape": "dict[str, Any]",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/contracts.py"
+    },
+    {
+      "path": "/api/v1/{contract_id}",
+      "method": "GET",
+      "response_shape": "dict[str, Any]",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/contracts.py"
+    },
+    {
+      "path": "/api/v1/{contract_id}/activities",
+      "method": "GET",
+      "response_shape": "dict[str, Any]",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/contracts.py"
+    },
+    {
+      "path": "/api/v1/{contract_id}",
+      "method": "PUT",
+      "response_shape": "dict[str, Any]",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/contracts.py"
+    },
+    {
+      "path": "/api/v1/{contract_id}",
+      "method": "DELETE",
+      "response_shape": "None",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/contracts.py"
+    },
+    {
+      "path": "/api/v1",
+      "method": "GET",
+      "response_shape": "dict[str, Any]",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/contracts.py"
+    },
+    {
+      "path": "/coverage",
+      "method": "GET",
+      "response_shape": "unknown",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/coverage.py"
+    },
+    {
+      "path": "/coverage",
+      "method": "POST",
+      "response_shape": "unknown",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/coverage.py"
+    },
+    {
+      "path": "/coverage/{coverage_id}",
+      "method": "GET",
+      "response_shape": "unknown",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/coverage.py"
+    },
+    {
+      "path": "/coverage/{coverage_id}",
+      "method": "PUT",
+      "response_shape": "unknown",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/coverage.py"
+    },
+    {
+      "path": "/coverage/{coverage_id}",
+      "method": "DELETE",
+      "response_shape": "unknown",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/coverage.py"
+    },
+    {
+      "path": "/coverage/{coverage_id}/verify",
+      "method": "POST",
+      "response_shape": "unknown",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/coverage.py"
+    },
+    {
+      "path": "/coverage/matrix",
+      "method": "GET",
+      "response_shape": "unknown",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/coverage.py"
+    },
+    {
+      "path": "/coverage/gaps",
+      "method": "GET",
+      "response_shape": "unknown",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/coverage.py"
+    },
+    {
+      "path": "/test-cases/{test_case_id}/coverage",
+      "method": "GET",
+      "response_shape": "unknown",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/coverage.py"
+    },
+    {
+      "path": "/requirements/{requirement_id}/coverage",
+      "method": "GET",
+      "response_shape": "unknown",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/coverage.py"
+    },
+    {
+      "path": "/projects/{project_id}/coverage/stats",
+      "method": "GET",
+      "response_shape": "unknown",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/coverage.py"
+    },
+    {
+      "path": "/coverage/{coverage_id}/activities",
+      "method": "GET",
+      "response_shape": "unknown",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/coverage.py"
+    },
+    {
+      "path": "/api/v1/matrix",
+      "method": "GET",
+      "response_shape": "Response",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/coverage_matrix.py"
+    },
+    {
+      "path": "/api/v1/duplicates",
+      "method": "POST",
+      "response_shape": "DuplicatesResponse",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/dup_conflict.py"
+    },
+    {
+      "path": "/api/v1/conflicts",
+      "method": "POST",
+      "response_shape": "ConflictsResponse",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/dup_conflict.py"
+    },
+    {
+      "path": "/errors",
+      "method": "POST",
+      "response_shape": "dict[str, str]",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/errors.py"
+    },
+    {
+      "path": "/api/v1/executions",
+      "method": "POST",
+      "response_shape": "dict[str, Any]",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/execution.py"
+    },
+    {
+      "path": "/api/v1/executions",
+      "method": "GET",
+      "response_shape": "dict[str, Any]",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/execution.py"
+    },
+    {
+      "path": "/api/v1/executions/{execution_id}",
+      "method": "GET",
+      "response_shape": "dict[str, Any]",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/execution.py"
+    },
+    {
+      "path": "/api/v1/executions/{execution_id}/start",
+      "method": "POST",
+      "response_shape": "dict[str, Any]",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/execution.py"
+    },
+    {
+      "path": "/api/v1/executions/{execution_id}/complete",
+      "method": "POST",
+      "response_shape": "dict[str, Any]",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/execution.py"
+    },
+    {
+      "path": "/api/v1/executions/{execution_id}/artifacts",
+      "method": "GET",
+      "response_shape": "dict[str, Any]",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/execution.py"
+    },
+    {
+      "path": "/api/v1/executions/{execution_id}/artifacts",
+      "method": "POST",
+      "response_shape": "dict[str, Any]",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/execution.py"
+    },
+    {
+      "path": "/api/v1/execution-config",
+      "method": "GET",
+      "response_shape": "dict[str, Any]",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/execution.py"
+    },
+    {
+      "path": "/api/v1/execution-config",
+      "method": "PUT",
+      "response_shape": "dict[str, Any]",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/execution.py"
+    },
+    {
+      "path": "/api/v1/executions/{execution_id}/artifacts/{artifact_id}/download",
+      "method": "GET",
+      "response_shape": "FileResponse",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/execution.py"
+    },
+    {
+      "path": "/api/v1/vhs/generate-tape",
+      "method": "POST",
+      "response_shape": "dict[str, Any]",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/execution.py"
+    },
+    {
+      "path": "/executions/{execution_id}",
+      "method": "GET",
+      "response_shape": "unknown",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/executions.py"
+    },
+    {
+      "path": "/executions/{execution_id}/start",
+      "method": "POST",
+      "response_shape": "unknown",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/executions.py"
+    },
+    {
+      "path": "/executions/{execution_id}/advance",
+      "method": "POST",
+      "response_shape": "unknown",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/executions.py"
+    },
+    {
+      "path": "/executions/{execution_id}/complete",
+      "method": "POST",
+      "response_shape": "unknown",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/executions.py"
+    },
+    {
+      "path": "/api/v1",
+      "method": "POST",
+      "response_shape": "dict[str, Any]",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/features.py"
+    },
+    {
+      "path": "/api/v1/{feature_id}",
+      "method": "GET",
+      "response_shape": "dict[str, Any]",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/features.py"
+    },
+    {
+      "path": "/api/v1/{feature_id}/activities",
+      "method": "GET",
+      "response_shape": "dict[str, Any]",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/features.py"
+    },
+    {
+      "path": "/api/v1/{feature_id}",
+      "method": "DELETE",
+      "response_shape": "None",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/features.py"
+    },
+    {
+      "path": "/api/v1",
+      "method": "GET",
+      "response_shape": "dict[str, Any]",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/features.py"
+    },
+    {
+      "path": "/api/v1/{feature_id}/scenarios",
+      "method": "POST",
+      "response_shape": "dict[str, Any]",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/features.py"
+    },
+    {
+      "path": "/api/v1/scenarios/{scenario_id}",
+      "method": "GET",
+      "response_shape": "dict[str, Any]",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/features.py"
+    },
+    {
+      "path": "/api/v1/scenarios/{scenario_id}/activities",
+      "method": "GET",
+      "response_shape": "dict[str, Any]",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/features.py"
+    },
+    {
+      "path": "/api/v1/scenarios/{scenario_id}",
+      "method": "DELETE",
+      "response_shape": "None",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/features.py"
+    },
+    {
+      "path": "/api/v1/graph/neighbors",
+      "method": "GET",
+      "response_shape": "unknown",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/graphs.py"
+    },
+    {
+      "path": "/api/v1/graphs",
+      "method": "GET",
+      "response_shape": "unknown",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/graphs.py"
+    },
+    {
+      "path": "/api/v1/graph",
+      "method": "GET",
+      "response_shape": "unknown",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/graphs.py"
+    },
+    {
+      "path": "/api/v1/graphs/{graph_id}/validate",
+      "method": "GET",
+      "response_shape": "unknown",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/graphs.py"
+    },
+    {
+      "path": "/api/v1/graphs/{graph_id}/snapshot",
+      "method": "POST",
+      "response_shape": "unknown",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/graphs.py"
+    },
+    {
+      "path": "/api/v1/graphs/{graph_id}/snapshot",
+      "method": "GET",
+      "response_shape": "unknown",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/graphs.py"
+    },
+    {
+      "path": "/api/v1/graphs/{graph_id}/diff",
+      "method": "GET",
+      "response_shape": "unknown",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/graphs.py"
+    },
+    {
+      "path": "/api/v1/graphs/{graph_id}/report",
+      "method": "GET",
+      "response_shape": "unknown",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/graphs.py"
+    },
+    {
+      "path": "/health",
+      "method": "GET",
+      "response_shape": "dict[str, str]",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/health.py"
+    },
+    {
+      "path": "/metrics",
+      "method": "GET",
+      "response_shape": "Response",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/health.py"
+    },
+    {
+      "path": "/ready",
+      "method": "GET",
+      "response_shape": "dict[str, Any] | JSONResponse",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/health.py"
+    },
+    {
+      "path": "/api/v1/health",
+      "method": "GET",
+      "response_shape": "dict[str, Any] | JSONResponse",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/health.py"
+    },
+    {
+      "path": "/canary",
+      "method": "GET",
+      "response_shape": "CanaryHealthResponse",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/health_canary.py"
+    },
+    {
+      "path": "/readiness",
+      "method": "GET",
+      "response_shape": "dict[str, Any]",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/health_canary.py"
+    },
+    {
+      "path": "/liveness",
+      "method": "GET",
+      "response_shape": "dict[str, Any]",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/health_canary.py"
+    },
+    {
+      "path": "/api/v1/forward/{artifact_id}",
+      "method": "GET",
+      "response_shape": "dict[str, Any]",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/impact.py"
+    },
+    {
+      "path": "/api/v1/reverse/{artifact_id}",
+      "method": "GET",
+      "response_shape": "dict[str, Any]",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/impact.py"
+    },
+    {
+      "path": "/api/v1/blast-radius/{artifact_id}",
+      "method": "GET",
+      "response_shape": "dict[str, Any]",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/impact.py"
+    },
+    {
+      "path": "/api/v1/blast-radius",
+      "method": "POST",
+      "response_shape": "BlastRadiusResult",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/impact_scoring.py"
+    },
+    {
+      "path": "/api/v1/github",
+      "method": "POST",
+      "response_shape": "BulkIngestionResult",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/ingest.py"
+    },
+    {
+      "path": "/api/v1/jira",
+      "method": "POST",
+      "response_shape": "BulkIngestionResult",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/ingest.py"
+    },
+    {
+      "path": "/oauth/start",
+      "method": "POST",
+      "response_shape": "dict[str, Any]",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/integrations.py"
+    },
+    {
+      "path": "/oauth/callback",
+      "method": "POST",
+      "response_shape": "dict[str, Any]",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/integrations.py"
+    },
+    {
+      "path": "/credentials",
+      "method": "GET",
+      "response_shape": "dict[str, Any]",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/integrations.py"
+    },
+    {
+      "path": "/credentials/{credential_id}/validate",
+      "method": "POST",
+      "response_shape": "dict[str, Any]",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/integrations.py"
+    },
+    {
+      "path": "/credentials/{credential_id}",
+      "method": "DELETE",
+      "response_shape": "dict[str, Any]",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/integrations.py"
+    },
+    {
+      "path": "/mappings",
+      "method": "GET",
+      "response_shape": "dict[str, Any]",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/integrations.py"
+    },
+    {
+      "path": "/mappings",
+      "method": "POST",
+      "response_shape": "dict[str, Any]",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/integrations.py"
+    },
+    {
+      "path": "/mappings/{mapping_id}",
+      "method": "PUT",
+      "response_shape": "dict[str, Any]",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/integrations.py"
+    },
+    {
+      "path": "/mappings/{mapping_id}",
+      "method": "DELETE",
+      "response_shape": "dict[str, Any]",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/integrations.py"
+    },
+    {
+      "path": "/sync/status",
+      "method": "GET",
+      "response_shape": "dict[str, Any]",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/integrations.py"
+    },
+    {
+      "path": "/sync/trigger",
+      "method": "POST",
+      "response_shape": "dict[str, Any]",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/integrations.py"
+    },
+    {
+      "path": "/sync/queue",
+      "method": "GET",
+      "response_shape": "dict[str, Any]",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/integrations.py"
+    },
+    {
+      "path": "/conflicts",
+      "method": "GET",
+      "response_shape": "dict[str, Any]",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/integrations.py"
+    },
+    {
+      "path": "/conflicts/{conflict_id}/resolve",
+      "method": "POST",
+      "response_shape": "dict[str, Any]",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/integrations.py"
+    },
+    {
+      "path": "/agileplus/push",
+      "method": "POST",
+      "response_shape": "dict[str, Any]",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/integrations.py"
+    },
+    {
+      "path": "/requirements",
+      "method": "POST",
+      "response_shape": "None",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/item_specs.py"
+    },
+    {
+      "path": "/requirements/{spec_id}",
+      "method": "GET",
+      "response_shape": "None",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/item_specs.py"
+    },
+    {
+      "path": "/requirements/by-item/{item_id}",
+      "method": "GET",
+      "response_shape": "None",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/item_specs.py"
+    },
+    {
+      "path": "/requirements",
+      "method": "GET",
+      "response_shape": "None",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/item_specs.py"
+    },
+    {
+      "path": "/requirements/{spec_id}",
+      "method": "PATCH",
+      "response_shape": "None",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/item_specs.py"
+    },
+    {
+      "path": "/requirements/{spec_id}",
+      "method": "DELETE",
+      "response_shape": "None",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/item_specs.py"
+    },
+    {
+      "path": "/requirements/{spec_id}/analyze-quality",
+      "method": "POST",
+      "response_shape": "None",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/item_specs.py"
+    },
+    {
+      "path": "/requirements/{spec_id}/analyze-impact",
+      "method": "POST",
+      "response_shape": "None",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/item_specs.py"
+    },
+    {
+      "path": "/requirements/{spec_id}/verify",
+      "method": "POST",
+      "response_shape": "None",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/item_specs.py"
+    },
+    {
+      "path": "/requirements/unverified",
+      "method": "GET",
+      "response_shape": "None",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/item_specs.py"
+    },
+    {
+      "path": "/requirements/high-risk",
+      "method": "GET",
+      "response_shape": "None",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/item_specs.py"
+    },
+    {
+      "path": "/tests",
+      "method": "POST",
+      "response_shape": "None",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/item_specs.py"
+    },
+    {
+      "path": "/tests/{spec_id}",
+      "method": "GET",
+      "response_shape": "None",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/item_specs.py"
+    },
+    {
+      "path": "/tests/by-item/{item_id}",
+      "method": "GET",
+      "response_shape": "None",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/item_specs.py"
+    },
+    {
+      "path": "/tests",
+      "method": "GET",
+      "response_shape": "None",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/item_specs.py"
+    },
+    {
+      "path": "/tests/{spec_id}",
+      "method": "PATCH",
+      "response_shape": "None",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/item_specs.py"
+    },
+    {
+      "path": "/tests/{spec_id}",
+      "method": "DELETE",
+      "response_shape": "None",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/item_specs.py"
+    },
+    {
+      "path": "/tests/{spec_id}/record-run",
+      "method": "POST",
+      "response_shape": "None",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/item_specs.py"
+    },
+    {
+      "path": "/tests/{spec_id}/quarantine",
+      "method": "POST",
+      "response_shape": "None",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/item_specs.py"
+    },
+    {
+      "path": "/tests/{spec_id}/unquarantine",
+      "method": "POST",
+      "response_shape": "None",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/item_specs.py"
+    },
+    {
+      "path": "/tests/flaky",
+      "method": "GET",
+      "response_shape": "None",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/item_specs.py"
+    },
+    {
+      "path": "/tests/health-report",
+      "method": "GET",
+      "response_shape": "None",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/item_specs.py"
+    },
+    {
+      "path": "/epics",
+      "method": "POST",
+      "response_shape": "None",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/item_specs.py"
+    },
+    {
+      "path": "/epics/{spec_id}",
+      "method": "GET",
+      "response_shape": "None",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/item_specs.py"
+    },
+    {
+      "path": "/epics",
+      "method": "GET",
+      "response_shape": "None",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/item_specs.py"
+    },
+    {
+      "path": "/epics/{spec_id}",
+      "method": "PATCH",
+      "response_shape": "None",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/item_specs.py"
+    },
+    {
+      "path": "/epics/{spec_id}",
+      "method": "DELETE",
+      "response_shape": "None",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/item_specs.py"
+    },
+    {
+      "path": "/stories",
+      "method": "POST",
+      "response_shape": "None",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/item_specs.py"
+    },
+    {
+      "path": "/stories/{spec_id}",
+      "method": "GET",
+      "response_shape": "None",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/item_specs.py"
+    },
+    {
+      "path": "/stories",
+      "method": "GET",
+      "response_shape": "None",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/item_specs.py"
+    },
+    {
+      "path": "/stories/{spec_id}",
+      "method": "PATCH",
+      "response_shape": "None",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/item_specs.py"
+    },
+    {
+      "path": "/stories/{spec_id}",
+      "method": "DELETE",
+      "response_shape": "None",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/item_specs.py"
+    },
+    {
+      "path": "/tasks",
+      "method": "POST",
+      "response_shape": "None",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/item_specs.py"
+    },
+    {
+      "path": "/tasks/{spec_id}",
+      "method": "GET",
+      "response_shape": "None",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/item_specs.py"
+    },
+    {
+      "path": "/tasks",
+      "method": "GET",
+      "response_shape": "None",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/item_specs.py"
+    },
+    {
+      "path": "/tasks/{spec_id}",
+      "method": "PATCH",
+      "response_shape": "None",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/item_specs.py"
+    },
+    {
+      "path": "/tasks/{spec_id}",
+      "method": "DELETE",
+      "response_shape": "None",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/item_specs.py"
+    },
+    {
+      "path": "/defects",
+      "method": "POST",
+      "response_shape": "None",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/item_specs.py"
+    },
+    {
+      "path": "/defects/{spec_id}",
+      "method": "GET",
+      "response_shape": "None",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/item_specs.py"
+    },
+    {
+      "path": "/defects",
+      "method": "GET",
+      "response_shape": "None",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/item_specs.py"
+    },
+    {
+      "path": "/defects/{spec_id}",
+      "method": "PATCH",
+      "response_shape": "None",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/item_specs.py"
+    },
+    {
+      "path": "/defects/{spec_id}",
+      "method": "DELETE",
+      "response_shape": "None",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/item_specs.py"
+    },
+    {
+      "path": "/defects/critical",
+      "method": "GET",
+      "response_shape": "None",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/item_specs.py"
+    },
+    {
+      "path": "/stats",
+      "method": "GET",
+      "response_shape": "None",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/item_specs.py"
+    },
+    {
+      "path": "/requirements/quality-stats",
+      "method": "GET",
+      "response_shape": "None",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/item_specs.py"
+    },
+    {
+      "path": "/tests/health-stats",
+      "method": "GET",
+      "response_shape": "None",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/item_specs.py"
+    },
+    {
+      "path": "/defects/metrics",
+      "method": "GET",
+      "response_shape": "None",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/item_specs.py"
+    },
+    {
+      "path": "/requirements/{spec_id}/analyze/ears",
+      "method": "POST",
+      "response_shape": "EARSAnalysisResponse",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/item_specs.py"
+    },
+    {
+      "path": "/requirements/{spec_id}/analyze/quality",
+      "method": "POST",
+      "response_shape": "QualityScoreResponse",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/item_specs.py"
+    },
+    {
+      "path": "/{spec_type}/{spec_id}/version-chain",
+      "method": "GET",
+      "response_shape": "VersionChainResponse",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/item_specs.py"
+    },
+    {
+      "path": "/{spec_type}/{spec_id}/verify-baseline",
+      "method": "POST",
+      "response_shape": "MerkleProofResponse",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/item_specs.py"
+    },
+    {
+      "path": "/{spec_type}/{spec_id}/merkle-proof",
+      "method": "GET",
+      "response_shape": "MerkleProofResponse",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/item_specs.py"
+    },
+    {
+      "path": "/{spec_type}/{spec_id}/content-address",
+      "method": "GET",
+      "response_shape": "ContentAddressResponse",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/item_specs.py"
+    },
+    {
+      "path": "/tests/{spec_id}/analyze/flakiness",
+      "method": "POST",
+      "response_shape": "FlakinessAnalysisResponse",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/item_specs.py"
+    },
+    {
+      "path": "/defects/{spec_id}/analyze/odc",
+      "method": "POST",
+      "response_shape": "ODCClassificationResponse",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/item_specs.py"
+    },
+    {
+      "path": "/defects/{spec_id}/analyze/cvss",
+      "method": "POST",
+      "response_shape": "CVSSScoreResponse",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/item_specs.py"
+    },
+    {
+      "path": "/{spec_type}/{spec_id}/analyze/impact",
+      "method": "POST",
+      "response_shape": "ImpactAnalysisResponse",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/item_specs.py"
+    },
+    {
+      "path": "/{spec_type}/{spec_id}/prioritization",
+      "method": "POST",
+      "response_shape": "PrioritizationResponse",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/item_specs.py"
+    },
+    {
+      "path": "/analyze/coverage-gaps",
+      "method": "POST",
+      "response_shape": "CoverageGapAnalysisResponse",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/item_specs.py"
+    },
+    {
+      "path": "/analyze/suspect-links",
+      "method": "POST",
+      "response_shape": "SuspectLinkAnalysisResponse",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/item_specs.py"
+    },
+    {
+      "path": "/{spec_type}/{spec_id}/analyze/similarity",
+      "method": "POST",
+      "response_shape": "SimilarityAnalysisResponse",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/item_specs.py"
+    },
+    {
+      "path": "/",
+      "method": "GET",
+      "response_shape": "dict[str, object]",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/items.py"
+    },
+    {
+      "path": "/{item_id}",
+      "method": "GET",
+      "response_shape": "dict[str, object]",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/items.py"
+    },
+    {
+      "path": "/",
+      "method": "POST",
+      "response_shape": "dict[str, object]",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/items.py"
+    },
+    {
+      "path": "/{item_id}",
+      "method": "PUT",
+      "response_shape": "dict[str, object]",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/items.py"
+    },
+    {
+      "path": "/{item_id}",
+      "method": "DELETE",
+      "response_shape": "dict[str, object]",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/items.py"
+    },
+    {
+      "path": "/bulk-update",
+      "method": "POST",
+      "response_shape": "dict[str, object]",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/items.py"
+    },
+    {
+      "path": "/summary",
+      "method": "GET",
+      "response_shape": "dict[str, object]",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/items_summary.py"
+    },
+    {
+      "path": "/teams",
+      "method": "GET",
+      "response_shape": "dict[str, Any]",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/linear.py"
+    },
+    {
+      "path": "/teams/{team_id}/issues",
+      "method": "GET",
+      "response_shape": "dict[str, Any]",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/linear.py"
+    },
+    {
+      "path": "/projects",
+      "method": "GET",
+      "response_shape": "dict[str, Any]",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/linear.py"
+    },
+    {
+      "path": "/",
+      "method": "GET",
+      "response_shape": "dict[str, Any]",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/links.py"
+    },
+    {
+      "path": "/grouped",
+      "method": "GET",
+      "response_shape": "dict[str, Any]",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/links.py"
+    },
+    {
+      "path": "/",
+      "method": "POST",
+      "response_shape": "dict[str, Any]",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/links.py"
+    },
+    {
+      "path": "/{link_id}",
+      "method": "PUT",
+      "response_shape": "dict[str, Any]",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/links.py"
+    },
+    {
+      "path": "/{link_id}",
+      "method": "DELETE",
+      "response_shape": "dict[str, Any]",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/links.py"
+    },
+    {
+      "path": "/api/v1/config",
+      "method": "GET",
+      "response_shape": "dict[str, Any]",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/mcp.py"
+    },
+    {
+      "path": "/api/v1/messages",
+      "method": "OPTIONS",
+      "response_shape": "Response",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/mcp.py"
+    },
+    {
+      "path": "/api/v1/messages",
+      "method": "POST",
+      "response_shape": "JSONRPCResponse",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/mcp.py"
+    },
+    {
+      "path": "/api/v1/sse",
+      "method": "GET",
+      "response_shape": "EventSourceResponse",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/mcp.py"
+    },
+    {
+      "path": "/api/v1/tools",
+      "method": "GET",
+      "response_shape": "ToolsListResponse",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/mcp.py"
+    },
+    {
+      "path": "/api/v1/health",
+      "method": "GET",
+      "response_shape": "dict[str, Any]",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/mcp.py"
+    },
+    {
+      "path": "/api/v1/requirements",
+      "method": "POST",
+      "response_shape": "MineRequirementsResponse",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/mine.py"
+    },
+    {
+      "path": "/api/v1",
+      "method": "GET",
+      "response_shape": "list[Any]",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/notifications.py"
+    },
+    {
+      "path": "/api/v1/{notification_id}/read",
+      "method": "POST",
+      "response_shape": "dict[str, object]",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/notifications.py"
+    },
+    {
+      "path": "/api/v1/read-all",
+      "method": "POST",
+      "response_shape": "dict[str, object]",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/notifications.py"
+    },
+    {
+      "path": "/oauth/start",
+      "method": "POST",
+      "response_shape": "dict[str, object]",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/oauth.py"
+    },
+    {
+      "path": "/oauth/callback",
+      "method": "POST",
+      "response_shape": "dict[str, object]",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/oauth.py"
+    },
+    {
+      "path": "/credentials",
+      "method": "GET",
+      "response_shape": "dict[str, object]",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/oauth.py"
+    },
+    {
+      "path": "/credentials/{credential_id}/validate",
+      "method": "POST",
+      "response_shape": "dict[str, object]",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/oauth.py"
+    },
+    {
+      "path": "/credentials/{credential_id}",
+      "method": "DELETE",
+      "response_shape": "dict[str, object]",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/oauth.py"
+    },
+    {
+      "path": "/stats",
+      "method": "GET",
+      "response_shape": "dict[str, object]",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/oauth.py"
+    },
+    {
+      "path": "/problems",
+      "method": "GET",
+      "response_shape": "unknown",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/problems.py"
+    },
+    {
+      "path": "/problems/{problem_id}",
+      "method": "GET",
+      "response_shape": "unknown",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/problems.py"
+    },
+    {
+      "path": "/problems",
+      "method": "POST",
+      "response_shape": "unknown",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/problems.py"
+    },
+    {
+      "path": "/problems/{problem_id}",
+      "method": "PUT",
+      "response_shape": "unknown",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/problems.py"
+    },
+    {
+      "path": "/problems/{problem_id}/status",
+      "method": "POST",
+      "response_shape": "unknown",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/problems.py"
+    },
+    {
+      "path": "/problems/{problem_id}/rca",
+      "method": "POST",
+      "response_shape": "unknown",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/problems.py"
+    },
+    {
+      "path": "/problems/{problem_id}/workaround",
+      "method": "PUT",
+      "response_shape": "unknown",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/problems.py"
+    },
+    {
+      "path": "/problems/{problem_id}/permanent-fix",
+      "method": "PUT",
+      "response_shape": "unknown",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/problems.py"
+    },
+    {
+      "path": "/problems/{problem_id}/close",
+      "method": "POST",
+      "response_shape": "unknown",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/problems.py"
+    },
+    {
+      "path": "/problems/{problem_id}/activities",
+      "method": "GET",
+      "response_shape": "unknown",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/problems.py"
+    },
+    {
+      "path": "/problems/{problem_id}",
+      "method": "DELETE",
+      "response_shape": "unknown",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/problems.py"
+    },
+    {
+      "path": "/projects/{project_id}/problems/stats",
+      "method": "GET",
+      "response_shape": "unknown",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/problems.py"
+    },
+    {
+      "path": "/processes",
+      "method": "GET",
+      "response_shape": "unknown",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/processes.py"
+    },
+    {
+      "path": "/processes/{process_id}",
+      "method": "GET",
+      "response_shape": "unknown",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/processes.py"
+    },
+    {
+      "path": "/processes",
+      "method": "POST",
+      "response_shape": "unknown",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/processes.py"
+    },
+    {
+      "path": "/processes/{process_id}",
+      "method": "PUT",
+      "response_shape": "unknown",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/processes.py"
+    },
+    {
+      "path": "/processes/{process_id}/versions",
+      "method": "POST",
+      "response_shape": "unknown",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/processes.py"
+    },
+    {
+      "path": "/processes/{process_id}/activate",
+      "method": "PUT",
+      "response_shape": "unknown",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/processes.py"
+    },
+    {
+      "path": "/processes/{process_id}/deprecate",
+      "method": "PUT",
+      "response_shape": "unknown",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/processes.py"
+    },
+    {
+      "path": "/processes/{process_id}",
+      "method": "DELETE",
+      "response_shape": "unknown",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/processes.py"
+    },
+    {
+      "path": "/projects/{project_id}/processes/stats",
+      "method": "GET",
+      "response_shape": "unknown",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/processes.py"
+    },
+    {
+      "path": "/processes/{process_id}/executions",
+      "method": "POST",
+      "response_shape": "unknown",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/processes.py"
+    },
+    {
+      "path": "/processes/{process_id}/executions",
+      "method": "GET",
+      "response_shape": "unknown",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/processes.py"
+    },
+    {
+      "path": "/{project_id}/sync/status",
+      "method": "GET",
+      "response_shape": "unknown",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/project_sync_search.py"
+    },
+    {
+      "path": "/{project_id}/sync",
+      "method": "POST",
+      "response_shape": "unknown",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/project_sync_search.py"
+    },
+    {
+      "path": "/{project_id}/search/advanced",
+      "method": "POST",
+      "response_shape": "unknown",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/project_sync_search.py"
+    },
+    {
+      "path": "/projects",
+      "method": "GET",
+      "response_shape": "unknown",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/projects.py"
+    },
+    {
+      "path": "/projects/{project_id}",
+      "method": "GET",
+      "response_shape": "unknown",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/projects.py"
+    },
+    {
+      "path": "/projects",
+      "method": "POST",
+      "response_shape": "unknown",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/projects.py"
+    },
+    {
+      "path": "/projects/{project_id}",
+      "method": "PUT",
+      "response_shape": "unknown",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/projects.py"
+    },
+    {
+      "path": "/projects/{project_id}",
+      "method": "DELETE",
+      "response_shape": "unknown",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/projects.py"
+    },
+    {
+      "path": "/projects/{project_id}/export",
+      "method": "GET",
+      "response_shape": "unknown",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/projects.py"
+    },
+    {
+      "path": "/projects/{project_id}/import",
+      "method": "POST",
+      "response_shape": "unknown",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/projects.py"
+    },
+    {
+      "path": "/import",
+      "method": "POST",
+      "response_shape": "unknown",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/projects.py"
+    },
+    {
+      "path": "/summary",
+      "method": "GET",
+      "response_shape": "unknown",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/qa_metrics.py"
+    },
+    {
+      "path": "/pass-rate",
+      "method": "GET",
+      "response_shape": "unknown",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/qa_metrics.py"
+    },
+    {
+      "path": "/coverage",
+      "method": "GET",
+      "response_shape": "unknown",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/qa_metrics.py"
+    },
+    {
+      "path": "/defect-density",
+      "method": "GET",
+      "response_shape": "unknown",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/qa_metrics.py"
+    },
+    {
+      "path": "/flaky-tests",
+      "method": "GET",
+      "response_shape": "unknown",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/qa_metrics.py"
+    },
+    {
+      "path": "/execution-history",
+      "method": "GET",
+      "response_shape": "unknown",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/qa_metrics.py"
+    },
+    {
+      "path": "/api/v1/items/{item_id}/analyze",
+      "method": "POST",
+      "response_shape": "dict[str, Any]",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/quality.py"
+    },
+    {
+      "path": "/api/v1/items/{item_id}",
+      "method": "GET",
+      "response_shape": "dict[str, Any]",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/quality.py"
+    },
+    {
+      "path": "/adrs",
+      "method": "POST",
+      "response_shape": "ADRResponse",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/specifications.py"
+    },
+    {
+      "path": "/adrs/{adr_id}",
+      "method": "GET",
+      "response_shape": "ADRResponse",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/specifications.py"
+    },
+    {
+      "path": "/adrs/{adr_id}",
+      "method": "PUT",
+      "response_shape": "ADRResponse",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/specifications.py"
+    },
+    {
+      "path": "/adrs/{adr_id}",
+      "method": "DELETE",
+      "response_shape": "None",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/specifications.py"
+    },
+    {
+      "path": "/projects/{project_id}/adrs",
+      "method": "GET",
+      "response_shape": "ADRListResponse",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/specifications.py"
+    },
+    {
+      "path": "/adrs/{adr_id}/verify",
+      "method": "POST",
+      "response_shape": "VerificationResult",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/specifications.py"
+    },
+    {
+      "path": "/contracts",
+      "method": "POST",
+      "response_shape": "ContractResponse",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/specifications.py"
+    },
+    {
+      "path": "/contracts/{contract_id}",
+      "method": "GET",
+      "response_shape": "ContractResponse",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/specifications.py"
+    },
+    {
+      "path": "/contracts/{contract_id}",
+      "method": "PUT",
+      "response_shape": "ContractResponse",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/specifications.py"
+    },
+    {
+      "path": "/contracts/{contract_id}",
+      "method": "DELETE",
+      "response_shape": "None",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/specifications.py"
+    },
+    {
+      "path": "/projects/{project_id}/contracts",
+      "method": "GET",
+      "response_shape": "ContractListResponse",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/specifications.py"
+    },
+    {
+      "path": "/contracts/{contract_id}/verify",
+      "method": "POST",
+      "response_shape": "VerificationResult",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/specifications.py"
+    },
+    {
+      "path": "/features",
+      "method": "POST",
+      "response_shape": "FeatureResponse",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/specifications.py"
+    },
+    {
+      "path": "/features/{feature_id}",
+      "method": "GET",
+      "response_shape": "FeatureResponse | dict[str, Any]",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/specifications.py"
+    },
+    {
+      "path": "/features/{feature_id}",
+      "method": "PUT",
+      "response_shape": "FeatureResponse",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/specifications.py"
+    },
+    {
+      "path": "/features/{feature_id}",
+      "method": "DELETE",
+      "response_shape": "None",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/specifications.py"
+    },
+    {
+      "path": "/projects/{project_id}/features",
+      "method": "GET",
+      "response_shape": "FeatureListResponse",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/specifications.py"
+    },
+    {
+      "path": "/features/{feature_id}/scenarios",
+      "method": "POST",
+      "response_shape": "ScenarioResponse",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/specifications.py"
+    },
+    {
+      "path": "/features/{feature_id}/scenarios",
+      "method": "GET",
+      "response_shape": "ScenarioListResponse",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/specifications.py"
+    },
+    {
+      "path": "/projects/{project_id}/scenarios",
+      "method": "GET",
+      "response_shape": "ScenarioListResponse",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/specifications.py"
+    },
+    {
+      "path": "/projects/{project_id}/scenarios/activities",
+      "method": "GET",
+      "response_shape": "dict[str, Any]",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/specifications.py"
+    },
+    {
+      "path": "/scenarios/{scenario_id}",
+      "method": "GET",
+      "response_shape": "ScenarioResponse",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/specifications.py"
+    },
+    {
+      "path": "/scenarios/{scenario_id}/activities",
+      "method": "GET",
+      "response_shape": "dict[str, Any]",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/specifications.py"
+    },
+    {
+      "path": "/scenarios/{scenario_id}",
+      "method": "PUT",
+      "response_shape": "ScenarioResponse",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/specifications.py"
+    },
+    {
+      "path": "/scenarios/{scenario_id}",
+      "method": "DELETE",
+      "response_shape": "None",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/specifications.py"
+    },
+    {
+      "path": "/scenarios/{scenario_id}/run",
+      "method": "POST",
+      "response_shape": "ScenarioRunResult",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/specifications.py"
+    },
+    {
+      "path": "/projects/{project_id}/summary",
+      "method": "GET",
+      "response_shape": "SpecificationsSummary",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/specifications.py"
+    },
+    {
+      "path": "/temporal/summary",
+      "method": "GET",
+      "response_shape": "unknown",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/temporal.py"
+    },
+    {
+      "path": "/api/v1/test-cases",
+      "method": "GET",
+      "response_shape": "unknown",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/test_cases.py"
+    },
+    {
+      "path": "/api/v1/test-cases/{test_case_id}",
+      "method": "GET",
+      "response_shape": "unknown",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/test_cases.py"
+    },
+    {
+      "path": "/api/v1/test-cases",
+      "method": "POST",
+      "response_shape": "unknown",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/test_cases.py"
+    },
+    {
+      "path": "/api/v1/test-cases/{test_case_id}",
+      "method": "PUT",
+      "response_shape": "unknown",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/test_cases.py"
+    },
+    {
+      "path": "/api/v1/test-cases/{test_case_id}/status",
+      "method": "POST",
+      "response_shape": "unknown",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/test_cases.py"
+    },
+    {
+      "path": "/api/v1/test-cases/{test_case_id}/submit-review",
+      "method": "POST",
+      "response_shape": "unknown",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/test_cases.py"
+    },
+    {
+      "path": "/api/v1/test-cases/{test_case_id}/approve",
+      "method": "POST",
+      "response_shape": "unknown",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/test_cases.py"
+    },
+    {
+      "path": "/api/v1/test-cases/{test_case_id}/deprecate",
+      "method": "POST",
+      "response_shape": "unknown",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/test_cases.py"
+    },
+    {
+      "path": "/api/v1/test-cases/{test_case_id}/activities",
+      "method": "GET",
+      "response_shape": "unknown",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/test_cases.py"
+    },
+    {
+      "path": "/api/v1/test-cases/{test_case_id}",
+      "method": "DELETE",
+      "response_shape": "unknown",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/test_cases.py"
+    },
+    {
+      "path": "/api/v1/projects/{project_id}/test-cases/stats",
+      "method": "GET",
+      "response_shape": "unknown",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/test_cases.py"
+    },
+    {
+      "path": "/test-runs/{run_id}/results",
+      "method": "POST",
+      "response_shape": "unknown",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/test_run_results.py"
+    },
+    {
+      "path": "/test-runs/{run_id}/bulk-results",
+      "method": "POST",
+      "response_shape": "unknown",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/test_run_results.py"
+    },
+    {
+      "path": "/test-runs/{run_id}/results",
+      "method": "GET",
+      "response_shape": "unknown",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/test_run_results.py"
+    },
+    {
+      "path": "/test-runs/{run_id}/activities",
+      "method": "GET",
+      "response_shape": "unknown",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/test_run_results.py"
+    },
+    {
+      "path": "/test-runs",
+      "method": "GET",
+      "response_shape": "unknown",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/test_runs.py"
+    },
+    {
+      "path": "/test-runs/{run_id}",
+      "method": "GET",
+      "response_shape": "unknown",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/test_runs.py"
+    },
+    {
+      "path": "/test-runs",
+      "method": "POST",
+      "response_shape": "unknown",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/test_runs.py"
+    },
+    {
+      "path": "/test-runs/{run_id}",
+      "method": "PUT",
+      "response_shape": "unknown",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/test_runs.py"
+    },
+    {
+      "path": "/test-runs/{run_id}/start",
+      "method": "POST",
+      "response_shape": "unknown",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/test_runs.py"
+    },
+    {
+      "path": "/test-runs/{run_id}/complete",
+      "method": "POST",
+      "response_shape": "unknown",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/test_runs.py"
+    },
+    {
+      "path": "/test-runs/{run_id}/cancel",
+      "method": "POST",
+      "response_shape": "unknown",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/test_runs.py"
+    },
+    {
+      "path": "/test-runs/{run_id}",
+      "method": "DELETE",
+      "response_shape": "unknown",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/test_runs.py"
+    },
+    {
+      "path": "/projects/{project_id}/test-runs/stats",
+      "method": "GET",
+      "response_shape": "unknown",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/test_runs.py"
+    },
+    {
+      "path": "/test-suites",
+      "method": "GET",
+      "response_shape": "unknown",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/test_suites.py"
+    },
+    {
+      "path": "/test-suites/{suite_id}",
+      "method": "GET",
+      "response_shape": "unknown",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/test_suites.py"
+    },
+    {
+      "path": "/test-suites",
+      "method": "POST",
+      "response_shape": "unknown",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/test_suites.py"
+    },
+    {
+      "path": "/test-suites/{suite_id}",
+      "method": "PUT",
+      "response_shape": "unknown",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/test_suites.py"
+    },
+    {
+      "path": "/test-suites/{suite_id}/status",
+      "method": "POST",
+      "response_shape": "unknown",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/test_suites.py"
+    },
+    {
+      "path": "/test-suites/{suite_id}/test-cases",
+      "method": "POST",
+      "response_shape": "unknown",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/test_suites.py"
+    },
+    {
+      "path": "/test-suites/{suite_id}/test-cases/{test_case_id}",
+      "method": "DELETE",
+      "response_shape": "unknown",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/test_suites.py"
+    },
+    {
+      "path": "/test-suites/{suite_id}/test-cases",
+      "method": "GET",
+      "response_shape": "unknown",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/test_suites.py"
+    },
+    {
+      "path": "/test-suites/{suite_id}/activities",
+      "method": "GET",
+      "response_shape": "unknown",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/test_suites.py"
+    },
+    {
+      "path": "/test-suites/{suite_id}",
+      "method": "DELETE",
+      "response_shape": "unknown",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/test_suites.py"
+    },
+    {
+      "path": "/projects/{project_id}/test-suites/stats",
+      "method": "GET",
+      "response_shape": "unknown",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/test_suites.py"
+    },
+    {
+      "path": "/api/v1/score",
+      "method": "GET",
+      "response_shape": "ScoreResponse",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/traceability_score.py"
+    },
+    {
+      "path": "/",
+      "method": "GET",
+      "response_shape": "dict[str, Any]",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/webhooks.py"
+    },
+    {
+      "path": "/",
+      "method": "POST",
+      "response_shape": "dict[str, Any]",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/webhooks.py"
+    },
+    {
+      "path": "/{webhook_id}",
+      "method": "GET",
+      "response_shape": "dict[str, Any]",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/webhooks.py"
+    },
+    {
+      "path": "/{webhook_id}",
+      "method": "PUT",
+      "response_shape": "dict[str, Any]",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/webhooks.py"
+    },
+    {
+      "path": "/{webhook_id}/status",
+      "method": "POST",
+      "response_shape": "dict[str, Any]",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/webhooks.py"
+    },
+    {
+      "path": "/{webhook_id}/regenerate-secret",
+      "method": "POST",
+      "response_shape": "dict[str, Any]",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/webhooks.py"
+    },
+    {
+      "path": "/{webhook_id}",
+      "method": "DELETE",
+      "response_shape": "dict[str, Any]",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/webhooks.py"
+    },
+    {
+      "path": "/{webhook_id}/logs",
+      "method": "GET",
+      "response_shape": "dict[str, Any]",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/webhooks.py"
+    },
+    {
+      "path": "/inbound/{webhook_id}",
+      "method": "POST",
+      "response_shape": "dict[str, Any]",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/webhooks.py"
+    },
+    {
+      "path": "/linear/{webhook_id}",
+      "method": "POST",
+      "response_shape": "dict[str, Any]",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/webhooks.py"
+    },
+    {
+      "path": "/api/v1/projects/{project_id}/workflows/runs",
+      "method": "GET",
+      "response_shape": "unknown",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/workflows.py"
+    },
+    {
+      "path": "/api/v1/projects/{project_id}/workflows/schedules/bootstrap",
+      "method": "POST",
+      "response_shape": "unknown",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/workflows.py"
+    },
+    {
+      "path": "/api/v1/projects/{project_id}/workflows/schedules",
+      "method": "GET",
+      "response_shape": "unknown",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/workflows.py"
+    },
+    {
+      "path": "/api/v1/projects/{project_id}/workflows/schedules/{cron_id}",
+      "method": "DELETE",
+      "response_shape": "unknown",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/workflows.py"
+    },
+    {
+      "path": "/workflows/trigger",
+      "method": "POST",
+      "response_shape": "unknown",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/workflows_triggers.py"
+    },
+    {
+      "path": "/workflows/graph-snapshot",
+      "method": "POST",
+      "response_shape": "unknown",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/workflows_triggers.py"
+    },
+    {
+      "path": "/workflows/graph-validate",
+      "method": "POST",
+      "response_shape": "unknown",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/workflows_triggers.py"
+    },
+    {
+      "path": "/workflows/graph-export",
+      "method": "POST",
+      "response_shape": "unknown",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/workflows_triggers.py"
+    },
+    {
+      "path": "/workflows/graph-diff",
+      "method": "POST",
+      "response_shape": "unknown",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/workflows_triggers.py"
+    },
+    {
+      "path": "/workflows/integrations-sync",
+      "method": "POST",
+      "response_shape": "unknown",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/workflows_triggers.py"
+    },
+    {
+      "path": "/workflows/integrations-retry",
+      "method": "POST",
+      "response_shape": "unknown",
+      "auth_required": false,
+      "source_file": "src/tracertm/api/routers/workflows_triggers.py"
+    }
+  ],
+  "patterns": [
+    "DELETE count=33",
+    "GET count=162",
+    "OPTIONS count=1",
+    "PATCH count=6",
+    "POST count=129",
+    "PUT count=22",
+    "auth-required 0/353",
+    "unprefixed routers: 33",
+    "versioned (/api/v1) routers: 18",
+    "auth-related routers: auth, auth_refresh, auth_session, auth_public (unprefixed by design \u2014 device/refresh flows)",
+    "versioned resources under /api/v1: items, projects, adrs, contracts, features, quality, workflows, impact, impact_scoring, dup_conflict, ingest, mine, traceability_score, coverage_matrix, mcp, graphs, agent, notifications, blockchain, execution",
+    "webhook sub-routers (github.webhook_router, webhooks.project_router) skip /api/v1 to keep POST URLs short and version-stable",
+    "WebSocket transport mounted separately as websocket.router",
+    "auth detection caveat: many routers apply Depends(current_user) at the APIRouter() level rather than per-decorator; static decorator scan is a lower bound"
+  ],
+  "recommended_pattern": "Standardize on /api/v1 for every router and lift auth into a single router-level dependency. Have every handler declare response_model=<SchemaOut> (or a discriminated Union) so OpenAPI is uniform. Mount the four auth* routers under /api/v1/auth/* and keep webhook + websocket routers as the only unversioned surfaces, documented as such in OpenAPI tag metadata."
+}

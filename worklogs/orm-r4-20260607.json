@@ -1,0 +1,25 @@
+{
+  "generated_at": "2026-06-07T00:00:00Z",
+  "total_repos": 2,
+  "with_sqlx": [
+    "KDesktopVirt"
+  ],
+  "with_rusqlite": [
+    "Agentora"
+  ],
+  "with_libsql": [],
+  "by_repo": [
+    {
+      "repo": "Agentora",
+      "libs": [
+        "rusqlite"
+      ]
+    },
+    {
+      "repo": "KDesktopVirt",
+      "libs": [
+        "sqlx"
+      ]
+    }
+  ]
+}

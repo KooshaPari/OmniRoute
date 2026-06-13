@@ -1,0 +1,19 @@
+{
+  "generated_at": "2026-06-08",
+  "total_repos": 124,
+  "by_provider": {
+    "oauth2": [
+      "FocalPoint",
+      "HeliosCLI",
+      "crates",
+      "helioscope",
+      "worktrees"
+    ],
+    "openid": [],
+    "auth0": [],
+    "clerk": [],
+    "nextauth": [],
+    "passport": [],
+    "jwt": []
+  }
+}

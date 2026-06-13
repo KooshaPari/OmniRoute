@@ -1,0 +1,232 @@
+{
+  "generated_at": "2026-06-08T09:23:44Z",
+  "total_repos": 46,
+  "with_bytes": [
+    "GDK",
+    "Metron"
+  ],
+  "with_tokio": [
+    "Agentora",
+    "AgilePlus",
+    "Benchora",
+    "GDK",
+    "KDesktopVirt",
+    "KlipDot",
+    "Metron",
+    "Tasken",
+    "kmobile",
+    "phenoForge",
+    "phenotype-bus"
+  ],
+  "with_tonic": [],
+  "by_repo": [
+    {
+      "repo": "Agentora",
+      "libs": [
+        "tokio"
+      ]
+    },
+    {
+      "repo": "AgilePlus",
+      "libs": [
+        "tokio"
+      ]
+    },
+    {
+      "repo": "Apisync",
+      "libs": []
+    },
+    {
+      "repo": "Benchora",
+      "libs": [
+        "tokio"
+      ]
+    },
+    {
+      "repo": "BytePort",
+      "libs": []
+    },
+    {
+      "repo": "Civis",
+      "libs": []
+    },
+    {
+      "repo": "Eidolon",
+      "libs": []
+    },
+    {
+      "repo": "Eventra",
+      "libs": []
+    },
+    {
+      "repo": "FocalPoint",
+      "libs": []
+    },
+    {
+      "repo": "GDK",
+      "libs": [
+        "bytes",
+        "tokio"
+      ]
+    },
+    {
+      "repo": "HeliosCLI",
+      "libs": []
+    },
+    {
+      "repo": "HeliosLab",
+      "libs": []
+    },
+    {
+      "repo": "HexaKit",
+      "libs": []
+    },
+    {
+      "repo": "KDesktopVirt",
+      "libs": [
+        "tokio"
+      ]
+    },
+    {
+      "repo": "KlipDot",
+      "libs": [
+        "tokio"
+      ]
+    },
+    {
+      "repo": "Metron",
+      "libs": [
+        "bytes",
+        "tokio"
+      ]
+    },
+    {
+      "repo": "NetScript",
+      "libs": []
+    },
+    {
+      "repo": "PhenoDevOps",
+      "libs": []
+    },
+    {
+      "repo": "PhenoKits",
+      "libs": []
+    },
+    {
+      "repo": "PhenoMCP",
+      "libs": []
+    },
+    {
+      "repo": "PhenoObservability",
+      "libs": []
+    },
+    {
+      "repo": "PhenoPlugins",
+      "libs": []
+    },
+    {
+      "repo": "PhenoProc",
+      "libs": []
+    },
+    {
+      "repo": "PhenoRuntime",
+      "libs": []
+    },
+    {
+      "repo": "PhenoVCS",
+      "libs": []
+    },
+    {
+      "repo": "PlayCua",
+      "libs": []
+    },
+    {
+      "repo": "Pyron",
+      "libs": []
+    },
+    {
+      "repo": "Sidekick",
+      "libs": []
+    },
+    {
+      "repo": "Tasken",
+      "libs": [
+        "tokio"
+      ]
+    },
+    {
+      "repo": "Tokn",
+      "libs": []
+    },
+    {
+      "repo": "Tracely",
+      "libs": []
+    },
+    {
+      "repo": "bare-cua",
+      "libs": []
+    },
+    {
+      "repo": "eyetracker",
+      "libs": []
+    },
+    {
+      "repo": "helioscope",
+      "libs": []
+    },
+    {
+      "repo": "kmobile",
+      "libs": [
+        "tokio"
+      ]
+    },
+    {
+      "repo": "pheno",
+      "libs": []
+    },
+    {
+      "repo": "phenoAI",
+      "libs": []
+    },
+    {
+      "repo": "phenoData",
+      "libs": []
+    },
+    {
+      "repo": "phenoForge",
+      "libs": [
+        "tokio"
+      ]
+    },
+    {
+      "repo": "phenoShared",
+      "libs": []
+    },
+    {
+      "repo": "phenoUtils",
+      "libs": []
+    },
+    {
+      "repo": "phenotype-bus",
+      "libs": [
+        "tokio"
+      ]
+    },
+    {
+      "repo": "phenotype-journeys",
+      "libs": []
+    },
+    {
+      "repo": "phenotype-tooling",
+      "libs": []
+    },
+    {
+      "repo": "rich-cli-kit",
+      "libs": []
+    },
+    {
+      "repo": "thegent-dispatch",
+      "libs": []
+    }
+  ]
+}

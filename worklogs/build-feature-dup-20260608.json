@@ -1,0 +1,76 @@
+{
+  "generated_at": "2026-06-08T11:34:20Z",
+  "total_repos": 173,
+  "shared_features": [
+    {
+      "feature_name": "default",
+      "repos": [
+        ".claude",
+        "Agentora",
+        "AgilePlus",
+        "AuthKit",
+        "Civis",
+        "Conft",
+        "DataKit",
+        "FocalPoint",
+        "HeliosCLI",
+        "HexaKit",
+        "KDesktopVirt",
+        "McpKit",
+        "ObservabilityKit",
+        "Paginary",
+        "PhenoAgent",
+        "PhenoCompose",
+        "PhenoDevOps",
+        "PhenoObservability",
+        "PhenoProc",
+        "Pyron",
+        "ResilienceKit",
+        "Tasken",
+        "TestingKit",
+        "Tracely",
+        "Tracera",
+        "crates",
+        "helioscope",
+        "kmobile",
+        "pheno",
+        "phenoShared",
+        "phenodocs",
+        "phenotype-journeys",
+        "phenotype-voxel",
+        "thegent",
+        "thegent-clean-wt-docs",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff",
+        "vibeproxy",
+        "worktrees"
+      ]
+    },
+    {
+      "feature_name": "full",
+      "repos": [
+        "Conft",
+        "PhenoObservability",
+        "Tracely"
+      ]
+    },
+    {
+      "feature_name": "http",
+      "repos": [
+        "Conft",
+        "ObservabilityKit",
+        "PhenoObservability"
+      ]
+    },
+    {
+      "feature_name": "metrics",
+      "repos": [
+        "PhenoObservability",
+        "Tracely",
+        "worktrees"
+      ]
+    }
+  ]
+}

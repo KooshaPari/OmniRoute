@@ -1,0 +1,58 @@
+{
+  "generated_at": "2026-06-07T22:15:00Z",
+  "total_repos": 168,
+  "with_async_trait": [
+    "Agentora",
+    "Apisync",
+    "Benchora",
+    "Eventra",
+    "GDK",
+    "KDesktopVirt",
+    "Tasken"
+  ],
+  "with_async_recursion": [],
+  "by_repo": [
+    {
+      "repo": "Agentora",
+      "libs": [
+        "async-trait"
+      ]
+    },
+    {
+      "repo": "Apisync",
+      "libs": [
+        "async-trait"
+      ]
+    },
+    {
+      "repo": "Benchora",
+      "libs": [
+        "async-trait"
+      ]
+    },
+    {
+      "repo": "Eventra",
+      "libs": [
+        "async-trait"
+      ]
+    },
+    {
+      "repo": "GDK",
+      "libs": [
+        "async-trait"
+      ]
+    },
+    {
+      "repo": "KDesktopVirt",
+      "libs": [
+        "async-trait"
+      ]
+    },
+    {
+      "repo": "Tasken",
+      "libs": [
+        "async-trait"
+      ]
+    }
+  ]
+}

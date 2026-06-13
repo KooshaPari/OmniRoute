@@ -1,0 +1,45 @@
+{
+  "generated_at": "2026-06-08T00:00:00Z",
+  "total_repos": 6,
+  "with_async_trait": [],
+  "with_native_async_fn_trait": [
+    "Agentora",
+    "Apisync",
+    "GDK",
+    "KDesktopVirt",
+    "Tasken",
+    "Tokn"
+  ],
+  "details": [
+    {
+      "repo": "Agentora",
+      "async_trait": false,
+      "native_async_fn_trait": true
+    },
+    {
+      "repo": "Apisync",
+      "async_trait": false,
+      "native_async_fn_trait": true
+    },
+    {
+      "repo": "GDK",
+      "async_trait": false,
+      "native_async_fn_trait": true
+    },
+    {
+      "repo": "KDesktopVirt",
+      "async_trait": false,
+      "native_async_fn_trait": true
+    },
+    {
+      "repo": "Tasken",
+      "async_trait": false,
+      "native_async_fn_trait": true
+    },
+    {
+      "repo": "Tokn",
+      "async_trait": false,
+      "native_async_fn_trait": true
+    }
+  ]
+}

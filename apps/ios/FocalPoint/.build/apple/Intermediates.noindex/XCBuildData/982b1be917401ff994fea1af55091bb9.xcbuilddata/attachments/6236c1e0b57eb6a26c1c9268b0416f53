@@ -1,4 +1,0 @@
-module SnapshotTesting {
-    header "SnapshotTesting-Swift.h"
-    export *
-}

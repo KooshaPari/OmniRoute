@@ -1,0 +1,38 @@
+{
+  "category": "ARCHITECTURE",
+  "date": "2026-06-08",
+  "title": "PyO3/Rust-Python FFI consolidation audit",
+  "scope": "Phenotype org cross-repo",
+  "scope_dirs": ["/Users/kooshapari/CodeProjects/Phenotype/repos"],
+  "method": "Read-only static scan: grep pyo3/maturin in Cargo.toml + pyproject.toml; grep #[pymodule] in lib.rs; ctypes/cffi/ctypes.util across .py",
+  "findings_summary": {
+    "thegent_worktree_copies_with_py03_crates": 84,
+    "thegent_clean_wt_parallel_py03_crates": 14,
+    "non_thegent_py03_crates": [
+      "HeliosLab/crates/pheno-ffi-python (pyo3 0.24, abi3-py39)",
+      "HeliosCLI/crates/harness_pyo3 (pyo3 0.28, auto-initialize)",
+      "helioscope/crates/harness_pyo3 (duplicates HeliosCLI verbatim)",
+      "Dino/src/Tools/AssetPipelineRust (pyo3 0.28)",
+      "KDesktopVirt (pyo3 0.24, two extra deps: maturin/Cargo)",
+      "Conft/rust/phenotype-config (pyo3 in deps)",
+      "worktrees/phenotype-toolkit (cargo workspace)"
+    ],
+    "ctypes_handrolled_ffi": "None outside ARCHIVE/ vendor dirs (electron-node-gyp)",
+    "cffi_handrolled_ffi": "None",
+    "common_pymodule_scaffolding": [
+      "m.add_function(wrap_pyfunction!(...)) boilerplate repeated",
+      "crate-type = [\"cdylib\", \"rlib\"] repeated",
+      "pyo3 features = [\"abi3-py312\" or \"abi3-py39\", \"extension-module\"] repeated",
+      "PyResult<()> -> Ok(()) tail repeated"
+    ],
+    "version_drift": ["0.24.1 (HeliosLab/Conft/KDesktopVirt)", "0.28 (thegent/HeliosCLI/Dino)"]
+  },
+  "recommendation": "Create pheno-py03-base crate in phenotype-shared consolidating: (1) shared Cargo.toml fragment with pyo3+abi3+extension-module, (2) macro_rules! pymodule_exports! for the add_function/add_class boilerplate, (3) shared #[pyfunction(error_handler)] panic-translation wrapper, (4) standard maturin pyproject.toml fragment. Migrate 14 thegent-* crates + HeliosLab pheno-ffi-python + HeliosCLI harness_pyo3 + Dino AssetPipelineRust = 18+ call sites.",
+  "target_migration_repos": [
+    "thegent (14 crates in clean_wt_parallel)",
+    "HeliosLab (pheno-ffi-python)",
+    "HeliosCLI (harness_pyo3) / helioscope (harness_pyo3 dup)",
+    "Dino (AssetPipelineRust)",
+    "KDesktopVirt (kvirtualstage)"
+  ]
+}

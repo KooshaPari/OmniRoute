@@ -1,0 +1,16 @@
+{
+  "generated_at": "2026-06-08T22:15:00Z",
+  "total_repos": 58,
+  "with_token_telemetry": [
+    "OmniRoute"
+  ],
+  "by_repo": [
+    {
+      "repo": "OmniRoute",
+      "evidence": [
+        "OmniRoute/src/app/api/v1/relay/chat/completions/route.ts:145: \"X-RateLimit-Scope\": \"ip\",",
+        "OmniRoute/src/app/api/v1/relay/chat/completions/route.ts:166: \"X-RateLimit-Remaining\": \"0\","
+      ]
+    }
+  ]
+}

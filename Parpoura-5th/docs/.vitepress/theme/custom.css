@@ -1,0 +1,15 @@
+/* Custom theme overrides */
+:root {
+  --vp-c-brand: #646cff;
+  --vp-c-brand-light: #747bff;
+  --vp-c-brand-dark: #535bf2;
+}
+
+.vp-doc h1, .vp-doc h2, .vp-doc h3 {
+  scroll-margin-top: 64px;
+}
+
+/* Code block improvements */
+.vp-doc pre {
+  border-radius: 8px;
+}

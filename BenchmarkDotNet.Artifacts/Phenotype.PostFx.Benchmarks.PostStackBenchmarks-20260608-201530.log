@@ -1,0 +1,220 @@
+// Validating benchmarks:
+// ***** BenchmarkRunner: Start   *****
+// ***** Found 2 benchmark(s) in total *****
+// ***** Building 1 exe(s) in Parallel: Start   *****
+Unable to find .sln or .csproj file. Will use current directory /Users/kooshapari/CodeProjects/Phenotype/repos to search for project file. If you don't use .sln file on purpose it should not be a problem.
+// start dotnet  restore /p:UseSharedCompilation=false /p:BuildInParallel=false /m:1 /p:Deterministic=true /p:Optimize=true /p:IntermediateOutputPath="/Users/kooshapari/CodeProjects/Phenotype/repos/phenotype-postfx/tests/benchmarks/bin/Release/net9.0/a5beeff2-5976-446b-9559-9d33f65ec1a4/obj/Release/net9.0/" /p:OutDir="/Users/kooshapari/CodeProjects/Phenotype/repos/phenotype-postfx/tests/benchmarks/bin/Release/net9.0/a5beeff2-5976-446b-9559-9d33f65ec1a4/bin/Release/net9.0/" /p:OutputPath="/Users/kooshapari/CodeProjects/Phenotype/repos/phenotype-postfx/tests/benchmarks/bin/Release/net9.0/a5beeff2-5976-446b-9559-9d33f65ec1a4/bin/Release/net9.0/" in /Users/kooshapari/CodeProjects/Phenotype/repos/phenotype-postfx/tests/benchmarks/bin/Release/net9.0/a5beeff2-5976-446b-9559-9d33f65ec1a4
+// command took 2.63 sec and exited with 0
+// start dotnet  build -c Release --no-restore /p:UseSharedCompilation=false /p:BuildInParallel=false /m:1 /p:Deterministic=true /p:Optimize=true /p:IntermediateOutputPath="/Users/kooshapari/CodeProjects/Phenotype/repos/phenotype-postfx/tests/benchmarks/bin/Release/net9.0/a5beeff2-5976-446b-9559-9d33f65ec1a4/obj/Release/net9.0/" /p:OutDir="/Users/kooshapari/CodeProjects/Phenotype/repos/phenotype-postfx/tests/benchmarks/bin/Release/net9.0/a5beeff2-5976-446b-9559-9d33f65ec1a4/bin/Release/net9.0/" /p:OutputPath="/Users/kooshapari/CodeProjects/Phenotype/repos/phenotype-postfx/tests/benchmarks/bin/Release/net9.0/a5beeff2-5976-446b-9559-9d33f65ec1a4/bin/Release/net9.0/" --output "/Users/kooshapari/CodeProjects/Phenotype/repos/phenotype-postfx/tests/benchmarks/bin/Release/net9.0/a5beeff2-5976-446b-9559-9d33f65ec1a4/bin/Release/net9.0/" in /Users/kooshapari/CodeProjects/Phenotype/repos/phenotype-postfx/tests/benchmarks/bin/Release/net9.0/a5beeff2-5976-446b-9559-9d33f65ec1a4
+// command took 100.64 sec and exited with 0
+// ***** Done, took 00:04:41 (281.81 sec)   *****
+// Found 2 benchmarks:
+//   PostStackBenchmarks.'Material creation + property setup': Job-ZJIAJY(Runtime=.NET 9.0, IterationCount=5, LaunchCount=1, WarmupCount=3)
+//   PostStackBenchmarks.'Material creation + property setup': Dry(IterationCount=1, LaunchCount=1, RunStrategy=ColdStart, UnrollFactor=1, WarmupCount=1)
+
+// **************************
+// Benchmark: PostStackBenchmarks.'Material creation + property setup': Job-ZJIAJY(Runtime=.NET 9.0, IterationCount=5, LaunchCount=1, WarmupCount=3)
+// *** Execute ***
+// Launch: 1 / 1
+// Execute: dotnet a5beeff2-5976-446b-9559-9d33f65ec1a4.dll --anonymousPipes 82 109 --benchmarkName Phenotype.PostFx.Benchmarks.PostStackBenchmarks.MaterialCreation --job "Runtime=.NET 9.0, IterationCount=5, LaunchCount=1, WarmupCount=3" --benchmarkId 0 in /Users/kooshapari/CodeProjects/Phenotype/repos/phenotype-postfx/tests/benchmarks/bin/Release/net9.0/a5beeff2-5976-446b-9559-9d33f65ec1a4/bin/Release/net9.0
+// Failed to set up high priority (Permission denied). In order to run benchmarks with high priority, make sure you have the right permissions.
+// BeforeAnythingElse
+
+// Benchmark Process Environment Information:
+// BenchmarkDotNet v0.14.0
+// Runtime=.NET 9.0.5 (9.0.525.21509), Arm64 RyuJIT AdvSIMD
+// GC=Concurrent Workstation
+// HardwareIntrinsics=AdvSIMD,AES,CRC32,DP,RDM,SHA1,SHA256 VectorSize=128
+// Job: Job-QMFNOY(IterationCount=5, LaunchCount=1, WarmupCount=3)
+
+OverheadJitting  1: 1 op, 659500.00 ns, 659.5000 us/op
+WorkloadJitting  1: 1 op, 576125.00 ns, 576.1250 us/op
+
+OverheadJitting  2: 16 op, 1534875.00 ns, 95.9297 us/op
+WorkloadJitting  2: 16 op, 1825667.00 ns, 114.1042 us/op
+
+WorkloadPilot    1: 16 op, 7084.00 ns, 442.7500 ns/op
+WorkloadPilot    2: 32 op, 5417.00 ns, 169.2813 ns/op
+WorkloadPilot    3: 64 op, 6125.00 ns, 95.7031 ns/op
+WorkloadPilot    4: 128 op, 6167.00 ns, 48.1797 ns/op
+WorkloadPilot    5: 256 op, 63875.00 ns, 249.5117 ns/op
+WorkloadPilot    6: 512 op, 88542.00 ns, 172.9336 ns/op
+WorkloadPilot    7: 1024 op, 40708.00 ns, 39.7539 ns/op
+WorkloadPilot    8: 2048 op, 79000.00 ns, 38.5742 ns/op
+WorkloadPilot    9: 4096 op, 159709.00 ns, 38.9915 ns/op
+WorkloadPilot   10: 8192 op, 336792.00 ns, 41.1123 ns/op
+WorkloadPilot   11: 16384 op, 1332541.00 ns, 81.3318 ns/op
+WorkloadPilot   12: 32768 op, 2567750.00 ns, 78.3615 ns/op
+WorkloadPilot   13: 65536 op, 2665833.00 ns, 40.6774 ns/op
+WorkloadPilot   14: 131072 op, 5717584.00 ns, 43.6217 ns/op
+WorkloadPilot   15: 262144 op, 97103375.00 ns, 370.4200 ns/op
+WorkloadPilot   16: 524288 op, 33158833.00 ns, 63.2455 ns/op
+WorkloadPilot   17: 1048576 op, 8305292.00 ns, 7.9205 ns/op
+WorkloadPilot   18: 2097152 op, 24632292.00 ns, 11.7456 ns/op
+WorkloadPilot   19: 4194304 op, 44485959.00 ns, 10.6063 ns/op
+WorkloadPilot   20: 8388608 op, 73130125.00 ns, 8.7178 ns/op
+WorkloadPilot   21: 16777216 op, 710769708.00 ns, 42.3652 ns/op
+
+OverheadWarmup   1: 16777216 op, 373947958.00 ns, 22.2890 ns/op
+OverheadWarmup   2: 16777216 op, 52641916.00 ns, 3.1377 ns/op
+OverheadWarmup   3: 16777216 op, 46934292.00 ns, 2.7975 ns/op
+OverheadWarmup   4: 16777216 op, 51218667.00 ns, 3.0529 ns/op
+OverheadWarmup   5: 16777216 op, 49233708.00 ns, 2.9346 ns/op
+OverheadWarmup   6: 16777216 op, 165755375.00 ns, 9.8798 ns/op
+OverheadWarmup   7: 16777216 op, 56429459.00 ns, 3.3635 ns/op
+
+OverheadActual   1: 16777216 op, 99430875.00 ns, 5.9265 ns/op
+OverheadActual   2: 16777216 op, 107049292.00 ns, 6.3806 ns/op
+OverheadActual   3: 16777216 op, 53567709.00 ns, 3.1929 ns/op
+OverheadActual   4: 16777216 op, 78154875.00 ns, 4.6584 ns/op
+OverheadActual   5: 16777216 op, 70235334.00 ns, 4.1864 ns/op
+OverheadActual   6: 16777216 op, 47829375.00 ns, 2.8509 ns/op
+OverheadActual   7: 16777216 op, 74668167.00 ns, 4.4506 ns/op
+OverheadActual   8: 16777216 op, 55645167.00 ns, 3.3167 ns/op
+OverheadActual   9: 16777216 op, 59766208.00 ns, 3.5623 ns/op
+OverheadActual  10: 16777216 op, 154940458.00 ns, 9.2352 ns/op
+OverheadActual  11: 16777216 op, 67410542.00 ns, 4.0180 ns/op
+OverheadActual  12: 16777216 op, 47816709.00 ns, 2.8501 ns/op
+OverheadActual  13: 16777216 op, 67353625.00 ns, 4.0146 ns/op
+OverheadActual  14: 16777216 op, 83575833.00 ns, 4.9815 ns/op
+OverheadActual  15: 16777216 op, 49411125.00 ns, 2.9451 ns/op
+OverheadActual  16: 16777216 op, 55115209.00 ns, 3.2851 ns/op
+OverheadActual  17: 16777216 op, 415168250.00 ns, 24.7460 ns/op
+OverheadActual  18: 16777216 op, 52846459.00 ns, 3.1499 ns/op
+OverheadActual  19: 16777216 op, 346611416.00 ns, 20.6597 ns/op
+OverheadActual  20: 16777216 op, 72651292.00 ns, 4.3304 ns/op
+
+WorkloadWarmup   1: 16777216 op, 199347625.00 ns, 11.8820 ns/op
+WorkloadWarmup   2: 16777216 op, 420007125.00 ns, 25.0344 ns/op
+WorkloadWarmup   3: 16777216 op, 368336625.00 ns, 21.9546 ns/op
+
+// BeforeActualRun
+WorkloadActual   1: 16777216 op, 819314958.00 ns, 48.8350 ns/op
+WorkloadActual   2: 16777216 op, 137464958.00 ns, 8.1935 ns/op
+WorkloadActual   3: 16777216 op, 123758541.00 ns, 7.3766 ns/op
+WorkloadActual   4: 16777216 op, 125628125.00 ns, 7.4880 ns/op
+WorkloadActual   5: 16777216 op, 131166750.00 ns, 7.8181 ns/op
+
+// AfterActualRun
+WorkloadResult   1: 16777216 op, 68642020.00 ns, 4.0914 ns/op
+WorkloadResult   2: 16777216 op, 54935603.00 ns, 3.2744 ns/op
+WorkloadResult   3: 16777216 op, 56805187.00 ns, 3.3859 ns/op
+WorkloadResult   4: 16777216 op, 62343812.00 ns, 3.7160 ns/op
+// GC:  64 0 0 402653584 16777216
+// Threading:  0 0 16777216
+
+// AfterAll
+// Benchmark Process 90639 has exited with code 0.
+
+Mean = 3.617 ns, StdErr = 0.184 ns (5.08%), N = 4, StdDev = 0.368 ns
+Min = 3.274 ns, Q1 = 3.358 ns, Median = 3.551 ns, Q3 = 3.810 ns, Max = 4.091 ns
+IQR = 0.452 ns, LowerFence = 2.680 ns, UpperFence = 4.488 ns
+ConfidenceInterval = [1.241 ns; 5.993 ns] (CI 99.9%), Margin = 2.376 ns (65.70% of Mean)
+Skewness = 0.28, Kurtosis = 0.92, MValue = 2
+
+// ** Remained 1 (50.0%) benchmark(s) to run. Estimated finish 2026-06-08 20:20 (0h 0m from now) **
+// **************************
+// Benchmark: PostStackBenchmarks.'Material creation + property setup': Dry(IterationCount=1, LaunchCount=1, RunStrategy=ColdStart, UnrollFactor=1, WarmupCount=1)
+// *** Execute ***
+// Launch: 1 / 1
+// Execute: dotnet a5beeff2-5976-446b-9559-9d33f65ec1a4.dll --anonymousPipes 82 109 --benchmarkName Phenotype.PostFx.Benchmarks.PostStackBenchmarks.MaterialCreation --job Dry --benchmarkId 1 in /Users/kooshapari/CodeProjects/Phenotype/repos/phenotype-postfx/tests/benchmarks/bin/Release/net9.0/a5beeff2-5976-446b-9559-9d33f65ec1a4/bin/Release/net9.0
+// Failed to set up high priority (Permission denied). In order to run benchmarks with high priority, make sure you have the right permissions.
+// BeforeAnythingElse
+
+// Benchmark Process Environment Information:
+// BenchmarkDotNet v0.14.0
+// Runtime=.NET 9.0.5 (9.0.525.21509), Arm64 RyuJIT AdvSIMD
+// GC=Concurrent Workstation
+// HardwareIntrinsics=AdvSIMD,AES,CRC32,DP,RDM,SHA1,SHA256 VectorSize=128
+// Job: Dry(IterationCount=1, LaunchCount=1, RunStrategy=ColdStart, UnrollFactor=1, WarmupCount=1)
+
+// BeforeActualRun
+WorkloadActual   1: 1 op, 396875.00 ns, 396.8750 us/op
+
+// AfterActualRun
+WorkloadResult   1: 1 op, 396875.00 ns, 396.8750 us/op
+// GC:  0 0 0 784 1
+// Threading:  0 0 1
+
+// AfterAll
+// Benchmark Process 91082 has exited with code 0.
+
+Mean = 396.875 μs, StdErr = 0.000 μs (0.00%), N = 1, StdDev = 0.000 μs
+Min = 396.875 μs, Q1 = 396.875 μs, Median = 396.875 μs, Q3 = 396.875 μs, Max = 396.875 μs
+IQR = 0.000 μs, LowerFence = 396.875 μs, UpperFence = 396.875 μs
+ConfidenceInterval = [NaN μs; NaN μs] (CI 99.9%), Margin = NaN μs (NaN% of Mean)
+Skewness = NaN, Kurtosis = NaN, MValue = 2
+
+// ** Remained 0 (0.0%) benchmark(s) to run. Estimated finish 2026-06-08 20:20 (0h 0m from now) **
+// ***** BenchmarkRunner: Finish  *****
+
+// * Export *
+  BenchmarkDotNet.Artifacts/results/Phenotype.PostFx.Benchmarks.PostStackBenchmarks-report.csv
+  BenchmarkDotNet.Artifacts/results/Phenotype.PostFx.Benchmarks.PostStackBenchmarks-report-github.md
+  BenchmarkDotNet.Artifacts/results/Phenotype.PostFx.Benchmarks.PostStackBenchmarks-report.html
+
+// * Detailed results *
+PostStackBenchmarks.'Material creation + property setup': Job-ZJIAJY(Runtime=.NET 9.0, IterationCount=5, LaunchCount=1, WarmupCount=3)
+Runtime = .NET 9.0.5 (9.0.525.21509), Arm64 RyuJIT AdvSIMD; GC = Concurrent Workstation
+Mean = 3.617 ns, StdErr = 0.184 ns (5.08%), N = 4, StdDev = 0.368 ns
+Min = 3.274 ns, Q1 = 3.358 ns, Median = 3.551 ns, Q3 = 3.810 ns, Max = 4.091 ns
+IQR = 0.452 ns, LowerFence = 2.680 ns, UpperFence = 4.488 ns
+ConfidenceInterval = [1.241 ns; 5.993 ns] (CI 99.9%), Margin = 2.376 ns (65.70% of Mean)
+Skewness = 0.28, Kurtosis = 0.92, MValue = 2
+-------------------- Histogram --------------------
+[3.191 ns ; 3.799 ns) | @@@
+[3.799 ns ; 4.396 ns) | @
+---------------------------------------------------
+
+PostStackBenchmarks.'Material creation + property setup': Dry(IterationCount=1, LaunchCount=1, RunStrategy=ColdStart, UnrollFactor=1, WarmupCount=1)
+Runtime = .NET 9.0.5 (9.0.525.21509), Arm64 RyuJIT AdvSIMD; GC = Concurrent Workstation
+Mean = 396.875 μs, StdErr = 0.000 μs (0.00%), N = 1, StdDev = 0.000 μs
+Min = 396.875 μs, Q1 = 396.875 μs, Median = 396.875 μs, Q3 = 396.875 μs, Max = 396.875 μs
+IQR = 0.000 μs, LowerFence = 396.875 μs, UpperFence = 396.875 μs
+ConfidenceInterval = [NaN μs; NaN μs] (CI 99.9%), Margin = NaN μs (NaN% of Mean)
+Skewness = NaN, Kurtosis = NaN, MValue = 2
+-------------------- Histogram --------------------
+[396.875 μs ; 396.875 μs) | @
+---------------------------------------------------
+
+// * Summary *
+
+BenchmarkDotNet v0.14.0, macOS 26.6 (25G5028f) [Darwin 25.6.0]
+Apple M1 Pro, 1 CPU, 10 logical and 10 physical cores
+.NET SDK 9.0.300
+  [Host]     : .NET 9.0.5 (9.0.525.21509), Arm64 RyuJIT AdvSIMD
+  Job-ZJIAJY : .NET 9.0.5 (9.0.525.21509), Arm64 RyuJIT AdvSIMD
+  Dry        : .NET 9.0.5 (9.0.525.21509), Arm64 RyuJIT AdvSIMD
+
+Runtime=.NET 9.0  LaunchCount=1  
+
+| Method                               | Job        | IterationCount | RunStrategy | UnrollFactor | WarmupCount | Mean           | Error    | StdDev    | Gen0   | Allocated |
+|------------------------------------- |----------- |--------------- |------------ |------------- |------------ |---------------:|---------:|----------:|-------:|----------:|
+| 'Material creation + property setup' | Job-ZJIAJY | 5              | Default     | 16           | 3           |       3.617 ns | 2.376 ns | 0.3677 ns | 0.0038 |      24 B |
+| 'Material creation + property setup' | Dry        | 1              | ColdStart   | 1            | 1           | 396,875.000 ns |       NA | 0.0000 ns |      - |     784 B |
+
+// * Warnings *
+MinIterationTime
+  PostStackBenchmarks.'Material creation + property setup': Dry -> The minimum observed iteration time is 396.875μs which is very small. It's recommended to increase it to at least 100ms using more operations.
+
+// * Hints *
+Outliers
+  PostStackBenchmarks.'Material creation + property setup': Runtime=.NET 9.0, IterationCount=5, LaunchCount=1, WarmupCount=3 -> 1 outlier  was  removed (48.83 ns)
+
+// * Legends *
+  Mean      : Arithmetic mean of all measurements
+  Error     : Half of 99.9% confidence interval
+  StdDev    : Standard deviation of all measurements
+  Gen0      : GC Generation 0 collects per 1000 operations
+  Allocated : Allocated memory per single operation (managed only, inclusive, 1KB = 1024B)
+  1 ns      : 1 Nanosecond (0.000000001 sec)
+
+// * Diagnostic Output - MemoryDiagnoser *
+
+
+// ***** BenchmarkRunner: End *****
+Run time: 00:00:08 (8.37 sec), executed benchmarks: 2
+
+Global total time: 00:04:51 (291.2 sec), executed benchmarks: 2
+// * Artifacts cleanup *
+Artifacts cleanup is finished

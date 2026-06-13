@@ -1,0 +1,13 @@
+{
+  "generated_at": "2026-06-08T22:15:00Z",
+  "total_repos": 169,
+  "with_inventory": [
+    "HeliosCLI",
+    "helioscope"
+  ],
+  "with_linkme": [],
+  "with_ctor": [
+    "HeliosCLI",
+    "helioscope"
+  ]
+}

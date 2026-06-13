@@ -1,0 +1,50 @@
+{
+  "generated_at": "2026-06-08T00:00:00Z",
+  "archived": true,
+  "archived_repo": {
+    "name": "heliosBench",
+    "full_name": "KooshaPari/heliosBench",
+    "archived": true,
+    "pushed_at": "2026-06-01T05:25:22Z",
+    "description": "An internal tool or component for the Phenotype ecosystem.",
+    "html_url": "https://github.com/KooshaPari/heliosBench",
+    "pages_url": "https://kooshapari.github.io/heliosBench/",
+    "topics": ["benchmarks", "helios", "phenotype-org", "python"],
+    "open_issues_sample": [
+      {"number": 120, "title": "Item: heliosBench 102"},
+      {"number": 119, "title": "Item: heliosBench 107"},
+      {"number": 118, "title": "Item: heliosBench 112"},
+      {"number": 117, "title": "Item: heliosBench 88"},
+      {"number": 116, "title": "Item: heliosBench 115"}
+    ]
+  },
+  "search_methods": [
+    "gh api repos/KooshaPari/heliosBench/forks?sort=newest (returned 0 forks)",
+    "gh search repos 'helios-bench OR heliosbench user:KooshaPari'",
+    "gh search repos 'helios in:name user:KooshaPari' (scoped broader)",
+    "gh search repos 'bench user:KooshaPari' (scoped broader)"
+  ],
+  "candidates": [
+    {
+      "name": "Benchora",
+      "full_name": "KooshaPari/Benchora",
+      "archived": false,
+      "pushed_at": "2026-06-09T01:42:12Z",
+      "description": "Rust benchmarking and performance-testing framework for the Phenotype ecosystem — criterion-based load testing, regression tracking, and metrics",
+      "html_url": "https://github.com/KooshaPari/Benchora"
+    }
+  ],
+  "recommended_path": "KooshaPari/Benchora",
+  "recommendation_rationale": [
+    "Only candidate surfaced under KooshaPari with matching lineage (benchmarks/Phenotype-ecosystem focus).",
+    "Unarchived and actively maintained (pushed 2026-06-09).",
+    "Functionally supersedes heliosBench: same niche (Phenotype benchmarking) but rewritten in Rust with criterion, load testing, regression tracking.",
+    "heliosBench has zero forks, so no fork-network successor exists."
+  ],
+  "notable_negatives": [
+    "Zero forks of heliosBench (no fork-network successor).",
+    "No parent/source (heliosBench is not itself a fork).",
+    "No `Phenotype/helios*` successor in GitHub search (org-scoped queries returned no permission/result).",
+    "Third-party helios* repos in search are unrelated (oxidecomputer, a16z, etc.)."
+  ]
+}

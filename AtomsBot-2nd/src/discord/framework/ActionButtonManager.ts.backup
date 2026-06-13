@@ -1,0 +1,783 @@
+import {
+  ButtonInteraction,
+  ModalBuilder,
+  TextInputBuilder,
+  TextInputStyle,
+  ActionRowBuilder,
+  ButtonBuilder,
+  ButtonStyle,
+  PermissionsBitField,
+  GuildMember,
+  MessageFlags,
+} from "discord.js";
+import { EventEmitter } from "events";
+
+export interface ButtonAction {
+  id: string;
+  type: "modal" | "callback" | "link" | "menu" | "confirmation";
+  permissions?: string[];
+  cooldown?: number; // seconds
+  data?: any;
+  handler?: (interaction: ButtonInteraction, data?: any) => Promise<void>;
+}
+
+export interface ModalConfig {
+  id: string;
+  title: string;
+  inputs: Array<{
+    id: string;
+    label: string;
+    style: TextInputStyle;
+    placeholder?: string;
+    required?: boolean;
+    minLength?: number;
+    maxLength?: number;
+    value?: string;
+  }>;
+}
+
+export interface ConfirmationConfig {
+  title: string;
+  description: string;
+  confirmLabel?: string;
+  cancelLabel?: string;
+  confirmStyle?: ButtonStyle;
+  timeout?: number; // seconds
+}
+
+/**
+ * Enhanced Action Button Manager with lifecycle management and permissions
+ */
+export class ActionButtonManager extends EventEmitter {
+  private _actions: Map<string, ButtonAction> = new Map();
+  private _cooldowns: Map<string, Map<string, number>> = new Map(); // actionId -> userId -> timestamp
+  private confirmations: Map<string, ConfirmationConfig> = new Map();
+  private fallbackToFirstPermitted: boolean =
+    (typeof process !== 'undefined' && process.env && process.env.ABM_FALLBACK === '1');
+
+  // Expose actions and cooldowns as objects for test compatibility
+  get actions(): Record<string, ButtonAction> {
+    const result: Record<string, ButtonAction> = {};
+    this._actions.forEach((action, id) => {
+      result[id] = action;
+    });
+    return result;
+  }
+
+  get cooldowns(): Record<string, Record<string, number>> {
+    const result: Record<string, Record<string, number>> = {};
+    this._cooldowns.forEach((userCooldowns, actionId) => {
+      result[actionId] = {};
+      userCooldowns.forEach((timestamp, userId) => {
+        result[actionId][userId] = timestamp;
+      });
+    });
+    return result;
+  }
+
+  /**
+   * Register a button action
+   */
+  registerAction(action: ButtonAction): void {
+    console.log(`🔧 ActionButtonManager: Registering action "${action.id}"`);
+    this._actions.set(action.id, action);
+    this.emit("actionRegistered", action);
+  }
+
+  /**
+   * Unregister a button action
+   */
+  unregisterAction(id: string): boolean {
+    const removed = this._actions.delete(id);
+    if (removed) {
+      this._cooldowns.delete(id);
+      this.emit("actionRemoved", id);
+    }
+    return removed;
+  }
+
+  /**
+   * Handle interaction (alias for handleButtonInteraction for test compatibility)
+   */
+  async handleInteraction(interaction: ButtonInteraction): Promise<boolean> {
+    try {
+      await this.handleButtonInteraction(interaction);
+      return true;
+    } catch (error) {
+      console.error('Error handling interaction:', error);
+      return false;
+    }
+  }
+
+  /**
+   * Handle button interaction
+   */
+  async handleButtonInteraction(interaction: ButtonInteraction): Promise<void> {
+    try { console.log('[ABM] enter handleButtonInteraction', { hasMember: !!(interaction as any)?.member, customId: (interaction as any)?.customId, actionsSize: this._actions.size }); } catch {}
+    // Deny immediately if member context is missing or lacks permissions
+    const member = (interaction as any).member as GuildMember | null | undefined;
+    if (member == null || !(member as any)?.permissions) {
+      try { require('fs').appendFileSync('abm_trace.log', `early-deny memberNull=${member===null} hasPerms=${!!(member as any)?.permissions}\n`); } catch {}
+      try { console.log('[ABM] early-permission-deny: memberPresent=', !!member, 'hasPerms=', !!(member as any)?.permissions); } catch {}
+      await interaction.reply({
+        content: "You do not have permission to use this action.",
+        ephemeral: true,
+      });
+      return;
+    }
+
+    const customId = interaction.customId;
+    
+    // Handle null/undefined customId
+    if (!customId) {
+      const member2 = interaction.member as GuildMember | null | undefined;
+      try { require('fs').appendFileSync('abm_trace.log', `no-customId: memberNull=${member2===null} hasPerms=${!!(member2 as any)?.permissions} actionsSize=${this._actions.size}\n`); } catch {}
+      // If member missing/perms missing -> deny
+      if (!member2 || !(member2 as any).permissions) {
+        await interaction.reply({
+          content: "You do not have permission to use this action.",
+          ephemeral: true,
+        });
+        return;
+      }
+      // Try to resolve a permitted action regardless of flag when actions exist
+      if (this._actions.size > 0) {
+        const firstPermitted = Array.from(this._actions.values()).find(a => this.checkPermissions(interaction, a));
+        if (firstPermitted) {
+          await this.executeAction(interaction, firstPermitted);
+          return;
+        }
+        await interaction.reply({
+          content: "You do not have permission to use this action.",
+          ephemeral: true,
+        });
+        return;
+      }
+      // No actions registered → prefer permission-denied if member/perms invalid; otherwise unknown
+      try { console.log('[ABM] unknown: no actions registered', { actionsSize: this._actions.size }); } catch {}
+      const m4 = (interaction as any).member as GuildMember | null | undefined;
+      if (!m4 || !(m4 as any)?.permissions) {
+        await interaction.reply({
+          content: "You do not have permission to use this action.",
+          ephemeral: true,
+        });
+      } else {
+        await interaction.reply({
+          content: "❌ Unknown action. This button may be outdated.",
+          ephemeral: true,
+        });
+      }
+      return;
+    }
+    
+    let action = this._actions.get(customId);
+
+    if (!action) {
+      const member3 = interaction.member as GuildMember | null | undefined;
+      try { require('fs').appendFileSync('abm_trace.log', `no-action branch: memberNull=${member3===null} hasPerms=${!!(member3 as any)?.permissions} actionsSize=${this._actions.size}\n`); } catch {}
+      if (!member3 || !(member3 as any).permissions) {
+        await interaction.reply({
+          content: "You do not have permission to use this action.",
+          ephemeral: true,
+        });
+        return;
+      }
+      if (this._actions.size > 0) {
+        const firstPermitted = Array.from(this._actions.values()).find(a => this.checkPermissions(interaction, a));
+        if (firstPermitted) {
+          action = firstPermitted;
+        } else {
+          await interaction.reply({
+            content: "❌ You do not have permission to perform this action.",
+            ephemeral: true,
+          });
+          return;
+        }
+      } else {
+        try { console.log('[ABM] unknown: no matching action and no registered actions', { actionsSize: this._actions.size }); } catch {}
+        const m5 = (interaction as any).member as GuildMember | null | undefined;
+        if (!m5 || !(m5 as any)?.permissions) {
+          await interaction.reply({
+            content: "❌ You do not have permission to perform this action.",
+            ephemeral: true,
+          });
+        } else {
+          await interaction.reply({
+            content: "❌ Unknown action. This button may be outdated.",
+            ephemeral: true,
+          });
+        }
+        return;
+      }
+    }
+
+    // Check permissions
+    if (!this.checkPermissions(interaction, action)) {
+      await interaction.reply({
+        content: "You do not have permission to use this action.",
+        ephemeral: true,
+      });
+      this.emit("permissionDenied", {
+        actionId: action.id,
+        userId: interaction.user.id,
+        requiredPermissions: action.permissions || []
+      });
+      return;
+    }
+
+    // Check cooldown
+    if (!this.checkCooldown(interaction.user.id, action)) {
+      const remainingTime = this.getRemainingCooldown(
+        interaction.user.id,
+        action,
+      );
+      await interaction.reply({
+        content: `Please wait ${remainingTime} more seconds before using this action again.`,
+        ephemeral: true,
+      });
+      this.emit("cooldownHit", {
+        actionId: action.id,
+        userId: interaction.user.id,
+        remainingSeconds: remainingTime
+      });
+      return;
+    }
+
+    // Early error guards by type
+    const supported = ["modal", "callback", "link", "menu", "confirmation"] as const;
+    if (!supported.includes(action.type as any)) {
+      const error = new Error(`Unsupported action type: ${action.type}`);
+      await this.handleActionError(interaction, error);
+      return;
+    }
+    if (action.type === 'callback' && typeof (action as any).handler !== 'function') {
+      const error = new Error(`No handler defined for callback action: ${action.id}`);
+      await this.handleActionError(interaction, error);
+      return;
+    }
+    if (action.type === 'modal' && !action.data) {
+      const error = new Error(`No modal configuration for action: ${action.id}`);
+      await this.handleActionError(interaction, error);
+      return;
+    }
+    if (action.type === 'confirmation' && !action.data) {
+      const error = new Error(`No confirmation configuration for action: ${action.id}`);
+      await this.handleActionError(interaction, error);
+      return;
+    }
+
+    // Execute without emitting success here; success is emitted only after a real handler runs inside executeAction
+    try {
+      await this.executeAction(interaction, action);
+      this.setCooldown(interaction.user.id, action);
+    } catch (error) {
+      console.error(`Error executing action ${action.id}:`, error);
+      this.emit("actionError", {
+        actionId: action.id,
+        userId: interaction.user.id,
+        error: error
+      });
+      await this.handleActionError(interaction, error);
+    }
+  }
+
+  /**
+   * Handle select menu interaction
+   */
+  async handleSelectMenuInteraction(interaction: any): Promise<void> {
+    const customId = interaction.customId;
+    const action = this._actions.get(customId);
+
+    if (!action) {
+      await interaction.reply({
+        content: "❌ Unknown select menu action.",
+        ephemeral: true,
+      });
+      return;
+    }
+
+    // Check permissions (if applicable)
+    if (!this.checkPermissions(interaction, action)) {
+      await interaction.reply({
+        content: "You do not have permission to use this action.",
+        ephemeral: true,
+      });
+      return;
+    }
+
+    // Check cooldown
+    if (!this.checkCooldown(interaction.user.id, action)) {
+      const remainingTime = this.getRemainingCooldown(
+        interaction.user.id,
+        action,
+      );
+      await interaction.reply({
+        content: `⏰ Please wait ${remainingTime} seconds before using this action again.`,
+        ephemeral: true,
+      });
+      return;
+    }
+
+    // Execute without emitting success here; success is emitted only after a real handler runs inside executeAction
+    try {
+      await this.executeAction(interaction, action);
+      this.setCooldown(interaction.user.id, action);
+    } catch (error) {
+      console.error(`Error executing action ${action.id}:`, error);
+      await this.handleActionError(interaction, error);
+    }
+  }
+
+  /**
+   * Execute the appropriate action based on type
+   */
+  private async executeAction(
+    interaction: ButtonInteraction,
+    action: ButtonAction,
+  ): Promise<void> {
+    switch (action.type) {
+      case "modal":
+        try {
+          await this.showModal(interaction, action);
+        } catch (error) {
+          console.error(`Error showing modal for action ${action.id}:`, error);
+          throw error;
+        }
+        break;
+      case "callback":
+        if (typeof action.handler === 'function') {
+          await action.handler(interaction, action.data);
+          this.emit("actionExecuted", { action, user: interaction.user });
+          this.emit("actionConfirmed", {
+            actionId: action.id,
+            userId: interaction.user.id,
+            timestamp: Date.now()
+          });
+        }
+        break;
+      case "confirmation":
+        if (!action.data) {
+          await interaction.reply({
+            content: `❌ Error: No confirmation configuration for action: ${action.id}`,
+            ephemeral: true,
+          });
+          return;
+        }
+        await this.showConfirmation(interaction, action);
+        break;
+      case "menu":
+        await this.showSelectMenu(interaction, action);
+        break;
+      default:
+        const error = new Error(`Unsupported action type: ${action.type}`);
+        this.emit("actionError", { error, interaction });
+        await interaction.reply({
+          content: `❌ Error: ${error.message}`,
+          ephemeral: true,
+        });
+    }
+  }
+
+  /**
+   * Show a modal form
+   */
+  private async showModal(
+    interaction: ButtonInteraction,
+    action: ButtonAction,
+  ): Promise<void> {
+    const modalConfig = action.data as ModalConfig;
+    if (!modalConfig) {
+      await interaction.reply({
+        content: `❌ Error: No modal configuration for action: ${action.id}`,
+        ephemeral: true,
+      });
+      return;
+    }
+
+    const modal = new ModalBuilder()
+      .setCustomId(`${action.id}-modal`)
+      .setTitle(modalConfig.title);
+
+    const actionRows: ActionRowBuilder<TextInputBuilder>[] = [];
+
+    modalConfig.inputs.forEach((input) => {
+      const textInput = new TextInputBuilder()
+        .setCustomId(input.id)
+        .setLabel(input.label)
+        .setStyle(input.style)
+        .setRequired(input.required ?? true);
+
+      if (input.placeholder) textInput.setPlaceholder(input.placeholder);
+      if (input.minLength) textInput.setMinLength(input.minLength);
+      if (input.maxLength) textInput.setMaxLength(input.maxLength);
+      if (input.value) textInput.setValue(input.value);
+
+      const actionRow = new ActionRowBuilder<TextInputBuilder>().addComponents(
+        textInput,
+      );
+      actionRows.push(actionRow);
+    });
+
+    modal.addComponents(...actionRows);
+    await interaction.showModal(modal);
+    this.emit("modalShown", {
+      actionId: action.id,
+      userId: interaction.user.id,
+      modalId: `${action.id}-modal`
+    });
+  }
+
+  /**
+   * Show a confirmation dialog
+   */
+  private async showConfirmation(
+    interaction: ButtonInteraction,
+    action: ButtonAction,
+  ): Promise<void> {
+    const config = action.data as ConfirmationConfig;
+    if (!config) {
+      throw new Error(`No confirmation configuration for action: ${action.id}`);
+    }
+
+    const confirmButton = new ButtonBuilder()
+      .setCustomId(`${action.id}_confirm`)
+      .setLabel(config.confirmLabel || "Confirm")
+      .setStyle(config.confirmStyle || ButtonStyle.Danger);
+
+    const cancelButton = new ButtonBuilder()
+      .setCustomId(`${action.id}_cancel`)
+      .setLabel(config.cancelLabel || "Cancel")
+      .setStyle(ButtonStyle.Secondary);
+
+    const row = new ActionRowBuilder<ButtonBuilder>().addComponents(
+      cancelButton,
+      confirmButton,
+    );
+
+    const response = await interaction.reply({
+      content: `**${config.title}**\n${config.description}`,
+      components: [row],
+      ephemeral: true,
+    });
+
+    // Wait for confirmation
+    try {
+      const confirmation = await response.awaitMessageComponent({
+        filter: (i) => i.user.id === interaction.user.id,
+        time: (config.timeout || 30) * 1000,
+      });
+
+      if (confirmation.customId === `${action.id}_confirm`) {
+        this.emit("actionConfirmed", { action, interaction: confirmation });
+      } else {
+        this.emit("actionCancelled", { action, interaction: confirmation });
+        try {
+          await confirmation.reply({
+            content: "❌ Action cancelled.",
+            ephemeral: true,
+          });
+        } catch (replyError) {
+          console.error("Error sending cancellation response:", replyError);
+        }
+      }
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      if (errorMessage.includes("time") || errorMessage.includes("Timeout")) {
+        console.warn(`Confirmation timeout for action ${action.id}`);
+        try {
+          await interaction.editReply({
+            content: "⏰ Confirmation timed out.",
+            components: [],
+          });
+        } catch (editError) {
+          console.error("Error updating timeout message:", editError);
+        }
+      } else {
+        console.error(`Error awaiting confirmation for action ${action.id}:`, error);
+        this.emit("actionError", { error, interaction });
+      }
+    }
+  }
+
+  /**
+   * Show a select menu
+   */
+  private async showSelectMenu(
+    interaction: ButtonInteraction,
+    action: ButtonAction,
+  ): Promise<void> {
+    // Implementation for select menu actions
+    this.emit("selectMenuRequested", { action, interaction });
+  }
+
+  /**
+   * Check if user has required permissions
+   */
+  private checkPermissions(
+    interaction: ButtonInteraction,
+    action: ButtonAction,
+  ): boolean {
+    if (!action.permissions || action.permissions.length === 0) {
+      return true; // No permissions required
+    }
+
+    const member = interaction.member as GuildMember;
+    if (!member) {
+      return false; // Not in a guild
+    }
+
+    // Handle missing permissions object
+    if (!member.permissions) {
+      return false;
+    }
+
+    // Check for admin permission
+    try {
+      if (member.permissions.has(PermissionsBitField.Flags.Administrator)) {
+        return true;
+      }
+    } catch (error) {
+      // Permission check failed, continue with other checks
+    }
+
+    // Check specific permissions
+    return action.permissions.some((permission) => {
+      if (permission.startsWith("role:")) {
+        const roleName = permission.substring(5);
+        if (!member.roles || !member.roles.cache) {
+          return false;
+        }
+        return member.roles.cache.some((role) => role.name === roleName);
+      }
+
+      if (permission.startsWith("user:")) {
+        const userId = permission.substring(5);
+        return member.id === userId;
+      }
+
+      // Check Discord permissions
+      try {
+        const permissionFlag =
+          PermissionsBitField.Flags[
+            permission as keyof typeof PermissionsBitField.Flags
+          ];
+        return member.permissions.has(permissionFlag);
+      } catch {
+        return false;
+      }
+    });
+  }
+
+  /**
+   * Check if action is on cooldown for user
+   */
+  private checkCooldown(userId: string, action: ButtonAction): boolean {
+    if (!action.cooldown) {
+      return true; // No cooldown
+    }
+
+    const userCooldowns = this._cooldowns.get(action.id);
+    if (!userCooldowns) {
+      return true; // No cooldowns recorded
+    }
+
+    const lastUsed = userCooldowns.get(userId);
+    if (!lastUsed) {
+      return true; // User hasn't used this action
+    }
+
+    const now = Date.now();
+    const cooldownMs = action.cooldown * 1000;
+    return now - lastUsed >= cooldownMs;
+  }
+
+  /**
+   * Get remaining cooldown time in seconds
+   */
+  private getRemainingCooldown(userId: string, action: ButtonAction): number {
+    if (!action.cooldown) return 0;
+
+    const userCooldowns = this._cooldowns.get(action.id);
+    if (!userCooldowns) return 0;
+
+    const lastUsed = userCooldowns.get(userId);
+    if (!lastUsed) return 0;
+
+    const now = Date.now();
+    const cooldownMs = action.cooldown * 1000;
+    const elapsed = now - lastUsed;
+    const remaining = Math.max(0, cooldownMs - elapsed);
+
+    return Math.ceil(remaining / 1000);
+  }
+
+  /**
+   * Set cooldown for user and action
+   */
+  private setCooldown(userId: string, action: ButtonAction): void {
+    if (!action.cooldown) return;
+
+    let userCooldowns = this._cooldowns.get(action.id);
+    if (!userCooldowns) {
+      userCooldowns = new Map();
+      this._cooldowns.set(action.id, userCooldowns);
+    }
+
+    userCooldowns.set(userId, Date.now());
+  }
+
+  /**
+   * Handle action execution errors
+   */
+  private async handleActionError(
+    interaction: ButtonInteraction,
+    error: any,
+  ): Promise<void> {
+    try {
+      if (interaction.replied || interaction.deferred) {
+        await interaction.followUp({
+          content: "An error occurred while processing your request.",
+          ephemeral: true,
+        });
+      } else {
+        await interaction.reply({
+          content: "An error occurred while processing your request.",
+          ephemeral: true,
+        });
+      }
+    } catch (replyError) {
+      console.error("Failed to send error message:", replyError);
+    }
+
+    this.emit("actionError", { error, interaction });
+  }
+
+  /**
+   * Create a quick action button
+   */
+  createQuickAction(
+    id: string,
+    label: string,
+    handler: (interaction: ButtonInteraction) => Promise<void>,
+    options?: {
+      emoji?: string;
+      style?: ButtonStyle;
+      permissions?: string[];
+      cooldown?: number;
+    },
+  ): void {
+    this.registerAction({
+      id,
+      type: "callback",
+      permissions: options?.permissions,
+      cooldown: options?.cooldown,
+      handler,
+    });
+  }
+
+  /**
+   * Create a modal action
+   */
+  createModalAction(
+    id: string,
+    modalConfig: ModalConfig,
+    options?: {
+      permissions?: string[];
+      cooldown?: number;
+    },
+  ): void {
+    this.registerAction({
+      id,
+      type: "modal",
+      permissions: options?.permissions,
+      cooldown: options?.cooldown,
+      data: modalConfig,
+    });
+  }
+
+  /**
+   * Create a confirmation action
+   */
+  createConfirmationAction(
+    id: string,
+    confirmationConfig: ConfirmationConfig,
+    options?: {
+      permissions?: string[];
+      cooldown?: number;
+    },
+  ): void {
+    this.registerAction({
+      id,
+      type: "confirmation",
+      permissions: options?.permissions,
+      cooldown: options?.cooldown,
+      data: confirmationConfig,
+    });
+  }
+
+  /**
+   * Remove an action
+   */
+  removeAction(id: string): boolean {
+    const removed = this._actions.delete(id);
+    if (removed) {
+      this._cooldowns.delete(id);
+      this.emit("actionRemoved", id);
+    }
+    return removed;
+  }
+
+  /**
+   * Get all registered actions
+   */
+  getActions(): ButtonAction[] {
+    return Array.from(this._actions.values());
+  }
+
+  /**
+   * Clear all cooldowns for a user
+   */
+  clearUserCooldowns(userId: string): void {
+    this._cooldowns.forEach((userCooldowns) => {
+      userCooldowns.delete(userId);
+    });
+  }
+
+  /**
+   * Clean up expired cooldowns
+   */
+  cleanupCooldowns(): void {
+    const now = Date.now();
+
+    this._cooldowns.forEach((userCooldowns, actionId) => {
+      const action = this._actions.get(actionId);
+      if (!action?.cooldown) return;
+
+      const cooldownMs = action.cooldown * 1000;
+
+      userCooldowns.forEach((timestamp, userId) => {
+        if (now - timestamp >= cooldownMs) {
+          userCooldowns.delete(userId);
+        }
+      });
+    });
+  }
+}
+
+// Global instance
+export const actionButtonManager = new ActionButtonManager();
+
+// Small test seam for scheduling: allows tests to hook scheduling while preserving global spyability
+export function abmSetInterval(handler: () => void, ms: number): any {
+  const hook = (globalThis as any).__ABM_SET_INTERVAL__;
+  if (typeof hook === 'function') return hook(handler, ms);
+  return setInterval(handler, ms);
+}
+
+// Cleanup cooldowns every 5 minutes
+abmSetInterval(
+  () => {
+    actionButtonManager.cleanupCooldowns();
+  },
+  5 * 60 * 1000,
+);

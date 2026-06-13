@@ -1,0 +1,35 @@
+{
+  "generated_at": "2026-06-08",
+  "by_repo": [
+    {
+      "repo": "AppGen",
+      "markers": [],
+      "marker_count": 0
+    },
+    {
+      "repo": "BytePort",
+      "markers": ["Taskfile.yml", "justfile"],
+      "marker_count": 2
+    },
+    {
+      "repo": "chatta",
+      "markers": [],
+      "marker_count": 0
+    },
+    {
+      "repo": "slickport",
+      "markers": [],
+      "marker_count": 0
+    },
+    {
+      "repo": "localbase3",
+      "markers": [],
+      "marker_count": 0
+    }
+  ],
+  "summary": {
+    "repos_with_docker": 0,
+    "repos_with_vercel": 0,
+    "repos_with_helm": 0
+  }
+}

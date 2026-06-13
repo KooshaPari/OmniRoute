@@ -1,0 +1,101 @@
+{
+  "generated_at": "2026-06-07T09:18:28Z",
+  "total_repos": 168,
+  "with_rusqlite": [
+    ".claude",
+    "Agentora",
+    "AgilePlus",
+    "FocalPoint",
+    "HeliosLab",
+    "McpKit",
+    "PhenoDevOps",
+    "PhenoPlugins",
+    "PhenoProc",
+    "Pyron",
+    "Tracera",
+    "crates",
+    "pheno"
+  ],
+  "with_libsql": [],
+  "with_sqlx_sqlite": [],
+  "by_repo": [
+    {
+      "repo": ".claude",
+      "libs": [
+        "rusqlite"
+      ]
+    },
+    {
+      "repo": "Agentora",
+      "libs": [
+        "rusqlite"
+      ]
+    },
+    {
+      "repo": "AgilePlus",
+      "libs": [
+        "rusqlite"
+      ]
+    },
+    {
+      "repo": "FocalPoint",
+      "libs": [
+        "rusqlite"
+      ]
+    },
+    {
+      "repo": "HeliosLab",
+      "libs": [
+        "rusqlite"
+      ]
+    },
+    {
+      "repo": "McpKit",
+      "libs": [
+        "rusqlite"
+      ]
+    },
+    {
+      "repo": "PhenoDevOps",
+      "libs": [
+        "rusqlite"
+      ]
+    },
+    {
+      "repo": "PhenoPlugins",
+      "libs": [
+        "rusqlite"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "libs": [
+        "rusqlite"
+      ]
+    },
+    {
+      "repo": "Pyron",
+      "libs": [
+        "rusqlite"
+      ]
+    },
+    {
+      "repo": "Tracera",
+      "libs": [
+        "rusqlite"
+      ]
+    },
+    {
+      "repo": "crates",
+      "libs": [
+        "rusqlite"
+      ]
+    },
+    {
+      "repo": "pheno",
+      "libs": [
+        "rusqlite"
+      ]
+    }
+  ]
+}

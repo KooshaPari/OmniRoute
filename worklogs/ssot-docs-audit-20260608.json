@@ -1,0 +1,877 @@
+{
+  "generated_at": "2026-06-08T10:31:24Z",
+  "total_repos": 168,
+  "with_ssot_doc": [],
+  "with_dag_doc": [
+    "PhenoHandbook",
+    "Tracera",
+    "phenodocs",
+    "phenodocs-scorecard-remediation",
+    "thegent",
+    "thegent-clean-wt-docs",
+    "thegent-clean-wt-idea",
+    "thegent-clean-wt-parallel",
+    "thegent-clean-wt-policy",
+    "thegent-clean-wt-ruff"
+  ],
+  "with_traceability_doc": [
+    "Agentora",
+    "AgilePlus",
+    "Apisync",
+    "AtomsBot",
+    "AuthKit",
+    "BytePort",
+    "Civis",
+    "Conft",
+    "DevHex",
+    "Dino",
+    "Eidolon",
+    "FocalPoint",
+    "GDK",
+    "HeliosCLI",
+    "HeliosLab",
+    "HexaKit",
+    "Httpora",
+    "KDesktopVirt",
+    "KlipDot",
+    "MCPForge",
+    "McpKit",
+    "Metron",
+    "ObservabilityKit",
+    "OmniRoute",
+    "Paginary",
+    "Parpoura",
+    "PhenoAgent",
+    "PhenoCompose",
+    "PhenoDevOps",
+    "PhenoHandbook",
+    "PhenoKits",
+    "PhenoMCP",
+    "PhenoObservability",
+    "PhenoPlugins",
+    "PhenoProc",
+    "PhenoProject",
+    "PhenoRuntime",
+    "PhenoSpecs",
+    "PhenoVCS",
+    "Pine",
+    "Planify",
+    "PolicyStack",
+    "Pyron",
+    "QuadSGM",
+    "ResilienceKit",
+    "Sidekick",
+    "Tasken",
+    "TestingKit",
+    "Tokn",
+    "Tracely",
+    "Tracera",
+    "agent-devops-setups",
+    "agent-user-status",
+    "agentapi-plusplus",
+    "agileplus-landing",
+    "argis-extensions",
+    "byteport-landing",
+    "chatta",
+    "cheap-llm-mcp",
+    "cliproxyapi-plusplus",
+    "dinoforge-packs",
+    "eyetracker",
+    "foqos-private",
+    "heliosApp",
+    "heliosBench",
+    "helioscope",
+    "hwLedger",
+    "nanovms",
+    "netweave-final2",
+    "pheno",
+    "phenoAI",
+    "phenoData",
+    "phenoDesign",
+    "phenoForge",
+    "phenoResearchEngine",
+    "phenoShared",
+    "phenoUtils",
+    "phenoXdd",
+    "phenodocs",
+    "phenodocs-scorecard-remediation",
+    "phenotype-auth-ts",
+    "phenotype-bus",
+    "phenotype-hub",
+    "phenotype-infra",
+    "phenotype-journeys",
+    "phenotype-omlx",
+    "phenotype-ops-mcp",
+    "phenotype-org-audits",
+    "phenotype-registry",
+    "phenotype-tooling",
+    "portage",
+    "rich-cli-kit",
+    "thegent",
+    "thegent-clean-wt-docs",
+    "thegent-clean-wt-idea",
+    "thegent-clean-wt-parallel",
+    "thegent-clean-wt-policy",
+    "thegent-clean-wt-ruff",
+    "vibeproxy",
+    "vibeproxy-monitoring-unified"
+  ],
+  "with_canonical_doc": [
+    "OmniRoute",
+    "PhenoKits",
+    "Tracera",
+    "phenotype-infra",
+    "thegent",
+    "thegent-clean-wt-docs",
+    "thegent-clean-wt-idea",
+    "thegent-clean-wt-parallel",
+    "thegent-clean-wt-policy",
+    "thegent-clean-wt-ruff"
+  ],
+  "by_repo": [
+    {
+      "repo": "Agentora",
+      "files": [
+        "docs/operations/journey-traceability.md"
+      ]
+    },
+    {
+      "repo": "AgilePlus",
+      "files": [
+        "docs/operations/journey-traceability.md",
+        "docs/traceability.md"
+      ]
+    },
+    {
+      "repo": "Apisync",
+      "files": [
+        "docs/traceability/index.md"
+      ]
+    },
+    {
+      "repo": "AtomsBot",
+      "files": [
+        "docs/operations/journey-traceability.md"
+      ]
+    },
+    {
+      "repo": "AuthKit",
+      "files": [
+        "docs/operations/journey-traceability.md"
+      ]
+    },
+    {
+      "repo": "BytePort",
+      "files": [
+        "docs/operations/journey-traceability.md"
+      ]
+    },
+    {
+      "repo": "Civis",
+      "files": [
+        "docs/fragemented/traceability/EVENT_TAXONOMY.md",
+        "docs/fragemented/traceability/TRACEABILITY_MATRIX.md",
+        "docs/fragemented/traceability/index.md",
+        "docs/fragemented/traceability/merged.md",
+        "docs/operations/journey-traceability.md",
+        "docs/traceability/EVENT_TAXONOMY.md",
+        "docs/traceability/TRACEABILITY_MATRIX.md",
+        "docs/traceability/fr-3d-matrix.md",
+        "docs/traceability/fr-web-matrix.md",
+        "docs/traceability/index.md"
+      ]
+    },
+    {
+      "repo": "Conft",
+      "files": [
+        "docs/operations/journey-traceability.md"
+      ]
+    },
+    {
+      "repo": "DevHex",
+      "files": [
+        "docs/operations/journey-traceability.md"
+      ]
+    },
+    {
+      "repo": "Dino",
+      "files": [
+        "docs/operations/journey-traceability.md",
+        "docs/sessions/TRACEABILITY_VERIFICATION_20260420.md",
+        "docs/specs/traceability-matrix.md"
+      ]
+    },
+    {
+      "repo": "Eidolon",
+      "files": [
+        "docs/operations/journey-traceability.md"
+      ]
+    },
+    {
+      "repo": "FocalPoint",
+      "files": [
+        "docs/operations/journey-traceability.md"
+      ]
+    },
+    {
+      "repo": "GDK",
+      "files": [
+        "docs/operations/journey-traceability.md"
+      ]
+    },
+    {
+      "repo": "HeliosCLI",
+      "files": [
+        "docs/operations/journey-traceability.md"
+      ]
+    },
+    {
+      "repo": "HeliosLab",
+      "files": [
+        "docs/operations/journey-traceability.md",
+        "docs/traceability/index.md"
+      ]
+    },
+    {
+      "repo": "HexaKit",
+      "files": [
+        "docs/operations/journey-traceability.md",
+        "docs/reference/TRACEABILITY_MAP.md",
+        "docs/reports/FR_TRACEABILITY_COMPLETION.md"
+      ]
+    },
+    {
+      "repo": "Httpora",
+      "files": [
+        "docs/operations/journey-traceability.md",
+        "docs/traceability/index.md"
+      ]
+    },
+    {
+      "repo": "KDesktopVirt",
+      "files": [
+        "docs/operations/journey-traceability.md"
+      ]
+    },
+    {
+      "repo": "KlipDot",
+      "files": [
+        "docs/operations/journey-traceability.md"
+      ]
+    },
+    {
+      "repo": "MCPForge",
+      "files": [
+        "docs/operations/journey-traceability.md"
+      ]
+    },
+    {
+      "repo": "McpKit",
+      "files": [
+        "docs/operations/journey-traceability.md"
+      ]
+    },
+    {
+      "repo": "Metron",
+      "files": [
+        "docs/operations/journey-traceability.md"
+      ]
+    },
+    {
+      "repo": "ObservabilityKit",
+      "files": [
+        "docs/operations/journey-traceability.md"
+      ]
+    },
+    {
+      "repo": "OmniRoute",
+      "files": [
+        "docs/ADR-001-canonical-routing.md",
+        "docs/operations/journey-traceability.md",
+        "docs/ops/journey-traceability.md"
+      ]
+    },
+    {
+      "repo": "Paginary",
+      "files": [
+        "docs/operations/journey-traceability.md"
+      ]
+    },
+    {
+      "repo": "Parpoura",
+      "files": [
+        "docs/fragemented/traceability/CROSS_PROJECT_TRACEABILITY.md",
+        "docs/fragemented/traceability/EVENT_TAXONOMY.md",
+        "docs/fragemented/traceability/VENTURE_TRACEABILITY_MATRIX.md",
+        "docs/fragemented/traceability/index.md",
+        "docs/fragemented/traceability/merged.md",
+        "docs/operations/journey-traceability.md",
+        "docs/traceability/CROSS_PROJECT_TRACEABILITY.md",
+        "docs/traceability/EVENT_TAXONOMY.md",
+        "docs/traceability/VENTURE_TRACEABILITY_MATRIX.md"
+      ]
+    },
+    {
+      "repo": "PhenoAgent",
+      "files": [
+        "docs/operations/journey-traceability.md"
+      ]
+    },
+    {
+      "repo": "PhenoCompose",
+      "files": [
+        "docs/operations/journey-traceability.md",
+        "docs/traceability/index.md"
+      ]
+    },
+    {
+      "repo": "PhenoDevOps",
+      "files": [
+        "docs/operations/journey-traceability.md",
+        "docs/reference/TRACEABILITY_MAP.md",
+        "docs/reports/FR_TRACEABILITY_COMPLETION.md"
+      ]
+    },
+    {
+      "repo": "PhenoHandbook",
+      "files": [
+        "docs/governance/journey-traceability.md",
+        "docs/governance/stacked-prs/02-wbs-and-dag.md",
+        "docs/journeys/journey-traceability-catalog.md",
+        "docs/operations/journey-traceability.md"
+      ]
+    },
+    {
+      "repo": "PhenoKits",
+      "files": [
+        "docs/governance/shared-crates-canonical-home-adr-2026-04.md",
+        "docs/governance/tracera-canonical-routing-2026-04-26.md",
+        "docs/guides/docs/traceability/index.md",
+        "docs/operations/journey-traceability.md"
+      ]
+    },
+    {
+      "repo": "PhenoMCP",
+      "files": [
+        "docs/operations/journey-traceability.md"
+      ]
+    },
+    {
+      "repo": "PhenoObservability",
+      "files": [
+        "docs/operations/journey-traceability.md"
+      ]
+    },
+    {
+      "repo": "PhenoPlugins",
+      "files": [
+        "docs/operations/journey-traceability.md"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "files": [
+        "docs/operations/journey-traceability.md"
+      ]
+    },
+    {
+      "repo": "PhenoProject",
+      "files": [
+        "docs/operations/journey-traceability.md"
+      ]
+    },
+    {
+      "repo": "PhenoRuntime",
+      "files": [
+        "docs/operations/journey-traceability.md"
+      ]
+    },
+    {
+      "repo": "PhenoSpecs",
+      "files": [
+        "docs/library-research/docs/adrs/ADR-002-traceability-first-documentation.md",
+        "docs/operations/journey-traceability.md"
+      ]
+    },
+    {
+      "repo": "PhenoVCS",
+      "files": [
+        "docs/operations/journey-traceability.md"
+      ]
+    },
+    {
+      "repo": "Pine",
+      "files": [
+        "docs/operations/journey-traceability.md"
+      ]
+    },
+    {
+      "repo": "Planify",
+      "files": [
+        "docs/operations/journey-traceability.md"
+      ]
+    },
+    {
+      "repo": "PolicyStack",
+      "files": [
+        "docs/operations/journey-traceability.md",
+        "docs/traceability/index.md"
+      ]
+    },
+    {
+      "repo": "Pyron",
+      "files": [
+        "docs/reference/TRACEABILITY_MAP.md",
+        "docs/reports/FR_TRACEABILITY_COMPLETION.md"
+      ]
+    },
+    {
+      "repo": "QuadSGM",
+      "files": [
+        "docs/operations/journey-traceability.md"
+      ]
+    },
+    {
+      "repo": "ResilienceKit",
+      "files": [
+        "docs/operations/journey-traceability.md"
+      ]
+    },
+    {
+      "repo": "Sidekick",
+      "files": [
+        "docs/operations/journey-traceability.md"
+      ]
+    },
+    {
+      "repo": "Tasken",
+      "files": [
+        "docs/operations/journey-traceability.md",
+        "docs/traceability/index.md"
+      ]
+    },
+    {
+      "repo": "TestingKit",
+      "files": [
+        "docs/operations/journey-traceability.md"
+      ]
+    },
+    {
+      "repo": "Tokn",
+      "files": [
+        "docs/operations/journey-traceability.md",
+        "docs/traceability/index.md"
+      ]
+    },
+    {
+      "repo": "Tracely",
+      "files": [
+        "docs/operations/journey-traceability.md"
+      ]
+    },
+    {
+      "repo": "Tracera",
+      "files": [
+        "docs/02-architecture/archive/REQUIREMENTS_TRACEABILITY_ARCHITECTURE.md",
+        "docs/02-architecture/archive/REQUIREMENTS_TRACEABILITY_MASTER.md",
+        "docs/05-research/rtm-deep-dives/archive/REQUIREMENTS_TRACEABILITY_BEST_PRACTICES.md",
+        "docs/05-research/rtm-deep-dives/archive/REQUIREMENTS_TRACEABILITY_COMPARISON.md",
+        "docs/05-research/rtm-deep-dives/archive/REQUIREMENTS_TRACEABILITY_GETTING_STARTED.md",
+        "docs/05-research/rtm-deep-dives/archive/REQUIREMENTS_TRACEABILITY_INDEX.md",
+        "docs/05-research/rtm-deep-dives/archive/REQUIREMENTS_TRACEABILITY_MVP.md",
+        "docs/05-research/rtm-deep-dives/archive/REQUIREMENTS_TRACEABILITY_RESEARCH.md",
+        "docs/05-research/rtm-deep-dives/archive/REQUIREMENTS_TRACEABILITY_ROADMAP.md",
+        "docs/05-research/rtm-deep-dives/archive/REQUIREMENTS_TRACEABILITY_SPEC.md",
+        "docs/05-research/rtm-deep-dives/archive/REQUIREMENTS_TRACEABILITY_SUMMARY.md",
+        "docs/05-research/rtm-deep-dives/archive/REQUIREMENTS_TRACEABILITY_USECASES.md",
+        "docs/05-research/rtm-deep-dives/archive/REQUIREMENTS_TRACEABILITY_VISUAL_GUIDE.md",
+        "docs/GUIDES-ROOT/TRACEABILITY_SSOT_WALKTHROUGH.md",
+        "docs/guides/TRACEABILITY_SERVICE_IMPLEMENTATION.md",
+        "docs/guides/TRACEABILITY_SYSTEM_GUIDE.md",
+        "docs/guides/quick-start/TRACEABILITY_QUICK_START.md",
+        "docs/implementation/CANONICAL_SETUP_APPROACH.md",
+        "docs/operations/journey-traceability.md",
+        "docs/other/CANONICAL_SETUP_APPROACH.md",
+        "docs/reference/DESIGN_TRACEABILITY_ARCHITECTURE.md",
+        "docs/reference/TRACEABILITY-MATRIX-MAPPED.md",
+        "docs/reference/TRACEABILITY-MATRIX.md",
+        "docs/reference/TRACERTM_CANONICAL_FORMAT.md",
+        "docs/reference/WIREFRAME_TRACEABILITY_DIAGRAM.md",
+        "docs/reports/complete-traceability-matrix.md",
+        "docs/reports/test-traceability-complete.md",
+        "docs/services/traceability_matrix_service.md",
+        "docs/site/content/docs/00-getting-started/04-first-project/04-traceability/index.mdx",
+        "docs/site/content/docs/01-wiki/01-concepts/01-traceability/index.mdx",
+        "docs/site/content/docs/01-wiki/01-concepts/01a-traceability-matrix/index.mdx",
+        "docs/site/content/docs/01-wiki/03-examples/08-complete-feature-traceability/index.mdx",
+        "docs/site/content/docs/01-wiki/04-best-practices/03-traceability/index.mdx",
+        "docs/site/content/docs/03-development/04-internals/02-traceability-engine/index.mdx",
+        "docs/unified-plan/03-UNIFIED-DAG.md"
+      ]
+    },
+    {
+      "repo": "agent-devops-setups",
+      "files": [
+        "docs/operations/journey-traceability.md"
+      ]
+    },
+    {
+      "repo": "agent-user-status",
+      "files": [
+        "docs/operations/journey-traceability.md"
+      ]
+    },
+    {
+      "repo": "agentapi-plusplus",
+      "files": [
+        "docs/operations/journey-traceability.md"
+      ]
+    },
+    {
+      "repo": "agileplus-landing",
+      "files": [
+        "docs/operations/journey-traceability.md"
+      ]
+    },
+    {
+      "repo": "argis-extensions",
+      "files": [
+        "docs/operations/journey-traceability.md",
+        "docs/traceability/index.md"
+      ]
+    },
+    {
+      "repo": "byteport-landing",
+      "files": [
+        "docs/operations/journey-traceability.md"
+      ]
+    },
+    {
+      "repo": "chatta",
+      "files": [
+        "docs/operations/journey-traceability.md"
+      ]
+    },
+    {
+      "repo": "cheap-llm-mcp",
+      "files": [
+        "docs/operations/journey-traceability.md"
+      ]
+    },
+    {
+      "repo": "cliproxyapi-plusplus",
+      "files": [
+        "docs/operations/journey-traceability.md",
+        "docs/traceability/index.md"
+      ]
+    },
+    {
+      "repo": "dinoforge-packs",
+      "files": [
+        "docs/operations/journey-traceability.md"
+      ]
+    },
+    {
+      "repo": "eyetracker",
+      "files": [
+        "docs/operations/journey-traceability.md"
+      ]
+    },
+    {
+      "repo": "foqos-private",
+      "files": [
+        "docs/operations/journey-traceability.md"
+      ]
+    },
+    {
+      "repo": "heliosApp",
+      "files": [
+        "docs/operations/journey-traceability.md",
+        "docs/reference/FR_TRACEABILITY_GAPS.md",
+        "docs/specs/001-colab-agent-terminal-control-plane/tasks/WP07-protocol-boundary-delegation-and-traceability-gates.md"
+      ]
+    },
+    {
+      "repo": "heliosBench",
+      "files": [
+        "docs/operations/journey-traceability.md"
+      ]
+    },
+    {
+      "repo": "helioscope",
+      "files": [
+        "docs/operations/journey-traceability.md"
+      ]
+    },
+    {
+      "repo": "hwLedger",
+      "files": [
+        "docs/operations/journey-traceability.md"
+      ]
+    },
+    {
+      "repo": "nanovms",
+      "files": [
+        "docs/operations/journey-traceability.md",
+        "docs/traceability/index.md"
+      ]
+    },
+    {
+      "repo": "netweave-final2",
+      "files": [
+        "docs/operations/journey-traceability.md"
+      ]
+    },
+    {
+      "repo": "pheno",
+      "files": [
+        "docs/operations/journey-traceability.md",
+        "docs/reference/TRACEABILITY_MAP.md",
+        "docs/reports/FR_TRACEABILITY_COMPLETION.md"
+      ]
+    },
+    {
+      "repo": "phenoAI",
+      "files": [
+        "docs/operations/journey-traceability.md"
+      ]
+    },
+    {
+      "repo": "phenoData",
+      "files": [
+        "docs/operations/journey-traceability.md"
+      ]
+    },
+    {
+      "repo": "phenoDesign",
+      "files": [
+        "docs/operations/journey-traceability.md",
+        "docs/traceability/index.md"
+      ]
+    },
+    {
+      "repo": "phenoForge",
+      "files": [
+        "docs/absorbed/schemaforge/docs/traceability/index.md",
+        "docs/journeys/traceability.md",
+        "docs/traceability/index.md"
+      ]
+    },
+    {
+      "repo": "phenoResearchEngine",
+      "files": [
+        "docs/operations/journey-traceability.md",
+        "docs/traceability/index.md"
+      ]
+    },
+    {
+      "repo": "phenoShared",
+      "files": [
+        "docs/operations/journey-traceability.md"
+      ]
+    },
+    {
+      "repo": "phenoUtils",
+      "files": [
+        "docs/operations/journey-traceability.md"
+      ]
+    },
+    {
+      "repo": "phenoXdd",
+      "files": [
+        "docs/operations/journey-traceability.md",
+        "docs/traceability/index.md"
+      ]
+    },
+    {
+      "repo": "phenodocs",
+      "files": [
+        "docs/governance/stacked-prs/02-wbs-and-dag.md",
+        "docs/operations/journey-traceability.md"
+      ]
+    },
+    {
+      "repo": "phenodocs-scorecard-remediation",
+      "files": [
+        "docs/governance/stacked-prs/02-wbs-and-dag.md",
+        "docs/operations/journey-traceability.md"
+      ]
+    },
+    {
+      "repo": "phenotype-auth-ts",
+      "files": [
+        "docs/operations/journey-traceability.md"
+      ]
+    },
+    {
+      "repo": "phenotype-bus",
+      "files": [
+        "docs/operations/journey-traceability.md"
+      ]
+    },
+    {
+      "repo": "phenotype-hub",
+      "files": [
+        "docs/operations/journey-traceability.md"
+      ]
+    },
+    {
+      "repo": "phenotype-infra",
+      "files": [
+        "docs/adr/0006-vaultwarden-as-canonical-cred-store.md",
+        "docs/governance/journey-traceability-standard.md",
+        "docs/operations/journey-traceability.md",
+        "docs/runbooks/phase2-vaultwarden-canonical.md",
+        "docs/sessions/20260430-journey-traceability-standard/00_SESSION_OVERVIEW.md",
+        "docs/sessions/20260430-journey-traceability-standard/01_RESEARCH.md",
+        "docs/sessions/20260430-journey-traceability-standard/02_SPECIFICATIONS.md",
+        "docs/sessions/20260430-journey-traceability-standard/03_DAG_WBS.md",
+        "docs/sessions/20260430-journey-traceability-standard/04_IMPLEMENTATION_STRATEGY.md",
+        "docs/sessions/20260430-journey-traceability-standard/05_KNOWN_ISSUES.md",
+        "docs/sessions/20260430-journey-traceability-standard/06_TESTING_STRATEGY.md"
+      ]
+    },
+    {
+      "repo": "phenotype-journeys",
+      "files": [
+        "docs/journey-traceability.md",
+        "docs/operations/journey-traceability.md"
+      ]
+    },
+    {
+      "repo": "phenotype-omlx",
+      "files": [
+        "docs/operations/journey-traceability.md"
+      ]
+    },
+    {
+      "repo": "phenotype-ops-mcp",
+      "files": [
+        "docs/operations/journey-traceability.md"
+      ]
+    },
+    {
+      "repo": "phenotype-org-audits",
+      "files": [
+        "docs/operations/journey-traceability.md"
+      ]
+    },
+    {
+      "repo": "phenotype-registry",
+      "files": [
+        "docs/operations/journey-traceability.md"
+      ]
+    },
+    {
+      "repo": "phenotype-tooling",
+      "files": [
+        "docs/operations/journey-traceability.md"
+      ]
+    },
+    {
+      "repo": "portage",
+      "files": [
+        "docs/operations/journey-traceability.md",
+        "docs/traceability/index.md"
+      ]
+    },
+    {
+      "repo": "rich-cli-kit",
+      "files": [
+        "docs/operations/journey-traceability.md"
+      ]
+    },
+    {
+      "repo": "thegent",
+      "files": [
+        "docs/changes/cli-dag-extraction/design.md",
+        "docs/changes/cli-dag-extraction/plan.md",
+        "docs/changes/cli-dag-extraction/proposal.md",
+        "docs/changes/cli-dag-extraction/spec.md",
+        "docs/changes/cli-dag-extraction/tasks.md",
+        "docs/operations/journey-traceability.md",
+        "docs/plans/03-UNIFIED-DAG.md",
+        "docs/reference/CANONICAL_INVARIANT_PROSE.md",
+        "docs/reference/api/traceability_api.md",
+        "docs/research/COMPREHENSIVE_NON_CANONICAL_AUDIT.md",
+        "docs/traceability/index.md"
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-docs",
+      "files": [
+        "docs/changes/cli-dag-extraction/design.md",
+        "docs/changes/cli-dag-extraction/proposal.md",
+        "docs/changes/cli-dag-extraction/tasks.md",
+        "docs/reference/CANONICAL_INVARIANT_PROSE.md",
+        "docs/reference/api/traceability_api.md"
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-idea",
+      "files": [
+        "docs/changes/cli-dag-extraction/design.md",
+        "docs/changes/cli-dag-extraction/proposal.md",
+        "docs/changes/cli-dag-extraction/tasks.md",
+        "docs/operations/journey-traceability.md",
+        "docs/plans/03-UNIFIED-DAG.md",
+        "docs/reference/CANONICAL_INVARIANT_PROSE.md",
+        "docs/reference/api/traceability_api.md",
+        "docs/research/COMPREHENSIVE_NON_CANONICAL_AUDIT.md",
+        "docs/traceability/index.md"
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-parallel",
+      "files": [
+        "docs/changes/cli-dag-extraction/design.md",
+        "docs/changes/cli-dag-extraction/proposal.md",
+        "docs/changes/cli-dag-extraction/tasks.md",
+        "docs/operations/journey-traceability.md",
+        "docs/plans/03-UNIFIED-DAG.md",
+        "docs/reference/CANONICAL_INVARIANT_PROSE.md",
+        "docs/reference/api/traceability_api.md",
+        "docs/research/COMPREHENSIVE_NON_CANONICAL_AUDIT.md",
+        "docs/traceability/index.md"
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-policy",
+      "files": [
+        "docs/changes/cli-dag-extraction/design.md",
+        "docs/changes/cli-dag-extraction/proposal.md",
+        "docs/changes/cli-dag-extraction/tasks.md",
+        "docs/plans/03-UNIFIED-DAG.md",
+        "docs/reference/CANONICAL_INVARIANT_PROSE.md",
+        "docs/reference/api/traceability_api.md",
+        "docs/research/COMPREHENSIVE_NON_CANONICAL_AUDIT.md"
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-ruff",
+      "files": [
+        "docs/changes/cli-dag-extraction/design.md",
+        "docs/changes/cli-dag-extraction/proposal.md",
+        "docs/changes/cli-dag-extraction/tasks.md",
+        "docs/plans/03-UNIFIED-DAG.md",
+        "docs/reference/CANONICAL_INVARIANT_PROSE.md",
+        "docs/reference/api/traceability_api.md",
+        "docs/research/COMPREHENSIVE_NON_CANONICAL_AUDIT.md",
+        "docs/traceability/index.md"
+      ]
+    },
+    {
+      "repo": "vibeproxy",
+      "files": [
+        "docs/operations/journey-traceability.md",
+        "docs/traceability/index.md"
+      ]
+    },
+    {
+      "repo": "vibeproxy-monitoring-unified",
+      "files": [
+        "docs/operations/journey-traceability.md"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,29 @@
+{
+  "generated_at": "2026-06-09T02:07:17Z",
+  "total_repos": 123,
+  "by_lib": {
+    "diesel": [],
+    "sqlx": [
+      "HeliosCLI",
+      "KDesktopVirt",
+      "crates",
+      "helioscope"
+    ],
+    "sea_orm": [],
+    "prisma": [
+      "AtomsBot"
+    ],
+    "sqlalchemy": [
+      "Parpoura",
+      "PhenoObservability",
+      "QuadSGM",
+      "Tracera"
+    ],
+    "tortoise_orm": [],
+    "mongoose": [],
+    "gorm": [
+      "Tracera",
+      "chatta"
+    ]
+  }
+}

@@ -1,0 +1,138 @@
+{
+  "generated_at": "2026-06-07T00:00:00Z",
+  "total_repos": 168,
+  "with_ed25519_dalek": [
+    "FocalPoint",
+    "HexaKit",
+    "PhenoDevOps",
+    "PhenoProc",
+    "Pyron",
+    "crates",
+    "pheno",
+    "thegent",
+    "thegent-clean",
+    "thegent-clean-wt-docs",
+    "thegent-clean-wt-idea",
+    "thegent-clean-wt-parallel",
+    "thegent-clean-wt-policy",
+    "thegent-clean-wt-ruff"
+  ],
+  "with_ring": [
+    "KDesktopVirt"
+  ],
+  "with_rustls": [
+    "HeliosCLI",
+    "helioscope",
+    "phenoData"
+  ],
+  "by_repo": [
+    {
+      "repo": "FocalPoint",
+      "libs": [
+        "ed25519-dalek"
+      ]
+    },
+    {
+      "repo": "HeliosCLI",
+      "libs": [
+        "rustls"
+      ]
+    },
+    {
+      "repo": "HexaKit",
+      "libs": [
+        "ed25519-dalek"
+      ]
+    },
+    {
+      "repo": "KDesktopVirt",
+      "libs": [
+        "ring"
+      ]
+    },
+    {
+      "repo": "PhenoDevOps",
+      "libs": [
+        "ed25519-dalek"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "libs": [
+        "ed25519-dalek"
+      ]
+    },
+    {
+      "repo": "Pyron",
+      "libs": [
+        "ed25519-dalek"
+      ]
+    },
+    {
+      "repo": "crates",
+      "libs": [
+        "ed25519-dalek"
+      ]
+    },
+    {
+      "repo": "helioscope",
+      "libs": [
+        "rustls"
+      ]
+    },
+    {
+      "repo": "pheno",
+      "libs": [
+        "ed25519-dalek"
+      ]
+    },
+    {
+      "repo": "phenoData",
+      "libs": [
+        "rustls"
+      ]
+    },
+    {
+      "repo": "thegent",
+      "libs": [
+        "ed25519-dalek"
+      ]
+    },
+    {
+      "repo": "thegent-clean",
+      "libs": [
+        "ed25519-dalek"
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-docs",
+      "libs": [
+        "ed25519-dalek"
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-idea",
+      "libs": [
+        "ed25519-dalek"
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-parallel",
+      "libs": [
+        "ed25519-dalek"
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-policy",
+      "libs": [
+        "ed25519-dalek"
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-ruff",
+      "libs": [
+        "ed25519-dalek"
+      ]
+    }
+  ]
+}

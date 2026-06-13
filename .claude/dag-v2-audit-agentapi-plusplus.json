@@ -1,0 +1,140 @@
+{
+  "task": "DAG L1-2 audit",
+  "schema_version": "v2",
+  "generated_at": "2026-06-08T00:00:00Z",
+  "repo": "agentapi-plusplus",
+  "repo_path": "/Users/kooshapari/CodeProjects/Phenotype/repos/agentapi-plusplus",
+  "branch": "main",
+  "head_sha": "3b413fee1f2098419c7ce15e6494549e67b2667f",
+  "last_commit_date": "2026-06-08T19:14:26-07:00",
+  "last_commit_subject": "chore: add Justfile (DAG stage 4)",
+  "last_commit_author": "kooshapari",
+  "remotes": {
+    "origin": "https://github.com/KooshaPari/agentapi-plusplus.git",
+    "upstream": "https://github.com/coder/agentapi.git"
+  },
+  "language_stack": {
+    "detected": ["go", "typescript", "python", "openapi", "markdown", "yaml", "toml"],
+    "primary": "go",
+    "secondary": ["typescript", "python"],
+    "go": {
+      "module": "github.com/coder/agentapi",
+      "go_version": "1.24.6",
+      "toolchain": "go1.24.13",
+      "go_file_count": 72,
+      "router": "chi/v5",
+      "openapi_lib": "danielgtaylor/huma/v2",
+      "cli": "spf13/cobra + spf13/viper",
+      "logging": "log/slog (structured)",
+      "key_packages": ["lib/httpapi", "lib/termexec", "lib/screentracker", "lib/msgfmt", "lib/logctx", "lib/util", "internal/server", "internal/routing", "internal/harness", "internal/phenotype", "cmd/server", "cmd/attach", "cmd/bifrost"]
+    },
+    "typescript": {
+      "surface": "chat/ (Next.js 15.4.10 + React 19 + Tailwind v4 + Storybook 9)",
+      "ts_file_count": 30,
+      "ui_libs": ["@radix-ui/*", "lucide-react", "sonner", "react-dropzone"]
+    },
+    "python": {
+      "py_file_count": 2,
+      "surfaces": ["sdk/python/agentapi/api.py (OpenAPI-generated)", "examples/client-python.py"]
+    },
+    "sdks_generated": ["Go (sdk/openapi_agent_client_v1)", "Python (sdk/python/agentapi)"]
+  },
+  "hygiene_score": 95,
+  "hygiene_breakdown": [
+    {"item": "LICENSE", "present": true, "points": 10, "evidence": ["LICENSE (MIT)", "LICENSE-MIT", "LICENSE-APACHE (dual-licensed, recent commit a8363fb)"]},
+    {"item": "README", "present": true, "points": 10, "evidence": ["README.md (282 lines) with work-state banner, multi-agent matrix, endpoint list, install instructions"]},
+    {"item": "CHANGELOG", "present": true, "points": 10, "evidence": ["CHANGELOG.md (201 lines) covers v0.4.0 -> Unreleased with Fixes/Features/Docs subsections"]},
+    {"item": ".editorconfig", "present": true, "points": 10, "evidence": [".editorconfig (446 bytes)"]},
+    {"item": "CI", "present": true, "points": 10, "evidence": ["29 workflows in .github/workflows/ (ci, go-test, lint-test, codeql, sonarcloud, scorecard, license-compliance, journey-gate, policy-gate, quality-gate, security-guard, secrets-scan, trivy, zap-dast, iac-scan, fuzzing, release, etc.)"]},
+    {"item": "dependabot", "present": true, "points": 8, "evidence": [".github/dependabot.yml covers github-actions + gomod; no npm/typescript ecosystem for chat/ sub-project"]},
+    {"item": "CODEOWNERS", "present": true, "points": 10, "evidence": [".github/CODEOWNERS (paths for iac, .github, SECURITY.md, dependabot) + root CODEOWNERS alias"]},
+    {"item": "CONTRIBUTING", "present": true, "points": 7, "evidence": ["CONTRIBUTING.md exists but is only 8 lines, points to CLAUDE.md for branch-based protocol (thin)"]},
+    {"item": "SECURITY", "present": true, "points": 10, "evidence": ["SECURITY.md (30 lines) with reporting flow, supported-versions, 48h ack, 90d disclosure"]},
+    {"item": "FUNDING", "present": true, "points": 10, "evidence": ["FUNDING.yml + .github/FUNDING.yml (github: KooshaPari + custom URL)"]}
+  ],
+  "dup_exposure": {
+    "candidates": [
+      {"lib": "phenotype-bus", "use_case": "Replace ad-hoc internal eventing (lib/httpapi EventEmitter + internal/routing) with canonical bus for agent lifecycle events across 11 CLI harnesses"},
+      {"lib": "phenotype-request-id", "use_case": "Promote per-request id (already in lib/logctx) to canonical request_id propagation that also crosses SSE stream boundaries and chat (Next.js) SSR fetch boundary"},
+      {"lib": "phenotype-go-sdk", "use_case": "Consolidate the Go SDK (sdk/openapi_agent_client_v1) and the bundled coder/agentapi-sdk-go dependency under one local Go SDK monorepo"},
+      {"lib": "phenotype-registry", "use_case": "Unify harness registry (internal/harness: claude_harness, codex_harness, generic_harness, base, parse) and routing registry (internal/routing/agent_bifrost) under a canonical registry contract"},
+      {"lib": "phenotype-auth-ts", "use_case": "Wire the chat (Next.js 15) frontend to the shared auth SDK; today the chat has zero auth, talks to /v1/chat/completions unauthenticated"},
+      {"lib": "phenotype-py-extras", "use_case": "Add Python helpers around the auto-generated sdk/python/agentapi/api.py (today only 2 .py files, no test/typing extras)"},
+      {"lib": "phenotype-skills", "use_case": "Express the per-agent harness configuration (claude, codex, goose, aider, gemini, copilot, amp, auggie, cursor, amazonq, opencode) as phenotype skills instead of hard-coded Go maps in lib/msgfmt"},
+      {"lib": "phenotype-observability", "use_case": "Replace slog-only observability with PhenoObservability (OTel + Prometheus) -- currently zero OTel, zero Prometheus imports"},
+      {"lib": "phenotype-dep-guard", "use_case": "Centralize .golangci.yml + .pre-commit-config.yaml + dependabot.yml + go.mod constraint policy into a shared dep-guard config"},
+      {"lib": "phenotype-journeys", "use_case": "Wire the existing e2e/ subtests (which are flaky per the work-state banner) to the phenotype-journeys framework"}
+    ]
+  },
+  "sota_gaps": [
+    "No OpenTelemetry: zero `go.opentelemetry.io/*` imports; observability is slog-only (cmd/server + lib/httpapi use log/slog, no tracer propagation)",
+    "No Prometheus metrics endpoint: no /metrics, no promhttp, no expvar -- cannot alert on agent latency/error rate",
+    "No pprof endpoint: net/http/pprof not imported; on-call debugging requires live process attach",
+    "No rate limiting middleware on the httpapi server (chi middleware chain is Recoverer + Logger only)",
+    "No retry/backoff middleware for the agent harness PTY spawn (screentracker is the only abstraction over it)",
+    "SSOT.md exists (33 lines) but Architecture block is largely placeholders (\"Hexagonal: in progress\", Ports/Adapters/Domain: N/A) -- no real SSOT-driven design",
+    "internal/phenotype/init.go is a stub -- it only `MkdirAll` a `.phenotype` directory; the comment promises CGo bindings to pheno-ffi-go that are never linked in (go.mod has no CGo tags)",
+    "Chat (Next.js) has no authentication and no SSR request-id propagation; calls /v1/chat/completions directly",
+    "SSE stream (lib/httpapi/events.go) does not propagate request_id; client-side reconnect cannot correlate with server logs",
+    "Chat lacks i18n (no next-intl, no message catalog) -- only English copy",
+    "Chat is not deployed via the new docs-site VitePress pipeline (chat/ has its own gh-pages script, separate from docs/)",
+    "Tests are flaky per README work-state banner (\"huma/chat-embed CI + flaky e2e\") -- no quarantine mechanism",
+    "e2e binary build coordination is a recent fix (commit 15053c1) -- race-prone by design (per-process sync.Once + atomic rename)",
+    "Dual LICENSE files: LICENSE (MIT) + LICENSE-MIT + LICENSE-APACHE -- three license files for a project that until commit a8363fb had only one LICENSE",
+    "Branch is 9 ahead / 4 behind origin; no rebase-with-upstream workflow in CONTRIBUTING.md",
+    "OpenAPI schema is generated at build time (main.go: //go:generate) but openapi.json is checked in (33KB) and not regenerated in CI",
+    "No structured trace IDs in the agent handler logs (agent_handler.go uses plain slog without request context propagation from chi)",
+    "Coverage.out is checked into the repo (110KB) -- should be gitignored",
+    "No Dockerfile / OCI image for the server binary (only an install-from-curl-binary flow in README)",
+    "No Helm chart / k8s manifest for deployment (no /deploy or /charts directory)"
+  ],
+  "convergence_cluster": "multi-stack",
+  "convergence_rationale": "Primary Go HTTP service (72 .go files, chi + huma + cobra + slog) + Next.js 15/React 19 chat UI (30 .ts/.tsx) + auto-generated Python SDK (2 .py) + 11-agent CLI harness layer (internal/harness/*) + OpenAPI schema with generated clients. Spans 3 source languages plus generated client code; not a pure web stack (server is the product) and not pure convergence yet (SSOT is placeholders).",
+  "action_items": [
+    {
+      "priority": 1,
+      "title": "Wire OpenTelemetry SDK + Prometheus exporter into lib/httpapi and cmd/server",
+      "effort": "M",
+      "details": "Add go.opentelemetry.io/otel + otelhttp + otlp/grpc exporters, wrap chi with otelhttp.Middleware, expose /metrics (promhttp) and /debug/pprof. Replace slog-only observability. Closes the largest SOTA gap and unblocks downstream alerting.",
+      "depends_on": []
+    },
+    {
+      "priority": 2,
+      "title": "Adopt phenotype-request-id for end-to-end correlation across SSE streams and chat SSR",
+      "effort": "S",
+      "details": "lib/logctx already has WithRequestID/RequestID; swap chi.RequestID for phenotype-request-id middleware, propagate id into the SSE event emitter (lib/httpapi/events.go) and into Next.js server-side fetch via x-request-id header on the chat -> /v1/chat/completions path.",
+      "depends_on": []
+    },
+    {
+      "priority": 3,
+      "title": "Migrate chat (Next.js) to phenotype-auth-ts and add SSR request-id propagation",
+      "effort": "M",
+      "details": "Today the chat UI calls /v1/chat/completions unauthenticated and has no SSR-side request id. Wire phenotype-auth-ts, add a server-side wrapper that injects x-request-id from a per-request id, and gate the chat behind a session cookie.",
+      "depends_on": ["phenotype-request-id adoption"]
+    },
+    {
+      "priority": 4,
+      "title": "Replace ad-hoc internal eventing with phenotype-bus for the 11 agent lifecycle events",
+      "effort": "M",
+      "details": "Refactor lib/httpapi EventEmitter and internal/routing/agent_bifrost to publish agent.started / message.sent / message.delta / agent.idle / agent.errored onto phenotype-bus. Allows other services to subscribe without coupling to the chi router.",
+      "depends_on": []
+    },
+    {
+      "priority": 5,
+      "title": "Fill in the SSOT.md architecture block and convert the phenotype.Init stub into a real wiring",
+      "effort": "S",
+      "details": "SSOT.md is mostly placeholders. Either complete the Hexagonal section (define ports/adapters/domain) or downgrade the doc to a state snapshot. Wire internal/phenotype/init.go to the real phenotype-config SDK path, or delete the CGo comment in the package doc since the CGo library is never linked.",
+      "depends_on": []
+    }
+  ],
+  "notes": [
+    "Upstream is coder/agentapi; HEAD is 3b413fee with 9 local / 4 remote divergent commits. Seven fixes are 'staged for upstream' per README line 6.",
+    "AGENTS.md is project-level (8 lines, points to AgilePlus) and diverges from the deeper AGENTS.md convention used in other Phenotype repos.",
+    "chat/ is a standalone Next.js app (its own package.json, eslint config, .storybook) with no link from the Go module -- verify it builds in CI via the lint-test workflow.",
+    "Coverage artifact (coverage.out, 110KB) is tracked in git; recommend gitignore.",
+    "openapi.json is regenerated locally via `go generate` but not in CI; risk of doc drift.",
+    "SSOT.md was added in commit 6d5e705 ('docs: add SSOT.md') -- recent and intentionally minimal; not yet a real SSOT.",
+    "internal/phenotype/init.go's doc references a 'phenoconfig' CGo package that is not present in go.mod -- the package comment is aspirational and should either be wired or removed.",
+    "Recent focus areas per CHANGELOG: per-request-id structured logging (commit 4898161) and e2e race fixes (15053c1, a7f6394) -- observability maturity is rising but still pre-OTel."
+  ]
+}

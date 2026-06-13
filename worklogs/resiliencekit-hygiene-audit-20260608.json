@@ -1,0 +1,183 @@
+{
+  "generated_at": "2026-06-08T22:30:00Z",
+  "repo": "ResilienceKit",
+  "audit_type": "hygiene",
+  "total_checks": 16,
+  "present": {
+    "LICENSE": true,
+    "editorconfig": true,
+    "pre_commit_config": true,
+    "SECURITY_md": true,
+    "CONTRIBUTING_md": true,
+    "CODE_OF_CONDUCT_md": true,
+    "FUNDING_yml": true,
+    "CHANGELOG_md": true,
+    "ADR_md": true,
+    "CHARTER_md": true,
+    "CITATION_cff": true,
+    "PLAN_md": true,
+    "PRD_md": true,
+    "SPEC_md": true,
+    "README_md": true,
+    "CLAUDE_md": true,
+    "AGENTS_md": true,
+    "Taskfile_yml": true,
+    "deny_toml": true,
+    "renovate_json5": true,
+    "trufflehog_yml": true,
+    "gitignore": true,
+    "gitattributes": true,
+    "CODEOWNERS_at_github": true,
+    "PULL_REQUEST_TEMPLATE_md": true,
+    "ISSUE_TEMPLATE_dir": true,
+    "dependabot_yml": true,
+    "workflows_dir": true,
+    "Cargo_lock": true,
+    "uv_lock_files": 3,
+    "go_work": true,
+    "test_files": 11,
+    "conftest_py": true
+  },
+  "absent_or_issues": {
+    "CODEOWNERS_at_root": false,
+    "renovate_managers_configured": false,
+    "go_modules_present": false,
+    "CHANGELOG_unreleased_populated": false
+  },
+  "local_divergence": {
+    "main_ahead_of_origin_main": 1,
+    "ahead_commit": "e83f5f0",
+    "ahead_subject": "chore(snapshot): preserve ResilienceKit local dirty state 2026-06-07",
+    "ahead_author": "Phenotype Agent <agent@phenotype.ai>",
+    "ahead_files_changed": 9,
+    "diverged_local_branches": 19,
+    "open_prs": 0,
+    "worktrees": 1
+  },
+  "workflow_hygiene": {
+    "workflow_count": 9,
+    "sha_pinned": true,
+    "has_workflow_dispatch": true,
+    "has_concurrency_block": true,
+    "has_permissions_block": true,
+    "uses_ubuntu_24_04": true,
+    "trufflehog_rot_present": true,
+    "trufflehog_path": "trufflehog/actions/setup@f15cb8b37b9b70056bc82a8eb7151f75fad27a71",
+    "trufflehog_canonical_path": "trufflesecurity/trufflehog@75add79b929b263dae147d2e5bcf0daf292165cf",
+    "sha_drift_from_org_canonical": true,
+    "actions_checkout_pinned_sha": "df4cb1c069e1874edd31b4311f1884172cec0e10",
+    "actions_checkout_org_canonical": "34e114876b0b11c390a56381ad16ebd13914f8d5",
+    "duplicate_top_level_permissions_in_codeql_yml": true
+  },
+  "go_workspace_rot": {
+    "broken_modules_referenced": [
+      "./pheno-retry",
+      "./pheno-circuitbreaker",
+      "./pheno-bulkhead",
+      "./pheno-timeout"
+    ],
+    "go_mod_files_present": 0,
+    "go_build_status": "broken"
+  },
+  "rust_workspace": {
+    "members_declared": 5,
+    "members_named": [
+      "phenotype-async-traits",
+      "phenotype-error-core",
+      "phenotype-port-traits",
+      "phenotype-retry",
+      "phenotype-state-machine"
+    ]
+  },
+  "branch_inventory": {
+    "chore/add-reusable-workflows": {"ahead": 1, "behind": 61},
+    "chore/ci-test-floor": {"ahead": 2, "behind": 61},
+    "chore/enable-dependabot": {"ahead": 1, "behind": 61},
+    "chore/gitignore-worktrees-2026-04-26": {"ahead": 1, "behind": 55},
+    "chore/trusted-publishing": {"ahead": 11, "behind": 61},
+    "chore/workflow-hygiene-ubuntu-24": {"ahead": 0, "behind": 2},
+    "chore/worklog-seed-ResilienceKit": {"ahead": 1, "behind": 0},
+    "feat/add-trufflehog-20260502-b": {"ahead": 1, "behind": 18},
+    "feat/journey-impl": {"ahead": 2, "behind": 21},
+    "fix/async-traits-rand010-2026-05-04": {"ahead": 1, "behind": 7},
+    "fix/async-traits-rand010-resolved": {"ahead": 0, "behind": 1},
+    "fix/dead-dep-phenotype-error-core-2026-04-26": {"ahead": 1, "behind": 56},
+    "hyg/pre-commit-20260502": {"ahead": 1, "behind": 15},
+    "hygiene/20260430-sweep-1bb40b4": {"ahead": 1, "behind": 42},
+    "pr-59": {"ahead": 1, "behind": 7},
+    "pr-60": {"ahead": 1, "behind": 7},
+    "worktree-agent-a3d949545d3e60c28": {"ahead": 0, "behind": 7}
+  },
+  "severity_counts": {
+    "P0": 1,
+    "P1": 2,
+    "P2": 3,
+    "P3": 2
+  },
+  "findings": [
+    {
+      "id": "RKH-001",
+      "severity": "P0",
+      "category": "build-rotation",
+      "file": "go/go.work",
+      "issue": "go.work references 4 modules that do not exist in the repo (./pheno-retry, ./pheno-circuitbreaker, ./pheno-bulkhead, ./pheno-timeout). go/ contains only go.work; no go.mod files exist. go build ./... is broken.",
+      "fix": "Remove the 4 stale `use` entries; or land the matching Go modules under go/."
+    },
+    {
+      "id": "RKH-002",
+      "severity": "P1",
+      "category": "workflow-rot",
+      "file": ".github/workflows/trufflehog.yml:5",
+      "issue": "Uses trufflehog/actions/setup@f15cb8b37b9b70056bc82a8eb7151f75fad27a71. The trufflehog/actions repo 404s upstream (deleted). The org-canonical is trufflesecurity/trufflehog@75add79b929b263dae147d2e5bcf0daf292165cf.",
+      "fix": "Replace path+SHA with trufflesecurity/trufflehog@75add79b929b263dae147d2e5bcf0daf292165cf and migrate the `with:` block to path/base/head/extra_args."
+    },
+    {
+      "id": "RKH-003",
+      "severity": "P1",
+      "category": "branch-divergence",
+      "file": "local main",
+      "issue": "Local main is 1 commit ahead of origin/main (e83f5f0, snapshot). Snapshot improves workflow hygiene (workflow_dispatch, permissions, SHA pins) but the trufflehog rot it claims to fix is still present. CodeQL duplicate permissions: keys introduced. SHA drift from org-canonical (df4cb1c vs 34e114876).",
+      "fix": "Re-do the snapshot: fix trufflehog path, de-duplicate codeql.yml permissions, align SHA to 34e114876, push as PR."
+    },
+    {
+      "id": "RKH-004",
+      "severity": "P2",
+      "category": "branch-cleanup",
+      "file": "refs/heads/*",
+      "issue": "19 diverged local branches; 7 are 50+ commits behind main (vestigial snapshot-era branches). No open PRs tied to them.",
+      "fix": "Bulk-delete branches with ahead>0 && behind>50 && no open PR. Keep chore/worklog-seed-ResilienceKit, chore/workflow-hygiene-ubuntu-24, fix/async-traits-rand010-resolved for now."
+    },
+    {
+      "id": "RKH-005",
+      "severity": "P2",
+      "category": "renovate-config",
+      "file": "renovate.json5",
+      "issue": "Only extends config:base. No cargo, regex, or pep621 managers. With Rust workspace + 3 uv.lock files, Renovate cannot track these ecosystems.",
+      "fix": "Add cargo (rust/Cargo.toml), regex (deny.toml), and pep621 (pyproject.toml) matchManagers."
+    },
+    {
+      "id": "RKH-006",
+      "severity": "P2",
+      "category": "governance-coverage",
+      "file": "root",
+      "issue": "CODEOWNERS only at .github/CODEOWNERS; root /CODEOWNERS missing. Org-canonical pattern is /CODEOWNERS at root.",
+      "fix": "Copy .github/CODEOWNERS to /CODEOWNERS (or symlink) to match org-canonical."
+    },
+    {
+      "id": "RKH-007",
+      "severity": "P3",
+      "category": "docs-content",
+      "file": "CHANGELOG.md",
+      "issue": "Header present but [Unreleased] is empty. No entries since org-bootstrap (2026-04-30).",
+      "fix": "Add Unreleased entries for the 1 ahead commit and any pending PRs."
+    },
+    {
+      "id": "RKH-008",
+      "severity": "P3",
+      "category": "workflow-cosmetic",
+      "file": ".github/workflows/codeql.yml",
+      "issue": "actions/checkout SHA comment says # v4 in one step, # v4.1.1 in the original (now overwritten to # v4). Cosmetic drift, low impact.",
+      "fix": "Standardize to # v4 (matches snapshot intent)."
+    }
+  ]
+}

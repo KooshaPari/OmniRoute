@@ -1,0 +1,574 @@
+{
+  "generated_at": "2026-06-08T10:51:33Z",
+  "total_repos": 31,
+  "with_workspaces": [
+    "AgilePlus",
+    "Apisync",
+    "BytePort",
+    "Civis",
+    "Eidolon",
+    "FocalPoint",
+    "GDK",
+    "HeliosLab",
+    "HexaKit",
+    "PhenoDevOps",
+    "PhenoMCP",
+    "PhenoObservability",
+    "PhenoPlugins",
+    "PhenoProc",
+    "PhenoRuntime",
+    "PhenoVCS",
+    "PlayCua",
+    "Pyron",
+    "Sidekick",
+    "Tokn",
+    "Tracely",
+    "bare-cua",
+    "eyetracker",
+    "pheno",
+    "phenoAI",
+    "phenoData",
+    "phenoShared",
+    "phenoUtils",
+    "phenotype-journeys",
+    "phenotype-tooling",
+    "rich-cli-kit"
+  ],
+  "shared_paths": [
+    {
+      "path": ".",
+      "repos": [
+        "Apisync",
+        "GDK"
+      ]
+    },
+    {
+      "path": "Metron",
+      "repos": [
+        "HexaKit",
+        "Pyron"
+      ]
+    },
+    {
+      "path": "Traceon",
+      "repos": [
+        "HexaKit",
+        "Pyron"
+      ]
+    },
+    {
+      "path": "crates/agileplus-api",
+      "repos": [
+        "AgilePlus",
+        "PhenoDevOps"
+      ]
+    },
+    {
+      "path": "crates/agileplus-cache",
+      "repos": [
+        "AgilePlus",
+        "PhenoDevOps"
+      ]
+    },
+    {
+      "path": "crates/agileplus-cli",
+      "repos": [
+        "AgilePlus",
+        "PhenoDevOps"
+      ]
+    },
+    {
+      "path": "crates/agileplus-dashboard",
+      "repos": [
+        "AgilePlus",
+        "PhenoDevOps"
+      ]
+    },
+    {
+      "path": "crates/agileplus-domain",
+      "repos": [
+        "AgilePlus",
+        "PhenoDevOps"
+      ]
+    },
+    {
+      "path": "crates/agileplus-events",
+      "repos": [
+        "AgilePlus",
+        "PhenoDevOps"
+      ]
+    },
+    {
+      "path": "crates/agileplus-git",
+      "repos": [
+        "AgilePlus",
+        "PhenoDevOps"
+      ]
+    },
+    {
+      "path": "crates/agileplus-github",
+      "repos": [
+        "AgilePlus",
+        "PhenoDevOps"
+      ]
+    },
+    {
+      "path": "crates/agileplus-grpc",
+      "repos": [
+        "AgilePlus",
+        "PhenoDevOps"
+      ]
+    },
+    {
+      "path": "crates/agileplus-import",
+      "repos": [
+        "AgilePlus",
+        "PhenoDevOps"
+      ]
+    },
+    {
+      "path": "crates/agileplus-nats",
+      "repos": [
+        "AgilePlus",
+        "PhenoDevOps"
+      ]
+    },
+    {
+      "path": "crates/agileplus-p2p",
+      "repos": [
+        "AgilePlus",
+        "PhenoDevOps"
+      ]
+    },
+    {
+      "path": "crates/agileplus-plane",
+      "repos": [
+        "AgilePlus",
+        "PhenoDevOps"
+      ]
+    },
+    {
+      "path": "crates/agileplus-sqlite",
+      "repos": [
+        "AgilePlus",
+        "PhenoDevOps"
+      ]
+    },
+    {
+      "path": "crates/agileplus-telemetry",
+      "repos": [
+        "AgilePlus",
+        "PhenoDevOps"
+      ]
+    },
+    {
+      "path": "crates/agileplus-triage",
+      "repos": [
+        "AgilePlus",
+        "PhenoDevOps"
+      ]
+    },
+    {
+      "path": "crates/phenotype-async-traits",
+      "repos": [
+        "HexaKit",
+        "PhenoDevOps",
+        "PhenoProc",
+        "Pyron",
+        "pheno"
+      ]
+    },
+    {
+      "path": "crates/phenotype-bdd",
+      "repos": [
+        "HexaKit",
+        "PhenoProc",
+        "Pyron"
+      ]
+    },
+    {
+      "path": "crates/phenotype-cache-adapter",
+      "repos": [
+        "HexaKit",
+        "PhenoDevOps",
+        "PhenoProc",
+        "Pyron",
+        "pheno",
+        "phenoShared"
+      ]
+    },
+    {
+      "path": "crates/phenotype-casbin-wrapper",
+      "repos": [
+        "HexaKit",
+        "PhenoDevOps",
+        "pheno"
+      ]
+    },
+    {
+      "path": "crates/phenotype-compliance-scanner",
+      "repos": [
+        "HexaKit",
+        "Pyron"
+      ]
+    },
+    {
+      "path": "crates/phenotype-config-core",
+      "repos": [
+        "PhenoDevOps",
+        "PhenoProc",
+        "Pyron",
+        "phenoShared"
+      ]
+    },
+    {
+      "path": "crates/phenotype-config-loader",
+      "repos": [
+        "HexaKit",
+        "PhenoDevOps",
+        "PhenoProc"
+      ]
+    },
+    {
+      "path": "crates/phenotype-contract",
+      "repos": [
+        "HexaKit",
+        "PhenoDevOps",
+        "Pyron",
+        "pheno"
+      ]
+    },
+    {
+      "path": "crates/phenotype-contracts",
+      "repos": [
+        "HexaKit",
+        "PhenoDevOps",
+        "PhenoProc",
+        "Pyron",
+        "pheno",
+        "phenoShared"
+      ]
+    },
+    {
+      "path": "crates/phenotype-core",
+      "repos": [
+        "HexaKit",
+        "PhenoProc",
+        "Pyron"
+      ]
+    },
+    {
+      "path": "crates/phenotype-cost-core",
+      "repos": [
+        "HexaKit",
+        "PhenoDevOps"
+      ]
+    },
+    {
+      "path": "crates/phenotype-crypto",
+      "repos": [
+        "HexaKit",
+        "PhenoDevOps"
+      ]
+    },
+    {
+      "path": "crates/phenotype-error-core",
+      "repos": [
+        "HexaKit",
+        "PhenoDevOps",
+        "Pyron",
+        "pheno",
+        "phenoShared"
+      ]
+    },
+    {
+      "path": "crates/phenotype-error-macros",
+      "repos": [
+        "HexaKit",
+        "PhenoDevOps",
+        "PhenoProc",
+        "Pyron",
+        "pheno"
+      ]
+    },
+    {
+      "path": "crates/phenotype-errors",
+      "repos": [
+        "HexaKit",
+        "PhenoDevOps",
+        "PhenoProc",
+        "Pyron",
+        "pheno"
+      ]
+    },
+    {
+      "path": "crates/phenotype-event-bus",
+      "repos": [
+        "HexaKit",
+        "PhenoProc",
+        "Pyron"
+      ]
+    },
+    {
+      "path": "crates/phenotype-event-sourcing",
+      "repos": [
+        "HexaKit",
+        "PhenoDevOps",
+        "Pyron",
+        "pheno",
+        "phenoShared"
+      ]
+    },
+    {
+      "path": "crates/phenotype-git-core",
+      "repos": [
+        "HexaKit",
+        "PhenoDevOps"
+      ]
+    },
+    {
+      "path": "crates/phenotype-health",
+      "repos": [
+        "HexaKit",
+        "PhenoDevOps",
+        "PhenoProc",
+        "Pyron",
+        "pheno",
+        "phenoShared"
+      ]
+    },
+    {
+      "path": "crates/phenotype-http-client-core",
+      "repos": [
+        "HexaKit",
+        "PhenoDevOps",
+        "PhenoProc",
+        "Pyron",
+        "pheno"
+      ]
+    },
+    {
+      "path": "crates/phenotype-infrastructure",
+      "repos": [
+        "HexaKit",
+        "Pyron"
+      ]
+    },
+    {
+      "path": "crates/phenotype-iter",
+      "repos": [
+        "HexaKit",
+        "PhenoDevOps",
+        "Pyron",
+        "pheno"
+      ]
+    },
+    {
+      "path": "crates/phenotype-logging",
+      "repos": [
+        "HexaKit",
+        "PhenoDevOps"
+      ]
+    },
+    {
+      "path": "crates/phenotype-macros",
+      "repos": [
+        "HexaKit",
+        "PhenoDevOps"
+      ]
+    },
+    {
+      "path": "crates/phenotype-mcp",
+      "repos": [
+        "HexaKit",
+        "PhenoDevOps"
+      ]
+    },
+    {
+      "path": "crates/phenotype-mock",
+      "repos": [
+        "PhenoProc",
+        "Pyron"
+      ]
+    },
+    {
+      "path": "crates/phenotype-observably-macros",
+      "repos": [
+        "FocalPoint",
+        "PhenoObservability"
+      ]
+    },
+    {
+      "path": "crates/phenotype-policy-engine",
+      "repos": [
+        "HexaKit",
+        "PhenoDevOps",
+        "PhenoProc",
+        "Pyron",
+        "pheno",
+        "phenoShared"
+      ]
+    },
+    {
+      "path": "crates/phenotype-port-traits",
+      "repos": [
+        "HexaKit",
+        "PhenoDevOps",
+        "PhenoProc",
+        "Pyron",
+        "pheno"
+      ]
+    },
+    {
+      "path": "crates/phenotype-ports-canonical",
+      "repos": [
+        "HexaKit",
+        "PhenoDevOps"
+      ]
+    },
+    {
+      "path": "crates/phenotype-process",
+      "repos": [
+        "HexaKit",
+        "PhenoDevOps"
+      ]
+    },
+    {
+      "path": "crates/phenotype-project-registry",
+      "repos": [
+        "HexaKit",
+        "PhenoProc",
+        "Pyron"
+      ]
+    },
+    {
+      "path": "crates/phenotype-retry",
+      "repos": [
+        "PhenoDevOps",
+        "PhenoProc",
+        "Pyron",
+        "pheno"
+      ]
+    },
+    {
+      "path": "crates/phenotype-security-aggregator",
+      "repos": [
+        "HexaKit",
+        "HexaKit",
+        "Pyron"
+      ]
+    },
+    {
+      "path": "crates/phenotype-shared-config",
+      "repos": [
+        "HexaKit",
+        "PhenoDevOps"
+      ]
+    },
+    {
+      "path": "crates/phenotype-state-machine",
+      "repos": [
+        "HexaKit",
+        "PhenoDevOps",
+        "PhenoProc",
+        "Pyron",
+        "pheno",
+        "phenoShared"
+      ]
+    },
+    {
+      "path": "crates/phenotype-string",
+      "repos": [
+        "HexaKit",
+        "PhenoDevOps",
+        "PhenoProc",
+        "Pyron",
+        "pheno"
+      ]
+    },
+    {
+      "path": "crates/phenotype-telemetry",
+      "repos": [
+        "HexaKit",
+        "PhenoDevOps",
+        "PhenoProc",
+        "Pyron",
+        "pheno"
+      ]
+    },
+    {
+      "path": "crates/phenotype-test-fixtures",
+      "repos": [
+        "HexaKit",
+        "Pyron"
+      ]
+    },
+    {
+      "path": "crates/phenotype-test-infra",
+      "repos": [
+        "HexaKit",
+        "HexaKit",
+        "PhenoDevOps",
+        "Pyron",
+        "pheno"
+      ]
+    },
+    {
+      "path": "crates/phenotype-time",
+      "repos": [
+        "HexaKit",
+        "HexaKit",
+        "PhenoDevOps",
+        "PhenoProc",
+        "Pyron",
+        "pheno"
+      ]
+    },
+    {
+      "path": "crates/phenotype-validation",
+      "repos": [
+        "HexaKit",
+        "HexaKit",
+        "PhenoDevOps",
+        "PhenoProc",
+        "Pyron",
+        "pheno"
+      ]
+    },
+    {
+      "path": "crates/tracely-core",
+      "repos": [
+        "PhenoObservability",
+        "Tracely"
+      ]
+    },
+    {
+      "path": "crates/tracely-sentinel",
+      "repos": [
+        "PhenoObservability",
+        "Tracely"
+      ]
+    },
+    {
+      "path": "crates/worktree-manager",
+      "repos": [
+        "PhenoVCS",
+        "phenotype-tooling"
+      ]
+    },
+    {
+      "path": "forgecode-fork",
+      "repos": [
+        "HexaKit",
+        "PhenoDevOps"
+      ]
+    },
+    {
+      "path": "native",
+      "repos": [
+        "PlayCua",
+        "bare-cua"
+      ]
+    }
+  ]
+}

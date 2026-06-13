@@ -1,0 +1,1482 @@
+{
+  "generated_at": "2026-06-09T03:04:16+00:00",
+  "by_repo": [
+    {
+      "repo": ".agileplus",
+      "image_count": 0,
+      "has_assets_dir": false,
+      "has_inline_image": false,
+      "has_demo_link": false
+    },
+    {
+      "repo": ".claude",
+      "image_count": 0,
+      "has_assets_dir": false,
+      "has_inline_image": false,
+      "has_demo_link": false
+    },
+    {
+      "repo": ".git",
+      "image_count": 0,
+      "has_assets_dir": false,
+      "has_inline_image": false,
+      "has_demo_link": false
+    },
+    {
+      "repo": ".github",
+      "image_count": 0,
+      "has_assets_dir": false,
+      "has_inline_image": false,
+      "has_demo_link": false
+    },
+    {
+      "repo": ".mypy_cache",
+      "image_count": 0,
+      "has_assets_dir": false,
+      "has_inline_image": false,
+      "has_demo_link": false
+    },
+    {
+      "repo": ".pytest_cache",
+      "image_count": 0,
+      "has_assets_dir": false,
+      "has_inline_image": false,
+      "has_demo_link": false
+    },
+    {
+      "repo": ".remember",
+      "image_count": 0,
+      "has_assets_dir": false,
+      "has_inline_image": false,
+      "has_demo_link": false
+    },
+    {
+      "repo": ".serena",
+      "image_count": 0,
+      "has_assets_dir": false,
+      "has_inline_image": false,
+      "has_demo_link": false
+    },
+    {
+      "repo": "AgentMCP",
+      "image_count": 0,
+      "has_assets_dir": false,
+      "has_inline_image": false,
+      "has_demo_link": false
+    },
+    {
+      "repo": "Agentora",
+      "image_count": 6,
+      "has_assets_dir": false,
+      "has_inline_image": true,
+      "has_demo_link": false
+    },
+    {
+      "repo": "AgilePlus",
+      "image_count": 30,
+      "has_assets_dir": true,
+      "has_inline_image": false,
+      "has_demo_link": false
+    },
+    {
+      "repo": "Apisync",
+      "image_count": 0,
+      "has_assets_dir": false,
+      "has_inline_image": false,
+      "has_demo_link": false
+    },
+    {
+      "repo": "AppGen",
+      "image_count": 9,
+      "has_assets_dir": true,
+      "has_inline_image": false,
+      "has_demo_link": false
+    },
+    {
+      "repo": "AtomsBot",
+      "image_count": 13,
+      "has_assets_dir": true,
+      "has_inline_image": true,
+      "has_demo_link": true
+    },
+    {
+      "repo": "AtomsBot-2nd",
+      "image_count": 13,
+      "has_assets_dir": true,
+      "has_inline_image": true,
+      "has_demo_link": true
+    },
+    {
+      "repo": "AuthKit",
+      "image_count": 4,
+      "has_assets_dir": false,
+      "has_inline_image": true,
+      "has_demo_link": false
+    },
+    {
+      "repo": "Benchora",
+      "image_count": 2,
+      "has_assets_dir": false,
+      "has_inline_image": true,
+      "has_demo_link": false
+    },
+    {
+      "repo": "BytePort",
+      "image_count": 15,
+      "has_assets_dir": true,
+      "has_inline_image": true,
+      "has_demo_link": true
+    },
+    {
+      "repo": "Civis",
+      "image_count": 24,
+      "has_assets_dir": true,
+      "has_inline_image": true,
+      "has_demo_link": true
+    },
+    {
+      "repo": "Conft",
+      "image_count": 0,
+      "has_assets_dir": false,
+      "has_inline_image": false,
+      "has_demo_link": false
+    },
+    {
+      "repo": "Conft-4th",
+      "image_count": 0,
+      "has_assets_dir": false,
+      "has_inline_image": false,
+      "has_demo_link": false
+    },
+    {
+      "repo": "Conft-hygiene",
+      "image_count": 0,
+      "has_assets_dir": false,
+      "has_inline_image": false,
+      "has_demo_link": false
+    },
+    {
+      "repo": "DINOForge-UnityDoorstop",
+      "image_count": 3,
+      "has_assets_dir": true,
+      "has_inline_image": true,
+      "has_demo_link": false
+    },
+    {
+      "repo": "DataKit",
+      "image_count": 4,
+      "has_assets_dir": false,
+      "has_inline_image": true,
+      "has_demo_link": true
+    },
+    {
+      "repo": "DevHex",
+      "image_count": 7,
+      "has_assets_dir": false,
+      "has_inline_image": true,
+      "has_demo_link": false
+    },
+    {
+      "repo": "Dino",
+      "image_count": 211,
+      "has_assets_dir": true,
+      "has_inline_image": true,
+      "has_demo_link": true
+    },
+    {
+      "repo": "Eidolon",
+      "image_count": 6,
+      "has_assets_dir": true,
+      "has_inline_image": true,
+      "has_demo_link": false
+    },
+    {
+      "repo": "Eventra",
+      "image_count": 0,
+      "has_assets_dir": false,
+      "has_inline_image": false,
+      "has_demo_link": false
+    },
+    {
+      "repo": "FocalPoint",
+      "image_count": 46,
+      "has_assets_dir": true,
+      "has_inline_image": true,
+      "has_demo_link": true
+    },
+    {
+      "repo": "GDK",
+      "image_count": 8,
+      "has_assets_dir": false,
+      "has_inline_image": true,
+      "has_demo_link": true
+    },
+    {
+      "repo": "HeliosCLI",
+      "image_count": 25,
+      "has_assets_dir": true,
+      "has_inline_image": true,
+      "has_demo_link": true
+    },
+    {
+      "repo": "HeliosLab",
+      "image_count": 88,
+      "has_assets_dir": true,
+      "has_inline_image": true,
+      "has_demo_link": false
+    },
+    {
+      "repo": "HeliosLab-3rd",
+      "image_count": 88,
+      "has_assets_dir": true,
+      "has_inline_image": true,
+      "has_demo_link": false
+    },
+    {
+      "repo": "HeliosLab-4th",
+      "image_count": 88,
+      "has_assets_dir": true,
+      "has_inline_image": true,
+      "has_demo_link": false
+    },
+    {
+      "repo": "HeliosLab-hygiene2",
+      "image_count": 88,
+      "has_assets_dir": true,
+      "has_inline_image": true,
+      "has_demo_link": false
+    },
+    {
+      "repo": "HexaKit",
+      "image_count": 40,
+      "has_assets_dir": false,
+      "has_inline_image": false,
+      "has_demo_link": true
+    },
+    {
+      "repo": "Httpora",
+      "image_count": 3,
+      "has_assets_dir": false,
+      "has_inline_image": true,
+      "has_demo_link": false
+    },
+    {
+      "repo": "KDesktopVirt",
+      "image_count": 55,
+      "has_assets_dir": false,
+      "has_inline_image": true,
+      "has_demo_link": true
+    },
+    {
+      "repo": "KWatch",
+      "image_count": 28,
+      "has_assets_dir": false,
+      "has_inline_image": true,
+      "has_demo_link": true
+    },
+    {
+      "repo": "KWatch-docs",
+      "image_count": 28,
+      "has_assets_dir": false,
+      "has_inline_image": true,
+      "has_demo_link": true
+    },
+    {
+      "repo": "KaskMan",
+      "image_count": 0,
+      "has_assets_dir": false,
+      "has_inline_image": false,
+      "has_demo_link": false
+    },
+    {
+      "repo": "KlipDot",
+      "image_count": 1,
+      "has_assets_dir": false,
+      "has_inline_image": true,
+      "has_demo_link": true
+    },
+    {
+      "repo": "KodeVibe",
+      "image_count": 0,
+      "has_assets_dir": false,
+      "has_inline_image": false,
+      "has_demo_link": true
+    },
+    {
+      "repo": "KodeVibe-security-fixes",
+      "image_count": 0,
+      "has_assets_dir": false,
+      "has_inline_image": false,
+      "has_demo_link": true
+    },
+    {
+      "repo": "MCPForge",
+      "image_count": 7,
+      "has_assets_dir": false,
+      "has_inline_image": true,
+      "has_demo_link": true
+    },
+    {
+      "repo": "McpKit",
+      "image_count": 4,
+      "has_assets_dir": false,
+      "has_inline_image": true,
+      "has_demo_link": true
+    },
+    {
+      "repo": "Metron",
+      "image_count": 44,
+      "has_assets_dir": false,
+      "has_inline_image": true,
+      "has_demo_link": false
+    },
+    {
+      "repo": "NetScript",
+      "image_count": 1,
+      "has_assets_dir": false,
+      "has_inline_image": true,
+      "has_demo_link": false
+    },
+    {
+      "repo": "ObservabilityKit",
+      "image_count": 4,
+      "has_assets_dir": false,
+      "has_inline_image": true,
+      "has_demo_link": true
+    },
+    {
+      "repo": "Observably",
+      "image_count": 0,
+      "has_assets_dir": false,
+      "has_inline_image": false,
+      "has_demo_link": false
+    },
+    {
+      "repo": "OmniRoute",
+      "image_count": 65,
+      "has_assets_dir": true,
+      "has_inline_image": true,
+      "has_demo_link": true
+    },
+    {
+      "repo": "OmniRoute-2nd",
+      "image_count": 65,
+      "has_assets_dir": true,
+      "has_inline_image": true,
+      "has_demo_link": true
+    },
+    {
+      "repo": "OmniRoute-3rd",
+      "image_count": 65,
+      "has_assets_dir": true,
+      "has_inline_image": true,
+      "has_demo_link": true
+    },
+    {
+      "repo": "OmniRoute-dependabot",
+      "image_count": 65,
+      "has_assets_dir": true,
+      "has_inline_image": true,
+      "has_demo_link": true
+    },
+    {
+      "repo": "OmniRoute-latest",
+      "image_count": 0,
+      "has_assets_dir": false,
+      "has_inline_image": false,
+      "has_demo_link": false
+    },
+    {
+      "repo": "Paginary",
+      "image_count": 6,
+      "has_assets_dir": true,
+      "has_inline_image": true,
+      "has_demo_link": true
+    },
+    {
+      "repo": "Parpoura",
+      "image_count": 0,
+      "has_assets_dir": true,
+      "has_inline_image": false,
+      "has_demo_link": true
+    },
+    {
+      "repo": "Parpoura-3rd",
+      "image_count": 0,
+      "has_assets_dir": true,
+      "has_inline_image": false,
+      "has_demo_link": true
+    },
+    {
+      "repo": "Parpoura-4th",
+      "image_count": 0,
+      "has_assets_dir": true,
+      "has_inline_image": false,
+      "has_demo_link": true
+    },
+    {
+      "repo": "Parpoura-hygiene",
+      "image_count": 0,
+      "has_assets_dir": true,
+      "has_inline_image": false,
+      "has_demo_link": true
+    },
+    {
+      "repo": "PhenoAgent",
+      "image_count": 45,
+      "has_assets_dir": false,
+      "has_inline_image": true,
+      "has_demo_link": false
+    },
+    {
+      "repo": "PhenoCompose",
+      "image_count": 10,
+      "has_assets_dir": false,
+      "has_inline_image": true,
+      "has_demo_link": false
+    },
+    {
+      "repo": "PhenoContracts",
+      "image_count": 0,
+      "has_assets_dir": false,
+      "has_inline_image": false,
+      "has_demo_link": false
+    },
+    {
+      "repo": "PhenoControl",
+      "image_count": 0,
+      "has_assets_dir": false,
+      "has_inline_image": false,
+      "has_demo_link": false
+    },
+    {
+      "repo": "PhenoDevOps",
+      "image_count": 0,
+      "has_assets_dir": false,
+      "has_inline_image": false,
+      "has_demo_link": true
+    },
+    {
+      "repo": "PhenoEvents",
+      "image_count": 0,
+      "has_assets_dir": false,
+      "has_inline_image": false,
+      "has_demo_link": false
+    },
+    {
+      "repo": "PhenoHandbook",
+      "image_count": 3,
+      "has_assets_dir": false,
+      "has_inline_image": true,
+      "has_demo_link": true
+    },
+    {
+      "repo": "PhenoKits",
+      "image_count": 41,
+      "has_assets_dir": false,
+      "has_inline_image": false,
+      "has_demo_link": false
+    },
+    {
+      "repo": "PhenoLang",
+      "image_count": 0,
+      "has_assets_dir": false,
+      "has_inline_image": false,
+      "has_demo_link": false
+    },
+    {
+      "repo": "PhenoMCP",
+      "image_count": 29,
+      "has_assets_dir": false,
+      "has_inline_image": true,
+      "has_demo_link": false
+    },
+    {
+      "repo": "PhenoMCP-cheap",
+      "image_count": 29,
+      "has_assets_dir": false,
+      "has_inline_image": true,
+      "has_demo_link": false
+    },
+    {
+      "repo": "PhenoObservability",
+      "image_count": 24,
+      "has_assets_dir": false,
+      "has_inline_image": true,
+      "has_demo_link": true
+    },
+    {
+      "repo": "PhenoPlugins",
+      "image_count": 7,
+      "has_assets_dir": false,
+      "has_inline_image": true,
+      "has_demo_link": false
+    },
+    {
+      "repo": "PhenoProc",
+      "image_count": 3,
+      "has_assets_dir": false,
+      "has_inline_image": true,
+      "has_demo_link": false
+    },
+    {
+      "repo": "PhenoProc-security-fixes",
+      "image_count": 3,
+      "has_assets_dir": false,
+      "has_inline_image": true,
+      "has_demo_link": false
+    },
+    {
+      "repo": "PhenoProject",
+      "image_count": 4,
+      "has_assets_dir": false,
+      "has_inline_image": true,
+      "has_demo_link": false
+    },
+    {
+      "repo": "PhenoRuntime",
+      "image_count": 24,
+      "has_assets_dir": false,
+      "has_inline_image": true,
+      "has_demo_link": false
+    },
+    {
+      "repo": "PhenoSchema",
+      "image_count": 0,
+      "has_assets_dir": false,
+      "has_inline_image": false,
+      "has_demo_link": false
+    },
+    {
+      "repo": "PhenoSpecs",
+      "image_count": 3,
+      "has_assets_dir": false,
+      "has_inline_image": true,
+      "has_demo_link": true
+    },
+    {
+      "repo": "PhenoVCS",
+      "image_count": 26,
+      "has_assets_dir": false,
+      "has_inline_image": true,
+      "has_demo_link": false
+    },
+    {
+      "repo": "PhenoVCS-3rd",
+      "image_count": 26,
+      "has_assets_dir": false,
+      "has_inline_image": true,
+      "has_demo_link": false
+    },
+    {
+      "repo": "PhenoVCS-4th",
+      "image_count": 0,
+      "has_assets_dir": false,
+      "has_inline_image": false,
+      "has_demo_link": false
+    },
+    {
+      "repo": "PhenoVCS-hygiene",
+      "image_count": 26,
+      "has_assets_dir": false,
+      "has_inline_image": true,
+      "has_demo_link": false
+    },
+    {
+      "repo": "Pine",
+      "image_count": 0,
+      "has_assets_dir": false,
+      "has_inline_image": false,
+      "has_demo_link": false
+    },
+    {
+      "repo": "Planify",
+      "image_count": 6,
+      "has_assets_dir": false,
+      "has_inline_image": true,
+      "has_demo_link": false
+    },
+    {
+      "repo": "Planify-hygiene",
+      "image_count": 6,
+      "has_assets_dir": false,
+      "has_inline_image": true,
+      "has_demo_link": false
+    },
+    {
+      "repo": "PlatformKit",
+      "image_count": 0,
+      "has_assets_dir": false,
+      "has_inline_image": false,
+      "has_demo_link": true
+    },
+    {
+      "repo": "PlayCua",
+      "image_count": 4,
+      "has_assets_dir": false,
+      "has_inline_image": true,
+      "has_demo_link": true
+    },
+    {
+      "repo": "PolicyStack",
+      "image_count": 0,
+      "has_assets_dir": false,
+      "has_inline_image": false,
+      "has_demo_link": true
+    },
+    {
+      "repo": "Pyron",
+      "image_count": 0,
+      "has_assets_dir": false,
+      "has_inline_image": false,
+      "has_demo_link": true
+    },
+    {
+      "repo": "QuadSGM",
+      "image_count": 0,
+      "has_assets_dir": true,
+      "has_inline_image": false,
+      "has_demo_link": false
+    },
+    {
+      "repo": "ResilienceKit",
+      "image_count": 0,
+      "has_assets_dir": false,
+      "has_inline_image": false,
+      "has_demo_link": false
+    },
+    {
+      "repo": "Sidekick",
+      "image_count": 5,
+      "has_assets_dir": true,
+      "has_inline_image": true,
+      "has_demo_link": false
+    },
+    {
+      "repo": "Tasken",
+      "image_count": 44,
+      "has_assets_dir": false,
+      "has_inline_image": true,
+      "has_demo_link": false
+    },
+    {
+      "repo": "Tasken-3rd",
+      "image_count": 44,
+      "has_assets_dir": false,
+      "has_inline_image": true,
+      "has_demo_link": false
+    },
+    {
+      "repo": "TestingKit",
+      "image_count": 20,
+      "has_assets_dir": false,
+      "has_inline_image": false,
+      "has_demo_link": true
+    },
+    {
+      "repo": "Tokn",
+      "image_count": 44,
+      "has_assets_dir": false,
+      "has_inline_image": true,
+      "has_demo_link": true
+    },
+    {
+      "repo": "Tracely",
+      "image_count": 0,
+      "has_assets_dir": false,
+      "has_inline_image": false,
+      "has_demo_link": false
+    },
+    {
+      "repo": "Tracera",
+      "image_count": 6,
+      "has_assets_dir": false,
+      "has_inline_image": true,
+      "has_demo_link": true
+    },
+    {
+      "repo": "ValidationKit",
+      "image_count": 0,
+      "has_assets_dir": false,
+      "has_inline_image": false,
+      "has_demo_link": false
+    },
+    {
+      "repo": "agent-devops-setups",
+      "image_count": 9,
+      "has_assets_dir": false,
+      "has_inline_image": true,
+      "has_demo_link": true
+    },
+    {
+      "repo": "agent-platform",
+      "image_count": 0,
+      "has_assets_dir": false,
+      "has_inline_image": false,
+      "has_demo_link": false
+    },
+    {
+      "repo": "agent-user-status",
+      "image_count": 20,
+      "has_assets_dir": false,
+      "has_inline_image": false,
+      "has_demo_link": true
+    },
+    {
+      "repo": "agentapi-plusplus",
+      "image_count": 20,
+      "has_assets_dir": false,
+      "has_inline_image": false,
+      "has_demo_link": false
+    },
+    {
+      "repo": "agentops-policy-federation",
+      "image_count": 0,
+      "has_assets_dir": false,
+      "has_inline_image": false,
+      "has_demo_link": false
+    },
+    {
+      "repo": "agileplus-agents",
+      "image_count": 0,
+      "has_assets_dir": false,
+      "has_inline_image": false,
+      "has_demo_link": false
+    },
+    {
+      "repo": "agslag-docs",
+      "image_count": 0,
+      "has_assets_dir": false,
+      "has_inline_image": false,
+      "has_demo_link": false
+    },
+    {
+      "repo": "apps",
+      "image_count": 0,
+      "has_assets_dir": false,
+      "has_inline_image": false,
+      "has_demo_link": false
+    },
+    {
+      "repo": "argis-extensions",
+      "image_count": 41,
+      "has_assets_dir": false,
+      "has_inline_image": false,
+      "has_demo_link": false
+    },
+    {
+      "repo": "bare-cua",
+      "image_count": 4,
+      "has_assets_dir": false,
+      "has_inline_image": true,
+      "has_demo_link": true
+    },
+    {
+      "repo": "chatta",
+      "image_count": 12,
+      "has_assets_dir": true,
+      "has_inline_image": true,
+      "has_demo_link": true
+    },
+    {
+      "repo": "cheap-llm-mcp",
+      "image_count": 24,
+      "has_assets_dir": false,
+      "has_inline_image": true,
+      "has_demo_link": true
+    },
+    {
+      "repo": "cheap-llm-mcp-deprecate",
+      "image_count": 24,
+      "has_assets_dir": false,
+      "has_inline_image": true,
+      "has_demo_link": true
+    },
+    {
+      "repo": "cheap-llm-mcp-t1-19",
+      "image_count": 24,
+      "has_assets_dir": false,
+      "has_inline_image": true,
+      "has_demo_link": true
+    },
+    {
+      "repo": "cliproxyapi-plusplus",
+      "image_count": 47,
+      "has_assets_dir": true,
+      "has_inline_image": true,
+      "has_demo_link": false
+    },
+    {
+      "repo": "crates",
+      "image_count": 0,
+      "has_assets_dir": false,
+      "has_inline_image": false,
+      "has_demo_link": false
+    },
+    {
+      "repo": "default",
+      "image_count": 0,
+      "has_assets_dir": false,
+      "has_inline_image": false,
+      "has_demo_link": false
+    },
+    {
+      "repo": "dinoforge-packs",
+      "image_count": 0,
+      "has_assets_dir": false,
+      "has_inline_image": false,
+      "has_demo_link": true
+    },
+    {
+      "repo": "dispatch-mcp",
+      "image_count": 0,
+      "has_assets_dir": false,
+      "has_inline_image": false,
+      "has_demo_link": true
+    },
+    {
+      "repo": "dispatch-mcp-t1-0",
+      "image_count": 0,
+      "has_assets_dir": false,
+      "has_inline_image": false,
+      "has_demo_link": true
+    },
+    {
+      "repo": "dispatch-mcp-t1-1",
+      "image_count": 0,
+      "has_assets_dir": false,
+      "has_inline_image": false,
+      "has_demo_link": true
+    },
+    {
+      "repo": "dispatch-mcp-t1-2",
+      "image_count": 0,
+      "has_assets_dir": false,
+      "has_inline_image": false,
+      "has_demo_link": true
+    },
+    {
+      "repo": "dispatch-mcp-t1-3",
+      "image_count": 0,
+      "has_assets_dir": false,
+      "has_inline_image": false,
+      "has_demo_link": true
+    },
+    {
+      "repo": "dispatch-mcp-t1-4",
+      "image_count": 0,
+      "has_assets_dir": false,
+      "has_inline_image": false,
+      "has_demo_link": true
+    },
+    {
+      "repo": "dispatch-mcp-t1-5",
+      "image_count": 0,
+      "has_assets_dir": false,
+      "has_inline_image": false,
+      "has_demo_link": true
+    },
+    {
+      "repo": "docs",
+      "image_count": 0,
+      "has_assets_dir": false,
+      "has_inline_image": false,
+      "has_demo_link": false
+    },
+    {
+      "repo": "docs-site",
+      "image_count": 0,
+      "has_assets_dir": false,
+      "has_inline_image": false,
+      "has_demo_link": false
+    },
+    {
+      "repo": "examples",
+      "image_count": 0,
+      "has_assets_dir": false,
+      "has_inline_image": false,
+      "has_demo_link": false
+    },
+    {
+      "repo": "eyetracker",
+      "image_count": 21,
+      "has_assets_dir": false,
+      "has_inline_image": true,
+      "has_demo_link": false
+    },
+    {
+      "repo": "forgecode",
+      "image_count": 1,
+      "has_assets_dir": false,
+      "has_inline_image": true,
+      "has_demo_link": false
+    },
+    {
+      "repo": "frontend",
+      "image_count": 0,
+      "has_assets_dir": false,
+      "has_inline_image": false,
+      "has_demo_link": false
+    },
+    {
+      "repo": "fuzz",
+      "image_count": 0,
+      "has_assets_dir": false,
+      "has_inline_image": false,
+      "has_demo_link": false
+    },
+    {
+      "repo": "helios-router",
+      "image_count": 9,
+      "has_assets_dir": true,
+      "has_inline_image": false,
+      "has_demo_link": false
+    },
+    {
+      "repo": "heliosApp",
+      "image_count": 5,
+      "has_assets_dir": false,
+      "has_inline_image": true,
+      "has_demo_link": true
+    },
+    {
+      "repo": "heliosBench",
+      "image_count": 41,
+      "has_assets_dir": false,
+      "has_inline_image": true,
+      "has_demo_link": false
+    },
+    {
+      "repo": "heliosHarness",
+      "image_count": 0,
+      "has_assets_dir": false,
+      "has_inline_image": false,
+      "has_demo_link": false
+    },
+    {
+      "repo": "helioscope",
+      "image_count": 25,
+      "has_assets_dir": true,
+      "has_inline_image": true,
+      "has_demo_link": true
+    },
+    {
+      "repo": "hwLedger",
+      "image_count": 25,
+      "has_assets_dir": false,
+      "has_inline_image": true,
+      "has_demo_link": true
+    },
+    {
+      "repo": "kmobile",
+      "image_count": 3,
+      "has_assets_dir": false,
+      "has_inline_image": true,
+      "has_demo_link": true
+    },
+    {
+      "repo": "libs",
+      "image_count": 0,
+      "has_assets_dir": false,
+      "has_inline_image": false,
+      "has_demo_link": false
+    },
+    {
+      "repo": "localbase3",
+      "image_count": 0,
+      "has_assets_dir": false,
+      "has_inline_image": false,
+      "has_demo_link": false
+    },
+    {
+      "repo": "melosviz",
+      "image_count": 0,
+      "has_assets_dir": false,
+      "has_inline_image": false,
+      "has_demo_link": false
+    },
+    {
+      "repo": "nanovms",
+      "image_count": 4,
+      "has_assets_dir": false,
+      "has_inline_image": true,
+      "has_demo_link": false
+    },
+    {
+      "repo": "netweave-final2",
+      "image_count": 0,
+      "has_assets_dir": false,
+      "has_inline_image": false,
+      "has_demo_link": true
+    },
+    {
+      "repo": "pheno",
+      "image_count": 0,
+      "has_assets_dir": false,
+      "has_inline_image": false,
+      "has_demo_link": true
+    },
+    {
+      "repo": "phenoAI",
+      "image_count": 4,
+      "has_assets_dir": false,
+      "has_inline_image": true,
+      "has_demo_link": true
+    },
+    {
+      "repo": "phenoData",
+      "image_count": 9,
+      "has_assets_dir": false,
+      "has_inline_image": true,
+      "has_demo_link": true
+    },
+    {
+      "repo": "phenoData-t1-15",
+      "image_count": 9,
+      "has_assets_dir": false,
+      "has_inline_image": true,
+      "has_demo_link": true
+    },
+    {
+      "repo": "phenoData-t1-16",
+      "image_count": 9,
+      "has_assets_dir": false,
+      "has_inline_image": true,
+      "has_demo_link": true
+    },
+    {
+      "repo": "phenoData-t1-17",
+      "image_count": 9,
+      "has_assets_dir": false,
+      "has_inline_image": true,
+      "has_demo_link": true
+    },
+    {
+      "repo": "phenoData-t1-18",
+      "image_count": 9,
+      "has_assets_dir": false,
+      "has_inline_image": true,
+      "has_demo_link": true
+    },
+    {
+      "repo": "phenoDesign",
+      "image_count": 0,
+      "has_assets_dir": false,
+      "has_inline_image": false,
+      "has_demo_link": false
+    },
+    {
+      "repo": "phenoDesign-t1-10",
+      "image_count": 0,
+      "has_assets_dir": false,
+      "has_inline_image": false,
+      "has_demo_link": false
+    },
+    {
+      "repo": "phenoDesign-t1-6",
+      "image_count": 0,
+      "has_assets_dir": false,
+      "has_inline_image": false,
+      "has_demo_link": false
+    },
+    {
+      "repo": "phenoDesign-t1-7",
+      "image_count": 0,
+      "has_assets_dir": false,
+      "has_inline_image": false,
+      "has_demo_link": false
+    },
+    {
+      "repo": "phenoDesign-t1-8",
+      "image_count": 0,
+      "has_assets_dir": false,
+      "has_inline_image": false,
+      "has_demo_link": false
+    },
+    {
+      "repo": "phenoDesign-t1-9",
+      "image_count": 0,
+      "has_assets_dir": false,
+      "has_inline_image": false,
+      "has_demo_link": false
+    },
+    {
+      "repo": "phenoForge",
+      "image_count": 0,
+      "has_assets_dir": false,
+      "has_inline_image": false,
+      "has_demo_link": false
+    },
+    {
+      "repo": "phenoResearchEngine",
+      "image_count": 0,
+      "has_assets_dir": false,
+      "has_inline_image": false,
+      "has_demo_link": false
+    },
+    {
+      "repo": "phenoShared",
+      "image_count": 4,
+      "has_assets_dir": false,
+      "has_inline_image": true,
+      "has_demo_link": true
+    },
+    {
+      "repo": "phenoUtils",
+      "image_count": 3,
+      "has_assets_dir": false,
+      "has_inline_image": true,
+      "has_demo_link": false
+    },
+    {
+      "repo": "phenoXdd",
+      "image_count": 3,
+      "has_assets_dir": false,
+      "has_inline_image": true,
+      "has_demo_link": true
+    },
+    {
+      "repo": "phenodocs",
+      "image_count": 18,
+      "has_assets_dir": true,
+      "has_inline_image": true,
+      "has_demo_link": true
+    },
+    {
+      "repo": "phenodocs-scorecard-remediation",
+      "image_count": 8,
+      "has_assets_dir": false,
+      "has_inline_image": true,
+      "has_demo_link": true
+    },
+    {
+      "repo": "phenotype-auth-ts",
+      "image_count": 9,
+      "has_assets_dir": true,
+      "has_inline_image": false,
+      "has_demo_link": true
+    },
+    {
+      "repo": "phenotype-bus",
+      "image_count": 4,
+      "has_assets_dir": false,
+      "has_inline_image": true,
+      "has_demo_link": true
+    },
+    {
+      "repo": "phenotype-dep-guard",
+      "image_count": 9,
+      "has_assets_dir": false,
+      "has_inline_image": true,
+      "has_demo_link": true
+    },
+    {
+      "repo": "phenotype-go-sdk",
+      "image_count": 0,
+      "has_assets_dir": false,
+      "has_inline_image": false,
+      "has_demo_link": true
+    },
+    {
+      "repo": "phenotype-hub",
+      "image_count": 0,
+      "has_assets_dir": false,
+      "has_inline_image": false,
+      "has_demo_link": false
+    },
+    {
+      "repo": "phenotype-icons",
+      "image_count": 0,
+      "has_assets_dir": false,
+      "has_inline_image": false,
+      "has_demo_link": false
+    },
+    {
+      "repo": "phenotype-infra",
+      "image_count": 5,
+      "has_assets_dir": false,
+      "has_inline_image": true,
+      "has_demo_link": true
+    },
+    {
+      "repo": "phenotype-journeys",
+      "image_count": 2,
+      "has_assets_dir": false,
+      "has_inline_image": true,
+      "has_demo_link": true
+    },
+    {
+      "repo": "phenotype-journeys-2nd",
+      "image_count": 2,
+      "has_assets_dir": false,
+      "has_inline_image": true,
+      "has_demo_link": true
+    },
+    {
+      "repo": "phenotype-landing",
+      "image_count": 0,
+      "has_assets_dir": false,
+      "has_inline_image": false,
+      "has_demo_link": true
+    },
+    {
+      "repo": "phenotype-omlx",
+      "image_count": 28,
+      "has_assets_dir": false,
+      "has_inline_image": false,
+      "has_demo_link": true
+    },
+    {
+      "repo": "phenotype-ops-mcp",
+      "image_count": 1,
+      "has_assets_dir": false,
+      "has_inline_image": true,
+      "has_demo_link": true
+    },
+    {
+      "repo": "phenotype-ops-mcp-t0",
+      "image_count": 1,
+      "has_assets_dir": false,
+      "has_inline_image": true,
+      "has_demo_link": true
+    },
+    {
+      "repo": "phenotype-ops-mcp-t1-11",
+      "image_count": 1,
+      "has_assets_dir": false,
+      "has_inline_image": true,
+      "has_demo_link": true
+    },
+    {
+      "repo": "phenotype-ops-mcp-t1-12",
+      "image_count": 1,
+      "has_assets_dir": false,
+      "has_inline_image": true,
+      "has_demo_link": true
+    },
+    {
+      "repo": "phenotype-ops-mcp-t1-13",
+      "image_count": 1,
+      "has_assets_dir": false,
+      "has_inline_image": true,
+      "has_demo_link": true
+    },
+    {
+      "repo": "phenotype-ops-mcp-t1-14",
+      "image_count": 1,
+      "has_assets_dir": false,
+      "has_inline_image": true,
+      "has_demo_link": true
+    },
+    {
+      "repo": "phenotype-org-audits",
+      "image_count": 0,
+      "has_assets_dir": false,
+      "has_inline_image": false,
+      "has_demo_link": false
+    },
+    {
+      "repo": "phenotype-postfx",
+      "image_count": 2,
+      "has_assets_dir": false,
+      "has_inline_image": true,
+      "has_demo_link": true
+    },
+    {
+      "repo": "phenotype-py-extras",
+      "image_count": 0,
+      "has_assets_dir": false,
+      "has_inline_image": false,
+      "has_demo_link": false
+    },
+    {
+      "repo": "phenotype-python-sdk",
+      "image_count": 0,
+      "has_assets_dir": false,
+      "has_inline_image": false,
+      "has_demo_link": false
+    },
+    {
+      "repo": "phenotype-registry",
+      "image_count": 0,
+      "has_assets_dir": false,
+      "has_inline_image": false,
+      "has_demo_link": true
+    },
+    {
+      "repo": "phenotype-request-id",
+      "image_count": 0,
+      "has_assets_dir": false,
+      "has_inline_image": false,
+      "has_demo_link": false
+    },
+    {
+      "repo": "phenotype-shared",
+      "image_count": 0,
+      "has_assets_dir": false,
+      "has_inline_image": false,
+      "has_demo_link": false
+    },
+    {
+      "repo": "phenotype-skills",
+      "image_count": 0,
+      "has_assets_dir": false,
+      "has_inline_image": false,
+      "has_demo_link": false
+    },
+    {
+      "repo": "phenotype-terrain",
+      "image_count": 2,
+      "has_assets_dir": false,
+      "has_inline_image": true,
+      "has_demo_link": false
+    },
+    {
+      "repo": "phenotype-tooling",
+      "image_count": 5,
+      "has_assets_dir": false,
+      "has_inline_image": true,
+      "has_demo_link": false
+    },
+    {
+      "repo": "phenotype-voxel",
+      "image_count": 4,
+      "has_assets_dir": true,
+      "has_inline_image": true,
+      "has_demo_link": false
+    },
+    {
+      "repo": "phenotype-water",
+      "image_count": 0,
+      "has_assets_dir": false,
+      "has_inline_image": false,
+      "has_demo_link": false
+    },
+    {
+      "repo": "plans",
+      "image_count": 0,
+      "has_assets_dir": false,
+      "has_inline_image": false,
+      "has_demo_link": false
+    },
+    {
+      "repo": "portage",
+      "image_count": 3,
+      "has_assets_dir": false,
+      "has_inline_image": true,
+      "has_demo_link": false
+    },
+    {
+      "repo": "rich-cli-kit",
+      "image_count": 21,
+      "has_assets_dir": false,
+      "has_inline_image": true,
+      "has_demo_link": true
+    },
+    {
+      "repo": "rust",
+      "image_count": 0,
+      "has_assets_dir": false,
+      "has_inline_image": false,
+      "has_demo_link": false
+    },
+    {
+      "repo": "services",
+      "image_count": 0,
+      "has_assets_dir": false,
+      "has_inline_image": false,
+      "has_demo_link": false
+    },
+    {
+      "repo": "src",
+      "image_count": 0,
+      "has_assets_dir": false,
+      "has_inline_image": false,
+      "has_demo_link": false
+    },
+    {
+      "repo": "target",
+      "image_count": 0,
+      "has_assets_dir": false,
+      "has_inline_image": false,
+      "has_demo_link": false
+    },
+    {
+      "repo": "tests",
+      "image_count": 0,
+      "has_assets_dir": false,
+      "has_inline_image": false,
+      "has_demo_link": false
+    },
+    {
+      "repo": "thegent",
+      "image_count": 64,
+      "has_assets_dir": false,
+      "has_inline_image": true,
+      "has_demo_link": true
+    },
+    {
+      "repo": "thegent-dispatch",
+      "image_count": 0,
+      "has_assets_dir": false,
+      "has_inline_image": false,
+      "has_demo_link": true
+    },
+    {
+      "repo": "thegent-fresh",
+      "image_count": 0,
+      "has_assets_dir": false,
+      "has_inline_image": false,
+      "has_demo_link": false
+    },
+    {
+      "repo": "thegent-jsonl",
+      "image_count": 0,
+      "has_assets_dir": false,
+      "has_inline_image": false,
+      "has_demo_link": false
+    },
+    {
+      "repo": "thegent-security-fixes",
+      "image_count": 60,
+      "has_assets_dir": false,
+      "has_inline_image": true,
+      "has_demo_link": true
+    },
+    {
+      "repo": "tooling",
+      "image_count": 0,
+      "has_assets_dir": false,
+      "has_inline_image": false,
+      "has_demo_link": false
+    },
+    {
+      "repo": "vendor",
+      "image_count": 0,
+      "has_assets_dir": false,
+      "has_inline_image": false,
+      "has_demo_link": false
+    },
+    {
+      "repo": "vibeproxy",
+      "image_count": 3,
+      "has_assets_dir": false,
+      "has_inline_image": false,
+      "has_demo_link": true
+    },
+    {
+      "repo": "vibeproxy-monitoring-unified",
+      "image_count": 0,
+      "has_assets_dir": false,
+      "has_inline_image": false,
+      "has_demo_link": true
+    },
+    {
+      "repo": "worktrees",
+      "image_count": 0,
+      "has_assets_dir": false,
+      "has_inline_image": false,
+      "has_demo_link": false
+    }
+  ]
+}

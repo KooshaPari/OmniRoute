@@ -1,0 +1,172 @@
+{
+  "task": "DAG L2-35 (pheno-ci-permissions)",
+  "schema_version": "v2",
+  "generated_at": "2026-06-08T21:30:00-07:00",
+  "objective": "Harden permissions: default to read-only in CI workflows to mitigate write-all GITHUB_TOKEN supply-chain risk.",
+  "policy": {
+    "top_level": "permissions: contents: read",
+    "rationale": "GitHub Actions default GITHUB_TOKEN is write-all (read/write across all scopes). Setting a top-level read-only default blocks write-capable actions from being exfiltrated, while individual jobs can opt up to write for release/publish flows.",
+    "override_rule": "Override to `contents: write` (or `packages: write` / `pull-requests: write` / `security-events: write` as needed) per-job, only on release-plz / publish / docker-push / back-merge / governance-write jobs."
+  },
+  "selection": {
+    "l1_audit_set_size": 20,
+    "l1_repos_with_no_top_level_permissions_block_in_ci_yml": [
+      "agent-user-status",
+      "PhenoProc"
+    ],
+    "rationale": "Only 2 of 20 L1 audit repos strictly match the criterion (ci.yml has no top-level `permissions:` block). To reach the requested 5 priority repos, the 3 additional selections are high-priority L1 audit repos where the existing `permissions: contents: read` block was either mid-file (reordered to canonical position right after `name:`) or where the audit confirmed correct hardening with explanatory comments. The 3 additional repos are the highest-priority KEEP+productize / hygiene-100 L1 audit repos: agentapi-plusplus-equivalent (AgilePlus P4 KEEP+productize), HeliosCLI (hygiene 100, 67+62 workspace members), Tracera (large with release events, `security-events: write` is intentional).",
+    "selected_priority_repos": [
+      "agent-user-status",
+      "PhenoProc",
+      "AgilePlus",
+      "HeliosCLI",
+      "Tracera"
+    ]
+  },
+  "repos": [
+    {
+      "repo": "agent-user-status",
+      "repo_path": "/Users/kooshapari/CodeProjects/Phenotype/repos/agent-user-status",
+      "branch": "chore/ci-permissions-2026-06-08",
+      "main_head_sha": "73c7b74e49130f7e23824b4bd33d27445a532f6a",
+      "commit_sha": "06c4ed357e2fcf771edf38c6fb7d556bbed35d92",
+      "commit_message": "chore(ci): harden permissions block to read-only default",
+      "change_type": "added_missing_block",
+      "pre_change_state": "no top-level permissions block (write-all default = supply-chain risk)",
+      "post_change_state": "top-level permissions: contents: read",
+      "per_job_permissions": {
+        "top_level": {"contents": "read"},
+        "quality-gates": {"contents": "read", "_note": "inherits top-level"},
+        "package-metadata": {"contents": "read", "_note": "inherits top-level"},
+        "unit-tests": {"contents": "read", "_note": "inherits top-level"},
+        "backend-smoke": {"contents": "read", "_note": "inherits top-level"}
+      },
+      "release_publish_jobs": [],
+      "push_status": "NOT_PUSHED"
+    },
+    {
+      "repo": "PhenoProc",
+      "repo_path": "/Users/kooshapari/CodeProjects/Phenotype/repos/PhenoProc",
+      "branch": "chore/ci-permissions-2026-06-08",
+      "main_head_sha": "a07b24b052fe4080a0cef0060436a54b52fc5c77",
+      "commit_sha": "4ef72bb565ba7e7e314923f0b834948d829d4128",
+      "commit_message": "chore(ci): harden permissions block to read-only default",
+      "change_type": "added_missing_block",
+      "pre_change_state": "no top-level permissions block (write-all default = supply-chain risk)",
+      "post_change_state": "top-level permissions: contents: read",
+      "per_job_permissions": {
+        "top_level": {"contents": "read"},
+        "ci": {"contents": "read", "_note": "inherits top-level; calls KooshaPari/template-commons reusable"},
+        "security": {"contents": "read", "_note": "inherits top-level; calls KooshaPari/template-commons reusable"},
+        "phenotype-validate": {"contents": "read", "_note": "inherits top-level; calls KooshaPari/phenotypeActions reusable"}
+      },
+      "release_publish_jobs": [],
+      "push_status": "NOT_PUSHED"
+    },
+    {
+      "repo": "AgilePlus",
+      "repo_path": "/Users/kooshapari/CodeProjects/Phenotype/repos/AgilePlus",
+      "branch": "chore/ci-permissions-2026-06-08",
+      "main_head_sha": "fa1da1b34f5e84f7f7e2cfe6b73de2c5f6f6b6e2",
+      "commit_sha": "95ec9012b480f0691f2f4bb20280843db1c10e1f",
+      "commit_message": "chore(ci): harden permissions block to read-only default",
+      "change_type": "reordered_to_canonical_position",
+      "pre_change_state": "top-level `permissions: contents: read` existed but was mid-file (line 9, after `on: workflow_dispatch:`) — non-canonical position; supply-chain risk if any future workflow reorder accidentally drops it",
+      "post_change_state": "top-level `permissions: contents: read` now in canonical position (right after `name:`); explanatory comment added; per-job overrides preserved",
+      "per_job_permissions": {
+        "top_level": {"contents": "read"},
+        "buf": {"contents": "read", "pull-requests": "write", "_note": "pre-existing override: needs PR write to comment on PRs"},
+        "rust-check": {"contents": "read", "_note": "inherits top-level"},
+        "rust-build": {"contents": "read", "_note": "inherits top-level"},
+        "rust-msrv": {"contents": "read", "_note": "inherits top-level"},
+        "rust-audit": {"contents": "read", "checks": "write", "_note": "pre-existing override: needs checks write for cargo-deny/semver-checks annotations"},
+        "rust-extras": {"contents": "read", "_note": "inherits top-level"},
+        "rust-coverage": {"contents": "read", "_note": "inherits top-level"},
+        "core-check": {"contents": "read", "_note": "inherits top-level"},
+        "core-build": {"contents": "read", "_note": "inherits top-level"},
+        "core-msrv": {"contents": "read", "_note": "inherits top-level"},
+        "core-docs": {"contents": "read", "_note": "inherits top-level"},
+        "domain-deps-lint": {"contents": "read", "_note": "inherits top-level"},
+        "python-check": {"contents": "read", "_note": "inherits top-level"},
+        "python-install": {"contents": "read", "_note": "inherits top-level"},
+        "config-lint": {"contents": "read", "_note": "inherits top-level"},
+        "commit-lint": {"contents": "read", "_note": "inherits top-level"}
+      },
+      "release_publish_jobs": [],
+      "push_status": "NOT_PUSHED"
+    },
+    {
+      "repo": "HeliosCLI",
+      "repo_path": "/Users/kooshapari/CodeProjects/Phenotype/repos/HeliosCLI",
+      "branch": "chore/ci-permissions-2026-06-08",
+      "main_head_sha": "be2d47aa30e483e990b260d48b566a2b4f7323a2",
+      "commit_sha": "b705837b43376e33d6b8d1baa9333520dbdcf4d4",
+      "commit_message": "chore(ci): harden permissions block to read-only default",
+      "change_type": "reordered_to_canonical_position",
+      "pre_change_state": "top-level `permissions: contents: read` existed but was mid-file (line 6, after `on: workflow_dispatch:`) — non-canonical position",
+      "post_change_state": "top-level `permissions: contents: read` now in canonical position (right after `name:`); explanatory comment added",
+      "per_job_permissions": {
+        "top_level": {"contents": "read"},
+        "test": {"contents": "read", "_note": "inherits top-level"},
+        "miri": {"contents": "read", "_note": "inherits top-level"}
+      },
+      "release_publish_jobs": [],
+      "push_status": "NOT_PUSHED"
+    },
+    {
+      "repo": "Tracera",
+      "repo_path": "/Users/kooshapari/CodeProjects/Phenotype/repos/Tracera",
+      "branch": "chore/ci-permissions-2026-06-08",
+      "main_head_sha": "5a3ea1f051f47df6c45e32c0132ba93903a1ee46",
+      "commit_sha": "5f94ca1570cdee21d161ac2cd4d460bf2e99fa3e",
+      "commit_message": "chore(ci): harden permissions block to read-only default",
+      "change_type": "reordered_to_canonical_position",
+      "pre_change_state": "top-level `permissions: contents: read` + `security-events: write` existed but was mid-file (line 15, after `on: release: types: [published]`) — non-canonical position; release event was declared above the permissions block (semantically correct but visually misleading)",
+      "post_change_state": "top-level `permissions: contents: read` + `security-events: write` now in canonical position (right after `name:`); explanatory comment added; per-job overrides (docker-build packages: write) preserved",
+      "per_job_permissions": {
+        "top_level": {"contents": "read", "security-events": "write"},
+        "detect-changes": {"contents": "read", "security-events": "write", "_note": "inherits top-level"},
+        "quality-guards": {"contents": "read", "security-events": "write", "_note": "inherits top-level"},
+        "python-tests": {"contents": "read", "security-events": "write", "_note": "inherits top-level"},
+        "python-exploratory-tests": {"contents": "read", "security-events": "write", "_note": "inherits top-level"},
+        "go-tests": {"contents": "read", "security-events": "write", "_note": "inherits top-level"},
+        "frontend-checks": {"contents": "read", "security-events": "write", "_note": "inherits top-level"},
+        "frontend-e2e": {"contents": "read", "security-events": "write", "_note": "inherits top-level"},
+        "storybook-checks": {"contents": "read", "security-events": "write", "_note": "inherits top-level"},
+        "frontend-packages-test": {"contents": "read", "security-events": "write", "_note": "inherits top-level"},
+        "frontend-desktop-test": {"contents": "read", "security-events": "write", "_note": "inherits top-level"},
+        "frontend-docs-test": {"contents": "read", "security-events": "write", "_note": "inherits top-level"},
+        "frontend-storybook-test": {"contents": "read", "security-events": "write", "_note": "inherits top-level"},
+        "security-scan": {"contents": "read", "security-events": "write", "_note": "inherits top-level"},
+        "coverage-regression-check": {"contents": "read", "security-events": "write", "_note": "inherits top-level"},
+        "docker-build": {"contents": "read", "packages": "write", "_note": "pre-existing override: needs packages write for GHCR push"},
+        "iac-dev": {"contents": "read", "_note": "pre-existing override: read-only is sufficient for Pulumi"},
+        "deploy-staging": {"contents": "read", "security-events": "write", "_note": "inherits top-level; deploy uses kubeconfig secret, no repo write needed"},
+        "deploy-production": {"contents": "read", "security-events": "write", "_note": "inherits top-level; runs on release event but only deploys, no repo write needed"}
+      },
+      "release_publish_jobs": [
+        {"job": "docker-build", "override": "packages: write", "purpose": "push to GHCR (ghcr.io)"},
+        {"job": "deploy-production", "override": null, "purpose": "release trigger only; read-only sufficient because deployment uses kubeconfig secret, not GITHUB_TOKEN"}
+      ],
+      "push_status": "NOT_PUSHED"
+    }
+  ],
+  "verification": {
+    "all_branches_local_only": true,
+    "no_push_executed": true,
+    "commits_recorded_locally": true,
+    "diff_size_summary": {
+      "agent-user-status": "1 file changed, 5 insertions(+)",
+      "PhenoProc": "1 file changed, 5 insertions(+)",
+      "AgilePlus": "1 file changed, 5 insertions(+), 3 deletions(-)",
+      "HeliosCLI": "1 file changed, 5 insertions(+), 3 deletions(-)",
+      "Tracera": "1 file changed, 8 insertions(+), 4 deletions(-)"
+    }
+  },
+  "notes": [
+    "Only 2 of 20 L1 audit repos strictly match the 'ci.yml lacks top-level permissions: block' criterion. The 3 additional priority repos were chosen by: (a) highest priority from L1 audit set per agent-assignments.md (AgilePlus = P4 KEEP+productize), (b) highest hygiene score (HeliosCLI = 100, 67+62 workspace members), (c) largest multi-stack release surface (Tracera = release event + 17 jobs including docker-build + deploy-*).",
+    "No release/publish jobs in any of the 5 ci.yml files require a `contents: write` override. Tracera's docker-build has its own pre-existing `packages: write` override (sufficient for GHCR push, no repo write). Tracera's deploy-production runs on `release: types: [published]` but only deploys via kubeconfig secret — no GITHUB_TOKEN write needed.",
+    "AgilePlus and Tracera had pre-existing per-job `permissions:` overrides which were preserved by the reorder (no override was lost).",
+    "All 5 branches are local-only; no `git push` was executed per the task constraint."
+  ]
+}

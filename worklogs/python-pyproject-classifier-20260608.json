@@ -1,0 +1,359 @@
+{
+  "generated_at": "2026-06-09T02:08:22Z",
+  "total_repos": 174,
+  "with_python_classifier": [
+    {
+      "repo": "AgentMCP",
+      "file": "AgentMCP/pyproject.toml",
+      "versions": [
+        "3.11",
+        "3.12",
+        "3.13"
+      ]
+    },
+    {
+      "repo": "HeliosCLI",
+      "file": "HeliosCLI/pyproject.toml",
+      "versions": [
+        "3.14"
+      ]
+    },
+    {
+      "repo": "HexaKit",
+      "file": "HexaKit/python/pyproject.toml",
+      "versions": [
+        "3.14"
+      ]
+    },
+    {
+      "repo": "Httpora",
+      "file": "Httpora/pyproject.toml",
+      "versions": [
+        "3.12"
+      ]
+    },
+    {
+      "repo": "ObservabilityKit",
+      "file": "ObservabilityKit/python/pyproject.toml",
+      "versions": [
+        "3.11",
+        "3.12",
+        "3.13"
+      ]
+    },
+    {
+      "repo": "Parpoura",
+      "file": "Parpoura/pyproject.toml",
+      "versions": [
+        "3.14"
+      ]
+    },
+    {
+      "repo": "PhenoDevOps",
+      "file": "PhenoDevOps/python/pyproject.toml",
+      "versions": [
+        "3.14"
+      ]
+    },
+    {
+      "repo": "PhenoKits",
+      "file": "PhenoKits/tests/pyproject.toml",
+      "versions": [
+        "3.11"
+      ]
+    },
+    {
+      "repo": "PhenoMCP",
+      "file": "PhenoMCP/pyproject.toml",
+      "versions": [
+        "3.14"
+      ]
+    },
+    {
+      "repo": "PhenoMCP-cheap",
+      "file": "PhenoMCP-cheap/pyproject.toml",
+      "versions": [
+        "3.14"
+      ]
+    },
+    {
+      "repo": "PhenoObservability",
+      "file": "PhenoObservability/ai-prompt-logger/pyproject.toml",
+      "versions": [
+        "3.11"
+      ]
+    },
+    {
+      "repo": "PhenoRuntime",
+      "file": "PhenoRuntime/pyproject.toml",
+      "versions": [
+        "3.14"
+      ]
+    },
+    {
+      "repo": "PlayCua",
+      "file": "PlayCua/python/pyproject.toml",
+      "versions": [
+        "3.11",
+        "3.12",
+        "3.13"
+      ]
+    },
+    {
+      "repo": "PolicyStack",
+      "file": "PolicyStack/cli/pyproject.toml",
+      "versions": [
+        "3.10"
+      ]
+    },
+    {
+      "repo": "Pyron",
+      "file": "Pyron/python/pyproject.toml",
+      "versions": [
+        "3.14"
+      ]
+    },
+    {
+      "repo": "QuadSGM",
+      "file": "QuadSGM/pyproject.toml",
+      "versions": [
+        "3.13"
+      ]
+    },
+    {
+      "repo": "Tasken",
+      "file": "Tasken/python/pyproject.toml",
+      "versions": [
+        "3.10",
+        "3.11",
+        "3.12"
+      ]
+    },
+    {
+      "repo": "Tracera",
+      "file": "Tracera/pyproject.toml",
+      "versions": [
+        "3.14"
+      ]
+    },
+    {
+      "repo": "agent-platform",
+      "file": "agent-platform/python/pyproject.toml",
+      "versions": [
+        "3.11"
+      ]
+    },
+    {
+      "repo": "agent-user-status",
+      "file": "agent-user-status/pyproject.toml",
+      "versions": [
+        "3.12"
+      ]
+    },
+    {
+      "repo": "bare-cua",
+      "file": "bare-cua/python/pyproject.toml",
+      "versions": [
+        "3.11",
+        "3.12",
+        "3.13"
+      ]
+    },
+    {
+      "repo": "cheap-llm-mcp",
+      "file": "cheap-llm-mcp/pyproject.toml",
+      "versions": [
+        "3.12"
+      ]
+    },
+    {
+      "repo": "cheap-llm-mcp-deprecate",
+      "file": "cheap-llm-mcp-deprecate/pyproject.toml",
+      "versions": [
+        "3.12"
+      ]
+    },
+    {
+      "repo": "dispatch-mcp",
+      "file": "dispatch-mcp/pyproject.toml",
+      "versions": [
+        "3.13"
+      ]
+    },
+    {
+      "repo": "heliosBench",
+      "file": "heliosBench/pyproject.toml",
+      "versions": [
+        "3.12"
+      ]
+    },
+    {
+      "repo": "helioscope",
+      "file": "helioscope/pyproject.toml",
+      "versions": [
+        "3.14"
+      ]
+    },
+    {
+      "repo": "localbase3",
+      "file": "localbase3/localbase-provider/setup.py",
+      "versions": [
+        "3.10",
+        "3.8",
+        "3.9"
+      ]
+    },
+    {
+      "repo": "pheno",
+      "file": "pheno/python/pyproject.toml",
+      "versions": [
+        "3.14"
+      ]
+    },
+    {
+      "repo": "phenoResearchEngine",
+      "file": "phenoResearchEngine/pyproject.toml",
+      "versions": [
+        "3.10",
+        "3.11",
+        "3.12"
+      ]
+    },
+    {
+      "repo": "phenodocs",
+      "file": "phenodocs/pyproject.toml",
+      "versions": [
+        "3.14"
+      ]
+    },
+    {
+      "repo": "phenodocs-scorecard-remediation",
+      "file": "phenodocs-scorecard-remediation/pyproject.toml",
+      "versions": [
+        "3.14"
+      ]
+    },
+    {
+      "repo": "phenotype-dep-guard",
+      "file": "phenotype-dep-guard/pyproject.toml",
+      "versions": [
+        "3.12"
+      ]
+    },
+    {
+      "repo": "phenotype-omlx",
+      "file": "phenotype-omlx/pyproject.toml",
+      "versions": [
+        "3.10",
+        "3.11",
+        "3.12",
+        "3.13"
+      ]
+    },
+    {
+      "repo": "phenotype-py-extras",
+      "file": "phenotype-py-extras/pyproject.toml",
+      "versions": [
+        "3.11",
+        "3.12",
+        "3.13"
+      ]
+    },
+    {
+      "repo": "phenotype-request-id",
+      "file": "phenotype-request-id/pyproject.toml",
+      "versions": [
+        "3.11",
+        "3.12",
+        "3.13"
+      ]
+    },
+    {
+      "repo": "portage",
+      "file": "portage/pyproject.toml",
+      "versions": [
+        "3.12"
+      ]
+    },
+    {
+      "repo": "rich-cli-kit",
+      "file": "rich-cli-kit/mcp/pyproject.toml",
+      "versions": [
+        "3.10"
+      ]
+    },
+    {
+      "repo": "thegent",
+      "file": "thegent/pyproject.toml",
+      "versions": [
+        "3.11",
+        "3.12",
+        "3.13",
+        "3.14"
+      ]
+    },
+    {
+      "repo": "thegent-security-fixes",
+      "file": "thegent-security-fixes/pyproject.toml",
+      "versions": [
+        "3.11",
+        "3.12",
+        "3.13",
+        "3.14"
+      ]
+    }
+  ],
+  "by_python": {
+    "3.10": [
+      "PolicyStack",
+      "Tasken",
+      "localbase3",
+      "phenoResearchEngine",
+      "phenotype-omlx",
+      "rich-cli-kit"
+    ],
+    "3.11": [
+      "AgentMCP",
+      "ObservabilityKit",
+      "PhenoKits",
+      "PhenoObservability",
+      "PlayCua",
+      "Tasken",
+      "agent-platform",
+      "bare-cua",
+      "phenoResearchEngine",
+      "phenotype-omlx",
+      "phenotype-py-extras",
+      "phenotype-request-id",
+      "portage",
+      "thegent",
+      "thegent-security-fixes"
+    ],
+    "3.12": [
+      "AgentMCP",
+      "HeliosCLI",
+      "HexaKit",
+      "Httpora",
+      "ObservabilityKit",
+      "PhenoDevOps",
+      "PlayCua",
+      "Pyron",
+      "Tasken",
+      "agent-user-status",
+      "bare-cua",
+      "cheap-llm-mcp",
+      "cheap-llm-mcp-deprecate",
+      "heliosBench",
+      "helioscope",
+      "pheno",
+      "phenoResearchEngine",
+      "phenotype-dep-guard",
+      "phenotype-omlx",
+      "phenotype-py-extras",
+      "phenotype-request-id",
+      "portage",
+      "thegent",
+      "thegent-security-fixes"
+    ]
+  }
+}

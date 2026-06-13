@@ -1,0 +1,20 @@
+{
+  "with_pnpm_workspace": [
+    "HeliosCLI",
+    "Planify",
+    "helioscope"
+  ],
+  "with_lerna": [],
+  "with_nx": [],
+  "with_turbo": [
+    "Paginary",
+    "Planify",
+    "heliosApp"
+  ],
+  "with_bazel": [
+    "HeliosCLI",
+    "helioscope"
+  ],
+  "generated_at": "2026-06-08T22:15:00Z",
+  "total_repos": 169
+}

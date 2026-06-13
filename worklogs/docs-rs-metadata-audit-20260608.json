@@ -1,0 +1,8 @@
+{
+  "generated_at": "2026-06-09T02:13:53Z",
+  "total_repos": 75,
+  "cargo_tomls_scanned": 1000,
+  "with_docs_rs": [
+    "eyetracker"
+  ]
+}

@@ -1,0 +1,53 @@
+{
+  "generated_at": "2026-06-08T22:15:00Z",
+  "total_repos": 134,
+  "with_pr_target": [
+    "Civis",
+    "HeliosCLI",
+    "agentapi-plusplus",
+    "forgecode",
+    "helioscope",
+    "thegent-clean-wt-idea",
+    "thegent-clean-wt-parallel",
+    "thegent-clean-wt-policy",
+    "thegent-clean-wt-ruff"
+  ],
+  "by_repo": [
+    {
+      "repo": "Civis",
+      "count": 1
+    },
+    {
+      "repo": "HeliosCLI",
+      "count": 1
+    },
+    {
+      "repo": "agentapi-plusplus",
+      "count": 1
+    },
+    {
+      "repo": "forgecode",
+      "count": 1
+    },
+    {
+      "repo": "helioscope",
+      "count": 1
+    },
+    {
+      "repo": "thegent-clean-wt-idea",
+      "count": 1
+    },
+    {
+      "repo": "thegent-clean-wt-parallel",
+      "count": 1
+    },
+    {
+      "repo": "thegent-clean-wt-policy",
+      "count": 1
+    },
+    {
+      "repo": "thegent-clean-wt-ruff",
+      "count": 1
+    }
+  ]
+}

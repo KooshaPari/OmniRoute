@@ -1,0 +1,1156 @@
+{
+  "generated_at": "2026-06-08T00:00:00Z",
+  "total_repos": 169,
+  "with_sql": [
+    "AgilePlus",
+    "AtomsBot",
+    "Civis",
+    "HeliosCLI",
+    "HexaKit",
+    "KaskMan",
+    "OmniRoute",
+    "OmniRoute-latest",
+    "PhenoDevOps",
+    "PhenoProject",
+    "Pyron",
+    "QuadSGM",
+    "Tokn",
+    "Tracera",
+    "argis-extensions",
+    "helioscope",
+    "kwality",
+    "localbase3",
+    "melosviz",
+    "pheno",
+    "thegent",
+    "thegent-clean-wt-idea",
+    "thegent-clean-wt-parallel",
+    "thegent-clean-wt-policy",
+    "thegent-clean-wt-ruff"
+  ],
+  "dup_sql": [
+    {
+      "name": "0001_init.sql",
+      "hash": "375a548dc4edee96",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "0001_threads.sql",
+      "hash": "7a89ab37ba540b92",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "0002_logs.sql",
+      "hash": "975fa08795fd9850",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "0003_logs_thread_id.sql",
+      "hash": "c905b4affdc8cc99",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "0004_thread_dynamic_tools.sql",
+      "hash": "89a39b8c37162455",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "0005_threads_cli_version.sql",
+      "hash": "faf7b05b3f20ef2e",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "0006_memories.sql",
+      "hash": "1dc4424b5bd647a9",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "0007_threads_first_user_message.sql",
+      "hash": "352f5f47318c3b60",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "0008_backfill_state.sql",
+      "hash": "357c26e13979956d",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "0009_stage1_outputs_rollout_slug.sql",
+      "hash": "3554841d39c7f791",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "0010_logs_process_id.sql",
+      "hash": "68bc6771638f826f",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "0011_logs_partition_prune_indexes.sql",
+      "hash": "de8f56961cf06c29",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "0012_logs_estimated_bytes.sql",
+      "hash": "483c20e16126ca93",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "0013_threads_agent_nickname.sql",
+      "hash": "45a2e3e68297fc2d",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "0014_agent_jobs.sql",
+      "hash": "a0bcc52368ee5f21",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "0015_agent_jobs_max_runtime_seconds.sql",
+      "hash": "bdf15aca46cd3055",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "0016_memory_usage.sql",
+      "hash": "2e85813f2688af75",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "0017_phase2_selection_flag.sql",
+      "hash": "8da522646dc0813d",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "0018_phase2_selection_snapshot.sql",
+      "hash": "88a523608a3d02e2",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    },
+    {
+      "name": "001_create_features.sql",
+      "hash": "bea2852278fa5490",
+      "repos": [
+        "AgilePlus",
+        "HexaKit",
+        "PhenoDevOps",
+        "Pyron",
+        "pheno"
+      ]
+    },
+    {
+      "name": "001_initial_schema.sql",
+      "hash": "ba2584f667b4065d",
+      "repos": [
+        "OmniRoute",
+        "OmniRoute-latest",
+        "melosviz"
+      ]
+    },
+    {
+      "name": "001_initial_schema.sql",
+      "hash": "f87dcf1fb0659f63",
+      "repos": [
+        "thegent",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "name": "002_add_deployments.sql",
+      "hash": "88f63200eb0bb427",
+      "repos": [
+        "thegent",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "name": "002_create_work_packages.sql",
+      "hash": "c65b145e6b4d7179",
+      "repos": [
+        "AgilePlus",
+        "HexaKit",
+        "PhenoDevOps",
+        "Pyron",
+        "pheno"
+      ]
+    },
+    {
+      "name": "002_mcp_a2a_tables.sql",
+      "hash": "824787caafd2c048",
+      "repos": [
+        "OmniRoute-latest",
+        "melosviz"
+      ]
+    },
+    {
+      "name": "003_add_hosts.sql",
+      "hash": "7b742e1bed8c2904",
+      "repos": [
+        "thegent",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "name": "003_create_governance_contracts.sql",
+      "hash": "f4cbf5667e09c343",
+      "repos": [
+        "AgilePlus",
+        "HexaKit",
+        "PhenoDevOps",
+        "Pyron",
+        "pheno"
+      ]
+    },
+    {
+      "name": "003_provider_node_custom_paths.sql",
+      "hash": "56727e9a1fd6a059",
+      "repos": [
+        "OmniRoute-latest",
+        "melosviz"
+      ]
+    },
+    {
+      "name": "004_add_providers.sql",
+      "hash": "d8e5865d8dacde12",
+      "repos": [
+        "thegent",
+        "thegent-clean-wt-idea",
+        "thegent-clean-wt-parallel",
+        "thegent-clean-wt-policy",
+        "thegent-clean-wt-ruff"
+      ]
+    },
+    {
+      "name": "004_create_audit_log.sql",
+      "hash": "6b5493c71b6b9897",
+      "repos": [
+        "AgilePlus",
+        "HexaKit",
+        "PhenoDevOps",
+        "Pyron",
+        "pheno"
+      ]
+    },
+    {
+      "name": "004_proxy_registry.sql",
+      "hash": "f4ad1ed25f3aa678",
+      "repos": [
+        "OmniRoute-latest",
+        "melosviz"
+      ]
+    },
+    {
+      "name": "005_combo_agent_fields.sql",
+      "hash": "377e2275fd67b6bd",
+      "repos": [
+        "OmniRoute-latest",
+        "melosviz"
+      ]
+    },
+    {
+      "name": "005_create_evidence.sql",
+      "hash": "6a82c198db29377d",
+      "repos": [
+        "AgilePlus",
+        "HexaKit",
+        "PhenoDevOps",
+        "Pyron",
+        "pheno"
+      ]
+    },
+    {
+      "name": "006_create_policy_rules.sql",
+      "hash": "b85424832e146daa",
+      "repos": [
+        "AgilePlus",
+        "HexaKit",
+        "PhenoDevOps",
+        "Pyron",
+        "pheno"
+      ]
+    },
+    {
+      "name": "006_detailed_request_logs.sql",
+      "hash": "532e2853e760a231",
+      "repos": [
+        "OmniRoute-latest",
+        "melosviz"
+      ]
+    },
+    {
+      "name": "007_create_metrics.sql",
+      "hash": "4d4992b8d31120b3",
+      "repos": [
+        "AgilePlus",
+        "HexaKit",
+        "PhenoDevOps",
+        "Pyron",
+        "pheno"
+      ]
+    },
+    {
+      "name": "007_search_request_type.sql",
+      "hash": "ccf47b984de49750",
+      "repos": [
+        "OmniRoute-latest",
+        "melosviz"
+      ]
+    },
+    {
+      "name": "008_create_wp_dependencies.sql",
+      "hash": "7941048fa7e18bc2",
+      "repos": [
+        "AgilePlus",
+        "HexaKit",
+        "PhenoDevOps",
+        "Pyron",
+        "pheno"
+      ]
+    },
+    {
+      "name": "008_registered_keys.sql",
+      "hash": "8ed0a3619724e8bc",
+      "repos": [
+        "OmniRoute-latest",
+        "melosviz"
+      ]
+    },
+    {
+      "name": "009_create_indexes.sql",
+      "hash": "628d978933d99677",
+      "repos": [
+        "AgilePlus",
+        "HexaKit",
+        "PhenoDevOps",
+        "Pyron",
+        "pheno"
+      ]
+    },
+    {
+      "name": "009_requested_model.sql",
+      "hash": "5de34d5f76e62a28",
+      "repos": [
+        "OmniRoute-latest",
+        "melosviz"
+      ]
+    },
+    {
+      "name": "010_create_events.sql",
+      "hash": "7e9b0c3af535298a",
+      "repos": [
+        "AgilePlus",
+        "HexaKit",
+        "PhenoDevOps",
+        "Pyron",
+        "pheno"
+      ]
+    },
+    {
+      "name": "010_model_combo_mappings.sql",
+      "hash": "816546065a91deeb",
+      "repos": [
+        "OmniRoute-latest",
+        "melosviz"
+      ]
+    },
+    {
+      "name": "011_create_snapshots.sql",
+      "hash": "e49cd3f1c20dc75c",
+      "repos": [
+        "AgilePlus",
+        "HexaKit",
+        "PhenoDevOps",
+        "Pyron",
+        "pheno"
+      ]
+    },
+    {
+      "name": "011_webhooks.sql",
+      "hash": "37a98d8333045ba1",
+      "repos": [
+        "OmniRoute-latest",
+        "melosviz"
+      ]
+    },
+    {
+      "name": "012_create_sync_mappings.sql",
+      "hash": "00bdddcf34be0132",
+      "repos": [
+        "AgilePlus",
+        "HexaKit",
+        "PhenoDevOps",
+        "Pyron",
+        "pheno"
+      ]
+    },
+    {
+      "name": "012_fix_token_input_cache_tokens.sql",
+      "hash": "3502e5ed1433546f",
+      "repos": [
+        "OmniRoute-latest",
+        "melosviz"
+      ]
+    },
+    {
+      "name": "013_create_api_keys.sql",
+      "hash": "707d9719b14ab888",
+      "repos": [
+        "AgilePlus",
+        "HexaKit",
+        "PhenoDevOps",
+        "Pyron",
+        "pheno"
+      ]
+    },
+    {
+      "name": "013_quota_snapshots.sql",
+      "hash": "7426e6850d80d49b",
+      "repos": [
+        "OmniRoute-latest",
+        "melosviz"
+      ]
+    },
+    {
+      "name": "014_create_device_nodes.sql",
+      "hash": "98beb286f2b94af0",
+      "repos": [
+        "AgilePlus",
+        "HexaKit",
+        "PhenoDevOps",
+        "Pyron",
+        "pheno"
+      ]
+    },
+    {
+      "name": "014_unified_log_artifacts.sql",
+      "hash": "33cbceffa47c4e5e",
+      "repos": [
+        "OmniRoute-latest",
+        "melosviz"
+      ]
+    },
+    {
+      "name": "015_create_memories.sql",
+      "hash": "74655e922e19e4ab",
+      "repos": [
+        "OmniRoute-latest",
+        "melosviz"
+      ]
+    },
+    {
+      "name": "015_modules_cycles.sql",
+      "hash": "cb9afd2360679e09",
+      "repos": [
+        "AgilePlus",
+        "HexaKit",
+        "PhenoDevOps",
+        "Pyron",
+        "pheno"
+      ]
+    },
+    {
+      "name": "016_create_backlog_items.sql",
+      "hash": "81513360cf6c504c",
+      "repos": [
+        "AgilePlus",
+        "HexaKit",
+        "PhenoDevOps",
+        "Pyron",
+        "pheno"
+      ]
+    },
+    {
+      "name": "016_create_skills.sql",
+      "hash": "8da8120c9aacfbeb",
+      "repos": [
+        "OmniRoute-latest",
+        "melosviz"
+      ]
+    },
+    {
+      "name": "016_git_bindings.sql",
+      "hash": "826044f18e5d877a",
+      "repos": [
+        "AgilePlus",
+        "HexaKit",
+        "PhenoDevOps",
+        "Pyron",
+        "pheno"
+      ]
+    },
+    {
+      "name": "017_create_projects.sql",
+      "hash": "d3219620def2dda5",
+      "repos": [
+        "AgilePlus",
+        "HexaKit",
+        "PhenoDevOps",
+        "Pyron",
+        "pheno"
+      ]
+    },
+    {
+      "name": "017_version_manager_upstream_proxy.sql",
+      "hash": "2cea43fc6bc62350",
+      "repos": [
+        "OmniRoute-latest",
+        "melosviz"
+      ]
+    },
+    {
+      "name": "018_call_logs_detailed_tokens.sql",
+      "hash": "8995ad22134b5268",
+      "repos": [
+        "OmniRoute-latest",
+        "melosviz"
+      ]
+    },
+    {
+      "name": "019_context_handoffs.sql",
+      "hash": "3e6f1fba813204f8",
+      "repos": [
+        "OmniRoute-latest",
+        "melosviz"
+      ]
+    },
+    {
+      "name": "020_combo_sort_order.sql",
+      "hash": "0ede2b67b5a52451",
+      "repos": [
+        "OmniRoute-latest",
+        "melosviz"
+      ]
+    },
+    {
+      "name": "021_combo_call_log_targets.sql",
+      "hash": "9b5588c42aab3325",
+      "repos": [
+        "OmniRoute-latest",
+        "melosviz"
+      ]
+    },
+    {
+      "name": "022_add_memory_fts5.sql",
+      "hash": "7a9bd4769e533fb5",
+      "repos": [
+        "OmniRoute-latest",
+        "melosviz"
+      ]
+    },
+    {
+      "name": "023_fix_memory_fts_uuid.sql",
+      "hash": "3531bca34e62ac2b",
+      "repos": [
+        "OmniRoute-latest",
+        "melosviz"
+      ]
+    },
+    {
+      "name": "024_create_sync_tokens.sql",
+      "hash": "15682e25a36ff093",
+      "repos": [
+        "OmniRoute-latest",
+        "melosviz"
+      ]
+    },
+    {
+      "name": "025_call_logs_summary_storage.sql",
+      "hash": "554a63082efcdbd0",
+      "repos": [
+        "OmniRoute-latest",
+        "melosviz"
+      ]
+    },
+    {
+      "name": "027_skill_mode_and_metadata.sql",
+      "hash": "b13dec5a43cc1b8e",
+      "repos": [
+        "OmniRoute-latest",
+        "melosviz"
+      ]
+    },
+    {
+      "name": "028_create_files_and_batches.sql",
+      "hash": "eb8407bed7d85854",
+      "repos": [
+        "OmniRoute-latest",
+        "melosviz"
+      ]
+    },
+    {
+      "name": "029_provider_connection_max_concurrent.sql",
+      "hash": "00adf8739b5b684c",
+      "repos": [
+        "OmniRoute-latest",
+        "melosviz"
+      ]
+    },
+    {
+      "name": "030_create_eval_runs.sql",
+      "hash": "d88a87ef5e1135cd",
+      "repos": [
+        "OmniRoute-latest",
+        "melosviz"
+      ]
+    },
+    {
+      "name": "031_create_eval_suites.sql",
+      "hash": "809a73a70f7f72c7",
+      "repos": [
+        "OmniRoute-latest",
+        "melosviz"
+      ]
+    },
+    {
+      "name": "032_apikey_lifecycle.sql",
+      "hash": "e4e9c38f01b8b0d6",
+      "repos": [
+        "OmniRoute-latest",
+        "melosviz"
+      ]
+    },
+    {
+      "name": "033_create_reasoning_cache.sql",
+      "hash": "18f5668679d0673c",
+      "repos": [
+        "OmniRoute-latest",
+        "melosviz"
+      ]
+    },
+    {
+      "name": "034_compression_settings.sql",
+      "hash": "9f055cbbc375d2ca",
+      "repos": [
+        "OmniRoute-latest",
+        "melosviz"
+      ]
+    },
+    {
+      "name": "035_standard_compression_config.sql",
+      "hash": "c7fe18bba1bf3a6c",
+      "repos": [
+        "OmniRoute-latest",
+        "melosviz"
+      ]
+    },
+    {
+      "name": "036_aggressive_compression.sql",
+      "hash": "47ca1a2c5ee9e1ec",
+      "repos": [
+        "OmniRoute-latest",
+        "melosviz"
+      ]
+    },
+    {
+      "name": "037_ultra_compression.sql",
+      "hash": "67c30ee288b258f2",
+      "repos": [
+        "OmniRoute-latest",
+        "melosviz"
+      ]
+    },
+    {
+      "name": "038_compression_analytics.sql",
+      "hash": "71b7d06e954d2c37",
+      "repos": [
+        "OmniRoute-latest",
+        "melosviz"
+      ]
+    },
+    {
+      "name": "039_compression_cache_stats.sql",
+      "hash": "8223717d6ce12776",
+      "repos": [
+        "OmniRoute-latest",
+        "melosviz"
+      ]
+    },
+    {
+      "name": "040_oneproxy_proxy_fields.sql",
+      "hash": "7ff59b7145039096",
+      "repos": [
+        "OmniRoute",
+        "OmniRoute-latest",
+        "melosviz"
+      ]
+    },
+    {
+      "name": "041_compression_receipts.sql",
+      "hash": "3ecb1aacbf4c9968",
+      "repos": [
+        "OmniRoute",
+        "OmniRoute-latest",
+        "melosviz"
+      ]
+    },
+    {
+      "name": "042_compression_combos.sql",
+      "hash": "74eb219013ae2f23",
+      "repos": [
+        "OmniRoute",
+        "OmniRoute-latest",
+        "melosviz"
+      ]
+    },
+    {
+      "name": "043_default_compression_combo_pipeline.sql",
+      "hash": "e8b5eb0c5e21db49",
+      "repos": [
+        "OmniRoute",
+        "OmniRoute-latest",
+        "melosviz"
+      ]
+    },
+    {
+      "name": "044_usage_history_api_key_backfill.sql",
+      "hash": "3538cca1f2a2a93c",
+      "repos": [
+        "OmniRoute",
+        "OmniRoute-latest",
+        "melosviz"
+      ]
+    },
+    {
+      "name": "045_compression_tokens.sql",
+      "hash": "0441a83ba6675af8",
+      "repos": [
+        "OmniRoute",
+        "OmniRoute-latest",
+        "melosviz"
+      ]
+    },
+    {
+      "name": "046_database_settings.sql",
+      "hash": "7b14ecac7aa4b43a",
+      "repos": [
+        "OmniRoute",
+        "OmniRoute-latest",
+        "melosviz"
+      ]
+    },
+    {
+      "name": "047_aggregation_tables.sql",
+      "hash": "7c8ca3483e8e8cd6",
+      "repos": [
+        "OmniRoute",
+        "OmniRoute-latest",
+        "melosviz"
+      ]
+    },
+    {
+      "name": "048_summary_indexes.sql",
+      "hash": "1d51401f3dc18e6b",
+      "repos": [
+        "OmniRoute",
+        "OmniRoute-latest",
+        "melosviz"
+      ]
+    },
+    {
+      "name": "049_compression_analytics_indexes.sql",
+      "hash": "957de07f95347b33",
+      "repos": [
+        "OmniRoute",
+        "OmniRoute-latest",
+        "melosviz"
+      ]
+    },
+    {
+      "name": "050_session_account_affinity.sql",
+      "hash": "6383ff7288789a1b",
+      "repos": [
+        "OmniRoute",
+        "OmniRoute-latest",
+        "melosviz"
+      ]
+    },
+    {
+      "name": "051_hot_path_db_indexes.sql",
+      "hash": "0661a012837acf04",
+      "repos": [
+        "OmniRoute",
+        "OmniRoute-latest",
+        "melosviz"
+      ]
+    },
+    {
+      "name": "052_api_key_combo_throttle.sql",
+      "hash": "c1df7d875fb414e5",
+      "repos": [
+        "OmniRoute",
+        "OmniRoute-latest",
+        "melosviz"
+      ]
+    },
+    {
+      "name": "053_remove_status_from_files.sql",
+      "hash": "c6a94ec80f8d35f0",
+      "repos": [
+        "OmniRoute",
+        "OmniRoute-latest",
+        "melosviz"
+      ]
+    },
+    {
+      "name": "054_usage_history_service_tier.sql",
+      "hash": "7ac3c43a4339e44e",
+      "repos": [
+        "OmniRoute",
+        "OmniRoute-latest",
+        "melosviz"
+      ]
+    },
+    {
+      "name": "056_mcp_accessibility_compression.sql",
+      "hash": "b96ee0cabb0859d2",
+      "repos": [
+        "OmniRoute",
+        "OmniRoute-latest",
+        "melosviz"
+      ]
+    },
+    {
+      "name": "057_provider_connection_quota_window_thresholds.sql",
+      "hash": "a5bbe7bc15059278",
+      "repos": [
+        "OmniRoute",
+        "OmniRoute-latest",
+        "melosviz"
+      ]
+    },
+    {
+      "name": "058_command_code_auth_sessions.sql",
+      "hash": "842c29b08f840aa4",
+      "repos": [
+        "OmniRoute",
+        "OmniRoute-latest",
+        "melosviz"
+      ]
+    },
+    {
+      "name": "059_manifest_routing.sql",
+      "hash": "bd17b13d6f04bcbb",
+      "repos": [
+        "OmniRoute",
+        "OmniRoute-latest",
+        "melosviz"
+      ]
+    },
+    {
+      "name": "060_create_gamification.sql",
+      "hash": "7e0ed4425700665d",
+      "repos": [
+        "OmniRoute",
+        "OmniRoute-latest",
+        "melosviz"
+      ]
+    },
+    {
+      "name": "061_cloud_agent_credentials.sql",
+      "hash": "5b7cd829a4415d94",
+      "repos": [
+        "OmniRoute",
+        "OmniRoute-latest",
+        "melosviz"
+      ]
+    },
+    {
+      "name": "062_usage_history_combo_strategy.sql",
+      "hash": "85c979881b59ff58",
+      "repos": [
+        "OmniRoute",
+        "OmniRoute-latest",
+        "melosviz"
+      ]
+    },
+    {
+      "name": "063_add_last_model_to_handoffs.sql",
+      "hash": "16a6b7a64a3bdd6f",
+      "repos": [
+        "OmniRoute",
+        "OmniRoute-latest",
+        "melosviz"
+      ]
+    },
+    {
+      "name": "064_create_session_model_history.sql",
+      "hash": "f25d64c76010c8cd",
+      "repos": [
+        "OmniRoute",
+        "OmniRoute-latest",
+        "melosviz"
+      ]
+    },
+    {
+      "name": "065_middleware_hooks.sql",
+      "hash": "3a224119679b819d",
+      "repos": [
+        "OmniRoute",
+        "OmniRoute-latest",
+        "melosviz"
+      ]
+    },
+    {
+      "name": "066_api_key_groups.sql",
+      "hash": "472f2eaf3ee59256",
+      "repos": [
+        "OmniRoute",
+        "OmniRoute-latest",
+        "melosviz"
+      ]
+    },
+    {
+      "name": "067_relay_proxies.sql",
+      "hash": "9a0e10a527f1d357",
+      "repos": [
+        "OmniRoute",
+        "OmniRoute-latest",
+        "melosviz"
+      ]
+    },
+    {
+      "name": "068_free_proxies.sql",
+      "hash": "9d9a5ceed90d1993",
+      "repos": [
+        "OmniRoute",
+        "OmniRoute-latest",
+        "melosviz"
+      ]
+    },
+    {
+      "name": "069_webhook_deliveries.sql",
+      "hash": "b372dadd67dee274",
+      "repos": [
+        "OmniRoute",
+        "OmniRoute-latest",
+        "melosviz"
+      ]
+    },
+    {
+      "name": "070_webhooks_kind_metadata.sql",
+      "hash": "986cd23c1eb38208",
+      "repos": [
+        "OmniRoute",
+        "OmniRoute-latest",
+        "melosviz"
+      ]
+    },
+    {
+      "name": "071_services.sql",
+      "hash": "4e7db06e60e9514f",
+      "repos": [
+        "OmniRoute",
+        "OmniRoute-latest",
+        "melosviz"
+      ]
+    },
+    {
+      "name": "072_free_proxies_fk.sql",
+      "hash": "50ad89c3aba5d3d3",
+      "repos": [
+        "OmniRoute",
+        "OmniRoute-latest",
+        "melosviz"
+      ]
+    },
+    {
+      "name": "073_per_model_token_limits.sql",
+      "hash": "77c113adbae64de2",
+      "repos": [
+        "OmniRoute-latest",
+        "melosviz"
+      ]
+    },
+    {
+      "name": "074_discovery_results.sql",
+      "hash": "c5800906c10f8a48",
+      "repos": [
+        "OmniRoute-latest",
+        "melosviz"
+      ]
+    },
+    {
+      "name": "075_api_key_self_service_usage_scopes.sql",
+      "hash": "5077f7d42ad772ee",
+      "repos": [
+        "OmniRoute-latest",
+        "melosviz"
+      ]
+    },
+    {
+      "name": "076_create_plugins.sql",
+      "hash": "a470c072670ac09f",
+      "repos": [
+        "OmniRoute-latest",
+        "melosviz"
+      ]
+    },
+    {
+      "name": "077_api_key_stream_default_mode.sql",
+      "hash": "704d0523461a38c1",
+      "repos": [
+        "OmniRoute-latest",
+        "melosviz"
+      ]
+    },
+    {
+      "name": "078_quota_consumption.sql",
+      "hash": "a22760383f409b8c",
+      "repos": [
+        "OmniRoute-latest",
+        "melosviz"
+      ]
+    },
+    {
+      "name": "079_provider_plans.sql",
+      "hash": "1c8451a6bcf32008",
+      "repos": [
+        "OmniRoute-latest",
+        "melosviz"
+      ]
+    },
+    {
+      "name": "080_agent_bridge.sql",
+      "hash": "bf746b5288f49bac",
+      "repos": [
+        "OmniRoute-latest",
+        "melosviz"
+      ]
+    },
+    {
+      "name": "081_inspector_custom_hosts.sql",
+      "hash": "10163977e6affe28",
+      "repos": [
+        "OmniRoute-latest",
+        "melosviz"
+      ]
+    },
+    {
+      "name": "082_inspector_sessions.sql",
+      "hash": "f383f0962efd7f07",
+      "repos": [
+        "OmniRoute-latest",
+        "melosviz"
+      ]
+    },
+    {
+      "name": "083_memory_vec.sql",
+      "hash": "5c7c51fc19d06c2f",
+      "repos": [
+        "OmniRoute-latest",
+        "melosviz"
+      ]
+    },
+    {
+      "name": "084_playground_presets.sql",
+      "hash": "a9f9f7e4d50002b6",
+      "repos": [
+        "OmniRoute-latest",
+        "melosviz"
+      ]
+    },
+    {
+      "name": "085_quota_pools.sql",
+      "hash": "49fd4ac1b24362dc",
+      "repos": [
+        "OmniRoute-latest",
+        "melosviz"
+      ]
+    },
+    {
+      "name": "086_api_key_allowed_quotas.sql",
+      "hash": "6349d29bbe9bc38d",
+      "repos": [
+        "OmniRoute-latest",
+        "melosviz"
+      ]
+    },
+    {
+      "name": "087_quota_pool_connections.sql",
+      "hash": "bc45e02b78a3c64d",
+      "repos": [
+        "OmniRoute-latest",
+        "melosviz"
+      ]
+    },
+    {
+      "name": "088_quota_groups.sql",
+      "hash": "1ae03edb2a9ffda3",
+      "repos": [
+        "OmniRoute-latest",
+        "melosviz"
+      ]
+    },
+    {
+      "name": "database-schemas.sql",
+      "hash": "0a52f3d8185f66e5",
+      "repos": [
+        "KaskMan",
+        "PhenoProject"
+      ]
+    }
+  ]
+}

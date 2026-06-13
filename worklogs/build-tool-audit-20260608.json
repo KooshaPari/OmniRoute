@@ -1,0 +1,28 @@
+{
+  "generated_at": "2026-06-08T00:00:00Z",
+  "total_repos": 162,
+  "by_lib": {
+    "napi_rs": [],
+    "pyo3": [
+      "Agentora",
+      "Conft",
+      "HeliosLab",
+      "KDesktopVirt",
+      "PhenoAgent",
+      "thegent-clean-wt-docs",
+      "thegent-clean-wt-ruff"
+    ],
+    "maturin": [
+      "HeliosLab",
+      "thegent-clean-wt-docs",
+      "thegent-clean-wt-ruff"
+    ],
+    "node_bindgen": [],
+    "wasm_bindgen": [],
+    "uniffi": [
+      "crates",
+      "eyetracker"
+    ],
+    "cbindgen": []
+  }
+}

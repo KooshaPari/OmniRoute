@@ -1,0 +1,28 @@
+[package]
+name = "pheno-errors"
+version = "0.1.0"
+edition = "2021"
+license = "MIT OR Apache-2.0"
+description = "Canonical AppError type for the pheno-* fleet, consolidating the 5 most-common error patterns (Domain, NotFound, Conflict, Validation, Storage)."
+repository = "https://github.com/KooshaPari/phenotype"
+keywords = ["error", "phenotype", "pheno-errors", "thiserror", "anyhow"]
+categories = ["rust-patterns", "error-handling"]
+publish = false
+
+# Empty [workspace] table declares this crate as a standalone package,
+# intentionally NOT a member of the root FocalPoint/Phenotype workspace
+# (which contains 56+ focus-* / connector-* crates). Consumers add it
+# to their own workspace or depend on it via a path/git dep.
+[workspace]
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
+thiserror = "2.0"
+anyhow = "1.0"
+tracing = "0.1"
+
+[dev-dependencies]
+anyhow = "1.0"
+thiserror = "2.0"

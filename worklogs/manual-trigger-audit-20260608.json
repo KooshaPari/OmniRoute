@@ -1,0 +1,1619 @@
+{
+  "generated_at": "2026-06-08T23:23:13Z",
+  "total_repos": 134,
+  "with_dispatch": [
+    "Agentora",
+    "AgilePlus",
+    "Apisync",
+    "AppGen",
+    "AtomsBot",
+    "AuthKit",
+    "Benchora",
+    "BytePort",
+    "Civis",
+    "Conft",
+    "DINOForge-UnityDoorstop",
+    "DataKit",
+    "Dino",
+    "Eidolon",
+    "FocalPoint",
+    "GDK",
+    "HeliosCLI",
+    "HeliosLab",
+    "HexaKit",
+    "Httpora",
+    "KDesktopVirt",
+    "KWatch",
+    "KaskMan",
+    "KlipDot",
+    "MCPForge",
+    "McpKit",
+    "Metron",
+    "ObservabilityKit",
+    "OmniRoute",
+    "OmniRoute-dependabot",
+    "Paginary",
+    "Parpoura",
+    "PhenoAgent",
+    "PhenoCompose",
+    "PhenoDevOps",
+    "PhenoHandbook",
+    "PhenoKits",
+    "PhenoMCP",
+    "PhenoMCP-cheap",
+    "PhenoObservability",
+    "PhenoPlugins",
+    "PhenoProc",
+    "PhenoProject",
+    "PhenoRuntime",
+    "PhenoSpecs",
+    "PhenoVCS",
+    "Planify",
+    "PlatformKit",
+    "PlayCua",
+    "PolicyStack",
+    "Pyron",
+    "QuadSGM",
+    "ResilienceKit",
+    "Sidekick",
+    "Tasken",
+    "TestingKit",
+    "Tokn",
+    "Tracely",
+    "Tracera",
+    "agent-devops-setups",
+    "agent-user-status",
+    "agentapi-plusplus",
+    "argis-extensions",
+    "bare-cua",
+    "byteport-landing",
+    "chatta",
+    "cheap-llm-mcp",
+    "cheap-llm-mcp-deprecate",
+    "cliproxyapi-plusplus",
+    "dinoforge-packs",
+    "dispatch-mcp",
+    "eyetracker",
+    "forgecode",
+    "helios-router",
+    "heliosApp",
+    "heliosBench",
+    "helioscope",
+    "hwLedger",
+    "kwality",
+    "nanovms",
+    "netweave-final2",
+    "pheno",
+    "phenoAI",
+    "phenoData",
+    "phenoDesign",
+    "phenoForge",
+    "phenoResearchEngine",
+    "phenoShared",
+    "phenoUtils",
+    "phenoXdd",
+    "phenodocs",
+    "phenodocs-scorecard-remediation",
+    "phenokits-landing",
+    "phenotype-auth-ts",
+    "phenotype-bus",
+    "phenotype-dep-guard",
+    "phenotype-hub",
+    "phenotype-infra",
+    "phenotype-journeys",
+    "phenotype-ops-mcp",
+    "phenotype-org-audits",
+    "phenotype-registry",
+    "phenotype-shared",
+    "phenotype-terrain",
+    "phenotype-tooling",
+    "phenotype-water",
+    "portage",
+    "rich-cli-kit",
+    "thegent",
+    "thegent-clean-wt-docs",
+    "thegent-clean-wt-idea",
+    "thegent-clean-wt-parallel",
+    "thegent-clean-wt-policy",
+    "thegent-clean-wt-ruff",
+    "thegent-dispatch",
+    "vibeproxy",
+    "vibeproxy-monitoring-unified"
+  ],
+  "by_repo": [
+    {
+      "repo": "Agentora",
+      "dispatch_count": 2,
+      "files": [
+        "cargo-deny.yml",
+        "pages-deploy.yml"
+      ]
+    },
+    {
+      "repo": "AgilePlus",
+      "dispatch_count": 11,
+      "files": [
+        "cargo-audit.yml",
+        "cargo-machete.yml",
+        "ci.yml",
+        "deploy.yml",
+        "doc-links.yml",
+        "evidence-capture.yml",
+        "fr-coverage.yml",
+        "security-guard.yml",
+        "self-merge-gate.yml",
+        "sync-canary.yml",
+        "trufflehog.yml"
+      ]
+    },
+    {
+      "repo": "Apisync",
+      "dispatch_count": 6,
+      "files": [
+        "cargo-deny.yml",
+        "ci.yml",
+        "coverage.yml",
+        "pages-deploy.yml",
+        "sast.yml",
+        "security-guard.yml"
+      ]
+    },
+    {
+      "repo": "AppGen",
+      "dispatch_count": 4,
+      "files": [
+        "doc-links.yml",
+        "fr-coverage.yml",
+        "legacy-tooling-gate.yml",
+        "quality-gate.yml"
+      ]
+    },
+    {
+      "repo": "AtomsBot",
+      "dispatch_count": 4,
+      "files": [
+        "legacy-tooling-gate.yml",
+        "quality-gate.yml",
+        "release-drafter.yml",
+        "scorecard.yml"
+      ]
+    },
+    {
+      "repo": "AuthKit",
+      "dispatch_count": 2,
+      "files": [
+        "cargo-deny.yml",
+        "release-drafter.yml"
+      ]
+    },
+    {
+      "repo": "Benchora",
+      "dispatch_count": 1,
+      "files": [
+        "ci.yml"
+      ]
+    },
+    {
+      "repo": "BytePort",
+      "dispatch_count": 7,
+      "files": [
+        "cargo-audit.yml",
+        "cargo-deny.yml",
+        "cargo-machete.yml",
+        "cargo-semver-checks.yml",
+        "legacy-tooling-gate.yml",
+        "release-drafter.yml",
+        "sbom-refresh.yml"
+      ]
+    },
+    {
+      "repo": "Civis",
+      "dispatch_count": 22,
+      "files": [
+        "alert-sync-issues.yml",
+        "cargo-audit.yml",
+        "cargo-deny.yml",
+        "cargo-machete.yml",
+        "cargo-semver-checks.yml",
+        "codeql-rust.yml",
+        "codeql.yml",
+        "doc-links.yml",
+        "docs-site.yml",
+        "fr-coverage.yml",
+        "journey-gate.yml",
+        "legacy-tooling-gate.yml",
+        "pages-deploy.yml",
+        "pages.yml",
+        "policy-gate.yml",
+        "quality-gate.yml",
+        "quality.yml",
+        "release.yml",
+        "security-guard-hook-audit.yml",
+        "security-guard.yml",
+        "trufflehog.yml",
+        "unreal-build.yml"
+      ]
+    },
+    {
+      "repo": "Conft",
+      "dispatch_count": 5,
+      "files": [
+        "alert-sync-issues.yml",
+        "ci.yml",
+        "codeql.yml",
+        "scorecard.yml",
+        "security-guard-hook-audit.yml"
+      ]
+    },
+    {
+      "repo": "DINOForge-UnityDoorstop",
+      "dispatch_count": 3,
+      "files": [
+        "build-be.yml",
+        "doc-links.yml",
+        "trufflehog.yml"
+      ]
+    },
+    {
+      "repo": "DataKit",
+      "dispatch_count": 1,
+      "files": [
+        "cargo-deny.yml"
+      ]
+    },
+    {
+      "repo": "Dino",
+      "dispatch_count": 37,
+      "files": [
+        "agent-merge-on-bot-approve.yml",
+        "api-docs.yml",
+        "benchmarks.yml",
+        "changelog-lint.yml",
+        "ci-status-badges.yml",
+        "ci.yml",
+        "configureawait.yml",
+        "dashboard.yml",
+        "deploy.yml",
+        "direct-datetime.yml",
+        "framework-version.yml",
+        "fuzz.yml",
+        "game-automation.yml",
+        "game-launch-validation.yml",
+        "game-launch.yml",
+        "inline-json-options.yml",
+        "lint.yml",
+        "logerror-no-stack.yml",
+        "mcp-pytest.yml",
+        "mutation-test.yml",
+        "orphan-process-start.yml",
+        "pack-screenshots.yml",
+        "pattern-gates.yml",
+        "perf-benchmarks.yml",
+        "proof-gate.yml",
+        "release.yml",
+        "sbom.yml",
+        "schema-drift.yml",
+        "scorecard.yml",
+        "stringly-enums.yml",
+        "tautological-test.yml",
+        "tcs-sync-continuation.yml",
+        "test-isolation.yml",
+        "ui-automation.yml",
+        "unbounded-constraints.yml",
+        "unguarded-deserialize.yml",
+        "version-bump.yml"
+      ]
+    },
+    {
+      "repo": "Eidolon",
+      "dispatch_count": 6,
+      "files": [
+        "cargo-audit.yml",
+        "cargo-deny.yml",
+        "cargo-machete.yml",
+        "cargo-semver-checks.yml",
+        "codeql.yml",
+        "sbom-refresh.yml"
+      ]
+    },
+    {
+      "repo": "FocalPoint",
+      "dispatch_count": 3,
+      "files": [
+        "cargo-audit.yml",
+        "cargo-deny.yml",
+        "journey-gate.yml"
+      ]
+    },
+    {
+      "repo": "GDK",
+      "dispatch_count": 8,
+      "files": [
+        "cargo-audit.yml",
+        "cargo-deny.yml",
+        "cargo-machete.yml",
+        "cargo-semver-checks.yml",
+        "ci.yml",
+        "codeql-rust.yml",
+        "legacy-tooling-gate.yml",
+        "release.yml"
+      ]
+    },
+    {
+      "repo": "HeliosCLI",
+      "dispatch_count": 27,
+      "files": [
+        "alert-sync-issues.yml",
+        "bazel.yml",
+        "cargo-audit.yml",
+        "cargo-deny.yml",
+        "cargo-machete.yml",
+        "cargo-semver-checks.yml",
+        "ci.yml",
+        "close-stale-contributor-prs.yml",
+        "codeql-rust.yml",
+        "codeql.yml",
+        "cpu-profiling.yml",
+        "docs-site.yml",
+        "helios-cli-release.yml",
+        "helios-cli.yml",
+        "journey-gate.yml",
+        "leak-detection.yml",
+        "network-optimization.yml",
+        "pages.yml",
+        "pr-babysit-watch.yml",
+        "pr-governance-gate.yml",
+        "quality.yml",
+        "rust-ci.yml",
+        "rust-release-prepare.yml",
+        "sast-full.yml",
+        "sentry-error-tracking.yml",
+        "stage-gates.yml",
+        "workflow-sync.yml"
+      ]
+    },
+    {
+      "repo": "HeliosLab",
+      "dispatch_count": 12,
+      "files": [
+        "alert-sync-issues.yml",
+        "build-release.yml",
+        "cargo-audit.yml",
+        "cargo-deny.yml",
+        "codeql-rust.yml",
+        "codeql.yml",
+        "deploy-docs.yml",
+        "journey-gate.yml",
+        "required-check-names-guard.yml",
+        "sast.yml",
+        "security-guard-hook-audit.yml",
+        "security-guard.yml"
+      ]
+    },
+    {
+      "repo": "HexaKit",
+      "dispatch_count": 14,
+      "files": [
+        "benchmark.yml",
+        "cargo-audit.yml",
+        "cargo-deny.yml",
+        "cargo-machete.yml",
+        "ci.yml",
+        "codeql-rust.yml",
+        "docs.yml",
+        "example-reusable.yml",
+        "journey-gate.yml",
+        "legacy-tooling-gate.yml",
+        "sbom.yml",
+        "security.yml",
+        "snyk-scan.yml",
+        "zap-dast.yml"
+      ]
+    },
+    {
+      "repo": "Httpora",
+      "dispatch_count": 4,
+      "files": [
+        "ci.yml",
+        "codeql.yml",
+        "pages-deploy.yml",
+        "secrets-scan.yml"
+      ]
+    },
+    {
+      "repo": "KDesktopVirt",
+      "dispatch_count": 8,
+      "files": [
+        "cargo-audit.yml",
+        "cargo-deny.yml",
+        "cargo-machete.yml",
+        "cargo-semver-checks.yml",
+        "codeql-rust.yml",
+        "codeql.yml",
+        "legacy-tooling-gate.yml",
+        "pages-deploy.yml"
+      ]
+    },
+    {
+      "repo": "KWatch",
+      "dispatch_count": 1,
+      "files": [
+        "ci.yml"
+      ]
+    },
+    {
+      "repo": "KaskMan",
+      "dispatch_count": 1,
+      "files": [
+        "dependency-update.yml"
+      ]
+    },
+    {
+      "repo": "KlipDot",
+      "dispatch_count": 2,
+      "files": [
+        "cargo-deny.yml",
+        "legacy-tooling-gate.yml"
+      ]
+    },
+    {
+      "repo": "MCPForge",
+      "dispatch_count": 3,
+      "files": [
+        "alert-sync-issues.yml",
+        "codeql.yml",
+        "go.yml"
+      ]
+    },
+    {
+      "repo": "McpKit",
+      "dispatch_count": 1,
+      "files": [
+        "cargo-deny.yml"
+      ]
+    },
+    {
+      "repo": "Metron",
+      "dispatch_count": 6,
+      "files": [
+        "cargo-audit.yml",
+        "cargo-deny.yml",
+        "cargo-machete.yml",
+        "cargo-semver-checks.yml",
+        "codeql-rust.yml",
+        "journey-gate.yml"
+      ]
+    },
+    {
+      "repo": "ObservabilityKit",
+      "dispatch_count": 3,
+      "files": [
+        "alert-sync-issues.yml",
+        "cargo-deny.yml",
+        "codeql.yml"
+      ]
+    },
+    {
+      "repo": "OmniRoute",
+      "dispatch_count": 9,
+      "files": [
+        "build-fork.yml",
+        "ci.yml",
+        "docker-publish.yml",
+        "electron-release.yml",
+        "lock-released-branch.yml",
+        "npm-publish.yml",
+        "opencode-plugin-ci.yml",
+        "opencode-provider-ci.yml",
+        "scorecard.yml"
+      ]
+    },
+    {
+      "repo": "OmniRoute-dependabot",
+      "dispatch_count": 8,
+      "files": [
+        "build-fork.yml",
+        "ci.yml",
+        "docker-publish.yml",
+        "electron-release.yml",
+        "lock-released-branch.yml",
+        "npm-publish.yml",
+        "opencode-plugin-ci.yml",
+        "opencode-provider-ci.yml"
+      ]
+    },
+    {
+      "repo": "Paginary",
+      "dispatch_count": 2,
+      "files": [
+        "codeql.yml",
+        "sbom-refresh.yml"
+      ]
+    },
+    {
+      "repo": "Parpoura",
+      "dispatch_count": 2,
+      "files": [
+        "alert-sync-issues.yml",
+        "pages.yml"
+      ]
+    },
+    {
+      "repo": "PhenoAgent",
+      "dispatch_count": 6,
+      "files": [
+        "cargo-deny.yml",
+        "codeql.yml",
+        "doc-links.yml",
+        "fr-coverage.yml",
+        "journey-gate.yml",
+        "quality-gate.yml"
+      ]
+    },
+    {
+      "repo": "PhenoCompose",
+      "dispatch_count": 1,
+      "files": [
+        "ci.yml"
+      ]
+    },
+    {
+      "repo": "PhenoDevOps",
+      "dispatch_count": 30,
+      "files": [
+        "audit.yml",
+        "benchmark.yml",
+        "cargo-deny.yml",
+        "changelog.yml",
+        "ci.yml",
+        "codeql.yml",
+        "docs.yml",
+        "fuzzing.yml",
+        "gate-check.yml",
+        "iac-scan.yml",
+        "license-compliance.yml",
+        "lint.yml",
+        "promote.yml",
+        "publish.yml",
+        "quality-gate.yml",
+        "sast-full.yml",
+        "sbom.yml",
+        "security-guard-hook-audit.yml",
+        "security-guard.yml",
+        "security.yml",
+        "self-merge-gate.yml",
+        "snyk-scan.yml",
+        "sonarcloud.yml",
+        "spec-validation.yml",
+        "tag-automation.yml",
+        "trivy-scan.yml",
+        "trufflehog.yml",
+        "workflow-maintenance.yml",
+        "workflow-sync.yml",
+        "zap-dast.yml"
+      ]
+    },
+    {
+      "repo": "PhenoHandbook",
+      "dispatch_count": 6,
+      "files": [
+        "ci.yml",
+        "conventions.yml",
+        "doc-links.yml",
+        "fr-coverage.yml",
+        "legacy-tooling-gate.yml",
+        "quality-gate.yml"
+      ]
+    },
+    {
+      "repo": "PhenoKits",
+      "dispatch_count": 8,
+      "files": [
+        "cargo-audit.yml",
+        "cargo-deny.yml",
+        "cargo-machete.yml",
+        "cargo-semver-checks.yml",
+        "codeql.yml",
+        "docs-deploy.yml",
+        "journey-gate.yml",
+        "publish.yml"
+      ]
+    },
+    {
+      "repo": "PhenoMCP",
+      "dispatch_count": 8,
+      "files": [
+        "cargo-audit.yml",
+        "cargo-deny.yml",
+        "cargo-machete.yml",
+        "cargo-semver-checks.yml",
+        "codeql-rust.yml",
+        "codeql.yml",
+        "journey-gate.yml",
+        "pages.yml"
+      ]
+    },
+    {
+      "repo": "PhenoMCP-cheap",
+      "dispatch_count": 8,
+      "files": [
+        "cargo-audit.yml",
+        "cargo-deny.yml",
+        "cargo-machete.yml",
+        "cargo-semver-checks.yml",
+        "codeql-rust.yml",
+        "codeql.yml",
+        "journey-gate.yml",
+        "pages.yml"
+      ]
+    },
+    {
+      "repo": "PhenoObservability",
+      "dispatch_count": 9,
+      "files": [
+        "cargo-audit.yml",
+        "cargo-deny.yml",
+        "cargo-machete.yml",
+        "cargo-semver-checks.yml",
+        "codeql-rust.yml",
+        "codeql.yml",
+        "journey-gate.yml",
+        "publish.yml",
+        "sbom-refresh.yml"
+      ]
+    },
+    {
+      "repo": "PhenoPlugins",
+      "dispatch_count": 8,
+      "files": [
+        "cargo-audit.yml",
+        "cargo-deny.yml",
+        "cargo-machete.yml",
+        "cargo-semver-checks.yml",
+        "ci.yml",
+        "codeql-rust.yml",
+        "codeql.yml",
+        "legacy-tooling-gate.yml"
+      ]
+    },
+    {
+      "repo": "PhenoProc",
+      "dispatch_count": 12,
+      "files": [
+        "cargo-audit.yml",
+        "cargo-deny.yml",
+        "ci.yml",
+        "codeql-rust.yml",
+        "codeql.yml",
+        "doc-links.yml",
+        "fr-coverage.yml",
+        "legacy-tooling-gate.yml",
+        "pages-deploy.yml",
+        "quality-gate.yml",
+        "trufflehog.yml",
+        "vitepress-deploy.yml"
+      ]
+    },
+    {
+      "repo": "PhenoProject",
+      "dispatch_count": 1,
+      "files": [
+        "alert-sync-issues.yml"
+      ]
+    },
+    {
+      "repo": "PhenoRuntime",
+      "dispatch_count": 6,
+      "files": [
+        "cargo-audit.yml",
+        "cargo-deny.yml",
+        "codeql-rust.yml",
+        "journey-gate.yml",
+        "pages.yml",
+        "release.yml"
+      ]
+    },
+    {
+      "repo": "PhenoSpecs",
+      "dispatch_count": 1,
+      "files": [
+        "legacy-tooling-gate.yml"
+      ]
+    },
+    {
+      "repo": "PhenoVCS",
+      "dispatch_count": 9,
+      "files": [
+        "cargo-audit.yml",
+        "cargo-deny.yml",
+        "cargo-machete.yml",
+        "cargo-semver-checks.yml",
+        "ci.yml",
+        "codeql-rust.yml",
+        "codeql.yml",
+        "legacy-tooling-gate.yml",
+        "release.yml"
+      ]
+    },
+    {
+      "repo": "Planify",
+      "dispatch_count": 11,
+      "files": [
+        "build-branch.yml",
+        "check-version.yml",
+        "codeql.yml",
+        "codespell.yml",
+        "copyright-check.yml",
+        "feature-deployment.yml",
+        "pull-request-build-lint-api.yml",
+        "pull-request-build-lint-web-apps.yml",
+        "scorecard.yml",
+        "sync-repo-pr.yml",
+        "sync-repo.yml"
+      ]
+    },
+    {
+      "repo": "PlatformKit",
+      "dispatch_count": 1,
+      "files": [
+        "ci.yml"
+      ]
+    },
+    {
+      "repo": "PlayCua",
+      "dispatch_count": 7,
+      "files": [
+        "cargo-audit.yml",
+        "cargo-deny.yml",
+        "cargo-machete.yml",
+        "cargo-semver-checks.yml",
+        "codeql-rust.yml",
+        "codeql.yml",
+        "legacy-tooling-gate.yml"
+      ]
+    },
+    {
+      "repo": "PolicyStack",
+      "dispatch_count": 8,
+      "files": [
+        "benchmark.yml",
+        "ci.yml",
+        "codeql.yml",
+        "legacy-tooling-gate.yml",
+        "pages-deploy.yml",
+        "policy-contract-governance.yml",
+        "quality-gate.yml",
+        "security.yml"
+      ]
+    },
+    {
+      "repo": "Pyron",
+      "dispatch_count": 20,
+      "files": [
+        "ai-testing-orchestration.yml",
+        "alert-sync-issues.yml",
+        "audit.yml",
+        "benchmark.yml",
+        "ci.yml",
+        "deploy.yml",
+        "docs.yml",
+        "gate-check.yml",
+        "promote.yml",
+        "publish.yml",
+        "quality-gate.yml",
+        "release-drafter.yml",
+        "release.yml",
+        "sast-full.yml",
+        "sbom.yml",
+        "security.yml",
+        "self-merge-gate.yml",
+        "snyk-scan.yml",
+        "sync-canary.yml",
+        "workflow-sync.yml"
+      ]
+    },
+    {
+      "repo": "QuadSGM",
+      "dispatch_count": 6,
+      "files": [
+        "alert-sync-issues.yml",
+        "coverage.yml",
+        "docs-site.yml",
+        "pages.yml",
+        "qa-governance.yml",
+        "self-hosted.yml"
+      ]
+    },
+    {
+      "repo": "ResilienceKit",
+      "dispatch_count": 5,
+      "files": [
+        "cargo-deny.yml",
+        "ci.yml",
+        "codeql.yml",
+        "coverage.yml",
+        "dependency-review.yml"
+      ]
+    },
+    {
+      "repo": "Sidekick",
+      "dispatch_count": 7,
+      "files": [
+        "cargo-audit.yml",
+        "cargo-deny.yml",
+        "cargo-machete.yml",
+        "cargo-semver-checks.yml",
+        "codeql-rust.yml",
+        "codeql.yml",
+        "sbom-refresh.yml"
+      ]
+    },
+    {
+      "repo": "Tasken",
+      "dispatch_count": 8,
+      "files": [
+        "cargo-audit.yml",
+        "cargo-deny.yml",
+        "cargo-machete.yml",
+        "cargo-semver-checks.yml",
+        "codeql-rust.yml",
+        "codeql.yml",
+        "journey-gate.yml",
+        "security.yml"
+      ]
+    },
+    {
+      "repo": "TestingKit",
+      "dispatch_count": 6,
+      "files": [
+        "cargo-deny.yml",
+        "codeql.yml",
+        "dependency-review.yml",
+        "fr-coverage.yml",
+        "journey-gate.yml",
+        "quality-gate.yml"
+      ]
+    },
+    {
+      "repo": "Tokn",
+      "dispatch_count": 10,
+      "files": [
+        "alert-sync-issues.yml",
+        "benchmark.yml",
+        "cargo-deny.yml",
+        "ci.yml",
+        "docs.yml",
+        "journey-gate.yml",
+        "legacy-tooling-gate.yml",
+        "pages-deploy.yml",
+        "sbom-refresh.yml",
+        "security.yml"
+      ]
+    },
+    {
+      "repo": "Tracely",
+      "dispatch_count": 8,
+      "files": [
+        "cargo-audit.yml",
+        "cargo-deny.yml",
+        "cargo-machete.yml",
+        "cargo-semver-checks.yml",
+        "ci.yml",
+        "codeql-rust.yml",
+        "codeql.yml",
+        "legacy-tooling-gate.yml"
+      ]
+    },
+    {
+      "repo": "Tracera",
+      "dispatch_count": 14,
+      "files": [
+        "alert-sync-issues.yml",
+        "canary-deploy.yml",
+        "chaos-tests.yml",
+        "deployment-rollback.yml",
+        "desktop-electrobun-release.yml",
+        "docs-deploy.yml",
+        "docs-performance.yml",
+        "go-tests.yml",
+        "openapi-docs.yml",
+        "performance-regression.yml",
+        "qa-governance.yml",
+        "schema-validation.yml",
+        "security-scans.yml",
+        "vitepress-pages.yml"
+      ]
+    },
+    {
+      "repo": "agent-devops-setups",
+      "dispatch_count": 1,
+      "files": [
+        "validate-policy.yml"
+      ]
+    },
+    {
+      "repo": "agent-user-status",
+      "dispatch_count": 1,
+      "files": [
+        "journey-gate.yml"
+      ]
+    },
+    {
+      "repo": "agentapi-plusplus",
+      "dispatch_count": 5,
+      "files": [
+        "alert-sync-issues.yml",
+        "coderabbit-rate-limit-retry.yml",
+        "docs-site.yml",
+        "pr-preview-build.yml",
+        "release.yml"
+      ]
+    },
+    {
+      "repo": "argis-extensions",
+      "dispatch_count": 4,
+      "files": [
+        "cd.yml",
+        "journey-gate.yml",
+        "legacy-tooling-gate.yml",
+        "release-drafter.yml"
+      ]
+    },
+    {
+      "repo": "bare-cua",
+      "dispatch_count": 7,
+      "files": [
+        "cargo-audit.yml",
+        "cargo-deny.yml",
+        "cargo-machete.yml",
+        "cargo-semver-checks.yml",
+        "codeql-rust.yml",
+        "codeql.yml",
+        "legacy-tooling-gate.yml"
+      ]
+    },
+    {
+      "repo": "byteport-landing",
+      "dispatch_count": 2,
+      "files": [
+        "ci.yml",
+        "trufflehog.yml"
+      ]
+    },
+    {
+      "repo": "chatta",
+      "dispatch_count": 5,
+      "files": [
+        "ci.yml",
+        "doc-links.yml",
+        "fr-coverage.yml",
+        "legacy-tooling-gate.yml",
+        "quality-gate.yml"
+      ]
+    },
+    {
+      "repo": "cheap-llm-mcp",
+      "dispatch_count": 2,
+      "files": [
+        "journey-gate.yml",
+        "release-drafter.yml"
+      ]
+    },
+    {
+      "repo": "cheap-llm-mcp-deprecate",
+      "dispatch_count": 2,
+      "files": [
+        "journey-gate.yml",
+        "release-drafter.yml"
+      ]
+    },
+    {
+      "repo": "cliproxyapi-plusplus",
+      "dispatch_count": 20,
+      "files": [
+        "alert-sync-issues.yml",
+        "auto-merge.yml",
+        "ci-rerun-flaky.yml",
+        "codeql.yml",
+        "coderabbit-rate-limit-retry.yml",
+        "docker-image.yml",
+        "docs.yml",
+        "journey-gate.yml",
+        "lint-test.yml",
+        "lint.yml",
+        "pages-deploy.yml",
+        "pr-path-guard.yml",
+        "pr-test-build.yml",
+        "release-drafter.yml",
+        "required-check-names-guard.yml",
+        "sast-full.yml",
+        "security-guard-hook-audit.yml",
+        "security-guard.yml",
+        "tag-automation.yml",
+        "trufflehog.yml"
+      ]
+    },
+    {
+      "repo": "dinoforge-packs",
+      "dispatch_count": 1,
+      "files": [
+        "alert-sync-issues.yml"
+      ]
+    },
+    {
+      "repo": "dispatch-mcp",
+      "dispatch_count": 2,
+      "files": [
+        "ci.yml",
+        "gitleaks.yml"
+      ]
+    },
+    {
+      "repo": "eyetracker",
+      "dispatch_count": 7,
+      "files": [
+        "cargo-audit.yml",
+        "cargo-deny.yml",
+        "cargo-machete.yml",
+        "cargo-semver-checks.yml",
+        "codeql-rust.yml",
+        "codeql.yml",
+        "journey-gate.yml"
+      ]
+    },
+    {
+      "repo": "forgecode",
+      "dispatch_count": 1,
+      "files": [
+        "cargo-deny.yml"
+      ]
+    },
+    {
+      "repo": "helios-router",
+      "dispatch_count": 1,
+      "files": [
+        "pages.yml"
+      ]
+    },
+    {
+      "repo": "heliosApp",
+      "dispatch_count": 8,
+      "files": [
+        "agent-dir-guard.yml",
+        "alert-sync-issues.yml",
+        "ci.yml",
+        "gca.yml",
+        "journey-gate.yml",
+        "required-check-names-guard.yml",
+        "sbom-refresh.yml",
+        "vitepress-pages.yml"
+      ]
+    },
+    {
+      "repo": "heliosBench",
+      "dispatch_count": 2,
+      "files": [
+        "journey-gate.yml",
+        "pages.yml"
+      ]
+    },
+    {
+      "repo": "helioscope",
+      "dispatch_count": 27,
+      "files": [
+        "alert-sync-issues.yml",
+        "bazel.yml",
+        "cargo-audit.yml",
+        "cargo-deny.yml",
+        "cargo-machete.yml",
+        "cargo-semver-checks.yml",
+        "ci.yml",
+        "close-stale-contributor-prs.yml",
+        "codeql-rust.yml",
+        "codeql.yml",
+        "cpu-profiling.yml",
+        "docs-site.yml",
+        "helios-cli-release.yml",
+        "helios-cli.yml",
+        "journey-gate.yml",
+        "leak-detection.yml",
+        "network-optimization.yml",
+        "pages.yml",
+        "pr-babysit-watch.yml",
+        "pr-governance-gate.yml",
+        "quality.yml",
+        "rust-ci.yml",
+        "rust-release-prepare.yml",
+        "sast-full.yml",
+        "sentry-error-tracking.yml",
+        "stage-gates.yml",
+        "workflow-sync.yml"
+      ]
+    },
+    {
+      "repo": "hwLedger",
+      "dispatch_count": 5,
+      "files": [
+        "cargo-audit.yml",
+        "cargo-deny.yml",
+        "codeql-rust.yml",
+        "codeql.yml",
+        "deploy-docs.yml"
+      ]
+    },
+    {
+      "repo": "kwality",
+      "dispatch_count": 7,
+      "files": [
+        "ci-cd.yml",
+        "ci.yml",
+        "doc-links.yml",
+        "fr-coverage.yml",
+        "legacy-tooling-gate.yml",
+        "quality-gate.yml",
+        "trufflehog.yml"
+      ]
+    },
+    {
+      "repo": "nanovms",
+      "dispatch_count": 1,
+      "files": [
+        "ci.yml"
+      ]
+    },
+    {
+      "repo": "netweave-final2",
+      "dispatch_count": 1,
+      "files": [
+        "legacy-tooling-gate.yml"
+      ]
+    },
+    {
+      "repo": "pheno",
+      "dispatch_count": 19,
+      "files": [
+        "ai-testing-orchestration.yml",
+        "alert-sync-issues.yml",
+        "benchmark.yml",
+        "cargo-audit.yml",
+        "cargo-deny.yml",
+        "cargo-machete.yml",
+        "cargo-semver-checks.yml",
+        "ci.yml",
+        "deploy.yml",
+        "docs.yml",
+        "example-reusable.yml",
+        "release.yml",
+        "sast-full.yml",
+        "sbom.yml",
+        "security.yml",
+        "snyk-scan.yml",
+        "sync-canary.yml",
+        "workflow-sync.yml",
+        "zap-dast.yml"
+      ]
+    },
+    {
+      "repo": "phenoAI",
+      "dispatch_count": 6,
+      "files": [
+        "cargo-audit.yml",
+        "cargo-deny.yml",
+        "cargo-machete.yml",
+        "cargo-semver-checks.yml",
+        "codeql-rust.yml",
+        "release.yml"
+      ]
+    },
+    {
+      "repo": "phenoData",
+      "dispatch_count": 9,
+      "files": [
+        "cargo-audit.yml",
+        "cargo-deny.yml",
+        "cargo-machete.yml",
+        "cargo-semver-checks.yml",
+        "codeql-rust.yml",
+        "coverage.yml",
+        "gitleaks.yml",
+        "pages.yml",
+        "sbom-refresh.yml"
+      ]
+    },
+    {
+      "repo": "phenoDesign",
+      "dispatch_count": 12,
+      "files": [
+        "doc-links.yml",
+        "fr-coverage.yml",
+        "gitleaks.yml",
+        "legacy-tooling-gate.yml",
+        "quality-gate.yml",
+        "scorecard.yml",
+        "security-guard-hook-audit.yml",
+        "security-guard.yml",
+        "security.yml",
+        "trufflehog.yml",
+        "ts-ci.yml",
+        "workflow-permissions.yml"
+      ]
+    },
+    {
+      "repo": "phenoForge",
+      "dispatch_count": 7,
+      "files": [
+        "benchmark.yml",
+        "cargo-deny.yml",
+        "ci.yml",
+        "legacy-tooling-gate.yml",
+        "pages-deploy.yml",
+        "release.yml",
+        "security.yml"
+      ]
+    },
+    {
+      "repo": "phenoResearchEngine",
+      "dispatch_count": 1,
+      "files": [
+        "vitepress-deploy.yml"
+      ]
+    },
+    {
+      "repo": "phenoShared",
+      "dispatch_count": 10,
+      "files": [
+        "cargo-audit.yml",
+        "cargo-deny.yml",
+        "cargo-machete.yml",
+        "cargo-semver-checks.yml",
+        "docs-deploy.yml",
+        "legacy-tooling-gate.yml",
+        "release.yml",
+        "reusable-release-drafter.yml",
+        "security-guard-hook-audit.yml",
+        "trufflehog.yml"
+      ]
+    },
+    {
+      "repo": "phenoUtils",
+      "dispatch_count": 5,
+      "files": [
+        "cargo-audit.yml",
+        "cargo-deny.yml",
+        "cargo-semver-checks.yml",
+        "codeql-rust.yml",
+        "codeql.yml"
+      ]
+    },
+    {
+      "repo": "phenoXdd",
+      "dispatch_count": 2,
+      "files": [
+        "legacy-tooling-gate.yml",
+        "pages-deploy.yml"
+      ]
+    },
+    {
+      "repo": "phenodocs",
+      "dispatch_count": 10,
+      "files": [
+        "alert-sync-issues.yml",
+        "codeql.yml",
+        "deploy.yml",
+        "doc-links.yml",
+        "fr-coverage.yml",
+        "legacy-tooling-gate.yml",
+        "publish-package.yml",
+        "quality-gate.yml",
+        "scorecard.yml",
+        "workflow-permissions.yml"
+      ]
+    },
+    {
+      "repo": "phenodocs-scorecard-remediation",
+      "dispatch_count": 12,
+      "files": [
+        "alert-sync-issues.yml",
+        "codeql.yml",
+        "deploy.yml",
+        "doc-links.yml",
+        "fr-coverage.yml",
+        "legacy-tooling-gate.yml",
+        "publish-package.yml",
+        "quality-gate.yml",
+        "scorecard.yml",
+        "security-guard-hook-audit.yml",
+        "security-guard.yml",
+        "workflow-permissions.yml"
+      ]
+    },
+    {
+      "repo": "phenokits-landing",
+      "dispatch_count": 2,
+      "files": [
+        "ci.yml",
+        "pages.yml"
+      ]
+    },
+    {
+      "repo": "phenotype-auth-ts",
+      "dispatch_count": 4,
+      "files": [
+        "doc-links.yml",
+        "fr-coverage.yml",
+        "quality-gate.yml",
+        "vitepress-deploy.yml"
+      ]
+    },
+    {
+      "repo": "phenotype-bus",
+      "dispatch_count": 11,
+      "files": [
+        "cargo-audit.yml",
+        "cargo-deny.yml",
+        "cargo-machete.yml",
+        "cargo-semver-checks.yml",
+        "ci.yml",
+        "codeql-rust.yml",
+        "codeql.yml",
+        "fr-coverage.yml",
+        "quality-gate.yml",
+        "scorecard.yml",
+        "trufflehog.yml"
+      ]
+    },
+    {
+      "repo": "phenotype-dep-guard",
+      "dispatch_count": 1,
+      "files": [
+        "branch-protection-audit.yml"
+      ]
+    },
+    {
+      "repo": "phenotype-hub",
+      "dispatch_count": 4,
+      "files": [
+        "doc-links.yml",
+        "fr-coverage.yml",
+        "secrets-scan.yml",
+        "vitepress-deploy.yml"
+      ]
+    },
+    {
+      "repo": "phenotype-infra",
+      "dispatch_count": 1,
+      "files": [
+        "codeql.yml"
+      ]
+    },
+    {
+      "repo": "phenotype-journeys",
+      "dispatch_count": 8,
+      "files": [
+        "cargo-audit.yml",
+        "cargo-deny.yml",
+        "cargo-machete.yml",
+        "cargo-semver-checks.yml",
+        "codeql-rust.yml",
+        "journey-gate.yml",
+        "publish-npm.yml",
+        "vitepress-deploy.yml"
+      ]
+    },
+    {
+      "repo": "phenotype-ops-mcp",
+      "dispatch_count": 5,
+      "files": [
+        "ci.yml",
+        "doc-links.yml",
+        "fr-coverage.yml",
+        "lint.yml",
+        "quality-gate.yml"
+      ]
+    },
+    {
+      "repo": "phenotype-org-audits",
+      "dispatch_count": 3,
+      "files": [
+        "codeql.yml",
+        "pages.yml",
+        "quarterly-audit.yml"
+      ]
+    },
+    {
+      "repo": "phenotype-registry",
+      "dispatch_count": 3,
+      "files": [
+        "conventions.yml",
+        "legacy-tooling-gate.yml",
+        "pages.yml"
+      ]
+    },
+    {
+      "repo": "phenotype-shared",
+      "dispatch_count": 2,
+      "files": [
+        "ci.yml",
+        "sbom-refresh.yml"
+      ]
+    },
+    {
+      "repo": "phenotype-terrain",
+      "dispatch_count": 1,
+      "files": [
+        "dotnet-build.yml"
+      ]
+    },
+    {
+      "repo": "phenotype-tooling",
+      "dispatch_count": 9,
+      "files": [
+        "alert-sync-issues.yml",
+        "cargo-audit.yml",
+        "cargo-deny.yml",
+        "codeql-rust.yml",
+        "codeql.yml",
+        "fr-coverage.yml",
+        "pages.yml",
+        "quality-gate.yml",
+        "release.yml"
+      ]
+    },
+    {
+      "repo": "phenotype-water",
+      "dispatch_count": 1,
+      "files": [
+        "dotnet-test.yml"
+      ]
+    },
+    {
+      "repo": "portage",
+      "dispatch_count": 8,
+      "files": [
+        "alert-sync-issues.yml",
+        "claude-code-review.yml",
+        "docs-deploy.yml",
+        "issue-merge-token.yml",
+        "legacy-tooling-gate.yml",
+        "pytest.yml",
+        "sync-registry.yml",
+        "verify-merge-token.yml"
+      ]
+    },
+    {
+      "repo": "rich-cli-kit",
+      "dispatch_count": 7,
+      "files": [
+        "cargo-audit.yml",
+        "cargo-deny.yml",
+        "cargo-machete.yml",
+        "cargo-semver-checks.yml",
+        "codeql-rust.yml",
+        "codeql.yml",
+        "journey-gate.yml"
+      ]
+    },
+    {
+      "repo": "thegent",
+      "dispatch_count": 6,
+      "files": [
+        "cargo-deny.yml",
+        "codeql.yml",
+        "pages-deploy.yml",
+        "release.yml",
+        "sast-full.yml",
+        "security.yml"
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-docs",
+      "dispatch_count": 15,
+      "files": [
+        "ci.yml",
+        "codeql.yml",
+        "coverage.yml",
+        "deploy-docs.yml",
+        "fuzzing.yml",
+        "iac-scan.yml",
+        "license-compliance.yml",
+        "pages-deploy.yml",
+        "quality-gate.yml",
+        "security-deep-scan.yml",
+        "security-guard.yml",
+        "security.yml",
+        "sonarcloud.yml",
+        "trivy-scan.yml",
+        "zap-dast.yml"
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-idea",
+      "dispatch_count": 5,
+      "files": [
+        "codeql.yml",
+        "pages-deploy.yml",
+        "release.yml",
+        "sast-full.yml",
+        "security.yml"
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-parallel",
+      "dispatch_count": 13,
+      "files": [
+        "ai-testing.yml",
+        "ci.yml",
+        "codeql.yml",
+        "coverage.yml",
+        "fuzzing.yml",
+        "iac-scan.yml",
+        "license-compliance.yml",
+        "pages-deploy.yml",
+        "release.yml",
+        "sast-full.yml",
+        "security.yml",
+        "sonarcloud.yml",
+        "zap-dast.yml"
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-policy",
+      "dispatch_count": 2,
+      "files": [
+        "sast-full.yml",
+        "security-guard.yml"
+      ]
+    },
+    {
+      "repo": "thegent-clean-wt-ruff",
+      "dispatch_count": 13,
+      "files": [
+        "ai-testing.yml",
+        "ci.yml",
+        "coverage.yml",
+        "fuzzing.yml",
+        "iac-scan.yml",
+        "license-compliance.yml",
+        "pages-deploy.yml",
+        "release.yml",
+        "sast-full.yml",
+        "security-guard.yml",
+        "security.yml",
+        "sonarcloud.yml",
+        "zap-dast.yml"
+      ]
+    },
+    {
+      "repo": "thegent-dispatch",
+      "dispatch_count": 6,
+      "files": [
+        "cargo-audit.yml",
+        "cargo-deny.yml",
+        "cargo-machete.yml",
+        "cargo-semver-checks.yml",
+        "codeql-rust.yml",
+        "codeql.yml"
+      ]
+    },
+    {
+      "repo": "vibeproxy",
+      "dispatch_count": 5,
+      "files": [
+        "auto-release.yml",
+        "ci.yml",
+        "release.yml",
+        "update-cliproxyapi.yml",
+        "vitepress-deploy.yml"
+      ]
+    },
+    {
+      "repo": "vibeproxy-monitoring-unified",
+      "dispatch_count": 3,
+      "files": [
+        "doc-links.yml",
+        "fr-coverage.yml",
+        "vitepress-deploy.yml"
+      ]
+    }
+  ]
+}

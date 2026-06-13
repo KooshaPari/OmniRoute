@@ -1,0 +1,143 @@
+{
+  "generated_at": "2026-06-07T09:18:47Z",
+  "total_repos": 78,
+  "with_tonic": [
+    "AgilePlus",
+    "Conft",
+    "HexaKit",
+    "PhenoDevOps",
+    "Pyron",
+    "pheno",
+    "phenoShared",
+    "phenodocs"
+  ],
+  "with_prost": [
+    "AgilePlus",
+    "Conft",
+    "HexaKit",
+    "PhenoDevOps",
+    "Pyron",
+    "pheno",
+    "phenoShared",
+    "phenodocs"
+  ],
+  "with_hyper": [
+    "Apisync",
+    "Conft",
+    "FocalPoint",
+    "HexaKit",
+    "KDesktopVirt",
+    "McpKit",
+    "Metron",
+    "PhenoDevOps",
+    "PhenoKits",
+    "Pyron",
+    "crates",
+    "pheno"
+  ],
+  "by_repo": [
+    {
+      "repo": "Conft",
+      "libs": [
+        "hyper",
+        "prost",
+        "tonic"
+      ]
+    },
+    {
+      "repo": "HexaKit",
+      "libs": [
+        "hyper",
+        "prost",
+        "tonic"
+      ]
+    },
+    {
+      "repo": "PhenoDevOps",
+      "libs": [
+        "hyper",
+        "prost",
+        "tonic"
+      ]
+    },
+    {
+      "repo": "Pyron",
+      "libs": [
+        "hyper",
+        "prost",
+        "tonic"
+      ]
+    },
+    {
+      "repo": "pheno",
+      "libs": [
+        "hyper",
+        "prost",
+        "tonic"
+      ]
+    },
+    {
+      "repo": "AgilePlus",
+      "libs": [
+        "prost",
+        "tonic"
+      ]
+    },
+    {
+      "repo": "phenoShared",
+      "libs": [
+        "prost",
+        "tonic"
+      ]
+    },
+    {
+      "repo": "phenodocs",
+      "libs": [
+        "prost",
+        "tonic"
+      ]
+    },
+    {
+      "repo": "Apisync",
+      "libs": [
+        "hyper"
+      ]
+    },
+    {
+      "repo": "FocalPoint",
+      "libs": [
+        "hyper"
+      ]
+    },
+    {
+      "repo": "KDesktopVirt",
+      "libs": [
+        "hyper"
+      ]
+    },
+    {
+      "repo": "McpKit",
+      "libs": [
+        "hyper"
+      ]
+    },
+    {
+      "repo": "Metron",
+      "libs": [
+        "hyper"
+      ]
+    },
+    {
+      "repo": "PhenoKits",
+      "libs": [
+        "hyper"
+      ]
+    },
+    {
+      "repo": "crates",
+      "libs": [
+        "hyper"
+      ]
+    }
+  ]
+}

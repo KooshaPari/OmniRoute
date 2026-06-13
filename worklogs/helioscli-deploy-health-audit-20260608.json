@@ -1,0 +1,10 @@
+{
+  "generated_at": "2026-06-08T00:00:00Z",
+  "pages_present": false,
+  "deployments_count": 53,
+  "last_deployment": "2026-03-04T01:57:52Z",
+  "health_endpoints": [
+    "GET /health (codex-rs/network-proxy/src/admin.rs:74)"
+  ],
+  "notes": "gh api repos/KooshaPari/HeliosCLI/pages returned 404 (no Pages site). Canonical GitHub repo is KooshaPari/helios-cli (local clone HeliosCLI/ tracks openai/codex upstream). Deployments queried against helios-cli: 53 total, most recent 2026-03-04T01:57:52Z on ref codex/ci-fix-363-ci-unblock-20260304, env security-review, sha e9052e9. Local HeliosCLI/src/ contains only helios_router_ui; HTTP routes live in codex-rs/. Only one HTTP health route found: GET /health returning 'ok' in network-proxy admin server. No /ready or /live HTTP routes exist. The 'readiness' references in codex-rs/core/src/codex.rs and codex-rs/utils/readiness/src/lib.rs are internal async primitives (Readiness/ReadinessFlag/Token), not HTTP endpoints."
+}

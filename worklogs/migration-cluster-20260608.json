@@ -1,0 +1,19 @@
+{
+  "generated_at": "2026-06-08T10:51:26Z",
+  "total_repos": 169,
+  "with_migrations": [
+    "HeliosCLI",
+    "PhenoDevOps",
+    "helioscope"
+  ],
+  "shared_migration_hashes": [
+    {
+      "hash": "375a548dc4edee96",
+      "filename": "0001_init.sql",
+      "repos": [
+        "HeliosCLI",
+        "helioscope"
+      ]
+    }
+  ]
+}

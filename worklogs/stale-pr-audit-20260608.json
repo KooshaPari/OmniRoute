@@ -1,0 +1,710 @@
+{
+  "generated_at": "2026-06-08T00:00:00Z",
+  "by_repo": [
+    {
+      "repo": "AgentMCP",
+      "stale_prs": []
+    },
+    {
+      "repo": "Agentora",
+      "stale_prs": []
+    },
+    {
+      "repo": "AgilePlus",
+      "stale_prs": []
+    },
+    {
+      "repo": "Apisync",
+      "stale_prs": []
+    },
+    {
+      "repo": "AppGen",
+      "stale_prs": []
+    },
+    {
+      "repo": "AtomsBot",
+      "stale_prs": []
+    },
+    {
+      "repo": "AuthKit",
+      "stale_prs": []
+    },
+    {
+      "repo": "Benchora",
+      "stale_prs": []
+    },
+    {
+      "repo": "BytePort",
+      "stale_prs": []
+    },
+    {
+      "repo": "Civis",
+      "stale_prs": []
+    },
+    {
+      "repo": "Conft",
+      "stale_prs": []
+    },
+    {
+      "repo": "DINOForge-UnityDoorstop",
+      "stale_prs": []
+    },
+    {
+      "repo": "DataKit",
+      "stale_prs": []
+    },
+    {
+      "repo": "DevHex",
+      "stale_prs": []
+    },
+    {
+      "repo": "Dino",
+      "stale_prs": []
+    },
+    {
+      "repo": "Eidolon",
+      "stale_prs": []
+    },
+    {
+      "repo": "Eventra",
+      "stale_prs": []
+    },
+    {
+      "repo": "FocalPoint",
+      "stale_prs": []
+    },
+    {
+      "repo": "GDK",
+      "stale_prs": []
+    },
+    {
+      "repo": "HeliosCLI",
+      "stale_prs": []
+    },
+    {
+      "repo": "HeliosLab",
+      "stale_prs": []
+    },
+    {
+      "repo": "HexaKit",
+      "stale_prs": []
+    },
+    {
+      "repo": "Httpora",
+      "stale_prs": []
+    },
+    {
+      "repo": "KDesktopVirt",
+      "stale_prs": []
+    },
+    {
+      "repo": "KWatch",
+      "stale_prs": []
+    },
+    {
+      "repo": "KaskMan",
+      "stale_prs": []
+    },
+    {
+      "repo": "KlipDot",
+      "stale_prs": []
+    },
+    {
+      "repo": "KodeVibe",
+      "stale_prs": []
+    },
+    {
+      "repo": "MCPForge",
+      "stale_prs": []
+    },
+    {
+      "repo": "McpKit",
+      "stale_prs": []
+    },
+    {
+      "repo": "Metron",
+      "stale_prs": [
+        {
+          "title": "ci: add rust-version MSRV policy",
+          "created_at": "2026-05-07T22:25:04Z",
+          "days_old": 32
+        },
+        {
+          "title": "chore: change deny.toml wildcards warn->deny",
+          "created_at": "2026-05-07T18:49:12Z",
+          "days_old": 32
+        },
+        {
+          "title": "chore(deps): Bump the ci-actions group with 2 updates",
+          "created_at": "2026-05-05T04:39:08Z",
+          "days_old": 34
+        }
+      ]
+    },
+    {
+      "repo": "NetScript",
+      "stale_prs": []
+    },
+    {
+      "repo": "ObservabilityKit",
+      "stale_prs": []
+    },
+    {
+      "repo": "OmniRoute",
+      "stale_prs": []
+    },
+    {
+      "repo": "Paginary",
+      "stale_prs": []
+    },
+    {
+      "repo": "Parpoura",
+      "stale_prs": []
+    },
+    {
+      "repo": "PhenoAgent",
+      "stale_prs": [
+        {
+          "title": "chore(deps): bump actions/checkout from 4 to 6",
+          "created_at": "2026-05-08T16:49:16Z",
+          "days_old": 31
+        },
+        {
+          "title": "docs: add journey-traceability + iconography implementation",
+          "created_at": "2026-05-06T23:46:39Z",
+          "days_old": 33
+        }
+      ]
+    },
+    {
+      "repo": "PhenoCompose",
+      "stale_prs": []
+    },
+    {
+      "repo": "PhenoDevOps",
+      "stale_prs": []
+    },
+    {
+      "repo": "PhenoEvents",
+      "stale_prs": [],
+      "error": "gh: Not Found (HTTP 404)"
+    },
+    {
+      "repo": "PhenoHandbook",
+      "stale_prs": []
+    },
+    {
+      "repo": "PhenoKits",
+      "stale_prs": [
+        {
+          "title": "ci: add rust-version MSRV policy",
+          "created_at": "2026-05-07T22:25:14Z",
+          "days_old": 32
+        },
+        {
+          "title": "chore(deps): bump github.com/spf13/cobra from 1.8.0 to 1.10.2 in /libs/go/phenotype-go-cli in the go group across 1 directory",
+          "created_at": "2026-05-05T03:38:38Z",
+          "days_old": 34
+        }
+      ]
+    },
+    {
+      "repo": "PhenoMCP",
+      "stale_prs": []
+    },
+    {
+      "repo": "PhenoObservability",
+      "stale_prs": []
+    },
+    {
+      "repo": "PhenoPlugins",
+      "stale_prs": []
+    },
+    {
+      "repo": "PhenoProc",
+      "stale_prs": []
+    },
+    {
+      "repo": "PhenoProject",
+      "stale_prs": []
+    },
+    {
+      "repo": "PhenoRuntime",
+      "stale_prs": [
+        {
+          "title": "chore: add go.sum reproducible builds",
+          "created_at": "2026-05-07T19:29:06Z",
+          "days_old": 32
+        },
+        {
+          "title": "chore: change deny.toml wildcards warn->deny",
+          "created_at": "2026-05-07T18:49:42Z",
+          "days_old": 32
+        },
+        {
+          "title": "chore(deps): bump trufflesecurity/trufflehog from 5f47aad1c2df34f7c6230784ce9a5a659922f479 to ab5dd03ee012e5f372e2ba82c4813c2ba1331261 in the actions group",
+          "created_at": "2026-05-06T10:07:16Z",
+          "days_old": 33
+        }
+      ]
+    },
+    {
+      "repo": "PhenoSchema",
+      "stale_prs": [],
+      "error": "gh: Not Found (HTTP 404)"
+    },
+    {
+      "repo": "PhenoSpecs",
+      "stale_prs": []
+    },
+    {
+      "repo": "PhenoVCS",
+      "stale_prs": []
+    },
+    {
+      "repo": "Pine",
+      "stale_prs": []
+    },
+    {
+      "repo": "Planify",
+      "stale_prs": []
+    },
+    {
+      "repo": "PlatformKit",
+      "stale_prs": [
+        {
+          "title": "docs: add FUNDING.yml",
+          "created_at": "2026-05-07T19:04:28Z",
+          "days_old": 32
+        }
+      ]
+    },
+    {
+      "repo": "PlayCua",
+      "stale_prs": []
+    },
+    {
+      "repo": "PolicyStack",
+      "stale_prs": [
+        {
+          "title": "docs: add FUNDING.yml",
+          "created_at": "2026-05-07T19:05:20Z",
+          "days_old": 32
+        }
+      ]
+    },
+    {
+      "repo": "Pyron",
+      "stale_prs": []
+    },
+    {
+      "repo": "QuadSGM",
+      "stale_prs": []
+    },
+    {
+      "repo": "ResilienceKit",
+      "stale_prs": []
+    },
+    {
+      "repo": "Sidekick",
+      "stale_prs": []
+    },
+    {
+      "repo": "Tasken",
+      "stale_prs": []
+    },
+    {
+      "repo": "TestingKit",
+      "stale_prs": []
+    },
+    {
+      "repo": "Tokn",
+      "stale_prs": []
+    },
+    {
+      "repo": "Tracely",
+      "stale_prs": []
+    },
+    {
+      "repo": "Tracera",
+      "stale_prs": []
+    },
+    {
+      "repo": "agent-devops-setups",
+      "stale_prs": []
+    },
+    {
+      "repo": "agent-platform",
+      "stale_prs": [],
+      "error": "gh: Not Found (HTTP 404)"
+    },
+    {
+      "repo": "agent-user-status",
+      "stale_prs": []
+    },
+    {
+      "repo": "agentapi-plusplus",
+      "stale_prs": [
+        {
+          "title": "chore(deps-dev): bump fast-uri from 3.1.0 to 3.1.2 in /agentapi-plusplus/chat",
+          "created_at": "2026-05-09T02:53:56Z",
+          "days_old": 31
+        }
+      ]
+    },
+    {
+      "repo": "agslag-docs",
+      "stale_prs": [
+        {
+          "title": "docs: add FUNDING.yml",
+          "created_at": "2026-05-07T19:01:33Z",
+          "days_old": 32
+        }
+      ]
+    },
+    {
+      "repo": "argis-extensions",
+      "stale_prs": [
+        {
+          "title": "chore(deps): bump github.com/nats-io/nats.go from 1.51.0 to 1.52.0",
+          "created_at": "2026-05-08T08:22:04Z",
+          "days_old": 31
+        }
+      ]
+    },
+    {
+      "repo": "bare-cua",
+      "stale_prs": []
+    },
+    {
+      "repo": "chatta",
+      "stale_prs": []
+    },
+    {
+      "repo": "cheap-llm-mcp",
+      "stale_prs": []
+    },
+    {
+      "repo": "cliproxyapi-plusplus",
+      "stale_prs": []
+    },
+    {
+      "repo": "dinoforge-packs",
+      "stale_prs": []
+    },
+    {
+      "repo": "dispatch-mcp",
+      "stale_prs": []
+    },
+    {
+      "repo": "eyetracker",
+      "stale_prs": []
+    },
+    {
+      "repo": "forgecode",
+      "stale_prs": []
+    },
+    {
+      "repo": "helios-router",
+      "stale_prs": []
+    },
+    {
+      "repo": "heliosApp",
+      "stale_prs": []
+    },
+    {
+      "repo": "heliosBench",
+      "stale_prs": []
+    },
+    {
+      "repo": "helioscope",
+      "stale_prs": []
+    },
+    {
+      "repo": "hwLedger",
+      "stale_prs": []
+    },
+    {
+      "repo": "kmobile",
+      "stale_prs": []
+    },
+    {
+      "repo": "localbase3",
+      "stale_prs": []
+    },
+    {
+      "repo": "melosviz",
+      "stale_prs": []
+    },
+    {
+      "repo": "nanovms",
+      "stale_prs": [
+        {
+          "title": "chore: add go.sum reproducible builds",
+          "created_at": "2026-05-07T19:29:18Z",
+          "days_old": 32
+        },
+        {
+          "title": "chore(nanovms): workflow/lint/hygiene updates",
+          "created_at": "2026-05-07T02:52:17Z",
+          "days_old": 33
+        },
+        {
+          "title": "chore(nanovms): add package-lock.json",
+          "created_at": "2026-05-06T12:50:37Z",
+          "days_old": 33
+        }
+      ]
+    },
+    {
+      "repo": "netweave-final2",
+      "stale_prs": []
+    },
+    {
+      "repo": "pheno",
+      "stale_prs": [
+        {
+          "title": "chore(deps): bump astral-sh/setup-uv from 4 to 7",
+          "created_at": "2026-05-08T11:17:08Z",
+          "days_old": 31
+        },
+        {
+          "title": "chore(deps): bump dtolnay/rust-toolchain from 1.86.0 to 1.100.0",
+          "created_at": "2026-05-08T11:16:42Z",
+          "days_old": 31
+        },
+        {
+          "title": "chore(deps): bump softprops/action-gh-release from 2 to 3",
+          "created_at": "2026-05-08T11:16:37Z",
+          "days_old": 31
+        },
+        {
+          "title": "chore(deps): bump actions/github-script from d746ffe35508b1917358783b479e04febd2b8f71 to 3a2844b7e9c422d3c10d287c895573f7108da1b3",
+          "created_at": "2026-05-08T11:16:22Z",
+          "days_old": 31
+        },
+        {
+          "title": "docs: add FUNDING.yml",
+          "created_at": "2026-05-07T19:04:38Z",
+          "days_old": 32
+        }
+      ]
+    },
+    {
+      "repo": "phenoAI",
+      "stale_prs": []
+    },
+    {
+      "repo": "phenoData",
+      "stale_prs": []
+    },
+    {
+      "repo": "phenoDesign",
+      "stale_prs": []
+    },
+    {
+      "repo": "phenoForge",
+      "stale_prs": [
+        {
+          "title": "chore(deps): bump actions/configure-pages from 4.0.0 to 6.0.0",
+          "created_at": "2026-05-09T01:52:44Z",
+          "days_old": 31
+        },
+        {
+          "title": "chore(deps): bump actions/download-artifact from 4.3.0 to 8.0.1",
+          "created_at": "2026-05-09T01:52:41Z",
+          "days_old": 31
+        },
+        {
+          "title": "chore(deps): bump actions/github-script from 7.1.0 to 9.0.0",
+          "created_at": "2026-05-09T01:52:37Z",
+          "days_old": 31
+        }
+      ]
+    },
+    {
+      "repo": "phenoResearchEngine",
+      "stale_prs": []
+    },
+    {
+      "repo": "phenoShared",
+      "stale_prs": []
+    },
+    {
+      "repo": "phenoUtils",
+      "stale_prs": []
+    },
+    {
+      "repo": "phenoXdd",
+      "stale_prs": []
+    },
+    {
+      "repo": "phenodocs",
+      "stale_prs": []
+    },
+    {
+      "repo": "phenotype-auth-ts",
+      "stale_prs": []
+    },
+    {
+      "repo": "phenotype-bus",
+      "stale_prs": []
+    },
+    {
+      "repo": "phenotype-dep-guard",
+      "stale_prs": []
+    },
+    {
+      "repo": "phenotype-go-sdk",
+      "stale_prs": []
+    },
+    {
+      "repo": "phenotype-hub",
+      "stale_prs": [
+        {
+          "title": "build(deps): bump actions/setup-node from 4 to 6",
+          "created_at": "2026-05-08T08:48:17Z",
+          "days_old": 31
+        },
+        {
+          "title": "build(deps): bump actions/deploy-pages from 4 to 5",
+          "created_at": "2026-05-08T08:48:13Z",
+          "days_old": 31
+        },
+        {
+          "title": "build(deps): bump trufflesecurity/trufflehog from 5f47aad1c2df34f7c6230784ce9a5a659922f479 to ba0a524d6e51744d9d4e306bc57ac5d6ca5173ea",
+          "created_at": "2026-05-08T08:48:10Z",
+          "days_old": 31
+        },
+        {
+          "title": "build(deps): bump actions/configure-pages from 5 to 6",
+          "created_at": "2026-05-08T08:47:52Z",
+          "days_old": 31
+        },
+        {
+          "title": "build(deps): bump actions/upload-pages-artifact from 3 to 5",
+          "created_at": "2026-05-08T08:47:49Z",
+          "days_old": 31
+        }
+      ]
+    },
+    {
+      "repo": "phenotype-infra",
+      "stale_prs": []
+    },
+    {
+      "repo": "phenotype-journeys",
+      "stale_prs": []
+    },
+    {
+      "repo": "phenotype-landing",
+      "stale_prs": []
+    },
+    {
+      "repo": "phenotype-omlx",
+      "stale_prs": [
+        {
+          "title": "fix(hwLedger): resolve test failures in CI",
+          "created_at": "2026-05-07T01:14:01Z",
+          "days_old": 33
+        }
+      ]
+    },
+    {
+      "repo": "phenotype-ops-mcp",
+      "stale_prs": []
+    },
+    {
+      "repo": "phenotype-org-audits",
+      "stale_prs": []
+    },
+    {
+      "repo": "phenotype-postfx",
+      "stale_prs": []
+    },
+    {
+      "repo": "phenotype-py-extras",
+      "stale_prs": [],
+      "error": "gh: Not Found (HTTP 404)"
+    },
+    {
+      "repo": "phenotype-python-sdk",
+      "stale_prs": []
+    },
+    {
+      "repo": "phenotype-registry",
+      "stale_prs": []
+    },
+    {
+      "repo": "phenotype-request-id",
+      "stale_prs": [],
+      "error": "gh: Not Found (HTTP 404)"
+    },
+    {
+      "repo": "phenotype-terrain",
+      "stale_prs": []
+    },
+    {
+      "repo": "phenotype-tooling",
+      "stale_prs": []
+    },
+    {
+      "repo": "phenotype-voxel",
+      "stale_prs": []
+    },
+    {
+      "repo": "phenotype-water",
+      "stale_prs": []
+    },
+    {
+      "repo": "portage",
+      "stale_prs": []
+    },
+    {
+      "repo": "rich-cli-kit",
+      "stale_prs": []
+    },
+    {
+      "repo": "thegent",
+      "stale_prs": []
+    },
+    {
+      "repo": "thegent-dispatch",
+      "stale_prs": []
+    },
+    {
+      "repo": "vibeproxy",
+      "stale_prs": []
+    },
+    {
+      "repo": "vibeproxy-monitoring-unified",
+      "stale_prs": [
+        {
+          "title": "build(deps): bump actions/configure-pages from 5 to 6",
+          "created_at": "2026-05-08T14:25:14Z",
+          "days_old": 31
+        },
+        {
+          "title": "build(deps): bump actions/upload-pages-artifact from 3 to 5",
+          "created_at": "2026-05-08T14:25:11Z",
+          "days_old": 31
+        },
+        {
+          "title": "build(deps): bump actions/deploy-pages from 4 to 5",
+          "created_at": "2026-05-08T14:25:08Z",
+          "days_old": 31
+        },
+        {
+          "title": "build(deps): bump trufflesecurity/trufflehog from 5f47aad1c2df34f7c6230784ce9a5a659922f479 to ba0a524d6e51744d9d4e306bc57ac5d6ca5173ea",
+          "created_at": "2026-05-08T14:25:03Z",
+          "days_old": 31
+        },
+        {
+          "title": "build(deps): bump actions/setup-node from 4 to 6",
+          "created_at": "2026-05-08T14:24:45Z",
+          "days_old": 31
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,154 @@
+{
+  "generated_at": "2026-06-07T05:36:39Z",
+  "total_repos": 168,
+  "with_tonic": [
+    ".claude",
+    "AgilePlus",
+    "Conft",
+    "HexaKit",
+    "PhenoDevOps",
+    "Pyron",
+    "pheno",
+    "phenoShared",
+    "worktrees"
+  ],
+  "with_prost": [
+    ".claude",
+    "AgilePlus",
+    "Conft",
+    "HexaKit",
+    "PhenoDevOps",
+    "Pyron",
+    "pheno",
+    "phenoShared",
+    "worktrees"
+  ],
+  "with_hyper": [
+    ".claude",
+    "Apisync",
+    "Conft",
+    "FocalPoint",
+    "HexaKit",
+    "KDesktopVirt",
+    "McpKit",
+    "Metron",
+    "PhenoDevOps",
+    "PhenoKits",
+    "Pyron",
+    "crates",
+    "pheno"
+  ],
+  "by_repo": [
+    {
+      "repo": ".claude",
+      "libs": [
+        "hyper",
+        "prost",
+        "tonic"
+      ]
+    },
+    {
+      "repo": "AgilePlus",
+      "libs": [
+        "prost",
+        "tonic"
+      ]
+    },
+    {
+      "repo": "Apisync",
+      "libs": [
+        "hyper"
+      ]
+    },
+    {
+      "repo": "Conft",
+      "libs": [
+        "hyper",
+        "prost",
+        "tonic"
+      ]
+    },
+    {
+      "repo": "FocalPoint",
+      "libs": [
+        "hyper"
+      ]
+    },
+    {
+      "repo": "HexaKit",
+      "libs": [
+        "hyper",
+        "prost",
+        "tonic"
+      ]
+    },
+    {
+      "repo": "KDesktopVirt",
+      "libs": [
+        "hyper"
+      ]
+    },
+    {
+      "repo": "McpKit",
+      "libs": [
+        "hyper"
+      ]
+    },
+    {
+      "repo": "Metron",
+      "libs": [
+        "hyper"
+      ]
+    },
+    {
+      "repo": "PhenoDevOps",
+      "libs": [
+        "hyper",
+        "prost",
+        "tonic"
+      ]
+    },
+    {
+      "repo": "PhenoKits",
+      "libs": [
+        "hyper"
+      ]
+    },
+    {
+      "repo": "Pyron",
+      "libs": [
+        "hyper",
+        "prost",
+        "tonic"
+      ]
+    },
+    {
+      "repo": "crates",
+      "libs": [
+        "hyper"
+      ]
+    },
+    {
+      "repo": "pheno",
+      "libs": [
+        "hyper",
+        "prost",
+        "tonic"
+      ]
+    },
+    {
+      "repo": "phenoShared",
+      "libs": [
+        "prost",
+        "tonic"
+      ]
+    },
+    {
+      "repo": "worktrees",
+      "libs": [
+        "prost",
+        "tonic"
+      ]
+    }
+  ]
+}

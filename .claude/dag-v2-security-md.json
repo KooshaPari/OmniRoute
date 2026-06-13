@@ -1,0 +1,128 @@
+{
+  "taskId": "L2-29",
+  "taskName": "pheno-security-md",
+  "completedAt": "2026-06-08T20:10:00Z",
+  "template": {
+    "path": ".claude/templates/SECURITY.md",
+    "version": "1.1",
+    "sections": [
+      "Supported Versions",
+      "Reporting a Vulnerability",
+      "Response Timeline",
+      "Disclosure Policy",
+      "Acknowledgements"
+    ],
+    "sizeBytes": 4419
+  },
+  "l1AuditSet": {
+    "totalRepos": 19,
+    "reposEvaluated": 19,
+    "withSecurityMd": 19,
+    "weakOrMissing": [
+      "agent-user-status",
+      "AgilePlus",
+      "HexaKit",
+      "localbase3"
+    ]
+  },
+  "actions": [
+    {
+      "repo": "agent-user-status",
+      "branch": "chore/security-md-2026-06-08",
+      "baseBranch": "chore/audit-agent-user-status-2026-06-08",
+      "commit": "1c70884aa9a945a5a64b73a90bbe0a787c6014bf",
+      "message": "chore(security): add SECURITY.md with coordinated-disclosure process",
+      "file": "SECURITY.md",
+      "fileSize": 4419,
+      "previousFileSize": 231,
+      "sectionsBefore": ["Reporting a Vulnerability"],
+      "sectionsAfter": [
+        "Supported Versions",
+        "Reporting a Vulnerability",
+        "Response Timeline",
+        "Disclosure Policy",
+        "Acknowledgements"
+      ],
+      "pushed": false
+    },
+    {
+      "repo": "AgilePlus",
+      "branch": "chore/security-md-2026-06-08",
+      "baseBranch": "main",
+      "commit": "24c98af8b320f84dff72e64579e318abda8ba077",
+      "message": "chore(security): add SECURITY.md with coordinated-disclosure process",
+      "file": "SECURITY.md",
+      "fileSize": 4419,
+      "previousFileSize": 133,
+      "sectionsBefore": ["Reporting a Vulnerability"],
+      "sectionsAfter": [
+        "Supported Versions",
+        "Reporting a Vulnerability",
+        "Response Timeline",
+        "Disclosure Policy",
+        "Acknowledgements"
+      ],
+      "pushed": false
+    },
+    {
+      "repo": "HexaKit",
+      "branch": "chore/security-md-2026-06-08",
+      "baseBranch": "chore/audit-HexaKit-2026-06-08",
+      "commit": "ad04418875d48b2eceed8c8ad1f81a59ca62dc1e",
+      "message": "chore(security): add SECURITY.md with coordinated-disclosure process",
+      "file": "SECURITY.md",
+      "fileSize": 4419,
+      "previousFileSize": 239,
+      "sectionsBefore": ["Reporting a Vulnerability"],
+      "sectionsAfter": [
+        "Supported Versions",
+        "Reporting a Vulnerability",
+        "Response Timeline",
+        "Disclosure Policy",
+        "Acknowledgements"
+      ],
+      "pushed": false
+    },
+    {
+      "repo": "localbase3",
+      "branch": "chore/security-md-2026-06-08",
+      "baseBranch": "chore/editorconfig-2026-06-08",
+      "commit": "62a525fcecaa0cbc82e12fd0097ed82d68a91076",
+      "message": "chore(security): add SECURITY.md with coordinated-disclosure process",
+      "file": "SECURITY.md",
+      "fileSize": 4419,
+      "previousFileSize": 510,
+      "sectionsBefore": ["Supported Versions", "Reporting a Vulnerability"],
+      "sectionsAfter": [
+        "Supported Versions",
+        "Reporting a Vulnerability",
+        "Response Timeline",
+        "Disclosure Policy",
+        "Acknowledgements"
+      ],
+      "pushed": false
+    }
+  ],
+  "skipped": {
+    "reason": "Repos in L1 audit set with already-strong SECURITY.md (>= 3 of 5 required sections) were left untouched.",
+    "repos": [
+      {"name": "agentapi-plusplus", "fileSize": 869},
+      {"name": "FocalPoint", "fileSize": 669},
+      {"name": "HeliosCLI", "fileSize": 697},
+      {"name": "helioscope", "fileSize": 697},
+      {"name": "pheno", "fileSize": 2502},
+      {"name": "PhenoDevOps", "fileSize": 709},
+      {"name": "PhenoKits", "fileSize": 894},
+      {"name": "PhenoObservability", "fileSize": 723},
+      {"name": "PhenoProc", "fileSize": 690},
+      {"name": "phenoRuntime", "fileSize": 867},
+      {"name": "phenoShared", "fileSize": 671},
+      {"name": "Pyron", "fileSize": 2501},
+      {"name": "thegent", "fileSize": 975},
+      {"name": "Tracely", "fileSize": 669},
+      {"name": "Tracera", "fileSize": 1604}
+    ]
+  },
+  "pushed": false,
+  "notes": "Branches created locally only. No remote push performed per task instructions. All 4 branches (chore/security-md-2026-06-08) exist in their respective repos with the SECURITY.md commit at HEAD of that branch."
+}
