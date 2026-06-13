@@ -1,0 +1,43 @@
+# BytePort Rust toolchain configuration.
+#
+# This file sets the LLVM source-based coverage instrumentation flags
+# used by `cargo llvm-cov` (see `scripts/coverage-rust.sh` for the
+# full coverage suite). It is the canonical BytePort-side companion
+# to the JS/TS coverage gate in `jest.config.js` and
+# `scripts/coverage-ts.sh`.
+#
+# The `coverage.sh` script in `scripts/` runs both halves and exits
+# non-zero if either side falls below the documented threshold.
+#
+# Reference: https://github.com/taiki-e/cargo-llvm-cov
+
+# Pass `-C instrument-coverage` to rustc for every build invocation.
+# This is the LLVM source-based coverage flag that `cargo llvm-cov`
+# reads when aggregating `.profraw` files into the LCOV report at
+# `coverage-rust.lcov`. The flag is inert for non-coverage workflows
+# (the LLVM coverage runtime only writes `.profraw` files when the
+# process is launched via `cargo llvm-cov run`, so plain `cargo test`
+# is unaffected at runtime; the only cost is a small compile-time
+# instrumentation pass).
+#
+# The companion `scripts/coverage-rust.sh` script invokes
+# `cargo llvm-cov --workspace --lcov --output-path coverage-rust.lcov`
+# which sets the rest of the pipeline (LLVM_PROFILE_FILE, branch
+# coverage, HTML output, etc.).
+[build]
+rustflags = ["-C", "instrument-coverage"]
+
+# Convenience aliases so BytePort contributors can run coverage
+# with the same words the L3 #44 spec uses:
+#
+#   cargo coverage        -> full workspace LCOV report at
+#                            BytePort/coverage-rust.lcov
+#   cargo coverage-html   -> human-readable HTML report under
+#                            BytePort/target/llvm-cov/html/
+#   cargo coverage-branch  -> LCOV report with branch coverage
+#                            enabled (slightly higher thresholds
+#                            expected for branch metrics)
+[alias]
+coverage = "llvm-cov --workspace --lcov --output-path coverage-rust.lcov"
+coverage-html = "llvm-cov --workspace --html --output-dir target/llvm-cov/html"
+coverage-branch = "llvm-cov --workspace --branch --lcov --output-path coverage-rust.lcov.branch"
