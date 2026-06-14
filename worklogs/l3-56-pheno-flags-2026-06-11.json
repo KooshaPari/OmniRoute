@@ -1,0 +1,109 @@
+{
+  "status": "completed",
+  "task_id": "L3-56",
+  "date": "2026-06-11",
+  "title": "Author canonical pheno-flags Rust crate (synchronous feature-flag set with env-var loading)",
+  "agent_id": "forge-l3-subagent-56",
+  "branch": "chore/l3-56-pheno-feature-flags-2026-06-11",
+  "commit_sha": "0a3e865e8a",
+  "files_changed": [
+    "pheno-flags/Cargo.toml",
+    "pheno-flags/src/lib.rs",
+    "pheno-flags/tests/flag_test.rs",
+    "worklogs/l3-56-pheno-flags-2026-06-11.json",
+    "V3_EXECUTION_LOG_2026_06_10.md"
+  ],
+  "started_at": "2026-06-11T22:30:00Z",
+  "completed_at": "2026-06-11T22:45:00Z",
+  "verification_result": {
+    "status": "passed",
+    "commands": [
+      "cargo test -p pheno-flags (8 integration + 5 doctest = 13/13 pass)",
+      "cargo clippy -p pheno-flags --all-targets -- -D warnings (clean, 0 warnings)",
+      "cargo fmt -- --check (clean)"
+    ],
+    "notes": "All 8 spec'd integration tests pass (new_flagset_is_empty, with_sets_value, is_enabled_returns_true_for_set_key, is_enabled_returns_false_for_unknown_key, from_env_parses_truthy_values, from_env_parses_falsy_values, from_env_rejects_invalid_value, snapshot_returns_sorted_keys). Verification was performed in the l3-56 worktree directly (no /tmp shim) because the spec says the crate is standalone via an empty [workspace] table, so `cargo test -p pheno-flags` works from inside the crate directory with no workspace coupling. The crate is standalone (NOT a member of the root Cargo.toml [workspace.members]) to match the L3-#46 pheno-errors / L3-#47 pheno-tracing / L3-#57 pheno-plugin convention. Rust edition 2021, rust-version 1.82 (matches root clippy.toml msrv)."
+  },
+  "summary": "Authored the canonical pheno-flags standalone crate: a synchronous, in-memory, FFI-free boolean feature-flag set. Storage is std::collections::HashMap<String, bool> for O(1) is_enabled lookups; FlagSet::snapshot() returns a fresh std::collections::BTreeMap<String, bool> for sorted, observability-friendly iteration. Single dep: thiserror. Consumed by Agentora, Conft, AuthKit and other pheno-* services per the V3 DAG consolidation plan.",
+  "scope": {
+    "created": [
+      "pheno-flags/Cargo.toml",
+      "pheno-flags/src/lib.rs",
+      "pheno-flags/tests/flag_test.rs"
+    ],
+    "modified": []
+  },
+  "public_api": {
+    "FlagSet::new": "() -> Self - empty FlagSet (also Default)",
+    "FlagSet::with": "self, key: &str, value: bool -> Self - builder; last write wins, chainable",
+    "FlagSet::from_env": "prefix: &str -> Result<Self, FlagError> - scans std::env, consumes <PREFIX>_<KEY> vars; atomic (no partial state on error)",
+    "FlagSet::is_enabled": "&self, key: &str -> bool - safe default of false for unknown keys",
+    "FlagSet::snapshot": "&self -> BTreeMap<String, bool> - fresh sorted copy (HashMap keys cloned into a BTreeMap for deterministic iteration)",
+    "FlagError::InvalidValue": "thiserror variant carrying the offending env var name"
+  },
+  "env_parsing_contract": {
+    "truthy_case_insensitive": ["1", "true", "yes"],
+    "falsy_case_insensitive": ["0", "false", "no"],
+    "anything_else": "FlagError::InvalidValue(var_name) - returns Err before any state is built",
+    "unknown_prefix": "ignored (no error)",
+    "empty_key": "FlagError::InvalidValue(var_name) - <PREFIX>_ with no key is a misconfigured var"
+  },
+  "storage_choice": {
+    "internal": "HashMap<String, bool> - per L3 #56 spec, O(1) is_enabled lookups",
+    "snapshot_output": "BTreeMap<String, bool> - per L3 #56 spec, sorted ascending keys",
+    "conversion_cost": "snapshot() is O(n log n) due to the HashMap -> BTreeMap collect, which is fine for the small feature-flag tables this crate is designed to hold"
+  },
+  "dependencies": {
+    "thiserror": "2.0"
+  },
+  "test_results": {
+    "command": "cargo test -p pheno-flags (worktree-local)",
+    "unit_tests": 0,
+    "integration_tests": 8,
+    "doctests": 5,
+    "total": 13,
+    "passed": 13,
+    "failed": 0
+  },
+  "test_coverage": [
+    "new_flagset_is_empty",
+    "with_sets_value",
+    "is_enabled_returns_true_for_set_key",
+    "is_enabled_returns_false_for_unknown_key",
+    "from_env_parses_truthy_values",
+    "from_env_parses_falsy_values",
+    "from_env_rejects_invalid_value",
+    "snapshot_returns_sorted_keys",
+    "doctest: lib.rs line 14 (FlagSet::new + with + is_enabled quickstart)",
+    "doctest: lib.rs line 37 (FlagSet::from_env quickstart)",
+    "doctest: lib.rs line 54 (FlagSet::snapshot quickstart)",
+    "doctest: lib.rs FlagSet::new (line 102)",
+    "doctest: lib.rs FlagSet::with (line 119)"
+  ],
+  "test_isolation": "Tests that mutate std::env (from_env_*) acquire a process-wide ENV_LOCK (a static Mutex<()>) so parallel test threads cannot race on PHENO_FLAGS_TEST_* variables. The lock uses Mutex::lock().unwrap_or_else(|e| e.into_inner()) so a previously-poisoned mutex (from a panic in another env-mutating test) does not cascade into this one. The same pattern is used by L3-#48 pheno-config and L3-#57 pheno-plugin.",
+  "ffi_free": "No extern \"C\", no uniffi, no cbindgen, no unsafe. Public API is purely safe Rust.",
+  "async_free": "No tokio, no async-std, no async-trait. All methods are synchronous and &self / self only.",
+  "network_free": "No reqwest, no hyper, no sockets. Only std::env::vars() and the in-memory HashMap.",
+  "consolidation_targets": [
+    "Agentora (will replace ad-hoc std::env::var(\"AGENTORA_X\") == Ok(\"1\") checks with pheno_flags::FlagSet::from_env(\"AGENTORA\").is_enabled(\"X\") at handler dispatch)",
+    "Conft (will use pheno_flags::FlagSet::from_env(\"CONFT\").is_enabled(\"BETA\") for config-gated rollouts)",
+    "AuthKit (will use pheno_flags::FlagSet::from_env(\"AUTHKIT\").is_enabled(\"OAUTH_DEV\") for OAuth provider toggles)"
+  ],
+  "downstream_consumers": [
+    "L5 agents across Agentora, Conft, AuthKit, and other pheno-* services will replace ad-hoc std::env::var(\"FOO\") == Ok(\"1\") checks with pheno_flags::FlagSet lookups"
+  ],
+  "verification": {
+    "cargo_test": "13/13 pass (8 integration + 5 doctest)",
+    "cargo_clippy": "clean (no warnings, -D warnings applied)",
+    "cargo_fmt_check": "clean",
+    "rust_edition": "2021",
+    "rust_msrv": "1.82.0 (matches root clippy.toml msrv)"
+  },
+  "notes": "Standalone package via empty [workspace] table in its own Cargo.toml, matching the L3-#46 (pheno-errors) and L3-#57 (pheno-plugin) convention. This intentionally avoids touching the root Cargo.toml [workspace.members] (which is being concurrently modified by other L3 agents) and keeps the new crate's test/build loop independent of the 56-crate root workspace. The spec's two storage types are reconciled by using HashMap for the on-disk struct (O(1) is_enabled) and BTreeMap for the snapshot() return value (sorted iteration), with a single O(n log n) collect on snapshot. The from_env method does a two-pass scan: validate all matching variables first (returning InvalidValue on the first unparseable one), then build the HashMap. This means a partial build never escapes the function on error. The internal parse_bool helper recognizes exactly six strings (three truthy, three falsy) and is case-insensitive. The ENV_LOCK in tests is a plain static Mutex<()> (not once_cell/lazy_static) — minimum-dependency approach, fits the FFI-free/no-async/no-network spirit of the crate itself. The previous attempt at this L3 task used BTreeMap internally and put tests in mod tests inside lib.rs; this redo conforms to the L3-#56 spec verbatim: HashMap<String, bool> internal storage and integration tests in tests/flag_test.rs.",
+  "no_touch": [
+    "Other L3 tasks (L3-#46 pheno-errors, L3-#47 pheno-tracing, L3-#48 pheno-config, L3-#49 pheno-otel, L3-#50 pheno-cli-base, L3-#51 pheno-fastapi-base, L3-#52 pheno-go-ctxkit, L3-#53 pheno-zod-pydantic, L3-#54 pheno-tower-stack, L3-#55 pheno-ssot-template, L3-#57 pheno-plugin)",
+    "Root Cargo.toml [workspace.members] (pheno-flags is a standalone package, not a workspace member)",
+    "The HFS+ case-insensitive FS Justfile/justfile artifact (left in the working tree, not staged)",
+    "focus-plugin-sdk and phenotype-registry (different scope; pheno-flags is the boolean-feature-flag path)"
+  ]
+}
