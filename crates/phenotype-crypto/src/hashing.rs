@@ -52,7 +52,7 @@ impl Hasher {
             HashAlgorithm::Blake3 => {
                 let mut hasher = Blake3Hasher::new();
                 hasher.update(data);
-                hasher.finalize().as_bytes().to_vec().into()
+                blake3::Hasher::finalize(&hasher).as_bytes().to_vec().into()
             }
         }
     }

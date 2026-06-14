@@ -118,7 +118,7 @@ pub fn sha256_hex(data: &[u8]) -> String {
 pub fn blake3(data: &[u8]) -> Vec<u8> {
     let mut hasher = Blake3Hasher::new();
     hasher.update(data);
-    hasher.finalize().as_bytes().to_vec()
+    blake3::Hasher::finalize(&hasher).as_bytes().to_vec()
 }
 
 /// Compute BLAKE3 hash and return as hex string.

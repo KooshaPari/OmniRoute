@@ -56,7 +56,6 @@ pub fn compile_fpl(source: &str) -> Result<Vec<Document>, CompileError> {
     use starlark::syntax::AstModule;
 
     let globals = Globals::new();
-    let module = Module::new();
 
     // Parse the module.
     let ast = AstModule::parse(
@@ -72,82 +71,84 @@ pub fn compile_fpl(source: &str) -> Result<Vec<Document>, CompileError> {
         }
     })?;
 
-    // Evaluate.
-    let mut evaluator = Evaluator::new(&module);
-    let _result = evaluator.eval_module(ast, &globals)
-        .map_err(|e| CompileError::EvalError(format!("{:?}", e)))?;
+    Module::with_temp_heap(|module| {
+        // Evaluate.
+        let mut evaluator = Evaluator::new(&module);
+        let _result = evaluator.eval_module(ast, &globals)
+            .map_err(|e| CompileError::EvalError(format!("{:?}", e)))?;
 
-    // Collect all primitives from thread-local registries.
-    let rules = RULE_REGISTRY.with(|r| r.borrow_mut().drain(..).collect::<Vec<_>>());
-    let tasks = TASK_REGISTRY.with(|r| r.borrow_mut().drain(..).collect::<Vec<_>>());
-    let schedules = SCHEDULE_REGISTRY.with(|r| r.borrow_mut().drain(..).collect::<Vec<_>>());
-    let connectors = CONNECTOR_REGISTRY.with(|r| r.borrow_mut().drain(..).collect::<Vec<_>>());
-    let mascot_scenes = MASCOT_SCENE_REGISTRY.with(|r| r.borrow_mut().drain(..).collect::<Vec<_>>());
-    let coachings = COACHING_REGISTRY.with(|r| r.borrow_mut().drain(..).collect::<Vec<_>>());
-    let enforcements = ENFORCEMENT_REGISTRY.with(|r| r.borrow_mut().drain(..).collect::<Vec<_>>());
-    let wallet_ops = WALLET_OP_REGISTRY.with(|r| r.borrow_mut().drain(..).collect::<Vec<_>>());
-    let rituals = RITUAL_REGISTRY.with(|r| r.borrow_mut().drain(..).collect::<Vec<_>>());
-    let sound_cues = SOUND_CUE_REGISTRY.with(|r| r.borrow_mut().drain(..).collect::<Vec<_>>());
-    let audit_queries = AUDIT_QUERY_REGISTRY.with(|r| r.borrow_mut().drain(..).collect::<Vec<_>>());
+        // Collect all primitives from thread-local registries.
+        let rules = RULE_REGISTRY.with(|r| r.borrow_mut().drain(..).collect::<Vec<_>>());
+        let tasks = TASK_REGISTRY.with(|r| r.borrow_mut().drain(..).collect::<Vec<_>>());
+        let schedules = SCHEDULE_REGISTRY.with(|r| r.borrow_mut().drain(..).collect::<Vec<_>>());
+        let connectors = CONNECTOR_REGISTRY.with(|r| r.borrow_mut().drain(..).collect::<Vec<_>>());
+        let mascot_scenes = MASCOT_SCENE_REGISTRY.with(|r| r.borrow_mut().drain(..).collect::<Vec<_>>());
+        let coachings = COACHING_REGISTRY.with(|r| r.borrow_mut().drain(..).collect::<Vec<_>>());
+        let enforcements = ENFORCEMENT_REGISTRY.with(|r| r.borrow_mut().drain(..).collect::<Vec<_>>());
+        let wallet_ops = WALLET_OP_REGISTRY.with(|r| r.borrow_mut().drain(..).collect::<Vec<_>>());
+        let rituals = RITUAL_REGISTRY.with(|r| r.borrow_mut().drain(..).collect::<Vec<_>>());
+        let sound_cues = SOUND_CUE_REGISTRY.with(|r| r.borrow_mut().drain(..).collect::<Vec<_>>());
+        let audit_queries = AUDIT_QUERY_REGISTRY.with(|r| r.borrow_mut().drain(..).collect::<Vec<_>>());
 
-    let mut docs = Vec::new();
+        let mut docs = Vec::new();
 
-    for rule_data in rules {
-        let doc = build_rule_document(&rule_data)?;
-        docs.push(doc);
-    }
+        for rule_data in rules {
+            let doc = build_rule_document(&rule_data)?;
+            docs.push(doc);
+        }
 
-    for task_data in tasks {
-        let doc = build_task_document(&task_data)?;
-        docs.push(doc);
-    }
+        for task_data in tasks {
+            let doc = build_task_document(&task_data)?;
+            docs.push(doc);
+        }
 
-    for schedule_data in schedules {
-        let doc = build_schedule_document(&schedule_data)?;
-        docs.push(doc);
-    }
+        for schedule_data in schedules {
+            let doc = build_schedule_document(&schedule_data)?;
+            docs.push(doc);
+        }
 
-    for connector_data in connectors {
-        let doc = build_connector_document(&connector_data)?;
-        docs.push(doc);
-    }
+        for connector_data in connectors {
+            let doc = build_connector_document(&connector_data)?;
+            docs.push(doc);
+        }
 
-    for mascot_data in mascot_scenes {
-        let doc = build_mascot_scene_document(&mascot_data)?;
-        docs.push(doc);
-    }
+        for mascot_data in mascot_scenes {
+            let doc = build_mascot_scene_document(&mascot_data)?;
+            docs.push(doc);
+        }
 
-    for coaching_data in coachings {
-        let doc = build_coaching_document(&coaching_data)?;
-        docs.push(doc);
-    }
+        for coaching_data in coachings {
+            let doc = build_coaching_document(&coaching_data)?;
+            docs.push(doc);
+        }
 
-    for enforcement_data in enforcements {
-        let doc = build_enforcement_document(&enforcement_data)?;
-        docs.push(doc);
-    }
+        for enforcement_data in enforcements {
+            let doc = build_enforcement_document(&enforcement_data)?;
+            docs.push(doc);
+        }
 
-    for wallet_data in wallet_ops {
-        let doc = build_wallet_op_document(&wallet_data)?;
-        docs.push(doc);
-    }
+        for wallet_data in wallet_ops {
+            let doc = build_wallet_op_document(&wallet_data)?;
+            docs.push(doc);
+        }
 
-    for ritual_data in rituals {
-        let doc = build_ritual_document(&ritual_data)?;
-        docs.push(doc);
-    }
+        for ritual_data in rituals {
+            let doc = build_ritual_document(&ritual_data)?;
+            docs.push(doc);
+        }
 
-    for sound_data in sound_cues {
-        let doc = build_sound_cue_document(&sound_data)?;
-        docs.push(doc);
-    }
+        for sound_data in sound_cues {
+            let doc = build_sound_cue_document(&sound_data)?;
+            docs.push(doc);
+        }
 
-    for query_data in audit_queries {
-        let doc = build_audit_query_document(&query_data)?;
-        docs.push(doc);
-    }
+        for query_data in audit_queries {
+            let doc = build_audit_query_document(&query_data)?;
+            docs.push(doc);
+        }
 
-    Ok(docs)
+        Ok(docs)
+    })
 }
 
 // Thread-local registries for collecting all primitives during Starlark evaluation.

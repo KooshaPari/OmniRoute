@@ -6,7 +6,7 @@ license.workspace = true
 rust-version.workspace = true
 
 [dependencies]
-starlark = "0.13"
+starlark = "0.14"
 serde.workspace = true
 serde_json.workspace = true
 chrono.workspace = true
