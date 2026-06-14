@@ -1,0 +1,5 @@
+"""Marker file for PEP 561 — see https://peps.python.org/pep-0561/.
+
+Tells type checkers that ``pheno_fastapi_base`` ships inline type
+annotations and the package's public API is safe to type-check against.
+"""

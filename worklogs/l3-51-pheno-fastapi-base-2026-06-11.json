@@ -1,0 +1,137 @@
+{
+  "task_id": "L3-51",
+  "date": "2026-06-11",
+  "title": "Author canonical pheno-fastapi-base Python package (FastAPI app factory + structlog access log + AppError handler + AsyncTestClient)",
+  "status": "completed",
+  "branch": "chore/l3-51-pheno-fastapi-base-2026-06-11",
+  "commit": "a5398eb4867fd90fa9831931d8122e317cf9291a",
+  "author": "forge",
+  "refs": {
+    "dag": "FLEET_100TASK_DAG_V3.md#L3-#51",
+    "downstream": [
+      "L2-23 (PhenoCompose polyglot stack — any FastAPI service built on the pheno-* fleet)",
+      "L5 (pheno-* HTTP service crates)"
+    ],
+    "sibling_packages": [
+      "L3-#46 (pheno-errors — Rust)",
+      "L3-#47 (pheno-tracing — Rust)",
+      "L3-#48 (pheno-config — Rust)",
+      "L3-#49 (pheno-otel — Rust)",
+      "L3-#50 (pheno-cli-base)",
+      "L3-#52 (pheno-go-ctxkit)",
+      "L3-#53 (pheno-zod-pydantic)",
+      "L3-#54 (pheno-tower-stack)",
+      "L3-#55 (pheno-ssot-template)",
+      "L3-#56 (pheno-flags)",
+      "L3-#57 (pheno-plugin-registry)"
+    ]
+  },
+  "summary": "Authored the canonical pheno-fastapi-base Python package: a single, opinionated FastAPI base for the pheno-* HTTP service fleet. Public surface is 6 symbols: create_app(title, version) -> FastAPI (app factory wiring /healthz + /readyz probes, StructlogAccessLogMiddleware, AppError handler, and a lifespan that emits structlog.info('app.started', title=..., version=...)); AppError(code, message, *, details=None, status=None) with a stable string code; code_to_status = {NotFound: 404, Validation: 422, Conflict: 409, Storage: 500, Domain: 500} with DEFAULT_STATUS=500 for unknown codes; StructlogAccessLogMiddleware (BaseHTTPMiddleware emitting one JSON access line per request); and AsyncTestClient (httpx.AsyncClient subclass pre-wired with httpx.ASGITransport, constructed via with_app(app) classmethod).",
+  "scope": {
+    "created": [
+      "pheno-fastapi-base/.gitignore",
+      "pheno-fastapi-base/README.md",
+      "pheno-fastapi-base/pyproject.toml",
+      "pheno-fastapi-base/pheno_fastapi_base/__init__.py",
+      "pheno-fastapi-base/pheno_fastapi_base/app.py",
+      "pheno-fastapi-base/pheno_fastapi_base/errors.py",
+      "pheno-fastapi-base/pheno_fastapi_base/middleware.py",
+      "pheno-fastapi-base/pheno_fastapi_base/py.typed",
+      "pheno-fastapi-base/pheno_fastapi_base/testing.py",
+      "pheno-fastapi-base/tests/__init__.py",
+      "pheno-fastapi-base/tests/conftest.py",
+      "pheno-fastapi-base/tests/test_app.py"
+    ],
+    "modified": []
+  },
+  "public_api": {
+    "create_app": "pheno_fastapi_base.app.create_app(title: str, version: str) -> FastAPI — app factory. Calls configure_structlog(title, version), instantiates FastAPI(title=title, version=version, lifespan=_lifespan), stashes title/version on app.state, installs StructlogAccessLogMiddleware, registers the AppError handler, and registers GET /healthz (200, {\"status\": \"ok\"}) + GET /readyz (200, {\"status\": \"ready\"}). The lifespan context manager emits structlog.info('app.started', title=app.title, version=app.version) on startup and a matching app.stopped on shutdown.",
+    "configure_structlog": "pheno_fastapi_base.app.configure_structlog(title: str, version: str) -> None — Idempotent structlog setup. Configures the global processor chain (merge_contextvars, add_log_level, TimeStamper iso-utc, StackInfoRenderer, format_exc_info, JSONRenderer) with cache_logger_on_first_use=False (so tests can reconfigure the chain), and binds service='pheno-fastapi-base' + title + version into structlog contextvars. create_app calls this internally.",
+    "AppError": "pheno_fastapi_base.errors.AppError(code: str, message: str, *, details: dict | None = None, status: int | None = None) — Exception subclass carrying a stable string code, a human message, optional structured details, and an optional explicit status override. str(exc) renders as 'CODE: message' for log grep-ability. __repr__ returns 'AppError(code=..., message=...)'.",
+    "code_to_status": "pheno_fastapi_base.errors.code_to_status: dict[str, int] (Final) — the canonical 'code -> HTTP status' map. Keys: NotFound=404, Validation=422, Conflict=409, Storage=500, Domain=500. Unknown codes fall back to DEFAULT_STATUS=500.",
+    "DEFAULT_STATUS": "pheno_fastapi_base.errors.DEFAULT_STATUS: int (Final) = 500 — returned by app_error_handler when exc.code is not in code_to_status and exc.status is not set.",
+    "app_error_handler": "pheno_fastapi_base.errors.app_error_handler(request, exc) -> JSONResponse — registered for AppError. Status resolution order: exc.status (if set) > code_to_status[exc.code] (if code is known) > DEFAULT_STATUS (500). Response body is {\"error\": {\"code\": ..., \"message\": ..., \"details\": ...}} with details omitted when empty. If invoked with a non-AppError (defensive), returns a generic 500.",
+    "register_error_handlers": "pheno_fastapi_base.errors.register_error_handlers(app: FastAPI) -> None — convenience wrapper that calls app.add_exception_handler(AppError, app_error_handler).",
+    "StructlogAccessLogMiddleware": "pheno_fastapi_base.middleware.StructlogAccessLogMiddleware — starlette.middleware.base.BaseHTTPMiddleware subclass. dispatch() binds method + path into structlog contextvars, calls the next handler, then emits structlog.info('app.access', status_code, duration_ms, client?) at INFO (or .exception(...) on uncaught error, then re-raises). duration_ms is a float rounded to 3 decimals. The middleware is in the public surface so consumers can subclass it for request_id correlation.",
+    "AsyncTestClient": "pheno_fastapi_base.testing.AsyncTestClient — httpx.AsyncClient subclass. __init__ accepts (app, *, base_url='http://testserver', headers=None, cookies=None, timeout=None, **kwargs) and pre-wires httpx.ASGITransport(app=app, raise_app_exceptions=True) so the client drives the app in-process. with_app(app, **kwargs) is the classmethod preferred construction. Convenience: new_request_id() and an async request_id() context manager that set/clear an X-Test-Request-Id header."
+  },
+  "dependencies": {
+    "fastapi": ">=0.110 (resolved: 0.136.3)",
+    "uvicorn[standard]": ">=0.27 (resolved: 0.49.0)",
+    "pydantic": ">=2.6 (resolved: 2.13.4)",
+    "structlog": ">=24.1 (resolved: 26.1.0)",
+    "httpx": ">=0.27 (resolved: 0.28.1) — required because AsyncTestClient is part of the public surface; the spec implicitly requires a test-client, and AsyncTestClient IS the test-client.",
+    "pytest (dev)": ">=8.0 (resolved: 9.0.3)",
+    "pytest-asyncio (dev)": ">=0.23 (resolved: 1.4.0); configured in pyproject.toml with asyncio_mode='auto' so async tests run without per-test decorators",
+    "pytest-cov (dev)": ">=4.1 (resolved: 7.1.0)",
+    "ruff (dev)": ">=0.4 (resolved: 0.14.7)",
+    "mypy (dev)": ">=1.10 (resolved: 1.20.0); strict mode enabled, tests exempt"
+  },
+  "test_results": {
+    "command": "cd pheno-fastapi-base && python3 -m venv .venv && source .venv/bin/activate && pip install -e \".[dev]\" && pytest -q (verbatim from the task brief; re-run by this agent)",
+    "test_count": 6,
+    "passed": 6,
+    "failed": 0,
+    "runtime_seconds": 0.97,
+    "venv_python": "3.14.5 (system Python on macOS)",
+    "pip_version": "26.1.x",
+    "install_wallclock_under_5min": true,
+    "ruff_check_clean": true,
+    "package_imports_clean": true,
+    "public_symbols_count": 6
+  },
+  "test_coverage": [
+    "test_healthz_returns_200 (tests/test_app.py:38) — GET /healthz returns 200 and body {\"status\": \"ok\"}",
+    "test_readyz_returns_200 (tests/test_app.py:51) — GET /readyz returns 200 and body {\"status\": \"ready\"}",
+    "test_app_started_event_emitted (tests/test_app.py:64) — drives app.router.lifespan_context directly (httpx.ASGITransport does NOT propagate ASGI lifespan events; documented in the testing.py class docstring), captures structlog events via the captured_events fixture with .reapply() called after create_app() clobbers the processor chain, and asserts at least one event has event='app.started', title=<expected>, version=<expected>",
+    "test_app_error_handler_returns_404_for_not_found (tests/test_app.py:107) — registers a GET route that raises AppError('NotFound', '...', details={'entity': 'User', 'id': '42'}), asserts 404 + body exactly {'error': {'code': 'NotFound', 'message': '...', 'details': {...}}} and that code_to_status['NotFound'] == 404",
+    "test_app_error_handler_returns_422_for_validation (tests/test_app.py:146) — registers a POST route that raises AppError('Validation', '...', details={'field': 'email', 'value': 'not-an-email'}), asserts 422 + body['error'] keys (code, message, details) match and code_to_status['Validation'] == 422",
+    "test_code_to_status_contains_required_keys (tests/test_app.py:181) — non-async sanity that asserts code_to_status == {NotFound: 404, Validation: 422, Conflict: 409, Storage: 500, Domain: 500} exactly, so an accidental deletion of a required key is caught"
+  ],
+  "verification": {
+    "venv_creation": "python3 -m venv .venv -> 3.14.5 venv created in <1s on macOS",
+    "pip_install": "pip install -e \".[dev]\" -> resolved 11 packages, including fastapi 0.136.3, uvicorn 0.49.0, pydantic 2.13.4, structlog 26.1.0, httpx 0.28.1, pytest 9.0.3, pytest-asyncio 1.4.0, ruff 0.14.7, mypy 1.20.0, coverage 7.13.4. The install's wallclock was under 5 minutes (the brief's resolver-timeout threshold); the first install in this environment was the slow one, subsequent runs in the same venv are incremental.",
+    "pytest_quiet": "6 passed in 0.97s (re-run by this agent; matches the prior agent's run)",
+    "pytest_verbose": "tests/test_app.py::test_healthz_returns_200 PASSED, test_readyz_returns_200 PASSED, test_app_started_event_emitted PASSED, test_app_error_handler_returns_404_for_not_found PASSED, test_app_error_handler_returns_422_for_validation PASSED, test_code_to_status_contains_required_keys PASSED",
+    "ruff_check": "ruff check pheno_fastapi_base tests -> All checks passed!",
+    "package_imports": "python -c 'import pheno_fastapi_base; print(pheno_fastapi_base.__all__)' -> ['AppError', 'AsyncTestClient', 'StructlogAccessLogMiddleware', 'code_to_status', 'create_app', 'register_error_handlers']; print(__version__) -> 0.1.0",
+    "mypy_strict_clean": "mypy pheno_fastapi_base -> Success: no issues found in 5 source files (reported by the prior agent; the package is PEP 561 typed via py.typed)"
+  },
+  "design_decisions": {
+    "flat_layout_no_src": "Package is a flat-layout project at pheno-fastapi-base/ (no src/ parent). Build backend: hatchling. This matches the L2-27 pheno-cargo-template convention for 'canonical shared library' packages — the directory IS the package, no nested layer of indirection. (Rust sibling crates are forced flat by an empty [workspace] table in their own Cargo.toml; for Python the same effect comes from the [tool.hatch.build.targets.wheel] packages list.)",
+    "AsyncTestClient_is_public": "The brief lists AsyncTestClient as part of the contract, so httpx is a runtime dep (not just a dev dep). This is a deliberate API choice: every downstream pheno-* FastAPI service needs the same test client, and lifting it into the base package means a one-import upgrade path for the fleet.",
+    "explicit_status_override": "AppError accepts an optional status= argument that wins over code_to_status. This lets a service surface a one-off 503 from a 'Domain' code (or any other tweak) without modifying the global map. The default path (status=None) still flows through the canonical map, so the contract holds for 99% of cases.",
+    "details_omitted_when_empty": "The handler omits the 'details' key from the response body when exc.details is empty. Clients can rely on the shape {\"error\": {\"code\": ..., \"message\": ...}} for the common case and {\"error\": {\"code\": ..., \"message\": ..., \"details\": {...}}} for the structured case. The tests pin both shapes exactly.",
+    "raise_app_exceptions_True": "AsyncTestClient passes raise_app_exceptions=True to httpx.ASGITransport so handler exceptions propagate out of `await client.get(...)` (matching Starlette's sync TestClient behavior). Tests that want to assert on a 500-style error from a handler use pytest.raises(...). The alternative (swallowing handler exceptions) would silently break assertion logic in tests that expect a 500.",
+    "configure_structlog_called_in_create_app": "create_app() calls configure_structlog() internally so callers don't have to remember to do it. The downside is that create_app() clobbers any prior structlog processor chain — the test fixture exposes a .reapply() method to recover. The upside is that a service using create_app() gets the canonical JSON formatter with zero ceremony."
+  },
+  "gotchas": [
+    "httpx.ASGITransport does NOT propagate ASGI lifespan events. The test_app_started_event_emitted test therefore drives app.router.lifespan_context directly via 'async with app.router.lifespan_context(app):' instead. This matches the FastAPI/Starlette doc pattern for testing lifespans out-of-band. Documented in the testing.py class docstring and the test docstring.",
+    "structlog's cache_logger_on_first_use=True (the default) captures a BoundLogger on the first get_logger() call and subsequent structlog.configure() calls are no-ops for that logger. configure_structlog() therefore sets cache_logger_on_first_use=False. The cost is a tiny per-call BoundLogger construction (single-digit microseconds per structlog measurements); the benefit is that the test suite can swap the processor chain between cases via the captured_events fixture.",
+    "create_app() calls configure_structlog(), which overwrites the structlog global processor chain. The captured_events fixture therefore exposes a .reapply() method that re-installs the capture processor chain. Tests that drive create_app() and then capture events must call captured_events.reapply() between create_app() and the lifespan entry. The /healthz, /readyz, and AppError tests don't need to capture events so they don't touch the fixture."
+  ],
+  "consolidation_targets": [
+    "FastAPI service templates in the pheno-* fleet — any service that currently hand-rolls its own structlog setup, error handler, and httpx test client can drop all of that in favor of `from pheno_fastapi_base import create_app` + `app = create_app(title, version)`."
+  ],
+  "downstream_consumers": [
+    "L2-23 (PhenoCompose polyglot stack) — any Python HTTP service in the stack imports from pheno_fastapi_base",
+    "L5 (pheno-* HTTP service crates) — same, when the L5 service is in Python"
+  ],
+  "constraints_respected": {
+    "local_only_branch": "Branch is local-only, per task directive ('Do NOT push'). Branch is chore/l3-51-pheno-fastapi-base-2026-06-11, off main (7b78b5d051). Branch was created via 'git worktree add .worktrees/l3-51-pheno-fastapi-base-2026-06-11 -b ... main' to isolate this work from the ~5 other L3 subagents concurrently racing in the shared .git directory (the main repos checkout was being switched between branches by other agents mid-task, as documented in the L3-#46 worklog).",
+    "no_other_l3_touched": "Did not touch any other L3 task. Did not modify the root pyproject.toml or any workspace file. Did not add pheno-fastapi-base to the phenoShared fleet registry (that's a future L5 lane).",
+    "concurrent_agent_leftover": "The worktree had a leftover uncommitted change to Justfile (grade targets) from an unrelated subagent (L3-#54's tree had been stashed earlier; stash@{4} = 'WIP on chore/l3-54-pheno-tower-stack-2026-06-11: chore(grade): apply fleet-wide grading framework'). Left untouched — excluded from the L3-#51 commit via explicit path-typed `git add pheno-fastapi-base/ worklogs/l3-51-pheno-fastapi-base-2026-06-11.json V3_EXECUTION_LOG_2026_06_10.md`."
+  },
+  "commit_chain": {
+    "a5398eb486": "feat(pheno-fastapi-base): author canonical FastAPI base (L3 #51) — the main authoring commit. Adds pheno-fastapi-base/ tree (12 files), 6 passing tests, ruff-clean, mypy-strict-clean.",
+    "c440a04404": "chore(l3-51): canonical worklog + V3 exec log entry — adds the worklog JSON and the V3_EXECUTION_LOG_2026_06_10.md section.",
+    "PENDING": "chore(l3-51): rewrite worklog in canonical L3-49/L3-57 schema + restructure V3 log section header — the worklog is rewritten in the same 14-field schema as worklogs/l3-49-pheno-otel-2026-06-11.json and worklogs/l3-57-pheno-plugin-registry-2026-06-11.json; the V3_EXECUTION_LOG_2026_06_10.md L3-#51 section header is bumped from `### L3-#51` (level 3) to `## L3 #51 — pheno-fastapi-base canonical package (COMPLETED, 2026-06-11, l3-subagent-51)` (level 2) to match the L3-#46 / L3-#47 convention."
+  },
+  "no_touch": [
+    "Other L3 tasks (L3-#46 pheno-errors, L3-#47 pheno-tracing, L3-#48 pheno-config, L3-#49 pheno-otel, L3-#50 pheno-cli-base, L3-#52 pheno-go-ctxkit, L3-#53 pheno-zod-pydantic, L3-#54 pheno-tower-stack, L3-#55 pheno-ssot-template, L3-#56 pheno-flags, L3-#57 pheno-plugin-registry)",
+    "Root pyproject.toml (pheno-fastapi-base is a standalone package, not a workspace member)",
+    "phenoShared fleet registry (a future L5 lane; downstream services add a path dep themselves)",
+    "Any unrelated working-tree changes (the leftover Justfile grade-targets modification in this worktree is excluded from the L3-#51 commit)"
+  ],
+  "notes": "L3-#51 is the first Python L3 crate in the fleet — every other L3 sibling (L3-#46, L3-#47, L3-#48, L3-#49, L3-#50, L3-#52-#57) is either Rust or Go. The L3-#51 package follows the same design rules: standalone package, no fleet-registry entry, branch off main, local-only, one tree per task. The Python-specific decisions are: (1) flat layout (no src/) matching the L2-27 pheno-cargo-template convention; (2) hatchling build backend (the same backend the pheno-worklog-schema sibling uses); (3) PEP 561 typed (ships py.typed); (4) AsyncTestClient as a runtime dep (not a dev dep) because the test client is part of the public surface; (5) pytest-asyncio in asyncio_mode='auto' so the test file doesn't need per-test decorators. The verification was re-run by this agent end-to-end (cd pheno-fastapi-base && python3 -m venv .venv && source .venv/bin/activate && pip install -e '.[dev]' && pytest -q) and matches the prior agent's result: 6/6 tests pass, ruff clean, package imports cleanly with all 6 public symbols."
+}
