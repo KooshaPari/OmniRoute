@@ -186,3 +186,100 @@ scripts/i18n/_pending-keys.json
 # Added by cargo
 
 /target
+
+# === Hardened build/cache artifacts ===
+
+# Python
+__pycache__/
+*.py[cod]
+*.class
+*.egg-info/
+.eggs/
+.pytest_cache/
+.mypy_cache/
+.tox/
+.venv/
+venv/
+env/
+ENV/
+
+# General cache / temp
+.cache/
+*.tmp
+tmp/
+temp/
+*.temp
+
+# Build output (cross-platform)
+dist/
+build/
+out/
+site/
+docs/_build/
+
+# Compiled binaries / objects
+*.o
+*.a
+*.so
+*.dylib
+*.dll
+*.exe
+*.class
+*.jar
+
+# IDE / editor
+.vscode/
+*.swp
+*.swo
+*~
+*.sublime-*
+
+# OS
+Thumbs.db
+desktop.ini
+ehthumbs.db
+
+# JS/TS tooling caches
+.eslintcache
+.stylelintcache
+.nyc_output/
+.parcel-cache/
+.rpt2_cache/
+.rts2_cache_*
+
+# Framework / monorepo caches
+.turbo/
+.nx/
+.svelte-kit/
+.astro/
+.nuxt/
+.output/
+.wrangler/
+.netlify/
+.firebase/
+.expo/
+.metro/
+
+# Package manager stores
+vendor/
+bower_components/
+.pnpm-store/
+.npm/
+.yarn-integrity
+
+# Runtime / lock files
+*.pid
+*.seed
+*.pid.lock
+.lock-wscript
+.node_repl_history
+
+# Infrastructure
+.terraform/
+*.tfstate
+*.tfstate.*
+
+# Misc generated
+*.bak
+*.orig
+*.rej
