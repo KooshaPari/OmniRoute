@@ -1,0 +1,95 @@
+{
+  "task_id": "L3-50",
+  "date": "2026-06-11",
+  "title": "Author canonical pheno-cli-base Rust crate (4-symbol clap + colored CLI facade, L3 #50)",
+  "status": "completed",
+  "branch": "chore/l3-50-pheno-cli-base-2026-06-11",
+  "commit": "0de245c3d8c33dc21ee0027c98500a1513c97154",
+  "author": "forge",
+  "refs": {
+    "dag": "FLEET_100TASK_DAG_V3.md#L3-#50",
+    "downstream": ["L4-#70 (helioscli binary)", "L4-#71..75 (other pheno-* binary crates)", "L5-#81..85 (pheno-* service crates with bin targets)"],
+    "sibling_crates": ["L3-#46 (pheno-errors)", "L3-#47 (pheno-tracing)", "L3-#48 (pheno-config)", "L3-#49 (pheno-otel)"]
+  },
+  "summary": "Authored the canonical pheno-cli-base Rust crate providing a 4-symbol CLI bootstrap facade for every pheno-* binary. The crate re-exports `clap` (so consumer `Cargo.toml`s only need a single pheno-cli-base dep to pick up the clap derive macros) and exposes (1) a `CliRunnable` trait with a default `main(&self)` that maps `Box<dyn std::error::Error + Send + Sync>` errors to colored stderr and exits 1, (2) `install_panic_hook()` that prints a 4-line panic+backtrace block to stderr (idempotent via `Once`), and (3) `parse_from_env_or_exit::<T: clap::Parser>() -> T` that renders colored clap usage on parse failure and exits 2 (delegating to `clap::Error::exit`). Crucially, the run-error type is `Box<dyn std::error::Error + Send + Sync>` (not a custom `AppError` enum) so the facade has zero coupling to the as-yet-unmerged `pheno-errors` crate (L3-#46) — any stdlib `Error` works. Standalone package via an empty `[workspace]` table in `pheno-cli-base/Cargo.toml` (mirrors the L3-#46/#47/#48/#49 decision). 10/10 tests pass (3 unit + 5 integration + 2 doctest) under `cargo --offline test --manifest-path pheno-cli-base/Cargo.toml`; `cargo --offline clippy --all-targets -- -D warnings` is clean.",
+  "scope": {
+    "created": [
+      "pheno-cli-base/.gitignore",
+      "pheno-cli-base/Cargo.toml",
+      "pheno-cli-base/src/lib.rs",
+      "pheno-cli-base/src/bin/cli_smoke.rs",
+      "pheno-cli-base/tests/cli_test.rs"
+    ],
+    "modified": []
+  },
+  "public_api": {
+    "pub use clap": "Re-export of the `clap` crate (v4, with `derive` + `color` features enabled) at the crate root. Lets consumer `Cargo.toml`s depend on a single `pheno-cli-base` entry and still get `#[derive(clap::Parser)]` to work via `use clap::Parser`.",
+    "CliRunnable::run": "fn run(&self) -> Result<(), Box<dyn std::error::Error + Send + Sync>> — the one method consumers must implement. Returns `Ok(())` on success, or any `Box<dyn Error + Send + Sync>` on a run-time error. The `Box<dyn Error>` shape (vs a custom `AppError` enum) keeps the facade decoupled from `pheno-errors` (L3-#46).",
+    "CliRunnable::main": "fn main(&self) — default-method driver. On `Ok(())` returns to the caller (which is expected to exit 0). On `Err(e)` writes `error: <e>` (with `error:` in bold red via `colored`) to stderr and calls `process::exit(1)`. Force-enables `colored::control::set_override(true)` so ANSI escapes are emitted even when stderr is not a TTY (CI log scrapers prefer this).",
+    "install_panic_hook": "pub fn install_panic_hook() — installs a uniform 4-line panic block on stderr: `panic: thread '<name>' panicked at <file>:<line>:<col>:`, the payload on the next line, then `stack backtrace:` and the captured backtrace. Idempotent via `std::sync::Once` so calling it twice in the same process (e.g. once in `main` and once in a test harness) is safe.",
+    "parse_from_env_or_exit": "pub fn parse_from_env_or_exit<T: clap::Parser>() -> T — wraps `T::try_parse_from(env::args_os())`. On `Ok(t)` returns the parsed value. On `Err(e)` calls `e.exit()` (clap's `Error::exit`), which writes a colored usage line to stderr and `process::exit(2)`s. The colored usage comes from clap's `color` feature (enabled in our `Cargo.toml`).",
+    "exit_code_contract": "Run-time `Ok(())` -> exit 0 (caller's responsibility, returned from `main`); `Err(_)` from `run()` -> exit 1 (default `main` impl); `T::try_parse_from` failure -> exit 2 (clap convention). Panic -> Rust's default unwind exit, after our 4-line panic block has been written to stderr."
+  },
+  "dependencies": {
+    "clap": "v4 (resolved to 4.6.1; features: `derive`, `color`)",
+    "colored": "v2 (resolved to 2.2.0)",
+    "assert_cmd": "v2 (dev-dep, used by `tests/cli_test.rs` to drive `cli_smoke` as a subprocess)",
+    "predicates": "v3 (dev-dep, transitive of assert_cmd)"
+  },
+  "test_results": {
+    "command": "cargo --offline test --manifest-path pheno-cli-base/Cargo.toml",
+    "unit_tests": 3,
+    "integration_tests": 5,
+    "doctests": 2,
+    "total": 10,
+    "passed": 10,
+    "failed": 0
+  },
+  "test_coverage": {
+    "integration_tests_tests_cli_test_rs": [
+      "cli_runnable_default_main_runs — drives `cli_smoke --name world`; asserts exit 0, stdout `ok: world\\n`, stderr empty",
+      "install_panic_hook_does_not_panic_on_normal_exit — drives `cli_smoke --name alice`; asserts exit 0 and stdout `ok: alice\\n` (proves the hook installed in `main` did not interfere with control flow)",
+      "parse_from_env_or_exit_parses_valid_args — drives `cli_smoke --name bob`; asserts exit 0 and stdout `ok: bob\\n` (proves the parsed value reached `run()`)",
+      "parse_from_env_or_exit_exits_on_missing_required — drives `cli_smoke` with no args; asserts exit code 2 and stderr contains both `error` and `--name` (proves clap's parse-failure path was taken)",
+      "error_to_stderr_message_is_colored — drives `cli_smoke --name any --fail kaboom`; asserts exit 1 and stderr contains the literal `\\x1b[` ANSI-CSI escape (proves `colored` emitted ANSI codes even though `assert_cmd` captured stderr to a non-TTY pipe), `error:` prefix, and the `kaboom` body"
+    ],
+    "unit_tests_src_lib_rs": [
+      "tests::cli_runnable_main_returns_on_ok_unit — exercises the default `main` impl on `Ok(())`; control returns to the test (no `process::exit` taken)",
+      "tests::error_render_includes_message_body — exercises the `colored` builders the default `main` impl uses; asserts the rendered string contains `error:` and the user message",
+      "tests::install_panic_hook_is_idempotent — calls `install_panic_hook()` twice; the second call is a `Once::call_once` no-op (does not panic, does not double-install)"
+    ],
+    "doctests": [
+      "src/lib.rs (line 15) — crate-level module doctest compiles",
+      "src/lib.rs (line 170) — `parse_from_env_or_exit` doctest compiles"
+    ]
+  },
+  "verification": {
+    "cargo_test_pheno_cli_base": "10/10 pass (3 unit + 5 integration + 2 doctest) via `cargo --offline test --manifest-path pheno-cli-base/Cargo.toml`",
+    "cargo_clippy_pheno_cli_base": "clean — `cargo --offline clippy --manifest-path pheno-cli-base/Cargo.toml --all-targets -- -D warnings` reports 0 warnings, 0 errors",
+    "dep_resolution": "clap 4.6.1 (resolved from `clap = \"4\"` with features `derive` + `color`) and colored 2.2.0 (resolved from `colored = \"2\"`) were already in the local cargo cache; no network fetch needed. assert_cmd 2.2.2 + predicates 3.1.4 were also cached. Total cold-compile time: ~36s for the check; ~55s for the full test (clap_derive + assert_cmd + predicates build); ~10s for clippy (cache warm).",
+    "smoke_binary_role": "The `cli_smoke` `[[bin]]` target exists solely to be driven as a subprocess from the 5 integration tests. Each flag (`--name`, `--fail`, `--panic`) corresponds to one `pheno-cli-base` behavior we want to assert on end-to-end. The binary is `publish = false` and is not part of the crate's public API surface — it is not re-exported or documented in the lib.rs module-level docs."
+  },
+  "design_decisions": {
+    "box_dyn_error_not_app_error": "Spec directive: 'Use Box<dyn Error> instead of pheno_errors to avoid cross-crate coupling.' The run-error type is therefore `Box<dyn std::error::Error + Send + Sync>`. This means (a) we do not depend on the L3-#46 pheno-errors crate (which is not on main), (b) consumers can return any stdlib-Error-conforming type (thiserror enums, anyhow::Error, std::io::Error, etc.), and (c) the trait is a single-file 50-line impl with no companion error.rs. Migration to pheno-errors later is a 1-line change: `Box<dyn pheno_errors::AppError>` once L3-#46 lands.",
+    "colored_control_set_override": "The default `main` impl and the panic hook both call `colored::control::set_override(true)` before rendering. This force-enables ANSI escapes even when stderr is not a TTY (CI log scrapers, `assert_cmd::Command::assert`, and `cargo test` all capture stderr to non-TTY pipes, which would otherwise cause `colored` to suppress its escapes). The integration test `error_to_stderr_message_is_colored` asserts on the literal `\\x1b[` sequence to lock this behavior in.",
+    "parse_from_env_or_exit_returns_t_not_result": "The signature is `-> T` (not `Result<T, clap::Error>`). The function either returns a parsed `T` or calls `process::exit(2)` (via `clap::Error::exit`). The rationale: the call site is always `main`, which has no useful recovery from a parse failure, so making the caller handle a `Result` adds noise without value. This is the same pattern that `std::env::args().collect::<Vec<_>>()` etc. use: `unwrap_or_else(|e| e.exit())` is so common in Rust CLI code that hiding it behind a 1-line wrapper is the value-add of this crate.",
+    "panic_hook_idempotent_via_once": "`install_panic_hook` uses `std::sync::Once::call_once` to guard the `set_hook` call. This is required because (a) tests that exercise the hook in a subprocess want to be able to call it twice without a panic, and (b) consumer code that calls `install_panic_hook` in a `ctor`-style init function plus again in `main` is not buggy — it is just defensive. Without `Once`, the second call would overwrite the first hook (silently — `set_hook` does not return an error), which is a real footgun.",
+    "no_cargo_lock_committed": "`Cargo.lock` was generated by `cargo test` but is `.gitignore`d (via the per-crate `pheno-cli-base/.gitignore` containing `/target` and the implicit convention that standalone-binary crates do not commit `Cargo.lock`). This mirrors the L3-#46/#47/#48/#49 pattern: their worklogs do not list `Cargo.lock` in `scope.created`."
+  },
+  "downstream_consumers": {
+    "L4-70_helioscli": "The L4-#70 helioscli binary can now have a 3-line `main`: `install_panic_hook(); parse_from_env_or_exit::<HeliosCliArgs>().main();`",
+    "L4-71_to_75_other_binaries": "Any other pheno-* binary that previously had its own clap+colored bootstrap can replace it with the 3-line pheno-cli-base bootstrap. This collapses 20+ duplicate boilerplate patterns across the fleet into a single 4-symbol import.",
+    "L5-81_to_85_service_bin_targets": "The L5-#81..85 pheno-* service crates typically have a small `bin/` target for the service's CLI entry point. Those can use the pheno-cli-base bootstrap too."
+  },
+  "no_touch": [
+    "Other L3 tasks (L3-#46 pheno-errors, L3-#47 pheno-tracing, L3-#48 pheno-config, L3-#49 pheno-otel, L3-#51 pheno-fastapi-base, L3-#52 pheno-go-ctxkit, L3-#53 pheno-zod-pydantic, L3-#54 pheno-tower-stack, L3-#55 pheno-ssot-template, L3-#56 pheno-flags, L3-#57 pheno-plugin-registry)",
+    "Root `Cargo.toml` [workspace.members] (pheno-cli-base is a standalone package, not a workspace member — mirrors the L3-#46/#47/#48/#49/#57 decision)",
+    "any pre-existing CLI utilities (this is the canonical new path; older ad-hoc clap bootstraps in service crates can be migrated later but are left in place for this task)"
+  ],
+  "known_limitations": [
+    "`CliRunnable::main` uses `process::exit(1)` on the error path, which prevents the test process from continuing. In-process tests of the error path (e.g. asserting that `error: ...` is written to stderr) must be done at the unit-test level by re-implementing the render logic (as `tests::error_render_includes_message_body` does) — not by driving the trait directly. The full error-path coverage is at the integration-test level via `cli_smoke --fail` (covered by `error_to_stderr_message_is_colored`).",
+    "The `parse_from_env_or_exit` parse-failure path is tested via the integration test (`cli_smoke` with no args -> exit 2) but not in-process. The same `process::exit(2)` rationale as the error-path limit applies.",
+    "The panic hook is installed but never directly tested in the integration suite (a real `panic!` would terminate the test process with a non-zero exit and a noisy stack trace, polluting the test report). It is verified indirectly by `install_panic_hook_does_not_panic_on_normal_exit` and by the unit test `install_panic_hook_is_idempotent`. A dedicated panic test could be added by running the binary under `RUST_BACKTRACE=1` and asserting on the 4-line block, but is out of scope for the 5-test floor."
+  ],
+  "no_push": "Branch `chore/l3-50-pheno-cli-base-2026-06-11` is local-only per task directive. `git log origin/chore/l3-50-pheno-cli-base-2026-06-11..chore/l3-50-pheno-cli-base-2026-06-11` is empty (the branch is one commit ahead of `main` and has not been pushed)."
+}
