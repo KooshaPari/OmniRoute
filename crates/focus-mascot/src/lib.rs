@@ -315,8 +315,10 @@ mod tests {
     }
 
     // Traces to: FR-MASCOT-002
-    #[test]
-    fn test_fr_mascot_002_coaching_message_generation() {
-        unimplemented!("Coaching message generation from rule evaluations and streaks")
+    #[tokio::test]
+    async fn test_fr_mascot_002_coaching_message_generation() {
+        let mut machine = MascotMachine::new();
+        let state = machine.on_event_with_bubble(MascotEvent::RuleFired { rule_name: "test_rule".into() }).await;
+        assert!(!state.bubble_text.as_deref().unwrap_or("").is_empty());
     }
 }

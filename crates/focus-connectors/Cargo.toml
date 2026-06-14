@@ -8,7 +8,7 @@ rust-version.workspace = true
 [dependencies]
 focus-domain = { path = "../focus-domain" }
 focus-events = { path = "../focus-events" }
-phenotype-observably-macros = { path = "../../PhenoObservability/crates/phenotype-observably-macros" }
+phenotype-observably-macros = { path = "../../../PhenoObservability/crates/phenotype-observably-macros" }
 serde.workspace = true
 serde_json.workspace = true
 async-trait.workspace = true

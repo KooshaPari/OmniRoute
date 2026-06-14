@@ -60,6 +60,6 @@ explanation_template = "Morning deep-focus window — social locked 09:00–10:3
 enabled = true
 trigger = { kind = "schedule", value = "0 0 9 * * 1-5" }
 actions = [
-  { type = "block", profile = "social", duration_seconds = 5400, rigidity = "semi" },
+  { type = "block", profile = "social", duration_seconds = 5400, rigidity = "soft" },
   { type = "notify", message = "Deep focus — 90 min. Social is semi-locked, bypass costs 10 credits." },
 ]

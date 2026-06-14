@@ -1,0 +1,19 @@
+[package]
+name = "phenotype-error-core"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+
+description = "Core error types and traits for the Phenotype ecosystem"
+
+[dependencies]
+thiserror = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+uuid = { workspace = true }
+
+[dev-dependencies]
+serde = { workspace = true, features = ["derive"] }
+
+[lib]

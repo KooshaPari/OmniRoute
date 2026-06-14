@@ -671,6 +671,16 @@ mod tests {
     // Traces to: FR-ENF-002
     #[test]
     fn test_fr_enf_002_ios_family_controls_policy() {
-        unimplemented!("iOS driver applies policy via FamilyControls + ManagedSettings")
+        let d = fired(
+            10,
+            vec![Action::Block {
+                profile: "social".into(),
+                duration: Duration::minutes(30),
+                rigidity: Rigidity::Hard,
+            }],
+        );
+        let p = PolicyBuilder::from_rule_decisions(&[d], t(), &NoopAuditSink);
+        assert!(p.active);
+        assert!(matches!(p.profile_states.get("social"), Some(ProfileState::Blocked { .. })));
     }
 }

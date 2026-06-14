@@ -53,6 +53,6 @@ conditions = [
   { kind = "payload_lte", params = { path = "hours_until_due", max = 24 } },
 ]
 actions = [
-  { type = "block", profile = "social", duration_seconds = 86400, rigidity = "semi" },
+  { type = "block", profile = "social", duration_seconds = 86400, rigidity = "soft" },
   { type = "notify", message = "Deadline incoming — social locked until you submit." },
 ]
