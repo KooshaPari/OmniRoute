@@ -1,0 +1,102 @@
+{
+  "task_id": "L3-49",
+  "date": "2026-06-11",
+  "title": "Author canonical pheno-otel Rust crate (one-liner OpenTelemetry init with Drop-based guard)",
+  "status": "completed",
+  "branch": "chore/l3-49-pheno-otel-2026-06-11",
+  "commit": "cece7fe35cf78f8440bb1949b6884dbfa5c72350",
+  "author": "forge",
+  "refs": {
+    "dag": "FLEET_100TASK_DAG_V3.md#L3-#49",
+    "downstream": ["L5-#81..85 (pheno-* service crates)", "L4-#70 (helioscli binary)"],
+    "sibling_crates": ["L3-#46 (pheno-errors)", "L3-#47 (pheno-tracing)", "L3-#48 (pheno-config)"]
+  },
+  "summary": "Authored the canonical pheno-otel workspace crate wrapping OpenTelemetry initialization with a one-liner API. `init(service_name)` returns a `TelemetryGuard` whose `Drop` impl flushes and shuts down the global tracer provider; `init_with_stdout(service_name)` is a no-network variant for local dev. `OtelError` is a thiserror enum with the spec's three variants (ExporterInit, ResourceBuild, Shutdown). The crate is pinned to the OpenTelemetry 0.27 line (resolved to 0.27.1 / 0.27.0 cleanly via the cargo registry cache).",
+  "scope": {
+    "created": [
+      "pheno-otel/Cargo.toml",
+      "pheno-otel/README.md",
+      "pheno-otel/src/lib.rs",
+      "pheno-otel/src/error.rs",
+      "pheno-otel/src/guard.rs",
+      "pheno-otel/src/init.rs",
+      "pheno-otel/src/exporter/mod.rs",
+      "pheno-otel/src/exporter/stdout.rs",
+      "pheno-otel/tests/init_test.rs"
+    ],
+    "modified": []
+  },
+  "public_api": {
+    "init": "pub fn init(service_name: &str) -> Result<TelemetryGuard, OtelError> — installs an OTLP/HTTP span exporter, sets it as the global tracer provider, returns a guard. Reads OTEL_EXPORTER_OTLP_ENDPOINT (and signal-specific) for the collector URL.",
+    "init_with_stdout": "pub fn init_with_stdout(service_name: &str) -> Result<TelemetryGuard, OtelError> — installs a custom stdout SpanExporter for local dev, sets it as the global tracer provider, returns a guard. No network I/O.",
+    "TelemetryGuard::shutdown": "pub fn shutdown(self) -> Result<(), OtelError> — explicit shutdown that force-flushes the span exporter and calls opentelemetry::global::shutdown_tracer_provider(). Consumes the guard so Drop is a no-op.",
+    "TelemetryGuard::Drop": "impl Drop — on scope exit, calls force_flush() on the inner TracerProvider and then opentelemetry::global::shutdown_tracer_provider(). Failure is logged but does not panic (tests verify this).",
+    "TelemetryGuard::Debug": "pub struct field `source: &'static str` — 'otlp' or 'stdout' — exposed via Debug so consumers can assert on the path in tests without downcasting.",
+    "OtelError::ExporterInit": "thiserror variant(String) — wraps a failed opentelemetry_otlp::SpanExporter::builder()...build() result, or a failed Resource::new_with_defaults round-trip.",
+    "OtelError::ResourceBuild": "thiserror variant(String) — wraps a failed Resource build (empty service_name, duplicate resource attribute, etc.).",
+    "OtelError::Shutdown": "thiserror variant(String) — wraps a force_flush or shutdown_tracer_provider error from the guard's Drop impl or explicit shutdown() call."
+  },
+  "dependencies": {
+    "opentelemetry": "0.27.1 (resolved from 0.27)",
+    "opentelemetry_sdk": "0.27.1 with feature 'trace' (resolved from 0.27)",
+    "opentelemetry-otlp": "0.27.0 with features ['http-proto', 'reqwest-client', 'reqwest-rustls', 'trace'], default-features = false (resolved from 0.27)",
+    "thiserror": "2.0",
+    "futures-util": "0.3 (for the SpanExporter trait's BoxFuture return type in the custom stdout exporter)",
+    "opentelemetry_sdk (dev)": "0.27.1 with features ['trace', 'testing']",
+    "opentelemetry (dev)": "0.27.1",
+    "opentelemetry-otlp (dev)": "0.27.0 with the same features as the main dep (used by init_test.rs to exercise the failure-path mapping)",
+    "once_cell (dev)": "1.0 (for the stdout mutex helper in init_test.rs)"
+  },
+  "test_results": {
+    "command": "cargo test --offline (run from pheno-otel/)",
+    "unit_tests": 10,
+    "integration_tests": 5,
+    "doctests": 3,
+    "total": 18,
+    "passed": 18,
+    "failed": 0
+  },
+  "test_coverage": [
+    "init_returns_guard (tests/init_test.rs) — calls init_with_stdout, asserts Debug render contains 'TelemetryGuard' and 'stdout'",
+    "init_with_stdout_emits_test_span (tests/init_test.rs) — emits a span, end()s it, asserts guard.shutdown() succeeds, captures the rendered JSON line on stdout",
+    "guard_drop_calls_shutdown (tests/init_test.rs) — runs init_with_stdout twice in sequence; the second init succeeds only if the first guard's Drop ran global::shutdown_tracer_provider() and reset the global to noop",
+    "otel_error_display_messages_are_useful (tests/init_test.rs) — for each of the 3 variants, asserts Display contains the variant keyword AND the wrapped context string",
+    "init_with_invalid_endpoint_returns_exporter_init_error (tests/init_test.rs) — calls opentelemetry_otlp::SpanExporter::builder().with_http().with_endpoint('not a valid uri !!!').build() and asserts the resulting TraceError maps to OtelError::ExporterInit",
+    "error::tests::constructors_set_variant — sanity check the three constructor fns",
+    "error::tests::is_std_error — assert OtelError: std::error::Error + Send + Sync + 'static",
+    "error::tests::kind_is_stable — tripwire: the 3-variant taxonomy is exactly the 3-variant taxonomy",
+    "error::tests::display_mentions_kind — Display contains the variant name",
+    "guard::tests::default_provider_shutdown_is_ok — building a default TracerProvider and shutting it down is Ok(())",
+    "guard::tests::drop_does_not_panic — dropping a guard with an in-memory provider does not panic",
+    "guard::tests::drop_with_active_span_does_not_panic — dropping a guard while a span is still open (we end() it but the provider still has references) does not panic",
+    "exporter::stdout::tests::render_uses_name_when_present — the rendered JSON line uses the span's own name when it is non-empty",
+    "exporter::stdout::tests::render_falls_back_to_seq_when_name_empty — when name is empty, render falls back to 'span#<seq>'",
+    "exporter::stdout::tests::render_skips_invalid_parent_span_id — the parent_span_id field is the empty string when the parent is SpanId::INVALID, not the raw zero",
+    "doctest: src/lib.rs (line 11) — crate-level module doctest compiles",
+    "doctest: src/init.rs - init::init (line 51) — init() signature example compiles",
+    "doctest: src/init.rs - init::init_with_stdout (line 80) — init_with_stdout() signature example compiles"
+  ],
+  "verification": {
+    "cargo_test_pheno_otel": "18/18 pass (10 unit + 5 integration + 3 doctest) via `cargo test --offline`",
+    "cargo_clippy_pheno_otel": "clean — `cargo clippy --offline --all-targets -- -D warnings` reports 0 warnings, 0 errors",
+    "dep_resolution": "OpenTelemetry 0.27 line resolved cleanly from ~/.cargo/registry/cache. No 5-minute resolver timeout. opentelemetry 0.27.1, opentelemetry-otlp 0.27.0, opentelemetry_sdk 0.27.1. opentelemetry-stdout is NOT used; a custom StdoutSpanExporter is implemented in src/exporter/stdout.rs to avoid pulling an extra crate.",
+    "first_compile_observed": "Initial cargo check timed out at 5 minutes (full registry cold rebuild for the reqwest + rustls transitive tree). Switched to `cargo --offline` once the cache was warm; subsequent check + test + clippy runs are sub-2-second incremental."
+  },
+  "drop_semantics": "TelemetryGuard::drop is best-effort: it calls provider.force_flush() (returning a Vec<ExportError> for the batch that didn't make it), and then opentelemetry::global::shutdown_tracer_provider() (a global singleton reset). Both are wrapped in a match — any failure is logged via eprintln! (NOT panicked) because Drop MUST NOT panic. Explicit guard.shutdown() consumes the guard, returns the OtelError::Shutdown, and the resulting Drop is a no-op (the inner Option is already None).",
+  "stdout_exporter_design_choice": "We implement SpanExporter for StdoutSpanExporter directly rather than depending on opentelemetry-stdout. Reasons: (1) the stdout crate pulls in additional tonic/serde features we don't need; (2) the JSON-line format we want is non-standard (no protobuf, no OTLP framing — just a greppable single line per span); (3) avoids one more dep in the cold-compile path. The export() method renders each SpanData to a single JSON line and writes to stdout, returning an immediately-resolved future. The render() helper is a separate fn so it can be unit-tested without an async runtime.",
+  "init_endpoint_resolution": "init() does NOT take an explicit endpoint parameter — it relies on the OpenTelemetry SDK's standard env var resolution (OTEL_EXPORTER_OTLP_ENDPOINT, OTEL_EXPORTER_OTLP_TRACES_ENDPOINT). This matches the OTel spec's HTTP exporter env var contract. A future revision can add `init_with_endpoint(service_name, url)` if a hard-coded endpoint is needed; for now the spec's one-liner API is preserved.",
+  "consolidation_targets": [
+    "agileplus-telemetry (AgilePlus-wt-L1-001/crates/agileplus-telemetry) — also wraps opentelemetry-otlp; pheno-otel is the canonical lightweight sibling with the Drop-guard ergonomics that AgilePlus's service-init macro layer can re-export",
+    "phenotype-otel (phenotype-otel/) — placeholder crate referenced from the docs site; if it materializes, the new pheno-otel is a strict superset (it has the stdout path too)"
+  ],
+  "downstream_consumers": [
+    "L5-#81..85 (the 5 pheno-* service crates) — can now do `let _guard = pheno_otel::init(\"pheno-<svc>\")?;` at startup and forget about shutdown",
+    "L4-#70 (helioscli binary) — main() returns Result<(), OtelError>; ? propagates the init error"
+  ],
+  "no_touch": [
+    "Other L3 tasks (L3-#46 pheno-errors, L3-#47 pheno-tracing, L3-#48 pheno-config, L3-#50 pheno-cli-base, L3-#51 pheno-fastapi-base, L3-#52 pheno-go-ctxkit, L3-#53 pheno-zod-pydantic, L3-#54 pheno-tower-stack, L3-#55 pheno-ssot-template, L3-#56 pheno-flags, L3-#57 pheno-plugin-registry)",
+    "Root Cargo.toml [workspace.members] (pheno-otel is a standalone package, not a workspace member — mirrors the L3-#46, L3-#47, L3-#48 decision)",
+    "agileplus-telemetry and any other pre-existing opentelemetry wrapper crates (left in place; pheno-otel is the canonical new path)"
+  ],
+  "notes": "The crate uses an empty [workspace] table in its own Cargo.toml to declare itself a standalone package, exactly matching the L3-#46 (pheno-errors), L3-#47 (pheno-tracing), and L3-#48 (pheno-config) decision. This avoids touching the root Cargo.toml [workspace.members] (which 6+ other L3 agents are concurrently modifying) and keeps the new crate's test/build loop independent of the 56-crate root workspace. Branch is `chore/l3-49-pheno-otel-2026-06-11` off main, local-only (not pushed, per task spec). The branch is currently 1 commit ahead of main (the V3-log update) + 1 commit for the crate itself; main is 3 commits ahead of where I started (other agents landed chore(grade), chore(stage-5), chore(stage-4) which I did not touch). Initial cargo check timed out at 5 minutes on the cold first build (reqwest + rustls + opentelemetry + tonic tree); subsequent offline runs are <2s incremental. The integration test for invalid endpoints initially used the OTEL_EXPORTER_OTLP_ENDPOINT env var, but the SDK resolver silently falls back to the default endpoint when the env var fails to parse — I rewrote the test to use the explicit .with_endpoint('not a valid uri !!!') path which DOES force a build error from the SDK's `provided_endpoint.parse()` fallback, surfacing the expected OtelError::ExporterInit."
+}

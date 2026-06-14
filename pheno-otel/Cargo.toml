@@ -1,0 +1,59 @@
+[package]
+name = "pheno-otel"
+version = "0.1.0"
+edition = "2021"
+license = "MIT OR Apache-2.0"
+rust-version = "1.82"
+description = "Canonical OpenTelemetry initialization for the Phenotype monorepo. One-liner init() with a Drop-based TelemetryGuard that flushes+shuts down the global tracer provider on scope exit."
+readme = "README.md"
+keywords = ["phenotype", "opentelemetry", "otlp", "telemetry", "observability"]
+categories = ["development-tools", "asynchronous"]
+publish = false
+
+# Empty [workspace] table declares this crate as a standalone package,
+# intentionally NOT a member of the root FocalPoint/Phenotype workspace
+# (which contains 56+ focus-* / connector-* crates). Consumers add it
+# to their own workspace or depend on it via a path/git dep. This
+# mirrors the L3 #46 (pheno-errors) decision and keeps the new crate's
+# test/build loop independent of the 56-crate root workspace, so we
+# don't conflict with other L3 agents concurrently modifying the root
+# Cargo.toml.
+[workspace]
+
+[lib]
+name = "pheno_otel"
+path = "src/lib.rs"
+
+[dependencies]
+# OpenTelemetry stack — pinned to the 0.27 line. The 0.27 API uses
+# `Resource::new_with_defaults(...)` (infallible) and a
+# `TracerProvider::builder()` that consumes a `SpanExporter` impl,
+# which is what `init()` and `init_with_stdout()` below build.
+opentelemetry = "0.27"
+opentelemetry_sdk = { version = "0.27", features = ["trace"] }
+opentelemetry-otlp = { version = "0.27", default-features = false, features = [
+    "http-proto",
+    "reqwest-client",
+    "reqwest-rustls",
+    "trace",
+] }
+futures-util = { version = "0.3", default-features = false, features = ["std"] }
+thiserror = "2.0"
+
+[dev-dependencies]
+opentelemetry = "0.27"
+opentelemetry_sdk = { version = "0.27", features = ["trace", "testing"] }
+opentelemetry-otlp = { version = "0.27", default-features = false, features = [
+    "http-proto",
+    "reqwest-client",
+    "reqwest-rustls",
+    "trace",
+] }
+once_cell = "1"
+
+[[test]]
+name = "init_test"
+path = "tests/init_test.rs"
+# Tests run in parallel by default; the ones that touch the global
+# tracer provider serialize themselves via the INIT_LOCK mutex in
+# init_test.rs. No `serial_test` dep needed.
