@@ -146,3 +146,8 @@ tasks:
       - lefthook install
     status:
       - test -f .git/hooks/lefthook
+
+  coverage:
+    desc: Measure code coverage (SSOT: see grade.sh for the canonical command).
+    cmds:
+      - go test -coverprofile=coverage.out -covermode=atomic ./... && go tool cover -func=coverage.out | grep total | awk '{print $3}' | sed 's/%//' | awk '{exit($1 < 85 ? 1 : 0)}'
