@@ -90,11 +90,15 @@ impl MonitoringReport {
         let mut recommendations = Vec::new();
 
         if total_memory > 4096 {
-            recommendations.push(format!("High memory usage: {} MB. Consider pruning idle processes.", total_memory));
+            recommendations.push(format!(
+                "High memory usage: {} MB. Consider pruning idle processes.",
+                total_memory
+            ));
         }
 
         if idle > 5 {
-            recommendations.push(format!("{} idle processes found. Run 'sharecli prune' to clean up.", idle));
+            recommendations
+                .push(format!("{} idle processes found. Run 'sharecli prune' to clean up.", idle));
         }
 
         Self {
@@ -110,8 +114,5 @@ impl MonitoringReport {
 }
 
 fn now_secs() -> u64 {
-    SystemTime::now()
-        .duration_since(UNIX_EPOCH)
-        .unwrap()
-        .as_secs()
+    SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_secs()
 }
