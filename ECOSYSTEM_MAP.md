@@ -1,6 +1,6 @@
 # KooshaPari Ecosystem Map
 
-> Generated: 2026-06-11 | Repos audited: 13 canonical (live, GitHub-reachable) | Validator: `task validate` → `scripts/validate-ecosystem.sh`
+> Generated: 2026-06-16 | Repos audited: 13 canonical (live, GitHub-reachable) | Validator: `task validate` → `scripts/validate-ecosystem.sh`
 > Last SSOT run: see `scripts/validate-ecosystem.sh --json` (re-run on every map edit)
 
 ---
@@ -30,19 +30,19 @@ Role split for the spec/governance spine (so indexes stop competing):
 |------|-------|-------|
 | **shared-lib** | 22 | pheno, HexaKit, phenoShared, phenoUtils, phenoXddLib, Authvault, Stashly, Settly, Tasken, Traceon, Metron, Apisync, phenoObservability, PhenoPlugins, phenoForge, FocalPoint, PhenoVCS, Benchora, phenotype-auth-ts, phenotype-journeys, phenotype-voxel, Compound-Spheres-3D |
 | **SDK** | 9 | AuthKit, DataKit, McpKit, ObservabilityKit, ResilienceKit, TestingKit, PlatformKit, PhenoKits, HexaKit |
-| **tooling** | 14 | AgilePlus, phenotype-dep-guard, phenotype-tooling, phenotype-infra, PhenoDevOps, BytePort, FocalPoint, Conft, phenoForge, worktree-manager, agent-devops-setups, PolicyStack, nanovms, helioscope |
+| **tooling** | 13 | AgilePlus, phenotype-dep-guard, phenotype-tooling, phenotype-infra, PhenoDevOps, BytePort, FocalPoint, Conft, phenoForge, agent-devops-setups, PolicyStack, nanovms, helioscope |
 | **product / app** | 10 | Agentora, thegent, Tracera, AgilePlus, PlayCua, Dino, eyetracker, hwLedger, phenoRouterMonitor, slickport |
 | **plugin** | 5 | PhenoPlugins, dinoforge-packs, argis-extensions, phenotype-postfx, Tokn |
 | **docs** | 8 | PhenoSpecs, phenotype-registry, PhenoHandbook, phenodocs, phenoXdd, PhenoDesign, phenotype-hub (scaffold), LIBRARY_RESEARCH_REGISTRY |
 | **landing** | 9 | agileplus-landing, byteport-landing, hwledger-landing, odin-landing\*, phenokits-landing, projects-landing, thegent-landing, AppGen (template) |
 | **fork** | 15 | agentapi-plusplus, bifrost, cliproxyapi-plusplus, DINOForge-UnityDoorstop, forgecode, helios-cli, HeliosLab, MCPForge, OmniRoute, phenotype-omlx, phenotype-ops-mcp, Planify, portage, vibeproxy, WorldSphereMod |
 | **stub / scaffold** | 6 | phenotype-hub, vibeproxy-monitoring-unified, PhenoProject, PhenoProc, phenoStandards (deprecated), Zerokit |
-| **superseded / archived** | 8 | .github, odin-landing, Profila, Project-Spyn, RIP-Fitness-App, sharecli, tehgent, thegent-sharecli |
+| **superseded / archived** | 9 | .github, odin-landing, Profila, Project-Spyn, RIP-Fitness-App, sharecli, tehgent, thegent-sharecli, worktree-manager |
 | **monorepo (multi-domain)** | 7 | pheno, phenoAI, phenoData, PhenoDevOps, BytePort, HexaKit, phenoShared |
 | **agent-runtime** | 4 | Agentora, thegent, PhenoAgent, PhenoProc |
 | **research / lab** | 2 | HeliosLab, portage |
 
-\* archived
+\* archived · worktree-manager absorbed into PhenoVCS (repo deleted 2026-06-16)
 
 ---
 
@@ -205,7 +205,7 @@ graph TD
 | **phenotype-registry** | CANONICAL master index (links PhenoSpecs + HexaKit + PhenoHandbook) |
 | PhenoSpecs | Keep (spec content); surface via phenotype-registry index |
 | PhenoHandbook | Keep (pattern docs); surface via phenotype-registry index |
-| phenoStandards | **DEPRECATED** (self-marked); already pointing to HexaKit/governance — retire |
+| phenoStandards | **RETIRED** (2026-06-16) — absorbed into HexaKit root (`GOVERNANCE.md`, `.github/`, `.template.*`, `docs/reference/*STANDARDS*`) |
 
 ### Cluster H — Config / Settings (3 repos)
 
@@ -301,7 +301,7 @@ These are **traits / interfaces** that span multiple repos in the ecosystem. The
 | **Consolidate 8 *Kit Python SDKs → phenotype-python-sdk** | AuthKit, DataKit, McpKit, ObservabilityKit, ResilienceKit, TestingKit + PlatformKit (Go) | One publish target per language |
 | **Merge phenoRouterMonitor Rust core → phenoAI** | phenoRouterMonitor | Keep Streamlit dashboard as phenoAI/monitoring subdir |
 | **Retire phenoStandards** | phenoStandards | Self-marked deprecated; content moved to HexaKit/governance |
-| **Merge worktree-manager → phenotype-tooling** | worktree-manager | Topic: deprecated; 1 binary fits in tooling workspace |
+| **Retire worktree-manager → PhenoVCS** | worktree-manager | 100% absorbed into PhenoVCS (`worktree-manager` crate); repo deleted 2026-06-16 |
 | **Merge heliosBench, heliosApp → phenotype-tooling** | heliosBench, heliosApp | Benchmarking and dashboard tooling |
 | **Retire helioscope** | helioscope | Overlaps helios-cli (both are codex-monorepo forks) |
 | **Consolidate 8 landing pages → phenotype-landing** | all *-landing repos | Astro monorepo with sub-packages |
@@ -330,7 +330,7 @@ LANGUAGE-SPECIFIC FACADES (3)
   Conft                    — TS config layer
 
 INFRASTRUCTURE / TOOLING (5)
-  phenotype-tooling        — internal ops: usage-poll, agent-forecast, benchmarks, worktree-manager
+  phenotype-tooling        — internal ops: usage-poll, agent-forecast, benchmarks
   AgilePlus                — spec-driven dev, polyrepo governance
   FocalPoint               — dependency guard + audit
   BytePort                 — infrastructure CLI

@@ -1,0 +1,15 @@
+{
+  "name": "worktree-manager",
+  "languages": [
+    "rust"
+  ],
+  "primary_language": "rust",
+  "status": "retired",
+  "has_readme": true,
+  "has_spec": true,
+  "has_plan": true,
+  "type": "tool",
+  "path": "repos/worktree-manager",
+  "absorbed_into": "PhenoVCS",
+  "absorption_note": "100% absorbed into PhenoVCS/worktree-manager crate; source repo deleted 2026-06-16"
+}

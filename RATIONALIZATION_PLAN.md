@@ -45,7 +45,7 @@
 
 | Repo | Absorbs |
 |------|---------|
-| **phenotype-tooling** | Absorbs: worktree-manager (binary), heliosApp (TS dashboard subdir), heliosBench (Python benchmarks subdir), agent-devops-setups, BytePort (CLI moved to tooling/byteport), nanovms (VM isolation moved to tooling/nanovms) |
+| **phenotype-tooling** | Absorbs: heliosApp (TS dashboard subdir), heliosBench (Python benchmarks subdir), agent-devops-setups, BytePort (CLI moved to tooling/byteport), nanovms (VM isolation moved to tooling/nanovms) |
 
 > Net: -5 repos.
 
@@ -183,7 +183,7 @@ ResilienceKit      → phenotype-python-sdk
 TestingKit         → phenotype-python-sdk
 PhenoKits          → phenotype-python-sdk
 PlatformKit        → phenotype-go-sdk
-worktree-manager   → phenotype-tooling
+worktree-manager   → PhenoVCS (absorbed 2026-06-16)
 heliosApp          → phenotype-tooling
 heliosBench        → phenotype-tooling
 agent-devops-setups→ phenotype-tooling
@@ -256,7 +256,7 @@ Priority order: highest ROI first, dependency-safe (no step breaks a downstream 
 | **3** | Merge PhenoAgent stub → Agentora (add empty crate placeholder) | 1 | Low |
 | **4** | Merge phenotype-hub → phenotype-registry as `scaffold/` subdir | 1 | Low |
 | **5** | Create phenotype-landing Astro monorepo; git-subtree merge 7 *-landing repos | 7 | Medium — Astro workspace setup + subtree merges |
-| **6** | Merge heliosApp + heliosBench + worktree-manager + agent-devops-setups + BytePort CLI + nanovms + PolicyStack → phenotype-tooling | 7 | Medium — Cargo workspace + TS workspace additions |
+| **6** | Merge heliosApp + heliosBench + agent-devops-setups + BytePort CLI + nanovms + PolicyStack → phenotype-tooling | 6 | Medium — Cargo workspace + TS workspace additions |
 
 ### NEEDS USER SIGN-OFF (cross-repo merges affecting published packages or dep graphs)
 

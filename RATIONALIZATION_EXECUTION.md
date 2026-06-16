@@ -63,14 +63,14 @@ Legend: ✅ = safe to archive once its merge PR is green · 🔶 = blocked, must
 | ObservabilityKit | **PhenoObservability** | 🔶 repoint PhenoObservability → phenotype-python-sdk |
 | McpKit | **phenotype-go-sdk** (cross-absorber) | 🔶 phenotype-go-sdk must consume McpKit's Go side from the go-sdk monorepo, not McpKit repo |
 
-### 3. phenotype-tooling ← worktree-manager, heliosApp, heliosBench, BytePort, nanovms, PolicyStack
+### 3. phenotype-tooling ← heliosApp, heliosBench, BytePort, nanovms, PolicyStack
 
 | Source | External dependents | Verdict |
 |--------|--------------------|---------|
 | heliosApp | (none) | ✅ safe |
 | nanovms | (none external — only phenoShared, itself absorbed into phenodocs) | ✅ safe |
 | PolicyStack | (none — `policy-federation`) | ✅ safe |
-| worktree-manager | **PhenoVCS** | 🔶 repoint PhenoVCS → phenotype-tooling `wtm` |
+| worktree-manager | **PhenoVCS** | ✅ absorbed into PhenoVCS (2026-06-16); source repo deleted |
 | heliosBench | **helios-router, helios-cli** | 🔶 repoint helios-router + helios-cli → phenotype-tooling bench |
 | BytePort | **thegent** (byteport-landing retires this wave) | 🔶 repoint thegent → phenotype-tooling `byteport` |
 
@@ -117,7 +117,7 @@ phenotype-auth-ts, HeliosLab, Conft, PhenoMCP, PhenoSpecs — not part of this w
 | AuthKit | Tracera, thegent |
 | ObservabilityKit | PhenoObservability |
 | McpKit | phenotype-go-sdk |
-| worktree-manager | PhenoVCS |
+| worktree-manager | PhenoVCS | ✅ absorbed (2026-06-16) |
 | heliosBench | helios-router, helios-cli |
 | BytePort | thegent |
 | PlatformKit | DevHex |
