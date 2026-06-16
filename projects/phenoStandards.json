@@ -1,0 +1,12 @@
+{
+  "name": "phenoStandards",
+  "languages": [],
+  "primary_language": null,
+  "status": "retired",
+  "has_readme": true,
+  "has_spec": true,
+  "type": "stub",
+  "path": "repos/phenoStandards",
+  "absorbed_into": "HexaKit",
+  "absorption_note": "Empty skeleton absorbed into HexaKit root/.github/.template.* (2026-06-16)"
+}

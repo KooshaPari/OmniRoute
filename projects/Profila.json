@@ -1,0 +1,13 @@
+{
+  "name": "Profila",
+  "languages": ["python", "shell"],
+  "primary_language": "python",
+  "status": "absorbed",
+  "has_readme": true,
+  "has_spec": true,
+  "has_plan": true,
+  "type": "tool",
+  "path": "repos/Profila",
+  "absorbed_into": "phenotype-tooling",
+  "absorption_note": "Profiler toolkit migrated to phenotype-tooling/packages/profila/ (2026-06-16); source repo remains archived"
+}
