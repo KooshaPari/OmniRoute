@@ -100,17 +100,10 @@ impl ProcessPool {
         project: Option<String>,
         harness: Option<String>,
     ) -> Result<ProcessInfo> {
-        let spec = ProcessSpawnSpec {
-            program: cmd.to_string(),
-            args: args.to_vec(),
-            cwd,
-        };
+        let spec = ProcessSpawnSpec { program: cmd.to_string(), args: args.to_vec(), cwd };
 
-        let handle = self
-            .port
-            .spawn(&spec)
-            .await
-            .map_err(|e| anyhow::anyhow!("spawn {cmd}: {e}"))?;
+        let handle =
+            self.port.spawn(&spec).await.map_err(|e| anyhow::anyhow!("spawn {cmd}: {e}"))?;
 
         let pid = handle.pid;
 
