@@ -21,7 +21,9 @@ serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 toml = "0.8"
 
-# Process management
+# Process management (substrate SDK + adapter)
+substrate = { git = "https://github.com/KooshaPari/substrate", default-features = false }
+runtime-process = { git = "https://github.com/KooshaPari/substrate", package = "runtime-process" }
 sysinfo = "0.30"
 
 # Utilities

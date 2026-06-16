@@ -1,13 +1,18 @@
-//! Process runtime management with shared pool support
+//! Process runtime management with shared pool support.
+//!
+//! Spawn/monitor/kill delegated to substrate [`ProcessPort`] (`runtime-process`);
+//! sharecli retains metadata tagging, pooling, and resource limits.
 
 use anyhow::{bail, Result};
+use runtime_process::CommandGroupProcess;
 use std::collections::HashMap;
 use std::path::PathBuf;
 use std::process::Stdio;
 use std::sync::Arc;
 use std::time::{Duration, Instant};
+use substrate::{ProcessHandle, ProcessPort, ProcessSpawnSpec};
 use sysinfo::{Pid, System};
-use tokio::process::{Child, Command};
+use tokio::process::Command;
 use tokio::sync::RwLock;
 
 #[derive(Debug, Clone)]
@@ -38,12 +43,13 @@ impl ProcessInfo {
 #[derive(Debug)]
 pub struct ManagedProcess {
     pub info: ProcessInfo,
-    pub child: Option<Child>,
+    pub handle: ProcessHandle,
 }
 
 pub struct ProcessPool {
     processes: RwLock<HashMap<u32, ManagedProcess>>,
     system: RwLock<System>,
+    port: CommandGroupProcess,
 }
 
 impl Default for ProcessPool {
@@ -54,7 +60,11 @@ impl Default for ProcessPool {
 
 impl ProcessPool {
     pub fn new() -> Self {
-        Self { processes: RwLock::new(HashMap::new()), system: RwLock::new(System::new_all()) }
+        Self {
+            processes: RwLock::new(HashMap::new()),
+            system: RwLock::new(System::new_all()),
+            port: CommandGroupProcess::new(),
+        }
     }
 
     /// Refresh system process information
@@ -81,7 +91,7 @@ impl ProcessPool {
         result
     }
 
-    /// Spawn a new process
+    /// Spawn a new process via substrate ProcessPort
     pub async fn spawn(
         &self,
         cmd: &str,
@@ -90,22 +100,13 @@ impl ProcessPool {
         project: Option<String>,
         harness: Option<String>,
     ) -> Result<ProcessInfo> {
-        let mut command = Command::new(cmd);
-        command.args(args);
+        let spec = ProcessSpawnSpec { program: cmd.to_string(), args: args.to_vec(), cwd };
 
-        if let Some(ref path) = cwd {
-            command.current_dir(path);
-        }
+        let handle =
+            self.port.spawn(&spec).await.map_err(|e| anyhow::anyhow!("spawn {cmd}: {e}"))?;
 
-        command.stdout(Stdio::piped());
-        command.stderr(Stdio::piped());
-        command.stdin(Stdio::null());
+        let pid = handle.pid;
 
-        let child = command.spawn()?;
-
-        let pid = child.id().unwrap_or(0);
-
-        // Refresh to get accurate info
         self.refresh().await;
 
         let info = ProcessInfo {
@@ -118,7 +119,7 @@ impl ProcessPool {
             harness,
         };
 
-        let managed = ManagedProcess { info: info.clone(), child: Some(child) };
+        let managed = ManagedProcess { info: info.clone(), handle };
 
         let mut procs = self.processes.write().await;
         procs.insert(pid, managed);
@@ -126,13 +127,14 @@ impl ProcessPool {
         Ok(info)
     }
 
-    /// Kill a process by PID
+    /// Kill a process by PID via substrate ProcessPort
     pub async fn kill(&self, pid: u32) -> Result<()> {
         let mut procs = self.processes.write().await;
         if let Some(managed) = procs.remove(&pid) {
-            if let Some(mut child) = managed.child {
-                let _ = child.kill().await;
-            }
+            self.port
+                .kill_group(&managed.handle)
+                .await
+                .map_err(|e| anyhow::anyhow!("kill pid {pid}: {e}"))?;
         }
         Ok(())
     }
@@ -141,9 +143,7 @@ impl ProcessPool {
     pub async fn kill_all(&self) -> Result<()> {
         let mut procs = self.processes.write().await;
         for (_, managed) in procs.drain() {
-            if let Some(mut child) = managed.child {
-                let _ = child.kill().await;
-            }
+            let _ = self.port.kill_group(&managed.handle).await;
         }
         Ok(())
     }
@@ -157,13 +157,9 @@ impl ProcessPool {
 
 /// Shared runtime pool for node/bun processes
 pub struct SharedRuntime {
-    /// Pooled node processes
     node_pool: RwLock<Vec<PooledProcess>>,
-    /// Pooled bun processes
     bun_pool: RwLock<Vec<PooledProcess>>,
-    /// Max instances per runtime type
     max_per_type: usize,
-    /// System reference
     system: Arc<RwLock<System>>,
 }
 
@@ -185,13 +181,11 @@ impl SharedRuntime {
         }
     }
 
-    /// Refresh system info
     pub async fn refresh(&self) {
         let mut sys = self.system.write().await;
         sys.refresh_all();
     }
 
-    /// Get a pooled process for a harness type
     pub async fn acquire(&self, harness_type: &str) -> Result<PooledProcess> {
         let pool = match harness_type {
             "node" => &self.node_pool,
@@ -201,16 +195,13 @@ impl SharedRuntime {
 
         let mut pool_guard = pool.write().await;
 
-        // Try to find an idle pooled process
         if let Some(idx) = pool_guard.iter().position(|p| !p.in_use) {
             pool_guard[idx].in_use = true;
             pool_guard[idx].last_used = Instant::now();
             return Ok(pool_guard[idx].clone());
         }
 
-        // Check if we can spawn a new one
         if pool_guard.len() < self.max_per_type {
-            // Spawn new pooled process
             let (cmd, name) = match harness_type {
                 "node" => ("node", "node"),
                 "bun" => ("bun", "bun"),
@@ -226,12 +217,11 @@ impl SharedRuntime {
             let pid = child.id().unwrap_or(0);
             drop(child);
 
-            // Wait a moment for process to start
             tokio::time::sleep(Duration::from_millis(100)).await;
             self.refresh().await;
 
             let sys = self.system.read().await;
-            let pooled = if let Some(_p) = sys.process(Pid::from_u32(pid)) {
+            let pooled = if sys.process(Pid::from_u32(pid)).is_some() {
                 PooledProcess {
                     pid,
                     name: name.to_string(),
@@ -253,7 +243,6 @@ impl SharedRuntime {
         }
     }
 
-    /// Release a pooled process back to the pool
     pub async fn release(&self, harness_type: &str, pid: u32) -> Result<()> {
         let pool = match harness_type {
             "node" => &self.node_pool,
@@ -269,7 +258,6 @@ impl SharedRuntime {
         Ok(())
     }
 
-    /// Run a command using a pooled process
     pub async fn run_with_pool(
         &self,
         harness_type: &str,
@@ -278,8 +266,6 @@ impl SharedRuntime {
     ) -> Result<(u32, String)> {
         let pooled = self.acquire(harness_type).await?;
 
-        // In a real implementation, this would run the script via IPC
-        // For now, we just return the pooled process info
         let output =
             format!("Using pooled {} process {} for project {}", harness_type, pooled.pid, project);
 
@@ -288,7 +274,6 @@ impl SharedRuntime {
         Ok((pooled.pid, output))
     }
 
-    /// Health check for pooled processes
     pub async fn health_check(&self) -> RuntimeHealth {
         self.refresh().await;
 
@@ -323,7 +308,6 @@ impl SharedRuntime {
         }
     }
 
-    /// Get pool status
     pub async fn status(&self) -> PoolStatus {
         let node_pool = self.node_pool.read().await;
         let bun_pool = self.bun_pool.read().await;
@@ -389,19 +373,16 @@ impl ProjectResources {
         }
     }
 
-    /// Set limits for a project
     pub async fn set_limits(&self, name: &str, limits: ProjectLimits) {
         let mut projects = self.projects.write().await;
         projects.insert(name.to_string(), limits);
     }
 
-    /// Get limits for a project
     pub async fn get_limits(&self, name: &str) -> ProjectLimits {
         let projects = self.projects.read().await;
         projects.get(name).cloned().unwrap_or_default()
     }
 
-    /// Check if project is within resource limits
     pub async fn check_limits(&self, project: &str) -> Result<ResourceCheck> {
         self.refresh();
         let sys = self.system.read().await;
@@ -410,7 +391,6 @@ impl ProjectResources {
         let mut total_memory = 0u64;
         let mut process_count = 0usize;
 
-        // Count processes for this project
         for proc in sys.processes().values() {
             let cmd: Vec<String> = proc.cmd().iter().map(|s| s.to_string()).collect();
             if cmd.iter().any(|c| c.contains(project)) {
@@ -434,7 +414,6 @@ impl ProjectResources {
     }
 
     fn refresh(&self) {
-        // Trigger refresh
         let sys = self.system.clone();
         tokio::spawn(async move {
             let mut s = sys.write().await;
@@ -463,7 +442,6 @@ pub enum ProcessFilter {
 }
 
 impl ProcessPool {
-    /// Find processes matching a filter
     pub async fn find(&self, filter: ProcessFilter) -> Vec<ProcessInfo> {
         self.refresh().await;
         let sys = self.system.read().await;
@@ -514,15 +492,12 @@ mod tests {
             ],
         );
 
-        // Spawn a process that lives long enough to be observed by sysinfo.
         let info = pool.spawn(cmd, &args, None, None, None).await;
         assert!(info.is_ok());
 
-        // List processes
         let list = pool.list().await;
         assert!(!list.is_empty());
 
-        // Kill all
         pool.kill_all().await.unwrap();
     }
 }

@@ -24,6 +24,7 @@ allow = [
 
 [sources]
 unknown-git = "deny"
+allow-git = ["https://github.com/KooshaPari/substrate"]
 
 [advisories]
 ignore = [
