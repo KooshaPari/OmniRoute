@@ -111,6 +111,18 @@ export async function GET() {
         tags: ["discovery", "capabilities"],
         examples: ["What can you do?", "List your skills", "Show capabilities"],
       },
+      {
+        id: "agent-dispatch",
+        name: "Agent Dispatch",
+        description:
+          "Dispatches coding tasks to the substrate engine (forge, codex, or claude drivers) " +
+          "via driver-cli for local agent execution.",
+        tags: ["agents", "dispatch", "coding", "substrate"],
+        examples: [
+          "Dispatch this refactor to forge",
+          "Run this bugfix through the substrate codex driver",
+        ],
+      },
     ],
     authentication: {
       schemes: ["api-key"],
