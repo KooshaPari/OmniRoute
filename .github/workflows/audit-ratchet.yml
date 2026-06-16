@@ -75,10 +75,8 @@ jobs:
           # Header + 30 pillar rows (A, X, D, U, UX, AT, T, P, S, Q, E, G,
           # O, SC, OB, C, DA, RT, RE, AP, DM, EH, CN, PS, CF, PR, RL, AS, AU)
           # — accept 29-30 in case the spec row count drifts.
-          HEADER=$(head -1 "$SHEET")
-          if [[ "$HEADER" != *"Pillar"* ]] || [[ "$HEADER" != *"Sub-pillars"* ]]; then
+          if ! grep -qF '| Pillar | Sub-pillars | Count |' "$SHEET"; then
             echo "::error::Audit sheet header is not the canonical Pillar | Sub-pillars | Count layout."
-            echo "Got: $HEADER"
             exit 1
           fi
           N_ROWS=$(grep -cE '^\| \*\*[A-Z]+\*\* ' "$SHEET" || true)
