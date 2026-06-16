@@ -1,5 +1,6 @@
 /**
  * Agent Dispatch A2A Skill Tests
+ * Tests the agent-dispatch skill registration and validation
  */
 
 import test from "node:test";
@@ -44,6 +45,11 @@ test("Agent Dispatch - basic task invocation", async () => {
   assert.ok(result.artifacts, "artifacts must be present");
   assert.ok(Array.isArray(result.artifacts), "artifacts must be an array");
   assert.ok(result.artifacts.length > 0, "artifacts must contain at least one item");
+  // Note: result may be error if cargo/driver-cli is not available, but the structure should be correct
+  assert.ok(
+    result.artifacts[0].type === "error" || result.artifacts[0].type === "text" || result.artifacts[0].type === "data",
+    "artifact type must be valid (error, text, or data)"
+  );
 });
 
 test("Agent Dispatch - validates metadata with Zod", async () => {
