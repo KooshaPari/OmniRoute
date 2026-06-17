@@ -63,7 +63,7 @@ Legend: ✅ = safe to archive once its merge PR is green · 🔶 = blocked, must
 |--------|--------------------|---------|
 | Metron | (none) | ✅ safe → **ARCHIVED** 2026-06-17 |
 | FocalPoint | (none) | ✅ safe |
-| phenoXddLib | (none) | ✅ safe |
+| phenoXddLib | (none) | ✅ safe → **ARCHIVED** 2026-06-17 |
 | Traceon | **PhenoObservability** | 🔶 repoint PhenoObservability → HexaKit `tracingkit` crate |
 | Stashly | **Pyron** | 🔶 repoint Pyron → HexaKit `stashly` crate |
 | Settly | **Pyron** | 🔶 repoint Pyron → HexaKit `settly` crate |
