@@ -6,12 +6,12 @@
     {
       "id": "Pyron",
       "blocks_sources": ["pheno", "Stashly", "Settly", "PhenoAgent", "Traceon"],
-      "repoint_to": ["phenotype-config", "PhenoObservability", "HexaKit stashly transitional"],
+      "repoint_to": ["phenotype-config", "PhenoObservability", "Logify transitional", "Tasken", "Eventra", "Authvault", "HexaKit stashly transitional"],
       "status": "repointed",
       "wave": "G3",
       "repointed_at": "2026-06-17",
-      "pr": "KooshaPari/Pyron",
-      "note": "Wave 2 settly + Wave 3 Traceon/Stashly git deps; pheno shelf members remain"
+      "pr": "KooshaPari/Pyron#53",
+      "note": "Wave 5 pheno shelf lockstep complete; logkit transitional via Logify until PO workspace registers crates/logkit"
     },
     {
       "id": "PhenoObservability",

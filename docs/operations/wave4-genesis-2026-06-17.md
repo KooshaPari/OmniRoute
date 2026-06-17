@@ -29,6 +29,6 @@ Each PR adds: `charter.md`, `intent.md`, `review.md`, `SOTA.md` (or preserved), 
 
 ## Next
 
-1. Fix phenotype-journeys workflow path on GitHub; re-run genesis rollout
-2. Pyron pheno workspace lockstep (`Logify`, `Metron`, …)
+1. ~~Fix phenotype-journeys workflow path on GitHub; re-run genesis rollout~~ → Wave 5 [#111](https://github.com/KooshaPari/phenotype-journeys/pull/111)
+2. ~~Pyron pheno workspace lockstep (`Logify`, `Metron`, …)~~ → Wave 5 [#53](https://github.com/KooshaPari/Pyron/pull/53)
 3. Metron archive path remap
