@@ -1,0 +1,120 @@
+version: '3.9'
+
+services:
+  # Load balancer (Caddy) on port 20128
+  loadbalancer:
+    image: caddy:2-latest
+    container_name: omniroute-lb
+    ports:
+      - "20128:20128"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+    environment:
+      - CADDY_ADMIN=:2019
+    restart: always
+    depends_on:
+      - omniroute-1
+      - omniroute-2
+      - omniroute-3
+    networks:
+      - omniroute-net
+
+  # Redis for session/cache sharing across replicas (REQUIRED for N > 1)
+  redis:
+    image: redis:7-latest
+    container_name: omniroute-redis
+    ports:
+      - "6379:6379"
+    restart: always
+    networks:
+      - omniroute-net
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  # OmniRoute replicas (scale: 3)
+  # Each instance shares Redis, monitored by LB healthcheck
+  omniroute-1:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    container_name: omniroute-1
+    environment:
+      # Node heap cap to mitigate OOM (#4041)
+      # NOTE: must be passed to Node, not bunx wrapper
+      - NODE_OPTIONS=--max-old-space-size=8192
+      - PORT=3000
+      # Redis connection (required for multi-instance state sharing)
+      - REDIS_URL=redis://redis:6379
+      # Copy any .env overrides as needed
+      - NODE_ENV=production
+    ports:
+      - "3001:3000"
+    restart: always
+    networks:
+      - omniroute-net
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/v1/models"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    depends_on:
+      redis:
+        condition: service_healthy
+
+  omniroute-2:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    container_name: omniroute-2
+    environment:
+      - NODE_OPTIONS=--max-old-space-size=8192
+      - PORT=3000
+      - REDIS_URL=redis://redis:6379
+      - NODE_ENV=production
+    ports:
+      - "3002:3000"
+    restart: always
+    networks:
+      - omniroute-net
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/v1/models"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    depends_on:
+      redis:
+        condition: service_healthy
+
+  omniroute-3:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    container_name: omniroute-3
+    environment:
+      - NODE_OPTIONS=--max-old-space-size=8192
+      - PORT=3000
+      - REDIS_URL=redis://redis:6379
+      - NODE_ENV=production
+    ports:
+      - "3003:3000"
+    restart: always
+    networks:
+      - omniroute-net
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/v1/models"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    depends_on:
+      redis:
+        condition: service_healthy
+
+networks:
+  omniroute-net:
+    driver: bridge

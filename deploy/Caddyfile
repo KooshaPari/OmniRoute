@@ -1,0 +1,27 @@
+:20128 {
+  # Health-gated load balancer for OmniRoute
+  # Routes to 3 replicas on :3000 each (internal docker network)
+  # Healthcheck: GET /v1/models (upstream must respond 2xx)
+
+  # Reverse proxy with least-conn policy
+  reverse_proxy localhost:3001 localhost:3002 localhost:3003 {
+    # Least connection load balancing (distributes to least-busy upstream)
+    policy least_conn
+
+    # Healthcheck probe (every 10s)
+    # Only healthy upstreams receive requests
+    health_uri /v1/models
+    health_interval 10s
+    health_timeout 5s
+
+    # Preserve original request headers
+    header_up X-Forwarded-Proto {http.request.proto}
+    header_up X-Forwarded-Host {http.request.host}
+    header_up X-Forwarded-For {http.request.remote}
+
+    # Connection management
+    transport http {
+      keepalive off
+    }
+  }
+}
