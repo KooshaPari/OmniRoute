@@ -7,9 +7,11 @@
       "id": "Pyron",
       "blocks_sources": ["pheno", "Stashly", "Settly", "PhenoAgent"],
       "repoint_to": ["phenotype-types", "phenoShared", "ResilienceKit"],
-      "status": "open",
+      "status": "repointed",
       "wave": "G2",
-      "note": "No local clone under archive-migration (2026-06-17 G2 lane)"
+      "repointed_at": "2026-06-17",
+      "pr": "KooshaPari/Pyron#50",
+      "note": "Metadata repoint off phenotype-infrakit; no HexaKit git deps"
     },
     {
       "id": "PhenoObservability",
@@ -33,22 +35,30 @@
       "id": "phenoRouterMonitor",
       "blocks_sources": ["pheno"],
       "repoint_to": ["phenotype-types", "phenoShared"],
-      "status": "open",
-      "wave": "G2"
+      "status": "repointed",
+      "wave": "G2",
+      "repointed_at": "2026-06-17",
+      "pr": "KooshaPari/phenoRouterMonitor#632"
     },
     {
       "id": "Tracera",
       "blocks_sources": ["AuthKit"],
       "repoint_to": ["Authvault"],
-      "status": "open",
-      "wave": "G2"
+      "status": "verified-clean",
+      "wave": "G2",
+      "verified_at": "2026-06-17",
+      "pr": "KooshaPari/Tracera#629",
+      "note": "phenoShared dep canonical; WorkOS AuthKit is SaaS not phenotype AuthKit"
     },
     {
       "id": "phenotype-go-sdk",
       "blocks_sources": ["McpKit"],
       "repoint_to": ["PhenoMCP"],
-      "status": "open",
-      "wave": "G2"
+      "status": "verified-clean",
+      "wave": "G2",
+      "verified_at": "2026-06-17",
+      "pr": "KooshaPari/phenotype-go-sdk#14",
+      "note": "McpKit packages canonical in-repo"
     }
   ]
 }
