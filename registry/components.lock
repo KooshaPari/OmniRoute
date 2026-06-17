@@ -6,12 +6,12 @@
     "phenotype-registry": {
       "repo": "KooshaPari/phenotype-registry",
       "ref": "main",
-      "sha": "cd35b761c87061043a048622592dfbc864061cdc"
+      "sha": "ad2c47abd5067235b66399a97cf2ce59562eac7f"
     },
     "HexaKit": {
       "repo": "KooshaPari/HexaKit",
       "ref": "main",
-      "sha": "3668b90081b96c7838338b582f80f4ba81637e76"
+      "sha": "0e24934c95d8a3ec6123d41b71a2b45399e39c17"
     },
     "phenotype-types": {
       "repo": "KooshaPari/phenotype-types",
@@ -21,7 +21,7 @@
     "TestingKit": {
       "repo": "KooshaPari/TestingKit",
       "ref": "main",
-      "sha": "634517a8ce6312376f9aa3c063ef79077acb68ef"
+      "sha": "68d05a796088c9ae4dfffffb5fc8e3af52d6f7b9"
     },
     "PhenoObservability": {
       "repo": "KooshaPari/PhenoObservability",
@@ -31,7 +31,12 @@
     "phenoShared": {
       "repo": "KooshaPari/phenoShared",
       "ref": "main",
-      "sha": "1dc8dbb4966551f69259665f81f7df14ede8f922"
+      "sha": "6e05527d44b15cdbef7e5cda7869661900be9ea7"
+    },
+    "substrate": {
+      "repo": "KooshaPari/substrate",
+      "ref": "main",
+      "sha": "47236a4468a1e2d44240bd92e0111cdf5d95b6b2"
     },
     "Authvault": {
       "repo": "KooshaPari/Authvault",
