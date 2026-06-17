@@ -19,7 +19,8 @@
 | A | Merge registry #76 | `[G]` |
 | B–E | Merge #157, #3, #155, #79 | `[P]` |
 | F | Consumer manifest scan | `[G]` |
-| H–J | AgilePlus repatriation | `[P]` |
+| H–J | AgilePlus repatriation | `[P]` — H/I satisfied (canonical in AgilePlus); J Agentora PR open |
+| G | Archive PhenoProc/Metron/PhenoKits | ✅ 2026-06-17 |
 | Cmdra workspace | Agentora refactor | `[NB]` |
 | HexaKit dep repoint | Agentora phenotype-* | `[NB]` |
 

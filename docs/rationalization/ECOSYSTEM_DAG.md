@@ -26,10 +26,10 @@
 | D | L1-P | phenotype-tooling | Merge #155; link absorption manifest | A | P |
 | E | L1-P | Agentora | Merge #79 (PhenoProc waves 1–6) | A | P |
 | F | L2-G | phenotype-registry | Consumer manifest scan (RATIONALIZATION_EXECUTION method) | B,C,D,E | **G** |
-| G | L2-P | fleet | Archive wave: PhenoProc, Metron, ObservabilityKit per gate | F | P |
+| G | L2-P | fleet | Archive wave: PhenoProc, Metron, ObservabilityKit per gate | F | P ✅ 2026-06-17 |
 | H | L3-P | AgilePlus | Clone + gap analysis vs Agentora `agileplus-*` staging | F | P |
 | I | L3-P | AgilePlus | Port `agileplus-domain`, `agileplus-events`; register workspace | H | B→H |
-| J | L3-P | AgilePlus | Repatriation PR from Agentora staging | I | B→I |
+| J | L3-P | AgilePlus | Repatriation PR from Agentora staging | I | B→I (in flight) |
 | K | L3-P | phenotype-registry | ADR-004/005/006 merged with #76 | A | P |
 | L | L3-P | AgilePlus | `agileplus specify`: zero-loop-session-protocol | K | P |
 | M | L3-P | phenotype-registry | Session retro: `docs/sessions/` gap-port-2026-06 | L | P |
@@ -72,8 +72,13 @@ flowchart LR
 
 ### Lane F (gate)
 
-- [ ] Updated verdict table in `RATIONALIZATION_EXECUTION.md` for PhenoProc, Metron, ObservabilityKit
+- [x] Updated verdict table in `RATIONALIZATION_EXECUTION.md` for PhenoProc, Metron, ObservabilityKit (2026-06-17)
 - [ ] Explicit **BLOCKED** list with repo + dependent manifest path
+
+### Lane G (archive)
+
+- [x] `PhenoProc`, `PhenoKits`, `Metron` archived on GitHub
+- [x] ObservabilityKit documented as package-only (no repo)
 
 ### Lane J (AgilePlus repatriation)
 

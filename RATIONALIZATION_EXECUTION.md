@@ -20,8 +20,9 @@ Chokepoint status: [registry/chokepoints.json](registry/chokepoints.json). Execu
 > MERGE-ORDER + ARCHIVE-SHORTLIST so that once absorption PRs land green, the org repo count
 > actually drops (it is stuck at **144 active**).
 >
-> **STATUS: AWAITING USER SIGN-OFF. Nothing is archived or deleted by this document.**
-> Archiving the shortlisted repos requires explicit user approval per [archived-repo-recovery policy].
+> **STATUS (2026-06-17):** Lane G archive wave **executed** for gap-port fleet (user sign-off: "do it").
+> PhenoProc, PhenoKits, and Metron are archived on GitHub. ObservabilityKit was never a standalone repo
+> (absorbed into `phenotype-python-sdk` / PO subtree). Remaining shortlist items still require repoint gates.
 >
 > Protected (never archive, never listed below): P2 / 472-P2 / KVirtualStage / KlipDot / KodeVibeGo / kwality.
 
@@ -60,7 +61,7 @@ Legend: ✅ = safe to archive once its merge PR is green · 🔶 = blocked, must
 
 | Source | External dependents | Verdict |
 |--------|--------------------|---------|
-| Metron | (none) | ✅ safe |
+| Metron | (none) | ✅ safe → **ARCHIVED** 2026-06-17 |
 | FocalPoint | (none) | ✅ safe |
 | phenoXddLib | (none) | ✅ safe |
 | Traceon | **PhenoObservability** | 🔶 repoint PhenoObservability → HexaKit `tracingkit` crate |
@@ -79,9 +80,9 @@ Legend: ✅ = safe to archive once its merge PR is green · 🔶 = blocked, must
 | DataKit | (none) | ✅ safe |
 | ResilienceKit | (none) | ✅ safe |
 | TestingKit | (none) | ✅ safe |
-| PhenoKits | (none — it was the collection index) | ✅ safe |
+| PhenoKits | (none — it was the collection index) | ✅ safe → **ARCHIVED** (pre-wave) |
 | AuthKit | **Tracera, thegent** | 🔶 repoint Tracera + thegent → phenotype-python-sdk |
-| ObservabilityKit | **PhenoObservability** | 🔶 repoint PhenoObservability → phenotype-python-sdk |
+| ObservabilityKit | **PhenoObservability** | 🔶 repoint PhenoObservability → phenotype-python-sdk (no standalone repo to archive) |
 | McpKit | **phenotype-go-sdk** (cross-absorber) | 🔶 phenotype-go-sdk must consume McpKit's Go side from the go-sdk monorepo, not McpKit repo |
 
 ### 3. phenotype-tooling ← heliosApp, heliosBench, BytePort, nanovms, PolicyStack
@@ -105,7 +106,7 @@ Legend: ✅ = safe to archive once its merge PR is green · 🔶 = blocked, must
 
 | Source | External dependents | Verdict |
 |--------|--------------------|---------|
-| PhenoProc | (none) | ✅ safe |
+| PhenoProc | (none) | ✅ safe → **ARCHIVED** (pre-wave) |
 | PhenoAgent | **PhenoDevOps, Pyron, pheno** (pheno retiring this wave) | 🔶 repoint PhenoDevOps + Pyron → Agentora `pheno-agent` crate |
 
 ### 6. phenodocs ← phenoDesign, phenoShared
@@ -118,6 +119,17 @@ Legend: ✅ = safe to archive once its merge PR is green · 🔶 = blocked, must
 ### Must stay standalone (per plan, NOT archived)
 None among these 25 — every source is a genuine absorption target. (Plan-level standalones:
 phenotype-auth-ts, HeliosLab, Conft, PhenoMCP, PhenoSpecs — not part of this wave.)
+
+---
+
+## Archive wave execution (2026-06-17, Lane G)
+
+| Repo | Action | Evidence |
+|------|--------|----------|
+| `KooshaPari/PhenoProc` | archived | pre-existing; absorption PR #79 merged |
+| `KooshaPari/PhenoKits` | archived | pre-existing; phenokits-commons #3 merged |
+| `KooshaPari/Metron` | archived | post PhenoObservability #157 (metrickit) |
+| ObservabilityKit | N/A (package only) | canonical: `phenotype-python-sdk` + PO cleanup |
 
 ---
 
