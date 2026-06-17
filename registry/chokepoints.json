@@ -8,21 +8,26 @@
       "blocks_sources": ["pheno", "Stashly", "Settly", "PhenoAgent"],
       "repoint_to": ["phenotype-types", "phenoShared", "ResilienceKit"],
       "status": "open",
-      "wave": "G2"
+      "wave": "G2",
+      "note": "No local clone under archive-migration (2026-06-17 G2 lane)"
     },
     {
       "id": "PhenoObservability",
       "blocks_sources": ["Traceon", "ObservabilityKit"],
       "repoint_to": ["PhenoObservability workspace paths post-Wave-A"],
-      "status": "open",
-      "wave": "G2"
+      "status": "repointed",
+      "wave": "G2",
+      "repointed_at": "2026-06-17",
+      "pr": "KooshaPari/PhenoObservability"
     },
     {
       "id": "thegent",
       "blocks_sources": ["AuthKit", "BytePort"],
       "repoint_to": ["Authvault", "phenotype-tooling"],
-      "status": "open",
-      "wave": "G2"
+      "status": "verified-clean",
+      "wave": "G2",
+      "verified_at": "2026-06-17",
+      "note": "No HexaKit/AuthKit/Traceon/stashly deps in Cargo.toml or pyproject.toml manifests"
     },
     {
       "id": "phenoRouterMonitor",
