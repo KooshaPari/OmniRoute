@@ -1,0 +1,11 @@
+{
+  "name": "PhenoKits",
+  "languages": ["python"],
+  "primary_language": "python",
+  "status": "retired",
+  "has_readme": true,
+  "type": "sdk",
+  "path": "repos/PhenoKits",
+  "absorbed_into": "phenotype-python-sdk",
+  "absorption_note": "Index absorbed; templates inflow to HexaKit templates/ pending — batch3-audit-2026-06-17.md"
+}

@@ -1,0 +1,11 @@
+{
+  "name": "PlatformKit",
+  "languages": ["go", "rust"],
+  "primary_language": "go",
+  "status": "retired",
+  "has_readme": true,
+  "type": "sdk",
+  "path": "repos/PlatformKit",
+  "absorbed_into": "phenotype-go-sdk",
+  "absorption_note": "Partial: go/devenv 38 files not in packages/platformkit/go (0% overlap); KEEP_ARCHIVED until devenv migration — batch3-audit-2026-06-17.md"
+}

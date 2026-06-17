@@ -1,0 +1,11 @@
+{
+  "name": "DataKit",
+  "languages": ["python", "rust"],
+  "primary_language": "python",
+  "status": "retired",
+  "has_readme": true,
+  "type": "sdk",
+  "path": "repos/DataKit",
+  "absorbed_into": "phenotype-python-sdk",
+  "absorption_note": "Archive main is README-only stub (2026-06-17); full boundary in packages/data-kit — delete eligible per batch3-audit-2026-06-17.md"
+}

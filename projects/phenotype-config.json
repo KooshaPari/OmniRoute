@@ -1,0 +1,11 @@
+{
+  "name": "phenotype-config",
+  "languages": ["rust"],
+  "primary_language": "rust",
+  "status": "active",
+  "has_readme": true,
+  "type": "sdk",
+  "path": "repos/phenotype-config",
+  "role": "config",
+  "absorption_note": "RFC 002 canonical config role owner; settly migrated from HexaKit 2026-06-17"
+}
