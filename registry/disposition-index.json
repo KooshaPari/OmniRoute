@@ -1,0 +1,24 @@
+{
+  "version": "1.0.0",
+  "updated": "2026-06-17",
+  "authority": "phenotype-registry",
+  "charter": "docs/rationalization/boundary-shaping.md",
+  "rows": [
+    {"id": 1, "path": "crates/phenotype-analytics", "disposition": "DECOMPOSE", "target": "phenotype-analytics", "wave": "H", "fsm": "pending", "core_lang": "rust"},
+    {"id": 2, "path": "crates/cipher", "disposition": "ABSORB", "target": "Authvault", "wave": "C", "fsm": "pending", "core_lang": "rust"},
+    {"id": 4, "path": "crates/phenotype-bdd", "disposition": "ABSORB", "target": "TestingKit", "wave": "B", "fsm": "pending", "core_lang": "rust"},
+    {"id": 19, "path": "crates/phenotype-event-bus", "disposition": "DECOMPOSE", "target": "phenotype-events", "wave": "H", "fsm": "pending", "core_lang": "rust"},
+    {"id": 22, "path": "crates/phenotype-health", "disposition": "ABSORB", "target": "PhenoObservability", "wave": "A", "fsm": "gated", "core_lang": "rust", "gate": "chokepoint:PhenoObservability"},
+    {"id": 23, "path": "crates/phenotype-http-client-core", "disposition": "ABSORB", "target": "ResilienceKit", "wave": "D", "fsm": "pending", "core_lang": "rust"},
+    {"id": 28, "path": "crates/phenotype-mcp", "disposition": "ABSORB", "target": "PhenoMCP", "wave": "D", "fsm": "pending", "core_lang": "rust"},
+    {"id": 30, "path": "crates/phenotype-port-traits", "disposition": "ABSORB", "target": "HexaKit", "wave": "scaffold", "fsm": "pending", "core_lang": "rust", "note": "reference scaffolding"},
+    {"id": 40, "path": "crates/phenotype-test-infra", "disposition": "ABSORB", "target": "TestingKit", "wave": "B", "fsm": "pending", "core_lang": "rust"},
+    {"id": 46, "path": "crates/stashly", "disposition": "ABSORB", "target": "ResilienceKit", "wave": "D", "fsm": "pending", "core_lang": "rust", "adr": "ADR-ECO-001"},
+    {"id": 48, "path": "Metron/", "disposition": "ABSORB", "target": "PhenoObservability", "wave": "A", "fsm": "gated", "core_lang": "rust", "gate": "chokepoint:PhenoObservability"},
+    {"id": 49, "path": "Traceon/", "disposition": "ABSORB", "target": "PhenoObservability", "wave": "A", "fsm": "gated", "core_lang": "rust", "gate": "chokepoint:PhenoObservability"},
+    {"id": 51, "path": "libs/nexus", "disposition": "DECOMPOSE", "target": "nexus", "wave": "H", "fsm": "pending", "core_lang": "rust"},
+    {"id": "py-pheno-types", "path": "python/pheno-types", "disposition": "REDIRECT", "target": "phenotype-types", "wave": "F", "fsm": "done", "relocated_date": "2026-06-17"},
+    {"id": "py-pheno-mcp", "path": "python/pheno-mcp", "disposition": "REDIRECT", "target": "PhenoMCP", "wave": "F", "fsm": "pending", "edge_lang": "py"},
+    {"id": "py-pheno-core", "path": "python/pheno-core", "disposition": "REDIRECT", "target": "phenoShared", "wave": "F", "fsm": "pending", "edge_lang": "py"}
+  ]
+}

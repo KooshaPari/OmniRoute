@@ -25,7 +25,7 @@ Single source of truth mapping **domain concerns** to **canonical repositories**
 | **Optional extras manifest** | phenoSDK | N/A (manifest) | TS/Python packages listed as opt-in extras — not boundary owners |
 | **Code review agent** | tehgent | Rust (target) | Go (current: “interop with existing Go review service”; ADR required) |
 | **Agent runtime** | thegent | Rust (target core) | Python (deferred: “agent loop + ML glue until Rust host ready”) |
-| **Process manager / share CLI** | sharecli | Rust (rewrite target) | Go (edge until rewrite justified: “production deploy is Go binary today”) |
+| **Process manager / share CLI** | sharecli (**archived** 2026-06-16) | Rust (rewrite target) | Go edge was historical; successor: **thegent control-plane** per ADR-ECO-011 |
 
 ---
 

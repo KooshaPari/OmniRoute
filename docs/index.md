@@ -20,7 +20,9 @@ and library research into one reference surface.
   dependency or hand-rolling a capability.
 - Use [Ecosystem rationalization](./rationalization/boundary-shaping.md) for
   boundary disposition (DECOMPOSE / ABSORB / DYNAMIC-KEEP), [stack policy](./rationalization/STACK_POLICY.md),
-  and [domain roles](./rationalization/DOMAIN_ROLES.md).
+  [domain roles](./rationalization/DOMAIN_ROLES.md), and [zero-shot orchestration](./rationalization/ZERO_SHOT_ORCHESTRATION.md).
+- Session DAG: [20260617-ecosystem-disposition-wave](./sessions/20260617-ecosystem-disposition-wave/03_DAG_WBS.md).
+- Machine indexes: [`registry/disposition-index.json`](../registry/disposition-index.json), [`components.lock`](../registry/components.lock).
 - Keep this repo as a navigation hub. Implementation work belongs in the
   referenced registries or product repos.
 

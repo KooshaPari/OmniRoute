@@ -1,0 +1,15 @@
+{
+  "version": "1.0.0",
+  "updated": "2026-06-17",
+  "description": "Integration meta-repo lockfile — pins canonical fleet repos to immutable refs. CI validates cross-repo compatibility at pinned SHAs.",
+  "components": {
+    "phenotype-registry": { "repo": "KooshaPari/phenotype-registry", "ref": "main" },
+    "HexaKit": { "repo": "KooshaPari/HexaKit", "ref": "main" },
+    "phenotype-types": { "repo": "KooshaPari/phenotype-types", "ref": "main" },
+    "TestingKit": { "repo": "KooshaPari/TestingKit", "ref": "main" },
+    "PhenoObservability": { "repo": "KooshaPari/PhenoObservability", "ref": "main" },
+    "phenoShared": { "repo": "KooshaPari/phenoShared", "ref": "main" },
+    "phenotype-tooling": { "repo": "KooshaPari/phenotype-tooling", "ref": "main" },
+    "PhenoMCP": { "repo": "KooshaPari/PhenoMCP", "ref": "main" }
+  }
+}

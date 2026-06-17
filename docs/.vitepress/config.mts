@@ -26,6 +26,19 @@ export default defineConfig({
               { text: "Boundary shaping", link: "/rationalization/boundary-shaping" },
               { text: "Stack policy", link: "/rationalization/STACK_POLICY" },
               { text: "Domain roles", link: "/rationalization/DOMAIN_ROLES" },
+              { text: "Zero-shot orchestration", link: "/rationalization/ZERO_SHOT_ORCHESTRATION" },
+            ],
+          },
+          {
+            text: "Sessions",
+            items: [
+              { text: "20260617 disposition wave", link: "/sessions/20260617-ecosystem-disposition-wave/03_DAG_WBS" },
+            ],
+          },
+          {
+            text: "ADRs",
+            items: [
+              { text: "ECO index", link: "/adrs/" },
             ],
           },
         ],

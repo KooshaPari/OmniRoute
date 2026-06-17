@@ -1,0 +1,49 @@
+{
+  "version": "1.0.0",
+  "updated": "2026-06-17",
+  "description": "External dependents blocking relocation or archive. Repoint manifests to DOMAIN_ROLES canonical paths — not HexaKit monorepo paths (v2 charter).",
+  "chokepoints": [
+    {
+      "id": "Pyron",
+      "blocks_sources": ["pheno", "Stashly", "Settly", "PhenoAgent"],
+      "repoint_to": ["phenotype-types", "phenoShared", "ResilienceKit"],
+      "status": "open",
+      "wave": "G2"
+    },
+    {
+      "id": "PhenoObservability",
+      "blocks_sources": ["Traceon", "ObservabilityKit"],
+      "repoint_to": ["PhenoObservability workspace paths post-Wave-A"],
+      "status": "open",
+      "wave": "G2"
+    },
+    {
+      "id": "thegent",
+      "blocks_sources": ["AuthKit", "BytePort"],
+      "repoint_to": ["Authvault", "phenotype-tooling"],
+      "status": "open",
+      "wave": "G2"
+    },
+    {
+      "id": "phenoRouterMonitor",
+      "blocks_sources": ["pheno"],
+      "repoint_to": ["phenotype-types", "phenoShared"],
+      "status": "open",
+      "wave": "G2"
+    },
+    {
+      "id": "Tracera",
+      "blocks_sources": ["AuthKit"],
+      "repoint_to": ["Authvault"],
+      "status": "open",
+      "wave": "G2"
+    },
+    {
+      "id": "phenotype-go-sdk",
+      "blocks_sources": ["McpKit"],
+      "repoint_to": ["PhenoMCP"],
+      "status": "open",
+      "wave": "G2"
+    }
+  ]
+}

@@ -1,5 +1,21 @@
 # Rationalization Execution + Archive Shortlist
 
+> **v2 charter (2026-06-17):** Repoint dependents to **DOMAIN_ROLES canonical repos**, not HexaKit monorepo crate paths. See [ADR-ECO-006](docs/adrs/ADR-ECO-006.md), [registry/chokepoints.json](registry/chokepoints.json), [ZERO_SHOT_ORCHESTRATION.md](docs/rationalization/ZERO_SHOT_ORCHESTRATION.md).
+
+## v2 repoint semantics (authoritative)
+
+| Dependent | Old assumption (v1) | v2 repoint target |
+|-----------|----------------------|-------------------|
+| PhenoObservability | Traceon → HexaKit tracingkit | PhenoObservability owns Metron/Traceon post-Wave A |
+| Pyron | pheno/Stashly/Settly → HexaKit crates | phenotype-types, ResilienceKit, phenoShared |
+| thegent | AuthKit → phenotype-python-sdk | Authvault |
+| thegent | BytePort → phenotype-tooling | phenotype-tooling (unchanged) |
+| phenoRouterMonitor | pheno crates | phenotype-types / phenoShared |
+
+Chokepoint status: [registry/chokepoints.json](registry/chokepoints.json). Execute repoint PRs in **G2** before Waves A–D.
+
+---
+
 > Companion to `RATIONALIZATION_PLAN.md`. Turns the in-flight **absorption wave** into a concrete
 > MERGE-ORDER + ARCHIVE-SHORTLIST so that once absorption PRs land green, the org repo count
 > actually drops (it is stuck at **144 active**).

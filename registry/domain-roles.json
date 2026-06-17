@@ -1,0 +1,20 @@
+{
+  "version": "1.0.0",
+  "updated": "2026-06-17",
+  "source": "docs/rationalization/DOMAIN_ROLES.md",
+  "domains": [
+    {"id": "scaffolding", "repo": "HexaKit", "core_lang": "rust", "edge_langs": []},
+    {"id": "types", "repo": "phenotype-types", "core_lang": "rust", "edge_langs": ["py"]},
+    {"id": "testing", "repo": "TestingKit", "core_lang": "rust", "edge_langs": []},
+    {"id": "observability", "repo": "PhenoObservability", "core_lang": "rust", "edge_langs": []},
+    {"id": "mcp", "repo": "PhenoMCP", "core_lang": "rust", "edge_langs": ["py"]},
+    {"id": "secrets", "repo": "Authvault", "core_lang": "rust", "edge_langs": []},
+    {"id": "resilience", "repo": "ResilienceKit", "core_lang": "rust", "edge_langs": ["ts"]},
+    {"id": "tooling", "repo": "phenotype-tooling", "core_lang": "rust", "edge_langs": []},
+    {"id": "infra", "repo": "phenoShared", "core_lang": "rust", "edge_langs": []},
+    {"id": "extras", "repo": "phenoSDK", "core_lang": null, "edge_langs": ["py", "ts"]},
+    {"id": "code-review", "repo": "tehgent", "core_lang": "rust", "edge_langs": ["go"], "justify_required": true},
+    {"id": "agent-runtime", "repo": "thegent", "core_lang": "rust", "edge_langs": ["py"], "justify_required": true},
+    {"id": "process-mgr", "repo": "sharecli", "core_lang": "rust", "edge_langs": ["go"], "status": "archived", "successor": "thegent control-plane"}
+  ]
+}

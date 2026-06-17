@@ -1,5 +1,7 @@
 # Phenotype Ecosystem Rationalization Plan
 
+> **SUPERSEDED (execution):** Monorepo absorption into HexaKit is **retired** per [ADR-ECO-006](docs/adrs/ADR-ECO-006.md). Authoritative: [boundary-shaping.md](docs/rationalization/boundary-shaping.md) + [HexaKit DISPOSITION](https://github.com/KooshaPari/HexaKit/blob/main/docs/boundary/DISPOSITION.md). Below is historical inventory.
+
 > Derived from ECOSYSTEM_MAP.md (2026-05-30 audit: 111 repos → aggressive target: **38 canonical repos**)
 > Bias: monorepos / synthetic-monorepo-collections over thin standalone repos.
 > Protected (never touch): P2/472-P2, KVirtualStage, KlipDot, KodeVibeGo, kwality.
