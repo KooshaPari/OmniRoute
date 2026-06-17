@@ -47,7 +47,7 @@ Organize the fleet by **what boundary you own**, not by primary programming lang
 
 | Consumer | Repoint to |
 |----------|------------|
-| Pyron | `phenotype-config` / HexaKit `settly` until migration |
+| Pyron | `phenotype-config` (`settly` git dep) — repointed 2026-06-17 |
 | PhenoObservability | observe role crates + python-sdk kits |
 | DevHex | phenotype-go-sdk |
 
