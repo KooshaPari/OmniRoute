@@ -5,20 +5,13 @@
   "chokepoints": [
     {
       "id": "Pyron",
-      "blocks_sources": ["pheno", "Stashly", "Settly", "PhenoAgent"],
-      "repoint_to": ["phenotype-types", "phenoShared", "ResilienceKit"],
-<<<<<<< HEAD
+      "blocks_sources": ["pheno", "Stashly", "Settly", "PhenoAgent", "Traceon"],
+      "repoint_to": ["phenotype-config", "PhenoObservability", "HexaKit stashly transitional"],
       "status": "repointed",
-      "wave": "G2",
+      "wave": "G3",
       "repointed_at": "2026-06-17",
-      "pr": "KooshaPari/Pyron#50",
-      "note": "Metadata repoint off phenotype-infrakit; no HexaKit git deps"
-=======
-      "status": "verified-internal",
-      "wave": "G2",
-      "verified_at": "2026-06-17",
-      "note": "No external git deps on pheno/Stashly/Settly/PhenoAgent in manifests (org code search). Pyron embeds shelf copies internally."
->>>>>>> 8f0ebe6 (docs(registry): chokepoint verification + HexaKit eviction inventory)
+      "pr": "KooshaPari/Pyron",
+      "note": "Wave 2 settly + Wave 3 Traceon/Stashly git deps; pheno shelf members remain"
     },
     {
       "id": "PhenoObservability",
@@ -27,8 +20,16 @@
       "status": "repointed",
       "wave": "G2",
       "repointed_at": "2026-06-17",
-      "pr": "KooshaPari/PhenoObservability#158",
-      "note": "HexaKit git deps removed; vendor/ + phenoShared per chokepoint-repoint-2026-06-17.md"
+      "pr": "KooshaPari/PhenoObservability"
+    },
+    {
+      "id": "DevHex",
+      "blocks_sources": ["PlatformKit"],
+      "repoint_to": ["phenotype-go-sdk packages/devhex"],
+      "status": "repointed",
+      "wave": "G3",
+      "repointed_at": "2026-06-17",
+      "note": "Consumer doc: canonical library github.com/KooshaPari/devenv-abstraction"
     },
     {
       "id": "thegent",
@@ -46,12 +47,7 @@
       "status": "repointed",
       "wave": "G2",
       "repointed_at": "2026-06-17",
-<<<<<<< HEAD
       "pr": "KooshaPari/phenoRouterMonitor#632"
-=======
-      "pr": "KooshaPari/phenotype-tooling#155",
-      "note": "Router monitor absorbed to phenotype-tooling/absorption/"
->>>>>>> 8f0ebe6 (docs(registry): chokepoint verification + HexaKit eviction inventory)
     },
     {
       "id": "Tracera",
@@ -60,12 +56,8 @@
       "status": "verified-clean",
       "wave": "G2",
       "verified_at": "2026-06-17",
-<<<<<<< HEAD
       "pr": "KooshaPari/Tracera#629",
       "note": "phenoShared dep canonical; WorkOS AuthKit is SaaS not phenotype AuthKit"
-=======
-      "note": "0 AuthKit refs in Cargo.toml/pyproject.toml; uses phenotype-pm-core + phenoShared"
->>>>>>> 8f0ebe6 (docs(registry): chokepoint verification + HexaKit eviction inventory)
     },
     {
       "id": "phenotype-go-sdk",
