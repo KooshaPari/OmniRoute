@@ -31,7 +31,7 @@ Role split for the spec/governance spine (so indexes stop competing):
 | Role | Count | Repos |
 |------|-------|-------|
 | **shared-lib** | 21 | pheno, HexaKit, phenoShared, phenoUtils, phenoXddLib, Authvault, Stashly, Settly, Tasken, Traceon, Metron, Apisync, phenoObservability, PhenoPlugins, FocalPoint, PhenoVCS, Benchora, phenotype-auth-ts, phenotype-journeys, phenotype-voxel, Compound-Spheres-3D |
-| **SDK** | 9 | AuthKit, DataKit, McpKit, ObservabilityKit, ResilienceKit, TestingKit, PlatformKit, PhenoKits, HexaKit |
+| **SDK** | 8 | AuthKit, DataKit, ObservabilityKit, ResilienceKit, TestingKit, PlatformKit, PhenoKits, HexaKit |
 | **tooling** | 12 | AgilePlus, phenotype-dep-guard, phenotype-tooling, phenotype-infra, PhenoDevOps, BytePort, FocalPoint, Conft, agent-devops-setups, PolicyStack, nanovms, helioscope |
 | **product / app** | 10 | Agentora, thegent, Tracera, AgilePlus, PlayCua, Dino, eyetracker, hwLedger, phenoRouterMonitor, slickport |
 | **plugin** | 5 | PhenoPlugins, dinoforge-packs, argis-extensions, phenotype-postfx, Tokn |
@@ -39,7 +39,7 @@ Role split for the spec/governance spine (so indexes stop competing):
 | **landing** | 9 | agileplus-landing, byteport-landing, hwledger-landing, odin-landing\*, phenokits-landing, projects-landing, thegent-landing, AppGen (template) |
 | **fork** | 15 | agentapi-plusplus, bifrost, cliproxyapi-plusplus, DINOForge-UnityDoorstop, forgecode, helios-cli, HeliosLab, MCPForge, OmniRoute, phenotype-omlx, phenotype-ops-mcp, Planify, portage, vibeproxy, WorldSphereMod |
 | **stub / scaffold** | 6 | phenotype-hub, vibeproxy-monitoring-unified, PhenoProject, PhenoProc, phenoStandards (deprecated), Zerokit |
-| **superseded / archived** | 22 | .github, odin-landing, Profila, Project-Spyn, RIP-Fitness-App, sharecli, tehgent, thegent-sharecli, worktree-manager, phenoVessel, phenoTypes, phenoPatch, Diffuse, Servion, Guardrail, Cryptora, forge, phenoForge, router-docs, cheap-llm-mcp, dispatch-mcp, thegent-dispatch |
+| **superseded / archived** | 24 | .github, odin-landing, Profila, Project-Spyn, RIP-Fitness-App, sharecli, tehgent, thegent-sharecli, worktree-manager, phenoVessel, phenoTypes, phenoPatch, Diffuse, Servion, Guardrail, Cryptora, forge, phenoForge, router-docs, cheap-llm-mcp, dispatch-mcp, thegent-dispatch, McpKit, PhenoMCP |
 | **monorepo (multi-domain)** | 7 | pheno, phenoAI, phenoData, PhenoDevOps, BytePort, HexaKit, phenoShared |
 | **agent-runtime** | 4 | Agentora, thegent, PhenoAgent, PhenoProc |
 | **research / lab** | 2 | HeliosLab, portage |
@@ -47,6 +47,8 @@ Role split for the spec/governance spine (so indexes stop competing):
 \* archived / deleted (2026-06-16 archive migration): worktree-manager → PhenoVCS; phenoVessel → PhenoPlugins/pheno-plugin-vessel; phenoTypes → phenotype-types; phenoPatch + Diffuse → phenotype-tooling/phenotype-diff; Servion → phenotype-tooling/phenotype-service-registry; Guardrail → phenotype-tooling/phenotype-resilience; Cryptora → phenoUtils/pheno-crypto; forge + phenoForge → Tasken; router-docs → OmniRoute/docs/research/archive/router-docs/
 
 \* MCP runtime absorption (2026-06-17, ADR-017/019): **cheap-llm-mcp**, **dispatch-mcp**, **thegent-dispatch** deleted — capabilities in [substrate](https://github.com/KooshaPari/substrate) (`driver-argv`, `driver-mcp/dispatch_mcp`, `substrate argv`). Deployable MCP servers live in [PhenoMCPServers](https://github.com/KooshaPari/PhenoMCPServers) `servers/substrate/`.
+
+\* MCP boundary rationalization (2026-06-17, ADR-017): **McpKit**, **PhenoMCP** archived — superseded by [PhenoFastMCP](https://github.com/KooshaPari/PhenoFastMCP)* (framework), [PhenoMCPServers](https://github.com/KooshaPari/PhenoMCPServers) (implementations), and [substrate](https://github.com/KooshaPari/substrate) (runtime). Py edge: `phenotype-python-sdk` `[connect]` extras; Go edge: PhenoFastMCP-go / MCPForge.
 
 ---
 
@@ -85,7 +87,8 @@ thegent                   -> (Python; no KooshaPari cross-deps detected)
 PhenoAgent                -> (empty/stub manifest; extracted from phenotype-infra)
 Dino                      -> DINOForge-UnityDoorstop (Unity doorstop), dinoforge-packs
 AgilePlus                 -> (workspace: agileplus-config, agileplus-proto)
-PhenoMCP                  -> (Rust bin + Go module; go: github.com/KooshaPari/PhenoMCP/go) [library — servers migrate to PhenoMCPServers]
+PhenoMCP (archived)       -> superseded by PhenoMCPServers + PhenoFastMCP* + substrate [ADR-017; library repo retired 2026-06-17]
+McpKit (archived)         -> superseded by PhenoFastMCP + PhenoMCPServers [ADR-017; Py SDK retired 2026-06-17]
 PhenoMCPServers           -> PhenoFastMCP (py framework), substrate (HTTP runtime for fleet tools)
 substrate                 -> (Rust runtime: driver-http, driver-argv, engine-*; MCP dev copy in driver-mcp/)
 PhenoFastMCP-rust         -> Dicklesworthstone/fastmcp_rust [upstream fork]
@@ -108,7 +111,9 @@ graph TD
     phenodocs["phenodocs"]
     phenoDesign["phenoDesign"]
     cliproxyapi["cliproxyapi-plusplus"]
-    PhenoMCP["PhenoMCP"]
+    PhenoMCPServers["PhenoMCPServers"]
+    PhenoFastMCP["PhenoFastMCP*"]
+    substrate["substrate"]
     phenotype_registry["phenotype-registry"]
     PhenoSpecs["PhenoSpecs"]
     PhenoHandbook["PhenoHandbook"]
@@ -232,7 +237,7 @@ All thin Python/Go wrappers around Rust canonical cores. Target: consolidate Pyt
 |------|--------|---------|
 | AuthKit | Active, Python SDK | Merge into phenotype-python-sdk/auth |
 | DataKit | Active, Python SDK | Merge into phenotype-python-sdk/data |
-| McpKit | Active, Python SDK | **DEPRECATED** — redirect to PhenoFastMCP + PhenoMCPServers per ADR-017; merge into phenotype-python-sdk/mcp |
+| McpKit | **Archived** (2026-06-17) | **SUPERSEDED** — [PhenoFastMCP](https://github.com/KooshaPari/PhenoFastMCP) + [PhenoMCPServers](https://github.com/KooshaPari/PhenoMCPServers); Py edge → `phenotype-python-sdk` `[connect]` |
 | ObservabilityKit | Active, Python SDK | Merge into phenotype-python-sdk/observability |
 | ResilienceKit | Active, Python SDK | Merge into phenotype-python-sdk/resilience |
 | TestingKit | Active, Python SDK | Merge into phenotype-python-sdk/testing |
@@ -276,6 +281,8 @@ All Astro static sites with near-identical structure. Target: consolidate into s
 | **Runtime** | [substrate](https://github.com/KooshaPari/substrate) | driver-http, driver-argv, fleet dispatch | No standalone cheap-llm MCP repo; MCP tools call HTTP/argv edges |
 | **Edge (Go tier-1)** | MCPForge, phenotype-ops-mcp | HTTP/SSE MCP gateways | Submodule refs in PhenoMCPServers `servers/external/` |
 
+**Legacy repos (retired 2026-06-17):** McpKit (Py SDK), PhenoMCP (Rust/Go library), cheap-llm-mcp (runtime CLI) — all superseded per ADR-017/019; do not add new dependents.
+
 **Anti-patterns (retired):** `phenotype-rust-sdk`, `phenotype-go-sdk` language buckets — see PhenoMCPServers `retired_anti_patterns` and ADR-017.
 
 ---
@@ -293,7 +300,7 @@ These sub-projects live INSIDE repos but are reusable enough to extract or merge
 | 5 | `phenotype-bdd` crate | HexaKit | phenoXddLib (xDD test utilities is its home) |
 | 6 | `forge_*` crates (forgecode fork) | forgecode | Consider upstreaming or extracting forge_embed as standalone |
 | 7 | Monitoring dashboard (Streamlit) | phenoRouterMonitor | phenoAI/dashboard |
-| 8 | `phenotype-mcp` crate | HexaKit | PhenoMCP (already has both Rust + Go; unify there) |
+| 8 | `phenotype-mcp` crate | HexaKit | PhenoMCPServers + PhenoFastMCP* (PhenoMCP archived per ADR-017) |
 
 ---
 
@@ -327,6 +334,8 @@ These are **traits / interfaces** that span multiple repos in the ecosystem. The
 | **Merge heliosBench, heliosApp → phenotype-tooling** | heliosBench, heliosApp | Benchmarking and dashboard tooling |
 | **Retire helioscope** | helioscope | Overlaps helios-cli (both are codex-monorepo forks) |
 | **Consolidate 8 landing pages → phenotype-landing** | all *-landing repos | Astro monorepo with sub-packages |
+| **MCP runtime absorption (2026-06-17)** | cheap-llm-mcp, dispatch-mcp, thegent-dispatch | Deleted; absorbed into substrate per ADR-019 |
+| **MCP boundary rationalization (2026-06-17)** | McpKit, PhenoMCP | Archived; superseded by PhenoMCPServers + PhenoFastMCP* per ADR-017 |
 | **Retire vibeproxy-monitoring-unified** | vibeproxy-monitoring-unified | Pure governance stub; no implementation; vibeproxy itself deprecated |
 | **Merge phenotype-hub → phenotype-infra** | phenotype-hub | "Scaffolding only" — governance docs belong in infra |
 | **Consolidate phenoShared npm → phenodocs** | phenoShared (npm layer) | Already depended upon via @phenotype/docs |

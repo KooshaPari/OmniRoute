@@ -13,7 +13,7 @@ Organize the fleet by **what boundary you own**, not by primary programming lang
 | `genesis` | Repo bootstrap, templates, charter/review/OKF | **HexaKit** | template smoke, compliance schema | all lang scaffolds in `templates/` |
 | `config` | Layered config, validation, env | **phenotype-config** (workspace; `settly` crate) | Rust `settly` | **Conft** (TS), **phenotype-config** (Py 3.14/uv) |
 | `observe` | Metrics, tracing, OTLP, exporters | **PhenoObservability**, **phenotype-otel** | tracing/metrics crates (Traceon domain) | Py observability-kit, dashboards |
-| `connect` | MCP, auth, identity | **PhenoMCP**, **Authvault** | Rust bins/libs | Py mcp-kit, auth-kit; Go only with SOTA |
+| `connect` | MCP, auth, identity | **[PhenoFastMCP](https://github.com/KooshaPari/PhenoFastMCP)***, **[PhenoMCPServers](https://github.com/KooshaPari/PhenoMCPServers)**, **[substrate](https://github.com/KooshaPari/substrate)**, **Authvault** | Rust/Go/Python per ADR-017 | Py `[connect]` via phenotype-python-sdk; Go HTTP/SSE edges (MCPForge, ops-mcp) |
 | `resilience` | Breakers, retry, bulkhead | **phenotype-resilience** | Rust sentinel/resilience | Py resilience-kit |
 | `test` | Test SDK, journeys, fixtures | **phenotype-test** | **phenotype-journeys** (Rust CLI) | Py testing-kit, phenotype-testing (uv) |
 | `quality` | Static analysis, LLM validation | **KodeVibe**, **kwality** | — | Go engine (justified), shell UX |
@@ -42,6 +42,9 @@ Organize the fleet by **what boundary you own**, not by primary programming lang
 | PhenoKits templates | `genesis` | HexaKit `templates/` |
 | phenoStandards | `genesis` | HexaKit (retired) |
 | worktree-manager | — | PhenoVCS (retired) |
+| McpKit | `connect` (Py edge) | PhenoFastMCP + PhenoMCPServers (archived 2026-06-17) |
+| PhenoMCP | `connect` (Rust/Go lib) | PhenoMCPServers + PhenoFastMCP* (archived 2026-06-17) |
+| cheap-llm-mcp | `connect` (runtime CLI) | substrate + PhenoMCPServers (deleted 2026-06-17) |
 
 ## Chokepoint repoints
 
