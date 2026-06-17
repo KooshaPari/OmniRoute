@@ -52,8 +52,15 @@ until consumer repoint PRs land (Agentora, PhenoObservability vendor/, AgilePlus
 
 **Deferred:** bulk phenoShared git pin — `phenotype-core` re-export API diverges from phenoShared HEAD (`StateMachine`, `CacheAdapter`, `Timestamp`).
 
+### P3 wave 2 (2026-06-17) — event + http-client → phenoShared
 
-- `crates/hexakit-cli`
+| Crate | Action | PR |
+|-------|--------|-----|
+| `phenotype-event-bus` | workspace exclude + git dep | HexaKit #255 |
+| `phenotype-event-sourcing` | workspace exclude + git dep | HexaKit #255 |
+| `phenotype-http-client-core` | workspace exclude + git dep | HexaKit #255 |
+
+**Keep in HexaKit short-term (scaffold-adjacent):**
 - `crates/phenotype-contract-tests` (template CI harness)
 - `libs/nexus`, `libs/phenotype-config-core` (bootstrap only)
 

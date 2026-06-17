@@ -40,6 +40,6 @@ Per v2 charter: delete archived **repos** only after registry retired rows + 100
 
 ## Next
 
-1. Archive-delete gate doc when registry retires Settly/Traceon/Stashly/Metron rows
-2. P3 phenotype-* crate evictions per disposition-index
+1. ~~P3 phenotype-* crate evictions per disposition-index~~ → Wave 9 wave 2 (3 crates)
+2. Archive repo delete gate — when registry retires rows
 3. FocalPoint manual absorption (867MB exclude)
