@@ -32,17 +32,19 @@ Role split for the spec/governance spine (so indexes stop competing):
 |------|-------|-------|
 | **shared-lib** | 21 | pheno, HexaKit, phenoShared, phenoUtils, phenoXddLib, Authvault, Stashly, Settly, Tasken, Traceon, Metron, Apisync, phenoObservability, PhenoPlugins, FocalPoint, PhenoVCS, Benchora, phenotype-auth-ts, phenotype-journeys, phenotype-voxel, Compound-Spheres-3D |
 | **SDK** | 8 | AuthKit, DataKit, ObservabilityKit, ResilienceKit, TestingKit, PlatformKit, PhenoKits, HexaKit |
-| **tooling** | 12 | AgilePlus, phenotype-dep-guard, phenotype-tooling, phenotype-infra, PhenoDevOps, BytePort, FocalPoint, Conft, agent-devops-setups, PolicyStack, nanovms, helioscope |
+| **tooling** | 10 | AgilePlus, phenotype-dep-guard, phenotype-tooling, phenotype-infra, PhenoDevOps, Conft, agent-devops-setups, nanovms, helioscope, Benchora |
 | **product / app** | 10 | Agentora, thegent, Tracera, AgilePlus, PlayCua, Dino, eyetracker, hwLedger, phenoRouterMonitor, slickport |
 | **plugin** | 5 | PhenoPlugins, dinoforge-packs, argis-extensions, phenotype-postfx, Tokn |
 | **docs** | 8 | PhenoSpecs, phenotype-registry, PhenoHandbook, phenodocs, phenoXdd, PhenoDesign, phenotype-hub (scaffold), LIBRARY_RESEARCH_REGISTRY |
 | **landing** | 9 | agileplus-landing, byteport-landing, hwledger-landing, odin-landing\*, phenokits-landing, projects-landing, thegent-landing, AppGen (template) |
 | **fork** | 15 | agentapi-plusplus, bifrost, cliproxyapi-plusplus, DINOForge-UnityDoorstop, forgecode, helios-cli, HeliosLab, MCPForge, OmniRoute, phenotype-omlx, phenotype-ops-mcp, Planify, portage, vibeproxy, WorldSphereMod |
-| **stub / scaffold** | 6 | phenotype-hub, vibeproxy-monitoring-unified, PhenoProject, PhenoProc, phenoStandards (deprecated), Zerokit |
-| **superseded / archived** | 24 | .github, odin-landing, Profila, Project-Spyn, RIP-Fitness-App, sharecli, tehgent, thegent-sharecli, worktree-manager, phenoVessel, phenoTypes, phenoPatch, Diffuse, Servion, Guardrail, Cryptora, forge, phenoForge, router-docs, cheap-llm-mcp, dispatch-mcp, thegent-dispatch, McpKit, PhenoMCP |
+| **stub / scaffold** | 5 | phenotype-hub, vibeproxy-monitoring-unified, PhenoProject, phenoStandards (deprecated), Zerokit |
+| **superseded / archived** | 36 | .github, odin-landing, Profila, Project-Spyn, RIP-Fitness-App, sharecli, tehgent, thegent-sharecli, worktree-manager, phenoVessel, phenoTypes, phenoPatch, Diffuse, Servion, Guardrail, Cryptora, forge, phenoForge, router-docs, cheap-llm-mcp, dispatch-mcp, thegent-dispatch, McpKit, PhenoMCP, PhenoProc, Metron, PhenoKits, Stashly, Settly, AuthKit, Traceon, ResilienceKit, TestingKit, BytePort, heliosBench, heliosApp, PolicyStack, nanovms, portage, phenoDesign, phenoXddLib |
 | **monorepo (multi-domain)** | 7 | pheno, phenoAI, phenoData, PhenoDevOps, BytePort, HexaKit, phenoShared |
-| **agent-runtime** | 4 | Agentora, thegent, PhenoAgent, PhenoProc |
+| **agent-runtime** | 3 | Agentora, thegent, PhenoAgent |
 | **research / lab** | 2 | HeliosLab, portage |
+
+\* Rationalization wave archives (2026-06-17): **PhenoProc**, **Metron**, **PhenoKits**, **Stashly**, **Settly**, **AuthKit**, **Traceon**, **ResilienceKit**, **TestingKit**, **McpKit**, **BytePort**, **heliosBench**, **heliosApp**, **PolicyStack**, **nanovms**, **portage**, **phenoDesign**, **phenoXddLib** — see `RATIONALIZATION_EXECUTION.md` and `docs/sessions/20260617-ecosystem-gap-port-retro/`.
 
 \* archived / deleted (2026-06-16 archive migration): worktree-manager → PhenoVCS; phenoVessel → PhenoPlugins/pheno-plugin-vessel; phenoTypes → phenotype-types; phenoPatch + Diffuse → phenotype-tooling/phenotype-diff; Servion → phenotype-tooling/phenotype-service-registry; Guardrail → phenotype-tooling/phenotype-resilience; Cryptora → phenoUtils/pheno-crypto; forge + phenoForge → Tasken; router-docs → OmniRoute/docs/research/archive/router-docs/
 
@@ -209,8 +211,8 @@ graph TD
 | **HexaKit** | 30+ phenotype-* crates (canonical infra toolkit per description) | **CANONICAL HOME** |
 | pheno | 21 workspace members, overlapping crate names with HexaKit | **DUPLICATE** — merge into HexaKit, retire pheno |
 | phenoShared | Rust crates + @phenotype/shared-utils npm | Merge Rust side into HexaKit; keep npm package as phenoShared/npm |
-| PhenoProc | 20 path-deps to phenotype-* crates (local copies!) | **DUPLICATE** — remove local copies, depend on HexaKit |
-| phenoRouterMonitor | 15 path-deps to phenotype-* crates (local copies!) | **DUPLICATE** — remove local copies, depend on HexaKit |
+| **PhenoProc** | 20 path-deps to phenotype-* crates (local copies!) | **ARCHIVED** 2026-06-17 — absorbed into Agentora (#79) |
+| **phenoRouterMonitor** | 15 path-deps to phenotype-* crates (local copies!) | Repointed → phenoShared / phenotype-types (#632) |
 
 ### Cluster G — Spec / Docs Registries (4 repos)
 
@@ -238,11 +240,11 @@ All thin Python/Go wrappers around Rust canonical cores. Target: consolidate Pyt
 | AuthKit | Active, Python SDK | Merge into phenotype-python-sdk/auth |
 | DataKit | Active, Python SDK | Merge into phenotype-python-sdk/data |
 | McpKit | **Archived** (2026-06-17) | **SUPERSEDED** — [PhenoFastMCP](https://github.com/KooshaPari/PhenoFastMCP) + [PhenoMCPServers](https://github.com/KooshaPari/PhenoMCPServers); Py edge → `phenotype-python-sdk` `[connect]` |
-| ObservabilityKit | Active, Python SDK | Merge into phenotype-python-sdk/observability |
-| ResilienceKit | Active, Python SDK | Merge into phenotype-python-sdk/resilience |
-| TestingKit | Active, Python SDK | Merge into phenotype-python-sdk/testing |
-| PlatformKit | Active, Go tooling | Merge into phenotype-go-sdk/platform |
-| PhenoKits | Active, Python collection | Merge into phenotype-python-sdk as package index |
+| ObservabilityKit | No standalone repo | Canonical: phenotype-python-sdk/observability + PO crates |
+| ResilienceKit | **Archived** (2026-06-17) | Python facade → phenotype-python-sdk/resilience |
+| TestingKit | **Archived** (2026-06-17) | Python facade → phenotype-python-sdk/testing |
+| PlatformKit | **Archived** | Go tooling → phenotype-go-sdk/platform |
+| PhenoKits | **Archived** (pre-wave) | Python collection → phenotype-python-sdk index |
 
 ### Cluster J — Helios* (5 repos)
 
@@ -252,8 +254,8 @@ All either forks of codex-monorepo or helios-specific tooling.
 |------|--------|---------|
 | **helios-cli** | Active, Rust fork of codex-monorepo | **CANONICAL** — keep as single codex-fork entry point |
 | helioscope | Active, Rust fork of codex-monorepo | Retire — overlaps helios-cli; same upstream |
-| heliosApp | Active, TypeScript | Merge into phenotype-tooling dashboard subdir |
-| heliosBench | Active, Python benchmarks | Merge into phenotype-tooling benchmarks |
+| **heliosApp** | **Archived** (2026-06-17) | Absorbed → phenotype-tooling dashboard |
+| **heliosBench** | **Archived** (2026-06-17) | Absorbed → phenotype-tooling/crates/heliosbench |
 | HeliosLab | Active, Rust/TS research fork | Keep as research lab (distinct from helios-cli) |
 
 ### Cluster K — Landing Pages (8 repos)
