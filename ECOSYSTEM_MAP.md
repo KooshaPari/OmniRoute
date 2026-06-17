@@ -1,6 +1,6 @@
 # KooshaPari Ecosystem Map
 
-> Generated: 2026-06-16 | Repos audited: 13 canonical (live, GitHub-reachable) | Validator: `task validate` → `scripts/validate-ecosystem.sh`
+> Generated: 2026-06-17 | Repos audited: 13 canonical (live, GitHub-reachable) | Validator: `task validate` → `scripts/validate-ecosystem.sh`
 > Last SSOT run: see `scripts/validate-ecosystem.sh --json` (re-run on every map edit)
 
 ---
@@ -39,12 +39,14 @@ Role split for the spec/governance spine (so indexes stop competing):
 | **landing** | 9 | agileplus-landing, byteport-landing, hwledger-landing, odin-landing\*, phenokits-landing, projects-landing, thegent-landing, AppGen (template) |
 | **fork** | 15 | agentapi-plusplus, bifrost, cliproxyapi-plusplus, DINOForge-UnityDoorstop, forgecode, helios-cli, HeliosLab, MCPForge, OmniRoute, phenotype-omlx, phenotype-ops-mcp, Planify, portage, vibeproxy, WorldSphereMod |
 | **stub / scaffold** | 6 | phenotype-hub, vibeproxy-monitoring-unified, PhenoProject, PhenoProc, phenoStandards (deprecated), Zerokit |
-| **superseded / archived** | 19 | .github, odin-landing, Profila, Project-Spyn, RIP-Fitness-App, sharecli, tehgent, thegent-sharecli, worktree-manager, phenoVessel, phenoTypes, phenoPatch, Diffuse, Servion, Guardrail, Cryptora, forge, phenoForge, router-docs |
+| **superseded / archived** | 22 | .github, odin-landing, Profila, Project-Spyn, RIP-Fitness-App, sharecli, tehgent, thegent-sharecli, worktree-manager, phenoVessel, phenoTypes, phenoPatch, Diffuse, Servion, Guardrail, Cryptora, forge, phenoForge, router-docs, cheap-llm-mcp, dispatch-mcp, thegent-dispatch |
 | **monorepo (multi-domain)** | 7 | pheno, phenoAI, phenoData, PhenoDevOps, BytePort, HexaKit, phenoShared |
 | **agent-runtime** | 4 | Agentora, thegent, PhenoAgent, PhenoProc |
 | **research / lab** | 2 | HeliosLab, portage |
 
 \* archived / deleted (2026-06-16 archive migration): worktree-manager → PhenoVCS; phenoVessel → PhenoPlugins/pheno-plugin-vessel; phenoTypes → phenotype-types; phenoPatch + Diffuse → phenotype-tooling/phenotype-diff; Servion → phenotype-tooling/phenotype-service-registry; Guardrail → phenotype-tooling/phenotype-resilience; Cryptora → phenoUtils/pheno-crypto; forge + phenoForge → Tasken; router-docs → OmniRoute/docs/research/archive/router-docs/
+
+\* MCP runtime absorption (2026-06-17, ADR-017/019): **cheap-llm-mcp**, **dispatch-mcp**, **thegent-dispatch** deleted — capabilities in [substrate](https://github.com/KooshaPari/substrate) (`driver-argv`, `driver-mcp/dispatch_mcp`, `substrate argv`). Deployable MCP servers live in [PhenoMCPServers](https://github.com/KooshaPari/PhenoMCPServers) `servers/substrate/`.
 
 ---
 
@@ -83,7 +85,11 @@ thegent                   -> (Python; no KooshaPari cross-deps detected)
 PhenoAgent                -> (empty/stub manifest; extracted from phenotype-infra)
 Dino                      -> DINOForge-UnityDoorstop (Unity doorstop), dinoforge-packs
 AgilePlus                 -> (workspace: agileplus-config, agileplus-proto)
-PhenoMCP                  -> (Rust bin + Go module; go: github.com/KooshaPari/PhenoMCP/go)
+PhenoMCP                  -> (Rust bin + Go module; go: github.com/KooshaPari/PhenoMCP/go) [library — servers migrate to PhenoMCPServers]
+PhenoMCPServers           -> PhenoFastMCP (py framework), substrate (HTTP runtime for fleet tools)
+substrate                 -> (Rust runtime: driver-http, driver-argv, engine-*; MCP dev copy in driver-mcp/)
+PhenoFastMCP-rust         -> Dicklesworthstone/fastmcp_rust [upstream fork]
+PhenoRMCP                 -> modelcontextprotocol/rust-sdk [upstream fork; spec SDK — not fastmcp]
 phenoAI                   -> (workspace: llm-router, mcp-server, pheno-embedding)
 phenoData                 -> (workspace: surreal-bridge, pg-bridge, pheno-query)
 Tokn                      -> (workspace: pareto-rs, tokenledger)
@@ -226,7 +232,7 @@ All thin Python/Go wrappers around Rust canonical cores. Target: consolidate Pyt
 |------|--------|---------|
 | AuthKit | Active, Python SDK | Merge into phenotype-python-sdk/auth |
 | DataKit | Active, Python SDK | Merge into phenotype-python-sdk/data |
-| McpKit | Active, Python SDK | Merge into phenotype-python-sdk/mcp |
+| McpKit | Active, Python SDK | **DEPRECATED** — redirect to PhenoFastMCP + PhenoMCPServers per ADR-017; merge into phenotype-python-sdk/mcp |
 | ObservabilityKit | Active, Python SDK | Merge into phenotype-python-sdk/observability |
 | ResilienceKit | Active, Python SDK | Merge into phenotype-python-sdk/resilience |
 | TestingKit | Active, Python SDK | Merge into phenotype-python-sdk/testing |
@@ -259,6 +265,18 @@ All Astro static sites with near-identical structure. Target: consolidate into s
 | projects-landing | Active, Astro | Merge into phenotype-landing/packages/projects (auto-gen portfolio) |
 | thegent-landing | Active, Astro | Merge into phenotype-landing/packages/thegent |
 | AppGen | Active, template | Extract as phenotype-landing scaffold template |
+
+### Cluster L — MCP Ecosystem (ADR-017 three layers)
+
+| Layer | Repo | Role | Notes |
+|-------|------|------|-------|
+| **Framework** | [PhenoFastMCP](https://github.com/KooshaPari/PhenoFastMCP) (py), [PhenoFastMCP-go](https://github.com/KooshaPari/PhenoFastMCP-go), [PhenoFastMCP-rust](https://github.com/KooshaPari/PhenoFastMCP-rust) | fastmcp-equivalent forks | Rust parent: `Dicklesworthstone/fastmcp_rust`; Go parent: `mark3labs/mcp-go` |
+| **Spec SDK** | [PhenoRMCP](https://github.com/KooshaPari/PhenoRMCP) | official rmcp fork | Parent: `modelcontextprotocol/rust-sdk` — not PhenoFastMCP branding |
+| **Implementations** | [PhenoMCPServers](https://github.com/KooshaPari/PhenoMCPServers) | servers, skills, plugins, agents, catalog | `catalog/registry.yaml` SSOT; HexaKit `mcp-server` template target |
+| **Runtime** | [substrate](https://github.com/KooshaPari/substrate) | driver-http, driver-argv, fleet dispatch | No standalone cheap-llm MCP repo; MCP tools call HTTP/argv edges |
+| **Edge (Go tier-1)** | MCPForge, phenotype-ops-mcp | HTTP/SSE MCP gateways | Submodule refs in PhenoMCPServers `servers/external/` |
+
+**Anti-patterns (retired):** `phenotype-rust-sdk`, `phenotype-go-sdk` language buckets — see PhenoMCPServers `retired_anti_patterns` and ADR-017.
 
 ---
 
@@ -340,12 +358,14 @@ INFRASTRUCTURE / TOOLING (5)
   BytePort                 — infrastructure CLI
   nanovms                  — VM isolation for agents
 
-AGENT PLATFORM (4)
+AGENT PLATFORM (7)
   Agentora                 — Rust agent framework (canonical)
   thegent                  — Python agent runtime
   OmniRoute                — CANONICAL LLM router (TS); Tokn tokenledger::routing = canonical Rust routing substrate
-  phenoAI                  — MCP server + embeddings + router-dashboard skeleton (consumes routing; NOT the canonical router)
-  PhenoMCP                 — MCP server (Rust + Go)
+  phenoAI                  — embeddings + router-dashboard skeleton (consumes routing; NOT the canonical router)
+  substrate                — fleet dispatch runtime (driver-http, driver-argv, cheap-llm CLI routing)
+  PhenoMCPServers          — MCP server implementations + catalog (servers/skills/plugins/agents)
+  PhenoFastMCP* + PhenoRMCP — MCP framework + spec SDK forks (py/go/rust/rmcp)
 
 DATA / STORAGE (3)
   phenoData                — SurrealDB + Postgres + query planner
