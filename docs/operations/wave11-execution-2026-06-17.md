@@ -27,11 +27,11 @@
 
 **12 crates** git-pinned to phenoShared; `phenotype-contracts` + ~17 other phenotype-* members remain in HexaKit workspace.
 
-## Next (wave 12+)
+## Next (wave 13+)
 
 | Item | Notes |
 |------|-------|
-| `phenotype-health` | PhenoObservability — separate observe lane |
-| `phenotype-contracts` | Align HexaKit adapters vs phenoShared or split crate |
+| `phenotype-contracts` | API diverge — adapter alignment |
 | `phenotype-bdd`, `phenotype-test-infra` | Retarget → phenotype-journeys |
-| `phenotype-core` git pin | Still blocked on re-export API diverge |
+| `phenotype-retry`, `phenotype-validation`, … | phenoShared batch 5 |
+| `phenotype-core` git pin | Still blocked on contracts + partial re-exports |

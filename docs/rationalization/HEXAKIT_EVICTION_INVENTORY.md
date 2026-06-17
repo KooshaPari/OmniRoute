@@ -24,6 +24,7 @@ Trees remain on disk with `README` redirect stubs for audit; `exclude` in root `
 | `Traceon/` | `PhenoObservability/crates/tracingkit` | ✅ excised #249 |
 | `crates/phenotype-telemetry` | PO / phenoShared | Consumer manifest |
 | `crates/phenotype-logging` | phenoShared | Wave E |
+| `crates/phenotype-health` | phenoShared traits / PO runtime | Wave 12 #TBD — traits git pin; PO axum/cli superset |
 
 ---
 
@@ -78,6 +79,15 @@ until consumer repoint PRs land (Agentora, PhenoObservability vendor/, AgilePlus
 | `phenotype-macros` | workspace exclude + git dep | HexaKit #260 |
 
 **Deferred:** `phenotype-contracts` — HexaKit `InMemory*` adapter surface diverges from phenoShared HEAD (`Contract`/`MetricsHook` traits).
+
+### Wave 12 (2026-06-17) — health traits + cache adapter → phenoShared
+
+| Crate | Action | PR |
+|-------|--------|-----|
+| `phenotype-health` | workspace exclude + git dep | HexaKit TBD |
+| `phenotype-cache-adapter` | workspace exclude + git dep | HexaKit TBD |
+
+PO `phenotype-health-axum` / `phenotype-health-cli` remain PO-only runtime layers.
 
 **Keep in HexaKit short-term (scaffold-adjacent):**
 
