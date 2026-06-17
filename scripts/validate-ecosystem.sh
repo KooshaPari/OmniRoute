@@ -9,6 +9,10 @@
 #         LICENSE-APACHE, .github/workflows/ci.yml
 #   (d) reports any drift (missing repo, missing file, or reachability error)
 #
+# Fleet SHA pins live in registry/components.lock — refresh with:
+#   ./scripts/pin-components.sh
+#   ./scripts/pin-components.sh --check   # CI stale-pin gate
+#
 # Usage:
 #   ./scripts/validate-ecosystem.sh                # full run
 #   ./scripts/validate-ecosystem.sh --no-color     # disable color
