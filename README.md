@@ -50,6 +50,12 @@ When two documents disagree, authority follows role. Note: `PhenoSpecs/registry.
 - [HexaKit Registry](https://github.com/KooshaPari/HexaKit/blob/main/registry.yaml) - Templates
 - [PhenoHandbook Config](https://github.com/KooshaPari/PhenoHandbook/blob/main/docs/.vitepress/config.mts) - Patterns
 
+### Ecosystem rationalization (SSOT)
+
+- [Boundary-shaping charter](./docs/rationalization/boundary-shaping.md) — DECOMPOSE / ABSORB / DYNAMIC-KEEP; HexaKit = scaffolding only
+- [Stack policy](./docs/rationalization/STACK_POLICY.md) — Core (Rust, Zig, Mojo) vs Edge langs with required ADR justification
+- [Domain roles](./docs/rationalization/DOMAIN_ROLES.md) — domain → canonical repo map
+
 ### 📚 Library & Research Registry
 **[LIBRARY_RESEARCH_REGISTRY.md](./LIBRARY_RESEARCH_REGISTRY.md)** - Comprehensive catalog of:
 - **150+ libraries** used across all repos

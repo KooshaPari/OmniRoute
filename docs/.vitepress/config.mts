@@ -20,6 +20,14 @@ export default defineConfig({
           { text: "Overview", link: "/" },
           { text: "Registry Reference", link: "/registries" },
           { text: "Library Research", link: "/library-research" },
+          {
+            text: "Rationalization",
+            items: [
+              { text: "Boundary shaping", link: "/rationalization/boundary-shaping" },
+              { text: "Stack policy", link: "/rationalization/STACK_POLICY" },
+              { text: "Domain roles", link: "/rationalization/DOMAIN_ROLES" },
+            ],
+          },
         ],
       },
     ],

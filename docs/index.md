@@ -18,6 +18,9 @@ and library research into one reference surface.
 - Use [Registry Reference](./registries.md) to find the correct source of truth.
 - Use [Library Research](./library-research.md) before introducing a new
   dependency or hand-rolling a capability.
+- Use [Ecosystem rationalization](./rationalization/boundary-shaping.md) for
+  boundary disposition (DECOMPOSE / ABSORB / DYNAMIC-KEEP), [stack policy](./rationalization/STACK_POLICY.md),
+  and [domain roles](./rationalization/DOMAIN_ROLES.md).
 - Keep this repo as a navigation hub. Implementation work belongs in the
   referenced registries or product repos.
 
