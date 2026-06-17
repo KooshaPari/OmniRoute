@@ -69,6 +69,16 @@ until consumer repoint PRs land (Agentora, PhenoObservability vendor/, AgilePlus
 | `phenotype-state-machine` | workspace exclude + git dep | HexaKit #258 |
 | `phenotype-policy-engine` | workspace exclude + git dep | HexaKit #258 |
 
+### P3 wave 4 (2026-06-17) — security + macros + async-traits → phenoShared
+
+| Crate | Action | PR |
+|-------|--------|-----|
+| `phenotype-security-aggregator` | workspace exclude + git dep | HexaKit TBD |
+| `phenotype-async-traits` | workspace exclude + git dep | HexaKit TBD |
+| `phenotype-macros` | workspace exclude + git dep | HexaKit TBD |
+
+**Deferred:** `phenotype-contracts` — HexaKit `InMemory*` adapter surface diverges from phenoShared HEAD (`Contract`/`MetricsHook` traits).
+
 **Keep in HexaKit short-term (scaffold-adjacent):**
 
 - `crates/hexakit-cli`

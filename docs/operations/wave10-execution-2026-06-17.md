@@ -21,11 +21,11 @@
 
 **9 crates** git-pinned to phenoShared; ~21 phenotype-* members remain in HexaKit workspace.
 
-## Next (wave 11+)
+## Next (wave 12+)
 
 | Item | Notes |
 |------|-------|
 | `phenotype-health` | PhenoObservability — separate observe lane |
-| `phenotype-security-aggregator`, `phenotype-retry`, … | phenoShared batch 4 |
+| `phenotype-bdd`, `phenotype-test-infra` | Retarget → phenotype-journeys |
 | `phenotype-core` git pin | Still blocked on re-export API diverge |
-| Test crates retarget | bdd/test-infra → phenotype-journeys |
+| Remaining phenoShared batch | validation, iter, crypto, … per inventory |
