@@ -17,7 +17,7 @@ Single source of truth mapping **domain concerns** to **canonical repositories**
 | **Schemas / shared types** | phenotype-types | Rust (core schemas, codegen) | Python (agent/ML bindings: “Py consumers need generated stubs until Rust-only pipeline”) |
 | **Testing** | TestingKit | Rust | — |
 | **Observability** (OTel, health, profiling) | PhenoObservability | Rust | — |
-| **MCP** | McpKit / MCP | Rust | Python (agent tooling edge: “MCP host script in uv workspace”) |
+| **MCP** | [PhenoFastMCP](https://github.com/KooshaPari/PhenoFastMCP) (py), [PhenoFastMCP-go](https://github.com/KooshaPari/PhenoFastMCP-go), [PhenoFastMCP-rust](https://github.com/KooshaPari/PhenoFastMCP-rust), [PhenoRMCP](https://github.com/KooshaPari/PhenoRMCP) (spec SDK), [PhenoMCPServers](https://github.com/KooshaPari/PhenoMCPServers) (implementations), [substrate](https://github.com/KooshaPari/substrate) (runtime) | Rust / Go / Python per ADR-017 | Python (agent MCP host); Go (HTTP/SSE edges: MCPForge, ops-mcp) |
 | **Secrets / auth** | Authvault | Rust | — |
 | **HTTP / resilience** | ResilienceKit | Rust | TS (browser/client edge: “fetch wrapper in dashboard package”) |
 | **Tooling crates** (diff, registry, resilience-adjacent shared) | phenotype-tooling | Rust | — |
