@@ -1,0 +1,12 @@
+{
+  "name": "phenoVessel",
+  "languages": ["html"],
+  "primary_language": "html",
+  "status": "retired",
+  "has_readme": true,
+  "has_spec": false,
+  "type": "plugin",
+  "path": "repos/phenoVessel",
+  "absorbed_into": "PhenoPlugins/pheno-plugin-vessel",
+  "absorption_note": "Merged into PhenoPlugins as pheno-plugin-vessel crate; source repo deleted 2026-06-16"
+}

@@ -1,0 +1,12 @@
+{
+  "name": "Cryptora",
+  "languages": [],
+  "primary_language": null,
+  "status": "retired",
+  "has_readme": true,
+  "has_spec": false,
+  "type": "shared-lib",
+  "path": "repos/Cryptora",
+  "absorbed_into": "phenoUtils/pheno-crypto",
+  "absorption_note": "Cryptography utilities absorbed into phenoUtils/pheno-crypto; source repo deleted 2026-06-16"
+}

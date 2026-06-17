@@ -130,6 +130,23 @@ phenotype-auth-ts, HeliosLab, Conft, PhenoMCP, PhenoSpecs — not part of this w
 
 ---
 
+## Archive Migration Absorptions (2026-06-16)
+
+The following repos were deleted after archive migration; canonical homes and redirect metadata live in `projects/*.json`:
+
+| Source (deleted) | Canonical owner |
+|------------------|-----------------|
+| phenoVessel | PhenoPlugins/pheno-plugin-vessel |
+| phenoTypes | phenotype-types |
+| phenoPatch, Diffuse | phenotype-tooling/phenotype-diff |
+| Servion | phenotype-tooling/phenotype-service-registry |
+| Guardrail | phenotype-tooling/phenotype-resilience |
+| Cryptora | phenoUtils/pheno-crypto |
+| forge, phenoForge | Tasken |
+| router-docs | OmniRoute/docs/research/archive/router-docs/ |
+
+---
+
 ## Projected Repo Count
 
 Start: **144 active** (177 total − 33 already archived).

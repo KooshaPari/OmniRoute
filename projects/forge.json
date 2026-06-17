@@ -1,0 +1,12 @@
+{
+  "name": "forge",
+  "languages": ["rust"],
+  "primary_language": "rust",
+  "status": "retired",
+  "has_readme": true,
+  "has_spec": false,
+  "type": "tool",
+  "path": "repos/forge",
+  "absorbed_into": "Tasken",
+  "absorption_note": "CLI task runner/build orchestrator absorbed into Tasken (task orchestration); source repo deleted 2026-06-16"
+}

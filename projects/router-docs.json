@@ -1,0 +1,12 @@
+{
+  "name": "router-docs",
+  "languages": [],
+  "primary_language": null,
+  "status": "retired",
+  "has_readme": true,
+  "has_spec": false,
+  "type": "docs",
+  "path": "repos/router-docs",
+  "absorbed_into": "OmniRoute/docs/research/archive/router-docs/",
+  "absorption_note": "Routing research docs relocated to OmniRoute/docs/research/archive/router-docs/; source repo deleted 2026-06-16"
+}

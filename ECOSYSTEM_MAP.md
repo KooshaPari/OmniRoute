@@ -28,21 +28,21 @@ Role split for the spec/governance spine (so indexes stop competing):
 
 | Role | Count | Repos |
 |------|-------|-------|
-| **shared-lib** | 22 | pheno, HexaKit, phenoShared, phenoUtils, phenoXddLib, Authvault, Stashly, Settly, Tasken, Traceon, Metron, Apisync, phenoObservability, PhenoPlugins, phenoForge, FocalPoint, PhenoVCS, Benchora, phenotype-auth-ts, phenotype-journeys, phenotype-voxel, Compound-Spheres-3D |
+| **shared-lib** | 21 | pheno, HexaKit, phenoShared, phenoUtils, phenoXddLib, Authvault, Stashly, Settly, Tasken, Traceon, Metron, Apisync, phenoObservability, PhenoPlugins, FocalPoint, PhenoVCS, Benchora, phenotype-auth-ts, phenotype-journeys, phenotype-voxel, Compound-Spheres-3D |
 | **SDK** | 9 | AuthKit, DataKit, McpKit, ObservabilityKit, ResilienceKit, TestingKit, PlatformKit, PhenoKits, HexaKit |
-| **tooling** | 13 | AgilePlus, phenotype-dep-guard, phenotype-tooling, phenotype-infra, PhenoDevOps, BytePort, FocalPoint, Conft, phenoForge, agent-devops-setups, PolicyStack, nanovms, helioscope |
+| **tooling** | 12 | AgilePlus, phenotype-dep-guard, phenotype-tooling, phenotype-infra, PhenoDevOps, BytePort, FocalPoint, Conft, agent-devops-setups, PolicyStack, nanovms, helioscope |
 | **product / app** | 10 | Agentora, thegent, Tracera, AgilePlus, PlayCua, Dino, eyetracker, hwLedger, phenoRouterMonitor, slickport |
 | **plugin** | 5 | PhenoPlugins, dinoforge-packs, argis-extensions, phenotype-postfx, Tokn |
 | **docs** | 8 | PhenoSpecs, phenotype-registry, PhenoHandbook, phenodocs, phenoXdd, PhenoDesign, phenotype-hub (scaffold), LIBRARY_RESEARCH_REGISTRY |
 | **landing** | 9 | agileplus-landing, byteport-landing, hwledger-landing, odin-landing\*, phenokits-landing, projects-landing, thegent-landing, AppGen (template) |
 | **fork** | 15 | agentapi-plusplus, bifrost, cliproxyapi-plusplus, DINOForge-UnityDoorstop, forgecode, helios-cli, HeliosLab, MCPForge, OmniRoute, phenotype-omlx, phenotype-ops-mcp, Planify, portage, vibeproxy, WorldSphereMod |
 | **stub / scaffold** | 6 | phenotype-hub, vibeproxy-monitoring-unified, PhenoProject, PhenoProc, phenoStandards (deprecated), Zerokit |
-| **superseded / archived** | 9 | .github, odin-landing, Profila, Project-Spyn, RIP-Fitness-App, sharecli, tehgent, thegent-sharecli, worktree-manager |
+| **superseded / archived** | 19 | .github, odin-landing, Profila, Project-Spyn, RIP-Fitness-App, sharecli, tehgent, thegent-sharecli, worktree-manager, phenoVessel, phenoTypes, phenoPatch, Diffuse, Servion, Guardrail, Cryptora, forge, phenoForge, router-docs |
 | **monorepo (multi-domain)** | 7 | pheno, phenoAI, phenoData, PhenoDevOps, BytePort, HexaKit, phenoShared |
 | **agent-runtime** | 4 | Agentora, thegent, PhenoAgent, PhenoProc |
 | **research / lab** | 2 | HeliosLab, portage |
 
-\* archived · worktree-manager absorbed into PhenoVCS (repo deleted 2026-06-16)
+\* archived / deleted (2026-06-16 archive migration): worktree-manager → PhenoVCS; phenoVessel → PhenoPlugins/pheno-plugin-vessel; phenoTypes → phenotype-types; phenoPatch + Diffuse → phenotype-tooling/phenotype-diff; Servion → phenotype-tooling/phenotype-service-registry; Guardrail → phenotype-tooling/phenotype-resilience; Cryptora → phenoUtils/pheno-crypto; forge + phenoForge → Tasken; router-docs → OmniRoute/docs/research/archive/router-docs/
 
 ---
 
@@ -146,6 +146,7 @@ graph TD
 | bifrost | Fork (upstream maxim hq), Go | **Non-peer vendored fork; gateway use only — NOT the routing referent.** |
 | bifrost-routing (crate) | — | **Dead stub** (no Cargo.toml; superseded). Not the Rust routing referent — Tokn is. |
 | helios-router | — | Archived / superseded by OmniRoute. |
+| router-docs | Retired (2026-06-16) | Research docs relocated to `OmniRoute/docs/research/archive/router-docs/`; source repo deleted. |
 | cliproxyapi-plusplus | Fork, Go | AI-gateway fork; not a routing referent. |
 | helioscope / helios-cli | Forks of codex-monorepo | Keep as tooling entry-point; deduplicate into single helios repo |
 
@@ -302,6 +303,7 @@ These are **traits / interfaces** that span multiple repos in the ecosystem. The
 | **Merge phenoRouterMonitor Rust core → phenoAI** | phenoRouterMonitor | Keep Streamlit dashboard as phenoAI/monitoring subdir |
 | **Retire phenoStandards** | phenoStandards | Self-marked deprecated; content moved to HexaKit/governance |
 | **Retire worktree-manager → PhenoVCS** | worktree-manager | 100% absorbed into PhenoVCS (`worktree-manager` crate); repo deleted 2026-06-16 |
+| **Archive migration absorptions (2026-06-16)** | phenoVessel, phenoTypes, phenoPatch, Diffuse, Servion, Guardrail, Cryptora, forge, phenoForge, router-docs | See footnote under §1 role table; entries in `projects/*.json` |
 | **Merge heliosBench, heliosApp → phenotype-tooling** | heliosBench, heliosApp | Benchmarking and dashboard tooling |
 | **Retire helioscope** | helioscope | Overlaps helios-cli (both are codex-monorepo forks) |
 | **Consolidate 8 landing pages → phenotype-landing** | all *-landing repos | Astro monorepo with sub-packages |

@@ -1,0 +1,12 @@
+{
+  "name": "phenoForge",
+  "languages": ["rust"],
+  "primary_language": "rust",
+  "status": "retired",
+  "has_readme": true,
+  "has_spec": false,
+  "type": "tool",
+  "path": "repos/phenoForge",
+  "absorbed_into": "Tasken",
+  "absorption_note": "Phenotype task-runner fork absorbed into Tasken (task orchestration); source repo deleted 2026-06-16"
+}

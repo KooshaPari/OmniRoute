@@ -1,0 +1,12 @@
+{
+  "name": "phenoTypes",
+  "languages": ["python"],
+  "primary_language": "python",
+  "status": "retired",
+  "has_readme": true,
+  "has_spec": false,
+  "type": "stub",
+  "path": "repos/phenoTypes",
+  "absorbed_into": "phenotype-types",
+  "absorption_note": "Empty skeleton; type definitions live in phenotype-types; source repo deleted 2026-06-16"
+}

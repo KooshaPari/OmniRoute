@@ -1,0 +1,12 @@
+{
+  "name": "Servion",
+  "languages": [],
+  "primary_language": null,
+  "status": "retired",
+  "has_readme": true,
+  "has_spec": false,
+  "type": "tool",
+  "path": "repos/Servion",
+  "absorbed_into": "phenotype-tooling/phenotype-service-registry",
+  "absorption_note": "Service registry absorbed into phenotype-tooling/packages/phenotype-service-registry; source repo deleted 2026-06-16"
+}

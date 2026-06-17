@@ -36,6 +36,21 @@ project structure.
 3. HexaKit templates scaffold projects that follow those patterns.
 4. Implementation repos link back to the source spec and pattern decisions.
 
+## Archive Migration Redirects (2026-06-16)
+
+Deleted or absorbed source repos retain history in `projects/*.json` with `absorbed_into` and `absorption_note`. Resolve capabilities at the canonical owner:
+
+| Retired source | Canonical owner |
+|----------------|-----------------|
+| phenoVessel | [PhenoPlugins/pheno-plugin-vessel](https://github.com/KooshaPari/PhenoPlugins) |
+| phenoTypes | [phenotype-types](https://github.com/KooshaPari/phenotype-types) |
+| phenoPatch, Diffuse | [phenotype-tooling/phenotype-diff](https://github.com/KooshaPari/phenotype-tooling) |
+| Servion | [phenotype-tooling/phenotype-service-registry](https://github.com/KooshaPari/phenotype-tooling) |
+| Guardrail | [phenotype-tooling/phenotype-resilience](https://github.com/KooshaPari/phenotype-tooling) |
+| Cryptora | [phenoUtils/pheno-crypto](https://github.com/KooshaPari/phenoUtils) |
+| forge, phenoForge | [Tasken](https://github.com/KooshaPari/Tasken) |
+| router-docs | [OmniRoute/docs/research/archive/router-docs/](https://github.com/KooshaPari/OmniRoute/tree/main/docs/research/archive/router-docs) |
+
 ---
 
 ## Rich Media Stubs

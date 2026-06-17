@@ -1,0 +1,12 @@
+{
+  "name": "phenoPatch",
+  "languages": [],
+  "primary_language": null,
+  "status": "retired",
+  "has_readme": true,
+  "has_spec": false,
+  "type": "shared-lib",
+  "path": "repos/phenoPatch",
+  "absorbed_into": "phenotype-tooling/phenotype-diff",
+  "absorption_note": "Patch library absorbed into phenotype-tooling/packages/phenotype-diff; source repo deleted 2026-06-16"
+}

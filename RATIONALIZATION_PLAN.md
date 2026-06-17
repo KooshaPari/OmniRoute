@@ -184,6 +184,16 @@ TestingKit         → phenotype-python-sdk
 PhenoKits          → phenotype-python-sdk
 PlatformKit        → phenotype-go-sdk
 worktree-manager   → PhenoVCS (absorbed 2026-06-16)
+phenoVessel        → PhenoPlugins/pheno-plugin-vessel (deleted 2026-06-16)
+phenoTypes         → phenotype-types (deleted 2026-06-16)
+phenoPatch         → phenotype-tooling/phenotype-diff (deleted 2026-06-16)
+Diffuse            → phenotype-tooling/phenotype-diff (deleted 2026-06-16)
+Servion            → phenotype-tooling/phenotype-service-registry (deleted 2026-06-16)
+Guardrail          → phenotype-tooling/phenotype-resilience (deleted 2026-06-16)
+Cryptora           → phenoUtils/pheno-crypto (deleted 2026-06-16)
+forge              → Tasken (deleted 2026-06-16)
+phenoForge         → Tasken (deleted 2026-06-16)
+router-docs        → OmniRoute/docs/research/archive/router-docs/ (deleted 2026-06-16)
 heliosApp          → phenotype-tooling
 heliosBench        → phenotype-tooling
 agent-devops-setups→ phenotype-tooling
