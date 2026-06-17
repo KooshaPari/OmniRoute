@@ -53,6 +53,11 @@ Legend: ✅ = safe to archive once its merge PR is green · 🔶 = blocked, must
 
 ### 1. HexaKit ← pheno, Metron, Traceon, Stashly, Settly, FocalPoint, phenoXddLib
 
+> **Boundary supersession (2026-06-16):** Runtime observability libs (**Metron**, **Traceon**) absorb into
+> **PhenoObservability**, not HexaKit workspace members. HexaKit keeps **template/scaffold mirrors only**
+> (`templates/hexagon/rust/{metrickit,tracingkit}`). See `BOUNDARY_OWNERS.md`. Rows below remain for merge-wave
+> dependency tracking until consumers are repointed.
+
 | Source | External dependents | Verdict |
 |--------|--------------------|---------|
 | Metron | (none) | ✅ safe |
