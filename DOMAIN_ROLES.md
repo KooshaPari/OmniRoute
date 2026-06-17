@@ -50,7 +50,7 @@ Organize the fleet by **what boundary you own**, not by primary programming lang
 
 | Consumer | Repoint to |
 |----------|------------|
-| Pyron | `phenotype-config`, `PhenoObservability`, transitional `stashly` — Wave 3 lockstep 2026-06-17 |
+| Pyron | `phenotype-config`, `PhenoObservability`, `phenoShared` (`stashly`) — Wave 7 lockstep 2026-06-17 |
 | PhenoObservability | observe role crates + python-sdk kits |
 | DevHex | phenotype-go-sdk `devenv-abstraction` (documented G3) |
 

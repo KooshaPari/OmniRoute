@@ -31,6 +31,6 @@ Logify repo remains as historical source; observe-role canonical owner is PhenoO
 
 | Item | Blocker |
 |------|---------|
-| `stashly` final repoint | Canonical absorption target is phenoShared (ADR-ECO-001); dedicated `phenotype-resilience` repo still 404 — Pyron keeps HexaKit transitional pin |
-| HexaKit genesis refresh | Remaining crate evictions |
-| Archive delete (Metron/Settly/Traceon trees) | 100% downstream verify + registry retired rows |
+| ~~`stashly` final repoint~~ | Closed Wave 7 — Pyron → phenoShared |
+| ~~HexaKit genesis refresh~~ | Closed Wave 7 |
+| Archive delete (Metron/Settly/Traceon/stashly trees) | 100% downstream verify + registry retired rows |

@@ -6,12 +6,12 @@
     {
       "id": "Pyron",
       "blocks_sources": ["pheno", "Stashly", "Settly", "PhenoAgent", "Traceon"],
-      "repoint_to": ["phenotype-config", "PhenoObservability", "Tasken", "Eventra", "Authvault", "HexaKit stashly transitional"],
+      "repoint_to": ["phenotype-config", "PhenoObservability", "phenoShared", "Tasken", "Eventra", "Authvault"],
       "status": "repointed",
       "wave": "G3",
       "repointed_at": "2026-06-17",
-      "pr": "KooshaPari/Pyron#53",
-      "note": "Wave 6 logkit → PhenoObservability; stashly transitional via HexaKit until phenoShared consumer repoint"
+      "pr": "KooshaPari/Pyron#55",
+      "note": "Wave 7 stashly → phenoShared; observe + config + pheno shelf lockstep complete"
     },
     {
       "id": "PhenoObservability",
