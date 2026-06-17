@@ -134,10 +134,34 @@ phenotype-auth-ts, HeliosLab, Conft, PhenoMCP, PhenoSpecs — not part of this w
 | `KooshaPari/phenoDesign` | pre-archived | Batch 3; absorbed into phenodocs (`@kooshapari/design`) |
 | `KooshaPari/phenoXddLib` | pre-archived | Batch 3; safe per HexaKit shortlist |
 | `KooshaPari/portage` | pre-archived | Batch 3; upstream Gentoo fork, no DOMAIN_ROLES entry |
+| `KooshaPari/heliosApp` | **archived** | phenotype-tooling absorption #156; 0 external manifest deps |
+| `KooshaPari/PolicyStack` | **archived** | phenotype-tooling `crates/policystack`; 0 external Cargo.toml deps |
+| `KooshaPari/BytePort` | **archived** | phenotype-tooling `crates/byteport` + absorption stub; thegent chokepoint verified-clean |
+| `KooshaPari/heliosBench` | **archived** | phenotype-tooling `crates/heliosbench`; helios-router/cli 0 manifest refs |
 
 ---
 
-## Archive Shortlist Summary
+## Lane F — BLOCKED manifest paths (explicit)
+
+> **Tracera** chokepoint owned by another agent — listed for completeness only; do not execute here.
+
+| Source repo | Dependent | Manifest path(s) | Repoint target | Gate |
+|-------------|-----------|------------------|----------------|------|
+| `pheno` | Pyron | `Cargo.toml` workspace members | phenoShared / HexaKit `phenotype-*` git | 🔶 Pyron repointed; pheno archive last |
+| `pheno` | phenoRouterMonitor | `Cargo.toml` | phenoShared / phenotype-types | ✅ PR #632 |
+| `Traceon` | PhenoObservability | `Cargo.toml` / vendor | PO `crates/tracingkit` | ✅ Wave A |
+| `Stashly` | Pyron | `Cargo.toml` | phenoShared git | ✅ Wave 3 lockstep |
+| `Settly` | Pyron | `Cargo.toml` | phenotype-config / Settly boundary | ✅ Wave 2 |
+| `AuthKit` | thegent | `pyproject.toml` | Authvault | ✅ verified-clean |
+| `AuthKit` | Tracera | `go.mod` / manifests | Authvault | ⏸ other agent |
+| `ObservabilityKit` | PhenoObservability | embedded subtree | phenotype-python-sdk | 🔶 P1 subtree strip |
+| `McpKit` | phenotype-go-sdk | `go.mod` | in-repo PhenoMCP | ✅ #14 |
+| `heliosBench` | helios-router, helios-cli | (none found) | phenotype-tooling | ✅ **archived** |
+| `BytePort` | thegent | (no Cargo.toml dep) | phenotype-tooling | ✅ **archived** |
+| `PlatformKit` | DevHex | consumers | phenotype-go-sdk | ✅ repointed |
+| `PhenoAgent` | PhenoDevOps, Pyron | `Cargo.toml` | Agentora `pheno-agent` | 🔶 blocked |
+| `FocalPoint` | (none) | — | HexaKit manual | 🔶 867MB vendor |
+
 
 **SAFE after merge (12)** — no external dependents:
 `Metron` ✅, `FocalPoint`, `phenoXddLib` ✅, `DataKit`, `ResilienceKit`, `TestingKit`, `PhenoKits` ✅,

@@ -17,22 +17,22 @@ Trees remain on disk with `README` redirect stubs for audit; `exclude` in root `
 
 ---
 
-## Phase P1 — observability (next)
+## Phase P1 — observability (2026-06-17)
 
-| Path | Canonical owner | Blocker |
-|------|-----------------|---------|
-| `Traceon/` | `PhenoObservability/crates/tracingkit` | PO Wave A downstream repoint |
+| Path | Canonical owner | Status |
+|------|-----------------|--------|
+| `Traceon/` | `PhenoObservability/crates/tracingkit` | ✅ excised #249 |
 | `crates/phenotype-telemetry` | PO / phenoShared | Consumer manifest |
 | `crates/phenotype-logging` | phenoShared | Wave E |
 
 ---
 
-## Phase P2 — config / resilience (deferred)
+## Phase P2 — config / resilience (2026-06-17)
 
-| Path | Canonical owner | Blocker |
-|------|-----------------|---------|
-| `crates/settly` | Settly boundary / phenotype-rust-sdk | Pyron internal embed |
-| `crates/stashly` | phenotype-types / phenoShared | Pyron internal embed |
+| Path | Canonical owner | Status |
+|------|-----------------|--------|
+| `crates/settly` | Settly boundary / phenotype-rust-sdk | ✅ excised #245 |
+| `crates/stashly` | phenoShared / phenotype-types | ✅ exclude #250 |
 | `forgecode-fork` | Tasken / forge boundary | TBD |
 
 ---

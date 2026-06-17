@@ -7,8 +7,8 @@
 
 | Repo | Role | Verdict | Unblock |
 |------|------|---------|---------|
-| **BytePort** | `phenotype-tooling` byteport CLI / landing | **KEEP** | Absorb to `tooling/byteport`; 53 org refs; thegent gate clear |
-| **heliosBench** | Helios CLI benchmark harness (Python) | **KEEP** | Absorb to `tooling/helios-bench`; repoint helios-router + helios-cli |
+| **BytePort** | `phenotype-tooling` byteport CLI / landing | **ARCHIVED** 2026-06-17 | Absorbed `crates/byteport` + absorption stub #156 |
+| **heliosBench** | Helios CLI benchmark harness (Python) | **ARCHIVED** 2026-06-17 | Absorbed `crates/heliosbench`; router/cli 0 manifest deps |
 | **helios-router** | Router consumer of bench | **KEEP** | Repoint manifests → phenotype-tooling bench path |
 | **helios-cli** | CLI consumer of bench | **KEEP** | Same |
 | **pheno** | Legacy infra monorepo (21 crates) | **KEEP** | Pyron verified-internal; archive last in HexaKit wave |
@@ -36,12 +36,12 @@
 
 ## ARCHIVE after tooling absorption PR
 
-| Repo | Target path |
-|------|-------------|
-| heliosApp | phenotype-tooling (TS dashboard) |
-| PolicyStack | phenotype-tooling |
-| BytePort | phenotype-tooling/byteport |
-| heliosBench | phenotype-tooling/helios-bench |
+| Repo | Target path | Status |
+|------|-------------|--------|
+| heliosApp | phenotype-tooling (TS dashboard) | ✅ archived 2026-06-17 |
+| PolicyStack | phenotype-tooling | ✅ archived 2026-06-17 |
+| BytePort | phenotype-tooling/byteport | ✅ archived 2026-06-17 |
+| heliosBench | phenotype-tooling/helios-bench | ✅ archived 2026-06-17 |
 
 ## References
 

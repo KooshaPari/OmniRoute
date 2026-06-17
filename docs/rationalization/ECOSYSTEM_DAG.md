@@ -73,7 +73,7 @@ flowchart LR
 ### Lane F (gate)
 
 - [x] Updated verdict table in `RATIONALIZATION_EXECUTION.md` for PhenoProc, Metron, ObservabilityKit (2026-06-17)
-- [ ] Explicit **BLOCKED** list with repo + dependent manifest path
+- [x] Explicit **BLOCKED** list with repo + dependent manifest path (2026-06-17 wave 4)
 
 ### Lane G (archive)
 
