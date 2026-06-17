@@ -3,12 +3,51 @@
   "updated": "2026-06-17",
   "description": "Integration meta-repo lockfile — pins canonical fleet repos to immutable refs. CI validates cross-repo compatibility at pinned SHAs.",
   "components": {
-    "phenotype-registry": { "repo": "KooshaPari/phenotype-registry", "ref": "main" },
-    "HexaKit": { "repo": "KooshaPari/HexaKit", "ref": "main" },
-    "phenotype-types": { "repo": "KooshaPari/phenotype-types", "ref": "main" },
-    "TestingKit": { "repo": "KooshaPari/TestingKit", "ref": "main" },
-    "PhenoObservability": { "repo": "KooshaPari/PhenoObservability", "ref": "main" },
-    "phenoShared": { "repo": "KooshaPari/phenoShared", "ref": "main" },
+    "phenotype-registry": {
+      "repo": "KooshaPari/phenotype-registry",
+      "ref": "main",
+      "sha": "cd35b761c87061043a048622592dfbc864061cdc"
+    },
+    "HexaKit": {
+      "repo": "KooshaPari/HexaKit",
+      "ref": "main",
+      "sha": "3668b90081b96c7838338b582f80f4ba81637e76"
+    },
+    "phenotype-types": {
+      "repo": "KooshaPari/phenotype-types",
+      "ref": "main",
+      "sha": "3f350c69fb275f3d75d7af3b3ba9aa5e902cbedd"
+    },
+    "TestingKit": {
+      "repo": "KooshaPari/TestingKit",
+      "ref": "main",
+      "sha": "634517a8ce6312376f9aa3c063ef79077acb68ef"
+    },
+    "PhenoObservability": {
+      "repo": "KooshaPari/PhenoObservability",
+      "ref": "main",
+      "sha": "e8af3989b45460c332f6c0614d5054e641532dbd"
+    },
+    "phenoShared": {
+      "repo": "KooshaPari/phenoShared",
+      "ref": "main",
+      "sha": "1dc8dbb4966551f69259665f81f7df14ede8f922"
+    },
+    "Authvault": {
+      "repo": "KooshaPari/Authvault",
+      "ref": "main",
+      "sha": "b90ef743e9fd23d4deac64db8afef6943a73d23a"
+    },
+    "ResilienceKit": {
+      "repo": "KooshaPari/ResilienceKit",
+      "ref": "main",
+      "sha": "334184b1c595b6ca825c90bd9deb8d510103c36f"
+    },
+    "McpKit": {
+      "repo": "KooshaPari/McpKit",
+      "ref": "main",
+      "sha": "c557c3ce3a3d1d90e93736a9a4105f6030f34cf7"
+    },
     "phenotype-tooling": { "repo": "KooshaPari/phenotype-tooling", "ref": "main" },
     "PhenoMCP": { "repo": "KooshaPari/PhenoMCP", "ref": "main" }
   }
