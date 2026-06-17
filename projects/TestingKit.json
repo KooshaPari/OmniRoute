@@ -1,0 +1,15 @@
+{
+  "name": "TestingKit",
+  "languages": [
+    "python",
+    "rust"
+  ],
+  "primary_language": "python",
+  "status": "retired",
+  "has_readme": true,
+  "has_spec": true,
+  "type": "sdk",
+  "path": "repos/TestingKit",
+  "absorbed_into": "phenotype-python-sdk",
+  "absorption_note": "Absorbed into packages/testing-kit (2026-06-17); 34 blob divergences reconciled (23 mcp-qa synced, 11 SDK-canonical) — see packages/testing-kit/docs/operations/testing-kit-mcp-qa-reconcile.md — archive delete eligible"
+}

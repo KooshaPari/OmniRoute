@@ -1,0 +1,16 @@
+{
+  "name": "ObservabilityKit",
+  "languages": [
+    "python",
+    "rust",
+    "go"
+  ],
+  "primary_language": "python",
+  "status": "retired",
+  "has_readme": true,
+  "has_spec": true,
+  "type": "sdk",
+  "path": "repos/ObservabilityKit",
+  "absorbed_into": "phenotype-python-sdk",
+  "absorption_note": "100% byte match with packages/observability-kit (2026-06-17); see phenotype-python-sdk docs/observe/observability-kit-retired.md — archive delete eligible"
+}
