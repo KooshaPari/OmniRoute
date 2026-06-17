@@ -4,6 +4,10 @@
 > Bias: monorepos / synthetic-monorepo-collections over thin standalone repos.
 > Protected (never touch): P2/472-P2, KVirtualStage, KlipDot, KodeVibeGo, kwality.
 
+> **2026-06-17 update:** Organize by **domain role** ([DOMAIN_ROLES.md](DOMAIN_ROLES.md)), not language monorepos.
+> Do **not** create `phenotype-rust-sdk` as a crate dump. HexaKit = **genesis** only.
+> See [LANGUAGE_PLACEMENT.md](LANGUAGE_PLACEMENT.md).
+
 ---
 
 ## Target Shape: 38 Canonical Repos
