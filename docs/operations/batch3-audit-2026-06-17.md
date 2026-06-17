@@ -10,7 +10,7 @@ Method: `gh api` recursive tree + blob SHA compare per reconcile SOP.
 | DataKit | python-sdk `packages/data-kit` | **DELETE_ELIGIBLE** | Archive `main` is README-only stub; owner has full subtree |
 | PlatformKit | go-sdk + tooling | **KEEP_ARCHIVED** | `go/devenv` 38 blobs — 0% path overlap with `packages/platformkit/go/`; docs partial in go-sdk |
 | PhenoKits | python-sdk + HexaKit templates | **KEEP_ARCHIVED** | template inflow pending |
-| Metron | HexaKit `Metron/` | **BLOCKED** | path remap needed (not `crates/metron/`) |
+| Metron | HexaKit `Metron/` | **VERIFIED** | excluded + stub pruned ([#244](https://github.com/KooshaPari/HexaKit/pull/244), [#251](https://github.com/KooshaPari/HexaKit/pull/251)); canonical `metrickit` in PhenoObservability |
 | FocalPoint | HexaKit | **BLOCKED** | 2585 blobs; vendor size — manual absorption per HexaKit exclude |
 | McpKit | python-sdk | **BLOCKED** | 12 Py files only in archive path; go-sdk cross-absorber |
 | AuthKit | python-sdk | **BLOCKED** | Tracera, thegent deps |

@@ -37,8 +37,7 @@
 
 ## Next
 
-1. Merge Wave 5 PRs; close Pyron chokepoint note (pheno shelf)
-2. Metron archive path remap + HexaKit `Metron/` exclude verification
-3. Register `crates/logkit` in PhenoObservability workspace; repoint Pyron `logkit` git dep
-4. `phenotype-resilience` repo creation (ADR-ECO-001) for final stashly repoint
-5. HexaKit genesis refresh after remaining crate evictions
+1. ~~Metron archive path remap + HexaKit `Metron/` exclude verification~~ → Wave 6 closed (HexaKit #244/#251)
+2. ~~Register `crates/logkit` in PhenoObservability workspace; repoint Pyron `logkit` git dep~~ → Wave 6
+3. `phenotype-resilience` / phenoShared stashly final repoint for Pyron
+4. HexaKit genesis refresh after remaining crate evictions

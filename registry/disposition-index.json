@@ -14,7 +14,7 @@
     {"id": 30, "path": "crates/phenotype-port-traits", "disposition": "ABSORB", "target": "HexaKit", "wave": "scaffold", "fsm": "pending", "core_lang": "rust", "note": "reference scaffolding"},
     {"id": 40, "path": "crates/phenotype-test-infra", "disposition": "ABSORB", "target": "TestingKit", "wave": "B", "fsm": "ready", "core_lang": "rust", "stub_date": "2026-06-17", "pr": "HexaKit#239"},
     {"id": 46, "path": "crates/stashly", "disposition": "ABSORB", "target": "phenoShared", "wave": "D", "fsm": "done", "core_lang": "rust", "stub_date": "2026-06-17", "relocated_date": "2026-06-17", "pr": "phenoShared#176", "adr": "ADR-ECO-001", "note": "Merged to phenoShared; ResilienceKit archived"},
-    {"id": 48, "path": "Metron/", "disposition": "ABSORB", "target": "PhenoObservability", "wave": "A", "fsm": "ready", "core_lang": "rust", "stub_date": "2026-06-17", "pr": "HexaKit#240"},
+    {"id": 48, "path": "Metron/", "disposition": "ABSORB", "target": "PhenoObservability", "wave": "A", "fsm": "done", "core_lang": "rust", "stub_date": "2026-06-17", "relocated_date": "2026-06-17", "pr": "HexaKit#244"},
     {"id": 49, "path": "Traceon/", "disposition": "ABSORB", "target": "PhenoObservability", "wave": "A", "fsm": "ready", "core_lang": "rust", "stub_date": "2026-06-17", "pr": "HexaKit#240"},
     {"id": 51, "path": "libs/nexus", "disposition": "DECOMPOSE", "target": "nexus", "wave": "H", "fsm": "pending", "core_lang": "rust"},
     {"id": "py-pheno-types", "path": "python/pheno-types", "disposition": "REDIRECT", "target": "phenotype-types", "wave": "F", "fsm": "done", "relocated_date": "2026-06-17"},
