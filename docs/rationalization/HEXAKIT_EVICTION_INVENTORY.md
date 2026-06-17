@@ -89,6 +89,17 @@ until consumer repoint PRs land (Agentora, PhenoObservability vendor/, AgilePlus
 
 PO `phenotype-health-axum` / `phenotype-health-cli` remain PO-only runtime layers.
 
+### Wave 13 (2026-06-17) — stub prune (git-pinned excluded)
+
+| Action | PR |
+|--------|-----|
+| Remove local `src/` + `Cargo.toml` for 12 phenoShared git deps (MIGRATED.md only) | HexaKit #262 |
+| phenoShared duplicate `phenotype-cache-adapter` package fix | phenoShared #179 |
+
+**Deferred (API diverge — still workspace members):**
+
+- `phenotype-contracts`, `libs/phenotype-config-core`, `phenotype-validation` — `phenotype-core` re-exports blocked
+
 **Keep in HexaKit short-term (scaffold-adjacent):**
 
 - `crates/hexakit-cli`
