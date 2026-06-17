@@ -1,5 +1,5 @@
 {
-  "version": "1.0.0",
+  "version": "1.1.0",
   "updated": "2026-06-17",
   "description": "External dependents blocking relocation or archive. Repoint manifests to DOMAIN_ROLES canonical paths — not HexaKit monorepo paths (v2 charter).",
   "chokepoints": [
@@ -7,11 +7,18 @@
       "id": "Pyron",
       "blocks_sources": ["pheno", "Stashly", "Settly", "PhenoAgent"],
       "repoint_to": ["phenotype-types", "phenoShared", "ResilienceKit"],
+<<<<<<< HEAD
       "status": "repointed",
       "wave": "G2",
       "repointed_at": "2026-06-17",
       "pr": "KooshaPari/Pyron#50",
       "note": "Metadata repoint off phenotype-infrakit; no HexaKit git deps"
+=======
+      "status": "verified-internal",
+      "wave": "G2",
+      "verified_at": "2026-06-17",
+      "note": "No external git deps on pheno/Stashly/Settly/PhenoAgent in manifests (org code search). Pyron embeds shelf copies internally."
+>>>>>>> 8f0ebe6 (docs(registry): chokepoint verification + HexaKit eviction inventory)
     },
     {
       "id": "PhenoObservability",
@@ -20,7 +27,8 @@
       "status": "repointed",
       "wave": "G2",
       "repointed_at": "2026-06-17",
-      "pr": "KooshaPari/PhenoObservability"
+      "pr": "KooshaPari/PhenoObservability#158",
+      "note": "HexaKit git deps removed; vendor/ + phenoShared per chokepoint-repoint-2026-06-17.md"
     },
     {
       "id": "thegent",
@@ -38,7 +46,12 @@
       "status": "repointed",
       "wave": "G2",
       "repointed_at": "2026-06-17",
+<<<<<<< HEAD
       "pr": "KooshaPari/phenoRouterMonitor#632"
+=======
+      "pr": "KooshaPari/phenotype-tooling#155",
+      "note": "Router monitor absorbed to phenotype-tooling/absorption/"
+>>>>>>> 8f0ebe6 (docs(registry): chokepoint verification + HexaKit eviction inventory)
     },
     {
       "id": "Tracera",
@@ -47,8 +60,12 @@
       "status": "verified-clean",
       "wave": "G2",
       "verified_at": "2026-06-17",
+<<<<<<< HEAD
       "pr": "KooshaPari/Tracera#629",
       "note": "phenoShared dep canonical; WorkOS AuthKit is SaaS not phenotype AuthKit"
+=======
+      "note": "0 AuthKit refs in Cargo.toml/pyproject.toml; uses phenotype-pm-core + phenoShared"
+>>>>>>> 8f0ebe6 (docs(registry): chokepoint verification + HexaKit eviction inventory)
     },
     {
       "id": "phenotype-go-sdk",

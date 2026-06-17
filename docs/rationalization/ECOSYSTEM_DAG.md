@@ -34,11 +34,11 @@
 | L | L3-P | AgilePlus | `agileplus specify`: zero-loop-session-protocol | K | P |
 | M | L3-P | phenotype-registry | Session retro: `docs/sessions/` gap-port-2026-06 | L | P |
 | N | L3-P | phenokits-commons | `governance-template-fleet-defaults` spec + README | C | P |
-| O | L4-P | HexaKit | Inventory domain crates for eviction list | G | P |
-| P | L4-NB | HexaKit | Evict domain members; keep `templates/hexagon/**` | O | NB |
+| O | L4-P | HexaKit | Inventory domain crates for eviction list | G | P ✅ 2026-06-17 |
+| P | L4-NB | HexaKit | Evict domain members; keep `templates/hexagon/**` | O | NB (P0 Metron+agileplus) |
 | Q | L4-NB | phenotype-rust-sdk | Package layout ADR draft | P | NB |
-| R | L5-B | Pyron | Repoint Settly/Stashly/pheno → post-HexaKit paths | P | **B** |
-| S | L5-B | Tracera, thegent | Repoint AuthKit → python-sdk | G | **B** |
+| R | L5-B | Pyron | Repoint Settly/Stashly/pheno → post-HexaKit paths | P | **B** (verified-internal) |
+| S | L5-B | Tracera, thegent | Repoint AuthKit → python-sdk | G | **B** (verified-clean) |
 | T | L5-NB | phenotype-registry | ECOSYSTEM_MAP cluster refresh PR | G | NB |
 
 ---
@@ -88,8 +88,9 @@ flowchart LR
 
 ### Lane P (HexaKit eviction)
 
-- [ ] Domain crates removed from workspace `members`
-- [ ] Template paths preserved under `templates/hexagon/`
+- [x] P0: `Metron`, `agileplus/*` removed from workspace `members` (2026-06-17)
+- [ ] Domain crates removed from workspace `members` (P1–P3 waves)
+- [x] Template paths preserved under `templates/hexagon/`
 - [ ] No external consumer broken (manifest scan re-run)
 
 ---
