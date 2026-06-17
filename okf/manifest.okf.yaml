@@ -1,21 +1,21 @@
 okf_version: "1.0"
 project:
-  id: "koosha.phenotype.{{REPO_SLUG}}"
-  name: "{{PROJECT_NAME}}"
+  id: koosha.phenotype.phenotype-registry
+  name: phenotype-registry
   charter_ref: "charter.md"
   review_ref: "review.md"
 artifacts:
   - id: intent-root
     path: intent.md
     kind: intent
-    summary: "{{INTENT_SUMMARY}}"
+    summary: "Fleet index, domain roles, archive reconcile authority"
     links:
       - docs/intent/synthesis.md
       - docs/intent/assumptions.md
   - id: charter
     path: charter.md
     kind: governance
-    summary: "{{CHARTER_SUMMARY}}"
+    summary: "Genesis-index; DOMAIN_ROLES and ECOSYSTEM_MAP authority"
   - id: review-kilo
     path: review.md
     kind: review
@@ -24,7 +24,7 @@ artifacts:
   - id: sota-root
     path: SOTA.md
     kind: sota
-    summary: "{{SOTA_SUMMARY}}"
+    summary: "Polyrepo rationalization and zero-loop AX strategy"
     dimensions:
       - technical
       - dx
@@ -45,7 +45,7 @@ dimensions:
   fork: docs/sota/fork-rationale.md
 provenance:
   intent_prompts: docs/intent/prompts/
-  last_scrape: null
+  last_scrape: "2026-06-17"
   sources:
     - cursor
     - forge
