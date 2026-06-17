@@ -31,6 +31,6 @@ Pattern: workspace `exclude` + `workspace.dependencies` git pin (same as wave 1 
 
 ## Next
 
-1. P3 wave 3 — logging, time, state-machine, policy-engine (phenoShared batch)
+1. ~~P3 wave 3 — logging, time, state-machine, policy-engine~~ → Wave 10
 2. `phenotype-core` decomposition / git pin (blocked on API diverge)
 3. FocalPoint manual absorption

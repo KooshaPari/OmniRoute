@@ -56,11 +56,22 @@ until consumer repoint PRs land (Agentora, PhenoObservability vendor/, AgilePlus
 
 | Crate | Action | PR |
 |-------|--------|-----|
-| `phenotype-event-bus` | workspace exclude + git dep | HexaKit #255 |
-| `phenotype-event-sourcing` | workspace exclude + git dep | HexaKit #255 |
-| `phenotype-http-client-core` | workspace exclude + git dep | HexaKit #255 |
+| `phenotype-event-bus` | workspace exclude + git dep | HexaKit #256 |
+| `phenotype-event-sourcing` | workspace exclude + git dep | HexaKit #256 |
+| `phenotype-http-client-core` | workspace exclude + git dep | HexaKit #256 |
+
+### P3 wave 3 (2026-06-17) — infra primitives → phenoShared
+
+| Crate | Action | PR |
+|-------|--------|-----|
+| `phenotype-logging` | workspace exclude + git dep | HexaKit #258 |
+| `phenotype-time` | workspace exclude + git dep | HexaKit #258 |
+| `phenotype-state-machine` | workspace exclude + git dep | HexaKit #258 |
+| `phenotype-policy-engine` | workspace exclude + git dep | HexaKit #258 |
 
 **Keep in HexaKit short-term (scaffold-adjacent):**
+
+- `crates/hexakit-cli`
 - `crates/phenotype-contract-tests` (template CI harness)
 - `libs/nexus`, `libs/phenotype-config-core` (bootstrap only)
 
