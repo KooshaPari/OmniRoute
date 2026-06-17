@@ -43,7 +43,15 @@ Trees remain on disk with `README` redirect stubs for audit; `exclude` in root `
 **phenotype-rust-sdk** optional modules per `LANGUAGE_STACK.md`. Do not delete
 until consumer repoint PRs land (Agentora, PhenoObservability vendor/, AgilePlus).
 
-**Keep in HexaKit short-term (scaffold-adjacent):**
+### P3 wave 1 (2026-06-17) — error crates → phenoShared
+
+| Crate | Action | PR |
+|-------|--------|-----|
+| `phenotype-error-core` | workspace exclude + git dep | HexaKit #252 |
+| `phenotype-errors` | workspace exclude + git dep | HexaKit #252 |
+
+**Deferred:** bulk phenoShared git pin — `phenotype-core` re-export API diverges from phenoShared HEAD (`StateMachine`, `CacheAdapter`, `Timestamp`).
+
 
 - `crates/hexakit-cli`
 - `crates/phenotype-contract-tests` (template CI harness)
