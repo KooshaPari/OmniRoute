@@ -73,9 +73,9 @@ until consumer repoint PRs land (Agentora, PhenoObservability vendor/, AgilePlus
 
 | Crate | Action | PR |
 |-------|--------|-----|
-| `phenotype-security-aggregator` | workspace exclude + git dep | HexaKit TBD |
-| `phenotype-async-traits` | workspace exclude + git dep | HexaKit TBD |
-| `phenotype-macros` | workspace exclude + git dep | HexaKit TBD |
+| `phenotype-security-aggregator` | workspace exclude + git dep | HexaKit #260 |
+| `phenotype-async-traits` | workspace exclude + git dep | HexaKit #260 |
+| `phenotype-macros` | workspace exclude + git dep | HexaKit #260 |
 
 **Deferred:** `phenotype-contracts` — HexaKit `InMemory*` adapter surface diverges from phenoShared HEAD (`Contract`/`MetricsHook` traits).
 

@@ -6,9 +6,9 @@
 
 | Crate | Target | PR |
 |-------|--------|-----|
-| `phenotype-security-aggregator` | phenoShared | TBD |
-| `phenotype-async-traits` | phenoShared | TBD |
-| `phenotype-macros` | phenoShared | TBD |
+| `phenotype-security-aggregator` | phenoShared | #260 |
+| `phenotype-async-traits` | phenoShared | #260 |
+| `phenotype-macros` | phenoShared | #260 |
 
 ## Deferred (same wave, blocked)
 
