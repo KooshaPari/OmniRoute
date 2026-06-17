@@ -28,6 +28,6 @@ Updated charter out-of-scope table and transitional note to reflect Waves 2–7 
 
 ## Next
 
-1. Archive delete eligibility review (Settly/Traceon/stashly/Metron stubs) after 100% verify
-2. Remaining HexaKit `crates/*` disposition rows → role owners
+1. ~~Archive delete eligibility review (Settly/Traceon/stashly/Metron stubs)~~ → Wave 8 audit; settly stub prune PR
+2. Remaining HexaKit `crates/*` disposition rows → role owners (Wave 9+ P3)
 3. Dedicated `phenotype-resilience` repo (optional) — phenoShared holds `stashly` today per ADR-ECO-001 absorption path

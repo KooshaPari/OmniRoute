@@ -31,7 +31,7 @@ Trees remain on disk with `README` redirect stubs for audit; `exclude` in root `
 
 | Path | Canonical owner | Status |
 |------|-----------------|--------|
-| `crates/settly` | Settly boundary / phenotype-rust-sdk | ✅ excised #245 |
+| `crates/settly` | phenotype-config | ✅ exclude + Wave 8 stub prune |
 | `crates/stashly` | phenoShared / phenotype-types | ✅ exclude #250 |
 | `forgecode-fork` | Tasken / forge boundary | TBD |
 
