@@ -112,7 +112,7 @@ PO `phenotype-health-axum` / `phenotype-health-cli` remain PO-only runtime layer
 
 **Deferred (API diverge — still workspace members):**
 
-- `phenotype-contracts`, `libs/phenotype-config-core`, `phenotype-validation` — `phenotype-core` re-exports blocked
+- `phenotype-contracts`, `libs/phenotype-config-core`, `phenotype-validation`, `phenotype-string` — `phenotype-core` re-exports blocked; `phenotype-validation` and `phenotype-string` blocked further by Pyron submodule fetch failure (`Apisync` missing `.gitmodules` URL).
 
 **Keep in HexaKit short-term (scaffold-adjacent):**
 

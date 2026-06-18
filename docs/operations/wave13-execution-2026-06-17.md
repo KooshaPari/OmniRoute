@@ -62,4 +62,4 @@ Additional git pins this wave: `phenotype-test-infra` → TestingKit; `phenotype
 | Item | Notes |
 |------|-------|
 | Wave H gateway charter | phenotype-gateway + branch supersets |
-| `phenotype-core` git pin | validation/string strategy |
+| `phenotype-core` git pin | blocked: missing `Apisync` git remote in Pyron `.gitmodules` prevents fetching `phenotype-validation` and `phenotype-string` from `Pyron#main` |

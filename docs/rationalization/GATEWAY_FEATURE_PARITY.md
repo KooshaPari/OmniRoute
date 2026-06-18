@@ -56,6 +56,17 @@ Plugin plane inside phenotype-gateway `third_party/argis-extensions` → `packag
 
 **Mapped:** 9/9 feature rows have target owners (100% stub → inventory complete).
 
+## Spike status (2026-06-18)
+
+| Spike path | Status |
+|------------|--------|
+| `spikes/go/agentapi` | README scaffold (#3); smoke test pending |
+| `spikes/go/cliproxy` | README scaffold (#3); smoke test pending |
+| `spikes/go/bifrost` | README scaffold (#3); `feat/bifrost-local-delta` (#6) |
+| `spikes/go/argis` | README scaffold (#3); smoke test pending |
+| `spikes/rust/router` | README scaffold (#3); OmniRoute revamp TBD |
+| `spikes/zig/router` | README scaffold (#3); alt path |
+
 ## Promotion checklist (per component)
 
 - [x] agentapi++ branch superset merged to `main` (#531)
@@ -63,5 +74,6 @@ Plugin plane inside phenotype-gateway `third_party/argis-extensions` → `packag
 - [x] bifrost vendor pin established (#5)
 - [x] phenotype-gateway scaffold with submodule dirs (#1)
 - [x] Submodule SHAs pinned in phenotype-gateway `third_party/` (#2)
+- [x] Spike README scaffolds in `spikes/{go,rust,zig,mojo}/` (#3)
 - [ ] Spike passes build + smoke test in `spikes/<lang>/`
 - [ ] disposition-index `fsm: done` with PR ref (per component)
