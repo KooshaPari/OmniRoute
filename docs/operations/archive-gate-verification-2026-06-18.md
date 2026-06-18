@@ -28,4 +28,4 @@ Per `BOUNDARY_OWNERS.md` 5-check gate. **Never delete TestingKit or phenoShared.
 | ST-02 | phenotype-omlx #22 | **CLOSE BLOCKED** | Repo archived read-only; ADR-ECO-008 triage: scope exceeds docs/benchmark-only; CI blocked |
 | ST-03 | gw-phenolang | **INDEXED** | [gw-phenolang-branch-index.md](../disposition/gw-phenolang-branch-index.md) — 28 branches triaged |
 | ST-04 | AuthKit X-09 | **ARCHIVED** | 5-check pass; Tracera/thegent repointed; archived 2026-06-18 |
-| ST-05 | McpKit | **DELETE-eligible HOLD** | registry#157 merged; BOUNDARY_OWNERS 5/5; archived, hard delete deferred |
+| ST-05 | McpKit | **ARCHIVED + LEDGER** | registry#157 + #171 merged; repo archived 2026-06-18; hard delete deferred per BOUNDARY_OWNERS |
