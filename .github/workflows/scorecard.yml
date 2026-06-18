@@ -30,7 +30,7 @@ jobs:
         with:
           persist-credentials: false
 
-      - uses: ossf/scorecard-action@af76153369ae1eb1eaffc4118046b7fda9a8419e # v-latest
+      - uses: ossf/scorecard-action@50757822a4ac41af1c2f5572df4e1c1a5ae50c03 # v-latest
         with:
           results_file: results.sarif
           results_format: sarif
