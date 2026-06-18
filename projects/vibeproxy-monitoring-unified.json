@@ -1,0 +1,12 @@
+{
+  "name": "vibeproxy-monitoring-unified",
+  "languages": [],
+  "primary_language": "unknown",
+  "status": "archived",
+  "has_readme": false,
+  "type": "stub",
+  "path": "repos/vibeproxy-monitoring-unified",
+  "disposition": "RETIRE",
+  "wave": "G19",
+  "note": "Empty archived stub — retire after vibeproxy absorption into cliproxy++ (#1024)"
+}

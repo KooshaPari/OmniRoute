@@ -70,11 +70,13 @@ Establish three-layer doctrine (governance / platform / engine) and unblocks lan
 | PR | Repo | Status |
 |----|------|--------|
 | docs/wave15-gateway-fork-ssot | phenotype-registry | merged (#142) |
-| G15 branch hygiene | agentapi-plusplus | open (#534) |
-| G16 boundary | cliproxyapi-plusplus | open (#1026) |
-| G16 vibeproxy redirect | vibeproxy | open (#14) |
-| G16 go-sdk pin | phenotype-go-sdk | open (#17) |
+| G15 branch hygiene | agentapi-plusplus | merged (#534); remote `main` only |
+| G16 boundary | cliproxyapi-plusplus | merged (#1026); remote `main` only |
+| G16 vibeproxy redirect | vibeproxy | merged (#14) |
+| G16 go-sdk pin | phenotype-go-sdk | merged (#17) |
+| Gateway UPSTREAM SSOT | phenotype-gateway | merged (#4) — OmniRoute canonical peer |
 | H14 phenoShared repoint | HexaKit | pushed (feat/wave14-phenoshared-decompose) |
+| Desktop spike audit | phenotype-registry | this PR — Electrobun on OmniRoute |
 
 ## DELETE gate (fork cluster)
 
@@ -89,8 +91,8 @@ Establish three-layer doctrine (governance / platform / engine) and unblocks lan
 
 ## Next
 
-1. **G15** — `integrate/agentapi-superset` branch merge + unified spec
-2. **G16** — cliproxy superset + `third_party` pin
-3. **G17** — `phenotype/vendor-2026-06` + branch prune
-4. **G18** — ADR-ECO-008 omlx platform/engine split
-5. **G19** — phenotype-hub + vibeproxy-monitoring-unified absorption
+1. **G17** — `phenotype/vendor-2026-06` + branch prune (bifrost)
+2. **G18** — ADR-ECO-008 omlx platform/engine split
+3. **G19** — phenotype-hub + vibeproxy-monitoring-unified absorption (`projects/*.json` stubs)
+4. **Desktop** — Electrobun spike in `OmniRoute/apps/desktop/`; harvest vibeproxy menu-bar UX
+5. **W18b** — phenoShared consumer repoints (TestingKit, phenotype-python-sdk ready; Agentora blocked on terminal owners)

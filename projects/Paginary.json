@@ -1,0 +1,13 @@
+{
+  "name": "Paginary",
+  "languages": ["typescript"],
+  "primary_language": "typescript",
+  "status": "archived",
+  "has_readme": true,
+  "type": "tooling",
+  "path": "repos/Paginary",
+  "disposition": "TRIAGE",
+  "wave": "G19",
+  "branch_count": 11,
+  "note": "Archived pagination utility — triage for extract vs delete in G19"
+}

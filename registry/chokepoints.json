@@ -59,7 +59,7 @@
       "wave": "G2",
       "verified_at": "2026-06-17",
       "pr": "KooshaPari/Tracera#629",
-      "note": "phenoShared dep canonical; WorkOS AuthKit is SaaS not phenotype AuthKit"
+      "note": "AuthKit repoint done; dead phenoShared workspace dep removed W18b — WorkOS AuthKit is SaaS not phenotype AuthKit"
     },
     {
       "id": "phenotype-go-sdk",
@@ -79,11 +79,12 @@
       "manifest": "Cargo.toml",
       "repoint_to": ["phenotype-config", "phenotype-types", "phenotype-resilience", "PhenoObservability", "Eventra"],
       "interim_staging": "phenoShared",
-      "status": "pending",
+      "status": "verified-clean",
       "wave": "W18b",
       "priority": "P0",
       "adr": "ADR-ECO-014",
-      "note": "Engine repo on KooshaPari/pheno — repoint per-crate to role owners; do not terminate on phenoShared"
+      "verified_at": "2026-06-18",
+      "note": "No KooshaPari/pheno or phenoShared git pins in manifests (188 files scanned); in-repo path deps only"
     },
     {
       "id": "Agentora",
@@ -152,12 +153,12 @@
     {
       "id": "TestingKit",
       "blocks_archive": "pheno",
-      "repoint_to": ["phenotype-test", "phenotype-journeys"],
+      "repoint_to": ["PhenoObservability"],
       "interim_staging": "phenoShared",
-      "status": "pending",
+      "status": "partial",
       "wave": "W18b",
       "adr": "ADR-ECO-014",
-      "note": "Archived repo; verify no live consumer manifests"
+      "note": "phenotype-health pin → PhenoObservability (PR pending); no pheno monorepo pins"
     }
   ]
 }

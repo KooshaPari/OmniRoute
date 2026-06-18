@@ -14,10 +14,12 @@
 
 ## Audit inputs
 
-| Repo | Branches | Harvest target |
-|------|----------|----------------|
-| vibeproxy | 6 | OAuth client UX, menu-bar patterns |
-| OmniRoute | 26 | Router UI, deploy stack, CLI surface |
+| Repo | Branches (2026-06-18) | Harvest target |
+|------|----------------------|----------------|
+| vibeproxy | 12 (11 non-main) | OAuth client UX, menu-bar patterns (`apps/macos/`) |
+| OmniRoute | 33 (32 non-main) | Router UI, `desktop-electrobun/`, deploy stack, CLI tray |
+
+Full branch inventory: [DESKTOP_CLIENT_BRANCH_AUDIT.md](./DESKTOP_CLIENT_BRANCH_AUDIT.md).
 
 ## Selection gate
 
@@ -29,5 +31,7 @@ Pick one stack when prototype demonstrates:
 
 ## Output
 
-- Spike dir: `OmniRoute/apps/desktop/` **or** `phenotype-gateway/spikes/desktop/` (record choice in registry PR)
-- Registry disposition: vibeproxy → **ABSORB** into chosen spike (already docs in cliproxy++ #1024)
+- **Selected stack:** FFI + Electrobun (2026-06-18 audit)
+- Spike dir: `OmniRoute/apps/desktop/` (promote existing `desktop-electrobun/`)
+- Registry disposition: vibeproxy → **ABSORB** into chosen spike (cliproxy++ #1024)
+- Tauri deferred — no branch harvest; Swift native UX reference-only from vibeproxy

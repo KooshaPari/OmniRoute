@@ -1,0 +1,13 @@
+{
+  "name": "phenotype-hub",
+  "languages": ["markdown"],
+  "primary_language": "markdown",
+  "status": "archived",
+  "has_readme": true,
+  "type": "docs",
+  "path": "repos/phenotype-hub",
+  "disposition": "ABSORB",
+  "wave": "G19",
+  "absorb_target": "phenotype-infra",
+  "note": "Archived hub docs — absorb into phenotype-infra; registry redirect only"
+}
