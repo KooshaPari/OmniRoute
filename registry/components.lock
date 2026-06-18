@@ -18,7 +18,7 @@
     "HexaKit": {
       "repo": "KooshaPari/HexaKit",
       "ref": "main",
-      "sha": "e69ab1a31991a1f8a9e6386d480e9ed8d37f38bd"
+      "sha": "7ac981693ec0d09a21bdb1073b92bf0329709158"
     },
     "phenotype-types": {
       "repo": "KooshaPari/phenotype-types",
@@ -33,7 +33,7 @@
     "PhenoObservability": {
       "repo": "KooshaPari/PhenoObservability",
       "ref": "main",
-      "sha": "42cb5adbc2be325f635209049a66f7bf4b3d087a"
+      "sha": "a3cdb85b1644765390f729fdc94294a61bcde095"
     },
     "phenoShared": {
       "repo": "KooshaPari/phenoShared",
