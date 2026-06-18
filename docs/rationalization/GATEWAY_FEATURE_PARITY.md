@@ -62,6 +62,6 @@ Plugin plane inside phenotype-gateway `third_party/argis-extensions` → `packag
 - [x] cliproxy++ vibeproxy absorption documented (#1024)
 - [x] bifrost vendor pin established (#5)
 - [x] phenotype-gateway scaffold with submodule dirs (#1)
-- [ ] Submodule SHAs pinned in phenotype-gateway `third_party/`
+- [x] Submodule SHAs pinned in phenotype-gateway `third_party/` (#2)
 - [ ] Spike passes build + smoke test in `spikes/<lang>/`
 - [ ] disposition-index `fsm: done` with PR ref (per component)
