@@ -434,7 +434,8 @@ handler: async (args) => {...} }`. Zod validates inputs before the handler fires
 
 JSON-RPC 2.0, SSE streaming, Task Manager with TTL cleanup.
 Agent Card at `/.well-known/agent.json`.
-Skills (6): `smartRouting.ts`, `quotaManagement.ts`, `providerDiscovery.ts`, `costAnalysis.ts`, `healthReport.ts`, `listCapabilities.ts`.
+Skills (6): `smartRouting.ts`, `quotaManagement.ts`, `providerDiscovery.ts`,
+`costAnalysis.ts`, `healthReport.ts`, `listCapabilities.ts`.
 
 #### A2A Internals
 
@@ -447,6 +448,20 @@ completed | failed | canceled`. Tasks have TTL and are cleaned up automatically.
   quota; `smartRouting.ts` recommends routing decisions.
 - **Agent Card**: `/.well-known/agent.json` exposes capabilities, skills, and metadata
   for client auto-discovery.
+
+#### A2A skill implementations (status, refreshed 2026-06-18)
+
+| Skill | Status | Notes |
+|---|---|---|
+| `smartRouting.ts` | stub | DEBT-006 (TODO: Implement) |
+| `quotaManagement.ts` | stub | DEBT-006 |
+| `providerDiscovery.ts` | stub | DEBT-006 |
+| `costAnalysis.ts` | **IMPLEMENTED 2026-06-18 (L5-109)** | resolves pricing via `getPricingForModel()`, computes cost via `calculateCostFromTokens()`, accepts canonical/legacy token field names, estimates tokens from message length, emits `proceed` / `switch_model` / `estimate_only` recommendation when `budget_usd` cap exceeded. Tests: `tests/unit/a2a-cost-analysis.test.ts` (8 vitest cases). |
+| `healthReport.ts` | stub | DEBT-006 |
+| `listCapabilities.ts` | stub | DEBT-006 |
+| `agentDispatch.ts` | impl | added in `feat/a2a-agent-dispatch-clean` (L5-109 cherry-pick). Doc: `docs/frameworks/A2A-SERVER.md`. Env: `.env.example`. |
+
+Stub count: 5/7 (DEBT-006, partial close: 1/9 → 2/9 with agentDispatch).
 
 ### ACP Module (`src/lib/acp/`)
 
@@ -593,3 +608,105 @@ Only cherry-pick or reapply the changes intended for the upstream PR.
 - **Pricing data** syncs from LiteLLM via `src/lib/pricingSync.ts`
 - **Memory/Skills** are cross-cutting: affect MCP tools, request pipeline, and A2A skills
 - **⛔ NEVER close a contributor's PR** after using their code — always merge via GitHub so they get credit. See `.agents/workflows/review-prs.md` for full policy.
+
+---
+
+## Recent Changes (L5-109 fork-cleanup, 2026-06-18)
+
+This section tracks changes that landed in the `chore/l5-109-omniroute-fork-cleanup-2026-06-18`
+branch (PR #72). It is **fork-only operational** — DO NOT include in any upstream PR
+to `diegosouzapw/OmniRoute`.
+
+### New top-level files (added this session)
+
+| Path | Purpose |
+|---|---|
+| `STATUS.md` | Per-repo current state per monorepo standard |
+| `worklogs/2026-06-18-L5-109-fork-cleanup.md` | Session worklog (L5-109) |
+| `tests/unit/a2a-cost-analysis.test.ts` | 8 vitest cases for cost-analysis skill |
+
+### New `.github/` files (cherry-picked)
+
+| Path | Source branch | Purpose |
+|---|---|---|
+| `.github/CODEOWNERS` | `chore/codeowners-default-reviewer` | Default reviewer `@KooshaPari/core` |
+| `.github/dependabot.yml` | `chore/codeowners-default-reviewer` | Weekly Dependabot cadence |
+| `.github/workflows/scorecard.yml` | `chore/codeowners-default-reviewer` | OpenSSF Scorecard |
+| `.github/workflows/audit-ratchet.yml` | `chore/audit-ratchet-2026-06-16` | Ratchet 30-pillar audit score |
+
+### Updated `.github/`
+
+- `README.md` (cherry-picked: `6862653cf` from `chore/editorconfig2`)
+- `.editorconfig` (cherry-picked: from `chore/editorconfig`)
+- `.gitignore` (cherry-picked: from `chore/gitignore-hardening`; `.svelte-kit/`, `.turbo/`, `__pycache__/`)
+- `.gitattributes` (cherry-picked: from `chore/editorconfig2`)
+- `.devcontainer/devcontainer.json` (cherry-picked: from `chore/dx-2026-06-08`)
+
+### Updated `docs/`
+
+- `SPEC.md` — full v8/v3.9.0 spec (~180 lines; was 25-line placeholder)
+- `PLAN.md` — 9 v8 work items + 3 v9 items + 3 milestones
+- `ADR.md` — 30 ADRs (was 6-line stub); **ADR-026 introduces Bifrost disambiguation**
+- `docs/ROUTING-CONVERGENCE-STATUS.md` — canonical routing + Bifrost disambiguation
+- `docs/TECH_DEBT.md` — 20 tracked items (4 P1, 7 P2, 9 P3) from real `rg TODO/FIXME/XXX` scan
+- `docs/OKR.md` — already comprehensive; touched in cherry-pick
+- `docs/COST.md` — already comprehensive; touched in cherry-pick
+
+### Updated root config
+
+- `Justfile` — added dev / coverage / typecheck / fmt recipes (cherry-picked from `chore/2nd-hygiene-2026-06-08`)
+- `src/lib/a2a/skills/costAnalysis.ts` — implemented (closes DEBT-006 partial)
+- `src/shared/utils/formatting.ts` — added + tests (cherry-picked from `integration/consolidate`)
+
+### Branch / worktree cleanup
+
+- Deleted 8 dead `worktree-agent-*` worktrees (local + remote)
+- Deleted ~12 stale already-merged remote branches (`chore/4th-hygiene-*`, `chore/citation-*`, `docs/contributing`, etc.)
+- Pruned `origin` refs
+
+### Bifrost disambiguation (ADR-026)
+
+**`Bifrost`** appears in two distinct contexts and they are NOT the same:
+
+1. **OmniRoute Bifrost** — the internal "Bifrost" routing subsystem (a product name within this codebase, used in `docs/ROUTING-CONVERGENCE-STATUS.md` for the canonical routing layer). This is what most of this repo's code/docs mean by "Bifrost".
+2. **`Bifrost` (network protocol)** — an unrelated external agent-network protocol. Not used by OmniRoute. See `ADR.md` § ADR-026 for the full disambiguation block.
+
+When writing docs or ADRs, always use the full qualified form ("OmniRoute Bifrost" or "Bifrost network protocol") on first mention.
+
+### Open DEBT-006 follow-ups
+
+5 a2a skills still stubbed: `smartRouting`, `quotaManagement`, `providerDiscovery`, `healthReport`, `listCapabilities`. Next targets for the Q3-2026 OKR Objective 2 (policy primitives shipped per quarter):
+
+1. `quotaManagement.ts` — pair with `open-sse/services/rateLimitManager.ts`; needs TPM/TPD token-bucket (DEBT-001 dependency).
+2. `smartRouting.ts` — should compose `combo.ts::resolveComboTargets()` output as the recommendation payload.
+3. `providerDiscovery.ts` — read from `src/shared/constants/providers.ts` (single source of truth, Zod-validated at module load).
+4. `healthReport.ts` — should pull from `mcp_audit` table (last 1000 invocations, failure-rate per tool).
+5. `listCapabilities.ts` — derive from `A2A_SKILL_HANDLERS` registry at `src/lib/a2a/taskExecution.ts`.
+
+### Fork-only policy reminder
+
+When sending PRs to `diegosouzapw/OmniRoute`, do **not** include:
+
+- `STATUS.md` (this is a per-repo KP artifact)
+- `worklogs/2026-06-18-L5-109-fork-cleanup.md` (KP session worklog)
+- `.github/CODEOWNERS`, `.github/dependabot.yml`, `.github/workflows/scorecard.yml`, `.github/workflows/audit-ratchet.yml` (KP-specific)
+- `.devcontainer/devcontainer.json` (KP-specific dev environment)
+- `docs/intent/OmniRoute.md`, `docs/boundary/OmniRoute.md` (auto-propagated from `phenotype-registry`)
+- `tests/unit/a2a-cost-analysis.test.ts` (test depends on KP-side pricing catalog)
+- `src/lib/a2a/skills/costAnalysis.ts` (tested against KP pricing catalog; upstream has its own)
+
+The costAnalysis skill implementation is the only candidate that may be safely upstreamed as-is, because it imports from the upstream-maintained `@/shared/constants/pricing` catalog. To upstream it: rebase `chore/l5-109-omniroute-fork-cleanup-2026-06-18` onto `upstream/main` first, then create a PR with only the costAnalysis files.
+
+---
+
+## Cross-references
+
+- [`SPEC.md`](SPEC.md) — v8 spec (v3.9.0 in flight)
+- [`PLAN.md`](PLAN.md) — v8/v9 roadmap
+- [`ADR.md`](ADR.md) — 30 ADRs
+- [`STATUS.md`](STATUS.md) — per-repo current state
+- [`docs/ROUTING-CONVERGENCE-STATUS.md`](docs/ROUTING-CONVERGENCE-STATUS.md) — Bifrost disambiguation + canonical routing
+- [`docs/TECH_DEBT.md`](docs/TECH_DEBT.md) — 20 tracked items
+- [`docs/OKR.md`](docs/OKR.md) — Q3 2026 OKRs
+- [`docs/COST.md`](docs/COST.md) — cost attribution
+- [`worklogs/2026-06-18-L5-109-fork-cleanup.md`](worklogs/2026-06-18-L5-109-fork-cleanup.md) — session worklog
