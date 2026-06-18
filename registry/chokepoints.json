@@ -1,6 +1,6 @@
 {
   "version": "1.2.0",
-  "updated": "2026-06-17",
+  "updated": "2026-06-18",
   "description": "External dependents blocking relocation or archive. Repoint manifests to DOMAIN_ROLES canonical paths — not HexaKit monorepo paths (v2 charter). phenoShared is interim staging only (ADR-ECO-014); never a terminal repoint target.",
   "chokepoints": [
     {
@@ -38,8 +38,8 @@
       "repoint_to": ["Authvault", "phenotype-tooling"],
       "status": "verified-clean",
       "wave": "G2",
-      "verified_at": "2026-06-17",
-      "note": "No HexaKit/AuthKit/Traceon/stashly deps in Cargo.toml or pyproject.toml manifests"
+      "verified_at": "2026-06-18",
+      "note": "No HexaKit/AuthKit/Traceon/stashly deps in Cargo.toml or pyproject.toml manifests; Wave F re-verify"
     },
     {
       "id": "phenoRouterMonitor",

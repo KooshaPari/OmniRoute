@@ -5,7 +5,7 @@ Batch ledger for D-01..D-12 per Ecosystem Disposition Phase 2 plan.
 | ID | Row | Status | Action |
 |----|-----|--------|--------|
 | D-01 | #11 phenotype-contracts | relocating | Decompose plan in [contracts-decompose-plan.md](./contracts-decompose-plan.md); HexaKit#264 traits git-pinned |
-| D-02 | py-pheno-mcp | relocating | Wave F redirect mapped in [py-pheno-mcp-redirect.md](./py-pheno-mcp-redirect.md) |
+| D-02 | py-pheno-mcp | done | Wave F stub prune HexaKit#270; Pyron redirect manifest #58; registry py-pheno-mcp → substrate |
 | D-03 | #30 phenotype-port-traits | documented | HexaKit scaffold reference — see [port-traits-scaffold.md](./port-traits-scaffold.md) |
 | D-04 | #1 phenotype-analytics | deferred | Wave H — target repo scaffold deferred; registry row pending |
 | D-05 | #51 libs/nexus | documented | Decompose plan in [nexus-decompose-plan.md](./nexus-decompose-plan.md) |
