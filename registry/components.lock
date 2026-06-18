@@ -1,7 +1,14 @@
 {
-  "version": "1.0.0",
+  "version": "1.1.0",
   "updated": "2026-06-18",
   "description": "Integration meta-repo lockfile — pins canonical fleet repos to immutable refs. CI validates cross-repo compatibility at pinned SHAs.",
+  "_archive_notes": {
+    "McpKit": {
+      "status": "archived",
+      "archived_date": "2026-06-18",
+      "reason": "Source repo KooshaPari/McpKit archived on GitHub; pushes return 'This repository was archived so it is read-only'. Pin retained at c557c3ce (final state before archive); new commits are local-only and not reflected on the lock. Target substrates PhenoMCP#164 + PhenoMCPServers carry the absorbed content per ADR-003 / ADR-017 supersession."
+    }
+  },
   "components": {
     "phenotype-registry": {
       "repo": "KooshaPari/phenotype-registry",
@@ -51,7 +58,9 @@
     "McpKit": {
       "repo": "KooshaPari/McpKit",
       "ref": "main",
-      "sha": "c557c3ce3a3d1d90e93736a9a4105f6030f34cf7"
+      "sha": "c557c3ce3a3d1d90e93736a9a4105f6030f34cf7",
+      "status": "archived",
+      "archived_date": "2026-06-18"
     },
     "phenotype-analytics": {
       "repo": "KooshaPari/phenotype-analytics",
