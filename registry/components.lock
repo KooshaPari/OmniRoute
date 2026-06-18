@@ -10,8 +10,8 @@
     },
     "HexaKit": {
       "repo": "KooshaPari/HexaKit",
-      "ref": "main",
-      "sha": "6242bbe25588f8955c932dd00d7f6d7d029b25f6"
+      "ref": "feat/phase2-e2a-wave-ab-prune",
+      "sha": "faeb7bad7d482cfdf0871583a98b985ac78aa38a"
     },
     "phenotype-types": {
       "repo": "KooshaPari/phenotype-types",
@@ -30,8 +30,8 @@
     },
     "phenoShared": {
       "repo": "KooshaPari/phenoShared",
-      "ref": "main",
-      "sha": "6e05527d44b15cdbef7e5cda7869661900be9ea7"
+      "ref": "feat/wave-e2a-utils-reloc",
+      "sha": "a603d2b4a20de95251de2534ae8d2e833d7f39fd"
     },
     "substrate": {
       "repo": "KooshaPari/substrate",
