@@ -24,7 +24,13 @@ Trees remain on disk with `README` redirect stubs for audit; `exclude` in root `
 | `Traceon/` | `PhenoObservability/crates/tracingkit` | ✅ excised #249 |
 | `crates/phenotype-telemetry` | PO / phenoShared | Consumer manifest |
 | `crates/phenotype-logging` | phenoShared | Wave E |
-| `crates/phenotype-health` | phenoShared traits / PO runtime | Wave 12 #261 — traits git pin; PO axum/cli superset |
+| `crates/phenotype-health` | PO `rust/phenotype-health` | ✅ Wave A closeout 2026-06-18 — row #22 done; HexaKit#261 pin merged |
+
+### Wave A closeout (2026-06-18, D-12)
+
+- `phenotype-health` disposition row **done**; canonical runtime on PhenoObservability main
+- Fleet grep: zero new HexaKit path deps on phenotype-health (checkpoint)
+- `phenotype-sentry-config` (#35): deferred — import PR on PO backlog
 
 ---
 

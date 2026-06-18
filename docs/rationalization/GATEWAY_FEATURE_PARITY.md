@@ -76,5 +76,5 @@ Plugin plane inside phenotype-gateway `third_party/argis-extensions` → `packag
 - [x] Submodule SHAs pinned in phenotype-gateway `third_party/` (#2)
 - [x] Spike README scaffolds in `spikes/{go,rust,zig,mojo}/` (#3)
 - [x] CI scaffold: single checkout + recursive submodules (#5)
+- [x] disposition-index `fsm: done` with PR ref (Wave H gateway batch 2026-06-18 — bifrost#6, phenotype-gateway#2#3#4#5, go-sdk#17, cliproxy#1025#1026)
 - [ ] Spike passes build + smoke test in `spikes/<lang>/` (argis fail logged 2026-06-18)
-- [ ] disposition-index `fsm: done` with PR ref (per component)
