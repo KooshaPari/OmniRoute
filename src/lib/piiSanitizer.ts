@@ -15,12 +15,27 @@
 
 import { isFeatureFlagEnabled, resolveFeatureFlag } from "@/shared/utils/featureFlags";
 
-const isEnabled = () => isFeatureFlagEnabled("PII_RESPONSE_SANITIZATION");
+function resolvePiiEnvironmentFlag(key: string): string | undefined {
+  const envValue = process.env[key];
+  if (envValue === undefined || envValue === "") return undefined;
+  return envValue;
+}
+
+function resolvePiiFlag(key: string): string {
+  const envValue = resolvePiiEnvironmentFlag(key);
+  if (envValue !== undefined) return envValue;
+  return resolveFeatureFlag(key);
+}
+
+const isEnabled = () => {
+  const value = resolvePiiFlag("PII_RESPONSE_SANITIZATION");
+  return value === "true" || value === "1" || value === "yes";
+};
 const VALID_MODES = ["redact", "warn", "block", "off"] as const;
 type PiiMode = typeof VALID_MODES[number];
 
 const getMode = (): PiiMode => {
-  const value = resolveFeatureFlag("PII_RESPONSE_SANITIZATION_MODE");
+  const value = resolvePiiFlag("PII_RESPONSE_SANITIZATION_MODE");
   if (value === "" || value === undefined || value === null) return "redact";
   if (value === "false") return "off";
   if ((VALID_MODES as readonly any[]).includes(value)) return value as PiiMode;

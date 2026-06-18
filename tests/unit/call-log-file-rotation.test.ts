@@ -14,7 +14,7 @@ process.env.CALL_LOG_RETENTION_DAYS = "7";
 process.env.CALL_LOG_MAX_ENTRIES = "2";
 
 const core = await import("../../src/lib/db/core.ts");
-const { rotateCallLogs, cleanupOverflowCallLogFiles } =
+const { rotateCallLogs, cleanupOverflowCallLogFiles, trimCallLogsToMaxRows } =
   await import("../../src/lib/usage/callLogs.ts");
 const { CALL_LOGS_DIR } = await import("../../src/lib/usage/callLogArtifacts.ts");
 
@@ -67,6 +67,21 @@ function insertCallLog(row) {
     row.artifact_relpath || null,
     row.has_request_body || 1
   );
+}
+
+function insertCallLogWithArtifact(row, artifactRelPath: string) {
+  insertCallLog({
+    ...row,
+    artifact_relpath: artifactRelPath,
+  });
+
+  if (!CALL_LOGS_DIR) {
+    throw new Error("CALL_LOGS_DIR should be defined for artifact test");
+  }
+
+  const absolutePath = path.join(CALL_LOGS_DIR, artifactRelPath);
+  fs.mkdirSync(path.dirname(absolutePath), { recursive: true });
+  fs.writeFileSync(absolutePath, JSON.stringify({ id: row.id }), "utf8");
 }
 
 function buildArtifactRelPath(date: Date, label: string) {
@@ -322,3 +337,81 @@ test("cleanupOverflowCallLogFiles ignores rmSync failures for old artifacts", ()
   assert.equal(fs.existsSync(newerFile), true);
   assert.equal(fs.existsSync(olderFile), true);
 });
+
+test(
+  "trimCallLogsToMaxRows can delete more than SQL variable limits without throwing",
+  () => {
+    const db = core.getDbInstance();
+
+    for (let i = 0; i < 1_100; i += 1) {
+      insertCallLog({
+        id: `overflow-${i}`,
+        timestamp: new Date(Date.now() - i * 1_000).toISOString(),
+        detail_state: "ready",
+      });
+    }
+
+    const before = db.prepare("SELECT COUNT(*) AS cnt FROM call_logs").get() as { cnt: number };
+    assert.equal(before.cnt, 1_100);
+
+    let result = { deletedRows: 0, deletedArtifacts: 0 };
+    assert.doesNotThrow(() => {
+      result = trimCallLogsToMaxRows(100);
+    });
+    assert.equal(result.deletedRows, 1_000);
+    assert.equal(result.deletedArtifacts, 0);
+
+    const after = db.prepare("SELECT COUNT(*) AS cnt FROM call_logs").get() as { cnt: number };
+    assert.equal(after.cnt, 100);
+  }
+);
+
+test(
+  "trimCallLogsToMaxRows deletes artifacts across large chunked batches",
+  () => {
+    if (!CALL_LOGS_DIR) {
+      throw new Error("CALL_LOGS_DIR should be set for this test");
+    }
+
+    fs.rmSync(CALL_LOGS_DIR, { recursive: true, force: true });
+    fs.mkdirSync(CALL_LOGS_DIR, { recursive: true });
+
+    for (let i = 0; i < 950; i += 1) {
+      const relPath = `2026-04-03/${String(i).padStart(6, "0")}_artifact.json`;
+      insertCallLogWithArtifact(
+        {
+          id: `artifact-${i}`,
+          timestamp: new Date(Date.now() - i * 1000).toISOString(),
+          detail_state: "ready",
+        },
+        relPath
+      );
+    }
+
+    const before = core
+      .getDbInstance()
+      .prepare("SELECT COUNT(*) AS cnt FROM call_logs")
+      .get() as { cnt: number };
+    assert.equal(before.cnt, 950);
+
+    const existingArtifacts = fs.readdirSync(path.join(CALL_LOGS_DIR, "2026-04-03"));
+    assert.equal(existingArtifacts.length, 950);
+
+    let result = { deletedRows: 0, deletedArtifacts: 0 };
+    assert.doesNotThrow(() => {
+      result = trimCallLogsToMaxRows(50);
+    });
+
+    assert.equal(result.deletedRows, 900);
+    assert.equal(result.deletedArtifacts, 900);
+
+    const after = core
+      .getDbInstance()
+      .prepare("SELECT COUNT(*) AS cnt FROM call_logs")
+      .get() as { cnt: number };
+    assert.equal(after.cnt, 50);
+
+    const remainingArtifacts = fs.readdirSync(path.join(CALL_LOGS_DIR, "2026-04-03"));
+    assert.equal(remainingArtifacts.length, 50);
+  }
+);

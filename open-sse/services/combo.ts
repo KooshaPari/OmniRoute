@@ -3830,7 +3830,7 @@ export async function handleComboChat({
             ? Math.min(cooldownMs, fallbackDelayMs)
             : 0;
         if ([502, 503, 504].includes(result.status) && fallbackWaitMs > 0) {
-          log.debug?.("COMBO", `Waiting ${fallbackWaitMs}ms before fallback to next model`);
+          (log.debug ?? log.info)("COMBO", `Waiting ${fallbackWaitMs}ms before fallback to next model`);
           await new Promise((resolve) => {
             const timer = setTimeout(resolve, fallbackWaitMs);
             signal?.addEventListener(
@@ -4356,7 +4356,7 @@ async function handleRoundRobinCombo({
             ? Math.min(cooldownMs, fallbackDelayMs)
             : 0;
         if ([502, 503, 504].includes(result.status) && fallbackWaitMs > 0) {
-          log.debug?.("COMBO-RR", `Waiting ${fallbackWaitMs}ms before fallback to next model`);
+          (log.debug ?? log.info)("COMBO-RR", `Waiting ${fallbackWaitMs}ms before fallback to next model`);
           await new Promise((resolve) => {
             const timer = setTimeout(resolve, fallbackWaitMs);
             signal?.addEventListener(

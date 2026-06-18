@@ -144,7 +144,7 @@ test("pii masker guardrail redacts request and response payloads", async () => {
           {
             message: {
               role: "assistant",
-              content: "CPF 123.456.789-00 confirmado",
+              content: "CPF 529.982.247-25 confirmado",
             },
           },
         ],

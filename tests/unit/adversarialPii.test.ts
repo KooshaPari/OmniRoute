@@ -74,6 +74,8 @@ test("Adversarial Tests", async (t) => {
   });
 
   await t.test("block mode actually throws", async () => {
+    const originalMode = process.env.PII_RESPONSE_SANITIZATION_MODE;
+    const originalEnabled = process.env.PII_RESPONSE_SANITIZATION;
     process.env.PII_RESPONSE_SANITIZATION_MODE = "block";
     process.env.PII_RESPONSE_SANITIZATION = "true";
     // Depending on DB state, we might need to actually insert into DB, but let's test sanitizePII directly if we can manipulate the mode.
@@ -86,8 +88,16 @@ test("Adversarial Tests", async (t) => {
     } catch (err: any) {
       assert.match(err.message, /Blocked response/);
     } finally {
-      delete process.env.PII_RESPONSE_SANITIZATION_MODE;
-      delete process.env.PII_RESPONSE_SANITIZATION;
+      if (originalMode === undefined) {
+        delete process.env.PII_RESPONSE_SANITIZATION_MODE;
+      } else {
+        process.env.PII_RESPONSE_SANITIZATION_MODE = originalMode;
+      }
+      if (originalEnabled === undefined) {
+        delete process.env.PII_RESPONSE_SANITIZATION;
+      } else {
+        process.env.PII_RESPONSE_SANITIZATION = originalEnabled;
+      }
     }
   });
   await t.test("premature redaction is prevented for variable-length PII in streaming", async () => {
