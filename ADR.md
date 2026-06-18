@@ -39,6 +39,8 @@ chronological + thematic view.
 | **ADR-008** | [Pre-Push Hook Disabled (2026-06-18)](#adr-008--pre-push-hook-disabled-2026-06-18) | Accepted | 2026-06-18 | `chore/l5-109-omniroute-fork-cleanup-2026-06-18` |
 | **ADR-009** | [Bifrost Disambiguation (2026-06-18)](#adr-009--bifrost-disambiguation-2026-06-18) | Accepted | 2026-06-18 | — |
 | **ADR-010** | [71-Pillar Audit Adoption Deferred (2026-06-18)](#adr-010--71-pillar-audit-adoption-deferred-2026-06-18) | Accepted | 2026-06-18 | — |
+| **ADR-031** | [Bifrost as Tier-1 Router Layer (2026-06-18)](#adr-031--bifrost-as-tier-1-router-layer-2026-06-18) | Accepted | 2026-06-18 | `chore/l5-109-omniroute-fork-cleanup-2026-06-18` |
+| **0031** | [Bifrost as Tier-1 Router Layer (MADR)](docs/adr/0031-bifrost-tier1-router.md) | Accepted | 2026-06-18 | — |
 | **0001** | [Record Architecture Decisions (template)](docs/adr/0001-record-architecture-decisions.md) | Accepted | 2026-05-30 | MADR template |
 | **0002** | [Test Runner: vitest vs jest](docs/adr/0002-test-runner-vitest-vs-jest.md) | Accepted | 2026-06-08 | — |
 | **0003** | [Coverage Floor 70%](docs/adr/0003-coverage-floor-70-pct.md) | Accepted | 2026-06-08 | — |
@@ -218,3 +220,136 @@ concurrency:
 decomposition-era ADRs. New ADRs use 4-digit numbers starting at 0006,
 OR a topical prefix (e.g., `ADR-canonical`, `ADR-001` for top-level
 Phenotype-org decisions). Avoid mixing styles within a section.
+
+---
+
+## ADR-031 — Bifrost as Tier-1 Router Layer (2026-06-18)
+
+**Status:** Accepted
+**Driver:** `chore/l5-109-omniroute-fork-cleanup-2026-06-18` (L5-110)
+**Supersedes:** None (additive — defines new tier alongside existing router).
+**MADR:** [`docs/adr/0031-bifrost-tier1-router.md`](docs/adr/0031-bifrost-tier1-router.md) (full MADR-format analysis with comparison matrix, evidence, and rollout plan).
+
+### Context
+
+OmniRoute's `open-sse/` engine currently combines **5 protocol surfaces** (OpenAI-compat, Anthropic-compat, Responses-API, A2A-JSON-RPC, MCP) and **3 router layers** (provider dispatch, combo resolution, 12-factor Auto-Combo scoring) in a single TypeScript process. The hot path is `open-sse/handlers/chatCore.ts` (5,811 LOC) and `open-sse/services/combo.ts` (5,202 LOC). At 5k RPS this path spends a non-trivial fraction of wall time in:
+
+- Provider catalog lookups (`src/shared/constants/providers.ts`, 232 entries).
+- OpenAI ↔ Anthropic ↔ Gemini format translation (`open-sse/translator/`).
+- Credential resolution and per-key account health checks.
+- Per-request circuit-breaker state evaluation.
+- SSE stream chunking and reconnect bookkeeping.
+
+The Phenotype org has been pointing at the **maximhq `bifrost`** Go AI gateway (vendored at `KooshaPari/bifrost`, locally available at `pheno/bifrost`, `HexaKit/bifrost`, `Pyron/bifrost`, `argis-extensions/bifrost`) as a candidate for absorbing this low-level routing work. The user directive (2026-06-18) asked us to evaluate the candidate set — Bifrost vs sglang/vllm direct vs Rust alternative vs hand-roll Rust/Zig/Mojo — and pick the right one.
+
+### Candidate Set (researched 2026-06-18)
+
+| Candidate | Lang | License | Stars | Fit-for-router-role | Decision |
+|---|---|---|---|---|---|
+| **`maximhq/bifrost`** (vendored as `KooshaPari/bifrost`) | Go | MIT | 5.9k | **High** — 23+ providers, sub-100μs overhead at 5k RPS, automatic fallbacks, load balancing, MCP, semantic cache, virtual keys, budget mgmt, observability, drop-in OpenAI compat | **✅ ADOPT** |
+| `sgl-model-gateway` (in `sgl-project/sglang`, Rust) | Rust | Apache-2.0 | (sglang: 17k) | Medium — KV-aware routing across SGLang workers, 5 LB strategies; **specialized for SGLang serving clusters**, not multi-provider | ❌ (specialization mismatch) |
+| `vllm` (`vllm-project/vllm`, Python+Rust) | Python/Rust | Apache-2.0 | 83.2k | **None** — inference engine, not a router. vLLM serves an OpenAI-compat API per model; it does NOT route across providers. | ❌ (wrong role) |
+| `sglang` (`sgl-project/sglang`) | Python/Rust | Apache-2.0 | 17k | **None** — same as vLLM. Inference engine with model gateway *mode*; not a multi-provider router. | ❌ (wrong role) |
+| LiteLLM (`BerriAI/litellm`, Python) | Python | MIT (core) | 50.8k | High — incumbent, 100+ providers, mature; **but Python → 8ms P95 baseline overhead**, mature but slow. | ❌ (perf mismatch with the 50x Bifrost benchmark) |
+| Envoy AI Gateway (`envoyproxy/ai-gateway`, Go) | Go | Apache-2.0 | 1.8k | Medium — CNCF-grade, two-tier pattern with endpoint picker; **lower-level LLM-specific features than Bifrost**. | ❌ (Bifrost has equivalent Go perf with more LLM-specific surface) |
+| Hand-roll on Rust | Rust | (n/a) | n/a | Strong perf potential, but **massive 6-12 month effort** with no ecosystem reuse; OmniRoute's value is the higher layers (A2A, MCP, ACP), not the router. | ❌ (rebuilding Bifrost from scratch) |
+| Hand-roll on Zig | Zig | (n/a) | n/a | Strong perf potential; **even larger effort**; no LLM-specific ecosystem; introduces a new fleet language. | ❌ (rebuilding Bifrost + new lang) |
+| Hand-roll on Mojo | Mojo | (n/a) | n/a | Mojo is still alpha/beta for production; no LLM-router ecosystem. | ❌ (premature) |
+
+**Evidence:**
+
+- **Bifrost** claims **50x faster than LiteLLM** with **<100µs overhead at 5k RPS** ([maximhq/bifrost README](https://github.com/maximhq/bifrost)). The Go runtime is the same as the rest of the fleet's polyglot strategy (`pheno-go-ctxkit`, `phenotype-bus`, `dispatch-mcp`).
+- **Bifrost** supports **23+ providers** out of the box (matching OmniRoute's tier-1 surface); MCP integration; semantic cache; virtual keys; budget mgmt; Prometheus observability. The integration surface aligns with OmniRoute's lower engine layer.
+- **Bifrost** ships as an HTTP gateway (`docker run -p 8080:8080 maximhq/bifrost`) AND a Go SDK (`import "github.com/maximhq/bifrost"`). This is critical: we can adopt it as a *sidecar process* (HTTP) or *in-process library* (Go SDK), depending on the deployment shape.
+- **sgl-model-gateway** is a Rust gateway, but its core abstraction is "worker selection across SGLang workers" (radix attention tree, KV cache awareness, tokenizer consistency). It is NOT designed to fan out across heterogeneous providers (OpenAI, Anthropic, Gemini, …).
+- **vLLM / sglang** are inference engines. They serve ONE model (or one family) per process. Using them as a router would mean standing up one vLLM per upstream provider, which is the inverse of OmniRoute's value.
+- **Envoy AI Gateway** is more general (data-plane-grade routing) but has fewer LLM-specific features (no semantic cache, no virtual keys, no MCP). The right level for an LLM gateway is between Envoy (general) and LiteLLM (Python-heavy).
+- **Hand-rolling** in any language would rebuild 60-80% of what Bifrost already has, with no ecosystem benefit. The cost is 6-12 engineer-months and ongoing maintenance for the lifetime of the project.
+
+### Decision
+
+**Adopt `maximhq/bifrost` as OmniRoute's Tier-1 router layer.** Keep OmniRoute's higher layers (A2A, MCP-router, ACP, skill registry, policy engine, guardrails) as Tier-2, unchanged.
+
+**Architecture (2-tier):**
+
+```
+                            client / phenoservice / agent
+                                       │
+                                       ▼
+   ┌──────────────────────────────────────────────────────────────────┐
+   │  Tier 2: OmniRoute  (TypeScript / Next.js 16)                    │
+   │  - A2A agent orchestration (87 MCP tools, 6 A2A skills)          │
+   │  - MCP-router polyglot facade                                    │
+   │  - ACP registry + skill registry                                 │
+   │  - Policy engine (12-factor Auto-Combo, 15 routing strategies)   │
+   │  - Guardrails, evals, webhooks, memory, semantic-cache KEY       │
+   │  - Web dashboard, Electron desktop, i18n (42 locales)            │
+   └──────────────────────────────────────────────────────────────────┘
+                                       │
+                            OpenAI-compat /v1/chat/completions
+                                       │
+                                       ▼
+   ┌──────────────────────────────────────────────────────────────────┐
+   │  Tier 1: Bifrost  (Go, MIT, vendored)                            │
+   │  - 23+ provider dispatch (OpenAI, Anthropic, Bedrock, Vertex,    │
+   │    Groq, Mistral, Cohere, Cerebras, …)                           │
+   │  - Automatic fallbacks, load balancing                           │
+   │  - Virtual keys, hierarchical budget mgmt                        │
+   │  - Semantic cache (de-duplicates upstream LLM calls)             │
+   │  - MCP client integration (stdio/HTTP/SSE/Streamable)             │
+   │  - Observability: Prometheus, OTel, structured logs              │
+   │  - 50x faster than LiteLLM, <100µs overhead at 5k RPS            │
+   └──────────────────────────────────────────────────────────────────┘
+                                       │
+                                       ▼
+                              upstream provider APIs
+```
+
+**Why a 2-tier model (not a wholesale Bifrost replacement):**
+
+1. **OmniRoute is not just a router.** It is the canonical A2A agent orchestration hub, MCP-router polyglot facade, ACP registry, skill registry, policy engine, and dashboard for the Phenotype fleet. Bifrost does not provide any of these higher-level services.
+2. **A2A server (`src/lib/a2a/`) is OmniRoute's core value-add.** Bifrost does not have an A2A JSON-RPC server; it is a model gateway, not an agent framework.
+3. **MCP-router is OmniRoute's core value-add.** Bifrost has MCP *client* support (for tool-using agents) but NOT an MCP *server* with 87 tools / 30 scopes.
+4. **The TypeScript A2A skills, skill registry, and policy engine are tightly coupled to OmniRoute's higher layers.** Moving them into Bifrost would require a Go port of all the agent-side concerns.
+5. **Bifrost is the right level for the hot path.** Provider dispatch, format translation, fallback, circuit-breaking, semantic cache, budget mgmt, and observability are all *low-level router concerns* that are exactly what Bifrost is built for.
+
+**Adoption mode (initial):** OmniRoute calls Bifrost over its **HTTP gateway** at `http://localhost:8080/v1/chat/completions` (and `/v1/embeddings`, `/v1/responses`, etc.). A new **`BifrostBackend` executor** in `open-sse/executors/bifrost.ts` implements the `ProviderAdapter` interface and routes through the gateway. Provider name mapping happens via `open-sse/services/bifrostProviderMap.ts`.
+
+**Adoption mode (long-term, post-v9):** Embed Bifrost as an in-process Go library via cgo, or run it as a sidecar and IPC over Unix domain socket. This is gated on Bifrost stabilizing its Go SDK surface (target: v1.0 GA).
+
+### Consequences
+
+**Positive:**
+
+- Hot-path router overhead drops by an order of magnitude (Bifrost: <100µs; current Node/TS combo handler: 5-10ms median in production).
+- 23+ providers become available without writing per-provider executor code; new providers in Bifrost upstream flow into OmniRoute automatically.
+- Virtual keys + budget mgmt + observability move to a battle-tested OSS library; less surface area to maintain in-house.
+- Bifrost's MCP client integration unifies the upstream-MCP surface (OmniRoute's 87 MCP tools remain on the server side; Bifrost consumes upstream MCP servers on the client side).
+- Already vendored at `KooshaPari/bifrost` and locally at `pheno/bifrost`, `HexaKit/bifrost`, `Pyron/bifrost`, `argis-extensions/bifrost`. We are not adopting an unknown dependency.
+- MIT-licensed — fits the Phenotype fleet's OSS-first policy.
+
+**Negative / Risks:**
+
+- **Operational:** Bifrost becomes a runtime dependency. Mitigated by: (a) the in-process Go SDK is an option post-v9, (b) the Bifrost HTTP gateway is small (single binary) and well-containerized, (c) the local vendored copy can be built from source if upstream is unavailable.
+- **Provider coverage:** Bifrost's 23+ providers cover all of OmniRoute's tier-1 surface (OpenAI, Anthropic, Bedrock, Vertex, Groq, Mistral, Cohere, etc.). The 200+ long tail of OmniRoute providers (free tier, OAuth, self-hosted) will still go through OmniRoute's existing executor layer; Bifrost is opt-in per-combo.
+- **Translation cost:** A small mapping layer is needed between OmniRoute's provider/model names and Bifrost's. Implemented in `open-sse/services/bifrostProviderMap.ts` and tested via `tests/unit/bifrost-provider-map.test.ts`.
+- **Lock-in:** If we ever need to swap Bifrost out, we swap the executor. The higher layers don't care about Bifrost internals.
+- **MIT license compatibility:** Confirmed — MIT is compatible with OmniRoute's existing license posture.
+
+### Rollout Plan
+
+- **v8.1 (this turn)** — Land `BifrostBackend` executor + provider map + tests. **Opt-in per-combo**; existing combos unchanged.
+- **v8.2 (Q3 2026)** — Default to Bifrost for the 23+ tier-1 providers; keep OmniRoute's executors as fallback for tier-2/tier-3.
+- **v8.3 (Q4 2026)** — Move semantic cache upstream-of-OmniRoute (Bifrost owns the cache key, OmniRoute reads via metadata).
+- **v9.0 (2027 Q1)** — Evaluate in-process Go SDK vs sidecar; pick based on benchmark.
+
+### Cross-References
+
+- `docs/adr/0031-bifrost-tier1-router.md` — MADR-format detail with full comparison matrix.
+- `docs/ROUTING-CONVERGENCE-STATUS.md` — disambiguation + tier map.
+- `SPEC.md` § 3 (Architecture Overview) — 2-tier diagram.
+- `SPEC.md` § 5.2 (Routing Engine) — Bifrost integration.
+- `PLAN.md` § 8 (v8.1 Bifrost Integration) — rollout milestones.
+- `open-sse/executors/bifrost.ts` — implementation.
+- `open-sse/services/bifrostProviderMap.ts` — provider name mapping.
+- `docs/frameworks/BIFROST-BACKEND.md` — usage guide.

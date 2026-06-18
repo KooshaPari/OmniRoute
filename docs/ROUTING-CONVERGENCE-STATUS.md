@@ -108,6 +108,41 @@ migration.
 
 ---
 
+## Tier-1 / Tier-2 Router Split (ADR-031, 2026-06-18)
+
+OmniRoute's underlying Tier-1 router infrastructure is **migrating** to
+`maximhq/bifrost` (Go, MIT). The split:
+
+| Tier | Owner | Responsibility |
+|------|-------|----------------|
+| **Tier-1 router** | `KooshaPari/bifrost` (vendored fork of `maximhq/bifrost`) | 23+ provider dispatch, format translation, fallback, load balancing, virtual keys, budget mgmt, semantic cache, MCP client, observability. **All hot-path / provider-mesh concerns.** |
+| **Tier-2 engine** | `OmniRoute` (this repo) | A2A agent orchestration, MCP-router polyglot facade, ACP registry, skill registry, policy engine, guardrails, dashboard. **All higher-level value-add concerns.** |
+
+**Why Bifrost?** Per `docs/adr/0031-bifrost-tier1-router.md`:
+- ~6k LOC Go vs LiteLLM's ~100k LOC Python.
+- Native MCP client + virtual keys + budget mgmt built-in (we'd re-implement in 2+ months otherwise).
+- 100% upstream-compatible OpenAI API surface (no OmniRoute fork needed).
+- MIT license (no enterprise tier required).
+- Active maintainer (`maximhq`) — last commit < 30 days at decision time.
+
+**Why not LiteLLM?** Same surface area, but Python is too slow for the hot path; 232/400 provider surface is excess inventory that we'd have to maintain a denylist for.
+
+**Why not sglang-router / vllm?** Inference-engine routing, not LLM-API routing. Only valuable if we self-host large models. Deferred to v9 pending demand signal.
+
+**Why not hand-rolled Rust / Zig / Mojo?** 6+ months dev to match Bifrost feature parity. Not justified unless Bifrost is abandoned upstream.
+
+**Drop-in swap strategy**:
+- Phase 1 (B1–B3, this turn): vendor Bifrost, add `BifrostBackend` executor + provider map (backwards-compat default = current `open-sse/handlers/chatCore.ts`).
+- Phase 2 (B4–B5, Q3 2026): add `bifrostModels` SQL table + virtual-key UI.
+- Phase 3 (B6, Q3 2026): traffic shadow (5% → 25% → 100% over 14 days).
+- Phase 4 (B7–B9, Q4 2026): full migration playbook + Bifrost MCP client integration + kill switch.
+
+**Decision review**: 30 days post-Phase-3 (compare p99, error rate, cost vs current); 90 days post-Phase-3 (commit long-term or fork-and-modify).
+
+This split means **`KooshaPari/bifrost` is no longer "parked"** — it's the Tier-1 router that OmniRoute consumes. Convergence verdict above is updated: keep vendored fork active (do not archive; do not replace with thin adapter).
+
+---
+
 ## How to Update This Doc
 
 1. Update the **Cluster Members & Convergence Verdict** table when a

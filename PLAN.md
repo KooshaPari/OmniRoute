@@ -108,6 +108,47 @@
 
 ---
 
+## 2.5 v8.1 — Bifrost Tier-1 Router Integration (added 2026-06-18, ADR-031)
+
+> **Decision (ADR-031)**: adopt `maximhq/bifrost` (Go, MIT, 23+ providers) as the
+> Tier-1 router that absorbs provider dispatch, fallback, load balancing,
+> virtual keys, budget management, semantic cache, and observability. OmniRoute
+> becomes the Tier-2 engine on top, focused on A2A / MCP-router / ACP / skills /
+> policy / guardrails / dashboard. See [`docs/adr/0031-bifrost-tier1-router.md`](docs/adr/0031-bifrost-tier1-router.md)
+> for the full comparison matrix.
+
+### 2.5.1 Why Bifrost (and not LiteLLM, sglang-router, hand-rolled Zig/Mojo)
+
+| Candidate | Verdict | Reason |
+|---|---|---|
+| **`maximhq/bifrost`** (Go) | **SELECTED** | 23+ providers, MCP client, virtual keys, budget mgmt, semantic cache, OpenAI-compat API. 100% upstream-compatible (no OmniRoute fork needed). MIT. ~6k LOC vs LiteLLM ~100k. |
+| `BerriAI/litellm` (Python) | rejected | Same surface as Bifrost, but Python is too slow for the hot path (p99 spike under load). We already virtualized provider surface — 232 providers out of ~400 in LiteLLM are excess inventory. |
+| `sglang-router` / `vllm` | rejected (deferred to v9) | Inference engine routing, not LLM-API routing. Only useful if OmniRoute self-hosts large open-source models. No demand signal in current call patterns. |
+| `haproxy`/`envoy` | rejected | Generic L4/L7, no provider semantics. Would require us to re-implement the entire dispatch layer. |
+| Hand-rolled Rust | rejected (deferred to v9) | 6+ months of dev to match Bifrost's feature parity. Only worth it if Bifrost is abandoned upstream. |
+| Hand-rolled Zig/Mojo | rejected | Mojo too immature (alpha); Zig is a systems language with no ecosystem for HTTP/JSON providers. Not justified. |
+
+### 2.5.2 v8.1 Task Track (B1–B9)
+
+| ID | Task | Owner | Effort | Status |
+|---|---|---|---|---|
+| **B1** | Pick canonical Bifrost copy (3 vendored; see `docs/adr/0031-bifrost-tier1-router.md` §6) | core | S | 🔄 this turn |
+| **B2** | `open-sse/executors/bifrost.ts` — `BifrostBackend` executor (Tier-2 surface) | core | S | ✅ this PR |
+| **B3** | `bifrostProviderMap.ts` — OmniRoute→Bifrost name translation (232 → 23+ mapping) | core | S | ✅ this PR |
+| **B4** | `bifrostModels` SQL table + migration (cache Bifrost's model catalog locally) | data | S | ☐ Q3 |
+| **B5** | Virtual-key minting UI + cost-tracking integration | dashboard | M | ☐ Q3 |
+| **B6** | Drop-in swap: traffic-shadow mode (5% → 25% → 100% over 14 days) | ops | M | ☐ Q3 |
+| **B7** | Migration playbook (`docs/operations/bifrost-migration.md`) | ops | S | ☐ Q3 |
+| **B8** | Bifrost MCP client integration (use Bifrost as upstream MCP source for OmniRoute's MCP-router) | mcp | M | ☐ Q4 |
+| **B9** | Kill switch: keep OmniRoute's `open-sse/` engine as fallback if Bifrost fails SLOs for 7 days | core | S | 🔄 spec only |
+
+### 2.5.3 Decision review schedule
+
+- **30 days post-launch**: compare p99 latency, error rate, cost between Bifrost and current `open-sse/handlers/chatCore.ts`. If Bifrost underperforms by >20% on any axis, revert B6 and re-evaluate.
+- **90 days post-launch**: decide whether to commit to Bifrost long-term (would require a 1-year SLT agreement with `maximhq`) or fork-and-modify.
+
+---
+
 ## 3. v8 → v9 Backlog (Q4 2026 → Q1 2027)
 
 > Each item below maps to a SPEC.md § 16 open question. Effort is

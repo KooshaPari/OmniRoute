@@ -11,7 +11,7 @@ aliases: []
 role: unknown
 status: active
 last_verified: 2026-06-17
-bound_prompts: 26
+bound_prompts: 589
 bound_plans: 2
 bound_responses: 0
 device: macbook
@@ -21,38 +21,64 @@ device: macbook
 
 ## Intent Statement
 
-<To be filled in by hand from the most recent binding prompt. This repo is bound to 26 prompts, 2 plans, and 0 agent responses captured between 2025-08 and 2026-06-17.>
+<To be filled in by hand from the most recent binding prompt. This repo is bound to 589 prompts, 2 plans, and 0 agent responses captured between 2025-08 and 2026-06-17.>
 
 ## Bound Prompts
 
 | Date | Source | File | Tag |
 | ---- | ------ | ---- | --- |
-| ? | claude-code | `docs/curated-prompts/claude-code/unknown/a699deded1d8a0d3.md` | bugfix |
-| ? | claude-code | `docs/curated-prompts/claude-code/unknown/acfb1286157532c3.md` | policy-setting |
+| ? | claude-code | `docs/curated-prompts/claude-code/unknown/009ac2acfb4c1296.md` | policy-setting |
+| ? | claude-code | `docs/curated-prompts/claude-code/unknown/00e6abf8b2d941ce.md` | policy-setting |
 | ? | claude-code | `docs/curated-prompts/claude-code/unknown/00eb9f946c96c869.md` | policy-setting |
-| ? | claude-code | `docs/curated-prompts/claude-code/unknown/3fff5534f007b5bb.md` | policy-setting |
-| 2026-06-04 | codex | `docs/curated-prompts/codex/2026-06/e516eb099f981068.md` | narrative |
-| 2026-06-04 | codex | `docs/curated-prompts/codex/2026-06/368f26f65b7b23ba.md` | narrative |
-| 2026-06-04 | codex | `docs/curated-prompts/codex/2026-06/70858df62fa278d4.md` | narrative |
-| ? | ? | `88723b00ed22b4ed.md` (not rendered) | ? |
-| ? | ? | `cd2f944554a2fafb.md` (not rendered) | ? |
-| ? | ? | `8c6a0a8b042f8127.md` (not rendered) | ? |
-| ? | ? | `1b278060cb29b04c.md` (not rendered) | ? |
-| ? | ? | `5813c26c02de46b7.md` (not rendered) | ? |
-| ? | ? | `9b6f89dec89ee8ff.md` (not rendered) | ? |
-| ? | ? | `b2edae815bdfa42c.md` (not rendered) | ? |
-| ? | ? | `8fdadc225df41b3c.md` (not rendered) | ? |
-| ? | ? | `25f7e654d44f5995.md` (not rendered) | ? |
-| ? | ? | `4d23d382aad3e52f.md` (not rendered) | ? |
-| ? | ? | `0280eccc940f76e2.md` (not rendered) | ? |
-| ? | ? | `75b496b989bb5a84.md` (not rendered) | ? |
-| ? | ? | `f10f174f7c6ff5a6.md` (not rendered) | ? |
-| ? | ? | `5ed54c453ac9931c.md` (not rendered) | ? |
-| ? | ? | `7bcf15db2ee29b24.md` (not rendered) | ? |
-| ? | ? | `82d553517e6a58f8.md` (not rendered) | ? |
-| ? | ? | `10c27e784fd9ff60.md` (not rendered) | ? |
-| ? | ? | `eb39cc563d7c680f.md` (not rendered) | ? |
-| ? | ? | `cafff24c5a6ea7d9.md` (not rendered) | ? |
+| ? | claude-code | `docs/curated-prompts/claude-code/unknown/01047aa8b26cef35.md` | narrative |
+| ? | claude-code | `docs/curated-prompts/claude-code/unknown/011c46d32d93f6a4.md` | narrative |
+| ? | claude-code | `docs/curated-prompts/claude-code/unknown/01228253e28d165f.md` | implementation |
+| ? | claude-code | `docs/curated-prompts/claude-code/unknown/016a7f243843c30d.md` | repo-defining |
+| ? | claude-code | `docs/curated-prompts/claude-code/unknown/01944a940b2106f3.md` | policy-setting |
+| ? | claude-code | `docs/curated-prompts/claude-code/unknown/01ac0b679e3c38db.md` | narrative |
+| ? | claude-code | `docs/curated-prompts/claude-code/unknown/032f507f04f5b063.md` | bugfix |
+| ? | claude-code | `docs/curated-prompts/claude-code/unknown/04ca1b868da71c7a.md` | narrative |
+| ? | claude-code | `docs/curated-prompts/claude-code/unknown/0513e25dfa544114.md` | implementation |
+| ? | claude-code | `docs/curated-prompts/claude-code/unknown/056b1c2cbf928987.md` | narrative |
+| ? | claude-code | `docs/curated-prompts/claude-code/unknown/05fe878756617465.md` | implementation |
+| ? | claude-code | `docs/curated-prompts/claude-code/unknown/0646f6f9078def94.md` | implementation |
+| ? | claude-code | `docs/curated-prompts/claude-code/unknown/06bf420939d054ac.md` | narrative |
+| ? | claude-code | `docs/curated-prompts/claude-code/unknown/06e3f82043b771c3.md` | implementation |
+| ? | claude-code | `docs/curated-prompts/claude-code/unknown/07604cb1697751ba.md` | repo-defining |
+| ? | claude-code | `docs/curated-prompts/claude-code/unknown/082d87b930a498cc.md` | implementation |
+| ? | claude-code | `docs/curated-prompts/claude-code/unknown/08339749de22fcff.md` | implementation |
+| ? | claude-code | `docs/curated-prompts/claude-code/unknown/0881a0a8137a9e6b.md` | implementation |
+| ? | claude-code | `docs/curated-prompts/claude-code/unknown/088824a1d8939056.md` | bugfix |
+| ? | claude-code | `docs/curated-prompts/claude-code/unknown/09154fa539d595c6.md` | narrative |
+| ? | claude-code | `docs/curated-prompts/claude-code/unknown/093a8fb2613c00e2.md` | narrative |
+| ? | claude-code | `docs/curated-prompts/claude-code/unknown/0a3ba72d56c57dbd.md` | implementation |
+| ? | claude-code | `docs/curated-prompts/claude-code/unknown/0b0fc4f685dca924.md` | policy-setting |
+| ? | claude-code | `docs/curated-prompts/claude-code/unknown/0b34b36d1bf3310f.md` | implementation |
+| ? | claude-code | `docs/curated-prompts/claude-code/unknown/0c353c5a8398de43.md` | narrative |
+| ? | claude-code | `docs/curated-prompts/claude-code/unknown/0c3cf6301b6a84a3.md` | policy-setting |
+| ? | claude-code | `docs/curated-prompts/claude-code/unknown/0ca43c4c334c32b9.md` | narrative |
+| ? | claude-code | `docs/curated-prompts/claude-code/unknown/0cd93451845b7b2b.md` | policy-setting |
+| ? | claude-code | `docs/curated-prompts/claude-code/unknown/0d04429592f3da5d.md` | implementation |
+| ? | claude-code | `docs/curated-prompts/claude-code/unknown/0d6796182c1440d5.md` | narrative |
+| ? | claude-code | `docs/curated-prompts/claude-code/unknown/0d8e36b3947c44e5.md` | implementation |
+| ? | claude-code | `docs/curated-prompts/claude-code/unknown/0da1adc40a1f8df1.md` | implementation |
+| ? | claude-code | `docs/curated-prompts/claude-code/unknown/0e9977970de4bb6f.md` | implementation |
+| ? | claude-code | `docs/curated-prompts/claude-code/unknown/0f2c12655d2c272c.md` | implementation |
+| ? | claude-code | `docs/curated-prompts/claude-code/unknown/0f3b0a60dae32b01.md` | narrative |
+| ? | claude-code | `docs/curated-prompts/claude-code/unknown/10a43db1cb579705.md` | narrative |
+| ? | claude-code | `docs/curated-prompts/claude-code/unknown/1209ef5b26507bcb.md` | implementation |
+| ? | claude-code | `docs/curated-prompts/claude-code/unknown/13e92b51b0b0827d.md` | policy-setting |
+| ? | claude-code | `docs/curated-prompts/claude-code/unknown/13eef75f7d848b72.md` | narrative |
+| ? | claude-code | `docs/curated-prompts/claude-code/unknown/14f3a3488a7f2da2.md` | repo-defining |
+| ? | claude-code | `docs/curated-prompts/claude-code/unknown/1559e755a47e820e.md` | policy-setting |
+| ? | claude-code | `docs/curated-prompts/claude-code/unknown/155acfeb8ec6aeb0.md` | policy-setting |
+| ? | claude-code | `docs/curated-prompts/claude-code/unknown/168ff134749ab9b0.md` | implementation |
+| ? | claude-code | `docs/curated-prompts/claude-code/unknown/16adbea112551a8a.md` | narrative |
+| ? | claude-code | `docs/curated-prompts/claude-code/unknown/172bbf7ebffd53f3.md` | narrative |
+| ? | claude-code | `docs/curated-prompts/claude-code/unknown/17df79a168fa5017.md` | narrative |
+| ? | claude-code | `docs/curated-prompts/claude-code/unknown/1859046c40d5c539.md` | implementation |
+
+_…and 539 more. See `_bindings.json` for full list._
 
 ## Bound Plans
 

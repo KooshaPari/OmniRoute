@@ -54,6 +54,16 @@ operators (dashboard, webhooks, evals)."*
 
 ## 3. Architecture Overview
 
+> **v8.1 update (2026-06-18, ADR-031):** OmniRoute is now a **2-tier
+> architecture**. The **Tier-1 router** is the `maximhq/bifrost` Go AI gateway
+> (vendored at `KooshaPari/bifrost`), which absorbs provider dispatch, format
+> translation, fallback, load balancing, semantic cache, virtual keys, budget
+> mgmt, and observability. **Tier-2** is OmniRoute's TypeScript engine, which
+> adds the higher-level value: A2A agent orchestration, MCP-router polyglot
+> facade, ACP registry, skill registry, policy engine, guardrails, dashboard.
+> See [`docs/adr/0031-bifrost-tier1-router.md`](docs/adr/0031-bifrost-tier1-router.md)
+> for the full comparison matrix and rationale.
+
 ```
                            ┌─────────────────────────────────────────────┐
    client / phenoservice ──│  OpenAI-compat API  (Next.js App Router)     │
@@ -62,23 +72,29 @@ operators (dashboard, webhooks, evals)."*
                                              │
                                              ▼
                            ┌─────────────────────────────────────────────┐
+                           │  Tier 2: OmniRoute engine                    │
                            │  Authorization pipeline  (classify→policy)  │
-                           │  src/server/authz/                         │
+                           │  open-sse/  handlers/chatCore → combo       │
+                           │  A2A · MCP-router · ACP · skill registry    │
+                           │  policy engine · guardrails · evals         │
                            └─────────────────┬───────────────────────────┘
+                                             │
+                              OpenAI-compat /v1/chat/completions
                                              │
                                              ▼
                            ┌─────────────────────────────────────────────┐
-                           │  open-sse/  (streaming engine workspace)    │
-                           │  handlers/chatCore → combo / cache / ratelmt│
-                           │  → translateRequest → getExecutor()         │
+                           │  Tier 1: Bifrost gateway (Go, MIT)          │
+                           │  23+ provider dispatch · fallback · LB       │
+                           │  virtual keys · budget mgmt · observability │
+                           │  MCP client · semantic cache                │
                            └─────────────────┬───────────────────────────┘
                                              │
                   ┌──────────────────────────┼──────────────────────────┐
                   ▼                          ▼                          ▼
           ┌──────────────┐         ┌──────────────────┐         ┌──────────────┐
-          │  Providers   │         │  Combinators     │         │  Transform   │
-          │  (232)       │         │  (15 strategies) │         │  Responses   │
-          │  executors/  │         │  services/combo  │         │  transformer/│
+          │  Providers   │         │  Bifrost MCP     │         │  Bifrost     │
+          │  (23+ tier1) │         │  client          │         │  semantic    │
+          │  via Bifrost │         │  (upstream MCP)  │         │  cache       │
           └──────┬───────┘         └────────┬─────────┘         └──────┬───────┘
                  │                          │                          │
                  └──────────────────────────┼──────────────────────────┘
