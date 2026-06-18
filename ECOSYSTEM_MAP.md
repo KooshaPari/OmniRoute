@@ -152,12 +152,12 @@ graph TD
 
 > **Reconciled 2026-06-02** to the dom-services-routing convergence ruling (apex-approved) + OmniRoute `docs/ADR-001-canonical-routing.md`. The earlier "phenoAI canonical / archive OmniRoute" claim was STALE and is corrected below.
 
-> **Superseded 2026-06-17 (ADR-ECO-014):** OmniRoute is **interim MVP**; long-term canonical → **phenotype-gateway**. Tokn remains Rust routing substrate. agentapi-plusplus / cliproxyapi-plusplus / bifrost / argis-extensions merge via Wave H branch supersets.
+> **Superseded 2026-06-17 (ADR-ECO-014 gateway charter):** OmniRoute is **app/shell layer** per [ADR-ECO-015](docs/adrs/ADR-ECO-015-hybrid-gateway-app-layer.md); long-term Go planes → **phenotype-gateway**. Tokn remains Rust routing substrate. agentapi-plusplus / cliproxyapi-plusplus / bifrost / argis-extensions merge via Wave H branch supersets.
 
 | Repo | Status | Verdict |
 |------|--------|---------|
 | **phenotype-gateway** | Planned | **CANONICAL** domain owner — agent API + LLM proxy + enterprise gateway + router revamp |
-| **OmniRoute** (TS) | Active (interim) | **Interim MVP** router — feature parity → revamp inside phenotype-gateway |
+| **OmniRoute** (TS) | Active | **App/shell layer** — router UI + desktop client convergence (ADR-ECO-015); router logic may revamp in `packages/router` |
 | **Tokn** — `tokenledger::routing` | Active, Rust | **CANONICAL Rust routing substrate** (hexagonal: `pareto_router`/ports/adapters). Resolve "Rust routing" here, not the dead bifrost-routing stub. |
 | phenoAI (llm-router crate) | Active, Rust workspace | **Consumer / skeleton** — 64-file skeleton, empty README; NOT the canonical router. May consume OmniRoute / Tokn routing. |
 | phenoRouterMonitor | Active, Rust + Streamlit | Monitoring dashboard; **remove its 15 local phenotype-* path-copies, depend on HexaKit** (see dup table). |
