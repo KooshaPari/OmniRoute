@@ -12,12 +12,12 @@ Per `BOUNDARY_OWNERS.md` 5-check gate. **Never delete TestingKit or phenoShared.
 | X-06 | PhenoKits | **ARCHIVED** | `isArchived: true`; phenokits-commons canonical |
 | X-07 | phenotype-runs | **MERGED** | #10 surface-reduction retirement README |
 | X-08 | phenotype-dep-guard | **MERGED** | #54 PolicyStack absorption |
-| X-09 | AuthKit | **HOLD ARCHIVE** | Post-#118 fold; Authvault canonical — archive after consumer scan |
+| X-09 | AuthKit | **ARCHIVED** | BOUNDARY_OWNERS 5/5; AuthKit#118 fold merged; Tracera/thegent verified-clean; `gh repo archive` 2026-06-18 |
 | X-10 | phenoShared | **NO DELETE** | P4 decompose incomplete per ADR-ECO-014 |
 
 ## Actions taken
 
-- No repo deletes executed this session (Metron/AuthKit gates open)
+- AuthKit archived 2026-06-18 (X-09 gate pass); Metron archive gate still open
 - Registry rows updated in disposition-index batch PR
 
 ## Phase 3 stale-tail closeout (2026-06-18)
@@ -27,5 +27,5 @@ Per `BOUNDARY_OWNERS.md` 5-check gate. **Never delete TestingKit or phenoShared.
 | ST-01 | BytePort #201 | **CLOSE BLOCKED** | Repo archived read-only; PR remains OPEN stale |
 | ST-02 | phenotype-omlx #22 | **CLOSE BLOCKED** | Repo archived read-only; ADR-ECO-008 triage: scope exceeds docs/benchmark-only; CI blocked |
 | ST-03 | gw-phenolang | **INDEXED** | [gw-phenolang-branch-index.md](../disposition/gw-phenolang-branch-index.md) — 28 branches triaged |
-| ST-04 | AuthKit X-09 | **HOLD ARCHIVE** | Authvault absorption verified; consumer scan gate open (check 3) |
+| ST-04 | AuthKit X-09 | **ARCHIVED** | 5-check pass; Tracera/thegent repointed; archived 2026-06-18 |
 | ST-05 | McpKit | **DELETE-eligible HOLD** | registry#157 merged; BOUNDARY_OWNERS 5/5; archived, hard delete deferred |
