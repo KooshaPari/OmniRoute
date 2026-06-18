@@ -56,14 +56,28 @@ Plugin plane inside phenotype-gateway `third_party/argis-extensions` → `packag
 
 **Mapped:** 9/9 feature rows have target owners (100% stub → inventory complete).
 
+## Go smoke results (H9 — phenotype-gateway #6)
+
+Smoke infra merged in [phenotype-gateway #6](https://github.com/KooshaPari/phenotype-gateway/pull/6): `scripts/smoke-go.{sh,ps1}`, per-spike `smoke.sh`, Taskfile `smoke` target, CI `smoke-go` matrix (Go 1.23/1.24, `continue-on-error` until fork gates green).
+
+| Plane | Submodule pin | Smoke command | Result | Blocker / notes |
+|-------|---------------|---------------|--------|-----------------|
+| agentapi-plusplus | `7898704` | `go build ./...` | **fail** | `x/acpio`: `*ACPConversation` missing `ClearMessages` — does not implement `screentracker.Conversation` |
+| cliproxyapi-plusplus | `866ca6dd` | `go build ./...` | **fail** | `go.mod` unresolved merge conflict markers at pin |
+| argis-extensions | `2fe3f952` | `go build ./...` | **fail** | missing `github.com/kooshapari/bifrost-extensions/api/graphql/gen`; hatchet module fetch error |
+| bifrost (root) | `f9cec7bb` | `go build ./...` | **pass** (vacuous) | no Go packages at root pin; vendor tag + local-delta build TBD |
+| bifrost/transports | `f9cec7bb` | `go build ./...` | canonical smoke target | `scripts/smoke-go.sh` builds `third_party/bifrost/transports`; spike README defers to vendor pin bump (bifrost #7) |
+
+**Summary:** 1 vacuous pass, 3 fail, 1 deferred (transports). Promotion blocked on fork gate fixes.
+
 ## Spike status (2026-06-18)
 
 | Spike path | Status |
 |------------|--------|
-| `spikes/go/agentapi` | README scaffold (#3); smoke test pending |
-| `spikes/go/cliproxy` | README scaffold (#3); smoke test pending |
-| `spikes/go/bifrost` | README scaffold (#3); `feat/bifrost-local-delta` (#6) |
-| `spikes/go/argis` | README scaffold (#3); smoke **fail** — missing `bifrost-extensions/api/graphql/gen`; hatchet module fetch (2026-06-18) |
+| `spikes/go/agentapi` | README + smoke (#3, #6); **fail** — `ClearMessages` interface |
+| `spikes/go/cliproxy` | README + smoke (#3, #6); **fail** — `go.mod` merge conflict |
+| `spikes/go/bifrost` | README + smoke (#3, #6); root vacuous pass; `feat/bifrost-local-delta` (bifrost #6); vendor pin bifrost #7 |
+| `spikes/go/argis` | README + smoke (#3, #6); **fail** — `bifrost-extensions/api/graphql/gen`; hatchet fetch |
 | `spikes/rust/router` | README scaffold (#3); OmniRoute revamp TBD |
 | `spikes/zig/router` | README scaffold (#3); alt path |
 
@@ -76,5 +90,6 @@ Plugin plane inside phenotype-gateway `third_party/argis-extensions` → `packag
 - [x] Submodule SHAs pinned in phenotype-gateway `third_party/` (#2)
 - [x] Spike README scaffolds in `spikes/{go,rust,zig,mojo}/` (#3)
 - [x] CI scaffold: single checkout + recursive submodules (#5)
-- [x] disposition-index `fsm: done` with PR ref (Wave H gateway batch 2026-06-18 — bifrost#6, phenotype-gateway#2#3#4#5, go-sdk#17, cliproxy#1025#1026)
-- [ ] Spike passes build + smoke test in `spikes/<lang>/` (argis fail logged 2026-06-18)
+- [x] Go smoke infra: scripts + CI matrix + spike smoke stubs (phenotype-gateway #6)
+- [x] disposition-index `fsm: done` with PR ref (Wave H gateway batch 2026-06-18 — bifrost#6, phenotype-gateway#2#3#4#5#6, go-sdk#17, cliproxy#1025#1026)
+- [ ] Spike passes build + smoke test in `spikes/<lang>/` (3/4 forks fail at 2026-06-18 pins — agentapi, cliproxy, argis)

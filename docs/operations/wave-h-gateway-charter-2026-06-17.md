@@ -82,14 +82,26 @@
 | Traceon | PhenoObservability | done |
 | BytePort | phenotype-tooling | done |
 
-## H9 — stash supersede + CI (2026-06-18)
+## H9 — stash supersede + CI + Go smokes (2026-06-18)
 
 | Action | PR | Status |
 |--------|-----|--------|
 | Fix duplicate `actions/checkout` in scaffold workflow | phenotype-gateway #5 | merged |
 | Drop `local-scaffold` stash after supersede | — | done |
 | Submodule shallow init on master (`d1620ce`) | — | done |
-| Go smoke tests (four forks) | — | in progress |
+| Go smoke infra (`scripts/smoke-go.*`, spike `smoke.sh`, Taskfile, CI matrix) | phenotype-gateway #6 | merged |
+| Record smoke results in `GATEWAY_FEATURE_PARITY.md` + disposition-index | phenotype-registry (this PR) | done |
+
+### Go smoke results (phenotype-gateway #6)
+
+| Fork | Pin | Result | Blocker |
+|------|-----|--------|---------|
+| agentapi-plusplus | `7898704` | fail | `ClearMessages` interface mismatch in `x/acpio` |
+| cliproxyapi-plusplus | `866ca6dd` | fail | merge conflict markers in `go.mod` |
+| argis-extensions | `2fe3f952` | fail | missing `bifrost-extensions/api/graphql/gen`; hatchet fetch |
+| bifrost (root) | `f9cec7bb` | pass (vacuous) | no packages at root; transports build deferred to vendor pin (bifrost #7) |
+
+CI runs `smoke-go` with `continue-on-error: true` until fork gates green.
 
 ## Local hygiene
 
