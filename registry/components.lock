@@ -10,8 +10,8 @@
     },
     "HexaKit": {
       "repo": "KooshaPari/HexaKit",
-      "ref": "feat/phase2-e2a-wave-ab-prune",
-      "sha": "faeb7bad7d482cfdf0871583a98b985ac78aa38a"
+      "ref": "main",
+      "sha": "6406acbf54a3a48c0b830653515ef3616f465b43"
     },
     "phenotype-types": {
       "repo": "KooshaPari/phenotype-types",
@@ -41,7 +41,7 @@
     "Authvault": {
       "repo": "KooshaPari/Authvault",
       "ref": "main",
-      "sha": "e80b8b5b78cdddfe079b83eaf08f90b7e79fcce9"
+      "sha": "c9ba3a37186122f6e0b1755aedcfbb960ea8b669"
     },
     "ResilienceKit": {
       "repo": "KooshaPari/ResilienceKit",
