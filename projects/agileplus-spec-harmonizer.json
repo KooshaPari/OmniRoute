@@ -1,0 +1,14 @@
+{
+  "name": "agileplus-spec-harmonizer",
+  "languages": ["rust"],
+  "primary_language": "rust",
+  "status": "retired",
+  "has_readme": true,
+  "has_spec": false,
+  "type": "tooling",
+  "path": "repos/agileplus-spec-harmonizer",
+  "disposition": "ABSORB",
+  "wave": "surface-reduction-2",
+  "redirect": "AgilePlus/crates/agileplus-spec-harmonizer",
+  "note": "Absorbed AgilePlus#756; source repo deleted (404); 12/12 tests"
+}
