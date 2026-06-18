@@ -40,6 +40,11 @@ import {
   isBifrostSupported,
   resolveBifrostProviderId,
 } from "./bifrostProviderMap.ts";
+import {
+  listBifrostModelsForProvider,
+  refreshBifrostModels,
+  type BifrostFetcher,
+} from "../../src/lib/db/bifrostModels.ts";
 
 const DEFAULT_HOST = "127.0.0.1";
 const DEFAULT_PORT = 8080;
@@ -195,36 +200,75 @@ export class BifrostBackendExecutor extends BaseExecutor {
   /**
    * Health check — probes Bifrost's /health endpoint. Bifrost exposes
    * this in its default deployment for orchestrator probes (k8s liveness,
-   * load balancer, etc.). Falls back to /v1/models if /health is missing
-   * (older Bifrost versions).
+   * load balancer, etc.).
+   *
+   * Fallback (older Bifrost versions without /health): use the local
+   * `bifrost_models` cache via listBifrostModelsForProvider(); if the
+   * cache is empty or stale, refresh it by hitting /v1/models once
+   * (via refreshBifrostModels). This is the B4 wiring: sub-millisecond
+   * lookup in the steady state, network roundtrip only on cache miss.
    */
   async healthCheck(): Promise<{ ok: boolean; latencyMs: number; error?: string; version?: string }> {
     const start = Date.now();
+    if (!isBifrostEnabled()) {
+      return {
+        ok: false,
+        latencyMs: Date.now() - start,
+        error: "Bifrost not enabled (BIFROST_ENABLED unset)",
+      };
+    }
+    const baseUrl = await resolveBifrostBaseUrl();
+
+    // 1. Probe /health first.
     try {
-      if (!isBifrostEnabled()) {
-        return {
-          ok: false,
-          latencyMs: Date.now() - start,
-          error: "Bifrost not enabled (BIFROST_ENABLED unset)",
-        };
-      }
-      const baseUrl = await resolveBifrostBaseUrl();
-      // Bifrost's /health returns 200 with `{"status":"ok","version":"..."}`.
       const res = await fetch(`${baseUrl}/health`, {
         signal: AbortSignal.timeout(HEALTH_CHECK_TIMEOUT_MS),
       });
       const latencyMs = Date.now() - start;
-      if (!res.ok) {
+      if (res.ok) {
+        let version: string | undefined;
+        try {
+          const payload = (await res.json()) as { version?: string };
+          version = payload.version;
+        } catch {
+          // Non-JSON body is OK; just no version metadata.
+        }
+        return { ok: true, latencyMs, version };
+      }
+      // 404 means no /health; fall through to the cache-wired /v1/models
+      // path. Other non-2xx codes are real errors and surface immediately.
+      if (res.status !== HTTP_STATUS.NOT_FOUND) {
         return { ok: false, latencyMs, error: `HTTP ${res.status}` };
       }
-      let version: string | undefined;
-      try {
-        const payload = (await res.json()) as { version?: string };
-        version = payload.version;
-      } catch {
-        // Non-JSON body is OK; just no version metadata.
+    } catch {
+      // /health probe failed (network/timeout); fall through to cache path.
+    }
+
+    // 2. /health missing or unreachable: try the cache, then /v1/models.
+    try {
+      const cached = listBifrostModelsForProvider(this.provider);
+      if (cached.length > 0) {
+        return {
+          ok: true,
+          latencyMs: Date.now() - start,
+          version: cached.length.toString(),
+        };
       }
-      return { ok: true, latencyMs, version };
+      // Cache miss: hit Bifrost's /v1/models once and refresh.
+      const fetcher: BifrostFetcher = async (url: string) => {
+        const r = await fetch(url, {
+          signal: AbortSignal.timeout(HEALTH_CHECK_TIMEOUT_MS),
+        });
+        if (!r.ok) {
+          throw new Error(`Bifrost /v1/models HTTP ${r.status}`);
+        }
+        return (await r.json()) as { data?: unknown };
+      };
+      await refreshBifrostModels(this.provider, fetcher, {
+        baseUrl,
+        ttlSeconds: 60 * 60,
+      });
+      return { ok: true, latencyMs: Date.now() - start };
     } catch (err) {
       return {
         ok: false,

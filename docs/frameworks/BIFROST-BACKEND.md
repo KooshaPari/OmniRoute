@@ -134,6 +134,47 @@ When a provider is configured for Bifrost, the corresponding
 `BifrostBackendExecutor` is instantiated and `execute()` forwards the
 request to Bifrost's `/v1/chat/completions`.
 
+### 4. Model catalog cache (B4)
+
+`/v1/chat/completions` is hot-path; `/v1/models` is *warm-path*. The
+executor lazily populates a local SQLite cache (`bifrost_models`,
+migration 100) on the first call that needs to validate a model name,
+and reuses the cached result for `BIFROST_DEFAULT_TTL_SECONDS` (1 h).
+
+- **Source of truth for the cache**:
+  `src/lib/db/bifrostModels.ts` — `refreshBifrostModels(provider, fetcher)`
+  is the public write API. `getBifrostModel(provider, id, opts)` is the
+  public read API. Cache keys are `(provider, id)`, not `id` alone, so
+  the same model name routed via different providers does not collide.
+- **Wired in the executor** (`open-sse/executors/bifrost.ts`):
+  - `BifrostBackendExecutor.execute()` calls
+    `getBifrostModel(provider, model)` **before** forwarding. If the
+    provider is unknown (no row, expired row, or empty meta), it
+    short-circuits with HTTP 400 — no network roundtrip to Bifrost.
+  - On a successful call, it increments `meta.fetchCount` via
+    `recordBifrostFetch(provider, "ok", cachedCount)`.
+  - On a 404 from Bifrost, it calls `purgeBifrostModelsByProvider(provider)`
+    so the next refresh re-derives the truth.
+- **Stale-tolerant reads**: when the cache is expired, the executor
+  still falls through to the live Bifrost call (cache is a *lookup
+  optimization*, not a hard gate). The `includeExpired=true` flag on
+  `getBifrostModel` is reserved for the dashboard's "show last-known
+  models" view.
+- **Refresh cadence**: per-provider refresh is triggered:
+  1. **On demand** by an operator script (`just bifrost-refresh`).
+  2. **Hourly** by a future cron in `src/lib/jobs/` (post-B5).
+  3. **Lazily** by the executor when `getBifrostModel` returns `null`
+     and the next request is the first of the day.
+
+The cache is **read-through**, not write-through: OmniRoute never
+touches Bifrost's catalog except to validate a model. This keeps the
+Bifrost process off the request path for model-validation.
+
+See `src/lib/db/bifrostModels.ts:55-280` for the full public API,
+`tests/unit/bifrost-models-db.test.ts` for the 36-case test matrix, and
+`worklogs/2026-06-18-L5-111-bifrost-models-cache.md` for the design
+rationale.
+
 ---
 
 ## Provider support matrix
