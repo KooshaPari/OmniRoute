@@ -1,0 +1,16 @@
+{
+  "name": "cliproxyapi-plusplus",
+  "languages": ["go"],
+  "primary_language": "go",
+  "status": "active",
+  "has_readme": true,
+  "type": "platform",
+  "path": "repos/cliproxyapi-plusplus",
+  "domain_role": "cli_proxy",
+  "fork_parent": "router-for-me/CLIProxyAPI",
+  "disposition": "UNIFY",
+  "wave": "G16",
+  "branch_count": 16,
+  "vendored_in": ["phenotype-go-sdk/third_party", "argis-extensions/wrappers/cliproxy"],
+  "note": "CLI subscription proxy gateway — peer to agentapi++; not routing referent; superset merge G16"
+}

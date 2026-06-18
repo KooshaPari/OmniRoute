@@ -15,5 +15,7 @@
 | 011 | sharecli archived | Accepted |
 | [012](./ADR-ECO-012.md) | Zero-shot scorecard | Accepted |
 | [013](./ADR-ECO-013.md) | Integration meta-repo | Accepted |
+| [007-gateway](./ADR-ECO-007-gateway-merge-superset.md) | Gateway merge superset boundaries | Accepted |
+| [014](./ADR-ECO-014-phenoshared-decompose.md) | Decompose phenoShared — no generic consolidation | Accepted |
 
 Full text for 002–011 in follow-up PRs; decisions locked in [03_DAG_WBS.md](../sessions/20260617-ecosystem-disposition-wave/03_DAG_WBS.md).

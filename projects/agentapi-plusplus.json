@@ -1,0 +1,17 @@
+{
+  "name": "agentapi-plusplus",
+  "languages": ["go"],
+  "primary_language": "go",
+  "status": "active",
+  "has_readme": true,
+  "type": "platform",
+  "path": "repos/agentapi-plusplus",
+  "domain_role": "cli_proxy",
+  "fork_parent": "coder/agentapi",
+  "disposition": "UNIFY",
+  "wave": "G15",
+  "branch_count": 35,
+  "integration_hub": "substrate/crates/engine-agentapi",
+  "supersedes": "agentapi",
+  "note": "Platform agent terminal control plane — superset merge before archive gate; see wave15 + ADR-ECO-007"
+}

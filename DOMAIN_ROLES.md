@@ -17,7 +17,11 @@ Organize the fleet by **what boundary you own**, not by primary programming lang
 | `resilience` | Breakers, retry, bulkhead | **phenotype-resilience** | Rust sentinel/resilience | Py resilience-kit |
 | `test` | Test SDK, journeys, fixtures | **phenotype-test** | **phenotype-journeys** (Rust CLI) | Py testing-kit, phenotype-testing (uv) |
 | `quality` | Static analysis, LLM validation | **KodeVibe**, **kwality** | — | Go engine (justified), shell UX |
-| `platform` | devenv, devhex, sandbox | **phenotype-go-sdk**, **phenotype-tooling** | — | Go (justified), nanovms in tooling |
+| `route` | LLM routing, cost-aware dispatch, router policy | **OmniRoute** (TS), **Tokn** (`tokenledger::routing`) | Rust pareto router / ports | TS router UI; phenoAI consumes — not SSOT |
+| `cli_proxy` | OAuth CLI → OpenAI-compatible proxy; agent HTTP API | **agentapi-plusplus**, **cliproxyapi-plusplus** (peer/submodule) | Go services | cliproxy Plus providers; bifrost is vendor-only gateway |
+| `agent-control` | Terminal agent control plane HTTP surface (`/message`, `/status`, `/events`) | **agentapi-plusplus** + **substrate** `engine-agentapi` | Rust adapter in substrate | Coder AgentAPI parity; not OmniRoute merge target |
+| `inference` | Local model server, menu-bar runtime | **phenotype-omlx** (FINISH vs DROP per ADR-ECO-008) | mlx-lm / jundot/omlx engine upstream | phenoAI skeleton consumes routers |
+| `platform` | devenv, devhex, sandbox, NVMS isolation | **phenotype-go-sdk**, **phenotype-tooling**, **PhenoCompose**, **nanovms** (tooling) | nanovms crates in tooling | Go (justified); engine layer separate from gateway |
 | `py-sdk-index` | Python package workspace / extras | **phenotype-python-sdk** | — | uv; optional `[observe]`, `[connect]`, etc. |
 
 ## Anti-patterns
@@ -28,6 +32,8 @@ Organize the fleet by **what boundary you own**, not by primary programming lang
 | Add domain crates to HexaKit | HexaKit = `genesis` only; migrate transitional `crates/` out by role |
 | Add Go without SOTA | `docs/sota/technical.md` → “Why Go at this edge” |
 | Delete archive because stub | Delete when **role owner** has 100% boundary + documented lang placement |
+| Consolidate into `phenoShared` | **DECOMPOSE** per [ADR-ECO-014](docs/adrs/ADR-ECO-014-phenoshared-decompose.md) — route each crate to its role owner |
+| Use `phenoShared` as fleet repoint target | Repoint manifests to **domain role owners** (`phenotype-config`, `phenotype-resilience`, `PhenoObservability`, `phenotype-types`, `Eventra`, …) |
 
 ## Archive → role routing
 
@@ -41,6 +47,8 @@ Organize the fleet by **what boundary you own**, not by primary programming lang
 | PlatformKit | `platform` | go-sdk + tooling |
 | PhenoKits templates | `genesis` | HexaKit `templates/` |
 | phenoStandards | `genesis` | HexaKit (retired) |
+| agentapi | `cli_proxy` | agentapi-plusplus (archived upstream) |
+| vibeproxy | `cli_proxy` (deprecated) | cliproxyapi-plusplus redirect |
 | worktree-manager | — | PhenoVCS (retired) |
 | McpKit | `connect` (Py edge) | PhenoFastMCP + PhenoMCPServers (archived 2026-06-17) |
 | PhenoMCP | `connect` (Rust/Go lib) | PhenoMCPServers + PhenoFastMCP* (archived 2026-06-17) |
@@ -50,12 +58,23 @@ Organize the fleet by **what boundary you own**, not by primary programming lang
 
 | Consumer | Repoint to |
 |----------|------------|
-| Pyron | `phenotype-config`, `PhenoObservability`, `phenoShared` (`stashly`) — Wave 7 lockstep 2026-06-17 |
+| Pyron | `phenotype-config`, `PhenoObservability`, `phenotype-resilience` (`stashly`) — Wave 7; phenoShared was interim only (ADR-ECO-014) |
 | PhenoObservability | observe role crates + python-sdk kits |
 | DevHex | phenotype-go-sdk `devenv-abstraction` (documented G3) |
+
+## phenoShared (decompose — not a role owner)
+
+`phenoShared` is **not** a `DOMAIN_ROLES` entry. It is a **temporary staging monorepo** slated for decomposition per [ADR-ECO-014](docs/adrs/ADR-ECO-014-phenoshared-decompose.md). Do not classify it as shared-lib SSOT, SDK, or framework.
+
+## Gateway / merge program
+
+- [ADR-ECO-007-gateway-merge-superset](docs/adrs/ADR-ECO-007-gateway-merge-superset.md)
+- [ADR-ECO-014-phenoshared-decompose](docs/adrs/ADR-ECO-014-phenoshared-decompose.md)
+- [GATEWAY_MERGE_DAG.md](docs/rationalization/GATEWAY_MERGE_DAG.md)
+- [wave14-gateway-ssot-2026-06-17.md](docs/operations/wave14-gateway-ssot-2026-06-17.md)
 
 ## Related
 
 - [LANGUAGE_PLACEMENT.md](LANGUAGE_PLACEMENT.md)
-- [RATIONALIZATION_PLAN.md](RATIONALIZATION_PLAN.md) — pending update for role model
+- [RATIONALIZATION_PLAN.md](RATIONALIZATION_PLAN.md) — Step 1 archive list corrected Wave 14
 - [ECOSYSTEM_MAP.md](ECOSYSTEM_MAP.md)

@@ -1,20 +1,26 @@
 {
-  "version": "1.0.0",
+  "version": "1.1.0",
   "updated": "2026-06-17",
-  "source": "docs/rationalization/DOMAIN_ROLES.md",
+  "source": "DOMAIN_ROLES.md + ADR-017",
   "domains": [
-    {"id": "scaffolding", "repo": "HexaKit", "core_lang": "rust", "edge_langs": []},
+    {"id": "genesis", "repo": "HexaKit", "core_lang": "rust", "edge_langs": []},
+    {"id": "config", "repo": "phenotype-config", "core_lang": "rust", "edge_langs": ["ts", "py"]},
+    {"id": "observe", "repo": "PhenoObservability", "core_lang": "rust", "edge_langs": ["py"]},
+    {"id": "connect", "repo": "substrate", "core_lang": "rust", "edge_langs": ["py", "go"], "also": ["PhenoFastMCP", "PhenoMCPServers", "Authvault"]},
+    {"id": "route", "repo": "OmniRoute", "core_lang": "typescript", "edge_langs": [], "rust_counterpart": "Tokn"},
+    {"id": "cli_proxy", "repo": "agentapi-plusplus", "core_lang": "go", "edge_langs": [], "peer": "cliproxyapi-plusplus"},
+    {"id": "agent-control", "repo": "agentapi-plusplus", "core_lang": "go", "edge_langs": ["rust"], "adapter": "substrate/engine-agentapi"},
+    {"id": "inference", "repo": "phenotype-omlx", "core_lang": null, "edge_langs": [], "engine_upstream": "jundot/omlx", "status": "archived_pending_decision"},
+    {"id": "resilience", "repo": "phenotype-resilience", "core_lang": "rust", "edge_langs": ["py"]},
+    {"id": "test", "repo": "phenotype-test", "core_lang": "rust", "edge_langs": ["py"]},
+    {"id": "platform", "repo": "phenotype-go-sdk", "core_lang": "go", "edge_langs": [], "also": ["phenotype-tooling", "PhenoCompose"]},
+    {"id": "py-sdk-index", "repo": "phenotype-python-sdk", "core_lang": null, "edge_langs": ["py"]},
+    {"id": "mcp-framework", "repo": "PhenoFastMCP", "core_lang": "python", "edge_langs": ["go", "rust"], "supersedes": "PhenoMCP"},
+    {"id": "mcp-servers", "repo": "PhenoMCPServers", "core_lang": "mixed", "edge_langs": []},
     {"id": "types", "repo": "phenotype-types", "core_lang": "rust", "edge_langs": ["py"]},
-    {"id": "testing", "repo": "TestingKit", "core_lang": "rust", "edge_langs": []},
-    {"id": "observability", "repo": "PhenoObservability", "core_lang": "rust", "edge_langs": []},
-    {"id": "mcp", "repo": "PhenoMCP", "core_lang": "rust", "edge_langs": ["py"]},
     {"id": "secrets", "repo": "Authvault", "core_lang": "rust", "edge_langs": []},
-    {"id": "resilience", "repo": "ResilienceKit", "core_lang": "rust", "edge_langs": ["ts"]},
-    {"id": "tooling", "repo": "phenotype-tooling", "core_lang": "rust", "edge_langs": []},
+    {"id": "tooling", "repo": "phenotype-tooling", "core_lang": "rust", "edge_langs": [], "also": ["agileplus-spec-harmonizer"]},
     {"id": "infra", "repo": "phenoShared", "core_lang": "rust", "edge_langs": []},
-    {"id": "extras", "repo": "phenoSDK", "core_lang": null, "edge_langs": ["py", "ts"]},
-    {"id": "code-review", "repo": "tehgent", "core_lang": "rust", "edge_langs": ["go"], "justify_required": true},
-    {"id": "agent-runtime", "repo": "thegent", "core_lang": "rust", "edge_langs": ["py"], "justify_required": true},
-    {"id": "process-mgr", "repo": "sharecli", "core_lang": "rust", "edge_langs": ["go"], "status": "archived", "successor": "thegent control-plane"}
+    {"id": "vendor-gateway", "repo": "bifrost", "core_lang": "go", "edge_langs": [], "policy": "vendor-only-not-routing-referent"}
   ]
 }

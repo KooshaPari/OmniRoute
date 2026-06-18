@@ -1,0 +1,17 @@
+{
+  "name": "OmniRoute",
+  "languages": ["typescript"],
+  "primary_language": "typescript",
+  "status": "active",
+  "has_readme": true,
+  "type": "platform",
+  "path": "repos/OmniRoute",
+  "domain_role": "route",
+  "fork_parent": "diegosouzapw/OmniRoute",
+  "disposition": "AFFIRM",
+  "wave": "15",
+  "branch_count": 26,
+  "canonical_routing": true,
+  "rust_counterpart": "Tokn/tokenledger::routing",
+  "note": "CANONICAL org LLM router (TS) — never archive per Cluster A + ADR-ECO-007"
+}

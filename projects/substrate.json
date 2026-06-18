@@ -1,0 +1,15 @@
+{
+  "name": "substrate",
+  "languages": ["rust"],
+  "primary_language": "rust",
+  "status": "active",
+  "has_readme": true,
+  "type": "platform",
+  "path": "repos/substrate",
+  "domain_role": "connect",
+  "disposition": "AFFIRM",
+  "wave": "G15",
+  "branch_count": 24,
+  "integration_crates": ["engine-agentapi", "driver-http", "driver-argv", "driver-mcp"],
+  "note": "Fleet dispatch runtime; engine-agentapi integrates agentapi-plusplus HTTP surface"
+}

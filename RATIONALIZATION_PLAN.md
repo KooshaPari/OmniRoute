@@ -9,6 +9,8 @@
 > **2026-06-17 update:** Organize by **domain role** ([DOMAIN_ROLES.md](DOMAIN_ROLES.md)), not language monorepos.
 > Do **not** create `phenotype-rust-sdk` as a crate dump. HexaKit = **genesis** only.
 > See [LANGUAGE_PLACEMENT.md](LANGUAGE_PLACEMENT.md).
+>
+> **2026-06-17 gateway fork correction (wave 15):** Steps below that archive **OmniRoute**, **agentapi-plusplus**, **cliproxyapi-plusplus**, or **phenotype-omlx** are **STALE**. Authoritative: [ADR-ECO-007](docs/adrs/ADR-ECO-007-gateway-merge-superset.md), [wave15-execution](docs/operations/wave15-execution-2026-06-17.md), [ECOSYSTEM_MAP Cluster M](ECOSYSTEM_MAP.md). **OmniRoute** = canonical router (never archive). **agentapi++** / **cliproxy++** = platform superset merge (G15–G16). **bifrost** = vendor engine only.
 
 ---
 
@@ -63,7 +65,7 @@
 |------|---------|
 | **Agentora** | Absorbs: PhenoAgent (empty stub — add as agentora/crates/pheno-agent), PhenoProc (infrakit stubs folded to HexaKit deps; runtime portion → Agentora) |
 | **thegent** | Keep (Python agent runtime, separate language target) |
-| **phenoAI** | Absorbs: phenoRouterMonitor Rust core → phenoAI/crates/router-monitor; Streamlit dashboard → phenoAI/monitoring; OmniRoute archived (not absorbed — upstream-maintained) |
+| **phenoAI** | Absorbs: phenoRouterMonitor Rust core → phenoAI/crates/router-monitor; Streamlit dashboard → phenoAI/monitoring; **OmniRoute stays canonical** (consumes routing — not absorbed) |
 
 > Net: -2 repos (PhenoAgent absorbed, PhenoProc runtime folded).
 
@@ -218,14 +220,15 @@ phenokits-landing  → phenotype-landing
 projects-landing   → phenotype-landing
 thegent-landing    → phenotype-landing
 AppGen             → phenotype-landing (scaffold template)
-OmniRoute          → archive (upstream-maintained, no local delta)
+OmniRoute          → **KEEP** (canonical LLM router — wave 15 correction)
 Planify            → archive (upstream-maintained)
 portage            → archive (upstream-maintained)
-phenotype-omlx     → archive (upstream-maintained)
+phenotype-omlx     → **SPLIT** platform/engine (ADR-ECO-008); archived pending product decision
 phenotype-ops-mcp  → archive (upstream-maintained)
-agentapi-plusplus  → archive (upstream-maintained)
-cliproxyapi-plusplus → archive (superseded by phenoAI/bifrost)
-vibeproxy-monitoring-unified → archive (governance stub only)
+agentapi           → **KEEP_ARCHIVED** (tombstone; docs-only → agentapi-plusplus)
+agentapi-plusplus  → **UNIFY** superset merge (G15); substrate engine-agentapi consumer
+cliproxyapi-plusplus → **UNIFY** superset merge (G16); go-sdk third_party pin
+vibeproxy-monitoring-unified → retire stub → phenotype-infra (G19)
 phenoStandards     → archive (self-deprecated)
 Profila            → already archived
 tehgent            → already archived
@@ -267,7 +270,7 @@ Priority order: highest ROI first, dependency-safe (no step breaks a downstream 
 
 | Step | Action | Repos Retired | Complexity |
 |------|--------|---------------|------------|
-| **1** | Archive 8 upstream forks with no local changes: OmniRoute, Planify, portage, phenotype-omlx, phenotype-ops-mcp, agentapi-plusplus, cliproxyapi-plusplus, vibeproxy-monitoring-unified | 8 | Trivial — `gh repo archive` only |
+| **1** | Archive upstream forks with no local changes: Planify, portage, phenotype-ops-mcp (gateway forks **excluded** — see wave 15) | 3 | Trivial — `gh repo archive` only |
 | **2** | Retire phenoStandards (self-deprecated) + helioscope (dup of helios-cli) | 2 | Trivial — `gh repo archive` only |
 | **3** | Merge PhenoAgent stub → Agentora (add empty crate placeholder) | 1 | Low |
 | **4** | Merge phenotype-hub → phenotype-registry as `scaffold/` subdir | 1 | Low |
@@ -281,7 +284,7 @@ Priority order: highest ROI first, dependency-safe (no step breaks a downstream 
 | **7** | **Merge pheno → HexaKit** (21 crates; renames all phenotype-* crate paths) | Breaking: all consumers (PhenoProc, phenoRouterMonitor, PhenoObservability) must update dep paths simultaneously |
 | **8** | **Consolidate 8 *Kit Python SDKs → phenotype-python-sdk** (create new repo, git-subtree merge 7 existing) | New repo creation + PyPI publish strategy needed |
 | **9** | **Merge phenoRouterMonitor Rust core → phenoAI; merge Metron + Traceon → HexaKit** | Cascading dep update across 3 repos; Cargo.lock churn |
-| **10** | **OmniRoute decision: adopt fork or permanently drop** | If bifrost+phenoAI fully replaces it, confirm no consumers; if any consumer exists, needs migration plan |
+| **10** | **Gateway fork superset merges (G15–G17)** | agentapi++, cliproxy++, bifrost vendor hygiene — see [wave15-execution](docs/operations/wave15-execution-2026-06-17.md); OmniRoute **resolved** — canonical, do not archive |
 
 ---
 

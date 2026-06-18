@@ -1,12 +1,13 @@
 {
-  "version": "1.1.0",
+  "version": "1.2.0",
   "updated": "2026-06-17",
-  "description": "External dependents blocking relocation or archive. Repoint manifests to DOMAIN_ROLES canonical paths — not HexaKit monorepo paths (v2 charter).",
+  "description": "External dependents blocking relocation or archive. Repoint manifests to DOMAIN_ROLES canonical paths — not HexaKit monorepo paths (v2 charter). phenoShared is interim staging only (ADR-ECO-014); never a terminal repoint target.",
   "chokepoints": [
     {
       "id": "Pyron",
       "blocks_sources": ["pheno", "Stashly", "Settly", "PhenoAgent", "Traceon"],
-      "repoint_to": ["phenotype-config", "PhenoObservability", "phenoShared", "Tasken", "Eventra", "Authvault"],
+      "repoint_to": ["phenotype-config", "PhenoObservability", "phenotype-resilience", "Tasken", "Eventra", "Authvault"],
+      "interim_staging": "phenoShared",
       "status": "repointed",
       "wave": "G3",
       "repointed_at": "2026-06-17",
@@ -43,7 +44,8 @@
     {
       "id": "phenoRouterMonitor",
       "blocks_sources": ["pheno"],
-      "repoint_to": ["phenotype-types", "phenoShared"],
+      "repoint_to": ["phenotype-types", "phenotype-resilience", "PhenoObservability"],
+      "interim_staging": "phenoShared",
       "status": "repointed",
       "wave": "G2",
       "repointed_at": "2026-06-17",
@@ -68,6 +70,94 @@
       "verified_at": "2026-06-17",
       "pr": "KooshaPari/phenotype-go-sdk#14",
       "note": "McpKit packages canonical in-repo"
+    }
+  ],
+  "pheno_fleet_blockers": [
+    {
+      "id": "PhenoCompose",
+      "blocks_archive": "pheno",
+      "manifest": "Cargo.toml",
+      "repoint_to": ["phenotype-config", "phenotype-types", "phenotype-resilience", "PhenoObservability", "Eventra"],
+      "interim_staging": "phenoShared",
+      "status": "pending",
+      "wave": "W18b",
+      "priority": "P0",
+      "adr": "ADR-ECO-014",
+      "note": "Engine repo on KooshaPari/pheno — repoint per-crate to role owners; do not terminate on phenoShared"
+    },
+    {
+      "id": "Agentora",
+      "blocks_archive": "pheno",
+      "repoint_to": ["phenotype-config", "phenotype-types", "phenotype-resilience", "PhenoObservability", "Eventra"],
+      "interim_staging": "phenoShared",
+      "status": "partial",
+      "wave": "W18b",
+      "adr": "ADR-ECO-014",
+      "note": "Waves 1–3 may be partial — verify live manifests per crate"
+    },
+    {
+      "id": "AgilePlus",
+      "blocks_archive": "pheno",
+      "repoint_to": ["phenotype-config", "phenotype-types"],
+      "interim_staging": "phenoShared",
+      "status": "pending",
+      "wave": "W18b",
+      "adr": "ADR-ECO-014"
+    },
+    {
+      "id": "PhenoPlugins",
+      "blocks_archive": "pheno",
+      "repoint_to": ["phenotype-types", "phenotype-config"],
+      "interim_staging": "phenoShared",
+      "status": "pending",
+      "wave": "W18b",
+      "adr": "ADR-ECO-014"
+    },
+    {
+      "id": "phenotype-gfx",
+      "blocks_archive": "pheno",
+      "repoint_to": ["phenotype-types"],
+      "interim_staging": "phenoShared",
+      "status": "pending",
+      "wave": "W18b",
+      "adr": "ADR-ECO-014"
+    },
+    {
+      "id": "Civis",
+      "blocks_archive": "pheno",
+      "repoint_to": ["phenotype-config", "phenotype-types", "Authvault"],
+      "interim_staging": "phenoShared",
+      "status": "pending",
+      "wave": "W18b",
+      "adr": "ADR-ECO-014"
+    },
+    {
+      "id": "phenotype-teamcomm",
+      "blocks_archive": "pheno",
+      "repoint_to": ["phenotype-types", "Eventra"],
+      "interim_staging": "phenoShared",
+      "status": "pending",
+      "wave": "W18b",
+      "adr": "ADR-ECO-014"
+    },
+    {
+      "id": "phenotype-go-sdk",
+      "blocks_archive": "pheno",
+      "repoint_to": ["phenotype-types"],
+      "interim_staging": "phenoShared",
+      "status": "pending",
+      "wave": "W18b",
+      "adr": "ADR-ECO-014"
+    },
+    {
+      "id": "TestingKit",
+      "blocks_archive": "pheno",
+      "repoint_to": ["phenotype-test", "phenotype-journeys"],
+      "interim_staging": "phenoShared",
+      "status": "pending",
+      "wave": "W18b",
+      "adr": "ADR-ECO-014",
+      "note": "Archived repo; verify no live consumer manifests"
     }
   ]
 }
