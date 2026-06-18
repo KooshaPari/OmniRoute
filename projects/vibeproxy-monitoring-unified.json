@@ -2,11 +2,12 @@
   "name": "vibeproxy-monitoring-unified",
   "languages": [],
   "primary_language": "unknown",
-  "status": "archived",
+  "status": "absorbed",
   "has_readme": false,
   "type": "stub",
   "path": "repos/vibeproxy-monitoring-unified",
   "disposition": "RETIRE",
   "wave": "G19",
-  "note": "Empty archived stub — retire after vibeproxy absorption into cliproxy++ (#1024)"
+  "absorbed_into": "phenotype-infra",
+  "absorption_note": "Stub retired 2026-06-18; canonical vibeproxy monitoring in cliproxyapi-plusplus; redirect in phenotype-infra/docs/absorbed-from/"
 }

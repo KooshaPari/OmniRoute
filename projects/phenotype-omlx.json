@@ -1,0 +1,17 @@
+{
+  "name": "phenotype-omlx",
+  "languages": ["swift"],
+  "primary_language": "swift",
+  "status": "archived",
+  "has_readme": true,
+  "type": "platform",
+  "path": "repos/phenotype-omlx",
+  "domain_role": "inference",
+  "fork_parent": "jundot/omlx",
+  "engine_upstream": "jundot/omlx",
+  "disposition": "DROP",
+  "wave": "G18",
+  "branch_count": 27,
+  "adr": "ADR-ECO-016-omlx-inference-split",
+  "note": "G18 DROP: stay archived; engine canonical jundot/omlx; FINISH path = staffing gate only"
+}
