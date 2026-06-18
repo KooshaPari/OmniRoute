@@ -48,7 +48,7 @@
 ## Next steps
 
 1. Open phenoUtils PR for five **extract** branches (governance + test-infra).
-2. After extract merges, delete 21 **archive** remotes via branch sweep.
+2. After extract merges, delete 21 **archive** remotes via `git push origin --delete '<branch>'` (requires repo admin; `gh api` DELETE returned 404 with current token — 2026-06-18).
 3. Close `gw-phenolang` disposition row (`fsm: done`) when phenoUtils index is canonical.
 
 ## References

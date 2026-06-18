@@ -18,7 +18,7 @@
 
 | Path | Note |
 |------|------|
-| `C:\Users\koosh\dev\BytePort` | Archived repo; canonical → phenotype-tooling |
+| `C:\Users\koosh\dev\BytePort` | **Removed 2026-06-18** — canonical → phenotype-tooling |
 | `C:\Users\koosh\OmniRoute` | Wrong upstream; removed Cluster H |
 | `C:\Users\koosh\BytePort` | Root duplicate; removed 2026-06-18 |
 
