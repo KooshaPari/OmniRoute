@@ -3,41 +3,70 @@
 **Predecessor:** [wave13-execution-2026-06-17.md](./wave13-execution-2026-06-17.md)  
 **ADR:** [ADR-ECO-014](../adrs/ADR-ECO-014-phenotype-gateway-charter.md)
 
-## H0 — Charter (this PR)
+## H0 — Charter
 
 | Deliverable | Status |
 |-------------|--------|
-| ADR-ECO-014 phenotype-gateway | registry #140 |
-| `GATEWAY_FEATURE_PARITY.md` stub | this PR |
-| disposition-index Cluster H rows | this PR |
-| ECOSYSTEM_MAP Cluster A reconciliation | this PR |
+| ADR-ECO-014 phenotype-gateway | phenotype-registry #140 (merged) |
+| `GATEWAY_FEATURE_PARITY.md` stub | phenotype-registry #140 (merged) |
+| disposition-index Cluster H rows | phenotype-registry #140 (merged) |
+| ECOSYSTEM_MAP Cluster A reconciliation | phenotype-registry #140 (merged) |
 
 ## H1 — agentapi → agentapi-plusplus
 
 | Repo | Action | PR |
 |------|--------|-----|
-| `agentapi` | Cherry-pick `FUNDING.yml`; disposition `done` | agentapi-plusplus #530 |
-| `agentapi-plusplus` | Absorb agentapi branches | #TBD |
+| `agentapi` | Cherry-pick `FUNDING.yml`; disposition `done` | agentapi-plusplus #530 (merged) |
+| `agentapi-plusplus` | Absorb agentapi branches | — |
 
 ## H2 — agentapi++ branch superset
 
-**34 remote branches.** Priority: `sync/upstream-v0.12.2` → `complete-sync` (18 ahead) → `backup/*` → `chore/*` batch.
+| Action | PR |
+|--------|-----|
+| Merge `sync/upstream-v0.12.2` + `complete-sync`; add `docs/UPSTREAM.md` | agentapi-plusplus #531 (merged) |
 
 ## H3 — cliproxyapi++ + vibeproxy
 
-Proxy plane merge; vibeproxy client absorbed into cliproxy++ path.
+| Action | PR |
+|--------|-----|
+| `VIBEPROXY_ABSORPTION.md` at repo root (docs/ gitignored) | cliproxyapi-plusplus #1024 (merged) |
+| vibeproxy disposition → cliproxy++ | registry execution update |
 
 ## H4 — bifrost
 
-Vendor pin + local-delta only (not full 100-branch merge).
+| Action | PR |
+|--------|-----|
+| `docs/VENDOR_PIN.md` — vendor fork policy, local-delta only | bifrost #5 (merged) |
 
 ## H5 — OmniRoute + argis-extensions
 
-OmniRoute interim MVP feature inventory; argis → plugin plane.
+| Item | Status |
+|------|--------|
+| OmniRoute demoted to interim MVP in ECOSYSTEM_MAP | done (H0) |
+| Feature inventory → `GATEWAY_FEATURE_PARITY.md` | done (this PR) |
+| argis-extensions classified as plugin plane (`plugins/argis/`) | done |
 
 ## H6 — phenotype-gateway scaffold
 
-New repo: submodule pins → `packages/` promotion when spikes mature.
+| Action | PR |
+|--------|-----|
+| `packages/`, `third_party/`, `spikes/{go,rust,zig,mojo}/`, CI matrix | phenotype-gateway #1 (merged) |
+
+## H7 — landings + backups
+
+| Repo | Action | Status |
+|------|--------|--------|
+| `projects-landing` | Absorbed at `phenotype-landing/sites/projects-landing/` | done |
+| `pheno-sdk` | Package map → [pheno-sdk-package-map.md](../rationalization/pheno-sdk-package-map.md) | done |
+| `helios-cli-backup` | Audited vs `helios-cli` (divergent SHAs); DELETE-eligible — user confirm before `gh repo delete` | audited |
+
+## H8 — protected + PhenoLang
+
+| Repo | Action | Status |
+|------|--------|--------|
+| KodeVibeGo | HOLD_ARCHIVE registry row | done (H0) |
+| KVirtualStage | HOLD_ARCHIVE registry row | done (H0) |
+| PhenoLang | 28-branch `*/feat/docs-site` triage in phenoUtils index | phenoUtils PR |
 
 ## Protected (no git ops)
 
@@ -53,10 +82,12 @@ New repo: submodule pins → `packages/` promotion when spikes mature.
 | Traceon | PhenoObservability | done |
 | BytePort | phenotype-tooling | done |
 
-## Next queue
+## Local hygiene
 
-| Wave | Item |
-|------|------|
-| H1 | agentapi FUNDING.yml → agentapi++ |
-| H2 | agentapi++ complete-sync merge |
-| H6 | phenotype-gateway repo create |
+| Item | Action |
+|------|--------|
+| Canonical OmniRoute | `dev\OmniRoute` (KooshaPari/OmniRoute) |
+| Broken OmniRoute clone | `C:\Users\koosh\OmniRoute` — remove after verify |
+| cliproxyapi-plusplus | cloned to `dev\cliproxyapi-plusplus` |
+| vibeproxy | cloned to `dev\vibeproxy` |
+| argis-extensions | cloned to `dev\argis-extensions` |
