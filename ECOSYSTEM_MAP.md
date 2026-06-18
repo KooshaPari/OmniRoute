@@ -314,7 +314,7 @@ All Astro static sites with near-identical structure. Target: consolidate into s
 | **Runtime** | [substrate](https://github.com/KooshaPari/substrate) | driver-http, driver-argv, fleet dispatch | No standalone cheap-llm MCP repo; MCP tools call HTTP/argv edges |
 | **Edge (Go tier-1)** | MCPForge, phenotype-ops-mcp | HTTP/SSE MCP gateways | Submodule refs in PhenoMCPServers `servers/external/` |
 
-**Legacy repos (retired 2026-06-17):** McpKit (Py SDK), PhenoMCP (Rust/Go library), cheap-llm-mcp (runtime CLI) — all superseded per ADR-017/019; do not add new dependents.
+**Legacy repos (retired 2026-06-17; absorption audit merged 2026-06-18 per registry#156):** McpKit (Py SDK), PhenoMCP (Rust/Go library), cheap-llm-mcp (runtime CLI) — all superseded per ADR-017/019; do not add new dependents. McpKit absorption: Rust framework → PhenoFastMCP-rust, Py framework → PhenoFastMCP, implementations → PhenoMCPServers, runtime → substrate, AgentMCP patterns → Agentora. Go/TypeScript SDKs = NO_MERIT (scaffold placeholders, never implemented).
 
 **Anti-patterns (retired):** `phenotype-rust-sdk`, `phenotype-go-sdk` language buckets — see PhenoMCPServers `retired_anti_patterns` and ADR-017.
 

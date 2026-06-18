@@ -164,6 +164,7 @@ DELETE archived repo  IFF:
 | Settly | 2 in HexaKit (wrong layer); 3 Pyron open | KEEP_ARCHIVED |
 | TestingKit | SDK slice only; testing plane split open | KEEP_ARCHIVED (revised) |
 | PhenoProc | 2–3 partial (#79 open, scan pending) | HOLD DELETE after gate |
+| McpKit | 1 yes (PhenoFastMCP/PhenoMCPServers/substrate per ADR-017), 2 done (SUPERSEDED_PARITY × 5: Rust framework→PhenoFastMCP-rust, Py framework→PhenoFastMCP, impls→PhenoMCPServers, runtime→substrate, AgentMCP→Agentora), 3 done (catalog/registry.yaml), 4 done (PhenoMCPServers `mcp-server` template + python-sdk `[connect]`), 5 yes (registry.yaml explicit retirement row + PhenoMCPServers catalog) | **DELETE after registry#156 merge** — Go/TS SDK scaffold-only = NO_MERIT, no absorption target |
 
 ---
 
