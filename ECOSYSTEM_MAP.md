@@ -31,13 +31,9 @@ Role split for the spec/governance spine (so indexes stop competing):
 
 | Role | Count | Repos |
 |------|-------|-------|
-<<<<<<< HEAD
-| **shared-lib** | 20 | pheno, HexaKit, phenoShared, phenoUtils, phenoXddLib, Authvault, Stashly, Settly, Tasken, Traceon, Metron, Apisync, phenoObservability, PhenoPlugins, FocalPoint, PhenoVCS, Benchora, phenotype-journeys, phenotype-voxel, Compound-Spheres-3D |
-=======
 | **shared-lib** | 21 | pheno, HexaKit, phenoShared, phenoUtils, Authvault, Tasken, Apisync, phenoObservability, PhenoPlugins, FocalPoint, PhenoVCS, Benchora, phenotype-auth-ts, phenotype-journeys, phenotype-voxel, Compound-Spheres-3D |
 
 > **Note 2026-06-18**: `phenotype-auth-ts` was archived in this wave and absorbed into [AuthKit](https://github.com/KooshaPari/AuthKit) `typescript/packages/auth-ts/` (PR #120). The row above is stale pending the next rationalization update.|
->>>>>>> origin/main
 | **SDK** | 8 | AuthKit, DataKit, ObservabilityKit, ResilienceKit, TestingKit, PlatformKit, PhenoKits, HexaKit |
 | **tooling** | 11 | AgilePlus, phenotype-dep-guard, phenotype-tooling, phenotype-infra, PhenoDevOps, Conft, agent-devops-setups, helioscope, Benchora, agileplus-spec-harmonizer, PhenoCompose |
 | **product / app** | 10 | Agentora, thegent, Tracera, AgilePlus, PlayCua, Dino, eyetracker, hwLedger, phenoRouterMonitor, slickport |
@@ -45,17 +41,11 @@ Role split for the spec/governance spine (so indexes stop competing):
 | **docs** | 8 | PhenoSpecs, phenotype-registry, PhenoHandbook, phenodocs, phenoXdd, PhenoDesign, phenotype-hub (scaffold), LIBRARY_RESEARCH_REGISTRY |
 | **landing** | 9 | agileplus-landing, byteport-landing, hwledger-landing, odin-landing\*, phenokits-landing, projects-landing, thegent-landing, AppGen (template) |
 | **fork** | 15 | agentapi-plusplus, bifrost, cliproxyapi-plusplus, DINOForge-UnityDoorstop, forgecode, helios-cli, HeliosLab, MCPForge, OmniRoute, phenotype-omlx, phenotype-ops-mcp, Planify, portage, vibeproxy, WorldSphereMod |
-<<<<<<< HEAD
-| **stub / scaffold** | 5 | phenotype-hub, vibeproxy-monitoring-unified, PhenoProject, phenoStandards (deprecated), Zerokit |
-| **superseded / archived** | 40 | .github, odin-landing, Profila, Project-Spyn, RIP-Fitness-App, sharecli, tehgent, thegent-sharecli, worktree-manager, phenoVessel, phenoTypes, phenoPatch, Diffuse, Servion, Guardrail, Cryptora, forge, phenoForge, router-docs, cheap-llm-mcp, dispatch-mcp, thegent-dispatch, McpKit, PhenoMCP, PhenoProc, Metron, PhenoKits, Stashly, Settly, AuthKit, Traceon, ResilienceKit, TestingKit, BytePort, heliosBench, heliosApp, PolicyStack, nanovms, portage, phenoDesign, phenoXddLib, dagctl, kwality, dinoforge-packs, phenotype-auth-ts |
-| **monorepo (multi-domain)** | 7 | pheno, phenoAI, phenoData, PhenoDevOps, BytePort, HexaKit, phenoShared |
-=======
 | **stub / scaffold** | 6 | phenotype-hub, vibeproxy-monitoring-unified, PhenoProject, phenoStandards (deprecated), Zerokit, Paginary |
 | **superseded / archived** | 40 | .github, odin-landing, Profila, Project-Spyn, RIP-Fitness-App, sharecli, tehgent, thegent-sharecli, worktree-manager, phenoVessel, phenoTypes, phenoPatch, Diffuse, Servion, Guardrail, Cryptora, forge, phenoForge, router-docs, cheap-llm-mcp, dispatch-mcp, thegent-dispatch, McpKit, PhenoMCP, PhenoProc, Metron, PhenoKits, Stashly, Settly, AuthKit, Traceon, ResilienceKit, TestingKit, BytePort, heliosBench, heliosApp, PolicyStack, nanovms, portage, phenoDesign, phenoXddLib, dagctl, kwality, dinoforge-packs, phenotype-auth-ts |
 | **monorepo (multi-domain)** | 6 | pheno, phenoAI, phenoData, PhenoDevOps, HexaKit, phenoShared |
 
 > **Note 2026-06-18** (post-merge, kilo audit #144 + 4-repo retirement): **dagctl**, **kwality**, **dinoforge-packs**, **phenotype-auth-ts** were all archived in the 4-repo retirement wave (findings/2026-06-18-L5-109). dagctl was absorbed into phenodag, dinoforge-packs into Dino/community-packs/, kwality retired into phenotype-tooling/docs/absorbed-from-kwality/, and phenotype-auth-ts into AuthKit/typescript/packages/auth-ts/. All source content preserved at target repos.|
->>>>>>> origin/main
 | **agent-runtime** | 3 | Agentora, thegent, PhenoAgent |
 | **research / lab** | 2 | HeliosLab, portage |
 
