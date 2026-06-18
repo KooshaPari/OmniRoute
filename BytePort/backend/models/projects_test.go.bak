@@ -1,0 +1,267 @@
+package models
+
+import (
+	"encoding/json"
+	"testing"
+	"time"
+
+	"github.com/stretchr/testify/assert"
+)
+
+func TestProject_Creation(t *testing.T) {
+	project := Project{
+		UUID:         "proj-123",
+		ID:           "my-web-app",
+		Owner:        "user-456",
+		Name:         "My Web Application",
+		RepositoryID: "repo-789",
+		Readme:       "# My Web App\n\nThis is a web application",
+		Description:  "A full-stack web application",
+		Platform:     "vercel",
+		AccessURL:    "https://my-app.vercel.app",
+		Type:         "web",
+	}
+
+	assert.Equal(t, "proj-123", project.UUID)
+	assert.Equal(t, "my-web-app", project.ID)
+	assert.Equal(t, "user-456", project.Owner)
+	assert.Equal(t, "My Web Application", project.Name)
+	assert.Equal(t, "repo-789", project.RepositoryID)
+	assert.Equal(t, "# My Web App\n\nThis is a web application", project.Readme)
+	assert.Equal(t, "A full-stack web application", project.Description)
+	assert.Equal(t, "vercel", project.Platform)
+	assert.Equal(t, "https://my-app.vercel.app", project.AccessURL)
+	assert.Equal(t, "web", project.Type)
+}
+
+func TestProject_GetSetDeploy(t *testing.T) {
+	project := Project{
+		UUID: "proj-deploy-test",
+		Name: "Deploy Test Project",
+	}
+
+	// Test getting empty deployments
+	deployments := project.GetDeploy()
+	assert.Nil(t, deployments)
+
+	// Test setting deployments
+	testDeployments := map[string]Instance{
+		"prod": {
+			UUID:   "instance-prod",
+			Name:   "Production Instance",
+			Status: "running",
+		},
+		"staging": {
+			UUID:   "instance-staging",
+			Name:   "Staging Instance",
+			Status: "stopped",
+		},
+	}
+
+	project.SetDeploy(testDeployments)
+	retrievedDeployments := project.GetDeploy()
+	assert.NotNil(t, retrievedDeployments)
+	assert.Len(t, retrievedDeployments, 2)
+	assert.Equal(t, "instance-prod", retrievedDeployments["prod"].UUID)
+	assert.Equal(t, "Production Instance", retrievedDeployments["prod"].Name)
+	assert.Equal(t, "running", retrievedDeployments["prod"].Status)
+	assert.Equal(t, "instance-staging", retrievedDeployments["staging"].UUID)
+	assert.Equal(t, "Staging Instance", retrievedDeployments["staging"].Name)
+}
+
+func TestProject_BeforeSave(t *testing.T) {
+	t.Skip("BeforeSave hook test skipped - requires GORM database setup")
+	
+	// Note: This test would verify GORM hooks for:
+	// - UUID generation when not provided
+	// - JSON serialization of deployments to DeploymentsJSON field
+	// - Proper handling of empty/nil deployment maps
+}
+
+func TestProject_AfterFind(t *testing.T) {
+	t.Skip("AfterFind hook test skipped - requires GORM database setup")
+	
+	// Note: This test would verify GORM hooks for:
+	// - JSON deserialization from DeploymentsJSON to deployments field
+	// - Proper error handling for invalid JSON
+	// - Initialization of empty deployment maps
+}
+
+func TestProject_JSONSerialization(t *testing.T) {
+	project := Project{
+		UUID:        "proj-json-test",
+		ID:          "json-project",
+		Owner:       "user-json",
+		Name:        "JSON Test Project",
+		Description: "Testing JSON serialization",
+		Platform:    "vercel",
+		AccessURL:   "https://json-test.vercel.app",
+		Type:        "web",
+		LastUpdated: time.Now(),
+	}
+
+	// Test JSON marshaling (DeploymentsJSON should be excluded due to json:"-")
+	jsonData, err := json.Marshal(project)
+	assert.NoError(t, err)
+	assert.Contains(t, string(jsonData), "proj-json-test")
+	assert.Contains(t, string(jsonData), "JSON Test Project")
+	assert.NotContains(t, string(jsonData), "DeploymentsJSON") // Should be excluded
+
+	// Test JSON unmarshaling
+	var unmarshaledProject Project
+	err = json.Unmarshal(jsonData, &unmarshaledProject)
+	assert.NoError(t, err)
+	assert.Equal(t, project.UUID, unmarshaledProject.UUID)
+	assert.Equal(t, project.Name, unmarshaledProject.Name)
+	assert.Equal(t, project.Description, unmarshaledProject.Description)
+	assert.Equal(t, project.Platform, unmarshaledProject.Platform)
+}
+
+func TestProject_DatabaseOperations(t *testing.T) {
+	// Skip complex database operations that require full schema setup
+	t.Skip("Database operations test skipped - requires full PostgreSQL setup with proper relationships")
+	
+	// Note: This test would verify:
+	// - Project creation with foreign key relationships to users and repositories
+	// - GORM hooks (BeforeSave, AfterFind) for JSON serialization of deployments
+	// - Finding projects by ID with proper relationship loading
+	// - Updating project fields and deployment configurations
+	// - Soft deletion of projects
+}
+
+func TestProject_ValidationScenarios(t *testing.T) {
+	tests := []struct {
+		name        string
+		project     Project
+		description string
+	}{
+		{
+			name: "minimal valid project",
+			project: Project{
+				ID:    "min-proj",
+				Owner: "user-123",
+				Name:  "Minimal Project",
+			},
+			description: "Project with only required fields",
+		},
+		{
+			name: "full project with all fields",
+			project: Project{
+				UUID:         "full-proj-123",
+				ID:           "full-project",
+				Owner:        "user-456",
+				Name:         "Full Featured Project",
+				RepositoryID: "repo-123",
+				Readme:       "# Full Project\n\nComplete documentation",
+				Description:  "A fully configured project with all fields",
+				Platform:     "kubernetes",
+				AccessURL:    "https://full-project.k8s.example.com",
+				Type:         "microservice",
+			},
+			description: "Project with all optional fields filled",
+		},
+		{
+			name: "project with complex deployments",
+			project: Project{
+				UUID:  "complex-deploy-proj",
+				ID:    "complex-project",
+				Owner: "user-789",
+				Name:  "Complex Deployment Project",
+			},
+			description: "Project with complex deployment scenarios",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.NotEmpty(t, tt.project.ID, tt.description)
+			assert.NotEmpty(t, tt.project.Owner, tt.description)
+			assert.NotEmpty(t, tt.project.Name, tt.description)
+
+			// Test JSON serialization doesn't break
+			jsonData, err := json.Marshal(tt.project)
+			assert.NoError(t, err, tt.description)
+			assert.NotEmpty(t, jsonData, tt.description)
+
+			// Test JSON deserialization
+			var unmarshaled Project
+			err = json.Unmarshal(jsonData, &unmarshaled)
+			assert.NoError(t, err, tt.description)
+			assert.Equal(t, tt.project.UUID, unmarshaled.UUID, tt.description)
+			assert.Equal(t, tt.project.ID, unmarshaled.ID, tt.description)
+		})
+	}
+}
+
+func TestProject_EdgeCases(t *testing.T) {
+	t.Run("project with unicode characters", func(t *testing.T) {
+		project := Project{
+			UUID:        "unicode-proj-🚀",
+			ID:          "unicode-project",
+			Name:        "项目名称 - Project with 中文 and émojis 🌟",
+			Description: "Descripción con acentos y símbolos especiales ñ ü ç",
+			Platform:    "플랫폼",
+		}
+
+		jsonData, err := json.Marshal(project)
+		assert.NoError(t, err)
+
+		var unmarshaled Project
+		err = json.Unmarshal(jsonData, &unmarshaled)
+		assert.NoError(t, err)
+		assert.Equal(t, project.Name, unmarshaled.Name)
+		assert.Equal(t, project.Description, unmarshaled.Description)
+	})
+
+	t.Run("project with very long values", func(t *testing.T) {
+		longString := string(make([]byte, 2000))
+		for i := range longString {
+			longString = longString[:i] + "a"
+		}
+
+		project := Project{
+			UUID:        "long-proj",
+			ID:          "long-project",
+			Name:        "Long Project",
+			Description: longString,
+			Readme:      longString,
+		}
+
+		assert.NotEmpty(t, project.Description)
+		assert.NotEmpty(t, project.Readme)
+	})
+
+	t.Run("project with empty deployments map", func(t *testing.T) {
+		project := Project{
+			UUID: "empty-deploy-proj",
+			Name: "Empty Deployments Project",
+		}
+
+		project.SetDeploy(make(map[string]Instance))
+		deployments := project.GetDeploy()
+		assert.NotNil(t, deployments)
+		assert.Len(t, deployments, 0)
+	})
+
+	t.Run("project with nil deployments", func(t *testing.T) {
+		project := Project{
+			UUID: "nil-deploy-proj",
+			Name: "Nil Deployments Project",
+		}
+
+		project.SetDeploy(nil)
+		deployments := project.GetDeploy()
+		assert.Nil(t, deployments)
+	})
+}
+
+func TestProject_DeploymentsSerialization(t *testing.T) {
+	t.Run("complex deployments serialization", func(t *testing.T) {
+		t.Skip("Complex serialization test skipped - requires GORM database setup")
+		
+		// Note: This test would verify complex GORM serialization:
+		// - BeforeSave hook with multiple deployment instances
+		// - AfterFind hook deserialization with timestamps
+		// - Round-trip JSON serialization/deserialization integrity
+	})
+}

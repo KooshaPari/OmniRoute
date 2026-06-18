@@ -1,0 +1,73 @@
+# cargo-deny config for BytePort
+#
+# Every advisory ignore below MUST carry a specific RUSTSEC ID and a concrete
+# justification (per repo policy: no silent suppressions, no wildcard ignores).
+# Re-evaluate on every Tauri / dep bump and on each touch of this file.
+
+[advisories]
+version = 2
+yanked = "deny"
+
+ignore = [
+    # gtk-rs cluster (atk, gdk*, gtk*) — unmaintained, archived upstream. All transitive
+    # via Tauri 2.x's optional GTK3 backend. No safe upgrade; gtk-rs has archived
+    # gtk3-rs in favor of gtk4-rs which Tauri has not migrated to. No direct use in
+    # BytePort source.
+    { id = "RUSTSEC-2024-0411", reason = "atk (gtk-rs) unmaintained, transitive via Tauri 2.x GTK3 backend; upstream archived; no direct use." },
+    { id = "RUSTSEC-2024-0412", reason = "atk-sys (gtk-rs) unmaintained, transitive via Tauri 2.x GTK3 backend; upstream archived; no direct use." },
+    { id = "RUSTSEC-2024-0413", reason = "gdk (gtk-rs) unmaintained, transitive via Tauri 2.x GTK3 backend; upstream archived; no direct use." },
+    { id = "RUSTSEC-2024-0414", reason = "gdk-sys (gtk-rs) unmaintained, transitive via Tauri 2.x GTK3 backend; upstream archived; no direct use." },
+    { id = "RUSTSEC-2024-0415", reason = "gdkwayland-sys (gtk-rs) unmaintained, transitive via Tauri 2.x GTK3 backend; upstream archived; no direct use." },
+    { id = "RUSTSEC-2024-0416", reason = "gdkx11 (gtk-rs) unmaintained, transitive via Tauri 2.x GTK3 backend; upstream archived; no direct use." },
+    { id = "RUSTSEC-2024-0417", reason = "gdkx11-sys (gtk-rs) unmaintained, transitive via Tauri 2.x GTK3 backend; upstream archived; no direct use." },
+    { id = "RUSTSEC-2024-0418", reason = "gtk (gtk-rs) unmaintained, transitive via Tauri 2.x GTK3 backend; upstream archived; no direct use." },
+    { id = "RUSTSEC-2024-0419", reason = "gtk-sys (gtk-rs) unmaintained, transitive via Tauri 2.x GTK3 backend; upstream archived; no direct use." },
+    { id = "RUSTSEC-2024-0420", reason = "gtk3-macros (gtk-rs) unmaintained, transitive via Tauri 2.x GTK3 backend; upstream archived; no direct use." },
+
+    # unic-* family — unmaintained (rust-unic project archived). Pulled in transitively
+    # via Tauri's urlpattern stack. Recommended replacement icu_properties pending
+    # upstream Tauri migration.
+    { id = "RUSTSEC-2025-0075", reason = "unic-char-range unmaintained (rust-unic archived); transitive via Tauri/urlpattern; no direct use." },
+    { id = "RUSTSEC-2025-0080", reason = "unic-common unmaintained (rust-unic archived); transitive via Tauri/urlpattern; no direct use." },
+    { id = "RUSTSEC-2025-0081", reason = "unic-char-property unmaintained (rust-unic archived); transitive via Tauri/urlpattern; no direct use." },
+    { id = "RUSTSEC-2025-0098", reason = "unic-ucd-version unmaintained (rust-unic archived); transitive via Tauri/urlpattern; no direct use." },
+    { id = "RUSTSEC-2025-0100", reason = "unic-ucd-ident unmaintained (rust-unic archived); transitive via Tauri/urlpattern; no direct use." },
+
+    # Other unmaintained transitives surfaced via Tauri stack
+    { id = "RUSTSEC-2024-0370", reason = "proc-macro-error 1.x unmaintained; transitive via gtk3-macros/Tauri proc-macro deps; replacement proc-macro-error2 pending upstream migration." },
+    { id = "RUSTSEC-2025-0057", reason = "fxhash unmaintained; transitive via Tauri/webview deps; no safe upgrade; not invoked directly." },
+    # Note: RUSTSEC-2024-0436 (paste) removed 2026-05-04 — advisory-not-detected per cargo-deny; no longer in dep tree.
+]
+
+[licenses]
+version = 2
+allow = [
+    "Apache-2.0",
+    "Apache-2.0 WITH LLVM-exception",
+    "BSD-2-Clause",
+    "BSD-3-Clause",
+    "BSD-3-Clause-Clear",
+    "CC0-1.0",
+    "CC-BY-SA-4.0",
+    "GPL-3.0-only",
+    "ISC",
+    "MIT",
+    "MPL-2.0",
+    "Unicode-3.0",
+    "Unicode-DFS-2016",
+    "Zlib",
+    "0BSD",
+    "BlueOak-1.0.0",
+    "CDLA-Permissive-2.0",
+    "Unlicense",
+    "WTFPL"
+]
+
+[bans]
+multiple-versions = "warn"
+wildcards = "deny"
+
+[sources]
+unknown-registry = "deny"
+unknown-git = "deny"
+allow-registry = ["https://github.com/rust-lang/crates.io-index"]

@@ -1,0 +1,16 @@
+Repos to process: 9
+
+OK (repo @ main): agileplus-spec-harmonizer-tool
+OK (repo @ chore/dependabot-2026-06-08): apps
+OK (repo @ main): BytePort
+OK (repo @ chore/dependabot-2026-06-08): docs-site
+OK (repo @ wave1-hygiene-push): helios-router
+OK (repo @ feature/error-context-2026-06-08): helioscope
+OK (repo @ main): phenodag-tool
+OK (repo @ main): phenotype-py-utils
+OK (repo @ main): services
+
+===== SUMMARY =====
+Succeeded: 9
+Failed: 0
+Skipped: 0

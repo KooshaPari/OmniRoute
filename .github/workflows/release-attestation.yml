@@ -1,0 +1,86 @@
+name: Release Attestation
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+  attestations: write
+
+jobs:
+  build-and-attest:
+    name: Build and Attest (SLSA Build L2)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+      attestations: write
+    env:
+      CARGO_WORKDIR: .
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: stable
+
+      - name: Cache cargo registry and build artifacts
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: |
+            . -> target
+
+      - name: Build release artifacts
+        working-directory: ${{ env.CARGO_WORKDIR }}
+        run: |
+          set -euo pipefail
+          cargo build --release --locked --workspace --all-targets
+
+      - name: Stage release artifacts
+        working-directory: ${{ env.CARGO_WORKDIR }}
+        run: |
+          set -euo pipefail
+          mkdir -p release-artifacts
+          # Copy all built executables
+          find target/release -maxdepth 1 -type f -executable \
+            -exec cp -t release-artifacts/ {} + 2>/dev/null || true
+          # Source tarball
+          tar \
+            --exclude='./target' \
+            --exclude='./.git' \
+            --exclude='./release-artifacts' \
+            -czf release-artifacts/source.tar.gz \
+            -C "$GITHUB_WORKSPACE/${{ env.CARGO_WORKDIR }}" .
+          # Build manifest
+          cat > release-artifacts/BUILD_MANIFEST.txt <<EOF
+          # Release Build Manifest
+          repository: ${{ github.repository }}
+          ref:        ${{ github.ref }}
+          sha:        ${{ github.sha }}
+          runner:     ${{ runner.os }}
+          rustc:      $(rustc --version)
+          cargo:      $(cargo --version)
+          built_at:   $(date -u +%Y-%m-%dT%H:%M:%SZ)
+          EOF
+          echo "=== Release artifacts ==="
+          ls -la release-artifacts/
+
+      - name: Upload artifacts for provenance
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-artifacts
+          path: ${{ env.CARGO_WORKDIR }}/release-artifacts/
+          if-no-files-found: warn
+          retention-days: 90
+
+      - name: Attest build provenance (SLSA Build L2)
+        uses: slsa-framework/slsa-github-generator/attest-build-provenance@v1
+        with:
+          artifact-name: release-artifacts

@@ -1,0 +1,66 @@
+name: Security Gate
+permissions:
+  contents: read
+  security-events: write
+concurrency:
+  group: security-${{ github.ref }}
+  cancel-in-progress: true
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'Cargo.toml'
+      - 'Cargo.lock'
+  pull_request:
+    paths:
+      - 'Cargo.toml'
+      - 'Cargo.lock'
+  schedule:
+    - cron: '0 6 * * 1'  # once weekly
+  workflow_dispatch:
+
+jobs:
+  security:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.1.1
+      - uses: dtolnay/rust-toolchain@stable
+
+      - name: Run cargo-audit
+        id: audit
+        continue-on-error: true
+        uses: rustsec/audit-check@v2
+        with:
+          token: ${{ github.token }}
+
+      - name: Run cargo-deny
+        id: deny
+        continue-on-error: true
+        uses: EmbarkStudios/cargo-deny-action@v6
+        with:
+          rust-version: stable
+
+      - name: Run trufflehog (secrets scan)
+        id: trufflehog
+        continue-on-error: true
+        uses: trufflesecurity/trufflehog@v3
+        with:
+          path: ./
+          base: ${{ github.event.repository.default_branch }}
+          head: HEAD
+
+      - name: Security Gate Summary
+        if: always()
+        run: |
+          echo "=== Security Gate Results ==="
+          echo "cargo-audit: ${{ steps.audit.outcome }}"
+          echo "cargo-deny:  ${{ steps.deny.outcome }}"
+          echo "trufflehog:  ${{ steps.trufflehog.outcome }}"
+          if [ "${{ steps.audit.outcome }}" = "failure" ] || \
+             [ "${{ steps.deny.outcome }}" = "failure" ] || \
+             [ "${{ steps.trufflehog.outcome }}" = "failure" ]; then
+            echo "SECURITY GATE FAILED"
+            exit 1
+          fi
+          echo "SECURITY GATE PASSED"

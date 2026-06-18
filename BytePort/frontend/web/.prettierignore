@@ -1,0 +1,11 @@
+# Package Managers
+package-lock.json
+pnpm-lock.yaml
+yarn.lock
+
+# Generated/editor state
+.history/
+.svelte-kit/
+node_modules/
+build/
+dist/

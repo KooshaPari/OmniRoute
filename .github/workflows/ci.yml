@@ -6,20 +6,57 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
-on: [push, pull_request]
+# Only run when actual code changes — skip README/docs-only edits
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+      - 'worklogs/**'
+      - '.github/**'
+      - '*.md'
+  pull_request:
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+      - 'worklogs/**'
+      - '.github/**'
+      - '*.md'
+
 jobs:
   test:
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.1.1
       - uses: dtolnay/rust-toolchain@stable
+
+      # sccache — share compiled artifacts across CI runs
+      - name: Start sccache
+        run: |
+          cargo install sccache --locked
+          echo "RUSTC_WRAPPER=sccache" >> $GITHUB_ENV
+          echo "SCCACHE_GHA_ENABLED=true" >> $GITHUB_ENV
+
       - uses: Swatinem/rust-cache@42dc69e1aa15d09112580998cf2ef0119e2e91ae # v2
+        with:
+          workspaces: |
+            . -> target
+
       - name: Clone sibling PhenoObservability
-        # `crates/focus-always-on/Cargo.toml` references phenotype-observably-macros
-        # via a 3-level relative path (`../../../PhenoObservability/...`). CI must
-        # clone the sibling repo to a location that resolves to that path.
         run: |
           git clone --depth 1 https://github.com/KooshaPari/PhenoObservability.git \
             "$GITHUB_WORKSPACE/../PhenoObservability"
-      - run: cargo test --all-features --workspace
-      - run: cargo clippy --all-features -- -D warnings 2>/dev/null || cargo check
+
+      # cargo-nextest — 2-3x faster than cargo test
+      - name: Install cargo-nextest
+        run: |
+          if ! cargo nextest --version &>/dev/null; then
+            cargo install cargo-nextest --locked
+          fi
+
+      - name: Run tests (nextest)
+        run: cargo nextest run --all-features --workspace
+
+      - name: Run lint
+        run: cargo clippy --all-features -- -D warnings

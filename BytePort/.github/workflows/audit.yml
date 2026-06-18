@@ -1,0 +1,248 @@
+# audit.yml — BytePort security & quality audits
+#
+# Slow / weekly / non-PR-gating checks. PR-gating checks live in ci.yml.
+# Per-tool schedules are offset to avoid thundering herd.
+#
+# Triggers: push, pull_request, weekly schedule (per-job), manual dispatch.
+# Concurrency: one in-flight run per ref; new commits cancel old runs.
+
+name: Audit
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+  schedule:
+    # Weekly sweep — per-job cron offsets live in the jobs themselves
+    # so each tool is staggered (gitleaks, trufflehog, cargo-audit,
+    # cargo-semver, sonarcloud all have their own schedule).
+    - cron: '17 4 * * 1'   # Mon 04:17 UTC — gitleaks + trufflehog
+    - cron: '37 5 * * 3'   # Wed 05:37 UTC — cargo-audit
+    - cron: '17 3 * * 6'   # Sat 03:17 UTC — scorecard mirror
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  actions: read
+  security-events: write
+
+jobs:
+  # ---------- CodeQL ----------
+  codeql:
+    timeout-minutes: 30
+    name: CodeQL (${{ matrix.language }})
+    runs-on: ubuntu-latest
+    permissions:
+      security-events: write
+      contents: read
+      actions: read
+    strategy:
+      fail-fast: false
+      matrix:
+        language: ["actions", "go", "javascript"]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@b25d0ebf40e5b63ee81e1bd6e5d2a12b7c2aeb61 # v4
+        with:
+          languages: ${{ matrix.language }}
+      - name: Autobuild
+        uses: github/codeql-action/autobuild@b25d0ebf40e5b63ee81e1bd6e5d2a12b7c2aeb61 # v4
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@b25d0ebf40e5b63ee81e1bd6e5d2a12b7c2aeb61 # v4
+        with:
+          category: "/language:${{ matrix.language }}"
+
+  # ---------- Gitleaks ----------
+  gitleaks:
+    name: Gitleaks
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
+        with:
+          fetch-depth: 0
+      - name: Run Gitleaks
+        uses: gitleaks/gitleaks-action@ff98106e4c7b2bc287b24eaf42907196329070c7 # v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITLEAKS_CONFIG: .gitleaks.toml
+
+  # ---------- TruffleHog ----------
+  trufflehog:
+    name: TruffleHog (verified)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
+        with:
+          fetch-depth: 0
+      - name: Run TruffleHog
+        uses: trufflesecurity/trufflehog@3fc0c2aa6648d54242e4af6fbfde0701796e4fb0 # main
+        with:
+          path: ./
+          base: ${{ github.event.repository.default_branch }}
+          extra_args: --only-verified --fail
+
+  # ---------- Cargo audit ----------
+  cargo-audit:
+    name: cargo-audit
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
+      - name: Run RustSec audit
+        uses: rustsec/audit-check@69366f33c96575abad1ee0dba8212993eecbe998
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+  # ---------- Cargo semver ----------
+  cargo-semver:
+    name: cargo-semver-checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
+      - name: Run cargo-semver-checks
+        uses: obi1kenobi/cargo-semver-checks-action@6b69fcf40e9b5fb17adeb57e4b6ecd020649a239 # v1
+
+  # ---------- SonarCloud ----------
+  sonarcloud:
+    name: SonarCloud
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    continue-on-error: true
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
+        with:
+          fetch-depth: 0
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarqube-scan-action@7006c4492b2e0ee0f816d36501671557c97f5995 # v8.1.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
+  # ---------- Legacy tooling anti-pattern (WARN mode) ----------
+  legacy-tooling:
+    name: Legacy tooling scan (WARN)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      PHENOTYPE_TOOLING_TOKEN: ${{ secrets.PHENOTYPE_TOOLING_TOKEN }}
+    permissions:
+      contents: read
+      security-events: write
+      pull-requests: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
+      - name: Checkout phenotype/repos for shared tools
+        id: checkout-legacy-tools
+        if: ${{ env.PHENOTYPE_TOOLING_TOKEN != '' }}
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
+        with:
+          repository: kooshapari/phenotype
+          path: phenotype-repos
+          sparse-checkout: tooling/legacy-enforcement
+          token: ${{ env.PHENOTYPE_TOOLING_TOKEN }}
+      - name: Set up Python
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v5
+        with:
+          python-version: '3.12'
+      - name: Install dependencies
+        run: pip install pyyaml
+      - name: Run legacy tooling scanner (WARN mode)
+        if: ${{ steps.checkout-legacy-tools.outcome == 'success' }}
+        run: |
+          python3 phenotype-repos/tooling/legacy-enforcement/scanner/legacy_tooling_scanner.py \
+            --repo-root . \
+            --policy phenotype-repos/tooling/legacy-enforcement/policy/rules.yaml \
+            --output-json legacy_tooling_report.json \
+            --output-md legacy_tooling_report.md \
+            --report-only
+        continue-on-error: true
+      - name: Write skipped scan report
+        if: ${{ steps.checkout-legacy-tools.outcome != 'success' }}
+        run: |
+          cat > legacy_tooling_report.json <<'JSON'
+          {"totals":{},"findings":[],"skipped":"PHENOTYPE_TOOLING_TOKEN is not configured; shared legacy tooling checkout was skipped."}
+          JSON
+          cat > legacy_tooling_report.md <<'MD'
+          **Legacy Tooling Scan Report**
+
+          Skipped: `PHENOTYPE_TOOLING_TOKEN` is not configured, so the shared legacy tooling repository could not be checked out.
+          MD
+      - name: Upload scan report (JSON)
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: legacy-tooling-report-json
+          path: legacy_tooling_report.json
+          retention-days: 30
+      - name: Upload scan report (Markdown)
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: legacy-tooling-report-md
+          path: legacy_tooling_report.md
+          retention-days: 30
+      - name: Comment PR with findings
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3
+        with:
+          script: |
+            const fs = require('fs');
+            let report = '**Legacy Tooling Scan Report**\n\n';
+
+            try {
+              const data = JSON.parse(fs.readFileSync('legacy_tooling_report.json', 'utf8'));
+              const totals = data.totals || {};
+
+              report += `| Severity | Count |\n|----------|-------|\n`;
+              report += `| Critical | ${totals.critical || 0} |\n`;
+              report += `| High | ${totals.high || 0} |\n`;
+              report += `| Medium | ${totals.medium || 0} |\n`;
+              report += `| Low | ${totals.low || 0} |\n\n`;
+
+              const findings = data.findings || [];
+              if (findings.length > 0) {
+                report += '**Top Violations:**\n';
+                findings.slice(0, 5).forEach(f => {
+                  report += `- [${f.severity.toUpperCase()}] ${f.rule_id}: ${f.file}:${f.line}\n`;
+                });
+                if (findings.length > 5) {
+                  report += `- ... and ${findings.length - 5} more\n`;
+                }
+              } else {
+                report += 'No violations detected.\n';
+              }
+
+              report += '\n*This is a WARN-mode scan. Fix before strict enforcement begins.*';
+            } catch (e) {
+              report += 'Could not parse scan results.';
+            }
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: report
+            });

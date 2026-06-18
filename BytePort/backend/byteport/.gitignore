@@ -1,0 +1,17 @@
+# Private keys and certificates — never commit
+*.pem
+*.key
+*.p12
+*.pfx
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store

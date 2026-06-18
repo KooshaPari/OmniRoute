@@ -1,0 +1,35 @@
+@import 'tailwindcss/base';
+@import 'tailwindcss/components';
+@import 'tailwindcss/utilities';
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+:root {
+	--primary: #80d5cf;
+	--on-primary: #003734;
+	--primary-container: #00504c;
+	--on-primary-container: #9df1eb;
+
+	--secondary: #83d2e3;
+	--on-secondary: #00363e;
+	--secondary-container: #004e5a;
+	--on-secondary-container: #a2eeff;
+
+	--tertiary: #9bcbfb;
+	--on-tertiary: #003353;
+	--tertiary-container: #0e4a73;
+	--on-tertiary-container: #cee5ff;
+
+	--error: #ffb4ab;
+	--on-error: #690005;
+	--background: #0e1514;
+	--on-background: #dde4e2;
+
+	--surface: #101418;
+	--on-surface: #e1e2e8;
+
+	--surface-variant: #3f4948;
+	--on-surface-variant: #bec9c7;
+
+	--outline: #889391;
+}

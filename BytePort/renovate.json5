@@ -1,0 +1,28 @@
+{
+  $schema: "https://docs.renovatebot.com/renovate-schema.json",
+  enabled: true,
+  extends: ["config:recommended"],
+  schedule: ["before 4am on monday"],
+  labels: ["dependencies"],
+  rangeStrategy: "bump",
+  prHourlyLimit: 5,
+  prConcurrentLimit: 10,
+  packageRules: [
+    {
+      matchManagers: ["cargo"],
+      groupName: "rust dependencies",
+    },
+    {
+      matchManagers: ["npm"],
+      groupName: "npm dependencies",
+    },
+    {
+      matchManagers: ["gomod"],
+      groupName: "go dependencies",
+    },
+    {
+      matchManagers: ["pip_requirements", "pip_setup", "pipenv", "poetry"],
+      groupName: "python dependencies",
+    },
+  ],
+}

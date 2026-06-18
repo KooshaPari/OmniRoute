@@ -1,0 +1,86 @@
+# Phenotype-internal Gitleaks configuration
+# Layer 2 #34 — gitleaks + trufflehog secret-scan workflow.
+#
+# Strategy:
+#   1. Extend the official gitleaks default ruleset (so all upstream detectors
+#      remain active).
+#   2. Allow the phenotype-internal test secret literal
+#      `PhenotypeTestToken123!` and other fixture-only patterns. These are
+#      intentionally committed as test inputs and must never block CI.
+#   3. Exclude common non-source paths so build artefacts, vendored deps,
+#      and lockfiles do not generate noise.
+
+title = "Phenotype Gitleaks Config"
+
+[extend]
+useDefault = true
+
+# 1. Path-based allowlist: skip noise paths and known test fixture dirs.
+[[allowlists]]
+description = "Non-source / build artefact paths"
+targetRules = [
+  "generic-api-key",
+  "generic-high-entropy-secret",
+  "jwt",
+  "slack-bot-token",
+  "stripe-access-token",
+  "aws-access-token",
+  "gcp-api-key",
+  "github-pat",
+  "github-fine-grained-pat",
+]
+paths = [
+  '''(?i)\.git/''',
+  '''(?i)target/''',
+  '''(?i)node_modules/''',
+  '''(?i)dist/''',
+  '''(?i)build/''',
+  '''(?i)vendor/''',
+  '''(?i)\.venv/''',
+  '''(?i)__pycache__/''',
+  '''(?i)\.cargo/''',
+  '''(?i)go\.sum$''',
+  '''(?i)Cargo\.lock$''',
+  '''(?i)package-lock\.json$''',
+  '''(?i)yarn\.lock$''',
+  '''(?i)pnpm-lock\.yaml$''',
+  '''(?i)Pipfile\.lock$''',
+  '''(?i)poetry\.lock$''',
+  '''(?i)\.minisign/''',
+  '''(?i)\.tuf/''',
+  '''(?i)coverage/''',
+  '''(?i)lcov\.info$''',
+  '''(?i)tests?/.*/fixtures/''',
+  '''(?i).*/testdata/''',
+  '''(?i).*_test\.go$''',
+  '''(?i).*\.test\.[a-z]+$''',
+  '''(?i).*_test\.py$''',
+  '''(?i).*\.spec\.[a-z]+$''',
+]
+
+# 2. Regex-based allowlist: known phenotype-internal test secrets.
+[[allowlists]]
+description = "Phenotype-internal test secret literals in test fixtures"
+regexTarget = "match"
+regexes = [
+  '''PhenotypeTestToken123!''',
+  '''PhenotypeInternalToken_?[A-Za-z0-9_]*''',
+  '''phenotype-test-(token|key|secret)-[A-Za-z0-9_-]+''',
+]
+
+# 3. Regex-based allowlist scoped to test/fixture paths only.
+[[allowlists]]
+description = "Any test-secret-shaped literal under test fixture paths"
+regexTarget = "match"
+paths = [
+  '''(?i)tests?/.*/fixtures/''',
+  '''(?i).*/testdata/''',
+  '''(?i).*\.test\.[a-z]+$''',
+  '''(?i).*_test\.go$''',
+  '''(?i).*_test\.py$''',
+  '''(?i).*\.spec\.[a-z]+$''',
+]
+regexes = [
+  '''(?i)(token|secret|key|password|apikey|api[_-]?key)\s*[:=]\s*['"]?[A-Za-z0-9_!@#$%^&*+=-]{8,}['"]?''',
+]
+stopwatch = false

@@ -1,0 +1,20 @@
+<script>
+	import { fly, fade } from 'svelte/transition';
+</script>
+
+<div
+	id="background"
+	in:fly={{ y: 200 }}
+	out:fade
+	class=" flex h-screen w-screen items-center justify-center bg-dark-surface"
+>
+	<h1
+		in:fly={{ y: 200 }}
+		out:fade={{ duration: 100 }}
+		class="ftsHeadText text-6xl text-dark-primary transition-all hover:text-dark-onSurface"
+	>
+		Welcome.
+	</h1>
+    <button class="rounded-full h-1/10 w-1/10 bg-dark-secondaryContainer"
+</div>
+<stye></stye>

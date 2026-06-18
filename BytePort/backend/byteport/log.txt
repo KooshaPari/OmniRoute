@@ -1,0 +1,30 @@
+panic: handlers are already registered for path '/link'
+
+goroutine 1 [running]:
+github.com/gin-gonic/gin.(*node).addRoute(0x101389031?, {0x14000328237, 0x5}, {0x14000276e00, 0x4, 0x4})
+	panic: handlers are already registered for path '/link'
+
+goroutine 1 [running]:
+github.com/gin-gonic/gin.(*node).addRoute(0x101389031?, {0x14000328237, 0x5}, {0x14000276e00, 0x4, 0x4})
+	/Users/kooshapari/go/pkg/mod/github.com/gin-gonic/gin@v1.10.0/tree.go:260 +0x59c
+github.com/gin-gonic/gin.(*Engine).addRoute(0x14000135860, {0x101389031, 0x4}, {0x14000328237, 0x5}, {0x14000276e00, 0x4, 0x4})
+	/Users/kooshapari/go/pkg/mod/github.com/gin-gonic/gin@v1.10.0/gin.go:349 +0x200
+github.com/gin-gonic/gin.(*RouterGroup).handle(0x14000135860, {0x101389031, 0x4}, {0x101389681?, 0x1014bfac0?}, {0x140001230d8, 0x1, 0x5?})
+	/Users/kooshapari/go/pkg/mod/github.com/gin-gonic/gin@v1.10.0/routergroup.go:89 +0x120
+github.com/gin-gonic/gin.(*RouterGroup).POST(...)
+	/Users/kooshapari/go/pkg/mod/github.com/gin-gonic/gin@v1.10.0/routergroup.go:112
+main.setupRouter()
+	/Users/kooshapari/temp-PRODVERCEL/Rust/webApp/byte_port/backend/byteport/main.go:81 +0x388
+main.main()
+	/Users/kooshapari/temp-PRODVERCEL/Rust/webApp/byte_port/backend/byteport/main.go:135 +0x24
+/Users/kooshapari/go/pkg/mod/github.com/gin-gonic/gin@v1.10.0/tree.go:260 +0x59c
+github.com/gin-gonic/gin.(*Engine).addRoute(0x14000135860, {0x101389031, 0x4}, {0x14000328237, 0x5}, {0x14000276e00, 0x4, 0x4})
+	/Users/kooshapari/go/pkg/mod/github.com/gin-gonic/gin@v1.10.0/gin.go:349 +0x200
+github.com/gin-gonic/gin.(*RouterGroup).handle(0x14000135860, {0x101389031, 0x4}, {0x101389681?, 0x1014bfac0?}, {0x140001230d8, 0x1, 0x5?})
+	/Users/kooshapari/go/pkg/mod/github.com/gin-gonic/gin@v1.10.0/routergroup.go:89 +0x120
+github.com/gin-gonic/gin.(*RouterGroup).POST(...)
+	/Users/kooshapari/go/pkg/mod/github.com/gin-gonic/gin@v1.10.0/routergroup.go:112
+main.setupRouter()
+	/Users/kooshapari/temp-PRODVERCEL/Rust/webApp/byte_port/backend/byteport/main.go:81 +0x388
+main.main()
+	/Users/kooshapari/temp-PRODVERCEL/Rust/webApp/byte_port/backend/byteport/main.go:135 +0x24

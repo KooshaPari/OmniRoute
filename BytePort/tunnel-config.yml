@@ -1,0 +1,28 @@
+# Cloudflare Tunnel Configuration for fixit-go deployment
+tunnel: byteport-fixit-go
+credentials-file: C:\BytePort\tunnels\credentials.json
+
+ingress:
+  # Main frontend service (Svelte app)
+  - hostname: fixit-go.byteport.dev
+    service: http://localhost:8080
+
+  # Backend API service
+  - hostname: api.fixit-go.byteport.dev
+    service: http://localhost:8081
+
+  # Alternative routing - backend via path
+  - hostname: fixit-go.byteport.dev
+    path: /api/*
+    service: http://localhost:8081
+
+  # Catch-all for 404
+  - service: http_status:404
+
+# Logging configuration
+logfile: C:\BytePort\logs\fixit-go-tunnel.log
+loglevel: info
+
+# Connection settings
+retries: 3
+grace-period: 30s

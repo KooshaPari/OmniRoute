@@ -1,0 +1,22 @@
+syntax = "proto3";
+
+package byteport;
+
+service NanoVMS {
+  rpc StartVM(StartVMRequest) returns (VMResponse);
+  rpc StopVM(StopVMRequest) returns (VMResponse);
+}
+
+message StartVMRequest {
+  string vm_id = 1;
+  string config = 2;
+}
+
+message StopVMRequest {
+  string vm_id = 1;
+}
+
+message VMResponse {
+  string vm_id = 1;
+  string status = 2;
+}

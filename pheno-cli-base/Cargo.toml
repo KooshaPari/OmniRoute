@@ -2,21 +2,17 @@
 name = "pheno-cli-base"
 version = "0.1.0"
 edition = "2021"
-license = "MIT OR Apache-2.0"
 rust-version = "1.82"
-description = "Canonical CLI base for the pheno-* fleet: clap re-export, CliRunnable trait with a default main(), install_panic_hook, and parse_from_env_or_exit."
-repository = "https://github.com/KooshaPari/phenotype"
-keywords = ["cli", "phenotype", "clap", "pheno-cli-base", "error-handling"]
-categories = ["command-line-interface", "rust-patterns"]
+license = "MIT OR Apache-2.0"
+description = "Shared CLI patterns for Phenotype CLIs: Verbosity, ConfigArg, and setup_tracing."
+keywords = ["cli", "clap", "tracing", "phenotype", "boilerplate"]
+categories = ["command-line-utilities", "development-tools"]
+readme = "README.md"
 publish = false
 
-# Empty [workspace] table declares this crate as a standalone package,
-# mirroring the L3-#46 (pheno-errors), L3-#47 (pheno-tracing),
-# L3-#48 (pheno-config), and L3-#49 (pheno-otel) decision. Consumers
-# add it to their own workspace or depend on it via a path/git dep.
-# This keeps the new crate's test/build loop independent of the
-# 60-crate root Phenotype workspace, so we do not conflict with
-# other L3 agents concurrently modifying the root Cargo.toml.
+# An empty [workspace] table declares this crate as a standalone
+# package. Without it, cargo looks upward and finds the surrounding
+# monorepo workspace (which currently has unrelated tooling members).
 [workspace]
 
 [lib]
@@ -24,29 +20,9 @@ name = "pheno_cli_base"
 path = "src/lib.rs"
 
 [dependencies]
-# clap v4 — re-exported at the crate root via `pub use clap` so derived
-# `#[derive(Parser)]` structs in consumer crates do not need a direct
-# clap dep. We enable the `derive` feature (for the `Parser` derive
-# macro) and the `color` feature (so the colored usage line works on
-# terminals that support ANSI — `parse_from_env_or_exit` relies on this).
-clap = { version = "4", features = ["derive", "color"] }
-# colored v2 — renders the `error: <msg>` line in the default
-# `CliRunnable::main` impl in bold red. Force-enabled at write time
-# (via `colored::control::set_override(true)`) so log scrapers still
-# see the ANSI codes even when stderr is not a TTY.
-colored = "2"
+clap = { version = "4.5", features = ["derive", "env"] }
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 
 [dev-dependencies]
-# assert_cmd lets us drive a binary as a subprocess from integration
-# tests — used to verify exit codes (0 for success, 1 for run() error,
-# 2 for clap parse failure) and stderr/stdout content.
-assert_cmd = "2"
-predicates = "3"
-
-[[bin]]
-# Smoke binary used exclusively by `tests/cli_test.rs` integration
-# tests. Exposes one flag per `pheno-cli-base` behavior we want to
-# assert on end-to-end (success, run() error, panic hook). Not
-# published; not part of the crate's public API surface.
-name = "cli_smoke"
-path = "src/bin/cli_smoke.rs"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }

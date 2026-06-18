@@ -1,0 +1,70 @@
+Total repos missing ISSUE_TEMPLATE: 60
+
+OK (repo @ chore/async-trait-2026-06-08): agent-platform
+FAIL (commit): agslag-docs
+OK (repo @ docs/fix-gap-2026-06-08): AppGen
+OK (repo @ docs/bare-cua-merge-to-playcua-note-20260610): bare-cua
+OK (repo @ main): chatta
+OK (repo @ main): clap-ext
+OK (repo @ main): DINOForge-UnityDoorstop
+OK (repo @ main): dispatch-mcp
+OK (repo @ feat/eventra-error-display-impl-20260612): Eventra
+OK (repo @ main): Httpora
+OK (repo @ chore/ci-sha-pin-2026-06-08): KaskMan
+OK (repo @ main): KlipDot
+OK (repo @ main): kmobile
+OK (repo @ main): KodeVibe
+OK (repo @ main): localbase3
+OK (repo @ main): melosviz
+OK (repo @ main): NetScript
+OK (repo @ main): netweave-final2
+OK (repo @ chore/pheno-agents-md-ubuntu-pin-2026-06-12): pheno-agents-md
+OK (repo @ chore/l2-27-pheno-cargo-template-2026-06-11): pheno-cargo-template
+OK (repo @ main): pheno-cost-card
+OK (repo @ chore/l3-57-pheno-plugin-registry-2026-06-11): pheno-llms-txt
+OK (repo @ chore/l3-57-pheno-plugin-registry-2026-06-11): pheno-mcp-router
+OK (repo @ main): pheno-prompt-test
+OK (repo @ main): pheno-scaffold-kit
+OK (repo @ main): pheno-vibecoding-guard
+OK (repo @ main): pheno-worklog-schema
+OK (repo @ main): PhenoAgent
+OK (repo @ main): PhenoContracts
+OK (repo @ main): PhenoEvents
+OK (worktree @ chore/ports-workspace-fix-2026-06-11): PhenoPlugins-wt-ports-fix
+OK (repo @ main): PhenoPlugins
+OK (repo @ chore/dependabot-2026-06-08): PhenoSchema
+OK (repo @ main): phenotype-actions
+OK (repo @ main): phenotype-dep-guard
+OK (worktree @ feat/phenotype-ts-utils-adopt-2026-06-12): phenotype-e2e-base-wt-ts-utils
+OK (repo @ main): phenotype-e2e-base
+OK (repo @ main): phenotype-go-sdk
+OK (repo @ main): phenotype-hub
+OK (repo @ main): phenotype-infrakit
+OK (repo @ main): phenotype-landing
+OK (repo @ main): phenotype-otel
+OK (repo @ main): phenotype-postfx
+OK (repo @ main): phenotype-py-extras
+OK (repo @ main): phenotype-python-sdk
+OK (repo @ main): phenotype-request-id
+OK (worktree @ ci/cd-hardening): phenotype-teamcomm-wt-cicd
+OK (repo @ main): phenotype-teamcomm
+OK (repo @ main): phenotype-ts-utils
+OK (repo @ main): phenotype-voxel
+OK (worktree @ chore/wave4-t61-phenotype-zod-schemas-adr-2026-06-14): phenotype-zod-schemas-wt-adr-2026-06-14
+OK (repo @ chore/wave1-t2-phenotype-zod-schemas-ssot-2026-06-14): phenotype-zod-schemas
+OK (repo @ canonical/phenoXdd-status-2026-06): phenoXdd
+OK (repo @ main): Pine
+OK (repo @ chore/tick26-lift-ahead-20260611): PlatformKit
+OK (repo @ main): thegent-sharecli
+OK (worktree @ ci/cd-hardening): Tracera-wt-cicd
+OK (worktree @ feat/phenotype-request-id-adopt-2026-06-12): Tracera-wt-reqid
+OK (repo @ main): Tracera
+OK (repo @ chore/tick26-lift-ahead-20260611): vibeproxy-monitoring-unified
+
+===== SUMMARY =====
+Succeeded: 59
+Failed: 1
+Skipped: 0
+
+Failures:
+  - agslag-docs (commit failed)
