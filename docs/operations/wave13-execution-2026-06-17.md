@@ -17,7 +17,7 @@ Pre-merged on HexaKit `main` via eco-consolidate (#255). No additional HexaKit P
 | `phenotype-test-infra` | workspace exclude + git dep → TestingKit | HexaKit #264 |
 | `phenotype-bdd` | workspace exclude (stub); canonical absorption pending journeys | HexaKit #264 |
 
-**Pyron lockstep:** [#TBD Pyron PR] — exclude `phenotype-bdd` / `phenotype-test-infra`; git pin test-infra → TestingKit.
+**Pyron lockstep:** [Pyron #56](https://github.com/KooshaPari/Pyron/pull/56) — exclude `phenotype-bdd` / `phenotype-test-infra`; git pin test-infra → TestingKit.
 
 ## Lane C — contracts split (unblocks partial `phenotype-core` alignment)
 
