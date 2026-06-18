@@ -1,0 +1,12 @@
+{
+  "name": "Planify",
+  "languages": [],
+  "primary_language": "unknown",
+  "status": "archived",
+  "has_readme": true,
+  "type": "fork",
+  "path": "repos/Planify",
+  "disposition": "RETIRE",
+  "wave": "surface-reduction-1",
+  "note": "Upstream-maintained fork — archived 2026-06-18; no local delta"
+}

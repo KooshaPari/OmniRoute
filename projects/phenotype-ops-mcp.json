@@ -1,0 +1,13 @@
+{
+  "name": "phenotype-ops-mcp",
+  "languages": ["go"],
+  "primary_language": "go",
+  "status": "archived",
+  "has_readme": true,
+  "type": "fork",
+  "path": "repos/phenotype-ops-mcp",
+  "disposition": "RETIRE",
+  "wave": "surface-reduction-1",
+  "redirect": "PhenoMCPServers/servers/external/",
+  "note": "Upstream-maintained MCP fork — archived 2026-06-18"
+}

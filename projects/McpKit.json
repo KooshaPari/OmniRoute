@@ -1,0 +1,14 @@
+{
+  "name": "McpKit",
+  "languages": ["python", "rust"],
+  "primary_language": "python",
+  "status": "archived",
+  "has_readme": true,
+  "type": "kit",
+  "path": "repos/McpKit",
+  "disposition": "SUPERSEDE",
+  "wave": "surface-reduction-1",
+  "redirect": "PhenoFastMCP + PhenoMCPServers + substrate + phenotype-python-sdk[connect]",
+  "adr": "ADR-017",
+  "note": "Archived 2026-06-18 per ADR-017; absorption complete registry#156"
+}
