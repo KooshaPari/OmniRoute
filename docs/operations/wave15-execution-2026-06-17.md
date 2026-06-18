@@ -60,9 +60,9 @@ Establish three-layer doctrine (governance / platform / engine) and unblocks lan
 | 15 | SSOT | phenotype-registry | **merged** (#142) |
 | G15 | agentapi++ | agentapi-plusplus + substrate | **done** — #535 merged; 1 remote (`main`) |
 | G16 | cliproxy | cliproxyapi-plusplus + go-sdk | **done** — #1026, vibeproxy#14, go-sdk#17 merged |
-| G17 | bifrost | bifrost | **done** — #7 merged; tag `phenotype/vendor-2026-06`; 2 remotes |
+| G17 | bifrost | bifrost | **done** — #7 merged; tag `phenotype/vendor-2026-06`; 1 remote (`main`) |
 | G18 | omlx | phenotype-registry ADR-ECO-008 | pending |
-| G19 | stubs | phenotype-infra + registry | pending |
+| G19 | stubs | phenotype-infra + registry | **partial** — `projects/*.json` stubs merged (#163); infra absorption pending |
 | 14 | HexaKit | phenoShared + HexaKit | **in_progress** — feat/wave14-phenoshared-decompose (2 pin repoints; cargo blocked on terminal owners) |
 
 ## PR tracker
@@ -91,8 +91,8 @@ Establish three-layer doctrine (governance / platform / engine) and unblocks lan
 
 ## Next
 
-1. **G17** — `phenotype/vendor-2026-06` + branch prune (bifrost)
-2. **G18** — ADR-ECO-008 omlx platform/engine split
-3. **G19** — phenotype-hub + vibeproxy-monitoring-unified absorption (`projects/*.json` stubs)
-4. **Desktop** — Electrobun spike in `OmniRoute/apps/desktop/`; harvest vibeproxy menu-bar UX
-5. **W18b** — phenoShared consumer repoints (TestingKit, phenotype-python-sdk ready; Agentora blocked on terminal owners)
+1. **G18** — ADR-ECO-008 omlx platform/engine split
+2. **G19** — phenotype-hub absorption into phenotype-infra
+3. **Desktop** — Electrobun spike in `OmniRoute/apps/desktop/`; harvest vibeproxy menu-bar UX
+4. **W18b** — Agentora stub crates (`phenotype-errors`, `phenotype-error-macros`, `phenotype-config-loader`) blocked on phenotype-types/config Rust absorption
+5. **agentapi-spec** — root `SPEC.md` on agentapi-plusplus

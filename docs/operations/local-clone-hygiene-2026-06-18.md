@@ -30,3 +30,12 @@
 ## Stash supersede (H9)
 
 - `phenotype-gateway` `stash@{0}: local-scaffold` — **superseded** by phenotype-gateway #5 (single `actions/checkout@v4` + `submodules: recursive`); stash dropped 2026-06-18; do not re-apply
+
+## Remote branch hygiene (2026-06-18)
+
+| Repo | Remotes after prune | Notes |
+|------|---------------------|-------|
+| phenotype-gateway | `master` only | #5/#6 branches deleted post-merge |
+| bifrost | `main` only | G17 #7; `feat/bifrost-local-delta` deleted post-merge |
+| cliproxyapi-plusplus | `main` only | G16 #1026 |
+| agentapi-plusplus | `main` only | G15 #534 |

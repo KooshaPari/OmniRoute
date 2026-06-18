@@ -58,8 +58,8 @@
       "status": "verified-clean",
       "wave": "G2",
       "verified_at": "2026-06-17",
-      "pr": "KooshaPari/Tracera#629",
-      "note": "AuthKit repoint done; dead phenoShared workspace dep removed W18b — WorkOS AuthKit is SaaS not phenotype AuthKit"
+      "pr": "KooshaPari/Tracera#632",
+      "note": "AuthKit repoint #629; dead phenoShared workspace dep removed #632"
     },
     {
       "id": "phenotype-go-sdk",
@@ -94,7 +94,7 @@
       "status": "partial",
       "wave": "W18b",
       "adr": "ADR-ECO-014",
-      "note": "Waves 1–3 may be partial — verify live manifests per crate"
+      "note": "Active workspace clean; 3 legacy stub crates still pin phenoShared (phenotype-errors, phenotype-error-macros, phenotype-config-loader) — blocked on phenotype-types/config Rust absorption"
     },
     {
       "id": "AgilePlus",
