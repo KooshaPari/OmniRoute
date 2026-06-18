@@ -1,0 +1,12 @@
+agent-orchestrator::agent-orchestrator
+bench-guard::bench-guard
+release-cut::release-cut
+focus-ffi::android_bindings
+focus-ffi::uniffi-bindgen
+focus-cli::focus
+focus-mcp-server::focalpoint-mcp-server
+focus-asset-fetcher::focalpoint-fetch-assets
+focus-webhook-server::focalpoint-webhook-server
+focus-ci-watcher::focus-ci-watcher
+focus-icon-gen::focalpoint-icon-gen
+focuspoint-e2e::smoke
