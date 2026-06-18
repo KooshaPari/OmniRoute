@@ -50,6 +50,29 @@
 |----|------|--------|
 | docs/wave14-gateway-ssot | phenotype-registry | open |
 
+## Wave 14+ tactical queue (10+ parallel-sized tasks)
+
+These are the highest-confidence next tasks across registry, HexaKit, and gateway clusters after Wave 13 merge. Most are 1-2 PR sized, with bounded acceptance checks.
+
+| # | Task | Owner | Deliverable |
+|---|------|-------|------------|
+| 1 | Merge Pyron branch mapping for `Apisync` submodule and unbreak `phenotype-core` workspace checks | Pyron + phenotype-registry | `feat/fix-apisync-submodule-mapping` + disposition note PR |
+| 2 | Re-run `cargo check -p phenotype-core` in HexaKit after Apisync unblock and record result in ledger | HexaKit | check pass; update registry blocker status |
+| 3 | Finalize `phenotype-core` next pins for `phenotype-validation` and `phenotype-string` | HexaKit + phenotype-registry | disposition rows closed when core target strategy confirmed |
+| 4 | Resolve `gw-cliproxy` and `gw-bifrost` dispositions to `done` with PR refs | phenotype-registry | disposition updates + disposition-index audit |
+| 5 | Pin `phenotype-gateway` submodule SHAs under `third_party/*` and `packages/*` bootstrap | phenotype-gateway | Git pin commits with lockfile/build verification |
+| 6 | Implement gateway spike build/smoke matrix in `phenotype-gateway/spikes/<lang>` for promoted components | phenotype-gateway | docs + CI result proof for each spike |
+| 7 | Move `OmniRoute` features to spikes/revamp plane and update `GATEWAY_FEATURE_PARITY.md` ownership rows | OmniRoute + phenotype-gateway | spike plan + updated feature matrix ownership |
+| 8 | Classify and route `argis-extensions` packages into `packages/argis` with vendor pin continuity | phenotype-gateway | route table + `third_party` integration |
+| 9 | Complete `PhenoLang` branch triage in `phenoUtils` and remove `*/feat/docs-site` staging branches | PhenoLang + phenoUtils | branch sweep report + registry disposition closed |
+| 10 | Update `phenoSDK` package migration: `pheno-sdk` redirect state and package map references | phenotype-registry + phenotype-python-sdk | map consistency audit + disposition progress |
+| 11 | Decide `helios-cli-backup` retention: user confirmation, then hard delete or archive action | phenotype-registry | explicit decision log + branch/registry action |
+| 12 | Resolve `crates/phenotype-port-traits` disposition transition and target strategy | HexaKit | scope lock and final PR |
+| 13 | Clean up `py-pheno-mcp` redirection to `PhenoMCP` and close edge-row status | phenotype-registry + py repos | disposition row closed |
+| 14 | Start `libs/nexus` decompose branch with handoff packet and acceptance test plan | registry + target repo | decompose ticket + branch started |
+| 15 | Refresh `GATEWAY_FEATURE_PARITY.md` to require `packages/*` ownership for remaining feature rows (100% mapped target state) | phenotype-registry | completed feature matrix and disposition updates |
+| 16 | Expand `HEXAKIT_EVICTION_INVENTORY.md` with remaining H-lane/No-merge debt and ship progress markers | phenotype-registry | inventory entries updated |
+
 ## Next waves (unblocked after merge)
 
 | Wave | Lane |
