@@ -18,7 +18,7 @@
 | **ResilienceKit** | path (vendored under `rust/`) | `phenotype-port-traits` | none | Slice 3+ — resilience domain contracts → **phenotype-resilience** |
 | **phenotype-python-sdk** `packages/auth-kit/rust` | path (vendored) | auth-kit Rust workspace | Block-C absorbed | Slice 2 — auth contract traits → **Authvault** |
 | **phenotype-python-sdk** `packages/resilience-kit/rust` | path (vendored) | `phenotype-port-traits` | kit umbrella | Slice 3 — port traits adjacency → **phenotype-resilience** |
-| **PhenoLang** | path (vendored copy) | local DSL workspace | Wave H `in_progress` | Defer until PhenoLang triage lands |
+| **PhenoLang** | path (vendored copy) | local DSL workspace | Wave H done | phenoUtils index canonical (gw-phenolang closed) |
 | **phenotype-registry** | docs / disposition only | registry rows, ECOSYSTEM_MAP | none | Track slices; do **not** close row #11 until terminal owners |
 
 **Not found in migration-work (no direct `phenotype-contracts` dep today):** Authvault, Eventra, Agentora, substrate, TestingKit, PhenoObservability, phenotype-config.

@@ -66,7 +66,7 @@
 |------|--------|--------|
 | KodeVibeGo | HOLD_ARCHIVE registry row | done (H0) |
 | KVirtualStage | HOLD_ARCHIVE registry row | done (H0) |
-| PhenoLang | 28-branch `*/feat/docs-site` triage in phenoUtils index | phenoUtils PR |
+| PhenoLang | 28-branch triage in phenoUtils index | done (phenoUtils#66) |
 
 ## Protected (no git ops)
 

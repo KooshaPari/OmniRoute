@@ -72,6 +72,11 @@
       "ref": "main",
       "sha": "8db484e7d360238b12491634190e8a36a7f0d6d3"
     },
+    "phenoUtils": {
+      "repo": "KooshaPari/phenoUtils",
+      "ref": "main",
+      "sha": "a5b4f7a799fa7c26166e1d0535c59e3639758cdb"
+    },
     "phenotype-tooling": { "repo": "KooshaPari/phenotype-tooling", "ref": "main" },
     "PhenoMCP": { "repo": "KooshaPari/PhenoMCP", "ref": "main" }
   }

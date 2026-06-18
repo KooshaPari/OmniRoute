@@ -1,0 +1,14 @@
+{
+  "name": "PhenoLang",
+  "languages": ["rust"],
+  "primary_language": "rust",
+  "status": "absorbed",
+  "has_readme": true,
+  "type": "shared-lib",
+  "path": "repos/PhenoLang",
+  "disposition": "ABSORB",
+  "wave": "H",
+  "absorb_target": "phenoUtils",
+  "absorbed_into": "phenoUtils",
+  "absorption_note": "Utility crates + branch triage index in phenoUtils/docs/phenolang-monorepo-index.md (2026-06-18); source repo archived read-only"
+}

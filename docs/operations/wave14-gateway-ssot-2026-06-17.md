@@ -64,7 +64,7 @@ These are the highest-confidence next tasks across registry, HexaKit, and gatewa
 | 6 | Implement gateway spike build/smoke matrix in `phenotype-gateway/spikes/<lang>` for promoted components | phenotype-gateway | docs + CI result proof for each spike |
 | 7 | Move `OmniRoute` features to spikes/revamp plane and update `GATEWAY_FEATURE_PARITY.md` ownership rows | OmniRoute + phenotype-gateway | spike plan + updated feature matrix ownership |
 | 8 | Classify and route `argis-extensions` packages into `packages/argis` with vendor pin continuity | phenotype-gateway | route table + `third_party` integration |
-| 9 | Complete `PhenoLang` branch triage in `phenoUtils` and remove `*/feat/docs-site` staging branches | PhenoLang + phenoUtils | branch sweep report + registry disposition closed |
+| 9 | Complete `PhenoLang` branch triage in `phenoUtils` and remove `*/feat/docs-site` staging branches | PhenoLang + phenoUtils | done — phenoUtils#66 index + registry gw-phenolang closed; remote branch sweep blocked on archived repo |
 | 10 | Update `phenoSDK` package migration: `pheno-sdk` redirect state and package map references | phenotype-registry + phenotype-python-sdk | map consistency audit + disposition progress |
 | 11 | Decide `helios-cli-backup` retention: user confirmation, then hard delete or archive action | phenotype-registry | explicit decision log + branch/registry action |
 | 12 | Resolve `crates/phenotype-port-traits` disposition transition and target strategy | HexaKit | scope lock and final PR |
