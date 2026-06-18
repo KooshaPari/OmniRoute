@@ -57,19 +57,24 @@ Establish three-layer doctrine (governance / platform / engine) and unblocks lan
 
 | Wave | ID | Owner repo | Status |
 |------|-----|------------|--------|
-| 15 | SSOT | phenotype-registry | **this PR** |
-| G15 | agentapi++ | agentapi-plusplus + substrate | pending |
-| G16 | cliproxy | cliproxyapi-plusplus + go-sdk | pending |
+| 15 | SSOT | phenotype-registry | **merged** (#142) |
+| G15 | agentapi++ | agentapi-plusplus + substrate | **done** — #535 merged; 1 remote (`main`) |
+| G16 | cliproxy | cliproxyapi-plusplus + go-sdk | **done** — #1026, vibeproxy#14, go-sdk#17 merged |
 | G17 | bifrost | bifrost | pending |
 | G18 | omlx | phenotype-registry ADR-ECO-008 | pending |
 | G19 | stubs | phenotype-infra + registry | pending |
-| 14 | HexaKit | phenoShared + HexaKit | parallel lane |
+| 14 | HexaKit | phenoShared + HexaKit | **in_progress** — feat/wave14-phenoshared-decompose (2 pin repoints; cargo blocked on terminal owners) |
 
 ## PR tracker
 
 | PR | Repo | Status |
 |----|------|--------|
-| docs/wave15-gateway-fork-ssot | phenotype-registry | open |
+| docs/wave15-gateway-fork-ssot | phenotype-registry | merged (#142) |
+| G15 branch hygiene | agentapi-plusplus | open (#534) |
+| G16 boundary | cliproxyapi-plusplus | open (#1026) |
+| G16 vibeproxy redirect | vibeproxy | open (#14) |
+| G16 go-sdk pin | phenotype-go-sdk | open (#17) |
+| H14 phenoShared repoint | HexaKit | pushed (feat/wave14-phenoshared-decompose) |
 
 ## DELETE gate (fork cluster)
 
