@@ -11,7 +11,7 @@
     "HexaKit": {
       "repo": "KooshaPari/HexaKit",
       "ref": "main",
-      "sha": "6406acbf54a3a48c0b830653515ef3616f465b43"
+      "sha": "2cfa6f5e6b2dcc9da8bb9efe7a84631ad750d939"
     },
     "phenotype-types": {
       "repo": "KooshaPari/phenotype-types",
@@ -52,6 +52,16 @@
       "repo": "KooshaPari/McpKit",
       "ref": "main",
       "sha": "c557c3ce3a3d1d90e93736a9a4105f6030f34cf7"
+    },
+    "phenotype-analytics": {
+      "repo": "KooshaPari/phenotype-analytics",
+      "ref": "main",
+      "sha": "25622c4ae77b6806cd2c6eb84acc6342be45d05d"
+    },
+    "nexus": {
+      "repo": "KooshaPari/nexus",
+      "ref": "main",
+      "sha": "8db484e7d360238b12491634190e8a36a7f0d6d3"
     },
     "phenotype-tooling": { "repo": "KooshaPari/phenotype-tooling", "ref": "main" },
     "PhenoMCP": { "repo": "KooshaPari/PhenoMCP", "ref": "main" }
