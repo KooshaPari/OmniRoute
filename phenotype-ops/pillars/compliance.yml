@@ -1,0 +1,48 @@
+name: compliance
+version: "1.0"
+pillar: compliance
+description: License compliance, SPDX headers, SBOM generation
+skip_if:
+  no_changes_to:
+    - "Cargo.toml"
+    - "Cargo.lock"
+    - "deny.toml"
+    - "*.rs"
+  not_modified_since_hours: 24
+  env_var: SKIP_COMPLIANCE
+checks:
+  - name: deny-bans
+    command: "cargo deny check bans"
+    timeout_seconds: 60
+    globs: ["Cargo.lock", "Cargo.toml", "deny.toml"]
+    required_tools: ["cargo", "cargo-deny"]
+    allow_failure: false
+
+  - name: deny-licenses
+    command: "cargo deny check licenses"
+    timeout_seconds: 60
+    globs: ["Cargo.lock", "Cargo.toml", "deny.toml"]
+    required_tools: ["cargo", "cargo-deny"]
+    allow_failure: false
+
+  - name: deny-sources
+    command: "cargo deny check sources"
+    timeout_seconds: 60
+    globs: ["Cargo.lock", "Cargo.toml", "deny.toml"]
+    required_tools: ["cargo", "cargo-deny"]
+    allow_failure: false
+
+  - name: spdx-headers
+    command: |
+      find . -name "*.rs" -not -path "./target/*" -not -path "./.git/*" | xargs grep -L "SPDX-License-Identifier" && echo "Missing SPDX headers" && exit 1 || echo "All files have SPDX headers"
+    timeout_seconds: 30
+    globs: ["*.rs"]
+    required_tools: ["grep", "find"]
+    allow_failure: false
+
+  - name: sbom
+    command: "cargo cyclonedx --format json --output-target target/sbom.json"
+    timeout_seconds: 120
+    globs: ["Cargo.toml", "Cargo.lock"]
+    required_tools: ["cargo", "cargo-cyclonedx"]
+    allow_failure: true

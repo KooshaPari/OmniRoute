@@ -1,0 +1,83 @@
+# Lefthook Configuration — Canonical for Phenotype Fleet
+# Copy to repo root as lefthook.yml and run `lefthook install`
+
+pre-push:
+  commands:
+    manifest-generate:
+      tags: manifest
+      run: |
+        set -euo pipefail
+        echo "🔏 Generating attestation manifest..."
+        phenotype-manifest generate \
+          --key "${MANIFEST_KEY:-~/.ssh/manifest}" \
+          --output .manifest.signed.json \
+          --require-all-pillars \
+          --fail-below 0.90 \
+          --max-age-hours 24
+        echo "✅ Manifest generated: .manifest.signed.json"
+
+    manifest-verify:
+      tags: manifest
+      run: |
+        set -euo pipefail
+        echo "🔍 Verifying attestation manifest..."
+        phenotype-manifest verify \
+          --manifest .manifest.signed.json \
+          --pubkey "${MANIFEST_PUBKEY:-.github/manifest.pubkey.pem}" \
+          --require-all-pillars \
+          --min-health-score 0.90 \
+          --max-age-hours 24
+        echo "✅ Manifest valid"
+
+pre-commit:
+  commands:
+    fmt:
+      tags: quality
+      glob: "*.rs"
+      run: cargo fmt --all -- --check
+
+    clippy:
+      tags: quality
+      glob: "*.rs"
+      run: cargo clippy --all-targets --all-features -- -D warnings
+
+    spellcheck:
+      tags: docs
+      glob: "*.md"
+      run: codespell --skip="./target,./.git"
+
+    cargo-check:
+      tags: quality
+      glob: "Cargo.toml"
+      run: cargo check --all-targets --all-features
+
+commit-msg:
+  commands:
+    conventional:
+      run: |
+        # Enforce conventional commits
+        commit_msg=$(cat "$1")
+        if ! echo "$commit_msg" | grep -qE '^(feat|fix|docs|style|refactor|perf|test|chore|build|ci|revert)(\(.+\))?: .+'; then
+          echo "❌ Commit message must follow conventional format:"
+          echo "   <type>(<scope>): <description>"
+          echo "   Types: feat, fix, docs, style, refactor, perf, test, chore, build, ci, revert"
+          exit 1
+        fi
+
+    signed-off:
+      run: |
+        # Require Signed-off-by trailer
+        if ! grep -q "^Signed-off-by:" "$1"; then
+          echo "❌ Commit must have Signed-off-by trailer"
+          echo "   Run: git commit --signoff"
+          exit 1
+        fi
+
+hooks:
+  # Skip manifest on certain branches
+  pre-push:
+    exclude-branches:
+      - "dependabot/**"
+      - "renovate/**"
+      - "release/**"
+      - "hotfix/**"

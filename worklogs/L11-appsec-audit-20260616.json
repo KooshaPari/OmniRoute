@@ -1,0 +1,78 @@
+{
+  "audit_id": "L11-appsec-2026-06-16",
+  "date_utc": "2026-06-16T09:30:00Z",
+  "scope": "L11 Application Security",
+  "repos_scanned": 26,
+  "skip_list_honored": ["Tracera", "AgilePlus", "PhenoDocs", "Helios*", "chatta", "KaskMan", "AtomsBot"],
+  "method": "read-only grep/find sweep across docs/, src/, .github/workflows/",
+  "categories_evaluated": ["owasp_top10", "input_validation", "output_encoding", "authn", "authz", "session", "csrf", "xss", "sqli", "csp", "security_headers", "rate_limit", "waf", "pentest", "threat_model", "secure_coding_standards"],
+  "fleet_rollup": {
+    "security_md_present_pct": 100,
+    "deny_toml_present_pct": 73,
+    "ossf_scorecard_workflow_pct": 100,
+    "trufflehog_or_gitleaks_pct": 35,
+    "audit_workflow_pct": 73,
+    "sast_in_ci_pct": 100,
+    "fuzz_harness_present_pct": 23,
+    "owasp_explicit_ref_pct": 31,
+    "threat_model_doc_pct": 0,
+    "secure_coding_doc_pct": 23,
+    "pentest_artifacts_pct": 0,
+    "csrf_primitives_pct": 12,
+    "csp_or_helmet_pct": 8,
+    "rate_limit_primitives_pct": 35,
+    "sql_param_queries_pct": 31,
+    "session_cookie_flags_pct": 12,
+    "waf_present_pct": 4,
+    "authn_primitives_pct": 62,
+    "validation_primitives_pct": 50
+  },
+  "owasp_top10_2021": {
+    "A01_broken_access_control": "weak — AuthKit, HexaKit, McpKit, PhenoProc have RBAC/jwt; no central policy",
+    "A02_cryptographic_failures": "untested — no TLS/secret-storage audit in this pass",
+    "A03_injection": "partial — sqlx prepared in HexaKit/PhenoProc/Pyron/AuthKit; no XSS escape audit",
+    "A04_insecure_design": "missing — 0/26 have STRIDE threat models; ADRs reference but do not constitute models",
+    "A05_security_misconfig": "weak — CSP only in HexaKit/PhenoKits; no central security-headers middleware",
+    "A06_vulnerable_components": "partial — cargo-deny 73%, dependabot present; SLSA not enforced",
+    "A07_id_auth_failures": "weak — 16/26 have authn primitives; no MFA/session-timeout policy",
+    "A08_software_data_integrity": "missing — no SLSA provenance; no sig verification of deps",
+    "A09_logging_failures": "unknown — observability repos have structured logs; no audit-log requirement",
+    "A10_ssrf": "missing — no SSRF allowlist/guard tests detected"
+  },
+  "per_repo_signal": {
+    "strong": ["HexaKit (SQLi=54, AUTH=243, RL=48, CSRF=7, CSP=5, WAF=8, SESS=4, FUZZ=Y)", "BytePort (AUTH=400, VALID=107, audit+deny+secret-scan)", "PhenoProc (AUTH=107, SQLI=30, RL=33, FUZZ=Y)", "AuthKit (authn primary domain)"],
+    "moderate": ["Pyron (RL=50, AUTH=31)", "PhenoObservability (FUZZ=Y, OWASP+secure-coding refs)", "PhenoAgent (OWASP+secure-coding refs)", "PhenoHandbook (jwt pattern doc)", "PhenoSpecs (security SOTA)", "PhenoRuntime (OWASP refs)", "PhenoKits (CSRF=7, FUZZ=Y, OWASP refs)", "McpKit (AUTH=7)"],
+    "weak": ["PhenoCompose", "PlayCua", "nanovms", "Civis", "Eidolon", "Eventra", "KWatch", "KodeVibe", "KlipDot", "PhenoMCP", "Tasken", "Tracely", "PhenoVCS", "PhenoPlugins"],
+    "notable_gaps": {
+      "PlayCua": "no deny.toml, no SAST/fuzz; SECURITY.md present",
+      "nanovms": "no deny.toml; only 2 files match VALID pattern; no threat model",
+      "PhenoMCP": "0 code-level L11 primitives — pure docs/SOTA only",
+      "PhenoVCS": "0 code-level L11 primitives; docs only",
+      "Tasken/Tracely/PhenoPlugins": "minimal primitives; mostly infra-level"
+    }
+  },
+  "critical_gaps": [
+    "0/26 formal STRIDE threat models — security mentions are ADR snippets, not threat models",
+    "0/26 pentest reports or pentest CI gates",
+    "WAF: only HexaKit has web-application-firewall references; no cloud WAF (CloudFront WAF / ModSecurity) detected",
+    "CSP/headers: only HexaKit (5) and PhenoKits (2) declare CSP; rest absent",
+    "CSRF: 4/26 (HexaKit=7, AuthKit=2, PhenoKits=7, McpKit implicit) — no central middleware",
+    "Rate limiting: 9/26 (HexaKit=48, Pyron=50, PhenoProc=33 lead); no fleet-wide default",
+    "Session mgmt: 3/26 with HttpOnly/SameSite flags (BytePort, HexaKit, PhenoProc) — no fleet standard",
+    "SSRF/A08: no allowlist or provenance tests across any repo",
+    "Pen-test / red-team: 0 scheduled; no DAST (OWASP ZAP) in any CI matrix"
+  ],
+  "recommendations": [
+    "Author docs/threat-model.md (STRIDE) per repo; minimum A01/A03/A07/A10",
+    "Add axum-tower-csrf / equivalent middleware in pheno-fastapi-base + pheno-port-adapter",
+    "Adopt tower_governor / governor in API templates (HexaKit, PhenoProc, Pyron patterns)",
+    "Bundle axum-embed/helmet-equivalent in web kits (CSP+HSTS+X-Frame-Options defaults)",
+    "Add SLSA L3 provenance to all release workflows (currently 0/26)",
+    "Schedule quarterly OWASP ZAP baseline scan on web-serving repos",
+    "Gate merges on gitleaks+cargo-deny clean (already partial)",
+    "Define session policy: HttpOnly+Secure+SameSite=strict, 30-min idle timeout (PhenoHandbook jwt.md is a starting point)"
+  ],
+  "evidence": "read-only sweep; no repo files modified; only this JSON written",
+  "read_only_compliance": true,
+  "word_count_estimate": 470
+}

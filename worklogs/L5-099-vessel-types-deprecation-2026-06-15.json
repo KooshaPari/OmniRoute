@@ -1,0 +1,20 @@
+{
+  "schema": "v2-10col",
+  "worklog_id": "L5-099-pheno-vessel-types-deprecation-complete",
+  "date": "2026-06-15",
+  "owner": "Forge",
+  "branch": "main",
+  "task": "Final closure ADR-019 + ADR-020 confirming pheno-vessel and pheno-types are fully deprecated, archived, and consumers migrated to pheno-runtime + phenoData. Add a one-line pointer in ARCHITECTURE.md so future contributors don't re-incarnate the dead crates.",
+  "files_changed_or_added": [
+    "docs/adr/2026-06-15/ADR-019-pheno-vessel-deprecation-complete.md",
+    "docs/adr/2026-06-15/ADR-020-pheno-types-deprecation-complete.md",
+    "ARCHITECTURE.md (deprecated-crates section appended)"
+  ],
+  "lines_changed": "+244 / -0",
+  "tests_run": "n/a (doc-only)",
+  "ci_status": "n/a",
+  "rollout": "Both crates already archived; consumers already migrated; this is the explicit closure record",
+  "follow_ups": [
+    "Add the same deprecation closure to STATUS.md in the next refresh"
+  ]
+}

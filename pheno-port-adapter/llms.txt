@@ -1,0 +1,25 @@
+# pheno-port-adapter
+
+> Hexagonal port/adapter primitives for the pheno-* fleet. PortAdapter
+> trait + TCP/Unix transport adapters.
+
+## Files
+
+- `Cargo.toml` — package manifest (v0.1.0)
+- `src/lib.rs` — library root (PortAdapter trait, AdapterError enum, Connection struct)
+- `src/adapters/mod.rs` — adapters module root
+- `src/adapters/tcp.rs` — TCP transport adapter
+- `src/adapters/unix.rs` — Unix-domain socket transport adapter
+- `AGENTS.md` — agent context
+- `WORKLOG.md` — change history (v2.1 schema)
+- `CHANGELOG.md` — release notes
+- `LICENSE-MIT` — MIT license
+
+## Conventions
+
+- Conventional Commits
+- rustfmt + clippy (`-D warnings`)
+- 80% lib coverage gate
+- Hexagonal pattern: PortAdapter trait + Adapter impl (ADR-014)
+- `thiserror` for error types
+- 5 unit tests cover trait contract

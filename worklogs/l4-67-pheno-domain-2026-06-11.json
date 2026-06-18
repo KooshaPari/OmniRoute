@@ -1,0 +1,99 @@
+{
+  "task_id": "L4-67",
+  "date": "2026-06-11",
+  "title": "pheno-domain — canonical domain primitives (EntityId, Timestamp, Slug, Email, Money)",
+  "status": "completed",
+  "branch": "chore/l4-67-pheno-domain-2026-06-11",
+  "worktree": "repos",
+  "commit": "4017b9d",
+  "pushed": false,
+  "author": "forge",
+  "refs": {
+    "dag": "FLEET_100TASK_DAG_V3.md#L4-#67"
+  },
+  "summary": "Authored the pheno-domain standalone crate at pheno-domain/ with five canonical domain primitives and a unified DomainError type. EntityId (Uuid), Timestamp (DateTime<Utc>), Slug (validated lowercase/hyphen/3-64 chars), Email (validated via regex), and Money (Decimal + 3-char currency, rounded to 2 dp). Each primitive implements Display, FromStr, Serialize, Deserialize, Debug. Slug and Email also expose TryFrom<String> returning DomainError. DomainError is a thiserror enum with InvalidFormat, OutOfRange, and InvalidValue variants. The crate is registered as a workspace member so cargo test -p pheno-domain and cargo clippy -p pheno-domain --all-targets -- -D warnings work from the monorepo root. All 27 tests pass (including the 8 named canonical tests from the spec), and clippy is clean.",
+  "scope": {
+    "created": [
+      "pheno-domain/Cargo.toml",
+      "pheno-domain/src/lib.rs",
+      "worklogs/l4-67-pheno-domain-2026-06-11.json"
+    ],
+    "modified": [
+      "Cargo.toml"
+    ]
+  },
+  "public_api": {
+    "pheno_domain::DomainError": "thiserror enum { InvalidFormat(String), OutOfRange(String), InvalidValue(String) } — canonical validation error for all domain primitives",
+    "pheno_domain::EntityId": "newtype(Uuid) with Display, FromStr, Serialize, Deserialize, Debug, new_v4() constructor",
+    "pheno_domain::Timestamp": "newtype(DateTime<Utc>) with Display, FromStr, Serialize, Deserialize, Debug, PartialOrd/Ord for ordering",
+    "pheno_domain::Slug": "newtype(String) validated lowercase ASCII letters, digits, hyphens only; 3-64 chars inclusive; Display, FromStr, TryFrom<String>, Serialize, Deserialize, Debug",
+    "pheno_domain::Email": "newtype(String) validated via loose RFC-ish regex; Display returns lowercase; FromStr, TryFrom<String>, Serialize, Deserialize, Debug",
+    "pheno_domain::Money": "struct { amount: Decimal, currency: String } — amount rounded to 2 decimal places on construction, currency uppercased and must be exactly 3 chars; Display, FromStr, Serialize, Deserialize, Debug"
+  },
+  "dependencies": {
+    "thiserror": "2.0",
+    "serde": "1.0 (derive)",
+    "uuid": "1.11 (v4, serde)",
+    "chrono": "0.4 (serde)",
+    "regex": "1.11",
+    "rust_decimal": "1.36 (serde)"
+  },
+  "test_results": {
+    "command": "cargo test -p pheno-domain",
+    "unit": 27,
+    "integration": 0,
+    "doctest": 0,
+    "total": 27,
+    "passed": 27,
+    "failed": 0
+  },
+  "test_coverage": [
+    "pheno-domain/src/lib.rs: entity_id_parses_uuid (canonical spec name, line 372) — parses a known UUID string and Display round-trips",
+    "pheno-domain/src/lib.rs: slug_rejects_invalid_chars (canonical spec name, line 397) — uppercase + spaces rejected with InvalidFormat",
+    "pheno-domain/src/lib.rs: email_rejects_invalid_format (canonical spec name, line 448) — plain string rejected with InvalidFormat",
+    "pheno-domain/src/lib.rs: money_rounds_to_2_decimals (canonical spec name, line 485) — 10.999 rounds to 11.00 and to_string reflects scale",
+    "pheno-domain/src/lib.rs: timestamp_orders_correctly (canonical spec name, line 539) — two parsed RFC3339 timestamps compare correctly via PartialOrd",
+    "pheno-domain/src/lib.rs: slug_from_str_round_trips (canonical spec name, line 421) — FromStr parses and Display returns identical string",
+    "pheno-domain/src/lib.rs: email_display_is_lowercase (canonical spec name, line 460) — mixed-case email input displays as fully lowercase",
+    "pheno-domain/src/lib.rs: money_display_includes_currency (canonical spec name, line 491) — Display output contains both amount and currency code",
+    "pheno-domain/src/lib.rs: entity_id_rejects_invalid_uuid (line 379) — bad UUID string returns InvalidFormat",
+    "pheno-domain/src/lib.rs: entity_id_serde_round_trips (line 385) — serde_json round-trip preserves value",
+    "pheno-domain/src/lib.rs: slug_rejects_too_short (line 403) — 2-char slug returns OutOfRange",
+    "pheno-domain/src/lib.rs: slug_rejects_too_long (line 409) — 65-char slug returns OutOfRange",
+    "pheno-domain/src/lib.rs: slug_accepts_valid (line 415) — hyphenated lowercase slug passes validation",
+    "pheno-domain/src/lib.rs: slug_try_from_string (line 429) — TryFrom<String> works for owned strings",
+    "pheno-domain/src/lib.rs: slug_serde_round_trips (line 436) — serde_json round-trip preserves value",
+    "pheno-domain/src/lib.rs: email_accepts_valid (line 454) — standard email passes validation",
+    "pheno-domain/src/lib.rs: email_try_from_string (line 466) — TryFrom<String> works for owned strings",
+    "pheno-domain/src/lib.rs: email_serde_round_trips (line 473) — serde_json round-trip preserves value",
+    "pheno-domain/src/lib.rs: money_from_str_parses_amount_currency (line 499) — '123.45 USD' parses correctly",
+    "pheno-domain/src/lib.rs: money_from_str_parses_currency_amount (line 506) — 'GBP 99.99' parses correctly",
+    "pheno-domain/src/lib.rs: money_rejects_bad_currency_length (line 513) — 2-char currency returns InvalidFormat",
+    "pheno-domain/src/lib.rs: money_rejects_negative_if_needed (line 519) — negative amount accepted and rounded to 2 dp",
+    "pheno-domain/src/lib.rs: money_serde_round_trips (line 527) — serde_json round-trip preserves value",
+    "pheno-domain/src/lib.rs: timestamp_from_str_round_trips (line 550) — RFC3339 parse and Display round-trip",
+    "pheno-domain/src/lib.rs: timestamp_serde_round_trips (line 557) — serde_json round-trip preserves value",
+    "pheno-domain/src/lib.rs: domain_error_display_includes_variant (line 569) — Display includes variant name and context",
+    "pheno-domain/src/lib.rs: domain_error_is_send_sync (line 576) — compile-time assert that DomainError is Send + Sync"
+  ],
+  "verification": {
+    "cargo_test": "27/27 pass via cargo test -p pheno-domain from monorepo root",
+    "cargo_clippy": "clean (no code warnings, -D warnings applied) via cargo clippy -p pheno-domain --all-targets -- -D warnings from monorepo root. One informational MSRV mismatch warning from clippy.toml vs Cargo.toml (not a code warning)",
+    "rust_edition": "2021",
+    "rust_msrv": "1.75 (per pheno-domain/Cargo.toml)"
+  },
+  "spec_alignment": "The L4 #67 spec called for five canonical domain primitives (EntityId, Timestamp, Slug, Email, Money) with Display, FromStr, Serialize, Deserialize, Debug; Slug and Email with TryFrom<String> returning DomainError; DomainError as thiserror enum with InvalidFormat, OutOfRange, InvalidValue; and >=8 named tests. All deliverables are present verbatim. The crate is registered in the root workspace Cargo.toml so cargo test -p pheno-domain and cargo clippy -p pheno-domain work as specified. The commit message matches the spec exactly.",
+  "spec_deviations": "None. All spec deliverables are present and verified.",
+  "constraints_respected": [
+    "Branch is local-only (chore/l4-67-pheno-domain-2026-06-11) and NOT pushed to origin per task directive.",
+    "The crate is a standalone package (explicit versions in Cargo.toml, not workspace = true) but is listed in the root workspace members so -p commands work.",
+    "No touch of other crates or files beyond adding the workspace member entry in Cargo.toml.",
+    "All 8 canonical test names from the spec are present verbatim and pass.",
+    "cargo clippy --all-targets -- -D warnings passes with zero code warnings."
+  ],
+  "no_touch": [
+    "Other crates in the workspace",
+    "CI workflows",
+    "Documentation files (no README.md created for pheno-domain per task brevity directive)"
+  ]
+}

@@ -1,0 +1,39 @@
+{
+  "audit_id": "L12-data-integrity",
+  "date": "2026-06-16",
+  "scope": "active repos (skip: Tracera, AgilePlus, PhenoDocs, Helios*, Chatta, Kaskman, AtomsBot)",
+  "method": "read-only pattern scan ~230 repos; signals: migrations dir, sqlx tx, deleted_at, audit_log, argon2, EventStore, backup, encrypt-at-rest",
+  "summary": "L12 maturity LOW and uneven. ~75% of persistence-bearing repos lack migrations, soft-delete, audit, encryption-at-rest. Only OmniRoute meets full baseline. Planify downgraded to 1/5 (prior soft_delete hits were coincidental page-event matches, not DB columns). Event-sourcing/CQRS ad-hoc (FocalPoint, PhenoObservability, pheno-pydantic-models); no aggregate/event-store anywhere. Forward+backward migration discipline absent; no rollback tests. Backup scripts exist (5 repos) but no restore-drill. PII hashing in 8 repos; redaction/masking absent. Encryption-at-rest: OmniRoute only.",
+  "repos": [
+    {"repo": "OmniRoute", "score": "5/5", "txn": "Y", "migrations": "Y", "soft_delete": "Y", "audit": "Y", "pii": "Y", "backup": "Y", "encryption": "Y", "notes": "Reference: src/lib/db/migrations/*.sql, deleted_at in files.ts, 104 audit refs, cli-backup-sync skill, encrypt-at-rest in credentials.ts"},
+    {"repo": "FocalPoint", "score": "3/5", "txn": "Y", "audit": "Y", "cqrs": "Y", "backup": "Y", "notes": "56-crate Rust ws; audit_chain + event log in focus-ffi/rules/sync; focus-backup crate; no migr dir"},
+    {"repo": "Civis", "score": "2/5", "txn": "Y", "migrations": "Y", "notes": "crates/infra/migrations + sqlx tx in pg.rs; no soft-delete/audit/encrypt"},
+    {"repo": "Pyron", "score": "2/5", "txn": "Y", "migrations": "Y", "audit": "Y", "notes": "agileplus-sqlite/migrations + audit in storage.rs; no soft-delete/encrypt"},
+    {"repo": "DataKit", "score": "2/5", "migrations": "Y", "pii": "Y", "notes": "db_kit migrations + supabase client; no trx/audit"},
+    {"repo": "PhenoObservability", "score": "2/5", "cqrs": "Y", "notes": "questdb event-stream + cqrs-adjacent; no tx store, no backup drill"},
+    {"repo": "AuthKit", "score": "1/5", "pii": "Y", "notes": "argon2/bcrypt in pheno-auth; no migr/soft-delete/audit"},
+    {"repo": "pheno-pydantic-models", "score": "1/5", "pii": "Y", "notes": "DTO/aggregate + hash validators; no runtime DB"},
+    {"repo": "pheno-zod-schemas", "score": "1/5", "cqrs": "Y", "notes": "Zod event/command types; no persistence"},
+    {"repo": "pheno-cost-card", "score": "1/5", "cqrs": "Y", "notes": "Pure data; read/write split; no persistence"},
+    {"repo": "PhenoPlugins/PhenoAgent", "score": "1/5", "pii": "Y", "notes": "Plugin log + PII redaction helpers; no DB"},
+    {"repo": "PhenoRuntime/phenoData/phenoXdd", "score": "1/5", "backup": "Y", "notes": "Backup scripts only; no migr/trx/soft-delete"},
+    {"repo": "PhenoContracts/Tasken/Tokn", "score": "1/5", "notes": "Schema/task/token models; hash util only"},
+    {"repo": "PhenoKits/Planify", "score": "0-1/5", "notes": "Planify downgraded: soft_delete hits were event names not DB columns; no prisma/audit_log/migr"},
+    {"repo": "Pine/Conft/Parpoura/Paginary/Metron/DevHex/PhenoEvents/PhenoMCP/HexaKit/Httpora/KlipDot/KDesktopVirt", "score": "0/5", "notes": "No L12 patterns (config/docs/CLI/MCP tools)"}
+  ],
+  "gaps_top5": [
+    "1. No tested forward+backward migration discipline; migr dirs exist (OmniRoute, Civis, Pyron, DataKit) but no rollback tests in CI.",
+    "2. Encryption-at-rest is OmniRoute-only; Civis/Pyron/AuthKit/PhenoKits/FocalPoint store PII/secrets in plaintext SQLite/Postgres.",
+    "3. Soft-delete is OmniRoute-only; rest of fleet hard-deletes (audit irrecoverable). Planify downgraded to 1/5.",
+    "4. Event-sourcing ad-hoc — no aggregate root, no event-store, no snapshot versioning in any repo.",
+    "5. Backup scripts exist (5 repos) but no restore-drill in CI; PITR/CDC absent."
+  ],
+  "recommended_actions": [
+    "Adopt OmniRoute L12 baseline (migrations + soft_delete + audit + backup + encrypt) as org reference.",
+    "Add `deleted_at` to Civis/Pyron/FocalPoint/AuthKit models (~4 repos, 6-10 tool calls each).",
+    "Promote pheno-pydantic-models + pheno-zod-schemas to shared schema-kits for typed migrations.",
+    "Add `sqlx-migrate` rollback test in CI for all 4 repos with migr dirs.",
+    "Bundle encryption-at-rest helper into PhenoKits as `pheno-kits/encrypt` crate."
+  ],
+  "provenance": "read-only pattern scan; no file edits, no git ops, parent bash only"
+}

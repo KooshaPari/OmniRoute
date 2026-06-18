@@ -1,0 +1,19 @@
+{
+  "schema": "v2-10col",
+  "worklog_id": "L5-100-profila-replaced-by-pheno-profiling",
+  "date": "2026-06-15",
+  "owner": "Forge",
+  "branch": "main",
+  "task": "Final closure ADR-021 confirming Profila is replaced by pheno-profiling. Add Profila's deprecation note to ARCHITECTURE.md 'Deprecated Crates' section, ensuring no future code depends on the Profila Python module.",
+  "files_changed_or_added": [
+    "docs/adr/2026-06-15/ADR-021-pheno-profiling-replaces-profila.md",
+    "ARCHITECTURE.md (Profila note added)"
+  ],
+  "lines_changed": "+98 / -0",
+  "tests_run": "n/a (doc-only)",
+  "ci_status": "n/a",
+  "rollout": "Profila already archived; pheno-profiling already canonical; this is the explicit closure record",
+  "follow_ups": [
+    "Grep CI workflows for any remaining 'profila' references and replace with 'pheno-profiling' if found"
+  ]
+}

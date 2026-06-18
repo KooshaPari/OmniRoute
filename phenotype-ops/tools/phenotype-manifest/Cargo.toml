@@ -1,0 +1,57 @@
+[package]
+name = "phenotype-manifest"
+version = "0.1.0"
+edition = "2021"
+description = "Attestation manifest generator and validator for Phenotype fleet"
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/phenotype/phenotype-ops"
+readme = "README.md"
+categories = ["command-line-utilities", "development-tools", "security"]
+keywords = ["attestation", "manifest", "ci", "gitops", "supply-chain"]
+
+[dependencies]
+# CLI
+clap = { version = "4.5", features = ["derive", "env", "std"] }
+anyhow = "1.0"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+
+# Crypto
+ed25519-dalek = "2.0"
+signature = "2.0"
+sha2 = "0.10"
+base64 = "0.21"
+pem = "1.0"
+x509-parser = "0.16"
+
+# Git
+git2 = "0.18"
+gix = { version = "0.68", features = ["blocking-client", "ssh"] }
+
+# Time
+chrono = { version = "0.4", features = ["serde"] }
+time = "0.3"
+
+# Schema validation
+jsonschema = { version = "0.21", features = ["strict"] }
+
+# Utilities
+walkdir = "2.0"
+indicatif = "0.17"
+console = "0.15"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+
+[dev-dependencies]
+tempfile = "3.0"
+predicates = "3.0"
+
+[[bin]]
+name = "phenotype-manifest"
+path = "src/main.rs"
+
+[profile.release]
+lto = true
+codegen-units = 1
+strip = true
+opt-level = 3

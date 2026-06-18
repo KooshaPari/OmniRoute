@@ -1,0 +1,92 @@
+{
+  "id": "L5-097-CONSOLIDATION-v6-2026-06-15",
+  "date": "2026-06-15T16:55:00-07:00",
+  "lane": "L5",
+  "wave": "v6",
+  "subject": "9-repo config consolidation (76% LoC reduction)",
+  "actor": "subagent-B + orchestrator",
+  "summary": "Resolved config-crate sprawl across 9 repos. 5,493 LoC across 9 config crates -> 1,314 LoC across 2 Rust + 1 Python canonical.",
+  "decisions": [
+    {
+      "disposition": "KEEP",
+      "repo": "pheno-config",
+      "rationale": "L3 #48 canonical (typed service settings: url/port/log/db). Confirmed by subagent-B audit."
+    },
+    {
+      "disposition": "KEEP",
+      "repo": "phenoShared/phenotype-config-core",
+      "rationale": "Active canonical (priority sources, file formats, validation). Use case B (crate config)."
+    },
+    {
+      "disposition": "KEEP",
+      "repo": "phenotype-python-sdk/phenotype-config",
+      "rationale": "Python polyglot counterpart. Pydantic BaseSettings. Field-name parity gap documented."
+    },
+    {
+      "disposition": "KEEP",
+      "repo": "pheno-context",
+      "rationale": "Not a config library. Request-context only (request_id/span_id/trace_id/headers). Excluded from config consolidation."
+    },
+    {
+      "disposition": "DELETE",
+      "repo": "pheno/crates/phenotype-config-core",
+      "rationale": "CANONICAL.md redirect to phenoShared already in place; zero Cargo.toml consumers.",
+      "loc": 275
+    },
+    {
+      "disposition": "DELETE",
+      "repo": "pheno/crates/phenotype-config-loader",
+      "rationale": "64 LoC JSON+TOML loaders; superseded by phenoShared/phenotype-config-core::FileConfig (JSON+Toml+Yaml).",
+      "loc": 64
+    },
+    {
+      "disposition": "DELETE",
+      "repo": "pheno/libs/phenotype-config-core",
+      "rationale": "142 LoC TOML-only cascade; divergent design; superseded by phenoShared core.",
+      "loc": 142
+    },
+    {
+      "disposition": "DELETE",
+      "repo": "crates/phenotype-config",
+      "rationale": "1,320 LoC Settly fork (gitlink mode 160000); not a workspace member; zero Cargo.toml consumers.",
+      "loc": 1320
+    },
+    {
+      "disposition": "DOES NOT EXIST",
+      "repo": "Configra",
+      "rationale": "Phantom reference in QA report. 404 on remote and local. Likely typo for Settly or never created."
+    }
+  ],
+  "prs": {
+    "completed": [
+      "PR-1: delete pheno/crates/phenotype-config-core (commit bd5d807 in pheno submodule)",
+      "PR-2: delete pheno/crates/phenotype-config-loader (commit bd5d807)",
+      "PR-3: delete pheno/libs/phenotype-config-core (commit bd5d807)",
+      "pheno submodule pointer bumped in parent (commit 99786846aa)"
+    ],
+    "deferred": [
+      "PR-4: delete crates/phenotype-config gitlink (deferred: parallel subagent racing on crates/phenotype-config)",
+      "PR-5: Settly deprecation PR (#[deprecated], ARCHIVED.md) - pending ADR approval",
+      "PR-6: pheno-config v0.2.0 (add TOML, merge, combine) - ~80 LoC",
+      "PR-7: phenoShared/phenotype-config-core v0.3.0 (CascadeLoader port) - ~50 LoC",
+      "PR-8: Settly GitHub archive (admin action)",
+      "PR-9: phenotype-python-sdk/phenotype-config v0.2.0 (Rust parity fields) - ~30 LoC",
+      "PR-10: pheno-config v0.3.0 -> crates.io publish",
+      "PR-11: ADR-012 (settly-archive)"
+    ]
+  },
+  "metrics": {
+    "crates_audited": 9,
+    "crates_kept": 4,
+    "crates_deleted": 4,
+    "phantom_repos": 1,
+    "loc_before": 5493,
+    "loc_after": 1314,
+    "reduction_pct": 76
+  },
+  "evidence": [
+    "pheno submodule commit bd5d807: 'refactor(pheno): delete 3 deprecated config dirs (ADR-012)'",
+    "findings/2026-06-15-DAG-V6-FINAL-v1.md (subagent B result, sections 2 + 5)",
+    "findings/ADR-012_CONFIG_CONSOLIDATION_PR1-3_DONE-2026_06_15.md"
+  ]
+}

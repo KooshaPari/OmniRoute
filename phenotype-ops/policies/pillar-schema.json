@@ -1,0 +1,67 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://phenotype.dev/schemas/pillar-1.0.json",
+  "title": "Phenotype Pillar Check Definition",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["name", "version", "pillar", "checks"],
+  "properties": {
+    "name": { "type": "string" },
+    "version": { "type": "string" },
+    "pillar": {
+      "type": "string",
+      "enum": ["quality", "security", "perf", "compliance", "docs"]
+    },
+    "checks": {
+      "type": "array",
+      "items":items": { "$ref": "#/$defs/check" }
+    },
+    "skip_if": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "no_changes_to": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Glob patterns - skip if no changed files match"
+        },
+        "not_modified_since_hours": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Skip if relevant files not modified in N hours"
+        },
+        "env_var": {
+          "type": "string",
+          "description": "Skip if this env var is set to truthy"
+        }
+      }
+    }
+  },
+  "$defs": {
+    "check": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "command", "timeout_seconds"],
+      "properties": {
+        "name": { "type": "string" },
+        "command": { "type": "string" },
+        "timeout_seconds": { "type": "integer", "minimum": 1, "maximum": 3600 },
+        "globs": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "File patterns this check is relevant for"
+        },
+        "required_tools": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Tools that must be available"
+        },
+        "allow_failure": {
+          "type": "boolean",
+          "default": false,
+          "description": "Don't fail pillar if this check fails"
+        }
+      }
+    }
+  }
+}

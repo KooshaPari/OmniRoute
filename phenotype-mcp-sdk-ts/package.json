@@ -1,0 +1,42 @@
+{
+  "name": "phenotype-mcp-sdk-ts",
+  "version": "0.1.0",
+  "description": "TypeScript MCP SDK — server interface, tool/resource abstractions, and stdio/SSE transports. Mirrors the Rust phenotype-mcp-sdk-rs crate 1:1.",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "files": [
+    "dist",
+    "src",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "test": "node --test --import tsx test/*.test.ts"
+  },
+  "keywords": [
+    "phenotype",
+    "mcp",
+    "model-context-protocol",
+    "sdk",
+    "typescript"
+  ],
+  "license": "MIT",
+  "engines": {
+    "node": ">=20.6.0"
+  },
+  "dependencies": {
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.7.0"
+  }
+}

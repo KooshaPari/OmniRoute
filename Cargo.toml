@@ -49,7 +49,6 @@ members = [
     "crates/focus-release-bot",
     "crates/focus-asset-fetcher",
     "crates/focus-webhook-server",
-    "crates/pheno-tracing",
     "crates/focus-ci-watcher",
     "crates/focus-icon-gen",
     "crates/focus-ui",

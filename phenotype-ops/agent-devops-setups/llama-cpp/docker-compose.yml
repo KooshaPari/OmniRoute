@@ -1,0 +1,111 @@
+# docker-compose.yml — pheno-mcp-router + llama.cpp server stack
+#
+# Brings up:
+#   1. llama.cpp server sidecar (loads GGUF model, exposes /completion + /v1/chat/completions)
+#   2. pheno-mcp-router MCP server (talks to llama.cpp via LLAMA_CPP_SERVER_URL)
+#
+# Two ways to use this stack:
+#
+#   (a) SERVER MODE (default — recommended for production):
+#       The llama.cpp sidecar loads the model and exposes an
+#       OpenAI-compatible HTTP API. The pheno-mcp-router connects
+#       to it via LLAMA_CPP_SERVER_URL.
+#
+#   (b) DIRECT MODE (no sidecar):
+#       Comment out the llama-cpp service and the depends_on block.
+#       Set LLAMA_CPP_MODEL_PATH on pheno-mcp-router to the in-container
+#       path of a mounted GGUF (see the volumes section below).
+#
+# Quick start (server mode, CPU-only):
+#
+#   1. Download a GGUF model into ./models/:
+#        mkdir -p models
+#        curl -L -o models/llama-3-8b-instruct.Q4_K_M.gguf \
+#          https://huggingface.co/.../llama-3-8b-instruct.Q4_K_M.gguf
+#
+#   2. Bring the stack up:
+#        MODEL_FILE=llama-3-8b-instruct.Q4_K_M.gguf \
+#          docker compose up -d
+#
+#   3. Sanity-check the llama.cpp server:
+#        curl http://localhost:8080/health
+#
+#   4. Sanity-check pheno-mcp-router:
+#        curl http://localhost:20128/health
+
+version: "3.9"
+
+services:
+  # ----------------------------------------------------------------------
+  # llama.cpp server — loads GGUF model and exposes /completion +
+  # /v1/chat/completions (the latter is the OpenAI-compatible API
+  # consumed by LlamaAdapter server-mode and by OpenAICompatAdapter
+  # with OPENAI_COMPAT_BASE_URL=http://llama-cpp:8080/v1).
+  # ----------------------------------------------------------------------
+  llama-cpp:
+    image: ghcr.io/ggerganov/llama.cpp:server-cuda
+    # For CPU-only: image: ghcr.io/ggerganov/llama.cpp:server
+    # Or build local: build: ./docker/llama.cpp
+    environment:
+      - LLAMA_CPP_MODEL_PATH=/models/${MODEL_FILE:-llama-3-8b.gguf}
+      - LLAMA_CPP_N_CTX=4096
+      - LLAMA_CPP_N_GPU_LAYERS=-1  # -1 = all layers on GPU; 0 = CPU-only
+      - LLAMA_CPP_PORT=8080
+      - LLAMA_CPP_HOST=0.0.0.0
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./models:/models:ro
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  # ----------------------------------------------------------------------
+  # pheno-mcp-router MCP server — wraps LlamaAdapter (server mode)
+  # with cost / budget / quota / audit tracking via CostAwareLlmAdapter.
+  # ----------------------------------------------------------------------
+  pheno-mcp-router:
+    build:
+      context: ../..       # the pheno-mcp-router repo root
+      dockerfile: agent-devops-setups/llama-cpp/Dockerfile
+    environment:
+      # MCP server port (must match EXPOSE 20128 in the Dockerfile).
+      - PHENO_MCP_ROUTER_PORT=20128
+      # LlamaAdapter server mode — points at the llama.cpp sidecar.
+      - LLAMA_CPP_SERVER_URL=http://llama-cpp:8080
+      # Cost / budget / quota / audit middleware (per L5-104 cost stack).
+      - PHENO_MCP_COST_TRACKING=enabled
+      # Optional: route through an OmniRoute fleet for tier-aware
+      # dispatch (codeman / haiku / opus / …).
+      - OMNIROUTE_URL=http://omniroute:20128
+      - LOG_LEVEL=INFO
+    ports:
+      - "20128:20128"
+    depends_on:
+      llama-cpp:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # ----------------------------------------------------------------------
+  # Optional: OmniRoute backend (uncomment to enable fleet routing).
+  # ----------------------------------------------------------------------
+  # omniroute:
+  #   image: ghcr.io/kooshapari/omniroute:latest
+  #   environment:
+  #     - OMNIROUTE_PORT=20128
+  #   ports:
+  #     - "20128:20128"
+
+volumes:
+  models:
+    driver: local

@@ -1,0 +1,25 @@
+# pheno-config
+
+> Canonical typed-config loader for the pheno-* fleet. 12-factor
+> `combine()` that overlays env over TOML/JSON.
+
+## Files
+
+- `Cargo.toml` — package manifest (v0.2.0)
+- `Cargo.lock` — dependency lockfile
+- `src/lib.rs` — library root (Config struct, ConfigBuilder, loaders, combine())
+- `tests/config_test.rs` — unit tests for env/JSON loaders + ConfigBuilder
+- `tests/toml_merge_test.rs` — TOML parsing, merge semantics, combine precedence
+- `docs/twelve-factor.md` — 12-factor contract deep-dive
+- `README.md` — API surface, env-var names, error type, versioning
+- `AGENTS.md` — agent context
+- `WORKLOG.md` — change history (v2.1 schema)
+- `CHANGELOG.md` — release notes
+- `LICENSE-MIT` / `LICENSE-APACHE` — dual license
+
+## Conventions
+
+- Conventional Commits (`feat:`, `fix:`, `chore:`, `docs:`, `refactor:`)
+- rustfmt + clippy (`-D warnings`)
+- 80% lib coverage gate
+- TOML/JSON/env parsing; `thiserror` for error types

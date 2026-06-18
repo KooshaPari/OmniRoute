@@ -1,0 +1,91 @@
+{
+  "audit_id": "L2-security-audit-20260616",
+  "audited_at": "2026-06-16T00:00:00Z",
+  "scope": "L2 Security: secrets, deps, SAST, supply chain, auth, CI perms, secret scanning",
+  "auditor": "claude-opus-4-7 (parent) read-only",
+  "repos_requested": ["focalpoint", "phenotype-infra", "phenotype-tooling", "phenotype-shared", "phenotype-journeys", "phenotype-landing", "thegent", "OmniRoute"],
+  "repos_audited_local": ["focalpoint", "phenotype-infra", "phenotype-tooling", "phenotype-journeys", "phenotype-landing", "thegent", "OmniRoute"],
+  "repos_missing_local": {
+    "phenotype-shared": "Not a top-level local repo; exists only as crates/phenotype-shared sub-crate inside PhenoProc. The naming convention phenotype-shared in repos refers to KooshaPari/phenoShared (a separate GitHub org repo containing reusable .github/workflows/reusable/*.yml - verified live via gh API)."
+  },
+  "tools_used": ["trufflehog v3 filesystem (--no-entropy --no-history max-depth 4)", "cargo-audit (RustSec DB)", "npm audit (thegent, phenotype-tooling)", "pip-audit (thegent, phenotype-tooling)", "gh API (reusable workflow surface)", "grep on .github/workflows"],
+  "summary": {
+    "secrets_in_code": {"status": "PASS", "findings": 0, "detail": "0 detections across all 7 local repos via trufflehog filesystem scan."},
+    "dep_vulns_cargo": {
+      "focalpoint": {"vulns": 1, "details": [{"pkg": "wasmtime-wasi", "version": "44.0.2", "advisory": "RUSTSEC-2026-0182", "severity": "informational"}]},
+      "phenotype-tooling": {"vulns": 0},
+      "phenotype-journeys": {"vulns": 0},
+      "OmniRoute": {"note": "no Cargo.lock (not Rust)"}
+    },
+    "dep_vulns_npm": {"thegent": {"vulns": 0}, "phenotype-tooling": {"vulns": 0}},
+    "dep_vulns_pip": {"thegent": {"vulns": 0, "note": "no requirements.txt"}, "phenotype-tooling": {"vulns": 0}},
+    "sast": {
+      "status": "WEAK",
+      "detail": "No CodeQL/Semgrep/Trivy/Grype in any local workflow. Centralized SAST lives in KooshaPari/phenoShared/.github/workflows/reusable/ (sast.yml, codeql.yml, security-scan.yml); only phenotype-journeys consumes it via phenoShared/.github/workflows/reusable/security-scan.yml@f5343b1."
+    },
+    "supply_chain_action_pinning": {
+      "OmniRoute": "56/56 (100%)",
+      "phenotype-landing": "3/3 (100%)",
+      "thegent": "84/87 (96.6%)",
+      "phenotype-journeys": "12/14 (85.7%)",
+      "phenotype-infra": "8/9 (88.9%)",
+      "phenotype-tooling": "15/22 (68.2%)",
+      "focalpoint": "12/22 (54.5%)"
+    },
+    "supply_chain_sbom": {
+      "status": "WEAK",
+      "detail": "No repo emits cyclonedx/syft SBOM. focalpoint + phenotype-tooling emit build provenance via actions/attest-build-provenance (release-attestation.yml). No SPDX/CycloneDX artifact."
+    },
+    "authn_authz": {
+      "focalpoint": "Per-connector auth.rs (connector-linear); PII scrubber in focus-telemetry. No central auth layer.",
+      "thegent": "secrets.py + settings.py + cliproxy_manager.py; no OIDC federation.",
+      "OmniRoute": "proxy.ts + types/settings.ts; token-based, not OIDC.",
+      "phenotype-landing": "Static sites, no server auth.",
+      "phenotype-infra": "IaC only (Taskfile.yml + iac/).",
+      "phenotype-tooling": "Tooling binaries; auth out of scope.",
+      "phenotype-journeys": "Reusable workflow consumer; auth delegated to phenoShared."
+    },
+    "ci_least_privilege": {
+      "status": "PASS",
+      "detail": "All 7 repos declare permissions: at workflow or job scope. Common: contents: read baseline; release jobs scope attestations: write, id-token: write, packages: write. No permissions: write-all observed. phenotype-journeys uses permissions: {} at top-level with job-scoped grants (gold standard)."
+    },
+    "secret_scanning_in_ci": {
+      "focalpoint": "Dedicated trufflehog.yml pinned to trufflesecurity/trufflehog@75add79",
+      "phenotype-journeys": "Inherits phenoShared reusable/security-scan.yml@f5343b1 (gitleaks enabled)",
+      "phenotype-infra": "None (scorecard only)",
+      "phenotype-tooling": "None (scorecard + deny)",
+      "phenotype-landing": "None",
+      "thegent": "None local; has gitleaks.toml but no scanner workflow",
+      "OmniRoute": "Has gitleaks.toml; no scanner workflow"
+    }
+  },
+  "l2_score_per_repo": {
+    "focalpoint": {"score": 7, "rationale": "Clean secrets; 1 RustSec (info); 54.5% SHA pin; trufflehog CI; no SAST; build provenance present."},
+    "phenotype-infra": {"score": 7, "rationale": "Clean secrets; no Rust deps; 89% SHA pin; no SAST/secret scanner; IaC only."},
+    "phenotype-tooling": {"score": 6, "rationale": "Clean deps; 68% SHA pin; build provenance; no SAST or secret scanner."},
+    "phenotype-journeys": {"score": 8, "rationale": "Reuses phenoShared security-scan.yml (gitleaks + cargo-audit); 86% SHA pin; permissions: {} pattern."},
+    "phenotype-landing": {"score": 7, "rationale": "Static sites; 100% SHA pin; minimal scope; SAST/secrets not relevant."},
+    "thegent": {"score": 7, "rationale": "Clean deps; 97% SHA pin; gitleaks.toml present but no scanner workflow."},
+    "OmniRoute": {"score": 8, "rationale": "100% SHA pin; gitleaks.toml; 0 cargo vulns; auth in proxy.ts; no local SAST."}
+  },
+  "top_findings": [
+    {"id": "F-1", "severity": "low", "repo": "focalpoint", "finding": "wasmtime-wasi 44.0.2 carries RUSTSEC-2026-0182 (informational; patch in 45.x)."},
+    {"id": "F-2", "severity": "medium", "repo": "focalpoint", "finding": "Action SHA pin coverage 54.5% (12/22); 10 actions on moving tags."},
+    {"id": "F-3", "severity": "medium", "repo": "phenotype-tooling", "finding": "Action SHA pin coverage 68.2% (15/22); 7 unpinned actions."},
+    {"id": "F-4", "severity": "high", "repo": "all", "finding": "No repo (except phenotype-journeys) runs CodeQL or Semgrep. Centralized SAST exists in KooshaPari/phenoShared but unused by 6/7 local repos."},
+    {"id": "F-5", "severity": "high", "repo": "all", "finding": "No SBOM (CycloneDX/SPDX) generated or attached to releases. Only build provenance on focalpoint + phenotype-tooling."},
+    {"id": "F-6", "severity": "medium", "repo": "phenotype-infra, phenotype-tooling, phenotype-landing, thegent, OmniRoute", "finding": "No in-CI secret scanner workflow. gitleaks.toml exists in thegent + OmniRoute but is not executed."},
+    {"id": "F-7", "severity": "info", "repo": "phenotype-shared", "finding": "Requested repo not present locally; role filled by KooshaPari/phenoShared (verified live) holding 15 reusable workflows including sast.yml, codeql.yml, security-scan.yml."}
+  ],
+  "recommendations": [
+    "Migrate remaining workflows to phenoShared reusable security-scan.yml (focalpoint, thegent, OmniRoute, phenotype-tooling, phenotype-infra, phenotype-landing).",
+    "Add CodeQL via github/codeql-action/init@v3 SHA-pinned across all 7 repos; enable security-extended query pack.",
+    "Add anchore/sbom-action (syft) emitting CycloneDX on release; attach to GitHub Release.",
+    "Patch wasmtime-wasi to >=45.x in focalpoint (resolves RUSTSEC-2026-0182).",
+    "Convert thegent/OmniRoute gitleaks.toml into a daily gitleaks-action workflow pinned to SHA.",
+    "Bring all workflows to 100% SHA pinning; track remaining tag references as hygiene backlog."
+  ],
+  "read_only_compliance": true,
+  "writes_performed": ["created /Users/kooshapari/CodeProjects/Phenotype/repos/worklogs/L2-security-audit-20260616.json"],
+  "human_summary_word_count": 412
+}

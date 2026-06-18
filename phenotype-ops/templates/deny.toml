@@ -1,0 +1,59 @@
+# deny.toml — Canonical Dependency Policy for Phenotype Fleet
+# Copy to repo root. Customize [allow] section per-repo.
+
+[advisories]
+# Vulnerability scanning via cargo-audit
+# deny = "warn"  # or "deny" for stricter
+# ignore = []    # Specific advisory IDs to ignore with justification
+
+[bans]
+# Ban specific crates or versions
+# multiple-versions = "warn"  # Warn on duplicate deps
+# wildcard = "allow"          # Allow wildcard deps in Cargo.lock
+deny = [
+  # { name = "openssl", version = "< 0.10" },  # Example
+]
+allow = [
+  # Per-repo exceptions go here with justification
+]
+
+[licenses]
+# License compliance
+allow = [
+  "MIT",
+  "Apache-2.0",
+  "Apache-2.0 WITH LLVM-exception",
+  "BSD-2-Clause",
+  "BSD-3-Clause",
+  "ISC",
+  "Zlib",
+  "Unicode-DFS-2016",
+  "MPL-2.0",
+  "Unlicense",
+  "CC0-1.0",
+  "0BSD",
+]
+deny = [
+  "GPL-2.0",
+  "GPL-3.0",
+  "LGPL-2.1",
+  "LGPL-3.0",
+  "AGPL-3.0",
+  "SSPL-1.0",
+]
+# copyleft = "deny"  # Deny copyleft licenses
+# exceptions = []    # Specific crate exceptions with justification
+
+[sources]
+# Source trust
+allow-registry = ["crates.io", "github.com/phenotype/*"]
+allow-git = ["https://github.com/phenotype/*"]
+deny = [
+  { name = "crates.io", reason = "Use phenotype registry mirror" },
+]
+
+[exceptions]
+# Per-repo advisories/licenses/bans exceptions with justification
+# Each must have: id, type (advisory|license|ban), reason, expires (optional)
+# Example:
+# { id = "RUSTSEC-2024-0001", type = "advisory", reason = "False positive, fixed in next release", expires = "2026-06-30" }

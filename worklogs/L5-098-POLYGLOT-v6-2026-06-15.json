@@ -1,0 +1,72 @@
+{
+  "id": "L5-098-POLYGLOT-v6-2026-06-15",
+  "date": "2026-06-15T16:55:00-07:00",
+  "lane": "L5",
+  "wave": "v6",
+  "subject": "Polyglot architecture decisions (Rust core + Python wrapper)",
+  "actor": "subagent-D + orchestrator",
+  "summary": "Confirmed phenoVessel/phenoTypes already deleted by upstream; sharecli and thegent-sharecli are complementary (different abstraction layers, not duplicates).",
+  "decisions": [
+    {
+      "disposition": "DELETED",
+      "repo": "phenoVessel",
+      "rationale": "Already 404. Successor: PhenoPlugins/crates/pheno-plugin-vessel/ (6,434 LoC: 3,687 prod + 2,747 tests)."
+    },
+    {
+      "disposition": "DELETED",
+      "repo": "phenoTypes",
+      "rationale": "Already 404. Successor: HexaKit/python/ (9,543 LoC across 8 sub-packages)."
+    },
+    {
+      "disposition": "KEEP",
+      "repo": "sharecli (Rust)",
+      "rationale": "Process-level manager. OS process pool via sysinfo, project limits, resource checks. 1,583 LoC production + 1 inline test."
+    },
+    {
+      "disposition": "KEEP",
+      "repo": "thegent-sharecli (Python)",
+      "rationale": "Coordination-level manager. In-memory locks, Maildir-style queue, Mergiraf, HLC. 1,014 LoC + 109 tests (10.7% ratio, below org standards)."
+    }
+  ],
+  "pattern": {
+    "name": "PRCP",
+    "expansion": "Process Rust, Coordination Python",
+    "explanation": "Rust crate handles the OS-level process management (fast, low-level); Python crate handles the higher-level coordination (locks, queues, merge semantics)."
+  },
+  "polyglot_pairs_observed": [
+    {
+      "rust": "pheno-config",
+      "python": "phenotype-python-sdk/phenotype-config",
+      "alignment": "field-name parity gap (Rust has url/port/log_level/db_path/feature_flags; Python has environment/debug/service_name)"
+    },
+    {
+      "rust": "sharecli",
+      "python": "thegent-sharecli",
+      "alignment": "PRCP pattern (different layers, not duplicates)"
+    },
+    {
+      "rust": "pheno-profiling (proposed)",
+      "python": "pheno-profiling (core)",
+      "alignment": "Python core + Rust pprof-rs bridge (proposed in Profila migration)"
+    },
+    {
+      "rust": "pheno-otel",
+      "python": "ObservabilityKit/performance_kit",
+      "alignment": "Rust for OTel SDK bindings, Python for performance analysis"
+    }
+  ],
+  "adrs_proposed": [
+    "ADR-D1: phenoVessel deprecation complete (write-only, low priority)",
+    "ADR-D2: phenoTypes deprecation complete (write-only, low priority)",
+    "ADR-D3: PRCP pattern (sharecli vs thegent-sharecli)"
+  ],
+  "future_hardening": [
+    "sharecli: add /tests/ directory (currently 1 inline test)",
+    "thegent-sharecli: rename LockStatus/QueuePriority collision (defined twice each)",
+    "thegent-sharecli: test ratio 10.7% -> org standard ~30%"
+  ],
+  "evidence": [
+    "findings/2026-06-15-DAG-V6-FINAL-v1.md (subagent D result, section 4)",
+    "/tmp/subagent-D-polyglot-result.md"
+  ]
+}

@@ -1,0 +1,173 @@
+{
+  "audit": {
+    "id": "L4-ux-dx-ax-20260616",
+    "date": "2026-06-16",
+    "scope": "L4 UX / DX / AX",
+    "auditor": "claude-opus-4-7 (read-only)",
+    "method": "Static inspection: README sections, code blocks, badges, screenshots, LICENSE/CONTRIBUTING, openapi/swagger, shell completions, devcontainer, Taskfile/justfile/Makefile, anyhow/thiserror usage, a11y markers in web sources, governance files.",
+    "criteria": {
+      "readme": "install steps, usage example, demo/screenshot, contributing link, license badge",
+      "onboarding": "presence of install + quickstart + first-run example in <5min",
+      "cli_help": "presence of CLI surface + --help quality + completions",
+      "api_docs": "openapi/swagger file presence",
+      "sdk_ergonomics": "typed SDK + examples + multi-language",
+      "error_messages": "anyhow/thiserror use + actionable hints",
+      "dx_tooling": "devcontainer + just/task/make + completions + scaffolding",
+      "ax": "aria-/role= attributes + axe-core tests + focus/keyboard guidance",
+      "ux_metrics": "telemetry, feature-flags, command-success rates"
+    },
+    "repos": [
+      "focalpoint",
+      "phenotype-infra",
+      "phenotype-tooling",
+      "phenoShared",
+      "phenotype-journeys",
+      "phenotype-landing",
+      "thegent",
+      "OmniRoute"
+    ],
+    "repos_not_found": [
+      "phenotype-shared (no top-level directory; interpreted as 'phenoShared' per existing repo convention)"
+    ],
+    "results": [
+      {
+        "repo": "focalpoint",
+        "readme_lines": 180,
+        "signals": {"install": 1, "usage": 4, "demo": 0, "screenshot": 0, "license": 2, "contributing": 1},
+        "scores": {"readme": "A", "onboarding": "A", "cli_help": "B", "api_docs": "N/A", "sdk_ergonomics": "B", "error_messages": "A", "dx_tooling": "C", "ax": "N/A", "ux_metrics": "C", "overall": "B+"},
+        "evidence": {"anyhow_thiserror_hits": 507, "devcontainer": false, "taskfile_just_make": "none", "openapi": false, "completions": false, "has_00_start_here": true, "has_contributing": true, "has_license": true, "code_blocks": 8, "badges": 5},
+        "notes": "Rust workspace + iOS. 00_START_HERE.md is exemplary: status table, prereqs, copy-paste commands, dev-trap warning re: PhenoObservability path-dep. focus-cli seeded-demo flow is a real onboarding shortcut. No completions, no OpenAPI (not a service), no AX (mobile-iOS scope).",
+        "top_improvements": [
+          "Add cargo-dist or clap_complete to focus-cli to ship zsh/bash/fish completions alongside binaries.",
+          "Add a devcontainer.json so contributors do not need to hand-clone PhenoObservability for the path-dep trap (00_START_HERE.md already warns about it).",
+          "Ship a `focus doctor --json` preflight subcommand to detect missing prereqs and report them with actionable hints."
+        ]
+      },
+      {
+        "repo": "phenotype-infra",
+        "readme_lines": 104,
+        "signals": {"install": 1, "usage": 3, "demo": 0, "screenshot": 0, "license": 3, "contributing": 1},
+        "scores": {"readme": "A", "onboarding": "B", "cli_help": "B", "api_docs": "N/A", "sdk_ergonomics": "N/A", "error_messages": "B", "dx_tooling": "B", "ax": "N/A", "ux_metrics": "C", "overall": "B+"},
+        "evidence": {"anyhow_thiserror_hits": 36, "devcontainer": false, "taskfile_just_make": "Taskfile.yml", "openapi": false, "completions": false, "has_contributing": true, "has_license": true, "code_blocks": 4, "badges": 5},
+        "notes": "Infra/IaC monorepo. README is operator-grade: Day-1 numbered steps, OCI primary bring-up, runner registration, ADR list, status snapshot. Taskfile.yml present. Errors are Rust-bench-grade (anyhow/thiserror). No CLI surface for end-users.",
+        "top_improvements": [
+          "Add a `task bootstrap` wrapper that pre-checks terraform/opentofu/AWS/OCI config and reports per-check failure context (matches existing Day-1 numbered steps).",
+          "Add an ADR-driven 'Operational status' badge to the README header so newcomers see health at a glance (currently buried in H2).",
+          "Add a CONTRIBUTING quick-link to the README 'Contribution rules' section header for discoverability."
+        ]
+      },
+      {
+        "repo": "phenotype-tooling",
+        "readme_lines": 166,
+        "signals": {"install": 10, "usage": 0, "demo": 0, "screenshot": 0, "license": 4, "contributing": 1},
+        "scores": {"readme": "A", "onboarding": "A", "cli_help": "C", "api_docs": "C", "sdk_ergonomics": "B", "error_messages": "A", "dx_tooling": "A", "ax": "N/A", "ux_metrics": "C", "overall": "B+"},
+        "evidence": {"anyhow_thiserror_hits": 82, "devcontainer": true, "taskfile_just_make": "justfile + Taskfile.yml", "openapi": false, "completions": false, "has_contributing": true, "has_license": true, "code_blocks": 6, "badges": 11},
+        "notes": "Shared Rust dev-tools crate (worktree-manager, dag-scheduler, fr-trace, etc). README short and focused: install (single + all), verify, adoption in other repos, governance. Devcontainer + justfile + Taskfile.yml all present (rare complete set). Multi-binary CLI surface needs generated completions + umbrella discoverability.",
+        "top_improvements": [
+          "Add a top-level `tooling` umbrella binary that prints `tooling list` / `tooling run <name>` discoverability across 10+ sub-bins (today users must know each crate).",
+          "Wire clap_complete into each binary to generate per-tool completions, and ship a `tooling completions install` to drop them in ~/.zsh/completions.",
+          "Add a `docs/reference/cli/` index page auto-generated from clap_mangen so docs stay in sync with binary surface."
+        ]
+      },
+      {
+        "repo": "phenoShared",
+        "readme_lines": 216,
+        "signals": {"install": 1, "usage": 4, "demo": 0, "screenshot": 0, "license": 3, "contributing": 1},
+        "scores": {"readme": "B", "onboarding": "B", "cli_help": "C", "api_docs": "C", "sdk_ergonomics": "B", "error_messages": "A", "dx_tooling": "A", "ax": "N/A", "ux_metrics": "N/A", "overall": "B"},
+        "evidence": {"anyhow_thiserror_hits": 37, "devcontainer": true, "taskfile_just_make": "justfile + Makefile + Taskfile.yml", "openapi": false, "completions": false, "has_contributing": true, "has_license": true, "code_blocks": 14, "badges": 4},
+        "notes": "Shared cross-cutting library (phenotype-nanovms-client + others). README is structured (Crates / Quick Start / Usage / Architecture / Consolidation opportunities) but lacks a 'when to use this' consumer table and end-to-end runnable snippet. Errors are anyhow-grade. No dev UX surface (library).",
+        "top_improvements": [
+          "Add a per-crate mini-README and an `examples/` directory; today 'Usage Examples' section is generic and a copy-paste from quick-start.",
+          "Publish docs.rs badges and a generated rustdoc link in the README header so SDK consumers can land on the API reference in one click.",
+          "Add a 'When to use this' table mapping each crate to its sibling repos that consume it (focalpoint, OmniRoute, thegent), reducing hand-roll duplication."
+        ]
+      },
+      {
+        "repo": "phenotype-journeys",
+        "readme_lines": 201,
+        "signals": {"install": 2, "usage": 1, "demo": 0, "screenshot": 0, "license": 3, "contributing": 1},
+        "scores": {"readme": "A", "onboarding": "A", "cli_help": "B", "api_docs": "B", "sdk_ergonomics": "C", "error_messages": "B", "dx_tooling": "A", "ax": "N/A", "ux_metrics": "C", "overall": "B+"},
+        "evidence": {"anyhow_thiserror_hits": 22, "devcontainer": true, "taskfile_just_make": "justfile + Taskfile.yml", "openapi": false, "completions": false, "has_contributing": true, "has_license": true, "code_blocks": 14, "badges": 9},
+        "notes": "Niche: journey manifest + vhs-tape schema. README is exemplary for a metadata repo: numbered Quickstart, ground-truth assertions, schema link, repo layout, license. Good ratio of badges (9) to signal strength. Dev surface is one CLI (phenotype-journey); errors moderate.",
+        "top_improvements": [
+          "Run cargo-dist on bin/phenotype-journey to publish GitHub release binaries + shell completions in one workflow.",
+          "Add a sample stub manifest under examples/ that consumers can `phenotype-journey validate examples/sample.json` against, so step 3 of the quickstart is copy-pasteable today.",
+          "Embed an example vhs tape output (animated GIF or screenshot) in the README so the 'Recording a CLI tape' step is visual, not just textual."
+        ]
+      },
+      {
+        "repo": "phenotype-landing",
+        "readme_lines": 75,
+        "signals": {"install": 1, "usage": 0, "demo": 0, "screenshot": 0, "license": 1, "contributing": 0},
+        "scores": {"readme": "B", "onboarding": "B", "cli_help": "N/A", "api_docs": "N/A", "sdk_ergonomics": "B", "error_messages": "N/A", "dx_tooling": "B", "ax": "B", "ux_metrics": "C", "overall": "B"},
+        "evidence": {"anyhow_thiserror_hits": 0, "devcontainer": false, "taskfile_just_make": "Taskfile.yml", "openapi": false, "completions": false, "has_contributing": false, "has_license": true, "code_blocks": 4, "badges": 6, "a11y_hits": 122},
+        "notes": "Astro+Bun monorepo of 8 product landing sites (agileplus, byteport, hwledger, phenokits, projects, thegent, odin). README is operator-grade (subtree, lockfile, CI). 122 a11y hits across sites is healthy for a greenfield monorepo. No CLI surface. Per-site DX is determined by Astro scaffolds; no shared component lib across sites is a missed unification.",
+        "top_improvements": [
+          "Add CONTRIBUTING.md (currently missing) so per-site contributors have one canonical place for brand tokens, accessibility contract, and subtree rules.",
+          "Add a top-level `pnpm sites <name>` wrapper plus a Playwright + axe-core a11y gate in CI; AX hits exist but there's no enforcement.",
+          "Promote `packages/ui` and `packages/design-tokens` to be the single source-of-truth for hero/CTA components across all 8 sites (currently each site has its own)."
+        ]
+      },
+      {
+        "repo": "thegent",
+        "readme_lines": 2450,
+        "signals": {"install": 12, "usage": 0, "demo": 0, "screenshot": 11, "license": 5, "contributing": 1},
+        "scores": {"readme": "A+", "onboarding": "A", "cli_help": "B", "api_docs": "B", "sdk_ergonomics": "B", "error_messages": "A", "dx_tooling": "A", "ax": "N/A", "ux_metrics": "C", "overall": "A-"},
+        "evidence": {"anyhow_thiserror_hits": 60, "devcontainer": true, "taskfile_just_make": "justfile + Taskfile.yml + Taskfile.distribute.yml", "openapi": "docs/reference/api/openapi_api.md", "completions": false, "has_contributing": true, "has_license": true, "code_blocks": 14, "badges": 10},
+        "notes": "Agent runtime/CLI + system bootstrap. README is the gold standard for this batch: 2450 lines, install/quickstart/dispatch/CLI commands/dotfiles/templates all covered. Has OpenAPI reference (the only one in batch besides OmniRoute). Dev tooling is full (just + Taskfile + devcontainer). thegent-dispatch CLI has examples in README but no published completions.",
+        "top_improvements": [
+          "Promote docs/reference/api/openapi_api.md to a real openapi.{yaml,json} and add a Redoc/Swagger UI page under docs-site/ so consumers can explore the schema.",
+          "Wire clap_complete into thegent-dispatch and thegent-bootstrap, ship completions via cargo-dist.",
+          "Add a 'first 60 seconds' animated GIF showing thegent bootstrap -> dispatch -> result; the 2450-line README still requires a lot of scrolling before the wow moment."
+        ]
+      },
+      {
+        "repo": "OmniRoute",
+        "readme_lines": 216,
+        "signals": {"install": 25, "usage": 17, "demo": 13, "screenshot": 16, "license": 7, "contributing": 3},
+        "scores": {"readme": "A+", "onboarding": "A", "cli_help": "C", "api_docs": "A", "sdk_ergonomics": "B", "error_messages": "B", "dx_tooling": "B", "ax": "C", "ux_metrics": "C", "overall": "B+"},
+        "evidence": {"anyhow_thiserror_hits": 0, "devcontainer": false, "taskfile_just_make": "none", "openapi": "docs/reference/openapi.yaml + openapi-coverage.test.ts + openapi-security-tiers.test.ts", "completions": "command-side code only (no installed artifacts)", "has_contributing": true, "has_license": true, "code_blocks": 108, "badges": 35, "i18n_count": 21, "image_assets": 76},
+        "notes": "Consumer-facing AI gateway. README is marketing-grade: 108 code blocks, 35 badges, 50+ screenshots, 21 i18n translations, dashboard preview, install/quickstart/Docker/Desktop sections. Has real openapi.yaml + openapi-coverage and openapi-security-tiers tests. Web dashboard is the AX surface; no completions for the gateway CLI; error msgs are TS-code (not Rust-grade).",
+        "top_improvements": [
+          "Add an accessibility (axe-core) test in CI against the Electron + web dashboard; marketing is great but dashboard AX is unverified.",
+          "Ship a typed SDK generator (openapi-typescript or @omniroute/sdk) referenced in the README so consumers do not hand-roll fetch wrappers.",
+          "Add a 'fail-loud' error envelope contract: every 4xx/5xx returns `{code, message, hint, docsUrl}` so the SDK can show actionable errors (today's TS errors are catch-all).",
+          "Add a Makefile or `npm run` task suite so contributors do not have to discover `pnpm` scripts across @omniroute/* subpackages."
+        ]
+      }
+    ],
+    "cross_cutting_findings": {
+      "common_strengths": [
+        "Every repo with a CLI uses Rust + anyhow/thiserror, giving consistent error wrapping.",
+        "License + Contributing present in 7/8 repos; phenotype-landing is the only gap.",
+        "Taskfile.yml is the de-facto DX wrapper in 6/8 repos; phenotype-tooling and thegent also have justfile (good redundancy).",
+        "OmniRoute is the only consumer-grade artifact (i18n, marketing, openapi-coverage test). Other repos are operator/internal."
+      ],
+      "common_gaps": [
+        "0/8 repos ship generated shell completions. clap_complete is a 5-line addition per binary and is the single highest-leverage DX win in the batch.",
+        "0/8 repos have observability/UX-metrics hooks (telemetry, feature-flag dashboards, command-success rates).",
+        "0/8 repos have a CONTRIBUTING that links to a 'good first issue' / triage board; the on-ramp for new contributors is unlabeled.",
+        "2/8 repos have no devcontainer (focalpoint, phenotype-landing); focalpoint especially hurts because of the PhenoObservability path-dep trap.",
+        "0/8 repos have a 'quick demo' (<5min) video/GIF; 5/8 are operator-readme-style only."
+      ],
+      "prioritized_l4_initiatives": [
+        "DX-1: Add clap_complete + cargo-dist to every Rust CLI binary (focalpoint focus-cli, phenotype-tooling umbrellas, phenotype-journey, thegent-dispatch).",
+        "DX-2: Add a CONTRIBUTING.md + good-first-issue labels batch across all 8 repos; gate on a CONTRIBUTING presence check.",
+        "DX-3: Add devcontainer.json + AX pre-commit (axe-core) to phenotype-landing and focalpoint.",
+        "DX-4: Promote OmniRoute's openapi.yaml + openapi-coverage test to be the template that thegent and any other service-bearing repo adopts."
+      ]
+    },
+    "summary": {
+      "best_dx_ux": "OmniRoute",
+      "best_ax": "phenotype-landing (122 a11y hits) and thegent (dedicated tests/a11y/)",
+      "best_readme": "thegent (2450 lines) and OmniRoute (108 code blocks, 21 i18n)",
+      "best_onboarding": "focalpoint (00_START_HERE.md) and thegent (numbered install + dispatch + bootstrap)",
+      "missing_or_stub": [
+        "phenotype-shared (absent; interpreted as phenoShared)",
+        "phenotype-landing (no CONTRIBUTING)",
+        "0/8 repos ship installed shell completions",
+        "0/8 repos have UX-metrics/telemetry hooks"
+      ]
+    }
+  }
+}

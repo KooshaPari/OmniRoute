@@ -1,0 +1,19 @@
+{
+  "schema": "v2-10col",
+  "worklog_id": "L5-098-prcp-pattern",
+  "date": "2026-06-15",
+  "owner": "Forge",
+  "branch": "main",
+  "task": "Promote prcp.rs to canonical Request-Response-Context-Payload schema; document prcp as the org-wide polyglot pattern (ADR-018)",
+  "files_changed_or_added": [
+    "docs/adr/2026-06-15/ADR-018-prcp-pattern.md"
+  ],
+  "lines_changed": "+115 / -0",
+  "tests_run": "n/a (doc-only ADR; prcp.rs is in pheno-runtime already and unit-tested there)",
+  "ci_status": "n/a",
+  "rollout": "doc-only; downstream pheno-runtime + McpKit consumers unaffected",
+  "follow_ups": [
+    "Add prcp.md to phenodocs/agents/ as the canonical contract for any new cross-process service",
+    "Add a Rust example crate at examples/prcp-echo/ showing the 4-field envelope in use"
+  ]
+}

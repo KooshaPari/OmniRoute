@@ -1,0 +1,96 @@
+{
+  "id": "L5-099-PROFILA-v6-2026-06-15",
+  "date": "2026-06-15T16:55:00-07:00",
+  "lane": "L5",
+  "wave": "v6",
+  "subject": "Profila -> pheno-profiling migration (12-PR plan)",
+  "actor": "subagent-C-substitute (orchestrator audit, model timeout)",
+  "summary": "Profila is a 1,287-LoC Python+Bash toolkit; consolidate into new pheno-profiling Python crate. Net -187 prod LoC, +300 test LoC, +Rust bridge.",
+  "audited": {
+    "name": "Profila",
+    "loc": 1287,
+    "structure": {
+      "python_scripts": {
+        "count": 4,
+        "loc": 475,
+        "files": ["complexity_analyzer", "continuous_profiler", "generate_charts", "system_metrics"]
+      },
+      "bash_scripts": {
+        "count": 7,
+        "loc": 812,
+        "files": ["profiler.sh", "all_metrics.sh", "disk_audit.sh", "network_audit.sh", "full_system_audit.sh", "build_for_profiling.sh", "profiler_setup.sh"]
+      },
+      "rust_source": 0,
+      "tests": 0,
+      "library_code": 0
+    }
+  },
+  "overlaps_identified": [
+    {
+      "profila": "Hand-rolled complexity scanner",
+      "canonical": "thegent/governance/scanner.py uses radon (SOTA cyclomatic complexity library)",
+      "resolution": "Replace hand-rolled with radon"
+    },
+    {
+      "profila": "CLI scripts",
+      "canonical": "ObservabilityKit/python/performance_kit (library)",
+      "resolution": "Library + CLI pattern; complement, not duplicate"
+    },
+    {
+      "profila": "Cost analysis",
+      "canonical": "pheno-cost-card (cost domain)",
+      "resolution": "Different domains"
+    },
+    {
+      "profila": "OTel integration",
+      "canonical": "pheno-otel (OTel domain)",
+      "resolution": "Different domains"
+    }
+  ],
+  "proposed_crate": {
+    "name": "pheno-profiling",
+    "language": "Python 3.12+",
+    "build": "uv_build",
+    "scope": [
+      "complexity analyzer (radon-backed)",
+      "continuous profiler",
+      "system metrics collection",
+      "audit scripts (disk/network/full system)",
+      "Click CLI",
+      "chart generation",
+      "pprof-rs bridge for Rust workloads"
+    ]
+  },
+  "prs": {
+    "total": 12,
+    "estimated_total_loc": 1400,
+    "production_loc_change": -187,
+    "test_loc_change": 300,
+    "list": [
+      "PR-1: scaffold pheno-profiling/ with uv_build",
+      "PR-2: complexity analyzer (radon-backed)",
+      "PR-3: continuous profiler",
+      "PR-4: system metrics collection",
+      "PR-5: audit scripts (disk/network/full system)",
+      "PR-6: Click CLI",
+      "PR-7: pprof-rs Rust bridge",
+      "PR-8: tests (80% coverage target)",
+      "PR-9: CI workflow",
+      "PR-10: polyglot parity test",
+      "PR-11: Profila ARCHIVED.md + README redirect",
+      "PR-12: Archive Profila on GitHub (admin action)"
+    ]
+  },
+  "risks": [
+    {
+      "risk": "Profila archive breaks CI that depends on bin/profiler.sh",
+      "likelihood": "Medium",
+      "impact": "High (could break builds)",
+      "mitigation": "Audit consumers first, port scripts to pheno-profiling CLI before archive"
+    }
+  ],
+  "evidence": [
+    "findings/2026-06-15-DAG-V6-FINAL-v1.md (section 3)",
+    "/tmp/subagent-C-profila-result.md"
+  ]
+}

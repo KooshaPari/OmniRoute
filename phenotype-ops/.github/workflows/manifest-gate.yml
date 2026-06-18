@@ -1,0 +1,129 @@
+name: Manifest Gate
+
+on:
+  workflow_call:
+    inputs:
+      manifest-path:
+        description: Path to signed manifest
+        type: string
+        required: false
+        default: ".manifest.signed.json"
+      pubkey-path:
+        description: Path to Ed25519 public key (PEM)
+        type: string
+        required: false
+        default: ".github/manifest.pubkey.pem"
+      fallback:
+        description: Fallback mode if manifest missing/invalid (warn|full|fail)
+        type: string
+        required: false
+        default: "warn"
+      require-all-pillars:
+        description: Fail if any pillar missing
+        type: boolean
+        required: false
+        default: true
+      min-health-score:
+        description: Minimum health score 0.0-1.0
+        type: string
+        required: false
+        default: "0.90"
+      max-age-hours:
+        description: Max manifest age before stale
+        type: string
+        required: false
+        default: "24"
+
+jobs:
+  validate:
+    name: Validate Manifest
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          fetch-depth: 0
+
+      - name: Install phenotype-manifest
+        uses: taiki-e/install-action@7ab0d5fba0c0bcf5a8c9f2d1c1470e7a21d8ed63
+        with:
+          tool: phenotype-manifest
+          version: latest
+          # Install from phenotype-ops repo once published
+          # For now use cargo install from git
+          # tool: cargo
+          # version: "1.80"
+          # args: install --git https://github.com/phenotype/phenotype-ops --locked phenotype-manifest
+
+      - name: Validate Manifest
+        id: validate
+        run: |
+          set -euo pipefail
+          MANIFEST="${{ inputs.manifest-path }}"
+          PUBKEY="${{ inputs.pubkey-path }}"
+          FALLBACK="${{ inputs.fallback }}"
+          REQUIRE_ALL="${{ inputs.require-all-pillars }}"
+          MIN_HEALTH="${{ inputs.min-health-score }}"
+          MAX_AGE="${{ inputs.max-age-hours }}"
+
+          if [[ ! -f "$MANIFEST" ]]; then
+            echo "::warning::Manifest not found at $MANIFEST"
+            if [[ "$FALLBACK" == "fail" ]]; then
+              exit 1
+            elif [[ "$FALLBACK" == "full" ]]; then
+              echo "fallback=full" >> $GITHUB_OUTPUT
+            else
+              echo "fallback=warn" >> $GITHUB_OUTPUT
+            fi
+            exit 0
+          fi
+
+          # Run verification
+          phenotype-manifest verify \
+            --manifest "$MANIFEST" \
+            --pubkey "$PUBKEY" \
+            --require-all-pillars "$REQUIRE_ALL" \
+            --min-health-score "$MIN_HEALTH" \
+            --max-age-hours "$MAX_AGE" \
+            --json > verification.json || VERIFY_EXIT=$?
+
+          if [[ -n "${VERIFY_EXIT:-}" ]]; then
+            echo "::error::Manifest verification failed"
+            cat verification.json
+            if [[ "$FALLBACK" == "fail" ]]; then
+              exit 1
+            elif [[ "$FALLBACK" == "full" ]]; then
+              echo "fallback=full" >> $GITHUB_OUTPUT
+            else
+              echo "fallback=warn" >> $GITHUB_OUTPUT
+            fi
+            exit 0
+          fi
+
+          # Success - extract health score for summary
+          HEALTH=$(jq -r '.health_score' verification.json)
+          echo "health_score=$HEALTH" >> $GITHUB_OUTPUT
+          echo "fallback=none" >> $GITHUB_OUTPUT
+
+      - name: Run Full CI (fallback)
+        if: steps.validate.outputs.fallback == 'full'
+        uses: ./.github/workflows/full-ci.yml
+        # This would be a separate reusable workflow for full CI
+
+      - name: Summary
+        if: always()
+        run: |
+          FALLBACK="${{ steps.validate.outputs.fallback }}"
+          HEALTH="${{ steps.validate.outputs.health_score }}"
+          echo "## Manifest Gate Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Metric | Value |" >> $GITHUB_STEP_SUMMARY
+          echo "|--------|-------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Fallback | $FALLBACK |" >> $GITHUB_STEP_SUMMARY
+          if [[ -n "$HEALTH" ]]; then
+            echo "| Health Score | $HEALTH |" >> $GITHUB_STEP_SUMMARY
+          fi

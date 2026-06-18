@@ -1,0 +1,56 @@
+{
+  "task_id": "V3-DAG-L5-101",
+  "task": "Add device + dogfood + app-substrate governance (ADR-023)",
+  "date": "2026-06-15",
+  "branch": "main",
+  "source_decision_doc": "ADR-023-agent-effort-governance.md",
+  "summary": {
+    "adr_written": "docs/adr/2026-06-15/ADR-023-agent-effort-governance.md",
+    "finding_written": "findings/2026-06-15-L5-101-app-governance.md",
+    "index_updated": "docs/adr/2026-06-15/INDEX.md",
+    "agents_md_updated": "AGENTS.md",
+    "ssot_md_updated": "SSOT.md",
+    "status_md_updated": "STATUS.md",
+    "worklog_schema_bump": "ADR-015 v2.0 -> v2.1 (additive: device: field, 11th column)",
+    "status": "complete"
+  },
+  "verification": {
+    "command": "grep -c 'ADR-023' AGENTS.md SSOT.md STATUS.md docs/adr/2026-06-15/INDEX.md",
+    "result": "all 4 files contain ADR-023 reference"
+  },
+  "bucket_assignments": [
+    {"repo": "Civis", "bucket": "ACTIVE", "rationale": "Active SWE-process consumer; full work allowed."},
+    {"repo": "focalpoint", "bucket": "PAUSED", "rationale": "Prior AGENTS.md template; shelved. Read-only."},
+    {"repo": "Dino", "bucket": "CONDITIONAL", "rationale": "Engine / non-frontend only (heavy visual engine, asset pipeline, deterministic sim). No UI / HUD / UX / asset work right now."},
+    {"repo": "WSM", "bucket": "CONDITIONAL", "rationale": "None right now. Re-evaluate when an active consumer appears."},
+    {"repo": "QuadSGM", "bucket": "PAUSED", "rationale": "Not on SWE critical path. Read-only."},
+    {"repo": "AtomsBot", "bucket": "PAUSED_AS_TARGET_RESOURCE", "rationale": "Capstone project, sponsor not in good standing. May be legally mined (code, concepts, schema, docs, tests) into new pheno-* / phenotype-* / hwLedger-adjacent repos."},
+    {"repo": "AtomsBot-2nd", "bucket": "PAUSED_AS_TARGET_RESOURCE", "rationale": "Same as AtomsBot."},
+    {"repo": "AtomsBot-3rd", "bucket": "PAUSED_AS_TARGET_RESOURCE", "rationale": "Same as AtomsBot."},
+    {"repo": "AtomsBot-4th", "bucket": "PAUSED_AS_TARGET_RESOURCE", "rationale": "Same as AtomsBot."},
+    {"repo": "AtomsBot-5th", "bucket": "PAUSED_AS_TARGET_RESOURCE", "rationale": "Same as AtomsBot."},
+    {"repo": "HwLedger", "bucket": "RECLASSIFY", "rationale": "App-level repo. Pending reclassification per ADR-023 Rule 3 (move underlying parts to pheno-*-lib / phenotype-*-sdk / phenotype-*-framework / federated service). Default PAUSED until reclassified."}
+  ],
+  "substrate_rules": [
+    "pheno-*-lib: pure reusable library, single concern, no I/O. Examples: pheno-config, pheno-context, pheno-port-adapter.",
+    "phenotype-*-sdk: cross-language SDK, stable public API, polyglot facade. Examples: phenotype-go-sdk, phenotype-python-sdk.",
+    "phenotype-*-framework: inversion-of-control framework, opinionated lifecycle. Examples: phenotype-hub, phenotype-bus.",
+    "federated-service: stateful, long-running, independently scalable. Examples: phenoMCP, phenoObservability, phenoEvents.",
+    "FORBIDDEN: drop shared code into phenoShared/, crates/, libs/, or per-app lib/ directories as a side effect of an app-level feature request."
+  ],
+  "quality_bar": {
+    "spec": "SPEC.md or equivalent, 1-page max, audience = app-level repo owners.",
+    "docs": "README.md + 1 concept doc, 5-line quickstart, 'when NOT to use it' section.",
+    "test_matrix": "unit + integration minimum; e2e + perf + chaos strongly preferred for fleet-critical substrates (config, tracing, MCP-router, observability).",
+    "observability": "OTLP export via pheno-tracing (ADR-012) at info-level minimum.",
+    "coverage_gate_pct": {"lib_or_sdk": 80, "framework": 70, "federated_service": 60},
+    "ci_gate": "pheno-ci-templates runs test matrix, coverage gate, OTLP smoke test.",
+    "worklog": "v2.1 schema with device: field (macbook | heavy-runner)."
+  },
+  "notes": [
+    "ADR-023 supersedes the 'Active focus repos' listing in STATUS.md / AGENTS.md as the sole authority on what agents touch.",
+    "New schema bump ADR-015 v2.0 -> v2.1 is additive: the 11th column is `device:` (enum: macbook | heavy-runner). Migration is mechanical; 1-week deprecation period with warning, error after 2026-06-22.",
+    "L6 health-audit delta (weekly cadence) gets a new check: 'bucket drift' — any active PR in a PAUSED repo or `device: macbook` on a heavy task is a P1 finding.",
+    "AtomsBot* status change: previously 'on the path to decomposition' (20 DAG tasks waiting). Per ADR-023, AtomsBot* is a *resource* (legally minable) not a *target* of new work. The 20 DAG tasks are not closed; they are deferred to 're-evaluate when an active consumer appears' OR used to seed the HwLedger reclassification (Rule 3)."
+  ]
+}

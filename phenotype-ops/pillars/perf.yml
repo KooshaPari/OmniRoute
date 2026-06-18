@@ -1,0 +1,32 @@
+name: perf
+version: "1.0"
+pillar: perf
+description: Performance benchmarks and size analysis
+skip_if:
+  no_changes_to:
+    - "benches/**/*.rs"
+    - "src/**/*.rs"
+    - "Cargo.toml"
+  not_modified_since_hours: 48
+  env_var: SKIP_PERF
+checks:
+  - name: bench
+    command: "cargo bench --all-features -- --save-baseline main --quiet"
+    timeout_seconds: 300
+    globs: ["benches/**/*.rs", "src/**/*.rs"]
+    required_tools: ["cargo"]
+    allow_failure: true
+
+  - name: size
+    command: "cargo bloat --release --time 10 --crates"
+    timeout_seconds: 120
+    globs: ["src/**/*.rs", "Cargo.toml"]
+    required_tools: ["cargo", "cargo-bloat"]
+    allow_failure: true
+
+  - name: profile
+    command: "cargo flamegraph --root --bin $(basename $(pwd)) -- --bench 2>&1 | head -50"
+    timeout_seconds: 180
+    globs: ["benches/**/*.rs", "src/**/*.rs"]
+    required_tools: ["cargo", "cargo-flamegraph"]
+    allow_failure: true

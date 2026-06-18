@@ -1,0 +1,46 @@
+name: security
+version: "1.0"
+pillar: security
+description: Security vulnerability and supply chain checks
+skip_if:
+  no_changes_to:
+    - "Cargo.lock"
+    - "Cargo.toml"
+    - "deny.toml"
+  not_modified_since_hours: 24
+  env_var: SKIP_SECURITY
+checks:
+  - name: audit
+    command: "cargo audit --deny warnings"
+    timeout_seconds: 120
+    globs: ["Cargo.lock"]
+    required_tools: ["cargo", "cargo-audit"]
+    allow_failure: false
+
+  - name: deny-advisories
+    command: "cargo deny check advisories"
+    timeout_seconds: 120
+    globs: ["Cargo.lock", "Cargo.toml", "deny.toml"]
+    required_tools: ["cargo", "cargo-deny"]
+    allow_failure: false
+
+  - name: deny-bans
+    command: "cargo deny check bans"
+    timeout_seconds: 60
+    globs: ["Cargo.lock", "Cargo.toml", "deny.toml"]
+    required_tools: ["cargo", "cargo-deny"]
+    allow_failure: false
+
+  - name: deny-licenses
+    command: "cargo deny check licenses"
+    timeout_seconds: 60
+    globs: ["Cargo.lock", "Cargo.toml", "deny.toml"]
+    required_tools: ["cargo", "cargo-deny"]
+    allow_failure: false
+
+  - name: trufflehog
+    command: "trufflehog filesystem --directory=. --no-verification"
+    timeout_seconds: 120
+    globs: ["*"]
+    required_tools: ["trufflehog"]
+    allow_failure: false

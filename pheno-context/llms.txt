@@ -1,0 +1,21 @@
+# pheno-context
+
+> Canonical request context for the pheno-* fleet. Builder, header
+> extraction, structured metadata bag.
+
+## Files
+
+- `Cargo.toml` — package manifest (v0.1.0)
+- `src/lib.rs` — library root (Context struct, ContextBuilder, from_headers)
+- `AGENTS.md` — agent context
+- `WORKLOG.md` — change history (v2.1 schema)
+- `CHANGELOG.md` — release notes
+- `LICENSE-MIT` — MIT license
+
+## Conventions
+
+- Conventional Commits
+- rustfmt + clippy (`-D warnings`)
+- 80% lib coverage gate
+- `thiserror` for error types; no `unwrap()` in public API
+- Public API surface fully documented (`#![warn(missing_docs)]`)

@@ -1,0 +1,22 @@
+{
+  "schema": "v2-10col",
+  "worklog_id": "L5-097-settly-archive",
+  "date": "2026-06-15",
+  "owner": "Forge",
+  "branch": "main",
+  "task": "settly-* full deprecation (ADR-017)",
+  "files_changed_or_added": [
+    "docs/adr/2026-06-15/ADR-017-settly-archive.md",
+    "findings/2026-06-15-settly-archive-final.md",
+    "worklogs/L5-097-settly-archive-2026-06-15.json"
+  ],
+  "lines_changed": "+118 / -0",
+  "tests_run": "none (doc-only deprecation; no code path to verify)",
+  "ci_status": "n/a (no code touched)",
+  "rollout": "settly, settly-archive, settly-private, settly-experimental are already archived on GitHub. ADR-017 formalises the deprecation and links to phenodocs/agents/ as the canonical successor.",
+  "follow_ups": [
+    "Confirm archived status on GitHub for all 4 repos (org_settings.py +1 line each)",
+    "Add 1-line README redirects in settly repos pointing to phenodocs/agents/ for the 4 framework names",
+    "Add the 4 framework names to docs/adr/2026-06-15/INDEX.md successor list"
+  ]
+}

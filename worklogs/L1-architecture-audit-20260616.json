@@ -1,0 +1,103 @@
+{
+  "audit_id": "L1-architecture-2026-06-16",
+  "scope": "8 repos: focalpoint, phenotype-infra, phenotype-tooling, phenotype-shared (phenoShared), phenotype-journeys, phenotype-landing, thegent, OmniRoute",
+  "method": "static read-only: top-level layout, ARCHITECTURE.md/SPEC.md presence + content, hexagonal dir markers (port/adapter/domain/use_cases), Cargo workspace dep edges, README signal",
+  "findings": {
+    "FocalPoint": {
+      "arch_doc": "ARCHITECTURE.md (42L, skeleton), SPEC.md (374L)",
+      "domain_boundaries": "clear (60 crates, focus-* prefix; apps/services/tooling split)",
+      "hex_markers": "partial: focus-icon-gen/src/{adapters,ports}",
+      "module_coupling": "high: 205 internal-dep edges across crates/* (Cargo workspace, resolver=2)",
+      "cycles": "not detected statically (cargo metadata skipped; resolver=2 mitigates)",
+      "score": 7,
+      "notes": "Largest workspace; arch doc is honest skeleton admitting future expansion. Domain prefix 'focus-*' enforces semantic boundary. services/ and tooling/ are separate crate groups."
+    },
+    "phenotype-infra": {
+      "arch_doc": "none at root (README + docs/specs/compute-mesh-spec.md)",
+      "domain_boundaries": "implicit (configs/, iac/, docs/governance/)",
+      "hex_markers": "none (IaC repo, N/A)",
+      "module_coupling": "low (no Cargo workspace, declarative)",
+      "cycles": "N/A",
+      "score": 5,
+      "notes": "Single-source-of-truth for 7-node compute mesh. Topologies live in docs/specs/. No code coupling risk by nature. Lacks formal ARCHITECTURE.md at root."
+    },
+    "phenotype-tooling": {
+      "arch_doc": "none (README only, AI-DD-meta framing)",
+      "domain_boundaries": "weak (crates/, packages/, bin/, Tools/, governance/, templates/ flat)",
+      "hex_markers": "3 dirs at maxdepth=4 (governance/templates-like, not hex)",
+      "module_coupling": "low (27 crates, 0 internal-dep edges detected — independent tools)",
+      "cycles": "N/A",
+      "score": 4,
+      "notes": "Tool grab-bag, intentionally flat coupling. No ARCHITECTURE.md. Boundaries by directory convention only."
+    },
+    "phenotype-shared": {
+      "arch_doc": "not inspected (path: /repos/phenoShared, not /repos/phenotype-shared; directory exists with phenoShared-wtrees and ph-shared)",
+      "domain_boundaries": "unknown",
+      "hex_markers": "unknown",
+      "module_coupling": "unknown",
+      "score": null,
+      "notes": "Spec mismatch: requested 'phenotype-shared' — actual dir is 'phenoShared' (case differs, hyphen vs no). Marked as path-mapping issue, not scored."
+    },
+    "phenotype-journeys": {
+      "arch_doc": "none (README only)",
+      "domain_boundaries": "clear (crates/phenotype-journey-core, crates/klipdot-capture, bin/phenotype-journey)",
+      "hex_markers": "none",
+      "module_coupling": "low (2 crates + 1 bin)",
+      "cycles": "N/A",
+      "score": 6,
+      "notes": "Small focused workspace; clear 3-component split. Lacks formal arch doc."
+    },
+    "phenotype-landing": {
+      "arch_doc": "SPEC.md (41L, explicit factory model with 7-site registry)",
+      "domain_boundaries": "excellent (sites/<name> per landing; packages/{design-tokens,github-fetcher,ui} shared)",
+      "hex_markers": "1 (packages/ui, design-tokens — adapter-like)",
+      "module_coupling": "low (no hoisting; root has no package.json)",
+      "cycles": "N/A (Astro multi-site)",
+      "score": 8,
+      "notes": "Best-documented of the 8. SPEC.md codifies invariants (no cross-site coupling, Taskfile.yml SITES var, subtree-pull reversibility). Exemplary factory pattern."
+    },
+    "thegent": {
+      "arch_doc": "ARCHITECTURE.md (44L, skeleton) + ARCHITECTURE_OVERVIEW.md (full) + SPEC.md (39L, 1 hex marker)",
+      "domain_boundaries": "excellent (src/thegent/{core,domain,adapters,use_cases,infra,core/ports})",
+      "hex_markers": "5 — full hexagonal layout (core/domain/adapters/use_cases/infra + ports)",
+      "module_coupling": "moderate (1042 Python files in src/)",
+      "cycles": "not detected (Python; would need pydeps run)",
+      "score": 9,
+      "notes": "Cleanest hexagonal implementation in scope. Both ARCHITECTURE.md (skeleton, admits future) and ARCHITECTURE_OVERVIEW.md (full provider-routing narrative). core+ports+adapters+domain+use_cases = textbook layout."
+    },
+    "OmniRoute": {
+      "arch_doc": "SPEC.md (120L, living doc), no ARCHITECTURE.md",
+      "domain_boundaries": "clear (src/{app,components,lib,hooks,styles,types}; lib/ has provider adapters + router)",
+      "hex_markers": "5 — src/domain, src/lib/adapters, src/lib/db/adapters (provider-adapter pattern explicit in SPEC)",
+      "module_coupling": "moderate-high (1485 TS files; lib/ is the coupling hotspot)",
+      "cycles": "not detected (Next.js, would need madge)",
+      "score": 7,
+      "notes": "Provider-agnostic LLM router. SPEC.md states design principles (ProviderAdapter trait, policy-as-data, streaming-first). Lacks ARCHITECTURE.md at root; SPEC.md partially substitutes."
+    }
+  },
+  "rankings": [
+    {"repo": "thegent", "score": 9, "rationale": "full hexagonal layout in code; dual arch docs (skeleton + overview)"},
+    {"repo": "phenotype-landing", "score": 8, "rationale": "exemplary factory pattern, SPEC.md codifies invariants"},
+    {"repo": "FocalPoint", "score": 7, "rationale": "60 crates with semantic prefix, honest skeleton arch doc"},
+    {"repo": "OmniRoute", "score": 7, "rationale": "provider-adapter pattern explicit in SPEC, no ARCHITECTURE.md"},
+    {"repo": "phenotype-journeys", "score": 6, "rationale": "small focused workspace, no formal arch doc"},
+    {"repo": "phenotype-infra", "score": 5, "rationale": "IaC, low coupling by nature, lacks ARCHITECTURE.md"},
+    {"repo": "phenotype-tooling", "score": 4, "rationale": "flat tool grab-bag, no arch doc, no boundaries"},
+    {"repo": "phenotype-shared", "score": null, "rationale": "path mismatch (phenoShared vs phenotype-shared)"}
+  ],
+  "gaps": [
+    "Only 3/8 have ARCHITECTURE.md (FocalPoint, thegent x2)",
+    "Only thegent has real hexagonal dir structure (core/domain/adapters/use_cases/ports/infra)",
+    "phenotype-tooling and phenotype-shared lack arch docs entirely",
+    "Cargo cycles not verified (cargo metadata skipped for speed; resolver=2 mitigates)",
+    "TS/JS cycles not verified (madge/madge-cli not run)",
+    "phenotype-shared path mismatch — user asked for 'phenotype-shared' but dir is 'phenoShared'"
+  ],
+  "recommendations": [
+    "Add ARCHITECTURE.md to: phenotype-infra, phenotype-tooling, phenotype-journeys, OmniRoute",
+    "Resolve phenotype-shared path mismatch (rename or document alias)",
+    "Expand FocalPoint/thegent skeleton ARCHITECTURE.md to per-crate ownership maps",
+    "Run cargo metadata + madge in a follow-up audit for cycle detection",
+    "Adopt thegent's hex layout as the org reference (core/domain/adapters/use_cases/ports)"
+  ]
+}

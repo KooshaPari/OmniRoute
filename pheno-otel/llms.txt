@@ -1,0 +1,28 @@
+# pheno-otel
+
+> Canonical OpenTelemetry initialization for the Phenotype monorepo.
+> One-liner `init()` with Drop-based TelemetryGuard.
+
+## Files
+
+- `Cargo.toml` — package manifest (v0.1.0)
+- `README.md` — API surface, error type, build features
+- `src/lib.rs` — library root (init, init_with_stdout, TelemetryGuard, OtelError)
+- `src/init.rs` — init() / init_with_stdout() entry points
+- `src/error.rs` — OtelError enum (ExporterInit, ResourceBuild, Shutdown)
+- `src/guard.rs` — TelemetryGuard (Drop impl flushes + shuts down)
+- `src/exporter/mod.rs` — exporter module root
+- `src/exporter/stdout.rs` — stdout span exporter
+- `tests/init_test.rs` — integration tests (INIT_LOCK mutex serializes global state)
+- `AGENTS.md` — agent context
+- `WORKLOG.md` — change history (v2.1 schema)
+- `CHANGELOG.md` — release notes
+- `LICENSE-MIT` — MIT license
+
+## Conventions
+
+- Conventional Commits
+- rustfmt + clippy (`-D warnings`)
+- 80% lib coverage gate
+- Pinned to OpenTelemetry 0.27 line
+- Tests serialize via INIT_LOCK mutex (no serial_test dep needed)

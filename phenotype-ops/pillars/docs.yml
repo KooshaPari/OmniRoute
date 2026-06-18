@@ -1,0 +1,46 @@
+name: docs
+version: "1.0"
+pillar: docs
+description: Documentation quality checks (spellcheck, links, API docs)
+skip_if:
+  no_changes_to:
+    - "*.md"
+    - "docs/**/*.md"
+    - "src/**/*.rs"
+  not_modified_since_hours: 72
+  env_var: SKIP_DOCS
+checks:
+  - name: spellcheck
+    command: "codespell --skip=\"./target,./.git\" --ignore-words=.github/codespell-ignore.txt"
+    timeout_seconds: 60
+    globs: ["*.md", "docs/**/*.md"]
+    required_tools: ["codespell"]
+    allow_failure: false
+
+  - name: links
+    command: "cargo deadlinks"
+    timeout_seconds: 120
+    globs: ["*.md", "docs/**/*.md", "src/**/*.rs"]
+    required_tools: ["cargo", "cargo-deadlinks"]
+    allow_failure: false
+
+  - name: api-docs
+    command: "cargo doc --all-features --no-deps --document-private-items 2>&1 | grep -E 'warning.*unresolved|error' && echo 'Doc warnings/errors found' && exit 1 || echo 'API docs clean'"
+    timeout_seconds: 180
+    globs: ["*.rs", "Cargo.toml"]
+    required_tools: ["cargo"]
+    allow_failure: false
+
+  - name: readme-exists
+    command: "test -f README.md && echo 'README.md exists' || (echo 'README.md missing' && exit 1)"
+    timeout_seconds: 5
+    globs: ["README.md"]
+    required_tools: ["test"]
+    allow_failure: false
+
+  - name: changelog-exists
+    command: "test -f CHANGELOG.md && echo 'CHANGELOG.md exists' || (echo 'CHANGELOG.md missing' && exit 1)"
+    timeout_seconds: 5
+    globs: ["CHANGELOG.md"]
+    required_tools: ["test"]
+    allow_failure: true

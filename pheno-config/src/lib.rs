@@ -295,7 +295,11 @@ pub fn load_from_env(prefix: &str) -> Result<Config> {
 /// `"missing field"`.
 pub fn load_from_file(path: &Path) -> Result<Config> {
     let bytes = std::fs::read(path)?;
-    let cfg: Config = serde_json::from_slice(&bytes).map_err(|e| {
+    parse_json_bytes(&bytes)
+}
+
+fn parse_json_bytes(bytes: &[u8]) -> Result<Config> {
+    let cfg: Config = serde_json::from_slice(bytes).map_err(|e| {
         if e.is_data() {
             // serde_json reports "missing field `name`" for absent
             // required keys. Sniff the field name out of the message
@@ -328,6 +332,183 @@ fn extract_missing_field_name(msg: &str) -> Option<String> {
     let rest = &msg[start..];
     let end = rest.find('`')?;
     Some(rest[..end].to_owned())
+}
+
+// ---------------------------------------------------------------------------
+// load_from_toml_file (v0.2.0)
+// ---------------------------------------------------------------------------
+
+/// Loads a [`Config`] from a TOML file on disk.
+///
+/// The file is read in full and deserialised via the `toml` crate
+/// (which is added as a dependency in v0.2.0). The deserialiser
+/// path uses the same `Config` struct, so the same `url/port/
+/// log_level/db_path/feature_flags` keys apply. File I/O errors
+/// propagate as [`ConfigError::IoError`]; malformed TOML or
+/// missing required keys are mapped to
+/// [`ConfigError::MissingField`] (for absent keys) or
+/// [`ConfigError::ParseError`] (for shape mismatches).
+///
+/// # Example
+///
+/// ```toml
+/// # config.toml
+/// url = "https://toml.example.com"
+/// port = 7070
+/// log_level = "info"
+/// db_path = "/var/lib/toml.db"
+/// feature_flags = ["alpha"]
+/// ```
+pub fn load_from_toml_file(path: &Path) -> Result<Config> {
+    let raw = std::fs::read_to_string(path)?;
+    let cfg: Config = toml::from_str(&raw).map_err(|e| {
+        // toml produces messages of the form:
+        //   "missing field `name`"
+        //   "invalid type: ..., expected ..."
+        let msg = e.to_string();
+        if let Some(field) = extract_missing_field_name(&msg) {
+            ConfigError::MissingField(field)
+        } else {
+            ConfigError::ParseError {
+                field: "<toml>".to_owned(),
+                message: msg,
+            }
+        }
+    })?;
+    Ok(cfg)
+}
+
+// ---------------------------------------------------------------------------
+// Config::merge + combine (v0.2.0)
+// ---------------------------------------------------------------------------
+
+impl Config {
+    /// Deep-merges `other` into `self`. Scalar fields (`url`,
+    /// `port`, `log_level`, `db_path`) are overwritten with
+    /// `other`'s value when `other`'s value is non-default; the
+    /// `feature_flags` lists are concatenated (deduplicated,
+    /// order-preserving, `self` first).
+    ///
+    /// "Non-default" for scalars means "non-empty" for `String`
+    /// and "non-zero" for `u16`. This mirrors the env-loader
+    /// semantics: a missing env var falls through to the file
+    /// value, so a `Config` freshly loaded from a file with the
+    /// builder's defaults is treated as a partial overlay.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use pheno_config::ConfigBuilder;
+    ///
+    /// let mut base = ConfigBuilder::new()
+    ///     .url("https://base.example.com")
+    ///     .db_path("/var/lib/base.db")
+    ///     .feature_flag("alpha")
+    ///     .build()
+    ///     .expect("base");
+    /// let overlay = ConfigBuilder::new()
+    ///     .url("https://overlay.example.com")
+    ///     .db_path("/var/lib/overlay.db")
+    ///     .feature_flag("beta")
+    ///     .build()
+    ///     .expect("overlay");
+    /// base.merge(&overlay);
+    /// assert_eq!(base.url, "https://overlay.example.com");
+    /// assert_eq!(base.db_path, "/var/lib/overlay.db");
+    /// assert_eq!(
+    ///     base.feature_flags,
+    ///     vec!["alpha".to_owned(), "beta".to_owned()]
+    /// );
+    /// ```
+    pub fn merge(&mut self, other: &Config) {
+        if !other.url.is_empty() {
+            self.url.clone_from(&other.url);
+        }
+        if other.port != 0 {
+            self.port = other.port;
+        }
+        if !other.log_level.is_empty() {
+            self.log_level.clone_from(&other.log_level);
+        }
+        if !other.db_path.is_empty() {
+            self.db_path.clone_from(&other.db_path);
+        }
+        for flag in &other.feature_flags {
+            if !self.feature_flags.contains(flag) {
+                self.feature_flags.push(flag.clone());
+            }
+        }
+    }
+}
+
+/// Loads a [`Config`] from a TOML file, then overlays env vars
+/// matching `<prefix>_*`. **File values fill in gaps; env vars
+/// override** when present. This is the canonical "12-factor" path:
+/// defaults live in `config.toml`; runtime overrides come from the
+/// environment.
+///
+/// Specifically: the file `Config` is loaded first, then for each
+/// env var matching `<prefix>_*`, the corresponding field is
+/// overwritten. Fields not set in env are kept from the file; this
+/// means env-only override of e.g. `PORT` works without re-stating
+/// `URL` and `DB_PATH`.
+///
+/// # Errors
+///
+/// - [`ConfigError::IoError`] if the file is unreadable.
+/// - [`ConfigError::ParseError`] for malformed TOML.
+/// - [`ConfigError::MissingField`] for absent required TOML
+///   keys (the env layer is the override, not the source of
+///   required fields, so the file MUST be self-sufficient).
+/// - [`ConfigError::ParseError`] from the env-loader overlay
+///   (e.g. invalid `<PREFIX>_PORT`).
+pub fn combine(file: &Path, env_prefix: &str) -> Result<Config> {
+    let mut file_cfg = load_from_toml_file(file)?;
+    let env_cfg = load_from_env_full(env_prefix)?;
+    file_cfg.merge(&env_cfg);
+    Ok(file_cfg)
+}
+
+/// Loads a [`Config`] from env vars matching `<prefix>_*`, but
+/// unlike [`load_from_env`] does NOT require `URL` or `DB_PATH` to
+/// be set — those fields default to empty strings, which the merge
+/// step then fills in from the file. This is the building block
+/// for [`combine`]'s "file is the source of truth for required
+/// fields; env is the override layer" semantics.
+fn load_from_env_full(prefix: &str) -> Result<Config> {
+    let url = env::var(env_name(prefix, FIELD_URL)).unwrap_or_default();
+    let port = match env::var(env_name(prefix, FIELD_PORT)) {
+        Ok(raw) => raw.parse::<u16>().map_err(|e| ConfigError::ParseError {
+            field: env_name(prefix, FIELD_PORT),
+            message: e.to_string(),
+        })?,
+        Err(env::VarError::NotPresent) => 0,
+        Err(env::VarError::NotUnicode(_)) => {
+            return Err(ConfigError::ParseError {
+                field: env_name(prefix, FIELD_PORT),
+                message: "env value is not valid unicode".to_owned(),
+            });
+        }
+    };
+    let log_level = env::var(env_name(prefix, FIELD_LOG_LEVEL)).unwrap_or_default();
+    let db_path = env::var(env_name(prefix, FIELD_DB_PATH)).unwrap_or_default();
+    let feature_flags = match env::var(env_name(prefix, FIELD_FEATURE_FLAGS)) {
+        Ok(raw) => parse_feature_flags(&raw),
+        Err(env::VarError::NotPresent) => Vec::new(),
+        Err(env::VarError::NotUnicode(_)) => {
+            return Err(ConfigError::ParseError {
+                field: env_name(prefix, FIELD_FEATURE_FLAGS),
+                message: "env value is not valid unicode".to_owned(),
+            });
+        }
+    };
+    Ok(Config {
+        url,
+        port,
+        log_level,
+        db_path,
+        feature_flags,
+    })
 }
 
 // ---------------------------------------------------------------------------

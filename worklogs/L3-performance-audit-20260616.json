@@ -1,0 +1,177 @@
+{
+  "audit_id": "L3-performance-2026-06-16",
+  "layer": "L3 Performance",
+  "scope": [
+    "focalpoint",
+    "phenotype-infra",
+    "phenotype-tooling",
+    "phenotype-shared",
+    "phenotype-journeys",
+    "phenotype-landing",
+    "thegent",
+    "OmniRoute"
+  ],
+  "audited_at": "2026-06-16",
+  "summary": {
+    "repos_with_criterion": ["focalpoint", "thegent"],
+    "repos_with_k6_or_load_tests": ["OmniRoute"],
+    "repos_with_profiling_tooling": [],
+    "repos_with_perf_budgets_in_ci": ["phenotype-tooling", "thegent"],
+    "repos_with_regression_detection": ["phenotype-tooling", "thegent", "OmniRoute"],
+    "overall_maturity": "low_to_moderate",
+    "headline_gap": "No repo has pprof/flamegraph/memray/py-spy profiling instrumentation. Only focalpoint + thegent use criterion. Only OmniRoute has k6 load tests. No codspeed or divan in scope."
+  },
+  "per_repo": [
+    {
+      "repo": "focalpoint",
+      "benchmarks": {
+        "present": true,
+        "frameworks": ["criterion 0.5"],
+        "crates_with_benches": [
+          "focus-audit", "focus-lang", "focus-crypto",
+          "focus-rules", "focus-eval", "focus-scheduler",
+          "focus-policy", "focus-ir"
+        ],
+        "files": [
+          "focalpoint/crates/focus-policy/benches/focus_policy_benchmarks.rs",
+          "focalpoint/crates/focus-crypto/benches/focus_crypto_benchmarks.rs"
+        ],
+        "ci_run": false,
+        "notes": "Per-crate benches exist; no GitHub Actions job invokes `cargo bench`. Tooling/target-pruner (target-budget.toml) governs disk, not perf."
+      },
+      "load_tests": {"present": false, "tools": []},
+      "profiling": {"present": false, "tools": []},
+      "perf_budgets_in_ci": false,
+      "regression_detection": false
+    },
+    {
+      "repo": "phenotype-infra",
+      "benchmarks": {"present": false, "frameworks": []},
+      "load_tests": {"present": false, "tools": []},
+      "profiling": {"present": false, "tools": []},
+      "perf_budgets_in_ci": false,
+      "regression_detection": false,
+      "notes": "Infra/IaC-focused; docs/governance/cost-budget.md covers $ budgets, not runtime perf."
+    },
+    {
+      "repo": "phenotype-tooling",
+      "benchmarks": {
+        "present": "partial",
+        "frameworks": ["pytest-benchmark (template only)"],
+        "ci_run": false,
+        "files": [
+          "phenotype-tooling/templates/Taskfile.yml (pytest --benchmark-enable placeholder, swallows errors)"
+        ]
+      },
+      "load_tests": {"present": false, "tools": []},
+      "profiling": {"present": false, "tools": []},
+      "perf_budgets_in_ci": "partial",
+      "regression_detection": "partial",
+      "notes": "Several runtime-performance-baselines.md / ADR-009 / ADR-013 / test_performance.py / policystack regression-budget-gate scripts (e142, e144, e146, e149, e152) are declarative but not wired into a perf-budget CI gate job."
+    },
+    {
+      "repo": "phenotype-shared",
+      "benchmarks": {"present": false, "frameworks": []},
+      "load_tests": {"present": false, "tools": []},
+      "profiling": {"present": false, "tools": []},
+      "perf_budgets_in_ci": false,
+      "regression_detection": false,
+      "notes": "Library crate; no perf scaffolding detected."
+    },
+    {
+      "repo": "phenotype-journeys",
+      "benchmarks": {"present": false, "frameworks": []},
+      "load_tests": {"present": false, "tools": []},
+      "profiling": {"present": false, "tools": []},
+      "perf_budgets_in_ci": false,
+      "regression_detection": false,
+      "notes": "Spec/journey authoring repo; not a runtime target."
+    },
+    {
+      "repo": "phenotype-landing",
+      "benchmarks": {"present": false, "frameworks": []},
+      "load_tests": {"present": false, "tools": []},
+      "profiling": {"present": false, "tools": []},
+      "perf_budgets_in_ci": false,
+      "regression_detection": false,
+      "notes": "Static sites/data; mentions Benchora in repos.json catalog only."
+    },
+    {
+      "repo": "thegent",
+      "benchmarks": {
+        "present": true,
+        "frameworks": ["criterion 0.5 (thegent-router), 0.8 (workspace)", "pytest-benchmark 4.0"],
+        "ci_run": "partial",
+        "files": [
+          "thegent/benchmark/* (routing_benchmark.py, scaled_benchmark.py, mcp_benchmark.py, sitback_benchmark.py, test_dispatch_benchmark.py, conftest.py, baseline.json, baseline-wl131-parse-model-suffix.json)",
+          "thegent/crates/thegent-router/benches/",
+          "thegent/tests/test_wl007_benchmark_quality_gate_rust.py",
+          "thegent/tests/test_wl131_benchmark_baseline.py",
+          "thegent/tests/test_wl131_f3_benchmark.py",
+          "thegent/tests/test_wl236_cold_warm_benchmark.py",
+          "thegent/tests/test_wl215_cycle_benchmark.py",
+          "thegent/tests/test_mutation_perf_pilot.py"
+        ],
+        "notes": "Most mature L3 footprint. Baseline.json + wl131 baseline provide regression anchors. No CI workflow grepped invokes bench harness."
+      },
+      "load_tests": {"present": false, "tools": []},
+      "profiling": {"present": false, "tools": []},
+      "perf_budgets_in_ci": "partial",
+      "regression_detection": "partial",
+      "notes": "test_wl086_budget_tracker / test_wl108_context_budget / test_wl170_error_budget define budgets; not enforced by a perf-gate job."
+    },
+    {
+      "repo": "OmniRoute",
+      "benchmarks": {
+        "present": "stale",
+        "frameworks": [],
+        "files": [
+          "OmniRoute/benches/2026-05-07-routing-benchmarks.json (stale, 2026-05-07)",
+          "OmniRoute/tests/benchmarks/ (routing_benchmark dir, tbench_validate.py)",
+          "OmniRoute/scripts/run-benchmarks.mjs"
+        ]
+      },
+      "load_tests": {
+        "present": true,
+        "tools": ["k6"],
+        "files": ["OmniRoute/tests/load/k6-soak.js"]
+      },
+      "profiling": {"present": false, "tools": []},
+      "perf_budgets_in_ci": false,
+      "regression_detection": false,
+      "notes": "k6-soak.js enforces http_req_failed<1% and p(95)<500ms thresholds; no CI workflow invokes it. Baselines (quality/file-size/test-discovery/duplication/complexity) are static, not perf."
+    }
+  ],
+  "framework_coverage_matrix": {
+    "criterion": ["focalpoint", "thegent"],
+    "divan": [],
+    "codspeed": [],
+    "pytest-benchmark": ["thegent", "phenotype-tooling (template-only)"],
+    "k6": ["OmniRoute"],
+    "locust": [],
+    "vegeta": [],
+    "artillery": [],
+    "pprof": [],
+    "py-spy": [],
+    "flamegraph": [],
+    "memray": [],
+    "perf_budget_ci_job": [],
+    "regression_threshold_files": ["phenotype-tooling (policystack regression gates)", "thegent (wl131 baselines)"]
+  },
+  "key_gaps": [
+    "Zero profiling tooling (pprof/flamegraph/memray/py-spy) across all 8 repos.",
+    "No codspeed, divan, locust, vegeta, or artillery anywhere in scope.",
+    "No repo wires a perf-budget or regression-threshold gate into GitHub Actions.",
+    "focalpoint criterion benches are local-only; never executed in CI.",
+    "OmniRoute k6-soak.js has thresholds defined but is not invoked by any workflow.",
+    "phenotype-tooling has the most regression-budget scripts but they are policystack-specific security budgets, not latency/throughput perf budgets."
+  ],
+  "recommendations": [
+    "Add a `perf-ci.yml` to focalpoint that runs `cargo bench --workspace` and uploads criterion HTML/JSON; diff vs stored baseline via critcmp.",
+    "Wire OmniRoute/tests/load/k6-soak.js into a scheduled workflow; fail on http_req_failed >= 1% or p(95) >= 500ms.",
+    "Promote thegent baseline.json + wl131 into a CI gate (pytest-benchmark --benchmark-compare) and extend to Rust via criterion's `benches` baseline dir.",
+    "Add pprof sampling to a representative focalpoint service binary and memray to a representative thegent Python entrypoint.",
+    "Adopt codspeed for criterion in focalpoint + thegent to get deterministic perf assertions without flaky machine-noise.",
+    "Add a divan bench harness to any newly authored Rust crate to converge on one framework."
+  ]
+}
