@@ -64,6 +64,8 @@ Establish three-layer doctrine (governance / platform / engine) and unblocks lan
 | G18 | omlx | phenotype-registry ADR-ECO-016 | **done** — DROP; stay archived; engine jundot/omlx |
 | G19 | stubs | phenotype-infra + registry | **done** — phenotype-infra#79 merged; hub ABSORB + monitoring stub RETIRE |
 | H14 | phenoShared | phenotype-config + phenotype-types + HexaKit | **in_progress** — [phenotype-config#2](https://github.com/KooshaPari/phenotype-config/pull/2), [phenotype-types#1](https://github.com/KooshaPari/phenotype-types/pull/1), [HexaKit#267](https://github.com/KooshaPari/HexaKit/pull/267) |
+| SR-1 | surface-reduction-1 | phenotype-registry | **done** — [#170](https://github.com/KooshaPari/phenotype-registry/pull/170); Planify, portage, phenotype-ops-mcp, McpKit |
+| SR-2 | surface-reduction-2 | phenotype-registry | **stub** — [batch-2 ledger](./surface-reduction-batch-2-2026-06-18.md) |
 
 ## PR tracker
 
@@ -81,14 +83,22 @@ Establish three-layer doctrine (governance / platform / engine) and unblocks lan
 | G17 bifrost vendor pin | bifrost | merged (#7); tag `phenotype/vendor-2026-06`; 1 remote |
 | G18 omlx ADR | phenotype-registry | open (this PR) — [ADR-ECO-016](../adrs/ADR-ECO-016-omlx-inference-split.md) DROP |
 | G19 stub absorption | phenotype-infra | merged ([#79](https://github.com/KooshaPari/phenotype-infra/pull/79)) |
+| Surface reduction batch 1 | phenotype-registry | merged [#170](https://github.com/KooshaPari/phenotype-registry/pull/170) |
+| Desktop Electrobun spike | OmniRoute | open [#74](https://github.com/KooshaPari/OmniRoute/pull/74) — ADR-ECO-015 |
+| agentapi root SPEC | agentapi-plusplus | open [#536](https://github.com/KooshaPari/agentapi-plusplus/pull/536) — G15 follow-up |
+| W18b repoint plan | Agentora | draft [#88](https://github.com/KooshaPari/Agentora/pull/88) — BLOCKED on H14 |
+
+## G15–G17 closeout (2026-06-18)
+
+Gateway fork lanes **G15–G17 complete** (other agent). Registry disposition-index rows `gw-agentapi-pp`, `gw-cliproxy`, `gw-bifrost` reflect merged PRs. This ledger lane only cross-links downstream PRs — no re-execution of merge hygiene.
 
 ## DELETE gate (fork cluster)
 
 | Repo | Verdict | Blocker |
 |------|---------|---------|
 | agentapi | KEEP_ARCHIVED | Tombstone only |
-| agentapi-plusplus | UNIFY then AFFIRM | Spec + superset merge (G15) |
-| cliproxyapi-plusplus | UNIFY before pin | go-sdk vendor SHA (G16) |
+| agentapi-plusplus | **AFFIRM** | G15 done (#535); root SPEC [#536](https://github.com/KooshaPari/agentapi-plusplus/pull/536) open |
+| cliproxyapi-plusplus | **AFFIRM** | G16 done (#1026); go-sdk pin merged |
 | bifrost | KEEP vendor fork | No merge into OmniRoute |
 | phenotype-omlx | **DROP** — stay archived | ADR-ECO-016; engine jundot/omlx; FINISH = staffing gate |
 | OmniRoute | NEVER archive | Canonical `route` |
@@ -98,6 +108,7 @@ Establish three-layer doctrine (governance / platform / engine) and unblocks lan
 1. ~~**G18**~~ — done (ADR-ECO-016 DROP; phenotype-omlx stay archived; engine jundot/omlx)
 2. ~~**G19**~~ — done (phenotype-hub → phenotype-infra; vibeproxy-monitoring-unified retired)
 3. **H14** — merge [phenotype-config#2](https://github.com/KooshaPari/phenotype-config/pull/2) + [phenotype-types#1](https://github.com/KooshaPari/phenotype-types/pull/1) + [HexaKit#267](https://github.com/KooshaPari/HexaKit/pull/267); unblock cargo check
-4. **Desktop** — Electrobun spike in `OmniRoute/apps/desktop/`; harvest vibeproxy menu-bar UX
-5. **W18b** — Agentora stub crates unblocked after H14 terminal-owner merges
-6. **agentapi-spec** — root `SPEC.md` on agentapi-plusplus
+4. **SR-2** — [surface-reduction batch 2](./surface-reduction-batch-2-2026-06-18.md) harmonizer + monorepo-state fold
+5. **Desktop** — [OmniRoute#74](https://github.com/KooshaPari/OmniRoute/pull/74) Electrobun spike; harvest vibeproxy menu-bar UX
+6. **W18b** — Agentora stub crates unblocked after H14 terminal-owner merges — [Agentora#88](https://github.com/KooshaPari/Agentora/pull/88)
+7. **agentapi-spec** — [agentapi-plusplus#536](https://github.com/KooshaPari/agentapi-plusplus/pull/536) root `SPEC.md`

@@ -1,5 +1,9 @@
 # Surface reduction batch 1 — upstream forks + McpKit gate — 2026-06-18
 
+**Status:** registry merged [#170](https://github.com/KooshaPari/phenotype-registry/pull/170) (2026-06-18) — `projects/*.json` stubs + disposition-index `sr-*` rows. Repo `gh archive` ×4 remains downstream execution.
+
+**Successor:** [surface-reduction-batch-2-2026-06-18.md](./surface-reduction-batch-2-2026-06-18.md) (stub).
+
 **Lane:** repo surface reduction (absorption/archive). **Out of scope:** G18 omlx, G19 hub→infra, H14 terminal-owner absorption (other agent).
 
 ## Targets (−4 repos)
