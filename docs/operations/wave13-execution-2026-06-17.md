@@ -1,31 +1,69 @@
-# Wave 13 — P3 stub prune + phenoShared dedupe — 2026-06-17
+# Wave 13 — parallel lanes A–D — 2026-06-17
 
 **Predecessor:** [wave12-execution-2026-06-17.md](./wave12-execution-2026-06-17.md)
 
-## phenoShared prerequisite
+## Lane A — `phenotype-config-loader` → phenoShared
 
-| PR | Fix |
-|----|-----|
-| [phenoShared #179](https://github.com/KooshaPari/phenoShared/pull/179) | Remove duplicate `crates/stashly/src/phenotype-cache-adapter` package name collision (Cargo resolved wrong crate for git deps) |
+Pre-merged on HexaKit `main` via eco-consolidate (#255). No additional HexaKit PR in this wave.
 
-## HexaKit wave 13 — stub prune (git-pinned, excluded)
+| Crate | Target | PR |
+|-------|--------|-----|
+| `phenotype-config-loader` | phenoShared | HexaKit #255 |
 
-| Action | PR |
-|--------|-----|
-| Delete local `src/` + `Cargo.toml` for 12 excluded phenoShared git deps; retain `MIGRATED.md` | HexaKit #262 |
-| `phenotype-contracts` → `phenotype-error-core` workspace git (was stale path) | #262 |
+## Lane B — test infra retarget → TestingKit
 
-**Crates pruned:** error-core, errors, event-sourcing, logging, time, state-machine, policy-engine, security-aggregator, async-traits, macros, health, cache-adapter.
+| Crate | Action | PR |
+|-------|--------|-----|
+| `phenotype-test-infra` | workspace exclude + git dep → TestingKit | HexaKit #264 |
+| `phenotype-bdd` | workspace exclude (stub); canonical absorption pending journeys | HexaKit #264 |
 
-## P3 cumulative
+**Pyron lockstep:** [#TBD Pyron PR] — exclude `phenotype-bdd` / `phenotype-test-infra`; git pin test-infra → TestingKit.
 
-**14 crates** git-pinned to phenoShared; **12** now stub-only on disk (event-bus/http-client/config-loader/mcp/test-infra pruned in prior waves).
+## Lane C — contracts split (unblocks partial `phenotype-core` alignment)
+
+| Component | Location | PR |
+|-----------|----------|-----|
+| Canonical traits (`Contract`, `MetricsHook`, …) | phenoShared `phenotype-contracts` (git pin) | HexaKit #264 |
+| `InMemory*` adapters | HexaKit `phenotype-contract-adapters` (scaffold member) | HexaKit #264 |
+
+`phenotype-core::contracts` re-exports adapters from scaffold crate.
+
+## Lane D — `cipher` → Authvault
+
+| Crate | Action | PR |
+|-------|--------|-----|
+| `phenotype-cipher` | Authvault `rust/phenotype-cipher` (pre-absorbed on Authvault `main`) | — |
+| HexaKit `crates/cipher` | exclude + git dep → Authvault | HexaKit #264 |
+
+## Disposition updates
+
+| Row | Path | FSM | PR |
+|-----|------|-----|-----|
+| 2 | `crates/cipher` | done | HexaKit #264 |
+| 4 | `crates/phenotype-bdd` | done | HexaKit #264 |
+| 40 | `crates/phenotype-test-infra` | done | HexaKit #264 |
+
+## P3 + contracts cumulative
+
+**16 crates** git-pinned to phenoShared (waves 1–4 + wave 12 health/cache + wave 13 contracts + config-loader).
+
+Additional git pins this wave: `phenotype-test-infra` → TestingKit; `phenotype-cipher` → Authvault.
+
+## Wave 12 next-queue — dispatched
+
+| Item | Wave 13 lane |
+|------|----------------|
+| `phenotype-contracts` adapter alignment | C |
+| `phenotype-bdd`, `phenotype-test-infra` | B |
+| `phenotype-config-loader` | A (pre-merged) |
 
 ## Next (wave 14+)
 
-| Item | Notes |
-|------|-------|
-| `phenotype-contracts` | API diverge — adapter alignment before git pin |
-| `libs/phenotype-config-core` | HexaKit `ConfigLoader` struct vs phenoShared trait — blocked |
-| `phenotype-validation` | Not in phenoShared workspace — port or keep |
-| `phenotype-core` git pin | Blocked on contracts + config-core parity |
+| Item | Blocker |
+|------|---------|
+| `phenotype-validation`, `phenotype-string` | Not in phenoShared |
+| `phenotype-telemetry` | Observe lane |
+| `phenotype-mcp` → substrate | disposition #28 ready |
+| `phenotype-core` git pin | validation/string strategy |
+| FocalPoint 867MB | manual absorption |
+| `phenotype-resilience` repo 404 | phenoShared stashly canonical |

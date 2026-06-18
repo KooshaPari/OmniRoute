@@ -25,7 +25,7 @@
 
 | Item | Notes |
 |------|-------|
-| `phenotype-contracts` | API diverge — adapter alignment |
-| `phenotype-bdd`, `phenotype-test-infra` | Retarget → phenotype-journeys |
+| ~~`phenotype-contracts`~~ | Wave 13 #264 — adapter split |
+| ~~`phenotype-bdd`, `phenotype-test-infra`~~ | Wave 13 #264 — TestingKit |
 | `phenotype-retry`, `phenotype-validation`, … | phenoShared batch 5 |
-| `phenotype-core` git pin | Still blocked on contracts + partial re-exports |
+| `phenotype-core` git pin | validation/string strategy |

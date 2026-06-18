@@ -78,7 +78,21 @@ until consumer repoint PRs land (Agentora, PhenoObservability vendor/, AgilePlus
 | `phenotype-async-traits` | workspace exclude + git dep | HexaKit #260 |
 | `phenotype-macros` | workspace exclude + git dep | HexaKit #260 |
 
-**Deferred:** `phenotype-contracts` — HexaKit `InMemory*` adapter surface diverges from phenoShared HEAD (`Contract`/`MetricsHook` traits).
+**Deferred:** ~~`phenotype-contracts`~~ — resolved Wave 13: traits → phenoShared git pin; `InMemory*` adapters → `phenotype-contract-adapters` scaffold (#264).
+
+### Wave 13 (2026-06-17) — parallel lanes B/C/D
+
+| Crate / component | Action | PR |
+|-------------------|--------|-----|
+| `phenotype-test-infra` | exclude + git dep → TestingKit | HexaKit #264 |
+| `phenotype-bdd` | exclude stub (canonical pending journeys) | HexaKit #264 |
+| `phenotype-contracts` (traits) | exclude + git dep → phenoShared | HexaKit #264 |
+| `phenotype-contract-adapters` | scaffold member (HexaKit-local adapters) | HexaKit #264 |
+| `crates/cipher` | exclude + git dep → Authvault `phenotype-cipher` | HexaKit #264 |
+
+**Lane A:** `phenotype-config-loader` pre-merged eco-consolidate #255.
+
+**16 phenoShared git pins** cumulative (includes config-loader + contracts).
 
 ### Wave 12 (2026-06-17) — health traits + cache adapter → phenoShared
 
