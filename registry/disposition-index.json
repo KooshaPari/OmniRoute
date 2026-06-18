@@ -71,5 +71,6 @@
     {"id": "sr-portage", "path": "portage", "disposition": "RETIRE", "target": "upstream", "wave": "surface-reduction-1", "fsm": "done", "relocated_date": "2026-06-18", "pr": "phenotype-registry#170", "note": "Upstream fork archived — no local delta"},
     {"id": "sr-phenotype-ops-mcp", "path": "phenotype-ops-mcp", "disposition": "RETIRE", "target": "PhenoMCPServers", "wave": "surface-reduction-1", "fsm": "done", "relocated_date": "2026-06-18", "pr": "phenotype-registry#170", "note": "MCP external server fork archived; redirect PhenoMCPServers/servers/external/"},
     {"id": "sr-mcpkit", "path": "McpKit", "disposition": "SUPERSEDE", "target": "PhenoFastMCP+PhenoMCPServers+substrate", "wave": "surface-reduction-1", "fsm": "done", "relocated_date": "2026-06-18", "archived_date": "2026-06-18", "adr": "ADR-017", "pr": "phenotype-registry#170,phenotype-registry#171", "note": "Repo archived 2026-06-18; registry#156 absorption complete; python-sdk connect extras"},
+    {"id": "sr-monorepo-state", "path": "phenotype-monorepo-state", "disposition": "DROP", "target": "phenotype-registry", "wave": "surface-reduction-2", "fsm": "done", "relocated_date": "2026-06-18", "note": "source deleted, content not recovered"}
   ]
 }

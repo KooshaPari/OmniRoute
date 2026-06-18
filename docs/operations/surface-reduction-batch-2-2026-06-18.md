@@ -9,14 +9,14 @@
 | Repo | Disposition | Owner / redirect | Gate |
 |------|-------------|------------------|------|
 | agileplus-spec-harmonizer | MERGE | AgilePlus `crates/` | RATIONALIZATION_PLAN wave I #12; 12/12 tests |
-| phenotype-monorepo-state | FOLD | phenotype-registry docs | RATIONALIZATION_PLAN wave I #15; no README |
+| phenotype-monorepo-state | **DROP** | — | Repo 404; source deleted, content not recovered; `sr-monorepo-state` in disposition-index |
 | phenoStandards | STUB ONLY | HexaKit (already retired) | Repo 404; `projects/phenoStandards.json` exists |
 
 ## Actions (pending)
 
 1. Registry disposition rows + any `projects/*.json` updates (this lane)
 2. agileplus-spec-harmonizer → AgilePlus absorb PR; archive harmonizer after merge
-3. phenotype-monorepo-state governance snapshots → fold into registry ops docs
+3. ~~phenotype-monorepo-state governance snapshots → fold into registry ops docs~~ **DROP** — repo deleted (404); fold never executed; registry disposition row only (do not recreate repo)
 4. phenoStandards — confirm 404; no repo archive step
 
 ## Parallel open PRs (cross-lane)
