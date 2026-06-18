@@ -77,6 +77,11 @@ flowchart TD
 
 ### W18b-G (pheno fleet)
 
+- [x] Tracera W18b fleet gate — [#632](https://github.com/KooshaPari/Tracera/pull/632) merged
+- [x] AgilePlus manifest repoint — [#763](https://github.com/KooshaPari/AgilePlus/pull/763) merged
+- [x] PhenoPlugins manifest repoint — [#104](https://github.com/KooshaPari/PhenoPlugins/pull/104) merged
+- [x] HexaKit H14 pin repoint — [#267](https://github.com/KooshaPari/HexaKit/pull/267) merged
+- [ ] Agentora consumer repoint — [#88](https://github.com/KooshaPari/Agentora/pull/88) partial until merge
 - [ ] Org scan: 0 external `KooshaPari/pheno` refs (excl. Tracera)
 - [ ] PhenoCompose repointed per-crate to role owners (not phenoShared terminal)
 - [ ] `gh repo archive KooshaPari/pheno` after gate

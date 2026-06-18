@@ -29,4 +29,11 @@
 
 ## Fleet repoint (no −1 until pheno retires)
 
-AgilePlus, PhenoPlugins, phenotype-gfx, Civis, phenotype-teamcomm, phenotype-go-sdk — consumer manifest repoint PRs (parallel lane).
+| Consumer | Status | PR |
+|----------|--------|-----|
+| AgilePlus | **repointed** | [#763](https://github.com/KooshaPari/AgilePlus/pull/763) merged |
+| PhenoPlugins | **repointed** | [#104](https://github.com/KooshaPari/PhenoPlugins/pull/104) merged |
+| phenotype-gfx | pending | — |
+| Civis | pending | — |
+| phenotype-teamcomm | pending | — |
+| phenotype-go-sdk | pending | — |

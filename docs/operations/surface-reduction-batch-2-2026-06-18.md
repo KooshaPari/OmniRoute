@@ -25,10 +25,14 @@
 |----|------|------|
 | [#74](https://github.com/KooshaPari/OmniRoute/pull/74) | OmniRoute | ADR-ECO-015 Electrobun desktop spike scaffold |
 | [#536](https://github.com/KooshaPari/agentapi-plusplus/pull/536) | agentapi-plusplus | G15 follow-up — canonical root `SPEC.md` |
-| [#88](https://github.com/KooshaPari/Agentora/pull/88) (draft) | Agentora | W18b phenoShared repoint plan — **BLOCKED on H14** |
+| [#88](https://github.com/KooshaPari/Agentora/pull/88) (draft) | Agentora | W18b phenoShared repoint plan — **partial** until consumer repoint merges (H14 HexaKit#267 landed) |
+| [#763](https://github.com/KooshaPari/AgilePlus/pull/763) | AgilePlus | W18b fleet repoint — **merged** |
+| [#104](https://github.com/KooshaPari/PhenoPlugins/pull/104) | PhenoPlugins | W18b fleet repoint — **merged** |
+| [#632](https://github.com/KooshaPari/Tracera/pull/632) | Tracera | W18b fleet gate — **merged** |
+| [#267](https://github.com/KooshaPari/HexaKit/pull/267) | HexaKit | H14 pin repoint — **merged** |
 
 ## Coordination
 
 - Branch: `feat/surface-reduction-batch-2` (execution) + `feat/surface-reduction-batch-2-ledger` (registry SSOT)
 - Do not edit G18/G19/H14 ledger rows here — owned by gateway / HexaKit lanes
-- Fleet repoint manifests (AgilePlus, PhenoPlugins, phenotype-gfx, Civis, phenotype-teamcomm, phenotype-go-sdk) remain parallel — no −1 until pheno repos retire
+- Fleet repoint manifests: ~~AgilePlus (#763), PhenoPlugins (#104)~~ merged; phenotype-gfx, Civis, phenotype-teamcomm, phenotype-go-sdk remain parallel — no −1 until pheno repos retire

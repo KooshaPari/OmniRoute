@@ -56,10 +56,10 @@
       "blocks_sources": ["AuthKit"],
       "repoint_to": ["Authvault"],
       "status": "verified-clean",
-      "wave": "G2",
-      "verified_at": "2026-06-17",
+      "wave": "W18b",
+      "verified_at": "2026-06-18",
       "pr": "KooshaPari/Tracera#632",
-      "note": "AuthKit repoint #629; dead phenoShared workspace dep removed #632"
+      "note": "AuthKit repoint #629; dead phenoShared workspace dep removed #632 — W18b fleet gate done"
     },
     {
       "id": "phenotype-go-sdk",
@@ -94,25 +94,32 @@
       "status": "partial",
       "wave": "W18b",
       "adr": "ADR-ECO-014",
-      "note": "Active workspace clean; 3 legacy stub crates still pin phenoShared (phenotype-errors, phenotype-error-macros, phenotype-config-loader) — blocked on phenotype-types/config Rust absorption"
+      "pr": "KooshaPari/Agentora#88",
+      "note": "H14 HexaKit#267 landed; active workspace clean — consumer repoint PR #88 pending merge; 3 legacy stub crates still pin phenoShared (phenotype-errors, phenotype-error-macros, phenotype-config-loader)"
     },
     {
       "id": "AgilePlus",
       "blocks_archive": "pheno",
       "repoint_to": ["phenotype-config", "phenotype-types"],
       "interim_staging": "phenoShared",
-      "status": "pending",
+      "status": "repointed",
       "wave": "W18b",
-      "adr": "ADR-ECO-014"
+      "adr": "ADR-ECO-014",
+      "repointed_at": "2026-06-18",
+      "pr": "KooshaPari/AgilePlus#763",
+      "note": "Fleet manifest repoint to phenotype-config + phenotype-types terminal owners"
     },
     {
       "id": "PhenoPlugins",
       "blocks_archive": "pheno",
       "repoint_to": ["phenotype-types", "phenotype-config"],
       "interim_staging": "phenoShared",
-      "status": "pending",
+      "status": "repointed",
       "wave": "W18b",
-      "adr": "ADR-ECO-014"
+      "adr": "ADR-ECO-014",
+      "repointed_at": "2026-06-18",
+      "pr": "KooshaPari/PhenoPlugins#104",
+      "note": "Fleet manifest repoint to phenotype-types + phenotype-config terminal owners"
     },
     {
       "id": "phenotype-gfx",
