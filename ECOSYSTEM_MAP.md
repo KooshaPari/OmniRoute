@@ -503,4 +503,53 @@ ACTIVE FORKS (5)
 
 ---
 
+## 8. Untracked Reduction Candidates (Wave I, 2026-06-18, #153)
+
+> **Registry pointers only.** Live REST audit (2026-06-18) surfaced **18 fresh
+> candidates** not already covered by this map or `RATIONALIZATION_PLAN.md`.
+> Full triage table, ordering, anomalies, and "confirmed not candidates"
+> list: see **[Wave I in RATIONALIZATION_PLAN.md](RATIONALIZATION_PLAN.md#wave-i--surface-reduction-fresh-triage-2026-06-18-153)**.
+
+Quick index (action class → cluster → owner):
+
+| # | Candidate | Cluster / owner | Action class |
+|---|-----------|-----------------|--------------|
+| 1 | helioscope | Helios → helios-cli (blocked — see caveat) | archive-with-redirect |
+| 2 | HeliosCLI | Helios → helios-cli (blocked — see caveat) | consolidate |
+| 5 | phenotype-runs | registry-extracted stub | delete-after-extract / archive |
+| 6 | phenotype-templates | → phenokits-commons/templates | convert to template repo / archive |
+| 7 | Authvault vs AuthKit | SDK boundary split | record in BOUNDARY_OWNERS |
+| 8 | phenoShared-niche | → phenoShared | fold |
+| 9 | phenoUtils vs phenoShared | crate ownership | DOMAIN_ROLES update |
+| 10 | PhenoFastMCP / -go / -rust | per-language canonical | SUPERSET.md + consolidate |
+| 11 | phenotype-otel + Profila | → PhenoObservability | fold (tracing/profiling dirs exist) |
+| 12 | agileplus-spec-harmonizer | → AgilePlus | merge |
+| 13 | phenotype-water + phenotype-terrain | orphan .NET | archive-after-extract |
+| 14 | Httpora + Quillr | naming drift | reconcile identity first |
+| 15 | phenotype-monorepo-state | → phenotype-registry | fold |
+| 16 | pheno-context | → phenoShared/pheno | fold |
+| 17 | TripleM | **156 MB, 404 anomaly, 2-yr stale** | **investigate via clone first** |
+| 18 | Zerokit | "Restored" scaffold, no src/ | confirm intent / archive |
+
+**Highest-leverage single action:** de-vendor `phenoRouterMonitor` (34 MB) +
+`HexaKit` (22 MB). Each vendors ~60 copies of other org repos at root incl. ~20
+ghost namespaces (`Cmdra, Cursora, Datamold, Docuverse, Duple, Evalora,
+Eventra, Flagward, Flowra, Guardis, KaskMan, Kogito, Logify, Portalis, Queris,
+Schemaforge, Seedloom, Tossy, Tracely, bare-cua, helMo, zen`). Replace
+vendored copies with refs/submodules; delete ghost dirs.
+
+**Helios caveat (verified):** `helios-cli` is a 10% non-building scaffold per
+its own README. Do not archive #1 / #2 until the working code migrates into
+`helios-cli` (or redirect target is retargeted).
+
+**Confirmed NOT candidates (preserved):** `substrate`, `phenotype-gateway`,
+`Apisync`, `Pine`, `services`, `phenoAI`, `dispatch-mcp`, `Agentora`,
+`Tasken`, `Benchora`, `localbase3`, `phenotype-ts-utils`, `phenokits-commons`,
+`Tracera`, `AgilePlus`, `phenodag`, `sharecli`, `thegent`. Landing pages
+already consolidated (`phenotype-landing` canonical; `projects-landing`
+archived). Protected: `KlipDot`, `KodeVibeGo`, `kwality`, `AppGen`,
+`P2/472-P2`, `KVirtualStage`.
+
+---
+
 *This document is the living ecosystem map for KooshaPari/phenotype-registry. Update on each major rationalization action.*

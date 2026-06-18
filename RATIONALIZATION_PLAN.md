@@ -299,4 +299,103 @@ Priority order: highest ROI first, dependency-safe (no step breaks a downstream 
 
 ---
 
+## Wave I — Surface-reduction fresh triage (2026-06-18, #153)
+
+> **Scope:** 18 reduction candidates identified via live REST audit 2026-06-18 that are
+> NOT already covered by `ECOSYSTEM_MAP.md`, this plan, `EXECUTION.md`, `DOMAIN_ROLES.md`,
+> or `BOUNDARY_OWNERS.md`. Complements the active wave cluster (#129 / #131 / #135 /
+> #144 / #147). **Registry-only triage** — no archives executed here; pointers to
+> local agents only.
+>
+> **Highest-leverage single action:** de-vendor the two accumulators
+> `phenoRouterMonitor` (34 MB) and `HexaKit` (22 MB). Each vendors ~60 copies of
+> other org repos at root, including **~20 ghost namespaces** that do not exist as
+> standalone repos: `Cmdra, Cursora, Datamold, Docuverse, Duple, Evalora, Eventra,
+> Flagward, Flowra, Guardis, KaskMan, Kogito, Logify, Portalis, Queris, Schemaforge,
+> Seedloom, Tossy, Tracely, bare-cua, helMo, zen`. HexaKit's README is also a
+> misplaced `.github` reusable-workflows doc, not a hexagon doc. Recommend
+> dedicated de-vendoring pass: replace vendored copies with refs/submodules, delete
+> ghost dirs.
+
+### Tier 1 — high confidence, do first
+
+| # | Repo | Pattern | Action | Risk |
+|---|------|---------|--------|------|
+| 1 | **helioscope** | own description says `SUPERSEDED — use helios-cli`; active | archive-with-redirect → helios-cli | Low-Med |
+| 2 | **HeliosCLI** | byte-identical to helioscope (same README `# heliosCLI`, same tree incl. `helios.db`) | consolidate cluster first | Med |
+| 5 | **phenotype-runs** | README-only stub (23 KB, no code) | delete-after-extract or archive | Low |
+| 6 | **phenotype-templates** | 1 KB README-only; template scaffolding actually lives in `phenokits-commons/templates` | convert to real GitHub template repo OR archive | Low |
+
+> ⚠️ **Helios cluster caveat (verified):** the declared canonical target
+> `helios-cli` is itself only a **10% non-building scaffold** (README: _"SCAFFOLD
+> … codex-rs workspace members declared but source NOT committed; does not
+> build"_). Do **not** archive `helioscope` / `HeliosCLI` until the working code
+> is migrated into `helios-cli` (or retarget the redirect to whichever copy is
+> kept). This needs a dedicated triage issue on `helios-cli`.
+
+### Tier 2 — medium confidence (functional overlap / fragmentation)
+
+| # | Repo(s) | Overlap | Action |
+|---|---------|---------|--------|
+| 7 | **Authvault** ↔ AuthKit (tracked) | OAuth2/JWT/RBAC in both | designate canonical (Authvault = framework, AuthKit = SDK); record in BOUNDARY_OWNERS |
+| 8 | **phenoShared-niche** | self-described "1-2 dependents" split-out of phenoShared | fold back into phenoShared |
+| 9 | **phenoUtils** ↔ phenoShared (tracked) | two Rust shared-utility repos | consolidate into phenoShared; record crate ownership in DOMAIN_ROLES |
+| 10 | **PhenoFastMCP + PhenoFastMCP-go + PhenoFastMCP-rust** | 3 upstream MCP forks vs tracked McpKit/PhenoRMCP/MCPForge | one canonical per language; extract SUPERSET.md deltas first |
+| 11 | **phenotype-otel + Profila** ↔ PhenoObservability | PO already has `tracing/` + `profiling/` dirs | fold both into PhenoObservability |
+| 12 | **agileplus-spec-harmonizer** ↔ AgilePlus | 13 KB format-bridge (Rust, 12/12 tests) | merge into AgilePlus; keep spec-kitty only if plugin actively distributed |
+| 13 | **phenotype-water + phenotype-terrain** | orphan .NET stubs, no description, no sibling .NET ecosystem | archive-after-extract unless .NET track planned |
+| 14 | **Httpora + Quillr** | half-baked HTTP repos with self-acknowledged naming drift (Quillr README: _"repo 'Quillr'/README 'quill'…to reconcile"_) | reconcile identity/name first |
+
+### Tier 3 — lower confidence (worth a look)
+
+| # | Repo | Note | Action |
+|---|------|------|--------|
+| 15 | **phenotype-monorepo-state** | 22 KB governance snapshots (no README) | fold into phenotype-registry |
+| 16 | **pheno-context** | 6 KB crate, no README | fold into phenoShared/pheno |
+| 17 | **TripleM** | **156 MB, 2-yr stale (2024-08), no README, `GET /repos/KooshaPari/TripleM` returns 404 even with auth — anomaly** | investigate via clone; if empty/corrupt/abandoned, delete |
+| 18 | **Zerokit** | "Restored: Zerokit" scaffold, no `src/` | confirm intent; archive if not built out |
+
+### Anomalies / hygiene flags (separate concerns, noted)
+
+- **TripleM 404 anomaly** — listed in `/users/KooshaPari/repos` but root GET 404s
+  with auth. Could be a renamed/deleted/private-visibility quirk or corruption.
+  Worth a direct investigation before any registry entry is written.
+- **Secrets hygiene (out of scope here, flag for security pass):** `phenokits-commons`
+  has root `secrets/` + `credentials/` dirs; `Tracera` commits a `server.exe` binary;
+  `thegent` has `research_secrets.html`. Recommend trufflehog/gitleaks sweep
+  independent of this triage (aligns with phenotype-org-governance enforcement surface).
+
+### Wave I ordering (no auto-execute — registry pointers only)
+
+1. **Investigate TripleM 404 anomaly** before any registry indexing.
+2. **De-vendor `phenoRouterMonitor` + `HexaKit`** — highest-leverage single action.
+3. **Helios cluster** (#1, #2) — block on `helios-cli` triage issue (caveat above).
+4. Tier 3 folds (#15, #16) — content-only merges, safe to delegate.
+5. Tier 2 consolidations — pending local-agent disposition PRs against
+   `BOUNDARY_OWNERS.md` and `DOMAIN_ROLES.md`.
+6. Tier 1 archive-eligible (#5, #6) — execute via `gh repo archive` only after
+   extract verification.
+
+### Confirmed NOT candidates (preserved)
+
+Real active charters verified and intentionally NOT proposed: `substrate`,
+`phenotype-gateway`, `Apisync`, `Pine`, `services`, `phenoAI`, `dispatch-mcp`,
+`Agentora`, `Tasken`, `Benchora`, `localbase3`, `phenotype-ts-utils`,
+`phenokits-commons`, `Tracera`, `AgilePlus`, `phenodag`, `sharecli`, `thegent`.
+Landing pages already consolidated (`phenotype-landing` canonical;
+`projects-landing` archived).
+
+### Provenance
+
+Full triage report (200 lines, per-repo API evidence quotes) on request.
+Companion to #144 / #147 (PolicyStack audit).
+
+---
+
 *Plan authored: 2026-05-30. Supersedes the ~45-repo target in ECOSYSTEM_MAP.md §5. Execute Steps 1-6 autonomously; Steps 7-10 require explicit user sign-off before cross-repo merges.*
+
+> **Wave I (2026-06-18, #153):** 18 fresh untracked candidates appended above as
+> registry pointers. No archives executed in this wave; local-agent disposition
+> only. Protected repos still excluded: `KlipDot`, `KodeVibeGo`, `kwality`,
+> `AppGen`, `P2/472-P2`, `KVirtualStage`. Rationalization-tracked sources
+> excluded from the triage list.
