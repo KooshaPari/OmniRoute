@@ -1,6 +1,7 @@
 # KooshaPari Ecosystem Map
 
-> Generated: 2026-06-17 | Repos audited: 13 canonical (live, GitHub-reachable) | Validator: `task validate` → `scripts/validate-ecosystem.sh`
+> Generated: 2026-06-18 | Repos audited: 13 canonical (live, GitHub-reachable) | Validator: `task validate` → `scripts/validate-ecosystem.sh`
+> Absorption traceability: `.kilo/audits/kooshapari-absorption-2026-06-18.md` is the authoritative absorption traceability matrix for this update.
 > Last SSOT run: see `scripts/validate-ecosystem.sh --json` (re-run on every map edit)
 
 ---
@@ -30,17 +31,31 @@ Role split for the spec/governance spine (so indexes stop competing):
 
 | Role | Count | Repos |
 |------|-------|-------|
+<<<<<<< HEAD
+| **shared-lib** | 20 | pheno, HexaKit, phenoShared, phenoUtils, phenoXddLib, Authvault, Stashly, Settly, Tasken, Traceon, Metron, Apisync, phenoObservability, PhenoPlugins, FocalPoint, PhenoVCS, Benchora, phenotype-journeys, phenotype-voxel, Compound-Spheres-3D |
+=======
 | **shared-lib** | 21 | pheno, HexaKit, phenoShared, phenoUtils, Authvault, Tasken, Apisync, phenoObservability, PhenoPlugins, FocalPoint, PhenoVCS, Benchora, phenotype-auth-ts, phenotype-journeys, phenotype-voxel, Compound-Spheres-3D |
+
+> **Note 2026-06-18**: `phenotype-auth-ts` was archived in this wave and absorbed into [AuthKit](https://github.com/KooshaPari/AuthKit) `typescript/packages/auth-ts/` (PR #120). The row above is stale pending the next rationalization update.|
+>>>>>>> origin/main
 | **SDK** | 8 | AuthKit, DataKit, ObservabilityKit, ResilienceKit, TestingKit, PlatformKit, PhenoKits, HexaKit |
 | **tooling** | 11 | AgilePlus, phenotype-dep-guard, phenotype-tooling, phenotype-infra, PhenoDevOps, Conft, agent-devops-setups, helioscope, Benchora, agileplus-spec-harmonizer, PhenoCompose |
 | **product / app** | 10 | Agentora, thegent, Tracera, AgilePlus, PlayCua, Dino, eyetracker, hwLedger, phenoRouterMonitor, slickport |
-| **plugin** | 5 | PhenoPlugins, dinoforge-packs, argis-extensions, phenotype-postfx, Tokn |
+| **plugin** | 4 | PhenoPlugins, argis-extensions, phenotype-postfx, Tokn |
 | **docs** | 8 | PhenoSpecs, phenotype-registry, PhenoHandbook, phenodocs, phenoXdd, PhenoDesign, phenotype-hub (scaffold), LIBRARY_RESEARCH_REGISTRY |
 | **landing** | 9 | agileplus-landing, byteport-landing, hwledger-landing, odin-landing\*, phenokits-landing, projects-landing, thegent-landing, AppGen (template) |
 | **fork** | 15 | agentapi-plusplus, bifrost, cliproxyapi-plusplus, DINOForge-UnityDoorstop, forgecode, helios-cli, HeliosLab, MCPForge, OmniRoute, phenotype-omlx, phenotype-ops-mcp, Planify, portage, vibeproxy, WorldSphereMod |
+<<<<<<< HEAD
+| **stub / scaffold** | 5 | phenotype-hub, vibeproxy-monitoring-unified, PhenoProject, phenoStandards (deprecated), Zerokit |
+| **superseded / archived** | 40 | .github, odin-landing, Profila, Project-Spyn, RIP-Fitness-App, sharecli, tehgent, thegent-sharecli, worktree-manager, phenoVessel, phenoTypes, phenoPatch, Diffuse, Servion, Guardrail, Cryptora, forge, phenoForge, router-docs, cheap-llm-mcp, dispatch-mcp, thegent-dispatch, McpKit, PhenoMCP, PhenoProc, Metron, PhenoKits, Stashly, Settly, AuthKit, Traceon, ResilienceKit, TestingKit, BytePort, heliosBench, heliosApp, PolicyStack, nanovms, portage, phenoDesign, phenoXddLib, dagctl, kwality, dinoforge-packs, phenotype-auth-ts |
+| **monorepo (multi-domain)** | 7 | pheno, phenoAI, phenoData, PhenoDevOps, BytePort, HexaKit, phenoShared |
+=======
 | **stub / scaffold** | 6 | phenotype-hub, vibeproxy-monitoring-unified, PhenoProject, phenoStandards (deprecated), Zerokit, Paginary |
-| **superseded / archived** | 36 | .github, odin-landing, Profila, Project-Spyn, RIP-Fitness-App, sharecli, tehgent, thegent-sharecli, worktree-manager, phenoVessel, phenoTypes, phenoPatch, Diffuse, Servion, Guardrail, Cryptora, forge, phenoForge, router-docs, cheap-llm-mcp, dispatch-mcp, thegent-dispatch, McpKit, PhenoMCP, PhenoProc, Metron, PhenoKits, Stashly, Settly, AuthKit, Traceon, ResilienceKit, TestingKit, BytePort, heliosBench, heliosApp, PolicyStack, nanovms, portage, phenoDesign, phenoXddLib |
+| **superseded / archived** | 40 | .github, odin-landing, Profila, Project-Spyn, RIP-Fitness-App, sharecli, tehgent, thegent-sharecli, worktree-manager, phenoVessel, phenoTypes, phenoPatch, Diffuse, Servion, Guardrail, Cryptora, forge, phenoForge, router-docs, cheap-llm-mcp, dispatch-mcp, thegent-dispatch, McpKit, PhenoMCP, PhenoProc, Metron, PhenoKits, Stashly, Settly, AuthKit, Traceon, ResilienceKit, TestingKit, BytePort, heliosBench, heliosApp, PolicyStack, nanovms, portage, phenoDesign, phenoXddLib, dagctl, kwality, dinoforge-packs, phenotype-auth-ts |
 | **monorepo (multi-domain)** | 6 | pheno, phenoAI, phenoData, PhenoDevOps, HexaKit, phenoShared |
+
+> **Note 2026-06-18** (post-merge, kilo audit #144 + 4-repo retirement): **dagctl**, **kwality**, **dinoforge-packs**, **phenotype-auth-ts** were all archived in the 4-repo retirement wave (findings/2026-06-18-L5-109). dagctl was absorbed into phenodag, dinoforge-packs into Dino/community-packs/, kwality retired into phenotype-tooling/docs/absorbed-from-kwality/, and phenotype-auth-ts into AuthKit/typescript/packages/auth-ts/. All source content preserved at target repos.|
+>>>>>>> origin/main
 | **agent-runtime** | 3 | Agentora, thegent, PhenoAgent |
 | **research / lab** | 2 | HeliosLab, portage |
 
@@ -51,6 +66,8 @@ Role split for the spec/governance spine (so indexes stop competing):
 \* MCP runtime absorption (2026-06-17, ADR-017/019): **cheap-llm-mcp**, **dispatch-mcp**, **thegent-dispatch** deleted — capabilities in [substrate](https://github.com/KooshaPari/substrate) (`driver-argv`, `driver-mcp/dispatch_mcp`, `substrate argv`). Deployable MCP servers live in [PhenoMCPServers](https://github.com/KooshaPari/PhenoMCPServers) `servers/substrate/`.
 
 \* MCP boundary rationalization (2026-06-17, ADR-017): **McpKit**, **PhenoMCP** archived — superseded by [PhenoFastMCP](https://github.com/KooshaPari/PhenoFastMCP)* (framework), [PhenoMCPServers](https://github.com/KooshaPari/PhenoMCPServers) (implementations), and [substrate](https://github.com/KooshaPari/substrate) (runtime). Py edge: `phenotype-python-sdk` `[connect]` extras; Go edge: PhenoFastMCP-go / MCPForge.
+
+\* Absorption outcomes (2026-06-18): **dagctl** → absorbed into [phenodag](https://github.com/KooshaPari/phenodag) (archived, see `docs/adr/ADR-dag-superset-merge.md`); **kwality** → archived (preserved for historical reference; ADR/SBOM/SLSA patterns extracted to `phenotype-tooling`); **phenotype-auth-ts** → replaced by `libs/auth-ts` (TypeScript auth library) + `AuthKit` (Rust auth SDK); **dinoforge-packs** → absorbed into `Dino/community-packs/`; **Configra** → phantom (404; config responsibility owned by `Conft` + `phenoShared`); **Logify** → phantom (404; out of scope). See `.kilo/audits/kooshapari-absorption-2026-06-18.md` for the authoritative absorption traceability matrix.
 
 ---
 
@@ -87,7 +104,7 @@ phenoRouterMonitor        -> pheno (phenotype-error-core, phenotype-errors,
 Agentora                  -> (self-contained Rust workspace: agentkit)
 thegent                   -> (Python; no KooshaPari cross-deps detected)
 PhenoAgent                -> (empty/stub manifest; extracted from phenotype-infra)
-Dino                      -> DINOForge-UnityDoorstop (Unity doorstop), dinoforge-packs
+Dino                      -> DINOForge-UnityDoorstop (Unity doorstop), [community-packs] (archived; formerly dinoforge-packs)
 AgilePlus                 -> (workspace: agileplus-config, agileplus-proto)
 PhenoMCP (archived)       -> superseded by PhenoMCPServers + PhenoFastMCP* + substrate [ADR-017; library repo retired 2026-06-17]
 McpKit (archived)         -> superseded by PhenoFastMCP + PhenoMCPServers [ADR-017; Py SDK retired 2026-06-17]
@@ -124,7 +141,6 @@ graph TD
     phenoData["phenoData"]
     Dino["Dino"]
     DINOForge_ud["DINOForge-UnityDoorstop"]
-    dinoforge_packs["dinoforge-packs"]
     Agentora["Agentora"]
     thegent["thegent"]
     AgilePlus["AgilePlus"]
@@ -140,7 +156,6 @@ graph TD
     phenotype_registry --> HexaKit
     phenotype_registry --> PhenoHandbook
     Dino --> DINOForge_ud
-    Dino --> dinoforge_packs
     cliproxyapi -.-> phenoShared
 ```
 
@@ -218,7 +233,7 @@ See [ADR-ECO-014](docs/adrs/ADR-ECO-014-phenotype-gateway-charter.md) and [GATEW
 |------|--------|---------|
 | **Authvault** | Active, Rust (OAuth2/JWT/RBAC) | **CANONICAL** |
 | AuthKit | Active, Python SDK | Keep as Python facade |
-| phenotype-auth-ts | Active, TS (OAuth2/OIDC) | Keep as TS facade; merge into phenoShared's TS layer |
+| phenotype-auth-ts | **Superseded** (2026-06-18) | Replaced by `libs/auth-ts` (TS auth library) + `AuthKit` (Rust auth SDK); see ADR/SBOM/SLSA extraction notes |
 
 ### Cluster F — Shared Crate Monorepos (CRITICAL: 5 competing homes)
 
@@ -396,7 +411,7 @@ SHARED CRATES (3)
   phenotype-go-sdk         — consolidated Go SDK (PlatformKit + McpKit Go)
 
 LANGUAGE-SPECIFIC FACADES (3)
-  phenotype-auth-ts        — TS OAuth2/OIDC
+  libs/auth-ts             — TS OAuth2/OIDC (replaces phenotype-auth-ts)
   phenoDesign              — design tokens + VitePress theme
   Conft                    — TS config layer
 
