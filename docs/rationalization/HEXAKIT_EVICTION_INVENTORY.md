@@ -30,7 +30,7 @@ Trees remain on disk with `README` redirect stubs for audit; `exclude` in root `
 
 - `phenotype-health` disposition row **done**; canonical runtime on PhenoObservability main
 - Fleet grep: zero new HexaKit path deps on phenotype-health (checkpoint)
-- `phenotype-sentry-config` (#35): deferred — import PR on PO backlog
+- `phenotype-sentry-config` (#35): ✅ done 2026-06-18 — PhenoObservability#168; rust/phenotype-sentry-config on PO main
 
 ---
 
