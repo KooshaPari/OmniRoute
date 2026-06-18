@@ -26,3 +26,7 @@
 ## Removed
 
 - `C:\Users\koosh\OmniRoute` — wrong upstream (`diegosouzapw/OmniRoute`); removed Cluster H
+
+## Stash supersede (H9)
+
+- `phenotype-gateway` `stash@{0}: local-scaffold` — **superseded** by phenotype-gateway #5 (single `actions/checkout@v4` + `submodules: recursive`); stash dropped 2026-06-18; do not re-apply

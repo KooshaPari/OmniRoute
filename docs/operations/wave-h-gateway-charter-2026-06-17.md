@@ -82,12 +82,22 @@
 | Traceon | PhenoObservability | done |
 | BytePort | phenotype-tooling | done |
 
+## H9 — stash supersede + CI (2026-06-18)
+
+| Action | PR | Status |
+|--------|-----|--------|
+| Fix duplicate `actions/checkout` in scaffold workflow | phenotype-gateway #5 | merged |
+| Drop `local-scaffold` stash after supersede | — | done |
+| Submodule shallow init on master (`d1620ce`) | — | done |
+| Go smoke tests (four forks) | — | in progress |
+
 ## Local hygiene
 
 | Item | Action |
 |------|--------|
 | Canonical OmniRoute | `dev\OmniRoute` (KooshaPari/OmniRoute) |
-| Broken OmniRoute clone | `C:\Users\koosh\OmniRoute` — remove after verify |
+| Broken OmniRoute clone | `C:\Users\koosh\OmniRoute` — removed 2026-06-18 |
+| phenotype-gateway stash | `local-scaffold` superseded by #5 — do not re-apply |
 | cliproxyapi-plusplus | cloned to `dev\cliproxyapi-plusplus` |
 | vibeproxy | cloned to `dev\vibeproxy` |
 | argis-extensions | cloned to `dev\argis-extensions` |

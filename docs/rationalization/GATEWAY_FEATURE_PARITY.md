@@ -63,7 +63,7 @@ Plugin plane inside phenotype-gateway `third_party/argis-extensions` → `packag
 | `spikes/go/agentapi` | README scaffold (#3); smoke test pending |
 | `spikes/go/cliproxy` | README scaffold (#3); smoke test pending |
 | `spikes/go/bifrost` | README scaffold (#3); `feat/bifrost-local-delta` (#6) |
-| `spikes/go/argis` | README scaffold (#3); smoke test pending |
+| `spikes/go/argis` | README scaffold (#3); smoke **fail** — missing `bifrost-extensions/api/graphql/gen`; hatchet module fetch (2026-06-18) |
 | `spikes/rust/router` | README scaffold (#3); OmniRoute revamp TBD |
 | `spikes/zig/router` | README scaffold (#3); alt path |
 
@@ -75,5 +75,6 @@ Plugin plane inside phenotype-gateway `third_party/argis-extensions` → `packag
 - [x] phenotype-gateway scaffold with submodule dirs (#1)
 - [x] Submodule SHAs pinned in phenotype-gateway `third_party/` (#2)
 - [x] Spike README scaffolds in `spikes/{go,rust,zig,mojo}/` (#3)
-- [ ] Spike passes build + smoke test in `spikes/<lang>/`
+- [x] CI scaffold: single checkout + recursive submodules (#5)
+- [ ] Spike passes build + smoke test in `spikes/<lang>/` (argis fail logged 2026-06-18)
 - [ ] disposition-index `fsm: done` with PR ref (per component)
