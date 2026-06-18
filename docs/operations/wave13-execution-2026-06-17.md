@@ -57,13 +57,9 @@ Additional git pins this wave: `phenotype-test-infra` → TestingKit; `phenotype
 | `phenotype-bdd`, `phenotype-test-infra` | B |
 | `phenotype-config-loader` | A (pre-merged) |
 
-## Next (wave 14+)
+## Next (wave H+)
 
-| Item | Blocker |
-|------|---------|
-| `phenotype-validation`, `phenotype-string` | Not in phenoShared |
-| `phenotype-telemetry` | Observe lane |
-| `phenotype-mcp` → substrate | disposition #28 ready |
+| Item | Notes |
+|------|-------|
+| Wave H gateway charter | phenotype-gateway + branch supersets |
 | `phenotype-core` git pin | validation/string strategy |
-| FocalPoint 867MB | manual absorption |
-| `phenotype-resilience` repo 404 | phenoShared stashly canonical |

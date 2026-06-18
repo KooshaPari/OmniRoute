@@ -152,9 +152,12 @@ graph TD
 
 > **Reconciled 2026-06-02** to the dom-services-routing convergence ruling (apex-approved) + OmniRoute `docs/ADR-001-canonical-routing.md`. The earlier "phenoAI canonical / archive OmniRoute" claim was STALE and is corrected below.
 
+> **Superseded 2026-06-17 (ADR-ECO-014):** OmniRoute is **interim MVP**; long-term canonical → **phenotype-gateway**. Tokn remains Rust routing substrate. agentapi-plusplus / cliproxyapi-plusplus / bifrost / argis-extensions merge via Wave H branch supersets.
+
 | Repo | Status | Verdict |
 |------|--------|---------|
-| **OmniRoute** (TS) | Active | **CANONICAL LLM router** — the org's routing framework. NOT archived; NOT superseded by phenoAI. |
+| **phenotype-gateway** | Planned | **CANONICAL** domain owner — agent API + LLM proxy + enterprise gateway + router revamp |
+| **OmniRoute** (TS) | Active (interim) | **Interim MVP** router — feature parity → revamp inside phenotype-gateway |
 | **Tokn** — `tokenledger::routing` | Active, Rust | **CANONICAL Rust routing substrate** (hexagonal: `pareto_router`/ports/adapters). Resolve "Rust routing" here, not the dead bifrost-routing stub. |
 | phenoAI (llm-router crate) | Active, Rust workspace | **Consumer / skeleton** — 64-file skeleton, empty README; NOT the canonical router. May consume OmniRoute / Tokn routing. |
 | phenoRouterMonitor | Active, Rust + Streamlit | Monitoring dashboard; **remove its 15 local phenotype-* path-copies, depend on HexaKit** (see dup table). |
@@ -162,8 +165,21 @@ graph TD
 | bifrost-routing (crate) | — | **Dead stub** (no Cargo.toml; superseded). Not the Rust routing referent — Tokn is. |
 | helios-router | — | Archived / superseded by OmniRoute. |
 | router-docs | Retired (2026-06-16) | Research docs relocated to `OmniRoute/docs/research/archive/router-docs/`; source repo deleted. |
-| cliproxyapi-plusplus | Fork, Go | AI-gateway fork; not a routing referent. |
+| **agentapi-plusplus** | Active fork (coder/agentapi) | **CANONICAL** agent terminal API plane → phenotype-gateway `packages/agentapi` |
+| cliproxyapi-plusplus | Fork, Go | **CANONICAL** CLI subscription proxy plane → phenotype-gateway |
 | helioscope / helios-cli | Forks of codex-monorepo | Keep as tooling entry-point; deduplicate into single helios repo |
+
+### Cluster H — Gateway superset (Wave H, 2026-06-17)
+
+See [ADR-ECO-014](docs/adrs/ADR-ECO-014-phenotype-gateway-charter.md) and [GATEWAY_FEATURE_PARITY.md](docs/rationalization/GATEWAY_FEATURE_PARITY.md).
+
+| Repo | Verdict |
+|------|---------|
+| agentapi-plusplus | Canonical fork; absorb agentapi + branch superset |
+| cliproxyapi-plusplus + vibeproxy | Proxy plane merge |
+| bifrost | Vendor-pinned; local-delta only |
+| argis-extensions | Plugin plane |
+| OmniRoute | Interim MVP → router revamp spike |
 
 ### Cluster B — Agent Runtimes (5 repos)
 
@@ -324,7 +340,7 @@ These are **traits / interfaces** that span multiple repos in the ecosystem. The
 
 | Action | Repos affected | Notes |
 |--------|---------------|-------|
-| **Archive forks with no local modifications** | Planify, portage, phenotype-omlx, phenotype-ops-mcp, agentapi-plusplus | All upstream-maintained; no meaningful local changes. (OmniRoute REMOVED from this list 2026-06-02 — it is the canonical LLM router, see Cluster A.) |
+| **Archive forks with no local modifications** | Planify, portage, phenotype-omlx, phenotype-ops-mcp | Upstream-maintained only. **agentapi-plusplus REMOVED** — Wave H canonical fork (ADR-ECO-014). OmniRoute interim, not archive. |
 | **Merge pheno → HexaKit** | pheno | 21 crates overlap; HexaKit is the canonical infrakit; retire pheno |
 | **Merge PhenoAgent stub → Agentora** | PhenoAgent | Empty manifest; description says "extracted from phenotype-infra" |
 | **Merge Metron + Traceon → phenoObservability** | Metron, Traceon | Both thin Rust wrappers; phenoObservability is the workspace home |
