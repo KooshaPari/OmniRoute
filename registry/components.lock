@@ -18,12 +18,12 @@
     "HexaKit": {
       "repo": "KooshaPari/HexaKit",
       "ref": "main",
-      "sha": "4f2c77ca7b45cc6d9787f9500d43eabc62f99ef4"
+      "sha": "e69ab1a31991a1f8a9e6386d480e9ed8d37f38bd"
     },
     "phenotype-types": {
       "repo": "KooshaPari/phenotype-types",
       "ref": "main",
-      "sha": "3f350c69fb275f3d75d7af3b3ba9aa5e902cbedd"
+      "sha": "dd14f735c373e66b1907b7d5d66d3e175abe1df2"
     },
     "TestingKit": {
       "repo": "KooshaPari/TestingKit",

@@ -63,7 +63,7 @@ Establish three-layer doctrine (governance / platform / engine) and unblocks lan
 | G17 | bifrost | bifrost | **done** — #7 merged; tag `phenotype/vendor-2026-06`; 1 remote (`main`) |
 | G18 | omlx | phenotype-registry ADR-ECO-016 | **done** — DROP; stay archived; engine jundot/omlx |
 | G19 | stubs | phenotype-infra + registry | **done** — phenotype-infra#79 merged; hub ABSORB + monitoring stub RETIRE |
-| H14 | phenoShared | phenotype-config + phenotype-types + HexaKit | **in_progress** — [phenotype-config#2](https://github.com/KooshaPari/phenotype-config/pull/2), [phenotype-types#1](https://github.com/KooshaPari/phenotype-types/pull/1), [HexaKit#267](https://github.com/KooshaPari/HexaKit/pull/267) |
+| H14 | phenoShared | phenotype-config + phenotype-types + HexaKit | **done** — [phenotype-config#2](https://github.com/KooshaPari/phenotype-config/pull/2), [phenotype-types#1](https://github.com/KooshaPari/phenotype-types/pull/1), [HexaKit#267](https://github.com/KooshaPari/HexaKit/pull/267) merged 2026-06-18 |
 | SR-1 | surface-reduction-1 | phenotype-registry | **done** — [#170](https://github.com/KooshaPari/phenotype-registry/pull/170); Planify, portage, phenotype-ops-mcp, McpKit |
 | SR-2 | surface-reduction-2 | phenotype-registry | **stub** — [batch-2 ledger](./surface-reduction-batch-2-2026-06-18.md) |
 
@@ -77,16 +77,16 @@ Establish three-layer doctrine (governance / platform / engine) and unblocks lan
 | G16 vibeproxy redirect | vibeproxy | merged (#14) |
 | G16 go-sdk pin | phenotype-go-sdk | merged (#17) |
 | Gateway UPSTREAM SSOT | phenotype-gateway | merged (#4) — OmniRoute canonical peer |
-| H14 config-loader | phenotype-config | open ([#2](https://github.com/KooshaPari/phenotype-config/pull/2)) |
-| H14 phenotype-errors | phenotype-types | open ([#1](https://github.com/KooshaPari/phenotype-types/pull/1)) |
-| H14 HexaKit pin repoint | HexaKit | open ([#267](https://github.com/KooshaPari/HexaKit/pull/267)) |
+| H14 config-loader | phenotype-config | merged ([#2](https://github.com/KooshaPari/phenotype-config/pull/2)) |
+| H14 phenotype-errors | phenotype-types | merged ([#1](https://github.com/KooshaPari/phenotype-types/pull/1)) |
+| H14 HexaKit pin repoint | HexaKit | merged ([#267](https://github.com/KooshaPari/HexaKit/pull/267)) |
 | G17 bifrost vendor pin | bifrost | merged (#7); tag `phenotype/vendor-2026-06`; 1 remote |
 | G18 omlx ADR | phenotype-registry | open (this PR) — [ADR-ECO-016](../adrs/ADR-ECO-016-omlx-inference-split.md) DROP |
 | G19 stub absorption | phenotype-infra | merged ([#79](https://github.com/KooshaPari/phenotype-infra/pull/79)) |
 | Surface reduction batch 1 | phenotype-registry | merged [#170](https://github.com/KooshaPari/phenotype-registry/pull/170) |
 | Desktop Electrobun spike | OmniRoute | open [#74](https://github.com/KooshaPari/OmniRoute/pull/74) — ADR-ECO-015 |
 | agentapi root SPEC | agentapi-plusplus | open [#536](https://github.com/KooshaPari/agentapi-plusplus/pull/536) — G15 follow-up |
-| W18b repoint plan | Agentora | draft [#88](https://github.com/KooshaPari/Agentora/pull/88) — BLOCKED on H14 |
+| W18b repoint plan | Agentora | draft [#88](https://github.com/KooshaPari/Agentora/pull/88) — unblocked after H14 |
 
 ## G15–G17 closeout (2026-06-18)
 
@@ -107,8 +107,8 @@ Gateway fork lanes **G15–G17 complete** (other agent). Registry disposition-in
 
 1. ~~**G18**~~ — done (ADR-ECO-016 DROP; phenotype-omlx stay archived; engine jundot/omlx)
 2. ~~**G19**~~ — done (phenotype-hub → phenotype-infra; vibeproxy-monitoring-unified retired)
-3. **H14** — merge [phenotype-config#2](https://github.com/KooshaPari/phenotype-config/pull/2) + [phenotype-types#1](https://github.com/KooshaPari/phenotype-types/pull/1) + [HexaKit#267](https://github.com/KooshaPari/HexaKit/pull/267); unblock cargo check
+3. ~~**H14**~~ — done (phenotype-config#2 + phenotype-types#1 + HexaKit#267 merged; terminal-owner git pins on HexaKit main)
 4. **SR-2** — [surface-reduction batch 2](./surface-reduction-batch-2-2026-06-18.md) harmonizer + monorepo-state fold
 5. **Desktop** — [OmniRoute#74](https://github.com/KooshaPari/OmniRoute/pull/74) Electrobun spike; harvest vibeproxy menu-bar UX
-6. **W18b** — Agentora stub crates unblocked after H14 terminal-owner merges — [Agentora#88](https://github.com/KooshaPari/Agentora/pull/88)
+6. **W18b** — Agentora stub crates repoint — [Agentora#88](https://github.com/KooshaPari/Agentora/pull/88)
 7. **agentapi-spec** — [agentapi-plusplus#536](https://github.com/KooshaPari/agentapi-plusplus/pull/536) root `SPEC.md`
