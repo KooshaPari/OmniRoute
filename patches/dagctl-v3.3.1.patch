@@ -1,0 +1,20 @@
+From e439bb9fa3fb6f845e0666934feff90ecb3e5fee Mon Sep 17 00:00:00 2001
+From: Kilo Agent <agent@kilo.ai>
+Date: Thu, 18 Jun 2026 04:42:37 +0000
+Subject: [PATCH] chore: bump version to v3.3.1
+
+---
+ VERSION | 1 +
+ 1 file changed, 1 insertion(+)
+ create mode 100644 VERSION
+
+diff --git a/VERSION b/VERSION
+new file mode 100644
+index 0000000..15ee400
+--- /dev/null
++++ b/VERSION
+@@ -0,0 +1 @@
++v3.3.1
+-- 
+2.54.0
+
