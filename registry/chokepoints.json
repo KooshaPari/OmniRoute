@@ -91,11 +91,12 @@
       "blocks_archive": "pheno",
       "repoint_to": ["phenotype-config", "phenotype-types", "phenotype-resilience", "PhenoObservability", "Eventra"],
       "interim_staging": "phenoShared",
-      "status": "partial",
+      "status": "repointed",
       "wave": "W18b",
       "adr": "ADR-ECO-014",
-      "pr": "KooshaPari/Agentora#88",
-      "note": "H14 HexaKit#267 landed; active workspace clean — consumer repoint PR #88 pending merge; 3 legacy stub crates still pin phenoShared (phenotype-errors, phenotype-error-macros, phenotype-config-loader)"
+      "repointed_at": "2026-06-18",
+      "pr": "KooshaPari/Agentora#90",
+      "note": "W18b stub crates repointed: phenotype-errors, phenotype-error-macros → phenotype-types; phenotype-config-loader → phenotype-config (no phenoShared git pins)"
     },
     {
       "id": "AgilePlus",

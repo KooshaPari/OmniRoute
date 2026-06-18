@@ -25,7 +25,7 @@
 |----|------|------|
 | [#74](https://github.com/KooshaPari/OmniRoute/pull/74) | OmniRoute | ADR-ECO-015 Electrobun desktop spike scaffold |
 | [#536](https://github.com/KooshaPari/agentapi-plusplus/pull/536) | agentapi-plusplus | G15 follow-up — canonical root `SPEC.md` |
-| [#88](https://github.com/KooshaPari/Agentora/pull/88) (draft) | Agentora | W18b phenoShared repoint plan — **partial** until consumer repoint merges (H14 HexaKit#267 landed) |
+| [#90](https://github.com/KooshaPari/Agentora/pull/90) | Agentora | W18b phenoShared stub repoint — **merged** |
 | [#763](https://github.com/KooshaPari/AgilePlus/pull/763) | AgilePlus | W18b fleet repoint — **merged** |
 | [#104](https://github.com/KooshaPari/PhenoPlugins/pull/104) | PhenoPlugins | W18b fleet repoint — **merged** |
 | [#632](https://github.com/KooshaPari/Tracera/pull/632) | Tracera | W18b fleet gate — **merged** |

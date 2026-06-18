@@ -84,7 +84,7 @@ Establish three-layer doctrine (governance / platform / engine) and unblocks lan
 | W18b AgilePlus repoint | AgilePlus | merged ([#763](https://github.com/KooshaPari/AgilePlus/pull/763)) |
 | W18b PhenoPlugins repoint | PhenoPlugins | merged ([#104](https://github.com/KooshaPari/PhenoPlugins/pull/104)) |
 | W18b Tracera fleet gate | Tracera | merged ([#632](https://github.com/KooshaPari/Tracera/pull/632)) |
-| W18b repoint plan | Agentora | draft [#88](https://github.com/KooshaPari/Agentora/pull/88) — **partial** until consumer repoint merges |
+| W18b Agentora stub repoint | Agentora | merged ([#90](https://github.com/KooshaPari/Agentora/pull/90)) — phenotype-errors/error-macros → phenotype-types; phenotype-config-loader → phenotype-config |
 | G17 bifrost vendor pin | bifrost | merged (#7); tag `phenotype/vendor-2026-06`; 1 remote |
 | G18 omlx ADR | phenotype-registry | merged — [ADR-ECO-016](../adrs/ADR-ECO-016-omlx-inference-split.md) DROP |
 | G19 stub absorption | phenotype-infra | merged ([#79](https://github.com/KooshaPari/phenotype-infra/pull/79)) |
@@ -114,5 +114,5 @@ Gateway fork lanes **G15–G17 complete** (other agent). Registry disposition-in
 3. ~~**H14**~~ — done (phenotype-config#2 + phenotype-types#1 + HexaKit#267 merged; terminal-owner git pins on HexaKit main)
 4. **SR-2** — [surface-reduction batch 2](./surface-reduction-batch-2-2026-06-18.md) harmonizer + monorepo-state fold
 5. **Desktop** — [OmniRoute#74](https://github.com/KooshaPari/OmniRoute/pull/74) Electrobun spike; harvest vibeproxy menu-bar UX
-6. **W18b** — ~~AgilePlus#763, PhenoPlugins#104, Tracera#632~~ merged; Agentora consumer repoint [#88](https://github.com/KooshaPari/Agentora/pull/88) pending merge
+6. ~~**W18b**~~ — done (Agentora [#90](https://github.com/KooshaPari/Agentora/pull/90) merged; 3 stub crates repointed to phenotype-types/phenotype-config)
 7. **agentapi-spec** — [agentapi-plusplus#536](https://github.com/KooshaPari/agentapi-plusplus/pull/536) root `SPEC.md`
