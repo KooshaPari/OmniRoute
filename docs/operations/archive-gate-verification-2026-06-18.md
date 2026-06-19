@@ -19,6 +19,16 @@ Per `BOUNDARY_OWNERS.md` 5-check gate. **Never delete TestingKit or phenoShared.
 
 - AuthKit archived 2026-06-18 (X-09 gate pass); Metron archive gate still open
 - Registry rows updated in disposition-index batch PR
+- **KooshaPari/pheno archived 2026-06-19** — W18b fleet manifest scan: 0 external `KooshaPari/pheno` git deps in consumer Cargo.toml/go.mod (gh search + fleet pull verify); chokepoints all `repointed` or `verified-clean`; registry closeout PR
+
+## pheno archive gate (W18b-G)
+
+| Check | Result |
+|-------|--------|
+| Fleet chokepoints closed | phenotype-gfx, Civis, phenotype-teamcomm, phenotype-go-sdk → verified-clean; TestingKit#8 merged |
+| Org manifest scan | No external `github.com/KooshaPari/pheno.git` deps outside pheno self + audit docs |
+| PhenoCompose | verified-clean (in-repo path deps) |
+| Archive action | `gh repo archive KooshaPari/pheno` 2026-06-19 |
 
 ## Phase 3 stale-tail closeout (2026-06-18)
 

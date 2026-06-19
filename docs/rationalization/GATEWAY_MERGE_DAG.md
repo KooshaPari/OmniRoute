@@ -82,9 +82,11 @@ flowchart TD
 - [x] PhenoPlugins manifest repoint — [#104](https://github.com/KooshaPari/PhenoPlugins/pull/104) merged
 - [x] HexaKit H14 pin repoint — [#267](https://github.com/KooshaPari/HexaKit/pull/267) merged
 - [x] Agentora consumer repoint — [#90](https://github.com/KooshaPari/Agentora/pull/90) merged; stub crates → phenotype-types/phenotype-config
-- [ ] Org scan: 0 external `KooshaPari/pheno` refs (excl. Tracera)
-- [ ] PhenoCompose repointed per-crate to role owners (not phenoShared terminal)
-- [ ] `gh repo archive KooshaPari/pheno` after gate
+- [x] TestingKit phenotype-health repoint — [#8](https://github.com/KooshaPari/TestingKit/pull/8) merged → PhenoObservability
+- [x] Fleet tail verified-clean — phenotype-gfx, Civis, phenotype-teamcomm, phenotype-go-sdk (manifest scan 2026-06-19)
+- [x] Org scan: 0 external `KooshaPari/pheno` git manifest refs (gh search + fleet Cargo.toml/go.mod scan; excl. pheno self + audit docs)
+- [x] PhenoCompose verified-clean — in-repo path deps only (chokepoints 2026-06-18)
+- [x] `gh repo archive KooshaPari/pheno` — executed 2026-06-19 post gate (registry closeout PR)
 
 ---
 
