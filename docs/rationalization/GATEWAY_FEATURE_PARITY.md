@@ -93,6 +93,16 @@ Smoke infra: [phenotype-gateway #6](https://github.com/KooshaPari/phenotype-gate
 
 **Next step:** cliproxy++ → `packages/cliproxy` dry-run first; then agentapi copy PR with unchanged submodule pin contract.
 
+## H10 promotion anchors (phenotype-gateway #14)
+
+| Package | State | Evidence |
+|---------|-------|----------|
+| `packages/cliproxy` | **anchor** | PIN/BOUNDARY + smoke target; submodule canonical |
+| `packages/agentapi` | **anchor** | PIN/BOUNDARY + smoke target; submodule canonical |
+| `packages/router` | **in progress** | `ComboVariant` + re-export spike lib; cargo tests pass |
+
+OmniRoute desktop spike docs merged ([#74](https://github.com/KooshaPari/OmniRoute/pull/74)) per ADR-ECO-015.
+
 ## Promotion checklist (per component)
 
 - [x] agentapi++ branch superset merged to `main` (#531)
