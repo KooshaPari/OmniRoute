@@ -1,0 +1,86 @@
+# pheno-cli-base
+
+> Shared CLI boilerplate for the Phenotype fleet of command-line
+> tools. Bundles the three pieces of plumbing that every Phenotype
+> CLI re-implements (`ConfigArg`, `Verbosity`, `setup_tracing`) so
+> each binary can depend on one crate and inherit canonical
+> behavior.
+
+## Public API
+
+```rust
+use clap::Args;
+use pheno_cli_base::{ConfigArg, Verbosity, setup_tracing, setup_tracing_from_count};
+
+#[derive(Args)]
+pub struct ConfigArg {
+    /// Path to a config file (also reads PHENOTYPE_CONFIG).
+    #[arg(short, long, env = "PHENOTYPE_CONFIG")]
+    pub config: Option<std::path::PathBuf>,
+}
+
+#[derive(Args)]
+pub struct Verbosity {
+    /// Increase log verbosity (-v, -vv, -vvv).
+    #[arg(short, long, action = clap::ArgAction::Count, global = true)]
+    pub verbose: u8,
+    /// Suppress non-error logs.
+    #[arg(short, long, conflicts_with = "verbose", global = true)]
+    pub quiet: bool,
+}
+
+pub fn setup_tracing(filter: tracing_subscriber::EnvFilter);
+pub fn setup_tracing_from_count(verbosity: u8, quiet: bool);
+pub mod prelude; // re-exports the three items
+```
+
+## Quickstart
+
+```toml
+# Cargo.toml
+[dependencies]
+pheno-cli-base = "0.1"
+clap = { version = "4.5", features = ["derive", "env"] }
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+```
+
+```rust
+use clap::Parser;
+use pheno_cli_base::{ConfigArg, Verbosity, setup_tracing};
+#[derive(Parser)] struct Cli { #[command(flatten)] config: ConfigArg,
+#[command(flatten)] verbosity: Verbosity }
+fn main() { let cli = Cli::parse(); setup_tracing(cli.verbosity.to_filter()); }
+```
+
+## Conventions
+
+- Conventional Commits (`feat:`, `fix:`, `chore:`, `docs:`, `refactor:`).
+- rustfmt + clippy (`-D warnings`); `#![warn(missing_docs)]` on the
+  public API.
+- 80% lib coverage gate (ADR-040); see the `coverage` job in
+  `.github/workflows/ci.yml`.
+- `ConfigArg` reads the `PHENOTYPE_CONFIG` env var as a fallback to
+  `-c/--config`; `ConfigArg::path()` returns `Option<&Path>`.
+- `Verbosity` is a count (`-v`/`-vv`/`-vvv`) plus `-q/--quiet`,
+  mutually exclusive; `to_filter()` maps to `tracing_subscriber`
+  `LevelFilter` (`INFO` / `DEBUG` / `TRACE` / `ERROR`).
+- `setup_tracing` is idempotent: a second call swallows
+  `SetGlobalDefaultError` so tests can call it freely.
+- `prelude` re-exports the three items for
+  `use pheno_cli_base::prelude::*;`.
+- Standalone crate (empty `[workspace]` table in `Cargo.toml`); not
+  a member of the root monorepo workspace.
+
+## See also
+
+- `README.md` — full API walkthrough, layout, and Commands table.
+- `src/config_arg.rs`, `src/verbosity.rs`, `src/tracing.rs` — module
+  docs and per-symbol notes.
+- `tests/public_api.rs` — integration tests.
+- `AGENTS.md` — agent context.
+- `WORKLOG.md` — change history (v2.1 schema).
+- `deny.toml` — `cargo-deny` policy.
+- `LICENSE-MIT` / `LICENSE-APACHE` — dual license.
+- Sibling: `pheno-config` (typed config), `pheno-errors` (canonical
+  `AppError`), `pheno-context` (request context).

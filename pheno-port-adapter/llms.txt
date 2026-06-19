@@ -1,25 +1,83 @@
 # pheno-port-adapter
 
-> Hexagonal port/adapter primitives for the pheno-* fleet. PortAdapter
-> trait + TCP/Unix transport adapters.
+> Hexagonal port/adapter primitives for the pheno-* fleet. A
+> `PortAdapter` trait that every transport-agnostic consumer can
+> depend on, plus concrete TCP and Unix-domain-socket transport
+> adapters. Sits at the substrate layer — consumers write against
+> the trait, not against a specific transport.
 
-## Files
+## Public API
 
-- `Cargo.toml` — package manifest (v0.1.0)
-- `src/lib.rs` — library root (PortAdapter trait, AdapterError enum, Connection struct)
-- `src/adapters/mod.rs` — adapters module root
-- `src/adapters/tcp.rs` — TCP transport adapter
-- `src/adapters/unix.rs` — Unix-domain socket transport adapter
-- `AGENTS.md` — agent context
-- `WORKLOG.md` — change history (v2.1 schema)
-- `CHANGELOG.md` — release notes
-- `LICENSE-MIT` — MIT license
+```rust
+use pheno_port_adapter::{AdapterError, Connection, PortAdapter};
+use pheno_port_adapter::adapters::{TcpAdapter, UnixAdapter};
+
+#[derive(Debug, thiserror::Error)]
+pub enum AdapterError {
+    #[error("connect failed: {0}")]
+    ConnectFailed(String),
+    #[error("disconnect failed: {0}")]
+    DisconnectFailed(String),
+    #[error("health check failed: {0}")]
+    HealthCheckFailed(String),
+    #[error("timeout")]
+    Timeout,
+}
+
+#[derive(Debug)]
+pub struct Connection { pub(crate) id: String }
+
+pub trait PortAdapter: Send + Sync {
+    fn name(&self) -> &str;
+    fn health(&self) -> Result<(), AdapterError>;
+    fn connect(&self, endpoint: &str) -> Result<Connection, AdapterError>;
+    fn disconnect(&self) -> Result<(), AdapterError>;
+}
+
+pub mod adapters; // TcpAdapter, UnixAdapter
+```
+
+## Quickstart
+
+```toml
+# Cargo.toml
+[dependencies]
+pheno-port-adapter = "0.1"
+```
+
+```rust
+use pheno_port_adapter::adapters::TcpAdapter;
+use pheno_port_adapter::PortAdapter;
+let adapter = TcpAdapter;
+assert_eq!(adapter.name(), "tcp");
+let conn = adapter.connect("tcp://localhost:8080")?;
+adapter.disconnect()?;
+```
 
 ## Conventions
 
-- Conventional Commits
-- rustfmt + clippy (`-D warnings`)
-- 80% lib coverage gate
-- Hexagonal pattern: PortAdapter trait + Adapter impl (ADR-014)
-- `thiserror` for error types
-- 5 unit tests cover trait contract
+- Conventional Commits (`feat:`, `fix:`, `chore:`, `docs:`, `refactor:`).
+- rustfmt + clippy (`-D warnings`); `#![warn(missing_docs)]` on the
+  public API.
+- 80% lib coverage gate (ADR-040); see `llvm-cov.toml` and the
+  `coverage` job in `.github/workflows/ci.yml`.
+- Hexagonal pattern: `PortAdapter` trait + concrete `Adapter` impl
+  (ADR-014). Consumers depend on the trait, not on a transport.
+- `thiserror` for error types; `AdapterError` is the single error
+  surface (no per-transport variants).
+- `Connection` is an opaque handle; transport-specific connection
+  state stays inside each `Adapter` impl.
+- 5 inline unit tests in `src/lib.rs` cover the trait contract;
+  add a `tests/` integration suite when you add a new transport.
+
+## See also
+
+- `src/lib.rs` — trait, error type, and inline `MockAdapter` tests.
+- `src/adapters/tcp.rs`, `src/adapters/unix.rs` — concrete
+  transports.
+- `AGENTS.md` — agent context.
+- `WORKLOG.md` — change history (v2.1 schema).
+- `CHANGELOG.md` — release notes.
+- `LICENSE-MIT` — MIT license.
+- Sibling: `pheno-config` (typed config), `pheno-context` (request
+  context), `pheno-flags` (feature flags).

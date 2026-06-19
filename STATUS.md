@@ -102,7 +102,7 @@ This file supersedes the 2026-06-17 12:00 PDT version. Refreshed for v8 launch.
 |---|---|---|---|
 | ADR-001 | NetScript | **DELETE** | Local commit `76f3f3f`; SSH push done, PR+archive blocked by gh auth |
 | ADR-002 | KlipDot | KEEP-archived | — |
-| ADR-003 | McpKit | MERGE into `PhenoMCP` | Plan in `findings/ADR-003-MCPKIT-MIGRATION-PLAN-2026_06_15.md` |
+| ADR-003 | McpKit | MERGE into `PhenoMCP` | **TERMINAL (archived 2026-06-18)**: `KooshaPari/McpKit` source repo archived on GitHub; pushes return "This repository was archived so it is read-only". Plan in `findings/ADR-003-MCPKIT-MIGRATION-PLAN-2026_06_15.md`; source inventory: `findings/2026-06-18-McpKit-source-inventory.md` (1,094 lines). Registry disposition rows `id: 28` + `block-c-phenomcp` updated to `fsm: "archived"`. |
 | ADR-004 | Metron | KEEP | — |
 | ADR-005 | KodeVibe | KEEP | — |
 | ADR-006 | cheap-llm-mcp | archive verified | — |

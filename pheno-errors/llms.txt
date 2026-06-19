@@ -1,0 +1,80 @@
+# pheno-errors
+
+> Canonical `AppError` enum + `AppResult<T>` alias for the pheno-*
+> substrate fleet. Consolidates the 5 most-common error patterns
+> (`Domain`, `NotFound`, `Conflict`, `Validation`, `Storage`) into a
+> single, dependency-light crate that every L1/L2/L3 pheno-* repo
+> can depend on without pulling in the rest of the shared-crate
+> surface.
+
+## Public API
+
+```rust
+use pheno_errors::{AppError, AppResult};
+
+#[derive(Debug, thiserror::Error)]
+pub enum AppError {
+    #[error("domain error: {0}")]
+    Domain(String),
+    #[error("not found: {entity} {id}")]
+    NotFound { entity: String, id: String },
+    #[error("conflict: {0}")]
+    Conflict(String),
+    #[error("validation error: {0}")]
+    Validation(String),
+    #[error("storage error: {0}")]
+    Storage(String),
+}
+
+pub type AppResult<T> = Result<T, AppError>;
+
+// Convenience constructors + boundary From impls:
+//   AppError::domain / not_found / conflict / validation / storage
+//   impl From<std::io::Error> for AppError    → Storage
+//   impl From<&'static str>  for AppError    → Domain
+//   impl From<String>        for AppError    → Domain
+//   impl From<anyhow::Error> for AppError    → Domain (walks .chain())
+```
+
+## Quickstart
+
+```toml
+# Cargo.toml
+[dependencies]
+pheno-errors = "0.1"
+anyhow = "1"
+```
+
+```rust
+use pheno_errors::{AppError, AppResult};
+fn load() -> AppResult<String> { Err(AppError::not_found("user", "42")) }
+```
+
+## Conventions
+
+- Conventional Commits (`feat:`, `fix:`, `chore:`, `docs:`, `refactor:`).
+- rustfmt + clippy (`-D warnings`); `#![warn(missing_docs)]` on the
+  public API.
+- 80% lib coverage gate (ADR-040); see `llvm-cov.toml` and the
+  `coverage` job in `.github/workflows/ci.yml`.
+- Closed 5-variant `enum` (no `#[non_exhaustive]`) so consumer
+  `match` exhaustiveness checks are useful.
+- `thiserror` for `Display` + `Error` derives; no `anyhow` boundary
+  inside the crate itself.
+- Inline unit tests in `src/lib.rs`; integration tests in
+  `tests/smoke.rs` (one per variant + cross-variant exhaustiveness
+  tripwire).
+- Standalone crate (empty `[workspace]` table in `Cargo.toml`); not
+  a member of the root monorepo workspace.
+
+## See also
+
+- `src/lib.rs` — module docs explaining the 5 variants and the
+  `anyhow` interop contract.
+- `tests/smoke.rs` — 5 integration tests + 1 tripwire test.
+- `AGENTS.md` — agent context.
+- `WORKLOG.md` — change history (v2.1 schema).
+- `CHANGELOG.md` — release notes.
+- `LICENSE-MIT` / `LICENSE-APACHE` — dual license.
+- Sibling: `pheno-config` (typed config), `pheno-context` (request
+  context), `pheno-flags` (feature flags).

@@ -14,6 +14,7 @@ pub enum ContextError {
 /// Canonical request context carrying identifiers, user/org metadata,
 /// and an extensible key-value bag.
 #[derive(Clone, Debug, PartialEq)]
+#[must_use = "Context is a value type; an unused Context is almost always a logic bug"]
 pub struct Context {
     pub request_id: String,
     pub span_id: String,
@@ -25,6 +26,7 @@ pub struct Context {
 
 /// Builder for [`Context`].
 #[derive(Clone, Debug, Default)]
+#[must_use = "ContextBuilder is a builder; an unused value is almost always a logic bug"]
 pub struct ContextBuilder {
     request_id: Option<String>,
     span_id: Option<String>,
@@ -36,7 +38,20 @@ pub struct ContextBuilder {
 
 impl Context {
     /// Start building a new [`Context`].
+    ///
+    /// ```
+    /// use pheno_context::Context;
+    ///
+    /// let ctx = Context::new()
+    ///     .with_request_id("req-1")
+    ///     .with_span_id("span-1")
+    ///     .with_trace_id("trace-1")
+    ///     .build()
+    ///     .expect("required fields set");
+    /// assert_eq!(ctx.request_id, "req-1");
+    /// ```
     #[allow(clippy::new_ret_no_self)]
+    #[must_use = "returns a builder; an unused builder is almost always a logic bug"]
     pub fn new() -> ContextBuilder {
         ContextBuilder::default()
     }
@@ -51,6 +66,21 @@ impl Context {
     /// Optional headers:
     /// - `X-User-ID`
     /// - `X-Org-ID`
+    ///
+    /// ```
+    /// use http::HeaderMap;
+    /// use pheno_context::Context;
+    ///
+    /// let mut headers = HeaderMap::new();
+    /// headers.insert("X-Request-ID", "req-1".parse().unwrap());
+    /// headers.insert("X-Trace-ID",  "trace-1".parse().unwrap());
+    /// headers.insert("X-Span-ID",   "span-1".parse().unwrap());
+    ///
+    /// let ctx = Context::from_headers(&headers).expect("required headers present");
+    /// assert_eq!(ctx.request_id, "req-1");
+    /// assert_eq!(ctx.trace_id, "trace-1");
+    /// ```
+    #[must_use = "Result-returning; ignoring the Err arm silently masks a missing header"]
     pub fn from_headers(headers: &HeaderMap) -> Result<Self, ContextError> {
         let request_id = extract_header(headers, "X-Request-ID")?;
         let trace_id = extract_header(headers, "X-Trace-ID")?;
@@ -86,42 +116,59 @@ impl fmt::Display for Context {
 
 impl ContextBuilder {
     /// Set the request identifier.
+    #[must_use = "builder method returns `self`; a discarded result is almost always a bug"]
     pub fn with_request_id(mut self, request_id: impl Into<String>) -> Self {
         self.request_id = Some(request_id.into());
         self
     }
 
     /// Set the span identifier.
+    #[must_use = "builder method returns `self`; a discarded result is almost always a bug"]
     pub fn with_span_id(mut self, span_id: impl Into<String>) -> Self {
         self.span_id = Some(span_id.into());
         self
     }
 
     /// Set the trace identifier.
+    #[must_use = "builder method returns `self`; a discarded result is almost always a bug"]
     pub fn with_trace_id(mut self, trace_id: impl Into<String>) -> Self {
         self.trace_id = Some(trace_id.into());
         self
     }
 
     /// Set the user identifier.
+    #[must_use = "builder method returns `self`; a discarded result is almost always a bug"]
     pub fn with_user_id(mut self, user_id: impl Into<String>) -> Self {
         self.user_id = Some(user_id.into());
         self
     }
 
     /// Set the organisation identifier.
+    #[must_use = "builder method returns `self`; a discarded result is almost always a bug"]
     pub fn with_org_id(mut self, org_id: impl Into<String>) -> Self {
         self.org_id = Some(org_id.into());
         self
     }
 
     /// Insert a single key-value pair into the metadata bag.
+    #[must_use = "builder method returns `self`; a discarded result is almost always a bug"]
     pub fn with_metadata(mut self, key: impl Into<String>, value: impl Into<String>) -> Self {
         self.metadata.insert(key.into(), value.into());
         self
     }
 
     /// Build the [`Context`], validating that all required fields are present.
+    ///
+    /// Returns [`ContextError::MissingHeader`] if any of the required
+    /// fields (`request_id`, `span_id`, `trace_id`) is unset.
+    ///
+    /// ```
+    /// use pheno_context::Context;
+    ///
+    /// let err = Context::new().build().expect_err("missing required fields");
+    /// assert!(matches!(err, pheno_context::ContextError::MissingHeader(_)));
+    /// ```
+    #[must_use = "Result-returning; ignoring the Err arm silently masks a missing field"]
     pub fn build(self) -> Result<Context, ContextError> {
         let request_id = self
             .request_id

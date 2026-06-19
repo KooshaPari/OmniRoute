@@ -3,23 +3,54 @@
 > Canonical typed-config loader for the pheno-* fleet. 12-factor
 > `combine()` that overlays env over TOML/JSON.
 
+## Public API
+
+- `Config` — typed config struct with `from_env()`, `from_file(path)`,
+  `from_json(value)`, `combine(other)` (env wins)
+- `ConfigBuilder` — fluent builder with `.env()`, `.file()`, `.profile()`,
+  `.build()` chaining
+- `combine(base, overlay)` — generic 12-factor cascade; `overlay` wins on
+  conflict (env > file > default)
+- `load_toml(path)`, `load_json(path)` — file loaders; both return
+  `Result<HashMap<String, Value>, ConfigError>`
+- `ConfigError` — `thiserror`-based error type with `Io`, `Parse`,
+  `Missing { key }`, `Type { key, expected }` variants
+
+## Quickstart
+
+```rust
+use pheno_config::{Config, ConfigBuilder};
+let cfg = ConfigBuilder::new()
+    .file("config.toml")
+    .env("PHENO_")  // prefix
+    .build()?;
+let port: u16 = cfg.get("port")?;
+```
+
 ## Files
 
 - `Cargo.toml` — package manifest (v0.2.0)
-- `Cargo.lock` — dependency lockfile
 - `src/lib.rs` — library root (Config struct, ConfigBuilder, loaders, combine())
-- `tests/config_test.rs` — unit tests for env/JSON loaders + ConfigBuilder
+- `tests/config_test.rs` — env/JSON loaders + ConfigBuilder
 - `tests/toml_merge_test.rs` — TOML parsing, merge semantics, combine precedence
 - `docs/twelve-factor.md` — 12-factor contract deep-dive
-- `README.md` — API surface, env-var names, error type, versioning
-- `AGENTS.md` — agent context
-- `WORKLOG.md` — change history (v2.1 schema)
-- `CHANGELOG.md` — release notes
-- `LICENSE-MIT` / `LICENSE-APACHE` — dual license
+- `README.md`, `AGENTS.md`, `WORKLOG.md`, `CHANGELOG.md`
+- `LICENSE-MIT`, `LICENSE-APACHE` — dual license
 
 ## Conventions
 
 - Conventional Commits (`feat:`, `fix:`, `chore:`, `docs:`, `refactor:`)
 - rustfmt + clippy (`-D warnings`)
-- 80% lib coverage gate
+- 80% lib coverage gate (ADR-040)
 - TOML/JSON/env parsing; `thiserror` for error types
+- Public API surface fully documented (`#![warn(missing_docs)]`)
+- No `unwrap()` in public API; all fallible ops return `Result<T, ConfigError>`
+
+## See also
+
+- `pheno-context` — request context propagation
+- `pheno-flags` — feature flag config layer
+- `pheno-errors` — `thiserror`-aligned error envelope
+- `pheno-port-adapter` — config injection for port adapters
+- `pheno-cli-base` — `ConfigArg` integration for CLI parsing
+- ADR-022 (config consolidation), ADR-040 (coverage gates)

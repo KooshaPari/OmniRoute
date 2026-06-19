@@ -3,19 +3,58 @@
 > Canonical request context for the pheno-* fleet. Builder, header
 > extraction, structured metadata bag.
 
+## Public API
+
+- `Context` — request-scoped metadata bag: `request_id`, `trace_id`,
+  `tenant_id`, `user_id`, `bag` (extension field)
+- `ContextBuilder` — fluent builder: `.request_id(uuid)`, `.trace_id(id)`,
+  `.tenant(id)`, `.user(id)`, `.header(name, value)`, `.build()`
+- `from_headers(headers)` — extract from `http::HeaderMap` (or compatible)
+  using `x-request-id`, `x-trace-id`, `x-tenant-id`, `x-user-id` keys
+- `current()` / `scope(ctx, future)` — task-local context propagation
+  (uses `tokio::task_local!`)
+- `merge(base, overlay)` — overlay wins on `request_id`/`trace_id` collision
+- `ContextError` — `thiserror`-based error type
+
+## Quickstart
+
+```rust
+use pheno_context::{Context, ContextBuilder, scope};
+let ctx = ContextBuilder::new()
+    .request_id(uuid::Uuid::new_v4())
+    .trace_id("trace-abc-123")
+    .build();
+scope(ctx, async move {
+    // ... downstream code can call pheno_context::current()
+    Ok::<_, ()>(())
+}).await?;
+```
+
 ## Files
 
 - `Cargo.toml` — package manifest (v0.1.0)
-- `src/lib.rs` — library root (Context struct, ContextBuilder, from_headers)
-- `AGENTS.md` — agent context
-- `WORKLOG.md` — change history (v2.1 schema)
-- `CHANGELOG.md` — release notes
+- `src/lib.rs` — Context struct, ContextBuilder, from_headers, scope
+- `tests/lib_test.rs` — builder + scope tests
+- `tests/async_propagation_test.rs` — task-local propagation
+- `README.md`, `AGENTS.md`, `WORKLOG.md`, `CHANGELOG.md`
 - `LICENSE-MIT` — MIT license
 
 ## Conventions
 
 - Conventional Commits
 - rustfmt + clippy (`-D warnings`)
-- 80% lib coverage gate
+- 80% lib coverage gate (ADR-040)
 - `thiserror` for error types; no `unwrap()` in public API
 - Public API surface fully documented (`#![warn(missing_docs)]`)
+- `tokio` task-local for async propagation; `tracing` span linkage
+  via `request_id` and `trace_id` fields
+- Never blocks; never panics on missing header (returns empty string)
+
+## See also
+
+- `pheno-config` — typed config loader (config layer below context)
+- `pheno-otel` — OTLP exporter (consumes `trace_id` for span export)
+- `pheno-tracing` — tracing substrate (auto-extracts context fields)
+- `pheno-port-adapter` — port adapter context injection
+- `pheno-request-id` — UUID v7 generation
+- ADR-015 v2.1 (worklog schema with `device:` field)

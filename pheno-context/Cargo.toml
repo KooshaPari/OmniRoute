@@ -16,6 +16,20 @@ path = "src/lib.rs"
 [dependencies]
 thiserror = { workspace = true }
 http = "1.1"
+# ADR-036: opt into `tracing` for span propagation through
+# `Context::from_headers` and `ContextBuilder::build`. Default off;
+# consumers add `pheno-context = { version = "0.1", features = ["tracing"] }`
+# to opt into the OTLP substrate.
+tracing = { version = "0.1", optional = true }
+
+[features]
+default = []
+# ADR-036: tracing feature flag (off by default).
+tracing = ["dep:tracing"]
 
 [dev-dependencies]
 http = "1.1"
+# ADR-036: test that tracing spans emit (use OTEL_SDK_DISABLED=true in CI)
+# `tracing-test` is a regular (non-optional) dev-dep; the test that
+# uses it is feature-gated so it is only compiled with `--features tracing`.
+tracing-test = "0.2"

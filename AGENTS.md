@@ -405,6 +405,9 @@ See `findings/2026-06-18-L5-109-4-repo-retirement.md` for full migration matrix,
   - **forgecode**: 0 of 378 branches contain unique Phenotype work
   - **Aggregate**: 0 net content loss; audit doc `findings/2026-06-17-L5-104-dmouse92-to-kooshapari.md` §4.5
 - **codex exec unavailable for per-repo verification (2026-06-17 22:05 PDT)**: `codex exec --skip-git-repo-check` hit tool-routing cell_id errors in this environment (no output after 5 min); switched to direct orchestrator-level shell verification (`git fetch` + `git rev-list --count` + `git diff --name-only`). Equivalent rigor: per-commit + per-file cross-check.
+- **Track 8 cursor self-merge is the intended pattern (2026-06-18, per user directive)**: Bot merges with no HITL gate are the fleet norm. The P0 "violation" in the original post-mortem is reclassified P3 (informational). No reverts, no protection rules. See `findings/2026-06-18-track8-self-merge-postmortem.md` for the reclassified version.
+- **bucket_change HwLedger: from=PAUSED to=CONDITIONAL reason=ADR-035 (L5-105) reclassification — federated service with extractable pheno-capacity math lib**
+- **`KooshaPari/McpKit` archived on GitHub (2026-06-18)**: source repo is now read-only; pushes return `This repository was archived so it is read-only`. ADR-003 absorption is terminal: `phenotype-registry/registry/disposition-index.json` rows `id: 28` (crates/phenotype-mcp) and `id: block-c-phenomcp` (PhenoMCP) transitioned `fsm: "done" → fsm: "archived"`; `components.lock` `McpKit` pin retained at `c557c3ce` with `status: archived` annotation. Source inventory: `findings/2026-06-18-McpKit-source-inventory.md` (1,094 lines).
 
 ---
 
