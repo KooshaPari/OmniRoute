@@ -10,5 +10,6 @@
   "wave": "G19",
   "branch_count": 11,
   "redirect": "out-of-fleet",
-  "note": "G19 triage 2026-06-19 — archived private pagination utility; zero manifest consumers; no phenoShared absorption; 11 branches retained on archived repo"
+  "triage_doc": "docs/disposition/gw-paginary-branch-index.md",
+  "note": "Archived pagination utility (2026-06-12). G19 triage 2026-06-19: RETIRE out-of-fleet — zero manifest consumers; no phenoShared extract; 10 CLOSE + 1 KEEP (main)."
 }

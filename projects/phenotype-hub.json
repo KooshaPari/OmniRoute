@@ -8,7 +8,9 @@
   "path": "repos/phenotype-hub",
   "disposition": "ABSORB",
   "wave": "G19",
+  "branch_count": 17,
   "absorb_target": "phenotype-infra",
   "absorbed_into": "phenotype-infra",
-  "absorption_note": "Hub docs absorbed into phenotype-infra/docs/absorbed-from/phenotype-hub/ (2026-06-18); source repo remains archived"
+  "pr": "phenotype-infra#79",
+  "absorption_note": "Hub docs absorbed into phenotype-infra/docs/absorbed-from/phenotype-hub/ (2026-06-18, phenotype-infra#79). Source repo NOT yet archived — 17 stale remotes remain; archive gate pending fleet lane."
 }
