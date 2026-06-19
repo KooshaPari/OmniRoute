@@ -119,6 +119,9 @@ Gateway fork lanes **G15–G17 complete** (other agent). Registry disposition-in
 6. ~~**W18b**~~ — done (fleet tail verified-clean; `KooshaPari/pheno` archived 2026-06-19)
 7. ~~**agentapi-spec**~~ — done ([agentapi-plusplus#536](https://github.com/KooshaPari/agentapi-plusplus/pull/536) merged)
 8. ~~**Metron X-02**~~ — done (repo 404 tombstone; `metrickit` canonical in PhenoObservability #157; HexaKit #244/#251)
-9. **BytePort ST-01** — document unclosable [#201](https://github.com/KooshaPari/BytePort/pull/201) (archived repo)
-10. **HexaKit CI** — prost 0.14 alignment + rustfmt on `main` (post-#267 debt)
-11. **Paginary G19** — triage archived repo (11 branches)
+9. ~~**BytePort ST-01**~~ — done (UNCLOSABLE [#201](https://github.com/KooshaPari/BytePort/pull/201); archive-gate ST-01)
+10. ~~**HexaKit CI**~~ — done ([#274](https://github.com/KooshaPari/HexaKit/pull/274) + [#275](https://github.com/KooshaPari/HexaKit/pull/275))
+11. ~~**Paginary G19**~~ — done ([gw-paginary-branch-index.md](../disposition/gw-paginary-branch-index.md); RETIRE out-of-fleet)
+12. ~~**phenoShared P4 gate**~~ — done (wave 5b drain HexaKit#278; `KooshaPari/phenoShared` archived)
+13. ~~**AgilePlus Lane J**~~ — done (`agileplus-domain` + `agileplus-events` on AgilePlus; Agentora staging removed)
+14. **Registry L7** — open [#244](https://github.com/KooshaPari/phenotype-registry/pull/244) intent/boundary salvage + [#245](https://github.com/KooshaPari/phenotype-registry/pull/245) pheno-tracing
