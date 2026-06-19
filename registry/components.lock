@@ -7,23 +7,38 @@
       "status": "archived",
       "archived_date": "2026-06-18",
       "reason": "Source repo KooshaPari/McpKit archived on GitHub; pushes return 'This repository was archived so it is read-only'. Pin retained at c557c3ce (final state before archive); new commits are local-only and not reflected on the lock. Target substrates PhenoMCP#164 + PhenoMCPServers carry the absorbed content per ADR-003 / ADR-017 supersession."
+    },
+    "phenoShared": {
+      "status": "archived",
+      "archived_date": "2026-06-19",
+      "reason": "P4 decompose complete; wave 5b fleet drain — 0 production git deps. Pin retained at 5f4647ef (final state before archive). Terminal owners per ADR-ECO-014."
+    },
+    "Pyron": {
+      "status": "deleted",
+      "deleted_date": "2026-06-19",
+      "reason": "P4 gate pass; repo 404 post-absorption. No lock pin — tombstone only."
     }
   },
   "components": {
     "phenotype-registry": {
       "repo": "KooshaPari/phenotype-registry",
       "ref": "main",
-      "sha": "19f3e958a4d147b43d4b40030c94041125137339"
+      "sha": "1eeed5be90ed7c7b983e047475977de034db0f93"
     },
     "HexaKit": {
       "repo": "KooshaPari/HexaKit",
       "ref": "main",
-      "sha": "7aa87f1734e3f5a6aed0d29520ed2b8e8f1216b8"
+      "sha": "d83d1ca26a347e8c5898fc0b28e99a8d54a9ad05"
+    },
+    "phenotype-rust-sdk": {
+      "repo": "KooshaPari/phenotype-rust-sdk",
+      "ref": "main",
+      "sha": "cbf1ccf4077dd631f388ea9e02b7beed2a515f5f"
     },
     "phenotype-types": {
       "repo": "KooshaPari/phenotype-types",
       "ref": "main",
-      "sha": "dd14f735c373e66b1907b7d5d66d3e175abe1df2"
+      "sha": "faa56746434d7f53f3b2028d8cd99d70392049ed"
     },
     "TestingKit": {
       "repo": "KooshaPari/TestingKit",
@@ -33,12 +48,14 @@
     "PhenoObservability": {
       "repo": "KooshaPari/PhenoObservability",
       "ref": "main",
-      "sha": "a3cdb85b1644765390f729fdc94294a61bcde095"
+      "sha": "7e14ba5a91459e900f13459c5ff8a8f028651f8f"
     },
     "phenoShared": {
       "repo": "KooshaPari/phenoShared",
       "ref": "main",
-      "sha": "5f4647ef79f620f17b925070155827f3248daaa2"
+      "sha": "5f4647ef79f620f17b925070155827f3248daaa2",
+      "status": "archived",
+      "archived_date": "2026-06-19"
     },
     "substrate": {
       "repo": "KooshaPari/substrate",
@@ -48,27 +65,27 @@
     "Authvault": {
       "repo": "KooshaPari/Authvault",
       "ref": "main",
-      "sha": "7cfd8d7b13df92168b0514571222bc85b703a7f6"
+      "sha": "c2bbf90e45fba29d15f1ec6c2f0e250685dccbb8"
     },
     "Eventra": {
       "repo": "KooshaPari/Eventra",
       "ref": "main",
-      "sha": "445f732c499d24374560846d218828268a1a0319"
+      "sha": "7374d76337f710f35bfb6e045278022dd1f8f11e"
     },
     "Agentora": {
       "repo": "KooshaPari/Agentora",
       "ref": "main",
-      "sha": "1feb69891dad74b8d30cd0479b2e5847c3781eaf"
+      "sha": "77f4dd2b3f289999c04d97cb613089fd57ba9118"
     },
     "ResilienceKit": {
       "repo": "KooshaPari/ResilienceKit",
       "ref": "main",
-      "sha": "c1ca60cf59a7bf6ea553f9818520b20f11a06d0b"
+      "sha": "93cbac70b2306e570a5a46e862150c968f64327e"
     },
     "phenotype-python-sdk": {
       "repo": "KooshaPari/phenotype-python-sdk",
       "ref": "main",
-      "sha": "539fb21f861bab535c91df370bc87509fed58c77"
+      "sha": "844c05ab76ebb40d83d1078f5782707135754423"
     },
     "phenotype-gateway": {
       "repo": "KooshaPari/phenotype-gateway",

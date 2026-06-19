@@ -40,7 +40,7 @@ Trees remain on disk with `README` redirect stubs for audit; `exclude` in root `
 |------|-----------------|--------|
 | `crates/settly` | phenotype-config | ✅ exclude + Wave 8 stub prune |
 | `crates/stashly` | phenoShared / phenotype-types | ✅ exclude #250 |
-| `forgecode-fork` | Tasken / forge boundary | TBD |
+| `forgecode-fork` | HexaKit scaffold (ADR-003) | **note** — no separate repo; `KooshaPari/forgecode` external fork (Tasken boundary) |
 
 ---
 

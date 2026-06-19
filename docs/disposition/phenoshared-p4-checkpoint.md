@@ -47,7 +47,7 @@
 | 3 | Eventra `rust/phenotype-event-contracts` | Eventra#19/#20, ResilienceKit#2/#3, python-sdk#24, registry#217 | `445f732` |
 | 4 | Agentora `rust/phenotype-agent-contracts` | Agentora#92/#93, registry#217/#220 | `1feb698` |
 
-**Known blocker (non-blocking for row close):** Pyron vendored `phenotype-contracts` repoint blocked — repo archived (read-only). Branch `p4/repoint-phenotype-contracts-phenoshared` ready locally.
+**Known blocker (non-blocking for row close):** Pyron vendored `phenotype-contracts` repoint — repo **deleted** (404) post P4 gate; branch `p4/repoint-phenotype-contracts-phenoshared` obsolete.
 
 ---
 

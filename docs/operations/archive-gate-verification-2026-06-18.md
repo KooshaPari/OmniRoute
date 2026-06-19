@@ -63,7 +63,7 @@ Per `BOUNDARY_OWNERS.md` 5-check gate.
 | 4. Scaffold hooks | Role owners carry templates/SDK edges per BOUNDARY_OWNERS |
 | 5. Unique slice | None — vendored contracts + pheno-mcp dropped; MIGRATED.md stubs retained |
 | cargo check | green post Pyron PR merge |
-| Archive action | `gh repo archive KooshaPari/Pyron` pending merge |
+| Archive action | Repo **deleted** (404) — P4 gate pass; `gate-pyron` `fsm: done` 2026-06-19 |
 
 ## phenoShared archive gate (P4 — 2026-06-19, wave 5b closeout)
 
