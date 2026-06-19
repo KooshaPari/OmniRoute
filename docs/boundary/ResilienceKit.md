@@ -1,39 +1,21 @@
 ---
 repo: "ResilienceKit"
-role: unknown
+role: resilience
 status: active
-last_boundary_review: 2026-06-17
+last_boundary_review: 2026-06-19
 review_cadence: 30d
-in_scope:
-  - "<to be filled>"
-out_of_scope:
-  - "<to be filled>"
 ---
 
 # Boundary — ResilienceKit
 
-## In Scope
+**Exemplar domain workspace** for `resilience`: retry, rate-limit, policy, health traits, HTTP client core, cache adapter, port traits.
 
-<To be filled.>
+## Out of scope
 
-## Out of Scope
+| Capability | Owner |
+|------------|-------|
+| Event sourcing / store | **Eventra** |
+| Generic `Contract` | **phenotype-rust-sdk** |
+| Python edge | **phenotype-python-sdk** `resilience-kit` |
 
-| Not here | Lives in | Reason |
-| -------- | -------- | ------ |
-| `<capability>` | `<other-repo-or-N/A>` | `<why>` |
-
-## Boundary Crossings
-
-| Crossing | Direction | Surface | Status |
-| -------- | --------- | ------- | ------ |
-| `<capability or interface>` | `<this-repo→other|other→this-repo>` || `<this-repo→other|other→this-repo>` | `<Trait / HTTP / CLI / file / event>` | `<green|amber|red>` || `<green|amber|red>` || `<green|amber|red>` |
-
-## Last Boundary Review
-
-**Date:** 2026-06-17
-**Reviewer:** forge subagent (L7-001 sweep)
-**Worklog / finding:** `worklogs/L7-001-intent-boundary-curation-2026-06-17.json`
-**Decisions:**
-- Initial scaffolding; needs human review.
-
-**Next review:** 2026-07-17
+N1: workspace trimmed to 12 on-disk crates; event-sourcing git pin → Eventra. See ResilienceKit `docs/boundary/DOMAIN.md`.
