@@ -1,0 +1,53 @@
+{
+  "task_id": "L5-114",
+  "date": "2026-06-19",
+  "repo": "KooshaPari/services (retirement)",
+  "category": "L5-Triage",
+  "title": "Services retirement — migration PRs to phenotype-org-audits + phenodocs (Step 3 of ADR-040)",
+  "commit_sha": "pending",
+  "pr_number": "pending",
+  "status": "in_progress",
+  "author": "KooshaPari",
+  "device": "macbook",
+  "schema_version": "v2.1",
+  "files_changed": [
+    "phenotype-org-audits/audits/services/BLOCK-C-AUDIT.md (new)",
+    "phenotype-org-audits/audits/services/BLOCK-C-CONSOLIDATION-PLAN.md (new)",
+    "phenotype-org-audits/audits/services/audit_scorecard-2026-06-18.json (new)",
+    "phenotype-org-audits/audits/services/ci.yml (new)",
+    "phenotype-org-audits/audits/services/sbom-graphql-gateway-2026-04-26.json (new)",
+    "phenotype-org-audits/audits/services/sbom-templates-registry-2026-04-26.json (new)",
+    "phenodocs/docs/security/sbom-registry-threat-model.md (new)"
+  ],
+  "prs_authored": [
+    {
+      "pr_repo": "KooshaPari/phenotype-org-audits",
+      "pr_branch": "chore/l5-114-services-migration-2026-06-18",
+      "pr_base": "main",
+      "pr_title": "chore(audits): archive KooshaPari/services content (L5-114, ADR-040 Step 3)",
+      "pr_body": "Migrates the salvageable content from KooshaPari/services (CycloneDX SBOM registry, scheduled for retirement per L5-114) into phenotype-org-audits/audits/services/ for permanent archival.\n\n**Migration matrix (per findings/2026-06-18-L5-114-services-retirement.md):**\n- BLOCK-C-AUDIT.md (canonical fleet-history audit, 2026-06-15)\n- BLOCK-C-CONSOLIDATION-PLAN.md (consolidation plan, 2026-06-16)\n- audit_scorecard-2026-06-18.json (30-pillar scorecard, grade D, overall 46)\n- ci.yml (TruffleHog + JSON validation; archived for history)\n- 2 SBOMs (graphql-gateway, templates-registry; CycloneDX 1.3 from 2026-04-26; stale snapshots archived for fleet-history)\n\n**ADR-040 alignment:**\n- Step 1 (audit artifact) — DONE 2026-06-18 (findings/2026-06-18-L5-114-services-retirement.md)\n- Step 2 (90-day retention window) — DONE 2026-06-18 (in finding §5)\n- Step 3 (4 manual UI delete URLs) — DONE 2026-06-18 (in finding §4)\n- Step 3.5 (this PR — migration content to target repos) — IN PROGRESS\n- Step 4 (archive source) — PENDING (after this PR merges + phenodocs PR merges)\n- Step 5 (UI delete) — PENDING (operator action, 90-day window)\n\n**Verification:**\n- phenotype-org-audits/audits/services/ did not exist before this PR (verified via `gh api repos/KooshaPari/phenotype-org-audits/contents/audits/services` → 404)\n- All 6 source files copied verbatim from KooshaPari/services@main (commit 4b26f7e2 governance baseline + 1394592 wip pre-push snapshot)\n- 0 net content loss; the 2 SBOMs are fleet-history (per Block-C §11) not fleet-truth\n\n**Refs:**\n- findings/2026-06-18-L5-114-services-retirement.md (audit artifact)\n- ADR-040 (5-step deletion recipe)\n- ADR-037 (4-repo retirement template — multi-repo variant)\n- v8 plan § 3.6 Track T14 (L8-020)"
+    },
+    {
+      "pr_repo": "KooshaPari/phenodocs",
+      "pr_branch": "chore/l5-114-sbom-threat-model-2026-06-18",
+      "pr_base": "main",
+      "pr_title": "docs(security): archive SBOM-registry threat model (L5-114, ADR-040 Step 3)",
+      "pr_body": "Migrates the SBOM-registry-specific threat model from KooshaPari/services (CycloneDX SBOM registry, scheduled for retirement per L5-114) into phenodocs/docs/security/ for permanent archival.\n\n**Why a separate file:**\n- phenodocs/docs/security/threat-model.md is the main STRIDE-per-component template (general-purpose)\n- This file (sbom-registry-threat-model.md) is the SBOM-registry-specific threat model: assets (CycloneDX SBOMs, registry metadata, signing keys), threats (registry tampering, signing key compromise, PURL normalization parser bugs), mitigations\n- Different scope, different content; both should coexist\n\n**Source:** services/docs/security/THREAT_MODEL.md (4235 bytes, 33 lines per L5-114 finding §2)\n\n**ADR-040 alignment:** Step 3.5 of the 5-step deletion recipe.\n\n**Refs:**\n- findings/2026-06-18-L5-114-services-retirement.md\n- ADR-040\n- Block-C audit (services/docs/audit/BLOCK-C-AUDIT.md)"
+    }
+  ],
+  "branches_created": [
+    "chore/l5-114-services-migration-2026-06-18 (in phenotype-org-audits)",
+    "chore/l5-114-sbom-threat-model-2026-06-18 (in phenodocs)"
+  ],
+  "worktrees_created": [
+    "/private/tmp/l5-114-org-audits-wt",
+    "/private/tmp/l5-114-phenodocs-wt"
+  ],
+  "next_steps": [
+    "Open PR to KooshaPari/phenotype-org-audits (via gh pr create)",
+    "Open PR to KooshaPari/phenodocs (via gh pr create)",
+    "Close services PR #1 (dependabot actions/checkout 6 bump — irrelevant to retirement)",
+    "After both PRs merge: archive KooshaPari/services via `gh api -X PATCH repos/KooshaPari/services -f archived=true`",
+    "Update findings/2026-06-18-L5-114-services-retirement.md to mark Step 3.5 + Step 4 done"
+  ]
+}
