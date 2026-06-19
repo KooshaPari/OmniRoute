@@ -56,30 +56,42 @@ Plugin plane inside phenotype-gateway `third_party/argis-extensions` → `packag
 
 **Mapped:** 9/9 feature rows have target owners (100% stub → inventory complete).
 
-## Go smoke results (H9 — phenotype-gateway #6)
+## Go smoke results (H9 closeout — phenotype-gateway #12)
 
-Smoke infra merged in [phenotype-gateway #6](https://github.com/KooshaPari/phenotype-gateway/pull/6): `scripts/smoke-go.{sh,ps1}`, per-spike `smoke.sh`, Taskfile `smoke` target, CI `smoke-go` matrix (Go 1.23/1.24, `continue-on-error` until fork gates green).
+Smoke infra: [phenotype-gateway #6](https://github.com/KooshaPari/phenotype-gateway/pull/6); pin bump [phenotype-gateway #12](https://github.com/KooshaPari/phenotype-gateway/pull/12) (`3974924`); CI `continue-on-error` removed when 4/4 forks pass.
 
-| Plane | Submodule pin | Smoke command | Result | Blocker / notes |
+| Plane | Submodule pin | Smoke command | Result | Fix / notes |
 |-------|---------------|---------------|--------|-----------------|
-| agentapi-plusplus | `7898704` | `go build ./...` | **fail** | `x/acpio`: `*ACPConversation` missing `ClearMessages` — does not implement `screentracker.Conversation` |
-| cliproxyapi-plusplus | `866ca6dd` | `go build ./...` | **fail** | `go.mod` unresolved merge conflict markers at pin |
-| argis-extensions | `2fe3f952` | `go build ./...` | **fail** | missing `github.com/kooshapari/bifrost-extensions/api/graphql/gen`; hatchet module fetch error |
-| bifrost (root) | `f9cec7bb` | `go build ./...` | **pass** (vacuous) | no Go packages at root pin; vendor tag + local-delta build TBD |
-| bifrost/transports | `f9cec7bb` | `go build ./...` | canonical smoke target | `scripts/smoke-go.sh` builds `third_party/bifrost/transports`; spike README defers to vendor pin bump (bifrost #7) |
+| agentapi-plusplus | `5ae7736` | `go build ./...` | **pass** | agentapi-plusplus#540/#541 — `ClearMessages` + httpapi repair |
+| cliproxyapi-plusplus | `54102578` | `go build ./...` | **pass** | go.mod conflict #1031+#1032; Windows Umask guard #1033 |
+| argis-extensions | `0419dcf` | `go build ./...` | **pass** | graphql/gen committed argis-extensions#82 |
+| bifrost/transports | `9c0d904` | `go build ./...` in `transports/` | **pass** | UI embed stub bifrost#9; monorepo replaces bifrost#10 |
 
-**Summary:** 1 vacuous pass, 3 fail, 1 deferred (transports). Promotion blocked on fork gate fixes.
+**Summary:** 4/4 Go plane smokes pass at H9 pins (2026-06-19). Promotion gates unblocked; physical copy to `packages/` remains ordered per [PROMOTION.md](https://github.com/KooshaPari/phenotype-gateway/blob/master/docs/PROMOTION.md).
 
-## Spike status (2026-06-18)
+## Spike status (2026-06-19)
 
 | Spike path | Status |
 |------------|--------|
-| `spikes/go/agentapi` | README + smoke (#3, #6); **fail** — `ClearMessages` interface |
-| `spikes/go/cliproxy` | README + smoke (#3, #6); **fail** — `go.mod` merge conflict |
-| `spikes/go/bifrost` | README + smoke (#3, #6); root vacuous pass; `feat/bifrost-local-delta` (bifrost #6); vendor pin bifrost #7 |
-| `spikes/go/argis` | README + smoke (#3, #6); **fail** — `bifrost-extensions/api/graphql/gen`; hatchet fetch |
+| `spikes/go/agentapi` | **pass** @ `5ae7736` |
+| `spikes/go/cliproxy` | **pass** @ `54102578` |
+| `spikes/go/bifrost` | **pass** @ `9c0d904` (`transports/`) |
+| `spikes/go/argis` | **pass** @ `0419dcf` |
 | `spikes/rust/router` | README scaffold (#3); OmniRoute revamp TBD |
 | `spikes/zig/router` | README scaffold (#3); alt path |
+
+## Promotion evaluation — `packages/agentapi` (Phase 4 task 10)
+
+**Verdict:** **Eligible** — ≥80% parity met; smoke green at pin `5ae7736`. Physical re-home deferred until cliproxy dry-run completes (recommended order in phenotype-gateway `PROMOTION.md`).
+
+| Criterion | Result | Evidence |
+|-----------|--------|----------|
+| ≥80% feature mapping | **95%** (9.5/10) | agentapi++ [PRD Features 1–10](https://github.com/KooshaPari/agentapi-plusplus/blob/main/PRD.md): all core agent-terminal features mapped; Feature 10 (cliproxy++/MCP peer integration) partial by design — ownership stays in cliproxy++/bifrost |
+| Global matrix rows owned | **1 primary + 2 partial** | HTTP agent control (primary); Auth/OAuth, MCP (partial) |
+| H9 smoke | **pass** | `spikes/go/agentapi` @ `5ae7736`; agentapi-plusplus#540 |
+| `packages/agentapi` state | **stub** | README-only promotion target; submodule remains canonical until dry-run copy PR |
+
+**Next step:** cliproxy++ → `packages/cliproxy` dry-run first; then agentapi copy PR with unchanged submodule pin contract.
 
 ## Promotion checklist (per component)
 
@@ -87,9 +99,9 @@ Smoke infra merged in [phenotype-gateway #6](https://github.com/KooshaPari/pheno
 - [x] cliproxy++ vibeproxy absorption documented (#1024)
 - [x] bifrost vendor pin established (#5)
 - [x] phenotype-gateway scaffold with submodule dirs (#1)
-- [x] Submodule SHAs pinned in phenotype-gateway `third_party/` (#2)
+- [x] Submodule SHAs pinned in phenotype-gateway `third_party/` (#2, #12)
 - [x] Spike README scaffolds in `spikes/{go,rust,zig,mojo}/` (#3)
 - [x] CI scaffold: single checkout + recursive submodules (#5)
 - [x] Go smoke infra: scripts + CI matrix + spike smoke stubs (phenotype-gateway #6)
-- [x] disposition-index `fsm: done` with PR ref (Wave H gateway batch 2026-06-18 — bifrost#6, phenotype-gateway#2#3#4#5#6, go-sdk#17, cliproxy#1025#1026)
-- [ ] Spike passes build + smoke test in `spikes/<lang>/` (3/4 forks fail at 2026-06-18 pins — agentapi, cliproxy, argis)
+- [x] disposition-index `fsm: done` with PR ref (Wave H gateway batch 2026-06-18 — bifrost#6, phenotype-gateway#2#3#4#5#6#12, go-sdk#17, cliproxy#1025#1026)
+- [x] Spike passes build + smoke test in `spikes/go/` (4/4 pass at H9 pins — 2026-06-19)
