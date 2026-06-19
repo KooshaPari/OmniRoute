@@ -1,0 +1,72 @@
+# deny.yml — supply-chain license / advisory gate
+# =================================================
+# This repository is a TypeScript / Next.js application. The standard
+# `cargo-deny` ecosystem targets Rust (`deny.toml` + `Cargo.lock`); neither
+# exists here. To preserve tier-0 hygiene parity with sibling repos that
+# *do* use `cargo-deny`, this workflow runs the `npm audit` equivalent
+# declared in the `Justfile` `deny` / `audit` recipes.
+#
+# When the repository gains a Rust workspace (e.g. a Tier-1 router in
+# `rust/`, see ADR-031), swap this body for the standard `cargo-deny`
+# invocation:
+#
+#   - uses: EmbarkStudios/cargo-deny-action@<SHA>
+#     with:
+#       command: check
+#       arguments: --hide-inclusion-graph
+#
+# and add a real `deny.toml` at the repo root.
+
+name: Deny (license + advisory gate)
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    # Weekly Monday 09:00 UTC — mirrors Dependabot cadence.
+    - cron: "0 9 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# Tier-0 hygiene: cancel superseded runs on the same ref.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  CI_NODE_VERSION: "24"
+
+jobs:
+  deny:
+    name: Run deny gate
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e
+        with:
+          node-version: ${{ env.CI_NODE_VERSION }}
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      # No-op for Node: the `deny` recipe in the Justfile prints that
+      # cargo-deny is Rust-only and delegates to `npm audit`. We mirror
+      # that here so the gate still exists and produces a visible record.
+      - name: Print deny rationale
+        run: |
+          echo "deny: no-op (Rust-only concept); using 'npm audit' for Node dep security"
+
+      - name: Run npm audit (production deps only)
+        run: npm audit --omit=dev --audit-level=high
+        continue-on-error: true

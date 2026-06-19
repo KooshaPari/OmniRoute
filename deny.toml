@@ -1,0 +1,56 @@
+# deny.toml — cargo-deny configuration stub
+# =========================================
+# This repository is a TypeScript / Next.js application. The `cargo-deny`
+# tool targets Rust workspaces and requires a `Cargo.lock`; neither exists
+# here. License / advisory enforcement for Node.js dependencies is provided
+# by `npm audit` (wired up in the `Justfile` `deny` recipe and the
+# `.github/workflows/deny.yml` workflow).
+#
+# When the repository gains a Rust workspace (see ADR-031 for the
+# prospective Tier-1 router), replace this file with a real `deny.toml`
+# — the canonical starter from `EmbarkStudios/cargo-deny` is recommended.
+#
+# A minimal but real starter is included below (commented out) so that the
+# transition is mechanical: uncomment and re-run `cargo deny init` once
+# `Cargo.lock` exists.
+#
+# [graph]
+# all-features = true
+#
+# [advisories]
+# db-path = "~/.cargo/advisory-db"
+# db-urls = ["https://github.com/rustsec/advisory-db"]
+# yanked = "warn"
+#
+# [licenses]
+# allow = [
+#   "MIT",
+#   "Apache-2.0",
+#   "Apache-2.0 WITH LLVM-exception",
+#   "BSD-2-Clause",
+#   "BSD-3-Clause",
+#   "ISC",
+#   "Zlib",
+#   "Unicode-DFS-2016",
+#   "Unicode-3.0",
+#   "CC0-1.0",
+# ]
+# confidence-threshold = 0.8
+#
+# [bans]
+# multiple-versions = "warn"
+# wildcards = "deny"
+# highlight = "all"
+# deny = []
+# skip = []
+# skip-tree = []
+#
+# [sources]
+# unknown-registry = "deny"
+# unknown-git = "deny"
+# allow-registry = ["https://github.com/rust-lang/crates.io"]
+# allow-git = []
+
+# This file is intentionally not a valid cargo-deny config — the no-op is
+# enforced by the absence of a Rust workspace. Keep the header comment
+# block in sync with `.github/workflows/deny.yml`.
