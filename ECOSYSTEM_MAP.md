@@ -42,7 +42,7 @@ Role split for the spec/governance spine (so indexes stop competing):
 | **docs** | 8 | PhenoSpecs, phenotype-registry, PhenoHandbook, phenodocs, phenoXdd, PhenoDesign, phenotype-hub (scaffold), LIBRARY_RESEARCH_REGISTRY |
 | **landing** | 9 | agileplus-landing, byteport-landing, hwledger-landing, odin-landing\*, phenokits-landing, projects-landing, thegent-landing, AppGen (template) |
 | **fork** | 15 | agentapi-plusplus, bifrost, cliproxyapi-plusplus, DINOForge-UnityDoorstop, forgecode, helios-cli, HeliosLab, MCPForge, OmniRoute, phenotype-omlx, phenotype-ops-mcp, Planify, portage, vibeproxy, WorldSphereMod |
-| **stub / scaffold** | 6 | phenotype-hub, vibeproxy-monitoring-unified, PhenoProject, phenoStandards (deprecated), Zerokit, Paginary |
+| **stub / scaffold** | 5 | phenotype-hub, vibeproxy-monitoring-unified, PhenoProject, phenoStandards (deprecated), Zerokit |
 | **superseded / archived** | 49 | .github, odin-landing, Profila, Project-Spyn, RIP-Fitness-App, sharecli, tehgent, thegent-sharecli, worktree-manager, phenoVessel, phenoTypes, phenoPatch, Diffuse, Servion, Guardrail, Cryptora, forge, phenoForge, router-docs, cheap-llm-mcp, dispatch-mcp, thegent-dispatch, McpKit, PhenoMCP, PhenoProc, Metron, PhenoKits, Stashly, Settly, AuthKit, Traceon, ResilienceKit, TestingKit, BytePort, heliosBench, heliosApp, PolicyStack, nanovms, portage, phenoDesign, phenoXddLib, dagctl, kwality, dinoforge-packs, phenotype-auth-ts, **phenotype-voxel, phenotype-terrain, phenotype-water, phenotype-postfx (S→gfx) — ARCHIVED + DELETED 2026-06-18 (L5-114) after [phenotype-gfx#10](https://github.com/KooshaPari/phenotype-gfx/pull/10) merged (sha 5380b2bd)** |
 | **monorepo (multi-domain)** | 6 | pheno, phenoAI, phenoData, PhenoDevOps, HexaKit, phenoShared |
 
@@ -349,7 +349,7 @@ All Astro static sites with near-identical structure. Target: consolidate into s
 | **bifrost** | Engine vendor | Active, 339 branches | **VENDOR-KEEP** — pin `phenotype/vendor-2026-06`; not routing referent |
 | **phenotype-omlx** | Platform `inference` | Archived, 27 branches | **SPLIT** platform/engine (ADR-ECO-008); unarchive gate |
 | **agileplus-spec-harmonizer** | Tooling | Active, 1 branch | **AFFIRM** — spec ingress for AgilePlus merges |
-| **Paginary** | Stub | Archived (private), 11 branches | **TRIAGE** — pagination lib → phenoShared or out-of-fleet |
+| **Paginary** | Stub | Archived (private), 11 branches | **RETIRE** — out-of-fleet (G19 triage 2026-06-19; zero manifest consumers) |
 
 **Layer doctrine:** Platform repos (agentapi++, cliproxy++, OmniRoute, substrate) undergo **superset merge**. Engine forks (bifrost, upstream omlx) get **vendor pin + branch hygiene** — never merge into OmniRoute.
 
@@ -408,7 +408,7 @@ These are **traits / interfaces** that span multiple repos in the ecosystem. The
 | **Merge phenotype-hub → phenotype-infra** | phenotype-hub | "Scaffolding only" — governance docs belong in infra; registry keeps `scaffold/phenotype-hub/` redirect |
 | **Retire vibeproxy-monitoring-unified** | vibeproxy-monitoring-unified | Pure governance stub; merge AGENTS/FR into phenotype-infra (G19) |
 | **Register agileplus-spec-harmonizer** | agileplus-spec-harmonizer | Spec ingress harmonizer for AgilePlus; 12/12 tests; single branch |
-| **Triage Paginary** | Paginary | 11 branches private archive — pagination-only → phenoShared else out-of-fleet |
+| **Triage Paginary** | Paginary | **done** — RETIRE out-of-fleet 2026-06-19; archived private; no extract |
 | **Consolidate phenoShared npm → phenodocs** | phenoShared (npm layer) | Already depended upon via @phenotype/docs |
 
 #### Canonical Target Repo Set (~45)

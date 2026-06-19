@@ -25,7 +25,7 @@ Establish three-layer doctrine (governance / platform / engine) and unblocks lan
 | phenotype-hub | Yes | 17 | — | **ABSORB** → phenotype-infra (G19) |
 | vibeproxy-monitoring-unified | Yes | — | — | **RETIRE** stub (G19) |
 | agileplus-spec-harmonizer | No | 1 | — | **AFFIRM** tooling |
-| Paginary | Yes | 11 | — | **TRIAGE** (G19) |
+| Paginary | Yes | 11 | — | **RETIRE** out-of-fleet (G19 triage 2026-06-19) |
 
 ## Registry files updated (this PR)
 

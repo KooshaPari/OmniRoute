@@ -6,8 +6,9 @@
   "has_readme": true,
   "type": "tooling",
   "path": "repos/Paginary",
-  "disposition": "TRIAGE",
+  "disposition": "RETIRE",
   "wave": "G19",
   "branch_count": 11,
-  "note": "Archived pagination utility — triage for extract vs delete in G19"
+  "redirect": "out-of-fleet",
+  "note": "G19 triage 2026-06-19 — archived private pagination utility; zero manifest consumers; no phenoShared absorption; 11 branches retained on archived repo"
 }

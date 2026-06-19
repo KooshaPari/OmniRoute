@@ -17,7 +17,7 @@
 | PhenoCompose | **AFFIRM** platform | ❌ pheno dep | Wave 17b + 18b |
 | PhenoRuntime | DELETE | 🔶 harvest | Wave 6 harvest |
 | BytePort, Settly, PlatformKit, portage, phenoXddLib | ARCHIVED | ✅ | Wave 18 stubs |
-| phenotype-hub, Paginary, acp, thegent-workspace | ARCHIVED/scaffold | ✅/🔶 | Wave 18 |
+| phenotype-hub, Paginary, acp, thegent-workspace | ARCHIVED/scaffold | ✅ | Wave 18 / G19 — Paginary RETIRE out-of-fleet 2026-06-19 |
 | pheno | ARCHIVED last | ❌ fleet refs | Wave 18b — repoint to **role owners**, not phenoShared |
 | phenoShared | **DECOMPOSE** | ❌ staging monorepo | ADR-ECO-014 — relocate crates then delete |
 | phenotype-e2e-base | ABSORB | 🔶 | Wave 19 → journeys |
