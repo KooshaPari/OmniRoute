@@ -9,9 +9,9 @@
       "reason": "Source repo KooshaPari/McpKit archived on GitHub; pushes return 'This repository was archived so it is read-only'. Pin retained at c557c3ce (final state before archive); new commits are local-only and not reflected on the lock. Target substrates PhenoMCP#164 + PhenoMCPServers carry the absorbed content per ADR-003 / ADR-017 supersession."
     },
     "phenoShared": {
-      "status": "archived",
-      "archived_date": "2026-06-19",
-      "reason": "P4 decompose complete; wave 5b fleet drain — 0 production git deps. Pin retained at 5f4647ef (final state before archive). Terminal owners per ADR-ECO-014."
+      "status": "deleted",
+      "deleted_date": "2026-06-19",
+      "reason": "P4 decompose complete; wave 5b fleet drain — 0 production git deps. Final pin 5f4647ef retained here for audit; no lock pin in components. Terminal owners per ADR-ECO-014."
     },
     "Pyron": {
       "status": "deleted",
@@ -49,13 +49,6 @@
       "repo": "KooshaPari/PhenoObservability",
       "ref": "main",
       "sha": "7e14ba5a91459e900f13459c5ff8a8f028651f8f"
-    },
-    "phenoShared": {
-      "repo": "KooshaPari/phenoShared",
-      "ref": "main",
-      "sha": "5f4647ef79f620f17b925070155827f3248daaa2",
-      "status": "archived",
-      "archived_date": "2026-06-19"
     },
     "substrate": {
       "repo": "KooshaPari/substrate",

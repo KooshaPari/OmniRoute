@@ -1,6 +1,6 @@
 # Archive / delete gate verification — Phase 4 (2026-06-18)
 
-Per `BOUNDARY_OWNERS.md` 5-check gate. **Never delete TestingKit or phenoShared.**
+Per `BOUNDARY_OWNERS.md` 5-check gate. **Never delete TestingKit.**
 
 | ID | Repo | Verdict | Evidence |
 |----|------|---------|----------|
@@ -13,7 +13,7 @@ Per `BOUNDARY_OWNERS.md` 5-check gate. **Never delete TestingKit or phenoShared.
 | X-07 | phenotype-runs | **MERGED** | #10 surface-reduction retirement README |
 | X-08 | phenotype-dep-guard | **MERGED** | #54 PolicyStack absorption |
 | X-09 | AuthKit | **ARCHIVED** | BOUNDARY_OWNERS 5/5; AuthKit#118 fold merged; Tracera/thegent verified-clean; `gh repo archive` 2026-06-18 |
-| X-10 | phenoShared | **DELETE-eligible** | P4 decompose done; wave 5b fleet drain complete — 0 production git deps (2026-06-19) |
+| X-10 | phenoShared | **TOMBSTONE** | P4 decompose done; wave 5b fleet drain — 0 production git deps; repo 404 post-absorption (2026-06-19) |
 
 ## Surface reduction batch 1+2 closeout (Phase 4 tasks 71–80, 2026-06-19)
 
@@ -67,14 +67,14 @@ Per `BOUNDARY_OWNERS.md` 5-check gate.
 
 ## phenoShared archive gate (P4 — 2026-06-19, wave 5b closeout)
 
-Per `BOUNDARY_OWNERS.md` 5-check gate. **Never hard-delete phenoShared** without explicit policy; prefer archive after zero-dep.
+Per `BOUNDARY_OWNERS.md` 5-check gate.
 
 | Check | Result |
 |-------|--------|
 | 1. Canonical owners named | DOMAIN_ROLES owners per ADR-ECO-014 (`phenotype-types`, `phenotype-config`, `PhenoObservability`, `Eventra`, `Authvault`, `Agentora`, `ResilienceKit`, `phenotype-rust-sdk`) |
 | 2. Inbound absorptions | P4 decompose complete — `repo-phenoshared` `fsm: done`; contracts slices 2–4 on role owners |
-| 3. Outbound consumers | **PASS** — 0 production git deps on `KooshaPari/phenoShared` (gh org Cargo.toml scan 2026-06-19); 0 go.mod deps |
+| 3. Outbound consumers | **PASS** — 0 production git deps on `KooshaPari/phenoShared` (gh org Cargo.toml/go.mod scan 2026-06-19); 0 go.mod deps |
 | 4. Scaffold hooks | **PASS** — terminal owners carry slice crates; generic `Contract` → phenotype-rust-sdk @ `cbf1ccf` |
 | 5. Unique slice | **PASS** — no fleet interim pins remain |
 | HexaKit wave 5b | **Done** — [HexaKit#278](https://github.com/KooshaPari/HexaKit/pull/278) @ `d83d1ca`; fleet drain PRs PO#173, ResilienceKit#4, python-sdk#27 |
-| Archive action | `gh repo archive KooshaPari/phenoShared` 2026-06-19 |
+| Delete action | Repo **deleted** (404) — P4 gate pass; `gate-phenoshared` `fsm: done` 2026-06-19; `gh repo delete KooshaPari/phenoShared` |
