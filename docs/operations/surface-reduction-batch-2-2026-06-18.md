@@ -1,6 +1,6 @@
 # Surface reduction batch 2 — harmonizer + monorepo-state + phenoStandards — 2026-06-18
 
-**Status:** done — registry ledger merged (pending PR). **Predecessor:** [batch 1](./surface-reduction-batch-1-2026-06-18.md) merged registry [#170](https://github.com/KooshaPari/phenotype-registry/pull/170).
+**Status:** done — [#172](https://github.com/KooshaPari/phenotype-registry/pull/172) ledger + [#194](https://github.com/KooshaPari/phenotype-registry/pull/194) monorepo-state DROP merged 2026-06-18. **Predecessor:** [batch 1](./surface-reduction-batch-1-2026-06-18.md) merged registry [#170](https://github.com/KooshaPari/phenotype-registry/pull/170).
 
 **Lane:** repo surface reduction (absorb / fold / stub-only). **Out of scope (other agent — do not duplicate):** G18 omlx split, G19 hub→infra absorption, H14 phenoShared terminal-owner decompose.
 

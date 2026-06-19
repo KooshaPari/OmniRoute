@@ -81,7 +81,7 @@ flowchart TD
 - [x] AgilePlus manifest repoint — [#763](https://github.com/KooshaPari/AgilePlus/pull/763) merged
 - [x] PhenoPlugins manifest repoint — [#104](https://github.com/KooshaPari/PhenoPlugins/pull/104) merged
 - [x] HexaKit H14 pin repoint — [#267](https://github.com/KooshaPari/HexaKit/pull/267) merged
-- [ ] Agentora consumer repoint — [#88](https://github.com/KooshaPari/Agentora/pull/88) partial until merge
+- [x] Agentora consumer repoint — [#90](https://github.com/KooshaPari/Agentora/pull/90) merged; stub crates → phenotype-types/phenotype-config
 - [ ] Org scan: 0 external `KooshaPari/pheno` refs (excl. Tracera)
 - [ ] PhenoCompose repointed per-crate to role owners (not phenoShared terminal)
 - [ ] `gh repo archive KooshaPari/pheno` after gate
