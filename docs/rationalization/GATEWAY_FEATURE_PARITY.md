@@ -99,6 +99,8 @@ Smoke infra: [phenotype-gateway #6](https://github.com/KooshaPari/phenotype-gate
 |---------|-------|----------|
 | `packages/cliproxy` | **anchor** | PIN/BOUNDARY + smoke target; submodule canonical |
 | `packages/agentapi` | **anchor** | PIN/BOUNDARY + smoke target; submodule canonical |
+| `packages/bifrost` | **anchor** | PIN/BOUNDARY + smoke target; vendor fork canonical |
+| `packages/argis` | **anchor** | PIN/BOUNDARY + smoke target; plugin fork canonical |
 | `packages/router` | **in progress** | `ComboVariant` + re-export spike lib; cargo tests pass |
 
 OmniRoute desktop spike docs merged ([#74](https://github.com/KooshaPari/OmniRoute/pull/74)) per ADR-ECO-015.
