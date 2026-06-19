@@ -77,7 +77,7 @@ Smoke infra: [phenotype-gateway #6](https://github.com/KooshaPari/phenotype-gate
 | `spikes/go/cliproxy` | **pass** @ `54102578` |
 | `spikes/go/bifrost` | **pass** @ `9c0d904` (`transports/`) |
 | `spikes/go/argis` | **pass** @ `0419dcf` |
-| `spikes/rust/router` | README scaffold (#3); OmniRoute revamp TBD |
+| `spikes/rust/router` | **H10 in progress** — `ComboVariant` (6 auto-combo variants); phenotype-gateway#14 |
 | `spikes/zig/router` | README scaffold (#3); alt path |
 
 ## Promotion evaluation — `packages/agentapi` (Phase 4 task 10)

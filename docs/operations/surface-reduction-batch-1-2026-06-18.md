@@ -36,4 +36,4 @@
 | phenotype-gfx | **repointed** | [#13](https://github.com/KooshaPari/phenotype-gfx/pull/13) |
 | Civis | **repointed** | [#581](https://github.com/KooshaPari/Civis/pull/581) |
 | phenotype-teamcomm | **verified-clean** | [#2](https://github.com/KooshaPari/phenotype-teamcomm/pull/2) manifest doc |
-| phenotype-go-sdk | pending | — |
+| phenotype-go-sdk | **verified-clean** | manifest scan 2026-06-19; [GATEWAY_VENDOR_PINS.md](https://github.com/KooshaPari/phenotype-go-sdk/blob/main/docs/GATEWAY_VENDOR_PINS.md) H10 |
