@@ -9,6 +9,35 @@ This file supersedes the 2026-06-17 12:00 PDT version. Refreshed for v8 launch.
 
 ---
 
+## 2026-06-18: 4-repo absorption complete (L5-109..114, gfx wave)
+
+**4 source repos absorbed into `KooshaPari/phenotype-gfx` per ADR-004 transition; all 4 archived + deleted on GitHub.**
+
+| Metric | Value | Source |
+|---|---|---|
+| **Source repos** | 4 (phenotype-voxel, phenotype-terrain, phenotype-water, phenotype-postfx) | all archived + deleted 2026-06-18 |
+| **Target repo** | `KooshaPari/phenotype-gfx` | ADR-004 transition |
+| **PRs merged** | 4 (`phenotype-gfx#10` migration, `#11` audit sync; `phenotype-registry#200` pre-archive SUPERSEDE, `#203` post-archive fsm=archived) | `gh pr view` |
+| **PRs closed (superseded)** | 2 (`phenotype-gfx#9` superseded by #10; `phenotype-registry#200` superseded by #203) | `gh pr close` 2026-06-18 |
+| **Lines migrated** | 18,957 | sum of `phenotype-gfx#10` (+18,000) + `#11` (+957) per `gh pr view --json additions` |
+| **Tests pass on main** | 311 | `phenotype-gfx` post-merge CI |
+| **Registry fsm=archived** | 4/4 | `phenotype-registry` rows for voxel, terrain, water, postfx flipped 2026-06-19 00:22:05Z via #203 |
+| **Decision log** | `findings/2026-06-18-L5-114-4-repo-retirement.md` | full migration matrix + policy notes |
+
+**Migration matrix:**
+
+| # | Source | Target path | PR | Status |
+|---|---|---|---|---|
+| 1 | `phenotype-voxel` (Rust core) | `phenotype-gfx/rust/voxel/` | `phenotype-gfx#10` | MERGED 2026-06-19 00:09:50Z |
+| 2 | `phenotype-terrain` (C#) | `phenotype-gfx/unity/terrain/` | `phenotype-gfx#10` | MERGED (same PR) |
+| 3 | `phenotype-water` (C#) | `phenotype-gfx/unity/water/` | `phenotype-gfx#10` | MERGED (same PR) |
+| 4 | `phenotype-postfx` (C#) | `phenotype-gfx/unity/postfx/` | `phenotype-gfx#10` | MERGED (same PR) |
+| 5 | registry SUPERSEDE intent | `phenotype-registry/registry/disposition-index.json` | `phenotype-registry#200` | CLOSED (superseded by #203) 2026-06-18 |
+| 6 | registry fsm=archived | `phenotype-registry/registry/disposition-index.json` | `phenotype-registry#203` | MERGED 2026-06-19 00:22:05Z |
+| 7 | audit sync | `phenotype-gfx/AUDIT.md` | `phenotype-gfx#11` | MERGED |
+
+---
+
 ## Real-time state (2026-06-18, v8 launch)
 
 | Metric | Value | Source |

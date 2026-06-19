@@ -131,17 +131,18 @@ See `L6_PHENO_REPOS_HEALTH_2026_06_14.md` for full health inventory (136 tests p
 
 ---
 
-## Wave Plan (v7 — current, supersedes v6)
+## Wave Plan (v8 — current, supersedes v7)
 
-See `plans/2026-06-17-v7-dag-stable.md`. **~7 tracks, 30+ PRs, orchestrator + parallel forge subagent dispatch.**
+See `plans/2026-06-18-v8-dag-stable.md`. **18 tracks, ~210 tasks, ~200 PRs, ~22h wall-clock with 6-way parallelism.** v7 closed 2026-06-17 (8 tracks, ~40 PRs); v8 adds the wrap-up + Configra + 71-pillar refresh + ADR-030..043 backlog.
 
-- Track 1: Triage (P0, ~5min, this turn) — drop empty commits, drop stashes, commit meta-bundle, refresh governance docs
+- Track 1: Triage (P0, ~5min) — drop empty commits, drop stashes, commit meta-bundle, refresh governance docs
 - Track 2: 5 PR reviews (P1, parallel, ~10min) — PRs #129-#133 from W5 batch
 - Track 3: 71-pillar audit (P1, ~30min) — schema + probe + score + render + crosswalk
 - Track 4: ADR-015 v2.1 schema bump (P0, due 2026-06-22) — **DONE 2026-06-17**; PR `KooshaPari/pheno-worklog-schema#1` open; 30/30 tests pass; 4 fleet WORKLOG.md files migrated; spec: `pheno-worklog-schema/SPEC-v2.1.md`; migration: `pheno-worklog-schema/migrate_v2_to_v2_1.py`
-- Track 5: HwLedger reclassification (P0, ADR-023 Rule 3 deliverable, ~30min)
+- Track 5: HwLedger reclassification (P0, ADR-023 Rule 3 deliverable, ~30min) — reclassified PAUSED → CONDITIONAL via ADR-035 (L5-105); see [§ App-level repo triage](#app-level-repo-triage--app-substrate-placement-adr-023) below
 - Track 6: Rebase + push cleaned branch (~5min)
 - Track 7: Work DAG maintenance (ongoing) — keep `findings/71-pillar-2026-06-17*.md` and `plans/2026-06-17-v7-dag-stable.md` updated
+- Track 8: 4-repo retirement (L5-109..114) **DONE 2026-06-18** — `phenotype-voxel`, `phenotype-terrain`, `phenotype-water`, `phenotype-postfx` absorbed into `phenotype-gfx` (ADR-004 transition); 4 source repos archived+deleted; PRs `KooshaPari/phenotype-gfx#10` (main migration, MERGED) + `#11` (audit sync, MERGED); `KooshaPari/phenotype-registry#200` (pre-archive SUPERSEDE, closed as superseded) + `#203` (post-archive fsm=archived, MERGED); `phenotype-gfx#9` closed as superseded by #10. Registry entries for all 4 flipped to terminal `fsm=archived`. See `findings/2026-06-18-L5-114-4-repo-retirement.md`.
 
 ---
 
@@ -404,6 +405,8 @@ See `findings/2026-06-18-L5-109-4-repo-retirement.md` for full migration matrix,
   - **14 bulk mirrors**: 0 unique commits vs KP main (archive action verified correct)
   - **forgecode**: 0 of 378 branches contain unique Phenotype work
   - **Aggregate**: 0 net content loss; audit doc `findings/2026-06-17-L5-104-dmouse92-to-kooshapari.md` §4.5
+- **4-repo retirement (L5-109..114) COMPLETE 2026-06-18**: phenotype-voxel, phenotype-terrain, phenotype-water, phenotype-postfx all archived+deleted. Registry entries flipped to terminal fsm=archived. PRs: KooshaPari/phenotype-gfx#10 (migration), #11 (audit sync); KooshaPari/phenotype-registry#200/#203 (pre-archive + post-archive).
+- **bucket_change HwLedger: from=PAUSED to=CONDITIONAL reason=ADR-035 (L5-105) reclassification — federated service with extractable pheno-capacity math lib (date 2026-06-18, current)**
 - **codex exec unavailable for per-repo verification (2026-06-17 22:05 PDT)**: `codex exec --skip-git-repo-check` hit tool-routing cell_id errors in this environment (no output after 5 min); switched to direct orchestrator-level shell verification (`git fetch` + `git rev-list --count` + `git diff --name-only`). Equivalent rigor: per-commit + per-file cross-check.
 - **Track 8 cursor self-merge is the intended pattern (2026-06-18, per user directive)**: Bot merges with no HITL gate are the fleet norm. The P0 "violation" in the original post-mortem is reclassified P3 (informational). No reverts, no protection rules. See `findings/2026-06-18-track8-self-merge-postmortem.md` for the reclassified version.
 - **bucket_change HwLedger: from=PAUSED to=CONDITIONAL reason=ADR-035 (L5-105) reclassification — federated service with extractable pheno-capacity math lib**

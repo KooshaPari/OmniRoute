@@ -62,11 +62,13 @@
 | **T21** | Security Audit | P0 | Secret-scan fleet, SBOM generation, dependency vulnerability scan, SLSA provenance | 12 | 8 | ~90 min | orchestrator + 2 subagents |
 | **T22** | Observability Wiring | P1 | Adopt `pheno-tracing` + OTLP export across substrate fleet | 15 | 15 | ~120 min | orchestrator + 3 subagents |
 | **T23** | Registry Refresh | P1 | `phenotype-registry`: rebase stale entries, adopt ADR-013 substrate model | 8 | 6 | ~60 min | orchestrator |
+| **T24** | 4-repo Retirement (L5-109..114) — gfx wave | P0 | **DONE 2026-06-18**: absorb `phenotype-voxel` + `phenotype-terrain` + `phenotype-water` + `phenotype-postfx` into `phenotype-gfx`; archive + delete 4 source repos; flip registry fsm to terminal `archived` | 7 | 6 | ~45 min (actual) | orchestrator |
+| **T25** | HwLedger Reclassification (L5-105) — next wave | P0 | Extract `pheno-capacity` math lib (VRAM estimation, model-fit) from `HwLedger`; map underlying capabilities to `pheno-*-lib` / `phenotype-*-sdk` / `phenotype-*-framework` / federated service per ADR-023 Rule 3; app-level work proceeds on federated service model | 9 | 7 | ~60 min (est) | orchestrator + 1 subagent |
 | **T16.5** | Stranded Worktree Recovery | P0 | Sweep `/private/tmp/*` and `.worktrees/*` for any remaining unrecovered work | 6 | 4 | ~45 min | orchestrator |
 | **T0.5** | Wrap-up | P0 | Author `v8-wrapup.md`, push final branch to origin, write postmortem | 5 | 0 | ~15 min | orchestrator |
-| | | | **Total** | **~210 tasks** | **~200 PRs** | **~22h parallel / ~52h sequential** | |
+| | | | **Total** | **~226 tasks** | **~213 PRs** | **~23h parallel / ~54h sequential** | |
 
-**Tracks with internal parallelism: 14 of 18** (T9, T10, T13, T15, T16, T17, T18, T19, T20, T21, T22, T23, T16.5 have 2-6 subagent streams; T0, T11, T12, T14, T0.5 are orchestrator-only)
+**Tracks with internal parallelism: 14 of 20** (T9, T10, T13, T15, T16, T17, T18, T19, T20, T21, T22, T23, T16.5, T25 have 2-6 subagent streams; T0, T11, T12, T14, T24 (done), T0.5 are orchestrator-only)
 
 ---
 
@@ -434,7 +436,69 @@ Adopt `pheno-tracing` + OTLP export across substrate fleet.
 
 **Track T23 PR count: 6** (T23.3-23.7 + ADR-043 = 6)
 
-### 3.16 Track T16.5 — Stranded Worktree Recovery (P0, ~45 min, orchestrator)
+### 3.16 Track T24 — 4-repo Retirement (L5-109..114, gfx wave) (P0, ~45 min actual, DONE 2026-06-18, orchestrator)
+
+**Status: COMPLETE 2026-06-18.** All 7 tasks landed; 6 PRs merged or closed; 4 source repos archived + deleted; registry fsm flipped to terminal `archived` for all 4.
+
+Per ADR-004 transition: `phenotype-voxel` (Rust core) + `phenotype-terrain` (C#) + `phenotype-water` (C#) + `phenotype-postfx` (C#) absorb into `phenotype-gfx`. All 4 source repos archived + deleted on GitHub. Registry rows for the 4 repos flipped to terminal `fsm: "archived"`.
+
+| Task | Description | P-level | Owner | Status (2026-06-18) |
+|---|---|---|---|---|
+| **T24.1** | Author `phenotype-gfx/AUDIT.md` — full inventory of absorbed code (voxel Rust crate, terrain/water/postfx C# projects, interop contracts) | P0 | orchestrator | DONE (in `phenotype-gfx#10` + `#11`) |
+| **T24.2** | Open `phenotype-gfx#10` — main migration PR (voxel + terrain + water + postfx absorb into `phenotype-gfx`); head `feat/port-sister-repos-2026-06-18` → `main` | P0 | orchestrator | MERGED 2026-06-19 00:09:50Z |
+| **T24.3** | Open `phenotype-gfx#11` — audit sync PR (links to `AUDIT.md`, dependency list, downstream consumer migration guide) | P0 | orchestrator | MERGED |
+| **T24.4** | Open `phenotype-registry#200` — pre-archive SUPERSEDE PR (4 rows marked for archival) | P0 | orchestrator | CLOSED (superseded by #203) 2026-06-18 |
+| **T24.5** | Open `phenotype-registry#203` — post-archive fsm=archived PR (flips 4 rows to terminal `fsm: "archived"`); head `chore/post-archive-2026-06-18` → `main` | P0 | orchestrator | MERGED 2026-06-19 00:22:05Z |
+| **T24.6** | Close redundant PRs as superseded: `phenotype-gfx#9` (postfx absorb, superseded by #10); `phenotype-registry#200` (pre-archive, superseded by #203) | P0 | orchestrator | DONE 2026-06-18 via `gh pr close` |
+| **T24.7** | Author `findings/2026-06-18-L5-114-4-repo-retirement.md` — full migration matrix, policy notes, registry entry transitions, downstream consumer impact analysis | P0 | orchestrator | DONE 2026-06-18 |
+
+**Track T24 PR count: 6** (2 phenotype-gfx PRs + 2 phenotype-registry PRs + 2 closed superseded PRs; 0/6 still open)
+
+**Lines migrated:** 18,957 (sum of `phenotype-gfx#10` +18,000 + `#11` +957 per `gh pr view --json additions`).
+
+**Tests pass on `phenotype-gfx` main:** 311.
+
+**Registry state:** 4/4 rows flipped to `fsm: "archived"` in `phenotype-registry/registry/disposition-index.json` via `phenotype-registry#203`.
+
+**Source repos archived + deleted:**
+- `KooshaPari/phenotype-voxel` — archived 2026-06-18, deleted 2026-06-18 (90-day GitHub retention)
+- `KooshaPari/phenotype-terrain` — archived 2026-06-18, deleted 2026-06-18
+- `KooshaPari/phenotype-water` — archived 2026-06-18, deleted 2026-06-18
+- `KooshaPari/phenotype-postfx` — archived 2026-06-18, deleted 2026-06-18
+
+**Downstream consumers (action required):**
+- `phenotype-app/unity/`: switch `package.json` deps from `phenotype-voxel`, `phenotype-terrain`, `phenotype-water`, `phenotype-postfx` → `phenotype-gfx` (breaking change; v0.5.0)
+- `phenotype-app/macos/`: same
+- `phenotype-app/landing/`: same
+- `pheno-events/unity-bridge`: same
+
+### 3.17 Track T25 — HwLedger Reclassification (L5-105, next wave) (P0, ~60 min est, orchestrator + 1 subagent)
+
+**Status: UPCOMING.** This is the next P0 wave after v8. Targets `KooshaPari/HwLedger` reclassification per ADR-023 Rule 3 + ADR-035.
+
+Per ADR-035: HwLedger bucket change PAUSED → CONDITIONAL. The app-level work proceeds on the federated service model; the underlying capabilities are extracted to `pheno-*-lib` / `phenotype-*-sdk` / `phenotype-*-framework` / federated service per Rule 3. The primary extract is `pheno-capacity` (VRAM estimation, model-fit math) which is fleet-reusable.
+
+| Task | Description | P-level | Owner | Acceptance |
+|---|---|---|---|---|
+| **T25.1** | Author `findings/2026-06-18-L5-105-hwledger-capability-inventory.md` — full inventory of HwLedger's underlying capabilities; classify each into one of: `pheno-*-lib`, `phenotype-*-sdk`, `phenotype-*-framework`, federated service | P0 | orchestrator | Doc ≥ 200 lines; 1 capability = 1 row; ADR-023 Rule 3 cited |
+| **T25.2** | Extract `pheno-capacity` Rust crate: VRAM estimation (per-model weight bytes, KV cache, activation memory); model-fit scoring (parameter count vs. available VRAM); pure math, no I/O | P0 | orchestrator + forge-A | `pheno-capacity/Cargo.toml` exists; `cargo test -p pheno-capacity` green; 80% coverage gate met |
+| **T25.3** | Migrate HwLedger to use `pheno-capacity` (replace inline math with `pheno-capacity::vram_estimate(...)` calls); ensure 100% parity with prior inline implementation via property tests | P0 | orchestrator | `cargo test --workspace` green in HwLedger; `pheno-capacity` added as dep |
+| **T25.4** | Extract HwLedger's Unity/Unreal adapter layer to `phenotype-gfx-sdk` (Rust core + C-ABI FFI + C# wrappers + Unity Package) per ADR-004 pattern (precedent: `phenotype-gfx#10` absorbed voxel/terrain/water/postfx) | P0 | orchestrator + forge-A | Adapter layer in `phenotype-gfx-sdk/unity/`; Unity Package builds; HwLedger becomes a thin consumer |
+| **T25.5** | Federated service: stand up `pheno-fleet` (federated HwLedger service exposing model-fit + VRAM APIs); separate repo `KooshaPari/pheno-fleet`; OTLP tracing via `pheno-tracing` (ADR-012); REST + gRPC endpoints | P0 | orchestrator + forge-B | `pheno-fleet` repo created; `cargo test` green; OTLP smoke test passes; spec doc + 1 concept doc + tests + coverage per Rule 3.1 |
+| **T25.6** | Migrate HwLedger app-level work to consume `pheno-fleet` (instead of inline `pheno-capacity`); app repos updated: `apps/landing`, `apps/macos`, `apps/streamlit`, `tools/journey-remotion` | P0 | orchestrator | HwLedger app consumers updated; `pheno-fleet` added as dep; builds green |
+| **T25.7** | Open PR on `KooshaPari/HwLedger#<n>`: `chore(governance): reclassify as CONDITIONAL per ADR-035 + extract pheno-capacity` | P0 | orchestrator | PR opened; references ADR-035; changes AGENTS.md bucket line; merges clean |
+| **T25.8** | Author ADR-036 (renumber if conflict; current ADR-036 = "Worklog deprecation cycle 6-month sunset" per AGENTS.md): "pheno-capacity extraction" — codify the VRAM + model-fit math as a fleet-wide primitive | P0 | orchestrator | ADR exists; cited by T25.2 + T25.7 |
+| **T25.9** | Update AGENTS.md § "App-level repo triage" to reflect HwLedger reclassification + add `pheno-capacity` to pheno-* family table + add `pheno-fleet` to federated services list | P0 | orchestrator | AGENTS.md updated; bucket_change worklog entry created |
+
+**Track T25 PR count: 7** (1 HwLedger governance PR + 1 pheno-capacity crate PR + 1 phenotype-gfx-sdk PR + 1 pheno-fleet repo + 2 consumer app PRs + 1 ADR-036)
+
+**Sub-agent allocation:** forge-A handles T25.2 (pheno-capacity extraction) + T25.4 (phenotype-gfx-sdk adapter); forge-B handles T25.5 (pheno-fleet federated service); orchestrator handles T25.1 (inventory) + T25.3 (HwLedger migration) + T25.6 (consumer apps) + T25.7 (HwLedger governance PR) + T25.8 (ADR-036) + T25.9 (AGENTS.md update).
+
+**Critical path:** T25.1 → T25.2 → T25.3 → T25.5 → T25.6 → T25.7 (45 min parallel).
+
+**Risk:** R1 (subagent dispatch) — same mitigation as v8 T0.
+
+### 3.18 Track T16.5 — Stranded Worktree Recovery (P0, ~45 min, orchestrator)
 
 Sweep `/private/tmp/*` and `.worktrees/*` for any remaining unrecovered work.
 
@@ -580,8 +644,20 @@ T0.5.1 → T0.5.5 (15 min, wrap-up)
 | PR-312 | chore(github): quarterly substrate audit cron | `KooshaPari/phenotype-org-audits` | T16.18 | PENDING |
 | PR-313 | chore(github): monthly security cron | `KooshaPari/phenotype-org-audits` | T21.11 | PENDING |
 | PR-314 | chore(github): quarterly registry refresh cron | `KooshaPari/phenotype-org-audits` | T23 (next quarter) | PENDING |
+| **PR-315** | **feat(gfx): inline voxel + port terrain/water/postfx from C# (ADR-004 transition, L5-109..112)** | `KooshaPari/phenotype-gfx` | **T24.2** | **MERGED 2026-06-19 00:09:50Z** |
+| **PR-316** | **chore(gfx): AUDIT.md sync + downstream consumer migration guide (L5-114)** | `KooshaPari/phenotype-gfx` | **T24.3** | **MERGED** |
+| **PR-317** | **docs(registry): SUPERSEDE 4 sister repos into phenotype-gfx (L5-104.7, ADR-031)** | `KooshaPari/phenotype-registry` | **T24.4** | **CLOSED (superseded by #203) 2026-06-18** |
+| **PR-318** | **docs(registry): mark 4 sister repos ARCHIVED post-phenotype-gfx#10 merge (L5-114)** | `KooshaPari/phenotype-registry` | **T24.5** | **MERGED 2026-06-19 00:22:05Z** |
+| **PR-319** | **chore(gfx): absorb postfx into phenotype-gfx** | `KooshaPari/phenotype-gfx` | **T24.6** (superseded) | **CLOSED (superseded by #10) 2026-06-18** |
+| **PR-320** | **chore(governance): close redundant PRs + update docs for L5-114 (4-repo retirement complete)** | `KooshaPari/phenotype-apps` | **T9.6 extension** | **PENDING (this commit)** |
+| **PR-321** | **feat(pheno-capacity): initial crate — VRAM estimation + model-fit math (L5-105)** | `KooshaPari/pheno-capacity` | **T25.2** | **PENDING (next wave)** |
+| **PR-322** | **refactor(hwledger): consume pheno-capacity (L5-105)** | `KooshaPari/HwLedger` | **T25.3** | **PENDING (next wave)** |
+| **PR-323** | **feat(gfx-sdk): HwLedger Unity/Unreal adapter (ADR-004 pattern, L5-105)** | `KooshaPari/phenotype-gfx-sdk` | **T25.4** | **PENDING (next wave)** |
+| **PR-324** | **feat(pheno-fleet): federated HwLedger service — model-fit + VRAM APIs (L5-105)** | `KooshaPari/pheno-fleet` | **T25.5** | **PENDING (next wave)** |
+| **PR-325** | **chore(hwledger): reclassify as CONDITIONAL per ADR-035 + extract pheno-capacity (L5-105)** | `KooshaPari/HwLedger` | **T25.7** | **PENDING (next wave)** |
+| **PR-326** | **docs(adr): ADR-036 pheno-capacity extraction (L5-105)** | `KooshaPari/repos` (or `phenotype-org-audits`) | **T25.8** | **PENDING (next wave)** |
 
-**Total: ~200 PRs across 18 tracks.**
+**Total: ~226 PRs across 20 tracks.** (Updated from ~200/18 to add T24 (4-repo retirement, 6 PRs/rows) + T25 (HwLedger reclassification, 7 PRs/rows) — 6 + 7 = 13 new PRs; plus this governance chore commit at PR-320.)
 
 ---
 
@@ -636,11 +712,12 @@ v8 is "done" when **all** of the following are true:
 ## 8. Cross-References
 
 ### 8.1 AGENTS.md (parent governance)
-- § "Wave Plan (v7 — current, supersedes v6)" — superseded by v8
-- § "Active ADRs" — adds ADR-030..043 (T14, T21, T23)
-- § "App-level repo triage & app substrate placement (ADR-023)" — T10, T15, T22 substrate placement authority
+- § "Wave Plan (v8 — current, supersedes v7)" — Track 8 (4-repo retirement L5-109..114) DONE 2026-06-18; new Track 25 (HwLedger reclassification L5-105) UPCOMING
+- § "Active ADRs" — adds ADR-030..043 (T14, T21, T23) + ADR-036 (T25.8 pheno-capacity extraction)
+- § "App-level repo triage & app substrate placement (ADR-023)" — T10, T15, T22 substrate placement authority; T25 HwLedger reclassification per ADR-035
 - § "Scope decisions (this turn, 2026-06-17 21:55)" — Decisions A/B/C/D → T10/T11/T12
 - § "Factory AI Agent Readiness" — T13 weekly refresh cadence
+- **§ "Stale / warnings"** — **Track 8 (4-repo retirement L5-109..114) COMPLETE 2026-06-18**; bucket_change HwLedger PAUSED→CONDITIONAL per ADR-035 (L5-105) dated 2026-06-18
 
 ### 8.2 The 11 new ADRs (T14)
 - **ADR-030** (T14.1) — Spine repos read-only
@@ -648,8 +725,8 @@ v8 is "done" when **all** of the following are true:
 - **ADR-032** (T14.3 / T11.4) — Worklog format split
 - **ADR-033** (T14.4 / T13.16) — 71-pillar refresh cadence
 - **ADR-034** (T14.5) — Substrate quality bar (Rule 3.1 codified)
-- **ADR-035** (T14.6) — Pheno-flake naming convention
-- **ADR-036** (T14.7) — Worklog deprecation cycle (6-month sunset)
+- **ADR-035** (T14.6) — Pheno-flake naming convention (**NOTE: AGENTS.md uses ADR-035 for HwLedger reclassification (L5-105); T25.7 cites the same number. Pre-existing inconsistency between AGENTS.md and v8 plan — needs reconciliation in v9 or pre-v8 cleanup**)
+- **ADR-036** (T14.7) — Worklog deprecation cycle (6-month sunset) (**NOTE: T25.8 plans to add another ADR-036 for "pheno-capacity extraction"; conflict with existing ADR-036 assignment. Renumber or supersede required**)
 - **ADR-037** (T14.8) — Federated service SLAs
 - **ADR-038** (T14.9) — Dmouse92 archival policy (90-day)
 - **ADR-039** (T14.10) — Pre-flight gate mandatory
@@ -657,6 +734,10 @@ v8 is "done" when **all** of the following are true:
 - **ADR-041** (T16.17) — Substrate audit cadence (quarterly)
 - **ADR-042** (T21.10) — Security audit cadence (monthly)
 - **ADR-043** (T23.8) — Registry refresh cadence (quarterly)
+
+### 8.2b New ADRs (T25 — next wave, L5-105 HwLedger reclassification)
+- **ADR-036 (proposed, T25.8)** — pheno-capacity extraction (VRAM estimation + model-fit math) (**CONFLICT: T14.7 already uses ADR-036 for worklog deprecation cycle; renumber T25.8 to ADR-044 or supersede existing ADR-036**)
+- **HwLedger bucket_change** (T25.7) — PAUSED → CONDITIONAL per ADR-035 (L5-105)
 
 ### 8.3 Prior ADRs referenced
 - **ADR-012** — config substrate (origin)
