@@ -1,6 +1,6 @@
 {
-  "version": "1.1.0",
-  "updated": "2026-06-18",
+  "version": "1.2.0",
+  "updated": "2026-06-19",
   "description": "Integration meta-repo lockfile — pins canonical fleet repos to immutable refs. CI validates cross-repo compatibility at pinned SHAs.",
   "_archive_notes": {
     "McpKit": {
@@ -13,12 +13,12 @@
     "phenotype-registry": {
       "repo": "KooshaPari/phenotype-registry",
       "ref": "main",
-      "sha": "ea31bc43e18d702af6b4645993d8eb81ba6c7d5f"
+      "sha": "19f3e958a4d147b43d4b40030c94041125137339"
     },
     "HexaKit": {
       "repo": "KooshaPari/HexaKit",
       "ref": "main",
-      "sha": "7ac981693ec0d09a21bdb1073b92bf0329709158"
+      "sha": "7aa87f1734e3f5a6aed0d29520ed2b8e8f1216b8"
     },
     "phenotype-types": {
       "repo": "KooshaPari/phenotype-types",
@@ -50,10 +50,30 @@
       "ref": "main",
       "sha": "7cfd8d7b13df92168b0514571222bc85b703a7f6"
     },
+    "Eventra": {
+      "repo": "KooshaPari/Eventra",
+      "ref": "main",
+      "sha": "445f732c499d24374560846d218828268a1a0319"
+    },
+    "Agentora": {
+      "repo": "KooshaPari/Agentora",
+      "ref": "main",
+      "sha": "1feb69891dad74b8d30cd0479b2e5847c3781eaf"
+    },
     "ResilienceKit": {
       "repo": "KooshaPari/ResilienceKit",
       "ref": "main",
-      "sha": "334184b1c595b6ca825c90bd9deb8d510103c36f"
+      "sha": "c1ca60cf59a7bf6ea553f9818520b20f11a06d0b"
+    },
+    "phenotype-python-sdk": {
+      "repo": "KooshaPari/phenotype-python-sdk",
+      "ref": "main",
+      "sha": "539fb21f861bab535c91df370bc87509fed58c77"
+    },
+    "phenotype-gateway": {
+      "repo": "KooshaPari/phenotype-gateway",
+      "ref": "master",
+      "sha": "3974924ac29432cd5fd78797550ca8cfaad10829"
     },
     "McpKit": {
       "repo": "KooshaPari/McpKit",
