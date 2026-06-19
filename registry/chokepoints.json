@@ -1,18 +1,18 @@
 {
-  "version": "1.2.1",
+  "version": "1.2.2",
   "updated": "2026-06-19",
   "description": "External dependents blocking relocation or archive. Repoint manifests to DOMAIN_ROLES canonical paths — not HexaKit monorepo paths (v2 charter). phenoShared is interim staging only (ADR-ECO-014); never a terminal repoint target. 2026-06-18: added phenotype-gfx-pr-10-merge chokepoint gating archive of 4 sister repos (L5-104.7, ADR-004 + ADR-031).",
   "chokepoints": [
     {
       "id": "Pyron",
       "blocks_sources": ["pheno", "Stashly", "Settly", "PhenoAgent", "Traceon"],
-      "repoint_to": ["phenotype-config", "PhenoObservability", "phenotype-resilience", "Tasken", "Eventra", "Authvault"],
+      "repoint_to": ["phenotype-config", "PhenoObservability", "phenotype-resilience", "Tasken", "Eventra", "Authvault", "Configra", "TestingKit"],
       "interim_staging": "phenoShared",
-      "status": "repointed",
+      "status": "verified-clean",
       "wave": "G3",
-      "repointed_at": "2026-06-17",
-      "pr": "KooshaPari/Pyron#55",
-      "note": "Wave 7 stashly → phenoShared; observe + config + pheno shelf lockstep complete"
+      "verified_at": "2026-06-19",
+      "pr": "KooshaPari/Pyron#61",
+      "note": "P4 DELETE-eligible: vendored contracts/pheno-mcp dropped; git pins → Configra/PhenoObservability/Authvault/Eventra/Agentora/phenoShared interim; cargo check green; 0 external git deps on Pyron"
     },
     {
       "id": "PhenoObservability",

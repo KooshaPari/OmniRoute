@@ -39,3 +39,15 @@ Per `BOUNDARY_OWNERS.md` 5-check gate. **Never delete TestingKit or phenoShared.
 | ST-03 | gw-phenolang | **DONE** | phenoUtils#66 index canonical; [gw-phenolang-branch-index.md](../disposition/gw-phenolang-branch-index.md); full branch sweep 2026-06-19 (main-only) |
 | ST-04 | AuthKit X-09 | **ARCHIVED** | 5-check pass; Tracera/thegent repointed; archived 2026-06-18 |
 | ST-05 | McpKit | **ARCHIVED + LEDGER** | registry#157 + #171 merged; repo archived 2026-06-18; hard delete deferred per BOUNDARY_OWNERS |
+
+## Pyron archive gate (P4 — 2026-06-19)
+
+| Check | Result |
+|-------|--------|
+| 1. Canonical owners named | DOMAIN_ROLES repoint targets (Configra, PhenoObservability, Authvault, Eventra, Agentora, TestingKit) |
+| 2. Inbound absorptions | pheno shelf lockstep waves 2–7 + contracts decompose slices 2–4 |
+| 3. Outbound consumers | 0 external `KooshaPari/Pyron` git deps in production manifests (gh org search) |
+| 4. Scaffold hooks | Role owners carry templates/SDK edges per BOUNDARY_OWNERS |
+| 5. Unique slice | None — vendored contracts + pheno-mcp dropped; MIGRATED.md stubs retained |
+| cargo check | green post Pyron PR merge |
+| Archive action | `gh repo archive KooshaPari/Pyron` pending merge |
