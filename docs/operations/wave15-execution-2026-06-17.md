@@ -118,4 +118,7 @@ Gateway fork lanes **G15–G17 complete** (other agent). Registry disposition-in
 5. ~~**Desktop**~~ — done ([OmniRoute#74](https://github.com/KooshaPari/OmniRoute/pull/74) merged)
 6. ~~**W18b**~~ — done (fleet tail verified-clean; `KooshaPari/pheno` archived 2026-06-19)
 7. ~~**agentapi-spec**~~ — done ([agentapi-plusplus#536](https://github.com/KooshaPari/agentapi-plusplus/pull/536) merged)
-8. **Metron X-02** — archive gate ([archive-gate-verification-2026-06-18.md](./archive-gate-verification-2026-06-18.md))
+8. ~~**Metron X-02**~~ — done (repo 404 tombstone; `metrickit` canonical in PhenoObservability #157; HexaKit #244/#251)
+9. **BytePort ST-01** — document unclosable [#201](https://github.com/KooshaPari/BytePort/pull/201) (archived repo)
+10. **HexaKit CI** — prost 0.14 alignment + rustfmt on `main` (post-#267 debt)
+11. **Paginary G19** — triage archived repo (11 branches)
