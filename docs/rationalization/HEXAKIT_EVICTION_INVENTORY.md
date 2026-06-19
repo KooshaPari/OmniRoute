@@ -118,7 +118,7 @@ PO `phenotype-health-axum` / `phenotype-health-cli` remain PO-only runtime layer
 
 **Deferred (API diverge — still workspace members):**
 
-- ~~`phenotype-contracts`~~ — resolved Wave 13 (#264)
+- ~~`phenotype-contracts`~~ — generic `Contract` trait interim phenoShared until `phenotype-rust-sdk` facade (slice crates drained wave 5)
 - ~~`phenotype-validation`, `phenotype-string`~~ — resolved Phase 3 Wave A/B (#271) + phenoShared E2a
 - ~~`libs/phenotype-config-core`~~ — resolved Phase 4 wave 5 (#276): phenoShared git pin; `phenotype-core::config` trait re-exports
 
@@ -142,6 +142,39 @@ PO `phenotype-health-axum` / `phenotype-health-cli` remain PO-only runtime layer
 **Workspace audit (task #70):** 15 members, 52 excluded — scaffold-only target approaching.
 
 **Org grep checkpoint (task #68):** zero new `KooshaPari/HexaKit` path deps in fleet manifests (2026-06-19); see `docs/disposition/hexakit-path-deps-checkpoint-2026-06-19.md`.
+
+---
+
+## Wave 5 — phenoShared git pin drain (2026-06-19)
+
+HexaKit branch `feat/wave5-phenoshared-pin-drain` — drain interim `phenoShared` workspace git pins to
+terminal DOMAIN_ROLES owners per ADR-ECO-014; `gate-phenoshared` DELETE hold retained until remaining pins cleared.
+
+### Drained (verified on owner `main` via `gh`)
+
+| Pin | Terminal owner | Repo path |
+|-----|----------------|-----------|
+| `phenotype-http-client-core` | ResilienceKit (`phenotype-resilience`) | `crates/phenotype-http-client-core` |
+| `phenotype-state-machine` | ResilienceKit | `crates/phenotype-state-machine` |
+| `phenotype-policy-engine` | ResilienceKit | `crates/phenotype-policy-engine` |
+| `phenotype-auth-contracts` | Authvault | `rust/phenotype-auth-contracts` |
+| `phenotype-event-contracts` | Eventra | `rust/phenotype-event-contracts` |
+| `phenotype-agent-contracts` | Agentora | `rust/phenotype-agent-contracts` |
+| `phenotype-security-aggregator` | Authvault | `authkit/rust/phenotype-security-aggregator` |
+
+### Remaining phenoShared interim pins
+
+| Pin | Blocker |
+|-----|---------|
+| `phenotype-event-bus`, `phenotype-event-sourcing` | Not on Eventra `main` (contracts slice only) |
+| `phenotype-time` | Not on `phenotype-types` / `phenotype-config` `main` |
+| `phenotype-async-traits`, `phenotype-macros` | `phenotype-rust-sdk` repo absent |
+| `phenotype-health` | PO `HealthCheck` API ≠ phenoShared `HealthChecker` traits |
+| `phenotype-cache-adapter` | archive-if-unused stub — phenoShared until absorb |
+| `phenotype-contracts` | Generic `Contract` trait interim |
+| `phenotype-iter`, `phenotype-string`, `phenotype-validation` | phenoShared `main` only |
+
+**Verification:** `cargo check -p phenotype-core` green post-repoint.
 
 ---
 
