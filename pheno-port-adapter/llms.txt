@@ -1,83 +1,68 @@
+<!--
+  llms.txt for pheno-port-adapter — LLM-friendly content discovery index.
+  Spec: https://llmstxt.org/  (curated plain-text file at project root; "robots.txt for LLMs").
+  T20.7 of v8 plan; 2nd governance doc in the release-ready meta-bundle.
+  Cross-references SPEC.md (T20.2), WORKLOG.md (T20.5), CHANGELOG.md (T20.6).
+-->
+
 # pheno-port-adapter
 
-> Hexagonal port/adapter primitives for the pheno-* fleet. A
-> `PortAdapter` trait that every transport-agnostic consumer can
-> depend on, plus concrete TCP and Unix-domain-socket transport
-> adapters. Sits at the substrate layer — consumers write against
-> the trait, not against a specific transport.
+> Canonical hexagonal L4 Port/Adapter reference implementation for the pheno-* fleet. Defines the `PortAdapter` trait (Port side) and ships `TcpAdapter` + `UnixAdapter` (in-tree Adapter impls) + `MockAdapter` (test-only). Per ADR-014 + ADR-038, 19 of 22 pheno-* substrate Rust crates are migrating to this `Port` trait + `Adapter` impl shape.
 
-## Public API
+## Documentation
 
-```rust
-use pheno_port_adapter::{AdapterError, Connection, PortAdapter};
-use pheno_port_adapter::adapters::{TcpAdapter, UnixAdapter};
+- [README.md](README.md): quickstart, install, when to use, when NOT to use. (Planned; L64 pillar 0/3 — see STATUS.md § 4.)
+- [AGENTS.md](AGENTS.md): project overview, conventions, governance for AI agents. Per-repo template (v8); cites ADR-023, ADR-038, ADR-042, ADR-040, ADR-036.
+- [SPEC.md](SPEC.md): canonical 1-page specification (what / why / how / interface / status; per ADR-042 element 1). Cites the `Port` trait + `Adapter` impl pattern (ADR-038) and the canonical `HexStorage` consumer example (illustrative; not in this crate).
+- [WORKLOG.md](WORKLOG.md): change history (ADR-025 v2.1 schema, 11 columns including `device:` field). Validator: `pheno-worklog-schema` v2.1.
+- [CHANGELOG.md](CHANGELOG.md): release notes, semver, breaking changes. Keep a Changelog 1.1.0.
+- [STATUS.md](STATUS.md): weekly-refresh status doc with honest 71-pillar scorecard (60/213 = 28.2%) and Factory AI Agent Readiness level 0 (Functional). Per ADR-041 + ADR-026.
+- [CONTRIBUTING.md](CONTRIBUTING.md): how to contribute. Branch prefixes, Conventional Commits, PR template, 80% lib coverage gate (ADR-040), pattern conformance (ADR-038).
 
-#[derive(Debug, thiserror::Error)]
-pub enum AdapterError {
-    #[error("connect failed: {0}")]
-    ConnectFailed(String),
-    #[error("disconnect failed: {0}")]
-    DisconnectFailed(String),
-    #[error("health check failed: {0}")]
-    HealthCheckFailed(String),
-    #[error("timeout")]
-    Timeout,
-}
+## Optional
 
-#[derive(Debug)]
-pub struct Connection { pub(crate) id: String }
+- [LICENSE-MIT](LICENSE-MIT): MIT license text (Copyright Koosha Pari 2026).
+- [Cargo.toml](Cargo.toml): package manifest (v0.1.0). MSRV 1.82, edition 2021, `thiserror = "2.0"`, empty `[workspace]` (standalone crate).
+- [src/lib.rs](src/lib.rs): `PortAdapter` trait + `AdapterError` enum + `Connection` opaque handle + 5 inline `MockAdapter` unit tests.
+- [src/adapters/mod.rs](src/adapters/mod.rs): adapters module root.
+- [src/adapters/tcp.rs](src/adapters/tcp.rs): TCP transport adapter (sync; `std::net::TcpStream`).
+- [src/adapters/unix.rs](src/adapters/unix.rs): Unix-domain socket adapter (sync; `std::os::unix::net::UnixStream`).
 
-pub trait PortAdapter: Send + Sync {
-    fn name(&self) -> &str;
-    fn health(&self) -> Result<(), AdapterError>;
-    fn connect(&self, endpoint: &str) -> Result<Connection, AdapterError>;
-    fn disconnect(&self) -> Result<(), AdapterError>;
-}
+## Sibling substrates (fleet)
 
-pub mod adapters; // TcpAdapter, UnixAdapter
-```
+- `pheno-config` — typed config loader (consumes `Connection` ID in endpoint strings).
+- `pheno-context` — request context propagation (correlation IDs flow through `Connection`).
+- `pheno-tracing` — canonical observability substrate (ADR-036); `pheno-port-adapter` adopts the `tracing` feature flag for OTLP smoke test.
+- `pheno-otel` — OTLP exporter (consumes `pheno-port-adapter`'s connection-lifecycle spans).
+- `pheno-errors` — `thiserror`-aligned error envelope; `AdapterError` follows the same derive pattern.
+- `pheno-flags`, `pheno-cli-base`, `pheno-agents-md`, `pheno-cargo-template` — 4 of the 19 ad-hoc crates migrating to the `Port` trait + `Adapter` impl shape per ADR-038 adoption matrix.
 
-## Quickstart
+## ADRs (governance)
 
-```toml
-# Cargo.toml
-[dependencies]
-pheno-port-adapter = "0.1"
-```
-
-```rust
-use pheno_port_adapter::adapters::TcpAdapter;
-use pheno_port_adapter::PortAdapter;
-let adapter = TcpAdapter;
-assert_eq!(adapter.name(), "tcp");
-let conn = adapter.connect("tcp://localhost:8080")?;
-adapter.disconnect()?;
-```
-
-## Conventions
-
-- Conventional Commits (`feat:`, `fix:`, `chore:`, `docs:`, `refactor:`).
-- rustfmt + clippy (`-D warnings`); `#![warn(missing_docs)]` on the
-  public API.
-- 80% lib coverage gate (ADR-040); see `llvm-cov.toml` and the
-  `coverage` job in `.github/workflows/ci.yml`.
-- Hexagonal pattern: `PortAdapter` trait + concrete `Adapter` impl
-  (ADR-014). Consumers depend on the trait, not on a transport.
-- `thiserror` for error types; `AdapterError` is the single error
-  surface (no per-transport variants).
-- `Connection` is an opaque handle; transport-specific connection
-  state stays inside each `Adapter` impl.
-- 5 inline unit tests in `src/lib.rs` cover the trait contract;
-  add a `tests/` integration suite when you add a new transport.
+- [ADR-014 (Hexagonal L4 ports)](../../docs/adr/2026-06-18/ADR-014-hexagonal-l4-ports.md): predecessor — original Port trait + Adapter impl pattern.
+- [ADR-023 (Agent-effort governance)](../../docs/adr/2026-06-18/ADR-023-agent-effort-governance.md): substrate placement + Rule 3.1 quality bar.
+- [ADR-038 (Hexagonal L4 Port/Adapter policy)](../../docs/adr/2026-06-18/ADR-038-hexagonal-port-adapter-l4-policy.md): **canonical pattern contract; this crate is the reference impl**.
+- [ADR-042 (Substrate quality bar)](../../docs/adr/2026-06-18/ADR-042-substrate-quality-bar.md): 7-element quality bar (this meta-bundle closes elements 1 + 7).
+- [ADR-040 (Test coverage gates per tier)](../../docs/adr/2026-06-18/ADR-040-test-coverage-gates-per-tier.md): 80% lib/SDK gate.
+- [ADR-036 (pheno-tracing canonical)](../../docs/adr/2026-06-18/ADR-036-pheno-tracing-canonical.md): observability substrate.
+- [ADR-025 (worklog v2.1 schema bump)](../../docs/adr/2026-06-18/ADR-025-worklog-v2-1-schema-bump.md): `device:` field.
+- [ADR-030 (pheno-worklog-schema v2.1)](../../docs/adr/2026-06-18/ADR-030-pheno-worklog-schema-v2-1.md): 4 `device:` values pinned.
+- [ADR-041 (71-pillar refresh cadence)](../../docs/adr/2026-06-18/ADR-041-71-pillar-refresh-cadence.md): weekly probe cadence.
+- [ADR-026 (Factory AI Agent Readiness)](../../docs/adr/2026-06-18/ADR-026-factory-ai-agent-readiness.md): external cross-cutting standard.
 
 ## See also
 
-- `src/lib.rs` — trait, error type, and inline `MockAdapter` tests.
-- `src/adapters/tcp.rs`, `src/adapters/unix.rs` — concrete
-  transports.
-- `AGENTS.md` — agent context.
-- `WORKLOG.md` — change history (v2.1 schema).
-- `CHANGELOG.md` — release notes.
-- `LICENSE-MIT` — MIT license.
-- Sibling: `pheno-config` (typed config), `pheno-context` (request
-  context), `pheno-flags` (feature flags).
+- [findings/71-pillar-2026-06-17.md § 1.10](../../findings/71-pillar-2026-06-17.md): 71-pillar scorecard for this crate (60/213 = 28.2%, Tier 0).
+- [findings/71-pillar-2026-06-17-schema.md](../../findings/71-pillar-2026-06-17-schema.md): 71-pillar framework schema (ADR-024).
+- [plans/2026-06-18-v8-dag-stable.md § 3.7](../../plans/2026-06-18-v8-dag-stable.md): T15.4 (`pheno-port-adapter` meta-bundle + tests) — closed by L5-116 (this turn).
+- [pheno-worklog-schema v2.1](../../pheno-worklog-schema/SPEC-v2.1.md): worklog validator CLI.
+- [pheno-ci-templates](https://github.com/KooshaPari/pheno-ci-templates): CI gate templates (per ADR-042 element 6).
+
+<!--
+  Template notes:
+  - Format is fixed by llmstxt.org: H1 title, > blockquote summary, ## sections with bullet lists.
+  - Each bullet MUST be [filename](path): one-line summary — the colon is part of the spec.
+  - List the meta-bundle files first (AGENTS.md, README.md, SPEC.md, WORKLOG.md, CHANGELOG.md, STATUS.md, CONTRIBUTING.md), then topic-specific docs.
+  - License under "Optional" so LLMs can skip it.
+  - Update cadence: re-audit on every release. CI lint: pheno-ci-templates/llms-txt-lint.yml (T20.7 follow-up).
+-->
