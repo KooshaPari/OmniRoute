@@ -8,6 +8,14 @@ export default defineConfig({
   lastUpdated: true,
   // Repo-root SSOT files (BOUNDARY_OWNERS, ECOSYSTEM_MAP, registry/*.json) are linked from docs.
   ignoreDeadLinks: true,
+  // Skip template/stub files that contain literal < > placeholders
+  // (intentionally ambiguous HTML which Vue parser can't close).
+  srcExclude: [
+    "**/_template.md",
+    "**/_template.md.txt",
+    "**/*.template.md",
+    "**/_stub/**",
+  ],
   themeConfig: {
     nav: [
       { text: "Overview", link: "/" },
