@@ -52,7 +52,7 @@ Branch remote deletion is **blocked** while PhenoLang remains archived (GitHub r
 
 1. phenoUtils extraction index + 28-branch triage table merged (phenoUtils#63, phenoUtils#66).
 2. Registry branch ledger complete (phenotype-registry#174); disposition row `gw-phenolang` → `fsm: done` with phenoUtils pin in `components.lock` (phenotype-registry#189).
-3. Remote branch sweep deferred — PhenoLang archived (`gh api` DELETE returns 404; repo admin scope required); `main` retained.
+3. Remote branch sweep **done 2026-06-19:** temporarily unarchived → deleted 20 `*/feat/docs-site` remotes → re-archived; `main` retained.
 
 ## References
 
