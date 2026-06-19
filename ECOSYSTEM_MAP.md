@@ -1,6 +1,7 @@
 # KooshaPari Ecosystem Map
 
-> Generated: 2026-06-18 | Repos audited: 13 canonical (live, GitHub-reachable) | Validator: `task validate` → `scripts/validate-ecosystem.sh`
+> Generated: 2026-06-19 | Repos audited: 13 canonical (live, GitHub-reachable) | Validator: `task validate` → `scripts/validate-ecosystem.sh`
+> _2026-06-19 (P4 hygiene #93):_ Clusters **D** (observability), **I** (*Kit SDKs), **H** (gateway + config) refreshed from `BOUNDARY_OWNERS.md` matrix.
 > Absorption traceability: `.kilo/audits/kooshapari-absorption-2026-06-18.md` is the authoritative absorption traceability matrix for this update.
 > Last SSOT run: see `scripts/validate-ecosystem.sh --json` (re-run on every map edit)
 > _2026-06-18 (L5-114, post-archive):_ 4 source repos (phenotype-voxel, phenotype-terrain, phenotype-water, phenotype-postfx) **ARCHIVED + DELETED** after phenotype-gfx#10 merged (sha 5380b2bd, 311 tests pass, 18,957 lines migrated). Registry rows terminal `fsm=archived`.
@@ -200,17 +201,22 @@ graph TD
 | cliproxyapi-plusplus | Fork, Go | **CANONICAL** CLI subscription proxy plane → phenotype-gateway (ADR-ECO-007 Option B peer/submodule) |
 | helioscope / helios-cli | Forks of codex-monorepo | Keep as tooling entry-point; deduplicate into single helios repo |
 
-### Cluster H — Gateway superset (Wave H, 2026-06-17)
+### Cluster H — Gateway superset (Wave H / 15, 2026-06-17)
 
-See [ADR-ECO-014](docs/adrs/ADR-ECO-014-phenotype-gateway-charter.md) and [GATEWAY_FEATURE_PARITY.md](docs/rationalization/GATEWAY_FEATURE_PARITY.md).
+See [ADR-ECO-007](docs/adrs/ADR-ECO-007-gateway-merge-superset.md), [ADR-ECO-014](docs/adrs/ADR-ECO-014-phenotype-gateway-charter.md), [wave15-execution](docs/operations/wave15-execution-2026-06-17.md), and [GATEWAY_FEATURE_PARITY.md](docs/rationalization/GATEWAY_FEATURE_PARITY.md).
 
-| Repo | Verdict |
-|------|---------|
-| agentapi-plusplus | Canonical fork; absorb agentapi + branch superset |
-| cliproxyapi-plusplus + vibeproxy | Proxy plane merge |
-| bifrost | Vendor-pinned; local-delta only |
-| argis-extensions | Plugin plane |
-| OmniRoute | Interim MVP → router revamp spike |
+| Repo | Status | Verdict |
+|------|--------|---------|
+| **agentapi-plusplus** | Active | **CANONICAL** — G15 superset merge; absorb archived `agentapi` tombstone |
+| **cliproxyapi-plusplus** | Active | **CANONICAL** — G16 CLI subscription proxy; peer/submodule of phenotype-gateway |
+| **phenotype-gateway** | Active | **CANONICAL** Go plane owner — fleet dispatch + fork pins |
+| **substrate** | Active | **AFFIRM** — connect runtime (`driver-http`, `engine-agentapi`) |
+| **OmniRoute** | Active | **AFFIRM** — platform `route` layer; **never archive** (supersedes prior interim-MVP row) |
+| **Tokn** | Active | **AFFIRM** — Rust routing substrate (`tokenledger::routing`) |
+| **bifrost** | Fork | **VENDOR-KEEP** — G17 pin `phenotype/vendor-2026-06`; experiments only |
+| **argis-extensions** | Active | Plugin plane for gateway integrations |
+| **phenotype-omlx** | Archived | **SPLIT** — ADR-ECO-008; client UX when staffed; engine = `jundot/omlx` upstream |
+| vibeproxy | Archived | Absorbed into cliproxy++ proxy plane |
 
 ### Cluster B — Agent Runtimes (5 repos)
 
@@ -232,16 +238,19 @@ See [ADR-ECO-014](docs/adrs/ADR-ECO-014-phenotype-gateway-charter.md) and [GATEW
 | Stashly | Active, Rust | Keep as standalone caching lib (different domain: cache ≠ resilience) |
 | phenotype-dep-guard | Active, Python | Different domain (supply chain), not resilience — reclassify as tooling |
 
-### Cluster D — Observability / Metrics (6 repos)
+### Cluster D — Observability / Metrics (refreshed 2026-06-19)
 
-| Repo | Status | Verdict |
-|------|--------|---------|
-| **phenoObservability** | Active, Rust workspace | **CANONICAL** |
-| **phenotype-observability** | New, Rust sub-crate (HexaKit-twin role) | **NEW CANONICAL HOME** — `HexaKit/crates/phenotype-observability/`, lifts the working OTel init shape out of `phenotype-logging/src/otel.rs` into a dedicated crate. Per `plans/2026-06-09-hexakit-phenotype-observability-plan-v1.md`. |
-| ObservabilityKit | Active, Python SDK | Keep as Python facade |
-| Metron | Active, Rust (metrickit) | Merge into phenoObservability as metrics crate |
-| Traceon | Active, Rust (tracingkit) | Merge into phenoObservability as tracing crate |
-| Profila | Archived | Already retired |
+Per `BOUNDARY_OWNERS.md` § Observability — **PhenoObservability** is the org-wide observability workspace SSOT. HexaKit retains **template mirrors only** (no independent release cycles for domain obs crates).
+
+| Repo / slice | Status | Verdict |
+|--------------|--------|---------|
+| **PhenoObservability** | Active, Rust workspace | **CANONICAL** — `rust/metrickit`, `rust/tracingkit`, `rust/phenotype-logging`, `rust/phenotype-telemetry`, `rust/phenotype-health`, `rust/phenotype-sentry-config` (Wave A absorption) |
+| **phenotype-otel** | Active repo | **MERGE** into PhenoObservability — fleet OTEL / production tracing |
+| **ObservabilityKit** | **TOMBSTONE** (404) | Python facade → `phenotype-python-sdk/packages/observability-kit`; gate X-01 done |
+| **Metron** | **TOMBSTONE** (404) | Absorbed `crates/metrickit` → PO [#157](https://github.com/KooshaPari/PhenoObservability/pull/157); HexaKit eviction [#244](https://github.com/KooshaPari/HexaKit/pull/244) |
+| **Traceon** | Archived | **KEEP_ARCHIVED** — `tracingkit` canonical on PO; redirect stubs in HexaKit |
+| **Profila** | Archived | Already retired |
+| HexaKit `Metron/` / `Traceon/` / obs crates | Stubs | **DECOMPOSE** — MIGRATED.md redirects only; no new path deps |
 
 ### Cluster E — Auth (3 repos)
 
@@ -270,28 +279,33 @@ See [ADR-ECO-014](docs/adrs/ADR-ECO-014-phenotype-gateway-charter.md) and [GATEW
 | PhenoHandbook | Keep (pattern docs); surface via phenotype-registry index |
 | phenoStandards | **RETIRED** (2026-06-16) — absorbed into HexaKit root (`GOVERNANCE.md`, `.github/`, `.template.*`, `docs/reference/*STANDARDS*`) |
 
-### Cluster H — Config / Settings (3 repos)
+### Cluster H₂ — Config / Settings (refreshed 2026-06-19)
 
-| Repo | Verdict |
-|------|---------|
-| **Settly** (archived) | **phenotype-config** (`settly` crate) per DOMAIN_ROLES — canonical config owner |
-| Conft | TypeScript config workspace — keep as TS facade |
-| pheno/phenotype-config-core crate | Merge into Settly as Rust workspace crate |
+_Note: Gateway cluster above is **H₁**; this is **H₂** (config plane) — distinct domains._
 
-### Cluster I — *Kit SDKs (8 repos: too many thin wrappers)
+| Repo / slice | Status | Verdict |
+|--------------|--------|---------|
+| **phenotype-config** | Active | **CANONICAL** — `settly` crate owner per DOMAIN_ROLES |
+| **Settly** | Archived | Absorbed into phenotype-config; HexaKit `crates/settly` stub → repoint follow-ups |
+| **Conft** | Active | TypeScript config workspace — TS facade (runtime PLAN open) |
+| **phenotype-python-sdk** `packages/phenotype-config` | Active | Python config edge |
+| pheno `phenotype-config-core` | pheno archived 2026-06-19 | Consumers repointed; core merges into phenotype-config / phenoShared interim pins |
 
-All thin Python/Go wrappers around Rust canonical cores. Target: consolidate Python SDKs into `phenotype-python-sdk`; Go SDKs into `phenotype-go-sdk`.
+### Cluster I — *Kit SDKs (refreshed 2026-06-19)
+
+Thin language facades around Rust/Go canonical cores. **Python** → `phenotype-python-sdk`; **Go** → `phenotype-go-sdk`. File parity alone does not close a boundary — see `BOUNDARY_OWNERS.md` delete gate.
 
 | Repo | Status | Verdict |
 |------|--------|---------|
-| AuthKit | Active, Python SDK | Merge into phenotype-python-sdk/auth |
-| DataKit | Active, Python SDK | Merge into phenotype-python-sdk/data |
-| McpKit | **Archived** (2026-06-17) | **SUPERSEDED** — [PhenoFastMCP](https://github.com/KooshaPari/PhenoFastMCP) + [PhenoMCPServers](https://github.com/KooshaPari/PhenoMCPServers); Py edge → `phenotype-python-sdk` `[connect]` |
-| ObservabilityKit | No standalone repo | Canonical: phenotype-python-sdk/observability + PO crates |
-| ResilienceKit | **Archived** (2026-06-17) | Python facade → phenotype-python-sdk/resilience |
-| TestingKit | **Archived** (2026-06-17) | Python facade → phenotype-python-sdk/testing |
+| **phenotype-python-sdk** | Active | **CANONICAL** `py-sdk-index` — optional `[auth]`, `[test]`, `[observe]`, `[connect]`, … extras |
+| AuthKit | **Archived** (2026-06-18) | Python → `packages/auth-kit/python`; Rust core → **Authvault** (X-09 gate pass) |
+| DataKit | **Archived** | Python → `packages/data-kit/python`; delete-eligible post-repoint |
+| McpKit | **Archived** (2026-06-17) | **SUPERSEDED** — [PhenoFastMCP](https://github.com/KooshaPari/PhenoFastMCP) + [PhenoMCPServers](https://github.com/KooshaPari/PhenoMCPServers); Py edge → `[connect]` |
+| ObservabilityKit | **TOMBSTONE** | Py → `packages/observability-kit`; Rust → **PhenoObservability** |
+| ResilienceKit | **Archived** | Py → `packages/resilience-kit` (impl gate open); Rust → phenotype-resilience / rust-sdk |
+| TestingKit | **Archived** | **HOLD DELETE** — Rust BDD/contract/fixtures/infra → **TestingKit** `rust/`; Py mcp-qa/CLIs → SDK `packages/testing-kit` — [boundary split](docs/disposition/testingkit-boundary-split.md) |
 | PlatformKit | **Archived** | Go tooling → phenotype-go-sdk/platform |
-| PhenoKits | **Archived** (pre-wave) | Python collection → phenotype-python-sdk index |
+| PhenoKits | **Archived** | Python hoists → phenotype-python-sdk index |
 
 ### Cluster J — Helios* (5 repos)
 

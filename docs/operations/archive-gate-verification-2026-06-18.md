@@ -15,6 +15,19 @@ Per `BOUNDARY_OWNERS.md` 5-check gate. **Never delete TestingKit or phenoShared.
 | X-09 | AuthKit | **ARCHIVED** | BOUNDARY_OWNERS 5/5; AuthKit#118 fold merged; Tracera/thegent verified-clean; `gh repo archive` 2026-06-18 |
 | X-10 | phenoShared | **NO DELETE** | P4 decompose incomplete per ADR-ECO-014 |
 
+## Surface reduction batch 1+2 closeout (Phase 4 tasks 71–80, 2026-06-19)
+
+Per `BOUNDARY_OWNERS.md` 5-check gate.
+
+| ID | Repo | Verdict | 5-check | Evidence |
+|----|------|---------|---------|----------|
+| SR-71 | Planify | **ARCHIVED** | 5/5 | Upstream fork; no local delta; `isArchived: true` (verified 2026-06-19) |
+| SR-72 | portage | **ARCHIVED** | 5/5 | Upstream fork; no local delta; `isArchived: true` (verified 2026-06-19) |
+| SR-73 | phenotype-ops-mcp | **ARCHIVED** | 5/5 | Redirect `PhenoMCPServers/servers/external/`; `isArchived: true` (verified 2026-06-19) |
+| SR-74 | agileplus-spec-harmonizer | **ABSORBED** | 5/5 | AgilePlus#756 merged; `crates/agileplus-spec-harmonizer` canonical |
+| SR-75 | agileplus-spec-harmonizer (post-absorb) | **TOMBSTONE** | 5/5 | Source repo 404 (deleted); `gh repo archive` N/A |
+| SR-77 | phenoStandards | **STUB ONLY** | 5/5 | Repo 404; `projects/phenoStandards.json` registry stub; HexaKit absorbed 2026-06-16 |
+
 ## Actions taken
 
 - AuthKit archived 2026-06-18 (X-09 gate pass); Metron tombstoned 2026-06-19 (repo 404 post-absorption; `gh repo archive` N/A)
@@ -34,7 +47,7 @@ Per `BOUNDARY_OWNERS.md` 5-check gate. **Never delete TestingKit or phenoShared.
 
 | ID | Item | Verdict | Evidence |
 |----|------|---------|----------|
-| ST-01 | BytePort #201 | **CLOSE BLOCKED** | Repo archived read-only; PR [#201](https://github.com/KooshaPari/BytePort/pull/201) remains OPEN stale — GraphQL locked-issue error on close; governance baseline only; canonical crate in phenotype-tooling `crates/byteport` |
+| ST-01 | BytePort #201 | **UNCLOSABLE** | Repo `KooshaPari/BytePort` archived read-only (2026-06-18); canonical → `phenotype-tooling` `crates/byteport`. PR [#201](https://github.com/KooshaPari/BytePort/pull/201) remains OPEN stale — **cannot close or merge**: GitHub GraphQL `closePullRequest` returns locked-issue / read-only archive error. **Action:** leave open; track as absorbed stale tail; do not block archive gates. See [local-clone-hygiene](../operations/local-clone-hygiene-2026-06-18.md). |
 | ST-02 | phenotype-omlx #22 | **CLOSE BLOCKED** | Repo archived read-only; ADR-ECO-008 triage: scope exceeds docs/benchmark-only; CI blocked |
 | ST-03 | gw-phenolang | **DONE** | phenoUtils#66 index canonical; [gw-phenolang-branch-index.md](../disposition/gw-phenolang-branch-index.md); full branch sweep 2026-06-19 (main-only) |
 | ST-04 | AuthKit X-09 | **ARCHIVED** | 5-check pass; Tracera/thegent repointed; archived 2026-06-18 |

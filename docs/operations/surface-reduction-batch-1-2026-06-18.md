@@ -1,6 +1,6 @@
 # Surface reduction batch 1 — upstream forks + McpKit gate — 2026-06-18
 
-**Status:** registry merged [#170](https://github.com/KooshaPari/phenotype-registry/pull/170) (2026-06-18) — `projects/*.json` stubs + disposition-index `sr-*` rows. Repo `gh archive` ×4 remains downstream execution.
+**Status:** registry merged [#170](https://github.com/KooshaPari/phenotype-registry/pull/170) (2026-06-18) — `projects/*.json` stubs + disposition-index `sr-*` rows. **`gh repo archive` ×3 verified 2026-06-19** (Planify, portage, phenotype-ops-mcp already archived).
 
 **Successor:** [surface-reduction-batch-2-2026-06-18.md](./surface-reduction-batch-2-2026-06-18.md) (stub).
 
@@ -33,7 +33,7 @@
 |----------|--------|-----|
 | AgilePlus | **repointed** | [#763](https://github.com/KooshaPari/AgilePlus/pull/763) merged |
 | PhenoPlugins | **repointed** | [#104](https://github.com/KooshaPari/PhenoPlugins/pull/104) merged |
-| phenotype-gfx | pending | — |
-| Civis | pending | — |
-| phenotype-teamcomm | pending | — |
+| phenotype-gfx | **repointed** | [#13](https://github.com/KooshaPari/phenotype-gfx/pull/13) |
+| Civis | **repointed** | [#581](https://github.com/KooshaPari/Civis/pull/581) |
+| phenotype-teamcomm | **verified-clean** | [#2](https://github.com/KooshaPari/phenotype-teamcomm/pull/2) manifest doc |
 | phenotype-go-sdk | pending | — |

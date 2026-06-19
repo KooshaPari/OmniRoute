@@ -8,5 +8,5 @@
   "path": "repos/Planify",
   "disposition": "RETIRE",
   "wave": "surface-reduction-1",
-  "note": "Upstream-maintained fork — archived 2026-06-18; no local delta"
+  "note": "Upstream-maintained fork — archived (verified `isArchived: true` 2026-06-19); BOUNDARY_OWNERS 5/5; no local delta"
 }

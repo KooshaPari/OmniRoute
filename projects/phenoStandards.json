@@ -10,5 +10,5 @@
   "disposition": "RETIRE",
   "wave": "surface-reduction-2",
   "absorbed_into": "HexaKit",
-  "absorption_note": "Empty skeleton absorbed into HexaKit root/.github/.template.* (2026-06-16); repo 404 — registry stub only"
+  "absorption_note": "Empty skeleton absorbed into HexaKit root/.github/.template.* (2026-06-16); repo 404 confirmed 2026-06-19 — registry stub only; BOUNDARY_OWNERS 5/5; no archive step"
 }

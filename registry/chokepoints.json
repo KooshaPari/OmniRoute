@@ -127,11 +127,12 @@
       "blocks_archive": "pheno",
       "repoint_to": ["phenotype-types"],
       "interim_staging": "phenoShared",
-      "status": "verified-clean",
+      "status": "repointed",
       "wave": "W18b",
       "adr": "ADR-ECO-014",
-      "verified_at": "2026-06-19",
-      "note": "Manifest scan (Cargo.toml/go.mod): no KooshaPari/pheno or phenoShared git pins on main"
+      "repointed_at": "2026-06-19",
+      "pr": "KooshaPari/phenotype-gfx#13",
+      "note": "Fleet manifest: sister-repo CI retired + `crates/phenotype-voxel` compat shim; W18b pheno scan verified-clean"
     },
     {
       "id": "phenotype-gfx-pr-10-merge",
@@ -151,22 +152,24 @@
       "blocks_archive": "pheno",
       "repoint_to": ["phenotype-config", "phenotype-types", "Authvault"],
       "interim_staging": "phenoShared",
-      "status": "verified-clean",
+      "status": "repointed",
       "wave": "W18b",
       "adr": "ADR-ECO-014",
-      "verified_at": "2026-06-19",
-      "note": "Manifest scan: no KooshaPari/pheno or phenoShared git pins on main"
+      "repointed_at": "2026-06-19",
+      "pr": "KooshaPari/Civis#581",
+      "note": "Fleet manifest: `phenotype-voxel` git dep → phenotype-gfx compat crate; W18b pheno scan verified-clean (phenoShared workflow delegates separate lane)"
     },
     {
       "id": "phenotype-teamcomm",
       "blocks_archive": "pheno",
       "repoint_to": ["phenotype-types", "Eventra"],
       "interim_staging": "phenoShared",
-      "status": "verified-clean",
+      "status": "repointed",
       "wave": "W18b",
       "adr": "ADR-ECO-014",
-      "verified_at": "2026-06-19",
-      "note": "Manifest scan: no KooshaPari/pheno or phenoShared git pins on main"
+      "repointed_at": "2026-06-19",
+      "pr": "KooshaPari/phenotype-teamcomm#2",
+      "note": "W18b manifest scan pass documented; no pheno/phenoShared git pins in Cargo.toml"
     },
     {
       "id": "phenotype-go-sdk",

@@ -9,5 +9,5 @@
   "disposition": "RETIRE",
   "wave": "surface-reduction-1",
   "redirect": "PhenoMCPServers/servers/external/",
-  "note": "Upstream-maintained MCP fork — archived 2026-06-18"
+  "note": "Upstream-maintained MCP fork — archived (verified `isArchived: true` 2026-06-19); redirect PhenoMCPServers/servers/external/; BOUNDARY_OWNERS 5/5"
 }

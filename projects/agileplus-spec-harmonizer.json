@@ -10,5 +10,5 @@
   "disposition": "ABSORB",
   "wave": "surface-reduction-2",
   "redirect": "AgilePlus/crates/agileplus-spec-harmonizer",
-  "note": "Absorbed AgilePlus#756; source repo deleted (404); 12/12 tests"
+  "note": "Absorbed AgilePlus#756; source repo deleted (404 post-absorb 2026-06-18); BOUNDARY_OWNERS 5/5; `gh repo archive` N/A"
 }
