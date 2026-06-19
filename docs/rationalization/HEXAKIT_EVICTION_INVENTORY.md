@@ -118,13 +118,30 @@ PO `phenotype-health-axum` / `phenotype-health-cli` remain PO-only runtime layer
 
 **Deferred (API diverge — still workspace members):**
 
-- `phenotype-contracts`, `libs/phenotype-config-core`, `phenotype-validation`, `phenotype-string` — `phenotype-core` re-exports blocked; `phenotype-validation` and `phenotype-string` blocked further by Pyron submodule fetch failure (`Apisync` missing `.gitmodules` URL).
+- ~~`phenotype-contracts`~~ — resolved Wave 13 (#264)
+- ~~`phenotype-validation`, `phenotype-string`~~ — resolved Phase 3 Wave A/B (#271) + phenoShared E2a
+- ~~`libs/phenotype-config-core`~~ — resolved Phase 4 wave 5 (#276): phenoShared git pin; `phenotype-core::config` trait re-exports
 
 **Keep in HexaKit short-term (scaffold-adjacent):**
 
 - `crates/hexakit-cli`
 - `crates/phenotype-contract-tests` (template CI harness)
-- `libs/nexus`, `libs/phenotype-config-core` (bootstrap only)
+- ~~`libs/nexus`, `libs/phenotype-config-core` (bootstrap only)~~ — nexus excluded Wave H (#269); config-core evicted wave 5 (#276)
+
+### Phase 4 wave 5 (2026-06-19) — config-core + stub prune tail
+
+| Crate / action | Action | PR |
+|----------------|--------|-----|
+| `phenotype-validation` | exclude + git dep → phenoShared | HexaKit #271 (task #57) |
+| `phenotype-string` | exclude + git dep → phenoShared | HexaKit #271 (task #58) |
+| `libs/phenotype-config-core` | exclude + git dep → phenoShared (H14 interim) | HexaKit #276 (task #59) |
+| `phenotype-core` config re-exports | trait API align (`ConfigLoader`, `Priority`) | HexaKit #276 (task #56) |
+| Stub prune tail | phenotype-string orphan src, config-core duplicate, sentry-config tree removed | HexaKit #276 (tasks #62, #64) |
+| `phenotype-sentry-config` tree | removed post-PO #168 absorb | HexaKit #276 (task #64) |
+
+**Workspace audit (task #70):** 15 members, 52 excluded — scaffold-only target approaching.
+
+**Org grep checkpoint (task #68):** zero new `KooshaPari/HexaKit` path deps in fleet manifests (2026-06-19); see `docs/disposition/hexakit-path-deps-checkpoint-2026-06-19.md`.
 
 ---
 
