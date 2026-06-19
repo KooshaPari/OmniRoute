@@ -165,6 +165,7 @@ DELETE archived repo  IFF:
 | TestingKit | SDK slice only; testing plane split open | KEEP_ARCHIVED (revised) |
 | PhenoProc | 2–3 partial (#79 open, scan pending) | HOLD DELETE after gate |
 | McpKit | 1 yes (PhenoFastMCP/PhenoMCPServers/substrate per ADR-017), 2 done (SUPERSEDED_PARITY × 5: Rust framework→PhenoFastMCP-rust, Py framework→PhenoFastMCP, impls→PhenoMCPServers, runtime→substrate, AgentMCP→Agentora), 3 done (catalog/registry.yaml), 4 done (PhenoMCPServers `mcp-server` template + python-sdk `[connect]`), 5 yes (registry.yaml explicit retirement row + PhenoMCPServers catalog) | **DELETE after registry#156 merge** — Go/TS SDK scaffold-only = NO_MERIT, no absorption target |
+| phenoShared | 1 yes (DOMAIN_ROLES per ADR-ECO-014), 2 done (P4 decompose), 3 **fail** (15 fleet git deps post–HexaKit#277), 4 partial (slice owners landed; generic contracts interim), 5 **fail** (11 HexaKit interim pins + PO/ResilienceKit/python-sdk) | **HOLD DELETE** — archive only after zero-dep; never hard-delete without explicit policy |
 
 ---
 

@@ -13,7 +13,7 @@ Per `BOUNDARY_OWNERS.md` 5-check gate. **Never delete TestingKit or phenoShared.
 | X-07 | phenotype-runs | **MERGED** | #10 surface-reduction retirement README |
 | X-08 | phenotype-dep-guard | **MERGED** | #54 PolicyStack absorption |
 | X-09 | AuthKit | **ARCHIVED** | BOUNDARY_OWNERS 5/5; AuthKit#118 fold merged; Tracera/thegent verified-clean; `gh repo archive` 2026-06-18 |
-| X-10 | phenoShared | **NO DELETE** | P4 decompose incomplete per ADR-ECO-014 |
+| X-10 | phenoShared | **HOLD DELETE** | P4 decompose done; 15 fleet git deps remain post–HexaKit#277 wave 5 partial drain |
 
 ## Surface reduction batch 1+2 closeout (Phase 4 tasks 71–80, 2026-06-19)
 
@@ -64,3 +64,17 @@ Per `BOUNDARY_OWNERS.md` 5-check gate.
 | 5. Unique slice | None — vendored contracts + pheno-mcp dropped; MIGRATED.md stubs retained |
 | cargo check | green post Pyron PR merge |
 | Archive action | `gh repo archive KooshaPari/Pyron` pending merge |
+
+## phenoShared archive gate (P4 — 2026-06-19, post–wave 5)
+
+Per `BOUNDARY_OWNERS.md` 5-check gate. **Never hard-delete phenoShared** without explicit policy; prefer archive after zero-dep.
+
+| Check | Result |
+|-------|--------|
+| 1. Canonical owners named | DOMAIN_ROLES owners per ADR-ECO-014 (`phenotype-types`, `phenotype-config`, `PhenoObservability`, `Eventra`, `Authvault`, `Agentora`, `phenotype-resilience`, `phenotype-rust-sdk` target) |
+| 2. Inbound absorptions | P4 decompose complete — `repo-phenoshared` `fsm: done`; contracts slices 2–4 on role owners |
+| 3. Outbound consumers | **FAIL** — 15 production git deps on `KooshaPari/phenoShared` (11 HexaKit, 2 PO, 1 ResilienceKit, 1 python-sdk); 0 go.mod deps |
+| 4. Scaffold hooks | Partial — terminal owners carry slice crates; generic `Contract` + utils interim on phenoShared |
+| 5. Unique slice | **FAIL** — 11 HexaKit interim pins + fleet `phenotype-error-core`/`phenotype-contracts` pins |
+| HexaKit wave 5 | **Partial** — [HexaKit#277](https://github.com/KooshaPari/HexaKit/pull/277) merged @ `7ff8051`; 7 pins drained, 11 remain (wave 5b) |
+| Archive action | **Deferred** — `gate-phenoshared` stays `fsm: hold`; `gh repo archive` blocked until zero-dep |

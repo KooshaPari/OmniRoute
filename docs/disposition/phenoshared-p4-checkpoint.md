@@ -1,6 +1,6 @@
 # phenoShared P4 decompose checkpoint (D-06) — Lane D closeout
 
-**Date:** 2026-06-19  
+**Date:** 2026-06-19 (zero-dep audit refresh post–HexaKit wave 5)  
 **ADR:** [ADR-ECO-014-phenoshared-decompose](../adrs/ADR-ECO-014-phenoshared-decompose.md)  
 **Authority:** phenotype-registry `registry/disposition-index.json`
 
@@ -9,7 +9,7 @@
 | Gate | Status | Evidence |
 |------|--------|----------|
 | 1. All disposition-index crate rows relocated to DOMAIN_ROLES owners | **done** | Row #11 contracts decompose complete; Wave H #1 analytics + #51 nexus done |
-| 2. Zero external git/path deps on `KooshaPari/phenoShared` | **partial** | Interim HexaKit git pins remain (ADR-ECO-014 tolerated staging); audit below |
+| 2. Zero external git/path deps on `KooshaPari/phenoShared` | **partial** | HexaKit#277 drained 7 pins; 11 HexaKit + 4 fleet git deps remain (audit below) |
 | 3. pheno archive gate | **done** | `KooshaPari/pheno` archived 2026-06-19; W18b fleet chokepoints closed |
 
 **Verdict:** `repo-phenoshared` → `fsm: done` (decompose complete). `gate-phenoshared` → `fsm: hold` (DELETE blocked until fleet interim pins drained).
@@ -56,17 +56,29 @@
 
 ## Zero-dep audit — fleet git/path deps on `KooshaPari/phenoShared`
 
-Org grep (`gh search code`) + local fleet mirror sweep 2026-06-19.
+Org grep (`gh search code` in `Cargo.toml`/`go.mod`, KooshaPari org) 2026-06-19 post–HexaKit wave 5 (#277 @ `7ff8051`).
+
+**Excluded from consumer count:** phenoShared self (`repository` metadata), phenoShared-niche (sibling fork metadata), phenotype-registry `components.lock` (fleet stamp), phenotype-python-sdk data-kit comment-only refs, governance/audit docs.
+
+### Wave 5 drained (HexaKit#277 — no longer on phenoShared)
+
+| Pin | Terminal owner |
+|-----|----------------|
+| `phenotype-http-client-core`, `phenotype-state-machine`, `phenotype-policy-engine` | ResilienceKit |
+| `phenotype-auth-contracts`, `phenotype-security-aggregator` | Authvault |
+| `phenotype-event-contracts` | Eventra |
+| `phenotype-agent-contracts` | Agentora |
 
 ### Active Cargo git dependencies (production)
 
 | Repo | Crates git-pinned | Classification |
 |------|-------------------|----------------|
-| **HexaKit** | `phenotype-event-bus`, `phenotype-event-sourcing`, `phenotype-http-client-core`, `phenotype-time`, `phenotype-state-machine`, `phenotype-policy-engine`, `phenotype-security-aggregator`, `phenotype-async-traits`, `phenotype-macros`, `phenotype-health`, `phenotype-cache-adapter`, `phenotype-contracts`, `phenotype-iter`, `phenotype-string`, `phenotype-validation` | **Interim staging** — HexaKit wave 5+ eviction target |
-| **PhenoObservability** | `phenotype-error-core` (root + `rust/`) | **Interim** — drain to `phenotype-types` |
-| **Pyron** | `stashly` | **Blocked** — repo archived; repoint pending |
-| **Tracera** | `phenotype-error-core` | **Interim** — python-sdk#97 done; rust pin drain deferred |
-| **phenotype-python-sdk** | `packages/resilience-kit/rust` references phenoShared (docs/pin) | **Interim** — ResilienceKit#2/#3 merged |
+| **HexaKit** | `phenotype-event-bus`, `phenotype-event-sourcing`, `phenotype-time`, `phenotype-async-traits`, `phenotype-macros`, `phenotype-health`, `phenotype-cache-adapter`, `phenotype-contracts`, `phenotype-iter`, `phenotype-string`, `phenotype-validation`, `phenotype-config-core` | **Interim staging** — wave 5b eviction target |
+| **PhenoObservability** | `phenotype-error-core` (root `Cargo.toml` + `rust/Cargo.toml`) | **Interim** — drain to `phenotype-types` |
+| **ResilienceKit** | `phenotype-contracts` (generic `Contract` trait slice) | **Interim** — slice 2–4 on role owners; generic trait pending |
+| **phenotype-python-sdk** | `phenotype-contracts` (`packages/resilience-kit/rust/Cargo.toml`) | **Interim** — P4 slice 1 generic contracts |
+
+**go.mod:** 0 production `KooshaPari/phenoShared` git deps (org search clean).
 
 ### Path dependencies (local only — not fleet production)
 
@@ -77,12 +89,24 @@ Org grep (`gh search code`) + local fleet mirror sweep 2026-06-19.
 ### Non-dependency references (docs, lock, governance)
 
 - `phenotype-registry/registry/components.lock` — fleet stamp (meta, not consumer dep)
-- `phenoShared-niche` — sibling fork; not phenoShared consumer
+- `phenoShared-niche` — sibling fork; `repository` field only
 - Governance/audit docs in `phenotype-org-governance`, `phenokits-commons`, `AgilePlus` kitty-specs
+
+### Wave 5b blockers (remaining HexaKit pins)
+
+| Pin | Blocker |
+|-----|---------|
+| `phenotype-event-bus`, `phenotype-event-sourcing` | Not on Eventra `main` (contracts slice only) |
+| `phenotype-time` | Not on `phenotype-types` / `phenotype-config` `main` |
+| `phenotype-async-traits`, `phenotype-macros` | `phenotype-rust-sdk` repo absent |
+| `phenotype-health` | PO `HealthCheck` API ≠ phenoShared `HealthChecker` traits |
+| `phenotype-cache-adapter` | archive-if-unused stub |
+| `phenotype-contracts` | Generic `Contract` trait interim |
+| `phenotype-iter`, `phenotype-string`, `phenotype-validation`, `phenotype-config-core` | phenoShared `main` only |
 
 ### Zero-dep conclusion
 
-**No new external consumers** introduced since P3 closeout. Remaining git pins are **documented interim staging** per ADR-ECO-014. Full zero-dep requires HexaKit wave 5+ git-pin eviction (Phase 4 tasks 56–70 backlog).
+**15 production git deps** across 4 repos (11 HexaKit + 2 PO + 1 ResilienceKit + 1 python-sdk). **Not zero-dep** — `gate-phenoshared` remains `fsm: hold`. Archive deferred per BOUNDARY_OWNERS (prefer archive only after zero-dep confirmed; hard delete never without explicit policy).
 
 ---
 
@@ -94,7 +118,7 @@ Org grep (`gh search code`) + local fleet mirror sweep 2026-06-19.
 | `#11 phenotype-contracts` | relocating | **done** | All 4 slices terminal owners landed |
 | `#1 phenotype-analytics` | done | done | HexaKit#269 |
 | `#51 libs/nexus` | done | done | HexaKit#269 |
-| `gate-phenoshared` | hold | **hold** | P4 complete; DELETE hold until interim pins drained |
+| `gate-phenoshared` | hold | **hold** | P4 complete; wave 5 partial (7/18 pins drained); 15 fleet git deps remain |
 | `gw-phenolang` | done | done | phenoUtils canonical |
 | `gw-phenotype-gateway` | done | done | phenotype-gateway#12 |
 
