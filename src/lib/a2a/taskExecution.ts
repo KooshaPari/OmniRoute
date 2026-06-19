@@ -41,6 +41,11 @@ export const A2A_SKILL_HANDLERS: Record<string, A2ASkillHandler> = {
     const skillModule = await import("./skills/agentDispatch");
     return skillModule.executeAgentDispatch(task);
   },
+
+  "mint-virtual-key": async (task) => {
+    const skillModule = await import("./skills/mintVirtualKey");
+    return skillModule.executeMintVirtualKey(task);
+  },
 };
 
 /**
