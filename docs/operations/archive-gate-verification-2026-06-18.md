@@ -5,7 +5,7 @@ Per `BOUNDARY_OWNERS.md` 5-check gate. **Never delete TestingKit or phenoShared.
 | ID | Repo | Verdict | Evidence |
 |----|------|---------|----------|
 | X-01 | ObservabilityKit | **TOMBSTONE** | Repo 404; SDK listing cleanup in disposition-index |
-| X-02 | Metron | **ARCHIVE pending** | Active repo; PO `metrickit` consumer repoint closed HexaKit#244/#251 |
+| X-02 | Metron | **TOMBSTONE** | Repo 404 (2026-06-19); absorbed `crates/metrickit` in PO #157; HexaKit#244/#251 eviction merged |
 | X-03 | Traceon | **KEEP_ARCHIVED** | `isArchived: true`; redirect docs in PO |
 | X-04 | ResilienceKit | **KEEP_ARCHIVED** | Active; python-sdk impl gate open |
 | X-05 | TestingKit | **HOLD DELETE** | AFFIRM Block-C; absorption target — gate not triggered |
@@ -17,7 +17,7 @@ Per `BOUNDARY_OWNERS.md` 5-check gate. **Never delete TestingKit or phenoShared.
 
 ## Actions taken
 
-- AuthKit archived 2026-06-18 (X-09 gate pass); Metron archive gate still open
+- AuthKit archived 2026-06-18 (X-09 gate pass); Metron tombstoned 2026-06-19 (repo 404 post-absorption; `gh repo archive` N/A)
 - Registry rows updated in disposition-index batch PR
 - **KooshaPari/pheno archived 2026-06-19** — W18b fleet manifest scan: 0 external `KooshaPari/pheno` git deps in consumer Cargo.toml/go.mod (gh search + fleet pull verify); chokepoints all `repointed` or `verified-clean`; registry closeout PR
 
