@@ -67,7 +67,7 @@ Smoke infra: [phenotype-gateway #6](https://github.com/KooshaPari/phenotype-gate
 | argis-extensions | `0419dcf` | `go build ./...` | **pass** | graphql/gen committed argis-extensions#82 |
 | bifrost/transports | `9c0d904` | `go build ./...` in `transports/` | **pass** | UI embed stub bifrost#9; monorepo replaces bifrost#10 |
 
-**Summary:** 4/4 Go plane smokes pass at H9 pins (2026-06-19). Promotion gates unblocked; physical copy to `packages/` remains ordered per [PROMOTION.md](https://github.com/KooshaPari/phenotype-gateway/blob/master/docs/PROMOTION.md).
+**Summary:** 4/4 Go plane smokes pass at H9 pins (2026-06-19). **H10 absorption complete** — anchor boundaries in `packages/*` per [ABSORPTION.md](https://github.com/KooshaPari/phenotype-gateway/blob/master/docs/ABSORPTION.md) (phenotype-gateway #14–#16).
 
 ## Spike status (2026-06-19)
 
@@ -77,31 +77,30 @@ Smoke infra: [phenotype-gateway #6](https://github.com/KooshaPari/phenotype-gate
 | `spikes/go/cliproxy` | **pass** @ `54102578` |
 | `spikes/go/bifrost` | **pass** @ `9c0d904` (`transports/`) |
 | `spikes/go/argis` | **pass** @ `0419dcf` |
-| `spikes/rust/router` | **H10 in progress** — `ComboVariant` (6 auto-combo variants); phenotype-gateway#14 |
+| `spikes/rust/router` | **pass** — `ComboVariant` + HTTP delegate; phenotype-gateway#14–#16 |
 | `spikes/zig/router` | README scaffold (#3); alt path |
 
 ## Promotion evaluation — `packages/agentapi` (Phase 4 task 10)
 
-**Verdict:** **Eligible** — ≥80% parity met; smoke green at pin `5ae7736`. Physical re-home deferred until cliproxy dry-run completes (recommended order in phenotype-gateway `PROMOTION.md`).
+**Verdict:** **Promoted (anchor)** — ≥80% parity; smoke green; absorption boundary in `packages/agentapi` (H10).
 
 | Criterion | Result | Evidence |
 |-----------|--------|----------|
-| ≥80% feature mapping | **95%** (9.5/10) | agentapi++ [PRD Features 1–10](https://github.com/KooshaPari/agentapi-plusplus/blob/main/PRD.md): all core agent-terminal features mapped; Feature 10 (cliproxy++/MCP peer integration) partial by design — ownership stays in cliproxy++/bifrost |
-| Global matrix rows owned | **1 primary + 2 partial** | HTTP agent control (primary); Auth/OAuth, MCP (partial) |
-| H9 smoke | **pass** | `spikes/go/agentapi` @ `5ae7736`; agentapi-plusplus#540 |
-| `packages/agentapi` state | **stub** | README-only promotion target; submodule remains canonical until dry-run copy PR |
+| ≥80% feature mapping | **95%** (9.5/10) | agentapi++ PRD Features 1–10 mapped |
+| H9 smoke | **pass** | `5ae7736`; agentapi-plusplus#540 |
+| `packages/agentapi` state | **anchor** | PIN/BOUNDARY + smoke; submodule canonical (#14–#16) |
 
-**Next step:** cliproxy++ → `packages/cliproxy` dry-run first; then agentapi copy PR with unchanged submodule pin contract.
-
-## H10 promotion anchors (phenotype-gateway #14)
+## H10 absorption closeout (phenotype-gateway #14–#16)
 
 | Package | State | Evidence |
 |---------|-------|----------|
-| `packages/cliproxy` | **anchor** | PIN/BOUNDARY + smoke target; submodule canonical |
-| `packages/agentapi` | **anchor** | PIN/BOUNDARY + smoke target; submodule canonical |
-| `packages/bifrost` | **anchor** | PIN/BOUNDARY + smoke target; vendor fork canonical |
-| `packages/argis` | **anchor** | PIN/BOUNDARY + smoke target; plugin fork canonical |
-| `packages/router` | **in progress** | `ComboVariant` + re-export spike lib; cargo tests pass |
+| `packages/cliproxy` | **anchor** | PIN/BOUNDARY + smoke (#14, #15) |
+| `packages/agentapi` | **anchor** | PIN/BOUNDARY + smoke (#14) |
+| `packages/bifrost` | **anchor** | PIN/BOUNDARY + smoke (#15) |
+| `packages/argis` | **anchor** | PIN/BOUNDARY + smoke (#15) |
+| `packages/router` | **delegate** | ComboVariant + HTTP delegate to cliproxy `/v1/chat/completions` (#16) |
+
+Absorption model: submodule canonical, gateway owns boundaries — [ABSORPTION.md](https://github.com/KooshaPari/phenotype-gateway/blob/master/docs/ABSORPTION.md).
 
 OmniRoute desktop spike docs merged ([#74](https://github.com/KooshaPari/OmniRoute/pull/74)) per ADR-ECO-015.
 
@@ -116,4 +115,4 @@ OmniRoute desktop spike docs merged ([#74](https://github.com/KooshaPari/OmniRou
 - [x] CI scaffold: single checkout + recursive submodules (#5)
 - [x] Go smoke infra: scripts + CI matrix + spike smoke stubs (phenotype-gateway #6)
 - [x] disposition-index `fsm: done` with PR ref (Wave H gateway batch 2026-06-18 — bifrost#6, phenotype-gateway#2#3#4#5#6#12, go-sdk#17, cliproxy#1025#1026)
-- [x] Spike passes build + smoke test in `spikes/go/` (4/4 pass at H9 pins — 2026-06-19)
+- [x] H10 absorption boundaries in `packages/*` (anchor model — phenotype-gateway #14–#16)
