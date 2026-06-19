@@ -145,12 +145,29 @@ PO `phenotype-health-axum` / `phenotype-health-cli` remain PO-only runtime layer
 
 ---
 
-## Wave 5 — phenoShared git pin drain (2026-06-19)
+## Wave 5b — phenoShared git pin drain complete (2026-06-19)
 
-HexaKit branch `feat/wave5-phenoshared-pin-drain` — drain interim `phenoShared` workspace git pins to
-terminal DOMAIN_ROLES owners per ADR-ECO-014; `gate-phenoshared` DELETE hold retained until remaining pins cleared.
+HexaKit `feat/wave5b-phenoshared-drain` → merged **HexaKit#278** @ `d83d1ca`.  
+**Zero** `KooshaPari/phenoShared` git pins remain in `HexaKit/Cargo.toml` workspace.dependencies.
 
-### Drained (verified on owner `main` via `gh`)
+### Wave 5b drained (verified on owner `main` via `cargo check -p phenotype-core`)
+
+| Pin | Terminal owner | Repo path |
+|-----|----------------|-----------|
+| `phenotype-event-bus` | Eventra | `rust/phenotype-event-bus` (Eventra#21) |
+| `phenotype-event-sourcing` | Eventra | `rust/phenotype-event-sourcing` (Eventra#21) |
+| `phenotype-time` | phenotype-types | `crates/phenotype-time` (phenotype-types#2) |
+| `phenotype-iter` | phenotype-types | `crates/phenotype-iter` (phenotype-types#2) |
+| `phenotype-string` | phenotype-types | `crates/phenotype-string` (phenotype-types#2) |
+| `phenotype-validation` | phenotype-types | `crates/phenotype-validation` (phenotype-types#2) |
+| `phenotype-config-core` | phenotype-config | `crates/phenotype-config-core` (phenotype-config#4) |
+| `phenotype-async-traits` | phenotype-rust-sdk | `crates/phenotype-async-traits` (new repo) |
+| `phenotype-macros` | phenotype-rust-sdk | `crates/phenotype-macros` (new repo) |
+| `phenotype-contracts` | phenotype-rust-sdk | `crates/phenotype-contracts` (new repo) |
+| `phenotype-health` | ResilienceKit | `crates/phenotype-health` (`HealthChecker` API; PO runtime differs) |
+| `phenotype-cache-adapter` | HexaKit genesis | `libs/phenotype-cache-adapter` path stub (archive-if-unused) |
+
+### Wave 5a drained (HexaKit#277)
 
 | Pin | Terminal owner | Repo path |
 |-----|----------------|-----------|
@@ -162,19 +179,7 @@ terminal DOMAIN_ROLES owners per ADR-ECO-014; `gate-phenoshared` DELETE hold ret
 | `phenotype-agent-contracts` | Agentora | `rust/phenotype-agent-contracts` |
 | `phenotype-security-aggregator` | Authvault | `authkit/rust/phenotype-security-aggregator` |
 
-### Remaining phenoShared interim pins
-
-| Pin | Blocker |
-|-----|---------|
-| `phenotype-event-bus`, `phenotype-event-sourcing` | Not on Eventra `main` (contracts slice only) |
-| `phenotype-time` | Not on `phenotype-types` / `phenotype-config` `main` |
-| `phenotype-async-traits`, `phenotype-macros` | `phenotype-rust-sdk` repo absent |
-| `phenotype-health` | PO `HealthCheck` API ≠ phenoShared `HealthChecker` traits |
-| `phenotype-cache-adapter` | archive-if-unused stub — phenoShared until absorb |
-| `phenotype-contracts` | Generic `Contract` trait interim |
-| `phenotype-iter`, `phenotype-string`, `phenotype-validation` | phenoShared `main` only |
-
-**Verification:** `cargo check -p phenotype-core` green post-repoint.
+**Verification:** `cargo check -p phenotype-core` green; `rg 'KooshaPari/phenoShared' Cargo.toml` → 0 workspace git pins.
 
 ---
 
