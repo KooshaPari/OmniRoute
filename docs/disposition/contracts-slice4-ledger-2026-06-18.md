@@ -2,18 +2,19 @@
 
 **Date:** 2026-06-18  
 **Row:** #11 `crates/phenotype-contracts`  
-**FSM:** `relocating` (unchanged — slice 3 pending; row #11 close blocked until consumers repoint)
+**FSM:** `relocating` (unchanged — row #11 close blocked until all slices + consumer repoints land)
 
 ## Slice 4 progress
 
 | Item | Status | Evidence |
 |------|--------|----------|
-| HTTP/agent adapter contract traits landed in Agentora | **done** | Agentora `rust/phenotype-agent-contracts` — PR pending |
+| HTTP/agent adapter contract traits landed in Agentora | **done** | Agentora#92 merged @ `e92a823` — `rust/phenotype-agent-contracts` |
 | Disposition doc | **done** | Agentora `docs/disposition/p4-contracts-slice4-agent-http.md` |
-| Consumer repoint: substrate MCP plane | **pending** | Git-pin `phenotype-agent-contracts` from Agentora |
-| Consumer repoint: Agentora domain ports | **pending** | Re-export from contracts crate (future slice) |
+| Consumer repoint: substrate MCP plane | **pending** | Git-pin `phenotype-agent-contracts` from Agentora (substrate `EnginePort` adjacency) |
+| Consumer repoint: Pyron vendored contracts | **blocked** | Branch `p4/repoint-phenotype-contracts-phenoshared` ready locally; **Pyron repo archived (read-only)** |
+| Consumer repoint: Pyron pheno-mcp vendored drop | **blocked** | Wave F tail ready locally (MIGRATED.md retained); push blocked — Pyron archived |
 | phenoShared interim generic traits | **unchanged** | Slice 1 — `Contract`/`Event`/`MetricsHook` remain interim SSOT |
-| Row #11 FSM close | **blocked** | Event/bus slice 3 (Eventra) not landed; consumer repoints pending |
+| Row #11 FSM close | **blocked** | Slices 2–4 partial; consumer repoints + phenoShared interim drain pending |
 
 ## Decompose status (row #11)
 
@@ -21,8 +22,8 @@
 |-------|--------|----------------|--------|
 | 1 | Port traits / generic contracts | phenoShared (interim) | in_progress — HexaKit#264 |
 | 2 | Auth / policy contracts | **Authvault** | **partial done** — Authvault#88 |
-| 3 | Event / bus contracts | Eventra | pending |
-| 4 | HTTP/agent adapters | **Agentora** / substrate | **partial done** — Agentora PR pending |
+| 3 | Event / bus contracts | Eventra | **partial done** — Eventra#19 |
+| 4 | HTTP/agent adapters | **Agentora** / substrate | **partial done** — Agentora#92 @ `e92a823` |
 
 ## Traits extracted (slice 4)
 
@@ -40,7 +41,7 @@
 Proposed `note` append (do not flip `fsm` until all slices land):
 
 ```
-Decompose per contracts-decompose-plan.md; slice 4 HTTP/agent adapters → Agentora rust/phenotype-agent-contracts (Agentora PR pending)
+Decompose per contracts-decompose-plan.md; slice 4 HTTP/agent adapters → Agentora rust/phenotype-agent-contracts (Agentora#92 @ e92a823); Pyron repoint blocked (archived)
 ```
 
 ## References

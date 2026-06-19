@@ -13,7 +13,7 @@
 | — InMemory adapters | HexaKit `phenotype-contract-adapters` | — | done |
 | 2 — Auth / policy contracts | **Authvault** | [consumer manifest § Next slices](./phenotype-contracts-consumer-manifest.md#next-slices-domain_roles-terminal-owners) | **partial** — Authvault#88 |
 | 3 — Event / bus contracts | **Eventra** | [consumer manifest § Next slices](./phenotype-contracts-consumer-manifest.md#next-slices-domain_roles-terminal-owners) | **partial** — Eventra#19 |
-| 4 — HTTP/event adapters | **Agentora** / substrate | [consumer manifest § Next slices](./phenotype-contracts-consumer-manifest.md#next-slices-domain_roles-terminal-owners) | **partial** — Agentora PR pending |
+| 4 — HTTP/event adapters | **Agentora** / substrate | [consumer manifest § Next slices](./phenotype-contracts-consumer-manifest.md#next-slices-domain_roles-terminal-owners) | **partial done** — Agentora#92 @ `e92a823` |
 
 Slice 1 interim pin: [HexaKit#264](https://github.com/KooshaPari/HexaKit/pull/264).
 
