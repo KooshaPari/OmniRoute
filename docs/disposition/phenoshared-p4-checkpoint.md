@@ -96,6 +96,21 @@ Org grep (`gh search code` in `Cargo.toml`/`go.mod`, KooshaPari org) 2026-06-19 
 
 ---
 
+## phenoShared-niche sibling fork tombstone (2026-06-19)
+
+| Check | Result |
+|-------|--------|
+| Repo state (pre-action) | `isArchived: false`; public; created 2026-06-09; 11 niche crates in `crates/` |
+| Org manifest scan | **0 production git deps** on `KooshaPari/phenoShared-niche` in `Cargo.toml` / `go.mod` / `pyproject.toml` |
+| Non-dep refs | Self `repository` metadata; phenotype-registry governance docs; phenotype-apps worklog (historical) |
+| Fleet adoption | Never adopted — split planned tick24 but dependents repointed via P4 decompose instead |
+| Archive action | `gh repo archive KooshaPari/phenoShared-niche` 2026-06-19; `isArchived: true` verified |
+| Delete policy | **Archive only** — hard delete deferred per BOUNDARY_OWNERS |
+
+**Verdict:** `repo-phenoshared-niche` + `gate-phenoshared-niche` → `fsm: archived`.
+
+---
+
 ## FSM disposition summary
 
 | Row | Prior FSM | Closeout FSM | Note |
@@ -105,6 +120,8 @@ Org grep (`gh search code` in `Cargo.toml`/`go.mod`, KooshaPari org) 2026-06-19 
 | `#1 phenotype-analytics` | done | done | HexaKit#269 |
 | `#51 libs/nexus` | done | done | HexaKit#269 |
 | `gate-phenoshared` | hold | **delete-eligible** | Wave 5b fleet drain complete; 0 production git deps; archive gate 5/5 |
+| `repo-phenoshared-niche` | n/a | **archived** | Sibling fork; 11 niche crates; never fleet-adopted; 0 production git deps |
+| `gate-phenoshared-niche` | n/a | **archived** | Zero-dep confirmed 2026-06-19; `gh repo archive` confirmed `isArchived: true`; archive only per BOUNDARY_OWNERS |
 | `gw-phenolang` | done | done | phenoUtils canonical |
 | `gw-phenotype-gateway` | done | done | phenotype-gateway#12 |
 
