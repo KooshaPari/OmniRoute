@@ -1,7 +1,7 @@
 {
-  "version": "1.2.0",
+  "version": "1.2.1",
   "updated": "2026-06-18",
-  "description": "External dependents blocking relocation or archive. Repoint manifests to DOMAIN_ROLES canonical paths — not HexaKit monorepo paths (v2 charter). phenoShared is interim staging only (ADR-ECO-014); never a terminal repoint target.",
+  "description": "External dependents blocking relocation or archive. Repoint manifests to DOMAIN_ROLES canonical paths — not HexaKit monorepo paths (v2 charter). phenoShared is interim staging only (ADR-ECO-014); never a terminal repoint target. 2026-06-18: added phenotype-gfx-pr-10-merge chokepoint gating archive of 4 sister repos (L5-104.7, ADR-004 + ADR-031).",
   "chokepoints": [
     {
       "id": "Pyron",
@@ -130,6 +130,19 @@
       "status": "pending",
       "wave": "W18b",
       "adr": "ADR-ECO-014"
+    },
+    {
+      "id": "phenotype-gfx-pr-10-merge",
+      "type": "pr-merge",
+      "target_pr": "KooshaPari/phenotype-gfx#10",
+      "blocks_repos": ["phenotype-voxel", "phenotype-terrain", "phenotype-water", "phenotype-postfx"],
+      "blocks_action": "archive",
+      "status": "cleared",
+      "wave": "L5-104.7",
+      "adr": "ADR-004+ADR-031",
+      "cleared_at": "2026-06-18",
+      "merged_sha": "5380b2bd5a117f1d93e2641bb88d4dacc7a031ea",
+      "note": "PR #10 merged 2026-06-18 (sha 5380b2bd). 4 sister repos absorbed into KooshaPari/phenotype-gfx (311 tests pass, 18,957 lines migrated). All 4 source repos archived + deleted 2026-06-18 (delete_repo scope). Chokepoint CLEARED."
     },
     {
       "id": "Civis",
