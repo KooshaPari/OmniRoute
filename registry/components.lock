@@ -38,7 +38,7 @@
     "phenoShared": {
       "repo": "KooshaPari/phenoShared",
       "ref": "main",
-      "sha": "95d74795c77f7c554be2b5e42e8e3378cdab77bf"
+      "sha": "5f4647ef79f620f17b925070155827f3248daaa2"
     },
     "substrate": {
       "repo": "KooshaPari/substrate",
