@@ -8,7 +8,7 @@
   "path": "repos/McpKit",
   "disposition": "SUPERSEDE",
   "wave": "surface-reduction-1",
-  "redirect": "PhenoFastMCP + PhenoMCPServers + substrate + phenotype-python-sdk[connect]",
+  "redirect": "PhenoFastMCP + PhenoMCPServers + substrate + phenotype-python-sdk[connect] + phenotype-mcp-asset (Rust pack/asset handler extracted 2026-06-18)",
   "adr": "ADR-017",
   "note": "Archived 2026-06-18 per ADR-017; absorption complete registry#157 merged; DELETE-eligible per BOUNDARY_OWNERS 5/5 — hard delete deferred"
 }

@@ -32,9 +32,9 @@ Role split for the spec/governance spine (so indexes stop competing):
 
 | Role | Count | Repos |
 |------|-------|-------|
-| **shared-lib** | 21 | pheno, HexaKit, phenoShared, phenoUtils, Authvault, Tasken, Apisync, phenoObservability, PhenoPlugins, FocalPoint, PhenoVCS, Benchora, phenotype-auth-ts, phenotype-journeys, **phenotype-gfx** (single canonical graphics/visual substrate per ADR-004 + ADR-031; absorbs voxel/terrain/water/postfx via PR #10), Compound-Spheres-3D |
+| **shared-lib** | 22 | pheno, HexaKit, phenoShared, phenoUtils, Authvault, Tasken, Apisync, phenoObservability, PhenoPlugins, FocalPoint, PhenoVCS, Benchora, phenotype-journeys, **phenotype-gfx** (single canonical graphics/visual substrate per ADR-004 + ADR-031; absorbs voxel/terrain/water/postfx via PR #10), Compound-Spheres-3D, **phenotype-mcp-asset** (Rust pack/asset handler carved out of McpKit per ADR-003+ADR-017; pheno-*-lib per ADR-023, extracted 2026-06-18 — see registry#projects/phenotype-mcp-asset.json) |
 
-> **Note 2026-06-18**: `phenotype-auth-ts` was archived in this wave and absorbed into [AuthKit](https://github.com/KooshaPari/AuthKit) `typescript/packages/auth-ts/` (PR #120). The row above is stale pending the next rationalization update.|
+> **Note 2026-06-18**: `phenotype-auth-ts` was archived in this wave and absorbed into [AuthKit](https://github.com/KooshaPari/AuthKit) `typescript/packages/auth-ts/` (PR #120). The row above is stale pending the next rationalization update. **McpKit carve-out (2026-06-18)**: the Rust `phenotype-mcp-asset` lib was extracted from `McpKit/rust/phenotype-mcp-asset/` into [KooshaPari/phenotype-mcp-asset](https://github.com/KooshaPari/phenotype-mcp-asset) per ADR-003 + ADR-017. It now stands as a standalone `pheno-*-lib` (ADR-023 substrate rule).|
 | **SDK** | 8 | AuthKit, DataKit, ObservabilityKit, ResilienceKit, TestingKit, PlatformKit, PhenoKits, HexaKit |
 | **tooling** | 11 | AgilePlus, phenotype-dep-guard, phenotype-tooling, phenotype-infra, PhenoDevOps, Conft, agent-devops-setups, helioscope, Benchora, agileplus-spec-harmonizer, PhenoCompose |
 | **product / app** | 10 | Agentora, thegent, Tracera, AgilePlus, PlayCua, Dino, eyetracker, hwLedger, phenoRouterMonitor, slickport |

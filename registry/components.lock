@@ -97,6 +97,11 @@
       "ref": "main",
       "sha": "a5b4f7a799fa7c26166e1d0535c59e3639758cdb"
     },
+    "phenotype-mcp-asset": {
+      "repo": "KooshaPari/phenotype-mcp-asset",
+      "ref": "main",
+      "sha": "718edf808de6ab16f2f9602a763c5c7ac983fb22"
+    },
     "phenotype-tooling": { "repo": "KooshaPari/phenotype-tooling", "ref": "main" },
     "PhenoMCP": { "repo": "KooshaPari/PhenoMCP", "ref": "main" }
   }

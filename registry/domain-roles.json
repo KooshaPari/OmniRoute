@@ -17,6 +17,7 @@
     {"id": "py-sdk-index", "repo": "phenotype-python-sdk", "core_lang": null, "edge_langs": ["py"]},
     {"id": "mcp-framework", "repo": "PhenoFastMCP", "core_lang": "python", "edge_langs": ["go", "rust"], "supersedes": "PhenoMCP"},
     {"id": "mcp-servers", "repo": "PhenoMCPServers", "core_lang": "mixed", "edge_langs": []},
+    {"id": "mcp-asset", "repo": "phenotype-mcp-asset", "core_lang": "rust", "edge_langs": [], "extracted_from": "McpKit/rust/phenotype-mcp-asset", "extraction_date": "2026-06-18", "rationale": "ADR-003+ADR-017 — pure Rust asset/pack handler carved out of McpKit mega-repo as a standalone pheno-*-lib (ADR-023 substrate rule). Consumers: PhenoMCP, PhenoMCPServers."},
     {"id": "types", "repo": "phenotype-types", "core_lang": "rust", "edge_langs": ["py"]},
     {"id": "secrets", "repo": "Authvault", "core_lang": "rust", "edge_langs": []},
     {"id": "tooling", "repo": "phenotype-tooling", "core_lang": "rust", "edge_langs": [], "also": ["agileplus-spec-harmonizer"]},
