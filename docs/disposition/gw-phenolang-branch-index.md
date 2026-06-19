@@ -13,7 +13,7 @@
 | **keep** | 1 | `main` only — archived read-only reference |
 | **close** | 27 | Stale docs-site sprawl, absorbed hygiene, or landed fixes — no cherry-pick |
 
-Branch remote deletion is **blocked** while PhenoLang remains archived (GitHub read-only). Ledger verdicts are authoritative; physical sweep deferred until unarchive or repo delete gate.
+Remote branch sweep **complete 2026-06-19:** temporarily unarchived → deleted all 27 CLOSE remotes (20 `*/feat/docs-site` + 7 chore/fix) → re-archived; `main` retained as read-only reference.
 
 ## Branch ledger
 
@@ -52,7 +52,7 @@ Branch remote deletion is **blocked** while PhenoLang remains archived (GitHub r
 
 1. phenoUtils extraction index + 28-branch triage table merged (phenoUtils#63, phenoUtils#66).
 2. Registry branch ledger complete (phenotype-registry#174); disposition row `gw-phenolang` → `fsm: done` with phenoUtils pin in `components.lock` (phenotype-registry#189).
-3. Remote branch sweep **done 2026-06-19:** temporarily unarchived → deleted 20 `*/feat/docs-site` remotes → re-archived; `main` retained.
+3. Remote branch sweep **done 2026-06-19:** temporarily unarchived → deleted all 27 CLOSE remotes → re-archived; `main` retained (phenotype-registry#207, #208).
 
 ## References
 
