@@ -48,7 +48,7 @@
     "Authvault": {
       "repo": "KooshaPari/Authvault",
       "ref": "main",
-      "sha": "c9ba3a37186122f6e0b1755aedcfbb960ea8b669"
+      "sha": "7cfd8d7b13df92168b0514571222bc85b703a7f6"
     },
     "ResilienceKit": {
       "repo": "KooshaPari/ResilienceKit",

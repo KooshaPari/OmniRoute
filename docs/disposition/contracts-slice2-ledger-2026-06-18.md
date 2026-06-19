@@ -10,7 +10,8 @@
 |------|--------|----------|
 | Auth/policy contract traits landed in Authvault | **done** | [Authvault#88](https://github.com/KooshaPari/Authvault/pull/88) — `rust/phenotype-auth-contracts` |
 | Disposition doc | **done** | Authvault `docs/disposition/p4-contracts-slice2-auth-policy.md` |
-| Consumer repoint: `phenotype-python-sdk` auth-kit | **in_progress** | Drop vendored generic `phenotype-contracts`; git-pin `phenotype-auth-contracts` |
+| Consumer repoint: `phenotype-python-sdk` auth-kit | **done** | [python-sdk#22](https://github.com/KooshaPari/phenotype-python-sdk/pull/22) — vendored generic copy dropped; git-pin `phenotype-auth-contracts` |
+| `components.lock` Authvault SHA | **done** | `7cfd8d7` (Authvault#88 merge) |
 | phenoShared interim generic traits | **unchanged** | Slice 1 — `Contract`/`Event`/`MetricsHook` remain interim SSOT |
 | Row #11 FSM close | **blocked** | Event/bus slice 3 (Eventra) + HTTP/agent slice 4 (Agentora) not landed |
 
