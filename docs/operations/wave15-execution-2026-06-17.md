@@ -124,4 +124,5 @@ Gateway fork lanes **G15–G17 complete** (other agent). Registry disposition-in
 11. ~~**Paginary G19**~~ — done ([gw-paginary-branch-index.md](../disposition/gw-paginary-branch-index.md); RETIRE out-of-fleet)
 12. ~~**phenoShared P4 gate**~~ — done (wave 5b drain HexaKit#278; `KooshaPari/phenoShared` archived)
 13. ~~**AgilePlus Lane J**~~ — done (`agileplus-domain` + `agileplus-events` on AgilePlus; Agentora staging removed)
-14. **Registry L7** — open [#244](https://github.com/KooshaPari/phenotype-registry/pull/244) intent/boundary salvage + [#245](https://github.com/KooshaPari/phenotype-registry/pull/245) pheno-tracing
+14. ~~**Registry L7**~~ — done ([#244](https://github.com/KooshaPari/phenotype-registry/pull/244) intent/boundary + [#245](https://github.com/KooshaPari/phenotype-registry/pull/245) pheno-tracing)
+15. **Phase 4 closeout** — backlog tasks 99–100; registry `docs:build` CI green

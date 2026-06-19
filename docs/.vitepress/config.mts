@@ -15,6 +15,8 @@ export default defineConfig({
     "**/_template.md.txt",
     "**/*.template.md",
     "**/_stub/**",
+    "**/intent/**",
+    "**/boundary/**",
   ],
   themeConfig: {
     nav: [
