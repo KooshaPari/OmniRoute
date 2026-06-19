@@ -20,7 +20,7 @@
 |-------|--------|----------------|--------|
 | 1 | Port traits / generic contracts | phenoShared (interim) | in_progress — HexaKit#264 |
 | 2 | Auth / policy contracts | **Authvault** | **partial done** — Authvault#88 |
-| 3 | Event / bus contracts | Eventra | pending |
+| 3 | Event / bus contracts | Eventra | **partial done** — Eventra#19 |
 | 4 | HTTP/event adapters | Agentora / substrate | pending |
 
 ## Note update (disposition-index row #11)

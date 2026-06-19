@@ -4,7 +4,7 @@ Batch ledger for D-01..D-12 per Ecosystem Disposition Phase 2 plan.
 
 | ID | Row | Status | Action |
 |----|-----|--------|--------|
-| D-01 | #11 phenotype-contracts | relocating | Slice 2 partial: auth/policy → Authvault#88 `rust/phenotype-auth-contracts`; [slice 2 ledger](./contracts-slice2-ledger-2026-06-18.md) |
+| D-01 | #11 phenotype-contracts | relocating | Slice 2 partial: auth/policy → Authvault#88 `rust/phenotype-auth-contracts`; slice 3 partial: event/bus → Eventra `rust/phenotype-event-contracts`; [slice 2 ledger](./contracts-slice2-ledger-2026-06-18.md), [slice 3 ledger](./contracts-slice3-ledger-2026-06-18.md) |
 | D-02 | py-pheno-mcp | done | Wave F stub prune HexaKit#270; Pyron redirect manifest #58; registry py-pheno-mcp → substrate |
 | D-03 | #30 phenotype-port-traits | documented | HexaKit scaffold reference — see [port-traits-scaffold.md](./port-traits-scaffold.md) |
 | D-04 | #1 phenotype-analytics | deferred | Wave H — target repo scaffold deferred; registry row pending |
