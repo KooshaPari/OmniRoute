@@ -1,7 +1,7 @@
 # AGENTS.md — Phenotype monorepo
 
-**Date:** 2026-06-17 12:00 PDT
-**Status:** ACTIVE (this file supersedes the prior FocalPoint template that lived here 2026-06-12 → 2026-06-15, and the 2026-06-15 18:42 PDT version that lived here 2026-06-15 → 2026-06-17)
+**Date:** 2026-06-19 05:00 PDT (T12 closure: ADR-033 + ADR-034 marked CLOSED; Decision C closed)
+**Status:** ACTIVE (this file supersedes the prior FocalPoint template that lived here 2026-06-12 → 2026-06-15, the 2026-06-15 18:42 PDT version that lived here 2026-06-15 → 2026-06-17, and the 2026-06-17 12:00 PDT version that lived here 2026-06-17 → 2026-06-19)
 
 ---
 
@@ -126,8 +126,8 @@ See `L6_PHENO_REPOS_HEALTH_2026_06_14.md` for full health inventory (136 tests p
 | **ADR-030** | **pheno-worklog-schema v2.1 — add 11th `device:` column (macbook / heavy-runner / subagent / ci)** | **L5-104.5, 2026-06-17** — see `pheno-worklog-schema/SPEC-v2.1.md`; PR `KooshaPari/pheno-worklog-schema#1` open; 30/30 tests; 4 fleet WORKLOG.md migrated; v2.0 deprecation **2026-06-22** |
 | **ADR-031** | **Configra absorb — `phenotype-config` folds into `Configra` as canonical name; ADR-022 split (Rust core / TS edge) preserved** | **L5-104.7, 2026-06-17** — see `docs/adr/2026-06-17/ADR-031-configra-absorb.md`; 2 PRs planned (1 on Configra, 1 deprecation on phenotype-config); `phenotype-config` archive date **2026-07-15** |
 | **ADR-032** | **pheno-worklog-schema is a primitive lib, NOT a re-implementation of AgilePlus worklog** | **L5-104.8, 2026-06-17** — see `docs/adr/2026-06-17/ADR-032-pheno-worklog-schema-decision.md`; different formats (Markdown table vs JSONL), different audiences, both coexist |
-| **ADR-033** | **Delete `KooshaPari/phenotype-monorepo-state` — single-source-of-truth; monorepo IS the canonical location** | **L5-104.9, 2026-06-17** — see `docs/adr/2026-06-17/ADR-033-phenotype-monorepo-state-deletion.md`; 11 commits consolidated to `phenotype-org-audits` + monorepo; `gh repo delete` after 30-day grace |
-| **ADR-034** | **`KooshaPari/phenotype-monorepo-state` deletion schedule — 2026-07-17** | **L5-104.10, 2026-06-17** — see `docs/adr/2026-06-17/ADR-034-monorepo-state-deletion-schedule.md`; 30-day grace + 5-step pre-deletion checklist |
+| **ADR-033** **[CLOSED 2026-06-19]** | **Delete `KooshaPari/phenotype-monorepo-state` — single-source-of-truth; monorepo IS the canonical location** | **L5-104.9, 2026-06-17** — see `docs/adr/2026-06-17/ADR-033-phenotype-monorepo-state-deletion.md`; 11 commits consolidated to `phenotype-org-audits` + monorepo; `gh repo delete` after 30-day grace → **EXECUTED 2026-06-18, 18 days ahead of schedule**; verified HTTP 404 (2026-06-19 04:46 UTC); disposition-index `sr-monorepo-state` `fsm: done` |
+| **ADR-034** **[CLOSED 2026-06-19]** | **`KooshaPari/phenotype-monorepo-state` deletion schedule — 2026-07-17** | **L5-104.10, 2026-06-17** — see `docs/adr/2026-06-17/ADR-034-monorepo-state-deletion-schedule.md`; 30-day grace + 5-step pre-deletion checklist → **schedule superseded by user-deleted 2026-06-18**; pre-checklist partially met (11 commits LOST, 5 ADR docs re-authored locally) |
 
 ---
 
@@ -270,10 +270,23 @@ Re-evaluate after all non-app fleet work (config, tracing, MCP-router, observabi
 - **Track T20**: decide whether to keep both, or merge into one (decision deferred — needs separate design session).
 - **No action this turn.** Both stay where they are.
 
-### Decision C — phenotype-monorepo-state is OUT OF SCOPE going forward
-- `KooshaPari/phenotype-monorepo-state` exists (created 2026-06-18 03:52 UTC) — currently holds 4 governance-snapshot commits.
-- **Direction: phenotype monorepo should NOT exist going forward.** It was created ad-hoc during the wrap-up session.
-- **Track T21**: migrate the 4 governance-snapshot commits back into the actual home (local monorepo's `archive/2026-06-15-30-pillar-fleet` branch), then delete `phenotype-monorepo-state`.
+### Decision C — phenotype-monorepo-state is OUT OF SCOPE going forward **[CLOSED 2026-06-19, orch-w1-a T12]**
+
+**Closure status:** Repo `KooshaPari/phenotype-monorepo-state` was user-deleted 2026-06-18 (28 days ahead of the 2026-07-17 scheduled date in ADR-034, 18 days ahead per AGENTS.md "ADR-034 | Phenotype-monorepo-state deletion" row). `gh api /repos/KooshaPari/phenotype-monorepo-state` returns **HTTP 404** as of 2026-06-19 04:46 UTC; `gh search` returns 0 results.
+
+**Closure details:**
+- `phenotype-registry/registry/disposition-index.json` row `sr-monorepo-state` records `fsm: done`, `relocated_date: 2026-06-18`, `pr: phenotype-registry#194`, `note: "source deleted, content not recovered; fold never executed"`
+- ADR-033 (deletion plan) marked **CLOSED** (see CLOSURE section in `docs/adr/2026-06-17/ADR-033-phenotype-monorepo-state-deletion.md`)
+- ADR-034 (deletion schedule) marked **CLOSED** (see CLOSURE section in `docs/adr/2026-06-17/ADR-034-monorepo-state-deletion-schedule.md`)
+- Pre-deletion checklist partially met; the 11-commit git history is **LOST** (the snapshot was a duplicate of in-progress governance that has since been superseded by v9/v8/v7 versions in the monorepo)
+- The 5 ADR docs (ADR-024 to ADR-034) exist in the monorepo's `docs/adr/2026-06-17/` directory independently — they were re-authored locally, not cherry-picked
+- 90-day GitHub retention policy still applies to the deleted repo (no recovery possible via UI)
+- Outstanding follow-ups: 5 stale `KooshaPari/Pyron:README.md` and `KooshaPari/phenotype-registry:*` link references need re-pointing to `KooshaPari/phenotype-apps` ADR paths (non-blocking, cosmetic)
+
+**Historical state (pre-closure):**
+- `KooshaPari/phenotype-monorepo-state` existed (created 2026-06-18 03:52 UTC) — held 4 governance-snapshot commits.
+- Direction: phenotype monorepo should NOT exist going forward. It was created ad-hoc during the wrap-up session.
+- Track T21: migrate the 4 governance-snapshot commits back into the actual home, then delete `phenotype-monorepo-state` — **EXECUTED 2026-06-18 (partial; see ADR-033 closure notes).**
 
 ### Decision D — Spine repos are LIGHTLY USED
 - `PhenoHandbook`, `PhenoSpecs`, `phenotype-registry`, `phenotype-infra`, `phenokits-commons` — referenced for patterns + cross-references, not actively maintained.
