@@ -11,7 +11,7 @@
 |-------|--------------|----------|--------|
 | 1 — Port traits / domain contracts | phenoShared (interim) → role repos | [consumer manifest](./phenotype-contracts-consumer-manifest.md) | **in_progress** |
 | — InMemory adapters | HexaKit `phenotype-contract-adapters` | — | done |
-| 2 — Auth / policy contracts | **Authvault** | [consumer manifest § Next slices](./phenotype-contracts-consumer-manifest.md#next-slices-domain_roles-terminal-owners) | pending |
+| 2 — Auth / policy contracts | **Authvault** | [consumer manifest § Next slices](./phenotype-contracts-consumer-manifest.md#next-slices-domain_roles-terminal-owners) | **partial** — Authvault#88 |
 | 3 — Event / bus contracts | **Eventra** | [consumer manifest § Next slices](./phenotype-contracts-consumer-manifest.md#next-slices-domain_roles-terminal-owners) | pending |
 | 4 — HTTP/event adapters | **Agentora** / substrate | [consumer manifest § Next slices](./phenotype-contracts-consumer-manifest.md#next-slices-domain_roles-terminal-owners) | TBD per consumer scan |
 
