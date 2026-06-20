@@ -1,6 +1,6 @@
 # AGENTS.md — Phenotype monorepo
 
-**Date:** 2026-06-20 18:45 PDT (T0.5 closure: v10 closed 2026-06-19 22:30 PDT; v11 closed 2026-06-20 18:45 PDT — awaiting §8 router-architecture decision; T30 was CANCELLED, T28 DONE; Decision C closed)
+**Date:** 2026-06-20 18:45 PDT (T0.5 closure: v10 closed 2026-06-19 22:30 PDT; v11 closed 2026-06-20 18:45 PDT — §8 router-architecture ACCEPTED 2026-06-20 (Option B per ADR-050 + ADR-051); T30 was CANCELLED, T28 DONE; Decision C closed)
 **Status:** ACTIVE (this file supersedes the prior FocalPoint template that lived here 2026-06-12 → 2026-06-15, the 2026-06-15 18:42 PDT version that lived here 2026-06-15 → 2026-06-17, and the 2026-06-17 12:00 PDT version that lived here 2026-06-17 → 2026-06-19)
 
 ---
