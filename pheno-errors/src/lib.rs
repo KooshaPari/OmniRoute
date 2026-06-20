@@ -334,37 +334,46 @@ mod tests {
         assert_eq!(fallible().unwrap(), 42);
     }
 
-    proptest::proptest! {
-        #[proptest_config(ProptestConfig::with_cases(100))]
+    /// For any non-empty string, constructing a [`AppError::Domain`] and
+    /// reading back `.kind()` must return `"domain"`.
+    #[test]
+    fn proptest_domain_kind() {
+        use proptest::prelude::*;
+        let mut runner = proptest::test_runner::TestRunner::default();
+        runner
+            .run(&any::<String>(), |msg| {
+                // Skip empty strings – they are valid but add no signal.
+                if msg.is_empty() {
+                    return Ok(());
+                }
+                let err = AppError::domain(&msg);
+                prop_assert_eq!(err.kind(), "domain");
+                let display = err.to_string();
+                prop_assert!(display.contains(&msg), "display {:?} should contain {:?}", display, msg);
+                Ok(())
+            })
+            .unwrap();
+    }
 
-        /// For any non-empty string, constructing a [`AppError::Domain`] and
-        /// reading back `.kind()` must return `"domain"`.
-        #[test]
-        fn proptest_domain_kind(msg: String) {
-            // Skip empty strings – they are valid but add no signal.
-            if msg.is_empty() {
-                return;
-            }
-            let err = AppError::domain(&msg);
-            assert_eq!(err.kind(), "domain");
-            let display = err.to_string();
-            // Display must embed the original message.
-            assert!(display.contains(&msg), "display {:?} should contain {:?}", display, msg);
-        }
-
-        /// For any non-empty entity and id strings, constructing a
-        /// [`AppError::NotFound`] and reading back `.kind()` must return
-        /// `"not_found"`.
-        #[test]
-        fn proptest_not_found_kind(entity: String, id: String) {
-            if entity.is_empty() || id.is_empty() {
-                return;
-            }
-            let err = AppError::not_found(&entity, &id);
-            assert_eq!(err.kind(), "not_found");
-            let display = err.to_string();
-            assert!(display.contains(&entity));
-            assert!(display.contains(&id));
-        }
+    /// For any non-empty entity and id strings, constructing a
+    /// [`AppError::NotFound`] and reading back `.kind()` must return
+    /// `"not_found"`.
+    #[test]
+    fn proptest_not_found_kind() {
+        use proptest::prelude::*;
+        let mut runner = proptest::test_runner::TestRunner::default();
+        runner
+            .run(&(any::<String>(), any::<String>()), |(entity, id)| {
+                if entity.is_empty() || id.is_empty() {
+                    return Ok(());
+                }
+                let err = AppError::not_found(&entity, &id);
+                prop_assert_eq!(err.kind(), "not_found");
+                let display = err.to_string();
+                prop_assert!(display.contains(&entity));
+                prop_assert!(display.contains(&id));
+                Ok(())
+            })
+            .unwrap();
     }
 }
