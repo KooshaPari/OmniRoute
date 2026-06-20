@@ -1,6 +1,6 @@
 {
-  "version": "1.4.0",
-  "updated": "2026-06-19",
+  "version": "1.5.0",
+  "updated": "2026-06-20",
   "authority": "phenotype-registry",
   "charter": "docs/rationalization/boundary-shaping.md",
   "note": "phenoShared targets are interim staging per ADR-ECO-014-phenoshared-decompose; terminal owners are DOMAIN_ROLES repos. 2026-06-18 (post-archive, L5-114): phenotype-voxel/terrain/water/postfx source repos ARCHIVED + DELETED (delete_repo scope) after phenotype-gfx#10 merged. phenotype-gfx is canonical; 4 source rows now terminal archived state. 2026-06-19 (L5-115, ADR-035A): pheno-capacity registered as new pheno-*-lib substrate (extracted from HwLedger per ADR-035A).",
@@ -629,7 +629,7 @@
       "core_lang": "go",
       "relocated_date": "2026-06-19",
       "pr": "phenotype-gateway#2#3#4#5#6#11#12#14#15#16,phenotype-registry#252#256",
-      "note": "H10 absorption complete: packages/* anchors (cliproxy/agentapi/bifrost/argis) + router HTTP delegate; smoke-go + router:test green; ABSORPTION.md"
+      "note": "H10 absorption complete: packages/* anchors (cliproxy/agentapi/bifrost/argis) + router HTTP delegate; smoke-go + router:test green; ABSORPTION.md. 2026-06-20: repo deleted on GitHub, recreated as thin deprecated mirror (master @ e2c9463) per ADR-ECO-014. Active router development lives in HexaKit crates/phenotype-router/ (PR #291: H11+H12). Gateway preserved for H10 historical reference; new work targets HexaKit."
     },
     {
       "id": "gate-observabilitykit",
