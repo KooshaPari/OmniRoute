@@ -10,9 +10,24 @@ trim_trailing_whitespace = true
 indent_style = space
 indent_size = 4
 
+# TypeScript / JavaScript
 [*.{ts,tsx,js,jsx,mjs,cjs}]
 indent_size = 2
 
+# YAML / JSON
+[*.{yml,yaml,json,jsonc}]
+indent_size = 2
+
+# Shell scripts
+[*.{sh,bash,zsh}]
+indent_size = 2
+
+# Markdown — trailing spaces = hard line break
+[*.md]
+trim_trailing_whitespace = false
+max_line_length = 120
+
+# Makefile — must use tabs
 [Makefile]
 indent_style = tab
 
