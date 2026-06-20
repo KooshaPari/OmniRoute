@@ -165,9 +165,9 @@ See `L6_PHENO_REPOS_HEALTH_2026_06_14.md` for full health inventory (136 tests p
 
 ---
 
-## Wave Plan (v9 — current, supersedes v8)
+## Wave Plan (v11 — current, supersedes v9/v10)
 
-See `plans/2026-06-20-v11-dag-router-rebuild.md` (the working plan) and `plans/2026-06-20-router-architecture-2026-research.md` (the underlying research). **11 tracks (T0..T10), 21 tasks, 29 WPs drained, ~6.5-week critical path on §8 router-architecture decision.** v10 closed 2026-06-19 22:30 PDT; v11 closed 2026-06-20 18:45 PDT awaiting §8 user decision. v11 T30 was CANCELLED; T28 DONE. Next wave is either v11 §8 unblock (Option A/B/C pick) or a fresh v12 — pending user direction.
+See `plans/2026-06-20-v11-dag-router-rebuild.md` (the working plan) and `plans/2026-06-20-router-architecture-2026-research.md` (the underlying research). **11 tracks (T0..T10), 21 tasks, 29 WPs drained, ~6.5-week critical path on §8 router-architecture decision.** v10 closed 2026-06-19 22:30 PDT; v11 closed 2026-06-20 18:45 PDT with §8 ACCEPTED (Option B per ADR-050/ADR-051, 2026-06-20). v11 T30 was CANCELLED; T28 DONE. Next wave is either v12 (post-§8 unblock) or a refresh of tier-0 hygiene — pending user direction.
 
 - **T0: Pre-flight Gate** (P0, ~10 min) — DONE. Branch protection + Cargo lock contention check + gh auth.
 - **T1: Tier-0 audit sweep** (P0, ~45 min) — DONE. 13 findings/2026-06-2* files (T2A/T2B/T2C).
@@ -180,7 +180,7 @@ See `plans/2026-06-20-v11-dag-router-rebuild.md` (the working plan) and `plans/2
 - **T8: v11 closure + AGENTS.md + STATUS.md refresh** (P0, ~10 min) — DONE.
 - **T9: Round-2 absorption follow-up** (P1, ~30 min) — DONE.
 - **T10: v11 session wrap** (P0, ~5 min) — DONE. This file.
-- **§8: Router architecture decision** (P0, blocking) — **AWAITING USER**. Options: (A) ship-router, (B) lightweight-pass-through, (C) both-greens. 6.5-week critical path.
+- **§8: Router architecture decision** (P0) — **ACCEPTED 2026-06-20** (Option B: Bifrost-as-library + Phenotype-owned decision layer per ADR-050 + ADR-051). Next wave (v12) unblocks L1 (Bifrost `v1.5.21` pin + 9-plugin regression) and L2 (`phenotype-router` v0.1.0). 6.5-week critical path.
 
 ---
 
