@@ -4,7 +4,7 @@ go 1.25.4
 
 require (
 	github.com/creativeprojects/go-selfupdate v1.5.1
-	github.com/go-chi/chi/v5 v5.2.3
+	github.com/go-chi/chi/v5 v5.2.4
 	github.com/google/uuid v1.6.0
 )
 
