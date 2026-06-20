@@ -303,6 +303,19 @@ Re-evaluate after all non-app fleet work (config, tracing, MCP-router, observabi
 - **Track T19** in the DAG: 1 ADR (ADR-031), 1 absorbing PR, 8-12 migration PRs.
 - All `pheno-config*` / `phenotype-config*` repos get deprecated after migration lands.
 
+### Mission 3 outcome (2026-06-20) — Configra migration slice 1
+
+- **Consumer ported:** `phenotype-config`
+- **Consumer PR:** https://github.com/KooshaPari/phenotype-config/pull/<TBD>
+- **Registry PR:** https://github.com/KooshaPari/phenotype-registry/pull/<TBD>
+- **ADR-031 status:** CLOSED 2026-06-19 (executed); deprecation continues 2026-07-15
+- **ADR-035 gate validation:** ACTIVE — gate validation PASS for phenotype-config slice 1
+- **Tests:** PASS
+- **Migration progress:** 1/N consumers migrated (slice 1 of N)
+- **Next:** Pick next consumer (Mission 4 candidate: TBD)
+
+> **Mission 3D note:** Mission 3A/3B/3C outputs feed this section. If `<TBD>` placeholders remain, the orchestrator should re-run after the source missions land. PR URLs resolve once the upstream PRs are opened.
+
 ### Decision B — pheno-worklog-schema is a primitive lib, NOT a duplicate of AgilePlus
 - Investigation finding (L5-107): `pheno-worklog-schema` is a Python lib that parses + validates WORKLOG.md (markdown table: `Date | Task ID | Layer | Action | Files | Notes`).
 - **AgilePlus** has a completely different format: `worklog-L*-*-*.json` files (machine-readable JSONL).

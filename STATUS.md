@@ -1,11 +1,28 @@
 # STATUS.md — Phenotype monorepo
 
-**Date:** 2026-06-20 (v11 closure; this is a refresh from 2026-06-19 v10-launch baseline, supersedes the 2026-06-18 21:00 PDT v8-launch version and the 2026-06-17 21:55 PDT version)
+**Date:** 2026-06-20 (v11 closure + Mission 3 outcome; this is a refresh from 2026-06-19 v10-launch baseline, supersedes the 2026-06-18 21:00 PDT v8-launch version and the 2026-06-17 21:55 PDT version)
 **Branch in use:** `wip-2026-06-19-v8-batch-11B-t9-2-l5-119` (HEAD `eef970e6a1` "docs(findings): side-11 (cargo workspace audit), side-19 (OAuth2 PKCE), side-21 (CRDT)") — also tracking `main` @ `9494a7d1e6`
 **Origin remote:** `KooshaPari/phenotype-apps` (canonical home for app-level work per ADR-023); also tracked: `KooshaPari/argis-extensions` (legacy meta-repo mirror)
 **Working tree:** 3 dirty (`M AGENTS.md`, `M pheno-flags/Cargo.toml`, `M pheno-port-adapter/Cargo.toml`) — all pre-existing workspace drift, no new content authored this turn
 
 This file supersedes the 2026-06-18 21:00 PDT version. Refreshed for v11 closure + L7-007 apps-orphan closure.
+
+## Mission 3: Configra migration slice 1 (2026-06-20)
+
+**Status:** Tests pass, PR open
+
+- **Consumer ported:** `phenotype-config`
+- **Consumer PR:** https://github.com/KooshaPari/phenotype-config/pull/<TBD>
+- **Registry PR:** https://github.com/KooshaPari/phenotype-registry/pull/<TBD>
+- **ADR-031 status:** CLOSED 2026-06-19 (executed); deprecation continues 2026-07-15
+- **ADR-035 gates:** ACTIVE — gate validation PASS for phenotype-config slice 1
+- **ADR-031 progress:** 1/N consumers migrated (slice 1 of N)
+- **Next:** Pick next consumer (Mission 4 candidate: TBD)
+
+> Mission 3D doc-update slice. Mission 3A/3B/3C provide the upstream PRs; placeholders marked `<TBD>` resolve once those missions land.
+
+---
+
 
 ---
 
