@@ -1,0 +1,15 @@
+[package]
+name = "phenotype-errors"
+version = "0.2.0"
+edition = "2021"
+license = "MIT"
+[lib]
+path = "src/lib.rs"
+[dependencies]
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+thiserror = "2"
+chrono = { version = "0.4", features = ["serde"] }
+phenotype-error-core = { path = "../phenotype-error-core" }
+[dev-dependencies]
+tokio = { version = "1", features = ["full"] }

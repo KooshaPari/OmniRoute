@@ -1,0 +1,20 @@
+[package]
+name = "phenotype-error-macros"
+version = "0.2.0"
+edition = "2021"
+license = "MIT OR Apache-2.0"
+rust-version = "1.75"
+repository = "https://github.com/KooshaPari/phenotype-infrakit"
+authors = ["Phenotype Team"]
+description = "Unified error handling macros for Phenotype ecosystem (result conversion, context enrichment, error propagation)"
+
+[lib]
+proc-macro = true
+
+[dependencies]
+syn = { version = "2", features = ["full"] }
+quote = "1"
+proc-macro2 = "1"
+
+[dev-dependencies]
+thiserror = "2"
