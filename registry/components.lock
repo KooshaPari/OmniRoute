@@ -38,17 +38,17 @@
     "pheno-framework-lint": {
       "status": "archived",
       "archived_date": "2026-06-19",
-      "reason": "L73 governance tool (substrate graduation & tier-convention linter). Absorbed into pheno-scaffold-kit as _framework_lint.py SUB_LIBRARY (L5-110). PR KooshaPari/pheno-scaffold-kit#3 (recovery after external deletion 2026-06-20)."
+      "reason": "Absorbed into HexaKit as scripts/audit-tools/pheno_framework_lint.py via PR KooshaPari/HexaKit#292 (re-targeted from pheno-scaffold-kit#3 after external deletion 2026-06-20). Source repo DELETED."
     },
     "pheno-drift-detector": {
       "status": "archived",
       "archived_date": "2026-06-19",
-      "reason": "L74 governance tool (app-substrate drift detection). Absorbed into pheno-scaffold-kit as _drift_detector.py SUB_LIBRARY (L5-111). PR KooshaPari/pheno-scaffold-kit#3 (recovery after external deletion 2026-06-20)."
+      "reason": "Absorbed into HexaKit as scripts/audit-tools/pheno_drift_detector.py via PR KooshaPari/HexaKit#292 (re-targeted from pheno-scaffold-kit#3 after external deletion 2026-06-20). Source repo DELETED."
     },
     "pheno-predict": {
       "status": "archived",
       "archived_date": "2026-06-19",
-      "reason": "L72 governance tool (token-shingle Jaccard scanner for predictive DRY). Absorbed into pheno-scaffold-kit as _predict.py SUB_LIBRARY (L5-112). PR KooshaPari/pheno-scaffold-kit#3 (recovery after external deletion 2026-06-20)."
+      "reason": "Absorbed into HexaKit as scripts/audit-tools/pheno_predict.py via PR KooshaPari/HexaKit#292 (re-targeted from pheno-scaffold-kit#3 after external deletion 2026-06-20). Source repo DELETED."
     },
     "forge-runner-scripts": {
       "status": "archived",
