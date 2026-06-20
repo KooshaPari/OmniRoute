@@ -1,8 +1,8 @@
 # ADR-051 — Bifrost as library, not wrapper
 
-- **Status:** Proposed — 2026-06-20 (paired with ADR-050; takes effect on Option B adoption)
+- **Status:** Accepted — 2026-06-20 (Option B: Bifrost-as-library + Phenotype-owned decision layer)
 - **Date:** 2026-06-20
-- **Decision:** @KooshaPari (pending)
+- **Decision:** @KooshaPari 2026-06-20 (Option B per ADR-050 + ADR-051)
 - **Plan:** [`plans/2026-06-20-v11-dag-router-rebuild.md`](../../plans/2026-06-20-v11-dag-router-rebuild.md) §L1 + §L2
 - **Research:** [`plans/2026-06-20-router-architecture-2026-research.md`](../../plans/2026-06-20-router-architecture-2026-research.md) §1, §5, §6
 - **Wave:** v11 L5 — Documentation / Governance (T5.3)
