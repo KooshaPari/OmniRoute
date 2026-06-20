@@ -11,8 +11,6 @@ documentation = "https://github.com/KooshaPari/phenotype-apps/tree/main/pheno-po
 keywords = ["port", "adapter", "hexagonal", "phenotype", "l4"]
 categories = ["development-tools", "embedded"]
 authors = ["Koosha Pari <koosha@phenotype.local>"]
-=======
->>>>>>> 51acc50e96 (chore(orch-v10-030): tier-0 pheno-port-adapter (#93))
 
 [workspace]
 
