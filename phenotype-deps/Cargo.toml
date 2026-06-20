@@ -1,0 +1,42 @@
+[package]
+name = "phenotype-deps"
+version = "0.1.0"
+edition = "2021"
+description = "Batteries-included shared dependency veneer for Phenotype workspace crates (Tasken, AgilePlus, and beyond). Single use phenotype_deps::prelude::* gives you all common deps."
+license = "MIT OR Apache-2.0"
+authors = ["Phenotype <dev@kooshapari.com>"]
+readme = "README.md"
+repository = "https://github.com/phenotype-dev/phenotype-deps"
+documentation = "https://docs.rs/phenotype-deps"
+rust-version = "1.75"
+keywords = ["phenotype", "shared", "dependencies", "re-exports"]
+categories = ["development-tools"]
+
+[dependencies]
+# Async runtime
+tokio = { version = "1", features = ["full"] }
+futures = "0.3"
+async-trait = "0.1"
+
+# Serialization
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+
+# Error handling
+thiserror = "2"
+anyhow = "1"
+
+# Time
+chrono = { version = "0.4", features = ["serde"] }
+
+# CLI
+clap = { version = "4", features = ["derive"] }
+
+# Utilities
+uuid = { version = "1", features = ["v4", "serde"] }
+
+# Testing (shared so test code in both crates can rely on it)
+tempfile = "3"
+
+[features]
+default = []

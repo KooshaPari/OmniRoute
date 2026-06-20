@@ -1,0 +1,22 @@
+[package]
+name = "phenotype-error-core"
+version = "0.1.0"
+description = "Canonical error types, traits, and wire codes for the Phenotype ecosystem"
+edition = "2021"
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/phenotype/error-core"
+
+[dependencies]
+thiserror = "2"
+anyhow = "1"
+serde = { version = "1", features = ["derive"], optional = true }
+serde_json = { version = "1", optional = true }
+
+[dev-dependencies]
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+phenotype-error-core-derive = { path = "../phenotype-error-core-derive" }
+
+[features]
+default = ["serde"]
+serde = ["dep:serde", "dep:serde_json"]

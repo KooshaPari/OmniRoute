@@ -1,0 +1,15 @@
+[package]
+name = "phenotype-error-core-derive"
+version = "0.1.0"
+description = "Proc-macro derive for the PhenotypeError trait"
+edition = "2021"
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/phenotype/error-core-derive"
+
+[lib]
+proc-macro = true
+
+[dependencies]
+syn = { version = "2", features = ["full"] }
+quote = "1"
+proc-macro2 = "1"
