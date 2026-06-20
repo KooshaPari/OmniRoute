@@ -1,6 +1,6 @@
 # AGENTS.md — Phenotype monorepo
 
-**Date:** 2026-06-19 05:00 PDT (T0.5 closure: v9 closed 2026-06-19; T12 closure: ADR-033 + ADR-034 marked CLOSED; Decision C closed)
+**Date:** 2026-06-20 18:45 PDT (T0.5 closure: v10 closed 2026-06-19 22:30 PDT; v11 closed 2026-06-20 18:45 PDT — awaiting §8 router-architecture decision; T30 was CANCELLED, T28 DONE; Decision C closed)
 **Status:** ACTIVE (this file supersedes the prior FocalPoint template that lived here 2026-06-12 → 2026-06-15, the 2026-06-15 18:42 PDT version that lived here 2026-06-15 → 2026-06-17, and the 2026-06-17 12:00 PDT version that lived here 2026-06-17 → 2026-06-19)
 
 ---
@@ -167,18 +167,20 @@ See `L6_PHENO_REPOS_HEALTH_2026_06_14.md` for full health inventory (136 tests p
 
 ## Wave Plan (v9 — current, supersedes v8)
 
-See `plans/2026-06-19-v9-dag-stable.md` (the working plan) and `plans/2026-06-19-v9-wrapup.md` (closure report). **11 tracks (T0 + T25..T33 + T0.5), 28 tasks, 6 PRs, ~3h wall-clock on macbook with 4-way parallelism (orchestrator-only — subagent dispatch had a routing cell_id outage 2026-06-19 17:46 PDT, see T0.0 retro).** v8 closed 2026-06-19 04:46 UTC (18 tracks, ~210 tasks, ~200 PRs); v9 focuses on the wrap-up + Configra + 71-pillar refresh + L5-110 substrate audit + 3 PhenoKit absorptions (L5-111, L5-112, L5-113) + 4-repo retirement (L5-114) + pheno-capacity extraction (L5-115) + pheno-capacity absorb into phenotype-gateway (L5-117). v9 closure batch: see [§ v9 closure](#v9-closure-2026-06-19-2230-pdt) below.
+See `plans/2026-06-20-v11-dag-router-rebuild.md` (the working plan) and `plans/2026-06-20-router-architecture-2026-research.md` (the underlying research). **11 tracks (T0..T10), 21 tasks, 29 WPs drained, ~6.5-week critical path on §8 router-architecture decision.** v10 closed 2026-06-19 22:30 PDT; v11 closed 2026-06-20 18:45 PDT awaiting §8 user decision. v11 T30 was CANCELLED; T28 DONE. Next wave is either v11 §8 unblock (Option A/B/C pick) or a fresh v12 — pending user direction.
 
-- **T25: v2.1 Worklog Schema Fix (P0, ~30 min) — DONE 2026-06-19**. Rebase conflict on `SPEC-v2.1.md` resolved. 5 PRs merged (#2–#6). 75/75 tests pass. Both v1 and v2.1 formats accepted.
-- **T26: L5-110 Substrate Audit (P0, ~30 min) — DONE 2026-06-19**. 6 drift findings (0.4 h retro), ADR-041 (71-pillar refresh cadence) + ADR-042 (security audit cadence) authored. See `findings/2026-06-19-L5-110-substrate-audit.md`.
-- **T27: L5-111 pheno-drift-detector Absorption (P0, ~15 min) — DONE 2026-06-19**. Absorbed into PhenoKit substrate (ADR-049 tool). 5 PRs on `KooshaPari/PhenoKit`.
-- **T28: L5-112 pheno-predict Absorption (P1, ~15 min) — DONE 2026-06-19**. Absorbed into PhenoKit substrate (ADR-047 tool). 4 PRs.
-- **T29: L5-113 pheno-framework-lint Absorption (P1, ~15 min) — DONE 2026-06-19**. Absorbed into PhenoKit substrate (ADR-048 tool). 3 PRs.
-- **T30: L5-114 Services Retirement (P0, ~30 min) — DONE 2026-06-19**. 4 federated service repos (`phenotype-voxel`, `phenotype-terrain`, `phenotype-water`, `phenotype-postfx`) absorbed into `phenotype-gfx`. Registry entries flipped to terminal `fsm=archived`.
-- **T31: L5-115 pheno-capacity Extraction (P0, ~20 min) — DONE 2026-06-19**. New repo `KooshaPari/pheno-capacity` created (10 files, 1 PR `#1` merged).
-- **T32: L5-117 pheno-capacity Absorb (P0, ~20 min) — DONE 2026-06-19**. Pushed `feat/l5-117-absorb-pheno-capacity-2026-06-19` to `phenotype-gateway:master` via `git merge --no-ff` (commit `4898bc3`). 10 pheno-capacity source files now at `spikes/rust/capacity/`. ADR-036 marked CLOSED.
-- **T33: Side-DAG Filler (P1, ~180 min, background) — IN_PROGRESS**. 26 tasks across 6 subagents. Estimated completion: 2026-06-20 02:00 PDT.
-- **T0.5: Wrap-up (P0, ~60 min) — IN_PROGRESS this turn**. T0.5.1 wrapup plan ✓ (304 lines), T0.5.3 postmortem ✓ (255 lines), T0.5.4 AGENTS.md closure (this update), T0.5.5 STATUS.md (next), T0.5.2 governance commit (next).
+- **T0: Pre-flight Gate** (P0, ~10 min) — DONE. Branch protection + Cargo lock contention check + gh auth.
+- **T1: Tier-0 audit sweep** (P0, ~45 min) — DONE. 13 findings/2026-06-2* files (T2A/T2B/T2C).
+- **T2: Round-2 absorption sweep** (P0, ~30 min) — DONE. 7 active → archived, 4 deleted. See `worklogs/2026-06-20-round-2-absorption-sweep.json`.
+- **T3: Router architecture research** (P0, ~60 min) — DONE. See `plans/2026-06-20-router-architecture-2026-research.md`.
+- **T4: ADR batch (router, federation, prcp migration)** (P0, ~30 min) — DONE.
+- **T5: pheno-tracing OTLP adoption spread** (P1, ~45 min) — DONE. Adopted in pheno-port-adapter (the only adopter so far).
+- **T6: Substrate audit closure** (P0, ~30 min) — DONE.
+- **T7: 71-pillar refresh** (P1, ~30 min) — DONE.
+- **T8: v11 closure + AGENTS.md + STATUS.md refresh** (P0, ~10 min) — DONE.
+- **T9: Round-2 absorption follow-up** (P1, ~30 min) — DONE.
+- **T10: v11 session wrap** (P0, ~5 min) — DONE. This file.
+- **§8: Router architecture decision** (P0, blocking) — **AWAITING USER**. Options: (A) ship-router, (B) lightweight-pass-through, (C) both-greens. 6.5-week critical path.
 
 ---
 
