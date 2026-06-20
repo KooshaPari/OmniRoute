@@ -4,13 +4,13 @@ import assert from "node:assert/strict";
 // ─── T-12 (#3932 PR-3): `omniroute redis` CLI command ─────────────────────
 
 test("registerRedis: exports a registerRedis function", async () => {
-  const mod = await import(`../../../bin/cli/commands/redis.mjs?case=${Date.now()}-${Math.random()}`);
+  const mod = await import(`../../bin/cli/commands/redis.mjs?case=${Date.now()}-${Math.random()}`);
   assert.equal(typeof mod.registerRedis, "function");
 });
 
 test("registerRedis: attaches a `redis` command with up/down/status subcommands", async () => {
   const { registerRedis } = await import(
-    `../../../bin/cli/commands/redis.mjs?case=${Date.now()}-${Math.random()}`
+    `../../bin/cli/commands/redis.mjs?case=${Date.now()}-${Math.random()}`
   );
   // Use a minimal stub of the commander program that records what was attached.
   const recorded = { commands: new Map() };
@@ -86,7 +86,7 @@ test("registerRedis: attaches a `redis` command with up/down/status subcommands"
 
 test("registerRedis: `up` subcommand has the expected option flags", async () => {
   const { registerRedis } = await import(
-    `../../../bin/cli/commands/redis.mjs?case=${Date.now()}-${Math.random()}`
+    `../../bin/cli/commands/redis.mjs?case=${Date.now()}-${Math.random()}`
   );
   const subStubs: Array<{ name: string; options: Set<string> }> = [];
   const program = {
@@ -132,7 +132,7 @@ test("runRedisUpCommand: returns 1 when no podman/docker is available (no PATH)"
   // We force this by passing a --runtime that doesn't exist. execFile will
   // throw ENOENT, the runner will print the error and return 1.
   const { runRedisUpCommand } = await import(
-    `../../../bin/cli/commands/redis.mjs?case=${Date.now()}-${Math.random()}`
+    `../../bin/cli/commands/redis.mjs?case=${Date.now()}-${Math.random()}`
   );
   // Capture stderr to keep the test output clean.
   const origStderr = process.stderr.write.bind(process.stderr);
@@ -151,7 +151,7 @@ test("runRedisUpCommand: returns 1 when no podman/docker is available (no PATH)"
 
 test("runRedisStatusCommand: returns 1 when no podman/docker is available", async () => {
   const { runRedisStatusCommand } = await import(
-    `../../../bin/cli/commands/redis.mjs?case=${Date.now()}-${Math.random()}`
+    `../../bin/cli/commands/redis.mjs?case=${Date.now()}-${Math.random()}`
   );
   const origStderr = process.stderr.write.bind(process.stderr);
   process.stderr.write = (() => true) as typeof process.stderr.write;
@@ -165,7 +165,7 @@ test("runRedisStatusCommand: returns 1 when no podman/docker is available", asyn
 
 test("runRedisDownCommand: returns 1 when no podman/docker is available", async () => {
   const { runRedisDownCommand } = await import(
-    `../../../bin/cli/commands/redis.mjs?case=${Date.now()}-${Math.random()}`
+    `../../bin/cli/commands/redis.mjs?case=${Date.now()}-${Math.random()}`
   );
   const origStderr = process.stderr.write.bind(process.stderr);
   process.stderr.write = (() => true) as typeof process.stderr.write;

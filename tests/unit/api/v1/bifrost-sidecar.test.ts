@@ -39,7 +39,7 @@ test("bifrost route: returns 503 + fallback header when BIFROST_BASE_URL is unse
 
   // Dynamic import after env is set so the module reads the empty value.
   const { POST } = await import(
-    "../../../src/app/api/v1/relay/chat/completions/bifrost/route.ts"
+    "../../../../src/app/api/v1/relay/chat/completions/bifrost/route.ts"
   );
 
   const req = new Request("http://localhost/api/v1/relay/chat/completions/bifrost", {
@@ -68,7 +68,7 @@ test("bifrost route: returns 401 when BIFROST_BASE_URL is set but no auth token 
   // Use a fresh module instance by appending a cache-busting query string.
   // (Node's ESM cache is keyed by resolved URL, so a unique query bypasses it.)
   const { POST } = await import(
-    `../../../src/app/api/v1/relay/chat/completions/bifrost/route.ts?case=${Date.now()}-${Math.random()}`
+    `../../../../src/app/api/v1/relay/chat/completions/bifrost/route.ts?case=${Date.now()}-${Math.random()}`
   );
 
   const req = new Request("http://localhost/api/v1/relay/chat/completions/bifrost", {
@@ -97,7 +97,7 @@ test("bifrost route: relay token hashing matches the SHA-256 hex contract", () =
 // Case 4: Validate the CORS preflight handler exists and responds with 204/200
 test("bifrost route: OPTIONS responds with CORS headers", async () => {
   const { OPTIONS } = await import(
-    `../../../src/app/api/v1/relay/chat/completions/bifrost/route.ts?case=${Date.now()}-${Math.random()}`
+    `../../../../src/app/api/v1/relay/chat/completions/bifrost/route.ts?case=${Date.now()}-${Math.random()}`
   );
   const res = await OPTIONS();
   // handleCorsOptions returns either 204 No Content or 200 with CORS headers.
