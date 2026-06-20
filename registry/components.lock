@@ -67,6 +67,13 @@
       "ref": "main",
       "sha": "1eeed5be90ed7c7b983e047475977de034db0f93"
     },
+    "phenotype-registry-data": {
+      "repo": "KooshaPari/phenotype-registry-data",
+      "ref": "main",
+      "status": "archived",
+      "archived_date": "2026-06-18",
+      "note": "Merged into KooshaPari/phenotype-registry as MANIFEST_L7-001.tsv + worklog-L7-001.json (L5-104)"
+    },
     "HexaKit": {
       "repo": "KooshaPari/HexaKit",
       "ref": "main",
