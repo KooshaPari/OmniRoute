@@ -4,6 +4,8 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::time::{SystemTime, UNIX_EPOCH};
 
+use crate::config;
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct HealthStatus {
     pub healthy: bool,
@@ -73,6 +75,7 @@ pub struct MonitoringReport {
 
 impl MonitoringReport {
     pub fn generate(processes: &[ProcessStats]) -> Self {
+        let cfg = config::global();
         let by_project: HashMap<String, usize> = HashMap::new();
         let by_harness: HashMap<String, usize> = HashMap::new();
         let mut total_memory = 0u64;
@@ -82,21 +85,21 @@ impl MonitoringReport {
             total_memory += proc.memory_mb;
 
             // Track idle processes
-            if proc.is_idle(300) {
+            if proc.is_idle(cfg.monitoring.idle_threshold_secs) {
                 idle += 1;
             }
         }
 
         let mut recommendations = Vec::new();
 
-        if total_memory > 4096 {
+        if total_memory > cfg.monitoring.high_memory_threshold_mb {
             recommendations.push(format!(
                 "High memory usage: {} MB. Consider pruning idle processes.",
                 total_memory
             ));
         }
 
-        if idle > 5 {
+        if idle > cfg.monitoring.idle_process_threshold {
             recommendations
                 .push(format!("{} idle processes found. Run 'sharecli prune' to clean up.", idle));
         }

@@ -1,27 +1,75 @@
 //! Configuration management for sharecli
+//!
+//! All configurable parameters are consolidated here. Hardcoded defaults
+//! serve as fallbacks when no config file is present; users override via
+//! `~/.config/sharecli/config.toml`.
 
 use anyhow::Result;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::path::PathBuf;
+use std::sync::OnceLock;
+
+// ---------------------------------------------------------------------------
+// Top-level Config
+// ---------------------------------------------------------------------------
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(default)]
 pub struct Config {
-    /// Registered projects (name -> path)
+    /// Registered projects (name → path)
     pub projects: HashMap<String, String>,
 
-    /// Runtime settings
+    /// Runtime settings (executable paths, resource caps)
     pub runtime: RuntimeConfig,
 
-    /// Default settings
-    pub defaults: HashMap<String, String>,
+    /// Default harness settings (per harness type)
+    pub defaults: HashMap<String, DefaultHarnessConfig>,
+
+    /// Shared process pool settings
+    pub pool: PoolConfig,
+
+    /// Monitoring / health-check thresholds
+    pub monitoring: MonitoringConfig,
+
+    /// Port assignments for co-processes
+    pub port: PortConfig,
+
+    /// Default paths for discovery, output, etc.
+    pub paths: PathsConfig,
+
+    /// Default project resource limits
+    pub project_limits: ProjectLimitsConfig,
+
+    /// Spawn / timing parameters
+    pub spawn: SpawnConfig,
 }
+
+impl Default for Config {
+    fn default() -> Self {
+        Self {
+            projects: default_projects(),
+            runtime: RuntimeConfig::default(),
+            defaults: default_harness_configs(),
+            pool: PoolConfig::default(),
+            monitoring: MonitoringConfig::default(),
+            port: PortConfig::default(),
+            paths: PathsConfig::default(),
+            project_limits: ProjectLimitsConfig::default(),
+            spawn: SpawnConfig::default(),
+        }
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Sub-configs
+// ---------------------------------------------------------------------------
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct RuntimeConfig {
     /// Path to node executable
     pub node_path: Option<String>,
-    /// Path to bun executable  
+    /// Path to bun executable
     pub bun_path: Option<String>,
     /// Maximum memory per process (MB)
     pub max_memory_mb: Option<u64>,
@@ -40,15 +88,131 @@ impl Default for RuntimeConfig {
     }
 }
 
-impl Default for Config {
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PoolConfig {
+    /// Enable shared process pool
+    pub enabled: bool,
+    /// Max pooled processes per harness type (node, bun)
+    pub max_per_type: usize,
+    /// Idle timeout before a pooled process is eligible for recycling (seconds)
+    pub idle_timeout_secs: u64,
+    /// Max age before a pooled process is force-recycled (seconds)
+    pub max_age_secs: u64,
+    /// Delay between spawn and health check (milliseconds)
+    pub spawn_delay_ms: u64,
+}
+
+impl Default for PoolConfig {
     fn default() -> Self {
         Self {
-            projects: default_projects(),
-            runtime: RuntimeConfig::default(),
-            defaults: HashMap::new(),
+            enabled: true,
+            max_per_type: 5,
+            idle_timeout_secs: 300,
+            max_age_secs: 3600,
+            spawn_delay_ms: 100,
         }
     }
 }
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MonitoringConfig {
+    /// Interval between health checks (seconds)
+    pub health_check_interval_secs: u64,
+    /// Seconds of inactivity before a process is considered idle
+    pub idle_threshold_secs: u64,
+    /// Memory threshold above which a warning is emitted (MB)
+    pub high_memory_threshold_mb: u64,
+    /// Number of idle processes that triggers a pruning recommendation
+    pub idle_process_threshold: usize,
+    /// Per-process memory limit for health-check warnings (bytes)
+    pub per_process_warn_memory_bytes: u64,
+}
+
+impl Default for MonitoringConfig {
+    fn default() -> Self {
+        Self {
+            health_check_interval_secs: 30,
+            idle_threshold_secs: 300,
+            high_memory_threshold_mb: 4096,
+            idle_process_threshold: 5,
+            per_process_warn_memory_bytes: 1024 * 1024 * 1024, // 1 GiB
+        }
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PortConfig {
+    /// Port for the ShareWei co-process
+    pub sharewei_port: u16,
+}
+
+impl Default for PortConfig {
+    fn default() -> Self {
+        Self { sharewei_port: 3100 }
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PathsConfig {
+    /// Default directory to scan when `project discover` has no argument
+    pub discovery_path: String,
+    /// Default output path for `project generate`
+    pub default_compose_output: String,
+}
+
+impl Default for PathsConfig {
+    fn default() -> Self {
+        Self {
+            discovery_path: "~/CodeProjects/Phenotype/repos".into(),
+            default_compose_output: "process-compose.yml".into(),
+        }
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DefaultHarnessConfig {
+    pub enabled: bool,
+    pub max_instances: usize,
+    pub memory_limit_mb: u64,
+}
+
+impl Default for DefaultHarnessConfig {
+    fn default() -> Self {
+        Self { enabled: true, max_instances: 10, memory_limit_mb: 256 }
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ProjectLimitsConfig {
+    /// Default memory limit per project (MB)
+    pub memory_limit_mb: u64,
+    /// Default max processes per project
+    pub max_processes: usize,
+}
+
+impl Default for ProjectLimitsConfig {
+    fn default() -> Self {
+        Self { memory_limit_mb: 1024, max_processes: 10 }
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SpawnConfig {
+    /// Default harness type when none is specified
+    pub default_harness: String,
+    /// Default idle threshold for prune command (seconds)
+    pub prune_idle_seconds: u64,
+}
+
+impl Default for SpawnConfig {
+    fn default() -> Self {
+        Self { default_harness: "claude".into(), prune_idle_seconds: 300 }
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Default projects (machine-local — overridden by config file)
+// ---------------------------------------------------------------------------
 
 fn default_projects() -> HashMap<String, String> {
     let mut projects = HashMap::new();
@@ -67,8 +231,38 @@ fn default_projects() -> HashMap<String, String> {
     projects
 }
 
+fn default_harness_configs() -> HashMap<String, DefaultHarnessConfig> {
+    let mut m = HashMap::new();
+    m.insert("claude".into(), DefaultHarnessConfig { enabled: true, max_instances: 11, memory_limit_mb: 512 });
+    m.insert("forge".into(), DefaultHarnessConfig { enabled: true, max_instances: 20, memory_limit_mb: 256 });
+    m.insert("node".into(), DefaultHarnessConfig { enabled: true, max_instances: 30, memory_limit_mb: 256 });
+    m.insert("bun".into(), DefaultHarnessConfig { enabled: true, max_instances: 10, memory_limit_mb: 384 });
+    m
+}
+
+// ---------------------------------------------------------------------------
+// Global config singleton
+// ---------------------------------------------------------------------------
+
+static GLOBAL_CONFIG: OnceLock<Config> = OnceLock::new();
+
+/// Initialise the global config from the default config file path.
+/// Safe to call multiple times — only the first call takes effect.
+pub fn init_global() -> &'static Config {
+    GLOBAL_CONFIG.get_or_init(|| Config::load().unwrap_or_default())
+}
+
+/// Return a reference to the global config (panics if not initialised).
+pub fn global() -> &'static Config {
+    GLOBAL_CONFIG.get().expect("Config not initialised — call config::init_global() first")
+}
+
+// ---------------------------------------------------------------------------
+// File-based loading / saving
+// ---------------------------------------------------------------------------
+
 impl Config {
-    /// Load configuration from ~/.config/sharecli/config.toml
+    /// Load configuration from `~/.config/sharecli/config.toml`
     pub fn load() -> Result<Self> {
         let config_path = Self::config_path()?;
 
@@ -81,7 +275,7 @@ impl Config {
         }
     }
 
-    /// Initialize default configuration
+    /// Initialize default configuration file
     pub fn init() -> Result<()> {
         let config_path = Self::config_path()?;
 
@@ -118,7 +312,9 @@ impl Config {
     }
 }
 
+// ---------------------------------------------------------------------------
 // CLI command enums (defined here to avoid circular dependencies)
+// ---------------------------------------------------------------------------
 
 #[derive(clap::Subcommand, Debug)]
 pub enum ConfigCmd {
@@ -144,7 +340,6 @@ pub enum ProjectCmd {
     List,
     /// Show project details
     Show { name: String },
-    /// Discover projects in a directory
     /// Discover projects in a directory
     Discover { path: Option<String> },
     /// Generate process-compose.yml from registered projects

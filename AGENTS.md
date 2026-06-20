@@ -7,6 +7,27 @@ Extends shelf-level AGENTS.md rules for sharecli.
 - **Name**: sharecli
 - **Language**: Rust
 
+## Relationship with thegent-sharecli
+
+[`thegent-sharecli`](https://github.com/KooshaPari/thegent-sharecli) was a
+separate Python-based project that explored CLI share/directory functionality
+for multi-agent orchestration. **It is now archived** (public, read-only).
+
+Sharecli (this repo) is the active Rust implementation for process management.
+`thegent-sharecli` was an earlier Python prototype with a different scope
+(command deduplication, task queue, coordination) and a different architecture.
+There is no code or dependency relationship between the two repos.
+
+### Boundary
+
+| Aspect | sharecli (this repo) | thegent-sharecli (archived) |
+|--------|----------------------|-----------------------------|
+| Status | **Active** | **Archived** |
+| Language | Rust | Python |
+| Purpose | Process management, pooling, resource limits | CLI share / dedup / coordination |
+| Architecture | ProcessPool, SharedRuntime, ResourceManager | Ports & Adapters (Hexagonal) |
+| Dependency | substrate, sysinfo, tokio | Independent (no shared deps) |
+
 ## Project-Specific Rules
 
 ### Test-First Mandate

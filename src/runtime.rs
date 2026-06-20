@@ -15,6 +15,8 @@ use sysinfo::{Pid, System};
 use tokio::process::Command;
 use tokio::sync::RwLock;
 
+use crate::config;
+
 #[derive(Debug, Clone)]
 pub struct ProcessInfo {
     pub pid: u32,
@@ -217,7 +219,7 @@ impl SharedRuntime {
             let pid = child.id().unwrap_or(0);
             drop(child);
 
-            tokio::time::sleep(Duration::from_millis(100)).await;
+            tokio::time::sleep(Duration::from_millis(config::global().pool.spawn_delay_ms)).await;
             self.refresh().await;
 
             let sys = self.system.read().await;
@@ -286,7 +288,7 @@ impl SharedRuntime {
 
         for p in node_pool.iter().chain(bun_pool.iter()) {
             if let Some(proc) = sys.process(Pid::from_u32(p.pid)) {
-                if proc.memory() > 1024 * 1024 * 1024 {
+                if proc.memory() > config::global().monitoring.per_process_warn_memory_bytes {
                     issues.push(format!(
                         "{} (PID {}) using {} MB - high memory",
                         p.name,
@@ -349,7 +351,12 @@ pub struct ProjectLimits {
 
 impl Default for ProjectLimits {
     fn default() -> Self {
-        Self { memory_limit_mb: 1024, max_processes: 10, cpu_affinity: None }
+        let cfg = config::global();
+        Self {
+            memory_limit_mb: cfg.project_limits.memory_limit_mb,
+            max_processes: cfg.project_limits.max_processes,
+            cpu_affinity: None,
+        }
     }
 }
 

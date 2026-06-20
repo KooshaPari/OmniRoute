@@ -125,9 +125,9 @@ enum Commands {
 
     /// Prune idle processes
     Prune {
-        /// Idle time threshold in seconds
-        #[arg(short, long, default_value = "300")]
-        idle_seconds: u64,
+        /// Idle time threshold in seconds (default from config if omitted)
+        #[arg(short, long)]
+        idle_seconds: Option<u64>,
 
         /// Actually kill processes (dry run by default)
         #[arg(short, long)]
@@ -179,6 +179,9 @@ enum Commands {
 async fn main() -> Result<()> {
     let cli = Cli::parse();
 
+    // Initialise global config (must happen before any command handler)
+    config::init_global();
+
     if !cli.quiet {
         tracing_subscriber::fmt()
             .with_max_level(if cli.verbose { tracing::Level::DEBUG } else { tracing::Level::INFO })
@@ -199,7 +202,9 @@ async fn main() -> Result<()> {
         Commands::Config { cmd } => config_cmd(cmd)?,
         Commands::Project { cmd } => project_cmd(cmd)?,
         Commands::Optimize { apply } => optimize(*apply).await?,
-        Commands::Prune { idle_seconds, force } => prune(*idle_seconds, *force).await?,
+        Commands::Prune { idle_seconds, force } => {
+            prune(idle_seconds.unwrap_or(config::global().spawn.prune_idle_seconds), *force).await?
+        }
         Commands::Pool { harness: _ } => pool_status().await?,
         Commands::Health { harness } => health(harness.as_deref()).await?,
         Commands::Run { harness, project } => run_pool(harness, project).await?,
