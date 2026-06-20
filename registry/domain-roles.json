@@ -3,25 +3,169 @@
   "updated": "2026-06-19",
   "source": "DOMAIN_ROLES.md + ADR-017",
   "domains": [
-    {"id": "genesis", "repo": "HexaKit", "core_lang": "rust", "edge_langs": []},
-    {"id": "config", "repo": "phenotype-config", "core_lang": "rust", "edge_langs": ["ts", "py"]},
-    {"id": "observe", "repo": "PhenoObservability", "core_lang": "rust", "edge_langs": ["py"]},
-    {"id": "connect", "repo": "substrate", "core_lang": "rust", "edge_langs": ["py", "go"], "also": ["PhenoFastMCP", "PhenoMCPServers", "Authvault"]},
-    {"id": "route", "repo": "OmniRoute", "core_lang": "typescript", "edge_langs": [], "rust_counterpart": "Tokn"},
-    {"id": "cli_proxy", "repo": "agentapi-plusplus", "core_lang": "go", "edge_langs": [], "peer": "cliproxyapi-plusplus"},
-    {"id": "agent-control", "repo": "agentapi-plusplus", "core_lang": "go", "edge_langs": ["rust"], "adapter": "substrate/engine-agentapi"},
-    {"id": "inference", "repo": "phenotype-omlx", "core_lang": null, "edge_langs": [], "engine_upstream": "jundot/omlx", "status": "archived_pending_decision"},
-    {"id": "resilience", "repo": "ResilienceKit", "core_lang": "rust", "edge_langs": ["py"], "py_edge": "phenotype-python-sdk/packages/resilience-kit"},
-    {"id": "test", "repo": "phenotype-test", "core_lang": "rust", "edge_langs": ["py"]},
-    {"id": "platform", "repo": "phenotype-go-sdk", "core_lang": "go", "edge_langs": [], "also": ["phenotype-tooling", "PhenoCompose"]},
-    {"id": "py-sdk-index", "repo": "phenotype-python-sdk", "core_lang": null, "edge_langs": ["py"]},
-    {"id": "mcp-framework", "repo": "PhenoFastMCP", "core_lang": "python", "edge_langs": ["go", "rust"], "supersedes": "PhenoMCP"},
-    {"id": "mcp-servers", "repo": "PhenoMCPServers", "core_lang": "mixed", "edge_langs": []},
-    {"id": "mcp-asset", "repo": "phenotype-mcp-asset", "core_lang": "rust", "edge_langs": [], "extracted_from": "McpKit/rust/phenotype-mcp-asset", "extraction_date": "2026-06-18", "rationale": "ADR-003+ADR-017 — pure Rust asset/pack handler carved out of McpKit mega-repo as a standalone pheno-*-lib (ADR-023 substrate rule). Consumers: PhenoMCP, PhenoMCPServers."},
-    {"id": "types", "repo": "phenotype-types", "core_lang": "rust", "edge_langs": ["py"]},
-    {"id": "secrets", "repo": "Authvault", "core_lang": "rust", "edge_langs": []},
-    {"id": "tooling", "repo": "phenotype-tooling", "core_lang": "rust", "edge_langs": [], "also": ["agileplus-spec-harmonizer"]},
-    {"id": "rust-genesis-facade", "repo": "phenotype-rust-sdk", "core_lang": "rust", "edge_langs": []},
-    {"id": "vendor-gateway", "repo": "bifrost", "core_lang": "go", "edge_langs": [], "policy": "vendor-only-not-routing-referent"}
+    {
+      "id": "genesis",
+      "repo": "HexaKit",
+      "core_lang": "rust",
+      "edge_langs": []
+    },
+    {
+      "id": "config",
+      "repo": "phenotype-config",
+      "core_lang": "rust",
+      "edge_langs": [
+        "ts",
+        "py"
+      ]
+    },
+    {
+      "id": "observe",
+      "repo": "PhenoObservability",
+      "core_lang": "rust",
+      "edge_langs": [
+        "py"
+      ]
+    },
+    {
+      "id": "connect",
+      "repo": "substrate",
+      "core_lang": "rust",
+      "edge_langs": [
+        "py",
+        "go"
+      ],
+      "also": [
+        "PhenoFastMCP",
+        "PhenoMCPServers",
+        "Authvault"
+      ]
+    },
+    {
+      "id": "route",
+      "repo": "OmniRoute",
+      "core_lang": "typescript",
+      "edge_langs": [],
+      "rust_counterpart": "Tokn"
+    },
+    {
+      "id": "cli_proxy",
+      "repo": "agentapi-plusplus",
+      "core_lang": "go",
+      "edge_langs": [],
+      "peer": "cliproxyapi-plusplus"
+    },
+    {
+      "id": "agent-control",
+      "repo": "agentapi-plusplus",
+      "core_lang": "go",
+      "edge_langs": [
+        "rust"
+      ],
+      "adapter": "substrate/engine-agentapi"
+    },
+    {
+      "id": "inference",
+      "repo": "phenotype-omlx",
+      "core_lang": null,
+      "edge_langs": [],
+      "engine_upstream": "jundot/omlx",
+      "status": "archived_pending_decision"
+    },
+    {
+      "id": "resilience",
+      "repo": "ResilienceKit",
+      "core_lang": "rust",
+      "edge_langs": [
+        "py"
+      ],
+      "py_edge": "phenotype-python-sdk/packages/resilience-kit"
+    },
+    {
+      "id": "test",
+      "repo": "phenotype-test",
+      "core_lang": "rust",
+      "edge_langs": [
+        "py"
+      ]
+    },
+    {
+      "id": "platform",
+      "repo": "phenotype-go-sdk",
+      "core_lang": "go",
+      "edge_langs": [],
+      "also": [
+        "phenotype-tooling",
+        "PhenoCompose"
+      ]
+    },
+    {
+      "id": "py-sdk-index",
+      "repo": "phenotype-python-sdk",
+      "core_lang": null,
+      "edge_langs": [
+        "py"
+      ]
+    },
+    {
+      "id": "mcp-framework",
+      "repo": "PhenoFastMCP",
+      "core_lang": "python",
+      "edge_langs": [
+        "go",
+        "rust"
+      ],
+      "supersedes": "PhenoMCP"
+    },
+    {
+      "id": "mcp-servers",
+      "repo": "PhenoMCPServers",
+      "core_lang": "mixed",
+      "edge_langs": []
+    },
+    {
+      "id": "mcp-asset",
+      "repo": "PhenoFastMCP-rust/crates/fastmcp-asset",
+      "core_lang": "rust",
+      "edge_langs": [],
+      "extracted_from": "McpKit/rust/phenotype-mcp-asset",
+      "extraction_date": "2026-06-18",
+      "rationale": "ADR-003+ADR-017 - Rust asset/pack handler carved out of McpKit and folded into PhenoFastMCP-rust as crates/fastmcp-asset. Consumers: PhenoFastMCP-rust, PhenoMCPServers."
+    },
+    {
+      "id": "types",
+      "repo": "phenotype-types",
+      "core_lang": "rust",
+      "edge_langs": [
+        "py"
+      ]
+    },
+    {
+      "id": "secrets",
+      "repo": "Authvault",
+      "core_lang": "rust",
+      "edge_langs": []
+    },
+    {
+      "id": "tooling",
+      "repo": "phenotype-tooling",
+      "core_lang": "rust",
+      "edge_langs": [],
+      "also": [
+        "agileplus-spec-harmonizer"
+      ]
+    },
+    {
+      "id": "rust-genesis-facade",
+      "repo": "phenotype-rust-sdk",
+      "core_lang": "rust",
+      "edge_langs": []
+    },
+    {
+      "id": "vendor-gateway",
+      "repo": "bifrost",
+      "core_lang": "go",
+      "edge_langs": [],
+      "policy": "vendor-only-not-routing-referent"
+    }
   ]
 }

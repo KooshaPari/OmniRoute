@@ -147,11 +147,12 @@
       "sha": "a5b4f7a799fa7c26166e1d0535c59e3639758cdb"
     },
     "phenotype-mcp-asset": {
-      "repo": "KooshaPari/phenotype-mcp-asset",
+      "repo": "KooshaPari/PhenoFastMCP-rust",
       "ref": "main",
       "sha": "718edf808de6ab16f2f9602a763c5c7ac983fb22",
       "status": "archived",
-      "archived_date": "2026-06-18"
+      "archived_date": "2026-06-18",
+      "path": "crates/fastmcp-asset"
     },
     "phenotype-tooling": {
       "repo": "KooshaPari/phenotype-tooling",
