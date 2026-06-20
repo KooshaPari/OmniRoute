@@ -178,3 +178,7 @@ phenotype-registry/
 ---
 
 *Generated: 2026-04-04*
+
+## v8 Phase 3 — T17 + T18 (2026-06-20)
+
+Tightened lint configurations and Tier-2 coverage gate per ADR-040 (80% lib / 70% framework / 60% service). HOOKS_SKIP / SKIP env vars enable ad-hoc testing. OIDC trust (no PAT secrets).
