@@ -1,7 +1,7 @@
 {
   "version": "1.2.0",
   "updated": "2026-06-19",
-  "description": "Integration meta-repo lockfile — pins canonical fleet repos to immutable refs. CI validates cross-repo compatibility at pinned SHAs.",
+  "description": "Integration meta-repo lockfile \u2014 pins canonical fleet repos to immutable refs. CI validates cross-repo compatibility at pinned SHAs.",
   "_archive_notes": {
     "McpKit": {
       "status": "archived",
@@ -11,12 +11,47 @@
     "phenoShared": {
       "status": "deleted",
       "deleted_date": "2026-06-19",
-      "reason": "P4 decompose complete; wave 5b fleet drain — 0 production git deps. Final pin 5f4647ef retained here for audit; no lock pin in components. Terminal owners per ADR-ECO-014."
+      "reason": "P4 decompose complete; wave 5b fleet drain \u2014 0 production git deps. Final pin 5f4647ef retained here for audit; no lock pin in components. Terminal owners per ADR-ECO-014."
     },
     "Pyron": {
       "status": "deleted",
       "deleted_date": "2026-06-19",
-      "reason": "P4 gate pass; repo 404 post-absorption. No lock pin — tombstone only."
+      "reason": "P4 gate pass; repo 404 post-absorption. No lock pin \u2014 tombstone only."
+    },
+    "phenotype-mcp-asset": {
+      "status": "archived",
+      "archived_date": "2026-06-18",
+      "reason": "9-module Rust scaffold (asset discovery/pack/handler/validation), no CI, no LICENSE, zero consumers. Byte-identical copy preserved in McpKit GitHub archive (L5-104). Pin retained at 718edf80."
+    },
+    "phenotype-analytics": {
+      "status": "archived",
+      "archived_date": "2026-06-18",
+      "reason": "100 LOC async-trait interface library (AnalyticsClient/AnalyticsBackend/Trackable), no concrete backends, zero tests, zero consumers. Created <24h before archive (L5-104). Pin retained at 25622c4a."
+    },
+    "phenotype-registry-data": {
+      "status": "archived",
+      "archived_date": "2026-06-18",
+      "reason": "5.7 MB MANIFEST.tsv index of L7-001 corpus (52,627 entries). Merged into KooshaPari/phenotype-registry as MANIFEST_L7-001.tsv + worklog-L7-001.json (L5-104)."
+    },
+    "pheno-framework-lint": {
+      "status": "archived",
+      "archived_date": "2026-06-19",
+      "reason": "L73 governance tool (substrate graduation & tier-convention linter). Absorbed into pheno-scaffold-kit as _framework_lint.py SUB_LIBRARY (L5-110). PR KooshaPari/pheno-scaffold-kit#2."
+    },
+    "pheno-drift-detector": {
+      "status": "archived",
+      "archived_date": "2026-06-19",
+      "reason": "L74 governance tool (app-substrate drift detection). Absorbed into pheno-scaffold-kit as _drift_detector.py SUB_LIBRARY (L5-111). PR KooshaPari/pheno-scaffold-kit#2."
+    },
+    "pheno-predict": {
+      "status": "archived",
+      "archived_date": "2026-06-19",
+      "reason": "L72 governance tool (token-shingle Jaccard scanner for predictive DRY). Absorbed into pheno-scaffold-kit as _predict.py SUB_LIBRARY (L5-112). PR KooshaPari/pheno-scaffold-kit#2."
+    },
+    "forge-runner-scripts": {
+      "status": "archived",
+      "archived_date": "2026-06-19",
+      "reason": "33 operational shell/python scripts (~290 KB) from ~/.forge/. Split: 2 dag_*.py -> phenodag (Go rewrite, L5-113 2026-06-18); 31 files -> phenotype-org-audits/forge-runner-scripts/. PR KooshaPari/phenotype-org-audits#49."
     }
   },
   "components": {
@@ -95,7 +130,9 @@
     "phenotype-analytics": {
       "repo": "KooshaPari/phenotype-analytics",
       "ref": "main",
-      "sha": "25622c4ae77b6806cd2c6eb84acc6342be45d05d"
+      "sha": "25622c4ae77b6806cd2c6eb84acc6342be45d05d",
+      "status": "archived",
+      "archived_date": "2026-06-18"
     },
     "nexus": {
       "repo": "KooshaPari/nexus",
@@ -110,9 +147,17 @@
     "phenotype-mcp-asset": {
       "repo": "KooshaPari/phenotype-mcp-asset",
       "ref": "main",
-      "sha": "718edf808de6ab16f2f9602a763c5c7ac983fb22"
+      "sha": "718edf808de6ab16f2f9602a763c5c7ac983fb22",
+      "status": "archived",
+      "archived_date": "2026-06-18"
     },
-    "phenotype-tooling": { "repo": "KooshaPari/phenotype-tooling", "ref": "main" },
-    "PhenoMCP": { "repo": "KooshaPari/PhenoMCP", "ref": "main" }
+    "phenotype-tooling": {
+      "repo": "KooshaPari/phenotype-tooling",
+      "ref": "main"
+    },
+    "PhenoMCP": {
+      "repo": "KooshaPari/PhenoMCP",
+      "ref": "main"
+    }
   }
 }
