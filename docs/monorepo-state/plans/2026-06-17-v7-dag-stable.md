@@ -94,7 +94,7 @@ The 9-domain, 71-pillar framework ratified in ADR-024 (L5-102, 2026-06-17). Doma
 | **T3.2** | `findings/71-pillar-2026-06-17-probe.md` — probe script + per-repo probe results | P1 | orchestrator + per-repo forge subagent | T3.1 | Probe script committed at `scripts/71-pillar-probe.py` (or per-language equivalent); per-repo result table for top-10 repos |
 | **T3.3** | `findings/71-pillar-2026-06-17.md` — live scorecard across 10 existing repos (pheno, phenoShared, dispatch-mcp, phenodocs, AgilePlus, Civis, PhenoMCP, OmniRoute, KWatch, HeliosLab) | P1 | orchestrator | T3.2 | File exists; per-repo per-pillar 0-3 scores; aggregate ✓/△/⚠ counts; refresh cadence noted (weekly Monday 09:00 PDT) |
 | **T3.4** | `findings/71-pillar-2026-06-17-render.md` — render the scorecard as human-readable markdown tables + ASCII heatmap | P1 | orchestrator | T3.3 | File exists; ASCII heatmap; tables per domain; baseline ✓/△/⚠ counts documented |
-| **T3.5** | `findings/71-pillar-2026-06-17-mapping.md` — L1-L30 (older 30-pillar at `findings/30-pillar-2026-06-16.md`) → L1-L71 crosswalk so the older audit is not orphaned | P1 | orchestrator | T3.1 | File exists; per-pillar mapping table (L1_old → L<n>_new) for all 30 old pillars; explicit "no orphan" attestation |
+| **T3.5** | `findings/71-pillar-2026-06-17-mapping.md` — L1-L30 (older 30-pillar at `findings/30-pillar-2026-06-16.md`) → L1-L71 crosswalk so the older audit is not orphaned | P1 | orchestrator | T3.1 | File exists; per-pillar mapping table (L1_old → L`<n>`_new) for all 30 old pillars; explicit "no orphan" attestation |
 | **T3.6** | `docs/adr/2026-06-17/ADR-024-71-pillar-audit-framework.md` — formalize the 9-domain, 71-pillar framework as canonical (supersedes 30-pillar reference in AGENTS.md) | P1 | orchestrator | T3.1-T3.5 | ADR exists; index entry at `docs/adr/2026-06-17/INDEX.md`; AGENTS.md § "Active ADRs" updated with ADR-024 row |
 | **T3.7** | `docs/adr/2026-06-17/ADR-025-worklog-v2-1-schema.md` — formalize the v2.1 worklog schema bump (with `device:` field per ADR-023 device-fit gate) | P1 | orchestrator | none (independent of T3.1-T3.6) | ADR exists; v2.0 → v2.1 diff; deprecation 2026-06-22; AGENTS.md § "Active ADRs" updated with ADR-025 row |
 | **T3.8** | `docs/adr/2026-06-17/ADR-026-factory-ai-agent-readiness.md` — Factory AI Agent Readiness Model as cross-cutting external standard (5-level gated progression) | P1 | orchestrator | T3.1 (L1-L30 → L1-L71 crosswalk) | ADR exists; crosswalk table to 71-pillar; org score formula; `STATUS.md` § "Factory AI Agent Readiness" pointer; `/readiness-report` slash-command mention |
@@ -311,7 +311,7 @@ T3.1 (schema) → T3.2 (probe) → T3.3 (scorecard) → T3.4 (render)
 
 ## 5. PR Matrix
 
-All 38 PRs across 8 tracks. PR# column uses estimated GitHub PR numbers (KooshaPari/<repo>); actual numbers assigned on PR-open.
+All 38 PRs across 8 tracks. PR# column uses estimated GitHub PR numbers (KooshaPari/`<repo>`); actual numbers assigned on PR-open.
 
 | PR# | Title | Repo | Track | Status | Owner | Subagent |
 |---|---|---|---|---|---|---|
