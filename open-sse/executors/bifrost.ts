@@ -45,6 +45,16 @@ import {
   refreshBifrostModels,
   type BifrostFetcher,
 } from "../../src/lib/db/bifrostModels.ts";
+import {
+  isActive as killSwitchIsActive,
+  recordObservation,
+  getState as killSwitchGetState,
+  type KillSwitchState,
+} from "../services/bifrostKillSwitch.ts";
+import {
+  BifrostKillSwitchActiveError,
+  BIFROST_KILLSWITCH_ACTIVE,
+} from "../services/bifrostKillSwitch.ts";
 
 const DEFAULT_HOST = "127.0.0.1";
 const DEFAULT_PORT = 8080;
@@ -70,6 +80,36 @@ function isBifrostEnabled(): boolean {
   const flag = process.env.BIFROST_ENABLED;
   if (!flag) return false;
   return flag === "true" || flag === "1";
+}
+
+/**
+ * Escape hatch: BIFROST_KILLSWITCH_DISABLED=true bypasses the kill switch
+ * entirely. Useful for operators who need Bifrost to keep serving even
+ * when the kill switch is tripped, or for testing the kill-switch path
+ * in isolation. Default behavior (env unset / "false") honors the kill
+ * switch.
+ *
+ * Reference: PLAN.md § 2.5.2 (B9.1) — "kill switch must be defeatable
+ * via env var for emergency operation".
+ */
+function isKillSwitchDisabled(): boolean {
+  const flag = process.env.BIFROST_KILLSWITCH_DISABLED;
+  if (!flag) return false;
+  return flag === "true" || flag === "1";
+}
+
+/**
+ * Look up the current kill switch state for this provider, or undefined
+ * if no observations have been recorded yet (i.e. no state in the map).
+ * Wraps `getState` so callers can treat the absence of state as a
+ * non-tripped condition without a try/catch.
+ */
+function killSwitchStateFor(provider: string): KillSwitchState | undefined {
+  try {
+    return killSwitchGetState(provider);
+  } catch {
+    return undefined;
+  }
 }
 
 /**
@@ -117,6 +157,34 @@ export class BifrostBackendExecutor extends BaseExecutor {
         `[${BIFROST_TAG}] Provider "${this.provider}" is not in the Bifrost provider map. ` +
           `Stay on the legacy executor (open-sse/handlers/chatCore.ts).`
       );
+    }
+
+    // ── Kill switch pre-check (B9.1) ─────────────────────────────
+    // If the kill switch is active for this provider, throw
+    // BifrostKillSwitchActiveError. The dispatcher catches this and falls
+    // back to the legacy chatCore path. The env var
+    // BIFROST_KILLSWITCH_DISABLED=true is an escape hatch for emergency
+    // operation (operators who need Bifrost to keep serving even when
+    // tripped).
+    if (!isKillSwitchDisabled() && killSwitchIsActive(this.provider)) {
+      const state = killSwitchStateFor(this.provider);
+      input.log?.warn?.(
+        BIFROST_TAG,
+        `Kill switch active for "${this.provider}" ` +
+          `(reason=${state?.reason ?? "unknown"}, severity=${state?.severity ?? "warn"}). ` +
+          `Falling back to legacy chatCore path.`
+      );
+      if (state) {
+        throw new BifrostKillSwitchActiveError(this.provider, state);
+      }
+      // Defensive: if isActive() returns true but we can't read state,
+      // throw a generic error with the canonical code so dispatchers
+      // can still match on it.
+      const err = new Error(
+        `[${BIFROST_TAG}] Bifrost kill switch is active for provider "${this.provider}".`
+      );
+      (err as Error & { code?: string }).code = BIFROST_KILLSWITCH_ACTIVE;
+      throw err;
     }
 
     const bifrostProviderId = resolveBifrostProviderId(this.provider);
@@ -176,17 +244,54 @@ export class BifrostBackendExecutor extends BaseExecutor {
       `Bifrost → ${url} (omniProvider: ${this.provider}, bifrostProvider: ${bifrostProviderId}, model: ${model})`
     );
 
-    const response = await fetch(url, {
-      method: "POST",
-      headers,
-      body: JSON.stringify(body),
-      signal: combinedSignal,
-    });
+    // ── execute + record observation (B9.1) ──────────────────────
+    // We measure latency around the fetch and always record an
+    // observation. `ok` is true on 2xx and false on any other status or
+    // thrown error. The kill switch uses these to auto-trip when
+    // thresholds (p99 latency, error rate, cost ratio) are exceeded.
+    const startTime = Date.now();
+    let response: Response;
+    try {
+      response = await fetch(url, {
+        method: "POST",
+        headers,
+        body: JSON.stringify(body),
+        signal: combinedSignal,
+      });
+    } catch (err) {
+      // Fetch threw (network error, abort, timeout). Record a failed
+      // observation and re-throw. The dispatcher will handle the error.
+      if (!isKillSwitchDisabled()) {
+        recordObservation({
+          timestamp: Date.now(),
+          provider: this.provider,
+          latencyMs: Date.now() - startTime,
+          ok: false,
+        });
+      }
+      throw err;
+    }
 
     if (response.status === HTTP_STATUS.RATE_LIMITED) {
       input.log?.warn?.(BIFROST_TAG, `Bifrost rate limited: ${response.status}`);
     } else if (response.status >= 500) {
       input.log?.warn?.(BIFROST_TAG, `Bifrost upstream error: ${response.status}`);
+    }
+
+    // Record a successful (2xx) or failed (non-2xx) observation. Cost
+    // fields are optional — callers that have them can wire them in via
+    // input.killSwitchCost if/when that field is added.
+    if (!isKillSwitchDisabled()) {
+      const cost = (input as { killSwitchCost?: { costUsd?: number; legacyCostUsd?: number } })
+        .killSwitchCost;
+      recordObservation({
+        timestamp: Date.now(),
+        provider: this.provider,
+        latencyMs: Date.now() - startTime,
+        ok: response.ok,
+        costUsd: cost?.costUsd,
+        legacyCostUsd: cost?.legacyCostUsd,
+      });
     }
 
     return {
@@ -217,6 +322,23 @@ export class BifrostBackendExecutor extends BaseExecutor {
         error: "Bifrost not enabled (BIFROST_ENABLED unset)",
       };
     }
+
+    // ── Kill switch healthCheck propagation (B9.1) ──────────────
+    // If the kill switch is active, surface it as a failed health check
+    // with reason='kill_switch_active'. This lets orchestrators and
+    // dashboards see the tripped state without needing to query the
+    // kill switch directly. BIFROST_KILLSWITCH_DISABLED=true bypasses
+    // this propagation (escape hatch).
+    if (!isKillSwitchDisabled() && killSwitchIsActive(this.provider)) {
+      const state = killSwitchStateFor(this.provider);
+      return {
+        ok: false,
+        latencyMs: Date.now() - start,
+        error: "kill_switch_active",
+        version: state?.reason ?? undefined,
+      };
+    }
+
     const baseUrl = await resolveBifrostBaseUrl();
 
     // 1. Probe /health first.
