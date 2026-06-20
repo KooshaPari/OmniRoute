@@ -267,7 +267,11 @@ See `findings/71-pillar-2026-06-17-schema.md` for the full schema doc (industry 
 
 **Scoring:** 0-3 per pillar per repo (0=absent, 1=minimal, 2=adequate, 3=strong/SOTA). N/A=3 (per `audit-30-pillar-template.md` rule) for UI pillars (L40 i18n, L41 a11y) on headless backend/CLI libraries.
 
-**Refresh cadence:** weekly (every Monday 09:00 PDT). Owner: worklog-schema circle. Diff against previous week is logged in `findings/71-pillar-{date}-delta.md`.
+**Refresh cadence:** bi-cadence as of 2026-06-20 (manager task). Two parallel streams:
+1. **Monday 09:00 PDT anchor** (cycle N scheduled) — full-fleet rotation, 8 repos/cycle, 6–7-week fleet sweep.
+2. **Saturday mid-week ad-hoc batches** (cycle N early) — driven by subagent T13.x sweeps, 7–8 repos/batch, opportunistic.
+
+Both streams use the same scoring schema (`findings/71-pillar-2026-06-17-schema.md`) and produce the same per-repo + rollup artifacts (`findings/71-pillar-{date}-{repo|cycle-N|rollup-{date}}.md`). Owner: worklog-schema circle. Live schedule canonical in `findings/71-pillar-2026-06-20-weekly-2.md` § "Cycle Schedule". Diff against prior cycle is logged in `findings/71-pillar-{date}-delta.md` when present (delta convention is optional, not enforced).
 
 ---
 
