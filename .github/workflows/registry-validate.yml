@@ -1,0 +1,56 @@
+# registry-validate.yml — validate catalog/registry.yaml on every PR
+#
+# Enforces ADR-ECO-017 (substrate schema conventions). Runs on:
+#   - pull_request (any change touching catalog/, scripts/validate-catalog.py,
+#     docs/boundary/, docs/intent/, docs/adrs/)
+#   - push to main (post-merge sanity)
+#   - workflow_dispatch (manual trigger)
+#
+# Pinned runner: ubuntu-24.04 (per PhenoHandbook patterns/ci/never-billable-ci.md)
+# Python: 3.12 (pinned in actions/setup-python).
+name: registry-validate
+on:
+  pull_request:
+    paths:
+      - "catalog/**"
+      - "scripts/validate-catalog.py"
+      - "scripts/conventions-lint.sh"
+      - "docs/boundary/**"
+      - "docs/intent/**"
+      - "docs/adrs/**"
+      - ".github/workflows/registry-validate.yml"
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: setup-python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: install-pyyaml
+        run: pip install pyyaml==6.0.1
+
+      - name: validate-catalog (ADR-ECO-017)
+        run: python3 scripts/validate-catalog.py
+
+      - name: conventions-lint
+        run: bash scripts/conventions-lint.sh .
+
+      - name: validate-ecosystem (smoke)
+        run: bash scripts/validate-ecosystem.sh . || true
+        # validate-ecosystem is informational on PRs — it expects a live
+        # GitHub API; failures are warnings, not blockers.

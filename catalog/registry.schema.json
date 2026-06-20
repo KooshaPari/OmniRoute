@@ -1,0 +1,83 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/KooshaPari/phenotype-registry/blob/main/catalog/registry.schema.json",
+  "title": "Phenotype substrate catalog entry",
+  "description": "Schema for catalog/registry.yaml entries per ADR-ECO-017.",
+  "type": "object",
+  "required": ["id", "repo", "name", "status", "tier", "language", "role"],
+  "additionalProperties": true,
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z0-9-]+$",
+      "description": "Slug unique within the catalog."
+    },
+    "repo": {
+      "type": "string",
+      "pattern": "^KooshaPari/[A-Za-z0-9_.-]+$",
+      "description": "GitHub owner/repo path."
+    },
+    "name": {
+      "type": "string",
+      "description": "Human-readable repo name."
+    },
+    "status": {
+      "type": "string",
+      "enum": ["active", "archived", "deprecated", "absorbed"],
+      "description": "Repo lifecycle state."
+    },
+    "tier": {
+      "type": "string",
+      "enum": ["pheno-lib", "phenotype-sdk", "phenotype-framework", "federated-service"],
+      "description": "Substrate tier per ADR-023 / ADR-040. REQUIRED."
+    },
+    "architecture": {
+      "type": "string",
+      "enum": ["hexagonal-l4", "layered", "microkernel", "none"],
+      "description": "Architecture pattern. REQUIRED when tier is phenotype-framework."
+    },
+    "ports": {
+      "type": "array",
+      "items": { "type": "string", "pattern": "^[A-Z][A-Za-z0-9]+Port$" },
+      "description": "Port trait names. REQUIRED when architecture is hexagonal-l4."
+    },
+    "adapters": {
+      "type": "array",
+      "items": { "type": "string", "pattern": "^[A-Z][A-Za-z0-9]+Adapter$" },
+      "description": "Adapter implementation names. REQUIRED when architecture is hexagonal-l4."
+    },
+    "language": {
+      "type": "string",
+      "enum": ["rust", "python", "typescript", "go", "swift", "zig", "mojo"],
+      "description": "Primary implementation language."
+    },
+    "role": {
+      "type": "string",
+      "description": "Domain role per DOMAIN_ROLES.md."
+    },
+    "boundary": {
+      "type": ["string", "null"],
+      "description": "Path to docs/boundary entry, or null if no boundary doc."
+    },
+    "intent": {
+      "type": ["string", "null"],
+      "description": "Path to docs/intent entry, or null if no intent doc."
+    },
+    "notes": {
+      "type": "string",
+      "description": "Free-form context."
+    }
+  },
+  "allOf": [
+    {
+      "description": "When tier=phenotype-framework, architecture is required.",
+      "if": { "properties": { "tier": { "const": "phenotype-framework" } } },
+      "then": { "required": ["architecture"] }
+    },
+    {
+      "description": "When architecture=hexagonal-l4, ports and adapters are required.",
+      "if": { "properties": { "architecture": { "const": "hexagonal-l4" } } },
+      "then": { "required": ["ports", "adapters"] }
+    }
+  ]
+}

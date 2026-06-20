@@ -1,0 +1,85 @@
+# catalog/registry.yaml — Phenotype substrate catalog (T23, 2026-06-20)
+#
+# This is the canonical machine-readable substrate catalog for the
+# Phenotype fleet. It is enforced by ADR-ECO-017 (substrate schema
+# conventions) which requires every entry to declare:
+#
+#   - tier        — one of: pheno-lib, phenotype-sdk, phenotype-framework,
+#                   federated-service. Required.
+#   - architecture — one of: hexagonal-l4, layered, microkernel, none.
+#                   Required when tier is phenotype-framework.
+#   - ports       — list of `Port` trait names declared by the crate.
+#                   Required when architecture is hexagonal-l4.
+#   - adapters    — list of adapter impl names. Required when
+#                   architecture is hexagonal-l4.
+#   - docs/boundary path  — relative path to the entry's docs/boundary file.
+#   - docs/intent path    — relative path to the entry's docs/intent file.
+#
+# Schema: catalog/registry.schema.json
+# Validator: scripts/validate-catalog.py
+# CI: .github/workflows/registry-validate.yml
+# ADR: docs/adrs/ADR-ECO-017-substrate-schema-conventions.md
+---
+okf_version: "1.0"
+schema_version: "2026-06-20"
+authority: docs/adrs/ADR-ECO-017-substrate-schema-conventions.md
+enforced_by:
+  - scripts/validate-catalog.py
+  - .github/workflows/registry-validate.yml
+
+substrates:
+  - id: configra
+    repo: KooshaPari/Configra
+    name: Configra
+    status: active
+    tier: pheno-lib            # pheno-config / settly / config-schema / phenotype-config-loader
+    architecture: layered
+    language: rust
+    role: config
+    workspace_version: "0.4.0"
+    adr_refs:
+      - ADR-031   # Configra absorb
+      - ADR-022   # config consolidation
+      - ADR-023   # agent-effort governance
+      - ADR-040   # test-coverage gates per tier
+    boundary: docs/boundary/Configra.md
+    intent: docs/intent/Configra.md
+    notes: |
+      Canonical config substrate per ADR-031. Four-tier split:
+      pheno-config (typed Config + ConfigBuilder),
+      settly (settings lifecycle, hexagonal),
+      config-schema (field-shape validator),
+      phenotype-config-loader (generic JSON/TOML file loaders).
+
+  - id: pheno-tracing
+    repo: KooshaPari/pheno-tracing
+    name: pheno-tracing
+    status: archived          # 2026-06-20 — repo archived, substrate still canonical
+    tier: pheno-lib
+    architecture: layered
+    language: rust
+    role: observability
+    boundary: null
+    intent: null
+    notes: |
+      Canonical tracing substrate per ADR-012 / ADR-036B. Repo is
+      archived (read-only); consumers should not file issues here.
+      The substrate classification is preserved for cross-repo
+      ref resolution.
+
+  - id: pheno-mcp-router
+    repo: KooshaPari/pheno-mcp-router
+    name: pheno-mcp-router
+    status: archived          # 2026-06-20 — repo archived, substrate still canonical
+    tier: pheno-lib
+    architecture: hexagonal-l4
+    ports: [LlmPort, McpPort, CostPort, BudgetPort, QuotaPort, AuditPort]
+    adapters: [LlamaAdapter, OpenAICompatAdapter, AnthropicAdapter, OllamaAdapter]
+    language: rust
+    role: llm-routing
+    boundary: null
+    intent: null
+    notes: |
+      Canonical MCP-router substrate per ADR-013 / ADR-037. Repo is
+      archived (read-only). Hexagonal L4 port/adapter split is the
+      reference implementation for ADR-038.

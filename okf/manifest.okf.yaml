@@ -33,6 +33,19 @@ artifacts:
       - security
       - ops
       - cost
+  - id: substrate-catalog
+    path: catalog/registry.yaml
+    kind: registry
+    summary: "Machine-readable substrate catalog (ADR-ECO-017)"
+    links:
+      - catalog/registry.schema.json
+      - scripts/validate-catalog.py
+      - .github/workflows/registry-validate.yml
+      - docs/adrs/ADR-ECO-017-substrate-schema-conventions.md
+  - id: substrate-schema
+    path: catalog/registry.schema.json
+    kind: schema
+    summary: "JSON Schema for catalog/registry.yaml entries"
 dimensions:
   technical: docs/sota/technical.md
   dx: docs/sota/dx.md
