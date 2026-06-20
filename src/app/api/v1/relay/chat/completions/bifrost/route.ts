@@ -60,6 +60,7 @@ const BIFROST_BASE_URL = process.env.BIFROST_BASE_URL?.replace(/\/$/, "");
 const BIFROST_API_KEY = process.env.BIFROST_API_KEY || process.env.OMNIROUTE_BIFROST_KEY;
 const BIFROST_TIMEOUT_MS = Number(process.env.BIFROST_TIMEOUT_MS || "30000");
 const BIFROST_STREAMING_ENABLED = process.env.BIFROST_STREAMING_ENABLED !== "0";
+const BIFROST_ENABLED = process.env.BIFROST_ENABLED !== "0";
 
 const injectionGuard = createInjectionGuard();
 
@@ -91,6 +92,25 @@ export async function POST(request: Request) {
       null
   );
   const userAgent = sanitizeForensicHeader(request.headers.get("user-agent"));
+
+  if (!BIFROST_ENABLED) {
+    return new Response(
+      JSON.stringify(
+        buildErrorBody(
+          503,
+          "Bifrost sidecar disabled via BIFROST_ENABLED=0. Use /api/v1/relay/chat/completions for the TS path."
+        )
+      ),
+      {
+        status: 503,
+        headers: {
+          ...JSON_CORS_HEADERS,
+          "X-Bifrost-Fallback": "/api/v1/relay/chat/completions",
+          "X-Bifrost-Killswitch": "BIFROST_ENABLED=0",
+        },
+      }
+    );
+  }
 
   if (!BIFROST_BASE_URL) {
     // No sidecar configured — respond with a hint to fall back to /relay/chat/completions
