@@ -14,5 +14,15 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 jobs:
-  conventions:
-    uses: KooshaPari/phenotype-org-governance/.github/workflows/reusable-conventions-lint.yml@12778e6a13878f90010e03cd0b8f63730da294e0 # pinned from @main
+  conventions-lint:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+      - name: Run conventions-lint
+        env:
+          STRICT_IN: "false"
+        run: |
+          chmod +x ./scripts/conventions-lint.sh
+          if [ "$STRICT_IN" = "true" ]; then export STRICT=1; else export STRICT=0; fi
+          ./scripts/conventions-lint.sh .
