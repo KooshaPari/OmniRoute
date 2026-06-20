@@ -116,6 +116,82 @@ if [ -f "Cargo.toml" ]; then
     fi
 fi
 
+# Check 4: cargo clippy on Cargo.toml changes
+if [ -f "Cargo.toml" ]; then
+    CHANGED_MANIFESTS=$(echo "$STAGED_FILES" | grep -E 'Cargo\.(toml|lock)$' || true)
+    CHANGED_RS=$(echo "$STAGED_FILES" | grep -E '\.rs$' || true)
+    if [ -n "$CHANGED_MANIFESTS" ] && command -v cargo >/dev/null 2>&1; then
+        echo "  Running cargo clippy (manifest changed)..."
+        if ! cargo clippy -- -D warnings 2>/dev/null; then
+            echo -e "${RED}❌ Clippy found issues${NC}"
+            ERRORS=$((ERRORS + 1))
+        fi
+    elif [ -n "$CHANGED_RS" ] && command -v cargo >/dev/null 2>&1; then
+        echo "  Running cargo clippy on changed crates..."
+        # Try per-file clippy as a warning (not blocking)
+        for file in $CHANGED_RS; do
+            crate_dir=$(dirname "$file")
+            while [ "$crate_dir" != "." ] && [ ! -f "$crate_dir/Cargo.toml" ]; do
+                crate_dir=$(dirname "$crate_dir")
+            done
+            if [ -f "$crate_dir/Cargo.toml" ]; then
+                if ! (cd "$crate_dir" && cargo clippy -- -D warnings 2>/dev/null); then
+                    echo -e "${YELLOW}⚠️  Clippy warnings in $crate_dir${NC}"
+                    # Non-blocking for individual files
+                fi
+                break
+            fi
+        done
+    fi
+fi
+
+# Check 5: Large file check
+echo "📦 Checking file sizes..."
+LARGE_FILES=$(echo "$STAGED_FILES" | while read file; do
+    if [ -f "$file" ]; then
+        size=$(stat -f%z "$file" 2>/dev/null || stat --format=%s "$file" 2>/dev/null)
+        if [ "$size" -gt 10485760 ]; then  # 10 MB
+            echo "$file ($size bytes)"
+        fi
+    fi
+done)
+
+if [ -n "$LARGE_FILES" ]; then
+    echo -e "${RED}❌ Large files detected:${NC}"
+    echo "$LARGE_FILES"
+    echo "   Files over 10MB should not be committed. Use git-lfs or remove."
+    ERRORS=$((ERRORS + 1))
+fi
+
+# Check 6: Secret detection
+echo "🔒 Checking for secrets..."
+SECRET_PATTERNS=(
+    '-----BEGIN PRIVATE KEY-----'
+    '-----BEGIN RSA PRIVATE KEY-----'
+    '-----BEGIN OPENSSH PRIVATE KEY-----'
+    'AKIA[0-9A-Z]{16}'  # AWS Access Key
+    'sk-[a-zA-Z0-9]{20,}'  # Stripe secret key
+    'ghp_[a-zA-Z0-9]{36}'  # GitHub PAT
+    'xox[bpsa]-[a-zA-Z0-9-]{10,}'  # Slack token
+)
+
+for pattern in "${SECRET_PATTERNS[@]}"; do
+    SECRET_FOUND=$(echo "$STAGED_FILES" | while read file; do
+        if [ -f "$file" ] && file "$file" | grep -q text; then
+            if grep -qE "$pattern" "$file" 2>/dev/null; then
+                echo "$file"
+            fi
+        fi
+    done)
+
+    if [ -n "$SECRET_FOUND" ]; then
+        echo -e "${RED}❌ Possible secrets detected in:${NC}"
+        echo "$SECRET_FOUND"
+        echo "   Pattern matched: $pattern"
+        ERRORS=$((ERRORS + 1))
+    fi
+done
+
 if [ -f "package.json" ]; then
     echo "  Running Prettier..."
     if command -v npx >/dev/null 2>&1 && [ -f "node_modules/.bin/prettier" ]; then
