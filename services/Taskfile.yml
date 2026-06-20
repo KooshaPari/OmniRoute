@@ -1,0 +1,34 @@
+version: "3"
+
+vars:
+  SERVICES:
+    sh: "find . -name '*.cdx.json'"
+
+tasks:
+  default:
+    desc: List available tasks
+    cmds:
+      - task --list
+
+  validate:
+    desc: Validate all CycloneDX SBOMs are well-formed JSON
+    cmds:
+      - for: { var: SERVICES }
+        cmd: python -c "import json; json.load(open('{{.ITEM}}')); print('{{.ITEM}}: OK')"
+
+  clean:
+    desc: No-op (registry has no build artifacts)
+    cmds:
+      - echo "Nothing to clean"
+
+  quality:
+    desc: Full quality gate (alias for validate)
+    cmds:
+      - task: validate
+
+  verify:
+    desc: Verify file structure matches expected layout
+    cmds:
+      - test -f .github/dependabot.yml
+      - test -d graphql-gateway
+      - test -d templates-registry
