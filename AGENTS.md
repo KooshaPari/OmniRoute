@@ -165,22 +165,19 @@ See `L6_PHENO_REPOS_HEALTH_2026_06_14.md` for full health inventory (136 tests p
 
 ---
 
-## Wave Plan (v11 — current, supersedes v9/v10)
+## Wave Plan (v12 — current, supersedes v9/v10/v11)
 
-See `plans/2026-06-20-v11-dag-router-rebuild.md` (the working plan) and `plans/2026-06-20-router-architecture-2026-research.md` (the underlying research). **11 tracks (T0..T10), 21 tasks, 29 WPs drained, ~6.5-week critical path on §8 router-architecture decision.** v10 closed 2026-06-19 22:30 PDT; v11 closed 2026-06-20 18:45 PDT with §8 ACCEPTED (Option B per ADR-050/ADR-051, 2026-06-20). v11 T30 was CANCELLED; T28 DONE. Next wave is either v12 (post-§8 unblock) or a refresh of tier-0 hygiene — pending user direction.
+See `plans/2026-06-20-v12-71-pillar-p0-remediation.md` (the working plan) and `plans/2026-06-20-v13-71-pillar-cycle-2-p0.md` (the next wave). **v12 = 4 P0 closure tracks + Mission 4 + ADR-015 v2.1, ~890 LoC, 1,767 LoC shipped in 1 commit (`2db7e9f5eb`).** v11 closed 2026-06-20 18:45 PDT with §8 ACCEPTED (Option B per ADR-050/ADR-051); v12 closed 2026-06-20 19:30 PDT with 4 of 4 P0 tracks shipped + 6-pillar mean 2.13 → 2.66 (+0.53). Next wave is v13 (cycle 2 P0: cliff.toml vendoring to 5 fleet repos + devcontainer adoption + ssot-inject + cache-stats dashboard).
 
-- **T0: Pre-flight Gate** (P0, ~10 min) — DONE. Branch protection + Cargo lock contention check + gh auth.
-- **T1: Tier-0 audit sweep** (P0, ~45 min) — DONE. 13 findings/2026-06-2* files (T2A/T2B/T2C).
-- **T2: Round-2 absorption sweep** (P0, ~30 min) — DONE. 7 active → archived, 4 deleted. See `worklogs/2026-06-20-round-2-absorption-sweep.json`.
-- **T3: Router architecture research** (P0, ~60 min) — DONE. See `plans/2026-06-20-router-architecture-2026-research.md`.
-- **T4: ADR batch (router, federation, prcp migration)** (P0, ~30 min) — DONE.
-- **T5: pheno-tracing OTLP adoption spread** (P1, ~45 min) — DONE. Adopted in pheno-port-adapter (the only adopter so far).
-- **T6: Substrate audit closure** (P0, ~30 min) — DONE.
-- **T7: 71-pillar refresh** (P1, ~30 min) — DONE.
-- **T8: v11 closure + AGENTS.md + STATUS.md refresh** (P0, ~10 min) — DONE.
-- **T9: Round-2 absorption follow-up** (P1, ~30 min) — DONE.
-- **T10: v11 session wrap** (P0, ~5 min) — DONE. This file.
-- **§8: Router architecture decision** (P0) — **ACCEPTED 2026-06-20** (Option B: Bifrost-as-library + Phenotype-owned decision layer per ADR-050 + ADR-051). Next wave (v12) unblocks L1 (Bifrost `v1.5.21` pin + 9-plugin regression) and L2 (`phenotype-router` v0.1.0). 6.5-week critical path.
+- **T6 (v12): L65 SSOT auto-check** (P0, ~30 min) — DONE. `scripts/validate-ssot.sh` + `just validate-ssot` + pre-commit hook.
+- **T9 (v12): L57 perf regression** (P1, ~1h) — DONE. `benchmarks/rust/{Cargo.toml,benches/parse_flag.rs}` (criterion) + `benchmarks/python/pytest.ini` (pytest-benchmark) + `benchmarks/perf-budgets.toml` + `just bench`.
+- **T10 (v12): L31 CI cache stats** (P0, ~30 min) — DONE. `scripts/cache_stats_wrapper.sh` (bash+jq, no heavy deps) + `findings/2026-06-20-v12-T10-cache-stats-design.md` + `just cache-stats`.
+- **T11 (v12): L67 CHANGELOG auto** (P1, ~1h) — DONE. `cliff.toml` + `.github/workflows/changelog.yml` + `docs/conventions/changelog-convention.md` + `findings/2026-06-20-v12-T11-changelog-design.md` + `just changelog`.
+- **Mission 4 (v12): Configra slice 2 candidate** (P1, ~30 min) — DONE. `findings/2026-06-20-Mission-4-candidate-selection.md` (pheno-config wins 11/12) + `findings/2026-06-20-Mission-4-slice-2-plan.md` (5-PR gate table per ADR-035).
+- **ADR-015 v2.1 (v12): worklog schema bump** (P0, ~30 min) — DONE. `docs/adr/2026-06-20/ADR-015-v2.1-worklog-schema.md` (7-col schema, device: as 7th) + `scripts/migrate-worklog-v20-to-v21.py` (idempotent) + sample + log.
+- **T12-Verify (v12): cycle 3 re-audit** (P1, ~30 min) — DONE. `findings/2026-06-20-v12-cycle-3-re-audit.md`. 7 nested repos re-scored; 6-pillar mean 2.13 → 2.66 (+0.53).
+- **T12-Wrap (v12): closure report + ADR-076 + AGENTS.md refresh** (P0, ~10 min) — DONE. `findings/2026-06-20-v12-closure-report.md` + `docs/adr/2026-06-20/ADR-076-v12-closure.md` + this file.
+- **§8: Router architecture decision** (P0) — **ACCEPTED 2026-06-20** (Option B: Bifrost-as-library + Phenotype-owned decision layer per ADR-050 + ADR-051). Next wave (v13) unblocks L1 (Bifrost `v1.5.21` pin + 9-plugin regression) and L2 (`phenotype-router` v0.1.0). 6.5-week critical path.
 
 ---
 
@@ -202,7 +199,7 @@ Worklog: `worklogs/L5-101-app-governance-2026-06-15.json`.
 
 ### Device-fit gate
 
-The MacBook is **not** a heavy-work device. Heavy work is defined as anything that requires a full `cargo test --workspace` against a multi-100-crate workspace, an iOS Simulator boot, a Docker-in-Docker test, a Unity/Unreal editor head, or any single build/test cycle > 10 min wall on the MacBook. Heavy work runs on a self-hosted runner or a dispatched subagent (`device: heavy-runner`); the MacBook is reserved for planning, ADR-writing, small focused PRs, code review, and dogfooding (`device: macbook`). The `device:` field is in the worklog v2.1 schema (ADR-015 bump pending — see ADR-025).
+The MacBook is **not** a heavy-work device. Heavy work is defined as anything that requires a full `cargo test --workspace` against a multi-100-crate workspace, an iOS Simulator boot, a Docker-in-Docker test, a Unity/Unreal editor head, or any single build/test cycle > 10 min wall on the MacBook. Heavy work runs on a self-hosted runner or a dispatched subagent (`device: heavy-runner`); the MacBook is reserved for planning, ADR-writing, small focused PRs, code review, and dogfooding (`device: macbook`). The `device:` field is in the worklog v2.1 schema (ADR-015 v2.1 accepted 2026-06-20; v2.0 deprecation 2026-06-22).
 
 ### Active / Paused app-level repos (triage by dogfood use)
 
