@@ -34,6 +34,7 @@ import {
   resolveComboBuilderProviderId,
 } from "@/lib/combos/builderDraft";
 import { normalizeComboConfigMode } from "@/shared/constants/comboConfigMode";
+import { comboRuntimeConfigSchema } from "@/shared/validation/schemas";
 import AutoComboCatalog from "./AutoComboCatalog";
 import BuilderIntelligentStep from "./BuilderIntelligentStep";
 import IntelligentComboPanel from "./IntelligentComboPanel";
@@ -171,6 +172,24 @@ const LEGACY_COMBO_RESILIENCE_KEYS = new Set([
   "healthCheckEnabled",
   "healthCheckTimeoutMs",
 ]);
+// Allowlist of fields the current `comboRuntimeConfigSchema` knows about. Any
+// other key in `combo.config` (from older DBs or newer clients) would trigger a
+// 400 on the server because the schema is `.strict()`. Building the Set lazily
+// avoids a hard import cycle on the schema module from this client component.
+let ALLOWED_COMBO_CONFIG_KEYS_CACHE: Set<string> | null = null;
+function getAllowedComboConfigKeys(): Set<string> {
+  if (ALLOWED_COMBO_CONFIG_KEYS_CACHE) return ALLOWED_COMBO_CONFIG_KEYS_CACHE;
+  try {
+    const shape = (comboRuntimeConfigSchema as unknown as { shape: Record<string, unknown> })
+      ?.shape;
+    ALLOWED_COMBO_CONFIG_KEYS_CACHE = new Set(
+      shape ? Object.keys(shape) : []
+    );
+  } catch {
+    ALLOWED_COMBO_CONFIG_KEYS_CACHE = new Set();
+  }
+  return ALLOWED_COMBO_CONFIG_KEYS_CACHE;
+}
 const MS_PER_SECOND = 1000;
 
 function msToOptionalSecondsInput(value) {
@@ -188,10 +207,14 @@ function secondsInputToOptionalMs(value, maxSeconds = 86400) {
 
 function sanitizeComboRuntimeConfig(config) {
   if (!config || typeof config !== "object") return {};
+  const allowed = getAllowedComboConfigKeys();
   return Object.fromEntries(
     Object.entries(config).filter(
       ([key, value]) =>
-        value !== undefined && value !== null && !LEGACY_COMBO_RESILIENCE_KEYS.has(key)
+        value !== undefined &&
+        value !== null &&
+        !LEGACY_COMBO_RESILIENCE_KEYS.has(key) &&
+        (allowed.size === 0 || allowed.has(key))
     )
   );
 }

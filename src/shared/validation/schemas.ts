@@ -628,7 +628,7 @@ const slaRoutingPolicySchema = z
   })
   .strict();
 
-const comboRuntimeConfigSchema = z
+export const comboRuntimeConfigSchema = z
   .object({
     strategy: comboStrategySchema.optional(),
     maxRetries: z.coerce.number().int().min(0).max(10).optional(),
