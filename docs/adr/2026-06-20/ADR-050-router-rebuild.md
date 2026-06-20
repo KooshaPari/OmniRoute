@@ -1,8 +1,8 @@
 # ADR-050 — Router rebuild: Option B (Bifrost as transport library + Phenotype-owned decision layer)
 
-- **Status:** Proposed — 2026-06-20 (awaiting user approval of `2026-06-20-router-architecture-2026-research.md` §8 open questions)
+- **Status:** Accepted — 2026-06-20 (Option B: Bifrost-as-library + Phenotype-owned decision layer)
 - **Date:** 2026-06-20
-- **Decision:** @KooshaPari (pending)
+- **Decision:** @KooshaPari 2026-06-20 (Option B: Bifrost-as-library + Phenotype-owned decision layer)
 - **Plan:** [`plans/2026-06-20-v11-dag-router-rebuild.md`](../../plans/2026-06-20-v11-dag-router-rebuild.md)
 - **Research:** [`plans/2026-06-20-router-architecture-2026-research.md`](../../plans/2026-06-20-router-architecture-2026-research.md) §5 (Rebuild Decision — 3 Options)
 - **Wave:** v11 L5 — Documentation / Governance (T5.2)
