@@ -17,3 +17,9 @@ path = "src/lib.rs"
 
 [dependencies]
 thiserror = "2"
+# Canonical OTLP wire-format export substrate (ADR-037).
+# `pheno-flags` uses `pheno-otel` to surface flag-set diffs
+# (resolved-vs-default) to OTLP/HTTP collectors when wired into a
+# wider observability stack (per ADR-023 Rule 3.1: every substrate
+# ships observability).
+pheno-otel = { path = "../pheno-otel" }
