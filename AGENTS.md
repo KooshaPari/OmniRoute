@@ -886,6 +886,37 @@ adopts the same Tier-1 Bifrost strategy.
 
 ---
 
+## Recent Changes (L5-113 B7 Bifrost migration playbook, 2026-06-19)
+
+| Task | Title | Status |
+|---|---|---|
+| **B7** | Bifrost migration playbook | ✅ **DONE 2026-06-19** |
+
+### Deliverable: `docs/operations/bifrost-migration.md` (89 lines)
+
+Complete 4-phase migration plan for moving LLM-routing from the legacy
+TypeScript `chatCore` path to Bifrost Tier-1:
+
+| Phase | Title | Key action | Hold/revert criteria |
+|---|---|---|---|
+| 0 | Pre-flight | Install Bifrost, seed model cache, baseline shadow metrics | 24h stable shadow (B6) |
+| 1 | Read-through | Dispatcher reads Bifrost for model catalog, still routes via `chatCore` | `chatCore` p50/90/99 unchanged |
+| 2 | Write-through | All traffic through Bifrost; `chatCore` as failover | >2% error increase → Phase-1 revert |
+| 3 | Retirement | Remove `chatCore` as default; Bifrost is sole path | Any regression → Phase-2 revert |
+
+Also covers:
+- **Rollback plan** — per-phase `git revert`, config flip, DNS flip
+- **Validation gates** — shadow health, model coverage, latency, error rate, cost
+- **Owner assignment** — each phase has a named owner with PR link
+- **Production readiness checklist** — 12 items (monitoring, logging, alerting,
+  on-call runbook, chaos test, security scan, license review, cost baseline,
+  upstream cache, load test, rollback test, sign-off)
+
+Refs: `docs/adr/0031-bifrost-tier1-router.md`, `docs/frameworks/BIFROST-BACKEND.md`,
+`PLAN.md` § 2.5.2 (B7).
+
+---
+
 ## Cross-references
 
 - [`SPEC.md`](SPEC.md) — v8 spec (v3.9.0 in flight)
