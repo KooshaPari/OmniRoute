@@ -1,0 +1,30 @@
+# Forge Agent Invocation: WP-27
+
+## Task
+Execute work package 27 from .agileplus/agileplus.db.
+
+**Title:** Web: control panel (play/pause/preset)
+
+## Context
+- Repo root: /Users/kooshapari/CodeProjects/Phenotype/repos
+- Branch: chore/orch-v11-016-tier0-2026-06-20
+- HEAD: df1352205b docs(governance): L5-121 — 71-pillar Monday refresh prep notes
+- AGENTS.md: 482 lines (54 ADRs, scope decisions, Dmouse92 migration, 4-repo retirement)
+- 16 pheno-* substrate crates locally; fleet autonomous
+
+## Workflow
+1. Read the WP detail from .agileplus/agileplus.db
+2. Check WP's acceptance_criteria + file_scope
+3. Implement using substrate crates (pheno-flags, pheno-errors, pheno-port-adapter, pheno-otel, pheno-tracing)
+4. Write tests covering acceptance criteria
+5. Commit with FR annotation (e.g. `feat: WP-27 <title> (FR-27)`)
+6. Update WP state: `agileplus` CLI or sqlite3 update
+7. Write a 1-line summary to findings/forge-wave-2026-06-20/wp-27-web_control_panel_play-pause-preset.md
+
+## Constraints
+- macbook device (not heavy-runner)
+- Pre-commit hook enforces FR annotations
+- DO NOT touch paused repos: AtomsBot*, focalpoint, Dino, QuadSGM, HwLedger, WSM
+
+## Output
+Write to: findings/forge-wave-2026-06-20/wp-27-web_control_panel_play-pause-preset.md
