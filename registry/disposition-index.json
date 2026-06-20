@@ -14,7 +14,7 @@
       "fsm": "done",
       "adr": "ADR-ECO-014-phenoshared-decompose",
       "relocated_date": "2026-06-18",
-      "note": "P4 decompose complete per docs/disposition/phenoshared-p4-checkpoint.md; X-10 TOMBSTONE — repo 404 post-absorption (2026-06-19); DOMAIN_ROLES canonical"
+      "note": "P4 decompose complete per docs/disposition/phenoshared-p4-checkpoint.md; repo still active (2026-06-20); DECOMPOSE fsm complete, crate contents routed to DOMAIN_ROLES owners"
     },
     {
       "id": "repo-phenoshared-niche",
@@ -656,10 +656,10 @@
       "disposition": "DELETE-eligible",
       "target": "DOMAIN_ROLES owners",
       "wave": "X",
-      "fsm": "done",
+      "fsm": "hold",
       "adr": "ADR-ECO-014",
       "relocated_date": "2026-06-19",
-      "note": "Wave 5b fleet drain complete — HexaKit#278 @ d83d1ca, PO#173, ResilienceKit#4, python-sdk#27; 0 production git deps; archive gate 5/5; repo deleted (404) 2026-06-19"
+      "note": "Wave 5b fleet drain complete — HexaKit#278+285 drained pins; repo restored as active (not deleted); 0 production git deps; gate on HOLD per BOUNDARY_OWNERS pending explicit sign-off"
     },
     {
       "id": "gate-phenoshared-niche",
@@ -1259,7 +1259,17 @@
       "core_lang": "n/a",
       "relocated_date": "2026-06-20",
       "pr": "phenoShared#200",
-      "note": "L5-116 FU6 absorb complete: phenoShared#200 (feat(ci): add reusable drift-check workflow) opened 2026-06-20T11:18:09Z. New file at phenoShared/.github/workflows/reusable/drift-check.yml (197 LoC, Python 3.12 stdlib, ~70 LoC inline script). Note: phenoShared is tombstoned per ADR-ECO-014 (commit d1f40cb); follow-up to migrate reusable to active substrate (phenotype-ops) is P2. (Verified by stream C, 2026-06-20)"
+      "note": "L5-116 FU6 absorb complete: phenoShared#200 (feat(ci): add reusable drift-check workflow) opened 2026-06-20T11:18:09Z. New file at phenoShared/.github/workflows/reusable/drift-check.yml (197 LoC, Python 3.12 stdlib, ~70 LoC inline script). Note: phenoShared is active (not tombstoned); follow-up to migrate reusable to active substrate (phenotype-ops) is P2. (Verified by stream C, 2026-06-20)"
+    },
+    {
+      "id": "phenotype-sdk",
+      "path": "KooshaPari/phenotype-sdk",
+      "disposition": "AFFIRM",
+      "target": "phenotype-sdk",
+      "wave": "2026-06-20",
+      "fsm": "active",
+      "core_lang": "go",
+      "note": "New repo registered per gateway cleanup 2026-06-20; AFFIRM — active SDK repo, no disposition change"
     }
   ]
 }

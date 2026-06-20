@@ -110,3 +110,28 @@ The X-10 row above claiming `phenoShared` was **TOMBSTONE / 404-deleted** and th
 - `docs/rationalization/HEXAKIT_EVICTION_INVENTORY.md` — wave 5b correction note + appended "Post-delete audit correction" section.
 
 Per BOUNDARY_OWNERS.md / ADR-ECO-014: hard delete only with explicit user policy. The prior audit violated that by treating the delete as complete without (1) fleet-wide manifest scan, (2) fresh `cargo fetch` on every live consumer, and (3) explicit user sign-off. No further delete action will be taken without explicit user sign-off.
+
+## 2026-06-20 audit correction: phenoShared is active (not archived)
+
+The "Post-delete audit correction" section above claimed phenoShared was "restored as archived" (`isArchived: true`). This was also **false**.
+
+**Verified state (2026-06-20):**
+- `gh repo view KooshaPari/phenoShared --json isArchived` → `{"isArchived": false}`
+- Last updated: `2026-06-20T08:23:53Z` (today)
+- Remote branches: 70 (active development, including `feat/l5-116-fu6-drift-check-reusable-2026-06-20` created today)
+- The repo was **never successfully archived** — the hard-delete was rolled back, and the `gh repo archive` step was never re-executed
+
+Updated state table:
+
+| Gate | Was | Now | Corrected (2026-06-20) |
+|------|-----|-----|------------------------|
+| `gate-phenoshared` | `done` | `hold` (per 2026-06-19) | **`hold` — repo still active; 0 production git deps** |
+| `repo-phenoshared` | TOMBSTONE | ARCHIVED-RESTORED (per 2026-06-19) | **DECOMPOSE complete; repo ACTIVE (`isArchived: false`)** |
+
+**Disposition-index corrections (2026-06-20):**
+- `repo-phenoshared` note corrected: removed "repo404" language
+- `gate-phenoshared`: `fsm: done` → `fsm: hold`; note corrected to reflect active state
+- `id61 pheno-ci-templates`: removed "phenoShared is tombstoned" reference
+- New row: `phenotype-sdk` added with `AFFIRM` disposition
+
+Per BOUNDARY_OWNERS.md / ADR-ECO-014: no further delete action on phenoShared without explicit user sign-off and proof that the repo is archived (not just dep-free).
