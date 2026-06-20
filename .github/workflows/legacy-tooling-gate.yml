@@ -34,7 +34,7 @@ jobs:
           sparse-checkout: tooling/legacy-enforcement
 
       - name: Set up Python
-        uses: actions/setup-python@c8813ba1bc76ebf779b911ad8ffccbf2e449cb48 # v-latest
+        uses: actions/setup-python@0cb1a84326b90186fcd211036c65b42819794c87 # v-latest
         with:
           python-version: '3.12'
 
