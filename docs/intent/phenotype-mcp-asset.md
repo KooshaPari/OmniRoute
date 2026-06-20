@@ -24,8 +24,3 @@ See `_bindings.json` key `phenotype-mcp-asset` for the bound prompt-hash list
 - Stub rendered: 2026-06-18 by `scripts/render-stubs.py`
 - Prose filled: 2026-06-19 by `scripts/fill-intent-stubs.py`
 - Refresh cadence: weekly per ADR-024
-
-## Folded Destination
-
-`phenotype-mcp-asset` was a temporary standalone extraction from McpKit. Its surviving Rust asset/manifest/validation responsibility is folded into `KooshaPari/PhenoFastMCP-rust/crates/fastmcp-asset`. The standalone repo is deletion-ready after the target crate and this registry update are pushed because code, docs, and provenance are preserved in the folded crate.
-

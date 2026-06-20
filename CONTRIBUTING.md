@@ -2,6 +2,8 @@
 
 Thanks for your interest in contributing to **phenotype-registry**, part of the [Phenotype](https://github.com/KooshaPari) ecosystem.
 
+All participants are expected to follow our [Code of Conduct](CODE_OF_CONDUCT.md).
+
 ## AgilePlus spec mandate
 
 All non-trivial work in this organization is tracked in **AgilePlus**. Before opening a PR for a feature or substantive change:
