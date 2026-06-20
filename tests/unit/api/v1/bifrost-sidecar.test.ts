@@ -100,7 +100,20 @@ test("bifrost route: OPTIONS responds with CORS headers", async () => {
     `../../../../src/app/api/v1/relay/chat/completions/bifrost/route.ts?case=${Date.now()}-${Math.random()}`
   );
   const res = await OPTIONS();
-  // handleCorsOptions returns either 204 No Content or 200 with CORS headers.
+  // handleCorsOptions() returns 204 No Content with the standard CORS
+  // methods/headers. Access-Control-Allow-Origin is intentionally NOT set on
+  // the route's response — src/middleware.ts (applyCorsHeaders) is the single
+  // source of truth for which origin to echo, based on the allowlist in
+  // src/server/cors/origins.ts. We assert the route ships its end of the
+  // contract: status + methods/headers. Origin overlay is exercised by the
+  // middleware tests.
   assert.ok(res.status === 200 || res.status === 204, `expected 200/204, got ${res.status}`);
-  assert.ok(res.headers.get("Access-Control-Allow-Origin"), "missing CORS origin header");
+  assert.ok(
+    res.headers.get("Access-Control-Allow-Methods"),
+    "missing Access-Control-Allow-Methods header"
+  );
+  assert.ok(
+    res.headers.get("Access-Control-Allow-Headers"),
+    "missing Access-Control-Allow-Headers header"
+  );
 });
