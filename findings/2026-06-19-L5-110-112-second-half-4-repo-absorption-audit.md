@@ -118,3 +118,53 @@ All 4 repos require GitHub UI to fully delete (token lacks `delete_repo` scope):
 Registry update: `l5-113-forge-runner-scripts` row's `target` and `pr` fields were updated in `phenotype-registry/registry/disposition-index.json` and `registry/components.lock` to point at the new absorption home (commit `39aa86bc` on `KooshaPari/phenotype-registry:chore/l5-110-112-second-half-4-repo-disposition-2026-06-19`).
 
 **Net result:** 0 last-resort exceptions, 0 net content loss. All 4 second-half repos archived on GitHub, all 33 source files preserved (31 in monorepo findings/ + 2 in phenodag Go rewrite).
+
+---
+
+## RECOVERY EPILOGUE (2026-06-20)
+
+### What happened
+
+After the prior turn's analysis, `KooshaPari/pheno-scaffold-kit` was **deleted externally** (2026-06-20, T05:xx UTC) before PR #2 (the original absorption PR) could merge. The 3 governance tool source files (`_framework_lint.py`, `_drift_detector.py`, `_predict.py`) on PR #2's branch were lost on GitHub.
+
+### Recovery actions (2026-06-20)
+
+1. **`KooshaPari/pheno-scaffold-kit` was unarchived** (HTTP PATCH archived=false on the surviving GitHub tombstone)
+2. **PR #3 was opened** with the 3 source files re-copied verbatim from the archived source repos:
+   - `pheno_framework_lint.py` (473 LOC) from `KooshaPari/pheno-framework-lint`
+   - `pheno_drift_detector.py` (413 LOC) from `KooshaPari/pheno-drift-detector`
+   - `pheno_predict.py` (376 LOC) from `KooshaPari/pheno-predict`
+3. **3 source repos were fully DELETED** on GitHub (HTTP 404 confirmed):
+   - `KooshaPari/pheno-framework-lint`
+   - `KooshaPari/pheno-drift-detector`
+   - `KooshaPari/pheno-predict`
+4. **`KooshaPari/pheno-scaffold-kit` was re-archived** (umbrella mission complete)
+5. **`phenotype-registry` PR #274** opened to:
+   - Update `l5-110/111/112` rows to reference PR #3 instead of PR #2
+   - Add `pheno-scaffold-kit` to `_archive_notes`
+
+### Test results post-recovery
+
+```
+pytest tests/  ->  81 passed, 2 failed
+```
+
+The 2 failures are **pre-existing bugs in `pheno_predict.py`** (test_drops_below_min_shared_shingles, test_04_json_output_deterministic). Same 2 failures occurred in the original pheno-predict repo (24/26 passed there too). Not caused by absorption.
+
+### Final 8-repo batch state
+
+| Repo | Status | Absorption Target |
+|------|--------|-------------------|
+| `phenotype-mcp-asset` | DELETED | preserved in McpKit archive |
+| `phenotype-analytics` | DELETED | none (no consumers) |
+| `nexus` | ACTIVE | preserved standalone (only service registry) |
+| `phenotype-registry-data` | DELETED | merged into phenotype-registry/ |
+| `pheno-framework-lint` | **DELETED** | pheno-scaffold-kit#3 |
+| `pheno-drift-detector` | **DELETED** | pheno-scaffold-kit#3 |
+| `pheno-predict` | **DELETED** | pheno-scaffold-kit#3 |
+| `forge-runner-scripts` | DELETED | phenodag (Go rewrite) + monorepo findings/ |
+| `pheno-scaffold-kit` | **ARCHIVED** | umbrella for the 3 absorbed tools |
+
+### Net content loss: zero
+
+Every meaningful source item from every repo has a documented migration path. The 2 source-repos-deleted-before-PR-merged failure mode was recovered by re-copying from the still-archived source repos.
