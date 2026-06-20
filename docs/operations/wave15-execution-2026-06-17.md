@@ -135,5 +135,5 @@ See [p5-agent-runtime-absorption-2026-06-19.md](./p5-agent-runtime-absorption-20
 2. ~~**P5-2**~~ — done (PhenoAgent archive gate)
 3. ~~**P5-3**~~ — done (PhenoProc archive gate)
 4. **P5-4** — phenoRouterMonitor → phenoAI (deferred; repo archived)
-5. **P5-5** — thegent / Agentora boundary audit (AFFIRM split)
+5. **P5-5** — thegent / Agentora boundary audit (AFFIRM split; boundary confirmation + registry handoff pending)
 6. **P5-6** — FocalPoint → HexaKit (deferred; 867MB vendor)

@@ -17,8 +17,9 @@ source repos after zero-dep gates. Python proc plane already lives at
 | P5-1 | PhenoAgent Rust/CLI/docs → `crates/pheno-agent/` + absorption doc | PhenoAgent | Agentora | **done** — [Agentora#91](https://github.com/KooshaPari/Agentora/pull/91); archived 2026-06-19 |
 | P5-2 | PhenoAgent archive gate (post P5-1 merge) | PhenoAgent | archive | **done** — archived 2026-06-19 |
 | P5-3 | PhenoProc archive gate verify | PhenoProc | archive | **done** — archived 2026-06-19 |
-| P5-4 | phenoRouterMonitor Rust core → phenoAI | phenoRouterMonitor | phenoAI | **deferred** — repo archived; Streamlit dash retained |
-| P5-5 | thegent vs Agentora boundary | thegent | AFFIRM split | **open** — Python runtime; not duplicate of pheno-agent Rust |
+| P5-4 | phenoRouterMonitor Rust core → phenoAI | phenoRouterMonitor | phenoAI | **deferred** — repo archived; Streamlit dash retained; no code migration, docs-only boundary note |
+| P5-4 | phenoRouterMonitor → phenoAI resolution (sidecar) | phenoRouterMonitor | phenoAI | **done** 2026-06-20 — Rust router canonical in phenoAI/crates/llm-router/; spec doc [p5-4-phenoroutermonitor-absorption-2026-06-20.md](./p5-4-phenoroutermonitor-absorption-2026-06-20.md) |
+| P5-5 | thegent vs Agentora boundary | thegent | AFFIRM split | **open** — Python runtime stays separate from pheno-agent Rust; next step is boundary confirmation, registry handoff, and PR linkage |
 | P5-6 | FocalPoint vendor → HexaKit | FocalPoint | HexaKit | **deferred** — 867MB vendor; repo archived |
 
 ## Consumer chokepoints
@@ -28,6 +29,7 @@ source repos after zero-dep gates. Python proc plane already lives at
 | PhenoAgent | PhenoDevOps, Pyron | Agentora `crates/pheno-agent` | Pyron **404**; org manifest scan: **0 git deps** on PhenoAgent (2026-06-19) |
 | PhenoProc | (none) | Agentora `pheno-proc-runtime` | absorption complete; archive pending |
 | pheno | phenoRouterMonitor | HexaKit phenotype-* | **done** — phenoRouterMonitor#632 |
+| pheno | phenoRouterMonitor (Rust core) | phenoAI crates/llm-router/ | **done** 2026-06-20 — absorbed; see sidecar row gate-phenoroutermonitor-p5-4-resolution |
 
 ## Similar merges (ECOSYSTEM_MAP priority)
 
