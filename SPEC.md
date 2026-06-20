@@ -1,36 +1,184 @@
-# phenotype-registry - Specification
+# SPEC: Phenotype Registry — Master Index
 
-## Problem
+## Meta
 
-`phenotype-registry` addresses a specific need in the Phenotype fleet: phenotype registry system: master index connecting specs, patterns, and templates. Without a canonical implementation, downstream consumers must reinvent the same primitives, leading to fragmentation and divergent behavior across the fleet.
+- **ID**: phenotype-registry-001
+- **Title**: Phenotype Registry System — Master Index
+- **Created**: 2026-04-04
+- **State**: specified
+- **Version**: 1.0.0
+- **Language**: Markdown
 
-## Solution
+---
 
-`phenotype-registry` provides a single, well-tested, well-documented implementation of this capability. The package ships with:
-- A stable public API
-- A test matrix (unit + integration; e2e + perf where applicable)
-- Observability hooks (info-level tracing via pheno-tracing where applicable)
-- CI gates (lint, format, test, security audit per ADR-042)
+## Overview
 
-## Architecture
+The Phenotype Registry System is the unified entry point for all Phenotype registries. It serves as the master index connecting PhenoSpecs (specifications), PhenoHandbook (patterns), and HexaKit (templates) into a cohesive documentation and code generation ecosystem.
 
-- Language: typescript
-- Tier: 0 (0=foundational, 1=core, 2=extension, 3=experimental)
-- Maturity: stable
-- Layout: standard layout per language conventions
-- Hexagonal: ports in `port/`, adapters in `adapter/` (where applicable)
-- Versioning: SemVer
-- License: MIT or Apache-2.0 (per repo)
+---
 
-## API
+## ASCII Architecture Diagram
 
-See `README.md` for the user-facing API. Internal modules are documented via rustdoc / pydoc / godoc / TypeDoc. Example usage in `examples/`.
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                     PHENOTYPE REGISTRY SYSTEM                                │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                              │
+│  ┌────────────────────────────────────────────────────────────────────┐    │
+│  │                    REGISTRY RELATIONSHIPS                           │    │
+│  │                                                                      │    │
+│  │    ┌────────────────┐          ┌────────────────┐                  │    │
+│  │    │   PhenoSpecs   │──────────▶│ PhenoHandbook  │                  │    │
+│  │    │                │  patterns  │                │                  │    │
+│  │    │ • Specs        │◀──────────│ • Patterns     │                  │    │
+│  │    │ • ADRs         │ implement  │ • Guidelines   │                  │    │
+│  │    │ • OpenAPI      │          │ • Checklists   │                  │    │
+│  │    └───────┬────────┘          └───────┬────────┘                  │    │
+│  │            │                           │                             │    │
+│  │            │                           │                             │    │
+│  │            ▼                           ▼                             │    │
+│  │    ┌──────────────────────────────────────────┐                      │    │
+│  │    │              HexaKit                     │                      │    │
+│  │    │                                          │                      │    │
+│  │    │  • Templates informed by specs          │                      │    │
+│  │    │  • Templates follow patterns              │                      │    │
+│  │    └──────────────────────────────────────────┘                      │    │
+│  │                      │                                                │    │
+│  │                      ▼                                                │    │
+│  │    ┌──────────────────────────────────────────┐                      │    │
+│  │    │         Implementation Repos             │                      │    │
+│  │    │  • phenotype-auth-ts                    │                      │    │
+│  │    │  • Stashly                               │                      │    │
+│  │    │  • thegent                               │                      │    │
+│  │    │  • ...                                   │                      │    │
+│  │    └──────────────────────────────────────────┘                      │    │
+│  │                                                                       │    │
+│  └───────────────────────────────────────────────────────────────────────┘    │
+│                                                                               │
+│  FLOW:                                                                        │
+│  1. PhenoSpecs → PhenoHandbook (patterns implement specs)                    │
+│  2. PhenoSpecs → HexaKit (templates include spec stubs)                       │
+│  3. PhenoHandbook → HexaKit (templates follow patterns)                      │
+│  4. All → Implementation (code references specs/patterns via traceability)    │
+│                                                                               │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
 
-## Status
+---
 
-- Current tier: 0
-- Maturity: stable
-- Coverage: see `llms.txt`
-- Security: see `SECURITY.md` and `.github/workflows/security.yml`
-- Registry entry: KooshaPari/phenotype-registry/registry/components.lock
-- Maintainer: @KooshaPari
+## Components Table
+
+| Component | Path | Language | Responsibility | Status |
+|-----------|------|----------|----------------|--------|
+| **Master Index** | `README.md` | Markdown | Unified navigation hub | Active |
+| **Registry Links** | This document | Markdown | Cross-registry relationships | Active |
+
+---
+
+## Registry Index
+
+| Registry | URL | Purpose | Key Files |
+|----------|-----|---------|-----------|
+| **PhenoSpecs** | [github.com/KooshaPari/PhenoSpecs](https://github.com/KooshaPari/PhenoSpecs) | Specifications & ADRs | `specs/`, `adrs/`, `openapi/`, `registry.yaml` |
+| **PhenoHandbook** | [github.com/KooshaPari/PhenoHandbook](https://github.com/KooshaPari/PhenoHandbook) | Patterns & guidelines | `patterns/`, `anti-patterns/`, `guidelines/`, `methodologies/` |
+| **HexaKit** | [github.com/KooshaPari/HexaKit](https://github.com/KooshaPari/HexaKit) | Templates & scaffolding | `by-language/`, `by-project/`, `registry.yaml` |
+
+---
+
+## Data Models
+
+### Registry Link
+```yaml
+type: RegistryLink
+properties:
+  source:
+    registry: PhenoSpecs
+    item_id: SPEC-AUTH-001
+    path: specs/auth/oauth-flow/
+  target:
+    registry: PhenoHandbook
+    item_id: PATTERN-AUTH-001
+    path: patterns/auth/oauth-pkce.md
+  relationship: implements  # implements | references | informs
+```
+
+### Navigation Entry
+```yaml
+type: NavigationEntry
+properties:
+  want_to: Find a spec for a feature
+  go_to: PhenoSpecs/specs/
+  query: "spec search <domain>"
+
+  want_to: Learn a design pattern
+  go_to: PhenoHandbook/patterns/
+  query: "pattern list <domain>"
+
+  want_to: Get a code template
+  go_to: HexaKit/by-language/
+  query: "hexakit create <template> <name>"
+```
+
+---
+
+## Registry Connections
+
+| From | To | Link Type |
+|------|-----|-----------|
+| Specs | Patterns | Specs reference patterns that implement them |
+| Specs | Templates | Specs link to templates that scaffold them |
+| Patterns | Specs | Patterns reference originating specs |
+| Patterns | Templates | Templates follow pattern guidance |
+| Templates | Specs | Templates include spec stubs |
+| Templates | Patterns | Templates implement patterns |
+
+---
+
+## Quick Navigation
+
+| I want to... | Go to... |
+|--------------|----------|
+| Find a spec for a feature | [PhenoSpecs/specs/](https://github.com/KooshaPari/PhenoSpecs/tree/main/specs) |
+| Learn a design pattern | [PhenoHandbook/patterns/](https://github.com/KooshaPari/PhenoHandbook/tree/main/patterns) |
+| See what NOT to do | [PhenoHandbook/anti-patterns/](https://github.com/KooshaPari/PhenoHandbook/tree/main/anti-patterns) |
+| Get coding standards | [PhenoHandbook/guidelines/](https://github.com/KooshaPari/PhenoHandbook/tree/main/guidelines) |
+| Use a methodology (TDD/BDD/DDD) | [PhenoHandbook/methodologies/](https://github.com/KooshaPari/PhenoHandbook/tree/main/methodologies) |
+| Find a code template | [HexaKit/by-language/](https://github.com/KooshaPari/HexaKit/tree/main/by-language) |
+| Scaffold a new project | [HexaKit/by-project/](https://github.com/KooshaPari/HexaKit/tree/main/by-project) |
+
+---
+
+## CI/CD Integration
+
+All registries have:
+- Automated validation on PR
+- Link checking (spec → pattern → template)
+- Traceability verification
+- Auto-publish on merge
+
+---
+
+## Workspace Structure
+
+```
+phenotype-registry/
+├── README.md                  # Master index (this is the main artifact)
+└── (minimal by design - this is a navigation hub)
+```
+
+---
+
+## References
+
+1. [PhenoSpecs](https://github.com/KooshaPari/PhenoSpecs) — Specifications
+2. [PhenoHandbook](https://github.com/KooshaPari/PhenoHandbook) — Patterns
+3. [HexaKit](https://github.com/KooshaPari/HexaKit) — Templates
+4. [AgilePlus](https://github.com/KooshaPari/AgilePlus) — Spec-driven development
+
+---
+
+*Generated: 2026-04-04*
+
+## v8 Phase 3 — T17 + T18 (2026-06-20)
+
+Tightened lint configurations and Tier-2 coverage gate per ADR-040 (80% lib / 70% framework / 60% service). HOOKS_SKIP / SKIP env vars enable ad-hoc testing. OIDC trust (no PAT secrets).
