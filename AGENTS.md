@@ -448,7 +448,8 @@ See `findings/2026-06-18-L5-109-4-repo-retirement.md` for full migration matrix,
 - **2 unapplied stashes (pre-2026-06-17)** — DROPPED this turn (WIP pheno-tracing fix already in HEAD via W5 batch).
 - **4 empty `gate1-0..3` local branches** — DELETED this turn (probe commits, no content, not on any pushed branch).
 - **ADR-015 v2.1 deprecation in 5 days** (2026-06-22) — see ADR-025 for the bump.
-- **REBASE + PUSH RESOLVED (2026-06-18 22:58 PDT)**: Local `repos/` clone's `origin` remote actually points to `phenotype-apps` (was wrongly claimed as `argis`/`FocalPoint` in prior session notes). 3 stranded governance commits (5df6904e9e..f615c33c5f) successfully pushed to `phenotype-apps:archive/2026-06-15-30-pillar-fleet` via **ADR-027 Tier 2 strategy**: `git config lfs.allowincompletepush=true` + `--recurse-submodules=no` + `--no-verify`. The governance commits contain zero binary changes; the LFS check was overly strict.
+- **REBASE + PUSH RESOLVED (2026-06-18 22:58 PDT)**: Local `repos/` clone
+- **T9.2 secret-block RESOLVED (2026-06-19, L5-119 path)**: Branch `chore/w5-adrs-sota-2026-06-15-v2` was BLOCKED by GitHub secret scanning (false positive on `phenotype-python-sdk` default-key derivation example). Resolution = option 2+3 combined (submodule rewrite to non-default-key SHA + amend), captured in commit `db801bb7ef`. Branch preserved locally; L5-119 folded into T9.2 closure (no distinct AGENTS.md row existed). See `findings/2026-06-18-T9-2-secret-block-resolution.md` for the 4-option matrix and chosen path.'s `origin` remote actually points to `phenotype-apps` (was wrongly claimed as `argis`/`FocalPoint` in prior session notes). 3 stranded governance commits (5df6904e9e..f615c33c5f) successfully pushed to `phenotype-apps:archive/2026-06-15-30-pillar-fleet` via **ADR-027 Tier 2 strategy**: `git config lfs.allowincompletepush=true` + `--recurse-submodules=no` + `--no-verify`. The governance commits contain zero binary changes; the LFS check was overly strict.
 - **dispatch-mcp deletion vs archive**: User said "dispatch-mcp should be deleted" but `gh repo delete` requires `delete_repo` scope on Dmouse92 token (HTTP 403, current scopes: `'gist', 'read:org', 'repo', 'workflow'`). Archive is the only available action. `Dmouse92/dispatch-mcp` is archived (not deleted); the consumer-facing work is fully absorbed into `KooshaPari/pheno-mcp-router` and `KooshaPari/dispatch-mcp` per the 6 Track 8 PRs.
 - **L5-104 MIGRATION GUARANTEE VERIFIED (2026-06-17 22:15 PDT)**: Orchestrator-level shell verification confirms 100% migration coverage:
   - **dispatch-mcp**: 6/6 unique W2-1 commits absorbed (100%) via 5 PR branches on 3 KP repos (pheno-mcp-router +3, dispatch-mcp +1, phenotype-ops +1)
@@ -482,3 +483,40 @@ See `findings/2026-06-18-L5-109-4-repo-retirement.md` for full migration matrix,
 - `findings/2026-06-15-L5-101-app-governance.md` — ADR-023 decision log
 - `findings/2026-06-17-L5-102-71-pillar-audit.md` — ADR-024 decision log (this turn)
 - `findings/2026-06-17-L5-103-adr-015-v2-1.md` — ADR-025 decision log (this turn)
+
+### v11 DAG Plan Reference
+
+See `plans/2026-06-20-v11-dag-router-rebuild.md` for the v11 DAG plan (Router Architecture Rebuild across 6 tracks, ~6.5-week critical path on §8 router-architecture decision). See `plans/2026-06-20-router-architecture-2026-research.md` for the underlying research.
+
+#### Governance state at v11 closure
+
+| Track | Status | Notes |
+|-------|--------|-------|
+| T0: Pre-flight gate | ✅ DONE | Branch protection, Cargo lock contention check, `gh` auth |
+| T1: Tier-0 audit sweep | ✅ DONE | 13 findings files |
+| T2: Round-2 absorption sweep | ✅ DONE | 7 active → archived, 4 deleted |
+| T3: Router architecture research | ✅ DONE | See research doc |
+| T4: ADR batch (router, federation, prcp) | ✅ DONE | |
+| T5: pheno-tracing OTLP adoption | ✅ DONE | Adopted in pheno-port-adapter |
+| T6: Substrate audit closure | ✅ DONE | |
+| T7: 71-pillar refresh | ✅ DONE | |
+| T8: v11 closure + AGENTS.md + STATUS.md | ✅ DONE | |
+| T9: Round-2 absorption follow-up | ✅ DONE | |
+| T10: v11 session wrap | ✅ DONE | |
+| §8: Router architecture decision | ⏳ AWAITING USER | Option A/B/C pick blocks L2 |
+| T30 (cancelled) | ❌ CANCELLED | |
+
+#### Stage1 Config Consolidation Closure
+
+See `findings/2026-06-19-L5-500-config-consolidation-closure.md` for the six-repo consolidation assessment. Verified execution results:
+
+| Step | Repo | Action | Result |
+|------|------|--------|--------|
+| 1 | Settly | Archive on GitHub | ✅ Already archived. Configra workspace has `crates/settly`, `crates/pheno-config`, `crates/config-schema`, `crates/configra-config` — fully absorbed. |
+| 2 | cheap-llm-mcp | Archive on GitHub | ✅ Already removed (HTTP 404). No Rust `cheap_llm` refs remain in active repos. |
+| 3 | Profila | Cross-ref README → ObservabilityKit | ✅ MOVED_TO_OBSERVABILITYKIT.md pushed to GitHub. README updated with cross-ref table. |
+| 4 | clap-ext | Verification | ✅ No `clap_ext` refs in sharecli. clap-ext is a published independent crate (crates.io v0.1.0). |
+| 5 | phenotype-py-utils | Absorption check | ⚠️ py-utils does not exist on GitHub. py-extras exists as consolidated Python extras repo (`phenotype-py-extras`). Absorption PR needed (see finding). |
+| 6 | Duplication matrix | Written | ✅ See `findings/2026-06-19-dup-matrix.md` (verified and updated). |
+| 7 | AGENTS.md v11 update | This update | ✅ Governance section added with v11 plan reference. |
+| 8 | pheno-errors | Push + PR | ✅ Repo created, code pushed, PR opened. |
