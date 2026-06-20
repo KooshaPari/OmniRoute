@@ -78,6 +78,106 @@ if [ -d .github/workflows ]; then
   fi
 fi
 
+# --- 6. Org-convention files present (PhenoHandbook patterns/spine-roles.md) ---
+# Every Phenotype repo must carry AGENTS.md and SPEC.md; STATUS.md is
+# expected for active-phase tracking.
+for f in AGENTS.md SPEC.md STATUS.md; do
+  if [ -f "$f" ]; then
+    pass "$f present"
+  else
+    warn "$f missing — org convention requires this file at repo root"
+  fi
+done
+
+# --- 7. YAML syntax validation ---
+# Validates every .yml/.yaml file (skipping node_modules) using Python's
+# yaml.safe_load. This catches syntax errors before they hit CI.
+yaml_errors=0
+if command -v python3 >/dev/null 2>&1; then
+  yaml_output=$(python3 -c '
+import os, sys, yaml
+errors = 0
+for root, dirs, files in os.walk("."):
+    if "node_modules" in root or ".git" in root:
+        continue
+    for f in files:
+        if not (f.endswith(".yml") or f.endswith(".yaml")):
+            continue
+        path = os.path.join(root, f)
+        try:
+            with open(path) as fp:
+                yaml.safe_load(fp)
+        except yaml.YAMLError as e:
+            mark = getattr(e, "problem_mark", None)
+            line = mark.line + 1 if mark else 0
+            print(f"{path}:{line}: YAML syntax error: {e.problem if hasattr(e, "problem") else e}")
+            errors += 1
+sys.exit(errors)
+' 2>&1) || yaml_errors=$?
+  if [ "$yaml_errors" -gt 0 ]; then
+    echo "$yaml_output"
+    fail "$yaml_errors YAML file(s) have syntax errors (see above)"
+  else
+    pass "all YAML files valid"
+  fi
+else
+  warn "python3 not available — skipping YAML validation"
+fi
+
+# --- 8. Markdown internal link integrity ---
+# Checks that local file references in markdown links [text](path) resolve.
+# External URLs, anchors, and mailto: links are skipped.
+if command -v python3 >/dev/null 2>&1; then
+  md_output=$(python3 -c '
+import os, re, sys
+
+ROOT = os.path.abspath(".")
+errors = 0
+LINK_RE = re.compile(r"\[([^]]*)\]\(([^)]+)\)")
+
+for root, dirs, files in os.walk("."):
+    if "node_modules" in root or ".git" in root:
+        continue
+    for f in files:
+        if not f.endswith(".md"):
+            continue
+        path = os.path.join(root, f)
+        with open(path, encoding="utf-8", errors="replace") as fp:
+            try:
+                content = fp.read()
+            except Exception:
+                continue
+        md_dir = os.path.dirname(os.path.abspath(path))
+        for m in LINK_RE.finditer(content):
+            link = m.group(2).strip()
+            # Strip anchor from link target before checking
+            target = link.split("#")[0] if "#" in link else link
+            if not target:
+                continue
+            # Skip external URLs and mailto
+            if target.startswith(("http://", "https://", "mailto:", "ftp://")):
+                continue
+            # Normalize path: resolve relative to the markdown file
+            abs_target = os.path.normpath(os.path.join(md_dir, target))
+            # If it does not exist, try resolving relative to repo root
+            if not os.path.exists(abs_target):
+                root_target = os.path.normpath(os.path.join(ROOT, target))
+                if not os.path.exists(root_target):
+                    print(f"{path}: broken link -> {link}")
+                    errors += 1
+
+sys.exit(errors)
+' 2>&1) || md_errors=$?
+  if [ "${md_errors:-0}" -gt 0 ]; then
+    echo "$md_output"
+    warn "${md_errors:-0} markdown link(s) are broken (see above)"
+  else
+    pass "all markdown local links resolve"
+  fi
+else
+  warn "python3 not available — skipping markdown link check"
+fi
+
 echo "== conventions-lint: $fails fail, $warns warn =="
 if [ "$fails" -gt 0 ]; then exit 1; fi
 if [ "$STRICT" = "1" ] && [ "$warns" -gt 0 ]; then exit 1; fi

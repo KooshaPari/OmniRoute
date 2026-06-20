@@ -39,7 +39,7 @@ tasks:
       - '{{.SCRIPT}} --no-color'
 
   coverage:
-    desc: Measure code coverage (SSOT: see grade.sh for the canonical command).
+    desc: "Measure code coverage (SSOT: see grade.sh for the canonical command)."
     cmds:
       - |
         if [[ -f "Cargo.toml" ]]; then
