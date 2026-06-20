@@ -261,8 +261,83 @@ real-time. Ramp to 25% over 7 days, then 100% over another 7 days. Roll
 back automatically if p99 latency or error rate exceeds SLOs.
 
 **Phase 4 (Q4 2026, B7–B9)**: full migration playbook + Bifrost MCP
-client integration + kill switch (`open-sse/` engine stays available as
+client integration (B8) + kill switch (`open-sse/` engine stays available as
 fallback for 90 days post-Phase-3).
+
+---
+
+## MCP Client integration (B8)
+
+**Status:** Implemented in v8.1 (2026-06-19).
+
+Bifrost natively exposes an MCP client that connects to upstream MCP
+servers and surfaces their tools via `POST /mcp` as JSON-RPC 2.0. The
+Bifrost MCP Client executor (`open-sse/executors/bifrostMcpClient.ts`)
+wraps this endpoint so that OmniRoute's TypeScript dispatch layer can
+route MCP tool-call requests to Bifrost instead of OmniRoute's own
+`mcp-router/`.
+
+### Architecture
+
+```
+  OmniRoute MCP dispatch                     Bifrost (Go sidecar)
+  ┌──────────────────────┐     POST /mcp      ┌─────────────────────┐
+  │ bifrostMcpClient.ts  │ ──────────────────▶ │  /mcp handler       │
+  │ (proxy executor)     │ ◀────────────────── │  (JSON-RPC 2.0)     │
+  │                      │    tool result      │  list_tools          │
+  │ fallback:            │                     │  call_tool           │
+  │ OmniRoute mcp-router │                     │  ┌─────────────────┐ │
+  │ (if Bifrost fails)   │                     │  │ upstream MCP    │ │
+  └──────────────────────┘                     │  │ servers/tools    │ │
+                                               │  └─────────────────┘ │
+                                               └─────────────────────┘
+```
+
+The executor is a **thin proxy** — it does not reimplement any MCP
+protocol logic. It:
+
+1. Receives MCP tool-call requests (JSON-RPC 2.0 `call_tool` / `list_tools`)
+   from OmniRoute's A2A / MCP-router pipeline.
+2. Forwards them to Bifrost at `BIFROST_MCP_BASE_URL` (default
+   `http://127.0.0.1:8080/mcp`) via HTTP POST.
+3. Maps the JSON-RPC response back to OmniRoute's MCP tool-call schema.
+4. Returns the result to the caller.
+
+### Activation
+
+```bash
+# Enable Bifrost MCP client
+export BIFROST_MCP_ENABLED=1
+export BIFROST_MCP_BASE_URL=http://127.0.0.1:8080/mcp  # default
+```
+
+When `BIFROST_MCP_ENABLED` is unset or `0`, the executor falls back to
+OmniRoute's own `mcp-router/` — this is the **backwards-compatible
+default**.
+
+### Fallback behavior
+
+If Bifrost is enabled but returns an HTTP error or the JSON-RPC response
+contains an error object, the executor retries once against OmniRoute's
+`mcp-router/` before surfacing the error to the caller. This ensures
+MCP requests are never dropped when Bifrost is restarting or the
+upstream MCP server is unreachable.
+
+### Env reference
+
+| Variable | Default | Description |
+|---|---|---|
+| `BIFROST_MCP_ENABLED` | `false` | Enable MCP routing through Bifrost |
+| `BIFROST_MCP_BASE_URL` | `http://127.0.0.1:8080/mcp` | Bifrost MCP endpoint |
+| `BIFROST_MCP_TIMEOUT_MS` | `30000` | HTTP timeout for MCP calls |
+
+### Cross-references
+
+- [`open-sse/executors/bifrostMcpClient.ts`](../open-sse/executors/bifrostMcpClient.ts)
+  — executor implementation
+- [`tests/unit/bifrost-mcp-client.test.ts`](../tests/unit/bifrost-mcp-client.test.ts)
+  — vitest suite (14 cases)
+- [`docs/frameworks/BIFROST-MCP-CLIENT.md`](BIFROST-MCP-CLIENT.md) — operator guide
 
 ---
 
@@ -290,6 +365,9 @@ Per ADR-031 § "Decision Review":
 - `tests/unit/bifrost-backend.test.ts` — vitest suite (12 cases)
 - `scripts/build-bifrost.sh` — builds the Go sidecar binary
 - `vendor/bifrost/VENDOR.md` — vendored canonical source provenance
+- `open-sse/executors/bifrostMcpClient.ts` — Bifrost MCP Client executor (B8)
+- `tests/unit/bifrost-mcp-client.test.ts` — Bifrost MCP Client test suite (14 cases)
+- `docs/frameworks/BIFROST-MCP-CLIENT.md` — MCP Client operator guide (B8)
 
 ---
 

@@ -19,6 +19,7 @@ export default defineConfig({
       "src/lib/memory/__tests__/**/*.test.ts",
       "src/lib/skills/__tests__/**/*.test.ts",
       "tests/unit/encryption.test.ts",
+      "tests/unit/**/*.test.ts",
       "tests/unit/**/*.test.tsx",
       "open-sse/**/__tests__/**/*.test.ts",
       "open-sse/services/**/__tests__/**/*.test.ts",

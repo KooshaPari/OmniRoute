@@ -805,7 +805,7 @@ When a provider is configured for Bifrost, the corresponding
 | B5 | Virtual-key minting UI + cost tracking | ☐ Q3 2026 |
 | B6 | Traffic shadow (5% → 25% → 100% over 14 days) | ☐ Q3 2026 |
 | B7 | Migration playbook (`docs/operations/bifrost-migration.md`) | ☐ Q3 2026 |
-| B8 | Bifrost MCP client integration | ☐ Q4 2026 |
+| B8 | Bifrost MCP client integration | ✅ this PR |
 | B9 | Kill switch (fallback to chatCore if SLOs fail 7d) | 🔄 spec only |
 
 ### Decision review schedule
@@ -914,6 +914,69 @@ Also covers:
 
 Refs: `docs/adr/0031-bifrost-tier1-router.md`, `docs/frameworks/BIFROST-BACKEND.md`,
 `PLAN.md` § 2.5.2 (B7).
+
+---
+
+## Recent Changes (L5-118 B8 Bifrost MCP Client, 2026-06-19)
+
+Implements **B8** of the v8.1 Bifrost Tier-1 router rollout
+([`PLAN.md` § 2.5.2](PLAN.md#252-v81-task-track-b1b9)). Adds a
+thin-proxy MCP client executor that forwards MCP tool-call requests
+to Bifrost's native MCP endpoint (`POST /mcp`, JSON-RPC 2.0), with
+fallback to OmniRoute's own `mcp-router/` when Bifrost is unavailable.
+
+### New files (L5-118)
+
+| File | Lines | Purpose |
+|---|---|---|
+| `open-sse/executors/bifrostMcpClient.ts` | 210 | `BifrostMcpClientExecutor` — MCP proxy executor. Env-gated (`BIFROST_MCP_ENABLED=1`). Forwards `list_tools` / `call_tool` to Bifrost's `/mcp` endpoint. Falls back to OmniRoute's `mcp-router/` on error or disabled state. |
+| `tests/unit/bifrost-mcp-client.test.ts` | 354 | vitest suite (14 cases): env gating, list_tools, call_tool, HTTP error handling, JSON-RPC error handling, fallback behavior, timeout, malformed response, multiple tools. |
+| `docs/frameworks/BIFROST-MCP-CLIENT.md` | 102 | Operator-facing usage guide (architecture, activation, fallback, env reference, troubleshooting). |
+
+### Updated files (L5-118)
+
+- `docs/frameworks/BIFROST-BACKEND.md` — added § MCP Client integration (B8) with architecture diagram and env reference.
+- `PLAN.md` § 2.5.2 — B8 status changed from ☐ *next* to ✅ this PR.
+- `AGENTS.md` — this section, plus B8 row updated to ✅ this PR.
+- `vitest.config.ts` — updated to include `tests/unit/*.test.ts` in the vitest glob pattern.
+
+### Activation (Phase 4, backwards-compat)
+
+```bash
+# Enable Bifrost MCP client
+export BIFROST_MCP_ENABLED=1
+export BIFROST_MCP_BASE_URL=http://127.0.0.1:8080/mcp  # default
+```
+
+When `BIFROST_MCP_ENABLED` is unset or `0`, or Bifrost returns a JSON-RPC
+error, the executor falls through to OmniRoute's `mcp-router/` for MCP tool
+execution. **Zero behavior change for existing deployments.**
+
+### Design decisions
+
+1. **Thin proxy, not reimplementation** — the executor wraps Bifrost's `/mcp`
+   endpoint without duplicating MCP protocol logic. Bifrost (Go) handles
+   upstream MCP server connectivity; OmniRoute handles dispatch, auth, and
+   fallback.
+
+2. **Same env-gating pattern as `bifrost.ts`** — `BIFROST_MCP_ENABLED` boolean
+   with the same `isBifrostMcpEnabled()` / `requireBifrostMcp()` helpers,
+   consistent with the existing `BIFROST_ENABLED` / `isBifrostEnabled()` pattern.
+
+3. **Single-retry fallback** — on any error (HTTP error, JSON-RPC error,
+   timeout, connection refused), the executor retries once against
+   OmniRoute's `mcp-router/` before surfacing the error. This ensures
+   MCP requests are never dropped when Bifrost is restarting or the
+   upstream MCP server is unreachable.
+
+### Fork-only policy (extended for L5-118)
+
+When sending PRs to `diegosouzapw/OmniRoute`, do **not** include
+(extension of L5-109/L5-110/L5-111 policy):
+
+- `open-sse/executors/bifrostMcpClient.ts` (depends on KP-side `KooshaPari/bifrost` fork)
+- `tests/unit/bifrost-mcp-client.test.ts` (KP-specific test suite)
+- `docs/frameworks/BIFROST-MCP-CLIENT.md` (KP-specific operator guide)
 
 ---
 

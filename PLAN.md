@@ -136,10 +136,10 @@
 | **B2** | `open-sse/executors/bifrost.ts` — `BifrostBackend` executor (Tier-2 surface) | core | S | ✅ this PR |
 | **B3** | `bifrostProviderMap.ts` — OmniRoute→Bifrost name translation (232 → 23+ mapping) | core | S | ✅ this PR |
 | **B4** | `bifrostModels` SQL table + migration (cache Bifrost's model catalog locally) | data | S | ☑ DONE 2026-06-18 |
-| **B5** | Virtual-key minting UI + cost-tracking integration | dashboard | M | ☐ Q3 |
-| **B6** | Drop-in swap: traffic-shadow mode (5% → 25% → 100% over 14 days) | ops | M | ☐ Q3 |
-| **B7** | Migration playbook (`docs/operations/bifrost-migration.md`) | ops | S | ✅ this session |
-| **B8** | Bifrost MCP client integration (use Bifrost as upstream MCP source for OmniRoute's MCP-router) | mcp | M | ☐ *next* |
+| **B5** | Virtual-key minting UI + cost-tracking integration | dashboard | M | ✅ PR #82/#90 MERGED 2026-06-19 |
+| **B6** | Drop-in swap: traffic-shadow mode (5% → 25% → 100% over 14 days) | ops | M | ✅ PR #89 MERGED 2026-06-19 |
+| **B7** | Migration playbook (`docs/operations/bifrost-migration.md`) | ops | S | ✅ PR #91 OPEN 2026-06-19 |
+| **B8** | Bifrost MCP client integration (use Bifrost as upstream MCP source for OmniRoute's MCP-router) | mcp | M | ✅ this PR |
 | **B9** | Kill switch: keep OmniRoute's `open-sse/` engine as fallback if Bifrost fails SLOs for 7 days | core | S | 🔄 spec only |
 
 ### 2.5.3 Decision review schedule
