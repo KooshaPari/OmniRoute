@@ -335,7 +335,7 @@ mod tests {
     }
 
     proptest::proptest! {
-        #![proptest_config = proptest::prelude::ProptestConfig::with_cases(100)]
+        #[proptest_config(ProptestConfig::with_cases(100))]
 
         /// For any non-empty string, constructing a [`AppError::Domain`] and
         /// reading back `.kind()` must return `"domain"`.
@@ -343,14 +343,13 @@ mod tests {
         fn proptest_domain_kind(msg: String) {
             // Skip empty strings – they are valid but add no signal.
             if msg.is_empty() {
-                return Ok(());
+                return;
             }
             let err = AppError::domain(&msg);
             assert_eq!(err.kind(), "domain");
             let display = err.to_string();
             // Display must embed the original message.
             assert!(display.contains(&msg), "display {:?} should contain {:?}", display, msg);
-            Ok(())
         }
 
         /// For any non-empty entity and id strings, constructing a
@@ -359,14 +358,13 @@ mod tests {
         #[test]
         fn proptest_not_found_kind(entity: String, id: String) {
             if entity.is_empty() || id.is_empty() {
-                return Ok(());
+                return;
             }
             let err = AppError::not_found(&entity, &id);
             assert_eq!(err.kind(), "not_found");
             let display = err.to_string();
             assert!(display.contains(&entity));
             assert!(display.contains(&id));
-            Ok(())
         }
     }
 }
