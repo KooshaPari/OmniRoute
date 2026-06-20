@@ -2,6 +2,8 @@ module github.com/kooshapari/bifrost-extensions
 
 go 1.26
 
+toolchain go1.26.4
+
 require (
 	connectrpc.com/connect v1.20.0
 	github.com/99designs/gqlgen v0.17.90
