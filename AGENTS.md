@@ -181,6 +181,7 @@ See `plans/2026-06-20-v11-dag-router-rebuild.md` (the working plan) and `plans/2
 - **T9: Round-2 absorption follow-up** (P1, ~30 min) — DONE.
 - **T10: v11 session wrap** (P0, ~5 min) — DONE. This file.
 - **§8: Router architecture decision** (P0, blocking) — **AWAITING USER**. Options: (A) ship-router, (B) lightweight-pass-through, (C) both-greens. 6.5-week critical path.
+- **T9.2: Secret-block resolution (v8 batch 11B, 2026-06-20)** — **RESOLVED via Option D (drop v2 branch)**. Original unblock URL `3FIXsQyJuHxH1QPcj8XmoXFTJyg` expired (HTTP 404). Re-push attempt 2026-06-19 04:55 UTC surfaced **two** new secrets at `plans/2026-06-14-push-session.md:70-71` (OAuth + PAT, both labeled 401 Bad credentials in source). v1 branch (`chore/w5-adrs-sota-2026-06-15` @ `eebdeca758`) is on `kp-focalpoint` remote with all substantive intent. v2 (`chore/w5-adrs-sota-2026-06-15-v2` @ `002f380717`) is **dropped locally**; its additional CascadeLoader work preserved in `findings/2026-06-18-T9-2-secret-block-resolution.md` § T9.2.3 for future cherry-pick. See `findings/2026-06-18-T9-2-secret-block-resolution.md` for full audit.
 
 ---
 
