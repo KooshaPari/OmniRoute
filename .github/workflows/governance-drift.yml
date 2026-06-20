@@ -39,7 +39,7 @@ jobs:
           echo "::warning title=Bucket Drift Detected::$(cat /tmp/drift-output.txt | grep 'DRIFT' | head -10)"
       - name: Upload baseline
         if: always()
-        uses: actions/upload-artifact@65c4c4a1d7e1b4d1b4d1b4d1b4d1b4d1b4d1b4d1
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: bucket-drift-baseline
           path: findings/L6-bucket-drift-ci-*.json

@@ -52,7 +52,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v4.2.2
       - name: Install Rust toolchain
-        uses: dtolnay/rust-toolchain@2a11a0a5583295ce6732f4f6716cb1a358e1c5c4 # stable
+        uses: dtolnay/rust-toolchain@3c5f7ea28cd621ae0bf5283f0e981fb97b8a7af9 # stable
       - name: Install cargo-deny
         run: cargo install --locked cargo-deny
       - name: Run cargo-deny check
