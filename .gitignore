@@ -310,3 +310,8 @@ scripts/local/
 scripts/*.local.*
 /worktrees/
 /*-wtrees/
+
+# Lowercase justfile is a duplicate of the canonical uppercase Justfile
+/justfile
+!/Justfile
+
