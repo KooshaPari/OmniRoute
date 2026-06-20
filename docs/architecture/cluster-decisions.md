@@ -15,7 +15,7 @@ OmniRoute's existing deployment shape is already lean and proven:
 - **`redis:7-alpine`** handles the rate-limit/cache workload at production scale.
 - **SQLite + sqlite-vec + FTS5** cover local memory + vector + text-search (see [`src/lib/memory/vectorStore.ts:108`](../../src/lib/memory/vectorStore.ts)).
 - **Caddy** is already the LB + TLS terminator ([`docker-compose.yml`](../../docker-compose.yml)).
-- **Bifrost** is already integrated as an in-process Tier-1 router ([`open-sse/executors/bifrost.ts`](../../open-sse/executors/bifrost.ts)).
+- **Bifrost** is already integrated as the Tier-1 router in [`src/app/api/v1/relay/chat/completions/bifrost/route.ts`](../../src/app/api/v1/relay/chat/completions/bifrost/route.ts) (sidecar proxy with kill switch via `BIFROST_ENABLED` env var).
 
 The two profiles here are **scale-out options for deployments that hit the SQLite ceiling** — not migrations. Both are default-off.
 
