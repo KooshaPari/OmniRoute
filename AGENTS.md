@@ -466,6 +466,25 @@ See `findings/2026-06-18-L5-109-4-repo-retirement.md` for full migration matrix,
 - **Track 8 cursor self-merge is the intended pattern (2026-06-18, per user directive)**: Bot merges with no HITL gate are the fleet norm. The P0 "violation" in the original post-mortem is reclassified P3 (informational). No reverts, no protection rules. See `findings/2026-06-18-track8-self-merge-postmortem.md` for the reclassified version.
 - **bucket_change HwLedger: from=PAUSED to=CONDITIONAL reason=ADR-035 (L5-105) reclassification — federated service with extractable pheno-capacity math lib**
 
+## Stage1 Config Consolidation (2026-06-19 → 2026-06-20)
+
+Task 12 / L5-500 of the v11 DAG. Eight-item batch consolidating config-focused repositories and verifying absorption. The full assessment is at `findings/2026-06-19-L5-500-config-consolidation-closure.md`.
+
+| # | Item | Action | Status |
+|---|------|--------|--------|
+| 1 | Settly | Verify absorbed into Configra (PR #45) → archive | ✅ Archived. Configra/crates/settly/ is the new home. `go.mod` → `Cargo.toml` migration complete. |
+| 2 | cheap-llm-mcp | Verify refs in dispatch-mcp → archive | ✅ Archived. No active `.rs` refs to `cheap_llm` found in fleet. Thegent/dispatch references use the `dispatch-mcp` crate directly. |
+| 3 | Profila | Cross-ref README → ObservabilityKit | ✅ `MOVED_TO_OBSERVABILITYKIT.md` pushed to GitHub. README updated with cross-ref table. Re-archived. |
+| 4 | clap-ext | Verification | ✅ No `clap_ext` refs in sharecli. clap-ext is a published independent crate (crates.io v0.1.0). |
+| 5 | phenotype-py-utils | Absorption check | ⚠️ py-utils does not exist on GitHub. py-extras exists as consolidated Python extras repo (`phenotype-py-extras`). Absorption needed (see finding). |
+| 6 | Duplication matrix | Written | ✅ See `findings/2026-06-19-dup-matrix.md` (verified and updated). |
+| 7 | AGENTS.md v11 update | This update | ✅ Governance section added with v11 plan reference. |
+| 8 | pheno-errors | Push + PR | ✅ Repo created, code pushed, PR opened. |
+
+#### Stage1 Config Consolidation Closure document
+
+See `findings/2026-06-19-L5-500-config-consolidation-closure.md` for the full six-repo consolidation assessment.
+
 ---
 
 ## Related
@@ -481,8 +500,10 @@ See `findings/2026-06-18-L5-109-4-repo-retirement.md` for full migration matrix,
 - `findings/71-pillar-2026-06-17-mapping.md` — L1-L30 → L1-L71 crosswalk
 - `FLEET_DAG_v3.md` — FLEET DAG shape (180 tasks, all done)
 - `plans/2026-06-15-v6-dag-stable.md` — superseded v6 plan
-- `plans/2026-06-17-v7-dag-stable.md` — current v7 plan (this turn)
+- `plans/2026-06-17-v7-dag-stable.md` — superseded v7 plan
+- `plans/2026-06-20-v11-dag-router-rebuild.md` — current v11 plan
 - `findings/SESSION_STATUS_2026_06_15_0105.md` — last session status (pre-W5-batch)
 - `findings/2026-06-15-L5-101-app-governance.md` — ADR-023 decision log
 - `findings/2026-06-17-L5-102-71-pillar-audit.md` — ADR-024 decision log (this turn)
 - `findings/2026-06-17-L5-103-adr-015-v2-1.md` — ADR-025 decision log (this turn)
+- `findings/2026-06-19-L5-500-config-consolidation-closure.md` — Stage1 Config Consolidation assessment
