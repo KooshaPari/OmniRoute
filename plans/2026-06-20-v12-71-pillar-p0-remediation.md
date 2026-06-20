@@ -37,6 +37,7 @@ v11 drained all 102 melosviz work packages to 100% saturation. v12 pivots to **o
 ### Stage 1: Stabilize (5 tracks, 20 tasks)
 - **T12-A** L47 secret scanning (4 tasks: 1 per repo)
 - **T12-B** L38 AGENTS.md (4 tasks: 1 per repo)
+  > **Note (2026-06-20):** `dispatch-mcp` has no standalone repo as of 2026-06-20; canonical scope is `thegent-dispatch/python/dispatch-mcp/` (per `thegent-dispatch/docs/SSOT.md` merge log entry `dispatch-mcp -> python/dispatch-mcp/ (2026-06-08)`). T12-B does NOT require `dispatch-mcp` to have its own AGENTS.md — L38 is satisfied by `thegent-dispatch/AGENTS.md`. See `worklogs/L5-123-t12b-agents-md-2026-06-20.json` for the full audit and blocker detail. v13 should consider lifting `dispatch-mcp` out of the T12 affected-repos list.
 - **T12-C** L57 pheno-tracing wire (4 tasks: 1 per repo)
 - **T12-D** L30 devcontainer (3 tasks: 1 per repo)
 - **T12-F** L46 branch protection (4 tasks: 1 per repo, 1 admin pool task)
