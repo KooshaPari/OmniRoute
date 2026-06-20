@@ -1,32 +1,20 @@
 # phenotype-registry
 
-> Part of the Phenotype fleet. See https://github.com/KooshaPari/phenotype-apps for fleet-wide context.
+> Phenotype Registry System: master index connecting specs, patterns, and templates. Part of the Phenotype-org fleet canonical substrate registry (see KooshaPari/phenotype-registry).
 
-## What this repo is
+## Docs
+- [README.md](README.md): entry point and project overview
+- [SPEC.md](SPEC.md): one-page spec (Problem / Solution / Architecture / API / Status)
+- [CHANGELOG.md](CHANGELOG.md): version history
+- [SECURITY.md](SECURITY.md): security policy and reporting
 
-`phenotype-registry` is a repo in the KooshaPari/Phenotype fleet.
+## Optional
+- [WORKLOG.md](WORKLOG.md): pheno-worklog-schema v2.1 (if present)
+- [docs/adr/](docs/adr/): architecture decision records (if present)
 
-## Build & run
-
-```bash
-git clone https://github.com/KooshaPari/phenotype-registry.git
-cd phenotype-registry
-# see SPEC.md for repo-specific instructions
-```
-
-## Code layout
-
-- Source: see language-specific source dirs
-- Tests: see test dirs
-- Specs: SPEC.md, llms.txt
-
-## Conventions
-
-- See AGENTS.md § Conventions
-- WORKLOG.md uses v2.1 schema (ADR-025)
-
-## See also
-
-- [phenotype-apps meta-repo](https://github.com/KooshaPari/phenotype-apps)
-- [phenotype-registry](https://github.com/KooshaPari/phenotype-registry)
-- 71-pillar audit: `findings/71-pillar-*.md` in the meta-repo
+## Notes
+- Language/runtime: typescript
+- Tier: 0
+- Test coverage: 62%
+- Registry entry: KooshaPari/phenotype-registry/registry/components.lock
+- Maintained by: KooshaPari

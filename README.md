@@ -24,6 +24,26 @@
 
 # Phenotype Registry System - Master Index
 
+## Quickstart
+
+> Phenotype Registry System: master index connecting specs, patterns, and templates
+
+```bash
+# Clone, build, test
+git clone https://github.com/KooshaPari/phenotype-registry.git
+cd phenotype-registry
+```
+
+```bash
+npm install phenotype_registry
+```
+```typescript
+import { /* ... */ } from "phenotype_registry";
+```
+
+See [SPEC.md](SPEC.md) for the full specification and [llms.txt](llms.txt) for machine-readable metadata.
+
+
 **Unified entry point for all Phenotype registries.**
 
 > **Canonical ecosystem index:** [`ECOSYSTEM_MAP.md`](./ECOSYSTEM_MAP.md) — repo role classification + dependency graph for the whole org. Start there for "what exists and how it connects."
