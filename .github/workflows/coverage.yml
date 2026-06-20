@@ -19,20 +19,20 @@ jobs:
     if: ${{ !contains(env.SKIP, 'lint') }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Run lint
         run: echo "Running language-specific lint"
   test:
     if: ${{ !contains(env.SKIP, 'test') }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Run tests
         run: echo "Running language-specific tests"
   coverage:
     if: ${{ !contains(env.SKIP, 'coverage') }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Generate coverage
         run: echo "Generating coverage (language-specific)"
