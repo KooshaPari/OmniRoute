@@ -67,6 +67,47 @@ fmt:
 
 ci: install build test lint
 
+# Tier-0 hygiene: secret scanning (mirrors .github/workflows/audit.yml)
+audit:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    if command -v trufflehog >/dev/null 2>&1; then
+        trufflehog filesystem . --results=verified --no-update
+    else
+        echo "trufflehog not installed; install with: brew install trufflehog"
+        exit 1
+    fi
+
+# Tier-0 hygiene: dependency policy (mirrors .github/workflows/deny.yml)
+deny:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    if [ -f go.mod ]; then
+        go mod verify
+        if ! command -v govulncheck >/dev/null 2>&1; then
+            echo "installing govulncheck..."
+            go install golang.org/x/vuln/cmd/govulncheck@latest
+        fi
+        govulncheck ./...
+    elif [ -f Cargo.toml ] && command -v cargo-deny >/dev/null 2>&1; then
+        cargo deny check
+    else
+        echo "no supported dependency policy toolchain found"
+        exit 1
+    fi
+
+# Tier-0 hygiene: full grade (delegates to grade.sh if present, else runs ci + deny + audit)
+grade:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    if [ -x ./grade.sh ]; then
+        ./grade.sh
+    else
+        just ci
+        just deny
+        just audit
+    fi
+
 clean:
     #!/usr/bin/env bash
     set -euo pipefail
