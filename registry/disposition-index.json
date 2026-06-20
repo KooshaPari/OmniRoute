@@ -3,7 +3,7 @@
   "updated": "2026-06-20",
   "authority": "phenotype-registry",
   "charter": "docs/rationalization/boundary-shaping.md",
-  "note": "phenoShared targets are interim staging per ADR-ECO-014-phenoshared-decompose; terminal owners are DOMAIN_ROLES repos. 2026-06-18 (post-archive, L5-114): phenotype-voxel/terrain/water/postfx source repos ARCHIVED + DELETED (delete_repo scope) after phenotype-gfx#10 merged. phenotype-gfx is canonical; 4 source rows now terminal archived state. 2026-06-19 (L5-115, ADR-035A): pheno-capacity registered as new pheno-*-lib substrate (extracted from HwLedger per ADR-035A).",
+  "note": "phenoShared targets are interim staging per ADR-ECO-014-phenoshared-decompose; terminal owners are DOMAIN_ROLES repos. 2026-06-18 (post-archive, L5-114): phenotype-voxel/terrain/water/postfx source repos ARCHIVED + DELETED (delete_repo scope) after phenotype-gfx#10 merged. phenotype-gfx is canonical; 4 source rows now terminal archived state. 2026-06-19 (L5-115, ADR-035A): pheno-capacity registered as new pheno-*-lib substrate (extracted from HwLedger per ADR-035A). 2026-06-20: Authvault SUPERSEDE by AuthKit; Httpora SUPERSEDE by Quillr.",
   "rows": [
     {
       "id": "repo-phenoshared",
@@ -1203,6 +1203,26 @@
       "adr": "ADR-ECO-027-helioscli-absorption",
       "relocated_date": "2026-06-20",
       "note": "HeliosCLI absorbed into helios-cli: 23 crates (workspace members + 3 lang extensions), 28+ top-level dirs, 19 build/config files, 443 docs, 25 artifacts, ValidationKit polyglot. Zero content loss. HeliosCLI repo empty of work content; ready for GitHub archival."
+    },
+    {
+      "id": "absorb-authvault",
+      "path": "KooshaPari/Authvault",
+      "disposition": "SUPERSEDE",
+      "target": "AuthKit",
+      "fsm": "archived",
+      "archived_date": "2026-06-20",
+      "pr": "AuthKit#121",
+      "note": "Authvault absorbed into AuthKit as canonical auth repo. Authvault archived."
+    },
+    {
+      "id": "absorb-httpora",
+      "path": "KooshaPari/Httpora",
+      "disposition": "SUPERSEDE",
+      "target": "Quillr",
+      "fsm": "archived",
+      "archived_date": "2026-06-20",
+      "pr": "Quillr#27",
+      "note": "Httpora absorbed into Quillr as httpora-core crate. Httpora archived."
     }
   ]
 }
