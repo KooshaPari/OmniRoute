@@ -1,0 +1,17 @@
+[package]
+name = "pheno-port-adapter"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.82"
+description = "Hexagonal L4 Port/Adapter pattern — reference implementation of the Port trait and Adapter impl contract (ADR-038)"
+license = "MIT"
+repository = "https://github.com/KooshaPari/phenotype-apps"
+documentation = "https://github.com/KooshaPari/phenotype-apps/tree/main/pheno-port-adapter"
+keywords = ["port", "adapter", "hexagonal", "phenotype", "l4"]
+categories = ["development-tools", "embedded"]
+authors = ["Koosha Pari <koosha@phenotype.local>"]
+
+[workspace]
+
+[dependencies]
+thiserror = "2.0"
