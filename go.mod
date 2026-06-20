@@ -1,6 +1,6 @@
 module github.com/kooshapari/bifrost-extensions
 
-go 1.25.0
+go 1.26
 
 require (
 	connectrpc.com/connect v1.19.2
@@ -12,7 +12,7 @@ require (
 	github.com/golang-migrate/migrate/v4 v4.19.1
 	github.com/google/uuid v1.6.0
 	github.com/gorilla/websocket v1.5.4-0.20250319132907-e064f32e3674
-	github.com/hatchet-dev/hatchet v0.85.3
+	github.com/hatchet-dev/hatchet v0.90.2
 	github.com/jackc/pgx/v5 v5.9.2
 	github.com/maximhq/bifrost/core v1.2.30
 	github.com/nats-io/nats.go v1.51.0
