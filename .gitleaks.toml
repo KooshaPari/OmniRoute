@@ -1,0 +1,34 @@
+# .gitleaks.toml - gitleaks config for the Phenotype fleet
+# See ADR-042 (security audit cadence) and pheno-security-baselines.
+
+title = "Phenotype fleet gitleaks config"
+
+[extend]
+useDefault = true
+
+[allowlist]
+paths = [
+  'target/',
+  'node_modules/',
+  '.venv/',
+  '__pycache__/',
+  'dist/',
+  'build/',
+  '.cargo/',
+  '.pytest_cache/',
+  '*.lock',
+  'Cargo.lock',
+  'package-lock.json',
+  'yarn.lock',
+  'pnpm-lock.yaml',
+  'poetry.lock',
+  'go.sum',
+]
+
+regexes = [
+  'test[_-]?fixture',
+  'mock[_-]?key',
+  'example[_-]?token',
+  'EXAMPLE_API_KEY',
+  'FAKE_TOKEN',
+]
