@@ -46,6 +46,6 @@
 - `plans/2026-06-19-v11-dag-100task.md` committed
 
 ## Next Steps
-1. Archive Settly on GitHub (already complete — config consolidation closed)
-2. Verify cheap-llm-mcp archive status
-3. v11 findings need real research (placeholders only)
+1. ~~Archive Settly on GitHub~~ ✅ **DONE** (verified `archived: true`, pushed 2026-06-19)
+2. ~~Verify cheap-llm-mcp archive status~~ ✅ **DONE** (404 Not Found — already removed from GitHub)
+3. v11 findings need real research (150 placeholders, deferred to separate track)
