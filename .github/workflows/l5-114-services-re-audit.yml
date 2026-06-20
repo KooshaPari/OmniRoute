@@ -1,0 +1,144 @@
+name: l5-114-services-re-audit
+
+on:
+  # Weekly Monday 09:00 PDT cron (16:00 UTC) — per ADR-041 cadence
+  schedule:
+    - cron: "0 16 * * 1"
+  # Allow manual trigger
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  audit:
+    name: services-retirement-re-audit
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+        with:
+          fetch-depth: 0
+          sparse-checkout: registry/disposition-index.json
+          sparse-checkout-cone-mode: true
+
+      - name: Verify source repos are 404
+        id: source-check
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          declare -A SOURCES=(
+            ["phenotype-voxel"]="KooshaPari/phenotype-voxel"
+            ["phenotype-terrain"]="KooshaPari/phenotype-terrain"
+            ["phenotype-water"]="KooshaPari/phenotype-water"
+            ["phenotype-postfx"]="KooshaPari/phenotype-postfx"
+          )
+          AUDIT_RESULTS="[]"
+          for name in "${!SOURCES[@]}"; do
+            repo="${SOURCES[$name]}"
+            http_code=$(curl -s -o /dev/null -w "%{http_code}" \
+              -H "Authorization: token $GH_TOKEN" \
+              "https://api.github.com/repos/$repo")
+            if [ "$http_code" = "404" ]; then
+              status="ok_404"
+            elif [ "$http_code" = "401" ] || [ "$http_code" = "403" ]; then
+              status="auth_required"
+            else
+              status="FAIL_${http_code}"
+            fi
+            entry=$(jq -n --arg name "$name" --arg repo "$repo" \
+              --arg status "$status" --arg code "$http_code" \
+              '{name: $name, repo: $repo, status: $status, http_code: ($code|tonumber)}')
+            AUDIT_RESULTS=$(echo "$AUDIT_RESULTS" | jq --argjson e "$entry" '. + [$e]')
+          done
+          echo "$AUDIT_RESULTS" > audit-sources.json
+          cat audit-sources.json
+
+      - name: Verify disposition-index rows are fsm=archived
+        id: registry-check
+        run: |
+          set -euo pipefail
+          REGISTRY="registry/disposition-index.json"
+          if [ ! -f "$REGISTRY" ]; then
+            echo "::error::registry file $REGISTRY not found"
+            exit 1
+          fi
+          AUDIT_RESULTS="[]"
+          for row_id in block-c-phenotype-voxel block-c-phenotype-terrain \
+                        block-c-phenotype-water block-c-phenotype-postfx; do
+            fsm=$(jq -r --arg id "$row_id" \
+              '.rows[] | select(.id == $id) | .fsm' "$REGISTRY")
+            if [ "$fsm" = "archived" ]; then
+              status="ok_archived"
+            else
+              status="FAIL_${fsm:-missing}"
+            fi
+            entry=$(jq -n --arg id "$row_id" --arg fsm "${fsm:-MISSING}" \
+              --arg status "$status" \
+              '{row_id: $id, fsm: $fsm, status: $status}')
+            AUDIT_RESULTS=$(echo "$AUDIT_RESULTS" | jq --argjson e "$entry" '. + [$e]')
+          done
+          echo "$AUDIT_RESULTS" > audit-registry.json
+          cat audit-registry.json
+
+      - name: Build combined audit report
+        id: report
+        if: always()
+        run: |
+          set -euo pipefail
+          DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+          SOURCES=$(cat audit-sources.json 2>/dev/null || echo "[]")
+          REGISTRY=$(cat audit-registry.json 2>/dev/null || echo "[]")
+          REPORT=$(jq -n \
+            --arg date "$DATE" \
+            --argjson sources "$SOURCES" \
+            --argjson registry "$REGISTRY" \
+            --arg run_id "${{ github.run_id }}" \
+            '{
+              audit_date: $date,
+              github_run_id: $run_id,
+              l5_114_step5_weekly_re_audit: true,
+              source_repo_404_check: $sources,
+              registry_row_archived_check: $registry
+            }')
+          echo "$REPORT" > "l5-114-services-re-audit-${DATE}.json"
+          echo "$REPORT" | jq .
+
+      - name: Upload audit artifact
+        if: always()
+        uses: actions/upload-artifact@4cec6e8f6c27a7a0d65f6f95e57a907c4b5b5b5b5 # v4.4.3
+        with:
+          name: l5-114-services-re-audit
+          path: l5-114-services-re-audit-*.json
+          if-no-files-found: warn
+          retention-days: 90
+
+      - name: Fail and post issue if any check failed
+        if: failure()
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7
+        with:
+          script: |
+            const fs = require('fs');
+            const report = fs.readFileSync(
+              'l5-114-services-re-audit-' +
+              new Date().toISOString().replace(/[:.]/g,'-') + '.json',
+              'utf8'
+            );
+            const title = 'L5-114 services re-audit FAILURE — ' +
+              new Date().toISOString().slice(0,10);
+            const body = 'Weekly L5-114 services retirement re-audit detected ' +
+              'a regression. See the audit report:\n\n```json\n' + report + '\n```';
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: title,
+              body: body,
+              labels: ['l5-114', 're-audit', 'failure']
+            });
