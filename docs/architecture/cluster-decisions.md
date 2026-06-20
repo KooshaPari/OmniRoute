@@ -1,3 +1,9 @@
+---
+title: "Cluster Decisions"
+version: 3.8.2
+lastUpdated: 2026-06-20
+---
+
 # Cluster Decisions — Optional Sidecar Profiles
 
 **Status:** proposal (awaiting @diegosouzapw review)
@@ -15,7 +21,7 @@ OmniRoute's existing deployment shape is already lean and proven:
 - **`redis:7-alpine`** handles the rate-limit/cache workload at production scale.
 - **SQLite + sqlite-vec + FTS5** cover local memory + vector + text-search (see [`src/lib/memory/vectorStore.ts:108`](../../src/lib/memory/vectorStore.ts)).
 - **Caddy** is already the LB + TLS terminator ([`docker-compose.yml`](../../docker-compose.yml)).
-- **Bifrost** is already integrated as the Tier-1 router in [`src/app/api/v1/relay/chat/completions/bifrost/route.ts`](../../src/app/api/v1/relay/chat/completions/bifrost/route.ts) (sidecar proxy with kill switch via `BIFROST_ENABLED` env var).
+- **Bifrost** is already integrated as the Tier-1 router in [`src/app/api/v1/relay/chat/completions/bifrost/route.ts`](../../src/app/api/v1/relay/chat/completions/bifrost/route.ts) (sidecar proxy with kill switch via `BIFROST_ENABLED` env var — set `=0` to bypass the sidecar and fall through to the TS path).
 
 The two profiles here are **scale-out options for deployments that hit the SQLite ceiling** — not migrations. Both are default-off.
 
@@ -76,7 +82,7 @@ If a future use case proves out one of these, this doc is the place to amend.
 ## 4-week rollout (if approved)
 
 1. **Wk 1** — Land this PR + verification of opt-in profiles with a 3-replica compose stack.
-2. **Wk 2** — Bifrost full activation for OpenAI/Claude/Gemini/Ollama (4 of 14+ providers) using the existing `open-sse/executors/bifrost.ts` wiring.
+2. **Wk 2** — Bifrost full activation for OpenAI/Claude/Gemini/Ollama (4 of 14+ providers) using the sidecar proxy route at [`src/app/api/v1/relay/chat/completions/bifrost/route.ts`](../../src/app/api/v1/relay/chat/completions/bifrost/route.ts) (gated by `BIFROST_ENABLED`, kill-switchable at runtime).
 3. **Wk 3** — Qdrant memory profile enabled in a single test deployment; measure latency delta vs sqlite-vec.
 4. **Wk 4** — Observability healthchecks (`docker compose ps` exit codes + `wget` smoke tests); 71-pillar refresh per ADR-041.
 
