@@ -1108,15 +1108,15 @@
       "id": "l5-113-forge-runner-scripts",
       "path": "KooshaPari/forge-runner-scripts",
       "disposition": "ABSORB",
-      "target": "phenodag (dag_*.py Go rewrite) + phenotype-org-audits (process docs, ops scripts, specs, commands)",
+      "target": "phenodag (dag_*.py Go rewrite, L5-113 2026-06-18) + monorepo findings/forge-runner-scripts/ (32 files; phenotype-org-audits deleted 2026-06-20 before PR #49 could merge)",
       "wave": "L5-110/111/112-second-half-2026-06-19",
       "fsm": "archived",
       "core_lang": "shell",
       "relocated_date": "2026-06-19",
       "archived_date": "2026-06-19",
-      "pr": "phenodag#13,phenotype-org-audits#49",
+      "pr": "phenodag#13,monorepo@62ac60cd77",
       "adr": "ADR-013,ADR-023",
-      "note": "33 files, 5,597 LOC. Split placement per ADR-013 (dispatching in phenodag) + ADR-023 (process docs in phenotype-org-audits). 2 dag_*.py files already absorbed into phenodag as Go rewrites (L5-113 2026-06-18); 31 files (autoqueue.sh x7, subagent-launchers x8, macOS Ghostty helpers x4, process docs x3, specs x4, commands x2, root x5) absorbed into phenotype-org-audits/forge-runner-scripts/ via PR #49. 0 last-resort exceptions."
+      "note": "33 files, 5,597 LOC. Split placement per ADR-013 (dispatching in phenodag) + ADR-023 (process docs in governance home). 2 dag_*.py files absorbed into phenodag as Go rewrites (L5-113 2026-06-18). 32 files (31 source + 1 ABSORPTION.md) absorbed into monorepo findings/forge-runner-scripts/ after KooshaPari/phenotype-org-audits was deleted externally (2026-06-20 T04:01 UTC) before PR #49 could merge. 0 last-resort exceptions."
     }
   ]
 }

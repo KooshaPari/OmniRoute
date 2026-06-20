@@ -51,7 +51,7 @@
     "forge-runner-scripts": {
       "status": "archived",
       "archived_date": "2026-06-19",
-      "reason": "33 operational shell/python scripts (~290 KB) from ~/.forge/. Split: 2 dag_*.py -> phenodag (Go rewrite, L5-113 2026-06-18); 31 files -> phenotype-org-audits/forge-runner-scripts/. PR KooshaPari/phenotype-org-audits#49."
+      "reason": "33 operational shell/python scripts (~290 KB) from ~/.forge/. Split: 2 dag_*.py -> phenodag (Go rewrite, L5-113 2026-06-18); 32 files -> monorepo findings/forge-runner-scripts/ (PR KooshaPari/phenotype-org-audits#49 was orphaned when phenotype-org-audits was deleted externally 2026-06-20)."
     }
   },
   "components": {
