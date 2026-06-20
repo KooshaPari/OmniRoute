@@ -1,39 +1,42 @@
 ---
 repo: "phenotype-bus"
-role: unknown
-status: active
+role: archived
+status: archived
 last_boundary_review: 2026-06-17
 review_cadence: 30d
 in_scope:
-  - "<to be filled>"
+  - "No active product surface; historical archive only."
 out_of_scope:
-  - "<to be filled>"
+  - "Event bus implementation details"
+  - "Any new feature work"
 ---
 
 # Boundary — phenotype-bus
 
 ## In Scope
 
-<To be filled.>
+Archived reference only. No active boundary work remains.
 
 ## Out of Scope
 
 | Not here | Lives in | Reason |
 | -------- | -------- | ------ |
-| `<capability>` | `<other-repo-or-N/A>` | `<why>` |
+| Event bus infrastructure | `phenotype-registry` / `phenoShared` governance docs | Repo is archived and delete-ready once retention gates clear |
+| New message routing or transport work | `pheno-router-monitor`, `substrate`, `Eventra` | Active routing surfaces live elsewhere |
 
 ## Boundary Crossings
 
 | Crossing | Direction | Surface | Status |
 | -------- | --------- | ------- | ------ |
-| `<capability or interface>` | `<this-repo→other|other→this-repo>` || `<this-repo→other|other→this-repo>` | `<Trait / HTTP / CLI / file / event>` | `<green|amber|red>` || `<green|amber|red>` || `<green|amber|red>` |
+| Archive-only repo marker | `this-repo→other` | file | green |
+| Historical consumer manifest | `other→this-repo` | file | green |
 
 ## Last Boundary Review
 
 **Date:** 2026-06-17
-**Reviewer:** forge subagent (L7-001 sweep)
+**Reviewer:** codex
 **Worklog / finding:** `worklogs/L7-001-intent-boundary-curation-2026-06-17.json`
 **Decisions:**
-- Initial scaffolding; needs human review.
+- Archived and delete-ready; no active boundary surface remains.
 
 **Next review:** 2026-07-17

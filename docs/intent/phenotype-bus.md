@@ -1,8 +1,8 @@
 ---
 repo: "phenotype-bus"
 aliases: []
-role: unknown
-status: active
+role: archived
+status: archived
 last_verified: 2026-06-17
 bound_prompts: 3
 bound_plans: 0
@@ -14,7 +14,7 @@ device: macbook
 
 ## Intent Statement
 
-<To be filled in by hand from the most recent binding prompt. This repo is bound to 3 prompts, 0 plans, and 0 agent responses captured between 2025-08 and 2026-06-17.>
+Archived repository record only. Historical intent is preserved for traceability; no new work should bind here.
 
 ## Bound Prompts
 
@@ -44,10 +44,11 @@ See: [`docs/boundary/phenotype-bus.md`](../boundary/phenotype-bus.md)
 
 ## Open Questions
 
-- <To be filled from the latest prompt on this repo.>
+- None. Repo is archive-only.
 
 ## Change Log
 
 | Date | Change | Worklog |
 | ---- | ------ | ------- |
 | 2026-06-17 | Initial binding (L7-001 sweep) | `worklogs/L7-001-intent-boundary-curation-2026-06-17.json` |
+| 2026-06-20 | Marked archive/delete-ready in registry SSOT | `worklogs/L7-001-intent-boundary-curation-2026-06-17.json` |

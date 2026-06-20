@@ -1,39 +1,42 @@
 ---
 repo: "pheno-contracts"
-role: unknown
-status: active
+role: archived
+status: archived
 last_boundary_review: 2026-06-17
 review_cadence: 30d
 in_scope:
-  - "<to be filled>"
+  - "Historical contract-verification notes only."
 out_of_scope:
-  - "<to be filled>"
+  - "New trait or adapter development"
+  - "Any active product surface"
 ---
 
 # Boundary — pheno-contracts
 
 ## In Scope
 
-<To be filled.>
+Archive-only record. Live contract work now lives in downstream owners and interim canonical crates.
 
 ## Out of Scope
 
 | Not here | Lives in | Reason |
 | -------- | -------- | ------ |
-| `<capability>` | `<other-repo-or-N/A>` | `<why>` |
+| Domain contract implementation | `phenoShared`, `Authvault`, `Eventra`, `Agentora` | Decomposed per D-01 and related ledgers |
+| Contract verification harnesses | `phenotype-rust-sdk` / downstream test bundles | Live verification moved out of this repo |
 
 ## Boundary Crossings
 
 | Crossing | Direction | Surface | Status |
 | -------- | --------- | ------- | ------ |
-| `<capability or interface>` | `<this-repo→other|other→this-repo>` || `<this-repo→other|other→this-repo>` | `<Trait / HTTP / CLI / file / event>` | `<green|amber|red>` || `<green|amber|red>` || `<green|amber|red>` |
+| Historical contract manifest | `this-repo→other` | file | green |
+| Decomposition ledger reference | `other→this-repo` | file | green |
 
 ## Last Boundary Review
 
 **Date:** 2026-06-17
-**Reviewer:** forge subagent (L7-001 sweep)
+**Reviewer:** codex
 **Worklog / finding:** `worklogs/L7-001-intent-boundary-curation-2026-06-17.json`
 **Decisions:**
-- Initial scaffolding; needs human review.
+- Archived and delete-ready; contract functionality is decomposed elsewhere.
 
 **Next review:** 2026-07-17
