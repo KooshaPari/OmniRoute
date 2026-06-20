@@ -3,7 +3,7 @@
 **Date:** 2026-06-19 → 2026-06-20
 **Batch:** 11E (T10.1 + T21.1)
 **Branch (Configra):** `wip-2026-06-19-configra-gate-remediation` @ `42a180b`
-**Branch (phenotype-apps):** local only (push pending)
+**Branch (phenotype-apps):** `chore/v12-71-pillar-p0-remediation-2026-06-20` (push this turn)
 **Status:** COMPLETE
 
 ---
