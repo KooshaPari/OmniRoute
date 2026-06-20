@@ -9,14 +9,16 @@
       "reason": "Source repo KooshaPari/McpKit archived on GitHub; pushes return 'This repository was archived so it is read-only'. Pin retained at c557c3ce (final state before archive); new commits are local-only and not reflected on the lock. Target substrates PhenoMCP#164 + PhenoMCPServers carry the absorbed content per ADR-003 / ADR-017 supersession."
     },
     "phenoShared": {
-      "status": "deleted",
-      "deleted_date": "2026-06-19",
-      "reason": "P4 decompose complete; wave 5b fleet drain \u2014 0 production git deps. Final pin 5f4647ef retained here for audit; no lock pin in components. Terminal owners per ADR-ECO-014."
+      "status": "restored-archived",
+      "restored_date": "2026-06-19",
+      "previously_deleted": "2026-06-19",
+      "reason": "P4 decompose complete; last live pin (HexaKit phenotype-cache-adapter) drained via #285; Pyron #62 also gutted. Restored as archived. No live cargo pins remain. Final pin b45ca51d (hexa-kit pre-#285 phenoShared HEAD) retained here for audit. Terminal owners per ADR-ECO-014."
     },
     "Pyron": {
-      "status": "deleted",
-      "deleted_date": "2026-06-19",
-      "reason": "P4 gate pass; repo 404 post-absorption. No lock pin \u2014 tombstone only."
+      "status": "restored-archived",
+      "restored_date": "2026-06-19",
+      "previously_deleted": "2026-06-19",
+      "reason": "CORRECTION 2026-06-19: prior 'deleted' / 404 tombstone was premature. Pyron #61 left generic phenotype-contracts pin on phenoShared until ResilienceKit #4 drained it. #62 gutted the rest. Repo restored as archived 2026-06-19; no live cargo pins remain. Terminal owners per ADR-ECO-014."
     },
     "phenotype-mcp-asset": {
       "status": "archived",

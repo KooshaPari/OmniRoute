@@ -8,13 +8,16 @@
     {
       "id": "repo-phenoshared",
       "path": "KooshaPari/phenoShared",
-      "disposition": "DECOMPOSE",
+      "disposition": "ARCHIVED-RESTORED",
       "target": "DOMAIN_ROLES owners",
       "wave": "P4",
-      "fsm": "done",
+      "fsm": "hold",
       "adr": "ADR-ECO-014-phenoshared-decompose",
       "relocated_date": "2026-06-18",
-      "note": "P4 decompose complete per docs/disposition/phenoshared-p4-checkpoint.md; X-10 TOMBSTONE — repo 404 post-absorption (2026-06-19); DOMAIN_ROLES canonical"
+      "note": "P4 decompose complete per docs/disposition/phenoshared-p4-checkpoint.md. CORRECTION 2026-06-19: prior X-10 TOMBSTONE / 404 claim was premature. HexaKit #278 drained pins, but #279 reverted phenotype-cache-adapter to phenoShared because libs/phenotype-cache-adapter path stub never landed on remote. phenoShared was hard-deleted leaving HexaKit main pointing at 404. HexaKit #285 (drain last phenoShared pin via cache-adapter inline stub) and Pyron #62 (gut to tombstone) drained the last live pins. Repo restored as archived 2026-06-19; no live cargo pins remain. Gate state hold pending explicit user sign-off per BOUNDARY_OWNERS / ADR-ECO-014.",
+      "deleted_date": "2026-06-19",
+      "restored_date": "2026-06-19",
+      "source": "fleet-rescan-2026-06-19"
     },
     {
       "id": "repo-phenoshared-niche",
@@ -653,13 +656,14 @@
     {
       "id": "gate-phenoshared",
       "path": "KooshaPari/phenoShared",
-      "disposition": "DELETE-eligible",
+      "disposition": "HOLD",
       "target": "DOMAIN_ROLES owners",
       "wave": "X",
-      "fsm": "done",
+      "fsm": "hold",
       "adr": "ADR-ECO-014",
       "relocated_date": "2026-06-19",
-      "note": "Wave 5b fleet drain complete — HexaKit#278 @ d83d1ca, PO#173, ResilienceKit#4, python-sdk#27; 0 production git deps; archive gate 5/5; repo deleted (404) 2026-06-19"
+      "note": "CORRECTION 2026-06-19: prior 'done' state was premature. Wave 5b had a #278->#279 regression: #278 drained pins, but #279 reverted phenotype-cache-adapter to phenoShared because libs/phenotype-cache-adapter path stub never landed on remote. phenoShared was hard-deleted leaving HexaKit main pointing at 404. HexaKit #285 (drain last phenoShared pin via cache-adapter inline stub) and Pyron #62 (gut to tombstone) drained the last live pins. Both phenoShared and Pyron restored as archived; no live cargo pins remain. Status HOLD pending explicit user sign-off per BOUNDARY_OWNERS / ADR-ECO-014.",
+      "source": "fleet-rescan-2026-06-19"
     },
     {
       "id": "gate-phenoshared-niche",
@@ -676,12 +680,13 @@
     {
       "id": "gate-pyron",
       "path": "KooshaPari/Pyron",
-      "disposition": "DELETE-eligible",
+      "disposition": "HOLD",
       "target": "DOMAIN_ROLES owners",
       "wave": "X",
-      "fsm": "done",
+      "fsm": "hold",
       "relocated_date": "2026-06-19",
-      "note": "P4 manifest repoint + vendored drop; cargo check green; 0 external git deps; archive-gate 5/5; repo deleted (404) 2026-06-19"
+      "note": "CORRECTION 2026-06-19: prior 'done' state was premature. Pyron #61 left generic phenotype-contracts pin on phenoShared until ResilienceKit #4 drained it. #62 gutted the rest. Both phenoShared and Pyron restored as archived 2026-06-19; no live cargo pins remain. Status HOLD pending explicit user sign-off per BOUNDARY_OWNERS / ADR-ECO-014.",
+      "source": "fleet-rescan-2026-06-19"
     },
     {
       "id": "gate-phenotype-runs",
