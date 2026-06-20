@@ -482,3 +482,44 @@ See `findings/2026-06-18-L5-109-4-repo-retirement.md` for full migration matrix,
 - `findings/2026-06-15-L5-101-app-governance.md` — ADR-023 decision log
 - `findings/2026-06-17-L5-102-71-pillar-audit.md` — ADR-024 decision log (this turn)
 - `findings/2026-06-17-L5-103-adr-015-v2-1.md` — ADR-025 decision log (this turn)
+
+### v11 DAG Plan Reference
+
+See `plans/2026-06-20-v11-dag-router-rebuild.md` for the v11 DAG plan (Router Architecture Rebuild across 6 tracks, ~6.5-week critical path on §8 router-architecture decision). See `plans/2026-06-20-router-architecture-2026-research.md` for the underlying research.
+
+#### Governance state at v11 closure
+
+| Track | Status | Notes |
+|-------|--------|-------|
+| T0: Pre-flight gate | ✅ DONE | Branch protection, Cargo lock contention check, `gh` auth |
+| T1: Tier-0 audit sweep | ✅ DONE | 13 findings files |
+| T2: Round-2 absorption sweep | ✅ DONE | 7 active → archived, 4 deleted |
+| T3: Router architecture research | ✅ DONE | See research doc |
+| T4: ADR batch (router, federation, prcp) | ✅ DONE | |
+| T5: pheno-tracing OTLP adoption | ✅ DONE | Adopted in pheno-port-adapter |
+| T6: Substrate audit closure | ✅ DONE | |
+| T7: 71-pillar refresh | ✅ DONE | |
+| T8: v11 closure + AGENTS.md + STATUS.md | ✅ DONE | |
+| T9: Round-2 absorption follow-up | ✅ DONE | |
+| T10: v11 session wrap | ✅ DONE | |
+| §8: Router architecture decision | ⏳ AWAITING USER | Option A/B/C pick blocks L2 |
+| T30 (cancelled) | ❌ CANCELLED | |
+
+#### Stage1 Config Consolidation Closure
+
+See `findings/2026-06-19-L5-500-config-consolidation-closure.md` for the six-repo consolidation assessment. Verified execution results:
+
+| Step | Repo | Action | Result |
+|------|------|--------|--------|
+| 1 | Settly | Archive on GitHub | ✅ Already archived. Configra workspace has `crates/settly`, `crates/pheno-config`, `crates/config-schema`, `crates/configra-config` — fully absorbed. |
+| 2 | cheap-llm-mcp | Archive on GitHub | ✅ Already removed (HTTP 404). No Rust `cheap_llm` refs remain in active repos. |
+| 3 | Profila | Cross-ref README → ObservabilityKit | ✅ MOVED_TO_OBSERVABILITYKIT.md pushed to GitHub. README updated with cross-ref table. |
+| 4 | clap-ext | Verification | ✅ No `clap_ext` refs in sharecli. clap-ext is a published independent crate (crates.io v0.1.0). |
+| 5 | phenotype-py-utils | Absorption check | ⚠️ py-utils does not exist on GitHub. py-extras exists as consolidated Python extras repo (`phenotype-py-extras`). Absorption PR needed (see finding). |
+| 6 | Duplication matrix | Written | ✅ See `findings/2026-06-19-dup-matrix.md` (verified and updated). |
+| 7 | AGENTS.md v11 update | This update | ✅ Governance section added with v11 plan reference. |
+| 8 | pheno-errors | Push + PR | ✅ Repo created, code pushed, PR opened. |
+
+#### Stage1 Config Consolidation Closure document
+
+See `findings/2026-06-19-L5-500-config-consolidation-closure.md` for the full six-repo consolidation assessment.
