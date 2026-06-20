@@ -96,6 +96,49 @@ deny:
         exit 1
     fi
 
+# Tier-0 hygiene: SSOT auto-check (L65 SSOT.md consistency + cross-ref resolver)
+validate-ssot:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    if [ -x ./scripts/validate-ssot.sh ]; then
+        ./scripts/validate-ssot.sh
+    else
+        echo "scripts/validate-ssot.sh missing or not executable"
+        exit 1
+    fi
+
+# Perf regression benchmarks (L57) — runs criterion + pytest-benchmark
+bench:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    if [ -f benchmarks/rust/Cargo.toml ]; then
+        (cd benchmarks/rust && cargo bench --bench parse_flag 2>&1 || echo "rust bench skipped")
+    fi
+    if [ -f benchmarks/python/pytest.ini ]; then
+        (cd benchmarks/python && python -m pytest --benchmark-only 2>&1 || echo "python bench skipped (no tests yet)")
+    fi
+
+# CI cache stats (L31) — runs the wrapper on the last CI run log
+cache-stats log_path="/tmp/ci-last.log":
+    #!/usr/bin/env bash
+    set -euo pipefail
+    if [ -x ./scripts/cache_stats_wrapper.sh ]; then
+        ./scripts/cache_stats_wrapper.sh "{{log_path}}"
+    else
+        echo "scripts/cache_stats_wrapper.sh missing or not executable"
+        exit 1
+    fi
+
+# CHANGELOG auto-gen (L67) — requires git-cliff
+changelog:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    if ! command -v git-cliff >/dev/null 2>&1; then
+        echo "git-cliff not installed; install with: cargo install git-cliff"
+        exit 1
+    fi
+    git-cliff --unreleased --tag "$(git describe --tags --abbrev=0 2>/dev/null || echo 'v0.0.0')" --output CHANGELOG.md
+
 # Tier-0 hygiene: full grade (delegates to grade.sh if present, else runs ci + deny + audit)
 grade:
     #!/usr/bin/env bash

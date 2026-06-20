@@ -49,3 +49,12 @@ repos:
         language: system
         pass_filenames: true
         types: [markdown]
+
+      - id: validate-ssot
+        name: validate-ssot (L65)
+        description: SSOT.md cross-ref + completeness check across the fleet
+        entry: bash ./scripts/validate-ssot.sh
+        language: system
+        pass_filenames: false
+        always_run: true
+        stages: [pre-commit]
