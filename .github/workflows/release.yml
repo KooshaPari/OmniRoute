@@ -16,7 +16,7 @@ jobs:
     runs-on: ubuntu-latest
     if: contains(github.event.head_commit.message, 'release:') || contains(github.event.head_commit.message, 'chore(release)')
     outputs:
-      version: $123steps.version.outputs.version125
+      version: ${{ steps.version.outputs.version }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -40,7 +40,7 @@ jobs:
 
       - name: Publish to crates.io
         run: |
-          cargo publish --token $123secrets.CARGO_REGISTRY_TOKEN125
+          cargo publish --token ${{ secrets.CARGO_REGISTRY_TOKEN }}
       
 
   promote:
@@ -52,6 +52,6 @@ jobs:
       - name: Promote to staging
         uses: KooshaPari/phenotypeActions/promote@main
         with:
-          version: $123needs.release.outputs.version125
+          version: ${{ needs.release.outputs.version }}
           channel: beta
           registry: crates.io
