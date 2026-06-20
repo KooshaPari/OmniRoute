@@ -1,0 +1,77 @@
+name: SBOM Generation
+permissions:
+  contents: write
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+on:
+  push:
+    branches: [main]
+  schedule:
+    - cron: '0 6 * * 0'   # weekly Sunday 06:00 UTC
+  workflow_dispatch:
+    inputs:
+      format:
+        description: 'SBOM format (cyclonedx-json, cyclonedx-xml, spdx)'
+        type: choice
+        options:
+          - cyclonedx-json
+          - cyclonedx-xml
+          - spdx
+        default: cyclonedx-json
+
+jobs:
+  generate-sbom:
+    name: Generate SBOM
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v4
+        with:
+          persist-credentials: false
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install cargo-cyclonedx
+        uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-cyclonedx
+
+      - name: Generate CycloneDX JSON SBOM
+        if: ${{ github.event.inputs.format == '' || github.event.inputs.format == 'cyclonedx-json' }}
+        run: cargo cyclonedx --format json
+        continue-on-error: true
+
+      - name: Generate CycloneDX XML SBOM
+        if: ${{ github.event.inputs.format == 'cyclonedx-xml' }}
+        run: cargo cyclonedx --format xml
+        continue-on-error: true
+
+      - name: Generate SPDX SBOM
+        if: ${{ github.event.inputs.format == 'spdx' }}
+        run: |
+          cargo install cargo-spdx --quiet 2>/dev/null
+          cargo spdx
+        continue-on-error: true
+
+      - name: Upload SBOM as workflow artifact
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v4
+        with:
+          name: sbom-${{ github.sha }}
+          path: |
+            *.json
+            *.xml
+            *.spdx
+          retention-days: 30
+
+      - name: Upload SBOM to GitHub Releases (on tag push)
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            *.json
+            *.xml
+            *.spdx
