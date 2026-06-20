@@ -83,3 +83,20 @@ substrates:
       Canonical MCP-router substrate per ADR-013 / ADR-037. Repo is
       archived (read-only). Hexagonal L4 port/adapter split is the
       reference implementation for ADR-038.
+
+  - id: phenotype-sdk
+    repo: KooshaPari/phenotype-sdk
+    name: Phenotype SDK
+    status: active
+    tier: phenotype-sdk
+    architecture: none
+    language: rust
+    role: sdk
+    workspace_version: "0.1.0"
+    boundary: null
+    intent: null
+    notes: |
+      Multi-language SDK monorepo (Rust, Go, Python, TypeScript, Zig, Mojo).
+      Primary core in Rust (15 crates). Absorbed from PhenoLang archives,
+      phenotype-go-sdk (10 packages), and phenotype-python-sdk (15 packages)
+      on 2026-06-20.
