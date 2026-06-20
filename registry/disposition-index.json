@@ -1066,7 +1066,7 @@
       "id": "l5-110-pheno-framework-lint",
       "path": "KooshaPari/pheno-framework-lint",
       "disposition": "ABSORB",
-      "target": "pheno-scaffold-kit (umbrella; SUB_LIBRARIES[\"framework_lint\"])",
+      "target": "pheno-scaffold-kit (umbrella; SUB_LIBRARIES[\"framework_lint\"]); recovered after pheno-scaffold-kit deleted 2026-06-20",
       "wave": "L5-110/111/112-second-half-2026-06-19",
       "fsm": "archived",
       "core_lang": "python",
@@ -1074,13 +1074,13 @@
       "archived_date": "2026-06-19",
       "pr": "pheno-scaffold-kit#2",
       "adr": "ADR-048",
-      "note": "L73 substrate-graduation linter (473 LOC, stdlib-only). Absorbed into pheno-scaffold-kit umbrella as _framework_lint.py SUB_LIBRARY + new Click subcommand `pheno-scaffold framework-lint check/check-all`. 10 unit tests + 5 subprocess E2E tests migrated. All 24 tests pass in target."
+      "note": "L73 substrate-graduation linter (473 LOC, stdlib-only). Absorbed into pheno-scaffold-kit umbrella as _framework_lint.py SUB_LIBRARY + new Click subcommand `pheno-scaffold framework-lint check/check-all`. 10 unit tests + 5 subprocess E2E tests migrated. All 24 tests pass in target. PR KooshaPari/pheno-scaffold-kit#3 (2026-06-20 recovery after #2 lost to external repo deletion)."
     },
     {
       "id": "l5-111-pheno-drift-detector",
       "path": "KooshaPari/pheno-drift-detector",
       "disposition": "ABSORB",
-      "target": "pheno-scaffold-kit (umbrella; SUB_LIBRARIES[\"drift_detector\"])",
+      "target": "pheno-scaffold-kit (umbrella; SUB_LIBRARIES[\"drift_detector\"]); recovered after pheno-scaffold-kit deleted 2026-06-20",
       "wave": "L5-110/111/112-second-half-2026-06-19",
       "fsm": "archived",
       "core_lang": "python",
@@ -1088,13 +1088,13 @@
       "archived_date": "2026-06-19",
       "pr": "pheno-scaffold-kit#2",
       "adr": "ADR-049",
-      "note": "L74 app-substrate drift detector (413 LOC, stdlib-only). Absorbed into pheno-scaffold-kit umbrella as _drift_detector.py SUB_LIBRARY + new Click subcommand `pheno-scaffold drift-detector scan/validate`. 3-pass algorithm (discover app repos -> find non-trivial capabilities -> score + suggest). 4 subprocess E2E tests migrated. Gaps erased: missing pyproject.toml + empty CI (0 bytes) both resolved by umbrella absorption."
+      "note": "L74 app-substrate drift detector (413 LOC, stdlib-only). Absorbed into pheno-scaffold-kit umbrella as _drift_detector.py SUB_LIBRARY + new Click subcommand `pheno-scaffold drift-detector scan/validate`. 3-pass algorithm (discover app repos -> find non-trivial capabilities -> score + suggest). 4 subprocess E2E tests migrated. Gaps erased: missing pyproject.toml + empty CI (0 bytes) both resolved by umbrella absorption. PR KooshaPari/pheno-scaffold-kit#3 (2026-06-20 recovery)."
     },
     {
       "id": "l5-112-pheno-predict",
       "path": "KooshaPari/pheno-predict",
       "disposition": "ABSORB",
-      "target": "pheno-scaffold-kit (umbrella; SUB_LIBRARIES[\"predict\"])",
+      "target": "pheno-scaffold-kit (umbrella; SUB_LIBRARIES[\"predict\"]); recovered after pheno-scaffold-kit deleted 2026-06-20",
       "wave": "L5-110/111/112-second-half-2026-06-19",
       "fsm": "archived",
       "core_lang": "python",
@@ -1102,7 +1102,7 @@
       "archived_date": "2026-06-19",
       "pr": "pheno-scaffold-kit#2",
       "adr": "ADR-047",
-      "note": "L72 predictive-DRY scanner (376 LOC, stdlib-only). Absorbed into pheno-scaffold-kit umbrella as _predict.py SUB_LIBRARY + new Click subcommand `pheno-scaffold predict scan/check-criteria`. Token-shingle Jaccard scanner (5-token SHA1, 21 file extensions, 16 SKIP_DIRS). 12 in-process + 5 subprocess tests migrated."
+      "note": "L72 predictive-DRY scanner (376 LOC, stdlib-only). Absorbed into pheno-scaffold-kit umbrella as _predict.py SUB_LIBRARY + new Click subcommand `pheno-scaffold predict scan/check-criteria`. Token-shingle Jaccard scanner (5-token SHA1, 21 file extensions, 16 SKIP_DIRS). 12 in-process + 5 subprocess tests migrated. PR KooshaPari/pheno-scaffold-kit#3 (2026-06-20 recovery)."
     },
     {
       "id": "l5-113-forge-runner-scripts",
