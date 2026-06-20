@@ -5,10 +5,45 @@ pub enum ConnectorKind {
     Import,
 }
 
+/// Configuration for connecting to a phenotype data source.
+///
+/// # Example
+///
+/// ```
+/// use phenotype_registry::connector::{ConnectorConfig, ConnectorKind};
+///
+/// let config = ConnectorConfig {
+///     kind: ConnectorKind::Plane,
+///     endpoint: "local://phenotype-data",
+/// };
+/// assert_eq!(config.kind, ConnectorKind::Plane);
+/// assert_eq!(config.endpoint, "local://phenotype-data");
+/// ```
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ConnectorConfig {
     pub kind: ConnectorKind,
     pub endpoint: String,
+}
+
+impl ConnectorConfig {
+    /// Create a new `ConnectorConfig`.
+    ///
+    /// This is a convenience constructor.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use phenotype_registry::connector::{ConnectorConfig, ConnectorKind};
+    ///
+    /// let config = ConnectorConfig::new(ConnectorKind::GitHub, "https://api.github.com");
+    /// assert_eq!(config.kind, ConnectorKind::GitHub);
+    /// ```
+    pub fn new(kind: ConnectorKind, endpoint: impl Into<String>) -> Self {
+        ConnectorConfig {
+            kind,
+            endpoint: endpoint.into(),
+        }
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -136,6 +171,13 @@ mod tests {
         }
     }
 
+    fn config_with_endpoint(kind: ConnectorKind, endpoint: &str) -> ConnectorConfig {
+        ConnectorConfig {
+            kind,
+            endpoint: endpoint.to_owned(),
+        }
+    }
+
     #[test]
     fn connector_kind_covers_requested_adapters() {
         assert_eq!(ConnectorKind::Plane, ConnectorKind::Plane);
@@ -174,5 +216,79 @@ mod tests {
                 actual: ConnectorKind::Plane,
             }
         );
+    }
+
+    // ── Unit tests for primary business logic (connection_for) ──────────────
+
+    #[test]
+    fn connection_for_matching_kind_succeeds() {
+        let cfg = config(ConnectorKind::Plane);
+        let conn = connection_for(ConnectorKind::Plane, cfg).unwrap();
+        assert_eq!(conn.kind, ConnectorKind::Plane);
+        assert!(conn.connected);
+    }
+
+    #[test]
+    fn connection_for_non_matching_kind_fails() {
+        let cfg = config(ConnectorKind::GitHub);
+        let err = connection_for(ConnectorKind::Plane, cfg).unwrap_err();
+        assert_eq!(
+            err,
+            ConnectorError::KindMismatch {
+                expected: ConnectorKind::Plane,
+                actual: ConnectorKind::GitHub,
+            }
+        );
+    }
+
+    #[test]
+    fn stub_changes_produces_deterministic_output() {
+        let changes = stub_changes(ConnectorKind::Import);
+        assert_eq!(changes.len(), 1);
+        assert_eq!(changes[0].id, "Import:stub-change");
+        assert_eq!(changes[0].source, ConnectorKind::Import);
+    }
+}
+
+// ── Proptest for roundtrip behavior ─────────────────────────────────────────
+
+#[cfg(test)]
+mod proptests {
+    use super::*;
+    use proptest::prelude::*;
+
+    /// For every combination of `ConnectorKind` and endpoint string,
+    /// `connection_for` with the matching kind always succeeds and preserves
+    /// the endpoint.
+    proptest! {
+        #[test]
+        fn connection_for_matching_kind_always_succeeds(
+            kind in prop_oneof![Just(ConnectorKind::Plane), Just(ConnectorKind::GitHub), Just(ConnectorKind::Import)],
+            endpoint in ".*",
+        ) {
+            let cfg = ConnectorConfig { kind, endpoint: endpoint.clone() };
+            let conn = connection_for(kind, cfg).unwrap();
+            assert_eq!(conn.kind, kind);
+            assert_eq!(conn.endpoint, endpoint);
+            assert!(conn.connected);
+        }
+    }
+
+    /// For every combination of two different `ConnectorKind` values,
+    /// `connection_for` always fails with `KindMismatch`.
+    proptest! {
+        #[test]
+        fn connection_for_non_matching_kind_always_fails(
+            expected in prop_oneof![Just(ConnectorKind::Plane), Just(ConnectorKind::GitHub), Just(ConnectorKind::Import)],
+            actual in prop_oneof![Just(ConnectorKind::Plane), Just(ConnectorKind::GitHub), Just(ConnectorKind::Import)],
+        ) {
+            prop_assume!(expected != actual);
+            let cfg = ConnectorConfig { kind: actual, endpoint: "test".to_owned() };
+            let err = connection_for(expected, cfg).unwrap_err();
+            assert_eq!(
+                err,
+                ConnectorError::KindMismatch { expected, actual }
+            );
+        }
     }
 }

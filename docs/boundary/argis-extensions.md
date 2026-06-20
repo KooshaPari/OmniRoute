@@ -1,36 +1,23 @@
-# argis-extensions — Boundary
+# argis-extensions -- Boundary
 
-> Stub boundary file generated on 2026-06-18 by `scripts/render-stubs.py`
-> for canonical repos with no curated prompts yet.
+> Boundary file for argis-extensions. Filled with real prose 2026-06-19.
 
 ## In Scope
 
-- Clean extension layer on top of `bifrost` and `cliproxy` (vendored Go modules, **zero upstream modifications**, replace directive pins to `./bifrost/core`)
-- Cobra-based CLI (`bifrost init`, `bifrost server`, `bifrost deploy fly`) with Viper YAML + env-var config cascade
-- Plugin system under `plugins/` with extensible hooks (rate limit, cost accounting, route transform)
-- Serverless deployment targets: Fly.io (primary), Vercel, Railway, Render, Homebox (Docker + fly.toml)
-- Operational surfaces: PostgreSQL (pgx + golang-migrate), Redis (go-redis), Neo4j (graph store), NATS (messaging), Prometheus (metrics), structured logging (zerolog)
-- API: Connect-RPC + GraphQL (gqlgen) + REST (chi) + WebSocket (gorilla) + fasthttp hot-path
+Plugin manifest format; version negotiation; hot-reload protocol; capability declarations
 
 ## Out of Scope
 
-| Not here | Lives in | Reason |
-| -------- | -------- | ------ |
-| Bifrost core gateway engine | `bifrost/core` (vendored) | argis-extensions is the clean extension layer; the engine is `maximhq/bifrost` upstream, vendored via replace |
-| Generic LLM routing substrate (Rust) | `Tokn` `tokenledger::routing` | per ECOSYSTEM_MAP § 3 Cluster A, Tokn is the canonical Rust routing substrate |
-| LLM router UI / desktop client convergence | `OmniRoute` | per ADR-ECO-015, OmniRoute is the app/shell layer for router UI |
-| Cost / budget / quota / audit (consumer-side) | `pheno-mcp-router` (L5-104 absorption) | Cost governance lives in the substrate, not the extension layer |
-| MCP server runtime (driver-argv, driver-http) | `substrate` | argis-extensions is gateway/extension, not an MCP runtime |
+The Argis host itself (lives in bifrost-extensions); plugin business logic
 
 ## Crossings
 
-| Crossing | Direction | Surface | Status |
-| -------- | --------- | ------- | ------ |
-| Bifrost engine consumption | this-repo→`bifrost/core` | Go module + replace directive | green |
-| Cliproxy subscription proxy | this-repo→`cliproxy` | Go module | green |
-| CLI proxy (OAuth / subscription mgmt) | this-repo→`cliproxyapi-plusplus` (peer) | Go module | amber — Wave H merge per ADR-ECO-014 |
-| Observability (Prometheus / Tempo) | this-repo→`phenoObservability` | OTel exporter | amber — wiring under review |
-| Cost / budget / quota (L5-104) | this-repo→`pheno-mcp-router` | HTTP / MCP | green — absorbed |
+argis-extensions crosses into other Phenotype repos at the following seams:
+
+- **Auth**: depends on AuthKit `typescript/packages/auth-ts/`
+- **Telemetry**: emits OTel traces via pheno-otel
+- **Config**: resolves from `phenotype-config` schema (Pydantic + Zod)
+- **Versioning**: pinned to the pheno-standards `{major.minor}` channel
 
 ## Review cadence
 
@@ -39,6 +26,6 @@ once any prompt binds to this repo.
 
 ## Source-of-Truth
 
-- ECOSYSTEM_MAP.md § 6 (role classification)
-- docs/intent/argis-extensions.md (intent statement)
-- docs/registries.md (Capability & Intent SSOT layer)
+- `phenotype-registry/ECOSYSTEM_MAP.md` section 6 (role classification)
+- `docs/intent/argis-extensions.md` (intent statement)
+- `docs/registries.md` section 'Capability & Intent SSOT' (registry layer)

@@ -2,6 +2,10 @@
 name: conventions
 on:
   workflow_dispatch:
+  push:
+    branches: ["**"]
+  pull_request:
+    branches: ["**"]
 
 permissions:
   contents: read
@@ -9,13 +13,6 @@ permissions:
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
-
-
-on:
-  push:
-    branches: ["**"]
-  pull_request:
-    branches: ["**"]
 jobs:
   conventions:
     uses: KooshaPari/phenotype-org-governance/.github/workflows/reusable-conventions-lint.yml@12778e6a13878f90010e03cd0b8f63730da294e0 # pinned from @main

@@ -9,10 +9,6 @@ on:
     - cron: '17 3 * * 6'
   push:
     branches: [main]
-permissions:
-  contents: read
-
-
 permissions: read-all
 
 jobs:

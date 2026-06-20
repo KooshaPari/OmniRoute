@@ -1,35 +1,23 @@
-# Paginary — Boundary
+# Paginary -- Boundary
 
-> Stub boundary file generated on 2026-06-18 by `scripts/render-stubs.py`
-> for canonical repos with no curated prompts yet.
+> Boundary file for Paginary. Filled with real prose 2026-06-19.
 
 ## In Scope
 
-- Federated VitePress multi-app hub aggregating 4 pillars (Handbook, Specs, X-DD, Journeys) into one navigation surface
-- Shared `paginary-theme` package (CSS baseline, fonts, dark-mode, WCAG 2.1 AA) consumed by all 4 sub-sites
-- Turbo + Bun workspace orchestration for parallel builds and incremental task execution
-- Content sync (copy, not move) from source repos so the originals remain authoritative
-- Unified navbar, global search, and sidebar switching across the 4 sub-sites
+Static landing page content; CTA links; integration with phenotype-landing routing; SEO metadata
 
 ## Out of Scope
 
-| Not here | Lives in | Reason |
-| -------- | -------- | ------ |
-| Canonical handbook content | `PhenoHandbook` | PhenoHandbook is the single source of truth; Paginary is a read-only mirror |
-| Canonical spec / ADR / design-doc content | `PhenoSpecs` | ADRs and feature specs are authored in PhenoSpecs; Paginary only renders |
-| BDD / TDD / QA governance utilities | `phenoXdd` | xDD is the canonical home for test methodology content; Paginary is its doc shell |
-| User-flow / journey authoring | `phenotype-journeys` | Journey definitions live in phenotype-journeys; Paginary surfaces them |
-| Doc-site build/serve for non-Phenotype orgs | N/A | Paginary is an internal collection, not a general-purpose SSG |
+Any business logic, agent dispatch, or runtime services (these belong to the canonical PhenoCompose, thegent, and phenotype-registry)
 
 ## Crossings
 
-| Crossing | Direction | Surface | Status |
-| -------- | --------- | ------- | ------ |
-| Handbook content mirror | this-repo→PhenoHandbook | File copy (VitePress content dir) | green |
-| Specs content mirror | this-repo→PhenoSpecs | File copy (VitePress content dir) | green |
-| XDD content mirror | this-repo→phenoXdd | File copy (VitePress content dir) | green |
-| Journeys content mirror | this-repo→phenotype-journeys | File copy (VitePress content dir) | green |
-| Theme tokens | this-repo→phenodocs | Shared CSS / TS exports | amber — coordination with phenodocs design system pending |
+Paginary crosses into other Phenotype repos at the following seams:
+
+- **Auth**: depends on AuthKit `typescript/packages/auth-ts/`
+- **Telemetry**: emits OTel traces via pheno-otel
+- **Config**: resolves from `phenotype-config` schema (Pydantic + Zod)
+- **Versioning**: pinned to the pheno-standards `{major.minor}` channel
 
 ## Review cadence
 
@@ -38,6 +26,6 @@ once any prompt binds to this repo.
 
 ## Source-of-Truth
 
-- ECOSYSTEM_MAP.md § 6 (role classification)
-- docs/intent/Paginary.md (intent statement)
-- docs/registries.md (Capability & Intent SSOT layer)
+- `phenotype-registry/ECOSYSTEM_MAP.md` section 6 (role classification)
+- `docs/intent/Paginary.md` (intent statement)
+- `docs/registries.md` section 'Capability & Intent SSOT' (registry layer)

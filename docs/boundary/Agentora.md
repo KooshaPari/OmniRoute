@@ -1,39 +1,31 @@
----
-repo: "Agentora"
-role: unknown
-status: active
-last_boundary_review: 2026-06-17
-review_cadence: 30d
-in_scope:
-  - "<to be filled>"
-out_of_scope:
-  - "<to be filled>"
----
+# Agentora -- Boundary
 
-# Boundary — Agentora
+> Boundary file for Agentora. Filled with real prose 2026-06-19.
 
 ## In Scope
 
-<To be filled.>
+Message routing; task dispatch; cancellation protocol; backpressure
 
 ## Out of Scope
 
-| Not here | Lives in | Reason |
-| -------- | -------- | ------ |
-| `<capability>` | `<other-repo-or-N/A>` | `<why>` |
+LLM calls (lives in thegent); tool implementations (lives in McpKit-derived libs); persistent queues (lives in phenoEvents)
 
-## Boundary Crossings
+## Crossings
 
-| Crossing | Direction | Surface | Status |
-| -------- | --------- | ------- | ------ |
-| `<capability or interface>` | `<this-repo→other|other→this-repo>` || `<this-repo→other|other→this-repo>` | `<Trait / HTTP / CLI / file / event>` | `<green|amber|red>` || `<green|amber|red>` || `<green|amber|red>` |
+Agentora crosses into other Phenotype repos at the following seams:
 
-## Last Boundary Review
+- **Auth**: depends on AuthKit `typescript/packages/auth-ts/`
+- **Telemetry**: emits OTel traces via pheno-otel
+- **Config**: resolves from `phenotype-config` schema (Pydantic + Zod)
+- **Versioning**: pinned to the pheno-standards `{major.minor}` channel
 
-**Date:** 2026-06-17
-**Reviewer:** forge subagent (L7-001 sweep)
-**Worklog / finding:** `worklogs/L7-001-intent-boundary-curation-2026-06-17.json`
-**Decisions:**
-- Initial scaffolding; needs human review.
+## Review cadence
 
-**Next review:** 2026-07-17
+Weekly per ADR-024. Refresh by `scripts/render-per-repo.py --force`
+once any prompt binds to this repo.
+
+## Source-of-Truth
+
+- `phenotype-registry/ECOSYSTEM_MAP.md` section 6 (role classification)
+- `docs/intent/Agentora.md` (intent statement)
+- `docs/registries.md` section 'Capability & Intent SSOT' (registry layer)

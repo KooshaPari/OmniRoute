@@ -1,0 +1,255 @@
+#!/usr/bin/env python3
+"""Render intent+boundary stubs for canonical repos not yet in _bindings.json.
+
+These are 'zero-prompt' stubs: they declare the repo's role per
+ECOSYSTEM_MAP.md but have no curated prompts yet. When prompts are ever
+curated for them (post-refresh), the stub will be overwritten by the
+standard --force render pass.
+
+Source of missing-canonical list:
+    ECOSYSTEM_MAP.md § 6 role table minus _bindings.json keys
+"""
+from __future__ import annotations
+import argparse
+import json
+import re
+import sys
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parent.parent
+
+
+def _split_repos_respecting_parens(s: str) -> list[str]:
+    """Split a comma-separated repo list while keeping any single
+    trailing `(...)` annotation attached to the preceding repo name.
+
+    Commas that appear inside a balanced parenthesis group are protected
+    from the split. This handles inline annotations like
+    "name (new 2026-06-18, extracted from Foo, P0 patch)" that would
+    otherwise be torn apart at the first internal comma.
+
+    Yields one item per repo (annotation included when present).
+    """
+    items: list[str] = []
+    buf: list[str] = []
+    depth = 0
+    for ch in s:
+        if ch == "(":
+            depth += 1
+            buf.append(ch)
+        elif ch == ")":
+            # Clamp at 0 in case of unbalanced input (defensive).
+            if depth > 0:
+                depth -= 1
+            buf.append(ch)
+        elif ch == "," and depth == 0:
+            items.append("".join(buf))
+            buf = []
+        else:
+            buf.append(ch)
+    tail = "".join(buf)
+    if tail:
+        items.append(tail)
+    return items
+
+
+def _extract_repo_name(item: str) -> str:
+    """From a single repo-list item (e.g. 'name (annotation)'), extract
+    the canonical repo name. The name is everything before the first
+    unbalanced '(' and must match the strict identifier regex
+    [A-Za-z][A-Za-z0-9_-]* after stripping whitespace and markdown
+    bold markers ('**').
+    """
+    item = item.strip()
+    if not item or item == "—":
+        return ""
+    # The trailing '**' of markdown bold markers sits BETWEEN the repo
+    # name and the ' (' of the annotation (e.g. '**phenotype-mcp-asset**
+    # (annotation)'), not at the very end of the string, so a plain
+    # str.strip('*') doesn't reach it. Solve this by truncating at the
+    # first '(' FIRST, then stripping '*' from that name segment.
+    idx = item.find("(")
+    if idx == -1:
+        name = item
+    else:
+        name = item[:idx]
+    # Strip whitespace and bold markers (both leading and trailing).
+    name = name.strip().strip("*").strip()
+    if not name or not re.fullmatch(r"[A-Za-z][A-Za-z0-9_\-]*", name):
+        return ""
+    return name
+
+
+def parse_canons_from_ecosystem(ecosystem_md: Path) -> dict[str, str]:
+    """Returns {repo_name: role} for non-archived roles."""
+    text = ecosystem_md.read_text(encoding="utf-8", errors="replace")
+    # Strip merge-conflict markers if any
+    clean = re.sub(r"<<<<<<< HEAD.*?\n", "", text, flags=re.DOTALL)
+    clean = re.sub(r"=======.*?\n", "", clean, flags=re.DOTALL)
+    clean = re.sub(r">>>>>>> origin/main.*?\n", "", clean, flags=re.DOTALL)
+
+    rows = re.findall(
+        r"^\|\s*\*\*(.+?)\*\*\s*\|\s*(\d+)\s*\|\s*(.+?)\s*\|\s*$",
+        clean, re.MULTILINE
+    )
+    EXCLUDED_ROLES = {"superseded / archived", "monorepo (multi-domain)"}
+    out: dict[str, str] = {}
+    for role, _n, repos_str in rows:
+        if role in EXCLUDED_ROLES:
+            continue
+        # Split the repo list with parens-aware splitting so that inline
+        # annotations containing commas stay attached to their repo name.
+        for item in _split_repos_respecting_parens(repos_str):
+            base = _extract_repo_name(item)
+            if not base:
+                continue
+            out[base] = role
+    return out
+
+
+def on_disk(repos: list[str]) -> dict[str, bool]:
+    parent = ROOT.parent  # /Users/kooshapari/CodeProjects/Phenotype/repos
+    return {r: (parent / r).is_dir() for r in repos}
+
+
+INTENT_TEMPLATE = """# {repo} — Intent
+
+{repo} is a registered phenotype-* repository. This is a stub intent file
+generated on {date} by `scripts/render-stubs.py`. It exists because
+`ECOSYSTEM_MAP.md` declares {repo} canonical but no curated prompts
+have been generated for it yet during the L7 sweep.
+
+## Intent Statement
+
+> **TODO**: write a 2-3 sentence intent statement describing what {repo}
+> is, what problem it solves, and what success looks like. Until you
+> fill this in, the stub stands as proof-of-existence.
+
+## Role
+
+`{role}` (per `phenotype-registry/ECOSYSTEM_MAP.md` § 6)
+
+## Boundary
+
+See [`../boundary/{repo}.md`](../boundary/{repo}.md) for the in-scope / out-of-scope
+declaration.
+
+## Curated prompts
+
+Zero prompts curated as of L7-003 ({date}).
+
+When prompts are ever bound to this repo (refresh cadence per ADR-024),
+this stub will be overwritten by `scripts/render-per-repo.py --force`.
+
+## Provenance
+
+- Generated by [`docs/intent/README.md`](README.md) § "Stubs" rule
+- Bound source: `phenotype-registry/ECOSYSTEM_MAP.md` (line-by-line role table)
+- Refresh cadence: weekly per ADR-024
+"""
+
+
+BOUNDARY_TEMPLATE = """# {repo} — Boundary
+
+> Stub boundary file generated on {date} by `scripts/render-stubs.py`
+> for canonical repos with no curated prompts yet.
+
+## In Scope
+
+> **TODO**: fill in concrete capabilities owned by {repo}.
+
+## Out of Scope
+
+> **TODO**: list adjacent responsibilities owned elsewhere (cross-link
+> the canonical owning repo).
+
+## Crossings
+
+> **TODO**: list any repos whose boundaries {repo} overlaps and how
+> the overlap is resolved (port, adapter, shared library).
+
+## Review cadence
+
+Weekly per ADR-024. Refresh by `scripts/render-per-repo.py --force`
+once any prompt binds to this repo.
+
+## Source-of-Truth
+
+- ECOSYSTEM_MAP.md § 6 (role classification)
+- docs/intent/{repo}.md (intent statement)
+- docs/registries.md (Capability & Intent SSOT layer)
+"""
+
+
+def main() -> int:
+    p = argparse.ArgumentParser()
+    p.add_argument("--dry-run", action="store_true")
+    p.add_argument("--force", action="store_true",
+                   help="Overwrite existing intent/boundary files.")
+    args = p.parse_args()
+
+    ec = ROOT.parent.parent / "phenotype-registry" / "ECOSYSTEM_MAP.md"
+    if not ec.exists():
+        ec = Path("/Users/kooshapari/CodeProjects/Phenotype/repos/phenotype-registry/ECOSYSTEM_MAP.md")
+    if not ec.exists():
+        print(f"ERROR: ECOSYSTEM_MAP.md not found at {ec}", file=sys.stderr)
+        return 1
+
+    roles = parse_canons_from_ecosystem(ec)
+    b = json.load(open(ROOT / "_bindings.json"))
+    bound = set(b.keys())
+
+    canon_repos = sorted(roles.keys())
+    missing = [r for r in canon_repos if r not in bound]
+    disk = on_disk(missing)
+
+    # Group: stub in registry's intent/boundary only when role is non-trivial;
+    # write all stubs to options.
+    intent_dir = ROOT / "docs" / "intent"
+    boundary_dir = ROOT / "docs" / "boundary"
+    intent_dir.mkdir(parents=True, exist_ok=True)
+    boundary_dir.mkdir(parents=True, exist_ok=True)
+    from datetime import datetime
+    today = datetime.now().strftime("%Y-%m-%d")
+
+    wrote = []
+    skipped_existing = []
+    for repo in missing:
+        # Only stub repos that are real (on-disk) — landing pages without
+        # a real repo are listed in crosswalk only.
+        if not disk[repo]:
+            continue
+        role = roles.get(repo, "unknown")
+        intent_path = intent_dir / f"{repo}.md"
+        boundary_path = boundary_dir / f"{repo}.md"
+        if intent_path.exists() and not args.force:
+            skipped_existing.append(str(intent_path))
+            continue
+        if not args.dry_run:
+            intent_path.write_text(INTENT_TEMPLATE.format(
+                repo=repo, role=role, date=today
+            ), encoding="utf-8")
+            boundary_path.write_text(BOUNDARY_TEMPLATE.format(
+                repo=repo, date=today
+            ), encoding="utf-8")
+        wrote.append(repo)
+        # Trim trailing slash
+        if repo.endswith("/"):
+            print(f"WARN: trailing slash: {repo!r}")
+
+    print(f"Total canonical: {len(canon_repos)}")
+    print(f"Total bound: {len(bound)}")
+    print(f"Missing (canon-not-bound): {len(missing)}")
+    print(f"On-disk missing (will stub): {len([r for r in missing if disk[r]])}")
+    print(f"  stubbed: {len(wrote)}")
+    print(f"  skipped (existing, no --force): {len(skipped_existing)}")
+    print()
+    print("Stubbed repos:")
+    for r in wrote:
+        marker = "(on-disk)" if disk[r] else "(canonical-only)"
+        print(f"  {r} {marker}  role={roles.get(r, '?')}")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())
