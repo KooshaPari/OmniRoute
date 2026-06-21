@@ -1,9 +1,0 @@
-name: Quality Gate
-on: [push, pull_request]
-jobs:
-  gate:
-    runs-on: ubuntu-latest
-    continue-on-error: true
-    steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
-      - run: echo "Quality gate check (phenotype-tooling integration)"
