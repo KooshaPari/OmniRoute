@@ -1,0 +1,33 @@
+[package]
+name = "oidc_consumer"
+version = "0.1.0"
+edition = "2021"
+description = "Standalone OIDC consumer example (v19 cycle 9 T3 / L54, ADR-079). Demonstrates bearer-token + JWKS verification against the same patterns as pheno-context/src/oidc.rs."
+license = "MIT OR Apache-2.0"
+publish = false
+
+[[bin]]
+name = "oidc_consumer"
+path = "src/main.rs"
+
+[dependencies]
+# JWT signature verification + key types — same dependency surface as
+# pheno-context::oidc (ADR-079 §5 Trust Model).
+jsonwebtoken = "9.3"
+# HTTP client for fetching the issuer's JWKS document. rustls is enabled
+# to avoid pulling in OpenSSL on MacBook.
+reqwest = { version = "0.12", default-features = false, features = ["rustls-tls", "json"] }
+# Claims + JWK serialization.
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+# Typed errors with Display + source chain.
+thiserror = "1.0"
+# Async runtime (reqwest + JWKS fetch).
+tokio = { version = "1.40", features = ["full"] }
+# Structured logging for the verify / mock paths.
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter", "fmt"] }
+
+[dev-dependencies]
+# In-proc tests for the mock + verify flows.
+tokio = { version = "1.40", features = ["full", "macros", "rt-multi-thread"] }
