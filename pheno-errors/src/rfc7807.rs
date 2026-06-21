@@ -265,4 +265,103 @@ mod tests {
         assert!(!json.contains("\"detail\""), "should omit detail, got: {json}");
         assert!(!json.contains("\"instance\""), "should omit instance, got: {json}");
     }
+
+    /// SIDE-03: `From<&AppError>` for the `NotFound` variant must set
+    /// `Problem.instance` to `"{entity}/{id}"`. The existing
+    /// `not_found_maps_to_404` test checks status/title/detail/type but
+    /// never asserts `instance`, leaving the `with_instance(format!(...))`
+    /// line at rfc7807.rs:154 silently untested.
+    #[test]
+    fn not_found_sets_instance_field() {
+        let err = AppError::not_found("order", "ord_abc123");
+        let problem: Problem = (&err).into();
+
+        // The instance must follow the `{entity}/{id}` convention so log
+        // search / request correlation tooling can grep for it directly.
+        assert_eq!(
+            problem.instance.as_deref(),
+            Some("order/ord_abc123"),
+            "instance must follow {{entity}}/{{id}} convention"
+        );
+
+        // And it must round-trip through the wire format.
+        let json = serde_json::to_string(&problem).unwrap();
+        assert!(
+            json.contains("\"instance\":\"order/ord_abc123\""),
+            "instance must serialise to JSON, got: {json}"
+        );
+    }
+
+    /// SIDE-03: `Problem::new` in isolation must populate `title`, `status`,
+    /// and `detail`, and leave `problem_type` / `instance` as `None`. The
+    /// existing tests only exercise `Problem::new` chained with
+    /// `with_type` / `with_instance`, so the constructor's own default
+    /// values were never asserted.
+    #[test]
+    fn problem_new_constructor_isolated_fields() {
+        let p = Problem::new(503, "Service Unavailable", "upstream timed out");
+
+        // Required-ish fields populated.
+        assert_eq!(p.status, Some(503));
+        assert_eq!(p.title.as_deref(), Some("Service Unavailable"));
+        assert_eq!(p.detail.as_deref(), Some("upstream timed out"));
+
+        // Optional fields default to None (the whole point of
+        // "construct from the three required-ish fields").
+        assert!(
+            p.problem_type.is_none(),
+            "new() must leave problem_type as None; got {:?}",
+            p.problem_type
+        );
+        assert!(
+            p.instance.is_none(),
+            "new() must leave instance as None; got {:?}",
+            p.instance
+        );
+
+        // Default serialisation behaviour: optional fields are skipped,
+        // so the JSON wire format only carries the populated three.
+        let json = serde_json::to_string(&p).unwrap();
+        assert!(!json.contains("\"type\""), "type should be skipped, got: {json}");
+        assert!(!json.contains("\"instance\""), "instance should be skipped, got: {json}");
+    }
+
+    /// SIDE-03: The wire-format contract — `Problem` JSON serialises
+    /// `problem_type` as `"type"` (the serde rename) and includes all
+    /// five RFC 7807 spec fields when populated. No previous test
+    /// asserted the rename + the full positive-case wire format.
+    #[test]
+    fn problem_json_wire_format_with_all_fields() {
+        let p = Problem::new(404, "Not Found", "user `42` does not exist")
+            .with_type("https://errors.pheno.dev/not-found")
+            .with_instance("user/42");
+
+        let json = serde_json::to_string(&p).unwrap();
+
+        // 1. The serde rename: `problem_type` -> `"type"` (not `"problem_type"`).
+        assert!(
+            json.contains("\"type\":\"https://errors.pheno.dev/not-found\""),
+            "problem_type must serialise as `type` (RFC 7807 §3.1), got: {json}"
+        );
+        assert!(
+            !json.contains("problem_type"),
+            "serde rename to `type` failed — leaked Rust field name, got: {json}"
+        );
+
+        // 2. All 5 spec fields present with the expected values.
+        assert!(json.contains("\"title\":\"Not Found\""), "title missing, got: {json}");
+        assert!(json.contains("\"status\":404"), "status missing, got: {json}");
+        assert!(
+            json.contains("\"detail\":\"user `42` does not exist\""),
+            "detail missing, got: {json}"
+        );
+        assert!(json.contains("\"instance\":\"user/42\""), "instance missing, got: {json}");
+
+        // 3. The wire format is itself valid JSON (sanity check).
+        let round_trip: serde_json::Value = serde_json::from_str(&json)
+            .expect("Problem JSON wire format must itself be valid JSON");
+        assert_eq!(round_trip["status"], 404);
+        assert_eq!(round_trip["type"], "https://errors.pheno.dev/not-found");
+        assert_eq!(round_trip["instance"], "user/42");
+    }
 }

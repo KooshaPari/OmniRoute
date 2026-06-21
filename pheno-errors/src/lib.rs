@@ -252,6 +252,7 @@ impl From<anyhow::Error> for AppError {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use tracing_test::traced_test;
 
     #[test]
     fn kind_returns_correct_tag() {
@@ -337,6 +338,77 @@ mod tests {
     fn log_error_preserves_error() {
         let err = AppError::storage("ephemeral").log_error();
         assert_eq!(err.kind(), "storage");
+    }
+
+    /// SIDE-03: `log_warn` must actually emit a `tracing` event at WARN level
+    /// with the structured `error.kind` / `error.display` fields. The previous
+    /// `log_warn_preserves_error` test only verified the returned value, not
+    /// that the emit side-effect fires (the whole point of `log_warn`).
+    #[test]
+    #[traced_test]
+    fn log_warn_actually_emits_tracing_event() {
+        let err = AppError::validation("email format invalid");
+        let returned = err.log_warn();
+
+        // 1. The return-value contract is preserved (passthrough).
+        assert_eq!(returned.kind(), "validation");
+
+        // 2. The tracing side-effect actually fired with structured fields.
+        assert!(
+            logs_contain("error"),
+            "expected an emitted log line containing the message field"
+        );
+        assert!(
+            logs_contain("validation"),
+            "expected the `error.kind` field to surface as the kind tag"
+        );
+        assert!(
+            logs_contain("email format invalid"),
+            "expected the `error.display` field to surface the message"
+        );
+
+        // 3. The level must be WARN, not ERROR.
+        assert!(
+            logs_contain("WARN"),
+            "log_warn must emit at WARN level"
+        );
+        assert!(
+            !logs_contain("ERROR"),
+            "log_warn must not emit at ERROR level"
+        );
+    }
+
+    /// SIDE-03: `log_error` must actually emit a `tracing` event at ERROR
+    /// level with the structured fields, distinct from `log_warn`'s WARN
+    /// level. Without this test, the level-promotion semantics are untested.
+    #[test]
+    #[traced_test]
+    fn log_error_actually_emits_tracing_event() {
+        let err = AppError::storage("disk write failed");
+        let returned = err.log_error();
+
+        // 1. Return-value passthrough preserved.
+        assert_eq!(returned.kind(), "storage");
+
+        // 2. The tracing side-effect actually fired with structured fields.
+        assert!(
+            logs_contain("error"),
+            "expected an emitted log line containing the message field"
+        );
+        assert!(
+            logs_contain("storage"),
+            "expected the `error.kind` field to surface as `storage`"
+        );
+        assert!(
+            logs_contain("disk write failed"),
+            "expected the `error.display` field to surface the message"
+        );
+
+        // 3. Level must be ERROR, distinct from log_warn's WARN.
+        assert!(
+            logs_contain("ERROR"),
+            "log_error must emit at ERROR level"
+        );
     }
 
     #[test]
