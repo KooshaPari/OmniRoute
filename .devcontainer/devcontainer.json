@@ -1,0 +1,120 @@
+{
+  "$schema": "https://containers.dev/schemas/devcontainer.json",
+  "name": "Phenotype monorepo",
+  "image": "mcr.microsoft.com/devcontainers/base:ubuntu-24.04",
+  "features": {
+    "ghcr.io/devcontainers/features/rust:1": {
+      "version": "1.78.0",
+      "profile": "minimal"
+    },
+    "ghcr.io/devcontainers/features/python:1": {
+      "version": "3.12"
+    },
+    "ghcr.io/devcontainers/features/go:1": {
+      "version": "1.22"
+    },
+    "ghcr.io/devcontainers/features/node:1": {
+      "version": "20"
+    },
+    "ghcr.io/devcontainers/features/docker-in-docker:2": {},
+    "ghcr.io/devcontainers/features/git:1": {
+      "version": "latest",
+      "configureGitConfig": true
+    }
+  },
+  "postCreateCommand": "bash .devcontainer/post-create.sh",
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "terminal.integrated.defaultProfile.linux": "bash",
+        "editor.formatOnSave": true,
+        "files.trimTrailingWhitespace": true,
+        "files.insertFinalNewline": true,
+        "[rust]": {
+          "editor.defaultFormatter": "rust-lang.rust-analyzer"
+        },
+        "[python]": {
+          "editor.defaultFormatter": "ms-python.black-formatter"
+        },
+        "[typescript]": {
+          "editor.defaultFormatter": "esbenp.prettier-vscode"
+        }
+      },
+      "extensions": [
+        "rust-lang.rust-analyzer",
+        "ms-python.python",
+        "ms-python.black-formatter",
+        "ms-python.isort",
+        "charliermarsh.ruff",
+        "golang.go",
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode",
+        "tamasfe.even-better-toml",
+        "redhat.vscode-yaml",
+        "github.vscode-github-actions",
+        "ms-azuretools.vscode-docker",
+        "vitest.explorer",
+        "vadimcn.vscode-lldb",
+        "EditorConfig.EditorConfig"
+      ]
+    },
+    "codespaces": {
+      "openFiles": [
+        "AGENTS.md",
+        "STATUS.md"
+      ],
+      "repositories": {
+        "KooshaPari/phenotype-registry": {
+          "permissions": "read-only"
+        },
+        "KooshaPari/pheno-worklog-schema": {
+          "permissions": "read-only"
+        }
+      },
+      "dotfiles": {
+        "repository": "https://github.com/KooshaPari/dotfiles",
+        "installCommand": "install.sh"
+      }
+    }
+  },
+  "forwardPorts": [
+    20128,
+    4317,
+    4318,
+    9090,
+    3000,
+    8080
+  ],
+  "portsAttributes": {
+    "20128": {
+      "label": "OmniRoute",
+      "onAutoForward": "notify"
+    },
+    "4317": {
+      "label": "OTLP gRPC",
+      "onAutoForward": "silent"
+    },
+    "4318": {
+      "label": "OTLP HTTP",
+      "onAutoForward": "silent"
+    },
+    "9090": {
+      "label": "Prometheus",
+      "onAutoForward": "silent"
+    }
+  },
+  "remoteUser": "vscode",
+  "updateRemoteUserUID": true,
+  "userEnvProbe": "loginShell",
+  "mounts": [
+    "source=${localEnv:HOME}/.config/gh,target=/home/vscode/.config/gh,type=bind,consistency=cached",
+    "source=${localEnv:HOME}/.gitconfig,target=/home/vscode/.gitconfig,type=bind,consistency=cached"
+  ],
+  "hostRequirements": {
+    "cpus": 4,
+    "memory": "8gb",
+    "storage": "32gb"
+  },
+  "runServices": [],
+  "shutdownAction": "stopCompose"
+}
