@@ -28,4 +28,25 @@ serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 
 [dev-dependencies]
-# Reserved for OTLP smoke test fixtures.
+# L25 P0 (v14 cycle-3 T5): loom model checker enumerates interleavings on the
+# crate's Send+Sync surface (OtlpPort trait + Stdout/HttpExporter adapters).
+# Tests are gated behind the `loom-tests` Cargo feature so a plain
+# `cargo test` build compiles the (empty) loom test files instantly
+# without running loom's ~1000x-slow permutation checks.
+#
+# Why feature gate instead of `RUSTFLAGS=--cfg loom`:
+#   `RUSTFLAGS=--cfg loom` propagates `cfg(loom)` to every crate in the
+#   dep graph. The tokio crate uses `#[cfg(not(loom))]` internally to
+#   gate out loom-incompatible code paths, so setting `cfg(loom)` globally
+#   breaks any dep graph that pulls in tokio (e.g. pheno-port-adapter).
+#   Cargo features are scoped to the declaring crate, so this pattern
+#   composes cleanly across the fleet.
+#
+# Run with:  cargo test --features loom-tests --test loom_<name> --release
+loom = { version = "0.7", features = ["checkpoint"] }
+
+[features]
+# Enables the loom model-checker integration tests under tests/loom_*.rs.
+# Off by default so `cargo test` does not incur loom's ~1000x slowdown.
+loom-tests = []
+
