@@ -127,6 +127,14 @@ Gateway fork lanes **G15–G17 complete** (other agent). Registry disposition-in
 14. ~~**Registry L7**~~ — done ([#244](https://github.com/KooshaPari/phenotype-registry/pull/244) intent/boundary + [#245](https://github.com/KooshaPari/phenotype-registry/pull/245) pheno-tracing)
 15. ~~**Phase 4 closeout**~~ — done (backlog #100; `docs:build` [#255](https://github.com/KooshaPari/phenotype-registry/pull/255))
 
+
+## 2026-06-20 archive/delete readiness addendum
+
+| Repo | Current gate | Evidence | Next action |
+|------|--------------|----------|-------------|
+| phenotype-bus | **blocked until cleanup PRs merge** | phenoEvents#9 absorbed InMemoryBus; PhenoObservability commit `37d1ee0` removed stale CI tarball dependency; phenokits-commons#7 merged docs disposition; Eidolon#66 + Sidekick#75 remove unused production Cargo path deps; PhenoObservability#178 removes stale test/docs references; phenotype-apps#43 removes raw apps-extract gitlink | Merge #66/#75/#178/#43, then rerun code search and apps-extract git tree checks |
+| Pyron | **archive restored / apps gitlink cleanup pending** | components.lock correction plus scoped code search found docs/worklogs/task refs, not live manifests; phenotype-apps#43 removes raw apps-extract gitlink | Keep archived; merge #43 before hard delete consideration |
+| PhenoContracts | **hold-decompose** | No external runtime consumer found, but repo is active and owns formal-verification adapters plus Rust crate surfaces; phenotype-apps#43 removes apps-extract gitlink/script blocker | Name terminal owner for TS verification adapters or retire via ADR before archive/delete |
 ## Phase 5 — agent runtime (2026-06-19)
 
 See [p5-agent-runtime-absorption-2026-06-19.md](./p5-agent-runtime-absorption-2026-06-19.md).

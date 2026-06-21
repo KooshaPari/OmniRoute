@@ -668,7 +668,7 @@
       "wave": "X",
       "fsm": "hold",
       "relocated_date": "2026-06-19",
-      "note": "Restored as archived after premature 404/delete state; tombstone-prep merged in Pyron#62; 0 external git deps; hard delete requires explicit sign-off and retention-clear evidence.",
+      "note": "Restored as archived after premature 404/delete state; tombstone-prep merged in Pyron#62. 2026-06-20 follow-up found phenotype-apps apps-extract raw gitlink; phenotype-apps#43 removes it. Hard delete requires explicit sign-off, retention-clear evidence, and clean post-merge git tree search.",
       "archived_date": "2026-06-19"
     },
     {
@@ -1212,7 +1212,7 @@
       "core_lang": "rust",
       "relocated_date": "2026-06-20",
       "pr": "phenotype-registry@5e83abb",
-      "note": "Repo-level archive row for PhenoContracts (alias pheno-contracts). Separate from crate-level crates/phenotype-contracts decomposition row. Registry boundary/intent mark archive-ready; GitHub repo remains active/non-archived; hard delete waits on operational archive plus final consumer/catalog sweep."
+      "note": "Repo-level PhenoContracts row. Current repo remains active/non-archived and owns formal-verification adapter surfaces; no external runtime consumers found in scoped 2026-06-20 search, but phenotype-apps#43 removes an operational apps-extract gitlink/script blocker. Archive/delete still waits on terminal-owner absorption or explicit retirement ADR."
     }
   ]
 }
