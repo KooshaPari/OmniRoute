@@ -27,6 +27,10 @@
 //!   coherence rules. Callers with their own error types use
 //!   `.map_err(|e| AppError::domain(e.to_string()))?` — explicit at the
 //!   boundary, no surprise auto-conversion inside libraries.
+
+#![warn(missing_docs)]
+#![deny(unsafe_code)]
+#![deny(rust_2018_idioms)]
 //!
 //! ## Consumers
 //!
