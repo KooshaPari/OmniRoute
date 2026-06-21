@@ -1,0 +1,206 @@
+# .github/workflows/cache-stats.yml — v19 T1 L31 CI cache hit-rate aggregator
+#
+# Authority: ADR-040 (test coverage gates per tier) + v19 71-pillar cycle 9 P0 plan §2 Track T1.
+#
+# Triggers:
+#   1. workflow_run — fires after the "CI" workflow completes (success/cancelled/failure),
+#      computes cache hit-rate from the run's logs and appends to docs/cache-stats/history.jsonl.
+#   2. schedule — every 6 hours, recomputes fleet rollup from the most recent N=50 CI runs.
+#   3. workflow_dispatch — manual recompute (e.g. after adding a new repo to the fleet).
+#
+# Output:
+#   docs/cache-stats/history.jsonl — append-only per-run records (one JSON line per CI run).
+#   docs/cache-stats/latest.json   — latest snapshot (regenerated each run).
+#   docs/cache-stats/fleet.json    — fleet-wide rollup (regenerated each run).
+#
+# The companion workflow cache-stats-pages.yml deploys docs/cache-stats/ to GitHub Pages
+# once this workflow commits its results.
+name: cache-stats
+
+on:
+  workflow_run:
+    workflows: ["CI"]
+    types: [completed]
+  schedule:
+    - cron: "0 */6 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: read
+
+concurrency:
+  group: cache-stats
+  cancel-in-progress: true
+
+jobs:
+  compute-and-aggregate:
+    name: compute-and-aggregate
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Determine trigger source
+        id: trigger
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_run" ]; then
+            echo "source=workflow_run" >> "$GITHUB_OUTPUT"
+            echo "run_id=${{ github.event.workflow_run.id }}" >> "$GITHUB_OUTPUT"
+            echo "run_branch=${{ github.event.workflow_run.head_branch }}" >> "$GITHUB_OUTPUT"
+            echo "run_sha=${{ github.event.workflow_run.head_sha }}" >> "$GITHUB_OUTPUT"
+            echo "repo=${{ github.repository }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "source=${{ github.event_name }}" >> "$GITHUB_OUTPUT"
+            echo "run_id=${{ github.run_id }}" >> "$GITHUB_OUTPUT"
+            echo "run_branch=${{ github.ref_name }}" >> "$GITHUB_OUTPUT"
+            echo "run_sha=${{ github.sha }}" >> "$GITHUB_OUTPUT"
+            echo "repo=${{ github.repository }}" >> "$GITHUB_OUTPUT"
+          fi
+          echo "ts=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> "$GITHUB_OUTPUT"
+
+      - name: Download CI run logs (workflow_run trigger only)
+        if: github.event_name == 'workflow_run'
+        id: download
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RUN_ID: ${{ steps.trigger.outputs.run_id }}
+        run: |
+          set -euo pipefail
+          mkdir -p .cache-stats-input
+          gh run download "$RUN_ID" --dir .cache-stats-input || {
+            echo "::warning::gh run download failed (run may have aged out); recording zero-event row"
+            mkdir -p .cache-stats-input
+            echo "no logs available" > .cache-stats-input/empty.txt
+          }
+          ls -la .cache-stats-input
+
+      - name: Prepare log directory (non workflow_run triggers)
+        if: github.event_name != 'workflow_run'
+        run: |
+          mkdir -p .cache-stats-input
+          echo "no logs (manual/periodic run; only fleet rollup is updated)" > .cache-stats-input/note.txt
+
+      - name: Run cache-stats wrapper (per-log JSONL)
+        id: perlog
+        env:
+          REPO: ${{ steps.trigger.outputs.repo }}
+        run: |
+          set -euo pipefail
+          chmod +x scripts/cache_stats_wrapper.sh
+          bash scripts/cache_stats_wrapper.sh --dir .cache-stats-input "$REPO" \
+            | tee .cache-stats-input/per-run.jsonl
+          echo "wrote $(wc -l < .cache-stats-input/per-run.jsonl) records"
+
+      - name: Bootstrap history.jsonl from seed.jsonl (first run only)
+        run: |
+          set -euo pipefail
+          mkdir -p docs/cache-stats
+          if [ ! -s docs/cache-stats/history.jsonl ] && [ -f docs/cache-stats/seed.jsonl ]; then
+            echo "Bootstrapping history.jsonl from seed.jsonl (first run / empty history)"
+            cp docs/cache-stats/seed.jsonl docs/cache-stats/history.jsonl
+            echo "seeded history.jsonl with $(wc -l <docs/cache-stats/history.jsonl) records"
+          elif [ ! -f docs/cache-stats/history.jsonl ]; then
+            : > docs/cache-stats/history.jsonl
+            echo "history.jsonl created empty (no seed available)"
+          else
+            echo "history.jsonl already populated with $(wc -l <docs/cache-stats/history.jsonl) records"
+          fi
+
+      - name: Merge per-run record into history.jsonl
+        id: merge
+        env:
+          REPO: ${{ steps.trigger.outputs.repo }}
+          RUN_ID: ${{ steps.trigger.outputs.run_id }}
+          RUN_BRANCH: ${{ steps.trigger.outputs.run_branch }}
+          TS: ${{ steps.trigger.outputs.ts }}
+        run: |
+          set -euo pipefail
+          mkdir -p docs/cache-stats
+          [ -f docs/cache-stats/history.jsonl ] || : > docs/cache-stats/history.jsonl
+          while IFS= read -r rec; do
+            [ -z "$rec" ] && continue
+            jq -c \
+              --arg run_id "$RUN_ID" \
+              --arg branch "$RUN_BRANCH" \
+              --arg ts "$TS" \
+              --arg source "${{ github.event_name }}" \
+              '. + {run_id:$run_id, branch:$branch, timestamp:$ts, source:$source}' \
+              <<<"$rec"
+          done < .cache-stats-input/per-run.jsonl > .cache-stats-input/enriched.jsonl
+          cat .cache-stats-input/enriched.jsonl >> docs/cache-stats/history.jsonl
+          tail -n 5000 docs/cache-stats/history.jsonl > .cache-stats-input/history-trimmed.jsonl
+          mv .cache-stats-input/history-trimmed.jsonl docs/cache-stats/history.jsonl
+          echo "history.jsonl now has $(wc -l < docs/cache-stats/history.jsonl) records"
+
+      - name: Compute latest.json + fleet.json rollups
+        id: rollup
+        run: |
+          set -euo pipefail
+          latest_run=$(jq -r '.run_id' docs/cache-stats/history.jsonl | tail -n 1)
+          jq -s --arg rid "$latest_run" \
+            'map(select(.run_id == $rid)) | {run_id:$rid, generated_at: now | todate, records: .,
+              total_runs: length,
+              total_hits: (map(.hit_count) | add // 0),
+              total_misses: (map(.miss_count) | add // 0),
+              hit_rate: ((map(.hit_count) | add // 0) as $h
+                       | (map(.miss_count) | add // 0) as $m
+                       | (($h + $m) as $t | if $t > 0 then ($h / $t) else 0 end))}' \
+            docs/cache-stats/history.jsonl > docs/cache-stats/latest.json
+          cutoff=$(date -u -d '7 days ago' +%Y-%m-%dT%H:%M:%SZ 2>/dev/null || \
+                   date -u -v-7d +%Y-%m-%dT%H:%M:%SZ)
+          jq --arg cutoff "$cutoff" -s '
+            map(select(.timestamp >= $cutoff))
+            | {
+                generated_at: (now | todate),
+                window_days: 7,
+                total_runs: length,
+                total_hits: (map(.hit_count) | add // 0),
+                total_misses: (map(.miss_count) | add // 0),
+                hit_rate: ((map(.hit_count) | add // 0) as $h
+                         | (map(.miss_count) | add // 0) as $m
+                         | (($h + $m) as $t | if $t > 0 then ($h / $t) else 0 end)),
+                per_repo: (group_by(.repo) | map({
+                    repo: .[0].repo,
+                    runs: length,
+                    hits: (map(.hit_count) | add),
+                    misses: (map(.miss_count) | add),
+                    hit_rate: ((map(.hit_count) | add) as $h
+                             | (map(.miss_count) | add) as $m
+                             | (($h + $m) as $t | if $t > 0 then ($h / $t) else 0 end))
+                  })),
+                daily: (group_by(.timestamp[0:10]) | map({
+                    date: .[0].timestamp[0:10],
+                    runs: length,
+                    hits: (map(.hit_count) | add),
+                    misses: (map(.miss_count) | add),
+                    hit_rate: ((map(.hit_count) | add) as $h
+                             | (map(.miss_count) | add) as $m
+                             | (($h + $m) as $t | if $t > 0 then ($h / $t) else 0 end))
+                  }) | sort_by(.date))
+              }
+          ' docs/cache-stats/history.jsonl > docs/cache-stats/fleet.json
+
+      - name: Validate outputs
+        run: |
+          set -euo pipefail
+          for f in docs/cache-stats/latest.json docs/cache-stats/fleet.json; do
+            jq empty "$f" || { echo "::error::invalid JSON in $f"; exit 1; }
+            echo "OK $f ($(wc -c <"$f") bytes)"
+          done
+          echo "OK history.jsonl ($(wc -l <docs/cache-stats/history.jsonl) records)"
+
+      - name: Commit results
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add docs/cache-stats/
+          if git diff --cached --quiet; then
+            echo "no changes to commit"
+            exit 0
+          fi
+          git commit -m "chore(cache-stats): update hit-rate rollup (run ${{ steps.trigger.outputs.run_id }})"
+          git push

@@ -1,0 +1,20 @@
+{
+  "run_id": "9005",
+  "generated_at": "2026-06-21T20:53:11Z",
+  "records": [
+    {
+      "repo": "KooshaPari/phenotype-router",
+      "run_id": "9005",
+      "branch": "main",
+      "timestamp": "2026-06-20T20:00:00Z",
+      "source": "seed",
+      "hit_count": 47,
+      "miss_count": 3,
+      "hit_rate": 0.94
+    }
+  ],
+  "total_runs": 1,
+  "total_hits": 47,
+  "total_misses": 3,
+  "hit_rate": 0.94
+}

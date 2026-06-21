@@ -1,0 +1,117 @@
+{
+  "generated_at": "2026-06-21T20:56:39Z",
+  "window_days": 7,
+  "total_runs": 49,
+  "total_hits": 2087,
+  "total_misses": 363,
+  "hit_rate": 0.8518367346938776,
+  "per_repo": [
+    {
+      "repo": "KooshaPari/Configra",
+      "runs": 5,
+      "hits": 208,
+      "misses": 42,
+      "hit_rate": 0.832
+    },
+    {
+      "repo": "KooshaPari/pheno-config",
+      "runs": 6,
+      "hits": 250,
+      "misses": 50,
+      "hit_rate": 0.8333333333333334
+    },
+    {
+      "repo": "KooshaPari/pheno-context",
+      "runs": 5,
+      "hits": 201,
+      "misses": 49,
+      "hit_rate": 0.804
+    },
+    {
+      "repo": "KooshaPari/pheno-errors",
+      "runs": 5,
+      "hits": 240,
+      "misses": 10,
+      "hit_rate": 0.96
+    },
+    {
+      "repo": "KooshaPari/pheno-flags",
+      "runs": 5,
+      "hits": 193,
+      "misses": 57,
+      "hit_rate": 0.772
+    },
+    {
+      "repo": "KooshaPari/pheno-mcp-router",
+      "runs": 5,
+      "hits": 186,
+      "misses": 64,
+      "hit_rate": 0.744
+    },
+    {
+      "repo": "KooshaPari/pheno-port-adapter",
+      "runs": 5,
+      "hits": 224,
+      "misses": 26,
+      "hit_rate": 0.896
+    },
+    {
+      "repo": "KooshaPari/pheno-tracing",
+      "runs": 8,
+      "hits": 362,
+      "misses": 38,
+      "hit_rate": 0.905
+    },
+    {
+      "repo": "KooshaPari/phenotype-router",
+      "runs": 5,
+      "hits": 223,
+      "misses": 27,
+      "hit_rate": 0.892
+    }
+  ],
+  "daily": [
+    {
+      "date": "2026-06-15",
+      "runs": 10,
+      "hits": 392,
+      "misses": 108,
+      "hit_rate": 0.784
+    },
+    {
+      "date": "2026-06-16",
+      "runs": 10,
+      "hits": 415,
+      "misses": 85,
+      "hit_rate": 0.83
+    },
+    {
+      "date": "2026-06-17",
+      "runs": 10,
+      "hits": 428,
+      "misses": 72,
+      "hit_rate": 0.856
+    },
+    {
+      "date": "2026-06-18",
+      "runs": 1,
+      "hits": 44,
+      "misses": 6,
+      "hit_rate": 0.88
+    },
+    {
+      "date": "2026-06-19",
+      "runs": 9,
+      "hits": 400,
+      "misses": 50,
+      "hit_rate": 0.8888888888888888
+    },
+    {
+      "date": "2026-06-20",
+      "runs": 9,
+      "hits": 408,
+      "misses": 42,
+      "hit_rate": 0.9066666666666666
+    }
+  ]
+}
