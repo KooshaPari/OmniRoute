@@ -1,0 +1,141 @@
+name: release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version (semver, e.g. 0.1.0)'
+        required: true
+        default: '0.1.0'
+
+permissions:
+  contents: write
+  packages: write
+  id-token: write
+  attestations: write
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    name: Build, SBOM (CycloneDX), cosign keyless, SLSA L3, GitHub Release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      packages: write
+      id-token: write
+      attestations: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          fetch-depth: 0
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@08b815a76ce05ad9f6f9357e577f68b974a41aac
+        with:
+          toolchain: stable
+          profile: minimal
+
+      - name: Cache cargo registry + git + build artifacts
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-
+
+      - name: cargo build --release --locked
+        run: cargo build --release --locked --verbose
+
+      - name: cargo test --release --locked
+        run: cargo test --release --locked --verbose
+
+      - name: Stage release artifacts
+        working-directory: pheno-port-adapter
+        run: |
+          mkdir -p artifacts
+          shopt -s nullglob
+          for f in target/release/*; do
+            if [[ -x "$f" && ! -d "$f" ]]; then
+              cp "$f" artifacts/
+            fi
+          done
+          ls -la artifacts/
+
+      - name: Compute SHA256 subjects (for SLSA L3)
+        id: subjects
+        working-directory: pheno-port-adapter/artifacts
+        run: |
+          set -euo pipefail
+          ENTRIES=""
+          for f in *; do
+            [[ -f "$f" ]] || continue
+            HASH=$(sha256sum "$f" | awk '{print $1}')
+            if [[ -n "$ENTRIES" ]]; then ENTRIES+=","; fi
+            ENTRIES+="{\"name\":\"$f\",\"digest\":{\"sha256\":\"$HASH\"}}"
+          done
+          ARRAY="[$ENTRIES]"
+          ENCODED=$(printf '%s' "$ARRAY" | base64 -w0)
+          echo "subjects=$ENCODED" >> "$GITHUB_OUTPUT"
+          echo "Computed subjects for: $ENTRIES"
+
+      - name: Generate CycloneDX SBOM (JSON + XML)
+        working-directory: pheno-port-adapter
+        run: |
+          cargo install cargo-cyclonedx --locked
+          cargo cyclonedx --format json --override-filename target/sbom.cdx.json
+          cargo cyclonedx --format xml  --override-filename target/sbom.cdx.xml
+          cp target/sbom.cdx.json artifacts/
+          cp target/sbom.cdx.xml  artifacts/
+
+      - name: Install cosign
+        uses: sigstore/cosign-installer@v3.5.0
+        with:
+          cosign-release: 'v2.4.1'
+
+      - name: cosign keyless sign — SBOM (JSON)
+        working-directory: pheno-port-adapter
+        env:
+          COSIGN_EXPERIMENTAL: '1'
+        run: |
+          cosign sign-blob --yes \
+            --output-signature artifacts/sbom.cdx.json.sig \
+            --output-certificate artifacts/sbom.cdx.json.pem \
+            artifacts/sbom.cdx.json
+
+      - name: SLSA L3 provenance generator
+        uses: slsa-framework/slsa-github-generator@v2.0.0
+        with:
+          base64-subjects: ${{ steps.subjects.outputs.subjects }}
+
+      - name: Move SLSA provenance into artifacts dir
+        working-directory: pheno-port-adapter
+        run: |
+          if [ -f provenance.intoto.jsonl ]; then
+            mv provenance.intoto.jsonl artifacts/
+          fi
+          if [ -f provenance.intoto.jsonl.sig ]; then
+            mv provenance.intoto.jsonl.sig artifacts/
+          fi
+          ls -la artifacts/
+
+      - name: Create GitHub Release with all artifacts
+        uses: softprops/action-gh-release@70ec0ce5867b6dc4a5b1dd61ce9e84b9fd9e03c2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: "Release ${{ github.ref_name }}"
+          generate_release_notes: true
+          fail_on_unmatched_files: false
+          files: |
+            pheno-port-adapter/artifacts/*
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
