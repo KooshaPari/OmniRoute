@@ -146,17 +146,19 @@ python scripts\incident-purge-readiness.py --retained-history-git-dir C:\path\to
 Run this before enabling Actions or making the repository public:
 
 ```powershell
-python scripts\incident-reopen-readiness.py --verify-live-controls --repository KooshaPari/phenotype-registry
+python scripts\incident-reopen-readiness.py --verify-live-controls --verify-incident-issue --repository KooshaPari/phenotype-registry --incident-issue 320
 ```
 
 The gate is sanitized and must not print token values. With
 `--verify-live-controls`, it also checks that the live repository is still
 private, Pages is disabled, Actions is disabled, branch protection enforces
-admins, and branch deletion/force-push are not allowed. It should fail while the
-incident is still open. Use this mode to verify the current blocked posture:
+admins, and branch deletion/force-push are not allowed. With
+`--verify-incident-issue`, it also checks that the incident tracker issue is
+closed before public reopening. It should fail while the incident is still open.
+Use this mode to verify the current blocked posture:
 
 ```powershell
-python scripts\incident-reopen-readiness.py --verify-live-controls --repository KooshaPari/phenotype-registry --expect-open
+python scripts\incident-reopen-readiness.py --verify-live-controls --verify-incident-issue --repository KooshaPari/phenotype-registry --incident-issue 320 --expect-open
 ```
 
 - [ ] Provider rotation evidence recorded for every alert inventory row

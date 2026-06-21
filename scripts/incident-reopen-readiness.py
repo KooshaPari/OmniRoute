@@ -16,6 +16,7 @@ from pathlib import Path
 
 DEFAULT_INCIDENT_DOC = Path("docs/operations/secrets-pii-incident-2026-06-20.md")
 DEFAULT_REPOSITORY = "KooshaPari/phenotype-registry"
+DEFAULT_INCIDENT_ISSUE = 320
 
 PROVIDER_HEADER = "| Provider / secret type | Alert numbers | Rotation status | Owner | Evidence link |"
 READY_STATUS = {"rotated", "revoked", "complete", "completed", "not applicable", "n/a"}
@@ -190,6 +191,53 @@ def live_control_failures(summary: dict[str, object]) -> list[str]:
     return failures
 
 
+def incident_issue_from_github(repository: str, issue_number: int) -> dict[str, object]:
+    issue = run_gh_api(f"repos/{repository}/issues/{issue_number}")
+    if not isinstance(issue, dict):
+        raise ValueError("GitHub API returned an unexpected issue shape")
+    return summarize_incident_issue(repository, issue_number, issue)
+
+
+def incident_issue_from_fixture(path: Path) -> dict[str, object]:
+    try:
+        raw = json.loads(path.read_text(encoding="utf-8"))
+    except OSError as exc:
+        raise ValueError(f"incident issue fixture cannot be read: {path}") from exc
+    except json.JSONDecodeError as exc:
+        raise ValueError(f"incident issue fixture is not json: {path}") from exc
+
+    if not isinstance(raw, dict):
+        raise ValueError("incident issue fixture must be a json object")
+    return {
+        "repository": str(raw.get("repository", "fixture")),
+        "number": int(raw.get("number", DEFAULT_INCIDENT_ISSUE)),
+        "state": str(raw.get("state", "open")).lower(),
+        "title": str(raw.get("title", "")),
+        "url": str(raw.get("url", "")),
+    }
+
+
+def summarize_incident_issue(
+    repository: str,
+    issue_number: int,
+    issue: dict[str, object],
+) -> dict[str, object]:
+    return {
+        "repository": repository,
+        "number": issue_number,
+        "state": str(issue.get("state", "unknown")).lower(),
+        "title": str(issue.get("title", "")),
+        "url": str(issue.get("html_url", "")),
+    }
+
+
+def incident_issue_failures(summary: dict[str, object]) -> list[str]:
+    if summary.get("state") == "closed":
+        return []
+    number = summary.get("number", DEFAULT_INCIDENT_ISSUE)
+    return [f"incident issue #{number} is not closed"]
+
+
 def resolve_incident_doc() -> Path:
     root = Path.cwd().resolve()
     candidate = root / DEFAULT_INCIDENT_DOC
@@ -211,6 +259,9 @@ def readiness_summary(
     verify_live_controls: bool = False,
     repository: str = DEFAULT_REPOSITORY,
     live_controls_fixture: Path | None = None,
+    verify_incident_issue: bool = False,
+    incident_issue: int = DEFAULT_INCIDENT_ISSUE,
+    incident_issue_fixture: Path | None = None,
 ) -> dict[str, object]:
     resolved_doc = resolve_incident_doc()
     text = resolved_doc.read_text(encoding="utf-8")
@@ -219,6 +270,8 @@ def readiness_summary(
     gate_blockers = gate_failures(lines)
     live_controls: dict[str, object] = {"status": "not_requested"}
     live_control_blockers: list[str] = []
+    incident_issue_summary: dict[str, object] = {"status": "not_requested"}
+    incident_issue_blockers: list[str] = []
     if verify_live_controls:
         if live_controls_fixture:
             live_controls = live_controls_from_fixture(live_controls_fixture)
@@ -226,14 +279,23 @@ def readiness_summary(
             live_controls = live_controls_from_github(repository)
         live_controls["status"] = "checked"
         live_control_blockers = live_control_failures(live_controls)
-    blockers = provider_blockers + gate_blockers + live_control_blockers
+    if verify_incident_issue:
+        if incident_issue_fixture:
+            incident_issue_summary = incident_issue_from_fixture(incident_issue_fixture)
+        else:
+            incident_issue_summary = incident_issue_from_github(repository, incident_issue)
+        incident_issue_summary["status"] = "checked"
+        incident_issue_blockers = incident_issue_failures(incident_issue_summary)
+    blockers = provider_blockers + gate_blockers + live_control_blockers + incident_issue_blockers
     return {
         "incident_doc": str(resolved_doc.relative_to(Path.cwd().resolve())),
         "ready_to_reopen": not blockers,
         "provider_blocker_count": len(provider_blockers),
         "gate_blocker_count": len(gate_blockers),
         "live_control_blocker_count": len(live_control_blockers),
+        "incident_issue_blocker_count": len(incident_issue_blockers),
         "live_controls": live_controls,
+        "incident_issue": incident_issue_summary,
         "blockers": blockers,
     }
 
@@ -271,6 +333,22 @@ def main() -> int:
         type=Path,
         help="Read sanitized live-control booleans from a JSON fixture instead of GitHub.",
     )
+    parser.add_argument(
+        "--verify-incident-issue",
+        action="store_true",
+        help="Verify that the incident tracker issue is closed before reopening.",
+    )
+    parser.add_argument(
+        "--incident-issue",
+        type=int,
+        default=DEFAULT_INCIDENT_ISSUE,
+        help="Incident issue number to check when --verify-incident-issue is used.",
+    )
+    parser.add_argument(
+        "--incident-issue-fixture",
+        type=Path,
+        help="Read sanitized issue state from a JSON fixture instead of GitHub.",
+    )
     args = parser.parse_args()
 
     try:
@@ -278,6 +356,9 @@ def main() -> int:
             args.verify_live_controls,
             args.repository,
             args.live_controls_fixture,
+            args.verify_incident_issue,
+            args.incident_issue,
+            args.incident_issue_fixture,
         )
     except ValueError as exc:
         print(f"incident-reopen-readiness: blocked. {exc}")
