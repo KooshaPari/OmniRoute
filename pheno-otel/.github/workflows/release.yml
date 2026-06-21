@@ -11,6 +11,11 @@ on:
         required: true
         default: "0.1.0"
 
+# Release runs are sequential; never cancel a release mid-flight
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
 permissions:
   contents: write
 

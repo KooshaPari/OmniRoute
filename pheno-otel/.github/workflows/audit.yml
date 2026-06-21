@@ -6,6 +6,11 @@ on:
     - cron: "0 16 * * 1"
   workflow_dispatch:
 
+# Cancel superseded runs on the same ref (saves CI minutes per v12 fleet policy)
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
   cargo-audit:
     name: cargo audit (RUSTSEC)
