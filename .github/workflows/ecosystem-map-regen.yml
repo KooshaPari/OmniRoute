@@ -11,7 +11,7 @@
 #   - workflow_dispatch: manual re-run
 #
 # Companion workflow: `ecosystem-map-weekly.yml` (cron) auto-opens a
-# remediation PR via peter-evans/create-pull-request v6, pinned by SHA, when the gate
+# remediation PR via peter-evans/create-pull-request@v6 when the gate
 # fails on the weekly schedule.
 name: ecosystem-map-regen
 
@@ -49,12 +49,12 @@ jobs:
     timeout-minutes: 5
     steps:
       - name: checkout
-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v4
+        uses: actions/checkout@v7
         with:
           fetch-depth: 1
 
       - name: setup-python
-        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        uses: actions/setup-python@v5
         with:
           python-version: "3.12"
 
@@ -62,7 +62,7 @@ jobs:
         # The regen script reads the sibling repo's `_bindings.json` by
         # default. We check it out under a stable relative path so the
         # script's default-lookup heuristic works without flags.
-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v4
+        uses: actions/checkout@v7
         with:
           repository: KooshaPari/phenotype-registry-curation-data
           path: ../phenotype-registry-curation-data

@@ -70,7 +70,7 @@ Notation: `A -> B` means A depends on B. Only cross-repo edges to other KooshaPa
 ```text
 phenotype-infra           -> (standalone IaC/spec, no code deps)
 phenotype-registry        -> PhenoSpecs, HexaKit, PhenoHandbook  [doc links]
-phenoObservability        -> pheno (phenotype-errors), [phenotype-bus: historical local path; retired by archive/delete readiness gate]
+phenoObservability        -> pheno (phenotype-errors), [phenotype-bus: local path]
 PhenoProc (infrakit)      -> pheno (phenotype-error-core, phenotype-core, phenotype-contracts,
                               phenotype-config-core, phenotype-event-bus,
                               phenotype-http-client-core, phenotype-policy-engine,
