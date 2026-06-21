@@ -19,7 +19,7 @@
     "@octokit/webhooks-methods": "^5.1.0",
     "ioredis": "^5.4.0",
     "js-yaml": "^4.1.0",
-    "next": "14.2.0",
+    "next": "16.1.7",
     "pino": "^9.0.0",
     "pino-pretty": "^11.0.0",
     "react": "^18.3.0",
