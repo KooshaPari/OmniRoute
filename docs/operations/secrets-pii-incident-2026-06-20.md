@@ -98,6 +98,13 @@ note's `provider` and `alerts` fields must match a row in the alert inventory
 above. A passing guard does not make raw evidence safe for git; it only checks
 local notes before tracker updates.
 
+After all provider owners have added sanitized local notes, require coverage for
+every alert inventory row before marking the provider evidence gate complete:
+
+```powershell
+python scripts\incident-evidence-guard.py --require-all incident-evidence\2026-06-20
+```
+
 ## Do Not Reopen Public Access Until
 
 - Every provider row above has completed rotation/revocation evidence.
