@@ -1,16 +1,24 @@
 ---
 repo: "helioscope"
 aliases: []
-role: unknown
-status: active
-last_verified: 2026-06-17
+role: codex-fork
+status: retired
+retired_on: 2026-06-21
+superseded_by: helios-cli
+last_verified: 2026-06-21
 bound_prompts: 10
 bound_plans: 0
 bound_responses: 0
 device: macbook
 ---
 
-# Intent — helioscope
+# Intent — helioscope (RETIRED 2026-06-21)
+
+> **Retired:** This repository was retired 2026-06-21 per
+> `findings/2026-06-21-helioscope-cancellation-rationale.md`. The
+> canonical codex fork in the Phenotype fleet is now
+> `helios-cli` (KooshaPari/helios-cli). This file is preserved as a
+> tombstone for historical prompt/plan binding traceability.
 
 ## Intent Statement
 
@@ -58,3 +66,4 @@ See: [`docs/boundary/helioscope.md`](../boundary/helioscope.md)
 | Date | Change | Worklog |
 | ---- | ------ | ------- |
 | 2026-06-17 | Initial binding (L7-001 sweep) | `worklogs/L7-001-intent-boundary-curation-2026-06-17.json` |
+| 2026-06-21 | Marked retired; superseded by helios-cli (L5-130 sweep) | `worklogs/L5-130-helioscope-cleanup-2026-06-21.json` |
