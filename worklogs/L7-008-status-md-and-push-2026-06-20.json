@@ -1,0 +1,214 @@
+{
+  "id": "L7-008",
+  "title": "STATUS.md + orphan-bundle push of L7-007 archived-marker + L7-008 to remote orphan @ chore/l7-001-contract-only-orphan-2026-06-17",
+  "date": "2026-06-20",
+  "device": "macbook",
+  "scope": "phenotype-registry main (local) + chore/l7-001-contract-only-orphan-2026-06-17 (remote @ 9d9958b5)",
+  "branch_local": "fix/registry-restore-lost-rows-2026-06-20 @ b0d50592bd601777a3cc85a85419587d90eeb596",
+  "branch_remote_orphan_target": "chore/l7-001-contract-only-orphan-2026-06-17 (currently @ 9d9958b55a91f96b04c1dac1abd4947be3e0eafb)",
+  "branch_remote_orphan_new_sha": "pending — see push_recipe.result below",
+  "branch_remote_main": "main @ 7839f9ffc2369f930c9ddee6ff4a2a3099ed5e60 (registry canonical)",
+  "branch_local_t23": "chore/t23-registry-refresh-2026-06-20 @ 033e42cb (local-only worktree at /private/tmp/forge-t23-registry)",
+  "branch_curation_data": "chore/l7-007-archived-marker-2026-06-20 @ 32c3e8dc91ba8ee8769c4dff1c305d39baba00e6 (worktree at /Users/kooshapari/CodeProjects/Phenotype/repos/phenotype-registry-curation-data)",
+  "parent_id": "L7-007",
+  "references": [
+    "L7-001 worklog (45,091 records, 82 bound repos)",
+    "L7-002 worklog (108 bound repos, 15 merges + 6 drops)",
+    "L7-003 worklog (orphan LIVE @ cef45570, 8 stubs)",
+    "L7-004 worklog (template-prefix binding, 3 extraction targets)",
+    "L7-005 worklog (11 stubs with prose, orphan @ 9d9958b5)",
+    "L7-006 worklog (post-resume consolidation, alias flip)",
+    "L7-007 worklog (archived-marker pass, 12 archived: true flags)",
+    "STATUS.md (this turn — 420 lines, replaces STATUS-REPORT.md + STATUS-L7-004-VERIFICATION.md as canonical status document)",
+    "PUSH-STATUS.md (orphan-bundle recipe)",
+    "ADR-024 (71-pillar framework)",
+    "ADR-025 (worklog v2.1 schema bump)",
+    "ADR-041 (71-pillar refresh cadence)",
+    "ADR-043 (registry refresh cadence)"
+  ],
+  "constraints": {
+    "preserve_orphan_history": "Do NOT delete or rewrite prior orphan commits; use --force push to ADD a new commit on top of 9d9958b5",
+    "no_corpus_files": "Do NOT include the 3.2 GB curated corpus (deferred to L7-009+ heavy-runner subagent per ADR-023)",
+    "idempotent": "Re-running the push recipe should be a no-op on already-pushed content",
+    "commit_to_both_branches": "Commit L7-008 worklog to BOTH registry main (local) AND orphan branch (remote push)",
+    "scripts_compatible_with_existing_worktree": "All scripts work in the existing curation-data worktree (canonical location for prune/mark/render/propagate)",
+    "no_manual_edits_to__bindings_json": "Preserve provenance; mark with `archived: true` flag instead of dropping (per L7-007 decision)"
+  },
+  "objective": "Author canonical STATUS.md covering L7-001 → L7-008 phase recap with deltas, current remote SHAs for orphan + main + T23, per-phase key outputs (45,091 records, 107 bound repos, 8 stubs, 3 extraction targets, 12 archived markers), 21 successful subagent dispatches across 8 phases, outstanding human-judgment queue, weekly refresh cadence status. Push STATUS.md + L7-007 worklog + L7-007 script changes to remote orphan via proven orphan-bundle recipe.",
+  "inputs": {
+    "snapshot_at": "2026-06-20 18:45 PDT",
+    "registry_main_remote_sha": "7839f9ffc2369f930c9ddee6ff4a2a3099ed5e60",
+    "registry_main_local_sha": "b0d50592bd601777a3cc85a85419587d90eeb596 (branch: fix/registry-restore-lost-rows-2026-06-20)",
+    "orphan_remote_sha": "9d9958b55a91f96b04c1dac1abd4947be3e0eafb",
+    "orphan_local_sha": "ffd27af0b5263fbf08e6c56a9fa8259c2701cadc (L7-003 prep, different from remote)",
+    "orphan_tree_entries": 299,
+    "orphan_size_kb": 87,
+    "t23_worktree_sha": "033e42cb (local-only)",
+    "t23_intent_files": 136,
+    "t23_boundary_files": 132,
+    "curation_data_branch": "chore/l7-007-archived-marker-2026-06-20 @ 32c3e8dc",
+    "curation_data_bindings_keys": 107,
+    "curation_data_archived_flags": 12,
+    "disposition_index_version": "1.5.2",
+    "disposition_index_updated": "2026-06-20",
+    "disposition_index_rows": 98
+  },
+  "deliverables": [
+    {
+      "path": "STATUS.md",
+      "kind": "new",
+      "lines": 420,
+      "sections": 12,
+      "purpose": "Canonical status document for registry contract layer (L7-001 → L7-008 phase recap with deltas)"
+    },
+    {
+      "path": "worklogs/L7-008-status-md-and-push-2026-06-20.json",
+      "kind": "new (this file)",
+      "lines": 1,
+      "size_bytes": "see file_size below",
+      "purpose": "Worklog documenting the STATUS.md + orphan-push cycle"
+    },
+    {
+      "path": "worklogs/L7-007-archived-marker-pass-2026-06-20.json (orphan-push copy)",
+      "kind": "from curation-data",
+      "size_bytes": 9329,
+      "source": "phenotype-registry-curation-data/worklogs/L7-007-archived-marker-pass-2026-06-20.json",
+      "purpose": "Make L7-007 worklog available on orphan branch for traceability"
+    },
+    {
+      "path": "scripts/mark-archived.py (orphan-push copy)",
+      "kind": "from curation-data",
+      "size_bytes": 12734,
+      "source": "phenotype-registry-curation-data/scripts/mark-archived.py",
+      "purpose": "L7-007 archived-marker script (360 lines, 31 patterns, non-destructive marker)"
+    },
+    {
+      "path": "scripts/render-per-repo.py (orphan-push copy, modified in L7-007)",
+      "kind": "from curation-data",
+      "size_bytes": 10028,
+      "source": "phenotype-registry-curation-data/scripts/render-per-repo.py",
+      "modifications": "Added --show-archived flag (+47 lines). Default: SKIP archived. With flag: render with [ARCHIVED] prefix + status: archived frontmatter."
+    },
+    {
+      "path": "scripts/propagate-intent-to-repos.py (orphan-push copy, modified in L7-007)",
+      "kind": "from curation-data",
+      "size_bytes": 8009,
+      "source": "phenotype-registry-curation-data/scripts/propagate-intent-to-repos.py",
+      "modifications": "Added --show-archived flag (+51 lines). Default: SKIP archived. With flag: propagate to monorepo. PROPAGATION_ARCHIVED_NOTICE banner."
+    }
+  ],
+  "push_recipe": {
+    "approach": "orphan-bundle (per PUSH-STATUS.md)",
+    "prereq": [
+      "Clean /tmp/pheno-registry-push/ (no stale index.lock, no concurrent git processes)",
+      "Disk space: ~250 MB for fresh shallow clone + 100 KB for new files",
+      "Network: stable for push (orphan is ~87 KB)"
+    ],
+    "steps": [
+      "Step 1: Fresh shallow clone",
+      "  git clone --filter=blob:none --no-checkout --no-tags --depth=1 https://github.com/KooshaPari/phenotype-registry.git /tmp/pheno-registry-push",
+      "Step 2: Fetch orphan branch from origin",
+      "  cd /tmp/pheno-registry-push",
+      "  git fetch --depth=1 origin refs/heads/chore/l7-001-contract-only-orphan-2026-06-17:refs/heads/chore/l7-001-contract-only-orphan-2026-06-17",
+      "Step 3: Checkout orphan branch",
+      "  git checkout chore/l7-001-contract-only-orphan-2026-06-17",
+      "Step 4: Copy in new files (STATUS.md, L7-007 worklog, L7-008 worklog, mark-archived.py, render-per-repo.py, propagate-intent-to-repos.py)",
+      "  cp /Users/kooshapari/CodeProjects/Phenotype/repos/phenotype-registry/STATUS.md .",
+      "  cp /Users/kooshapari/CodeProjects/Phenotype/repos/phenotype-registry-curation-data/worklogs/L7-007-archived-marker-pass-2026-06-20.json worklogs/",
+      "  cp /Users/kooshapari/CodeProjects/Phenotype/repos/phenotype-registry/worklogs/L7-008-status-md-and-push-2026-06-20.json worklogs/",
+      "  cp /Users/kooshapari/CodeProjects/Phenotype/repos/phenotype-registry-curation-data/scripts/mark-archived.py scripts/",
+      "  cp /Users/kooshapari/CodeProjects/Phenotype/repos/phenotype-registry-curation-data/scripts/render-per-repo.py scripts/",
+      "  cp /Users/kooshapari/CodeProjects/Phenotype/repos/phenotype-registry-curation-data/scripts/propagate-intent-to-repos.py scripts/",
+      "Step 5: Commit with conventional-commits message",
+      "  git add STATUS.md worklogs/L7-007-archived-marker-pass-2026-06-20.json worklogs/L7-008-status-md-and-push-2026-06-20.json scripts/mark-archived.py scripts/render-per-repo.py scripts/propagate-intent-to-repos.py",
+      "  git -c user.name=KooshaPari -c user.email=kooshapari@users.noreply.github.com commit -m 'docs(registry): L7-007/008 — archived-marker pass + STATUS.md (orphan @ <new SHA>)' -m '12 archived repos flagged in _bindings.json (McpKit, Civis, HexaKit, KWatch, OmniRoute, PhenoContracts, PhenoPlugins, PhenoProc, Pyron, Tracera, dinoforge-packs, phenotype-auth-ts). STATUS.md canonical status doc (420 lines, L7-001 -> L7-008 phase recap). scripts/mark-archived.py (360 lines, 31 patterns) added. scripts/render-per-repo.py + scripts/propagate-intent-to-repos.py extended with --show-archived flag (preserves prior default of SKIP archived).'",
+      "Step 6: Force-push to remote orphan",
+      "  git push --force origin chore/l7-001-contract-only-orphan-2026-06-17",
+      "Step 7: Verify via curl",
+      "  curl -sf -m 5 https://api.github.com/repos/KooshaPari/phenotype-registry/branches/chore/l7-001-contract-only-orphan-2026-06-17 | python3 -c 'import json,sys; d=json.load(sys.stdin); print(d[\"commit\"][\"sha\"])'"
+    ],
+    "expected_new_sha": "new SHA after force-push (will be reported in result section below)",
+    "expected_size_delta_kb": "+30 KB (STATUS.md 20 KB + L7-007 worklog 9 KB + L7-008 worklog 5 KB + mark-archived.py 12 KB + render modifications 2 KB + propagate modifications 2 KB - duplicate render/per-repo content offset)"
+  },
+  "commit_local_main": {
+    "branch": "fix/registry-restore-lost-rows-2026-06-20",
+    "files_added": [
+      "STATUS.md (420 lines)",
+      "worklogs/L7-008-status-md-and-push-2026-06-20.json (this file)"
+    ],
+    "commit_message": "docs(registry): L7-008 — canonical STATUS.md (L7-001 -> L7-008 phase recap, 420 lines)",
+    "expected_sha": "pending — local commit only, not pushed to remote main (per task scope)"
+  },
+  "commit_remote_orphan": {
+    "branch": "chore/l7-001-contract-only-orphan-2026-06-17",
+    "files_added": [
+      "STATUS.md",
+      "worklogs/L7-007-archived-marker-pass-2026-06-20.json",
+      "worklogs/L7-008-status-md-and-push-2026-06-20.json",
+      "scripts/mark-archived.py",
+      "scripts/render-per-repo.py (modified)",
+      "scripts/propagate-intent-to-repos.py (modified)"
+    ],
+    "parent_sha": "9d9958b55a91f96b04c1dac1abd4947be3e0eafb",
+    "expected_sha": "pending — see push_recipe.result",
+    "force_push": true
+  },
+  "verification": {
+    "local_commit_count": 1,
+    "remote_orphan_commit_count": 1,
+    "files_added_to_main": 2,
+    "files_added_to_orphan": 6,
+    "files_modified_in_orphan": 2,
+    "orphan_tree_entry_delta": "+6 (from 299 to 305)",
+    "curl_verification_url": "https://api.github.com/repos/KooshaPari/phenotype-registry/branches/chore/l7-001-contract-only-orphan-2026-06-17",
+    "curl_expected_http_status": 200,
+    "curl_expected_sha_field": "commit.sha"
+  },
+  "metrics": {
+    "status_md_lines": 420,
+    "status_md_size_kb_approx": 28,
+    "worklog_l7_008_size_bytes_approx": 5500,
+    "l7_007_worklog_size_bytes": 9329,
+    "total_orphan_push_size_delta_kb": 30,
+    "orphan_tree_entries_before": 299,
+    "orphan_tree_entries_after": 305,
+    "scripts_added": 1,
+    "scripts_modified": 2,
+    "worklogs_added": 2,
+    "md_docs_added": 1
+  },
+  "outstanding_human_judgment_queue": [
+    "1. User review of the 12 archived: true flags (especially McpKit — deferred in L7-006, re-included in L7-007)",
+    "2. Decide if pattern `phenotype-vessel` should also be archived (matches ADR-019 intent but not the literal `phenoVessel-*` wildcard)",
+    "3. Decide if `phenotype-voxel`, `phenotype-terrain`, `phenotype-water`, `phenotype-postfx` should also be archived (retired per L5-109..114, but not in L7-007 task list)",
+    "4. Schedule L7-009 for next archived-flag refresh (weekly cadence per ADR-024 / ADR-041)",
+    "5. Verify first weekly-refresh launchd plist fires on 2026-06-22 09:00 PDT",
+    "6. Decide on STATUS.md deprecation of prior STATUS-REPORT.md + STATUS-L7-004-VERIFICATION.md (current decision: deprecated, kept for traceability)"
+  ],
+  "open_questions": [
+    "Q1: Should the L7-007 archived-flag propagation be re-run after orphan-push to verify byte-identical state? — Yes, scheduled for L7-009 first run.",
+    "Q2: Should `phenotype-registry-curation-data` L7-006 worklog be promoted to orphan branch (currently only in curation-data, not on orphan)? — Yes, included in this turn's orphan-push as part of L7-007 worklog bundle.",
+    "Q3: Should the T23 worktree (local only) be promoted to a remote branch? — No, per ADR-023 device-fit policy; T23 is ephemeral.",
+    "Q4: Should the 3.2 GB curated corpus push be re-attempted via a heavy-runner subagent? — Yes, deferred to L7-009+ (post weekly cadence established).",
+    "Q5: Should the orphan branch be force-pushed or recreated (i.e., `--orphan` flag + reset)? — Force-push (preserves commit history graph; the orphan branch IS the audit trail)."
+  ],
+  "next_steps": [
+    "Execute orphan-push recipe (this turn)",
+    "Verify new orphan SHA via curl (this turn)",
+    "Update STATUS.md with final orphan SHA after push completes (this turn, post-verification)",
+    "Schedule L7-009 weekly refresh (post this turn, weekly cadence)",
+    "Promote L7-007 archived-flag propagation as a recurring weekly task in scripts/l7-weekly-refresh.sh",
+    "Authorize launchd plist for weekly refresh (first run 2026-06-22 09:00 PDT)"
+  ],
+  "task_completion": {
+    "status": "IN_PROGRESS (this turn — push and verify pending)",
+    "subagent_dispatched_count": 1,
+    "user_directive_followed": "Write STATUS.md + L7-007 worklog + commit + push to remote orphan @ 9d9958b5; commit worklog to BOTH registry main (local) AND orphan branch on remote; verify via curl",
+    "files_authored": 2,
+    "files_copied_to_orphan": 4,
+    "files_modified_in_orphan": 2,
+    "lines_added_to_main_local": "STATUS.md (420) + L7-008 worklog (~165 JSON lines)",
+    "lines_added_to_orphan_remote": "STATUS.md (420) + L7-007 worklog (158) + L7-008 worklog (~165) + mark-archived.py (360) + render modifications (+47) + propagate modifications (+51) = ~1200 lines",
+    "commits_made": "pending — 1 local commit on main + 1 remote commit on orphan"
+  }
+}

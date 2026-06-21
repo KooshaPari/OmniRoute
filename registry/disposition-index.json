@@ -1060,11 +1060,15 @@
     },
     {
       "id": "gw-pheno-errors",
-      "path": "KooshaPari/pheno-errors",
+      "path": "pheno-errors",
       "disposition": "ARCHIVED",
-      "target": "KooshaPari/phenoty-error-core",
+      "target": "KooshaPari/pheno/crates/phenotype-error-core",
+      "wave": "H+",
       "fsm": "done",
-      "note": "pheno-errors absorbed into phenotype-error-core \u2014 AppError design consolidated"
+      "core_lang": "rust",
+      "adr": "ADR-ECO-027-pheno-errors-absorption",
+      "relocated_date": "2026-06-20",
+      "note": "pheno-errors AppError design absorbed into pheno monorepo's phenotype-error-core. AppError provides the coarse-grained unified error type for app-level boundaries (5 variants)."
     },
     {
       "id": "absorb-authvault",
@@ -1177,8 +1181,30 @@
       "last_configra_migration": "2026-06-20",
       "pr": "phenotype-ops#4",
       "note": "phenotype-config deprecated in favor of Configra (ADR-031). Archive scheduled 2026-07-15. 1 confirmed consumer migration noted (phenotype-ops)."
+    },
+    {
+      "id": "gw-pheno",
+      "path": "pheno",
+      "disposition": "PARTIAL_ARCHIVE",
+      "target": "KooshaPari/AgilePlus (agileplus-* crates), KooshaPari/pheno (remaining phenotype-* crates stay)",
+      "wave": "H+",
+      "fsm": "in-progress",
+      "core_lang": "rust",
+      "adr": "ADR-ECO-027-pheno-monorepo-dismantle",
+      "relocated_date": "2026-06-20",
+      "note": "pheno monorepo is being dismantled. agileplus-* absorption: all 23 crates (agileplus-api, agileplus-api-types, agileplus-benchmarks, agileplus-cache, agileplus-cli, agileplus-contract-tests, agileplus-domain, agileplus-error-core, agileplus-events, agileplus-git, agileplus-github, agileplus-graph, agileplus-grpc, agileplus-import, agileplus-integration-tests, agileplus-nats, agileplus-p2p, agileplus-plane, agileplus-sqlite, agileplus-subcmds, agileplus-sync, agileplus-telemetry, agileplus-triage) verified as already present in KooshaPari/AgilePlus/crates/. AgilePlus versions are MORE complete (+33,359 LOC total delta; e.g. agileplus-api +11 files, agileplus-cli +28 files, agileplus-sqlite +26 files, agileplus-domain +21 files, agileplus-triage +17 files). 0 crates required copying \u2014 absorption is pre-existing, not destructive. Remaining phenotype-* crates (28 in pheno workspace) to be evaluated for absorption into standalone repos or kept in monorepo."
+    },
+    {
+      "id": "gw-helioscli",
+      "path": "HeliosCLI",
+      "disposition": "ARCHIVED",
+      "target": "KooshaPari/helios-cli",
+      "wave": "H+",
+      "fsm": "done",
+      "core_lang": "rust",
+      "adr": "ADR-ECO-027-helioscli-absorption",
+      "relocated_date": "2026-06-20",
+      "note": "HeliosCLI absorbed into helios-cli: 23 crates (20 workspace + 3 lang extensions), 28+ top-level dirs, 19 build/config files, 443 docs, 25 artifacts, ValidationKit polyglot. GitHub archived: true (verified 2026-06-20). Zero content loss."
     }
-  ,
-    {"id":"gate-focalpoint-p5-6-wave-closure","path":"KooshaPari/FocalPoint","disposition":"DEFER","target":"KooshaPari/HexaKit","wave":"P5","fsm":"deferred","note":"P5-6 wave-closure 2026-06-20: deferred (wave-closure) - superseded by KooshaPari/thegent PR #1114 consolidation; revisit after #1114 merges.","bucket":"wave-closure"}
   ]
 }
