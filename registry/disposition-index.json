@@ -1119,13 +1119,13 @@
       "id": 61,
       "path": "KooshaPari/pheno-ci-templates",
       "disposition": "NEVER_EXISTED",
-      "target": "phenoShared/.github/workflows/reusable/drift-check.yml (L5-116 FU6)",
+      "target": "phenotype-ops/.github/workflows",
       "wave": "fu6-reusable-substrate",
       "fsm": "never_existed",
       "core_lang": "n/a",
       "relocated_date": "2026-06-20",
       "pr": "phenoShared#200",
-      "note": "L5-116 FU6 absorb complete: phenoShared#200 (feat(ci): add reusable drift-check workflow) opened 2026-06-20T11:18:09Z. phenoShared repo no longer exists (404); reusable CI migrate to active substrate (phenotype-ops) is P2. (Verified by stream C, 2026-06-20)"
+      "note": "Deprecated CI template responsibility moved to phenotype-ops reusable workflows; prior phenoShared reusable workflow target is invalid because phenoShared is deleted/404. L5-116 FU6 absorb complete: phenoShared#200 (feat(ci): add reusable drift-check workflow) opened 2026-06-20T11:18:09Z. phenoShared repo no longer exists (404); reusable CI migrate to active substrate (phenotype-ops) is P2. (Verified by stream C, 2026-06-20)"
     },
     {
       "id": "phenotype-sdk",
