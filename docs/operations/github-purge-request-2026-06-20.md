@@ -64,6 +64,16 @@ Before submitting this request, run:
 python scripts\incident-purge-readiness.py
 ```
 
+Before checking "Current default branch scan is clean," run this on the current
+`main` checkout:
+
+```powershell
+python scripts\retained-history-secret-scan.py --worktree-root . --fail-on-findings
+```
+
+The scanner output is sanitized and reports finding labels plus paths only, not
+matched values.
+
 The gate is sanitized and must fail until the provider inventory and checklist
 below are complete. Use this mode to verify the current blocked posture:
 
