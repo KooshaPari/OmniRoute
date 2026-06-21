@@ -58,6 +58,10 @@ impl PortAdapter for TcpAdapter {
 
     fn connect(&self, endpoint: &str) -> Result<Connection, AdapterError> {
         if endpoint.is_empty() {
+            // L62 adoption (v14 cycle-3 T7): record this as a fleet-wide
+            // error metric. `pheno-otel` is already a path dep on this
+            // crate (see Cargo.toml), so no new dep is needed.
+            pheno_otel::metrics::record_error("pheno_port_adapter.tcp.connect", "empty_endpoint");
             return Err(AdapterError::ConnectFailed("empty endpoint".to_string()));
         }
         let stream = TcpStream::connect(endpoint)
