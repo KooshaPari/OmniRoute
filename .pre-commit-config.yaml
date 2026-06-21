@@ -76,3 +76,12 @@ repos:
         language: system
         stages: [commit-msg]
         additional_dependencies: ["@commitlint/cli@^19.0.0", "@commitlint/config-conventional@^19.0.0"]
+
+  # v16-T1 (secrets): detect-secrets-hook baseline gate.
+  # Blocks new findings vs .secrets.baseline; CI fails the gate on diffs.
+  # secrets: detect-secrets-hook
+  - repo: https://github.com/Yelp/detect-secrets
+    rev: v1.5.0
+    hooks:
+      - id: detect-secrets-hook
+        args: ['--baseline', '.secrets.baseline']

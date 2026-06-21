@@ -116,3 +116,12 @@ See [docs/guides/TESTING.md](docs/guides/TESTING.md) for testing procedures.
 
 See LICENSE file for details.
 
+
+## Secret scanning
+
+`detect-secrets` runs in CI as a pre-commit + gate; the baseline file is
+[`.secrets.baseline`](.secrets.baseline) and `detect-secrets-hook` is wired in
+[`.pre-commit-config.yaml`](.pre-commit-config.yaml) via the Yelp repo at
+`v1.5.0`. New findings not present in the baseline fail the gate; legitimate
+hits are added with `detect-secrets scan --update .secrets.baseline` and reviewed
+in the PR.
