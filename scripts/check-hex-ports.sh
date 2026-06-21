@@ -132,7 +132,7 @@ collect_impls() {
             local trait_part="${BASH_REMATCH[1]}"
             local struct_name="${BASH_REMATCH[2]}"
             # Strip leading whitespace + any generics
-            trait_part="${trait_name## }"
+            trait_part="${trait_part## }"
             # Pull the last `::` segment of the trait path
             local trait_short="${trait_part##*::}"
             # Strip generic params like `<T>` from the short name
