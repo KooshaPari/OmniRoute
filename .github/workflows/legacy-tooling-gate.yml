@@ -26,12 +26,17 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v4
 
-      - name: Checkout phenoShared for shared tools
-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v4
-        with:
-          repository: KooshaPari/phenoShared
-          path: phenotype-repos
-          sparse-checkout: tooling/legacy-enforcement
+      - name: Legacy tooling scanner unavailable
+        run: |
+          cat > legacy_tooling_report.json <<JSON
+          {"totals":{"critical":0,"high":0,"medium":0,"low":0},"findings":[]}
+          JSON
+          cat > legacy_tooling_report.md <<MD
+          # Legacy Tooling Scan Report
+
+          Scanner source was previously loaded from deleted KooshaPari/phenoShared.
+          This workflow remains WARN-mode and produces an empty report until the scanner is rehomed.
+          MD
 
       - name: Set up Python
         uses: actions/setup-python@0cb1a84326b90186fcd211036c65b42819794c87 # v-latest
@@ -40,16 +45,6 @@ jobs:
 
       - name: Install dependencies
         run: pip install pyyaml
-
-      - name: Run Legacy Tooling Scanner (WARN Mode)
-        run: |
-          python3 phenotype-repos/tooling/legacy-enforcement/scanner/legacy_tooling_scanner.py \
-            --repo-root . \
-            --policy phenotype-repos/tooling/legacy-enforcement/policy/rules.yaml \
-            --output-json legacy_tooling_report.json \
-            --output-md legacy_tooling_report.md \
-            --report-only
-        continue-on-error: true
 
       - name: Upload scan report (JSON)
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
