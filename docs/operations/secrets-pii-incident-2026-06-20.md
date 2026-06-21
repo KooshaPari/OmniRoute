@@ -118,6 +118,9 @@ sanitized tracked-file scan on the current `main` checkout:
 python scripts\retained-history-secret-scan.py --worktree-root . --fail-on-findings
 ```
 
+The purge readiness gate runs the same current-tree scan automatically and
+reports only sanitized counts and finding labels.
+
 Use this mode to verify the current blocked posture:
 
 ```powershell

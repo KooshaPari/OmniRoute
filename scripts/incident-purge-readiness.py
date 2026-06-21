@@ -10,12 +10,14 @@ from __future__ import annotations
 
 import argparse
 import json
+import subprocess
 import sys
 from pathlib import Path
 
 
 DEFAULT_INCIDENT_DOC = Path("docs/operations/secrets-pii-incident-2026-06-20.md")
 DEFAULT_PURGE_DOC = Path("docs/operations/github-purge-request-2026-06-20.md")
+DEFAULT_TREE_SCANNER = Path("scripts/retained-history-secret-scan.py")
 
 PROVIDER_HEADER = "| Provider / secret type | Alert numbers | Rotation status | Owner | Evidence link |"
 READY_STATUS = {"rotated", "revoked", "complete", "completed", "not applicable", "n/a"}
@@ -108,6 +110,89 @@ def resolve_doc(path: Path, label: str) -> Path:
     return resolved
 
 
+def nonzero_finding_labels(scan_summary: dict[str, object]) -> list[str]:
+    findings = scan_summary.get("findings", {})
+    if not isinstance(findings, dict):
+        return ["malformed findings"]
+
+    labels: list[str] = []
+    for label, record in findings.items():
+        if isinstance(record, dict) and int(record.get("blob_count", 0)):
+            labels.append(str(label))
+    return sorted(labels)
+
+
+def current_tree_scan_summary() -> dict[str, object]:
+    root = Path.cwd().resolve()
+    scanner = root / DEFAULT_TREE_SCANNER
+    if not scanner.is_file():
+        return {
+            "status": "error",
+            "scanner": str(DEFAULT_TREE_SCANNER),
+            "error": "scanner missing",
+        }
+
+    proc = subprocess.run(
+        [
+            sys.executable,
+            str(scanner),
+            "--worktree-root",
+            str(root),
+            "--fail-on-findings",
+        ],
+        cwd=root,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True,
+        check=False,
+    )
+
+    try:
+        raw_summary = json.loads(proc.stdout)
+    except json.JSONDecodeError:
+        return {
+            "status": "error",
+            "scanner": str(DEFAULT_TREE_SCANNER),
+            "returncode": proc.returncode,
+            "error": "scanner returned non-json output",
+        }
+
+    finding_labels = nonzero_finding_labels(raw_summary)
+    missing_files = int(raw_summary.get("missing_files", 0))
+    status = "clean"
+    if proc.returncode or finding_labels or missing_files:
+        status = "blocked"
+
+    return {
+        "status": status,
+        "scanner": str(DEFAULT_TREE_SCANNER),
+        "returncode": proc.returncode,
+        "scanned_files": int(raw_summary.get("scanned_files", 0)),
+        "skipped_large_files": int(raw_summary.get("skipped_large_files", 0)),
+        "skipped_binary_files": int(raw_summary.get("skipped_binary_files", 0)),
+        "missing_files": missing_files,
+        "finding_labels": finding_labels,
+    }
+
+
+def current_tree_scan_blockers(scan_summary: dict[str, object]) -> list[str]:
+    if scan_summary["status"] == "clean":
+        return []
+
+    blockers: list[str] = []
+    finding_labels = scan_summary.get("finding_labels", [])
+    if finding_labels:
+        labels = ", ".join(str(label) for label in finding_labels)
+        blockers.append(f"current default branch scan has findings: {labels}")
+    if int(scan_summary.get("missing_files", 0)):
+        blockers.append("current default branch scan has missing tracked files")
+    if scan_summary["status"] == "error":
+        blockers.append(f"current default branch scan failed: {scan_summary.get('error', 'unknown error')}")
+    if not blockers:
+        blockers.append("current default branch scan failed")
+    return blockers
+
+
 def readiness_summary() -> dict[str, object]:
     incident_doc = resolve_doc(DEFAULT_INCIDENT_DOC, "incident doc")
     purge_doc = resolve_doc(DEFAULT_PURGE_DOC, "purge doc")
@@ -117,7 +202,9 @@ def readiness_summary() -> dict[str, object]:
     provider_blockers = provider_failures(incident_lines)
     checklist = checklist_items(purge_lines, "## Confirmation Checklist")
     checklist_blockers = [f"unchecked purge checklist item: {label}" for label, checked in checklist.items() if not checked]
-    blockers = provider_blockers + checklist_blockers
+    current_tree_scan = current_tree_scan_summary()
+    technical_blockers = current_tree_scan_blockers(current_tree_scan)
+    blockers = provider_blockers + checklist_blockers + technical_blockers
 
     return {
         "incident_doc": str(incident_doc.relative_to(Path.cwd().resolve())),
@@ -125,6 +212,8 @@ def readiness_summary() -> dict[str, object]:
         "ready_to_submit_purge": not blockers,
         "provider_blocker_count": len(provider_blockers),
         "checklist_blocker_count": len(checklist_blockers),
+        "technical_blocker_count": len(technical_blockers),
+        "current_tree_scan": current_tree_scan,
         "blockers": blockers,
     }
 
