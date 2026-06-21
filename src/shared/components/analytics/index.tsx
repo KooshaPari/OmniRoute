@@ -22,7 +22,7 @@ export {
   ServiceTierBreakdown,
 } from "./charts";
 export { AccountDonut, ApiKeyDonut, ProviderCostDonut } from "./rechartsDonuts";
-export { DailyTrendChart, WeeklyPattern, ModelOverTimeChart } from "./rechartsUsageCharts";
+export { DailyTrendChart, ModelOverTimeChart } from "./rechartsUsageCharts";
 
 export { default as ApiKeyFilterDropdown } from "./ApiKeyFilterDropdown";
 export { default as CustomRangePicker } from "./CustomRangePicker";

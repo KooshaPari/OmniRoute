@@ -155,7 +155,7 @@ function CostTooltip({
 
 // ── WeeklyPattern (Recharts) ───────────────────────────────────────────────
 
-export function WeeklyPattern({ weeklyPattern }) {
+function WeeklyPattern({ weeklyPattern }) {
   const t = useTranslations("analytics");
   const chartData = useMemo(() => {
     return (weeklyPattern || []).map((w) => ({
