@@ -72,7 +72,8 @@ python scripts\retained-history-secret-scan.py --worktree-root . --fail-on-findi
 ```
 
 The scanner output is sanitized and reports finding labels plus paths only, not
-matched values.
+matched values. The purge readiness gate also runs this current-tree scan and
+will block if any finding label or missing tracked file is reported.
 
 The gate is sanitized and must fail until the provider inventory and checklist
 below are complete. Use this mode to verify the current blocked posture:
