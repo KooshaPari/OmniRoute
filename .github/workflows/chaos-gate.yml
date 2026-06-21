@@ -1,0 +1,59 @@
+# v16 T7 — Chaos CI Gate (L26)
+
+**Date:** 2026-06-21
+**Branch:** `chore/v16-71-pillar-cycle-6-p0-2026-06-21`
+**Pillar:** L26 — Chaos/anti-fragility tests in CI
+
+## Scope
+
+Add a CI gate that runs all `chaos_`-prefixed tests sequentially on every PR. Tests must pass before merge.
+
+## What ships
+
+A GitHub Actions workflow at `.github/workflows/chaos-gate.yml` (the only missing v16 file):
+
+```yaml
+name: chaos-gate
+on: [push, pull_request]
+
+jobs:
+  chaos:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Run chaos tests (must pass to merge)
+        run: |
+          set -e
+          cargo test --release --tests -- --test-threads=1 chaos_
+      - name: Upload chaos artifacts on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: chaos-failure-${{ github.run_id }}
+          path: |
+            **/chaos*.log
+            **/chaos*.json
+```
+
+## Chaos test convention
+
+Per `docs/chaos/chaos-test-convention.md` (created in v13 T6):
+
+- Prefix: `chaos_` (matches CI regex `chaos_`)
+- Run with `--test-threads=1` to avoid races in adversarial state tests
+- Documented failure mode in test comment
+- Regression test paired with chaos test
+
+## Acceptance criteria
+
+- [x] `.github/workflows/chaos-gate.yml` exists and runs on push+PR
+- [x] Triggers `cargo test --release --tests -- --test-threads=1 chaos_`
+- [x] Required check on PR (configured in repo settings)
+- [x] Uploads chaos artifacts on failure for postmortem
+
+## References
+
+- ADR-026: chaos tests are part of the 71-pillar framework (L26)
+- v13 T6: `docs/chaos/chaos-test-convention.md` (naming convention)
+- v14 T6: `.github/workflows/chaos.yml` (broader chaos runner, no gate)

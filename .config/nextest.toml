@@ -1,0 +1,40 @@
+# nextest configuration for the Phenotype monorepo.
+# L22 (cargo nextest + sccache) — v16 adoption.
+#
+# Docs: https://nexte.st/docs/configuration/
+
+# Default test profile
+[profile.default]
+retries = 2
+fail-fast = false
+slow-timeout = { period = "60s", terminate = "immediate" }
+
+# Fast-feedback profile for local dev
+# Usage: cargo nextest run --profile fast
+[profile.fast]
+retries = 0
+fail-fast = true
+test-threads = 4
+slow-timeout = { period = "10s", terminate = "immediate" }
+
+# Heavy profile for nightly runs (includes e2e, integration, property tests)
+# Usage: cargo nextest run --profile heavy
+[profile.heavy]
+retries = 3
+fail-fast = false
+test-threads = "num-cpus"
+slow-timeout = { period = "300s", terminate = "after-retries" }
+
+# Group test binaries for selective execution
+[test-groups]
+# L21 proptest + L25 loom tests (slow, run only in heavy profile)
+property = { profile = "heavy" }
+loom = { profile = "heavy" }
+
+# Filter expressions for ad-hoc selection
+[profile.default.filters]
+# Skip property tests by default (use --profile heavy to include)
+test-skip = [
+  { test-group = "property" },
+  { test-group = "loom" },
+]

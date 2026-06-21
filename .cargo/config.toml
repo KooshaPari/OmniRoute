@@ -1,0 +1,64 @@
+# Cargo configuration for v16 L22 (nextest + sccache adoption).
+#
+# This config is consumed by cargo when building/testing. It wires in:
+# - sccache for compilation caching (CI and local)
+# - thin LTO defaults
+# - target dir shared across the workspace for cache efficiency
+#
+# To use sccache locally, install it first: `cargo install sccache --locked`
+# Then set the env var: `export RUSTC_WRAPPER=sccache`
+
+[build]
+# use the shared target dir; speeds up CI by reusing artifacts across jobs
+target-dir = "target"
+
+# enable shared sccache compilation cache
+[build.rustc]
+# env RUSTC_WRAPPER=sccache is the primary mechanism
+# (env var is preserved across workspaces)
+
+[target.x86_64-unknown-linux-gnu]
+linker = "clang"
+rustflags = [
+  "-C", "link-arg=-fuse-ld=lld",
+  "-C", "codegen-units=256",
+  "-C", "lto=thin",
+]
+
+[target.aarch64-unknown-linux-gnu]
+linker = "clang"
+rustflags = [
+  "-C", "link-arg=-fuse-ld=lld",
+  "-C", "codegen-units=256",
+  "-C", "lto=thin",
+]
+
+[target.x86_64-apple-darwin]
+linker = "clang"
+rustflags = [
+  "-C", "codegen-units=256",
+  "-C", "lto=thin",
+]
+
+[target.aarch64-apple-darwin]
+linker = "clang"
+rustflags = [
+  "-C", "codegen-units=256",
+  "-C", "lto=thin",
+]
+
+# Cargo aliases for nextest (L22) — run with `cargo nextest run`
+[alias]
+# run all tests with nextest, fall back to cargo test if nextest not installed
+nt = "nextest"
+# run only the fast-feedback subset
+nt-fast = ["nextest", "run", "--profile", "fast"]
+# run all tests + lint
+nt-all = ["nextest", "run", "--workspace", "--all-features"]
+
+# Profile for fast-feedback local iteration
+# Usage: `cargo nextest run --profile fast`
+# Defined in .config/nextest.toml
+
+# Source for shared compilation cache across the workspace
+# Sourced from CI env vars: CARGO_TARGET_DIR, RUSTC_WRAPPER
