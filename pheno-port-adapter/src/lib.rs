@@ -31,6 +31,16 @@ pub trait PortAdapter: Send + Sync {
 /// Concrete transport adapters (TCP, Unix-domain socket).
 pub mod adapters;
 
+/// Hexagonal [`port`](crate::ports) traits the application logic ports
+/// against (per ADR-038). Currently exposes [`crate::ports::time::TimePort`].
+pub mod ports;
+
+// Re-exports at the crate root so callers don't have to navigate the
+// adapters/mock_clock vs adapters/system_clock module split.
+pub use adapters::mock_clock::MockClock;
+pub use adapters::system_clock::SystemClock;
+pub use ports::time::TimePort;
+
 #[cfg(test)]
 mod tests {
     use super::*;
