@@ -1,0 +1,29 @@
+[package]
+name = "perf-gate"
+version = "0.1.0"
+edition = "2021"
+description = "Fleet performance gate — evaluates fleet-perf.toml budgets against measured samples (v19 T4 L19)"
+license = "MIT OR Apache-2.0"
+publish = false
+
+[[bin]]
+name = "perf_gate"
+path = "src/bin/perf_gate.rs"
+
+[lib]
+name = "perf_gate"
+path = "src/lib.rs"
+
+[dependencies]
+thiserror = "1"
+serde = { version = "1", features = ["derive"] }
+toml = "0.8"
+clap = { version = "4", features = ["derive"] }
+
+[dev-dependencies]
+tempfile = "3"
+
+[profile.release]
+opt-level = 3
+lto = "thin"
+codegen-units = 1

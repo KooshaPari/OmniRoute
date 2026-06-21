@@ -1,0 +1,29 @@
+# Baseline broken ADR cross-references.
+# Auto-generated 2026-06-22 from scripts/adr_backlink_check.py.
+# Each line: SOURCE|MISSING. CI gate ignores entries in this list and
+# fails only on NEW broken cross-references introduced by a PR.
+# These reference ADRs that were absorbed/renamed during the v17+
+# monorepo consolidation (see ADR-033 closure). Kept as known noise so
+# the CI gate does not block unrelated PRs.
+#
+# To regenerate this file from current state, run:
+#   python3 scripts/adr_backlink_check.py --quiet 2>&1 | \
+#     python3 -c 'import re,sys; \
+#     [print("".join(re.match(r"^\s*(ADR-\d+B?)\s*\(.*?\):\s*->\s*(ADR-\d+B?)", line).groups())) \
+#      for line in sys.stdin if "->" in line]' | sort -u > scripts/adr_backlink_baseline.txt
+
+ADR-035|ADR-022
+ADR-036|ADR-012
+ADR-037|ADR-013
+ADR-038|ADR-014
+ADR-041|ADR-041B
+ADR-041|ADR-042
+ADR-041|ADR-043
+ADR-046|ADR-042B
+ADR-048|ADR-042B
+ADR-048|ADR-047
+ADR-048|ADR-049
+ADR-051|ADR-048
+ADR-052|ADR-048
+ADR-079|ADR-046
+ADR-080|ADR-049
