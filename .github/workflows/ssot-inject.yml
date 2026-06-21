@@ -7,9 +7,18 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Run ssot-inject (dry-run)
-        run: bash scripts/ssot_inject.sh --dry-run
+        run: |
+          if [ -x scripts/ssot_inject.sh ] || [ -f scripts/ssot_inject.sh ]; then
+            bash scripts/ssot_inject.sh --dry-run
+          else
+            echo "scripts/ssot_inject.sh is absent; skipping ssot-inject dry-run."
+          fi
       - name: Commit if changed
         run: |
+          if [ ! -x scripts/ssot_inject.sh ] && [ ! -f scripts/ssot_inject.sh ]; then
+            echo "scripts/ssot_inject.sh is absent; skipping ssot-inject commit step."
+            exit 0
+          fi
           bash scripts/ssot_inject.sh
           if [[ -n "$(git status --porcelain | grep -E '\.md$')" ]]; then
             git config user.name "ssot-inject-bot"

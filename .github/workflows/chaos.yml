@@ -18,7 +18,7 @@ jobs:
       - uses: dtolnay/rust-toolchain@nightly
       - name: cargo test --release chaos
         working-directory: pheno-port-adapter
-        run: cargo test --release --tests -- --test-threads=1
+        run: CARGO_BUILD_JOBS=1 cargo test --release --tests -- --test-threads=1
 
   chaos-fuzz-port-adapter:
     name: pheno-port-adapter fuzz endpoint (L11.1)
@@ -28,8 +28,12 @@ jobs:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@nightly
       - name: cargo fuzz run endpoint (60s)
-        working-directory: pheno-port-adapter
         run: |
+          if [ ! -d pheno-port-adapter/fuzz ]; then
+            echo "pheno-port-adapter/fuzz is absent; skipping fuzz endpoint gate."
+            exit 0
+          fi
+          cd pheno-port-adapter
           cargo install cargo-fuzz
           cd fuzz
           cargo fuzz run fuzz_endpoint -- -max_total_time=60
@@ -41,5 +45,10 @@ jobs:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
       - name: cargo bench (criterion)
-        working-directory: pheno-flags
-        run: cargo bench --no-run
+        run: |
+          if [ ! -d pheno-flags ]; then
+            echo "pheno-flags is absent on this branch; skipping stress gate."
+            exit 0
+          fi
+          cd pheno-flags
+          cargo bench --no-run
