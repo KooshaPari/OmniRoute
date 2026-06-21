@@ -1,0 +1,46 @@
+name: udeps
+
+on:
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  udeps:
+    name: cargo-udeps (unused-dep check)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Install Rust stable
+        uses: dtolnay/rust-toolchain@stable
+      - name: Install Rust nightly
+        uses: dtolnay/rust-toolchain@nightly
+        with:
+          components: rustfmt, clippy
+      - name: Install cargo-udeps
+        run: cargo install cargo-udeps --locked
+      - name: Find pheno-* crates
+        id: discover
+        run: |
+          set -euo pipefail
+          crates=$(find . -maxdepth 2 -type f -name Cargo.toml \
+            -path './pheno-*' | sort)
+          echo "crates<<EOF" >> "$GITHUB_OUTPUT"
+          echo "$crates" >> "$GITHUB_OUTPUT"
+          echo "EOF" >> "$GITHUB_OUTPUT"
+      - name: Run cargo-udeps per pheno-* crate
+        run: |
+          set -euo pipefail
+          while IFS= read -r manifest; do
+            [ -z "$manifest" ] && continue
+            crate_dir=$(dirname "$manifest")
+            echo "::group::udeps $crate_dir"
+            (cd "$crate_dir" && cargo +nightly udeps --tests)
+            echo "::endgroup::"
+          done <<< "${{ steps.discover.outputs.crates }}"
