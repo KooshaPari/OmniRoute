@@ -98,9 +98,12 @@ def scan_file(path: Path) -> list[str]:
     return findings
 
 
-def scan(paths: list[Path]) -> dict[str, object]:
+def scan(paths: list[Path], allow_missing_default: bool = False) -> dict[str, object]:
     failures: dict[str, list[str]] = {}
-    files = iter_files(resolve_input_paths(paths))
+    if allow_missing_default and paths == [DEFAULT_EVIDENCE_DIR] and not DEFAULT_EVIDENCE_DIR.exists():
+        files: list[Path] = []
+    else:
+        files = iter_files(resolve_input_paths(paths))
     for path in files:
         findings = scan_file(path)
         if findings:
@@ -116,11 +119,12 @@ def scan(paths: list[Path]) -> dict[str, object]:
 def main() -> int:
     parser = argparse.ArgumentParser(description="Validate sanitized local incident evidence notes.")
     parser.add_argument("--json", action="store_true", help="Print sanitized JSON.")
-    parser.add_argument("paths", nargs="*", type=Path, default=[DEFAULT_EVIDENCE_DIR])
+    parser.add_argument("paths", nargs="*", type=Path)
     args = parser.parse_args()
+    paths = args.paths or [DEFAULT_EVIDENCE_DIR]
 
     try:
-        summary = scan(args.paths)
+        summary = scan(paths, allow_missing_default=not args.paths)
     except ValueError as exc:
         print(f"incident-evidence-guard blocked evidence. {exc}")
         return 1

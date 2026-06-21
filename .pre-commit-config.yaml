@@ -6,6 +6,12 @@ repos:
         entry: python scripts/secret-guard.py
         language: system
         pass_filenames: true
+      - id: workflow-action-guard
+        name: workflow action guard
+        entry: python scripts/workflow-action-guard.py
+        language: system
+        files: ^\.github/workflows/.*\.ya?ml$
+        pass_filenames: true
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.5.0
     hooks:

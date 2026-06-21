@@ -10,6 +10,11 @@ pre-commit:
       skip:
         - merge
         - rebase
+    workflow-action-guard:
+      run: python scripts/workflow-action-guard.py
+      skip:
+        - merge
+        - rebase
     editorconfig:
       run: git diff --cached --name-only | xargs -n1 test -f && echo "Checking editorconfig..."
       skip:
