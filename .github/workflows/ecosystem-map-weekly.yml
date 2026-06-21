@@ -1,5 +1,5 @@
 # ecosystem-map-weekly.yml — weekly cron that auto-opens a remediation PR
-# on ECOSYSTEM_MAP.md drift via peter-evans/create-pull-request@v6.
+# on ECOSYSTEM_MAP.md drift via peter-evans/create-pull-request v6, pinned by SHA.
 #
 # Cadence: Monday 09:00 PDT (16:00 UTC) — per the 71-pillar refresh
 # cadence (ADR-041 / audit-71-pillar-2026-06-17-wrapup.md § 11).
@@ -8,7 +8,7 @@
 #   1. Checkout main, fetch the sibling curation-data repo.
 #   2. Run the regen script in write mode to a staging path.
 #   3. If the rendered file differs from the on-disk ECOSYSTEM_MAP.md,
-#      peter-evans/create-pull-request@v6 opens a remediation PR
+#      peter-evans/create-pull-request v6 opens a remediation PR
 #      titled "chore(ecosystem-map): weekly regen <run-id>".
 #   4. If they are equal, exit 0 silently (no PR).
 #
@@ -42,17 +42,17 @@ jobs:
     timeout-minutes: 10
     steps:
       - name: checkout
-        uses: actions/checkout@v7
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v4
         with:
           fetch-depth: 1
 
       - name: setup-python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
         with:
           python-version: "3.12"
 
       - name: checkout sibling phenotype-registry-curation-data
-        uses: actions/checkout@v7
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v4
         with:
           repository: KooshaPari/phenotype-registry-curation-data
           path: ../phenotype-registry-curation-data
@@ -79,14 +79,14 @@ jobs:
           fi
 
       - name: stage regenerated file at canonical path
-        # Must run BEFORE peter-evans/create-pull-request@v6 — cpr commits
+        # Must run BEFORE the create-pull-request step; cpr commits
         # the workspace state at the add-paths locations.
         if: steps.drift.outputs.drift == 'true' || github.event.inputs.force == 'true'
         run: cp /tmp/ECOSYSTEM_MAP.regen.md ECOSYSTEM_MAP.md
 
       - name: open remediation PR on drift
         if: steps.drift.outputs.drift == 'true' || github.event.inputs.force == 'true'
-        uses: peter-evans/create-pull-request@v6
+        uses: peter-evans/create-pull-request@c5a7806660adbe173f04e3e038b0ccdcd758773c # v6
         with:
           # cpr will commit the workspace state at this path. The
           # `stage regenerated file` step above copies the regen output
