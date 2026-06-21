@@ -26,7 +26,7 @@ x509-parser = "0.16"
 
 # Git
 git2 = "0.18"
-gix = { version = "0.68", features = ["blocking-client", "ssh"] }
+gix = { version = "0.83.0", features = ["blocking-client", "ssh"] }
 
 # Time
 chrono = { version = "0.4", features = ["serde"] }
