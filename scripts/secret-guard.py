@@ -54,7 +54,7 @@ CONTENT_PATTERNS = (
     ("cookie header", re.compile(r"(?im)^\s*cookie:\s*[^=\s;]{2,}=[^;\n]{8,}")),
     ("OAuth refresh token field", re.compile(r"(?i)\brefresh[_-]?token\b\s*[:=]\s*['\"]?[A-Za-z0-9._~+/=-]{20,}")),
     ("US SSN", re.compile(r"\b(?!000|666|9\d\d)\d{3}[- ](?!00)\d{2}[- ](?!0000)\d{4}\b")),
-    ("credit card number", re.compile(r"\b(?:\d[ -]*?){13,19}\b")),
+    ("credit card number", re.compile(r"(?i)\b(?:card|credit|cc|pan|visa|mastercard|amex)\b.{0,40}\b(?:\d[ -]*?){13,19}\b|\b(?:\d[ -]*?){13,19}\b.{0,40}\b(?:card|credit|cc|pan|visa|mastercard|amex)\b")),
     ("raw chat export marker", re.compile(r"(?i)\b(conversation_id|message_author|chatgpt|claude\.ai|cursor chat|prompt history)\b.{0,80}\b(content|messages|transcript)\b")),
 )
 
