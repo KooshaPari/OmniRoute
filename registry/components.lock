@@ -63,11 +63,11 @@
     "phenotype-bus": {
       "status": "archived",
       "archived_date": "2026-06-20",
-      "reason": "Archived private Rust event-bus repo. Direct absorption target phenoEvents#9 lifted InMemoryBus adapter plus audit/deny/cliff/version helper; PhenoObservability stale CI tarball dependency removed in commit 37d1ee0. Hard delete deferred pending retention-clear evidence and stale docs/catalog sweep."
+      "reason": "Archived private Rust event-bus repo. Direct absorption target phenoEvents#9 lifted InMemoryBus adapter plus audit/deny/cliff/version helper; PhenoObservability stale CI tarball dependency removed in commit 37d1ee0. 2026-06-20 delete-readiness sweep: phenokits-commons#7 merged docs disposition; Eidolon#66 and Sidekick#75 remove unused production Cargo path deps; PhenoObservability#178 removes stale phenotype-bus test/docs surface in favor of phenotype-event-bus. phenotype-apps#43 removes raw apps-extract gitlinks for Pyron, phenotype-bus, and PhenoContracts. Hard delete deferred until those cleanup PRs merge and post-merge code search/tree checks are clean."
     },
     "PhenoContracts": {
-      "status": "archive-eligible",
-      "reason": "Repo-level PhenoContracts record. pheno-contracts is an alias, while crates/phenotype-contracts decomposition is tracked separately. Registry boundary/intent mark archive-ready; GitHub repo remains active/non-archived pending operational archive and final consumer/catalog sweep."
+      "status": "hold-decompose",
+      "reason": "Repo-level PhenoContracts record. Current repo is active/non-archived and owns formal-verification TS ports/adapters plus Rust crates. No external runtime consumers found in 2026-06-20 scoped search, but deletion is not safe until content is absorbed or explicitly split: Rust phenotype-contracts remains governed by ADR-ECO-014/domain slices, while formal-verification adapters need a terminal owner before archive."
     }
   },
   "components": {
