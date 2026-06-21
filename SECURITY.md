@@ -71,3 +71,21 @@ See `.github/workflows/security.yml` and `scripts/audit.sh` for full configurati
 ## 8. Acknowledgements
 
 We thank the security researchers and contributors who report vulnerabilities responsibly.
+
+## 9. Secrets and PII Handling
+
+Do not commit raw prompt exports, session dumps, provider console exports,
+credentials, or files that may contain personal data. Use sanitized operational
+notes that preserve decisions, alert numbers, paths, and remediation status
+without including token values, account identifiers, IP addresses, or personal
+content.
+
+Credential exposures are handled in this order:
+
+1. Contain public access and automation execution.
+2. Revoke or rotate exposed credentials at the provider.
+3. Preserve a sanitized alert inventory and evidence trail.
+4. Remove exposed material from retained refs.
+5. Request cache/unreachable-object purge from GitHub where applicable.
+6. Restore public access or automation only after scans and provider evidence
+   prove the incident is closed.
