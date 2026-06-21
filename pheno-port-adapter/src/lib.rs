@@ -1,3 +1,6 @@
+#![deny(missing_docs)]
+//! Port adapter abstractions for the `pheno-*` fleet.
+//! Provides the [`PortAdapter`] trait and concrete transport adapters (TCP, Unix-domain socket).
 use thiserror::Error;
 
 /// Error type for port adapter operations.

@@ -25,7 +25,7 @@
 //! - You need language-specific SDKs → use the `opentelemetry` crate family
 //!   directly (this crate is a thin fleet-port wrapper, not a full SDK).
 
-#![warn(missing_docs)]
+#![deny(missing_docs)]
 #![deny(unsafe_code)]
 #![deny(rust_2018_idioms)]
 

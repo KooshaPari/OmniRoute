@@ -1,3 +1,4 @@
+#![deny(missing_docs)]
 //! Canonical [`AppError`] type for the `pheno-*` fleet. Consolidates the
 //! 5 most-common error patterns observed across the L1/L2 fleet audit
 //! (2026-06-10) into a single, dependency-light crate.
