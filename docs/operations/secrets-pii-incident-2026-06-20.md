@@ -111,6 +111,13 @@ Before submitting the GitHub Support purge request, run:
 python scripts\incident-purge-readiness.py
 ```
 
+Before marking the current default branch clean in the purge checklist, run the
+sanitized tracked-file scan on the current `main` checkout:
+
+```powershell
+python scripts\retained-history-secret-scan.py --worktree-root . --fail-on-findings
+```
+
 Use this mode to verify the current blocked posture:
 
 ```powershell
