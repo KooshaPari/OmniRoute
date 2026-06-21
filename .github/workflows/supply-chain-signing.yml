@@ -52,6 +52,23 @@ jobs:
             --output-certificate release.pub \
             "${TARBALL}"
 
+      - name: Self-verify (replay-protection in CI)
+        env:
+          COSIGN_EXPERIMENTAL: "1"
+        run: |
+          TARBALL=./dist/release.tar.gz
+          # Re-verify with the ephemeral OIDC cert before publishing. Catches:
+          #  - Rekor outage / corrupted transparency-log entry
+          #  - Fulcio certificate chain failure
+          #  - Cross-repo identity confusion (regex would mismatch)
+          cosign verify-blob \
+            --signature      release.sig \
+            --certificate   release.pub \
+            --certificate-identity-regexp 'https://github.com/KooshaPari/.*@refs/tags/.*' \
+            --certificate-oidc-issuer     'https://token.actions.githubusercontent.com' \
+            "${TARBALL}" \
+          && echo "✓ cosign signature verified against ephemeral OIDC cert"
+
       - name: Attach signatures to the GitHub Release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
