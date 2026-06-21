@@ -9,11 +9,13 @@ from __future__ import annotations
 
 import argparse
 import json
+import subprocess
 import sys
 from pathlib import Path
 
 
 DEFAULT_INCIDENT_DOC = Path("docs/operations/secrets-pii-incident-2026-06-20.md")
+DEFAULT_REPOSITORY = "KooshaPari/phenotype-registry"
 
 PROVIDER_HEADER = "| Provider / secret type | Alert numbers | Rotation status | Owner | Evidence link |"
 READY_STATUS = {"rotated", "revoked", "complete", "completed", "not applicable", "n/a"}
@@ -96,6 +98,98 @@ def gate_failures(lines: list[str]) -> list[str]:
     return [f"unchecked gate: {label}" for label, checked in items.items() if not checked]
 
 
+def run_gh_api(path: str) -> object:
+    proc = subprocess.run(
+        ["gh", "api", path],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True,
+        check=False,
+    )
+    if proc.returncode:
+        raise ValueError(f"GitHub API request failed for {path}")
+    try:
+        return json.loads(proc.stdout)
+    except json.JSONDecodeError as exc:
+        raise ValueError(f"GitHub API returned non-json for {path}") from exc
+
+
+def live_controls_from_github(repository: str) -> dict[str, object]:
+    repo = run_gh_api(f"repos/{repository}")
+    actions = run_gh_api(f"repos/{repository}/actions/permissions")
+    protection = run_gh_api(f"repos/{repository}/branches/main/protection")
+    if not isinstance(repo, dict) or not isinstance(actions, dict) or not isinstance(protection, dict):
+        raise ValueError("GitHub API returned an unexpected shape")
+
+    return summarize_live_controls(repository, repo, actions, protection)
+
+
+def live_controls_from_fixture(path: Path) -> dict[str, object]:
+    try:
+        raw = json.loads(path.read_text(encoding="utf-8"))
+    except OSError as exc:
+        raise ValueError(f"live controls fixture cannot be read: {path}") from exc
+    except json.JSONDecodeError as exc:
+        raise ValueError(f"live controls fixture is not json: {path}") from exc
+
+    if not isinstance(raw, dict):
+        raise ValueError("live controls fixture must be a json object")
+    return {
+        "repository": str(raw.get("repository", "fixture")),
+        "private": bool(raw.get("private")),
+        "pages_enabled": bool(raw.get("pages_enabled")),
+        "actions_enabled": bool(raw.get("actions_enabled")),
+        "branch_protection": {
+            "enforce_admins": bool(raw.get("enforce_admins")),
+            "allow_deletions": bool(raw.get("allow_deletions")),
+            "allow_force_pushes": bool(raw.get("allow_force_pushes")),
+        },
+    }
+
+
+def summarize_live_controls(
+    repository: str,
+    repo: dict[str, object],
+    actions: dict[str, object],
+    protection: dict[str, object],
+) -> dict[str, object]:
+    enforce_admins = protection.get("enforce_admins", {})
+    allow_deletions = protection.get("allow_deletions", {})
+    allow_force_pushes = protection.get("allow_force_pushes", {})
+    return {
+        "repository": repository,
+        "private": bool(repo.get("private")),
+        "pages_enabled": bool(repo.get("has_pages")),
+        "actions_enabled": bool(actions.get("enabled")),
+        "branch_protection": {
+            "enforce_admins": bool(enforce_admins.get("enabled")) if isinstance(enforce_admins, dict) else False,
+            "allow_deletions": bool(allow_deletions.get("enabled")) if isinstance(allow_deletions, dict) else True,
+            "allow_force_pushes": bool(allow_force_pushes.get("enabled")) if isinstance(allow_force_pushes, dict) else True,
+        },
+    }
+
+
+def live_control_failures(summary: dict[str, object]) -> list[str]:
+    failures: list[str] = []
+    if not summary.get("private"):
+        failures.append("live control: repository is not private")
+    if summary.get("pages_enabled"):
+        failures.append("live control: GitHub Pages is enabled")
+    if summary.get("actions_enabled"):
+        failures.append("live control: GitHub Actions is enabled")
+
+    protection = summary.get("branch_protection", {})
+    if not isinstance(protection, dict):
+        return failures + ["live control: branch protection summary is missing"]
+    if not protection.get("enforce_admins"):
+        failures.append("live control: branch protection does not enforce admins")
+    if protection.get("allow_deletions"):
+        failures.append("live control: branch deletions are allowed")
+    if protection.get("allow_force_pushes"):
+        failures.append("live control: force pushes are allowed")
+    return failures
+
+
 def resolve_incident_doc() -> Path:
     root = Path.cwd().resolve()
     candidate = root / DEFAULT_INCIDENT_DOC
@@ -113,18 +207,33 @@ def resolve_incident_doc() -> Path:
     return resolved
 
 
-def readiness_summary() -> dict[str, object]:
+def readiness_summary(
+    verify_live_controls: bool = False,
+    repository: str = DEFAULT_REPOSITORY,
+    live_controls_fixture: Path | None = None,
+) -> dict[str, object]:
     resolved_doc = resolve_incident_doc()
     text = resolved_doc.read_text(encoding="utf-8")
     lines = text.splitlines()
     provider_blockers = provider_failures(lines)
     gate_blockers = gate_failures(lines)
-    blockers = provider_blockers + gate_blockers
+    live_controls: dict[str, object] = {"status": "not_requested"}
+    live_control_blockers: list[str] = []
+    if verify_live_controls:
+        if live_controls_fixture:
+            live_controls = live_controls_from_fixture(live_controls_fixture)
+        else:
+            live_controls = live_controls_from_github(repository)
+        live_controls["status"] = "checked"
+        live_control_blockers = live_control_failures(live_controls)
+    blockers = provider_blockers + gate_blockers + live_control_blockers
     return {
         "incident_doc": str(resolved_doc.relative_to(Path.cwd().resolve())),
         "ready_to_reopen": not blockers,
         "provider_blocker_count": len(provider_blockers),
         "gate_blocker_count": len(gate_blockers),
+        "live_control_blocker_count": len(live_control_blockers),
+        "live_controls": live_controls,
         "blockers": blockers,
     }
 
@@ -147,10 +256,29 @@ def main() -> int:
         action="store_true",
         help="Succeed only when the incident still has blockers.",
     )
+    parser.add_argument(
+        "--verify-live-controls",
+        action="store_true",
+        help="Verify repository visibility, Actions, Pages, and branch-protection controls through GitHub.",
+    )
+    parser.add_argument(
+        "--repository",
+        default=DEFAULT_REPOSITORY,
+        help="Repository to check when --verify-live-controls is used.",
+    )
+    parser.add_argument(
+        "--live-controls-fixture",
+        type=Path,
+        help="Read sanitized live-control booleans from a JSON fixture instead of GitHub.",
+    )
     args = parser.parse_args()
 
     try:
-        summary = readiness_summary()
+        summary = readiness_summary(
+            args.verify_live_controls,
+            args.repository,
+            args.live_controls_fixture,
+        )
     except ValueError as exc:
         print(f"incident-reopen-readiness: blocked. {exc}")
         return 1
