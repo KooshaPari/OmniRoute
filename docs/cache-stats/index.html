@@ -1,0 +1,298 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>CI Cache Hit-Rate Dashboard — L31</title>
+<meta name="description" content="Fleet-wide CI cache hit-rate over time. Computed by .github/workflows/cache-stats.yml from actions/cache step logs.">
+<style>
+  :root {
+    --bg: #0d1117;
+    --panel: #161b22;
+    --panel-border: #30363d;
+    --text: #c9d1d9;
+    --muted: #8b949e;
+    --accent: #58a6ff;
+    --good: #3fb950;
+    --warn: #d29922;
+    --bad: #f85149;
+    --link: #58a6ff;
+  }
+  @media (prefers-color-scheme: light) {
+    :root {
+      --bg: #ffffff;
+      --panel: #f6f8fa;
+      --panel-border: #d0d7de;
+      --text: #1f2328;
+      --muted: #59636e;
+      --accent: #0969da;
+      --good: #1a7f37;
+      --warn: #9a6700;
+      --bad: #cf222e;
+      --link: #0969da;
+    }
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif; line-height: 1.5; }
+  main { max-width: 1100px; margin: 0 auto; padding: 24px; }
+  h1 { font-size: 28px; margin: 0 0 4px 0; letter-spacing: -0.01em; }
+  h2 { font-size: 18px; margin: 32px 0 8px 0; padding-bottom: 4px; border-bottom: 1px solid var(--panel-border); }
+  h3 { font-size: 14px; margin: 16px 0 8px 0; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
+  .meta { color: var(--muted); font-size: 14px; margin-bottom: 24px; }
+  .meta code { background: var(--panel); padding: 2px 6px; border-radius: 4px; font-size: 12px; }
+  .panel { background: var(--panel); border: 1px solid var(--panel-border); border-radius: 8px; padding: 16px; margin-bottom: 16px; }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  th, td { text-align: left; padding: 8px 12px; border-bottom: 1px solid var(--panel-border); }
+  th { color: var(--muted); font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; }
+  tr:last-child td { border-bottom: none; }
+  .bar { display: inline-block; height: 8px; background: var(--good); border-radius: 4px; vertical-align: middle; min-width: 1px; }
+  .bar.warn { background: var(--warn); }
+  .bar.bad  { background: var(--bad); }
+  .num { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-variant-numeric: tabular-nums; }
+  .pill { display: inline-block; padding: 1px 8px; border-radius: 999px; font-size: 12px; font-weight: 600; }
+  .pill.good { background: rgba(63,185,80,0.15); color: var(--good); }
+  .pill.warn { background: rgba(210,153,34,0.15); color: var(--warn); }
+  .pill.bad  { background: rgba(248,81,73,0.15); color: var(--bad); }
+  .status { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; }
+  .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); }
+  .dot.live { background: var(--good); animation: pulse 2s infinite; }
+  .dot.stale { background: var(--warn); }
+  .dot.err { background: var(--bad); }
+  @keyframes pulse { 0%,100% { opacity: 1 } 50% { opacity: 0.4 } }
+  svg.chart { width: 100%; height: 240px; display: block; }
+  svg.chart .axis { stroke: var(--panel-border); stroke-width: 1; }
+  svg.chart .grid { stroke: var(--panel-border); stroke-width: 1; stroke-dasharray: 2 4; opacity: 0.5; }
+  svg.chart .axis-label { fill: var(--muted); font-size: 11px; }
+  svg.chart .line { fill: none; stroke: var(--accent); stroke-width: 2; }
+  svg.chart .point { fill: var(--accent); }
+  svg.chart .threshold { stroke: var(--warn); stroke-width: 1; stroke-dasharray: 4 4; }
+  #kpi-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 16px; }
+  @media (max-width: 600px) { #kpi-row { grid-template-columns: repeat(2, 1fr); } }
+  footer { margin-top: 48px; padding-top: 16px; border-top: 1px solid var(--panel-border); color: var(--muted); font-size: 12px; }
+  footer a { color: var(--link); text-decoration: none; }
+  footer a:hover { text-decoration: underline; }
+  .legend { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 8px; font-size: 12px; color: var(--muted); }
+  .legend span { display: inline-flex; align-items: center; gap: 4px; }
+  .legend i { width: 10px; height: 10px; border-radius: 2px; display: inline-block; }
+</style>
+</head>
+<body>
+<main>
+  <h1>CI Cache Hit-Rate Dashboard</h1>
+  <div class="meta">
+    <span class="status"><span id="status-dot" class="dot"></span><span id="status-text">Loading…</span></span>
+    &nbsp;·&nbsp; Pillar <code>L31</code>
+    &nbsp;·&nbsp; Updated <span id="updated-at" class="num">—</span>
+    &nbsp;·&nbsp; <a href="README.md" style="color:var(--link)">About this metric</a>
+  </div>
+
+  <div class="panel">
+    <h3>Fleet-wide hit-rate (7-day window)</h3>
+    <div id="kpi-row">
+      <div>
+        <div class="meta" style="margin-bottom:2px">Hit rate</div>
+        <div id="kpi-rate" class="num" style="font-size:32px;font-weight:600">—</div>
+      </div>
+      <div>
+        <div class="meta" style="margin-bottom:2px">Total runs</div>
+        <div id="kpi-runs" class="num" style="font-size:32px;font-weight:600">—</div>
+      </div>
+      <div>
+        <div class="meta" style="margin-bottom:2px">Cache hits</div>
+        <div id="kpi-hits" class="num" style="font-size:32px;font-weight:600">—</div>
+      </div>
+      <div>
+        <div class="meta" style="margin-bottom:2px">Cache misses</div>
+        <div id="kpi-misses" class="num" style="font-size:32px;font-weight:600">—</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h3>Daily trend (last 7 days)</h3>
+    <svg id="chart-daily" class="chart" viewBox="0 0 800 240" preserveAspectRatio="none" aria-label="Daily hit-rate trend chart"></svg>
+    <div class="legend"><span><i style="background:var(--accent)"></i> Daily hit-rate</span><span><i style="background:var(--warn)"></i> 0.70 target</span></div>
+  </div>
+
+  <div class="panel">
+    <h3>Per-repo hit-rate (last 7 days)</h3>
+    <table id="repo-table">
+      <thead><tr>
+        <th>Repo</th><th class="num">Runs</th><th class="num">Hits</th><th class="num">Misses</th><th class="num">Hit rate</th><th>Bar</th>
+      </tr></thead>
+      <tbody><tr><td colspan="6" class="meta">Loading…</td></tr></tbody>
+    </table>
+  </div>
+
+  <div class="panel">
+    <h3>Raw per-run time-series</h3>
+    <svg id="chart-runs" class="chart" viewBox="0 0 800 240" preserveAspectRatio="none" aria-label="Per-run scatter chart"></svg>
+    <div class="legend"><span><i style="background:var(--accent)"></i> Each dot = one CI run</span></div>
+  </div>
+
+  <footer>
+    Generated by <code>scripts/cache_stats_wrapper.sh</code>
+    via <code>.github/workflows/cache-stats.yml</code>.
+    Source: <a href="history.jsonl">history.jsonl</a> · <a href="fleet.json">fleet.json</a> · <a href="latest.json">latest.json</a>.
+  </footer>
+</main>
+
+<script>
+"use strict";
+const fmt = new Intl.NumberFormat();
+const fmtPct = (x) => (x * 100).toFixed(1) + "%";
+const rateClass = (r) => r >= 0.7 ? "good" : r >= 0.5 ? "warn" : "bad";
+
+async function fetchJson(path) {
+  const r = await fetch(path, { cache: "no-store" });
+  if (!r.ok) throw new Error(path + " → HTTP " + r.status);
+  return await r.json();
+}
+async function fetchJsonl(path) {
+  const r = await fetch(path, { cache: "no-store" });
+  if (!r.ok) throw new Error(path + " → HTTP " + r.status);
+  const text = await r.text();
+  return text.split("\n").filter(Boolean).map((line) => {
+    try { return JSON.parse(line); } catch (e) { return null; }
+  }).filter(Boolean);
+}
+
+function setStatus(state, msg) {
+  const dot = document.getElementById("status-dot");
+  const txt = document.getElementById("status-text");
+  dot.className = "dot " + state;
+  txt.textContent = msg;
+}
+
+function renderDailyChart(daily) {
+  const svg = document.getElementById("chart-daily");
+  svg.innerHTML = "";
+  if (!daily || daily.length === 0) {
+    svg.innerHTML = '<text x="400" y="120" text-anchor="middle" class="axis-label">No daily data yet</text>';
+    return;
+  }
+  const W = 800, H = 240, pad = { l: 40, r: 16, t: 16, b: 28 };
+  const innerW = W - pad.l - pad.r;
+  const innerH = H - pad.t - pad.b;
+  const ys = [0, 0.25, 0.5, 0.75, 1.0];
+  for (const y of ys) {
+    const yy = pad.t + innerH * (1 - y);
+    svg.insertAdjacentHTML("beforeend",
+      `<line class="grid" x1="${pad.l}" y1="${yy}" x2="${W - pad.r}" y2="${yy}"/>` +
+      `<text class="axis-label" x="${pad.l - 6}" y="${yy + 3}" text-anchor="end">${(y * 100).toFixed(0)}%</text>`);
+  }
+  const ty = pad.t + innerH * (1 - 0.7);
+  svg.insertAdjacentHTML("beforeend",
+    `<line class="threshold" x1="${pad.l}" y1="${ty}" x2="${W - pad.r}" y2="${ty}"/>`);
+  const n = daily.length;
+  daily.forEach((d, i) => {
+    const x = pad.l + (n === 1 ? innerW / 2 : innerW * (i / (n - 1)));
+    svg.insertAdjacentHTML("beforeend",
+      `<text class="axis-label" x="${x}" y="${H - pad.b + 14}" text-anchor="middle">${d.date.slice(5)}</text>`);
+  });
+  const pts = daily.map((d, i) => {
+    const x = pad.l + (n === 1 ? innerW / 2 : innerW * (i / (n - 1)));
+    const y = pad.t + innerH * (1 - d.hit_rate);
+    return [x, y, d];
+  });
+  const path = pts.map((p, i) => (i === 0 ? "M" : "L") + p[0] + "," + p[1]).join(" ");
+  svg.insertAdjacentHTML("beforeend", `<path class="line" d="${path}"/>`);
+  for (const [x, y, d] of pts) {
+    const klass = rateClass(d.hit_rate);
+    const color = klass === "good" ? "var(--good)" : klass === "warn" ? "var(--warn)" : "var(--bad)";
+    svg.insertAdjacentHTML("beforeend",
+      `<circle class="point" cx="${x}" cy="${y}" r="4" fill="${color}">` +
+      `<title>${d.date}: ${fmtPct(d.hit_rate)} (${d.runs} runs, ${d.hits} hits, ${d.misses} misses)</title></circle>`);
+  }
+}
+
+function renderRunsChart(history) {
+  const svg = document.getElementById("chart-runs");
+  svg.innerHTML = "";
+  if (!history || history.length === 0) {
+    svg.innerHTML = '<text x="400" y="120" text-anchor="middle" class="axis-label">No per-run data yet</text>';
+    return;
+  }
+  const W = 800, H = 240, pad = { l: 40, r: 16, t: 16, b: 28 };
+  const innerW = W - pad.l - pad.r;
+  const innerH = H - pad.t - pad.b;
+  const ys = [0, 0.25, 0.5, 0.75, 1.0];
+  for (const y of ys) {
+    const yy = pad.t + innerH * (1 - y);
+    svg.insertAdjacentHTML("beforeend",
+      `<line class="grid" x1="${pad.l}" y1="${yy}" x2="${W - pad.r}" y2="${yy}"/>` +
+      `<text class="axis-label" x="${pad.l - 6}" y="${yy + 3}" text-anchor="end">${(y * 100).toFixed(0)}%</text>`);
+  }
+  const ts = history.map((r) => new Date(r.timestamp).getTime());
+  const tMin = Math.min.apply(null, ts);
+  const tMax = Math.max.apply(null, ts);
+  const tSpan = Math.max(1, tMax - tMin);
+  for (let i = 0; i < history.length; i++) {
+    const r = history[i];
+    const x = pad.l + innerW * ((new Date(r.timestamp).getTime() - tMin) / tSpan);
+    const y = pad.t + innerH * (1 - r.hit_rate);
+    const klass = rateClass(r.hit_rate);
+    const color = klass === "good" ? "var(--good)" : klass === "warn" ? "var(--warn)" : "var(--bad)";
+    svg.insertAdjacentHTML("beforeend",
+      `<circle cx="${x}" cy="${y}" r="3.5" fill="${color}" opacity="0.8">` +
+      `<title>${r.timestamp} · ${r.repo} · run ${r.run_id} · ${fmtPct(r.hit_rate)} (${r.hit_count}h/${r.miss_count}m) · branch ${r.branch}</title></circle>`);
+  }
+  const fmtDate = (ms) => new Date(ms).toISOString().slice(0, 10);
+  svg.insertAdjacentHTML("beforeend",
+    `<text class="axis-label" x="${pad.l}" y="${H - pad.b + 14}" text-anchor="start">${fmtDate(tMin)}</text>` +
+    `<text class="axis-label" x="${W - pad.r}" y="${H - pad.b + 14}" text-anchor="end">${fmtDate(tMax)}</text>`);
+}
+
+function renderRepoTable(perRepo) {
+  const tbody = document.querySelector("#repo-table tbody");
+  if (!perRepo || perRepo.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="6" class="meta">No per-repo data yet</td></tr>';
+    return;
+  }
+  perRepo.sort((a, b) => b.runs - a.runs);
+  const maxRuns = Math.max.apply(null, perRepo.map((r) => r.runs));
+  tbody.innerHTML = perRepo.map((r) => {
+    const cls = rateClass(r.hit_rate);
+    const width = Math.max(2, Math.round((r.runs / maxRuns) * 200));
+    const pill = `<span class="pill ${cls}">${fmtPct(r.hit_rate)}</span>`;
+    return `<tr>
+      <td><code>${r.repo}</code></td>
+      <td class="num">${fmt.format(r.runs)}</td>
+      <td class="num">${fmt.format(r.hits)}</td>
+      <td class="num">${fmt.format(r.misses)}</td>
+      <td class="num">${pill}</td>
+      <td><span class="bar ${cls}" style="width:${width}px"></span></td>
+    </tr>`;
+  }).join("");
+}
+
+async function main() {
+  try {
+    const [fleet, history] = await Promise.all([
+      fetchJson("fleet.json").catch((e) => { console.error(e); return null; }),
+      fetchJsonl("history.jsonl").catch((e) => { console.error(e); return []; }),
+    ]);
+    if (!fleet) {
+      setStatus("err", "Failed to load fleet.json — dashboard may be empty until first CI run completes");
+    } else {
+      setStatus("live", "Live · last updated " + new Date(fleet.generated_at).toLocaleString());
+    }
+    document.getElementById("updated-at").textContent = fleet && fleet.generated_at
+      ? new Date(fleet.generated_at).toISOString().replace("T", " ").slice(0, 19) + " UTC"
+      : "—";
+    document.getElementById("kpi-rate").textContent = fleet ? fmtPct(fleet.hit_rate) : "—";
+    document.getElementById("kpi-runs").textContent = fleet ? fmt.format(fleet.total_runs) : "—";
+    document.getElementById("kpi-hits").textContent = fleet ? fmt.format(fleet.total_hits) : "—";
+    document.getElementById("kpi-misses").textContent = fleet ? fmt.format(fleet.total_misses) : "—";
+    renderRepoTable(fleet ? fleet.per_repo : []);
+    renderDailyChart(fleet ? fleet.daily : []);
+    renderRunsChart(history);
+  } catch (e) {
+    console.error(e);
+    setStatus("err", "Failed to render dashboard: " + e.message);
+  }
+}
+main();
+</script>
+</body>
+</html>

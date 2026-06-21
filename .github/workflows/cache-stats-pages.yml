@@ -1,35 +1,72 @@
+# .github/workflows/cache-stats-pages.yml — v19 T1 L31 dashboard pages deployer
+#
+# Authority: ADR-040 + v19 71-pillar cycle 9 P0 plan §2 Track T1.
+#
+# Deploys docs/cache-stats/ to GitHub Pages so the dashboard renders at:
+#   https://<owner>.github.io/<repo>/cache-stats/
+#
+# Trigger chain:
+#   CI workflow completes
+#     -> cache-stats.yml (workflow_run) writes history.jsonl + latest.json + fleet.json
+#       -> this workflow deploys docs/cache-stats/ to Pages.
+#
+# We also keep the original push-to-main trigger so manual doc edits to docs/cache-stats/
+# (e.g. adding seed data) re-deploy the dashboard without a CI run.
 name: cache-stats-pages
+
 on:
+  workflow_run:
+    workflows: ["cache-stats"]
+    types: [completed]
   push:
     branches: [main]
+    paths:
+      - "docs/cache-stats/**"
   schedule:
-    - cron: '0 */6 * * *'  # every 6 hours
+    - cron: "0 */6 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: cache-stats-pages
+  cancel-in-progress: true
 
 jobs:
   refresh-dashboard:
+    name: refresh-dashboard
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - uses: actions/checkout@v4
-      - name: Generate cache stats JSON
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Verify dashboard artifacts exist
         run: |
+          set -euo pipefail
           mkdir -p docs/cache-stats
-          # Sample stats (in production, this would pull from GitHub API)
-          cat > docs/cache-stats/latest.json << 'JSON'
-{
-  "generated_at": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
-  "fleet_hit_rate_7d": 0.78,
-  "repos": {
-    "pheno-flags": {"hit_rate": 0.85, "last_7d_avg": 0.83},
-    "pheno-errors": {"hit_rate": 0.81, "last_7d_avg": 0.79},
-    "pheno-port-adapter": {"hit_rate": 0.76, "last_7d_avg": 0.74},
-    "pheno-tracing": {"hit_rate": 0.72, "last_7d_avg": 0.70}
-  }
-}
-JSON
-      - uses: actions/configure-pages@v5
-      - uses: actions/upload-pages-artifact@v3
+          for f in index.html README.md; do
+            if [ ! -f "docs/cache-stats/$f" ]; then
+              echo "::error::missing docs/cache-stats/$f"
+              exit 1
+            fi
+          done
+          echo "dashboard artifacts OK"
+          ls -la docs/cache-stats/
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
         with:
           path: docs/cache-stats
-      - uses: actions/deploy-pages@v4
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
