@@ -77,6 +77,8 @@ Suggested local note shape:
 provider: <provider name only>
 alerts: <alert numbers only>
 status: revoked|rotated|not applicable
+activity_review: complete|needs follow-up|not applicable
+replacement: none needed|stored outside repo in secret manager|not applicable
 evidence_ref: <sanitized ticket or audit-log reference, no account IDs>
 verified_by: account owner
 verified_at_utc: YYYY-MM-DDTHH:MM:SSZ
@@ -89,8 +91,11 @@ Before copying any status into issue #320 or this command sheet, run:
 python scripts\incident-evidence-guard.py incident-evidence\2026-06-20
 ```
 
-The guard reports paths and finding labels only. A passing guard does not make
-raw evidence safe for git; it only checks local notes before tracker updates.
+The guard reports paths and finding labels only. It also requires the sanitized
+note fields above so tracker updates include the owner action, activity review,
+replacement disposition, evidence reference, verifier, and UTC timestamp. A
+passing guard does not make raw evidence safe for git; it only checks local
+notes before tracker updates.
 
 ## Do Not Reopen Public Access Until
 

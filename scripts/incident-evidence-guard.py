@@ -16,6 +16,19 @@ from pathlib import Path
 
 
 DEFAULT_EVIDENCE_DIR = Path("incident-evidence")
+REQUIRED_NOTE_FIELDS = (
+    "provider",
+    "alerts",
+    "status",
+    "activity_review",
+    "replacement",
+    "evidence_ref",
+    "verified_by",
+    "verified_at_utc",
+)
+ALLOWED_STATUS_VALUES = {"revoked", "rotated", "not applicable"}
+ALLOWED_ACTIVITY_REVIEW_VALUES = {"complete", "needs follow-up", "not applicable"}
+UTC_TIMESTAMP_PATTERN = re.compile(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$")
 DENIED_EXTENSIONS = {
     ".csv",
     ".gif",
@@ -48,6 +61,42 @@ PII_PATTERNS = (
     ("account identifier label", re.compile(r"(?i)\b(account|tenant|organization|org|user|client)[_-]?id\b\s*[:=]")),
     ("raw alert payload marker", re.compile(r"(?i)\b(secret_scanning_alert|raw[_ -]?alert|provider[_ -]?export|console[_ -]?export)\b")),
 )
+
+
+def parse_note_fields(text: str) -> dict[str, str]:
+    fields: dict[str, str] = {}
+    for line in text.splitlines():
+        if ":" not in line:
+            continue
+
+        key, value = line.split(":", 1)
+        normalized_key = key.strip().lower()
+        if normalized_key in REQUIRED_NOTE_FIELDS:
+            fields[normalized_key] = value.strip()
+    return fields
+
+
+def schema_findings(text: str) -> list[str]:
+    fields = parse_note_fields(text)
+    findings: list[str] = []
+
+    for field in REQUIRED_NOTE_FIELDS:
+        if not fields.get(field):
+            findings.append(f"missing required field: {field}")
+
+    status = fields.get("status", "").lower()
+    if status and status not in ALLOWED_STATUS_VALUES:
+        findings.append("invalid status value")
+
+    activity_review = fields.get("activity_review", "").lower()
+    if activity_review and activity_review not in ALLOWED_ACTIVITY_REVIEW_VALUES:
+        findings.append("invalid activity_review value")
+
+    verified_at_utc = fields.get("verified_at_utc", "")
+    if verified_at_utc and not UTC_TIMESTAMP_PATTERN.match(verified_at_utc):
+        findings.append("invalid verified_at_utc timestamp")
+
+    return findings
 
 
 def iter_files(paths: list[Path]) -> list[Path]:
@@ -95,6 +144,7 @@ def scan_file(path: Path) -> list[str]:
     for label, pattern in (*SECRET_PATTERNS, *PII_PATTERNS):
         if pattern.search(text):
             findings.append(label)
+    findings.extend(schema_findings(text))
     return findings
 
 

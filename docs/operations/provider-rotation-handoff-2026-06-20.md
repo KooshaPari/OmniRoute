@@ -14,6 +14,9 @@ issue #320 and `docs/operations/secrets-pii-incident-2026-06-20.md`.
 - Store only sanitized local notes under ignored `incident-evidence/`.
 - Run `python scripts\incident-evidence-guard.py incident-evidence\2026-06-20`
   before copying any status into the tracker.
+- The evidence guard requires each local note to include `provider`, `alerts`,
+  `status`, `activity_review`, `replacement`, `evidence_ref`, `verified_by`,
+  and `verified_at_utc`.
 - Evidence references should be sanitized ticket IDs, audit-log references with
   account identifiers removed, or local evidence note filenames.
 - A provider row is not complete until the old credential is revoked or rotated,
@@ -54,6 +57,20 @@ Provider rotation update (sanitized):
 - Activity review: complete|needs follow-up.
 - Replacement: none needed|stored outside repo in secret manager.
 - Evidence reference: <sanitized local note or ticket reference>.
+```
+
+Use this sanitized shape for ignored local notes:
+
+```text
+provider: <provider name only>
+alerts: <alert numbers only>
+status: revoked|rotated|not applicable
+activity_review: complete|needs follow-up|not applicable
+replacement: none needed|stored outside repo in secret manager|not applicable
+evidence_ref: <sanitized ticket or audit-log reference, no account IDs>
+verified_by: account owner
+verified_at_utc: YYYY-MM-DDTHH:MM:SSZ
+notes: <sanitized summary>
 ```
 
 Do not mark the readiness gate complete until every provider row has a
