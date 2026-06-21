@@ -1,0 +1,11 @@
+[build]
+incremental = true
+
+[env]
+CARGO_INCREMENTAL = "1"
+
+# nextest profile
+[profile.ci]
+inherits = "default"
+retries = 0
+slow-timeout = { period = "60s", terminate-after = 2 }

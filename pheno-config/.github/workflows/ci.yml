@@ -1,0 +1,24 @@
+name: ci
+on: [push, pull_request]
+env:
+  RUSTFLAGS: "-D warnings"
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Install nextest
+        run: cargo install cargo-nextest --locked
+      - name: sccache cache
+        uses: Swatinem/rust-cache@v2
+        with:
+          shared-key: ${{ matrix.os }}-cargo-nextest-${{ hashFiles('**/Cargo.lock') }}
+          cache-on-failure: true
+      - name: Run nextest
+        run: cargo nextest run --profile ci --workspace --all-features
+      - name: Verify sccache hit-rate ≥80%
+        run: |
+          sccache --show-stats | tee /tmp/sccache.txt
+          HIT_RATE=$(grep -oP 'Cache hit rate: \K[0-9.]+' /tmp/sccache.txt || echo "0")
+          [ "${HIT_RATE%.*}" -ge 80 ] || exit 1
