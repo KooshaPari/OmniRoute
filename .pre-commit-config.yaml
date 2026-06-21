@@ -1,4 +1,11 @@
 repos:
+  - repo: local
+    hooks:
+      - id: secret-guard
+        name: secret guard
+        entry: python scripts/secret-guard.py
+        language: system
+        pass_filenames: true
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.5.0
     hooks:

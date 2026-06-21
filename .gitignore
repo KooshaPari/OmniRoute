@@ -8,6 +8,16 @@ docs/.vitepress/dist/
 .env
 .env.*
 !.env.example
+*.pem
+*.key
+*_rsa
+*id_rsa*
+*credential*.json
+*credentials*.json
+*service-account*.json
+.npmrc
+.pypirc
+.netrc
 node_modules/
 target/
 dist/
