@@ -43,6 +43,109 @@ pub struct EventEnvelope {
     pub payload: Value,
 }
 
+// ---------------------------------------------------------------------------
+// proptest::Arbitrary impls (v20-T5 / L23)
+// ---------------------------------------------------------------------------
+
+/// Helper strategy: any [`Uuid`].
+///
+/// `Uuid` does not implement `Arbitrary` upstream, so we map from a
+/// 128-bit unsigned integer via [`Uuid::from_u128`]. The bit pattern
+/// is *not* required to be a valid v7 UUID — `EventEnvelope::validate`
+/// only checks `event_type`, `source`, and `schema_version`, so the
+/// `id` bit pattern is irrelevant for property tests.
+fn arb_uuid() -> proptest::strategy::BoxedStrategy<Uuid> {
+    any::<u128>().prop_map(Uuid::from_u128).boxed()
+}
+
+/// Helper strategy: any UTC [`DateTime`].
+///
+/// `DateTime<Utc>` does not implement `Arbitrary` upstream, so we map
+/// from a `u64` Unix timestamp (seconds since epoch). The range is
+/// 1970-01-01 .. 2100-01-01 — wide enough to exercise the timestamp
+/// formatting path without going past `DateTime::from_timestamp`'s
+/// documented range.
+fn arb_timestamp() -> proptest::strategy::BoxedStrategy<DateTime<Utc>> {
+    (0u64..=4_102_444_800u64)
+        .prop_map(|secs| {
+            DateTime::<Utc>::from_timestamp(secs, 0).expect("timestamp in range")
+        })
+        .boxed()
+}
+
+/// Helper strategy: a small bounded JSON [`Value`].
+///
+/// `Value` does not implement `Arbitrary` upstream, so we hand-roll a
+/// recursive generator. Leaves are `null | bool | i64 | short-string`;
+/// the recursion level is capped at 3 and per-branch size at 4 so the
+/// generated value is small (single-digit KB) — wide enough to exercise
+/// the JSON serialisation path but narrow enough to keep proptest
+/// fast.
+fn arb_json_value() -> proptest::strategy::BoxedStrategy<Value> {
+    let leaf = prop_oneof![
+        proptest::strategy::Just(Value::Null),
+        any::<bool>().prop_map(Value::Bool),
+        any::<i64>().prop_map(|n| Value::Number(n.into())),
+        proptest::string::string_regex("[A-Za-z0-9_\\-\\.]{0,32}")
+            .expect("json string regex")
+            .prop_map(Value::String),
+    ];
+
+    leaf.prop_recursive(
+        3,  // max depth
+        64, // max size
+        4,  // expected branch factor
+        |inner| {
+            proptest::collection::vec(inner, 0..=4)
+                .prop_map(|items| Value::Array(items))
+        },
+    )
+}
+
+impl proptest::arbitrary::Arbitrary for EventEnvelope {
+    type Parameters = ();
+    type Strategy = proptest::strategy::BoxedStrategy<Self>;
+
+    fn arbitrary_with((): Self::Parameters) -> Self::Strategy {
+        (
+            arb_uuid(),
+            proptest::string::string_regex("[a-z][a-z0-9_.]{1,32}")
+                .expect("event_type regex"),
+            proptest::string::string_regex("[a-z][a-z0-9_.]{1,32}")
+                .expect("source regex"),
+            arb_timestamp(),
+            proptest::option::of(arb_uuid()),
+            proptest::option::of(arb_uuid()),
+            1u32..=u32::MAX, // schema_version >= 1 (validate() rejects 0)
+            arb_json_value(),
+        )
+            .prop_map(
+                |(
+                    id,
+                    event_type,
+                    source,
+                    timestamp,
+                    causation_id,
+                    correlation_id,
+                    schema_version,
+                    payload,
+                )| {
+                    EventEnvelope {
+                        id,
+                        event_type,
+                        source,
+                        timestamp,
+                        causation_id,
+                        correlation_id,
+                        schema_version,
+                        payload,
+                    }
+                },
+            )
+            .boxed()
+    }
+}
+
 /// Errors raised by [`EventEnvelope::validate`] and the builder.
 #[derive(Debug, thiserror::Error, PartialEq, Eq)]
 pub enum EnvelopeError {

@@ -15,6 +15,11 @@ serde = { version = "1", features = ["derive"] }
 # `pheno-errors` uses `pheno-otel` to surface structured error context
 # to OTLP/HTTP collectors when wired into a wider observability stack.
 pheno-otel = { path = "../pheno-otel" }
+# v20-T5 (L23): proptest is in [dependencies] (not just [dev-dependencies])
+# so the manual `Arbitrary` impl for `AppError` in `src/lib.rs` compiles.
+# Tests in `tests/proptest_smoke.rs` then exercise the impl via
+# `any::<AppError>()`.
+proptest = "1.4"
 
 [dev-dependencies]
 proptest = "1"

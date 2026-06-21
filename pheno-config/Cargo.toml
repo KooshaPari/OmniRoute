@@ -40,6 +40,16 @@ toml = "0.7"
 # must have proptest as a regular dep.
 proptest = { version = "1.4", default-features = false, features = ["std"] }
 
+# v22-T4 (L33) SIGHUP-driven hot reload (see src/hot_reload.rs):
+#   arc-swap       - lock-free atomic swap of the cached config
+#   signal-hook    - cross-platform signal handling (unix: SIGHUP)
+#   crossbeam-channel - shutdown signal for the background reloader thread
+arc-swap = "1.7"
+signal-hook = "0.3"
+crossbeam-channel = "0.5"
+# tempdir + signal-hook's signal-block helpers
+tempfile = "3.10"
+
 [dev-dependencies]
 # v20-T5 (L23): proptest is also in [dev-dependencies] for integration
 # tests in `tests/`. (The proptest entry in [dependencies] is what makes

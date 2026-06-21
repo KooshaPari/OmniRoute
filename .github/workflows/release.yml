@@ -1,53 +1,119 @@
-name: Release
+# V21-T3 (L26 release coordination)
+# Runs scripts/release.sh in --ci mode on tag push to ensure a
+# GitHub Release exists for every pushed tag. Idempotent. Steps a-d
+# (bump Cargo.toml, regenerate CHANGELOG, commit, tag) are normally
+# performed by a human running `scripts/release.sh <version>` locally;
+# this workflow is the post-tag safety net.
+#
+# Replaces the prior Go-fleet release.yml (which triggered on main push
+# + commit message check and did not coordinate Cargo / CHANGELOG).
+name: release
 
 on:
   push:
-    branches: [main]
-    paths-ignore:
-      - 'docs/**'
-      - '**.md'
+    tags:
+      - 'v[0-9]*.[0-9]*.[0-9]*'
+      - 'v[0-9]*.[0-9]*.[0-9]*-*'
+
+# Cancel in-progress is DISABLED: a release should run exactly once per
+# tag. Re-running is safe (release.sh --ci is idempotent) but we want a
+# single canonical run per tag in CI history.
+concurrency:
+  group: release-${{ github.ref_name }}
+  cancel-in-progress: false
 
 permissions:
-  contents: write
-  packages: write
-
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  contents: write      # create + publish GitHub Release
+  id-token: write      # OIDC for SLSA provenance (future)
+  attestations: write  # publish release attestations (future)
+  packages: write      # publish container artifacts (future)
 
 jobs:
   release:
+    name: Coordinate Release
     runs-on: ubuntu-latest
-    if: contains(github.event.head_commit.message, 'release:') || contains(github.event.head_commit.message, 'chore(release)')
-    outputs:
-      version: ${{ steps.version.outputs.version }}
+    timeout-minutes: 30
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
-          fetch-depth: 0
-      - name: Setup Go
-        uses: actions/setup-go@f111f3307d8850f501ac008e886eec1fd1932a34
-        with:
-          go-version: '1.22'
-      - name: Build
-        run: go build ./...
-      - name: Test
-        run: go test ./... -v -race
-      - name: Determine version
-        id: version
-        run: |
-          VERSION=$(git describe --tags --always --abbrev=7)
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
-      - name: Publish to Go proxy
-        run: |
-          git tag v${{ steps.version.outputs.version }}
-          git push origin v${{ steps.version.outputs.version }}
+          fetch-depth: 0          # full history for git-cliff + diff
+          token: ${{ secrets.GITHUB_TOKEN }}
 
-  promote:
-    needs: release
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
-      - name: Promote to staging
+      - name: Install git-cliff
+        uses: taiki-e/install-action@git-cliff
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: 1.82
+
+      - name: Cache cargo registry + target
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: |
+            . -> target
+          cache-on-failure: true
+
+      - name: Verify tag is annotated
         run: |
-          echo "Promoting v${{ needs.release.outputs.version }} to beta"
+          TAG="${GITHUB_REF_NAME}"
+          TYPE="$(git cat-file -t "$TAG")"
+          if [[ "$TYPE" != "tag" ]]; then
+            echo "::error::tag $TAG is of type '$TYPE'; must be annotated (git tag -a)"
+            exit 1
+          fi
+          echo "tag $TAG is annotated OK"
+
+      - name: Run release.sh (--ci mode)
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          bash scripts/release.sh "${GITHUB_REF_NAME#v}" --ci
+
+      - name: Build source tarball
+        run: |
+          TAG="${GITHUB_REF_NAME}"
+          git archive --format=tar.gz \
+            --prefix="phenotype-${TAG#v}/" \
+            -o "phenotype-${TAG#v}-source.tar.gz" \
+            "$TAG"
+
+      - name: Attach source tarball to release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG="${GITHUB_REF_NAME}"
+          gh release upload "$TAG" "phenotype-${TAG#v}-source.tar.gz" --clobber
+
+      - name: Generate SBOM (SPDX JSON)
+        id: sbom
+        uses: anchore/sbom-action@v0
+        with:
+          format: spdx-json
+          artifact-name: phenotype-${{ github.ref_name }}.spdx.json
+
+      - name: Attach SBOM to release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG="${GITHUB_REF_NAME}"
+          SBOM_PATH="$(find . -maxdepth 4 -name "${{ steps.sbom.outputs.artifact-name }}" -print -quit)"
+          if [[ -z "$SBOM_PATH" ]]; then
+            echo "::warning::SBOM artifact not found; skipping upload"
+            exit 0
+          fi
+          gh release upload "$TAG" "$SBOM_PATH" --clobber
+
+      - name: Step summary
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          {
+            echo "## Release ${{ github.ref_name }}"
+            echo
+            gh release view "${{ github.ref_name }}" \
+              --json name,tagName,url,publishedAt,assets \
+              --jq '. | "**URL:** \(.url)\n**Published:** \(.publishedAt)\n**Assets:**\n" + (.assets | map("- `" + .name + "` (" + (.size|tostring) + " bytes)") | join("\n"))'
+          } >> "$GITHUB_STEP_SUMMARY"

@@ -6,19 +6,22 @@ on:
       - 'docs/adr/**'
       - 'scripts/adr_backlink_check.py'
       - 'scripts/adr_backlink_baseline.txt'
+      - 'scripts/adr_index_gen.py'
       - '.github/workflows/adr-lint.yml'
   pull_request:
     paths:
       - 'docs/adr/**'
       - 'scripts/adr_backlink_check.py'
       - 'scripts/adr_backlink_baseline.txt'
+      - 'scripts/adr_index_gen.py'
       - '.github/workflows/adr-lint.yml'
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
+
 jobs:
-  adr-backlinks:
-    name: Verify ADR cross-references
+  adr-lint:
+    name: ADR lint (index + backlinks)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
@@ -26,42 +29,24 @@ jobs:
         uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
         with:
           python-version: '3.11'
-      - name: Parse broken pairs
-        run: |
-          python3 scripts/adr_backlink_check.py --quiet > /tmp/broken.txt 2>&1 || true
-          python3 -c "
-          import re
-          LINE_RE = re.compile(r'^\s*(ADR-\d+B?)\s*\(.*?\):\s*->\s*(ADR-\d+B?)\s*\(.*\)\s*\$')
-          pairs = set()
-          for line in open('/tmp/broken.txt'):
-              m = LINE_RE.match(line)
-              if m:
-                  pairs.add(f'{m.group(1)}|{m.group(2)}')
-          for p in sorted(pairs):
-              print(p)
-          " > /tmp/broken-pairs.txt
-          echo "--- Broken ADR cross-refs detected in this run ---"
-          cat /tmp/broken-pairs.txt || true
-      - name: Compare against baseline (regression-only gate)
-        run: |
-          grep --color=never -E '^ADR-[0-9]+B?\|' scripts/adr_backlink_baseline.txt | sort -u > /tmp/baseline.txt
-          echo "Baseline: $(wc -l < /tmp/baseline.txt) known broken pairs"
-          echo "Current:  $(wc -l < /tmp/broken-pairs.txt) broken pairs"
-          comm -23 /tmp/broken-pairs.txt /tmp/baseline.txt > /tmp/new-broken.txt || true
-          if [ -s /tmp/new-broken.txt ]; then
-            {
-              echo "## ADR cross-reference regression detected"
-              echo ""
-              echo "| Source ADR | Missing target |"
-              echo "|------------|----------------|"
-              while IFS='|' read -r src tgt; do
-                [ -z "$src" ] && continue
-                echo "| $src | $tgt |"
-              done < /tmp/new-broken.txt
-              echo ""
-              echo "Either (1) create the missing ADR, (2) remove the dangling reference,"
-              echo "or (3) add the pair to scripts/adr_backlink_baseline.txt with a justification."
-            } >> "$GITHUB_STEP_SUMMARY"
-            exit 1
-          fi
-          echo "OK: no new broken ADR cross-references."
+
+      - name: Regenerate docs/adr/INDEX.md
+        run: python3 scripts/adr_index_gen.py
+
+      - name: Verify INDEX.md is up to date
+        # `adr_index_gen.py --check` exits 1 if the on-disk INDEX.md would
+        # change on regeneration. This catches "added an ADR but forgot to
+        # regenerate the index" mistakes.
+        run: python3 scripts/adr_index_gen.py --check --quiet
+
+      - name: Verify ADR cross-references resolve
+        # `adr_backlink_check.py` exits 1 if any ADR file cites a non-existent
+        # ADR (broken cross-ref). `--quiet` keeps the log clean.
+        run: python3 scripts/adr_backlink_check.py --quiet
+
+      - name: Show backlink summary (verbose)
+        # Verbose output goes to the workflow log only; does not gate the
+        # build. Useful for debugging "why did the gate fail" without
+        # running locally.
+        if: always()
+        run: python3 scripts/adr_backlink_check.py --quiet || true

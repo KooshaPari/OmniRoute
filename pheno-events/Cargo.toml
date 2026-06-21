@@ -21,7 +21,9 @@ proptest-derive = "0.5"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 thiserror = "2"
-uuid = { version = "1", features = ["serde", "v7"] }
+# `arbitrary` feature unlocks `proptest::Arbitrary` for `Uuid`,
+# required by the v20-T5 `#[derive(Arbitrary)]` on `EventEnvelope` + `Ack`.
+uuid = { version = "1", features = ["serde", "v7", "arbitrary"] }
 
 [dev-dependencies]
 # v20-T4 L27 — Pact consumer-driven contract tests for the event-bus ↔

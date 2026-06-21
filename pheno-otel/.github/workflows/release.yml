@@ -1,36 +1,33 @@
 name: Release
-
 on:
   push:
-    tags:
-      - "v[0-9]+.[0-9]+.[0-9]+*"
+    tags: ['v*.*.*']
   workflow_dispatch:
     inputs:
       version:
-        description: "Release version (semver)"
+        description: 'Release version (semver)'
         required: true
-        default: "0.1.0"
+        default: '0.1.0'
 
-# Release runs are sequential; never cancel a release mid-flight
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: false
-
+# Release runs are sequential; never cancel a release mid-flight.
 permissions:
   contents: write
 
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
 jobs:
   release:
-    name: Release ${{ github.ref_name }}
+    name: release ${{ github.ref_name }}
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - uses: dtolnay/rust-toolchain@e3f78fd1f6c2a43286e5ef3a13eea2e72ed23e1f
-        with:
-          toolchain: stable
+      - uses: dtolnay/rust-toolchain@stable
 
       - name: Verify tag matches Cargo.toml
         run: |
@@ -41,24 +38,28 @@ jobs:
             exit 1
           fi
 
-      - name: Build release artifacts
+      - name: Build + test (release)
         run: |
-          cargo build --release --locked --all-features
           cargo test --release --locked --all-features
+          cargo publish --dry-run --locked --all-features
 
-      - name: Generate changelog
-        id: changelog
-        run: |
-          echo "## What's Changed" > RELEASE_NOTES.md
-          echo "" >> RELEASE_NOTES.md
-          git log --pretty=format:"- %s (%h)" "$(git describe --tags --abbrev=0 HEAD^)..HEAD" >> RELEASE_NOTES.md
-          echo "" >> RELEASE_NOTES.md
+      - uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-cyclonedx
 
-      - name: Create GitHub Release
-        uses: softprops/action-gh-release@de2c0f38df66e4b5da7b7d4a9b5b7d9b9b5e6f7c # v2
+      - name: Generate SBOM (CycloneDX)
+        run: cargo cyclonedx --all-features --format json --override-filename target/sbom
+
+      - name: Publish to crates.io
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+        run: cargo publish --locked --all-features
+
+      - name: Create GitHub Release + attach SBOM
+        uses: softprops/action-gh-release@v2
         with:
           name: "pheno-otel ${{ github.ref_name }}"
-          body_path: RELEASE_NOTES.md
-          draft: false
-          prerelease: false
           generate_release_notes: true
+          files: |
+            target/sbom.json
+            target/sbom.cdx.xml

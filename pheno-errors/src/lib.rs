@@ -192,6 +192,40 @@ impl AppError {
     }
 }
 
+// ---------------------------------------------------------------------------
+// proptest::Arbitrary impls (v20-T5 / L23)
+// ---------------------------------------------------------------------------
+
+/// Helper strategy: any non-empty ASCII string. Used for the `String`
+/// payload of every `AppError` variant; the non-empty constraint
+/// keeps `kind()` round-tripping sharp (an empty error string would
+/// still pass `kind()` but adds no signal to the property test).
+fn non_empty_msg() -> proptest::strategy::BoxedStrategy<String> {
+    use proptest::strategy::Strategy;
+    proptest::string::string_regex("[A-Za-z0-9 _\\-\\.\\:]{1,80}")
+        .expect("non_empty_msg regex")
+        .boxed()
+}
+
+impl proptest::arbitrary::Arbitrary for AppError {
+    type Parameters = ();
+    type Strategy = proptest::strategy::BoxedStrategy<Self>;
+
+    fn arbitrary_with((): Self::Parameters) -> Self::Strategy {
+        use proptest::strategy::Strategy;
+        proptest::prop_oneof![
+            non_empty_msg().prop_map(Self::Domain).boxed(),
+            (non_empty_msg(), non_empty_msg())
+                .prop_map(|(entity, id)| Self::NotFound { entity, id })
+                .boxed(),
+            non_empty_msg().prop_map(Self::Conflict).boxed(),
+            non_empty_msg().prop_map(Self::Validation).boxed(),
+            non_empty_msg().prop_map(Self::Storage).boxed(),
+        ]
+        .boxed()
+    }
+}
+
 // ── From impls ──────────────────────────────────────────────────
 
 /// Map any `std::io::Error` to [`AppError::Storage`].

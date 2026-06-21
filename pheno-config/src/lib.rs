@@ -34,3 +34,10 @@ pub mod cascade;
 /// Secret-holding newtypes with `ZeroizeOnDrop`. See module docs for
 /// the redaction policy and the `From`-based construction pattern.
 pub mod secrets;
+
+/// SIGHUP-driven hot reload of the cached config. See module docs
+/// for the wire protocol and design rationale. Per ADR-048 (substrate
+/// graduation) and v22-T4 (L33), long-running pheno-* daemons should
+/// use this module to support `kill -HUP <pid>` reloads without a
+/// process restart.
+pub mod hot_reload;
