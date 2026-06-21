@@ -24,7 +24,8 @@ jobs:
             .
       - uses: EmbarkStudios/cargo-deny-action@4ecc7c8b3e226df845bc2ed1d7d8b08d412f1045 # v2
         with:
-          arguments: --all-features check
+          # Per orch-v12-s4-015 task spec: cargo-deny --workspace check
+          arguments: check --workspace
       - name: Summary
         if: failure()
         run: |
