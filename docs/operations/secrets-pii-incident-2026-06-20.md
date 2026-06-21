@@ -18,7 +18,7 @@ provider console screenshots.
 | Repository environments | None listed during incident triage |
 | Secret scanning while private | Unavailable for this repository |
 | Changed-file guardrails | Landed on `main` in PR #318 |
-| Workflow action pinning | Required before Actions restore |
+| Workflow action pinning | Guard landed on `main`; required before Actions restore |
 
 ## Alert Inventory Captured Before Privatization
 
@@ -120,7 +120,7 @@ python scripts\incident-reopen-readiness.py --expect-open
 - [ ] Fresh full-history scan after purge or restored secret scanning has zero unresolved true positives
 - [ ] Issue #320 closed or scrubbed before public reopening
 - [ ] Incident owner approved Actions or public visibility restore
-- [ ] Workflow action pinning guard passes before Actions restore
+- [x] Workflow action pinning guard passes before Actions restore
 
 ## PII Handling
 
