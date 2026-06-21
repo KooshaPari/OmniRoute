@@ -1,0 +1,108 @@
+name: drift-detector
+# Weekly app-substrate drift detector (ADR-043, ADR-044 backup path).
+#
+# Scans this PAUSED app repo weekly (Wed 09:00 PDT) and files a
+# `drift-detector@phenotype` issue on any drift hit (score >= 1.5 per ADR-043).
+# This is the GitHub Actions BACKUP for the heavy-runner cron (ADR-044 §2.2):
+# Actions runs only when the heavy-runner is unavailable.
+#
+# Per AGENTS.md "PAUSED APPs" this repo (FocalPoint) is PAUSED. The drift
+# detector's role is to surface candidates for substrate extraction per
+# ADR-023 Rule 3 (no random phenoShared; one substrate placement per capability).
+#
+# Action reference strategy: the drift detector is a Python CLI
+# (`pheno-drift-detector/pheno_drift_detector.py`), not a packaged GitHub
+# Action. We download the raw script via curl from `KooshaPari/pheno-drift-detector@main`
+# and run it with python3.
+#
+# See:
+#   - docs/adr/2026-06-18/ADR-043-app-substrate-drift-detector.md
+#   - docs/adr/2026-06-18/ADR-044-cron-deployment.md
+#   - findings/2026-06-18-L8-009-app-substrate-drift.md
+#   - findings/2026-06-18-L8-012-pheno-drift-detector-cli.md
+
+on:
+  schedule:
+    - cron: '0 16 * * 3'  # Wed 09:00 PDT (= 16:00 UTC during PDT)
+  workflow_dispatch:
+    inputs:
+      detector_sha:
+        description: 'pheno-drift-detector commit SHA to pin (default: main HEAD)'
+        required: false
+        default: 'main'
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  drift-detect:
+    name: pheno-drift-detector scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout app repo (full history for stability scoring)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Download pheno-drift-detector CLI
+        env:
+          DETECTOR_REF: ${{ github.event.inputs.detector_sha || 'main' }}
+        run: |
+          mkdir -p .drift-detector
+          curl -fsSL \
+            "https://raw.githubusercontent.com/KooshaPari/pheno-drift-detector/${DETECTOR_REF}/pheno_drift_detector.py" \
+            -o .drift-detector/pheno_drift_detector.py
+          python3 .drift-detector/pheno_drift_detector.py --help >/dev/null
+
+      - name: Run pheno-drift-detector scan
+        env:
+          RUN_ID: ${{ github.run_id }}
+        run: |
+          mkdir -p findings
+          python3 .drift-detector/pheno_drift_detector.py scan \
+            --root . \
+            --format gh-issues \
+            --out "findings/drift-hits-${RUN_ID}.md" \
+            || EXIT=$?
+          # Exit 0 = no hits (clean run)
+          # Exit 2 = hits found (expected; we file an issue below)
+          # Exit 1 = scan error (fail the workflow)
+          echo "exit_code=${EXIT:-0}" >> "$GITHUB_ENV"
+          if [ "${EXIT:-0}" = "1" ]; then
+            echo "drift-detector scan failed"
+            exit 1
+          fi
+
+      - name: Upload artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: drift-detector-output
+          path: findings/drift-hits-*.md
+          if-no-files-found: ignore
+
+      - name: File drift-detector issue on hit
+        if: success()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RUN_ID: ${{ github.run_id }}
+        run: |
+          OUT="findings/drift-hits-${RUN_ID}.md"
+          if [ ! -s "$OUT" ]; then
+            echo "No drift hits — skipping issue filing."
+            exit 0
+          fi
+          HITS=$(grep -c '^## Drift detected' "$OUT" || echo 0)
+          TITLE="drift-detector: ${HITS} hit(s) in $(basename $GITHUB_REPOSITORY) @ $(date -u +%Y-%m-%d)"
+          gh issue create \
+            --repo "$GITHUB_REPOSITORY" \
+            --label "drift-detector" \
+            --title "$TITLE" \
+            --body-file "$OUT"
