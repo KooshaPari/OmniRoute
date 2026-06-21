@@ -1,0 +1,19 @@
+# Workspace-wide cargo build configuration (v14 T2)
+[build]
+rustflags = [
+  "-C", "lto=thin",
+  "-C", "codegen-units=1",
+  "-C", "incremental=true",
+  "-C", "opt-level=3",
+  "-C", "debug-assertions=off",
+]
+incremental = true
+jobs = 0
+[target.aarch64-apple-darwin]
+rustflags = ["-C", "link-arg=-fobjc-arc"]
+[target.x86_64-unknown-linux-gnu]
+rustflags = ["-C", "target-cpu=native"]
+[net]
+git-fetch-with-cli = true
+[registries.crates-io]
+protocol = "sparse"
