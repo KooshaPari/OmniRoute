@@ -4,11 +4,28 @@ version = "0.0.0"
 publish = false
 edition = "2021"
 
+# cargo-fuzz crate is a separate workspace member
+[workspace]
+
+[package.metadata]
+cargo-fuzz = true
+
 [dependencies]
 libfuzzer-sys = "0.4"
 
-[[bin]]
-name = "fuzz_tcp_endpoint_parse"
-path = "fuzz_targets/fuzz_tcp_endpoint_parse.rs"
+[dependencies.pheno-port-adapter]
+path = ".."
 
-[workspace]
+[[bin]]
+name = "fuzz_target_1"
+path = "fuzz_targets/fuzz_target_1.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "fuzz_endpoint"
+path = "fuzz_targets/fuzz_endpoint.rs"
+test = false
+doc = false
+bench = false

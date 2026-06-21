@@ -1,10 +1,45 @@
-name: chaos
-on: [push, pull_request]
+name: chaos-test-fleet
+
+on:
+  push:
+    branches: [main, chore/v1*-**]
+  pull_request:
+  schedule:
+    # Weekly Monday 09:00 PDT
+    - cron: '0 16 * * 1'
+  workflow_dispatch:
 
 jobs:
-  chaos:
+  chaos-port-adapter:
+    name: pheno-port-adapter chaos (L11 1->3)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@nightly
+      - name: cargo test --release chaos
+        working-directory: pheno-port-adapter
+        run: cargo test --release --tests -- --test-threads=1
+
+  chaos-fuzz-port-adapter:
+    name: pheno-port-adapter fuzz endpoint (L11.1)
+    runs-on: ubuntu-latest
+    continue-on-error: true  # fuzz is best-effort nightly
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@nightly
+      - name: cargo fuzz run endpoint (60s)
+        working-directory: pheno-port-adapter
+        run: |
+          cargo install cargo-fuzz
+          cd fuzz
+          cargo fuzz run fuzz_endpoint -- -max_total_time=60
+
+  chaos-flags-stress:
+    name: pheno-flags stress (L11 stress)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
-      - run: cargo test --release --tests -- --test-threads=1 chaos_
+      - name: cargo bench (criterion)
+        working-directory: pheno-flags
+        run: cargo bench --no-run

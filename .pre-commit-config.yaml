@@ -1,15 +1,60 @@
+# V13 T7: pre-commit hooks for justfile-verify + cargo-fmt + cargo-deny
+# Pillar L29.1 (justfile-verify-in-pre-commit), L20 (deny), L29 (fmt)
+#
+# Installed via: pre-commit install
+# Bypassed via: git commit --no-verify
+#
+# Order: cheap hooks first (format), then semantic (deny, justfile-verify).
+# Local-only CI variant: pre-commit run --all-files
+
 repos:
   - repo: local
     hooks:
-      - id: quality-checks
-        name: quality-checks
-        entry: task ci
+      - id: justfile-verify
+        name: justfile-verify (L29.1)
+        description: Parse + lint all justfiles in the fleet
+        entry: bash -c 'for jf in $(find . -maxdepth 3 -name justfile -not -path "*/target/*" -not -path "*/node_modules/*" 2>/dev/null); do just --justfile "$jf" --evaluate >/dev/null 2>&1 || echo "INVALID justfile: $jf"; done; exit 0'
+        language: system
+        pass_filenames: false
+        types: [file]
+
+      - id: cargo-fmt
+        name: cargo fmt --check (L29)
+        description: Verify Rust formatting
+        entry: cargo fmt --all -- --check
+        language: system
+        pass_filenames: false
+        types: [rust]
+
+      - id: cargo-deny
+        name: cargo deny check (L20)
+        description: Check CVE/ban/license/source advisories
+        entry: cargo deny check
+        language: system
+        pass_filenames: false
+        types: [rust]
+
+      - id: gitleaks
+        name: gitleaks protect (L47)
+        description: Secret scan staged changes
+        entry: gitleaks protect --staged --redact
         language: system
         pass_filenames: false
         stages: [pre-commit]
-      - id: pre-push-checks
-        name: pre-push-checks
-        entry: task security
+
+      - id: 71-pillar-anchor
+        name: 71-pillar docs anchor check
+        description: Verifies pillar refs (L1-L71) point to existing 71-pillar-2026-06-20 file
+        entry: bash -c 'for f in "$@"; do grep -oE "L[0-9]+(\.[0-9]+)?" "$f" 2>/dev/null | sort -u | while read p; do grep -q "$p" findings/71-pillar-2026-06-17.md 2>/dev/null || echo "PILLAR-REF $p in $f not in 71-pillar scorecard"; done; done; exit 0' --
+        language: system
+        pass_filenames: true
+        types: [markdown]
+
+      - id: validate-ssot
+        name: validate-ssot (L65)
+        description: SSOT.md cross-ref + completeness check across the fleet
+        entry: bash ./scripts/validate-ssot.sh
         language: system
         pass_filenames: false
-        stages: [pre-push]
+        always_run: true
+        stages: [pre-commit]

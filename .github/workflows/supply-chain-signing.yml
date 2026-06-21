@@ -1,0 +1,72 @@
+name: supply-chain-signing
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+  packages: write
+
+jobs:
+  cosign-sign:
+    name: cosign keyless OIDC sign
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: sigstore/cosign-installer@v3
+      - name: Sign commit digest
+        run: |
+          # Resolve commit SHA
+          COMMIT_SHA=$(git rev-parse HEAD)
+          # Build subject for sigstore (artifact = git ref)
+          cosign sign-blob \
+            --output-signature="${COMMIT_SHA}.sig" \
+            --output-certificate="${COMMIT_SHA}.pem" \
+            --yes \
+            "${COMMIT_SHA}"
+          # Persist to .sigstore/ for verification later
+          mkdir -p .sigstore
+          mv "${COMMIT_SHA}.sig" .sigstore/
+          mv "${COMMIT_SHA}.pem" .sigstore/
+          echo "Signed: .sigstore/${COMMIT_SHA}.{sig,pem}"
+
+  cosign-verify:
+    name: cosign verify (replay-protection)
+    runs-on: ubuntu-latest
+    needs: cosign-sign
+    steps:
+      - uses: actions/checkout@v4
+      - uses: sigstore/cosign-installer@v3
+      - name: Verify signature
+        run: |
+          COMMIT_SHA=$(git rev-parse HEAD)
+          cosign verify-blob \
+            --signature=".sigstore/${COMMIT_SHA}.sig" \
+            --certificate=".sigstore/${COMMIT_SHA}.pem" \
+            --certificate-identity-regexp="https://github.com/KooshaPari/.github/workflows/supply-chain-signing.yml@refs/heads/main" \
+            --certificate-oidc-issuer="https://token.actions.githubusercontent.com" \
+            "${COMMIT_SHA}" \
+          && echo "✓ signature valid"
+
+  slsa-provenance:
+    name: SLSA L3 provenance attestation
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: slsa-framework/slsa-github-generator@v1.10.0
+        id: slsa
+        with:
+          base64-subjects: ${{ needs.cosign-sign.outputs.digest }}
+        # Generated automatically; see .github/workflows/slsa.yml
+      - uses: actions/upload-artifact@v4
+        with:
+          name: slsa-provenance
+          path: .slsa/

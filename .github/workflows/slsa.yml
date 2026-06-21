@@ -1,0 +1,36 @@
+name: slsa-build-l3
+
+on:
+  workflow_run:
+    workflows: ["ci"]
+    types: [completed]
+  push:
+    branches: [main]
+    tags: ['v*']
+
+permissions:
+  id-token: write
+  contents: write
+  actions: read
+
+jobs:
+  slsa-l3:
+    name: SLSA L3 provenance generation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: slsa-framework/slsa-github-generator@v1.10.0
+        id: slsa
+        with:
+          base64-subjects: "${{ needs.cosign.outputs.digest }}"
+
+  verify-provenance:
+    name: Verify SLSA L3 provenance
+    needs: slsa-l3
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: slsa-framework/slsa-verifier@v2.6.0
+        with:
+          source-uri: slsa-verifier-Artifact
+          github-context: ${{ toJSON(github) }}

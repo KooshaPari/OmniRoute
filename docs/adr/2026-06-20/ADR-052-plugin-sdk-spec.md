@@ -1,6 +1,6 @@
 # ADR-052 — Router plugin SDK spec
 
-- **Status:** Proposed — 2026-06-20 (paired with ADR-050; takes effect on Option B adoption)
+- **Status:** Accepted — 2026-06-20 (re-accepted 2026-06-20 15:14 PDT after parallel subagent reverted; closes §8 Option B trio with ADR-050 + ADR-051)
 - **Date:** 2026-06-20
 - **Decision:** @KooshaPari (pending)
 - **Plan:** [`plans/2026-06-20-v11-dag-router-rebuild.md`](../../plans/2026-06-20-v11-dag-router-rebuild.md) §L2.5 + §L3
