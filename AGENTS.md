@@ -165,9 +165,9 @@ See `L6_PHENO_REPOS_HEALTH_2026_06_14.md` for full health inventory (136 tests p
 
 ---
 
-## Wave Plan (v12 — current, supersedes v9/v10/v11)
+## Wave Plan (v14 — current, supersedes v9/v10/v11/v12)
 
-See `plans/2026-06-20-v12-71-pillar-p0-remediation.md` (the working plan) and `plans/2026-06-20-v13-71-pillar-cycle-2-p0.md` (the next wave). **v12 = 4 P0 closure tracks + Mission 4 + ADR-015 v2.1, ~890 LoC, 1,767 LoC shipped in 1 commit (`2db7e9f5eb`).** v11 closed 2026-06-20 18:45 PDT with §8 ACCEPTED (Option B per ADR-050/ADR-051); v12 closed 2026-06-20 19:30 PDT with 4 of 4 P0 tracks shipped + 6-pillar mean 2.13 → 2.66 (+0.53). Next wave is v13 (cycle 2 P0: cliff.toml vendoring to 5 fleet repos + devcontainer adoption + ssot-inject + cache-stats dashboard).
+See `plans/2026-06-20-v12-71-pillar-p0-remediation.md` (the working plan) and `plans/2026-06-20-v13-71-pillar-cycle-2-p0.md` (the next wave). **v12 = 4 P0 closure tracks + Mission 4 + ADR-015 v2.1, ~890 LoC, 1,767 LoC shipped in 1 commit (`2db7e9f5eb`).** v11 closed 2026-06-20 18:45 PDT with §8 ACCEPTED (Option B per ADR-050/ADR-051); v12 closed 2026-06-20 19:30 PDT with 4 of 4 P0 tracks shipped + 6-pillar mean 2.13 → 2.66 (+0.53). v14 (cycle 4) in motion: 5 tracks, 1 Wave A, ~5h wall, target 6-pillar mean 2.75. Next wave after v14 is v15 (cycle 2 P0: cliff.toml vendoring to 5 fleet repos + devcontainer adoption + ssot-inject + cache-stats dashboard).
 
 - **T6 (v12): L65 SSOT auto-check** (P0, ~30 min) — DONE. `scripts/validate-ssot.sh` + `just validate-ssot` + pre-commit hook.
 - **T9 (v12): L57 perf regression** (P1, ~1h) — DONE. `benchmarks/rust/{Cargo.toml,benches/parse_flag.rs}` (criterion) + `benchmarks/python/pytest.ini` (pytest-benchmark) + `benchmarks/perf-budgets.toml` + `just bench`.

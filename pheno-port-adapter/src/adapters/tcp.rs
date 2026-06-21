@@ -166,6 +166,115 @@ mod tests {
         let _ = h1.join();
         let _ = h2.join();
     }
+
+    // ---------------------------------------------------------------
+    // `parse_endpoint` unit tests
+    //
+    // These are the regression net for the fuzz target: every accepted
+    // shape has a positive case, and every rejection path has a focused
+    // negative case. If any of these fail, the fuzz harness will likely
+    // be unable to compile or will diverge from the parser.
+    // ---------------------------------------------------------------
+
+    #[test]
+    fn parse_endpoint_accepts_canonical_ipv4() {
+        let (host, port) = TcpAdapter::parse_endpoint("127.0.0.1:8080").expect("ok");
+        assert_eq!(host, "127.0.0.1");
+        assert_eq!(port, 8080);
+    }
+
+    #[test]
+    fn parse_endpoint_accepts_dns_name() {
+        let (host, port) = TcpAdapter::parse_endpoint("localhost:9000").expect("ok");
+        assert_eq!(host, "localhost");
+        assert_eq!(port, 9000);
+    }
+
+    #[test]
+    fn parse_endpoint_accepts_port_zero() {
+        // Port 0 is syntactically valid; the OS rejects it at connect time.
+        let (host, port) = TcpAdapter::parse_endpoint("127.0.0.1:0").expect("ok");
+        assert_eq!(host, "127.0.0.1");
+        assert_eq!(port, 0);
+    }
+
+    #[test]
+    fn parse_endpoint_accepts_max_u16_port() {
+        let (host, port) = TcpAdapter::parse_endpoint("example.com:65535").expect("ok");
+        assert_eq!(host, "example.com");
+        assert_eq!(port, 65535);
+    }
+
+    #[test]
+    fn parse_endpoint_rejects_empty() {
+        assert!(TcpAdapter::parse_endpoint("").is_err());
+    }
+
+    #[test]
+    fn parse_endpoint_rejects_missing_port_separator() {
+        assert!(TcpAdapter::parse_endpoint("no-colon-here").is_err());
+    }
+
+    #[test]
+    fn parse_endpoint_rejects_missing_host() {
+        assert!(TcpAdapter::parse_endpoint(":8080").is_err());
+    }
+
+    #[test]
+    fn parse_endpoint_rejects_missing_port() {
+        assert!(TcpAdapter::parse_endpoint("127.0.0.1:").is_err());
+    }
+
+    #[test]
+    fn parse_endpoint_rejects_extra_colon() {
+        assert!(TcpAdapter::parse_endpoint("host::dup::colon").is_err());
+        assert!(TcpAdapter::parse_endpoint("127.0.0.1:80:90").is_err());
+    }
+
+    #[test]
+    fn parse_endpoint_rejects_non_numeric_port() {
+        assert!(TcpAdapter::parse_endpoint("host:abc").is_err());
+        assert!(TcpAdapter::parse_endpoint("host:80a").is_err());
+        assert!(TcpAdapter::parse_endpoint("host:-1").is_err());
+    }
+
+    #[test]
+    fn parse_endpoint_rejects_port_overflow() {
+        // u16::MAX + 1 == 65536, must be rejected.
+        assert!(TcpAdapter::parse_endpoint("host:65536").is_err());
+        assert!(TcpAdapter::parse_endpoint("host:99999").is_err());
+    }
+
+    #[test]
+    fn parse_endpoint_rejects_control_characters() {
+        assert!(TcpAdapter::parse_endpoint("host\n:80").is_err());
+        assert!(TcpAdapter::parse_endpoint("host\t:80").is_err());
+        assert!(TcpAdapter::parse_endpoint("host\x00:80").is_err());
+        assert!(TcpAdapter::parse_endpoint("host\r:80").is_err());
+    }
+
+    #[test]
+    fn parse_endpoint_preserves_unicode_host() {
+        // Unicode in the host portion is allowed by the parser; OS-side
+        // IDN handling is the connect path's problem, not ours.
+        let (host, port) = TcpAdapter::parse_endpoint("héllo:80").expect("ok");
+        assert_eq!(host, "héllo");
+        assert_eq!(port, 80);
+    }
+
+    #[test]
+    fn parse_endpoint_returns_connect_failed_variant() {
+        // All parse failures must produce ConnectFailed so the connect
+        // path's error contract is preserved.
+        for bad in ["", "no-colon", ":80", "host:", "host::x", "host:abc", "host:65536"] {
+            let err = TcpAdapter::parse_endpoint(bad)
+                .expect_err(&format!("{bad:?} should fail"));
+            assert!(
+                matches!(err, AdapterError::ConnectFailed(_)),
+                "{bad:?} produced wrong variant: {err:?}"
+            );
+        }
+    }
 }
 
 /// Chaos / anti-fragility tests (Pillar L11).

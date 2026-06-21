@@ -1,0 +1,21 @@
+name: sbom
+on: [push, pull_request]
+
+jobs:
+  sbom:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - run: cargo install cargo-cyclonedx --locked
+      - run: cargo cyclonedx --format json --override-filename sbom.json
+      - name: fail on GPL/AGPL addition
+        run: |
+          if jq -r '.components[].licenses[]?.license.id' sbom.json | grep -E 'GPL|AGPL'; then
+            echo "GPL/AGPL license detected"
+            exit 1
+          fi
+      - uses: actions/upload-artifact@v4
+        with:
+          name: sbom-${{ github.sha }}
+          path: sbom.json
