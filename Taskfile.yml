@@ -3,14 +3,17 @@
 # which expects `task <recipe>` can run the same validate recipe.
 #
 # Recipes:
-#   validate     — Run scripts/validate-ecosystem.sh against the 13 canonical repos
-#   validate:json — Same, machine-readable JSON output
-#   help         — List available recipes
+#   validate                — Run scripts/validate-ecosystem.sh against the 13 canonical repos
+#   validate:json           — Same, machine-readable JSON output
+#   regen-ecosystem-map     — Regenerate ECOSYSTEM_MAP.md from SPEC.md + docs/registries.md + _bindings.json
+#   regen-ecosystem-map:check — CI gate: exit 1 if ECOSYSTEM_MAP.md is stale
+#   help                    — List available recipes
 
 version: '3'
 
 vars:
   SCRIPT: scripts/validate-ecosystem.sh
+  REGEN_SCRIPT: scripts/regen-ecosystem-map.py
 
 tasks:
   default:
@@ -37,6 +40,21 @@ tasks:
     desc: Validate without ANSI color codes (for CI logs)
     cmds:
       - '{{.SCRIPT}} --no-color'
+
+  regen-ecosystem-map:
+    desc: Regenerate ECOSYSTEM_MAP.md from SPEC.md + docs/registries.md + _bindings.json
+    cmds:
+      - python3 {{.REGEN_SCRIPT}}
+
+  regen-ecosystem-map:check:
+    desc: CI gate — exit 1 if ECOSYSTEM_MAP.md is stale (would change on regen)
+    cmds:
+      - python3 {{.REGEN_SCRIPT}} --check
+
+  regen-ecosystem-map:diff:
+    desc: Show the diff that regen-ecosystem-map would apply; does not write
+    cmds:
+      - python3 {{.REGEN_SCRIPT}} --diff
 
   coverage:
     desc: "Measure code coverage (SSOT: see grade.sh for the canonical command)."

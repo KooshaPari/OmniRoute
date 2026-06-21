@@ -592,4 +592,45 @@ archived). Protected: `KlipDot`, `KodeVibeGo`, `kwality`, `AppGen`,
 
 ---
 
+## 10. Drift detection (CI gate)
+
+This file is auto-regenerated from `SPEC.md`, `docs/registries.md`, and
+`phenotype-registry-curation-data/_bindings.json` by
+[`scripts/regen-ecosystem-map.py`](./scripts/regen-ecosystem-map.py). The
+canonical SSOT inputs above the hand-curated cluster appendix (§3) are
+re-rendered on every regen; the appendix itself is preserved verbatim.
+
+The following drift-detection comments are required to be present at the
+bottom of this file. The `--check` mode of the regen script (and the
+`ecosystem-map-regen` workflow that wraps it) fails on their absence.
+
+- **Auto-regen on push / pull request to `main`** — see
+  [`.github/workflows/ecosystem-map-regen.yml`](./.github/workflows/ecosystem-map-regen.yml).
+  Triggers: any change to `ECOSYSTEM_MAP.md`, `SPEC.md`, `docs/registries.md`,
+  `scripts/regen-ecosystem-map.py`, `Taskfile.yml`, or this workflow file.
+  Behaviour: runs `python3 scripts/regen-ecosystem-map.py --check` and fails
+  the PR / push if the on-disk file is stale. Also runs on `workflow_dispatch`.
+
+- **Weekly cron (Monday 09:00 PDT / 16:00 UTC)** — see
+  [`.github/workflows/ecosystem-map-weekly.yml`](./.github/workflows/ecosystem-map-weekly.yml).
+  Cadence: `0 16 * * 1` (per ADR-041 — 71-pillar refresh cadence). Behaviour:
+  renders the file, compares against the on-disk copy, and on drift opens a
+  remediation PR via
+  [`peter-evans/create-pull-request@v6`](https://github.com/peter-evans/create-pull-request)
+  with title `chore(ecosystem-map): weekly regen <run-id>`. No-op on
+  clean state. Also runs on `workflow_dispatch` (with an optional `force`
+  input to open a PR even when no drift is detected).
+
+- **The regen script** — `scripts/regen-ecosystem-map.py` (Python 3.12,
+  no third-party deps). Run modes:
+  - `task regen-ecosystem-map` (or `python3 scripts/regen-ecosystem-map.py`) — write in place.
+  - `task regen-ecosystem-map:check` (or `--check`) — CI gate, exit 1 on drift.
+  - `task regen-ecosystem-map:diff` (or `--diff`) — print the would-be diff.
+  - `--out FILE` — write to a different path (does not touch the canonical file).
+  - `--bindings PATH` — override the path to the sibling curation-data repo's `_bindings.json`.
+
 *This document is the living ecosystem map for KooshaPari/phenotype-registry. Update on each major rationalization action.*
+
+<!-- drift-detection: auto-regen-on-push-pr (.github/workflows/ecosystem-map-regen.yml) -->
+<!-- drift-detection: weekly-cron (.github/workflows/ecosystem-map-weekly.yml) -->
+<!-- drift-detection: regen-script scripts/regen-ecosystem-map.py -->

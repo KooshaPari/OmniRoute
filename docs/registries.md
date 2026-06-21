@@ -54,6 +54,8 @@ Deleted or absorbed source repos retain history in `projects/*.json` with `absor
 
 ## phenotype-registry (this repo) — Capability & Intent SSOT
 
+> **Authoritative index**: see [`SSOT.md`](./SSOT.md) § "Capability & Intent SSOT" for the single-source-of-truth (4 canonical files, 3 maintenance commands, weekly cadence, 11 stub-filled repos, audit trail). This registry section is a redirect to that index; when they disagree, **SSOT.md wins**.
+
 This registry is not just a redirect table — it is the canonical **capability & intent** source of truth for every implementation repo in the fleet. It owns the per-repo intent + boundary contract that every other repo is expected to mirror.
 
 Contracts and templates:
