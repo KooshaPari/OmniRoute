@@ -1,0 +1,112 @@
+{
+  "task_id": "L5-160",
+  "task_subid": "v21-T3-federation-p2p",
+  "date": "2026-06-22",
+  "repo": "KooshaPari/phenotype-apps",
+  "category": "L5-Governance",
+  "title": "ADR-046c federation peer-to-peer topology and PRCP separation (v21 cycle-11 P0 carry-over)",
+  "status": "complete",
+  "author": "KooshaPari",
+  "device": "macbook",
+  "device_rationale": "Pure doc authoring (Markdown + gh api); zero cargo / dind / sim / heavy cargo test --workspace",
+  "device_gate_self_check": "Rule 1 PASS / Rule 2 N/A / Rule 3 PASS",
+  "schema_version": "v2.1",
+  "adr_anchors": [
+    "docs/adr/2026-06-22/ADR-046c-federation-p2p.md",
+    "docs/adr/2026-06-22/INDEX.md",
+    "docs/adr/2026-06-22/ADR-046-federation-mtls.md",
+    "docs/adr/2026-06-22/ADR-046b-federation-oidc.md (forthcoming)",
+    "docs/adr/2026-06-21/ADR-079-oidc-federation-reference.md",
+    "docs/adr/2026-06-18/ADR-046-federation-mtls-oidc.md",
+    "docs/adr/2026-06-18/ADR-049-app-substrate-drift-detector.md",
+    "docs/adr/2026-06-18/ADR-051-bifrost-as-library.md",
+    "docs/adr/2026-06-15/ADR-018-prcp-pattern-v6.md"
+  ],
+  "deliverables": {
+    "adr_file": "docs/adr/2026-06-22/ADR-046c-federation-p2p.md",
+    "adr_line_count": 396,
+    "index_file": "docs/adr/2026-06-22/INDEX.md",
+    "index_diff": "+11 / -4 (companion table row + 'Companions (added 2026-06-22)' section + refresh cadence note)",
+    "pr_url": "https://github.com/KooshaPari/phenotype-apps/pull/124",
+    "branch": "docs/adr-046c-federation-p2p-2026-06-22",
+    "base": "origin/main@a8dc435f0d (already contains ADR-046 + INDEX.md merged via PR #122)",
+    "commit_sha": "034e6046f0848093b682f355238b7a4643026a99",
+    "pr_diff_total": "407 additions, 4 deletions across 2 files"
+  },
+  "sections_authored": {
+    "context": "Identifies 3 observed topology patterns (hub-and-spoke via governance circle, pure mesh, hybrid) and 3 concrete failures (380ms p95 choke-point latency + 4% packet loss, single-region failover outages 2026-04-12 and 2026-05-30, PRCP violation for same-org peers). PRCP pattern (ADR-018) provides port-level separation but does not specify topology routing.",
+    "decision": "6 sub-decisions: (1) hybrid topology with control-plane star + data-plane mesh + relay fallback; (2) DNS-SD primary / libp2p Kademlia fallback discovery; (3) IETF ICE (RFC 8445) with TURN relay for NAT traversal; (4) PRCP separation via FederationPort trait with call_same_org vs call_cross_org methods; (5) observability hooks via pheno-tracing OTLP spans.",
+    "consequences": "Positive (drastic latency reduction 380ms->8ms p95; region-local failover; PRCP type-system invariant; standards-aligned; composes on top of ADR-046+ADR-046b) + Negative (N*N complexity; ICE/TURN implementation surface; DNS-SD zone operational burden; libp2p dependency weight; compounded testing surface) + Neutral (control plane unchanged; polyglot lib choice; same-org mTLS unaffected).",
+    "alternatives": "5 rejected: A (pure hub-and-spoke via governance relay), B (pure p2p mesh no relay), C (Wireguard mesh overlay), D (single-region governance + multi-region TURN — partially adopted as fallback), E (status quo).",
+    "appendix_a_failure_mode_matrix": "6-row table with failure mode, detection, OTLP span attribute, and recovery action columns. Failure modes: peer offline, NAT symmetric, firewall block, DNS-SD zone stale, TURN relay overloaded, split-brain.",
+    "appendix_b_diagrams": "B.1 hybrid topology overview (ASCII): governance circle CA store + control-plane relay + TURN relay + drift detector connecting to KP phenotype-router (iad) + phenotype-router-2 (fra) + acme-research gateway (iad) + acme-research gateway (fra) via mesh. B.2 PRCP port separation (mermaid flowchart): KP subgraph splits SR->CSO (same-org) or SR->CCO (cross-org); Same path goes to VPC peering; Cross path goes through Disc->DNS/Kademlia->ICE->Direct/STUN/TURN->MTLS->OIDC."
+  },
+  "standards_adopted": [
+    "RFC 6763 (DNS-SD) — peer discovery primary path",
+    "RFC 8445 (ICE) — NAT traversal",
+    "SPIFFE Federation spec — peer identity framework",
+    "libp2p Kademlia DHT — peer discovery fallback path"
+  ],
+  "companion_adrs": [
+    {"id": "ADR-046", "path": "docs/adr/2026-06-22/ADR-046-federation-mtls.md", "status": "merged via PR #122", "role": "mTLS substrate (companion 1 of 3)"},
+    {"id": "ADR-046b", "path": "docs/adr/2026-06-22/ADR-046b-federation-oidc.md", "status": "forthcoming (subagent B branch)", "role": "OIDC reference implementation (companion 2 of 3)"},
+    {"id": "ADR-046c", "path": "docs/adr/2026-06-22/ADR-046c-federation-p2p.md", "status": "PR #124 OPEN", "role": "peer-to-peer topology + PRCP separation (companion 3 of 3, this ADR)"}
+  ],
+  "prcp_extension": {
+    "base_pattern": "ADR-018 PRCP (Polyglot Reuse via Canonical Ports): every shared concern ships as canonical Port trait in pheno-* substrate + per-language SDK implementing the Port",
+    "extension": "FederationPort trait adds topology-aware split: call_same_org (intra-cluster mTLS, no federation CA path) vs call_cross_org (ADR-046 mTLS + ADR-046b OIDC; mesh or relay). PeerRef carries SPIFFE-style workload identity + org tag. Implementation MUST verify peer.org == self.local_org for call_same_org; cross-org calls mistakenly routed through call_same_org rejected at runtime.",
+    "polyglot_mirror": "Same two-method surface in Go (type FederationPort interface), Python (class FederationPort(Protocol)), TypeScript (interface FederationPort), C# (interface IFederationPort)",
+    "type_system_invariant": "Topology choice becomes compile-time + runtime invariant, not a runtime policy check alone"
+  },
+  "pillars_touched": [
+    {"pillar": "L54", "name": "Federation mTLS + OIDC", "current_score": 2.0, "target_score": 3.0, "rationale": "ADR-046c completes the 3-leg trilogy (mTLS via ADR-046 + OIDC via ADR-046b + p2p topology via this ADR). All three must merge to lift L54 to 3.0 at v21 cycle-11 closure."},
+    {"pillar": "L53", "name": "Federation peer discovery", "current_score": null, "target_score": 3.0, "rationale": "ADR-046c is the canonical content for L53 (DNS-SD primary, libp2p Kademlia fallback). Was unscored in v19; this ADR + adoption work lifts to 3.0 in v21 cycle-11."},
+    {"pillar": "L29", "name": "Service mesh interop", "current_score": null, "target_score": null, "rationale": "Hybrid topology decision aligns with SPIFFE/SPIRE and libp2p community patterns; complements existing intra-cluster mesh (Istio/Linkerd) and AWS IAM, does not replace them."}
+  ],
+  "push_strategy": {
+    "method": "ADR-027 Tier 2 (governance-doc bypass)",
+    "flags": ["--recurse-submodules=no", "--no-verify"],
+    "lfs_config": "lfs.allowincompletepush=true (per AGENTS.md REBASE + PUSH RESOLVED note 2026-06-18 22:58 PDT)",
+    "force_with_lease": "NOT NEEDED — branch was forked from origin/main@a8dc435f0d (already contains ADR-046 + INDEX.md via PR #122), no parallel diverged history"
+  },
+  "rebase_note": {
+    "decision": "Based worktree directly on origin/main (commit a8dc435f0d) which already contains ADR-046 + INDEX.md merged via PR #122. No rebase needed — branch was forked after subagent A's PR was already merged.",
+    "rationale": "origin/main tip = a8dc435f0d (post PR #122 merge). Local main = 4899d244b8 (stale, pre-merge). Using origin/main ensures the PR diff is clean (only ADR-046c + INDEX.md additions), not polluted by merge artifacts."
+  },
+  "files_written": [
+    "docs/adr/2026-06-22/ADR-046c-federation-p2p.md (NEW, 396 lines)",
+    "docs/adr/2026-06-22/INDEX.md (MODIFIED, +11/-4)"
+  ],
+  "test_results": {
+    "adr_structure": "PASS: 4 mandatory sections (Context / Decision / Consequences / Alternatives) + 2 appendices (Failure-mode matrix, Diagrams) + Companion ADRs + Cross-references + Refresh cadence sections",
+    "adr_line_count": "PASS: 396 lines (target ~250; depth-driven growth accepted due to FederationPort trait example, ASCII topology diagram, and mermaid flowchart)",
+    "index_includes_adr_046c": "PASS: INDEX.md companion table row 81 includes ADR-046c alongside ADR-079; new 'Companions (added 2026-06-22)' section at row 49-51 documents the addition",
+    "cross_refs": "PASS: 18 cross-references (ADR-006, ADR-018, ADR-046, ADR-046b, ADR-049, ADR-051, ADR-079, ADR-012/036B, ADR-040, ADR-042, RFC 6763, RFC 8445, SPIFFE Federation, libp2p Kademlia, AGENTS.md, 71-pillar schema, 71-pillar scorecard)",
+    "git_push": "PASS: origin/docs/adr-046c-federation-p2p-2026-06-22 == 034e6046f0848093b682f355238b7a4643026a99",
+    "gh_pr_create": "PASS: PR #124 OPEN at https://github.com/KooshaPari/phenotype-apps/pull/124 (407 additions, 4 deletions across 2 files)",
+    "worklog_self_check": "PASS: v2.1 schema fields present (device, device_rationale, device_gate_self_check, schema_version, pillars_touched, push_strategy, do_not_touch)"
+  },
+  "open_follow_ups": [
+    {"id": "L5-160-FU1", "priority": "P0", "description": "Author ADR-046b (OIDC federation reference implementation; companion 2 of 3; references ADR-079 pheno-context/src/oidc.rs shape)", "owner": "subagent B (parallel agent)"},
+    {"id": "L5-160-FU2", "priority": "P1", "description": "Merge PR #124 to main; depends on subagent B's PR (ADR-046b) merging first OR being sequenced in the same wave", "owner": "governance circle merge step"},
+    {"id": "L5-160-FU3", "priority": "P2", "description": "Add ADR-046c row to docs/adr/INDEX.md (top-level pillar-grouped index); depends on parallel agent's INDEX.md being merged first", "blocker": "v20 T1 INDEX.md merge"},
+    {"id": "L5-160-FU4", "priority": "P2", "description": "Update AGENTS.md § Active ADRs to note that v21 cycle-11 P0 carry-over ADR-046c is now authored (move from 'planned' to 'accepted')", "depends_on": "PR #124 merge"},
+    {"id": "L5-160-FU5", "priority": "P2", "description": "Update INDEX.md 'Companions (forthcoming)' section to drop ADR-046c (now authored) once subagent B's ADR-046b is also authored", "depends_on": "subagent B PR merge"},
+    {"id": "L5-160-FU6", "priority": "P3", "description": "Adopt FederationPort trait in pheno-context/src/federation.rs (Rust crate shape proposal in ADR-046c §4). Cargo work, blocked by device-fit gate (heavy-runner), scheduled for v22+", "device_gate": "heavy-runner"}
+  ],
+  "do_not_touch": [
+    "argis-extensions/ (parallel agents' work)",
+    "Civis/ (out of scope per task constraints)",
+    "FLEET_DAG.db (out of scope)",
+    "Any branch other than docs/adr-046c-federation-p2p-2026-06-22 (no PRs merged, no other commits)",
+    "ADR-046 (subagent A's branch; already merged via PR #122, do not modify)",
+    "ADR-046b branch (subagent B's parallel branch; do not modify)"
+  ],
+  "context_notes": {
+    "pr_122_merged": "PR #122 (ADR-046 federation mTLS) was MERGED to main at 2026-06-21 23:14:50Z, before this task started. origin/main tip is now a8dc435f0d (post-merge).",
+    "pr_126_missing": "PR #126 referenced in task description does not exist on github.com/KooshaPari/phenotype-apps as of 2026-06-21 23:20 PDT. Most likely the task description anticipated subagent B's PR number; actual subagent B PR is TBD.",
+    "local_main_stale": "Local main branch at 4899d244b8 is stale (pre-merge of PR #122). Used origin/main@a8dc435f0d as the worktree base instead, per the task directive to base on 'main' (interpreted as canonical main).",
+    "subagent_b_state": "Subagent B's ADR-046b branch not yet visible in `git branch -a` output (no branch matching 'federation-oidc' or 'adr-046b'). Likely authored concurrently or just after this task; ADR-046c cross-references ADR-046b as 'forthcoming companion' to allow flexible merge ordering."
+  },
+  "summary": "ADR-046c federation peer-to-peer topology and PRCP separation authored as v21 cycle-11 P0 carry-over from v20 cycle-10 P1 net-new federation/interop track. 396-line pure-doc ADR (4 sections + 2 appendices) covers: hybrid federation topology (control-plane star + data-plane mesh + relay fallback), DNS-SD primary / libp2p Kademlia fallback discovery, IETF ICE NAT traversal with TURN relay, PRCP pattern extension with FederationPort::call_same_org vs call_cross_org split (type-system + runtime invariant). 6-row failure-mode matrix with OTLP span attributes. 2 diagrams (hybrid topology ASCII + PRCP port-separation mermaid). 4 standards adopted (RFC 6763, RFC 8445, SPIFFE Federation, libp2p Kademlia). 5 alternatives rejected (pure hub-and-spoke, pure p2p, Wireguard mesh, single-region governance + multi-region TURN partially adopted, status quo). Cross-refs: ADR-018 (PRCP base pattern), ADR-046 (mTLS substrate), ADR-046b (OIDC forthcoming companion), ADR-049 (drift detector), ADR-051 (Bifrost as library), ADR-006 (circuit breaker), ADR-012/036B (pheno-tracing). Worktree at /private/tmp/v21-T3-federation-p2p-C, branch docs/adr-046c-federation-p2p-2026-06-22 based on origin/main@a8dc435f0d. Commit 034e6046f0848093b682f355238b7a4643026a99 pushed to origin via --recurse-submodules=no --no-verify (lfs.allowincompletepush=true). PR #124 OPEN at https://github.com/KooshaPari/phenotype-apps/pull/124 (407 additions, 4 deletions across 2 files: ADR-046c + INDEX.md). 3rd and final companion ADR completing the mTLS+OIDC+p2p trilogy for L54 (Federation mTLS + OIDC) cycle-11 P0 closure. device: macbook (pure-doc authoring; zero cargo)."
+}
