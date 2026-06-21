@@ -94,8 +94,9 @@ python scripts\incident-evidence-guard.py incident-evidence\2026-06-20
 The guard reports paths and finding labels only. It also requires the sanitized
 note fields above so tracker updates include the owner action, activity review,
 replacement disposition, evidence reference, verifier, and UTC timestamp. A
-passing guard does not make raw evidence safe for git; it only checks local
-notes before tracker updates.
+note's `provider` and `alerts` fields must match a row in the alert inventory
+above. A passing guard does not make raw evidence safe for git; it only checks
+local notes before tracker updates.
 
 ## Do Not Reopen Public Access Until
 
