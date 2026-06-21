@@ -105,6 +105,18 @@ every alert inventory row before marking the provider evidence gate complete:
 python scripts\incident-evidence-guard.py --require-all incident-evidence\2026-06-20
 ```
 
+Before submitting the GitHub Support purge request, run:
+
+```powershell
+python scripts\incident-purge-readiness.py
+```
+
+Use this mode to verify the current blocked posture:
+
+```powershell
+python scripts\incident-purge-readiness.py --expect-blocked
+```
+
 ## Do Not Reopen Public Access Until
 
 - Every provider row above has completed rotation/revocation evidence.
