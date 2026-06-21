@@ -37,12 +37,16 @@ use thiserror::Error;
 /// Error type for transport-level [`PortAdapter`] operations.
 #[derive(Debug, Error)]
 pub enum AdapterError {
+    /// The adapter could not establish a connection to the requested endpoint.
     #[error("connect failed: {0}")]
     ConnectFailed(String),
+    /// The adapter could not cleanly disconnect an active connection.
     #[error("disconnect failed: {0}")]
     DisconnectFailed(String),
+    /// The adapter health probe failed with the provided diagnostic message.
     #[error("health check failed: {0}")]
     HealthCheckFailed(String),
+    /// The adapter operation exceeded its configured deadline.
     #[error("timeout")]
     Timeout,
 }
@@ -59,9 +63,13 @@ pub struct Connection {
 /// Synchronous by design — the adapter itself owns its async runtime
 /// story. Async work belongs in the hex-port traits under [`ports`].
 pub trait PortAdapter: Send + Sync {
+    /// Return the stable adapter name used in logs, diagnostics, and registries.
     fn name(&self) -> &str;
+    /// Verify that the adapter is configured and reachable.
     fn health(&self) -> Result<(), AdapterError>;
+    /// Establish a connection to the provided endpoint.
     fn connect(&self, endpoint: &str) -> Result<Connection, AdapterError>;
+    /// Disconnect the adapter from its active endpoint or session.
     fn disconnect(&self) -> Result<(), AdapterError>;
 }
 
