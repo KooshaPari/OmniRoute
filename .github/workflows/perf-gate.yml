@@ -1,25 +1,48 @@
-name: perf-gate
-on: [pull_request]
+# Fleet perf gate — v19 T4 (L19 Performance Benchmarking Infrastructure deepening)
+# Authority: ADR-040 (test coverage gates per tier) + v19 71-pillar cycle 9 P0 plan §2 Track T4
+# Runs benchmarks/fleet-perf.toml via scripts/perf_gate.py; fails the build if any p95 drifts above budget.
+# Schedule: nightly 06:00 UTC + PR (perf/**, pheno-*/**, phenotype-/**) + manual dispatch.
+name: Fleet perf gate
+on:
+  schedule:
+    - cron: "0 6 * * *"
+  pull_request:
+    paths:
+      - "benchmarks/**"
+      - "pheno-*/**"
+      - "phenotype-*/**"
+  workflow_dispatch:
+
+permissions:
+  contents: read
 
 jobs:
   perf-gate:
+    name: perf-gate (ubuntu-latest)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@stable
-      - uses: Swatinem/rust-cache@v2
-      - name: Install just
-        uses: taiki-e/install-action@just
-      - name: Run perf benchmarks
-        run: just bench
-      - name: Check perf budgets
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install tomli (Python <3.11 fallback)
+        run: pip install tomli
+      - name: Run perf gate
+        id: gate
         run: |
-          if [ -f benchmarks/perf-budgets.toml ]; then
-            echo "Perf budgets found — checking..."
-            # In production, parse perf-budgets.toml and compare against benchmark output
-            # For now, just exit 0 if the budget file exists
-            exit 0
-          else
-            echo "No perf-budgets.toml found — skipping gate"
-            exit 0
-          fi
+          python scripts/perf_gate.py \
+            --manifest benchmarks/fleet-perf.toml \
+            2>&1 | tee findings/perf-$(date -u +%Y-%m-%d).txt
+        continue-on-error: false
+      - name: Upload perf results artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: perf-results-${{ github.run_id }}
+          path: findings/perf-*.txt
+          if-no-files-found: warn
