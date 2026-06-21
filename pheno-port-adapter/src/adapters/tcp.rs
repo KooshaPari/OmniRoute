@@ -34,6 +34,31 @@ impl TcpAdapter {
     pub fn new() -> Self {
         Self::default()
     }
+
+    /// Parse an endpoint in `host:port` form.
+    pub fn parse_endpoint(endpoint: &str) -> Result<(String, u16), AdapterError> {
+        let (host, port) = endpoint
+            .split_once(':')
+            .ok_or_else(|| AdapterError::ConnectFailed("missing port separator".to_string()))?;
+        if host.is_empty() {
+            return Err(AdapterError::ConnectFailed("missing host".to_string()));
+        }
+        if port.is_empty() {
+            return Err(AdapterError::ConnectFailed("missing port".to_string()));
+        }
+        if host.contains(':') || port.contains(':') {
+            return Err(AdapterError::ConnectFailed("too many port separators".to_string()));
+        }
+        if endpoint.chars().any(char::is_control) {
+            return Err(AdapterError::ConnectFailed(
+                "endpoint contains control characters".to_string(),
+            ));
+        }
+        let port = port
+            .parse::<u16>()
+            .map_err(|e| AdapterError::ConnectFailed(format!("invalid port: {e}")))?;
+        Ok((host.to_string(), port))
+    }
 }
 
 impl PortAdapter for TcpAdapter {
@@ -57,9 +82,7 @@ impl PortAdapter for TcpAdapter {
     }
 
     fn connect(&self, endpoint: &str) -> Result<Connection, AdapterError> {
-        if endpoint.is_empty() {
-            return Err(AdapterError::ConnectFailed("empty endpoint".to_string()));
-        }
+        let _ = Self::parse_endpoint(endpoint)?;
         let stream = TcpStream::connect(endpoint)
             .map_err(|e| AdapterError::ConnectFailed(format!("{endpoint}: {e}")))?;
         let mut state = self.inner.lock().expect("tcp adapter mutex poisoned");
@@ -384,6 +407,7 @@ mod chaos {
         // Each adapter has its own mutex; verify that contention across
         // many adapters does not deadlock under stress.
         let counter = Arc::new(AtomicUsize::new(0));
+        let server_counter = Arc::clone(&counter);
         let listener = TcpListener::bind("127.0.0.1:0").expect("bind ephemeral port");
         let addr = listener.local_addr().expect("local_addr");
         let server = thread::spawn(move || {
@@ -391,7 +415,7 @@ mod chaos {
             for stream in listener.incoming().take(64) {
                 let mut s = stream.expect("accept");
                 let _ = s.write_all(b"pong");
-                counter.fetch_add(1, Ordering::Relaxed);
+                server_counter.fetch_add(1, Ordering::Relaxed);
                 drop(s);
             }
         });
