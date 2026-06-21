@@ -1,0 +1,62 @@
+{
+  "L": "L5-131",
+  "date": "2026-06-21",
+  "timestamp_utc": "2026-06-21T09:47:53Z",
+  "actor": "forge subagent (T6 deny strict)",
+  "device": "macbook",
+  "task": "v16-T6: enable strict-mode cargo-deny config (deny.toml) for argis-extensions Rust workspace",
+  "track": "v16-T6",
+  "plan_ref": "plans/2026-06-21-v16-71-pillar-cycle-6-p0.md",
+  "branch": "chore/v16-T6-deny-strict-2026-06-21",
+  "base_branch": "origin/main",
+  "worktree_path": "/private/tmp/v16-T6-deny-strict-D82E6C64",
+  "commit_sha": "29648457aabcad26585a3d43c217657c6a8ea345",
+  "commit_sha_short": "29648457aa",
+  "commit_message": "chore(deny): enable strict cargo-deny config (v16-T6)",
+  "pr_url": "https://github.com/KooshaPari/argis-extensions/pull/129",
+  "pr_number": 129,
+  "pr_repo": "KooshaPari/argis-extensions",
+  "pr_base": "main",
+  "pr_head": "chore/v16-T6-deny-strict-2026-06-21",
+  "pr_state": "OPEN",
+  "remote_pushed_to": "argis",
+  "remote_pushed_to_note": "user instruction named the remote 'argis-extensions'; the actual remote in this clone is 'argis' which points to KooshaPari/argis-extensions.git",
+  "files_changed": [
+    "deny.toml",
+    "deny.toml.bak",
+    "README.md"
+  ],
+  "files_committed": [
+    "deny.toml",
+    "deny.toml.bak",
+    "README.md"
+  ],
+  "files_uncommitted_in_worktree": [
+    "worklogs/L5-131-v16-T6-deny-strict-2026-06-21.json"
+  ],
+  "diff_summary": {
+    "files_changed_tracked": 3,
+    "insertions": 66,
+    "deletions": 20,
+    "total_diff_lines": 86,
+    "diff_under_100_lines_cap": true
+  },
+  "deny_toml_sections_added": [
+    "graph (all-features=true, all-targets=true)",
+    "advisories (version=2, RustSec DB, yanked=warn)",
+    "licenses (version=2, 9-entry allow-list, confidence-threshold=0.8)",
+    "bans (multiple-versions=warn, wildcards=deny, highlight=all, deny=[])",
+    "sources (unknown-registry=deny, unknown-git=deny, crates.io only)"
+  ],
+  "previous_deny_toml_disposition": "renamed to deny.toml.bak and committed alongside the new strict config so reviewers can diff",
+  "schema_version": "v2.1",
+  "orchestrator_checkout_untouched": true,
+  "orchestrator_branch": "ci/v12-gates-2026-06-21 (left untouched at c132f1177a)",
+  "skipped_per_user_directive": "no Civis touches, no direct orchestrator writes, no auto-merge",
+  "next_steps": [
+    "Watch CI on PR #129 for cargo deny check + license/advisory gate results",
+    "If CI flags a transitive dep licence outside the new allow-list, file a follow-up track to either widen the list or pin to a compliant version",
+    "Track T7 can now wire cargo deny check into the merge-blocking job set if plan calls for it"
+  ],
+  "status": "complete"
+}

@@ -1,0 +1,70 @@
+{
+  "task_id": "L5-131",
+  "id": "L5-131",
+  "L": "5-131",
+  "date": "2026-06-21",
+  "timestamp_utc": "2026-06-21T09:47:10Z",
+  "actor": "forge subagent (T5 pre-commit)",
+  "device": "macbook",
+  "device_rationale": "Pure config + markdown + YAML editing — no cargo, no docker, no Unity, no iOS sim. Fits Rule 1 of agent-effort governance.",
+  "layer": "L5",
+  "category": "L5-Governance",
+  "task": "Add no-merge-commits + branch-protection pre-commit hooks (v16-T5) and wire advisory CI mode.",
+  "title": "chore(precommit): add no-merge-commits + branch protection hooks (v16-T5)",
+  "repo": "KooshaPari/argis-extensions",
+  "branch": "chore/v16-T5-precommit-no-merge-commits-2026-06-21",
+  "commit_sha": "f27b3bd28a",
+  "pr_url": "https://github.com/KooshaPari/argis-extensions/pull/128",
+  "pr_number": 128,
+  "pr_base": "main",
+  "pr_head": "chore/v16-T5-precommit-no-merge-commits-2026-06-21",
+  "remote_pushed_to": "argis (git@github.com:KooshaPari/argis-extensions.git)",
+  "files_changed": [
+    ".pre-commit-config.yaml",
+    "README.md",
+    ".github/workflows/ci.yml"
+  ],
+  "files_written": [
+    "worklogs/L5-131-v16-T5-precommit-no-merge-commits-2026-06-21.json"
+  ],
+  "diff_stats": {
+    "files": 3,
+    "insertions": 50,
+    "deletions": 0
+  },
+  "hooks_added": [
+    {"id": "no-commit-to-branch", "stage": "pre-commit", "purpose": "block direct commits to main / release/*"},
+    {"id": "no-merge-commits", "stage": "manual", "purpose": "warn-only advisory on merge commits (CI-driven via --hook-stage manual)"},
+    {"id": "check-merge-conflict", "stage": "pre-commit", "purpose": "catch unresolved merge conflict markers"},
+    {"id": "check-yaml", "stage": "pre-commit", "purpose": "validate YAML syntax across the repo"}
+  ],
+  "ci_advisory_job": {
+    "name": "pre-commit-advisory",
+    "stage": "manual",
+    "continue_on_error": true,
+    "command": "pre-commit run --all-files --hook-stage manual",
+    "gating": false
+  },
+  "isolation": {
+    "worktree_path": "/private/tmp/v16-T5-precommit-227A9B53",
+    "branched_from": "argis/main @ 36d2a2619e",
+    "orchestrator_checkout_branch": "ci/v12-gates-2026-06-21",
+    "orchestrator_checkout_touched": false
+  },
+  "verification": [
+    "YAML parses for .pre-commit-config.yaml and .github/workflows/ci.yml",
+    "Diff is 50 insertions across 3 files (<150 line guardrail)",
+    "Single commit on branch (no amend / no force-push)",
+    "Push went to remote `argis` only (origin untouched, which points to phenotype-apps)",
+    "gh pr create succeeded; PR #128 open against main"
+  ],
+  "next_steps": [
+    "Wait for PR #128 review and CI advisory run (manual-stage hooks should fire there)",
+    "After merge, verify pre-commit hooks fire on next contributor commit (especially no-commit-to-branch on main)",
+    "Tune `check-yaml` exclude list if the v16 follow-on work surfaces more template/YAML exceptions"
+  ],
+  "skipped_per_user_directive": "no Civis touches, no direct orchestrator writes, no auto-merge",
+  "schema_version": "v2.1",
+  "status": "complete",
+  "plan_anchor": "plans/2026-06-21-v16-71-pillar-cycle-6-p0.md (v16-T5)"
+}
