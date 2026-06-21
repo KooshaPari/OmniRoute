@@ -61,7 +61,7 @@ contained the exposed material.
 Before submitting this request, run:
 
 ```powershell
-python scripts\incident-purge-readiness.py
+python scripts\incident-purge-readiness.py --retained-history-git-dir C:\path\to\phenotype-registry.git
 ```
 
 Before checking "Current default branch scan is clean," run this on the current
@@ -75,11 +75,16 @@ The scanner output is sanitized and reports finding labels plus paths only, not
 matched values. The purge readiness gate also runs this current-tree scan and
 will block if any finding label or missing tracked file is reported.
 
+Before checking "Full-history scan after rewrite is clean," pass the retained
+bare mirror to the purge readiness gate with `--retained-history-git-dir`. If
+that checklist item is checked without a retained-history scan path, the gate
+blocks instead of trusting the checkbox alone.
+
 The gate is sanitized and must fail until the provider inventory and checklist
 below are complete. Use this mode to verify the current blocked posture:
 
 ```powershell
-python scripts\incident-purge-readiness.py --expect-blocked
+python scripts\incident-purge-readiness.py --retained-history-git-dir C:\path\to\phenotype-registry.git --expect-blocked
 ```
 
 - [ ] Provider-side credentials have been revoked or rotated.

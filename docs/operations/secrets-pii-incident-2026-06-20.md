@@ -108,7 +108,7 @@ python scripts\incident-evidence-guard.py --require-all incident-evidence\2026-0
 Before submitting the GitHub Support purge request, run:
 
 ```powershell
-python scripts\incident-purge-readiness.py
+python scripts\incident-purge-readiness.py --retained-history-git-dir C:\path\to\phenotype-registry.git
 ```
 
 Before marking the current default branch clean in the purge checklist, run the
@@ -121,10 +121,14 @@ python scripts\retained-history-secret-scan.py --worktree-root . --fail-on-findi
 The purge readiness gate runs the same current-tree scan automatically and
 reports only sanitized counts and finding labels.
 
+Before marking the full-history scan clean in the purge checklist, pass the
+retained bare mirror with `--retained-history-git-dir`. The gate blocks if the
+checklist item is checked without a retained-history scan path.
+
 Use this mode to verify the current blocked posture:
 
 ```powershell
-python scripts\incident-purge-readiness.py --expect-blocked
+python scripts\incident-purge-readiness.py --retained-history-git-dir C:\path\to\phenotype-registry.git --expect-blocked
 ```
 
 ## Do Not Reopen Public Access Until

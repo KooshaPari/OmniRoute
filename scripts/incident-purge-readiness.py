@@ -175,6 +175,69 @@ def current_tree_scan_summary() -> dict[str, object]:
     }
 
 
+def retained_history_scan_summary(git_dir: Path | None) -> dict[str, object]:
+    if git_dir is None:
+        return {"status": "not_requested"}
+
+    scanner = Path.cwd().resolve() / DEFAULT_TREE_SCANNER
+    if not scanner.is_file():
+        return {
+            "status": "error",
+            "scanner": str(DEFAULT_TREE_SCANNER),
+            "error": "scanner missing",
+        }
+
+    resolved_git_dir = git_dir.resolve()
+    if not resolved_git_dir.is_dir():
+        return {
+            "status": "error",
+            "scanner": str(DEFAULT_TREE_SCANNER),
+            "git_dir": str(resolved_git_dir),
+            "error": "retained history git dir missing",
+        }
+
+    proc = subprocess.run(
+        [
+            sys.executable,
+            str(scanner),
+            str(resolved_git_dir),
+            "--fail-on-findings",
+        ],
+        cwd=Path.cwd().resolve(),
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True,
+        check=False,
+    )
+
+    try:
+        raw_summary = json.loads(proc.stdout)
+    except json.JSONDecodeError:
+        return {
+            "status": "error",
+            "scanner": str(DEFAULT_TREE_SCANNER),
+            "git_dir": str(resolved_git_dir),
+            "returncode": proc.returncode,
+            "error": "scanner returned non-json output",
+        }
+
+    finding_labels = nonzero_finding_labels(raw_summary)
+    status = "clean"
+    if proc.returncode or finding_labels:
+        status = "blocked"
+
+    return {
+        "status": status,
+        "scanner": str(DEFAULT_TREE_SCANNER),
+        "git_dir": str(resolved_git_dir),
+        "returncode": proc.returncode,
+        "scanned_blobs": int(raw_summary.get("scanned_blobs", 0)),
+        "skipped_large_blobs": int(raw_summary.get("skipped_large_blobs", 0)),
+        "skipped_binary_blobs": int(raw_summary.get("skipped_binary_blobs", 0)),
+        "finding_labels": finding_labels,
+    }
+
+
 def current_tree_scan_blockers(scan_summary: dict[str, object]) -> list[str]:
     if scan_summary["status"] == "clean":
         return []
@@ -193,7 +256,34 @@ def current_tree_scan_blockers(scan_summary: dict[str, object]) -> list[str]:
     return blockers
 
 
-def readiness_summary() -> dict[str, object]:
+def retained_history_scan_blockers(
+    scan_summary: dict[str, object],
+    full_history_checklist_checked: bool,
+) -> list[str]:
+    if scan_summary["status"] == "not_requested":
+        if full_history_checklist_checked:
+            return ["full-history checklist is checked but retained history scan was not verified"]
+        return []
+    if scan_summary["status"] == "clean":
+        return []
+
+    blockers: list[str] = []
+    finding_labels = scan_summary.get("finding_labels", [])
+    if finding_labels:
+        labels = ", ".join(str(label) for label in finding_labels)
+        blockers.append(f"retained history scan has findings: {labels}")
+    if scan_summary["status"] == "error":
+        blockers.append(f"retained history scan failed: {scan_summary.get('error', 'unknown error')}")
+    if not blockers:
+        blockers.append("retained history scan failed")
+    return blockers
+
+
+def checklist_checked(checklist: dict[str, bool], label_prefix: str) -> bool:
+    return any(label.startswith(label_prefix) and checked for label, checked in checklist.items())
+
+
+def readiness_summary(retained_history_git_dir: Path | None = None) -> dict[str, object]:
     incident_doc = resolve_doc(DEFAULT_INCIDENT_DOC, "incident doc")
     purge_doc = resolve_doc(DEFAULT_PURGE_DOC, "purge doc")
     incident_lines = incident_doc.read_text(encoding="utf-8").splitlines()
@@ -203,7 +293,14 @@ def readiness_summary() -> dict[str, object]:
     checklist = checklist_items(purge_lines, "## Confirmation Checklist")
     checklist_blockers = [f"unchecked purge checklist item: {label}" for label, checked in checklist.items() if not checked]
     current_tree_scan = current_tree_scan_summary()
-    technical_blockers = current_tree_scan_blockers(current_tree_scan)
+    retained_history_scan = retained_history_scan_summary(retained_history_git_dir)
+    technical_blockers = (
+        current_tree_scan_blockers(current_tree_scan)
+        + retained_history_scan_blockers(
+            retained_history_scan,
+            checklist_checked(checklist, "Full-history scan after rewrite is clean."),
+        )
+    )
     blockers = provider_blockers + checklist_blockers + technical_blockers
 
     return {
@@ -214,6 +311,7 @@ def readiness_summary() -> dict[str, object]:
         "checklist_blocker_count": len(checklist_blockers),
         "technical_blocker_count": len(technical_blockers),
         "current_tree_scan": current_tree_scan,
+        "retained_history_scan": retained_history_scan,
         "blockers": blockers,
     }
 
@@ -236,10 +334,15 @@ def main() -> int:
         action="store_true",
         help="Succeed only when the purge request still has blockers.",
     )
+    parser.add_argument(
+        "--retained-history-git-dir",
+        type=Path,
+        help="Bare mirror git directory for verifying the full-history purge checklist item.",
+    )
     args = parser.parse_args()
 
     try:
-        summary = readiness_summary()
+        summary = readiness_summary(args.retained_history_git_dir)
     except ValueError as exc:
         print(f"incident-purge-readiness: blocked. {exc}")
         return 1
