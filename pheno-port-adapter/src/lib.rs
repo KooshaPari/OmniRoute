@@ -1,6 +1,34 @@
+//! `pheno-port-adapter` — substrate-canonical hexagonal port traits and
+//! their concrete adapter implementations (ADR-038).
+//!
+//! Two surfaces live in this crate:
+//!
+//! 1. **Transport adapter trait** ([`PortAdapter`], [`Connection`],
+//!    [`AdapterError`]) — sync interface for pluggable transports
+//!    (TCP, Unix-domain, ...). Existing pre-hex-port adapters
+//!    ([`adapters::TcpAdapter`], [`adapters::UnixAdapter`]) implement
+//!    this.
+//! 2. **Hex-port traits** (under [`ports`]) — async-capability traits
+//!    defined per application/service boundary, with concrete adapters
+//!    under [`adapters`]. Currently shipped:
+//!    - [`ports::HexCachePort`] + [`adapters::InMemoryCache`] +
+//!      [`adapters::RedisAdapter`].
+//!
+//! See ADR-038 for the policy governing when a new hex-port trait lands
+//! in this crate vs. a polyglot `phenotype-*-sdk` package.
+//!
+//! ## Observability
+//!
+//! Per ADR-023 Rule 3.1 every substrate ships observability. Connection
+//! lifecycle (connect / disconnect / error) is exported via
+//! [`pheno_otel`] (ADR-037 canonical OTLP wire substrate). The hex-port
+//! adapters do not yet emit per-operation spans — that is a tracked
+//! follow-up (v13+) so we don't blanket-spam traces for high-QPS cache
+//! paths.
+
 use thiserror::Error;
 
-/// Error type for port adapter operations.
+/// Error type for transport-level [`PortAdapter`] operations.
 #[derive(Debug, Error)]
 pub enum AdapterError {
     #[error("connect failed: {0}")]
@@ -20,7 +48,10 @@ pub struct Connection {
     pub(crate) id: String,
 }
 
-/// Trait for port adapters.
+/// Trait for pluggable transport adapters (TCP, Unix-domain, ...).
+///
+/// Synchronous by design — the adapter itself owns its async runtime
+/// story. Async work belongs in the hex-port traits under [`ports`].
 pub trait PortAdapter: Send + Sync {
     fn name(&self) -> &str;
     fn health(&self) -> Result<(), AdapterError>;
@@ -28,8 +59,18 @@ pub trait PortAdapter: Send + Sync {
     fn disconnect(&self) -> Result<(), AdapterError>;
 }
 
-/// Concrete transport adapters (TCP, Unix-domain socket).
+/// Hex-port traits (cache, time, ...). Each trait lives in its own
+/// submodule and is paired with one or more adapters under [`adapters`].
+pub mod ports;
+
+/// Concrete adapter implementations.
 pub mod adapters;
+
+// Re-exports for the most common entry points so downstream crates can
+// `use pheno_port_adapter::HexCachePort` instead of
+// `pheno_port_adapter::ports::HexCachePort`. Re-exports are kept flat
+// (not nested) so adding a new port doesn't break import paths.
+pub use ports::{CacheError, HexCachePort};
 
 #[cfg(test)]
 mod tests {

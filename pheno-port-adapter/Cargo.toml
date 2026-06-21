@@ -8,6 +8,20 @@ rust-version = "1.82"
 
 [dependencies]
 thiserror = "2.0"
+# Async runtime backing the hex-port traits (HexCachePort, HexTimePort, ...).
+# Kept as a normal dep (not just dev-deps) because the hex-port adapters
+# return `impl Future` from their `async fn` methods; tokio's macros and
+# runtime are needed at compile time even when callers drive the adapters
+# from a different executor.
+tokio = { version = "1", features = ["rt-multi-thread", "macros", "sync", "time"] }
+# `async-trait` keeps the hex-port traits object-safe so callers can hold
+# `Box<dyn HexCachePort>` for late binding (e.g. in trait-object service
+# locators). All hex-port adapters use the macro form for consistency.
+async-trait = "0.1"
+# Redis client used by `adapters::redis_cache::RedisAdapter` to speak the
+# RESP wire protocol. Feature `tokio-comp` keeps the runtime story aligned
+# with the rest of the crate (single tokio runtime, no extra executors).
+redis = { version = "0.27", default-features = false, features = ["tokio-comp", "connection-manager"] }
 # Canonical OTLP wire-format export substrate (ADR-037).
 # `pheno-port-adapter` uses `pheno-otel` to surface
 # connection-lifecycle spans (connect/disconnect/error) to OTLP/HTTP
