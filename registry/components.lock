@@ -1,7 +1,7 @@
 {
   "version": "1.2.0",
   "updated": "2026-06-19",
-  "description": "Integration meta-repo lockfile \u2014 pins canonical fleet repos to immutable refs. CI validates cross-repo compatibility at pinned SHAs.",
+  "description": "Integration meta-repo lockfile — pins canonical fleet repos to immutable refs. CI validates cross-repo compatibility at pinned SHAs.",
   "_archive_notes": {
     "McpKit": {
       "status": "archived",
@@ -59,6 +59,15 @@
       "status": "archived",
       "archived_date": "2026-06-20",
       "reason": "Umbrella scaffold CLI for stdlib-only pheno-* governance tools (L72/L73/L74 + 4 siblings). Absorbed pheno-predict, pheno-framework-lint, pheno-drift-detector via PR #3 (recovery after external deletion). Now archived as the absorption target is complete; umbrella pattern documented in ADR-023 + AGENTS.md."
+    },
+    "phenotype-bus": {
+      "status": "archived",
+      "archived_date": "2026-06-20",
+      "reason": "Archived private Rust event-bus repo. Direct absorption target phenoEvents#9 lifted InMemoryBus adapter plus audit/deny/cliff/version helper; PhenoObservability stale CI tarball dependency removed in commit 37d1ee0. Hard delete deferred pending retention-clear evidence and stale docs/catalog sweep."
+    },
+    "PhenoContracts": {
+      "status": "archive-eligible",
+      "reason": "Repo-level PhenoContracts record. pheno-contracts is an alias, while crates/phenotype-contracts decomposition is tracked separately. Registry boundary/intent mark archive-ready; GitHub repo remains active/non-archived pending operational archive and final consumer/catalog sweep."
     }
   },
   "components": {

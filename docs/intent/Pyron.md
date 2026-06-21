@@ -1,8 +1,8 @@
 ---
 repo: "Pyron"
 aliases: []
-role: unknown
-status: active
+role: archived
+status: restored-archived
 last_verified: 2026-06-17
 bound_prompts: 2
 bound_plans: 0
@@ -14,7 +14,7 @@ device: macbook
 
 ## Intent Statement
 
-<To be filled in by hand from the most recent binding prompt. This repo is bound to 2 prompts, 0 plans, and 0 agent responses captured between 2025-08 and 2026-06-17.>
+Archived repository record only. Pyron served as a lockstep repoint chokepoint; active ownership now lives in DOMAIN_ROLES owners.
 
 ## Bound Prompts
 
@@ -43,10 +43,11 @@ See: [`docs/boundary/Pyron.md`](../boundary/Pyron.md)
 
 ## Open Questions
 
-- <To be filled from the latest prompt on this repo.>
+- Hard delete remains on hold pending explicit sign-off and retention-clear evidence.
 
 ## Change Log
 
 | Date | Change | Worklog |
 | ---- | ------ | ------- |
 | 2026-06-17 | Initial binding (L7-001 sweep) | `worklogs/L7-001-intent-boundary-curation-2026-06-17.json` |
+| 2026-06-20 | Marked restored-archived; active work redirected to DOMAIN_ROLES owners | `registry/disposition-index.json#gate-pyron` |
