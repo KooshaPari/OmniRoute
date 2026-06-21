@@ -1,0 +1,252 @@
+# scripts/ssot-rules.toml — v19 T3 L65 SSOT-injection rule definitions
+#
+# Authority: v19 71-pillar cycle 9 P0 plan + L65 SSOT scorecard (1→2 Adequate).
+# Loaded by scripts/ssot-validator.py at runtime.
+#
+# Schema (each [[rule]] entry):
+#   id                       — short stable id (snake_case). Referenced in
+#                              `// ssot-allow: <id>` line-level exemptions.
+#   description              — one-line human description (printed in report).
+#   pattern                  — Python `re` regex applied line-by-line.
+#   severity                 — one of: error (block) | warning (block default) | info.
+#   file_globs               — fnmatch patterns for in-scope files (default `["**/*.rs"]`).
+#   exempt_globs             — fnmatch patterns for files that are always exempt
+#                              (tests, examples, build scripts, fixtures, mocks).
+#   exempt_line_patterns     — regex patterns; if any match the line, the line is
+#                              skipped (use for `// ssot-allow: <rule-id>` markers).
+#   suggestion               — free-text fix hint shown in the report.
+#
+# Workflow for false positives:
+#   1. Add `// ssot-allow: <rule-id>` on the line to silence just that match.
+#   2. Add a glob to `exempt_globs` to silence a whole directory of files.
+#   3. If the rule is too broad, narrow the `pattern` (PR to this file).
+#
+# Workflow for new SSOT categories:
+#   1. Add a new [[rule]] entry below.
+#   2. Start at `severity = "info"` and watch the report volume for 1 cycle.
+#   3. Promote to `warning` once stable; to `error` once governance mandates it.
+
+# ---------------------------------------------------------------------------
+# Rule 1: Hardcoded HTTP(S) URLs in production code
+# ---------------------------------------------------------------------------
+[[rule]]
+id = "hardcoded-url"
+description = "Hardcoded URL literal — should come from config or env"
+severity = "error"
+# Match http(s)://host.tld[/path] — exclude obvious doc/comment noise.
+# Allows underscores in host (some test fixtures use them).
+pattern = '''(?ix)
+    (?<![A-Za-z0-9_/])            # not preceded by a path char
+    https?://                      # scheme
+    [A-Za-z0-9._-]+                # host
+    (?:\.[A-Za-z]{2,})             # TLD
+    (?:/[^\s"'`)]*)?               # optional path
+'''
+file_globs = ["**/*.rs"]
+exempt_globs = [
+    "**/tests/**",
+    "**/test/**",
+    "**/benches/**",
+    "**/examples/**",
+    "**/test_*.rs",
+    "**/*_test.rs",
+    "**/tests.rs",
+    "**/mock*.rs",
+    "**/mocks/**",
+    "**/fixtures/**",
+    "**/testdata/**",
+    "**/*.toml",
+    "**/*.md",
+]
+exempt_line_patterns = [
+    '//\s*ssot-allow:\s*hardcoded-url',
+    '///\s*',  # doc comments
+]
+suggestion = "Move the URL into a config struct (e.g. pheno-config) or env var; reference via Settings::get(\"api.base_url\")."
+
+# ---------------------------------------------------------------------------
+# Rule 2: Hardcoded well-known network ports
+# ---------------------------------------------------------------------------
+[[rule]]
+id = "hardcoded-port"
+description = "Hardcoded network port — should be configurable"
+severity = "warning"
+# Common dev/prod service ports. Match `:NNNN` with word boundary on the right.
+pattern = '''(?x)
+    :\s*
+    (?:
+        3000|3001|4000|4001|5000|5001|       # dev frameworks
+        5432|5433|6379|6380|                  # postgres / redis
+        8000|8001|8080|8081|8443|8888|        # http alt
+        9000|9001|9090|9091|9200|9300|        # minio / prometheus / elastic
+        27017|27018|                          # mongo
+        53|80|443|465|587|993|995             # mail / dns / standard
+    )
+    \b
+'''
+file_globs = ["**/*.rs"]
+exempt_globs = [
+    "**/tests/**",
+    "**/test/**",
+    "**/benches/**",
+    "**/examples/**",
+    "**/mock*.rs",
+    "**/mocks/**",
+    "**/fixtures/**",
+    "**/testdata/**",
+    "**/docker-compose*.yml",
+    "**/docker-compose*.yaml",
+    "**/Dockerfile*",
+]
+exempt_line_patterns = [
+    '//\s*ssot-allow:\s*hardcoded-port',
+    '///\s*',
+]
+suggestion = "Read the port from a typed config (e.g. Settings { db_port: u16 }); default 0 to force explicit config in prod."
+
+# ---------------------------------------------------------------------------
+# Rule 3: Magic numbers in non-test business code
+# ---------------------------------------------------------------------------
+# This rule targets bare integer literals that look like timeouts / retry
+# counts / buffer sizes. It's deliberately narrow — only matches when
+# followed by a duration-suggestive identifier or as-cast to a duration type.
+[[rule]]
+id = "magic-number-duration"
+description = "Magic number cast to a duration type — should be a named constant"
+severity = "warning"
+# Match common "magic number" patterns in Rust source:
+#   - `let x: u64 = 30;`         (type ascription, then literal)
+#   - `let x = 30u64;`           (literal with unit suffix)
+#   - `Duration::from_secs(30)`  (function arg, closing paren)
+#   - `let x = 30;`              (bare literal at end of statement)
+# We only match specific time/size values that are likely to be tunable.
+pattern = '''(?ix)
+    \b(?:
+        30|45|60|90|120|180|300|600|900|1800|3600|7200
+    )\b
+    \s*
+    (?:
+        u(?:8|16|32|64|128|size)   |
+        i(?:8|16|32|64|128|size)   |
+        f(?:32|64)                 |
+        [;)]                       |
+        $                          # end of line (bare literal)
+    )
+'''
+file_globs = ["**/*.rs"]
+exempt_globs = [
+    "**/tests/**",
+    "**/test/**",
+    "**/benches/**",
+    "**/examples/**",
+    "**/mock*.rs",
+    "**/mocks/**",
+    "**/fixtures/**",
+    "**/testdata/**",
+    "**/build.rs",
+]
+exempt_line_patterns = [
+    '//\s*ssot-allow:\s*magic-number-duration',
+    '///\s*',
+    'const\s+\w+:\s*u(?:32|64)\s*=\s*\d+',  # top-level const is fine
+]
+suggestion = "Extract to a `const RETRY_TIMEOUT_SECS: u64 = 30;` (or load from config) so it's named and tunable."
+
+# ---------------------------------------------------------------------------
+# Rule 4: Crate-name string literal (duplicate of CARGO_PKG_NAME)
+# ---------------------------------------------------------------------------
+[[rule]]
+id = "crate-name-literal"
+description = "String literal that duplicates the crate name — should use env!(\"CARGO_PKG_NAME\")"
+severity = "info"
+# Catch `let crate_name = "pheno_foo";` or `const NAME: &str = "pheno_foo";`
+# where the literal looks like a crate id (lowercase, hyphens, underscores).
+pattern = '''(?ix)
+    (?:
+        (?:let|const)\s+\w*[Nn]ame\w*\s*[:=]\s* |
+        identifier\s*[:=]\s* |
+        crate_name\s*[:=]\s*
+    )
+    "
+    [a-z][a-z0-9_-]{2,40}
+    "
+'''
+file_globs = ["**/*.rs"]
+exempt_globs = [
+    "**/tests/**",
+    "**/test/**",
+    "**/benches/**",
+    "**/examples/**",
+    "**/build.rs",
+    "**/mock*.rs",
+]
+exempt_line_patterns = [
+    '//\s*ssot-allow:\s*crate-name-literal',
+    '///\s*',
+]
+suggestion = "Use `env!(\"CARGO_PKG_NAME\")` (compile-time) or load the canonical id from your crate's lib.rs."
+
+# ---------------------------------------------------------------------------
+# Rule 5: Hardcoded env-var name as a string literal
+# ---------------------------------------------------------------------------
+# We don't ban all env::var() calls — only those that pass an inline
+# UPPER_SNAKE_CASE string that should live in a constants module.
+[[rule]]
+id = "inline-env-var-name"
+description = "Inline env-var name string — should be a named constant in a config module"
+severity = "info"
+# Match `env::var("FOO_BAR")` or `std::env::var("FOO_BAR")` where the literal
+# is at least 3 chars, starts with a letter, and contains an underscore.
+pattern = '''(?x)
+    (?:env::var|std::env::var|env::var_os|std::env::var_os)
+    \s*\(\s*
+    "
+    [A-Z][A-Z0-9_]{2,}
+    "
+    \s*\)
+'''
+file_globs = ["**/*.rs"]
+exempt_globs = [
+    "**/tests/**",
+    "**/test/**",
+    "**/benches/**",
+    "**/examples/**",
+    "**/build.rs",
+]
+exempt_line_patterns = [
+    '//\s*ssot-allow:\s*inline-env-var-name',
+    '///\s*',
+    'const\s+[A-Z_]+:\s*&\s*str\s*=\s*"[A-Z][A-Z0-9_]*"',  # top-level const is fine
+]
+suggestion = "Define a `pub const ENV_FOO_BAR: &str = \"FOO_BAR\";` in your config module and reference it from the call site."
+
+# ---------------------------------------------------------------------------
+# Rule 6: Hardcoded REST endpoint path (smell: should be from openapi SSOT)
+# ---------------------------------------------------------------------------
+[[rule]]
+id = "hardcoded-endpoint-path"
+description = "Hardcoded /v1/... REST endpoint path — should be from an openapi/Routes SSOT"
+severity = "info"
+# Match string literals like `"/v1/users"` or `"/api/v2/orders/{id}"`.
+# Excludes file:// paths and pure relative paths.
+pattern = '''(?x)
+    "
+    /v\d+  /  [a-zA-Z0-9_/{}.:-]+
+    "
+'''
+file_globs = ["**/*.rs"]
+exempt_globs = [
+    "**/tests/**",
+    "**/test/**",
+    "**/benches/**",
+    "**/examples/**",
+    "**/mock*.rs",
+    "**/mocks/**",
+    "**/fixtures/**",
+    "**/testdata/**",
+]
+exempt_line_patterns = [
+    '//\s*ssot-allow:\s*hardcoded-endpoint-path',
+    '///\s*',
+]
+suggestion = "Generate (or hand-curate) a `routes::V1_USERS` constant from your OpenAPI spec; reference that instead of a string literal."

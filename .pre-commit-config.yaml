@@ -1,6 +1,8 @@
 # V13 T7: pre-commit hooks for justfile-verify + cargo-fmt + cargo-deny
 # V12-17 (2026-06-21): + commitlint commit-msg hook (L29.3 / side-50 ADOPT)
-# Pillar L29.1 (justfile-verify-in-pre-commit), L20 (deny), L29 (fmt), L29.3 (commitlint)
+# V19 T3  (2026-06-21): + ssot-validator hook (L65 SSOT injection — staged .rs file scan)
+# Pillar L29.1 (justfile-verify-in-pre-commit), L20 (deny), L29 (fmt), L29.3 (commitlint),
+# L65 (SSOT cross-ref + staged .rs literal scan)
 #
 # Installed via: pre-commit install
 # Installed via: pre-commit install --hook-type commit-msg
@@ -60,6 +62,15 @@ repos:
         language: system
         pass_filenames: false
         always_run: true
+        stages: [pre-commit]
+
+      - id: ssot-validator
+        name: ssot-validator (L65)
+        description: Scan staged .rs files for hardcoded literals (URLs, ports, magic numbers, env-var names, endpoint paths) that should come from a SSOT
+        entry: python3 scripts/ssot-validator.py
+        language: system
+        pass_filenames: true
+        types: [rust]
         stages: [pre-commit]
 
   # V12-17: Conventional Commits gate (side-50 ADOPT). Runs at the
