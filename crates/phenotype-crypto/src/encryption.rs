@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
+
 //! AES-256-GCM symmetric encryption.
 
 use aes_gcm::{

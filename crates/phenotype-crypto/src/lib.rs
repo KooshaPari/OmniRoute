@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
+
 //! # phenotype-crypto
 //!
 //! Cryptographic utilities for Phenotype — hashing, symmetric encryption,

@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
+
 //! Graph JSON ↔ IR transpiler (ReactFlow export format).
 //!
 //! Handles bidirectional conversion between ReactFlow graph exports and IR documents.

@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
 // Tests for template marketplace CLI: search, show, rate.
 // Validates URL construction, JSON parsing, and fallback behavior.
 

@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
+
 //! focus-scheduler — Rigidity-aware task scheduler.
 //!
 //! Traces to: FR-PLAN-002 (Scheduler rigidity-aware).

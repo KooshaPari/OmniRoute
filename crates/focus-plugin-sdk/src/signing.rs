@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
+
 //! Plugin signature verification using Ed25519.
 
 use ed25519_dalek::{Signature, SigningKey, VerifyingKey, Signer};

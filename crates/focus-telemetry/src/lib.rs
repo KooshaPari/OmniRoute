@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
+
 //! # focus-telemetry — Opt-in Anonymous Usage Analytics
 //!
 //! Provides local-first, PII-scrubbed event collection for FocalPoint.

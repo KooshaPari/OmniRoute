@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
+
 //! Event → Rule → Action evaluation pipeline.
 //!
 //! [`RuleEvaluationPipeline::tick`] pulls new events from an [`EventStore`]

@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
+
 //! Google Calendar v3 REST client.
 
 use focus_connectors::ConnectorError;

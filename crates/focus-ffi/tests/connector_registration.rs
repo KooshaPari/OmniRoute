@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
+
 //! Integration test for the connect→register flow.
 //!
 //! Proves that `ConnectorApi::connect_canvas` does more than persist a token:

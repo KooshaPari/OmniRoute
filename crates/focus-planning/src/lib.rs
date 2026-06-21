@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
+
 //! focus-planning — Task model for the Motion-layer scheduler.
 //!
 //! Traces to: FR-PLAN-001 (Task model).

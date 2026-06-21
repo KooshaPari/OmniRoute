@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
+
 //! Task and Schedule transpilers: round-trip converters for planning primitives.
 //!
 //! Stub: awaits focus-planning domain crate.

@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
+
 //! Strava OAuth2 authorization code flow, token storage (keychain-backed).
 
 use async_trait::async_trait;

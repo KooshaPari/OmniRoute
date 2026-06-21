@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
+
 //! Plugin trait and ABI definitions for WASM connectors.
 
 use serde::{Deserialize, Serialize};

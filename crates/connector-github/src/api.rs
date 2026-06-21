@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
+
 //! GitHub REST client.
 //!
 //! Hits `https://api.github.com` (or an override for tests) with

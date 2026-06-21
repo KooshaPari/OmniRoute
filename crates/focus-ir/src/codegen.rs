@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
+
 //! Reverse code-generation: RuleIr → FPL and RuleIr → CLI.
 //!
 //! Pure functions to render an IR rule back to user-friendly text formats.

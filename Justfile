@@ -38,6 +38,14 @@ audit:
 licenses:
     cargo deny check licenses
 
+# Run cargo-deny (advisories + licenses + bans + sources)
+deny:
+    cargo deny check
+
+# Show banned/duplicate dependency graph
+deny-graph:
+    cargo deny check bans --hide-inclusion-errors
+
 # Clean build artifacts
 clean:
     cargo clean

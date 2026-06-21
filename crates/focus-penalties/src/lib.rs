@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
+
 //! Penalty state, escalation tiers, bypass budget.
 //!
 //! Traces to FR-STATE-002.

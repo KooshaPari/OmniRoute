@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
+
 //! Deterministic JSON canonicalization for stable hashing.
 //!
 //! Recursively sorts object keys so semantically-equal JSON produces

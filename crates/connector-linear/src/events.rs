@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
+
 //! Linear event mapping — transforms API responses into normalized events.
 
 use chrono::Utc;

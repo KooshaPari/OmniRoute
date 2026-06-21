@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
+
 //! Multi-device sync store trait and in-memory implementations.
 //!
 //! This crate defines the abstract sync interface that FocalPoint uses to sync

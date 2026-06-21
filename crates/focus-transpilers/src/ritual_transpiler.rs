@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
+
 //! Transpiler: focus_rituals::MorningBrief + EveningShutdown ↔ focus_ir::RitualIr
 //!
 //! Stub: awaits focus-rituals domain crate.

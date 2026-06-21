@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
+
 //! Time source abstraction for deterministic testing and demo choreography.
 //!
 //! Traces to: FR-MOCK-003 (deterministic time).

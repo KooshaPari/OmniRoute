@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
+
 //! SQLite adapter — schema migrations, prepared statements.
 //!
 //! Traces to: FR-DATA-001, FR-DATA-002.

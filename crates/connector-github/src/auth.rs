@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
+
 //! GitHub Personal Access Token (PAT) storage.
 //!
 //! GitHub PATs don't refresh — they're issued out-of-band by the user and

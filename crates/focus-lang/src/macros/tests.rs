@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
+
 //! Tests for FPL macro library parsing and syntax validation.
 //! Note: Full IR collection requires native function hooks (Phase 2).
 //! These tests validate that macros parse correctly and have syntactically valid Starlark.

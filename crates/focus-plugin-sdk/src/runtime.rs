@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
+
 //! WASM runtime with strict capability caps: 10MB memory, 5s timeout, no net/fs.
 
 use crate::PluginError;

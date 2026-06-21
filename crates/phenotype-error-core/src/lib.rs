@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
 // use std::fmt;
 use serde::{Deserialize, Serialize};
 use thiserror::Error;

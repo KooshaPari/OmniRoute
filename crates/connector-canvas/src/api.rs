@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
+
 //! Canvas REST client.
 
 use phenotype_observably_macros::async_instrumented;

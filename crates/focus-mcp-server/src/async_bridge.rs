@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
+
 //! Sync-to-async bridge for MCP tool calls within a tokio runtime.
 //!
 //! MCP tools expose a sync interface (`call(&self, input) -> Result<CallToolResponse>`);

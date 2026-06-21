@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
+
 //! Rule authoring primitives: a type-safe `RuleBuilder` plus a static
 //! `describe_dsl()` catalog emitted as JSON-friendly schema for UI
 //! consumers (the in-app Rule Authoring Wizard on iOS, and any future

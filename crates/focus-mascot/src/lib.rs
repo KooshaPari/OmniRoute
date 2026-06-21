@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
+
 //! Coachy — the FocalPoint mascot state machine.
 //!
 //! Coachy is a fiery flame-shaped coach with a red cape + gold-star buckle. The

@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
+
 //! # Privacy Filter for Span Attributes
 //!
 //! Prevents PII leakage into span attributes and logs.

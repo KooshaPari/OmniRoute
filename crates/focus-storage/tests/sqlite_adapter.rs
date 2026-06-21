@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
+
 //! Integration tests for focus-storage SQLite adapter.
 //!
 //! Traces to: FR-DATA-001, FR-DATA-002.

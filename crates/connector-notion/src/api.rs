@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
+
 //! Notion API v1 client — /users/me, /databases, /pages endpoints.
 
 use reqwest::Client;

@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
+
 //! Port layer for tracing operations
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;

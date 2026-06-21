@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
+
 //! Readwise Reader connector — token-based auth, REST API client, event mapping, `Connector` impl.
 //! Emits: `readwise:highlight_created`, `readwise:article_read`.
 

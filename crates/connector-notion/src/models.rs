@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
+
 //! Notion data models.
 
 use serde::{Deserialize, Serialize};

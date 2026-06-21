@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
+
 //! GitHub REST domain types — minimal subset of `/user` and `/users/{login}/events`.
 //!
 //! Field names match the GitHub REST v3 / 2022-11-28 API. We model only what

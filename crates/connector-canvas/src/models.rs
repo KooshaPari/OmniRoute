@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
+
 //! Canvas LMS domain types. JSON field names match Canvas API.
 //!
 //! Optional fields lean heavily on `#[serde(default)]`: Canvas API responses

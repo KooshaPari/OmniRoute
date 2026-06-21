@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
+
 //! Transpiler: focus_connectors::ConnectorManifest ↔ focus_ir::ConnectorIr
 //!
 //! Stub: awaits focus-connectors domain crate.

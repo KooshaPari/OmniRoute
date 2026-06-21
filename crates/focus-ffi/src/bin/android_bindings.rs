@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
 // Generates UniFFI Kotlin bindings for Android.
 //
 // This binary orchestrates:

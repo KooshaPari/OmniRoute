@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
+
 //! Batched + parallel rule evaluation pipeline for high-throughput event processing.
 //!
 //! [`BatchedRuleEvaluationPipeline`] trades sequential simplicity for:

@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
 /// Differential property tests for surface parity.
 /// Verifies that RuleIr round-trips consistently across all surfaces:
 /// - IR → JSON → IR (serde round-trip)

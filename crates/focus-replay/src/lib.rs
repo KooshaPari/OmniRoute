@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
+
 //! Time-travel debugging for the rule engine.
 //!
 //! [`ReplayEngine`] lets devs replay a span of events to see what WOULD

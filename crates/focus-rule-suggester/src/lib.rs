@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
+
 //! Rule suggestion engine.
 //!
 //! Analyzes audit chain and connector events over a time window to detect

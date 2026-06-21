@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
+
 //! Prompt templates for Coachy's LLM-backed copy generation.
 //!
 //! Voice brief: Duolingo-Coachy. Terse, warm, never condescending.

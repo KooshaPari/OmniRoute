@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
+
 //! FocalPoint Language (FPL) — Starlark→IR Compiler
 //!
 //! Compiles Starlark programs to FocalPoint Intermediate Representation (IR).

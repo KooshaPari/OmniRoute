@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
+
 //! Right-to-erasure / GDPR account deletion.
 //!
 //! Provides tamper-evident account wipe with a receipt. On successful wipe,

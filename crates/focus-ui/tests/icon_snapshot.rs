@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
 // Icon sprite snapshot test — verifies icon count and integrity.
 // Traces to: FR-UI-ICON-SPRITE (icon set generation and sprite integrity)
 

@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
 // Rust tooling binary for checking broken links in VitePress docs.
 // Reason: Rust default per Phenotype scripting hierarchy; standalone tool.
 

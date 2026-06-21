@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
+
 //! Retry policy with exponential backoff and bounded jitter.
 //!
 //! Traces to: FR-CONN-003

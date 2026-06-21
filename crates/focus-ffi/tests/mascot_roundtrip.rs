@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
+
 //! Integration test: drives FocalPointCore through a sequence of events and
 //! verifies the FFI-facing state reflects the core mascot machine.
 

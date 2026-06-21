@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
+
 //! FocalPoint audio asset fetcher.
 //!
 //! Downloads SFX and phoneme samples from SOUND_SOURCES.md, post-processes via ffmpeg,

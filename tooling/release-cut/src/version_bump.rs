@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
+
 //! Version bump utilities for Cargo.toml and iOS plist.
 
 use semver::Version;

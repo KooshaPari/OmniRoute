@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
+
 //! # focus-observability — Structured Logging, Tracing, and Metrics
 //!
 //! Provides production-grade observability: JSON/pretty logging via `tracing-subscriber`,

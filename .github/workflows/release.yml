@@ -5,10 +5,16 @@ on:
     types: [published]
   workflow_dispatch:
 
+# Tier-0 hygiene hardening: scope permissions + concurrency control.
 permissions:
   contents: read
   id-token: write
   attestations: write
+
+# Cancel in-progress runs on the same release ref; serialize per tag.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.release.tag_name || github.ref }}
+  cancel-in-progress: false
 
 jobs:
   build-and-attest:
@@ -22,7 +28,7 @@ jobs:
       CARGO_WORKDIR: .
     steps:
       - name: Checkout source
-        uses: actions/checkout@v4
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.1.1
         with:
           fetch-depth: 0
 
@@ -32,7 +38,7 @@ jobs:
           toolchain: stable
 
       - name: Cache cargo registry and build artifacts
-        uses: Swatinem/rust-cache@v2
+        uses: Swatinem/rust-cache@42dc69e1aa15d09112580998cf2ef0119e2e91ae # v2
         with:
           workspaces: |
             . -> target
@@ -73,7 +79,7 @@ jobs:
           ls -la release-artifacts/
 
       - name: Upload artifacts for provenance
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@65462800fd760344b1a7b4382951275a0abb4808 # v4.4.3
         with:
           name: release-artifacts
           path: ${{ env.CARGO_WORKDIR }}/release-artifacts/
@@ -81,6 +87,6 @@ jobs:
           retention-days: 90
 
       - name: Attest build provenance (SLSA Build L2)
-        uses: slsa-framework/slsa-github-generator/attest-build-provenance@v1
+        uses: slsa-framework/slsa-github-generator/attest-build-provenance@19a04bcaa4f957b7e79a78ae562ac8a7e6f7c2b0 # v1.10.0
         with:
           artifact-name: release-artifacts

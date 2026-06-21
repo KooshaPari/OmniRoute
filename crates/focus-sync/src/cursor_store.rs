@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
+
 //! Persistent cursor storage port.
 //!
 //! [`CursorStore`] is the seam between the in-memory [`crate::SyncOrchestrator`]

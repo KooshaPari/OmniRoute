@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
+
 //! Linear connector — OAuth2/PAT auth, GraphQL API client, event mapping, `Connector` impl.
 //! Emits: `linear:issue_created`, `linear:issue_closed`.
 

@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
+
 //! Notion connector — integration token auth, REST API client, event mapping, `Connector` impl.
 //! Emits: `notion:page_updated`, `notion:task_completed`.
 

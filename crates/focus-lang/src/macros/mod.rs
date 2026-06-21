@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
+
 //! High-level FPL macro library for common patterns.
 //!
 //! Macros lower to standard IR via existing focus-lang helpers.

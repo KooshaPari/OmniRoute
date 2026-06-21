@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
+
 //! Smoke-test every `.toml` file in `examples/templates/` — parse → apply
 //! into an in-memory RuleUpsert store → re-apply (idempotency).
 //!

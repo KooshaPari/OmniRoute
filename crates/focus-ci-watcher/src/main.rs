@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
+
 use anyhow::{Context, Result};
 use clap::Parser;
 use focus_ci_watcher::{

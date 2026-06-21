@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
+
 //! # Audit Logging for Telemetry Flushes
 //!
 //! Every flush operation creates an audit record showing:

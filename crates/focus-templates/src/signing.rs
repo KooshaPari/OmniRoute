@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
+
 //! Detached ed25519 signing for [`TemplatePack`]s.
 //!
 //! Traces to: FR-TEMPLATE-SIGN-001.

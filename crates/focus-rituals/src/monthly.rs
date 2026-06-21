@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
+
 //! Monthly Retrospective engine for focus-rituals.
 //!
 //! Traces to: FR-RITUAL-004 (Monthly Retrospective).

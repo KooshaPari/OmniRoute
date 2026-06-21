@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
+
 //! MCP transport layer: STDIO (default), HTTP/SSE, and WebSocket.
 
 #[cfg(feature = "http-sse")]

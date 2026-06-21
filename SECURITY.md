@@ -17,7 +17,7 @@ We follow coordinated disclosure with reporters. Once an issue is patched, an ad
 
 ## Cargo-deny
 
-Rust projects in this org enforce a zero-advisory floor via `cargo-deny.yml` workflow (Monday cron + on-demand).
+Rust projects in this org enforce a zero-advisory floor via `deny.yml` workflow (Monday cron + on-demand) plus `audit.yml` (rustsec/audit-check, Wednesday weekly).
 
 ## CodeQL
 

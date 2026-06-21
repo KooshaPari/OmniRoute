@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
+
 //! Bulk import/export for rules and tasks via CSV and YAML formats.
 //!
 

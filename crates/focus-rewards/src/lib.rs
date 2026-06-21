@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
+
 //! Reward wallet aggregate + mutations.
 //!
 //! Traces to FR-STATE-001.

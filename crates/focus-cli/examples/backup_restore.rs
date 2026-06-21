@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
 /// Example: CLI backup & restore with focus-backup crate.
 ///
 /// Build: cargo run --example backup_restore --manifest-path crates/focus-cli/Cargo.toml -- --help

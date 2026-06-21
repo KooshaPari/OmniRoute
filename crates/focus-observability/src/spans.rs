@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
+
 //! # Span Conventions and Attributes
 //!
 //! Standardized span types with typed attributes for common FocalPoint operations.

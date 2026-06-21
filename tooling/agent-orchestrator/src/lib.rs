@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
+
 use anyhow::{anyhow, Result};
 use glob::glob;
 use serde::{Deserialize, Serialize};

@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
+
 //! FocalPoint CI Watcher — polls origin/main and triggers fastlane CI lanes.
 //!
 //! Polls git HEAD on a configurable interval; when new commits are detected,

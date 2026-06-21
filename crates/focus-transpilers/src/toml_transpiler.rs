@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
+
 //! TOML ↔ IR transpiler for legacy template-pack migration.
 //!
 //! Handles bidirectional conversion between TOML template packs (via focus_templates)

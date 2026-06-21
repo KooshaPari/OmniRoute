@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
+
 //! # focus-hash
 //!
 //! Unified hashing interface for the Focus ecosystem. Wraps `phenotype-crypto`

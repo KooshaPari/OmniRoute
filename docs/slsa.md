@@ -31,7 +31,7 @@ log alongside the artifact.
 ## Workflow
 
 The CI workflow lives at
-[`.github/workflows/release-attestation.yml`](../.github/workflows/release-attestation.yml)
+[`.github/workflows/release.yml`](../.github/workflows/release.yml)
 and is triggered:
 
 - Automatically on every `release: published` event.

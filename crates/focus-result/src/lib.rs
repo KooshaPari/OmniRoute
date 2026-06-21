@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
+
 //! Shared Result type alias for FocalPoint crates.
 //!
 //! Provides a consistent `Result<T, E>` type across all `focus-*` and

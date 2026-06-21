@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
+
 //! Linear GraphQL API client — issues, viewer endpoints.
 
 use reqwest::Client;

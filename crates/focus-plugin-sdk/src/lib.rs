@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
+
 //! Focus Plugin SDK: WASM sandbox runtime for community connectors.
 //!
 //! Provides `PluginRuntime` wrapping `wasmtime` with strict capability caps:

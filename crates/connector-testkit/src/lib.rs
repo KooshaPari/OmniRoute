@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
+
 //! Fixture replay + mock harness for connector authors.
 
 use focus_connectors::Connector;

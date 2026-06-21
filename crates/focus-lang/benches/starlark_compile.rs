@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
+
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
 
 /// Benchmark: compile a representative 200-line .fpl program.

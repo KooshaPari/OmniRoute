@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
+
 //! Key derivation using PBKDF2-HMAC-SHA256.
 
 use pbkdf2::pbkdf2_hmac_array;

@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
+
 //! Notion token auth — integration token storage trait and implementation.
 
 use async_trait::async_trait;

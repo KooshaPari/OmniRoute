@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
+
 use pheno_tracing::port::{TraceId, SpanId, TraceOperation, SpanKind, TraceStatus};
 use pheno_tracing::adapters::StdoutAdapter;
 use pheno_tracing::TracePort;  // Bring the trait into scope

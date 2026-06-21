@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
+
 //! Weekly Review engine for focus-rituals.
 //!
 //! Traces to: FR-RITUAL-003 (Weekly Review).

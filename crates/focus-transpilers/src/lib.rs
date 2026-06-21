@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
+
 //! FocalPoint Transpilers: Lossless round-trip compilers between IR and authoring surfaces.
 //!
 //! This crate implements bidirectional transpilers for:

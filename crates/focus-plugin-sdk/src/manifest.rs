@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
+
 //! Plugin manifest schema for capability declaration and metadata.
 
 use serde::{Deserialize, Serialize};

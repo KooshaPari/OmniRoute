@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
+
 //! CloudKit port abstraction for multi-device sync.
 //!
 //! This module defines the trait interface for CloudKit sync operations.

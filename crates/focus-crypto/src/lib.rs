@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
+
 //! Token wrapping, secure-storage helpers.
 //!
 //! The `unlock` module (QR/NFC proofs) has been archived to

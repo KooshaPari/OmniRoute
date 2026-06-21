@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
+
 //! SQLite-backed implementation of EventDeduplicator.
 //!
 //! Maintains a dedupe table (event_dedup) with hash_key, first_seen_at, and ttl_sec.

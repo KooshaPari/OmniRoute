@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
+
 //! JSON output tests for `focus` CLI
 //! Tests verify that --json flag produces valid JSON with expected schema for all subcommands.
 

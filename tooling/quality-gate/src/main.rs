@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
+
 use std::env;
 use std::process::{Command, exit};
 use std::path::PathBuf;

@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
+
 //! FocalPoint Intermediate Representation (IR).
 //!
 //! Single canonical JSON format for all FocalPoint documents: Rule, Connector,

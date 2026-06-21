@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
+
 //! MCP (Model Context Protocol) server exposing FocalPoint's rule/task/wallet/audit surface.
 //!
 //! Exposes 27 tools + resources for agent-driven planning, rule authoring, and diagnostics.

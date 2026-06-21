@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
+
 //! Rule DSL, evaluation, priority, cooldowns, explanation.
 //!
 //! Traces to FR-RULE-001..005.

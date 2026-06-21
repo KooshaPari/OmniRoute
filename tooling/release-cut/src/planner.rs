@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
+
 //! Release plan generator: dry-run output showing all steps.
 
 use anyhow::{anyhow, Result};

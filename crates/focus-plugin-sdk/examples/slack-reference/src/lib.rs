@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
+
 //! Slack reference connector plugin: emits slack:message_posted events.
 //!
 //! This plugin demonstrates the full connector lifecycle:

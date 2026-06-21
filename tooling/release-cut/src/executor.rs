@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
+
 //! Release execution: applies git tags, version bumps, CHANGELOG, Discord post, fastlane.
 
 use crate::planner::Plan;

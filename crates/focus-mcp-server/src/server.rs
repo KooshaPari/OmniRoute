@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
+
 //! MCP server transport layer: STDIO (default).
 
 use crate::tools::FocalPointToolsImpl;

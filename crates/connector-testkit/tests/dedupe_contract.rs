@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
+
 //! Dedupe contract: Connector returning the same NormalizedEvent twice
 //! results in only one persisted event in an EventStore.
 //!

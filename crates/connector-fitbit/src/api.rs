@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
+
 //! Fitbit REST API client — /1.2/user/-/sleep, /1/user/-/activities/recent, heart rate endpoints.
 
 use chrono::Local;

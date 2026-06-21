@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
+
 use anyhow::Result;
 use chrono::{DateTime, Duration, Utc};
 use clap::Parser;

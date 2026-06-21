@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
+
 //! Transpiler: focus_policy::EnforcementPolicy ↔ focus_ir::EnforcementPolicyIr
 //!
 //! Stub: awaits focus-policy domain crate.

@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
+
 //! Enforcement policy generation from rule decisions.
 //!
 //! Traces to FR-ENF-001.

@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
+
 #![allow(clippy::empty_line_after_doc_comments)]
 //! UniFFI export surface for FocalPoint core.
 //!

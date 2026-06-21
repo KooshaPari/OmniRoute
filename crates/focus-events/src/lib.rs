@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
+
 //! Normalized event schema, dedupe keys, trace references.
 
 pub mod dedup;

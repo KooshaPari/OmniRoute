@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
+
 //! Strava REST API client — GET /api/v3/athlete/activities, /api/v3/activities/:id.
 //! Rate limit: 100 req/15min, 1000/day.
 

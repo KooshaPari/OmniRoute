@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
+
 //! WalletStore impl for SqliteAdapter.
 //!
 //! Traces to: FR-STATE-001, FR-DATA-001.

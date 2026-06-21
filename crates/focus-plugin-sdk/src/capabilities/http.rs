@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
+
 //! HTTP capability: host-side proxy for plugin HTTP requests.
 //!
 //! Plugins send HTTP requests via shared linear memory; the host executes

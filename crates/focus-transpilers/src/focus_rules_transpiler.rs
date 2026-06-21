@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
+
 //! focus_rules::Rule ↔ IR transpiler.
 //!
 //! Handles bidirectional conversion between native focus_rules::Rule format and IR.

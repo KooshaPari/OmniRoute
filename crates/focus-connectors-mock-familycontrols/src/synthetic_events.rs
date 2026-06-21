@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
+
 //! Synthetic event types and scenarios for deterministic demo choreography.
 //!
 //! Traces to: FR-MOCK-002 (synthetic events), FR-MOCK-004 (emergency-exit).

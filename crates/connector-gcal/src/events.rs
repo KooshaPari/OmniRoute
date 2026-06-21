@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
+
 //! Google Calendar -> NormalizedEvent mapping.
 #![allow(clippy::disallowed_methods)]
 

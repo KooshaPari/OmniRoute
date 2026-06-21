@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
+
 //! SQLite-backed [`TaskStore`] impl.
 //!
 //! Mirrors the pattern of `audit_store`: an `Arc<tokio::sync::Mutex<Connection>>`

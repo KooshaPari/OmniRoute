@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
 // SBOM generator for FocalPoint workspace
 // Emits CycloneDX-JSON format at docs/security/sbom.json
 // Usage: cargo run -p sbom-gen

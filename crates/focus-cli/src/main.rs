@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
+
 //! Dev CLI: audit inspect, task list, template list, rule mgmt, wallet/penalty ops, sync/eval ticks, time-travel replay.
 //!
 //! Opens the same SQLite store the iOS app uses (path overridable via

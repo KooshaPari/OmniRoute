@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
+
 use pheno_tracing::port::{TraceId, SpanId, TraceOperation, SpanKind, TracePort, TraceStatus};
 use pheno_tracing::adapters::InMemoryAdapter;
 use std::collections::HashMap;

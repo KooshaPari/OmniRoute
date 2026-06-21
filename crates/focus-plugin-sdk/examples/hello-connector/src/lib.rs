@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
+
 //! Hello Connector: minimal reference plugin that returns hardcoded event.
 //!
 //! Compiles to wasm32-unknown-unknown. Exports:

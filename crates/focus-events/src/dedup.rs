@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
+
 //! Event deduplication: canonical-hash + bloom filter + SQLite exact-match table.
 //!
 //! Prevents duplicate event processing when connectors emit duplicates (webhook retry,

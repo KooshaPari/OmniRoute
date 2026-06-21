@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
+
 //! Tool definitions and implementations for the MCP server.
 //!
 //! Exposes 27 tools + 2 resources:

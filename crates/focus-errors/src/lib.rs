@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
+
 //! Unified error types for FocalPoint crates.
 //!
 //! Re-exports [`phenotype_error_core::PhenotypeError`] as `FocusError` for the

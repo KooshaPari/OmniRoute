@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
+
 //! Tar archive builder and extractor for backup payloads.
 //!
 //! Embeds manifest JSON + SHA-256 hash in a tar archive for integrity verification.

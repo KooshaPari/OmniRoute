@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
+
 //! Derived / meta connectors.
 //!
 //! A [`DerivedConnector`] wraps N base [`Connector`]s and a transformation

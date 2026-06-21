@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
+
 //! Discord webhook poster for FocalPoint release notes.
 //!
 //! Posts release notes to a Discord webhook as formatted embeds.

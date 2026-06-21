@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
+
 //! Integration tests exercising a full Canvas sync against wiremock.
 #![allow(clippy::disallowed_methods)]
 

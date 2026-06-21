@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
+
 //! RuleStore impl for SqliteAdapter.
 //!
 //! Traces to: FR-DATA-001.

@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
+
 //! Google Calendar v3 domain types. Field names match Google's REST API.
 //!
 //! Google returns `dateTime` as RFC3339 with offset, and `date` as `YYYY-MM-DD`

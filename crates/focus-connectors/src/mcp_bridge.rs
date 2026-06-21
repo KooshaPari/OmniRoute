@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
+
 //! Stub for the MCP-bridged connector class.
 //!
 //! `MCPBridgedConnector` lets a user point FocalPoint at any MCP server and

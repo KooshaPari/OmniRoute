@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
+
 //! focus-rituals — Coachy's Planning Coach personality.
 //!
 //! Traces to: FR-RITUAL-001 (Morning Brief), FR-RITUAL-002 (Evening Shutdown),

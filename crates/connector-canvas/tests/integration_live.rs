@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
+
 //! Live Canvas API integration test.
 //!
 //! Gated by `#[ignore]` and the `live-canvas` cargo feature (if declared).

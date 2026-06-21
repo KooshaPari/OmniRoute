@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
+
 //! EventSink wrapper that deduplicates events before appending.
 //!
 //! Wraps any EventSink implementation with canonical-hash deduplication.

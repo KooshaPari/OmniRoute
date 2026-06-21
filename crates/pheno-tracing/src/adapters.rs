@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
+
 //! Adapter implementations for tracing backends
 use crate::port::{TraceOperation, TraceResult, TracePort, TraceStatus};
 use std::sync::{Arc, Mutex};

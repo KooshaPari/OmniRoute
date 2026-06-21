@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
+
 //! Backup manifest: versioned, tamper-evident structure.
 
 use chrono::Utc;

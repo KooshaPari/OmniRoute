@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
+
 //! Polling scheduler, cursor, dedupe, retries, backoff.
 //!
 //! The [`SyncOrchestrator`] owns a registry of [`Connector`](focus_connectors)

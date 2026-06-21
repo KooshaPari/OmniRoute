@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
+
 //! Connector trait, manifest, auth, sync contracts.
 
 pub mod derived;

@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
+
 //! Per-provider webhook signature verification.
 //!
 //! Each verifier implements constant-time comparison to prevent timing attacks.

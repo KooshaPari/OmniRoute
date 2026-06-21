@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
+
 //! Append-side port for normalized events produced by connectors.
 //!
 //! `SyncOrchestrator` calls [`EventSink::append`] for every event returned

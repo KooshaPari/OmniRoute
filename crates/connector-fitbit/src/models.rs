@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
+
 //! Fitbit API response models and domain objects.
 
 use serde::{Deserialize, Serialize};

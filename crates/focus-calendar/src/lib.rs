@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
+
 //! focus-calendar — Calendar port + in-memory adapter.
 //!
 //! Traces to: FR-CONNECTOR-001 (CalendarPort trait).

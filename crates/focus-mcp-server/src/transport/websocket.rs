@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
+
 //! WebSocket transport for MCP server.
 //!
 //! Full-duplex JSON-RPC 2.0 session at ws://127.0.0.1:8474/mcp/ws

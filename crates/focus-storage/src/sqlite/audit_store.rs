@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
+
 //! SQLite-backed [`AuditStore`] + [`AuditSink`] impl.
 //!
 //! Mirrors the pattern of the other sqlite stores: an `Arc<tokio::sync::Mutex<Connection>>`

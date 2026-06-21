@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
+
 //! HTTP/SSE transport for MCP server.
 //!
 //! Exposes:

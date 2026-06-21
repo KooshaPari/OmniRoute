@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
+
 //! SQLite-backed [`focus_sync::CursorStore`] impl.
 //!
 //! Traces to: FR-EVT-003, FR-DATA-001.

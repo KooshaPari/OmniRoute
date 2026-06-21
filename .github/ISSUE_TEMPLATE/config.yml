@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Discussions
+    url: https://github.com/KooshaPari/FocalPoint/discussions
+    about: General questions and community discussion.
+  - name: Security advisories
+    url: https://github.com/KooshaPari/FocalPoint/security/advisories/new
+    about: Report a security vulnerability privately (do NOT file a public issue).
+  - name: Documentation
+    url: https://github.com/KooshaPari/FocalPoint/blob/main/SPEC.md
+    about: Read the project specification and architecture docs.

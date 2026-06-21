@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
+
 //! Wizard form state ↔ IR transpiler.
 //!
 //! Handles bidirectional conversion between flat wizard form state (matching RuleBuilderView)

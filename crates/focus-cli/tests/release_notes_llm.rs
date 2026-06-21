@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
 // Tests for release-notes LLM synthesis via --synthesize flag.
 // Validates LLM endpoint behavior and graceful degradation.
 

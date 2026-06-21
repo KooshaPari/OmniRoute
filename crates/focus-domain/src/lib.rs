@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
+
 //! Canonical domain entities, IDs, aggregate roots, invariants.
 //!
 //! No persistence, no I/O. Pure types.

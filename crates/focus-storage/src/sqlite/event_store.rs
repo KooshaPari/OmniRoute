@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
+
 //! EventStore impl for SqliteAdapter.
 //!
 //! Traces to: FR-EVT-002, FR-DATA-001.

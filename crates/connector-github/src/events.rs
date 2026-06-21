@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
+
 //! GitHub event → `NormalizedEvent` mapping.
 //!
 //! We only surface contribution-signals: pushes, PRs opened/merged, issues

@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
+
 //! PenaltyStore impl for SqliteAdapter.
 //!
 //! Traces to: FR-STATE-002, FR-DATA-001.

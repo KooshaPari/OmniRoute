@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
+
 //! Hashing utilities for SHA-256 and BLAKE3.
 
 use sha2::{Digest, Sha256};

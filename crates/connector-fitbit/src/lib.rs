@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
+
 //! Fitbit connector — OAuth2 auth, REST client, event mapping, `Connector` impl.
 
 pub mod api;

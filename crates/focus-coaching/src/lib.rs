@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
+
 //! focus-coaching — LLM provider trait + thin OpenAI-compatible client.
 //!
 //! Shape mirrors `cheap-llm-mcp/providers/openai_compat.py`: POST
