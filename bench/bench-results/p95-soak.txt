@@ -1,0 +1,16 @@
+p95-soak n=1825 errs=0 wall=5s rps=365.0 mean=800.297ms p50=800.009ms p95=840.016ms p99=880.011ms max=920.079ms
+  in-flight=512  goroutines=516
+p95-soak n=5087 errs=0 wall=10s rps=508.7 mean=799.414ms p50=800.01ms p95=840.02ms p99=880.012ms max=920.1ms
+  in-flight=512  goroutines=516
+p95-soak n=8291 errs=0 wall=15.001s rps=552.7 mean=799.434ms p50=800.012ms p95=840.027ms p99=880.015ms max=920.1ms
+  in-flight=512  goroutines=516
+p95-soak n=11421 errs=0 wall=20.001s rps=571.0 mean=799.607ms p50=800.014ms p95=840.035ms p99=880.016ms max=920.1ms
+  in-flight=512  goroutines=516
+p95-soak n=14627 errs=0 wall=25.001s rps=585.1 mean=799.647ms p50=800.015ms p95=840.039ms p99=880.018ms max=920.156ms
+  in-flight=512  goroutines=516
+p95-soak n=17836 errs=0 wall=30.001s rps=594.5 mean=799.797ms p50=800.017ms p95=840.047ms p99=880.02ms max=920.156ms
+  in-flight=512  goroutines=516
+============================================================
+p95 latency soak: rps=1000 duration=30s workers=512
+warmup: n=912 wall=2562047h47m16.854775807s (discarded)
+steady-state n=18349 errs=0 wall=30.866s rps=594.5 mean=799.865ms p50=800.017ms p95=840.048ms p99=880.02ms max=920.156ms

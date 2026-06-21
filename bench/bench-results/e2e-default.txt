@@ -1,0 +1,8 @@
+goos: darwin
+goarch: arm64
+pkg: github.com/KooshaPari/phenotype-router/bench
+cpu: Apple M1 Pro
+BenchmarkRoutingE2E_Default
+BenchmarkRoutingE2E_Default-10    	       5	 801027850 ns/op	    2409 B/op	      21 allocs/op
+PASS
+ok  	github.com/KooshaPari/phenotype-router/bench	4.958s

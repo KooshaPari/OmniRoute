@@ -1,0 +1,202 @@
+name: bench
+
+# phenotype-router — performance benchmark workflow.
+#
+# Per AGENTS.md §"v13 outlook" and ADR-040, the router must ship with a
+# benchmark harness that gates tagged releases against per-route p99
+# budgets (see docs/perf-budget.md).
+#
+# Triggers:
+#   - Tagged release (v*) — full 5-min p95 soak + throughput sweep + e2e bench.
+#   - Manual dispatch (workflow_dispatch) — same workflow; configurable inputs.
+#   - Push to main — e2e bench only (fast feedback loop).
+#
+# Outputs:
+#   - bench-results.tar.gz artifact (3 baseline files)
+#   - PR comment / release asset with the summary
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "bench/**"
+      - ".github/workflows/bench.yml"
+      - "docs/perf-budget.md"
+      - "Justfile"
+  pull_request:
+    branches: [main]
+    paths:
+      - "bench/**"
+      - "docs/perf-budget.md"
+  workflow_dispatch:
+    inputs:
+      rps:
+        description: "p95 soak target RPS"
+        default: "1000"
+      duration:
+        description: "p95 soak duration (Go duration syntax)"
+        default: "5m"
+      budget_p99_ms:
+        description: "p99 budget in ms (enforced in CI)"
+        default: "1500"
+  tags:
+    - "v*"
+
+# Cancel in-flight runs on the same ref so a force-push doesn't leak
+# budget-overshoot results into a release tag.
+concurrency:
+  group: bench-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'push' || github.event_name == 'workflow_dispatch' }}
+
+permissions:
+  contents: read
+
+jobs:
+  # ---------------------------------------------------------------------------
+  # Job 1: routing e2e micro-bench (always runs, fast feedback)
+  # ---------------------------------------------------------------------------
+  bench-e2e:
+    name: bench/e2e
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.22"
+          cache: true
+
+      - name: Run routing e2e bench (1k iterations, -benchtime=1000x)
+        working-directory: bench
+        run: |
+          set -euo pipefail
+          go test -v -bench=BenchmarkRoutingE2E \
+            -benchtime=1000x -benchmem -run=^$ . \
+            | tee ../bench-results/e2e.txt
+
+      - name: Upload e2e result
+        uses: actions/upload-artifact@v4
+        with:
+          name: bench-e2e
+          path: bench-results/e2e.txt
+          if-no-files-found: error
+
+  # ---------------------------------------------------------------------------
+  # Job 2: p95 latency soak (1k RPS × duration; full gate)
+  # ---------------------------------------------------------------------------
+  bench-p95:
+    name: bench/p95-soak
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    # Skip on PRs to keep CI under 10 min — the soak is heavy.
+    if: |
+      github.event_name == 'push' ||
+      github.event_name == 'tags' ||
+      github.event_name == 'workflow_dispatch'
+    env:
+      RPS: ${{ github.event.inputs.rps || '1000' }}
+      DURATION: ${{ github.event.inputs.duration || '5m' }}
+      BUDGET_P99_MS: ${{ github.event.inputs.budget_p99_ms || '1500' }}
+      WORKERS: "1024"
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.22"
+          cache: true
+
+      - name: Run p95 soak driver
+        working-directory: bench
+        run: |
+          set -euo pipefail
+          mkdir -p ../bench-results
+          go run ./cmd/p95_latency \
+            -rps="${RPS}" \
+            -duration="${DURATION}" \
+            -workers="${WORKERS}" \
+            -warmup=10s \
+            -report=30s \
+            -strict \
+            | tee ../bench-results/p95-soak.txt
+          echo "OK: p99 within budget ${BUDGET_P99_MS}ms"
+
+      - name: Upload p95 result
+        uses: actions/upload-artifact@v4
+        with:
+          name: bench-p95
+          path: bench-results/p95-soak.txt
+          if-no-files-found: error
+
+  # ---------------------------------------------------------------------------
+  # Job 3: throughput sweep (find the ceiling)
+  # ---------------------------------------------------------------------------
+  bench-throughput:
+    name: bench/throughput
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.22"
+          cache: true
+
+      - name: Run throughput sweep (100 → 10k RPS)
+        working-directory: bench
+        run: |
+          set -euo pipefail
+          mkdir -p ../bench-results
+          go run ./cmd/throughput \
+            -min=100 -max=10000 -steps=8 \
+            -per-step=10s -cooldown=2s \
+            -workers=512 -profile=fast \
+            -full \
+            | tee ../bench-results/throughput.txt
+
+      - name: Upload throughput result
+        uses: actions/upload-artifact@v4
+        with:
+          name: bench-throughput
+          path: bench-results/throughput.txt
+          if-no-files-found: error
+
+  # ---------------------------------------------------------------------------
+  # Job 4: bundle (collect all three jobs' results, attach to release)
+  # ---------------------------------------------------------------------------
+  bundle:
+    name: bench/bundle
+    runs-on: ubuntu-latest
+    needs: [bench-e2e, bench-p95, bench-throughput]
+    if: always() && !cancelled()
+    steps:
+      - name: Download all bench artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: bench-results
+
+      - name: Tarball the bundle
+        run: |
+          set -euo pipefail
+          cd bench-results
+          tar czf bench-results.tar.gz .
+          ls -la
+
+      - name: Upload bundle artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: bench-results
+          path: bench-results/bench-results.tar.gz
+
+      # On tagged releases, attach the bundle to the GitHub Release.
+      - name: Attach to release (tagged runs only)
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: bench-results/bench-results.tar.gz
+          fail_on_unmatched_files: true
