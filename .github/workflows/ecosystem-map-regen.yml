@@ -1,0 +1,92 @@
+# ecosystem-map-regen.yml — drift-gate for ECOSYSTEM_MAP.md
+#
+# Wires `scripts/regen-ecosystem-map.py --check` into the CI gate. Fails
+# the PR / push if the on-disk ECOSYSTEM_MAP.md is stale relative to the
+# SSOT inputs (SPEC.md, docs/registries.md, _bindings.json).
+#
+# Triggers:
+#   - pull_request: any change to the regen script, the SSOT inputs, or
+#     ECOSYSTEM_MAP.md itself
+#   - push: post-merge sanity on main
+#   - workflow_dispatch: manual re-run
+#
+# Companion workflow: `ecosystem-map-weekly.yml` (cron) auto-opens a
+# remediation PR via peter-evans/create-pull-request@v6 when the gate
+# fails on the weekly schedule.
+name: ecosystem-map-regen
+
+on:
+  pull_request:
+    paths:
+      - "ECOSYSTEM_MAP.md"
+      - "SPEC.md"
+      - "docs/registries.md"
+      - "scripts/regen-ecosystem-map.py"
+      - "Taskfile.yml"
+      - ".github/workflows/ecosystem-map-regen.yml"
+  push:
+    branches: [main]
+    paths:
+      - "ECOSYSTEM_MAP.md"
+      - "SPEC.md"
+      - "docs/registries.md"
+      - "scripts/regen-ecosystem-map.py"
+      - "Taskfile.yml"
+      - ".github/workflows/ecosystem-map-regen.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  regen-check:
+    name: regen-ecosystem-map --check
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: checkout
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 1
+
+      - name: setup-python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: checkout sibling phenotype-registry-curation-data
+        # The regen script reads the sibling repo's `_bindings.json` by
+        # default. We check it out under a stable relative path so the
+        # script's default-lookup heuristic works without flags.
+        uses: actions/checkout@v7
+        with:
+          repository: KooshaPari/phenotype-registry-curation-data
+          path: ../phenotype-registry-curation-data
+          fetch-depth: 1
+          # Curation-data is an unfiltered mirror; only the bindings file
+          # is read by the regen script, so plain credentials are fine.
+          persist-credentials: false
+
+      - name: regen-ecosystem-map --check
+        # Exits 1 on drift. The job fails on non-zero, which is the
+        # desired gate behaviour.
+        run: python3 scripts/regen-ecosystem-map.py --check
+
+      - name: summary
+        if: always()
+        run: |
+          echo "### ecosystem-map-regen summary" >> "$GITHUB_STEP_SUMMARY"
+          echo "- commit: ${{ github.sha }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "- event:  ${{ github.event_name }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "- result: ${{ job.status }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "To re-run locally:" >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+          echo "task regen-ecosystem-map:check" >> "$GITHUB_STEP_SUMMARY"
+          echo "# or" >> "$GITHUB_STEP_SUMMARY"
+          echo "python3 scripts/regen-ecosystem-map.py --check" >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
