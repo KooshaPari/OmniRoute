@@ -60,6 +60,35 @@ this table is the working incident inventory until scanning is available again.
    audit-log URLs, rotation ticket URLs, or sanitized screenshots stored outside
    git.
 
+## Local Evidence Handoff
+
+Provider-side rotation proof must stay outside git. Use a local ignored
+workspace such as `incident-evidence/2026-06-20/` for sanitized notes only.
+Do not store raw screenshots, browser exports, provider exports, HAR files,
+cookies, authorization headers, account IDs, IP addresses, email addresses, or
+token fragments in the repository.
+
+Suggested local note shape:
+
+```text
+provider: <provider name only>
+alerts: <alert numbers only>
+status: revoked|rotated|not applicable
+evidence_ref: <sanitized ticket or audit-log reference, no account IDs>
+verified_by: account owner
+verified_at_utc: YYYY-MM-DDTHH:MM:SSZ
+notes: <sanitized summary>
+```
+
+Before copying any status into issue #320 or this command sheet, run:
+
+```powershell
+python scripts\incident-evidence-guard.py incident-evidence\2026-06-20
+```
+
+The guard reports paths and finding labels only. A passing guard does not make
+raw evidence safe for git; it only checks local notes before tracker updates.
+
 ## Do Not Reopen Public Access Until
 
 - Every provider row above has completed rotation/revocation evidence.

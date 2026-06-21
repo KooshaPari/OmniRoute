@@ -56,3 +56,9 @@ pnpm-debug.log*
 Thumbs.db
 yarn-debug.log*
 yarn-error.log*
+
+# Local-only incident evidence. Keep provider screenshots, exports, and
+# rotation proof outside git; use sanitized docs/issue references only.
+incident-evidence/
+.incident-evidence/
+local/incident-evidence/

@@ -63,6 +63,8 @@ contained the exposed material.
 - [ ] Stale branches and tags have been pruned.
 - [ ] Current default branch scan is clean.
 - [ ] Full-history scan after rewrite is clean.
+- [ ] Local sanitized evidence notes pass
+      `python scripts\incident-evidence-guard.py incident-evidence\2026-06-20`.
 - [ ] Repository owner accepts that forks/clones outside GitHub control cannot be
       purged by GitHub Support.
 
