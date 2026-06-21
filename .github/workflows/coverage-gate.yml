@@ -1,0 +1,19 @@
+name: coverage-gate
+on: [push, pull_request]
+jobs:
+  coverage:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: taiki-e/install-action@cargo-llvm-cov
+      - name: substrate lib coverage (80%)
+        run: cargo llvm-cov --workspace --fail-under-lines 80
+      - name: diff vs main
+        run: |
+          cargo llvm-cov --workspace --json --output-path cov.json
+          python3 scripts/coverage_diff.py cov.json origin/main --max-drop 2
+      - uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: cov.json

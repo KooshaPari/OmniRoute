@@ -1,0 +1,43 @@
+# benchmarks/perf-benchmarks.toml
+# Canonical fleet perf benchmark suite (L22)
+# See findings/2026-06-22-v21-T1-L22-perf-benchmark-suite.md for rationale
+
+[global]
+warmup_seconds = 5
+measurement_seconds = 30
+sample_size = 100
+regression_threshold_pct = 5  # fail CI if 5% slower than baseline
+
+# 8 fleet-critical benchmarks
+
+[pheno-flags.parse_flag]
+input = "100k nested flag strings with aliases"
+budget_p99_ms = 50
+
+[pheno-port-adapter.tcp_connect]
+input = "1k concurrent TCP connects to 127.0.0.1:8080"
+budget_p99_ms = 200
+
+[pheno-config.serde_roundtrip]
+input = "1k config structs (100 fields each)"
+budget_p99_ms = 100
+
+[pheno-tracing.otlp_export]
+input = "10k OTLP spans to mock collector"
+budget_p99_ms = 500
+
+[pheno-events.event_publish]
+input = "1k events to in-memory broker"
+budget_p99_ms = 50
+
+[pheno-mcp-router.adapter_route]
+input = "1k routing decisions (provider selection)"
+budget_p99_ms = 10
+
+[pheno-context.context_resolve]
+input = "1k context lookups (RBAC + ABAC)"
+budget_p99_ms = 5
+
+[pheno-otel.otel_metric_record]
+input = "100k metric points (counter + histogram)"
+budget_p99_ms = 100
