@@ -18,3 +18,7 @@ pheno-otel = { path = "../pheno-otel" }
 [dev-dependencies]
 serde_json = "1"
 tokio = { version = "1", features = ["macros", "rt-multi-thread"] }
+# Concurrency model checker (v14 T5: L25 pillar, cycle 3).
+# Permutation-tests shared-state data structures used in this crate's
+# public API. Stable Rust 1.82+ compatible; no nightly required.
+loom = "0.7"
