@@ -30,6 +30,7 @@ redis = { version = "0.27", default-features = false, features = ["tokio-comp", 
 pheno-otel = { path = "../pheno-otel" }
 
 [dev-dependencies]
+loom = "0.7"
 serde_json = "1"
 tokio = { version = "1", features = ["macros", "rt-multi-thread"] }
 # Concurrency model checker (v14 T5: L25 pillar, cycle 3).
