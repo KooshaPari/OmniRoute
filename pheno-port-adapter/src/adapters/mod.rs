@@ -23,12 +23,19 @@
 //!   for tests and single-node binaries.
 //! - [`redis_cache::RedisAdapter`] — RESP-wire-protocol cache, used for
 //!   cross-process / multi-node deployments.
+//! - [`system_clock::SystemClock`] — real wall-clock + monotonic
+//!   adapter for [`crate::ports::HexTimePort`]. Use in production.
+//! - [`mock_clock::MockClock`] — frozen clock for tests; the
+//!   monotonic instant and the wall-clock unix nanos are decoupled so
+//!   tests can assert "wall-clock-equals-X" without sleeping.
 //!
 //! These adapters back the hexagonal ports in `crate::ports`. Each one
 //! implements its port trait via `#[async_trait]` to stay object-safe.
 
 pub mod in_memory_cache;
+pub mod mock_clock;
 pub mod redis_cache;
+pub mod system_clock;
 
 pub mod tcp;
 
@@ -36,4 +43,6 @@ pub mod tcp;
 pub mod unix;
 
 pub use in_memory_cache::InMemoryCache;
+pub use mock_clock::MockClock;
 pub use redis_cache::RedisAdapter;
+pub use system_clock::SystemClock;

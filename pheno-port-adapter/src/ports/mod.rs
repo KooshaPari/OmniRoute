@@ -22,5 +22,7 @@
 //!    trait surface (not the adapter's concrete type).
 
 pub mod cache;
+pub mod time;
 
 pub use cache::{CacheError, HexCachePort};
+pub use time::HexTimePort;

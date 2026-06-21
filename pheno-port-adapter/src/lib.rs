@@ -37,12 +37,21 @@ use thiserror::Error;
 /// Error type for transport-level [`PortAdapter`] operations.
 #[derive(Debug, Error)]
 pub enum AdapterError {
+    /// A call to [`PortAdapter::connect`] failed. The wrapped string
+    /// is a human-readable description of why (e.g. `"connection
+    /// refused"`, `"invalid endpoint: ..."`).
     #[error("connect failed: {0}")]
     ConnectFailed(String),
+    /// A call to [`PortAdapter::disconnect`] failed. Rare — most
+    /// adapters treat disconnect as infallible.
     #[error("disconnect failed: {0}")]
     DisconnectFailed(String),
+    /// A call to [`PortAdapter::health`] reported the adapter as
+    /// unhealthy. Subsequent connects are likely to fail.
     #[error("health check failed: {0}")]
     HealthCheckFailed(String),
+    /// A transport-level operation exceeded its deadline. Surfaced by
+    /// adapters that wrap their I/O in a timeout.
     #[error("timeout")]
     Timeout,
 }
@@ -59,9 +68,23 @@ pub struct Connection {
 /// Synchronous by design — the adapter itself owns its async runtime
 /// story. Async work belongs in the hex-port traits under [`ports`].
 pub trait PortAdapter: Send + Sync {
+    /// Stable, human-readable adapter name (e.g. `"tcp"`, `"unix"`).
+    /// Used in logs, metrics labels, and error messages.
     fn name(&self) -> &str;
+
+    /// Cheap liveness check that does not perform I/O. Returns
+    /// [`AdapterError::HealthCheckFailed`] if the adapter is in a state
+    /// where a subsequent [`Self::connect`] is likely to fail.
     fn health(&self) -> Result<(), AdapterError>;
+
+    /// Open a connection to `endpoint` (URI scheme chosen by the
+    /// adapter — e.g. `"tcp://host:port"` for [`adapters::TcpAdapter`]).
+    /// Returns a [`Connection`] handle that the caller passes to
+    /// [`Self::disconnect`].
     fn connect(&self, endpoint: &str) -> Result<Connection, AdapterError>;
+
+    /// Close the active connection. Idempotent: a second call on an
+    /// already-disconnected adapter returns `Ok(())`.
     fn disconnect(&self) -> Result<(), AdapterError>;
 }
 
@@ -76,7 +99,7 @@ pub mod adapters;
 // `use pheno_port_adapter::HexCachePort` instead of
 // `pheno_port_adapter::ports::HexCachePort`. Re-exports are kept flat
 // (not nested) so adding a new port doesn't break import paths.
-pub use ports::{CacheError, HexCachePort};
+pub use ports::{CacheError, HexCachePort, HexTimePort};
 
 #[cfg(test)]
 mod tests {
