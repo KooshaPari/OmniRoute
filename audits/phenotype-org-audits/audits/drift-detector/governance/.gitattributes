@@ -1,0 +1,52 @@
+# .gitattributes — pheno-drift-detector
+#
+# Controls line-ending normalization, linguist (GitHub) language detection,
+# and diff drivers. Mirrors the conventions of other Pheno substrate repos.
+
+# Normalize line endings to LF on checkout; keep LF in repo.
+*          text=auto eol=lf
+
+# Python sources: enforce LF, identify as Python.
+*.py        text eol=lf linguist-language=Python
+*.pyi       text eol=lf linguist-language=Python
+
+# Shell, YAML, JSON, TOML, Markdown: enforce LF.
+*.sh        text eol=lf linguist-language=Bash
+*.yml       text eol=lf linguist-language=YAML
+*.yaml      text eol=lf linguist-language=YAML
+*.json      text eol=lf linguist-language=JSON
+*.toml      text eol=lf linguist-language=TOML
+*.md        text eol=lf linguist-language=Markdown
+
+# Lockfiles and generated config: still text, but mark as generated where possible.
+*.lock      text eol=lf -diff
+pyproject.toml text eol=lf
+
+# Windows scripts: keep CRLF on checkout.
+*.bat       text eol=crlf
+*.cmd       text eol=crlf
+*.ps1       text eol=crlf
+
+# Binary files: do not diff or merge.
+*.png       binary
+*.jpg       binary
+*.jpeg      binary
+*.gif       binary
+*.ico       binary
+*.pdf       binary
+*.zip       binary
+*.gz        binary
+*.tgz       binary
+*.whl       binary
+*.tar       binary
+
+# Exclude vendored / generated / coverage from GitHub language stats.
+.gitignore          export-ignore
+.safety-policy.yml  export-ignore
+.editorconfig       export-ignore
+.dprint.json        export-ignore
+.github/            export-ignore
+tests/              export-ignore
+docs/               export-ignore
+coverage.xml        export-ignore
+pip-audit-report.*  export-ignore

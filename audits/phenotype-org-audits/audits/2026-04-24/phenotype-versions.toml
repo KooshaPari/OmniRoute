@@ -1,0 +1,162 @@
+# phenotype-versions.toml
+# Advisory baseline dependency versions for Phenotype org
+# Generated: 2026-04-24
+# Status: ADVISORY ONLY — not yet enforced
+# Rationale: Based on frequency analysis of 1,203 dependencies across all repos
+
+[cargo.baseline]
+# Core async runtime — unified to latest stable
+tokio = "1.39"
+
+# Serialization ecosystem — commit to 1.0 for stability
+serde = "1.0"
+serde_json = "1.0"
+
+# Error handling — mature 1.0 stable
+thiserror = "1.0"
+anyhow = "1.0"
+
+# Time handling
+chrono = "0.4"
+
+# CLI argument parsing
+clap = "3.17.1"
+
+# Tracing & observability
+tracing = "0.1"
+tracing-subscriber = "0.3"
+
+# Async utilities
+async-trait = "0.1"
+
+# Testing utilities
+tempfile = "3.8"
+
+# JSON alternative
+serde_yaml = "0.9"
+
+# HTTP clients
+reqwest = "0.11"
+hyper = "0.14"
+
+# Crypto & security
+ring = "0.17"
+sha2 = "0.10"
+
+# Database
+sqlx = "0.7"
+diesel = "2.1"
+
+# Code generation
+syn = "2.0"
+quote = "1.0"
+proc-macro2 = "1.0"
+
+# Utility collections
+dashmap = "5.5"
+parking_lot = "0.12"
+
+# Logging
+log = "0.4"
+env_logger = "0.11"
+
+# Filesystem utilities
+walkdir = "2.4"
+
+# Regex
+regex = "1.10"
+
+# Config files
+toml = "0.8"
+figment = "0.13"
+
+[npm.baseline]
+# Language baseline — targeting TypeScript 5.9 LTS (avoiding 6.0 adoption friction)
+typescript = "5.9"
+
+# Type definitions
+@types/node = "20.10"
+
+# Testing frameworks — vitest as primary
+vitest = "1.6"
+@vitest/ui = "1.6"
+
+# E2E testing
+@playwright/test = "1.47"
+
+# Documentation site builder
+vitepress = "1.8"
+
+# UI frameworks — React 18.x stable
+react = "18.2"
+@types/react = "18.2"
+react-dom = "18.2"
+
+# Build tools
+vite = "5.0"
+rollup = "4.9"
+
+# Linting & code quality
+eslint = "8.54"
+@typescript-eslint/eslint-plugin = "6.13"
+
+# Styling
+tailwindcss = "3.3"
+postcss = "8.4"
+
+# Data validation
+zod = "3.23"
+
+# Vue (if needed)
+vue = "3.3"
+
+# HTTP client
+axios = "1.6"
+
+# Async utilities
+lodash = "4.17"
+
+# Date handling
+date-fns = "2.30"
+
+# UUID generation
+uuid = "9.0"
+
+# Command line parsing
+yargs = "17.7"
+
+# Environment variables
+dotenv = "16.3"
+
+[notes]
+# Tokio: 1.39 selected as latest stable with broad adoption and performance improvements
+# TypeScript: 5.9 chosen to give ecosystem time for 6.0 adoption; recommend 6.1+ for Q3 2026
+# Serde: 1.0 recommended for workspace stability; 2.0 migration path exists but not urgent
+# Vitest: 1.6 marks stable mainline; should replace Jest/Mocha in all npm projects
+# React: 18.2 is current LTS; no urgent need for 19.x adoption before Q4 2026
+
+[migration-priority]
+# Repos should target these first (impact × frequency)
+tier-1 = [
+  "tokio",
+  "serde", "serde_json",
+  "typescript",
+  "@types/node",
+  "vitest",
+]
+
+tier-2 = [
+  "thiserror",
+  "chrono",
+  "clap",
+  "@playwright/test",
+  "vitepress",
+]
+
+tier-3 = [
+  "tracing",
+  "anyhow",
+  "tempfile",
+  "async-trait",
+  "react",
+]

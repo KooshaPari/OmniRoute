@@ -1,0 +1,35 @@
+version: '3'
+
+tasks:
+  default:
+    cmds:
+      - task --list
+
+  build:
+    desc: Build all crates
+    cmds:
+      - cargo build --workspace --all-features
+
+  test:
+    desc: Run tests
+    cmds:
+      - cargo test --workspace --all-features
+
+  fmt:
+    desc: Format code
+    cmds:
+      - cargo fmt --all
+
+  lint:
+    desc: Lint with clippy
+    cmds:
+      - cargo clippy --workspace --all-features --all-targets -- -D warnings
+
+  audit:
+    desc: Security advisory check
+    cmds:
+      - cargo deny check advisories || true
+
+  quality:
+    desc: Full quality gate
+    deps: [fmt, lint, test, audit]

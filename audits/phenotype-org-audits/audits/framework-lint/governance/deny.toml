@@ -1,0 +1,52 @@
+# pyproject.toml / pip-audit config — Python equivalent of deny.toml (no deny for Python in cargo-deny)
+
+# Note: pheno-framework-lint is a Python stdlib-only package; there are no Rust
+# dependencies to deny. This file exists to satisfy the pheno-* fleet's policy
+# of having a deny-equivalent config in every substrate repo (see
+# AGENTS.md "SOTA artifacts" + ADR-023 Rule 3.1).
+
+# pip-audit configuration (used in CI)
+[tool.pip-audit]
+# Vulnerabilities are tracked per release of the standard library; we run
+# pip-audit with `--no-deps` since we have zero third-party deps.
+no-deps = true
+require-hashes = false
+vulnerability-service = "pypi"
+
+# License policy
+[tool.liccheck]
+# All third-party packages (none today) must use an allowlisted license.
+# Allowlist follows the same pattern as deny.toml for the Rust fleet crates.
+allowed-licenses = [
+    "MIT",
+    "Apache-2.0",
+    "Apache-2.0 WITH LLVM-exception",
+    "BSD-2-Clause",
+    "BSD-3-Clause",
+    "ISC",
+    "MPL-2.0",
+    "Python-2.0",
+    "Unlicense",
+    "CC0-1.0",
+]
+# Bans — same as cargo-deny deny.toml copy-weak / copyleft bans
+banned-licenses = [
+    "AGPL-3.0",
+    "AGPL-3.0-only",
+    "AGPL-3.0-or-later",
+    "GPL-2.0",
+    "GPL-2.0-only",
+    "GPL-2.0-or-later",
+    "GPL-3.0",
+    "GPL-3.0-only",
+    "GPL-3.0-or-later",
+    "LGPL-2.0",
+    "LGPL-2.0-only",
+    "LGPL-2.0-or-later",
+    "LGPL-3.0",
+    "LGPL-3.0-only",
+    "LGPL-3.0-or-later",
+    "SSPL-1.0",
+    "Commons-Clause",
+    "Elastic-2.0",
+]

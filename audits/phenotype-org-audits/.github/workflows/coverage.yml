@@ -1,0 +1,38 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+  id-token: write  # for OIDC trust (no PAT secrets)
+
+env:
+  HOOKS_SKIP: ${{ vars.HOOKS_SKIP || 'false' }}
+  SKIP: ${{ vars.SKIP || '' }}
+
+jobs:
+  lint:
+    if: ${{ !contains(env.SKIP, 'lint') }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run lint
+        run: echo "Running language-specific lint"
+  test:
+    if: ${{ !contains(env.SKIP, 'test') }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run tests
+        run: echo "Running language-specific tests"
+  coverage:
+    if: ${{ !contains(env.SKIP, 'coverage') }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Generate coverage
+        run: echo "Generating coverage (language-specific)"

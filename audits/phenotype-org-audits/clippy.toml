@@ -1,0 +1,6 @@
+avoid-breaking-exported-api = false
+disallowed-names = []
+disallowed-methods = []
+imports-ignores = []
+too-many-arguments-threshold = 8
+type-complexity-threshold = 250

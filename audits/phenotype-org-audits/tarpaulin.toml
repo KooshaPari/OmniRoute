@@ -1,0 +1,10 @@
+[report]
+# Tier-2 enforcement: 80% lib, 70% framework, 60% service (per ADR-040)
+# Repos adopt the threshold matching their tier; default 80% (lib).
+fail-under = 80
+out = ["Html", "Xml"]
+output-dir = "tarpaulin-report"
+
+[run]
+timeout = 120
+features = "all"

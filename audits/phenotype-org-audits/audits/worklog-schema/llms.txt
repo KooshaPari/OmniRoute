@@ -1,0 +1,38 @@
+# pheno-worklog-schema
+
+> WORKLOG.md parser/emitter for the ADR-015 schema (v2.0 + v2.1). Pure-Python, zero deps.
+
+## Spec
+
+- [SPEC.md](./SPEC.md) — single-page spec.
+
+## Install
+
+```bash
+pip install pheno-worklog-schema
+```
+
+## API
+
+- `Row` — dataclass: 11 fields (v2.1 schema).
+- `parse(text) -> list[Row]` — handles both v2.0 (6 col) and v2.1 (11 col).
+- `to_markdown(rows) -> str` — canonical v2.1 Markdown.
+- `to_jsonl(rows) -> str` — JSONL for tooling.
+- `migrate_v20_to_v21(row_v20) -> Row` — v2.0 → v2.1.
+
+## CLI
+
+```bash
+python -m pheno_worklog_schema validate WORKLOG.md
+python -m pheno_worklog_schema migrate WORKLOG.md --out v2.1.md
+```
+
+## Governance
+
+- Substrate: `pheno-*-lib`.
+- ADR-015 + ADR-025 + ADR-030 — see [docs/governance.md](./docs/governance.md).
+- Worklog: [WORKLOG.md](./WORKLOG.md).
+
+## License
+
+Dual-licensed: [LICENSE-MIT](./LICENSE-MIT) OR [LICENSE-APACHE](./LICENSE-APACHE).
