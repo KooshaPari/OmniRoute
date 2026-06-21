@@ -25,7 +25,7 @@ pem = "1.0"
 x509-parser = "0.16"
 
 # Git
-git2 = "0.18"
+git2 = "0.20.4"
 gix = { version = "0.68", features = ["blocking-client", "ssh"] }
 
 # Time
