@@ -13,17 +13,21 @@ jobs:
   chaos-port-adapter:
     name: pheno-port-adapter chaos (L11 1->3)
     runs-on: ubuntu-latest
+    env:
+      CARGO_BUILD_JOBS: "1"
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@nightly
       - name: cargo test --release chaos
         working-directory: pheno-port-adapter
-        run: CARGO_BUILD_JOBS=1 cargo test --release --tests -- --test-threads=1
+        run: cargo test --release --tests -- --test-threads=1
 
   chaos-fuzz-port-adapter:
     name: pheno-port-adapter fuzz endpoint (L11.1)
     runs-on: ubuntu-latest
     continue-on-error: true  # fuzz is best-effort nightly
+    env:
+      CARGO_BUILD_JOBS: "1"
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@nightly
