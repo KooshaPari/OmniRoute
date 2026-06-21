@@ -37,9 +37,19 @@ jobs:
   chaos-flags-stress:
     name: pheno-flags stress (L11 stress)
     runs-on: ubuntu-latest
+    # pheno-flags is a separate KooshaPari/pheno-flags repo, not vendored into
+    # phenotype-apps. Stress test is staged for the next 71-pillar cycle.
+    # See findings/2026-06-21-v14-ci-rot-diagnosis.md (A3).
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
-      - name: cargo bench (criterion)
+      - name: cargo bench (criterion) [skipped — pheno-flags not vendored]
+        if: hashFiles('pheno-flags/Cargo.toml') != ''
         working-directory: pheno-flags
         run: cargo bench --no-run
+      - name: 'pheno-flags stress (no-op: pheno-flags/ not vendored on main)'
+        if: hashFiles('pheno-flags/Cargo.toml') == ''
+        run: |
+          echo "pheno-flags/ is not vendored on this branch — stress test skipped."
+          echo "Substrate lives in KooshaPari/pheno-flags (separate repo)."
+          test -d pheno-flags || exit 0

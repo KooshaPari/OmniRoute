@@ -1,4 +1,4 @@
-# argis-extensions Justfile
+# Phenotype meta-repo task runner (formerly argis-extensions / FocalPoint — consolidated per ADR-022 / ADR-031)
 # Fleet-standard task runner (DAG stage 4)
 # See FLEET_100TASK_DAG.md for context.
 set shell := ["bash", "-cu"]

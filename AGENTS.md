@@ -165,19 +165,40 @@ See `L6_PHENO_REPOS_HEALTH_2026_06_14.md` for full health inventory (136 tests p
 
 ---
 
-## Wave Plan (v14 — current, supersedes v9/v10/v11/v12)
+## Wave Plan (v17 — current, supersedes v9/v10/v11/v12/v13/v14/v15/v16)
 
-See `plans/2026-06-20-v12-71-pillar-p0-remediation.md` (the working plan) and `plans/2026-06-20-v13-71-pillar-cycle-2-p0.md` (the next wave). **v12 = 4 P0 closure tracks + Mission 4 + ADR-015 v2.1, ~890 LoC, 1,767 LoC shipped in 1 commit (`2db7e9f5eb`).** v11 closed 2026-06-20 18:45 PDT with §8 ACCEPTED (Option B per ADR-050/ADR-051); v12 closed 2026-06-20 19:30 PDT with 4 of 4 P0 tracks shipped + 6-pillar mean 2.13 → 2.66 (+0.53). v14 (cycle 4) in motion: 5 tracks, 1 Wave A, ~5h wall, target 6-pillar mean 2.75. Next wave after v14 is v15 (cycle 2 P0: cliff.toml vendoring to 5 fleet repos + devcontainer adoption + ssot-inject + cache-stats dashboard).
+**Date:** 2026-06-21 — v17 cycle 7 P0 closure COMPLETE (44 of 47 P0 pillars closed, 94% reduction). v18 plan in `plans/2026-06-21-v18-71-pillar-cycle-8-p0.md` targets the 3 remaining P0 pillars (L17, L50, L51) + cycle 8 P1 reduction.
 
-- **T6 (v12): L65 SSOT auto-check** (P0, ~30 min) — DONE. `scripts/validate-ssot.sh` + `just validate-ssot` + pre-commit hook.
-- **T9 (v12): L57 perf regression** (P1, ~1h) — DONE. `benchmarks/rust/{Cargo.toml,benches/parse_flag.rs}` (criterion) + `benchmarks/python/pytest.ini` (pytest-benchmark) + `benchmarks/perf-budgets.toml` + `just bench`.
-- **T10 (v12): L31 CI cache stats** (P0, ~30 min) — DONE. `scripts/cache_stats_wrapper.sh` (bash+jq, no heavy deps) + `findings/2026-06-20-v12-T10-cache-stats-design.md` + `just cache-stats`.
-- **T11 (v12): L67 CHANGELOG auto** (P1, ~1h) — DONE. `cliff.toml` + `.github/workflows/changelog.yml` + `docs/conventions/changelog-convention.md` + `findings/2026-06-20-v12-T11-changelog-design.md` + `just changelog`.
-- **Mission 4 (v12): Configra slice 2 candidate** (P1, ~30 min) — DONE. `findings/2026-06-20-Mission-4-candidate-selection.md` (pheno-config wins 11/12) + `findings/2026-06-20-Mission-4-slice-2-plan.md` (5-PR gate table per ADR-035).
-- **ADR-015 v2.1 (v12): worklog schema bump** (P0, ~30 min) — DONE. `docs/adr/2026-06-20/ADR-015-v2.1-worklog-schema.md` (7-col schema, device: as 7th) + `scripts/migrate-worklog-v20-to-v21.py` (idempotent) + sample + log.
-- **T12-Verify (v12): cycle 3 re-audit** (P1, ~30 min) — DONE. `findings/2026-06-20-v12-cycle-3-re-audit.md`. 7 nested repos re-scored; 6-pillar mean 2.13 → 2.66 (+0.53).
-- **T12-Wrap (v12): closure report + ADR-076 + AGENTS.md refresh** (P0, ~10 min) — DONE. `findings/2026-06-20-v12-closure-report.md` + `docs/adr/2026-06-20/ADR-076-v12-closure.md` + this file.
-- **§8: Router architecture decision** (P0) — **ACCEPTED 2026-06-20** (Option B: Bifrost-as-library + Phenotype-owned decision layer per ADR-050 + ADR-051). Next wave (v13) unblocks L1 (Bifrost `v1.5.21` pin + 9-plugin regression) and L2 (`phenotype-router` v0.1.0). 6.5-week critical path.
+**Cumulative v9..v17:** 9 waves shipped, ~5,800 LoC governance/spec/code, 0 net content loss.
+
+- **v17 (cycle 7, current):** 12 tracks shipped — L1 arch overview, L2 module boundaries, L3 coupling metrics (CBO), L4 hexagonal ports, L8 observability hooks, L10 async runtime ADR-088, L11 chaos tests (5 crates), L12 type safety + deny(missing_docs), L40 i18n (en+es+ja), L41 a11y. Commits `5b452ce6ff`, `4bba938854`, `986be7ccac`, `c42acaac47` on `chore/v17-71-pillar-cycle-7-p0-2026-06-21`.
+- **v16 (cycle 6):** 10 tracks shipped — L7 subsystems, L9 REST + OpenAPI, L13 latency budgets, L19 cost optimization, L22 nextest + sccache, L25 proptest + loom, L26 chaos CI gate, L34 release.yml, L42 e2e tests, L43 perf CI gate. Commit `4bba938854` (1,991 LoC).
+- **v15 (cycle 5):** 9 tracks shipped — L6 cargo-modules audit, L15 perf baseline, L21 proptest × 3, L33 SIGHUP hot-reload × 2, L48 SBOM diff, L49 SECURITY.md runbook, L37 devcontainer × 5, L60 OTel histogram. ~890 LoC.
+- **v14 (cycle 4):** 5 tracks shipped — T1 cliff.toml vendoring, T2 ssot-inject, T3 devcontainer, T4 cache-stats dashboard, T5 perf CI gate. Plus T8 deny(missing_docs) × 8 crates.
+- **v13 (cycle 3):** 8 tracks shipped — L21 fuzz, L33 devshell.nix, L48 SBOM, L49 SLSA L3, L50 cosign, L11.1 chaos, L29.1 justfile-verify, L66 llms.txt.
+- **v12 (cycle 2 P0 remediation):** 4 P0 tracks — L65 SSOT, L57 perf regression, L31 CI cache stats, L67 CHANGELOG auto. + Mission 4 (Configra slice 2) + ADR-015 v2.1 worklog schema. ~890 LoC, 1,767 LoC in `2db7e9f5eb`.
+- **§8: Router architecture decision** (P0) — **ACCEPTED 2026-06-20** (Option B: Bifrost-as-library + Phenotype-owned decision layer per ADR-050 + ADR-051). v12+ unblocks L1 (Bifrost `v1.5.21` pin + 9-plugin regression) and L2 (`phenotype-router` v0.1.0).
+
+### v17 Wave A (architecture)
+- **T1 (v17): L1 architecture overview** — DONE. `findings/2026-06-21-v17-L1-architecture-overview.md`
+- **T2 (v17): L2 module boundaries** — DONE. `findings/2026-06-21-v17-L2-module-boundaries.md` (47-crate boundary table)
+- **T3 (v17): L3 coupling metrics (CBO)** — DONE. `findings/2026-06-21-v17-L3-coupling-metrics.md` (CI enforcement)
+- **T4 (v17): L4 hexagonal ports** — DONE. `findings/2026-06-21-v17-L4-hexagonal-ports.md` (Port trait + Adapter impl canonical)
+- **T5 (v17): L8 observability hooks** — DONE. `findings/2026-06-21-v17-L8-observability-hooks.md` (3 critical crates)
+
+### v17 Wave B (resilience/types)
+- **T6 (v17): L10 async runtime decision** — DONE. `findings/2026-06-21-v17-T6-L10-async-runtime-decision.md` (ADR-088 tokio vs smol)
+- **T7 (v17): L11 chaos tests** — DONE. `findings/2026-06-21-v17-T7-L11-chaos-tests-sweep.md` (5 crates with `chaos_` tests)
+- **T8 (v17): L12 type safety** — DONE. `findings/2026-06-21-v17-T8-L12-type-safety.md` (clippy.toml + deny(missing_docs))
+
+### v17 Wave C (i18n/a11y)
+- **T9 (v17): L40 i18n** — DONE. `findings/2026-06-21-v17-T9-L40-i18n.md` (en + es/ja locale)
+- **T10 (v17): L41 a11y** — DONE. `findings/2026-06-21-v17-T10-L41-a11y.md` (CLI flag descs + JSON mode)
+
+### v17 Wave D (closure)
+- **cycle 7 probe:** `findings/2026-06-21-v17-cycle-7-probe.md`
+- **v18 plan:** `plans/2026-06-21-v18-71-pillar-cycle-8-p0.md` (3 remaining P0 pillars + cycle 8 P1)
+- **cycle 8 probe:** `findings/2026-06-21-v18-cycle-8-probe.md`
 
 ### v12 closure — router spike details (T24, 2026-06-21)
 
