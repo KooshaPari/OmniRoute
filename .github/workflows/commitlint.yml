@@ -1,0 +1,44 @@
+name: Commitlint (side-50 ADOPT)
+
+# v12-17 / L29.3 / side-50 ADOPT
+# Enforces Conventional Commits on PR titles and merge commit messages.
+# Spec: https://www.conventionalcommits.org/en/v1.0.0/
+#
+# Backed by .pre-commit-config.yaml commit-msg hook for local devs,
+# and by wagoid/commitlint-github-action@v5 for CI gating.
+#
+# Allowed types: feat, fix, chore, docs, refactor, test, build, ci, perf, revert
+# Scope is optional. Subject must be present and use lower-case.
+
+on:
+  pull_request:
+    branches: [main, master]
+    types: [opened, edited, reopened, synchronize]
+  push:
+    branches: [main, master]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  commitlint:
+    name: Validate PR title + commits (Conventional Commits)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          fetch-depth: 0
+
+      - name: Validate PR title
+        uses: wagoid/commitlint-github-action@v5
+        with:
+          configFile: .commitlintrc.json
+
+      - name: Validate all commits in PR
+        if: github.event_name == 'pull_request'
+        uses: wagoid/commitlint-github-action@v5
+        with:
+          configFile: .commitlintrc.json
+          # default mode already validates all in-PR commits for PR events

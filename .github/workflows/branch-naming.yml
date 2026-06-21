@@ -1,0 +1,93 @@
+name: Branch Naming Convention (side-51 ADOPT)
+
+# v12-16 / L29.2 / side-51 ADOPT
+# Enforces branch naming convention from AGENTS.md:
+#   chore/<req-id>-<slug>-<date>  | feat/<req-id>-<slug>-<date>
+#   fix/<...>                     | refactor/<...>
+#   docs/<...>                    | test/<...>
+#   build/<...>                   | ci/<...>
+#
+# Regex: ^(chore|feat|fix|refactor|docs|test|build|ci)/[a-z0-9-]+$
+#
+# Allows:  chore/v14-71-pillar-cycle-4-p0-2026-06-20
+#          feat/L5-104-add-llama-adapter-2026-06-17
+#          fix/ci-pin-go-1.26.4-2026-06-20
+# Blocks:  hotfix/urgent-bug
+#          FEAT/uppercase-not-allowed
+#          chore/  (empty suffix)
+#          chore/UPPER-case
+
+on:
+  pull_request:
+    branches: [main, master]
+    types: [opened, edited, reopened, synchronize]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  branch-name:
+    name: Validate branch name
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          fetch-depth: 0
+
+      - name: Extract head branch name
+        id: head
+        run: |
+          # GITHUB_HEAD_REF is set for pull_request events
+          HEAD_REF="${GITHUB_HEAD_REF:-}"
+          if [ -z "${HEAD_REF}" ]; then
+            HEAD_REF="${GITHUB_REF_NAME:-}"
+          fi
+          echo "name=${HEAD_REF}" >> "$GITHUB_OUTPUT"
+          echo "Branch under check: ${HEAD_REF}"
+
+      - name: Validate branch naming convention
+        id: validate
+        env:
+          BRANCH: ${{ steps.head.outputs.name }}
+        run: |
+          set -euo pipefail
+          PATTERN='^(chore|feat|fix|refactor|docs|test|build|ci)/[a-z0-9-]+$'
+          BRANCH="${BRANCH:-}"
+
+          # Allow the default branch itself (e.g. main / master) when this workflow
+          # is triggered by push rather than pull_request in the future.
+          if [ "${BRANCH}" = "main" ] || [ "${BRANCH}" = "master" ]; then
+            echo "ok=default_branch" >> "$GITHUB_OUTPUT"
+            echo "Default branch '${BRANCH}' is allowed without prefix."
+            exit 0
+          fi
+
+          if [ -z "${BRANCH}" ]; then
+            echo "::error title=Branch name missing::Could not determine head branch from GITHUB_HEAD_REF / GITHUB_REF_NAME."
+            exit 1
+          fi
+
+          if [[ "${BRANCH}" =~ ${PATTERN} ]]; then
+            echo "ok=true" >> "$GITHUB_OUTPUT"
+            echo "Branch '${BRANCH}' matches convention."
+          else
+            echo "ok=false" >> "$GITHUB_OUTPUT"
+            cat <<EOF
+::error title=Branch naming convention violation::Branch '${BRANCH}' does not match the required pattern.
+
+Required pattern: \`${PATTERN}\`
+
+Allowed prefixes: chore | feat | fix | refactor | docs | test | build | ci
+
+Examples:
+  chore/v14-71-pillar-cycle-4-p0-2026-06-20
+  feat/L5-104-add-llama-adapter-2026-06-17
+  fix/ci-pin-go-1.26.4-2026-06-20
+  ci/add-branch-naming-gate-2026-06-21
+
+See AGENTS.md § "Conventions" → Branch naming.
+EOF
+            exit 1
+          fi

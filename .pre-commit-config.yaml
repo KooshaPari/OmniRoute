@@ -1,11 +1,14 @@
 # V13 T7: pre-commit hooks for justfile-verify + cargo-fmt + cargo-deny
-# Pillar L29.1 (justfile-verify-in-pre-commit), L20 (deny), L29 (fmt)
+# V12-17 (2026-06-21): + commitlint commit-msg hook (L29.3 / side-50 ADOPT)
+# Pillar L29.1 (justfile-verify-in-pre-commit), L20 (deny), L29 (fmt), L29.3 (commitlint)
 #
 # Installed via: pre-commit install
+# Installed via: pre-commit install --hook-type commit-msg
 # Bypassed via: git commit --no-verify
 #
 # Order: cheap hooks first (format), then semantic (deny, justfile-verify).
 # Local-only CI variant: pre-commit run --all-files
+# Commit-msg variant: pre-commit run --hook-stage commit-msg --all-files
 
 repos:
   - repo: local
@@ -58,3 +61,18 @@ repos:
         pass_filenames: false
         always_run: true
         stages: [pre-commit]
+
+  # V12-17: Conventional Commits gate (side-50 ADOPT). Runs at the
+  # commit-msg stage only; commitlint reads .commitlintrc.json at the repo
+  # root and applies @commitlint/config-conventional rules.
+  # Requires: pre-commit install --hook-type commit-msg
+  - repo: https://github.com/yeojz/standard-pre-commit-hooks
+    rev: v1.0.1
+    hooks:
+      - id: commitlint
+        name: commitlint (L29.3 / side-50 ADOPT)
+        description: Enforce Conventional Commits on the commit message (feat/fix/chore/docs/refactor/test/build/ci/perf/revert)
+        entry: npx --no-install commitlint --config .commitlintrc.json -e
+        language: system
+        stages: [commit-msg]
+        additional_dependencies: ["@commitlint/cli@^19.0.0", "@commitlint/config-conventional@^19.0.0"]
