@@ -75,7 +75,7 @@ See `L6_PHENO_REPOS_HEALTH_2026_06_14.md` for full health inventory (136 tests p
 
 ---
 
-## Active ADRs (54 total, +ADR-050 through +ADR-054 this turn [v9 T0.5])
+## Active ADRs (58 total, +ADR-077 through +ADR-080 this turn [v19 T1-T5])
 
 **2026-06-14 wave (6 ADRs at `docs/adr/2026-06-14/`):**
 
@@ -163,15 +163,25 @@ See `L6_PHENO_REPOS_HEALTH_2026_06_14.md` for full health inventory (136 tests p
 | **ADR-048** | **Substrate graduation path (4-tier gate table)** | L5-113, 2026-06-18 — see `docs/adr/2026-06-18/ADR-048-substrate-graduation-path.md` + [§ Substrate graduation path](#substrate-graduation-path-adr-048) below; tool: `KooshaPari/pheno-framework-lint` (L73) |
 | **ADR-049** | **App-substrate drift detector (3-pass algorithm)** | L5-114, 2026-06-18 — see `docs/adr/2026-06-18/ADR-049-app-substrate-drift-detector.md` + [§ App-substrate drift detector](#app-substrate-drift-detector-adr-049) below; tool: `KooshaPari/pheno-drift-detector` (L74) |
 
+**2026-06-21 wave (this turn, +ADR-077 through +ADR-080 = 4 ADRs):**
+
+| ADR | Subject | Notes |
+|---|---|---|
+| **ADR-077** | **L50 Vault migration roadmap** | L5-117, 2026-06-21, see `docs/adr/2026-06-21/ADR-077-vault-migration-roadmap.md` |
+| **ADR-078** | **L52 Encryption-at-rest mandate** | L5-118, 2026-06-21, see `docs/adr/2026-06-21/ADR-078-encryption-at-rest-mandate.md` |
+| **ADR-079** | **L54 OIDC federation reference** | L5-119, 2026-06-21, see `docs/adr/2026-06-21/ADR-079-oidc-federation-reference.md` |
+| **ADR-080** | **L53 Pen-test + bug-bounty roadmap** | L5-120, 2026-06-21, see `docs/adr/2026-06-21/ADR-080-pen-test-bug-bounty-roadmap.md` |
+
 ---
 
-## Wave Plan (v17 — current, supersedes v9/v10/v11/v12/v13/v14/v15/v16)
+## Wave Plan (v19 — current, supersedes v9/v10/v11/v12/v13/v14/v15/v16/v17/v18)
 
-**Date:** 2026-06-21 — v17 cycle 7 P0 closure COMPLETE (44 of 47 P0 pillars closed, 94% reduction). v18 plan in `plans/2026-06-21-v18-71-pillar-cycle-8-p0.md` targets the 3 remaining P0 pillars (L17, L50, L51) + cycle 8 P1 reduction.
+**Date:** 2026-06-21 — v18 cycle 8 closed 47 of 47 P0 pillars (100%) with fleet mean 2.86. v19 plan in `plans/2026-06-21-v19-71-pillar-cycle-9-p0.md` is the **P1 reduction wave** — 5 tracks targeting L50/L52/L54/L19/L53 (Adequate→Solid). ~3-week wall, ~1,500 LoC, device: macbook-OK except T4 (heavy-runner).
 
-**Cumulative v9..v17:** 9 waves shipped, ~5,800 LoC governance/spec/code, 0 net content loss.
+**Cumulative v9..v18:** 10 waves shipped, ~7,500 LoC governance/spec/code, 0 net content loss. P0 layer saturated (47/47); remaining leverage is P1 reduction (15 pillars at 2.0, 5 at 1.5, 0 at 3.0).
 
-- **v17 (cycle 7, current):** 12 tracks shipped — L1 arch overview, L2 module boundaries, L3 coupling metrics (CBO), L4 hexagonal ports, L8 observability hooks, L10 async runtime ADR-088, L11 chaos tests (5 crates), L12 type safety + deny(missing_docs), L40 i18n (en+es+ja), L41 a11y. Commits `5b452ce6ff`, `4bba938854`, `986be7ccac`, `c42acaac47` on `chore/v17-71-pillar-cycle-7-p0-2026-06-21`.
+- **v18 (cycle 8, P0 closure):** 4 tracks shipped — T1 L17 FedRAMP/SOC2 readiness (`findings/2026-06-21-v18-T1-L17-fedramp-soc2-readiness.md`), T2 L18 data classification (DLP), T3 L51 SOC2 evidence automation (33 controls), T4 L46-L55 security P1 deepening. Fleet mean 2.66 → 2.86 (+0.20). Closes the remaining 3 P0 pillars (L17, L50, L51).
+- **v17 (cycle 7):** 12 tracks shipped — L1 arch overview, L2 module boundaries, L3 coupling metrics (CBO), L4 hexagonal ports, L8 observability hooks, L10 async runtime ADR-088, L11 chaos tests (5 crates), L12 type safety + deny(missing_docs), L40 i18n (en+es+ja), L41 a11y. Commits `5b452ce6ff`, `4bba938854`, `986be7ccac`, `c42acaac47` on `chore/v17-71-pillar-cycle-7-p0-2026-06-21`.
 - **v16 (cycle 6):** 10 tracks shipped — L7 subsystems, L9 REST + OpenAPI, L13 latency budgets, L19 cost optimization, L22 nextest + sccache, L25 proptest + loom, L26 chaos CI gate, L34 release.yml, L42 e2e tests, L43 perf CI gate. Commit `4bba938854` (1,991 LoC).
 - **v15 (cycle 5):** 9 tracks shipped — L6 cargo-modules audit, L15 perf baseline, L21 proptest × 3, L33 SIGHUP hot-reload × 2, L48 SBOM diff, L49 SECURITY.md runbook, L37 devcontainer × 5, L60 OTel histogram. ~890 LoC.
 - **v14 (cycle 4):** 5 tracks shipped — T1 cliff.toml vendoring, T2 ssot-inject, T3 devcontainer, T4 cache-stats dashboard, T5 perf CI gate. Plus T8 deny(missing_docs) × 8 crates.
@@ -202,10 +212,27 @@ See `L6_PHENO_REPOS_HEALTH_2026_06_14.md` for full health inventory (136 tests p
 - **v18 T3 (L51 SOC2 evidence automation):** `findings/2026-06-21-v18-T3-L51-soc2-evidence-automation.md` — DONE
 - **v18 T4 (L46-L55 security P1 deepening):** `findings/2026-06-21-v18-T4-L46-L55-security-p1-deepening.md` — DONE
 
-### v18 Wave E (closure → v19 launch)
-- **v19 plan:** `plans/2026-06-21-v19-71-pillar-cycle-9-p0.md` (5 tracks: L31/L57/L65/L67 cycle-9 P0 reduction + 2 net-new federation/interop tracks; 5-week critical path)
-- **v19 orchestrator worklog:** `worklogs/2026-06-21-v19-cycle-9-71-pillar-p0-orchestrator.json` (macbook-safe governance slice, 0 cargo, ~1h)
-- **Wave Plan section**: **v19 — current**, supersedes v17 (v18 was a 47→100% closure wave with no new tracks, v19 carries the next P0 reduction round + 2 net-new)
+### v18 Wave D (closure → v19 launch)
+- **cycle 8 probe:** `findings/2026-06-21-v18-cycle-8-probe.md` (Status: Terminal — v18 closed 47/47 P0)
+- **v18 T1 (L17 FedRAMP/SOC2 readiness):** `findings/2026-06-21-v18-T1-L17-fedramp-soc2-readiness.md` — DONE (per-regime readiness matrix + phased remediation plan)
+- **v18 T2 (L18 data classification):** `findings/2026-06-21-v18-T2-L18-data-classification.md` — DONE
+- **v18 T3 (L51 SOC2 evidence automation):** `findings/2026-06-21-v18-T3-L51-soc2-evidence-automation.md` — DONE (33 Common Criteria controls, weekly cron)
+- **v18 T4 (L46-L55 security P1 deepening):** `findings/2026-06-21-v18-T4-L46-L55-security-p1-deepening.md` — DONE (L46/L47/L48/L49 stable; L50/L51/L52/L53/L54/L55 → 3.00)
+
+### v19 Wave A (P1 reduction — current, supersedes v17/v18)
+**v19 — current, supersedes v18**. Plans: `plans/2026-06-21-v19-71-pillar-cycle-9-p0.md`. 5 tracks (T1-T5): L50 Vault, L52 Encryption, L54 OIDC, L19 Perf, L53 Pen-test. Target: fleet mean 2.86 → 2.95, L50/L52 1.5→2.0, L19/L53/L54 2.0→2.5. Critical path: ~3 weeks wall-clock, ~5 PRs, ~1,500 LOC. Owner: orch-w1-a.
+**Orchestrator worklog:** `worklogs/2026-06-21-v19-cycle-9-71-pillar-p0-orchestrator.json` (device: macbook, in_progress)
+
+| Track | Pillar | LoC | Heavy? | Device |
+|-------|--------|----:|--------|--------|
+| **T1** | L50 Vault migration roadmap (ADR-077) | ~600 (docs + scripts) | No | **macbook** |
+| **T2** | L52 Encryption-at-rest mandate (ADR-078 + `.cargo/audit-rules.toml` + `pheno-config/src/secrets.rs`) | ~350 | No | **macbook** |
+| **T3** | L54 OIDC federation reference (ADR-079 + `pheno-context/src/oidc.rs` + example consumer) | ~500 | Yes (network) | **heavy-runner** |
+| **T4** | L19 Perf benchmarking infra (`benchmarks/fleet-perf.toml` + `scripts/perf_gate.py` + CI workflow) | ~200 | Yes (>10min cargo) | **heavy-runner** |
+| **T5** | L53 Pen test + bug bounty roadmap (ADR-080) | ~150 (docs) | No | **macbook** |
+
+**Target:** 5/5 P1 tracks succeed → L50/L52/L54/L19/L53 at 2.5; fleet mean 2.86 → 2.95
+**Dependency graph:** T4 starts immediately (no deps); T1 + T5 week 1; T2 + T3 week 2 (need T1 plan in hand); cycle 9 re-audit week 3
 
 ### v12 closure — router spike details (T24, 2026-06-21)
 
