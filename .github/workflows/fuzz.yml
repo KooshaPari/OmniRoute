@@ -1,0 +1,21 @@
+name: fuzz
+on:
+  schedule:
+    - cron: '0 3 * * *'  # 03:00 UTC nightly
+  workflow_dispatch:
+
+jobs:
+  fuzz:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@nightly
+        with:
+          toolchain: nightly
+      - run: cargo install cargo-fuzz
+      - run: cd pheno-port-adapter && cargo +nightly fuzz run fuzz_tcp_endpoint_parse -- -max_total_time=300
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: fuzz-artifacts
+          path: pheno-port-adapter/fuzz/artifacts/

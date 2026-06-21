@@ -1,36 +1,42 @@
-name: slsa-build-l3
+# SLSA Build L3 provenance for the parent monorepo.
+# See docs/slsa.md for the verification procedure and
+# docs/adr/2026-06-20/ADR-077-slsa-l3-provenance.md for the rationale.
+# slsa-framework/slsa-github-generator is pinned EXACTLY at v2.0.0 —
+# exact pin is a prerequisite for closing 71-pillar L25 (Supply-Chain Security).
+
+name: slsa-l3-provenance
 
 on:
-  workflow_run:
-    workflows: ["ci"]
-    types: [completed]
-  push:
-    branches: [main]
-    tags: ['v*']
+  release:
+    types: [published]
 
 permissions:
-  id-token: write
-  contents: write
-  actions: read
+  id-token: write       # OIDC token for sigstore/Rekor signing
+  contents: write       # attach provenance artifact to release
+  actions: read         # required by slsa-github-generator
+  attestations: write   # required when attestations: true (v2.0.0)
 
 jobs:
   slsa-l3:
-    name: SLSA L3 provenance generation
+    name: Generate SLSA L3 provenance
     runs-on: ubuntu-latest
+    outputs:
+      step-name: provenance
     steps:
       - uses: actions/checkout@v4
-      - uses: slsa-framework/slsa-github-generator@v1.10.0
-        id: slsa
         with:
-          base64-subjects: "${{ needs.cosign.outputs.digest }}"
+          fetch-depth: 0
 
-  verify-provenance:
-    name: Verify SLSA L3 provenance
-    needs: slsa-l3
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: slsa-framework/slsa-verifier@v2.6.0
+      - name: Build monorepo source tarball + base64 sha256
+        id: zip
+        run: |
+          tar --exclude='.git' --exclude='target' -czf phenorepos.tar.gz .
+          sha256sum phenorepos.tar.gz | awk '{print $1}' > phenorepos.sha256
+          base64 -w0 phenorepos.sha256 | tr -d '\n' > phenorepos.sha256.b64
+          echo "sha256sum=$(cat phenorepos.sha256.b64)" >> "$GITHUB_OUTPUT"
+
+      - uses: slsa-framework/slsa-github-generator@v2.0.0
+        id: provenance
         with:
-          source-uri: slsa-verifier-Artifact
-          github-context: ${{ toJSON(github) }}
+          base64-subjects: ${{ steps.zip.outputs.sha256sum }}
+          attestations: true

@@ -1,0 +1,18 @@
+name: slsa-provenance
+on:
+  release:
+    types: [published]
+
+jobs:
+  provenance:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: slsa-framework/slsa-github-generator@v1.9.0
+        with:
+          base64-subjects: '${{ needs.build.outputs.bundle }}'
+          artifact-name: release.tar.gz
+      - uses: actions/upload-artifact@v4
+        with:
+          name: slsa-provenance
+          path: .slsa/provenance.intoto.jsonl

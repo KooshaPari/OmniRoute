@@ -12,8 +12,8 @@ repos:
     hooks:
       - id: justfile-verify
         name: justfile-verify (L29.1)
-        description: Parse + lint all justfiles in the fleet
-        entry: bash -c 'for jf in $(find . -maxdepth 3 -name justfile -not -path "*/target/*" -not -path "*/node_modules/*" 2>/dev/null); do just --justfile "$jf" --evaluate >/dev/null 2>&1 || echo "INVALID justfile: $jf"; done; exit 0'
+        description: Parse + evaluate the meta-repo Justfile via `just justfile-verify`
+        entry: just justfile-verify
         language: system
         pass_filenames: false
         types: [file]
