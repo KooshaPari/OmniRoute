@@ -14,3 +14,6 @@ Cargo.toml            @KooshaPari
 Cargo.lock            @KooshaPari
 deny.toml             @KooshaPari
 package.json          @KooshaPari
+# ADR-023 (2026-06-20): PAUSED. New work requires a bucket_change worklog entry.
+# See docs.adr.2026-06-15.ADR-023-agent-effort-governance.md Rule 2.
+* @KooshaPari
