@@ -77,3 +77,10 @@ this table is the working incident inventory until scanning is available again.
 - Use sanitized excerpts that preserve decisions, file paths, and alert numbers
   without token values, email addresses beyond committed git metadata, account
   IDs, IP addresses, or personal content.
+- Keep incident evidence outside public issue bodies and repository docs unless
+  it has been sanitized to remove personal data, account identifiers, cookies,
+  authorization headers, OAuth refresh tokens, SSNs, card numbers, and raw
+  transcript text.
+- Changed-file guardrails block common prompt/session export paths and
+  high-confidence PII markers. Treat guard failures as incident data until
+  reviewed.
