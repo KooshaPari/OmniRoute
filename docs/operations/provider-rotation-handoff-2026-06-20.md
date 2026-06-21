@@ -19,6 +19,9 @@ issue #320 and `docs/operations/secrets-pii-incident-2026-06-20.md`.
   and `verified_at_utc`.
 - The local note's `provider` and `alerts` values must match one row in the
   command sheet alert inventory.
+- Use `python scripts\incident-evidence-guard.py --require-all
+  incident-evidence\2026-06-20` before marking provider evidence complete; it
+  fails until sanitized notes cover every inventory row.
 - Evidence references should be sanitized ticket IDs, audit-log references with
   account identifiers removed, or local evidence note filenames.
 - A provider row is not complete until the old credential is revoked or rotated,

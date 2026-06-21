@@ -171,44 +171,66 @@ def resolve_input_paths(paths: list[Path]) -> list[Path]:
     return resolved_paths
 
 
-def scan_file(path: Path, inventory: set[tuple[str, str]]) -> list[str]:
+def scan_file(path: Path, inventory: set[tuple[str, str]]) -> tuple[list[str], tuple[str, str] | None]:
     findings: list[str] = []
     if not path.exists():
-        return ["missing file"]
+        return ["missing file"], None
     if path.suffix.lower() in DENIED_EXTENSIONS:
-        return ["unsupported evidence file type"]
+        return ["unsupported evidence file type"], None
 
     try:
         data = path.read_bytes()
     except OSError:
-        return ["unreadable file"]
+        return ["unreadable file"], None
 
     if b"\0" in data:
-        return ["binary file"]
+        return ["binary file"], None
 
     text = data.decode("utf-8", errors="ignore")
     for label, pattern in (*SECRET_PATTERNS, *PII_PATTERNS):
         if pattern.search(text):
             findings.append(label)
     findings.extend(schema_findings(text, inventory))
-    return findings
+    fields = parse_note_fields(text)
+    evidence_key = None
+    provider = fields.get("provider", "")
+    alerts = fields.get("alerts", "")
+    if not findings and provider and alerts:
+        evidence_key = normalize_inventory_key(provider, alerts)
+    return findings, evidence_key
 
 
-def scan(paths: list[Path], allow_missing_default: bool = False) -> dict[str, object]:
+def format_inventory_key(key: tuple[str, str]) -> str:
+    provider, alerts = key
+    return f"{provider} alerts {alerts}"
+
+
+def scan(paths: list[Path], allow_missing_default: bool = False, require_all: bool = False) -> dict[str, object]:
     failures: dict[str, list[str]] = {}
     inventory = provider_inventory()
+    covered: set[tuple[str, str]] = set()
     if allow_missing_default and paths == [DEFAULT_EVIDENCE_DIR] and not DEFAULT_EVIDENCE_DIR.exists():
         files: list[Path] = []
     else:
         files = iter_files(resolve_input_paths(paths))
     for path in files:
-        findings = scan_file(path, inventory)
+        findings, evidence_key = scan_file(path, inventory)
         if findings:
             failures[str(path)] = sorted(set(findings))
+        elif evidence_key:
+            covered.add(evidence_key)
+
+    missing_rows: list[str] = []
+    if require_all:
+        missing_rows = [format_inventory_key(key) for key in sorted(inventory - covered)]
+        if missing_rows:
+            failures["inventory coverage"] = [f"missing evidence: {row}" for row in missing_rows]
 
     return {
         "checked_files": len(files),
+        "covered_inventory_rows": len(covered),
         "inventory_rows": len(inventory),
+        "missing_inventory_rows": missing_rows,
         "ok": not failures,
         "failures": failures,
     }
@@ -217,12 +239,17 @@ def scan(paths: list[Path], allow_missing_default: bool = False) -> dict[str, ob
 def main() -> int:
     parser = argparse.ArgumentParser(description="Validate sanitized local incident evidence notes.")
     parser.add_argument("--json", action="store_true", help="Print sanitized JSON.")
+    parser.add_argument(
+        "--require-all",
+        action="store_true",
+        help="Fail unless sanitized local notes cover every provider inventory row.",
+    )
     parser.add_argument("paths", nargs="*", type=Path)
     args = parser.parse_args()
     paths = args.paths or [DEFAULT_EVIDENCE_DIR]
 
     try:
-        summary = scan(paths, allow_missing_default=not args.paths)
+        summary = scan(paths, allow_missing_default=not args.paths, require_all=args.require_all)
     except ValueError as exc:
         print(f"incident-evidence-guard blocked evidence. {exc}")
         return 1
