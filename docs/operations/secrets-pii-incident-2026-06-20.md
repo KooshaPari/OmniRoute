@@ -69,6 +69,27 @@ this table is the working incident inventory until scanning is available again.
 - A fresh full-history secret scan has no unresolved true-positive alerts.
 - GitHub Actions has been re-enabled only after guardrails are active on `main`.
 
+## Reopen Readiness Gate
+
+Run this before enabling Actions or making the repository public:
+
+```powershell
+python scripts\incident-reopen-readiness.py
+```
+
+The gate is sanitized and must not print token values. It should fail while the
+incident is still open. Use this mode to verify the current blocked posture:
+
+```powershell
+python scripts\incident-reopen-readiness.py --expect-open
+```
+
+- [ ] Provider rotation evidence recorded for every alert inventory row
+- [ ] GitHub Support purge requested or cached-object risk accepted by owner
+- [ ] Fresh full-history scan after purge or restored secret scanning has zero unresolved true positives
+- [ ] Issue #320 closed or scrubbed before public reopening
+- [ ] Incident owner approved Actions or public visibility restore
+
 ## PII Handling
 
 - Treat prompt/session dumps as potential PII and secret material.
