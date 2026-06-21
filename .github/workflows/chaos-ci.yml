@@ -1,0 +1,156 @@
+# Fleet chaos CI — V21-T2 / L29 chaos-in-CI
+#
+# Authority: ADR-040 (test coverage gates per tier) + v21 71-pillar
+# cycle 11 plan § Track T2 (L29 chaos in CI).
+#
+# Runs the 1000-request SLO chaos load test against the `pheno-chaos`
+# substrate on a nightly cadence. The test spawns 8 worker threads,
+# arms the NetworkLatency fault (mixed light + heavy quadrants), and
+# asserts fleet-level SLO compliance:
+#
+#   - ≥ 99% of 1000 requests must complete within the per-request SLO
+#     (default 250ms).
+#   - The p100 (worst-case) latency must be < SLO.
+#
+# The workflow parses these numbers out of the test's parseable output
+# (`PASS_RATE:` and `MAX_LATENCY_MS:` lines) for the build gate.
+#
+# Distinguishing this workflow from the existing chaos runners:
+#
+#   - `chaos.yml`         — weekly Monday 09:00 PDT; runs `chaos_`
+#                            tests across the fleet (e.g.
+#                            pheno-port-adapter).
+#   - `chaos-gate.yml`    — per-PR merge gate; requires `chaos_` tests
+#                            to pass before merge.
+#   - `chaos-ci.yml` (this file) — nightly 02:00 UTC (~19:00 PDT);
+#                            fleet-level SLO load test against
+#                            pheno-chaos; 1000-request pattern.
+#
+# Per AGENTS.md convention: scheduled chaos runners use a nightly
+# schedule so a flake doesn't burn the weekly slot. Manual runs are
+# available via `workflow_dispatch` for ad-hoc verification.
+
+name: Fleet chaos CI
+
+on:
+  schedule:
+    # Nightly 02:00 UTC ≈ 19:00 PDT. Staggered 2h before the fleet
+    # perf-gate cron (06:00 UTC) so a chaos failure surfaces
+    # separately and doesn't mask a perf regression.
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+    inputs:
+      total_requests:
+        description: 'Total simulated requests (must be divisible by 8)'
+        default: '1000'
+        required: false
+      slo_ms:
+        description: 'Per-request SLO in milliseconds'
+        default: '250'
+        required: false
+      target_pass_rate_pct:
+        description: 'Minimum acceptable fleet pass rate (%)'
+        default: '99'
+        required: false
+
+# Never cancel a chaos run mid-flight. Chaos test output is the source
+# of truth for the SLO report; cancelling mid-test yields no data.
+concurrency:
+  group: chaos-ci-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  chaos-slo-load:
+    name: chaos-slo-load (ubuntu-latest)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Setup Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: stable
+
+      - name: Cache cargo build artifacts
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: pheno-chaos -> target
+
+      - name: Build pheno-chaos (release tests)
+        working-directory: pheno-chaos
+        run: cargo build --release --tests
+
+      - name: Run 1000-request SLO chaos load test
+        id: slo-load
+        working-directory: pheno-chaos
+        run: |
+          mkdir -p findings
+          set +e
+          cargo test --release --test slo_load -- --nocapture \
+            2>&1 | tee ../../findings/chaos-ci-result.txt
+          TEST_EXIT=${PIPESTATUS[0]}
+          set -e
+          echo "TEST_EXIT=$TEST_EXIT" >> "$GITHUB_OUTPUT"
+
+      - name: Upload chaos-ci result artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: chaos-ci-result-${{ github.run_id }}
+          path: findings/chaos-ci-result.txt
+          if-no-files-found: warn
+
+      - name: Verify SLO compliance gate
+        id: slo-gate
+        if: always()
+        run: |
+          set -e
+          RESULT_FILE="findings/chaos-ci-result.txt"
+
+          # Parse the structured report lines emitted by
+          # `pheno-chaos/tests/slo_load.rs`.
+          #
+          # Format (literal):
+          #   PASS_RATE:            100
+          #   MAX_LATENCY_MS:       197.318
+          PASS_RATE=$(grep -oP 'PASS_RATE:\s+\K\d+' "$RESULT_FILE" || echo "0")
+          MAX_LATENCY=$(grep -oP 'MAX_LATENCY_MS:\s+\K[0-9.]+' "$RESULT_FILE" || echo "0")
+          # Convert to integer milliseconds for comparison. printf
+          # rounds-to-nearest for shell gate logic.
+          MAX_LATENCY_INT=$(printf '%.0f' "$MAX_LATENCY")
+
+          # Use inputs if provided, else defaults matching the test
+          # constants.
+          SLO_MS="${{ github.event.inputs.slo_ms || '250' }}"
+          TARGET_PCT="${{ github.event.inputs.target_pass_rate_pct || '99' }}"
+
+          echo "PASS_RATE=$PASS_RATE" >> "$GITHUB_OUTPUT"
+          echo "MAX_LATENCY_MS=$MAX_LATENCY" >> "$GITHUB_OUTPUT"
+          echo "SLO_MS=$SLO_MS" >> "$GITHUB_OUTPUT"
+          echo "TARGET_PASS_RATE_PCT=$TARGET_PCT" >> "$GITHUB_OUTPUT"
+
+          {
+            echo "### Chaos CI SLO gate"
+            echo
+            echo "| Metric | Observed | Threshold | Verdict |"
+            echo "| :--- | ---: | ---: | :--- |"
+            echo "| Fleet pass rate | ${PASS_RATE}% | ≥ ${TARGET_PCT}% | $([ "$PASS_RATE" -ge "$TARGET_PCT" ] && echo OK || echo BREACH) |"
+            echo "| p100 latency | ${MAX_LATENCY}ms | < ${SLO_MS}ms | $([ "$MAX_LATENCY_INT" -lt "$SLO_MS" ] && echo OK || echo BREACH) |"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          if [ "$PASS_RATE" -lt "$TARGET_PCT" ]; then
+            echo "::error title=SLO compliance breach::Fleet pass rate ${PASS_RATE}% < target ${TARGET_PCT}%"
+            exit 1
+          fi
+          if [ "$MAX_LATENCY_INT" -ge "$SLO_MS" ]; then
+            echo "::error title=p100 latency SLO breach::Worst-case latency ${MAX_LATENCY}ms >= SLO ${SLO_MS}ms"
+            exit 1
+          fi
+          echo "SLO compliance verified: pass_rate=${PASS_RATE}% ≥ ${TARGET_PCT}%, max_latency=${MAX_LATENCY}ms < ${SLO_MS}ms"
