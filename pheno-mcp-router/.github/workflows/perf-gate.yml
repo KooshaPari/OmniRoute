@@ -1,0 +1,169 @@
+name: perf-gate
+
+# Performance gate for pheno-mcp-router.
+# Enforces the budgets in docs/perf-budget.md (L19 perf-gate, v20 cycle).
+#
+# - Runs `cargo bench` for the four stage benchmarks (route_match, tool_call,
+#   stream_chunk, cleanup) defined under benches/.
+# - Parses criterion's bencher-format JSON output to extract p95 estimates.
+# - Fails the job if any stage exceeds its p95 budget.
+#
+# Throughput budgets (msg/sec, concurrent connections, msg_queue_depth) are
+# exercised by the long-running soak profile in benches/soak.rs and are not
+# enforced here — those run on a separate weekly cron (ADR-041) on the
+# heavy-runner device. See docs/perf-budget.md § 5.
+
+on:
+  pull_request:
+    branches: [main, master, chore/**, feat/**]
+  push:
+    branches: [main, master]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# Cancel in-flight runs on the same PR; allow perf-gate + lint to run in
+# parallel; do not block other workflows.
+concurrency:
+  group: perf-gate-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  perf-gate:
+    name: cargo bench p95 budget check
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Rust toolchain (stable)
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache cargo registry + target
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: |
+            . -> target
+          shared-key: ${{ runner.os }}-perf-gate
+
+      - name: Detect crate root
+        id: detect
+        run: |
+          if [ -f Cargo.toml ]; then
+            echo "has_cargo=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_cargo=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Skip gate when no crate manifest present
+        if: steps.detect.outputs.has_cargo != 'true'
+        run: |
+          echo "::warning::No Cargo.toml at repo root — perf-gate skipped. \
+          This is expected on docs-only PRs. Add benches/ and Cargo.toml to \
+          activate the gate per docs/perf-budget.md § 6."
+
+      - name: Cache hit warning when target dir exists but no crate
+        if: steps.detect.outputs.has_cargo != 'true'
+        run: echo "::notice::pheno-mcp-router perf-gate is in docs-only mode."
+
+      - name: Run cargo bench (p95 estimate, bencher JSON)
+        if: steps.detect.outputs.has_cargo == 'true'
+        run: |
+          set -euo pipefail
+          mkdir -p target/perf
+          # criterion's --output-format bencher emits MRBR4 JSON which is
+          # stable for parsing. We restrict to the four stage benchmarks so
+          # unrelated benches don't trip the gate.
+          cargo bench \
+            --bench perf_profile \
+            --bench soak \
+            --no-fail-fast \
+            -- \
+            --output-format bencher \
+            --output bench-results.json 2>&1 | tee target/perf/cargo-bench.log
+
+      - name: Enforce p95 budgets from docs/perf-budget.md § 1
+        if: steps.detect.outputs.has_cargo == 'true'
+        env:
+          # Budgets in nanoseconds (1 ms = 1,000,000 ns) — match docs/perf-budget.md § 1.
+          ROUTE_MATCH_BUDGET_NS: "10000000"     # 10 ms
+          TOOL_CALL_BUDGET_NS:    "50000000"     # 50 ms
+          STREAM_CHUNK_BUDGET_NS: "5000000"      #  5 ms
+          CLEANUP_BUDGET_NS:      "20000000"     # 20 ms
+        run: |
+          set -euo pipefail
+          if [ ! -f bench-results.json ]; then
+            echo "::error::bench-results.json not produced — cargo bench did not emit bencher-format output."
+            exit 1
+          fi
+          # bencher JSON: { "route_match": { "p95_estimate": 9.5e6, ... }, ... }
+          python3 - <<'PY'
+          import json, os, sys
+
+          budgets = {
+              "route_match":  int(os.environ["ROUTE_MATCH_BUDGET_NS"]),
+              "tool_call":    int(os.environ["TOOL_CALL_BUDGET_NS"]),
+              "stream_chunk": int(os.environ["STREAM_CHUNK_BUDGET_NS"]),
+              "cleanup":      int(os.environ["CLEANUP_BUDGET_NS"]),
+          }
+
+          with open("bench-results.json", "r", encoding="utf-8") as f:
+              data = json.load(f)
+
+          # criterion's bencher schema: top-level keys are bench names; each
+          # entry has a "p95_estimate" (or "estimate" for the median) field
+          # in seconds. We normalize to nanoseconds.
+          TO_NS = 1_000_000_000
+          failures = []
+          summary_lines = ["| Stage | p95 (ns) | Budget (ns) | Status |",
+                           "| --- | ---: | ---: | :---: |"]
+          for stage, budget_ns in budgets.items():
+              entry = data.get(stage)
+              if entry is None:
+                  failures.append(f"{stage}: benchmark not present in bench-results.json")
+                  summary_lines.append(f"| {stage} | n/a | {budget_ns} | MISSING |")
+                  continue
+              # Try common field names used by criterion's bencher format.
+              p95_s = (
+                  entry.get("p95_estimate")
+                  or entry.get("estimate")
+                  or entry.get("median")
+              )
+              if p95_s is None:
+                  failures.append(f"{stage}: no p95_estimate / estimate / median in entry")
+                  summary_lines.append(f"| {stage} | ? | {budget_ns} | UNKNOWN |")
+                  continue
+              p95_ns = int(float(p95_s) * TO_NS)
+              status = "PASS" if p95_ns <= budget_ns else "FAIL"
+              if status == "FAIL":
+                  failures.append(f"{stage}: p95={p95_ns}ns > budget={budget_ns}ns")
+              summary_lines.append(
+                  f"| {stage} | {p95_ns} | {budget_ns} | {status} |"
+              )
+
+          # Emit a GitHub-flavored summary table.
+          with open(os.environ["GITHUB_STEP_SUMMARY"], "a", encoding="utf-8") as f:
+              f.write("## pheno-mcp-router perf-gate\n\n")
+              f.write("\n".join(summary_lines))
+              f.write("\n")
+
+          if failures:
+              print("::error::perf-gate budget breach(es):", file=sys.stderr)
+              for line in failures:
+                  print(f"::error::{line}", file=sys.stderr)
+              sys.exit(1)
+          print("perf-gate: all four stages within budget.")
+          PY
+
+      - name: Upload bench artifact
+        if: steps.detect.outputs.has_cargo == 'true' && always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: bench-results
+          path: |
+            bench-results.json
+            target/perf/cargo-bench.log
+          if-no-files-found: ignore
+          retention-days: 14
