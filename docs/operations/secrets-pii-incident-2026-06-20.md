@@ -65,6 +65,8 @@ this table is the working incident inventory until scanning is available again.
 
 Provider-side rotation proof must stay outside git. Use a local ignored
 workspace such as `incident-evidence/2026-06-20/` for sanitized notes only.
+Use `docs/operations/provider-rotation-handoff-2026-06-20.md` as the
+provider-by-provider checklist for required owner action and sanitized evidence.
 Do not store raw screenshots, browser exports, provider exports, HAR files,
 cookies, authorization headers, account IDs, IP addresses, email addresses, or
 token fragments in the repository.
