@@ -9,6 +9,11 @@ on:
     # Daily 06:00 UTC (per ADR-042 monthly cadence — daily for safety)
     - cron: "0 6 * * *"
 
+# Cancel superseded runs on the same ref (saves CI minutes per v12 fleet policy)
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
   deny:
     name: cargo-deny
