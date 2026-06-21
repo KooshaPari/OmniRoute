@@ -69,8 +69,14 @@ jobs:
         if: runner.os == 'macOS'
         run: |
           brew install protobuf
-      - run: cargo test --all-features --locked
-      - run: cargo test --doc --locked
+      - name: Install cargo-nextest
+        uses: taiki-e/install-action@c4a6e6e4d23a26c70fa63efde26efe43b3a18497
+        with:
+          tool: cargo-nextest
+      - name: cargo nextest run
+        run: cargo nextest run --profile ci --all-features --locked --no-fail-fast
+      - name: cargo test --doc
+        run: cargo test --doc --locked
 
   msrv:
     name: MSRV (1.82.0)
@@ -85,7 +91,11 @@ jobs:
           workspaces: |
             .
       - run: cargo build --locked --all-features
-      - run: cargo test --locked --all-features
+      - name: Install cargo-nextest
+        uses: taiki-e/install-action@c4a6e6e4d23a26c70fa63efde26efe43b3a18497
+        with:
+          tool: cargo-nextest
+      - run: cargo nextest run --profile ci --locked --all-features --no-fail-fast
 
   cargo-deps-graph:
     name: cargo-deps SVG (L3 pillar, v14 T1)

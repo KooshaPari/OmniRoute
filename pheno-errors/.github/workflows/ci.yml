@@ -25,8 +25,12 @@ jobs:
         uses: dtolnay/rust-toolchain@4b32c170c36f565c8591d2c5e6c1e02cf26d5e6c # stable
         with:
           toolchain: stable
-      - name: cargo test
-        run: cargo test --workspace
+      - name: Install cargo-nextest
+        uses: taiki-e/install-action@25435dc8dd3baed7417e0c96d3fe89013a5b2e09 # v2
+        with:
+          tool: cargo-nextest
+      - name: cargo nextest run
+        run: cargo nextest run --profile ci --workspace --no-fail-fast
 
   clippy:
     name: clippy
