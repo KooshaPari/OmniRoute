@@ -32,3 +32,15 @@ serde_json = "1.0"
 # Permutation-tests shared-state data structures used in this crate's
 # public API. Stable Rust 1.75+ compatible; no nightly required.
 loom = "0.7"
+# V20-T4 (L27) consumer-driven contract tests (Pact). The pact_consumer
+# crate's `mock_server` module is used to spin up an in-process HTTP
+# server that records requests and replays the configured response;
+# contracts are written to `target/pacts/` so the Pact Broker (or
+# `pact_verifier_cli` for provider-side verification) can verify the
+# OTLP/HTTP wire contract.
+pact_consumer = "1.4"
+# Sync HTTP client used to drive the real HTTP requests in the Pact
+# tests against the in-process mock OTLP/HTTP collector. ureq is
+# chosen over reqwest for its tiny dependency surface and its sync
+# blocking API (no tokio runtime required inside `#[test]`).
+ureq = { version = "2.10", default-features = false, features = ["tls"] }

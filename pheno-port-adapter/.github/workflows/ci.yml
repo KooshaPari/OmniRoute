@@ -83,3 +83,27 @@ jobs:
       - uses: codecov/codecov-action@v4
         with:
           files: lcov.info
+
+  flame:
+    # L44 flamegraph-driven performance bench (V20-T2). Runs the 4-stage
+    # pipeline bench for 10 s and uploads the SVG as a workflow artifact
+    # so reviewers can pull it and inspect at PR time.
+    name: flamegraph (L44)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Build benches
+        run: cargo build --benches --release
+      - name: Run flame bench (10 s profile-time)
+        run: cargo bench --bench flame -- --profile-time=10 --noplot
+        env:
+          PHENO_FLAMEGRAPH_OUT: flamegraph.svg
+      - name: Upload flamegraph SVG
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pheno-port-adapter-flamegraph
+          path: flamegraph.svg
+          if-no-files-found: warn
