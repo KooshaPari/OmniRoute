@@ -726,6 +726,28 @@ export function ModelTable({ byModel, summary }) {
   );
 }
 
+function getServiceTierIcon(serviceTier) {
+  if (serviceTier === "priority") return "bolt";
+  if (serviceTier === "flex") return "savings";
+  return "speed";
+}
+
+function getServiceTierIconClass(serviceTier) {
+  if (serviceTier === "priority") return "text-sky-500";
+  if (serviceTier === "flex") return "text-emerald-500";
+  return "text-text-muted";
+}
+
+function getServiceTierBarClass(serviceTier) {
+  if (serviceTier === "priority") return "bg-sky-500";
+  if (serviceTier === "flex") return "bg-emerald-500";
+  return "bg-text-muted/50";
+}
+
+function getServiceTierCostClass(serviceTier) {
+  return serviceTier === "flex" ? "text-emerald-500" : "text-amber-500";
+}
+
 export function ServiceTierBreakdown({ byServiceTier, summary }) {
   const t = useTranslations("costs") as TranslationFn;
   const data = useMemo(() => byServiceTier || [], [byServiceTier]);
@@ -748,7 +770,6 @@ export function ServiceTierBreakdown({ byServiceTier, summary }) {
       </div>
       <div className="divide-y divide-border">
         {data.map((tier) => {
-          const isFast = tier.serviceTier === "priority";
           const isFlex = tier.serviceTier === "flex";
           const tierLabel = getServiceTierDisplayLabel(t, tier.serviceTier, tier.label);
           const requestPct =
@@ -757,59 +778,54 @@ export function ServiceTierBreakdown({ byServiceTier, summary }) {
               : "0";
           const costPct =
             totalCost > 0 ? ((Number(tier.cost || 0) / totalCost) * 100).toFixed(1) : "0";
+          const usageSavings = Number(tier.usageSavingsTokens || 0);
+          const costSavings = Number(tier.savings || 0);
+          const usageSavingsText =
+            isFlex && usageSavings > 0
+              ? ` · ${fmt(usageSavings)} ${translateCostText(
+                  t,
+                  "serviceTierUsageSaved",
+                  "usage saved"
+                )}`
+              : "";
+          const costDetailText =
+            isFlex && costSavings > 0
+              ? `${fmtCost(costSavings)} ${translateCostText(t, "serviceTierCostSaved", "saved")}`
+              : `${costPct}% ${translateCostText(t, "serviceTierCostShareSuffix", "of cost")}`;
+
           return (
             <div key={tier.serviceTier} className="p-4 flex flex-col gap-3">
               <div className="flex items-center justify-between gap-3">
                 <div className="flex items-center gap-2">
                   <span
-                    className={`material-symbols-outlined text-[18px] ${
-                      isFast ? "text-sky-500" : isFlex ? "text-emerald-500" : "text-text-muted"
-                    }`}
+                    className={`material-symbols-outlined text-[18px] ${getServiceTierIconClass(
+                      tier.serviceTier
+                    )}`}
                   >
-                    {isFast ? "bolt" : isFlex ? "savings" : "speed"}
+                    {getServiceTierIcon(tier.serviceTier)}
                   </span>
                   <div>
                     <div className="text-sm font-semibold text-text-main">{tierLabel}</div>
                     <div className="text-xs text-text-muted">
                       {fmtFull(tier.requests)} requests · {fmt(tier.totalTokens)} tokens
-                      {isFlex && Number(tier.usageSavingsTokens || 0) > 0
-                        ? ` · ${fmt(tier.usageSavingsTokens)} ${translateCostText(
-                            t,
-                            "serviceTierUsageSaved",
-                            "usage saved"
-                          )}`
-                        : ""}
+                      {usageSavingsText}
                     </div>
                   </div>
                 </div>
                 <div className="text-right">
                   <div
-                    className={`font-mono text-sm font-semibold ${
-                      isFlex ? "text-emerald-500" : "text-amber-500"
-                    }`}
+                    className={`font-mono text-sm font-semibold ${getServiceTierCostClass(
+                      tier.serviceTier
+                    )}`}
                   >
                     {fmtCost(tier.cost)}
                   </div>
-                  <div className="text-xs text-text-muted">
-                    {isFlex && Number(tier.savings || 0) > 0
-                      ? `${fmtCost(tier.savings)} ${translateCostText(
-                          t,
-                          "serviceTierCostSaved",
-                          "saved"
-                        )}`
-                      : `${costPct}% ${translateCostText(
-                          t,
-                          "serviceTierCostShareSuffix",
-                          "of cost"
-                        )}`}
-                  </div>
+                  <div className="text-xs text-text-muted">{costDetailText}</div>
                 </div>
               </div>
               <div className="h-1.5 rounded-full bg-black/5 dark:bg-white/10 overflow-hidden">
                 <div
-                  className={`h-full rounded-full ${
-                    isFast ? "bg-sky-500" : isFlex ? "bg-emerald-500" : "bg-text-muted/50"
-                  }`}
+                  className={`h-full rounded-full ${getServiceTierBarClass(tier.serviceTier)}`}
                   style={{ width: `${requestPct}%` }}
                 />
               </div>
