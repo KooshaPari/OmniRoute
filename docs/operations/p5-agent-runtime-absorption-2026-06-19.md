@@ -21,6 +21,7 @@ source repos after zero-dep gates. Python proc plane already lives at
 | P5-4 | phenoRouterMonitor → phenoAI resolution (sidecar) | phenoRouterMonitor | phenoAI | **done** 2026-06-20 — Rust router canonical in phenoAI/crates/llm-router/; spec doc [p5-4-phenoroutermonitor-absorption-2026-06-20.md](./p5-4-phenoroutermonitor-absorption-2026-06-20.md) |
 | P5-5 | thegent vs Agentora boundary | thegent | AFFIRM split | **open** — Python runtime stays separate from pheno-agent Rust; next step is boundary confirmation, registry handoff, and PR linkage |
 | P5-6 | FocalPoint vendor → HexaKit | FocalPoint | HexaKit | **deferred** — 867MB vendor; repo archived |
+| P5-6 (closure) | FocalPoint → HexaKit wave-closure | FocalPoint | HexaKit | **deferred (wave-closure)** — 2026-06-20 — superseded by thegent PR #1114; see [p5-6-focalpoint-hexakit-deferred-2026-06-20.md](./p5-6-focalpoint-hexakit-deferred-2026-06-20.md) |
 
 ## Consumer chokepoints
 

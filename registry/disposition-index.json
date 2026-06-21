@@ -1059,6 +1059,16 @@
       "note": "867MB vendor; repo archived; manual HexaKit merge deferred"
     },
     {
+      "id": "gate-focalpoint-p5-6-wave-closure",
+      "path": "KooshaPari/FocalPoint",
+      "disposition": "ABSORB",
+      "target": "HexaKit",
+      "wave": "P5",
+      "fsm": "deferred",
+      "bucket": "absorb",
+      "note": "P5-6 wave-closure 2026-06-20: deferred (wave-closure) - superseded by KooshaPari/thegent PR #1114 consolidation; revisit after #1114 merges. Original gate-focalpoint row preserved. Provenance: docs/operations/p5-6-focalpoint-hexakit-deferred-2026-06-20.md"
+    },
+    {
       "id": "gw-pheno-errors",
       "path": "KooshaPari/pheno-errors",
       "disposition": "ARCHIVED",
