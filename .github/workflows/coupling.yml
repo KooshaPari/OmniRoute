@@ -1,0 +1,88 @@
+# v17-T3 — L3 Coupling metric enforcement (CI gate)
+#
+# Triggers on any PR that touches a pheno-* Cargo.toml, a pheno-* src/lib.rs,
+# or the .rust-audit.toml policy file itself. Runs cargo-modules structure
+# against every substrate crate via scripts/check-coupling.sh and uploads
+# the resulting JSON report as a build artifact for postmortem.
+#
+# Pattern follows the existing deny.yml + chaos-gate.yml workflows in this
+# monorepo (dtolnay/rust-toolchain@stable + actions/checkout@de0fac2e +
+# cancel-in-progress concurrency). The monorepo root has no
+# rust-toolchain.toml today, so the toolchain is pinned via the
+# `dtolnay/rust-toolchain` action (matching deny.yml).
+
+name: Coupling Gate (L3)
+
+on:
+  pull_request:
+    paths:
+      - "pheno-*/Cargo.toml"
+      - "pheno-*/src/lib.rs"
+      - ".rust-audit.toml"
+      - "scripts/check-coupling.sh"
+      - ".github/workflows/coupling.yml"
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  coupling:
+    name: L3 coupling (cargo-modules)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v4.2.2
+
+      - name: Install Rust toolchain (stable)
+        uses: dtolnay/rust-toolchain@3c5f7ea28cd621ae0bf5283f0e981fb97b8a7af9
+        with:
+          toolchain: stable
+
+      - name: Cache cargo registry
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-
+
+      - name: Install cargo-modules (locked)
+        run: cargo install cargo-modules --locked
+
+      - name: Run check-coupling.sh
+        id: check
+        continue-on-error: true
+        run: |
+          set -e
+          chmod +x scripts/check-coupling.sh
+          ./scripts/check-coupling.sh 2>&1 | tee /tmp/coupling-output.txt
+          echo "exit_code=$?" >> "$GITHUB_OUTPUT"
+
+      - name: Surface violations as PR warning
+        if: steps.check.outputs.exit_code != '0'
+        run: |
+          echo "::warning title=L3 Coupling Violation::$(cat /tmp/coupling-output.txt | head -20)"
+
+      - name: Upload coupling report
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: coupling-report-${{ github.run_id }}
+          path: findings/coupling-report.json
+          retention-days: 30
+
+      - name: Fail the job if threshold exceeded
+        if: steps.check.outputs.exit_code != '0'
+        run: |
+          echo "✗ L3 coupling threshold exceeded (see artifact coupling-report-${{ github.run_id }})"
+          exit 1

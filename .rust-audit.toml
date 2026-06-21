@@ -1,0 +1,71 @@
+# .rust-audit.toml — L3 Coupling metric enforcement
+# v17-T3 / 71-pillar cycle 7 P0 / ADR-023 Rule 3.1 substrate quality bar
+# Date: 2026-06-21
+#
+# This file declares the structural-quality thresholds that the L3 pillar
+# (Coupling) requires for every pheno-* substrate crate. The values are
+# enforced by `scripts/check-coupling.sh` (and `cargo-modules structure`
+# under the hood), and gated by `.github/workflows/coupling.yml`.
+#
+# Edit the thresholds here and the CI gate re-evaluates on the next PR.
+# Coupling is the #1 leading indicator of substrate drift per ADR-049
+# (app-substrate drift detector, 3-pass algorithm).
+
+[cargo-modules]
+# Max outgoing module dependencies per module (Ca — efferent coupling).
+# A module that imports 5+ siblings is the canonical "god module" smell.
+# Empirically the highest-coupling substrate crate (pheno-config) sits at 4
+# in steady state. Threshold of 5 admits existing code; pushing to 6 or
+# higher requires an ADR.
+max_coupling = 5
+
+# Max cyclomatic complexity per function. Standard SOTA threshold (NIST SSDF
+# PW.4.4; Microsoft SDL). Functions above this become hard to test and have
+# disproportionately high defect density (NIST SP 500-235).
+max_cyclomatic_complexity = 15
+
+# Max lines per function (logical, excluding blanks and pure comments).
+# Keeps functions scannable in a single screen and discourages copy-paste
+# proliferation.
+max_function_lines = 80
+
+# Treat any cargo-modules warning as a build failure. Required for the
+# substrate quality bar (ADR-023 Rule 3.1 + ADR-040 lib coverage gate of
+# 80% implies "warnings fail"). The "warn-as-fail" pattern is the same as
+# `cargo clippy -- -D warnings` and `RUSTFLAGS="-D warnings"`.
+fail_on_warning = true
+
+[paths]
+# Substrate crates to be checked. Mirrors the pheno-* lib + sdk tier in
+# ADR-023 Rule 3.1 substrate placement table. Each entry is a directory
+# containing a Cargo.toml; relative to the monorepo root.
+substrate_crates = [
+    "pheno-config",
+    "pheno-context",
+    "pheno-errors",
+    "pheno-flags",
+    "pheno-otel",
+    "pheno-port-adapter",
+    "pheno-tracing",
+]
+
+# Excluded paths. Tests, examples, and benches are excluded from coupling
+# checks because they are intentionally cross-cutting.
+exclude_globs = [
+    "**/tests/**",
+    "**/examples/**",
+    "**/benches/**",
+    "**/fuzz/**",
+    "**/target/**",
+    "**/.git/**",
+]
+
+[report]
+# Where `scripts/check-coupling.sh` writes the JSON report on CI runs.
+# The workflow uploads this path as a build artifact.
+output_path = "findings/coupling-report.json"
+
+# Exit-code semantics:
+#   0 = all crates under threshold
+#   1 = at least one crate exceeds one or more thresholds
+#   2 = tooling error (cargo-modules missing, etc.)

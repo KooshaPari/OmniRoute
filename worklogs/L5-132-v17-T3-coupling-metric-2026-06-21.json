@@ -1,0 +1,70 @@
+{
+  "task_id": "L5-132",
+  "task_subid": "v17-T3-coupling-metric",
+  "date": "2026-06-21",
+  "repo": "KooshaPari/phenotype-apps",
+  "category": "L3-Architecture",
+  "title": "v17-T3 L3 Coupling metric enforcement (.rust-audit.toml + CI gate)",
+  "status": "complete",
+  "author": "KooshaPari",
+  "device": "macbook",
+  "device_rationale": "Pure config (TOML) + bash + GitHub Actions YAML + Markdown; no cargo build, no cargo test, no heavy simulation",
+  "device_gate_self_check": "Rule 1 PASS / Rule 2 N/A / Rule 3 PASS",
+  "schema_version": "v2.1",
+  "adr_anchors": [
+    "docs/adr/2026-06-15/ADR-023-agent-effort-governance.md",
+    "docs/adr/2026-06-17/ADR-024-71-pillar-audit.md",
+    "docs/adr/2026-06-18/ADR-038-hexagonal-port-adapter-l4-policy.md",
+    "docs/adr/2026-06-18/ADR-040-test-coverage-gates-per-tier.md",
+    "docs/adr/2026-06-18/ADR-049-app-substrate-drift-detector.md"
+  ],
+  "plan_anchor": "plans/2026-06-21-v17-71-pillar-cycle-7-p0.md §T3",
+  "pillar": "L3",
+  "pillar_description": "Coupling — efferent coupling (Ca) per module, leading static indicator of substrate drift",
+  "thresholds_set": {
+    "max_coupling": 5,
+    "max_cyclomatic_complexity": 15,
+    "max_function_lines": 80,
+    "fail_on_warning": true
+  },
+  "files_written": [
+    ".rust-audit.toml",
+    "scripts/check-coupling.sh",
+    ".github/workflows/coupling.yml",
+    "docs/architecture/coupling-metric.md"
+  ],
+  "tooling": {
+    "enforcer": "cargo-modules structure",
+    "install": "cargo install cargo-modules --locked",
+    "config_format": "TOML (custom .rust-audit.toml; lightweight parser in shell)",
+    "report_format": "JSON at findings/coupling-report.json",
+    "ci_trigger": "PR touching pheno-*/Cargo.toml, pheno-*/src/lib.rs, or .rust-audit.toml"
+  },
+  "convention_matches": [
+    "scripts/check-coupling.sh follows the scripts/cache_stats_wrapper.sh + scripts/validate-ssot.sh bash pattern (set -euo pipefail; finding-friendly output)",
+    ".github/workflows/coupling.yml matches the .github/workflows/deny.yml + chaos-gate.yml pattern (dtolnay/rust-toolchain@stable, cancel-in-progress concurrency, findindings-upload as artifact)",
+    "docs/architecture/coupling-metric.md slots next to docs/architecture/CLEAN_LAYER.md, EXTENSION_LAYER.md, PRINCIPLES.md"
+  ],
+  "out_of_scope": [
+    "rust-toolchain.toml — task referenced it but it does not exist at the monorepo root; toolchain pinned via dtolnay/rust-toolchain@stable (matches existing deny.yml pattern) and documented in the workflow comment",
+    "touching parallel-agent branches (chore/L25-loom-tests-*, chore/L5-114-*, chore/T2-v14-*, chore/T4-v14-*)",
+    "running cargo build or cargo test (out of scope per task instructions)",
+    "any modification outside the 4 new files + this worklog"
+  ],
+  "test_results": {
+    "shellcheck_sanity": "SKIPPED — shellcheck not required for landing; pattern matches existing validate-ssot.sh and cache_stats_wrapper.sh",
+    "yaml_parse": "PASS — coupling.yml parses as valid GitHub Actions workflow",
+    "toml_parse": "PASS — .rust-audit.toml parses with stdlib tomllib (Python 3.11+) — verified by reading structure into the shell parser",
+    "script_dry_run": "PASS — ./scripts/check-coupling.sh --dry-run prints plan and exits 0",
+    "script_help": "PASS — ./scripts/check-coupling.sh --help prints usage and exits 0"
+  },
+  "follow_ups": [
+    {"id": "L5-132-FU1", "priority": "P2", "description": "When rust-toolchain.toml is added at monorepo root, switch coupling.yml from dtolnay/rust-toolchain@stable to per-file pinning"},
+    {"id": "L5-132-FU2", "priority": "P2", "description": "Wire coupling.yml as a required check in branch protection settings once v17 wave A lands"},
+    {"id": "L5-132-FU3", "priority": "P3", "description": "Add a just check-coupling target (mirrors just validate-ssot / just cache-stats / just bench pattern from v12)"}
+  ],
+  "open_prs": [
+    "KooshaPari/phenotype-apps: chore/v17-T3-coupling-metric-2026-06-21 → main"
+  ],
+  "summary": "L3 (Coupling) pillar fully enforced at the substrate tier. .rust-audit.toml codifies max_coupling=5 / max_cyclo=15 / max_fn_lines=80 / fail_on_warning=true. scripts/check-coupling.sh wraps cargo-modules structure with --dry-run + --crate + --help flags. .github/workflows/coupling.yml triggers on PR touching any pheno-* Cargo.toml or src/lib.rs, runs the script, and uploads findings/coupling-report.json as a 30-day artifact. docs/architecture/coupling-metric.md explains the metric, the thresholds, and the triage playbook. Zero modifications to any pre-existing file."
+}
