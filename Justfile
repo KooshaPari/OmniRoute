@@ -6,6 +6,17 @@ set shell := ["bash", "-cu"]
 default:
     @just --list
 
+# Tier-0 hygiene: Justfile parse + variable evaluation check (L29.1)
+# Invoked by .pre-commit-config.yaml `justfile-verify` hook. Passes if
+# (a) `just --list` parses the recipe block cleanly and (b) all `set` /
+# `export` variables evaluate without error.
+justfile-verify:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    just --list >/dev/null
+    just --evaluate >/dev/null
+    echo "justfile-verify: OK"
+
 install:
     #!/usr/bin/env bash
     set -euo pipefail
