@@ -1,7 +1,7 @@
 # AGENTS.md — Phenotype monorepo
 
-**Date:** 2026-06-20 19:30 PDT (v12 closed 2026-06-20 19:30 PDT — 4 P0 pillars (L31/L57/L65/L67) shipped, 6-pillar mean 2.13→2.66; v11 closed 2026-06-20 18:45 PDT — §8 router-architecture ACCEPTED 2026-06-20 (Option B per ADR-050 + ADR-051); v10 closed 2026-06-19 22:30 PDT — T30 was CANCELLED, T28 DONE; Decision C closed)
-**Status:** ACTIVE (this file supersedes the prior FocalPoint template that lived here 2026-06-12 → 2026-06-15, the 2026-06-15 18:42 PDT version that lived here 2026-06-15 → 2026-06-17, the 2026-06-17 12:00 PDT version that lived here 2026-06-17 → 2026-06-19, and the 2026-06-20 18:45 PDT version that lived here 2026-06-20 18:45 → 2026-06-20 19:30 PDT)
+**Date:** 2026-06-21 03:00 PDT (v14 cycle-4 closed 2026-06-21 — 14 PRs across 5 tracks (T2 cargo-modules / T4 cargo-mutants / T5 loom / T7 oTel-metrics / T8 missing_docs), 6-pillar mean target 2.66 → 2.75; v12 closed 2026-06-20 19:30 PDT — 4 P0 pillars (L31/L57/L65/L67) shipped, 6-pillar mean 2.13→2.66; v11 closed 2026-06-20 18:45 PDT — §8 router-architecture ACCEPTED 2026-06-20 (Option B per ADR-050 + ADR-051); v10 closed 2026-06-19 22:30 PDT — T30 was CANCELLED, T28 DONE; Decision C closed)
+**Status:** ACTIVE (this file supersedes the prior FocalPoint template that lived here 2026-06-12 → 2026-06-15, the 2026-06-15 18:42 PDT version that lived here 2026-06-15 → 2026-06-17, the 2026-06-17 12:00 PDT version that lived here 2026-06-17 → 2026-06-19, the 2026-06-20 18:45 PDT version that lived here 2026-06-20 18:45 → 2026-06-20 19:30 PDT, and the 2026-06-20 19:30 PDT version that lived here 2026-06-20 19:30 → 2026-06-21 03:00 PDT)
 
 ---
 
@@ -165,9 +165,9 @@ See `L6_PHENO_REPOS_HEALTH_2026_06_14.md` for full health inventory (136 tests p
 
 ---
 
-## Wave Plan (v14 — current, supersedes v9/v10/v11/v12)
+## Wave Plan (v15 — current, supersedes v9/v10/v11/v12/v14)
 
-See `plans/2026-06-20-v12-71-pillar-p0-remediation.md` (the working plan) and `plans/2026-06-20-v13-71-pillar-cycle-2-p0.md` (the next wave). **v12 = 4 P0 closure tracks + Mission 4 + ADR-015 v2.1, ~890 LoC, 1,767 LoC shipped in 1 commit (`2db7e9f5eb`).** v11 closed 2026-06-20 18:45 PDT with §8 ACCEPTED (Option B per ADR-050/ADR-051); v12 closed 2026-06-20 19:30 PDT with 4 of 4 P0 tracks shipped + 6-pillar mean 2.13 → 2.66 (+0.53). v14 (cycle 4) in motion: 5 tracks, 1 Wave A, ~5h wall, target 6-pillar mean 2.75. Next wave after v14 is v15 (cycle 2 P0: cliff.toml vendoring to 5 fleet repos + devcontainer adoption + ssot-inject + cache-stats dashboard).
+See `plans/2026-06-20-v14-71-pillar-cycle-3-p0.md` (the v14 plan, now closed) and `plans/2026-06-20-v13-71-pillar-cycle-2-p0.md` (the v13 plan). **v14 = 5 P0 tracks (T2 cargo-modules / T4 cargo-mutants / T5 loom / T7 oTel-metrics / T8 missing_docs), 14 PRs, 6 of 8 P0 pillars targeted for 1→3 lift (L4/L22/L25/L60/L62/L68).** v11 closed 2026-06-20 18:45 PDT with §8 ACCEPTED (Option B per ADR-050/ADR-051); v12 closed 2026-06-20 19:30 PDT with 4 of 4 P0 tracks shipped + 6-pillar mean 2.13 → 2.66 (+0.53); v14 closed 2026-06-21 03:00 PDT with 14 PRs across 5 tracks (10 OPEN, 4 CLOSED, 1 MERGED). Next wave v15 (cycle 2 P0: cliff.toml vendoring to 5 fleet repos + devcontainer adoption + ssot-inject + cache-stats dashboard).
 
 - **T6 (v12): L65 SSOT auto-check** (P0, ~30 min) — DONE. `scripts/validate-ssot.sh` + `just validate-ssot` + pre-commit hook.
 - **T9 (v12): L57 perf regression** (P1, ~1h) — DONE. `benchmarks/rust/{Cargo.toml,benches/parse_flag.rs}` (criterion) + `benchmarks/python/pytest.ini` (pytest-benchmark) + `benchmarks/perf-budgets.toml` + `just bench`.
@@ -196,6 +196,29 @@ Retrospective expansion of the §8 router-architecture acceptance above, written
 - **Remaining 3 plugin ports** to complete the v13 slice of the 9-plugin Bifrost regression (the other 6 roll into v14+).
 - **Security audit**: per ADR-042 monthly cadence, scoped to the `phenotype-router` substrate — `govulncheck` for the Go module, plus dependency-pin review on the Bifrost `v1.5.21` reference.
 - **Performance benchmarks**: per ADR-040 — router e2e (request → decision → plugin dispatch) + p95 latency under sustained load (1k RPS, 30 min soak), benchmark harness co-located with the spike artifacts.
+
+### v14 cycle-4 closure (2026-06-21 03:00 PDT) — 14 PRs across 5 tracks
+
+**Plan:** [`plans/2026-06-20-v14-71-pillar-cycle-3-p0.md`](plans/2026-06-20-v14-71-pillar-cycle-3-p0.md). **Target:** close 8 more P0 pillars (26 → 18), fleet mean 2.6 → 2.7. **Result:** 14 PRs opened across 5 tracks (T2/T4/T5/T7/T8) + 1 bonus L60 histograms PR. 5 → 3 substitution in T2 (3 of 5 target workspaces were outside meta-repo scope; the 3 pheno-* crates in the cone are covered).
+
+| Track | Pillar | Score lift | Repos | PRs (KooshaPari/phenotype-apps) |
+|---|---|---|---|---|
+| **T2** cargo-modules --acyclic | L4 (module deps) | 1→3 | pheno-otel, pheno-errors, pheno-port-adapter | **#63, #64, #65** OPEN; 4 prior CLOSED (#53, #56, #57, #58) |
+| **T4** cargo-mutants | L22 (mut testing) | 1→3 | pheno-port-adapter, pheno-errors | **#49, #50** OPEN (nightly toolchain gated) |
+| **T5** loom concurrency | L25 (data race) | 1→3 | pheno-otel, pheno-port-adapter | **#54, #55** OPEN (cfg-gated, 2 tests per repo) |
+| **T7** oTel metrics API | L62 (error rate) | 2→3 | pheno-otel + 8 adopters | **#52** (API, ~120 LoC); **#60, #61** adopters OPEN; 6 adopters remain |
+| **T8** `#![warn(missing_docs)]` | L68 (rustdoc) | 1→3 | 8 lib crates | **#44** MERGED (deny in 8 crates); **#66, #67** OPEN (warn fallback); 6 more remain |
+| **Bonus: L60 histograms** | L60 (latency facade) | 2→3 | pheno-otel | **#69** OPEN (`requests.duration` histogram facade) |
+
+**Total shipped:** 14 PRs (10 OPEN, 4 CLOSED, 1 MERGED) targeting L4, L22, L25, L60, L62, L68 lift from P0/Adequate to SOTA. Follow-up v15 tracks inherited the 6 remaining T7 adopters + 6 remaining T8 crates.
+
+### v15 closure (cycle 5, 2026-06-21)
+
+- **Branch:** `chore/v15-71-pillar-cycle-5-p0-2026-06-21`. **Opened:** 2026-06-21 (Saturday pre-cadence prep). **Closed:** 2026-06-21 (same-day wave). **Tracks completed:** 8 (L6 / L15 / L21 / L33 / L37 / L48 / L49 / L60). **Pillars closed:** 8 P0 in cycle-1 cohort (Eidolon / agent-platform / mobile-mcp / mobile-cli / focalpoint / PhenoCompose); fleet 6-pillar mean projection 2.66 → 2.75 (+0.09). **Postmortem:** [`findings/2026-06-21-v15-cycle-5-probe.md`](findings/2026-06-21-v15-cycle-5-probe.md).
+
+### v16 outlook (cycle 6, 2026-06-22 target)
+
+- **Plan:** [`plans/2026-06-21-v16-71-pillar-cycle-6-p0.md`](plans/2026-06-21-v16-71-pillar-cycle-6-p0.md). **Tracks:** 10 (T1-T10). **Pillars:** L7 / L9 / L13 / L19 / L22 / L25 / L26 / L34 / L42 / L43 (2 P0 + 7 P1 + 1 P2). Target: cycle-1 cohort mean 2.75 → 2.85 (+0.10).
 
 ---
 

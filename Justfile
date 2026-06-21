@@ -170,3 +170,9 @@ clean:
 # Measure code coverage (SSOT: see grade.sh for the canonical command)
 coverage:
     go test -coverprofile=coverage.out -covermode=atomic ./... && go tool cover -func=coverage.out | grep total | awk '{print $3}' | sed 's/%//' | awk '{exit($1 < 85 ? 1 : 0)}'
+
+# OTel histogram unit tests (L60, v15 T8) — runs the facade tests in pheno-otel.
+# See docs/conventions/otel-histogram-convention.md for the convention that
+# these tests enforce.
+otel-histogram-test:
+    cargo test -p pheno-otel histogram
