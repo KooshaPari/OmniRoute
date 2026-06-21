@@ -1,142 +1,63 @@
-# ADR Index — 2026-06-18 wave
+# ADR Index — 2026-06-18 (v8 governance sweep)
 
-Wave-specific index for Architecture Decision Records authored on 2026-06-18.
-This wave comprises 15 ADRs (ADR-035..049, including B-variants) across 3 sub-waves:
-Wave A (substrate canonicals ADR-035..040), Wave B (cadence/quality ADR-041..043),
-Wave C (forward-looking governance ADR-046..049).
+This index lists the ADRs accepted on 2026-06-18 for the v8 execution sweep
+(`plans/2026-06-18-v8-dag-stable.md`). All files live in this directory.
 
----
+| #     | Title                                                                                | Status   | File                                                  |
+| :---- | :----------------------------------------------------------------------------------- | :------- | :---------------------------------------------------- |
+| 035   | Configra migration gates (4 pre-conditions for ADR-031 execution)                    | Accepted | `ADR-035-configra-migration-gates.md`                 |
+| 036   | `pheno-tracing` is the canonical OTLP/tracing substrate (superset of ADR-012)        | Accepted | `ADR-036-pheno-tracing-substrate-canonical.md`        |
+| 037   | `pheno-mcp-router` is the canonical MCP substrate (superset of ADR-013)              | Accepted | `ADR-037-pheno-mcp-router-substrate-canonical.md`     |
+| 038   | Hexagonal L4 Port/Adapter is the canonical substrate interface (codifies ADR-014)    | Accepted | `ADR-038-hexagonal-port-adapter-l4-policy.md`         |
+| 039   | Pheno-flake refresh template for substrate repos                                     | Accepted | `ADR-039-pheno-flake-refresh-template.md`             |
+| 040   | Test coverage gates per substrate tier (80/70/60%)                                    | Accepted | `ADR-040-test-coverage-gates-per-tier.md`             |
+| 041   | 71-pillar refresh cadence (weekly Monday 09:00 PDT)                                    | Accepted | `ADR-041-71-pillar-refresh-cadence.md`                |
+| 042   | Substrate quality bar (Rule 3.1 — 7 elements, 3 enforcement layers)                    | Accepted | `ADR-042-substrate-quality-bar.md`                    |
 
-## Wave A — Substrate canonicals (ADR-035..ADR-040)
+## Scope
 
-## ADR-035 — Configra migration gates
+- **ADR-035** establishes 4 pre-conditions (hygiene ≥ 80%, zero secret leaks, SLSA configured, Conft unblocked) that must be met before any `pheno-config*` / `settly-config*` / `phenotype-python-sdk/phenotype_config` migration into `Configra` (per ADR-031) can proceed. 8 source repos are mapped; 8 PRs are sequenced.
 
-- **Path:** `docs/adr/2026-06-18/ADR-035-configra-migration-gates.md`
-- **Status:** ACTIVE (closes L6 health gap)
-- **Owner:** orch-w1-a (L5-105)
+- **ADR-036** supersedes ADR-012: `pheno-tracing` is now mandatory for ALL Rust substrate (was optional). 17/22 pheno-* Rust crates need migration. 4 federated services need OTLP wiring. 71-pillar L56/L57 scores improve from ~12/30 to ~22/30.
 
-## ADR-035B — Event-bus substrate consolidation
+- **ADR-037** supersedes ADR-013: `pheno-mcp-router` scope is formalized (Provider discovery, cost tracking, budget, quota, audit, cost middleware). L5-104 migration (ADR-029) closes the historical dispatch-mcp gap. 6 consumer repos standardize on the substrate.
 
-- **Path:** `docs/adr/2026-06-18/ADR-035B-event-bus-substrate-consolidation.md`
-- **Status:** ACTIVE
-- **Owner:** orch-w1-a (L5-105.5)
-- **Scope:** `pheno-events` / `phenotype-bus` / `phenotype-hub` polyglot merge plan
+- **ADR-038** codifies ADR-014's hexagonal L4 Port/Adapter pattern as the canonical substrate interface. 19/22 pheno-* Rust crates need refactor. 71-pillar L4 score improves from ~16/30 to ~26/30.
 
-## ADR-036 — pheno-capacity substrate canonical
+- **ADR-039** adopts the pheno-flake template for all new substrate. 22 existing pheno-* repos are refactored (22 PRs, 4 subagents in parallel). 71-pillar L29/L30 scores improve from ~14/30 to ~28/30.
 
-- **Path:** `docs/adr/2026-06-18/ADR-036-pheno-capacity.md`
-- **Status:** **CLOSED 2026-06-19** (executed; pheno-capacity repo created)
-- **Owner:** orch-w1-a (L5-106)
-- **Outcome:** `KooshaPari/pheno-capacity#1` merged; `bucket_change HwLedger:
-  from=CONDITIONAL to=STABLE reason=pheno-capacity extracted as canonical substrate`.
+- **ADR-040** codifies ADR-023 Rule 3.1's coverage gates (80% lib/SDK, 70% framework, 60% service) as CI-enforced. `pheno-coverage` CLI is a new tool. 71-pillar L23 score improves from ~12/30 to ~24/30.
 
-## ADR-036B — pheno-tracing substrate canonical (re-affirmed)
+- **ADR-041** sets the 71-pillar scorecard refresh cadence at weekly Monday 09:00 PDT via a cron workflow in `phenotype-org-audits`. Owner: worklog-schema circle. Bounds scorecard staleness at ≤ 7 days; weekly delta becomes the input to subsequent wave plans (v9+).
 
-- **Path:** `docs/adr/2026-06-18/ADR-036-pheno-tracing-substrate-canonical.md`
-- **Status:** ACTIVE (supersedes ADR-012 reference for v8 sweep)
-- **Owner:** orch-w1-a (L5-106.5)
+- **ADR-042** codifies ADR-023 Rule 3.1's 7-element quality bar (spec, docs, test matrix, observability, coverage, CI, worklog) with 3 enforcement layers (PR template, CI lint, registry lint). Goal: HITL-less dev — one-line intent produces a PR with all 7 elements by default.
 
-## ADR-037 — pheno-mcp-router substrate canonical (re-affirmed)
+## Decision-log files
 
-- **Path:** `docs/adr/2026-06-18/ADR-037-pheno-mcp-router-substrate-canonical.md`
-- **Status:** ACTIVE (supersedes ADR-013 reference for v8 sweep)
-- **Owner:** orch-w1-a (L5-107)
+Each ADR has a corresponding decision-log finding at `findings/2026-06-18-L8-00X-*.md`:
 
-## ADR-038 — Hexagonal port-adapter L4 policy (formal)
+- ADR-035 → `findings/2026-06-18-L8-001-configra-absorption-plan.md`
+- ADR-036 → `findings/2026-06-18-L8-002-pheno-tracing-adoption.md`
+- ADR-037 → `findings/2026-06-18-L8-003-pheno-mcp-router-scope.md`
+- ADR-038 → `findings/2026-06-18-L8-004-hexagonal-port-adoption.md`
+- ADR-039 → `findings/2026-06-18-L8-005-pheno-flake-rollout.md`
+- ADR-040 → `findings/2026-06-18-L8-006-coverage-gates.md`
+- ADR-041 → `findings/2026-06-18-L8-007-71-pillar-cadence.md`
+- ADR-042 → `findings/2026-06-18-L8-008-substrate-quality-bar.md`
 
-- **Path:** `docs/adr/2026-06-18/ADR-038-hexagonal-port-adapter-l4-policy.md`
-- **Status:** ACTIVE (supersedes ADR-014 reference for v8 sweep)
-- **Owner:** orch-w1-a (L5-108)
+## Supersedes
 
-## ADR-039 — pheno-flake refresh template
+- **ADR-036** supersedes ADR-012 (same intent, expanded scope: required not optional)
+- **ADR-037** supersedes ADR-013 (scope formalized; L5-104 migration closes historical gap)
+- **ADR-038** codifies ADR-014 (Port/Adapter pattern is now required, not recommended)
+- **ADR-040** codifies ADR-023 Rule 3.1 (coverage gates now CI-enforced)
 
-- **Path:** `docs/adr/2026-06-18/ADR-039-pheno-flake-refresh-template.md`
-- **Status:** ACTIVE
-- **Owner:** orch-w1-a (L5-109)
-- **Scope:** nix flake canonical for all pheno-* tooling
+## Cross-references
 
-## ADR-040 — Test coverage gates per tier
-
-- **Path:** `docs/adr/2026-06-18/ADR-040-test-coverage-gates-per-tier.md`
-- **Status:** ACTIVE (codifies ADR-023 Rule 3.1)
-- **Owner:** orch-w1-a (L5-110)
-- **Coverage thresholds:** 80% lib/SDK, 70% framework, 60% federated service
-
----
-
-## Wave B — Cadence / quality ADRs (ADR-041..ADR-043)
-
-> **Note:** doc-numbering collision with drift detector; B-variants used to disambiguate.
-
-## ADR-041 — 71-pillar refresh cadence
-
-- **Path:** `docs/adr/2026-06-18/ADR-041-71-pillar-refresh-cadence.md`
-- **Status:** ACTIVE (re-authored 2026-06-20 in d20cbc72 after disk-loss event)
-- **Owner:** orch-w1-a (L5-110.1)
-- **Cadence:** weekly Monday 09:00 PDT (codifies `audit-71-pillar-2026-06-17-wrapup.md` § 11)
-
-## ADR-041B — Substrate audit cadence
-
-- **Path:** `docs/adr/2026-06-18/ADR-041-substrate-audit-cadence.md`
-- **Status:** ACTIVE
-- **Owner:** orch-w1-a (L5-110.2)
-- **Cadence:** bi-weekly substrate health audit
-
-## ADR-042 — Security audit cadence
-
-- **Path:** `docs/adr/2026-06-18/ADR-042-security-audit-cadence.md`
-- **Status:** ACTIVE
-- **Owner:** orch-w1-a (L5-110.3)
-- **Cadence:** monthly `cargo audit` + `pip-audit` + `govulncheck` sweep
-
-## ADR-042B — Substrate quality bar (formal)
-
-- **Path:** `docs/adr/2026-06-18/ADR-042-substrate-quality-bar.md`
-- **Status:** ACTIVE (codifies ADR-023 Rule 3.1 with named checks)
-- **Owner:** orch-w1-a (L5-110.4)
-
-## ADR-043 — Registry refresh cadence
-
-- **Path:** `docs/adr/2026-06-18/ADR-043-registry-refresh-cadence.md`
-- **Status:** ACTIVE
-- **Owner:** orch-w1-a (L5-110.5)
-- **Cadence:** bi-weekly `phenotype-registry` validation
-
----
-
-## Wave C — Forward-looking governance (ADR-046..ADR-049)
-
-## ADR-046 — Federation mTLS + OIDC
-
-- **Path:** `docs/adr/2026-06-18/ADR-046-federation-mtls-oidc.md`
-- **Status:** ACTIVE
-- **Owner:** orch-w1-a (L5-111)
-- **Scope:** cross-org service-to-service auth
-
-## ADR-047 — Predictive DRY discipline (4-criterion rule)
-
-- **Path:** `docs/adr/2026-06-18/ADR-047-predictive-dry.md`
-- **Status:** ACTIVE (governing section in AGENTS.md § Predictive DRY)
-- **Owner:** orch-w1-a (L5-112)
-- **Tool:** `KooshaPari/pheno-predict` (L72)
-
-## ADR-048 — Substrate graduation path (4-tier gate table)
-
-- **Path:** `docs/adr/2026-06-18/ADR-048-substrate-graduation-path.md`
-- **Status:** ACTIVE (governing section in AGENTS.md § Substrate graduation path)
-- **Owner:** orch-w1-a (L5-113)
-- **Tool:** `KooshaPari/pheno-framework-lint` (L73)
-
-## ADR-049 — App-substrate drift detector (3-pass algorithm)
-
-- **Path:** `docs/adr/2026-06-18/ADR-049-app-substrate-drift-detector.md`
-- **Status:** ACTIVE (governing section in AGENTS.md § App-substrate drift detector)
-- **Owner:** orch-w1-a (L5-114)
-- **Tool:** `KooshaPari/pheno-drift-detector` (L74)
-
----
-
-## Refresh cadence
-
-- Refreshed: 2026-06-20 (v8-batch-11B sweep — INDEX scaffold added)
-- Next refresh: 2026-06-25 (bi-weekly substrate audit, per ADR-041B)
+- `AGENTS.md` "Active ADRs" table (rows ADR-035..ADR-042 added in v8 wave)
+- `plans/2026-06-18-v8-dag-stable.md` (this sweep's execution plan)
+- `docs/adr/2026-06-17/INDEX.md` (predecessor ADRs 024-034)
+- `findings/2026-06-18-L8-001..006-*.md` (decision logs)
+- ADR-024 (71-pillar audit) — pillars referenced per ADR
+- ADR-025 (worklog v2.1) — applies to all new PRs in v8
+- ADR-023 (substrate quality bar) — Rule 3.1 enforced by ADRs 039 + 040
