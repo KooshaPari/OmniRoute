@@ -65,3 +65,10 @@ contained the exposed material.
 - [ ] Full-history scan after rewrite is clean.
 - [ ] Repository owner accepts that forks/clones outside GitHub control cannot be
       purged by GitHub Support.
+
+After the purge request is submitted or cached-object risk is explicitly
+accepted by the owner, update the sanitized incident command sheet and rerun:
+
+```powershell
+python scripts\incident-reopen-readiness.py
+```
