@@ -16,6 +16,8 @@ from pathlib import Path
 
 
 DEFAULT_EVIDENCE_DIR = Path("incident-evidence")
+DEFAULT_INCIDENT_DOC = Path("docs/operations/secrets-pii-incident-2026-06-20.md")
+PROVIDER_HEADER = "| Provider / secret type | Alert numbers | Rotation status | Owner | Evidence link |"
 REQUIRED_NOTE_FIELDS = (
     "provider",
     "alerts",
@@ -63,6 +65,39 @@ PII_PATTERNS = (
 )
 
 
+def normalize_inventory_key(provider: str, alerts: str) -> tuple[str, str]:
+    normalized_alerts = ", ".join(part.strip() for part in alerts.split(",") if part.strip())
+    return (provider.strip().lower(), normalized_alerts)
+
+
+def is_alert_list(value: str) -> bool:
+    parts = [part.strip() for part in value.split(",")]
+    return bool(parts) and all(part.isdecimal() for part in parts)
+
+
+def provider_inventory(incident_doc: Path = DEFAULT_INCIDENT_DOC) -> set[tuple[str, str]]:
+    if not incident_doc.exists():
+        return set()
+
+    inventory: set[tuple[str, str]] = set()
+    in_inventory = False
+    for line in incident_doc.read_text(encoding="utf-8").splitlines():
+        if line.strip() == PROVIDER_HEADER:
+            in_inventory = True
+            continue
+        if not in_inventory:
+            continue
+        if line.strip().startswith("| ---"):
+            continue
+        if not line.strip().startswith("|"):
+            break
+
+        cells = [cell.strip() for cell in line.strip().strip("|").split("|")]
+        if len(cells) >= 2 and is_alert_list(cells[1]):
+            inventory.add(normalize_inventory_key(cells[0], cells[1]))
+    return inventory
+
+
 def parse_note_fields(text: str) -> dict[str, str]:
     fields: dict[str, str] = {}
     for line in text.splitlines():
@@ -76,7 +111,7 @@ def parse_note_fields(text: str) -> dict[str, str]:
     return fields
 
 
-def schema_findings(text: str) -> list[str]:
+def schema_findings(text: str, inventory: set[tuple[str, str]]) -> list[str]:
     fields = parse_note_fields(text)
     findings: list[str] = []
 
@@ -95,6 +130,17 @@ def schema_findings(text: str) -> list[str]:
     verified_at_utc = fields.get("verified_at_utc", "")
     if verified_at_utc and not UTC_TIMESTAMP_PATTERN.match(verified_at_utc):
         findings.append("invalid verified_at_utc timestamp")
+
+    alerts = fields.get("alerts", "")
+    if alerts and not is_alert_list(alerts):
+        findings.append("invalid alerts value")
+
+    provider = fields.get("provider", "")
+    if provider and alerts and is_alert_list(alerts):
+        if not inventory:
+            findings.append("missing provider inventory")
+        elif normalize_inventory_key(provider, alerts) not in inventory:
+            findings.append("provider alerts not in incident inventory")
 
     return findings
 
@@ -125,7 +171,7 @@ def resolve_input_paths(paths: list[Path]) -> list[Path]:
     return resolved_paths
 
 
-def scan_file(path: Path) -> list[str]:
+def scan_file(path: Path, inventory: set[tuple[str, str]]) -> list[str]:
     findings: list[str] = []
     if not path.exists():
         return ["missing file"]
@@ -144,23 +190,25 @@ def scan_file(path: Path) -> list[str]:
     for label, pattern in (*SECRET_PATTERNS, *PII_PATTERNS):
         if pattern.search(text):
             findings.append(label)
-    findings.extend(schema_findings(text))
+    findings.extend(schema_findings(text, inventory))
     return findings
 
 
 def scan(paths: list[Path], allow_missing_default: bool = False) -> dict[str, object]:
     failures: dict[str, list[str]] = {}
+    inventory = provider_inventory()
     if allow_missing_default and paths == [DEFAULT_EVIDENCE_DIR] and not DEFAULT_EVIDENCE_DIR.exists():
         files: list[Path] = []
     else:
         files = iter_files(resolve_input_paths(paths))
     for path in files:
-        findings = scan_file(path)
+        findings = scan_file(path, inventory)
         if findings:
             failures[str(path)] = sorted(set(findings))
 
     return {
         "checked_files": len(files),
+        "inventory_rows": len(inventory),
         "ok": not failures,
         "failures": failures,
     }
