@@ -9,7 +9,9 @@
 //! Consumers depend on `pheno-otel` for consistent OTLP export, batch
 //! processor behavior, and resource attribute propagation. This crate is
 //! sibling to `pheno-tracing` (ADR-036) — `pheno-tracing` produces spans,
-//! `pheno-otel` exports them.
+//! `pheno-otel` exports them. The fleet-wide latency histogram facade
+//! (L60, p50/p95/p99 with bounded cardinality) lives in
+//! [`histogram::LatencyHistogram`].
 //!
 //! # When to use
 //!
@@ -90,6 +92,10 @@ pub mod exporters;
 /// carrier-agnostic surface; consumers import this when they need to
 /// forward trace context across an HTTP or gRPC service boundary.
 pub mod propagation;
+
+/// L60 — fleet-wide latency histogram (p50/p95/p99) with bounded
+/// cardinality. See [`histogram::LatencyHistogram`].
+pub mod histogram;
 
 /// Build an OTel `service.name`-flavored `ExportHandle` for tests.
 pub fn test_handle(endpoint: &str) -> ExportHandle {
