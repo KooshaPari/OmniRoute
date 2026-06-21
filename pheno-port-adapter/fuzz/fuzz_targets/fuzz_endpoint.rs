@@ -20,7 +20,7 @@
 
 use libfuzzer_sys::fuzz_target;
 use pheno_port_adapter::adapters::tcp::TcpAdapter;
-use pheno_port_adapter::Port;
+use pheno_port_adapter::PortAdapter;
 
 fuzz_target!(|data: &[u8]| {
     // Lossy decode so we exercise the path with weird bytes; if decode fails we
