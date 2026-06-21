@@ -17,6 +17,7 @@ from pathlib import Path
 DEFAULT_INCIDENT_DOC = Path("docs/operations/secrets-pii-incident-2026-06-20.md")
 DEFAULT_REPOSITORY = "KooshaPari/phenotype-registry"
 DEFAULT_INCIDENT_ISSUE = 320
+DEFAULT_TREE_SCANNER = Path("scripts/retained-history-secret-scan.py")
 
 PROVIDER_HEADER = "| Provider / secret type | Alert numbers | Rotation status | Owner | Evidence link |"
 READY_STATUS = {"rotated", "revoked", "complete", "completed", "not applicable", "n/a"}
@@ -238,6 +239,147 @@ def incident_issue_failures(summary: dict[str, object]) -> list[str]:
     return [f"incident issue #{number} is not closed"]
 
 
+def nonzero_finding_labels(scan_summary: dict[str, object]) -> list[str]:
+    findings = scan_summary.get("findings", {})
+    if not isinstance(findings, dict):
+        return ["malformed findings"]
+
+    labels: list[str] = []
+    for label, record in findings.items():
+        if isinstance(record, dict) and int(record.get("blob_count", 0)):
+            labels.append(str(label))
+    return sorted(labels)
+
+
+def scan_runner(args: list[str]) -> dict[str, object]:
+    scanner = Path.cwd().resolve() / DEFAULT_TREE_SCANNER
+    if not scanner.is_file():
+        return {
+            "status": "error",
+            "scanner": str(DEFAULT_TREE_SCANNER),
+            "error": "scanner missing",
+        }
+
+    proc = subprocess.run(
+        [sys.executable, str(scanner), *args, "--fail-on-findings"],
+        cwd=Path.cwd().resolve(),
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True,
+        check=False,
+    )
+    try:
+        raw_summary = json.loads(proc.stdout)
+    except json.JSONDecodeError:
+        return {
+            "status": "error",
+            "scanner": str(DEFAULT_TREE_SCANNER),
+            "returncode": proc.returncode,
+            "error": "scanner returned non-json output",
+        }
+
+    return {
+        "raw_summary": raw_summary,
+        "returncode": proc.returncode,
+        "finding_labels": nonzero_finding_labels(raw_summary),
+    }
+
+
+def current_tree_scan_summary() -> dict[str, object]:
+    scan = scan_runner(["--worktree-root", str(Path.cwd().resolve())])
+    if scan.get("status") == "error":
+        return scan
+
+    raw_summary = scan["raw_summary"]
+    assert isinstance(raw_summary, dict)
+    finding_labels = scan["finding_labels"]
+    missing_files = int(raw_summary.get("missing_files", 0))
+    status = "clean"
+    if scan["returncode"] or finding_labels or missing_files:
+        status = "blocked"
+
+    return {
+        "status": status,
+        "scanner": str(DEFAULT_TREE_SCANNER),
+        "returncode": int(scan["returncode"]),
+        "scanned_files": int(raw_summary.get("scanned_files", 0)),
+        "skipped_large_files": int(raw_summary.get("skipped_large_files", 0)),
+        "skipped_binary_files": int(raw_summary.get("skipped_binary_files", 0)),
+        "missing_files": missing_files,
+        "finding_labels": finding_labels,
+    }
+
+
+def retained_history_scan_summary(git_dir: Path | None) -> dict[str, object]:
+    if git_dir is None:
+        return {"status": "not_requested"}
+
+    resolved_git_dir = git_dir.resolve()
+    if not resolved_git_dir.is_dir():
+        return {
+            "status": "error",
+            "scanner": str(DEFAULT_TREE_SCANNER),
+            "git_dir": str(resolved_git_dir),
+            "error": "retained history git dir missing",
+        }
+
+    scan = scan_runner([str(resolved_git_dir)])
+    if scan.get("status") == "error":
+        scan["git_dir"] = str(resolved_git_dir)
+        return scan
+
+    raw_summary = scan["raw_summary"]
+    assert isinstance(raw_summary, dict)
+    finding_labels = scan["finding_labels"]
+    status = "clean"
+    if scan["returncode"] or finding_labels:
+        status = "blocked"
+
+    return {
+        "status": status,
+        "scanner": str(DEFAULT_TREE_SCANNER),
+        "git_dir": str(resolved_git_dir),
+        "returncode": int(scan["returncode"]),
+        "scanned_blobs": int(raw_summary.get("scanned_blobs", 0)),
+        "skipped_large_blobs": int(raw_summary.get("skipped_large_blobs", 0)),
+        "skipped_binary_blobs": int(raw_summary.get("skipped_binary_blobs", 0)),
+        "finding_labels": finding_labels,
+    }
+
+
+def scan_failures(
+    current_tree_scan: dict[str, object],
+    retained_history_scan: dict[str, object],
+) -> list[str]:
+    failures: list[str] = []
+    if current_tree_scan["status"] != "clean":
+        finding_labels = current_tree_scan.get("finding_labels", [])
+        if finding_labels:
+            labels = ", ".join(str(label) for label in finding_labels)
+            failures.append(f"current default branch scan has findings: {labels}")
+        if int(current_tree_scan.get("missing_files", 0)):
+            failures.append("current default branch scan has missing tracked files")
+        if current_tree_scan["status"] == "error":
+            failures.append(f"current default branch scan failed: {current_tree_scan.get('error', 'unknown error')}")
+        if not failures:
+            failures.append("current default branch scan failed")
+
+    if retained_history_scan["status"] == "not_requested":
+        failures.append("retained history scan was not verified")
+    elif retained_history_scan["status"] != "clean":
+        retained_failures: list[str] = []
+        finding_labels = retained_history_scan.get("finding_labels", [])
+        if finding_labels:
+            labels = ", ".join(str(label) for label in finding_labels)
+            retained_failures.append(f"retained history scan has findings: {labels}")
+        if retained_history_scan["status"] == "error":
+            retained_failures.append(f"retained history scan failed: {retained_history_scan.get('error', 'unknown error')}")
+        if not retained_failures:
+            retained_failures.append("retained history scan failed")
+        failures.extend(retained_failures)
+    return failures
+
+
 def resolve_incident_doc() -> Path:
     root = Path.cwd().resolve()
     candidate = root / DEFAULT_INCIDENT_DOC
@@ -262,6 +404,8 @@ def readiness_summary(
     verify_incident_issue: bool = False,
     incident_issue: int = DEFAULT_INCIDENT_ISSUE,
     incident_issue_fixture: Path | None = None,
+    verify_scans: bool = False,
+    retained_history_git_dir: Path | None = None,
 ) -> dict[str, object]:
     resolved_doc = resolve_incident_doc()
     text = resolved_doc.read_text(encoding="utf-8")
@@ -272,6 +416,9 @@ def readiness_summary(
     live_control_blockers: list[str] = []
     incident_issue_summary: dict[str, object] = {"status": "not_requested"}
     incident_issue_blockers: list[str] = []
+    current_tree_scan: dict[str, object] = {"status": "not_requested"}
+    retained_history_scan: dict[str, object] = {"status": "not_requested"}
+    scan_blockers: list[str] = []
     if verify_live_controls:
         if live_controls_fixture:
             live_controls = live_controls_from_fixture(live_controls_fixture)
@@ -286,7 +433,11 @@ def readiness_summary(
             incident_issue_summary = incident_issue_from_github(repository, incident_issue)
         incident_issue_summary["status"] = "checked"
         incident_issue_blockers = incident_issue_failures(incident_issue_summary)
-    blockers = provider_blockers + gate_blockers + live_control_blockers + incident_issue_blockers
+    if verify_scans:
+        current_tree_scan = current_tree_scan_summary()
+        retained_history_scan = retained_history_scan_summary(retained_history_git_dir)
+        scan_blockers = scan_failures(current_tree_scan, retained_history_scan)
+    blockers = provider_blockers + gate_blockers + live_control_blockers + incident_issue_blockers + scan_blockers
     return {
         "incident_doc": str(resolved_doc.relative_to(Path.cwd().resolve())),
         "ready_to_reopen": not blockers,
@@ -294,8 +445,11 @@ def readiness_summary(
         "gate_blocker_count": len(gate_blockers),
         "live_control_blocker_count": len(live_control_blockers),
         "incident_issue_blocker_count": len(incident_issue_blockers),
+        "scan_blocker_count": len(scan_blockers),
         "live_controls": live_controls,
         "incident_issue": incident_issue_summary,
+        "current_tree_scan": current_tree_scan,
+        "retained_history_scan": retained_history_scan,
         "blockers": blockers,
     }
 
@@ -349,6 +503,16 @@ def main() -> int:
         type=Path,
         help="Read sanitized issue state from a JSON fixture instead of GitHub.",
     )
+    parser.add_argument(
+        "--verify-scans",
+        action="store_true",
+        help="Verify current-tree and retained-history scans before reopening.",
+    )
+    parser.add_argument(
+        "--retained-history-git-dir",
+        type=Path,
+        help="Bare mirror git directory for --verify-scans.",
+    )
     args = parser.parse_args()
 
     try:
@@ -359,6 +523,8 @@ def main() -> int:
             args.verify_incident_issue,
             args.incident_issue,
             args.incident_issue_fixture,
+            args.verify_scans,
+            args.retained_history_git_dir,
         )
     except ValueError as exc:
         print(f"incident-reopen-readiness: blocked. {exc}")

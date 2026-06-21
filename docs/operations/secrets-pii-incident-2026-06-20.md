@@ -146,7 +146,7 @@ python scripts\incident-purge-readiness.py --retained-history-git-dir C:\path\to
 Run this before enabling Actions or making the repository public:
 
 ```powershell
-python scripts\incident-reopen-readiness.py --verify-live-controls --verify-incident-issue --repository KooshaPari/phenotype-registry --incident-issue 320
+python scripts\incident-reopen-readiness.py --verify-live-controls --verify-incident-issue --verify-scans --repository KooshaPari/phenotype-registry --incident-issue 320 --retained-history-git-dir C:\path\to\phenotype-registry.git
 ```
 
 The gate is sanitized and must not print token values. With
@@ -154,11 +154,13 @@ The gate is sanitized and must not print token values. With
 private, Pages is disabled, Actions is disabled, branch protection enforces
 admins, and branch deletion/force-push are not allowed. With
 `--verify-incident-issue`, it also checks that the incident tracker issue is
-closed before public reopening. It should fail while the incident is still open.
-Use this mode to verify the current blocked posture:
+closed before public reopening. With `--verify-scans`, it reruns the sanitized
+current-tree scan and retained-history scan before public reopening. It should
+fail while the incident is still open. Use this mode to verify the current
+blocked posture:
 
 ```powershell
-python scripts\incident-reopen-readiness.py --verify-live-controls --verify-incident-issue --repository KooshaPari/phenotype-registry --incident-issue 320 --expect-open
+python scripts\incident-reopen-readiness.py --verify-live-controls --verify-incident-issue --verify-scans --repository KooshaPari/phenotype-registry --incident-issue 320 --retained-history-git-dir C:\path\to\phenotype-registry.git --expect-open
 ```
 
 - [ ] Provider rotation evidence recorded for every alert inventory row
