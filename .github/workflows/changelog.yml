@@ -1,5 +1,21 @@
-# v12 T11 — L67 CHANGELOG auto-generation workflow
-# Triggers on tag push (v*), regenerates CHANGELOG.md, commits back.
+# v12 T11 — L67 CHANGELOG auto-generation workflow (tag-driven, release time)
+# Triggers on tag push (v*), regenerates CHANGELOG.md in full, commits back.
+#
+# NOTE — propose/publish split (V19-T4, 2026-06-21, L67 deepening):
+#   - This file:   PUBLISH  — tag-driven, regenerates the full CHANGELOG.md
+#                             on every release tag (uses git-cliff).
+#   - changelog-pr.yml: PROPOSE — push-to-main, opens/updates a PR with the
+#                                 refreshed [Unreleased] block (uses
+#                                 scripts/auto-changelog.py).
+#
+# Both workflows coexist. The propose workflow provides continuous
+# pre-release visibility; this workflow provides authoritative release-time
+# regeneration. They share the same cliff.toml type-enum (see cliff.toml
+# header comment for the sync policy with .commitlintrc.json).
+#
+# The PR opened by changelog-pr.yml should be merged BEFORE the release tag
+# is cut so this workflow can regenerate the full file from the consolidated
+# history.
 
 name: changelog
 
