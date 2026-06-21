@@ -16,8 +16,12 @@ jobs:
     env:
       CARGO_BUILD_JOBS: "1"
     steps:
-      - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@nightly
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v4.2.2
+        with:
+          persist-credentials: false
+      - uses: dtolnay/rust-toolchain@3c5f7ea28cd621ae0bf5283f0e981fb97b8a7af9
+        with:
+          toolchain: nightly
       - name: cargo test --release chaos
         working-directory: pheno-port-adapter
         run: cargo test --release --tests -- --test-threads=1
@@ -29,8 +33,12 @@ jobs:
     env:
       CARGO_BUILD_JOBS: "1"
     steps:
-      - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@nightly
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v4.2.2
+        with:
+          persist-credentials: false
+      - uses: dtolnay/rust-toolchain@3c5f7ea28cd621ae0bf5283f0e981fb97b8a7af9
+        with:
+          toolchain: nightly
       - name: cargo fuzz run endpoint (60s)
         run: |
           if [ ! -d pheno-port-adapter/fuzz ]; then
@@ -46,8 +54,12 @@ jobs:
     name: pheno-flags stress (L11 stress)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@stable
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v4.2.2
+        with:
+          persist-credentials: false
+      - uses: dtolnay/rust-toolchain@3c5f7ea28cd621ae0bf5283f0e981fb97b8a7af9
+        with:
+          toolchain: stable
       - name: cargo bench (criterion)
         run: |
           if [ ! -d pheno-flags ]; then
