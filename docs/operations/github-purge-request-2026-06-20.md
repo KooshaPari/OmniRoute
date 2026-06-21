@@ -58,6 +58,19 @@ contained the exposed material.
 
 ## Confirmation Checklist
 
+Before submitting this request, run:
+
+```powershell
+python scripts\incident-purge-readiness.py
+```
+
+The gate is sanitized and must fail until the provider inventory and checklist
+below are complete. Use this mode to verify the current blocked posture:
+
+```powershell
+python scripts\incident-purge-readiness.py --expect-blocked
+```
+
 - [ ] Provider-side credentials have been revoked or rotated.
 - [ ] Retained refs have been rewritten or deleted.
 - [ ] Stale branches and tags have been pruned.
