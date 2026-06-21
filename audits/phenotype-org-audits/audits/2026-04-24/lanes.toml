@@ -1,0 +1,768 @@
+# org-audit-2026-04 lanes configuration
+# Defines audit lanes for FocalPoint agent-orchestrator
+# Excludes: FocalPoint, AgilePlus, Tracera, thegent, HeliosLab, heliosApp, heliosCLI, PhenoLibs, PhenoKits, phenotype-infrakit, cloud, KDesktopVirt, Civis, canvasApp, PolicyStack
+
+[[lanes]]
+id = "AgentMCP"
+scope = "repos/AgentMCP/**"
+prompt = """Conduct a 10-dimensional audit of the AgentMCP repository:
+1. **Build & Compilation**: Can it build cleanly? Any warnings, broken dependencies, or version conflicts?
+2. **Test Coverage**: Presence of test suite? Coverage percentage? Test framework used? Maintainability?
+3. **CI/CD Pipeline**: GitHub Actions, other CI? Pass rate? Coverage/lint enforcement?
+4. **Documentation**: README quality, API docs, getting started guide, architecture diagrams?
+5. **Architectural Debt**: Dead code, monolithic files, anti-patterns, code duplication?
+6. **FR Traceability**: Are functional requirements in FUNCTIONAL_REQUIREMENTS.md? Do tests reference FR IDs?
+7. **Velocity & Release**: Commit frequency, release cadence, versioning strategy (SemVer/CalVer)?
+8. **Governance**: CLAUDE.md present? Contributing guidelines? Code of conduct?
+9. **Dependencies**: External dependencies count, pinned versions? Any high-risk/unmaintained deps?
+10. **Honest Assessment**: What is fundamentally broken or missing? What's the minimal viable fix?
+
+Output format: markdown report (each dimension as section, 2-3 paragraph summary, status: SHIPPED/SCAFFOLD/BROKEN)."""
+
+[[lanes]]
+id = "Apisync"
+scope = "repos/Apisync/**"
+prompt = """Conduct a 10-dimensional audit of the Apisync repository:
+1. **Build & Compilation**: Can it build cleanly? Any warnings, broken dependencies, or version conflicts?
+2. **Test Coverage**: Presence of test suite? Coverage percentage? Test framework used? Maintainability?
+3. **CI/CD Pipeline**: GitHub Actions, other CI? Pass rate? Coverage/lint enforcement?
+4. **Documentation**: README quality, API docs, getting started guide, architecture diagrams?
+5. **Architectural Debt**: Dead code, monolithic files, anti-patterns, code duplication?
+6. **FR Traceability**: Are functional requirements in FUNCTIONAL_REQUIREMENTS.md? Do tests reference FR IDs?
+7. **Velocity & Release**: Commit frequency, release cadence, versioning strategy (SemVer/CalVer)?
+8. **Governance**: CLAUDE.md present? Contributing guidelines? Code of conduct?
+9. **Dependencies**: External dependencies count, pinned versions? Any high-risk/unmaintained deps?
+10. **Honest Assessment**: What is fundamentally broken or missing? What's the minimal viable fix?
+
+Output format: markdown report (each dimension as section, 2-3 paragraph summary, status: SHIPPED/SCAFFOLD/BROKEN)."""
+
+[[lanes]]
+id = "AppGen"
+scope = "repos/AppGen/**"
+prompt = """Conduct a 10-dimensional audit of the AppGen repository:
+1. **Build & Compilation**: Can it build cleanly? Any warnings, broken dependencies, or version conflicts?
+2. **Test Coverage**: Presence of test suite? Coverage percentage? Test framework used? Maintainability?
+3. **CI/CD Pipeline**: GitHub Actions, other CI? Pass rate? Coverage/lint enforcement?
+4. **Documentation**: README quality, API docs, getting started guide, architecture diagrams?
+5. **Architectural Debt**: Dead code, monolithic files, anti-patterns, code duplication?
+6. **FR Traceability**: Are functional requirements in FUNCTIONAL_REQUIREMENTS.md? Do tests reference FR IDs?
+7. **Velocity & Release**: Commit frequency, release cadence, versioning strategy (SemVer/CalVer)?
+8. **Governance**: CLAUDE.md present? Contributing guidelines? Code of conduct?
+9. **Dependencies**: External dependencies count, pinned versions? Any high-risk/unmaintained deps?
+10. **Honest Assessment**: What is fundamentally broken or missing? What's the minimal viable fix?
+
+Output format: markdown report (each dimension as section, 2-3 paragraph summary, status: SHIPPED/SCAFFOLD/BROKEN)."""
+
+[[lanes]]
+id = "AtomsBot"
+scope = "repos/AtomsBot/**"
+prompt = """Conduct a 10-dimensional audit of the AtomsBot repository:
+1. **Build & Compilation**: Can it build cleanly? Any warnings, broken dependencies, or version conflicts?
+2. **Test Coverage**: Presence of test suite? Coverage percentage? Test framework used? Maintainability?
+3. **CI/CD Pipeline**: GitHub Actions, other CI? Pass rate? Coverage/lint enforcement?
+4. **Documentation**: README quality, API docs, getting started guide, architecture diagrams?
+5. **Architectural Debt**: Dead code, monolithic files, anti-patterns, code duplication?
+6. **FR Traceability**: Are functional requirements in FUNCTIONAL_REQUIREMENTS.md? Do tests reference FR IDs?
+7. **Velocity & Release**: Commit frequency, release cadence, versioning strategy (SemVer/CalVer)?
+8. **Governance**: CLAUDE.md present? Contributing guidelines? Code of conduct?
+9. **Dependencies**: External dependencies count, pinned versions? Any high-risk/unmaintained deps?
+10. **Honest Assessment**: What is fundamentally broken or missing? What's the minimal viable fix?
+
+Output format: markdown report (each dimension as section, 2-3 paragraph summary, status: SHIPPED/SCAFFOLD/BROKEN)."""
+
+[[lanes]]
+id = "AuthKit"
+scope = "repos/AuthKit/**"
+prompt = """Conduct a 10-dimensional audit of the AuthKit repository:
+1. **Build & Compilation**: Can it build cleanly? Any warnings, broken dependencies, or version conflicts?
+2. **Test Coverage**: Presence of test suite? Coverage percentage? Test framework used? Maintainability?
+3. **CI/CD Pipeline**: GitHub Actions, other CI? Pass rate? Coverage/lint enforcement?
+4. **Documentation**: README quality, API docs, getting started guide, architecture diagrams?
+5. **Architectural Debt**: Dead code, monolithic files, anti-patterns, code duplication?
+6. **FR Traceability**: Are functional requirements in FUNCTIONAL_REQUIREMENTS.md? Do tests reference FR IDs?
+7. **Velocity & Release**: Commit frequency, release cadence, versioning strategy (SemVer/CalVer)?
+8. **Governance**: CLAUDE.md present? Contributing guidelines? Code of conduct?
+9. **Dependencies**: External dependencies count, pinned versions? Any high-risk/unmaintained deps?
+10. **Honest Assessment**: What is fundamentally broken or missing? What's the minimal viable fix?
+
+Output format: markdown report (each dimension as section, 2-3 paragraph summary, status: SHIPPED/SCAFFOLD/BROKEN)."""
+
+[[lanes]]
+id = "Benchora"
+scope = "repos/Benchora/**"
+prompt = """Conduct a 10-dimensional audit of the Benchora repository:
+1. **Build & Compilation**: Can it build cleanly? Any warnings, broken dependencies, or version conflicts?
+2. **Test Coverage**: Presence of test suite? Coverage percentage? Test framework used? Maintainability?
+3. **CI/CD Pipeline**: GitHub Actions, other CI? Pass rate? Coverage/lint enforcement?
+4. **Documentation**: README quality, API docs, getting started guide, architecture diagrams?
+5. **Architectural Debt**: Dead code, monolithic files, anti-patterns, code duplication?
+6. **FR Traceability**: Are functional requirements in FUNCTIONAL_REQUIREMENTS.md? Do tests reference FR IDs?
+7. **Velocity & Release**: Commit frequency, release cadence, versioning strategy (SemVer/CalVer)?
+8. **Governance**: CLAUDE.md present? Contributing guidelines? Code of conduct?
+9. **Dependencies**: External dependencies count, pinned versions? Any high-risk/unmaintained deps?
+10. **Honest Assessment**: What is fundamentally broken or missing? What's the minimal viable fix?
+
+Output format: markdown report (each dimension as section, 2-3 paragraph summary, status: SHIPPED/SCAFFOLD/BROKEN)."""
+
+[[lanes]]
+id = "BytePort"
+scope = "repos/BytePort/**"
+prompt = """Conduct a 10-dimensional audit of the BytePort repository:
+1. **Build & Compilation**: Can it build cleanly? Any warnings, broken dependencies, or version conflicts?
+2. **Test Coverage**: Presence of test suite? Coverage percentage? Test framework used? Maintainability?
+3. **CI/CD Pipeline**: GitHub Actions, other CI? Pass rate? Coverage/lint enforcement?
+4. **Documentation**: README quality, API docs, getting started guide, architecture diagrams?
+5. **Architectural Debt**: Dead code, monolithic files, anti-patterns, code duplication?
+6. **FR Traceability**: Are functional requirements in FUNCTIONAL_REQUIREMENTS.md? Do tests reference FR IDs?
+7. **Velocity & Release**: Commit frequency, release cadence, versioning strategy (SemVer/CalVer)?
+8. **Governance**: CLAUDE.md present? Contributing guidelines? Code of conduct?
+9. **Dependencies**: External dependencies count, pinned versions? Any high-risk/unmaintained deps?
+10. **Honest Assessment**: What is fundamentally broken or missing? What's the minimal viable fix?
+
+Output format: markdown report (each dimension as section, 2-3 paragraph summary, status: SHIPPED/SCAFFOLD/BROKEN)."""
+
+[[lanes]]
+id = "Conft"
+scope = "repos/Conft/**"
+prompt = """Conduct a 10-dimensional audit of the Conft repository:
+1. **Build & Compilation**: Can it build cleanly? Any warnings, broken dependencies, or version conflicts?
+2. **Test Coverage**: Presence of test suite? Coverage percentage? Test framework used? Maintainability?
+3. **CI/CD Pipeline**: GitHub Actions, other CI? Pass rate? Coverage/lint enforcement?
+4. **Documentation**: README quality, API docs, getting started guide, architecture diagrams?
+5. **Architectural Debt**: Dead code, monolithic files, anti-patterns, code duplication?
+6. **FR Traceability**: Are functional requirements in FUNCTIONAL_REQUIREMENTS.md? Do tests reference FR IDs?
+7. **Velocity & Release**: Commit frequency, release cadence, versioning strategy (SemVer/CalVer)?
+8. **Governance**: CLAUDE.md present? Contributing guidelines? Code of conduct?
+9. **Dependencies**: External dependencies count, pinned versions? Any high-risk/unmaintained deps?
+10. **Honest Assessment**: What is fundamentally broken or missing? What's the minimal viable fix?
+
+Output format: markdown report (each dimension as section, 2-3 paragraph summary, status: SHIPPED/SCAFFOLD/BROKEN)."""
+
+[[lanes]]
+id = "DataKit"
+scope = "repos/DataKit/**"
+prompt = """Conduct a 10-dimensional audit of the DataKit repository:
+1. **Build & Compilation**: Can it build cleanly? Any warnings, broken dependencies, or version conflicts?
+2. **Test Coverage**: Presence of test suite? Coverage percentage? Test framework used? Maintainability?
+3. **CI/CD Pipeline**: GitHub Actions, other CI? Pass rate? Coverage/lint enforcement?
+4. **Documentation**: README quality, API docs, getting started guide, architecture diagrams?
+5. **Architectural Debt**: Dead code, monolithic files, anti-patterns, code duplication?
+6. **FR Traceability**: Are functional requirements in FUNCTIONAL_REQUIREMENTS.md? Do tests reference FR IDs?
+7. **Velocity & Release**: Commit frequency, release cadence, versioning strategy (SemVer/CalVer)?
+8. **Governance**: CLAUDE.md present? Contributing guidelines? Code of conduct?
+9. **Dependencies**: External dependencies count, pinned versions? Any high-risk/unmaintained deps?
+10. **Honest Assessment**: What is fundamentally broken or missing? What's the minimal viable fix?
+
+Output format: markdown report (each dimension as section, 2-3 paragraph summary, status: SHIPPED/SCAFFOLD/BROKEN)."""
+
+[[lanes]]
+id = "DevHex"
+scope = "repos/DevHex/**"
+prompt = """Conduct a 10-dimensional audit of the DevHex repository:
+1. **Build & Compilation**: Can it build cleanly? Any warnings, broken dependencies, or version conflicts?
+2. **Test Coverage**: Presence of test suite? Coverage percentage? Test framework used? Maintainability?
+3. **CI/CD Pipeline**: GitHub Actions, other CI? Pass rate? Coverage/lint enforcement?
+4. **Documentation**: README quality, API docs, getting started guide, architecture diagrams?
+5. **Architectural Debt**: Dead code, monolithic files, anti-patterns, code duplication?
+6. **FR Traceability**: Are functional requirements in FUNCTIONAL_REQUIREMENTS.md? Do tests reference FR IDs?
+7. **Velocity & Release**: Commit frequency, release cadence, versioning strategy (SemVer/CalVer)?
+8. **Governance**: CLAUDE.md present? Contributing guidelines? Code of conduct?
+9. **Dependencies**: External dependencies count, pinned versions? Any high-risk/unmaintained deps?
+10. **Honest Assessment**: What is fundamentally broken or missing? What's the minimal viable fix?
+
+Output format: markdown report (each dimension as section, 2-3 paragraph summary, status: SHIPPED/SCAFFOLD/BROKEN)."""
+
+[[lanes]]
+id = "Dino"
+scope = "repos/Dino/**"
+prompt = """Conduct a 10-dimensional audit of the Dino repository:
+1. **Build & Compilation**: Can it build cleanly? Any warnings, broken dependencies, or version conflicts?
+2. **Test Coverage**: Presence of test suite? Coverage percentage? Test framework used? Maintainability?
+3. **CI/CD Pipeline**: GitHub Actions, other CI? Pass rate? Coverage/lint enforcement?
+4. **Documentation**: README quality, API docs, getting started guide, architecture diagrams?
+5. **Architectural Debt**: Dead code, monolithic files, anti-patterns, code duplication?
+6. **FR Traceability**: Are functional requirements in FUNCTIONAL_REQUIREMENTS.md? Do tests reference FR IDs?
+7. **Velocity & Release**: Commit frequency, release cadence, versioning strategy (SemVer/CalVer)?
+8. **Governance**: CLAUDE.md present? Contributing guidelines? Code of conduct?
+9. **Dependencies**: External dependencies count, pinned versions? Any high-risk/unmaintained deps?
+10. **Honest Assessment**: What is fundamentally broken or missing? What's the minimal viable fix?
+
+Output format: markdown report (each dimension as section, 2-3 paragraph summary, status: SHIPPED/SCAFFOLD/BROKEN)."""
+
+[[lanes]]
+id = "FixitRs"
+scope = "repos/FixitRs/**"
+prompt = """Conduct a 10-dimensional audit of the FixitRs repository:
+1. **Build & Compilation**: Can it build cleanly? Any warnings, broken dependencies, or version conflicts?
+2. **Test Coverage**: Presence of test suite? Coverage percentage? Test framework used? Maintainability?
+3. **CI/CD Pipeline**: GitHub Actions, other CI? Pass rate? Coverage/lint enforcement?
+4. **Documentation**: README quality, API docs, getting started guide, architecture diagrams?
+5. **Architectural Debt**: Dead code, monolithic files, anti-patterns, code duplication?
+6. **FR Traceability**: Are functional requirements in FUNCTIONAL_REQUIREMENTS.md? Do tests reference FR IDs?
+7. **Velocity & Release**: Commit frequency, release cadence, versioning strategy (SemVer/CalVer)?
+8. **Governance**: CLAUDE.md present? Contributing guidelines? Code of conduct?
+9. **Dependencies**: External dependencies count, pinned versions? Any high-risk/unmaintained deps?
+10. **Honest Assessment**: What is fundamentally broken or missing? What's the minimal viable fix?
+
+Output format: markdown report (each dimension as section, 2-3 paragraph summary, status: SHIPPED/SCAFFOLD/BROKEN)."""
+
+[[lanes]]
+id = "GDK"
+scope = "repos/GDK/**"
+prompt = """Conduct a 10-dimensional audit of the GDK repository:
+1. **Build & Compilation**: Can it build cleanly? Any warnings, broken dependencies, or version conflicts?
+2. **Test Coverage**: Presence of test suite? Coverage percentage? Test framework used? Maintainability?
+3. **CI/CD Pipeline**: GitHub Actions, other CI? Pass rate? Coverage/lint enforcement?
+4. **Documentation**: README quality, API docs, getting started guide, architecture diagrams?
+5. **Architectural Debt**: Dead code, monolithic files, anti-patterns, code duplication?
+6. **FR Traceability**: Are functional requirements in FUNCTIONAL_REQUIREMENTS.md? Do tests reference FR IDs?
+7. **Velocity & Release**: Commit frequency, release cadence, versioning strategy (SemVer/CalVer)?
+8. **Governance**: CLAUDE.md present? Contributing guidelines? Code of conduct?
+9. **Dependencies**: External dependencies count, pinned versions? Any high-risk/unmaintained deps?
+10. **Honest Assessment**: What is fundamentally broken or missing? What's the minimal viable fix?
+
+Output format: markdown report (each dimension as section, 2-3 paragraph summary, status: SHIPPED/SCAFFOLD/BROKEN)."""
+
+[[lanes]]
+id = "HexaKit"
+scope = "repos/HexaKit/**"
+prompt = """Conduct a 10-dimensional audit of the HexaKit repository:
+1. **Build & Compilation**: Can it build cleanly? Any warnings, broken dependencies, or version conflicts?
+2. **Test Coverage**: Presence of test suite? Coverage percentage? Test framework used? Maintainability?
+3. **CI/CD Pipeline**: GitHub Actions, other CI? Pass rate? Coverage/lint enforcement?
+4. **Documentation**: README quality, API docs, getting started guide, architecture diagrams?
+5. **Architectural Debt**: Dead code, monolithic files, anti-patterns, code duplication?
+6. **FR Traceability**: Are functional requirements in FUNCTIONAL_REQUIREMENTS.md? Do tests reference FR IDs?
+7. **Velocity & Release**: Commit frequency, release cadence, versioning strategy (SemVer/CalVer)?
+8. **Governance**: CLAUDE.md present? Contributing guidelines? Code of conduct?
+9. **Dependencies**: External dependencies count, pinned versions? Any high-risk/unmaintained deps?
+10. **Honest Assessment**: What is fundamentally broken or missing? What's the minimal viable fix?
+
+Output format: markdown report (each dimension as section, 2-3 paragraph summary, status: SHIPPED/SCAFFOLD/BROKEN)."""
+
+[[lanes]]
+id = "KaskMan"
+scope = "repos/KaskMan/**"
+prompt = """Conduct a 10-dimensional audit of the KaskMan repository:
+1. **Build & Compilation**: Can it build cleanly? Any warnings, broken dependencies, or version conflicts?
+2. **Test Coverage**: Presence of test suite? Coverage percentage? Test framework used? Maintainability?
+3. **CI/CD Pipeline**: GitHub Actions, other CI? Pass rate? Coverage/lint enforcement?
+4. **Documentation**: README quality, API docs, getting started guide, architecture diagrams?
+5. **Architectural Debt**: Dead code, monolithic files, anti-patterns, code duplication?
+6. **FR Traceability**: Are functional requirements in FUNCTIONAL_REQUIREMENTS.md? Do tests reference FR IDs?
+7. **Velocity & Release**: Commit frequency, release cadence, versioning strategy (SemVer/CalVer)?
+8. **Governance**: CLAUDE.md present? Contributing guidelines? Code of conduct?
+9. **Dependencies**: External dependencies count, pinned versions? Any high-risk/unmaintained deps?
+10. **Honest Assessment**: What is fundamentally broken or missing? What's the minimal viable fix?
+
+Output format: markdown report (each dimension as section, 2-3 paragraph summary, status: SHIPPED/SCAFFOLD/BROKEN)."""
+
+[[lanes]]
+id = "KlipDot"
+scope = "repos/KlipDot/**"
+prompt = """Conduct a 10-dimensional audit of the KlipDot repository:
+1. **Build & Compilation**: Can it build cleanly? Any warnings, broken dependencies, or version conflicts?
+2. **Test Coverage**: Presence of test suite? Coverage percentage? Test framework used? Maintainability?
+3. **CI/CD Pipeline**: GitHub Actions, other CI? Pass rate? Coverage/lint enforcement?
+4. **Documentation**: README quality, API docs, getting started guide, architecture diagrams?
+5. **Architectural Debt**: Dead code, monolithic files, anti-patterns, code duplication?
+6. **FR Traceability**: Are functional requirements in FUNCTIONAL_REQUIREMENTS.md? Do tests reference FR IDs?
+7. **Velocity & Release**: Commit frequency, release cadence, versioning strategy (SemVer/CalVer)?
+8. **Governance**: CLAUDE.md present? Contributing guidelines? Code of conduct?
+9. **Dependencies**: External dependencies count, pinned versions? Any high-risk/unmaintained deps?
+10. **Honest Assessment**: What is fundamentally broken or missing? What's the minimal viable fix?
+
+Output format: markdown report (each dimension as section, 2-3 paragraph summary, status: SHIPPED/SCAFFOLD/BROKEN)."""
+
+[[lanes]]
+id = "McpKit"
+scope = "repos/McpKit/**"
+prompt = """Conduct a 10-dimensional audit of the McpKit repository:
+1. **Build & Compilation**: Can it build cleanly? Any warnings, broken dependencies, or version conflicts?
+2. **Test Coverage**: Presence of test suite? Coverage percentage? Test framework used? Maintainability?
+3. **CI/CD Pipeline**: GitHub Actions, other CI? Pass rate? Coverage/lint enforcement?
+4. **Documentation**: README quality, API docs, getting started guide, architecture diagrams?
+5. **Architectural Debt**: Dead code, monolithic files, anti-patterns, code duplication?
+6. **FR Traceability**: Are functional requirements in FUNCTIONAL_REQUIREMENTS.md? Do tests reference FR IDs?
+7. **Velocity & Release**: Commit frequency, release cadence, versioning strategy (SemVer/CalVer)?
+8. **Governance**: CLAUDE.md present? Contributing guidelines? Code of conduct?
+9. **Dependencies**: External dependencies count, pinned versions? Any high-risk/unmaintained deps?
+10. **Honest Assessment**: What is fundamentally broken or missing? What's the minimal viable fix?
+
+Output format: markdown report (each dimension as section, 2-3 paragraph summary, status: SHIPPED/SCAFFOLD/BROKEN)."""
+
+[[lanes]]
+id = "PhenoAgent"
+scope = "repos/PhenoAgent/**"
+prompt = """Conduct a 10-dimensional audit of the PhenoAgent repository:
+1. **Build & Compilation**: Can it build cleanly? Any warnings, broken dependencies, or version conflicts?
+2. **Test Coverage**: Presence of test suite? Coverage percentage? Test framework used? Maintainability?
+3. **CI/CD Pipeline**: GitHub Actions, other CI? Pass rate? Coverage/lint enforcement?
+4. **Documentation**: README quality, API docs, getting started guide, architecture diagrams?
+5. **Architectural Debt**: Dead code, monolithic files, anti-patterns, code duplication?
+6. **FR Traceability**: Are functional requirements in FUNCTIONAL_REQUIREMENTS.md? Do tests reference FR IDs?
+7. **Velocity & Release**: Commit frequency, release cadence, versioning strategy (SemVer/CalVer)?
+8. **Governance**: CLAUDE.md present? Contributing guidelines? Code of conduct?
+9. **Dependencies**: External dependencies count, pinned versions? Any high-risk/unmaintained deps?
+10. **Honest Assessment**: What is fundamentally broken or missing? What's the minimal viable fix?
+
+Output format: markdown report (each dimension as section, 2-3 paragraph summary, status: SHIPPED/SCAFFOLD/BROKEN)."""
+
+[[lanes]]
+id = "PhenoContracts"
+scope = "repos/PhenoContracts/**"
+prompt = """Conduct a 10-dimensional audit of the PhenoContracts repository:
+1. **Build & Compilation**: Can it build cleanly? Any warnings, broken dependencies, or version conflicts?
+2. **Test Coverage**: Presence of test suite? Coverage percentage? Test framework used? Maintainability?
+3. **CI/CD Pipeline**: GitHub Actions, other CI? Pass rate? Coverage/lint enforcement?
+4. **Documentation**: README quality, API docs, getting started guide, architecture diagrams?
+5. **Architectural Debt**: Dead code, monolithic files, anti-patterns, code duplication?
+6. **FR Traceability**: Are functional requirements in FUNCTIONAL_REQUIREMENTS.md? Do tests reference FR IDs?
+7. **Velocity & Release**: Commit frequency, release cadence, versioning strategy (SemVer/CalVer)?
+8. **Governance**: CLAUDE.md present? Contributing guidelines? Code of conduct?
+9. **Dependencies**: External dependencies count, pinned versions? Any high-risk/unmaintained deps?
+10. **Honest Assessment**: What is fundamentally broken or missing? What's the minimal viable fix?
+
+Output format: markdown report (each dimension as section, 2-3 paragraph summary, status: SHIPPED/SCAFFOLD/BROKEN)."""
+
+[[lanes]]
+id = "PhenoDevOps"
+scope = "repos/PhenoDevOps/**"
+prompt = """Conduct a 10-dimensional audit of the PhenoDevOps repository:
+1. **Build & Compilation**: Can it build cleanly? Any warnings, broken dependencies, or version conflicts?
+2. **Test Coverage**: Presence of test suite? Coverage percentage? Test framework used? Maintainability?
+3. **CI/CD Pipeline**: GitHub Actions, other CI? Pass rate? Coverage/lint enforcement?
+4. **Documentation**: README quality, API docs, getting started guide, architecture diagrams?
+5. **Architectural Debt**: Dead code, monolithic files, anti-patterns, code duplication?
+6. **FR Traceability**: Are functional requirements in FUNCTIONAL_REQUIREMENTS.md? Do tests reference FR IDs?
+7. **Velocity & Release**: Commit frequency, release cadence, versioning strategy (SemVer/CalVer)?
+8. **Governance**: CLAUDE.md present? Contributing guidelines? Code of conduct?
+9. **Dependencies**: External dependencies count, pinned versions? Any high-risk/unmaintained deps?
+10. **Honest Assessment**: What is fundamentally broken or missing? What's the minimal viable fix?
+
+Output format: markdown report (each dimension as section, 2-3 paragraph summary, status: SHIPPED/SCAFFOLD/BROKEN)."""
+
+[[lanes]]
+id = "PhenoEvents"
+scope = "repos/PhenoEvents/**"
+prompt = """Conduct a 10-dimensional audit of the PhenoEvents repository:
+1. **Build & Compilation**: Can it build cleanly? Any warnings, broken dependencies, or version conflicts?
+2. **Test Coverage**: Presence of test suite? Coverage percentage? Test framework used? Maintainability?
+3. **CI/CD Pipeline**: GitHub Actions, other CI? Pass rate? Coverage/lint enforcement?
+4. **Documentation**: README quality, API docs, getting started guide, architecture diagrams?
+5. **Architectural Debt**: Dead code, monolithic files, anti-patterns, code duplication?
+6. **FR Traceability**: Are functional requirements in FUNCTIONAL_REQUIREMENTS.md? Do tests reference FR IDs?
+7. **Velocity & Release**: Commit frequency, release cadence, versioning strategy (SemVer/CalVer)?
+8. **Governance**: CLAUDE.md present? Contributing guidelines? Code of conduct?
+9. **Dependencies**: External dependencies count, pinned versions? Any high-risk/unmaintained deps?
+10. **Honest Assessment**: What is fundamentally broken or missing? What's the minimal viable fix?
+
+Output format: markdown report (each dimension as section, 2-3 paragraph summary, status: SHIPPED/SCAFFOLD/BROKEN)."""
+
+[[lanes]]
+id = "PhenoHandbook"
+scope = "repos/PhenoHandbook/**"
+prompt = """Conduct a 10-dimensional audit of the PhenoHandbook repository:
+1. **Build & Compilation**: Can it build cleanly? Any warnings, broken dependencies, or version conflicts?
+2. **Test Coverage**: Presence of test suite? Coverage percentage? Test framework used? Maintainability?
+3. **CI/CD Pipeline**: GitHub Actions, other CI? Pass rate? Coverage/lint enforcement?
+4. **Documentation**: README quality, API docs, getting started guide, architecture diagrams?
+5. **Architectural Debt**: Dead code, monolithic files, anti-patterns, code duplication?
+6. **FR Traceability**: Are functional requirements in FUNCTIONAL_REQUIREMENTS.md? Do tests reference FR IDs?
+7. **Velocity & Release**: Commit frequency, release cadence, versioning strategy (SemVer/CalVer)?
+8. **Governance**: CLAUDE.md present? Contributing guidelines? Code of conduct?
+9. **Dependencies**: External dependencies count, pinned versions? Any high-risk/unmaintained deps?
+10. **Honest Assessment**: What is fundamentally broken or missing? What's the minimal viable fix?
+
+Output format: markdown report (each dimension as section, 2-3 paragraph summary, status: SHIPPED/SCAFFOLD/BROKEN)."""
+
+[[lanes]]
+id = "PhenoKit"
+scope = "repos/PhenoKit/**"
+prompt = """Conduct a 10-dimensional audit of the PhenoKit repository:
+1. **Build & Compilation**: Can it build cleanly? Any warnings, broken dependencies, or version conflicts?
+2. **Test Coverage**: Presence of test suite? Coverage percentage? Test framework used? Maintainability?
+3. **CI/CD Pipeline**: GitHub Actions, other CI? Pass rate? Coverage/lint enforcement?
+4. **Documentation**: README quality, API docs, getting started guide, architecture diagrams?
+5. **Architectural Debt**: Dead code, monolithic files, anti-patterns, code duplication?
+6. **FR Traceability**: Are functional requirements in FUNCTIONAL_REQUIREMENTS.md? Do tests reference FR IDs?
+7. **Velocity & Release**: Commit frequency, release cadence, versioning strategy (SemVer/CalVer)?
+8. **Governance**: CLAUDE.md present? Contributing guidelines? Code of conduct?
+9. **Dependencies**: External dependencies count, pinned versions? Any high-risk/unmaintained deps?
+10. **Honest Assessment**: What is fundamentally broken or missing? What's the minimal viable fix?
+
+Output format: markdown report (each dimension as section, 2-3 paragraph summary, status: SHIPPED/SCAFFOLD/BROKEN)."""
+
+[[lanes]]
+id = "PhenoLang"
+scope = "repos/PhenoLang/**"
+prompt = """Conduct a 10-dimensional audit of the PhenoLang repository:
+1. **Build & Compilation**: Can it build cleanly? Any warnings, broken dependencies, or version conflicts?
+2. **Test Coverage**: Presence of test suite? Coverage percentage? Test framework used? Maintainability?
+3. **CI/CD Pipeline**: GitHub Actions, other CI? Pass rate? Coverage/lint enforcement?
+4. **Documentation**: README quality, API docs, getting started guide, architecture diagrams?
+5. **Architectural Debt**: Dead code, monolithic files, anti-patterns, code duplication?
+6. **FR Traceability**: Are functional requirements in FUNCTIONAL_REQUIREMENTS.md? Do tests reference FR IDs?
+7. **Velocity & Release**: Commit frequency, release cadence, versioning strategy (SemVer/CalVer)?
+8. **Governance**: CLAUDE.md present? Contributing guidelines? Code of conduct?
+9. **Dependencies**: External dependencies count, pinned versions? Any high-risk/unmaintained deps?
+10. **Honest Assessment**: What is fundamentally broken or missing? What's the minimal viable fix?
+
+Output format: markdown report (each dimension as section, 2-3 paragraph summary, status: SHIPPED/SCAFFOLD/BROKEN)."""
+
+[[lanes]]
+id = "PhenoLang-actual"
+scope = "repos/PhenoLang-actual/**"
+prompt = """Conduct a 10-dimensional audit of the PhenoLang-actual repository:
+1. **Build & Compilation**: Can it build cleanly? Any warnings, broken dependencies, or version conflicts?
+2. **Test Coverage**: Presence of test suite? Coverage percentage? Test framework used? Maintainability?
+3. **CI/CD Pipeline**: GitHub Actions, other CI? Pass rate? Coverage/lint enforcement?
+4. **Documentation**: README quality, API docs, getting started guide, architecture diagrams?
+5. **Architectural Debt**: Dead code, monolithic files, anti-patterns, code duplication?
+6. **FR Traceability**: Are functional requirements in FUNCTIONAL_REQUIREMENTS.md? Do tests reference FR IDs?
+7. **Velocity & Release**: Commit frequency, release cadence, versioning strategy (SemVer/CalVer)?
+8. **Governance**: CLAUDE.md present? Contributing guidelines? Code of conduct?
+9. **Dependencies**: External dependencies count, pinned versions? Any high-risk/unmaintained deps?
+10. **Honest Assessment**: What is fundamentally broken or missing? What's the minimal viable fix?
+
+Output format: markdown report (each dimension as section, 2-3 paragraph summary, status: SHIPPED/SCAFFOLD/BROKEN)."""
+
+[[lanes]]
+id = "PhenoMCP"
+scope = "repos/PhenoMCP/**"
+prompt = """Conduct a 10-dimensional audit of the PhenoMCP repository:
+1. **Build & Compilation**: Can it build cleanly? Any warnings, broken dependencies, or version conflicts?
+2. **Test Coverage**: Presence of test suite? Coverage percentage? Test framework used? Maintainability?
+3. **CI/CD Pipeline**: GitHub Actions, other CI? Pass rate? Coverage/lint enforcement?
+4. **Documentation**: README quality, API docs, getting started guide, architecture diagrams?
+5. **Architectural Debt**: Dead code, monolithic files, anti-patterns, code duplication?
+6. **FR Traceability**: Are functional requirements in FUNCTIONAL_REQUIREMENTS.md? Do tests reference FR IDs?
+7. **Velocity & Release**: Commit frequency, release cadence, versioning strategy (SemVer/CalVer)?
+8. **Governance**: CLAUDE.md present? Contributing guidelines? Code of conduct?
+9. **Dependencies**: External dependencies count, pinned versions? Any high-risk/unmaintained deps?
+10. **Honest Assessment**: What is fundamentally broken or missing? What's the minimal viable fix?
+
+Output format: markdown report (each dimension as section, 2-3 paragraph summary, status: SHIPPED/SCAFFOLD/BROKEN)."""
+
+[[lanes]]
+id = "PhenoObservability"
+scope = "repos/PhenoObservability/**"
+prompt = """Conduct a 10-dimensional audit of the PhenoObservability repository:
+1. **Build & Compilation**: Can it build cleanly? Any warnings, broken dependencies, or version conflicts?
+2. **Test Coverage**: Presence of test suite? Coverage percentage? Test framework used? Maintainability?
+3. **CI/CD Pipeline**: GitHub Actions, other CI? Pass rate? Coverage/lint enforcement?
+4. **Documentation**: README quality, API docs, getting started guide, architecture diagrams?
+5. **Architectural Debt**: Dead code, monolithic files, anti-patterns, code duplication?
+6. **FR Traceability**: Are functional requirements in FUNCTIONAL_REQUIREMENTS.md? Do tests reference FR IDs?
+7. **Velocity & Release**: Commit frequency, release cadence, versioning strategy (SemVer/CalVer)?
+8. **Governance**: CLAUDE.md present? Contributing guidelines? Code of conduct?
+9. **Dependencies**: External dependencies count, pinned versions? Any high-risk/unmaintained deps?
+10. **Honest Assessment**: What is fundamentally broken or missing? What's the minimal viable fix?
+
+Output format: markdown report (each dimension as section, 2-3 paragraph summary, status: SHIPPED/SCAFFOLD/BROKEN)."""
+
+[[lanes]]
+id = "PhenoPlugins"
+scope = "repos/PhenoPlugins/**"
+prompt = """Conduct a 10-dimensional audit of the PhenoPlugins repository:
+1. **Build & Compilation**: Can it build cleanly? Any warnings, broken dependencies, or version conflicts?
+2. **Test Coverage**: Presence of test suite? Coverage percentage? Test framework used? Maintainability?
+3. **CI/CD Pipeline**: GitHub Actions, other CI? Pass rate? Coverage/lint enforcement?
+4. **Documentation**: README quality, API docs, getting started guide, architecture diagrams?
+5. **Architectural Debt**: Dead code, monolithic files, anti-patterns, code duplication?
+6. **FR Traceability**: Are functional requirements in FUNCTIONAL_REQUIREMENTS.md? Do tests reference FR IDs?
+7. **Velocity & Release**: Commit frequency, release cadence, versioning strategy (SemVer/CalVer)?
+8. **Governance**: CLAUDE.md present? Contributing guidelines? Code of conduct?
+9. **Dependencies**: External dependencies count, pinned versions? Any high-risk/unmaintained deps?
+10. **Honest Assessment**: What is fundamentally broken or missing? What's the minimal viable fix?
+
+Output format: markdown report (each dimension as section, 2-3 paragraph summary, status: SHIPPED/SCAFFOLD/BROKEN)."""
+
+[[lanes]]
+id = "PhenoProc"
+scope = "repos/PhenoProc/**"
+prompt = """Conduct a 10-dimensional audit of the PhenoProc repository:
+1. **Build & Compilation**: Can it build cleanly? Any warnings, broken dependencies, or version conflicts?
+2. **Test Coverage**: Presence of test suite? Coverage percentage? Test framework used? Maintainability?
+3. **CI/CD Pipeline**: GitHub Actions, other CI? Pass rate? Coverage/lint enforcement?
+4. **Documentation**: README quality, API docs, getting started guide, architecture diagrams?
+5. **Architectural Debt**: Dead code, monolithic files, anti-patterns, code duplication?
+6. **FR Traceability**: Are functional requirements in FUNCTIONAL_REQUIREMENTS.md? Do tests reference FR IDs?
+7. **Velocity & Release**: Commit frequency, release cadence, versioning strategy (SemVer/CalVer)?
+8. **Governance**: CLAUDE.md present? Contributing guidelines? Code of conduct?
+9. **Dependencies**: External dependencies count, pinned versions? Any high-risk/unmaintained deps?
+10. **Honest Assessment**: What is fundamentally broken or missing? What's the minimal viable fix?
+
+Output format: markdown report (each dimension as section, 2-3 paragraph summary, status: SHIPPED/SCAFFOLD/BROKEN)."""
+
+[[lanes]]
+id = "PhenoRuntime"
+scope = "repos/PhenoRuntime/**"
+prompt = """Conduct a 10-dimensional audit of the PhenoRuntime repository:
+1. **Build & Compilation**: Can it build cleanly? Any warnings, broken dependencies, or version conflicts?
+2. **Test Coverage**: Presence of test suite? Coverage percentage? Test framework used? Maintainability?
+3. **CI/CD Pipeline**: GitHub Actions, other CI? Pass rate? Coverage/lint enforcement?
+4. **Documentation**: README quality, API docs, getting started guide, architecture diagrams?
+5. **Architectural Debt**: Dead code, monolithic files, anti-patterns, code duplication?
+6. **FR Traceability**: Are functional requirements in FUNCTIONAL_REQUIREMENTS.md? Do tests reference FR IDs?
+7. **Velocity & Release**: Commit frequency, release cadence, versioning strategy (SemVer/CalVer)?
+8. **Governance**: CLAUDE.md present? Contributing guidelines? Code of conduct?
+9. **Dependencies**: External dependencies count, pinned versions? Any high-risk/unmaintained deps?
+10. **Honest Assessment**: What is fundamentally broken or missing? What's the minimal viable fix?
+
+Output format: markdown report (each dimension as section, 2-3 paragraph summary, status: SHIPPED/SCAFFOLD/BROKEN)."""
+
+[[lanes]]
+id = "PhenoSchema"
+scope = "repos/PhenoSchema/**"
+prompt = """Conduct a 10-dimensional audit of the PhenoSchema repository:
+1. **Build & Compilation**: Can it build cleanly? Any warnings, broken dependencies, or version conflicts?
+2. **Test Coverage**: Presence of test suite? Coverage percentage? Test framework used? Maintainability?
+3. **CI/CD Pipeline**: GitHub Actions, other CI? Pass rate? Coverage/lint enforcement?
+4. **Documentation**: README quality, API docs, getting started guide, architecture diagrams?
+5. **Architectural Debt**: Dead code, monolithic files, anti-patterns, code duplication?
+6. **FR Traceability**: Are functional requirements in FUNCTIONAL_REQUIREMENTS.md? Do tests reference FR IDs?
+7. **Velocity & Release**: Commit frequency, release cadence, versioning strategy (SemVer/CalVer)?
+8. **Governance**: CLAUDE.md present? Contributing guidelines? Code of conduct?
+9. **Dependencies**: External dependencies count, pinned versions? Any high-risk/unmaintained deps?
+10. **Honest Assessment**: What is fundamentally broken or missing? What's the minimal viable fix?
+
+Output format: markdown report (each dimension as section, 2-3 paragraph summary, status: SHIPPED/SCAFFOLD/BROKEN)."""
+
+[[lanes]]
+id = "PhenoSpec"
+scope = "repos/PhenoSpec/**"
+prompt = """Conduct a 10-dimensional audit of the PhenoSpec repository:
+1. **Build & Compilation**: Can it build cleanly? Any warnings, broken dependencies, or version conflicts?
+2. **Test Coverage**: Presence of test suite? Coverage percentage? Test framework used? Maintainability?
+3. **CI/CD Pipeline**: GitHub Actions, other CI? Pass rate? Coverage/lint enforcement?
+4. **Documentation**: README quality, API docs, getting started guide, architecture diagrams?
+5. **Architectural Debt**: Dead code, monolithic files, anti-patterns, code duplication?
+6. **FR Traceability**: Are functional requirements in FUNCTIONAL_REQUIREMENTS.md? Do tests reference FR IDs?
+7. **Velocity & Release**: Commit frequency, release cadence, versioning strategy (SemVer/CalVer)?
+8. **Governance**: CLAUDE.md present? Contributing guidelines? Code of conduct?
+9. **Dependencies**: External dependencies count, pinned versions? Any high-risk/unmaintained deps?
+10. **Honest Assessment**: What is fundamentally broken or missing? What's the minimal viable fix?
+
+Output format: markdown report (each dimension as section, 2-3 paragraph summary, status: SHIPPED/SCAFFOLD/BROKEN)."""
+
+[[lanes]]
+id = "PhenoSpecs"
+scope = "repos/PhenoSpecs/**"
+prompt = """Conduct a 10-dimensional audit of the PhenoSpecs repository:
+1. **Build & Compilation**: Can it build cleanly? Any warnings, broken dependencies, or version conflicts?
+2. **Test Coverage**: Presence of test suite? Coverage percentage? Test framework used? Maintainability?
+3. **CI/CD Pipeline**: GitHub Actions, other CI? Pass rate? Coverage/lint enforcement?
+4. **Documentation**: README quality, API docs, getting started guide, architecture diagrams?
+5. **Architectural Debt**: Dead code, monolithic files, anti-patterns, code duplication?
+6. **FR Traceability**: Are functional requirements in FUNCTIONAL_REQUIREMENTS.md? Do tests reference FR IDs?
+7. **Velocity & Release**: Commit frequency, release cadence, versioning strategy (SemVer/CalVer)?
+8. **Governance**: CLAUDE.md present? Contributing guidelines? Code of conduct?
+9. **Dependencies**: External dependencies count, pinned versions? Any high-risk/unmaintained deps?
+10. **Honest Assessment**: What is fundamentally broken or missing? What's the minimal viable fix?
+
+Output format: markdown report (each dimension as section, 2-3 paragraph summary, status: SHIPPED/SCAFFOLD/BROKEN)."""
+
+[[lanes]]
+id = "PhenoVCS"
+scope = "repos/PhenoVCS/**"
+prompt = """Conduct a 10-dimensional audit of the PhenoVCS repository:
+1. **Build & Compilation**: Can it build cleanly? Any warnings, broken dependencies, or version conflicts?
+2. **Test Coverage**: Presence of test suite? Coverage percentage? Test framework used? Maintainability?
+3. **CI/CD Pipeline**: GitHub Actions, other CI? Pass rate? Coverage/lint enforcement?
+4. **Documentation**: README quality, API docs, getting started guide, architecture diagrams?
+5. **Architectural Debt**: Dead code, monolithic files, anti-patterns, code duplication?
+6. **FR Traceability**: Are functional requirements in FUNCTIONAL_REQUIREMENTS.md? Do tests reference FR IDs?
+7. **Velocity & Release**: Commit frequency, release cadence, versioning strategy (SemVer/CalVer)?
+8. **Governance**: CLAUDE.md present? Contributing guidelines? Code of conduct?
+9. **Dependencies**: External dependencies count, pinned versions? Any high-risk/unmaintained deps?
+10. **Honest Assessment**: What is fundamentally broken or missing? What's the minimal viable fix?
+
+Output format: markdown report (each dimension as section, 2-3 paragraph summary, status: SHIPPED/SCAFFOLD/BROKEN)."""
+
+[[lanes]]
+id = "Planify"
+scope = "repos/Planify/**"
+prompt = """Conduct a 10-dimensional audit of the Planify repository:
+1. **Build & Compilation**: Can it build cleanly? Any warnings, broken dependencies, or version conflicts?
+2. **Test Coverage**: Presence of test suite? Coverage percentage? Test framework used? Maintainability?
+3. **CI/CD Pipeline**: GitHub Actions, other CI? Pass rate? Coverage/lint enforcement?
+4. **Documentation**: README quality, API docs, getting started guide, architecture diagrams?
+5. **Architectural Debt**: Dead code, monolithic files, anti-patterns, code duplication?
+6. **FR Traceability**: Are functional requirements in FUNCTIONAL_REQUIREMENTS.md? Do tests reference FR IDs?
+7. **Velocity & Release**: Commit frequency, release cadence, versioning strategy (SemVer/CalVer)?
+8. **Governance**: CLAUDE.md present? Contributing guidelines? Code of conduct?
+9. **Dependencies**: External dependencies count, pinned versions? Any high-risk/unmaintained deps?
+10. **Honest Assessment**: What is fundamentally broken or missing? What's the minimal viable fix?
+
+Output format: markdown report (each dimension as section, 2-3 paragraph summary, status: SHIPPED/SCAFFOLD/BROKEN)."""
+
+[[lanes]]
+id = "PlatformKit"
+scope = "repos/PlatformKit/**"
+prompt = """Conduct a 10-dimensional audit of the PlatformKit repository:
+1. **Build & Compilation**: Can it build cleanly? Any warnings, broken dependencies, or version conflicts?
+2. **Test Coverage**: Presence of test suite? Coverage percentage? Test framework used? Maintainability?
+3. **CI/CD Pipeline**: GitHub Actions, other CI? Pass rate? Coverage/lint enforcement?
+4. **Documentation**: README quality, API docs, getting started guide, architecture diagrams?
+5. **Architectural Debt**: Dead code, monolithic files, anti-patterns, code duplication?
+6. **FR Traceability**: Are functional requirements in FUNCTIONAL_REQUIREMENTS.md? Do tests reference FR IDs?
+7. **Velocity & Release**: Commit frequency, release cadence, versioning strategy (SemVer/CalVer)?
+8. **Governance**: CLAUDE.md present? Contributing guidelines? Code of conduct?
+9. **Dependencies**: External dependencies count, pinned versions? Any high-risk/unmaintained deps?
+10. **Honest Assessment**: What is fundamentally broken or missing? What's the minimal viable fix?
+
+Output format: markdown report (each dimension as section, 2-3 paragraph summary, status: SHIPPED/SCAFFOLD/BROKEN)."""
+
+[[lanes]]
+id = "PlayCua"
+scope = "repos/PlayCua/**"
+prompt = """Conduct a 10-dimensional audit of the PlayCua repository:
+1. **Build & Compilation**: Can it build cleanly? Any warnings, broken dependencies, or version conflicts?
+2. **Test Coverage**: Presence of test suite? Coverage percentage? Test framework used? Maintainability?
+3. **CI/CD Pipeline**: GitHub Actions, other CI? Pass rate? Coverage/lint enforcement?
+4. **Documentation**: README quality, API docs, getting started guide, architecture diagrams?
+5. **Architectural Debt**: Dead code, monolithic files, anti-patterns, code duplication?
+6. **FR Traceability**: Are functional requirements in FUNCTIONAL_REQUIREMENTS.md? Do tests reference FR IDs?
+7. **Velocity & Release**: Commit frequency, release cadence, versioning strategy (SemVer/CalVer)?
+8. **Governance**: CLAUDE.md present? Contributing guidelines? Code of conduct?
+9. **Dependencies**: External dependencies count, pinned versions? Any high-risk/unmaintained deps?
+10. **Honest Assessment**: What is fundamentally broken or missing? What's the minimal viable fix?
+
+Output format: markdown report (each dimension as section, 2-3 paragraph summary, status: SHIPPED/SCAFFOLD/BROKEN)."""
+
+[[lanes]]
+id = "Pyron"
+scope = "repos/Pyron/**"
+prompt = """Conduct a 10-dimensional audit of the Pyron repository:
+1. **Build & Compilation**: Can it build cleanly? Any warnings, broken dependencies, or version conflicts?
+2. **Test Coverage**: Presence of test suite? Coverage percentage? Test framework used? Maintainability?
+3. **CI/CD Pipeline**: GitHub Actions, other CI? Pass rate? Coverage/lint enforcement?
+4. **Documentation**: README quality, API docs, getting started guide, architecture diagrams?
+5. **Architectural Debt**: Dead code, monolithic files, anti-patterns, code duplication?
+6. **FR Traceability**: Are functional requirements in FUNCTIONAL_REQUIREMENTS.md? Do tests reference FR IDs?
+7. **Velocity & Release**: Commit frequency, release cadence, versioning strategy (SemVer/CalVer)?
+8. **Governance**: CLAUDE.md present? Contributing guidelines? Code of conduct?
+9. **Dependencies**: External dependencies count, pinned versions? Any high-risk/unmaintained deps?
+10. **Honest Assessment**: What is fundamentally broken or missing? What's the minimal viable fix?
+
+Output format: markdown report (each dimension as section, 2-3 paragraph summary, status: SHIPPED/SCAFFOLD/BROKEN)."""
+
+[[lanes]]
+id = "QuadSGM"
+scope = "repos/QuadSGM/**"
+prompt = """Conduct a 10-dimensional audit of the QuadSGM repository:
+1. **Build & Compilation**: Can it build cleanly? Any warnings, broken dependencies, or version conflicts?
+2. **Test Coverage**: Presence of test suite? Coverage percentage? Test framework used? Maintainability?
+3. **CI/CD Pipeline**: GitHub Actions, other CI? Pass rate? Coverage/lint enforcement?
+4. **Documentation**: README quality, API docs, getting started guide, architecture diagrams?
+5. **Architectural Debt**: Dead code, monolithic files, anti-patterns, code duplication?
+6. **FR Traceability**: Are functional requirements in FUNCTIONAL_REQUIREMENTS.md? Do tests reference FR IDs?
+7. **Velocity & Release**: Commit frequency, release cadence, versioning strategy (SemVer/CalVer)?
+8. **Governance**: CLAUDE.md present? Contributing guidelines? Code of conduct?
+9. **Dependencies**: External dependencies count, pinned versions? Any high-risk/unmaintained deps?
+10. **Honest Assessment**: What is fundamentally broken or missing? What's the minimal viable fix?
+
+Output format: markdown report (each dimension as section, 2-3 paragraph summary, status: SHIPPED/SCAFFOLD/BROKEN)."""
+
+[[lanes]]
+id = "ResilienceKit"
+scope = "repos/ResilienceKit/**"
+prompt = """Conduct a 10-dimensional audit of the ResilienceKit repository:
+1. **Build & Compilation**: Can it build cleanly? Any warnings, broken dependencies, or version conflicts?
+2. **Test Coverage**: Presence of test suite? Coverage percentage? Test framework used? Maintainability?
+3. **CI/CD Pipeline**: GitHub Actions, other CI? Pass rate? Coverage/lint enforcement?
+4. **Documentation**: README quality, API docs, getting started guide, architecture diagrams?
+5. **Architectural Debt**: Dead code, monolithic files, anti-patterns, code duplication?
+6. **FR Traceability**: Are functional requirements in FUNCTIONAL_REQUIREMENTS.md? Do tests reference FR IDs?
+7. **Velocity & Release**: Commit frequency, release cadence, versioning strategy (SemVer/CalVer)?
+8. **Governance**: CLAUDE.md present? Contributing guidelines? Code of conduct?
+9. **Dependencies**: External dependencies count, pinned versions? Any high-risk/unmaintained deps?
+10. **Honest Assessment**: What is fundamentally broken or missing? What's the minimal viable fix?
+
+Output format: markdown report (each dimension as section, 2-3 paragraph summary, status: SHIPPED/SCAFFOLD/BROKEN)."""
+
+[[lanes]]
+id = "TestingKit"
+scope = "repos/TestingKit/**"
+prompt = """Conduct a 10-dimensional audit of the TestingKit repository:
+1. **Build & Compilation**: Can it build cleanly? Any warnings, broken dependencies, or version conflicts?
+2. **Test Coverage**: Presence of test suite? Coverage percentage? Test framework used? Maintainability?
+3. **CI/CD Pipeline**: GitHub Actions, other CI? Pass rate? Coverage/lint enforcement?
+4. **Documentation**: README quality, API docs, getting started guide, architecture diagrams?
+5. **Architectural Debt**: Dead code, monolithic files, anti-patterns, code duplication?
+6. **FR Traceability**: Are functional requirements in FUNCTIONAL_REQUIREMENTS.md? Do tests reference FR IDs?
+7. **Velocity & Release**: Commit frequency, release cadence, versioning strategy (SemVer/CalVer)?
+8. **Governance**: CLAUDE.md present? Contributing guidelines? Code of conduct?
+9. **Dependencies**: External dependencies count, pinned versions? Any high-risk/unmaintained deps?
+10. **Honest Assessment**: What is fundamentally broken or missing? What's the minimal viable fix?
+
+Output format: markdown report (each dimension as section, 2-3 paragraph summary, status: SHIPPED/SCAFFOLD/BROKEN)."""
+
+[[lanes]]
+id = "Tokn"
+scope = "repos/Tokn/**"
+prompt = """Conduct a 10-dimensional audit of the Tokn repository:
+1. **Build & Compilation**: Can it build cleanly? Any warnings, broken dependencies, or version conflicts?
+2. **Test Coverage**: Presence of test suite? Coverage percentage? Test framework used? Maintainability?
+3. **CI/CD Pipeline**: GitHub Actions, other CI? Pass rate? Coverage/lint enforcement?
+4. **Documentation**: README quality, API docs, getting started guide, architecture diagrams?
+5. **Architectural Debt**: Dead code, monolithic files, anti-patterns, code duplication?
+6. **FR Traceability**: Are functional requirements in FUNCTIONAL_REQUIREMENTS.md? Do tests reference FR IDs?
+7. **Velocity & Release**: Commit frequency, release cadence, versioning strategy (SemVer/CalVer)?
+8. **Governance**: CLAUDE.md present? Contributing guidelines? Code of conduct?
+9. **Dependencies**: External dependencies count, pinned versions? Any high-risk/unmaintained deps?
+10. **Honest Assessment**: What is fundamentally broken or missing? What's the minimal viable fix?
+
+Output format: markdown report (each dimension as section, 2-3 paragraph summary, status: SHIPPED/SCAFFOLD/BROKEN)."""
+
+[[lanes]]
+id = "Tracely"
+scope = "repos/Tracely/**"
+prompt = """Conduct a 10-dimensional audit of the Tracely repository:
+1. **Build & Compilation**: Can it build cleanly? Any warnings, broken dependencies, or version conflicts?
+2. **Test Coverage**: Presence of test suite? Coverage percentage? Test framework used? Maintainability?
+3. **CI/CD Pipeline**: GitHub Actions, other CI? Pass rate? Coverage/lint enforcement?
+4. **Documentation**: README quality, API docs, getting started guide, architecture diagrams?
+5. **Architectural Debt**: Dead code, monolithic files, anti-patterns, code duplication?
+6. **FR Traceability**: Are functional requirements in FUNCTIONAL_REQUIREMENTS.md? Do tests reference FR IDs?
+7. **Velocity & Release**: Commit frequency, release cadence, versioning strategy (SemVer/CalVer)?
+8. **Governance**: CLAUDE.md present? Contributing guidelines? Code of conduct?
+9. **Dependencies**: External dependencies count, pinned versions? Any high-risk/unmaintained deps?
+10. **Honest Assessment**: What is fundamentally broken or missing? What's the minimal viable fix?
+
+Output format: markdown report (each dimension as section, 2-3 paragraph summary, status: SHIPPED/SCAFFOLD/BROKEN)."""
+
+[[lanes]]
+id = "Tracera-recovered"
+scope = "repos/Tracera-recovered/**"
+prompt = """Conduct a 10-dimensional audit of the Tracera-recovered repository:
+1. **Build & Compilation**: Can it build cleanly? Any warnings, broken dependencies, or version conflicts?
+2. **Test Coverage**: Presence of test suite? Coverage percentage? Test framework used? Maintainability?
+3. **CI/CD Pipeline**: GitHub Actions, other CI? Pass rate? Coverage/lint enforcement?
+4. **Documentation**: README quality, API docs, getting started guide, architecture diagrams?
+5. **Architectural Debt**: Dead code, monolithic files, anti-patterns, code duplication?
+6. **FR Traceability**: Are functional requirements in FUNCTIONAL_REQUIREMENTS.md? Do tests reference FR IDs?
+7. **Velocity & Release**: Commit frequency, release cadence, versioning strategy (SemVer/CalVer)?
+8. **Governance**: CLAUDE.md present? Contributing guidelines? Code of conduct?
+9. **Dependencies**: External dependencies count, pinned versions? Any high-risk/unmaintained deps?
+10. **Honest Assessment**: What is fundamentally broken or missing? What's the minimal viable fix?
+
+Output format: markdown report (each dimension as section, 2-3 paragraph summary, status: SHIPPED/SCAFFOLD/BROKEN)."""
+
+[[lanes]]
+id = "ValidationKit"
+scope = "repos/ValidationKit/**"
+prompt = """Conduct a 10-dimensional audit of the ValidationKit repository:
+1. **Build & Compilation**: Can it build cleanly? Any warnings, broken dependencies, or version conflicts?
+2. **Test Coverage**: Presence of test suite? Coverage percentage? Test framework used? Maintainability?
+3. **CI/CD Pipeline**: GitHub Actions, other CI? Pass rate? Coverage/lint enforcement?
+4. **Documentation**: README quality, API docs, getting started guide, architecture diagrams?
+5. **Architectural Debt**: Dead code, monolithic files, anti-patterns, code duplication?
+6. **FR Traceability**: Are functional requirements in FUNCTIONAL_REQUIREMENTS.md? Do tests reference FR IDs?
+7. **Velocity & Release**: Commit frequency, release cadence, versioning strategy (SemVer/CalVer)?
+8. **Governance**: CLAUDE.md present? Contributing guidelines? Code of conduct?
+9. **Dependencies**: External dependencies count, pinned versions? Any high-risk/unmaintained deps?
+10. **Honest Assessment**: What is fundamentally broken or missing? What's the minimal viable fix?
+
+Output format: markdown report (each dimension as section, 2-3 paragraph summary, status: SHIPPED/SCAFFOLD/BROKEN)."""

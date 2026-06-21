@@ -1,0 +1,10 @@
+line-length = 100
+target-version = "py310"
+extend-exclude = ["build", "dist", ".venv"]
+
+[lint]
+select = ["E", "F", "W", "I", "UP", "B", "SIM", "RUF"]
+ignore = ["E501"]
+
+[format]
+quote-style = "double"
