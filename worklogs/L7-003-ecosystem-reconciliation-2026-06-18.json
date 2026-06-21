@@ -1,0 +1,98 @@
+{
+  "id": "L7-003",
+  "title": "Ecosystem reconciliation between ECOSYSTEM_MAP.md and L7-002 _bindings.json",
+  "date": "2026-06-18",
+  "device": "macbook",
+  "scope": "reconcile two complementary taxonomies",
+  "context": "Last session ended with L7-002 collision resolution live on remote (branch chore/l7-001-contract-only-orphan-2026-06-17 @ f5b6d7d6). The registry main repo (ECOSYSTEM_MAP.md, registries.md) was also externally edited with the kilo audit #144 wave + 4-repo retirement. Two unresolved merge conflicts in ECOSYSTEM_MAP.md and a 80-entry gap between registry canon (82) and L7-002 bound (108) needed reconciliation.",
+  "inputs": {
+    "registry_main_branch": "a3a281db (HEAD as of last turn)",
+    "registry_orpha_branch": "chore/l7-001-contract-only-orphan-2026-06-17 @ f5b6d7d6 (live on remote)",
+    "registry_canon_count": 82,
+    "l7_002_bound_count": 108,
+    "lb_cap_2_merges_drops": "15 merges + 6 drops, see L7-002 worklog"
+  },
+  "files_examined": [
+    "phenotype-registry/ECOSYSTEM_MAP.md (line 34, 36, 48, 52 merge conflict markers)",
+    "phenotype-registry/docs/registries.md (lacked SSOT layer section)",
+    "phenotype-registry-curation-data/_bindings.json (L7-002 output)",
+    "phenotype-registry/SPEC.md",
+    "phenotype-registry/CNAME"
+  ],
+  "actions": [
+    "Read ECOSYSTEM_MAP.md in full; identified 2 merge conflict blocks at lines 34-40 and 48-58",
+    "Resolved BLOCK 1 to origin/main (21-wide shared-lib, post phenotype-auth-ts absorption)",
+    "Resolved BLOCK 2 to origin/main (6 stub/scaffold incl. Paginary; 6 monorepos after 4-repo retirement)",
+    "Preserved both Note blocks (HEAD's PR #120 reference + origin/main's findings/2026-06-18-L5-109)",
+    "Updated registries.md: added 'phenotype-registry (this repo) — Capability & Intent SSOT' section referencing docs/intent/, docs/boundary/, docs/curated-prompts/, ALIASES.md, PUSH-STATUS.md + script links",
+    "Added 'L7+ addendum' step #5 to Registry Flow (per-repo propagated intent+boundary)",
+    "Created docs/prompts-to-intent.crosswalk.md documenting the 80-entry gap with 3 buckets (worktree suffixes, process artifacts, off-fleet) + 27-entry gap (template ancestry needed) + 108-vs-82 reconciliation logic",
+    "Skipped re-render of intent/boundary (L7-002 was correct; reconciliation is at the registry level not the curation level)",
+    "Verified no git conflicts or vite-related artifacts remaining"
+  ],
+  "metric_deltas": {
+    "ECOSYSTEM_MAP_conflicts_open": "2 → 0",
+    "ECOSYSTEM_MAP_known_lists": "unchanged (45 per registry canon + multi-role categorization)",
+    "registries_SSOT_layers": "3 (Specs/Handbook/HexaKit) → 4 (+ Capability & Intent SSOT layer)",
+    "crosswalk_doc": "0 → 136 lines",
+    "l7_002_bound_count": "unchanged (108, with 15 merges + 6 drops committed last turn)",
+    "subagents_dispatched": 9,
+    "subagents_completed": 6
+  },
+  "open_questions": [
+    "Whether to extend scrape.py with a template-prefix binding mode for HexaKit-template-derived paths (closes ~20 of the 27 'canonical-but-not-bound' entries) — estimated 30 min",
+    "Whether to surface the 'process artifact' bucket as its own role in ECOSYSTEM_MAP.md (worktrees, dashboards, scratch dirs)",
+    "Whether to merge 'app substrate' (currently in monorepo row) into its own row for clarity",
+    "Future when registry_bundlr1=registry-curation-data: should the registry be a thin wrapper of just curated_prompts/curated_plans/curated_responses/intent/boundary/ALIASES.md plus governance templates?"
+  ],
+  "next_steps": [
+    "Push L7-003 commits (registries.md, ECOSYSTEM_MAP.md, docs/prompts-to-intent.crosswalk.md) to phenotype-registry main",
+    "Mirror to chore/l7-001-contract-only-orphan-2026-06-17 if desired",
+    "Schedule ADR-024 weekly cadence (kilo task #144 left a placeholder to push curated_corpus_3_2_gb): scripts/scrape.py --incremental + scripts/resolve-collision.py + scripts/render-stubs.py --force + scripts/render-per-repo.py --force + scripts/propagate-intent-to-repos.py --force",
+    "Optional: Extend scrape.py with template-prefix binding mode + re-run for 27 canonical-but-unbound closures",
+    "Cherry-pick e9b03342 onto origin/main once — main has 39-commits lead from wave I + wave H9 + #162 (wave H next queue complete, McpKit absorption audit, Wave A row #22, Wave I untracked reduction)"
+  ],
+  "commits_this_turn": [
+    "registry main: docs(registry): L7-003 — resolve merge conflicts in ECOSYSTEM_MAP.md; add Capability & Intent SSOT section to registries.md; add prompts-to-intent.crosswalk.md",
+    "chore/l7-001-contract-only-orphan-2026-06-17 (mirror): docs(registry): L7-003 — reconciliation between ECOSYSTEM_MAP.md and L7-002 _bindings.json"
+  ],
+  "branch_target": "main (blocked by 39-commit remote divergence + rebase conflict on ECOSYSTEM_MAP.md),
+                 orphan (LIVE @ c9a524e7)",
+  "remote_status": {
+    "orphan_branch": "chore/l7-001-contract-only-orphan-2026-06-17 @ c9a524e7 (LIVE)",
+    "registry_main": "PUSH-PENDING — 39 new commits on origin/main; cherry-pick needed"
+  },
+  "subagent_parallel_completion": {
+    "run_id": "L7-003-parallel-2026-06-18",
+    "mode": "manager-only, 9 subagents dispatched in parallel",
+    "subagents_used": [
+      "A: status-report",
+      "B: registries-update",
+      "C: stub-generator",
+      "D: alises-update",
+      "E: render+propagate",
+      "F: worklog-updater (this subagent)"
+    ],
+    "subagents_dispatched": 9,
+    "subagents_completed": 6,
+    "orphan_branch": "chore/l7-001-contract-only-orphan-2026-06-17",
+    "orphan_sha_at_F_completion": "cef45570fac35f8cefbcae40e5f702fc1af5d9cd",
+    "orphan_sha_at_F_completion_short": "cef45570",
+    "final_file_sha_pending_commit": true
+  },
+  "status": "SUBAGENT-DRIVEN COMPLETION: 9 subagents dispatched in parallel (A:status-report, B:registries-update, C:stub-generator, D:alises-update, E:render+propagate, F:worklog-updater); 6 subagents completed during this run. Orphan branch chore/l7-001-contract-only-orphan-2026-06-17 @ cef45570fac35f8cefbcae40e5f702fc1af5d9cd (short: cef45570) at time of F's completion. See subagent_parallel_completion field for full run manifest.
+
+  L7-003 final-pass delta (event id: l7-003-final-pass-2026-06-18T-late):
+    scope: close canon-not-bound gap with stubs; canonicalize PhenoDesign filename case.
+    added scripts/render-stubs.py: parses ECOSYSTEM_MAP.md role table, computes canon-not-bound set.
+    extended scripts/propagate-intent-to-repos.py: also iterates source docs/intent/*.md not just _bindings.json.
+    stubs rendered for on-disk repos:
+        Paginary, PhenoCompose, agentapi-plusplus, argis-extensions, forgecode,
+        phenoObservability, vibeproxy-monitoring-unified, PhenoDesign (force-overwrite).
+    pushed as commit 0034b391 on orphan; PhenoDesign case-fix as commits d1a8a032 + ..fcf30c3c.
+    canon-not-bound: 24 -> 16 (8 closed by stubs).
+    on-disk stubs propagated to /Users/kooshapari/CodeProjects/Phenotype/repos/<repo>/docs/{intent,boundary}/<repo>.md.
+    HTTP status on remote: 7x 200 + 1x of /proposed/ (lower&upper preserved, only PhenoDesign PascalCase canonical).
+    registry main: commit 122d77f4 (worklog updates only) - NOT YET pushed.
+    branch_target: orphan @ fcf30c3c LIVE; main LOCAL-COMMITTED, remote PUSH-PENDING."
+}
