@@ -1,20 +1,28 @@
 ---
 repo: "helioscope"
-role: unknown
-status: active
-last_boundary_review: 2026-06-17
-review_cadence: 30d
+role: codex-fork
+status: retired
+retired_on: 2026-06-21
+superseded_by: helios-cli
+last_boundary_review: 2026-06-21
+review_cadence: null
 in_scope:
-  - "<to be filled>"
+  - "<retired — no further scope; see retirement rationale>"
 out_of_scope:
-  - "<to be filled>"
+  - "<retired — no further scope; see retirement rationale>"
 ---
 
-# Boundary — helioscope
+# Boundary — helioscope (RETIRED 2026-06-21)
+
+> **Retired:** This repository was retired 2026-06-21 per
+> `findings/2026-06-21-helioscope-cancellation-rationale.md`. The
+> canonical codex fork in the Phenotype fleet is now
+> `helios-cli` (KooshaPari/helios-cli). This file is preserved as a
+> tombstone for historical prompt/plan binding traceability.
 
 ## In Scope
 
-<To be filled.>
+<Retired — see retirement rationale.>
 
 ## Out of Scope
 
@@ -30,10 +38,10 @@ out_of_scope:
 
 ## Last Boundary Review
 
-**Date:** 2026-06-17
-**Reviewer:** forge subagent (L7-001 sweep)
-**Worklog / finding:** `worklogs/L7-001-intent-boundary-curation-2026-06-17.json`
+**Date:** 2026-06-21
+**Reviewer:** forge subagent (L5-130 retirement sweep)
+**Worklog / finding:** `worklogs/L5-130-helioscope-cleanup-2026-06-21.json`
 **Decisions:**
-- Initial scaffolding; needs human review.
+- Repo marked retired 2026-06-21; superseded by `helios-cli`. Boundary file retained as tombstone.
 
-**Next review:** 2026-07-17
+**Next review:** never (retired)

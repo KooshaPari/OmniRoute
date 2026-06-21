@@ -173,12 +173,14 @@ ALIASES = {
     "phenotype-otel-wt-SD1-005-2026-06-11": "pheno-otel",
 
     # === Tokn / HeliosCLI variants ===
+    # helioscope was retired 2026-06-21 (see findings/2026-06-21-helioscope-cancellation-rationale.md)
+    # and superseded by helios-cli → HeliosCLI. Both legacy aliases now fold to HeliosCLI.
     "Tokn-wt-pr61": "Tokn",
     "HeliosCLI-wtrees": "HeliosCLI",
     "helios-cli": "HeliosCLI",
     "heliosApp": "HeliosApp",
-    "helioscope": "helioscope",
-    "helioscope-wtrees": "helioscope",
+    "helioscope": "HeliosCLI",
+    "helioscope-wtrees": "HeliosCLI",
     "heliosBench": "heliosBench",
     "helios-router": "helios-router",
     "helios-router-wtrees": "helios-router",
