@@ -13,6 +13,12 @@ When a fact conflicts across docs, the source listed here wins.
 | Config (Python) | `pheno-config/` |
 | Repo registry + disposition | `phenotype-registry/registry/disposition-index.json` |
 | ADR index (2026-06-15) | `docs/adr/2026-06-15/INDEX.md` |
+| 71-pillar refresh cadence | `docs/adr/2026-06-18/ADR-041-71-pillar-refresh-cadence.md` (weekly Mon 09:00 PDT) |
+| v17 cycle-7 plan | `plans/2026-06-21-v17-71-pillar-cycle-7-p0.md` |
+| v17 cycle-7 probe | `findings/2026-06-21-v17-cycle-7-probe.md` |
+| v18 cycle-8 plan | `plans/2026-06-21-v18-71-pillar-cycle-8-p0.md` |
+| v18 cycle-8 probe | `findings/2026-06-21-v18-cycle-8-probe.md` |
+| Worktree orchestration | per ADR-018 PRCP — substrate work in `/private/tmp/<track>-<crate>-<date>`; this monorepo is the coordination hub only |
 
 ## Precedence order
 
