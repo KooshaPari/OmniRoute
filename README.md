@@ -116,3 +116,8 @@ See [docs/guides/TESTING.md](docs/guides/TESTING.md) for testing procedures.
 
 See LICENSE file for details.
 
+## Cargo deny
+
+The repository ships a `deny.toml` at the repo root that configures `cargo-deny` in strict mode: a curated licence allow-list (MIT, Apache-2.0 with LLVM exception, BSD-2/3-Clause, ISC, MPL-2.0, Unicode-DFS-2016, Zlib) with `confidence-threshold = 0.8`, advisory gating against the RustSec database (`yanked = "warn"`), `unknown-registry`/`unknown-git` set to `deny`, and `cargo-deny bans` enforcing `multiple-versions = "warn"` and `wildcards = "deny"`. CI runs `cargo deny check` so every change to the dependency graph must clear both the licence gate and the advisory gate before merge.
+
+
