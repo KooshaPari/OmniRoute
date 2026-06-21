@@ -2,8 +2,9 @@
 
 Wave-specific index for Architecture Decision Records authored on 2026-06-22.
 This wave comprises the v20 cycle-10 P1 reduction closure (ADR-081) plus the
-v21 cycle-11 P0 carry-over ADR-046 (federation mTLS architecture) authored as
-net-new federation/interop work.
+v21 cycle-11 P0 carry-over ADR-046 (federation mTLS architecture) and its two
+companion ADRs ADR-046b (OIDC federation reference) and ADR-046c (peer-to-peer
+topology), authored as net-new federation/interop work.
 
 ---
 
@@ -13,6 +14,7 @@ net-new federation/interop work.
 |------|------|-------|--------------|--------|
 | v20 cycle-10 P1 reduction | 2026-06-22 | 10 | L23, L27, L36, L38, L44 | CLOSED |
 | v21 cycle-11 P0 carry-over | 2026-06-22 | 11 | L54 (federation mTLS + OIDC) | IN PROGRESS |
+| v21 cycle-11 P0 carry-over (p2p) | 2026-06-22 | 11 | L53 (peer discovery), L54 (p2p) | IN PROGRESS |
 
 ---
 
@@ -44,6 +46,9 @@ net-new federation/interop work.
     (`pheno-context/src/oidc.rs` Rust crate shape; see ADR-079)
   - ADR-046c — Peer-to-peer federation topology
     (hub-and-spoke vs mesh failover semantics)
+- **Companions (added 2026-06-22, this update):**
+  - ADR-046c authored (`docs/adr/2026-06-22/ADR-046c-federation-p2p.md`);
+    completes the hybrid topology + PRCP separation decisions for the trilogy.
 
 ### Key policy decisions
 
@@ -73,12 +78,14 @@ net-new federation/interop work.
 |-----|------|------|----------|
 | ADR-046 (2026-06-18) | `docs/adr/2026-06-18/ADR-046-federation-mtls-oidc.md` (catalog entry only) | 2026-06-18 | Catalog row; superseded by this ADR as canonical content |
 | ADR-079 (2026-06-21) | `docs/adr/2026-06-21/ADR-079-oidc-federation-reference.md` | 2026-06-21 | Companion ADR-046b — Rust crate shape for OIDC |
+| ADR-046c (2026-06-22) | `docs/adr/2026-06-22/ADR-046c-federation-p2p.md` | 2026-06-22 | Companion ADR-046c — peer-to-peer topology + PRCP separation; this update |
 
 ---
 
 ## Refresh cadence
 
 - Refreshed: 2026-06-22 (wave authoring)
+- Refreshed: 2026-06-22 (ADR-046c added; companions list updated)
 - Next refresh: 2026-06-29 (per ADR-041 weekly Monday 09:00 PDT cadence)
-- On ADR-046b / ADR-046c authoring: this INDEX must be updated to list the
-  companion ADRs and revise the "Companions (forthcoming)" section.
+- On ADR-046b authoring: this INDEX must be updated to list ADR-046b as
+  companion, and revise the "Companions (added 2026-06-22)" section.
