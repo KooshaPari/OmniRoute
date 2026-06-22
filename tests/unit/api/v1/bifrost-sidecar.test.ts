@@ -1,6 +1,11 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
+import {
+  checkIpRateLimit,
+  getClientIp,
+  sanitizeForensicHeader,
+} from "../../../../src/app/api/v1/relay/chat/completions/relaySecurity.ts";
 
 // ─── T-12 (#3932 PR-4): bifrost sidecar proxy route ──────────────────────
 //
@@ -116,4 +121,28 @@ test("bifrost route: OPTIONS responds with CORS headers", async () => {
     res.headers.get("Access-Control-Allow-Headers"),
     "missing Access-Control-Allow-Headers header"
   );
+});
+
+test("bifrost route: shared relay IP limiter blocks a repeated token from one IP", () => {
+  const tokenId = `bifrost-ip-limit-${Date.now()}-${Math.random()}`;
+  const ip = "203.0.113.77";
+
+  for (let i = 0; i < 30; i++) {
+    assert.equal(checkIpRateLimit(tokenId, ip).allowed, true);
+  }
+
+  const blocked = checkIpRateLimit(tokenId, ip);
+  assert.equal(blocked.allowed, false);
+  assert.ok(blocked.resetIn >= 0 && blocked.resetIn <= 60);
+});
+
+test("bifrost route: shared relay security helpers sanitize forwarded client metadata", () => {
+  const req = new Request("http://localhost/api/v1/relay/chat/completions/bifrost", {
+    headers: {
+      "x-forwarded-for": "198.51.100.8, 10.0.0.2",
+    },
+  });
+
+  assert.equal(getClientIp(req), "198.51.100.8");
+  assert.equal(sanitizeForensicHeader("ua\r\nforged"), "ua forged");
 });
