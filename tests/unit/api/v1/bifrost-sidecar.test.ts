@@ -14,6 +14,7 @@ const ORIGINAL_BIFROST_API_KEY = process.env.BIFROST_API_KEY;
 const ORIGINAL_BIFROST_OMNI_KEY = process.env.OMNIROUTE_BIFROST_KEY;
 const ORIGINAL_BIFROST_TIMEOUT = process.env.BIFROST_TIMEOUT_MS;
 const ORIGINAL_BIFROST_STREAMING = process.env.BIFROST_STREAMING_ENABLED;
+const encoder = new TextEncoder();
 
 function restoreEnv() {
   if (ORIGINAL_BIFROST_BASE_URL === undefined) delete process.env.BIFROST_BASE_URL;
@@ -38,9 +39,8 @@ test("bifrost route: returns 503 + fallback header when BIFROST_BASE_URL is unse
   delete process.env.BIFROST_STREAMING_ENABLED;
 
   // Dynamic import after env is set so the module reads the empty value.
-  const { POST } = await import(
-    "../../../../src/app/api/v1/relay/chat/completions/bifrost/route.ts"
-  );
+  const { POST } =
+    await import("../../../../src/app/api/v1/relay/chat/completions/bifrost/route.ts");
 
   const req = new Request("http://localhost/api/v1/relay/chat/completions/bifrost", {
     method: "POST",
@@ -116,4 +116,107 @@ test("bifrost route: OPTIONS responds with CORS headers", async () => {
     res.headers.get("Access-Control-Allow-Headers"),
     "missing Access-Control-Allow-Headers header"
   );
+});
+
+test("bifrost route: streaming usage and timeout cleanup wait for stream close", async (t) => {
+  process.env.BIFROST_BASE_URL = "http://bifrost.test.local:8080";
+  process.env.BIFROST_TIMEOUT_MS = "60000";
+  delete process.env.BIFROST_API_KEY;
+  delete process.env.OMNIROUTE_BIFROST_KEY;
+  delete process.env.BIFROST_STREAMING_ENABLED;
+
+  const core = await import("../../../../src/lib/db/core.ts");
+  const relayDb = await import("../../../../src/lib/db/relayProxies.ts");
+  core.resetDbInstance();
+
+  const rawToken = "relay_stream_regression_4595";
+  const token = {
+    id: "rl_stream_regression_4595",
+    rawToken,
+    tokenPrefix: "rl_stream",
+  };
+  const now = Math.floor(Date.now() / 1000);
+  const db = core.getDbInstance();
+  db.prepare(
+    `
+    INSERT INTO relay_tokens (id, name, token_hash, token_prefix, description, combo_id,
+      allowed_models, max_tokens_per_request, max_requests_per_minute, max_requests_per_day,
+      max_cost_per_day, enabled, created_at, updated_at, expires_at, metadata)
+    VALUES (?, ?, ?, ?, '', NULL, ?, 128000, 60, 10000, 0, 1, ?, ?, NULL, '{}')
+  `
+  ).run(
+    token.id,
+    "stream-regression",
+    createHash("sha256").update(rawToken).digest("hex"),
+    token.tokenPrefix,
+    JSON.stringify(["gpt-4"]),
+    now,
+    now
+  );
+
+  const originalFetch = globalThis.fetch;
+  const originalClearTimeout = globalThis.clearTimeout;
+  const clearedTimeouts: unknown[] = [];
+
+  t.after(() => {
+    globalThis.fetch = originalFetch;
+    globalThis.clearTimeout = originalClearTimeout;
+    restoreEnv();
+    core.resetDbInstance();
+  });
+
+  let streamController: ReadableStreamDefaultController<Uint8Array> | undefined;
+  const upstreamBody = new ReadableStream<Uint8Array>({
+    start(controller) {
+      streamController = controller;
+    },
+  });
+
+  globalThis.fetch = (async (_input: RequestInfo | URL, _init?: RequestInit) => {
+    return new Response(upstreamBody, {
+      status: 200,
+      headers: { "Content-Type": "text/event-stream" },
+    });
+  }) as typeof fetch;
+
+  const { POST } = await import(
+    `../../../../src/app/api/v1/relay/chat/completions/bifrost/route.ts?case=${Date.now()}-${Math.random()}`
+  );
+
+  globalThis.clearTimeout = ((timeoutId: unknown) => {
+    clearedTimeouts.push(timeoutId);
+    return originalClearTimeout(timeoutId as NodeJS.Timeout);
+  }) as typeof clearTimeout;
+
+  const req = new Request("http://localhost/api/v1/relay/chat/completions/bifrost", {
+    method: "POST",
+    headers: {
+      authorization: `Bearer ${token.rawToken}`,
+      "content-type": "application/json",
+      "x-request-id": "stream-regression-4595",
+    },
+    body: JSON.stringify({
+      model: "gpt-4",
+      messages: [{ role: "user", content: "hi" }],
+      stream: true,
+    }),
+  });
+
+  const res = await POST(req);
+  assert.equal(res.status, 200);
+  assert.equal(relayDb.getRelayLogs(token.id).length, 0);
+  assert.equal(clearedTimeouts.length, 0);
+
+  streamController?.enqueue(encoder.encode('data: {"delta":"hi"}\n\n'));
+  assert.equal(relayDb.getRelayLogs(token.id).length, 0);
+  assert.equal(clearedTimeouts.length, 0);
+
+  streamController?.close();
+  assert.equal(await res.text(), 'data: {"delta":"hi"}\n\n');
+
+  const logs = relayDb.getRelayLogs(token.id);
+  assert.equal(logs.length, 1);
+  assert.equal(logs[0]?.status, "success");
+  assert.equal(logs[0]?.status_code, 200);
+  assert.equal(clearedTimeouts.length, 1);
 });

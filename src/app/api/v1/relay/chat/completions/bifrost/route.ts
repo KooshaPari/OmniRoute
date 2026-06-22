@@ -30,11 +30,7 @@
 
 import { CORS_HEADERS, handleCorsOptions } from "@/shared/utils/cors";
 import { createInjectionGuard } from "@/middleware/promptInjectionGuard";
-import {
-  getRelayTokenByHash,
-  checkRateLimit,
-  recordRelayUsage,
-} from "@/lib/db/relayProxies";
+import { getRelayTokenByHash, checkRateLimit, recordRelayUsage } from "@/lib/db/relayProxies";
 import { buildErrorBody } from "@omniroute/open-sse/utils/error";
 import { createHash } from "node:crypto";
 import { z } from "zod";
@@ -84,8 +80,48 @@ function hashToken(token: string): string {
   return createHash("sha256").update(token).digest("hex");
 }
 
+function wrapStreamWithFinalizer(
+  source: ReadableStream<Uint8Array>,
+  finalize: (status?: "success" | "error") => void
+): ReadableStream<Uint8Array> {
+  const reader = source.getReader();
+  let finalized = false;
+
+  const finalizeOnce = (status?: "success" | "error") => {
+    if (finalized) return;
+    finalized = true;
+    finalize(status);
+  };
+
+  return new ReadableStream<Uint8Array>({
+    async pull(controller) {
+      try {
+        const chunk = await reader.read();
+        if (chunk.done) {
+          finalizeOnce();
+          controller.close();
+          return;
+        }
+
+        controller.enqueue(chunk.value);
+      } catch (err) {
+        finalizeOnce("error");
+        controller.error(err);
+      }
+    },
+    async cancel(reason) {
+      try {
+        await reader.cancel(reason);
+      } finally {
+        finalizeOnce("error");
+      }
+    },
+  });
+}
+
 export async function POST(request: Request) {
   const startTime = Date.now();
+  const requestId = request.headers.get("x-request-id") || undefined;
   const clientIp = sanitizeForensicHeader(
     request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
       request.headers.get("x-real-ip") ||
@@ -148,7 +184,7 @@ export async function POST(request: Request) {
     const token = getRelayTokenByHash(tokenHash);
     if (!token) {
       recordRelayUsage("unknown", {
-        requestId: request.headers.get("x-request-id") || undefined,
+        requestId,
         status: "auth_failed",
         statusCode: 401,
         latencyMs: Date.now() - startTime,
@@ -171,7 +207,7 @@ export async function POST(request: Request) {
     const rateCheck = checkRateLimit(token.id);
     if (!rateCheck.allowed) {
       recordRelayUsage(token.id, {
-        requestId: request.headers.get("x-request-id") || undefined,
+        requestId,
         status: "rate_limited",
         statusCode: 429,
         latencyMs: Date.now() - startTime,
@@ -201,7 +237,9 @@ export async function POST(request: Request) {
     const parsed = BifrostRequestSchema.safeParse(rawBody);
     if (!parsed.success) {
       return new Response(
-        JSON.stringify(buildErrorBody(400, parsed.error.issues[0]?.message || "Invalid request body")),
+        JSON.stringify(
+          buildErrorBody(400, parsed.error.issues[0]?.message || "Invalid request body")
+        ),
         { status: 400, headers: JSON_CORS_HEADERS }
       );
     }
@@ -210,7 +248,7 @@ export async function POST(request: Request) {
     const guard = injectionGuard(body);
     if (guard.blocked) {
       recordRelayUsage(token.id, {
-        requestId: request.headers.get("x-request-id") || undefined,
+        requestId,
         status: "error",
         statusCode: 400,
         latencyMs: Date.now() - startTime,
@@ -264,20 +302,25 @@ export async function POST(request: Request) {
         body: JSON.stringify(body),
         signal: ac.signal,
       });
-    } finally {
+    } catch (err) {
       clearTimeout(tid);
+      throw err;
     }
 
-    // 5. Forward response. For streaming we pass the body stream through
-    //    unmodified — Node's fetch streams chunked correctly.
-    recordRelayUsage(token.id, {
-      requestId: request.headers.get("x-request-id") || undefined,
-      status: upstream.status < 500 ? "success" : "error",
-      statusCode: upstream.status,
-      latencyMs: Date.now() - startTime,
-      clientIp,
-      userAgent,
-    });
+    let finalized = false;
+    const finalizeRelayUsage = (statusOverride?: "success" | "error") => {
+      if (finalized) return;
+      finalized = true;
+      clearTimeout(tid);
+      recordRelayUsage(token.id, {
+        requestId,
+        status: statusOverride ?? (upstream.status < 500 ? "success" : "error"),
+        statusCode: upstream.status,
+        latencyMs: Date.now() - startTime,
+        clientIp,
+        userAgent,
+      });
+    };
 
     const newHeaders = new Headers(upstream.headers);
     newHeaders.set("X-Routed-By", "bifrost");
@@ -286,7 +329,18 @@ export async function POST(request: Request) {
       newHeaders.set("Content-Type", upstream.headers.get("Content-Type") ?? "application/json");
     }
 
-    return new Response(upstream.body, {
+    // 5. Forward response. Unary responses keep the existing fast path, but
+    //    streaming responses finalize usage only after the body closes/errors/cancels.
+    const responseBody =
+      wantsStream && upstream.body
+        ? wrapStreamWithFinalizer(upstream.body, finalizeRelayUsage)
+        : upstream.body;
+
+    if (!wantsStream || !upstream.body) {
+      finalizeRelayUsage();
+    }
+
+    return new Response(responseBody, {
       status: upstream.status,
       headers: newHeaders,
     });
