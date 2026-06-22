@@ -38,6 +38,7 @@ import {
   isQuotaPreflightEnabled,
 } from "@omniroute/open-sse/services/quotaPreflight.ts";
 import { resolveResilienceSettings } from "@/lib/resilience/settings";
+import { resolveModelLockoutSettings } from "@/lib/resilience/modelLockoutSettings";
 import { syncHealthFromDB, type KeyHealth } from "@omniroute/open-sse/services/apiKeyRotator.ts";
 import {
   classifyProviderError,
@@ -1837,6 +1838,7 @@ export async function markAccountUnavailable(
 
     const effectiveProviderProfile =
       providerProfile || (provider ? await getRuntimeProviderProfile(provider) : null);
+    const modelLockoutSettings = resolveModelLockoutSettings(await getCachedSettings());
     const fallbackResult = checkFallbackError(
       status,
       errorText,
@@ -1891,6 +1893,7 @@ export async function markAccountUnavailable(
         {
           exactCooldownMs:
             fallbackResult.usedUpstreamRetryHint === true ? fallbackResult.cooldownMs : null,
+          maxCooldownMs: modelLockoutSettings.maxCooldownMs,
         }
       );
       // Update last error for observability (without changing terminal status)
@@ -1966,6 +1969,7 @@ export async function markAccountUnavailable(
         {
           exactCooldownMs:
             fallbackResult.usedUpstreamRetryHint === true ? fallbackResult.cooldownMs : null,
+          maxCooldownMs: modelLockoutSettings.maxCooldownMs,
         }
       );
       updateProviderConnection(connectionId, {
@@ -1999,7 +2003,10 @@ export async function markAccountUnavailable(
         status === 404
           ? (effectiveProviderProfile?.baseCooldownMs ?? COOLDOWN_MS.notFoundLocal)
           : COOLDOWN_MS.notFoundLocal,
-        effectiveProviderProfile
+        effectiveProviderProfile,
+        {
+          maxCooldownMs: modelLockoutSettings.maxCooldownMs,
+        }
       );
       updateProviderConnection(connectionId, {
         lastErrorType: "not_found",
