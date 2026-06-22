@@ -794,7 +794,7 @@ When a provider is configured for Bifrost, the corresponding
   (`claude-web`, `chatgpt-web`, etc.) and custom CLI executors
   (`cliproxyapi`, `cursor`, `codex`, `trae`, `qoder`, `kiro`, etc.).
 
-### Future phases (B1–B9, see PLAN.md § 2.5)
+### Future phases (B1–B10, see PLAN.md § 2.5)
 
 | Phase | Item | Status |
 |---|---|---|
@@ -807,6 +807,7 @@ When a provider is configured for Bifrost, the corresponding
 | B7 | Migration playbook (`docs/operations/bifrost-migration.md`) | ☐ Q3 2026 |
 | B8 | Bifrost MCP client integration | ☐ Q4 2026 |
 | B9 | Kill switch (fallback to chatCore if SLOs fail 7d) | 🔄 spec only |
+| B10 | **OTel bridge — Tier-1 (Bifrost, Go) ⇄ Tier-2 (OmniRoute, TS) unified traces via W3C `traceparent`** | ✅ DONE 2026-06-21 |
 
 ### Decision review schedule
 
@@ -965,6 +966,106 @@ on a fresh branch from `origin/main`.
 
 Refs: `docs/adr/0031-bifrost-tier1-router.md`, `PLAN.md` § 2.5.2 (B9),
 `docs/frameworks/BIFROST-BACKEND.md`.
+
+---
+
+## Recent Changes (B10 OTel bridge, 2026-06-21)
+
+Implements **B10** of the v8.1 Bifrost Tier-1 router track (`PLAN.md`
+§ 2.5.2). Unifies distributed traces between Tier-1 (Bifrost, Go) and
+Tier-2 (OmniRoute, TS) so a single trace crosses the HTTP boundary via
+the W3C `traceparent` header.
+
+### Public API (`open-sse/observability/otelExporter.ts`)
+
+| Export | Purpose |
+|---|---|
+| `getTracer(name: string)` | Returns an OTel `Tracer`. No-op when SDK not initialized. |
+| `isOtelEnabled(): boolean` | `true` iff `OTEL_EXPORTER_OTLP_ENDPOINT` is set and `OTEL_SDK_DISABLED` is not truthy. |
+| `recordException(span, error)` | Records an exception event on the span and sets its status to ERROR. Swallows all internal errors so the request path is never blocked. |
+| `endSpanSafely(span)` | Idempotent `span.end()` wrapper that swallows errors. |
+| `markSpanOk(span)` | Sets span status to OK. |
+| `getOtlpEndpoint()` | Reads `OTEL_EXPORTER_OTLP_ENDPOINT` (returns `null` when unset). |
+| `markOtelInitLogged()` / `_wasOtelInitLogged()` / `_resetOtelInitLoggedForTest()` | Init-log gate helpers (test-only). |
+
+### Public API (`open-sse/observability/traceparent.ts`)
+
+| Export | Purpose |
+|---|---|
+| `generateTraceparent(opts?)` | Builds a fresh W3C `traceparent` header value. Re-rolls all-zero trace/parent ids. Accepts `GenerateTraceparentOptions` (with `sampled?: boolean`) or a positional boolean. |
+| `parseTraceparent(raw)` | Validates and parses a `traceparent` value. Returns a discriminated union (`{ ok: true, traceparent } | { ok: false, error, raw }`). |
+| `parseTracestate(raw)` / `formatTracestate(entries)` | Round-trip for the optional `tracestate` header. |
+| `formatTraceparent(tp)` / `childTraceparent(parent, childParentId)` | Build child traceparents that preserve the parent's `traceId` + `flags`. |
+| `injectTraceparent(headers, tp, ts?, opts?)` | Writes `traceparent` (and optionally `tracestate`) into a headers map. Case-insensitive header detection, replaces existing entries, appends to existing `tracestate` unless `replaceTracestate: true`. |
+| `readTraceparentFromHeaders(headers)` | Reads both headers back, parsed. |
+| `safeParseTraceparent(raw)` | Convenience wrapper around `parseTraceparent` that returns `null` on failure. |
+
+### Wiring
+
+`src/instrumentation-node.ts::initOtel()` — bootstraps the OTel Node SDK
+**only when** `OTEL_EXPORTER_OTLP_ENDPOINT` is set. Dynamically imports
+`@opentelemetry/sdk-node`, `@opentelemetry/exporter-trace-otlp-http`,
+`@opentelemetry/resources`, `@opentelemetry/sdk-trace-base`,
+`@opentelemetry/semantic-conventions`. On init failure (e.g. dep
+missing), logs a single `[OTEL]` warning and stays no-op. Stashes the
+SDK on `globalThis.__otelSdk` for graceful shutdown.
+
+`initOtel()` is wired into `registerNodejs()` (the Node startup chain)
+right after the global fetch-proxy patch and before `ensureSecrets()`.
+
+`open-sse/observability/bifrostSpan.ts::withBifrostSpan()` — wraps a
+Bifrost HTTP call in a CLIENT span; injects the traceparent into the
+outbound headers. The trace-id / parent-id come from the active span
+context when the SDK is up, from the caller's `parentTraceparent`
+override when not, or from a freshly minted traceparent as last resort.
+
+`open-sse/observability/comboSpan.ts::withComboSpan()` — wraps
+`handleComboChat` in an INTERNAL parent span and uses `context.with()`
++ `trace.setSpan()` so every parallel provider span (including the
+Bifrost spans) automatically attaches as a child.
+
+### Activation
+
+```bash
+export OTEL_EXPORTER_OTLP_ENDPOINT=http://collector:4318
+export OTEL_SERVICE_NAME=omniroute  # optional, defaults to "omniroute"
+```
+
+When the env var is unset, all `getTracer()` calls return the
+`@opentelemetry/api` no-op tracer, every span is non-recording, and
+the dispatcher path is unaffected (no measurable overhead).
+
+`OTEL_SDK_DISABLED=true` overrides the endpoint and forces the no-op
+path even when the endpoint is configured.
+
+### Refactors
+
+Replaces hand-rolled `traceparent` construction in three call sites.
+All three now import `generateTraceparent` from
+`@omniroute/open-sse/observability/traceparent.ts`:
+
+| File | Before | After |
+|---|---|---|
+| `open-sse/executors/cursor.ts:620` | `\`00-${crypto.randomBytes(16).toString("hex")}-${crypto.randomBytes(8).toString("hex")}-01\`` | `generateTraceparent({ sampled: true })` |
+| `open-sse/executors/grok-web.ts` | Local `randomHex()` helper + hand-built `\`00-${traceId}-${spanId}-00\`` | `generateTraceparent({ sampled: false })`. The local helper is removed. |
+| `src/lib/providers/validation.ts` | Inline `randomHex = (n) => {…}` + hand-built `\`00-${traceId}-${spanId}-00\`` | `generateTraceparent({ sampled: false })`. The inline helper is removed. |
+
+### Tests
+
+| File | Coverage |
+|---|---|
+| `tests/unit/otel-exporter.test.ts` | `isOtelEnabled` honors both env vars; `getTracer` returns no-op by default; `recordException` swallows errors; helpers are test-isolated. |
+| `tests/unit/traceparent.test.ts` | W3C spec edge cases: all-zero rejection, lowercase hex, malformed split, version `00` strict, `tracestate` round-trip, `injectTraceparent` case-insensitivity + tracestate append/replace. |
+| `tests/unit/bifrost-span.test.ts` | Span created with right name + attributes; traceparent injected into fetch headers; wrapper passes through inner return; throw path records exception. |
+| `tests/unit/combo-span.test.ts` | Parent span attaches via `context.with`; resolved model extracted from `Response` and object shapes; failure path records exception + sets ERROR status. |
+| `tests/unit/instrumentation-node.test.ts` | `initOtel()` returns `false` when env unset; logs once; continues no-op when SDK deps are missing. |
+
+Refs: `docs/adr/0031-bifrost-tier1-router.md`, `PLAN.md` § 2.5.2 (B10),
+[`open-sse/observability/otelExporter.ts`](open-sse/observability/otelExporter.ts),
+[`open-sse/observability/traceparent.ts`](open-sse/observability/traceparent.ts),
+[`open-sse/observability/bifrostSpan.ts`](open-sse/observability/bifrostSpan.ts),
+[`open-sse/observability/comboSpan.ts`](open-sse/observability/comboSpan.ts),
+[`src/instrumentation-node.ts`](src/instrumentation-node.ts).
 
 ---
 

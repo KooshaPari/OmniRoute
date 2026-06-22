@@ -31,6 +31,7 @@ import { extractCookieValue, normalizeSessionCookieHeader } from "@/lib/provider
 import { buildJulesApiUrl } from "@/lib/cloudAgent/julesApi.ts";
 import { getGigachatAccessToken } from "@omniroute/open-sse/services/gigachatAuth.ts";
 import { validateQoderCliPat } from "@omniroute/open-sse/services/qoderCli.ts";
+import { generateTraceparent } from "@omniroute/open-sse/observability/traceparent.ts";
 import {
   AZURE_AI_DEFAULT_BASE_URL,
   buildAzureAiChatUrl,
@@ -2826,15 +2827,7 @@ async function validateGrokWebProvider({ apiKey, providerSpecificData = {} }: an
       };
     }
 
-    // Generate the same Cloudflare-bypass headers the GrokWebExecutor uses.
-    const randomHex = (n: number) => {
-      const a = new Uint8Array(n);
-      crypto.getRandomValues(a);
-      return Array.from(a, (b) => b.toString(16).padStart(2, "0")).join("");
-    };
     const statsigMsg = `e:TypeError: Cannot read properties of null (reading 'children')`;
-    const traceId = randomHex(16);
-    const spanId = randomHex(8);
 
     const response = await validationWrite("https://grok.com/rest/app-chat/conversations/new", {
       method: "POST",
@@ -2861,7 +2854,7 @@ async function validateGrokWebProvider({ apiKey, providerSpecificData = {} }: an
             "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36",
           "x-statsig-id": btoa(statsigMsg),
           "x-xai-request-id": crypto.randomUUID(),
-          traceparent: `00-${traceId}-${spanId}-00`,
+          traceparent: generateTraceparent({ sampled: false }),
         },
         providerSpecificData
       ),
