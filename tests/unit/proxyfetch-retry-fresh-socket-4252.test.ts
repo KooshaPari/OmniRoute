@@ -21,6 +21,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { proxyFetch } from "../../open-sse/utils/proxyFetch.ts";
 import {
+  getDirectDispatcherConnectionLimit,
   getDefaultDispatcher,
   getRetryDispatcher,
 } from "../../open-sse/utils/proxyDispatcher.ts";
@@ -75,5 +76,31 @@ test("#4252 a transient socket failure retries on a FRESH (no-keep-alive) dispat
     dispatchersUsed[0],
     dispatchersUsed[1],
     "retry must NOT reuse the same pooled dispatcher (would grab another stale socket)"
+  );
+});
+
+test("#4580 direct dispatcher uses a bounded multi-connection pool by default", () => {
+  assert.equal(getDirectDispatcherConnectionLimit({}), 32);
+});
+
+test("#4580 direct dispatcher connection limit is configurable and clamped", () => {
+  assert.equal(
+    getDirectDispatcherConnectionLimit({ OMNIROUTE_DIRECT_DISPATCHER_CONNECTIONS: "64" }),
+    64
+  );
+  assert.equal(
+    getDirectDispatcherConnectionLimit({ OMNIROUTE_DIRECT_DISPATCHER_CONNECTIONS: "9999" }),
+    256
+  );
+});
+
+test("#4580 invalid direct dispatcher connection limit falls back to default", () => {
+  assert.equal(
+    getDirectDispatcherConnectionLimit({ OMNIROUTE_DIRECT_DISPATCHER_CONNECTIONS: "0" }),
+    32
+  );
+  assert.equal(
+    getDirectDispatcherConnectionLimit({ OMNIROUTE_DIRECT_DISPATCHER_CONNECTIONS: "not-a-number" }),
+    32
   );
 });

@@ -9,8 +9,10 @@ const DISPATCHER_CACHE_KEY = Symbol.for("omniroute.proxyDispatcher.cache");
 const DEFAULT_DISPATCHER_KEY = Symbol.for("omniroute.proxyDispatcher.default");
 const RETRY_DISPATCHER_KEY = Symbol.for("omniroute.proxyDispatcher.retry");
 const SUPPORTED_PROTOCOLS = new Set(["http:", "https:", "socks5:"]);
+const DEFAULT_DIRECT_DISPATCHER_CONNECTIONS = 32;
 const DEFAULT_PROXY_DISPATCHER_CONNECTIONS = 32;
 const MAX_PROXY_DISPATCHER_CONNECTIONS = 256;
+const MAX_DIRECT_DISPATCHER_CONNECTIONS = 256;
 
 type DispatcherCache = Map<string, Dispatcher>;
 type GlobalWithDispatcherCache = typeof globalThis & {
@@ -89,6 +91,23 @@ export function getProxyDispatcherConnectionLimit(
   return Math.min(Math.floor(parsed), MAX_PROXY_DISPATCHER_CONNECTIONS);
 }
 
+export function getDirectDispatcherConnectionLimit(
+  env: Record<string, string | undefined> = process.env
+): number {
+  const raw = env.OMNIROUTE_DIRECT_DISPATCHER_CONNECTIONS;
+  if (raw == null || raw.trim() === "") return DEFAULT_DIRECT_DISPATCHER_CONNECTIONS;
+
+  const parsed = Number(raw);
+  if (!Number.isFinite(parsed) || parsed < 1) {
+    console.warn(
+      `[ProxyDispatcher] Invalid OMNIROUTE_DIRECT_DISPATCHER_CONNECTIONS="${raw}". Using default ${DEFAULT_DIRECT_DISPATCHER_CONNECTIONS}.`
+    );
+    return DEFAULT_DIRECT_DISPATCHER_CONNECTIONS;
+  }
+
+  return Math.min(Math.floor(parsed), MAX_DIRECT_DISPATCHER_CONNECTIONS);
+}
+
 function getProxyDispatcherOptions(env: Record<string, string | undefined> = process.env) {
   const options = getDispatcherOptions();
   // Disable keep-alive and pipelining for proxy connections.
@@ -111,7 +130,15 @@ function getProxyDispatcherOptions(env: Record<string, string | undefined> = pro
 export function getDefaultDispatcher(): Dispatcher {
   const globalWithCache = globalThis as GlobalWithDispatcherCache;
   if (!globalWithCache[DEFAULT_DISPATCHER_KEY]) {
-    globalWithCache[DEFAULT_DISPATCHER_KEY] = new Agent(getDispatcherOptions());
+    globalWithCache[DEFAULT_DISPATCHER_KEY] = new Agent({
+      ...getDispatcherOptions(),
+      // Direct provider traffic also carries long-lived SSE streams. Keep a
+      // bounded multi-connection pool and disable HTTP/1.1 pipelining so a long
+      // streaming response cannot head-of-line block unrelated same-provider
+      // direct requests on a reused origin socket (#4580).
+      connections: getDirectDispatcherConnectionLimit(),
+      pipelining: 0,
+    });
   }
   return globalWithCache[DEFAULT_DISPATCHER_KEY];
 }
