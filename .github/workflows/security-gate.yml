@@ -24,7 +24,7 @@ jobs:
   security:
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.1.1
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v4.1.1
       - uses: dtolnay/rust-toolchain@stable
 
       - name: Run cargo-audit
@@ -37,7 +37,7 @@ jobs:
       - name: Run cargo-deny
         id: deny
         continue-on-error: true
-        uses: EmbarkStudios/cargo-deny-action@v6
+        uses: EmbarkStudios/cargo-deny-action@v2.0.20
         with:
           rust-version: stable
 
