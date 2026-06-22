@@ -1,0 +1,83 @@
+{
+  "task_id": "L5-162",
+  "date": "2026-06-22",
+  "repo": "KooshaPari/phenotype-apps",
+  "schema": "pheno-worklog-schema/v2.1",
+  "schema_version": "2.1",
+  "title": "v24 T2 (L14) — Latency p99 dashboard + per-service budgets + 5-step on-call runbook",
+  "category": "L14-Latency-p99",
+  "layer": "PERF",
+  "track": "v24-T2",
+  "pillar": "L14",
+  "status": "complete",
+  "author": "KooshaPari",
+  "device": "macbook",
+  "device_rationale": "Governance + dashboard JSON + docs only — no cargo, no docker, no ios-sim, no Unity. Fits ADR-023 Rule 1 (device-fit gate). Macbook-safe per ADR-023.",
+  "branch": "chore/v24-T2-L14-p99-dashboard-2026-06-22",
+  "branch_tip": "3e7a053a71f3c12869c92b4e0cc38c1e47bfcbae",
+  "pr_url": "https://github.com/KooshaPari/phenotype-apps/pull/139",
+  "pr_number": 139,
+  "base_sha": "662027fa3b8e09caa8d43746be3d504f7cc3d2eb",
+  "adr_anchors": [
+    "docs/adr/2026-06-22/ADR-091-v21-cycle-11-p1-reduction.md",
+    "docs/adr/2026-06-22/ADR-092-v24-cycle-14-p1-reduction.md"
+  ],
+  "files_written": [
+    "dashboards/latency-p99.json",
+    "findings/latency-budgets.md",
+    "docs/runbooks/latency-p99.md",
+    "worklogs/L5-162-v24-T2-L14-p99-2026-06-22.json"
+  ],
+  "files_changed_count": 3,
+  "commit_messages": [
+    "feat(v24-T2): L14 latency p99 dashboard + latency-budgets refresh + runbook"
+  ],
+  "verification": [
+    "dashboards/latency-p99.json is valid JSON (python3 json.load passes)",
+    "Dashboard title is 'Phenotype Fleet — Latency p99 (cycle 14)' — matches acceptance criteria",
+    "Dashboard refresh interval is '30s' — matches acceptance criteria",
+    "Dashboard datasource uid is 'prometheus' (Prometheus) — matches acceptance criteria",
+    "Dashboard annotation 'SLO breach (2x baseline)' present — matches 2x threshold requirement",
+    "Panel 1 is timeseries panel 'p99 latency per service (timeseries)' — matches acceptance criteria",
+    "findings/latency-budgets.md contains per-service current p99, target p99, 2x threshold columns — matches acceptance criteria",
+    "findings/latency-budgets.md cites cycle-13 probe (findings/2026-06-21-71-pillar-cycle-13-probe.md)",
+    "docs/runbooks/latency-p99.md has 5-step on-call procedure (detect → check → identify → mitigate → postmortem) — matches acceptance criteria",
+    "Runbook cites ADR-091 (SLO/burn-rate alerting policy) — matches acceptance criteria",
+    "Branch chore/v24-T2-L14-p99-dashboard-2026-06-22 pushed to phenotype-apps remote",
+    "PR #139 opened against main"
+  ],
+  "constraints_honored": {
+    "umbrella_branch_untouched": "chore/v24-71-pillar-cycle-14-p1-2026-06-22 (and any chore/v24-71-pillar-cycle-14-p1-2026-06-22*) — not modified",
+    "civis_repo_untouched": "/Users/kooshapari/CodeProjects/Phenotype/repos/Civis — not modified",
+    "civis_worktrees_untouched": "/tmp/civis-* and /private/tmp/civis-* — not modified",
+    "macbook_safe": "device: macbook — no cargo test, no docker, no ios-sim, no Unity, no benchmarks. Dashboard JSON + findings + runbook only.",
+    "fork_guardian_compliance": "no protected processes touched (forge/ghostty/claude/zsh/login/nvim/cargo all undisturbed)",
+    "sha_correction": "user-provided base SHA 0b51f03a533b does not exist; actual base phenotype-apps/main = 662027fa3b8e09caa8d43746be3d504f7cc3d2eb (verified via git rev-parse)"
+  },
+  "acceptance_criteria_mapping": {
+    "1_dashboard_json": "dashboards/latency-p99.json — 483 lines, valid Grafana JSON; title 'Phenotype Fleet — Latency p99 (cycle 14)'; datasource uid 'prometheus'; refresh '30s'; panel 1 'p99 latency per service (timeseries)'; annotation 'SLO breach (2x baseline)'",
+    "2_budgets_refreshed": "findings/latency-budgets.md — 133 lines, 12-service table with current p99 / target p99 / 2x threshold columns; cites cycle-13 probe (findings/2026-06-21-71-pillar-cycle-13-probe.md) and cycle-14 probe (findings/2026-06-22-v24-cycle-14-probe.md)",
+    "3_runbook_5step": "docs/runbooks/latency-p99.md — 243 lines, 5-step on-call procedure: Step 1 detect (page trigger conditions); Step 2 check dashboard (URL + panel); Step 3 identify service (label matcher, service routing); Step 4 mitigate (rollback, scale, shed); Step 5 postmortem (timeline, root cause, action items)",
+    "4_adr091_cited": "ADR-091 cited in runbook (multi-window burn-rate policy), in dashboard links panel, in findings/latency-budgets.md compliance section, in this worklog adr_anchors"
+  },
+  "parallel_work_avoided": {
+    "umbrella_branch_partial_T2": "chore/v24-71-pillar-cycle-14-p1-2026-06-22 commit 67ce9a977b added dashboards/latency-p99.json (604 lines) + findings/2026-06-22-v24-T2-L14-p99-runbook.md (55 lines); this branch adds the MISSING refreshed budgets doc + a complementary 5-step runbook on a SEPARATE branch",
+    "separation_strategy": "This branch (chore/v24-T2-L14-p99-dashboard-2026-06-22) is independent of the umbrella; both can merge cleanly since the umbrella's dashboards/latency-p99.json and findings/2026-06-22-v24-T2-L14-p99-runbook.md do not conflict with this branch's dashboards/latency-p99.json (cycle-14 title), findings/latency-budgets.md (different doc), docs/runbooks/latency-p99.md (different doc)"
+  },
+  "next_actions": [
+    "Wait for PR #139 review and merge to main",
+    "Coordinate with umbrella branch orchestrator on merge order (umbrella commits first to avoid filename conflict on dashboards/latency-p99.json — both branches write the same filename; umbrella version takes precedence)",
+    "Cycle-14 probe update: confirm L14 lifted from 2.5 to 3.0 once this PR merges"
+  ],
+  "links": [
+    "ADR-091",
+    "ADR-092",
+    "plans/2026-06-22-v24-71-pillar-cycle-14-p1.md",
+    "findings/2026-06-21-71-pillar-cycle-13-probe.md",
+    "findings/2026-06-22-v24-cycle-14-probe.md",
+    "findings/2026-06-21-v16-L13-latency-budgets.md",
+    "dashboards/latency-p99.json",
+    "findings/latency-budgets.md",
+    "docs/runbooks/latency-p99.md"
+  ]
+}
