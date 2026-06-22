@@ -1,6 +1,6 @@
 {
   "version": "1.5.3",
-  "updated": "2026-06-21",
+  "updated": "2026-06-22",
   "authority": "phenotype-registry",
   "charter": "docs/rationalization/boundary-shaping.md",
   "note": "phenoShared targets are interim staging per ADR-ECO-014-phenoshared-decompose; terminal owners are DOMAIN_ROLES repos. 2026-06-18 (post-archive, L5-114): phenotype-voxel/terrain/water/postfx source repos ARCHIVED + DELETED (delete_repo scope) after phenotype-gfx#10 merged. phenotype-gfx is canonical; 4 source rows now terminal archived state. 2026-06-19 (L5-115, ADR-035A): pheno-capacity registered as new pheno-*-lib substrate (extracted from HwLedger per ADR-035A). 2026-06-20: Authvault SUPERSEDE by AuthKit; Httpora SUPERSEDE by Quillr.",
@@ -1246,13 +1246,14 @@
     {
       "id": "gate-phenotype-bus",
       "path": "KooshaPari/phenotype-bus",
-      "disposition": "HOLD_DELETE",
+      "disposition": "DELETE-eligible",
       "target": "Eventra rust/phenotype-event-bus + rust/phenotype-event-contracts; phenotype-python-sdk packages/pheno-events for Python edge bus",
       "wave": "delete-readiness-2026-06-21",
-      "fsm": "blocked-open-prs",
+      "fsm": "delete-eligible",
       "core_lang": "rust",
       "archived_date": "2026-06-20",
-      "note": "Archived private repo. Migration evidence: Eventra owns rust/phenotype-event-bus, rust/phenotype-event-contracts, and rust/phenotype-event-sourcing; phenotype-python-sdk owns Python pheno-events bus surfaces. 2026-06-21 gate check: phenokits-commons#7 MERGED and phenotype-apps#43 MERGED, but Eidolon#66 OPEN, Sidekick#75 OPEN, and PhenoObservability#178 OPEN. Org code search still finds active blockers: Eidolon crates/eidolon-mobile/Cargo.toml path dep to ../../../phenotype-bus, Sidekick docs/getting-started.md path dep example, and PhenoObservability phenotype_bus_observability_e2e docs. HOLD_DELETE until those PRs merge and post-merge search shows no production refs/raw gitlinks."
+      "note": "Archived/deleted private repo: GitHub API for KooshaPari/phenotype-bus returns 404 as of 2026-06-22. Direct runtime surfaces absorbed: Eventra owns rust/phenotype-event-bus, rust/phenotype-event-contracts, and rust/phenotype-event-sourcing; phenotype-python-sdk owns Python pheno-events surfaces; phenoEvents carries lifted InMemoryBus provenance. Delete-gate blockers cleared: phenokits-commons#7 merged; phenotype-apps#43 merged; Eidolon#66 merged at 73703bf and Eidolon#72 removed stale SBOM at a98e73f; Sidekick#75 merged at 7d22543; PhenoObservability#185 merged at de7a878. Remaining code-search hits are registry/absorbed-provenance/historical audit docs, not production manifest deps or raw gitlinks.",
+      "relocated_date": "2026-06-22"
     },
     {
       "id": "gate-phenocontracts",
