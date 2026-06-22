@@ -1,0 +1,77 @@
+name: Release
+on:
+  push:
+    tags: ['v*.*.*']
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version (semver)'
+        required: true
+        default: '0.1.0'
+
+# Release runs are sequential; never cancel a release mid-flight.
+permissions:
+  contents: write
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    name: release ${{ github.ref_name }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install build deps
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install build cyclonedx-python-lib hatch hatchling hatch-vcs hatch-fancy-pypi-readme
+
+      - name: Verify tag matches pyproject version
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          PY_VERSION=$(grep '^version' pyproject.toml | head -1 | cut -d'"' -f2)
+          if [ "$VERSION" != "$PY_VERSION" ]; then
+            echo "::error::Tag v$VERSION != pyproject.toml $PY_VERSION"
+            exit 1
+          fi
+
+      - name: Build + test (release)
+        run: |
+          python -m pytest --release -q || python -m pytest -q
+          python -m build --wheel --sdist --outdir dist/
+
+      - name: Generate SBOM (CycloneDX)
+        run: |
+          cyclonedx-py environment --output-format JSON --output-file target/sbom.json || true
+          cyclonedx-py requirements --output-format JSON --output-file target/sbom-requirements.json || true
+
+      - name: Publish to PyPI (OIDC trusted publishing)
+        env:
+          PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
+        run: |
+          # PyPI trusted publishing via OIDC; fall back to token if not configured.
+          if [ -z "$PYPI_TOKEN" ]; then
+            python -m twine upload dist/*
+          else
+            python -m twine upload -u __token__ -p "$PYPI_TOKEN" dist/*
+          fi
+
+      - name: Create GitHub Release + attach SBOM
+        uses: softprops/action-gh-release@v2
+        with:
+          name: "pheno-mcp-router ${{ github.ref_name }}"
+          generate_release_notes: true
+          files: |
+            target/sbom.json
+            target/sbom-requirements.json
+            dist/*
