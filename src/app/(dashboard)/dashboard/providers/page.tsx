@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { Card, CardSkeleton, Badge, Button, CollapsibleSection } from "@/shared/components";
 import {
   AGGREGATOR_PROVIDER_IDS,
@@ -9,7 +9,6 @@ import {
   IDE_PROVIDER_IDS,
   IMAGE_ONLY_PROVIDER_IDS,
   VIDEO_PROVIDER_IDS,
-  isClaudeCodeCompatibleProvider,
 } from "@/shared/constants/providers";
 import { useRouter, useSearchParams } from "next/navigation";
 import { getErrorCode, getRelativeTime } from "@/shared/utils";
@@ -19,6 +18,7 @@ import { useNotificationStore } from "@/store/notificationStore";
 import { useTranslations } from "next-intl";
 import {
   buildStaticProviderEntries,
+  buildCompatibleProviderGroups,
   filterConfiguredProviderEntries,
   shouldFilterProviderEntriesForDisplayMode,
   shouldShowFirstProviderHint,
@@ -480,37 +480,18 @@ export default function ProvidersPage() {
     }
   };
 
-  const compatibleProviders = providerNodes
-    .filter((node) => node.type === "openai-compatible")
-    .map((node) => ({
-      id: node.id,
-      name: node.name || t("openaiCompatibleName"),
-      color: "#10A37F",
-      textIcon: "OC",
-      apiType: node.apiType,
-    }));
-
-  const anthropicCompatibleProviders = providerNodes
-    .filter(
-      (node) => node.type === "anthropic-compatible" && !isClaudeCodeCompatibleProvider(node.id)
-    )
-    .map((node) => ({
-      id: node.id,
-      name: node.name || t("anthropicCompatibleName"),
-      color: "#D97757",
-      textIcon: "AC",
-    }));
-
-  const ccCompatibleProviders = providerNodes
-    .filter(
-      (node) => node.type === "anthropic-compatible" && isClaudeCodeCompatibleProvider(node.id)
-    )
-    .map((node) => ({
-      id: node.id,
-      name: node.name || ccCompatibleLabel,
-      color: "#B45309",
-      textIcon: "CC",
-    }));
+  const compatibleProviderGroups = useMemo(
+    () =>
+      buildCompatibleProviderGroups(providerNodes, {
+        openaiCompatibleName: t("openaiCompatibleName"),
+        anthropicCompatibleName: t("anthropicCompatibleName"),
+        claudeCodeCompatibleName: ccCompatibleLabel,
+      }),
+    [ccCompatibleLabel, providerNodes, t]
+  );
+  const compatibleProviders = compatibleProviderGroups.openai;
+  const anthropicCompatibleProviders = compatibleProviderGroups.anthropic;
+  const ccCompatibleProviders = compatibleProviderGroups.claudeCode;
 
   const effectiveProviderDisplayMode =
     providerDisplayMode === "configured" && connections.length === 0 ? "all" : providerDisplayMode;
@@ -530,7 +511,7 @@ export default function ProvidersPage() {
     activeServiceKind
   );
 
-  const blockedProviderSet = new Set(blockedProviders);
+  const blockedProviderSet = useMemo(() => new Set(blockedProviders), [blockedProviders]);
   const rawNoAuthEntriesAll = buildStaticProviderEntries("no-auth", getProviderStats);
   const noAuthEntriesAll = rawNoAuthEntriesAll.filter(({ providerId, provider }) => {
     const alias = typeof provider.alias === "string" ? provider.alias : null;
