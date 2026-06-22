@@ -1,0 +1,23 @@
+{
+  "schema": "pheno-worklog-schema/v2.1",
+  "schema_version": "2.1",
+  "date": "2026-06-22",
+  "task_id": "v24-cycle-14-71-pillar-p1-orchestrator",
+  "layer": "GOV",
+  "action": "dispatch",
+  "files": "plans/2026-06-22-v24-71-pillar-cycle-14-p1.md,docs/adr/2026-06-22/ADR-092-v24-cycle-14-p1-reduction.md,findings/2026-06-22-v24-cycle-14-probe.md",
+  "notes": "v24 cycle-14 P1 reduction scope committed; 5 tracks (T1 L5 C4, T2 L14 p99, T3 L17+L18 cache+pool, T4 L50 vault, T5 L63 SLO burn rate); fleet mean 3.10 -> ~3.18 target",
+  "device": "macbook",
+  "scope": "5 tracks (T1 C4 dep map, T2 p99 dashboard, T3 cache+pool bench, T4 vault migration 3 PRs, T5 SLO burn-rate alerts)",
+  "agents": ["orch-v24-T1-L5-c4", "orch-v24-T2-L14-p99", "orch-v24-T3-L17-L18", "orch-v24-T4-L50-vault", "orch-v24-T5-L63-slo"],
+  "risk": "medium",
+  "deps": "ADR-081 ranking, ADR-083 vault, ADR-091 SLO, v23 cycle-13 closure, ADR-023 device-fit (T3 heavy-runner only)",
+  "links": "ADR-092, plans/2026-06-22-v24-71-pillar-cycle-14-p1.md, findings/2026-06-21-71-pillar-cycle-13-probe.md",
+  "tracks": [
+    {"date": "2026-06-22", "task_id": "v24-T1", "layer": "AX", "action": "spec", "files": "findings/2026-06-22-v24-L5-c4-dep-map.md,docs/architecture/c4-{system,container,component}.dot", "notes": "L5 C4 component dependency map (System/Container/Component levels); drift-detector hook per ADR-049", "device": "macbook", "scope": "3 DOT diagrams + drift hook"},
+    {"date": "2026-06-22", "task_id": "v24-T2", "layer": "PERF", "action": "spec", "files": "dashboards/latency-p99.json,findings/latency-budgets.md", "notes": "L14 latency p99 dashboard (Grafana); 7-day retention; synthetic 2x baseline alert", "device": "macbook", "scope": "Grafana dashboard + runbook"},
+    {"date": "2026-06-22", "task_id": "v24-T3", "layer": "PERF", "action": "spec", "files": "findings/2026-06-22-v24-L17-L18-cache-pool-tuning.md,bench/cache_pool/", "notes": "L17 cache invalidation + L18 connection pool (paired); 1k-RPS 30-min soak on heavy-runner; 80% hit-rate target", "device": "heavy-runner", "scope": "bench harness + per-crate config PRs"},
+    {"date": "2026-06-22", "task_id": "v24-T4", "layer": "SEC", "action": "spec", "files": "findings/2026-06-22-v24-L50-vault-migration.md,vault-client/,pheno-config/src/secret_source/", "notes": "L50 vault migration: 3-PR sequencing (client -> parallel run -> cutover); 48h staging soak between PR-2 and PR-3; 0 plaintext secrets post-cutover", "device": "heavy-runner", "scope": "vault client + env->vault + rotate runbook"},
+    {"date": "2026-06-22", "task_id": "v24-T5", "layer": "OBS", "action": "spec", "files": "alerts/slo-burn-rate.yaml,findings/slo-definitions.md", "notes": "L63 SLO burn-rate alerts: 4 multi-window alerts (1h/6h fast, 6h/24h/3d slow); per Google SRE ch. 5; on-call runbook", "device": "macbook", "scope": "4 multi-window alerts + runbook"}
+  ]
+}
