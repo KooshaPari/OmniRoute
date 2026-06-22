@@ -144,8 +144,15 @@ impl_secret_new_expose!(DbPassword);
 impl_secret_fmt!(DbPassword);
 
 // ---------------------------------------------------------------------------
-// proptest::Arbitrary impls (v20-T5 / L23)
+// proptest::Arbitrary impls (v20-T5 / L23, v21-T4 / L11 fixup)
 // ---------------------------------------------------------------------------
+//
+// v21-T4 (L11) compatibility: proptest 1.5+ scoped the `Strategy` trait
+// more strictly; `prop_map` is now only available when the trait is in
+// scope. We import it once at module scope (rather than per-fn) so all
+// three `Arbitrary` impls below see it.
+
+use proptest::strategy::Strategy;
 
 /// Helper strategy: any non-empty ASCII string.
 ///
@@ -154,7 +161,6 @@ impl_secret_fmt!(DbPassword);
 /// (which can produce the empty string). The "alphanumeric 1..=64"
 /// range keeps generated secrets realistic without being too narrow.
 fn non_empty_ascii_string() -> proptest::strategy::BoxedStrategy<String> {
-    use proptest::strategy::Strategy;
     proptest::string::string_regex("[A-Za-z0-9_\\-]{1,64}")
         .expect("non_empty_ascii_string: regex must be valid")
         .boxed()

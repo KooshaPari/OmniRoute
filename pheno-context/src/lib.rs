@@ -97,19 +97,29 @@ impl proptest::arbitrary::Arbitrary for Context {
         use proptest::prelude::*;
         use proptest::strategy::Strategy;
 
-        let id_strat = proptest::string::string_regex("[A-Za-z0-9_\\-]{1,32}")
-            .expect("id regex");
-        let key_strat = proptest::string::string_regex("[a-z][a-z0-9_\\-]{0,16}")
-            .expect("metadata key regex");
-        let val_strat = proptest::string::string_regex("[A-Za-z0-9 _\\-\\.]{0,32}")
-            .expect("metadata value regex");
+        // v21-T4 (L11) compatibility: proptest 1.5+ removed `Clone` from
+        // `RegexGeneratorStrategy`. Box the strategies first so each
+        // `BoxedStrategy<String>` is `Clone` (the trait bound that
+        // the tuple combinator below needs).
+        let id_strat: proptest::strategy::BoxedStrategy<String> =
+            proptest::string::string_regex("[A-Za-z0-9_\\-]{1,32}")
+                .expect("id regex")
+                .boxed();
+        let key_strat: proptest::strategy::BoxedStrategy<String> =
+            proptest::string::string_regex("[a-z][a-z0-9_\\-]{0,16}")
+                .expect("metadata key regex")
+                .boxed();
+        let val_strat: proptest::strategy::BoxedStrategy<String> =
+            proptest::string::string_regex("[A-Za-z0-9 _\\-\\.]{0,32}")
+                .expect("metadata value regex")
+                .boxed();
 
         (
             id_strat.clone(),
             id_strat.clone(),
-            id_strat,
+            id_strat.clone(),
             option::of(id_strat.clone()),
-            option::of(id_strat),
+            option::of(id_strat.clone()),
             vec((key_strat, val_strat), 0..=8),
         )
             .prop_map(|(request_id, span_id, trace_id, user_id, org_id, kv)| {
