@@ -1,0 +1,105 @@
+# SLO compliance report — pheno-otel
+# generated: 2026-06-21T23:34:28Z
+# window:   7 day(s) (2026-06-14T23:34:22Z → 2026-06-21T23:34:23Z)
+# source:   synthetic
+
+pheno-otel — SLO compliance report
+  window : last 7 day(s)  (2026-06-14T23:34:22Z → 2026-06-21T23:34:23Z)
+  otlp   : http://localhost:4318
+  source : synthetic (collector unreachable — dry-run)
+
+  SLO     Metric                        Measured          Target   Status        Margin
+  ------  ----------------------  --------------  --------------  -------  ------------
+  A1      availability (route/connect/export)       99.9092 %       99.9000 %  PASS     +0.0092
+  A2      availability (resolve/disconnect)       99.9092 %       99.9500 %  FAIL     -0.0408
+  A3      availability (flush/health)       99.9092 %       99.9000 %  PASS     +0.0092
+  L1      latency p95 (export/route)         9.00 ms        10.00 ms  PASS     +1.0000
+  L4-flush  latency p99 (flush)           22.00 ms       200.00 ms  PASS     +178.0000
+  E1      error rate (5xx)              0.0908 %        0.1000 %  PASS     +0.0092
+  E2      error rate (4xx)              0.2550 %        0.5000 %  PASS     +0.2450
+  T1-rps  throughput (req/s)                1000            1000  PASS     +0.0000
+
+  overall : FAIL
+
+
+## JSON summary
+
+```json
+{
+  "service": "pheno-otel",
+  "window_days": 7,
+  "collector_reachable": false,
+  "synthetic": true,
+  "totals": {
+    "total_count": 604800,
+    "error_count": 549,
+    "5xx_count": 549,
+    "429_count": 1512,
+    "402_count": 30,
+    "ok_rate_pct": 99.9092,
+    "p50_ms": 2,
+    "p95_ms": 9,
+    "p99_ms": 22,
+    "throughput_rps": 1000
+  },
+  "slo_rows": [
+    {
+      "slo_id": "A1",
+      "measured": 99.9092,
+      "target": 99.9,
+      "status": "PASS",
+      "margin": 0.0092
+    },
+    {
+      "slo_id": "A2",
+      "measured": 99.9092,
+      "target": 99.95,
+      "status": "FAIL",
+      "margin": -0.0408
+    },
+    {
+      "slo_id": "A3",
+      "measured": 99.9092,
+      "target": 99.9,
+      "status": "PASS",
+      "margin": 0.0092
+    },
+    {
+      "slo_id": "L1",
+      "measured": 9,
+      "target": 10,
+      "status": "PASS",
+      "margin": 1
+    },
+    {
+      "slo_id": "L4-flush",
+      "measured": 22,
+      "target": 200,
+      "status": "PASS",
+      "margin": 178
+    },
+    {
+      "slo_id": "E1",
+      "measured": 0.0908,
+      "target": 0.1,
+      "status": "PASS",
+      "margin": 0.0092
+    },
+    {
+      "slo_id": "E2",
+      "measured": 0.255,
+      "target": 0.5,
+      "status": "PASS",
+      "margin": 0.245
+    },
+    {
+      "slo_id": "T1-rps",
+      "measured": 1000,
+      "target": 1000,
+      "status": "PASS",
+      "margin": 0
+    }
+  ],
+  "overall_status": "FAIL"
+}
+```

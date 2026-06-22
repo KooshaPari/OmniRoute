@@ -1,0 +1,105 @@
+# SLO compliance report — pheno-port-adapter
+# generated: 2026-06-21T23:34:44Z
+# window:   7 day(s) (2026-06-14T23:34:36Z → 2026-06-21T23:34:37Z)
+# source:   synthetic
+
+pheno-port-adapter — SLO compliance report
+  window : last 7 day(s)  (2026-06-14T23:34:36Z → 2026-06-21T23:34:37Z)
+  otlp   : http://localhost:4318
+  source : synthetic (collector unreachable — dry-run)
+
+  SLO     Metric                        Measured          Target   Status        Margin
+  ------  ----------------------  --------------  --------------  -------  ------------
+  A1      availability (route/connect/export)       99.9333 %       99.9500 %  FAIL     -0.0167
+  A2      availability (resolve/disconnect)       99.9333 %       99.9000 %  PASS     +0.0333
+  A3      availability (flush/health)       99.9333 %       99.9500 %  FAIL     -0.0167
+  L1      latency p95 (export/route)         9.00 ms        20.00 ms  PASS     +11.0000
+  L3      latency p95 (resolve/connect-redis)         2.00 ms        10.00 ms  PASS     +8.0000
+  E1      error rate (5xx)              0.0667 %        0.1000 %  PASS     +0.0333
+  E2      error rate (4xx)              0.1283 %        0.5000 %  PASS     +0.3717
+  T1-rps  throughput (req/s)                5000            5000  PASS     +0.0000
+
+  overall : FAIL
+
+
+## JSON summary
+
+```json
+{
+  "service": "pheno-port-adapter",
+  "window_days": 7,
+  "collector_reachable": false,
+  "synthetic": true,
+  "totals": {
+    "total_count": 3024000,
+    "error_count": 2016,
+    "5xx_count": 2016,
+    "429_count": 3780,
+    "402_count": 100,
+    "ok_rate_pct": 99.9333,
+    "p50_ms": 2,
+    "p95_ms": 9,
+    "p99_ms": 45,
+    "throughput_rps": 5000
+  },
+  "slo_rows": [
+    {
+      "slo_id": "A1",
+      "measured": 99.9333,
+      "target": 99.95,
+      "status": "FAIL",
+      "margin": -0.0167
+    },
+    {
+      "slo_id": "A2",
+      "measured": 99.9333,
+      "target": 99.9,
+      "status": "PASS",
+      "margin": 0.0333
+    },
+    {
+      "slo_id": "A3",
+      "measured": 99.9333,
+      "target": 99.95,
+      "status": "FAIL",
+      "margin": -0.0167
+    },
+    {
+      "slo_id": "L1",
+      "measured": 9,
+      "target": 20,
+      "status": "PASS",
+      "margin": 11
+    },
+    {
+      "slo_id": "L3",
+      "measured": 2,
+      "target": 10,
+      "status": "PASS",
+      "margin": 8
+    },
+    {
+      "slo_id": "E1",
+      "measured": 0.0667,
+      "target": 0.1,
+      "status": "PASS",
+      "margin": 0.0333
+    },
+    {
+      "slo_id": "E2",
+      "measured": 0.1283,
+      "target": 0.5,
+      "status": "PASS",
+      "margin": 0.3717
+    },
+    {
+      "slo_id": "T1-rps",
+      "measured": 5000,
+      "target": 5000,
+      "status": "PASS",
+      "margin": 0
+    }
+  ],
+  "overall_status": "FAIL"
+}
+```

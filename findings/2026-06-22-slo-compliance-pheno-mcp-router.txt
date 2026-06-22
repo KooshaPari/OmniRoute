@@ -1,0 +1,105 @@
+# SLO compliance report — pheno-mcp-router
+# generated: 2026-06-21T23:34:53Z
+# window:   7 day(s) (2026-06-14T23:34:46Z → 2026-06-21T23:34:47Z)
+# source:   synthetic
+
+pheno-mcp-router — SLO compliance report
+  window : last 7 day(s)  (2026-06-14T23:34:46Z → 2026-06-21T23:34:47Z)
+  otlp   : http://localhost:4318
+  source : synthetic (collector unreachable — dry-run)
+
+  SLO     Metric                        Measured          Target   Status        Margin
+  ------  ----------------------  --------------  --------------  -------  ------------
+  A1      availability (route/connect/export)       99.8889 %       99.9000 %  FAIL     -0.0111
+  A2      availability (resolve/disconnect)       99.8889 %       99.9000 %  FAIL     -0.0111
+  A4      availability (audit middleware)       99.8889 %       99.9500 %  FAIL     -0.0611
+  L1      latency p95 (export/route)        78.00 ms        85.00 ms  PASS     +7.0000
+  L3      latency p95 (resolve/connect-redis)        78.00 ms        20.00 ms  FAIL     -58.0000
+  E1      error rate (5xx)              0.0908 %        0.1000 %  PASS     +0.0092
+  E2      error rate (4xx)              0.5066 %        0.5000 %  FAIL     -0.0066
+  T1-rps  throughput (req/s)                1000            1000  PASS     +0.0000
+
+  overall : FAIL
+
+
+## JSON summary
+
+```json
+{
+  "service": "pheno-mcp-router",
+  "window_days": 7,
+  "collector_reachable": false,
+  "synthetic": true,
+  "totals": {
+    "total_count": 604800,
+    "error_count": 672,
+    "5xx_count": 549,
+    "429_count": 3024,
+    "402_count": 40,
+    "ok_rate_pct": 99.8889,
+    "p50_ms": 25,
+    "p95_ms": 78,
+    "p99_ms": 22,
+    "throughput_rps": 1000
+  },
+  "slo_rows": [
+    {
+      "slo_id": "A1",
+      "measured": 99.8889,
+      "target": 99.9,
+      "status": "FAIL",
+      "margin": -0.0111
+    },
+    {
+      "slo_id": "A2",
+      "measured": 99.8889,
+      "target": 99.9,
+      "status": "FAIL",
+      "margin": -0.0111
+    },
+    {
+      "slo_id": "A4",
+      "measured": 99.8889,
+      "target": 99.95,
+      "status": "FAIL",
+      "margin": -0.0611
+    },
+    {
+      "slo_id": "L1",
+      "measured": 78,
+      "target": 85,
+      "status": "PASS",
+      "margin": 7
+    },
+    {
+      "slo_id": "L3",
+      "measured": 78,
+      "target": 20,
+      "status": "FAIL",
+      "margin": -58
+    },
+    {
+      "slo_id": "E1",
+      "measured": 0.0908,
+      "target": 0.1,
+      "status": "PASS",
+      "margin": 0.0092
+    },
+    {
+      "slo_id": "E2",
+      "measured": 0.5066,
+      "target": 0.5,
+      "status": "FAIL",
+      "margin": -0.0066
+    },
+    {
+      "slo_id": "T1-rps",
+      "measured": 1000,
+      "target": 1000,
+      "status": "PASS",
+      "margin": 0
+    }
+  ],
+  "overall_status": "FAIL"
+}
+```
