@@ -70,8 +70,48 @@ const BIFROST_ENABLED = process.env.BIFROST_ENABLED !== "0";
 
 const injectionGuard = createInjectionGuard();
 
+type RelayUsageRecorder = (status: "success" | "error", statusCode: number) => void;
+
 export async function OPTIONS() {
   return handleCorsOptions();
+}
+
+function finalizeReadableStream(
+  body: ReadableStream<Uint8Array>,
+  onFinalize: (error?: unknown) => void
+): ReadableStream<Uint8Array> {
+  const reader = body.getReader();
+  let finalized = false;
+
+  const finalizeOnce = (error?: unknown) => {
+    if (finalized) return;
+    finalized = true;
+    onFinalize(error);
+  };
+
+  return new ReadableStream<Uint8Array>({
+    async pull(controller) {
+      try {
+        const { done, value } = await reader.read();
+        if (done) {
+          finalizeOnce();
+          controller.close();
+          return;
+        }
+        controller.enqueue(value);
+      } catch (error) {
+        finalizeOnce(error);
+        controller.error(error);
+      }
+    },
+    async cancel(reason) {
+      try {
+        await reader.cancel(reason);
+      } finally {
+        finalizeOnce(reason);
+      }
+    },
+  });
 }
 
 export async function POST(request: Request) {
@@ -262,7 +302,11 @@ export async function POST(request: Request) {
     }
 
     const ac = new AbortController();
-    const tid = setTimeout(() => ac.abort(), BIFROST_TIMEOUT_MS);
+    let timedOut = false;
+    const tid = setTimeout(() => {
+      timedOut = true;
+      ac.abort();
+    }, BIFROST_TIMEOUT_MS);
 
     let upstream: Response;
     try {
@@ -272,20 +316,23 @@ export async function POST(request: Request) {
         body: JSON.stringify(body),
         signal: ac.signal,
       });
-    } finally {
+    } catch (error) {
       clearTimeout(tid);
+      throw error;
     }
 
-    // 5. Forward response. For streaming we pass the body stream through
-    //    unmodified — Node's fetch streams chunked correctly.
-    recordRelayUsage(token.id, {
-      requestId: request.headers.get("x-request-id") || undefined,
-      status: upstream.status < 500 ? "success" : "error",
-      statusCode: upstream.status,
-      latencyMs: Date.now() - startTime,
-      clientIp,
-      userAgent,
-    });
+    // 5. Forward response. Non-streaming responses can be accounted for as soon
+    //    as headers arrive; streaming responses finalize on body close/cancel/error.
+    const recordUsage: RelayUsageRecorder = (status, statusCode) => {
+      recordRelayUsage(token.id, {
+        requestId: request.headers.get("x-request-id") || undefined,
+        status,
+        statusCode,
+        latencyMs: Date.now() - startTime,
+        clientIp,
+        userAgent,
+      });
+    };
 
     const newHeaders = new Headers(upstream.headers);
     newHeaders.set("X-Routed-By", "bifrost");
@@ -293,6 +340,23 @@ export async function POST(request: Request) {
     if (!wantsStream) {
       newHeaders.set("Content-Type", upstream.headers.get("Content-Type") ?? "application/json");
     }
+
+    if (wantsStream && upstream.body) {
+      const stream = finalizeReadableStream(upstream.body, (error) => {
+        clearTimeout(tid);
+        const statusCode = timedOut ? 504 : upstream.status;
+        const status = error || statusCode >= 500 ? "error" : "success";
+        recordUsage(status, statusCode);
+      });
+
+      return new Response(stream, {
+        status: upstream.status,
+        headers: newHeaders,
+      });
+    }
+
+    clearTimeout(tid);
+    recordUsage(upstream.status < 500 ? "success" : "error", upstream.status);
 
     return new Response(upstream.body, {
       status: upstream.status,

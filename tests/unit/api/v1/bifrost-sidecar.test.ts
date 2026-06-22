@@ -6,6 +6,8 @@ import {
   getClientIp,
   sanitizeForensicHeader,
 } from "../../../../src/app/api/v1/relay/chat/completions/relaySecurity.ts";
+import { getDbInstance } from "../../../../src/lib/db/core.ts";
+import { getRelayLogs } from "../../../../src/lib/db/relayProxies.ts";
 
 // ─── T-12 (#3932 PR-4): bifrost sidecar proxy route ──────────────────────
 //
@@ -19,6 +21,39 @@ const ORIGINAL_BIFROST_API_KEY = process.env.BIFROST_API_KEY;
 const ORIGINAL_BIFROST_OMNI_KEY = process.env.OMNIROUTE_BIFROST_KEY;
 const ORIGINAL_BIFROST_TIMEOUT = process.env.BIFROST_TIMEOUT_MS;
 const ORIGINAL_BIFROST_STREAMING = process.env.BIFROST_STREAMING_ENABLED;
+const ORIGINAL_FETCH = globalThis.fetch;
+
+function seedRelayToken(rawToken: string) {
+  const id = `rl_test_${Date.now()}_${Math.random().toString(16).slice(2)}`;
+  const now = Math.floor(Date.now() / 1000);
+  getDbInstance()
+    .prepare(
+      `
+      INSERT INTO relay_tokens (id, name, token_hash, token_prefix, description, combo_id,
+        allowed_models, max_tokens_per_request, max_requests_per_minute, max_requests_per_day,
+        max_cost_per_day, enabled, created_at, updated_at, expires_at, metadata)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?, ?, ?)
+    `
+    )
+    .run(
+      id,
+      "bifrost-sse-lifecycle",
+      createHash("sha256").update(rawToken).digest("hex"),
+      "rl_test",
+      "",
+      null,
+      JSON.stringify(["*"]),
+      128000,
+      60,
+      10000,
+      0,
+      now,
+      now,
+      null,
+      "{}"
+    );
+  return { id, rawToken };
+}
 
 function restoreEnv() {
   if (ORIGINAL_BIFROST_BASE_URL === undefined) delete process.env.BIFROST_BASE_URL;
@@ -31,6 +66,7 @@ function restoreEnv() {
   else process.env.BIFROST_TIMEOUT_MS = ORIGINAL_BIFROST_TIMEOUT;
   if (ORIGINAL_BIFROST_STREAMING === undefined) delete process.env.BIFROST_STREAMING_ENABLED;
   else process.env.BIFROST_STREAMING_ENABLED = ORIGINAL_BIFROST_STREAMING;
+  globalThis.fetch = ORIGINAL_FETCH;
 }
 
 // Case 1: BIFROST_BASE_URL unset. We test this first because the route's
@@ -145,4 +181,61 @@ test("bifrost route: shared relay security helpers sanitize forwarded client met
 
   assert.equal(getClientIp(req), "198.51.100.8");
   assert.equal(sanitizeForensicHeader("ua\r\nforged"), "ua forged");
+});
+
+test("bifrost route: records relay usage after SSE stream completion", async () => {
+  process.env.BIFROST_BASE_URL = "http://bifrost.test.local:8080";
+  process.env.BIFROST_TIMEOUT_MS = "5000";
+  delete process.env.BIFROST_API_KEY;
+  delete process.env.OMNIROUTE_BIFROST_KEY;
+  delete process.env.BIFROST_STREAMING_ENABLED;
+
+  const relayToken = seedRelayToken(`relay_bifrost_sse_${Date.now()}`);
+
+  globalThis.fetch = async () =>
+    new Response(
+      new ReadableStream<Uint8Array>({
+        start(controller) {
+          controller.enqueue(new TextEncoder().encode("data: {\"delta\":\"hi\"}\n\n"));
+          controller.close();
+        },
+      }),
+      {
+        status: 200,
+        headers: { "content-type": "text/event-stream" },
+      }
+    );
+
+  const { POST } = await import(
+    `../../../../src/app/api/v1/relay/chat/completions/bifrost/route.ts?case=${Date.now()}-${Math.random()}`
+  );
+
+  const req = new Request("http://localhost/api/v1/relay/chat/completions/bifrost", {
+    method: "POST",
+    headers: {
+      authorization: `Bearer ${relayToken.rawToken}`,
+      "content-type": "application/json",
+      "x-request-id": "bifrost-sse-lifecycle-test",
+    },
+    body: JSON.stringify({
+      model: "gpt-4",
+      stream: true,
+      messages: [{ role: "user", content: "hi" }],
+    }),
+  });
+
+  const res = await POST(req);
+  assert.equal(res.status, 200);
+  assert.equal(res.headers.get("X-Routed-By"), "bifrost");
+  assert.equal(getRelayLogs(relayToken.id, 10).length, 0);
+
+  assert.match(await res.text(), /delta/);
+
+  const logs = getRelayLogs(relayToken.id, 10);
+  assert.equal(logs.length, 1);
+  assert.equal(logs[0].status, "success");
+  assert.equal(logs[0].status_code, 200);
+  assert.equal(logs[0].request_id, "bifrost-sse-lifecycle-test");
+
+  restoreEnv();
 });
