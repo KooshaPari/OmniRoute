@@ -1,0 +1,79 @@
+name: proptest
+# v20-T5 (L23): nightly property-based test sweep across the 8
+# substrate crates that ship `proptest::Arbitrary` impls. Each crate
+# runs its `tests/proptest_smoke.rs` integration test with
+# `PROPTEST_CASES=256` to extend coverage well past the default 100.
+# The on-PR trigger runs the same test set with the default 100
+# cases for fast feedback.
+
+on:
+  schedule:
+    - cron: '0 4 * * *'  # 04:00 UTC nightly (1 hour after fuzz)
+  pull_request:
+    paths:
+      - 'pheno-config/**'
+      - 'pheno-context/**'
+      - 'pheno-errors/**'
+      - 'pheno-flags/**'
+      - 'pheno-port-adapter/**'
+      - 'pheno-otel/**'
+      - 'pheno-tracing/**'
+      - 'pheno-events/**'
+      - '.github/workflows/proptest.yml'
+  workflow_dispatch:
+
+env:
+  PROPTEST_CASES_NIGHTLY: '256'
+  PROPTEST_CASES_PR: '100'
+
+jobs:
+  proptest:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        crate:
+          - pheno-config
+          - pheno-context
+          - pheno-errors
+          - pheno-flags
+          - pheno-port-adapter
+          - pheno-otel
+          - pheno-tracing
+          - pheno-events
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Run proptest_smoke (PR default 100 cases)
+        run: |
+          cd "${{ matrix.crate }}"
+          PROPTEST_CASES="$PROPTEST_CASES_PR" \
+            cargo test --test proptest_smoke --locked
+        env:
+          PROPTEST_CASES: ${{ env.PROPTEST_CASES_PR }}
+
+  proptest-nightly:
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        crate:
+          - pheno-config
+          - pheno-context
+          - pheno-errors
+          - pheno-flags
+          - pheno-port-adapter
+          - pheno-otel
+          - pheno-tracing
+          - pheno-events
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Run proptest_smoke (nightly 256 cases)
+        run: |
+          cd "${{ matrix.crate }}"
+          PROPTEST_CASES="$PROPTEST_CASES_NIGHTLY" \
+            cargo test --test proptest_smoke --locked
+        env:
+          PROPTEST_CASES: ${{ env.PROPTEST_CASES_NIGHTLY }}
