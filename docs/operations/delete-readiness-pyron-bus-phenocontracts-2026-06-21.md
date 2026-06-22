@@ -9,7 +9,7 @@
 | Repo | Current state | 100% migrated? | Delete-ready? | Absorb target |
 |------|---------------|----------------|---------------|---------------|
 | `KooshaPari/Pyron` | Private/inaccessible by current `gh` token; local clone exists with legacy workspace | **No, not proven** | **No: HOLD_ARCHIVE** | DOMAIN_ROLES owners by surface |
-| `KooshaPari/phenotype-bus` | Private/archive record; remote returns 404 to current token | **Mostly, with explicit cleanup gates** | **No: HOLD_DELETE until gates clear** | Eventra + phenotype-python-sdk pheno-events |
+| `KooshaPari/phenotype-bus` | GitHub API returns 404 as of 2026-06-22 | **Yes for runtime/dependency surfaces** | **DELETE-eligible / tombstone-ready** | Eventra + phenotype-python-sdk pheno-events |
 | `KooshaPari/PhenoContracts` | Public active repo, non-archived | **No** | **No: HOLD_DECOMPOSE** | PhenoSpecs/TestingKit or new verifier owner TBD + ADR-ECO-014 Rust owners |
 
 ## Pyron granular absorption
@@ -54,7 +54,7 @@ Delete blockers:
 | Blocker | Required evidence |
 |---------|-------------------|
 | Cleanup PRs | 2026-06-21 check: `phenokits-commons#7` MERGED and `phenotype-apps#43` MERGED; `Eidolon#66`, `Sidekick#75`, and `PhenoObservability#178` remain OPEN. |
-| Raw gitlinks/path refs | Still blocked. Org search finds `Eidolon/crates/eidolon-mobile/Cargo.toml` with `phenotype-bus = { path = "../../../phenotype-bus" }`, `Sidekick/docs/getting-started.md` with a path dependency example, and PhenoObservability phenotype-bus E2E docs. |
+| Raw gitlinks/path refs | Cleared for known production blockers. Remaining search hits are registry rows, absorbed-source provenance, and historical audit/worklog docs; no known active Cargo path dep/raw apps gitlink blocker remains. |
 | Remote state | Current token gets 404; registry says archived private. Treat as archive-held, not hard-delete-ready. |
 
 
@@ -93,5 +93,5 @@ Not migrated:
 ## Next execution gates
 
 1. Pyron: locate the tombstone/gutted PR or branch, compare against local legacy surfaces, then update `gate-pyron` only after the remote archived content is proven.
-2. phenotype-bus: verify cited cleanup PRs merged and run a post-merge org reference sweep; only then change `gate-phenotype-bus` from `hold` to `delete-eligible`.
+2. phenotype-bus: delete/tombstone gate is complete; current GitHub API state returns 404, and remaining references are provenance/historical docs.
 3. PhenoContracts: open a decomposition ADR/ledger assigning verifier/adapters/tests to a terminal owner before any archive/delete action.
