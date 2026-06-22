@@ -4,6 +4,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { scoreAutoTargets } from "../../../open-sse/services/combo/autoStrategy.ts";
+import { getConnectionStatusQuotaCutoffReason } from "../../../open-sse/services/combo.ts";
 import type {
   AutoProviderCandidate,
   ResolvedComboTarget,
@@ -120,4 +121,57 @@ test("blocked quota candidates are not included in the scoring pool", () => {
     0,
     "the blocked GLM latency must not inflate surviving candidates' scores"
   );
+});
+
+test("connection terminal status maps to quota cutoff reason", () => {
+  assert.equal(
+    getConnectionStatusQuotaCutoffReason({ testStatus: "credits_exhausted" }),
+    "credits_exhausted"
+  );
+  assert.equal(getConnectionStatusQuotaCutoffReason({ testStatus: "expired" }), "expired");
+  assert.equal(getConnectionStatusQuotaCutoffReason({ testStatus: "active" }), undefined);
+});
+
+test("future unavailable connection maps to rate_limited quota cutoff reason", () => {
+  assert.equal(
+    getConnectionStatusQuotaCutoffReason({
+      testStatus: "unavailable",
+      rateLimitedUntil: new Date(Date.now() + 60_000).toISOString(),
+    }),
+    "rate_limited"
+  );
+  assert.equal(
+    getConnectionStatusQuotaCutoffReason({
+      testStatus: "unavailable",
+      rateLimitedUntil: new Date(Date.now() - 60_000).toISOString(),
+    }),
+    undefined
+  );
+});
+
+test("status-blocked candidates are removed before auto scoring", () => {
+  const targets = [
+    target("puter", "fast-free", "puter-empty"),
+    target("cerebras", "healthy", "cerebras-ok"),
+  ];
+  const ranked = scoreAutoTargets(
+    targets,
+    [
+      candidate("puter", "fast-free", "puter-empty", {
+        quotaRemaining: 0,
+        p95LatencyMs: 5,
+        quotaCutoffBlocked: true,
+        quotaCutoffReason: "credits_exhausted",
+      }),
+      candidate("cerebras", "healthy", "cerebras-ok", {
+        quotaRemaining: 100,
+        p95LatencyMs: 5000,
+      }),
+    ],
+    "coding",
+    latencyOnlyWeights
+  );
+
+  assert.equal(ranked.length, 1);
+  assert.equal(ranked[0]?.target.provider, "cerebras");
 });

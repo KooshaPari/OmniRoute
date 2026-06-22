@@ -326,6 +326,36 @@ function quotaRemainingPercentFromQuota(quota: unknown): number {
   return 100;
 }
 
+const QUOTA_BLOCKING_CONNECTION_STATUSES = new Set([
+  "banned",
+  "credits_exhausted",
+  "deactivated",
+  "expired",
+  "rate_limited",
+]);
+
+function normalizeConnectionStatus(value: unknown): string {
+  return typeof value === "string" ? value.trim().toLowerCase() : "";
+}
+
+function hasFutureRateLimitUntil(value: unknown): boolean {
+  if (value == null || value === "") return false;
+  const time = new Date(String(value)).getTime();
+  return Number.isFinite(time) && time > Date.now();
+}
+
+export function getConnectionStatusQuotaCutoffReason(
+  connection: Record<string, unknown> | undefined
+): string | undefined {
+  if (!connection) return undefined;
+  const status = normalizeConnectionStatus(connection.testStatus);
+  if (QUOTA_BLOCKING_CONNECTION_STATUSES.has(status)) return status;
+  if (status === "unavailable" && hasFutureRateLimitUntil(connection.rateLimitedUntil)) {
+    return "rate_limited";
+  }
+  return undefined;
+}
+
 export async function buildAutoCandidates(
   targets: ResolvedComboTarget[],
   comboName: string,
@@ -473,6 +503,12 @@ export async function buildAutoCandidates(
       let quotaCutoffReason: string | undefined;
       const fetcher = getQuotaFetcher(provider);
       const connection = target.connectionId ? connectionById.get(target.connectionId) : undefined;
+      const statusCutoffReason = getConnectionStatusQuotaCutoffReason(connection);
+      if (statusCutoffReason) {
+        quotaCutoffBlocked = true;
+        quotaCutoffReason = statusCutoffReason;
+        quotaRemaining = 0;
+      }
       if (fetcher && target.connectionId) {
         const quotaKey = `${provider}:${target.connectionId}`;
         if (!quotaPromises.has(quotaKey)) {
@@ -491,8 +527,10 @@ export async function buildAutoCandidates(
         }
         const quota = await quotaPromises.get(quotaKey)!;
         resetWindowAffinity = calculateResetWindowAffinity(quota, resetWindowConfig);
-        quotaRemaining = quotaRemainingPercentFromQuota(quota);
-        if (quotaCutoffEnabled) {
+        if (!quotaCutoffBlocked) {
+          quotaRemaining = quotaRemainingPercentFromQuota(quota);
+        }
+        if (!quotaCutoffBlocked && quotaCutoffEnabled) {
           const cutoffDecision = evaluateQuotaCutoff(
             quota as QuotaInfo | null,
             buildAutoQuotaThresholds(provider, connection, resilienceSettings)
