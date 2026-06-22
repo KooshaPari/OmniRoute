@@ -1,0 +1,10 @@
+# Default config for the `hot_reload` example.
+#
+# Edit this file while the example is running, then send
+# SIGHUP to the example process:
+#
+#   kill -HUP $(pgrep -f "hot_reload")
+#
+# The next tick will print the new value.
+
+url = http://localhost:8080

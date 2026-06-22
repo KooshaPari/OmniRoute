@@ -40,6 +40,7 @@
 
 use std::fmt;
 
+use proptest::strategy::Strategy;
 use zeroize::{Zeroize, ZeroizeOnDrop};
 
 /// Redacted representation for `Display` and `Debug`.

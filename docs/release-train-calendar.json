@@ -1,0 +1,21 @@
+{
+  "release_train": "phenotype-fleet",
+  "cadence": "6-week release train",
+  "skip_rules": ["v23.1", "v23.3", "v23.5"],
+  "cut_rules": ["v23.0", "v23.2", "v23.4"],
+  "releases": [
+    {"version": "v23.0", "cut_date": "2026-07-13", "release_date": "2026-07-20", "scope": "core"},
+    {"version": "v23.1", "cut_date": "2026-07-20", "release_date": "2026-07-27", "scope": "SKIP"},
+    {"version": "v23.2", "cut_date": "2026-07-27", "release_date": "2026-08-03", "scope": "core"},
+    {"version": "v23.3", "cut_date": "2026-08-03", "release_date": "2026-08-10", "scope": "SKIP"},
+    {"version": "v23.4", "cut_date": "2026-08-10", "release_date": "2026-08-17", "scope": "core"},
+    {"version": "v23.5", "cut_date": "2026-08-17", "release_date": "2026-08-24", "scope": "SKIP"}
+  ],
+  "owners": {
+    "phenotype-router": "kp",
+    "pheno-config": "kp",
+    "pheno-tracing": "kp",
+    "pheno-events": "kp",
+    "pheno-port-adapter": "kp"
+  }
+}

@@ -40,15 +40,24 @@ toml = "0.7"
 # must have proptest as a regular dep.
 proptest = { version = "1.4", default-features = false, features = ["std"] }
 
-# v22-T4 (L33) SIGHUP-driven hot reload (see src/hot_reload.rs):
-#   arc-swap       - lock-free atomic swap of the cached config
-#   signal-hook    - cross-platform signal handling (unix: SIGHUP)
-#   crossbeam-channel - shutdown signal for the background reloader thread
-arc-swap = "1.7"
+# v22-T3 (L33) SIGHUP-driven hot reload (see src/hot_reload.rs):
+#   signal-hook    - cross-platform signal handling (unix: SIGHUP).
+#                    The watcher thread in `watch_sighup` uses
+#                    `signal_hook::iterator::Signals` to receive
+#                    SIGHUP and re-read the config file.
+#   tempfile       - tempdir for unit tests in `hot_reload.rs` (the
+#                    `read_and_install_*` tests need a scratch file).
 signal-hook = "0.3"
-crossbeam-channel = "0.5"
-# tempdir + signal-hook's signal-block helpers
 tempfile = "3.10"
+
+# v22-T3 (L33) — tokio is added per the v22-T3 task brief so that
+# downstream consumers can run an async-aware variant of the reload
+# loop (the example in `examples/hot_reload.rs` runs a tokio runtime
+# alongside the sync `watch_sighup` thread). The `signal` feature is
+# what would back a future `watch_sighup_async`; `rt-multi-thread`
+# is what the example uses for its tokio runtime. Pinned to 1.x per
+# the fleet MSRV matrix.
+tokio = { version = "1", features = ["signal", "rt-multi-thread"] }
 
 [dev-dependencies]
 # v20-T5 (L23): proptest is also in [dev-dependencies] for integration
