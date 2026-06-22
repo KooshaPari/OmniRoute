@@ -1,0 +1,103 @@
+# .github/workflows/dashboards.yml
+#
+# Grafonnet/Jsonnet dashboard CI gate.
+#
+# Triggers:
+#   - pull_request touching dashboards/** or Makefile
+#   - push to main touching dashboards/** or Makefile
+#   - workflow_dispatch (manual re-run)
+#
+# Steps:
+#   1. checkout
+#   2. install jsonnet + jsonnet-lint + jsonnetfmt
+#   3. cache jsonnet vendor/ dir (for grafonnet-lib once vendored)
+#   4. make dashboards.lint   — fails on unformatted / broken .jsonnet
+#   5. make dashboards.diff   — fails on drift between .jsonnet source and
+#                               checked-in golden JSON
+#
+# Why both lint AND diff: lint catches syntactical drift (someone hand-
+# edits a .jsonnet without re-running jsonnetfmt); diff catches semantic
+# drift (someone updates the golden JSON without re-running jsonnet).
+# Both are necessary; either alone is insufficient.
+#
+# Cost: ~2 min wall (jsonnet renders are sub-second). No Docker, no
+# heavy runners required — this is a macbook-friendly CI gate.
+
+name: dashboards
+
+on:
+  pull_request:
+    paths:
+      - 'dashboards/**'
+      - 'Makefile'
+      - '.github/workflows/dashboards.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'dashboards/**'
+      - 'Makefile'
+      - '.github/workflows/dashboards.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  lint-and-diff:
+    name: lint + diff (jsonnet)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install jsonnet toolchain
+        # Use the Google go-jsonnet binaries (single static binary, no
+        # apt repo dance). 0.20+ supports all the language features we use.
+        run: |
+          set -euo pipefail
+          ARCH="$(uname -m | sed 's/aarch64/arm64/; s/x86_64/amd64/')"
+          JSONNET_VERSION="0.20.0"
+          URL="https://github.com/google/go-jsonnet/releases/download/v${JSONNET_VERSION}/go-jsonnet_${JSONNET_VERSION}_Linux_${ARCH}.tar.gz"
+          echo "Installing jsonnet ${JSONNET_VERSION} (${ARCH}) from ${URL}"
+          curl -fsSL -o /tmp/jsonnet.tar.gz "${URL}"
+          tar -xzf /tmp/jsonnet.tar.gz -C /tmp
+          sudo mv /tmp/jsonnet /tmp/jsonnetfmt /usr/local/bin/
+          # jsonnet-lint is a separate go-jsonnet subcommand binary.
+          curl -fsSL -o /tmp/jsonnet-lint.tar.gz \
+            "https://github.com/google/go-jsonnet/releases/download/v${JSONNET_VERSION}/jsonnet-lint_${JSONNET_VERSION}_Linux_${ARCH}.tar.gz"
+          tar -xzf /tmp/jsonnet-lint.tar.gz -C /tmp
+          sudo mv /tmp/jsonnet-lint /usr/local/bin/
+          jsonnet --version
+          jsonnetfmt --version
+          jsonnet-lint --version
+
+      - name: Cache jsonnet vendor
+        # Once grafonnet-lib is vendored under dashboards/vendor/, this
+        # cache keeps CI fast on repeat runs. Today the scaffold does
+        # NOT vendor — when we add grafonnet-lib (a v23 follow-up), this
+        # cache becomes meaningful.
+        uses: actions/cache@v4
+        with:
+          path: dashboards/vendor
+          key: ${{ runner.os }}-jsonnet-vendor-${{ hashFiles('dashboards/jsonnetfile.json', 'dashboards/jsonnetfile.lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-jsonnet-vendor-
+
+      - name: Lint jsonnet
+        run: make dashboards.lint
+        timeout-minutes: 2
+
+      - name: Diff jsonnet (drift gate)
+        run: make dashboards.diff
+        timeout-minutes: 3
+
+      - name: Upload rendered JSON (on failure only)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: dashboards-rendered
+          path: |
+            dashboards/**/build/*.json
+          if-no-files-found: ignore

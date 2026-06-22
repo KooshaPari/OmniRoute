@@ -1,0 +1,14 @@
+# Rendered dashboard JSON is a build artefact — never check in.
+# Re-generate with `make dashboards.build`.
+
+**/build/
+**/build/*.json
+
+# Vendored grafonnet-lib (once we add it via `jb install`).
+vendor/
+
+# jsonnet tooling cache
+.jsonnetfmt-cache/
+
+# jsonnet dependency lockfiles (until we vendor)
+jsonnetfile.lock.json

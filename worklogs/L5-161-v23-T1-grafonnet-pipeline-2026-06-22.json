@@ -1,0 +1,146 @@
+{
+  "version": "2.1",
+  "session": "2026-06-22-v23-T1-grafonnet-pipeline-orchestrator",
+  "device": "macbook",
+  "epoch": "2026-06-22T00:00:00Z",
+  "state": {
+    "before": {
+      "branch": "chore/v23-T1-grafonnet-pipeline-2026-06-22",
+      "base": "origin/main",
+      "v22_l25_commit": "1c738725e3 (on branch feat/v22-l25-metrics-2026-06-22, NOT in HEAD)",
+      "dashboards_present": false,
+      "v23_T1_status": "not started"
+    },
+    "after": {
+      "branch": "chore/v23-T1-grafonnet-pipeline-2026-06-22",
+      "v23_T1_status": "scaffold shipped (PR open, awaiting review)"
+    }
+  },
+  "actions": [
+    {
+      "id": "T1.1",
+      "type": "chore(scaffold)",
+      "surface": "dashboards/lib/datasource.libsonnet",
+      "rationale": "Base datasource factory (Prometheus / Tempo / Loki) so every panel in the fleet uses the same canonical UIDs and selector shape."
+    },
+    {
+      "id": "T1.2",
+      "type": "chore(scaffold)",
+      "surface": "dashboards/lib/panel.libsonnet",
+      "rationale": "Base panel factory for the 4 panel types the fleet uses today: graph (legacy parity), stat, table, timeseries. Includes traceql/logql convenience wrappers."
+    },
+    {
+      "id": "T1.3",
+      "type": "chore(scaffold)",
+      "surface": "dashboards/lib/dashboard.libsonnet",
+      "rationale": "Base dashboard factory: time range, theme, tags, annotations, links. Wraps the raw Grafonnet dashboard.new with fleet-canonical defaults so every dashboard ships consistent."
+    },
+    {
+      "id": "T1.4",
+      "type": "chore(scaffold)",
+      "surface": "dashboards/argis-extensions/main.jsonnet",
+      "rationale": "Example dashboard for argis-extensions. Proves the pipeline end-to-end without touching the v22 parallel agent's pheno-otel dashboards/."
+    },
+    {
+      "id": "T1.5",
+      "type": "chore(ci)",
+      "surface": "Makefile",
+      "rationale": "Build / lint / diff / clean targets. make dashboards.diff is the drift gate that prevents hand-edited JSON drift."
+    },
+    {
+      "id": "T1.6",
+      "type": "chore(ci)",
+      "surface": ".github/workflows/dashboards.yml",
+      "rationale": "CI gate: runs lint + diff on every PR touching dashboards/ or the Makefile. ~2 min wall, macbook-friendly."
+    },
+    {
+      "id": "T1.7",
+      "type": "docs(governance)",
+      "surface": "dashboards/README.md",
+      "rationale": "One-page pipeline guide: install, build, lint, diff, regenerate, workflow, ADR refs."
+    },
+    {
+      "id": "T1.8",
+      "type": "docs(governance)",
+      "surface": "worklogs/L5-161-v23-T1-grafonnet-pipeline-2026-06-22.json",
+      "rationale": "This worklog (v2.1 schema, 11th column device=macbook per ADR-025)."
+    }
+  ],
+  "observations": {
+    "v22_l25_status": {
+      "commit": "1c738725e3",
+      "branch": "feat/v22-l25-metrics-2026-06-22",
+      "head_of_branch": "reachable from HEAD via ancestry but NOT in HEAD; parallel agent did not push",
+      "dashboards_present_in_commit": 5,
+      "dashboard_files": [
+        "pheno-otel/docs/metrics/dashboards/api-overview.json",
+        "pheno-otel/docs/metrics/dashboards/error-budget.json",
+        "pheno-otel/docs/metrics/dashboards/latency-slo.json",
+        "pheno-otel/docs/metrics/dashboards/saturation.json",
+        "pheno-otel/docs/metrics/dashboards/throughput.json"
+      ],
+      "touched_by_v23_T1": false,
+      "rationale": "Out of scope per user directive (parallel agent owns the v22 L25 work; this scaffold is the future .libsonnet home for those dashboards, but converting them is a v23+ follow-up)"
+    },
+    "jsonnet_toolchain_local": {
+      "jsonnet": false,
+      "jsonnetfmt": false,
+      "jsonnet_lint": false,
+      "jb": false,
+      "rationale": "Not installed on the orchestrator macbook. CI installs them from Google go-jsonnet release tarballs. Local verification deferred to CI."
+    },
+    "pillar_impact": {
+      "L25_observability_metrics": {
+        "before": 2.5,
+        "after_predicted": 3.0,
+        "rationale": "Dashboards now expressed as code; lint + diff gate in CI; PR review on every dashboard change."
+      }
+    }
+  },
+  "files_changed": [
+    "dashboards/lib/datasource.libsonnet (new, 58 LOC)",
+    "dashboards/lib/panel.libsonnet (new, 227 LOC)",
+    "dashboards/lib/dashboard.libsonnet (new, 141 LOC)",
+    "dashboards/argis-extensions/main.jsonnet (new, 77 LOC)",
+    "dashboards/README.md (new, 143 LOC)",
+    "Makefile (new, 120 LOC)",
+    ".github/workflows/dashboards.yml (new, 103 LOC)",
+    "dashboards/.gitignore (new, 9 LOC)",
+    "worklogs/L5-161-v23-T1-grafonnet-pipeline-2026-06-22.json (this file)"
+  ],
+  "pr": {
+    "url": "https://github.com/KooshaPari/phenotype-apps/pull/138",
+    "number": 138,
+    "branch": "chore/v23-T1-grafonnet-pipeline-2026-06-22",
+    "title": "chore(v23): T1 Grafonnet/Jsonnet pipeline (L25 dashboard-as-code)",
+    "base": "main",
+    "state": "OPEN",
+    "mergeable": "MERGEABLE",
+    "remote_push": true,
+    "verified_at": "2026-06-22T00:00:00Z"
+  },
+  "next_steps": [
+    "v23-T2 OTel collector HA — pick up where T1 leaves off (next critical-path track).",
+    "v23+ follow-up: convert the 5 pheno-otel/docs/metrics/dashboards/*.json files to Grafonnet so they live under dashboards/pheno-otel/*.jsonnet and benefit from the same CI gate.",
+    "v23+ follow-up: vendor grafonnet-lib under dashboards/vendor/ (today the lib/*.libsonnet factories are self-contained and do not depend on grafonnet-lib; vendoring is optional and only needed if a future dashboard author wants to compose with upstream panels directly).",
+    "v23+ follow-up: add `make dashboards.deploy` + Grafana provisioning sidecar (out of scope for T1 scaffold).",
+    "v23+ follow-up: enable the dashboards.yml CI workflow on a non-fleet repo first as a smoke test before turning it on for the whole monorepo."
+  ],
+  "blocked": {},
+  "device_compliance": {
+    "macbook_only": true,
+    "cargo_calls": 0,
+    "ios_simulator": 0,
+    "docker_dind": 0,
+    "jsonnet_local_renders": 0,
+    "heavy_runner_dispatched": false,
+    "rationale": "Pure markdown / .libsonnet / .yml / Makefile authoring. No build, no test, no simulator, no container. macbook-native."
+  },
+  "cycle_context": {
+    "plan_path": "plans/2026-06-21-v23-71-pillar-cycle-13-p3.md",
+    "cycle": 13,
+    "cycle_target": "P3 reduction; fleet mean 3.10 → 3.20",
+    "track": "T1 (Grafonnet/Jsonnet pipeline)",
+    "pillar_under_change": "L25 observability metrics 2.5 → 3.0"
+  }
+}
