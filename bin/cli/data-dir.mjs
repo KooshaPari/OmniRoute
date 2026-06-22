@@ -1,6 +1,6 @@
+import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import fs from "node:fs";
 
 const APP_NAME = "omniroute";
 
@@ -18,12 +18,13 @@ function safeHomeDir() {
   }
 }
 
-export function resolveDataDir() {
-  const configured = normalizeConfiguredPath(process.env.DATA_DIR);
-  if (configured) return configured;
+export function getLegacyDotDataDir(homeDir = safeHomeDir()) {
+  return path.join(homeDir, `.${APP_NAME}`);
+}
 
+export function getDefaultDataDir() {
   const homeDir = safeHomeDir();
-  const legacyDir = path.join(homeDir, `.${APP_NAME}`);
+  const legacyDir = getLegacyDotDataDir(homeDir);
 
   if (fs.existsSync(legacyDir)) {
     try {
@@ -31,7 +32,7 @@ export function resolveDataDir() {
         return legacyDir;
       }
     } catch {
-      // Ignore stat errors.
+      // Ignore stat errors and continue to the platform default.
     }
   }
 
@@ -44,6 +45,13 @@ export function resolveDataDir() {
   if (xdgConfigHome) return path.join(xdgConfigHome, APP_NAME);
 
   return legacyDir;
+}
+
+export function resolveDataDir() {
+  const configured = normalizeConfiguredPath(process.env.DATA_DIR);
+  if (configured) return configured;
+
+  return getDefaultDataDir();
 }
 
 export function resolveStoragePath(dataDir = resolveDataDir()) {
