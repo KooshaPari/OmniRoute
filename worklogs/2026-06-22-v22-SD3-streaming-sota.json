@@ -1,0 +1,107 @@
+{
+  "schema_version": "2.1",
+  "task_id": "v22-SD3-streaming-sota",
+  "date": "2026-06-22",
+  "device": "macbook",
+  "actor": "kooshapari",
+  "role": "orchestrator",
+  "cycle": 12,
+  "scope": "Side-discovery 3 (SD3) of v22 cycle 12 — research-only SOTA sweep for streaming crates",
+  "wave": "v22",
+  "branch": "feat/v22-l26-tracing-2026-06-22",
+  "scope_type": "research",
+  "device_floor_needed": false,
+  "device_reason": "No cargo work. Research + markdown authoring only.",
+  "candidates_evaluated": [
+    {
+      "crate": "tokio-stream",
+      "version_latest": "0.1.18",
+      "released": "ships with tokio 1.52.3 (2026-05-08)",
+      "msrv": "1.71",
+      "license": "MIT",
+      "verdict": "PRIMARY (T1 mandatory)",
+      "fleet_uses_grep": 49
+    },
+    {
+      "crate": "async-stream",
+      "version_latest": "0.3.6",
+      "released": "2024-10-01",
+      "msrv": "1.65",
+      "license": "MIT",
+      "verdict": "COMPLEMENTARY (T3 recommended for new code)",
+      "fleet_uses_grep": 26
+    },
+    {
+      "crate": "futures",
+      "version_latest": "0.3.32",
+      "released": "2025-02-15",
+      "msrv": "1.71",
+      "license": "MIT OR Apache-2.0",
+      "verdict": "COMBINATOR BACKBONE via futures-util (T2 mandatory)",
+      "fleet_uses_grep": 37,
+      "via_subcrate": "futures-util"
+    },
+    {
+      "crate": "futures-lite",
+      "version_latest": "2.6.1",
+      "released": "2025-08-04",
+      "msrv": "1.60",
+      "license": "Apache-2.0 OR MIT",
+      "verdict": "DISCOURAGED for federation (T4 — WASM-only exemption)",
+      "fleet_uses_grep": 1
+    }
+  ],
+  "decision": {
+    "primary_stack": ["tokio-stream 0.1.18", "futures-util 0.3.32", "async-stream 0.3.6"],
+    "forbidden_in_new_code": ["futures (umbrella)"],
+    "discouraged_in_new_code": ["futures-lite"],
+    "wasm_exception": "futures-lite permitted only for WASM targets without tokio reactor"
+  },
+  "use_case_mapping": [
+    {"use_case": "mTLS cert rotation (SPIRE)", "owner": "pheno-context (ADR-046)", "crates": ["tokio-stream"]},
+    {"use_case": "OIDC JWKS rotation", "owner": "pheno-context (ADR-079)", "crates": ["tokio-stream", "async-stream"]},
+    {"use_case": "OIDC refresh sliding window", "owner": "pheno-context (ADR-046)", "crates": ["futures-util", "tokio-stream"]},
+    {"use_case": "Vault dynamic secret rotation", "owner": "pheno-config (ADR-077)", "crates": ["tokio-stream", "async-stream"]},
+    {"use_case": "Event-bus pub/sub fan-out", "owner": "pheno-events (ADR-035B)", "crates": ["async-stream", "futures-util"]},
+    {"use_case": "MCP router SSE dispatch", "owner": "pheno-mcp-router (ADR-051)", "crates": ["tokio-stream", "tokio-util"]},
+    {"use_case": "OTLP trace export", "owner": "pheno-tracing (ADR-012/036B)", "crates": ["tokio-stream", "tokio-util"]},
+    {"use_case": "Config hot-reload diff", "owner": "pheno-config (v22 T4 / L33)", "crates": ["async-stream", "futures-util"]}
+  ],
+  "touches_pillars_research_only": ["L26", "L33", "L46", "L54", "L56"],
+  "touches_pillars_no_code": true,
+  "followups": [
+    {"id": "v22-T2-close", "action": "deny.toml advisory lint on futures umbrella imports", "owner": "orch-v23-T?-deny-lint"},
+    {"id": "v22-T4-close", "action": "verify pheno-config hot-reload uses async-stream::try_stream!", "owner": "orch-v22-T4-L33"},
+    {"id": "v23-cycle-13", "action": "cite this finding in federation implementation tracks", "owner": "orch-v23-planning"},
+    {"id": "v23-cycle-13", "action": "add Stream impl coverage gate (proptest roundtrip + integration test)", "owner": "orch-v23-T?-test-coverage"}
+  ],
+  "sources_verified_this_turn": [
+    "https://docs.rs/tokio-stream",
+    "https://docs.rs/async-stream",
+    "https://docs.rs/futures-lite",
+    "https://docs.rs/futures",
+    "https://github.com/tokio-rs/tokio/releases",
+    "https://github.com/tokio-rs/async-stream/releases",
+    "https://github.com/smol-rs/futures-lite/releases",
+    "https://github.com/rust-lang/futures-rs/releases",
+    "https://raw.githubusercontent.com/tokio-rs/tokio/master/tokio-stream/Cargo.toml",
+    "https://raw.githubusercontent.com/tokio-rs/async-stream/master/Cargo.toml"
+  ],
+  "sources_blocked_this_turn": [
+    {"url": "https://crates.io/crates/tokio-stream", "reason": "HTTP 403 (Cloudflare anti-scraper)"},
+    {"url": "https://lib.rs/crates/tokio-stream", "reason": "robots.txt restriction"}
+  ],
+  "artifacts": [
+    {"path": "findings/2026-06-22-v22-SD3-streaming-sota.md", "kind": "findings", "loC": 540}
+  ],
+  "inherits_from": "v22 cycle 12 P1 reduction (L25/L26/L31/L33/L35)",
+  "blocks": [],
+  "blocked_by": [],
+  "status": "complete",
+  "compliance": {
+    "device_floor_respected": true,
+    "worklog_schema": "2.1",
+    "device_field_present": true,
+    "fork_guardian_required": false
+  }
+}
