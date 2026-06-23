@@ -136,8 +136,16 @@ export function buildCompatibleProviderGroups(
   const openai: CompatibleProviderInfo[] = [];
   const anthropic: CompatibleProviderInfo[] = [];
   const claudeCode: CompatibleProviderInfo[] = [];
+  // #4746: defensive dedup — a node can appear twice if `setProviderNodes`
+  // is called twice with the same id (e.g. re-opening the add-modal after
+  // the previous save hasn't completed). Last-write-wins preserves the most
+  // recent name/apiType for the user.
+  const seen = new Set<string>();
 
   for (const node of providerNodes) {
+    if (seen.has(node.id)) continue;
+    seen.add(node.id);
+
     if (node.type === "openai-compatible") {
       openai.push({
         id: node.id,
@@ -170,6 +178,32 @@ export function buildCompatibleProviderGroups(
   }
 
   return { openai, anthropic, claudeCode };
+}
+
+/**
+ * Append a provider node to an existing list, deduplicating by `id`.
+ *
+ * #4746: the three `setProviderNodes((prev) => [...prev, node])` call sites
+ * in page.tsx could double-add a node if the user re-opens the add-modal
+ * after the previous save hasn't completed. Last-write-wins semantics — a
+ * re-add with the same id replaces the prior entry (preserving the latest
+ * `name` and `apiType`).
+ */
+export function appendProviderNode<T extends { id: string }>(
+  prev: T[],
+  node: T
+): T[] {
+  const existingIndex = prev.findIndex((p) => p.id === node.id);
+  if (existingIndex === -1) {
+    return [...prev, node];
+  }
+  if (existingIndex === prev.length - 1) {
+    // Already last entry with same id — no-op (cheap reference equality).
+    return prev;
+  }
+  const next = prev.slice();
+  next[existingIndex] = node;
+  return next;
 }
 
 export function filterConfiguredProviderEntries<TProvider>(

@@ -1001,3 +1001,100 @@ test("model search filter is case-insensitive and partial-match", () => {
   );
   assert.equal(byPartial.length, 1, "partial model id 'minimax' should match 'minimax-m3'");
 });
+
+test("appendProviderNode dedupes by id and keeps last-write-wins semantics (#4746)", () => {
+  const baseNode = {
+    id: "openai-compatible-lab",
+    name: "OpenAI Compatible Lab",
+    type: "openai-compatible",
+    apiType: "chat",
+  };
+  const renamedNode = {
+    id: "openai-compatible-lab",
+    name: "OpenAI Compatible Lab (renamed)",
+    type: "openai-compatible",
+    apiType: "responses",
+  };
+  const otherNode = {
+    id: "anthropic-compatible-x",
+    name: "Anthropic Compatible X",
+    type: "anthropic-compatible",
+  };
+
+  // Append a brand-new id → list grows by one, identity preserved on prior entries.
+  const afterFirst = providerPageUtils.appendProviderNode([], baseNode);
+  assert.equal(afterFirst.length, 1);
+  assert.deepEqual(afterFirst[0], baseNode);
+
+  // Append a second distinct id → list grows by one, order preserved.
+  const afterSecond = providerPageUtils.appendProviderNode(afterFirst, otherNode);
+  assert.equal(afterSecond.length, 2);
+  assert.deepEqual(afterSecond.map((n) => n.id), ["openai-compatible-lab", "anthropic-compatible-x"]);
+
+  // Append a duplicate id at the end → no-op, same reference returned (cheap React setState bailout).
+  const listEndingWithBase = [otherNode, baseNode];
+  const duplicateAtEnd = providerPageUtils.appendProviderNode(listEndingWithBase, baseNode);
+  assert.equal(
+    duplicateAtEnd,
+    listEndingWithBase,
+    "no-op when last entry already has the same id (returns same reference)"
+  );
+
+  // Append a duplicate id NOT at the end → replaces in place, length unchanged, order preserved.
+  const midList = [
+    otherNode,
+    baseNode,
+    { id: "anthropic-compatible-y", name: "Y", type: "anthropic-compatible" },
+  ];
+  const replaced = providerPageUtils.appendProviderNode(midList, renamedNode);
+  assert.equal(replaced.length, midList.length, "replacement does not grow the list");
+  assert.deepEqual(
+    replaced.map((n) => n.id),
+    ["anthropic-compatible-x", "openai-compatible-lab", "anthropic-compatible-y"],
+    "order preserved when replacing in the middle"
+  );
+  assert.deepEqual(replaced[1], renamedNode, "renamed node replaces prior entry in place");
+});
+
+test("buildCompatibleProviderGroups dedupes nodes with the same id (#4746)", () => {
+  const labels = {
+    openaiCompatibleName: "OpenAI Compatible",
+    anthropicCompatibleName: "Anthropic Compatible",
+    claudeCodeCompatibleName: "CC Compatible",
+  };
+
+  const duplicateNode = {
+    id: "openai-compatible-dup",
+    name: "First Add",
+    type: "openai-compatible" as const,
+    apiType: "chat",
+  };
+  const renamedDuplicate = {
+    id: "openai-compatible-dup",
+    name: "Renamed Add",
+    type: "openai-compatible" as const,
+    apiType: "responses",
+  };
+
+  const groups = providerPageUtils.buildCompatibleProviderGroups(
+    [
+      { id: "openai-compatible-a", name: "Provider A", type: "openai-compatible", apiType: "chat" },
+      duplicateNode,
+      { id: "anthropic-compatible-b", name: "Provider B", type: "anthropic-compatible" },
+      renamedDuplicate,
+    ],
+    labels
+  );
+
+  // First occurrence wins (defensive dedup in the consumer, last-write-wins handled by appendProviderNode).
+  assert.equal(groups.openai.length, 2);
+  assert.deepEqual(
+    groups.openai.map((p) => p.id),
+    ["openai-compatible-a", "openai-compatible-dup"]
+  );
+  assert.equal(groups.openai[1].name, "First Add", "defensive dedup keeps the first occurrence");
+  assert.equal(groups.openai[1].apiType, "chat");
+  assert.equal(groups.anthropic.length, 1);
+  assert.equal(groups.anthropic[0].id, "anthropic-compatible-b");
+  assert.equal(groups.claudeCode.length, 0);
+});
