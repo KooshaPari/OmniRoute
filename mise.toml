@@ -28,7 +28,7 @@ description = "Audit dependencies"
 run = "go list -json -m all | nancy sleuth"
 
 
-[tasks.docs:build]
+[tasks.docs-build]
 description = "Build documentation"
 
 run = "go doc -all -html ./... > docs/api.html"

@@ -494,6 +494,14 @@ See `findings/2026-06-18-L5-109-4-repo-retirement.md` for full migration matrix,
 - **codex exec unavailable for per-repo verification (2026-06-17 22:05 PDT)**: `codex exec --skip-git-repo-check` hit tool-routing cell_id errors in this environment (no output after 5 min); switched to direct orchestrator-level shell verification (`git fetch` + `git rev-list --count` + `git diff --name-only`). Equivalent rigor: per-commit + per-file cross-check.
 - **Track 8 cursor self-merge is the intended pattern (2026-06-18, per user directive)**: Bot merges with no HITL gate are the fleet norm. The P0 "violation" in the original post-mortem is reclassified P3 (informational). No reverts, no protection rules. See `findings/2026-06-18-track8-self-merge-postmortem.md` for the reclassified version.
 - **bucket_change HwLedger: from=PAUSED to=CONDITIONAL reason=ADR-035 (L5-105) reclassification — federated service with extractable pheno-capacity math lib**
+- **PROCESS-KILL GOVERNANCE (recorded 2026-06-22 per user directive)**:
+  - **NEVER kill any process without verifying identity first**. Allowed to terminate: `agent`, `cursor-agent`. Forbidden to terminate: `codex`, `claude`, `forge`, `ghostty` (agent CLIs + terminal emulator).
+  - For Node.js processes specifically: always inspect the command/pid first (e.g. `ps -p <pid> -o args=`) before issuing any `kill`/`kill -9`. Default to `kill -15` then escalate to `kill -9` only if the process has ignored SIGTERM for ≥30s.
+  - Subagents via `task` tool: if the tool reports "locked" / "DB locked" / "transient error", **do not kill the orchestrator, the host shell, or any agent CLI**. Debug path:
+    1. Open a `gh issue` against the affected upstream repo documenting the lock + a minimal repro
+    2. Fix the underlying source of the lock (e.g. stale `.git/worktrees/<name>/index.lock`, worktree on a deleted branch, `pnpm`/`node` zombies inside the user's toolchain) in non-source code (scripts, CI config, devcontainer, worktree management)
+    3. For 3rd-party (non-owned) repos, the same rule applies: never kill `codex`/`claude`/`forge`/`ghostty`; instead create a `gh issue` upstream and patch the local workaround in `scripts/` or worktree plumbing.
+  - Applies to ALL non-owned repos (anything outside `KooshaPari/*`). Do not extend `kill` semantics to fix tool-availability issues — the tool stack is sacred and recovers from lock conditions on its own.
 
 ---
 
