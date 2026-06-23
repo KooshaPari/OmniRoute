@@ -56,7 +56,7 @@ Lookup material — API surface, environment variables, CLI flags, provider cata
 
 - [API_REFERENCE.md](reference/API_REFERENCE.md) — REST API endpoints and shapes.
 - [PROVIDER_REFERENCE.md](reference/PROVIDER_REFERENCE.md) — auto-generated provider catalog.
-- [openapi.yaml](reference/openapi.yaml) — OpenAPI 3.1 spec for the public API.
+- [openapi.yaml](openapi.yaml) — OpenAPI 3.1 spec for the public API.
 - [ENVIRONMENT.md](reference/ENVIRONMENT.md) — environment variables reference.
 - [CLI-TOOLS.md](reference/CLI-TOOLS.md) — bundled CLI commands.
 - [FREE_TIERS.md](reference/FREE_TIERS.md) — free-tier LLM provider directory.

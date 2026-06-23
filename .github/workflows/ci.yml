@@ -227,7 +227,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       # fetch-depth: 0 — the OpenAPI breaking-change gate (oasdiff) reads the base
-      # spec via `git show <base_ref>:docs/reference/openapi.yaml`; a shallow clone
+      # spec via `git show <base_ref>:docs/openapi.yaml`; a shallow clone
       # would lack the base ref and the gate would self-skip (base-unresolved).
       - uses: actions/checkout@v7
         with:
@@ -318,7 +318,7 @@ jobs:
       - name: Workflow lint (actionlint+zizmor, ratchet, blocking)
         run: npm run check:workflows -- --ratchet
       # OpenAPI breaking-change detection (oasdiff). Diffs the PR's public API
-      # contract (docs/reference/openapi.yaml) against the base branch's spec.
+      # contract (docs/openapi.yaml) against the base branch's spec.
       # BLOCKING ratchet (Fase 9 Onda 0): reads metrics.openapiBreaking.value and
       # exits 1 ONLY on a measured regression (count > baseline). It SKIPs (exit 0)
       # when oasdiff is absent or the base spec can't be resolved — a missing

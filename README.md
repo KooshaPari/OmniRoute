@@ -921,7 +921,7 @@ Compression: aggressive (~50%) → double your free quota · Cost: $0/mo
 | Document                                          | Description                                         |
 | ------------------------------------------------- | --------------------------------------------------- |
 | [API Reference](docs/reference/API_REFERENCE.md)  | All endpoints with examples                         |
-| [OpenAPI Spec](docs/reference/openapi.yaml)       | OpenAPI 3.0 specification                           |
+| [OpenAPI Spec](docs/openapi.yaml)       | OpenAPI 3.0 specification                           |
 | [MCP Server](open-sse/mcp-server/README.md)       | 87 MCP tools, IDE configs, Python/TS/Go clients     |
 | [MCP Server Guide](docs/frameworks/MCP-SERVER.md) | MCP installation, transports, and tool reference    |
 | [A2A Server](src/lib/a2a/README.md)               | JSON-RPC 2.0 protocol, skills, streaming, task mgmt |

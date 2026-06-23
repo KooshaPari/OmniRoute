@@ -358,7 +358,7 @@ const ENDPOINT_ALLOWLIST = new Set([
 /** Doc files to skip (auto-generated, vendored, or third-party). */
 const SKIP_DOC_FILES = new Set([
   "docs/reference/PROVIDER_REFERENCE.md", // auto-generated from providers.ts
-  "docs/reference/openapi.yaml",
+  "docs/openapi.yaml",
   "docs/i18n", // translations — separate workflow
   // Point-in-time documentation audit (v3.8.24): intentionally references drift,
   // counts, and not-yet-existing files as part of documenting them — not living docs.

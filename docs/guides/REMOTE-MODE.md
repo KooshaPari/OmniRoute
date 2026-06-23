@@ -284,4 +284,4 @@ omniroute contexts remove 192-168-0-15 --yes   # drop the local context (even if
 | POST | `/api/cli/tokens` | access token | admin |
 | DELETE | `/api/cli/tokens/:id` | access token | admin |
 
-See [openapi.yaml](../reference/openapi.yaml) for full schemas.
+See [openapi.yaml](../openapi.yaml) for full schemas.

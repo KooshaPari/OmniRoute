@@ -84,7 +84,7 @@ lastUpdated: 2026-06-13
 - **Como funciona:** `docs/<seção>/*.md` → `source.config.ts` (globs) → `.source/server.ts` (gerado) → `src/lib/source.ts` → `src/app/docs/layout.tsx` (sidebar = `pageTree` dos `meta.json`) → `[...slug]/page.tsx`. **60 docs em inglês** entram no site.
 - **Navegação curada por `meta.json`** → arquivo novo em `/docs` **não aparece** até ser adicionado manualmente ao `meta.json` da seção. Hoje há 4 arquivos importados mas fora da sidebar (acima).
 - **i18n no site:** `[...slug]/page.tsx` lê cookie `NEXT_LOCALE`; se ≠ en, tenta `docs/i18n/<locale>/docs/<seção>/<FILE>.md` via `marked.parse()`, com fallback para o MDX inglês. Seletor: `LanguageSelector.tsx` (40 idiomas em `LANGUAGES`).
-- **API Explorer:** `openapi.generated.ts` é gerado por `scripts/docs/gen-openapi-module.mjs` a partir de `docs/reference/openapi.yaml` no `prebuild:docs`.
+- **API Explorer:** `openapi.generated.ts` é gerado por `scripts/docs/gen-openapi-module.mjs` a partir de `docs/openapi.yaml` no `prebuild:docs`.
 - **Riscos de drift:** (a) `meta.json` manual; (b) traduções não atualizam quando o inglês muda; (c) `openapi.yaml` precisa de regen; (d) `LANGUAGES` no app diz 40, config diz 42 → **divergência app vs config**.
 
 ### 2.4 Wiki do GitHub (`/wiki`) — **mais defasada de todas**

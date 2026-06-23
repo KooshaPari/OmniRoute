@@ -477,4 +477,4 @@ Base path: `/api/tools/traffic-inspector/`
 |--------|------|-------------|
 | POST | `/internal/ingest` | Accepts intercepted request from `server.cjs` passthrough path; requires `INSPECTOR_INTERNAL_INGEST_TOKEN` header |
 
-Full OpenAPI schemas: `docs/reference/openapi.yaml` → tag `Traffic Inspector`.
+Full OpenAPI schemas: `docs/openapi.yaml` → tag `Traffic Inspector`.

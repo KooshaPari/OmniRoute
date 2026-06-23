@@ -755,7 +755,7 @@ See [RESILIENCE_GUIDE.md](./RESILIENCE_GUIDE.md) and the dedicated section in
 4. If management-only: add the path to `src/shared/constants/publicApiRoutes.ts`
    (denylist for the public API surface).
 5. Add tests under `tests/unit/`.
-6. Update `docs/reference/API_REFERENCE.md` and `docs/reference/openapi.yaml`.
+6. Update `docs/reference/API_REFERENCE.md` and `docs/openapi.yaml`.
 
 ### Add a new DB module
 

@@ -34,7 +34,7 @@ export const APP_STAGING_REMOVAL_PATHS: string[] = [
 export const APP_STAGING_ALLOWED_EXACT_PATHS: string[] = [
   ".env.example",
   "BUILD_SHA",
-  "docs/reference/openapi.yaml",
+  "docs/openapi.yaml",
   "http-method-guard.cjs",
   "open-sse/mcp-server/server.js",
   // LLMLingua ONNX worker — esbuild'd standalone .js spawned via worker_threads

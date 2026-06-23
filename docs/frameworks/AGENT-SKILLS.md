@@ -31,7 +31,7 @@ src/shared/constants/agentSkills.ts    — 42-entry curated list (name/desc/cate
 src/lib/agentSkills/
   catalog.ts                           — getCatalog(), getSkillById(), filterCatalog(), computeCoverage()
   generator.ts                         — generateAgentSkills() writes SKILL.md to skills/{id}/
-  openapiParser.ts                     — extracts REST endpoints from docs/reference/openapi.yaml
+  openapiParser.ts                     — extracts REST endpoints from docs/openapi.yaml
   cliRegistryParser.ts                 — extracts CLI subcommands from bin/cli-registry.ts
   schemas.ts                           — Zod schemas: AgentSkillSchema, SkillCoverageSchema, etc.
   types.ts                             — TypeScript interfaces: AgentSkill, SkillCoverage, etc.

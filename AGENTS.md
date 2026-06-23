@@ -554,7 +554,7 @@ For any non-trivial change, read the matching deep-dive first:
 | Agent protocols (A2A / ACP / Cloud)        | [`docs/frameworks/AGENT_PROTOCOLS_GUIDE.md`](docs/frameworks/AGENT_PROTOCOLS_GUIDE.md)                                              |
 | MCP server                                 | [`docs/frameworks/MCP-SERVER.md`](docs/frameworks/MCP-SERVER.md)                                                                    |
 | A2A server                                 | [`docs/frameworks/A2A-SERVER.md`](docs/frameworks/A2A-SERVER.md)                                                                    |
-| API reference                              | [`docs/reference/API_REFERENCE.md`](docs/reference/API_REFERENCE.md) + [`docs/reference/openapi.yaml`](docs/reference/openapi.yaml) |
+| API reference                              | [`docs/reference/API_REFERENCE.md`](docs/reference/API_REFERENCE.md) + [`docs/openapi.yaml`](docs/openapi.yaml) |
 | Provider catalog (auto-generated)          | [`docs/reference/PROVIDER_REFERENCE.md`](docs/reference/PROVIDER_REFERENCE.md)                                                      |
 | Tunnels                                    | [`docs/ops/TUNNELS_GUIDE.md`](docs/ops/TUNNELS_GUIDE.md)                                                                            |
 | Electron desktop                           | [`docs/guides/ELECTRON_GUIDE.md`](docs/guides/ELECTRON_GUIDE.md)                                                                    |

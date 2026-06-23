@@ -448,7 +448,7 @@ Base path: `/api/tools/agent-bridge/`
 | POST | `/api/tools/agent-bridge/upstream-ca/test` | Validate-only (dry-run) an upstream CA path — does not persist |
 | GET / POST / DELETE | `/api/tools/agent-bridge/tproxy` | TPROXY transparent-decrypt capture mode — see [`docs/security/MITM-TPROXY-DECRYPT.md`](../security/MITM-TPROXY-DECRYPT.md) |
 
-Full OpenAPI schemas: `docs/reference/openapi.yaml` → tag `AgentBridge`.
+Full OpenAPI schemas: `docs/openapi.yaml` → tag `AgentBridge`.
 
 ---
 

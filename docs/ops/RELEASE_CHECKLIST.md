@@ -52,7 +52,7 @@ npm run test:e2e           # optional but recommended
 - [ ] Manually review CHANGELOG.md and clean up commit messages if needed
 - [ ] Ensure the latest semver section in `CHANGELOG.md` equals `package.json` version
 - [ ] Keep `## [Unreleased]` as the first changelog section for upcoming work
-- [ ] Update `docs/reference/openapi.yaml` → `info.version` must equal `package.json` version
+- [ ] Update `docs/openapi.yaml` → `info.version` must equal `package.json` version
 
 ### Code Quality
 
@@ -104,7 +104,7 @@ Breaking changes: add `BREAKING CHANGE:` footer or `!` after the scope (e.g. `fe
 - [ ] `docs/guides/TROUBLESHOOTING.md` reviewed for env var and operational drift
 - [ ] If `.env.example` changed: `docs/reference/ENVIRONMENT.md` updated
 - [ ] If new feature has a UI: `docs/guides/USER_GUIDE.md` mentions it
-- [ ] If new feature has API: `docs/reference/API_REFERENCE.md` + `docs/reference/openapi.yaml` updated
+- [ ] If new feature has API: `docs/reference/API_REFERENCE.md` + `docs/openapi.yaml` updated
 - [ ] If new feature is a module: dedicated `docs/<MODULE>.md` exists
 - [ ] If breaking change: `docs/guides/TROUBLESHOOTING.md` has migration note
 

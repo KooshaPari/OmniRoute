@@ -1625,7 +1625,7 @@ And thank you to the OmniRoute community for the bug reports, reproductions, and
   `tests/e2e/traffic-inspector.spec.ts`, `tests/e2e/agent-bridge-traffic-cross.spec.ts`
   (skip-gated on CI by `RUN_AGENT_BRIDGE_E2E` / `RUN_TRAFFIC_INSPECTOR_E2E` / `RUN_CROSS_E2E`).
 - **Documentation** — `docs/frameworks/AGENTBRIDGE.md` and `docs/frameworks/TRAFFIC_INSPECTOR.md`;
-  `docs/architecture/REPOSITORY_MAP.md` updated; `docs/reference/openapi.yaml` updated with
+  `docs/architecture/REPOSITORY_MAP.md` updated; `docs/openapi.yaml` updated with
   ~28 new routes and 20+ new schemas.
 - **i18n:** translate Ukrainian (uk-UA) menu and UI strings, plus complete uk-UA UI coverage (#2981 / #2988 — thanks @Lion-killer)
 - **providers:** add SiliconFlow endpoint selector (#2975 — thanks @xz-dev)
