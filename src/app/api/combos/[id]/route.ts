@@ -178,18 +178,32 @@ export async function PUT(request, { params }) {
       ...body,
       name: comboName,
     };
-    const compositeValidation = validateCompositeTiersConfig(nextComboState);
-    if (compositeValidation.success === false) {
-      const failure = compositeValidation as {
-        success: false;
-        error: { message: string; details: unknown[] };
-      };
-      return comboErrorResponse(
-        "COMBO_003",
-        400,
-        { reason: failure.error.message, details: failure.error.details },
-        request
-      );
+
+    // Composite-tiers validation only applies when the request
+    // modifies the combo's graph (config or models). A PUT that
+    // only toggles `isActive` / renames / adjusts metadata must NOT
+    // re-run graph validation, because the existing rows may
+    // pre-date the schema (legacy fallbackDelayMs / queueDepth /
+    // maxComboDepth etc.) and we want the isActive toggle to be
+    // a non-breaking change. See PR #4880 follow-up + tests in
+    // tests/unit/combo-routes-composite-tiers.test.ts.
+    const touchesGraph =
+      normalizedUpdate.config !== undefined ||
+      normalizedUpdate.models !== undefined;
+    if (touchesGraph) {
+      const compositeValidation = validateCompositeTiersConfig(nextComboState);
+      if (compositeValidation.success === false) {
+        const failure = compositeValidation as {
+          success: false;
+          error: { message: string; details: unknown[] };
+        };
+        return comboErrorResponse(
+          "COMBO_003",
+          400,
+          { reason: failure.error.message, details: failure.error.details },
+          request
+        );
+      }
     }
 
     // Check if name already exists (exclude current combo)
