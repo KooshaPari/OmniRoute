@@ -260,3 +260,64 @@ test("PUT /api/combos preserves legacy string combo refs during normalization", 
   assert.equal(stored.models[0].kind, "combo-ref");
   assert.equal(stored.models[0].comboName, "child-ref");
 });
+
+// Regression: a non-graph PUT (e.g. toggling `isActive`) on a combo whose
+// stored `config.compositeTiers` reference a step that no longer exists
+// in `combo.models` must still succeed. The composite-tier validator
+// already ran when the row was first written; re-running it on every
+// unrelated update rejects legitimate UX actions (toggle, name rename,
+// system_message edit) with 400 just because the persisted row is stale.
+// Gate the validator on whether the request actually touches `config`
+// or `models`.
+test("PUT /api/combos tolerates stale compositeTiers on non-graph updates", async () => {
+  const combo = await combosDb.createCombo(createTieredComboInput());
+
+  // Persist a row whose `models` no longer contain `step-primary` but
+  // whose `config.compositeTiers` still reference it. This simulates a
+  // pre-existing row whose graph drifted after a prior bug, migration,
+  // or manual edit.
+  await combosDb.updateCombo((combo as any).id, {
+    models: [{ id: "step-secondary", model: "openai/gpt-4o-mini", weight: 0.5 }],
+  });
+  const stored = await combosDb.getComboById((combo as any).id);
+  assert.equal(
+    (stored.config as any).compositeTiers.tiers.primary.stepId,
+    "step-primary",
+    "fixture: stored tiers still reference the now-dropped step"
+  );
+
+  // Toggling isActive on the stale combo must still return 200.
+  const response = await comboRoute.PUT(makeUpdateRequest({ isActive: false }), {
+    params: Promise.resolve({ id: (combo as any).id }),
+  });
+  const body = (await response.json()) as any;
+
+  assert.equal(response.status, 200);
+  assert.equal(body.isActive, false);
+  // Tiers are still persisted (untouched by this update).
+  assert.equal((body.config as any).compositeTiers.tiers.primary.stepId, "step-primary");
+});
+
+// Companion regression: a PUT that explicitly mutates `config` must still
+// 400 when the supplied config has composite tiers referencing a missing
+// step. The validator gating preserves this path: only updates that
+// actually touch the graph get re-validated.
+test("PUT /api/combos still 400s when the request body itself has invalid compositeTiers", async () => {
+  const combo = await combosDb.createCombo(createTieredComboInput());
+
+  const response = await comboRoute.PUT(
+    makeUpdateRequest({
+      config: {
+        compositeTiers: {
+          defaultTier: "primary",
+          tiers: {
+            primary: { stepId: "ghost-step", label: "Primary" },
+          },
+        },
+      },
+    }),
+    { params: Promise.resolve({ id: (combo as any).id }) }
+  );
+
+  assert.equal(response.status, 400);
+});
