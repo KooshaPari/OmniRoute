@@ -1,6 +1,6 @@
 {
-  "version": "1.2.0",
-  "updated": "2026-06-19",
+  "version": "1.3.0",
+  "updated": "2026-06-24T00:47:17.101008Z",
   "source": "DOMAIN_ROLES.md + ADR-017",
   "domains": [
     {
@@ -11,12 +11,17 @@
     },
     {
       "id": "config",
-      "repo": "phenotype-config",
+      "repo": "Configra",
       "core_lang": "rust",
       "edge_langs": [
         "ts",
         "py"
-      ]
+      ],
+      "supersedes": [
+        "phenotype-config"
+      ],
+      "superseded_by": "Configra",
+      "rationale": "ADR-031: Configra canonical Rust config boundary; phenotype-config deprecation scheduled 2026-07-15."
     },
     {
       "id": "observe",
@@ -143,7 +148,21 @@
       "id": "secrets",
       "repo": "Authvault",
       "core_lang": "rust",
-      "edge_langs": []
+      "edge_langs": [],
+      "status": "archived-superseded",
+      "superseded_by": "AuthKit",
+      "rationale": "Authvault archived 2026-06-20 (c7994b9); superseded by AuthKit (KooshaPari/AuthKit, created 2026-06-24). FR-AUTHV-018 landed in AuthKit commit 064b310. New auth work goes to AuthKit."
+    },
+    {
+      "id": "auth-runtime",
+      "repo": "AuthKit",
+      "core_lang": "rust",
+      "edge_langs": [],
+      "py_edge": null,
+      "policy": "rust-canonical; successor to archived Authvault (secrets domain)",
+      "status": "active",
+      "supersedes": "Authvault",
+      "rationale": "Added 2026-06-24: AuthKit canonical Rust auth-runtime boundary. Initial landing: FR-AUTHV-018 (PKCE state binding). Future: AUT-SOTA-001..007 (key rotation, OIDC, WebAuthn, TOTP, KMS, DPoP, rate-limiting)."
     },
     {
       "id": "tooling",
@@ -166,6 +185,54 @@
       "core_lang": "go",
       "edge_langs": [],
       "policy": "vendor-only-not-routing-referent"
+    },
+    {
+      "id": "interaction",
+      "repo": "eyetracker",
+      "core_lang": "rust",
+      "edge_langs": [
+        "kotlin",
+        "swift",
+        "wasm"
+      ],
+      "py_edge": null,
+      "policy": "rust-canonical+uniffi-bindings; py-sdk via Pyron shim",
+      "status": "active",
+      "rationale": "Added 2026-06-23: eyetracker canonical interaction boundary (Rust + UniFFI bindings for Kotlin/Swift)."
+    },
+    {
+      "id": "event",
+      "repo": "eventra",
+      "core_lang": "rust",
+      "edge_langs": [
+        "typescript"
+      ],
+      "py_edge": "phenotype-python-sdk/packages/pheno-events",
+      "policy": "KEEP_COMPAT per docs/disposition/phenotype-event-bus-runtime-boundary.md; new runtime -> phenoEvents",
+      "status": "active",
+      "rationale": "Added 2026-06-23: Eventra canonical event-bus runtime boundary."
+    },
+    {
+      "id": "bench",
+      "repo": "benchora",
+      "core_lang": "rust",
+      "edge_langs": [],
+      "py_edge": null,
+      "policy": "rust-canonical; perf baseline matrix for owned scope",
+      "status": "active",
+      "rationale": "Added 2026-06-23: Benchora canonical perf-harness boundary."
+    },
+    {
+      "id": "http",
+      "repo": "quillr",
+      "core_lang": "rust",
+      "edge_langs": [
+        "typescript"
+      ],
+      "py_edge": null,
+      "policy": "rust-canonical (httpora-core) + ts-client (@kooshapari/quillts)",
+      "status": "active",
+      "rationale": "Added 2026-06-23: Quillr canonical http-middleware boundary."
     }
   ]
 }

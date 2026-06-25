@@ -1,0 +1,17 @@
+{
+  "name": "smart-mcp-go",
+  "languages": ["go"],
+  "primary_language": "go",
+  "status": "archived",
+  "has_readme": true,
+  "type": "stub",
+  "path": "repos/smart-mcp-go",
+  "disposition": "AFFIRM",
+  "wave": "absorption-justification-2026-06-23",
+  "absorbed_into": "phenotype-infra",
+  "absorption_note": "2026-06-23 audit verdict NO_MERIT_WITH_INTENT: capability surface duplicative of phenotype-infra MCP infra; no present-day absorption, owner intent preserved for future re-audit. See audits/absorption-justifications/smart-mcp-go-2026-06-23.md.",
+  "adr": "ADR-049",
+  "note": "Audited 2026-06-23 per absorption-justification rubric; P1 = 3; high confidence; ARCHIVE_ONLY eligible, intent retained for future cycle. Local mirror preserved at C:\\Users\\koosh\\smart-mcp-go",
+  "audit_artifact": "audits/absorption-justifications/smart-mcp-go-2026-06-23.md",
+  "audited_at": "2026-06-23T23:55:00Z"
+}

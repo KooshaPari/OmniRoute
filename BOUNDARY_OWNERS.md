@@ -200,3 +200,66 @@ DELETE archived repo  IFF:
 - `docs/adr/ADR-006-zero-loop-agent-session.md`
 - `RATIONALIZATION_EXECUTION.md` — absorption wave (§1 partially superseded here for obs libs)
 - Open gap ports: [registry#76](https://github.com/KooshaPari/phenotype-registry/pull/76), [phenokits-commons#3](https://github.com/KooshaPari/phenokits-commons/pull/3), [Agentora#79](https://github.com/KooshaPari/Agentora/pull/79), [phenotype-tooling#155](https://github.com/KooshaPari/phenotype-tooling/pull/155), [PhenoObservability#157](https://github.com/KooshaPari/PhenoObservability/pull/157)
+
+
+### Interaction (added 2026-06-23)
+- **Canonical owner:** `KooshaPari/eyetracker`
+- **Stack:** Rust + UniFFI bindings (Kotlin + Swift)
+- **Boundary:** Eye-tracking framework, calibration, fixation detection, dwell-click accessibility
+- **Status:** active (v0.1.0-alpha, 16/16 FRs defined, released 2026-06-20 per PR #64)
+- **Absorb from:** —
+- **Consumer pattern:** Pyron shim for Python edge; direct UniFFI bindings for Kotlin/Swift consumers
+- **Coverage:** macOS webcam (nokhwa + core-graphics) only — Win/Linux/iOS/Android/Web gaps to close (BEN-EYE-001..006)
+- **Recommendation:** **KEEP_ACTIVE** — establish per-platform SOTA gap closure roadmap
+
+### Event-bus Runtime (added 2026-06-23)
+- **Canonical owner:** `KooshaPari/Eventra`
+- **Stack:** Rust (CQRS + Event Sourcing)
+- **Boundary:** Rust event-bus runtime (`phenotype-event-bus` + `phenotype-event-sourcing` + `phenotype-event-contracts`)
+- **Status:** active (Wave 5b absorbed from phenoShared 2026-06; **KEEP_COMPAT** per `docs/disposition/phenotype-event-bus-runtime-boundary.md`)
+- **Absorb from:** phenoShared (Wave 5b)
+- **Consumer pattern:** In-memory bus + envelope-shaped events; new runtime features delegate to phenoEvents
+- **Coverage:** in-memory only (sqlx/sqlite adapter modules missing despite feature flags)
+- **Recommendation:** **KEEP_ACTIVE** — implement persistence adapters + observability (open ISS #22, #23, #24)
+
+### Configuration (Rust) (refreshed 2026-06-23)
+- **Canonical owner:** `KooshaPari/Configra`
+- **Stack:** Rust
+- **Boundary:** Rust config framework (typed layered config, hot-reload, schema validation)
+- **Status:** active (v0.4.0; supersedes phenotype-config per ADR-031)
+- **Absorb from:** phenotype-config-loader, OKF, config-schema, settly (migrated from HexaKit 2026-06-17)
+- **Consumer pattern:** Configra consumed by phenotype-ops + future phenotype-rust-sdk; Conft TS overlay interop
+- **Coverage:** hot-reload missing (no notify); schema validation minimal; encryption at rest claim vs zero crypto dep (gap)
+- **Recommendation:** **KEEP_ACTIVE** — add notify + figment + schemars + aes-gcm; reconcile README encryption-at-rest claim
+
+### Performance / Benchmark Harness (added 2026-06-23)
+- **Canonical owner:** `KooshaPari/Benchora`
+- **Stack:** Rust (criterion)
+- **Boundary:** Perf-harness framework, regression gating, baseline matrix for owned scope
+- **Status:** active (v0.2.0, single crate `gauge`)
+- **Absorb from:** —
+- **Consumer pattern:** Criterion re-wrap; provides perf baseline matrix for eyetracker/eventra/authvault/configra/quillr
+- **Coverage:** no CI regression gating, no flamegraph, no historical trend store, no allocation tracking
+- **Recommendation:** **KEEP_ACTIVE** — add github-action-benchmark + cargo-flamegraph + dhat/iai
+
+### HTTP Middleware (added 2026-06-23)
+- **Canonical owner:** `KooshaPari/Quillr`
+- **Stack:** Rust (httpora-core) + TypeScript (@kooshapari/quillts)
+- **Boundary:** HTTP toolkit — Tower middleware (rate-limit/retry/CB/CORS) + TS client
+- **Status:** active (v0.1.0; httpora absorbed 2026-06-20 per #28)
+- **Absorb from:** Httpora (folded per Quillr#27)
+- **Consumer pattern:** HTTP middleware consumed by Eventra outbox + Authvault audit forwarder + Configra remote sync
+- **Coverage:** no reqwest/hyper backend, no HTTP/2/3, no OTel export, no moka cache, no mTLS helpers
+- **Recommendation:** **KEEP_ACTIVE** — add reqwest + quinn/h3 + tracing-opentelemetry + moka
+
+### Auth Runtime (refreshed 2026-06-24)
+- **Canonical owner:** `KooshaPari/AuthKit` (active; successor to archived Authvault)
+- **Historical owner:** `KooshaPari/Authvault` (archived 2026-06-20, commit c7994b9)
+- **Stack:** Rust (OAuth2/OIDC/JWT/RBAC/ABAC, multi-tenant)
+- **Boundary:** Rust auth framework — PKCE, JWS, vault, KMS, audit
+- **Status:** AuthKit active (v0.1.0, FR-AUTHV-018 landed 2026-06-24 commit 064b310); Authvault read-only history
+- **Absorb from:** AuthKit created 2026-06-24 to receive the 3 unmerged GAP worktrees (gap008 PKCE, gap009 brute-force, gap010 middleware-adapter); gap009 + gap010 were already merged into Authvault main, gap008 landed in AuthKit
+- **Consumer pattern:** Repointed by eyetracker (consent+SSO), eventra (tenant_id), configra (VaultStore), quillr (token introspection)
+- **Coverage:** Strong on internal JWT/RBAC/PKCE state binding; weak on OIDC/ABAC/WebAuthn/TOTP/KMS/DPoP/audit hash-chain
+- **Recommendation:** **KEEP_ACTIVE** — AUT-SOTA-001..007 (key rotation, OIDC, WebAuthn, TOTP, KMS, DPoP, rate-limiting)
+

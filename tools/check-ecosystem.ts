@@ -85,6 +85,14 @@ const CANONICAL_REPOS: ReadonlyArray<{ display: string; slug: string; role: stri
   { display: "cheap-llm-mcp",      slug: "cheap-llm-mcp",      role: "V5 EXT focus (consumed into dispatch-mcp)" },
   { display: "PhenoCompose",       slug: "PhenoCompose",       role: "V3 focus (NVMS-3-tier isolation monorepo)" },
   { display: "AgilePlus",          slug: "AgilePlus",          role: "V3 substrate (spec-driven dev, 22-crate workspace)" },
+  // Owned scope (added 2026-06-23 — validator-loop S9)
+  { display: "Eyetracker",         slug: "eyetracker",         role: "owned: interaction boundary (Rust + UniFFI)" },
+  { display: "Eventra",            slug: "Eventra",            role: "owned: event-bus runtime boundary (Rust CQRS+ES)" },
+  { display: "Configra",           slug: "Configra",           role: "owned: config boundary (Rust, ADR-031 canonical)" },
+  { display: "Benchora",           slug: "Benchora",           role: "owned: perf-harness boundary (Rust criterion)" },
+  { display: "Authvault",          slug: "Authvault",          role: "owned (archived-superseded 2026-06-20 -> AuthKit; secrets domain historical)" },
+  { display: "AuthKit",            slug: "AuthKit",            role: "owned: auth-runtime boundary (Rust successor to Authvault; FR-AUTHV-018 landed)" },
+  { display: "Quillr",             slug: "Quillr",             role: "owned: http-middleware boundary (Rust httpora-core + TS)" },
 ];
 
 /** Meta-files we expect to find on the default branch of each canonical repo.

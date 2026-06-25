@@ -1,0 +1,60 @@
+{
+  "schema": "absorption-justification-audit",
+  "version": "1.0.0",
+  "authority": "phenotype-registry",
+  "description": "Absorption-justification audit schema covering manifest completeness, parity evidence, branch coverage, last-resort justification, restore-command validity, registry integration, and deletion-gate tooling. Max score: 14.",
+  "pillars": [
+    {
+      "id": 1,
+      "name": "manifest-completeness",
+      "weight": 3,
+      "mandatory_sections": ["Source", "Target", "Status", "Last-Resort-Exceptions", "Restore-Command"],
+      "optional_sections": ["Confidence", "Source Inventory Summary", "Branch Inventory Summary", "Target Parity Summary", "Gaps and Exceptions", "Final Recommendation"],
+      "check": "ABSORPTION_MATRIX contains all 5 mandatory columns (Source, Target, Status, Last-Resort-Exceptions, Restore-Command) and any of the optional sections are present where applicable"
+    },
+    {
+      "id": 2,
+      "name": "parity-evidence",
+      "weight": 3,
+      "check": "ABSORPTION_MATRIX includes explicit Target Evidence column with at least one citation (commit SHA, file path, artifact reference, or test run) per non-NO_MERIT row"
+    },
+    {
+      "id": 3,
+      "name": "branch-coverage",
+      "weight": 2,
+      "check": "Every branch in source repo with unique content (not already merged to main) has a corresponding row in ABSORPTION_MATRIX with Source, Target, Status, and Restore-Command populated"
+    },
+    {
+      "id": 4,
+      "name": "last-resort-justification",
+      "weight": 2,
+      "check": "Each Last-Resort-Exceptions entry contains explicit rebuttal addressing: why the target cannot absorb the exception, what residual gap remains, and why archival-not-deletion is insufficient"
+    },
+    {
+      "id": 5,
+      "name": "restore-command-validity",
+      "weight": 1,
+      "check": "Restore-Command is verifiable: either `mv .archive/X .` for local restoration OR `git clone <remote-url>` plus a recorded bundle SHA-256 checksum that matches the archived artifact"
+    },
+    {
+      "id": 6,
+      "name": "registry-integration",
+      "weight": 2,
+      "check": "Project card exists at registry/projects/<Name>.json with status field set to `archived` or `active`, absorbed_into field populated when applicable, and/or disposition set to AFFIRM or ARCHIVE_ONLY per disposition-index"
+    },
+    {
+      "id": 7,
+      "name": "deletion-gate-tooling-coverage",
+      "weight": 1,
+      "check": "Audit references bin/repo-delete-gate.sh OR bin/repo-delete-gate.ps1 in the deletion workflow, OR explicitly explains why the gate is not required (e.g. source already returns 404, manual operator override recorded with justification)"
+    }
+  ],
+  "max_score": 14,
+  "grade_boundaries": [
+    {"min": 11.5, "max": 14, "grade": "L4", "classification": "Excellent: Absorption fully justified"},
+    {"min": 10, "max": 11.49, "grade": "L3", "classification": "On Track: Minor gaps in justification"},
+    {"min": 7, "max": 9.99, "grade": "L2", "classification": "Needs Improvement: Substantive gaps"},
+    {"min": 3, "max": 6.99, "grade": "L1", "classification": "Critical Foundation Needed"},
+    {"min": 0, "max": 2.99, "grade": "L0", "classification": "Unacceptable: Absorption not justified"}
+  ]
+}
