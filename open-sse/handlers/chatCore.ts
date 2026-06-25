@@ -13,8 +13,9 @@ import {
   resolveCompressionHeader,
 } from "./chatCore/headers.ts";
 import { markCodexScopeRateLimited } from "./chatCore/codexFailover.ts";
-import { getCombosCached, getUpstreamProxyConfigCached } from "./chatCore/comboContextCache.ts";
+import { getCombosCached } from "./chatCore/comboContextCache.ts";
 export { clearCombosCache, clearUpstreamProxyConfigCache } from "./chatCore/comboContextCache.ts";
+import { resolveExecutorWithProxy } from "./chatCore/resolveExecutorProxy.ts";
 import {
   resolveAccountSemaphoreKey,
   resolveAccountSemaphoreMaxConcurrency,
@@ -170,7 +171,6 @@ import {
 import { getModelNormalizeToolCallId, getModelPreserveOpenAIDeveloperRole } from "@/lib/localDb";
 import { getProviderCredentials, extractSessionAffinityKey } from "@/sse/services/auth";
 import { deleteSessionAccountAffinity } from "@/lib/db/sessionAccountAffinity";
-import { getExecutor } from "../executors/index.ts";
 import { getCacheControlSettings } from "@/lib/cacheControlSettings";
 import { guardrailRegistry, resolveDisabledGuardrails } from "@/lib/guardrails";
 import {
@@ -2456,84 +2456,11 @@ export async function handleChatCore({
   }
 
   // Resolve executor with optional upstream proxy (CLIProxyAPI) routing.
-  // mode="native" (default): returns the native executor unchanged.
-  // mode="cliproxyapi": returns the CLIProxyAPI executor instead.
-  // mode="fallback": returns a wrapper that tries native first, falls back to CLIProxyAPI on 5xx/network errors.
-
-  const resolveExecutorWithProxy = async (prov: string) => {
-    const cfg = await getUpstreamProxyConfigCached(prov);
-    if (!cfg.enabled || cfg.mode === "native") return getExecutor(prov);
-
-    if (cfg.mode === "cliproxyapi") {
-      log?.info?.("UPSTREAM_PROXY", `${prov} routed through CLIProxyAPI (passthrough)`);
-      return getExecutor("cliproxyapi");
-    }
-
-    // mode === "fallback": try native first, retry via CLIProxyAPI on specific failures
-    const nativeExec = getExecutor(prov);
-    const proxyExec = getExecutor("cliproxyapi");
-
-    // Read custom fallback codes from settings. Default: 5xx + 429 + network errors.
-    let fallbackCodes: number[] = [429, 500, 502, 503, 504];
-    try {
-      const allSettings = await getCachedSettings();
-      if (
-        typeof allSettings.cliproxyapi_fallback_codes === "string" &&
-        allSettings.cliproxyapi_fallback_codes.trim()
-      ) {
-        const parsed = allSettings.cliproxyapi_fallback_codes
-          .split(",")
-          .map((s: string) => Number.parseInt(s.trim(), 10))
-          .filter((n: number) => !Number.isNaN(n));
-        if (parsed.length > 0) fallbackCodes = parsed;
-      }
-    } catch {
-      /* use defaults */
-    }
-    const isRetryableStatus = (s: number) => fallbackCodes.includes(s) || s === 0;
-
-    const wrapper = Object.create(nativeExec);
-    wrapper.execute = async (input: {
-      model: string;
-      body: unknown;
-      stream: boolean;
-      credentials: unknown;
-      signal?: AbortSignal | null;
-      log?: unknown;
-      upstreamExtraHeaders?: Record<string, string> | null;
-    }) => {
-      let result;
-      try {
-        result = await nativeExec.execute(input);
-      } catch (err) {
-        const errMsg = err instanceof Error ? err.message : String(err);
-        log?.info?.("UPSTREAM_PROXY", `${prov} native error (${errMsg}), retrying via CLIProxyAPI`);
-        try {
-          return await proxyExec.execute(input);
-        } catch (proxyErr) {
-          const proxyMsg = proxyErr instanceof Error ? proxyErr.message : String(proxyErr);
-          log?.error?.("UPSTREAM_PROXY", `${prov} CLIProxyAPI fallback also failed: ${proxyMsg}`);
-          throw proxyErr;
-        }
-      }
-
-      if (!isRetryableStatus(result.response.status)) {
-        return result;
-      }
-      log?.info?.(
-        "UPSTREAM_PROXY",
-        `${prov} native failed (${result.response.status}), retrying via CLIProxyAPI`
-      );
-      try {
-        return await proxyExec.execute(input);
-      } catch (proxyErr) {
-        const proxyMsg = proxyErr instanceof Error ? proxyErr.message : String(proxyErr);
-        log?.error?.("UPSTREAM_PROXY", `${prov} CLIProxyAPI fallback also failed: ${proxyMsg}`);
-        throw proxyErr;
-      }
-    };
-    return wrapper;
-  };
+  // The implementation lives in ./chatCore/resolveExecutorProxy.ts to keep
+  // this 4,900+ LoC file focused on request orchestration. The leaf handles
+  // mode=native, mode=cliproxyapi (passthrough), and mode=fallback (native
+  // first, retry via CLIProxyAPI on configurable status codes).
+  const resolvedExecutor = await resolveExecutorWithProxy(provider, log);
 
   // === Quota Share enforcement PRE-hook (B/F7) ===
   // Runs after provider/model/credentials/apiKeyInfo are fully resolved,
@@ -2600,8 +2527,9 @@ export async function handleChatCore({
   }
   // === /Quota Share enforcement PRE-hook ===
 
-  // Get executor for this provider (with optional upstream proxy routing)
-  const executor = await resolveExecutorWithProxy(provider);
+  // The upstream-proxy-aware executor was resolved above (`resolvedExecutor`).
+  // Alias it to the local `executor` name used by the rest of this function.
+  const executor = resolvedExecutor;
   const getExecutionCredentials = () => {
     const nextCredentials = nativeCodexPassthrough
       ? { ...credentials, requestEndpointPath: endpointPath }
