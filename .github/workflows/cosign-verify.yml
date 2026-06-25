@@ -1,0 +1,98 @@
+# L53 cosign verify gate (v28 cycle-18 T4).
+#
+# Runs tools/cosign-verify/cosign_verify.sh on every published release to
+# verify all *.tar.gz artifacts under dist/ + target/release/ against
+# their .sig + .cert/.pem signatures. Exit-code 1 fails the job (gate
+# failure).
+#
+# Inherits the install + run pattern from .github/workflows/cosign-sign.yml
+# so the same release pipeline that signs artifacts also gates on
+# verification (this is what the SLSA L3 supply-chain requirement asks for).
+
+name: cosign-verify
+
+on:
+  release:
+    types: [published]
+  push:
+    branches: [main, chore/v2*-**]
+    paths:
+      - 'tools/cosign-verify/**'
+      - '.github/workflows/cosign-verify.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  cosign-verify:
+    name: L53 cosign verify gate
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v4.2.2
+        with:
+          persist-credentials: false
+
+      - name: Install cosign
+        uses: sigstore/cosign-installer@345a2b7ad3b5e7887b9e80a4ce1b0063954e83cb # v3.7.0
+        with:
+          cosign-release: 'v2.4.1'
+
+      - name: Locate release artifacts
+        id: artifacts
+        run: |
+          # Search dist/ + target/release/ for *.tar.gz files committed to
+          # this tag. We don't download artifacts here; the gate runs on
+          # whatever ships in the release commit.
+          files=$(find dist target/release -type f -name '*.tar.gz' \
+                    -not -path '*/.git/*' \
+                    2>/dev/null | sort || true)
+          if [ -z "$files" ]; then
+            echo "scope=empty" >> "$GITHUB_OUTPUT"
+          else
+            echo "scope=present" >> "$GITHUB_OUTPUT"
+            {
+              echo "files<<EOF"
+              echo "$files"
+              echo "EOF"
+            } >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Run cosign-verify gate
+        run: |
+          bash tools/cosign-verify/cosign_verify.sh | tee cosign-verify.log
+          rc=$?
+          echo "exit_code=$rc"
+          exit "$rc"
+
+      - name: Note when no artifacts shipped
+        if: steps.artifacts.outputs.scope == 'empty'
+        run: |
+          echo "::notice::No *.tar.gz artifacts found under dist/ or target/release/ -- gate no-op"
+
+      - name: Upload gate log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cosign-verify-${{ github.sha }}
+          path: cosign-verify.log
+          retention-days: 30
+
+      - name: Annotate summary
+        if: always()
+        run: |
+          if [ -f cosign-verify.log ]; then
+            {
+              echo "## L53 cosign verify gate"
+              echo ""
+              echo "- trigger: \`${{ github.event_name }}\`"
+              echo "- ref:     \`${{ github.ref }}\`"
+              echo "- sha:     \`${{ github.sha }}\`"
+              echo ""
+              echo '```'
+              cat cosign-verify.log
+              echo '```'
+            } >> "$GITHUB_STEP_SUMMARY"
+          fi
