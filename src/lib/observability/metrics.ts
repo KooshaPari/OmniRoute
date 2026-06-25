@@ -86,20 +86,15 @@ const LABEL_ALLOWLIST = {
   omniroute_compression_tokens_total: ["direction", "mode", "engine"],
 } as const;
 
-type AllowedLabel<F extends keyof typeof LABEL_ALLOWLIST> =
-  (typeof LABEL_ALLOWLIST)[F][number];
+type AllowedLabel<F extends keyof typeof LABEL_ALLOWLIST> = (typeof LABEL_ALLOWLIST)[F][number];
 
 // ───────────────────────────────────────────────────────────────────────────
 // Default histogram buckets (seconds)
 // ───────────────────────────────────────────────────────────────────────────
 
-const HTTP_DURATION_BUCKETS = [
-  0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1, 2.5, 5, 10,
-] as const;
+const HTTP_DURATION_BUCKETS = [0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1, 2.5, 5, 10] as const;
 
-const UPSTREAM_DURATION_BUCKETS = [
-  0.05, 0.1, 0.25, 0.5, 1, 2.5, 5, 10, 30, 60, 120,
-] as const;
+const UPSTREAM_DURATION_BUCKETS = [0.05, 0.1, 0.25, 0.5, 1, 2.5, 5, 10, 30, 60, 120] as const;
 
 // ───────────────────────────────────────────────────────────────────────────
 // Registry
@@ -107,11 +102,18 @@ const UPSTREAM_DURATION_BUCKETS = [
 
 const families = new Map<string, MetricFamily>();
 
-function ensureFamily(name: keyof typeof LABEL_ALLOWLIST, help: string, kind: MetricKind, buckets?: readonly number[]): MetricFamily {
+function ensureFamily(
+  name: keyof typeof LABEL_ALLOWLIST,
+  help: string,
+  kind: MetricKind,
+  buckets?: readonly number[]
+): MetricFamily {
   let family = families.get(name);
   if (family) {
     if (family.kind !== kind) {
-      throw new Error(`metric family ${name} already registered as ${family.kind}, requested ${kind}`);
+      throw new Error(
+        `metric family ${name} already registered as ${family.kind}, requested ${kind}`
+      );
     }
     return family;
   }
@@ -151,7 +153,7 @@ function validateLabels<F extends keyof typeof LABEL_ALLOWLIST>(
   for (const [k, v] of Object.entries(raw)) {
     if (v === undefined || v === null) continue;
     if (!allowed.includes(k)) {
-      // eslint-disable-next-line no-console
+       
       console.warn(
         `[metrics] rejected unknown label '${k}' for metric '${familyName}'. ` +
           `Allowed labels: ${allowed.join(", ")}`
@@ -181,11 +183,15 @@ export const metricsRegistry = {
         if (family.kind === "histogram") {
           for (const [upper, count] of series.buckets!.entries()) {
             const bucketLabels = { ...(series.labels ?? {}), le: upper };
-            lines.push(`${family.name}_bucket${formatLabels([...labelNames, "le"], bucketLabels)} ${count}`);
+            lines.push(
+              `${family.name}_bucket${formatLabels([...labelNames, "le"], bucketLabels)} ${count}`
+            );
           }
           // +Inf bucket — count == total observations.
           const infLabels = { ...(series.labels ?? {}), le: "+Inf" };
-          lines.push(`${family.name}_bucket${formatLabels([...labelNames, "le"], infLabels)} ${series.count ?? 0}`);
+          lines.push(
+            `${family.name}_bucket${formatLabels([...labelNames, "le"], infLabels)} ${series.count ?? 0}`
+          );
           lines.push(`${family.name}_count${labelStr} ${series.count ?? 0}`);
           lines.push(`${family.name}_sum${labelStr} ${series.sum ?? 0}`);
         } else {
@@ -199,6 +205,39 @@ export const metricsRegistry = {
   reset(): void {
     for (const f of families.values()) f.values.clear();
     families.clear();
+  },
+  /**
+   * Look up a single family by name. Returns `undefined` if the family
+   * has never been written to (families are lazy-allocated on first
+   * write — see {@link ensureFamily}).
+   *
+   * Used by dashboard endpoints that need the latest per-label-set
+   * samples without re-rendering the whole text exposition. The
+   * returned snapshot is a defensive copy — callers cannot mutate the
+   * underlying series map.
+   */
+  getFamily(name: string):
+    | {
+        name: string;
+        help: string;
+        kind: MetricKind;
+        labelNames: readonly string[];
+        series: Array<{ labels: Record<string, string>; value: number }>;
+      }
+    | undefined {
+    const f = families.get(name);
+    if (!f) return undefined;
+    const series: Array<{ labels: Record<string, string>; value: number }> = [];
+    for (const s of f.values.values()) {
+      series.push({ labels: { ...(s.labels ?? {}) }, value: Number(s.value ?? 0) });
+    }
+    return {
+      name: f.name,
+      help: f.help,
+      kind: f.kind,
+      labelNames: f.labelNames,
+      series,
+    };
   },
 };
 
@@ -520,7 +559,7 @@ export function recordCompressionRun(opts: {
     compSeries.value = (compSeries.value ?? 0) + Math.max(0, opts.compressedTokens);
   } catch (err) {
     if (process.env.OMNIROUTE_TELEMETRY_DEBUG === "1") {
-      // eslint-disable-next-line no-console
+       
       console.warn("[metrics] recordCompressionRun failed:", err);
     }
   }
@@ -534,14 +573,18 @@ export function setProcessMetrics(): void {
   setGauge("omniroute_process_heap_bytes", "V8 heap used (bytes).", mem.heapUsed);
   setGauge("omniroute_process_resident_bytes", "Resident set size (bytes).", mem.rss);
   const lag = measureEventLoopLagMs();
-  setGauge("omniroute_event_loop_lag_seconds", "Event loop lag in seconds (rolling average).", lag / 1000);
+  setGauge(
+    "omniroute_event_loop_lag_seconds",
+    "Event loop lag in seconds (rolling average).",
+    lag / 1000
+  );
 }
 
 function setGauge(name: string, help: string, value: number): void {
   // We rely on the registry to track the family; this helper is for
   // process-level gauges that have no labels. Use a private synthetic family.
   const fullName = name as keyof typeof LABEL_ALLOWLIST & string;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+   
   (LABEL_ALLOWLIST as any)[fullName] = [];
   const family = ensureFamily(fullName, help, "gauge");
   // No-label series — empty string key.
@@ -582,10 +625,7 @@ function renderLabels(labelNames: readonly string[], labels: Record<string, stri
   return pairs ? `{${pairs}}` : "";
 }
 
-function formatLabels(
-  labelNames: readonly string[],
-  labels: Record<string, string>
-): string {
+function formatLabels(labelNames: readonly string[], labels: Record<string, string>): string {
   const pairs = labelNames.map((n) => `${n}="${escapeLabel(labels[n] ?? "")}"`).join(",");
   return pairs ? `{${pairs}}` : "";
 }

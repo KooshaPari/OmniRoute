@@ -235,11 +235,14 @@ export function applyCompression(
     return { body, compressed: false, stats: null };
   }
   if (mode === "rtk") {
-    return applyRtkCompression(body, {
+    const rtkOptions = {
       // Selecting the "rtk" mode IS the enable signal — run it even if the per-engine
       // rtkConfig.enabled flag is off (that flag gates stacked steps). (B-MODE-ENGINE-DECOUPLE)
       config: { ...(options?.config?.rtkConfig ?? {}), enabled: true },
-    });
+    };
+    const result = applyRtkCompression(body, rtkOptions);
+    recordSingleRunTelemetry(result.stats, options);
+    return result;
   }
   const adapter = adaptBodyForCompression(body);
   const compressionBody = adapter.body;
@@ -257,7 +260,8 @@ export function applyCompression(
       options?.config?.stackedPipeline,
       options
     );
-    recordSingleRunTelemetry(result.stats, options);
+    // applyStackedCompression already fires the parent telemetry record
+    // internally (so sync and async paths stay in lockstep). Do not double-count.
     return adapter.adapted ? { ...result, body: adapter.restore(result.body) } : result;
   }
   if (mode === "standard") {
@@ -303,7 +307,7 @@ export function applyCompression(
     };
     const result = compressAggressive(messages, aggressiveConfig);
     const compressedBody = { ...compressionBody, messages: result.messages };
-    return {
+    const finalResult: CompressionResult = {
       body: adapter.restore(compressedBody),
       compressed: result.stats.savingsPercent > 0,
       stats: createCompressionStats(
@@ -315,6 +319,8 @@ export function applyCompression(
         result.stats.durationMs
       ),
     };
+    recordSingleRunTelemetry(finalResult.stats, options);
+    return finalResult;
   }
   if (mode === "ultra") {
     const messages = (compressionBody.messages ?? []) as Array<{
@@ -707,7 +713,7 @@ export function applyStackedCompression(
     }
   }
 
-  return finalizeStackedResult(
+  const parentResult = finalizeStackedResult(
     body,
     currentBody,
     compressed,
@@ -715,6 +721,8 @@ export function applyStackedCompression(
     start,
     options?.compressionComboId ?? options?.config?.compressionComboId
   );
+  recordSingleRunTelemetry(parentResult.stats, options);
+  return parentResult;
 }
 
 /**
@@ -782,7 +790,7 @@ export async function applyStackedCompressionAsync(
     }
   }
 
-  return finalizeStackedResult(
+  const parentResult = finalizeStackedResult(
     body,
     currentBody,
     compressed,
@@ -790,6 +798,8 @@ export async function applyStackedCompressionAsync(
     start,
     options?.compressionComboId ?? options?.config?.compressionComboId
   );
+  recordSingleRunTelemetry(parentResult.stats, options);
+  return parentResult;
 }
 
 /**
@@ -810,7 +820,41 @@ function reportPerEngineBreakdownTelemetry(
   options: StackOptions | undefined
 ): void {
   if (!stats) return;
-  // Mark the parameters as intentionally unused for downstream extension.
-  void engineName;
+  try {
+    getDefaultCompressionTelemetry().recordEngineBreakdown(stats, engineName);
+  } catch (err) {
+    if (process.env.OMNIROUTE_TELEMETRY_DEBUG === "1") {
+       
+      console.warn("[compression-telemetry] reportPerEngineBreakdownTelemetry failed:", err);
+    }
+  }
   void options;
+}
+
+/**
+ * Fire a single-run compression telemetry event. Fire-and-forget — never throws.
+ *
+ * Wraps {@link CompressionTelemetry.recordCompressionRun} with a try/catch
+ * so that any telemetry-induced exception is swallowed and logged at debug
+ * level only. Compression callers never block on telemetry and never see
+ * telemetry-induced errors.
+ *
+ * The call site pattern is:
+ *   const result = applySomeCompression(body, options);
+ *   recordSingleRunTelemetry(result.stats, options);
+ *   return result;
+ */
+function recordSingleRunTelemetry(
+  stats: CompressionStats | null,
+  ctx: CompressionTelemetryContext | undefined
+): void {
+  if (!stats) return;
+  try {
+    getDefaultCompressionTelemetry().recordCompressionRun(stats, ctx);
+  } catch (err) {
+    if (process.env.OMNIROUTE_TELEMETRY_DEBUG === "1") {
+       
+      console.warn("[compression-telemetry] recordSingleRunTelemetry failed:", err);
+    }
+  }
 }

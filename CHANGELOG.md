@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### ✨ New Features
+
+- **feat(compression): wire OTel/Prom telemetry into the compression pipeline (PR-006)** — the previously-orphaned `metricsRegistry.recordCompressionRun` helper is now invoked from every compression branch (rtk, lite, stacked, standard, aggressive, ultra) plus the per-engine breakdown step in stacked pipelines. A new `open-sse/services/compression/telemetry.ts` adapter bridges `CompressionStats` into the `omniroute_compression_*` Prometheus families (`runs_total`, `savings_ratio`, `duration_ms`, `original_tokens_total`, `compressed_tokens_total`, `fallback_total`). A new `metricsRegistry.getFamily(name)` accessor exposes defensive per-family snapshots for dashboards. Two new endpoints back the `/dashboard/compression` page: `GET /api/compression/telemetry/metrics` (Prometheus text exposition, scoped to compression families) and `GET /api/compression/telemetry/recent` (JSON dashboard snapshot). All hooks are fire-and-forget and never block or fail a compression run.
+
 ---
 
 ## [3.8.34] — 2026-06-23
