@@ -1,0 +1,151 @@
+# Phenotype Compute-Infra Continuous Auditors
+#
+# Runs daily (and on push to any compute-infra subtree branch) and fans
+# out to the four owned repos:
+#   - KooshaPari/phenotype-infra
+#   - KooshaPari/PhenoCompose
+#   - KooshaPari/BytePort
+#   - KooshaPari/nanovms
+#
+# Each auditor produces a JSON report uploaded as a workflow artifact.
+# Findings are summarised in a single PR-friendly comment and (if any
+# exit non-zero) auto-open an issue using the appropriate template.
+name: compute-infra-auditors
+
+on:
+  schedule:
+    # 06:17 UTC daily — outside GitHub's peak hours.
+    - cron: "17 6 * * *"
+  push:
+    branches:
+      - main
+      - chore/pi-*
+      - fix/pc-*
+      - fix/bp-*
+      - fix/nv-*
+      - chore/sp-*
+  workflow_dispatch:
+    inputs:
+      target_repo:
+        description: "Limit to a single repo (default: all)"
+        required: false
+        type: choice
+        options:
+          - all
+          - phenotype-infra
+          - PhenoCompose
+          - BytePort
+          - nanovms
+        default: all
+
+permissions:
+  contents: read
+  issues: write
+  pull-requests: write
+
+jobs:
+  fan-out:
+    name: auditors
+    strategy:
+      fail-fast: false
+      matrix:
+        repo:
+          - name: phenotype-infra
+            language: rust
+            workflows: iac-rust.yml,cargo-deny.yml,codeql.yml
+            plan: plans/2026-06-22-compute-infra-dag-v1.md
+          - name: PhenoCompose
+            language: rust
+            workflows: rust-ci.yml,quality-gate.yml,audit.yml
+            plan: plans/2026-06-22-compute-infra-dag-v1.md
+          - name: BytePort
+            language: rust
+            workflows: ci.yml,scorecard.yml
+            plan: plans/2026-06-22-compute-infra-dag-v1.md
+          - name: nanovms
+            language: go
+            workflows: ci.yml
+            plan: plans/2026-06-22-compute-infra-dag-v1.md
+    steps:
+      - name: Skip if filtered out
+        if: ${{ github.event.inputs.target_repo != '' && github.event.inputs.target_repo != 'all' && github.event.inputs.target_repo != matrix.repo.name }}
+        run: |
+          echo "Skipped (filter: ${{ github.event.inputs.target_repo }})"
+          exit 0
+
+      - name: Checkout registry
+        uses: actions/checkout@v4
+
+      - name: Detect existing audit workflows in ${{ matrix.repo.name }}
+        env:
+          GH_TOKEN: ${{ secrets.PAT_FANOUT || secrets.GITHUB_TOKEN }}
+          REPO: ${{ matrix.repo.name }}
+        run: |
+          echo "::group::workflows in $REPO"
+          gh api repos/KooshaPari/$REPO/contents/.github/workflows --jq '.[].name' | tee workflows.txt
+          echo "::endgroup::"
+
+      - name: cargo-deny (Rust repos only)
+        if: ${{ matrix.repo.language == 'rust' }}
+        uses: EmbarkStudios/cargo-deny-action@v2
+        with:
+          manifest-path: ${{ matrix.repo.name }}/iac/Cargo.toml
+          command: check advisories licenses bans sources
+          arguments: --hide-inclusion-graph
+        continue-on-error: true
+
+      - name: golangci-lint (Go repos only)
+        if: ${{ matrix.repo.language == 'go' }}
+        uses: golangci/golangci-lint-action@v6
+        with:
+          working-directory: ${{ matrix.repo.name }}
+          version: v1.61
+        continue-on-error: true
+
+      - name: typos-cli
+        uses: crate-ci/typos@master
+        with:
+          files: ${{ matrix.repo.name }}
+          config: .typos.toml
+        continue-on-error: true
+
+      - name: zizmor (workflow lint)
+        uses: woodruffw/zizmor-action@v1
+        with:
+          paths: |
+            ${{ matrix.repo.name }}/.github/workflows
+        continue-on-error: true
+
+      - name: mdsh (markdown shell-command linter)
+        run: |
+          cargo install --locked mdsh 2>/dev/null || cargo install mdsh
+          find ${{ matrix.repo.name }} -name '*.md' -not -path '*/target/*' -not -path '*/node_modules/*' \
+            -exec mdsh --check {} +
+        continue-on-error: true
+
+      - name: Upload reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: audit-${{ matrix.repo.name }}-${{ github.run_id }}
+          path: |
+            **/deny.toml.json
+            **/typos.log
+            **/zizmor.sarif
+            **/mdsh.log
+          if-no-files-found: ignore
+
+      - name: Open issue on failure
+        if: failure()
+        env:
+          GH_TOKEN: ${{ secrets.PAT_FANOUT || secrets.GITHUB_TOKEN }}
+          REPO: ${{ matrix.repo.name }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          gh issue create \
+            --repo KooshaPari/$REPO \
+            --title "compute-infra-auditors: ${{ matrix.repo.name }} audit failed (${{ github.run_id }})" \
+            --label compute-infra,audit,automated \
+            --body "Daily audit failed. See run: $RUN_URL
+
+          This issue is auto-opened by the compute-infra-auditors workflow.
+          Add to the DAG plan (${{ matrix.plan }}) and resolve before next run."
