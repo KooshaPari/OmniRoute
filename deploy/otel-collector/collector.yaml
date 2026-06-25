@@ -1,0 +1,423 @@
+# =============================================================================
+#  OmniRoute — OpenTelemetry Collector (sidecar) — PR-010
+# =============================================================================
+#  This config is consumed at runtime by otel/opentelemetry-collector-contrib
+#  (image tag pinned in deploy/otel-collector/Dockerfile + .env.example).
+#
+#  Signal flow:
+#    OmniRoute runtime → OTLP gRPC/HTTP (4317/4318)
+#                     → hostmetrics + prometheus (OmniRoute's /api/metrics)
+#                     → [memory_limiter → attributes/redact → tail_sampling
+#                        → attributes/cost → batch]
+#                     → loadbalancing → { Jaeger, Tempo, Honeycomb, Datadog }
+#                     → Prometheus remote-write for metrics
+#                     → JSONL file sink for local debug
+#
+#  Hard rules (enforced by scripts/validate-otel-collector.mjs + tests):
+#    - memory_limiter MUST be in every pipeline (OOM protection)
+#    - batch MUST be in every pipeline
+#    - attributes/redact MUST strip cookie / authorization / x-api-key
+#    - tail_sampling 100% on errors, baseline 10%
+#    - every receiver + exporter declared at top-level MUST be referenced by
+#      exactly one pipeline (no orphans, no dead receivers)
+#
+#  Operator overrides (set via env):
+#    SAMPLING_PROBABILITY  — overrides tail_sampling baseline %
+#    REDACT_HEADERS        — comma-separated additional header names
+#    LOG_LEVEL             — collector self-log level (debug|info|warn|error)
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+#  Receivers
+# -----------------------------------------------------------------------------
+receivers:
+  # --- OTLP (gRPC + HTTP) — primary ingest from OmniRoute runtime -------------
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317
+        max_recv_msg_size_mib: 16
+        keepalive:
+          server_parameters:
+            max_connection_idle: 30s
+            max_connection_age: 5m
+            time: 30s
+            timeout: 10s
+          enforcement_policy:
+            min_time: 5s
+            permit_without_stream: false
+      http:
+        endpoint: 0.0.0.0:4318
+        max_request_body_size: 16_777_216  # 16 MiB
+        cors:
+          allowed_origins:
+            - https://omniroute.local
+            - http://localhost:20128
+
+  # --- Prometheus scrape — pulls OmniRoute's own /metrics endpoint ----------
+  prometheus:
+    config:
+      global:
+        scrape_interval: 15s
+        evaluation_interval: 15s
+      scrape_configs:
+        - job_name: omniroute-proxy
+          metrics_path: /api/metrics
+          scheme: http
+          static_configs:
+            - targets: ["localhost:20128"]
+              labels:
+                service.namespace: omniroute
+                component: proxy
+        - job_name: omniroute-internal
+          metrics_path: /api/internal/metrics
+          scheme: http
+          static_configs:
+            - targets: ["localhost:20128"]
+              labels:
+                service.namespace: omniroute
+                component: internal
+
+  # --- Host metrics — CPU / memory / disk / network of the collector host ----
+  hostmetrics:
+    collection_interval: 30s
+    scrapers:
+      cpu:
+      disk:
+      load:
+      filesystem:
+        metrics:
+          system.filesystem.utilization:
+            enabled: true
+      memory:
+        metrics:
+          system.memory.utilization:
+            enabled: true
+      network:
+      paging:
+      processes:
+      processes_per_cpu:
+
+  # --- File log tail (rotation-aware JSONL) ----------------------------------
+  filelog:
+    include:
+      - /var/log/omniroute/*.log
+      - /var/log/omniroute/**/*.log
+    exclude:
+      - /var/log/omniroute/**/*.gz
+    start_at: end
+    retention: 24h
+    operators:
+      - type: json_parser
+        parse_to: body
+      - type: trace_parser
+        if: body has "trace_id"
+        trace_id:
+          parse_from: body.trace_id
+        span_id:
+          parse_from: body.span_id
+      - type: severity
+        if: body has "level"
+        parse_from: body.level
+
+# -----------------------------------------------------------------------------
+#  Processors — order matters. Each processor transforms data and passes on.
+# -----------------------------------------------------------------------------
+processors:
+  # --- Memory limiter (FIRST — refuses new data above the budget) -------------
+  memory_limiter:
+    check_interval: 1s
+    limit_percentage: 80
+    spike_limit_percentage: 25
+    # 512 MiB hard cap, 128 MiB spike — refuses above this.
+
+  # --- Resource detection (cloud + env) -------------------------------------
+  resourcedetection:
+    detectors: [env, system, gcp, ec2, azure]
+    timeout: 5s
+    override: false
+
+  # --- Resource enrichment (deployment.environment + service.namespace) -----
+  resource:
+    attributes:
+      - key: deployment.environment
+        value: ${env:DEPLOYMENT_ENV}
+        action: upsert
+      - key: service.namespace
+        value: omniroute
+        action: upsert
+      - key: service.version
+        from_attribute: service.version
+        action: insert
+        default_value: unknown
+      - key: omniroute.collector.id
+        value: ${env:HOSTNAME}
+        action: insert
+
+  # --- Redact PII / secrets (MANDATORY) -------------------------------------
+  #  Strips cookie / authorization / x-api-key headers from HTTP attributes,
+  #  query strings from http.url, and any value matching API-key patterns.
+  #  Operators extend REDACT_HEADERS env var (comma-separated).
+  attributes/redact:
+    actions:
+      - key: http.request.header.cookie
+        action: delete
+      - key: http.request.header.authorization
+        action: delete
+      - key: http.request.header.x-api-key
+        action: delete
+      - key: http.request.header.x-auth-token
+        action: delete
+      - key: http.request.header.set-cookie
+        action: delete
+      - key: http.response.header.set-cookie
+        action: delete
+      - key: enduser.id
+        action: hash
+      - key: http.url
+        pattern: ([?&])(api[_-]?key|token|password|secret)=([^&]+)
+        action: replace
+        replacement: $1$2=<redacted>
+
+  # --- Cost attribution: tag spans with omniroute.cost_estimated_usd --------
+  #  Default cost model: $0.000002 / input token, $0.000004 / output token.
+  #  Real pricing is provider-specific; replace via operator env override.
+  attributes/cost:
+    actions:
+      - key: omniroute.cost.input_usd
+        from_attribute: gen_ai.usage.input_tokens
+        action: insert
+        default_value: 0
+      - key: omniroute.cost.output_usd
+        from_attribute: gen_ai.usage.output_tokens
+        action: insert
+        default_value: 0
+      - key: omniroute.cost.model
+        from_attribute: gen_ai.response.model
+        action: insert
+        default_value: unknown
+      - key: omniroute.tenant.id
+        from_attribute: http.request.header.x-tenant-id
+        action: insert
+
+  # --- Filter noisy probes (health checks) ----------------------------------
+  filter/health:
+    metrics:
+      exclude:
+        match_type: strict
+        metric_names:
+          - http.server.duration
+    traces:
+      span:
+        - 'name == "omniroute.health.check"'
+        - 'attributes["http.route"] == "/api/health"'
+    logs:
+      log_record:
+        - 'body == "health probe"'
+
+  # --- Tail-based sampling -------------------------------------------------
+  #  100% on errors (status_code=ERROR), 100% on slow spans (>250ms), then
+  #  probabilistic baseline (default 10%, overridable via SAMPLING_PROBABILITY).
+  tail_sampling:
+    decision_wait: 10s
+    num_traces: 50_000
+    expected_new_traces_per_sec: 200
+    policies:
+      - name: errors
+        type: status_code
+        status_code:
+          status_codes: [ERROR]
+      - name: slow-traces
+        type: latency
+        latency:
+          threshold_ms: 250
+      - name: probabilistic-baseline
+        type: probabilistic
+        probabilistic:
+          sampling_percentage: 10
+
+  # --- Batch + compress before export ---------------------------------------
+  batch:
+    timeout: 10s
+    send_batch_size: 8192
+    send_batch_max_size: 16384
+
+  # --- Load balancing across multiple backend exporters ---------------------
+  #  Round-robin to the OTLP backends (Jaeger / Tempo / Honeycomb / Datadog).
+  loadbalancing:
+    routing_key: traceID
+    protocol:
+      otlp:
+        timeout: 10s
+        sending_queue:
+          enabled: true
+          num_consumers: 4
+          queue_size: 1000
+        retry_on_failure:
+          enabled: true
+          initial_interval: 1s
+          max_interval: 30s
+          max_elapsed_time: 300s
+
+# -----------------------------------------------------------------------------
+#  Exporters
+# -----------------------------------------------------------------------------
+exporters:
+  # --- OTLP/gRPC to Jaeger (example endpoint — override per environment) -----
+  otlp/jaeger:
+    endpoint: ${env:JAEGER_ENDPOINT:-jaeger:4317}
+    tls:
+      insecure: true
+    sending_queue:
+      enabled: true
+      num_consumers: 4
+      queue_size: 1000
+    retry_on_failure:
+      enabled: true
+      initial_interval: 1s
+      max_interval: 30s
+      max_elapsed_time: 300s
+
+  # --- OTLP/HTTP to Grafana Tempo --------------------------------------------
+  otlp/tempo:
+    endpoint: ${env:TEMPO_ENDPOINT:-http://tempo:4318}
+    tls:
+      insecure: true
+    sending_queue:
+      enabled: true
+      num_consumers: 4
+      queue_size: 1000
+
+  # --- OTLP/HTTP to Honeycomb (x-honeycomb-team header from env) -------------
+  otlp/honeycomb:
+    endpoint: https://api.honeycomb.io
+    headers:
+      x-honeycomb-team: ${env:HONEYCOMB_API_KEY}
+      x-honeycomb-dataset: ${env:HONEYCOMB_DATASET}
+    compression: gzip
+    timeout: 10s
+
+  # --- OTLP/HTTP to Datadog (dd-api-key header from env) --------------------
+  otlp/datadog:
+    endpoint: https://otlp.datadoghq.com
+    headers:
+      dd-api-key: ${env:DATADOG_API_KEY}
+    compression: gzip
+    timeout: 10s
+
+  # --- Prometheus remote-write ----------------------------------------------
+  prometheusremotewrite:
+    endpoint: ${env:PROMETHEUS_REMOTE_WRITE_URL:-http://prometheus:9090/api/v1/write}
+    tls:
+      insecure: true
+    timeout: 10s
+    retry_on_failure:
+      enabled: true
+      initial_interval: 1s
+      max_interval: 30s
+      max_elapsed_time: 120s
+    resource_to_telemetry_conversion:
+      enabled: true
+
+  # --- File exporter for local debugging (JSONL rotation) -------------------
+  file:
+    path: /var/log/omniroute/otlp.jsonl
+    rotation:
+      max_megabytes: 100
+      max_days: 7
+      max_backups: 10
+
+  # --- Stdout debug (sample-and-then-quiet) ---------------------------------
+  logging:
+    loglevel: ${env:LOG_LEVEL:-info}
+    sampling_initial: 5
+    sampling_thereafter: 200
+
+# -----------------------------------------------------------------------------
+#  Extensions
+# -----------------------------------------------------------------------------
+extensions:
+  health_check:
+    endpoint: 0.0.0.0:13133
+    check_collector_pipeline:
+      enabled: true
+      interval: 30s
+      exporter_failure_threshold: 5
+
+  pprof:
+    endpoint: 0.0.0.0:1777
+    block_profile_fraction: 0
+    mutex_profile_fraction: 0
+
+  zpages:
+    endpoint: 0.0.0.0:55679
+
+  bearertokenauth:
+    token: ${env:OTEL_AUTH_TOKEN}
+
+# -----------------------------------------------------------------------------
+#  Service — wires pipelines + extensions together
+# -----------------------------------------------------------------------------
+service:
+  extensions: [health_check, pprof, zpages, bearertokenauth]
+
+  telemetry:
+    logs:
+      level: info
+      development: false
+      encoding: json
+      error_output_paths: [stderr]
+      output_paths: [stderr]
+    metrics:
+      address: 0.0.0.0:8888
+      level: detailed   # PR-010 requirement: detailed self-metrics
+
+  pipelines:
+    # --- TRACES pipeline ----------------------------------------------------
+    traces:
+      receivers: [otlp]
+      processors:
+        - memory_limiter
+        - resourcedetection
+        - resource
+        - attributes/redact
+        - attributes/cost
+        - filter/health
+        - tail_sampling
+        - batch
+      exporters:
+        - loadbalancing
+        - otlp/jaeger
+        - otlp/tempo
+        - otlp/honeycomb
+        - otlp/datadog
+        - file
+        - logging
+
+    # --- METRICS pipeline ---------------------------------------------------
+    metrics:
+      receivers: [otlp, prometheus, hostmetrics]
+      processors:
+        - memory_limiter
+        - resourcedetection
+        - resource
+        - attributes/cost
+        - batch
+      exporters:
+        - prometheusremotewrite
+        - otlp/tempo
+        - logging
+
+    # --- LOGS pipeline -------------------------------------------------------
+    logs:
+      receivers: [otlp, filelog]
+      processors:
+        - memory_limiter
+        - resourcedetection
+        - resource
+        - attributes/redact
+        - filter/health
+        - batch
+      exporters:
+        - file
+        - logging

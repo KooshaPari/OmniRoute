@@ -1,0 +1,44 @@
+# =============================================================================
+#  OmniRoute — Grafana datasource provisioning
+# =============================================================================
+#  Auto-configures Grafana with the Prometheus + Jaeger backends shipped by
+#  deploy/docker-compose.observability.yml. Grafana picks this file up from
+#  /etc/grafana/provisioning/datasources/ at boot — no manual clicks.
+# =============================================================================
+
+apiVersion: 1
+
+datasources:
+  - name: Prometheus
+    type: prometheus
+    access: proxy
+    orgId: 1
+    url: http://prometheus:9090
+    isDefault: true
+    version: 1
+    editable: true
+    jsonData:
+      timeInterval: 15s
+      httpMethod: POST
+      manageAlerts: true
+      prometheusType: Prometheus
+      prometheusVersion: 2.51.0
+      cacheLevel: High
+      incrementalQuerying: true
+
+  - name: Jaeger
+    type: jaeger
+    access: proxy
+    orgId: 1
+    url: http://jaeger:16686
+    version: 1
+    editable: true
+    jsonData:
+      tracesToLogsV2:
+        datasourceUid: 'loki'
+        spanStartTimeShift: '-1h'
+        spanEndTimeShift: '1h'
+        filterByTraceID: true
+      serviceMapEnabled: true
+      nodeGraph:
+        enabled: true

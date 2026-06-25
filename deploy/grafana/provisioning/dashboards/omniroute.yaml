@@ -1,0 +1,21 @@
+# =============================================================================
+#  OmniRoute — Grafana dashboard provider
+# =============================================================================
+#  Tells Grafana to load any *.json dashboard under /var/lib/grafana/dashboards
+#  every 30s (auto-reload after edits). Dashboards themselves live in
+#  deploy/grafana/dashboards/ — this file is just the discovery config.
+# =============================================================================
+
+apiVersion: 1
+
+providers:
+  - name: omniroute
+    orgId: 1
+    folder: OmniRoute
+    type: file
+    disableDeletion: false
+    updateIntervalSeconds: 30
+    allowUiUpdates: true
+    options:
+      path: /var/lib/grafana/dashboards
+      foldersFromFilesStructure: true

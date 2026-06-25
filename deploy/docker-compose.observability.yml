@@ -1,0 +1,159 @@
+# =============================================================================
+#  OmniRoute — Observability Sidecar Stack
+# =============================================================================
+#  Profile: observability
+#  Usage:
+#    docker compose -f docker-compose.yml -f deploy/docker-compose.observability.yml \
+#      --profile observability up -d
+#
+#  What this file adds:
+#    - otel-collector  : OTLP receiver + exporter to Prometheus + Jaeger
+#    - prometheus      : time-series DB (consumed by Grafana)
+#    - jaeger          : trace backend (UI on :16686)
+#    - grafana         : dashboards (UI on :3000, anonymous admin)
+#
+#  Persistent volumes (`prometheus-data`, `jaeger-data`, `grafana-data`,
+#  `collector-logs`) live on the host so restarts preserve state.
+# =============================================================================
+
+name: omniroute-observability
+
+x-restart-policy: &restart_policy
+  restart: unless-stopped
+
+services:
+  # ---------------------------------------------------------------------------
+  # otel-collector — OpenTelemetry Collector (contrib)
+  # ---------------------------------------------------------------------------
+  otel-collector:
+    <<: *restart_policy
+    image: omniroute/otel-collector:0.110.0
+    container_name: omniroute-otel-collector
+    command:
+      - "--config=/etc/otelcol-contrib/config.yaml"
+    environment:
+      # Token used by `bearertokenauth` in collector.yaml — must match
+      # OTEL_EXPORTER_OTLP_HEADERS on the OmniRoute runtime side.
+      OTEL_AUTH_TOKEN: ${OTEL_AUTH_TOKEN:-changeme-otel-token}
+      DEPLOYMENT_ENV: ${DEPLOYMENT_ENV:-production}
+    ports:
+      - "4317:4317"   # OTLP gRPC
+      - "4318:4318"   # OTLP HTTP
+      - "13133:13133" # health_check extension
+      - "1777:1777"   # pprof
+      - "55679:55679" # zpages
+      - "8888:8888"   # collector self-metrics
+    volumes:
+      - ./otel-collector/collector.yaml:/etc/otelcol-contrib/config.yaml:ro
+      - collector-logs:/var/log/omniroute
+    networks:
+      - omniroute-net
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:13133/"]
+      interval: 15s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
+    depends_on:
+      - prometheus
+      - jaeger
+
+  # ---------------------------------------------------------------------------
+  # prometheus — scrape target + remote-write receiver
+  # ---------------------------------------------------------------------------
+  prometheus:
+    <<: *restart_policy
+    image: prom/prometheus:v2.51.0
+    container_name: omniroute-prometheus
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --web.enable-lifecycle
+      - --web.enable-remote-write-receiver
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    networks:
+      - omniroute-net
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:9090/-/ready"]
+      interval: 15s
+      timeout: 3s
+      retries: 3
+
+  # ---------------------------------------------------------------------------
+  # jaeger — all-in-one (UI + collector + storage)
+  # ---------------------------------------------------------------------------
+  jaeger:
+    <<: *restart_policy
+    image: jaegertracing/all-in-one:1.55.0
+    container_name: omniroute-jaeger
+    environment:
+      COLLECTOR_OTLP_ENABLED: "true"
+    ports:
+      - "16686:16686" # UI
+      - "14250:14250" # gRPC (model.proto)
+      - "14268:14268" # HTTP collector
+      - "4317:4317"   # OTLP gRPC (same port as collector; bind to localhost only)
+    networks:
+      - omniroute-net
+    volumes:
+      - jaeger-data:/badger
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:14269/"]
+      interval: 15s
+      timeout: 3s
+      retries: 3
+
+  # ---------------------------------------------------------------------------
+  # grafana — auto-provisioned with Prometheus + Jaeger datasources
+  # ---------------------------------------------------------------------------
+  grafana:
+    <<: *restart_policy
+    image: grafana/grafana:10.4.2
+    container_name: omniroute-grafana
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-admin}
+      GF_USERS_ALLOW_SIGN_UP: "false"
+      GF_AUTH_ANONYMOUS_ENABLED: "true"
+      GF_AUTH_ANONYMOUS_ORG_ROLE: "Admin"
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./grafana/dashboards:/var/lib/grafana/dashboards:ro
+      - grafana-data:/var/lib/grafana
+    networks:
+      - omniroute-net
+    depends_on:
+      - prometheus
+      - jaeger
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3000/api/health"]
+      interval: 15s
+      timeout: 3s
+      retries: 3
+
+# -----------------------------------------------------------------------------
+# Volumes (persistent state on the host)
+# -----------------------------------------------------------------------------
+volumes:
+  prometheus-data:
+    driver: local
+  jaeger-data:
+    driver: local
+  grafana-data:
+    driver: local
+  collector-logs:
+    driver: local
+
+# -----------------------------------------------------------------------------
+# Networks (shared with the main compose)
+# -----------------------------------------------------------------------------
+networks:
+  omniroute-net:
+    name: omniroute-net
+    driver: bridge
+    external: true

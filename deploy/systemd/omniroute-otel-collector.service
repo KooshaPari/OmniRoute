@@ -1,0 +1,47 @@
+[Unit]
+Description=OmniRoute OpenTelemetry Collector sidecar
+Documentation=https://docs.omniroute.online/deploy/01-otel-collector
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=exec
+User=omniroute
+Group=omniroute
+EnvironmentFile=-/etc/omniroute/otel.env
+ExecStartPre=/usr/bin/test -f /etc/omniroute/otel-collector.yaml
+ExecStart=/usr/local/bin/otelcol-contrib \
+    --config=/etc/omniroute/otel-collector.yaml
+ExecReload=/bin/kill -HUP $MAINPID
+Restart=always
+RestartSec=5s
+TimeoutStopSec=30s
+
+# Hardening
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+PrivateDevices=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+
+# File descriptor budget — collector holds lots of open fds (prometheus
+# scrape targets, jaeger exporter sockets, log file handles).
+LimitNOFILE=65536
+
+# Resource caps (soft — systemd only enforces on cgroup-aware systems)
+MemoryMax=2G
+TasksMax=4096
+
+# Logging — emit to journald; rate-limit so a chatty receiver does not
+# drown the journal.
+LogRateLimitIntervalSec=30s
+LogRateLimitBurst=1000
+
+# Watchdog — ping every 30s; if the binary stops pinging, restart.
+WatchdogSec=60s
+
+[Install]
+WantedBy=multi-user.target
