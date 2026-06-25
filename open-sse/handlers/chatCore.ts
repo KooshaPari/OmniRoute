@@ -15,6 +15,8 @@ import {
 import { markCodexScopeRateLimited } from "./chatCore/codexFailover.ts";
 import { getCombosCached, getUpstreamProxyConfigCached } from "./chatCore/comboContextCache.ts";
 export { clearCombosCache, clearUpstreamProxyConfigCache } from "./chatCore/comboContextCache.ts";
+import { wrapReadableStreamWithFinalize } from "./chatCore/wrapReadableStreamWithFinalize.ts";
+export { wrapReadableStreamWithFinalize } from "./chatCore/wrapReadableStreamWithFinalize.ts";
 import {
   resolveAccountSemaphoreKey,
   resolveAccountSemaphoreMaxConcurrency,
@@ -396,46 +398,6 @@ function getUpstreamErrorIdentifier(error: unknown): string | undefined {
   if (!error || typeof error !== "object") return undefined;
   const value = (error as { code?: unknown }).code;
   return typeof value === "string" && value.length > 0 ? value : undefined;
-}
-
-function wrapReadableStreamWithFinalize<T>(
-  readable: ReadableStream<T>,
-  finalize: () => void
-): ReadableStream<T> {
-  const reader = readable.getReader();
-  let finalized = false;
-
-  const runFinalize = () => {
-    if (finalized) return;
-    finalized = true;
-    finalize();
-  };
-
-  return new ReadableStream<T>({
-    async pull(controller) {
-      try {
-        const { done, value } = await reader.read();
-        if (done) {
-          runFinalize();
-          controller.close();
-          return;
-        }
-        controller.enqueue(value);
-      } catch (error) {
-        runFinalize();
-        controller.error(error);
-      }
-    },
-
-    async cancel(reason) {
-      runFinalize();
-      try {
-        await reader.cancel(reason);
-      } catch (error) {
-        // Ignored
-      }
-    },
-  });
 }
 
 function toPositiveNumber(value: unknown) {
