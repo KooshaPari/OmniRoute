@@ -1,0 +1,110 @@
+name: ADR Index Auto-Refresh
+
+# L38.1 — Auto-refresh the top-level ADR.md index from the individual
+# MADR-format files in docs/adr/.  Runs weekly (Sunday 04:00 UTC) and
+# opens a PR if the index has changed.
+#
+# Ref: tools/adr-auto-refresh/regen.py
+
+on:
+  schedule:
+    # Every Sunday 04:00 UTC
+    - cron: '0 4 * * 0'
+  workflow_dispatch:
+    inputs:
+      dry-run:
+        description: 'Print new content without writing (true/false)'
+        required: false
+        default: 'false'
+        type: string
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: adr-refresh
+  cancel-in-progress: false
+
+env:
+  PYTHON_VERSION: "3.12"
+  BRANCH_PREFIX: "auto/adr-refresh"
+
+jobs:
+  refresh:
+    name: Refresh ADR Index
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Python
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Run ADR regen
+        id: regen
+        run: |
+          set -euo pipefail
+          DRY_RUN="${{ inputs.dry-run || 'false' }}"
+          if [ "$DRY_RUN" = "true" ]; then
+            python3 tools/adr-auto-refresh/regen.py --dry-run
+          else
+            python3 tools/adr-auto-refresh/regen.py
+          fi
+
+      - name: Check for changes
+        id: diff
+        run: |
+          set -euo pipefail
+          if ! git diff --quiet ADR.md; then
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+            echo "diff<<EOF" >> "$GITHUB_OUTPUT"
+            git diff ADR.md >> "$GITHUB_OUTPUT"
+            echo "EOF" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Create pull request
+        if: steps.diff.outputs.changed == 'true'
+        id: pr
+        uses: peter-evans/create-pull-request@5e914681df9dc83aa4e4905692ca88b1041c9e38
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: "docs(adr): auto-refresh ADR index (${{ github.run_id }})"
+          title: "docs(adr): auto-refresh ADR index (${{ github.run_id }})"
+          body: |
+            Automated ADR index refresh triggered by the weekly cron or manual dispatch.
+
+            ## What changed
+            - Updated `ADR.md` to reflect the current set of files in `docs/adr/`
+            - Auto-generated from MADR metadata (status, date, title, driver)
+
+            No manual review needed — the index is derived from the authoritative
+            source files. Close this PR if the update is not desired.
+          branch: ${{ env.BRANCH_PREFIX }}/${{ github.run_id }}
+          base: main
+          labels: auto-merge,adr
+          delete-branch: true
+
+      - name: Summarise
+        run: |
+          if [ "${{ steps.diff.outputs.changed }}" = "true" ]; then
+            echo "## ADR Index Refresh" >> "$GITHUB_STEP_SUMMARY"
+            echo "" >> "$GITHUB_STEP_SUMMARY"
+            echo "ADR.md was updated. PR: ${{ steps.pr.outputs.pull-request-url }}" >> "$GITHUB_STEP_SUMMARY"
+            echo "" >> "$GITHUB_STEP_SUMMARY"
+            echo '```diff' >> "$GITHUB_STEP_SUMMARY"
+            echo "${{ steps.diff.outputs.diff }}" >> "$GITHUB_STEP_SUMMARY"
+            echo '```' >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "## ADR Index Refresh" >> "$GITHUB_STEP_SUMMARY"
+            echo "" >> "$GITHUB_STEP_SUMMARY"
+            echo "No changes to ADR.md — index is already up to date." >> "$GITHUB_STEP_SUMMARY"
+          fi

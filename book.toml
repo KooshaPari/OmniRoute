@@ -1,0 +1,18 @@
+[book]
+authors = ["OmniRoute Core Team"]
+language = "en"
+multilingual = false
+src = "docs"
+title = "OmniRoute Documentation"
+
+[build]
+build-dir = "book"
+
+[output.html]
+git-repository-url = "https://github.com/KooshaPari/OmniRoute"
+edit-url-template = "https://github.com/KooshaPari/OmniRoute/edit/main/docs/{path}"
+site-url = "/OmniRoute/"
+
+[preprocessor.index]
+[preprocessor.links]
+[preprocessor.anchors]

@@ -1,0 +1,93 @@
+name: Latency Budget Check (weekly)
+
+# L17.1 — Weekly cron that enforces the latency budgets defined in
+# docs/PERF_BUDGETS.md.  Fires every Monday 07:00 UTC, comparing recent
+# p50/p95/p99 against the published SLO table.
+#
+# Ref: docs/PERF_BUDGETS.md, tools/latency-budget-cron/check.py
+
+on:
+  schedule:
+    # Every Monday 07:00 UTC
+    - cron: '0 7 * * 1'
+  workflow_dispatch:
+    inputs:
+      metrics-path:
+        description: 'Path to observed latency metrics JSON (optional)'
+        required: false
+        type: string
+      threshold-pct:
+        description: 'Allowed overage % before breach (default: 10)'
+        required: false
+        default: '10'
+        type: string
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: latency-budget-cron
+  cancel-in-progress: false
+
+env:
+  PYTHON_VERSION: "3.12"
+
+jobs:
+  check:
+    name: Check Latency Budgets
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Validate PERF_BUDGETS.md exists
+        run: |
+          set -euo pipefail
+          if [ ! -f docs/PERF_BUDGETS.md ]; then
+            echo "::error::docs/PERF_BUDGETS.md is missing from the working tree."
+            exit 1
+          fi
+          echo "docs/PERF_BUDGETS.md found: $(wc -l < docs/PERF_BUDGETS.md) lines"
+
+      - name: Run latency budget check (spec-only)
+        id: check
+        run: |
+          set -euo pipefail
+          METRICS=""
+          if [ -n "${{ inputs.metrics-path }}" ]; then
+            METRICS="--metrics-path ${{ inputs.metrics-path }}"
+          fi
+          python3 tools/latency-budget-cron/check.py \
+            --budgets docs/PERF_BUDGETS.md \
+            --threshold-pct ${{ inputs.threshold-pct || '10' }} \
+            --output .artifacts/latency-budget-report.json \
+            $METRICS
+
+      - name: Publish report
+        if: always()
+        run: |
+          if [ -f .artifacts/latency-budget-report.json ]; then
+            echo "## Latency Budget Report" >> "$GITHUB_STEP_SUMMARY"
+            echo "" >> "$GITHUB_STEP_SUMMARY"
+            echo '```json' >> "$GITHUB_STEP_SUMMARY"
+            cat .artifacts/latency-budget-report.json >> "$GITHUB_STEP_SUMMARY"
+            echo '```' >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Upload report artifact
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: latency-budget-report
+          path: .artifacts/latency-budget-report.json
+          if-no-files-found: warn
+          retention-days: 90

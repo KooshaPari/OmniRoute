@@ -1,0 +1,98 @@
+name: Release Please
+
+# L62.1 — Automated release PRs and version bumps via release-please.
+# On every push to main, release-please evaluates conventional commits and
+# either creates/updates a release PR or (on merge of a release PR) cuts a
+# GitHub Release with auto-generated notes.
+#
+# Ref: https://github.com/googleapis/release-please
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+  id-token: write
+
+concurrency:
+  group: release-please
+  cancel-in-progress: false
+
+jobs:
+  release-please:
+    name: Release Please
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    outputs:
+      release_created: ${{ steps.release.outputs.release_created }}
+      tag_name: ${{ steps.release.outputs.tag_name }}
+      version: ${{ steps.release.outputs.version }}
+      pr: ${{ steps.release.outputs.pr }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Run release-please
+        id: release
+        uses: googleapis/release-please-action@a02a34c4d625f9be7cb89156071d8567266a2445
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          # release-type: simple maps to the repo root's package.json for
+          # version bumps, or a standard Node.js project.  For OmniRoute,
+          # the version lives in VERSION and package.json under src/.
+          # "node" type reads package.json from repo root.
+          release-type: node
+          package-name: omniroute
+          # Only create the release if the release PR was merged
+          skip-github-release: false
+          # Use the VERSION file as the canonical version source
+          version-file: VERSION
+          # Default bump is minor for most conventional commit patterns
+          default-bump: minor
+          # Labels to auto-apply to release PRs
+          pull-request-header: ":robot: Release Please — automated release PR"
+          # Extra files to bump version in (comma-separated)
+          extra-files: |
+            package.json
+            src/package.json
+          # Changelog sections
+          changelog-sections: |
+            [
+              {"type": "feat", "section": "Features", "hidden": false},
+              {"type": "fix", "section": "Bug Fixes", "hidden": false},
+              {"type": "chore", "section": "Chores", "hidden": false},
+              {"type": "docs", "section": "Documentation", "hidden": false},
+              {"type": "refactor", "section": "Refactors", "hidden": false},
+              {"type": "perf", "section": "Performance", "hidden": false},
+              {"type": "test", "section": "Testing", "hidden": false},
+              {"type": "ci", "section": "CI/CD", "hidden": false}
+            ]
+
+      - name: Annotate release
+        if: steps.release.outputs.release_created == 'true'
+        run: |
+          echo "## Release Created" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Field | Value |" >> "$GITHUB_STEP_SUMMARY"
+          echo "|---|---|" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Version | ${{ steps.release.outputs.version }} |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Tag | ${{ steps.release.outputs.tag_name }} |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| PR | ${{ steps.release.outputs.pr }} |" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Annotate PR
+        if: steps.release.outputs.release_created != 'true'
+        run: |
+          echo "## Release Please PR Active" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "A release PR is open. Merge it to cut a new release." >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Field | Value |" >> "$GITHUB_STEP_SUMMARY"
+          echo "|---|---|" >> "$GITHUB_STEP_SUMMARY"
+          echo "| PR | ${{ steps.release.outputs.pr }} |" >> "$GITHUB_STEP_SUMMARY"

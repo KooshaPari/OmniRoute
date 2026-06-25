@@ -1,0 +1,85 @@
+name: SSG Deploy (mdbook → GitHub Pages)
+
+# L61.1 — Build the mdbook docs site from book.toml + docs/ and deploy
+# to GitHub Pages.  Runs on push to main and on manual dispatch.
+#
+# Ref: book.toml, docs/
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "docs/**"
+      - "book.toml"
+      - "SUMMARY.md"
+  workflow_dispatch:
+
+# Grant GITHUB_TOKEN the permissions to deploy to GitHub Pages
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+env:
+  MDBOOK_VERSION: v0.4.44
+
+jobs:
+  build:
+    name: Build mdbook
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
+        with:
+          fetch-depth: 0
+
+      - name: Install mdbook
+        run: |
+          set -euo pipefail
+          MDBOOK_URL="https://github.com/rust-lang/mdBook/releases/download/${MDBOOK_VERSION}/mdbook-${MDBOOK_VERSION}-x86_64-unknown-linux-gnu.tar.gz"
+          curl -sSLO "$MDBOOK_URL"
+          tar -xzf "mdbook-${MDBOOK_VERSION}-x86_64-unknown-linux-gnu.tar.gz" -C /usr/local/bin
+          rm -f "mdbook-${MDBOOK_VERSION}-x86_64-unknown-linux-gnu.tar.gz"
+          mdbook --version
+
+      - name: Install mdbook plugins
+        run: |
+          set -euo pipefail
+          # mdbook-admonish for callout boxes
+          cargo install mdbook-admonish --vers 1.19.0 2>/dev/null || true
+          # mdbook-mermaid for diagrams
+          cargo install mdbook-mermaid --vers 0.14.0 2>/dev/null || true
+
+      - name: Build mdbook
+        run: |
+          set -euo pipefail
+          if [ -f book.toml ]; then
+            mdbook build
+            echo "Build complete. Output in $(grep 'build-dir' book.toml | head -1 | awk -F'=' '{print $2}' | tr -d ' \"' )/"
+          else
+            echo "::warning::No book.toml found — skipping mdbook build"
+            mkdir -p book
+            echo "<html><body><p>No book.toml configured.</p></body></html>" > book/index.html
+          fi
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@56afc609e74202658d3ffba0e8f6dda462b719fa
+        with:
+          path: ./book
+
+  deploy:
+    name: Deploy to GitHub Pages
+    runs-on: ubuntu-24.04
+    needs: build
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@d6db9016429d3aee1ab3e2e0b0d32eef28390bc2
