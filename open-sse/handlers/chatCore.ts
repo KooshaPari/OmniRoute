@@ -16,6 +16,12 @@ import { markCodexScopeRateLimited } from "./chatCore/codexFailover.ts";
 import { getCombosCached, getUpstreamProxyConfigCached } from "./chatCore/comboContextCache.ts";
 export { clearCombosCache, clearUpstreamProxyConfigCache } from "./chatCore/comboContextCache.ts";
 import {
+  isTokenExpiringSoon,
+  getUpstreamErrorIdentifier,
+  isSemaphoreCapacityError,
+} from "./chatCore/errorAndTokenHelpers.ts";
+export { isTokenExpiringSoon } from "./chatCore/errorAndTokenHelpers.ts";
+import {
   resolveAccountSemaphoreKey,
   resolveAccountSemaphoreMaxConcurrency,
   buildClaudePromptCacheLogMeta,
@@ -351,15 +357,6 @@ async function readNonStreamingResponseBody(
   return rawBody;
 }
 
-function isSemaphoreCapacityError(error: unknown): error is Error & { code: string } {
-  return (
-    !!error &&
-    typeof error === "object" &&
-    ((error as { code?: unknown }).code === "SEMAPHORE_TIMEOUT" ||
-      (error as { code?: unknown }).code === "SEMAPHORE_QUEUE_FULL")
-  );
-}
-
 function createStreamingErrorResult(
   statusCode: number,
   message: string,
@@ -390,12 +387,6 @@ function createStreamingErrorResult(
       },
     }),
   };
-}
-
-function getUpstreamErrorIdentifier(error: unknown): string | undefined {
-  if (!error || typeof error !== "object") return undefined;
-  const value = (error as { code?: unknown }).code;
-  return typeof value === "string" && value.length > 0 ? value : undefined;
 }
 
 function wrapReadableStreamWithFinalize<T>(
@@ -4935,10 +4926,4 @@ export async function handleChatCore({
       headers: responseHeaders,
     }),
   };
-}
-
-export function isTokenExpiringSoon(expiresAt, bufferMs = 5 * 60 * 1000) {
-  if (!expiresAt) return false;
-  const expiresAtMs = new Date(expiresAt).getTime();
-  return expiresAtMs - Date.now() < bufferMs;
 }
