@@ -21,7 +21,7 @@ Organize the fleet by **what boundary you own**, not by primary programming lang
 | `cli_proxy` | OAuth CLI → OpenAI-compatible proxy; agent HTTP API | **agentapi-plusplus**, **cliproxyapi-plusplus** (peer/submodule) | Go services | cliproxy Plus providers; bifrost is vendor-only gateway |
 | `agent-control` | Terminal agent control plane HTTP surface (`/message`, `/status`, `/events`) | **agentapi-plusplus** + **substrate** `engine-agentapi` | Rust adapter in substrate | Coder AgentAPI parity; not OmniRoute merge target |
 | `inference` | Local model server, menu-bar runtime | **phenotype-omlx** (FINISH vs DROP per ADR-ECO-008) | mlx-lm / jundot/omlx engine upstream | phenoAI skeleton consumes routers |
-| `platform` | devenv, devhex, sandbox, NVMS isolation | **phenotype-go-sdk**, **phenotype-tooling**, **PhenoCompose**, **nanovms** (tooling) | nanovms crates in tooling | Go (justified); engine layer separate from gateway |
+| `platform` | devenv, devhex, sandbox, NVMS isolation | **phenotype-go-sdk**, **phenotype-tooling**, **PhenoCompose** | nanovms crate (in tooling) | Go (justified); engine layer separate from gateway |
 | `py-sdk-index` | Python package workspace / extras | **phenotype-python-sdk** | — | uv; optional `[observe]`, `[connect]`, etc. |
 
 ## Anti-patterns

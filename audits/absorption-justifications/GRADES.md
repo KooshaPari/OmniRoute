@@ -1,12 +1,13 @@
 # Absorption-Justification Grading Report
 
-Fleet average: **14.00/14** (100.00%)  ·  Grade distribution: {'L4': 8}
+Fleet average: **14.00/14** (100.00%)  ·  Grade distribution: {'L4': 9}
 
 Pillar weights: P1=3, P2=3, P3=2, P4=2, P5=1, P6=2, P7=1 (total 14)
 
 | Audit | Score | Pct | Grade | P1 | P2 | P3 | P4 | P5 | P6 | P7 |
 |---|---:|---:|:--:|:--:|:--:|:--:|:--:|:--:|:--:|:--:|
 | BytePort-2026-06-23.md | 14/14 | 100.00% | L4 | pass | pass | pass | pass | pass | pass | pass |
+| KodeVibe-2026-06-25.md | 14/14 | 100.00% | L4 | pass | pass | pass | pass | pass | pass | pass |
 | McpKit-2026-06-23.md | 14/14 | 100.00% | L4 | pass | pass | pass | pass | pass | pass | pass |
 | go-nippon-2026-06-23.md | 14/14 | 100.00% | L4 | pass | pass | pass | pass | pass | pass | pass |
 | nanovms-2026-06-23.md | 14/14 | 100.00% | L4 | pass | pass | pass | pass | pass | pass | pass |

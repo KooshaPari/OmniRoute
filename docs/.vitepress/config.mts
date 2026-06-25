@@ -23,6 +23,7 @@ export default defineConfig({
       { text: "Overview", link: "/" },
       { text: "Registries", link: "/registries" },
       { text: "Library Research", link: "/library-research" },
+      { text: "Grades", link: "/grades/" },
       { text: "GitHub", link: "https://github.com/KooshaPari/phenotype-registry" },
     ],
     sidebar: [
@@ -49,6 +50,16 @@ export default defineConfig({
             items: [
               { text: "20260617 disposition wave", link: "/sessions/20260617-ecosystem-disposition-wave/03_DAG_WBS" },
               { text: "20260617 gap-port retro", link: "/sessions/20260617-ecosystem-gap-port-retro/00_SESSION_OVERVIEW" },
+            ],
+          },
+          {
+            text: "Grades",
+            items: [
+              { text: "Cross-Repro Dashboard", link: "/grades/" },
+              { text: "Pillar Trends", link: "/grades/pillar-trends" },
+              { text: "Per-Repro Breakdown", link: "/grades/per-repo" },
+              { text: "Tier-0 Pass-Rate", link: "/grades/tier-0" },
+              { text: "Tier-1 Security Gate", link: "/grades/tier-1" },
             ],
           },
           {

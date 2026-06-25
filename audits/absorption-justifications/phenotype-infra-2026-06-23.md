@@ -12,6 +12,15 @@
 
 ---
 
+## Authoritative Org ADRs (Upstream Cross-Reference)
+
+| ADR | Title | Authority |
+|---|---|---|
+| ECO-018 | phenotype-infra path-dep hygiene | [origin/main:docs/adrs/ADR-ECO-018-phenotype-infra-path-dep-hygiene.md](https://github.com/KooshaPari/phenotype-registry/blob/main/docs/adrs/ADR-ECO-018-phenotype-infra-path-dep-hygiene.md) — 2026-06-23 |
+| ECO-022 | Compute/infra subtree registry correction | [origin/main:docs/adrs/ADR-ECO-022-compute-infra-subtree-registry-correction.md](https://github.com/KooshaPari/phenotype-registry/blob/main/docs/adrs/ADR-ECO-022-compute-infra-subtree-registry-correction.md) — 2026-06-23 |
+
+Cluster spine: `docs/compute-infra-subtree.md` on origin/main (9.1 KB, authoritative).
+
 ## Source
 
 `phenotype-infra` (`C:\Users\koosh\phenotype-infra`) is the canonical

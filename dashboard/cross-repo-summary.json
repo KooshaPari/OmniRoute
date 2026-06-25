@@ -1,0 +1,78 @@
+{
+  "generated": "2026-06-24T00:00:00Z",
+  "generator": "B6-compute-infra-dag",
+  "source": ".grade-reports/cross-repo/*.json",
+  "repos": [
+    {
+      "project": "phenotype-infra",
+      "stack": "rust",
+      "mode": "fast",
+      "score": 0,
+      "max": 10,
+      "percentage": 0,
+      "grade": "F",
+      "timestamp": "2026-06-25T03:09:55Z",
+      "tier_0_pass": false,
+      "tier_0_checks": {"build": "fail", "test-unit": "fail", "fmt": "fail", "clippy": "fail"},
+      "tier_1_audit": "skipped",
+      "pillars_passed": 0,
+      "pillars_total": 11
+    },
+    {
+      "project": "PhenoCompose",
+      "stack": "rust",
+      "mode": "full",
+      "score": 0,
+      "max": 17,
+      "percentage": 0,
+      "grade": "F",
+      "timestamp": "2026-06-25T02:59:10Z",
+      "tier_0_pass": false,
+      "tier_0_checks": {"build": "fail", "test-unit": "fail", "fmt": "fail", "clippy": "fail"},
+      "tier_1_audit": "fail",
+      "pillars_passed": 0,
+      "pillars_total": 11
+    },
+    {
+      "project": "BytePort",
+      "stack": "rust",
+      "mode": "full",
+      "score": 0,
+      "max": 17,
+      "percentage": 0,
+      "grade": "F",
+      "timestamp": "2026-06-25T03:18:50Z",
+      "tier_0_pass": false,
+      "tier_0_checks": {"build": "fail", "test-unit": "fail", "fmt": "fail", "clippy": "fail"},
+      "tier_1_audit": "fail",
+      "pillars_passed": 0,
+      "pillars_total": 11
+    },
+    {
+      "project": "nanovms",
+      "stack": "node",
+      "mode": "fast",
+      "score": 1,
+      "max": 13,
+      "percentage": 7,
+      "grade": "F",
+      "timestamp": "2026-06-25T03:15:39Z",
+      "tier_0_pass": false,
+      "tier_0_checks": {"install": "pass"},
+      "tier_1_audit": "fail",
+      "pillars_passed": 1,
+      "pillars_total": 11
+    }
+  ],
+  "metrics": {
+    "avg_score": 0.25,
+    "avg_percentage": 1.75,
+    "total_repos": 4,
+    "passing_tier_0": 0,
+    "passing_tier_1": 0
+  },
+  "stacks": {
+    "rust": ["phenotype-infra", "PhenoCompose", "BytePort"],
+    "node": ["nanovms"]
+  }
+}
