@@ -1,0 +1,122 @@
+# L36 chaos-CI gate (v28 cycle-18 T2).
+#
+# Weekly chaos experiments (cron Mon 06:00 UTC) against a 3-service sample,
+# plus PR-time gate that runs the same experiments when PRs touch any
+# service's source paths. Exit-code 1 fails the job (gate failure).
+
+name: chaos-gate
+
+on:
+  pull_request:
+    branches: [main, chore/**]
+    paths:
+      - 'pheno-port-adapter/**'
+      - 'pheno-tracing/**'
+      - 'pheno-otel/**'
+      - 'tools/chaos-ci-gate/**'
+      - '.github/workflows/chaos-gate.yml'
+  push:
+    branches: [main, chore/v2*-**]
+  schedule:
+    # Weekly Monday 06:00 UTC
+    - cron: '0 6 * * 1'
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Plan only (skip execution)'
+        required: false
+        default: 'false'
+
+permissions:
+  contents: read
+
+jobs:
+  chaos-gate:
+    name: L36 chaos-CI gate
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      CARGO_BUILD_JOBS: "1"
+      CARGO_TERM_COLOR: never
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v4.2.2
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version: '3.12'
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@3c5f7ea28cd621ae0bf5283f0e981fb97b8a7af9
+        with:
+          toolchain: stable
+
+      - name: Install Python deps (none)
+        run: python3 -c "import sys; print(sys.version)"
+
+      - name: Collect changed files (PR only)
+        id: changed
+        if: github.event_name == 'pull_request'
+        run: |
+          files=$(git diff --name-only origin/${{ github.base_ref }}...HEAD -- '*.rs' '*.toml' '*.py' '*.sh' || true)
+          {
+            echo "files<<EOF"
+            echo "$files"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Run chaos gate (weekly / push / dispatch)
+        if: github.event_name != 'pull_request'
+        run: |
+          if [ "${{ github.event.inputs.dry_run }}" = "true" ]; then
+            python3 tools/chaos-ci-gate/chaos_gate.py run --dry-run --summary | tee chaos-gate.log
+          else
+            python3 tools/chaos-ci-gate/chaos_gate.py run --output chaos-gate.json
+            python3 tools/chaos-ci-gate/chaos_gate.py run --summary | tee chaos-gate.log
+          fi
+
+      - name: Run chaos gate (PR-scoped)
+        if: github.event_name == 'pull_request'
+        run: |
+          echo "${{ steps.changed.outputs.files }}" > /tmp/changed.txt
+          python3 tools/chaos-ci-gate/chaos_gate.py run \
+            --changed /tmp/changed.txt \
+            --output chaos-gate.json
+          rc=$?
+          python3 tools/chaos-ci-gate/chaos_gate.py run \
+            --changed /tmp/changed.txt \
+            --summary | tee chaos-gate.log || true
+          exit "$rc"
+
+      - name: Upload gate artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: chaos-gate-${{ github.sha }}
+          path: |
+            chaos-gate.log
+            chaos-gate.json
+          retention-days: 30
+
+      - name: Annotate summary
+        if: always()
+        run: |
+          if [ -f chaos-gate.json ]; then
+            python3 tools/chaos-ci-gate/chaos_gate.py run --dry-run --summary >> chaos-gate.log || true
+            python3 - <<'PY_EOF' >> "$GITHUB_STEP_SUMMARY"
+          import json
+          r = json.load(open('chaos-gate.json'))
+          s = r.get('summary', {})
+          print(f"## L36 chaos-CI gate ({r.get('mode', 'unknown')})")
+          print()
+          print(f"- fleet size: {r.get('fleet_size', 0)}")
+          print(f"- selected:   {r.get('selected_size', 0)}")
+          print(f"- passed:     {s.get('passed', 0)}")
+          print(f"- failed:     {s.get('failed', 0)}")
+          print(f"- skipped:    {s.get('skipped', 0)}")
+          PY_EOF
+          fi
