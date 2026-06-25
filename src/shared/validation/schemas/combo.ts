@@ -85,6 +85,13 @@ export const scoringWeightsSchema = z
   })
   .optional();
 
+// Per-composite-tier entry. Switched from .strict() → .passthrough() +
+// .transform() so legacy stored configs (pre-3.8.32, and any future
+// release that adds new nested sub-fields) round-trip through
+// PUT /api/combos/{id} without 400. Mirrors the parent
+// compositeTiersSchema pattern (#4774, #4382, #4962 — the 3.8.31 → 3.8.33
+// sweep) and the wider comboRuntimeConfigSchema zero-latency
+// auto-promotion shim above.
 export const compositeTierEntrySchema = z
   .object({
     stepId: z.string().trim().min(1).max(200),
@@ -92,7 +99,27 @@ export const compositeTierEntrySchema = z
     label: z.string().trim().min(1).max(200).optional(),
     description: z.string().trim().min(1).max(500).optional(),
   })
-  .strict();
+  // .passthrough() so legacy configs that carry forward-compatible
+  // unknown keys (added by future releases) don't 400 on the next PUT.
+  .passthrough()
+  .transform((entry) => {
+    // Backward-compat shim: the current schema has no required nested
+    // fields beyond `stepId` — every other field is optional. This
+    // transform is a pass-through that documents the round-trip intent
+    // and mirrors the parent compositeTiersSchema transform above. If a
+    // future release adds a new required nested field (e.g. per-tier
+    // routing/cost/quota controls), backfill the safe default here in
+    // the same idempotent spread-in style, e.g.:
+    //
+    //   return {
+    //     ...entry,
+    //     newRequiredField: entry.newRequiredField ?? <safe default>,
+    //   };
+    //
+    // Idempotent: passing the parsed output back through the schema
+    // produces the same shape.
+    return entry;
+  });
 
 // Per-composite-tier cost gating. Optional so legacy stored compositeTiers
 // (pre-3.8.32) round-trip without 400 — the backfill defaults are applied

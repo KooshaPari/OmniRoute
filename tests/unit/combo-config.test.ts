@@ -836,6 +836,208 @@ test("createComboSchema rejects compositeTiers with a negative cost floor", () =
   assert.equal(result.success, false);
 });
 
+// Nested compositeTierEntrySchema shim. Mirrors the parent compositeTiersSchema
+// pattern above (#4774 / #4382 sweep). Switched .strict() → .passthrough() +
+// .transform() so legacy stored tier entries (pre-3.8.32, and any future
+// release that adds new nested sub-fields) round-trip through
+// PUT /api/combos/{id} without 400.
+test("createComboSchema compositeTierEntry passthrough preserves legacy entries (round-trip)", () => {
+  // Pre-3.8.32 stored tier entries may carry ONLY `stepId` — every other
+  // field on compositeTierEntrySchema is optional. The nested schema now
+  // accepts that shape verbatim and the transform is a no-op pass-through.
+  const result = createComboSchema.safeParse({
+    name: "tiered-entry-legacy",
+    strategy: "priority",
+    models: [
+      {
+        kind: "model",
+        id: "step-primary",
+        providerId: "codex",
+        model: "gpt-5.4",
+        connectionId: "conn-codex-a",
+      },
+    ],
+    config: {
+      compositeTiers: {
+        defaultTier: "primary",
+        tiers: {
+          primary: { stepId: "step-primary" },
+        },
+      },
+    },
+  });
+
+  assert.equal(result.success, true);
+  assert.equal(result.data.config.compositeTiers.tiers.primary.stepId, "step-primary");
+});
+
+test("createComboSchema compositeTierEntry passthrough allows unknown nested fields (forward-compat)", () => {
+  // compositeTierEntrySchema switched from .strict() → .passthrough() so a
+  // future release that adds a new nested sub-field (e.g. per-tier quota,
+  // routing override) doesn't 400 on stored configs that already carry
+  // the new field. The unknown key is preserved verbatim.
+  const result = createComboSchema.safeParse({
+    name: "tiered-entry-future-field",
+    strategy: "priority",
+    models: [
+      {
+        kind: "model",
+        id: "step-primary",
+        providerId: "codex",
+        model: "gpt-5.4",
+        connectionId: "conn-codex-a",
+      },
+    ],
+    config: {
+      compositeTiers: {
+        defaultTier: "primary",
+        tiers: {
+          primary: {
+            stepId: "step-primary",
+            futureNestedField: "preserved-verbatim",
+          },
+        },
+      },
+    },
+  });
+
+  assert.equal(result.success, true);
+  const primary = result.data.config.compositeTiers.tiers.primary as Record<string, unknown>;
+  assert.equal(primary.futureNestedField, "preserved-verbatim");
+  assert.equal(primary.stepId, "step-primary");
+});
+
+test("createComboSchema compositeTierEntry transform is idempotent (running twice = same result)", () => {
+  // Mirror of the parent compositeTiersSchema idempotency test above.
+  // Passing the already-parsed tier entry back through the schema must
+  // produce the same shape — the transform is a no-op pass-through.
+  const input = {
+    name: "tiered-entry-idempotent",
+    strategy: "priority",
+    models: [
+      {
+        kind: "model",
+        id: "step-primary",
+        providerId: "codex",
+        model: "gpt-5.4",
+        connectionId: "conn-codex-a",
+      },
+    ],
+    config: {
+      compositeTiers: {
+        defaultTier: "primary",
+        tiers: {
+          primary: {
+            stepId: "step-primary",
+            fallbackTier: undefined,
+            label: undefined,
+            description: undefined,
+          },
+        },
+      },
+    },
+  };
+
+  const first = createComboSchema.parse(input);
+  const firstEntry = first.config.compositeTiers.tiers.primary;
+
+  const second = createComboSchema.parse({
+    ...input,
+    config: {
+      compositeTiers: {
+        defaultTier: "primary",
+        tiers: { primary: firstEntry },
+      },
+    },
+  });
+  const secondEntry = second.config.compositeTiers.tiers.primary;
+
+  assert.equal(secondEntry.stepId, firstEntry.stepId);
+  assert.deepEqual(
+    Object.keys(secondEntry as object).sort(),
+    Object.keys(firstEntry as object).sort()
+  );
+});
+
+test("createComboSchema compositeTierEntry still rejects entries without stepId", () => {
+  // The shim must NOT loosen the required-`stepId` validation: a stored
+  // entry that somehow lost its `stepId` (data corruption, partial write)
+  // still fails the schema so validateCompositeTiersConfig isn't asked
+  // to make sense of garbage downstream.
+  const result = createComboSchema.safeParse({
+    name: "tiered-entry-no-step",
+    strategy: "priority",
+    models: [
+      {
+        kind: "model",
+        id: "step-primary",
+        providerId: "codex",
+        model: "gpt-5.4",
+        connectionId: "conn-codex-a",
+      },
+    ],
+    config: {
+      compositeTiers: {
+        defaultTier: "primary",
+        tiers: {
+          primary: { fallbackTier: "backup", label: "primary only" },
+        },
+      },
+    },
+  });
+
+  assert.equal(result.success, false);
+});
+
+test("createComboSchema compositeTierEntry preserves explicit fallbackTier / label / description", () => {
+  // New combos that explicitly set the optional nested fields must keep
+  // them — the transform only fires for missing required fields, of
+  // which the current schema has none beyond `stepId`.
+  const result = createComboSchema.safeParse({
+    name: "tiered-entry-explicit",
+    strategy: "priority",
+    models: [
+      {
+        kind: "model",
+        id: "step-primary",
+        providerId: "codex",
+        model: "gpt-5.4",
+        connectionId: "conn-codex-a",
+      },
+      {
+        kind: "model",
+        id: "step-backup",
+        providerId: "codex",
+        model: "gpt-5.4",
+        connectionId: "conn-codex-b",
+      },
+    ],
+    config: {
+      compositeTiers: {
+        defaultTier: "primary",
+        tiers: {
+          primary: {
+            stepId: "step-primary",
+            fallbackTier: "backup",
+            label: "Codex A",
+            description: "Primary account",
+          },
+          backup: {
+            stepId: "step-backup",
+            label: "Codex B",
+          },
+        },
+      },
+    },
+  });
+
+  assert.equal(result.success, true);
+  assert.equal(result.data.config.compositeTiers.tiers.primary.fallbackTier, "backup");
+  assert.equal(result.data.config.compositeTiers.tiers.primary.label, "Codex A");
+  assert.equal(result.data.config.compositeTiers.tiers.primary.description, "Primary account");
+  assert.equal(result.data.config.compositeTiers.tiers.backup.label, "Codex B");
+});
+
 test("createComboSchema accepts failoverBeforeRetry, maxSetRetries and setRetryDelayMs", () => {
   const parsed = createComboSchema.parse({
     name: "failover-test",
