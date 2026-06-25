@@ -1,0 +1,96 @@
+# L38 ADR index auto-refresh gate (v28 cycle-18 T3).
+#
+# Runs tools/adr-index-check/adr_index_check.py on every PR that touches
+# the ADR directory or the index, plus a weekly cron for fleet-wide drift
+# detection. Exit-code 1 fails the job (gate failure).
+
+name: adr-index-check
+
+on:
+  pull_request:
+    branches: [main, chore/**]
+    paths:
+      - 'docs/adr/**'
+      - 'ADR.md'
+      - '.github/workflows/adr-index-check.yml'
+      - 'tools/adr-index-check/**'
+  push:
+    branches: [main, chore/v2*-**]
+    paths:
+      - 'docs/adr/**'
+      - 'ADR.md'
+  schedule:
+    # Weekly Monday 07:00 UTC (post chaos-cron + repro-build cadence)
+    - cron: '0 7 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  adr-index-check:
+    name: L38 ADR index auto-refresh gate
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v4.2.2
+        with:
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version: '3.12'
+
+      - name: Install Python deps (none, stdlib only)
+        run: python3 -c "import sys; print(sys.version)"
+
+      - name: Run ADR index gate (check)
+        run: |
+          python3 tools/adr-index-check/adr_index_check.py check \
+            --output adr-index-check.json \
+            --summary | tee adr-index-check.log
+          rc=$?
+          echo "exit_code=$rc"
+          exit "$rc"
+
+      - name: Upload gate artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: adr-index-check-${{ github.sha }}
+          path: |
+            adr-index-check.log
+            adr-index-check.json
+          retention-days: 30
+
+      - name: Annotate summary
+        if: always()
+        run: |
+          if [ -f adr-index-check.json ]; then
+            python3 - <<'PY_EOF' >> "$GITHUB_STEP_SUMMARY"
+          import json
+          r = json.load(open('adr-index-check.json'))
+          s = r.get('summary', {})
+          print("## L38 ADR index check")
+          print()
+          print(f"- index:         `{r.get('index_path', '?')}`")
+          print(f"- ADR dir:       `{r.get('adr_dir', '?')}`")
+          print(f"- ADRs found:    {s.get('total', 0)}")
+          print(f"- in index:      {s.get('in_index', 0)}")
+          print(f"- missing:       {s.get('missing', 0)}")
+          print(f"- duplicates:    {s.get('duplicates', 0)}")
+          print(f"- stale index:   {r.get('stale_index', False)}")
+          print(f"- last updated:  {r.get('last_updated') or '(none)'}")
+          print(f"- freshness:     {r.get('freshness_days', 30)}d")
+          miss = r.get('missing', [])
+          if miss:
+            print()
+            print(f"**Missing from `{r.get('index_path', 'INDEX.md')}`:**")
+            for m in miss[:25]:
+              print(f"- `{m}`")
+            if len(miss) > 25:
+              print(f"- ... and {len(miss) - 25} more")
+          PY_EOF
+          fi
