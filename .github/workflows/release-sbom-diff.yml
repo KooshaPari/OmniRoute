@@ -1,0 +1,88 @@
+name: Release SBOM Diff Gate
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      base_tag:
+        description: 'Base tag to diff against (default: previous semver tag)'
+        required: false
+        default: ''
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  sbom-diff:
+    name: Generate + diff SBOM
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          submodules: recursive
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install cargo-cyclonedx
+        run: cargo install cargo-cyclonedx --locked
+
+      - name: Generate CycloneDX SBOM
+        run: |
+          mkdir -p dist
+          cargo cyclonedx --format json --override-filename dist/$(basename $GITHUB_REPOSITORY)-${GITHUB_REF_NAME#refs/tags/}
+
+      - name: Resolve base tag
+        id: base
+        run: |
+          if [ -n "${{ inputs.base_tag }}" ]; then
+            echo "value=${{ inputs.base_tag }}" >> "$GITHUB_OUTPUT"
+          else
+            BASE=$(git tag --sort=-version:refname | grep -E '^v' | sed -n '2p')
+            echo "value=$BASE" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Fetch base SBOM artifact
+        if: steps.base.outputs.value != ''
+        run: |
+          gh run download \
+            --repo ${{ github.repository }} \
+            --name sbom-${{ steps.base.outputs.value }} \
+            --dir dist/base 2>/dev/null || \
+          echo "No base SBOM artifact — diff will treat base as empty"
+
+      - name: Run SBOM diff
+        run: |
+          python3 tools/sbom-diff/sbom_diff.py \
+            --base dist/base/$(basename $GITHUB_REPOSITORY)-${BASE}.cdx.json \
+            --target dist/$(basename $GITHUB_REPOSITORY)-${GITHUB_REF_NAME#refs/tags/}.cdx.json \
+            --output dist/sbom-diff.json \
+            --strict
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: sbom-${{ github.ref_name }}
+          path: dist/
+          retention-days: 365
+
+      - name: Comment on release
+        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
+        run: |
+          added=$(jq '.added | length' dist/sbom-diff.json)
+          removed=$(jq '.removed | length' dist/sbom-diff.json)
+          upgraded=$(jq '.upgraded | length' dist/sbom-diff.json)
+          echo "## SBOM diff: ${{ github.ref_name }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "- **added**: $added" >> "$GITHUB_STEP_SUMMARY"
+          echo "- **removed**: $removed" >> "$GITHUB_STEP_SUMMARY"
+          echo "- **upgraded**: $upgraded" >> "$GITHUB_STEP_SUMMARY"
