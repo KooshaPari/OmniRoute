@@ -6,12 +6,16 @@ use thiserror::Error;
 /// Error type for port adapter operations.
 #[derive(Debug, Error)]
 pub enum AdapterError {
+    /// Connecting to the endpoint failed (e.g. unreachable, refused, timeout).
     #[error("connect failed: {0}")]
     ConnectFailed(String),
+    /// Disconnecting from the endpoint failed.
     #[error("disconnect failed: {0}")]
     DisconnectFailed(String),
+    /// Health check against the connected endpoint failed.
     #[error("health check failed: {0}")]
     HealthCheckFailed(String),
+    /// The operation timed out before completing.
     #[error("timeout")]
     Timeout,
 }
@@ -25,9 +29,17 @@ pub struct Connection {
 
 /// Trait for port adapters.
 pub trait PortAdapter: Send + Sync {
+    /// Returns the stable, human-readable adapter name (e.g. `tcp`, `unix`).
     fn name(&self) -> &str;
+    /// Lightweight liveness check; returns `Ok(())` when the adapter
+    /// is connected and the underlying transport is healthy.
     fn health(&self) -> Result<(), AdapterError>;
+    /// Open a connection to the given endpoint.
+    ///
+    /// Returns a [`Connection`] handle on success, or an [`AdapterError`]
+    /// describing the failure (e.g. unreachable, malformed endpoint).
     fn connect(&self, endpoint: &str) -> Result<Connection, AdapterError>;
+    /// Close the current connection. A no-op when already disconnected.
     fn disconnect(&self) -> Result<(), AdapterError>;
 }
 
