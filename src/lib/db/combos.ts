@@ -117,7 +117,7 @@ export async function getComboById(id: string) {
   return normalizeStoredCombo(combo, db, typeof combo.name === "string" ? [combo.name] : []);
 }
 
-export async function getComboByName(name: string) {
+export async function getComboByName(name: string): Promise<ComboRecord | null> {
   const db = getDbInstance();
   const row = db.prepare("SELECT data, sort_order, context_cache_protection FROM combos WHERE name = ?").get(name);
   const combo = parseComboRow(row);
