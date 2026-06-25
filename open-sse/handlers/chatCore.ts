@@ -34,6 +34,10 @@ import {
   forwardDashboardEventToLiveWs,
   maybeSyncClaudeExtraUsageState,
 } from "./chatCore/telemetryHelpers.ts";
+import {
+  getSkillsProviderForFormat,
+  getSkillsModelIdForFormat,
+} from "./chatCore/formatSkillsHelpers.ts";
 // Re-export the previously inline-defined helpers so existing importers of these
 // symbols from chatCore.ts (tests, sibling modules) keep resolving after the split.
 export {
@@ -277,28 +281,6 @@ import { incrementRequestCount } from "../services/geminiRateLimitTracker.ts";
 // 200MB that sat below the app's own ~260MB baseline and rejected every request.
 
 import { isSmallEnoughForSemanticCache } from "../utils/estimateSize.ts";
-
-function getSkillsProviderForFormat(format: string): "openai" | "anthropic" | "google" | "other" {
-  switch (format) {
-    case FORMATS.CLAUDE:
-      return "anthropic";
-    case FORMATS.GEMINI:
-      return "google";
-    default:
-      return "openai";
-  }
-}
-
-function getSkillsModelIdForFormat(format: string): string {
-  switch (format) {
-    case FORMATS.CLAUDE:
-      return "claude";
-    case FORMATS.GEMINI:
-      return "gemini";
-    default:
-      return "openai";
-  }
-}
 
 async function readNonStreamingResponseBody(
   response: Response,
