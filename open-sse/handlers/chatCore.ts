@@ -99,6 +99,7 @@ import {
   formatProviderError,
   sanitizeErrorMessage,
 } from "../utils/error.ts";
+import { createStreamingErrorResult } from "./chatCore/streamingErrorResponse";
 import {
   checkTokenLimits,
   recordTokenUsage,
@@ -358,38 +359,6 @@ function isSemaphoreCapacityError(error: unknown): error is Error & { code: stri
     ((error as { code?: unknown }).code === "SEMAPHORE_TIMEOUT" ||
       (error as { code?: unknown }).code === "SEMAPHORE_QUEUE_FULL")
   );
-}
-
-function createStreamingErrorResult(
-  statusCode: number,
-  message: string,
-  code?: string,
-  type?: string
-) {
-  const errorBody = buildErrorBody(statusCode, message);
-  if (code) {
-    errorBody.error.code = code;
-  }
-  if (type) {
-    errorBody.error.type = type;
-  }
-
-  const body = `data: ${JSON.stringify(errorBody)}\n\ndata: [DONE]\n\n`;
-
-  return {
-    success: false as const,
-    status: statusCode,
-    error: message,
-    response: new Response(body, {
-      status: statusCode,
-      headers: {
-        "Content-Type": "text/event-stream",
-        "Cache-Control": "no-cache, no-transform",
-        Connection: "keep-alive",
-        "X-Accel-Buffering": "no",
-      },
-    }),
-  };
 }
 
 function getUpstreamErrorIdentifier(error: unknown): string | undefined {
