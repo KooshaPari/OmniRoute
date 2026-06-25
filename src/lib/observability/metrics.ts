@@ -551,6 +551,81 @@ export function recordQuotaLimit(gauge: Gauge, tenant: string, limit: number): v
 }
 
 /* ------------------------------------------------------------------ *
+ * PR-007 — Per-tenant cost + quota metrics (task-spec surface)        *
+ * ------------------------------------------------------------------ */
+
+/** Cost counter labels allow-list. `tenant_id` is enforced upstream by the cardinality cap. */
+export const TENANT_COST_LABEL_ALLOWLIST: ReadonlyArray<string> = ["tenant_id", "provider", "model", "kind"];
+/** Quota gauge labels allow-list. `kind` is the quota dimension (rpm/rpd/tpd/spd). */
+export const QUOTA_LABEL_ALLOWLIST: ReadonlyArray<string> = ["tenant_id", "kind"];
+/** Quota kinds accepted by the spec. Anything else gets coerced to "other". */
+export const QUOTA_KIND_ALLOWLIST: ReadonlyArray<string> = [
+  "requests_per_minute",
+  "requests_per_day",
+  "tokens_per_day",
+  "spend_per_day_usd",
+];
+/** Token-kind allow-list (what counts as "input" / "output" / "cached"). */
+export const TOKEN_KIND_ALLOWLIST: ReadonlyArray<string> = ["input", "output", "cached"];
+
+/**
+ * Counter — total USD cost per tenant (default-off; opt-in via
+ * `recordTokenUsage` in `costLedger.ts`).
+ */
+export const tenantCostDollarsTotal: Counter = createCounter({
+  name: "omniroute_tenant_cost_dollars_total",
+  help: "Per-tenant cost in USD, attributed by provider+model+token-kind.",
+  labelNames: [...TENANT_COST_LABEL_ALLOWLIST],
+});
+
+/**
+ * Counter — total tokens per tenant, attributed by provider+model+kind.
+ * Sums with `tenantCostDollarsTotal` to derive effective $/1k over a window.
+ */
+export const tenantTokensTotal: Counter = createCounter({
+  name: "omniroute_tenant_tokens_total",
+  help: "Per-tenant token count, attributed by provider+model+token-kind.",
+  labelNames: [...TENANT_COST_LABEL_ALLOWLIST],
+});
+
+/**
+ * Gauge — remaining quota per (tenant, kind). Set by `quotaGauges.ts`.
+ */
+export const quotaRemainingGauge: Gauge = createGauge({
+  name: "omniroute_quota_remaining",
+  help: "Quota units remaining for a (tenant, kind) pair. 0 = at the cap.",
+  labelNames: [...QUOTA_LABEL_ALLOWLIST],
+});
+
+/**
+ * Gauge — total quota limit per (tenant, kind). Set by `quotaGauges.ts`.
+ */
+export const quotaLimitGauge: Gauge = createGauge({
+  name: "omniroute_quota_limit",
+  help: "Quota units configured for a (tenant, kind) pair.",
+  labelNames: [...QUOTA_LABEL_ALLOWLIST],
+});
+
+/**
+ * Gauge — quota utilisation ratio (0..1+, >1 indicates overflow). Computed
+ * from (limit - remaining) / limit in `quotaGauges.ts`.
+ */
+export const quotaUtilizationGauge: Gauge = createGauge({
+  name: "omniroute_quota_utilization_ratio",
+  help: "Quota utilisation as a ratio of used/limit. >1 = over quota.",
+  labelNames: [...QUOTA_LABEL_ALLOWLIST],
+});
+
+/**
+ * Allow-list enforcement helpers — return the canonical value or "other"
+ * (the bucket that absorbs unknown / out-of-vocabulary labels).
+ */
+export function allowList(value: unknown, allowed: ReadonlyArray<string>, fallback = "other"): string {
+  if (typeof value !== "string") return fallback;
+  return allowed.includes(value) ? value : fallback;
+}
+
+/* ------------------------------------------------------------------ *
  * Process metrics — auto-populated at startup                        *
  * ------------------------------------------------------------------ */
 

@@ -80,6 +80,17 @@ export {
   recordQuotaLimit,
   setProcessMetrics,
   getDroppedTotals,
+  // PR-007 cost + quota gauges
+  tenantCostDollarsTotal,
+  tenantTokensTotal,
+  quotaRemainingGauge,
+  quotaLimitGauge,
+  quotaUtilizationGauge,
+  TENANT_COST_LABEL_ALLOWLIST,
+  QUOTA_LABEL_ALLOWLIST,
+  QUOTA_KIND_ALLOWLIST,
+  TOKEN_KIND_ALLOWLIST,
+  allowList,
 } from "./metrics";
 export type {
   Counter,
@@ -136,3 +147,43 @@ export {
   PROXY_TRACE_HEADER,
 } from "./proxySpan";
 export type { ProxySpanResult } from "./proxySpan";
+
+/* PR-007 — Per-tenant cost meters + quota gauges (task-spec surface) */
+export {
+  recordTokenUsage,
+  recordTokenUsageWithLedger,
+  getTenantCost,
+  getAllTenantCosts,
+  resetForTests as resetCostLedgerForTests,
+  isTelemetryDisabled,
+  admitTenantId,
+  TENANT_ID_CAPACITY,
+  computeCostUsd,
+  _writeLedgerEntry,
+} from "./costLedger";
+export type {
+  RecordTokenUsageArgs,
+  TenantCostRecord,
+  TenantCostSummary,
+  TokenKind,
+  CostCalculation,
+} from "./costLedger";
+
+export {
+  setQuotaRemaining,
+  setQuotaLimit,
+  getQuotaSnapshot,
+  resetForTests as resetQuotaGaugesForTests,
+} from "./quotaGauges";
+export type {
+  QuotaKind,
+  QuotaSnapshot,
+  QuotaKindSnapshot,
+} from "./quotaGauges";
+
+export {
+  runWithTenant,
+  currentTenantId,
+  currentTenantAttributes,
+  resetForTests as resetTenantScopeForTests,
+} from "./tenantScope";
