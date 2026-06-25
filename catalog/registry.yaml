@@ -105,24 +105,29 @@ substrates:
     repo: KooshaPari/phenotype-infra
     name: phenotype-infra
     status: active
-    tier: federated-service
+    tier: federated-service   # schema enum requires `federated-service` (per ADR-ECO-017); semantic role below
     architecture: hexagonal-l4
-    ports: [ComposePort, ProvisionerPort, ConfigPort, FfiPort]
-    adapters: [NanovmsCoreAdapter, NvmsFfiAdapter, PhenoConfigAdapter]
+    ports: [ComposePort, ProvisionerPort, ConfigPort, FfiPort, DesktopPort, AgentUtilPort]
+    adapters: [NanovmsCoreAdapter, NvmsFfiAdapter, PhenoConfigAdapter, PhenoComposeAdapter, KvirtualDesktopAdapter, ThegentUtilAdapter, KodevibegoAdapter]
     language: rust
-    role: compute-infra
+    role: federation-service
     workspace_version: "0.1.0"
     adr_refs:
       - ADR-ECO-017   # substrate schema conventions (tier=federated-service, hexagonal-l4)
-      - ADR-ECO-049   # phenotype-infra canonical absorb (PLANNED — ADR not yet authored; placeholder until ADR-ECO-049 lands)
-    boundary: null
-    intent: null
+      - ADR-049       # phenotype-infra canonical absorb (per projects/phenotype-infra.json)
+    boundary: docs/boundary/phenotype-infra.md
+    intent: docs/intent/phenotype-infra.md
     notes: |
-      Federated compute/infra service (proposed). Four workspace members:
-      nanovms-core (unikernel/VM lifecycle), nvms-ffi (C-ABI exports),
-      pheno-compose-driver (CLI + driver), pheno-config (typed config).
-      Status intent: replaces standalone nanovms and PhenoCompose repos.
-      ADR-ECO-049 is the planned absorb ADR (not yet committed); flagged
-      in DAG-011 as a follow-up to either author ADR-049 or drop the ref.
-      boundary/intent are null because the phenotype-infra repo has not
-      yet been cloned locally (see DAG-011 follow-ups).
+      Federated compute/infra service (federation-service role).
+      Workspace members tracked individually in projects/<crate>.json:
+        - nvms-ffi            (C-ABI exports for nanovms-core)
+        - pheno-compose       (CLI + driver; supersedes phenocompose standalone)
+        - pheno-config        (typed config; supersedes phenotype-config standalone)
+        - kvirtualdesktop-core (KVirtualDesktop VM/desktop isolation core)
+        - thegent-utils       (thegent shared utility crate)
+        - kodevibego          (KodeVibe Go<->Rust bridge, FFI)
+      Other in-tree crates not yet federated into this catalog entry:
+        - nanovms-core, credential-manager, kvirtual, kvirtualdesktop-mcp-server,
+          kodevibego-ffi (workspace siblings; promotion pending audit).
+      Replaces standalone nanovms and PhenoCompose repos per ADR-049
+      (see projects/phenotype-infra.json, audit 2026-06-23).

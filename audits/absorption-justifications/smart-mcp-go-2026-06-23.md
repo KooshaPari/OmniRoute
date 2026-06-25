@@ -15,6 +15,14 @@
 
 ---
 
+## Authoritative Org ADRs (Upstream Cross-Reference)
+
+| ADR | Title | Authority |
+|---|---|---|
+| (none) | no live ADR — empty 0-LOC scaffold repo | registry/disposition-index.json (row `repo-smart-mcp-go-no-merit`) |
+
+Retroactive ABSORPTION.md: `KooshaPari/phenotype-tooling/docs/absorbed-from-smart-mcp-go/ABSORPTION.md` on origin (commit `e23873c`).
+
 ## Source
 
 The source repository `KooshaPari/smart-mcp-go` cannot be located in this audit cycle. The filesystem check on 2026-06-23 confirms there is no local clone at `C:\Users\koosh\smart-mcp-go`. A GitHub API probe for the canonical remote `https://api.github.com/repos/KooshaPari/smart-mcp-go` returns a 404 — the repository either was never created publicly under that path, or was deleted before the audit window opened. There is no archived snapshot in the `_arch_*.json` evidence files for any audit cycle covering smart-mcp-go, which means there is no JSON snapshot to anchor source metadata against. The only evidence available is the absence of evidence itself: the audit cannot absorb what it cannot see. This is precisely the situation the `NO_MERIT_WITH_INTENT` verdict was designed for — there is no present merit (because there is no present source), but the owner has registered an intent that the repo (or its successor) might be revived, and the verdict preserves that intent without committing to absorption.

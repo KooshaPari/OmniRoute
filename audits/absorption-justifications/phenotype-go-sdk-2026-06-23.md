@@ -14,6 +14,15 @@
 
 ---
 
+## Authoritative Org ADRs (Upstream Cross-Reference)
+
+| ADR | Title | Authority |
+|---|---|---|
+| ADR-017 | McpKit retires (Go SDK inherits) | (note: ADR-017 cited in 2026-06-24 PR #365 ecosystem map) |
+| sr-mcpkit | SUPERSEDE -> PhenoFastMCP+PhenoMCPServers+substrate | registry/disposition-index.json:866 |
+
+Cluster spine: `docs/compute-infra-subtree.md` on origin/main (phenotype-go-sdk folded into substrate via ADR-017).
+
 ## Source
 
 The source repository `KooshaPari/phenotype-go-sdk` is the canonical Go SDK workspace for the phenotype ecosystem. The local disk does not currently have a clone at `C:\Users\koosh\phenotype-go-sdk` (filesystem check 2026-06-23), but the audit has access to a temporary staging area at `C:\Users\koosh\_tmp_phenotype_go_sdk` which holds the source tree. The repository is the consolidation target for Go SDK work across multiple absorbed repos per ADR-011: `go-nippon` (devhex pattern), `PhenoFastMCP-go` (MCP substrate), and `phenotype-ops-mcp` (ops MCP server) are all candidates for absorption into this workspace. The two secondary absorption candidates — `PhenoFastMCP-go` and `phenotype-ops-mcp` — currently return 404 on the canonical GitHub remotes per the audit's secondary-source check; their absence is itself a blocker because the absorption plan was predicated on those sources existing and being ready for migration.

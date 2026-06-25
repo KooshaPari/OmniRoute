@@ -14,6 +14,15 @@
 
 ---
 
+## Authoritative Org ADRs (Upstream Cross-Reference)
+
+| ADR | Title | Authority |
+|---|---|---|
+| ECO-021 | PhenoCompose dead-cuda feature | [origin/main:docs/adrs/ADR-ECO-021-phenocompose-dead-cuda-feature.md](https://github.com/KooshaPari/phenotype-registry/blob/main/docs/adrs/ADR-ECO-021-phenocompose-dead-cuda-feature.md) — 2026-06-23 |
+| ECO-022 | Compute/infra subtree registry correction | [origin/main:docs/adrs/ADR-ECO-022-compute-infra-subtree-registry-correction.md](https://github.com/KooshaPari/phenotype-registry/blob/main/docs/adrs/ADR-ECO-022-compute-infra-subtree-registry-correction.md) — 2026-06-23 |
+
+Cluster spine: `docs/compute-infra-subtree.md` on origin/main.
+
 ## Source
 
 The source repository `KooshaPari/phenocompose` is a Go composition-utility codebase with a local clone present at `C:\Users\koosh\phenocompose` (filesystem check 2026-06-23). The initial assessment classified the source as `DELETABLE` because the composition surface is fully subsumed by the consolidation target family — but on closer review, the safer posture is `ARCHIVE` rather than `HARD_DELETE`. The composition utilities carried by phenocompose are not load-bearing for any production consumer (no dependents found in the dependent scan), but they may still be of historical/research interest, and the audit prefers the conservative archival posture over deletion whenever the deletion gain is zero or marginal. The downgrade from `DELETABLE` to `ARCHIVE` is therefore the correct procedural call.

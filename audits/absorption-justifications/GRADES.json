@@ -2,7 +2,7 @@
   "fleet_average_score": 14.0,
   "fleet_average_percentage": 100.0,
   "fleet_grade_distribution": {
-    "L4": 8
+    "L4": 9
   },
   "pillar_weights": {
     "P1": 3,
@@ -18,6 +18,21 @@
   "audits": [
     {
       "name": "BytePort-2026-06-23.md",
+      "score": 14,
+      "percentage": 100.0,
+      "grade": "L4",
+      "pillar_status": {
+        "1": "pass",
+        "2": "pass",
+        "3": "pass",
+        "4": "pass",
+        "5": "pass",
+        "6": "pass",
+        "7": "pass"
+      }
+    },
+    {
+      "name": "KodeVibe-2026-06-25.md",
       "score": 14,
       "percentage": 100.0,
       "grade": "L4",

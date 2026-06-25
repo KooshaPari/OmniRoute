@@ -23,11 +23,23 @@ done
 
 mkdir -p "$REPORT_DIR"
 
-# Detect stack (priority: cargo > package.json > pyproject > go.mod)
+# Detect stack (priority: cargo > package.json > pyproject > go.mod).
+# A package.json is considered "docs-only" (not a real JS/TS project) if
+# the only scripts reference vitepress/docusaurus/astro/next + the repo
+# also has a Cargo.toml at the same level. Such package.json files are
+# GitHub Pages docs sites and should be ignored for stack selection.
 STACK="unknown"
+is_docs_only_package_json() {
+  [[ -f "package.json" ]] || return 1
+  local pkg
+  pkg=$(cat package.json 2>/dev/null || echo "")
+  echo "$pkg" | grep -qE '"(vitepress|docusaurus|astro|@docusaurus|@astrojs)":' || return 1
+  echo "$pkg" | grep -qE '"(docs:[a-z]+|build)":\s*"(npx )?(vitepress|docusaurus|astro) (build|dev)"' || return 1
+  return 0
+}
 if [[ -f "Cargo.toml" ]]; then
   STACK="rust"
-elif [[ -f "package.json" ]]; then
+elif [[ -f "package.json" ]] && ! is_docs_only_package_json; then
   STACK="node"
 elif [[ -f "pyproject.toml" || -f "setup.py" ]]; then
   STACK="python"

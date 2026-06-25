@@ -41,7 +41,7 @@ See `BRANCH_PROVENANCE.md` for the per-file commit hash, branch, and byte size.
 | Doc | Path | Status |
 |---|---|---|
 | Main McpKit absorption audit (L5-104) | `findings/2026-06-17-L5-104-bulk-rust-ts-migration.md` | EXISTS — McpKit covered as part of bulk migration |
-| McpKit-specific audit | `findings/2026-06-18-McpKit-absorption-audit.md` | **NOT FOUND** — McpKit was migrated as part of the bulk PR; no standalone audit file was authored. The "merge into PhenoMCP per ADR-003" is captured in the bulk migration doc. |
+| McpKit-specific audit | `findings/2026-06-18-McpKit-absorption-audit.md` | **AUTHORED 2026-06-24** — companion to the bulk-migration doc. Captures the McpKit-specific source state, 8-target parity matrix, 4-branch branch-only archive, and tombstone-closure note. Cross-references the retroactive `docs/absorbed-from-McpKit/ABSORPTION.md` on canonical `KooshaPari/phenotype-tooling`. |
 | Dmouse92 migration proof | `findings/2026-06-17-L5-104-archival-proof.md` | EXISTS — McpKit listed as archived |
 | ADR-003 (McpKit → PhenoMCP merge) | `docs/adr/2026-06-14/ADR-003-mcpkit-merge-into-phenomcp.md` | External — not in this archive |
 | This archive's provenance | `BRANCH_PROVENANCE.md` (same dir) | EXISTS — full per-file commit hash table |
