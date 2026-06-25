@@ -1,0 +1,27 @@
+{
+  "schema": "41-cross-cutting-criteria",
+  "version": "1.0.0",
+  "authority": "phenotype-registry",
+  "description": "41 cross-cutting criteria covering ecosystem fitness, disposition accuracy, boundary docs, branch hygiene, release channels, and catalog registration. Max score: 49.",
+  "criteria_groups": [
+    {"id": "1-5", "name": "Disposition accuracy", "weight": 5, "description": "disposition-index.json matches reality"},
+    {"id": "6-10", "name": "Boundary documentation", "weight": 5, "description": "BOUNDARY.md exists and is current"},
+    {"id": "11-15", "name": "Domain role classification", "weight": 5, "description": "DOMAIN_ROLES.md classification accurate"},
+    {"id": "16-20", "name": "Dependency hygiene", "weight": 5, "description": "No circular / stale git deps"},
+    {"id": "21-25", "name": "Branch hygiene", "weight": 5, "description": "Main is canonical, stale branches cleaned"},
+    {"id": "26-30", "name": "Release channel", "weight": 5, "description": "5-tier release governance present"},
+    {"id": "31-35", "name": "Ecosystem map accuracy", "weight": 5, "description": "ECOSYSTEM_MAP.md reflects current state"},
+    {"id": "36-37", "name": "Security policy", "weight": 2, "description": "SECURITY.md + policy"},
+    {"id": 38, "name": "Code of conduct", "weight": 1, "description": "CODE_OF_CONDUCT.md"},
+    {"id": 39, "name": "Funding", "weight": 1, "description": "FUNDING.yml"},
+    {"id": "40-41", "name": "Catalog registration", "weight": 2, "description": "catalog/registry.yaml entry exists and validates"}
+  ],
+  "max_score": 49,
+  "grade_boundaries": [
+    {"min": 80.1, "max": 89, "grade": "8.0-8.9", "classification": "L4: Excellent"},
+    {"min": 70.1, "max": 80, "grade": "7.0-7.9", "classification": "L3: On Track"},
+    {"min": 50.1, "max": 70, "grade": "5.0-6.9", "classification": "L2: Needs Improvement"},
+    {"min": 20.1, "max": 50, "grade": "2.0-4.9", "classification": "L1: Critical Foundation Needed"},
+    {"min": 0, "max": 20, "grade": "0-1.9", "classification": "L0: Unacceptable"}
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "name": "nanovms",
+  "languages": ["rust"],
+  "primary_language": "rust",
+  "status": "archived",
+  "has_readme": true,
+  "type": "shared-lib",
+  "path": "repos/nanovms",
+  "disposition": "ARCHIVE_ONLY",
+  "wave": "absorption-justification-2026-06-23",
+  "absorbed_into": "phenotype-infra",
+  "absorption_note": "2026-06-23 audit verdict ARCHIVE_ONLY: VM isolation capability consolidated into phenotype-infra/crates/nanovms-core (canonical Rust workspace per ADR-049). Pre-archived 2026-06-17; subtree in phenotype-tooling/crates/nanovms is the historical carry-over.",
+  "adr": "ADR-049",
+  "note": "Audited 2026-06-23; ARCHIVE_ONLY (high confidence); nanovms-core is now a workspace member of phenotype-infra (crates/nanovms-core, crates/nvms-ffi); no further code migration required",
+  "audit_artifact": "audits/absorption-justifications/nanovms-2026-06-23.md",
+  "audited_at": "2026-06-23T23:55:00Z"
+}

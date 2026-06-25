@@ -50,6 +50,7 @@ lefthook.yml
 /coverage/
 /dist/
 /out/
+/target/
 lerna-debug.log*
 npm-debug.log*
 pnpm-debug.log*
@@ -62,3 +63,8 @@ yarn-error.log*
 incident-evidence/
 .incident-evidence/
 local/incident-evidence/
+
+# Top-level Rust auto-generated lockfiles — workspaces should
+# re-generate these on first build. Tracked per-project Cargo.lock
+# files (under Cargo workspace members) are unaffected.
+Cargo.lock

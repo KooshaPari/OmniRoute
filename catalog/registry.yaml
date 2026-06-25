@@ -100,3 +100,29 @@ substrates:
       Primary core in Rust (15 crates). Absorbed from PhenoLang archives,
       phenotype-go-sdk (10 packages), and phenotype-python-sdk (15 packages)
       on 2026-06-20.
+
+  - id: phenotype-infra
+    repo: KooshaPari/phenotype-infra
+    name: phenotype-infra
+    status: active
+    tier: federated-service
+    architecture: hexagonal-l4
+    ports: [ComposePort, ProvisionerPort, ConfigPort, FfiPort]
+    adapters: [NanovmsCoreAdapter, NvmsFfiAdapter, PhenoConfigAdapter]
+    language: rust
+    role: compute-infra
+    workspace_version: "0.1.0"
+    adr_refs:
+      - ADR-ECO-017   # substrate schema conventions (tier=federated-service, hexagonal-l4)
+      - ADR-ECO-049   # phenotype-infra canonical absorb (PLANNED — ADR not yet authored; placeholder until ADR-ECO-049 lands)
+    boundary: null
+    intent: null
+    notes: |
+      Federated compute/infra service (proposed). Four workspace members:
+      nanovms-core (unikernel/VM lifecycle), nvms-ffi (C-ABI exports),
+      pheno-compose-driver (CLI + driver), pheno-config (typed config).
+      Status intent: replaces standalone nanovms and PhenoCompose repos.
+      ADR-ECO-049 is the planned absorb ADR (not yet committed); flagged
+      in DAG-011 as a follow-up to either author ADR-049 or drop the ref.
+      boundary/intent are null because the phenotype-infra repo has not
+      yet been cloned locally (see DAG-011 follow-ups).

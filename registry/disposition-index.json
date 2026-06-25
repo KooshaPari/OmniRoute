@@ -1,6 +1,6 @@
 {
-  "version": "1.5.3",
-  "updated": "2026-06-22",
+  "version": "1.5.4",
+  "updated": "2026-06-24T00:47:17.101008Z",
   "authority": "phenotype-registry",
   "charter": "docs/rationalization/boundary-shaping.md",
   "note": "phenoShared targets are interim staging per ADR-ECO-014-phenoshared-decompose; terminal owners are DOMAIN_ROLES repos. 2026-06-18 (post-archive, L5-114): phenotype-voxel/terrain/water/postfx source repos ARCHIVED + DELETED (delete_repo scope) after phenotype-gfx#10 merged. phenotype-gfx is canonical; 4 source rows now terminal archived state. 2026-06-19 (L5-115, ADR-035A): pheno-capacity registered as new pheno-*-lib substrate (extracted from HwLedger per ADR-035A). 2026-06-20: Authvault SUPERSEDE by AuthKit; Httpora SUPERSEDE by Quillr.",
@@ -1264,6 +1264,30 @@
       "fsm": "open",
       "core_lang": "typescript+rust",
       "note": "Not delete-ready. Remote is active/non-archived and contains live formal-verification surfaces: ports/contract_verifier.ts, ports/adapters/kani.ts, ports/adapters/prusti.ts, ports tests/bench/property suites, and rust/crates/phenotype-contracts. Runtime consumers may be absent, but content is not 100% migrated. Required before archive/delete: assign terminal owner for verifier/adapters, migrate tests/coverage/docs, and reconcile Rust crate with ADR-ECO-014 terminal contract slices."
+    },
+    {
+      "id": "repo-eyetracker-affirm",
+      "path": "KooshaPari/eyetracker",
+      "disposition": "AFFIRM",
+      "target": "Eyetracker",
+      "wave": "L7-010",
+      "fsm": "active",
+      "adr": "ADR-007",
+      "core_lang": "rust",
+      "pr": "eyetracker#64",
+      "note": "Canonical Rust eye-tracking framework; v0.1.0-alpha released 2026-06-20; 16/16 FRs defined."
+    },
+    {
+      "id": "repo-benchora-affirm",
+      "path": "KooshaPari/Benchora",
+      "disposition": "AFFIRM",
+      "target": "Benchora",
+      "wave": "L7-001",
+      "fsm": "active",
+      "adr": "ADR-007",
+      "core_lang": "rust",
+      "pr": null,
+      "note": "Canonical perf-harness boundary; gauge v0.2.0; criterion re-wrap."
     }
   ]
 }

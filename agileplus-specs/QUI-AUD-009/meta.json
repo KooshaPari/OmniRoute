@@ -1,0 +1,18 @@
+{
+  "work_package_id": "QUI-AUD-009",
+  "lane": "audit",
+  "dependencies": [],
+  "base_branch": "n/a",
+  "phase": "closed",
+  "assignee": "kooshapari",
+  "agent": "forge",
+  "review_status": "resolved",
+  "history": [
+    {
+      "ts": "2026-06-23T00:00:00Z",
+      "actor": "forge",
+      "action": "audited_3_clones",
+      "note": "pheno/Quillr and pheno-absorb/Quillr are sub-trees of pheno monorepo, not separate clones"
+    }
+  ]
+}

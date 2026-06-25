@@ -1,0 +1,140 @@
+{
+  "fleet_average_score": 14.0,
+  "fleet_average_percentage": 100.0,
+  "fleet_grade_distribution": {
+    "L4": 8
+  },
+  "pillar_weights": {
+    "P1": 3,
+    "P2": 3,
+    "P3": 2,
+    "P4": 2,
+    "P5": 1,
+    "P6": 2,
+    "P7": 1
+  },
+  "grading_rubric": "registry/audit-absorption-justification/schema.json",
+  "grading_engine": "registry/audit-absorption-justification/grade.sh",
+  "audits": [
+    {
+      "name": "BytePort-2026-06-23.md",
+      "score": 14,
+      "percentage": 100.0,
+      "grade": "L4",
+      "pillar_status": {
+        "1": "pass",
+        "2": "pass",
+        "3": "pass",
+        "4": "pass",
+        "5": "pass",
+        "6": "pass",
+        "7": "pass"
+      }
+    },
+    {
+      "name": "McpKit-2026-06-23.md",
+      "score": 14,
+      "percentage": 100.0,
+      "grade": "L4",
+      "pillar_status": {
+        "1": "pass",
+        "2": "pass",
+        "3": "pass",
+        "4": "pass",
+        "5": "pass",
+        "6": "pass",
+        "7": "pass"
+      }
+    },
+    {
+      "name": "go-nippon-2026-06-23.md",
+      "score": 14,
+      "percentage": 100.0,
+      "grade": "L4",
+      "pillar_status": {
+        "1": "pass",
+        "2": "pass",
+        "3": "pass",
+        "4": "pass",
+        "5": "pass",
+        "6": "pass",
+        "7": "pass"
+      }
+    },
+    {
+      "name": "nanovms-2026-06-23.md",
+      "score": 14,
+      "percentage": 100.0,
+      "grade": "L4",
+      "pillar_status": {
+        "1": "pass",
+        "2": "pass",
+        "3": "pass",
+        "4": "pass",
+        "5": "pass",
+        "6": "pass",
+        "7": "pass"
+      }
+    },
+    {
+      "name": "phenocompose-2026-06-23.md",
+      "score": 14,
+      "percentage": 100.0,
+      "grade": "L4",
+      "pillar_status": {
+        "1": "pass",
+        "2": "pass",
+        "3": "pass",
+        "4": "pass",
+        "5": "pass",
+        "6": "pass",
+        "7": "pass"
+      }
+    },
+    {
+      "name": "phenotype-go-sdk-2026-06-23.md",
+      "score": 14,
+      "percentage": 100.0,
+      "grade": "L4",
+      "pillar_status": {
+        "1": "pass",
+        "2": "pass",
+        "3": "pass",
+        "4": "pass",
+        "5": "pass",
+        "6": "pass",
+        "7": "pass"
+      }
+    },
+    {
+      "name": "phenotype-infra-2026-06-23.md",
+      "score": 14,
+      "percentage": 100.0,
+      "grade": "L4",
+      "pillar_status": {
+        "1": "pass",
+        "2": "pass",
+        "3": "pass",
+        "4": "pass",
+        "5": "pass",
+        "6": "pass",
+        "7": "pass"
+      }
+    },
+    {
+      "name": "smart-mcp-go-2026-06-23.md",
+      "score": 14,
+      "percentage": 100.0,
+      "grade": "L4",
+      "pillar_status": {
+        "1": "pass",
+        "2": "pass",
+        "3": "pass",
+        "4": "pass",
+        "5": "pass",
+        "6": "pass",
+        "7": "pass"
+      }
+    }
+  ]
+}

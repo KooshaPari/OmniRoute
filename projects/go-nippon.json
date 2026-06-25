@@ -1,0 +1,17 @@
+{
+  "name": "go-nippon",
+  "languages": ["go"],
+  "primary_language": "go",
+  "status": "archived",
+  "has_readme": true,
+  "type": "infrastructure-scaffold",
+  "path": "repos/go-nippon",
+  "disposition": "ARCHIVE_ONLY",
+  "wave": "absorption-justification-2026-06-23",
+  "absorbed_into": "phenotype-infra",
+  "absorption_note": "2026-06-23 audit verdict ARCHIVE_ONLY (high confidence, P1 = 3): no unique capability beyond what phenotype-infra already provides; zero migration cost; no carve-outs. See audits/absorption-justifications/go-nippon-2026-06-23.md.",
+  "adr": "ADR-011",
+  "note": "Audited 2026-06-23 per absorption-justification rubric; capability parity with phenotype-infra confirmed; restore posture: local mirror frozen at C:\\Users\\koosh\\go-nippon, gh repo archive kooshapari/go-nippon --confirm",
+  "audit_artifact": "audits/absorption-justifications/go-nippon-2026-06-23.md",
+  "audited_at": "2026-06-23T23:55:00Z"
+}

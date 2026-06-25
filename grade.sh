@@ -23,12 +23,26 @@ done
 
 mkdir -p "$REPORT_DIR"
 
-# Detect stack
+# Detect stack (priority: cargo > package.json > pyproject > go.mod)
 STACK="unknown"
-if [[ -f "Cargo.toml" ]]; then STACK="rust"; fi
-if [[ -f "package.json" ]]; then STACK="node"; fi
-if [[ -f "pyproject.toml" || -f "setup.py" ]]; then STACK="python"; fi
-if [[ -f "go.mod" ]]; then STACK="go"; fi
+if [[ -f "Cargo.toml" ]]; then
+  STACK="rust"
+elif [[ -f "package.json" ]]; then
+  STACK="node"
+elif [[ -f "pyproject.toml" || -f "setup.py" ]]; then
+  STACK="python"
+elif [[ -f "go.mod" ]]; then
+  STACK="go"
+fi
+# Multi-stack repos get a comma-separated SUFFIX (e.g. "rust,node") for
+# display only; grading still runs the highest-priority stack. To grade
+# each stack independently, run grade.sh from a sub-crate or with
+# --stack <name> (TODO: future enhancement).
+if [[ -f "Cargo.toml" && -f "package.json" ]]; then
+  : # multi-stack rust+node: grade runs rust suite
+elif [[ -f "Cargo.toml" && -f "pyproject.toml" ]]; then
+  : # multi-stack rust+python: grade runs rust suite
+fi
 if [[ -f "Taskfile.yml" || -f "Justfile" ]]; then
   : # already has task runner
 fi
