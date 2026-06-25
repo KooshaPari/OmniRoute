@@ -26,6 +26,12 @@ import {
   isClaudeCodeSemanticPassthroughRequest,
 } from "./chatCore/passthroughHelpers.ts";
 import {
+  toPositiveNumber,
+  buildCacheUsageLogMeta,
+  attachLogMeta,
+  buildExecutorClientHeaders,
+} from "./chatCore/usageLogHelpers.ts";
+import {
   buildStreamingResponseHeaders,
   materializeDeduplicatedExecutionResult,
   stripStaleForwardingHeaders,
@@ -438,111 +444,6 @@ function wrapReadableStreamWithFinalize<T>(
   });
 }
 
-function toPositiveNumber(value: unknown) {
-  return typeof value === "number" && Number.isFinite(value) && value > 0 ? value : 0;
-}
-
-function buildCacheUsageLogMeta(usage: Record<string, unknown> | null | undefined) {
-  if (!usage || typeof usage !== "object") return null;
-  const promptTokenDetails =
-    usage.prompt_tokens_details && typeof usage.prompt_tokens_details === "object"
-      ? (usage.prompt_tokens_details as Record<string, unknown>)
-      : undefined;
-  const hasCacheFields =
-    "cache_read_input_tokens" in usage ||
-    "cached_tokens" in usage ||
-    "cache_creation_input_tokens" in usage ||
-    (!!promptTokenDetails &&
-      ("cached_tokens" in promptTokenDetails || "cache_creation_tokens" in promptTokenDetails));
-  const cacheReadTokens = toPositiveNumber(
-    usage.cache_read_input_tokens ?? usage.cached_tokens ?? promptTokenDetails?.cached_tokens
-  );
-  const cacheCreationTokens = toPositiveNumber(
-    usage.cache_creation_input_tokens ?? promptTokenDetails?.cache_creation_tokens
-  );
-  if (!hasCacheFields) return null;
-  return {
-    cacheReadTokens,
-    cacheCreationTokens,
-  };
-}
-
-function attachLogMeta(
-  payload: Record<string, unknown> | null | undefined,
-  meta: Record<string, unknown> | null | undefined
-) {
-  if (!meta || typeof meta !== "object") return payload;
-  const compactMeta = Object.fromEntries(
-    Object.entries(meta).filter(([, value]) => value !== null && value !== undefined)
-  );
-  if (Object.keys(compactMeta).length === 0) return payload;
-  if (!payload || typeof payload !== "object" || Array.isArray(payload)) {
-    return { _omniroute: compactMeta, _payload: payload ?? null };
-  }
-  const existing =
-    payload._omniroute &&
-    typeof payload._omniroute === "object" &&
-    !Array.isArray(payload._omniroute)
-      ? payload._omniroute
-      : {};
-  return {
-    ...payload,
-    _omniroute: {
-      ...existing,
-      ...compactMeta,
-    },
-  };
-}
-
-/**
- * Core chat handler - shared between SSE and Worker
- * Returns { success, response, status, error } for caller to handle fallback
- * @param {object} options
- * @param {object} options.body - Request body
- * @param {object} options.modelInfo - { provider, model }
- * @param {object} options.credentials - Provider credentials
- * @param {object} options.log - Logger instance (optional)
- * @param {function} options.onCredentialsRefreshed - Callback when credentials are refreshed
- * @param {function} options.onRequestSuccess - Callback when request succeeds (to clear error status)
- * @param {function} options.onDisconnect - Callback when client disconnects
- * @param {string} options.connectionId - Connection ID for usage tracking
- * @param {object} options.apiKeyInfo - API key metadata for usage attribution
- * @param {string} options.userAgent - Client user agent for caching decisions
- * @param {string} options.comboName - Combo name if this is a combo request
- * @param {string} options.comboStrategy - Combo routing strategy (e.g., 'priority', 'cost-optimized')
- * @param {boolean} options.isCombo - Whether this request is from a combo
- * @param {string} options.connectionId - Connection ID for settings lookup
- */
-
-function buildExecutorClientHeaders(
-  headers: Headers | Record<string, unknown> | null | undefined,
-  userAgent?: string | null
-) {
-  const normalized: Record<string, string> = {};
-
-  if (headers instanceof Headers) {
-    headers.forEach((value, key) => {
-      normalized[key] = value;
-    });
-  } else if (headers && typeof headers === "object") {
-    for (const [key, value] of Object.entries(headers)) {
-      if (typeof value === "string") {
-        normalized[key] = value;
-      }
-    }
-  }
-
-  const normalizedUserAgent = typeof userAgent === "string" ? userAgent.trim() : "";
-  if (normalizedUserAgent && !normalized["user-agent"] && !normalized["User-Agent"]) {
-    normalized["user-agent"] = normalizedUserAgent;
-    normalized["User-Agent"] = normalizedUserAgent;
-  }
-
-  return Object.keys(normalized).length > 0 ? normalized : null;
-}
-
-// extractSystemRoleMessages extracted to chatCore/claudeSystemRole.ts (#3501); re-exported above so
-// existing importers (e.g. tests/unit/system-role-extraction.test.ts) keep resolving it from here.
 
 export async function handleChatCore({
   body,
@@ -565,7 +466,7 @@ export async function handleChatCore({
   cachedSettings = null,
   skipUpstreamRetry = false,
   createPiiTransform = null,
-}) {
+}): Promise<unknown> {
   let { provider, model, extendedContext } = modelInfo;
   // ── Memory pressure guard ────────────────────────────────────────────
   // Reject early if V8 heap is already near the 256MB limit. Prevents
