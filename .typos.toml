@@ -1,0 +1,18 @@
+# typos-cli config
+# https://github.com/crate-ci/typos
+
+[default]
+extend-ignore-re = [
+  # Cargo crate names / FFI symbols
+  "(?:Nvms|Gvisor|Firecracker|pheno[a-z_]*|byteport[a-z_-]*|phenokits[a-z_-]*|Phenokits[A-Z][a-z]*)",
+  # SOTA/Tech jargon that's not actually a typo
+  "(?i)(?:sota|tauri|otel|otlp|wasm|landlock|firecracker|firejail|bwrap|unshare|gvisor)",
+  # Commit hashes and SHAs (8-40 hex)
+  "[0-9a-f]{8,40}",
+]
+
+[type.md]
+extend-ignore-re = [
+  # Markdown autolinks / paths
+  "\\[\\S+\\]\\([^)]+\\)",
+]
