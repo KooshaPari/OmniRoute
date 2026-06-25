@@ -47,6 +47,42 @@ Role split for the spec/governance spine (so indexes stop competing):
 | **superseded / archived** | 47 | .github, odin-landing, Profila, Project-Spyn, RIP-Fitness-App, sharecli, tehgent, thegent-sharecli, worktree-manager, phenoVessel, phenoTypes, phenoPatch, Diffuse, Servion, Guardrail, Cryptora, forge, phenoForge, router-docs, cheap-llm-mcp, dispatch-mcp, thegent-dispatch, McpKit, PhenoMCP, PhenoProc, Metron, PhenoKits, Stashly, Settly, AuthKit, Traceon, ResilienceKit, TestingKit, heliosBench, heliosApp, PolicyStack, portage, phenoDesign, phenoXddLib, dagctl, kwality, dinoforge-packs, phenotype-auth-ts, **phenotype-voxel, phenotype-terrain, phenotype-water, phenotype-postfx (S→gfx) — ARCHIVED + DELETED 2026-06-18 (L5-114) after [phenotype-gfx#10](https://github.com/KooshaPari/phenotype-gfx/pull/10) merged (sha 5380b2bd)** |
 | **monorepo (multi-domain)** | 6 | pheno, phenoAI, phenoData, PhenoDevOps, HexaKit, phenoShared |
 | **compute/infra subtree (NEW 2026-06-23)** | 4 | `phenotype-infra` (IaC), `PhenoCompose` (hex ports), `BytePort` (desktop app), `nanovms` (3-tier VMM/sandbox) — see [docs/compute-infra-subtree.md](./docs/compute-infra-subtree.md) + [ADR-ECO-022](./docs/adrs/ADR-ECO-022-compute-infra-subtree-registry-correction.md) |
+| **unknown / newly mapped (T-SP.2 sweep, 2026-06-24)** | 88 | See [§1.1 Unknown Repos Triage](#11-unknown-repos-triage-t-sp2-2026-06-24) below. Top 18 active in [docs/registry-sweep-2026-06-24.md](./docs/registry-sweep-2026-06-24.md). |
+
+---
+
+### 1.1 Unknown Repos Triage (T-SP.2, 2026-06-24)
+
+Reconciliation of `gh repo list KooshaPari` (128 repos, 2026-06-24) against the 111 already-mapped. The remaining 88 were not classified in the prior pass because they were either (a) absorbed already but the row was missed, (b) absorbed already and missing, or (c) true orphans needing a role decision. Full triage in [`docs/registry-sweep-2026-06-24.md`](./docs/registry-sweep-2026-06-24.md).
+
+**Top 18 ACTIVE orphans** (most-recently-pushed, highest language fit, need role decision):
+
+| Repo | Lang | Pushed | Proposed role | Notes |
+|------|------|--------|---------------|-------|
+| `phenotype-pm-core` | TypeScript | 2026-06-23 | shared-lib | PM core SDK; absorbed from kwality/Configra wave |
+| `phenotype-org-governance` | None | 2026-06-23 | docs | Already used as spine (see header) but missing from role table |
+| `phenotype-mcp-router` | Rust | 2026-06-22 | shared-lib | MCP router for substrate; the active router for the org |
+| `phenotype-org-audits` | None | 2026-06-22 | docs | 71-pillar audit system; the active audits repo |
+| `Phenotype-org-governance-old` | None | 2026-06-21 | stub/scaffold | Old; should be deleted |
+| `phenotype-journeys` | TypeScript | 2026-06-20 | product/app | Journey editor (sub-feature) |
+| `phenotype-specs` | None | 2026-06-20 | docs | Specs spine |
+| `phenotype-handbook` | None | 2026-06-19 | docs | Handbook spine |
+| `phenotype-vault` | TypeScript | 2026-06-19 | shared-lib | Secret vault SDK |
+| `phenotype-port-adapter` | Rust | 2026-06-18 | shared-lib | Port adapter layer for hex architectures |
+| `phenotype-events` | Rust | 2026-06-18 | shared-lib | Event bus |
+| `phenotype-bus` | Rust | 2026-06-18 | shared-lib | Local message bus |
+| `phenotype-otel` | Rust | 2026-06-18 | shared-lib | OpenTelemetry binding |
+| `phenotype-process` | TypeScript | 2026-06-18 | shared-lib | Process SDK |
+| `phenotype-thegent-orchestrator` | TypeScript | 2026-06-18 | agent-runtime | Thegent orchestrator |
+| `phenotype-grafana-mcp` | Rust | 2026-06-17 | shared-lib | Grafana MCP server |
+| `phenotype-sandbox` | Rust | 2026-06-16 | shared-lib | Sandbox SDK (differs from `nanovms` 3-tier) |
+| `phenotype-firecracker` | Rust | 2026-06-16 | shared-lib | Firecracker VMM wrapper |
+
+**70 ARCHIVED orphans** (excluded from T-SP.2 backlog; left as-is, will auto-prune in the next rationalization wave per `findings/2026-06-18-L5-109`).
+
+**Triage workflow:** every orphan gets a role row added in the next 5 days via auto-generated PRs from the daily auditor fleet. Each PR lands with a 71-pillar scorecard in `.grade-reports/{repo}-2026-06-XX.md`.
+
+---
 
 > **Note 2026-06-18** (post-merge, kilo audit #144 + 4-repo retirement): **dagctl**, **kwality**, **dinoforge-packs**, **phenotype-auth-ts** were all archived in the 4-repo retirement wave (findings/2026-06-18-L5-109). dagctl was absorbed into phenodag, dinoforge-packs into Dino/community-packs/, kwality retired into phenotype-tooling/docs/absorbed-from-kwality/, and phenotype-auth-ts into AuthKit/typescript/packages/auth-ts/. All source content preserved at target repos.|
 | **agent-runtime** | 3 | Agentora, thegent, PhenoAgent |
