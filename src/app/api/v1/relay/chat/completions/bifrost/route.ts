@@ -44,6 +44,7 @@ import {
   hashToken,
   sanitizeForensicHeader,
 } from "../relaySecurity";
+import { withTraceparent } from "@/lib/observability/withTraceparent";
 
 // Minimal request-shape validation (Rule #7). `.passthrough()` keeps every other
 // OpenAI chat-completion field intact (temperature, tools, response_format, …) —
@@ -310,11 +311,22 @@ export async function POST(request: Request) {
 
     let upstream: Response;
     try {
-      upstream = await fetch(`${BIFROST_BASE_URL}/v1/chat/completions`, {
-        method: "POST",
-        headers: upstreamHeaders,
-        body: JSON.stringify(body),
-        signal: ac.signal,
+      // PR-006: inject the active trace context into the outbound fetch so
+      // the bifrost sidecar (or any W3C-aware downstream) joins the same
+      // trace as the inbound request. When telemetry is disabled, the
+      // wrapper is a no-op (no header is added), preserving the legacy
+      // behavior bit-for-bit.
+      upstream = await withTraceparent({
+        build: () => ({
+          url: `${BIFROST_BASE_URL}/v1/chat/completions`,
+          init: {
+            method: "POST",
+            headers: { ...upstreamHeaders },
+            body: JSON.stringify(body),
+            signal: ac.signal,
+          },
+        }),
+        fetch: (url, init) => fetch(url, init),
       });
     } catch (error) {
       clearTimeout(tid);

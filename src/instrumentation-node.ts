@@ -73,6 +73,19 @@ export async function registerNodejs(): Promise<void> {
   await import("@omniroute/open-sse/index.ts");
   console.log("[STARTUP] Global fetch proxy patch initialized");
 
+  // Initialize observability stack (PR-005b / PR-006). The bootstrap is
+  // wrapped in try/catch so a missing env var or exporter misconfig
+  // never breaks the startup chain.
+  try {
+    const { initTelemetry, setProcessMetrics } = await import("@/lib/observability");
+    initTelemetry();
+    setProcessMetrics();
+    console.log("[STARTUP] Observability stack initialized");
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err);
+    console.warn("[STARTUP] Observability init failed (non-fatal):", msg);
+  }
+
   await ensureSecrets();
   const { enforceWebRuntimeEnv } = await import("@/lib/env/runtimeEnv");
   enforceWebRuntimeEnv();
