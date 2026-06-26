@@ -1,6 +1,6 @@
 # Absorption-Justification Grading Report
 
-Fleet average: **14.00/14** (100.00%)  ·  Grade distribution: {'L4': 14}
+Fleet average: **14.00/14** (100.00%)  ·  Grade distribution: {'L4': 15}
 
 Pillar weights: P1=3, P2=3, P3=2, P4=2, P5=1, P6=2, P7=1 (total 14)
 
@@ -16,6 +16,7 @@ Pillar weights: P1=3, P2=3, P3=2, P4=2, P5=1, P6=2, P7=1 (total 14)
 | Tracera-2026-06-25.md | 14/14 | 100.00% | L4 | pass | pass | pass | pass | pass | pass | pass |
 | go-nippon-2026-06-23.md | 14/14 | 100.00% | L4 | pass | pass | pass | pass | pass | pass | pass |
 | nanovms-2026-06-23.md | 14/14 | 100.00% | L4 | pass | pass | pass | pass | pass | pass | pass |
+| pheno-harness-2026-06-25.md | 14/14 | 100.00% | L4 | pass | pass | pass | pass | pass | pass | pass |
 | phenocompose-2026-06-23.md | 14/14 | 100.00% | L4 | pass | pass | pass | pass | pass | pass | pass |
 | phenotype-go-sdk-2026-06-23.md | 14/14 | 100.00% | L4 | pass | pass | pass | pass | pass | pass | pass |
 | phenotype-infra-2026-06-23.md | 14/14 | 100.00% | L4 | pass | pass | pass | pass | pass | pass | pass |

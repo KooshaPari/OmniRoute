@@ -1,0 +1,10 @@
+{
+  "status": "archived",
+  "archived_at": "2026-06-24",
+  "stranded_commit": "a38a6fa",
+  "local_path": "C:\\Users\\koosh\\pheno-harness",
+  "tier": "Tier-3",
+  "pillars": "P1-P7,P20",
+  "source": "KooshaPari/pheno-harness",
+  "target": "registry/audits/absorption-justifications + projects/pheno-harness-2026-06-25.json"
+}
