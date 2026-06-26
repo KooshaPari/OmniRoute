@@ -1,0 +1,35 @@
+# Step-1 PR1: bun + TypeScript 7 native preview + bifrost sidecar.
+#
+# Replaces the Next.js 16 + React 19 + TS 6 stack. Single runtime (bun),
+# single type-checker (tsgo — TypeScript 7 native), single HTTP layer
+# (hono), single LLM gateway (@maximhq/bifrost as a Go sidecar).
+{
+  "name": "omniroute",
+  "version": "3.9.0-step1",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "bun": ">=1.2.0",
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev": "bun run --hot src/step1/server.ts",
+    "start": "bun run src/step1/server.ts",
+    "build:server": "bun build src/step1/server.ts --target=bun --outdir=dist --external @maximhq/bifrost",
+    "typecheck": "tsgo --noEmit",
+    "typecheck:step1": "tsgo --noEmit src/step1/server.ts src/step1/bifrost-client.ts src/step1/discovery.ts src/step1/catalog.ts src/step1/types.ts",
+    "test": "bun test src/step1",
+    "bifrost:install": "bun x @maximhq/bifrost install",
+    "bifrost:start": "bun x @maximhq/bifrost start --port 49152",
+    "discover:py": "uv run --project . python -m omniroute_discovery.cli scan"
+  },
+  "dependencies": {
+    "hono": "^4.12.25",
+    "@maximhq/bifrost": "^1.6.3"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "@typescript/native-preview": "^7.0.0-dev.20260624.1",
+    "typescript": "^6.0.0"
+  }
+}

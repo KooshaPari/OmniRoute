@@ -1,0 +1,31 @@
+# Step-1 PR1: pyproject.toml for uv + Python 3.14
+#
+# OmniRoute's discovery layer (provider discovery, model listing,
+# capability scanning) runs as a Python microservice alongside the
+# bun+hono TS layer. Both speak HTTP to the bifrost sidecar.
+#
+# Used by: `uv sync`, `uv run python -m omniroute_discovery.scan`
+#
+# Replaces the legacy Node-based `src/lib/localDb.ts` combo registry.
+
+[project]
+name = "omniroute-discovery"
+version = "3.9.0"
+description = "OmniRoute discovery layer (provider/model scanning) — uv + Python 3.14"
+requires-python = ">=3.14"
+dependencies = [
+    "httpx>=0.27",
+    "pyyaml>=6.0",
+    "pydantic>=2.7",
+    "rich>=13.7",
+]
+
+[project.scripts]
+omniroute-discover = "omniroute_discovery.cli:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/omniroute_discovery"]
