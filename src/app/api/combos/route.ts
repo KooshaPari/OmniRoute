@@ -24,7 +24,7 @@ export async function GET(request: Request) {
 }
 
 // POST /api/combos - Create new combo
-export async function POST(request) {
+export async function POST(request: Request) {
   const authError = await requireManagementAuth(request);
   if (authError) return authError;
 
@@ -48,7 +48,7 @@ export async function POST(request) {
     const { name, strategy, config } = comboInput;
     const compositeValidation = validateCompositeTiersConfig(comboInput);
     if (!compositeValidation.success) {
-      return NextResponse.json({ error: compositeValidation.error }, { status: 400 });
+      return NextResponse.json({ error: (compositeValidation as { success: false; error: unknown }).error }, { status: 400 });
     }
 
     // Check if name already exists
