@@ -47,7 +47,11 @@ export async function POST(request) {
     };
     const { name, strategy, config } = comboInput;
     const compositeValidation = validateCompositeTiersConfig(comboInput);
-    if (!compositeValidation.success) {
+    if (
+      !compositeValidation.success &&
+      "error" in compositeValidation &&
+      compositeValidation.error
+    ) {
       return NextResponse.json({ error: compositeValidation.error }, { status: 400 });
     }
 

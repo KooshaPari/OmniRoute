@@ -89,6 +89,8 @@ export {
   deleteCombo,
 } from "./db/combos";
 
+export type { ComboRecord } from "./db/combos";
+
 export * from "./db/compressionCacheStats";
 export * from "./db/compressionCombos";
 

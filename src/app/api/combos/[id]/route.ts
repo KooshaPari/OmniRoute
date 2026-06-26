@@ -5,7 +5,7 @@ import {
   deleteCombo,
   getComboByName,
   getCombos,
-  isCloudEnabled,
+  type ComboRecord,
 } from "@/lib/localDb";
 import { getConsistentMachineId } from "@/shared/utils/machineId";
 import { syncToCloud } from "@/lib/cloudSync";
@@ -13,18 +13,17 @@ import { validateCompositeTiersConfig } from "@/lib/combos/compositeTiers";
 import { normalizeComboModels } from "@/lib/combos/steps";
 import { validateComboDAG, clampComboDepth } from "@omniroute/open-sse/services/combo.ts";
 import { updateComboSchema } from "@/shared/validation/schemas";
-import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import { buildErrorBody } from "@omniroute/open-sse/utils/error";
 import { QUOTA_MODEL_PREFIX } from "@/lib/quota/quotaModelNaming";
 
 // GET /api/combos/[id] - Get combo by ID
-export async function GET(request, { params }) {
+export async function GET(request: Request, ctx: { params: Promise<{ id: string }> }) {
   const authError = await requireManagementAuth(request);
   if (authError) return authError;
 
   try {
-    const { id } = await params;
+    const { id } = await ctx.params;
     const combo = await getComboById(id);
 
     if (!combo) {
@@ -64,7 +63,7 @@ export async function PUT(request, { params }) {
     if (isValidationFailure(validation)) {
       return NextResponse.json({ error: validation.error }, { status: 400 });
     }
-    const currentCombo = await getComboById(id);
+    const currentCombo = (await getComboById(id)) as ComboRecord & { name: string };
     if (!currentCombo) {
       return NextResponse.json({ error: "Combo not found" }, { status: 404 });
     }
@@ -83,7 +82,7 @@ export async function PUT(request, { params }) {
     const normalizedUpdate = { ...validation.data };
     if (normalizedUpdate.compressionOverride !== undefined) {
       const legacyCompressionOverride = normalizedUpdate.compressionOverride;
-      const nextConfig =
+      const nextConfig: Record<string, unknown> =
         currentCombo.config &&
         typeof currentCombo.config === "object" &&
         !Array.isArray(currentCombo.config)
@@ -102,8 +101,10 @@ export async function PUT(request, { params }) {
       ? {
           ...normalizedUpdate,
           models: normalizeComboModels(normalizedUpdate.models, {
-            comboName,
-            allCombos,
+            comboName: String(comboName),
+            allCombos: allCombos as unknown as Parameters<
+              typeof normalizeComboModels
+            >[1]["allCombos"],
           }),
         }
       : normalizedUpdate;
@@ -114,7 +115,10 @@ export async function PUT(request, { params }) {
     };
     const compositeValidation = validateCompositeTiersConfig(nextComboState);
     if (!compositeValidation.success) {
-      return NextResponse.json({ error: compositeValidation.error }, { status: 400 });
+      return NextResponse.json(
+        { error: (compositeValidation as { success: false; error: unknown }).error },
+        { status: 400 }
+      );
     }
 
     // Check if name already exists (exclude current combo)
@@ -131,7 +135,9 @@ export async function PUT(request, { params }) {
       const updatedCombos = allCombos.map((c) => (c.id === id ? { ...c, ...body } : c));
       if (comboName) {
         const configuredDepth = clampComboDepth(
-          (nextComboState as { config?: { maxComboDepth?: unknown } }).config?.maxComboDepth
+          (nextComboState as { config?: { maxComboDepth?: unknown } }).config?.maxComboDepth as
+            | number
+            | undefined
         );
         try {
           validateComboDAG(comboName, updatedCombos, new Set(), 0, configuredDepth);
@@ -154,13 +160,13 @@ export async function PUT(request, { params }) {
 }
 
 // DELETE /api/combos/[id] - Delete combo
-export async function DELETE(request, { params }) {
+export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const authError = await requireManagementAuth(request);
   if (authError) return authError;
 
   try {
     const { id } = await params;
-    const existingCombo = await getComboById(id);
+    const existingCombo = (await getComboById(id)) as ComboRecord & { name: string };
     if (!existingCombo) {
       return NextResponse.json({ error: "Combo not found" }, { status: 404 });
     }
