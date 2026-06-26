@@ -49,6 +49,7 @@ import {
   isActive as isKillSwitchActive,
   recordObservation as recordKillSwitchObservation,
 } from "../services/bifrostKillSwitch.ts";
+import { getExecutor } from "./index.ts";
 
 const DEFAULT_HOST = "127.0.0.1";
 const DEFAULT_PORT = 8080;
@@ -321,6 +322,96 @@ export class BifrostBackendExecutor extends BaseExecutor {
         error: err instanceof Error ? err.message : String(err),
       };
     }
+  }
+}
+
+// ── Dispatcher fallback wrapper (B9 wiring closure) ────────────────
+
+/**
+ * Error class for the "Bifrost is configured but cannot serve this request
+ * and no legacy fallback is available" case. Surfaces a clear 5xx so the
+ * dispatcher can return a meaningful 503-ish response instead of a generic
+ * `Internal Server Error`.
+ */
+export class BifrostNoFallbackError extends Error {
+  constructor(
+    public readonly provider: string,
+    public readonly underlying: string,
+  ) {
+    super(
+      `[${BIFROST_TAG}] No legacy fallback available for provider "${provider}". ` +
+        `Underlying error: ${underlying}. ` +
+        `Either disable Bifrost for this provider or add a specialized executor.`,
+    );
+    this.name = "BifrostNoFallbackError";
+  }
+}
+
+/**
+ * Detect whether an Error thrown by BifrostBackendExecutor indicates that
+ * the kill switch tripped (auto-detected or manually force-activated) and
+ * the dispatcher should fall back to the legacy executor. Returns the
+ * matched provider string when matched, undefined otherwise.
+ */
+function matchKillSwitchFallback(err: unknown): string | undefined {
+  if (!(err instanceof Error)) return undefined;
+  // The kill-switch throw inside execute() uses this exact template:
+  //   `[BIFROST] Kill switch active for provider "X". Falling back ...`
+  const m = /Kill switch active for provider "([^"]+)"/.exec(err.message);
+  return m?.[1];
+}
+
+/**
+ * Dispatch a chat request through Bifrost, with automatic fallback to the
+ * legacy executor (open-sse/executors/default.ts or a specialized one) when
+ * the Bifrost kill switch is active for the resolved provider.
+ *
+ * This is the dispatcher-facing entry point that closes the B9 wiring
+ * contract: the executor throws on kill-switch-trip, the dispatcher catches
+ * it here and routes through the legacy executor instead of returning a
+ * 500 to the user.
+ *
+ * Other errors (provider unsupported, network failure, 5xx upstream) are
+ * propagated unchanged so callers can apply their own retry/backoff logic.
+ *
+ * @param executor  A BifrostBackendExecutor instance (already configured
+ *                  for the target provider via provider config or env).
+ * @param input     ExecuteInput shape from BaseExecutor.
+ * @returns         Same shape as BifrostBackendExecutor.execute().
+ */
+export async function dispatchBifrostWithFallback(
+  executor: BifrostBackendExecutor,
+  input: ExecuteInput,
+): ReturnType<BifrostBackendExecutor["execute"]> {
+  try {
+    return await executor.execute(input);
+  } catch (err) {
+    const fallbackProvider = matchKillSwitchFallback(err);
+    if (fallbackProvider === undefined) {
+      // Not a kill-switch error — propagate as-is so callers can apply
+      // their own retry / backoff / 5xx mapping logic.
+      throw err;
+    }
+    input.log?.warn?.(
+      BIFROST_TAG,
+      `Bifrost kill switch tripped for "${fallbackProvider}" — falling back to legacy executor ` +
+        `(reason: ${err instanceof Error ? err.message : String(err)})`,
+    );
+    const legacy = getExecutor(fallbackProvider);
+    // Avoid an infinite fallback loop: if getExecutor returned another
+    // BifrostBackendExecutor (e.g. someone wired it as the default), bail
+    // out with a distinct error so the dispatcher can return a clean 503.
+    if (legacy instanceof BifrostBackendExecutor) {
+      throw new BifrostNoFallbackError(
+        fallbackProvider,
+        err instanceof Error ? err.message : String(err),
+      );
+    }
+    input.log?.info?.(
+      BIFROST_TAG,
+      `Legacy fallback → ${legacy.constructor.name} for provider "${fallbackProvider}"`,
+    );
+    return legacy.execute(input);
   }
 }
 

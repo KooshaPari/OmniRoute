@@ -24,6 +24,10 @@ import {
   resolveBifrostProviderId,
 } from "../../open-sse/executors/bifrostProviderMap.ts";
 import { BifrostBackendExecutor } from "../../open-sse/executors/bifrost.ts";
+import {
+  BifrostNoFallbackError,
+  dispatchBifrostWithFallback,
+} from "../../open-sse/executors/bifrost.ts";
 import { BaseExecutor } from "../../open-sse/executors/base.ts";
 
 describe("bifrostProviderMap", () => {
@@ -410,5 +414,84 @@ describe("BifrostBackend executor (execute body shape)", () => {
     expect(state?.windowStats.p99LatencyMs).toBeGreaterThanOrEqual(0);
 
     resetProvider("anthropic");
+  });
+});
+
+// ── Dispatcher fallback wrapper (B9 wiring closure) ────────────────
+// Ref: docs/frameworks/BIFROST-BACKEND.md §B9 (kill switch fallback).
+describe("dispatchBifrostWithFallback", () => {
+  const originalBifrostEnabled = process.env.BIFROST_ENABLED;
+  const originalFetch = globalThis.fetch;
+
+  beforeEach(() => {
+    process.env.BIFROST_ENABLED = "1";
+    process.env.BIFROST_BASE_URL = "http://bifrost.test:8080";
+  });
+
+  afterEach(() => {
+    if (originalBifrostEnabled === undefined) delete process.env.BIFROST_ENABLED;
+    else process.env.BIFROST_ENABLED = originalBifrostEnabled;
+    delete process.env.BIFROST_BASE_URL;
+    globalThis.fetch = originalFetch;
+  });
+
+  it("falls back to the legacy executor when the kill switch trips for the resolved provider", async () => {
+    process.env.BIFROST_ENABLED = "1";
+    globalThis.fetch = vi.fn(); // BifrostBackendExecutor must NOT call fetch
+
+    const { forceActivate, forceDeactivate, resetProvider } = await import(
+      "../../open-sse/services/bifrostKillSwitch.ts"
+    );
+    forceDeactivate("openai");
+    forceActivate("openai");
+
+    const exec = new BifrostBackendExecutor("openai", {});
+    const input = {
+      model: "gpt-4o",
+      body: { model: "gpt-4o", messages: [] },
+      stream: false,
+      credentials: { apiKey: "sk-test" },
+    };
+
+    const result = await dispatchBifrostWithFallback(exec, input);
+    // getExecutor("openai") returns DefaultExecutor which extends BaseExecutor
+    // and returns the standard { response, url, headers, transformedBody } shape.
+    expect(result).toBeDefined();
+    expect(result.response).toBeInstanceOf(Response);
+    expect(result.url).toContain("openai");
+
+    // fetch must NOT have been called by BifrostBackendExecutor (kill switch threw)
+    expect(globalThis.fetch).not.toHaveBeenCalled();
+
+    forceDeactivate("openai");
+    resetProvider("openai");
+  });
+
+  it("propagates non-kill-switch errors unchanged (no fallback for unrelated failures)", async () => {
+    process.env.BIFROST_ENABLED = "0"; // isBifrostEnabled() returns false → throws "Bifrost is not enabled"
+    globalThis.fetch = vi.fn();
+
+    const exec = new BifrostBackendExecutor("openai", {});
+    const input = {
+      model: "gpt-4o",
+      body: { model: "gpt-4o" },
+      stream: false,
+      credentials: {},
+    };
+
+    await expect(dispatchBifrostWithFallback(exec, input)).rejects.toThrow(
+      /Bifrost is not enabled/,
+    );
+    expect(globalThis.fetch).not.toHaveBeenCalled();
+  });
+
+  it("BifrostNoFallbackError surfaces a distinct, operator-readable error when no legacy fallback exists", () => {
+    // The error name MUST be stable so callers can `instanceof` check it
+    // for surfacing a clean 503 vs a generic 500.
+    const err = new BifrostNoFallbackError("openai", "kill switch tripped");
+    expect(err.name).toBe("BifrostNoFallbackError");
+    expect(err.message).toContain("openai");
+    expect(err.message).toContain("kill switch tripped");
+    expect(err).toBeInstanceOf(Error);
   });
 });
