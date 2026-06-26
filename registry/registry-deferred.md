@@ -1,17 +1,15 @@
-# Deferred Absorption-Justification Audits
+# Deferred Absorption-Justification Audits — ALL RESOLVED (2026-06-25)
 
-This list tracks repos that are scheduled for absorption-justification audit but
-have not yet been authored at the required 14/14 (L4) bar. Each entry includes
-the reason for deferral and the planned authoring batch.
+**All 4 previously-deferred repos have been promoted to L4 (14/14) and pushed to `main` (commit `a7447b9`).**
 
-| Repo | Status | Deferred Reason | Planned Batch |
+| Repo | Audit File | Score | Status |
 |---|---|---|---|
-| `KooshaPari/Tracera` | deferred | Orchestrator stub only — 5/14 L1. Reactive-messaging framework; candidate for next manual batch | Batch D (manual) |
-| `KooshaPari/AuthKit` | deferred | Orchestrator stub only — 5/14 L1. Successor to Authvault per PR #365. Needs manual audit + AuthKit bootstrap inventory | Batch D (manual) |
-| `KooshaPari/pheno-specs` | deferred | Orchestrator stub only — 5/14 L1. Spec-only repo, low source content. Need to confirm whether a 7-pillar audit applies to docs-only repos | Batch D (manual, scope clarification needed) |
-| `KooshaPari/Eidolon` | deferred | Orchestrator stub only — 5/14 L1. Eidolon + Eidolon-work split. Needs cross-repo ABSORPTION_MATRIX | Batch D (manual) |
+| `KooshaPari/Tracera` | `Tracera-2026-06-25.md` | 14/14 | **DONE** — pushed to main |
+| `KooshaPari/AuthKit` | `AuthKit-2026-06-25.md` | 14/14 | **DONE** — pushed to main |
+| `KooshaPari/PhenoSpecs` | `PhenoSpecs-2026-06-25.md` | 14/14 | **DONE** — pushed to main |
+| `KooshaPari/Eidolon` | `Eidolon-2026-06-25.md` | 14/14 | **DONE** — pushed to main |
 
-## Why these are deferred
+## Why these were deferred (historical)
 
 The `bin/absorption-justification.py` orchestrator (commit `71a01c5` on
 `phenotype-tooling`) currently produces a low-quality template that:
