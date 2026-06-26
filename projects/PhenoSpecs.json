@@ -1,0 +1,13 @@
+{
+  "name": "PhenoSpecs",
+  "full_name": "KooshaPari/PhenoSpecs",
+  "description": "PhenoSpecs — specification/SDD authoring tool for Phenotype system design documents",
+  "role": "spec-tooling",
+  "disposition": "AFFIRM",
+  "source": "absorption-justification",
+  "audit_artifact": "PhenoSpecs-2026-06-25.md",
+  "status": "active",
+  "repo_path": "KooshaPari/PhenoSpecs",
+  "ecosystem": "compute-infra",
+  "domain": "developer-tools"
+}

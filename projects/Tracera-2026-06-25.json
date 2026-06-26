@@ -1,0 +1,18 @@
+{
+  "name": "Tracera",
+  "full_name": "KooshaPari/Tracera",
+  "description": "Performance tracing/telemetry harness (Go scaffold)",
+  "role": "observability-metrics",
+  "lifecycle": "scaffold",
+  "status": "archived",
+  "audit_artifact": "Tracera-2026-06-25.md",
+  "repo_path": "KooshaPari/Tracera",
+  "notes": "Scaffold-only repo; no meaningful code. Absorption target deferred to phenotype-observability.",
+  "archived": true,
+  "size_kb": 8,
+  "default_branch": "main",
+  "language": "Go",
+  "branches": 30,
+  "pushed_at": "2025-09-09T23:23:47Z",
+  "created_at": "2025-04-18T22:57:33Z"
+}

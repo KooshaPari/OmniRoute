@@ -1,0 +1,13 @@
+{
+  "name": "Tracera",
+  "full_name": "KooshaPari/Tracera",
+  "description": "Tracera — tracing and observability runtime for distributed Phenotype services",
+  "role": "observability-tracing",
+  "disposition": "AFFIRM",
+  "source": "absorption-justification",
+  "audit_artifact": "Tracera-2026-06-25.md",
+  "status": "active",
+  "repo_path": "KooshaPari/Tracera",
+  "ecosystem": "compute-infra",
+  "domain": "observability"
+}
