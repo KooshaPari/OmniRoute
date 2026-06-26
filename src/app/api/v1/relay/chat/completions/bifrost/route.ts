@@ -44,6 +44,13 @@ import {
   hashToken,
   sanitizeForensicHeader,
 } from "../relaySecurity";
+import {
+  keyFromBody,
+  isCacheableRequest,
+  isCacheableResponse,
+  getCachedResponse,
+  setCachedResponse,
+} from "@/lib/cache";
 
 // Minimal request-shape validation (Rule #7). `.passthrough()` keeps every other
 // OpenAI chat-completion field intact (temperature, tools, response_format, …) —
@@ -291,6 +298,34 @@ export async function POST(request: Request) {
     // 3. Decide streaming vs. unary
     const wantsStream = Boolean((body as { stream?: boolean }).stream) && BIFROST_STREAMING_ENABLED;
 
+    // 3b. Cache lookup — only for non-streaming deterministic requests
+    if (!wantsStream) {
+      const cacheKey = keyFromBody(body, { apiKeyId: token.id });
+      if (cacheKey && isCacheableRequest(body, request.headers)) {
+        const cached = getCachedResponse(cacheKey);
+        if (cached) {
+          const latencyMs = Date.now() - startTime;
+          recordRelayUsage(token.id, {
+            requestId: request.headers.get("x-request-id") || undefined,
+            status: "success",
+            statusCode: 200,
+            latencyMs,
+            clientIp,
+            userAgent,
+          });
+          return new Response(JSON.stringify(cached), {
+            status: 200,
+            headers: {
+              ...JSON_CORS_HEADERS,
+              "X-Cache": "HIT",
+              "X-Cache-Key": cacheKey.slice(0, 16) + "...",
+              "X-Routed-By": "bifrost-cache",
+            },
+          });
+        }
+      }
+    }
+
     // 4. Forward to bifrost
     const upstreamHeaders: Record<string, string> = {
       "Content-Type": "application/json",
@@ -341,6 +376,41 @@ export async function POST(request: Request) {
       newHeaders.set("Content-Type", upstream.headers.get("Content-Type") ?? "application/json");
     }
 
+    if (!wantsStream) {
+      clearTimeout(tid);
+      const status = upstream.status < 500 ? "success" : "error";
+      recordUsage(status, upstream.status);
+
+      // 5b. Cache store — persist deterministic responses
+      if (upstream.status === 200 && isCacheableResponse(upstream.status, upstream.headers)) {
+        try {
+          const responseBody = await upstream.json();
+          const cacheKey = keyFromBody(body, { apiKeyId: token.id });
+          if (cacheKey && isCacheableRequest(body, request.headers)) {
+            setCachedResponse(cacheKey, responseBody, responseBody.model || body.model);
+            newHeaders.set("X-Cache", "MISS");
+            newHeaders.set("X-Cache-Key", cacheKey.slice(0, 16) + "...");
+          }
+          return new Response(JSON.stringify(responseBody), {
+            status: upstream.status,
+            headers: newHeaders,
+          });
+        } catch {
+          // Fallback to forwarding body as-is
+          return new Response(upstream.body, {
+            status: upstream.status,
+            headers: newHeaders,
+          });
+        }
+      }
+
+      return new Response(upstream.body, {
+        status: upstream.status,
+        headers: newHeaders,
+      });
+    }
+
+    // Streaming path — no caching
     if (wantsStream && upstream.body) {
       const stream = finalizeReadableStream(upstream.body, (error) => {
         clearTimeout(tid);
@@ -355,13 +425,13 @@ export async function POST(request: Request) {
       });
     }
 
+    // Fallback: should not reach here
     clearTimeout(tid);
-    recordUsage(upstream.status < 500 ? "success" : "error", upstream.status);
-
-    return new Response(upstream.body, {
-      status: upstream.status,
-      headers: newHeaders,
-    });
+    recordUsage("error", 502);
+    return new Response(
+      JSON.stringify(buildErrorBody(502, "Unexpected bifrost response shape")),
+      { status: 502, headers: JSON_CORS_HEADERS }
+    );
   } catch (err) {
     // Surface timeout/abort clearly so the caller can fall back to TS path.
     const isAbort = err instanceof Error && err.name === "AbortError";
