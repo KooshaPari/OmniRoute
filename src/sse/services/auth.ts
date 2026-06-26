@@ -1916,6 +1916,7 @@ export async function markAccountUnavailable(
     const disableCooling = connProviderSpecificData.disableCooling === true;
 
     const isPerModelQuotaProvider = hasPerModelQuota(provider, model, connectionPassthroughModels);
+    const modelLockoutOptions = { maxCooldownMs: effectiveProviderProfile?.maxCooldownMs };
     if (
       isPerModelQuotaProvider &&
       provider &&
@@ -1942,6 +1943,7 @@ export async function markAccountUnavailable(
           : (fallbackResult.baseCooldownMs ?? effectiveProviderProfile?.baseCooldownMs ?? 0),
         effectiveProviderProfile,
         {
+          ...modelLockoutOptions,
           exactCooldownMs:
             fallbackResult.usedUpstreamRetryHint === true ? fallbackResult.cooldownMs : null,
           maxCooldownMs: mlSettings.maxCooldownMs,
@@ -2019,6 +2021,7 @@ export async function markAccountUnavailable(
           COOLDOWN_MS.serviceUnavailable,
         effectiveProviderProfile,
         {
+          ...modelLockoutOptions,
           exactCooldownMs:
             fallbackResult.usedUpstreamRetryHint === true ? fallbackResult.cooldownMs : null,
           maxCooldownMs: mlSettings.maxCooldownMs,

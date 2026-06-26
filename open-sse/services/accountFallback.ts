@@ -18,6 +18,7 @@ import {
   DEFAULT_RESILIENCE_SETTINGS,
   resolveResilienceSettings,
 } from "../../src/lib/resilience/settings";
+import { resolveModelLockoutSettings } from "../../src/lib/resilience/modelLockoutSettings";
 import {
   getAllCircuitBreakerStatuses,
   getCircuitBreaker,
@@ -37,6 +38,7 @@ export type ProviderProfile = {
   useUpstreamRetryHints: boolean;
   /** Issue #2100 follow-up. Stored override; undefined → per-provider default. */
   useUpstream429BreakerHints?: boolean;
+  maxCooldownMs: number;
   maxBackoffSteps: number;
   failureThreshold: number;
   resetTimeoutMs: number;
@@ -326,6 +328,7 @@ function buildProviderProfile(
     // Issue #2100 follow-up: propagate stored override (boolean | undefined)
     // so the runtime resolver picks user setting first, then per-provider default.
     useUpstream429BreakerHints: connectionCooldown.useUpstream429BreakerHints,
+    maxCooldownMs: resolveModelLockoutSettings(settings).maxCooldownMs,
     maxBackoffSteps: connectionCooldown.maxBackoffSteps,
     failureThreshold: providerBreaker.failureThreshold,
     resetTimeoutMs: providerBreaker.resetTimeoutMs,
