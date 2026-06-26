@@ -1,0 +1,167 @@
+name: SBOM Build + Sign
+
+# Build a CycloneDX 1.5 SBOM for every release tag and sign it.
+#
+# Trigger:
+#   - on every release tag v*
+#   - manual dispatch (with optional version override)
+#
+# Steps:
+#   1. Checkout full history (we read package-lock.json which needs every dep).
+#   2. Set up Node 22 (matches package.json#engines).
+#   3. Generate the SBOM with `scripts/sbom/generate-sbom.mjs` (zero-dep, stdlib).
+#   4. Sign the SBOM:
+#      - If `cosign` is installed on the runner, use `cosign sign-blob` with
+#        GitHub OIDC (keyless Sigstore).
+#      - Otherwise, fall back to the stdlib path in `scripts/sbom/sign-release.mjs`
+#        which generates an ephemeral ECDSA P-256 key, signs, and persists the
+#        public key alongside the SBOM. (Windows runners typically lack cosign.)
+#   5. Verify locally with `scripts/sbom/verify-sbom.mjs` (defence in depth).
+#   6. Upload SBOM, signature, attestation, and the public key (if fallback path)
+#      to the GitHub release assets.
+#
+# Permissions:
+#   contents: write     — upload release assets
+#   id-token: write     — Sigstore OIDC token for cosign keyless flow
+#
+# Outputs:
+#   dist/sbom/omniroute-<version>.cdx.json
+#   dist/sbom/omniroute-<version>.cdx.json.sig
+#   dist/sbom/omniroute-<version>.cdx.json.att
+#   dist/sbom/keys/omniroute-<ts>.pub.pem (fallback path only)
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Override version (defaults to package.json)"
+        required: false
+        type: string
+
+permissions:
+  contents: write
+  id-token: write
+  attestations: write
+
+jobs:
+  sbom:
+    name: Generate + sign SBOM
+    runs-on: ubuntu-latest
+    env:
+      SBOM_DIR: dist/sbom
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+
+      - name: Set up Node 22
+        uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+
+      - name: Cache node_modules
+        uses: actions/cache@v4
+        with:
+          path: |
+            node_modules
+            ~/.npm
+          key: ${{ runner.os }}-sbom-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-sbom-
+
+      - name: Install (deps for SBOM tooling only)
+        run: npm ci --omit=dev --no-audit --no-fund
+
+      - name: Resolve release version
+        id: version
+        run: |
+          if [ -n "${{ github.event.inputs.version }}" ]; then
+            echo "resolved=${{ github.event.inputs.version }}" >> "$GITHUB_OUTPUT"
+          else
+            VER=$(node -p "require('./package.json').version")
+            echo "resolved=${VER}" >> "$GITHUB_OUTPUT"
+          fi
+          echo "tag=${GITHUB_REF_NAME}" >> "$GITHUB_OUTPUT"
+
+      - name: Generate SBOM (CycloneDX 1.5)
+        run: node scripts/sbom/generate-sbom.mjs --out "${SBOM_DIR}" --version "${{ steps.version.outputs.resolved }}"
+
+      - name: Detect cosign
+        id: cosign
+        run: |
+          if command -v cosign >/dev/null 2>&1; then
+            echo "available=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "available=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Install cosign (Linux)
+        if: steps.cosign.outputs.available != 'true'
+        uses: sigstore/cosign-installer@v3
+        with:
+          cosign-release: "v2.4.1"
+
+      - name: Sign with cosign (keyless, OIDC)
+        if: steps.cosign.outputs.available == 'true'
+        env:
+          COSIGN_EXPERIMENTAL: "1"
+        run: |
+          set -euo pipefail
+          SBOM_FILE="${SBOM_DIR}/omniroute-${{ steps.version.outputs.resolved }}.cdx.json"
+          cosign sign-blob \
+            --output-signature "${SBOM_FILE}.sig.cosign" \
+            --yes \
+            "${SBOM_FILE}"
+          # Wrap the cosign blob signature in the stdlib envelope so the runtime
+          # verifier can read it via the cosign-blob alg.
+          node scripts/sbom/sign-release.mjs \
+            --sbom "${SBOM_FILE}" \
+            --out "${SBOM_DIR}" \
+            --no-cosign || true
+
+      - name: Sign with stdlib fallback (ephemeral ECDSA P-256)
+        if: steps.cosign.outputs.available != 'true'
+        run: |
+          set -euo pipefail
+          SBOM_FILE="${SBOM_DIR}/omniroute-${{ steps.version.outputs.resolved }}.cdx.json"
+          node scripts/sbom/sign-release.mjs \
+            --sbom "${SBOM_FILE}" \
+            --out "${SBOM_DIR}"
+
+      - name: Verify SBOM (defence in depth)
+        run: |
+          set -euo pipefail
+          SBOM_FILE="${SBOM_DIR}/omniroute-${{ steps.version.outputs.resolved }}.cdx.json"
+          node scripts/sbom/verify-sbom.mjs \
+            --sbom "${SBOM_FILE}" \
+            --signature "${SBOM_FILE}.sig"
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: omniroute-sbom-${{ steps.version.outputs.resolved }}
+          path: |
+            ${{ env.SBOM_DIR }}/omniroute-${{ steps.version.outputs.resolved }}.cdx.json
+            ${{ env.SBOM_DIR }}/omniroute-${{ steps.version.outputs.resolved }}.cdx.json.sig
+            ${{ env.SBOM_DIR }}/omniroute-${{ steps.version.outputs.resolved }}.cdx.json.att
+            ${{ env.SBOM_DIR }}/keys/*.pub.pem
+          if-no-files-found: error
+
+      - name: Attach to GitHub release
+        if: startsWith(github.ref, 'refs/tags/v')
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          TAG="${{ steps.version.outputs.tag }}"
+          SBOM_FILE="${SBOM_DIR}/omniroute-${{ steps.version.outputs.resolved }}.cdx.json"
+          gh release upload "${TAG}" \
+            "${SBOM_FILE}#sbom-cyclonedx-1.5" \
+            "${SBOM_FILE}.sig#sbom-signature" \
+            "${SBOM_FILE}.att#sbom-attestation" \
+            --clobber || true
