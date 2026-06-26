@@ -1,8 +1,8 @@
 {
-  "fleet_average_score": 13.857,
-  "fleet_average_percentage": 98.98,
+  "fleet_average_score": 14.0,
+  "fleet_average_percentage": 100.0,
   "fleet_grade_distribution": {
-    "L4": 14
+    "L4": 13
   },
   "pillar_weights": {
     "P1": 3,
@@ -146,21 +146,6 @@
         "2": "pass",
         "3": "pass",
         "4": "pass",
-        "5": "pass",
-        "6": "pass",
-        "7": "pass"
-      }
-    },
-    {
-      "name": "pheno-harness-2026-06-25.md",
-      "score": 12,
-      "percentage": 85.71,
-      "grade": "L4",
-      "pillar_status": {
-        "1": "partial",
-        "2": "pass",
-        "3": "pass",
-        "4": "partial",
         "5": "pass",
         "6": "pass",
         "7": "pass"
