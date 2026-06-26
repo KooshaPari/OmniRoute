@@ -98,6 +98,9 @@ export function resolveWritableDataDir({ isCloud = false }: { isCloud?: boolean 
     return resolved;
   } catch (err: unknown) {
     const code = (err as NodeJS.ErrnoException | null)?.code;
+    if (code === "EEXIST") {
+      return resolved;
+    }
     if (code === "EACCES" || code === "EPERM") {
       const fallback = getDefaultDataDir();
       console.warn(

@@ -10,8 +10,7 @@ import { filterToOpenAIFormat } from "../../open-sse/translator/helpers/openaiHe
 // (1) codex.ts stripStoredItemReferences: object items of type "reasoning"
 //     (encrypted_content) are unusable with store=false (previous_response_id is
 //     deleted) and must be dropped from the Responses `input` array.
-// (2) openaiHelper.ts filterToOpenAIFormat: assistant+tool_calls messages must
-//     have `reasoning_content` stripped instead of being returned as-is.
+// (2) openaiHelper.ts preserves non-empty client reasoning on assistant tool calls.
 
 test("stripStoredItemReferences drops object items with type=reasoning", () => {
   const body: Record<string, unknown> = {
@@ -45,7 +44,7 @@ test("stripStoredItemReferences drops object items with type=reasoning", () => {
   assert.equal(input[1].id, undefined, "fc_ server id stripped, item kept");
 });
 
-test("filterToOpenAIFormat strips reasoning_content from assistant+tool_calls messages", () => {
+test("filterToOpenAIFormat preserves non-empty reasoning_content on assistant+tool_calls messages", () => {
   const body = {
     messages: [
       {
@@ -59,7 +58,7 @@ test("filterToOpenAIFormat strips reasoning_content from assistant+tool_calls me
   const result = filterToOpenAIFormat(body) as { messages: Array<Record<string, unknown>> };
   const msg = result.messages[0];
 
-  assert.equal(msg.reasoning_content, undefined, "reasoning_content must be dropped");
+  assert.equal(msg.reasoning_content, "long chain of thought that inflates context");
   assert.ok(Array.isArray(msg.tool_calls), "tool_calls preserved");
   assert.equal((msg.tool_calls as unknown[]).length, 1);
   assert.equal(msg.role, "assistant");
