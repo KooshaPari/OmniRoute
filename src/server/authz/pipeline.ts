@@ -24,6 +24,12 @@ import {
 } from "./headers";
 import type { AuthSubject, RouteClass, RouteClassification } from "./types";
 import type { AuthOutcome, RoutePolicy } from "./context";
+import {
+  checkRateLimitSliding,
+  buildRateLimitContext,
+  resolveTier,
+  type RateLimitDecision,
+} from "../../lib/security/rateLimiter";
 
 export interface AuthzPipelineOptions {
   enforce?: boolean;
@@ -280,6 +286,64 @@ export async function runAuthzPipeline(
   }
 
   stampSubject(requestHeaders, outcome.subject);
+
+  // ── Rate-limiting (PR-051) ──────────────────────────────
+  // Enforce per-IP+tenant rate limits on CLIENT_API routes.
+  if (classification.routeClass === "CLIENT_API") {
+    const peerIp =
+      resolveStampedPeer(
+        request.headers.get(PEER_IP_HEADER),
+        process.env.OMNIROUTE_PEER_STAMP_TOKEN
+      ) ??
+      request.ip ??
+      request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
+      request.headers.get("x-real-ip") ??
+      "unknown";
+
+    const tenant =
+      outcome.subject.kind === "client_api_key" ? outcome.subject.id : "";
+    const tier = resolveTier(tenant);
+    const rlCtx = buildRateLimitContext(peerIp, tenant, tier);
+    const rlDecision: RateLimitDecision =
+      await checkRateLimitSliding(rlCtx);
+
+    if (!rlDecision.allowed) {
+      const rateLimitResponse = NextResponse.json(
+        {
+          error: {
+            code: "RATE_LIMITED",
+            message:
+              rlDecision.reason ??
+              "Too many requests. Please slow down.",
+            correlation_id: requestId,
+          },
+        },
+        { status: 429 }
+      );
+      rateLimitResponse.headers.set(
+        "x-ratelimit-remaining",
+        "0"
+      );
+      rateLimitResponse.headers.set(
+        "x-ratelimit-reset",
+        String(rlDecision.resetInSeconds)
+      );
+      rateLimitResponse.headers.set(
+        "retry-after",
+        String(rlDecision.resetInSeconds)
+      );
+      rateLimitResponse.headers.set(
+        AUTHZ_HEADER_REQUEST_ID,
+        requestId
+      );
+      rateLimitResponse.headers.set(
+        AUTHZ_HEADER_ROUTE_CLASS,
+        classification.routeClass
+      );
+      applyCorsHeaders(rateLimitResponse, request);
+      return rateLimitResponse;
+    }
+  }
 
   const response = NextResponse.next({ request: { headers: requestHeaders } });
   response.headers.set(AUTHZ_HEADER_REQUEST_ID, requestId);
