@@ -1,0 +1,32 @@
+name: lfs-weekly (L60.1, v36 3e-Evolve)
+
+on:
+  schedule:
+    - cron: '0 16 * * 1'  # Monday 09:00 PDT
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  lfs-weekly:
+    name: Weekly LFS audit
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+      - name: Run LFS audit
+        run: |
+          python3 tools/lfs-audit-v2/audit.py --all \
+            --output evidence/lfs-audit-weekly.json
+          python3 tools/lfs-audit-v2/audit.py --summary \
+            > evidence/lfs-audit-weekly.md
+      - name: Upload audit artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: lfs-weekly-${{ github.run_number }}
+          path: evidence/lfs-audit-weekly.*
+          retention-days: 90

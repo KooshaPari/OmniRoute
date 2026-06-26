@@ -1,0 +1,40 @@
+name: sbom-weekly (L29.1, v36 3e-Evolve)
+
+on:
+  schedule:
+    - cron: '0 16 * * 1'  # Monday 09:00 PDT
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  sbom-weekly:
+    name: Weekly SBOM drift sweep
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v4.2.2
+        with:
+          persist-credentials: false
+      - uses: dtolnay/rust-toolchain@3c5f7ea28cd621ae0bf5283f0e981fb97b8a7af9
+        with:
+          toolchain: stable
+      - name: Install cargo-cyclonedx
+        run: cargo install cargo-cyclonedx --locked
+      - name: Regenerate fleet SBOM
+        run: |
+          bash tools/sbom-cyclonedx-fleet/regenerate.sh \
+            --output evidence/sbom-weekly.json
+      - name: Compare SBOM vs previous week
+        run: |
+          bash tools/sbom-drift-ci/drift_check.py \
+            --current evidence/sbom-weekly.json \
+            --threshold 5 \
+            --output evidence/sbom-drift-weekly.json
+      - name: Upload SBOM artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: sbom-weekly-${{ github.run_number }}
+          path: evidence/sbom-*.json
+          retention-days: 90

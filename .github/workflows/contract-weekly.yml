@@ -1,0 +1,33 @@
+name: contract-weekly (L27.1, v36 3e-Evolve)
+
+on:
+  schedule:
+    - cron: '0 16 * * 1'  # Monday 09:00 PDT
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  contract-weekly:
+    name: Weekly contract test sweep
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v4.2.2
+        with:
+          persist-credentials: false
+      - uses: dtolnay/rust-toolchain@3c5f7ea28cd621ae0bf5283f0e981fb97b8a7af9
+        with:
+          toolchain: stable
+      - uses: Swatinem/rust-cache@42dc69e1aa15d09112580998cf2ef0119e2e91ae # v2
+      - name: Run fleet contract tests
+        run: |
+          bash tools/contract-test-fleet/run.sh \
+            --output evidence/contract-weekly.json
+      - name: Upload contract artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: contract-weekly-${{ github.run_number }}
+          path: evidence/contract-weekly.json
+          retention-days: 90

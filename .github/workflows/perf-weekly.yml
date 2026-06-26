@@ -1,0 +1,35 @@
+name: perf-weekly (L19.1, v36 3e-Evolve)
+
+on:
+  schedule:
+    - cron: '0 16 * * 1'  # Monday 09:00 PDT
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  perf-weekly:
+    name: Weekly perf budget sweep
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v4.2.2
+        with:
+          persist-credentials: false
+      - uses: dtolnay/rust-toolchain@3c5f7ea28cd621ae0bf5283f0e981fb97b8a7af9
+        with:
+          toolchain: stable
+      - uses: Swatinem/rust-cache@42dc69e1aa15d09112580998cf2ef0119e2e91ae # v2
+      - uses: extractions/setup-just@f8a3cce218d9f83db3a2ecd90e41ac3de6cdfd9b # v3
+      - name: Aggregate fleet perf budgets
+        run: |
+          bash tools/perf-aggregate/aggregate.sh \
+            --input benchmarks/perf-budgets.toml \
+            --output evidence/perf-weekly.json
+      - name: Upload perf artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: perf-weekly-${{ github.run_number }}
+          path: evidence/perf-weekly.json
+          retention-days: 90

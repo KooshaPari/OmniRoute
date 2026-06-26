@@ -1,0 +1,33 @@
+name: chaos-weekly (L46.1, v36 3e-Evolve)
+
+on:
+  schedule:
+    - cron: '0 16 * * 1'  # Monday 09:00 PDT
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  chaos-weekly:
+    name: Weekly chaos network test
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v4.2.2
+        with:
+          persist-credentials: false
+      - uses: dtolnay/rust-toolchain@3c5f7ea28cd621ae0bf5283f0e981fb97b8a7af9
+        with:
+          toolchain: stable
+      - name: Run fleet chaos scenarios
+        run: |
+          bash tools/chaos-ci-fleet/run.sh \
+            --scenarios tests/chaos-scenarios/ \
+            --output evidence/chaos-weekly.json
+      - name: Upload chaos artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: chaos-weekly-${{ github.run_number }}
+          path: evidence/chaos-weekly.json
+          retention-days: 90
