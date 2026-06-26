@@ -1,8 +1,8 @@
 {
-  "fleet_average_score": 14.0,
-  "fleet_average_percentage": 100.0,
+  "fleet_average_score": 13.857,
+  "fleet_average_percentage": 98.98,
   "fleet_grade_distribution": {
-    "L4": 9
+    "L4": 14
   },
   "pillar_weights": {
     "P1": 3,
@@ -17,7 +17,37 @@
   "grading_engine": "registry/audit-absorption-justification/grade.sh",
   "audits": [
     {
+      "name": "AuthKit-2026-06-25.md",
+      "score": 14,
+      "percentage": 100.0,
+      "grade": "L4",
+      "pillar_status": {
+        "1": "pass",
+        "2": "pass",
+        "3": "pass",
+        "4": "pass",
+        "5": "pass",
+        "6": "pass",
+        "7": "pass"
+      }
+    },
+    {
       "name": "BytePort-2026-06-23.md",
+      "score": 14,
+      "percentage": 100.0,
+      "grade": "L4",
+      "pillar_status": {
+        "1": "pass",
+        "2": "pass",
+        "3": "pass",
+        "4": "pass",
+        "5": "pass",
+        "6": "pass",
+        "7": "pass"
+      }
+    },
+    {
+      "name": "Eidolon-2026-06-25.md",
       "score": 14,
       "percentage": 100.0,
       "grade": "L4",
@@ -62,6 +92,36 @@
       }
     },
     {
+      "name": "PhenoSpecs-2026-06-25.md",
+      "score": 14,
+      "percentage": 100.0,
+      "grade": "L4",
+      "pillar_status": {
+        "1": "pass",
+        "2": "pass",
+        "3": "pass",
+        "4": "pass",
+        "5": "pass",
+        "6": "pass",
+        "7": "pass"
+      }
+    },
+    {
+      "name": "Tracera-2026-06-25.md",
+      "score": 14,
+      "percentage": 100.0,
+      "grade": "L4",
+      "pillar_status": {
+        "1": "pass",
+        "2": "pass",
+        "3": "pass",
+        "4": "pass",
+        "5": "pass",
+        "6": "pass",
+        "7": "pass"
+      }
+    },
+    {
       "name": "go-nippon-2026-06-23.md",
       "score": 14,
       "percentage": 100.0,
@@ -86,6 +146,21 @@
         "2": "pass",
         "3": "pass",
         "4": "pass",
+        "5": "pass",
+        "6": "pass",
+        "7": "pass"
+      }
+    },
+    {
+      "name": "pheno-harness-2026-06-25.md",
+      "score": 12,
+      "percentage": 85.71,
+      "grade": "L4",
+      "pillar_status": {
+        "1": "partial",
+        "2": "pass",
+        "3": "pass",
+        "4": "partial",
         "5": "pass",
         "6": "pass",
         "7": "pass"

@@ -1,0 +1,18 @@
+{
+  "name": "PhenoSpecs",
+  "full_name": "KooshaPari/PhenoSpecs",
+  "description": "Phenotype spec/SDD authoring and collaboration tool (PRD/SDD/SPEC pipeline)",
+  "role": "spec-authoring",
+  "lifecycle": "active",
+  "status": "active",
+  "audit_artifact": "PhenoSpecs-2026-06-25.md",
+  "repo_path": "KooshaPari/PhenoSpecs",
+  "notes": "Spec/SDD toolchain. Scans ActiveEdge PRs into PRD/SDD cycles. Small TypeScript codebase.",
+  "archived": false,
+  "size_kb": 4213,
+  "default_branch": "main",
+  "language": "TypeScript",
+  "branches": 14,
+  "pushed_at": "2026-06-25T23:22:06Z",
+  "created_at": "2026-06-25T23:22:06Z"
+}

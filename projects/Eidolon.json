@@ -1,0 +1,13 @@
+{
+  "name": "Eidolon",
+  "full_name": "KooshaPari/Eidolon",
+  "description": "Eidolon — IDE/dev-environment runtime for Phenotype development workflows",
+  "role": "dev-environment",
+  "disposition": "AFFIRM",
+  "source": "absorption-justification",
+  "audit_artifact": "Eidolon-2026-06-25.md",
+  "status": "active",
+  "repo_path": "KooshaPari/Eidolon",
+  "ecosystem": "compute-infra",
+  "domain": "developer-tools"
+}
