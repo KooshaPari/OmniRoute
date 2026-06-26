@@ -7,11 +7,21 @@ export const HIDEABLE_SIDEBAR_ITEM_IDS = [
   "providers",
   "embedded-services",
   "combos",
+  "combos-live",
   "quota",
-  // OmniProxy > Compression Context
+  // OmniProxy > Compression Context (Settings → Combos → engines → Studio)
+  "context-settings",
+  "context-combos",
   "context-caveman",
   "context-rtk",
-  "context-combos",
+  "context-headroom",
+  "context-session-dedup",
+  "context-ccr",
+  "context-llmlingua",
+  "context-lite",
+  "context-aggressive",
+  "context-ultra",
+  "compression-studio",
   // OmniProxy > Tools
   "cli-code",
   "cli-agents",
@@ -22,7 +32,7 @@ export const HIDEABLE_SIDEBAR_ITEM_IDS = [
   // OmniProxy > Integrations
   "api-endpoints",
   "webhooks",
-  // OmniProxy > Proxy
+  // OmniProxy — proxy
   "proxy",
   "mitm-proxy",
   "1proxy",
@@ -75,7 +85,6 @@ export const HIDEABLE_SIDEBAR_ITEM_IDS = [
   "batch",
   "batch-files",
   // Configuration
-  "settings",
   "settings-general",
   "settings-appearance",
   "settings-ai",
@@ -83,6 +92,7 @@ export const HIDEABLE_SIDEBAR_ITEM_IDS = [
   "settings-resilience",
   "settings-advanced",
   "settings-security",
+  "settings-access-tokens",
   "settings-feature-flags",
   "settings-sidebar",
   // Help
@@ -110,6 +120,10 @@ export interface SidebarItemDefinition {
   href: string;
   i18nKey: string;
   subtitleKey?: string;
+  /** Literal label shown when `i18nKey` has no translation (avoids per-locale edits). */
+  labelFallback?: string;
+  /** Literal subtitle shown when `subtitleKey` is absent/untranslated. */
+  subtitleFallback?: string;
   icon: string;
   exact?: boolean;
   external?: boolean;
@@ -193,6 +207,14 @@ const OMNI_PROXY_ITEMS: readonly SidebarItemDefinition[] = [
     icon: "layers",
   },
   {
+    id: "combos-live",
+    href: "/dashboard/combos/live",
+    i18nKey: "combosLive",
+    labelFallback: "Combo Studio",
+    subtitleFallback: "Live routing cascade",
+    icon: "account_tree",
+  },
+  {
     id: "quota",
     href: "/dashboard/quota",
     i18nKey: "providerQuota",
@@ -208,12 +230,28 @@ const OMNI_PROXY_ITEMS: readonly SidebarItemDefinition[] = [
   },
 ];
 
-const COMPRESSION_CONTEXT_GROUP: SidebarItemGroup = {
+export const COMPRESSION_CONTEXT_GROUP: SidebarItemGroup = {
   type: "group",
   id: "compression-context",
   titleKey: "compressionContextGroup",
   titleFallback: "Compression Context",
+  // Order: Settings (the unified panel) → Combos → per-engine pages → Studio (analytics).
   items: [
+    {
+      id: "context-settings",
+      href: "/dashboard/context/settings",
+      i18nKey: "contextSettings",
+      labelFallback: "Compression Settings",
+      subtitleFallback: "Global defaults",
+      icon: "settings",
+    },
+    {
+      id: "context-combos",
+      href: "/dashboard/context/combos",
+      i18nKey: "contextCombos",
+      subtitleKey: "contextCombosSubtitle",
+      icon: "hub",
+    },
     {
       id: "context-caveman",
       href: "/dashboard/context/caveman",
@@ -229,11 +267,68 @@ const COMPRESSION_CONTEXT_GROUP: SidebarItemGroup = {
       icon: "filter_alt",
     },
     {
-      id: "context-combos",
-      href: "/dashboard/context/combos",
-      i18nKey: "contextCombos",
-      subtitleKey: "contextCombosSubtitle",
-      icon: "hub",
+      id: "context-headroom",
+      href: "/dashboard/context/headroom",
+      i18nKey: "contextHeadroom",
+      labelFallback: "Headroom",
+      subtitleFallback: "Tabular compaction",
+      icon: "table_rows",
+    },
+    {
+      id: "context-session-dedup",
+      href: "/dashboard/context/session-dedup",
+      i18nKey: "contextSessionDedup",
+      labelFallback: "Session Dedup",
+      subtitleFallback: "Cross-turn dedup",
+      icon: "content_copy",
+    },
+    {
+      id: "context-ccr",
+      href: "/dashboard/context/ccr",
+      i18nKey: "contextCcr",
+      labelFallback: "CCR",
+      subtitleFallback: "Retrieve markers",
+      icon: "archive",
+    },
+    {
+      id: "context-llmlingua",
+      href: "/dashboard/context/llmlingua",
+      i18nKey: "contextLlmlingua",
+      labelFallback: "LLMLingua",
+      subtitleFallback: "Semantic pruning",
+      icon: "psychology",
+    },
+    {
+      id: "context-lite",
+      href: "/dashboard/context/lite",
+      i18nKey: "contextLite",
+      labelFallback: "Lite",
+      subtitleFallback: "Fast whitespace cleanup",
+      icon: "compress",
+    },
+    {
+      id: "context-aggressive",
+      href: "/dashboard/context/aggressive",
+      i18nKey: "contextAggressive",
+      labelFallback: "Aggressive",
+      subtitleFallback: "Summary + aging",
+      icon: "speed",
+    },
+    {
+      id: "context-ultra",
+      href: "/dashboard/context/ultra",
+      i18nKey: "contextUltra",
+      labelFallback: "Ultra",
+      subtitleFallback: "Heuristic pruning",
+      icon: "bolt",
+    },
+    {
+      id: "compression-studio",
+      href: "/dashboard/compression/studio",
+      i18nKey: "compressionStudio",
+      labelFallback: "Compression Studio",
+      subtitleFallback: "Live engine cascade",
+      icon: "monitoring",
     },
   ],
 };
@@ -312,20 +407,12 @@ const INTEGRATIONS_GROUP: SidebarItemGroup = {
   ],
 };
 
-const PROXY_GROUP: SidebarItemGroup = {
-  type: "group",
+const PROXY_ITEM: SidebarItemDefinition = {
   id: "proxy",
-  titleKey: "proxyGroup",
-  titleFallback: "Proxy",
-  items: [
-    {
-      id: "proxy",
-      href: "/dashboard/system/proxy",
-      i18nKey: "proxy",
-      subtitleKey: "proxySubtitle",
-      icon: "dns",
-    },
-  ],
+  href: "/dashboard/system/proxy",
+  i18nKey: "proxy",
+  subtitleKey: "proxySubtitle",
+  icon: "dns",
 };
 
 const ANALYTICS_ITEMS: readonly SidebarItemDefinition[] = [
@@ -542,20 +629,12 @@ const DEVTOOLS_ITEMS: readonly SidebarItemDefinition[] = [
   },
 ];
 
-const MCP_GROUP: SidebarItemGroup = {
-  type: "group",
+const MCP_ITEM: SidebarItemDefinition = {
   id: "mcp",
-  titleKey: "mcp",
-  titleFallback: "MCP Server",
-  items: [
-    {
-      id: "mcp",
-      href: "/dashboard/mcp",
-      i18nKey: "mcp",
-      subtitleKey: "mcpSubtitle",
-      icon: "hub",
-    },
-  ],
+  href: "/dashboard/mcp",
+  i18nKey: "mcp",
+  subtitleKey: "mcpSubtitle",
+  icon: "hub",
 };
 
 const AGENTIC_FEATURES_ITEMS: readonly SidebarSectionChild[] = [
@@ -580,7 +659,7 @@ const AGENTIC_FEATURES_ITEMS: readonly SidebarSectionChild[] = [
     subtitleKey: "omniSkillsSubtitle",
     icon: "auto_fix_high",
   },
-  MCP_GROUP,
+  MCP_ITEM,
   {
     id: "a2a",
     href: "/dashboard/a2a",
@@ -662,13 +741,6 @@ const BATCH_GROUP: SidebarItemGroup = {
 
 const CONFIGURATION_ITEMS: readonly SidebarItemDefinition[] = [
   {
-    id: "settings",
-    href: "/dashboard/settings",
-    i18nKey: "settings",
-    subtitleKey: "settingsSubtitle",
-    icon: "settings",
-  },
-  {
     id: "settings-general",
     href: "/dashboard/settings/general",
     i18nKey: "settingsGeneral",
@@ -716,6 +788,14 @@ const CONFIGURATION_ITEMS: readonly SidebarItemDefinition[] = [
     i18nKey: "settingsSecurity",
     subtitleKey: "settingsSecuritySubtitle",
     icon: "shield",
+  },
+  {
+    id: "settings-access-tokens",
+    href: "/dashboard/settings/access-tokens",
+    i18nKey: "settingsAccessTokens",
+    labelFallback: "Access Tokens",
+    subtitleKey: "settingsAccessTokensSubtitle",
+    icon: "key",
   },
   {
     id: "settings-feature-flags",
@@ -778,7 +858,7 @@ export const SIDEBAR_SECTIONS: readonly SidebarSectionDefinition[] = [
       COMPRESSION_CONTEXT_GROUP,
       TOOLS_GROUP,
       INTEGRATIONS_GROUP,
-      PROXY_GROUP,
+      PROXY_ITEM,
     ],
     defaultPinned: true,
   },
@@ -861,7 +941,7 @@ const MINIMAL_SHOWN: ReadonlySet<HideableSidebarItemId> = new Set([
   "costs",
   "logs",
   "health",
-  "settings",
+  "settings-general",
   "settings-sidebar",
   "docs",
   "changelog",
@@ -894,7 +974,7 @@ const DEVELOPER_SHOWN: ReadonlySet<HideableSidebarItemId> = new Set([
   "skills",
   "mcp",
   "a2a",
-  "settings",
+  "settings-general",
   "settings-routing",
   "settings-resilience",
   "settings-sidebar",
@@ -925,11 +1005,11 @@ const ADMIN_SHOWN: ReadonlySet<HideableSidebarItemId> = new Set([
   "audit",
   "audit-mcp",
   "audit-a2a",
-  "settings",
   "settings-general",
   "settings-routing",
   "settings-resilience",
   "settings-security",
+  "settings-access-tokens",
   "settings-feature-flags",
   "settings-sidebar",
   "docs",

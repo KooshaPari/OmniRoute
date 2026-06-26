@@ -700,7 +700,7 @@ test("chat pipeline applies Codex CLI fingerprint to OAuth responses requests", 
   assert.equal(call.headers.Version, getCodexClientVersion());
   assert.equal(call.headers["Openai-Beta"], "responses=experimental");
   assert.equal(call.headers["X-Codex-Beta-Features"], "responses_websockets");
-  assert.equal(call.headers["User-Agent"], "codex-cli/0.132.0 (Windows 10.0.26200; x64)");
+  assert.equal(call.headers["User-Agent"], "codex-cli/0.142.0 (Windows 10.0.26200; x64)");
   assert.equal(call.headers["x-codex-window-id"], "conv_codex_fingerprint:0");
   assert.ok(call.headers["x-client-request-id"], "expected Codex request id header");
   assert.ok(call.headers["x-codex-turn-metadata"], "expected Codex turn metadata header");
@@ -711,15 +711,14 @@ test("chat pipeline applies Codex CLI fingerprint to OAuth responses requests", 
   assert.ok(headerOrder.indexOf("Accept") < headerOrder.indexOf("User-Agent"));
 
   const bodyOrder = Object.keys(JSON.parse(call.bodyString));
-  assert.deepEqual(bodyOrder.slice(0, 7), [
-    "model",
-    "stream",
-    "input",
-    "instructions",
-    "store",
-    "reasoning",
-    "prompt_cache_key",
-  ]);
+  // Order must match the canonical Codex fingerprint bodyFieldOrder (cliFingerprints.ts):
+  // …reasoning, prompt_cache_key, …, include — i.e. prompt_cache_key precedes include.
+  // (#4584 inadvertently flipped these two; fast-gates skip integration tests so it only
+  // surfaced on the release PR full CI.)
+  assert.deepEqual(
+    bodyOrder.slice(0, 8),
+    "model stream input instructions store reasoning prompt_cache_key include".split(" ")
+  );
   assert.equal(call.body.model, "gpt-5.5");
   assert.equal(call.body.store, false);
   assert.equal(
@@ -1184,8 +1183,9 @@ test("chat pipeline allows unauthenticated requests through to provider resoluti
 
   // handleChat does not enforce REQUIRE_API_KEY — that's the authz pipeline's job.
   // Without provider credentials seeded, the request falls through to the "no credentials" path.
-  assert.equal(response.status, 400);
-  assert.match(json.error.message, /No credentials for provider/i);
+  // Upstream port decolua/9router#336: 400 → 404 so combo routing can fall through.
+  assert.equal(response.status, 404);
+  assert.match(json.error.message, /No active credentials for provider/i);
 });
 
 test("chat pipeline returns 400 when the model field is omitted", async () => {
@@ -1298,8 +1298,9 @@ test("chat pipeline returns current no-credentials contract when no provider con
   );
 
   const json = (await response.json()) as any;
-  assert.equal(response.status, 400);
-  assert.match(json.error.message, /No credentials for provider: openai/);
+  // Upstream port decolua/9router#336: 400 → 404 so combo routing can fall through.
+  assert.equal(response.status, 404);
+  assert.match(json.error.message, /No active credentials for provider: openai/);
 });
 
 test("chat pipeline surfaces upstream 500 responses as structured errors", async () => {

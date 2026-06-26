@@ -623,7 +623,7 @@ If the embedded service exposes an OpenAI-compatible `/v1/chat/completions` endp
    table in §1 and any new endpoints to §4.
 2. Add unit tests in `tests/unit/services/` (lifecycle, installer, API shape).
 3. Add integration test in `tests/integration/services/` (behind `RUN_SERVICES_INT=1`).
-4. Update `docs/reference/openapi.yaml` with the new endpoints.
+4. Update `docs/openapi.yaml` with the new endpoints.
 
 ---
 
@@ -791,5 +791,5 @@ the most recent lines within the `tail` limit. Logs are not persisted to disk un
 - `docs/security/ROUTE_GUARD_TIERS.md` — LOCAL_ONLY tier details
 - `docs/architecture/CODEBASE_DOCUMENTATION.md` — §3.2 Embedded Services module mapping
 - `docs/architecture/ARCHITECTURE.md` — system-level context
-- `docs/reference/openapi.yaml` — machine-readable endpoint definitions
+- `docs/openapi.yaml` — machine-readable endpoint definitions
 - `CLAUDE.md` §"Adding a New Embedded Service" — quick-reference checklist

@@ -88,6 +88,31 @@ test("sanitizeReasoningEffortForProvider: xiaomi-mimo normalizes max → xhigh b
   );
 });
 
+test("sanitizeReasoningEffortForProvider: Ollama Cloud preserves max", () => {
+  const log = makeLog();
+  const body = {
+    model: "glm-5.2",
+    reasoning_effort: "max",
+    messages: [{ role: "user", content: "hi" }],
+  };
+  const result = sanitizeReasoningEffortForProvider(body, "ollama-cloud", "glm-5.2", log);
+  assert.equal(result, body, "Ollama Cloud accepts max literally");
+  assert.equal((result as any).reasoning_effort, "max");
+  assert.equal(log.messages.length, 0);
+});
+
+test("sanitizeReasoningEffortForProvider: Ollama Cloud preserves nested max", () => {
+  const body = {
+    model: "glm-5.2",
+    reasoning: { effort: "max", summary: "auto" },
+    input: [],
+  };
+  const result = sanitizeReasoningEffortForProvider(body, "ollama-cloud", "glm-5.2", null);
+  assert.equal(result, body, "Ollama Cloud accepts max literally");
+  assert.equal((result as any).reasoning.effort, "max");
+  assert.equal((result as any).reasoning.summary, "auto");
+});
+
 test("sanitizeReasoningEffortForProvider: OpenRouter DeepSeek normalizes max → xhigh", () => {
   const log = makeLog();
   const body = {
@@ -250,13 +275,25 @@ test("sanitizeReasoningEffortForProvider: mistral/devstral strips reasoning_effo
   );
 });
 
-test("sanitizeReasoningEffortForProvider: github/claude-opus strips reasoning_effort entirely", () => {
+test("sanitizeReasoningEffortForProvider: github/claude-opus-4.6 preserves reasoning_effort (#791)", () => {
+  // Upstream PR decolua/9router#791 (port): Copilot now honors reasoning_effort
+  // on Claude Opus 4.6 and Sonnet 4.6. Older Opus variants and Haiku still strip.
   const body = {
     model: "claude-opus-4-6",
     reasoning_effort: "high",
     messages: [],
   };
   const result = sanitizeReasoningEffortForProvider(body, "github", "claude-opus-4-6", null);
+  assert.equal((result as any).reasoning_effort, "high");
+});
+
+test("sanitizeReasoningEffortForProvider: github/claude-opus-4.7 still strips (#791)", () => {
+  const body = {
+    model: "claude-opus-4.7",
+    reasoning_effort: "high",
+    messages: [],
+  };
+  const result = sanitizeReasoningEffortForProvider(body, "github", "claude-opus-4.7", null);
   assert.equal((result as any).reasoning_effort, undefined);
 });
 
@@ -274,6 +311,10 @@ test("sanitizeReasoningEffortForProvider: rejecting providers strip max before n
   );
   assert.equal((mistralResult as any).reasoning_effort, undefined);
 
+  // Pre-#791: github stripped reasoning_effort entirely for every Claude model.
+  // Post-#791: Opus 4.6 keeps reasoning_effort; `max` downgrades to `high`
+  // because github is not Claude/CC-compatible (so supportsMax=false) and
+  // the canonical Claude Opus 4.6 model opts out of xhigh.
   const githubBody = {
     model: "claude-opus-4-6",
     reasoning_effort: "max",
@@ -285,7 +326,22 @@ test("sanitizeReasoningEffortForProvider: rejecting providers strip max before n
     "claude-opus-4-6",
     null
   );
-  assert.equal((githubResult as any).reasoning_effort, undefined);
+  assert.equal((githubResult as any).reasoning_effort, "high");
+
+  // Pre-#791 strip is preserved for github Claude models that DO NOT opt in
+  // (Haiku 4.5, Opus 4.7, older Sonnet, etc.).
+  const githubHaiku = {
+    model: "claude-haiku-4.5",
+    reasoning_effort: "max",
+    messages: [],
+  };
+  const githubHaikuResult = sanitizeReasoningEffortForProvider(
+    githubHaiku,
+    "github",
+    "claude-haiku-4.5",
+    null
+  );
+  assert.equal((githubHaikuResult as any).reasoning_effort, undefined);
 });
 
 test("sanitizeReasoningEffortForProvider: mistral/devstral strips reasoning object when only effort present", () => {
@@ -336,4 +392,154 @@ test("sanitizeReasoningEffortForProvider: non-object body returns unchanged", ()
   assert.equal(sanitizeReasoningEffortForProvider("string", "xiaomi-mimo", "x", null), "string");
   const arr: unknown[] = [];
   assert.equal(sanitizeReasoningEffortForProvider(arr, "xiaomi-mimo", "x", null), arr);
+});
+
+// ── Native DeepSeek (api.deepseek.com) ───────────────────────────────────────
+// DeepSeek V4 thinking mode accepts reasoning_effort ONLY as {high, max}. The
+// internal OmniRoute scale (low|medium|high|xhigh, xhigh = top) must be mapped
+// onto DeepSeek's native vocabulary so the client's requested effort is honored
+// instead of silently dropped to the default. This is the INVERSE of the
+// OpenRouter-DeepSeek path, whose normalized API expects xhigh, not max.
+
+test("sanitizeReasoningEffortForProvider: native deepseek maps xhigh → max", () => {
+  const log = makeLog();
+  const body = {
+    model: "deepseek-v4-pro",
+    reasoning_effort: "xhigh",
+    messages: [{ role: "user", content: "hi" }],
+  };
+  const result = sanitizeReasoningEffortForProvider(body, "deepseek", "deepseek-v4-pro", log);
+  assert.notEqual(result, body, "must return a new object when mutating");
+  assert.equal((result as any).reasoning_effort, "max");
+  assert.equal((result as any).model, "deepseek-v4-pro", "other fields preserved");
+  assert.ok(
+    log.messages.some(([tag, m]) => tag === "REASONING_SANITIZE" && /xhigh → max/.test(m)),
+    "logs the xhigh → max mapping"
+  );
+});
+
+test("sanitizeReasoningEffortForProvider: native deepseek preserves max", () => {
+  const log = makeLog();
+  const body = {
+    model: "deepseek-v4-flash",
+    reasoning_effort: "max",
+    messages: [{ role: "user", content: "hi" }],
+  };
+  const result = sanitizeReasoningEffortForProvider(body, "deepseek", "deepseek-v4-flash", log);
+  assert.equal(result, body, "max is DeepSeek's native top tier — passes through unchanged");
+  assert.equal((result as any).reasoning_effort, "max");
+  assert.equal(log.messages.length, 0);
+});
+
+test("sanitizeReasoningEffortForProvider: native deepseek clamps low → high", () => {
+  const body = {
+    model: "deepseek-v4-pro",
+    reasoning_effort: "low",
+    messages: [{ role: "user", content: "hi" }],
+  };
+  const result = sanitizeReasoningEffortForProvider(body, "deepseek", "deepseek-v4-pro", null);
+  assert.notEqual(result, body, "must return a new object when mutating");
+  assert.equal((result as any).reasoning_effort, "high", "below the {high, max} floor → high");
+});
+
+test("sanitizeReasoningEffortForProvider: native deepseek clamps medium → high", () => {
+  const body = {
+    model: "deepseek-v4-pro",
+    reasoning_effort: "medium",
+    messages: [{ role: "user", content: "hi" }],
+  };
+  const result = sanitizeReasoningEffortForProvider(body, "deepseek", "deepseek-v4-pro", null);
+  assert.equal((result as any).reasoning_effort, "high");
+});
+
+test("sanitizeReasoningEffortForProvider: native deepseek preserves high unchanged", () => {
+  const body = {
+    model: "deepseek-v4-pro",
+    reasoning_effort: "high",
+    messages: [{ role: "user", content: "hi" }],
+  };
+  const result = sanitizeReasoningEffortForProvider(body, "deepseek", "deepseek-v4-pro", null);
+  assert.equal(result, body, "high is already valid — passes through unchanged");
+  assert.equal((result as any).reasoning_effort, "high");
+});
+
+test("sanitizeReasoningEffortForProvider: native deepseek maps nested reasoning.effort xhigh → max", () => {
+  const body = {
+    model: "deepseek-v4-pro",
+    reasoning: { effort: "xhigh", summary: "auto" },
+    input: [],
+  };
+  const result = sanitizeReasoningEffortForProvider(body, "deepseek", "deepseek-v4-pro", null);
+  assert.equal((result as any).reasoning.effort, "max");
+  assert.equal((result as any).reasoning.summary, "auto", "other reasoning fields preserved");
+  assert.equal((result as any).reasoning_effort, undefined);
+});
+
+test("sanitizeReasoningEffortForProvider: OpenRouter DeepSeek still preserves xhigh (not native)", () => {
+  // Regression guard: the native-deepseek mapping must NOT touch openrouter,
+  // whose normalized API expects xhigh (issue earendil-works/pi#4055).
+  const body = {
+    model: "deepseek/deepseek-v4-pro",
+    reasoning_effort: "xhigh",
+    messages: [],
+  };
+  const result = sanitizeReasoningEffortForProvider(
+    body,
+    "openrouter",
+    "deepseek/deepseek-v4-pro",
+    null
+  );
+  assert.equal(result, body);
+  assert.equal((result as any).reasoning_effort, "xhigh");
+});
+
+// ── opencode-go DeepSeek V4 Pro effort variants (#4647) ──────────────────────
+// opencode-go proxies DeepSeek with the native DeepSeek API contract, which
+// accepts {high, max} literally. The OpencodeExecutor's transformRequest sets
+// reasoning_effort to the variant suffix (low|medium|high|max), and the
+// sanitizer must NOT rewrite `max` → `xhigh` for this provider+model combo.
+
+test("sanitizeReasoningEffortForProvider: opencode-go DeepSeek V4 Pro preserves max", () => {
+  const body = {
+    model: "deepseek-v4-pro",
+    reasoning_effort: "max",
+    messages: [],
+  };
+  const result = sanitizeReasoningEffortForProvider(body, "opencode-go", "deepseek-v4-pro", null);
+  assert.equal(result, body, "opencode-go DeepSeek max must pass through unchanged");
+  assert.equal((result as any).reasoning_effort, "max");
+});
+
+test("sanitizeReasoningEffortForProvider: opencode-go DeepSeek V4 Pro preserves variant suffix levels", () => {
+  for (const level of ["low", "medium", "high", "max"]) {
+    const body = {
+      model: `deepseek-v4-pro-${level}`,
+      reasoning_effort: level,
+      messages: [],
+    };
+    const result = sanitizeReasoningEffortForProvider(
+      body,
+      "opencode-go",
+      `deepseek-v4-pro-${level}`,
+      null
+    );
+    assert.equal(
+      (result as any).reasoning_effort,
+      level,
+      `opencode-go deepseek-v4-pro-${level} preserves reasoning_effort=${level}`
+    );
+  }
+});
+
+test("sanitizeReasoningEffortForProvider: opencode-go with non-DeepSeek model still normalizes max → xhigh", () => {
+  // The opt-in must be scoped to DeepSeek models on opencode-go only — other
+  // opencode-go models (e.g. glm/kimi/mimo) follow the default xhigh policy.
+  const body = {
+    model: "mimo-v2.5-pro",
+    reasoning_effort: "max",
+    messages: [],
+  };
+  const result = sanitizeReasoningEffortForProvider(body, "opencode-go", "mimo-v2.5-pro", null);
+  assert.notEqual(result, body);
+  assert.equal((result as any).reasoning_effort, "xhigh");
 });

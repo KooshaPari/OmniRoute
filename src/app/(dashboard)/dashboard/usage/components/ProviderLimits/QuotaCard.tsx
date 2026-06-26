@@ -13,6 +13,8 @@ const STATUS_BORDER: Record<CardStatus, string> = {
   empty: "transparent",
 };
 
+const EMPTY_QUOTAS: any[] = [];
+
 interface QuotaCardProps {
   connection: any;
   quota:
@@ -48,7 +50,7 @@ export default function QuotaCard({
   togglingActive,
 }: QuotaCardProps) {
   const isActive = connection.isActive ?? true;
-  const quotas = quota?.quotas ?? [];
+  const quotas = quota?.quotas ?? EMPTY_QUOTAS;
   const cardStatus = useMemo<CardStatus>(() => worstStatus(quotas), [quotas]);
   const tierMeta = useMemo(
     () =>
@@ -82,10 +84,6 @@ export default function QuotaCard({
         resolvedPlan={resolvedPlan}
         emailsVisible={emailsVisible}
         hasStaleData={hasStaleData}
-        refreshing={loading}
-        onRefresh={onRefresh}
-        onOpenCutoff={onOpenCutoff}
-        hasCutoffOverrides={hasOverrides}
         onToggleActive={onToggleActive}
         togglingActive={togglingActive}
       />
@@ -93,11 +91,13 @@ export default function QuotaCard({
         quotas={quotas}
         loading={loading}
         error={error}
+        message={quota?.message ?? null}
         refreshedAt={displayRefreshedAt}
         hasStaleData={hasStaleData}
         onRefresh={onRefresh}
         onOpenCutoff={onOpenCutoff}
         canEditCutoff={canEditCutoff}
+        hasCutoffOverrides={hasOverrides}
       />
     </Card>
   );

@@ -56,7 +56,7 @@ Lookup material — API surface, environment variables, CLI flags, provider cata
 
 - [API_REFERENCE.md](reference/API_REFERENCE.md) — REST API endpoints and shapes.
 - [PROVIDER_REFERENCE.md](reference/PROVIDER_REFERENCE.md) — auto-generated provider catalog.
-- [openapi.yaml](reference/openapi.yaml) — OpenAPI 3.1 spec for the public API.
+- [openapi.yaml](openapi.yaml) — OpenAPI 3.1 spec for the public API.
 - [ENVIRONMENT.md](reference/ENVIRONMENT.md) — environment variables reference.
 - [CLI-TOOLS.md](reference/CLI-TOOLS.md) — bundled CLI commands.
 - [FREE_TIERS.md](reference/FREE_TIERS.md) — free-tier LLM provider directory.
@@ -78,7 +78,7 @@ Pluggable subsystems exposed to clients, agents, and operators.
 
 Combo routing, scoring, and replay.
 
-- [AUTO-COMBO.md](routing/AUTO-COMBO.md) — Auto-Combo (9-factor scoring, 14 strategies).
+- [AUTO-COMBO.md](routing/AUTO-COMBO.md) — Auto-Combo (9-factor scoring, 17 strategies).
 - [REASONING_REPLAY.md](routing/REASONING_REPLAY.md) — reasoning replay flow.
 
 ## security/
@@ -118,7 +118,7 @@ Mermaid sources and exported SVG/PNG diagrams referenced from the docs above. Po
 
 ## i18n/
 
-Translated mirrors of the documentation in 40 locales. See [i18n/README.md](i18n/README.md) for the supported language list.
+Translated mirrors of the documentation in 42 locales. See [i18n/README.md](i18n/README.md) for the supported language list.
 
 ## screenshots/
 

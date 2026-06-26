@@ -8,9 +8,43 @@ import { getDbInstance, rowToCamel } from "./core";
 import { backupDbFile } from "./backup";
 import { registerDbStateResetter } from "./stateReset";
 import { getKeyGroupsForApiKey, checkKeyModelAccess } from "./apiKeyGroups";
+import { API_KEY_COLUMN_FALLBACKS } from "./apiKeyColumnFallbacks";
+import {
+  appendUsageLimitUpdates,
+  hasUsageLimitUpdate,
+  parseApiKeyUsageLimitFields,
+} from "./apiKeyUsageLimitFields";
 import { setNoLog } from "../compliance/noLog";
 import { resolveModelAlias } from "@omniroute/open-sse/services/modelDeprecation.ts";
 import { getSyncedAvailableModelsByConnection, getCustomModels, getModelIsHidden } from "./models";
+import {
+  CLAUDE_CODE_PROVIDER_PREFIXES,
+  preferClaudeCodeForUnprefixedClaudeModels,
+  stripExtendedContextSuffix,
+  isPotentialUnprefixedClaudeCodeModel,
+  addModelCandidate,
+  modelPatternMatches,
+  hasClaudeCodeWildcardPermission,
+  matchesWildcardPattern,
+} from "./apiKeys/modelPermissions";
+import {
+  parseAllowedModels,
+  parseAllowedCombos,
+  parseNoLog,
+  parseAutoResolve,
+  parseDisableNonPublicModels,
+  parseAllowUsageCommand,
+  parseIsActive,
+  parseAccessSchedule,
+  parseRateLimits,
+  parseAllowedConnections,
+  parseAllowedQuotas,
+  parseStringList,
+  parseNullableTimestamp,
+  parseIsBanned,
+  parseStreamDefaultMode,
+} from "./apiKeys/rowParsers";
+import type { AccessSchedule, RateLimitRule } from "./apiKeys/types";
 
 // ──────────────── Performance Optimizations ────────────────
 
@@ -24,18 +58,8 @@ interface CacheEntry<TValue> {
   value: TValue;
 }
 
-export interface RateLimitRule {
-  limit: number;
-  window: number;
-}
-
-export interface AccessSchedule {
-  enabled: boolean;
-  from: string;
-  until: string;
-  days: number[];
-  tz: string;
-}
+// Re-exported for the historical public surface (moved to ./apiKeys/types).
+export type { AccessSchedule, RateLimitRule } from "./apiKeys/types";
 
 interface ApiKeyMetadata {
   id: string;
@@ -67,6 +91,10 @@ interface ApiKeyMetadata {
   allowedEndpoints: string[];
   streamDefaultMode: "legacy" | "json";
   disableNonPublicModels: boolean;
+  allowUsageCommand: boolean;
+  usageLimitEnabled: boolean;
+  dailyUsageLimitUsd: number | null;
+  weeklyUsageLimitUsd: number | null;
 }
 
 interface ApiKeyRow extends JsonRecord {
@@ -98,6 +126,14 @@ interface ApiKeyRow extends JsonRecord {
   proxy_id?: unknown;
   stream_default_mode?: unknown;
   streamDefaultMode?: unknown;
+  allow_usage_command?: unknown;
+  allowUsageCommand?: unknown;
+  usage_limit_enabled?: unknown;
+  usageLimitEnabled?: unknown;
+  daily_usage_limit_usd?: unknown;
+  dailyUsageLimitUsd?: unknown;
+  weekly_usage_limit_usd?: unknown;
+  weeklyUsageLimitUsd?: unknown;
 }
 
 interface StatementLike<TRow = unknown> {
@@ -140,6 +176,10 @@ interface ApiKeyView extends JsonRecord {
   allowedEndpoints: string[];
   streamDefaultMode: "legacy" | "json";
   disableNonPublicModels?: boolean;
+  allowUsageCommand?: boolean;
+  usageLimitEnabled?: boolean;
+  dailyUsageLimitUsd?: number | null;
+  weeklyUsageLimitUsd?: number | null;
 }
 
 // LRU cache for API key validation (valid keys only)
@@ -149,43 +189,9 @@ const _lastUsedUpdateCache = new Map<string, number>();
 const CACHE_TTL = 60 * 1000; // 1 minute TTL
 const LAST_USED_UPDATE_TTL = 5 * 60 * 1000;
 const MAX_CACHE_SIZE = 1000;
-const CLAUDE_CODE_PROVIDER_PREFIXES = new Set(["cc", "claude"]);
-const CLAUDE_CODE_SHORT_ALIASES = new Set(["sonnet", "opus", "haiku", "fable"]);
 
 // Wildcard scope matching is now handled by `matchesWildcardPattern`
 // (deterministic, no RegExp from dynamic strings).
-
-const API_KEY_COLUMN_FALLBACKS = [
-  { name: "allowed_models", definition: "allowed_models TEXT" },
-  { name: "blocked_models", definition: "blocked_models TEXT" },
-  { name: "allowed_combos", definition: "allowed_combos TEXT" },
-  { name: "no_log", definition: "no_log INTEGER NOT NULL DEFAULT 0" },
-  { name: "allowed_connections", definition: "allowed_connections TEXT" },
-  { name: "auto_resolve", definition: "auto_resolve INTEGER NOT NULL DEFAULT 0" },
-  { name: "is_active", definition: "is_active INTEGER NOT NULL DEFAULT 1" },
-  { name: "access_schedule", definition: "access_schedule TEXT" },
-  { name: "max_requests_per_day", definition: "max_requests_per_day INTEGER" },
-  { name: "max_requests_per_minute", definition: "max_requests_per_minute INTEGER" },
-  { name: "throttle_delay_ms", definition: "throttle_delay_ms INTEGER" },
-  { name: "max_sessions", definition: "max_sessions INTEGER NOT NULL DEFAULT 0" },
-  { name: "revoked_at", definition: "revoked_at TEXT" },
-  { name: "expires_at", definition: "expires_at TEXT" },
-  { name: "last_used_at", definition: "last_used_at TEXT" },
-  { name: "key_prefix", definition: "key_prefix TEXT" },
-  { name: "ip_allowlist", definition: "ip_allowlist TEXT" },
-  { name: "scopes", definition: "scopes TEXT" },
-  { name: "rate_limits", definition: "rate_limits TEXT" },
-  { name: "is_banned", definition: "is_banned INTEGER NOT NULL DEFAULT 0" },
-  { name: "key_hash", definition: "key_hash TEXT" },
-  { name: "proxy_id", definition: "proxy_id TEXT" },
-  { name: "allowed_endpoints", definition: "allowed_endpoints TEXT" },
-  { name: "allowed_quotas", definition: "allowed_quotas TEXT NOT NULL DEFAULT '[]'" },
-  { name: "stream_default_mode", definition: "stream_default_mode TEXT NOT NULL DEFAULT 'legacy'" },
-  {
-    name: "disable_non_public_models",
-    definition: "disable_non_public_models INTEGER NOT NULL DEFAULT 0",
-  },
-] as const;
 
 // Cache for model permission checks
 const _modelPermissionCache = new Map<string, { allowed: boolean; timestamp: number }>();
@@ -279,39 +285,6 @@ function evictIfNeeded<TKey, TValue>(cache: Map<TKey, TValue>) {
   }
 }
 
-function isTruthyEnvFlag(value: string | undefined): boolean {
-  return typeof value === "string" && /^(1|true|yes|on)$/i.test(value.trim());
-}
-
-async function preferClaudeCodeForUnprefixedClaudeModels(): Promise<boolean> {
-  try {
-    const { getCachedSettings } = await import("./readCache");
-    const settings = await getCachedSettings();
-    if (typeof settings.preferClaudeCodeForUnprefixedClaudeModels === "boolean") {
-      return settings.preferClaudeCodeForUnprefixedClaudeModels;
-    }
-  } catch {
-    // Standalone DB usage may not have the settings cache ready.
-  }
-  return isTruthyEnvFlag(process.env.OMNIROUTE_PREFER_CLAUDE_CODE_FOR_UNPREFIXED_CLAUDE_MODELS);
-}
-
-function stripExtendedContextSuffix(modelId: string): string {
-  return modelId.endsWith("[1m]") ? modelId.slice(0, -4) : modelId;
-}
-
-function isPotentialUnprefixedClaudeCodeModel(modelId: string): boolean {
-  const clean = stripExtendedContextSuffix(modelId.trim());
-  return /^claude-/i.test(clean) || CLAUDE_CODE_SHORT_ALIASES.has(clean.toLowerCase());
-}
-
-function addModelCandidate(candidates: Set<string>, modelId: string): void {
-  const clean = modelId.trim();
-  if (!clean) return;
-  candidates.add(clean);
-  candidates.add(stripExtendedContextSuffix(clean));
-}
-
 async function getModelPermissionCandidates(modelId: string): Promise<string[]> {
   const candidates = new Set<string>();
   addModelCandidate(candidates, modelId);
@@ -342,34 +315,6 @@ async function getModelPermissionCandidates(modelId: string): Promise<string[]> 
   return Array.from(candidates);
 }
 
-function modelPatternMatches(pattern: string, candidates: string[]): boolean {
-  for (const candidate of candidates) {
-    if (pattern === candidate) return true;
-    if (pattern.endsWith("/*")) {
-      const prefix = pattern.slice(0, -2);
-      if (candidate.startsWith(prefix + "/") || candidate.startsWith(prefix)) {
-        return true;
-      }
-    }
-    if (pattern.includes("*") && matchesWildcardPattern(pattern, candidate)) {
-      return true;
-    }
-  }
-  return false;
-}
-
-function hasClaudeCodeWildcardPermission(
-  allowedModels: string[] | undefined,
-  candidates: string[]
-): boolean {
-  if (!allowedModels || allowedModels.length === 0) return false;
-  return allowedModels.some(
-    (pattern) =>
-      (pattern === "cc/*" || pattern === "claude/*") &&
-      candidates.some((candidate) => modelPatternMatches(pattern, [candidate]))
-  );
-}
-
 async function getPublishedModelLookupTarget(
   modelId: string
 ): Promise<{ providerId: string; modelId: string } | null> {
@@ -395,60 +340,6 @@ async function getPublishedModelLookupTarget(
   }
 
   return null;
-}
-
-/**
- * Match an API-key wildcard scope pattern against a model id without
- * compiling a RegExp from string concatenation (avoid ReDoS exposure on
- * operator-supplied patterns and silence the Semgrep `js/regex-injection`
- * advisory for `new RegExp(<dynamic>)`).
- *
- * Supported pattern syntax (only what real scopes use):
- *   - literal segments
- *   - `*` matches any run of characters, but does NOT cross `/`
- *
- * Walks the pattern token-by-token: each `*` consumes the longest possible
- * run within the current path segment, then the next literal anchor must
- * appear before the segment boundary. Worst-case complexity is O(n*m)
- * where n = pattern length, m = candidate length — there is no nested
- * backtracking that could explode adversarially.
- */
-function matchesWildcardPattern(pattern: string, candidate: string): boolean {
-  const pSegs = pattern.split("/");
-  const cSegs = candidate.split("/");
-  if (pSegs.length !== cSegs.length) return false;
-  for (let i = 0; i < pSegs.length; i++) {
-    if (!segmentMatchesWildcard(pSegs[i], cSegs[i])) return false;
-  }
-  return true;
-}
-
-function segmentMatchesWildcard(pattern: string, segment: string): boolean {
-  if (pattern === segment) return true;
-  if (!pattern.includes("*")) return false;
-  const parts = pattern.split("*");
-  // Anchor first literal to the start.
-  let cursor = 0;
-  const first = parts[0];
-  if (first) {
-    if (!segment.startsWith(first)) return false;
-    cursor = first.length;
-  }
-  // Anchor last literal to the end.
-  const last = parts[parts.length - 1];
-  const endLimit = segment.length - last.length;
-  if (last) {
-    if (!segment.endsWith(last)) return false;
-  }
-  // Each middle literal must appear in order between cursor and endLimit.
-  for (let i = 1; i < parts.length - 1; i++) {
-    const piece = parts[i];
-    if (!piece) continue;
-    const idx = segment.indexOf(piece, cursor);
-    if (idx === -1 || idx + piece.length > endLimit) return false;
-    cursor = idx + piece.length;
-  }
-  return cursor <= endLimit;
 }
 
 function ensureApiKeyColumn(
@@ -502,7 +393,7 @@ function getPreparedStatements(db: ApiKeysDbLike): ApiKeysStatements {
       "SELECT id, expires_at, revoked_at, is_active, is_banned FROM api_keys WHERE key = ? OR key_hash = ?"
     );
     _stmtGetKeyMetadata = db.prepare<ApiKeyRow>(
-      "SELECT id, name, machine_id, allowed_models, blocked_models, allowed_combos, allowed_connections, allowed_quotas, no_log, auto_resolve, is_active, access_schedule, max_requests_per_day, max_requests_per_minute, throttle_delay_ms, max_sessions, revoked_at, expires_at, ip_allowlist, scopes, rate_limits, is_banned, key_hash, allowed_endpoints, stream_default_mode, disable_non_public_models, proxy_id FROM api_keys WHERE key = ? OR key_hash = ?"
+      "SELECT id, name, machine_id, allowed_models, blocked_models, allowed_combos, allowed_connections, allowed_quotas, no_log, auto_resolve, is_active, access_schedule, max_requests_per_day, max_requests_per_minute, throttle_delay_ms, max_sessions, revoked_at, expires_at, ip_allowlist, scopes, rate_limits, is_banned, key_hash, allowed_endpoints, stream_default_mode, disable_non_public_models, allow_usage_command, usage_limit_enabled, daily_usage_limit_usd, weekly_usage_limit_usd, proxy_id FROM api_keys WHERE key = ? OR key_hash = ?"
     );
     _stmtInsertKey = db.prepare(
       "INSERT INTO api_keys (id, name, key, machine_id, allowed_models, no_log, created_at, key_prefix, key_hash, scopes) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
@@ -554,6 +445,8 @@ export async function getApiKeys() {
     camelRow.disableNonPublicModels = parseDisableNonPublicModels(
       (camelRow as JsonRecord).disableNonPublicModels
     );
+    camelRow.allowUsageCommand = parseAllowUsageCommand((camelRow as JsonRecord).allowUsageCommand);
+    Object.assign(camelRow, parseApiKeyUsageLimitFields(camelRow));
     if (typeof camelRow.id === "string" && camelRow.id.length > 0) {
       setNoLog(camelRow.id, camelRow.noLog === true);
     }
@@ -584,156 +477,12 @@ export async function getApiKeyById(id: string) {
   camelRow.disableNonPublicModels = parseDisableNonPublicModels(
     (camelRow as JsonRecord).disableNonPublicModels
   );
+  camelRow.allowUsageCommand = parseAllowUsageCommand((camelRow as JsonRecord).allowUsageCommand);
+  Object.assign(camelRow, parseApiKeyUsageLimitFields(camelRow));
   if (typeof camelRow.id === "string" && camelRow.id.length > 0) {
     setNoLog(camelRow.id, camelRow.noLog === true);
   }
   return camelRow;
-}
-
-/**
- * Helper function to safely parse allowed_models JSON
- */
-function parseAllowedModels(value: unknown): string[] {
-  if (!value || typeof value !== "string" || value.trim() === "") {
-    return [];
-  }
-  try {
-    const parsed = JSON.parse(value);
-    return Array.isArray(parsed)
-      ? parsed.filter((entry): entry is string => typeof entry === "string")
-      : [];
-  } catch {
-    return [];
-  }
-}
-
-function parseAllowedCombos(value: unknown): string[] {
-  return parseStringList(value);
-}
-
-function parseNoLog(value: unknown): boolean {
-  return value === true || value === 1 || value === "1";
-}
-
-function parseAutoResolve(value: unknown): boolean {
-  return value === true || value === 1 || value === "1";
-}
-
-function parseDisableNonPublicModels(value: unknown): boolean {
-  return value === true || value === 1 || value === "1";
-}
-
-function parseIsActive(value: unknown): boolean {
-  // DEFAULT 1 — active unless explicitly set to 0
-  if (value === 0 || value === "0" || value === false) return false;
-  return true;
-}
-
-function parseAccessSchedule(value: unknown): AccessSchedule | null {
-  if (!value || typeof value !== "string" || value.trim() === "") return null;
-  try {
-    const parsed: unknown = JSON.parse(value);
-    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) return null;
-    const obj = parsed as Record<string, unknown>;
-    if (
-      typeof obj["enabled"] !== "boolean" ||
-      typeof obj["from"] !== "string" ||
-      typeof obj["until"] !== "string" ||
-      !Array.isArray(obj["days"]) ||
-      typeof obj["tz"] !== "string"
-    ) {
-      return null;
-    }
-    const days = (obj["days"] as unknown[]).filter(
-      (d): d is number => typeof d === "number" && Number.isInteger(d) && d >= 0 && d <= 6
-    );
-    return {
-      enabled: obj["enabled"],
-      from: obj["from"],
-      until: obj["until"],
-      days,
-      tz: obj["tz"],
-    };
-  } catch {
-    return null;
-  }
-}
-
-function parseRateLimits(value: unknown): RateLimitRule[] | null {
-  if (!value || typeof value !== "string" || value.trim() === "") return null;
-  try {
-    const parsed = JSON.parse(value);
-    if (!Array.isArray(parsed)) return null;
-    return parsed.filter(
-      (rule: RateLimitRule) =>
-        typeof rule === "object" &&
-        rule !== null &&
-        typeof rule.limit === "number" &&
-        typeof rule.window === "number"
-    ) as RateLimitRule[];
-  } catch {
-    return null;
-  }
-}
-
-/**
- * Helper function to safely parse allowed_connections JSON
- */
-function parseAllowedConnections(value: unknown): string[] {
-  if (!value || typeof value !== "string" || value.trim() === "") {
-    return [];
-  }
-  try {
-    const parsed = JSON.parse(value);
-    return Array.isArray(parsed)
-      ? parsed.filter((entry): entry is string => typeof entry === "string")
-      : [];
-  } catch {
-    return [];
-  }
-}
-
-/**
- * Helper function to safely parse allowed_quotas JSON
- */
-function parseAllowedQuotas(value: unknown): string[] {
-  if (!value || typeof value !== "string" || value.trim() === "") {
-    return [];
-  }
-  try {
-    const parsed = JSON.parse(value);
-    return Array.isArray(parsed)
-      ? parsed.filter((entry): entry is string => typeof entry === "string")
-      : [];
-  } catch {
-    return [];
-  }
-}
-
-function parseStringList(value: unknown): string[] {
-  if (!value || typeof value !== "string" || value.trim() === "") return [];
-  try {
-    const parsed = JSON.parse(value);
-    return Array.isArray(parsed)
-      ? parsed.filter((entry): entry is string => typeof entry === "string")
-      : [];
-  } catch {
-    return [];
-  }
-}
-
-function parseNullableTimestamp(value: unknown): string | null {
-  if (typeof value !== "string") return null;
-  const trimmed = value.trim();
-  return trimmed === "" ? null : trimmed;
-}
-
-function parseIsBanned(value: unknown): boolean {
-  return value === 1 || value === "1" || value === true;
-}
-
-function parseStreamDefaultMode(value: unknown): "legacy" | "json" {
-  return value === "json" ? "json" : "legacy";
 }
 
 async function hashKey(key: string): Promise<string> {
@@ -766,6 +515,7 @@ export async function createApiKey(name: string, machineId: string, scopes: stri
     allowedCombos: [], // Empty array means no explicit combo restriction
     allowedConnections: [], // Empty array means all connections allowed
     noLog: false,
+    allowUsageCommand: false,
     createdAt: now,
     scopes,
   };
@@ -850,6 +600,10 @@ export async function updateApiKeyPermissions(
         allowedEndpoints?: string[] | null;
         streamDefaultMode?: "legacy" | "json" | null;
         disableNonPublicModels?: boolean;
+        allowUsageCommand?: boolean;
+        usageLimitEnabled?: boolean;
+        dailyUsageLimitUsd?: number | null;
+        weeklyUsageLimitUsd?: number | null;
       }
 ) {
   const db = getDbInstance() as ApiKeysDbLike;
@@ -883,6 +637,11 @@ export async function updateApiKeyPermissions(
             .streamDefaultMode,
           disableNonPublicModels: (update as { disableNonPublicModels?: boolean })
             .disableNonPublicModels,
+          allowUsageCommand: (update as { allowUsageCommand?: boolean }).allowUsageCommand,
+          usageLimitEnabled: (update as { usageLimitEnabled?: boolean }).usageLimitEnabled,
+          dailyUsageLimitUsd: (update as { dailyUsageLimitUsd?: number | null }).dailyUsageLimitUsd,
+          weeklyUsageLimitUsd: (update as { weeklyUsageLimitUsd?: number | null })
+            .weeklyUsageLimitUsd,
         };
 
   if (
@@ -907,7 +666,9 @@ export async function updateApiKeyPermissions(
     (normalized as Record<string, unknown>).proxyId === undefined &&
     (normalized as Record<string, unknown>).allowedEndpoints === undefined &&
     (normalized as Record<string, unknown>).streamDefaultMode === undefined &&
-    normalized.disableNonPublicModels === undefined
+    normalized.disableNonPublicModels === undefined &&
+    normalized.allowUsageCommand === undefined &&
+    !hasUsageLimitUpdate(normalized as Record<string, unknown>)
   ) {
     return false;
   }
@@ -936,6 +697,10 @@ export async function updateApiKeyPermissions(
     proxyId?: string | null;
     streamDefaultMode?: "legacy" | "json";
     disableNonPublicModels?: number;
+    allowUsageCommand?: number;
+    usageLimitEnabled?: number;
+    dailyUsageLimitUsd?: number | null;
+    weeklyUsageLimitUsd?: number | null;
   } = { id };
 
   if (normalized.name !== undefined) {
@@ -1033,6 +798,13 @@ export async function updateApiKeyPermissions(
     updates.push("disable_non_public_models = @disableNonPublicModels");
     params.disableNonPublicModels = normalized.disableNonPublicModels ? 1 : 0;
   }
+
+  if (normalized.allowUsageCommand !== undefined) {
+    updates.push("allow_usage_command = @allowUsageCommand");
+    params.allowUsageCommand = normalized.allowUsageCommand ? 1 : 0;
+  }
+
+  appendUsageLimitUpdates(normalized as Record<string, unknown>, updates, params);
 
   const maxSessionsUpdate = (normalized as Record<string, unknown>).maxSessions;
   if (maxSessionsUpdate !== undefined) {
@@ -1414,6 +1186,10 @@ export async function getApiKeyMetadata(
       allowedEndpoints: [],
       streamDefaultMode: "legacy",
       disableNonPublicModels: false,
+      allowUsageCommand: false,
+      usageLimitEnabled: false,
+      dailyUsageLimitUsd: null,
+      weeklyUsageLimitUsd: null,
     };
   }
 
@@ -1484,6 +1260,10 @@ export async function getApiKeyMetadata(
       (record as JsonRecord).disable_non_public_models ??
         (record as JsonRecord).disableNonPublicModels
     ),
+    allowUsageCommand: parseAllowUsageCommand(
+      (record as JsonRecord).allow_usage_command ?? (record as JsonRecord).allowUsageCommand
+    ),
+    ...parseApiKeyUsageLimitFields(record as JsonRecord),
   };
 
   if (!metadata.id) {

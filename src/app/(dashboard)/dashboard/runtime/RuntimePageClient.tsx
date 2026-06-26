@@ -5,10 +5,8 @@ import { useTranslations } from "next-intl";
 import Link from "next/link";
 import Card from "@/shared/components/Card";
 import ProviderIcon from "@/shared/components/ProviderIcon";
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Types
-// ─────────────────────────────────────────────────────────────────────────────
+import ModelCooldownsCard from "./components/ModelCooldownsCard";
+import { useProviderNodeMap, resolveProviderName } from "@/lib/display/useProviderNodeMap";
 
 type KnownBreakerState = "CLOSED" | "OPEN" | "HALF_OPEN" | "DEGRADED";
 type BreakerState = KnownBreakerState | (string & {});
@@ -402,6 +400,7 @@ function diffSnapshots(
 
 export default function RuntimePageClient() {
   const t = useTranslations("runtime");
+  const nodeMap = useProviderNodeMap();
   const [health, setHealth] = useState<HealthPayload | null>(null);
   const [connections, setConnections] = useState<Connection[]>([]);
   const [loading, setLoading] = useState(true);
@@ -615,6 +614,8 @@ export default function RuntimePageClient() {
         />
       </div>
 
+      <ModelCooldownsCard />
+
       {/* Row 2 — Resilience layers (left, 2/3) + Live Feed (right, 1/3) */}
       <div className="grid grid-cols-1 xl:grid-cols-[2fr_1fr] gap-3">
         <Card padding="md">
@@ -674,11 +675,13 @@ export default function RuntimePageClient() {
                       key={b.provider}
                       className="rounded-md border px-2.5 py-2 flex flex-col gap-0.5"
                       style={{ borderColor: tone.ring, background: tone.bg }}
-                      title={`${b.provider} · ${state || "UNKNOWN"} · failures ${b.failureCount}`}
+                      title={`${resolveProviderName(b.provider, nodeMap)} · ${state || "UNKNOWN"} · failures ${b.failureCount}`}
                     >
                       <div className="flex items-center gap-1.5 text-[11px] font-semibold text-text-main">
                         <ProviderIcon providerId={b.provider} size={14} />
-                        <span className="truncate flex-1">{b.provider}</span>
+                        <span className="truncate flex-1">
+                          {resolveProviderName(b.provider, nodeMap)}
+                        </span>
                         <span style={{ color: tone.dot }} className="text-[10px] font-bold">
                           {tone.label}
                         </span>
@@ -722,7 +725,7 @@ export default function RuntimePageClient() {
                         <ProviderIcon providerId={c.provider} size={18} />
                         <div className="min-w-0">
                           <div className="text-[12px] text-text-main truncate font-medium">
-                            {c.provider}/{label}
+                            {resolveProviderName(c.provider, nodeMap)}/{label}
                           </div>
                           {c.lastErrorType && (
                             <div className="text-[10px] text-text-muted truncate">
@@ -1175,7 +1178,7 @@ function QuotaGroup({
             <div className="min-w-0">
               <div className="text-[11px] font-medium text-text-main truncate">
                 {m.accountId ?? "—"}
-                {m.provider ? ` / ${m.provider}` : ""}
+                {m.provider ? ` / ${resolveProviderName(m.provider, nodeMap)}` : ""}
               </div>
               <div className="text-[10px] text-text-muted">{m.window ?? ""}</div>
             </div>

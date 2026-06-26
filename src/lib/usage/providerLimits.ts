@@ -35,7 +35,6 @@ import { isUserCallableAgyModelId } from "@omniroute/open-sse/config/agyModels.t
 import { onUsageRecorded } from "./usageEvents";
 
 type JsonRecord = Record<string, unknown>;
-
 type SyncSource = "manual" | "scheduled";
 
 interface ProviderConnectionLike {
@@ -64,6 +63,7 @@ const PROVIDER_LIMITS_APIKEY_PROVIDERS = new Set([
   "zai",
   "glmt",
   "opencode-go",
+  "ollama-cloud",
   "minimax",
   "minimax-cn",
   "crof",
@@ -72,6 +72,7 @@ const PROVIDER_LIMITS_APIKEY_PROVIDERS = new Set([
   "xiaomi-mimo",
   "vertex",
   "vertex-partner",
+  "kimi-coding-apikey",
 ]);
 const DEFAULT_PROVIDER_LIMITS_SYNC_INTERVAL_MINUTES = 70;
 const PROVIDER_LIMITS_AUTO_SYNC_SETTING_KEY = "provider_limits_auto_sync_last_run";
@@ -326,7 +327,12 @@ export async function refreshAndUpdateCredentials(
     | null;
 
   if (!refreshResult) {
-    if (connection.provider === "github" && connection.accessToken) {
+    // Refresh failed but we still have an accessToken — fall back to the
+    // existing token for ANY OAuth provider (graceful degradation) instead of
+    // hard-failing. Previously this was qualified to `provider === "github"`,
+    // which left every other provider stuck on a transient refresh failure even
+    // when a usable access token was still on hand.
+    if (connection.accessToken) {
       return { connection, refreshed: false };
     }
     throw withStatus(

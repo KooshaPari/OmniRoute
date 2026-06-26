@@ -3,13 +3,13 @@
 ## Project
 
 Unified AI proxy/router — route any LLM through one endpoint. Multi-provider support
-with **232 provider entries** (OpenAI, Anthropic, Gemini, DeepSeek, Groq, xAI, Mistral, Fireworks,
+with **231 provider entries** (OpenAI, Anthropic, Gemini, DeepSeek, Groq, xAI, Mistral, Fireworks,
 Cohere, NVIDIA, Cerebras, Pollinations, Puter, Cloudflare AI, HuggingFace, DeepInfra,
 SambaNova, Meta Llama API, Moonshot AI, AI21 Labs, Databricks, Snowflake, and many more)
 with **MCP Server** (87 tools), **A2A v0.3 Protocol**, and **Electron desktop app**.
 
-> **Live counts (v3.8.24)**: providers 232 · MCP tools 87 · MCP scopes 30 · A2A skills 6 ·
-> open-sse services 115 · routing strategies 15 · auto-combo scoring factors 12 ·
+> **Live counts (v3.8.31)**: providers 231 · MCP tools 87 · MCP scopes 30 · A2A skills 6 ·
+> open-sse services 115 · routing strategies 15 · auto-combo scoring factors 9 ·
 > DB modules 83 · DB migrations 97 · base tables 17 · search providers 11 ·
 > i18n locales 42. **Refresh with `npm run check:docs-all`.**
 
@@ -575,12 +575,13 @@ For any non-trivial change, read the matching deep-dive first:
 | Agent protocols (A2A / ACP / Cloud)        | [`docs/frameworks/AGENT_PROTOCOLS_GUIDE.md`](docs/frameworks/AGENT_PROTOCOLS_GUIDE.md)                                              |
 | MCP server                                 | [`docs/frameworks/MCP-SERVER.md`](docs/frameworks/MCP-SERVER.md)                                                                    |
 | A2A server                                 | [`docs/frameworks/A2A-SERVER.md`](docs/frameworks/A2A-SERVER.md)                                                                    |
-| API reference                              | [`docs/reference/API_REFERENCE.md`](docs/reference/API_REFERENCE.md) + [`docs/reference/openapi.yaml`](docs/reference/openapi.yaml) |
+| API reference                              | [`docs/reference/API_REFERENCE.md`](docs/reference/API_REFERENCE.md) + [`docs/openapi.yaml`](docs/openapi.yaml) |
 | Provider catalog (auto-generated)          | [`docs/reference/PROVIDER_REFERENCE.md`](docs/reference/PROVIDER_REFERENCE.md)                                                      |
 | Tunnels                                    | [`docs/ops/TUNNELS_GUIDE.md`](docs/ops/TUNNELS_GUIDE.md)                                                                            |
 | Electron desktop                           | [`docs/guides/ELECTRON_GUIDE.md`](docs/guides/ELECTRON_GUIDE.md)                                                                    |
 | Release flow                               | [`docs/ops/RELEASE_CHECKLIST.md`](docs/ops/RELEASE_CHECKLIST.md)                                                                    |
 | Quality gates (35 gates, allowlist policy) | [`docs/architecture/QUALITY_GATES.md`](docs/architecture/QUALITY_GATES.md)                                                          |
+| Cluster opt-in profiles (memory, bifrost)  | [`docs/architecture/cluster-decisions.md`](docs/architecture/cluster-decisions.md)                                                  |
 
 ---
 

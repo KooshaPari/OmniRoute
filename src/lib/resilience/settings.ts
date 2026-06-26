@@ -1,4 +1,5 @@
 import { DEFAULT_API_LIMITS, PROVIDER_PROFILES } from "@omniroute/open-sse/config/constants";
+import { resolveFeatureFlag } from "@/shared/utils/featureFlags";
 
 type JsonRecord = Record<string, unknown>;
 type AuthCategory = "oauth" | "apikey";
@@ -41,6 +42,36 @@ export interface WaitForCooldownSettings {
   maxRetryWaitMs: number;
 }
 
+/**
+ * Quota-share combo cooldown-aware retry (Variante A). A quota-share (`qtSd/…`)
+ * combo that would crystallize a 429 `model_cooldown` for a SHORT transient
+ * cooldown waits it out and re-dispatches instead. Guards (gating + the
+ * `quota_exhausted`/auth/not-found exclusions) live in
+ * open-sse/services/combo/comboCooldownRetry.ts; `maxWaitMs`/`maxAttempts`/
+ * `budgetMs` bound a single wait, the retry cycles, and the total wait time.
+ */
+export interface ComboCooldownWaitSettings {
+  enabled: boolean;
+  maxWaitMs: number;
+  maxAttempts: number;
+  budgetMs: number;
+}
+
+/**
+ * Per-connection concurrency limit for quota-share (`qtSd/…`) combos (FASE 2.1).
+ * The quota-share gating in selectQuotaShareTarget is fail-open and cannot
+ * hard-limit a single-connection pool, so concurrent requests to one
+ * subscription account can still flood it (→ 429 + cooldown). When a connection
+ * declares a positive `max_concurrent` ceiling, this layer serializes concurrent
+ * requests to that account through a per-connection semaphore (excess requests
+ * wait in the queue instead of flooding). Kill-switch only: the cap itself comes
+ * from each connection's `max_concurrent`. Wiring lives in
+ * open-sse/services/combo/quotaShareConcurrency.ts.
+ */
+export interface QuotaShareConcurrencyLimitSettings {
+  enabled: boolean;
+}
+
 export interface ProviderCooldownSettings {
   /**
    * Minimum cooldown (ms) before a failed provider/connection can be retried.
@@ -64,6 +95,14 @@ export interface ProviderCooldownSettings {
 }
 
 export interface QuotaPreflightSettings {
+  /**
+   * Master switch for the auto-routing quota cutoff (buildAutoCandidates). When
+   * disabled (default), candidates are NOT dropped for low quota before scoring —
+   * the soft quota penalty + connection cooldown still apply, so behavior is
+   * unchanged. Opt-in because the hard cutoff interacts with the auto-routing
+   * scorer and must be validated per deployment. Default: false.
+   */
+  enabled: boolean;
   /**
    * Global minimum-remaining cutoff (percent, 0-100). A connection is skipped
    * when its remaining quota drops to this value or below. Matches the
@@ -90,13 +129,37 @@ export interface QuotaPreflightSettings {
   providerWindowDefaults: Record<string, Record<string, number>>;
 }
 
+export interface StreamRecoverySettings {
+  /**
+   * Opt-in transparent recovery of truncated upstream streams (free-claude-code port).
+   * When enabled, the opening SSE window is briefly held (see STREAM_RECOVERY in
+   * open-sse/config/constants.ts) so an early cutoff can be retried before any byte
+   * reaches the client. OFF by default because holding the window adds up to
+   * STREAM_RECOVERY.HOLDBACK_MS of time-to-first-token latency on every stream.
+   * Default seeds from the STREAM_RECOVERY_ENABLED feature flag / env var.
+   */
+  enabled: boolean;
+  /**
+   * Opt-in mid-stream continuation (Fase 4.4): when an upstream stream truncates AFTER
+   * bytes already reached the client, re-request with the partial text as an assistant
+   * prefill and stitch the missing suffix (plain-text OpenAI-compatible streams only;
+   * never with a tool call in flight). OFF by default because the recovered tail arrives
+   * as one burst rather than token-by-token. Default seeds from the
+   * STREAM_RECOVERY_MIDSTREAM_ENABLED feature flag / env var.
+   */
+  continueMidStream: boolean;
+}
+
 export interface ResilienceSettings {
   requestQueue: RequestQueueSettings;
   connectionCooldown: Record<AuthCategory, ConnectionCooldownProfileSettings>;
   providerBreaker: Record<AuthCategory, ProviderBreakerProfileSettings>;
   waitForCooldown: WaitForCooldownSettings;
+  comboCooldownWait: ComboCooldownWaitSettings;
+  quotaShareConcurrencyLimit: QuotaShareConcurrencyLimitSettings;
   providerCooldown: ProviderCooldownSettings;
   quotaPreflight: QuotaPreflightSettings;
+  streamRecovery: StreamRecoverySettings;
 }
 
 export interface ResilienceSettingsPatch {
@@ -104,8 +167,11 @@ export interface ResilienceSettingsPatch {
   connectionCooldown?: Partial<Record<AuthCategory, Partial<ConnectionCooldownProfileSettings>>>;
   providerBreaker?: Partial<Record<AuthCategory, Partial<ProviderBreakerProfileSettings>>>;
   waitForCooldown?: Partial<WaitForCooldownSettings>;
+  comboCooldownWait?: Partial<ComboCooldownWaitSettings>;
+  quotaShareConcurrencyLimit?: Partial<QuotaShareConcurrencyLimitSettings>;
   providerCooldown?: Partial<ProviderCooldownSettings>;
   quotaPreflight?: Partial<QuotaPreflightSettings>;
+  streamRecovery?: Partial<StreamRecoverySettings>;
 }
 
 function asRecord(value: unknown): JsonRecord {
@@ -135,6 +201,40 @@ function toInteger(
 
 function toBoolean(value: unknown, fallback: boolean): boolean {
   return typeof value === "boolean" ? value : fallback;
+}
+
+function parseFeatureFlagBoolean(value: string, fallback: boolean): boolean {
+  const normalized = value.trim().toLowerCase();
+  if (normalized === "true" || normalized === "1" || normalized === "yes" || normalized === "on") {
+    return true;
+  }
+  if (normalized === "false" || normalized === "0" || normalized === "no" || normalized === "off") {
+    return false;
+  }
+  return fallback;
+}
+
+function resolveBooleanFeatureFlag(key: string, fallback: boolean): boolean {
+  try {
+    return parseFeatureFlagBoolean(resolveFeatureFlag(key), fallback);
+  } catch (error) {
+    const envValue = process.env[key];
+    if (typeof envValue === "string" && envValue.trim() !== "") {
+      return parseFeatureFlagBoolean(envValue, fallback);
+    }
+    console.error(
+      `[resilience] Failed to resolve ${key}, falling back to ${String(fallback)}:`,
+      error instanceof Error ? error.message : error
+    );
+    return fallback;
+  }
+}
+
+function resolveStreamRecoveryDefaults(): StreamRecoverySettings {
+  return {
+    enabled: resolveBooleanFeatureFlag("STREAM_RECOVERY_ENABLED", false),
+    continueMidStream: resolveBooleanFeatureFlag("STREAM_RECOVERY_MIDSTREAM_ENABLED", false),
+  };
 }
 
 export const DEFAULT_REQUEST_QUEUE_MAX_WAIT_MS = (() => {
@@ -180,6 +280,22 @@ export const DEFAULT_RESILIENCE_SETTINGS: ResilienceSettings = {
     maxRetryWaitSec: 30,
     maxRetryWaitMs: 30000,
   },
+  // Conservative defaults: wait at most 5s for a single short transient
+  // cooldown, at most 2 redispatch cycles, never more than 8s total. Active only
+  // for quota-share combos and only for transient (non quota_exhausted) reasons.
+  comboCooldownWait: {
+    enabled: true,
+    maxWaitMs: 5000,
+    maxAttempts: 2,
+    budgetMs: 8000,
+  },
+  // FASE 2.1: serialize concurrent quota-share requests per connection when the
+  // connection sets a max_concurrent cap, so a subscription account is not
+  // flooded past its concurrency ceiling. Kill-switch only (default on); the cap
+  // comes from each connection's max_concurrent.
+  quotaShareConcurrencyLimit: {
+    enabled: true,
+  },
   providerCooldown: {
     minRetryCooldownMs: Number(process.env.PROVIDER_COOLDOWN_MIN_MS || "5000"),
     maxRetryCooldownMs: Number(process.env.PROVIDER_COOLDOWN_MAX_MS || "300000"),
@@ -192,6 +308,13 @@ export const DEFAULT_RESILIENCE_SETTINGS: ResilienceSettings = {
     ),
   },
   quotaPreflight: {
+    // Opt-in (default OFF): the auto-routing hard cutoff drops low-quota candidates
+    // before scoring, overlapping the existing soft quota penalty + connection
+    // cooldown, so it must be explicitly enabled by the operator until its
+    // interaction with the scorer is validated in production.
+    enabled: ["true", "1", "on"].includes(
+      (process.env.QUOTA_PREFLIGHT_CUTOFF_ENABLED || "").trim().toLowerCase()
+    ),
     // Remaining-% semantics. 2 = "stop when only 2% remaining" (= 98% used).
     // Uniform across all providers and windows; operators set per-window
     // overrides per connection via the Cutoff modal in Dashboard › Limits,
@@ -200,6 +323,18 @@ export const DEFAULT_RESILIENCE_SETTINGS: ResilienceSettings = {
     defaultThresholdPercent: 2,
     warnThresholdPercent: 20,
     providerWindowDefaults: {},
+  },
+  streamRecovery: {
+    // Opt-in (default OFF): the holdback that powers transparent early-retry adds
+    // up to STREAM_RECOVERY.HOLDBACK_MS of time-to-first-token latency on every
+    // streaming request, so it must be explicitly enabled by the operator.
+    enabled: ["true", "1", "on"].includes(
+      (process.env.STREAM_RECOVERY_ENABLED || "").trim().toLowerCase()
+    ),
+    // Opt-in (default OFF): mid-stream continuation re-requests after a post-commit cut.
+    continueMidStream: ["true", "1", "on"].includes(
+      (process.env.STREAM_RECOVERY_MIDSTREAM_ENABLED || "").trim().toLowerCase()
+    ),
   },
 };
 
@@ -393,7 +528,8 @@ function normalizeQuotaPreflightSettings(
     record.providerWindowDefaults,
     fallback.providerWindowDefaults
   );
-  return { defaultThresholdPercent, warnThresholdPercent, providerWindowDefaults };
+  const enabled = typeof record.enabled === "boolean" ? record.enabled : fallback.enabled;
+  return { enabled, defaultThresholdPercent, warnThresholdPercent, providerWindowDefaults };
 }
 
 function normalizeWaitForCooldownSettings(
@@ -417,6 +553,35 @@ function normalizeWaitForCooldownSettings(
   };
 }
 
+function normalizeComboCooldownWaitSettings(
+  next: unknown,
+  fallback: ComboCooldownWaitSettings
+): ComboCooldownWaitSettings {
+  const record = asRecord(next);
+  // Hard ceiling of 30s on a single wait — this layer only ever exists for
+  // SHORT transient cooldowns; anything longer should fall through to the
+  // existing 429 crystallization (and the cross-request cooldown layers).
+  const maxWaitMs = toInteger(record.maxWaitMs, fallback.maxWaitMs, { min: 0, max: 30000 });
+  const maxAttempts = toInteger(record.maxAttempts, fallback.maxAttempts, { min: 0, max: 10 });
+  // Budget can never be smaller than a single wait, otherwise no wait could
+  // ever fire; floor it at maxWaitMs.
+  const budgetMs = toInteger(record.budgetMs, fallback.budgetMs, {
+    min: maxWaitMs,
+    max: 5 * 60 * 1000,
+  });
+  const enabled = toBoolean(record.enabled, fallback.enabled) && maxWaitMs > 0 && maxAttempts > 0;
+
+  return { enabled, maxWaitMs, maxAttempts, budgetMs };
+}
+
+function normalizeQuotaShareConcurrencyLimitSettings(
+  next: unknown,
+  fallback: QuotaShareConcurrencyLimitSettings
+): QuotaShareConcurrencyLimitSettings {
+  const record = asRecord(next);
+  return { enabled: toBoolean(record.enabled, fallback.enabled) };
+}
+
 function normalizeProviderCooldownSettings(
   next: unknown,
   fallback: ProviderCooldownSettings
@@ -435,9 +600,21 @@ function normalizeProviderCooldownSettings(
   return { enabled, minRetryCooldownMs, maxRetryCooldownMs };
 }
 
+function normalizeStreamRecoverySettings(
+  next: unknown,
+  fallback: StreamRecoverySettings
+): StreamRecoverySettings {
+  const record = asRecord(next);
+  return {
+    enabled: toBoolean(record.enabled, fallback.enabled),
+    continueMidStream: toBoolean(record.continueMidStream, fallback.continueMidStream),
+  };
+}
+
 function buildLegacyFallback(settings: JsonRecord): ResilienceSettings {
   const profiles = asRecord(settings.providerProfiles);
   const defaults = asRecord(settings.rateLimitDefaults);
+  const streamRecoveryDefaults = resolveStreamRecoveryDefaults();
 
   const oauthLegacy = asRecord(profiles.oauth);
   const apikeyLegacy = asRecord(profiles.apikey);
@@ -519,8 +696,11 @@ function buildLegacyFallback(settings: JsonRecord): ResilienceSettings {
       maxRetryWaitSec: waitMaxRetrySec,
       maxRetryWaitMs: waitMaxRetrySec * 1000,
     },
+    comboCooldownWait: DEFAULT_RESILIENCE_SETTINGS.comboCooldownWait,
+    quotaShareConcurrencyLimit: DEFAULT_RESILIENCE_SETTINGS.quotaShareConcurrencyLimit,
     providerCooldown: DEFAULT_RESILIENCE_SETTINGS.providerCooldown,
     quotaPreflight: DEFAULT_RESILIENCE_SETTINGS.quotaPreflight,
+    streamRecovery: streamRecoveryDefaults,
   };
 }
 
@@ -557,6 +737,14 @@ export function resolveResilienceSettings(
       current.waitForCooldown,
       fallback.waitForCooldown
     ),
+    comboCooldownWait: normalizeComboCooldownWaitSettings(
+      current.comboCooldownWait,
+      fallback.comboCooldownWait
+    ),
+    quotaShareConcurrencyLimit: normalizeQuotaShareConcurrencyLimitSettings(
+      current.quotaShareConcurrencyLimit,
+      fallback.quotaShareConcurrencyLimit
+    ),
     providerCooldown: normalizeProviderCooldownSettings(
       current.providerCooldown,
       fallback.providerCooldown
@@ -564,6 +752,10 @@ export function resolveResilienceSettings(
     quotaPreflight: normalizeQuotaPreflightSettings(
       current.quotaPreflight,
       fallback.quotaPreflight
+    ),
+    streamRecovery: normalizeStreamRecoverySettings(
+      current.streamRecovery,
+      fallback.streamRecovery
     ),
   };
 }
@@ -598,11 +790,20 @@ export function mergeResilienceSettings(
       updates.waitForCooldown,
       current.waitForCooldown
     ),
+    comboCooldownWait: normalizeComboCooldownWaitSettings(
+      updates.comboCooldownWait,
+      current.comboCooldownWait
+    ),
+    quotaShareConcurrencyLimit: normalizeQuotaShareConcurrencyLimitSettings(
+      updates.quotaShareConcurrencyLimit,
+      current.quotaShareConcurrencyLimit
+    ),
     providerCooldown: normalizeProviderCooldownSettings(
       updates.providerCooldown,
       current.providerCooldown
     ),
     quotaPreflight: normalizeQuotaPreflightSettings(updates.quotaPreflight, current.quotaPreflight),
+    streamRecovery: normalizeStreamRecoverySettings(updates.streamRecovery, current.streamRecovery),
   };
 }
 

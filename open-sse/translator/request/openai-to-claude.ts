@@ -4,8 +4,14 @@ import { FORMATS } from "../formats.ts";
 import { supportsClaudeMaxEffort, supportsXHighEffort } from "../../config/providerModels.ts";
 import { adjustMaxTokens } from "../helpers/maxTokensHelper.ts";
 import { sanitizeToolId } from "../helpers/schemaCoercion.ts";
+import { safeParseJSON } from "../helpers/jsonUtil.ts";
 import { DEFAULT_THINKING_CLAUDE_SIGNATURE } from "../../config/defaultThinkingSignature.ts";
 import { capMaxOutputTokens } from "../../../src/lib/modelCapabilities.ts";
+import { isAdaptiveThinkingOnly } from "../../../src/shared/constants/modelSpecs.ts";
+
+// Reasoning-effort levels Anthropic accepts on `output_config.effort`. Used to steer
+// adaptive-only Claude models (Opus 4.7+/Fable 5) without ever emitting a manual budget.
+const ADAPTIVE_EFFORT_LEVELS = new Set(["low", "medium", "high", "xhigh", "max"]);
 
 // Prefix for Claude OAuth tool names to avoid conflicts
 // Can be disabled per-request via body._disableToolPrefix = true
@@ -36,14 +42,13 @@ function applyCopilotSummarizedThinkingDisplay(
 //   - max_tokens must be <= model output cap (e.g. 128000 for Opus 4.7)
 const MIN_CLAUDE_THINKING_BUDGET = 1024;
 const MIN_RESPONSE_ROOM = 1024;
-const FALLBACK_OUTPUT_CAP = 128000;
 
-function safeCapMaxOutputTokens(model: string): number {
+function safeCapMaxOutputTokens(model: string): number | null {
   try {
     const cap = capMaxOutputTokens(model);
-    return typeof cap === "number" && cap > 0 ? cap : FALLBACK_OUTPUT_CAP;
+    return typeof cap === "number" && cap > 0 ? cap : null;
   } catch {
-    return FALLBACK_OUTPUT_CAP;
+    return null;
   }
 }
 
@@ -81,26 +86,35 @@ export function fitThinkingToMaxTokens(
   // No budgeted thinking — just cap max_tokens to the model output ceiling.
   if (!thinking || requestedBudget <= 0) {
     return {
-      maxTokens: Math.min(Math.max(callerMaxTokens, 1), modelCap),
+      maxTokens:
+        modelCap === null
+          ? Math.max(callerMaxTokens, 1)
+          : Math.min(Math.max(callerMaxTokens, 1), modelCap),
       thinking,
     };
   }
 
   let responseRoom = Math.max(callerMaxTokens, MIN_RESPONSE_ROOM);
-  let target = Math.min(responseRoom + requestedBudget, modelCap);
+  let target =
+    modelCap === null
+      ? responseRoom + requestedBudget
+      : Math.min(responseRoom + requestedBudget, modelCap);
   let fittedBudget = target - responseRoom;
 
   // If the cap squeezed thinking below Anthropic's floor, try shrinking
   // response room to MIN_RESPONSE_ROOM to recover budget.
   if (fittedBudget < MIN_CLAUDE_THINKING_BUDGET && responseRoom > MIN_RESPONSE_ROOM) {
     responseRoom = MIN_RESPONSE_ROOM;
-    target = Math.min(responseRoom + requestedBudget, modelCap);
+    target =
+      modelCap === null
+        ? responseRoom + requestedBudget
+        : Math.min(responseRoom + requestedBudget, modelCap);
     fittedBudget = target - responseRoom;
   }
 
   // Cap too tight for any thinking — disable rather than send an invalid request.
   if (fittedBudget < MIN_CLAUDE_THINKING_BUDGET) {
-    return { maxTokens: modelCap, thinking: undefined };
+    return { maxTokens: modelCap ?? Math.max(callerMaxTokens, 1), thinking: undefined };
   }
 
   const adjustedThinking: Record<string, unknown> = { ...thinking };
@@ -209,7 +223,23 @@ export function openaiToClaudeRequest(model, body, stream) {
   };
 
   // Temperature
-  if (body.temperature !== undefined) {
+  //
+  // Claude's Messages API rejects `temperature` when extended thinking is active.
+  // Two cases where thinking is on:
+  //   (a) Caller passes `body.thinking` or `body.reasoning_effort` (handled later —
+  //       `result.thinking` becomes truthy, and we strip temperature at the end).
+  //   (b) The request targets Claude OAuth (claude-code), which always sends
+  //       `Anthropic-Beta: ...,interleaved-thinking-2025-05-14,...` in headers.
+  //       The model is forced into thinking server-side, but neither `body.thinking`
+  //       nor `result.thinking` will be set, so we detect this by model name. This
+  //       affects claude-opus-4.x and claude-sonnet-4.x (the families that support
+  //       extended thinking).
+  //
+  // For models that don't force thinking (haiku, older sonnets), preserve temperature.
+  // Note: Opus 4.7+/Fable 5 already drop sampling params upstream of the translator via
+  // the registry `unsupportedParams` strip; this covers the remaining 4.x families.
+  const modelForcesThinking = /claude-(?:opus|sonnet)-4/i.test(String(model));
+  if (body.temperature !== undefined && !modelForcesThinking) {
     result.temperature = body.temperature;
   }
   if (body.temperature === undefined && body.top_p !== undefined) {
@@ -458,7 +488,22 @@ export function openaiToClaudeRequest(model, body, stream) {
         : requestedEffort === "xhigh" && !supportsXHighEffort("claude", model)
           ? "high"
           : requestedEffort;
-    if (normalizedEffort === "max" || normalizedEffort === "xhigh") {
+    if (isAdaptiveThinkingOnly(model)) {
+      // Opus 4.7+/Fable 5 removed manual extended thinking: a fixed `budget_tokens`
+      // (or `type:"enabled"`) is a hard 400. Steer EVERY level via adaptive +
+      // output_config.effort instead of the budget buckets below. Unrecognized levels
+      // leave thinking unset so the model keeps its adaptive default rather than 400ing
+      // on an invalid effort value.
+      if (ADAPTIVE_EFFORT_LEVELS.has(normalizedEffort)) {
+        result.thinking = {
+          type: "adaptive",
+        };
+        result.output_config = {
+          ...(result.output_config || {}),
+          effort: normalizedEffort,
+        };
+      }
+    } else if (normalizedEffort === "max" || normalizedEffort === "xhigh") {
       result.thinking = {
         type: "adaptive",
       };
@@ -497,6 +542,15 @@ export function openaiToClaudeRequest(model, body, stream) {
   }
 
   delete result[COPILOT_REASONING_SUMMARY_MARKER];
+
+  // Final guard: Claude rejects `temperature` whenever extended thinking is
+  // enabled. If `result.thinking` was set above from `body.thinking` or
+  // `body.reasoning_effort` (manual budget or adaptive effort), drop temperature
+  // defensively. The model-name strip earlier already covers Claude OAuth's
+  // forced-thinking case (claude-opus-4.x / claude-sonnet-4.x).
+  if (result.thinking && result.temperature !== undefined) {
+    delete result.temperature;
+  }
 
   // Attach toolNameMap to result for response translation
   if (toolNameMap.size > 0) {
@@ -558,6 +612,18 @@ function getContentBlocksFromMessage(msg, toolNameMap = new Map(), disableToolPr
           }
         } else if (part.type === "image" && part.source) {
           blocks.push({ type: "image", source: part.source });
+        } else if (part.type === "image" && typeof part.image === "string") {
+          // AI SDK-style image part: { type: "image", image: "data:...;base64,..." } (#1330)
+          const url = part.image;
+          const match = url.match(/^data:([^;]+);base64,(.+)$/);
+          if (match) {
+            blocks.push({
+              type: "image",
+              source: { type: "base64", media_type: match[1], data: match[2] },
+            });
+          } else if (url.trim()) {
+            blocks.push({ type: "image", source: { type: "url", url } });
+          }
         }
       }
     }
@@ -661,14 +727,9 @@ function extractTextContent(content) {
   return "";
 }
 
-// Try parse JSON
-function tryParseJSON(str) {
-  if (typeof str !== "string") return str;
-  try {
-    return JSON.parse(str);
-  } catch {
-    return str;
-  }
+// Try parse JSON (passthrough fallback: return the raw input string on parse error).
+function tryParseJSON(str: unknown): unknown {
+  return safeParseJSON(str, str);
 }
 
 function stripCacheControl(value: unknown): unknown {

@@ -1,4 +1,9 @@
 import { getCodexRequestDefaults } from "@/lib/providers/requestDefaults";
+import {
+  getCodexModelScope,
+  getCodexRateLimitKey,
+  type CodexQuotaScope,
+} from "../config/codexQuotaScopes.ts";
 import { isFeatureFlagEnabled } from "@/shared/utils/featureFlags";
 import {
   BaseExecutor,
@@ -26,8 +31,10 @@ import {
 } from "../config/codexIdentity.ts";
 import { getAccessToken } from "../services/tokenRefresh.ts";
 import { sanitizeResponsesInputItems } from "../services/responsesInputSanitizer.ts";
+import { normalizeCodexVerbosity } from "../services/codexVerbosity.ts";
 import { getThinkingBudgetConfig, ThinkingMode } from "../services/thinkingBudget.ts";
 import { CORS_HEADERS } from "../utils/cors.ts";
+import * as prl from "../utils/providerRequestLogging.ts";
 import { createRequire } from "module";
 
 // ─── wreq-js lazy loader ───────────────────────────────────────────────────
@@ -98,41 +105,7 @@ function codexWebSocketUnavailableResponse(): Response {
 // Codex has two independent quota pools: "codex" (standard) and "spark" (premium).
 // Exhausting one should NOT block requests to the other.
 // Ref: sub2api PR #1129 (feat(openai): split codex spark rate limiting from codex)
-
-/**
- * Maps model name substrings to their rate-limit scope.
- * Checked in order — first match wins.
- */
-const CODEX_SCOPE_PATTERNS: Array<{ pattern: string; scope: "codex" | "spark" }> = [
-  { pattern: "codex-spark", scope: "spark" },
-  { pattern: "spark", scope: "spark" },
-  { pattern: "codex", scope: "codex" },
-  { pattern: "gpt-5", scope: "codex" }, // gpt-5.2-codex, gpt-5.3-codex, etc.
-];
-
-/**
- * T09: Determine the rate-limit scope for a Codex model.
- * Use this key as the suffix for per-scope rate limit state:
- *   `${accountId}:${getModelScope(model)}`
- *
- * @param model - The Codex model ID (e.g. "gpt-5.3-codex", "codex-spark-mini")
- * @returns "codex" | "spark"
- */
-export function getCodexModelScope(model: string): "codex" | "spark" {
-  const lower = model.toLowerCase();
-  for (const { pattern, scope } of CODEX_SCOPE_PATTERNS) {
-    if (lower.includes(pattern)) return scope;
-  }
-  return "codex"; // default scope
-}
-
-/**
- * T09: Get the scope-keyed rate limit identifier for an account+model combination.
- * Use this as the key for rateLimitState maps to ensure scope isolation.
- */
-export function getCodexRateLimitKey(accountId: string, model: string): string {
-  return `${accountId}:${getCodexModelScope(model)}`;
-}
+export { getCodexModelScope, getCodexRateLimitKey, type CodexQuotaScope };
 
 /**
  * T03: Parsed quota snapshot from Codex response headers.
@@ -323,7 +296,7 @@ function convertSystemToDeveloperRole(body: Record<string, unknown>): void {
  *      server-generated prefix (rs_, fc_, resp_, msg_) — so the content is
  *      preserved but the backend won't try to look it up
  */
-function stripStoredItemReferences(body: Record<string, unknown>): void {
+export function stripStoredItemReferences(body: Record<string, unknown>): void {
   if (Array.isArray(body.input) && body.input.length === 0) {
     body.input = [
       {
@@ -352,6 +325,19 @@ function stripStoredItemReferences(body: Record<string, unknown>): void {
       typeof item === "object" &&
       !Array.isArray(item) &&
       (item as Record<string, unknown>).type === "item_reference"
+    ) {
+      strippedCount++;
+      return false;
+    }
+
+    // Reasoning blobs (encrypted_content) are unusable with store=false since
+    // previous_response_id is deleted — strip them to avoid wasting context
+    // tokens (O(n^2) growth across agentic turns).
+    if (
+      item &&
+      typeof item === "object" &&
+      !Array.isArray(item) &&
+      (item as Record<string, unknown>).type === "reasoning"
     ) {
       strippedCount++;
       return false;
@@ -645,11 +631,35 @@ function clampEffort(model: string, requested: string): string {
   return requested;
 }
 
+const CODEX_REASONING_ENCRYPTED_CONTENT_INCLUDE = "reasoning.encrypted_content";
+const CODEX_DEFAULT_REASONING_SUMMARY = "auto";
+
 function normalizeEffortValue(value: unknown): string | undefined {
   if (typeof value !== "string") return undefined;
   const normalized = value.trim().toLowerCase();
   if (normalized === "max") return "xhigh";
   return normalized || undefined;
+}
+
+function ensureCodexReasoningSummary(body: Record<string, unknown>): void {
+  const reasoning =
+    body.reasoning && typeof body.reasoning === "object" && !Array.isArray(body.reasoning)
+      ? (body.reasoning as Record<string, unknown>)
+      : null;
+  if (!reasoning || normalizeEffortValue(reasoning.effort) === "none") return;
+
+  if (!("summary" in reasoning)) {
+    reasoning.summary = CODEX_DEFAULT_REASONING_SUMMARY;
+  }
+
+  if (!Array.isArray(body.include)) {
+    body.include = [CODEX_REASONING_ENCRYPTED_CONTENT_INCLUDE];
+    return;
+  }
+
+  if (!body.include.includes(CODEX_REASONING_ENCRYPTED_CONTENT_INCLUDE)) {
+    body.include = [...body.include, CODEX_REASONING_ENCRYPTED_CONTENT_INCLUDE];
+  }
 }
 
 function consumeResponsesStoreMarker(body: Record<string, unknown>): unknown {
@@ -757,6 +767,57 @@ function toCodexResponseFailedEvent(parsed: Record<string, unknown>): Record<str
   };
 }
 
+// Env-gated kill-switch: drop ALL non-standard `codex.*` SSE events (notably
+// `codex.rate_limits`) from the Responses stream. These events are NOT part of
+// the OpenAI Responses API — strict clients (e.g. the OpenAI SDK's
+// `responses.stream()`) choke on the unknown event type / empty data field and
+// tear the stream down, surfacing as "Invalid state: Controller is already
+// closed". Opt-in so the default still forwards them for clients that want them.
+function codexDropNonstandardEvents(): boolean {
+  const v = process.env.OMNIROUTE_CODEX_DROP_NONSTANDARD_EVENTS;
+  return v === "true" || v === "1" || v === "yes";
+}
+
+// SSE block filter for the HTTP Responses path (super.execute). The HTTP
+// transport forwards the upstream stream verbatim — including the non-standard
+// `event: codex.rate_limits` frame (no data line) — so the WS-only filter in
+// encodeResponseSseEvent never runs for it. When the kill-switch is on, strip
+// every `codex.*` event block from the byte stream before it reaches the client.
+// Exported for unit testing (#4715). Strips `codex.*` SSE event blocks from a
+// streaming Response when the OMNIROUTE_CODEX_DROP_NONSTANDARD_EVENTS kill-switch is on.
+export function filterNonstandardCodexSse(response: Response): Response {
+  const contentType = response.headers.get("content-type") || "";
+  if (!response.body || !contentType.includes("text/event-stream")) {
+    return response;
+  }
+  const decoder = new TextDecoder();
+  const encoder = new TextEncoder();
+  let buffer = "";
+  const dropBlock = (block: string): boolean => {
+    const match = /^event:\s*(.+)$/m.exec(block);
+    return !!match && match[1].trim().startsWith("codex.");
+  };
+  const transform = new TransformStream<Uint8Array, Uint8Array>({
+    transform(chunk, controller) {
+      buffer += decoder.decode(chunk, { stream: true });
+      let sep: number;
+      while ((sep = buffer.indexOf("\n\n")) !== -1) {
+        const block = buffer.slice(0, sep + 2);
+        buffer = buffer.slice(sep + 2);
+        if (!dropBlock(block)) controller.enqueue(encoder.encode(block));
+      }
+    },
+    flush(controller) {
+      if (buffer && !dropBlock(buffer)) controller.enqueue(encoder.encode(buffer));
+    },
+  });
+  return new Response(response.body.pipeThrough(transform), {
+    status: response.status,
+    statusText: response.statusText,
+    headers: response.headers,
+  });
+}
+
 export function encodeResponseSseEvent(raw: string): { sse: string; terminal: boolean } {
   let eventType = "message";
   let payload = raw;
@@ -776,6 +837,27 @@ export function encodeResponseSseEvent(raw: string): { sse: string; terminal: bo
   } catch {
     console.warn("[codex] SSE payload parse failed, using raw payload");
     // Keep message as the generic SSE event for non-JSON upstream payloads.
+  }
+
+  // Env-gated: drop non-standard `codex.*` events (notably `codex.rate_limits`)
+  // before they reach the client. They are NOT part of the OpenAI Responses API
+  // and break strict consumers: the OpenAI SDK's responses.stream() chokes on
+  // the unknown event type / empty data and tears the stream down, surfacing as
+  // "Invalid state: Controller is already closed". The earlier empty-payload
+  // check below never caught codex.rate_limits — over WS the frame carries a
+  // non-empty JSON payload (`{"type":"codex.rate_limits", ...}`), so
+  // `!payload.trim()` is false. Match by event type instead. Opt-in via
+  // OMNIROUTE_CODEX_DROP_NONSTANDARD_EVENTS (the HTTP transport is handled
+  // separately by filterNonstandardCodexSse, since super.execute forwards the
+  // upstream stream verbatim and never runs this function).
+  if (eventType.startsWith("codex.") && codexDropNonstandardEvents()) {
+    return { sse: "", terminal };
+  }
+
+  // Drop frames whose raw payload is empty (defensive; non-JSON / blank upstream
+  // chunks). Frames that carry a payload are preserved.
+  if (!payload.trim()) {
+    return { sse: "", terminal };
   }
 
   return { sse: `event: ${eventType}\ndata: ${payload}\n\n`, terminal };
@@ -843,7 +925,14 @@ export class CodexExecutor extends BaseExecutor {
     const nextInput = { ...input, credentials };
 
     if (!isCodexResponsesWebSocketRequired(nextInput.model, nextInput.credentials)) {
-      return super.execute(nextInput);
+      const httpResult = await super.execute(nextInput);
+      if (codexDropNonstandardEvents()) {
+        const resp = (httpResult as { response?: Response }).response;
+        if (resp?.body) {
+          (httpResult as { response: Response }).response = filterNonstandardCodexSse(resp);
+        }
+      }
+      return httpResult;
     }
 
     const url = CODEX_RESPONSES_WS_URL;
@@ -976,15 +1065,19 @@ export class CodexExecutor extends BaseExecutor {
                 : Buffer.from(event.data as Buffer).toString("utf8");
             const sseEvent = encodeResponseSseEvent(raw);
             if (closed) return;
-            try {
-              controller.enqueue(encoder.encode(sseEvent.sse));
-            } catch {
-              finishStream({
-                reason: "downstream_closed",
-                emitDone: false,
-                closeController: false,
-              });
-              return;
+            // Filtered events (codex.* / empty payload) return an empty `sse` —
+            // skip them so no empty frame reaches the client.
+            if (sseEvent.sse) {
+              try {
+                controller.enqueue(encoder.encode(sseEvent.sse));
+              } catch {
+                finishStream({
+                  reason: "downstream_closed",
+                  emitDone: false,
+                  closeController: false,
+                });
+                return;
+              }
             }
             if (sseEvent.terminal) {
               finishStream({ reason: "terminal_event" });
@@ -1000,6 +1093,7 @@ export class CodexExecutor extends BaseExecutor {
             finishStream({ reason: "upstream_closed", closeSocket: false });
           };
           if (!closed) {
+            await prl.captureCurrentProviderBody(url, headers, bodyString, nextInput.log);
             ws.send(bodyString);
           }
         } catch (error) {
@@ -1347,6 +1441,7 @@ export class CodexExecutor extends BaseExecutor {
         effort: clampEffort(cleanModel, rawEffort),
       };
     }
+    ensureCodexReasoningSummary(body);
     delete body.reasoning_effort;
 
     // Remove unsupported token limit parameters BEFORE the passthrough return.
@@ -1403,6 +1498,11 @@ export class CodexExecutor extends BaseExecutor {
       return body;
     }
 
+    // GPT-5 verbosity: fold Chat-style `verbosity` / Responses `text.verbosity` into a
+    // single validated `text:{verbosity}` so the allowlist below (which now permits
+    // `text`) lets it reach upstream instead of dropping it silently.
+    normalizeCodexVerbosity(body);
+
     // Issue #2608: Use an allowlist of known Responses API fields instead of a
     // denylist of Chat Completions fields. The denylist approach missed fields
     // like `stop`, `response_format`, `logit_bias`, `function_call`, `functions`,
@@ -1423,6 +1523,8 @@ export class CodexExecutor extends BaseExecutor {
       "previous_response_id",
       "prompt_cache_key",
       "client_metadata",
+      // GPT-5 output verbosity ({ verbosity } — normalized above by normalizeCodexVerbosity).
+      "text",
       // Internal markers used by OmniRoute pipeline
       "_omnirouteResponsesStore",
     ]);
