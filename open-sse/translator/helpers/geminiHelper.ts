@@ -96,7 +96,8 @@ export const DEFAULT_SAFETY_SETTINGS = [
 ];
 
 function normalizeAudioMimeType(format: unknown): string {
-  const normalized = String(format || "wav").toLowerCase();
+  const normalized =
+    typeof format === "string" && format.trim() ? format.trim().toLowerCase() : "wav";
   if (normalized === "mp3") {
     return "audio/mpeg";
   }

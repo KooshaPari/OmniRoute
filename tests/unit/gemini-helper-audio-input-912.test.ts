@@ -39,3 +39,10 @@ test("convertOpenAIContentToParts defaults the audio mime type to audio/wav", ()
   ]);
   assert.deepEqual(parts, [{ inlineData: { mimeType: "audio/wav", data: "QUJDRA==" } }]);
 });
+
+test("convertOpenAIContentToParts ignores non-string audio format values", () => {
+  const parts = gemini.convertOpenAIContentToParts([
+    { type: "input_audio", input_audio: { data: "QUJDRA==", format: 123 } },
+  ]);
+  assert.deepEqual(parts, [{ inlineData: { mimeType: "audio/wav", data: "QUJDRA==" } }]);
+});
