@@ -25,5 +25,6 @@
 | [020](./ADR-ECO-020-byteport-hygiene-security.md) | BytePort hygiene + security — -445 LOC dead code, hardened `tauri.conf.json` | Accepted (2026-06-23) |
 | [021](./ADR-ECO-021-phenocompose-dead-cuda-feature.md) | PhenoCompose dead `cuda` feature flag removal | Accepted (2026-06-23) |
 | [022](./ADR-ECO-022-compute-infra-subtree-registry-correction.md) | Compute/Infra subtree — registry status correction (BytePort + nanovms reclassify) | Accepted (2026-06-23) |
+| [023](./ADR-ECO-023-sdk-consolidation.md) | SDK consolidation — PhenoMCPServers catalog SSOT vs phenotype-python-sdk + phenotype-go-sdk clients (closes #134, #135) | Accepted (2026-06-25) |
 
 Full text for 002–011 in follow-up PRs; decisions locked in [03_DAG_WBS.md](../sessions/20260617-ecosystem-disposition-wave/03_DAG_WBS.md).
