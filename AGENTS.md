@@ -449,19 +449,25 @@ completed | failed | canceled`. Tasks have TTL and are cleaned up automatically.
 - **Agent Card**: `/.well-known/agent.json` exposes capabilities, skills, and metadata
   for client auto-discovery.
 
-#### A2A skill implementations (status, refreshed 2026-06-18)
+#### A2A skill implementations (status, refreshed 2026-06-24)
 
-| Skill | Status | Notes |
-|---|---|---|
-| `smartRouting.ts` | stub | DEBT-006 (TODO: Implement) |
-| `quotaManagement.ts` | stub | DEBT-006 |
-| `providerDiscovery.ts` | stub | DEBT-006 |
-| `costAnalysis.ts` | **IMPLEMENTED 2026-06-18 (L5-109)** | resolves pricing via `getPricingForModel()`, computes cost via `calculateCostFromTokens()`, accepts canonical/legacy token field names, estimates tokens from message length, emits `proceed` / `switch_model` / `estimate_only` recommendation when `budget_usd` cap exceeded. Tests: `tests/unit/a2a-cost-analysis.test.ts` (8 vitest cases). |
-| `healthReport.ts` | stub | DEBT-006 |
-| `listCapabilities.ts` | stub | DEBT-006 |
-| `agentDispatch.ts` | impl | added in `feat/a2a-agent-dispatch-clean` (L5-109 cherry-pick). Doc: `docs/frameworks/A2A-SERVER.md`. Env: `.env.example`. |
+All 8 A2A skills are fully implemented as of `e4d751ed1` (2026-06-20). The DEBT-006
+"5/7 stubbed" status in earlier versions of this table was **stale** — it was
+written on 2026-06-18 before PRs #83/#86/#87/#72 landed.
 
-Stub count: 5/7 (DEBT-006, partial close: 1/9 → 2/9 with agentDispatch).
+| Skill | Lines | Implemented | Notes |
+|---|---|---|---|
+| `smartRouting.ts` | 736 | 2026-06-20 (#83) | composes `combo.ts::resolveComboTargets()` output as the recommendation payload. |
+| `quotaManagement.ts` | 400 | 2026-06-20 (#86) | pairs with `open-sse/services/rateLimitManager.ts`; TPM/TPD token-bucket (DEBT-001 dependency) resolved. |
+| `providerDiscovery.ts` | 530 | 2026-06-20 (#? — commit `2763f11d5`) | reads `src/shared/constants/providers.ts` (Zod-validated single source of truth). |
+| `costAnalysis.ts` | 254 | 2026-06-18 (L5-109) | resolves pricing via `getPricingForModel()`, computes cost via `calculateCostFromTokens()`, accepts canonical/legacy token field names, estimates tokens from message length, emits `proceed` / `switch_model` / `estimate_only` recommendation when `budget_usd` cap exceeded. Tests: `tests/unit/a2a-cost-analysis.test.ts` (8 vitest cases). |
+| `healthReport.ts` | 718 | 2026-06-20 (#87) | pulls from `mcp_audit` table (last 1000 invocations, failure-rate per tool). |
+| `listCapabilities.ts` | 72 | 2026-06-20 (commit `6bad368dc`) | derives from `A2A_SKILL_HANDLERS` registry at `src/lib/a2a/taskExecution.ts`. |
+| `agentDispatch.ts` | 223 | 2026-06-18 (L5-109 cherry-pick) | added in `feat/a2a-agent-dispatch-clean`. Doc: `docs/frameworks/A2A-SERVER.md`. Env: `.env.example`. |
+| `mintVirtualKey.ts` | 235 | 2026-06-20 (B5/B9) | bifrost virtual-key minting skill (fork-only). |
+
+Stub count: **0/8** (DEBT-006 closed). All 9 sub-items of DEBT-006 resolved
+between L5-109 and L5-115.
 
 ### ACP Module (`src/lib/acp/`)
 
@@ -673,15 +679,24 @@ to `diegosouzapw/OmniRoute`.
 
 When writing docs or ADRs, always use the full qualified form ("OmniRoute Bifrost" or "Bifrost network protocol") on first mention.
 
-### Open DEBT-006 follow-ups
+### DEBT-006 follow-ups
 
-5 a2a skills still stubbed: `smartRouting`, `quotaManagement`, `providerDiscovery`, `healthReport`, `listCapabilities`. Next targets for the Q3-2026 OKR Objective 2 (policy primitives shipped per quarter):
+**DEBT-006 is closed** as of L5-115 (2026-06-24). All 8 A2A skills are
+implemented; the table above has the per-skill PR/date references. The
+"5 a2a skills still stubbed" list previously carried in this section
+was stale as of 2026-06-20.
 
-1. `quotaManagement.ts` — pair with `open-sse/services/rateLimitManager.ts`; needs TPM/TPD token-bucket (DEBT-001 dependency).
-2. `smartRouting.ts` — should compose `combo.ts::resolveComboTargets()` output as the recommendation payload.
-3. `providerDiscovery.ts` — read from `src/shared/constants/providers.ts` (single source of truth, Zod-validated at module load).
-4. `healthReport.ts` — should pull from `mcp_audit` table (last 1000 invocations, failure-rate per tool).
-5. `listCapabilities.ts` — derive from `A2A_SKILL_HANDLERS` registry at `src/lib/a2a/taskExecution.ts`.
+Next targets for the Q3-2026 OKR Objective 2 (policy primitives shipped per
+quarter) move to other DEBT-### items, primarily:
+
+- **DEBT-001** — TPM/TPD token-bucket in `rateLimitManager.ts` (now unblocked
+  after `quotaManagement.ts` shipped; needs scheduler work).
+- **DEBT-002** — pre-commit + pre-push hooks ported to lefthook
+  (`lefthook.yml`, hooks installed via `lefthook install`; husky shims
+  retained as a fallback when lefthook is unavailable on PATH).
+  Pre-push is no longer a no-op — it now runs the typecheck-core / t11 /
+  cycles matrix. **Closed 2026-06-25.**
+- Open items 3, 4, 5, 6, 7 in `docs/TECH_DEBT.md`.
 
 ### Fork-only policy reminder
 
@@ -979,3 +994,6 @@ Refs: `docs/adr/0031-bifrost-tier1-router.md`, `PLAN.md` § 2.5.2 (B9),
 - [`docs/OKR.md`](docs/OKR.md) — Q3 2026 OKRs
 - [`docs/COST.md`](docs/COST.md) — cost attribution
 - [`worklogs/2026-06-18-L5-109-fork-cleanup.md`](worklogs/2026-06-18-L5-109-fork-cleanup.md) — session worklog
+
+# hook-smoke
+## hook smoke for lefthook validation
