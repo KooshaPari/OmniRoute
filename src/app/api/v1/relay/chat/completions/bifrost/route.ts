@@ -44,6 +44,8 @@ import {
   hashToken,
   sanitizeForensicHeader,
 } from "../relaySecurity";
+import { getMultiTierCache } from "@/lib/cache/multiTier";
+import { stampedeGuard } from "@/lib/cache/cacheStampede";
 
 // Minimal request-shape validation (Rule #7). `.passthrough()` keeps every other
 // OpenAI chat-completion field intact (temperature, tools, response_format, …) —
@@ -288,8 +290,9 @@ export async function POST(request: Request) {
       }
     }
 
-    // 3. Decide streaming vs. unary
+    // 3. Cache check + cacheable fetch with stampede protection
     const wantsStream = Boolean((body as { stream?: boolean }).stream) && BIFROST_STREAMING_ENABLED;
+    const skipCache = wantsStream || process.env.MULTI_TIER_CACHE_DISABLED === "1";
 
     // 4. Forward to bifrost
     const upstreamHeaders: Record<string, string> = {
@@ -301,6 +304,97 @@ export async function POST(request: Request) {
       upstreamHeaders["Authorization"] = `Bearer ${BIFROST_API_KEY}`;
     }
 
+    if (!skipCache) {
+      const cache = getMultiTierCache();
+      const cacheKey = cache.generateKey({
+        model: (body as { model?: string }).model || "unknown",
+        messages: (body as { messages?: unknown }).messages || [],
+        temperature: (body as { temperature?: number }).temperature,
+        top_p: (body as { top_p?: number }).top_p,
+        provider: "bifrost",
+        tenant: token.id,
+      });
+
+      // Try cache hit first
+      const cached = cache.get<Record<string, unknown>>(cacheKey);
+      if (cached) {
+        recordRelayUsage(token.id, {
+          requestId: request.headers.get("x-request-id") || undefined,
+          status: "success",
+          statusCode: 200,
+          latencyMs: Date.now() - startTime,
+          clientIp,
+          userAgent,
+        });
+        return new Response(JSON.stringify(cached.value), {
+          status: 200,
+          headers: {
+            ...JSON_CORS_HEADERS,
+            "X-Cache": "HIT",
+            "X-Cache-Tier": cached.tier,
+            "X-Cache-Tokens-Saved": String(cached.tokensSaved),
+            "X-Routed-By": "bifrost-cache",
+          },
+        });
+      }
+
+      // Cache miss — use stampede guard so only one concurrent caller hits upstream
+      const result = await stampedeGuard(cacheKey, async () => {
+        const ac = new AbortController();
+        let timedOut = false;
+        const tid = setTimeout(() => {
+          timedOut = true;
+          ac.abort();
+        }, BIFROST_TIMEOUT_MS);
+
+        let upstream: Response;
+        try {
+          upstream = await fetch(`${BIFROST_BASE_URL}/v1/chat/completions`, {
+            method: "POST",
+            headers: upstreamHeaders,
+            body: JSON.stringify(body),
+            signal: ac.signal,
+          });
+        } catch (error) {
+          clearTimeout(tid);
+          throw error;
+        }
+        clearTimeout(tid);
+
+        recordRelayUsage(token.id, {
+          requestId: request.headers.get("x-request-id") || undefined,
+          status: upstream.status < 500 ? "success" : "error",
+          statusCode: upstream.status,
+          latencyMs: Date.now() - startTime,
+          clientIp,
+          userAgent,
+        });
+
+        // Cache the response on success
+        if (upstream.status >= 200 && upstream.status < 300) {
+          const upstreamClone = upstream.clone();
+          const respBody = await upstreamClone.json().catch(() => null);
+          if (respBody) {
+            const tokensSaved = (respBody as { usage?: { cached_tokens?: number } })?.usage?.cached_tokens ?? 0;
+            cache.set(cacheKey, respBody, { tokensSaved });
+          }
+        }
+
+        return { upstream, timedOut };
+      });
+
+      const newHeaders = new Headers(result.upstream.headers);
+      newHeaders.set("X-Routed-By", "bifrost");
+      newHeaders.set("X-Relay-Token", token.tokenPrefix + "...");
+      newHeaders.set("Content-Type", result.upstream.headers.get("Content-Type") ?? "application/json");
+
+      return new Response(result.upstream.body, {
+        status: result.upstream.status,
+        headers: newHeaders,
+      });
+    }
+
+    // === Streaming (or cache-disabled) path — direct fetch ===
     const ac = new AbortController();
     let timedOut = false;
     const tid = setTimeout(() => {
@@ -321,8 +415,7 @@ export async function POST(request: Request) {
       throw error;
     }
 
-    // 5. Forward response. Non-streaming responses can be accounted for as soon
-    //    as headers arrive; streaming responses finalize on body close/cancel/error.
+    // 5. Forward response
     const recordUsage: RelayUsageRecorder = (status, statusCode) => {
       recordRelayUsage(token.id, {
         requestId: request.headers.get("x-request-id") || undefined,
