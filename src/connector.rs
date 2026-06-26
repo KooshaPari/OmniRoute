@@ -14,10 +14,10 @@ pub enum ConnectorKind {
 ///
 /// let config = ConnectorConfig {
 ///     kind: ConnectorKind::Plane,
-///     endpoint: "local://phenotype-data",
+///     endpoint: "local://phenotype-data".into(),
 /// };
 /// assert_eq!(config.kind, ConnectorKind::Plane);
-/// assert_eq!(config.endpoint, "local://phenotype-data");
+/// assert_eq!(config.endpoint.as_str(), "local://phenotype-data");
 /// ```
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ConnectorConfig {
