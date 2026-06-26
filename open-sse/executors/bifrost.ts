@@ -45,6 +45,10 @@ import {
   refreshBifrostModels,
   type BifrostFetcher,
 } from "../../src/lib/db/bifrostModels.ts";
+import {
+  isActive as isKillSwitchActive,
+  recordObservation as recordKillSwitchObservation,
+} from "../services/bifrostKillSwitch.ts";
 
 const DEFAULT_HOST = "127.0.0.1";
 const DEFAULT_PORT = 8080;
@@ -119,6 +123,21 @@ export class BifrostBackendExecutor extends BaseExecutor {
       );
     }
 
+    // B9 wiring: kill switch pre-check. If the kill switch is active for
+    // this provider (degradation detected by prior observations), throw
+    // so the dispatcher falls back to the legacy chatCore path.
+    // Recorded under the BIFROST_TAG for log correlation.
+    if (isKillSwitchActive(this.provider)) {
+      input.log?.warn?.(
+        BIFROST_TAG,
+        `Bifrost kill switch active for "${this.provider}" — falling back to legacy chatCore`
+      );
+      throw new Error(
+        `[${BIFROST_TAG}] Kill switch active for provider "${this.provider}". ` +
+          `Falling back to legacy chatCore until kill switch clears.`
+      );
+    }
+
     const bifrostProviderId = resolveBifrostProviderId(this.provider);
     if (!bifrostProviderId) {
       // Defensive — isBifrostSupported already covered this branch, but
@@ -176,12 +195,38 @@ export class BifrostBackendExecutor extends BaseExecutor {
       `Bifrost → ${url} (omniProvider: ${this.provider}, bifrostProvider: ${bifrostProviderId}, model: ${model})`
     );
 
-    const response = await fetch(url, {
-      method: "POST",
-      headers,
-      body: JSON.stringify(body),
-      signal: combinedSignal,
-    });
+    const fetchStart = Date.now();
+    let fetchResponse: Response | undefined;
+    try {
+      fetchResponse = await fetch(url, {
+        method: "POST",
+        headers,
+        body: JSON.stringify(body),
+        signal: combinedSignal,
+      });
+    } finally {
+      // B9 wiring: record observation regardless of success/failure so the
+      // sliding-window stats stay accurate. ok is true iff we got a Response
+      // (network errors throw before fetchResponse is assigned).
+      const latencyMs = Date.now() - fetchStart;
+      const ok = fetchResponse !== undefined;
+      try {
+        recordKillSwitchObservation({
+          timestamp: Date.now(),
+          provider: this.provider,
+          latencyMs,
+          ok,
+        });
+      } catch (ksErr) {
+        // Never let kill-switch bookkeeping break the request path.
+        input.log?.warn?.(
+          BIFROST_TAG,
+          `recordObservation failed: ${ksErr instanceof Error ? ksErr.message : String(ksErr)}`
+        );
+      }
+    }
+
+    const response = fetchResponse!;
 
     if (response.status === HTTP_STATUS.RATE_LIMITED) {
       input.log?.warn?.(BIFROST_TAG, `Bifrost rate limited: ${response.status}`);

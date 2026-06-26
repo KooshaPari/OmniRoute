@@ -350,4 +350,65 @@ describe("BifrostBackend executor (execute body shape)", () => {
     expect(exec).toBeInstanceOf(BaseExecutor);
     expect(exec.provider).toBe("openai");
   });
+
+  // B9 wiring: BifrostBackendExecutor must consult the kill switch before
+  // dispatch and record an observation after every request (success or fail).
+  // These two tests lock the B9 wiring contract. Ref: BIFROST-BACKEND.md §B9.
+  it("B9: throws and does NOT call fetch when the kill switch is active for this provider", async () => {
+    process.env.BIFROST_ENABLED = "1";
+    const mockFetch = vi.fn();
+    globalThis.fetch = mockFetch as unknown as typeof fetch;
+
+    const { forceActivate, forceDeactivate, isActive } = await import(
+      "../../open-sse/services/bifrostKillSwitch.ts"
+    );
+    forceDeactivate("openai");
+    forceActivate("openai");
+
+    expect(isActive("openai")).toBe(true);
+
+    const exec = new BifrostBackendExecutor("openai", {});
+    await expect(
+      exec.execute({
+        model: "gpt-4o",
+        body: { model: "gpt-4o", messages: [] },
+        stream: false,
+        credentials: { apiKey: "sk-x" },
+      })
+    ).rejects.toThrow(/BIFROST_KILL_SWITCH_ACTIVE/);
+
+    expect(mockFetch).not.toHaveBeenCalled();
+
+    forceDeactivate("openai");
+  });
+
+  it("B9: records an observation after a successful dispatch (windowStats.totalSamples incremented, ok rate reflects success)", async () => {
+    process.env.BIFROST_ENABLED = "1";
+    const mockFetch = vi.fn().mockResolvedValue(
+      new Response('{"id":"x","choices":[]}', { status: 200 })
+    );
+    globalThis.fetch = mockFetch as unknown as typeof fetch;
+
+    const { resetProvider, getState } = await import(
+      "../../open-sse/services/bifrostKillSwitch.ts"
+    );
+    resetProvider("anthropic");
+
+    const exec = new BifrostBackendExecutor("anthropic", {});
+    await exec.execute({
+      model: "claude-3-5-sonnet-20241022",
+      body: { model: "claude-3-5-sonnet-20241022", messages: [] },
+      stream: false,
+      credentials: { accessToken: "tok" },
+    });
+
+    const state = getState("anthropic");
+    expect(state).toBeDefined();
+    expect(state?.windowStats.totalSamples).toBeGreaterThanOrEqual(1);
+    expect(state?.windowStats.errorSamples).toBe(0);
+    expect(state?.windowStats.avgLatencyMs).toBeGreaterThanOrEqual(0);
+    expect(state?.windowStats.p99LatencyMs).toBeGreaterThanOrEqual(0);
+
+    resetProvider("anthropic");
+  });
 });
