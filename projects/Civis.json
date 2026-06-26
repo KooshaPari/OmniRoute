@@ -1,0 +1,31 @@
+{
+  "name": "Civis",
+  "role": "civ-lab-engine",
+  "lifecycle": "active",
+  "status": "active",
+  "description": "Canonical workspace for CivLab — a headless, deterministic civilization simulation engine (Rust, hecs ECS, fixed-point i64). 33+ crates spanning engine, server, voxel, build, genetics, economy, species, agents, diplomacy, laws, research, tactics, planet, protocol-3d, mod-host, and 20+ more. ECS server-authoritative headless sim with multi-client rendering (Bevy CI/reference, Unreal visuals, Godot game UX, Web L2 sandbox+ops).",
+  "repo_path": "KooshaPari/Civis",
+  "default_branch": "main",
+  "language": "Rust",
+  "size_kb": 2322641,
+  "stargazers": 0,
+  "open_issues": 27,
+  "forks": 0,
+  "is_archived": false,
+  "created_at": "2025-12-21T04:37:47Z",
+  "last_push": "2026-06-25T23:17:02Z",
+  "key_docs": [
+    "README.md",
+    "PRD.md",
+    "PLAN.md",
+    "ADR.md",
+    "deny.toml",
+    "docs/adr/ADR-emergence-charter.md",
+    "docs/guides/emergence-charter.md",
+    "docs/adr/* (20+ ADRs)"
+  ],
+  "audit_artifact": "Civis-2026-06-25.md",
+  "summary": "AFFIRM — canonical home. 780+ commits, 616+ branches, 33+ workspace crates, 272+ gov/spec docs (markdown), 113/212 FRs implemented, 82.6% coverage, 750+ tests green. Pre-MVP, targeting Q3 2026. Not a deletion candidate. See Civis-2026-06-25.md for full absorption-justification.",
+  "dependencies": [],
+  "consumers": []
+}
