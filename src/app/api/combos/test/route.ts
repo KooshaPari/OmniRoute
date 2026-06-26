@@ -12,7 +12,7 @@ async function getInternalApiKey(): Promise<string | null> {
   try {
     const keys = await getApiKeys();
     const active = (
-      keys as Array<{ key: string; isActive?: boolean; revokedAt?: string | null }>
+      keys as unknown as Array<{ key: string; isActive?: boolean; revokedAt?: string | null }>
     ).find((k) => k.key && k.isActive !== false && !k.revokedAt);
     return active?.key ?? null;
   } catch {
@@ -20,7 +20,7 @@ async function getInternalApiKey(): Promise<string | null> {
   }
 }
 
-function buildComboTestResult(target, partial = {}) {
+function buildComboTestResult(target: { modelStr?: string; provider?: string; stepId?: string; executionKey?: string; connectionId?: string; label?: string }, partial: Record<string, unknown> = {}) {
   return {
     model: target.modelStr,
     provider: target.provider,
@@ -32,7 +32,7 @@ function buildComboTestResult(target, partial = {}) {
   };
 }
 
-async function testComboTarget(target, baseInternalUrl, internalApiKey: string | null) {
+async function testComboTarget(target: { modelStr?: string; provider?: string; stepId?: string; executionKey?: string; connectionId?: string; label?: string }, baseInternalUrl: string, internalApiKey: string | null): Promise<Record<string, unknown> | null> {
   const startTime = Date.now();
   try {
     // Issue #2359: combo entries with a malformed/missing modelStr surfaced
@@ -163,7 +163,7 @@ export async function POST(request) {
     }
 
     const allCombos = await getCombos();
-    const targets = resolveNestedComboTargets(combo, allCombos);
+    const targets = resolveNestedComboTargets(combo as unknown as Parameters<typeof resolveNestedComboTargets>[0], allCombos as unknown as Parameters<typeof resolveNestedComboTargets>[1]);
 
     if (targets.length === 0) {
       return NextResponse.json({ error: "Combo has no models" }, { status: 400 });
