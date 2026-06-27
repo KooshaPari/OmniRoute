@@ -3,6 +3,7 @@ name: Pillar Fleet Checks
 on:
   schedule:
     - cron: '0 4 * * 1'  # Monday 04:00 UTC
+    - cron: '0 6 * * *'   # Daily 06:00 UTC — scorecard push + regression alert
   pull_request:
     branches: [main]
 
@@ -23,6 +24,8 @@ jobs:
         run: bash tools/pillar-fleet/drift.sh
       - name: Scorecard
         run: bash tools/pillar-fleet/scorecard.sh
+      - name: Alert-on-regression
+        run: bash tools/pillar-fleet/alert.sh --threshold 0.5
 
   cliff-sync:
     runs-on: ubuntu-latest
