@@ -148,30 +148,21 @@ cache-stats log_path="/tmp/ci-last.log":
 # daemon-check.yml; this recipe is the orchestrator-runnable version.
 #
 # Usage:
-#   just forge-daemon-check                       # enforce mode (fail on gap)
-#   just forge-daemon-check warn=1                # log gaps, exit 0 (CI ship)
-#   just forge-daemon-check json=1                # JSON output
-#   just forge-daemon-check strict=1              # strict mode
+#   just forge-daemon-check                            # enforce mode
+#   just forge-daemon-check -- --warn                   # warn mode (CI)
+#   just forge-daemon-check -- --json                   # JSON output
+#   just forge-daemon-check -- --strict                 # strict mode
+#   just forge-daemon-check -- --warn --json            # combine
 #
-# Note: just intercepts --help/--warn as its own flags, so we use the
-# bare-flag-name=1 env-var form here. The script itself still accepts
-# --warn / --json / --strict / --help when invoked directly.
-forge-daemon-check warn="0" json="0" strict="0":
+# The `--` separator asks just to pass remaining args through as-is.
+# Since just intercepts --help/--warn/--json as its own flags, the
+# `--` is required when passing bare flags to the script. The script
+# itself accepts all flags directly (no `--` needed).
+forge-daemon-check *args:
     #!/usr/bin/env bash
-    # set -u omitted: args[] may be empty when no flags are passed; the
-    # bash 3.2 / zsh-compatible idiom for "expand if set" varies and
-    # isn't worth the cross-shell debugging for a 3-arg recipe.
-    set -eo pipefail
-    # set -e + short-circuit && interaction: [[ X ]] && cmd returns 1 when
-    # X is false (the cmd didn't run), which kills the recipe. Use if/then
-    # instead — clearer AND set-e-safe.
-    args=()
-    if [[ "{{warn}}" == "1" ]]; then args+=("--warn"); fi
-    if [[ "{{json}}" == "1" ]]; then args+=("--json"); fi
-    if [[ "{{strict}}" == "1" ]]; then args+=("--strict"); fi
-    echo "DEBUG: warn={{warn}} json={{json}} strict={{strict}} args=(${args[@]-NONE})" >&2
+    set -euo pipefail
     if [ -x ./scripts/forge_daemon_check.sh ]; then
-        ./scripts/forge_daemon_check.sh "${args[@]}"
+        ./scripts/forge_daemon_check.sh "$@"
     else
         echo "scripts/forge_daemon_check.sh missing or not executable"
         exit 1
