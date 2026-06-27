@@ -419,3 +419,64 @@ export class BifrostBackendExecutor extends BaseExecutor {
 }
 
 export default BifrostBackendExecutor;
+
+// ── Dispatcher-facing executor factory (L1a) ──────────────────────
+
+/**
+ * Whether Bifrost integration should route a given provider through the
+ * BifrostBackendExecutor instead of the legacy `getExecutor()` path.
+ *
+ * Two activation paths (per docs/frameworks/BIFROST-BACKEND.md):
+ *   1. Global env switch:  `BIFROST_ENABLED=1` routes ALL providers
+ *      (with per-provider fallback to legacy on kill-switch / unsupported).
+ *   2. Per-connection toggle: `providerSpecificData.bifrostMode === true`
+ *      routes only that specific connection.
+ *
+ * L1a implements path (1) only; path (2) requires the upstreamProxy.ts
+ * module that this fork is missing (fork drift — see DAG S6 P6d).
+ */
+export function shouldRouteViaBifrost(provider: string, opts?: {
+  providerSpecificData?: { bifrostMode?: boolean | null } | null;
+}): boolean {
+  if (process.env.BIFROST_ENABLED === "1" || process.env.BIFROST_ENABLED === "true") {
+    return true;
+  }
+  if (opts?.providerSpecificData?.bifrostMode === true) {
+    return true;
+  }
+  void provider;
+  return false;
+}
+
+/**
+ * Build a dispatcher-shaped executor that forwards `.execute(input)` calls
+ * to `dispatchBifrostWithFallback(new BifrostBackendExecutor(provider, {}), input)`.
+ *
+ * Returned object mimics the BaseExecutor surface (just `.execute` +
+ * `.getProvider`) so it can be returned from `resolveExecutorWithProxy()`
+ * in place of `getExecutor(provider)` without any downstream changes.
+ *
+ * The empty `{} as ProviderConfig` is safe because BifrostBackendExecutor
+ * does not consult `this.config` for URL construction (it derives the URL
+ * from the BIFROST_BASE_URL env var); see bifrost.ts:90-92.
+ */
+export function createBifrostBackedExecutor(
+  provider: string,
+  log?: {
+    info?: (tag: string, msg: string) => void;
+    warn?: (tag: string, msg: string) => void;
+  },
+): {
+  execute: (input: ExecuteInput) => ReturnType<BifrostBackendExecutor["execute"]>;
+  getProvider: () => string;
+} {
+  log?.info?.(
+    BIFROST_TAG,
+    `${provider} → BifrostBackendExecutor (Tier-1 router, fallback-wrapped)`,
+  );
+  const bifrost = new BifrostBackendExecutor(provider, {} as ConstructorParameters<typeof BaseExecutor>[1]);
+  return {
+    getProvider: () => bifrost.getProvider(),
+    execute: (input) => dispatchBifrostWithFallback(bifrost, input),
+  };
+}
