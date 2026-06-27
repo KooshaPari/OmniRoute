@@ -1294,6 +1294,29 @@
       "stream": "https://duckduckgo.com/duckchat/v1/chat"
     }
   },
+  "factory": {
+    "format": "openai",
+    "headers": {
+      "apiKey": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "nonStream": {
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "oauth": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      }
+    },
+    "url": {
+      "nonStream": "https://api.factory.ai/v1/chat/completions",
+      "stream": "https://api.factory.ai/v1/chat/completions"
+    }
+  },
   "featherless-ai": {
     "format": "openai",
     "headers": {
@@ -1779,6 +1802,29 @@
     "url": {
       "nonStream": "https://api.z.ai/api/coding/paas/v4/chat/completions",
       "stream": "https://api.z.ai/api/coding/paas/v4/chat/completions"
+    }
+  },
+  "grok-cli": {
+    "format": "openai",
+    "headers": {
+      "apiKey": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "nonStream": {
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "oauth": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      }
+    },
+    "url": {
+      "nonStream": "https://cli-chat-proxy.grok.com/v1/chat/completions",
+      "stream": "https://cli-chat-proxy.grok.com/v1/chat/completions"
     }
   },
   "grok-web": {
@@ -4187,6 +4233,29 @@
     "url": {
       "nonStream": "https://zenmux.ai/api/v1/chat/completions",
       "stream": "https://zenmux.ai/api/v1/chat/completions"
+    }
+  },
+  "zenmux-free": {
+    "format": "openai",
+    "headers": {
+      "apiKey": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "nonStream": {
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "oauth": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      }
+    },
+    "url": {
+      "nonStream": "https://zenmux.ai/api/anthropic/v1/messages",
+      "stream": "https://zenmux.ai/api/anthropic/v1/messages"
     }
   }
 }
