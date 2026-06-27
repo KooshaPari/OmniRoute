@@ -125,10 +125,10 @@ function buildOpenAIResponse(stream, text = "ok") {
 
 function buildClaudeResponse(stream, text = "ok") {
   if (stream) {
-    const events = [
+    return new Response(
       [
-        "message_start",
-        {
+        "event: message_start",
+        `data: ${JSON.stringify({
           type: "message_start",
           message: {
             id: "msg_stream",
@@ -137,26 +137,33 @@ function buildClaudeResponse(stream, text = "ok") {
             model: "claude-sonnet-4-6",
             usage: { input_tokens: 12, output_tokens: 0 },
           },
-        },
-      ],
-      [
-        "content_block_start",
-        { type: "content_block_start", index: 0, content_block: { type: "text", text: "" } },
-      ],
-      [
-        "content_block_delta",
-        { type: "content_block_delta", index: 0, delta: { type: "text_delta", text } },
-      ],
-      [
-        "message_delta",
-        { type: "message_delta", delta: { stop_reason: "end_turn" }, usage: { output_tokens: 3 } },
-      ],
-      ["message_stop", { type: "message_stop" }],
-    ];
-    return new Response(
-      events
-        .flatMap(([event, data]) => [`event: ${event}`, `data: ${JSON.stringify(data)}`, ""])
-        .join("\n"),
+        })}`,
+        "",
+        "event: content_block_start",
+        `data: ${JSON.stringify({
+          type: "content_block_start",
+          index: 0,
+          content_block: { type: "text", text: "" },
+        })}`,
+        "",
+        "event: content_block_delta",
+        `data: ${JSON.stringify({
+          type: "content_block_delta",
+          index: 0,
+          delta: { type: "text_delta", text },
+        })}`,
+        "",
+        "event: message_delta",
+        `data: ${JSON.stringify({
+          type: "message_delta",
+          delta: { stop_reason: "end_turn" },
+          usage: { output_tokens: 3 },
+        })}`,
+        "",
+        "event: message_stop",
+        `data: ${JSON.stringify({ type: "message_stop" })}`,
+        "",
+      ].join("\n"),
       {
         status: 200,
         headers: { "Content-Type": "text/event-stream" },
@@ -171,9 +178,11 @@ function buildClaudeResponse(stream, text = "ok") {
       role: "assistant",
       model: "claude-sonnet-4-6",
       content: [{ type: "text", text }],
-      choices: [{ index: 0, message: { role: "assistant", content: text }, finish_reason: "stop" }],
       stop_reason: "end_turn",
-      usage: { input_tokens: 12, output_tokens: 3 },
+      usage: {
+        input_tokens: 12,
+        output_tokens: 3,
+      },
     }),
     {
       status: 200,
@@ -1112,23 +1121,6 @@ test("chatCore restores prefixed Claude passthrough tool names in upstream respo
               id: "toolu_1",
               name: "proxy_Bash",
               input: { command: "ls" },
-            },
-          ],
-          choices: [
-            {
-              index: 0,
-              message: {
-                role: "assistant",
-                content: null,
-                tool_calls: [
-                  {
-                    id: "toolu_1",
-                    type: "function",
-                    function: { name: "proxy_Bash", arguments: '{"command":"ls"}' },
-                  },
-                ],
-              },
-              finish_reason: "tool_calls",
             },
           ],
           stop_reason: "tool_use",
@@ -2270,13 +2262,6 @@ test("chatCore records Claude prompt cache and cache usage metadata in call logs
           role: "assistant",
           model: "claude-sonnet-4-6",
           content: [{ type: "text", text: "cached answer" }],
-          choices: [
-            {
-              index: 0,
-              message: { role: "assistant", content: "cached answer" },
-              finish_reason: "stop",
-            },
-          ],
           stop_reason: "end_turn",
           usage: {
             input_tokens: 12,

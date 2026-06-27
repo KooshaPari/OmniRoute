@@ -704,14 +704,10 @@ test("chatCore extracts memories from Claude content arrays and Responses output
           id: "msg_memory",
           type: "message",
           role: "assistant",
-          choices: [
-            {
-              index: 0,
-              message: { role: "assistant", content: "I like strongly typed APIs." },
-              finish_reason: "stop",
-            },
-          ],
+          model: "claude-sonnet-4-6",
+          content: [{ type: "text", text: "I like strongly typed APIs." }],
           stop_reason: "end_turn",
+          usage: { input_tokens: 4, output_tokens: 3 },
         }),
         {
           status: 200,
@@ -736,14 +732,13 @@ test("chatCore extracts memories from Claude content arrays and Responses output
           id: "resp_memory",
           object: "response",
           status: "completed",
+          model: "gpt-4o-mini",
           output_text: "I prefer TypeScript for backend services.",
-          output: [
-            {
-              type: "message",
-              content: [{ type: "output_text", text: "I prefer TypeScript for backend services." }],
-            },
-          ],
-          usage: { input_tokens: 3, output_tokens: 5, total_tokens: 8 },
+          usage: {
+            input_tokens: 3,
+            output_tokens: 5,
+            total_tokens: 8,
+          },
         }),
         {
           status: 200,
@@ -805,7 +800,13 @@ test("chatCore request memory extraction for responses input ignores assistant i
           id: "resp_request_memory",
           object: "response",
           status: "completed",
-          output: [{ type: "message", content: [{ type: "output_text", text: "ok" }] }],
+          model: "gpt-4o-mini",
+          output_text: "ok",
+          usage: {
+            input_tokens: 4,
+            output_tokens: 1,
+            total_tokens: 5,
+          },
         }),
         {
           status: 200,

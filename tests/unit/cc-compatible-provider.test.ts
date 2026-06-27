@@ -696,7 +696,7 @@ test("handleChatCore preserves client cache markers for Claude Code requests to 
 
   const claudeBody = {
     model: "claude-sonnet-4-6",
-    stream: true,
+    max_tokens: 64,
     system: [{ type: "text", text: "system", cache_control: { type: "ephemeral", ttl: "5m" } }],
     messages: [
       {
@@ -747,7 +747,7 @@ test("handleChatCore preserves client cache markers for Claude Code requests to 
     clientRawRequest: {
       endpoint: "/v1/messages",
       body: claudeBody,
-      headers: new Headers({ accept: "text/event-stream" }),
+      headers: new Headers({ accept: "application/json" }),
     },
     userAgent: "Claude-Code/1.0.0",
     log: {
