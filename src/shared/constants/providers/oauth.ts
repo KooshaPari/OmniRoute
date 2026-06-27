@@ -93,6 +93,17 @@ export const OAUTH_PROVIDERS = {
     subscriptionRisk: true,
     riskNoticeVariant: "oauth",
   },
+  "grok-cli": {
+    id: "grok-cli",
+    alias: "gc",
+    name: "Grok CLI",
+    icon: "terminal",
+    color: "#111827",
+    subscriptionRisk: true,
+    riskNoticeVariant: "oauth",
+    authHint:
+      "Uses xAI/Grok CLI OAuth credentials. Import a local CLI login or paste the OAuth token payload.",
+  },
   codex: {
     id: "codex",
     alias: "cx",
