@@ -94,6 +94,7 @@ export type LiveHarnessEnabled = {
     body?: any;
     authKey?: string | null;
     headers?: Record<string, string>;
+    signal?: AbortSignal;
   }) => Request;
   liveBody: (model: string, overrides?: Record<string, unknown>) => Record<string, unknown>;
   listLiveConnections: () => Promise<LiveConnection[]>;
@@ -101,6 +102,7 @@ export type LiveHarnessEnabled = {
   servedProvider: (response: Response) => string | undefined;
   servedProviderFromBody: (response: Response) => Promise<string | undefined>;
   readCompletionText: (response: Response) => Promise<string>;
+  resetCachesForTest: () => void;
   cleanup: () => Promise<void>;
 };
 
@@ -191,13 +193,28 @@ export async function createLiveHarness(prefix: string): Promise<LiveHarness> {
   const core = await import("../../../src/lib/db/core.ts");
   const providersDb = await import("../../../src/lib/db/providers.ts");
   const combosDb = await import("../../../src/lib/db/combos.ts");
+  const settingsDb = await import("../../../src/lib/db/settings.ts");
   const { handleChat } = await import("../../../src/sse/handlers/chat.ts");
   const { initTranslators } = await import("../../../open-sse/translator/index.ts");
   const { BaseExecutor } = await import("../../../open-sse/executors/base.ts");
   const { resetAllCircuitBreakers } = await import("../../../src/shared/utils/circuitBreaker.ts");
   const { clearInflight } = await import("../../../open-sse/services/requestDedup.ts");
+  const semanticCacheModule = await import("../../../src/lib/semanticCache.ts");
+  const { clearIdempotency } = await import("../../../src/lib/idempotencyLayer.ts");
+  const { invalidateDbCache } = await import("../../../src/lib/db/readCache.ts");
 
   const originalRetryDelayMs = BaseExecutor.RETRY_CONFIG.delayMs;
+
+  // -------------------------------------------------------------------------
+  // 5a. Disable semantic cache + dedup for the test process.
+  //     The production DB snapshot may have cached responses for temperature=0
+  //     "ping" messages — disable so every call really hits upstream.
+  // -------------------------------------------------------------------------
+  await settingsDb.updateSettings({ semanticCacheEnabled: false });
+  // Clear any in-memory semantic cache entries that were loaded with the snapshot.
+  semanticCacheModule.clearCache();
+  // Bust the settings read-cache so chatCore reads the updated setting immediately.
+  invalidateDbCache("settings");
 
   initTranslators();
 
@@ -222,11 +239,13 @@ export async function createLiveHarness(prefix: string): Promise<LiveHarness> {
     body,
     authKey = null,
     headers = {},
+    signal,
   }: {
     url?: string;
     body?: any;
     authKey?: string | null;
     headers?: Record<string, string>;
+    signal?: AbortSignal;
   } = {}) {
     const requestHeaders: Record<string, string> = {
       "Content-Type": "application/json",
@@ -239,6 +258,7 @@ export async function createLiveHarness(prefix: string): Promise<LiveHarness> {
       method: "POST",
       headers: requestHeaders,
       body: typeof body === "string" ? body : JSON.stringify(body),
+      signal,
     });
   }
 
@@ -355,9 +375,28 @@ export async function createLiveHarness(prefix: string): Promise<LiveHarness> {
     return (json?.choices?.[0]?.message?.content as string) ?? "";
   }
 
+  /**
+   * Clear all in-memory caches between tests so each call hits the real upstream.
+   * Call in beforeEach. Does NOT touch the DB snapshot or the snapshotDir.
+   *
+   * Clears:
+   *  - Semantic cache in-memory LRU (semantic_cache SQLite table is not pre-populated
+   *    with ping responses; LRU is what would accumulate across tests in a run).
+   *  - Idempotency dedup store.
+   *  - Inflight request-dedup map (concurrent-only, but belt-and-suspenders).
+   *  - Settings read-cache so each call re-reads semanticCacheEnabled=false.
+   */
+  function resetCachesForTest(): void {
+    semanticCacheModule.clearCache();
+    clearIdempotency();
+    clearInflight();
+    invalidateDbCache("settings");
+  }
+
   async function cleanup(): Promise<void> {
     BaseExecutor.RETRY_CONFIG.delayMs = originalRetryDelayMs;
     clearInflight();
+    clearIdempotency();
     resetAllCircuitBreakers();
     core.resetDbInstance();
     // Destroy the snapshot — targets only the temp dir, NEVER /root/.omniroute.
@@ -381,6 +420,7 @@ export async function createLiveHarness(prefix: string): Promise<LiveHarness> {
     servedProvider,
     servedProviderFromBody,
     readCompletionText,
+    resetCachesForTest,
     cleanup,
     // internal helpers exposed for advanced test use
     _servedProviderAsync: servedProviderAsync,
