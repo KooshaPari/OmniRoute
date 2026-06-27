@@ -16,7 +16,7 @@ import {
 
 test("#3812 returns the curated accent for a mapped sidebar item", () => {
   assert.equal(getSidebarIconAccent("home"), SIDEBAR_ICON_ACCENTS.home);
-  assert.equal(getSidebarIconAccent("settings"), SIDEBAR_ICON_ACCENTS.settings);
+  assert.equal(getSidebarIconAccent("settings-general"), SIDEBAR_ICON_ACCENTS["settings-general"]);
 });
 
 test("#3812 falls back to a valid hex accent for an unmapped id", () => {
