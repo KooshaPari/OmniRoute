@@ -260,3 +260,85 @@ test("PUT /api/combos preserves legacy string combo refs during normalization", 
   assert.equal(stored.models[0].kind, "combo-ref");
   assert.equal(stored.models[0].comboName, "child-ref");
 });
+
+// Regression: PUT /api/combos should not 400 with stale compositeTiers
+// when the request body doesn't touch the graph (isActive, name, etc.).
+test("PUT /api/combos tolerates stale compositeTiers on non-graph updates", async () => {
+  const comboInput = createTieredComboInput([
+    { kind: "model", providerId: "codex", model: "gpt-5.4", connectionId: "conn-codex-a" },
+    { kind: "model", providerId: "codex", model: "gpt-5.4", connectionId: "conn-codex-b" },
+  ]);
+  comboInput.compositeTiers = {
+    enabled: true,
+    defaultTier: "primary",
+    tiers: {
+      primary: { stepId: "step-primary" },
+      backup: { stepId: "step-backup" },
+    },
+  };
+
+  const createResponse = await createRoute.POST(
+    makeCreateRequest(comboInput),
+  );
+  const created = (await createResponse.json()) as any;
+  const comboId = created.id;
+  assert.equal(createResponse.status, 201);
+
+  // Directly manipulate the stored combo so it still has the old compositeTiers
+  // but fewer models (orphaning step-primary).
+  const stored = await combosDb.getComboById(comboId);
+  await combosDb.updateCombo(comboId, {
+    ...stored,
+    models: [
+      { kind: "model", id: "step-backup", providerId: "codex", model: "gpt-5.4", connectionId: "conn-codex-b" },
+    ],
+  });
+
+  // PUT with only isActive (non-graph) should succeed even with stale compositeTiers
+  const response = await comboRoute.PUT(
+    makeUpdateRequest({ isActive: !comboInput.isHidden }),
+    { params: Promise.resolve({ id: comboId }) }
+  );
+
+  assert.equal(response.status, 200);
+});
+
+// Companion guard: PUT /api/combos must still 400 when the request body itself
+// introduces invalid compositeTiers (even on a non-graph update, rejected by the schema).
+test("PUT /api/combos still 400s when the request body itself has invalid compositeTiers", async () => {
+  // A PUT with models that orphan a stored tier's step should still 400
+  // when the body includes models (a graph mutation).
+  const comboInput = createTieredComboInput([
+    { kind: "model", providerId: "codex", model: "gpt-5.4", connectionId: "conn-codex-a" },
+    { kind: "model", providerId: "codex", model: "gpt-5.4", connectionId: "conn-codex-b" },
+  ]);
+  comboInput.compositeTiers = {
+    enabled: true,
+    defaultTier: "primary",
+    tiers: {
+      primary: { stepId: "step-primary" },
+      backup: { stepId: "step-backup" },
+    },
+  };
+
+  const createResponse = await createRoute.POST(
+    makeCreateRequest(comboInput),
+  );
+  const created = (await createResponse.json()) as any;
+  const comboId = created.id;
+  assert.equal(createResponse.status, 201);
+
+  // PUT with models that drop step-primary should 400
+  const response = await comboRoute.PUT(
+    makeUpdateRequest({
+      models: [
+        { kind: "model", id: "step-backup", providerId: "codex", model: "gpt-5.4", connectionId: "conn-codex-b" },
+      ],
+    }),
+    { params: Promise.resolve({ id: comboId }) }
+  );
+
+  assert.equal(response.status, 400);
+  const body = (await response.json()) as any;
+  assert.ok(body.error?.message || body.error, "should include an error message");
+});

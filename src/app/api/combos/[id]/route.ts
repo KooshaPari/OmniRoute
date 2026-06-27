@@ -112,9 +112,17 @@ export async function PUT(request, { params }) {
       ...body,
       name: comboName,
     };
-    const compositeValidation = validateCompositeTiersConfig(nextComboState);
-    if (!compositeValidation.success) {
-      return NextResponse.json({ error: compositeValidation.error }, { status: 400 });
+    // Gate: only validate composite tiers when the request touches the graph.
+    // This prevents a PUT that only toggles isActive/name/etc from returning
+    // 400 when the stored combo has a stale compositeTiers reference (e.g. a
+    // tier.stepId that points to a model that was later removed from models).
+    const touchesGraph =
+      body.config !== undefined || body.models !== undefined;
+    if (touchesGraph) {
+      const compositeValidation = validateCompositeTiersConfig(nextComboState);
+      if (!compositeValidation.success) {
+        return NextResponse.json({ error: compositeValidation.error }, { status: 400 });
+      }
     }
 
     // Check if name already exists (exclude current combo)
