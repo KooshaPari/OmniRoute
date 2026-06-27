@@ -48,3 +48,36 @@ for (const providerId of ["antigravity", "agy"]) {
     );
   });
 }
+
+test("antigravity.exchangeToken never forwards code_verifier (no PKCE → no invalid_grant 500)", async () => {
+  const origFetch = globalThis.fetch;
+  let sentBody = "";
+  globalThis.fetch = (async (_url: unknown, init: { body?: unknown } = {}) => {
+    sentBody = String(init.body ?? "");
+    return new Response(
+      JSON.stringify({ access_token: "t", refresh_token: "r", expires_in: 3600 }),
+      { status: 200, headers: { "Content-Type": "application/json" } }
+    );
+  }) as typeof fetch;
+  try {
+    // Pass a codeVerifier (as the modal does — generateAuthData always mints one).
+    // It MUST be ignored: the authorize URL had no code_challenge, so forwarding a
+    // code_verifier makes Google reject the exchange (invalid_grant → 500).
+    await PROVIDERS.antigravity.exchangeToken(
+      {
+        clientId: "cid",
+        clientSecret: "sec",
+        tokenUrl: "https://oauth2.googleapis.com/token",
+      },
+      "the-code",
+      "http://127.0.0.1:20128/callback",
+      "should-be-ignored-verifier"
+    );
+  } finally {
+    globalThis.fetch = origFetch;
+  }
+  const params = new URLSearchParams(sentBody);
+  assert.equal(params.get("code_verifier"), null, "must NOT forward code_verifier (no PKCE)");
+  assert.equal(params.get("client_secret"), "sec", "must authenticate via client_secret");
+  assert.equal(params.get("grant_type"), "authorization_code");
+});

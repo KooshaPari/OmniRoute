@@ -55,7 +55,13 @@ export const antigravity = {
     }
     return `${config.authorizeUrl}?${params.toString()}`;
   },
-  exchangeToken: async (config, code, redirectUri, codeVerifier) => {
+  // NOTE: no PKCE. Antigravity is a plain authorization_code grant now (see flowType
+  // above). The shared generateAuthData() still mints a codeVerifier for every flow, but
+  // we MUST NOT forward it here — the authorize URL carries no code_challenge, so sending
+  // a code_verifier makes Google reject the exchange with invalid_grant ("code_verifier
+  // provided but code_challenge was not"), surfacing as a 500 on /exchange. Ignore it and
+  // authenticate with client_secret only, exactly like the working 9router flow.
+  exchangeToken: async (config, code, redirectUri) => {
     const bodyParams: Record<string, string> = {
       grant_type: "authorization_code",
       client_id: config.clientId,
@@ -65,10 +71,6 @@ export const antigravity = {
 
     if (config.clientSecret) {
       bodyParams.client_secret = config.clientSecret;
-    }
-
-    if (codeVerifier) {
-      bodyParams.code_verifier = codeVerifier;
     }
 
     const response = await fetch(config.tokenUrl, {
