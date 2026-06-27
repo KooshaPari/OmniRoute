@@ -78,3 +78,42 @@ jobs:
 
             Compares current vs prior cycle scores. Posted every Monday 04:00 UTC.
           delete-branch: true
+
+  nested-repo-lint:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+        with: {fetch-depth: 1}
+      - name: Scan nested git repos
+        id: scan
+        run: |
+          FOUND=$(find . -maxdepth 3 -name ".git" -type d | \
+            grep -v "^\./\.git$" | \
+            grep -v "^\..*/\.git$" | \
+            sed 's|/\.git||' | sort -u || true)
+          COUNT=$(echo "$FOUND" | grep -c . || true)
+          echo "found=$(echo "$FOUND")" >> "$GITHUB_OUTPUT"
+          echo "count=$COUNT" >> "$GITHUB_OUTPUT"
+          if [ "$COUNT" -gt 0 ]; then
+            echo "WARNING: Found $COUNT nested git repos (not in parent index, not in .gitmodules):" >&2
+            echo "$FOUND" >&2
+          fi
+      - name: Comment PR with nested-repo results
+        if: github.event_name == 'pull_request' && steps.scan.outputs.count != '0'
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          header: nested-repo
+          message: |
+            ## Nested Git Repository Detected
+
+            Found **${{ steps.scan.outputs.count }}** nested git repo(s):
+
+            `${{ steps.scan.outputs.found }}`
+
+            Nested git repos cause CI failures when `actions/checkout@v4` runs
+            `git submodule foreach --recursive` during post-cleanup.
+
+            **To fix:** Add to `.gitignore` (if not a workspace member) or add to
+            `.gitmodules` (if intentional submodule). Document in `AGENTS.md`
+            per the nested-repo pattern.
