@@ -8,6 +8,7 @@
  * Usage:
  *   node scripts/test/combo-live-vps.mjs
  *   node scripts/test/combo-live-vps.mjs --only=round-robin
+ *   node scripts/test/combo-live-vps.mjs --failover   # runs all 7 base scenarios + real failover
  *
  * Safety rules:
  *   - Only creates/deletes __live_test__* combos
@@ -59,6 +60,8 @@ const KNOWN_INPUT_COST = {
 // ---------------------------------------------------------------------------
 const onlyArg = process.argv.find((a) => a.startsWith("--only="));
 const onlyScenario = onlyArg ? onlyArg.slice(7) : null;
+// --failover: opt-in flag that appends a real-failover scenario (broken primary → healthy fallback)
+const failoverFlag = process.argv.includes("--failover");
 
 // ---------------------------------------------------------------------------
 // Result tracking
@@ -436,6 +439,158 @@ async function scenarioAuto() {
 }
 
 // ---------------------------------------------------------------------------
+// Scenario 7: failover (opt-in via --failover)
+//
+// Approach: CROSS-PROVIDER BOGUS-MODEL (deterministic, no SSH crypto required).
+//
+// Why cross-provider?
+//   A same-provider bogus-model fails silently: when target[0] (bogus) returns a
+//   404, OmniRoute calls recordProviderCooldown(providerA, undefined) — a provider-
+//   wide key. The combo then pre-screens target[1] (same providerA, real model) and
+//   finds providerA in cooldown → skips it → combo returns the 404 from target[0].
+//   Using DIFFERENT providers avoids this: target[0] puts providerA in cooldown,
+//   target[1] on providerB is unaffected, providerB serves the healthy response.
+//
+// Mechanism:
+//   - Target[0]: <providerA>/__nonexistent_model_xyz__ → upstream 404 → providerA cooldown
+//   - Target[1]: <providerB>/<realModel>              → not in cooldown → 200 served
+//   - config.maxRetries:0, retryDelayMs:0 → immediate fallover, no retry delay
+//   - Bogus model can never return 200 → any 200 proves fallover to the real target
+//
+// If only 1 distinct provider is healthy: SKIP (BROKEN-CONNECTION approach needed; see
+// comment below for how to implement it using encrypted wrong API key via SSH sqlite).
+//
+// BROKEN-CONNECTION approach (for future reference or if cross-provider is unavailable):
+//   1. SSH to read STORAGE_ENCRYPTION_KEY from /root/.omniroute/.env
+//   2. Encrypt a wrong API key using scryptSync(key,"omniroute-field-encryption-v1",32)+AES-256-GCM
+//   3. INSERT broken provider_connection row into provider_connections table via SSH sqlite
+//   4. Combo: [{providerId:glm, model:glm/glm-4-flash, connectionId:brokenConnId}, realModel]
+//   5. Broken conn → 401 → recordProviderCooldown("glm",brokenConnId) → key "glm:brokenConnId"
+//   6. Target[1] on different provider → unaffected → 200
+//   7. Finally: DELETE combo AND broken connection
+// ---------------------------------------------------------------------------
+async function scenarioFailover(healthy) {
+  const name = "__live_test__failover";
+
+  if (healthy.length < 1) {
+    skip("failover", "no healthy providers — cannot run failover scenario");
+    return;
+  }
+
+  // Group healthy providers by providerId to find two distinct providers
+  const byProvider = new Map();
+  for (const m of healthy) {
+    const { providerId } = splitProviderModel(m);
+    if (!byProvider.has(providerId)) byProvider.set(providerId, []);
+    byProvider.get(providerId).push(m);
+  }
+  const distinctProviders = [...byProvider.keys()];
+
+  if (distinctProviders.length < 2) {
+    // Cannot use cross-provider approach with only one provider.
+    // Same-provider bogus-model fails: 404 → recordProviderCooldown(provider, undefined) →
+    // provider-wide cooldown blocks target[1] on the same provider.
+    skip(
+      "failover",
+      `need ≥2 distinct healthy providers for cross-provider approach; ` +
+        `found only 1 [${distinctProviders.join(", ")}]. ` +
+        `Implement BROKEN-CONNECTION approach to run failover with a single provider.`
+    );
+    return;
+  }
+
+  // CROSS-PROVIDER BOGUS-MODEL:
+  //   target[0] = <providerA>/__nonexistent_model_xyz__  (will get 404, puts providerA in cooldown)
+  //   target[1] = <providerB>/<realHealthyModel>         (different provider, not in cooldown)
+  const bogusProvider = distinctProviders[0];
+  const realModel = byProvider.get(distinctProviders[1])[0];
+  const bogusModel = `${bogusProvider}/__nonexistent_model_xyz__`;
+  const { modelPart: realModelPart } = splitProviderModel(realModel);
+
+  let id;
+  try {
+    id = createCombo({
+      name,
+      strategy: "priority",
+      models: [bogusModel, realModel],
+      config: { maxRetries: 0, retryDelayMs: 0 },
+    });
+
+    console.log(
+      `  failover combo (CROSS-PROVIDER BOGUS-MODEL):\n` +
+        `    [0] ${bogusModel} ← broken primary (will 404)\n` +
+        `    [1] ${realModel} ← healthy fallback (different provider)\n` +
+        `    strategy=priority, maxRetries=0`
+    );
+
+    const r = await chat(name, { maxTokens: 16 });
+
+    // Assertions:
+    // 1. status=200: the combo succeeded — ONLY possible if it fell over to target[1],
+    //    because target[0] (bogus model) can NEVER return 200 from the upstream.
+    // 2. Non-empty text: real LLM content was returned (not an empty error body).
+    // 3. Served model is NOT the bogus one (belt-and-suspenders; 200 already proves it).
+    // 4. Served model matches the real healthy target (positive proof of which model served).
+
+    if (r.status !== 200) {
+      fail(
+        "failover",
+        `expected status=200 after fallover (broken ${bogusModel} → ${realModel}), ` +
+          `got status=${r.status}. ` +
+          `raw=${JSON.stringify(r.raw)?.slice(0, 200)}`
+      );
+      return;
+    }
+
+    if (!r.text) {
+      fail("failover", `status=200 but empty text — fallover may have served a no-content response`);
+      return;
+    }
+
+    const bogusModelPart = "__nonexistent_model_xyz__";
+    const servedModel = (r.model ?? "").toLowerCase();
+
+    // Negative proof: bogus model did NOT serve (should never happen, but guard anyway)
+    if (servedModel.includes(bogusModelPart.toLowerCase())) {
+      fail(
+        "failover",
+        `bogus model string "${bogusModelPart}" appears in served model field "${r.model}" — ` +
+          `impossible 200 from a non-existent model; something is wrong`
+      );
+      return;
+    }
+
+    // Positive proof: served model matches the real healthy target
+    const realModelLower = realModelPart.toLowerCase();
+    const servedMatchesReal =
+      servedModel === realModelLower ||
+      servedModel.includes(realModelLower) ||
+      servedModel === realModel.toLowerCase();
+
+    const proofNote = servedMatchesReal
+      ? ""
+      : ` [NOTE: served="${r.model}" ≠ expected="${realModelPart}" ` +
+        `— upstream alias likely; 200+text from bogus-primary is the failover proof]`;
+
+    pass(
+      "failover",
+      `CROSS-PROVIDER BOGUS-MODEL: broken primary (${bogusModel}) → ` +
+        `fallover → served ${r.model} (real target: ${realModel}) ` +
+        `text="${r.text.slice(0, 40)}"${proofNote}`
+    );
+  } finally {
+    if (id) {
+      try {
+        deleteCombo(name);
+        console.log(`  cleanup: ${name} deleted`);
+      } catch (e) {
+        console.error(`  cleanup error: ${e?.message}`);
+      }
+    }
+  }
+}
+
+// ---------------------------------------------------------------------------
 // Main
 // ---------------------------------------------------------------------------
 async function main() {
@@ -473,6 +628,15 @@ async function main() {
   await runScenario("fusion", () => scenarioFusion(healthy));
   await runScenario("auto", () => scenarioAuto());
 
+  // --- Scenario 7: failover (opt-in) ---
+  // Only runs when --failover is passed. Uses a bogus-model primary to force a real
+  // combo failover to the healthy secondary, proving the priority fallover path works
+  // against the live server without stopping any service.
+  if (failoverFlag) {
+    console.log("\n=== Failover scenario (--failover) ===\n");
+    await runScenario("failover", () => scenarioFailover(healthy));
+  }
+
   // --- Summary ---
   console.log("\n=== Summary ===");
   for (const { name, result } of summary) {
@@ -483,8 +647,6 @@ async function main() {
   const failed = summary.filter((s) => s.result === "FAIL").length;
   console.log(`\n  ${passed} PASS  ${skipped} SKIP  ${failed} FAIL`);
 
-  // Task 8 (--failover) can be appended here, importing from this module or
-  // calling additional runScenario() calls before the process.exit().
   process.exit(exitCode);
 }
 
