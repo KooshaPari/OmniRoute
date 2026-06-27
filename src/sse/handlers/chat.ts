@@ -17,7 +17,9 @@ import {
   isDailyQuotaExhausted,
 } from "@omniroute/open-sse/services/accountFallback.ts";
 import { getModelInfo, getComboForModel } from "../services/model";
+import { resolveBareModelToConnectionDefault } from "@omniroute/open-sse/services/model.ts";
 import { errorResponse } from "@omniroute/open-sse/utils/error.ts";
+import { isSelfInflictedUpstreamTimeout } from "@omniroute/open-sse/handlers/chatCore/cooldownClassification.ts";
 import { applyNoThinkingAlias } from "@omniroute/open-sse/utils/noThinkingAlias.ts";
 import { handleComboChat } from "@omniroute/open-sse/services/combo.ts";
 import { resolveComboConfig } from "@omniroute/open-sse/services/comboConfig.ts";
@@ -45,6 +47,8 @@ import * as log from "../utils/logger";
 import { checkAndRefreshToken } from "../services/tokenRefresh";
 import { createHookContext, runHooks, initPreRequestRegistry } from "@/lib/middleware/registry";
 import { deleteHandoff, getHandoff } from "@/lib/db/contextHandoffs";
+import { updateCombo } from "@/lib/db/combos";
+import { promoteSuccessfulComboModel } from "@/lib/combos/autoPromote";
 import {
   deleteSessionAccountAffinity,
   getCachedSettings,
@@ -74,7 +78,7 @@ import { connectionHasExtraKeys } from "@omniroute/open-sse/services/apiKeyRotat
 // Pipeline integration — wired modules
 import { classify429FromError, type FailureKind } from "@/shared/utils/classify429";
 import { resolveUseUpstream429BreakerHints } from "@/shared/utils/providerHints";
-import { getCircuitBreaker } from "../../shared/utils/circuitBreaker";
+import { getCircuitBreaker, isLocalStreamLifecycleError } from "../../shared/utils/circuitBreaker";
 import { markAccountExhaustedFrom429 } from "../../domain/quotaCache";
 import { RequestTelemetry, recordTelemetry } from "../../shared/utils/requestTelemetry";
 import { generateRequestId } from "../../shared/utils/requestId";
@@ -191,6 +195,7 @@ function intersectAllowedConnectionIds(primary: unknown, secondary: unknown): st
 }
 
 const PROVIDER_BREAKER_FAILURE_STATUSES = new Set([408, 500, 502, 503, 504]);
+const comboPromoteDeps = { updateCombo, info: log.info, warn: log.warn };
 
 /**
  * Handle chat completion request
@@ -269,11 +274,13 @@ export async function handleChat(
     `${url.pathname} | ${modelStr} | ${msgCount} msgs${toolCount ? ` | ${toolCount} tools` : ""}${effort ? ` | effort=${effort}` : ""}`
   );
 
-  // Log API key (masked)
+  // Log only that an API key was provided — never the key itself, not even a
+  // masked prefix/last4. These debug lines get copied verbatim into bug reports
+  // and support tickets, so any key fragment is sensitive.
   const authHeader = request.headers.get("Authorization");
   const apiKey = extractApiKey(request);
   if (authHeader && apiKey) {
-    log.debug("AUTH", `API Key: ${log.maskKey(apiKey)}`);
+    log.debug("AUTH", "API key provided");
   } else {
     log.debug("AUTH", "No API key provided (local mode)");
   }
@@ -670,7 +677,17 @@ export async function handleChat(
           },
           target?.effectiveComboStrategy ?? combo.strategy,
           true
-        ),
+        ).then(async (res: Response) => {
+          // Auto-promote the winning combo model to position #1 (opt-in flag).
+          if (res?.ok)
+            await promoteSuccessfulComboModel(
+              combo,
+              m,
+              settings as Record<string, unknown>,
+              comboPromoteDeps
+            );
+          return res;
+        }),
       isModelAvailable: checkModelAvailable,
       log,
       settings,
@@ -766,6 +783,7 @@ export function buildClientRawRequest(request: Request, body: unknown) {
     endpoint: url.pathname,
     body: cloneLogPayload(body),
     headers: Object.fromEntries(request.headers.entries()),
+    signal: request.signal ?? null,
   };
 }
 
@@ -934,6 +952,9 @@ async function handleSingleModelChat(
   const breaker = getCircuitBreaker(provider, {
     failureThreshold: providerProfile.failureThreshold,
     resetTimeout: providerProfile.resetTimeoutMs,
+    // #4602: a local WS-bridge "Controller is already closed" throw is not an
+    // upstream outage — keep it from tripping the whole-provider breaker.
+    isFailure: (e) => !isLocalStreamLifecycleError(e),
     onStateChange: (name: string, from: string, to: string) =>
       log.info("CIRCUIT", `${name}: ${from} → ${to}`),
     ...(useHints429
@@ -1076,7 +1097,15 @@ async function handleSingleModelChat(
 
       const accountId = credentials.connectionId.slice(0, 8);
       log.info("AUTH", `Using ${provider} account: ${accountId}...`);
-      let requestBody = body;
+      // #474: when the request used a bare model name (no "/" — e.g. an alias
+      // that resolved to "auto") and the selected connection declares a
+      // defaultModel, resolve the bare name to that real model ID before the
+      // upstream call so the provider receives a concrete model rather than the
+      // placeholder. A "/"-qualified model name is always left untouched.
+      const effectiveModel =
+        resolveBareModelToConnectionDefault(modelStr, model, credentials.defaultModel) ?? model;
+      let requestBody =
+        effectiveModel !== model ? { ...body, model: `${provider}/${effectiveModel}` } : body;
       let injectedHandoff = null;
       if (
         comboStrategy === "context-relay" &&
@@ -1139,7 +1168,7 @@ async function handleSingleModelChat(
         breaker,
         body: requestBody,
         provider,
-        model,
+        model: effectiveModel,
         refreshedCredentials,
         proxyInfo,
         log,
@@ -1471,11 +1500,17 @@ async function handleSingleModelChat(
       // A3 guard: if 401 and connection has extra keys, skip connection-level disable
       // (key-level failure already recorded in chatCore.ts via T07)
       // Check extra keys directly from credentials for reliability across restarts
-      const extraKeys =
-        (credentials.providerSpecificData?.extraApiKeys as string[] | undefined) ?? [];
-      const hasExtraKeys = extraKeys.length > 0 || connectionHasExtraKeys(credentials.connectionId);
+      const hasExtraKeys =
+        ((credentials.providerSpecificData?.extraApiKeys as string[] | undefined) ?? []).length >
+          0 || connectionHasExtraKeys(credentials.connectionId);
       const is401 = result.status === 401;
-      const skipConnectionDisable = is401 && hasExtraKeys;
+      // Our own timeout fired on a slow upstream; don't cool down a healthy account.
+      const skipConnectionDisable =
+        result.status === 499 ||
+        result.errorCode === "client_disconnected" ||
+        result.errorType === "client_disconnected" ||
+        (is401 && hasExtraKeys) ||
+        isSelfInflictedUpstreamTimeout(result.status, result.errorType, provider);
 
       const { shouldFallback, cooldownMs } = skipConnectionDisable
         ? { shouldFallback: false, cooldownMs: 0 }

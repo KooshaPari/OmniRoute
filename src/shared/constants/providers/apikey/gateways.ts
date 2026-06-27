@@ -40,6 +40,23 @@ export const APIKEY_PROVIDERS_GATEWAYS = {
     hasFree: true,
     freeNote: "Free models at $0/token with :free suffix - 20 RPM / 200 RPD",
   },
+  dgrid: {
+    id: "dgrid",
+    alias: "dgrid",
+    name: "DGrid",
+    icon: "router",
+    color: "#65A30D",
+    textIcon: "DG",
+    passthroughModels: true,
+    website: "https://dgrid.ai",
+    hasFree: true,
+    freeNote:
+      "DGrid Free Models Router: 10 requests/minute and 100 requests/day. " +
+      "A $5 lifetime top-up unlocks up to 20 requests/minute and 1,000 requests/day.",
+    apiHint:
+      "Create a DGrid API key at https://dgrid.ai, then use https://api.dgrid.ai/v1 " +
+      "as the OpenAI-compatible base URL.",
+  },
   orcarouter: {
     id: "orcarouter",
     alias: "orcarouter",
