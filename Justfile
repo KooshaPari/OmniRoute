@@ -140,6 +140,43 @@ cache-stats log_path="/tmp/ci-last.log":
         exit 1
     fi
 
+# SQLite busy_timeout enforcement (v47 T1) — fails if any SQLite
+# connection in the fleet lacks PRAGMA busy_timeout. Defends against
+# tailcallhq/forgecode#3551 ("database is locked" errors from racing
+# sidecar lock files) by ensuring legitimate lock contention waits
+# instead of failing instantly. Mirrored from .github/workflows/forge-
+# daemon-check.yml; this recipe is the orchestrator-runnable version.
+#
+# Usage:
+#   just forge-daemon-check                       # enforce mode (fail on gap)
+#   just forge-daemon-check warn=1                # log gaps, exit 0 (CI ship)
+#   just forge-daemon-check json=1                # JSON output
+#   just forge-daemon-check strict=1              # strict mode
+#
+# Note: just intercepts --help/--warn as its own flags, so we use the
+# bare-flag-name=1 env-var form here. The script itself still accepts
+# --warn / --json / --strict / --help when invoked directly.
+forge-daemon-check warn="0" json="0" strict="0":
+    #!/usr/bin/env bash
+    # set -u omitted: args[] may be empty when no flags are passed; the
+    # bash 3.2 / zsh-compatible idiom for "expand if set" varies and
+    # isn't worth the cross-shell debugging for a 3-arg recipe.
+    set -eo pipefail
+    # set -e + short-circuit && interaction: [[ X ]] && cmd returns 1 when
+    # X is false (the cmd didn't run), which kills the recipe. Use if/then
+    # instead — clearer AND set-e-safe.
+    args=()
+    if [[ "{{warn}}" == "1" ]]; then args+=("--warn"); fi
+    if [[ "{{json}}" == "1" ]]; then args+=("--json"); fi
+    if [[ "{{strict}}" == "1" ]]; then args+=("--strict"); fi
+    echo "DEBUG: warn={{warn}} json={{json}} strict={{strict}} args=(${args[@]-NONE})" >&2
+    if [ -x ./scripts/forge_daemon_check.sh ]; then
+        ./scripts/forge_daemon_check.sh "${args[@]}"
+    else
+        echo "scripts/forge_daemon_check.sh missing or not executable"
+        exit 1
+    fi
+
 # CHANGELOG auto-gen (L67) — requires git-cliff
 changelog:
     #!/usr/bin/env bash
