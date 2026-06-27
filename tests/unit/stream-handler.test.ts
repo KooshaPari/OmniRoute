@@ -59,6 +59,45 @@ test("createDisconnectAwareStream converts upstream errors into SSE error chunks
   assert.match(text, /\[DONE\]/);
 });
 
+test("createDisconnectAwareStream treats errors after OpenAI DONE as successful completion", async () => {
+  let pullCount = 0;
+  let errorHandled = false;
+  const transformStream = {
+    readable: new ReadableStream({
+      pull(controller) {
+        pullCount += 1;
+        if (pullCount === 1) {
+          controller.enqueue(encoder.encode("data: [DONE]\n\n"));
+          return;
+        }
+        controller.error(new Error("terminated"));
+      },
+    }),
+    writable: {
+      getWriter() {
+        return {
+          abort() {},
+        };
+      },
+    },
+  };
+
+  const stream = createDisconnectAwareStream(
+    transformStream,
+    createStreamController({
+      onError() {
+        errorHandled = true;
+      },
+    })
+  );
+  const text = await readStreamText(stream);
+
+  assert.equal(text, "data: [DONE]\n\n");
+  assert.equal(errorHandled, false);
+  assert.doesNotMatch(text, /finish_reason/);
+  assert.doesNotMatch(text, /terminated/);
+});
+
 test("createDisconnectAwareStream: Gemini 503 high-demand error becomes SSE error chunk with message preserved", async () => {
   const geminiMsg =
     "[503]: This model is currently experiencing high demand. Spikes in demand are usually temporary. Please try again later.";

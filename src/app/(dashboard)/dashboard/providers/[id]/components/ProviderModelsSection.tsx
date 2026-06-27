@@ -252,10 +252,10 @@ export default function ProviderModelsSection({
           allowImport={compatibleSupportsModelImport}
           isModelHidden={effectiveModelHidden}
           onToggleHidden={(modelId, hidden) =>
-            handleToggleModelHidden(providerStorageAlias, modelId, hidden)
+            handleToggleModelHidden(providerId, modelId, hidden)
           }
           onBulkToggleHidden={(modelIds, hidden) =>
-            handleBulkToggleModelHidden(providerStorageAlias, modelIds, hidden)
+            handleBulkToggleModelHidden(providerId, modelIds, hidden)
           }
           bulkTogglePending={bulkVisibilityAction !== null}
           togglingModelId={togglingModelId}
@@ -326,10 +326,10 @@ export default function ProviderModelsSection({
           compatSavingModelId={compatSavingModelId}
           isModelHidden={effectiveModelHidden}
           onToggleHidden={(modelId, hidden) =>
-            handleToggleModelHidden(providerStorageAlias, modelId, hidden)
+            handleToggleModelHidden(providerId, modelId, hidden)
           }
           onBulkToggleHidden={(modelIds, hidden) =>
-            handleBulkToggleModelHidden(providerStorageAlias, modelIds, hidden)
+            handleBulkToggleModelHidden(providerId, modelIds, hidden)
           }
           bulkTogglePending={bulkVisibilityAction !== null}
           togglingModelId={togglingModelId}
