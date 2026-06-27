@@ -134,12 +134,10 @@ function lookupMessage(messages, dottedKey) {
 }
 
 function stripSourceComments(source) {
-  return source
-    .replace(/\/\*[\s\S]*?\*\//g, (match) => " ".repeat(match.length))
-    .replace(
-      /(^|[^:])\/\/.*$/gm,
-      (match, prefix) => prefix + " ".repeat(match.length - prefix.length)
-    );
+  return source.replace(
+    /("(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*'|`(?:[^`\\]|\\.)*`|\/\*[\s\S]*?\*\/|\/\/[^\r\n]*)/g,
+    (match) => (match.startsWith("//") || match.startsWith("/*") ? " ".repeat(match.length) : match)
+  );
 }
 
 function escapeRegExp(value) {
@@ -308,6 +306,20 @@ test("English includes quota-share resilience labels", () => {
     assert.equal(en.settings?.[key], expected, `en.settings.${key} should render correctly`);
     assert.ok(!en.settings[key].startsWith("__MISSING__:"), `en.settings.${key} is not a marker`);
   }
+});
+
+test("direct translation scanner preserves slashes inside strings", () => {
+  const source = [
+    'const url = "https://example.com/a//b"; // strip this comment',
+    "const text = 'literal // text';",
+    "const template = `literal // template`;",
+  ].join("\n");
+  const stripped = stripSourceComments(source);
+
+  assert.match(stripped, /https:\/\/example\.com\/a\/\/b/);
+  assert.match(stripped, /literal \/\/ text/);
+  assert.match(stripped, /literal \/\/ template/);
+  assert.doesNotMatch(stripped, /strip this comment/);
 });
 
 test("direct translation calls have English messages", () => {
