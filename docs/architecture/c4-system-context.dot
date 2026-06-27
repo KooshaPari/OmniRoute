@@ -1,0 +1,74 @@
+// C4 System Context — Phenotype monorepo substrate
+// v24 T1 / L5 P1 reduction (ADR-092, plan 2026-06-22-v24-71-pillar-cycle-14-p1)
+// 2 internal clusters: cross-cutting substrate + domain substrate
+// External actors: User, CI runner, Vault, OTel collector
+// Render: dot -Tsvg docs/architecture/c4-system-context.dot > c4-system-context.svg
+
+digraph C4_System_Context {
+    rankdir=TB; splines=true; nodesep=0.6; ranksep=0.9; compound=true;
+    node [fontname="Helvetica", fontsize=10];
+    edge [fontname="Helvetica", fontsize=9, color="#555555"];
+
+    // External actors (outside the monorepo boundary)
+    subgraph cluster_external {
+        label="External Actors (outside boundary)";
+        style=dashed; color="#999999"; fontcolor="#666666";
+        user      [label="User\n(developer)",            shape=box,      style="rounded,dashed", color="#999999"];
+        ci_runner [label="CI Runner\n(gh actions /\nheavy-runner)", shape=box, style="rounded,dashed", color="#999999"];
+        vault     [label="HashiCorp Vault\n(L50, ADR-083)", shape=cylinder, style="dashed",          color="#999999"];
+        otel_col  [label="OTel Collector\n(OTLP/HTTP)",    shape=hexagon,   style="dashed",          color="#999999"];
+    }
+
+    // Phenotype monorepo system boundary (1 box wrapping 2 internal clusters)
+    subgraph cluster_monorepo {
+        label="Phenotype monorepo (system boundary)";
+        style=solid; color="#222222"; fontcolor="#222222"; labelloc=b;
+
+        // Cluster 1: Cross-cutting substrate (foundational layer)
+        subgraph cluster_xc {
+            label="Cross-cutting Substrate";
+            style=filled; fillcolor="#eef4ff"; color="#4477aa"; fontcolor="#223366";
+            pheno_otel         [label="pheno-otel\n(OTLP exporter)",          shape=box, style="rounded,filled", fillcolor="#cfe2ff"];
+            pheno_port_adapter [label="pheno-port-adapter\n(hex ports)",      shape=box, style="rounded,filled", fillcolor="#cfe2ff"];
+            pheno_errors       [label="pheno-errors\n(AppError type)",        shape=box, style="rounded,filled", fillcolor="#cfe2ff"];
+            pheno_tracing      [label="pheno-tracing\n(distributed tracing)", shape=box, style="rounded,filled", fillcolor="#cfe2ff"];
+            pheno_config       [label="pheno-config\n(typed config + secrets)", shape=box, style="rounded,filled", fillcolor="#cfe2ff"];
+        }
+
+        // Cluster 2: Domain substrate (higher-level / consumer-facing layer)
+        subgraph cluster_domain {
+            label="Domain Substrate";
+            style=filled; fillcolor="#fff7e6"; color="#cc8844"; fontcolor="#663300";
+            pheno_mcp_router     [label="pheno-mcp-router\n(MCP routing)",            shape=box, style="rounded,filled", fillcolor="#ffe8b3"];
+            pheno_events         [label="pheno-events\n(event bus)",                   shape=box, style="rounded,filled", fillcolor="#ffe8b3"];
+            pheno_context        [label="pheno-context\n(OIDC federation, L54)",       shape=box, style="rounded,filled", fillcolor="#ffe8b3"];
+            pheno_cli_base       [label="pheno-cli-base\n(CLI scaffolding)",           shape=box, style="rounded,filled", fillcolor="#ffe8b3"];
+            pheno_flags          [label="pheno-flags\n(feature flags)",                shape=box, style="rounded,filled", fillcolor="#ffe8b3"];
+            pheno_worklog_schema [label="pheno-worklog-schema\n(worklog v2.1 validator, Python)", shape=box, style="rounded,filled", fillcolor="#ffe8b3"];
+        }
+
+        // Cross-cluster edges (domain -> cross-cutting)
+        pheno_mcp_router     -> pheno_port_adapter [label="uses ports"];
+        pheno_mcp_router     -> pheno_events       [label="dispatches via"];
+        pheno_events         -> pheno_port_adapter [label="uses ports"];
+        pheno_context        -> pheno_port_adapter [label="HTTP client port"];
+        pheno_context        -> pheno_config       [label="reads config"];
+        pheno_cli_base       -> pheno_flags        [label="exposes flags"];
+        pheno_cli_base       -> pheno_config       [label="reads config"];
+        pheno_cli_base       -> pheno_errors       [label="reports via"];
+        pheno_flags          -> pheno_config       [label="reads config"];
+        pheno_worklog_schema -> pheno_tracing      [label="structlog mirror\n(ADR-036B)", style=dashed];
+
+        // Internal cross-cutting edges (cross-cutting -> pheno-otel fan-out)
+        pheno_port_adapter -> pheno_otel [label="exports via"];
+        pheno_tracing      -> pheno_otel [label="exports via"];
+        pheno_errors       -> pheno_otel [label="exports via"];
+    }
+
+    // External edges (actors <-> crates)
+    user       -> pheno_cli_base     [label="invokes CLI",   color="#666666"];
+    ci_runner  -> pheno_port_adapter [label="runs cargo test", style=dashed, color="#666666"];
+    ci_runner  -> pheno_cli_base     [label="runs CLI",       style=dashed, color="#666666"];
+    vault      -> pheno_config       [label="fetches secrets", color="#aa3333"];
+    pheno_otel -> otel_col           [label="OTLP/HTTP",      color="#336699"];
+}

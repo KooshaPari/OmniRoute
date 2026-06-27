@@ -1,0 +1,31 @@
+name: fuzz-weekly (L25.1, v36 3e-Evolve)
+
+on:
+  schedule:
+    - cron: '0 16 * * 1'  # Monday 09:00 PDT
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  fuzz-weekly:
+    name: Weekly fuzz regression
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v4.2.2
+        with:
+          persist-credentials: false
+      - uses: dtolnay/rust-toolchain@3c5f7ea28cd621ae0bf5283f0e981fb97b8a7af9
+        with:
+          toolchain: nightly
+      - name: Run weekly fuzz schedule
+        run: |
+          bash tools/cargo-fuzz-schedule/schedule.sh --budget 600 --output evidence/fuzz-weekly.json
+      - name: Upload fuzz artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: fuzz-weekly-${{ github.run_number }}
+          path: evidence/fuzz-weekly.json
+          retention-days: 30

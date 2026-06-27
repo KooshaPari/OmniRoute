@@ -1,0 +1,119 @@
+name: Pillar Fleet Checks
+
+on:
+  schedule:
+    - cron: '0 4 * * 1'  # Monday 04:00 UTC
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  pillar-checks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with: {fetch-depth: 1}
+      - name: Inventory
+        run: bash tools/pillar-fleet/inventory.sh
+      - name: Drift
+        run: bash tools/pillar-fleet/drift.sh
+      - name: Scorecard
+        run: bash tools/pillar-fleet/scorecard.sh
+
+  cliff-sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with: {fetch-depth: 0}
+      - name: Cliff-sync scan
+        id: scan
+        run: |
+          bash tools/pillar-fleet/cliff-sync.sh > /tmp/cliff-sync.txt 2>&1 || true
+          echo "missing=$(grep -c '| ❌ |' /tmp/cliff-sync.txt || echo 0)" >> "$GITHUB_OUTPUT"
+          echo "valid=$(grep -c '| ✅ |' /tmp/cliff-sync.txt || echo 0)" >> "$GITHUB_OUTPUT"
+      - name: Comment PR with cliff-sync results
+        if: github.event_name == 'pull_request' && steps.scan.outputs.missing != '0'
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          header: cliff-sync
+          message: |
+            ## Pillar Fleet cliff-sync Report
+
+            | Metric | Count |
+            |---|---|
+            | Valid cliff.toml | ${{ steps.scan.outputs.valid }} |
+            | Missing cliff.toml | ${{ steps.scan.outputs.missing }} |
+
+            Run `bash tools/pillar-fleet/cliff-sync.sh --fix` locally to remediate.
+      - name: Upload cliff-sync log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cliff-sync-report
+          path: /tmp/cliff-sync.txt
+          retention-days: 7
+
+  trend-report:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    if: github.event_name == 'schedule'
+    steps:
+      - uses: actions/checkout@v4
+        with: {fetch-depth: 0}
+      - name: Generate trend report
+        run: bash tools/pillar-fleet/trend.sh --out findings/
+      - name: Create PR with trend report
+        uses: peter-evans/create-pull-request@v6
+        with:
+          commit-message: "docs(pillar-trend): weekly trend report ${{ github.run_id }}"
+          branch: pillar-trend-report-${{ github.run_id }}
+          title: "pillar-trend: weekly scorecard trend report"
+          body: |
+            Automated weekly trend report from `tools/pillar-fleet/trend.sh`.
+
+            Compares current vs prior cycle scores. Posted every Monday 04:00 UTC.
+          delete-branch: true
+
+  nested-repo-lint:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+        with: {fetch-depth: 1}
+      - name: Scan nested git repos
+        id: scan
+        run: |
+          FOUND=$(find . -maxdepth 3 -name ".git" -type d | \
+            grep -v "^\./\.git$" | \
+            grep -v "^\..*/\.git$" | \
+            sed 's|/\.git||' | sort -u || true)
+          COUNT=$(echo "$FOUND" | grep -c . || true)
+          echo "found=$(echo "$FOUND")" >> "$GITHUB_OUTPUT"
+          echo "count=$COUNT" >> "$GITHUB_OUTPUT"
+          if [ "$COUNT" -gt 0 ]; then
+            echo "WARNING: Found $COUNT nested git repos (not in parent index, not in .gitmodules):" >&2
+            echo "$FOUND" >&2
+          fi
+      - name: Comment PR with nested-repo results
+        if: github.event_name == 'pull_request' && steps.scan.outputs.count != '0'
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          header: nested-repo
+          message: |
+            ## Nested Git Repository Detected
+
+            Found **${{ steps.scan.outputs.count }}** nested git repo(s):
+
+            `${{ steps.scan.outputs.found }}`
+
+            Nested git repos cause CI failures when `actions/checkout@v4` runs
+            `git submodule foreach --recursive` during post-cleanup.
+
+            **To fix:** Add to `.gitignore` (if not a workspace member) or add to
+            `.gitmodules` (if intentional submodule). Document in `AGENTS.md`
+            per the nested-repo pattern.

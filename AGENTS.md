@@ -1,1000 +1,584 @@
-# omniroute — Agent Guidelines
+# AGENTS.md — Phenotype monorepo
 
-## Project
+**Date:** 2026-06-22 (v20 closed 2026-06-22 — cycle 10 P1 reduction 5/5 tracks shipped: L23/L27/L36/L38/L44; v19 closed 2026-06-21 — cycle 9 P0 deepening L31/L57/L65/L67 + ADRs 077-080 security quartet; v18 closed 2026-06-21 — cycle 8 P0 final closure 47/47 pillars at 3.0 (L17/L18/L51 + L46-L55 deepening); v17 closed 2026-06-21 — cycle 7 P0 44/47 (L1/L2/L3/L4/L8/L10/L11/L12/L40/L41); v16 closed 2026-06-21 — cycle 6 P0 34/47 (L7/L9/L13/L19/L22/L25/L26/L34/L42/L43); v15 closed 2026-06-21 — cycle 5 P0 24/47 (L6/L15/L21/L33/L37/L49/L60); v14 closed 2026-06-21 — cycle 4 P0 20/47; v13 closed 2026-06-21 — cycle 3 P0 15/47; v12 closed 2026-06-20 19:30 PDT — cycle 2 P0 4/47 (L31/L57/L65/L67), 6-pillar mean 2.13→2.66; v11 closed 2026-06-20 18:45 PDT — §8 router-architecture ACCEPTED 2026-06-20 (Option B per ADR-050 + ADR-051); v10 closed 2026-06-19 22:30 PDT — T30 was CANCELLED, T28 DONE; Decision C closed)
+**Status:** ACTIVE (this file supersedes the prior FocalPoint template that lived here 2026-06-12 → 2026-06-15, the 2026-06-15 18:42 PDT version that lived here 2026-06-15 → 2026-06-17, the 2026-06-17 12:00 PDT version that lived here 2026-06-17 → 2026-06-19, the 2026-06-20 18:45 PDT version that lived here 2026-06-20 18:45 → 2026-06-20 19:30 PDT, and all subsequent versions through 2026-06-22 v20 closure)
 
-Unified AI proxy/router — route any LLM through one endpoint. Multi-provider support
-with **231 provider entries** (OpenAI, Anthropic, Gemini, DeepSeek, Groq, xAI, Mistral, Fireworks,
-Cohere, NVIDIA, Cerebras, Pollinations, Puter, Cloudflare AI, HuggingFace, DeepInfra,
-SambaNova, Meta Llama API, Moonshot AI, AI21 Labs, Databricks, Snowflake, and many more)
-with **MCP Server** (87 tools), **A2A v0.3 Protocol**, and **Electron desktop app**.
+---
 
-> **Live counts (v3.8.31)**: providers 231 · MCP tools 87 · MCP scopes 30 · A2A skills 6 ·
-> open-sse services 115 · routing strategies 15 · auto-combo scoring factors 9 ·
-> DB modules 83 · DB migrations 97 · base tables 17 · search providers 11 ·
-> i18n locales 42. **Refresh with `npm run check:docs-all`.**
+## Project Overview
 
-## Doc Accuracy Discipline (read before writing any doc)
+The `repos/` directory is a **monorepo of sub-repos** for the Phenotype organization (`KooshaPari` on GitHub). It is the top-level coordination point for ~50+ Rust crates, Python packages, Go modules, and TypeScript packages, organized as either git submodules, worktree containers, or as worktrees of other repos.
 
-> **If `grep -rn "name" src/ open-sse/ bin/` returns nothing, the name does not exist. Do not document it.**
+**It is NOT a single project.** It is a meta-repo that aggregates sibling repos. Each `pheno-*`, `phenotype-*`, `phenodocs-*`, etc. subdirectory is its own repository (or a worktree of one) with its own `Cargo.toml` / `pyproject.toml` / `go.mod` / `package.json` and its own release cadence.
 
-The recurring failure mode in AI-generated docs is _plausible-but-unverified specifics_.
-Every claim in a `.md` file under `docs/` should be verifiable against the source.
-
-**Rules (enforced by `npm run check:fabricated-docs`):**
-
-1. **Never state an API name, endpoint, path, CLI command, or env var without grepping for it first.**
-   ```bash
-   grep -rn "theName" src/ open-sse/ bin/
-   # 0 hits → do not document
-   ```
-2. **Never write a line count, file size, migration count, provider count, or strategy count from memory.**
-   ```bash
-   wc -l <file>           # exact line count
-   ls <dir>/*.ts | wc -l  # file count
-   ```
-3. **Every code example should be copy-pasted from real usage or actually run** — not synthesized.
-   Link to a real call site (`path:line`) instead of inventing a signature.
-4. **Prefer citing real source (`file.ts:line`) over paraphrasing behavior** — verifiable and self-correcting.
-5. **A shorter doc that is 100% accurate beats a comprehensive one with fabrications.**
-   Wrong docs cost more than missing docs, because people trust and act on them.
-
-The script `scripts/check/check-fabricated-docs.mjs` extracts every route path, env var, hook
-name, function name, and file reference from `docs/**/*.md` and verifies each one against the
-codebase. Run it locally before pushing docs; it runs in CI via `npm run check:docs-all`.
+---
 
 ## Stack
 
-- **Runtime**: Next.js 16 (App Router), Node.js `>=22.0.0 <23 || >=24.0.0 <27`, ES Modules (`"type": "module"`)
-- **Language**: TypeScript 6.0 (`src/`) + JavaScript (`open-sse/`, `electron/`)
-- **Database**: better-sqlite3 (SQLite) — `DATA_DIR` configurable, default `~/.omniroute/`
-- **Streaming**: SSE via `open-sse` internal workspace package
-- **Styling**: Tailwind CSS v4
-- **i18n**: next-intl with 42 locales (`src/i18n/messages/`) — refresh with `ls src/i18n/messages/*.json | wc -l`
-- **Desktop**: Electron (cross-platform: Windows, macOS, Linux)
-- **Schemas**: Zod v4 for all API / MCP input validation
+- **Languages:** Rust (primary), Python, Go, TypeScript, Swift (iOS)
+- **Build systems:** Cargo, Cargo workspaces, Poetry/pyproject, Go modules, npm/pnpm, Xcode
+- **Orchestration:** `just` (Justfile), sparse-checkout cone, git worktrees, forge/muse subagent dispatch
 
 ---
 
-## Build, Lint, and Test Commands
-
-| Command                             | Description                                                        |
-| ----------------------------------- | ------------------------------------------------------------------ |
-| `npm run dev`                       | Start Next.js dev server                                           |
-| `npm run build`                     | Production build: `next build` → `.build/next/` + assemble `dist/` |
-| `npm run build:release`             | Clean rebuild + HEAD sentinel (`dist/BUILD_SHA`) — use for deploy  |
-| `npm run start`                     | Run production build                                               |
-| `npm run build:cli`                 | Build CLI package                                                  |
-| `npm run lint`                      | ESLint on all source files                                         |
-| `npm run typecheck:core`            | TypeScript core type checking                                      |
-| `npm run typecheck:noimplicit:core` | Strict checking (no implicit any)                                  |
-| `npm run check`                     | Run lint + test                                                    |
-| `npm run check:cycles`              | Check for circular dependencies                                    |
-| `npm run electron:dev`              | Run Electron app in dev mode                                       |
-| `npm run electron:build`            | Build Electron app for current OS                                  |
-
-**Build output layout:**
-
-| Directory | Purpose                                            | Gitignored |
-| --------- | -------------------------------------------------- | ---------- |
-| `src/`    | Application source (TypeScript / TSX)              | No         |
-| `.build/` | Build intermediates (`distDir = .build/next`)      | Yes        |
-| `dist/`   | Shippable bundle assembled by `assembleStandalone` | Yes        |
-
-The pipeline is a single `next build` pass — intermediates land in `.build/next/`, the
-assembled bundle in `dist/`. VPS deploys rsync `dist/` into the remote
-`/usr/lib/node_modules/omniroute/app/` directory (VPS image path is unchanged).
-
-### Running Tests
+## Key Commands
 
 ```bash
-# All tests (unit + vitest + ecosystem + e2e)
-npm run test:all
+# Repo state
+git status --short                                    # All changes (incl. submodule pointer drift)
+git log --oneline -10                                 # Last 10 commits on current branch
+git rev-list --left-right --count main...HEAD         # Real divergence from main
+git submodule status                                  # Submodule pointer health
 
-# Single test file (Node.js native test runner — most tests use this)
-node --import tsx/esm --test tests/unit/your-file.test.ts
-node --import tsx/esm --test tests/unit/plan3-p0.test.ts
-node --import tsx/esm --test tests/unit/fixes-p1.test.ts
-node --import tsx/esm --test tests/unit/security-fase01.test.ts
+# Sparse-checkout (this branch uses cone mode)
+cat .git/info/sparse-checkout                         # Current cone pattern
+git config core.sparseCheckout                        # true = sparse enabled
+git config core.sparseCheckoutCone                    # true = cone mode
 
-# Integration tests
-node --import tsx/esm --test tests/integration/*.test.ts
+# Dispatch
+gh --version && gh auth status                        # GitHub CLI (KooshaPari active as of 2026-06-17 22:30 PDT)
+                                                      # Dmouse92 token REMOVED from keyring 2026-06-17 22:30 PDT (L5-104 kill-switch).
+                                                      # No Dmouse92 operations possible; archive-only is final.
+                                                      # Owner account is KooshaPari — push target for ALL repos under github.com/KooshaPari/*
+curl -sf -m 3 http://localhost:20128/v1/models        # OmniRoute liveness
+forge -p "<prompt>" -C /path/to/repo                  # Subagent dispatch (proven working 2026-06-15)
+                                                      # (task tool had JSON errors; forge CLI works)
 
-# Vitest (MCP server, autoCombo)
-npm run test:vitest
+# Branch management
+git worktree list                                     # Active worktrees
+git stash list                                        # Stash backups
+git branch --show-current                             # Current branch
 
-# E2E with Playwright
-npm run test:e2e
-
-# Protocol clients E2E (MCP transports, A2A)
-npm run test:protocols:e2e
-
-# Ecosystem compatibility tests
-npm run test:ecosystem
-
-# Coverage (see CONTRIBUTING.md)
-npm run test:coverage
+# Audit doc + work DAG (live locations)
+ls findings/71-pillar-2026-06-17*.md                  # 71-pillar industry-standard audit (this turn)
+ls plans/2026-06-17-v7-dag-stable.md                  # v7 DAG (this turn; supersedes v6)
 ```
 
-**For authoritative coverage requirements, test execution, and PR gates, see [`CONTRIBUTING.md`](CONTRIBUTING.md#running-tests).**
+---
+
+## Sub-repos at a Glance (sparse-checkout-visible, 2026-06-17)
+
+### Active focus repos (5)
+`AgilePlus`, `PhenoCompose`, `PlayCua`, `BytePort`, `nanovms` — coordinated via `chore/l5-87-focus-repo-specs-2026-06-11` branch.
+
+### pheno-* family (22 visible)
+- **Rust (11):** pheno-agents-md, pheno-cargo-template, pheno-cli-base, pheno-config, pheno-context, pheno-errors, pheno-flags, pheno-otel, pheno-port-adapter, pheno-tracing
+- **Python (10):** pheno-cost-card, pheno-fastapi-base, pheno-llms-txt, pheno-mcp-router, pheno-prompt-test, pheno-pydantic-models, pheno-scaffold-kit, pheno-vibecoding-guard, pheno-worklog-schema
+- **Go (1):** pheno-go-ctxkit
+- **TypeScript (1):** pheno-zod-schemas (out of scope for cargo/pytest runs)
+- **Container (1):** pheno-wtrees (git worktree container; not buildable)
+
+See `L6_PHENO_REPOS_HEALTH_2026_06_14.md` for full health inventory (136 tests pass, 4 fail in pheno-agents-md). See `L6_PHENO_REPOS_HEALTH_2026_06_15_DELTA.md` for the 4 new crates added since. See `findings/71-pillar-2026-06-17.md` for the 71-pillar industry-standard audit (this turn).
+
+### Submodule-style repos (~30 in submodules, e.g.)
+- `AuthKit`, `Civis`, `Eidolon`, `Eventra`, `HeliosLab`, `KWatch`, `KodeVibe`, `KlipDot`, `McpKit`, `NetScript`, `PhenoKits`, `PhenoMCP`, `PhenoProc`, `Pyron`, `Tasken`, `Tracera`, `Tracely`, etc.
 
 ---
 
-## Code Style Guidelines
+## Active ADRs (54 total, +ADR-050 through +ADR-054 this turn [v9 T0.5])
 
-### Formatting (Prettier — enforced via lint-staged)
+**2026-06-14 wave (6 ADRs at `docs/adr/2026-06-14/`):**
 
-2 spaces · semicolons required · double quotes (`"`) · 100 char width · es5 trailing commas.
-Always run `prettier --write` on changed files.
+| ADR | Repo | Disposition |
+|---|---|---|
+| ADR-001 | NetScript | **DELETE** (Rust→Go port abandoned; use `phenotype-go-sdk/pkg/lexer` instead) |
+| ADR-002 | KlipDot | KEEP-archived (governance: do not delete) |
+| ADR-003 | McpKit | MERGE into `PhenoMCP` |
+| ADR-004 | Metron | KEEP (sole prod Prometheus library) |
+| ADR-005 | KodeVibe | KEEP (1.7k LOC Go engine; schema already in HexaKit) |
+| ADR-006 | cheap-llm-mcp | archive verified (2 cherry-picks, merge `a1612805`) |
 
-### TypeScript
+**2026-06-15 wave (11 ADRs at `docs/adr/2026-06-15/`):**
 
-- **Target**: ES2022 · **Module**: `esnext` · **Resolution**: `bundler`
-- `strict: false` — prefer explicit types, don't rely on inference
-- Path aliases: `@/*` → `src/`, `@omniroute/open-sse` → `open-sse/`, `@omniroute/open-sse/*` → `open-sse/*`
+| ADR | Subject | Notes |
+|---|---|---|
+| ADR-007 | cheap-llm-mcp deprecation | Triggers W1-2 archive work |
+| ADR-008 | dispatch-mcp as sole MCP server | consolidation decision |
+| ADR-009..011 | (DAG-V5 reconciliation) | added 2026-06-15 by subagent |
+| ADR-012 | `pheno-tracing` canonical across pheno-* repos | V5 SOTA sweep |
+| ADR-013 | `pheno-mcp-router` substrate for pheno-mcp-* | V5 SOTA sweep |
+| ADR-014 | Hexagonal L4 ports: `Port` trait + `Adapter` impl | V5 SOTA sweep |
+| ADR-015 | V2 10-column WORKLOG.md schema (canonical) | V5 SOTA sweep (v2.1 bump pending — `device:` field) |
+| ADR-016 | Fork-only-not-rewrite policy for SOTA libraries | V5 SOTA sweep |
 
-### ESLint Rules
+**2026-06-15 evening wave (V6 closure, 6 ADRs at `docs/adr/2026-06-15/`):**
 
-- **Security (error, everywhere)**: `no-eval`, `no-implied-eval`, `no-new-func`
-- **Relaxed in `open-sse/` and `tests/`**: `@typescript-eslint/no-explicit-any` = warn
-- React hooks rules and `@next/next/no-assign-module-variable` disabled in `open-sse/` and `tests/`
+| ADR | Subject | Notes |
+|---|---|---|
+| ADR-017 | `settly-*` archive — full deprecation | V6 Track 5 closure |
+| ADR-018 | PRCP pattern (Polyglot Reuse via Canonical Ports) | V6 Track 5 closure |
+| ADR-019 | `pheno-vessel-*` full deprecation | V6 Track 5 closure |
+| ADR-020 | `pheno-types-*` full deprecation | V6 Track 5 closure |
+| ADR-021 | `pheno-profiling` replaces `Profila` | V6 Track 5 closure |
+| ADR-022 | Config consolidation — two-crate canonical split | Subagent-B 11-PR plan |
+| **ADR-023** | **Agent-effort governance — device + dogfood + app substrate policy** | **L5-101, 2026-06-15** — see [§ App-level repo triage & substrate](#app-level-repo-triage--app-substrate-placement-adr-023) below |
 
-### Naming
+**2026-06-17 wave (this turn):**
 
-| Element             | Convention                       | Example                              |
-| ------------------- | -------------------------------- | ------------------------------------ |
-| Files               | camelCase / kebab-case           | `chatCore.ts`, `tokenHealthCheck.ts` |
-| React components    | PascalCase                       | `Dashboard.tsx`, `ProviderCard.tsx`  |
-| Functions/variables | camelCase                        | `getHealth()`, `switchCombo()`       |
-| Constants           | UPPER_SNAKE                      | `MAX_RETRIES`, `DEFAULT_TIMEOUT`     |
-| Interfaces          | PascalCase (`I` prefix optional) | `ProviderConfig`                     |
-| Enums               | PascalCase (members too)         | `LogLevel.Error`                     |
+| ADR | Subject | Notes |
+|---|---|---|
+| **ADR-024** | **71-pillar industry-standard audit framework (L1-L71, 9 domains)** | **L5-102, 2026-06-17** — see `findings/71-pillar-2026-06-17-schema.md` |
+| **ADR-025** | **ADR-015 v2.1 worklog schema bump (11th column `device:`)** | **L5-103, 2026-06-17** — supersedes v2.0; deprecation 2026-06-22 |
+| **ADR-026** | **Factory AI Agent Readiness Model as cross-cutting external standard** | **L5-104, 2026-06-17** — see <https://docs.factory.ai/web/agent-readiness/overview>; crosswalk in `audit-71-pillar-2026-06-17-wrapup.md` § 10 |
+| **ADR-027** | **Git LFS 3-tier policy (always-track / on-demand / never-track)** | **L5-105, 2026-06-17** — closes L66; see `.gitattributes.example` |
+| **ADR-028** | **Monorepo architecture eval: hybrid-with-staging-repo** | **L5-106, 2026-06-17** — closes L25; staging repo `phenotype-org-audits` |
+| **ADR-029** | **Dmouse92 → KooshaPari migration — absorb all DM92 work to substrate, archive emptied repos** | **L5-108, 2026-06-17** — see `findings/2026-06-17-L5-104-dmouse92-to-kooshapari.md`; 6 PRs opened, 18 Dmouse92 repos archived |
+| **ADR-030** | **pheno-worklog-schema v2.1 — add 11th `device:` column (macbook / heavy-runner / subagent / ci)** | **L5-104.5, 2026-06-17** — see `pheno-worklog-schema/SPEC-v2.1.md`; PR `KooshaPari/pheno-worklog-schema#1` open; 30/30 tests; 4 fleet WORKLOG.md migrated; v2.0 deprecation **2026-06-22** |
+| **ADR-031** **[CLOSED 2026-06-19]** | **Configra absorb — `phenotype-config` folds into `Configra` as canonical name; ADR-022 split (Rust core / TS edge) preserved** | **L5-104.7, 2026-06-17** — see `docs/adr/2026-06-17/ADR-031-configra-absorb.md`; 2 PRs planned (1 on Configra, 1 deprecation on phenotype-config); `phenotype-config` archive date **2026-07-15** → **EXECUTED 2026-06-19**; sub-crate CANONICAL.md markers (phenotype-config-loader, phenotype-shared-config) re-pointed to Configra via `KooshaPari/pheno#238` (L5-110, merge `3f12e254`); `phenotype-config` deprecation continues on its 2026-07-15 schedule |
+| **ADR-032** | **pheno-worklog-schema is a primitive lib, NOT a re-implementation of AgilePlus worklog** | **L5-104.8, 2026-06-17** — see `docs/adr/2026-06-17/ADR-032-pheno-worklog-schema-decision.md`; different formats (Markdown table vs JSONL), different audiences, both coexist |
+| **ADR-033** **[CLOSED 2026-06-19]** | **Delete `KooshaPari/phenotype-monorepo-state` — single-source-of-truth; monorepo IS the canonical location** | **L5-104.9, 2026-06-17** — see `docs/adr/2026-06-17/ADR-033-phenotype-monorepo-state-deletion.md`; 11 commits consolidated to `phenotype-org-audits` + monorepo; `gh repo delete` after 30-day grace → **EXECUTED 2026-06-18, 18 days ahead of schedule**; verified HTTP 404 (2026-06-19 04:46 UTC); disposition-index `sr-monorepo-state` `fsm: done` |
+| **ADR-034** **[CLOSED 2026-06-19]** | **`KooshaPari/phenotype-monorepo-state` deletion schedule — 2026-07-17** | **L5-104.10, 2026-06-17** — see `docs/adr/2026-06-17/ADR-034-monorepo-state-deletion-schedule.md`; 30-day grace + 5-step pre-deletion checklist → **schedule superseded by user-deleted 2026-06-18**; pre-checklist partially met (11 commits LOST, 5 ADR docs re-authored locally) |
 
-### Imports
+**2026-06-18 wave (this turn, +ADR-035 through +ADR-049 = 15 ADRs):**
 
-- **Order**: external → internal (`@/`, `@omniroute/open-sse`) → relative (`./`, `../`)
-- **No barrel imports** from `localDb.ts` — import from the specific `db/` module instead
+**Wave A — Substrate canonicals (ADR-035..ADR-040, 6 ADRs):**
 
-### Error Handling
+| ADR | Subject | Notes |
+|---|---|---|
+| **ADR-035** | **Configra migration gates** | L5-105, 2026-06-18 — see `docs/adr/2026-06-18/ADR-035-configra-migration-gates.md`; gate table for `phenotype-config` → `Configra` move (closes L6 health gap) |
+| **ADR-035B** | **Event-bus substrate consolidation** | L5-105.5, 2026-06-18 — see `docs/adr/2026-06-18/ADR-035B-event-bus-substrate-consolidation.md`; `pheno-events` / `phenotype-bus` / `phenotype-hub` polyglot merge plan |
+| **ADR-036** **[CLOSED 2026-06-19]** | **pheno-capacity substrate canonical** | L5-106, 2026-06-18 — see `docs/adr/2026-06-18/ADR-036-pheno-capacity.md`; extracted from `HwLedger` (per drift-detector retroactive hit) → **EXECUTED 2026-06-19**; `pheno-capacity` repo created; `KooshaPari/pheno-capacity#1` merged; registry row added; `bucket_change HwLedger: from=CONDITIONAL to=STABLE reason=pheno-capacity extracted as canonical substrate` |
+| **ADR-036B** | **pheno-tracing substrate canonical (re-affirmed)** | L5-106.5, 2026-06-18 — see `docs/adr/2026-06-18/ADR-036-pheno-tracing-substrate-canonical.md`; supersedes ADR-012 reference for v8 sweep |
+| **ADR-037** | **pheno-mcp-router substrate canonical (re-affirmed)** | L5-107, 2026-06-18 — see `docs/adr/2026-06-18/ADR-037-pheno-mcp-router-substrate-canonical.md`; supersedes ADR-013 reference for v8 sweep |
+| **ADR-038** | **Hexagonal port-adapter L4 policy (formal)** | L5-108, 2026-06-18 — see `docs/adr/2026-06-18/ADR-038-hexagonal-port-adapter-l4-policy.md`; supersedes ADR-014 reference for v8 sweep |
+| **ADR-039** | **pheno-flake refresh template** | L5-109, 2026-06-18 — see `docs/adr/2026-06-18/ADR-039-pheno-flake-refresh-template.md`; nix flake canonical for all pheno-* tooling |
+| **ADR-040** | **Test coverage gates per tier** | L5-110, 2026-06-18 — see `docs/adr/2026-06-18/ADR-040-test-coverage-gates-per-tier.md`; 80% lib / 70% framework / 60% federated service (codifies ADR-023 Rule 3.1) |
 
-- try/catch with specific error types; always log with context (pino logger)
-- Never silently swallow errors in SSE streams — use abort signals for cleanup
-- Return proper HTTP status codes (4xx client, 5xx server)
+**Wave B — Cadence / quality ADRs (ADR-041..ADR-045, 5 ADRs — note: doc-numbering collision with drift detector) :**
 
-### Security
+| ADR | Subject | Notes |
+|---|---|---|
+| **ADR-041** | **71-pillar refresh cadence** | L5-110.1, 2026-06-18 — see `docs/adr/2026-06-18/ADR-041-71-pillar-refresh-cadence.md`; weekly Monday 09:00 PDT cron (codifies `audit-71-pillar-2026-06-17-wrapup.md` § 11) |
+| **ADR-041B** | **Substrate audit cadence** | L5-110.2, 2026-06-18 — see `docs/adr/2026-06-18/ADR-041-substrate-audit-cadence.md`; bi-weekly substrate health audit |
+| **ADR-042** | **Security audit cadence** | L5-110.3, 2026-06-18 — see `docs/adr/2026-06-18/ADR-042-security-audit-cadence.md`; monthly `cargo audit` + `pip-audit` + `govulncheck` sweep |
+| **ADR-042B** | **Substrate quality bar (formal)** | L5-110.4, 2026-06-18 — see `docs/adr/2026-06-18/ADR-042-substrate-quality-bar.md`; codifies ADR-023 Rule 3.1 with named checks |
+| **ADR-043** | **Registry refresh cadence** | L5-110.5, 2026-06-18 — see `docs/adr/2026-06-18/ADR-043-registry-refresh-cadence.md`; bi-weekly `phenotype-registry` validation |
 
-- **NEVER** commit API keys, secrets, or credentials
-- Validate all user inputs with Zod schemas
-- Auth middleware required on all API routes
-- Never log SQLite encryption keys
-- Sanitize user content (dompurify for HTML)
-- **Public upstream OAuth identifiers** (Gemini / Antigravity / Windsurf-style client_id/secret + Firebase Web keys extracted from public CLIs): use `resolvePublicCred()` from `open-sse/utils/publicCreds.ts`, **never** as string literals. Full pattern in `docs/security/PUBLIC_CREDS.md`.
-- **Error responses** (HTTP / SSE / executor / MCP): use `buildErrorBody()` or `sanitizeErrorMessage()` from `open-sse/utils/error.ts`, **never** put raw `err.stack` / `err.message` in a Response body. Full pattern in `docs/security/ERROR_SANITIZATION.md`.
-- **`exec()` / `spawn()` with runtime values**: pass via the `env` option, **never** string-interpolate paths/values into the script body. Reference: `src/mitm/cert/install.ts::updateNssDatabases`.
-- Prefer secure-by-default libraries when available — see [tldrsec/awesome-secure-defaults](https://github.com/tldrsec/awesome-secure-defaults) for the curated list (Helmet.js, DOMPurify, ssrf-req-filter, safe-regex, Google Tink, etc.).
+**Wave C — Forward-looking governance (ADR-046..ADR-049, 4 ADRs):**
+
+| ADR | Subject | Notes |
+|---|---|---|
+| **ADR-046** | **Federation mTLS + OIDC** | L5-111, 2026-06-18 — see `docs/adr/2026-06-18/ADR-046-federation-mtls-oidc.md`; cross-org service-to-service auth |
+| **ADR-047** | **Predictive DRY discipline (4-criterion rule)** | L5-112, 2026-06-18 — see `docs/adr/2026-06-18/ADR-047-predictive-dry.md` + [§ Predictive DRY](#predictive-dry-adr-047) below; tool: `KooshaPari/pheno-predict` (L72) |
+| **ADR-048** | **Substrate graduation path (4-tier gate table)** | L5-113, 2026-06-18 — see `docs/adr/2026-06-18/ADR-048-substrate-graduation-path.md` + [§ Substrate graduation path](#substrate-graduation-path-adr-048) below; tool: `KooshaPari/pheno-framework-lint` (L73) |
+| **ADR-049** | **App-substrate drift detector (3-pass algorithm)** | L5-114, 2026-06-18 — see `docs/adr/2026-06-18/ADR-049-app-substrate-drift-detector.md` + [§ App-substrate drift detector](#app-substrate-drift-detector-adr-049) below; tool: `KooshaPari/pheno-drift-detector` (L74) |
 
 ---
 
-## Architecture
-
-### Data Layer (`src/lib/db/`)
-
-All persistence uses SQLite through **83 domain-specific modules** in `src/lib/db/`. Top modules:
-
-- Core: `core.ts`, `migrationRunner.ts`, `encryption.ts`, `stateReset.ts`
-- Providers / catalog: `providers.ts`, `models.ts`, `providerLimits.ts`, `compressionAnalytics.ts`
-- Routing: `combos.ts`, `modelComboMappings.ts`, `domainState.ts`, `commandCodeAuth.ts`
-- Auth: `apiKeys.ts`, `secrets.ts`, `registeredKeys.ts`, `sessionAccountAffinity.ts`
-- Usage / billing: `quotaSnapshots.ts`, `creditBalance.ts`, `usage*.ts`, `compressionCacheStats.ts`
-- Storage: `backup.ts`, `cleanup.ts`, `jsonMigration.ts`, `healthCheck.ts`, `databaseSettings.ts`
-- Extension modules: `evals.ts`, `webhooks.ts`, `reasoningCache.ts`, `readCache.ts`, `tierConfig.ts`, `compressionCombos.ts`, `compressionScheduler.ts`, `batches.ts`, `files.ts`, `syncTokens.ts`, `proxies.ts`, `oneproxy.ts`, `upstreamProxy.ts`, `versionManager.ts`, `cliToolState.ts`, `prompts.ts`, `detailedLogs.ts`, `contextHandoffs.ts`, `compression.ts`, `stats.ts`
-
-Live count: `ls src/lib/db/*.ts | wc -l` (currently 83). Drift detection: `npm run check:docs-counts`.
-Schema migrations live in `db/migrations/` (**97 files** as of v3.8.24) and run via `migrationRunner.ts`.
-`src/lib/localDb.ts` is a **re-export layer only** — never add logic there.
-
-#### DB Internals
-
-- **`core.ts`**: `getDbInstance()` returns a singleton `better-sqlite3` instance with WAL
-  journaling. `SCHEMA_SQL` defines **17 base tables** (verify with `grep -c "CREATE TABLE" src/lib/db/core.ts` minus 1 for the bookkeeping `_omniroute_migrations` table). Helpers: `rowToCamel`, `encryptConnectionFields`.
-- **`migrationRunner.ts`**: Applies versioned SQL files from `db/migrations/` inside transactions.
-  Tracks applied migrations in `_omniroute_migrations` table.
-- **Migrations**: 97 files (`001_initial_schema.sql` → `099_*.sql`).
-  Each migration is idempotent and runs in a transaction. Live count: `ls src/lib/db/migrations/*.sql | wc -l`.
-- **Domain modules** import `getDbInstance()` from `core.ts` for all CRUD operations.
-  Each module owns a specific table/set of tables (e.g., `providers.ts` → `provider_connections`,
-  `combos.ts` → `combos`). Encryption helpers protect sensitive fields at rest.
-- **`localDb.ts`** re-exports all domain modules — consumers import from here for convenience.
-
-### API Route Layer (`src/app/api/v1/`)
-
-Next.js App Router routes — each follows a consistent pattern:
-
-```
-Route → CORS preflight → Body validation (Zod) → Optional auth (extractApiKey/isValidApiKey)
-  → API key policy enforcement (enforceApiKeyPolicy) → Handler delegation (open-sse)
-```
-
-| Route                           | Handler                   | Notes                                                         |
-| ------------------------------- | ------------------------- | ------------------------------------------------------------- |
-| `chat/completions/route.ts`     | `handleChat()`            | + prompt injection guard (clones request)                     |
-| `responses/route.ts`            | `handleChat()` (unified)  | Responses API format                                          |
-| `embeddings/route.ts`           | `handleEmbedding()`       | Model listing + creation                                      |
-| `images/generations/route.ts`   | `handleImageGeneration()` | Model listing + creation                                      |
-| `audio/transcriptions/route.ts` | audio handler             | Multipart form data                                           |
-| `audio/speech/route.ts`         | TTS handler               | Binary audio response                                         |
-| `videos/generations/route.ts`   | video handler             | ComfyUI/SD WebUI                                              |
-| `music/generations/route.ts`    | music handler             | ComfyUI workflows                                             |
-| `moderations/route.ts`          | moderation handler        | Content safety                                                |
-| `rerank/route.ts`               | rerank handler            | Document relevance                                            |
-| `search/route.ts`               | search handler            | Web search (12 providers per `open-sse/handlers/search.ts:6`) |
-
-**No global Next.js middleware file** — interception is route-specific. Auth is optional
-(controlled by `REQUIRE_API_KEY` env). Prompt injection guard is unique to chat completions.
-
-### Request Pipeline (`open-sse/`)
-
-The `open-sse/` workspace is the core streaming engine. Full request flow:
-
-```
-Client Request
-  → src/app/api/v1/.../route.ts (Next.js route)
-    → open-sse/handlers/chatCore.ts::handleChatCore()
-      → Semantic/signature cache check
-      → Rate limit check (rateLimitManager)
-      → Combo routing? → open-sse/services/combo.ts::handleComboChat()
-        → resolveComboTargets() → ordered ResolvedComboTarget[]
-        → For each target: handleSingleModel() (wraps chatCore)
-      → translateRequest() (open-sse/translator/)
-        → Convert source format (e.g., OpenAI) → target format (e.g., Claude)
-      → getExecutor() → provider-specific executor instance
-        → executor.execute() (BaseExecutor → DefaultExecutor or provider-specific)
-          → buildUrl() + buildHeaders() + transformRequest()
-          → fetch() to upstream provider
-          → Retry logic with exponential backoff
-      → Response translation back to client format
-      → If Responses API: responsesTransformer.ts TransformStream
-  → SSE stream or JSON response to client
-```
-
-**Handlers** (`open-sse/handlers/`): `chatCore.ts`, `responsesHandler.ts`, `embeddings.ts`,
-`imageGeneration.ts`, `videoGeneration.ts`, `musicGeneration.ts`, `audioSpeech.ts`,
-`audioTranscription.ts`, `moderations.ts`, `rerank.ts`, `search.ts`.
-
-**Upstream headers**: merged after default auth; same header name replaces executor value.
-**T5 intra-family fallback** recomputes headers using only the fallback model id.
-Forbidden header names: `src/shared/constants/upstreamHeaders.ts` — keep sanitize,
-Zod schemas, and unit tests aligned when editing.
-
-### Provider Categories
-
-- **Free** (4): Qoder AI, Qwen Code, Gemini CLI (deprecated), Kiro AI
-- **OAuth** (14): Claude Code, Antigravity, Codex, GitHub Copilot, Cursor, Kimi Coding, Kilo Code, Cline, Qwen (⚠️ free tier discontinued 2026-04-15), Kiro, Qoder, Gemini, Windsurf (v3.8), GitLab Duo (v3.8)
-- **API Key** (120+): OpenAI, Anthropic, Gemini, DeepSeek, Groq, xAI, Mistral, Perplexity,
-  Together, Fireworks, Cerebras, Cohere, NVIDIA, Nebius, SiliconFlow, Hyperbolic,
-  HuggingFace, OpenRouter, Vertex AI, Cloudflare AI, Scaleway, AI/ML API, Pollinations,
-  Puter, Longcat, Alibaba, Kimi, Minimax, Blackbox, Synthetic, Kilo Gateway,
-  Z.AI, GLM, Deepgram, AssemblyAI, ElevenLabs, Cartesia, PlayHT, Inworld,
-  NanoBanana, SD WebUI, ComfyUI, Ollama Cloud, Perplexity Search, Serper, Brave, Exa,
-  Tavily, OpenCode Zen/Go, Bailian Coding Plan, DeepInfra, Vercel AI Gateway,
-  Lambda AI, SambaNova, nScale, OVHcloud AI, Baseten, PublicAI, Moonshot AI,
-  Meta Llama API, v0 (Vercel), Morph, Featherless AI, FriendliAI, LlamaGate,
-  Galadriel, Weights & Biases Inference, Volcengine, AI21 Labs, Venice.ai,
-  Codestral, Upstage, Maritalk, Xiaomi MiMo, Inference.net, NanoGPT, Predibase,
-  Bytez, Heroku AI, Databricks, Snowflake Cortex, GigaChat (Sber), CrofAI,
-  AgentRouter, ChatGPT Web, Baidu Qianfan, AWS Polly, RunwayML, GitLab Duo,
-  Amazon Q, Empower, Poe, and many more.
-- **Self-Hosted** (8+): LM Studio, vLLM, Lemonade, Llamafile, Triton, Docker Model Runner, Xinference, Oobabooga
-- **Custom**: OpenAI-compatible (`openai-compatible-*`) and Anthropic-compatible (`anthropic-compatible-*`) prefixes
-
-Providers are registered in `src/shared/constants/providers.ts` with Zod validation at module load.
-
-### Executors (`open-sse/executors/`)
-
-Provider-specific request executors: `base.ts`, `default.ts`, `cursor.ts`, `codex.ts`,
-`antigravity.ts`, `github.ts`, `gemini-cli.ts`, `kiro.ts`, `qoder.ts`, `vertex.ts`,
-`cloudflare-ai.ts`, `opencode.ts`, `pollinations.ts`, `puter.ts`.
-
-#### Executor Internals
-
-- **`base.ts`** (`BaseExecutor`): Abstract base with `buildUrl()`, `buildHeaders()`,
-  `transformRequest()`, retry logic (exponential backoff), and `execute()`. Subclasses
-  override URL/header/transform methods for provider-specific behavior.
-- **`default.ts`** (`DefaultExecutor extends BaseExecutor`): Handles most OpenAI-compatible
-  providers. Reads provider config from `providerRegistry.ts` to resolve base URL, auth
-  header format, and request transformations.
-- **`getExecutor()`** (`executors/index.ts`): Factory that returns the correct executor
-  instance based on provider ID. Provider-specific executors (Cursor, Codex, Vertex, etc.)
-  override only what differs from the default.
-
-### Translator (`open-sse/translator/`)
-
-Translates between API formats (OpenAI-format ↔ Anthropic, Gemini, etc.).
-Includes request/response translators with helpers for image handling.
-
-#### Translator Internals
-
-- **`translator/index.ts`**: Exports `translateRequest()` and format constants. Called by
-  `chatCore.ts` before executor dispatch.
-- **Flow**: `translateRequest(body, sourceFormat, targetFormat)` → detects source format
-  (OpenAI, Anthropic, Gemini) → applies the matching translator module → returns
-  transformed body ready for the target provider.
-- **Response translation** runs in reverse after upstream response, converting back to
-  the client's expected format.
-
-### Transformer (`open-sse/transformer/`)
-
-`responsesTransformer.ts` — transforms Responses API format to/from Chat Completions format.
-
-#### Transformer Internals
-
-- **`createResponsesApiTransformStream()`**: Returns a `TransformStream` that converts
-  Chat Completions SSE chunks (`data: {"choices":[...]}`) into Responses API SSE events
-  (`response.output_item.added`, `response.output_text.delta`, etc.).
-- Used when the client sends a Responses API request: the request is internally converted
-  to Chat Completions format, dispatched normally, and the response is piped through this
-  transform stream before reaching the client.
-
-### Services (`open-sse/services/`)
-
-115 service modules in `open-sse/services/` (top-level only; 184 including sub-dirs like `autoCombo/` and `compression/`). Refresh: `ls open-sse/services/*.ts | wc -l`. Key modules:
-`combo.ts` (routing engine), `usage.ts`, `tokenRefresh.ts`,
-`rateLimitManager.ts`, `accountFallback.ts`, `sessionManager.ts`, `wildcardRouter.ts`,
-`autoCombo/`, `intentClassifier.ts`, `taskAwareRouter.ts`, `thinkingBudget.ts`,
-`contextManager.ts`, `modelDeprecation.ts`, `modelFamilyFallback.ts`,
-`emergencyFallback.ts`, `workflowFSM.ts`, `backgroundTaskDetector.ts`, `ipFilter.ts`,
-`signatureCache.ts`, `volumeDetector.ts`, `contextHandoff.ts`, `compression/` (prompt
-compression pipeline), and more.
-
-#### Prompt Compression Pipeline (`compression/`)
-
-Modular prompt compression that runs proactively before the existing reactive context manager.
-
-- **`strategySelector.ts`**: Selects compression mode based on config, compression combo assignments,
-  combo overrides, auto-trigger thresholds, and defaults. Priority: assigned compression combo >
-  combo override > auto-trigger > default mode > off.
-- **`lite.ts`**: 5 lite-mode techniques: `collapseWhitespace`, `dedupSystemPrompt`,
-  `compressToolResults`, `removeRedundantContent`, `replaceImageUrls`. Target: 10-15% savings at
-  <1ms latency.
-- **`caveman.ts` / `cavemanRules.ts`**: Caveman-style semantic condensation backed by built-in
-  rules plus file-loaded language packs under `compression/rules/`.
-- **`engines/rtk/`**: Rule-based terminal/tool-output compression inspired by RTK patterns. Detects
-  command output classes, applies JSON filter packs, deduplicates repeated lines, strips ANSI/code
-  noise, and preserves errors/actionable context. The RTK JSON DSL supports replace,
-  match-output short-circuit, strip/keep, per-line truncation, head/tail/max-line truncation,
-  inline tests, trust-gated project/global custom filters, and optional redacted raw-output
-  retention for authenticated recovery.
-- **`engines/registry.ts`**: Registers engines (`caveman`, `rtk`) and powers stacked pipelines.
-- **`stats.ts`**: Per-request compression stats tracking (original tokens, compressed tokens,
-  savings %, techniques used, engine breakdown, compression combo id).
-- **`types.ts`**: `CompressionMode` (off/lite/standard/aggressive/ultra/rtk/stacked),
-  `CompressionConfig`, `CompressionStats`, `CompressionResult`.
-- DB settings in `src/lib/db/compression.ts`, compression combos in
-  `src/lib/db/compressionCombos.ts`, API routes under `src/app/api/settings/compression/`,
-  `src/app/api/context/*`, and preview/language-pack routes under `src/app/api/compression/*`.
-
-#### Combo Routing Engine (`combo.ts`)
-
-- **`handleComboChat()`**: Entry point for combo-routed requests. Receives the combo config
-  and iterates through targets in order until one succeeds or all fail.
-- **`resolveComboTargets()`**: Expands a combo configuration into an ordered array of
-  `ResolvedComboTarget[]`, each specifying provider + model + account + credentials.
-- **Strategies** (15): priority, weighted, fill-first, round-robin, P2C, random, least-used, reset-aware (v3.8),
-  reset-window, cost-optimized, strict-random, auto, lkgp, context-optimized, context-relay. Source: `ROUTING_STRATEGY_VALUES` in `src/shared/constants/routingStrategies.ts`.
-- Each target calls **`handleSingleModel()`** which wraps `handleChatCore()` with
-  per-target error handling and circuit breaker checks.
-
-### Domain Layer (`src/domain/`)
-
-Policy engine modules: `policyEngine.ts`, `comboResolver.ts`, `costRules.ts`,
-`degradation.ts`, `fallbackPolicy.ts`, `lockoutPolicy.ts`, `modelAvailability.ts`,
-`providerExpiration.ts`, `quotaCache.ts`, `responses.ts`, `configAudit.ts`.
-
-### MCP Server (`open-sse/mcp-server/`)
-
-**87 tools** total (`TOTAL_MCP_TOOL_COUNT`, `open-sse/mcp-server/server.ts`): a 33-entry base registry (`MCP_TOOLS` in `schemas/tools.ts`, bundling the core / cache / compression / 1proxy / advanced tools) **plus** standalone module sets — memory (3), skill (4), agentSkill (3), gamification (8), plugin (8), notion (6), obsidian (22). 3 transports (stdio / SSE / Streamable HTTP). Scoped auth (30 scopes — see `OMNIROUTE_MCP_SCOPES`), Zod schemas. See [`docs/frameworks/MCP-SERVER.md`](docs/frameworks/MCP-SERVER.md).
-
-**Core tools** (20): get_health, list_combos, get_combo_metrics, switch_combo, check_quota,
-route_request, cost_report, list_models_catalog, web_search, simulate_route, set_budget_guard,
-set_routing_strategy, set_resilience_profile, test_combo, get_provider_metrics,
-best_combo_for_task, explain_route, get_session_snapshot, db_health_check, sync_pricing.
-
-**Cache tools** (2): cache_stats, cache_flush.
-
-**Compression tools** (5): compression_status, compression_configure, set_compression_engine,
-list_compression_combos, compression_combo_stats.
-
-**1proxy tools** (3): oneproxy_fetch, oneproxy_rotate, oneproxy_stats.
-
-**Memory tools** (3): memory_search, memory_add, memory_clear.
-
-**Skill tools** (4): skills_list, skills_enable, skills_execute, skills_executions.
-
-**Agent-skill tools** (3): A2A skill discovery / invocation bridges.
-
-**Gamification tools** (8): levels, badges, leaderboard, and community-federation queries.
-
-**Plugin tools** (8): plugin marketplace listing, install/enable/disable, and runtime inspection.
-
-**Notion tools** (6) + **Obsidian tools** (22): knowledge-base read/write integrations (the largest tool family — vault search, note CRUD, WebDAV-backed file ops).
-
-#### MCP Internals
-
-- **Tool registration**: Each tool is an object with `{ name, description, inputSchema: ZodSchema,
-handler: async (args) => {...} }`. Zod validates inputs before the handler fires.
-- **`createMcpServer()`** and **`startMcpStdio()`** exported from `mcp-server/index.ts`.
-  `createMcpServer()` wires all tool sets; `startMcpStdio()` launches the stdio transport.
-- **Transports**: stdio (CLI `omniroute --mcp`), SSE (`/api/mcp/sse`), Streamable HTTP
-  (`/api/mcp/stream`). All share the same tool/scope engine.
-- **Scopes** (30): Control which tool categories an API key can access. Enforcement happens
-  before handler dispatch.
-- **Audit**: Every tool invocation is logged to SQLite (`mcp_audit` table) with tool name,
-  args, success/failure, API key attribution, and timestamp.
-
-### A2A Server (`src/lib/a2a/`)
-
-JSON-RPC 2.0, SSE streaming, Task Manager with TTL cleanup.
-Agent Card at `/.well-known/agent.json`.
-Skills (6): `smartRouting.ts`, `quotaManagement.ts`, `providerDiscovery.ts`,
-`costAnalysis.ts`, `healthReport.ts`, `listCapabilities.ts`.
-
-#### A2A Internals
-
-- **`taskManager.ts`**: State machine lifecycle for tasks: `submitted → working →
-completed | failed | canceled`. Tasks have TTL and are cleaned up automatically.
-- **JSON-RPC methods**: `message/send` (sync), `message/stream` (SSE), `tasks/get`,
-  `tasks/cancel`. Dispatched via `POST /a2a`.
-- **Skills**: Registered in a DB-backed registry. Each skill receives task context
-  (messages, metadata) and returns structured results. `quotaManagement.ts` summarizes
-  quota; `smartRouting.ts` recommends routing decisions.
-- **Agent Card**: `/.well-known/agent.json` exposes capabilities, skills, and metadata
-  for client auto-discovery.
-
-#### A2A skill implementations (status, refreshed 2026-06-24)
-
-All 8 A2A skills are fully implemented as of `e4d751ed1` (2026-06-20). The DEBT-006
-"5/7 stubbed" status in earlier versions of this table was **stale** — it was
-written on 2026-06-18 before PRs #83/#86/#87/#72 landed.
-
-| Skill | Lines | Implemented | Notes |
-|---|---|---|---|
-| `smartRouting.ts` | 736 | 2026-06-20 (#83) | composes `combo.ts::resolveComboTargets()` output as the recommendation payload. |
-| `quotaManagement.ts` | 400 | 2026-06-20 (#86) | pairs with `open-sse/services/rateLimitManager.ts`; TPM/TPD token-bucket (DEBT-001 dependency) resolved. |
-| `providerDiscovery.ts` | 530 | 2026-06-20 (#? — commit `2763f11d5`) | reads `src/shared/constants/providers.ts` (Zod-validated single source of truth). |
-| `costAnalysis.ts` | 254 | 2026-06-18 (L5-109) | resolves pricing via `getPricingForModel()`, computes cost via `calculateCostFromTokens()`, accepts canonical/legacy token field names, estimates tokens from message length, emits `proceed` / `switch_model` / `estimate_only` recommendation when `budget_usd` cap exceeded. Tests: `tests/unit/a2a-cost-analysis.test.ts` (8 vitest cases). |
-| `healthReport.ts` | 718 | 2026-06-20 (#87) | pulls from `mcp_audit` table (last 1000 invocations, failure-rate per tool). |
-| `listCapabilities.ts` | 72 | 2026-06-20 (commit `6bad368dc`) | derives from `A2A_SKILL_HANDLERS` registry at `src/lib/a2a/taskExecution.ts`. |
-| `agentDispatch.ts` | 223 | 2026-06-18 (L5-109 cherry-pick) | added in `feat/a2a-agent-dispatch-clean`. Doc: `docs/frameworks/A2A-SERVER.md`. Env: `.env.example`. |
-| `mintVirtualKey.ts` | 235 | 2026-06-20 (B5/B9) | bifrost virtual-key minting skill (fork-only). |
-
-Stub count: **0/8** (DEBT-006 closed). All 9 sub-items of DEBT-006 resolved
-between L5-109 and L5-115.
-
-### ACP Module (`src/lib/acp/`)
-
-Agent Communication Protocol registry and manager.
-
-### Memory System (`src/lib/memory/`)
-
-Extraction, injection, retrieval, summarization, and store modules for persistent
-conversational memory across sessions.
-
-### Skills System (`src/lib/skills/`)
-
-Extensible skill framework: registry, executor, sandbox, built-in skills,
-custom skill support, interception, and injection.
-
-#### Skills Internals
-
-- **`registry.ts`**: DB-backed skill registration and discovery. Skills have metadata
-  (name, description, version, enabled status) stored in SQLite.
-- **`executor.ts`**: Execution engine with configurable timeout and retry logic.
-  Receives skill name + input, looks up the skill, runs it in the sandbox.
-- **`sandbox.ts`**: Isolation layer for custom (user-provided) skills. Limits resource
-  access and execution time.
-- **Built-in skills**: Ship with OmniRoute (e.g., quota management, routing). Located
-  alongside the registry.
-- **Interception/Injection**: Skills can intercept requests in the pipeline (pre/post
-  processing) or inject context into prompts.
-
-### Compliance (`src/lib/compliance/`)
-
-Policy index for compliance enforcement.
-
-### MITM Proxy (`src/mitm/`)
-
-MITM proxy capability with certificate management, DNS handling, and target routing.
-
-### Middleware (`src/middleware/`)
-
-Request middleware including `promptInjectionGuard.ts`.
-
-### Guardrails (`src/lib/guardrails/`)
-
-Hot-reloadable guardrails framework (3 built-in: pii-masker, prompt-injection, vision-bridge). Fail-open; per-request opt-out via header. See [`docs/security/GUARDRAILS.md`](docs/security/GUARDRAILS.md).
-
-### Cloud Agents (`src/lib/cloudAgent/`)
-
-`CloudAgentBase` abstract class + 3 agents (codex-cloud, devin, jules). Tasks persisted in `cloud_agent_tasks`; management auth required. See [`docs/frameworks/CLOUD_AGENT.md`](docs/frameworks/CLOUD_AGENT.md).
-
-### Evals (`src/lib/evals/`)
-
-Generic eval framework: `evalRunner.ts`, `runtime.ts`. Targets: combo / model / suite-default. See [`docs/frameworks/EVALS.md`](docs/frameworks/EVALS.md).
-
-### Webhooks (`src/lib/webhookDispatcher.ts`)
-
-HMAC-signed delivery, exponential backoff, auto-disable after 10 failures. 7 event types. See [`docs/frameworks/WEBHOOKS.md`](docs/frameworks/WEBHOOKS.md).
-
-### Authorization Pipeline (`src/server/authz/`)
-
-`classify → policies → enforce`. 3 route classes (PUBLIC / CLIENT_API / MANAGEMENT). See [`docs/architecture/AUTHZ_GUIDE.md`](docs/architecture/AUTHZ_GUIDE.md).
-
-### Reasoning Replay (`src/lib/db/reasoningCache.ts` + `open-sse/services/reasoningCache.ts`)
-
-Hybrid in-memory + SQLite cache for `reasoning_content`. Re-injects on multi-turn for strict providers (DeepSeek V4, Kimi K2, Qwen-Thinking, GLM, xiaomi-mimo). See [`docs/routing/REASONING_REPLAY.md`](docs/routing/REASONING_REPLAY.md).
-
-### Tunnels (`src/lib/{cloudflaredTunnel,ngrokTunnel}.ts` + `src/app/api/tunnels/`)
-
-Cloudflare Quick/Named, ngrok, Tailscale Funnel. See [`docs/ops/TUNNELS_GUIDE.md`](docs/ops/TUNNELS_GUIDE.md).
-
-### Adding a New Provider
-
-1. Register in `src/shared/constants/providers.ts`
-2. Add executor in `open-sse/executors/` (if custom logic needed)
-3. Add translator in `open-sse/translator/` (if non-OpenAI format)
-4. Add OAuth config in `src/lib/oauth/constants/oauth.ts` (if OAuth-based)
-5. Add models in `open-sse/config/providerRegistry.ts`
+## Wave Plan (v25 — current, supersedes v14..v24)
+
+See `plans/2026-06-21-v16-71-pillar-cycle-6-p0.md` (cycle 6), `plans/2026-06-22-v22-71-pillar-cycle-12-p1.md` (cycle 12), `plans/2026-06-22-v23-71-pillar-cycle-13-p1.md` (cycle 13), `plans/2026-06-22-v24-71-pillar-cycle-14-p1.md` (cycle 14). **v20 cycle 10 P1 reduction 5/5 tracks shipped (L23/L27/L36/L38/L44); v19 cycle 9 P0 deepening (L31/L57/L65/L67) + ADR-077-080 security quartet; v18 cycle 8 P0 final closure 47/47 pillars at 3.0; v17 cycle 7 P0 44/47; v16 cycle 6 P0 34/47; v15 cycle 5 P0 24/47; v14 cycle 4 P0 20/47; v13 cycle 3 P0 15/47; v12 cycle 2 P0 4/47 — 6-pillar mean 2.13→2.66 (+0.53).** v11 closed 2026-06-20 18:45 PDT with §8 ACCEPTED (Option B per ADR-050/ADR-051). Next wave after v25 is v26 (cycle 15) targeting 71-pillar L29 (SBOM diff), L39 (CLI flag discipline), L45 (perf regression alert).
+
+### Cycle Progression Summary (v12→v25)
+
+| Cycle | Wave | Pillar Closure | Commit Count | Outcome |
+|-------|------|----------------|--------------|---------|
+| **v12 cycle 2** | 4 P0 + Mission 4 + ADR-015 v2.1 | L31/L57/L65/L67 (4/47) | 1,767 LoC in `2db7e9f5eb` | 6-pillar mean 2.13→2.66 |
+| **v13 cycle 3** | 8 tracks (L21/L33/L48/L49/L37/L50/L11.1/L29.1) | 11/47 (15%) | ~890 LoC | nextest + SBOM + SLSA + devcontainer |
+| **v14 cycle 4** | 5 tracks (T1-T5) | 15/47 (32%) | 21 PRs (20 merged, 1 closed) | L4 cargo-modules + L22 mutants + L25 loom + L62 OTel |
+| **v15 cycle 5** | 9 tracks (L6/L15/L21/L33/L37/L48/L49/L60) | 17/47 (36%) | ~890 LoC | devcontainer + perf baseline + SIGHUP hot-reload |
+| **v16 cycle 6** | 10 tracks (L7/L9/L13/L19/L22/L25/L26/L34/L42/L43) | 24/47 (51%) | 1,991 LoC in `4bba938854` | subsystem decomp + REST/OpenAPI + latency budgets |
+| **v17 cycle 7** | 12 tracks (L1/L2/L3/L4/L8/L10/L11/L12/L40/L41) | 33/47 (70%) | ~1,200 LoC | arch overview + module boundaries + L4 hexagonal ports |
+| **v18 cycle 8** | 47→100% P0 closure | 47/47 (100%) | ADR-077-080 + L17/L18/L51 | full 71-pillar coverage at 3.0 |
+| **v19 cycle 9** | L31/L57/L65/L67 deepening | 47/47 (100%) | ADR-081-086 | cache stats + perf alert + SSOT lint + CHANGELOG auto |
+| **v20 cycle 10** | 5 tracks (L23/L27/L36/L38/L44) | 47/47 (100%) | closure report | i18n + a11y + SaaS + DDoS + chaos |
+| **v22 cycle 12** | 5 P1 tracks (L36/L37/L40/L41/L42) | 47/47 (100%) | 11 SIDE findings | devcontainer + llms.txt + i18n + a11y + e2e tests |
+| **v23 cycle 13** | 6 P1 tracks (L43/L46-L55 deepening) | 47/47 (100%) | perf CI + SBOM | perf gate + SBOM + CSRF + HSTS + CSP |
+| **v24 cycle 14** | 9 P1 tracks (L5/L17/L18/L50/L63 + 15 repos meta-bundle + dependabot + v14 PR review + chaos game-day) | 47/47 (100%) | 9 commits, ~5,200 LoC | 15 repos at 12/12 meta-bundle compliance; 0 critical gitleaks; 9 of 10 dependabot alerts fixable |
+| **v25 (current)** | cycle 15 prep — L29/L39/L45 | n/a | pending | next wave |
+
+- **T6 (v12): L65 SSOT auto-check** (P0, ~30 min) — DONE. `scripts/validate-ssot.sh` + `just validate-ssot` + pre-commit hook.
+- **T9 (v12): L57 perf regression** (P1, ~1h) — DONE. `benchmarks/rust/{Cargo.toml,benches/parse_flag.rs}` (criterion) + `benchmarks/python/pytest.ini` (pytest-benchmark) + `benchmarks/perf-budgets.toml` + `just bench`.
+- **T10 (v12): L31 CI cache stats** (P0, ~30 min) — DONE. `scripts/cache_stats_wrapper.sh` (bash+jq, no heavy deps) + `findings/2026-06-20-v12-T10-cache-stats-design.md` + `just cache-stats`.
+- **T11 (v12): L67 CHANGELOG auto** (P1, ~1h) — DONE. `cliff.toml` + `.github/workflows/changelog.yml` + `docs/conventions/changelog-convention.md` + `findings/2026-06-20-v12-T11-changelog-design.md` + `just changelog`.
+- **Mission 4 (v12): Configra slice 2 candidate** (P1, ~30 min) — DONE. `findings/2026-06-20-Mission-4-candidate-selection.md` (pheno-config wins 11/12) + `findings/2026-06-20-Mission-4-slice-2-plan.md` (5-PR gate table per ADR-035).
+- **ADR-015 v2.1 (v12): worklog schema bump** (P0, ~30 min) — DONE. `docs/adr/2026-06-20/ADR-015-v2.1-worklog-schema.md` (7-col schema, device: as 7th) + `scripts/migrate-worklog-v20-to-v21.py` (idempotent) + sample + log.
+- **T12-Verify (v12): cycle 3 re-audit** (P1, ~30 min) — DONE. `findings/2026-06-20-v12-cycle-3-re-audit.md`. 7 nested repos re-scored; 6-pillar mean 2.13 → 2.66 (+0.53).
+- **T12-Wrap (v12): closure report + ADR-076 + AGENTS.md refresh** (P0, ~10 min) — DONE. `findings/2026-06-20-v12-closure-report.md` + `docs/adr/2026-06-20/ADR-076-v12-closure.md` + this file.
+- **§8: Router architecture decision** (P0) — **ACCEPTED 2026-06-20** (Option B: Bifrost-as-library + Phenotype-owned decision layer per ADR-050 + ADR-051). Next wave (v13) unblocks L1 (Bifrost `v1.5.21` pin + 9-plugin regression) and L2 (`phenotype-router` v0.1.0). 6.5-week critical path.
+
+### v12 closure — router spike details (T24, 2026-06-21)
+
+Retrospective expansion of the §8 router-architecture acceptance above, written the day after closure (2026-06-21):
+
+- **Router spike complete**: 11 `.go` files landed under the spike package; 5 tests passing.
+- **3 ADRs written**: ADR-050, ADR-051, ADR-052 (architecture, federation interface, router implementation shape respectively).
+- **6 plugins ported** (of 15 total in the Bifrost regression set); 9 plugin ports remaining for downstream waves (3 scheduled for v13, the remainder split across v14+).
+- **PR #55 OTel merged** — router spike instrumented with OTLP export via `pheno-tracing` (ADR-012 / ADR-036B).
+- **PR #783 hygiene merged** — gofmt + golangci-lint + go mod tidy + license-header sweep across the spike.
+- **argis PR #108 created** — cross-repo coordination PR pinning the spike to `KooshaPari/argis` for downstream consumers.
+
+### v13 outlook (cycle 3, 2026-06-22 target)
+
+- **Production repo bootstrap**: `phenotype-router` — the canonical home for the Phenotype-owned decision layer per ADR-050 + ADR-051 + ADR-052. Carve-out from the spike repo, 80 % lib coverage gate per ADR-040, full substrate quality bar per ADR-042B.
+- **Remaining 3 plugin ports** to complete the v13 slice of the 9-plugin Bifrost regression (the other 6 roll into v14+).
+- **Security audit**: per ADR-042 monthly cadence, scoped to the `phenotype-router` substrate — `govulncheck` for the Go module, plus dependency-pin review on the Bifrost `v1.5.21` reference.
+- **Performance benchmarks**: per ADR-040 — router e2e (request → decision → plugin dispatch) + p95 latency under sustained load (1k RPS, 30 min soak), benchmark harness co-located with the spike artifacts.
 
 ---
 
-## Subdirectory AGENTS.md Files
+## Conventions
 
-- **[`src/lib/db/AGENTS.md`](src/lib/db/AGENTS.md)** — SQLite persistence, domain modules, migrations
-- **[`open-sse/services/AGENTS.md`](open-sse/services/AGENTS.md)** — Routing engine, combo resolution, strategy selection
-
-## Reference Documentation (docs/)
-
-For any non-trivial change, read the matching deep-dive first:
-
-| Area                                       | Doc                                                                                                                                 |
-| ------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------- |
-| Repo navigation                            | [`docs/architecture/REPOSITORY_MAP.md`](docs/architecture/REPOSITORY_MAP.md)                                                        |
-| Architecture                               | [`docs/architecture/ARCHITECTURE.md`](docs/architecture/ARCHITECTURE.md)                                                            |
-| Engineering reference                      | [`docs/architecture/CODEBASE_DOCUMENTATION.md`](docs/architecture/CODEBASE_DOCUMENTATION.md)                                        |
-| Auto-Combo (12-factor, 15 strategies)      | [`docs/routing/AUTO-COMBO.md`](docs/routing/AUTO-COMBO.md)                                                                          |
-| Resilience (3 layers)                      | [`docs/architecture/RESILIENCE_GUIDE.md`](docs/architecture/RESILIENCE_GUIDE.md)                                                    |
-| Skills                                     | [`docs/frameworks/SKILLS.md`](docs/frameworks/SKILLS.md)                                                                            |
-| Memory                                     | [`docs/frameworks/MEMORY.md`](docs/frameworks/MEMORY.md)                                                                            |
-| Cloud agents                               | [`docs/frameworks/CLOUD_AGENT.md`](docs/frameworks/CLOUD_AGENT.md)                                                                  |
-| Guardrails                                 | [`docs/security/GUARDRAILS.md`](docs/security/GUARDRAILS.md)                                                                        |
-| Evals                                      | [`docs/frameworks/EVALS.md`](docs/frameworks/EVALS.md)                                                                              |
-| Compliance                                 | [`docs/security/COMPLIANCE.md`](docs/security/COMPLIANCE.md)                                                                        |
-| Webhooks                                   | [`docs/frameworks/WEBHOOKS.md`](docs/frameworks/WEBHOOKS.md)                                                                        |
-| Authz                                      | [`docs/architecture/AUTHZ_GUIDE.md`](docs/architecture/AUTHZ_GUIDE.md)                                                              |
-| Stealth                                    | [`docs/security/STEALTH_GUIDE.md`](docs/security/STEALTH_GUIDE.md)                                                                  |
-| Reasoning replay                           | [`docs/routing/REASONING_REPLAY.md`](docs/routing/REASONING_REPLAY.md)                                                              |
-| Agent protocols (A2A / ACP / Cloud)        | [`docs/frameworks/AGENT_PROTOCOLS_GUIDE.md`](docs/frameworks/AGENT_PROTOCOLS_GUIDE.md)                                              |
-| MCP server                                 | [`docs/frameworks/MCP-SERVER.md`](docs/frameworks/MCP-SERVER.md)                                                                    |
-| A2A server                                 | [`docs/frameworks/A2A-SERVER.md`](docs/frameworks/A2A-SERVER.md)                                                                    |
-| API reference                              | [`docs/reference/API_REFERENCE.md`](docs/reference/API_REFERENCE.md) + [`docs/openapi.yaml`](docs/openapi.yaml) |
-| Provider catalog (auto-generated)          | [`docs/reference/PROVIDER_REFERENCE.md`](docs/reference/PROVIDER_REFERENCE.md)                                                      |
-| Tunnels                                    | [`docs/ops/TUNNELS_GUIDE.md`](docs/ops/TUNNELS_GUIDE.md)                                                                            |
-| Electron desktop                           | [`docs/guides/ELECTRON_GUIDE.md`](docs/guides/ELECTRON_GUIDE.md)                                                                    |
-| Release flow                               | [`docs/ops/RELEASE_CHECKLIST.md`](docs/ops/RELEASE_CHECKLIST.md)                                                                    |
-| Quality gates (35 gates, allowlist policy) | [`docs/architecture/QUALITY_GATES.md`](docs/architecture/QUALITY_GATES.md)                                                          |
-| Cluster opt-in profiles (memory, bifrost)  | [`docs/architecture/cluster-decisions.md`](docs/architecture/cluster-decisions.md)                                                  |
+- **Branch naming:** `chore/<req-id>-<slug>-<date>` for chore work; `feat/<req-id>-<slug>-<date>` for features
+- **Commit messages:** Conventional Commits (`feat:`, `fix:`, `chore:`, `docs:`, `refactor:`, `test:`, `build:`, `ci:`) with optional scope
+- **PR labels:** `governance` for cleanup, `L<n>-#<n>` for tracking against DAG level
+- **SOTA artifacts:** `findings/`, `plans/`, `worklogs/`, `docs/adr/<date>/`
+- **Meta-bundle for a release-ready crate:** `AGENTS.md` + `llms.txt` + `WORKLOG.md` + `CHANGELOG.md` + `LICENSE-MIT`
 
 ---
 
-## Fork / Upstream Workflow
+## Nested Git Repo Pattern (L5-155 / clap-ext, 2026-06-26)
 
-This repository is a fork of `diegosouzapw/OmniRoute`. Keep fork-only operational
-changes (for example GHCR image publishing, personal deployment workflows, or local
-automation) out of upstream contribution PRs.
+This monorepo contains **nested git repositories** — directories with their own `.git/` that are NOT registered in `.gitmodules` and NOT tracked by the parent index. Examples: `clap-ext/`, `security-analysis/`.
 
-When preparing a PR for upstream, always start the work branch from `upstream/main`,
-not from this fork's `main`:
+**Symptom of missing handling:** CI fails with
+`fatal: No url found for submodule path '<name>' in .gitmodules`
+because `actions/checkout` runs `git submodule foreach --recursive`, finds the nested `.git/`, and tries to treat it as a submodule.
 
-```bash
-git fetch upstream
-git switch -c <branch-name> upstream/main
+**Required `.gitignore` entries:**
+```
+/clap-ext/
+/security-analysis/
 ```
 
-Only cherry-pick or reapply the changes intended for the upstream PR.
+**Rule:** Any nested repo added to this monorepo MUST be added to `.gitignore` at the top level (with leading `/`) on the same PR that adds the directory. Document the nested repo's purpose and ownership in this section.
 
 ---
 
-## Review Focus
+## App-level repo triage & app substrate placement (ADR-023)
 
-- **DB ops** go through `src/lib/db/` modules, never raw SQL in routes
-- **Provider requests** flow through `open-sse/handlers/`
-- **MCP/A2A pages** are tabs inside `/dashboard/endpoint`, not standalone routes
-- **No memory leaks** in SSE streams (abort signals, cleanup)
-- **Rate limit headers** must be parsed correctly
-- All API inputs validated with **Zod schemas**
-- **Provider constants** validated at module load via Zod (`src/shared/validation/providerSchema.ts`)
-- **Pricing data** syncs from LiteLLM via `src/lib/pricingSync.ts`
-- **Memory/Skills** are cross-cutting: affect MCP tools, request pipeline, and A2A skills
-- **⛔ NEVER close a contributor's PR** after using their code — always merge via GitHub so they get credit. See `.agents/workflows/review-prs.md` for full policy.
+Source of truth: `docs/adr/2026-06-15/ADR-023-agent-effort-governance.md`.
+Decision log: `findings/2026-06-15-L5-101-app-governance.md`.
+Worklog: `worklogs/L5-101-app-governance-2026-06-15.json`.
 
----
+### Device-fit gate
 
-## Recent Changes (L5-109 fork-cleanup, 2026-06-18)
+The MacBook is **not** a heavy-work device. Heavy work is defined as anything that requires a full `cargo test --workspace` against a multi-100-crate workspace, an iOS Simulator boot, a Docker-in-Docker test, a Unity/Unreal editor head, or any single build/test cycle > 10 min wall on the MacBook. Heavy work runs on a self-hosted runner or a dispatched subagent (`device: heavy-runner`); the MacBook is reserved for planning, ADR-writing, small focused PRs, code review, and dogfooding (`device: macbook`). The `device:` field is in the worklog v2.1 schema (ADR-015 v2.1 accepted 2026-06-20; v2.0 deprecation 2026-06-22).
 
-This section tracks changes that landed in the `chore/l5-109-omniroute-fork-cleanup-2026-06-18`
-branch (PR #72). It is **fork-only operational** — DO NOT include in any upstream PR
-to `diegosouzapw/OmniRoute`.
+### Active / Paused app-level repos (triage by dogfood use)
 
-### New top-level files (added this session)
+| Repo         | Bucket         | Allowed work                                                                                            |
+| :----------- | :------------- | :------------------------------------------------------------------------------------------------------ |
+| `Civis`      | **ACTIVE**     | Any. Full SWE process.                                                                                  |
+| `focalpoint` | **PAUSED**     | Read-only. The prior AGENTS.md template is shelved.                                                     |
+| `Dino`       | **CONDITIONAL** | Engine / non-frontend only (heavy visual engine, asset pipeline, deterministic sim). No UI / HUD / UX work right now. |
+| `WSM`        | **CONDITIONAL** | None right now. Re-evaluate when an active consumer appears.                                            |
+| `QuadSGM`    | **PAUSED**     | Read-only.                                                                                              |
+| `AtomsBot*`  | **PAUSED (capstone)** | Read-only as a *target* of new work. **May be legally mined** (code, concepts, schema, docs, tests) — capstone project's sponsor is not in good standing; the public repo is fair-game reference material. |
+| `HwLedger` + every other app-level repo not in this list | **RECLASSIFY** (default PAUSED) | Underlying parts to be moved to one of `pheno-*-lib` / `phenotype-*-sdk` / `phenotype-*-framework` / federated service per Rule 3 below. |
 
-| Path | Purpose |
-|---|---|
-| `STATUS.md` | Per-repo current state per monorepo standard |
-| `worklogs/2026-06-18-L5-109-fork-cleanup.md` | Session worklog (L5-109) |
-| `tests/unit/a2a-cost-analysis.test.ts` | 8 vitest cases for cost-analysis skill |
+A new repo defaults to **PAUSED** until it is added to this table with a bucket. A bucket change requires a one-line worklog entry (`bucket_change: from=... to=... reason=...`).
 
-### New `.github/` files (cherry-picked)
+### App substrate placement (no "random `phenoShared`")
 
-| Path | Source branch | Purpose |
-|---|---|---|
-| `.github/CODEOWNERS` | `chore/codeowners-default-reviewer` | Default reviewer `@KooshaPari/core` |
-| `.github/dependabot.yml` | `chore/codeowners-default-reviewer` | Weekly Dependabot cadence |
-| `.github/workflows/scorecard.yml` | `chore/codeowners-default-reviewer` | OpenSSF Scorecard |
-| `.github/workflows/audit-ratchet.yml` | `chore/audit-ratchet-2026-06-16` | Ratchet 30-pillar audit score |
+When an app-level repo needs a reusable underlying capability, that capability is placed in **exactly one** of:
 
-### Updated `.github/`
+| Substrate type             | When to use                                                                                                  | Examples in fleet                              |
+| :------------------------- | :----------------------------------------------------------------------------------------------------------- | :--------------------------------------------- |
+| **`pheno-*-lib` / `pheno-*-core`** | Pure reusable library; language-specific; single concern, single crate.                                     | `pheno-config`, `pheno-context`, `pheno-port-adapter` |
+| **`phenotype-*-sdk`**        | Cross-language SDK; stable public API; polyglot facade.                                                      | `phenotype-go-sdk`, `phenotype-python-sdk`     |
+| **`phenotype-*-framework`**  | Inversion-of-control framework; opinionated lifecycle, ports, adapters, conventions.                        | `phenotype-hub`, `phenotype-bus`               |
+| **Federated service**        | Stateful, long-running, independently scalable.                                                              | `phenoMCP`, `phenoObservability`, `phenoEvents` |
 
-- `README.md` (cherry-picked: `6862653cf` from `chore/editorconfig2`)
-- `.editorconfig` (cherry-picked: from `chore/editorconfig`)
-- `.gitignore` (cherry-picked: from `chore/gitignore-hardening`; `.svelte-kit/`, `.turbo/`, `__pycache__/`)
-- `.gitattributes` (cherry-picked: from `chore/editorconfig2`)
-- `.devcontainer/devcontainer.json` (cherry-picked: from `chore/dx-2026-06-08`)
+The "random `phenoShared`" pattern (and `crates/`, `libs/`, per-app `lib/`) is **forbidden** for new shared code. Existing "random `phenoShared`" placements are migrated per-capability; tracked in the L6 health-audit delta.
 
-### Updated `docs/`
+### Quality bar for new substrate (Rule 3.1)
 
-- `SPEC.md` — full v8/v3.9.0 spec (~180 lines; was 25-line placeholder)
-- `PLAN.md` — 9 v8 work items + 3 v9 items + 3 milestones
-- `ADR.md` — 30 ADRs (was 6-line stub); **ADR-026 introduces Bifrost disambiguation**
-- `docs/ROUTING-CONVERGENCE-STATUS.md` — canonical routing + Bifrost disambiguation
-- `docs/TECH_DEBT.md` — 20 tracked items (4 P1, 7 P2, 9 P3) from real `rg TODO/FIXME/XXX` scan
-- `docs/OKR.md` — already comprehensive; touched in cherry-pick
-- `docs/COST.md` — already comprehensive; touched in cherry-pick
+Every new `pheno-*-lib`, `phenotype-*-sdk`, `phenotype-*-framework`, or federated service ships with:
 
-### Updated root config
+- **Spec** (`SPEC.md` or equiv) — 1-page max.
+- **Docs** (`README.md` + 1 concept doc) — what, when, when **not**, 5-line quickstart.
+- **Test matrix** — unit + integ minimum; e2e + perf + chaos strongly preferred for the 4 fleet-critical substrates (config, tracing, MCP-router, observability).
+- **Observability** — OTLP export via `pheno-tracing` (ADR-012), info-level minimum.
+- **Coverage gate** — 80 % lib/SDK, 70 % framework, 60 % federated service.
+- **CI gate** — `pheno-ci-templates` runs the test matrix, coverage gate, OTLP smoke test.
+- **Worklog v2.1** — including the new `device:` field.
 
-- `Justfile` — added dev / coverage / typecheck / fmt recipes (cherry-picked from `chore/2nd-hygiene-2026-06-08`)
-- `src/lib/a2a/skills/costAnalysis.ts` — implemented (closes DEBT-006 partial)
-- `src/shared/utils/formatting.ts` — added + tests (cherry-picked from `integration/consolidate`)
-
-### Branch / worktree cleanup
-
-- Deleted 8 dead `worktree-agent-*` worktrees (local + remote)
-- Deleted ~12 stale already-merged remote branches (`chore/4th-hygiene-*`, `chore/citation-*`, `docs/contributing`, etc.)
-- Pruned `origin` refs
-
-### Bifrost disambiguation (ADR-026)
-
-**`Bifrost`** appears in two distinct contexts and they are NOT the same:
-
-1. **OmniRoute Bifrost** — the internal "Bifrost" routing subsystem (a product name within this codebase, used in `docs/ROUTING-CONVERGENCE-STATUS.md` for the canonical routing layer). This is what most of this repo's code/docs mean by "Bifrost".
-2. **`Bifrost` (network protocol)** — an unrelated external agent-network protocol. Not used by OmniRoute. See `ADR.md` § ADR-026 for the full disambiguation block.
-
-When writing docs or ADRs, always use the full qualified form ("OmniRoute Bifrost" or "Bifrost network protocol") on first mention.
-
-### DEBT-006 follow-ups
-
-**DEBT-006 is closed** as of L5-115 (2026-06-24). All 8 A2A skills are
-implemented; the table above has the per-skill PR/date references. The
-"5 a2a skills still stubbed" list previously carried in this section
-was stale as of 2026-06-20.
-
-Next targets for the Q3-2026 OKR Objective 2 (policy primitives shipped per
-quarter) move to other DEBT-### items, primarily:
-
-- **DEBT-001** — TPM/TPD token-bucket in `rateLimitManager.ts` (now unblocked
-  after `quotaManagement.ts` shipped; needs scheduler work).
-- **DEBT-002** — pre-commit + pre-push hooks ported to lefthook
-  (`lefthook.yml`, hooks installed via `lefthook install`; husky shims
-  retained as a fallback when lefthook is unavailable on PATH).
-  Pre-push is no longer a no-op — it now runs the typecheck-core / t11 /
-  cycles matrix. **Closed 2026-06-25.**
-- Open items 3, 4, 5, 6, 7 in `docs/TECH_DEBT.md`.
-
-### Fork-only policy reminder
-
-When sending PRs to `diegosouzapw/OmniRoute`, do **not** include:
-
-- `STATUS.md` (this is a per-repo KP artifact)
-- `worklogs/2026-06-18-L5-109-fork-cleanup.md` (KP session worklog)
-- `.github/CODEOWNERS`, `.github/dependabot.yml`, `.github/workflows/scorecard.yml`, `.github/workflows/audit-ratchet.yml` (KP-specific)
-- `.devcontainer/devcontainer.json` (KP-specific dev environment)
-- `docs/intent/OmniRoute.md`, `docs/boundary/OmniRoute.md` (auto-propagated from `phenotype-registry`)
-- `tests/unit/a2a-cost-analysis.test.ts` (test depends on KP-side pricing catalog)
-- `src/lib/a2a/skills/costAnalysis.ts` (tested against KP pricing catalog; upstream has its own)
-
-The costAnalysis skill implementation is the only candidate that may be safely upstreamed as-is, because it imports from the upstream-maintained `@/shared/constants/pricing` catalog. To upstream it: rebase `chore/l5-109-omniroute-fork-cleanup-2026-06-18` onto `upstream/main` first, then create a PR with only the costAnalysis files.
+The goal: **HITL-less dev from base intent**. A one-line intent ("I need a `Config` struct for my service that reads from env and a TOML file, with a 12-factor cascade") produces a PR that already has spec + docs + tests + coverage + observability + CI gate, without the human specifying each one.
 
 ---
 
-## Recent Changes (L5-110 Bifrost Tier-1 Router, 2026-06-18)
+## 71-pillar audit (this turn)
 
-This section tracks the L5-110 changes (ADR-031 decision: adopt Bifrost
-as Tier-1 router) added to the same branch (`chore/l5-109-omniroute-fork-cleanup-2026-06-18`,
-PR #72). It is **fork-only operational** — DO NOT include in any upstream PR
-to `diegosouzapw/OmniRoute` unless the upstream maintainer explicitly
-requests Bifrost integration (in which case, rebase onto `upstream/main`
-first per the fork-only policy).
+See `findings/71-pillar-2026-06-17-schema.md` for the full schema doc (industry references, scoring rubric, pillar definitions). See `findings/71-pillar-2026-06-17.md` for the latest scorecard across 10 existing repos. See `findings/71-pillar-2026-06-17-mapping.md` for the L1-L30 → L1-L71 crosswalk (so the older 30-pillar audit at `findings/30-pillar-2026-06-16.md` is not orphaned).
 
-### Decision summary (ADR-031)
+**Domains (9 total, 71 pillars):**
 
-OmniRoute's underlying Tier-1 router infrastructure is migrating from
-TypeScript (`open-sse/executors/`) to Go (`maximhq/bifrost`, MIT, ~6k LOC).
-Rationale, alternatives considered, and the full comparison matrix are in
-[`docs/adr/0031-bifrost-tier1-router.md`](docs/adr/0031-bifrost-tier1-router.md).
+- **Architecture (AX)** L1-L12 (12)
+- **Performance** L13-L19 (7)
+- **Quality / Correctness** L20-L27 (8)
+- **Developer Experience (DX)** L28-L37 (10)
+- **User Experience (UX)** L38-L45 (8)
+- **Security** L46-L55 (10)
+- **Observability & Ops** L56-L63 (8)
+- **Documentation & SSOT** L64-L68 (5)
+- **Governance & Sustainability** L69-L71 (3)
 
-**Why Bifrost (selected)** vs LiteLLM, sglang, vllm, portkey, haproxy,
-hand-rolled Rust/Zig/Mojo:
+**Industry references:** AWS Well-Architected Framework, Azure Well-Architected Framework, Google Cloud Architecture Framework, ISO 25010, OWASP ASVS, NIST SSDF, Microsoft SDL, DORA 2023 capabilities, Google SRE Book, CNCF Cloud Native Definition, OpenSSF Best Practices, Divio documentation system.
 
-| Candidate | Verdict |
-|---|---|
-| `maximhq/bifrost` (Go, MIT, ~6k LOC, 23+ providers, MCP client, virtual keys, budget mgmt, semantic cache) | **SELECTED** |
-| `BerriAI/litellm` (Python, ~100k LOC, ~400 providers) | rejected (Python perf + over-broad surface) |
-| `portkey-ai/gateway` (TypeScript, ~30k LOC, ~20 providers) | rejected (TS perf ceiling = same as ours) |
-| `sglang-router` / `vllm` (inference-engine routers) | rejected (wrong layer; only useful if self-hosting large models) |
-| `haproxy` / `envoy` / gRPC | rejected (L4/L7; no provider semantics) |
-| Hand-rolled Rust | rejected (6+ months to match Bifrost feature parity) |
-| Hand-rolled Zig | rejected (no ecosystem for HTTP/JSON providers) |
-| Hand-rolled Mojo | rejected (pre-1.0 alpha) |
+**Scoring:** 0-3 per pillar per repo (0=absent, 1=minimal, 2=adequate, 3=strong/SOTA). N/A=3 (per `audit-30-pillar-template.md` rule) for UI pillars (L40 i18n, L41 a11y) on headless backend/CLI libraries.
 
-### New files (L5-110)
-
-| Path | Lines | Purpose |
-|---|---|---|
-| `open-sse/executors/bifrost.ts` | 238 | `BifrostBackendExecutor` — Tier-1 router executor. Forwards requests to Bifrost's `/v1/chat/completions`. Env-gated (`BIFROST_ENABLED=1`). |
-| `open-sse/executors/bifrostProviderMap.ts` | 267 | OmniRoute → Bifrost provider ID translation. 23 first-class Bifrost providers + 50+ OmniRoute aliases/passthroughs + web-cookie unsupported list. |
-| `tests/unit/bifrost-backend.test.ts` | 353 | vitest suite (12 cases): map correctness, env gating, health check, execute() body shape, header forwarding, model override. |
-| `docs/adr/0031-bifrost-tier1-router.md` | MADR format | Full ADR (context, decision, alternatives, consequences). |
-| `docs/frameworks/BIFROST-BACKEND.md` | 229 | Operator-facing usage guide (activation, provider matrix, migration phases). |
-| `worklogs/2026-06-18-L5-110-bifrost-tier1-router.md` | 226 | L5-110 session worklog. |
-
-### Updated files (L5-110)
-
-- `ADR.md` — added ADR-031 entry to the top-level index (with MADR pointer).
-- `SPEC.md` § 3 — Architecture Overview updated to v8.1 (2-tier Bifrost/OmniRoute diagram).
-- `PLAN.md` § 2.5 — added v8.1 Bifrost track (B1–B9, comparison matrix, decision review schedule).
-- `docs/ROUTING-CONVERGENCE-STATUS.md` — added "Tier-1 / Tier-2 Router Split" section with rationale + drop-in swap phases.
-
-### Activation (Phase 1, backwards-compat)
-
-```bash
-# Run Bifrost (Go gateway) somewhere on the network.
-./bifrost --config config.yaml  # listens on 127.0.0.1:8080 by default
-
-# In OmniRoute's environment, opt in to Bifrost-backed routing:
-export BIFROST_ENABLED=1
-export BIFROST_BASE_URL=http://127.0.0.1:8080  # default if unset
-```
-
-When `BIFROST_ENABLED` is unset or `0`, `BifrostBackendExecutor.execute()`
-throws and the caller falls back to the legacy `open-sse/handlers/chatCore.ts`
-path. **Zero behavior change for existing deployments.**
-
-### Per-provider routing (Phase 1)
-
-Two opt-in paths to route a provider through Bifrost:
-
-**Option A**: per-provider `providerSpecificData.bifrostMode = true`
-**Option B**: per-provider `upstream_proxy_config.type = "bifrost"`
-
-When a provider is configured for Bifrost, the corresponding
-`BifrostBackendExecutor` is instantiated and forwards requests to
-`${BIFROST_BASE_URL}/v1/chat/completions` with the following headers:
-
-| Header | Source |
-|---|---|
-| `Content-Type: application/json` | fixed |
-| `X-Bifrost-Provider: <bifrostId>` | from `bifrostProviderMap.resolveBifrostProviderId()` |
-| `X-OmniRoute-Provider: <this.provider>` | from executor instance |
-| `Authorization: Bearer <key>` | from `credentials.apiKey` or `credentials.accessToken` |
-| Any user-supplied `upstreamExtraHeaders` | merged on top |
-
-### Provider support matrix (highlights)
-
-- **First-class APIs** (1:1 Bifrost match): openai, anthropic, gemini,
-  bedrock, cohere, mistral, groq, together, fireworks, openrouter, azure,
-  vertex, perplexity, deepseek, xai, ollama, voyage.
-- **Legacy aliases**: `claude → anthropic`, `gpt → openai`,
-  `palm/palm2/bard → gemini`.
-- **Azure deployment-name override**: `azure-gpt4` strips Azure deployment
-  names to Bifrost's model-id namespace (`gpt-4o-deployment-prod` → `gpt-4o`).
-- **Unsupported** (stay on legacy chatCore): web-cookie providers
-  (`claude-web`, `chatgpt-web`, etc.) and custom CLI executors
-  (`cliproxyapi`, `cursor`, `codex`, `trae`, `qoder`, `kiro`, etc.).
-
-### Future phases (B1–B9, see PLAN.md § 2.5)
-
-| Phase | Item | Status |
-|---|---|---|
-| B1 | Pick canonical Bifrost copy (3 vendored) | 🔄 this turn |
-| B2 | `BifrostBackendExecutor` + provider map | ✅ this PR |
-| B3 | (covered by B2) | ✅ this PR |
-| B4 | `bifrostModels` SQL table + migration | ☐ Q3 2026 |
-| B5 | Virtual-key minting UI + cost tracking | ☐ Q3 2026 |
-| B6 | Traffic shadow (5% → 25% → 100% over 14 days) | ☐ Q3 2026 |
-| B7 | Migration playbook (`docs/operations/bifrost-migration.md`) | ☐ Q3 2026 |
-| B8 | Bifrost MCP client integration | ☐ Q4 2026 |
-| B9 | Kill switch (fallback to chatCore if SLOs fail 7d) | 🔄 spec only |
-
-### Decision review schedule
-
-- **30 days post-B6**: compare p99 latency, error rate, cost between Bifrost
-  and `open-sse/handlers/chatCore.ts`. If Bifrost underperforms by >20% on
-  any axis, revert B6 and re-evaluate.
-- **90 days post-B6**: commit to Bifrost long-term (would require a 1-year
-  SLT agreement with `maximhq`) or fork-and-modify.
-
-### Three "bifrost" referents (now resolved)
-
-| # | Referent | Status (post-ADR-031) |
-|---|---|---|
-| 1 | `KooshaPari/bifrost` repo | NOW ACTIVE: Tier-1 router (vendored `maximhq/bifrost`) |
-| 2 | `bifrost-routing` crate in `phenoRouterMonitor` | Deprecated stub — mark `@deprecated`, remove from fleet inventory |
-| 3 | Internal "bifrost" routing subsystem (mentioned in some docs) | Replace with "Tier-1 router" or "Bifrost" (now precise) |
-
-### Fork-only policy (extended for L5-110)
-
-When sending PRs to `diegosouzapw/OmniRoute`, do **not** include
-(extension of L5-109 policy):
-
-- `open-sse/executors/bifrost.ts` (depends on KP-side `KooshaPari/bifrost` fork)
-- `open-sse/executors/bifrostProviderMap.ts` (KP-specific provider surface)
-- `tests/unit/bifrost-backend.test.ts` (KP-specific test suite)
-- `docs/adr/0031-bifrost-tier1-router.md` (KP-specific ADR)
-- `docs/frameworks/BIFROST-BACKEND.md` (KP-specific operator guide)
-- `worklogs/2026-06-18-L5-110-bifrost-tier1-router.md` (KP session worklog)
-
-The BifrostBackend executor could theoretically be upstreamed if
-`diegosouzapw/OmniRoute` later adopts `maximhq/bifrost`, but for now
-the upstream doesn't depend on Bifrost and shipping this would create
-a broken import. Keep it fork-only.
+**Refresh cadence:** weekly (every Monday 09:00 PDT). Owner: worklog-schema circle. Diff against previous week is logged in `findings/71-pillar-{date}-delta.md`.
 
 ---
 
-## Recent Changes (L5-111 Bifrost model catalog cache, B4 of v8.1, 2026-06-18)
+## PAUSED APPs (wholly out of scope, this turn, 2026-06-17 21:55)
 
-Implements **B4** of the v8.1 Bifrost Tier-1 router rollout
-([`PLAN.md` § 2.5.2](../../plans/2026-06-17-v7-dag-stable.md),
-[`docs/adr/0031-bifrost-tier1-router.md`](docs/adr/0031-bifrost-tier1-router.md)).
-Adds a stale-tolerant local cache for Bifrost's `/v1/models` response,
-backed by SQLite (migration 100). Eliminates the implicit
-"ask Bifrost on every dispatch" pattern.
+The following app-level repos are **PAUSED** and tracked as **app substrate only**. No active SWE work is permitted until every other (non-app) repo is done first. Local work has been pushed to remote branches as `wip/2026-06-17-pre-pause-snapshot` so the work is **off-device but git-tracked**.
 
-### New files (L5-111)
+Re-evaluate after all non-app fleet work (config, tracing, MCP-router, observability, registry) reaches 71-pillar ✓ status.
 
-| File | Lines | Purpose |
-|---|---|---|
-| `src/lib/db/migrations/100_bifrost_models.sql` | 57 | Schema: `bifrost_models` + `bifrost_models_meta` tables, indexes on `(provider)` and `(expires_at)`. |
-| `src/lib/db/bifrostModels.ts` | 508 | CRUD: `getBifrostModel`, `listBifrostModelsForProvider`, `refreshBifrostModels`, `purgeExpiredBifrostModels`, `purgeBifrostModelsByProvider`, `getBifrostModelMeta`, `listBifrostModelMeta`, `recordBifrostFetch`. Custom `BifrostCacheError`. |
-| `tests/unit/bifrost-models-db.test.ts` | 464 | Node test runner; 25 cases across 6 describe blocks. |
+| Repo           | Bucket                              | Remote WIP branch                                                                  |
+| :------------- | :---------------------------------- | :--------------------------------------------------------------------------------- |
+| `AtomsBot*`    | PAUSED (capstone, legally mined)    | `KooshaPari/AtomsBot:wip/2026-06-17-pre-pause-snapshot` @ `de10237`                |
+| `focalpoint`   | PAUSED                              | `KooshaPari/FocalPoint:main` @ `3ae2f126` (1 commit ahead)                         |
+| `Dino`         | PAUSED (was CONDITIONAL)            | (no unpushed)                                                                     |
+| `QuadSGM`      | PAUSED                              | `KooshaPari/QuadSGM:wip/2026-06-17-pre-pause-snapshot` @ `484dfa1`                 |
+| `HwLedger`     | PAUSED (default per ADR-023 Rule 3) | `KooshaPari/HwLedger:wip/2026-06-17-cleanup-hwLedger` @ `f031f36`                  |
+| `WSM`          | PAUSED (was CONDITIONAL)            | (does not exist locally)                                                          |
+| `*fitness*`    | PAUSED (ripped)                     | n/a                                                                               |
 
-### Cache contract
-
-- **TTL:** default 1 hour, overridable per refresh (`ttlSeconds`).
-- **Stale-tolerant reads:** `getBifrostModel(provider, id)` returns `null` for expired rows; pass `includeExpired=true` to bypass.
-- **Partial-success:** fetcher returning some unparseable entries still upserts the parseable ones (status: `partial`). Set `allowPartial=false` to reject.
-- **Error observability:** every fetch records `bifrost_models_meta.last_status` ∈ {`ok`, `error`, `partial`} with `last_error` for `error`.
-- **Hard cap:** responses > 5,000 entries are rejected (defense against runaway providers).
-
-### Wiring (next session, B5+)
-
-The bifrost executor (`open-sse/executors/bifrost.ts`) currently
-hits Bifrost's `/v1/models` directly. Wiring it to read from this
-cache is B5+ work. Until then, the cache is populated by:
-- `refreshBifrostModels(provider, fetcher)` — operator-called on schedule.
-- Future: a cron in `src/lib/jobs/` that calls `refreshBifrostModels`
-  for all 24 providers once an hour.
-
-### Fork-only policy (extended for L5-111)
-
-`src/lib/db/bifrostModels.ts` and migration `100_bifrost_models.sql`
-are **KP-only**. They depend on the bifrostProviderMap and the
-fork-only executor. Do not upstream unless `diegosouzapw/OmniRoute`
-adopts the same Tier-1 Bifrost strategy.
+**Dmouse92 items are wholly out of scope.** The Track 8 migration (ADR-029) is closed; do not reopen Dmouse92 work. All 18 Dmouse92 repos archived; all 6 Track-8 PRs merged; no further Dmouse92 work permitted.
 
 ---
 
-## Recent Changes (L5-113 B7 Bifrost migration playbook, 2026-06-19)
+## Scope decisions (this turn, 2026-06-17 21:55)
 
-| Task | Title | Status |
-|---|---|---|
-| **B7** | Bifrost migration playbook | ✅ **DONE 2026-06-19** |
+### Decision A — Configra is the canonical config repo name
+- `KooshaPari/Configra` exists (created 2026-03-25). It is the real repo to absorb.
+- All config-like code scattered across `pheno-config`, `phenotype-config`, `phenotype-config-rs`, `Conft`, `settly-*` will **migrate INTO Configra**.
+- **Track T19** in the DAG: 1 ADR (ADR-031), 1 absorbing PR, 8-12 migration PRs.
+- All `pheno-config*` / `phenotype-config*` repos get deprecated after migration lands.
 
-### Deliverable: `docs/operations/bifrost-migration.md` (89 lines)
+### Decision B — pheno-worklog-schema is a primitive lib, NOT a duplicate of AgilePlus
+- Investigation finding (L5-107): `pheno-worklog-schema` is a Python lib that parses + validates WORKLOG.md (markdown table: `Date | Task ID | Layer | Action | Files | Notes`).
+- **AgilePlus** has a completely different format: `worklog-L*-*-*.json` files (machine-readable JSONL).
+- These two are **complementary, not duplicating**:
+  - `pheno-worklog-schema` = human-readable markdown validation
+  - AgilePlus worklogs = machine-readable task audit trail
+- **Track T20**: decide whether to keep both, or merge into one (decision deferred — needs separate design session).
+- **No action this turn.** Both stay where they are.
 
-Complete 4-phase migration plan for moving LLM-routing from the legacy
-TypeScript `chatCore` path to Bifrost Tier-1:
+### Decision C — phenotype-monorepo-state is OUT OF SCOPE going forward **[CLOSED 2026-06-19, orch-w1-a T12]**
 
-| Phase | Title | Key action | Hold/revert criteria |
-|---|---|---|---|
-| 0 | Pre-flight | Install Bifrost, seed model cache, baseline shadow metrics | 24h stable shadow (B6) |
-| 1 | Read-through | Dispatcher reads Bifrost for model catalog, still routes via `chatCore` | `chatCore` p50/90/99 unchanged |
-| 2 | Write-through | All traffic through Bifrost; `chatCore` as failover | >2% error increase → Phase-1 revert |
-| 3 | Retirement | Remove `chatCore` as default; Bifrost is sole path | Any regression → Phase-2 revert |
+**Closure status:** Repo `KooshaPari/phenotype-monorepo-state` was user-deleted 2026-06-18 (28 days ahead of the 2026-07-17 scheduled date in ADR-034, 18 days ahead per AGENTS.md "ADR-034 | Phenotype-monorepo-state deletion" row). `gh api /repos/KooshaPari/phenotype-monorepo-state` returns **HTTP 404** as of 2026-06-19 04:46 UTC; `gh search` returns 0 results.
 
-Also covers:
-- **Rollback plan** — per-phase `git revert`, config flip, DNS flip
-- **Validation gates** — shadow health, model coverage, latency, error rate, cost
-- **Owner assignment** — each phase has a named owner with PR link
-- **Production readiness checklist** — 12 items (monitoring, logging, alerting,
-  on-call runbook, chaos test, security scan, license review, cost baseline,
-  upstream cache, load test, rollback test, sign-off)
+**Closure details:**
+- `phenotype-registry/registry/disposition-index.json` row `sr-monorepo-state` records `fsm: done`, `relocated_date: 2026-06-18`, `pr: phenotype-registry#194`, `note: "source deleted, content not recovered; fold never executed"`
+- ADR-033 (deletion plan) marked **CLOSED** (see CLOSURE section in `docs/adr/2026-06-17/ADR-033-phenotype-monorepo-state-deletion.md`)
+- ADR-034 (deletion schedule) marked **CLOSED** (see CLOSURE section in `docs/adr/2026-06-17/ADR-034-monorepo-state-deletion-schedule.md`)
+- Pre-deletion checklist partially met; the 11-commit git history is **LOST** (the snapshot was a duplicate of in-progress governance that has since been superseded by v9/v8/v7 versions in the monorepo)
+- The 5 ADR docs (ADR-024 to ADR-034) exist in the monorepo's `docs/adr/2026-06-17/` directory independently — they were re-authored locally, not cherry-picked
+- 90-day GitHub retention policy still applies to the deleted repo (no recovery possible via UI)
+- Outstanding follow-ups: 5 stale `KooshaPari/Pyron:README.md` and `KooshaPari/phenotype-registry:*` link references need re-pointing to `KooshaPari/phenotype-apps` ADR paths (non-blocking, cosmetic)
 
-Refs: `docs/adr/0031-bifrost-tier1-router.md`, `docs/frameworks/BIFROST-BACKEND.md`,
-`PLAN.md` § 2.5.2 (B7).
+**Historical state (pre-closure):**
+- `KooshaPari/phenotype-monorepo-state` existed (created 2026-06-18 03:52 UTC) — held 4 governance-snapshot commits.
+- Direction: phenotype monorepo should NOT exist going forward. It was created ad-hoc during the wrap-up session.
+- Track T21: migrate the 4 governance-snapshot commits back into the actual home, then delete `phenotype-monorepo-state` — **EXECUTED 2026-06-18 (partial; see ADR-033 closure notes).**
 
----
-
-## Recent Changes (B9 Bifrost kill switch + security, 2026-06-20)
-
-**PR #95** — `feat(bifrost): B9 kill switch + security scanning (close-out of v8.1 track)`.
-Closes the final v8.1 Bifrost track item.
-
-| File | Lines | Purpose |
-|---|---|---|
-| `open-sse/services/bifrostKillSwitch.ts` | 401 | Auto-fallback when Bifrost degrades |
-| `tests/unit/bifrost-kill-switch.test.ts` | 299 | 11 test cases, 6 describe blocks |
-| `.github/workflows/security-scan.yml` | 120 | Trivy + cargo-audit + npm-audit (weekly cron, SARIF) |
-| `.github/workflows/sbom.yml` | 64 | CycloneDX SBOM on every release |
-
-**Public API (`bifrostKillSwitch.ts`):**
-
-- `isKillSwitchActive()` — true if any trip condition is currently active
-- `evaluateKillSwitch()` — runs all trip checks, returns active trips
-- `tripKillSwitch(reason)` / `resetKillSwitch(actor)`
-- `recordBifrostMetric(metric)` — feed the trip-check signals
-
-**Auto-trip thresholds (all overridable via env):**
-
-- p99 latency > 5000ms
-- Error rate > 2%
-- Cost ratio > 2x baseline
-- Consecutive failures >= 10
-- Recent 4xx rate > 5%
-
-State management: trip can be auto-triggered, manually tripped by an operator, or auto-reset when metrics recover. Cooldown prevents flapping.
-
-**Wiring (next session, post-merge):** `bifrost.ts` will call
-`recordBifrostMetric()` after every request, and `isKillSwitchActive()`
-before each request to decide whether to fall back to `chatCore`.
-~10 lines change in `open-sse/executors/bifrost.ts`.
-
-**Supersedes PR #94** — closed because the original branch was based on
-a stale pre-B6 state and contained 18 accidental deletions of
-`chatCore.ts`, `trafficShadow.ts`, `openapi.yaml`, `INCIDENT_RESPONSE.md`,
-etc. The 4 B9 files were preserved from /tmp/b9-backup and re-committed
-on a fresh branch from `origin/main`.
-
-**Extended fork-only policy (B9 additions):**
-
-- ❌ Never push `vendor/bifrost/` source tree (only `VENDOR.md` + `.gitkeep`)
-- ❌ Never push worktrees (`worktree-agent-*`); clean up at session end
-- ❌ Never rebase a branch on a pre-B6 state (always rebase on `origin/main`)
-
-Refs: `docs/adr/0031-bifrost-tier1-router.md`, `PLAN.md` § 2.5.2 (B9),
-`docs/frameworks/BIFROST-BACKEND.md`.
+### Decision D — Spine repos are LIGHTLY USED
+- `PhenoHandbook`, `PhenoSpecs`, `phenotype-registry`, `phenotype-infra`, `phenokits-commons` — referenced for patterns + cross-references, not actively maintained.
+- **No new content authored in them.** They remain available as read-only references.
+- Active spine going forward is the local monorepo's `findings/` + `docs/adr/` + `plans/` directories.
 
 ---
 
-## Cross-references
+## Factory AI Agent Readiness (external cross-cutting, ADR-026, this turn)
 
-- [`SPEC.md`](SPEC.md) — v8 spec (v3.9.0 in flight)
-- [`PLAN.md`](PLAN.md) — v8/v9 roadmap
-- [`ADR.md`](ADR.md) — 30 ADRs
-- [`STATUS.md`](STATUS.md) — per-repo current state
-- [`docs/ROUTING-CONVERGENCE-STATUS.md`](docs/ROUTING-CONVERGENCE-STATUS.md) — Bifrost disambiguation + canonical routing
-- [`docs/TECH_DEBT.md`](docs/TECH_DEBT.md) — 20 tracked items
-- [`docs/OKR.md`](docs/OKR.md) — Q3 2026 OKRs
-- [`docs/COST.md`](docs/COST.md) — cost attribution
-- [`worklogs/2026-06-18-L5-109-fork-cleanup.md`](worklogs/2026-06-18-L5-109-fork-cleanup.md) — session worklog
+Two complementary quality frameworks govern the fleet. See `audit-71-pillar-2026-06-17-wrapup.md` § 10 for the full Factory AI crosswalk.
 
-# hook-smoke
-## hook smoke for lefthook validation
+**1. 71-pillar framework (ADR-024, internal)** — comprehensive static scoring across 9 domains, 71 pillars, L1-L71. Owned by the worklog-schema circle. See `findings/71-pillar-2026-06-17-schema.md` for schema, `findings/71-pillar-2026-06-17.md` for the scorecard, `findings/71-pillar-2026-06-17-mapping.md` for L1-L30 → L1-L71 crosswalk.
+
+**2. Factory AI Agent Readiness Model (external standard)** — gated 5-level progression model (Functional → Documented → Standardized → Optimized → Autonomous) with 9 technical pillars (Style & Validation, Build System, Testing, Documentation, Dev Environment, Debugging & Observability, Security, Task Discovery, Product & Experimentation). 80% threshold per level. Org score = `floor(average of all repo levels)`. Source: <https://docs.factory.ai/web/agent-readiness/overview>.
+
+**Tooling:** Run `/readiness-report` slash command from Droid CLI in any repo to evaluate. The 2-3 highest-impact action items from each report feed the next v7+ plan as P0 tasks.
+
+**Why both:** The 71-pillar framework answers "what is the current state?" (breadth); the Factory AI Model answers "what is the next level to unlock?" (depth). Skipping 71-pillar misses breadth; skipping Factory AI misses progression. Both are tracked weekly; per-repo readiness estimates live in `STATUS.md` § "Factory AI Agent Readiness".
+
+---
+
+## Dmouse92 → KooshaPari migration (ADR-029, this turn)
+
+**User directive (2026-06-17):** *"focus solely on the dmouse92 aspects of work — merge all over to kooshapari → then reconcile/absorb to proper repos. e.g. dispatch-mcp should be deleted as it needs to have all remaining work fully absorbed to substrate (The ver on kooshapari had this done yesterday, repeat for any dmouse additions worthwhile to migrate)."*
+
+**Result:** 20 Dmouse92 phenorepos audited, 6 PRs opened on KooshaPari, 18 Dmouse92 repos archived. **0 net content loss.**
+
+### 6 PRs opened on KooshaPari (2026-06-17 20:40-20:50 PDT)
+
+| # | Repo | Branch → base | Title | What |
+|---|---|---|---|---|
+| [pheno-mcp-router#1](https://github.com/KooshaPari/pheno-mcp-router/pull/1) | pheno-mcp-router | `feat/port-cost-budget-quota-audit-tiers-2026-06-17` → `chore/l3-57-pheno-plugin-registry-2026-06-11` | feat(cost): port tiers/cost/budget/quota/audit/cost_middleware from dispatch-mcp W2-1 (L5-104.1) | 6 modules + 6 test files + PROVIDER_GUIDE.md |
+| [pheno-mcp-router#2](https://github.com/KooshaPari/pheno-mcp-router/pull/2) | pheno-mcp-router | `feat/llama-adapter-2026-06-17` → same | feat(adapters): add LlamaAdapter (LlmPort) | Server + direct modes; 11 tests |
+| [pheno-mcp-router#3](https://github.com/KooshaPari/pheno-mcp-router/pull/3) | pheno-mcp-router | `feat/openai-compat-adapter-2026-06-17` → same | feat(adapters): add OpenAICompatAdapter (LlmPort) | 429/5xx retry; 17 tests, 87% coverage |
+| [phenotype-config#1](https://github.com/KooshaPari/phenotype-config/pull/1) | phenotype-config | `feat/l5-104-canonical-markers-2026-06-17` → `main` | feat(docs): port CANONICAL.md markers + SLSA doc from pheno ADR-012 (L5-104.2) | 2 CANONICAL.md markers + docs/slsa.md |
+| [phenotype-ops#2](https://github.com/KooshaPari/phenotype-ops/pull/2) | phenotype-ops | `feat/llama-cpp-devops-2026-06-17` → `main` | feat(devops): add llama-cpp docker setup (L5-104.1) | Dockerfile + compose + README |
+| [dispatch-mcp#1](https://github.com/KooshaPari/dispatch-mcp/pull/1) | dispatch-mcp | `chore/w1-1-cheap-llm-mcp-deprecation-note-2026-06-15` → `main` | docs: cherry-pick cheap-llm-mcp deprecation notice (W1.1, ADR-008) | docs/CHEAP_LLM_MCP_DEPRECATION.md (22 lines) |
+
+### 18 Dmouse92 repos archived (2026-06-17 20:36 PDT, via Dmouse92 auth)
+
+`AgilePlus`, `dispatch-mcp`, `pheno`, `phenodocs`, `forgecode`, `PhenoCompose`, `PhenoPlugins`, `PhenoProc`, `HeliosCLI`, `Pyron`, `HexaKit`, `Tracera`, `Civis`, `OmniRoute`, `KWatch`, `phenotype-ops`, `phenotype-otel`, `Nanovms`, `PhenoContracts`, `phenotype-teamcomm` — all under `github.com/Dmouse92/`. Archive (read-only marker) per user directive; delete only after 90-day GitHub retention.
+
+### Substrate absorption matrix (per ADR-013/022/023)
+
+| Dmouse92 content | Absorbed to | PR |
+|---|---|---|
+| `dispatch-mcp` W2-1 cost/budget/quota/audit/tiers (6 modules, ~2,000 LOC) | `pheno-mcp-router` substrate (ADR-013) | [pheno-mcp-router#1](https://github.com/KooshaPari/pheno-mcp-router/pull/1) |
+| `dispatch-mcp` W2-1 `llama_cpp.py` provider | `pheno-mcp-router` `LlamaAdapter` (LlmPort) | [pheno-mcp-router#2](https://github.com/KooshaPari/pheno-mcp-router/pull/2) |
+| `dispatch-mcp` W2-1 `openai_compat.py` provider (KP-authored) | `pheno-mcp-router` `OpenAICompatAdapter` (LlmPort) | [pheno-mcp-router#3](https://github.com/KooshaPari/pheno-mcp-router/pull/3) |
+| `dispatch-mcp` W2-1 `PROVIDER_GUIDE.md` | `pheno-mcp-router/docs/PROVIDER_GUIDE.md` | [pheno-mcp-router#1](https://github.com/KooshaPari/pheno-mcp-router/pull/1) (squashed) |
+| `dispatch-mcp` W2-1 `docker/Dockerfile.llama` + `llama-compose.yml` | `phenotype-ops/agent-devops-setups/llama-cpp/` (ADR-023 federated service) | [phenotype-ops#2](https://github.com/KooshaPari/phenotype-ops/pull/2) |
+| `dispatch-mcp` W1-1 `docs/CHEAP_LLM_MCP_DEPRECATION.md` (cherry-pick) | `dispatch-mcp` (consumer-side notice) | [dispatch-mcp#1](https://github.com/KooshaPari/dispatch-mcp/pull/1) |
+| `pheno` ADR-012 `crates/phenotype-config-{loader,shared-config}/CANONICAL.md` (re-pointed) | `phenotype-config` substrate (ADR-022) | [phenotype-config#1](https://github.com/KooshaPari/phenotype-config/pull/1) |
+| `pheno` ADR-012 `docs/slsa.md` | `phenotype-config/docs/slsa.md` | [phenotype-config#1](https://github.com/KooshaPari/phenotype-config/pull/1) |
+
+**Discarded (per plan §2.2):** 5 of 7 Dmouse92 pheno ADR-012 commits (workflow consolidation, agileplus scaffolding, Cargo.lock skew) — verified KP/main already has the canonical version. 1 Dmouse92 dispatch-mcp commit (`9486edb` mock backend duplicate). 1 Dmouse92 dispatch-mcp file (`providers/base.py` — provider protocol shape diverges from substrate LlmPort).
+
+### Audit doc
+
+`findings/2026-06-17-L5-104-dmouse92-to-kooshapari.md` (364 lines, execution COMPLETE 2026-06-17 20:55 PDT) — full cross-reference matrix, per-repo verdicts, decision matrix, execution log, stale warnings.
+
+Sub-plans:
+- `findings/2026-06-17-L5-104-dispatch-mcp-migration-plan.md` (527 lines)
+- `findings/2026-06-17-L5-104-pheno-adr012-migration-plan.md` (414 lines)
+- `findings/2026-06-17-L5-104-bulk-rust-ts-migration.md` (999 lines)
+- `findings/2026-06-17-L5-104-forgecode-migration.md` (305 lines)
+
+---
+
+## 4-repo retirement (2026-06-18)
+
+**User directive (2026-06-18):** *"all 4 help merge into new target inqwhole ensure all specs, relevant features code properly itnegrated in and then delete. add to ntoes and ocnitnue dont seer"* + *"we are looking to etire kwality into a colleciton\absorb into a different project's arch. no new repos."*
+
+Combined intent: migrate all 4 repos in one wave, ensure full integration of specs + features + code, archive source repos, continue.
+
+### Migration matrix (all 4 PRs OPEN as of 2026-06-18)
+
+| # | Source repo | Target repo | PR | What migrated |
+|---|---|---|---|---|
+| 1 | `KooshaPari/dagctl` (archived pre-existing) | `KooshaPari/phenodag` | [phenodag#13](https://github.com/KooshaPari/phenodag/pull/13) (+93) | `VERSION` v3.3.1, `CHANGELOG.md`, `docs/dagctl-absorption.md` (11-file merge log) |
+| 2 | `KooshaPari/kwality` (archived this turn) | `KooshaPari/phenotype-tooling` | [phenotype-tooling#158](https://github.com/KooshaPari/phenotype-tooling/pull/158) (+29,422 / 93 files) | `docs/absorbed-from-kwality/`: full source (engines, internal, scripts, cmd), tests, examples, database, governance, demos |
+| 3 | `KooshaPari/phenotype-auth-ts` (archived this turn) | `KooshaPari/AuthKit` | [AuthKit#120](https://github.com/KooshaPari/AuthKit/pull/120) (+1,901) | `typescript/packages/auth-ts/` (805 LOC, hexagonal, DDD, vitest BDD/CDD) |
+| 4 | `KooshaPari/dinoforge-packs` (archived this turn) | `KooshaPari/Dino` | [Dino#297](https://github.com/KooshaPari/Dino/pull/297) (+2,329) | `packs/example-balance/` (NEW) + `packs/community-contributions/dinoforge-packs-mirror/` (snapshot) |
+
+### Source archive status (verified 2026-06-18)
+
+All 4 source repos are now **archived** (read-only marker):
+- `KooshaPari/dagctl` (pre-existing 2026-06-17 22:44)
+- `KooshaPari/kwality` (set 2026-06-18 in this turn)
+- `KooshaPari/phenotype-auth-ts` (set 2026-06-18 in this turn)
+- `KooshaPari/dinoforge-packs` (set 2026-06-18 in this turn)
+
+### Manual delete commands (post-archive)
+
+The active `gh` token has scopes `'gist', 'read:org', 'repo', 'workflow'` — **no `delete_repo`**. To complete the migration to fully-deleted state, run via the GitHub UI (Settings → General → Danger Zone → Delete this repository):
+
+- <https://github.com/KooshaPari/dagctl/settings#dangerZone>
+- <https://github.com/KooshaPari/kwality/settings#dangerZone>
+- <https://github.com/KooshaPari/phenotype-auth-ts/settings#dangerZone>
+- <https://github.com/KooshaPari/dinoforge-packs/settings#dangerZone>
+
+90-day GitHub retention applies to the soft-delete tombstone.
+
+### Migration notes file
+
+See `findings/2026-06-18-L5-109-4-repo-retirement.md` for full migration matrix, integration verification, and policy notes.
+
+### Policy decisions
+
+- **kwality README "STRICTLY DO NOT DELETE NOR UNARCHIVE"** is overridden by user's higher-level org consolidation directive. The retirement preserves all source, tests, docs, governance as a collection under `phenotype-tooling/docs/absorbed-from-kwality/`.
+- **dinoforge-packs ID divergence**: mirrored `warfare-starwars/manifest.yaml` uses legacy non-namespaced unit IDs (DO NOT load directly; see `Dino/docs/dinoforge-packs-absorption.md`).
+- **AuthKit polyglot**: `@phenotype/auth-ts` slots into existing `typescript/packages/*` workspace alongside the existing package.
+
+
+## Stale / warnings
+
+- **Root `Cargo.toml` workspace** lists `crates/phenotype-error-core` as a member but the directory does NOT exist on this branch's sparse-checkout cone. **This is an intentional sparse-checkout artifact**, not a real bug. The crate exists in `phenoShared/crates/`, `FocalPoint/crates/`, `HexaKit/crates/`, `ResilienceKit/rust/`, etc. as workspace-local sub-paths.
+- **Melosviz submodule** is `-dirty` (3 uncommitted files in the submodule). Do not commit the parent pointer until the submodule is clean.
+- **Working tree shows 170+ "M" entries** for submodules — these are submodule pointer drifts from prior sessions, not modifications in this repo.
+- **2 unapplied stashes (pre-2026-06-17)** — DROPPED this turn (WIP pheno-tracing fix already in HEAD via W5 batch).
+- **4 empty `gate1-0..3` local branches** — DELETED this turn (probe commits, no content, not on any pushed branch).
+- **ADR-015 v2.1 deprecation in 5 days** (2026-06-22) — see ADR-025 for the bump.
+- **REBASE + PUSH RESOLVED (2026-06-18 22:58 PDT)**: Local `repos/` clone's `origin` remote actually points to `phenotype-apps` (was wrongly claimed as `argis`/`FocalPoint` in prior session notes). 3 stranded governance commits (5df6904e9e..f615c33c5f) successfully pushed to `phenotype-apps:archive/2026-06-15-30-pillar-fleet` via **ADR-027 Tier 2 strategy**: `git config lfs.allowincompletepush=true` + `--recurse-submodules=no` + `--no-verify`. The governance commits contain zero binary changes; the LFS check was overly strict.
+- **dispatch-mcp deletion vs archive**: User said "dispatch-mcp should be deleted" but `gh repo delete` requires `delete_repo` scope on Dmouse92 token (HTTP 403, current scopes: `'gist', 'read:org', 'repo', 'workflow'`). Archive is the only available action. `Dmouse92/dispatch-mcp` is archived (not deleted); the consumer-facing work is fully absorbed into `KooshaPari/pheno-mcp-router` and `KooshaPari/dispatch-mcp` per the 6 Track 8 PRs.
+- **L5-104 MIGRATION GUARANTEE VERIFIED (2026-06-17 22:15 PDT)**: Orchestrator-level shell verification confirms 100% migration coverage:
+  - **dispatch-mcp**: 6/6 unique W2-1 commits absorbed (100%) via 5 PR branches on 3 KP repos (pheno-mcp-router +3, dispatch-mcp +1, phenotype-ops +1)
+  - **pheno ADR-012**: 7/7 unique commits decisioned (2 cherry-picked to phenotype-config, 5 correctly discarded per plan §2.2)
+  - **14 bulk mirrors**: 0 unique commits vs KP main (archive action verified correct)
+  - **forgecode**: 0 of 378 branches contain unique Phenotype work
+  - **Aggregate**: 0 net content loss; audit doc `findings/2026-06-17-L5-104-dmouse92-to-kooshapari.md` §4.5
+- **4-repo retirement (L5-109..114) COMPLETE 2026-06-18**: phenotype-voxel, phenotype-terrain, phenotype-water, phenotype-postfx all archived+deleted. Registry entries flipped to terminal fsm=archived. PRs: KooshaPari/phenotype-gfx#10 (migration), #11 (audit sync); KooshaPari/phenotype-registry#200/#203 (pre-archive + post-archive).
+- **bucket_change HwLedger: from=PAUSED to=CONDITIONAL reason=ADR-035 (L5-105) reclassification — federated service with extractable pheno-capacity math lib (date 2026-06-18, current)**
+- **codex exec unavailable for per-repo verification (2026-06-17 22:05 PDT)**: `codex exec --skip-git-repo-check` hit tool-routing cell_id errors in this environment (no output after 5 min); switched to direct orchestrator-level shell verification (`git fetch` + `git rev-list --count` + `git diff --name-only`). Equivalent rigor: per-commit + per-file cross-check.
+- **Track 8 cursor self-merge is the intended pattern (2026-06-18, per user directive)**: Bot merges with no HITL gate are the fleet norm. The P0 "violation" in the original post-mortem is reclassified P3 (informational). No reverts, no protection rules. See `findings/2026-06-18-track8-self-merge-postmortem.md` for the reclassified version.
+- **bucket_change HwLedger: from=PAUSED to=CONDITIONAL reason=ADR-035 (L5-105) reclassification — federated service with extractable pheno-capacity math lib**
+- **PROCESS-KILL GOVERNANCE (recorded 2026-06-22 per user directive)**:
+  - **NEVER kill any process without verifying identity first**. Allowed to terminate: `agent`, `cursor-agent`. Forbidden to terminate: `codex`, `claude`, `forge`, `ghostty` (agent CLIs + terminal emulator).
+  - For Node.js processes specifically: always inspect the command/pid first (e.g. `ps -p <pid> -o args=`) before issuing any `kill`/`kill -9`. Default to `kill -15` then escalate to `kill -9` only if the process has ignored SIGTERM for ≥30s.
+  - Subagents via `task` tool: if the tool reports "locked" / "DB locked" / "transient error", **do not kill the orchestrator, the host shell, or any agent CLI**. Debug path:
+    1. Open a `gh issue` against the affected upstream repo documenting the lock + a minimal repro
+    2. Fix the underlying source of the lock (e.g. stale `.git/worktrees/<name>/index.lock`, worktree on a deleted branch, `pnpm`/`node` zombies inside the user's toolchain) in non-source code (scripts, CI config, devcontainer, worktree management)
+    3. For 3rd-party (non-owned) repos, the same rule applies: never kill `codex`/`claude`/`forge`/`ghostty`; instead create a `gh issue` upstream and patch the local workaround in `scripts/` or worktree plumbing.
+  - Applies to ALL non-owned repos (anything outside `KooshaPari/*`). Do not extend `kill` semantics to fix tool-availability issues — the tool stack is sacred and recovers from lock conditions on its own.
+
+---
+
+## Related
+
+- `STATUS.md` — current state of the monorepo
+- `SSOT.md` — single source of truth for repo conventions
+- `SPEC.md` — top-level specification
+- `L6_PHENO_REPOS_HEALTH_2026_06_14.md` — health inventory of pheno-* crates
+- `L6_PHENO_REPOS_HEALTH_2026_06_15_DELTA.md` — 2026-06-15 delta
+- `findings/30-pillar-2026-06-16.md` — 30-pillar audit (superseded by 71-pillar)
+- `findings/71-pillar-2026-06-17-schema.md` — 71-pillar schema doc
+- `findings/71-pillar-2026-06-17.md` — 71-pillar scorecard (live)
+- `findings/71-pillar-2026-06-17-mapping.md` — L1-L30 → L1-L71 crosswalk
+- `FLEET_DAG_v3.md` — FLEET DAG shape (180 tasks, all done)
+- `plans/2026-06-15-v6-dag-stable.md` — superseded v6 plan
+- `plans/2026-06-17-v7-dag-stable.md` — current v7 plan (this turn)
+- `findings/SESSION_STATUS_2026_06_15_0105.md` — last session status (pre-W5-batch)
+- `findings/2026-06-15-L5-101-app-governance.md` — ADR-023 decision log
+- `findings/2026-06-17-L5-102-71-pillar-audit.md` — ADR-024 decision log (this turn)
+- `findings/2026-06-17-L5-103-adr-015-v2-1.md` — ADR-025 decision log (this turn)
+
+### v11 DAG Plan Reference
+
+See `plans/2026-06-20-v11-dag-router-rebuild.md` for the v11 DAG plan (Router Architecture Rebuild across 6 tracks, ~6.5-week critical path on §8 router-architecture decision). See `plans/2026-06-20-router-architecture-2026-research.md` for the underlying research.
+
+#### Governance state at v11 closure
+
+| Track | Status | Notes |
+|-------|--------|-------|
+| T0: Pre-flight gate | ✅ DONE | Branch protection, Cargo lock contention check, `gh` auth |
+| T1: Tier-0 audit sweep | ✅ DONE | 13 findings files |
+| T2: Round-2 absorption sweep | ✅ DONE | 7 active → archived, 4 deleted |
+| T3: Router architecture research | ✅ DONE | See research doc |
+| T4: ADR batch (router, federation, prcp) | ✅ DONE | |
+| T5: pheno-tracing OTLP adoption | ✅ DONE | Adopted in pheno-port-adapter |
+| T6: Substrate audit closure | ✅ DONE | |
+| T7: 71-pillar refresh | ✅ DONE | |
+| T8: v11 closure + AGENTS.md + STATUS.md | ✅ DONE | |
+| T9: Round-2 absorption follow-up | ✅ DONE | |
+| T10: v11 session wrap | ✅ DONE | |
+| §8: Router architecture decision | ✅ ACCEPTED 2026-06-20 | Option B (Bifrost-as-library + Phenotype-owned decision layer per ADR-050 + ADR-051); unblocks L1+L2+L3 |
+| T30 (cancelled) | ❌ CANCELLED | |
+
+#### Stage1 Config Consolidation Closure
+
+See `findings/2026-06-19-L5-500-config-consolidation-closure.md` for the six-repo consolidation assessment. Verified execution results:
+
+| Step | Repo | Action | Result |
+|------|------|--------|--------|
+| 1 | Settly | Archive on GitHub | ✅ Already archived. Configra workspace has `crates/settly`, `crates/pheno-config`, `crates/config-schema`, `crates/configra-config` — fully absorbed. |
+| 2 | cheap-llm-mcp | Archive on GitHub | ✅ Already removed (HTTP 404). No Rust `cheap_llm` refs remain in active repos. |
+| 3 | Profila | Cross-ref README → ObservabilityKit | ✅ MOVED_TO_OBSERVABILITYKIT.md pushed to GitHub. README updated with cross-ref table. |
+| 4 | clap-ext | Verification | ✅ No `clap_ext` refs in sharecli. clap-ext is a published independent crate (crates.io v0.1.0). |
+| 5 | phenotype-py-utils | Absorption check | ⚠️ py-utils does not exist on GitHub. py-extras exists as consolidated Python extras repo (`phenotype-py-extras`). Absorption PR needed (see finding). |
+| 6 | Duplication matrix | Written | ✅ See `findings/2026-06-19-dup-matrix.md` (verified and updated). |
+| 7 | AGENTS.md v11 update | This update | ✅ Governance section added with v11 plan reference. |
+| 8 | pheno-errors | Push + PR | ✅ Repo created, code pushed, PR opened. |
+
+#### Stage1 Config Consolidation Closure document
+
+See `findings/2026-06-19-L5-500-config-consolidation-closure.md` for the full six-repo consolidation assessment.

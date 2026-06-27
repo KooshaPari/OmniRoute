@@ -1,0 +1,104 @@
+// C4 Component Diagram — Phenotype workspace crates (47-crate inventory)
+// Pillar: L5 (Architecture — C4 model)
+// Plan: v24-T1
+// ADR: ADR-081 (C4 model adoption) + ADR-049 (pheno-drift-detector regen)
+digraph C4_Component {
+  rankdir=TB;
+  fontname="Helvetica";
+  labelloc="t";
+  label="Phenotype workspace — C4 Component view (47 crates by domain)";
+
+  // pheno-* substrate libs (Rust) — 11
+  subgraph cluster_pheno_libs_rust {
+    label="pheno-* substrate libs (Rust, 11) — ADR-023";
+    style=filled;
+    color=lightcyan;
+    "pheno-agents-md" [shape=box3d, fillcolor=white];
+    "pheno-cargo-template" [shape=box3d, fillcolor=white];
+    "pheno-cli-base" [shape=box3d, fillcolor=white];
+    "pheno-config" [shape=box3d, fillcolor=white];
+    "pheno-context" [shape=box3d, fillcolor=white];
+    "pheno-errors" [shape=box3d, fillcolor=white];
+    "pheno-flags" [shape=box3d, fillcolor=white];
+    "pheno-otel" [shape=box3d, fillcolor=white];
+    "pheno-port-adapter" [shape=box3d, fillcolor=white];
+    "pheno-tracing" [shape=box3d, fillcolor=white];
+    "pheno-worklog-schema" [shape=box3d, fillcolor=white];
+  }
+
+  // phenotype-* SDKs (3)
+  subgraph cluster_phenotype_sdks {
+    label="phenotype-* SDKs (3) — ADR-023";
+    style=filled;
+    color=lightyellow;
+    "phenotype-go-sdk" [shape=box3d, fillcolor=white];
+    "phenotype-python-sdk" [shape=box3d, fillcolor=white];
+    "phenotype-javascript-sdk" [shape=box3d, fillcolor=white];
+  }
+
+  // phenotype-* frameworks (4)
+  subgraph cluster_phenotype_frameworks {
+    label="phenotype-* frameworks (4) — ADR-023";
+    style=filled;
+    color=lightpink;
+    "phenotype-bus" [shape=box3d, fillcolor=white];
+    "phenotype-hub" [shape=box3d, fillcolor=white];
+    "phenotype-router" [shape=box3d, fillcolor=white];
+    "phenotype-events" [shape=box3d, fillcolor=white];
+  }
+
+  // pheno-* Python libs (10)
+  subgraph cluster_pheno_python {
+    label="pheno-* Python libs (10) — ADR-023";
+    style=filled;
+    color=lavender;
+    "pheno-cost-card" [shape=box3d, fillcolor=white];
+    "pheno-fastapi-base" [shape=box3d, fillcolor=white];
+    "pheno-llms-txt" [shape=box3d, fillcolor=white];
+    "pheno-mcp-router" [shape=box3d, fillcolor=white];
+    "pheno-prompt-test" [shape=box3d, fillcolor=white];
+    "pheno-pydantic-models" [shape=box3d, fillcolor=white];
+    "pheno-scaffold-kit" [shape=box3d, fillcolor=white];
+    "pheno-vibecoding-guard" [shape=box3d, fillcolor=white];
+    "pheno-worklog-schema" [shape=box3d, fillcolor=white];
+    "pheno-zod-schemas" [shape=box3d, fillcolor=white];
+  }
+
+  // Go (1)
+  subgraph cluster_pheno_go {
+    label="Go (1)";
+    style=filled;
+    color=wheat;
+    "pheno-go-ctxkit" [shape=box3d, fillcolor=white];
+  }
+
+  // Federated services (4 — additional to container view)
+  subgraph cluster_federated {
+    label="Federated services (4) — ADR-023";
+    style=filled;
+    color=lightgreen;
+    "phenoMCP" [shape=component, fillcolor=white];
+    "phenoObservability" [shape=component, fillcolor=white];
+    "phenoEvents" [shape=component, fillcolor=white];
+    "phenoCapacity" [shape=component, fillcolor=white];
+  }
+
+  // Key substrate cross-references
+  "pheno-mcp-router" -> "phenoMCP" [label="substrate"];
+  "pheno-events" -> "phenoEvents" [label="substrate"];
+  "pheno-otel" -> "phenoObservability" [label="substrate"];
+  "pheno-capacity" -> "phenoCapacity" [label="substrate (ADR-036)"];
+
+  // Hexagonal L4 ports (ADR-014/038)
+  "pheno-port-adapter" -> "pheno-tracing" [label="Port trait"];
+  "pheno-port-adapter" -> "pheno-config" [label="Port trait"];
+  "pheno-port-adapter" -> "pheno-context" [label="Port trait"];
+
+  // Type system shared error (ADR-018 PRCP)
+  "pheno-errors" -> "pheno-config" [label="Error→Config"];
+  "pheno-errors" -> "pheno-context" [label="Error→Ctx"];
+  "pheno-errors" -> "pheno-tracing" [label="Error→Trace"];
+
+  // Worklog schema (ADR-015 v2.1) — 1 column device:
+  "pheno-worklog-schema" -> "pheno-errors" [label="device:"];
+}

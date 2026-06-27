@@ -1,0 +1,73 @@
+name: v30 CI gate
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  v30-checks:
+    name: v30 P2-lift fleet checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+          submodules: recursive
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Run perf-budget-table render (T2)
+        run: |
+          if [ -f perf/latency-budget.json ]; then
+            python3 tools/perf-budget-table/render.py \
+              --budget perf/latency-budget.json | head -30
+          fi
+
+      - name: Run perf-aggregate (T3)
+        run: |
+          mkdir -p perf-reports
+          python3 tools/perf-aggregate/aggregate.py \
+            --reports-dir perf-reports/ \
+            --output perf/fleet-summary.json || true
+
+      - name: Run contract-test-fleet (T4)
+        run: |
+          python3 tools/contract-test-fleet/run.py \
+            --repo-root . \
+            --broker-url "https://pact-broker.internal" \
+            --output reports/contracts.json || true
+
+      - name: Run gitleaks-fleet (T6)
+        run: |
+          python3 tools/gitleaks-fleet/scan.py \
+            --repo-root . \
+            --output reports/gitleaks-fleet.json || true
+
+      - name: Run sbom-cyclonedx-fleet (T5)
+        run: |
+          mkdir -p dist/sbom
+          python3 tools/sbom-cyclonedx-fleet/generate.py \
+            --repo-root . \
+            --output-dir dist/sbom
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: v30-reports
+          path: |
+            reports/
+            dist/sbom/
+            perf/fleet-summary.json
+          retention-days: 90
+          if-no-files-found: warn

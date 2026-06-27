@@ -1,0 +1,56 @@
+[package]
+name = "pheno-config"
+version = "0.1.0"
+edition = "2021"
+description = "Canonical typed-config loader for the pheno-* fleet. Layered provider cascade (Jetbrains run-configs > env > TOML > embedded defaults) plus ADR-078 secret-holding newtypes with ZeroizeOnDrop."
+license = "MIT OR Apache-2.0"
+publish = false
+
+# SIDE-23: this crate is a standalone package. The empty `[workspace]`
+# table declares it as its own workspace root so cargo does not pick up
+# the parent monorepo's `Cargo.toml` workspace when building the bench.
+[workspace]
+
+[lib]
+name = "pheno_config"
+path = "src/lib.rs"
+
+[dependencies]
+# ADR-078 / L52: secret-holding newtypes in `secrets.rs` use
+# `Zeroize` + `ZeroizeOnDrop` derives to wipe the inner bytes on
+# `Drop`. Pinned to 1.7 per the v19 T2 task brief; the Cargo.lock
+# will resolve to 1.9.0 (already pinned by the lockfile).
+zeroize = { version = "1.7", features = ["zeroize_derive"] }
+
+# Cascade (cascade.rs) — layered config provider. The four features
+# cover the four providers used in `build_cascade`:
+#   - `toml`      — `Toml::string(DEFAULT_TOML)` + `Toml::file("config.toml")`
+#   - `env`       — `Env::prefixed("PHENO_")`
+#   - `yaml`      — JetBrains run-config format dep (pulls serde_yaml)
+#   - (jetbrains is part of figment's core since 0.10)
+figment = { version = "0.10", features = ["toml", "env", "yaml"] }
+
+# Used in `cascade.rs`'s embedded-default test for `toml::Value`.
+toml = "0.7"
+# v20-T5 (L23): proptest is in [dependencies] (not just [dev-dependencies])
+# so the manual `Arbitrary` impl for `ApiKey` in `src/secrets.rs` compiles.
+# The impl lives outside the `#[cfg(test)]` mod (after the v20-T5 fix) so
+# integration tests in `tests/proptest_smoke.rs` can use `any::<ApiKey>()`.
+# Per the proptest book: a crate that provides `Arbitrary` impls in src/
+# must have proptest as a regular dep.
+proptest = { version = "1.4", default-features = false, features = ["std"] }
+
+[dev-dependencies]
+# v20-T5 (L23): proptest is also in [dev-dependencies] for integration
+# tests in `tests/`. (The proptest entry in [dependencies] is what makes
+# the src/ impls compile; this one is redundant at runtime but matches
+# the task brief's "proptest in dev-dependencies" pattern.)
+proptest = "1.4"
+# SIDE-23 benchmark suite (scaffolding): 1000-cycle cascade load + parse
+# benchmark lives in benches/cascade_load.rs (not present in v20 working
+# tree — bench entry commented out to avoid `cargo` manifest parse error).
+# criterion = "0.8"
+
+# [[bench]]
+# name = "cascade_load"
+# harness = false

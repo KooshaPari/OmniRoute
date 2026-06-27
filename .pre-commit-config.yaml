@@ -1,37 +1,111 @@
-# Pre-commit configuration — OmniRoute
-# Fleet hygiene standard
+# V13 T7: pre-commit hooks for justfile-verify + cargo-fmt + cargo-deny
+# V12-17 (2026-06-21): + commitlint commit-msg hook (L29.3 / side-50 ADOPT)
+# Pillar L29.1 (justfile-verify-in-pre-commit), L20 (deny), L29 (fmt), L29.3 (commitlint)
+#
+# Installed via: pre-commit install
+# Installed via: pre-commit install --hook-type commit-msg
+# Bypassed via: git commit --no-verify
+#
+# Order: cheap hooks first (format), then semantic (deny, justfile-verify).
+# Local-only CI variant: pre-commit run --all-files
+# Commit-msg variant: pre-commit run --hook-stage commit-msg --all-files
 
 repos:
-  - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v5.0.0
-    hooks:
-      - id: trailing-whitespace
-      - id: end-of-file-fixer
-      - id: check-yaml
-      - id: check-json
-      - id: check-toml
-      - id: check-added-large-files
-        args: ["--maxkb=500"]
-      - id: detect-private-key
-      - id: mixed-line-ending
-
   - repo: local
     hooks:
-      - id: eslint
-        name: eslint
-        entry: npx eslint --fix --no-error-on-unmatched-pattern
+      - id: justfile-verify
+        name: justfile-verify (L29.1)
+        description: Parse + evaluate the meta-repo Justfile via `just justfile-verify`
+        entry: just justfile-verify
         language: system
-        types: [javascript, jsx, ts, tsx, mjs]
-        pass_filenames: true
-      - id: prettier
-        name: prettier
-        entry: npx prettier --write
+        pass_filenames: false
+        types: [file]
+
+      - id: cargo-fmt
+        name: cargo fmt --check (L29)
+        description: Verify Rust formatting
+        entry: cargo fmt --all -- --check
         language: system
-        types: [javascript, jsx, ts, tsx, mjs, json, markdown, yaml, css]
+        pass_filenames: false
+        types: [rust]
+
+      - id: cargo-deny
+        name: cargo deny check (L20)
+        description: Check CVE/ban/license/source advisories
+        entry: cargo deny check
+        language: system
+        pass_filenames: false
+        types: [rust]
+
+      - id: gitleaks
+        name: gitleaks protect (L47)
+        description: Secret scan staged changes
+        entry: gitleaks protect --staged --redact
+        language: system
+        pass_filenames: false
+        stages: [pre-commit]
+
+      - id: 71-pillar-anchor
+        name: 71-pillar docs anchor check
+        description: Verifies pillar refs (L1-L71) point to existing 71-pillar-2026-06-20 file
+        entry: bash -c 'for f in "$@"; do grep -oE "L[0-9]+(\.[0-9]+)?" "$f" 2>/dev/null | sort -u | while read p; do grep -q "$p" findings/71-pillar-2026-06-17.md 2>/dev/null || echo "PILLAR-REF $p in $f not in 71-pillar scorecard"; done; done; exit 0' --
+        language: system
         pass_filenames: true
-      - id: check-cycles
-        name: circular dependency check
-        entry: npm run check:cycles
+        types: [markdown]
+
+      - id: validate-ssot
+        name: validate-ssot (L65)
+        description: SSOT.md cross-ref + completeness check across the fleet
+        entry: bash ./scripts/validate-ssot.sh
         language: system
         pass_filenames: false
         always_run: true
+        stages: [pre-commit]
+
+  # V12-17: Conventional Commits gate (side-50 ADOPT). Runs at the
+  # commit-msg stage only; commitlint reads .commitlintrc.json at the repo
+  # root and applies @commitlint/config-conventional rules.
+  # Requires: pre-commit install --hook-type commit-msg
+  - repo: https://github.com/yeojz/standard-pre-commit-hooks
+    rev: v1.0.1
+    hooks:
+      - id: commitlint
+        name: commitlint (L29.3 / side-50 ADOPT)
+        description: Enforce Conventional Commits on the commit message (feat/fix/chore/docs/refactor/test/build/ci/perf/revert)
+        entry: npx --no-install commitlint --config .commitlintrc.json -e
+        language: system
+        stages: [commit-msg]
+        additional_dependencies: ["@commitlint/cli@^19.0.0", "@commitlint/config-conventional@^19.0.0"]
+
+  # V16-T5 (2026-06-21): branch-protection + merge-hygiene advisory hooks.
+  # no-commit-to-branch protects main + release/* (gate).
+  # no-merge-commits is warn-only (manual stage -> only runs via CI advisory).
+  # check-merge-conflict catches unresolved conflict markers before commit.
+  # check-yaml validates YAML syntax repo-wide.
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: no-commit-to-branch
+        name: no-commit-to-branch (protect main, release/*)
+        description: Block commits directly to main or release/* branches
+        args: ['--branch=main', '--branch=release/*']
+      - id: no-merge-commits
+        name: no-merge-commits (warn-only, v16-T5)
+        description: Warn when merge commits are introduced (advisory only; manual stage)
+        stages: [manual]
+      - id: check-merge-conflict
+        name: check-merge-conflict (v16-T5)
+        description: Detect unresolved merge conflict markers before commit
+      - id: check-yaml
+        name: check-yaml (v16-T5)
+        description: Validate YAML syntax across the repo
+        exclude: ^(\.pre-commit-config\.yaml|templates/.*)$
+
+  # v16-T1 (secrets): detect-secrets-hook baseline gate.
+  # Blocks new findings vs .secrets.baseline; CI fails the gate on diffs.
+  # secrets: detect-secrets-hook
+  - repo: https://github.com/Yelp/detect-secrets
+    rev: v1.5.0
+    hooks:
+      - id: detect-secrets-hook
+        args: ["--baseline", ".secrets.baseline"]

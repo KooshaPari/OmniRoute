@@ -1,14 +1,8 @@
-name: CodeQL
-
+name: Trufflehog Secrets Scan
 on:
   push:
     branches: [main]
   pull_request:
-    branches: [main]
-  schedule:
-    - cron: "0 9 * * 1"
-
-permissions: read-all
 
 
 
@@ -16,27 +10,14 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 jobs:
-  analyze:
-    name: Analyze (JavaScript / TypeScript)
-    runs-on: ubuntu-24.04
-    timeout-minutes: 15
-    permissions:
-      security-events: write
-      actions: read
-      contents: read
+  trufflehog:
+    runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
         with:
-          persist-credentials: false
-
-      - name: Initialize CodeQL
-        uses: github/codeql-action/init@0daab03d71ff584ef619d027a3fd9146679c5d84
+          fetch-depth: 0
+      - name: TruffleHog Secrets Scan
+        uses: trufflesecurity/trufflehog@3fc0c2aa6648d54242e4af6fbfde0701796e4fb0
         with:
-          languages: javascript-typescript
-          build-mode: none
-
-      - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@0daab03d71ff584ef619d027a3fd9146679c5d84
-        with:
-          category: "/language:javascript-typescript"
+          extra_args: --results=verified

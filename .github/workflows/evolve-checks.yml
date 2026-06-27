@@ -1,0 +1,74 @@
+name: evolve-checks (v36 3e-Evolve gate)
+
+on:
+  pull_request:
+  push:
+    branches: [main, chore/v3*-**, feat/v3*-**]
+
+permissions:
+  contents: read
+
+jobs:
+  check-evolve-workflows:
+    name: Verify 7 weekly cadence workflows exist
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify weekly evolve workflows
+        run: |
+          set -euo pipefail
+          expected=(
+            fuzz-weekly
+            perf-weekly
+            sbom-weekly
+            mtls-weekly
+            lfs-weekly
+            contract-weekly
+            chaos-weekly
+          )
+          missing=0
+          for wf in "${expected[@]}"; do
+            if [ ! -f ".github/workflows/${wf}.yml" ]; then
+              echo "::error file=.github/workflows/${wf}.yml::Missing evolve workflow (v36 3e-Evolve)"
+              missing=$((missing + 1))
+            else
+              echo "OK: .github/workflows/${wf}.yml"
+            fi
+          done
+          if [ "$missing" -gt 0 ]; then
+            echo "::error::$missing evolve workflow(s) missing — v36 gate failed"
+            exit 1
+          fi
+          echo "All 7 evolve weekly workflows present (v36 3e-Evolve complete)."
+
+  check-evolve-cron:
+    name: Verify weekly workflows have cron
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify cron schedule on each weekly workflow
+        run: |
+          set -euo pipefail
+          expected=(
+            fuzz-weekly
+            perf-weekly
+            sbom-weekly
+            mtls-weekly
+            lfs-weekly
+            contract-weekly
+            chaos-weekly
+          )
+          missing=0
+          for wf in "${expected[@]}"; do
+            if ! grep -q "cron:" ".github/workflows/${wf}.yml"; then
+              echo "::error file=.github/workflows/${wf}.yml::Missing cron schedule"
+              missing=$((missing + 1))
+            fi
+          done
+          if [ "$missing" -gt 0 ]; then
+            echo "::error::$missing evolve workflow(s) missing cron schedule"
+            exit 1
+          fi
+          echo "All 7 evolve workflows have cron schedule."

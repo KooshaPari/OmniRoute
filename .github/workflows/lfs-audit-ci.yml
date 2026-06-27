@@ -1,0 +1,51 @@
+name: LFS Audit (L60)
+
+on:
+  schedule:
+    - cron: '0 16 * * 1'  # Monday 09:00 PDT
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  lfs-audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Run LFS audit
+        run: |
+          python3 tools/lfs-audit/lfs_audit.py --all \
+            --output evidence/lfs-audit.json
+          python3 tools/lfs-audit/lfs_audit.py --summary \
+            > evidence/lfs-audit-summary.md
+
+      - name: Upload audit artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: lfs-audit
+          path: evidence/lfs-audit*
+          retention-days: 90
+
+      - name: File issue on CRITICAL finding
+        if: failure()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const audit = JSON.parse(fs.readFileSync('evidence/lfs-audit.json','utf8'));
+            const critical = audit.issues.filter(i => i.severity === 'CRITICAL');
+            if (critical.length > 0) {
+              const body = critical.map(i => `- **${i.repo}**: ${i.file} (${i.size_mb} MB)`).join('\n');
+              await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title: `LFS Audit: ${critical.length} CRITICAL finding(s)`,
+                body: `## CRITICAL LFS findings\n\nThe following files should be LFS-tracked:\n\n${body}`
+              });
+            }

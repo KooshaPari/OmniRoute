@@ -1,0 +1,36 @@
+# L28 doc-test runner (cycle-15 T5, v25 plan).
+#
+# Runs `cargo test --doc` against every Rust substrate crate at the monorepo
+# root. Each `pheno-*` crate ships its own [workspace] manifest (no shared
+# parent workspace), so we `cd` into each crate rather than passing `-p`.
+# Adds doc-test coverage on the L28 (Developer Experience) pillar; ADR-094
+# requires every substrate to publish runnable, copy-pasteable examples in
+# rustdoc.
+
+name: doc-tests
+
+on:
+  pull_request:
+    branches: [main, chore/**]
+
+jobs:
+  doc-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Run doc-tests for all substrate crates
+        run: |
+          failed=0
+          for crate in pheno-port-adapter pheno-config pheno-errors pheno-errors-macros pheno-otel pheno-tracing; do
+            echo "::group::$crate"
+            if ! (cd "$crate" && cargo test --doc 2>&1 | tee /tmp/$crate.log); then
+              echo "::error::$crate doc-tests failed"
+              failed=$((failed + 1))
+            fi
+            echo "::endgroup::"
+          done
+          if [ $failed -gt 0 ]; then
+            echo "::error::$failed crates had doc-test failures"
+            exit 1
+          fi

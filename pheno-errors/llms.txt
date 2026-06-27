@@ -1,0 +1,32 @@
+# pheno-errors
+
+## Purpose
+Canonical error primitives for the Phenotype fleet. Provides thiserror-derived error types, error context propagation, and structured error reporting across Rust + Python.
+
+## When to use
+- Building a new Rust library in the fleet
+- Propagating errors across service boundaries
+- Need typed error enums with backtraces
+
+## When NOT to use
+- HTTP-level error responses (use pheno-port-adapter for that)
+- Logging-only error traces (use pheno-tracing)
+
+## Quickstart
+```rust
+use pheno_errors::prelude::*;
+fn parse(input: &str) -> Result<MyType, Error> {
+    input.parse().map_err(|e: ParseIntError| Error::wrap(e))
+}
+```
+
+## Env vars
+None (no runtime config).
+
+## Key types
+- `Error` — wrapper enum (Internal, External, Invalid)
+- `ErrorContext` — propagating context for `?`-style chains
+- `Wrap<T>` — typed result with trace
+
+## Example
+See `pheno-errors/examples/wrap.rs` for the canonical wrap pattern.

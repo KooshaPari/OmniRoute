@@ -97,6 +97,12 @@ cloud/
 # Security Analysis (standalone project with own git)
 security-analysis/
 
+# Nested git repos (own .git/, not in index/.gitmodules — see AGENTS.md nested-repo pattern)
+# Each is owned by KooshaPari as a separate repo, mirrored as a sibling for ergonomic
+# local editing. CI failures and PR rebase conflicts caused by `git submodule foreach`
+# recursing into these without `.gitmodules` entries are prevented by ignoring them.
+clap-ext/
+
 # Deploy workflow (contains sensitive VPS credentials)
 clipr/
 app.log

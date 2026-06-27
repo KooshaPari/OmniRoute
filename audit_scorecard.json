@@ -1,10 +1,10 @@
 {
-  "repo": "OmniRoute",
+  "repo": "argis-extensions",
   "overall": 52,
   "grade": "D+",
   "scores": {
     "L1 Architecture": 0,
-    "L2 Dev Loop": 10,
+    "L2 Dev Loop": 90,
     "L3 Agent Loop": 40,
     "L4 Observability": 65,
     "L5 Security": 100,
@@ -18,14 +18,14 @@
     "L13 Logging": 55,
     "L14 Data Layer": 70,
     "L15 API Surface": 50,
-    "L16 Frontend": 90,
+    "L16 Frontend": 70,
     "L17 I18n/A11y": 45,
     "L18 Concurrency": 60,
     "L19 Memory": 45,
     "L20 Config": 50,
     "L21 Testing Depth": 40,
     "L22 Fuzzing": 35,
-    "L23 Release": 75,
+    "L23 Release": 40,
     "L24 Migration": 50,
     "L25 Vendor Lockin": 100,
     "L26 Event Driven": 55,
@@ -40,7 +40,7 @@
       "raw": {}
     },
     "L2 Dev Loop": {
-      "details": "0 test files, 0 collected, 0 errors.",
+      "details": "1 test files, 11 collected, 0 errors.",
       "raw": {}
     },
     "L3 Agent Loop": {
@@ -96,7 +96,7 @@
       "raw": {}
     },
     "L16 Frontend": {
-      "details": "HTML: 9, JS: 30465, CSS: 9, Templates: 0, React: 1206.",
+      "details": "HTML: 0, JS: 0, CSS: 0, Templates: 0, React: 0.",
       "raw": {}
     },
     "L17 I18n/A11y": {
@@ -112,11 +112,11 @@
       "raw": {}
     },
     "L20 Config": {
-      "details": "Env refs: 0, Dotenv: 0, Pydantic: 0, Config files: 243.",
+      "details": "Env refs: 0, Dotenv: 0, Pydantic: 0, Config files: 28.",
       "raw": {}
     },
     "L21 Testing Depth": {
-      "details": "Parametrize: 0, Fixtures: 0, Mock: 0, Patch: 0.",
+      "details": "Parametrize: 0, Fixtures: 3, Mock: 0, Patch: 0.",
       "raw": {}
     },
     "L22 Fuzzing": {
@@ -124,7 +124,7 @@
       "raw": {}
     },
     "L23 Release": {
-      "details": "Version file: False, Tags: 287, Semver: 287, Changelog: True.",
+      "details": "Version file: False, Tags: 0, Semver: 0, Changelog: True.",
       "raw": {}
     },
     "L24 Migration": {
@@ -140,7 +140,7 @@
       "raw": {}
     },
     "L27 Infrastructure": {
-      "details": "Docker: 1, Compose: 36, K8s: 0, Terraform: 0.",
+      "details": "Docker: 1, Compose: 6, K8s: 0, Terraform: 0.",
       "raw": {}
     },
     "L28 Cost Efficiency": {
@@ -164,14 +164,16 @@
       "oversized_files": []
     },
     "tests": {
-      "total": 0,
-      "unit": 0,
-      "integration": 0,
+      "total": 1,
+      "unit": 1,
+      "integration": 1,
       "e2e": 0,
-      "files": []
+      "files": [
+        "tests/test_integration.py"
+      ]
     },
     "collection": {
-      "collected": 0,
+      "collected": 11,
       "errors": 0,
       "timeout": false,
       "raw_output": ""
@@ -274,11 +276,11 @@
       "openapi": 0
     },
     "frontend": {
-      "html_files": 9,
-      "js_files": 30465,
-      "css_files": 9,
+      "html_files": 0,
+      "js_files": 0,
+      "css_files": 0,
       "templates": 0,
-      "react_components": 1206
+      "react_components": 0
     },
     "i18n_a11y": {
       "locale_files": 0,
@@ -301,11 +303,11 @@
       "env_refs": 0,
       "dotenv_refs": 0,
       "pydantic_settings": 0,
-      "config_files": 243
+      "config_files": 28
     },
     "testing_depth": {
       "parametrize": 0,
-      "fixtures": 0,
+      "fixtures": 3,
       "mock": 0,
       "patch": 0
     },
@@ -316,8 +318,8 @@
     },
     "release": {
       "has_version_file": false,
-      "tag_count": 287,
-      "semver_tags": 287,
+      "tag_count": 0,
+      "semver_tags": 0,
       "has_changelog": true
     },
     "migration": {
@@ -340,7 +342,7 @@
     },
     "infrastructure": {
       "dockerfile": 1,
-      "docker_compose": 36,
+      "docker_compose": 6,
       "k8s_manifests": 0,
       "terraform_files": 0
     },

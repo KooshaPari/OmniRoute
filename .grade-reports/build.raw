@@ -1,0 +1,40 @@
+# github.com/kooshapari/bifrost-extensions/api/graphql/resolvers
+api/graphql/resolvers/mutation.go:46:18: r.models.CreateModel undefined (type ModelStore has no field or method CreateModel)
+api/graphql/resolvers/resolver.go:96:9: cannot use &mutationResolver{…} (value of type *mutationResolver) as gen.MutationResolver value in return statement: *mutationResolver does not implement gen.MutationResolver (missing method UpdateModel)
+api/graphql/resolvers/resolver.go:101:9: cannot use &subscriptionResolver{…} (value of type *subscriptionResolver) as gen.SubscriptionResolver value in return statement: *subscriptionResolver does not implement gen.SubscriptionResolver (wrong type for method HealthUpdates)
+		have HealthUpdates(context.Context) (<-chan *model.ProviderHealthEvent, error)
+		want HealthUpdates(context.Context, []string) (<-chan *model.ProviderHealthEvent, error)
+# github.com/kooshapari/bifrost-extensions/cmd/bifrost-enhanced
+cmd/bifrost-enhanced/main.go:39:32: too many arguments in call to acct.SetKeys
+	have (schemas.Provider, []schemas.Key)
+	want ([]schemas.Key)
+cmd/bifrost-enhanced/main.go:42:4: unknown field Weight in struct literal of type schemas.Key
+cmd/bifrost-enhanced/main.go:44:8: acct.SetConfig undefined (type *schemas.EnhancedAccount has no field or method SetConfig)
+cmd/bifrost-enhanced/main.go:54:35: too many arguments in call to acct.SetKeys
+	have (schemas.Provider, []schemas.Key)
+	want ([]schemas.Key)
+cmd/bifrost-enhanced/main.go:57:4: unknown field Weight in struct literal of type schemas.Key
+cmd/bifrost-enhanced/main.go:59:8: acct.SetConfig undefined (type *schemas.EnhancedAccount has no field or method SetConfig)
+cmd/bifrost-enhanced/main.go:69:32: too many arguments in call to acct.SetKeys
+	have (schemas.Provider, []schemas.Key)
+	want ([]schemas.Key)
+cmd/bifrost-enhanced/main.go:72:4: unknown field Weight in struct literal of type schemas.Key
+cmd/bifrost-enhanced/main.go:74:8: acct.SetConfig undefined (type *schemas.EnhancedAccount has no field or method SetConfig)
+cmd/bifrost-enhanced/main.go:93:13: undefined: bifrost
+cmd/bifrost-enhanced/main.go:93:13: too many errors
+# github.com/kooshapari/bifrost-extensions/cmd/bifrost/cli
+cmd/bifrost/cli/server.go:92:3: undefined: bifrost
+cmd/bifrost/cli/server.go:102:8: undefined: bifrost
+cmd/bifrost/cli/server.go:103:3: undefined: bifrost
+cmd/bifrost/cli/server.go:104:3: undefined: bifrost
+cmd/bifrost/cli/server.go:105:3: undefined: bifrost
+cmd/bifrost/cli/server.go:129:32: too many arguments in call to acct.SetKeys
+	have (schemas.Provider, []schemas.Key)
+	want ([]schemas.Key)
+cmd/bifrost/cli/server.go:132:4: unknown field Weight in struct literal of type schemas.Key
+cmd/bifrost/cli/server.go:134:8: acct.SetConfig undefined (type *schemas.EnhancedAccount has no field or method SetConfig)
+cmd/bifrost/cli/server.go:144:35: too many arguments in call to acct.SetKeys
+	have (schemas.Provider, []schemas.Key)
+	want ([]schemas.Key)
+cmd/bifrost/cli/server.go:147:4: unknown field Weight in struct literal of type schemas.Key
+cmd/bifrost/cli/server.go:144:35: too many errors

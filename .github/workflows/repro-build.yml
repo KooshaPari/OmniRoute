@@ -1,0 +1,94 @@
+# L30 reproducible-build gate (v28 cycle-18 T1).
+#
+# Runs tools/reproducible-build/repro_build.sh on every PR that touches a
+# flake.nix (or on a weekly cron for fleet-wide scan). Fails the PR if any
+# flake.nix under the changed paths references an unpinned nixpkgs input.
+
+name: repro-build
+
+on:
+  pull_request:
+    branches: [main, chore/**]
+    paths:
+      - '**/flake.nix'
+      - '**/flake.lock'
+      - '.github/workflows/repro-build.yml'
+      - 'tools/reproducible-build/**'
+  push:
+    branches: [main, chore/v2*-**]
+    paths:
+      - '**/flake.nix'
+      - '**/flake.lock'
+  schedule:
+    # Weekly Monday 06:00 UTC (covers fleet-wide drift detection)
+    - cron: '0 6 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  repro-build:
+    name: L30 reproducible-build gate
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v4.2.2
+        with:
+          persist-credentials: false
+
+      - name: Locate flake.nix changes (PR only)
+        id: changed
+        if: github.event_name == 'pull_request'
+        run: |
+          # Collect changed .nix files for scoped scanning.
+          files=$(git diff --name-only origin/${{ github.base_ref }}...HEAD -- '*.nix' '*.lock' || true)
+          if [ -z "$files" ]; then
+            echo "scope=full" >> "$GITHUB_OUTPUT"
+          else
+            echo "scope=changed" >> "$GITHUB_OUTPUT"
+            {
+              echo "files<<EOF"
+              echo "$files"
+              echo "EOF"
+            } >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Run repro-build gate (full fleet scan)
+        if: github.event_name != 'pull_request' || steps.changed.outputs.scope == 'full'
+        run: |
+          bash tools/reproducible-build/repro_build.sh --root . | tee repro-build.log
+          # Exit-code 1 = gate failure, 0 = pass, 2 = usage error
+
+      - name: Run repro-build gate (PR-scoped)
+        if: github.event_name == 'pull_request' && steps.changed.outputs.scope == 'changed'
+        run: |
+          set +e
+          fail=0
+          while IFS= read -r f; do
+            [ -z "$f" ] && continue
+            [ -f "$f" ] || continue
+            # Use a temp root that contains only the changed flake; the script
+            # discovers flakes via `find`, so scoping by temp directory keeps
+            # unrelated fleet noise out of the PR signal.
+            tmp=$(mktemp -d)
+            rel="${f#./}"
+            mkdir -p "$tmp/$(dirname "$rel")"
+            cp "$f" "$tmp/$rel"
+            bash tools/reproducible-build/repro_build.sh --root "$tmp" | tee -a repro-build.log
+            rc=$?
+            rm -rf "$tmp"
+            if [ "$rc" -eq 1 ]; then
+              fail=1
+            fi
+          done <<< "${{ steps.changed.outputs.files }}"
+          exit "$fail"
+
+      - name: Upload gate log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: repro-build-log
+          path: repro-build.log
+          retention-days: 30

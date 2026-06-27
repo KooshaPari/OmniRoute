@@ -1,0 +1,55 @@
+name: SOC2 Evidence Collection
+
+on:
+  schedule:
+    - cron: '0 16 * * 1'  # Monday 09:00 PDT (16:00 UTC)
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  collect:
+    name: Collect SOC2 evidence
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+          submodules: recursive
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Collect evidence (full fleet)
+        run: |
+          mkdir -p evidence
+          python3 scripts/soc2-evidence-collector.py \
+            --all \
+            --output evidence/$(date +%F)-fleet.json
+
+      - name: Render summary
+        run: |
+          python3 scripts/soc2-evidence-collector.py \
+            --all --summary > evidence/$(date +%F)-summary.md
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: soc2-evidence-${{ github.run_id }}
+          path: evidence/
+          retention-days: 365
+
+      - name: Comment on PR
+        if: github.event_name == 'pull_request'
+        run: |
+          pct=$(grep -oP 'satisfied \(\K[0-9.]+' evidence/$(date +%F)-summary.md || echo "n/a")
+          echo "## SOC2 Evidence Run" >> "$GITHUB_STEP_SUMMARY"
+          echo "Coverage: ${pct}% of 18 controls across 119 repos" >> "$GITHUB_STEP_SUMMARY"

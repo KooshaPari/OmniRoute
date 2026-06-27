@@ -1,0 +1,34 @@
+# pheno-port-adapter
+
+## Purpose
+Hexagonal port-adapter framework for the Phenotype fleet. Provides trait-based ports, swappable adapters, and connection lifecycle management for transport protocols (TCP, UDP, HTTP, Unix sockets).
+
+## When to use
+- Building a new network client in the fleet
+- Need to swap protocols without changing business logic
+- Implementing connection pooling + circuit breaking
+
+## When NOT to use
+- Pure HTTP API clients (use reqwest directly)
+- One-shot scripts (overhead not worth it)
+
+## Quickstart
+```rust
+use pheno_port_adapter::prelude::*;
+async fn connect() -> Result<TcpStream, Error> {
+    let adapter = TcpAdapter::new("127.0.0.1:8080");
+    adapter.connect().await
+}
+```
+
+## Env vars
+- `PHENO_TCP_TIMEOUT_MS` — connection timeout (default 5000)
+- `PHENO_TCP_RETRY_COUNT` — retry on failure (default 3)
+
+## Key types
+- `Port<T>` — trait for pluggable endpoints
+- `Adapter<T>` — concrete protocol implementation
+- `ConnectionPool<T>` — managed connection lifecycle
+
+## Example
+See `pheno-port-adapter/examples/tcp_pool.rs`.

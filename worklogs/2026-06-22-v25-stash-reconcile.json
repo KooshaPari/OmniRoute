@@ -1,0 +1,47 @@
+{
+  "id": "L5-124",
+  "title": "Stash reconciliation (v25 cycle 14 entry; per user rule: never DROP)",
+  "date": "2026-06-22",
+  "device": "macbook",
+  "category": "governance",
+  "status": "complete",
+  "author": "claude opus 4.7",
+  "rule": "User rule: 'never drop a stash always reconcile'. Both stashes preserved in git stash list indefinitely. This worklog documents their classification and reconciliation actions.",
+  "stashes": [
+    {
+      "ref": "stash@{0}",
+      "base": "feat/agents-adr-crossref-2026-06-20 (tip at apply time)",
+      "created": "2026-06-22 (pre-v22-t2 cargo config)",
+      "content": [
+        "DELETES .cargo/config.toml (v14 T2 thin LTO + sccache hints)",
+        "DELETES .github/workflows/cache-stats-pages.yml (cache stats workflow)"
+      ],
+      "classification": "SUPERSEDED",
+      "supersession_evidence": "Both files exist on HEAD @ 18a5adfb67: ls -la .cargo/config.toml .github/workflows/cache-stats-pages.yml both return file metadata. The v14-t2 thin LTO + sccache hints were landed via commit e6ef56f01c (v14 T2 on apps-extract-all) which preserves + extends the files rather than deleting them.",
+      "reconciliation": "WORKLOG entry only. No action on the stash. Stash stays in git stash list per user rule.",
+      "user_decision_needed": false
+    },
+    {
+      "ref": "stash@{1}",
+      "base": "feat/agents-adr-crossref-2026-06-20 (tip at apply time)",
+      "created": "2026-06-22 (v21-T5 hot-reload dev-deps)",
+      "content": [
+        "ADDS [dev-dependencies] in pheno-config/Cargo.toml:",
+        "  signal-hook = \"0.3\"",
+        "  tempfile = \"3.10\"",
+        "  tokio = { version = \"1\", features = [\"signal\", \"rt-multi-thread\"] }"
+      ],
+      "classification": "UNIQUE_WORK",
+      "unique_evidence": "HEAD @ 18a5adfb67 pheno-config/Cargo.toml [dev-dependencies] contains ONLY proptest = \"1.4\" (with criterion scaffolded but commented). No signal-hook, tempfile, or tokio reference. The stash introduces a signal-driven hot-reload dev-dependency stack for L33 (config hot-reload per v21 T5 plan).",
+      "reconciliation": "WORKLOG entry + future cherry-pick to a working branch (e.g., feat/v26-l33-hot-reload-2026-06-25). Cherry-pick NOT pop (pop would clear the stash, violating user rule). Stash stays in git stash list per user rule.",
+      "user_decision_needed": true,
+      "user_question": "Open cherry-pick PR feat/v26-l33-hot-reload-2026-06-25 from stash@{1}? Or defer to v26 cycle 15?"
+    }
+  ],
+  "commitments": {
+    "stash_drop_count": 0,
+    "stash_preserve_count": 2,
+    "worklog_commit_sha": "<this commit>",
+    "rule_compliance": "100% (no drops; both preserved per user rule)"
+  }
+}

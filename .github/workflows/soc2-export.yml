@@ -1,0 +1,100 @@
+name: SOC2 Evidence Export
+
+on:
+  schedule:
+    # Monthly on the 1st at 09:00 UTC (02:00 PDT)
+    - cron: '0 9 1 * *'
+  workflow_dispatch:
+    inputs:
+      target:
+        description: 'Export target (s3, splunk, both)'
+        required: true
+        type: choice
+        default: 'both'
+        options:
+          - s3
+          - splunk
+          - both
+  push:
+    branches: [main]
+    paths:
+      - 'tools/soc2-evidence-export/**'
+      - 'findings/2026-06-2[0-9]-v25-T1-**'
+      - '.github/workflows/soc2-export.yml'
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  export:
+    name: Export SOC2 evidence to S3 + Splunk HEC
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+          submodules: recursive
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Generate fresh evidence
+        run: |
+          mkdir -p evidence
+          python3 scripts/soc2-evidence-collector.py \
+            --all --output evidence/$(date +%F)-fleet.json
+          python3 scripts/soc2-evidence-collector.py \
+            --all --summary > evidence/$(date +%F)-summary.md
+
+      - name: Export to S3 (evidence archive)
+        if: github.event_name != 'pull_request'
+        env:
+          AWS_REGION: us-west-2
+          SOC2_BUCKET: phenome-soc2-evidence-prod
+          TARGET: ${{ github.event.inputs.target || 's3' }}
+        run: |
+          if [[ "$TARGET" == "s3" || "$TARGET" == "both" ]]; then
+            aws s3 cp evidence/$(date +%F)-fleet.json \
+              s3://$SOC2_BUCKET/$(date +%Y/%m/%d)/ \
+              --sse aws:kms \
+              --storage-class STANDARD_IA
+            aws s3 cp evidence/$(date +%F)-summary.md \
+              s3://$SOC2_BUCKET/$(date +%Y/%m/%d)/
+          fi
+
+      - name: Export to Splunk HEC (real-time)
+        if: github.event_name != 'pull_request'
+        env:
+          SPLUNK_HEC_URL: ${{ secrets.SPLUNK_HEC_URL }}
+          SPLUNK_HEC_TOKEN: ${{ secrets.SPLUNK_HEC_TOKEN }}
+          TARGET: ${{ github.event.inputs.target || 'splunk' }}
+        run: |
+          if [[ "$TARGET" == "splunk" || "$TARGET" == "both" ]]; then
+            python3 tools/soc2-evidence-export/export.py \
+              --input evidence/$(date +%F)-fleet.json \
+              --target splunk-hec \
+              --hec-url "$SPLUNK_HEC_URL" \
+              --hec-token "$SPLUNK_HEC_TOKEN"
+          fi
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: soc2-evidence-export-${{ github.run_id }}
+          path: evidence/
+          retention-days: 2555  # 7 years (SOC2 retention requirement)
+
+      - name: Post run summary
+        if: github.event_name != 'pull_request'
+        run: |
+          pct=$(grep -oP 'satisfied \(\K[0-9.]+' evidence/$(date +%F)-summary.md || echo "n/a")
+          echo "## SOC2 Evidence Export" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Coverage: ${pct}% of 18 controls across 119 repos" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Archive: s3://phenome-soc2-evidence-prod/$(date +%Y/%m/%d)/" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Retention: 7 years (2555 days)" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Next run: 1st of next month" >> "$GITHUB_STEP_SUMMARY"

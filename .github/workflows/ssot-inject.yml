@@ -1,0 +1,22 @@
+name: ssot-inject
+on: [push, workflow_dispatch]
+
+jobs:
+  ssot-inject:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run ssot-inject (dry-run)
+        run: bash scripts/ssot_inject.sh --dry-run
+      - name: Commit if changed
+        run: |
+          bash scripts/ssot_inject.sh
+          if [[ -n "$(git status --porcelain | grep -E '\.md$')" ]]; then
+            git config user.name "ssot-inject-bot"
+            git config user.email "bot@phenotype.local"
+            git add $(git status --porcelain | grep -E '\.md$' | awk '{print $2}')
+            git commit -m "chore(ssot): auto-inject missing required sections"
+            git push
+          else
+            echo "No changes"
+          fi

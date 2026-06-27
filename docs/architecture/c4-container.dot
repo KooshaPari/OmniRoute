@@ -1,0 +1,77 @@
+// C4 Container Diagram — Phenotype fleet
+// Pillar: L5 (Architecture — C4 model)
+// Plan: v24-T1
+// ADR: ADR-081 (C4 model adoption)
+// Generated: 2026-06-22 (macbook-safe draft; full SVG render via pheno-drift-detector)
+digraph C4_Container {
+  rankdir=LR;
+  fontname="Helvetica";
+  labelloc="t";
+  label="Phenotype fleet — C4 Container view (12 federated services + 4 federated libs + 47 workspace crates)";
+
+  // External actors (from system-context.dot)
+  subgraph cluster_external {
+    label="External (system context)";
+    style=dashed;
+    color=gray50;
+    "Developer" [shape=person];
+    "EndUser" [shape=person];
+    "GithubActions" [shape=node, style=filled, fillcolor=lightyellow, label="GitHub Actions\n(heavy-runner)"];
+  }
+
+  // Federated services (long-running, independently scalable)
+  subgraph cluster_services {
+    label="Federated services (ADR-023)";
+    style=filled;
+    color=lightblue;
+    "phenoMCP" [shape=component, fillcolor=white, label="phenoMCP\n(MCP router substrate\nADR-013)"];
+    "phenoEvents" [shape=component, fillcolor=white, label="phenoEvents\n(event-bus substrate\nADR-035B)"];
+    "phenoObservability" [shape=component, fillcolor=white, label="phenoObservability\n(OTLP collector\n+ pheno-tracing)"];
+    "phenoCapacity" [shape=component, fillcolor=white, label="phenoCapacity\n(capacity math lib\nADR-036)"];
+    "phenotype-router" [shape=component, fillcolor=white, label="phenotype-router\n(decision layer\nADR-050+051)"];
+    "phenotype-hub" [shape=component, fillcolor=white, label="phenotype-hub\n(IoC framework)"];
+    "phenotype-bus" [shape=component, fillcolor=white, label="phenotype-bus\n(event-bus framework)"];
+    "dispatch-mcp" [shape=component, fillcolor=white, label="dispatch-mcp\n(sole MCP server\nADR-008)"];
+    "Civis" [shape=component, fillcolor=lightyellow, label="Civis\n(ACTIVE app\nADR-023)"];
+    "Dino" [shape=component, fillcolor=lightyellow, label="Dino\n(PAUSED app)"];
+    "FocalPoint" [shape=component, fillcolor=lightyellow, label="FocalPoint\n(PAUSED app)"];
+    "WSM" [shape=component, fillcolor=lightyellow, label="WSM\n(PAUSED app)"];
+  }
+
+  // Federated libs (substrates per ADR-023)
+  subgraph cluster_libs {
+    label="Substrate libs (ADR-023 Rule 3)";
+    style=filled;
+    color=lightgreen;
+    "pheno-config" [shape=component, fillcolor=white, label="pheno-config\n(canonical config)"];
+    "pheno-context" [shape=component, fillcolor=white, label="pheno-context\n(canonical context)"];
+    "pheno-tracing" [shape=component, fillcolor=white, label="pheno-tracing\n(canonical tracing\nADR-012/036B)"];
+    "pheno-port-adapter" [shape=component, fillcolor=white, label="pheno-port-adapter\n(hexagonal L4\nADR-014/038)"];
+  }
+
+  // Datastores
+  subgraph cluster_data {
+    label="Datastores";
+    style=filled;
+    color=lightgray;
+    "Vault" [shape=cylinder, label="Vault\n(L50 backend\nADR-083)"];
+    "GitHub" [shape=cylinder, label="GitHub\n(KooshaPari\nsource-of-truth)"];
+  }
+
+  // Edges (key flows)
+  Developer -> "phenotype-router" [label="CLI / API"];
+  "EndUser" -> "Civis" [label="HTTP"];
+  "GithubActions" -> "phenoObservability" [label="OTLP export"];
+  "phenotype-router" -> "phenoMCP" [label="tool dispatch"];
+  "phenoMCP" -> "dispatch-mcp" [label="provider calls"];
+  "phenoMCP" -> "pheno-tracing" [label="OTLP spans"];
+  "dispatch-mcp" -> "pheno-config" [label="config load"];
+  "dispatch-mcp" -> "Vault" [label="secrets (L50)"];
+  "Civis" -> "phenotype-hub" [label="IoC"];
+  "phenotype-hub" -> "phenotype-bus" [label="events"];
+  "phenotype-bus" -> "phenoEvents" [label="persist"];
+  "phenoEvents" -> "phenoCapacity" [label="capacity metrics"];
+  "phenoObservability" -> "GitHub" [label="SBOM (L48)"];
+  "FocalPoint" -> "pheno-tracing" [label="OTLP"];
+  "Dino" -> "pheno-context" [label="runtime ctx"];
+}

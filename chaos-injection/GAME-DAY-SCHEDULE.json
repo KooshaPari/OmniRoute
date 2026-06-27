@@ -1,0 +1,68 @@
+{
+  "$schema": "https://phenotype.dev/schemas/game-day-1.0.json",
+  "title": "Phenotype Chaos Engineering Game-Day Schedule",
+  "version": "1.0.0",
+  "owner": "chaos-engineering",
+  "schedule": {
+    "cadence": "monthly",
+    "preferred_day": "3rd Wednesday",
+    "duration_hours": 4,
+    "advance_notice_days": 14
+  },
+  "game_days": [
+    {
+      "date": "2026-07-15",
+      "domain": "network_partitions",
+      "lead": "chaos-net",
+      "backup": "chaos-app",
+      "hypothesis_count": 3,
+      "experiment_ids": [
+        "net-partition-2026-07-15-1",
+        "net-partition-2026-07-15-2",
+        "net-partition-2026-07-15-3"
+      ],
+      "dashboard": "https://grafana.phenotype.dev/d/net-partition-2026-07-15"
+    },
+    {
+      "date": "2026-08-19",
+      "domain": "resource_exhaustion",
+      "lead": "chaos-sys",
+      "backup": "chaos-net",
+      "hypothesis_count": 3,
+      "experiment_ids": [
+        "cpu-pressure-2026-08-19-1",
+        "memory-pressure-2026-08-19-2",
+        "disk-full-2026-08-19-3"
+      ]
+    },
+    {
+      "date": "2026-09-16",
+      "domain": "dependency_failures",
+      "lead": "chaos-dep",
+      "backup": "chaos-sys",
+      "hypothesis_count": 3
+    },
+    {
+      "date": "2026-10-21",
+      "domain": "process_lifecycle",
+      "lead": "chaos-app",
+      "backup": "chaos-dep",
+      "hypothesis_count": 3
+    },
+    {
+      "date": "2026-11-18",
+      "domain": "time_clock_skew",
+      "lead": "chaos-time",
+      "backup": "chaos-app",
+      "hypothesis_count": 3
+    },
+    {
+      "date": "2026-12-16",
+      "domain": "combined_chaos_monkey",
+      "lead": "chaos-lead",
+      "backup": "all",
+      "hypothesis_count": 5,
+      "notes": "End-of-year finale: all fault types in random order, full game-day"
+    }
+  ]
+}

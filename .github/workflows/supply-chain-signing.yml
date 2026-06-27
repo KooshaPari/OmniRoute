@@ -1,0 +1,88 @@
+name: supply-chain-signing
+
+# v14 cycle-4 P0 T5: cosign keyless signing of release tarballs (L25 closure).
+# Supersedes the previous push-triggered variant — release publish is the only
+# moment a signed artifact is meaningful for downstream consumers.
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write   # required for GitHub OIDC -> Fulcio -> ephemeral signing key
+  packages: write
+
+jobs:
+  cosign-sign-release:
+    name: cosign keyless OIDC sign release tarball
+    runs-on: ubuntu-latest
+    steps:
+      - name: Resolve release metadata
+        id: meta
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG="${GITHUB_REF_NAME}"
+          echo "tag=${TAG}"        >> "$GITHUB_OUTPUT"
+          echo "sha=${GITHUB_SHA}" >> "$GITHUB_OUTPUT"
+          # Download the source tarball that `gh release upload` attached.
+          gh release download "${TAG}" \
+            --pattern 'release.tar.gz' \
+            --dir      ./dist \
+            --clobber
+
+      - name: Install cosign (pinned)
+        uses: sigstore/cosign-installer@v3.0.5
+
+      - name: Sign release tarball (keyless, OIDC)
+        env:
+          COSIGN_EXPERIMENTAL: "1"
+        run: |
+          TARBALL=./dist/release.tar.gz
+          test -f "${TARBALL}" || { echo "missing release.tar.gz"; exit 1; }
+          # Fulcio issues a short-lived cert bound to the OIDC subject:
+          #   https://github.com/KooshaPari/.github/workflows/supply-chain-signing.yml@refs/tags/<tag>
+          # No private key is generated or stored; signature is non-replayable
+          # by virtue of the OIDC token expiry (~10 min).
+          cosign sign-blob \
+            --yes \
+            --output-signature release.sig \
+            --output-certificate release.pub \
+            "${TARBALL}"
+
+      - name: Self-verify (replay-protection in CI)
+        env:
+          COSIGN_EXPERIMENTAL: "1"
+        run: |
+          TARBALL=./dist/release.tar.gz
+          # Re-verify with the ephemeral OIDC cert before publishing. Catches:
+          #  - Rekor outage / corrupted transparency-log entry
+          #  - Fulcio certificate chain failure
+          #  - Cross-repo identity confusion (regex would mismatch)
+          cosign verify-blob \
+            --signature      release.sig \
+            --certificate   release.pub \
+            --certificate-identity-regexp 'https://github.com/KooshaPari/.*@refs/tags/.*' \
+            --certificate-oidc-issuer     'https://token.actions.githubusercontent.com' \
+            "${TARBALL}" \
+          && echo "✓ cosign signature verified against ephemeral OIDC cert"
+
+      - name: Attach signatures to the GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG="${GITHUB_REF_NAME}"
+          gh release upload "${TAG}" \
+            release.sig release.pub \
+            --clobber
+
+      - name: Upload signature artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: cosign-signatures-${{ github.event.release.tag_name }}
+          path: |
+            release.sig
+            release.pub
+          retention-days: 90

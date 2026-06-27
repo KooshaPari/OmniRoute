@@ -1,0 +1,328 @@
+{
+  "wave": "wave-1",
+  "scope": "envelope-expansion",
+  "width": 20,
+  "created_at": "2026-06-26",
+  "stage": 1,
+  "tasks": [
+    {
+      "id": "envelope-HexaKit",
+      "lane": "envelope",
+      "target_repo": "HexaKit",
+      "missing_files": [
+        "SSOT.md"
+      ],
+      "expected_files_added": 1,
+      "commit_template": "feat(governance): onboard HexaKit to fleet baseline",
+      "expected_branch": "chore/v38-dag-wave-1-2026-06-26",
+      "depends_on": [],
+      "wave": "wave-1",
+      "stage": 1
+    },
+    {
+      "id": "envelope-KDesktopVirt",
+      "lane": "envelope",
+      "target_repo": "KDesktopVirt",
+      "missing_files": [
+        "SSOT.md",
+        "llms.txt"
+      ],
+      "expected_files_added": 2,
+      "commit_template": "feat(governance): onboard KDesktopVirt to fleet baseline",
+      "expected_branch": "chore/v38-dag-wave-1-2026-06-26",
+      "depends_on": [],
+      "wave": "wave-1",
+      "stage": 1
+    },
+    {
+      "id": "envelope-KaskMan",
+      "lane": "envelope",
+      "target_repo": "KaskMan",
+      "missing_files": [
+        "SSOT.md",
+        "llms.txt",
+        ".pre-commit-config.yaml"
+      ],
+      "expected_files_added": 3,
+      "commit_template": "feat(governance): onboard KaskMan to fleet baseline",
+      "expected_branch": "chore/v38-dag-wave-1-2026-06-26",
+      "depends_on": [],
+      "wave": "wave-1",
+      "stage": 1
+    },
+    {
+      "id": "envelope-Parpoura",
+      "lane": "envelope",
+      "target_repo": "Parpoura",
+      "missing_files": [
+        "SSOT.md",
+        "llms.txt",
+        "deny.toml",
+        ".github/workflows/ci.yml"
+      ],
+      "expected_files_added": 4,
+      "commit_template": "feat(governance): onboard Parpoura to fleet baseline",
+      "expected_branch": "chore/v38-dag-wave-1-2026-06-26",
+      "depends_on": [],
+      "wave": "wave-1",
+      "stage": 1
+    },
+    {
+      "id": "envelope-PhenoCompose",
+      "lane": "envelope",
+      "target_repo": "PhenoCompose",
+      "missing_files": [
+        "SSOT.md",
+        "llms.txt",
+        "deny.toml"
+      ],
+      "expected_files_added": 3,
+      "commit_template": "feat(governance): onboard PhenoCompose to fleet baseline",
+      "expected_branch": "chore/v38-dag-wave-1-2026-06-26",
+      "depends_on": [],
+      "wave": "wave-1",
+      "stage": 1
+    },
+    {
+      "id": "envelope-PhenoContracts",
+      "lane": "envelope",
+      "target_repo": "PhenoContracts",
+      "missing_files": [
+        "SSOT.md",
+        "llms.txt",
+        ".pre-commit-config.yaml"
+      ],
+      "expected_files_added": 3,
+      "commit_template": "feat(governance): onboard PhenoContracts to fleet baseline",
+      "expected_branch": "chore/v38-dag-wave-1-2026-06-26",
+      "depends_on": [],
+      "wave": "wave-1",
+      "stage": 1
+    },
+    {
+      "id": "envelope-PhenoHandbook",
+      "lane": "envelope",
+      "target_repo": "PhenoHandbook",
+      "missing_files": [
+        "justfile",
+        "SSOT.md",
+        "llms.txt",
+        "deny.toml"
+      ],
+      "expected_files_added": 4,
+      "commit_template": "feat(governance): onboard PhenoHandbook to fleet baseline",
+      "expected_branch": "chore/v38-dag-wave-1-2026-06-26",
+      "depends_on": [],
+      "wave": "wave-1",
+      "stage": 1
+    },
+    {
+      "id": "envelope-PhenoMCPServers",
+      "lane": "envelope",
+      "target_repo": "PhenoMCPServers",
+      "missing_files": [
+        "AGENTS.md",
+        "justfile",
+        "SSOT.md",
+        "llms.txt",
+        "deny.toml",
+        ".pre-commit-config.yaml",
+        ".github/workflows/ci.yml"
+      ],
+      "expected_files_added": 7,
+      "commit_template": "feat(governance): onboard PhenoMCPServers to fleet baseline",
+      "expected_branch": "chore/v38-dag-wave-1-2026-06-26",
+      "depends_on": [],
+      "wave": "wave-1",
+      "stage": 1
+    },
+    {
+      "id": "envelope-PhenoObservability",
+      "lane": "envelope",
+      "target_repo": "PhenoObservability",
+      "missing_files": [
+        "SSOT.md",
+        "llms.txt"
+      ],
+      "expected_files_added": 2,
+      "commit_template": "feat(governance): onboard PhenoObservability to fleet baseline",
+      "expected_branch": "chore/v38-dag-wave-1-2026-06-26",
+      "depends_on": [],
+      "wave": "wave-1",
+      "stage": 1
+    },
+    {
+      "id": "envelope-PhenoRuntime",
+      "lane": "envelope",
+      "target_repo": "PhenoRuntime",
+      "missing_files": [
+        "SSOT.md",
+        "llms.txt"
+      ],
+      "expected_files_added": 2,
+      "commit_template": "feat(governance): onboard PhenoRuntime to fleet baseline",
+      "expected_branch": "chore/v38-dag-wave-1-2026-06-26",
+      "depends_on": [],
+      "wave": "wave-1",
+      "stage": 1
+    },
+    {
+      "id": "envelope-Pine",
+      "lane": "envelope",
+      "target_repo": "Pine",
+      "missing_files": [
+        "SSOT.md",
+        "llms.txt",
+        "deny.toml",
+        ".pre-commit-config.yaml"
+      ],
+      "expected_files_added": 4,
+      "commit_template": "feat(governance): onboard Pine to fleet baseline",
+      "expected_branch": "chore/v38-dag-wave-1-2026-06-26",
+      "depends_on": [],
+      "wave": "wave-1",
+      "stage": 1
+    },
+    {
+      "id": "envelope-PlayCua",
+      "lane": "envelope",
+      "target_repo": "PlayCua",
+      "missing_files": [
+        "SSOT.md",
+        "llms.txt",
+        "deny.toml",
+        ".github/workflows/ci.yml"
+      ],
+      "expected_files_added": 4,
+      "commit_template": "feat(governance): onboard PlayCua to fleet baseline",
+      "expected_branch": "chore/v38-dag-wave-1-2026-06-26",
+      "depends_on": [],
+      "wave": "wave-1",
+      "stage": 1
+    },
+    {
+      "id": "envelope-PolicyStack",
+      "lane": "envelope",
+      "target_repo": "PolicyStack",
+      "missing_files": [
+        "SSOT.md",
+        "llms.txt",
+        ".pre-commit-config.yaml"
+      ],
+      "expected_files_added": 3,
+      "commit_template": "feat(governance): onboard PolicyStack to fleet baseline",
+      "expected_branch": "chore/v38-dag-wave-1-2026-06-26",
+      "depends_on": [],
+      "wave": "wave-1",
+      "stage": 1
+    },
+    {
+      "id": "envelope-Quillr",
+      "lane": "envelope",
+      "target_repo": "Quillr",
+      "missing_files": [
+        "SSOT.md",
+        "llms.txt",
+        "deny.toml",
+        ".pre-commit-config.yaml"
+      ],
+      "expected_files_added": 4,
+      "commit_template": "feat(governance): onboard Quillr to fleet baseline",
+      "expected_branch": "chore/v38-dag-wave-1-2026-06-26",
+      "depends_on": [],
+      "wave": "wave-1",
+      "stage": 1
+    },
+    {
+      "id": "envelope-Sidekick",
+      "lane": "envelope",
+      "target_repo": "Sidekick",
+      "missing_files": [
+        "SSOT.md",
+        "llms.txt"
+      ],
+      "expected_files_added": 2,
+      "commit_template": "feat(governance): onboard Sidekick to fleet baseline",
+      "expected_branch": "chore/v38-dag-wave-1-2026-06-26",
+      "depends_on": [],
+      "wave": "wave-1",
+      "stage": 1
+    },
+    {
+      "id": "envelope-Tasken",
+      "lane": "envelope",
+      "target_repo": "Tasken",
+      "missing_files": [
+        "SSOT.md",
+        ".pre-commit-config.yaml"
+      ],
+      "expected_files_added": 2,
+      "commit_template": "feat(governance): onboard Tasken to fleet baseline",
+      "expected_branch": "chore/v38-dag-wave-1-2026-06-26",
+      "depends_on": [],
+      "wave": "wave-1",
+      "stage": 1
+    },
+    {
+      "id": "envelope-Tasken-phenoforge-final",
+      "lane": "envelope",
+      "target_repo": "Tasken-phenoforge-final",
+      "missing_files": [
+        "SSOT.md",
+        ".pre-commit-config.yaml"
+      ],
+      "expected_files_added": 2,
+      "commit_template": "feat(governance): onboard Tasken-phenoforge-final to fleet baseline",
+      "expected_branch": "chore/v38-dag-wave-1-2026-06-26",
+      "depends_on": [],
+      "wave": "wave-1",
+      "stage": 1
+    },
+    {
+      "id": "envelope-TestingKit",
+      "lane": "envelope",
+      "target_repo": "TestingKit",
+      "missing_files": [
+        "justfile",
+        "SSOT.md",
+        ".pre-commit-config.yaml"
+      ],
+      "expected_files_added": 3,
+      "commit_template": "feat(governance): onboard TestingKit to fleet baseline",
+      "expected_branch": "chore/v38-dag-wave-1-2026-06-26",
+      "depends_on": [],
+      "wave": "wave-1",
+      "stage": 1
+    },
+    {
+      "id": "envelope-Tokn",
+      "lane": "envelope",
+      "target_repo": "Tokn",
+      "missing_files": [
+        "SSOT.md",
+        "llms.txt"
+      ],
+      "expected_files_added": 2,
+      "commit_template": "feat(governance): onboard Tokn to fleet baseline",
+      "expected_branch": "chore/v38-dag-wave-1-2026-06-26",
+      "depends_on": [],
+      "wave": "wave-1",
+      "stage": 1
+    },
+    {
+      "id": "envelope-Tokn-wt-feat-clap-ext-adopt-rebased-2026-06-14",
+      "lane": "envelope",
+      "target_repo": "Tokn-wt-feat-clap-ext-adopt-rebased-2026-06-14",
+      "missing_files": [
+        "SSOT.md",
+        "llms.txt"
+      ],
+      "expected_files_added": 2,
+      "commit_template": "feat(governance): onboard Tokn-wt-feat-clap-ext-adopt-rebased-2026-06-14 to fleet baseline",
+      "expected_branch": "chore/v38-dag-wave-1-2026-06-26",
+      "depends_on": [],
+      "wave": "wave-1",
+      "stage": 1
+    }
+  ]
+}
