@@ -26,7 +26,9 @@ import {
 import { BifrostBackendExecutor } from "../../open-sse/executors/bifrost.ts";
 import {
   BifrostNoFallbackError,
+  createBifrostBackedExecutor,
   dispatchBifrostWithFallback,
+  shouldRouteViaBifrost,
 } from "../../open-sse/executors/bifrost.ts";
 import { BaseExecutor } from "../../open-sse/executors/base.ts";
 
@@ -167,6 +169,35 @@ describe("BifrostBackend executor (env gating)", () => {
         credentials: {},
       })
     ).rejects.toThrow(/Bifrost is not enabled/);
+  });
+});
+
+describe("Bifrost dispatcher-facing helpers", () => {
+  const originalBifrostEnabled = process.env.BIFROST_ENABLED;
+
+  afterEach(() => {
+    if (originalBifrostEnabled === undefined) delete process.env.BIFROST_ENABLED;
+    else process.env.BIFROST_ENABLED = originalBifrostEnabled;
+  });
+
+  it("routes via Bifrost when globally enabled or when providerSpecificData opts in", () => {
+    delete process.env.BIFROST_ENABLED;
+    expect(shouldRouteViaBifrost("openai")).toBe(false);
+    expect(
+      shouldRouteViaBifrost("openai", {
+        providerSpecificData: { bifrostMode: true },
+      }),
+    ).toBe(true);
+
+    process.env.BIFROST_ENABLED = "1";
+    expect(shouldRouteViaBifrost("openai")).toBe(true);
+  });
+
+  it("creates an executor with the dispatcher-compatible surface", () => {
+    const exec = createBifrostBackedExecutor("openai");
+
+    expect(exec.getProvider()).toBe("openai");
+    expect(typeof exec.execute).toBe("function");
   });
 });
 

@@ -480,9 +480,18 @@ If a leaf hits a blocker that the agent can't resolve:
 - **L8a** — DEBT P1 triage (no deps — ready)
 - **L9a** — diagnose archive (no deps — ready)
 
-### In-flight leaves
+### In-flight leaves (parallel dispatch batch 2026-06-25)
 
-(none)
+| ID | L5-NNN | Title | Sub-agent |
+|---|---|---|---|
+| **L1a** | L5-120 | chatCore.ts integration of `dispatchBifrostWithFallback()` | forge#1 |
+| **L1c** | L5-122 | Bifrost executor model cache strict mode | forge#2 |
+| **L2a** | L5-200 | MCP tool: `combo_dry_run` | forge#3 |
+| **L5a** | L5-500 | TPM/TPD token bucket per API key | forge#4 |
+| **L7a** | L5-700 | Restore vitest config (`@vitejs/plugin-react` install) | forge#5 |
+| **L8a** | L5-800 | DEBT P1 triage (4 items → close top 1 per sprint) | forge#6 |
+
+All 6 touch disjoint files; safe to run in parallel.
 
 ---
 

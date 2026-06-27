@@ -121,6 +121,10 @@ import {
 import { getProviderCredentials, extractSessionAffinityKey } from "@/sse/services/auth";
 import { deleteSessionAccountAffinity } from "@/lib/db/sessionAccountAffinity";
 import { getExecutor } from "../executors/index.ts";
+import {
+  shouldRouteViaBifrost,
+  createBifrostBackedExecutor,
+} from "../executors/bifrost.ts";
 import { runWithShadowSampler } from "../executors/bifrostShadow.ts";
 import { getCacheControlSettings } from "@/lib/cacheControlSettings";
 import { guardrailRegistry, resolveDisabledGuardrails } from "@/lib/guardrails";
@@ -3489,6 +3493,15 @@ export async function handleChatCore({
   // mode="fallback": returns a wrapper that tries native first, falls back to CLIProxyAPI on 5xx/network errors.
 
   const resolveExecutorWithProxy = async (prov: string) => {
+    const providerSpecificData =
+      credentials?.providerSpecificData && typeof credentials.providerSpecificData === "object"
+        ? credentials.providerSpecificData
+        : null;
+
+    if (shouldRouteViaBifrost(prov, { providerSpecificData })) {
+      return createBifrostBackedExecutor(prov, log);
+    }
+
     const cfg = await getUpstreamProxyConfigCached(prov);
     if (!cfg.enabled || cfg.mode === "native") return getExecutor(prov);
 
