@@ -147,22 +147,20 @@ cache-stats log_path="/tmp/ci-last.log":
 # instead of failing instantly. Mirrored from .github/workflows/forge-
 # daemon-check.yml; this recipe is the orchestrator-runnable version.
 #
-# Usage:
-#   just forge-daemon-check                            # enforce mode
-#   just forge-daemon-check -- --warn                   # warn mode (CI)
-#   just forge-daemon-check -- --json                   # JSON output
-#   just forge-daemon-check -- --strict                 # strict mode
-#   just forge-daemon-check -- --warn --json            # combine
+# The script reads FORGE_DAEMON_CHECK_WARN from the environment as a
+# boolean-style flag (any non-empty value = warn mode). This bypasses
+# just's built-in flag interception (--warn/--help are treated as just's
+# own flags, not forwarded to the recipe).
 #
-# The `--` separator asks just to pass remaining args through as-is.
-# Since just intercepts --help/--warn/--json as its own flags, the
-# `--` is required when passing bare flags to the script. The script
-# itself accepts all flags directly (no `--` needed).
-forge-daemon-check *args:
+# Usage:
+#   just forge-daemon-check                               # enforce mode
+#   FORGE_DAEMON_CHECK_WARN=1 just forge-daemon-check     # warn mode (CI)
+#   FORGE_DAEMON_CHECK_WARN=1just forge-daemon-check     # (same, zsh prefix)
+forge-daemon-check:
     #!/usr/bin/env bash
     set -euo pipefail
     if [ -x ./scripts/forge_daemon_check.sh ]; then
-        ./scripts/forge_daemon_check.sh "$@"
+        ./scripts/forge_daemon_check.sh
     else
         echo "scripts/forge_daemon_check.sh missing or not executable"
         exit 1
