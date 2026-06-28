@@ -1,7 +1,7 @@
 {
   "score": 69,
-  "total": 163,
-  "missing_ssot_with_agents": 44,
+  "total": 166,
+  "missing_ssot_with_agents": 45,
   "results": [
     {
       "repo": "Civis",
@@ -452,6 +452,14 @@
       "has_deny": false
     },
     {
+      "repo": "dist",
+      "has_ssot": false,
+      "has_agents": false,
+      "has_justfile": false,
+      "has_llms": false,
+      "has_deny": false
+    },
+    {
       "repo": "docs",
       "has_ssot": true,
       "has_agents": false,
@@ -621,6 +629,14 @@
     },
     {
       "repo": "omniroute-diego-release",
+      "has_ssot": false,
+      "has_agents": true,
+      "has_justfile": false,
+      "has_llms": false,
+      "has_deny": false
+    },
+    {
+      "repo": "omniroute-diego-release-3840-clean",
       "has_ssot": false,
       "has_agents": true,
       "has_justfile": false,
@@ -1154,6 +1170,14 @@
       "has_justfile": true,
       "has_llms": false,
       "has_deny": true
+    },
+    {
+      "repo": "portage-wtrees",
+      "has_ssot": false,
+      "has_agents": false,
+      "has_justfile": false,
+      "has_llms": false,
+      "has_deny": false
     },
     {
       "repo": "providers",
