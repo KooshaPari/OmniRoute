@@ -7,7 +7,12 @@ import {
   type QuantumLockStats,
 } from "./quantumPatterns.ts";
 
-const EMPTY: QuantumLockStats = { fragments: 0, categories: {} };
+/**
+ * Fresh zero-stats per call. NOT a shared singleton on purpose: `applyQuantumLock` is a public
+ * export and `categories` is mutable, so returning one shared object would let a stats-aggregating
+ * caller corrupt the no-op result for every subsequent call in the process.
+ */
+const emptyStats = (): QuantumLockStats => ({ fragments: 0, categories: {} });
 
 function isRecord(v: unknown): v is Record<string, unknown> {
   return v !== null && typeof v === "object" && !Array.isArray(v);
@@ -31,18 +36,18 @@ export function applyQuantumLock(
   _ctx?: { isCachingProvider: boolean }
 ): { body: Record<string, unknown>; stats: QuantumLockStats } {
   const messages = body.messages;
-  if (!Array.isArray(messages)) return { body, stats: EMPTY };
+  if (!Array.isArray(messages)) return { body, stats: emptyStats() };
 
   const idx = messages.findIndex((m) => isRecord(m) && m.role === "system");
-  if (idx === -1) return { body, stats: EMPTY };
+  if (idx === -1) return { body, stats: emptyStats() };
 
   const sys = messages[idx] as Record<string, unknown>;
   const text = systemTextOf(sys);
-  if (!text) return { body, stats: EMPTY };
-  if (text.includes(TAIL_DELIM)) return { body, stats: EMPTY }; // idempotency
+  if (!text) return { body, stats: emptyStats() };
+  if (text.includes(TAIL_DELIM)) return { body, stats: emptyStats() }; // idempotency
 
   const spans = detectVolatileSpans(text, cfg);
-  if (spans.length === 0) return { body, stats: EMPTY };
+  if (spans.length === 0) return { body, stats: emptyStats() };
 
   let out = "";
   let cursor = 0;

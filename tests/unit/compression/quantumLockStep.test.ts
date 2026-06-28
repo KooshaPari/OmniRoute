@@ -109,3 +109,13 @@ test("withQuantumLockAsync mirrors the sync wrapper", async () => {
   const r = await withQuantumLockAsync(body, { enabled: true }, CACHING, async (b) => runEcho(b));
   assert.ok(sysText(r.body).includes(TAIL_DELIM));
 });
+
+test("no-op stats are independent objects (no shared mutable singleton)", () => {
+  const a = applyQuantumLock(sys("plain prose, nothing volatile"), ON);
+  const b = applyQuantumLock(sys("also nothing volatile here"), ON);
+  assert.notEqual(a.stats, b.stats);
+  assert.notEqual(a.stats.categories, b.stats.categories);
+  // mutating one must not bleed into the next no-op result
+  (a.stats.categories as Record<string, number>).uuid = 99;
+  assert.deepEqual(b.stats.categories, {});
+});

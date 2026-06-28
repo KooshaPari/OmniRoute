@@ -46,9 +46,11 @@ interface QuantumPattern {
  */
 export const QUANTUM_PATTERNS: QuantumPattern[] = [
   // JWTs start with base64url of `{"` → "eyJ". Run first so the whole token wins.
+  // Trailing negative-lookahead (not \b): a JWT signature can END in base64url `-`/`_`,
+  // where \b would misfire (it needs a following word char) and let the token escape detection.
   {
     category: "jwt",
-    pattern: /\beyJ[A-Za-z0-9_-]{8,512}\.[A-Za-z0-9_-]{8,512}\.[A-Za-z0-9_-]{8,512}\b/g,
+    pattern: /\beyJ[A-Za-z0-9_-]{8,512}\.[A-Za-z0-9_-]{8,512}\.[A-Za-z0-9_-]{8,512}(?![A-Za-z0-9_-])/g,
   },
   // Prefixed API keys (stripe/github/slack shapes).
   {

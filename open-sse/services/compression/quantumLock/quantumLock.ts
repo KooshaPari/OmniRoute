@@ -41,6 +41,11 @@ export function detectVolatileSpans(text: string, cfg: QuantumLockConfig): Volat
 
   raw.sort((a, b) => a.start - b.start || b.end - a.end || a.prio - b.prio);
 
+  // Greedy non-overlapping sweep: accept a span only if it starts at/after the last accepted
+  // span's end. A nested or PARTIALLY-overlapping span is dropped whole (never split) — this is
+  // always SAFE (it can only under-stabilize, never corrupt text or shift placeholder numbering).
+  // With the current `\b`-anchored patterns true partial overlaps are unreachable; the drop rule
+  // is the conservative default if a future pattern can produce one.
   const merged: VolatileSpan[] = [];
   let lastEnd = -1;
   for (const s of raw) {

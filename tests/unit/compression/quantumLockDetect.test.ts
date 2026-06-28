@@ -85,3 +85,13 @@ test("spans are sorted ascending and non-overlapping", () => {
 test("empty / non-string is a no-op", () => {
   assert.deepEqual(detectVolatileSpans("", ALL), []);
 });
+
+test("a JWT whose signature ends in base64url '-' is still detected (no \\b misfire)", () => {
+  // Third segment ends with '-'; a trailing \b would require a following word char and miss it.
+  const jwt = "eyJhbGciOiJIUzI1NiwidHlwIjoiSldUIn0.eyJzdWIiOiIxMjM0NTY3ODkwIn0.SflKxwRJSMeKKF2Q-";
+  const t = `auth ${jwt} done`;
+  const spans = detectVolatileSpans(t, ALL);
+  assert.equal(spans.length, 1);
+  assert.equal(spans[0].category, "jwt");
+  assert.equal(span(t, spans[0]), jwt);
+});
