@@ -61,17 +61,18 @@ ls plans/2026-06-17-v7-dag-stable.md                  # v7 DAG (this turn; super
 ### Active focus repos (5)
 `AgilePlus`, `PhenoCompose`, `PlayCua`, `BytePort`, `nanovms` — coordinated via `chore/l5-87-focus-repo-specs-2026-06-11` branch.
 
-### pheno-* family (22 visible)
-- **Rust (11):** pheno-agents-md, pheno-cargo-template, pheno-cli-base, pheno-config, pheno-context, pheno-errors, pheno-flags, pheno-otel, pheno-port-adapter, pheno-tracing
-- **Python (10):** pheno-cost-card, pheno-fastapi-base, pheno-llms-txt, pheno-mcp-router, pheno-prompt-test, pheno-pydantic-models, pheno-scaffold-kit, pheno-vibecoding-guard, pheno-worklog-schema
-- **Go (1):** pheno-go-ctxkit
-- **TypeScript (1):** pheno-zod-schemas (out of scope for cargo/pytest runs)
-- **Container (1):** pheno-wtrees (git worktree container; not buildable)
+### pheno-* family (22 visible, 19 stale/deleted — updated 2026-06-28)
+- **Rust (3/11 live):** pheno-agents-md, pheno-context, pheno-tracing — ~~pheno-cargo-template~~ (404), ~~pheno-cli-base~~ (404), ~~pheno-config~~ (absorbed Configra), ~~pheno-errors~~ (404), ~~pheno-flags~~ (404), ~~pheno-otel~~ (404), ~~pheno-port-adapter~~ (404)
+- **Python (0/10 live):** ~~pheno-cost-card~~ (404), ~~pheno-fastapi-base~~ (404), ~~pheno-llms-txt~~ (404), ~~pheno-mcp-router~~ (404), ~~pheno-prompt-test~~ (404), ~~pheno-pydantic-models~~ (404), ~~pheno-scaffold-kit~~ (404), ~~pheno-vibecoding-guard~~ (404), ~~pheno-worklog-schema~~ (404)
+- **Go (0/1 live):** ~~pheno-go-ctxkit~~ (404)
+- **TypeScript (0/1 live):** ~~pheno-zod-schemas~~ (404)
+- **Container (0/1 live):** ~~pheno-wtrees~~ (404)
 
 See `L6_PHENO_REPOS_HEALTH_2026_06_14.md` for full health inventory (136 tests pass, 4 fail in pheno-agents-md). See `L6_PHENO_REPOS_HEALTH_2026_06_15_DELTA.md` for the 4 new crates added since. See `findings/71-pillar-2026-06-17.md` for the 71-pillar industry-standard audit (this turn).
 
-### Submodule-style repos (~30 in submodules, e.g.)
-- `AuthKit`, `Civis`, `Eidolon`, `Eventra`, `HeliosLab`, `KWatch`, `KodeVibe`, `KlipDot`, `McpKit`, `NetScript`, `PhenoKits`, `PhenoMCP`, `PhenoProc`, `Pyron`, `Tasken`, `Tracera`, `Tracely`, etc.
+### Submodule-style repos (~30 in submodules, e.g.) — stale ones marked (updated 2026-06-28)
+- `AuthKit`, `Civis`, `Eidolon`, `Eventra`, `HeliosLab`, `KWatch`, `KodeVibe`, `KlipDot`, `Tasken`, `Tracera`, `Tracely` — live
+- ~~`McpKit`~~ (404 — was to MERGE into PhenoMCP per ADR-003), ~~`NetScript`~~ (404 — DELETE per ADR-001), ~~`PhenoKits`~~ (404), ~~`PhenoMCP`~~ (404), ~~`PhenoProc`~~ (404), ~~`Pyron`~~ (404)
 
 ---
 
@@ -499,7 +500,7 @@ See `findings/2026-06-18-L5-109-4-repo-retirement.md` for full migration matrix,
 - **2 unapplied stashes (pre-2026-06-17)** — DROPPED this turn (WIP pheno-tracing fix already in HEAD via W5 batch).
 - **4 empty `gate1-0..3` local branches** — DELETED this turn (probe commits, no content, not on any pushed branch).
 - **ADR-015 v2.1 deprecation in 5 days** (2026-06-22) — see ADR-025 for the bump.
-- **REBASE + PUSH RESOLVED (2026-06-18 22:58 PDT)**: Local `repos/` clone's `origin` remote actually points to `phenotype-apps` (was wrongly claimed as `argis`/`FocalPoint` in prior session notes). 3 stranded governance commits (5df6904e9e..f615c33c5f) successfully pushed to `phenotype-apps:archive/2026-06-15-30-pillar-fleet` via **ADR-027 Tier 2 strategy**: `git config lfs.allowincompletepush=true` + `--recurse-submodules=no` + `--no-verify`. The governance commits contain zero binary changes; the LFS check was overly strict.
+- **v54 fleet cleanup (2026-06-28)**: 19 of 22 pheno-* repos and 6 of 17 submodule-style repos listed in "Sub-repos at a Glance" are 404 (deleted/never-created). See `findings/2026-06-28-v54-P0-2-stale-repo-retirement.md`.
 - **dispatch-mcp deletion vs archive**: User said "dispatch-mcp should be deleted" but `gh repo delete` requires `delete_repo` scope on Dmouse92 token (HTTP 403, current scopes: `'gist', 'read:org', 'repo', 'workflow'`). Archive is the only available action. `Dmouse92/dispatch-mcp` is archived (not deleted); the consumer-facing work is fully absorbed into `KooshaPari/pheno-mcp-router` and `KooshaPari/dispatch-mcp` per the 6 Track 8 PRs.
 - **L5-104 MIGRATION GUARANTEE VERIFIED (2026-06-17 22:15 PDT)**: Orchestrator-level shell verification confirms 100% migration coverage:
   - **dispatch-mcp**: 6/6 unique W2-1 commits absorbed (100%) via 5 PR branches on 3 KP repos (pheno-mcp-router +3, dispatch-mcp +1, phenotype-ops +1)

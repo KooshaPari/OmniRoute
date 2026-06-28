@@ -99,5 +99,5 @@ gh attestation verify phenorepos.tar.gz --repo KooshaPari/phenotype-apps
 - [`slsa-verifier` v2 CLI](https://github.com/slsa-framework/slsa-verifier)
 - [GitHub Attestations API](https://docs.github.com/en/code-security/how-tos/creating-and-managing-attestations)
 - [Sigstore cosign](https://docs.sigstore.dev/cosign/overview/)
-- [OpenSSF SLSA Best Practices](https://github.com/ossf/slsa-tooling)
+- [OpenSSF SLSA Best Practices](https://slsa.dev/spec/v1.0/requirements)
 - ADR-077 — `docs/adr/2026-06-20/ADR-077-slsa-l3-provenance.md`

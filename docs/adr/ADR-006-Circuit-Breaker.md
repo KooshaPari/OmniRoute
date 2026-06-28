@@ -486,7 +486,7 @@ func onStateChange(name string, from, to circuit.State) {
 1. **Release It!** - Michael T. Nygard (Circuit Breaker pattern)
 2. **Microsoft Azure: Circuit Breaker Pattern** - https://docs.microsoft.com/en-us/azure/architecture/patterns/circuit-breaker
 3. **Sony gobreaker** - https://github.com/sony/gobreaker (prior art)
-4. **HashiCorp Circuit Breaker** - https://github.com/hashicorp/circuit-breaker
+4. **HashiCorp Circuit Breaker** — repo archived; use [sony/gobreaker](https://github.com/sony/gobreaker) instead
 
 ---
 

@@ -131,9 +131,9 @@ go mod tidy
 go test ./...
 ```
 
-### Update CLIProxy
+### Update CLIProxy (fork-only, internal module)
 ```bash
-go get -u github.com/kooshapari/CLIProxyAPI/v7
+# github.com/kooshapari/CLIProxyAPI/v7 is a private fork module
 go mod tidy
 go test ./...
 ```

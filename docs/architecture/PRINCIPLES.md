@@ -10,7 +10,7 @@
 ```
 bifrost-extensions/
 ├── Consumes: github.com/maximhq/bifrost/core v1.2.30
-├── Consumes: github.com/kooshapari/CLIProxyAPI/v7 v7.0.0
+├── Consumes: github.com/kooshapari/CLIProxyAPI/v7 v7.0.0 (fork-only, internal)
 └── Consumes: Other public modules
 ```
 
@@ -75,7 +75,7 @@ bf, err := bifrost.Init(ctx, config)
 
 ### CLIProxy API
 ```go
-import cliproxy "github.com/kooshapari/CLIProxyAPI/v7"
+import cliproxy "github.com/kooshapari/CLIProxyAPI/v7" // fork-only internal module
 
 // Use cliproxy types and functions
 ```
@@ -87,7 +87,7 @@ import cliproxy "github.com/kooshapari/CLIProxyAPI/v7"
 # Update bifrost to latest
 go get -u github.com/maximhq/bifrost/core
 
-# Update cliproxy to latest
+# Update cliproxy (fork-only internal module)
 go get -u github.com/kooshapari/CLIProxyAPI/v7
 
 # Tidy dependencies

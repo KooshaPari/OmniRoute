@@ -1,6 +1,6 @@
 {
   "score": 69,
-  "total": 166,
+  "total": 168,
   "missing_ssot_with_agents": 45,
   "results": [
     {
@@ -420,6 +420,14 @@
       "has_deny": false
     },
     {
+      "repo": "curated-traces",
+      "has_ssot": false,
+      "has_agents": false,
+      "has_justfile": false,
+      "has_llms": false,
+      "has_deny": false
+    },
+    {
       "repo": "dag-state",
       "has_ssot": false,
       "has_agents": false,
@@ -546,6 +554,14 @@
       "has_justfile": false,
       "has_llms": false,
       "has_deny": true
+    },
+    {
+      "repo": "images",
+      "has_ssot": false,
+      "has_agents": false,
+      "has_justfile": false,
+      "has_llms": false,
+      "has_deny": false
     },
     {
       "repo": "infra",

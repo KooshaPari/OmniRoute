@@ -44,7 +44,7 @@ bifrost-extensions/
      Uses Go modules
      ↓
 github.com/maximhq/bifrost/core v1.2.30
-github.com/kooshapari/CLIProxyAPI/v7 v7.0.0
+github.com/kooshapari/CLIProxyAPI/v7 v7.0.0 (fork-only, internal)
 ```
 
 ### Extension Points
@@ -116,9 +116,9 @@ go mod tidy
 go test ./...
 ```
 
-### Update CLIProxy
+### Update CLIProxy (fork-only, internal module)
 ```bash
-go get -u github.com/kooshapari/CLIProxyAPI/v7
+# github.com/kooshapari/CLIProxyAPI/v7 is a private fork module
 go mod tidy
 go test ./...
 ```
