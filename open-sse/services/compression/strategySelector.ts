@@ -39,6 +39,12 @@ import {
   withRiskGate,
   withRiskGateAsync,
 } from "./riskGate/strategyWrap.ts";
+import {
+  resolveQuantumLock,
+  quantumCachingContext,
+  withQuantumLock,
+  withQuantumLockAsync,
+} from "./quantumLock/index.ts";
 
 // Re-export so existing importers (resolver test + chatCore dynamic import) keep resolving.
 export { planFromHeader, formatCompressionMeta, buildNamedComboLookup };
@@ -268,9 +274,16 @@ export function applyCompression(
     bailout?: BailoutConfig;
     /** Risk-gate mask/restore wrapper (opt-in, default off). Read via resolveRiskGate. */
     riskGate?: RiskGateConfig;
+    /** Force/override the caching gate (studio dry-run, or chatCore's resolved context). */
+    cachingContext?: CachingDetectionContext;
   }
 ): CompressionResult {
-  return withRiskGate(body, resolveRiskGate(options), (b) => runCompression(b, mode, options));
+  return withQuantumLock(
+    body,
+    resolveQuantumLock(options),
+    quantumCachingContext(body, options),
+    (b) => withRiskGate(b, resolveRiskGate(options), (b2) => runCompression(b2, mode, options))
+  );
 }
 
 function runCompression(
@@ -283,6 +296,7 @@ function runCompression(
     principalId?: string;
     bailout?: BailoutConfig;
     riskGate?: RiskGateConfig;
+    cachingContext?: CachingDetectionContext;
   }
 ): CompressionResult {
   if (mode === "off") {
@@ -417,6 +431,27 @@ export async function applyCompressionAsync(
     config?: CompressionConfig;
     principalId?: string;
     onEngineStep?: (step: StackedCompressionStep) => void;
+    cachingContext?: CachingDetectionContext;
+  }
+): Promise<CompressionResult> {
+  return withQuantumLockAsync(
+    body,
+    resolveQuantumLock(options),
+    quantumCachingContext(body, options),
+    (b) => runCompressionAsync(b, mode, options)
+  );
+}
+
+async function runCompressionAsync(
+  body: Record<string, unknown>,
+  mode: CompressionMode,
+  options?: {
+    model?: string;
+    supportsVision?: boolean | null;
+    config?: CompressionConfig;
+    principalId?: string;
+    onEngineStep?: (step: StackedCompressionStep) => void;
+    cachingContext?: CachingDetectionContext;
   }
 ): Promise<CompressionResult> {
   if (mode === "stacked") {
