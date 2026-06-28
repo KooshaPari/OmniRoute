@@ -19,19 +19,25 @@ import { NO_RENDER } from "./types.ts";
  * If no recognizable summary line is found, no-op.
  */
 export function renderTestGreen(text: string, _detection: CommandDetectionResult): RenderResult {
+  // Strip ANSI color codes before applying the failure guards. jest/vitest emit a
+  // colored "FAIL" status whose preceding ANSI byte ("m" of [31m) is a word
+  // character, defeating a /\bFAIL\b/ boundary on the raw string. Guards run on the
+  // stripped copy; the original `text` is what we return on a no-op (lossless).
+  const stripped = text.replace(/\[[0-9;]*m/g, "");
+
   // Failure guard — must check FIRST; never weaken
-  if (/\bFAIL\b/.test(text)) return NO_RENDER(text);
-  if (/✖/.test(text)) return NO_RENDER(text);
-  if (/Error/.test(text)) return NO_RENDER(text);
-  if (/Traceback/.test(text)) return NO_RENDER(text);
-  if (/AssertionError/.test(text)) return NO_RENDER(text);
+  if (/\bFAIL\b/.test(stripped)) return NO_RENDER(text);
+  if (/✖/.test(stripped)) return NO_RENDER(text);
+  if (/Error/.test(stripped)) return NO_RENDER(text);
+  if (/Traceback/.test(stripped)) return NO_RENDER(text);
+  if (/AssertionError/.test(stripped)) return NO_RENDER(text);
 
   // "failed" with a nonzero count, e.g. "1 failed" or "failed: 3"
-  const failedMatch = text.match(/(\d+)\s+failed/i) ?? text.match(/failed[:\s]+(\d+)/i);
+  const failedMatch = stripped.match(/(\d+)\s+failed/i) ?? stripped.match(/failed[:\s]+(\d+)/i);
   if (failedMatch && parseInt(failedMatch[1], 10) > 0) return NO_RENDER(text);
 
-  // Try to extract a recognised summary line
-  const summary = extractSummaryLine(text);
+  // Try to extract a recognised summary line (from the stripped copy → ANSI-free)
+  const summary = extractSummaryLine(stripped);
   if (!summary) return NO_RENDER(text);
 
   return { text: summary, changed: true, renderer: "test-green" };

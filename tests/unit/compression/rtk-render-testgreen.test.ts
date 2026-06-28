@@ -29,3 +29,12 @@ E   AssertionError: nope`;
   const r = renderTestGreen(input, det("test-pytest"));
   assert.equal(r.changed, false);
 });
+
+test("ANSI-colored FAIL with no numeric failed-count ⇒ no-op (regression: \\bFAIL\\b defeated by ANSI)", () => {
+  // jest/vitest emit a colored FAIL header; the ESC[31m byte 'm' before 'F' kills the
+  // word boundary. With the per-test failed-count line already stripped by an upstream
+  // filter, the ANSI strip in the guard is the only thing preventing a collapsed failure.
+  const input = "[1m[31mFAIL[39m[22m src/auth.test.ts\nTests: 3 passed, 3 total";
+  const r = renderTestGreen(input, det("test-jest"));
+  assert.equal(r.changed, false);
+});

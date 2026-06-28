@@ -31,7 +31,7 @@ export function renderTerraformPlan(
   for (const line of text.split("\n")) {
     const m = line.match(/^\s+#\s+(\S+)\s+will\s+be\s+\S+/);
     if (m) {
-      resources.push(`  # ${m[1]} will be ${line.trim().replace(/^#\s+\S+\s+will\s+be\s+/, "will be ")}`);
+      resources.push(`  # ${m[1]} will be ${line.trim().replace(/^#\s+\S+\s+will\s+be\s+/, "")}`);
     }
   }
 

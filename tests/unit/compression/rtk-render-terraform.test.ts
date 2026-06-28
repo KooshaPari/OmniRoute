@@ -22,6 +22,10 @@ Plan: 1 to add, 1 to change, 0 to destroy.`;
   assert.ok(r.text.includes("Plan: +1 ~1 -0"));
   assert.ok(r.text.includes("aws_instance.web"));
   assert.ok(!r.text.includes('resource "aws_instance" "web" {'));
+  // Regression (core review): the verb must not be duplicated ("will be will be created").
+  assert.ok(!r.text.includes("will be will be"));
+  assert.ok(r.text.includes("# aws_instance.web will be created"));
+  assert.ok(r.text.includes("# aws_s3_bucket.data will be updated in-place"));
 });
 
 test("no-changes ⇒ no-op", () => {
