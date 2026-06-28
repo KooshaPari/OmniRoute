@@ -1,0 +1,53 @@
+{
+  "wave": "wave-6",
+  "branch": "chore/v48-dag-wave-6-2026-06-27",
+  "width": 4,
+  "envelope_count": 3,
+  "findings_count": 1,
+  "created_at": "2026-06-27",
+  "tasks": [
+    {
+      "id": "envelope-rich-cli-kit",
+      "lane": "envelope",
+      "target_repo": "rich-cli-kit",
+      "missing_files": [
+        "SSOT.md",
+        "llms.txt",
+        ".github/workflows/ci.yml"
+      ],
+      "expected_files_added": 3,
+      "commit_message": "feat(governance): onboard rich-cli-kit to fleet baseline"
+    },
+    {
+      "id": "envelope-sharecli",
+      "lane": "envelope",
+      "target_repo": "sharecli",
+      "missing_files": [
+        "SSOT.md",
+        "llms.txt",
+        ".pre-commit-config.yaml"
+      ],
+      "expected_files_added": 3,
+      "commit_message": "feat(governance): onboard sharecli to fleet baseline"
+    },
+    {
+      "id": "envelope-thegent-dispatch",
+      "lane": "envelope",
+      "target_repo": "thegent-dispatch",
+      "missing_files": [
+        "SSOT.md",
+        "llms.txt"
+      ],
+      "expected_files_added": 2,
+      "commit_message": "feat(governance): onboard thegent-dispatch to fleet baseline"
+    },
+    {
+      "id": "finding-2026-06-27-v38-dag-wave-1-closure-0",
+      "lane": "side-dag-findings",
+      "task_kind": "followup-finding",
+      "title": "20 more repos from the 147 remaining. Side-DAG: integrate nested-git lessons. Self-extend via findings/ anti-patterns from wave-1.",
+      "source_doc": "findings/2026-06-27-v38-dag-wave-1-closure.md",
+      "expected_files_added": 1
+    }
+  ]
+}
