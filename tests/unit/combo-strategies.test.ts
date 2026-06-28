@@ -11,7 +11,8 @@ const ORIGINAL_FETCH = globalThis.fetch;
 process.env.DATA_DIR = TEST_DATA_DIR;
 
 const dbCore = await import("../../src/lib/db/core.ts");
-const { handleComboChat } = await import("../../open-sse/services/combo.ts");
+const { handleComboChat, isCrossTargetModelUnsupported400 } =
+  await import("../../open-sse/services/combo.ts");
 const { clearAllStickyBindings } =
   await import("../../open-sse/services/combo/sessionStickiness.ts");
 const { invalidateCodexQuotaCache, registerCodexConnection, registerCodexQuotaFetcher } =
@@ -743,4 +744,15 @@ test("priority combo advances to next model when first returns 400 'model not su
   assert.equal(calls.length, 2, "combo should have tried both models");
   assert.equal(calls[0], "openai/gpt-4", "first model should be tried first");
   assert.equal(calls[1], "openai/gpt-3.5-turbo", "second model should be tried after 400");
+});
+
+test("400 model unsupported classifier excludes body-specific account errors", () => {
+  assert.equal(isCrossTargetModelUnsupported400("requested model is not supported"), true);
+  assert.equal(isCrossTargetModelUnsupported400("model_not_found"), true);
+  assert.equal(
+    isCrossTargetModelUnsupported400(
+      "The 'gpt-5.2' model is not supported when using Codex with a ChatGPT account."
+    ),
+    false
+  );
 });

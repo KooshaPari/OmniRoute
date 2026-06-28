@@ -705,6 +705,21 @@ export function isParamValidation400(errorText) {
   );
 }
 
+/** @param {string} errorText */
+export function isCrossTargetModelUnsupported400(errorText) {
+  const text = String(errorText || "");
+  if (/\bnot supported when using\b/i.test(text) || /\bchatgpt account\b/i.test(text)) {
+    return false;
+  }
+  return (
+    /\brequested model is not supported\b/i.test(text) ||
+    /\bmodel[_ -]?not[_ -]?(?:found|supported)\b/i.test(text) ||
+    /\bmodel\b[\s\S]{0,80}?\bnot\b[\s\S]{0,40}?\b(?:available|found|supported|accessible)\b/i.test(
+      text
+    )
+  );
+}
+
 /** @param {object} options */
 export async function handleComboChat({
   body,
@@ -2344,12 +2359,15 @@ export async function handleComboChat({
             fallbackResult.shouldFallback &&
             !isContextOverflow400(errorText) &&
             !isParamValidation400(errorText) &&
+            !isCrossTargetModelUnsupported400(errorText) &&
             (errorText.toLowerCase().includes("context") ||
               errorText.toLowerCase().includes("prompt") ||
               errorText.toLowerCase().includes("token") ||
               errorText.toLowerCase().includes("malformed") ||
               errorText.toLowerCase().includes("invalid") ||
-              errorText.toLowerCase().includes("bad request"))
+              errorText.toLowerCase().includes("bad request") ||
+              errorText.toLowerCase().includes("not supported when using") ||
+              errorText.toLowerCase().includes("chatgpt account"))
           ) {
             log.warn(
               "COMBO",
