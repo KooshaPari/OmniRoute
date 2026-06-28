@@ -162,6 +162,12 @@ grade:
         just audit
     fi
 
+# CLI flag discipline audit (L39) — scan Rust/Go sources for snake_case flags
+cli-audit:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    python3 tools/cli-flag-audit/audit.py --path . || { echo "FAIL: CLI flag discipline violations found"; exit 1; }
+
 clean:
     #!/usr/bin/env bash
     set -euo pipefail
