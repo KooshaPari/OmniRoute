@@ -17,6 +17,7 @@ import {
   recordProviderFailure,
   selectLockoutCooldownMs,
 } from "./accountFallback.ts";
+import { RateLimitReason } from "../config/constants.ts";
 import { errorResponse, unavailableResponse } from "../utils/error.ts";
 import {
   recordComboIntent,
@@ -2339,17 +2340,24 @@ export async function handleComboChat({
           // - Max_tokens / param errors: different models have different output limits
           // - Model access denied: different providers serve different model sets
           // These should fall through so the next combo target can try.
+          const lowerErrorText = errorText.toLowerCase();
+          const isBodySpecificModelCapacity400 =
+            fallbackResult.reason === RateLimitReason.MODEL_CAPACITY &&
+            (lowerErrorText.includes("when using") ||
+              lowerErrorText.includes("chatgpt account") ||
+              lowerErrorText.includes("request body"));
           if (
             result.status === 400 &&
             fallbackResult.shouldFallback &&
             !isContextOverflow400(errorText) &&
             !isParamValidation400(errorText) &&
-            (errorText.toLowerCase().includes("context") ||
-              errorText.toLowerCase().includes("prompt") ||
-              errorText.toLowerCase().includes("token") ||
-              errorText.toLowerCase().includes("malformed") ||
-              errorText.toLowerCase().includes("invalid") ||
-              errorText.toLowerCase().includes("bad request"))
+            (isBodySpecificModelCapacity400 ||
+              lowerErrorText.includes("context") ||
+              lowerErrorText.includes("prompt") ||
+              lowerErrorText.includes("token") ||
+              lowerErrorText.includes("malformed") ||
+              lowerErrorText.includes("invalid") ||
+              lowerErrorText.includes("bad request"))
           ) {
             log.warn(
               "COMBO",
