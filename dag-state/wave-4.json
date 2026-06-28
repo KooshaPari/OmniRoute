@@ -1,0 +1,136 @@
+{
+  "wave": "wave-4",
+  "branch": "chore/v47-dag-wave-4-onboard-2026-06-27",
+  "width": 11,
+  "envelope_count": 10,
+  "findings_count": 1,
+  "created_at": "2026-06-27",
+  "tasks": [
+    {
+      "id": "envelope-phenotype-journeys",
+      "lane": "envelope",
+      "target_repo": "phenotype-journeys",
+      "missing_files": [
+        "SSOT.md",
+        "llms.txt"
+      ],
+      "expected_files_added": 2,
+      "commit_message": "feat(governance): onboard phenotype-journeys to fleet baseline"
+    },
+    {
+      "id": "envelope-phenotype-org-audits",
+      "lane": "envelope",
+      "target_repo": "phenotype-org-audits",
+      "missing_files": [
+        "justfile",
+        "SSOT.md",
+        "llms.txt",
+        ".github/workflows/ci.yml"
+      ],
+      "expected_files_added": 4,
+      "commit_message": "feat(governance): onboard phenotype-org-audits to fleet baseline"
+    },
+    {
+      "id": "envelope-phenotype-python-sdk",
+      "lane": "envelope",
+      "target_repo": "phenotype-python-sdk",
+      "missing_files": [
+        "AGENTS.md",
+        "SSOT.md",
+        "llms.txt",
+        "deny.toml",
+        ".pre-commit-config.yaml"
+      ],
+      "expected_files_added": 5,
+      "commit_message": "feat(governance): onboard phenotype-python-sdk to fleet baseline"
+    },
+    {
+      "id": "envelope-phenotype-python-sdk-datakit-final",
+      "lane": "envelope",
+      "target_repo": "phenotype-python-sdk-datakit-final",
+      "missing_files": [
+        "AGENTS.md",
+        "SSOT.md",
+        "llms.txt",
+        "deny.toml",
+        ".pre-commit-config.yaml"
+      ],
+      "expected_files_added": 5,
+      "commit_message": "feat(governance): onboard phenotype-python-sdk-datakit-final to fleet baseline"
+    },
+    {
+      "id": "envelope-phenotype-registry-archived-local-work",
+      "lane": "envelope",
+      "target_repo": "phenotype-registry-archived-local-work",
+      "missing_files": [
+        "SSOT.md",
+        "llms.txt"
+      ],
+      "expected_files_added": 2,
+      "commit_message": "feat(governance): onboard phenotype-registry-archived-local-work to fleet baseline"
+    },
+    {
+      "id": "envelope-phenotype-registry-conft-settly-final",
+      "lane": "envelope",
+      "target_repo": "phenotype-registry-conft-settly-final",
+      "missing_files": [
+        "SSOT.md",
+        "llms.txt"
+      ],
+      "expected_files_added": 2,
+      "commit_message": "feat(governance): onboard phenotype-registry-conft-settly-final to fleet baseline"
+    },
+    {
+      "id": "envelope-phenotype-registry-dagctl-final",
+      "lane": "envelope",
+      "target_repo": "phenotype-registry-dagctl-final",
+      "missing_files": [
+        "SSOT.md",
+        "llms.txt"
+      ],
+      "expected_files_added": 2,
+      "commit_message": "feat(governance): onboard phenotype-registry-dagctl-final to fleet baseline"
+    },
+    {
+      "id": "envelope-phenotype-registry-datakit-final",
+      "lane": "envelope",
+      "target_repo": "phenotype-registry-datakit-final",
+      "missing_files": [
+        "SSOT.md",
+        "llms.txt"
+      ],
+      "expected_files_added": 2,
+      "commit_message": "feat(governance): onboard phenotype-registry-datakit-final to fleet baseline"
+    },
+    {
+      "id": "envelope-phenotype-registry-depguard-final",
+      "lane": "envelope",
+      "target_repo": "phenotype-registry-depguard-final",
+      "missing_files": [
+        "SSOT.md",
+        "llms.txt"
+      ],
+      "expected_files_added": 2,
+      "commit_message": "feat(governance): onboard phenotype-registry-depguard-final to fleet baseline"
+    },
+    {
+      "id": "envelope-phenotype-registry-devhex-platformkit-final",
+      "lane": "envelope",
+      "target_repo": "phenotype-registry-devhex-platformkit-final",
+      "missing_files": [
+        "SSOT.md",
+        "llms.txt"
+      ],
+      "expected_files_added": 2,
+      "commit_message": "feat(governance): onboard phenotype-registry-devhex-platformkit-final to fleet baseline"
+    },
+    {
+      "id": "finding-2026-06-27-v38-dag-wave-1-closure-0",
+      "lane": "side-dag-findings",
+      "task_kind": "followup-finding",
+      "title": "20 more repos from the 147 remaining. Side-DAG: integrate nested-git lessons. Self-extend via findings/ anti-patterns from wave-1.",
+      "source_doc": "findings/2026-06-27-v38-dag-wave-1-closure.md",
+      "expected_files_added": 1
+    }
+  ]
+}
