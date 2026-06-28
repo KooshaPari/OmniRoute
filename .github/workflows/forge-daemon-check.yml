@@ -1,0 +1,84 @@
+name: forge-daemon-check
+
+# Enforces SQLite PRAGMA busy_timeout on every PR to prevent the
+# "database is locked" error family from tailcallhq/forgecode#3551.
+#
+# Background: forgecode sessions that crash mid-write leave behind
+# sidecar *.lock files. Subsequent sessions race for the lock and
+# surface a misleading "database is locked" error even when no
+# SQLite is in use. The defense-in-depth fix is to set
+# PRAGMA busy_timeout=30000 (30s wait) on every SQLite connection
+# in the fleet, so legitimate lock contention waits instead of
+# failing instantly.
+#
+# This workflow:
+#   - Scans every .rs file in the fleet for SQLite driver imports
+#     (rusqlite / sqlx / diesel / tokio_rusqlite)
+#   - Confirms PRAGMA busy_timeout (or .busy_timeout(...) for sqlx/diesel)
+#     is set, either directly in the file or in a sibling file in the
+#     same crate (hexagonal architecture pattern: connection helper)
+#   - Runs in --warn mode for v47 ship (logs failures, exits 0)
+#   - Will flip to --enforce in v48 once the 43 known gaps in
+#     agileplus-sqlite + forge-vacuum are fixed
+#
+# v47 known gaps (will be fixed in v48 T1):
+#   - pheno/crates/agileplus-sqlite/ (and its mirror under pheno/agileplus/)
+#     42 files: connection helper at src/lib.rs sets journal_mode=WAL and
+#     foreign_keys=ON but is missing busy_timeout
+#   - forgecode-wts/wt-*/tooling/forge-vacuum/src/main.rs
+#     1 file: standalone vacuum CLI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  busy-timeout-gate:
+    name: SQLite busy_timeout enforcement
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v4.2.2
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+
+      - name: Install just
+        uses: extractions/setup-just@f8a3cce218d9f83db3a2ecd90e41ac3de6cdfd9b # v3
+
+      - name: Run busy_timeout gate (warn mode for v47)
+        id: gate
+        env:
+          FORGE_DAEMON_CHECK_WARN: 1
+        run: |
+          just forge-daemon-check 2>&1 | tee /tmp/forge-daemon-check.log
+          echo "exit=$?" >> "$GITHUB_OUTPUT"
+
+      - name: Comment PR with gate summary
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@60a0dca39b9ae3e7b0e5a4f244a0f7a74b5a5b91 # v7
+        with:
+          script: |
+            const fs = require('fs');
+            let log = '';
+            try { log = fs.readFileSync('/tmp/forge-daemon-check.log', 'utf8'); } catch (e) {}
+            const lines = log.split('\n').filter(l =>
+              l.match(/^(fleet files scanned|SQLite-using|busy_timeout|mode|✅|❌|⚠️)/)
+            );
+            const summary = lines.join('\n') || 'no output captured';
+            await github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: '## forge-daemon-check (v47 T1)\n\n```\n' + summary + '\n```\n\n' +
+                '_Gate running in --warn mode for v47 ship. New SQLite ' +
+                'connections added without busy_timeout will be visible ' +
+                'above. Will flip to --enforce in v48 once the 43 known ' +
+                'gaps are fixed. See tailcallhq/forgecode#3551._'
+            });
