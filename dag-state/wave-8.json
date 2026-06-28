@@ -1,0 +1,89 @@
+{
+  "wave": "wave-8",
+  "scope": "SSOT gap-fill",
+  "branch": "chore/v50-dag-wave-8-ssot-fill-2026-06-28",
+  "width": 10,
+  "envelope_count": 0,
+  "findings_count": 1,
+  "side_dag_count": 10,
+  "created_at": "2026-06-28",
+  "tasks": [
+    {
+      "id": "ssot-fill-0",
+      "lane": "side-dag",
+      "title": "Create SSOT.md for Civis",
+      "target_repo": "Civis",
+      "expected_files_added": 1
+    },
+    {
+      "id": "ssot-fill-1",
+      "lane": "side-dag",
+      "title": "Create SSOT.md for Dino",
+      "target_repo": "Dino",
+      "expected_files_added": 1
+    },
+    {
+      "id": "ssot-fill-2",
+      "lane": "side-dag",
+      "title": "Create SSOT.md for KWatch",
+      "target_repo": "KWatch",
+      "expected_files_added": 1
+    },
+    {
+      "id": "ssot-fill-3",
+      "lane": "side-dag",
+      "title": "Create SSOT.md for KlipDot",
+      "target_repo": "KlipDot",
+      "expected_files_added": 1
+    },
+    {
+      "id": "ssot-fill-4",
+      "lane": "side-dag",
+      "title": "Create SSOT.md for MCPForge",
+      "target_repo": "MCPForge",
+      "expected_files_added": 1
+    },
+    {
+      "id": "ssot-fill-5",
+      "lane": "side-dag",
+      "title": "Create SSOT.md for ObservabilityKit",
+      "target_repo": "ObservabilityKit",
+      "expected_files_added": 1
+    },
+    {
+      "id": "ssot-fill-6",
+      "lane": "side-dag",
+      "title": "Create SSOT.md for OmniRoute",
+      "target_repo": "OmniRoute",
+      "expected_files_added": 1
+    },
+    {
+      "id": "ssot-fill-7",
+      "lane": "side-dag",
+      "title": "Create SSOT.md for PhenoPlugins",
+      "target_repo": "PhenoPlugins",
+      "expected_files_added": 1
+    },
+    {
+      "id": "ssot-fill-8",
+      "lane": "side-dag",
+      "title": "Create SSOT.md for PhenoProject",
+      "target_repo": "PhenoProject",
+      "expected_files_added": 1
+    },
+    {
+      "id": "ssot-fill-9",
+      "lane": "side-dag",
+      "title": "Create SSOT.md for PhenoSpecs",
+      "target_repo": "PhenoSpecs",
+      "expected_files_added": 1
+    },
+    {
+      "id": "finding-1",
+      "lane": "findings",
+      "title": "v50 wave-7 execution closure carryforward: retire .audit/ dirs",
+      "target_repo": null,
+      "expected_files_added": 1
+    }
+  ]
+}
