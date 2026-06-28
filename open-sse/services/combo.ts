@@ -2356,7 +2356,6 @@ export async function handleComboChat({
           // These should fall through so the next combo target can try.
           if (
             result.status === 400 &&
-            fallbackResult.shouldFallback &&
             !isContextOverflow400(errorText) &&
             !isParamValidation400(errorText) &&
             !isCrossTargetModelUnsupported400(errorText) &&
