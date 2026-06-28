@@ -61,6 +61,11 @@ import {
   stainlessRuntimeVersion,
   stripProxyToolPrefix,
 } from "./claudeIdentity.ts";
+import {
+  applyConfiguredUserAgent,
+  getCustomUserAgent,
+  setUserAgentHeader,
+} from "./userAgentHeader.ts";
 
 /**
  * Sanitizes a custom API path to prevent path traversal attacks.
@@ -159,36 +164,11 @@ export function mergeUpstreamExtraHeaders(
   for (const [k, v] of Object.entries(extra)) {
     if (typeof k === "string" && k.length > 0 && typeof v === "string") {
       if (k.toLowerCase() === "user-agent") {
-        setUserAgentHeader(headers, v);
+        applyConfiguredUserAgent(headers, { userAgent: v });
         continue;
       }
       headers[k] = v;
     }
-  }
-}
-
-export function getCustomUserAgent(providerSpecificData?: JsonRecord | null): string | null {
-  const customUserAgent =
-    typeof providerSpecificData?.customUserAgent === "string"
-      ? providerSpecificData.customUserAgent.trim()
-      : "";
-  return customUserAgent || null;
-}
-
-export function setUserAgentHeader(headers: Record<string, string>, userAgent: string): void {
-  headers["User-Agent"] = userAgent;
-  if ("user-agent" in headers) {
-    headers["user-agent"] = userAgent;
-  }
-}
-
-export function applyConfiguredUserAgent(
-  headers: Record<string, string>,
-  providerSpecificData?: JsonRecord | null
-): void {
-  const customUserAgent = getCustomUserAgent(providerSpecificData);
-  if (customUserAgent) {
-    setUserAgentHeader(headers, customUserAgent);
   }
 }
 
