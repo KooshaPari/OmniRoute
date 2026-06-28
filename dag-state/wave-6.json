@@ -1,0 +1,15 @@
+{
+  "wave": "wave-6",
+  "branch": "chore/v48-dag-wave-6-2026-06-27",
+  "width": 1,
+  "envelope": 0,
+  "findings": 1,
+  "tasks": [
+    {
+      "id": "find-2026-06-27-v38-dag-wave-1-closure",
+      "lane": "side-dag",
+      "title": "20 more repos from the 147 remaining. Side-DAG: integrate nested-git lessons. Self-extend via findings/ anti-patterns from wave-1.",
+      "source": "findings/2026-06-27-v38-dag-wave-1-closure.md"
+    }
+  ]
+}
