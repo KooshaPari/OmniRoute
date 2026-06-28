@@ -35,16 +35,9 @@ import { resolveAdaptivePlan } from "./adaptiveCompression/resolveAdaptivePlan.t
 import type { AdaptiveTelemetry } from "./adaptiveCompression/types.ts";
 import type { RiskGateConfig } from "./riskGate/riskGate.ts";
 import {
-  resolveRiskGate,
-  withRiskGate,
-  withRiskGateAsync,
-} from "./riskGate/strategyWrap.ts";
-import {
-  resolveQuantumLock,
-  quantumCachingContext,
-  withQuantumLock,
-  withQuantumLockAsync,
-} from "./quantumLock/index.ts";
+  withCompressionEntrypointGuards,
+  withCompressionEntrypointGuardsAsync,
+} from "./entrypointWrap.ts";
 
 // Re-export so existing importers (resolver test + chatCore dynamic import) keep resolving.
 export { planFromHeader, formatCompressionMeta, buildNamedComboLookup };
@@ -278,12 +271,7 @@ export function applyCompression(
     cachingContext?: CachingDetectionContext;
   }
 ): CompressionResult {
-  return withQuantumLock(
-    body,
-    resolveQuantumLock(options),
-    quantumCachingContext(body, options),
-    (b) => withRiskGate(b, resolveRiskGate(options), (b2) => runCompression(b2, mode, options))
-  );
+  return withCompressionEntrypointGuards(body, options, (b) => runCompression(b, mode, options));
 }
 
 function runCompression(
@@ -434,11 +422,8 @@ export async function applyCompressionAsync(
     cachingContext?: CachingDetectionContext;
   }
 ): Promise<CompressionResult> {
-  return withQuantumLockAsync(
-    body,
-    resolveQuantumLock(options),
-    quantumCachingContext(body, options),
-    (b) => runCompressionAsync(b, mode, options)
+  return withCompressionEntrypointGuardsAsync(body, options, (b) =>
+    runCompressionAsync(b, mode, options)
   );
 }
 
