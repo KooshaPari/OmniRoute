@@ -68,6 +68,7 @@ export interface PreviewResponse {
   ruleRemovals: string[];
   encoderComparison?: EncoderComparison | null;
   riskGate?: RiskGateStats | null;
+  quantumLock?: { fragments: number; categories: Record<string, number> } | null;
 }
 
 // ── Run Model ─────────────────────────────────────────────────────────────
@@ -83,6 +84,7 @@ export interface CompressionRunModel {
   timestamp: number;
   diff?: DiffSegment[];
   encoderComparison?: EncoderComparison | null;
+  quantumLock?: { fragments: number; categories: Record<string, number> } | null;
 }
 
 // ── previewToRunModel ─────────────────────────────────────────────────────
@@ -99,6 +101,7 @@ export function previewToRunModel(res: PreviewResponse, label: string): Compress
     timestamp: 0,
     diff: res.diff,
     encoderComparison: res.encoderComparison ?? null,
+    quantumLock: res.quantumLock ?? null,
   };
 }
 

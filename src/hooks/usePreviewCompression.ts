@@ -4,7 +4,7 @@ import { previewToRunModel, type CompressionRunModel, type PreviewResponse } fro
 export interface PreviewMessage { role: string; content: unknown; }
 export interface Lane { engine: string; run: CompressionRunModel | null; error: string | null; }
 export interface PreviewBatch { lanes: Lane[]; combined: CompressionRunModel | null; diff: PreviewResponse["diff"] | null; riskGate: PreviewResponse["riskGate"] | null; }
-export interface RunPreviewArgs { messages: PreviewMessage[]; laneEngines: string[]; activeEngines: string[]; language?: string; fidelityGate?: boolean; fuzzyDedup?: boolean; riskGate?: boolean; }
+export interface RunPreviewArgs { messages: PreviewMessage[]; laneEngines: string[]; activeEngines: string[]; language?: string; fidelityGate?: boolean; fuzzyDedup?: boolean; riskGate?: boolean; quantumLock?: boolean; }
 async function postPreview(payload: Record<string, unknown>): Promise<PreviewResponse> {
   const res = await fetch("/api/compression/preview", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
   const data = await res.json();
@@ -12,11 +12,12 @@ async function postPreview(payload: Record<string, unknown>): Promise<PreviewRes
   return data as PreviewResponse;
 }
 export async function runPreviewBatch(args: RunPreviewArgs): Promise<PreviewBatch> {
-  const { messages, laneEngines, activeEngines, fidelityGate, fuzzyDedup, riskGate } = args;
+  const { messages, laneEngines, activeEngines, fidelityGate, fuzzyDedup, riskGate, quantumLock } = args;
   const extra = {
     ...(fidelityGate ? { fidelityGate: { enabled: true } } : {}),
     ...(fuzzyDedup ? { fuzzyDedup: { enabled: true } } : {}),
     ...(riskGate ? { riskGate: { enabled: true } } : {}),
+    ...(quantumLock ? { quantumLock: { enabled: true } } : {}),
   };
   const lanes: Lane[] = await Promise.all(
     laneEngines.map(async (engine): Promise<Lane> => {

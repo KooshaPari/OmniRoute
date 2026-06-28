@@ -6,6 +6,7 @@ import { DiffPane } from "./DiffPane";
 import { EncoderComparisonTable } from "./EncoderComparisonTable";
 import { PlaygroundInput, LANE_ENGINES } from "./PlaygroundInput";
 import { RiskGateBadge } from "./RiskGateBadge";
+import { QuantumLockBadge } from "./QuantumLockBadge";
 export interface PlayViewProps {
   text: string;
   onText: (t: string) => void;
@@ -47,6 +48,7 @@ export function PlayView({ text, onText, laneEngines = LANE_ENGINES }: PlayViewP
   const [selectedLane, setSelectedLane] = useState<string | null>(null);
   const [fidelityGate, setFidelityGate] = useState(false);
   const [riskGate, setRiskGate] = useState(false);
+  const [quantumLock, setQuantumLock] = useState(false);
   const { batch, loading, run } = usePreviewCompression();
   const messages = [{ role: "user", content: text }];
   const toggle = (e: string) =>
@@ -59,6 +61,7 @@ export function PlayView({ text, onText, laneEngines = LANE_ENGINES }: PlayViewP
       fidelityGate,
       fuzzyDedup,
       riskGate,
+      quantumLock,
     });
   const activeDiff = resolveActiveDiff(batch, selectedLane);
   return (
@@ -77,13 +80,16 @@ export function PlayView({ text, onText, laneEngines = LANE_ENGINES }: PlayViewP
           onToggleFuzzy={() => setFuzzyDedup((v) => !v)}
           riskGate={riskGate}
           onToggleRisk={() => setRiskGate((v) => !v)}
+          quantumLock={quantumLock}
+          onToggleQuantum={() => setQuantumLock((v) => !v)}
         />
       </div>
       <div className="flex min-w-0 flex-1 flex-col gap-3 overflow-auto">
         {batch?.combined && (
           <section data-testid="play-combined">
             <header className="text-xs font-semibold">
-              Fluxo combinado — {active.join(" → ")}
+              Fluxo combinado — {active.join(" → ")}{" "}
+              <QuantumLockBadge stats={batch.combined.quantumLock} />
             </header>
             <WaterfallInspector run={batch.combined} />
             <RiskGateBadge stats={batch?.riskGate ?? null} />

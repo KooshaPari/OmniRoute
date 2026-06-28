@@ -47,6 +47,10 @@ export const PreviewRequestSchema = z.object({
   // Playground fuzzy near-duplicate toggle → injects `{ fuzzy: { enabled: true } }` into the
   // session-dedup step config (see buildStep).
   fuzzyDedup: z.object({ enabled: z.boolean() }).optional(),
+  // Playground QuantumLock toggle. The studio is a dry-run, so when enabled we force a caching
+  // context (provider: "anthropic") so the operator can SEE what would be stabilized; real
+  // cache-hit gains only show in production provider telemetry.
+  quantumLock: z.object({ enabled: z.boolean() }).optional(),
 });
 
 function countTokens(text: string): number {
@@ -55,6 +59,19 @@ function countTokens(text: string): number {
 
 function riskGateStatsOf(result: { stats?: { riskGate?: unknown } }): unknown {
   return result.stats?.riskGate ?? null;
+}
+
+function quantumLockStatsOf(result: { stats?: { quantumLock?: unknown } | null }): unknown {
+  return result.stats?.quantumLock ?? null;
+}
+
+function quantumExtras(quantumLock?: { enabled: boolean }) {
+  return quantumLock?.enabled
+    ? {
+        configPatch: { quantumLock: { enabled: true } },
+        applyOpts: { cachingContext: { provider: "anthropic" } },
+      }
+    : { configPatch: {}, applyOpts: {} };
 }
 
 function messagesToText(messages: Array<{ role: string; content: unknown }>): string {
@@ -96,35 +113,47 @@ async function dispatchCompression(
     fidelityGate?: { enabled: boolean };
     fuzzyDedup?: { enabled: boolean };
     riskGate?: { enabled: boolean };
+    quantumLock?: { enabled: boolean };
   }
 ) {
   // resolveRiskGate reads `options.riskGate ?? options.config.riskGate`. applyCompressionAsync
   // does not surface a top-level `riskGate` option, so thread it through the synthesized config
   // (CompressionConfig.riskGate) — uniform across all three branches and type-safe.
+  // QuantumLock uses the same pattern: when enabled the studio forces cachingContext so the dry-run
+  // badge shows what WOULD be stabilized in production (real caching gains show in telemetry only).
   if (opts.engineId) {
+    const q = quantumExtras(opts.quantumLock);
     return applyCompressionAsync(requestBody, "stacked", {
       config: {
         stackedPipeline: [buildStep(opts.engineId, opts.fuzzyDedup)],
         ...(opts.fidelityGate ? { fidelityGate: opts.fidelityGate } : {}),
         ...(opts.riskGate ? { riskGate: opts.riskGate } : {}),
+        ...q.configPatch,
       } as CompressionConfig,
+      ...q.applyOpts,
     });
   }
   if (opts.pipeline) {
+    const q = quantumExtras(opts.quantumLock);
     return applyCompressionAsync(requestBody, "stacked", {
       config: {
         stackedPipeline: opts.pipeline.map((engine) => buildStep(engine, opts.fuzzyDedup)),
         ...(opts.fidelityGate ? { fidelityGate: opts.fidelityGate } : {}),
         ...(opts.riskGate ? { riskGate: opts.riskGate } : {}),
+        ...q.configPatch,
       } as CompressionConfig,
+      ...q.applyOpts,
     });
   }
+  const q = quantumExtras(opts.quantumLock);
   return applyCompression(requestBody, opts.effectiveMode, {
     config: {
       ...(opts.config as CompressionConfig | undefined),
       ...(opts.fidelityGate ? { fidelityGate: opts.fidelityGate } : {}),
       ...(opts.riskGate ? { riskGate: opts.riskGate } : {}),
+      ...q.configPatch,
     } as CompressionConfig | undefined,
+    ...q.applyOpts,
   });
 }
 
@@ -147,7 +176,7 @@ export async function POST(req: Request) {
     );
   }
 
-  const { messages, mode, engineId, pipeline, config, fidelityGate, fuzzyDedup, riskGate } =
+  const { messages, mode, engineId, pipeline, config, fidelityGate, fuzzyDedup, riskGate, quantumLock } =
     parsed.data;
   const effectiveMode: CompressionMode =
     engineId || pipeline ? "stacked" : (mode as CompressionMode);
@@ -165,6 +194,7 @@ export async function POST(req: Request) {
       fidelityGate,
       fuzzyDedup,
       riskGate,
+      quantumLock,
     });
     const durationMs = Date.now() - start;
 
@@ -195,6 +225,7 @@ export async function POST(req: Request) {
       techniquesUsed,
       engineBreakdown,
       riskGate: riskGateStatsOf(result),
+      quantumLock: quantumLockStatsOf(result),
       durationMs,
       mode: effectiveMode,
       intensity: null,
