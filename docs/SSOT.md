@@ -1,4 +1,4 @@
-# SSOT — OmniRoute
+# SSOT — argis-extensions
 
 ## State
 - Default branch: main
@@ -28,6 +28,6 @@
 
 ## Fleet Links
 - Parent: Phenotype
-- Related: dispatch-mcp (merged into thegent-dispatch)
+- Related: N/A
 - Consumes: N/A
 - Merged into: N/A

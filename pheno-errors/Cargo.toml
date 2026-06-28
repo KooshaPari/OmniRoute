@@ -1,0 +1,26 @@
+[package]
+name = "pheno-errors"
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+repository = "https://github.com/KooshaPari/pheno-errors"
+description = "Canonical AppError type for the pheno-* fleet. Consolidates the 5 most-common error patterns into a single, dependency-light crate."
+
+[dependencies]
+anyhow = "1"
+thiserror = "2"
+tracing = "0.1"
+serde = { version = "1", features = ["derive"] }
+# Canonical OTLP wire-format export substrate (ADR-037).
+# `pheno-errors` uses `pheno-otel` to surface structured error context
+# to OTLP/HTTP collectors when wired into a wider observability stack.
+pheno-otel = { path = "../pheno-otel" }
+# v20-T5 (L23): proptest is in [dependencies] (not just [dev-dependencies])
+# so the manual `Arbitrary` impl for `AppError` in `src/lib.rs` compiles.
+# Tests in `tests/proptest_smoke.rs` then exercise the impl via
+# `any::<AppError>()`.
+proptest = "1.4"
+
+[dev-dependencies]
+proptest = "1"
+tracing-test = "0.2"

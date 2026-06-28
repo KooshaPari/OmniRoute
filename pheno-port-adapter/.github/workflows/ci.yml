@@ -1,0 +1,85 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+  workflow_dispatch:
+
+# Cancel any in-flight run for the same ref; we only care about the
+# latest commit on a branch.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+# Read-only token by default; jobs that need more override per-step.
+permissions:
+  contents: read
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  test:
+    name: test (stable)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-nextest
+      - run: cargo nextest run --profile ci --all-features --no-fail-fast
+
+  clippy:
+    name: clippy
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy
+      - run: cargo clippy --all-targets --all-features -- -D warnings
+
+  fmt:
+    name: fmt --check
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt
+      - run: cargo fmt --all -- --check
+
+  cargo-deps-graph:
+    name: cargo-deps SVG (L3 pillar, v14 T1)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Generate intra-crate deps SVG
+        run: bash scripts/cargo-deps-graph.sh pheno-port-adapter
+      - name: Upload deps-graph SVG
+        uses: actions/upload-artifact@v4
+        with:
+          name: pheno-port-adapter-deps-graph
+          path: pheno-port-adapter/target/deps-graph.svg
+          if-no-files-found: warn
+
+  coverage:
+    name: coverage (llvm-cov)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - run: cargo install cargo-llvm-cov
+      - run: cargo llvm-cov --all-features --lcov --output-path lcov.info
+      - uses: codecov/codecov-action@v4
+        with:
+          files: lcov.info

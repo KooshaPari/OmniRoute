@@ -1,0 +1,40 @@
+{
+  "__inputs": [],
+  "__requires": [],
+  "panels": [
+    {
+      "id": 1,
+      "title": "Fleet Pillar Score Over Time",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "avg(pillar_score) by (category)",
+          "legendFormat": "{{category}}",
+          "interval": "5m"
+        }
+      ],
+      "gridPos": {"x": 0, "y": 0, "w": 12, "h": 8}
+    },
+    {
+      "id": 2,
+      "title": "Pillar Coverage by Category",
+      "type": "piechart",
+      "targets": [{
+        "expr": "count(pillar_score == 3) by (category)",
+        "legendFormat": "{{category}}"
+      }],
+      "gridPos": {"x": 12, "y": 0, "w": 12, "h": 8}
+    },
+    {
+      "id": 3,
+      "title": "Drift Events (last 7d)",
+      "type": "table",
+      "targets": [{
+        "expr": "pillar_drift_event",
+        "format": "table"
+      }],
+      "gridPos": {"x": 0, "y": 8, "w": 24, "h": 6}
+    }
+  ],
+  "schemaVersion": 38
+}

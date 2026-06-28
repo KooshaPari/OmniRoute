@@ -1,0 +1,34 @@
+name: mtls-weekly (L52.1, v36 3e-Evolve)
+
+on:
+  schedule:
+    - cron: '0 16 * * 1'  # Monday 09:00 PDT
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  mtls-weekly:
+    name: Weekly mTLS fleet sweep
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v4.2.2
+        with:
+          persist-credentials: false
+      - name: Apply mTLS config fleet-wide
+        run: |
+          python3 tools/mtls-fleet-v2/apply.py --output evidence/mtls-weekly.yaml
+      - name: Validate mTLS certs (≤60 day expiry)
+        run: |
+          python3 tools/mtls-fleet-v2/validate.py \
+            --config evidence/mtls-weekly.yaml \
+            --max-expiry-days 60 \
+            --output evidence/mtls-validate-weekly.json
+      - name: Upload mTLS artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: mtls-weekly-${{ github.run_number }}
+          path: evidence/mtls-*.{yaml,json}
+          retention-days: 90

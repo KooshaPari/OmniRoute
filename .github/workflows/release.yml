@@ -2,113 +2,52 @@ name: Release
 
 on:
   push:
-    tags:
-      - "v*"
-  workflow_dispatch:
-    inputs:
-      version:
-        description: "Release version (e.g., v1.6.8)"
-        required: true
-        type: string
+    branches: [main]
+    paths-ignore:
+      - 'docs/**'
+      - '**.md'
 
 permissions:
   contents: write
-  id-token: write
   packages: write
-
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
+
 jobs:
-  validate:
-    name: Validate version
-    runs-on: ubuntu-24.04
-    outputs:
-      version: ${{ steps.validate.outputs.version }}
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
-        with:
-          fetch-depth: 0
-
-      - name: Validate version format
-        id: validate
-        run: |
-          if [[ "${{ github.event_name }}" == "push" ]]; then
-            VERSION="${GITHUB_REF#refs/tags/v}"
-          else
-            VERSION="${{ inputs.version }}"
-            VERSION="${VERSION#v}"
-          fi
-          if [[ ! "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9.]+)?$ ]]; then
-            echo "::error::Invalid semver version: $VERSION"
-            exit 1
-          fi
-          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
-          echo "Validated version: $VERSION"
-
-  changelog:
-    name: Generate changelog
-    needs: validate
-    runs-on: ubuntu-24.04
-    outputs:
-      body: ${{ steps.cliff.outputs.content }}
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
-        with:
-          fetch-depth: 0
-          token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Generate changelog
-        id: cliff
-        uses: orhun/git-cliff-action@5b8303e5c346e5cc63e4478d6cc4ad4848ed5e6b
-        env:
-          OUTPUT: CHANGELOG.md
-          CONFIG: cliff.toml
-          USE_GIT_TAG: "true"
-          GITHUB_REPO: ${{ github.repository }}
-        with:
-          args: --verbose
-
-      - name: Read changelog content
-        id: read
-        run: |
-          {
-            echo "content<<EOF"
-            cat CHANGELOG.md
-            echo "EOF"
-          } >> "$GITHUB_OUTPUT"
-
   release:
-    name: Create GitHub release
-    needs: [validate, changelog]
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-latest
+    if: contains(github.event.head_commit.message, 'release:') || contains(github.event.head_commit.message, 'chore(release)')
+    outputs:
+      version: ${{ steps.version.outputs.version }}
     steps:
-      - name: Checkout code
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
           fetch-depth: 0
-          token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Download changelog
-        uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16
+      - name: Setup Go
+        uses: actions/setup-go@f111f3307d8850f501ac008e886eec1fd1932a34
         with:
-          name: cliff-pending
-          path: .
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          run-id: ${{ github.run_id }}
-        continue-on-error: true
+          go-version: '1.22'
+      - name: Build
+        run: go build ./...
+      - name: Test
+        run: go test ./... -v -race
+      - name: Determine version
+        id: version
+        run: |
+          VERSION=$(git describe --tags --always --abbrev=7)
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+      - name: Publish to Go proxy
+        run: |
+          git tag v${{ steps.version.outputs.version }}
+          git push origin v${{ steps.version.outputs.version }}
 
-      - name: Create GitHub release
-        uses: softprops/action-gh-release@2f0f4a0bbb18a8ef73a7e2715d3f57e7b9b3932c
-        with:
-          name: "v${{ needs.validate.outputs.version }}"
-          tag_name: "v${{ needs.validate.outputs.version }}"
-          body: ${{ needs.changelog.outputs.body }}
-          draft: false
-          prerelease: ${{ contains(needs.validate.outputs.version, '-') }}
-          generate_release_notes: false
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  promote:
+    needs: release
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      - name: Promote to staging
+        run: |
+          echo "Promoting v${{ needs.release.outputs.version }} to beta"

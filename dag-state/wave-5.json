@@ -1,0 +1,123 @@
+{
+  "wave": "wave-5",
+  "branch": "chore/v48-dag-wave-5-seed-2026-06-27",
+  "width": 11,
+  "envelope": 10,
+  "findings": 1,
+  "tasks": [
+    {
+      "id": "env-phenotype-python-sdk",
+      "lane": "envelope",
+      "target_repo": "phenotype-python-sdk",
+      "missing_files": [
+        "deny.toml"
+      ],
+      "expected_files_added": 1,
+      "commit_message": "feat(governance): onboard phenotype-python-sdk"
+    },
+    {
+      "id": "env-phenotype-python-sdk-datakit-final",
+      "lane": "envelope",
+      "target_repo": "phenotype-python-sdk-datakit-final",
+      "missing_files": [
+        "deny.toml"
+      ],
+      "expected_files_added": 1,
+      "commit_message": "feat(governance): onboard phenotype-python-sdk-datakit-final"
+    },
+    {
+      "id": "env-phenotype-registry-drain-next",
+      "lane": "envelope",
+      "target_repo": "phenotype-registry-drain-next",
+      "missing_files": [
+        "SSOT.md",
+        "llms.txt"
+      ],
+      "expected_files_added": 2,
+      "commit_message": "feat(governance): onboard phenotype-registry-drain-next"
+    },
+    {
+      "id": "env-phenotype-registry-helioscope-final",
+      "lane": "envelope",
+      "target_repo": "phenotype-registry-helioscope-final",
+      "missing_files": [
+        "SSOT.md",
+        "llms.txt"
+      ],
+      "expected_files_added": 2,
+      "commit_message": "feat(governance): onboard phenotype-registry-helioscope-final"
+    },
+    {
+      "id": "env-phenotype-registry-httpora-final",
+      "lane": "envelope",
+      "target_repo": "phenotype-registry-httpora-final",
+      "missing_files": [
+        "SSOT.md",
+        "llms.txt"
+      ],
+      "expected_files_added": 2,
+      "commit_message": "feat(governance): onboard phenotype-registry-httpora-final"
+    },
+    {
+      "id": "env-phenotype-registry-phenoforge-final",
+      "lane": "envelope",
+      "target_repo": "phenotype-registry-phenoforge-final",
+      "missing_files": [
+        "SSOT.md",
+        "llms.txt"
+      ],
+      "expected_files_added": 2,
+      "commit_message": "feat(governance): onboard phenotype-registry-phenoforge-final"
+    },
+    {
+      "id": "env-phenotype-registry-phenoschema-final",
+      "lane": "envelope",
+      "target_repo": "phenotype-registry-phenoschema-final",
+      "missing_files": [
+        "SSOT.md",
+        "llms.txt"
+      ],
+      "expected_files_added": 2,
+      "commit_message": "feat(governance): onboard phenotype-registry-phenoschema-final"
+    },
+    {
+      "id": "env-phenotype-registry-preserve-wip",
+      "lane": "envelope",
+      "target_repo": "phenotype-registry-preserve-wip",
+      "missing_files": [
+        "SSOT.md",
+        "llms.txt"
+      ],
+      "expected_files_added": 2,
+      "commit_message": "feat(governance): onboard phenotype-registry-preserve-wip"
+    },
+    {
+      "id": "env-phenotype-registry-profila-final",
+      "lane": "envelope",
+      "target_repo": "phenotype-registry-profila-final",
+      "missing_files": [
+        "SSOT.md",
+        "llms.txt"
+      ],
+      "expected_files_added": 2,
+      "commit_message": "feat(governance): onboard phenotype-registry-profila-final"
+    },
+    {
+      "id": "env-phenotype-registry-utils-boundary",
+      "lane": "envelope",
+      "target_repo": "phenotype-registry-utils-boundary",
+      "missing_files": [
+        "SSOT.md",
+        "llms.txt"
+      ],
+      "expected_files_added": 2,
+      "commit_message": "feat(governance): onboard phenotype-registry-utils-boundary"
+    },
+    {
+      "id": "find-2026-06-27-v38-dag-wave-1-closure",
+      "lane": "side-dag",
+      "title": "20 more repos from the 147 remaining. Side-DAG: integrate nested-git lessons. Self-extend via findings/ anti-patterns from wave-1.",
+      "source": "findings/2026-06-27-v38-dag-wave-1-closure.md"
+    }
+  ]
+}

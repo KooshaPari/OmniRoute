@@ -1,0 +1,62 @@
+# L42 per-crate proptest CI matrix (cycle-15 T7, v25 plan).
+#
+# Runs `cargo test --tests` with `PROPTEST_CASES=256` against every Rust
+# substrate crate in the monorepo. Each `pheno-*` crate ships its own
+# [workspace] manifest (no shared parent workspace), so we `cd` into
+# each crate rather than passing `-p`.
+#
+# Adds proptest coverage on the L42 (Quality / Correctness) pillar; ADR-094
+# requires every substrate to ship property-based tests with at least 256
+# proptest cases per crate before merge.
+#
+# Matrix scope: only the Rust substrate crates that actually live in this
+# monorepo. The `pheno-flags` repo is a separate GitHub repository under
+# `KooshaPari/pheno-flags`, not a sub-directory of this monorepo — its
+# proptest CI is owned by that repo. `pheno-context` currently has no
+# Cargo.toml and is therefore excluded until it is repaired.
+#
+# Pattern mirrors the existing doc-tests.yml workflow (L28, cycle-15 T5).
+
+name: proptest
+
+on:
+  pull_request:
+    branches: [main, chore/**]
+
+jobs:
+  proptest:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        crate:
+          - pheno-config
+          - pheno-errors
+          - pheno-otel
+          - pheno-port-adapter
+          - pheno-tracing
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Run proptest for ${{ matrix.crate }} (PROPTEST_CASES=256)
+        run: |
+          set -u
+          crate="${{ matrix.crate }}"
+          log="/tmp/proptest-${crate}.log"
+          echo "::group::${crate}"
+          PROPTEST_CASES=256 cargo test --manifest-path "${crate}/Cargo.toml" --tests 2>&1 | tee "${log}"
+          status=${PIPESTATUS[0]}
+          echo "::endgroup::"
+          if [ $status -ne 0 ]; then
+            echo "::error::${crate} cargo test --tests failed with status ${status}"
+            exit $status
+          fi
+          # Surface a WARN (not error) when no proptest harness is found in
+          # the output. The matrix still passes — the L42 gate is "tests
+          # run", not "must contain proptest". But the WARN feeds the
+          # L42 scorecard so unproptested crates can be tracked.
+          if grep -q "proptest_smoke\|proptest!" "${log}"; then
+            echo "OK: proptest harness found in ${crate}"
+          else
+            echo "::warning file=${log}::no proptest harness found in ${crate} — L42 scorecard marked partial"
+          fi

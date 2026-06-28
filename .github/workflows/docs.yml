@@ -1,0 +1,38 @@
+name: Doc-Tests
+
+on:
+  push:
+    branches: [main, feature/*, bugfix/*, docs/*, release/*, hotfix/*]
+  pull_request:
+    branches: [main]
+  schedule:
+    - cron: '0 6 * * *'  # daily at 06:00 UTC
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  doc-test:
+    name: doc-test (${{ matrix.crate }})
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        crate:
+          - pheno-errors
+          - pheno-otel
+          - pheno-port-adapter
+      fail-fast: false
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@3c5f7ea28cd621ae0bf5283f0e981fb97b8a7af9 # stable
+        with:
+          toolchain: stable
+      - name: Run doc-tests
+        working-directory: ${{ matrix.crate }}
+        run: cargo test --doc --jobs 4

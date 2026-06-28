@@ -1,0 +1,35 @@
+name: pillar-coverage-quarterly (v38 Option C)
+
+on:
+  schedule:
+    # Quarterly on the 1st of Jan/Apr/Jul/Oct at 09:00 PDT (16:00 UTC)
+    - cron: '0 16 1 1,4,7,10 *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  quarterly-coverage:
+    name: Quarterly pillar coverage audit
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v4.2.2
+        with:
+          persist-credentials: false
+      - name: Archive previous baseline
+        run: |
+          mkdir -p evidence
+          if [ -f evidence/quarterly-coverage.md ]; then
+            cp evidence/quarterly-coverage.md evidence/quarterly-coverage.previous.md
+          fi
+      - name: Run quarterly pillar audit
+        run: |
+          bash tools/pillar-coverage-audit/audit.sh .
+      - name: Upload coverage artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: pillar-coverage-quarterly-${{ github.run_number }}
+          path: evidence/quarterly-coverage*
+          retention-days: 365

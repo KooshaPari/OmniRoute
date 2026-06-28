@@ -1,0 +1,70 @@
+name: chaos-test-fleet
+
+on:
+  push:
+    branches: [main, chore/v1*-**]
+  pull_request:
+  schedule:
+    # Weekly Monday 09:00 PDT
+    - cron: '0 16 * * 1'
+  workflow_dispatch:
+
+jobs:
+  chaos-port-adapter:
+    name: pheno-port-adapter chaos (L11 1->3)
+    runs-on: ubuntu-latest
+    env:
+      CARGO_BUILD_JOBS: "1"
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v4.2.2
+        with:
+          persist-credentials: false
+      - uses: dtolnay/rust-toolchain@3c5f7ea28cd621ae0bf5283f0e981fb97b8a7af9
+        with:
+          toolchain: nightly
+      - name: cargo test --release chaos
+        working-directory: pheno-port-adapter
+        run: cargo test --release --tests -- --test-threads=1
+
+  chaos-fuzz-port-adapter:
+    name: pheno-port-adapter fuzz endpoint (L11.1)
+    runs-on: ubuntu-latest
+    continue-on-error: true  # fuzz is best-effort nightly
+    env:
+      CARGO_BUILD_JOBS: "1"
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v4.2.2
+        with:
+          persist-credentials: false
+      - uses: dtolnay/rust-toolchain@3c5f7ea28cd621ae0bf5283f0e981fb97b8a7af9
+        with:
+          toolchain: nightly
+      - name: cargo fuzz run endpoint (60s)
+        run: |
+          if [ ! -d pheno-port-adapter/fuzz ]; then
+            echo "pheno-port-adapter/fuzz is absent; skipping fuzz endpoint gate."
+            exit 0
+          fi
+          cd pheno-port-adapter
+          cargo install cargo-fuzz
+          cd fuzz
+          cargo fuzz run fuzz_endpoint -- -max_total_time=60
+
+  chaos-flags-stress:
+    name: pheno-flags stress (L11 stress)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v4.2.2
+        with:
+          persist-credentials: false
+      - uses: dtolnay/rust-toolchain@3c5f7ea28cd621ae0bf5283f0e981fb97b8a7af9
+        with:
+          toolchain: stable
+      - name: cargo bench (criterion)
+        run: |
+          if [ ! -d pheno-flags ]; then
+            echo "pheno-flags is absent on this branch; skipping stress gate."
+            exit 0
+          fi
+          cd pheno-flags
+          cargo bench --no-run

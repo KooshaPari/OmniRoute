@@ -1,0 +1,60 @@
+# SLO burn-rate alerts — v24 T5 (L63) — multi-window per Google SRE ch. 5
+# Source-of-truth: findings/2026-06-22-v24-slo-definitions.md
+# Burn rate = (1 - sli) / (1 - slo_target). 30-day budget window (43.2 min for 99.9% SLO).
+# Multi-window pattern (short AND long both over threshold) suppresses flapping per
+# SRE Workbook ch. 5 §"Multi-Window, Multi-Burn-Rate Alerts".
+groups:
+  - name: phenotype.slo.burn_rate
+    interval: 30s
+    rules:
+      # 1h fast-burn: 2% of monthly budget in 1h -> 14.4x burn. Page.
+      - alert: SLOBurnRateFast1h
+        expr: |
+          (sum(rate(http_requests_total{status=~"5xx"}[5m]))  / sum(rate(http_requests_total[5m])))  > (14.4 * 0.001)
+          and
+          (sum(rate(http_requests_total{status=~"5xx"}[1h]))  / sum(rate(http_requests_total[1h])))  > (14.4 * 0.001)
+        for: 2m
+        labels: {severity: critical, team: platform, slo: fleet_availability_99.9, window: 1h, burn_rate: "14.4"}
+        annotations:
+          summary: "SLO 1h fast-burn: 14.4x error rate (page)"
+          description: "Fleet burning 2% of 30-day budget in 1h. ~28.8 min of 43.2 min gone."
+          runbook_url: https://github.com/KooshaPari/phenotype-apps/blob/main/findings/2026-06-22-v24-L63-slo-on-call-runbook.md#1h-fast-burn-144x
+
+      # 6h fast-burn: 5% of monthly budget in 6h -> 6x burn. Page.
+      - alert: SLOBurnRateFast6h
+        expr: |
+          (sum(rate(http_requests_total{status=~"5xx"}[30m])) / sum(rate(http_requests_total[30m]))) > (6 * 0.001)
+          and
+          (sum(rate(http_requests_total{status=~"5xx"}[6h]))  / sum(rate(http_requests_total[6h])))  > (6 * 0.001)
+        for: 5m
+        labels: {severity: critical, team: platform, slo: fleet_availability_99.9, window: 6h, burn_rate: "6"}
+        annotations:
+          summary: "SLO 6h fast-burn: 6x error rate (page)"
+          description: "Fleet burning 5% of 30-day budget in 6h. ~2.16 min error rate sustained."
+          runbook_url: https://github.com/KooshaPari/phenotype-apps/blob/main/findings/2026-06-22-v24-L63-slo-on-call-runbook.md#6h-fast-burn-6x
+
+      # 24h slow-burn: 10% of monthly budget in 24h -> 1.44x burn. Ticket.
+      - alert: SLOBurnRateSlow24h
+        expr: |
+          (sum(rate(http_requests_total{status=~"5xx"}[2h]))  / sum(rate(http_requests_total[2h])))  > (1.44 * 0.001)
+          and
+          (sum(rate(http_requests_total{status=~"5xx"}[24h])) / sum(rate(http_requests_total[24h]))) > (1.44 * 0.001)
+        for: 30m
+        labels: {severity: warning, team: platform, slo: fleet_availability_99.9, window: 24h, burn_rate: "1.44"}
+        annotations:
+          summary: "SLO 24h slow-burn: 1.44x error rate (ticket)"
+          description: "Fleet on track to consume 10% of 30-day budget in 24h. Investigate before month-end."
+          runbook_url: https://github.com/KooshaPari/phenotype-apps/blob/main/findings/2026-06-22-v24-L63-slo-on-call-runbook.md#24h-slow-burn-144x
+
+      # 3d slow-burn: 10% of monthly budget in 3d -> 1.08x burn. Ticket.
+      - alert: SLOBurnRateSlow3d
+        expr: |
+          (sum(rate(http_requests_total{status=~"5xx"}[6h])) / sum(rate(http_requests_total[6h]))) > (1.08 * 0.001)
+          and
+          (sum(rate(http_requests_total{status=~"5xx"}[3d])) / sum(rate(http_requests_total[3d]))) > (1.08 * 0.001)
+        for: 3h
+        labels: {severity: warning, team: platform, slo: fleet_availability_99.9, window: 3d, burn_rate: "1.08"}
+        annotations:
+          summary: "SLO 3d slow-burn: 1.08x error rate (ticket)"
+          description: "Fleet on track to consume 10% of 30-day budget in 3d. Long-tail regression likely."
+          runbook_url: https://github.com/KooshaPari/phenotype-apps/blob/main/findings/2026-06-22-v24-L63-slo-on-call-runbook.md#3d-slow-burn-108x

@@ -1,0 +1,167 @@
+{
+  "total": 20,
+  "valid": 20,
+  "broken": 0,
+  "results": [
+    {
+      "file": ".github/workflows/audit.yml",
+      "line": 17,
+      "action": "actions/checkout",
+      "sha": "de0fac2e4500dabe0009e67214ff5f5447ce83dd",
+      "valid": true,
+      "reason": "de0fac2e4500dabe0009e67214ff5f5447ce83dd"
+    },
+    {
+      "file": ".github/workflows/ci.yml",
+      "line": 20,
+      "action": "actions/checkout",
+      "sha": "11bd71901bbe5b1630ceea73d27597364c9af683",
+      "valid": true,
+      "reason": "11bd71901bbe5b1630ceea73d27597364c9af683"
+    },
+    {
+      "file": ".github/workflows/audit.yml",
+      "line": 21,
+      "action": "trufflesecurity/trufflehog",
+      "sha": "3fc0c2aa6648d54242e4af6fbfde0701796e4fb0",
+      "valid": true,
+      "reason": "3fc0c2aa6648d54242e4af6fbfde0701796e4fb0"
+    },
+    {
+      "file": ".github/workflows/ci.yml",
+      "line": 22,
+      "action": "actions/setup-go",
+      "sha": "f111f3307d8850f501ac008e886eec1fd1932a34",
+      "valid": true,
+      "reason": "f111f3307d8850f501ac008e886eec1fd1932a34"
+    },
+    {
+      "file": ".github/workflows/ci.yml",
+      "line": 32,
+      "action": "codecov/codecov-action",
+      "sha": "b9fd7d16f6d7d1b5d2bec1a2887e65ceed900238",
+      "valid": true,
+      "reason": "b9fd7d16f6d7d1b5d2bec1a2887e65ceed900238"
+    },
+    {
+      "file": ".github/workflows/deny.yml",
+      "line": 22,
+      "action": "actions/checkout",
+      "sha": "de0fac2e4500dabe0009e67214ff5f5447ce83dd",
+      "valid": true,
+      "reason": "de0fac2e4500dabe0009e67214ff5f5447ce83dd"
+    },
+    {
+      "file": ".github/workflows/deny.yml",
+      "line": 24,
+      "action": "actions/setup-go",
+      "sha": "0c52d547c9bc32b1aa3301fd7a9cb496313a4491",
+      "valid": true,
+      "reason": "0c52d547c9bc32b1aa3301fd7a9cb496313a4491"
+    },
+    {
+      "file": ".github/workflows/deny.yml",
+      "line": 36,
+      "action": "actions/checkout",
+      "sha": "de0fac2e4500dabe0009e67214ff5f5447ce83dd",
+      "valid": true,
+      "reason": "de0fac2e4500dabe0009e67214ff5f5447ce83dd"
+    },
+    {
+      "file": ".github/workflows/deny.yml",
+      "line": 55,
+      "action": "dtolnay/rust-toolchain",
+      "sha": "3c5f7ea28cd621ae0bf5283f0e981fb97b8a7af9",
+      "valid": true,
+      "reason": "3c5f7ea28cd621ae0bf5283f0e981fb97b8a7af9"
+    },
+    {
+      "file": ".github/workflows/deny.yml",
+      "line": 38,
+      "action": "actions/setup-go",
+      "sha": "0c52d547c9bc32b1aa3301fd7a9cb496313a4491",
+      "valid": true,
+      "reason": "0c52d547c9bc32b1aa3301fd7a9cb496313a4491"
+    },
+    {
+      "file": ".github/workflows/governance-drift.yml",
+      "line": 20,
+      "action": "actions/checkout",
+      "sha": "11bd71901bbe5b1630ceea73d27597364c9af683",
+      "valid": true,
+      "reason": "11bd71901bbe5b1630ceea73d27597364c9af683"
+    },
+    {
+      "file": ".github/workflows/deny.yml",
+      "line": 53,
+      "action": "actions/checkout",
+      "sha": "de0fac2e4500dabe0009e67214ff5f5447ce83dd",
+      "valid": true,
+      "reason": "de0fac2e4500dabe0009e67214ff5f5447ce83dd"
+    },
+    {
+      "file": ".github/workflows/governance-drift.yml",
+      "line": 24,
+      "action": "actions/setup-python",
+      "sha": "0b93645e9fea7318ecaed2b359559ac225c90a2b",
+      "valid": true,
+      "reason": "0b93645e9fea7318ecaed2b359559ac225c90a2b"
+    },
+    {
+      "file": ".github/workflows/governance-drift.yml",
+      "line": 42,
+      "action": "actions/upload-artifact",
+      "sha": "ea165f8d65b6e75b540449e92b4886f43607fa02",
+      "valid": true,
+      "reason": "ea165f8d65b6e75b540449e92b4886f43607fa02"
+    },
+    {
+      "file": ".github/workflows/release.yml",
+      "line": 25,
+      "action": "actions/checkout",
+      "sha": "11bd71901bbe5b1630ceea73d27597364c9af683",
+      "valid": true,
+      "reason": "11bd71901bbe5b1630ceea73d27597364c9af683"
+    },
+    {
+      "file": ".github/workflows/release.yml",
+      "line": 29,
+      "action": "actions/setup-go",
+      "sha": "f111f3307d8850f501ac008e886eec1fd1932a34",
+      "valid": true,
+      "reason": "f111f3307d8850f501ac008e886eec1fd1932a34"
+    },
+    {
+      "file": ".github/workflows/release.yml",
+      "line": 50,
+      "action": "actions/checkout",
+      "sha": "11bd71901bbe5b1630ceea73d27597364c9af683",
+      "valid": true,
+      "reason": "11bd71901bbe5b1630ceea73d27597364c9af683"
+    },
+    {
+      "file": ".github/workflows/scorecard.yml",
+      "line": 26,
+      "action": "actions/checkout",
+      "sha": "11bd71901bbe5b1630ceea73d27597364c9af683",
+      "valid": true,
+      "reason": "11bd71901bbe5b1630ceea73d27597364c9af683"
+    },
+    {
+      "file": ".github/workflows/scorecard.yml",
+      "line": 29,
+      "action": "ossf/scorecard-action",
+      "sha": "50757822a4ac41af1c2f5572df4e1c1a5ae50c03",
+      "valid": true,
+      "reason": "50757822a4ac41af1c2f5572df4e1c1a5ae50c03"
+    },
+    {
+      "file": ".github/workflows/scorecard.yml",
+      "line": 34,
+      "action": "actions/upload-artifact",
+      "sha": "ea165f8d65b6e75b540449e92b4886f43607fa02",
+      "valid": true,
+      "reason": "ea165f8d65b6e75b540449e92b4886f43607fa02"
+    }
+  ]
+}

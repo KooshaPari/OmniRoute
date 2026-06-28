@@ -1,0 +1,15 @@
+infra/graceful/graceful.go:1: : # github.com/kooshapari/bifrost-extensions/infra/graceful [github.com/kooshapari/bifrost-extensions/infra/graceful.test]
+infra/graceful/graceful_test.go:60:3: cannot use &mockPlugin{…} (value of type *mockPlugin) as schemas.Plugin value in array or slice literal: *mockPlugin does not implement schemas.Plugin (missing method Config)
+infra/graceful/graceful_test.go:61:3: cannot use &mockPlugin{…} (value of type *mockPlugin) as schemas.Plugin value in array or slice literal: *mockPlugin does not implement schemas.Plugin (missing method Config)
+infra/graceful/graceful_test.go:74:3: cannot use &mockPlugin{…} (value of type *mockPlugin) as schemas.Plugin value in array or slice literal: *mockPlugin does not implement schemas.Plugin (missing method Config)
+infra/graceful/graceful_test.go:75:3: cannot use &mockPlugin{…} (value of type *mockPlugin) as schemas.Plugin value in array or slice literal: *mockPlugin does not implement schemas.Plugin (missing method Config)
+infra/graceful/graceful_test.go:95:3: cannot use &mockPlugin{…} (value of type *mockPlugin) as schemas.Plugin value in array or slice literal: *mockPlugin does not implement schemas.Plugin (missing method Config)
+infra/graceful/graceful_test.go:96:3: cannot use &mockPlugin{…} (value of type *mockPlugin) as schemas.Plugin value in array or slice literal: *mockPlugin does not implement schemas.Plugin (missing method Config)
+infra/graceful/graceful_test.go:97:3: cannot use &mockPlugin{…} (value of type *mockPlugin) as schemas.Plugin value in array or slice literal: *mockPlugin does not implement schemas.Plugin (missing method Config)
+infra/graceful/graceful_test.go:121:3: cannot use &mockPlugin{…} (value of type *mockPlugin) as schemas.Plugin value in array or slice literal: *mockPlugin does not implement schemas.Plugin (missing method Config)
+infra/graceful/graceful_test.go:122:3: cannot use &mockPlugin{…} (value of type *mockPlugin) as schemas.Plugin value in array or slice literal: *mockPlugin does not implement schemas.Plugin (missing method Config)
+infra/graceful/graceful_test.go:152:3: cannot use &mockPlugin{…} (value of type *mockPlugin) as schemas.Plugin value in array or slice literal: *mockPlugin does not implement schemas.Plugin (missing method Config)
+infra/graceful/graceful_test.go:152:3: too many errors (typecheck)
+// Package graceful provides graceful degradation for plugin failures
+1 issues:
+* typecheck: 1

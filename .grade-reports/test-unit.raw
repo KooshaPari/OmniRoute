@@ -1,0 +1,166 @@
+# github.com/kooshapari/bifrost-extensions/api/graphql/resolvers
+api/graphql/resolvers/mutation.go:46:18: r.models.CreateModel undefined (type ModelStore has no field or method CreateModel)
+api/graphql/resolvers/resolver.go:96:9: cannot use &mutationResolver{…} (value of type *mutationResolver) as gen.MutationResolver value in return statement: *mutationResolver does not implement gen.MutationResolver (missing method UpdateModel)
+api/graphql/resolvers/resolver.go:101:9: cannot use &subscriptionResolver{…} (value of type *subscriptionResolver) as gen.SubscriptionResolver value in return statement: *subscriptionResolver does not implement gen.SubscriptionResolver (wrong type for method HealthUpdates)
+		have HealthUpdates(context.Context) (<-chan *model.ProviderHealthEvent, error)
+		want HealthUpdates(context.Context, []string) (<-chan *model.ProviderHealthEvent, error)
+# github.com/kooshapari/bifrost-extensions/account [github.com/kooshapari/bifrost-extensions/account.test]
+account/account_test.go:41:32: cannot use mockFallback (variable of type *MockAccount) as *EnhancedAccount value in argument to NewEnhancedAccount
+account/account_test.go:69:28: undefined: schemas.ModelProviderOpenAI
+account/account_test.go:70:28: undefined: schemas.ModelProviderAnthropic
+account/account_test.go:76:40: undefined: schemas.ModelProviderOpenAI
+account/account_test.go:77:40: undefined: schemas.ModelProviderAnthropic
+account/account_test.go:83:11: undefined: schemas.ModelProviderOpenAI
+account/account_test.go:84:11: undefined: schemas.ModelProviderAnthropic
+account/account_test.go:87:32: cannot use mockFallback (variable of type *MockAccount) as *EnhancedAccount value in argument to NewEnhancedAccount
+account/account_test.go:88:28: undefined: schemas.ModelProviderCohere
+account/account_test.go:94:40: undefined: schemas.ModelProviderOpenAI
+account/account_test.go:94:40: too many errors
+FAIL	github.com/kooshapari/bifrost-extensions/account [build failed]
+FAIL	github.com/kooshapari/bifrost-extensions/api [build failed]
+?   	github.com/kooshapari/bifrost-extensions/api/connect	[no test files]
+FAIL	github.com/kooshapari/bifrost-extensions/api/graphql [build failed]
+?   	github.com/kooshapari/bifrost-extensions/api/graphql/gen	[no test files]
+?   	github.com/kooshapari/bifrost-extensions/api/graphql/model	[no test files]
+FAIL	github.com/kooshapari/bifrost-extensions/api/graphql/resolvers [build failed]
+# github.com/kooshapari/bifrost-extensions/cmd/bifrost/cli
+cmd/bifrost/cli/server.go:92:3: undefined: bifrost
+cmd/bifrost/cli/server.go:102:8: undefined: bifrost
+cmd/bifrost/cli/server.go:103:3: undefined: bifrost
+cmd/bifrost/cli/server.go:104:3: undefined: bifrost
+cmd/bifrost/cli/server.go:105:3: undefined: bifrost
+cmd/bifrost/cli/server.go:129:32: too many arguments in call to acct.SetKeys
+	have (schemas.Provider, []schemas.Key)
+	want ([]schemas.Key)
+cmd/bifrost/cli/server.go:132:4: unknown field Weight in struct literal of type schemas.Key
+cmd/bifrost/cli/server.go:134:8: acct.SetConfig undefined (type *schemas.EnhancedAccount has no field or method SetConfig)
+cmd/bifrost/cli/server.go:144:35: too many arguments in call to acct.SetKeys
+	have (schemas.Provider, []schemas.Key)
+	want ([]schemas.Key)
+cmd/bifrost/cli/server.go:147:4: unknown field Weight in struct literal of type schemas.Key
+cmd/bifrost/cli/server.go:144:35: too many errors
+# github.com/kooshapari/bifrost-extensions/cmd/bifrost-enhanced
+cmd/bifrost-enhanced/main.go:39:32: too many arguments in call to acct.SetKeys
+	have (schemas.Provider, []schemas.Key)
+	want ([]schemas.Key)
+cmd/bifrost-enhanced/main.go:42:4: unknown field Weight in struct literal of type schemas.Key
+cmd/bifrost-enhanced/main.go:44:8: acct.SetConfig undefined (type *schemas.EnhancedAccount has no field or method SetConfig)
+cmd/bifrost-enhanced/main.go:54:35: too many arguments in call to acct.SetKeys
+	have (schemas.Provider, []schemas.Key)
+	want ([]schemas.Key)
+cmd/bifrost-enhanced/main.go:57:4: unknown field Weight in struct literal of type schemas.Key
+cmd/bifrost-enhanced/main.go:59:8: acct.SetConfig undefined (type *schemas.EnhancedAccount has no field or method SetConfig)
+cmd/bifrost-enhanced/main.go:69:32: too many arguments in call to acct.SetKeys
+	have (schemas.Provider, []schemas.Key)
+	want ([]schemas.Key)
+cmd/bifrost-enhanced/main.go:72:4: unknown field Weight in struct literal of type schemas.Key
+cmd/bifrost-enhanced/main.go:74:8: acct.SetConfig undefined (type *schemas.EnhancedAccount has no field or method SetConfig)
+cmd/bifrost-enhanced/main.go:93:13: undefined: bifrost
+cmd/bifrost-enhanced/main.go:93:13: too many errors
+# github.com/kooshapari/bifrost-extensions/infra/graceful [github.com/kooshapari/bifrost-extensions/infra/graceful.test]
+infra/graceful/graceful_test.go:60:3: cannot use &mockPlugin{…} (value of type *mockPlugin) as schemas.Plugin value in array or slice literal: *mockPlugin does not implement schemas.Plugin (missing method Config)
+infra/graceful/graceful_test.go:61:3: cannot use &mockPlugin{…} (value of type *mockPlugin) as schemas.Plugin value in array or slice literal: *mockPlugin does not implement schemas.Plugin (missing method Config)
+infra/graceful/graceful_test.go:74:3: cannot use &mockPlugin{…} (value of type *mockPlugin) as schemas.Plugin value in array or slice literal: *mockPlugin does not implement schemas.Plugin (missing method Config)
+infra/graceful/graceful_test.go:75:3: cannot use &mockPlugin{…} (value of type *mockPlugin) as schemas.Plugin value in array or slice literal: *mockPlugin does not implement schemas.Plugin (missing method Config)
+infra/graceful/graceful_test.go:95:3: cannot use &mockPlugin{…} (value of type *mockPlugin) as schemas.Plugin value in array or slice literal: *mockPlugin does not implement schemas.Plugin (missing method Config)
+infra/graceful/graceful_test.go:96:3: cannot use &mockPlugin{…} (value of type *mockPlugin) as schemas.Plugin value in array or slice literal: *mockPlugin does not implement schemas.Plugin (missing method Config)
+infra/graceful/graceful_test.go:97:3: cannot use &mockPlugin{…} (value of type *mockPlugin) as schemas.Plugin value in array or slice literal: *mockPlugin does not implement schemas.Plugin (missing method Config)
+infra/graceful/graceful_test.go:121:3: cannot use &mockPlugin{…} (value of type *mockPlugin) as schemas.Plugin value in array or slice literal: *mockPlugin does not implement schemas.Plugin (missing method Config)
+infra/graceful/graceful_test.go:122:3: cannot use &mockPlugin{…} (value of type *mockPlugin) as schemas.Plugin value in array or slice literal: *mockPlugin does not implement schemas.Plugin (missing method Config)
+infra/graceful/graceful_test.go:152:3: cannot use &mockPlugin{…} (value of type *mockPlugin) as schemas.Plugin value in array or slice literal: *mockPlugin does not implement schemas.Plugin (missing method Config)
+infra/graceful/graceful_test.go:152:3: too many errors
+# github.com/kooshapari/bifrost-extensions/db [github.com/kooshapari/bifrost-extensions/db.test]
+db/db_test.go:304:34: stats.MinConns undefined (type *pgxpool.Stat has no field or method MinConns)
+FAIL	github.com/kooshapari/bifrost-extensions/cmd/bifrost [build failed]
+FAIL	github.com/kooshapari/bifrost-extensions/cmd/bifrost/cli [build failed]
+?   	github.com/kooshapari/bifrost-extensions/cmd/bifrost/cli/testutil	[no test files]
+FAIL	github.com/kooshapari/bifrost-extensions/cmd/bifrost-enhanced [build failed]
+ok  	github.com/kooshapari/bifrost-extensions/config	0.468s
+?   	github.com/kooshapari/bifrost-extensions/costengine	[no test files]
+FAIL	github.com/kooshapari/bifrost-extensions/db [build failed]
+?   	github.com/kooshapari/bifrost-extensions/db/fuzzysearch	[no test files]
+ok  	github.com/kooshapari/bifrost-extensions/db/migrations	0.645s
+?   	github.com/kooshapari/bifrost-extensions/db/sqlc	[no test files]
+ok  	github.com/kooshapari/bifrost-extensions/infra/circuitbreaker	1.059s
+FAIL	github.com/kooshapari/bifrost-extensions/infra/graceful [build failed]
+# github.com/kooshapari/bifrost-extensions/plugins/learning [github.com/kooshapari/bifrost-extensions/plugins/learning.test]
+plugins/learning/learning_test.go:29:16: cannot use &schemas.BifrostChatRequest{…} (value of type *schemas.BifrostChatRequest) as *schemas.ChatRequest value in struct literal
+plugins/learning/learning_test.go:31:4: unknown field Input in struct literal of type schemas.BifrostChatRequest
+plugins/learning/learning_test.go:33:23: undefined: schemas.ChatMessageRoleUser
+plugins/learning/learning_test.go:34:15: cannot use &schemas.ChatMessageContent{…} (value of type *schemas.ChatMessageContent) as string value in struct literal
+plugins/learning/learning_test.go:40:41: cannot use &ctx (value of type *context.Context) as context.Context value in argument to p.PreHook: *context.Context does not implement context.Context (type *context.Context is pointer to interface, not interface)
+plugins/learning/learning_test.go:59:17: cannot use &schemas.BifrostChatResponse{…} (value of type *schemas.BifrostChatResponse) as *schemas.ChatResponse value in struct literal
+plugins/learning/learning_test.go:64:6: unknown field ChatNonStreamResponseChoice in struct literal of type schemas.BifrostResponseChoice
+plugins/learning/learning_test.go:65:16: cannot use &schemas.ChatMessage{…} (value of type *schemas.ChatMessage) as schemas.ChatMessageContent value in struct literal
+plugins/learning/learning_test.go:66:25: undefined: schemas.ChatMessageRoleAssistant
+plugins/learning/learning_test.go:67:17: cannot use &schemas.ChatMessageContent{…} (value of type *schemas.ChatMessageContent) as string value in struct literal
+plugins/learning/learning_test.go:59:17: too many errors
+# github.com/kooshapari/bifrost-extensions/providers/agentcli [github.com/kooshapari/bifrost-extensions/providers/agentcli.test]
+providers/agentcli/provider_test.go:11:9: undefined: DefaultAgentConfig
+providers/agentcli/provider_test.go:31:9: undefined: DefaultAgentConfig
+providers/agentcli/provider_test.go:32:7: undefined: NewProvider
+providers/agentcli/provider_test.go:43:9: undefined: DefaultAgentConfig
+providers/agentcli/provider_test.go:44:7: undefined: NewProvider
+providers/agentcli/provider_test.go:64:9: undefined: DefaultAgentConfig
+providers/agentcli/provider_test.go:65:12: undefined: NewClient
+# github.com/kooshapari/bifrost-extensions/plugins/smartfallback [github.com/kooshapari/bifrost-extensions/plugins/smartfallback.test]
+plugins/smartfallback/fallback_test.go:29:16: cannot use &schemas.BifrostChatRequest{…} (value of type *schemas.BifrostChatRequest) as *schemas.ChatRequest value in struct literal
+plugins/smartfallback/fallback_test.go:31:4: unknown field Input in struct literal of type schemas.BifrostChatRequest
+plugins/smartfallback/fallback_test.go:33:23: undefined: schemas.ChatMessageRoleUser
+plugins/smartfallback/fallback_test.go:34:15: cannot use &schemas.ChatMessageContent{…} (value of type *schemas.ChatMessageContent) as string value in struct literal
+plugins/smartfallback/fallback_test.go:40:41: cannot use &ctx (value of type *context.Context) as context.Context value in argument to p.PreHook: *context.Context does not implement context.Context (type *context.Context is pointer to interface, not interface)
+plugins/smartfallback/fallback_test.go:58:17: cannot use &schemas.BifrostChatResponse{…} (value of type *schemas.BifrostChatResponse) as *schemas.ChatResponse value in struct literal
+plugins/smartfallback/fallback_test.go:63:52: too many arguments in call to p.PostHook
+	have (*context.Context, *schemas.BifrostResponse, nil)
+	want (context.Context, *schemas.BifrostResponse)
+plugins/smartfallback/fallback_test.go:86:7: undefined: NewExponentialBackoff
+plugins/smartfallback/fallback_test.go:111:7: undefined: NewBudgetStrategy
+plugins/smartfallback/fallback_test.go:143:23: undefined: schemas.ChatMessageRoleUser
+plugins/smartfallback/fallback_test.go:143:23: too many errors
+# github.com/kooshapari/bifrost-extensions/providers/oauthproxy [github.com/kooshapari/bifrost-extensions/providers/oauthproxy.test]
+providers/oauthproxy/auth_test.go:17:10: pkce.Verifier undefined (type *PKCECodes has no field or method Verifier)
+providers/oauthproxy/auth_test.go:20:10: pkce.Challenge undefined (type *PKCECodes has no field or method Challenge)
+providers/oauthproxy/auth_test.go:23:10: pkce.Verifier undefined (type *PKCECodes has no field or method Verifier)
+providers/oauthproxy/auth_test.go:23:27: pkce.Challenge undefined (type *PKCECodes has no field or method Challenge)
+providers/oauthproxy/auth_test.go:36:19: oauth.GetAuthURL undefined (type *ClaudeOAuth has no field or method GetAuthURL)
+providers/oauthproxy/auth_test.go:60:19: oauth.GetAuthURL undefined (type *CodexOAuth has no field or method GetAuthURL)
+providers/oauthproxy/auth_test.go:77:11: assignment mismatch: 1 variable but store.Get returns 2 values
+providers/oauthproxy/auth_test.go:83:16: undefined: StoredToken
+providers/oauthproxy/auth_test.go:88:9: store.Set("test-provider", testToken) (no value) used as value
+providers/oauthproxy/auth_test.go:94:15: assignment mismatch: 1 variable but store.Get returns 2 values
+providers/oauthproxy/auth_test.go:94:15: too many errors
+# github.com/kooshapari/bifrost-extensions/server [github.com/kooshapari/bifrost-extensions/server.test]
+server/server_test.go:13:2: schemas redeclared in this block
+	server/server_test.go:12:2: other declaration of schemas
+server/server_test.go:55:121: undefined: schemas.BifrostStreamChunk
+server/server_test.go:60:37: undefined: schemas.BifrostStreamChunk
+server/server_test.go:63:79: undefined: schemas.BifrostTextCompletionRequest
+server/server_test.go:63:119: undefined: schemas.BifrostTextCompletionResponse
+server/server_test.go:68:31: undefined: schemas.BifrostTextCompletionResponse
+server/server_test.go:94:21: cannot use mockBifrost (variable of type *MockBifrost) as *schemas.Bifrost value in argument to New
+server/server_test.go:108:21: cannot use mockBifrost (variable of type *MockBifrost) as *schemas.Bifrost value in argument to New
+server/server_test.go:126:21: cannot use mockBifrost (variable of type *MockBifrost) as *schemas.Bifrost value in argument to New
+server/server_test.go:144:21: cannot use mockBifrost (variable of type *MockBifrost) as *schemas.Bifrost value in argument to New
+server/server_test.go:144:21: too many errors
+?   	github.com/kooshapari/bifrost-extensions/infra/hatchet	[no test files]
+?   	github.com/kooshapari/bifrost-extensions/infra/hatchet/workflows	[no test files]
+?   	github.com/kooshapari/bifrost-extensions/infra/nats	[no test files]
+ok  	github.com/kooshapari/bifrost-extensions/infra/neo4j	0.330s
+ok  	github.com/kooshapari/bifrost-extensions/infra/redis	0.440s
+?   	github.com/kooshapari/bifrost-extensions/infra/upstash	[no test files]
+?   	github.com/kooshapari/bifrost-extensions/plugins/contentsafety	[no test files]
+?   	github.com/kooshapari/bifrost-extensions/plugins/contextfolding	[no test files]
+?   	github.com/kooshapari/bifrost-extensions/plugins/intelligentrouter	[no test files]
+FAIL	github.com/kooshapari/bifrost-extensions/plugins/learning [build failed]
+?   	github.com/kooshapari/bifrost-extensions/plugins/promptadapter	[no test files]
+?   	github.com/kooshapari/bifrost-extensions/plugins/researchintel	[no test files]
+FAIL	github.com/kooshapari/bifrost-extensions/plugins/smartfallback [build failed]
+?   	github.com/kooshapari/bifrost-extensions/plugins/toolrouter	[no test files]
+?   	github.com/kooshapari/bifrost-extensions/plugins/voyage	[no test files]
+FAIL	github.com/kooshapari/bifrost-extensions/providers/agentcli [build failed]
+FAIL	github.com/kooshapari/bifrost-extensions/providers/oauthproxy [build failed]
+FAIL	github.com/kooshapari/bifrost-extensions/server [build failed]
+?   	github.com/kooshapari/bifrost-extensions/slm	[no test files]
+?   	github.com/kooshapari/bifrost-extensions/wrappers/agentapi	[no test files]
+?   	github.com/kooshapari/bifrost-extensions/wrappers/cliproxy	[no test files]
+FAIL

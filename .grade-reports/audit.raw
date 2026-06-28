@@ -1,0 +1,60 @@
+govulncheck: Loading packages failed, possibly due to a mismatch between the Go version
+used to build govulncheck and the Go version on PATH. Consider rebuilding
+govulncheck with the current Go version.
+
+
+There are errors with the provided package patterns:
+
+/opt/homebrew/Cellar/go/1.26.2/libexec/src/vendor/golang.org/x/crypto/chacha20poly1305/fips140only_go1.26.go:7:9: file requires newer Go version go1.26 (application built with go1.25)
+-: This application uses version go1.25 of the source-processing packages but runs version go1.26 of 'go list'. It may fail to process source files that rely on newer language features. If so, rebuild the application using a newer version of Go.
+/Users/kooshapari/go/pkg/mod/golang.org/x/net@v0.53.0/http2/config_go126.go:7:9: file requires newer Go version go1.26 (application built with go1.25)
+-: This application uses version go1.25 of the source-processing packages but runs version go1.26 of 'go list'. It may fail to process source files that rely on newer language features. If so, rebuild the application using a newer version of Go.
+/Users/kooshapari/go/pkg/mod/github.com/lib/pq@v1.12.3/as_go126.go:3:9: file requires newer Go version go1.26 (application built with go1.25)
+-: This application uses version go1.25 of the source-processing packages but runs version go1.26 of 'go list'. It may fail to process source files that rely on newer language features. If so, rebuild the application using a newer version of Go.
+/Users/kooshapari/CodeProjects/Phenotype/repos/argis-extensions/api/graphql/resolvers/mutation.go:46:18: r.models.CreateModel undefined (type ModelStore has no field or method CreateModel)
+/Users/kooshapari/CodeProjects/Phenotype/repos/argis-extensions/api/graphql/resolvers/resolver.go:96:9: cannot use &mutationResolver{…} (value of type *mutationResolver) as gen.MutationResolver value in return statement: *mutationResolver does not implement gen.MutationResolver (missing method UpdateModel)
+/Users/kooshapari/CodeProjects/Phenotype/repos/argis-extensions/api/graphql/resolvers/resolver.go:101:9: cannot use &subscriptionResolver{…} (value of type *subscriptionResolver) as gen.SubscriptionResolver value in return statement: *subscriptionResolver does not implement gen.SubscriptionResolver (wrong type for method HealthUpdates)
+		have HealthUpdates(context.Context) (<-chan *model.ProviderHealthEvent, error)
+		want HealthUpdates(context.Context, []string) (<-chan *model.ProviderHealthEvent, error)
+-: This application uses version go1.25 of the source-processing packages but runs version go1.26 of 'go list'. It may fail to process source files that rely on newer language features. If so, rebuild the application using a newer version of Go.
+/Users/kooshapari/go/pkg/mod/github.com/bytedance/sonic@v1.15.1/internal/rt/gotype_go126.go:20:9: file requires newer Go version go1.26 (application built with go1.25)
+-: This application uses version go1.25 of the source-processing packages but runs version go1.26 of 'go list'. It may fail to process source files that rely on newer language features. If so, rebuild the application using a newer version of Go.
+/Users/kooshapari/CodeProjects/Phenotype/repos/argis-extensions/cmd/bifrost/cli/server.go:92:3: undefined: bifrost
+/Users/kooshapari/CodeProjects/Phenotype/repos/argis-extensions/cmd/bifrost/cli/server.go:102:8: undefined: bifrost
+/Users/kooshapari/CodeProjects/Phenotype/repos/argis-extensions/cmd/bifrost/cli/server.go:103:3: undefined: bifrost
+/Users/kooshapari/CodeProjects/Phenotype/repos/argis-extensions/cmd/bifrost/cli/server.go:104:3: undefined: bifrost
+/Users/kooshapari/CodeProjects/Phenotype/repos/argis-extensions/cmd/bifrost/cli/server.go:105:3: undefined: bifrost
+/Users/kooshapari/CodeProjects/Phenotype/repos/argis-extensions/cmd/bifrost/cli/server.go:132:4: unknown field Weight in struct literal of type schemas.Key
+/Users/kooshapari/CodeProjects/Phenotype/repos/argis-extensions/cmd/bifrost/cli/server.go:129:32: too many arguments in call to acct.SetKeys
+	have (schemas.Provider, []schemas.Key)
+	want ([]schemas.Key)
+/Users/kooshapari/CodeProjects/Phenotype/repos/argis-extensions/cmd/bifrost/cli/server.go:134:8: acct.SetConfig undefined (type *schemas.EnhancedAccount has no field or method SetConfig)
+/Users/kooshapari/CodeProjects/Phenotype/repos/argis-extensions/cmd/bifrost/cli/server.go:147:4: unknown field Weight in struct literal of type schemas.Key
+/Users/kooshapari/CodeProjects/Phenotype/repos/argis-extensions/cmd/bifrost/cli/server.go:144:35: too many arguments in call to acct.SetKeys
+	have (schemas.Provider, []schemas.Key)
+	want ([]schemas.Key)
+/Users/kooshapari/CodeProjects/Phenotype/repos/argis-extensions/cmd/bifrost/cli/server.go:149:8: acct.SetConfig undefined (type *schemas.EnhancedAccount has no field or method SetConfig)
+-: This application uses version go1.25 of the source-processing packages but runs version go1.26 of 'go list'. It may fail to process source files that rely on newer language features. If so, rebuild the application using a newer version of Go.
+/Users/kooshapari/CodeProjects/Phenotype/repos/argis-extensions/cmd/bifrost-enhanced/main.go:42:4: unknown field Weight in struct literal of type schemas.Key
+/Users/kooshapari/CodeProjects/Phenotype/repos/argis-extensions/cmd/bifrost-enhanced/main.go:39:32: too many arguments in call to acct.SetKeys
+	have (schemas.Provider, []schemas.Key)
+	want ([]schemas.Key)
+/Users/kooshapari/CodeProjects/Phenotype/repos/argis-extensions/cmd/bifrost-enhanced/main.go:44:8: acct.SetConfig undefined (type *schemas.EnhancedAccount has no field or method SetConfig)
+/Users/kooshapari/CodeProjects/Phenotype/repos/argis-extensions/cmd/bifrost-enhanced/main.go:57:4: unknown field Weight in struct literal of type schemas.Key
+/Users/kooshapari/CodeProjects/Phenotype/repos/argis-extensions/cmd/bifrost-enhanced/main.go:54:35: too many arguments in call to acct.SetKeys
+	have (schemas.Provider, []schemas.Key)
+	want ([]schemas.Key)
+/Users/kooshapari/CodeProjects/Phenotype/repos/argis-extensions/cmd/bifrost-enhanced/main.go:59:8: acct.SetConfig undefined (type *schemas.EnhancedAccount has no field or method SetConfig)
+/Users/kooshapari/CodeProjects/Phenotype/repos/argis-extensions/cmd/bifrost-enhanced/main.go:72:4: unknown field Weight in struct literal of type schemas.Key
+/Users/kooshapari/CodeProjects/Phenotype/repos/argis-extensions/cmd/bifrost-enhanced/main.go:69:32: too many arguments in call to acct.SetKeys
+	have (schemas.Provider, []schemas.Key)
+	want ([]schemas.Key)
+/Users/kooshapari/CodeProjects/Phenotype/repos/argis-extensions/cmd/bifrost-enhanced/main.go:74:8: acct.SetConfig undefined (type *schemas.EnhancedAccount has no field or method SetConfig)
+/Users/kooshapari/CodeProjects/Phenotype/repos/argis-extensions/cmd/bifrost-enhanced/main.go:93:13: undefined: bifrost
+/Users/kooshapari/CodeProjects/Phenotype/repos/argis-extensions/cmd/bifrost-enhanced/main.go:94:12: cannot use acct (variable of type *schemas.EnhancedAccount) as *schemas.Account value in struct literal
+/Users/kooshapari/CodeProjects/Phenotype/repos/argis-extensions/cmd/bifrost-enhanced/main.go:100:20: undefined: bifrost
+/Users/kooshapari/CodeProjects/Phenotype/repos/argis-extensions/cmd/bifrost-enhanced/main.go:100:53: undefined: schemas.LogLevelInfo
+-: This application uses version go1.25 of the source-processing packages but runs version go1.26 of 'go list'. It may fail to process source files that rely on newer language features. If so, rebuild the application using a newer version of Go.
+
+For details on package patterns, see https://pkg.go.dev/cmd/go#hdr-Package_lists_and_patterns.
+

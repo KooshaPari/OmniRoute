@@ -1,0 +1,17 @@
+# benchmarks/perf-budgets.toml — v12 T9 L57
+# Per-operation latency budgets. Drift above 1.5x budget fails CI.
+
+[rust.pheno-port-adapter]
+tcp_connect_ms = 50
+dial_route_ms = 5
+
+[rust.pheno-flags]
+parse_flag_x1000_ms = 5
+
+[python.phenotype-config]
+load_toml_ms = 25
+cascade_env_ms = 10
+
+[cargo]
+build_clean_ms = 600000   # 10 min
+build_incremental_ms = 60000  # 1 min

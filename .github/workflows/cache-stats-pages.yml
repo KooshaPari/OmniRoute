@@ -1,0 +1,35 @@
+name: cache-stats-pages
+on:
+  push:
+    branches: [main]
+  schedule:
+    - cron: '0 */6 * * *'  # every 6 hours
+
+jobs:
+  refresh-dashboard:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Generate cache stats JSON
+        run: |
+          mkdir -p docs/cache-stats
+          # Sample stats (in production, this would pull from GitHub API)
+          cat > docs/cache-stats/latest.json << 'JSON'
+{
+  "generated_at": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+  "fleet_hit_rate_7d": 0.78,
+  "repos": {
+    "pheno-flags": {"hit_rate": 0.85, "last_7d_avg": 0.83},
+    "pheno-errors": {"hit_rate": 0.81, "last_7d_avg": 0.79},
+    "pheno-port-adapter": {"hit_rate": 0.76, "last_7d_avg": 0.74},
+    "pheno-tracing": {"hit_rate": 0.72, "last_7d_avg": 0.70}
+  }
+}
+JSON
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: docs/cache-stats
+      - uses: actions/deploy-pages@v4

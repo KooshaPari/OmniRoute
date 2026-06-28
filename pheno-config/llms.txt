@@ -1,0 +1,34 @@
+# pheno-config
+
+## Purpose
+Layered configuration cascade substrate for the pheno-* fleet. Wraps `figment` to overlay IntelliJ run-config, env vars, and TOML files on top of compile-time defaults. 12-factor priority order: `jetbrains > env > toml > default`.
+
+## When to use
+- Building a new service in the fleet that needs typed config
+- Need a single, fleet-wide priority order for dev / CI / runtime overrides
+- Want to read both `.idea/runConfigurations/*.xml` and `PHENO_*` env vars
+- Cascading several config sources into one `Figment`
+
+## When NOT to use
+- Pure secret storage (use a vault like `HashiCorp Vault` or `phenotype-vault`)
+- Hot-reloading runtime config (use a config server like `phenotype-configd`)
+- Non-Phenotype projects — the priority order is opinionated
+
+## Quickstart
+```rust
+use pheno_config::cascade::build_cascade;
+let cfg = build_cascade();
+let port: u16 = cfg.find_value("server.port")?;
+let level: String = cfg.find_value("logging.level")?;
+```
+
+## Env vars
+- `PHENO_*` — any env var with the `PHENO_` prefix is merged into the cascade (e.g. `PHENO_SERVER_PORT=9090`).
+
+## Key types
+- `DEFAULT_TOML` — embedded compile-time defaults (server / logging / database sections)
+- `build_cascade() -> Figment` — standard 4-provider cascade (defaults → toml-file → env → jetbrains)
+- `build_cascade_from_str(toml: &str) -> Figment` — same cascade with explicit TOML instead of `config.toml`
+
+## Example
+See `pheno-config/tests/cascade_test.rs` for the 4 priority tests (default-only, toml-overrides-default, env-overrides-toml, env-only key).

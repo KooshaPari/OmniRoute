@@ -1,17 +1,10 @@
 cff-version: 1.2.0
-message: >-
-  If you use OmniRoute in academic work, please cite it using the metadata in this file.
-title: OmniRoute
-type: software
-version: 3.8.5
-date-released: 2026-06-08
-license: MIT
-repository-code: https://github.com/KooshaPari/OmniRoute
-keywords:
-  - ai-router
-  - llm-fallback
-  - openai-compatible
-  - mcp-server
+message: "If you use this software, please cite it as below."
+title: "argis-extensions"
 authors:
-  - family-names: Pari
-    given-names: Koosha
+  - family-names: "Pari"
+    given-names: "Koosha"
+    affiliation: "Phenotype"
+repository-code: "https://github.com/KooshaPari/argis-extensions"
+url: "https://phenotype.space"
+license: "MIT OR Apache-2.0"

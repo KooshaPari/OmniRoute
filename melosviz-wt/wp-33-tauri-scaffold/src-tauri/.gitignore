@@ -1,0 +1,5 @@
+target/
+WixTools/
+**/*.rs.bk
+.tauri/
+gen/
