@@ -10,6 +10,7 @@ import {
   getCodexResetTime,
   getCodexUpstreamModel,
   isCodexResponsesWebSocketRequired,
+  normalizeCodexTools,
   parseCodexQuotaHeaders,
 } from "../../open-sse/executors/codex.ts";
 import {
@@ -1056,9 +1057,6 @@ test("CodexExecutor.execute skips identity headers for unsafe session ids", asyn
 });
 
 test("CodexExecutor.transformRequest preserves namespace MCP tools and hosted tool types", () => {
-  // Regression: PR #1581 đã vô tình xoá nhánh `namespace` + whitelist hosted tools
-  // trong normalizeCodexTools, khiến MCP tool group (vd. mcp__atlassian__) bị strip
-  // trước khi forward lên Codex Responses API. Test này khoá lại hành vi đúng.
   const executor = new CodexExecutor();
   const result = executor.transformRequest(
     "gpt-5.4",
@@ -1079,6 +1077,7 @@ test("CodexExecutor.transformRequest preserves namespace MCP tools and hosted to
         { type: "image_generation", output_format: "png" },
         { type: "tool_search" },
         { type: "web_search" },
+        { type: "local_shell" },
         { type: "unknown_hosted_tool" },
       ],
       tool_choice: { type: "function", name: "jira_get_issue" },
@@ -1102,51 +1101,14 @@ test("CodexExecutor.transformRequest preserves namespace MCP tools and hosted to
   assert.equal((namespaceTool as { name: string }).name, "mcp__atlassian__");
   assert.equal(((namespaceTool as { tools: unknown[] }).tools ?? []).length, 2);
 
-  // tool_choice trỏ vào sub-tool của namespace phải được giữ nguyên (không bị xoá
-  // do tên nằm trong namespace.tools[*].name đã được đăng ký vào validToolNames).
   assert.deepEqual(result.tool_choice, { type: "function", name: "jira_get_issue" });
-});
 
-test("CodexExecutor.transformRequest drops Codex local_shell tool (no longer supported upstream)", () => {
-  // Regression: OpenAI removed the `local_shell` hosted tool from the Responses API.
-  // Upstream now returns 400 "The local_shell tool is no longer supported." when
-  // Codex CLI injects `{ type: "local_shell" }` into body.tools or body.tool_choice.
-  // The executor must strip both before forwarding.
-  const executor = new CodexExecutor();
-
-  // 1) body.tools entry is dropped; sibling tools are preserved.
-  const withTool = executor.transformRequest(
-    "gpt-5.4",
-    {
-      model: "gpt-5.4",
-      input: [],
-      tools: [
-        { type: "function", name: "exec_command", parameters: { type: "object" } },
-        { type: "local_shell" },
-        { type: "image_generation", output_format: "png" },
-      ],
-    },
-    false,
-    {}
-  );
-
-  const toolTypes = (withTool.tools as Array<Record<string, unknown>>).map((t) => t.type);
-  assert.deepEqual(toolTypes, ["function", "image_generation"]);
-
-  // 2) body.tool_choice of type "local_shell" is dropped rather than forwarded.
-  const withChoice = executor.transformRequest(
-    "gpt-5.4",
-    {
-      model: "gpt-5.4",
-      input: [],
-      tools: [{ type: "function", name: "exec_command", parameters: { type: "object" } }],
-      tool_choice: { type: "local_shell" },
-    },
-    false,
-    {}
-  );
-
-  assert.equal(withChoice.tool_choice, undefined);
+  const body = {
+    tools: [{ type: "function", name: "exec_command", parameters: { type: "object" } }],
+    tool_choice: { type: "local_shell" },
+  };
+  normalizeCodexTools(body);
+  assert.equal(body.tool_choice, undefined);
 });
 
 test("CodexExecutor.transformRequest preserves native Codex custom tools", () => {
