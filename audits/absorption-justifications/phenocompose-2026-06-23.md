@@ -133,11 +133,11 @@ There are no capability gaps to record: the source is fully subsumed by the cons
 
 This audit cycle invokes **no last-resort exceptions**. The verdict `DELETABLE->ARCHIVE` does not require a carve-out because:
 
-1. **Rebuttal:** "We should proceed with `HARD_DELETE_READY` since the initial classification was `DELETABLE`." **Rebutted:** the downgrade from deletion to archival is itself the audit finding — the conservative posture is preferred when the deletion gain is zero. The audit **cannot delete** because the conservative call is archival.
+1. **(Q1) Sub-Question:** "We should proceed with `HARD_DELETE_READY` since the initial classification was `DELETABLE`." **Rebutted:** the downgrade from deletion to archival is itself the audit finding — the conservative posture is preferred when the deletion gain is zero. The audit **cannot delete** because the conservative call is archival.
 2. **Rebuttal:** "We should not absorb at all because the composition surface is subsumed." **Rebutted:** `ARCHIVE` (not `ARCHIVE_ONLY`) means the composition surface is preserved and ready for future absorption if a target becomes available; `ARCHIVE_ONLY` would imply no future absorption is contemplated. The verdict preserves the absorption option.
 3. **Rebuttal:** "We should bypass the target-verification step and force absorption now." **Rebutted:** the target (`thegent` or `nanovms/sdk/rust/phenocompose-*`) has not been verified live; forcing absorption without a verified target would strand the content. The audit must defer absorption until the target is verified.
 
-In all three cases, the rebuttal framework confirms `DELETABLE->ARCHIVE` without exception. The audit cannot delete (conservative call), cannot fully archive-only (absorption option preserved), and cannot force absorption (target not verified).
+In all three cases, the rebuttal framework confirms `DELETABLE->ARCHIVE` without exception. The audit cannot delete (conservative call), cannot fully archive-only (absorption option preserved), cannot force absorption (target not verified), and a residual gap remains until the target is verified — the source content **cannot absorb** until that verification completes.
 
 | Exception Candidate | Status | Rebuttal Marker |
 |---|---|---|

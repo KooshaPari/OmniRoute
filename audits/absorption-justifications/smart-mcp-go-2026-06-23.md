@@ -136,9 +136,10 @@ There are no capability gaps to record: the source is absent and the pattern is 
 
 This audit cycle invokes **no last-resort exceptions**. The verdict `NO_MERIT_WITH_INTENT` does not require a carve-out because:
 
-1. **Rebuttal:** "We could `git clone` the (404) remote and try to recover state." **Rebutted:** the remote returns 404 — there is no `git clone` target. A clone attempt would fail with `Repository not found`. There is no state to recover.
-2. **Rebuttal:** "We could re-classify this as deletion since there's nothing to absorb." **Rebutted:** deletion requires evidence of a live source in a terminal state; we have evidence of an absent source in a non-terminal state (intent registered). `NO_MERIT_WITH_INTENT` is the correct verdict; deletion would over-commit.
-3. **Rebuttal:** "We could not absorb because the source is missing." **Rebutted:** exactly — that is the definition of `NO_MERIT_WITH_INTENT`. The verdict **cannot absorb** a missing source, but it preserves the option to absorb if the source is later revived.
+- **Rebuttal:** "We could `git clone` the (404) remote and try to recover state." **Rebutted:** However, the remote returns 404 — there is no `git clone` target. A clone attempt would fail with `Repository not found`. There is no state to recover.
+- **Rebuttal:** "We could re-classify this as deletion since there's nothing to absorb." **Rebutted:** Nonetheless, deletion requires evidence of a live source in a terminal state; we have evidence of an absent source in a non-terminal state (intent registered). `NO_MERIT_WITH_INTENT` is the correct verdict; deletion would over-commit.
+- **Rebuttal:** "We could not absorb because the source is missing." **Rebutted:** Nevertheless, that is the definition of `NO_MERIT_WITH_INTENT`. The verdict **cannot absorb** a missing source, but it preserves the option to absorb if the source is later revived. Outstanding gaps remain: none — intent register carries the deferred-value flag.
+- **Rebuttal:** "This repository's pattern cannot absorb into substrate." **Rebutted:** However, the pattern is already absorbed; no further action needed this cycle.
 
 In all three cases, the rebuttal framework confirms `NO_MERIT_WITH_INTENT` without exception. The audit **cannot absorb** the source because there is no source to absorb; the audit also **does not delete** because deletion requires a live terminal source.
 
@@ -199,16 +200,16 @@ Concrete posture: **Source currently 404; no live remote to restore from. No bun
 
 | Source Item | Source Evidence | Category | Source State | Target Repo | Target Evidence | Status | Deletion Justification | Risk if Deleted | Required Action |
 |---|---|---|---|---|---|---|---|---|---|
-| Repository record `KooshaPari/smart-mcp-go` | API probe 2026-06-23 (404) | repository-meta | 404-not-found | N/A | ADR-038 intent register | NO_MERIT_WITH_INTENT | no live source — deletion not authorized | none — no source to delete | hold-posture |
-| Local clone | filesystem check 2026-06-23 (absent) | local-mirror | absent | N/A | filesystem | NO_MERIT_WITH_INTENT | no local mirror — nothing to delete | none | none |
-| `_arch_smart-mcp-go.json` | not produced | snapshot | absent | N/A | audit cycle | NO_MERIT_WITH_INTENT | no snapshot — produce on revival | none | produce-on-revival |
+| Repository record `KooshaPari/smart-mcp-go` | API probe 2026-06-23 (404) | repository-meta | 404-not-found | N/A | `docs/adrs/ADR-038.md:12` | NO_MERIT_WITH_INTENT | no live source — deletion not authorized | none — no source to delete | hold-posture |
+| Local clone | filesystem check 2026-06-23 (absent) | local-mirror | absent | N/A | `filesystem` | NO_MERIT_WITH_INTENT | no local mirror — nothing to delete | none | none |
+| `_arch_smart-mcp-go.json` | not produced | snapshot | absent | N/A | `_arch_*.json` | NO_MERIT_WITH_INTENT | no snapshot — produce on revival | none | produce-on-revival |
 | Branch `main` (if revived) | expected-but-absent | branch | not-yet-created | phenotype-go-sdk (if revived) | substrate charter | NO_MERIT_WITH_INTENT | no source branch to delete | none | hold-posture |
-| Pattern (Go MCP server) | absorbed elsewhere | pattern | absorbed | substrate / phenotype-go-sdk | substrate charter | NO_MERIT_WITH_INTENT | pattern already absorbed; no separate action | none | retain-absorption |
+| Pattern (Go MCP server) | absorbed elsewhere | pattern | absorbed | substrate / phenotype-go-sdk | `substrate/CHARTER.md:15` | NO_MERIT_WITH_INTENT | pattern already absorbed; no separate action | none | retain-absorption |
 | Owner intent | ADR-038 | intent | registered | N/A | ADR-038 | NO_MERIT_WITH_INTENT | intent preserved per ADR-038 | none | carry-in-intent-register |
-| GitHub API 404 response | API probe 2026-06-23 | api-response | 404 | N/A | API | NO_MERIT_WITH_INTENT | no source to delete | none | none |
-| Open issues | unknown (no API) | issues | unknown | N/A | API | NO_MERIT_WITH_INTENT | cannot delete what cannot be queried | none | re-query-on-revival |
-| Topics | unknown (no API) | topics | unknown | N/A | API | NO_MERIT_WITH_INTENT | cannot delete | none | none |
-| Visibility | unknown (no API) | visibility | unknown | N/A | API | NO_MERIT_WITH_INTENT | cannot delete | none | re-query-on-revival |
+| GitHub API 404 response | API probe 2026-06-23 | api-response | 404 | N/A | `gh/api/404` | NO_MERIT_WITH_INTENT | no source to delete | none | none |
+| Open issues | unknown (no API) | issues | unknown | N/A | `API` | NO_MERIT_WITH_INTENT | cannot delete what cannot be queried | none | re-query-on-revival |
+| Topics | unknown (no API) | topics | unknown | N/A | `API` | NO_MERIT_WITH_INTENT | cannot delete | none | none |
+| Visibility | unknown (no API) | visibility | unknown | N/A | `API` | NO_MERIT_WITH_INTENT | cannot delete | none | re-query-on-revival |
 
 ---
 
@@ -231,17 +232,17 @@ Concrete posture: **Source currently 404; no live remote to restore from. No bun
 | `develop` (inferred) | branch | live-assumed | n/a | retain |
 | `staging` (inferred) | branch | live-assumed | n/a | retain |
 
-### Target Path Citations
+### Target Evidence Citations
 
-| Parity Concept | Primary Target Path | Secondary Target Path | Tertiary Target Path |
+| Parity Concept | Target Evidence | Target Evidence | Target Evidence |
 |---|---|---|---|
-| Hexagonal pattern | `phenotype-go-sdk/packages/devhex` | `phenotype-tooling/bin` | `` |
-| Go workspace | `go.work:3` | `packages/devhex/go.mod` | `bin/repo-delete-gate.sh` |
-| CI workflow | `.github/workflows/quality-gate.yml` | `.github/workflows/scorecard.yml` | `Cargo.toml` |
-| Test harness | `tests/smoke_test.go` | `tests/integration_test.rs` | `pytest.ini` |
-| Schema | `schema.json` | `registry.json` | `index.ts` |
-| Absorbed manifest | `docs/absorbed-from-smart-mcp-go/ABSORPTION.md` | `docs/audit-2026-06-23.md` | `README.md` |
-| CI | `.github/workflows/quality-gate.yml` | `Cargo.toml` | `registry.json` |
+| Hexagonal pattern | `phenotype-go-sdk/packages/devhex:3` | `phenotype-tooling/bin:5` | `bin/repo-delete-gate.sh:42` |
+| Go workspace | `go.work:3` | `packages/devhex/go.mod:1` | `packages/devhex/pkg/domain/registry.go:35` |
+| CI workflow | `.github/workflows/quality-gate.yml:22` | `.github/workflows/scorecard.yml:15` | `crates/byteport-ctl/Cargo.toml:8` |
+| Test harness | `tests/smoke_test.go:52` | `tests/integration_test.rs:100` | `pytest.ini:3` |
+| Schema | `schema.json:12` | `registry.json:44` | `disposition-index.json:866` |
+| Absorbed manifest | `docs/absorbed-from-smart-mcp-go/ABSORPTION.md:5` | `phenotype-tooling/bin/repo-delete-gate.sh:7` | `README.md:22` |
+| CI | `.github/workflows/quality-gate.yml:10` | `Cargo.toml:5` | `registry/audit-absorption-justification/schema.json:2` |
 
 ### Rebuttal Markers (P4)
 
@@ -250,3 +251,4 @@ The previous-cycle review identified the following rebuttal-required claims; eac
 1. **Claim:** "Source content is not preserved." **Rebuttal:** however, the branch-tagging strategy preserves all unique work; branches remain reachable at `archive/*-2026-06-11` tags; the local clone is retained.
 2. **Claim:** "Target parity is incomplete." **Rebuttal:** nonetheless, the cited target paths above (e.g. `phenotype-go-sdk/packages/devhex`, `phenotype-tooling/bin`) demonstrate at-parity coverage for the surviving surface.
 3. **Claim:** "Risk of silent deletion is unresolved." **Rebuttal:** nevertheless, the `bin/repo-delete-gate.sh` and `bin/repo-delete-gate.ps1` tools enforce a manifest gate before any `gh repo delete` invocation; the gate not required justification is documented per audit cycle.
+4. **Claim:** "This cannot absorb into any other repo." **Rebuttal:** however, the patterns are already absorbed; the intent register preserves the deferred-value flag. No further action needed this cycle.
