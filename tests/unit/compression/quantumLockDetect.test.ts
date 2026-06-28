@@ -32,3 +32,56 @@ test("patterns are ReDoS-bounded: adversarial input returns promptly", () => {
   }
   assert.ok(Date.now() - start < 500, "all patterns finish quickly on adversarial input");
 });
+
+import { detectVolatileSpans } from "../../../open-sse/services/compression/quantumLock/quantumLock.ts";
+
+const ALL = { enabled: true } as const;
+const span = (text: string, s: { start: number; end: number }) => text.slice(s.start, s.end);
+
+test("detects a uuid and its inner hex is NOT also claimed by long_hex", () => {
+  const t = "session 550e8400-e29b-41d4-a716-446655440000 ready";
+  const spans = detectVolatileSpans(t, ALL);
+  assert.equal(spans.length, 1);
+  assert.equal(spans[0].category, "uuid");
+  assert.equal(span(t, spans[0]), "550e8400-e29b-41d4-a716-446655440000");
+});
+
+test("a JWT is captured whole, not split into hex/segments", () => {
+  const jwt = "eyJhbGciOiJIUzI1NiwidHlwIjoiSldUIn0.eyJzdWIiOiIxMjM0NTY3ODkwIn0.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c";
+  const spans = detectVolatileSpans(`auth ${jwt} end`, ALL);
+  assert.equal(spans.length, 1);
+  assert.equal(spans[0].category, "jwt");
+});
+
+test("detects unix_ts (13-digit) and api_key_shape and request_id", () => {
+  const cats = detectVolatileSpans(
+    "ts 1718900000000 key sk-ABCDEFGHIJKLMNOP01 rid req-abc123def456",
+    ALL
+  ).map((s) => s.category);
+  assert.ok(cats.includes("unix_ts"));
+  assert.ok(cats.includes("api_key_shape"));
+  assert.ok(cats.includes("request_id"));
+});
+
+test("category filter restricts what is detected", () => {
+  const spans = detectVolatileSpans(
+    "550e8400-e29b-41d4-a716-446655440000 and 1718900000",
+    { enabled: true, categories: ["unix_ts"] }
+  );
+  assert.equal(spans.length, 1);
+  assert.equal(spans[0].category, "unix_ts");
+});
+
+test("no false-positive on prose / dates / short numbers", () => {
+  assert.equal(detectVolatileSpans("The meeting is on 2026-06-28 at 10am, room 42.", ALL).length, 0);
+});
+
+test("spans are sorted ascending and non-overlapping", () => {
+  const t = "a 550e8400-e29b-41d4-a716-446655440000 b req-abcdef123456 c 1718900000";
+  const spans = detectVolatileSpans(t, ALL);
+  for (let i = 1; i < spans.length; i++) assert.ok(spans[i].start >= spans[i - 1].end);
+});
+
+test("empty / non-string is a no-op", () => {
+  assert.deepEqual(detectVolatileSpans("", ALL), []);
+});
