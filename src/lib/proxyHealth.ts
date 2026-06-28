@@ -24,6 +24,10 @@ interface ProxyHealthEntry {
 
 // In-memory cache: proxyUrl → health entry
 const proxyHealthCache = new Map<string, ProxyHealthEntry>();
+const proxyHealthInflight = new Map<string, Promise<boolean>>();
+
+type TcpCheck = (host: string, port: number, timeoutMs: number) => Promise<boolean>;
+let tcpCheckImpl: TcpCheck = tcpCheck;
 
 /**
  * T14: Perform a fast TCP check to see if a proxy host:port is reachable.
@@ -69,9 +73,24 @@ export async function isProxyReachable(
     return false;
   }
 
-  const healthy = await tcpCheck(host, port, timeoutMs);
-  proxyHealthCache.set(proxyUrl, { healthy, checkedAt: Date.now(), ttlMs: cacheTtlMs });
-  return healthy;
+  const existingProbe = proxyHealthInflight.get(proxyUrl);
+  if (existingProbe) {
+    return existingProbe;
+  }
+
+  const probe = tcpCheckImpl(host, port, timeoutMs).then((healthy) => {
+    proxyHealthCache.set(proxyUrl, { healthy, checkedAt: Date.now(), ttlMs: cacheTtlMs });
+    return healthy;
+  });
+
+  proxyHealthInflight.set(proxyUrl, probe);
+  try {
+    return await probe;
+  } finally {
+    if (proxyHealthInflight.get(proxyUrl) === probe) {
+      proxyHealthInflight.delete(proxyUrl);
+    }
+  }
 }
 
 /**
@@ -90,6 +109,7 @@ export function getCachedProxyHealth(proxyUrl: string): boolean | null {
  */
 export function invalidateProxyHealth(proxyUrl: string): void {
   proxyHealthCache.delete(proxyUrl);
+  proxyHealthInflight.delete(proxyUrl);
 }
 
 /**
@@ -138,4 +158,8 @@ function tcpCheck(host: string, port: number, timeoutMs: number): Promise<boolea
       resolve(false);
     });
   });
+}
+
+export function __setProxyHealthTcpCheckForTesting(check: TcpCheck | null): void {
+  tcpCheckImpl = check ?? tcpCheck;
 }
