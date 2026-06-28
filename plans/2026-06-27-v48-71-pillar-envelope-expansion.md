@@ -1,7 +1,7 @@
 # v48 — 71-Pillar Envelope Expansion
 
 **Date:** 2026-06-27
-**Status:** PLANNED
+**Status:** COMPLETE — cycle 36 probe at `findings/2026-06-27-71-pillar-cycle-36-probe.md`
 **Previous wave:** v47 (cycle 35 automation — T1..T4 shipped)
 **Fleet mean:** 3.72 (sustained across 12 cycles)
 

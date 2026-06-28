@@ -102,6 +102,18 @@ security-analysis/
 # local editing. CI failures and PR rebase conflicts caused by `git submodule foreach`
 # recursing into these without `.gitmodules` entries are prevented by ignoring them.
 clap-ext/
+Parpoura/
+PhenoHandbook/
+PhenoMCPServers/
+heliosBench/
+mobile-cli/
+mobile-cli-mobile-mcp-wt-2026-06-17/
+mobile-mcp/
+pheno-cdylib-bridge/
+phenoResearchEngine/
+phenodag/
+phenodag-tool/
+phenodocs/
 
 # Deploy workflow (contains sensitive VPS credentials)
 clipr/
