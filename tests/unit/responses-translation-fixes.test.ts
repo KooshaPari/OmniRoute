@@ -8,6 +8,16 @@ const { openaiResponsesToOpenAIRequest, openaiToOpenAIResponsesRequest } =
 const { normalizeCodexResponsesInput } =
   await import("../../open-sse/utils/responsesInputNormalization.ts");
 
+type ChatMessage = {
+  role: string;
+  content: unknown;
+};
+
+type ChatRequest = {
+  input?: unknown;
+  messages: ChatMessage[];
+};
+
 test("convertResponsesApiFormat filters orphaned function_call_output items", () => {
   const body = {
     model: "gpt-4",
@@ -65,12 +75,12 @@ test("Responses→Chat: string input becomes a user message instead of an empty 
     { model: "gpt-4", input: "Responda apenas: OK", max_output_tokens: 80 },
     null,
     null
-  );
+  ) as ChatRequest;
 
-  assert.equal((result as any).input, undefined);
-  assert.equal((result as any).messages.length, 1);
-  assert.equal((result as any).messages[0].role, "user");
-  assert.deepEqual((result as any).messages[0].content, [
+  assert.equal(result.input, undefined);
+  assert.equal(result.messages.length, 1);
+  assert.equal(result.messages[0].role, "user");
+  assert.deepEqual(result.messages[0].content, [
     { type: "text", text: "Responda apenas: OK" },
   ]);
 });
@@ -81,11 +91,11 @@ test("Responses→Chat: object input becomes a single user message", () => {
     { model: "gpt-4", input: { text: "Ping" } },
     null,
     null
-  );
+  ) as ChatRequest;
 
-  assert.equal((result as any).messages.length, 1);
-  assert.equal((result as any).messages[0].role, "user");
-  assert.deepEqual((result as any).messages[0].content, [{ type: "text", text: "Ping" }]);
+  assert.equal(result.messages.length, 1);
+  assert.equal(result.messages[0].role, "user");
+  assert.deepEqual(result.messages[0].content, [{ type: "text", text: "Ping" }]);
 });
 
 test("Responses→Chat: role/content object input becomes a single user message", () => {
@@ -94,11 +104,11 @@ test("Responses→Chat: role/content object input becomes a single user message"
     { model: "gpt-4", input: { role: "user", content: "Ping" } },
     null,
     null
-  );
+  ) as ChatRequest;
 
-  assert.equal((result as any).messages.length, 1);
-  assert.equal((result as any).messages[0].role, "user");
-  assert.equal((result as any).messages[0].content, "Ping");
+  assert.equal(result.messages.length, 1);
+  assert.equal(result.messages[0].role, "user");
+  assert.equal(result.messages[0].content, "Ping");
 });
 
 test("Codex Responses input: string input becomes a list-shaped user message", () => {
