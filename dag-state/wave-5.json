@@ -1,0 +1,126 @@
+{
+  "wave": "wave-5",
+  "branch": "chore/v48-dag-wave-5-2026-06-27",
+  "width": 11,
+  "envelope_count": 10,
+  "findings_count": 1,
+  "created_at": "2026-06-27",
+  "tasks": [
+    {
+      "id": "envelope-phenotype-python-sdk",
+      "lane": "envelope",
+      "target_repo": "phenotype-python-sdk",
+      "missing_files": [
+        "deny.toml"
+      ],
+      "expected_files_added": 1,
+      "commit_message": "feat(governance): onboard phenotype-python-sdk to fleet baseline"
+    },
+    {
+      "id": "envelope-phenotype-python-sdk-datakit-final",
+      "lane": "envelope",
+      "target_repo": "phenotype-python-sdk-datakit-final",
+      "missing_files": [
+        "deny.toml"
+      ],
+      "expected_files_added": 1,
+      "commit_message": "feat(governance): onboard phenotype-python-sdk-datakit-final to fleet baseline"
+    },
+    {
+      "id": "envelope-phenotype-registry-drain-next",
+      "lane": "envelope",
+      "target_repo": "phenotype-registry-drain-next",
+      "missing_files": [
+        "SSOT.md",
+        "llms.txt"
+      ],
+      "expected_files_added": 2,
+      "commit_message": "feat(governance): onboard phenotype-registry-drain-next to fleet baseline"
+    },
+    {
+      "id": "envelope-phenotype-registry-helioscope-final",
+      "lane": "envelope",
+      "target_repo": "phenotype-registry-helioscope-final",
+      "missing_files": [
+        "SSOT.md",
+        "llms.txt"
+      ],
+      "expected_files_added": 2,
+      "commit_message": "feat(governance): onboard phenotype-registry-helioscope-final to fleet baseline"
+    },
+    {
+      "id": "envelope-phenotype-registry-httpora-final",
+      "lane": "envelope",
+      "target_repo": "phenotype-registry-httpora-final",
+      "missing_files": [
+        "SSOT.md",
+        "llms.txt"
+      ],
+      "expected_files_added": 2,
+      "commit_message": "feat(governance): onboard phenotype-registry-httpora-final to fleet baseline"
+    },
+    {
+      "id": "envelope-phenotype-registry-phenoforge-final",
+      "lane": "envelope",
+      "target_repo": "phenotype-registry-phenoforge-final",
+      "missing_files": [
+        "SSOT.md",
+        "llms.txt"
+      ],
+      "expected_files_added": 2,
+      "commit_message": "feat(governance): onboard phenotype-registry-phenoforge-final to fleet baseline"
+    },
+    {
+      "id": "envelope-phenotype-registry-phenoschema-final",
+      "lane": "envelope",
+      "target_repo": "phenotype-registry-phenoschema-final",
+      "missing_files": [
+        "SSOT.md",
+        "llms.txt"
+      ],
+      "expected_files_added": 2,
+      "commit_message": "feat(governance): onboard phenotype-registry-phenoschema-final to fleet baseline"
+    },
+    {
+      "id": "envelope-phenotype-registry-preserve-wip",
+      "lane": "envelope",
+      "target_repo": "phenotype-registry-preserve-wip",
+      "missing_files": [
+        "SSOT.md",
+        "llms.txt"
+      ],
+      "expected_files_added": 2,
+      "commit_message": "feat(governance): onboard phenotype-registry-preserve-wip to fleet baseline"
+    },
+    {
+      "id": "envelope-phenotype-registry-profila-final",
+      "lane": "envelope",
+      "target_repo": "phenotype-registry-profila-final",
+      "missing_files": [
+        "SSOT.md",
+        "llms.txt"
+      ],
+      "expected_files_added": 2,
+      "commit_message": "feat(governance): onboard phenotype-registry-profila-final to fleet baseline"
+    },
+    {
+      "id": "envelope-phenotype-registry-utils-boundary",
+      "lane": "envelope",
+      "target_repo": "phenotype-registry-utils-boundary",
+      "missing_files": [
+        "SSOT.md",
+        "llms.txt"
+      ],
+      "expected_files_added": 2,
+      "commit_message": "feat(governance): onboard phenotype-registry-utils-boundary to fleet baseline"
+    },
+    {
+      "id": "finding-2026-06-27-v38-dag-wave-1-closure-0",
+      "lane": "side-dag-findings",
+      "task_kind": "followup-finding",
+      "title": "20 more repos from the 147 remaining. Side-DAG: integrate nested-git lessons. Self-extend via findings/ anti-patterns from wave-1.",
+      "source_doc": "findings/2026-06-27-v38-dag-wave-1-closure.md",
+      "expected_files_added": 1
+    }
+  ]
+}
