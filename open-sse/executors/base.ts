@@ -172,29 +172,7 @@ export function mergeUpstreamExtraHeaders(
   }
 }
 
-export function mergeAbortSignals(primary: AbortSignal, secondary: AbortSignal): AbortSignal {
-  const controller = new AbortController();
-
-  const abortFrom = (source: AbortSignal) => {
-    if (!controller.signal.aborted) {
-      controller.abort(source.reason);
-    }
-  };
-
-  if (primary.aborted) {
-    abortFrom(primary);
-    return controller.signal;
-  }
-  if (secondary.aborted) {
-    abortFrom(secondary);
-    return controller.signal;
-  }
-
-  primary.addEventListener("abort", () => abortFrom(primary), { once: true });
-  secondary.addEventListener("abort", () => abortFrom(secondary), { once: true });
-  return controller.signal;
-}
-
+// extracted to ./mergeAbortSignals.ts (Wave 6 resilience leaf)
 function hasActiveClaudeThinking(body: Record<string, unknown>): boolean {
   const thinking = body.thinking as Record<string, unknown> | undefined;
   return thinking?.type === "enabled" || thinking?.type === "adaptive";
