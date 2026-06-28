@@ -8,6 +8,10 @@
 
 _In development — bullets added per PR; finalized at release._
 
+### ✨ New Features
+
+- **kilocode:** anonymous (no-auth) access to Kilo Code's free models, mirroring the `opencode`/`mimocode` pattern. With no Kilo account connected, requests now fall back to the gateway's anonymous tier (`Authorization: Bearer anonymous` on `api.kilo.ai/api/openrouter`) so the free models work without signup; a connected OAuth account is still used unchanged for the paid tier (#4019 — thanks @Theadd for the reference implementation)
+
 ### 🔧 Bug Fixes
 
 - **command-code:** omit `max_tokens` when the client omits it so the upstream applies the model's native default, fixing `400 "expected <=200000"` on `/alpha/generate` for high-cap models; an explicit oversized client value is clamped to the 200k endpoint ceiling (#5221 — thanks @adivekar-utexas)
