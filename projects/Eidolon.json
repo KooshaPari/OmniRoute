@@ -1,5 +1,5 @@
 {
-  "name": "Eidolon",
+  "absorbed_into": "phenotype-go-sdk+nanovms",
   "full_name": "KooshaPari/Eidolon",
   "description": "Eidolon — IDE/dev-environment runtime for Phenotype development workflows",
   "role": "dev-environment",

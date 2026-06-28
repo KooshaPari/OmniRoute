@@ -1,0 +1,19 @@
+{
+  "name": "phenotype-org-audits",
+  "full_name": "KooshaPari/phenotype-org-audits",
+  "description": "Org-wide audit tooling and compliance tracking — central inventory and metrics hub for the Phenotype organization",
+  "role": "audit-hub",
+  "disposition": "AFFIRM",
+  "source": "absorption-justification",
+  "audit_artifact": "phenotype-org-audits-2026-06-27.md",
+  "status": "active",
+  "repo_path": "KooshaPari/phenotype-org-audits",
+  "ecosystem": "governance",
+  "domain": "org-audit",
+  "language": "Shell",
+  "languages": ["Shell", "Python", "Go", "Rust"],
+  "absorbed_into": "phenotype-infra",
+  "absorption_note": "2026-06-27 audit verdict AFFIRM: org-audit hub with canonical v3 scorecard (COVERAGE_V3.md). Central inventory and metrics for 165-repo org; continues as active governance hub under phenotype-infra consolidation umbrella.",
+  "adr": "ADR-008, ADR-039",
+  "note": "Audited 2026-06-27 per absorption-justification rubric; verdict AFFIRM (active governance hub). V3 scorecard verified at audits/phenotype-org-audits/metrics/COVERAGE_V3.md; authoritative 165-repo inventory maintained at inventory/AUTHORITATIVE_REPO_INVENTORY.md."
+}

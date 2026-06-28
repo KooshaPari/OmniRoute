@@ -6,7 +6,7 @@
   "has_readme": true,
   "type": "kit",
   "path": "repos/McpKit",
-  "absorbed_into": null,
+  "absorbed_into": "PhenoFastMCP+PhenoMCPServers+substrate+phenotype-python-sdk+phenotype-mcp-asset",
   "disposition": "HARD_DELETE_READY",
   "wave": "surface-reduction-1",
   "redirect": "PhenoFastMCP + PhenoMCPServers + substrate + phenotype-python-sdk[connect] + phenotype-mcp-asset (Rust pack/asset handler extracted 2026-06-18)",

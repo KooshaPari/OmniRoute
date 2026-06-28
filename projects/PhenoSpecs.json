@@ -7,6 +7,7 @@
   "source": "absorption-justification",
   "audit_artifact": "PhenoSpecs-2026-06-25.md",
   "status": "active",
+  "absorbed_into": "phenotype-registry+papers",
   "repo_path": "KooshaPari/PhenoSpecs",
   "ecosystem": "compute-infra",
   "domain": "developer-tools"

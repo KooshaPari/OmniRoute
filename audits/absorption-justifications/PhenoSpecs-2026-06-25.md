@@ -103,13 +103,13 @@ Parity: PARTIAL for the code surface — PhenoSpecs is a standalone spec tooling
 
 ## Last-Resort-Exceptions
 
-- **Rebuttal #1: "Delete PhenoSpecs now."** Rebutted: PhenoSpecs is a live spec tooling repo with specs-as-code, test-generation, and compliance validation unique to the Phenotype ecosystem. **However**, no code has been migrated yet.
+- **Rebuttal #1 (Q1): "Delete PhenoSpecs now."** Rebutted: PhenoSpecs is a live spec tooling repo with specs-as-code, test-generation, and compliance validation unique to the Phenotype ecosystem. **However**, no code has been migrated yet.
 
-- **Rebuttal #2: "PhenoSpecs is unmaintained."** Rebutted: 12 remote branches indicate active maintenance. **Nevertheless**, the default branch shows moderate recent activity.
+- **Rebuttal #2: (Q2) "PhenoSpecs is unmaintained."** Rebutted: 12 remote branches indicate active maintenance. **Nevertheless**, the default branch shows moderate recent activity.
 
-- **Rebuttal #3: "Merge into phenotype-infra."** Rebutted: partial absorption into `phenotype-infra` is the long-term goal, but PhenoSpecs' tooling is tightly coupled to its standalone deployment model.
+- **Rebuttal #3: (Q3) "Merge into phenotype-infra."** Rebutted: partial absorption into `phenotype-infra` is the long-term goal, but PhenoSpecs' tooling is tightly coupled to its standalone deployment model.
 
-This item cannot absorb into `phenotype-infra` without a dedicated spec-authoring adapter; it must remain as a standalone repo until phenotype-infra adopts specification-authoring infrastructure.
+This item cannot absorb into `phenotype-infra` without a dedicated spec-authoring adapter; it must remain as a standalone repo until phenotype-infra adopts specification-authoring infrastructure. The **residual gap** is that the spec bundle is not yet archived with a SHA-256 manifest.
 
 No exceptions to the AFFIRM verdict are granted.
 
