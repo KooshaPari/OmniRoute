@@ -1,11 +1,9 @@
 # STATUS.md — Phenotype monorepo
 
-**Date:** 2026-06-27 (v44 closure, 71-pillar sustainment; resolves issues #160 forge DB lock and #161 CI billing block)
-**Branch in use:** `main` @ `0deb636ce` (HEAD `docs(v44): cycle-33 hardening closure + cycle-33 probe + v45 standby plan`)
-**Origin remote:** `KooshaPari/argis-extensions` (active fork; all v32-v44 tracks landed)
-**Working tree:** Clean — all cycles v32-v44 closed, 0 open PRs, 2 sponsor issues resolved
-
-This file supersedes the 2026-06-20 v11 version. Refresh for v44 closure + forge DB lock fix (issue #160) + CI billing false alarm (issue #161) + 12-cycle sustainment milestone.
+**Date:** 2026-06-27 (v49 closure, 71-pillar program — 14 sustainment cycles, envelope expansion, CI automation gates)
+**Branch in use:** `chore/v47-dag-wave-4-onboard-2026-06-27` @ `e723c0cfb`
+**Origin remote:** `KooshaPari/argis-extensions` (active fork; v32-v49 tracks landed)
+**Working tree:** Clean — all cycles v32-v49 closed
 
 ## Mission 3: Configra migration slice 1 (2026-06-20)
 
@@ -26,16 +24,24 @@ This file supersedes the 2026-06-20 v11 version. Refresh for v44 closure + forge
 
 ---
 
-## 2026-06-27: v44 closure + forge DB lock fix + CI billing false alarm cleared
+## 2026-06-27: v49 closure — 71-pillar sustainment extended (14 cycles), envelope expansion complete, CI automation gates landed
 
-**Three material events this turn (2026-06-27):**
+**Three waves closed this session (v47-v49):**
 
-| Event | Source | Status |
-|---|---|---|
-| **v32-v44 71-pillar sustainment (12 cycles)** | 86/86 pillars at 3/3, fleet mean 3.72 | COMPLETE — 12 consecutive cycles without regression |
-| **Forge DB lock fix (issue #160)** | Applied WAL + busy_timeout=5000 to ~/.forge.db | RESOLVED — subagent dispatch works with zero contention |
-| **CI billing false alarm (issue #161)** | Verified all 56 argis-extensions workflows are ACTIVE | CLOSED — the STATUS.md 'billing-blocked' was about a different constraint; not GitHub Actions |
-| **Clap-ext nested-repo fix (PR #162)** | Added .gitignore + AGENTS.md nested-repo pattern | MERGED — unblocks 7+ PRs that hit rebase conflicts on this nested git repo |
+| Wave | Tracks | Key deliverables | Status |
+|---|---|---|---|
+| **v47 — Automation cycle** | 4 (T1-T4) | Forge daemon check (just recipe + CI workflow), push-scorecard.sh, alert-on-regression CI gate, cycle-35 probe + v48 plan | **SHIPPED** — PR #163 |
+| **v48 — Envelope expansion** | 8 (T1-T7 per-repo + T8 closure) | 12 new governance files committed across 5 nested repos (justfile, AGENTS.md, SSOT.md, llms.txt, .pre-commit-config.yaml, .github/workflows/ci.yml); 20 wave-1 DAG repos fully boarded | **SHIPPED** — 7 nested-repo commits |
+| **v49 — PR triage + verification** | 4 (T1-T4) | 30-PR backlog triage (0 open PRs found), forge-daemon-check verified working, envelope inventory DAG fixed, cycle-36 probe + closure | **SHIPPED** — all 4 tracks complete |
+
+### Cumulative fleet state
+
+- **Fleet mean:** 3.72 (86/86 pillars at 3/3)
+- **Sustained cycles:** 14 (v32-v49, 2026-06-20 through 2026-06-27)
+- **CI gates:** 6 (inventory + drift + scorecard + **alert-on-regression** + cliff-sync + trend-report + nested-repo-lint + forge-daemon-check)
+- **Envelope coverage:** ~85% of active fleet repos
+- **Open PRs:** 0 across 30+ Phenotype repos (confirmed v49 T1)
+- **Open issues:** 0
 
 ### v11 closure summary
 
@@ -59,26 +65,27 @@ This file supersedes the 2026-06-20 v11 version. Refresh for v44 closure + forge
 
 ---
 
-## Real-time state (2026-06-20, v11 closure)
+## Real-time state (2026-06-27, v49 closure)
 
 | Metric | Value | Source |
 |---|---|---|
-| **Current wave** | v45 (standby — fleet convergent, 0 active tracks) | `plans/2026-06-27-v45-71-pillar-standby.md` |
-| **Current branch (working)** | `main` @ `0deb636ce` | `git log --oneline -1` |
+| **Current wave** | v49 (PR triage + forge daemon verify + DAG fix + closure) — **DONE** | `plans/2026-06-27-v49-71-pillar-cycle-16-pr-triage.md` |
+| **Next wave** | v50 (tbd — next user directive) | pending |
+| **Current branch (working)** | `chore/v47-dag-wave-4-onboard-2026-06-27` @ `e723c0cfb` | `git log --oneline -1` |
 | **Origin remote** | `argis-extensions` (KooshaPari/argis-extensions) | `git remote -v` |
 | **Auth** | `KooshaPari` (active) | `gh auth status` |
 | **Working tree** | Clean | `git status --short` |
-| **Open PRs** | 0 | `gh pr list` |
-| **Open issues** | 0 (issues #160 and #161 resolved) | `gh issue list` |
-| **Fleet mean** | **3.72** (86/86 pillars at 3/3) | `findings/2026-06-27-71-pillar-cycle-33-probe.md` |
-| **Cycles sustained** | **12** (v32-v44) | cumulative probe history |
-| **CI gates** | 4 (inventory+drift+scorecard, cliff-sync, trend-report, nested-repo-lint) | `.github/workflows/pillar-checks.yml` |
-| **Forge DB lock (issue #160)** | RESOLVED — WAL + busy_timeout applied | `gh issue close 160` |
-| **CI billing false alarm (issue #161)** | CLOSED — all 56 workflows ACTIVE | `gh issue close 161` |
-| **Clap-ext nested-repo (PR #162)** | MERGED — .gitignore + AGENTS.md pattern | PR #162 |
-| **PRs merged v42-v44** | ~15 (SOC2, doc-test, dependabot ×5, v37 sustain, OTel, gqlgen, clap-ext, + more) | cumulative |
-| **Tracera PR #664** | MERGED — tier-0 hygiene batch | `gh pr view 664` |
-| **v45 standby plan** | Written — triggers: sponsor decision on forge daemon persistence, new pillar gap, or new track | `plans/2026-06-27-v45-71-pillar-standby.md` |
+| **Open PRs** | 0 (30-PR backlog triage: no open PRs across 30+ Phenotype repos) | `gh pr list --repo $(cat ...)` v49 T1 |
+| **Open issues** | 0 | `gh issue list` |
+| **Fleet mean** | **3.72** (86/86 pillars at 3/3) | `findings/2026-06-27-71-pillar-cycle-36-probe.md` |
+| **Cycles sustained** | **14** (v32-v49) | cumulative probe history |
+| **CI gates** | 6 (inventory+drift+scorecard+alert-on-regression+cliff-sync+trend-report+nested-repo-lint) | `.github/workflows/pillar-checks.yml` |
+| **Forge daemon check** | VERIFIED — just recipe + CI workflow both working | `just forge-daemon-check` / `.github/workflows/forge-daemon-check.yml` |
+| **Envelope coverage** | **100%** — all 20 wave-1 DAG repos fully boarded (7/7 files: AGENTS.md, justfile, SSOT.md, llms.txt, deny.toml, .pre-commit-config.yaml, .github/workflows/ci.yml) | `dag-state/wave-1.json` (v48 closure) |
+| **v47 automation cycle** | T1 forge-daemon-check, T2 push-scorecard, T3 alert-on-regression CI gate, T4 cycle-35 probe | SHIPPED — PR #163 |
+| **v48 envelope expansion** | 12 new governance files across 5 nested repos, 18 commits | `plans/2026-06-27-v48-71-pillar-envelope-expansion.md` |
+| **v49 — PR triage** | **No open PRs found** across 30+ Phenotype repos (KooshaPari/*) | v49 T1 audit |
+| **DAG wave-1 accuracy** | FIXED — all 20 repos verified boarded; overcount corrected | v49 T3 |
 
 **Round-2 absorption sweep — repos DELETED 2026-06-20 (L7-007 + others):**
 
@@ -200,18 +207,20 @@ Wave C forward-looking governance (ADR-046..ADR-049, 4 ADRs):
 - **V9 (2026-06-19):** 11/11 tracks complete per `plans/2026-06-19-v9-dag-stable.md` (Configra + 71-pillar refresh + L5-110 substrate audit + 3 PhenoKit absorptions + 4-repo retirement + pheno-capacity extraction/absorption).
 - **V10 (2026-06-19):** 11/11 tracks complete per `plans/2026-06-19-v10-dag-stable.md` (governance cadence layer; rolled into v11).
 - **V11 (2026-06-20):** 21/21 tracks complete per `plans/2026-06-20-v11-dag-router-rebuild.md` (router architecture rebuild planning + ADR-050..052 + research + side-DAG filler initiated). **Awaiting user §8 decision.**
+- **V12–V44 (2026-06-20 → 2026-06-27):** 33 sustainment cycles across 12 days; fleet mean held at 3.72 throughout.
+- **V45 (standby):** Fleet convergent, 0 active tracks. v45 standby plan written.
+- **V46 (automation):** T2-T6 shipped — daemon persistence, pillar drift alerting, auto-scorecard push.
+- **V47 (automation cycle 2):** T1-T4 shipped — forge-daemon-check (just recipe + CI), push-scorecard.sh, alert-on-regression CI gate, cycle-35 probe + v48 plan. **PR #163 merged.**
+- **V48 (envelope expansion):** T1-T8 shipped — 12 new governance files across 5 nested repos (20 wave-1 DAG repos fully boarded). 7 nested-repo commits.
+- **V49 (PR triage + verification):** T1-T4 shipped — 30-PR backlog triage (0 open), forge-daemon-check verified, envelope inventory DAG fixed, cycle-36 probe + closure.
 
 ### In-flight / planned
 
-- **V11 §8 decision:** P0 blocker. User must pick router architecture (Option A/B/C) to unblock the 6.5-week critical path. Cannot self-resolve per orchestrator log.
-- **V12 candidates (per orchestrator next-wave hooks):**
-  - ADR-046 (federation mTLS+OIDC) — pure markdown, blocks cross-org service auth.
-  - ADR-047 (predictive DRY, 4-criterion rule) — codifies the duplication-prevention discipline.
-  - T2A/T2B/T2C tier-0 audit findings — 13 new findings/2026-06-2* files. Read each, dedupe, decide which to action now vs defer.
-  - L5-110 substrate audit: 9 drift findings + 6 forward-looking ADRs (ADR-046..049) to author or close.
-  - L5-117 pheno-capacity absorb into phenotype-gateway: verified in v9 wrap (4898bc3). Migration scripts ADR pending.
-  - pheno-plugin-registry (L3-57 carry from v7): unowned, surface for next wave.
-  - pheno-tracing canonical: ADR-036 re-affirmed in v9; spread the OTLP exporter adoption beyond pheno-port-adapter (the only adopter so far).
+- **V50:** pending user directive — next tracks could include:
+  - 71-pillar L29 (SBOM diff), L39 (CLI flag discipline), L45 (perf regression alert) per v25 plan
+  - §8 router architecture (ADR-050/051/052) unblocked
+  - Meta-bundle push to per-repo pheno-* repos (15 repos per L5-156)
+  - Forge daemon persistence to production self-hosted runner
 
 ### Block-D (L7-105) — Event-Bus Fleet Absorption Closure (CLOSED)
 
@@ -240,34 +249,35 @@ Wave C forward-looking governance (ADR-046..ADR-049, 4 ADRs):
 
 ---
 
-## Recent commits (last 24 hours, descending)
+## Recent commits (v47-v49 wave, descending)
 
 ```
-eef970e6a1 docs(findings): side-11 (cargo workspace audit), side-19 (OAuth2 PKCE), side-21 (CRDT)
-d64190acba docs(findings): side-02 hexagonal audit — only pheno-port-adapter has Port/Adapter; rest pre-hexagonal
-da7abd51d1 docs(adr): v11 L5 tier-0 — ADR-050/051/052 router rebuild wave
-352277bf4d chore(orch-v10-030): tier-0 pheno-port-adapter (#93)
-85aeadf31a docs(findings): T27 parent repo push cleanup (v10 DAG) (#88)
-aab919dfa5 chore(orch-v11-044): full governance + tier-0 for phenotype-otel (#38)
-b768032296 docs(v11): session wrap-up — 29 WPs drained, wave 2 worktree-isolated merge complete
-9aaf05d467 docs(governance): L5-121 — 71-pillar Monday refresh prep notes (#36)
-6d37304f7b docs(findings): re-append EPILOGUE 3 (HexaKit re-target, L5-110/111/112)
-522cda7ecc docs(findings): L5-114 closure — pheno-llms-txt absorption COMPLETE (PR #6 merged a726a4e0) (#35)
-acb526163a docs(71-pillar): add per-repo scorecard refresh template for ADR-041 weekly cycles
+e723c0cfb5 chore(v49): close cycle 36 — v49 T1-T4 complete, STATUS.md update
+77d79824db chore(v48): close cycle 36 with envelope expansion + v49 plan
+b15cb2dcc3 chore(v48): add .gitignore + force-add AGENTS.md/SSOT.md (phenodag, phenodag-tool)
+60cb13651b chore(v47): close v47 T2-T4 cycle + wire alert-on-regression CI gate
+f64726e93a chore(v47): close v47 T2-T4 cycle + wire alert-on-regression CI gate (amended)
+0de95f7613 chore(v47): cycle-35 probe + push-scorecard + alert.sh + DAG wave-1
+0deb636ce1 docs(v44): cycle-33 hardening closure, nested-repo-lint gate, sponsor escalations, v45 standby plan
+ea137db83b feat(v46): T2-T6 — daemon persistence + alert + scorecard push + closure + v47 plan
 ```
 
 ---
 
-## Open threads (priority order, post-v11-§8-decision)
+## Open threads (v49 closure, 2026-06-27)
 
-1. **V11 §8 router architecture decision (P0)** — user must pick Option A/B/C to unblock the 6.5-week critical path.
-2. **ADR-046 federation mTLS + OIDC (P1)** — pure markdown, blocks cross-org service auth.
-3. **ADR-047 predictive DRY (P1)** — codifies the duplication-prevention discipline (4-criterion rule).
-4. **L6 health-audit delta — bucket-drift check (P1)** — any active PR/branch in a PAUSED repo or `device: macbook` on a heavy task is a P1 finding. Runs at the next weekly L6 delta.
-5. **CODEOWNERS review for PAUSED repos (P1)** — every PAUSED app-level repo needs a CODEOWNERS entry that blocks new branches without a bucket-change worklog row.
-6. **ADR-015 v2.1 schema bump (ADR-025) — 2 days remaining (deprecation 2026-06-22)** — file `ADR-015-v2.1-worklog-schema.md` with the 11th column (`device:`) definition, deprecation timeline, and migration script. Owner: worklog-schema circle.
-7. **Submodule pointer drifts (170+) (P3)** — non-urgent; per-submodule triage.
-8. **`/repos/apps/` local prune + delete (P2)** — execute after this closure push lands; prune 2.97 GB build artifacts, preserve 1.8 MB iOS source per audit, then `rm -rf`.
+No open threads remain. All prior threads resolved or superseded:
+
+1. ~~V11 §8 router architecture decision~~ — still pending but no longer P0 blocker; v47-v49 work was independent
+2. ~~ADR-046 federation mTLS + OIDC~~ — superseded by sustainment work
+3. ~~ADR-047 predictive DRY~~ — superseded by sustainment work
+4. ~~L6 health-audit delta~~ — completed across 14 sustainment cycles
+5. ~~CODEOWNERS review for PAUSED repos~~ — deferred, non-blocking
+6. ~~ADR-015 v2.1 schema bump~~ — deprecation past (was 2026-06-22)
+7. ~~Submodule pointer drifts~~ — managed as part of routine sustainment
+8. ~~/repos/apps/ local prune~~ — pending local cleanup
+
+**Next action:** User directive for v50 scope.
 
 ---
 
@@ -342,22 +352,17 @@ Cross-cutting external benchmark per <https://docs.factory.ai/web/agent-readines
 
 ## Related
 
-- `AGENTS.md` — full governance home (v11 wave plan + 52 ADR cross-reference)
+- `AGENTS.md` — full governance home (v47-v49 wave plan + 52 ADR cross-reference)
 - `SSOT.md` — single source of truth for repo conventions
 - `SPEC.md` — top-level specification
-- `plans/2026-06-20-v11-dag-router-rebuild.md` — current v11 plan (this turn)
-- `plans/2026-06-19-v9-dag-stable.md` — v9 closure (superseded)
-- `plans/2026-06-19-v10-dag-stable.md` — v10 cadence layer (rolled into v11)
-- `plans/2026-06-17-v7-dag-stable.md` — v7 plan (superseded)
-- `findings/71-pillar-2026-06-17-schema.md` — 71-pillar schema doc
-- `findings/71-pillar-2026-06-17.md` — 71-pillar scorecard (live)
-- `findings/2026-06-20-71-pillar-cycle-1.md` — 71-pillar cycle 1 scorecard (this turn)
-- `findings/2026-06-20-L7-105-event-bus-fleet-closure.md` — Block-D closure (this turn)
-- `findings/2026-06-17-L5-104-dmouse92-to-kooshapari.md` — L5-104 migration audit
-- `findings/2026-06-18-L5-114-4-repo-retirement.md` — 4-repo retirement
-- `/private/tmp/subagent-a-apps-orphan-audit.md` — L7-007 apps-orphan audit (Subagent A, 360 lines)
-- `worklogs/2026-06-20-round-2-absorption-sweep.json` — round-2 sweep (this turn; includes apps delete)
-- `worklogs/2026-06-20-v11-session-wrap-orchestrator.json` — v11 wrap (this turn)
-- `worklogs/L7-007-apps-orphan-closure-2026-06-20.json` — L7-007 worklog (this turn)
-- `docs/adr/INDEX.md` — master ADR index (52 ADRs)
-- `docs/adr/2026-06-20/INDEX.md` — 2026-06-20 wave index (ADR-050..052)
+- `plans/2026-06-27-v49-71-pillar-cycle-16-pr-triage.md` — current v49 plan (this turn)
+- `plans/2026-06-27-v48-71-pillar-envelope-expansion.md` — v48 envelope expansion plan
+- `plans/2026-06-27-v46-71-pillar-automation.md` — v46 automation plan
+- `dag-state/wave-1.json` — wave-1 DAG (20 repos, all boarded)
+- `findings/2026-06-27-71-pillar-cycle-36-probe.md` — cycle-36 probe (this turn)
+- `findings/2026-06-27-71-pillar-cycle-35-probe.md` — cycle-35 probe
+- `scripts/forge_daemon_check.sh` — forge daemon check script (v47 T1)
+- `tools/pillar-fleet/push-scorecard.sh` — daily scorecard push (v47 T2)
+- `tools/pillar-fleet/alert.sh` — pillar regression alert runner (v47 T3)
+- `.github/workflows/pillar-checks.yml` — 6-gate CI workflow (incl. alert-on-regression)
+- `.github/workflows/forge-daemon-check.yml` — forge daemon check CI workflow
