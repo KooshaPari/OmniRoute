@@ -2501,9 +2501,8 @@ export async function handleChatCore({
                   response: new Response(clientBody, {
                     status: res.response.status,
                     statusText: res.response.statusText,
-                    headers: res.response.headers,
+                    headers: new Headers(normalizeHeaders(res.response.headers)),
                   }),
-                  headers: res.response.headers,
                 };
               }
 
@@ -2540,9 +2539,9 @@ export async function handleChatCore({
 
         const statusText = rawResult.response.statusText;
         const headersObj = normalizeHeaders(rawResult.response.headers);
-        const headers = new Headers(headersObj);
-        stripStaleForwardingHeaders(headers);
-        const contentType = (headers.get("content-type") || "").toLowerCase();
+        const responseHeaders = new Headers(headersObj);
+        stripStaleForwardingHeaders(responseHeaders);
+        const contentType = (responseHeaders.get("content-type") || "").toLowerCase();
         const payload = await readNonStreamingResponseBody(
           rawResult.response,
           contentType,
@@ -2553,14 +2552,13 @@ export async function handleChatCore({
 
         return {
           ...rawResult,
-          response: new Response(payload, { status, statusText, headers }),
-          headers,
+          response: new Response(payload, { status, statusText, headers: responseHeaders }),
           _dedupSnapshot: {
             status,
             statusText,
             headers: (() => {
               const arr: [string, string][] = [];
-              headers.forEach((v, k) => arr.push([k, v]));
+              responseHeaders.forEach((v, k) => arr.push([k, v]));
               return arr;
             })(),
             payload,
