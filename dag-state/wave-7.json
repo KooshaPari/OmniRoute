@@ -1,0 +1,68 @@
+{
+  "wave": "wave-7",
+  "scope": "side-DAG pivot",
+  "branch": "chore/v49-dag-wave-7-side-dag-2026-06-28",
+  "width": 8,
+  "envelope_count": 0,
+  "findings_count": 1,
+  "side_dag_count": 7,
+  "created_at": "2026-06-28",
+  "tasks": [
+    {
+      "id": "side-dag-1",
+      "lane": "side-dag",
+      "title": "Cheap-llm-mcp merge",
+      "target_repo": "cheap-llm-mcp",
+      "expected_files_added": 15
+    },
+    {
+      "id": "side-dag-2",
+      "lane": "side-dag",
+      "title": "Libification sweep: dup snippets",
+      "target_repo": "phenoShared",
+      "expected_files_added": 3
+    },
+    {
+      "id": "side-dag-3",
+      "lane": "side-dag",
+      "title": "Tooling modernization: make\u2192just",
+      "target_repo": "infra",
+      "expected_files_added": 3
+    },
+    {
+      "id": "side-dag-4",
+      "lane": "side-dag",
+      "title": "Hexagonal refactor: port-phenotype",
+      "target_repo": "pheno-port-adapter",
+      "expected_files_added": 8
+    },
+    {
+      "id": "side-dag-5",
+      "lane": "side-dag",
+      "title": "Worktree cleanup: prune 9 stale",
+      "target_repo": "repos",
+      "expected_files_added": 0
+    },
+    {
+      "id": "side-dag-6",
+      "lane": "side-dag",
+      "title": "Deprecation sweep: retire .audit/",
+      "target_repo": "fleet",
+      "expected_files_added": 6
+    },
+    {
+      "id": "side-dag-7",
+      "lane": "side-dag",
+      "title": "Cross-repo SSOT audit",
+      "target_repo": "repos",
+      "expected_files_added": 2
+    },
+    {
+      "id": "finding-1",
+      "lane": "findings",
+      "title": "v48 wave-6 closure carryforward",
+      "target_repo": null,
+      "expected_files_added": 1
+    }
+  ]
+}
