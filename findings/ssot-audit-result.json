@@ -1,0 +1,1311 @@
+{
+  "score": 69,
+  "total": 163,
+  "missing_ssot_with_agents": 44,
+  "results": [
+    {
+      "repo": "Civis",
+      "has_ssot": false,
+      "has_agents": true,
+      "has_justfile": true,
+      "has_llms": true,
+      "has_deny": true
+    },
+    {
+      "repo": "Dino",
+      "has_ssot": false,
+      "has_agents": true,
+      "has_justfile": true,
+      "has_llms": true,
+      "has_deny": false
+    },
+    {
+      "repo": "HexaKit",
+      "has_ssot": true,
+      "has_agents": true,
+      "has_justfile": true,
+      "has_llms": true,
+      "has_deny": true
+    },
+    {
+      "repo": "KDesktopVirt",
+      "has_ssot": true,
+      "has_agents": true,
+      "has_justfile": true,
+      "has_llms": true,
+      "has_deny": true
+    },
+    {
+      "repo": "KWatch",
+      "has_ssot": false,
+      "has_agents": true,
+      "has_justfile": true,
+      "has_llms": false,
+      "has_deny": true
+    },
+    {
+      "repo": "KaskMan",
+      "has_ssot": true,
+      "has_agents": true,
+      "has_justfile": true,
+      "has_llms": true,
+      "has_deny": true
+    },
+    {
+      "repo": "KlipDot",
+      "has_ssot": false,
+      "has_agents": true,
+      "has_justfile": true,
+      "has_llms": false,
+      "has_deny": true
+    },
+    {
+      "repo": "MCPForge",
+      "has_ssot": false,
+      "has_agents": true,
+      "has_justfile": true,
+      "has_llms": false,
+      "has_deny": false
+    },
+    {
+      "repo": "ObservabilityKit",
+      "has_ssot": false,
+      "has_agents": true,
+      "has_justfile": true,
+      "has_llms": false,
+      "has_deny": true
+    },
+    {
+      "repo": "OmniRoute",
+      "has_ssot": false,
+      "has_agents": true,
+      "has_justfile": true,
+      "has_llms": false,
+      "has_deny": true
+    },
+    {
+      "repo": "Parpoura",
+      "has_ssot": true,
+      "has_agents": true,
+      "has_justfile": true,
+      "has_llms": true,
+      "has_deny": true
+    },
+    {
+      "repo": "PhenoCompose",
+      "has_ssot": true,
+      "has_agents": true,
+      "has_justfile": true,
+      "has_llms": true,
+      "has_deny": true
+    },
+    {
+      "repo": "PhenoContracts",
+      "has_ssot": true,
+      "has_agents": true,
+      "has_justfile": true,
+      "has_llms": true,
+      "has_deny": true
+    },
+    {
+      "repo": "PhenoHandbook",
+      "has_ssot": true,
+      "has_agents": true,
+      "has_justfile": true,
+      "has_llms": true,
+      "has_deny": true
+    },
+    {
+      "repo": "PhenoMCPServers",
+      "has_ssot": true,
+      "has_agents": true,
+      "has_justfile": true,
+      "has_llms": true,
+      "has_deny": true
+    },
+    {
+      "repo": "PhenoObservability",
+      "has_ssot": true,
+      "has_agents": true,
+      "has_justfile": true,
+      "has_llms": true,
+      "has_deny": true
+    },
+    {
+      "repo": "PhenoPlugins",
+      "has_ssot": false,
+      "has_agents": true,
+      "has_justfile": true,
+      "has_llms": false,
+      "has_deny": true
+    },
+    {
+      "repo": "PhenoProject",
+      "has_ssot": false,
+      "has_agents": true,
+      "has_justfile": true,
+      "has_llms": false,
+      "has_deny": false
+    },
+    {
+      "repo": "PhenoRuntime",
+      "has_ssot": true,
+      "has_agents": true,
+      "has_justfile": true,
+      "has_llms": true,
+      "has_deny": true
+    },
+    {
+      "repo": "PhenoSpecs",
+      "has_ssot": false,
+      "has_agents": true,
+      "has_justfile": true,
+      "has_llms": false,
+      "has_deny": false
+    },
+    {
+      "repo": "PhenoVCS",
+      "has_ssot": false,
+      "has_agents": true,
+      "has_justfile": true,
+      "has_llms": false,
+      "has_deny": true
+    },
+    {
+      "repo": "Pine",
+      "has_ssot": true,
+      "has_agents": true,
+      "has_justfile": true,
+      "has_llms": true,
+      "has_deny": true
+    },
+    {
+      "repo": "PlayCua",
+      "has_ssot": true,
+      "has_agents": true,
+      "has_justfile": true,
+      "has_llms": true,
+      "has_deny": true
+    },
+    {
+      "repo": "PolicyStack",
+      "has_ssot": true,
+      "has_agents": true,
+      "has_justfile": true,
+      "has_llms": true,
+      "has_deny": true
+    },
+    {
+      "repo": "Quillr",
+      "has_ssot": true,
+      "has_agents": true,
+      "has_justfile": true,
+      "has_llms": true,
+      "has_deny": true
+    },
+    {
+      "repo": "ResilienceKit",
+      "has_ssot": false,
+      "has_agents": true,
+      "has_justfile": false,
+      "has_llms": false,
+      "has_deny": true
+    },
+    {
+      "repo": "Sidekick",
+      "has_ssot": true,
+      "has_agents": true,
+      "has_justfile": true,
+      "has_llms": true,
+      "has_deny": true
+    },
+    {
+      "repo": "Tasken",
+      "has_ssot": true,
+      "has_agents": true,
+      "has_justfile": true,
+      "has_llms": true,
+      "has_deny": true
+    },
+    {
+      "repo": "Tasken-phenoforge-final",
+      "has_ssot": true,
+      "has_agents": true,
+      "has_justfile": true,
+      "has_llms": true,
+      "has_deny": true
+    },
+    {
+      "repo": "TestingKit",
+      "has_ssot": true,
+      "has_agents": true,
+      "has_justfile": true,
+      "has_llms": true,
+      "has_deny": true
+    },
+    {
+      "repo": "Tokn",
+      "has_ssot": true,
+      "has_agents": true,
+      "has_justfile": true,
+      "has_llms": true,
+      "has_deny": true
+    },
+    {
+      "repo": "Tokn-wt-feat-clap-ext-adopt-rebased-2026-06-14",
+      "has_ssot": true,
+      "has_agents": true,
+      "has_justfile": true,
+      "has_llms": true,
+      "has_deny": true
+    },
+    {
+      "repo": "Tracera",
+      "has_ssot": true,
+      "has_agents": true,
+      "has_justfile": true,
+      "has_llms": true,
+      "has_deny": true
+    },
+    {
+      "repo": "account",
+      "has_ssot": false,
+      "has_agents": false,
+      "has_justfile": false,
+      "has_llms": false,
+      "has_deny": false
+    },
+    {
+      "repo": "agent-user-status",
+      "has_ssot": true,
+      "has_agents": true,
+      "has_justfile": true,
+      "has_llms": true,
+      "has_deny": true
+    },
+    {
+      "repo": "agentapi-plusplus",
+      "has_ssot": true,
+      "has_agents": true,
+      "has_justfile": true,
+      "has_llms": true,
+      "has_deny": true
+    },
+    {
+      "repo": "agileplus-spec-harmonizer-tool",
+      "has_ssot": true,
+      "has_agents": true,
+      "has_justfile": true,
+      "has_llms": true,
+      "has_deny": true
+    },
+    {
+      "repo": "alerts",
+      "has_ssot": false,
+      "has_agents": false,
+      "has_justfile": false,
+      "has_llms": false,
+      "has_deny": false
+    },
+    {
+      "repo": "api",
+      "has_ssot": false,
+      "has_agents": false,
+      "has_justfile": false,
+      "has_llms": false,
+      "has_deny": false
+    },
+    {
+      "repo": "apikit-httpora-final",
+      "has_ssot": true,
+      "has_agents": true,
+      "has_justfile": true,
+      "has_llms": true,
+      "has_deny": true
+    },
+    {
+      "repo": "apps",
+      "has_ssot": false,
+      "has_agents": false,
+      "has_justfile": false,
+      "has_llms": false,
+      "has_deny": false
+    },
+    {
+      "repo": "argis-extensions",
+      "has_ssot": true,
+      "has_agents": true,
+      "has_justfile": true,
+      "has_llms": true,
+      "has_deny": true
+    },
+    {
+      "repo": "benchmarks",
+      "has_ssot": false,
+      "has_agents": false,
+      "has_justfile": false,
+      "has_llms": false,
+      "has_deny": false
+    },
+    {
+      "repo": "bifrost",
+      "has_ssot": false,
+      "has_agents": false,
+      "has_justfile": false,
+      "has_llms": false,
+      "has_deny": false
+    },
+    {
+      "repo": "chaos-injection",
+      "has_ssot": false,
+      "has_agents": false,
+      "has_justfile": false,
+      "has_llms": false,
+      "has_deny": false
+    },
+    {
+      "repo": "chatta",
+      "has_ssot": true,
+      "has_agents": true,
+      "has_justfile": true,
+      "has_llms": true,
+      "has_deny": true
+    },
+    {
+      "repo": "clap-ext",
+      "has_ssot": true,
+      "has_agents": true,
+      "has_justfile": true,
+      "has_llms": true,
+      "has_deny": true
+    },
+    {
+      "repo": "cliproxyapi-plusplus",
+      "has_ssot": false,
+      "has_agents": true,
+      "has_justfile": true,
+      "has_llms": true,
+      "has_deny": true
+    },
+    {
+      "repo": "cmd",
+      "has_ssot": false,
+      "has_agents": false,
+      "has_justfile": false,
+      "has_llms": false,
+      "has_deny": false
+    },
+    {
+      "repo": "config",
+      "has_ssot": false,
+      "has_agents": false,
+      "has_justfile": false,
+      "has_llms": false,
+      "has_deny": false
+    },
+    {
+      "repo": "costengine",
+      "has_ssot": false,
+      "has_agents": false,
+      "has_justfile": false,
+      "has_llms": false,
+      "has_deny": false
+    },
+    {
+      "repo": "cron",
+      "has_ssot": false,
+      "has_agents": false,
+      "has_justfile": false,
+      "has_llms": false,
+      "has_deny": false
+    },
+    {
+      "repo": "dag-state",
+      "has_ssot": false,
+      "has_agents": false,
+      "has_justfile": false,
+      "has_llms": false,
+      "has_deny": false
+    },
+    {
+      "repo": "dashboards",
+      "has_ssot": false,
+      "has_agents": false,
+      "has_justfile": false,
+      "has_llms": false,
+      "has_deny": false
+    },
+    {
+      "repo": "db",
+      "has_ssot": false,
+      "has_agents": false,
+      "has_justfile": false,
+      "has_llms": false,
+      "has_deny": false
+    },
+    {
+      "repo": "dinoforge-packs",
+      "has_ssot": false,
+      "has_agents": true,
+      "has_justfile": false,
+      "has_llms": false,
+      "has_deny": false
+    },
+    {
+      "repo": "docs",
+      "has_ssot": true,
+      "has_agents": false,
+      "has_justfile": false,
+      "has_llms": false,
+      "has_deny": false
+    },
+    {
+      "repo": "docs-site",
+      "has_ssot": false,
+      "has_agents": false,
+      "has_justfile": false,
+      "has_llms": false,
+      "has_deny": false
+    },
+    {
+      "repo": "examples",
+      "has_ssot": false,
+      "has_agents": false,
+      "has_justfile": false,
+      "has_llms": false,
+      "has_deny": false
+    },
+    {
+      "repo": "eyetracker",
+      "has_ssot": true,
+      "has_agents": true,
+      "has_justfile": true,
+      "has_llms": true,
+      "has_deny": true
+    },
+    {
+      "repo": "findings",
+      "has_ssot": false,
+      "has_agents": false,
+      "has_justfile": false,
+      "has_llms": false,
+      "has_deny": false
+    },
+    {
+      "repo": "focalpoint-wt-v12-16-17",
+      "has_ssot": false,
+      "has_agents": false,
+      "has_justfile": false,
+      "has_llms": false,
+      "has_deny": false
+    },
+    {
+      "repo": "forgecode",
+      "has_ssot": false,
+      "has_agents": true,
+      "has_justfile": true,
+      "has_llms": false,
+      "has_deny": true
+    },
+    {
+      "repo": "forgecode-wts",
+      "has_ssot": false,
+      "has_agents": false,
+      "has_justfile": false,
+      "has_llms": false,
+      "has_deny": false
+    },
+    {
+      "repo": "helios-cli",
+      "has_ssot": false,
+      "has_agents": true,
+      "has_justfile": true,
+      "has_llms": false,
+      "has_deny": true
+    },
+    {
+      "repo": "heliosBench",
+      "has_ssot": true,
+      "has_agents": true,
+      "has_justfile": true,
+      "has_llms": true,
+      "has_deny": true
+    },
+    {
+      "repo": "hwLedger",
+      "has_ssot": false,
+      "has_agents": true,
+      "has_justfile": false,
+      "has_llms": false,
+      "has_deny": true
+    },
+    {
+      "repo": "infra",
+      "has_ssot": false,
+      "has_agents": false,
+      "has_justfile": false,
+      "has_llms": false,
+      "has_deny": false
+    },
+    {
+      "repo": "kmobile",
+      "has_ssot": true,
+      "has_agents": true,
+      "has_justfile": true,
+      "has_llms": true,
+      "has_deny": true
+    },
+    {
+      "repo": "localbase3",
+      "has_ssot": false,
+      "has_agents": true,
+      "has_justfile": false,
+      "has_llms": false,
+      "has_deny": false
+    },
+    {
+      "repo": "melosviz",
+      "has_ssot": false,
+      "has_agents": false,
+      "has_justfile": false,
+      "has_llms": false,
+      "has_deny": false
+    },
+    {
+      "repo": "melosviz-wt",
+      "has_ssot": false,
+      "has_agents": false,
+      "has_justfile": false,
+      "has_llms": false,
+      "has_deny": false
+    },
+    {
+      "repo": "mobile-cli",
+      "has_ssot": true,
+      "has_agents": true,
+      "has_justfile": true,
+      "has_llms": true,
+      "has_deny": true
+    },
+    {
+      "repo": "mobile-cli-mobile-mcp-wt-2026-06-17",
+      "has_ssot": true,
+      "has_agents": true,
+      "has_justfile": true,
+      "has_llms": true,
+      "has_deny": true
+    },
+    {
+      "repo": "mobile-mcp",
+      "has_ssot": true,
+      "has_agents": true,
+      "has_justfile": true,
+      "has_llms": true,
+      "has_deny": true
+    },
+    {
+      "repo": "node_modules",
+      "has_ssot": false,
+      "has_agents": false,
+      "has_justfile": false,
+      "has_llms": false,
+      "has_deny": false
+    },
+    {
+      "repo": "omniroute-diego-clean",
+      "has_ssot": false,
+      "has_agents": true,
+      "has_justfile": false,
+      "has_llms": false,
+      "has_deny": false
+    },
+    {
+      "repo": "omniroute-diego-release",
+      "has_ssot": false,
+      "has_agents": true,
+      "has_justfile": false,
+      "has_llms": false,
+      "has_deny": false
+    },
+    {
+      "repo": "omniroute-diego-upstream",
+      "has_ssot": false,
+      "has_agents": true,
+      "has_justfile": false,
+      "has_llms": false,
+      "has_deny": false
+    },
+    {
+      "repo": "omniroute-upstream-work",
+      "has_ssot": false,
+      "has_agents": true,
+      "has_justfile": false,
+      "has_llms": false,
+      "has_deny": false
+    },
+    {
+      "repo": "omniroute-wtrees",
+      "has_ssot": false,
+      "has_agents": false,
+      "has_justfile": false,
+      "has_llms": false,
+      "has_deny": false
+    },
+    {
+      "repo": "pheno",
+      "has_ssot": false,
+      "has_agents": true,
+      "has_justfile": true,
+      "has_llms": false,
+      "has_deny": true
+    },
+    {
+      "repo": "pheno-cdylib-bridge",
+      "has_ssot": true,
+      "has_agents": true,
+      "has_justfile": true,
+      "has_llms": true,
+      "has_deny": true
+    },
+    {
+      "repo": "pheno-config",
+      "has_ssot": false,
+      "has_agents": true,
+      "has_justfile": false,
+      "has_llms": true,
+      "has_deny": false
+    },
+    {
+      "repo": "pheno-context",
+      "has_ssot": false,
+      "has_agents": false,
+      "has_justfile": false,
+      "has_llms": false,
+      "has_deny": false
+    },
+    {
+      "repo": "pheno-drift-detector",
+      "has_ssot": false,
+      "has_agents": true,
+      "has_justfile": false,
+      "has_llms": false,
+      "has_deny": false
+    },
+    {
+      "repo": "pheno-errors",
+      "has_ssot": false,
+      "has_agents": true,
+      "has_justfile": true,
+      "has_llms": true,
+      "has_deny": true
+    },
+    {
+      "repo": "pheno-errors-macros",
+      "has_ssot": false,
+      "has_agents": false,
+      "has_justfile": false,
+      "has_llms": false,
+      "has_deny": false
+    },
+    {
+      "repo": "pheno-flake-template",
+      "has_ssot": false,
+      "has_agents": false,
+      "has_justfile": false,
+      "has_llms": false,
+      "has_deny": false
+    },
+    {
+      "repo": "pheno-forge-plugins",
+      "has_ssot": false,
+      "has_agents": true,
+      "has_justfile": false,
+      "has_llms": true,
+      "has_deny": false
+    },
+    {
+      "repo": "pheno-forge-smoke",
+      "has_ssot": false,
+      "has_agents": true,
+      "has_justfile": false,
+      "has_llms": true,
+      "has_deny": false
+    },
+    {
+      "repo": "pheno-framework-lint",
+      "has_ssot": false,
+      "has_agents": true,
+      "has_justfile": false,
+      "has_llms": false,
+      "has_deny": false
+    },
+    {
+      "repo": "pheno-llms-txt",
+      "has_ssot": false,
+      "has_agents": true,
+      "has_justfile": false,
+      "has_llms": true,
+      "has_deny": false
+    },
+    {
+      "repo": "pheno-otel",
+      "has_ssot": false,
+      "has_agents": true,
+      "has_justfile": true,
+      "has_llms": true,
+      "has_deny": true
+    },
+    {
+      "repo": "pheno-port-adapter",
+      "has_ssot": false,
+      "has_agents": true,
+      "has_justfile": true,
+      "has_llms": true,
+      "has_deny": true
+    },
+    {
+      "repo": "pheno-predict",
+      "has_ssot": false,
+      "has_agents": true,
+      "has_justfile": false,
+      "has_llms": false,
+      "has_deny": false
+    },
+    {
+      "repo": "pheno-scaffold-kit",
+      "has_ssot": false,
+      "has_agents": true,
+      "has_justfile": false,
+      "has_llms": true,
+      "has_deny": false
+    },
+    {
+      "repo": "pheno-secret-scan",
+      "has_ssot": false,
+      "has_agents": false,
+      "has_justfile": true,
+      "has_llms": false,
+      "has_deny": true
+    },
+    {
+      "repo": "pheno-ssot-template",
+      "has_ssot": false,
+      "has_agents": false,
+      "has_justfile": true,
+      "has_llms": false,
+      "has_deny": true
+    },
+    {
+      "repo": "pheno-tracing",
+      "has_ssot": true,
+      "has_agents": true,
+      "has_justfile": true,
+      "has_llms": true,
+      "has_deny": true
+    },
+    {
+      "repo": "pheno-vibecoding-guard",
+      "has_ssot": false,
+      "has_agents": true,
+      "has_justfile": false,
+      "has_llms": true,
+      "has_deny": false
+    },
+    {
+      "repo": "pheno-worklog-schema",
+      "has_ssot": false,
+      "has_agents": true,
+      "has_justfile": false,
+      "has_llms": true,
+      "has_deny": false
+    },
+    {
+      "repo": "phenoAI",
+      "has_ssot": true,
+      "has_agents": true,
+      "has_justfile": true,
+      "has_llms": false,
+      "has_deny": true
+    },
+    {
+      "repo": "phenoData",
+      "has_ssot": true,
+      "has_agents": true,
+      "has_justfile": true,
+      "has_llms": true,
+      "has_deny": true
+    },
+    {
+      "repo": "phenoDesign",
+      "has_ssot": false,
+      "has_agents": true,
+      "has_justfile": false,
+      "has_llms": false,
+      "has_deny": false
+    },
+    {
+      "repo": "phenoEvents",
+      "has_ssot": true,
+      "has_agents": true,
+      "has_justfile": true,
+      "has_llms": true,
+      "has_deny": true
+    },
+    {
+      "repo": "phenoResearchEngine",
+      "has_ssot": true,
+      "has_agents": true,
+      "has_justfile": true,
+      "has_llms": true,
+      "has_deny": true
+    },
+    {
+      "repo": "phenoUtils",
+      "has_ssot": false,
+      "has_agents": true,
+      "has_justfile": true,
+      "has_llms": false,
+      "has_deny": true
+    },
+    {
+      "repo": "phenoUtils-phenoschema-final",
+      "has_ssot": false,
+      "has_agents": true,
+      "has_justfile": true,
+      "has_llms": false,
+      "has_deny": true
+    },
+    {
+      "repo": "phenodag",
+      "has_ssot": true,
+      "has_agents": true,
+      "has_justfile": true,
+      "has_llms": true,
+      "has_deny": true
+    },
+    {
+      "repo": "phenodag-tool",
+      "has_ssot": true,
+      "has_agents": true,
+      "has_justfile": true,
+      "has_llms": true,
+      "has_deny": true
+    },
+    {
+      "repo": "phenodocs",
+      "has_ssot": true,
+      "has_agents": true,
+      "has_justfile": true,
+      "has_llms": true,
+      "has_deny": true
+    },
+    {
+      "repo": "phenokits-commons",
+      "has_ssot": false,
+      "has_agents": true,
+      "has_justfile": true,
+      "has_llms": false,
+      "has_deny": true
+    },
+    {
+      "repo": "phenotype-apps-L39-wt",
+      "has_ssot": true,
+      "has_agents": true,
+      "has_justfile": true,
+      "has_llms": false,
+      "has_deny": true
+    },
+    {
+      "repo": "phenotype-apps-main",
+      "has_ssot": true,
+      "has_agents": true,
+      "has_justfile": true,
+      "has_llms": false,
+      "has_deny": true
+    },
+    {
+      "repo": "phenotype-go-sdk",
+      "has_ssot": false,
+      "has_agents": false,
+      "has_justfile": true,
+      "has_llms": false,
+      "has_deny": false
+    },
+    {
+      "repo": "phenotype-go-sdk-devhex-platformkit-final",
+      "has_ssot": false,
+      "has_agents": false,
+      "has_justfile": true,
+      "has_llms": false,
+      "has_deny": false
+    },
+    {
+      "repo": "phenotype-infra",
+      "has_ssot": false,
+      "has_agents": true,
+      "has_justfile": true,
+      "has_llms": false,
+      "has_deny": true
+    },
+    {
+      "repo": "phenotype-journeys",
+      "has_ssot": true,
+      "has_agents": true,
+      "has_justfile": true,
+      "has_llms": true,
+      "has_deny": true
+    },
+    {
+      "repo": "phenotype-landing",
+      "has_ssot": false,
+      "has_agents": true,
+      "has_justfile": true,
+      "has_llms": false,
+      "has_deny": true
+    },
+    {
+      "repo": "phenotype-ops",
+      "has_ssot": false,
+      "has_agents": true,
+      "has_justfile": true,
+      "has_llms": false,
+      "has_deny": true
+    },
+    {
+      "repo": "phenotype-org-audits",
+      "has_ssot": true,
+      "has_agents": true,
+      "has_justfile": true,
+      "has_llms": true,
+      "has_deny": true
+    },
+    {
+      "repo": "phenotype-python-sdk",
+      "has_ssot": true,
+      "has_agents": true,
+      "has_justfile": true,
+      "has_llms": true,
+      "has_deny": true
+    },
+    {
+      "repo": "phenotype-python-sdk-datakit-final",
+      "has_ssot": true,
+      "has_agents": true,
+      "has_justfile": true,
+      "has_llms": true,
+      "has_deny": true
+    },
+    {
+      "repo": "phenotype-registry",
+      "has_ssot": true,
+      "has_agents": true,
+      "has_justfile": true,
+      "has_llms": true,
+      "has_deny": true
+    },
+    {
+      "repo": "phenotype-registry-archived-local-work",
+      "has_ssot": true,
+      "has_agents": true,
+      "has_justfile": true,
+      "has_llms": true,
+      "has_deny": true
+    },
+    {
+      "repo": "phenotype-registry-conft-settly-final",
+      "has_ssot": true,
+      "has_agents": true,
+      "has_justfile": true,
+      "has_llms": true,
+      "has_deny": true
+    },
+    {
+      "repo": "phenotype-registry-dagctl-final",
+      "has_ssot": true,
+      "has_agents": true,
+      "has_justfile": true,
+      "has_llms": true,
+      "has_deny": true
+    },
+    {
+      "repo": "phenotype-registry-datakit-final",
+      "has_ssot": true,
+      "has_agents": true,
+      "has_justfile": true,
+      "has_llms": true,
+      "has_deny": true
+    },
+    {
+      "repo": "phenotype-registry-depguard-final",
+      "has_ssot": true,
+      "has_agents": true,
+      "has_justfile": true,
+      "has_llms": true,
+      "has_deny": true
+    },
+    {
+      "repo": "phenotype-registry-devhex-platformkit-final",
+      "has_ssot": true,
+      "has_agents": true,
+      "has_justfile": true,
+      "has_llms": true,
+      "has_deny": true
+    },
+    {
+      "repo": "phenotype-registry-drain-next",
+      "has_ssot": true,
+      "has_agents": true,
+      "has_justfile": true,
+      "has_llms": true,
+      "has_deny": true
+    },
+    {
+      "repo": "phenotype-registry-helioscope-final",
+      "has_ssot": true,
+      "has_agents": true,
+      "has_justfile": true,
+      "has_llms": true,
+      "has_deny": true
+    },
+    {
+      "repo": "phenotype-registry-httpora-final",
+      "has_ssot": true,
+      "has_agents": true,
+      "has_justfile": true,
+      "has_llms": true,
+      "has_deny": true
+    },
+    {
+      "repo": "phenotype-registry-phenoforge-final",
+      "has_ssot": true,
+      "has_agents": true,
+      "has_justfile": true,
+      "has_llms": true,
+      "has_deny": true
+    },
+    {
+      "repo": "phenotype-registry-phenoschema-final",
+      "has_ssot": true,
+      "has_agents": true,
+      "has_justfile": true,
+      "has_llms": true,
+      "has_deny": true
+    },
+    {
+      "repo": "phenotype-registry-preserve-wip",
+      "has_ssot": true,
+      "has_agents": true,
+      "has_justfile": true,
+      "has_llms": true,
+      "has_deny": true
+    },
+    {
+      "repo": "phenotype-registry-profila-final",
+      "has_ssot": true,
+      "has_agents": true,
+      "has_justfile": true,
+      "has_llms": true,
+      "has_deny": true
+    },
+    {
+      "repo": "phenotype-registry-utils-boundary",
+      "has_ssot": true,
+      "has_agents": true,
+      "has_justfile": true,
+      "has_llms": true,
+      "has_deny": true
+    },
+    {
+      "repo": "phenotype-sdk",
+      "has_ssot": false,
+      "has_agents": false,
+      "has_justfile": true,
+      "has_llms": false,
+      "has_deny": false
+    },
+    {
+      "repo": "phenotype-tooling",
+      "has_ssot": false,
+      "has_agents": false,
+      "has_justfile": false,
+      "has_llms": false,
+      "has_deny": false
+    },
+    {
+      "repo": "plans",
+      "has_ssot": false,
+      "has_agents": false,
+      "has_justfile": false,
+      "has_llms": false,
+      "has_deny": false
+    },
+    {
+      "repo": "plugins",
+      "has_ssot": false,
+      "has_agents": false,
+      "has_justfile": false,
+      "has_llms": false,
+      "has_deny": false
+    },
+    {
+      "repo": "portage",
+      "has_ssot": false,
+      "has_agents": true,
+      "has_justfile": true,
+      "has_llms": false,
+      "has_deny": true
+    },
+    {
+      "repo": "providers",
+      "has_ssot": false,
+      "has_agents": false,
+      "has_justfile": false,
+      "has_llms": false,
+      "has_deny": false
+    },
+    {
+      "repo": "rich-cli-kit",
+      "has_ssot": true,
+      "has_agents": true,
+      "has_justfile": true,
+      "has_llms": true,
+      "has_deny": true
+    },
+    {
+      "repo": "roles",
+      "has_ssot": false,
+      "has_agents": false,
+      "has_justfile": false,
+      "has_llms": false,
+      "has_deny": false
+    },
+    {
+      "repo": "runbooks",
+      "has_ssot": false,
+      "has_agents": false,
+      "has_justfile": false,
+      "has_llms": false,
+      "has_deny": false
+    },
+    {
+      "repo": "scripts",
+      "has_ssot": false,
+      "has_agents": false,
+      "has_justfile": false,
+      "has_llms": false,
+      "has_deny": false
+    },
+    {
+      "repo": "server",
+      "has_ssot": false,
+      "has_agents": false,
+      "has_justfile": false,
+      "has_llms": false,
+      "has_deny": false
+    },
+    {
+      "repo": "services",
+      "has_ssot": false,
+      "has_agents": false,
+      "has_justfile": false,
+      "has_llms": false,
+      "has_deny": false
+    },
+    {
+      "repo": "sharecli",
+      "has_ssot": true,
+      "has_agents": true,
+      "has_justfile": true,
+      "has_llms": true,
+      "has_deny": true
+    },
+    {
+      "repo": "slm",
+      "has_ssot": false,
+      "has_agents": false,
+      "has_justfile": false,
+      "has_llms": false,
+      "has_deny": false
+    },
+    {
+      "repo": "slm-server",
+      "has_ssot": false,
+      "has_agents": false,
+      "has_justfile": false,
+      "has_llms": false,
+      "has_deny": false
+    },
+    {
+      "repo": "templates",
+      "has_ssot": false,
+      "has_agents": false,
+      "has_justfile": false,
+      "has_llms": false,
+      "has_deny": false
+    },
+    {
+      "repo": "tests",
+      "has_ssot": false,
+      "has_agents": false,
+      "has_justfile": false,
+      "has_llms": false,
+      "has_deny": false
+    },
+    {
+      "repo": "thegent",
+      "has_ssot": true,
+      "has_agents": true,
+      "has_justfile": true,
+      "has_llms": true,
+      "has_deny": true
+    },
+    {
+      "repo": "thegent-dispatch",
+      "has_ssot": true,
+      "has_agents": true,
+      "has_justfile": true,
+      "has_llms": true,
+      "has_deny": true
+    },
+    {
+      "repo": "thegent-pr2-v2",
+      "has_ssot": true,
+      "has_agents": true,
+      "has_justfile": true,
+      "has_llms": true,
+      "has_deny": true
+    },
+    {
+      "repo": "tools",
+      "has_ssot": false,
+      "has_agents": false,
+      "has_justfile": false,
+      "has_llms": false,
+      "has_deny": false
+    },
+    {
+      "repo": "worklogs",
+      "has_ssot": false,
+      "has_agents": false,
+      "has_justfile": false,
+      "has_llms": false,
+      "has_deny": false
+    },
+    {
+      "repo": "worktrees",
+      "has_ssot": false,
+      "has_agents": false,
+      "has_justfile": false,
+      "has_llms": false,
+      "has_deny": false
+    },
+    {
+      "repo": "wrappers",
+      "has_ssot": false,
+      "has_agents": false,
+      "has_justfile": false,
+      "has_llms": false,
+      "has_deny": false
+    }
+  ]
+}
