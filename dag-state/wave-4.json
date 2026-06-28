@@ -1,0 +1,135 @@
+{
+  "wave": "wave-4",
+  "branch": "chore/v47-dag-wave-4-clean-2026-06-27",
+  "width": 11,
+  "envelope": 10,
+  "findings": 1,
+  "tasks": [
+    {
+      "id": "env-Parpoura",
+      "lane": "envelope",
+      "target_repo": "Parpoura",
+      "missing_files": [
+        "deny.toml"
+      ],
+      "expected_files_added": 1,
+      "commit_message": "feat(governance): onboard Parpoura"
+    },
+    {
+      "id": "env-PhenoHandbook",
+      "lane": "envelope",
+      "target_repo": "PhenoHandbook",
+      "missing_files": [
+        "deny.toml"
+      ],
+      "expected_files_added": 1,
+      "commit_message": "feat(governance): onboard PhenoHandbook"
+    },
+    {
+      "id": "env-PhenoMCPServers",
+      "lane": "envelope",
+      "target_repo": "PhenoMCPServers",
+      "missing_files": [
+        "deny.toml"
+      ],
+      "expected_files_added": 1,
+      "commit_message": "feat(governance): onboard PhenoMCPServers"
+    },
+    {
+      "id": "env-Sidekick",
+      "lane": "envelope",
+      "target_repo": "Sidekick",
+      "missing_files": [
+        "SSOT.md",
+        "llms.txt"
+      ],
+      "expected_files_added": 2,
+      "commit_message": "feat(governance): onboard Sidekick"
+    },
+    {
+      "id": "env-TestingKit",
+      "lane": "envelope",
+      "target_repo": "TestingKit",
+      "missing_files": [
+        "justfile",
+        "SSOT.md",
+        ".pre-commit-config.yaml"
+      ],
+      "expected_files_added": 3,
+      "commit_message": "feat(governance): onboard TestingKit"
+    },
+    {
+      "id": "env-clap-ext",
+      "lane": "envelope",
+      "target_repo": "clap-ext",
+      "missing_files": [
+        "justfile",
+        "SSOT.md",
+        "llms.txt",
+        "deny.toml",
+        ".pre-commit-config.yaml"
+      ],
+      "expected_files_added": 5,
+      "commit_message": "feat(governance): onboard clap-ext"
+    },
+    {
+      "id": "env-eyetracker",
+      "lane": "envelope",
+      "target_repo": "eyetracker",
+      "missing_files": [
+        "SSOT.md",
+        "llms.txt",
+        ".github/workflows/ci.yml"
+      ],
+      "expected_files_added": 3,
+      "commit_message": "feat(governance): onboard eyetracker"
+    },
+    {
+      "id": "env-heliosBench",
+      "lane": "envelope",
+      "target_repo": "heliosBench",
+      "missing_files": [
+        "justfile",
+        "SSOT.md",
+        "llms.txt",
+        "deny.toml"
+      ],
+      "expected_files_added": 4,
+      "commit_message": "feat(governance): onboard heliosBench"
+    },
+    {
+      "id": "env-kmobile",
+      "lane": "envelope",
+      "target_repo": "kmobile",
+      "missing_files": [
+        "SSOT.md",
+        "llms.txt",
+        ".pre-commit-config.yaml"
+      ],
+      "expected_files_added": 3,
+      "commit_message": "feat(governance): onboard kmobile"
+    },
+    {
+      "id": "env-mobile-cli",
+      "lane": "envelope",
+      "target_repo": "mobile-cli",
+      "missing_files": [
+        "AGENTS.md",
+        "justfile",
+        "SSOT.md",
+        "llms.txt",
+        "deny.toml",
+        ".pre-commit-config.yaml",
+        ".github/workflows/ci.yml"
+      ],
+      "expected_files_added": 7,
+      "commit_message": "feat(governance): onboard mobile-cli"
+    },
+    {
+      "id": "find-2026-06-27-v38-dag-wave-1-closure",
+      "lane": "side-dag",
+      "title": "20 more repos from the 147 remaining. Side-DAG: integrate nested-git lessons. Self-extend via findings/ anti-patterns from wave-1.",
+      "source": "findings/2026-06-27-v38-dag-wave-1-closure.md"
+    }
+  ]
+}
