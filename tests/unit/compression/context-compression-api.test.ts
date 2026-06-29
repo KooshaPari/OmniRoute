@@ -17,6 +17,8 @@ describe("context compression API schemas", () => {
         trustProjectFilters: false,
         rawOutputRetention: "failures",
         rawOutputMaxBytes: 4096,
+        enableRenderers: true,
+        renderers: ["git-diff", "terraform-plan"],
       }).success,
       true
     );

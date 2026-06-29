@@ -2187,6 +2187,12 @@ paths:
                   enum: [never, failures, always]
                 rawOutputMaxBytes:
                   type: integer
+                enableRenderers:
+                  type: boolean
+                renderers:
+                  type: array
+                  items:
+                    type: string
       responses:
         "200":
           description: Updated RTK config

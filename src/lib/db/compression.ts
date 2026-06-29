@@ -216,6 +216,13 @@ function normalizeRtkConfig(value: unknown): RtkConfig {
       typeof record.preserveDocstrings === "boolean"
         ? record.preserveDocstrings
         : (DEFAULT_RTK_CONFIG.preserveDocstrings ?? true),
+    enableRenderers:
+      typeof record.enableRenderers === "boolean"
+        ? record.enableRenderers
+        : (DEFAULT_RTK_CONFIG.enableRenderers ?? false),
+    renderers: Array.isArray(record.renderers)
+      ? record.renderers.filter((renderer): renderer is string => typeof renderer === "string")
+      : (DEFAULT_RTK_CONFIG.renderers ?? []),
   };
 }
 
@@ -638,8 +645,7 @@ export async function getCompressionSettings(): Promise<CompressionConfig> {
         storedEngines = parseStoredEnginesMap(parsed);
         break;
       case "activeComboId":
-        config.activeComboId =
-          typeof parsed === "string" && parsed.trim() ? parsed.trim() : null;
+        config.activeComboId = typeof parsed === "string" && parsed.trim() ? parsed.trim() : null;
         break;
       case "ultraEngine":
         // Phase 4 (B): SLM tier selector. Only the two known values; anything else

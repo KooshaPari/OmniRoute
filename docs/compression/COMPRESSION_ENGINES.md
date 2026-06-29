@@ -75,6 +75,8 @@ RTK mode focuses on command and tool output:
   `DATA_DIR/rtk/filters.json`
 - strips ANSI sequences, progress noise, repeated lines, and unhelpful boilerplate
 - preserves actionable failures, warnings, summaries, changed files, and tail context
+- can optionally run fail-open semantic renderers for diffs, green test summaries, Terraform/OpenTofu
+  plans, and structured JSON/table-like command output
 - can optionally retain redacted raw output for recovery/debugging through authenticated management
   routes
 

@@ -4,10 +4,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
-import {
-  applyRtkCompression,
-  stripCode,
-} from "../../../open-sse/services/compression/index.ts";
+import { applyRtkCompression, stripCode } from "../../../open-sse/services/compression/index.ts";
 import { rtkConfigSchema } from "../../../src/shared/validation/compressionConfigSchemas.ts";
 import { DEFAULT_RTK_CONFIG } from "../../../open-sse/services/compression/types.ts";
 
@@ -22,9 +19,8 @@ const ORIGINAL_DATA_DIR = process.env.DATA_DIR;
 process.env.DATA_DIR = TEST_DATA_DIR;
 
 const core = await import("../../../src/lib/db/core.ts");
-const { getCompressionSettings, updateCompressionSettings } = await import(
-  "../../../src/lib/db/compression.ts"
-);
+const { getCompressionSettings, updateCompressionSettings } =
+  await import("../../../src/lib/db/compression.ts");
 
 describe("RTK strip-code-comments — stripCode behavior", () => {
   it("removes line/block comments but keeps JSDoc when preserveDocstrings is on", () => {
@@ -114,23 +110,38 @@ describe("RTK strip-code-comments — config persistence", () => {
     else process.env.DATA_DIR = ORIGINAL_DATA_DIR;
   });
 
-  it("accepts stripCodeComments / preserveDocstrings on the write schema", () => {
+  it("accepts stripCodeComments / preserveDocstrings / renderer settings on the write schema", () => {
     assert.equal(
-      rtkConfigSchema.safeParse({ stripCodeComments: true, preserveDocstrings: false }).success,
+      rtkConfigSchema.safeParse({
+        stripCodeComments: true,
+        preserveDocstrings: false,
+        enableRenderers: true,
+        renderers: ["git-diff"],
+      }).success,
       true
     );
   });
 
-  it("preserves stripCodeComments / preserveDocstrings through a DB round-trip", async () => {
+  it("preserves stripCodeComments / preserveDocstrings / renderer settings through a DB round-trip", async () => {
     const settings = await updateCompressionSettings({
-      rtkConfig: { ...DEFAULT_RTK_CONFIG, stripCodeComments: true, preserveDocstrings: false },
+      rtkConfig: {
+        ...DEFAULT_RTK_CONFIG,
+        stripCodeComments: true,
+        preserveDocstrings: false,
+        enableRenderers: true,
+        renderers: ["git-diff"],
+      },
     });
     assert.equal(settings.rtkConfig.stripCodeComments, true);
     assert.equal(settings.rtkConfig.preserveDocstrings, false);
+    assert.equal(settings.rtkConfig.enableRenderers, true);
+    assert.deepEqual(settings.rtkConfig.renderers, ["git-diff"]);
 
     core.resetDbInstance();
     const reread = await getCompressionSettings();
     assert.equal(reread.rtkConfig.stripCodeComments, true);
     assert.equal(reread.rtkConfig.preserveDocstrings, false);
+    assert.equal(reread.rtkConfig.enableRenderers, true);
+    assert.deepEqual(reread.rtkConfig.renderers, ["git-diff"]);
   });
 });
