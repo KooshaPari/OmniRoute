@@ -1,19 +1,26 @@
-# catalog/registry.yaml — Phenotype substrate catalog (T23, 2026-06-20)
+# catalog/registry.yaml — Phenotype substrate catalog
 #
-# This is the canonical machine-readable substrate catalog for the
-# Phenotype fleet. It is enforced by ADR-ECO-017 (substrate schema
-# conventions) which requires every entry to declare:
+# CANONICAL machine-readable catalog of OWNED Phenotype-org repos.
+# Realigned 2026-06-28 to current owned-repo reality (88 owned repos,
+# verified against `gh repo list KooshaPari`). See
+# docs/ECOSYSTEM_MAP_REALIGNMENT.md for the full change log.
 #
-#   - tier        — one of: pheno-lib, phenotype-sdk, phenotype-framework,
+# Scope: this catalog lists the 88 OWNED repos under the Phenotype
+# Ownership Program. EXCLUDED (other-owner / paused / niche):
+#   AgilePlus, Tracera, Civis, Dino, WorldSphereMod, Compound-Spheres-3D*,
+#   QuadSGM, Parpoura, KaskMan, GDK, AtomsBot, KWatch, eyetracker,
+#   agent-user-status. These are intentionally NOT catalog entries.
+#
+# Per-entry fields (ADR-ECO-017):
+#   - tier        — pheno-lib | phenotype-sdk | phenotype-framework |
 #                   federated-service. Required.
-#   - architecture — one of: hexagonal-l4, layered, microkernel, none.
-#                   Required when tier is phenotype-framework.
-#   - ports       — list of `Port` trait names declared by the crate.
-#                   Required when architecture is hexagonal-l4.
-#   - adapters    — list of adapter impl names. Required when
-#                   architecture is hexagonal-l4.
-#   - docs/boundary path  — relative path to the entry's docs/boundary file.
-#   - docs/intent path    — relative path to the entry's docs/intent file.
+#   - archetype   — coarse repo shape (library|sdk|cli|service|app|
+#                   contract|spec|docs|infra|plugin|tooling|fork-tool|
+#                   monorepo|landing). Realignment-added, free-form.
+#   - architecture — required only when tier=phenotype-framework.
+#   - ports/adapters — required only when architecture=hexagonal-l4.
+#   - language    — primary impl language.
+#   - role        — domain role per DOMAIN_ROLES.md.
 #
 # Schema: catalog/registry.schema.json
 # Validator: scripts/validate-catalog.py
@@ -21,113 +28,1241 @@
 # ADR: docs/adrs/ADR-ECO-017-substrate-schema-conventions.md
 ---
 okf_version: "1.0"
-schema_version: "2026-06-20"
+schema_version: "2026-06-28"
 authority: docs/adrs/ADR-ECO-017-substrate-schema-conventions.md
 enforced_by:
   - scripts/validate-catalog.py
   - .github/workflows/registry-validate.yml
 
 substrates:
+  - id: agentapi-plusplus
+    repo: KooshaPari/agentapi-plusplus
+    name: agentapi-plusplus
+    status: active
+    tier: federated-service
+    architecture: layered
+    archetype: fork-tool
+    language: go
+    role: cli-proxy
+    boundary: null
+    intent: null
+    notes: |
+      Plus fork of agentapi; agent-control HTTP surface (/message,/status,/events). Peer of cliproxyapi-plusplus per DOMAIN_ROLES.md.
+
+  - id: agentora
+    repo: KooshaPari/Agentora
+    name: Agentora
+    status: active
+    tier: phenotype-framework
+    architecture: layered
+    archetype: app
+    language: python
+    role: agent-orchestration
+    boundary: null
+    intent: null
+    notes: |
+      Agent orchestration app; source of phenotype-agent-contracts consumed by HexaKit.
+
+  - id: apisync
+    repo: KooshaPari/Apisync
+    name: Apisync
+    status: active
+    tier: pheno-lib
+    architecture: layered
+    archetype: app
+    language: rust
+    role: api-sync
+    boundary: null
+    intent: null
+    notes: |
+      BLOCK A app (Apisync).
+
+  - id: argis-extensions
+    repo: KooshaPari/argis-extensions
+    name: argis-extensions
+    status: active
+    tier: pheno-lib
+    architecture: layered
+    archetype: plugin
+    language: go
+    role: gateway-extensions
+    boundary: null
+    intent: null
+    notes: |
+      Go bifrost-extensions module; vendors upstream bifrost/core via replace. No live sibling edges.
+
+  - id: authkit
+    repo: KooshaPari/AuthKit
+    name: AuthKit
+    status: active
+    tier: phenotype-framework
+    architecture: layered
+    archetype: sdk
+    language: rust
+    role: auth
+    boundary: null
+    intent: null
+    notes: |
+      Auth SDK (Rust core). TS auth-ts absorbed phenotype-auth-ts (PR#120).
+
+  - id: authvault
+    repo: KooshaPari/Authvault
+    name: Authvault
+    status: active
+    tier: phenotype-framework
+    architecture: layered
+    archetype: library
+    language: rust
+    role: security
+    boundary: null
+    intent: null
+    notes: |
+      Security/crypto workspace (phenotype-auth-contracts, cipher, crypto, casbin-wrapper). Source of HexaKit security edges.
+
+  - id: benchora
+    repo: KooshaPari/Benchora
+    name: Benchora
+    status: active
+    tier: pheno-lib
+    architecture: layered
+    archetype: library
+    language: rust
+    role: benchmarking
+    boundary: null
+    intent: null
+    notes: |
+      Benchmarking substrate.
+
+  - id: bifrost
+    repo: KooshaPari/bifrost
+    name: bifrost
+    status: active
+    tier: federated-service
+    architecture: layered
+    archetype: fork-tool
+    language: go
+    role: gateway
+    boundary: null
+    intent: null
+    notes: |
+      Vendor-only LLM gateway fork (Go).
+
+  - id: byteport
+    repo: KooshaPari/BytePort
+    name: BytePort
+    status: active
+    tier: phenotype-framework
+    architecture: layered
+    archetype: app
+    language: typescript
+    role: desktop-app
+    boundary: null
+    intent: null
+    notes: |
+      Svelte/Tauri 2.x desktop app per ADR-022.
+
+  - id: clap-ext
+    repo: KooshaPari/clap-ext
+    name: clap-ext
+    status: active
+    tier: pheno-lib
+    architecture: layered
+    archetype: library
+    language: rust
+    role: cli-framework
+    boundary: null
+    intent: null
+    notes: |
+      Shared Rust clap CLI extension lib: subcommands, config flags, error display.
+
+  - id: cliproxyapi-plusplus
+    repo: KooshaPari/cliproxyapi-plusplus
+    name: cliproxyapi-plusplus
+    status: active
+    tier: federated-service
+    architecture: layered
+    archetype: fork-tool
+    language: typescript
+    role: cli-proxy
+    boundary: null
+    intent: null
+    notes: |
+      Plus fork: OAuth CLI -> OpenAI-compatible proxy. Peer of agentapi-plusplus. (gh primaryLanguage=HTML; effective TS/Go.)
+
   - id: configra
     repo: KooshaPari/Configra
     name: Configra
     status: active
-    tier: pheno-lib            # pheno-config / settly / config-schema / phenotype-config-loader
-    architecture: layered
-    language: rust
-    role: config
-    workspace_version: "0.4.0"
-    adr_refs:
-      - ADR-031   # Configra absorb
-      - ADR-022   # config consolidation
-      - ADR-023   # agent-effort governance
-      - ADR-040   # test-coverage gates per tier
-    boundary: docs/boundary/Configra.md
-    intent: docs/intent/Configra.md
-    notes: |
-      Canonical config substrate per ADR-031. Four-tier split:
-      pheno-config (typed Config + ConfigBuilder),
-      settly (settings lifecycle, hexagonal),
-      config-schema (field-shape validator),
-      phenotype-config-loader (generic JSON/TOML file loaders).
-
-  - id: pheno-tracing
-    repo: KooshaPari/pheno-tracing
-    name: pheno-tracing
-    status: archived          # 2026-06-20 — repo archived, substrate still canonical
     tier: pheno-lib
     architecture: layered
+    archetype: library
+    language: rust
+    role: config
+    boundary: null
+    intent: null
+    notes: |
+      Canonical config substrate per ADR-031 (pheno-config, settly, config-schema, phenotype-config-loader).
+
+  - id: conft
+    repo: KooshaPari/Conft
+    name: Conft
+    status: active
+    tier: pheno-lib
+    architecture: layered
+    archetype: library
+    language: typescript
+    role: config
+    boundary: null
+    intent: null
+    notes: |
+      TS config edge for the `config` role (DOMAIN_ROLES.md).
+
+  - id: context-mode
+    repo: KooshaPari/context-mode
+    name: context-mode
+    status: active
+    tier: federated-service
+    architecture: layered
+    archetype: fork-tool
+    language: typescript
+    role: context
+    boundary: null
+    intent: null
+    notes: |
+      TS fork; context-budget/mode tooling.
+
+  - id: context-mode-plusplus
+    repo: KooshaPari/context-mode-plusplus
+    name: context-mode-plusplus
+    status: active
+    tier: federated-service
+    architecture: layered
+    archetype: tooling
+    language: typescript
+    role: context
+    boundary: null
+    intent: null
+    notes: |
+      Plus variant of context-mode (source repo, not fork).
+
+  - id: datakit
+    repo: KooshaPari/DataKit
+    name: DataKit
+    status: active
+    tier: phenotype-framework
+    architecture: layered
+    archetype: sdk
+    language: rust
+    role: data
+    boundary: null
+    intent: null
+    notes: |
+      Data SDK. BLOCK A app/SDK (gh lang undetected).
+
+  - id: eidolon
+    repo: KooshaPari/Eidolon
+    name: Eidolon
+    status: active
+    tier: phenotype-framework
+    architecture: layered
+    archetype: service
+    language: rust
+    role: agent-runtime
+    boundary: null
+    intent: null
+    notes: |
+      Phenotype-org agent runtime.
+
+  - id: eventra
+    repo: KooshaPari/Eventra
+    name: Eventra
+    status: active
+    tier: pheno-lib
+    architecture: layered
+    archetype: library
+    language: rust
+    role: events
+    boundary: null
+    intent: null
+    notes: |
+      Event workspace (phenotype-event-contracts/-bus/-sourcing). Source of HexaKit event edges. Distinct from phenoEvents.
+
+  - id: focalpoint
+    repo: KooshaPari/FocalPoint
+    name: FocalPoint
+    status: active
+    tier: phenotype-framework
+    architecture: layered
+    archetype: app
+    language: typescript
+    role: focus-app
+    boundary: null
+    intent: null
+    notes: |
+      Svelte app. Deferred-tier per registry AGENTS.md rules.
+
+  - id: forgecode
+    repo: KooshaPari/forgecode
+    name: forgecode
+    status: active
+    tier: federated-service
+    architecture: layered
+    archetype: fork-tool
+    language: rust
+    role: agentic-cli
+    boundary: null
+    intent: null
+    notes: |
+      Flagship SOTA agentic coding CLI/TUI (Rust fork).
+
+  - id: helios-cli
+    repo: KooshaPari/helios-cli
+    name: helios-cli
+    status: active
+    tier: federated-service
+    architecture: layered
+    archetype: fork-tool
+    language: rust
+    role: cli
+    boundary: null
+    intent: null
+    notes: |
+      Helios CLI (Rust fork).
+
+  - id: helioslab
+    repo: KooshaPari/HeliosLab
+    name: HeliosLab
+    status: active
+    tier: federated-service
+    architecture: layered
+    archetype: fork-tool
+    language: typescript
+    role: lab
+    boundary: null
+    intent: null
+    notes: |
+      Helios lab (TS fork).
+
+  - id: hexakit
+    repo: KooshaPari/HexaKit
+    name: HexaKit
+    status: active
+    tier: phenotype-framework
+    architecture: layered
+    archetype: sdk
+    language: rust
+    role: genesis
+    boundary: null
+    intent: null
+    notes: |
+      Genesis role owner (repo bootstrap/templates/charter). Dependency HUB: live git edges to Eventra, PhenoObservability, Authvault, TestingKit, ResilienceKit, substrate, Agentora, phenotype-config/types/rust-sdk.
+
+  - id: httpora
+    repo: KooshaPari/Httpora
+    name: Httpora
+    status: active
+    tier: pheno-lib
+    architecture: layered
+    archetype: app
+    language: rust
+    role: http
+    boundary: null
+    intent: null
+    notes: |
+      BLOCK A app (Httpora).
+
+  - id: hwledger
+    repo: KooshaPari/hwLedger
+    name: hwLedger
+    status: active
+    tier: pheno-lib
+    architecture: layered
+    archetype: app
+    language: rust
+    role: hardware-ledger
+    boundary: null
+    intent: null
+    notes: |
+      Phenotype-org hardware ledger. Deferred-tier.
+
+  - id: kdesktopvirt
+    repo: KooshaPari/KDesktopVirt
+    name: KDesktopVirt
+    status: active
+    tier: phenotype-framework
+    architecture: layered
+    archetype: service
+    language: rust
+    role: desktop-automation
+    boundary: null
+    intent: null
+    notes: |
+      AI agent desktop automation + container orchestration.
+
+  - id: kmobile
+    repo: KooshaPari/kmobile
+    name: kmobile
+    status: active
+    tier: phenotype-framework
+    architecture: layered
+    archetype: cli
+    language: rust
+    role: mobile
+    boundary: null
+    intent: null
+    notes: |
+      KMobile: CLI/API/MCP for mobile dev+test automation.
+
+  - id: kodevibe
+    repo: KooshaPari/KodeVibe
+    name: KodeVibe
+    status: active
+    tier: phenotype-framework
+    architecture: layered
+    archetype: tooling
+    language: go
+    role: quality
+    boundary: null
+    intent: null
+    notes: |
+      Code-quality guardian (Go). `quality` role owner.
+
+  - id: localbase3
+    repo: KooshaPari/localbase3
+    name: localbase3
+    status: active
+    tier: pheno-lib
+    architecture: layered
+    archetype: tooling
+    language: typescript
+    role: devenv
+    boundary: null
+    intent: null
+    notes: |
+      Localhost dev environment bootstrap. (gh lang=HTML.)
+
+  - id: logify
+    repo: KooshaPari/Logify
+    name: Logify
+    status: active
+    tier: pheno-lib
+    architecture: layered
+    archetype: library
     language: rust
     role: observability
     boundary: null
     intent: null
     notes: |
-      Canonical tracing substrate per ADR-012 / ADR-036B. Repo is
-      archived (read-only); consumers should not file issues here.
-      The substrate classification is preserved for cross-repo
-      ref resolution.
+      Structured logging framework, zero-cost abstraction, multiple sinks.
 
-  - id: pheno-mcp-router
-    repo: KooshaPari/pheno-mcp-router
-    name: pheno-mcp-router
-    status: archived          # 2026-06-20 — repo archived, substrate still canonical
+  - id: melosviz
+    repo: KooshaPari/Melosviz
+    name: Melosviz
+    status: active
     tier: pheno-lib
-    architecture: hexagonal-l4
-    ports: [LlmPort, McpPort, CostPort, BudgetPort, QuotaPort, AuditPort]
-    adapters: [LlamaAdapter, OpenAICompatAdapter, AnthropicAdapter, OllamaAdapter]
-    language: rust
-    role: llm-routing
+    architecture: layered
+    archetype: library
+    language: python
+    role: visualization
     boundary: null
     intent: null
     notes: |
-      Canonical MCP-router substrate per ADR-013 / ADR-037. Repo is
-      archived (read-only). Hexagonal L4 port/adapter split is the
-      reference implementation for ADR-038.
+      Visualization lib; depended-on (kept per program).
 
-  - id: phenotype-sdk
-    repo: KooshaPari/phenotype-sdk
-    name: Phenotype SDK
+  - id: nanovms
+    repo: KooshaPari/nanovms
+    name: nanovms
+    status: active
+    tier: federated-service
+    architecture: layered
+    archetype: infra
+    language: go
+    role: platform
+    boundary: null
+    intent: null
+    notes: |
+      3-tier VMM/sandbox isolation layer per ADR-022. Workspace member of phenotype-infra federation.
+
+  - id: omniroute
+    repo: KooshaPari/OmniRoute
+    name: OmniRoute
+    status: active
+    tier: federated-service
+    architecture: layered
+    archetype: fork-tool
+    language: typescript
+    role: route
+    boundary: null
+    intent: null
+    notes: |
+      Flagship SOTA LLM model router. Canonical routing framework (ADR-001). `route` role owner (TS).
+
+  - id: pheno
+    repo: KooshaPari/pheno
+    name: pheno
+    status: active
+    tier: phenotype-framework
+    architecture: layered
+    archetype: monorepo
+    language: rust
+    role: core
+    boundary: null
+    intent: null
+    notes: |
+      Core Rust monorepo (~40 phenotype-* internal crates). Live git edge to pheno-tracing.
+
+  - id: pheno-cdylib-bridge
+    repo: KooshaPari/pheno-cdylib-bridge
+    name: pheno-cdylib-bridge
+    status: active
+    tier: pheno-lib
+    architecture: layered
+    archetype: library
+    language: rust
+    role: ffi
+    boundary: null
+    intent: null
+    notes: |
+      C-dylib FFI bridge.
+
+  - id: pheno-context
+    repo: KooshaPari/pheno-context
+    name: pheno-context
+    status: active
+    tier: pheno-lib
+    architecture: layered
+    archetype: library
+    language: rust
+    role: context
+    boundary: null
+    intent: null
+    notes: |
+      Context substrate (ADR-095 T0).
+
+  - id: pheno-forge-plugins
+    repo: KooshaPari/pheno-forge-plugins
+    name: pheno-forge-plugins
+    status: active
+    tier: pheno-lib
+    architecture: layered
+    archetype: plugin
+    language: rust
+    role: forge-plugins
+    boundary: null
+    intent: null
+    notes: |
+      Forge plugin set (gh lang=Shell).
+
+  - id: pheno-forge-smoke
+    repo: KooshaPari/pheno-forge-smoke
+    name: pheno-forge-smoke
+    status: active
+    tier: pheno-lib
+    architecture: layered
+    archetype: tooling
+    language: rust
+    role: smoke-test
+    boundary: null
+    intent: null
+    notes: |
+      Forge smoke-test harness.
+
+  - id: pheno-runtime-config
+    repo: KooshaPari/pheno-runtime-config
+    name: pheno-runtime-config
+    status: active
+    tier: pheno-lib
+    architecture: layered
+    archetype: library
+    language: rust
+    role: config
+    boundary: null
+    intent: null
+    notes: |
+      Runtime config substrate (ADR-095 T0).
+
+  - id: pheno-tracing
+    repo: KooshaPari/pheno-tracing
+    name: pheno-tracing
+    status: active
+    tier: pheno-lib
+    architecture: layered
+    archetype: library
+    language: rust
+    role: observability
+    boundary: null
+    intent: null
+    notes: |
+      Tracing substrate per ADR-012/036B. Live: pheno-otel path dep; consumed by pheno. (Was marked archived in old catalog; gh shows LIVE.)
+
+  - id: phenoai
+    repo: KooshaPari/phenoAI
+    name: phenoAI
+    status: active
+    tier: phenotype-framework
+    architecture: layered
+    archetype: app
+    language: rust
+    role: ai-workspace
+    boundary: null
+    intent: null
+    notes: |
+      AI agent workspace/tooling; consumes routers (not route SSOT).
+
+  - id: phenocompose
+    repo: KooshaPari/PhenoCompose
+    name: PhenoCompose
+    status: active
+    tier: federated-service
+    architecture: layered
+    archetype: infra
+    language: rust
+    role: platform
+    boundary: null
+    intent: null
+    notes: |
+      Compose CLI + hex ports. Workspace member of phenotype-infra federation (supersedes standalone phenocompose).
+
+  - id: phenocontracts
+    repo: KooshaPari/PhenoContracts
+    name: PhenoContracts
+    status: active
+    tier: pheno-lib
+    architecture: layered
+    archetype: contract
+    language: rust
+    role: verification
+    boundary: null
+    intent: null
+    notes: |
+      Formal verification port + Prusti/Kani adapters + contract test bundle. (gh lang=HTML.)
+
+  - id: phenodag
+    repo: KooshaPari/phenodag
+    name: phenodag
+    status: active
+    tier: pheno-lib
+    architecture: layered
+    archetype: tooling
+    language: go
+    role: dag
+    boundary: null
+    intent: null
+    notes: |
+      Single-file Go multi-agent DAG (SQLite+flock). Absorbs `dagctl` alias.
+
+  - id: phenodata
+    repo: KooshaPari/phenoData
+    name: phenoData
+    status: active
+    tier: phenotype-framework
+    architecture: layered
+    archetype: app
+    language: rust
+    role: data
+    boundary: null
+    intent: null
+    notes: |
+      BLOCK A app (phenoData).
+
+  - id: phenodesign
+    repo: KooshaPari/phenoDesign
+    name: phenoDesign
+    status: active
+    tier: pheno-lib
+    architecture: layered
+    archetype: docs
+    language: typescript
+    role: design
+    boundary: null
+    intent: null
+    notes: |
+      Design system / tokens.
+
+  - id: phenodocs
+    repo: KooshaPari/phenodocs
+    name: phenodocs
+    status: active
+    tier: pheno-lib
+    architecture: layered
+    archetype: docs
+    language: typescript
+    role: docs
+    boundary: null
+    intent: null
+    notes: |
+      Docs site (Vue/VitePress).
+
+  - id: phenoevents
+    repo: KooshaPari/phenoEvents
+    name: phenoEvents
+    status: active
+    tier: pheno-lib
+    architecture: layered
+    archetype: library
+    language: rust
+    role: events
+    boundary: null
+    intent: null
+    notes: |
+      Plain event lib (no workspace members). Distinct from Eventra.
+
+  - id: phenohandbook
+    repo: KooshaPari/PhenoHandbook
+    name: PhenoHandbook
+    status: active
+    tier: pheno-lib
+    architecture: layered
+    archetype: docs
+    language: typescript
+    role: conventions
+    boundary: null
+    intent: null
+    notes: |
+      Conventions/patterns spine. (gh lang=Shell.)
+
+  - id: phenokits-commons
+    repo: KooshaPari/phenokits-commons
+    name: phenokits-commons
+    status: active
+    tier: pheno-lib
+    architecture: layered
+    archetype: library
+    language: python
+    role: commons
+    boundary: null
+    intent: null
+    notes: |
+      Python commons lib.
+
+  - id: phenoobservability
+    repo: KooshaPari/PhenoObservability
+    name: PhenoObservability
+    status: active
+    tier: pheno-lib
+    architecture: layered
+    archetype: library
+    language: rust
+    role: observe
+    boundary: null
+    intent: null
+    notes: |
+      `observe` role owner (Rust). Source of HexaKit logging/telemetry edges (via vendored crates).
+
+  - id: phenoplugins
+    repo: KooshaPari/PhenoPlugins
+    name: PhenoPlugins
+    status: active
+    tier: pheno-lib
+    architecture: layered
+    archetype: plugin
+    language: rust
+    role: plugins
+    boundary: null
+    intent: null
+    notes: |
+      Plugin substrate.
+
+  - id: phenoresearchengine
+    repo: KooshaPari/phenoResearchEngine
+    name: phenoResearchEngine
+    status: active
+    tier: phenotype-framework
+    architecture: layered
+    archetype: service
+    language: python
+    role: research
+    boundary: null
+    intent: null
+    notes: |
+      Research engine service.
+
+  - id: phenoruntime
+    repo: KooshaPari/PhenoRuntime
+    name: PhenoRuntime
+    status: active
+    tier: phenotype-framework
+    architecture: layered
+    archetype: service
+    language: rust
+    role: runtime
+    boundary: null
+    intent: null
+    notes: |
+      Runtime substrate.
+
+  - id: phenospecs
+    repo: KooshaPari/PhenoSpecs
+    name: PhenoSpecs
+    status: active
+    tier: pheno-lib
+    architecture: layered
+    archetype: spec
+    language: typescript
+    role: specs
+    boundary: null
+    intent: null
+    notes: |
+      ADRs, API contracts, specs spine. (Old PhenoSpecs/registry.yaml is a stale traceability index.)
+
+  - id: phenotype-apps
+    repo: KooshaPari/phenotype-apps
+    name: phenotype-apps
+    status: active
+    tier: phenotype-framework
+    architecture: layered
+    archetype: app
+    language: typescript
+    role: apps
+    boundary: null
+    intent: null
+    notes: |
+      App aggregation (gh lang=HTML).
+
+  - id: phenotype-contracts
+    repo: KooshaPari/phenotype-contracts
+    name: phenotype-contracts
+    status: active
+    tier: pheno-lib
+    architecture: layered
+    archetype: contract
+    language: typescript
+    role: contracts
+    boundary: null
+    intent: null
+    notes: |
+      Canonical language-agnostic contracts (schemas + policy specs) for provider/LLM-proxy ecosystem.
+
+  - id: phenotype-gfx
+    repo: KooshaPari/phenotype-gfx
+    name: phenotype-gfx
+    status: active
+    tier: pheno-lib
+    architecture: layered
+    archetype: library
+    language: rust
+    role: graphics
+    boundary: null
+    intent: null
+    notes: |
+      Single canonical graphics/visual substrate per ADR-004+031. Absorbed voxel/terrain/water/postfx (PR#10; those 4 ARCHIVED+DELETED).
+
+  - id: phenotype-go-sdk
+    repo: KooshaPari/phenotype-go-sdk
+    name: phenotype-go-sdk
     status: active
     tier: phenotype-sdk
-    architecture: none
-    language: rust
-    role: sdk
-    workspace_version: "0.1.0"
+    architecture: layered
+    archetype: sdk
+    language: go
+    role: go-sdk
     boundary: null
     intent: null
     notes: |
-      Multi-language SDK monorepo (Rust, Go, Python, TypeScript, Zig, Mojo).
-      Primary core in Rust (15 crates). Absorbed from PhenoLang archives,
-      phenotype-go-sdk (10 packages), and phenotype-python-sdk (15 packages)
-      on 2026-06-20.
+      Go SDK (10 packages). go.mod not at repo root on default branch (manifest 404 during spot-check).
 
   - id: phenotype-infra
     repo: KooshaPari/phenotype-infra
     name: phenotype-infra
     status: active
-    tier: federated-service   # schema enum requires `federated-service` (per ADR-ECO-017); semantic role below
-    architecture: hexagonal-l4
-    ports: [ComposePort, ProvisionerPort, ConfigPort, FfiPort, DesktopPort, AgentUtilPort]
-    adapters: [NanovmsCoreAdapter, NvmsFfiAdapter, PhenoConfigAdapter, PhenoComposeAdapter, KvirtualDesktopAdapter, ThegentUtilAdapter, KodevibegoAdapter]
-    language: rust
+    tier: federated-service
+    architecture: layered
+    archetype: infra
+    language: go
     role: federation-service
-    workspace_version: "0.1.0"
-    adr_refs:
-      - ADR-ECO-017   # substrate schema conventions (tier=federated-service, hexagonal-l4)
-      - ADR-049       # phenotype-infra canonical absorb (per projects/phenotype-infra.json)
-    boundary: docs/boundary/phenotype-infra.md
-    intent: docs/intent/phenotype-infra.md
+    boundary: null
+    intent: null
     notes: |
-      Federated compute/infra service (federation-service role).
-      Workspace members tracked individually in projects/<crate>.json:
-        - nvms-ffi            (C-ABI exports for nanovms-core)
-        - pheno-compose       (CLI + driver; supersedes phenocompose standalone)
-        - pheno-config        (typed config; supersedes phenotype-config standalone)
-        - kvirtualdesktop-core (KVirtualDesktop VM/desktop isolation core)
-        - thegent-utils       (thegent shared utility crate)
-        - kodevibego          (KodeVibe Go<->Rust bridge, FFI)
-      Other in-tree crates not yet federated into this catalog entry:
-        - nanovms-core, credential-manager, kvirtual, kvirtualdesktop-mcp-server,
-          kodevibego-ffi (workspace siblings; promotion pending audit).
-      Replaces standalone nanovms and PhenoCompose repos per ADR-049
-      (see projects/phenotype-infra.json, audit 2026-06-23).
+      Federated compute/infra service. Workspace: nvms-ffi, pheno-compose, pheno-config, kvirtualdesktop-core, thegent-utils, kodevibego. Replaces standalone nanovms+PhenoCompose per ADR-049.
+
+  - id: phenotype-journeys
+    repo: KooshaPari/phenotype-journeys
+    name: phenotype-journeys
+    status: active
+    tier: pheno-lib
+    architecture: layered
+    archetype: library
+    language: rust
+    role: test
+    boundary: null
+    intent: null
+    notes: |
+      Journeys/fixtures (Rust CLI) for the `test` role.
+
+  - id: phenotype-landing
+    repo: KooshaPari/phenotype-landing
+    name: phenotype-landing
+    status: active
+    tier: pheno-lib
+    architecture: layered
+    archetype: landing
+    language: typescript
+    role: landing
+    boundary: null
+    intent: null
+    notes: |
+      Org landing site (Astro).
+
+  - id: phenotype-ops
+    repo: KooshaPari/phenotype-ops
+    name: phenotype-ops
+    status: active
+    tier: federated-service
+    architecture: layered
+    archetype: fork-tool
+    language: rust
+    role: ops
+    boundary: null
+    intent: null
+    notes: |
+      Ops tooling (Rust fork).
+
+  - id: phenotype-org-audits
+    repo: KooshaPari/phenotype-org-audits
+    name: phenotype-org-audits
+    status: active
+    tier: pheno-lib
+    architecture: layered
+    archetype: tooling
+    language: typescript
+    role: audit
+    boundary: null
+    intent: null
+    notes: |
+      Org audit tooling (gh lang=Shell).
+
+  - id: phenotype-pm-core
+    repo: KooshaPari/phenotype-pm-core
+    name: phenotype-pm-core
+    status: active
+    tier: pheno-lib
+    architecture: layered
+    archetype: library
+    language: rust
+    role: pm
+    boundary: null
+    intent: null
+    notes: |
+      Project-management core lib.
+
+  - id: phenotype-python-sdk
+    repo: KooshaPari/phenotype-python-sdk
+    name: phenotype-python-sdk
+    status: active
+    tier: phenotype-sdk
+    architecture: layered
+    archetype: sdk
+    language: python
+    role: py-sdk-index
+    boundary: null
+    intent: null
+    notes: |
+      Python SDK workspace; absorbed AuthKit/DataKit/McpKit/ObservabilityKit/ResilienceKit/TestingKit Py kits + pheno-cli/id/logging/config subtrees. Consolidation target. thegent depends on it (phenotype-py-utils).
+
+  - id: phenotype-registry
+    repo: KooshaPari/phenotype-registry
+    name: phenotype-registry
+    status: active
+    tier: pheno-lib
+    architecture: layered
+    archetype: docs
+    language: typescript
+    role: index
+    boundary: null
+    intent: null
+    notes: |
+      INDEX: canonical ecosystem map + dependency graph + boundary SSOT (this repo). (gh lang=Shell.)
+
+  - id: phenotype-router-spec
+    repo: KooshaPari/phenotype-router-spec
+    name: phenotype-router-spec
+    status: active
+    tier: pheno-lib
+    architecture: layered
+    archetype: spec
+    language: typescript
+    role: route
+    boundary: null
+    intent: null
+    notes: |
+      Protocol spec for phenotype router A2A surface (RouterDispatch/Mailbox/Trace/Artifact JSON schema). Points to substrate adapters.
+
+  - id: phenotype-tooling
+    repo: KooshaPari/phenotype-tooling
+    name: phenotype-tooling
+    status: active
+    tier: pheno-lib
+    architecture: layered
+    archetype: tooling
+    language: typescript
+    role: platform
+    boundary: null
+    intent: null
+    notes: |
+      Tooling spine (Svelte). Absorbs `kwality` alias. Holds nanovms crate per DOMAIN_ROLES platform role.
+
+  - id: phenoutils
+    repo: KooshaPari/phenoUtils
+    name: phenoUtils
+    status: active
+    tier: pheno-lib
+    architecture: layered
+    archetype: library
+    language: rust
+    role: utils
+    boundary: null
+    intent: null
+    notes: |
+      Shared util crates.
+
+  - id: phenovcs
+    repo: KooshaPari/PhenoVCS
+    name: PhenoVCS
+    status: active
+    tier: phenotype-framework
+    architecture: layered
+    archetype: tooling
+    language: rust
+    role: vcs
+    boundary: null
+    intent: null
+    notes: |
+      Version-control tooling. Absorbed worktree-manager (retired).
+
+  - id: pine
+    repo: KooshaPari/Pine
+    name: Pine
+    status: active
+    tier: phenotype-framework
+    architecture: layered
+    archetype: service
+    language: rust
+    role: compat-layer
+    boundary: null
+    intent: null
+    notes: |
+      Wine-equivalent: Windows/cross-platform app compatibility layer.
+
+  - id: playcua
+    repo: KooshaPari/PlayCua
+    name: PlayCua
+    status: active
+    tier: phenotype-framework
+    architecture: layered
+    archetype: service
+    language: rust
+    role: computer-use
+    boundary: null
+    intent: null
+    notes: |
+      Computer-use automation (CUA).
+
+  - id: plusforges
+    repo: KooshaPari/PlusForges
+    name: PlusForges
+    status: active
+    tier: pheno-lib
+    architecture: layered
+    archetype: docs
+    language: typescript
+    role: meta-index
+    boundary: null
+    intent: null
+    notes: |
+      Meta-repo of all 'Plus' forks; links substrate-adapters-bundle, phenotype-router-spec, cliproxyapi-plusplus, context-mode-plusplus, OmniRoute, bifrost, etc.
+
+  - id: policystack
+    repo: KooshaPari/PolicyStack
+    name: PolicyStack
+    status: active
+    tier: phenotype-framework
+    architecture: layered
+    archetype: library
+    language: python
+    role: policy
+    boundary: null
+    intent: null
+    notes: |
+      Policy engine/stack.
+
+  - id: portage
+    repo: KooshaPari/portage
+    name: portage
+    status: active
+    tier: federated-service
+    architecture: layered
+    archetype: fork-tool
+    language: python
+    role: porting
+    boundary: null
+    intent: null
+    notes: |
+      Porting tooling (Python fork).
+
+  - id: quillr
+    repo: KooshaPari/Quillr
+    name: Quillr
+    status: active
+    tier: phenotype-framework
+    architecture: layered
+    archetype: app
+    language: rust
+    role: writing
+    boundary: null
+    intent: null
+    notes: |
+      Restored app (Quillr).
+
+  - id: rich-cli-kit
+    repo: KooshaPari/rich-cli-kit
+    name: rich-cli-kit
+    status: active
+    tier: pheno-lib
+    architecture: layered
+    archetype: library
+    language: rust
+    role: cli-ux
+    boundary: null
+    intent: null
+    notes: |
+      Rich CLI toolkit for terminal UX.
+
+  - id: sharecli
+    repo: KooshaPari/sharecli
+    name: sharecli
+    status: active
+    tier: pheno-lib
+    architecture: layered
+    archetype: cli
+    language: rust
+    role: share
+    boundary: null
+    intent: null
+    notes: |
+      CLI sharing tool.
+
+  - id: sidekick
+    repo: KooshaPari/Sidekick
+    name: Sidekick
+    status: active
+    tier: phenotype-framework
+    architecture: layered
+    archetype: service
+    language: python
+    role: agent-presence
+    boundary: null
+    intent: null
+    notes: |
+      Phenotype-org agent presence.
+
+  - id: stashly
+    repo: KooshaPari/Stashly
+    name: Stashly
+    status: active
+    tier: pheno-lib
+    architecture: layered
+    archetype: app
+    language: rust
+    role: stash
+    boundary: null
+    intent: null
+    notes: |
+      BLOCK A app (Stashly). (`stashly` crate referenced in resilience repoints.)
+
+  - id: substrate
+    repo: KooshaPari/substrate
+    name: substrate
+    status: active
+    tier: federated-service
+    architecture: layered
+    archetype: monorepo
+    language: rust
+    role: connect
+    boundary: null
+    intent: null
+    notes: |
+      Major Rust workspace (44 crates): omniroute-adapter, cliproxy-adapter, engine-agentapi/claude/codex/forge, phenotype-mcp, routing-phenotype-router, context-budget. `connect`/`agent-control` role host. Internal crates are NOT separate repos.
+
+  - id: substrate-adapters-bundle
+    repo: KooshaPari/substrate-adapters-bundle
+    name: substrate-adapters-bundle
+    status: active
+    tier: pheno-lib
+    architecture: layered
+    archetype: library
+    language: rust
+    role: adapters
+    boundary: null
+    intent: null
+    notes: |
+      Thin OSS re-export bundle: path deps into substrate + git dep on phenotype-router.
+
+  - id: tasken
+    repo: KooshaPari/Tasken
+    name: Tasken
+    status: active
+    tier: phenotype-framework
+    architecture: layered
+    archetype: service
+    language: rust
+    role: task-orchestration
+    boundary: null
+    intent: null
+    notes: |
+      Phenotype-org task orchestration.
+
+  - id: testingkit
+    repo: KooshaPari/TestingKit
+    name: TestingKit
+    status: active
+    tier: phenotype-framework
+    architecture: layered
+    archetype: sdk
+    language: python
+    role: test
+    boundary: null
+    intent: null
+    notes: |
+      Test SDK (Python). Source of HexaKit test edges (phenotype-test-infra/contract/fixtures).
+
+  - id: thegent
+    repo: KooshaPari/thegent
+    name: thegent
+    status: active
+    tier: phenotype-framework
+    architecture: layered
+    archetype: service
+    language: python
+    role: agent-dispatch
+    boundary: null
+    intent: null
+    notes: |
+      Agent dispatch service. Depends on phenotype-python-sdk (phenotype-py-utils).
+
+  - id: tokn
+    repo: KooshaPari/Tokn
+    name: Tokn
+    status: active
+    tier: pheno-lib
+    architecture: layered
+    archetype: library
+    language: rust
+    role: route
+    boundary: null
+    intent: null
+    notes: |
+      TokenLedger: LLM cost/usage tracking. `route` role edge (tokenledger::routing).
+
+  - id: tracely
+    repo: KooshaPari/Tracely
+    name: Tracely
+    status: active
+    tier: pheno-lib
+    architecture: layered
+    archetype: app
+    language: typescript
+    role: tracing
+    boundary: null
+    intent: null
+    notes: |
+      Tracing app (gh lang=HTML).

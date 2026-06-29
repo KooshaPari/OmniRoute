@@ -46,6 +46,11 @@
       "items": { "type": "string", "pattern": "^[A-Z][A-Za-z0-9]+Adapter$" },
       "description": "Adapter implementation names. REQUIRED when architecture is hexagonal-l4."
     },
+    "archetype": {
+      "type": "string",
+      "enum": ["library", "sdk", "cli", "service", "app", "contract", "spec", "docs", "infra", "plugin", "tooling", "fork-tool", "monorepo", "landing"],
+      "description": "Coarse repo shape, orthogonal to substrate tier. Added in the 2026-06-28 ecosystem-map realignment."
+    },
     "language": {
       "type": "string",
       "enum": ["rust", "python", "typescript", "go", "swift", "zig", "mojo"],

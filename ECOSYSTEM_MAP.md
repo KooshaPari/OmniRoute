@@ -1,5 +1,13 @@
 # KooshaPari Ecosystem Map
 
+> ⚠️ **NARRATIVE MAP STALE (as of 2026-06-28).** The role tables below use an
+> older 111-repo taxonomy and still reference EXCLUDED / archived / deleted repos
+> (e.g. AgilePlus, Tracera, Dino, WorldSphereMod, eyetracker). For
+> **current owned-repo reality, use the machine catalog**
+> [`catalog/registry.yaml`](catalog/registry.yaml) (88 owned repos, validated)
+> and the realignment log [`docs/ECOSYSTEM_MAP_REALIGNMENT.md`](docs/ECOSYSTEM_MAP_REALIGNMENT.md).
+> Regenerating the narrative below to match the catalog is tracked for P2.
+
 > Generated: 2026-06-19 | Repos audited: 13 canonical (live, GitHub-reachable) | Validator: `task validate` → `scripts/validate-ecosystem.sh`
 > _2026-06-19 (P4 hygiene #93):_ Clusters **D** (observability), **I** (*Kit SDKs), **H** (gateway + config) refreshed from `BOUNDARY_OWNERS.md` matrix.
 > Absorption traceability: `.kilo/audits/kooshapari-absorption-2026-06-18.md` is the authoritative absorption traceability matrix for this update.
