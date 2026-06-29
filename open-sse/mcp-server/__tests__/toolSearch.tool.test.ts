@@ -3,6 +3,10 @@ import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js";
 import { createMcpServer } from "../server.ts";
 
+type ToolSearchResult = {
+  tools: Array<{ name: string; signature?: string }>;
+};
+
 vi.mock("../audit.ts", () => ({
   logToolCall: vi.fn().mockResolvedValue(undefined),
   closeAuditDb: vi.fn(),
@@ -34,9 +38,9 @@ describe("omniroute_tool_search", () => {
       arguments: { query: "health" },
     });
     const text = (res.content as Array<{ text: string }>)[0].text;
-    const parsed = JSON.parse(text);
-    expect(parsed.tools.some((t: any) => t.name === "omniroute_get_health")).toBe(true);
-    expect(parsed.tools.every((t: any) => t.name !== "omniroute_tool_search")).toBe(true);
+    const parsed = JSON.parse(text) as ToolSearchResult;
+    expect(parsed.tools.some((t) => t.name === "omniroute_get_health")).toBe(true);
+    expect(parsed.tools.every((t) => t.name !== "omniroute_tool_search")).toBe(true);
     expect(typeof parsed.tools[0].signature).toBe("string");
   });
 });
