@@ -327,33 +327,33 @@ connection continue serving other models.
 
 For any non-trivial change, read the matching deep-dive first:
 
-| Area                                          | Doc                                                               |
-| --------------------------------------------- | ----------------------------------------------------------------- |
-| Repo navigation                               | `docs/architecture/REPOSITORY_MAP.md`                             |
-| Architecture                                  | `docs/architecture/ARCHITECTURE.md`                               |
-| Engineering reference                         | `docs/architecture/CODEBASE_DOCUMENTATION.md`                     |
-| Auto-Combo (9-factor scoring, 17 strategies)  | `docs/routing/AUTO-COMBO.md`                                      |
-| Resilience (3 mechanisms)                     | `docs/architecture/RESILIENCE_GUIDE.md`                           |
-| Reasoning replay                              | `docs/routing/REASONING_REPLAY.md`                                |
-| Skills framework                              | `docs/frameworks/SKILLS.md`                                       |
-| Memory system (FTS5 + Qdrant)                 | `docs/frameworks/MEMORY.md`                                       |
-| Cloud agents                                  | `docs/frameworks/CLOUD_AGENT.md`                                  |
-| Guardrails (PII / injection / vision)         | `docs/security/GUARDRAILS.md`                                     |
-| Public upstream credentials (Gemini/etc.)     | `docs/security/PUBLIC_CREDS.md`                                   |
-| Error message sanitization                    | `docs/security/ERROR_SANITIZATION.md`                             |
-| Evals                                         | `docs/frameworks/EVALS.md`                                        |
-| Compliance / audit                            | `docs/security/COMPLIANCE.md`                                     |
-| Webhooks                                      | `docs/frameworks/WEBHOOKS.md`                                     |
-| Authorization pipeline                        | `docs/architecture/AUTHZ_GUIDE.md`                                |
-| Stealth (TLS / fingerprint)                   | `docs/security/STEALTH_GUIDE.md`                                  |
-| Agent protocols (A2A / ACP / Cloud)           | `docs/frameworks/AGENT_PROTOCOLS_GUIDE.md`                        |
-| MCP server                                    | `docs/frameworks/MCP-SERVER.md`                                   |
-| A2A server                                    | `docs/frameworks/A2A-SERVER.md`                                   |
+| Area                                          | Doc                                                     |
+| --------------------------------------------- | ------------------------------------------------------- |
+| Repo navigation                               | `docs/architecture/REPOSITORY_MAP.md`                   |
+| Architecture                                  | `docs/architecture/ARCHITECTURE.md`                     |
+| Engineering reference                         | `docs/architecture/CODEBASE_DOCUMENTATION.md`           |
+| Auto-Combo (9-factor scoring, 17 strategies)  | `docs/routing/AUTO-COMBO.md`                            |
+| Resilience (3 mechanisms)                     | `docs/architecture/RESILIENCE_GUIDE.md`                 |
+| Reasoning replay                              | `docs/routing/REASONING_REPLAY.md`                      |
+| Skills framework                              | `docs/frameworks/SKILLS.md`                             |
+| Memory system (FTS5 + Qdrant)                 | `docs/frameworks/MEMORY.md`                             |
+| Cloud agents                                  | `docs/frameworks/CLOUD_AGENT.md`                        |
+| Guardrails (PII / injection / vision)         | `docs/security/GUARDRAILS.md`                           |
+| Public upstream credentials (Gemini/etc.)     | `docs/security/PUBLIC_CREDS.md`                         |
+| Error message sanitization                    | `docs/security/ERROR_SANITIZATION.md`                   |
+| Evals                                         | `docs/frameworks/EVALS.md`                              |
+| Compliance / audit                            | `docs/security/COMPLIANCE.md`                           |
+| Webhooks                                      | `docs/frameworks/WEBHOOKS.md`                           |
+| Authorization pipeline                        | `docs/architecture/AUTHZ_GUIDE.md`                      |
+| Stealth (TLS / fingerprint)                   | `docs/security/STEALTH_GUIDE.md`                        |
+| Agent protocols (A2A / ACP / Cloud)           | `docs/frameworks/AGENT_PROTOCOLS_GUIDE.md`              |
+| MCP server                                    | `docs/frameworks/MCP-SERVER.md`                         |
+| A2A server                                    | `docs/frameworks/A2A-SERVER.md`                         |
 | API reference + OpenAPI                       | `docs/reference/API_REFERENCE.md` + `docs/openapi.yaml` |
-| Provider catalog (auto-generated)             | `docs/reference/PROVIDER_REFERENCE.md`                            |
-| Release flow                                  | `docs/ops/RELEASE_CHECKLIST.md`                                   |
-| Embedded services                             | `docs/frameworks/EMBEDDED-SERVICES.md`                            |
-| Quality gates (~48 scripts, allowlist policy) | `docs/architecture/QUALITY_GATES.md`                              |
+| Provider catalog (auto-generated)             | `docs/reference/PROVIDER_REFERENCE.md`                  |
+| Release flow                                  | `docs/ops/RELEASE_CHECKLIST.md`                         |
+| Embedded services                             | `docs/frameworks/EMBEDDED-SERVICES.md`                  |
+| Quality gates (~48 scripts, allowlist policy) | `docs/architecture/QUALITY_GATES.md`                    |
 
 ---
 

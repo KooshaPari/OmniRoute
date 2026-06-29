@@ -329,7 +329,7 @@ MCP tool, prompt, and resource registries can compress descriptions at registrat
 
 ## Tool Cardinality Reduction (F4.3)
 
-Description compression shrinks each tool's metadata; **tool-cardinality reduction** goes one step further by reducing *how many* tools are announced at all. Advertising fewer tools in the `tools/list` manifest cuts the per-request token cost the client's model pays for the tool catalog ("layer 5" compression). The implementation is a pure, stateless filter in `open-sse/mcp-server/toolCardinality.ts` (`reduceToolManifest`), wired into the registration loop in `createMcpServer()` (`open-sse/mcp-server/server.ts`).
+Description compression shrinks each tool's metadata; **tool-cardinality reduction** goes one step further by reducing _how many_ tools are announced at all. Advertising fewer tools in the `tools/list` manifest cuts the per-request token cost the client's model pays for the tool catalog ("layer 5" compression). The implementation is a pure, stateless filter in `open-sse/mcp-server/toolCardinality.ts` (`reduceToolManifest`), wired into the registration loop in `createMcpServer()` (`open-sse/mcp-server/server.ts`).
 
 **Opt-in, off by default.** The filter only runs when at least one of two environment variables is set; with neither set, all 88 tools are announced unchanged.
 

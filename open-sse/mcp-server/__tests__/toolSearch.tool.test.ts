@@ -29,7 +29,10 @@ describe("omniroute_tool_search", () => {
   });
 
   it("returns relevant tool with a signature, not itself", async () => {
-    const res = await client.callTool({ name: "omniroute_tool_search", arguments: { query: "health" } });
+    const res = await client.callTool({
+      name: "omniroute_tool_search",
+      arguments: { query: "health" },
+    });
     const text = (res.content as Array<{ text: string }>)[0].text;
     const parsed = JSON.parse(text);
     expect(parsed.tools.some((t: any) => t.name === "omniroute_get_health")).toBe(true);
