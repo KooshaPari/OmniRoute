@@ -144,6 +144,13 @@ export const CODEBUDDY_CN_CONFIG = {
   pollInterval: 5000,
 };
 
+// Grok Build (xAI) OAuth Configuration (Import-Token Flow with refresh)
+// Public client_id resolved through resolvePublicCred so it is never a literal.
+export const GROK_CLI_CONFIG = {
+  clientId: resolvePublicCred("grok_id", "GROK_OAUTH_CLIENT_ID"),
+  tokenUrl: "https://auth.x.ai/oauth2/token",
+};
+
 // Kimi Coding OAuth Configuration (Device Code Flow)
 export const KIMI_CODING_CONFIG = {
   clientId: resolvePublicCred("kimi_id", "KIMI_CODING_OAUTH_CLIENT_ID"),
@@ -176,8 +183,10 @@ export const ANTIGRAVITY_CONFIG = {
   authorizeUrl: "https://accounts.google.com/o/oauth2/v2/auth",
   tokenUrl: "https://oauth2.googleapis.com/token",
   userInfoUrl: "https://www.googleapis.com/oauth2/v1/userinfo",
+  // No "openid" scope — the working 9router flow requests only the Cloud Code /
+  // userinfo scopes below. "openid" (with PKCE) routed Google into the hanging
+  // `firstparty/nativeapp` consent. Match 9router exactly (antigravity login fix).
   scopes: [
-    "openid",
     "https://www.googleapis.com/auth/cloud-platform",
     "https://www.googleapis.com/auth/userinfo.email",
     "https://www.googleapis.com/auth/userinfo.profile",
@@ -470,4 +479,5 @@ export const PROVIDERS = {
   DEVIN_CLI: "devin-cli",
   TRAE: "trae",
   CODEBUDDY_CN: "codebuddy-cn",
+  GROK_CLI: "grok-cli",
 };
