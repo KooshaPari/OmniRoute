@@ -6,6 +6,7 @@ import { rtkTestSchema } from "../../../src/app/api/context/rtk/test/route.ts";
 import { compressionComboCreateSchema } from "../../../src/app/api/context/combos/route.ts";
 import { compressionComboUpdateSchema } from "../../../src/app/api/context/combos/[id]/route.ts";
 import { assignmentsUpdateSchema } from "../../../src/app/api/context/combos/[id]/assignments/route.ts";
+import { compressionSettingsUpdateSchema } from "../../../src/shared/validation/compressionConfigSchemas.ts";
 
 describe("context compression API schemas", () => {
   it("rejects invalid RTK config and test payloads", () => {
@@ -23,6 +24,15 @@ describe("context compression API schemas", () => {
       true
     );
     assert.equal(rtkConfigSchema.safeParse({ rawOutputRetention: "plaintext" }).success, false);
+    assert.equal(
+      compressionSettingsUpdateSchema.safeParse({
+        rtkConfig: {
+          enableRenderers: true,
+          renderers: ["git-diff", "terraform-plan"],
+        },
+      }).success,
+      true
+    );
     assert.equal(rtkTestSchema.safeParse({ text: "" }).success, false);
     assert.equal(rtkTestSchema.safeParse({ text: "ok", extra: true }).success, false);
     assert.equal(

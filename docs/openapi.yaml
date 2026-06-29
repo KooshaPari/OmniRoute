@@ -2037,7 +2037,66 @@ paths:
                   minimum: 0
                 rtkConfig:
                   type: object
-                  additionalProperties: true
+                  additionalProperties: false
+                  properties:
+                    enabled:
+                      type: boolean
+                    intensity:
+                      type: string
+                      enum: [minimal, standard, aggressive]
+                    applyToToolResults:
+                      type: boolean
+                    applyToCodeBlocks:
+                      type: boolean
+                    applyToAssistantMessages:
+                      type: boolean
+                    enabledFilters:
+                      type: array
+                      items:
+                        type: string
+                    disabledFilters:
+                      type: array
+                      items:
+                        type: string
+                    maxLinesPerResult:
+                      type: integer
+                      minimum: 0
+                      maximum: 100000
+                    maxCharsPerResult:
+                      type: integer
+                      minimum: 0
+                      maximum: 1000000
+                    deduplicateThreshold:
+                      type: integer
+                      minimum: 2
+                      maximum: 100
+                    customFiltersEnabled:
+                      type: boolean
+                    trustProjectFilters:
+                      type: boolean
+                    rawOutputRetention:
+                      type: string
+                      enum: [never, failures, always]
+                    rawOutputMaxBytes:
+                      type: integer
+                      minimum: 1024
+                      maximum: 10000000
+                    enableGrouping:
+                      type: boolean
+                    groupingThreshold:
+                      type: integer
+                      minimum: 2
+                      maximum: 100
+                    stripCodeComments:
+                      type: boolean
+                    preserveDocstrings:
+                      type: boolean
+                    enableRenderers:
+                      type: boolean
+                    renderers:
+                      type: array
+                      items:
+                        type: string
                 stackedPipeline:
                   type: array
                   items:
