@@ -52,7 +52,6 @@ export function useServiceLogs(
     const url = `/api/services/${name}/logs?${params.toString()}`;
     const es = new EventSource(url);
     esRef.current = es;
-    setError(null);
 
     es.addEventListener("snapshot", (e) => {
       try {
