@@ -1,7 +1,7 @@
 ---
 title: "OmniRoute Auto-Combo Engine"
 version: 3.8.31
-lastUpdated: 2026-06-20
+lastUpdated: 2026-06-28
 ---
 
 # OmniRoute Auto-Combo Engine
@@ -583,3 +583,14 @@ See `docs/marketing/TIERS.md` for tier definitions and provider classification.
 | `open-sse/services/autoCombo/providerRegistryAccessor.ts` | Test hook for mocking provider registry                                    |
 | `src/shared/constants/routingStrategies.ts`               | `ROUTING_STRATEGY_VALUES` (17 strategies)                                  |
 | `src/sse/handlers/chat.ts`                                | Integration: auto-prefix short-circuit                                     |
+
+## Self-Healing Telemetry (Phase 3, v2)
+
+The `selfHealing.ts` file is being extended in Phase 3 to consume a rolling-window anomaly detector and dispatch typed playbooks against the provider manager. New surface:
+
+- **`src/lib/resilience/anomalyHook.ts`** — singleton hook: `recordHealthSample({ providerId, latencyMs, errorRate, nowMs })` is called from the auto-combo engine after every completed request
+- **`src/lib/resilience/anomalyDetector.ts`** — pure-function detector (z-score against the rolling window)
+- **`src/lib/resilience/playbooks.ts`** — typed action catalog: `force-proxy-rotation`, `degrade-provider`, `drop-cooldown`, `noop`
+- **`src/lib/db/providerHealthHistory.ts`** + migration `100_provider_health_history.sql` — SQLite log of samples + anomalies + playbook dispatches, with TTL prune
+
+This makes the auto-combo engine self-tuning: a provider whose recent latency spikes beyond its rolling-window baseline is automatically rotated or degraded without operator intervention. See the [Resilience Guide §4](../architecture/RESILIENCE_GUIDE.md#4-self-healing-telemetry-phase-3-v2) for tunables.
