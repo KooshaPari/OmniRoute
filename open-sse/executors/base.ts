@@ -1056,8 +1056,11 @@ export class BaseExecutor {
             delete tb.thinking;
             delete tb.context_management;
             appliedThinking = "off";
-          } else if (!effThinking && !headerEffort) {
-            // Default CC logic when no override headers are present
+          } else if (!effThinking && !headerEffort && isClaudeCodeClient) {
+            // Default Claude Code logic when no override headers are present.
+            // Generic OpenAI-compatible clients that route through native Claude OAuth
+            // must opt in with x-omniroute-thinking; force-injecting adaptive thinking
+            // leaks non-standard reasoning replay fields back into those clients.
             const isHaiku = typeof tb.model === "string" && tb.model.includes("haiku");
             if (isHaiku) {
               // Keep tb.thinking — real Claude Desktop keeps thinking enabled for Haiku
