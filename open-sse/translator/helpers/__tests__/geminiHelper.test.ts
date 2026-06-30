@@ -46,7 +46,6 @@ describe("GEMINI_UNSUPPORTED_SCHEMA_KEYS", () => {
     // Spot-check a representative cross-section of the entries.
     expect(GEMINI_UNSUPPORTED_SCHEMA_KEYS.has("minLength")).toBe(true);
     expect(GEMINI_UNSUPPORTED_SCHEMA_KEYS.has("maxLength")).toBe(true);
-    expect(GEMINI_UNSUPPORTED_SCHEMA_KEYS.has("pattern")).toBe(true);
     expect(GEMINI_UNSUPPORTED_SCHEMA_KEYS.has("$ref")).toBe(true);
     expect(GEMINI_UNSUPPORTED_SCHEMA_KEYS.has("definitions")).toBe(true);
     expect(GEMINI_UNSUPPORTED_SCHEMA_KEYS.has("additionalProperties")).toBe(false); // handled separately
@@ -339,7 +338,8 @@ describe("cleanJSONSchemaForAntigravity", () => {
     const out = cleanJSONSchemaForAntigravity({
       type: "object",
       properties: {
-        // minLength/maxLength/pattern ARE in GEMINI_UNSUPPORTED_SCHEMA_KEYS — must go.
+        // minLength/maxLength ARE in GEMINI_UNSUPPORTED_SCHEMA_KEYS — must go.
+        // pattern is INTENTIONALLY kept (Antigravity accepts it).
         name: { type: "string", minLength: 3, maxLength: 10, pattern: "^[a-z]+$" },
         // exclusiveMinimum/exclusiveMaximum ARE in the unsupported list.
         age: { type: "integer", exclusiveMinimum: 0, exclusiveMaximum: 120 },
@@ -352,7 +352,6 @@ describe("cleanJSONSchemaForAntigravity", () => {
     const properties = out.properties as Record<string, Record<string, unknown>>;
     expect(properties.name).not.toHaveProperty("minLength");
     expect(properties.name).not.toHaveProperty("maxLength");
-    expect(properties.name).not.toHaveProperty("pattern");
     expect(properties.age).not.toHaveProperty("exclusiveMinimum");
     expect(properties.age).not.toHaveProperty("exclusiveMaximum");
     expect(properties.tags).not.toHaveProperty("minItems");
@@ -508,7 +507,8 @@ describe("cleanJSONSchemaForAntigravity", () => {
     const out = cleanJSONSchemaForAntigravity({
       type: "object",
       properties: {
-        // minLength/maxLength/pattern ARE in GEMINI_UNSUPPORTED_SCHEMA_KEYS — must go.
+        // minLength/maxLength ARE in GEMINI_UNSUPPORTED_SCHEMA_KEYS — must go.
+        // pattern is INTENTIONALLY kept (Antigravity accepts it).
         name: { type: "string", minLength: 3, maxLength: 10, pattern: "^[a-z]+$" },
         // exclusiveMinimum/exclusiveMaximum ARE in the unsupported list.
         age: { type: "integer", exclusiveMinimum: 0, exclusiveMaximum: 120 },
@@ -521,7 +521,6 @@ describe("cleanJSONSchemaForAntigravity", () => {
     const properties = out.properties as Record<string, Record<string, unknown>>;
     expect(properties.name).not.toHaveProperty("minLength");
     expect(properties.name).not.toHaveProperty("maxLength");
-    expect(properties.name).not.toHaveProperty("pattern");
     expect(properties.age).not.toHaveProperty("exclusiveMinimum");
     expect(properties.age).not.toHaveProperty("exclusiveMaximum");
     expect(properties.tags).not.toHaveProperty("minItems");
@@ -531,8 +530,8 @@ describe("cleanJSONSchemaForAntigravity", () => {
   });
 
   it("does not delete property names that match unsupported keywords (#1368)", () => {
-    // 'pattern' is a property NAME on a glob tool — it must NOT be stripped
-    // even though 'pattern' is in GEMINI_UNSUPPORTED_SCHEMA_KEYS as a SCHEMA keyword.
+    // 'pattern' is a property NAME on a glob tool — it must NOT be stripped.
+    // (pattern is no longer in GEMINI_UNSUPPORTED_SCHEMA_KEYS — Antigravity accepts it.)
     const out = cleanJSONSchemaForAntigravity({
       type: "object",
       properties: {
