@@ -10,6 +10,12 @@ describe("zodToTsSignature", () => {
     expect(out).toContain("query: string");
     expect(out).toContain("limit?: number");
   });
+  it("defaulted fields are optional at call sites", () => {
+    const s = z.object({ query: z.string(), limit: z.number().default(8) });
+    const out = zodToTsSignature("omniroute_tool_search", s);
+    expect(out).toContain("query: string");
+    expect(out).toContain("limit?: number");
+  });
   it("enum + array + boolean", () => {
     const s = z.object({ mode: z.enum(["a", "b"]), tags: z.array(z.string()), on: z.boolean() });
     const out = zodToTsSignature("t", s);

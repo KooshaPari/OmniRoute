@@ -1200,7 +1200,7 @@ export function createMcpServer(): McpServer {
     )
   );
 
-  registerToolSearchTool(server, withScopeEnforcement);
+  registerToolSearchTool(server, withScopeEnforcement, toolProfile);
 
   // ── Memory Tools ──────────────────────────────
   Object.values(memoryTools).forEach((toolDef: any) => {

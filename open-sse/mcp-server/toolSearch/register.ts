@@ -1,6 +1,7 @@
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { toolSearchInput } from "../schemas/toolSearch.ts";
 import type { McpToolExtraLike } from "../scopeEnforcement.ts";
+import type { ToolProfile } from "../toolCardinality.ts";
 import { handleToolSearch } from "./handler.ts";
 
 type TextToolResult = {
@@ -16,7 +17,8 @@ type ScopeEnforcedHandler = (
 
 export function registerToolSearchTool(
   server: McpServer,
-  withScopeEnforcement: ScopeEnforcedHandler
+  withScopeEnforcement: ScopeEnforcedHandler,
+  toolProfile?: ToolProfile | null
 ): void {
   server.registerTool(
     "omniroute_tool_search",
@@ -27,7 +29,7 @@ export function registerToolSearchTool(
     },
     withScopeEnforcement("omniroute_tool_search", (args) => {
       const parsed = toolSearchInput.parse(args ?? {});
-      const result = handleToolSearch(parsed);
+      const result = handleToolSearch(parsed, { toolProfile });
       return Promise.resolve({
         content: [{ type: "text" as const, text: JSON.stringify(result, null, 2) }],
       });

@@ -18,7 +18,7 @@ function unwrap(field: ZodLike): ZodLike {
 
 function isOptional(field: ZodLike): boolean {
   const t = field.type ?? (field._def as Record<string, unknown> | undefined)?.type;
-  return t === "optional";
+  return t === "optional" || t === "default";
 }
 
 function zodTypeToTs(field: ZodLike, depth = 0): string {
