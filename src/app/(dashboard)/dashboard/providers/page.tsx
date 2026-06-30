@@ -28,6 +28,7 @@ import {
 import type { ProviderEntry } from "./providerPageUtils";
 import {
   readProviderDisplayModePreference,
+  shouldSyncProviderDisplayMode,
   writeProviderDisplayModePreference,
   type ProviderDisplayMode,
 } from "./providerPageStorage";
@@ -263,21 +264,21 @@ export default function ProvidersPage() {
   }, []);
 
   useEffect(() => {
-    if (!displayModePreferenceReady) return;
+    if (!shouldSyncProviderDisplayMode(displayModePreferenceReady, loading)) return;
 
     const storedDisplayMode =
       connections.length === 0 && providerDisplayMode === "configured"
         ? "all"
         : providerDisplayMode;
     writeProviderDisplayModePreference(storedDisplayMode);
-  }, [connections.length, displayModePreferenceReady, providerDisplayMode]);
+  }, [connections.length, displayModePreferenceReady, providerDisplayMode, loading]);
 
   useEffect(() => {
-    if (!displayModePreferenceReady) return;
+    if (!shouldSyncProviderDisplayMode(displayModePreferenceReady, loading)) return;
     if (connections.length === 0 && providerDisplayMode === "configured") {
       setProviderDisplayMode("all");
     }
-  }, [connections.length, displayModePreferenceReady, providerDisplayMode]);
+  }, [connections.length, displayModePreferenceReady, providerDisplayMode, loading]);
 
   const fetchOauthEnvRepairStatus = useCallback(async () => {
     try {
