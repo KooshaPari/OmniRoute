@@ -69,3 +69,43 @@ clean:
     rm -rf .next .turbo out dist build node_modules/.cache
     rm -rf open-sse/dist open-sse/build
     rm -rf coverage
+
+# ─── Shell bootstrap (added 2026-06-30, cross-platform Mac+Win parity) ────────
+# Bootstraps the dev environment for the current platform.
+# macOS / Linux  → scripts/bootstrap.sh
+# Windows (PS)   → scripts/setup-windows.ps1
+[group: 'setup']
+bootstrap:
+    @if [[ "$(uname -s)" == "MINGW"* || "$(uname -s)" == "CYGWIN"* || "$OS" == "Windows_NT" ]]; then \
+        powershell -ExecutionPolicy Bypass -File scripts/setup-windows.ps1; \
+    else \
+        bash scripts/bootstrap.sh; \
+    fi
+
+# Fast variant: PATH + env only, no tool installs.
+[group: 'setup']
+bootstrap-fast:
+    @if [[ "$(uname -s)" == "MINGW"* || "$(uname -s)" == "CYGWIN"* || "$OS" == "Windows_NT" ]]; then \
+        powershell -ExecutionPolicy Bypass -File scripts/setup-windows.ps1 -Fast; \
+    else \
+        OMNI_FAST=1 bash scripts/bootstrap.sh; \
+    fi
+
+# CI variant: skip dep installs entirely (assumes pre-baked image).
+[group: 'setup']
+bootstrap-ci:
+    @if [[ "$(uname -s)" == "MINGW"* || "$(uname -s)" == "CYGWIN"* || "$OS" == "Windows_NT" ]]; then \
+        powershell -ExecutionPolicy Bypass -File scripts/setup-windows.ps1 -SkipDeps; \
+    else \
+        OMNI_SKIP_DEPS=1 bash scripts/bootstrap.sh; \
+    fi
+
+# ─── Sanity check ─────────────────────────────────────────────────────────────
+[group: 'check']
+shell-doctor:
+    @echo "platform: $(uname -s)"
+    @echo "shell:    ${SHELL}"
+    @echo "node:     $(command -v node || echo MISSING) ($(node --version 2>/dev/null || echo n/a))"
+    @echo "bun:      $(command -v bun || echo MISSING)"
+    @echo "npm:      $(command -v npm || echo MISSING)"
+    @echo "envrc:    $(test -f .envrc && echo present || echo absent)"
