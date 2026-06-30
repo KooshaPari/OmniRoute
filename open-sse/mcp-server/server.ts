@@ -7,6 +7,7 @@ import {
 } from "../../src/lib/combos/steps.ts";
 
 import { registerToolSearchTool } from "./toolSearch/register.ts";
+import { getAllToolDefinitions } from "./toolSearch/catalog.ts";
 
 import {
   MCP_TOOLS,
@@ -101,15 +102,7 @@ const MCP_ALLOWED_SCOPES = new Set(
     .filter(Boolean)
 );
 const TOTAL_MCP_TOOL_COUNT =
-  MCP_TOOLS.length +
-  Object.keys(memoryTools).length +
-  Object.keys(skillTools).length +
-  Object.keys(agentSkillTools).length +
-  Object.keys(poolTools).length +
-  gamificationTools.length +
-  pluginTools.length +
-  notionTools.length +
-  obsidianTools.length;
+  getAllToolDefinitions().length;
 
 type JsonRecord = Record<string, unknown>;
 
