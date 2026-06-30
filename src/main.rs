@@ -177,6 +177,11 @@ enum Commands {
     },
 }
 
+/// Returns true when the NO_COLOR environment variable is set (per https://no-color.org).
+fn is_no_color() -> bool {
+    std::env::var("NO_COLOR").is_ok_and(|v| !v.is_empty())
+}
+
 #[tokio::main]
 async fn main() -> Result<()> {
     let cli = Cli::parse();
@@ -185,9 +190,18 @@ async fn main() -> Result<()> {
     config::init_global();
 
     if !cli.quiet {
-        tracing_subscriber::fmt()
-            .with_max_level(if cli.verbose { tracing::Level::DEBUG } else { tracing::Level::INFO })
-            .init();
+        let builder = tracing_subscriber::fmt().with_max_level(if cli.verbose {
+            tracing::Level::DEBUG
+        } else {
+            tracing::Level::INFO
+        });
+
+        // Respect NO_COLOR (audit L36)
+        if is_no_color() {
+            builder.with_ansi(false).init();
+        } else {
+            builder.init();
+        }
     }
 
     match &cli.command {
@@ -295,4 +309,27 @@ async fn prune(idle_seconds: u64, force: bool) -> Result<()> {
     }
 
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_no_color_respects_env_var() {
+        // When NO_COLOR is unset, is_no_color should return false
+        unsafe { std::env::remove_var("NO_COLOR") };
+        assert!(!is_no_color());
+
+        // When NO_COLOR is set to empty string, should return false
+        unsafe { std::env::set_var("NO_COLOR", "") };
+        assert!(!is_no_color());
+
+        // When NO_COLOR is set to non-empty, should return true
+        unsafe { std::env::set_var("NO_COLOR", "1") };
+        assert!(is_no_color());
+
+        // Clean up
+        unsafe { std::env::remove_var("NO_COLOR") };
+    }
 }

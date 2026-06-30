@@ -316,14 +316,17 @@ impl SharedRuntime {
                     last_used: Instant::now(),
                 }
             } else {
-                bail!("Failed to spawn pooled process");
+                bail!(
+                    "Failed to spawn pooled process — check that '{}' is installed and on PATH",
+                    harness_type
+                );
             };
 
             pool_guard.push(pooled.clone());
             Ok(pooled)
         } else {
             bail!(
-                "Pool exhausted: max {} instances of {} allowed",
+                "Pool exhausted: max {} instances of {} allowed. Set pool.max_per_type in config.toml to increase the limit.",
                 self.max_per_type,
                 harness_type
             );

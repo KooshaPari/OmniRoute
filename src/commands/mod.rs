@@ -135,7 +135,7 @@ pub async fn stop(
     } else if let Some(h) = harness {
         ProcessFilter::ByHarness(h.to_string())
     } else {
-        anyhow::bail!("Specify --pid, --project, --harness, or --all");
+        anyhow::bail!("Specify --pid, --project, --harness, or --all to select what to stop");
     };
 
     let processes = pool.find(filter).await;

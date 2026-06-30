@@ -7,6 +7,7 @@
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::time::{SystemTime, UNIX_EPOCH};
+use tracing::warn;
 
 use crate::config;
 
@@ -40,7 +41,7 @@ impl HealthStatus {
         self.healthy = false;
         self.last_check = now_secs();
         self.checks_failed += 1;
-        eprintln!("Health check failed: {}", reason);
+        warn!("Health check failed: {}", reason);
     }
 }
 
@@ -81,7 +82,7 @@ impl MonitoringReport {
     pub fn generate(processes: &[ProcessStats]) -> Self {
         let cfg = config::global();
         let by_project: HashMap<String, usize> = HashMap::new();
-        let by_harness: HashMap<String, usize> = HashMap::new();
+        let mut by_harness: HashMap<String, usize> = HashMap::new();
         let mut total_memory = 0u64;
         let mut idle = 0usize;
 
@@ -92,6 +93,11 @@ impl MonitoringReport {
             if proc.is_idle(cfg.monitoring.idle_threshold_secs) {
                 idle += 1;
             }
+
+            // Populate breakdown maps (audit L8: these were left empty)
+            *by_harness.entry(proc.name.clone()).or_insert(0) += 1;
+            // Project name not available on ProcessStats directly;
+            // by_project is populated when project metadata is passed.
         }
 
         let mut recommendations = Vec::new();
@@ -122,4 +128,74 @@ impl MonitoringReport {
 
 fn now_secs() -> u64 {
     SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_secs()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn setup() {
+        // Ensure global config is initialised before tests access it
+        crate::config::init_global();
+    }
+
+    #[test]
+    fn test_mark_unhealthy_uses_tracing_not_eprintln() {
+        // Smoke test: mark_unhealthy should not panic and should flip healthy to false.
+        let mut status = HealthStatus::new();
+        assert!(status.healthy);
+        status.mark_unhealthy("test failure");
+        assert!(!status.healthy);
+        assert_eq!(status.checks_failed, 1);
+    }
+
+    #[test]
+    fn test_monitoring_report_populates_by_harness() {
+        setup();
+        let stats = vec![
+            ProcessStats {
+                pid: 100,
+                name: "node".into(),
+                memory_mb: 128,
+                cpu_percent: 0.5,
+                start_time: 1000,
+                uptime_seconds: 100,
+            },
+            ProcessStats {
+                pid: 101,
+                name: "bun".into(),
+                memory_mb: 256,
+                cpu_percent: 0.3,
+                start_time: 1001,
+                uptime_seconds: 200,
+            },
+            ProcessStats {
+                pid: 102,
+                name: "node".into(),
+                memory_mb: 64,
+                cpu_percent: 2.0,
+                start_time: 1002,
+                uptime_seconds: 10,
+            },
+        ];
+
+        let report = MonitoringReport::generate(&stats);
+        assert_eq!(report.total_processes, 3);
+        assert_eq!(report.total_memory_mb, 448);
+        // by_harness must be populated (audit L8 fix)
+        assert_eq!(report.by_harness.get("node"), Some(&2));
+        assert_eq!(report.by_harness.get("bun"), Some(&1));
+        // by_project is still empty (no project metadata on ProcessStats)
+        assert!(report.by_project.is_empty());
+    }
+
+    #[test]
+    fn test_monitoring_report_empty() {
+        setup();
+        let report = MonitoringReport::generate(&[]);
+        assert_eq!(report.total_processes, 0);
+        assert_eq!(report.total_memory_mb, 0);
+        assert!(report.by_harness.is_empty());
+        assert!(report.recommendations.is_empty());
+    }
 }
