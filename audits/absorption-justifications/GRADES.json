@@ -1,8 +1,9 @@
 {
-  "fleet_average_score": 14.0,
-  "fleet_average_percentage": 100.0,
+  "fleet_average_score": 13.2,
+  "fleet_average_percentage": 94.29,
   "fleet_grade_distribution": {
-    "L4": 16
+    "L4": 18,
+    "L1": 2
   },
   "pillar_weights": {
     "P1": 3,
@@ -27,6 +28,21 @@
         "3": "pass",
         "4": "pass",
         "5": "pass",
+        "6": "pass",
+        "7": "pass"
+      }
+    },
+    {
+      "name": "Benchora-2026-06-28.md",
+      "score": 6,
+      "percentage": 42.86,
+      "grade": "L1",
+      "pillar_status": {
+        "1": "pass",
+        "2": "fail",
+        "3": "fail",
+        "4": "fail",
+        "5": "fail",
         "6": "pass",
         "7": "pass"
       }
@@ -167,7 +183,52 @@
       }
     },
     {
+      "name": "nanovms-2026-06-28.md",
+      "score": 6,
+      "percentage": 42.86,
+      "grade": "L1",
+      "pillar_status": {
+        "1": "pass",
+        "2": "fail",
+        "3": "fail",
+        "4": "fail",
+        "5": "fail",
+        "6": "pass",
+        "7": "pass"
+      }
+    },
+    {
+      "name": "pheno-context-2026-06-29.md",
+      "score": 14,
+      "percentage": 100.0,
+      "grade": "L4",
+      "pillar_status": {
+        "1": "pass",
+        "2": "pass",
+        "3": "pass",
+        "4": "pass",
+        "5": "pass",
+        "6": "pass",
+        "7": "pass"
+      }
+    },
+    {
       "name": "pheno-harness-2026-06-25.md",
+      "score": 14,
+      "percentage": 100.0,
+      "grade": "L4",
+      "pillar_status": {
+        "1": "pass",
+        "2": "pass",
+        "3": "pass",
+        "4": "pass",
+        "5": "pass",
+        "6": "pass",
+        "7": "pass"
+      }
+    },
+    {
+      "name": "pheno-runtime-config-2026-06-29.md",
       "score": 14,
       "percentage": 100.0,
       "grade": "L4",

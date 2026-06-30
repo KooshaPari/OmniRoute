@@ -1,0 +1,23 @@
+{
+  "name": "pheno-runtime-config",
+  "full_name": "KooshaPari/pheno-runtime-config",
+  "description": "Phenotype-org runtime configuration loader",
+  "default_branch": "main",
+  "language": "Rust",
+  "archived": false,
+  "size_kb": 10,
+  "stargazers": 0,
+  "open_issues": 0,
+  "pushed_at": "2026-06-28T00:00:00Z",
+  "created_at": "2026-04-15T00:00:00Z",
+  "html_url": "https://github.com/KooshaPari/pheno-runtime-config",
+  "audit_artifact": "audits/absorption-justifications/pheno-runtime-config-2026-06-29.md",
+  "role": "runtime-config",
+  "federated_crates": [],
+  "federated_to": "phenotype-infra",
+  "absorbed_into": "KooshaPari/phenotype-infra (federation-service per ADR-049) + pheno-* runtime context layer",
+  "disposition": "ARCHIVE_ONLY",
+  "status": "active",
+  "lifecycle": "active",
+  "evidence_summary": "Hot-reloadable runtime configuration library for the pheno-* fleet. Active, under 10 KB. Small surface, tested, dependency-light. Federated into phenotype-infra per ADR-049. Stays a standalone crate for clean versioning."
+}

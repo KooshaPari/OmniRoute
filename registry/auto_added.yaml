@@ -1,0 +1,85 @@
+# auto_added.yaml — B6 unit (registry-pool) grade results
+# Generated: 2026-06-29T09:41:27Z
+# Source: grade.sh baseline run on phenotype-infra
+# Generator: B6 compute-infra DAG (registry-pool)
+---
+unit: B6
+task: registry-pool
+description: grade.sh baseline run on phenotype-infra
+generator: B6-compute-infra-dag
+generated: 2026-06-29T09:41:27Z
+
+entries:
+  - project: phenotype-infra
+    repo: KooshaPari/phenotype-infra
+    stack: rust
+    mode: full
+    score: 0
+    max: 17
+    percentage: 0.0
+    grade: F
+    tier_0_pass: false
+    tier_1_audit: fail
+    pillars_passed: 0
+    pillars_total: 11
+    root_cause: |
+      All 11 checks failed due to workspace member iac/oci-lottery/Cargo.toml
+      requiring unstable cargo feature `edition2024` (Cargo 1.75.0 does not
+      support it). The edition2024 feature is not stabilized in this Rust
+      toolchain version.
+    checks:
+      - name: build
+        status: fail
+        score: 0
+        max: 2
+        detail: "feature `edition2024` is required in iac/oci-lottery/Cargo.toml"
+      - name: test-unit
+        status: fail
+        score: 0
+        max: 3
+        detail: "ws member iac/oci-lottery requires edition2024 feature"
+      - name: fmt
+        status: fail
+        score: 0
+        max: 2
+        detail: "cargo metadata failed: iac/oci-lottery edition2024"
+      - name: clippy
+        status: fail
+        score: 0
+        max: 2
+        detail: "ws member iac/oci-lottery requires edition2024 feature"
+      - name: deny
+        status: fail
+        score: 0
+        max: 1
+        detail: "failed to fetch crates: iac/oci-lottery manifest parse error"
+      - name: doc
+        status: fail
+        score: 0
+        max: 1
+        detail: "ws member iac/oci-lottery requires edition2024 feature"
+      - name: test-snapshot
+        status: fail
+        score: 0
+        max: 1
+        detail: "ws member iac/oci-lottery requires edition2024 feature"
+      - name: test-fuzz
+        status: fail
+        score: 0
+        max: 1
+        detail: "ws member iac/oci-lottery requires edition2024 feature"
+      - name: coverage
+        status: fail
+        score: 0
+        max: 2
+        detail: "ws member iac/oci-lottery requires edition2024 feature"
+      - name: audit
+        status: fail
+        score: 0
+        max: 1
+        detail: "ws member iac/oci-lottery requires edition2024 feature"
+      - name: bench
+        status: fail
+        score: 0
+        max: 1
+        detail: "ws member iac/oci-lottery requires edition2024 feature"
