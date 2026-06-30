@@ -1,0 +1,14 @@
+{
+  "name": "pheno-harness",
+  "role": "testing-framework",
+  "lifecycle": "archived",
+  "status": "archived",
+  "description": "Phenotype-org test harness — archived 2026-06-24. Stranded commit a38a6fa (feat(eval): cross-repo adapter consumer) is local-only. Fork blocked by GitHub. Restore: gh repo restore KooshaPari/pheno-harness.",
+  "repo_path": "KooshaPari/pheno-harness",
+  "default_branch": "main",
+  "language": "Python",
+  "disposition": "ABSORBED",
+  "absorbed_into": "phenodag (DAG orchestration layer absorbs eval/bench coordination)",
+  "audit_artifact": "pheno-harness-2026-06-25.md",
+  "summary": "Archived — see pheno-harness-2026-06-25.md for absorption-justification (14/14 L4)."
+}

@@ -1,0 +1,23 @@
+{
+  "project": "BytePort",
+  "stack": "rust",
+  "mode": "full",
+  "score": 0,
+  "max": 17,
+  "percentage": 0,
+  "grade": "F",
+  "checks": [
+    {"name":"build","status":"fail","score":0,"max":2,"detail":"resolver setting 3 not valid, valid options are 1 or 2"},
+    {"name":"test-unit","status":"fail","score":0,"max":3,"detail":"resolver setting 3 not valid, valid options are 1 or 2"},
+    {"name":"fmt","status":"fail","score":0,"max":2,"detail":"resolver setting 3 not valid, valid options are 1 or 2"},
+    {"name":"clippy","status":"fail","score":0,"max":2,"detail":"resolver setting 3 not valid, valid options are 1 or 2"},
+    {"name":"deny","status":"fail","score":0,"max":1,"detail":"resolver setting 3 not valid, valid options are 1 or 2"},
+    {"name":"doc","status":"fail","score":0,"max":1,"detail":"resolver setting 3 not valid, valid options are 1 or 2"},
+    {"name":"test-snapshot","status":"fail","score":0,"max":1,"detail":"resolver setting 3 not valid, valid options are 1 or 2"},
+    {"name":"test-fuzz","status":"fail","score":0,"max":1,"detail":"resolver setting 3 not valid, valid options are 1 or 2"},
+    {"name":"coverage","status":"fail","score":0,"max":2,"detail":"resolver setting 3 not valid, valid options are 1 or 2"},
+    {"name":"audit","status":"fail","score":0,"max":1,"detail":"resolver setting 3 not valid, valid options are 1 or 2"},
+    {"name":"bench","status":"fail","score":0,"max":1,"detail":"resolver setting 3 not valid, valid options are 1 or 2"}
+  ],
+  "timestamp": "2026-06-29T00:00:00Z"
+}

@@ -13,5 +13,6 @@
   "adr": "ADR-049",
   "note": "Audited 2026-06-23; ARCHIVE_ONLY (high confidence); nanovms-core is now a workspace member of phenotype-infra (crates/nanovms-core, crates/nvms-ffi); no further code migration required",
   "audit_artifact": "audits/absorption-justifications/nanovms-2026-06-23.md",
+  "scorecard_artifact": "phenotype-org-audits/findings/2026-06-24-eval-bench-qa-v2.json",
   "audited_at": "2026-06-23T23:55:00Z"
 }

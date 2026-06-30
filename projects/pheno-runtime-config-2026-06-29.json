@@ -1,0 +1,26 @@
+{
+  "name": "pheno-runtime-config",
+  "full_name": "KooshaPari/pheno-runtime-config",
+  "description": "Hot-reloadable runtime configuration library for the pheno-* fleet (L37). Active, under 10 KB. Small surface, tested, dependency-light. Federated into phenotype-infra per ADR-049. Stays a standalone crate for clean versioning.",
+  "archived": false,
+  "size": 10,
+  "default_branch": "main",
+  "language": "Rust",
+  "stargazers_count": 0,
+  "pushed_at": "2026-05-14T20:00:00Z",
+  "created_at": "2025-11-08T16:00:00Z",
+  "html_url": "https://github.com/KooshaPari/pheno-runtime-config",
+  "audit_artifact": "audits/absorption-justifications/pheno-runtime-config-2026-06-29.md",
+  "disposition": "ACTIVE_FEDERATED",
+  "absorbed_into": "KooshaPari/phenotype-infra/crates/phenotype-config-runtime",
+  "role": "federated-tools",
+  "lifecycle": "active",
+  "status": "active",
+  "federated_into": "phenotype-infra",
+  "federation_reason": "Single-crate surface (~10 KB) too small to standalone; types are referenced from phenotype-infra configs. Kept as separate crate for clean semantic versioning.",
+  "evidence_summary": "Hot-reloadable runtime configuration library for the pheno-* fleet (L37). Active, under 10 KB. Small surface, tested, dependency-light. Federated into phenotype-infra per ADR-049. Stays a standalone crate for clean versioning.",
+  "absorbed_into_evidence": [
+    "KooshaPari/phenotype-infra/crates/phenotype-config-runtime",
+    "KooshaPari/phenotype-infra/docs/compute-infra-subtree.md"
+  ]
+}

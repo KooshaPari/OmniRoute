@@ -1446,6 +1446,34 @@
       "audit_artifact": "automated:ADR-095-T0:2026-06-28",
       "source_artifact": "automated:forge:2026-06-28",
       "added_at": "2026-06-28T19:15:15.910378+00:00"
+    },
+    {
+      "id": "repo-KodeVibe-absorption-2026-06-29",
+      "path": "KooshaPari/KodeVibe",
+      "disposition": "AFFIRM",
+      "fsm": "active",
+      "size_kb": 26891,
+      "remote_branch_count": 13,
+      "last_push": "2026-06-29T09:34:16Z",
+      "grade_score": null,
+      "grade_percentage": null,
+      "audit_artifact": "audits/absorption-justifications/KodeVibe-2026-06-29.md",
+      "source_artifact": "automated:__main__:2026-06-29",
+      "added_at": "2026-06-29T21:53:56.704430Z"
+    },
+    {
+      "id": "repo-KodeVibe-absorption-2026-06-29",
+      "path": "KooshaPari/KodeVibe",
+      "disposition": "AFFIRM",
+      "fsm": "active",
+      "size_kb": 26891,
+      "remote_branch_count": 13,
+      "last_push": "2026-06-29T09:34:16Z",
+      "grade_score": null,
+      "grade_percentage": null,
+      "audit_artifact": "audits/absorption-justifications/KodeVibe-2026-06-29.md",
+      "source_artifact": "automated:__main__:2026-06-29",
+      "added_at": "2026-06-29T22:02:30.003960Z"
     }
   ]
 }
