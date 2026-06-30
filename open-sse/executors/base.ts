@@ -17,7 +17,7 @@ import {
   resolveKeyForRequest,
 } from "../services/apiKeyRotator.ts";
 import type { KeyHealth } from "../services/apiKeyRotator.ts";
-import { getOpenAICompatibleType, isClaudeCodeCompatible } from "../services/provider.ts";
+import { getOpenAICompatibleType } from "../services/provider.ts";
 import {
   runWithOnPersist,
   getRefreshLeadMs,
@@ -167,8 +167,6 @@ export function mergeUpstreamExtraHeaders(
   for (const [k, v] of Object.entries(extra)) {
     if (typeof k === "string" && k.length > 0 && typeof v === "string") {
       if (k.toLowerCase() === "user-agent") {
-        // Use setUserAgentHeader to write into both the canonical "User-Agent"
-        // key and the lowercase "user-agent" key for case-sensitive upstreams.
         setUserAgentHeader(headers, v);
         continue;
       }
