@@ -61,6 +61,7 @@ import {
   stainlessRuntimeVersion,
   stripProxyToolPrefix,
 } from "./claudeIdentity.ts";
+import { hasActiveClaudeThinking } from "./hasActiveClaudeThinking.ts";
 
 /**
  * Sanitizes a custom API path to prevent path traversal attacks.
@@ -213,11 +214,6 @@ export function mergeAbortSignals(primary: AbortSignal, secondary: AbortSignal):
   primary.addEventListener("abort", () => abortFrom(primary), { once: true });
   secondary.addEventListener("abort", () => abortFrom(secondary), { once: true });
   return controller.signal;
-}
-
-function hasActiveClaudeThinking(body: Record<string, unknown>): boolean {
-  const thinking = body.thinking as Record<string, unknown> | undefined;
-  return thinking?.type === "enabled" || thinking?.type === "adaptive";
 }
 
 /**
