@@ -87,6 +87,7 @@ export type ParseError =
   | "bad_trace_id"
   | "bad_parent_id"
   | "bad_flags"
+  | "reserved_flags"
   | "reserved_trace_id"
   | "reserved_parent_id";
 
@@ -207,6 +208,9 @@ export function parseTraceparent(raw: string | null | undefined): TraceparentPar
   }
   if (!/^[0-9a-f]{2}$/.test(flags)) {
     return { ok: false, error: "bad_flags", raw };
+  }
+  if ((Number.parseInt(flags, 16) & 0xfe) !== 0) {
+    return { ok: false, error: "reserved_flags", raw };
   }
 
   return {

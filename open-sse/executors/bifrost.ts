@@ -45,6 +45,7 @@ import {
   refreshBifrostModels,
   type BifrostFetcher,
 } from "../../src/lib/db/bifrostModels.ts";
+import { withBifrostSpan } from "../observability/bifrostSpan.ts";
 
 const DEFAULT_HOST = "127.0.0.1";
 const DEFAULT_PORT = 8080;
@@ -176,12 +177,25 @@ export class BifrostBackendExecutor extends BaseExecutor {
       `Bifrost → ${url} (omniProvider: ${this.provider}, bifrostProvider: ${bifrostProviderId}, model: ${model})`
     );
 
-    const response = await fetch(url, {
-      method: "POST",
-      headers,
-      body: JSON.stringify(body),
-      signal: combinedSignal,
-    });
+    const { result: response } = await withBifrostSpan(
+      {
+        provider: this.provider,
+        bifrostProvider: bifrostProviderId,
+        model,
+        baseUrl,
+        headers,
+      },
+      async (span) => {
+        const upstreamResponse = await fetch(url, {
+          method: "POST",
+          headers,
+          body: JSON.stringify(body),
+          signal: combinedSignal,
+        });
+        span.setAttribute("http.status_code", upstreamResponse.status);
+        return upstreamResponse;
+      }
+    );
 
     if (response.status === HTTP_STATUS.RATE_LIMITED) {
       input.log?.warn?.(BIFROST_TAG, `Bifrost rate limited: ${response.status}`);

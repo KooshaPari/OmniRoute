@@ -41,7 +41,13 @@
  * @module open-sse/observability/bifrostSpan
  */
 
-import { SpanStatusCode, SpanKind, type Span } from "@opentelemetry/api";
+import {
+  SpanStatusCode,
+  SpanKind,
+  context as otelContext,
+  trace as otelTrace,
+  type Span,
+} from "@opentelemetry/api";
 import { getTracer, recordException, isOtelEnabled } from "./otelExporter.ts";
 import {
   parseTraceparent,
@@ -141,8 +147,9 @@ export async function withBifrostSpan<T>(
     { replaceTracestate: false }
   );
 
+  const spanContext = otelTrace.setSpan(otelContext.active(), span);
   try {
-    const result = await fn(span);
+    const result = await otelContext.with(spanContext, () => fn(span));
     // We do NOT inspect `result` for the HTTP status here — callers
     // that want to record the upstream status do it themselves via
     // the `span` reference passed into `fn`. The reason: the

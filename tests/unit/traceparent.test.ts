@@ -199,6 +199,14 @@ describe("traceparent", () => {
       expect(result.ok).toBe(false);
       if (!result.ok) expect(result.error).toBe("bad_flags");
     });
+
+    it("rejects version 00 flags with reserved bits set", () => {
+      const result = parseTraceparent(
+        "00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-03"
+      );
+      expect(result.ok).toBe(false);
+      if (!result.ok) expect(result.error).toBe("reserved_flags");
+    });
   });
 
   describe("parseTracestate / formatTracestate", () => {
