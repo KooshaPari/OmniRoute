@@ -5,7 +5,9 @@ use clap::{Parser, Subcommand};
 
 mod commands;
 mod config;
+mod monitoring;
 mod runtime;
+mod spawn_policy;
 
 use commands::{
     check_limits, config as config_cmd, health, pool_status, project as project_cmd, ps, run_pool,

@@ -26,6 +26,9 @@ substrate = { git = "https://github.com/KooshaPari/substrate", default-features 
 runtime-process = { git = "https://github.com/KooshaPari/substrate", package = "runtime-process" }
 sysinfo = "0.30"
 
+# Zig hot core: POSIX semaphore, posix_spawn, setpriority, waitpid
+spawn-core-sys = { path = "crates/spawn-core-sys" }
+
 # Utilities
 chrono = { version = "0.4", features = ["serde"] }
 dirs = "5"
@@ -43,4 +46,5 @@ members = [
     "crates/harness-native",
     "crates/sharecli-ipc",
     "crates/sharecli-ffi",
+    "crates/spawn-core-sys",
 ]

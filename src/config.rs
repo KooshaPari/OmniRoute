@@ -43,6 +43,9 @@ pub struct Config {
 
     /// Spawn / timing parameters
     pub spawn: SpawnConfig,
+
+    /// Build-contention throttle policy
+    pub spawn_policy: SpawnPolicyConfig,
 }
 
 impl Default for Config {
@@ -57,6 +60,7 @@ impl Default for Config {
             paths: PathsConfig::default(),
             project_limits: ProjectLimitsConfig::default(),
             spawn: SpawnConfig::default(),
+            spawn_policy: SpawnPolicyConfig::default(),
         }
     }
 }
@@ -207,6 +211,51 @@ pub struct SpawnConfig {
 impl Default for SpawnConfig {
     fn default() -> Self {
         Self { default_harness: "claude".into(), prune_idle_seconds: 300 }
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Spawn-policy / build-contention throttle
+// ---------------------------------------------------------------------------
+
+/// Controls how sharecli-managed build harnesses (cargo/rustc) compete for CPU.
+///
+/// All settings are **opt-in**: defaults are conservative and safe. The policy
+/// only affects processes that sharecli itself spawns — it never touches the
+/// operator's existing sessions.
+///
+/// Add to `~/.config/sharecli/config.toml`:
+///
+/// ```toml
+/// [spawn_policy]
+/// nice_level = 10           # 0 = disabled; >0 = apply background QoS (macOS: taskpolicy -b)
+/// max_concurrent_builds = 2 # semaphore cap across all sharecli build spawns
+/// use_sccache = false       # set RUSTC_WRAPPER=sccache when sccache is on PATH
+/// ```
+///
+/// Teardown: the semaphore is in-process only. When sharecli exits all permits
+/// are released automatically; no persistent state is written.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(default)]
+pub struct SpawnPolicyConfig {
+    /// nice/priority level applied to build harness processes via `taskpolicy -b`
+    /// on macOS. Set to 0 to disable background-QoS wrapping entirely.
+    pub nice_level: u8,
+    /// Maximum number of cargo/rustc build harnesses that may execute
+    /// concurrently under sharecli. Additional spawns queue until a slot is free.
+    pub max_concurrent_builds: usize,
+    /// When `true` and `sccache` is found on PATH, set `RUSTC_WRAPPER=sccache`
+    /// for every build harness sharecli spawns.
+    pub use_sccache: bool,
+}
+
+impl Default for SpawnPolicyConfig {
+    fn default() -> Self {
+        Self {
+            nice_level: 10,
+            max_concurrent_builds: 2,
+            use_sccache: false,
+        }
     }
 }
 

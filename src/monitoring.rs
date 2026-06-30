@@ -1,4 +1,8 @@
 //! Monitoring and health check functionality
+// These types are a stub reserved for future dashboard integration; none are
+// wired into the binary yet.  Suppress dead_code for the whole module rather
+// than scattering per-item allows across a placeholder.
+#![allow(dead_code)]
 
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;

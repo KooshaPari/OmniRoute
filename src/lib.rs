@@ -10,6 +10,7 @@ pub mod commands;
 pub mod config;
 pub mod monitoring;
 pub mod runtime;
+pub mod spawn_policy;
 
 pub use anyhow::Result;
 pub use runtime::{

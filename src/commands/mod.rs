@@ -4,8 +4,10 @@ use crate::config::{self, Config, ConfigCmd, ProjectCmd};
 use crate::runtime::{
     ProcessFilter, ProcessInfo, ProcessPool, ProjectLimits, ProjectResources, SharedRuntime,
 };
+use crate::spawn_policy::SpawnPolicy;
 use anyhow::Result;
 use std::path::PathBuf;
+use std::sync::Arc;
 
 /// Shared runtime instance
 static SHARED_RUNTIME: std::sync::OnceLock<SharedRuntime> = std::sync::OnceLock::new();
@@ -80,7 +82,12 @@ pub async fn start(
         anyhow::bail!("Project path does not exist: {:?}", project_path);
     }
 
-    let pool = ProcessPool::new();
+    // Apply the spawn-policy throttle when the harness is a build harness (cargo/rustc/…).
+    // The policy is constructed from the global config's [spawn_policy] section.
+    let pool = {
+        let policy = SpawnPolicy::new(cfg.spawn_policy.clone());
+        ProcessPool::with_spawn_policy(Arc::new(policy))
+    };
     println!("Starting {} harness for project '{}'...", harness, project);
 
     let info = pool

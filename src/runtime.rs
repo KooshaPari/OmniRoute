@@ -16,6 +16,26 @@ use tokio::process::Command;
 use tokio::sync::RwLock;
 
 use crate::config;
+use crate::spawn_policy::{is_build_harness, SpawnPolicy};
+
+// ---------------------------------------------------------------------------
+// RAII env-var guard — restores a variable to its previous value on drop.
+// Used to temporarily inject CARGO_BUILD_JOBS / RUSTC_WRAPPER for a spawn.
+// ---------------------------------------------------------------------------
+
+struct EnvGuard {
+    key: String,
+    prev: Option<String>,
+}
+
+impl Drop for EnvGuard {
+    fn drop(&mut self) {
+        match &self.prev {
+            Some(v) => std::env::set_var(&self.key, v),
+            None => std::env::remove_var(&self.key),
+        }
+    }
+}
 
 #[derive(Debug, Clone)]
 pub struct ProcessInfo {
@@ -52,6 +72,10 @@ pub struct ProcessPool {
     processes: RwLock<HashMap<u32, ManagedProcess>>,
     system: RwLock<System>,
     port: CommandGroupProcess,
+    /// Optional spawn-policy throttle. When `Some`, build harnesses (cargo/rustc/…)
+    /// must acquire a permit before spawning, and receive injected env-vars and
+    /// optional taskpolicy wrapping.
+    spawn_policy: Option<Arc<SpawnPolicy>>,
 }
 
 impl Default for ProcessPool {
@@ -66,6 +90,18 @@ impl ProcessPool {
             processes: RwLock::new(HashMap::new()),
             system: RwLock::new(System::new_all()),
             port: CommandGroupProcess::new(),
+            spawn_policy: None,
+        }
+    }
+
+    /// Create a `ProcessPool` with a build-contention throttle applied to
+    /// cargo/rustc and other build harnesses.
+    pub fn with_spawn_policy(policy: Arc<SpawnPolicy>) -> Self {
+        Self {
+            processes: RwLock::new(HashMap::new()),
+            system: RwLock::new(System::new_all()),
+            port: CommandGroupProcess::new(),
+            spawn_policy: Some(policy),
         }
     }
 
@@ -93,7 +129,17 @@ impl ProcessPool {
         result
     }
 
-    /// Spawn a new process via substrate ProcessPort
+    /// Spawn a new process via substrate ProcessPort.
+    ///
+    /// When a `SpawnPolicy` is configured and the harness is a recognised build
+    /// harness (cargo/rustc/make/…), this method:
+    /// 1. Acquires a semaphore permit — queuing if `max_concurrent_builds` slots
+    ///    are already taken (released automatically when the permit is dropped at
+    ///    the end of this call; callers that want to hold the slot for the full
+    ///    build duration should use `ProcessPool::with_spawn_policy` and
+    ///    `SpawnPolicy::acquire_build_permit` directly).
+    /// 2. Wraps the command with `taskpolicy -b` on macOS when `nice_level > 0`.
+    /// 3. Injects `CARGO_BUILD_JOBS` and optionally `RUSTC_WRAPPER=sccache`.
     pub async fn spawn(
         &self,
         cmd: &str,
@@ -102,10 +148,49 @@ impl ProcessPool {
         project: Option<String>,
         harness: Option<String>,
     ) -> Result<ProcessInfo> {
-        let spec = ProcessSpawnSpec { program: cmd.to_string(), args: args.to_vec(), cwd };
+        // Determine whether the spawn-policy throttle applies to this harness.
+        let is_build = harness.as_deref().map(is_build_harness).unwrap_or_else(|| is_build_harness(cmd));
+
+        // Apply policy when present and harness is a build harness.
+        let _permit;
+        let (effective_cmd, effective_args, extra_env): (String, Vec<String>, Vec<(String, String)>) =
+            if is_build {
+                if let Some(ref policy) = self.spawn_policy {
+                    // Acquire build slot (queues if at cap).
+                    _permit = Some(policy.acquire_build_permit().await?);
+                    let (prog, shaped_args) = policy.apply_taskpolicy(cmd, args);
+                    let env = policy.build_env_overrides();
+                    (prog, shaped_args, env)
+                } else {
+                    _permit = None;
+                    (cmd.to_string(), args.to_vec(), vec![])
+                }
+            } else {
+                _permit = None;
+                (cmd.to_string(), args.to_vec(), vec![])
+            };
+
+        // Propagate env-var overrides into the process environment before spawn.
+        // substrate's `ProcessSpawnSpec` does not yet carry env — set them on
+        // the current process so they are inherited, then restore after spawn.
+        let _env_guards: Vec<EnvGuard> = extra_env
+            .into_iter()
+            .map(|(k, v)| {
+                let prev = std::env::var(&k).ok();
+                std::env::set_var(&k, &v);
+                EnvGuard { key: k, prev }
+            })
+            .collect();
+
+        let spec = ProcessSpawnSpec {
+            program: effective_cmd.clone(),
+            args: effective_args.clone(),
+            cwd,
+        };
 
         let handle =
-            self.port.spawn(&spec).await.map_err(|e| anyhow::anyhow!("spawn {cmd}: {e}"))?;
+            self.port.spawn(&spec).await.map_err(|e| anyhow::anyhow!("spawn {}: {e}", effective_cmd))?;
+        // _env_guards drops here, restoring env vars before any async point.
 
         let pid = handle.pid;
 
@@ -113,8 +198,8 @@ impl ProcessPool {
 
         let info = ProcessInfo {
             pid,
-            name: cmd.to_string(),
-            cmd: vec![cmd.to_string()].into_iter().chain(args.iter().cloned()).collect(),
+            name: effective_cmd.clone(),
+            cmd: vec![effective_cmd].into_iter().chain(effective_args).collect(),
             memory_mb: 0,
             start_time: 0,
             project,

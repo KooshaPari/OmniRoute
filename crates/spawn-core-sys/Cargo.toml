@@ -1,0 +1,13 @@
+[package]
+name = "spawn-core-sys"
+version = "0.1.0"
+edition = "2021"
+description = "FFI bindings to the Zig spawn-core static library"
+build = "build.rs"
+links = "spawn_core"
+
+[dependencies]
+anyhow = "1"
+
+[build-dependencies]
+anyhow = "1"
