@@ -1971,7 +1971,12 @@ export async function handleComboChat({
               undefined;
             const effectiveConnectionId = selectedConnectionId || target.connectionId || "";
 
-            const quality = await validateResponseQuality(result, clientRequestedStream, log);
+            const quality = await validateResponseQuality(
+              result,
+              clientRequestedStream,
+              log,
+              config.responseValidation
+            );
             if (!quality.valid) {
               log.warn(
                 "COMBO",
@@ -3016,7 +3021,12 @@ async function handleRoundRobinCombo({
 
         // Success — validate response quality before returning
         if (result.ok) {
-          const quality = await validateResponseQuality(result, clientRequestedStream, log);
+          const quality = await validateResponseQuality(
+            result,
+            clientRequestedStream,
+            log,
+            config.responseValidation
+          );
           if (!quality.valid) {
             log.warn(
               "COMBO-RR",
