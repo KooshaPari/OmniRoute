@@ -181,8 +181,6 @@ export const KNOWN_TRANSLATOR_PAIRS: readonly string[] = [
   "claude:gemini",
   "claude:openai",
   "cursor:openai",
-  "gemini-cli:claude",
-  "gemini-cli:openai",
   "gemini:claude",
   "gemini:openai",
   "kiro:openai",
@@ -191,7 +189,6 @@ export const KNOWN_TRANSLATOR_PAIRS: readonly string[] = [
   "openai:claude",
   "openai:cursor",
   "openai:gemini",
-  "openai:gemini-cli",
   "openai:kiro",
   "openai:openai-responses",
 ];
