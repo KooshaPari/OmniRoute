@@ -55,6 +55,7 @@ import {
   BifrostKillSwitchActiveError,
   BIFROST_KILLSWITCH_ACTIVE,
 } from "../services/bifrostKillSwitch.ts";
+import { withBifrostSpan } from "../observability/bifrostSpan.ts";
 
 const DEFAULT_HOST = "127.0.0.1";
 const DEFAULT_PORT = 8080;
@@ -248,16 +249,32 @@ export class BifrostBackendExecutor extends BaseExecutor {
     // We measure latency around the fetch and always record an
     // observation. `ok` is true on 2xx and false on any other status or
     // thrown error. The kill switch uses these to auto-trip when
-    // thresholds (p99 latency, error rate, cost ratio) are exceeded.
+    // thresholds (p99 latency, error rate, cost ratio) are exceeded. The
+    // fetch itself is wrapped in a Bifrost OTel span (B10) so Tier-1/Tier-2
+    // traces stay unified via the injected `traceparent`.
     const startTime = Date.now();
     let response: Response;
     try {
-      response = await fetch(url, {
-        method: "POST",
-        headers,
-        body: JSON.stringify(body),
-        signal: combinedSignal,
-      });
+      const { result } = await withBifrostSpan(
+        {
+          provider: this.provider,
+          bifrostProvider: bifrostProviderId,
+          model,
+          baseUrl,
+          headers,
+        },
+        async (span) => {
+          const upstreamResponse = await fetch(url, {
+            method: "POST",
+            headers,
+            body: JSON.stringify(body),
+            signal: combinedSignal,
+          });
+          span.setAttribute("http.status_code", upstreamResponse.status);
+          return upstreamResponse;
+        }
+      );
+      response = result;
     } catch (err) {
       // Fetch threw (network error, abort, timeout). Record a failed
       // observation and re-throw. The dispatcher will handle the error.

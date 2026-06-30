@@ -93,14 +93,12 @@ export async function initOtel(): Promise<boolean> {
       { Resource },
       { resourceFromAttributes },
       { ATTR_SERVICE_NAME, ATTR_SERVICE_VERSION },
-      { ConsoleSpanExporter, SimpleSpanProcessor },
     ] = await Promise.all([
       import("@opentelemetry/sdk-node"),
       import("@opentelemetry/exporter-trace-otlp-http"),
       import("@opentelemetry/resources"),
       import("@opentelemetry/resources"),
       import("@opentelemetry/semantic-conventions"),
-      import("@opentelemetry/sdk-trace-base"),
     ]);
 
     const serviceName = process.env.OTEL_SERVICE_NAME?.trim() || "omniroute";
@@ -118,7 +116,6 @@ export async function initOtel(): Promise<boolean> {
     const sdk = new NodeSDK({
       resource,
       traceExporter: new OTLPTraceExporter({ url: `${endpoint.replace(/\/$/, "")}/v1/traces` }),
-      spanProcessors: [new SimpleSpanProcessor(new ConsoleSpanExporter())],
     });
     sdk.start();
 
