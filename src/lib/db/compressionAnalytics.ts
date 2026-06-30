@@ -236,6 +236,53 @@ export function insertCompressionEngineBreakdown(rows: CompressionEngineBreakdow
   insertAll(rows);
 }
 
+/**
+ * Idempotent table init for callers that only read `compression_engine_breakdown`
+ * (not write). Mirrors the side-effect normally triggered by
+ * `insertCompressionEngineBreakdown` / `getPerEngineAnalytics`.
+ */
+export function ensureCompressionAnalyticsTables(): void {
+  const db = getDbInstance();
+  ensureCompressionAnalyticsColumns();
+  if (breakdownTableEnsuredForDb !== db) {
+    ensureCompressionEngineBreakdownTable();
+  }
+}
+
+/**
+ * Fetch all per-engine breakdown rows for the supplied request_ids (one row per
+ * engine inside a stacked compression pipeline). Returns a Map keyed by request_id
+ * so the caller can pair rows with their parent `compression_analytics` row without
+ * issuing N+1 queries. Empty input returns an empty map.
+ */
+export function getCompressionEngineBreakdownForRequests(
+  requestIds: Array<string | null | undefined>
+): Map<string, CompressionEngineBreakdownRow[]> {
+  const out = new Map<string, CompressionEngineBreakdownRow[]>();
+  const ids = requestIds.filter((id): id is string => Boolean(id));
+  if (ids.length === 0) return out;
+  ensureCompressionAnalyticsTables();
+  const placeholders = ids.map(() => "?").join(",");
+  const db = getDbInstance();
+  const rows = db
+    .prepare(
+      `SELECT timestamp, request_id, engine,
+              original_tokens, compressed_tokens, tokens_saved, duration_ms
+         FROM compression_engine_breakdown
+        WHERE request_id IN (${placeholders})
+        ORDER BY request_id ASC, id ASC`
+    )
+    .all(...ids) as CompressionEngineBreakdownRow[];
+  for (const r of rows) {
+    const key = r.request_id;
+    if (!key) continue;
+    const list = out.get(key) ?? [];
+    list.push(r);
+    out.set(key, list);
+  }
+  return out;
+}
+
 export function attachCompressionUsageReceipt(
   requestId: string | null | undefined,
   usage: Record<string, unknown> | null | undefined,
@@ -594,4 +641,74 @@ export function getLatestCompressionAnalyticsRun(): LatestCompressionAnalyticsRu
         LIMIT 1`
     )
     .get() as LatestCompressionAnalyticsRun | undefined;
+}
+
+export interface CompressionReplayRow extends LatestCompressionAnalyticsRun {
+  provider: string | null;
+  receipt_source: string | null;
+  estimated_usd_saved: number | null;
+  actual_total_tokens: number | null;
+}
+
+export interface GetRecentCompressionRunsOptions {
+  limit?: number;
+  sinceIso?: string;
+  provider?: string | null;
+  model?: string | null;
+}
+
+/**
+ * Return the most recent compression runs from `compression_analytics`, newest first.
+ *
+ * - `limit`        clamped to [1, 1000]; default 100.
+ * - `sinceIso`     inclusive lower bound on `timestamp`. Defaults to "all-time".
+ * - `provider`     exact-match on `provider` column (case-insensitive). Ignored when null/empty.
+ * - `model`        best-effort: the `compression_analytics` table does not currently store
+ *                  `model` directly, so the filter matches `request_id LIKE '%<model>%'`.
+ *                  Pre-existing rows from a given request carry the originating model id
+ *                  in their request-id fragment via upstream call sites; passing a model
+ *                  that was never observed returns zero rows without erroring. Pass null
+ *                  or empty to disable the filter.
+ *
+ * Used by GET /api/compression/replay to power the dashboard's "replay history" panel.
+ */
+export function getRecentCompressionAnalyticsRuns(
+  opts: GetRecentCompressionRunsOptions = {}
+): CompressionReplayRow[] {
+  const limit = Math.max(1, Math.min(1000, Math.floor(opts.limit ?? 100) || 100));
+  const sinceIso = opts.sinceIso ?? null;
+  const provider = opts.provider?.trim() || null;
+  const model = opts.model?.trim() || null;
+
+  let where = "";
+  const params: unknown[] = [];
+  if (sinceIso) {
+    where = "WHERE timestamp >= ?";
+    params.push(sinceIso);
+  }
+  if (provider) {
+    if (where) where += " AND LOWER(provider) = LOWER(?)";
+    else where = "WHERE LOWER(provider) = LOWER(?)";
+    params.push(provider);
+  }
+  if (model) {
+    if (where) where += " AND request_id LIKE ?";
+    else where = "WHERE request_id LIKE ?";
+    params.push(`%${model}%`);
+  }
+  params.push(limit);
+
+  const db = getDbInstance();
+  return db
+    .prepare(
+      `SELECT id, timestamp, combo_id, compression_combo_id, mode,
+              original_tokens, compressed_tokens, tokens_saved, duration_ms,
+              request_id, engine, provider, receipt_source,
+              estimated_usd_saved, actual_total_tokens, validation_fallback
+         FROM compression_analytics
+         ${where}
+        ORDER BY timestamp DESC, id DESC
+        LIMIT ?`
+    )
+    .all(...params) as CompressionReplayRow[];
 }
