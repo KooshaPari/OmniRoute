@@ -61,6 +61,7 @@ import {
   stainlessRuntimeVersion,
   stripProxyToolPrefix,
 } from "./claudeIdentity.ts";
+import { stripVersionedToolModelPrefix } from "./stripVersionedToolModelPrefix.ts";
 
 /**
  * Sanitizes a custom API path to prevent path traversal attacks.
@@ -417,27 +418,6 @@ export function sanitizeReasoningEffortForProvider(
   }
 
   return body;
-}
-
-/**
- * Strip the OmniRoute provider prefix from versioned built-in tool model
- * fields (e.g. `cc/claude-opus-4-8` → `claude-opus-4-8`). Versioned built-in
- * tool types carry an 8-digit date suffix (`advisor_20260301`, `bash_20250124`);
- * the real Claude CLI sends a bare model id there, never a prefixed one, so a
- * leaked OmniRoute prefix makes Anthropic reject the request. Mutates in place.
- */
-export function stripVersionedToolModelPrefix(tools: unknown): void {
-  if (!Array.isArray(tools)) return;
-  for (const t of tools as Array<Record<string, unknown>>) {
-    if (
-      typeof t.type === "string" &&
-      /^[a-z][a-z0-9_]*_\d{8}$/.test(t.type) &&
-      typeof t.model === "string" &&
-      t.model.includes("/")
-    ) {
-      t.model = t.model.split("/").pop();
-    }
-  }
 }
 
 /**
