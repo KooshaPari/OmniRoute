@@ -2,6 +2,7 @@ import { injectMemoryAndSkills } from "./chatCore/memorySkillsInjection.ts";
 import { checkIdempotencyCache } from "./chatCore/idempotency.ts";
 import { checkSemanticCache } from "./chatCore/semanticCache.ts";
 import { sanitizeChatRequestBody } from "./chatCore/sanitization.ts";
+import { getUpstreamErrorIdentifier } from "./chatCore/getUpstreamErrorIdentifier.ts";
 import { CORS_HEADERS } from "../utils/cors.ts";
 import { HEAP_PRESSURE_THRESHOLD_MB } from "../utils/heapPressure.ts";
 import { normalizeHeaders } from "../utils/headers.ts";
@@ -1135,12 +1136,7 @@ function createStreamingErrorResult(
   };
 }
 
-function getUpstreamErrorIdentifier(error: unknown): string | undefined {
-  if (!error || typeof error !== "object") return undefined;
-  const value = (error as { code?: unknown }).code;
-  return typeof value === "string" && value.length > 0 ? value : undefined;
-}
-
+// getUpstreamErrorIdentifier extracted to chatCore/getUpstreamErrorIdentifier.ts (#3501, PR-020).
 function wrapReadableStreamWithFinalize<T>(
   readable: ReadableStream<T>,
   finalize: () => void
