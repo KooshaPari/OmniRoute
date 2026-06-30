@@ -71,6 +71,16 @@ export async function GET() {
         ],
       },
       {
+        id: "mint-virtual-key",
+        name: "Mint Virtual Key",
+        description: "Creates a short-lived virtual API key for secure provider key exchange workflows",
+        tags: ["security", "keys", "virtual-credentials", "auth"],
+        examples: [
+          "Generate a virtual key scoped to Vertex AI",
+          "Create a temporary key for provider calls",
+        ],
+      },
+      {
         id: "agent-dispatch",
         name: "Agent Dispatch",
         description: "Dispatches coding tasks to the substrate engine for code execution",
