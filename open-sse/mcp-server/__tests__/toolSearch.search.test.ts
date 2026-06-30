@@ -2,9 +2,21 @@ import { describe, it, expect } from "vitest";
 import { searchTools } from "../toolSearch/search.ts";
 
 const E = [
-  { name: "omniroute_get_health", description: "health status uptime memory", scopes: ["read:health"] },
-  { name: "omniroute_list_combos", description: "list combos and strategies", scopes: ["read:combos"] },
-  { name: "omniroute_check_quota", description: "remaining quota per provider", scopes: ["read:quota"] },
+  {
+    name: "omniroute_get_health",
+    description: "health status uptime memory",
+    scopes: ["read:health"],
+  },
+  {
+    name: "omniroute_list_combos",
+    description: "list combos and strategies",
+    scopes: ["read:combos"],
+  },
+  {
+    name: "omniroute_check_quota",
+    description: "remaining quota per provider",
+    scopes: ["read:quota"],
+  },
 ];
 
 describe("searchTools", () => {
@@ -12,7 +24,9 @@ describe("searchTools", () => {
     const r = searchTools(E, "health", 8);
     expect(r[0].name).toBe("omniroute_get_health");
   });
-  it("no hit ⇒ empty", () => { expect(searchTools(E, "zzzzz", 8)).toEqual([]); });
+  it("no hit ⇒ empty", () => {
+    expect(searchTools(E, "zzzzz", 8)).toEqual([]);
+  });
   it("respects limit + deterministic tie-break", () => {
     const r = searchTools(E, "omniroute", 2);
     expect(r.length).toBe(2);
