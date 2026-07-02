@@ -1327,7 +1327,7 @@ export function createMcpServer(): McpServer {
         toolDef.name,
         async (args) => {
           try {
-            const parsedArgs = toolDef.inputSchema.parse(args ?? {});
+            const parsedArgs = toolDef.inputSchema.parse(args ?? {}) as Record<string, unknown>;
             const result = await toolDef.handler(parsedArgs);
             return { content: [{ type: "text" as const, text: JSON.stringify(result, null, 2) }] };
           } catch (err) {
