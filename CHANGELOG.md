@@ -14,6 +14,8 @@
 
 - **fix(usage):** preserve (bounded) tool definitions in request logs even when the request body is truncated, so the request-details view can still show available tools. (thanks @noir017)
 
+- **fix(image):** keep bare codex image aliases (e.g. `gpt-5.5`) resolving to the codex image pipeline even when a combo shares the same name. A chat combo named `gpt-5.5` used to shadow the bare image alias in `resolveImageRouteModel`, hijacking `/v1/images/*` requests to a chat target (regression path adjacent to [#5887](https://github.com/diegosouzapw/OmniRoute/issues/5887)); codex bare models are now reserved before bare-combo resolution, while non-codex aliases (e.g. `gpt-image-2`) remain user-shadowable (#3214/#3215 behavior preserved). Regression guard: `tests/unit/image-routes-combo-edits-3214-3215.test.ts` (9). ([#5902](https://github.com/diegosouzapw/OmniRoute/pull/5902) by [@KooshaPari](https://github.com/KooshaPari))
+
 ---
 
 ## [3.8.43] — TBD
