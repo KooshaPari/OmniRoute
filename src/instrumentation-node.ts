@@ -20,10 +20,138 @@ function toHex(bytes: Uint8Array): string {
   return Array.from(bytes, (byte) => byte.toString(16).padStart(2, "0")).join("");
 }
 
+/**
+ * Rename a Node process title so OmniRoute is identifiable in `ps`/`htop`
+ * instead of the generic Next.js standalone server name.
+ *
+ * Only rewrites titles that start with "next-server", preserving any
+ * trailing suffix (e.g. " (v16.2.9)"). Every other title — including one
+ * that has already been renamed, or one that merely contains
+ * "next-server" elsewhere — passes through unchanged. Empty/undefined-safe.
+ */
+export function renameProcessTitle(currentTitle: string): string {
+  if (!currentTitle) return currentTitle;
+  if (!currentTitle.startsWith("next-server")) return currentTitle;
+  return `omniroute${currentTitle.slice("next-server".length)}`;
+}
+
 function isBackgroundServicesDisabled(): boolean {
   const raw = process.env.OMNIROUTE_DISABLE_BACKGROUND_SERVICES;
   if (!raw) return false;
   return new Set(["1", "true", "yes", "on"]).has(raw.trim().toLowerCase());
+}
+
+/**
+ * Has the operator opted in to OTel export AND the SDK isn't explicitly
+ * disabled? Mirrors `isOtelEnabled()` from the open-sse facade but
+ * available in this file before the facade is imported.
+ */
+function isOtelOptIn(): boolean {
+  const endpoint = process.env.OTEL_EXPORTER_OTLP_ENDPOINT?.trim();
+  if (!endpoint) return false;
+  const disabled = process.env.OTEL_SDK_DISABLED?.trim().toLowerCase();
+  if (disabled === "true" || disabled === "1" || disabled === "yes" || disabled === "on") {
+    return false;
+  }
+  return true;
+}
+
+/** B10 — Idempotency latch for `initOtel`. Survives across calls in the same process. */
+let __otelInitAttempted = false;
+/** B10 — Result of the first `initOtel` call (or `null` if not yet attempted). */
+let __otelInitResult: boolean | null = null;
+
+/**
+ * B10 (test-only) — Reset the idempotency latch so `initOtel` can run again.
+ * Production code should never call this. Exported only so vitest's
+ * `beforeEach` can re-attempt init under different env-var permutations.
+ */
+export function __resetOtelInitForTests(): void {
+  __otelInitAttempted = false;
+  __otelInitResult = null;
+}
+
+/**
+ * B10 — Initialize the OpenTelemetry Node SDK if the operator has set
+ * `OTEL_EXPORTER_OTLP_ENDPOINT`. Otherwise this is a no-op (the dispatcher
+ * path is unaffected, all `getTracer(name)` calls return no-op tracers).
+ *
+ * Implementation notes:
+ *   - The SDK packages (`@opentelemetry/sdk-node`, `@opentelemetry/exporter-trace-otlp-http`,
+ *     `@opentelemetry/resources`, `@opentelemetry/semantic-conventions`) are NOT a hard
+ *     dependency of the project — they are dynamically imported only when the env var is set.
+ *     This keeps `node_modules` lean for operators who don't run a collector.
+ *   - On init failure, we log once and stay no-op; the request path is never blocked.
+ *   - This is called once from `registerNodejs()` (the start of the Node.js startup chain).
+ *   - Honors the OTel-spec standard `OTEL_SDK_DISABLED=true` switch.
+ *
+ * @returns true iff the SDK was successfully initialized; false otherwise.
+ */
+export async function initOtel(): Promise<boolean> {
+  if (__otelInitAttempted) return __otelInitResult === true;
+  __otelInitAttempted = true;
+
+  const endpoint = process.env.OTEL_EXPORTER_OTLP_ENDPOINT?.trim();
+  if (!endpoint) {
+    __otelInitResult = false;
+    return false;
+  }
+  if (!isOtelOptIn()) {
+    __otelInitResult = false;
+    return false;
+  }
+
+  try {
+    const [
+      { NodeSDK },
+      { OTLPTraceExporter },
+      { Resource },
+      { resourceFromAttributes },
+      { ATTR_SERVICE_NAME, ATTR_SERVICE_VERSION },
+    ] = await Promise.all([
+      import("@opentelemetry/sdk-node"),
+      import("@opentelemetry/exporter-trace-otlp-http"),
+      import("@opentelemetry/resources"),
+      import("@opentelemetry/resources"),
+      import("@opentelemetry/semantic-conventions"),
+    ]);
+
+    const serviceName = process.env.OTEL_SERVICE_NAME?.trim() || "omniroute";
+    const serviceVersion = process.env.npm_package_version ?? "unknown";
+    const resource = resourceFromAttributes
+      ? resourceFromAttributes({
+          [ATTR_SERVICE_NAME]: serviceName,
+          [ATTR_SERVICE_VERSION]: serviceVersion,
+        })
+      : new Resource({
+          [ATTR_SERVICE_NAME]: serviceName,
+          [ATTR_SERVICE_VERSION]: serviceVersion,
+        });
+
+    const sdk = new NodeSDK({
+      resource,
+      traceExporter: new OTLPTraceExporter({ url: `${endpoint.replace(/\/$/, "")}/v1/traces` }),
+    });
+    sdk.start();
+
+    // Stash SDK on globalThis so tests + graceful shutdown can flush it.
+    (globalThis as { __otelSdk?: { shutdown: () => Promise<void> } }).__otelSdk = {
+      shutdown: () => sdk.shutdown(),
+    };
+
+    console.log(
+      `[OTEL] OpenTelemetry SDK initialized (endpoint=${endpoint}, service=${serviceName})`
+    );
+    __otelInitResult = true;
+    return true;
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err);
+    console.warn(
+      `[OTEL] OTel SDK init failed (continuing without tracing): ${msg}. To enable, install: @opentelemetry/sdk-node, @opentelemetry/exporter-trace-otlp-http, @opentelemetry/resources, @opentelemetry/semantic-conventions, @opentelemetry/sdk-trace-base`
+    );
+    __otelInitResult = false;
+    return false;
+  }
 }
 
 async function ensureSecrets(): Promise<void> {
@@ -69,9 +197,17 @@ async function ensureSecrets(): Promise<void> {
 }
 
 export async function registerNodejs(): Promise<void> {
+  // Rename the process title so OmniRoute is identifiable in ps/htop instead
+  // of the generic "next-server" standalone server name.
+  process.title = renameProcessTitle(process.title);
+
   // Initialize proxy fetch patch FIRST (before any HTTP requests)
   await import("@omniroute/open-sse/index.ts");
   console.log("[STARTUP] Global fetch proxy patch initialized");
+
+  // B10 — Initialize OpenTelemetry SDK if OTEL_EXPORTER_OTLP_ENDPOINT is set.
+  // No-op otherwise. Never blocks the request path.
+  await initOtel();
 
   await ensureSecrets();
   const { enforceWebRuntimeEnv } = await import("@/lib/env/runtimeEnv");
@@ -186,6 +322,18 @@ export async function registerNodejs(): Promise<void> {
         await import("@omniroute/open-sse/services/systemPrompt.ts");
       setSystemPromptConfig(settings.systemPrompt);
       console.log("[STARTUP] Global System Prompt restored from settings");
+    }
+
+    // Restore the proxy-level Thinking-Budget config (#5312 RC-A). It lives in
+    // `settings.thinkingBudget` and is NOT covered by applyRuntimeSettings, so
+    // without this the dashboard mode (auto/custom/adaptive) silently reverts to
+    // the passthrough default on every restart. Previously this was only wired into
+    // the unused `server-init.ts`, so it never ran in production.
+    const { hydrateThinkingBudgetConfig } = await import(
+      "@omniroute/open-sse/services/thinkingBudget.ts"
+    );
+    if (hydrateThinkingBudgetConfig(settings)) {
+      console.log("[STARTUP] Thinking-Budget config restored from settings");
     }
 
     const seededModelAliases = await seedDefaultModelAliases();
@@ -322,6 +470,28 @@ export async function registerNodejs(): Promise<void> {
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);
       console.warn("[STARTUP] models.dev sync failed to start (non-fatal):", msg);
+    }
+
+    // Context-window self-correction (5004): periodically reconcile provider-declared
+    // windows (from /models discovery) into auto:discovery overrides. Reuses already-synced
+    // data (no new fetch); disable via CONTEXT_WINDOW_RECONCILE_INTERVAL=0. Never fatal.
+    try {
+      const { startContextWindowReconcile } = await import("@/lib/contextWindowResolver");
+      startContextWindowReconcile();
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      console.warn("[STARTUP] context-window reconcile failed to start (non-fatal):", msg);
+    }
+
+    // TV6 typed memory decay: optional periodic sweep of decayed episodic memories. Doubly
+    // opt-in (no-op unless MEMORY_TYPED_DECAY_ENABLED=true AND
+    // MEMORY_TYPED_DECAY_SWEEP_INTERVAL>0). Never deletes by default. Never fatal.
+    try {
+      const { startMemoryDecaySweep } = await import("@/lib/memory/typedDecay");
+      startMemoryDecaySweep();
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      console.warn("[STARTUP] memory decay sweep failed to start (non-fatal):", msg);
     }
   }
 }

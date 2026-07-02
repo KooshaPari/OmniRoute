@@ -27,12 +27,13 @@ import {
   type TlsFetchResult,
 } from "../services/grokTlsClient.ts";
 import { sanitizeErrorMessage } from "../utils/error.ts";
+import { generateTraceparent } from "../observability/traceparent.ts";
 
 // ─── Constants ──────────────────────────────────────────────────────────────
 
 const GROK_CHAT_API = "https://grok.com/rest/app-chat/conversations/new";
 const GROK_USER_AGENT =
-  "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36";
+  "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36";
 
 // ─── Model mappings ─────────────────────────────────────────────────────────
 // Grok Web exposes UI modes, not stable public model IDs. Keep OmniRoute model
@@ -79,14 +80,6 @@ function generateStatsigId(): string {
       ? `e:TypeError: Cannot read properties of null (reading 'children["${randomString(5, true)}"]')`
       : `e:TypeError: Cannot read properties of undefined (reading '${randomString(10)}')`;
   return btoa(msg);
-}
-
-// ─── Helpers ────────────────────────────────────────────────────────────────
-
-function randomHex(bytes: number): string {
-  const arr = new Uint8Array(bytes);
-  crypto.getRandomValues(arr);
-  return Array.from(arr, (b) => b.toString(16).padStart(2, "0")).join("");
 }
 
 // ─── OpenAI message → Grok query translation ───────────────────────────────
@@ -1502,8 +1495,8 @@ function buildStreamingResponse(
                     index: 0,
                     delta: {
                       content: sanitizeErrorMessage(
-                `[Stream error: ${err instanceof Error ? err.message : String(err)}]`
-              ),
+                        `[Stream error: ${err instanceof Error ? err.message : String(err)}]`
+                      ),
                     },
                     finish_reason: "stop",
                     logprobs: null,
@@ -1514,7 +1507,9 @@ function buildStreamingResponse(
           );
           controller.enqueue(encoder.encode("data: [DONE]\n\n"));
         } finally {
-          try { controller.close(); } catch {}
+          try {
+            controller.close();
+          } catch {}
         }
       },
     },
@@ -1722,9 +1717,6 @@ export class GrokWebExecutor extends BaseExecutor {
     };
 
     // Build headers
-    const traceId = randomHex(16);
-    const spanId = randomHex(8);
-
     const headers: Record<string, string> = {
       Accept: "*/*",
       "Accept-Encoding": "gzip, deflate, br, zstd",
@@ -1736,7 +1728,7 @@ export class GrokWebExecutor extends BaseExecutor {
       Origin: "https://grok.com",
       Pragma: "no-cache",
       Referer: "https://grok.com/",
-      "Sec-Ch-Ua": '"Google Chrome";v="147", "Chromium";v="147", "Not(A:Brand";v="24"',
+      "Sec-Ch-Ua": '"Google Chrome";v="149", "Chromium";v="149", "Not(A:Brand";v="24"',
       "Sec-Ch-Ua-Mobile": "?0",
       "Sec-Ch-Ua-Platform": '"macOS"',
       "Sec-Fetch-Dest": "empty",
@@ -1745,7 +1737,7 @@ export class GrokWebExecutor extends BaseExecutor {
       "User-Agent": GROK_USER_AGENT,
       "x-statsig-id": generateStatsigId(),
       "x-xai-request-id": crypto.randomUUID(),
-      traceparent: `00-${traceId}-${spanId}-00`,
+      traceparent: generateTraceparent({ sampled: false }),
     };
 
     // Cookie auth — accepts a bare value, "sso=<value>", or a full DevTools
