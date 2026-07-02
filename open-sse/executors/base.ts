@@ -920,6 +920,16 @@ export class BaseExecutor {
         );
       }
 
+      // Strip OpenAI SDK (X-Stainless-*) metadata + normalize SDK-derived User-Agent
+      // on OpenAI-compatible passthrough requests — some upstream gateways 403 on them.
+      const strippedStainless = stripStainlessHeadersForOpenAICompat(headers, this.provider, url);
+      if (strippedStainless.length > 0) {
+        log?.debug?.(
+          "HEADERS",
+          `Stripped X-Stainless-* from OpenAI-compatible request: ${strippedStainless.join(", ")}`
+        );
+      }
+
       const ccRequestDefaults = isClaudeCodeCompatible(this.provider)
         ? getClaudeCodeCompatibleRequestDefaults(requestCredentials?.providerSpecificData)
         : {};
