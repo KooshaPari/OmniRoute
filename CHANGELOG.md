@@ -51,7 +51,7 @@ _TBD_
 
 ### 🔧 Bug Fixes
 
-- **fix(sse):** strip ANSI/VT100 escape codes from gemini-cli stream frames so ANSI-prefixed `data:` lines are no longer silently dropped. (thanks @anki1kr)
+- **fix(translator):** antigravity→openai request now emits Anthropic-compliant content blocks — drops empty text blocks and preserves tool calls/text co-located with tool results. (thanks @SahrulRamadhanHardiansyah)
 
 ### 📝 Maintenance
 
