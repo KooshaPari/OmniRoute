@@ -11,7 +11,7 @@ export type IssueAgentRun = {
   issueRef: string;
   settings: ReturnType<typeof normalizeIssueAgentSettings>;
   source: string;
-  status: "queued" | "blocked" | "cancelled";
+  status: "recorded" | "blocked" | "cancelled";
   diagnostics: {
     summary: string;
     redactedPreview: string;
@@ -45,6 +45,7 @@ export type CreateIssueAgentRunInput = {
 };
 
 let nextRunId = 1;
+export const MAX_ISSUE_AGENT_RUNS = 100;
 
 export function createIssueAgentRun(input: CreateIssueAgentRunInput): IssueAgentRun {
   const now = input.now ?? (() => new Date());
@@ -68,7 +69,7 @@ export function createIssueAgentRun(input: CreateIssueAgentRunInput): IssueAgent
     issueRef: input.issueRef || "unfiled",
     settings,
     source: input.source || "manual",
-    status: blocked ? "blocked" : "queued",
+    status: blocked ? "blocked" : "recorded",
     diagnostics: {
       summary: buildDiagnosticSummary(input.log, input.detail),
       redactedPreview,
@@ -102,7 +103,23 @@ const runs = new Map<string, IssueAgentRun>();
 
 export function saveIssueAgentRun(run: IssueAgentRun): IssueAgentRun {
   runs.set(run.id, run);
+  pruneIssueAgentRuns(new Date(run.createdAt));
   return run;
+}
+
+function pruneIssueAgentRuns(now: Date): void {
+  for (const run of runs.values()) {
+    const createdAt = Date.parse(run.createdAt);
+    const retentionMs = run.settings.retentionDays * 24 * 60 * 60 * 1000;
+    if (Number.isFinite(createdAt) && now.getTime() - createdAt > retentionMs) {
+      runs.delete(run.id);
+    }
+  }
+
+  const sortedRuns = listIssueAgentRuns();
+  for (const run of sortedRuns.slice(MAX_ISSUE_AGENT_RUNS)) {
+    runs.delete(run.id);
+  }
 }
 
 export function listIssueAgentRuns(): IssueAgentRun[] {
