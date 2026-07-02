@@ -1,6 +1,6 @@
 "use client";
 
-import { Button, Toggle } from "@/shared/components";
+import { Button, DistributeProxiesButton, Toggle } from "@/shared/components";
 import { providerText, type ProviderMessageTranslator } from "../providerPageHelpers";
 import type { CodexGlobalServiceMode } from "@/lib/providers/codexFastTier";
 
@@ -15,7 +15,6 @@ type ConnectionsHeaderToolbarProps = {
   batchTesting: boolean;
   batchRetesting: boolean;
   retestingId: string | null;
-  distributingProxies: boolean;
   proxyConfig: any;
   // from useProviderSettings
   preferClaudeCodeForUnprefixedClaudeModels: boolean;
@@ -46,6 +45,7 @@ type ConnectionsHeaderToolbarProps = {
   onOpenImportCodex: () => void;
   onOpenImportClaude: () => void;
   onOpenImportGemini: () => void;
+  onOpenImportGrokCli: () => void;
   t: ProviderMessageTranslator;
 };
 
@@ -60,7 +60,6 @@ export default function ConnectionsHeaderToolbar({
   batchTesting,
   batchRetesting,
   retestingId,
-  distributingProxies,
   proxyConfig,
   preferClaudeCodeForUnprefixedClaudeModels,
   claudeRoutingSettingsLoaded,
@@ -89,6 +88,7 @@ export default function ConnectionsHeaderToolbar({
   onOpenImportCodex,
   onOpenImportClaude,
   onOpenImportGemini,
+  onOpenImportGrokCli,
   t,
 }: ConnectionsHeaderToolbarProps) {
   return (
@@ -104,9 +104,7 @@ export default function ConnectionsHeaderToolbar({
               "Route bare claude-* model IDs from Claude Code clients through the Claude Code account instead of asking for a provider prefix."
             )}
           >
-            <span className="material-symbols-outlined text-[14px] text-orange-500">
-              alt_route
-            </span>
+            <span className="material-symbols-outlined text-[14px] text-orange-500">alt_route</span>
             <span>
               {providerText(
                 t,
@@ -164,9 +162,7 @@ export default function ConnectionsHeaderToolbar({
               "Set a global Codex service mode, or leave accounts on their individual service-tier setting."
             )}
           >
-            <span>
-              {providerText(t, "providerDetailServiceModeLabel", "Global service mode:")}
-            </span>
+            <span>{providerText(t, "providerDetailServiceModeLabel", "Global service mode:")}</span>
             <select
               value={codexGlobalServiceMode}
               onChange={(event) =>
@@ -224,22 +220,12 @@ export default function ConnectionsHeaderToolbar({
       </div>
       <div className="flex shrink-0 flex-wrap items-center justify-end gap-2">
         {connections.length > 0 && (
-          <button
-            onClick={() => handleDistributeProxies()}
-            disabled={distributingProxies || batchTesting || !!retestingId}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
-              distributingProxies
-                ? "bg-primary/20 border-primary/40 text-primary animate-pulse"
-                : "bg-bg-subtle border-border text-text-muted hover:text-text-primary hover:border-primary/40"
-            }`}
-            title={t("distributeProxies")}
-            aria-label={t("distributeProxies")}
-          >
-            <span className="material-symbols-outlined text-[14px]">
-              {distributingProxies ? "sync" : "swap_horiz"}
-            </span>
-            {distributingProxies ? t("distributing") : t("distributeProxies")}
-          </button>
+          <DistributeProxiesButton
+            onDistribute={async () => {
+              await handleDistributeProxies();
+            }}
+            disabled={batchTesting || !!retestingId}
+          />
         )}
         {connections.length > 1 && (
           <button
@@ -286,11 +272,7 @@ export default function ConnectionsHeaderToolbar({
               </>
             ) : (
               <>
-                <Button
-                  size="sm"
-                  icon="add"
-                  onClick={() => gateConnectionFlow(openPrimaryAddFlow)}
-                >
+                <Button size="sm" icon="add" onClick={() => gateConnectionFlow(openPrimaryAddFlow)}>
                   {providerSupportsPat ? "Add PAT" : t("add")}
                 </Button>
                 {providerId === "qoder" && (
@@ -309,7 +291,7 @@ export default function ConnectionsHeaderToolbar({
                     icon="menu_book"
                     onClick={() => onOpenCodexCliGuide()}
                   >
-                    Codex CLI Guide
+                    {providerText(t, "codexCliGuideButton", "Codex CLI Guide")}
                   </Button>
                 )}
                 {providerId === "codex" && (
@@ -319,7 +301,7 @@ export default function ConnectionsHeaderToolbar({
                     icon="share"
                     onClick={() => gateConnectionFlow(openExternalLinkFlow)}
                   >
-                    Adicionar Externo
+                    {providerText(t, "codexExternalLinkButton", "External Codex link")}
                   </Button>
                 )}
                 {providerId === "codex" && (
@@ -346,16 +328,14 @@ export default function ConnectionsHeaderToolbar({
                       : "Import auth"}
                   </Button>
                 )}
-                {providerId === "gemini-cli" && (
+                {providerId === "grok-cli" && (
                   <Button
                     size="sm"
                     variant="secondary"
                     icon="upload_file"
-                    onClick={() => gateConnectionFlow(onOpenImportGemini)}
+                    onClick={() => gateConnectionFlow(onOpenImportGrokCli)}
                   >
-                    {typeof (t as any).has === "function" && (t as any).has("importGeminiAuth")
-                      ? t("importGeminiAuth")
-                      : "Import auth"}
+                    Import auth
                   </Button>
                 )}
               </>
@@ -363,11 +343,7 @@ export default function ConnectionsHeaderToolbar({
           </>
         ) : (
           connections.length === 0 && (
-            <Button
-              size="sm"
-              icon="add"
-              onClick={() => gateConnectionFlow(openApiKeyAddFlow)}
-            >
+            <Button size="sm" icon="add" onClick={() => gateConnectionFlow(openApiKeyAddFlow)}>
               {t("add")}
             </Button>
           )

@@ -2,7 +2,14 @@
 
 // Phase 1t.5 extraction — Issue #3501
 // Pure composition of all modal elements rendered by ProviderDetailPageClient.
-import { ConfirmModal, OAuthModal, KiroOAuthWrapper, CursorAuthModal, TraeAuthModal, ProxyConfigModal } from "@/shared/components";
+import {
+  ConfirmModal,
+  OAuthModal,
+  KiroOAuthWrapper,
+  CursorAuthModal,
+  TraeAuthModal,
+  ProxyConfigModal,
+} from "@/shared/components";
 import RiskNoticeModal from "../../components/RiskNoticeModal";
 import CodexCliGuideModal from "../../components/CodexCliGuideModal";
 import SiliconFlowEndpointModal from "./SiliconFlowEndpointModal";
@@ -13,18 +20,9 @@ import ExternalLinkModal from "./ExternalLinkModal";
 import BatchTestResultsModal from "./BatchTestResultsModal";
 import ImportProgressModal from "./ImportProgressModal";
 import { AdaptaTutorialModal } from "./AdaptaTutorialModal";
-import {
-  ImportCodexAuthModal,
-  ApplyCodexAuthModal,
-} from "./modals/ImportCodexAuthModal";
-import {
-  ImportClaudeAuthModal,
-  ApplyClaudeAuthModal,
-} from "./modals/ImportClaudeAuthModal";
-import {
-  ImportGeminiAuthModal,
-  ApplyGeminiAuthModal,
-} from "./modals/ImportGeminiAuthModal";
+import { ImportCodexAuthModal, ApplyCodexAuthModal } from "./modals/ImportCodexAuthModal";
+import { ImportClaudeAuthModal, ApplyClaudeAuthModal } from "./modals/ImportClaudeAuthModal";
+import ImportGrokCliAuthModal from "./modals/ImportGrokCliAuthModal";
 import { type ConnectionRowConnection } from "./ConnectionRow";
 import { type BatchTestResults } from "../hooks/useProviderConnections";
 import { type ImportProgress } from "../hooks/useModelImportHandlers";
@@ -97,8 +95,12 @@ interface ProviderModalsPanelProps {
   // Edit connection
   showEditModal: boolean;
   setShowEditModal: (open: boolean) => void;
-  selectedConnection: { id: string } | null;
+  selectedConnection: ConnectionRowConnection | null;
   handleUpdateConnection: (data: any) => Promise<string | null>;
+  handleCompatibleImportWithProgress: (
+    connectionId: string,
+    mode?: "import" | "sync"
+  ) => Promise<void>;
   // Edit compatible node
   showEditNodeModal: boolean;
   setShowEditNodeModal: (open: boolean) => void;
@@ -114,13 +116,9 @@ interface ProviderModalsPanelProps {
   handleApplyClaudeAuthLocal: (id: string) => Promise<void>;
   importClaudeModalOpen: boolean;
   setImportClaudeModalOpen: (open: boolean) => void;
-  // Gemini auth
-  applyGeminiModalConnectionId: string | null;
-  setApplyGeminiModalConnectionId: (id: string | null) => void;
-  applyingGeminiAuthId: string | null;
-  handleApplyGeminiAuthLocal: (id: string) => Promise<void>;
-  importGeminiModalOpen: boolean;
-  setImportGeminiModalOpen: (open: boolean) => void;
+  // Grok Build auth
+  importGrokCliModalOpen: boolean;
+  setImportGrokCliModalOpen: (open: boolean) => void;
   // Batch test results
   batchTestResults: BatchTestResults | null;
   setBatchTestResults: (r: BatchTestResults | null) => void;
@@ -188,6 +186,7 @@ export default function ProviderModalsPanel({
   setShowEditModal,
   selectedConnection,
   handleUpdateConnection,
+  handleCompatibleImportWithProgress,
   showEditNodeModal,
   setShowEditNodeModal,
   providerNode,
@@ -200,12 +199,8 @@ export default function ProviderModalsPanel({
   handleApplyClaudeAuthLocal,
   importClaudeModalOpen,
   setImportClaudeModalOpen,
-  applyGeminiModalConnectionId,
-  setApplyGeminiModalConnectionId,
-  applyingGeminiAuthId,
-  handleApplyGeminiAuthLocal,
-  importGeminiModalOpen,
-  setImportGeminiModalOpen,
+  importGrokCliModalOpen,
+  setImportGrokCliModalOpen,
   batchTestResults,
   setBatchTestResults,
   emailsVisible,
@@ -316,7 +311,9 @@ export default function ProviderModalsPanel({
         <EditConnectionModal
           isOpen={showEditModal}
           connection={selectedConnection}
+          providerId={providerId}
           onSave={handleUpdateConnection}
+          onResyncModels={(id) => handleCompatibleImportWithProgress(id, "sync")}
           onClose={() => setShowEditModal(false)}
         />
       )}
@@ -371,21 +368,12 @@ export default function ProviderModalsPanel({
           }}
         />
       )}
-      {providerId === "gemini-cli" && applyGeminiModalConnectionId && (
-        <ApplyGeminiAuthModal
-          key={applyGeminiModalConnectionId}
-          connectionId={applyGeminiModalConnectionId}
-          inProgress={!!applyingGeminiAuthId}
-          onConfirm={handleApplyGeminiAuthLocal}
-          onClose={() => setApplyGeminiModalConnectionId(null)}
-        />
-      )}
-      {providerId === "gemini-cli" && importGeminiModalOpen && (
-        <ImportGeminiAuthModal
-          key="import-gemini-modal"
-          onClose={() => setImportGeminiModalOpen(false)}
+      {providerId === "grok-cli" && importGrokCliModalOpen && (
+        <ImportGrokCliAuthModal
+          key="import-grok-cli-modal"
+          onClose={() => setImportGrokCliModalOpen(false)}
           onSuccess={() => {
-            setImportGeminiModalOpen(false);
+            setImportGrokCliModalOpen(false);
             void fetchConnections();
           }}
         />

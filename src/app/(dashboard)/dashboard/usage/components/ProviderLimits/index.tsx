@@ -10,6 +10,8 @@ import {
   normalizePlanTier,
   resolvePlanValue,
   calculatePercentage,
+  matchesProviderFilter,
+  buildProviderOptions,
 } from "./utils";
 import Card from "@/shared/components/Card";
 import { CardSkeleton } from "@/shared/components/Loading";
@@ -17,24 +19,24 @@ import { USAGE_SUPPORTED_PROVIDERS } from "@/shared/constants/providers";
 import { pickDisplayValue } from "@/shared/utils/maskEmail";
 import useEmailPrivacyStore from "@/store/emailPrivacyStore";
 import { useNotificationStore } from "@/store/notificationStore";
-import EmailPrivacyToggle from "@/shared/components/EmailPrivacyToggle";
 import QuotaCutoffModal from "./QuotaCutoffModal";
 import QuotaCardGrid from "./QuotaCardGrid";
+import { useVisibleQuotaData } from "./useVisibleQuotaData";
+import { formatAutoRefreshCountdown } from "./formatters";
 import { translateUsageOrFallback, type UsageTranslationValues } from "./i18nFallback";
 import { compareTr } from "@/shared/utils/turkishText";
 
 const LS_PURCHASE_FILTER = "omniroute:limits:purchaseFilter";
 const LS_STATUS_FILTER = "omniroute:limits:statusFilter";
 const LS_ENV_FILTER = "omniroute:limits:envFilter";
+const LS_PROVIDER_FILTER = "omniroute:limits:providerFilter";
 
 const MIN_FETCH_INTERVAL_MS = 30000;
 const QUOTA_BAR_GREEN_THRESHOLD = 50;
 const QUOTA_BAR_YELLOW_THRESHOLD = 20;
 
-// Display label per known provider; the icon is resolved by ProviderIcon.
 const PROVIDER_LABEL: Record<string, string> = {
   antigravity: "Antigravity",
-  "gemini-cli": "Gemini CLI",
   github: "GitHub Copilot",
   kiro: "Kiro AI",
   "amazon-q": "Amazon Q",
@@ -44,6 +46,7 @@ const PROVIDER_LABEL: Record<string, string> = {
   zai: "Z.AI",
   glmt: "GLM Thinking",
   "opencode-go": "OpenCode Go",
+  "ollama-cloud": "Ollama Cloud",
   "kimi-coding": "Kimi Coding",
   minimax: "MiniMax",
   "minimax-cn": "MiniMax CN",
@@ -51,11 +54,9 @@ const PROVIDER_LABEL: Record<string, string> = {
   deepseek: "DeepSeek",
 };
 
-// Group ordering — single source of truth for "where does Codex sit
-// relative to Antigravity on the page".
+// Group ordering — single source of truth for provider placement.
 const PROVIDER_ORDER: Record<string, number> = {
   antigravity: 1,
-  "gemini-cli": 2,
   github: 3,
   codex: 4,
   claude: 5,
@@ -64,10 +65,11 @@ const PROVIDER_ORDER: Record<string, number> = {
   zai: 8,
   glmt: 9,
   "opencode-go": 10,
-  "kimi-coding": 11,
-  minimax: 12,
-  "minimax-cn": 13,
-  nanogpt: 14,
+  "ollama-cloud": 11,
+  "kimi-coding": 12,
+  minimax: 13,
+  "minimax-cn": 14,
+  nanogpt: 15,
 };
 
 const TIER_FILTERS = [
@@ -211,13 +213,6 @@ function aggregateWorst(statuses: StatusKey[]): "critical" | "alert" | "ok" | "e
   return worst;
 }
 
-function formatAutoRefreshCountdown(ms: number): string {
-  const totalSeconds = Math.max(0, Math.ceil(ms / 1000));
-  const minutes = Math.floor(totalSeconds / 60);
-  const seconds = totalSeconds % 60;
-  return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
-}
-
 interface ProviderLimitsProps {
   showFilters?: boolean;
   autoRefreshInterval?: number;
@@ -260,6 +255,10 @@ export default function ProviderLimits({
   const [envFilter, setEnvFilter] = useState<string>(() => {
     if (typeof window === "undefined") return "all";
     return localStorage.getItem(LS_ENV_FILTER) || "all";
+  });
+  const [providerFilter, setProviderFilter] = useState<string>(() => {
+    if (typeof window === "undefined") return "all";
+    return localStorage.getItem(LS_PROVIDER_FILTER) || "all";
   });
 
   const lastFetchTimeRef = useRef<Record<string, number>>({});
@@ -558,6 +557,7 @@ export default function ProviderLimits({
       (a, b) => (PROVIDER_ORDER[a.provider] || 99) - (PROVIDER_ORDER[b.provider] || 99)
     );
   }, [filteredConnections]);
+  const visibleQuotaData = useVisibleQuotaData(sortedConnections, quotaData);
 
   const resolvedPlanByConnection = useMemo(() => {
     const out: Record<string, string | null> = {};
@@ -607,10 +607,10 @@ export default function ProviderLimits({
   const statusByConnection = useMemo(() => {
     const out: Record<string, StatusKey> = {};
     for (const conn of sortedConnections) {
-      out[conn.id] = getWorstStatus(quotaData[conn.id]?.quotas);
+      out[conn.id] = getWorstStatus(visibleQuotaData[conn.id]?.quotas);
     }
     return out;
-  }, [sortedConnections, quotaData]);
+  }, [sortedConnections, visibleQuotaData]);
 
   const purchaseTypeCounts = useMemo(() => {
     const counts: Record<PurchaseTypeKey, number> = {
@@ -664,6 +664,7 @@ export default function ProviderLimits({
 
   const visibleConnections = useMemo(() => {
     const filtered = sortedConnections.filter((conn) => {
+      if (!matchesProviderFilter(conn, providerFilter)) return false;
       const tierKey = tierByConnection[conn.id]?.key || "unknown";
       if (tierFilter !== "all" && tierKey !== tierFilter) return false;
       if (purchaseTypeFilter !== "all" && purchaseTypeByConnection[conn.id] !== purchaseTypeFilter)
@@ -690,8 +691,8 @@ export default function ProviderLimits({
       const sa = statusRank[statusByConnection[a.id] || "empty"];
       const sb = statusRank[statusByConnection[b.id] || "empty"];
       if (sa !== sb) return sa - sb;
-      const ra = getSoonestResetMs(quotaData[a.id]?.quotas);
-      const rb = getSoonestResetMs(quotaData[b.id]?.quotas);
+      const ra = getSoonestResetMs(visibleQuotaData[a.id]?.quotas);
+      const rb = getSoonestResetMs(visibleQuotaData[b.id]?.quotas);
       return ra - rb;
     });
   }, [
@@ -703,8 +704,17 @@ export default function ProviderLimits({
     statusFilter,
     statusByConnection,
     envFilter,
-    quotaData,
+    providerFilter,
+    visibleQuotaData,
   ]);
+
+  // Distinct provider keys present in the current connection set (after the
+  // upstream OAuth/api-key + USAGE_SUPPORTED_PROVIDERS filter), sorted via
+  // the i18n-aware comparator so the dropdown follows the locale's collation.
+  const providerOptions = useMemo(
+    () => buildProviderOptions(sortedConnections, compareTr),
+    [sortedConnections]
+  );
 
   // Auto-fetch LIVE quota on open for visible connections that have no cached
   // quota yet (e.g. a Codex account whose access_token expired — its per-connection
@@ -746,6 +756,15 @@ export default function ProviderLimits({
     setEnvFilter(value);
     try {
       localStorage.setItem(LS_ENV_FILTER, value);
+    } catch {
+      /* ignore */
+    }
+  }, []);
+
+  const handleSetProviderFilter = useCallback((value: string) => {
+    setProviderFilter(value);
+    try {
+      localStorage.setItem(LS_PROVIDER_FILTER, value);
     } catch {
       /* ignore */
     }
@@ -819,7 +838,6 @@ export default function ProviderLimits({
             {visibleConnections.length !== sortedConnections.length &&
               ` ${t("filteredFromCount", { count: sortedConnections.length })}`}
           </span>
-          <EmailPrivacyToggle />
         </div>
 
         <button
@@ -953,6 +971,34 @@ export default function ProviderLimits({
             })}
           </div>
 
+          {/* Provider filter — single-select dropdown of providers actually
+              present in the current account set. Auto-falls back to "all" if
+              the persisted choice no longer exists in this session. */}
+          {providerOptions.length > 1 && (
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="text-[11px] uppercase tracking-wider text-text-muted font-semibold mr-1">
+                {tr("filterProviderLabel", "Provider")}
+              </span>
+              <select
+                value={
+                  providerFilter === "all" || providerOptions.includes(providerFilter)
+                    ? providerFilter
+                    : "all"
+                }
+                onChange={(event) => handleSetProviderFilter(event.target.value)}
+                aria-label={tr("filterProviderAriaLabel", "Filter quota providers")}
+                className="h-8 rounded-full border border-border bg-transparent px-3 text-xs font-semibold text-text-muted cursor-pointer"
+              >
+                <option value="all">{tr("filterProviderAll", "All providers")}</option>
+                {providerOptions.map((provider) => (
+                  <option key={provider} value={provider}>
+                    {PROVIDER_LABEL[provider] || provider}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+
           {/* Env filter — only renders when at least one connection has a tag */}
           {envTags.length > 0 && (
             <div className="flex items-center gap-2 flex-wrap">
@@ -1003,7 +1049,7 @@ export default function ProviderLimits({
 
         <QuotaCardGrid
           connections={visibleConnections}
-          quotaData={quotaData}
+          quotaData={visibleQuotaData}
           loading={loading}
           errors={errors}
           lastRefreshedAt={lastRefreshedAt}
@@ -1012,7 +1058,7 @@ export default function ProviderLimits({
           renderInlineQuotaSummary={(quota) => renderInlineQuotaSummary(quota.quotas)}
           onRefresh={refreshProvider}
           onOpenCutoff={(conn) => {
-            const windows = (quotaData[conn.id]?.quotas || []).filter(
+            const windows = (visibleQuotaData[conn.id]?.quotas || []).filter(
               (q: any) => q && typeof q.name === "string" && !q.isCredits
             );
             setCutoffModalWindows(windows);

@@ -42,11 +42,21 @@ test("primary sidebar items place limits after cache", () => {
       "providers",
       "embedded-services",
       "combos",
+      "combos-live",
       "quota",
       "costs-quota-share",
+      "context-settings",
+      "context-combos",
       "context-caveman",
       "context-rtk",
-      "context-combos",
+      "context-headroom",
+      "context-session-dedup",
+      "context-ccr",
+      "context-llmlingua",
+      "context-lite",
+      "context-aggressive",
+      "context-ultra",
+      "compression-studio",
       "cli-code",
       "cli-agents",
       "acp-agents",
@@ -70,9 +80,17 @@ test("context sidebar section sits between primary and cli", () => {
       .filter((item) => item.id.startsWith("context-"))
       .map((item) => ({ id: item.id, href: item.href })),
     [
+      { id: "context-settings", href: "/dashboard/context/settings" },
+      { id: "context-combos", href: "/dashboard/context/combos" },
       { id: "context-caveman", href: "/dashboard/context/caveman" },
       { id: "context-rtk", href: "/dashboard/context/rtk" },
-      { id: "context-combos", href: "/dashboard/context/combos" },
+      { id: "context-headroom", href: "/dashboard/context/headroom" },
+      { id: "context-session-dedup", href: "/dashboard/context/session-dedup" },
+      { id: "context-ccr", href: "/dashboard/context/ccr" },
+      { id: "context-llmlingua", href: "/dashboard/context/llmlingua" },
+      { id: "context-lite", href: "/dashboard/context/lite" },
+      { id: "context-aggressive", href: "/dashboard/context/aggressive" },
+      { id: "context-ultra", href: "/dashboard/context/ultra" },
     ]
   );
 });
@@ -87,6 +105,11 @@ test("sidebar visibility drops stale entries from saved settings", () => {
     false
   );
   assert.equal((allSidebarItemIds as string[]).includes("auto-combo"), false);
+  assert.equal(
+    (sidebarVisibility.HIDEABLE_SIDEBAR_ITEM_IDS as readonly string[]).includes("settings"),
+    false
+  );
+  assert.equal((allSidebarItemIds as string[]).includes("settings"), false);
   assert.deepEqual(sidebarVisibility.normalizeHiddenSidebarItems(["auto-combo" as any, "logs"]), [
     "logs",
   ]);
@@ -138,9 +161,15 @@ test("legacy dashboard routes redirect to their consolidated surfaces", async ()
     join(repoRoot, "src/app/(dashboard)/dashboard/usage/page.tsx"),
     "utf8"
   );
+  const settingsPage = await readFile(
+    join(repoRoot, "src/app/(dashboard)/dashboard/settings/page.tsx"),
+    "utf8"
+  );
 
   assert.match(autoComboPage, /redirect\("\/dashboard\/combos\?filter=intelligent"\)/);
   assert.match(usagePage, /redirect\("\/dashboard\/logs"\)/);
+  assert.match(settingsPage, /redirect\(resolveSettingsRoute\(tab\)\)/);
+  assert.match(settingsPage, /\/dashboard\/settings\/general/);
 
   const compressionPage = await readFile(
     join(repoRoot, "src/app/(dashboard)/dashboard/compression/page.tsx"),

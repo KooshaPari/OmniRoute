@@ -121,6 +121,19 @@ test("Claude -> Gemini clamps maxOutputTokens to the model cap", () => {
   assert.equal(result.generationConfig.maxOutputTokens, 65536);
 });
 
+test("Claude -> Gemini preserves requested maxOutputTokens when the model cap is unknown", () => {
+  const result = claudeToGeminiRequest(
+    "gemini-2.5-pro",
+    {
+      messages: [{ role: "user", content: [{ type: "text", text: "Hello" }] }],
+      max_tokens: 32000,
+    },
+    false
+  );
+
+  assert.equal(result.generationConfig.maxOutputTokens, 32000);
+});
+
 test("Claude -> Gemini converts text and base64 images to Gemini parts", () => {
   const result = claudeToGeminiRequest(
     "gemini-2.5-flash",
@@ -249,6 +262,24 @@ test("Claude -> Gemini maps output_config.effort to thinkingConfig when thinking
       `effort ${effort} should map to budget ${expected}`
     );
   }
+});
+
+// Regression for #3842: output_config.effort=high must be clamped to a Flash-tier
+// Gemini model's real thinking-budget cap. gemini-2.5-flash's true max is 24576;
+// the previous unclamped 32768 made the upstream return HTTP 400. Pro-tier
+// (gemini-2.5-pro, real cap 32768) is asserted untouched by the test above.
+test("Claude -> Gemini clamps output_config.effort=high to gemini-2.5-flash cap (#3842)", () => {
+  const result = claudeToGeminiRequest(
+    "gemini-2.5-flash",
+    {
+      messages: [{ role: "user", content: [{ type: "text", text: "hi" }] }],
+      output_config: { effort: "high" },
+    },
+    false
+  );
+  const budget = (result.generationConfig as any).thinkingConfig.thinkingBudget;
+  assert.ok(budget <= 24576, `expected <= 24576 (real cap), got ${budget}`);
+  assert.equal(budget, 24576);
 });
 
 test("Claude -> Gemini prefers thinking.budget_tokens over output_config.effort", () => {

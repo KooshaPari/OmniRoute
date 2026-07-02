@@ -18,6 +18,8 @@
 import * as crypto from "node:crypto";
 import * as os from "node:os";
 import { BaseExecutor, type ExecuteInput, type ProviderCredentials } from "./base.ts";
+import { createProxyDispatcher } from "../utils/proxyDispatcher.ts";
+import { fetch as undiciFetch, type Dispatcher } from "undici";
 
 const BOOTSTRAP_PATH = "/api/free-ai/bootstrap";
 const CHAT_PATH = "/api/free-ai/openai/chat";
@@ -65,12 +67,24 @@ function injectSystemMarker(body: Record<string, unknown>): Record<string, unkno
 }
 
 const USER_AGENTS = [
-  "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
-  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
-  "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
+  "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36",
+  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36",
+  "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36",
 ];
 
 // ── Account State ──────────────────────────────────────────────────────────
+
+/** Per-account proxy configuration, passed through providerSpecificData.accountProxies. */
+export interface AccountProxyConfig {
+  fingerprint: string;
+  proxy: {
+    type: string;
+    host: string;
+    port: number;
+    username?: string;
+    password?: string;
+  } | null;
+}
 
 interface AccountState {
   fingerprint: string;
@@ -134,7 +148,8 @@ const bootstrapInflight = new Map<string, Promise<{ jwt: string; expiresAt: numb
 async function bootstrapJwt(
   baseUrl: string,
   fingerprint: string,
-  signal?: AbortSignal | null
+  signal?: AbortSignal | null,
+  dispatcher?: Dispatcher
 ): Promise<{ jwt: string; expiresAt: number }> {
   const existing = bootstrapInflight.get(fingerprint);
   if (existing) return existing;
@@ -147,12 +162,20 @@ async function bootstrapJwt(
 
   const promise = (async () => {
     try {
-      const resp = await fetch(url, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ client: fingerprint }),
-        signal: controller.signal,
-      });
+      const resp = dispatcher
+        ? await undiciFetch(url, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ client: fingerprint }),
+            signal: controller.signal,
+            dispatcher,
+          })
+        : await fetch(url, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ client: fingerprint }),
+            signal: controller.signal,
+          });
       if (!resp.ok) {
         const body = await resp.text().catch(() => "");
         throw new Error(`Bootstrap failed: ${resp.status} ${body.slice(0, 200)}`);
@@ -184,6 +207,7 @@ export class MimocodeExecutor extends BaseExecutor {
   private accounts: AccountState[] = [];
   private nextAccountIdx = 0;
   private baseUrl: string;
+  private proxyUrlMap = new Map<string, string>();
   private static encoder = new TextEncoder();
 
   constructor() {
@@ -195,23 +219,94 @@ export class MimocodeExecutor extends BaseExecutor {
       expiresAt: 0,
       cooldownUntil: 0,
       consecutiveFails: 0,
+      // #3837/#5521 backward compat: default the per-account proxy to null (not undefined),
+      // mirroring the syncAccountsFromCredentials() account builder, so an executor with no
+      // accountProxies config still exposes `acct.proxy === null` on every account.
+      proxy: null,
     });
   }
 
+  private getProxyDispatcher(fingerprint: string): Dispatcher | undefined {
+    const proxyUrl = this.proxyUrlMap.get(fingerprint);
+    if (!proxyUrl) return undefined;
+    return createProxyDispatcher(proxyUrl);
+  }
+
+  private fetchWithProxy(url: string, init: RequestInit, fingerprint: string): Promise<Response> {
+    const dispatcher = this.getProxyDispatcher(fingerprint);
+    if (dispatcher) {
+      // undici fetch returns undici.Response which is structurally compatible with
+      // the global Response but nominally different — same pattern as proxyFetch.ts
+      const undiciFn = undiciFetch as unknown as (
+        url: string,
+        init: RequestInit & { dispatcher?: unknown }
+      ) => Promise<Response>;
+      return undiciFn(url, { ...init, dispatcher });
+    }
+    return fetch(url, init);
+  }
+
   private syncAccountsFromCredentials(credentials: ProviderCredentials): void {
-    const fingerprints = credentials?.providerSpecificData?.fingerprints;
-    if (!Array.isArray(fingerprints)) return;
-    const existing = new Set(this.accounts.map((a) => a.fingerprint));
-    for (const fp of fingerprints) {
-      if (typeof fp === "string" && !existing.has(fp)) {
-        this.accounts.push({
-          fingerprint: fp,
-          jwt: "",
-          expiresAt: 0,
-          cooldownUntil: 0,
-          consecutiveFails: 0,
-        });
-        existing.add(fp);
+    const psd = credentials?.providerSpecificData;
+    const fingerprints = psd?.fingerprints;
+
+    const accountProxies = psd?.accountProxies as AccountProxyConfig[] | undefined;
+
+    // #5521: build the per-fingerprint proxy URL map that getProxyDispatcher() consumes
+    // to route each account's traffic through its own SOCKS5/HTTP dispatcher.
+    if (Array.isArray(accountProxies)) {
+      for (const entry of accountProxies) {
+        if (entry?.fingerprint && entry?.proxy?.host) {
+          const {
+            type = "socks5",
+            host,
+            port,
+            username,
+            password,
+          } = entry.proxy as {
+            type?: string;
+            host: string;
+            port?: number;
+            username?: string;
+            password?: string;
+          };
+          const resolvedPort = port ?? (type === "socks5" ? 1080 : 8080);
+          const auth = username
+            ? `${encodeURIComponent(username)}:${password ? encodeURIComponent(password) : ""}@`
+            : "";
+          this.proxyUrlMap.set(entry.fingerprint, `${type}://${auth}${host}:${resolvedPort}`);
+        }
+      }
+    }
+
+    // #3837: register any newly-advertised fingerprints as accounts.
+    if (Array.isArray(fingerprints)) {
+      const existing = new Set(this.accounts.map((a) => a.fingerprint));
+      for (const fp of fingerprints) {
+        if (typeof fp === "string" && !existing.has(fp)) {
+          this.accounts.push({
+            fingerprint: fp,
+            jwt: "",
+            expiresAt: 0,
+            cooldownUntil: 0,
+            consecutiveFails: 0,
+            proxy: null,
+          });
+          existing.add(fp);
+        }
+      }
+    }
+
+    // #3837: resolve each account's structured proxy config from accountProxies.
+    const proxyMap = Array.isArray(accountProxies)
+      ? new Map(accountProxies.map((ap) => [ap.fingerprint, ap.proxy] as const))
+      : null;
+    for (const acct of this.accounts) {
+      if (proxyMap) {
+        const entry = proxyMap.get(acct.fingerprint);
+        acct.proxy = entry !== undefined ? (entry ?? null) : null;
+      } else {
+        acct.proxy = null;
       }
     }
   }
@@ -221,7 +316,8 @@ export class MimocodeExecutor extends BaseExecutor {
     signal?: AbortSignal | null
   ): Promise<string> {
     if (isAccountReady(account)) return account.jwt;
-    const result = await bootstrapJwt(this.baseUrl, account.fingerprint, signal);
+    const dispatcher = this.getProxyDispatcher(account.fingerprint);
+    const result = await bootstrapJwt(this.baseUrl, account.fingerprint, signal, dispatcher);
     account.jwt = result.jwt;
     account.expiresAt = result.expiresAt;
     return account.jwt;
@@ -297,24 +393,29 @@ export class MimocodeExecutor extends BaseExecutor {
     log?: ExecuteInput["log"]
   ): Promise<boolean> {
     try {
+      this.syncAccountsFromCredentials(_credentials);
       const account = this.accounts[0];
       const jwt = await this.getJwtForAccount(account, _signal);
-      const resp = await fetch(this.buildUrl("mimo-auto", false), {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${jwt}`,
-          "X-Mimo-Source": MIMO_SOURCE,
+      const resp = await this.fetchWithProxy(
+        this.buildUrl("mimo-auto", false),
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${jwt}`,
+            "X-Mimo-Source": MIMO_SOURCE,
+          },
+          body: JSON.stringify(
+            injectSystemMarker({
+              model: "mimo-auto",
+              messages: [{ role: "user", content: "ping" }],
+              stream: false,
+            })
+          ),
+          signal: _signal ?? undefined,
         },
-        body: JSON.stringify(
-          injectSystemMarker({
-            model: "mimo-auto",
-            messages: [{ role: "user", content: "ping" }],
-            stream: false,
-          })
-        ),
-        signal: _signal ?? undefined,
-      });
+        account.fingerprint
+      );
       return resp.status === 200;
     } catch {
       log?.warn?.("MIMOCODE", "testConnection network error");
@@ -360,12 +461,16 @@ export class MimocodeExecutor extends BaseExecutor {
         const headers = this.buildHeaders(input.credentials, stream);
         headers["Authorization"] = `Bearer ${jwt}`;
 
-        let resp = await fetch(url, {
-          method: "POST",
-          headers,
-          body: JSON.stringify(reqBody),
-          signal: signal ?? undefined,
-        });
+        let resp = await this.fetchWithProxy(
+          url,
+          {
+            method: "POST",
+            headers,
+            body: JSON.stringify(reqBody),
+            signal: signal ?? undefined,
+          },
+          account.fingerprint
+        );
 
         // On auth failure, re-bootstrap this account and retry once
         if (resp.status === 401 || resp.status === 403) {
@@ -378,12 +483,16 @@ export class MimocodeExecutor extends BaseExecutor {
           account.consecutiveFails = 0;
           const freshJwt = await this.getJwtForAccount(account, signal);
           headers["Authorization"] = `Bearer ${freshJwt}`;
-          resp = await fetch(url, {
-            method: "POST",
-            headers,
-            body: JSON.stringify(reqBody),
-            signal: signal ?? undefined,
-          });
+          resp = await this.fetchWithProxy(
+            url,
+            {
+              method: "POST",
+              headers,
+              body: JSON.stringify(reqBody),
+              signal: signal ?? undefined,
+            },
+            account.fingerprint
+          );
         }
 
         if (resp.status === 429) {

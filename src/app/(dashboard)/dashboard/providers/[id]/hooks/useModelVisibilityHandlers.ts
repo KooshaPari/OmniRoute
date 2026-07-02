@@ -26,6 +26,7 @@ import {
   providerText,
   testAllResultsText,
   evaluateTestAllEntry,
+  shouldSwitchToVisibleFilter,
   type ProviderMessageTranslator,
   type CompatByProtocolMap,
 } from "../providerPageHelpers";
@@ -78,11 +79,7 @@ export interface UseModelVisibilityHandlersReturn {
   setAutoHideFailed: (v: boolean) => void;
   setVisibilityFilter: (v: "all" | "visible" | "hidden") => void;
   saveModelCompatFlags: (modelId: string, patch: ModelCompatSavePatch) => Promise<void>;
-  handleToggleModelHidden: (
-    providerKey: string,
-    modelId: string,
-    hidden: boolean
-  ) => Promise<void>;
+  handleToggleModelHidden: (providerKey: string, modelId: string, hidden: boolean) => Promise<void>;
   handleBulkToggleModelHidden: (
     providerKey: string,
     modelIds: string[],
@@ -112,16 +109,16 @@ export function useModelVisibilityHandlers({
 }: UseModelVisibilityHandlersParams): UseModelVisibilityHandlersReturn {
   const [compatSavingModelId, setCompatSavingModelId] = useState<string | null>(null);
   const [togglingModelId, setTogglingModelId] = useState<string | null>(null);
-  const [bulkVisibilityAction, setBulkVisibilityAction] = useState<
-    "select" | "deselect" | null
-  >(null);
+  const [bulkVisibilityAction, setBulkVisibilityAction] = useState<"select" | "deselect" | null>(
+    null
+  );
   const [clearingModels, setClearingModels] = useState(false);
   const [modelFilter, setModelFilter] = useState("");
   const [testingModelId, setTestingModelId] = useState<string | null>(null);
   const [modelTestStatus, setModelTestStatus] = useState<Record<string, "ok" | "error">>({});
   const [testingAll, setTestingAll] = useState(false);
   const [testProgress, setTestProgress] = useState<{ done: number; total: number } | null>(null);
-  const [autoHideFailed, setAutoHideFailed] = useState(true);
+  const [autoHideFailed, setAutoHideFailed] = useState(false);
   const [visibilityFilter, setVisibilityFilter] = useState<"all" | "visible" | "hidden">("all");
 
   const providerAliasEntries = useMemo(
@@ -303,25 +300,24 @@ export function useModelVisibilityHandlers({
       const data = await res.json();
       if (res.ok && data.status === "ok") {
         notify.success(
-          providerText(t, "testModelSuccess", `Model ${modelId} is working. Latency: ${data.latencyMs}ms`, {
-            modelId,
-            latencyMs: data.latencyMs,
-          })
+          providerText(
+            t,
+            "testModelSuccess",
+            `Model ${modelId} is working. Latency: ${data.latencyMs}ms`,
+            {
+              modelId,
+              latencyMs: data.latencyMs,
+            }
+          )
         );
         setModelTestStatus((prev) => ({ ...prev, [modelId]: "ok" }));
       } else {
         notify.error(data.error || "Model test failed");
         setModelTestStatus((prev) => ({ ...prev, [modelId]: "error" }));
-        // Hidden flag keyed by providerId — same as the manual eye toggle and the read
-        // (fetchProviderModelMeta). providerStorageAlias wrote it under the alias while the
-        // read looked under the canonical id, so auto-hide never reflected.
-        await handleToggleModelHidden(providerId, modelId, true);
       }
     } catch (err) {
       notify.error("Network error testing model");
       setModelTestStatus((prev) => ({ ...prev, [modelId]: "error" }));
-      // Hidden flag keyed by providerId (see the test-failure branch above).
-      await handleToggleModelHidden(providerId, modelId, true);
     } finally {
       setTestingModelId(null);
     }
@@ -396,6 +392,14 @@ export function useModelVisibilityHandlers({
     notify.info(testAllResultsText(t, ok, ok + error));
     if (hiddenCount > 0) {
       notify.info(providerText(t, "testAllFailedHidden", "{count} hidden", { count: hiddenCount }));
+      // Bug #4887: switch to "visible" so the models we just auto-hid disappear
+      // on-screen — parity with PassthroughModelsSection (#3610). Without this,
+      // failed models were hidden in the DB but stayed visible under the "All"
+      // filter, so on GLM (and other OAuth providers using this hook's handleTestAll)
+      // it looked like nothing was hidden.
+      if (shouldSwitchToVisibleFilter({ autoHideFailed, hiddenCount })) {
+        setVisibilityFilter("visible");
+      }
     }
     setTestingAll(false);
     setTestProgress(null);

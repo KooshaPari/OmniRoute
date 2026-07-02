@@ -202,9 +202,11 @@ test("getCodexRequestDefaults returns reasoningEffort (transitive import guard)"
   assert.equal(typeof result.reasoningEffort, "string");
 });
 
-test("getClaudeCodeCompatibleRequestDefaults returns context1m boolean", () => {
+test("getClaudeCodeCompatibleRequestDefaults returns CC-compatible booleans", () => {
   const result = getClaudeCodeCompatibleRequestDefaults(null);
   assert.equal(typeof result.context1m, "boolean");
+  assert.equal(typeof result.redactThinking, "boolean");
+  assert.equal(typeof result.summarizeThinking, "boolean");
 });
 
 test("compatProtocolLabelKey maps protocol strings to i18n keys", () => {
@@ -216,10 +218,7 @@ test("compatProtocolLabelKey maps protocol strings to i18n keys", () => {
 test("extractCommandCodeCredentialInput extracts from JSON/URL/raw (transitive import guard)", () => {
   assert.equal(extractCommandCodeCredentialInput("  "), "");
   assert.equal(extractCommandCodeCredentialInput("rawtoken"), "rawtoken");
-  assert.equal(
-    extractCommandCodeCredentialInput(JSON.stringify({ apiKey: "abc123" })),
-    "abc123"
-  );
+  assert.equal(extractCommandCodeCredentialInput(JSON.stringify({ apiKey: "abc123" })), "abc123");
 });
 
 test("normalizeAndValidateHttpBaseUrl validates http/https URLs", () => {

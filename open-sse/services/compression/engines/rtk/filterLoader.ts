@@ -1,5 +1,4 @@
 import fs from "node:fs";
-import { fileURLToPath } from "node:url";
 import path from "node:path";
 import os from "node:os";
 import crypto from "node:crypto";
@@ -47,22 +46,28 @@ interface RtkFilterLoadOptions {
   trustProjectFilters?: boolean;
 }
 
+function getModuleDir(): string {
+  const anchors = [process.cwd()];
+  const argv1 = process.argv[1];
+  if (typeof argv1 === "string" && argv1) anchors.push(path.dirname(argv1));
+  const rel = path.join("open-sse", "services", "compression");
+  for (const anchor of anchors) {
+    let dir = path.resolve(anchor);
+    for (let i = 0; i <= 8; i++) {
+      if (fs.existsSync(path.join(dir, rel))) return dir;
+      const parent = path.dirname(dir);
+      if (parent === dir) break;
+      dir = parent;
+    }
+  }
+  return path.join(os.homedir(), ".omniroute");
+}
+
 function getFiltersDir(): string {
-  const moduleDir = path.dirname(fileURLToPath(import.meta.url));
+  const root = getModuleDir();
   const candidates = [
-    path.join(moduleDir, "filters"),
-    path.join(moduleDir, "..", "services", "compression", "engines", "rtk", "filters"),
-    path.join(process.cwd(), "open-sse", "services", "compression", "engines", "rtk", "filters"),
-    path.join(
-      process.cwd(),
-      "app",
-      "open-sse",
-      "services",
-      "compression",
-      "engines",
-      "rtk",
-      "filters"
-    ),
+    path.join(root, "open-sse", "services", "compression", "engines", "rtk", "filters"),
+    path.join(root, "app", "open-sse", "services", "compression", "engines", "rtk", "filters"),
   ];
   return (
     candidates.find((candidate, index) => {
@@ -130,10 +135,19 @@ function collectFilterSources(options: RtkFilterLoadOptions = {}): FilterSource[
 
   const builtinDir = getFiltersDir();
   if (fs.existsSync(builtinDir)) {
-    for (const file of fs
-      .readdirSync(builtinDir)
-      .filter((entry) => entry.endsWith(".json"))
-      .sort()) {
+    let builtinFiles: string[] = [];
+    try {
+      builtinFiles = fs
+        .readdirSync(builtinDir)
+        .filter((entry) => entry.endsWith(".json"))
+        .sort();
+    } catch {
+      // A read failure on the builtin dir (lost permission, TOCTOU after existsSync, NFS
+      // timeout, read-only container) must not fail the request — degrade to the filters
+      // already collected. listRtkCommandSamples guards readdirSync the same way.
+      builtinFiles = [];
+    }
+    for (const file of builtinFiles) {
       sources.push({
         source: "builtin",
         path: path.join(builtinDir, file),

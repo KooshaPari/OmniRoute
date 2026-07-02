@@ -25,8 +25,14 @@ const INJECTION_PATTERNS = [
   },
   {
     name: "system_prompt_leak",
+    // #4041: require a system/initial/hidden/original qualifier before prompt|instructions.
+    // The old pattern matched a bare "instructions" after reveal/show/display/etc, so it
+    // tripped `high` on essentially all coding-agent traffic ("show the instructions",
+    // "display your instructions"), making the always-on guard a hot-path false-positive.
+    // Real leak attempts ("reveal your system prompt", "print the initial prompt") still
+    // match, and qualified instruction leaks ("display your system instructions") now do too.
     pattern:
-      /\b(reveal|show|display|print|output|repeat)\s+(your\s+)?(system\s+prompt|instructions?|initial\s+prompt|hidden\s+prompt)/i,
+      /\b(reveals?|shows?|displays?|prints?|outputs?|repeats?)\s+((your|the)\s+)?(system|initial|hidden|original)\s+(prompt|instructions?)/i,
     severity: "high",
   },
   {
@@ -46,6 +52,20 @@ const INJECTION_PATTERNS = [
     severity: "medium",
   },
 ];
+
+/**
+ * Maximum number of characters scanned for prompt-injection patterns.
+ *
+ * The guard joins every message/system string into one buffer and runs several
+ * regexes over it on every chat request. With no cap that is O(body) CPU on the
+ * hot path — at high concurrency with 300 KB bodies it is a self-inflicted
+ * latency/GC source. Injection directives sit near the top of a prompt, so
+ * scanning hundreds of KB of pasted code / RAG context buys only CPU. We bound
+ * the scan to the first 16 KB (generous: real directives are far shorter) before
+ * the regex loop. The body-size caps that protect ingestion live elsewhere;
+ * this constant only bounds the regex scan. Refs #3932 / #4041.
+ */
+export const MAX_INJECTION_SCAN_BYTES = 16 * 1024;
 
 // ─── PII Patterns ────────────────────────────────────────────────────
 
@@ -117,13 +137,18 @@ function getConfig() {
 function extractMessageContents(body) {
   const contents = [];
 
-  const messages = body.messages || body.input || [];
+  const messageSource = body.messages !== undefined ? body.messages : body.input;
+  const messages = Array.isArray(messageSource)
+    ? messageSource
+    : messageSource === undefined || messageSource === null
+      ? []
+      : [messageSource];
   for (const msg of messages) {
     if (typeof msg === "string") {
       contents.push(msg);
-    } else if (typeof msg.content === "string") {
+    } else if (msg && typeof msg.content === "string") {
       contents.push(msg.content);
-    } else if (Array.isArray(msg.content)) {
+    } else if (msg && Array.isArray(msg.content)) {
       for (const part of msg.content) {
         if (typeof part === "string") {
           contents.push(part);
@@ -144,6 +169,20 @@ function extractMessageContents(body) {
     }
   }
 
+  if (typeof body.input === "string") contents.push(body.input);
+  if (typeof body.prompt === "string") contents.push(body.prompt);
+  else if (Array.isArray(body.prompt))
+    for (const p of body.prompt) {
+      if (typeof p === "string") contents.push(p);
+    }
+  if (typeof body.instructions === "string") contents.push(body.instructions);
+  if (typeof body.query === "string") contents.push(body.query);
+  if (Array.isArray(body.documents))
+    for (const d of body.documents) {
+      if (typeof d === "string") contents.push(d);
+      else if (d && typeof d.text === "string") contents.push(d.text);
+    }
+
   return contents;
 }
 
@@ -154,8 +193,13 @@ function extractMessageContents(body) {
  */
 function detectInjection(text) {
   const detections = [];
+  // Bound the regex scan to the first 16 KB — see MAX_INJECTION_SCAN_BYTES
+  // (hot-path perf, #3932 / #4041). Slice before the loop so each pattern only
+  // ever scans the capped prefix, never the full (possibly hundreds of KB) body.
+  const scanText =
+    text.length > MAX_INJECTION_SCAN_BYTES ? text.slice(0, MAX_INJECTION_SCAN_BYTES) : text;
   for (const rule of INJECTION_PATTERNS) {
-    const match = text.match(rule.pattern);
+    const match = scanText.match(rule.pattern);
     if (match) {
       detections.push({
         pattern: rule.name,
@@ -261,7 +305,12 @@ export function sanitizeRequest(body, logger = console) {
  */
 function redactBody(body) {
   const clone = JSON.parse(JSON.stringify(body));
-  const messages = clone.messages || clone.input || [];
+  const messageSource = clone.messages !== undefined ? clone.messages : clone.input;
+  const messages = Array.isArray(messageSource)
+    ? messageSource
+    : messageSource && typeof messageSource === "object"
+      ? [messageSource]
+      : [];
 
   for (const msg of messages) {
     if (typeof msg.content === "string") {

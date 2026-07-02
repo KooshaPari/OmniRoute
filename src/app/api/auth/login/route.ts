@@ -48,7 +48,20 @@ export async function POST(request) {
       );
     }
 
-    const rawBody = await request.json();
+    let rawBody;
+    try {
+      rawBody = await request.json();
+    } catch {
+      return NextResponse.json(
+        {
+          error: {
+            message: "Invalid request",
+            details: [{ field: "body", message: "Invalid JSON body" }],
+          },
+        },
+        { status: 400 }
+      );
+    }
 
     // Zod validation
     const validation = validateBody(loginSchema, rawBody);
@@ -129,6 +142,9 @@ export async function POST(request) {
         secure: useSecureCookie,
         sameSite: "lax",
         path: "/",
+        // 30 days — bound the cookie lifetime to the JWT's 30d expiry so the browser
+        // drops it on the same schedule the token stops being valid (Seg3 hardening).
+        maxAge: 60 * 60 * 24 * 30,
       });
 
       logAuditEvent({

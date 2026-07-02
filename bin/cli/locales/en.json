@@ -241,7 +241,9 @@
     "no_recovery": "Disable auto-restart on crash (debugging mode)",
     "max_restarts": "Max crash restarts within 30s before giving up (default: 2)",
     "tray": "Show system tray icon (desktop only, opt-in)",
-    "no_tray": "Disable system tray icon"
+    "no_tray": "Disable system tray icon",
+    "tls_cert": "Path to a TLS certificate (PEM) to serve HTTPS (also OMNIROUTE_TLS_CERT)",
+    "tls_key": "Path to the TLS private key (PEM) to serve HTTPS (also OMNIROUTE_TLS_KEY)"
   },
   "backup": {
     "title": "Backup",
@@ -299,6 +301,9 @@
     "noServer": "Server not running. Start with: omniroute serve",
     "cleared": "Cache cleared.",
     "clearFailed": "Failed to clear cache."
+  },
+  "redis": {
+    "description": "Launch a 1-click local Redis container (Podman or Docker) for OmniRoute caching and quota tracking"
   },
   "test": {
     "description": "Test a provider connection",
@@ -1256,5 +1261,29 @@
     "search": "Search npm registry for available plugins",
     "update": "Update installed plugin(s)",
     "scaffold": "Scaffold a new plugin boilerplate"
+  },
+  "launch": {
+    "description": "Launch Claude Code pointed at OmniRoute (local or remote, with --profile)",
+    "token": "Token the Claude client should send (ANTHROPIC_AUTH_TOKEN)",
+    "notRunning": "OmniRoute is not reachable at {port}. Start it with 'omniroute serve'.",
+    "notFound": "The 'claude' CLI was not found in PATH."
+  },
+  "setupClaude": {
+    "description": "Generate ~/.claude/profiles Claude Code profiles from the OmniRoute model catalog"
+  },
+  "connect": {
+    "description": "Connect to a remote OmniRoute server and enter remote mode"
+  },
+  "tokens": {
+    "description": "Manage scoped CLI access tokens (remote mode)"
+  },
+  "configure": {
+    "description": "Pick a provider+model from the active server and write a local CLI config"
+  },
+  "launchCodex": {
+    "description": "Launch Codex CLI pointed at OmniRoute (local or remote VPS)"
+  },
+  "setupCodex": {
+    "description": "Generate ~/.codex profile files from OmniRoute live model catalog"
   }
 }

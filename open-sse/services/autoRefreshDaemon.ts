@@ -79,6 +79,8 @@ class AutoRefreshDaemon {
     this.timerId = setInterval(() => {
       this.check().catch(() => {});
     }, this.checkIntervalMs);
+    // Don't keep the process alive solely for this periodic daemon.
+    (this.timerId as { unref?: () => void })?.unref?.();
 
     console.log(
       `[AutoRefreshDaemon] Started — checking ${this.credentialStore.size} credentials every ${this.checkIntervalMs / 1000}s`
@@ -152,7 +154,7 @@ class AutoRefreshDaemon {
         signal: controller.signal,
         headers: {
           "User-Agent":
-            "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36",
+            "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36",
         },
       });
 

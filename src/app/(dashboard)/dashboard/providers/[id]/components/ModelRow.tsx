@@ -10,7 +10,7 @@
  * Leaf component: imports from shared, leaf helpers, and sibling components.
  * Never imports from ProviderDetailPageClient.
  */
-import React from "react";
+import React, { useState, useRef, useEffect } from "react";
 import {
   getModelCatalogSourceLabel,
   normalizeModelCatalogSource,
@@ -93,14 +93,18 @@ export interface ModelVisibilityToolbarProps {
   onVisibilityFilterChange?: (filter: "all" | "visible" | "hidden") => void;
   autoHideFailed?: boolean;
   onAutoHideFailedChange?: (v: boolean) => void;
+  freeFilter?: "all" | "free" | "paid";
+  onFreeFilterChange?: (filter: "all" | "free" | "paid") => void;
+  sortFreeFirst?: boolean;
+  onSortFreeFirstChange?: (v: boolean) => void;
 }
 
 export function ModelVisibilityToolbar({
   t,
   filterValue,
   onFilterChange,
-  activeCount: _activeCount,
-  totalCount: _totalCount,
+  activeCount,
+  totalCount,
   onSelectAll,
   onDeselectAll,
   selectAllDisabled,
@@ -112,6 +116,10 @@ export function ModelVisibilityToolbar({
   onVisibilityFilterChange,
   autoHideFailed,
   onAutoHideFailedChange,
+  freeFilter,
+  onFreeFilterChange,
+  sortFreeFirst,
+  onSortFreeFirstChange,
 }: ModelVisibilityToolbarProps) {
   return (
     <div className="mb-3 flex flex-wrap items-center gap-2">
@@ -148,8 +156,51 @@ export function ModelVisibilityToolbar({
           ))}
         </div>
       )}
+      {freeFilter !== undefined && onFreeFilterChange && (
+        <div className="flex items-center gap-1 rounded-lg border border-border bg-sidebar/50 p-0.5">
+          {(["all", "free", "paid"] as const).map((f) => (
+            <button
+              key={f}
+              onClick={() => onFreeFilterChange(f)}
+              className={`rounded px-2 py-1 text-xs ${
+                freeFilter === f
+                  ? "bg-primary text-primary-foreground"
+                  : "text-text-muted hover:text-text-main"
+              }`}
+            >
+              {f === "all"
+                ? providerText(t, "freeFilterAll", "All")
+                : f === "free"
+                  ? providerText(t, "freeFilterFreeOnly", "Free only")
+                  : providerText(t, "freeFilterPaidOnly", "Paid only")}
+            </button>
+          ))}
+        </div>
+      )}
+      {onSortFreeFirstChange && (
+        <button
+          onClick={() => onSortFreeFirstChange(!sortFreeFirst)}
+          aria-pressed={!!sortFreeFirst}
+          className={`flex items-center gap-1.5 rounded-lg border px-2.5 py-1 text-[12px] ${
+            sortFreeFirst
+              ? "border-primary bg-primary/10 text-primary"
+              : "border-border bg-transparent text-text-main"
+          }`}
+          title={providerText(t, "sortFreeFirst", "Free first")}
+        >
+          <span className="material-symbols-outlined text-[16px]">sort</span>
+          <span>{providerText(t, "sortFreeFirst", "Free first")}</span>
+        </button>
+      )}
       {onAutoHideFailedChange && (
-        <label className="flex items-center gap-1.5 text-xs text-text-muted">
+        <label
+          className="flex items-center gap-1.5 text-xs text-text-muted"
+          title={providerText(
+            t,
+            "autoHideFailedHint",
+            "When enabled, Test all hides non-transient failures from public catalogs such as /v1/models. Single-model tests never auto-hide."
+          )}
+        >
           <input
             type="checkbox"
             checked={autoHideFailed ?? false}
@@ -194,6 +245,12 @@ export function ModelVisibilityToolbar({
         <span className="material-symbols-outlined text-[16px]">visibility_off</span>
         <span>{providerText(t, "hideAllModels", "Hide all")}</span>
       </button>
+      <span className="whitespace-nowrap text-xs text-text-muted">
+        {providerText(t, "modelsActiveCount", "{active}/{total} active", {
+          active: activeCount,
+          total: totalCount,
+        })}
+      </span>
     </div>
   );
 }
@@ -206,8 +263,11 @@ export interface ModelRowProps {
   model: { id: string; name?: string; source?: string; isHidden?: boolean };
   fullModel: string;
   provider: string;
+  alias?: string;
   copied?: string;
   onCopy: (text: string, key: string) => void;
+  onSetAlias?: (alias: string) => void;
+  onDeleteAlias?: () => void;
   t: (key: string, values?: Record<string, unknown>) => string;
   showDeveloperToggle?: boolean;
   effectiveModelNormalize: (modelId: string, protocol?: string) => boolean;
@@ -225,8 +285,11 @@ export interface ModelRowProps {
 export default function ModelRow({
   model,
   fullModel,
+  alias,
   copied,
   onCopy,
+  onSetAlias,
+  onDeleteAlias,
   t,
   showDeveloperToggle = true,
   effectiveModelNormalize,
@@ -241,6 +304,43 @@ export default function ModelRow({
   testingModel,
 }: ModelRowProps) {
   const isHidden = Boolean(model.isHidden);
+  const [editing, setEditing] = useState(false);
+  const [aliasValue, setAliasValue] = useState(alias || "");
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (editing && inputRef.current) {
+      inputRef.current.focus();
+      inputRef.current.select();
+    }
+  }, [editing]);
+
+  const startEditing = () => {
+    setAliasValue(alias || "");
+    setEditing(true);
+  };
+
+  const handleAliasSubmit = () => {
+    const trimmed = aliasValue.trim();
+    if (trimmed && trimmed !== alias) {
+      onSetAlias?.(trimmed);
+    } else if (!trimmed && alias) {
+      onDeleteAlias?.();
+    }
+    setEditing(false);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      handleAliasSubmit();
+    }
+    if (e.key === "Escape") {
+      setAliasValue(alias || "");
+      setEditing(false);
+    }
+  };
+
   return (
     <div
       className={`flex min-w-[220px] max-w-md items-center gap-2 rounded-lg border border-border px-3 py-2 hover:bg-sidebar/50 transition-opacity ${
@@ -258,6 +358,36 @@ export default function ModelRow({
           {fullModel}
         </code>
         <ModelSourceBadge source={model.source} />
+        {onSetAlias && (
+          <span className="flex min-w-0 items-center text-[9px] gap-1">
+            {editing ? (
+              <input
+                ref={inputRef}
+                type="text"
+                value={aliasValue}
+                onChange={(e) => setAliasValue(e.target.value)}
+                onBlur={handleAliasSubmit}
+                onKeyDown={handleKeyDown}
+                placeholder={providerText(t, "aliasInputPlaceholder", "alias name")}
+                className="bg-surface border border-primary/50 rounded px-1 py-0.5 text-[9px] text-text-main outline-none w-24"
+              />
+            ) : (
+              <span
+                className={`truncate text-[9px] italic cursor-pointer hover:text-primary transition-colors ${alias ? "text-primary/80" : "text-text-muted/70"}`}
+                onClick={startEditing}
+                title={
+                  alias
+                    ? providerText(t, "clickToEditAlias", "Alias: {alias} (click to edit)", {
+                        alias,
+                      })
+                    : providerText(t, "clickToSetAlias", "Click to set alias")
+                }
+              >
+                {alias || model.name || providerText(t, "clickToSetAlias", "Click to set alias")}
+              </span>
+            )}
+          </span>
+        )}
         <button
           onClick={() => onCopy(fullModel, `model-${model.id}`)}
           className="rounded p-0.5 text-text-muted hover:bg-sidebar hover:text-primary"

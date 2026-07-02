@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-const { openaiToAntigravityRequest, openaiToGeminiCLIRequest, openaiToGeminiRequest } =
+const { openaiToAntigravityRequest, openaiToCloudCodeGeminiRequest, openaiToGeminiRequest } =
   await import("../../open-sse/translator/request/openai-to-gemini.ts");
 const { getRequestTranslator } = await import("../../open-sse/translator/registry.ts");
 const { FORMATS } = await import("../../open-sse/translator/formats.ts");
@@ -18,6 +18,8 @@ const { clearGeminiThoughtSignatures } =
   await import("../../open-sse/services/geminiThoughtSignatureStore.ts");
 
 type UnknownRecord = Record<string, unknown>;
+type GeminiRequestWithConfig = { generationConfig: UnknownRecord };
+type GeminiRequestWithSystem = { systemInstruction: { role?: unknown; parts?: unknown } };
 
 test.beforeEach(() => {
   clearGeminiThoughtSignatures();
@@ -53,31 +55,49 @@ function getFunctionDeclarationParameters(parameters: unknown) {
 }
 
 test("OpenAI -> Gemini helper converts text, images and files into Gemini parts", () => {
-  // Suppress warn emitted for the remote https://example.com/skip.png URL in the
-  // fixture below — that warn is expected and tested separately. Suppressing here
-  // keeps stderr clean so CI does not flag spurious output.
-  const originalWarn = console.warn;
-  console.warn = () => {};
-  try {
-    const parts = convertOpenAIContentToParts([
-      { type: "text", text: "Hello" },
-      { type: "image_url", image_url: { url: "data:image/png;base64,abc" } },
-      { type: "file_url", file_url: { url: "data:application/pdf;base64,Zm9v" } },
-      { type: "document", document: { url: "data:text/plain;base64,YmFy" } },
-      { type: "image_url", image_url: { url: "https://example.com/skip.png" } },
-      { type: "file_url", file_url: { url: "not-a-data-url" } },
-    ]);
+  const parts = convertOpenAIContentToParts([
+    { type: "text", text: "Hello" },
+    { type: "image_url", image_url: { url: "data:image/png;base64,abc" } },
+    { type: "file_url", file_url: { url: "data:application/pdf;base64,Zm9v" } },
+    { type: "document", document: { url: "data:text/plain;base64,YmFy" } },
+    { type: "image_url", image_url: { url: "https://example.com/skip.png" } },
+    { type: "file_url", file_url: { url: "not-a-data-url" } },
+  ]);
 
-    assert.deepEqual(parts, [
-      { text: "Hello" },
-      { inlineData: { mimeType: "image/png", data: "abc" } },
-      { inlineData: { mimeType: "application/pdf", data: "Zm9v" } },
-      { inlineData: { mimeType: "text/plain", data: "YmFy" } },
-    ]);
-    assert.deepEqual(convertOpenAIContentToParts("raw text"), [{ text: "raw text" }]);
-  } finally {
-    console.warn = originalWarn;
-  }
+  // Remote http(s) URLs are no longer dropped — they pass through as Gemini
+  // `fileData: { fileUri }` so the model fetches the asset itself (#4373, ported
+  // from upstream PR #344). A non-data, non-http string ("not-a-data-url") is
+  // still dropped (no inlineData/fileData part).
+  assert.deepEqual(parts, [
+    { text: "Hello" },
+    { inlineData: { mimeType: "image/png", data: "abc" } },
+    { inlineData: { mimeType: "application/pdf", data: "Zm9v" } },
+    { inlineData: { mimeType: "text/plain", data: "YmFy" } },
+    { fileData: { fileUri: "https://example.com/skip.png", mimeType: "image/*" } },
+  ]);
+  assert.deepEqual(convertOpenAIContentToParts("raw text"), [{ text: "raw text" }]);
+});
+
+test("OpenAI -> Gemini does not inject default maxOutputTokens for unknown caps", () => {
+  const withoutRequestLimit = openaiToGeminiRequest(
+    "gemini-2.5-pro",
+    { messages: [{ role: "user", content: "Hello" }] },
+    false
+  );
+  assert.equal(
+    (withoutRequestLimit as GeminiRequestWithConfig).generationConfig.maxOutputTokens,
+    undefined
+  );
+
+  const withRequestLimit = openaiToGeminiRequest(
+    "gemini-2.5-pro",
+    { messages: [{ role: "user", content: "Hello" }], max_tokens: 32000 },
+    false
+  );
+  assert.equal(
+    (withRequestLimit as GeminiRequestWithConfig).generationConfig.maxOutputTokens,
+    32000
+  );
 });
 
 test("OpenAI -> Gemini helper cleans complex JSON Schema structures for Gemini compatibility", () => {
@@ -241,11 +261,9 @@ test("OpenAI -> Gemini request maps messages, merged system instructions, tools 
     false
   );
 
-  assert.equal((result as any).systemInstruction.role, "system");
-  assert.deepEqual((result as any).systemInstruction.parts, [
-    { text: "Rule A" },
-    { text: "Rule B" },
-  ]);
+  const systemInstruction = (result as GeminiRequestWithSystem).systemInstruction;
+  assert.equal(systemInstruction.role, "system");
+  assert.deepEqual(systemInstruction.parts, [{ text: "Rule A" }, { text: "Rule B" }]);
   assert.equal(result.contents[0].role, "user");
   assert.deepEqual(result.contents[0].parts, [
     { text: "What is the weather?" },
@@ -274,12 +292,13 @@ test("OpenAI -> Gemini request maps messages, merged system instructions, tools 
     response: { result: { temp: 20 } },
   });
 
-  assert.equal((result as any).generationConfig.maxOutputTokens, 2222);
-  assert.equal((result as any).generationConfig.temperature, 0.3);
-  assert.equal((result as any).generationConfig.topP, 0.9);
-  assert.deepEqual((result as any).generationConfig.stopSequences, ["DONE"]);
-  assert.equal((result as any).generationConfig.responseMimeType, "application/json");
-  const responseSchema = (result as any).generationConfig.responseSchema as {
+  const generationConfig = (result as GeminiRequestWithConfig).generationConfig;
+  assert.equal(generationConfig.maxOutputTokens, 2222);
+  assert.equal(generationConfig.temperature, 0.3);
+  assert.equal(generationConfig.topP, 0.9);
+  assert.deepEqual(generationConfig.stopSequences, ["DONE"]);
+  assert.equal(generationConfig.responseMimeType, "application/json");
+  const responseSchema = generationConfig.responseSchema as {
     properties: { answer: { type: string; enum?: string[] } };
   };
   assert.equal(responseSchema.properties.answer.type, "string");
@@ -316,8 +335,8 @@ test("OpenAI -> Gemini request preserves custom safety settings and handles syst
   assert.deepEqual(result.contents[0].parts, [{ text: "Only rules" }]);
 });
 
-test("OpenAI -> Gemini CLI adds thinking config and normalizes namespaced tool names", () => {
-  const result = openaiToGeminiCLIRequest(
+test("OpenAI -> Cloud Code Gemini adds thinking config and normalizes namespaced tool names", () => {
+  const result = openaiToCloudCodeGeminiRequest(
     "gemini-2.5-pro",
     {
       messages: [
@@ -366,34 +385,6 @@ test("OpenAI -> Gemini CLI adds thinking config and normalizes namespaced tool n
   );
   assert.ok(responseTurn, "expected a function response turn");
   assert.equal(getFunctionResponse(responseTurn.parts[0]).name, "weather");
-});
-
-test("OpenAI -> Gemini CLI wraps Cloud Code envelope with native top-level and request keys", async () => {
-  const { getRequestTranslator } = await import("../../open-sse/translator/registry.ts");
-  const { FORMATS } = await import("../../open-sse/translator/formats.ts");
-  await import("../../open-sse/translator/request/openai-to-gemini.ts");
-
-  const translate = getRequestTranslator(FORMATS.OPENAI, FORMATS.GEMINI_CLI);
-  assert.ok(translate, "expected Gemini CLI translator to be registered");
-
-  const result = translate(
-    "models/gemini-2.5-flash",
-    { messages: [{ role: "user", content: "Hello" }] },
-    true,
-    { projectId: "projects/demo" }
-  ) as UnknownRecord;
-  const request = result.request as UnknownRecord;
-
-  assert.deepEqual(Object.keys(result), ["model", "project", "user_prompt_id", "request"]);
-  assert.equal(result.model, "gemini-2.5-flash");
-  assert.equal(result.project, "projects/demo");
-  assert.equal(typeof result.user_prompt_id, "string");
-  assert.equal(result.userAgent, undefined);
-  assert.equal(result.requestId, undefined);
-  assert.equal(result.requestType, undefined);
-  assert.equal(typeof request.session_id, "string");
-  assert.equal(request.sessionId, undefined);
-  assert.ok(Array.isArray(request.contents));
 });
 
 test("OpenAI -> Gemini request sanitizes long MCP tool names and strips unsupported schema fields", () => {
@@ -526,33 +517,24 @@ test("OpenAI -> Gemini helper IDs and JSON parsing stay in the expected format",
   assert.equal(tryParseJSON("not-json"), null as any);
 });
 
-test("OpenAI -> Gemini CLI wraps requests like native Cloud Code", () => {
-  const translate = getRequestTranslator(FORMATS.OPENAI, FORMATS.GEMINI_CLI);
-  assert.ok(translate, "expected Gemini CLI translator registration");
-
-  const envelope = translate(
+test("OpenAI -> Cloud Code Gemini applies native request defaults", () => {
+  const request = openaiToCloudCodeGeminiRequest(
     "gemini-3-flash-preview",
     {
       messages: [{ role: "user", content: "Hello" }],
       reasoning_effort: "high",
     },
-    true,
-    { projectId: "project-1" }
+    true
   ) as any;
 
-  assert.equal(envelope.model, "gemini-3-flash-preview");
-  assert.equal(envelope.userAgent, undefined);
-  assert.equal(envelope.requestId, undefined);
-  assert.equal(envelope.request.sessionId, undefined);
-  assert.match(envelope.request.session_id, /^[0-9a-f-]{36}$/i);
-  assert.equal(envelope.user_prompt_id, envelope.request.session_id);
+  assert.equal(request.model, "gemini-3-flash-preview");
+  assert.equal(request.generationConfig.thinkingConfig.includeThoughts, true);
+  assert.equal(request.generationConfig.topK, undefined);
+  assert.equal(request.contents.at(-1).parts[0].text, "Hello");
 });
 
-test("OpenAI -> Gemini CLI emits native Cloud Code functionResponse output", () => {
-  const translate = getRequestTranslator(FORMATS.OPENAI, FORMATS.GEMINI_CLI);
-  assert.ok(translate, "expected Gemini CLI translator registration");
-
-  const envelope = translate(
+test("OpenAI -> Cloud Code Gemini emits native functionResponse result", () => {
+  const request = openaiToCloudCodeGeminiRequest(
     "gemini-3-flash-preview",
     {
       messages: [
@@ -574,18 +556,17 @@ test("OpenAI -> Gemini CLI emits native Cloud Code functionResponse output", () 
         },
       ],
     },
-    true,
-    { projectId: "project-1" }
+    true
   ) as any;
 
-  const toolTurn = envelope.request.contents.find(
+  const toolTurn = request.contents.find(
     (content) => content.role === "user" && content.parts.some((part) => part.functionResponse)
   );
-  assert.ok(toolTurn, "expected Gemini CLI tool response turn");
+  assert.ok(toolTurn, "expected Cloud Code Gemini tool response turn");
   assert.deepEqual(getFunctionResponse(toolTurn.parts[0]), {
     id: "read_file_123_0",
     name: "read_file",
-    response: { output: "The answer is capybara-4729." },
+    response: { result: { result: "The answer is capybara-4729." } },
   });
 });
 
@@ -694,17 +675,19 @@ test("OpenAI -> Antigravity Gemini omits signature-less historical tool calls an
     "signature-less historical call MUST be emitted as native functionCall (bypass applied)"
   );
   assert.equal(
-    modelTurn?.parts.some((part) => part.thoughtSignature === "skip_thought_signature_validator") ?? false,
+    modelTurn?.parts.some((part) => part.thoughtSignature === "skip_thought_signature_validator") ??
+      false,
     true,
     "the bypass sentinel must be injected as thoughtSignature"
   );
 
   const toolTurn = result.request.contents.find(
-    (content) =>
-      content.role === "user" &&
-      content.parts.some((part) => part.functionResponse)
+    (content) => content.role === "user" && content.parts.some((part) => part.functionResponse)
   );
-  assert.ok(toolTurn, "expected signature-less tool response to be preserved as native functionResponse (bypass applied)");
+  assert.ok(
+    toolTurn,
+    "expected signature-less tool response to be preserved as native functionResponse (bypass applied)"
+  );
   assert.equal(
     toolTurn.parts.some((part) => part.functionResponse),
     true,
@@ -1109,59 +1092,38 @@ test("convertOpenAIContentToParts handles rec.image with nested {url} as base64 
   assert.equal((inline as any).inlineData.mimeType, "image/png");
 });
 
-test("convertOpenAIContentToParts warns and drops remote http(s) URLs (#2807 - until async refactor)", () => {
-  const originalWarn = console.warn;
-  const warnings: string[] = [];
-  console.warn = (...args: unknown[]) => {
-    warnings.push(args.map(String).join(" "));
-  };
-  try {
-    const parts = convertOpenAIContentToParts([
-      { type: "image_url", image_url: { url: "https://example.com/cat.png" } },
-    ]);
-    const inline = parts.find((p) => (p as any).inlineData);
-    assert.equal(
-      inline,
-      undefined,
-      "remote URL still cannot be encoded into inlineData (sync function) - that's expected"
-    );
-    assert.ok(
-      warnings.some((w) => /Dropped remote image URL/i.test(w) && /example\.com\/cat\.png/.test(w)),
-      `expected a warning naming the dropped URL, got: ${JSON.stringify(warnings)}`
-    );
-  } finally {
-    console.warn = originalWarn;
-  }
+test("convertOpenAIContentToParts passes remote http(s) image_url URLs through as fileData (#4373; was warn-and-drop #2807)", () => {
+  const parts = convertOpenAIContentToParts([
+    { type: "image_url", image_url: { url: "https://example.com/cat.png" } },
+  ]);
+  // Remote URLs cannot be base64-inlined by this synchronous function, but Gemini's
+  // Part schema accepts `fileData: { fileUri }` for HTTP/HTTPS sources — so the URL
+  // is passed through (the model fetches it) instead of being dropped (#4373).
+  assert.equal(
+    parts.find((p) => (p as any).inlineData),
+    undefined,
+    "remote URL is not base64-inlined (sync function)"
+  );
+  assert.deepEqual(parts, [
+    { fileData: { fileUri: "https://example.com/cat.png", mimeType: "image/*" } },
+  ]);
 });
 
-test("convertOpenAIContentToParts warns and drops rec.image remote http(s) URLs (#2807)", () => {
+test("convertOpenAIContentToParts passes remote rec.image http(s) URLs through as fileData (#4373; was warn-and-drop #2807)", () => {
   // rec.image is the alternative content shape emitted by MCP tool wrappers and
-  // LangChain shim layers. Remote URLs in this shape must also hit the warn-and-drop
-  // branch rather than being silently ignored.
-  const originalWarn = console.warn;
-  const warnings: string[] = [];
-  console.warn = (...args: unknown[]) => {
-    warnings.push(args.map(String).join(" "));
-  };
-  try {
-    const parts = convertOpenAIContentToParts([
-      { type: "image", image: { url: "https://example.com/remote.png" } },
-    ]);
-    const inline = parts.find((p) => (p as any).inlineData);
-    assert.equal(
-      inline,
-      undefined,
-      "rec.image remote URL must not produce an inlineData part (sync function cannot fetch)"
-    );
-    assert.ok(
-      warnings.some(
-        (w) => /Dropped remote image URL/i.test(w) && /example\.com\/remote\.png/.test(w)
-      ),
-      `expected a warning naming the dropped rec.image URL, got: ${JSON.stringify(warnings)}`
-    );
-  } finally {
-    console.warn = originalWarn;
-  }
+  // LangChain shim layers. Remote URLs in this shape now also pass through as
+  // Gemini `fileData: { fileUri }` (#4373) instead of being dropped.
+  const parts = convertOpenAIContentToParts([
+    { type: "image", image: { url: "https://example.com/remote.png" } },
+  ]);
+  assert.equal(
+    parts.find((p) => (p as any).inlineData),
+    undefined,
+    "rec.image remote URL is not base64-inlined (sync function cannot fetch)"
+  );
+  assert.deepEqual(parts, [
+    { fileData: { fileUri: "https://example.com/remote.png", mimeType: "image/*" } },
+  ]);
 });
 
 // Regression for #2504: with credentials._signatureNamespace set, a previously-cached
@@ -1209,7 +1171,27 @@ test("OpenAI -> Gemini request maps reasoning_effort to thinkingConfig", () => {
 
   assert.ok((result as any).generationConfig.thinkingConfig, "expected thinkingConfig");
   assert.equal((result as any).generationConfig.thinkingConfig.includeThoughts, true);
+  // gemini-2.0-flash-thinking carries no registry cap, so the raw 32768 base is
+  // passed through unchanged (capThinkingBudget no-ops without a thinkingBudgetCap).
   assert.equal((result as any).generationConfig.thinkingConfig.thinkingBudget, 32768);
+});
+
+// Regression for #3842: reasoning_effort=high must not exceed a Gemini model's real
+// thinking-budget cap. gemini-2.5-flash's true upstream max is 24576; sending 32768
+// makes the upstream return HTTP 400. The modelSpecs thinkingBudgetCap now clamps it
+// at the capThinkingBudget chokepoint, matching the thinkingLevel=high path (24576).
+test("OpenAI -> Gemini reasoning_effort=high stays within gemini-2.5-flash cap (#3842)", () => {
+  const result = openaiToGeminiRequest(
+    "gemini-2.5-flash",
+    {
+      messages: [{ role: "user", content: "Solve this complex puzzle" }],
+      reasoning_effort: "high",
+    },
+    false
+  ) as any;
+  const budget = result.generationConfig.thinkingConfig.thinkingBudget;
+  assert.ok(budget <= 24576, `expected <= 24576 (real cap), got ${budget}`);
+  assert.equal(budget, 24576);
 });
 
 test("OpenAI -> Gemini request maps google_search tool", () => {

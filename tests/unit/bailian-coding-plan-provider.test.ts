@@ -124,6 +124,28 @@ test("createProviderSchema rejects baseUrl with non-string value", () => {
   assert.equal(validation.success, false, "Should reject non-string baseUrl");
 });
 
+test("createProviderSchema rejects non-boolean Codex context1m request default", () => {
+  const validation = validateBody(createProviderSchema, {
+    provider: "codex",
+    apiKey: "sk-test-key",
+    name: "Test Codex",
+    providerSpecificData: {
+      requestDefaults: {
+        context1m: "yes",
+      },
+    },
+  });
+
+  assert.equal(validation.success, false, "Should reject non-boolean context1m");
+  if (!validation.success && typeof validation.error === "object" && validation.error !== null) {
+    const details = Array.isArray(validation.error.details) ? validation.error.details : [];
+    assert.ok(
+      details.some((detail) => String(detail.message || "").includes("context1m")),
+      "Error should mention context1m"
+    );
+  }
+});
+
 test("updateProviderConnectionSchema accepts valid baseUrl in providerSpecificData", () => {
   const validation = validateBody(updateProviderConnectionSchema, {
     providerSpecificData: {
@@ -206,12 +228,12 @@ test("updateProviderConnectionSchema accepts http protocol", () => {
 // Import the exported helper function from the route
 const { getStaticModelsForProvider } = await import("../../src/lib/providers/staticModels.ts");
 
-test("getStaticModelsForProvider returns 6 models for bailian-coding-plan", () => {
+test("getStaticModelsForProvider returns 10 models for bailian-coding-plan", () => {
   const models = getStaticModelsForProvider("bailian-coding-plan");
 
   assert.ok(models, "Should return models for bailian-coding-plan");
   assert.ok(Array.isArray(models), "Should return an array");
-  assert.equal(models.length, 6, "Should return exactly 6 models");
+  assert.equal(models.length, 10, "Should return exactly 10 models");
 });
 
 test("getStaticModelsForProvider returns correct model IDs for bailian-coding-plan", () => {
@@ -223,6 +245,10 @@ test("getStaticModelsForProvider returns correct model IDs for bailian-coding-pl
   }
 
   const expectedIds = [
+    "qwen3.7-plus",
+    "qwen3-coder-plus",
+    "qwen3-coder-next",
+    "glm-4.7",
     "qwen3.6-plus",
     "qwen3.5-plus",
     "qwen3-max-2026-01-23",

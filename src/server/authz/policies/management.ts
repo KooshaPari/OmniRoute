@@ -7,8 +7,9 @@ import { allow, reject } from "../context";
 import { extractApiKey, isValidApiKey } from "../../../sse/services/auth";
 import { getApiKeyMetadata } from "../../../lib/db/apiKeys";
 import { hasManageScope } from "../../../lib/api/requireManagementAuth";
-import { CLI_TOKEN_HEADER, PEER_IP_HEADER } from "../headers";
-import { resolveStampedPeer } from "../peerStamp";
+import { evaluateAccessTokenAuth } from "../accessTokenAuth";
+import { CLI_TOKEN_HEADER, PEER_IP_HEADER, VIA_PROXY_HEADER } from "../headers";
+import { resolveStampedPeer, resolveStampedViaProxy } from "../peerStamp";
 import {
   isAlwaysProtectedPath,
   isLocalOnlyBypassableByManageScope,
@@ -34,15 +35,34 @@ function requestPeerAddress(ctx: PolicyContext): string | null {
   return ctx.request.ip ?? ctx.request.socket?.remoteAddress ?? null;
 }
 
+/**
+ * True when the inbound TCP request carried forwarding headers
+ * (`x-forwarded-for` / `x-real-ip`), as stamped by the custom Node server. When
+ * set, the socket peer is the reverse-proxy hop, not the end-user — so a
+ * loopback / private-LAN socket must NOT be trusted as local (Hard Rules #15 +
+ * #17, port of decolua/9router da667836). Token-validated; an attacker who
+ * knows the header name but not the per-process token cannot influence it.
+ */
+function isViaProxyRequest(ctx: PolicyContext): boolean {
+  return resolveStampedViaProxy(
+    ctx.request.headers?.get?.(VIA_PROXY_HEADER) ?? null,
+    process.env.OMNIROUTE_PEER_STAMP_TOKEN
+  );
+}
+
 function isLoopbackRequest(ctx: PolicyContext): boolean {
+  if (isViaProxyRequest(ctx)) return false;
   const peerAddress = requestPeerAddress(ctx);
   return peerAddress ? isLoopbackHost(peerAddress) : false;
 }
 
 // Owner-authorized (2026-05-30): allow LOCAL_ONLY *paths* from a trusted private
 // LAN, based on the real socket peer IP (not spoofable). Does NOT relax the
-// CLI-token gate, which stays strictly loopback.
+// CLI-token gate, which stays strictly loopback. Also falls back to "not LAN"
+// when a reverse-proxy hop is detected (the apparent LAN IP would be the proxy,
+// not the end-user — see isViaProxyRequest above).
 function isPrivateLanRequest(ctx: PolicyContext): boolean {
+  if (isViaProxyRequest(ctx)) return false;
   const peerAddress = requestPeerAddress(ctx);
   return peerAddress ? isPrivateLanHost(peerAddress) : false;
 }
@@ -89,6 +109,12 @@ function isValidWsBridgeRequest(ctx: PolicyContext): boolean {
   return timingSafeEqual(expectedHash, providedHash);
 }
 
+// Loopback-only inspector ingest endpoint (D4). Token-gated in its own route
+// handler (INSPECTOR_INTERNAL_INGEST_TOKEN); exempt from management auth so the
+// standalone MITM proxy (server.cjs) can post captured traffic without a
+// dashboard cookie. See the carve-out in evaluate() below.
+const INSPECTOR_INGEST_PATH = "/api/tools/traffic-inspector/internal/ingest";
+
 export const managementPolicy: RoutePolicy = {
   routeClass: "MANAGEMENT",
   async evaluate(ctx: PolicyContext): Promise<AuthOutcome> {
@@ -118,7 +144,7 @@ export const managementPolicy: RoutePolicy = {
     //
     // Anonymous (no Bearer / invalid key / wrong scope / no session) requests
     // still hit the same 403 LOCAL_ONLY they did before.
-    if (isLocalOnlyPath(path) && !isLoopbackRequest(ctx) && !isPrivateLanRequest(ctx)) {
+    if (isLocalOnlyPath(path, ctx.request?.method) && !isLoopbackRequest(ctx) && !isPrivateLanRequest(ctx)) {
       if (isLocalOnlyBypassableByManageScope(path)) {
         // Management auth is header-only — a URL-borne token must never satisfy a
         // manage-scope bypass of a LOCAL_ONLY route. See #3300 follow-up.
@@ -172,6 +198,20 @@ export const managementPolicy: RoutePolicy = {
       return reject(403, "LOCAL_ONLY", "This endpoint requires localhost access");
     }
 
+    // Inspector ingest (D4): the standalone MITM proxy (server.cjs) posts
+    // captured AgentBridge traffic to this loopback-only endpoint. It carries
+    // its own shared-secret token (validated in the route handler), so it does
+    // not also need a dashboard session / management key. The LOCAL_ONLY gate
+    // above already rejected any non-loopback caller; we additionally require a
+    // strict loopback request here so a LAN peer cannot reach it without auth.
+    if (path === INSPECTOR_INGEST_PATH && isLoopbackRequest(ctx)) {
+      return allow({
+        kind: "management_key",
+        id: "inspector-ingest",
+        label: "inspector-ingest-token",
+      });
+    }
+
     if (isInternalModelSyncRequest(ctx)) {
       return allow({ kind: "management_key", id: "model-sync", label: "internal-model-sync" });
     }
@@ -200,6 +240,32 @@ export const managementPolicy: RoutePolicy = {
     // unhealthy, which is a 503, not a 403 — masking it as an auth failure
     // would tell callers their credentials are wrong when the real problem
     // is that the server cannot validate any credential right now.
+    // Scoped CLI access token (remote mode). Evaluated BEFORE the API-key branch
+    // because `oma_` tokens are management credentials, not inference API keys.
+    // Shared with `requireManagementAuth` (no drift). Scope enforced per the
+    // method+admin-allowlist policy (inferRequiredScope).
+    const accessVerdict = evaluateAccessTokenAuth(ctx.request as unknown as Request);
+    switch (accessVerdict.kind) {
+      case "ok":
+        return allow({
+          kind: "management_key",
+          id: accessVerdict.id,
+          label: `access-token:${accessVerdict.scope}`,
+        });
+      case "error":
+        return reject(503, "AUTH_BACKEND_UNAVAILABLE", "Service temporarily unavailable");
+      case "invalid":
+        return reject(401, "AUTH_001", "Invalid or expired access token");
+      case "insufficient":
+        return reject(
+          403,
+          "AUTH_SCOPE",
+          `Access token scope '${accessVerdict.have}' is insufficient; '${accessVerdict.need}' required.`
+        );
+      case "absent":
+        break; // no oma_ token → fall through to API-key auth
+    }
+
     // Management auth is header-only — a URL-borne token must not authenticate
     // a management route. See #3300 follow-up.
     const apiKey = extractApiKey(ctx.request as unknown as Request, { allowUrl: false });

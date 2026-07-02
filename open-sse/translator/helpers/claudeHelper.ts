@@ -1,6 +1,18 @@
 // Claude helper functions for translator
 import { DEFAULT_THINKING_CLAUDE_SIGNATURE } from "../../config/defaultThinkingSignature.ts";
 import { lookupReasoning, recordReplay } from "../../services/reasoningCache.ts";
+import { getModelTargetFormat } from "../../config/providerModels.ts";
+
+// MiniMax exposes a Claude-compatible endpoint but rejects Anthropic's extended
+// `output_config` parameter (used to steer reasoning effort and structured output)
+// with a generic 400 "invalid params" response. Strip the entire field before
+// dispatching Claude-shape requests to these providers. Anthropic Claude and
+// other Claude-compatible upstreams that do accept it are unaffected.
+// Ported from upstream decolua/9router#820 by @hiepau1231.
+const CLAUDE_FORMAT_PROVIDERS_WITHOUT_OUTPUT_CONFIG = new Set<string>([
+  "minimax",
+  "minimax-cn",
+]);
 
 // Placeholder thinking text used as last-resort fallback when:
 //   - Target upstream is a non-Anthropic Claude-shape provider
@@ -209,8 +221,16 @@ function markMessageCacheControl(msg: ClaudeMessage, ttl?: string): boolean {
 export function prepareClaudeRequest(
   body: ClaudeRequestBody,
   provider: string | null = null,
-  preserveCacheControl = false
+  preserveCacheControl = false,
+  model: string | null = null
 ): ClaudeRequestBody {
+  // 0. Strip Anthropic `output_config` for providers that reject it on their
+  // Claude-compatible endpoints (MiniMax). Must run before any downstream
+  // processing so the field never reaches translateRequest/the executor.
+  if (provider && CLAUDE_FORMAT_PROVIDERS_WITHOUT_OUTPUT_CONFIG.has(provider)) {
+    delete body.output_config;
+  }
+
   // 1. System: remove all cache_control, add only to last block with ttl 1h
   // In passthrough mode, preserve existing cache_control markers
   const supportsPromptCaching =
@@ -225,7 +245,13 @@ export function prepareClaudeRequest(
   // We use the same allowlist as prompt-caching: only Anthropic-native
   // upstreams get redacted_thinking. Everything else gets plain thinking blocks
   // backed by reasoningCache (real text) or a placeholder (cache miss).
-  const supportsRedactedThinking = supportsPromptCaching;
+  // Mixed-format providers (e.g. opencode-go) may have some models targeting
+  // Anthropic's Messages API (targetFormat=claude) and others targeting OpenAI.
+  // When the specific model targets Claude format, it's hitting a real Anthropic
+  // endpoint that validates signatures — so it needs redacted_thinking too.
+  const modelTargetsClaude =
+    !!provider && !!model && getModelTargetFormat(provider, model) === "claude";
+  const supportsRedactedThinking = supportsPromptCaching || modelTargetsClaude;
 
   const systemBlocks = body.system;
   if (systemBlocks && Array.isArray(systemBlocks) && !preserveCacheControl) {
@@ -274,6 +300,33 @@ export function prepareClaudeRequest(
           (block) => block.type !== "tool_result" || block.tool_use_id
         );
       }
+    }
+
+    // Tools: for non-Anthropic providers (MiniMax and other Anthropic-compatible
+    // Claude-shape endpoints) strip Anthropic-only built-in tools (e.g.
+    // web_search_20250305) and normalize OpenAI-wire-shape tools to the
+    // Anthropic-native shape — fold `function.{name,description,parameters}`
+    // into top-level `{name, description, input_schema}` and drop the stray
+    // `type` field. Without this MiniMax rejects with code 2013 ("invalid
+    // tool type"). Port of upstream decolua/9router@45240c19.
+    if (body.tools && Array.isArray(body.tools) && provider !== "claude") {
+      body.tools = body.tools
+        .filter((tool) => !tool.type || tool.type === "function")
+        .map((tool) => {
+          const t = tool as ClaudeTool & {
+            function?: { name?: string; description?: string; parameters?: unknown };
+            type?: string;
+          };
+          if (t.function) {
+            return {
+              name: t.function.name,
+              description: t.function.description,
+              input_schema: t.function.parameters,
+            } as ClaudeTool;
+          }
+          const { type: _type, ...rest } = t;
+          return rest as ClaudeTool;
+        });
     }
 
     // Also filter top-level tool declarations with empty names

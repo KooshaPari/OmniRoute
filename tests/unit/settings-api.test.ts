@@ -108,6 +108,36 @@ describe("Settings API - persisted preferences", () => {
     });
   });
 
+  describe("hiddenSidebarGroupLabels", () => {
+    test("updateSettings with hiddenSidebarGroupLabels=['logs','audit'] succeeds", async () => {
+      const result = await harness.updateSettings({ hiddenSidebarGroupLabels: ["logs", "audit"] });
+      assert.ok(result, "updateSettings should return truthy result");
+
+      const settings = await harness.getSettings();
+      assert.deepStrictEqual(
+        settings.hiddenSidebarGroupLabels,
+        ["logs", "audit"],
+        "hiddenSidebarGroupLabels should contain logs and audit"
+      );
+    });
+
+    test("PATCH /api/settings persists hiddenSidebarGroupLabels", async () => {
+      const response = await harness.settingsRoute.PATCH(
+        await makeManagementSessionRequest("http://localhost/api/settings", {
+          method: "PATCH",
+          body: { hiddenSidebarGroupLabels: ["system"] },
+        })
+      );
+      const body = (await response.json()) as Record<string, unknown>;
+
+      assert.equal(response.status, 200);
+      assert.deepEqual(body.hiddenSidebarGroupLabels, ["system"]);
+
+      const settings = await harness.getSettings();
+      assert.deepEqual(settings.hiddenSidebarGroupLabels, ["system"]);
+    });
+  });
+
   describe("combined updates", () => {
     test("updateSettings with both debugMode and hiddenSidebarItems succeeds", async () => {
       const result = await harness.updateSettings({
@@ -177,6 +207,35 @@ describe("Settings API - persisted preferences", () => {
 
       const settings = await harness.getSettings();
       assert.equal(settings.responsesPreviousResponseIdMode, "strip");
+    });
+
+    test("GET /api/settings returns Cache-Control: no-store (ported from upstream #951)", async () => {
+      const response = await harness.settingsRoute.GET(
+        await makeManagementSessionRequest("http://localhost/api/settings", {
+          method: "GET",
+        })
+      );
+      assert.equal(response.status, 200);
+      assert.equal(
+        response.headers.get("Cache-Control"),
+        "no-store",
+        "GET /api/settings must return Cache-Control: no-store so persisted settings stay fresh after refresh/restart"
+      );
+    });
+
+    test("PATCH /api/settings returns Cache-Control: no-store (ported from upstream #951)", async () => {
+      const response = await harness.settingsRoute.PATCH(
+        await makeManagementSessionRequest("http://localhost/api/settings", {
+          method: "PATCH",
+          body: { debugMode: true },
+        })
+      );
+      assert.equal(response.status, 200);
+      assert.equal(
+        response.headers.get("Cache-Control"),
+        "no-store",
+        "PATCH /api/settings must return Cache-Control: no-store"
+      );
     });
 
     test("PUT /api/settings reuses the PATCH update flow", async () => {

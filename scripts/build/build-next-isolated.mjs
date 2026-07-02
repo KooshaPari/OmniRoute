@@ -107,16 +107,37 @@ export function resolveNextBuildBundlerFlag(baseEnv = process.env) {
 }
 
 export function resolveNextBuildEnv(baseEnv = process.env) {
-  return {
+  const env = {
     ...baseEnv,
     NEXT_PRIVATE_BUILD_WORKER: baseEnv.NEXT_PRIVATE_BUILD_WORKER || "0",
   };
+
+  // Raise the Node heap for the spawned `next build`. The webpack production pass
+  // ("Compiling instrumentation" bundles the whole server graph) is the heaviest
+  // phase and overflows V8's default ~2 GB ceiling on memory-constrained machines,
+  // stalling/OOMing local `npm run build` (npm-global installs). #4076/#4104 fixed
+  // this only in the Docker builder stage (ENV NODE_OPTIONS); the local/native path
+  // was left unprotected. Respect an existing --max-old-space-size (Docker already
+  // sets one — don't clobber/duplicate) and let OMNIROUTE_BUILD_MEMORY_MB override.
+  if (!/--max-old-space-size/.test(env.NODE_OPTIONS || "")) {
+    // Default 8 GB (was 4 GB): the clean module graph peaks ~3.9 GB during the webpack
+    // production pass, which brushed the old 4 GB ceiling on a borderline OOM. 8 GB gives
+    // headroom without risk. NOTE: heap size does NOT fix a poisoned scope — if the build
+    // OOMs/livelocks far above this, check for worktrees/cruft leaking into the tsconfig
+    // scope (run `npm run check:build-scope`), not for "more heap". See incident 2026-06-25.
+    const heapMb = Number(baseEnv.OMNIROUTE_BUILD_MEMORY_MB) || 8192;
+    env.NODE_OPTIONS = `${env.NODE_OPTIONS || ""} --max-old-space-size=${heapMb}`.trim();
+  }
+
+  return env;
 }
 
 async function resetStandaloneOutput(rootDir = projectRoot, fsImpl = fs) {
   // Use the module-level distDir so NEXT_DIST_DIR is respected
   const resolvedDistDir =
-    rootDir === projectRoot ? distDir : path.join(rootDir, process.env.NEXT_DIST_DIR || ".build/next");
+    rootDir === projectRoot
+      ? distDir
+      : path.join(rootDir, process.env.NEXT_DIST_DIR || ".build/next");
   const standaloneRoot = path.join(resolvedDistDir, "standalone");
   if (!(await exists(standaloneRoot))) return;
 
@@ -128,7 +149,9 @@ async function resetStandaloneOutput(rootDir = projectRoot, fsImpl = fs) {
 
 export async function pruneStandaloneArtifacts(rootDir = projectRoot, fsImpl = fs) {
   const resolvedDistDirForPrune =
-    rootDir === projectRoot ? distDir : path.join(rootDir, process.env.NEXT_DIST_DIR || ".build/next");
+    rootDir === projectRoot
+      ? distDir
+      : path.join(rootDir, process.env.NEXT_DIST_DIR || ".build/next");
   const standaloneRoot = path.join(resolvedDistDirForPrune, "standalone");
   const pruneTargets = [path.join(standaloneRoot, "_tasks")];
 
@@ -174,11 +197,9 @@ export async function main() {
     const standaloneDir = path.join(distDir, "standalone");
     if (result.code === 0 && (await exists(standaloneDir))) {
       try {
-        await fs.cp(
-          path.join(projectRoot, "docs"),
-          path.join(standaloneDir, "docs"),
-          { recursive: true }
-        );
+        await fs.cp(path.join(projectRoot, "docs"), path.join(standaloneDir, "docs"), {
+          recursive: true,
+        });
         console.log("[build-next-isolated] Copied docs/ to standalone output");
       } catch (docsCopyErr) {
         console.warn("[build-next-isolated] Non-fatal error copying docs/:", docsCopyErr?.message);
@@ -193,8 +214,29 @@ export async function main() {
         );
       }
 
+      // Best-effort: build the TPROXY native addon (Linux-only, opt-in) BEFORE
+      // assembling, so its transparent.node is present for assembleStandalone's
+      // NATIVE_ASSET_ENTRIES copy. Non-Linux / no-toolchain is non-fatal — the
+      // capture mode degrades gracefully when the addon is absent.
       try {
-        console.log("[build-next-isolated] Assembling standalone bundle (static + public + natives + extras)...");
+        const { buildTproxyNative } = await import("./build-tproxy-native.mjs");
+        const res = buildTproxyNative(projectRoot);
+        console.log(
+          res.built
+            ? "[build-next-isolated] Built TPROXY native addon (transparent.node)"
+            : `[build-next-isolated] TPROXY native addon skipped: ${res.reason}`
+        );
+      } catch (nativeErr) {
+        console.warn(
+          "[build-next-isolated] Non-fatal error building TPROXY native addon:",
+          nativeErr?.message
+        );
+      }
+
+      try {
+        console.log(
+          "[build-next-isolated] Assembling standalone bundle (static + public + natives + extras)..."
+        );
         assembleStandalone({
           distDir,
           outDir: standaloneDir,
@@ -202,10 +244,7 @@ export async function main() {
           copyNatives: true,
         });
       } catch (assembleErr) {
-        console.warn(
-          "[build-next-isolated] Non-fatal error assembling standalone:",
-          assembleErr
-        );
+        console.warn("[build-next-isolated] Non-fatal error assembling standalone:", assembleErr);
       }
     }
     process.exitCode = result.code;

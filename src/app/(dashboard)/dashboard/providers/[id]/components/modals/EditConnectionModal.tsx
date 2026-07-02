@@ -1,8 +1,5 @@
 "use client";
 
-// Issue #3501 Phase 1c — extracted from the god-component.
-// ~1091-LOC modal for editing an existing provider connection.
-
 import { useState, useEffect, useMemo } from "react";
 import { useTranslations } from "next-intl";
 import { Button, Badge, Input, Modal, Toggle, Select } from "@/shared/components";
@@ -17,6 +14,7 @@ import {
   normalizeAntigravityClientProfileSetting,
 } from "@/shared/constants/antigravityClientProfile";
 import { parseExtraApiKeys } from "@/shared/utils/parseApiKeys";
+import { providerHasFreeModels } from "@/shared/utils/freeModels";
 import { maskEmail } from "@/shared/utils/maskEmail";
 import useEmailPrivacyStore from "@/store/emailPrivacyStore";
 import { useNotificationStore } from "@/store/notificationStore";
@@ -48,7 +46,11 @@ import {
   formatTimeAgo,
 } from "../../providerPageHelpers";
 import { getWebSessionCredentialRequirement } from "../../webSessionCredentials";
+import { useOpenRouterPresetControl } from "../OpenRouterPresetInput";
 import WebSessionCredentialGuide from "../WebSessionCredentialGuide";
+import CcCompatibleRequestDefaultsFields from "./CcCompatibleRequestDefaultsFields";
+import { assignEditApiKeyProviderSpecificData } from "./connectionProviderSpecificData";
+import QuotaScrapingFields, { EMPTY_QUOTA_SCRAPING_FIELDS } from "./QuotaScrapingFields";
 
 export interface EditConnectionModalConnection {
   id?: string;
@@ -68,18 +70,27 @@ export interface EditConnectionModalConnection {
 export interface EditConnectionModalProps {
   isOpen: boolean;
   connection: EditConnectionModalConnection | null;
+  providerId: string;
   onSave: (data: unknown) => Promise<void | unknown>;
+  /** Triggered after a successful save when the "import only free models" flag changed. */
+  onResyncModels?: (connectionId: string) => void | Promise<void>;
   onClose: () => void;
 }
+
+const stringField = (value: unknown) => (typeof value === "string" ? value : "");
 
 export default function EditConnectionModal({
   isOpen,
   connection,
+  providerId,
   onSave,
+  onResyncModels,
   onClose,
 }: EditConnectionModalProps) {
   const t = useTranslations("providers");
   const notify = useNotificationStore();
+  const provider = connection?.provider || providerId;
+  const showFreeModelsToggle = providerHasFreeModels(provider);
   const [formData, setFormData] = useState({
     name: "",
     priority: 1,
@@ -105,14 +116,19 @@ export default function EditConnectionModal({
     codexServiceTier: "default" as CodexServiceTier,
     codexOpenaiStoreEnabled: false,
     consoleApiKey: "",
+    ...EMPTY_QUOTA_SCRAPING_FIELDS,
     ccCompatibleContext1m: false,
+    ccCompatibleRedactThinking: false,
+    ccCompatibleSummarizeThinking: false,
     cloudCodeProjectId: "",
     antigravityClientProfile: "ide",
     blockExtraUsage:
-      connection?.provider === "claude"
-        ? isClaudeExtraUsageBlockEnabled(connection?.provider, connection?.providerSpecificData)
+      provider === "claude"
+        ? isClaudeExtraUsageBlockEnabled(provider, connection?.providerSpecificData)
         : false,
     passthroughModels: connection?.providerSpecificData?.passthroughModels === true,
+    disableCooling: connection?.providerSpecificData?.disableCooling === true,
+    importFreeModelsOnly: connection?.providerSpecificData?.importFreeModelsOnly === true,
   });
   const [testing, setTesting] = useState(false);
   const [testResult, setTestResult] = useState(null);
@@ -135,34 +151,37 @@ export default function EditConnectionModal({
     >
   >({});
   const [showAdvanced, setShowAdvanced] = useState(false);
-  const { emailsVisible: showEmail, toggleEmailVisibility: toggleShowEmail } =
-    useEmailPrivacyStore();
+  const showEmail = useEmailPrivacyStore((state) => state.emailsVisible);
 
-  const usesBaseUrl = isBaseUrlConfigurableProvider(connection?.provider);
-  const defaultBaseUrl = getProviderBaseUrlDefault(connection?.provider);
-  const isVertex = connection?.provider === "vertex" || connection?.provider === "vertex-partner";
-  const isBedrock = connection?.provider === "bedrock";
+  const usesBaseUrl = isBaseUrlConfigurableProvider(provider);
+  const defaultBaseUrl = getProviderBaseUrlDefault(provider);
+  const isVertex = provider === "vertex" || provider === "vertex-partner";
+  const isBedrock = provider === "bedrock";
   const showsRegion = isVertex || isBedrock;
-  const isGlm = isGlmProvider(connection?.provider);
-  const isCloudflare = connection?.provider === "cloudflare-ai";
-  const isCodex = connection?.provider === "codex";
-  const isClaude = connection?.provider === "claude";
-  const isGeminiCli = connection?.provider === "gemini-cli";
-  const isAntigravity = connection?.provider === "antigravity";
-  const supportsGoogleProjectId = isGeminiCli || isAntigravity;
-  const localProviderMetadata = getLocalProviderMetadata(connection?.provider);
+  const isGlm = isGlmProvider(provider);
+  const isCloudflare = provider === "cloudflare-ai";
+  const openRouterPreset = useOpenRouterPresetControl(provider, t);
+  const setOpenRouterPreset = openRouterPreset.setValue;
+  const isCodex = provider === "codex";
+  const isClaude = provider === "claude";
+  const isAntigravity = provider === "antigravity";
+  const supportsGoogleProjectId = isAntigravity;
+  const localProviderMetadata = getLocalProviderMetadata(provider);
   const isLocalSelfHostedProvider = !!localProviderMetadata;
-  const isGooglePse = connection?.provider === "google-pse-search";
-  const webSessionCredential = getWebSessionCredentialRequirement(connection?.provider);
+  const isGooglePse = provider === "google-pse-search";
+  const webSessionCredential = getWebSessionCredentialRequirement(provider);
   const isNoAuthWebSessionCredential = webSessionCredential?.kind === "none";
   const isWebSessionCredential = !!webSessionCredential && webSessionCredential.kind !== "none";
   const providerDisplayName =
-    (connection?.provider ? resolveDashboardProviderInfo(connection.provider)?.name : null) ||
-    connection?.provider ||
+    (provider ? resolveDashboardProviderInfo(provider)?.name : null) ||
+    localProviderMetadata?.name ||
+    provider ||
     "";
   const apiKeyOptional =
-    providerAllowsOptionalApiKey(connection?.provider) || Boolean(isNoAuthWebSessionCredential);
-  const isCcCompatible = isClaudeCodeCompatibleProvider(connection?.provider);
+    providerAllowsOptionalApiKey(provider) || Boolean(isNoAuthWebSessionCredential);
+  const isCcCompatible = isClaudeCodeCompatibleProvider(provider);
+  const isCompatible =
+    isOpenAICompatibleProvider(provider) || isAnthropicCompatibleProvider(provider);
   const defaultRegion = isBedrock ? "eu-west-2" : "us-central1";
   const apiCredentialLabel = webSessionCredential
     ? getWebSessionCredentialLabel(t, webSessionCredential, apiKeyOptional)
@@ -178,7 +197,7 @@ export default function EditConnectionModal({
     ? getWebSessionCredentialHint(t, webSessionCredential, providerDisplayName, true)
     : isLocalSelfHostedProvider
       ? t("localProviderApiKeyOptionalHint", {
-          provider: localProviderMetadata?.name || connection?.provider || "",
+          provider: localProviderMetadata?.name || provider || "",
         })
       : apiKeyOptional
         ? t("apiKeyOptionalHint")
@@ -194,23 +213,22 @@ export default function EditConnectionModal({
 
   useEffect(() => {
     if (isOpen && connection) {
-      const rawBaseUrl = connection.providerSpecificData?.baseUrl;
-      const existingBaseUrl = typeof rawBaseUrl === "string" ? rawBaseUrl : "";
-      const rawRegion = connection.providerSpecificData?.region;
-      const existingRegion = typeof rawRegion === "string" ? rawRegion : "";
-      const rawCustomUserAgent = connection.providerSpecificData?.customUserAgent;
-      const existingCustomUserAgent =
-        typeof rawCustomUserAgent === "string" ? rawCustomUserAgent : "";
-      const rawCx = connection.providerSpecificData?.cx;
-      const existingCx = typeof rawCx === "string" ? rawCx : "";
-      const rawAccountId = connection.providerSpecificData?.accountId;
-      const existingAccountId = typeof rawAccountId === "string" ? rawAccountId : "";
+      const effectiveProvider = connection.provider || providerId;
+      const existingBaseUrl = stringField(connection.providerSpecificData?.baseUrl);
+      const existingRegion = stringField(connection.providerSpecificData?.region);
+      const existingCustomUserAgent = stringField(connection.providerSpecificData?.customUserAgent);
+      const existingOpenRouterPreset = stringField(connection.providerSpecificData?.preset);
+      const existingCx = stringField(connection.providerSpecificData?.cx);
+      const existingAccountId = stringField(connection.providerSpecificData?.accountId);
+      const existingOpenCodeGoWorkspaceId =
+        stringField(connection.providerSpecificData?.opencodeGoWorkspaceId) ||
+        stringField(connection.providerSpecificData?.openCodeGoWorkspaceId) ||
+        stringField(connection.providerSpecificData?.workspaceId);
       const codexRequestDefaults = getCodexRequestDefaults(connection.providerSpecificData);
       const ccRequestDefaults = getClaudeCodeCompatibleRequestDefaults(
         connection.providerSpecificData
       );
-      const rawConsoleApiKey = connection.providerSpecificData?.consoleApiKey;
-      const existingConsoleApiKey = typeof rawConsoleApiKey === "string" ? rawConsoleApiKey : "";
+      const existingConsoleApiKey = stringField(connection.providerSpecificData?.consoleApiKey);
       setFormData({
         name: connection.name || "",
         priority: connection.priority || 1,
@@ -257,22 +275,27 @@ export default function EditConnectionModal({
         codexServiceTier: codexRequestDefaults.serviceTier ?? "default",
         codexOpenaiStoreEnabled: connection.providerSpecificData?.openaiStoreEnabled === true,
         consoleApiKey: existingConsoleApiKey,
+        opencodeGoWorkspaceId: existingOpenCodeGoWorkspaceId,
+        opencodeGoAuthCookie: "",
+        ollamaCloudUsageCookie: "",
         ccCompatibleContext1m: ccRequestDefaults.context1m,
+        ccCompatibleRedactThinking: ccRequestDefaults.redactThinking,
+        ccCompatibleSummarizeThinking: ccRequestDefaults.summarizeThinking,
         cloudCodeProjectId:
           (connection.providerSpecificData?.projectId as string) || connection.projectId || "",
         antigravityClientProfile: normalizeAntigravityClientProfileSetting(
           connection.providerSpecificData?.clientProfile
         ),
         blockExtraUsage: isClaudeExtraUsageBlockEnabled(
-          connection.provider,
+          effectiveProvider,
           connection.providerSpecificData
         ),
         passthroughModels: connection?.providerSpecificData?.passthroughModels === true,
+        disableCooling: connection?.providerSpecificData?.disableCooling === true,
+        importFreeModelsOnly: connection?.providerSpecificData?.importFreeModelsOnly === true,
       });
-      // Load existing extra keys from providerSpecificData
       const existing = connection.providerSpecificData?.extraApiKeys;
       setExtraApiKeys(Array.isArray(existing) ? existing : []);
-      // Load API key health status
       const health = connection.providerSpecificData?.apiKeyHealth as
         | Record<
             string,
@@ -287,16 +310,24 @@ export default function EditConnectionModal({
         | undefined;
       setApiKeyHealth(health || {});
       setNewExtraKey("");
+      setOpenRouterPreset(existingOpenRouterPreset);
       setShowAdvanced(!!existingCustomUserAgent);
-      // email visibility controlled by global store
       setTestResult(null);
       setValidationResult(null);
       setSaveError(null);
     }
-  }, [isOpen, connection, defaultBaseUrl, showsRegion, defaultRegion]);
+  }, [
+    isOpen,
+    connection,
+    providerId,
+    defaultBaseUrl,
+    showsRegion,
+    defaultRegion,
+    setOpenRouterPreset,
+  ]);
 
   const handleTest = async () => {
-    if (!connection?.provider) return;
+    if (!provider) return;
     setTesting(true);
     setTestResult(null);
     try {
@@ -326,7 +357,7 @@ export default function EditConnectionModal({
 
   const handleValidate = async () => {
     if (
-      !connection?.provider ||
+      !provider ||
       isNoAuthWebSessionCredential ||
       (!isCompatible && !apiKeyOptional && !formData.apiKey)
     ) {
@@ -339,7 +370,7 @@ export default function EditConnectionModal({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          provider: connection.provider,
+          provider,
           apiKey: formData.apiKey,
           validationModelId: formData.validationModelId || undefined,
           customUserAgent: formData.customUserAgent.trim() || undefined,
@@ -391,7 +422,6 @@ export default function EditConnectionModal({
         healthCheckInterval: formData.healthCheckInterval,
       };
 
-      // Build rateLimitOverrides from non-empty fields
       const overrides: Record<string, number> = {};
       if (formData.rpm.trim()) overrides.rpm = Number(formData.rpm);
       if (formData.tpm.trim()) overrides.tpm = Number(formData.tpm);
@@ -431,7 +461,7 @@ export default function EditConnectionModal({
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({
-                provider: connection.provider,
+                provider,
                 apiKey: formData.apiKey,
                 validationModelId: formData.validationModelId || undefined,
                 customUserAgent: formData.customUserAgent.trim() || undefined,
@@ -459,60 +489,28 @@ export default function EditConnectionModal({
           updates.rateLimitedUntil = null;
         }
       }
-      // Persist extra API keys and baseUrl in providerSpecificData
       if (!isOAuth) {
         updates.providerSpecificData = {
           ...(connection.providerSpecificData || {}),
-          extraApiKeys: extraApiKeys.filter((k) => k.trim().length > 0),
-          tag: formData.tag.trim() || undefined,
-          tags: parseRoutingTagsInput(formData.routingTags),
-          excludedModels: parseExcludedModelsInput(formData.excludedModels),
-          customUserAgent: formData.customUserAgent.trim(),
-          // Only write when explicitly enabled; omit to let registry default take effect
-          ...(formData.passthroughModels ? { passthroughModels: true } : {}),
         };
-        if (connection.provider === "bailian-coding-plan") {
-          if (formData.consoleApiKey.trim()) {
-            updates.providerSpecificData.consoleApiKey = formData.consoleApiKey.trim();
-          } else {
-            updates.providerSpecificData.consoleApiKey = undefined;
-          }
-        }
-        if (formData.validationModelId) {
-          updates.providerSpecificData.validationModelId = formData.validationModelId;
-        }
-        if (isGooglePse) {
-          updates.providerSpecificData.cx = formData.cx.trim() || undefined;
-        }
-        if (usesBaseUrl) {
-          updates.providerSpecificData.baseUrl = validatedBaseUrl;
-        } else if (showsRegion) {
-          updates.providerSpecificData.region = formData.region.trim() || defaultRegion;
-        } else if (isGlm) {
-          updates.providerSpecificData.apiRegion = formData.apiRegion;
-        } else if (isCloudflare && formData.accountId.trim()) {
-          updates.providerSpecificData.accountId = formData.accountId.trim();
-        }
-        if (supportsGoogleProjectId) {
-          updates.providerSpecificData.projectId = trimmedCloudCodeProjectId || null;
-        }
-        if (isCcCompatible) {
-          const currentRequestDefaults =
-            updates.providerSpecificData.requestDefaults &&
-            typeof updates.providerSpecificData.requestDefaults === "object" &&
-            !Array.isArray(updates.providerSpecificData.requestDefaults)
-              ? { ...(updates.providerSpecificData.requestDefaults as Record<string, unknown>) }
-              : {};
-          if (formData.ccCompatibleContext1m) {
-            currentRequestDefaults.context1m = true;
-          } else {
-            delete currentRequestDefaults.context1m;
-          }
-          updates.providerSpecificData.requestDefaults =
-            Object.keys(currentRequestDefaults).length > 0 ? currentRequestDefaults : undefined;
-        }
+        assignEditApiKeyProviderSpecificData({
+          provider,
+          formData,
+          target: updates.providerSpecificData,
+          extraApiKeys,
+          openRouterPreset,
+          usesBaseUrl,
+          validatedBaseUrl,
+          showsRegion,
+          defaultRegion,
+          isGlm,
+          isCloudflare,
+          supportsGoogleProjectId,
+          trimmedCloudCodeProjectId,
+          isGooglePse,
+          isCcCompatible,
+        });
       } else {
-        // Also persist tag for OAuth accounts
         updates.providerSpecificData = {
           ...(connection.providerSpecificData || {}),
           tag: formData.tag.trim() || undefined,
@@ -545,9 +543,27 @@ export default function EditConnectionModal({
           ),
         };
       }
+      if (updates.providerSpecificData) {
+        updates.providerSpecificData.disableCooling = formData.disableCooling ? true : undefined;
+      }
+      const freeOnlyChanged =
+        showFreeModelsToggle &&
+        formData.importFreeModelsOnly !==
+          (connection.providerSpecificData?.importFreeModelsOnly === true);
+      if (showFreeModelsToggle && updates.providerSpecificData) {
+        // Store an explicit boolean (not undefined): the PUT route merges
+        // { ...existing, ...incoming }, so an undefined/omitted key would keep the
+        // previously-saved `true` and unchecking would never take effect.
+        updates.providerSpecificData.importFreeModelsOnly = formData.importFreeModelsOnly === true;
+      }
       const error = (await onSave(updates)) as void | unknown;
       if (error) {
         setSaveError(typeof error === "string" ? error : t("failedSaveConnection"));
+        return;
+      }
+      // Re-sync so the available model list reflects the new free-only choice.
+      if (freeOnlyChanged && onResyncModels && connection.id) {
+        await onResyncModels(connection.id);
       }
     } finally {
       setSaving(false);
@@ -557,9 +573,6 @@ export default function EditConnectionModal({
   if (!connection) return null;
 
   const isOAuth = connection.authType === "oauth";
-  const isCompatible =
-    isOpenAICompatibleProvider(connection.provider) ||
-    isAnthropicCompatibleProvider(connection.provider);
   const testErrorMeta =
     !testResult?.valid && testResult?.diagnosis?.type
       ? ERROR_TYPE_LABELS[testResult.diagnosis.type] || null
@@ -638,16 +651,40 @@ export default function EditConnectionModal({
             />
           </div>
         )}
-        {isCcCompatible && (
+        {(isCcCompatible || openRouterPreset.input) && (
           <div className="flex flex-col gap-4 rounded-lg border border-border/50 bg-surface/20 p-4">
-            <Toggle
-              checked={formData.ccCompatibleContext1m}
-              onChange={(checked) => setFormData({ ...formData, ccCompatibleContext1m: checked })}
-              label={t("ccCompatibleContext1mLabel")}
-              description={t("ccCompatibleContext1mDescription")}
-            />
+            {isCcCompatible && (
+              <CcCompatibleRequestDefaultsFields
+                values={formData}
+                onChange={(patch) => setFormData({ ...formData, ...patch })}
+              />
+            )}
+            {openRouterPreset.input}
           </div>
         )}
+        <div className="flex flex-col gap-4 rounded-lg border border-border/50 bg-surface/20 p-4">
+          {showFreeModelsToggle && (
+            <Toggle
+              checked={formData.importFreeModelsOnly}
+              onChange={(checked) => setFormData({ ...formData, importFreeModelsOnly: checked })}
+              label={t("importFreeModelsOnlyLabel")}
+              description={t("importFreeModelsOnlyHint")}
+            />
+          )}
+          <Toggle
+            checked={formData.disableCooling}
+            onChange={(checked) => setFormData({ ...formData, disableCooling: checked })}
+            label={t("disableCoolingLabel")}
+            description={t("disableCoolingDescription")}
+          />
+        </div>
+        <QuotaScrapingFields
+          provider={provider}
+          values={formData}
+          onChange={(patch) => setFormData({ ...formData, ...patch })}
+          t={t}
+          editMode
+        />
         {supportsGoogleProjectId && (
           <div className="flex flex-col gap-4 rounded-lg border border-border/50 bg-surface/20 p-4">
             {isAntigravity && (
@@ -665,15 +702,11 @@ export default function EditConnectionModal({
               />
             )}
             <Input
-              label={isAntigravity ? t("antigravityProjectIdLabel") : t("geminiCliProjectIdLabel")}
+              label={t("antigravityProjectIdLabel")}
               value={formData.cloudCodeProjectId}
               onChange={(e) => setFormData({ ...formData, cloudCodeProjectId: e.target.value })}
-              placeholder={
-                isAntigravity
-                  ? t("antigravityProjectIdPlaceholder")
-                  : t("geminiCliProjectIdPlaceholder")
-              }
-              hint={isAntigravity ? t("antigravityProjectIdHint") : t("geminiCliProjectIdHint")}
+              placeholder={t("antigravityProjectIdPlaceholder")}
+              hint={t("antigravityProjectIdHint")}
               className="font-mono text-xs"
             />
           </div>
@@ -681,21 +714,9 @@ export default function EditConnectionModal({
         {isOAuth && connection.email && (
           <div className="bg-sidebar/50 p-3 rounded-lg">
             <p className="text-sm text-text-muted mb-1">{t("email")}</p>
-            <div className="flex items-center gap-2">
-              <p className="font-medium" title={showEmail ? connection.email : undefined}>
-                {showEmail ? connection.email : maskEmail(connection.email)}
-              </p>
-              <button
-                type="button"
-                onClick={toggleShowEmail}
-                className="rounded p-1 text-text-muted hover:bg-sidebar hover:text-primary"
-                title={showEmail ? t("hideEmail") : t("showEmail")}
-              >
-                <span className="material-symbols-outlined text-sm">
-                  {showEmail ? "visibility_off" : "visibility"}
-                </span>
-              </button>
-            </div>
+            <p className="font-medium" title={showEmail ? connection.email : undefined}>
+              {showEmail ? connection.email : maskEmail(connection.email)}
+            </p>
           </div>
         )}
         {isOAuth && (
@@ -720,25 +741,33 @@ export default function EditConnectionModal({
             setFormData({ ...formData, priority: Number.parseInt(e.target.value) || 1 })
           }
         />
-        <Input
-          label={t("accountConcurrencyCapLabel")}
-          type="number"
-          min={0}
-          step={1}
-          value={formData.maxConcurrent}
-          onChange={(e) => {
-            const nextValue = e.target.value;
-            setFormData({ ...formData, maxConcurrent: nextValue });
-            if (saveError && nextValue.trim()) {
-              const numericValue = Number(nextValue);
-              if (Number.isInteger(numericValue) && numericValue >= 0) {
-                setSaveError(null);
+        <div className="flex flex-col gap-2 rounded-lg border border-primary/30 bg-primary/5 p-4">
+          <div className="flex items-center gap-1.5 text-sm font-semibold text-primary">
+            <span className="material-symbols-outlined text-[18px]" aria-hidden="true">
+              dynamic_feed
+            </span>
+            {t("accountConcurrencyCapLabel")}
+          </div>
+          <Input
+            type="number"
+            min={0}
+            step={1}
+            aria-label={t("accountConcurrencyCapLabel")}
+            value={formData.maxConcurrent}
+            onChange={(e) => {
+              const nextValue = e.target.value;
+              setFormData({ ...formData, maxConcurrent: nextValue });
+              if (saveError && nextValue.trim()) {
+                const numericValue = Number(nextValue);
+                if (Number.isInteger(numericValue) && numericValue >= 0) {
+                  setSaveError(null);
+                }
               }
-            }
-          }}
-          placeholder="0"
-          hint={t("accountConcurrencyCapHint")}
-        />
+            }}
+            placeholder="0"
+            hint={t("accountConcurrencyCapHint")}
+          />
+        </div>
         {saveError && (
           <div className="text-sm text-red-500 bg-red-500/10 border border-red-500/20 rounded-lg px-3 py-2">
             {saveError}
@@ -835,7 +864,7 @@ export default function EditConnectionModal({
                   label={t("perModelQuotaLabel")}
                   description={t("perModelQuotaDescription")}
                 />
-                {connection.provider === "bailian-coding-plan" && (
+                {provider === "bailian-coding-plan" && (
                   <Input
                     label={t("consoleApiKeyOracleLabel")}
                     value={formData.consoleApiKey}
@@ -916,8 +945,8 @@ export default function EditConnectionModal({
             label={t("baseUrlLabel")}
             value={formData.baseUrl}
             onChange={(e) => setFormData({ ...formData, baseUrl: e.target.value })}
-            placeholder={getProviderBaseUrlPlaceholder(connection.provider)}
-            hint={getProviderBaseUrlHint(connection.provider, t)}
+            placeholder={getProviderBaseUrlPlaceholder(provider)}
+            hint={getProviderBaseUrlHint(provider, t)}
           />
         )}
 
@@ -958,12 +987,10 @@ export default function EditConnectionModal({
           </div>
         )}
 
-        {/* T07: API Key Health Status */}
         {!isOAuth && connection?.apiKey && (
           <div className="flex flex-col gap-2">
             <label className="text-sm font-medium text-text-main">{t("apiKeyHealthLabel")}</label>
             <div className="flex flex-col gap-1.5">
-              {/* Primary Key Health */}
               {(() => {
                 const keyId = "primary";
                 const health = apiKeyHealth[keyId];
@@ -985,10 +1012,9 @@ export default function EditConnectionModal({
                 return (
                   <div className="flex items-center gap-2">
                     <span
-                      className={`flex-1 font-mono text-xs bg-sidebar/50 px-3 py-2 rounded border border-border truncate ${statusColor}`}
+                      className={`flex-1 min-w-0 break-all font-mono text-xs bg-sidebar/50 px-3 py-2 rounded border border-border ${statusColor}`}
                     >
-                      {statusIcon} {t("primaryKey")}: {connection.apiKey.slice(0, 6)}...
-                      {connection.apiKey.slice(-4)}
+                      {statusIcon} {t("primaryKey")}: {connection.apiKey}
                     </span>
                     {health && (
                       <span
@@ -1009,7 +1035,6 @@ export default function EditConnectionModal({
           </div>
         )}
 
-        {/* T07: Extra API Keys for round-robin rotation */}
         {!isOAuth && (
           <div className="flex flex-col gap-2">
             <div className="flex items-center justify-between gap-2">
@@ -1133,7 +1158,6 @@ export default function EditConnectionModal({
           </div>
         )}
 
-        {/* Test Connection */}
         {!isCompatible && (
           <div className="flex items-center gap-3">
             <Button onClick={handleTest} variant="secondary" disabled={testing}>

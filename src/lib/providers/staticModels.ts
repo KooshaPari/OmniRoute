@@ -37,6 +37,7 @@ const STATIC_MODEL_PROVIDERS: Record<string, () => Array<{ id: string; name: str
     { id: "claude-opus-4-8", name: "Claude Opus 4.8" },
     { id: "claude-opus-4-7", name: "Claude Opus 4.7" },
     { id: "claude-opus-4-6", name: "Claude Opus 4.6" },
+    { id: "claude-sonnet-5", name: "Claude Sonnet 5" },
     { id: "claude-sonnet-4-6", name: "Claude Sonnet 4.6" },
     { id: "claude-opus-4-5-20251101", name: "Claude Opus 4.5 (2025-11-01)" },
     { id: "claude-sonnet-4-5-20250929", name: "Claude Sonnet 4.5 (2025-09-29)" },
@@ -50,6 +51,13 @@ const STATIC_MODEL_PROVIDERS: Record<string, () => Array<{ id: string; name: str
     { id: "sonar-deep-research", name: "Sonar Deep Research (Expert Analysis)" },
   ],
   "bailian-coding-plan": () => [
+    // Keep in lock-step with the registry entry
+    // (open-sse/config/providers/registry/bailian-coding-plan/index.ts);
+    // bailian-coding-plan-provider.test.ts asserts static↔registry parity.
+    { id: "qwen3.7-plus", name: "Qwen3.7 Plus(vision)" },
+    { id: "qwen3-coder-plus", name: "Qwen3 Coder Plus" },
+    { id: "qwen3-coder-next", name: "Qwen3 Coder Next" },
+    { id: "glm-4.7", name: "GLM 4.7" },
     { id: "qwen3.6-plus", name: "Qwen3.6 Plus(vision)" },
     { id: "qwen3.5-plus", name: "Qwen3.5 Plus(vision)" },
     { id: "qwen3-max-2026-01-23", name: "Qwen3 Max" },
@@ -64,6 +72,31 @@ const STATIC_MODEL_PROVIDERS: Record<string, () => Array<{ id: string; name: str
       name: model.name || model.id,
     })),
   qoder: () => getStaticQoderModels(),
+  // Non-LLM providers with no /v1/models endpoint — expose their selectable
+  // capability ids as a static catalog so the model-import step shows a usable
+  // list instead of a red "does not support models listing" failure.
+  jules: () => [
+    // Google Labs async coding agent — single async session, no model selection.
+    { id: "jules", name: "Jules (Google Labs coding agent)" },
+  ],
+  "linkup-search": () => [
+    // Linkup web search — the "model" is the search depth (docs.linkup.so #5571).
+    { id: "standard", name: "Standard (single-iteration agentic search)" },
+    { id: "deep", name: "Deep (multi-iteration search & scrape)" },
+    { id: "fast", name: "Fast (sub-second, no LLM)" },
+  ],
+  "ollama-search": () => [
+    // ollama.com/api/web_search (cloud web search, not the local Ollama LLM) #5573.
+    { id: "web_search", name: "Ollama Web Search" },
+  ],
+  "searchapi-search": () => [
+    // SearchAPI (searchapi.io) is a SERP API — the "model" is the engine #5575.
+    { id: "google", name: "Google" },
+    { id: "bing", name: "Bing" },
+    { id: "youtube", name: "YouTube" },
+    { id: "google_scholar", name: "Google Scholar" },
+    { id: "duckduckgo", name: "DuckDuckGo" },
+  ],
 };
 
 export function getStaticModelsForProvider(provider: string): LocalCatalogModel[] | undefined {

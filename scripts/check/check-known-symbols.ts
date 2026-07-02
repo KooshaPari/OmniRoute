@@ -12,7 +12,8 @@
 //   (2) COMBO STRATEGIES — a cadeia de despacho `strategy === "..."` em
 //       open-sse/services/combo.ts DEVE tratar exatamente o conjunto canônico de
 //       ROUTING_STRATEGY_VALUES (src/shared/constants/routingStrategies.ts), exceto
-//       as estratégias-default implícitas (priority não tem branch; cai no
+//       as estratégias-default implícitas documentadas em IMPLICIT_DEFAULT_STRATEGIES
+//       (estratégias canônicas sem NENHUMA referência `strategy === "..."`; caem no
 //       ordenamento padrão). Adicionar um valor canônico sem fiá-lo no despacho, ou
 //       fiar uma string de estratégia que não é canônica (inventada), falha aqui.
 //
@@ -38,10 +39,21 @@
 // Catraca: cada divergência pré-existente fica numa allowlist documentada e sai 0 hoje.
 // Padrão herdado de scripts/check/check-provider-consistency.ts (gate .ts via
 // `node --import tsx` que IMPORTA módulos reais + funções puras + main() guardado).
+//
+// Stale-enforcement (6A.3): a ÚNICA allowlist de SUPRESSÃO deste gate é
+// IMPLICIT_DEFAULT_STRATEGIES — cada entrada suprime uma violação `canonicalNotHandled`
+// (estratégia canônica sem branch de despacho). Uma entrada que não suprime mais
+// nenhuma violação real (porque a estratégia ganhou um branch `strategy === "..."`)
+// é obsoleta → o gate falha com instrução de remoção, fechando o furo de regressão
+// silenciosa. As demais listas (KNOWN_TRANSLATOR_PAIRS, KNOWN_MCP_TOOL_NAMES) NÃO são
+// allowlists de supressão e sim snapshots-catraca (falham na REMOÇÃO, não na presença):
+// uma entrada nelas exige que o par/tool continue VIVO no registry — o oposto de
+// supressão — então a semântica de stale-enforcement não se aplica a elas.
 
 import { readFileSync, readdirSync } from "node:fs";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { dirname, resolve as resolvePath, basename, extname } from "node:path";
+import { assertNoStale } from "./lib/allowlist.mjs";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = resolvePath(HERE, "..", "..");
@@ -53,12 +65,18 @@ const REPO_ROOT = resolvePath(HERE, "..", "..");
 /**
  * Estratégias canônicas que NÃO têm um branch `strategy === "..."` na cadeia de
  * despacho porque são o comportamento padrão (sem reordenamento explícito). Cada
- * uma documentada. Remover daqui se um branch dedicado for adicionado.
+ * uma documentada. Adicionar aqui se uma estratégia canônica não tiver NENHUMA
+ * referência `strategy === "..."` em combo.ts (do contrário extractHandledStrategies
+ * já a considera tratada e a entrada vira obsoleta — stale-enforcement abaixo falha).
+ *
+ * Atualmente vazio: a entrada `priority` foi removida porque combo.ts passou a
+ * referenciar `strategy === "priority"` (pre-screen de latência em resolveComboTargets),
+ * o que torna `priority` já-tratada por extractHandledStrategies — a supressão não
+ * suprimia mais nenhuma violação `canonicalNotHandled` (era stale). Se o pre-screen
+ * for removido no futuro, `priority` reaparecerá como `canonicalNotHandled` e o gate
+ * pedirá para refiá-la no despacho OU redocumentá-la aqui.
  */
-export const IMPLICIT_DEFAULT_STRATEGIES: Record<string, string> = {
-  priority:
-    'Default sem branch: combo.ts não tem `strategy === "priority"`; cai no ordenamento padrão de resolveComboTargets (ordem de prioridade declarada). É o fallback de normalizeRoutingStrategy.',
-};
+export const IMPLICIT_DEFAULT_STRATEGIES: Record<string, string> = {};
 
 /** Extrai todas as strings literais de `strategy === "..."` da fonte do combo. */
 export function extractHandledStrategies(comboSource: string): Set<string> {
@@ -163,8 +181,6 @@ export const KNOWN_TRANSLATOR_PAIRS: readonly string[] = [
   "claude:gemini",
   "claude:openai",
   "cursor:openai",
-  "gemini-cli:claude",
-  "gemini-cli:openai",
   "gemini:claude",
   "gemini:openai",
   "kiro:openai",
@@ -173,7 +189,6 @@ export const KNOWN_TRANSLATOR_PAIRS: readonly string[] = [
   "openai:claude",
   "openai:cursor",
   "openai:gemini",
-  "openai:gemini-cli",
   "openai:kiro",
   "openai:openai-responses",
 ];
@@ -182,10 +197,7 @@ export const KNOWN_TRANSLATOR_PAIRS: readonly string[] = [
  * Pares frozen que sumiram do registry vivo (regressão). frozen = snapshot;
  * live = pares observados em runtime. Retorna os que estão no frozen mas não no live.
  */
-export function findMissingTranslatorPairs(
-  frozen: readonly string[],
-  live: Set<string>
-): string[] {
+export function findMissingTranslatorPairs(frozen: readonly string[], live: Set<string>): string[] {
   return frozen.filter((pair) => !live.has(pair));
 }
 
@@ -357,10 +369,7 @@ export type A2ASkillDiff = {
  *   - inHandlersNotCard: skill is routable but agents can't discover it
  *   - inCardNotHandlers: skill is advertised but calling it fails silently
  */
-export function diffA2ASkills(
-  handlers: Set<string>,
-  agentCard: Set<string>
-): A2ASkillDiff {
+export function diffA2ASkills(handlers: Set<string>, agentCard: Set<string>): A2ASkillDiff {
   const inHandlersNotCard = [...handlers].filter((s) => !agentCard.has(s)).sort();
   const inCardNotHandlers = [...agentCard].filter((s) => !handlers.has(s)).sort();
   return { inHandlersNotCard, inCardNotHandlers };
@@ -422,6 +431,9 @@ export function extractCloudAgentRegistryKeys(registrySource: string): Set<strin
  */
 export const AGENT_FILE_TO_REGISTRY_KEY: Record<string, string> = {
   codex: "codex-cloud",
+  // #4227: file agents/cursor.ts ↔ registry key "cursor-cloud" (distinct from the
+  // OAuth chat provider `cursor`).
+  cursor: "cursor-cloud",
 };
 
 // ───────────────────────────────────────────────────────────────────────────
@@ -435,13 +447,12 @@ async function main(): Promise<void> {
   const executorsMod = await import("@omniroute/open-sse/executors/index.ts");
   const getExecutor = executorsMod.getExecutor as (alias: string) => ExecutorLike;
   const BaseExecutor = executorsMod.BaseExecutor as new (...args: never[]) => unknown;
-  const indexSource = readFileSync(
-    resolvePath(REPO_ROOT, "open-sse/executors/index.ts"),
-    "utf8"
-  );
+  const indexSource = readFileSync(resolvePath(REPO_ROOT, "open-sse/executors/index.ts"), "utf8");
   const aliases = extractExecutorAliases(indexSource);
   if (aliases.length === 0) {
-    failures.push("[executor] parse do mapa `executors` não encontrou nenhum alias (regex quebrada?)");
+    failures.push(
+      "[executor] parse do mapa `executors` não encontrou nenhum alias (regex quebrada?)"
+    );
   }
   const isExecutorInstance = (value: unknown) => value instanceof BaseExecutor;
   const badExecutors = findNonConformingExecutors(aliases, getExecutor, isExecutorInstance);
@@ -454,10 +465,30 @@ async function main(): Promise<void> {
   }
 
   // ── (2) Combo strategies ──────────────────────────────────────────────────
+  // Canonical = user-facing ROUTING_STRATEGY_VALUES ∪ INTERNAL_ROUTING_STRATEGY_VALUES
+  // (system-only strategies like "quota-share" are registered but hidden from the UI;
+  // they still must have a real dispatch branch in combo.ts — enforced below).
   const strategiesMod = await import("@/shared/constants/routingStrategies.ts");
-  const canonical = strategiesMod.ROUTING_STRATEGY_VALUES as readonly string[];
+  const canonical = [
+    ...(strategiesMod.ROUTING_STRATEGY_VALUES as readonly string[]),
+    ...(strategiesMod.INTERNAL_ROUTING_STRATEGY_VALUES as readonly string[]),
+  ];
   const comboSource = readFileSync(resolvePath(REPO_ROOT, "open-sse/services/combo.ts"), "utf8");
   const handled = extractHandledStrategies(comboSource);
+
+  // Stale-enforcement (6A.3): IMPLICIT_DEFAULT_STRATEGIES is a suppression allowlist —
+  // each entry exists ONLY to suppress a `canonicalNotHandled` violation (a canonical
+  // strategy with no `strategy === "..."` dispatch reference). The live violations it
+  // suppresses are the canonical strategies NOT already in `handled` (computed with an
+  // EMPTY implicit-defaults map). An entry whose key IS already in `handled` suppresses
+  // nothing → it is stale and the gate must fail asking for its removal.
+  const liveImplicitNeeded = diffComboStrategies(canonical, handled, {}).canonicalNotHandled;
+  assertNoStale(
+    Object.keys(IMPLICIT_DEFAULT_STRATEGIES),
+    liveImplicitNeeded,
+    "known-symbols:combo"
+  );
+
   const { canonicalNotHandled, handledNotCanonical } = diffComboStrategies(
     canonical,
     handled,
@@ -517,9 +548,8 @@ async function main(): Promise<void> {
   const { MCP_TOOLS } = await import("@omniroute/open-sse/mcp-server/schemas/tools.ts");
   const { memoryTools } = await import("@omniroute/open-sse/mcp-server/tools/memoryTools.ts");
   const { skillTools } = await import("@omniroute/open-sse/mcp-server/tools/skillTools.ts");
-  const { gamificationTools } = await import(
-    "@omniroute/open-sse/mcp-server/tools/gamificationTools.ts"
-  );
+  const { gamificationTools } =
+    await import("@omniroute/open-sse/mcp-server/tools/gamificationTools.ts");
   const { pluginTools } = await import("@omniroute/open-sse/mcp-server/tools/pluginTools.ts");
   const { notionTools } = await import("@omniroute/open-sse/mcp-server/tools/notionTools.ts");
   const { obsidianTools } = await import("@omniroute/open-sse/mcp-server/tools/obsidianTools.ts");
@@ -632,9 +662,14 @@ async function main(): Promise<void> {
 
   // ── Resultado ─────────────────────────────────────────────────────────────
   if (failures.length) {
-    console.error(`[known-symbols] ${failures.length} sub-checagem(ns) falharam:\n\n${failures.join("\n\n")}`);
+    console.error(
+      `[known-symbols] ${failures.length} sub-checagem(ns) falharam:\n\n${failures.join("\n\n")}`
+    );
     process.exit(1);
   }
+  // assertNoStale (combo) seta process.exitCode=1 sem lançar — não imprima o OK
+  // enganoso; a mensagem de stale já foi logada no stderr pelo helper.
+  if (process.exitCode === 1) return;
 
   const newPairsNote = newPairs.length
     ? ` (${newPairs.length} par(es) novo(s) não-congelado(s): ${newPairs.join(", ")} — atualize KNOWN_TRANSLATOR_PAIRS se intencional)`
@@ -655,7 +690,9 @@ async function main(): Promise<void> {
 
 if (import.meta.url === pathToFileURL(process.argv[1] || "").href) {
   main().catch((err) => {
-    console.error(`[known-symbols] erro fatal: ${err instanceof Error ? err.message : String(err)}`);
+    console.error(
+      `[known-symbols] erro fatal: ${err instanceof Error ? err.message : String(err)}`
+    );
     process.exit(1);
   });
 }

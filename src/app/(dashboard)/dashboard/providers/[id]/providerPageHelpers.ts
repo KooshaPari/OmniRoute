@@ -5,6 +5,7 @@
 // dependency. Extracting them here unblocks moving the heavier modals
 // (AddApiKeyModal / EditConnectionModal) out of the god-component in later phases.
 import { LOCAL_PROVIDERS, isSelfHostedChatProvider } from "@/shared/constants/providers";
+import { MODAL_DEFAULT_VALIDATION_MODEL_ID } from "@/shared/constants/modal";
 import {
   MODEL_COMPAT_PROTOCOL_KEYS,
   type ModelCompatProtocolKey,
@@ -37,14 +38,7 @@ export type LocalProviderMetadata = {
 
 export type CommandCodeAuthFlowState = {
   phase:
-    | "idle"
-    | "starting"
-    | "polling"
-    | "received"
-    | "applying"
-    | "applied"
-    | "expired"
-    | "error";
+    "idle" | "starting" | "polling" | "received" | "applying" | "applied" | "expired" | "error";
   state: string;
   authUrl: string;
   callbackUrl: string;
@@ -78,11 +72,30 @@ export type CompatModelRow = {
   isHidden?: boolean;
   upstreamHeaders?: Record<string, string>;
   compatByProtocol?: CompatByProtocolMap;
+  /** #2905: per-model upstream wire-format override. */ targetFormat?: string;
 };
 
 export type CompatModelMap = Map<string, CompatModelRow>;
 
 export type HeaderDraftRow = { id: string; name: string; value: string };
+
+// ---------------------------------------------------------------------------
+// #2905 — per-model targetFormat badge label mapping (pure, so it can be unit-tested
+// outside the .tsx). Returns the i18n key for a targetFormat value, or null when the
+// value is unknown (the caller then renders the raw value verbatim).
+// ---------------------------------------------------------------------------
+
+const TARGET_FORMAT_BADGE_I18N_KEYS: Record<string, string> = {
+  openai: "compatProtocolOpenAI",
+  "openai-responses": "compatProtocolOpenAIResponses",
+  claude: "compatProtocolClaude",
+  gemini: "targetFormatGemini",
+  antigravity: "targetFormatAntigravity",
+};
+
+export function targetFormatBadgeI18nKey(value: string): string | null {
+  return TARGET_FORMAT_BADGE_I18N_KEYS[value] ?? null;
+}
 
 // ---------------------------------------------------------------------------
 // Utility — message translation with fallback
@@ -106,6 +119,22 @@ export function providerText(
   return fallback;
 }
 
+/**
+ * #5442 — Badge variant + i18n label key for an add-credential validation result.
+ * A provider with no live validator returns `unsupported` (Save still succeeds);
+ * previously the modal only had success/failed states, so it rendered a red
+ * "Invalid" badge for those providers even though saving worked (LMArena, PiAPI…).
+ * "unsupported" now maps to a neutral `info` badge ("N/A"), not "Invalid".
+ */
+export function validationBadgeProps(result: string): {
+  variant: "success" | "error" | "info";
+  labelKey: string;
+} {
+  if (result === "success") return { variant: "success", labelKey: "valid" };
+  if (result === "unsupported") return { variant: "info", labelKey: "notApplicable" };
+  return { variant: "error", labelKey: "invalid" };
+}
+
 /** A single model's outcome from a `/api/models/test-all` response. */
 export interface TestAllModelOutcome {
   status: "ok" | "error";
@@ -120,20 +149,36 @@ export interface TestAllModelOutcome {
  * PassthroughModelsSection) derive — and then apply — the same per-model status.
  * Previously test-all only counted ok/error for a toast and never updated
  * `modelTestStatus`, so the icons stayed blank and users could not tell which
- * model failed (unlike the single-model ▶ test). When `autoHideFailed` is on,
- * ANY non-ok result is auto-hidden — including rate-limited / timed-out failures
- * (the user opted for "hide every failure").
+ * model failed (unlike the single-model ▶ test).
+ *
+ * Auto-hide policy: when `autoHideFailed` is on, only NON-TRANSIENT failures are
+ * hidden. Transient failures (rate-limited, timeout) are surfaced as 'error' on
+ * the row icon but NOT hidden, because:
+ *   - The provider may have been temporarily throttled during a parallel batch
+ *     (a single Test All across 10+ models routinely trips per-account rate
+ *     limits on subscription-tier APIs).
+ *   - The model itself is not broken — a retry seconds later would succeed.
+ *   - Hidden state persists across server restarts and silently removes the
+ *     model from `/v1/models`, so a transient blip turns into a permanent
+ *     catalog gap that the user can only recover from by editing the DB or
+ *     hand-toggling each row.
+ *
+ * Genuine failures (`status:"error"` without a transient flag — e.g. upstream
+ * 400 "invalid model", schema mismatch, auth failure) ARE still auto-hidden,
+ * which is the intended use of the toggle.
  */
 export function evaluateTestAllEntry(
   entry: { status?: "ok" | "error"; rateLimited?: boolean; isTimeout?: boolean } | null | undefined,
   autoHideFailed: boolean
 ): TestAllModelOutcome {
   const ok = entry?.status === "ok";
+  const transient = Boolean(entry?.rateLimited || entry?.isTimeout);
   return {
     status: ok ? "ok" : "error",
-    // User opted for "hide every failure": any non-ok result is auto-hidden when
-    // the toggle is on, including rate-limited / timed-out failures.
-    shouldHide: !ok && autoHideFailed,
+    // Hide only persistent failures. Transient (rate-limited, timeout) are
+    // surfaced on the icon but kept visible so a single throttled batch test
+    // does not silently wipe the catalog.
+    shouldHide: !ok && autoHideFailed && !transient,
   };
 }
 
@@ -365,6 +410,20 @@ export function getWebSessionCredentialHint(
           "Leave blank to keep the current session cookie. Required cookie: {credential}.",
           values
         );
+  }
+
+  // #5465 — a provider-specific hint (e.g. t3.chat's step-by-step DevTools copy)
+  // replaces the generic one-line cookie/token template when that template is
+  // unclear for the provider (t3.chat needs a localStorage value AND the Cookie
+  // header, so "Required cookie: convex-session-id + Cookie header…" reads
+  // circular). The override key ships translated in every locale.
+  if (requirement.hintKey) {
+    return providerText(
+      t,
+      requirement.hintKey,
+      "Open the provider's web session in DevTools, copy the required credential(s), and paste them in the fields below.",
+      values
+    );
   }
 
   return requirement.kind === "token"
@@ -660,13 +719,12 @@ export function getCodexRequestDefaults(providerSpecificData: unknown): {
     ...(defaults.serviceTier ? { serviceTier: defaults.serviceTier } : {}),
   };
 }
-
-export function getClaudeCodeCompatibleRequestDefaults(providerSpecificData: unknown): {
-  context1m: boolean;
-} {
+export function getClaudeCodeCompatibleRequestDefaults(providerSpecificData: unknown) {
   const defaults = _getClaudeCodeCompatibleRequestDefaults(providerSpecificData);
   return {
     context1m: defaults.context1m === true,
+    redactThinking: defaults.redactThinking === true,
+    summarizeThinking: defaults.summarizeThinking === true,
   };
 }
 
@@ -684,6 +742,30 @@ export function compatProtocolLabelKey(protocol: string): string {
   if (protocol === "openai-responses") return "compatProtocolOpenAIResponses";
   if (protocol === "claude") return "compatProtocolClaude";
   return "compatProtocolOpenAI";
+}
+
+/**
+ * #5446 — Modal authenticates with two credentials, a Token ID (`ak-…`) and a
+ * Token Secret (`as-…`), sent as `Authorization: Bearer <TOKEN_ID>:<TOKEN_SECRET>`.
+ * The add-connection form collects them in two fields and combines them here into
+ * the single encrypted `apiKey` value, so the generic bearer executor path emits
+ * `Bearer <id:secret>` with no provider-specific header code. When only the id
+ * field is filled, it is returned verbatim so users can still paste a pre-combined
+ * `id:secret` string into the single field.
+ */
+// #5446 checklist item 4 — Modal is bring-your-own-deploy, but the server-side
+// validator probes a known public model; pre-fill the same id so the UI and the
+// probe never drift.
+export function defaultValidationModelIdForProvider(provider: string | undefined): string {
+  return provider === "modal" ? MODAL_DEFAULT_VALIDATION_MODEL_ID : "";
+}
+
+export function combineModalCredential(tokenId: string, tokenSecret: string): string {
+  const id = tokenId.trim();
+  const secret = tokenSecret.trim();
+  if (!secret) return id;
+  if (!id) return secret;
+  return `${id}:${secret}`;
 }
 
 export function extractCommandCodeCredentialInput(value: string): string {

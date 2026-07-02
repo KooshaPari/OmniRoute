@@ -53,14 +53,34 @@ test("provider models helpers resolve provider IDs through aliases", () => {
   assert.deepEqual(getModelsByProviderId("provider-that-does-not-exist"), []);
 });
 
+test("getProviderModels returns models for both the alias and the raw provider id", () => {
+  // Pick a provider whose alias differs from its id (e.g. "github" → "gh").
+  const aliased = Object.entries(PROVIDER_ID_TO_ALIAS).find(([id, a]) => id !== a) as
+    | [string, string]
+    | undefined;
+  if (!aliased) return; // no aliased providers → trivially satisfied
+
+  const [rawId, alias] = aliased;
+  const byAlias = getProviderModels(alias);
+  const byRawId = getProviderModels(rawId);
+
+  assert.ok(byAlias.length > 0, `expected models under alias "${alias}"`);
+  assert.deepEqual(
+    byRawId,
+    byAlias,
+    `getProviderModels("${rawId}") should return the same models as getProviderModels("${alias}")`
+  );
+});
+
 test("Reka registry exposes preset models", () => {
   const rekaModels = getModelsByProviderId("reka");
   const ids = rekaModels.map((model) => model.id);
 
   assert.equal(PROVIDER_ID_TO_ALIAS.reka, "reka");
   assert.equal(getDefaultModel("reka"), "reka-flash-3");
-  assert.deepEqual(ids, ["reka-flash-3", "reka-edge-2603"]);
+  assert.deepEqual(ids, ["reka-flash-3", "reka-flash", "reka-edge-2603"]);
   assert.equal(isValidModel("reka", "reka-edge-2603"), true);
+  assert.equal(isValidModel("reka", "reka-flash"), true);
 });
 
 test("GitHub Copilot registry reflects the current supported model lineup", () => {
@@ -121,15 +141,27 @@ test("xhigh effort support defaults to pass-through and opts out explicit false 
   assert.equal(supportsXHighEffort("anthropic-compatible-cc-test", "claude-opus-4-6"), false);
   assert.equal(supportsXHighEffort("anthropic-compatible-cc-test", "claude-opus-4-7"), true);
   assert.equal(supportsXHighEffort("openrouter", "deepseek/deepseek-v4-pro"), true);
+  assert.equal(supportsXHighEffort("openrouter", "anthropic/claude-opus-4.6"), false);
+  assert.equal(supportsXHighEffort("openrouter", "anthropic/claude-opus-4.7"), true);
+  assert.equal(supportsXHighEffort("openrouter", "anthropic/claude-opus-4.5"), false);
+  assert.equal(supportsXHighEffort("bedrock", "anthropic.claude-opus-4-6"), false);
+  assert.equal(supportsXHighEffort("bedrock", "anthropic.claude-opus-4-7"), true);
+  assert.equal(supportsXHighEffort("github", "claude-opus-4.6"), false);
+  assert.equal(supportsXHighEffort("github", "claude-opus-4.7"), true);
+  assert.equal(supportsXHighEffort("unknown-provider", "vendor/claude-opus-4.6"), false);
+  assert.equal(
+    supportsXHighEffort("openrouter", "anthropic/claude-opus-4.6-thinking-xhigh"),
+    false
+  );
   assert.equal(supportsXHighEffort("deepseek", "deepseek-v4-pro"), true);
 });
 
-test("max normalization keeps existing xhigh opt-in behavior", () => {
+test("max normalization follows xhigh opt-out behavior", () => {
   assert.equal(
     supportsXHighEffortForMaxNormalization("openai-compatible-free1", "gemini-3.1-pro-preview"),
     true
   );
-  assert.equal(supportsXHighEffortForMaxNormalization("xiaomi-mimo", "mimo-v2.5-pro"), false);
+  assert.equal(supportsXHighEffortForMaxNormalization("xiaomi-mimo", "mimo-v2.5-pro"), true);
   assert.equal(
     supportsXHighEffortForMaxNormalization("anthropic-compatible-cc-test", "claude-opus-4-6"),
     false
@@ -148,6 +180,18 @@ test("max normalization keeps existing xhigh opt-in behavior", () => {
   );
   assert.equal(
     supportsXHighEffortForMaxNormalization("openrouter", "deepseek/deepseek-v4-pro"),
+    true
+  );
+  assert.equal(
+    supportsXHighEffortForMaxNormalization("openrouter", "anthropic/claude-opus-4.6"),
+    false
+  );
+  assert.equal(
+    supportsXHighEffortForMaxNormalization("openrouter", "anthropic/claude-opus-4.7"),
+    true
+  );
+  assert.equal(
+    supportsXHighEffortForMaxNormalization("bedrock", "anthropic.claude-opus-4-6"),
     false
   );
 });

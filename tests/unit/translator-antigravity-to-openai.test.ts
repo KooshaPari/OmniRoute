@@ -154,6 +154,74 @@ test("Antigravity -> OpenAI returns tool messages when content contains only fun
   ]);
 });
 
+test("Antigravity -> OpenAI keeps co-located function response, function call and text", () => {
+  const result = antigravityToOpenAIRequest(
+    "gpt-4o",
+    {
+      request: {
+        contents: [
+          {
+            role: "model",
+            parts: [
+              { text: "Let me look that up." },
+              { functionResponse: { id: "call_9", name: "lookup", response: { result: { ok: true } } } },
+              { functionCall: { id: "call_10", name: "lookup", args: { q: "weather" } } },
+            ],
+          },
+        ],
+      },
+    },
+    false
+  );
+
+  // Both the tool-result message AND the accompanying assistant message must survive.
+  const toolMsg = result.messages.find((m) => m.role === "tool");
+  const assistantMsg = result.messages.find((m) => m.role === "assistant");
+  assert.ok(toolMsg, "expected a role:tool message");
+  assert.equal(toolMsg.tool_call_id, "call_9");
+  assert.ok(assistantMsg, "expected a role:assistant message");
+  assert.equal(assistantMsg.content, "Let me look that up.");
+  assert.deepEqual(assistantMsg.tool_calls, [
+    {
+      id: "call_10",
+      type: "function",
+      function: { name: "lookup", arguments: '{"q":"weather"}' },
+    },
+  ]);
+});
+
+test("Antigravity -> OpenAI drops empty thoughtSignature text instead of emitting empty content", () => {
+  const result = antigravityToOpenAIRequest(
+    "gpt-4o",
+    {
+      request: {
+        contents: [
+          {
+            role: "model",
+            parts: [
+              { thoughtSignature: "sig", text: "" },
+              { functionCall: { id: "call_11", name: "noop", args: {} } },
+            ],
+          },
+        ],
+      },
+    },
+    false
+  );
+
+  const assistantMsg = result.messages.find((m) => m.role === "assistant");
+  assert.ok(assistantMsg, "expected a role:assistant message");
+  // No empty content block should be emitted (Anthropic rejects it with a 400).
+  assert.equal("content" in assistantMsg, false);
+  assert.deepEqual(assistantMsg.tool_calls, [
+    {
+      id: "call_11",
+      type: "function",
+      function: { name: "noop", arguments: "{}" },
+    },
+  ]);
+});
+
 test("Antigravity -> OpenAI lowers schema types recursively", () => {
   const result = antigravityToOpenAIRequest(
     "gpt-4o",
@@ -191,4 +259,133 @@ test("Antigravity -> OpenAI lowers schema types recursively", () => {
       },
     },
   });
+});
+
+test("Antigravity -> OpenAI strips enumDescriptions from tool schema (top-level + nested)", () => {
+  const result = antigravityToOpenAIRequest(
+    "gpt-4o",
+    {
+      request: {
+        tools: [
+          {
+            functionDeclarations: [
+              {
+                name: "configure",
+                parameters: {
+                  type: "OBJECT",
+                  enumDescriptions: { ROOT: "should be stripped" },
+                  properties: {
+                    mode: {
+                      type: "STRING",
+                      enum: ["fast", "slow"],
+                      enumDescriptions: { fast: "go fast", slow: "go slow" },
+                    },
+                    tags: {
+                      type: "ARRAY",
+                      items: {
+                        type: "STRING",
+                        enum: ["a", "b"],
+                        enumDescriptions: { a: "alpha", b: "beta" },
+                      },
+                    },
+                  },
+                },
+              },
+            ],
+          },
+        ],
+      },
+    },
+    false
+  );
+
+  const parameters = (result.tools[0].function as any).parameters;
+
+  // enumDescriptions must be removed at every level of the schema tree...
+  assert.equal("enumDescriptions" in parameters, false);
+  assert.equal("enumDescriptions" in parameters.properties.mode, false);
+  assert.equal("enumDescriptions" in parameters.properties.tags.items, false);
+
+  // ...while leaving the rest of the schema (incl. enum values) intact.
+  assert.deepEqual(parameters, {
+    type: "object",
+    properties: {
+      mode: { type: "string", enum: ["fast", "slow"] },
+      tags: {
+        type: "array",
+        items: { type: "string", enum: ["a", "b"] },
+      },
+    },
+  });
+});
+
+test("Antigravity -> OpenAI preserves the required array on Draft 2020-12 tool schemas", () => {
+  const result = antigravityToOpenAIRequest(
+    "gpt-4o",
+    {
+      request: {
+        tools: [
+          {
+            functionDeclarations: [
+              {
+                name: "create_file",
+                parameters: {
+                  $schema: "https://json-schema.org/draft/2020-12/schema",
+                  type: "OBJECT",
+                  additionalProperties: false,
+                  title: "CreateFileArgs",
+                  $defs: { unused: { type: "STRING" } },
+                  properties: {
+                    path: { type: "STRING", pattern: "^/" },
+                    contents: { type: "STRING" },
+                  },
+                  required: ["path", "contents"],
+                },
+              },
+            ],
+          },
+        ],
+      },
+    },
+    false
+  );
+
+  const params = (result.tools[0].function as any).parameters;
+  // The required array must survive so the model treats mandatory args as mandatory.
+  assert.deepEqual(params.required, ["path", "contents"]);
+  // Types are still lowered and Draft 2020-12 meta keywords are stripped.
+  assert.equal(params.type, "object");
+  assert.equal(params.properties.path.type, "string");
+  assert.equal(params.$schema, undefined);
+  assert.equal(params.$defs, undefined);
+  assert.equal(params.additionalProperties, undefined);
+  assert.equal(params.title, undefined);
+});
+
+test("Antigravity -> OpenAI drops required entries that no longer exist in properties", () => {
+  const result = antigravityToOpenAIRequest(
+    "gpt-4o",
+    {
+      request: {
+        tools: [
+          {
+            functionDeclarations: [
+              {
+                name: "partial",
+                parameters: {
+                  type: "OBJECT",
+                  properties: { kept: { type: "STRING" } },
+                  required: ["kept", "ghost"],
+                },
+              },
+            ],
+          },
+        ],
+      },
+    },
+    false
+  );
+
+  const params = (result.tools[0].function as any).parameters;
+  assert.deepEqual(params.required, ["kept"]);
 });

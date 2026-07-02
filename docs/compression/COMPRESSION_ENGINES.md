@@ -1,7 +1,7 @@
 ---
 title: "Compression Engines"
-version: 3.8.2
-lastUpdated: 2026-05-13
+version: 3.8.40
+lastUpdated: 2026-06-28
 ---
 
 # Compression Engines
@@ -45,6 +45,18 @@ A separate registry compresses MCP tool description metadata at registry-level �
 `open-sse/mcp-server/descriptionCompressor.ts` and [MCP-SERVER.md](../frameworks/MCP-SERVER.md). It reuses
 Caveman rules but operates on tool metadata, not request payloads.
 
+### Additional built-in engines
+
+Beyond Caveman, RTK, and LLMLingua-2, the registry ships several specialized lossless /
+structural engines (used by stacked pipelines, the playground, and tests):
+
+| Engine        | Id              | What it does                                                                                                                                                               |
+| ------------- | --------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| CCR           | `ccr`           | Content-Compress-Retrieve (H4): replaces large contiguous text blocks with content-addressed references, so repeated/large blocks are sent once and referenced thereafter. |
+| headroom      | `headroom`      | SmartCrusher (H3 + N5): lossless tabular compaction of homogeneous JSON-array payloads into a columnar `[N rows]` form.                                                    |
+| ionizer       | `ionizer`       | Head/middle/tail row sampling for very large homogeneous blocks, storing the elided middle as a CCR content-addressed reference.                                           |
+| session-dedup | `session-dedup` | Content-addressed cross-turn deduplication (TokenMizer-inspired): elides text already seen in earlier turns of the same session.                                           |
+
 ## Caveman
 
 Caveman mode focuses on semantic condensation of normal prose:
@@ -85,6 +97,84 @@ Operational details for custom filters, trust, verify, and raw-output recovery l
 
 RTK upstream reports `60-90%` savings for command-output compression. Its README example shows a
 30-minute Claude Code session going from `~118,000` tokens to `~23,900`, or `79.7%` saved.
+
+## LLMLingua-2 (Semantic Pruning)
+
+LLMLingua-2 mode performs **semantic token pruning** on prose using a small ONNX token
+classifier, complementing the rule-based Caveman and RTK engines:
+
+- compresses prose in non-system messages only; fenced code blocks and other preserved
+  constructs are never altered
+- runs the `@atjsh/llmlingua-2` backend (ONNX via `@huggingface/transformers`) in a
+  worker thread, so model inference never blocks the request event loop
+- is **stackable** (`stackPriority` 35): in a stacked pipeline it runs after the
+  structural engines (CCR, session-dedup, headroom, Caveman) but before `ultra`, since
+  semantic pruning is most effective on already-structurally-compressed text — e.g.
+  `rtk -> caveman -> llmlingua`
+- **fail-opens on any error** (missing optional deps, worker spawn, model load, inference,
+  or timeout) → the original text is returned unchanged, never an error
+
+Engine location: `open-sse/services/compression/engines/llmlingua/`. The dashboard surface
+is `Dashboard -> Context & Cache -> LLMLingua`.
+
+### Models
+
+The default model is **TinyBERT** (`atjsh/llmlingua-2-js-tinybert-meetingbank`, ~57 MB,
+fast). A higher-accuracy **BERT-base** model (`Arcoldd/llmlingua4j-bert-base-onnx`,
+~710 MB) is available via the engine config `model` field. `@huggingface/transformers`
+downloads the selected model lazily from the HuggingFace Hub into
+`${DATA_DIR}/models/llmlingua` on the first call (`modelStore.ts`); a `modelPath` config
+override points it at a local copy instead (offline / air-gapped installs).
+
+### Optional dependencies & on-demand install
+
+The prunable LLMLingua runtime peer stack is **optional**. Three packages are declared as
+`optionalDependencies` in `package.json` and kept **external** by the production build
+(`scripts/build/prepublish.ts` does not bundle them):
+
+| Package              | Version (pin) | Notes                                          |
+| -------------------- | ------------- | ---------------------------------------------- |
+| `@atjsh/llmlingua-2` | `2.0.3`       | Entry package; declares the others as peers    |
+| `@tensorflow/tfjs`   | `4.22.0`      | Heaviest dep — dominates the ~800 MB footprint |
+| `js-tiktoken`        | `^1.0.20`     | Tokenizer                                      |
+
+`@huggingface/transformers` is pinned at `3.5.2` as an **optional** dependency (shared with
+the local embeddings path and also traced into the standalone bundle). Keeping it optional prevents
+`onnxruntime-node` CUDA provider postinstall failures on CUDA 11 hosts from aborting the whole
+OmniRoute install; when the optional stack is absent, LLMLingua still fail-opens. Only the three
+packages above are prunable SLM peers. A standard `npm install` (dev) installs the optional stack
+automatically unless optional dependencies are omitted.
+
+**Why on-demand:** the npm-published package, the standalone bundle, and the Docker image
+ship **without** these deps to stay slim. When they are absent, the worker's dependency
+gate (a `@atjsh/llmlingua-2` resolve probe in `worker.ts`) fails and the engine
+**fail-opens silently** — selecting LLMLingua becomes a no-op (text returned unchanged, no
+error logged). To activate it in a pruned environment, install the optional stack:
+
+```bash
+# pin to the versions declared in package.json optionalDependencies
+npm install @atjsh/llmlingua-2@2.0.3 @tensorflow/tfjs@4.22.0 js-tiktoken
+```
+
+Roughly **~800 MB** total: the TensorFlow.js + transformers runtimes dominate; the
+TinyBERT model adds ~57 MB downloaded at first use (not via npm).
+
+Per environment:
+
+- **Dev / `npm install`** — installed automatically unless you passed `--omit=optional`
+  (or `--no-optional`). No action needed.
+- **Global npm (`npm i -g omniroute`) / standalone** — run the install command above inside
+  the installed package directory, or reinstall without omitting optional deps.
+- **Docker** — add the install command in a derived image layer; the published image
+  ships slim by design.
+- **VPS (PM2)** — install into the app's `node_modules`, then restart the process so the
+  worker re-probes the gate.
+
+**Verify it is active:** with LLMLingua selected, real prose actually shrinks (the engine
+stops fail-opening), and the first request triggers the model download into
+`${DATA_DIR}/models/llmlingua`. The gate intentionally probes only `@atjsh/llmlingua-2` —
+the other peers are ESM-only and `require.resolve` throws on them even when present — so
+the worker still fail-opens if any peer is genuinely missing at `import()` time.
 
 ## Stacked Pipelines
 
@@ -208,6 +298,25 @@ Compression exposes five MCP tools:
 | `omniroute_set_compression_engine`  | `write:compression` | Set mode and optional pipeline   |
 | `omniroute_list_compression_combos` | `read:compression`  | List compression combos          |
 | `omniroute_compression_combo_stats` | `read:compression`  | Read combo/engine analytics      |
+
+## Known limitations
+
+- **LLMLingua-2 (SLM) requires co-located optional deps.** The worker only runs in a
+  production build when `@atjsh/llmlingua-2` + peers are co-located into
+  `dist/node_modules` (see `scripts/build/colocateOptionals.mjs`, #4286). Without them the
+  engine fail-opens (returns the original text). Worker resolution no longer depends on
+  `import.meta.url` (it dies in the standalone bundle) — it anchors on the runtime
+  cwd / `argv[1]`.
+- **Caveman language packs `de` / `fr` / `ja` are partial.** They ship `context` +
+  `filler` + `structural` rules but no `dedup` / `ultra` packs, so `ultra` intensity is
+  no stronger than `full` for those languages (they use only their own rules — there is no
+  silent fall-back to the English `dedup`/`ultra` rules, which would mangle foreign text).
+  `en` / `es` / `id` / `pt-BR` are complete. Contributions of `dedup.json` + `ultra.json`
+  for the partial packs are welcome.
+- **Stacked telemetry only lists engines that compressed.** A stacked-pipeline step whose
+  engine ran but produced 0 % savings returns `stats:null` and so does not appear in
+  `engineBreakdown` — indistinguishable from a step that was skipped. Distinguishing
+  "ran, 0 %" from "skipped" would require a breakdown-model change and is deferred.
 
 ## Validation
 

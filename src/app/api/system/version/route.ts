@@ -17,22 +17,16 @@ import {
   PROJECT_ROOT,
 } from "@/lib/system/autoUpdate";
 import { NEWS_JSON_URL, parseActiveNewsPayload } from "@/shared/utils/releaseNotes";
+import { isNewer, resolveLatestVersion } from "@/lib/system/versionCheck";
+import { resolveGlobalOmniroutePath } from "@/lib/system/globalPackagePath";
+// #5542 — On Windows npm is `npm.cmd`; Node ≥24 refuses to execFile a `.cmd` without
+// a shell (nodejs/node#52554 → "spawn npm ENOENT"). buildNpmExecOptions enables the
+// shell on win32 only; SERVICE_VERSION_PATTERN keeps the shell-joined version safe.
+import { buildNpmExecOptions, SERVICE_VERSION_PATTERN } from "@/lib/services/installers/utils";
 
 const execFileAsync = promisify(execFile);
 
 export const dynamic = "force-dynamic";
-
-async function getLatestNpmVersion(): Promise<string | null> {
-  try {
-    const { stdout } = await execFileAsync("npm", ["info", "omniroute", "version", "--json"], {
-      timeout: 10000,
-    });
-    const parsed = JSON.parse(stdout.trim());
-    return typeof parsed === "string" ? parsed : null;
-  } catch {
-    return null;
-  }
-}
 
 function getCurrentVersion(): string {
   try {
@@ -40,16 +34,6 @@ function getCurrentVersion(): string {
   } catch {
     return "unknown";
   }
-}
-
-function isNewer(a: string | null, b: string): boolean {
-  if (!a) return false;
-  const parse = (v: string) => v.split(".").map(Number);
-  const [aMaj, aMin, aPat] = parse(a);
-  const [bMaj, bMin, bPat] = parse(b);
-  if (aMaj !== bMaj) return aMaj > bMaj;
-  if (aMin !== bMin) return aMin > bMin;
-  return aPat > bPat;
 }
 
 async function getNews() {
@@ -72,7 +56,7 @@ export async function GET(req: NextRequest) {
   const config = getAutoUpdateConfig();
 
   const [latest, news, validation] = await Promise.all([
-    getLatestNpmVersion(),
+    resolveLatestVersion(),
     getNews(),
     validateAutoUpdateRuntime(config),
   ]);
@@ -96,7 +80,7 @@ export async function POST(req: NextRequest) {
   }
 
   const current = getCurrentVersion();
-  const latest = await getLatestNpmVersion();
+  const latest = await resolveLatestVersion();
 
   if (!latest) {
     return NextResponse.json(
@@ -228,10 +212,11 @@ export async function POST(req: NextRequest) {
             status: "running",
             message: "Installing dependencies...",
           });
-          await execFileAsync("npm", ["install", "--legacy-peer-deps"], {
-            timeout: 300_000,
-            cwd: PROJECT_ROOT,
-          });
+          await execFileAsync(
+            "npm",
+            ["install", "--legacy-peer-deps"],
+            buildNpmExecOptions(process.platform, { cwd: PROJECT_ROOT, timeoutMs: 300_000 })
+          );
           send({ step: "rebuild", status: "done", message: "Dependencies installed" });
 
           try {
@@ -248,10 +233,11 @@ export async function POST(req: NextRequest) {
             status: "running",
             message: "Building application...",
           });
-          await execFileAsync("npm", ["run", "build"], {
-            timeout: 600_000,
-            cwd: PROJECT_ROOT,
-          });
+          await execFileAsync(
+            "npm",
+            ["run", "build"],
+            buildNpmExecOptions(process.platform, { cwd: PROJECT_ROOT, timeoutMs: 600_000 })
+          );
           send({ step: "rebuild", status: "done", message: "Build complete" });
 
           send({ step: "restart", status: "running", message: "Restarting service..." });
@@ -306,14 +292,19 @@ export async function POST(req: NextRequest) {
 
       try {
         // Step 1: Install
+        // #5542 — buildNpmExecOptions enables the shell on win32 (npm.cmd), which
+        // shell-joins argv, so the version spec must be metacharacter-free before it
+        // reaches the command line (Hard Rule #13).
+        if (!SERVICE_VERSION_PATTERN.test(latest)) {
+          send({ step: "install", status: "error", message: "Invalid version format" });
+          controller.close();
+          return;
+        }
         send({ step: "install", status: "running", message: `Installing omniroute@${latest}...` });
           await execFileAsync(
             "npm",
             ["install", "-g", `omniroute@${latest}`, "--ignore-scripts", "--legacy-peer-deps"],
-            {
-              timeout: 300000,
-              cwd: PROJECT_ROOT,
-            }
+            buildNpmExecOptions(process.platform, { cwd: PROJECT_ROOT, timeoutMs: 300_000 })
           );
         send({ step: "install", status: "done", message: `Installed omniroute@${latest}` });
 
@@ -323,17 +314,11 @@ export async function POST(req: NextRequest) {
           status: "running",
           message: "Rebuilding native modules (better-sqlite3)...",
         });
-          const globalRoot = (
-            await execFileAsync("npm", ["root", "-g"], { timeout: 10000, cwd: PROJECT_ROOT })
-          ).stdout.trim();
-        const omniPath = `${globalRoot}/omniroute/app`;
+        const omniPath = await resolveGlobalOmniroutePath();
         await execFileAsync(
           "npm",
           ["rebuild", "better-sqlite3"],
-          {
-            cwd: omniPath,
-            timeout: 120000,
-          }
+          buildNpmExecOptions(process.platform, { cwd: omniPath, timeoutMs: 120_000 })
         );
         send({ step: "rebuild", status: "done", message: "Native modules rebuilt" });
 

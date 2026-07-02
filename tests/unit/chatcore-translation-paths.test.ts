@@ -274,11 +274,10 @@ async function resetStorage() {
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
 }
 
-// 10s ceiling: on 2-core CI runners under shard contention the 1500ms budget
-// expired mid-flight (observed: 1580ms fail on the upstream-timeout test) —
-// green runs return as soon as the condition holds, so the ceiling only
-// bounds the failure case.
-async function waitFor(fn, timeoutMs = 10000) {
+// 30s ceiling: c8 instrumentation plus --test-concurrency=8 can stall CI workers
+// well past the upstream timeout budget. Green runs return as soon as the condition
+// holds, so the ceiling only bounds the failure case.
+async function waitFor(fn, timeoutMs = 30000) {
   const startedAt = Date.now();
   while (Date.now() - startedAt < timeoutMs) {
     const result = await fn();
@@ -433,14 +432,13 @@ test("chatCore times out upstream execution before provider response headers", a
       userAgent: "unit-test",
     } as any);
 
-    const pendingDetail = (await waitFor(
-      () =>
-        // details[connectionId] is Record<modelKey, PendingRequestDetail[]> —
-        // the original predicate tested each ARRAY's .providerRequest (always
-        // undefined), so the waitFor could never resolve. Flatten to the details.
-        Object.values(getPendingRequests().details[connectionId] || {})
-          .flat()
-          .find((detail: any) => detail?.providerRequest?.model === "gpt-4o-mini")
+    const pendingDetail = (await waitFor(() =>
+      // details[connectionId] is Record<modelKey, PendingRequestDetail[]> —
+      // the original predicate tested each ARRAY's .providerRequest (always
+      // undefined), so the waitFor could never resolve. Flatten to the details.
+      Object.values(getPendingRequests().details[connectionId] || {})
+        .flat()
+        .find((detail: any) => detail?.providerRequest?.model === "gpt-4o-mini")
     )) as any;
     assert.equal(pendingDetail?.providerRequest?.model, "gpt-4o-mini");
     assert.deepEqual(pendingDetail?.providerRequest?.messages, body.messages);
@@ -501,7 +499,7 @@ test("chatCore keeps Responses-native Codex payloads in native passthrough mode"
 
   assert.equal(result.success, true);
   assert.match(call.url, /\/responses$/);
-  assert.equal(call.body.input, "ship it");
+  assert.deepEqual(call.body.input, [{ type: "message", role: "user", content: [{ type: "input_text", text: "ship it" }] }]);
   assert.equal(call.body.instructions, "custom system prompt");
   assert.equal(call.body.store, false);
   assert.deepEqual(call.body.metadata, { source: "codex-client" });
@@ -2519,7 +2517,13 @@ test("chatCore returns streaming responses without waiting for upstream completi
 
   const raceResult = await Promise.race([
     invocation.then(() => "returned"),
-    new Promise((resolve) => setTimeout(() => resolve("blocked"), 1000)),
+    // 10s ceiling: a non-buffering streaming impl resolves the invocation as soon
+    // as the Response is returned (upstream still open), but on a starved CI event
+    // loop that legitimate early return can exceed a 1s wall-clock budget (flake
+    // repro: 5/8 runs returned at 1.3–2.2s under CPU contention → false "blocked").
+    // The ceiling only bounds the buffered-failure case: a buffering impl never
+    // resolves until closeUpstream() fires below, so it still trips "blocked".
+    new Promise((resolve) => setTimeout(() => resolve("blocked"), 10000)),
   ]);
 
   if (raceResult !== "returned") {

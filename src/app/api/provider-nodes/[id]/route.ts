@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import {
+  deleteModelAliasesForProvider,
   deleteProviderConnectionsByProvider,
   deleteProviderNode,
   getProviderConnections,
@@ -10,6 +11,7 @@ import {
 import { isClaudeCodeCompatibleProvider } from "@/shared/constants/providers";
 import { updateProviderNodeSchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
+import { validateProviderNodeBaseUrl } from "../urlGuard";
 
 type JsonRecord = Record<string, unknown>;
 
@@ -54,8 +56,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
     if (isValidationFailure(validation)) {
       return NextResponse.json({ error: validation.error }, { status: 400 });
     }
-    const { name, prefix, apiType, baseUrl, chatPath, modelsPath, customHeaders } =
-      validation.data;
+    const { name, prefix, apiType, baseUrl, chatPath, modelsPath, customHeaders } = validation.data;
     const node: any = await getProviderNodeById(id);
 
     if (!node) {
@@ -83,6 +84,8 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
         ? sanitizeClaudeCodeCompatibleBaseUrl(sanitizedBaseUrl)
         : sanitizeAnthropicBaseUrl(sanitizedBaseUrl);
     }
+    const baseUrlError = validateProviderNodeBaseUrl(sanitizedBaseUrl);
+    if (baseUrlError) return baseUrlError;
 
     const updates: Record<string, unknown> = {
       name: name.trim(),
@@ -150,6 +153,9 @@ export async function DELETE(_request: Request, { params }: { params: Promise<{ 
 
     await deleteProviderConnectionsByProvider(id);
     await deleteProviderNode(id);
+    // #1409: drop orphaned model-alias rows (key=<alias>, value="<providerId>/<model>")
+    // so re-importing the same provider isn't blocked by stale "already exists" aliases.
+    await deleteModelAliasesForProvider(id);
 
     return NextResponse.json({ success: true });
   } catch (error) {

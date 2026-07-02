@@ -5,7 +5,7 @@
  */
 
 export interface ModelSpec {
-  maxOutputTokens: number;
+  maxOutputTokens?: number;
   contextWindow?: number;
   defaultThinkingBudget?: number;
   thinkingBudgetCap?: number;
@@ -19,6 +19,17 @@ export interface ModelSpec {
   // (upstream returns 400). Used to normalize the request when a combo/route substitutes
   // this model after the client already chose `disabled`. See issue #3554.
   rejectsThinkingDisabled?: boolean;
+  // Model ONLY supports adaptive thinking: manual extended thinking was removed. Sending
+  // `thinking.type:"enabled"` or any `thinking.budget_tokens` returns HTTP 400; reasoning
+  // is steered exclusively by `output_config.effort` (low/medium/high/xhigh/max). True for
+  // Claude Opus 4.7 and later (Opus 4.7/4.8, Fable 5). Per Anthropic's migration guide
+  // (2026-05-19): "Any request that tries to set a fixed thinking budget gets a 400 error."
+  adaptiveThinkingOnly?: boolean;
+  // Explicit operator override for the no-thinking gateway alias (Fase 8.1). When unset,
+  // the catalog auto-advertises a `no-think/…` variant for
+  // Claude-family thinking-capable models that honor `disabled`. Set `true` to force the
+  // variant on for any other model, or `false` to suppress it. See open-sse/utils/noThinkingAlias.ts.
+  noThinkingAlias?: boolean;
 }
 
 const BEDROCK_CLAUDE_ALIASES = (...modelIds: string[]) => [
@@ -77,6 +88,9 @@ export const MODEL_SPECS: Record<string, ModelSpec> = {
   "gemini-2.5-flash": {
     maxOutputTokens: 65536,
     contextWindow: 1048576,
+    // #3842: real Google max thinking budget for 2.5-flash is 24576; declaring the
+    // cap makes capThinkingBudget() actually clamp instead of passing values through.
+    thinkingBudgetCap: 24576,
     supportsThinking: false,
     supportsTools: true,
     supportsVision: true,
@@ -184,6 +198,22 @@ export const MODEL_SPECS: Record<string, ModelSpec> = {
     aliases: BEDROCK_CLAUDE_ALIASES("claude-sonnet-4-6", "claude-sonnet-4.6"),
   },
 
+  // ── Claude Sonnet 5 ─────────────────────────────────────────────
+  "claude-sonnet-5": {
+    // 1M context, 128K max output. Adaptive-thinking-only (manual
+    // budget_tokens / thinking.type:"enabled" return 400; effort-steered);
+    // unlike Fable 5 it still accepts thinking.type:"disabled".
+    maxOutputTokens: 128000,
+    contextWindow: 1000000,
+    defaultThinkingBudget: 32000,
+    thinkingBudgetCap: 120000,
+    supportsThinking: true,
+    supportsTools: true,
+    supportsVision: true,
+    adaptiveThinkingOnly: true,
+    aliases: BEDROCK_CLAUDE_ALIASES("claude-sonnet-5"),
+  },
+
   // ── Claude Opus 4.6 ─────────────────────────────────────────────
   "claude-opus-4-6": {
     maxOutputTokens: 128000,
@@ -203,16 +233,17 @@ export const MODEL_SPECS: Record<string, ModelSpec> = {
   "claude-opus-4-7": {
     maxOutputTokens: 128000,
     contextWindow: 1000000,
-    // Anthropic accepts thinking.budget_tokens in [1024, 128000]; cap
-    // a bit below to leave headroom for the visible response within
-    // max_tokens. Without this cap, adaptive scaling on top of an
-    // `output_config.effort=max` request can push past 128000 and
-    // trigger a 400 "budget out of range" from Anthropic.
+    // Opus 4.7 removed manual extended thinking: a fixed `thinking.budget_tokens`
+    // (or `thinking.type:"enabled"`) returns 400. Reasoning is adaptive-only and
+    // steered by `output_config.effort`. defaultThinkingBudget/thinkingBudgetCap
+    // are retained only as caps for any legacy budget path; the request flow
+    // collapses manual thinking to adaptive before dispatch (see adaptiveThinkingOnly).
     defaultThinkingBudget: 32000,
     thinkingBudgetCap: 120000,
     supportsThinking: true,
     supportsTools: true,
     supportsVision: true,
+    adaptiveThinkingOnly: true,
     aliases: BEDROCK_CLAUDE_ALIASES("claude-opus-4-7", "claude-opus-4.7"),
   },
 
@@ -227,6 +258,8 @@ export const MODEL_SPECS: Record<string, ModelSpec> = {
     supportsVision: true,
     // Fable 5 defaults to adaptive thinking and rejects `thinking.type:"disabled"` (#3554).
     rejectsThinkingDisabled: true,
+    // …and, like Opus 4.7+, rejects manual budgets/`type:"enabled"` (adaptive-only).
+    adaptiveThinkingOnly: true,
     aliases: BEDROCK_CLAUDE_ALIASES("claude-fable-5"),
   },
 
@@ -241,6 +274,7 @@ export const MODEL_SPECS: Record<string, ModelSpec> = {
     supportsThinking: true,
     supportsTools: true,
     supportsVision: true,
+    adaptiveThinkingOnly: true,
     aliases: BEDROCK_CLAUDE_ALIASES("claude-opus-4-8", "claude-opus-4.8"),
   },
 
@@ -321,11 +355,15 @@ export const MODEL_SPECS: Record<string, ModelSpec> = {
   },
 
   // ── Xiaomi MiMo V2.5 (1M context, consensus across 7+ sync sources) ──
+  // Vision: ONLY mimo-v2.5 and mimo-v2-omni accept images per Xiaomi's docs
+  // (mimo.mi.com .../image-understanding). The *-pro chat models are TEXT-ONLY;
+  // models.dev mislabels them (hermes-agent#18884) — a hard override in
+  // src/lib/modelCapabilities.ts also beats that wrong synced attachment.
   "mimo-v2.5-pro": {
     maxOutputTokens: 131072,
     contextWindow: 1048576,
     supportsTools: true,
-    supportsVision: true,
+    supportsVision: false,
   },
   "mimo-v2.5": {
     maxOutputTokens: 131072,
@@ -337,7 +375,7 @@ export const MODEL_SPECS: Record<string, ModelSpec> = {
     maxOutputTokens: 131072,
     contextWindow: 262144,
     supportsTools: true,
-    supportsVision: true,
+    supportsVision: false,
   },
   "mimo-v2-omni": {
     maxOutputTokens: 131072,
@@ -348,6 +386,26 @@ export const MODEL_SPECS: Record<string, ModelSpec> = {
   "mimo-v2-flash": {
     maxOutputTokens: 65536,
     contextWindow: 262144,
+    supportsTools: true,
+  },
+
+  // ── Z.AI GLM-5.2 (1M context, 128K max output, effort tiers) ────
+  "glm-5.2": {
+    maxOutputTokens: 131072,
+    contextWindow: 1000000,
+    supportsThinking: true,
+    supportsTools: true,
+  },
+  "glm-5.2-high": {
+    maxOutputTokens: 131072,
+    contextWindow: 1000000,
+    supportsThinking: true,
+    supportsTools: true,
+  },
+  "glm-5.2-max": {
+    maxOutputTokens: 131072,
+    contextWindow: 1000000,
+    supportsThinking: true,
     supportsTools: true,
   },
 
@@ -415,9 +473,7 @@ export const MODEL_SPECS: Record<string, ModelSpec> = {
   },
 
   // Defaults
-  __default__: {
-    maxOutputTokens: 8192,
-  },
+  __default__: {},
 };
 
 export function getModelSpec(modelId: string): ModelSpec | undefined {
@@ -473,14 +529,28 @@ export function normalizeThinkingForModel<T extends Record<string, unknown>>(
   return body;
 }
 
-export function capMaxOutputTokens(modelId: string, requested?: number): number {
+export function capMaxOutputTokens(modelId: string, requested?: number): number | undefined {
   const spec = getModelSpec(modelId);
-  const cap = spec?.maxOutputTokens ?? MODEL_SPECS.__default__.maxOutputTokens;
-  return requested ? Math.min(requested, cap) : cap;
+  const cap = spec?.maxOutputTokens;
+  const hasRequested = typeof requested === "number" && Number.isFinite(requested);
+  if (typeof cap !== "number") return hasRequested ? requested : undefined;
+  return hasRequested ? Math.min(requested, cap) : cap;
 }
 
 export function getDefaultThinkingBudget(modelId: string): number {
   return getModelSpec(modelId)?.defaultThinkingBudget ?? 0;
+}
+
+/**
+ * True when the resolved model only supports adaptive thinking and rejects manual
+ * extended thinking. For these models (Claude Opus 4.7+/Fable 5) a `thinking.type:"enabled"`
+ * or any `thinking.budget_tokens` is a hard 400 — reasoning must be steered via
+ * `output_config.effort`. Used by the request flow to collapse manual thinking to
+ * `{type:"adaptive"}` before dispatch. Matches dated/Bedrock aliases via getModelSpec.
+ */
+export function isAdaptiveThinkingOnly(modelId: string | null | undefined): boolean {
+  if (typeof modelId !== "string" || modelId.length === 0) return false;
+  return getModelSpec(modelId)?.adaptiveThinkingOnly === true;
 }
 
 export function capThinkingBudget(modelId: string, budget: number): number {

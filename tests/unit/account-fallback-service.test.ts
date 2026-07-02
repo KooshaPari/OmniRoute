@@ -112,7 +112,7 @@ test("checkFallbackError locks Antigravity quota-reached 429 for the full reset 
     "gemini-3-flash-agent",
     "antigravity",
     null,
-    makeProfile()
+    makeProfile({ useUpstreamRetryHints: true })
   );
 
   assert.equal(result.shouldFallback, true);
@@ -433,6 +433,31 @@ test("hasPerModelQuota returns true for GitHub Copilot provider (#1624)", () => 
   assert.equal(hasPerModelQuota("github"), true);
   assert.equal(hasPerModelQuota("github", "gpt-5.1-codex-max"), true);
   assert.equal(hasPerModelQuota("github", "gpt-5-mini"), true);
+});
+
+test("Codex Spark 429s are scoped away from normal Codex models", () => {
+  const connectionId = `codex-${Date.now()}`;
+  clearModelLock("codex", connectionId, "gpt-5.3-codex-spark");
+  clearModelLock("codex", connectionId, "gpt-5.3-codex");
+
+  assert.equal(hasPerModelQuota("codex", "gpt-5.3-codex-spark"), true);
+  assert.equal(shouldMarkAccountExhaustedFrom429("codex", "gpt-5.3-codex-spark"), false);
+  assert.equal(
+    lockModelIfPerModelQuota(
+      "codex",
+      connectionId,
+      "gpt-5.3-codex-spark",
+      RateLimitReason.RATE_LIMIT_EXCEEDED,
+      30_000
+    ),
+    true
+  );
+  assert.equal(isModelLocked("codex", connectionId, "gpt-5.3-codex-spark"), true);
+  assert.equal(isModelLocked("codex", connectionId, "codex-spark-mini"), true);
+  assert.equal(isModelLocked("codex", connectionId, "gpt-5.3-codex"), false);
+
+  clearModelLock("codex", connectionId, "gpt-5.3-codex-spark");
+  clearModelLock("codex", connectionId, "gpt-5.3-codex");
 });
 
 test("shouldMarkAccountExhaustedFrom429 skips connection-wide lockout for GitHub (#1624)", () => {
@@ -1124,6 +1149,9 @@ test("isCreditsExhausted returns true for actual credits-exhausted signals", () 
   assert.equal(isCreditsExhausted("payment required"), true);
   assert.equal(isCreditsExhausted("free tier of the model has been exhausted"), true);
   assert.equal(isCreditsExhausted("exceeded your current usage quota"), true);
+  // #5239: "Insufficient account balance" out-of-credit bodies
+  assert.equal(isCreditsExhausted("Insufficient account balance"), true);
+  assert.equal(isCreditsExhausted("insufficient_balance"), true);
 });
 
 test("CREDITS_EXHAUSTED_SIGNALS no longer contains generic gRPC resource-exhausted patterns", () => {

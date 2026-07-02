@@ -20,6 +20,21 @@ function toHex(bytes: Uint8Array): string {
   return Array.from(bytes, (byte) => byte.toString(16).padStart(2, "0")).join("");
 }
 
+/**
+ * Rename a Node process title so OmniRoute is identifiable in `ps`/`htop`
+ * instead of the generic Next.js standalone server name.
+ *
+ * Only rewrites titles that start with "next-server", preserving any
+ * trailing suffix (e.g. " (v16.2.9)"). Every other title — including one
+ * that has already been renamed, or one that merely contains
+ * "next-server" elsewhere — passes through unchanged. Empty/undefined-safe.
+ */
+export function renameProcessTitle(currentTitle: string): string {
+  if (!currentTitle) return currentTitle;
+  if (!currentTitle.startsWith("next-server")) return currentTitle;
+  return `omniroute${currentTitle.slice("next-server".length)}`;
+}
+
 function isBackgroundServicesDisabled(): boolean {
   const raw = process.env.OMNIROUTE_DISABLE_BACKGROUND_SERVICES;
   if (!raw) return false;
@@ -69,6 +84,10 @@ async function ensureSecrets(): Promise<void> {
 }
 
 export async function registerNodejs(): Promise<void> {
+  // Rename the process title so OmniRoute is identifiable in ps/htop instead
+  // of the generic "next-server" standalone server name.
+  process.title = renameProcessTitle(process.title);
+
   // Initialize proxy fetch patch FIRST (before any HTTP requests)
   await import("@omniroute/open-sse/index.ts");
   console.log("[STARTUP] Global fetch proxy patch initialized");
@@ -188,6 +207,18 @@ export async function registerNodejs(): Promise<void> {
       console.log("[STARTUP] Global System Prompt restored from settings");
     }
 
+    // Restore the proxy-level Thinking-Budget config (#5312 RC-A). It lives in
+    // `settings.thinkingBudget` and is NOT covered by applyRuntimeSettings, so
+    // without this the dashboard mode (auto/custom/adaptive) silently reverts to
+    // the passthrough default on every restart. Previously this was only wired into
+    // the unused `server-init.ts`, so it never ran in production.
+    const { hydrateThinkingBudgetConfig } = await import(
+      "@omniroute/open-sse/services/thinkingBudget.ts"
+    );
+    if (hydrateThinkingBudgetConfig(settings)) {
+      console.log("[STARTUP] Thinking-Budget config restored from settings");
+    }
+
     const seededModelAliases = await seedDefaultModelAliases();
     console.log(
       `[STARTUP] Model alias seed: applied=${seededModelAliases.applied.length}, skipped=${seededModelAliases.skipped.length}, failed=${seededModelAliases.failed.length}`
@@ -239,6 +270,17 @@ export async function registerNodejs(): Promise<void> {
 
   await import("@/lib/db/core").then(({ ensureDbInitialized }) => ensureDbInitialized());
 
+  // Storage-configured scheduled VACUUM (#4437): registers the timer from
+  // Settings > System & Storage and persists lastVacuumAt for the UI.
+  try {
+    const { initVacuumScheduler } = await import("@/lib/db/vacuumScheduler");
+    initVacuumScheduler();
+    console.log("[STARTUP] Scheduled VACUUM initialized (#4437)");
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err);
+    console.warn("[STARTUP] Could not initialize vacuum scheduler (non-fatal):", msg);
+  }
+
   if (!isBackgroundServicesDisabled()) {
     try {
       const { bootstrapEmbeddedServices } = await import("@/lib/services/bootstrap");
@@ -265,18 +307,74 @@ export async function registerNodejs(): Promise<void> {
       console.warn("[STARTUP] Auto-refresh daemon failed to start (non-fatal):", msg);
     }
 
-    // Arena ELO sync: model intelligence from the Arena AI leaderboard, powering the
-    // Free Provider Rankings page. On by default (opt out with ARENA_ELO_SYNC_ENABLED=false).
-    // Non-blocking — the initial sync is fire-and-forget and never fatal.
-    if (process.env.ARENA_ELO_SYNC_ENABLED !== "false") {
-      try {
-        const { initArenaEloSync } = await import("@/lib/arenaEloSync");
-        await initArenaEloSync();
+    // Proactive connection-cooldown recovery (#8): re-validate connections whose
+    // transient `rate_limited_until` window has elapsed OUTSIDE the request hot
+    // path, so the first request after a cooldown does not pay the probe latency.
+    // Lazy/self-recovery still happens in getProviderCredentials; this front-runs it.
+    try {
+      const { initConnectionRecoveryScheduler } = await import("@/lib/quota/connectionRecovery");
+      initConnectionRecoveryScheduler();
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      console.warn("[STARTUP] Connection recovery scheduler failed to start (non-fatal):", msg);
+    }
+
+    try {
+      // Arena ELO sync: model intelligence from the Arena AI leaderboard, powering the
+      // Free Provider Rankings page. On by default; configurable from Dashboard Feature Flags.
+      // Non-blocking — the initial sync is fire-and-forget and never fatal.
+      const { initArenaEloSync } = await import("@/lib/arenaEloSync");
+      const started = await initArenaEloSync();
+      if (started) {
         console.log("[STARTUP] Arena ELO sync initialized");
-      } catch (err: unknown) {
-        const msg = err instanceof Error ? err.message : String(err);
-        console.warn("[STARTUP] Arena ELO sync failed to start (non-fatal):", msg);
       }
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      console.warn("[STARTUP] Arena ELO sync failed to start (non-fatal):", msg);
+    }
+
+    // Pricing sync: opt-in external pricing data (self-gated by PRICING_SYNC_ENABLED inside
+    // initPricingSync). Was only wired into the unused server-init.ts, so it never ran in the
+    // standalone runtime even when enabled. Non-blocking, never fatal.
+    try {
+      const { initPricingSync } = await import("@/lib/pricingSync");
+      await initPricingSync();
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      console.warn("[STARTUP] Pricing sync failed to start (non-fatal):", msg);
+    }
+
+    // models.dev capability sync: opt-in via Settings > AI (self-gated by
+    // settings.modelsDevSyncEnabled inside initModelsDevSync). Previously had no caller at all,
+    // so the toggle was inert. Non-blocking, never fatal.
+    try {
+      const { initModelsDevSync } = await import("@/lib/modelsDevSync");
+      await initModelsDevSync();
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      console.warn("[STARTUP] models.dev sync failed to start (non-fatal):", msg);
+    }
+
+    // Context-window self-correction (5004): periodically reconcile provider-declared
+    // windows (from /models discovery) into auto:discovery overrides. Reuses already-synced
+    // data (no new fetch); disable via CONTEXT_WINDOW_RECONCILE_INTERVAL=0. Never fatal.
+    try {
+      const { startContextWindowReconcile } = await import("@/lib/contextWindowResolver");
+      startContextWindowReconcile();
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      console.warn("[STARTUP] context-window reconcile failed to start (non-fatal):", msg);
+    }
+
+    // TV6 typed memory decay: optional periodic sweep of decayed episodic memories. Doubly
+    // opt-in (no-op unless MEMORY_TYPED_DECAY_ENABLED=true AND
+    // MEMORY_TYPED_DECAY_SWEEP_INTERVAL>0). Never deletes by default. Never fatal.
+    try {
+      const { startMemoryDecaySweep } = await import("@/lib/memory/typedDecay");
+      startMemoryDecaySweep();
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      console.warn("[STARTUP] memory decay sweep failed to start (non-fatal):", msg);
     }
   }
 }

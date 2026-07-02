@@ -5,7 +5,7 @@ import { useState, useEffect, useCallback, useMemo } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
-import { Card, Button, CardSkeleton, NoAuthProviderCard, NoAuthAccountCard } from "@/shared/components";
+import { Card, Button, CardSkeleton } from "@/shared/components";
 import {
   NOAUTH_PROVIDERS,
   getProviderAlias,
@@ -15,7 +15,12 @@ import {
   supportsApiKeyOnFreeProvider,
 } from "@/shared/constants/providers";
 import { getModelsByProviderId } from "@/shared/constants/models";
-import { compatibleProviderSupportsModelImport, getCompatibleFallbackModels } from "@/lib/providers/managedAvailableModels";
+import {
+  compatibleProviderSupportsModelImport,
+  getCompatibleFallbackModels,
+} from "@/lib/providers/managedAvailableModels";
+import { getProviderServiceKinds } from "@/lib/providers/serviceKindIndex";
+import { providerLacksModelListing } from "@/lib/providers/modelListingCapability";
 import { normalizeModelCatalogSource } from "@/shared/utils/modelCatalogSearch";
 import { useCopyToClipboard } from "@/shared/hooks/useCopyToClipboard";
 import useEmailPrivacyStore from "@/store/emailPrivacyStore";
@@ -46,6 +51,7 @@ import ProviderModalsPanel from "./components/ProviderModalsPanel";
 import EmptyConnectionsPlaceholder from "./components/EmptyConnectionsPlaceholder";
 import UpstreamProxyCard from "./components/UpstreamProxyCard";
 import SearchProviderCard from "./components/SearchProviderCard";
+import NoAuthProviderControls from "./components/NoAuthProviderControls";
 // providerText used by UpstreamProxyCard (Phase 1t.7)
 
 export default function ProviderDetailPageClient() {
@@ -67,6 +73,7 @@ export default function ProviderDetailPageClient() {
   const [codexCliGuideOpen, setCodexCliGuideOpen] = useState(false);
   const [importClaudeModalOpen, setImportClaudeModalOpen] = useState(false);
   const [importGeminiModalOpen, setImportGeminiModalOpen] = useState(false);
+  const [importGrokCliModalOpen, setImportGrokCliModalOpen] = useState(false);
   const isOpenAICompatible = isOpenAICompatibleProvider(providerId);
   const isCcCompatible = isClaudeCodeCompatibleProvider(providerId);
   const isCommandCode = providerId === "command-code";
@@ -74,7 +81,17 @@ export default function ProviderDetailPageClient() {
     isAnthropicCompatibleProvider(providerId) && !isClaudeCodeCompatibleProvider(providerId);
   const isCompatible = isOpenAICompatible || isAnthropicCompatible || isCcCompatible;
   const isAnthropicProtocolCompatible = isAnthropicCompatible || isCcCompatible;
-  const isSearchProvider = providerId.endsWith("-search");
+  // #5420: hide model listing for tool-only providers (web search / web fetch),
+  // not just `-search`-suffixed ids. Declared serviceKinds come from the static
+  // provider catalog (e.g. firecrawl → ["webFetch"]); compatible providers resolve
+  // to null here and fall through to the empty-kinds check (model listing stays on).
+  const declaredServiceKinds = (
+    resolveDashboardProviderInfo(providerId) as { serviceKinds?: readonly string[] } | null
+  )?.serviceKinds;
+  const isSearchProvider = providerLacksModelListing(
+    providerId,
+    getProviderServiceKinds(providerId, declaredServiceKinds)
+  );
 
   // ── Phase 1f hooks ────────────────────────────────────────────────────────
   const {
@@ -190,11 +207,16 @@ export default function ProviderDetailPageClient() {
   const subscriptionRisk = providerInfo?.subscriptionRisk === true;
 
   // ── Phase 1t.3: connection gate + risk-notice modal state ───────────────
-  const { showRiskNoticeModal, gateConnectionFlow, handleConfirmRiskNotice, handleCancelRiskNotice } =
-    useConnectionGate({ providerId, subscriptionRisk });
+  const {
+    showRiskNoticeModal,
+    gateConnectionFlow,
+    handleConfirmRiskNotice,
+    handleCancelRiskNotice,
+  } = useConnectionGate({ providerId, subscriptionRisk });
 
   const providerSupportsPat = supportsApiKeyOnFreeProvider(providerId);
   const isOAuth = providerSupportsOAuth && !providerSupportsPat;
+  const providerAlias = getProviderAlias(providerId);
   const isFreeNoAuth = NOAUTH_PROVIDERS[providerId]?.noAuth === true;
   const registryModels = getModelsByProviderId(providerId);
   // Prefer synced API-discovered models when available, then merge built-ins
@@ -233,7 +255,6 @@ export default function ProviderDetailPageClient() {
     }
     return Array.from(deduped.values());
   }, [providerId, registryModels, syncedAvailableModels, modelMeta.customModels]);
-  const providerAlias = getProviderAlias(providerId);
   const isManagedAvailableModelsProvider = isCompatible || providerId === "openrouter";
   // isSearchProvider declared earlier (before hooks)
   const isUpstreamProxyProvider = providerInfo?.category === "upstream-proxy";
@@ -351,19 +372,10 @@ export default function ProviderDetailPageClient() {
     exportingClaudeAuthId,
     handleApplyClaudeAuthLocal,
     handleExportClaudeAuthFile,
-    applyingGeminiAuthId,
-    applyGeminiModalConnectionId,
-    setApplyGeminiModalConnectionId,
-    exportingGeminiAuthId,
-    handleApplyGeminiAuthLocal,
-    handleExportGeminiAuthFile,
   } = useAuthFileHandlers({ parseApiErrorMessage, getAttachmentFilename, notify, t });
 
   // Phase 1e: compat-state derivations
-  const compat = useModelCompatState(
-    modelMeta.customModels,
-    modelMeta.modelCompatOverrides
-  );
+  const compat = useModelCompatState(modelMeta.customModels, modelMeta.modelCompatOverrides);
   const { customMap } = compat;
   const effectiveModelNormalize = compat.effectiveModelNormalize;
   const effectiveModelPreserveDeveloper = compat.effectiveModelPreserveDeveloper;
@@ -414,7 +426,6 @@ export default function ProviderDetailPageClient() {
 
   // renderModelsSection → components/ProviderModelsSection.tsx (Phase 1m)
 
-
   if (loading) {
     return (
       <div className="flex flex-col gap-8">
@@ -448,7 +459,9 @@ export default function ProviderDetailPageClient() {
         t={t}
       />
 
-      {providerId === "zed" && <ZedImportCard fetchConnections={fetchConnections} notify={notify} />}
+      {providerId === "zed" && (
+        <ZedImportCard fetchConnections={fetchConnections} notify={notify} />
+      )}
 
       {/* CompatibleNodeCard — Phase 1t.2: extracted to components/CompatibleNodeCard.tsx */}
       {isCompatible && providerNode && (
@@ -466,24 +479,12 @@ export default function ProviderDetailPageClient() {
       )}
 
       {/* Connections */}
-      {!isUpstreamProxyProvider && isFreeNoAuth && providerId === "mimocode" && (
-        <NoAuthAccountCard
+      {!isUpstreamProxyProvider && isFreeNoAuth && (
+        <NoAuthProviderControls
           providerId={providerId}
-          providerName="MiMoCode"
-          generateAccountId={() => crypto.randomUUID().replace(/-/g, "")}
+          providerName={providerInfo?.name || providerId}
         />
       )}
-      {!isUpstreamProxyProvider && isFreeNoAuth && providerId === "opencode" && (
-        <NoAuthAccountCard
-          providerId={providerId}
-          providerName="OpenCode"
-          generateAccountId={() => crypto.randomUUID().replace(/-/g, "")}
-        />
-      )}
-      {!isUpstreamProxyProvider &&
-        isFreeNoAuth &&
-        providerId !== "mimocode" &&
-        providerId !== "opencode" && <NoAuthProviderCard />}
       {!isUpstreamProxyProvider && !isFreeNoAuth && (
         <Card>
           <ConnectionsHeaderToolbar
@@ -526,6 +527,7 @@ export default function ProviderDetailPageClient() {
             onOpenImportCodex={() => setImportCodexModalOpen(true)}
             onOpenImportClaude={() => setImportClaudeModalOpen(true)}
             onOpenImportGemini={() => setImportGeminiModalOpen(true)}
+            onOpenImportGrokCli={() => setImportGrokCliModalOpen(true)}
             t={t}
           />
 
@@ -545,6 +547,7 @@ export default function ProviderDetailPageClient() {
               onOpenImportCodex={() => setImportCodexModalOpen(true)}
               onOpenImportClaude={() => setImportClaudeModalOpen(true)}
               onOpenImportGemini={() => setImportGeminiModalOpen(true)}
+              onOpenImportGrokCli={() => setImportGrokCliModalOpen(true)}
               t={t}
             />
           ) : (
@@ -571,8 +574,6 @@ export default function ProviderDetailPageClient() {
               exportingCodexAuthId={exportingCodexAuthId}
               applyingClaudeAuthId={applyingClaudeAuthId}
               exportingClaudeAuthId={exportingClaudeAuthId}
-              applyingGeminiAuthId={applyingGeminiAuthId}
-              exportingGeminiAuthId={exportingGeminiAuthId}
               emailsVisible={emailsVisible}
               setSelectedIds={setSelectedIds}
               setPage={setPage}
@@ -605,8 +606,6 @@ export default function ProviderDetailPageClient() {
               onExportCodexAuthFile={handleExportCodexAuthFile}
               onOpenApplyClaudeModal={setApplyClaudeModalConnectionId}
               onExportClaudeAuthFile={handleExportClaudeAuthFile}
-              onOpenApplyGeminiModal={setApplyGeminiModalConnectionId}
-              onExportGeminiAuthFile={handleExportGeminiAuthFile}
               gateConnectionFlow={gateConnectionFlow}
               t={t}
             />
@@ -746,6 +745,7 @@ export default function ProviderDetailPageClient() {
         setShowEditModal={setShowEditModal}
         selectedConnection={selectedConnection}
         handleUpdateConnection={handleUpdateConnection}
+        handleCompatibleImportWithProgress={handleCompatibleImportWithProgress}
         showEditNodeModal={showEditNodeModal}
         setShowEditNodeModal={setShowEditNodeModal}
         providerNode={providerNode}
@@ -758,12 +758,8 @@ export default function ProviderDetailPageClient() {
         handleApplyClaudeAuthLocal={handleApplyClaudeAuthLocal}
         importClaudeModalOpen={importClaudeModalOpen}
         setImportClaudeModalOpen={setImportClaudeModalOpen}
-        applyGeminiModalConnectionId={applyGeminiModalConnectionId}
-        setApplyGeminiModalConnectionId={setApplyGeminiModalConnectionId}
-        applyingGeminiAuthId={applyingGeminiAuthId}
-        handleApplyGeminiAuthLocal={handleApplyGeminiAuthLocal}
-        importGeminiModalOpen={importGeminiModalOpen}
-        setImportGeminiModalOpen={setImportGeminiModalOpen}
+        importGrokCliModalOpen={importGrokCliModalOpen}
+        setImportGrokCliModalOpen={setImportGrokCliModalOpen}
         batchTestResults={batchTestResults}
         setBatchTestResults={setBatchTestResults}
         emailsVisible={emailsVisible}
@@ -780,4 +776,3 @@ export default function ProviderDetailPageClient() {
     </div>
   );
 }
-

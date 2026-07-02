@@ -4,7 +4,7 @@ title: ACP (Agent Client Protocol)
 
 # ACP (Agent Client Protocol)
 
-> **TL;DR**: ACP lets OmniRoute spawn CLI agents (like Claude Code, Codex, Gemini CLI) as child processes instead of using HTTP APIs. This gives you "CLI-as-backend" transport.
+> **TL;DR**: ACP lets OmniRoute spawn CLI agents (like Claude Code, Codex) as child processes instead of using HTTP APIs. This gives you "CLI-as-backend" transport.
 
 ---
 
@@ -14,14 +14,14 @@ ACP (Agent Client Protocol) is a **"CLI-as-backend" transport** for OmniRoute. I
 
 ### Why Use ACP?
 
-| Benefit | Description |
-|---------|-------------|
-| **No API keys needed** | Uses your existing CLI authentication |
-| **Native protocol** | Uses each CLI's native input/output format |
-| **Auto-discovery** | Detects installed CLIs on your system |
-| **14 built-in agents** | Pre-configured for popular CLI tools |
-| **Custom agents** | Add your own CLI tools via settings |
-| **Process management** | Handles lifecycle (spawn, send, kill) |
+| Benefit                | Description                                |
+| ---------------------- | ------------------------------------------ |
+| **No API keys needed** | Uses your existing CLI authentication      |
+| **Native protocol**    | Uses each CLI's native input/output format |
+| **Auto-discovery**     | Detects installed CLIs on your system      |
+| **14 built-in agents** | Pre-configured for popular CLI tools       |
+| **Custom agents**      | Add your own CLI tools via settings        |
+| **Process management** | Handles lifecycle (spawn, send, kill)      |
 
 ---
 
@@ -29,22 +29,21 @@ ACP (Agent Client Protocol) is a **"CLI-as-backend" transport** for OmniRoute. I
 
 ACP supports **14 built-in CLI agents** out of the box:
 
-| Agent ID | Display Name | Binary | Protocol |
-|----------|--------------|--------|----------|
-| `codex` | OpenAI Codex CLI | `codex` | stdio |
-| `claude` | Claude Code CLI | `claude` | stdio |
-| `goose` | Goose CLI | `goose` | stdio |
-| `gemini-cli` | Gemini CLI | `gemini` | stdio |
-| `openclaw` | OpenClaw | `openclaw` | stdio |
-| `aider` | Aider | `aider` | stdio |
-| `opencode` | OpenCode | `opencode` | stdio |
-| `cline` | Cline | `cline` | stdio |
-| `qwen-code` | Qwen Code | `qwen` | stdio |
-| `forge` | ForgeCode | `forge` | stdio |
-| `amazon-q` | Amazon Q Developer | `q` | stdio |
-| `interpreter` | Open Interpreter | `interpreter` | stdio |
-| `cursor-cli` | Cursor CLI | `cursor` | stdio |
-| `warp` | Warp AI | `warp` | stdio |
+| Agent ID      | Display Name       | Binary        | Protocol |
+| ------------- | ------------------ | ------------- | -------- |
+| `codex`       | OpenAI Codex CLI   | `codex`       | stdio    |
+| `claude`      | Claude Code CLI    | `claude`      | stdio    |
+| `goose`       | Goose CLI          | `goose`       | stdio    |
+| `openclaw`    | OpenClaw           | `openclaw`    | stdio    |
+| `aider`       | Aider              | `aider`       | stdio    |
+| `opencode`    | OpenCode           | `opencode`    | stdio    |
+| `cline`       | Cline              | `cline`       | stdio    |
+| `qwen-code`   | Qwen Code          | `qwen`        | stdio    |
+| `forge`       | ForgeCode          | `forge`       | stdio    |
+| `amazon-q`    | Amazon Q Developer | `q`           | stdio    |
+| `interpreter` | Open Interpreter   | `interpreter` | stdio    |
+| `cursor-cli`  | Cursor CLI         | `cursor`      | stdio    |
+| `warp`        | Warp AI            | `warp`        | stdio    |
 
 ### Custom Agents
 
@@ -129,16 +128,16 @@ const agents = detectInstalledAgents();
 // Returns: CliAgentInfo[]
 
 interface CliAgentInfo {
-  id: string;                    // e.g., "codex", "claude"
-  name: string;                  // Display name
-  binary: string;                // Binary name to spawn
-  versionCommand: string;        // Version detection command
-  version: string | null;        // Detected version (null if not installed)
-  installed: boolean;            // Whether the agent is installed
-  providerAlias: string;         // Provider ID in OmniRoute
-  spawnArgs: string[];           // Arguments to pass when spawning
-  protocol: "stdio" | "http";    // Communication protocol
-  isCustom?: boolean;            // Whether this is a user-defined custom agent
+  id: string; // e.g., "codex", "claude"
+  name: string; // Display name
+  binary: string; // Binary name to spawn
+  versionCommand: string; // Version detection command
+  version: string | null; // Detected version (null if not installed)
+  installed: boolean; // Whether the agent is installed
+  providerAlias: string; // Provider ID in OmniRoute
+  spawnArgs: string[]; // Arguments to pass when spawning
+  protocol: "stdio" | "http"; // Communication protocol
+  isCustom?: boolean; // Whether this is a user-defined custom agent
 }
 ```
 
@@ -193,12 +192,9 @@ Spawns a new CLI agent process.
 ```typescript
 import { acpManager } from "@/lib/acp";
 
-const session = acpManager.spawn(
-  "claude",
-  "claude",
-  ["--print", "--output-format", "json"],
-  { /* custom env vars */ }
-);
+const session = acpManager.spawn("claude", "claude", ["--print", "--output-format", "json"], {
+  /* custom env vars */
+});
 // Returns: AcpSession
 ```
 
@@ -214,7 +210,7 @@ import { acpManager } from "@/lib/acp";
 const response = await acpManager.sendPrompt(
   "acp-claude-1234567890-abc123",
   "What is 2+2?",
-  120000  // 2 minutes timeout
+  120000 // 2 minutes timeout
 );
 // Returns: Promise<string>
 ```
@@ -255,13 +251,13 @@ acpManager.killAll();
 
 ```typescript
 interface AcpSession {
-  id: string;                    // Unique session ID
-  agentId: string;               // Agent ID (e.g., "claude")
-  process: ChildProcess;          // Child process handle
-  alive: boolean;                 // Whether the process is alive
-  stdoutBuffer: string;           // Accumulated stdout buffer
-  stderrBuffer: string;           // Accumulated stderr buffer
-  createdAt: Date;                // Created timestamp
+  id: string; // Unique session ID
+  agentId: string; // Agent ID (e.g., "claude")
+  process: ChildProcess; // Child process handle
+  alive: boolean; // Whether the process is alive
+  stdoutBuffer: string; // Accumulated stdout buffer
+  stderrBuffer: string; // Accumulated stderr buffer
+  createdAt: Date; // Created timestamp
 }
 ```
 
@@ -412,6 +408,7 @@ Each ACP session runs in its own child process. The process is killed when the s
 **Problem**: `acpManager.spawn()` throws `Unknown agent: <id>`
 
 **Solution**: Only 4 agents are allowed in `spawn()`:
+
 - `claude`
 - `codex`
 - `gemini`
@@ -448,6 +445,7 @@ await acpManager.sendPrompt(sessionId, prompt, 300000); // 5 minutes
 **Problem**: `detectInstalledAgents()` doesn't find your CLI
 
 **Solutions**:
+
 1. **Check PATH**: Ensure the CLI is in your system PATH
 2. **Check version command**: Run `claude --version` manually
 3. **Check permissions**: Ensure the CLI is executable
@@ -458,6 +456,7 @@ await acpManager.sendPrompt(sessionId, prompt, 300000); // 5 minutes
 **Problem**: ACP can't execute the CLI
 
 **Solutions**:
+
 1. **Check file permissions**: `chmod +x /usr/local/bin/claude`
 2. **Check ownership**: Ensure OmniRoute has read/execute permissions
 3. **Check SELinux/AppArmor**: May block process spawning
@@ -477,11 +476,7 @@ const claude = agents.find((a) => a.id === "claude");
 
 if (claude?.installed) {
   // Spawn a new session
-  const session = acpManager.spawn(
-    "claude",
-    claude.binary,
-    ["--print", "--output-format", "json"]
-  );
+  const session = acpManager.spawn("claude", claude.binary, ["--print", "--output-format", "json"]);
 
   // Send a prompt
   const response = await acpManager.sendPrompt(
@@ -548,7 +543,7 @@ const agents = detectInstalledAgents();
 ## What's Next?
 
 - **[API Reference](../reference/API_REFERENCE.md)** — REST API endpoints
-- **[Provider Reference](../reference/PROVIDER_REFERENCE.md)** — All 223 providers
+- **[Provider Reference](../reference/PROVIDER_REFERENCE.md)** — All 226 providers
 - **[MCP Server](./MCP-SERVER.md)** — Model Context Protocol integration
 - **[A2A Server](./A2A-SERVER.md)** — Agent-to-Agent protocol
 - **[Cloud Agent](./CLOUD_AGENT.md)** — Cloud-based agents

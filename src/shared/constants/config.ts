@@ -1,25 +1,10 @@
 export { APP_CONFIG, THEME_CONFIG } from "./appConfig";
 
-// Subscription
-export const SUBSCRIPTION_CONFIG = {
-  price: 1.0,
-  currency: "USD",
-  interval: "month",
-  planName: "Pro Plan",
-};
-
-// API endpoints
-export const API_ENDPOINTS = {
-  users: "/api/users",
-  providers: "/api/providers",
-  payments: "/api/payments",
-  auth: "/api/auth",
-};
-
 // Provider API endpoints (for display only)
 export const PROVIDER_ENDPOINTS = {
   agentrouter: "https://agentrouter.org/v1/chat/completions",
   openrouter: "https://openrouter.ai/api/v1/chat/completions",
+  dgrid: "https://api.dgrid.ai/v1/chat/completions",
   glm: "https://api.z.ai/api/anthropic/v1/messages",
   glmt: "https://api.z.ai/api/anthropic/v1/messages",
   "bailian-coding-plan": "https://coding-intl.dashscope.aliyuncs.com/apps/anthropic/v1/messages",
@@ -30,6 +15,9 @@ export const PROVIDER_ENDPOINTS = {
   "minimax-cn": "https://api.minimaxi.com/anthropic/v1/messages",
   crof: "https://crof.ai/v1/chat/completions",
   zenmux: "https://zenmux.ai/api/v1/chat/completions",
+  openadapter: "https://api.openadapter.in/v1/chat/completions",
+  dit: "https://api.dit.ai/v1/chat/completions",
+  tokenrouter: "https://api.tokenrouter.com/v1/chat/completions",
   openai: "https://api.openai.com/v1/chat/completions",
   anthropic: "https://api.anthropic.com/v1/messages",
   gemini: "https://generativelanguage.googleapis.com/v1beta/models",

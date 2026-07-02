@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, type CSSProperties } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/shared/utils/cn";
@@ -12,15 +12,19 @@ import { ConfirmModal } from "./Modal";
 import CloudSyncStatus from "./CloudSyncStatus";
 import { useTranslations } from "next-intl";
 import {
+  HIDDEN_SIDEBAR_GROUP_LABELS_SETTING_KEY,
+  normalizeHiddenSidebarGroupLabels,
+} from "@/shared/constants/sidebarGroupVisibility";
+import {
   HIDDEN_SIDEBAR_ITEMS_SETTING_KEY,
   SIDEBAR_SETTINGS_UPDATED_EVENT,
   SIDEBAR_SECTION_ORDER_KEY,
   SIDEBAR_ITEM_ORDER_KEY,
   SIDEBAR_SECTIONS,
-  getSectionItems,
   normalizeHiddenSidebarItems,
   applySectionOrder,
   applyItemOrder,
+  getSidebarIconAccent,
   type SidebarSectionId,
   type SidebarItemDefinition,
   type SidebarItemGroup,
@@ -31,6 +35,11 @@ const isE2EMode = process.env.NEXT_PUBLIC_OMNIROUTE_E2E_MODE === "1";
 const DEFAULT_EXPANDED: SidebarSectionId = "omni-proxy";
 const EXPANDED_SECTIONS_KEY = "sidebar-expanded-sections";
 const PINNED_SECTIONS_KEY = "sidebar-pinned-sections";
+
+type SidebarGlyphStyle = CSSProperties & {
+  "--sidebar-icon-accent": string;
+  color: string;
+};
 
 type SidebarProps = {
   onClose?: () => void;
@@ -64,6 +73,13 @@ export default function Sidebar({
   onToggleCollapse,
   isMacElectron = false,
 }: SidebarProps) {
+  const getIconStyle = (itemId: string): SidebarGlyphStyle => {
+    const accent = getSidebarIconAccent(itemId);
+    return {
+      "--sidebar-icon-accent": accent,
+      color: accent,
+    };
+  };
   const pathname = usePathname();
   const t = useTranslations("sidebar");
   const tc = useTranslations("common");
@@ -75,6 +91,7 @@ export default function Sidebar({
   const [isDisconnected, setIsDisconnected] = useState(false);
   const [showDebug, setShowDebug] = useState(false);
   const [hiddenSidebarItems, setHiddenSidebarItems] = useState<string[]>([]);
+  const [hiddenSidebarGroupLabels, setHiddenSidebarGroupLabels] = useState<string[]>([]);
   const [sidebarSectionOrder, setSidebarSectionOrder] = useState<SidebarSectionId[]>([]);
   const [sidebarItemOrder, setSidebarItemOrder] = useState<SidebarItemOrder>({});
   const [customAppName, setCustomAppName] = useState<string | null>(null);
@@ -117,6 +134,9 @@ export default function Sidebar({
     const applySettings = (data) => {
       setShowDebug(data?.debugMode === true);
       setHiddenSidebarItems(normalizeHiddenSidebarItems(data?.[HIDDEN_SIDEBAR_ITEMS_SETTING_KEY]));
+      setHiddenSidebarGroupLabels(
+        normalizeHiddenSidebarGroupLabels(data?.[HIDDEN_SIDEBAR_GROUP_LABELS_SETTING_KEY])
+      );
       setCustomAppName(data?.instanceName || null);
       setCustomLogo(data?.customLogoBase64 || data?.customLogoUrl || null);
     };
@@ -140,6 +160,11 @@ export default function Sidebar({
       if (HIDDEN_SIDEBAR_ITEMS_SETTING_KEY in detail) {
         setHiddenSidebarItems(
           normalizeHiddenSidebarItems(detail[HIDDEN_SIDEBAR_ITEMS_SETTING_KEY])
+        );
+      }
+      if (HIDDEN_SIDEBAR_GROUP_LABELS_SETTING_KEY in detail) {
+        setHiddenSidebarGroupLabels(
+          normalizeHiddenSidebarGroupLabels(detail[HIDDEN_SIDEBAR_GROUP_LABELS_SETTING_KEY])
         );
       }
       if (SIDEBAR_SECTION_ORDER_KEY in detail && Array.isArray(detail[SIDEBAR_SECTION_ORDER_KEY])) {
@@ -173,15 +198,18 @@ export default function Sidebar({
 
   const resolveItem = (item: SidebarItemDefinition, hidden: Set<string>) => {
     if (hidden.has(item.id)) return null;
-    const subtitle = item.subtitleKey ? getSidebarLabel(item.subtitleKey, "") : undefined;
+    const subtitle = item.subtitleKey
+      ? getSidebarLabel(item.subtitleKey, item.subtitleFallback ?? "")
+      : item.subtitleFallback;
     return {
       ...item,
-      label: getSidebarLabel(item.i18nKey, item.id),
+      label: getSidebarLabel(item.i18nKey, item.labelFallback ?? item.id),
       subtitle: subtitle || undefined,
     };
   };
 
   const hiddenSidebarSet = new Set(hiddenSidebarItems);
+  const hiddenSidebarGroupLabelsSet = new Set(hiddenSidebarGroupLabels);
 
   const orderedSections = applySectionOrder(
     SIDEBAR_SECTIONS.filter((section) => section.visibility !== "debug" || showDebug),
@@ -207,9 +235,11 @@ export default function Sidebar({
             return {
               ...child,
               title: getSidebarLabel(child.titleKey, child.titleFallback),
+              separatorHidden: hiddenSidebarGroupLabelsSet.has(child.id),
               items,
             } as SidebarItemGroup & {
               title: string;
+              separatorHidden: boolean;
               items: (SidebarItemDefinition & { label: string })[];
             };
           }
@@ -360,7 +390,9 @@ export default function Sidebar({
     );
     const content = (
       <>
-        <span className={iconClassName}>{item.icon}</span>
+        <span className={iconClassName} style={getIconStyle(item.id)}>
+          {item.icon}
+        </span>
         {!collapsed && (
           <div className="flex min-w-0 flex-col">
             <span className="truncate text-sm font-medium">{item.label}</span>
@@ -576,15 +608,17 @@ export default function Sidebar({
                     {section.children.map((child: any) => {
                       if (child.type === "group") {
                         if (child.items.length === 0) return null;
+                        const separatorHidden = child.separatorHidden === true;
                         return (
-                          <div key={child.id} className="mt-2">
-                            {/* Visual sub-group separator */}
-                            <div className="flex items-center gap-1.5 px-2 py-0.5 mb-0.5">
-                              <div className="h-px flex-1 bg-black/8 dark:bg-white/8" />
-                              <span className="text-[8px] font-semibold text-text-muted/40 uppercase tracking-widest">
-                                {child.title}
-                              </span>
-                            </div>
+                          <div key={child.id} className={separatorHidden ? "mt-0.5" : "mt-2"}>
+                            {!separatorHidden && (
+                              <div className="flex items-center gap-1.5 px-2 py-0.5 mb-0.5">
+                                <div className="h-px flex-1 bg-black/8 dark:bg-white/8" />
+                                <span className="text-[8px] font-semibold text-text-muted/40 uppercase tracking-widest">
+                                  {child.title}
+                                </span>
+                              </div>
+                            )}
                             {child.items.map(renderNavLink)}
                           </div>
                         );

@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useEffect, useState } from "react";
+import { Suspense, useEffect, useInsertionEffect, useState } from "react";
 import Sidebar from "../Sidebar";
 import Header from "../Header";
 import NotificationToast from "../NotificationToast";
@@ -9,6 +9,10 @@ import MaintenanceBanner from "../MaintenanceBanner";
 import CommandPalette from "../CommandPalette";
 import NavigationProgress from "../NavigationProgress";
 import { useIsElectron } from "@/shared/hooks/useElectron";
+import {
+  installDashboardCsrfFetch,
+  prefetchDashboardCsrfToken,
+} from "@/shared/utils/dashboardCsrf";
 
 const SIDEBAR_COLLAPSED_KEY = "sidebar-collapsed";
 const isE2EMode = process.env.NEXT_PUBLIC_OMNIROUTE_E2E_MODE === "1";
@@ -41,6 +45,12 @@ export default function DashboardLayout({ children }) {
     };
   }, [isMacElectron]);
 
+  useInsertionEffect(() => {
+    const uninstallDashboardCsrfFetch = installDashboardCsrfFetch();
+    void prefetchDashboardCsrfToken();
+    return uninstallDashboardCsrfFetch;
+  }, []);
+
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key === "k") {
@@ -59,7 +69,9 @@ export default function DashboardLayout({ children }) {
   };
 
   return (
-    <div className="flex h-dvh min-h-0 w-full overflow-hidden bg-bg">
+    // No bg-bg here: the body grid wallpaper (globals.css body::before) shows through
+    // this transparent wrapper into the content area. body's --color-bg is the base fill.
+    <div className="flex h-dvh min-h-0 w-full overflow-hidden">
       <Suspense fallback={null}>
         <NavigationProgress />
       </Suspense>
@@ -71,8 +83,8 @@ export default function DashboardLayout({ children }) {
         />
       )}
 
-      {/* Sidebar - Desktop */}
-      <div className="hidden min-h-0 lg:flex">
+      {/* Sidebar - Desktop: keep visibility independent from Tailwind hidden/lg:flex ordering. */}
+      <div className="dashboard-sidebar-desktop">
         <Sidebar
           collapsed={collapsed}
           onToggleCollapse={handleToggleCollapse}
@@ -100,11 +112,12 @@ export default function DashboardLayout({ children }) {
         />
         {!isE2EMode && <MaintenanceBanner />}
         <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden custom-scrollbar p-4 sm:p-6 lg:p-10">
-          <div className="max-w-7xl mx-auto w-full h-full min-h-0 flex flex-col">
+          {/* Fluid up to a 4K cap (3840px): content follows the viewport on large
+              monitors and only centers (side gutters) beyond ~4K, instead of the prior
+              1280px cap that left big empty margins on wide screens. */}
+          <div className="max-w-[3840px] mx-auto w-full h-full min-h-0 flex flex-col">
             <Breadcrumbs />
-            <div className="flex-1 min-h-0">
-              {children}
-            </div>
+            <div className="flex-1 min-h-0">{children}</div>
           </div>
         </div>
       </main>

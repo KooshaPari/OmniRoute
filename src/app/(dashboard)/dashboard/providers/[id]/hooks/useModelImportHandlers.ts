@@ -16,6 +16,7 @@
 import React, { useState } from "react";
 import type { ProviderMessageTranslator } from "../providerPageHelpers";
 import { useNotificationStore } from "@/store/notificationStore";
+import { extractImportWarning } from "./modelImportWarning";
 
 type NotifyStore = ReturnType<typeof useNotificationStore>;
 
@@ -36,7 +37,11 @@ export interface UseModelImportHandlersParams {
   models: Array<{ id: string; name?: string }>;
   modelMeta: { customModels: Array<{ id: string }>; modelCompatOverrides?: unknown[] };
   modelAliases: Record<string, string>;
-  connections: Array<{ id?: string; isActive?: boolean; providerSpecificData?: Record<string, unknown> }>;
+  connections: Array<{
+    id?: string;
+    isActive?: boolean;
+    providerSpecificData?: Record<string, unknown>;
+  }>;
   isFreeNoAuth: boolean;
   handleSetAlias: (modelId: string, alias: string, providerAlias: string) => Promise<void>;
   fetchAliases: () => Promise<void>;
@@ -128,6 +133,7 @@ export function useModelImportHandlers({
         return;
       }
       const fetchedModels = data.models || [];
+      const importWarning = extractImportWarning(data);
       if (fetchedModels.length === 0) {
         setImportProgress((prev) => ({
           ...prev,
@@ -151,7 +157,10 @@ export function useModelImportHandlers({
           ...prev,
           phase: "done",
           status: t("allModelsAlreadyImported") || "All models already imported",
-          logs: [t("noNewModelsToImport") || "No new models to import"],
+          logs: [
+            ...(importWarning ? [importWarning] : []),
+            t("noNewModelsToImport") || "No new models to import",
+          ],
           importedCount: 0,
           total: 0,
           current: 0,
@@ -166,6 +175,7 @@ export function useModelImportHandlers({
         current: 0,
         status: t("importingModelsProgress", { current: 0, total: newModels.length }),
         logs: [
+          ...(importWarning ? [importWarning] : []),
           t("foundModelsStartingImport", { count: newModels.length }),
           ...(newModels.length < fetchedModels.length
             ? [
@@ -248,7 +258,10 @@ export function useModelImportHandlers({
     }
   };
 
-  const handleCompatibleImportWithProgress = async (connectionId: string) => {
+  const handleCompatibleImportWithProgress = async (
+    connectionId: string,
+    mode: "import" | "sync" = "import"
+  ) => {
     setShowImportModal(true);
     setImportProgress({
       current: 0,
@@ -261,13 +274,32 @@ export function useModelImportHandlers({
     });
 
     try {
-      const response = await fetch(`/api/providers/${connectionId}/sync-models?mode=import`, {
+      // mode "import" merges/appends; "sync" replaces the available list (used when
+      // re-syncing after toggling "import only free models").
+      const syncUrl =
+        mode === "sync"
+          ? `/api/providers/${connectionId}/sync-models`
+          : `/api/providers/${connectionId}/sync-models?mode=import`;
+      const response = await fetch(syncUrl, {
         method: "POST",
         signal: AbortSignal.timeout(60_000),
       });
       const data = await response.json();
       if (!response.ok) {
         throw new Error(data.error || t("failedImportModels"));
+      }
+
+      if (data.freeFilterEmpty) {
+        setImportProgress((prev) => ({
+          ...prev,
+          phase: "done",
+          status: t("noFreeModelsFound"),
+          logs: [t("noFreeModelsFound")],
+          total: 0,
+          current: 0,
+          importedCount: 0,
+        }));
+        return;
       }
 
       const importedModels = Array.isArray(data.importedModels) ? data.importedModels : [];

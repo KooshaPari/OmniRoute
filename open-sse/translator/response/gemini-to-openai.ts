@@ -8,6 +8,8 @@ import {
   parseTextualToolCallCandidate,
   containsTextualToolCallMarker,
 } from "../../utils/textualToolCall.ts";
+import { normalizeOpenAICompatibleFinishReasonString } from "../../utils/finishReason.ts";
+import { stripAnsiCodes } from "../../utils/streamHelpers.ts";
 
 type GeminiToOpenAIState = {
   functionIndex: number;
@@ -48,6 +50,22 @@ type GeminiFunctionCallPart = {
 const REASONING_TAG_OPEN_REGEX =
   /<(think|thinking|thought|internal_thought)(?=\s|>|\r?\n)(?:\s[^>]*)?(?:>|\r?\n)/i;
 const REASONING_TAG_OPEN_PREFIXES = ["<think", "<thinking", "<thought", "<internal_thought"];
+
+// Close-tag matchers are needed for every text delta of a streamed reasoning response.
+// Building `new RegExp("</tag>", "i")` on each delta recompiles the pattern thousands of
+// times over a long stream (pure CPU waste on the token hot path). The tag name comes from
+// the fixed REASONING_TAG_OPEN_REGEX capture group, so the cache is naturally bounded to a
+// handful of entries. The regexes are non-global, so reuse across calls is safe (no shared
+// lastIndex state).
+const reasoningCloseTagRegexCache = new Map<string, RegExp>();
+function getReasoningCloseTagRegex(tagName: string): RegExp {
+  let regex = reasoningCloseTagRegexCache.get(tagName);
+  if (!regex) {
+    regex = new RegExp(`</${tagName}>`, "i");
+    reasoningCloseTagRegexCache.set(tagName, regex);
+  }
+  return regex;
+}
 
 function isIgnorableReasoningTagPrefix(value: string): boolean {
   return /^(?:\s|§\d+§)*$/.test(value);
@@ -102,7 +120,7 @@ function consumeTextualReasoningTags(
   while (remaining) {
     if (state.activeTextualReasoningTag) {
       const bufferedReasoning = `${state.textualReasoningContentBuffer || ""}${remaining}`;
-      const closeRegex = new RegExp(`</${state.activeTextualReasoningTag}>`, "i");
+      const closeRegex = getReasoningCloseTagRegex(state.activeTextualReasoningTag);
       const closeMatch = closeRegex.exec(bufferedReasoning);
       if (!closeMatch || closeMatch.index < 0) {
         const partialCloseStart = getTrailingReasoningCloseTagPrefixStart(
@@ -152,7 +170,7 @@ function consumeTextualReasoningTags(
     const tagName = openMatch[1];
     const bodyStart = openMatch.index + openMatch[0].length;
     const afterOpen = remaining.slice(bodyStart);
-    const closeRegex = new RegExp(`</${tagName}>`, "i");
+    const closeRegex = getReasoningCloseTagRegex(tagName);
     const closeMatch = closeRegex.exec(afterOpen);
     if (!closeMatch || closeMatch.index < 0) {
       state.activeTextualReasoningTag = tagName;
@@ -280,10 +298,47 @@ export function geminiToOpenAIResponse(chunk, state) {
   const response = chunk.response || chunk;
   if (!response) return null;
 
+  const modelVersion =
+    typeof response.modelVersion === "string" ? response.modelVersion.toLowerCase() : "";
+  const parseTextualReasoningTags = !chunk.response && !modelVersion.startsWith("antigravity/");
   const results = [];
   const candidate = response.candidates?.[0];
 
   if (!candidate) {
+    // Mid-stream Gemini API error: the stream can emit an error object
+    // `{ "error": { "code": 503, "message": "...", "status": "UNAVAILABLE" } }`
+    // (optionally wrapped in `response`) instead of a candidates payload — typically
+    // after some partial content. Without this branch the chunk has no candidates and
+    // no promptFeedback, so it is dropped (return null) and the stream ends with a
+    // default finish_reason "stop", masking the failure and skipping combo fallback.
+    // Surface it as state.upstreamError so stream.ts errors the stream out (mirrors the
+    // openai-responses translator's normalizeUpstreamFailure path).
+    const errorObj = response.error || chunk.error;
+    if (errorObj && typeof errorObj === "object") {
+      const rawCode = errorObj.code;
+      const rawStatus = errorObj.status;
+      const status =
+        typeof rawCode === "number" && rawCode >= 400 && rawCode <= 599
+          ? rawCode
+          : rawStatus === "RESOURCE_EXHAUSTED"
+            ? 429
+            : 502;
+      const message =
+        typeof errorObj.message === "string" ? errorObj.message : "Gemini upstream failure";
+      state.upstreamError = {
+        status,
+        type: status === 429 ? "rate_limit_error" : "server_error",
+        code:
+          typeof rawStatus === "string" && rawStatus
+            ? rawStatus
+            : status === 429
+              ? "rate_limit_exceeded"
+              : "bad_gateway",
+        message,
+      };
+      return null;
+    }
+
     const promptFeedback = response.promptFeedback || chunk.promptFeedback;
     if (!promptFeedback) return null;
 
@@ -347,6 +402,10 @@ export function geminiToOpenAIResponse(chunk, state) {
   // Process parts
   if (content?.parts) {
     for (const part of content.parts) {
+      // Normalize the part text once: strip ANSI/VT100 escape codes that some
+      // upstreams (gemini-cli terminal redraws) inject, so the `<thinking>` /
+      // `[Tool call:]` textual parsers below never see stray control bytes (#2273).
+      const partText = stripAnsiCodes(part.text);
       const hasThoughtSig = part.thoughtSignature || part.thought_signature;
       const isThought = part.thought === true;
       if (hasThoughtSig && typeof hasThoughtSig === "string") {
@@ -355,7 +414,7 @@ export function geminiToOpenAIResponse(chunk, state) {
 
       // Handle thought signature (thinking mode) or native gemini thought flag
       if (hasThoughtSig || isThought) {
-        const hasTextContent = part.text !== undefined && part.text !== "";
+        const hasTextContent = partText !== undefined && partText !== "";
         const hasFunctionCall = !!part.functionCall;
 
         // Gemini/Antigravity can emit thoughtSignature as a standalone part
@@ -379,7 +438,7 @@ export function geminiToOpenAIResponse(chunk, state) {
             choices: [
               {
                 index: 0,
-                delta: isThought ? { reasoning_content: part.text } : { content: part.text },
+                delta: isThought ? { reasoning_content: partText } : { content: partText },
                 finish_reason: null,
               },
             ],
@@ -387,16 +446,18 @@ export function geminiToOpenAIResponse(chunk, state) {
         }
 
         if (hasFunctionCall) {
-          // Flush any still-open textual reasoning wrapper as reasoning_content BEFORE
-          // the tool call. A signed native functionCall arriving while a `<thinking>`
-          // (etc.) tag opened in an earlier chunk is still buffered must not silently
-          // drop that buffered reasoning — flushOpenTextualReasoning emits it and clears
-          // the active-tag/content buffers. (LEDGER-4 / #3821-review)
-          flushOpenTextualReasoning(state, results);
-          // Also drop any partial open-tag fragment buffered at a chunk boundary
-          // (flushOpenTextualReasoning early-returns when only this is set), matching the
-          // pre-fix branch which cleared all three buffers. (#3821-review convergence)
-          state.textualReasoningTagBuffer = undefined;
+          if (parseTextualReasoningTags) {
+            // Flush any still-open textual reasoning wrapper as reasoning_content BEFORE
+            // the tool call. A signed native functionCall arriving while a `<thinking>`
+            // (etc.) tag opened in an earlier chunk is still buffered must not silently
+            // drop that buffered reasoning — flushOpenTextualReasoning emits it and clears
+            // the active-tag/content buffers. (LEDGER-4 / #3821-review)
+            flushOpenTextualReasoning(state, results);
+            // Also drop any partial open-tag fragment buffered at a chunk boundary
+            // (flushOpenTextualReasoning early-returns when only this is set), matching the
+            // pre-fix branch which cleared all three buffers. (#3821-review convergence)
+            state.textualReasoningTagBuffer = undefined;
+          }
           emitFunctionCallPart(part, state, results);
         }
         continue;
@@ -407,8 +468,10 @@ export function geminiToOpenAIResponse(chunk, state) {
       // "[Tool call: ...]" block instead of native functionCall. Convert that
       // back to a structured OpenAI tool call so clients/tools do not see it as
       // assistant prose.
-      if (part.text !== undefined && part.text !== "") {
-        const afterReasoning = consumeTextualReasoningTags(part.text, state, results);
+      if (partText !== undefined && partText !== "") {
+        const afterReasoning = parseTextualReasoningTags
+          ? consumeTextualReasoningTags(partText, state, results)
+          : partText;
         if (!afterReasoning) continue;
 
         let accumulated = (state.textualToolCallBuffer || "") + afterReasoning;
@@ -626,7 +689,9 @@ export function geminiToOpenAIResponse(chunk, state) {
 
   // Finish reason - include usage in final chunk
   if (candidate.finishReason) {
-    flushOpenTextualReasoning(state, results);
+    if (parseTextualReasoningTags) {
+      flushOpenTextualReasoning(state, results);
+    }
 
     if (state.textualToolCallBuffer) {
       const remainingText = state.textualToolCallBuffer;
@@ -661,20 +726,12 @@ export function geminiToOpenAIResponse(chunk, state) {
       }
     }
 
-    let finishReason = candidate.finishReason.toLowerCase();
+    // normalizeOpenAICompatibleFinishReasonString lowercases, maps max_tokens→length,
+    // and folds Gemini safety reasons (safety/recitation/blocklist/...) → content_filter
+    // so downstream clients can distinguish a blocked completion from a normal stop.
+    let finishReason = normalizeOpenAICompatibleFinishReasonString(candidate.finishReason);
     if (finishReason === "stop" && state.toolCalls.size > 0) {
       finishReason = "tool_calls";
-    } else if (finishReason === "max_tokens") {
-      finishReason = "length";
-    }
-    // Content blocked by Gemini safety filters — pass through as "content_filter"
-    // so downstream clients can distinguish from normal completion.
-    if (
-      finishReason === "safety" ||
-      finishReason === "recitation" ||
-      finishReason === "blocklist"
-    ) {
-      finishReason = "content_filter";
     }
 
     const finalChunk: Record<string, unknown> = {
@@ -705,5 +762,4 @@ export function geminiToOpenAIResponse(chunk, state) {
 
 // Register
 register(FORMATS.GEMINI, FORMATS.OPENAI, null, geminiToOpenAIResponse);
-register(FORMATS.GEMINI_CLI, FORMATS.OPENAI, null, geminiToOpenAIResponse);
 register(FORMATS.ANTIGRAVITY, FORMATS.OPENAI, null, geminiToOpenAIResponse);

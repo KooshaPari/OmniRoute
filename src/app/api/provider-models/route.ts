@@ -97,8 +97,18 @@ export async function POST(request) {
     if (isValidationFailure(validation)) {
       return Response.json({ error: validation.error }, { status: 400 });
     }
-    const { provider, modelId, modelName, source, apiFormat, supportedEndpoints, targetFormat } =
-      validation.data;
+    const {
+      provider,
+      modelId,
+      modelName,
+      source,
+      apiFormat,
+      supportedEndpoints,
+      targetFormat,
+      // #1294: persist the per-model token limits set in the add-model form.
+      max_input_tokens: maxInputTokens,
+      max_output_tokens: maxOutputTokens,
+    } = validation.data;
 
     const model = await addCustomModel(
       provider,
@@ -107,7 +117,11 @@ export async function POST(request) {
       source || "manual",
       apiFormat,
       supportedEndpoints,
-      targetFormat
+      targetFormat,
+      {
+        ...(maxInputTokens != null ? { inputTokenLimit: maxInputTokens } : {}),
+        ...(maxOutputTokens != null ? { outputTokenLimit: maxOutputTokens } : {}),
+      }
     );
     return Response.json({ model });
   } catch (error) {
@@ -400,10 +414,13 @@ export async function DELETE(request) {
     const removedCustom = await removeCustomModel(provider, modelId);
     const removedSynced = await removeSyncedAvailableModel(provider, modelId);
     if (removedSynced) {
-      // #3199: mark the deleted synced model hidden so a later auto-fetch
-      // re-import (replaceSyncedAvailableModelsForConnection) does not re-add it
-      // — otherwise the model reappears and the delete looks like it did nothing.
-      mergeModelCompatOverride(provider, modelId, { isHidden: true });
+      // #3199 + #3782: mark the deleted synced model with the DISTINCT `isDeleted`
+      // marker so a later auto-fetch re-import does not re-add it. We also keep
+      // `isHidden:true` so existing UI/visibility behavior is unchanged. The sync
+      // filter keys on `isDeleted` (not `isHidden`), which is what lets an
+      // eye/visibility-hidden model (`isHidden` only) survive a re-sync while a
+      // deleted one stays dropped.
+      mergeModelCompatOverride(provider, modelId, { isDeleted: true, isHidden: true });
     }
     const removed = removedCustom || removedSynced;
     const removedAliases = await deleteManagedAvailableModelAliases(provider, [modelId]);
