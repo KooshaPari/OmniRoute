@@ -1,7 +1,7 @@
 ---
 title: "Resilience Guide"
 version: 3.8.31
-lastUpdated: 2026-06-20
+lastUpdated: 2026-06-28
 ---
 
 # Resilience Guide
@@ -238,6 +238,40 @@ estresse/falha real (todos integração/nightly — nenhum bloqueia PR):
 
 Orquestrados por `.github/workflows/nightly-resilience.yml` (cron + dispatch). No
 `test:integration` default, chaos e heap se auto-skipam (sem `RUN_CHAOS_INT`/`--expose-gc`).
+
+---
+
+## 4. Self-Healing Telemetry (Phase 3, v2)
+
+**Scope:** every provider participating in an `autoCombo` request.
+
+**Purpose:** continuously sample per-provider latency and error rate, detect statistically anomalous samples via a rolling-window z-score, and dispatch a typed playbook (`force-proxy-rotation`, `degrade-provider`, `drop-cooldown`, etc.) against the provider manager — without operator intervention.
+
+**When it fires:** a sample whose z-score against the provider's rolling window exceeds the configured threshold. The threshold is tunable via the `ResilienceTab → Self-Healing` card (`windowSize`, `zThreshold`, `cooloffMs`, `minSamples`, `dryRun`).
+
+**Implementation:**
+
+| Layer | Path |
+|---|---|
+| DB schema | `src/lib/db/migrations/100_provider_health_history.sql` |
+| Persistence | `src/lib/db/providerHealthHistory.ts` |
+| Detector | `src/lib/resilience/anomalyDetector.ts` |
+| Settings | `src/lib/resilience/selfHealingSettings.ts` |
+| Catalog | `src/lib/resilience/playbooks.ts` |
+| Coordinator | `src/lib/resilience/selfHealingManager.ts` |
+| Hook | `src/lib/resilience/anomalyHook.ts` (singleton) |
+| Boot wiring | `src/server-init.ts` (lazy hydration on first sample) |
+| UI | `src/app/(dashboard)/dashboard/settings/components/ResilienceTab.tsx` |
+| E2E | `tests/e2e/selfHealing.test.ts` |
+
+**Master switches (must both be on for the loop to act):**
+
+1. `ResilienceTab → Self-Healing → Enabled` (or via `PATCH /api/resilience { selfHealing: { enabled: true, ... } }`)
+2. `OMNIROUTE_SELF_HEALING_ENABLED` feature flag in `featureFlagDefinitions.ts` (`category: "health"`, default `false`)
+
+**Retention:** DB rows older than `retentionSeconds` (default 86_400 = 24h) are pruned by `SelfHealingManager.prune()`, called on boot and at each detection cycle.
+
+**Dry-run:** setting `dryRun: true` records the action to the anomaly ledger but skips the side-effect on the provider manager. Use this to tune thresholds safely before letting the loop act on real traffic.
 
 ---
 

@@ -444,4 +444,16 @@ export const FEATURE_FLAG_DEFINITIONS: FeatureFlagDefinition[] = [
     requiresRestart: false,
     warningLevel: "caution",
   },
+  {
+    key: "OMNIROUTE_SELF_HEALING_ENABLED",
+    label: "Self-Healing Telemetry",
+    description:
+      "Detect provider health anomalies (rolling z-score over latency/error-rate buckets) and execute pre-typed remediation playbooks (degrade provider, force proxy rotation, drop cooldown window). Default off so existing routing behaviour is unchanged.",
+    descriptionI18nKey: "featureFlagOmnirouteSelfHealingEnabledDescription",
+    category: "health",
+    defaultValue: "false",
+    type: "boolean",
+    requiresRestart: false,
+    warningLevel: "info",
+  },
 ];

@@ -1,5 +1,10 @@
 import { DEFAULT_API_LIMITS, PROVIDER_PROFILES } from "@omniroute/open-sse/config/constants";
 import { resolveFeatureFlag } from "@/shared/utils/featureFlags";
+import {
+  DEFAULT_SELF_HEALING_SETTINGS,
+  normalizeSelfHealingSettings,
+  type SelfHealingSettings,
+} from "./selfHealingSettings";
 
 type JsonRecord = Record<string, unknown>;
 type AuthCategory = "oauth" | "apikey";
@@ -160,6 +165,12 @@ export interface ResilienceSettings {
   providerCooldown: ProviderCooldownSettings;
   quotaPreflight: QuotaPreflightSettings;
   streamRecovery: StreamRecoverySettings;
+  /**
+   * Phase 3 self-healing v2 tunables. Master `enabled` flag, anomaly
+   * detection z-score thresholds, retention window, playbook toggle.
+   * See ./selfHealingSettings.ts for the full schema.
+   */
+  selfHealing: SelfHealingSettings;
 }
 
 export interface ResilienceSettingsPatch {
@@ -172,6 +183,7 @@ export interface ResilienceSettingsPatch {
   providerCooldown?: Partial<ProviderCooldownSettings>;
   quotaPreflight?: Partial<QuotaPreflightSettings>;
   streamRecovery?: Partial<StreamRecoverySettings>;
+  selfHealing?: Partial<SelfHealingSettings>;
 }
 
 function asRecord(value: unknown): JsonRecord {
@@ -334,6 +346,14 @@ export const DEFAULT_RESILIENCE_SETTINGS: ResilienceSettings = {
     // Opt-in (default OFF): mid-stream continuation re-requests after a post-commit cut.
     continueMidStream: ["true", "1", "on"].includes(
       (process.env.STREAM_RECOVERY_MIDSTREAM_ENABLED || "").trim().toLowerCase()
+    ),
+  },
+  // Phase 3 self-healing v2. Master switch defaults off; opt-in via
+  // env SELF_HEALING_ENABLED (or the ResilienceSettings UI).
+  selfHealing: {
+    ...DEFAULT_SELF_HEALING_SETTINGS,
+    enabled: ["true", "1", "on"].includes(
+      (process.env.SELF_HEALING_ENABLED || "").trim().toLowerCase()
     ),
   },
 };
@@ -701,6 +721,7 @@ function buildLegacyFallback(settings: JsonRecord): ResilienceSettings {
     providerCooldown: DEFAULT_RESILIENCE_SETTINGS.providerCooldown,
     quotaPreflight: DEFAULT_RESILIENCE_SETTINGS.quotaPreflight,
     streamRecovery: streamRecoveryDefaults,
+    selfHealing: DEFAULT_SELF_HEALING_SETTINGS,
   };
 }
 
@@ -757,6 +778,7 @@ export function resolveResilienceSettings(
       current.streamRecovery,
       fallback.streamRecovery
     ),
+    selfHealing: normalizeSelfHealingSettings(current.selfHealing),
   };
 }
 
@@ -804,6 +826,10 @@ export function mergeResilienceSettings(
     ),
     quotaPreflight: normalizeQuotaPreflightSettings(updates.quotaPreflight, current.quotaPreflight),
     streamRecovery: normalizeStreamRecoverySettings(updates.streamRecovery, current.streamRecovery),
+    selfHealing: normalizeSelfHealingSettings({
+      ...current.selfHealing,
+      ...(updates.selfHealing ?? {}),
+    }),
   };
 }
 
