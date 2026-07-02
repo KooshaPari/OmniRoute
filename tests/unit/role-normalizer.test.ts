@@ -84,6 +84,16 @@ test("normalizeSystemRole merges system and developer content into the first use
   ]);
 });
 
+test("normalizeSystemRole preserves system role for glm-5.1 and glm-5.2", () => {
+  const messages = [
+    { role: "system", content: "follow policy" },
+    { role: "user", content: "say hello" },
+  ];
+
+  assert.deepEqual(normalizeSystemRole(messages, "openai", "glm-5.1"), messages);
+  assert.deepEqual(normalizeSystemRole(messages, "openai", "glm-5.2"), messages);
+});
+
 test("normalizeSystemRole inserts a user message when no user exists and drops empty system payloads", () => {
   const messages = [
     { role: "system", content: [{ type: "image_url", image_url: { url: "ignored" } }] },
@@ -96,6 +106,22 @@ test("normalizeSystemRole inserts a user message when no user exists and drops e
   assert.deepEqual(result, [
     { role: "user", content: "[System Instructions]\nplain developer text" },
     { role: "assistant", content: "ready" },
+  ]);
+});
+
+test("normalizeSystemRole converts system role for older glm-5.0 models", () => {
+  const messages = [
+    { role: "system", content: "[Context compressed: earlier messages removed]" },
+    { role: "user", content: "say hello" },
+  ];
+
+  const result = normalizeSystemRole(messages, "openai", "glm-5.0");
+
+  assert.deepEqual(result, [
+    {
+      role: "user",
+      content: "[System Instructions]\n[Context compressed: earlier messages removed]\n\n[User Message]\nsay hello",
+    },
   ]);
 });
 
