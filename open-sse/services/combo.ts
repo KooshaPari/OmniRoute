@@ -2410,6 +2410,22 @@ export async function handleComboChat({
             !isTokenLimitBreach &&
             [408, 429, 500, 502, 503, 504].includes(result.status);
           if (retry < maxRetries && isTransient && !providerExhausted) {
+            // The auth layer (handleSingleModelChat) may have already recorded a
+            // model lockout for this provider:model (e.g. on 500 server_error).
+            // Check before retrying — retrying a locked model wastes an upstream
+            // call and extends the cooldown. Let the combo try the next target.
+            if (
+              provider &&
+              rawModel &&
+              isModelLocked(provider, targetWithConnection.connectionId || "", rawModel)
+            ) {
+              log.info(
+                "COMBO",
+                `Skipping retry for ${modelStr} — model locked by auth layer (cooldown active)`
+              );
+              if (i > 0) fallbackCount++;
+              return null;
+            }
             // Record model lockout immediately on the first transient failure —
             // once the model is cooling down, retrying it would waste an upstream
             // call and extend the cooldown via exponential backoff.
