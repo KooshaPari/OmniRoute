@@ -4,11 +4,12 @@
 //! serve as fallbacks when no config file is present; users override via
 //! `~/.config/sharecli/config.toml`.
 
-use anyhow::Result;
-use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::path::PathBuf;
 use std::sync::OnceLock;
+
+use anyhow::Result;
+use serde::{Deserialize, Serialize};
 
 // ---------------------------------------------------------------------------
 // Top-level Config
@@ -251,11 +252,7 @@ pub struct SpawnPolicyConfig {
 
 impl Default for SpawnPolicyConfig {
     fn default() -> Self {
-        Self {
-            nice_level: 10,
-            max_concurrent_builds: 2,
-            use_sccache: false,
-        }
+        Self { nice_level: 10, max_concurrent_builds: 2, use_sccache: false }
     }
 }
 

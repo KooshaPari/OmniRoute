@@ -34,7 +34,9 @@ fn main() -> anyhow::Result<()> {
         .args(["build", "-Doptimize=ReleaseSafe"])
         .current_dir(&spawn_core_dir)
         .status()
-        .map_err(|e| anyhow::anyhow!("failed to run `zig build`: {e}\nIs zig installed and on PATH?"))?;
+        .map_err(|e| {
+            anyhow::anyhow!("failed to run `zig build`: {e}\nIs zig installed and on PATH?")
+        })?;
 
     if !status.success() {
         anyhow::bail!("`zig build` exited with status {status}");

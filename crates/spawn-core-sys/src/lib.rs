@@ -99,7 +99,11 @@ impl ZigSemaphore {
     pub fn acquire(&self) -> Result<(), std::io::Error> {
         // SAFETY: ptr is valid; spc_semaphore_acquire is thread-safe.
         let rc = unsafe { spc_semaphore_acquire(self.ptr) };
-        if rc == 0 { Ok(()) } else { Err(std::io::Error::from_raw_os_error(-rc)) }
+        if rc == 0 {
+            Ok(())
+        } else {
+            Err(std::io::Error::from_raw_os_error(-rc))
+        }
     }
 
     /// Try to acquire one permit without blocking.
@@ -119,7 +123,11 @@ impl ZigSemaphore {
     pub fn release(&self) -> Result<(), std::io::Error> {
         // SAFETY: ptr is valid.
         let rc = unsafe { spc_semaphore_release(self.ptr) };
-        if rc == 0 { Ok(()) } else { Err(std::io::Error::from_raw_os_error(-rc)) }
+        if rc == 0 {
+            Ok(())
+        } else {
+            Err(std::io::Error::from_raw_os_error(-rc))
+        }
     }
 
     /// Return the approximate number of available permits.
@@ -182,7 +190,11 @@ pub fn zig_spawn(
 pub fn zig_waitpid(pid: i32) -> Result<i32, std::io::Error> {
     // SAFETY: spc_waitpid wraps waitpid(2).
     let rc = unsafe { spc_waitpid(pid) };
-    if rc >= 0 { Ok(rc) } else { Err(std::io::Error::from_raw_os_error(-rc)) }
+    if rc >= 0 {
+        Ok(rc)
+    } else {
+        Err(std::io::Error::from_raw_os_error(-rc))
+    }
 }
 
 // ---------------------------------------------------------------------------

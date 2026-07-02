@@ -1,13 +1,15 @@
 //! CLI commands for sharecli
 
+use std::path::PathBuf;
+use std::sync::Arc;
+
+use anyhow::Result;
+
 use crate::config::{self, Config, ConfigCmd, ProjectCmd};
 use crate::runtime::{
     ProcessFilter, ProcessInfo, ProcessPool, ProjectLimits, ProjectResources, SharedRuntime,
 };
 use crate::spawn_policy::SpawnPolicy;
-use anyhow::Result;
-use std::path::PathBuf;
-use std::sync::Arc;
 
 /// Shared runtime instance
 static SHARED_RUNTIME: std::sync::OnceLock<SharedRuntime> = std::sync::OnceLock::new();
@@ -59,12 +61,7 @@ pub async fn ps(project: Option<&str>, harness: Option<&str>, all: bool) -> Resu
 }
 
 /// Start a harness process
-pub async fn start(
-    project: &str,
-    harness: &str,
-    cwd: Option<&str>,
-    args: &[String],
-) -> Result<()> {
+pub async fn start(project: &str, harness: &str, cwd: Option<&str>, args: &[String]) -> Result<()> {
     let cfg = Config::load()?;
 
     let project_path = if let Some(c) = cwd {

@@ -14,6 +14,7 @@
 use std::env;
 use std::fs;
 use std::path::Path;
+
 use xxhash_rust::xxh3::xxh3_64;
 
 fn main() {

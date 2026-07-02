@@ -42,6 +42,10 @@ jobs:
         uses: dtolnay/rust-toolchain@stable
         with:
           components: clippy
+      - name: Setup Zig
+        uses: mlugg/setup-zig@v2
+        with:
+          version: 0.14.1
       - name: Cache dependencies
         uses: Swatinem/rust-cache@v2
       - name: Run clippy
@@ -54,6 +58,10 @@ jobs:
       - uses: actions/checkout@v4
       - name: Setup Rust
         uses: dtolnay/rust-toolchain@stable
+      - name: Setup Zig
+        uses: mlugg/setup-zig@v2
+        with:
+          version: 0.14.1
       - name: Cache dependencies
         uses: Swatinem/rust-cache@v2
       - name: Build tests
@@ -68,6 +76,10 @@ jobs:
       - uses: actions/checkout@v4
       - name: Setup Rust
         uses: dtolnay/rust-toolchain@stable
+      - name: Setup Zig
+        uses: mlugg/setup-zig@v2
+        with:
+          version: 0.14.1
       - name: Cache dependencies
         uses: Swatinem/rust-cache@v2
       - name: Build (debug)

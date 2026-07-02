@@ -13,6 +13,7 @@
 use std::ffi::{CStr, CString};
 use std::os::raw::{c_char, c_int};
 use std::sync::OnceLock;
+
 use tokio::runtime::Runtime;
 
 static RT: OnceLock<Runtime> = OnceLock::new();
@@ -38,8 +39,7 @@ pub extern "C" fn sharecli_ipc_start() -> c_int {
     let exe = find_sidecar("sharecli-ipc");
     match exe {
         Some(path) => {
-            let _ = std::process::Command::new(path)
-                .spawn();
+            let _ = std::process::Command::new(path).spawn();
             // Give it a moment to bind the socket.
             std::thread::sleep(std::time::Duration::from_millis(200));
             0

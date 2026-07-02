@@ -1,7 +1,8 @@
-use rand::{rng, RngExt};
 use std::path::Path;
 use std::process::Command;
 use std::thread;
+
+use rand::{rng, RngExt};
 
 pub fn run(
     real_cmd: &Path,
