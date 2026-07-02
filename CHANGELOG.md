@@ -47,11 +47,11 @@
 
 ### ✨ New Features
 
-_TBD_
+- **feat(providers):** add ClinePass as a first-class API-key provider (Cline's BYOK gateway). (thanks @adentdk)
 
 ### 🔧 Bug Fixes
 
-- **fix(translator):** antigravity→openai request now emits Anthropic-compliant content blocks — drops empty text blocks and preserves tool calls/text co-located with tool results. (thanks @SahrulRamadhanHardiansyah)
+_TBD_
 
 ### 📝 Maintenance
 
