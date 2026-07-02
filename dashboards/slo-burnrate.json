@@ -1,0 +1,10 @@
+{
+  "title": "SLO Burn-Rate — P99 Latency",
+  "uid": "slo-burnrate-l63",
+  "panels": [
+    {"type":"gauge","title":"Current p99 (ms)","targets":[{"expr":"histogram_quantile(0.99,rate(latency_seconds_bucket[5m]))"}],"thresholds":[{"value":1800,"color":"yellow"},{"value":2000,"color":"red"}]},
+    {"type":"stat","title":"Error Budget Remaining","targets":[{"expr":"(1 - (sum(rate(latency_seconds_count{status!=\"ok\"}[30d])) / sum(rate(latency_seconds_count[30d])))) * 100"}],"unit":"percent","color":{"mode":"thresholds","thresholds":[{"value":50,"color":"green"},{"value":10,"color":"yellow"},{"value":0,"color":"red"}]}},
+    {"type":"graph","title":"Burn Rate (1h)","targets":[{"expr":"rate(latency_seconds_count{status!=\"ok\"}[1h]) / (1 - 0.999) / rate(latency_seconds_count[1h])"}],"nullValueMode":"null"},
+    {"type":"timeline","title":"Alert History","targets":[{"expr":"ALERTS{alertname=\"SLOBurnRateFast\"}"}]}
+  ]
+}
