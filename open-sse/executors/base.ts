@@ -66,6 +66,7 @@ import {
   stripProxyToolPrefix,
 } from "./claudeIdentity.ts";
 import { withForcedResponsesUpstream } from "./forceResponsesUpstream.ts";
+import { stripVersionedToolModelPrefix } from "./stripVersionedToolModelPrefix.ts";
 
 /**
  * Sanitizes a custom API path to prevent path traversal attacks.
@@ -164,6 +165,8 @@ export function mergeUpstreamExtraHeaders(
   for (const [k, v] of Object.entries(extra)) {
     if (typeof k === "string" && k.length > 0 && typeof v === "string") {
       if (k.toLowerCase() === "user-agent") {
+        // Use setUserAgentHeader to write into both the canonical "User-Agent"
+        // key and the lowercase "user-agent" key for case-sensitive upstreams.
         setUserAgentHeader(headers, v);
         continue;
       }
@@ -425,27 +428,6 @@ export function sanitizeReasoningEffortForProvider(
   }
 
   return body;
-}
-
-/**
- * Strip the OmniRoute provider prefix from versioned built-in tool model
- * fields (e.g. `cc/claude-opus-4-8` → `claude-opus-4-8`). Versioned built-in
- * tool types carry an 8-digit date suffix (`advisor_20260301`, `bash_20250124`);
- * the real Claude CLI sends a bare model id there, never a prefixed one, so a
- * leaked OmniRoute prefix makes Anthropic reject the request. Mutates in place.
- */
-export function stripVersionedToolModelPrefix(tools: unknown): void {
-  if (!Array.isArray(tools)) return;
-  for (const t of tools as Array<Record<string, unknown>>) {
-    if (
-      typeof t.type === "string" &&
-      /^[a-z][a-z0-9_]*_\d{8}$/.test(t.type) &&
-      typeof t.model === "string" &&
-      t.model.includes("/")
-    ) {
-      t.model = t.model.split("/").pop();
-    }
-  }
 }
 
 /**
@@ -925,6 +907,16 @@ export class BaseExecutor {
       const url = this.buildUrl(model, stream, urlIndex, requestCredentials);
       const headers = this.buildHeaders(requestCredentials, stream, clientHeaders, model);
       applyConfiguredUserAgent(headers, requestCredentials?.providerSpecificData);
+
+      // Strip OpenAI SDK (X-Stainless-*) metadata + normalize SDK-derived User-Agent
+      // on OpenAI-compatible passthrough requests — some upstream gateways 403 on them.
+      const strippedStainless = stripStainlessHeadersForOpenAICompat(headers, this.provider, url);
+      if (strippedStainless.length > 0) {
+        log?.debug?.(
+          "HEADERS",
+          `Stripped X-Stainless-* from OpenAI-compatible request: ${strippedStainless.join(", ")}`
+        );
+      }
 
       // Strip OpenAI SDK (X-Stainless-*) metadata + normalize SDK-derived User-Agent
       // on OpenAI-compatible passthrough requests — some upstream gateways 403 on them.
