@@ -783,7 +783,8 @@ const RequestLoggerV2 = forwardRef<RequestLoggerV2Handle, { initialSelectedId?: 
             throw new Error(data?.error?.message || data?.error || `HTTP ${res.status}`);
           }
           const run = data?.run;
-          const suffix = run?.status === "blocked" ? " blocked by prerequisite checks" : " queued";
+          const suffix =
+            run?.status === "blocked" ? " blocked by prerequisite checks" : " recorded";
           setIssueAgentStatus(`Issue-agent run ${run?.id || "created"}${suffix}.`);
         } catch (error) {
           setIssueAgentStatus(
