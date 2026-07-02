@@ -1390,7 +1390,6 @@ function attachLogMeta(
  * @param {string} options.connectionId - Connection ID for settings lookup
  */
 
-<<<<<<< HEAD
 /**
  * Module-level cache for upstream proxy config (shared across all requests).
  * 10s TTL prevents per-request DB lookups while staying fresh enough for setting changes.
