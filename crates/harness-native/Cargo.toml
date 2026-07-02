@@ -45,7 +45,7 @@ chrono = { version = "0.4", features = ["serde"] }
 thiserror = "2"
 anyhow = "1"
 dunce = "1"
-itertools = "0.12"
+itertools = "0.15"
 
 [features]
 default = []
