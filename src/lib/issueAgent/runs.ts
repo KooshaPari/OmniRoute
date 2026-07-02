@@ -11,7 +11,7 @@ export type IssueAgentRun = {
   issueRef: string;
   settings: ReturnType<typeof normalizeIssueAgentSettings>;
   source: string;
-  status: "queued" | "blocked" | "cancelled";
+  status: "recorded" | "blocked" | "cancelled";
   diagnostics: {
     summary: string;
     redactedPreview: string;
@@ -68,7 +68,7 @@ export function createIssueAgentRun(input: CreateIssueAgentRunInput): IssueAgent
     issueRef: input.issueRef || "unfiled",
     settings,
     source: input.source || "manual",
-    status: blocked ? "blocked" : "queued",
+    status: blocked ? "blocked" : "recorded",
     diagnostics: {
       summary: buildDiagnosticSummary(input.log, input.detail),
       redactedPreview,
@@ -99,9 +99,12 @@ function buildDiagnosticSummary(log: unknown, detail: unknown): string {
 }
 
 const runs = new Map<string, IssueAgentRun>();
+const MAX_RUNS = 200;
 
 export function saveIssueAgentRun(run: IssueAgentRun): IssueAgentRun {
+  pruneIssueAgentRuns(run.settings.retentionDays);
   runs.set(run.id, run);
+  pruneIssueAgentRuns(run.settings.retentionDays);
   return run;
 }
 
@@ -124,4 +127,18 @@ export function cancelIssueAgentRun(id: string): IssueAgentRun | null {
 export function resetIssueAgentRunsForTests() {
   runs.clear();
   nextRunId = 1;
+}
+
+export function pruneIssueAgentRuns(retentionDays = 7) {
+  const cutoff = Date.now() - Math.max(1, retentionDays) * 24 * 60 * 60 * 1000;
+  for (const [id, run] of runs) {
+    if (new Date(run.createdAt).getTime() < cutoff) {
+      runs.delete(id);
+    }
+  }
+
+  const sorted = Array.from(runs.values()).sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+  for (const stale of sorted.slice(MAX_RUNS)) {
+    runs.delete(stale.id);
+  }
 }

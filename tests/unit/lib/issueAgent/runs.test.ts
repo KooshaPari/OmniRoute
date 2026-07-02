@@ -1,7 +1,18 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { createIssueAgentRun, IssueAgentMode } from "../../../../src/lib/issueAgent/runs.ts";
+import {
+  createIssueAgentRun,
+  getIssueAgentRun,
+  IssueAgentMode,
+  listIssueAgentRuns,
+  resetIssueAgentRunsForTests,
+  saveIssueAgentRun,
+} from "../../../../src/lib/issueAgent/runs.ts";
+
+test.beforeEach(() => {
+  resetIssueAgentRunsForTests();
+});
 
 test("run creation records report, triage, fix, and combined modes without executing git", () => {
   const modes: IssueAgentMode[] = ["report", "triage", "fix", "triage-and-fix"];
@@ -34,6 +45,7 @@ test("run creation records report, triage, fix, and combined modes without execu
   );
   assert.match(runs[0].diagnostics.summary, /POST/);
   assert.doesNotMatch(runs[0].diagnostics.redactedPreview, /secret/);
+  assert.equal(runs[0].status, "recorded");
 });
 
 test("fix run is blocked when prerequisite checks fail", () => {
@@ -47,4 +59,45 @@ test("fix run is blocked when prerequisite checks fail", () => {
 
   assert.equal(run.status, "blocked");
   assert.deepEqual(run.prerequisiteCheck?.missing, ["gh"]);
+});
+
+test("run store prunes expired runs on write", () => {
+  const oldRun = createIssueAgentRun({
+    issueRef: "owner/repo#123",
+    mode: "triage",
+    settings: { retentionDays: 1 },
+    now: () => new Date("2026-06-28T12:00:00.000Z"),
+    idFactory: () => "old-run",
+  });
+  saveIssueAgentRun(oldRun);
+
+  const freshRun = createIssueAgentRun({
+    issueRef: "owner/repo#123",
+    mode: "triage",
+    settings: { retentionDays: 1 },
+    now: () => new Date(),
+    idFactory: () => "fresh-run",
+  });
+  saveIssueAgentRun(freshRun);
+
+  assert.equal(getIssueAgentRun("old-run"), null);
+  assert.equal(getIssueAgentRun("fresh-run")?.id, "fresh-run");
+});
+
+test("run store caps retained runs", () => {
+  for (let i = 0; i < 205; i += 1) {
+    saveIssueAgentRun(
+      createIssueAgentRun({
+        issueRef: "owner/repo#123",
+        mode: "triage",
+        now: () => new Date(2026, 5, 30, 12, 0, i),
+        idFactory: () => `run-${i}`,
+      })
+    );
+  }
+
+  const runs = listIssueAgentRuns();
+  assert.equal(runs.length, 200);
+  assert.equal(getIssueAgentRun("run-0"), null);
+  assert.equal(getIssueAgentRun("run-204")?.id, "run-204");
 });
