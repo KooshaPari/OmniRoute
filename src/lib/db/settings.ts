@@ -111,6 +111,7 @@ export async function getSettings() {
     mcpEnabled: false,
     a2aEnabled: false,
     hiddenSidebarItems: [],
+    hiddenSidebarGroupLabels: [],
     sidebarSectionOrder: [],
     sidebarItemOrder: {},
     sidebarActivePreset: null,
@@ -123,6 +124,7 @@ export async function getSettings() {
     autoRefreshProviderQuota: false,
     autoRefreshProviderQuotaInterval: 180,
     comboConfigMode: "guided",
+    comboAutoPromoteEnabled: false,
     codexServiceTier: { enabled: false },
     claudeFastMode: {
       enabled: false,
@@ -135,6 +137,9 @@ export async function getSettings() {
     wsAuth: false,
     maxBodySizeMb: requestBodyLimitMbFromEnv(process.env.MAX_BODY_SIZE_BYTES),
     debugMode: true,
+    // Opt-in diagnostic: when true, the chat handler emits a `log.debug("TOOLS", …)`
+    // line per request summarizing tool count + MCP/hosted/client source breakdown.
+    logToolSources: false,
     // LOCAL_ONLY manage-scope bypass policy defaults (T-011 / spec §Data Model).
     // Preserves PR #2473 behaviour on migration — the bypass starts ENABLED
     // for `/api/mcp/` so existing manage-scope Bearer clients keep working.
@@ -146,6 +151,8 @@ export async function getSettings() {
     customBannedSignals: [],
     proxyEnabled: true,
     perKeyProxyEnabled: false,
+    customSystemPromptEnabled: false,
+    customSystemPrompt: "",
   };
   for (const row of rows) {
     const record = toRecord(row);
@@ -1139,8 +1146,7 @@ export async function getCacheTrend(hours = 24): Promise<CacheTrendPoint[]> {
 }
 
 export async function resetCacheMetrics() {
-  // No-op: cannot delete historical usage data
-  // Cache metrics are computed from usage_history, so they reflect actual request history
+  // No-op: cache metrics are computed from usage_history.
   console.warn(
     "resetCacheMetrics is deprecated - cache metrics are now computed from usage_history"
   );

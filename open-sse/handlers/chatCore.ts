@@ -2,6 +2,7 @@ import { injectMemoryAndSkills } from "./chatCore/memorySkillsInjection.ts";
 import { checkIdempotencyCache } from "./chatCore/idempotency.ts";
 import { checkSemanticCache } from "./chatCore/semanticCache.ts";
 import { sanitizeChatRequestBody } from "./chatCore/sanitization.ts";
+import { buildExecutorClientHeaders } from "./chatCore/buildExecutorClientHeaders.ts";
 import { CORS_HEADERS } from "../utils/cors.ts";
 import { HEAP_PRESSURE_THRESHOLD_MB } from "../utils/heapPressure.ts";
 import { normalizeHeaders } from "../utils/headers.ts";
@@ -121,6 +122,11 @@ import {
 import { getProviderCredentials, extractSessionAffinityKey } from "@/sse/services/auth";
 import { deleteSessionAccountAffinity } from "@/lib/db/sessionAccountAffinity";
 import { getExecutor } from "../executors/index.ts";
+import {
+  shouldRouteViaBifrost,
+  createBifrostBackedExecutor,
+} from "../executors/bifrost.ts";
+import { runWithShadowSampler } from "../executors/bifrostShadow.ts";
 import { getCacheControlSettings } from "@/lib/cacheControlSettings";
 import { guardrailRegistry, resolveDisabledGuardrails } from "@/lib/guardrails";
 import {
@@ -1389,6 +1395,7 @@ function attachLogMeta(
  * @param {string} options.connectionId - Connection ID for settings lookup
  */
 
+<<<<<<< HEAD
 /**
  * Module-level cache for upstream proxy config (shared across all requests).
  * 10s TTL prevents per-request DB lookups while staying fresh enough for setting changes.
@@ -1451,32 +1458,7 @@ async function getUpstreamProxyConfigCached(providerId: string) {
   return result;
 }
 
-function buildExecutorClientHeaders(
-  headers: Headers | Record<string, unknown> | null | undefined,
-  userAgent?: string | null
-) {
-  const normalized: Record<string, string> = {};
-
-  if (headers instanceof Headers) {
-    headers.forEach((value, key) => {
-      normalized[key] = value;
-    });
-  } else if (headers && typeof headers === "object") {
-    for (const [key, value] of Object.entries(headers)) {
-      if (typeof value === "string") {
-        normalized[key] = value;
-      }
-    }
-  }
-
-  const normalizedUserAgent = typeof userAgent === "string" ? userAgent.trim() : "";
-  if (normalizedUserAgent && !normalized["user-agent"] && !normalized["User-Agent"]) {
-    normalized["user-agent"] = normalizedUserAgent;
-    normalized["User-Agent"] = normalizedUserAgent;
-  }
-
-  return Object.keys(normalized).length > 0 ? normalized : null;
-}
+// buildExecutorClientHeaders extracted to chatCore/buildExecutorClientHeaders.ts (PR-017)
 
 function isCopilotClient(
   headers: Headers | Record<string, unknown> | null | undefined,
@@ -3488,6 +3470,15 @@ export async function handleChatCore({
   // mode="fallback": returns a wrapper that tries native first, falls back to CLIProxyAPI on 5xx/network errors.
 
   const resolveExecutorWithProxy = async (prov: string) => {
+    const providerSpecificData =
+      credentials?.providerSpecificData && typeof credentials.providerSpecificData === "object"
+        ? credentials.providerSpecificData
+        : null;
+
+    if (shouldRouteViaBifrost(prov, { providerSpecificData })) {
+      return createBifrostBackedExecutor(prov, log);
+    }
+
     const cfg = await getUpstreamProxyConfigCached(prov);
     if (!cfg.enabled || cfg.mode === "native") return getExecutor(prov);
 

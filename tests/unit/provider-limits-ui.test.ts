@@ -110,6 +110,35 @@ test("remaining percentage helpers reflect remaining quota and stale resets refi
   assert.equal(providerLimitUtils.calculatePercentage(parsed[0].used, parsed[0].total), 100);
 });
 
+test("percentage-only quotas hide redundant usage counts while counted quotas keep them", () => {
+  const codex = providerLimitUtils.parseQuotaData("codex", {
+    quotas: {
+      session: { used: 7, total: 100, remainingPercentage: 93 },
+      weekly: { used: 28, total: 100, remainingPercentage: 72 },
+    },
+  });
+
+  assert.equal(codex.length, 2);
+  assert.equal(codex[0].isPercentageOnly, true);
+  assert.equal(providerLimitUtils.shouldShowQuotaUsageCount(codex[0]), false);
+  assert.equal(providerLimitUtils.shouldShowQuotaUsageCount(codex[1]), false);
+
+  const counted = providerLimitUtils.parseQuotaData("kimi-coding", {
+    quotas: {
+      Weekly: {
+        used: 28,
+        total: 100,
+        remaining: 72,
+        remainingPercentage: 72,
+      },
+    },
+  });
+
+  assert.equal(counted.length, 1);
+  assert.equal(counted[0].isPercentageOnly, undefined);
+  assert.equal(providerLimitUtils.shouldShowQuotaUsageCount(counted[0]), true);
+});
+
 test("quota labels normalize session and weekly windows while preserving readable titles", () => {
   assert.equal(providerLimitUtils.formatQuotaLabel("session"), "Session");
   assert.equal(providerLimitUtils.formatQuotaLabel("session (5h)"), "Session");
@@ -117,6 +146,7 @@ test("quota labels normalize session and weekly windows while preserving readabl
   assert.equal(providerLimitUtils.formatQuotaLabel("weekly (7d)"), "Weekly");
   assert.equal(providerLimitUtils.formatQuotaLabel("weekly sonnet (7d)"), "Weekly Sonnet");
   assert.equal(providerLimitUtils.formatQuotaLabel("code_review"), "Code Review");
+  assert.equal(providerLimitUtils.formatQuotaLabel("code_review_weekly"), "Code Review Weekly");
   assert.equal(providerLimitUtils.formatQuotaLabel("mcp_monthly"), "Monthly");
 });
 
@@ -172,6 +202,41 @@ test("GLM quota rows are ordered by session, weekly, then monthly", () => {
   assert.deepEqual(
     parsed.map((quota) => quota.name),
     ["session", "weekly", "mcp_monthly"]
+  );
+});
+
+test("hidden provider models are filtered from per-model quota rows", () => {
+  const quotas = providerLimitUtils.parseQuotaData("antigravity", {
+    quotas: {
+      "gpt-oss-120b-medium": { used: 2, total: 100, remainingPercentage: 98 },
+      "gemini-3.5-pro": { used: 10, total: 100, remainingPercentage: 90 },
+      credits: { remaining: 42 },
+    },
+  });
+  const hidden = providerLimitUtils.collectHiddenQuotaModelIds("antigravity", {
+    models: [{ id: "antigravity/gpt-oss-120b-medium", isHidden: true }],
+    modelCompatOverrides: [{ id: "gemini-3.5-flash", isDeleted: true }],
+  });
+  const visible = providerLimitUtils.filterHiddenModelQuotas("antigravity", quotas, hidden);
+
+  assert.deepEqual(
+    visible.map((quota) => quota.modelKey || quota.name),
+    ["gemini-3.5-pro", "credits"]
+  );
+});
+
+test("hidden quota filtering keeps non-model provider quota rows", () => {
+  const quotas = [
+    { name: "weekly", used: 2, total: 100 },
+    { name: "credits", isCredits: true, remaining: 10 },
+  ];
+  const hidden = providerLimitUtils.collectHiddenQuotaModelIds("antigravity", {
+    modelCompatOverrides: [{ id: "weekly", isHidden: true }],
+  });
+
+  assert.deepEqual(
+    providerLimitUtils.filterHiddenModelQuotas("antigravity", quotas, hidden),
+    quotas
   );
 });
 

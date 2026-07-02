@@ -31,7 +31,7 @@ src/shared/constants/agentSkills.ts    — 42-entry curated list (name/desc/cate
 src/lib/agentSkills/
   catalog.ts                           — getCatalog(), getSkillById(), filterCatalog(), computeCoverage()
   generator.ts                         — generateAgentSkills() writes SKILL.md to skills/{id}/
-  openapiParser.ts                     — extracts REST endpoints from docs/reference/openapi.yaml
+  openapiParser.ts                     — extracts REST endpoints from docs/openapi.yaml
   cliRegistryParser.ts                 — extracts CLI subcommands from bin/cli-registry.ts
   schemas.ts                           — Zod schemas: AgentSkillSchema, SkillCoverageSchema, etc.
   types.ts                             — TypeScript interfaces: AgentSkill, SkillCoverage, etc.
@@ -162,7 +162,7 @@ See [A2A-SERVER.md](./A2A-SERVER.md) for protocol details.
 | `omni-sync-cloud` | sync-cloud | Cloud sync |
 | `omni-db-backups` | db-backups | Database backups |
 | `omni-webhooks` | webhooks | Webhook event dispatcher |
-| `omni-mcp` | mcp | MCP server (37 tools, 3 transports) |
+| `omni-mcp` | mcp | MCP server (87 tools, 3 transports) |
 | `omni-agents-a2a` | agents-a2a | A2A agent protocol |
 | `omni-version-manager` | version-manager | Version and update management |
 | `omni-inference` | inference | Direct inference / completions |

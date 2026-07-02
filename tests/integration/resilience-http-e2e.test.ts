@@ -524,6 +524,7 @@ test.before(async () => {
     resilienceSettings: buildResilienceConfig(),
     requestRetry: 0,
     maxRetryIntervalSec: 0,
+    stickyRoundRobinLimit: 1,
     requireLogin: false,
     setupComplete: true,
   });
@@ -555,10 +556,12 @@ test("resilience API only exposes configuration, not runtime breaker state", asy
 
   assert.equal(response.status, 200);
   assert.deepEqual(Object.keys(json).sort(), [
+    "comboCooldownWait",
     "connectionCooldown",
     "legacy",
     "providerBreaker",
     "providerCooldown",
+    "quotaShareConcurrencyLimit",
     "requestQueue",
     "waitForCooldown",
   ]);

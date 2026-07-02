@@ -34,7 +34,7 @@ const ROOT = process.cwd();
 const BASELINE_PATH = path.resolve(
   process.argv.includes("--baseline")
     ? process.argv[process.argv.indexOf("--baseline") + 1]
-    : path.join(ROOT, "test-discovery-baseline.json")
+    : path.join(ROOT, "config/quality/test-discovery-baseline.json")
 );
 const UPDATE = process.argv.includes("--update");
 
@@ -53,7 +53,7 @@ export const COLLECTORS = [
   // "vitest" e explodem no node runner). Subdir novo: adicione aqui E nos scripts
   // (o drift-check + o gate de órfãos forçam a manutenção em sincronia).
   {
-    glob: "tests/unit/{api,auth,authz,build,cli,cli-helper,compression,correctness,cors,dashboard,db,db-adapters,docs,gamification,guardrails,lib,mcp,runtime,security,services,settings,shared,ui}/**/*.test.ts",
+    glob: "tests/unit/{api,auth,authz,build,cli,cli-helper,combo,compression,correctness,cors,dashboard,db,db-adapters,docs,gamification,guardrails,lib,mcp,runtime,security,services,settings,shared,ui}/**/*.test.ts",
     sources: ["package.json", ".github/workflows/ci.yml"],
   },
   // Node native runner — test:integration (top-level only; tests/integration/services/ NÃO roda)

@@ -103,20 +103,44 @@ function hasNonEmptyReasoningContent(message: Record<string, unknown>): boolean 
   return typeof message.reasoning_content === "string" && message.reasoning_content.length > 0;
 }
 
-function isDeepSeekReplayTarget(provider: unknown, model: unknown): boolean {
+function isReasoningOnlyReplayTarget(provider: unknown, model: unknown): boolean {
   const normalizedProvider = String(provider ?? "")
     .trim()
     .toLowerCase();
   const normalizedModel = String(model ?? "")
     .trim()
     .toLowerCase();
-  return normalizedProvider === "deepseek" || /(^|\/)deepseek/i.test(normalizedModel);
+  // DeepSeek V4 and Xiaomi MiMo both enforce "pass reasoning_content back on
+  // subsequent turns" even on PLAIN (non-tool-call) assistant turns. Without
+  // replaying on those turns the upstream 400s with "Param Incorrect: The
+  // reasoning_content in the thinking mode must be passed back to the API."
+  // (deepseek #1682, xiaomi-mimo 9router#1321/#1337).
+  return (
+    normalizedProvider === "deepseek" ||
+    /(^|\/)deepseek/i.test(normalizedModel) ||
+    normalizedProvider === "xiaomi-mimo" ||
+    /(^|\/)mimo/i.test(normalizedModel)
+  );
 }
 
 /** @param options.normalizeToolCallId - When true, use 9-char tool call ids (e.g. Mistral); when false, leave ids as-is */
 /** @param options.preserveDeveloperRole - undefined/true: keep developer for OpenAI format (default); false: map to system */
 /** @param options.preserveCacheControl - When true, preserve client-side cache_control markers (for Claude Code, etc.) */
 // Translate request: source -> openai -> target
+// Client-only assistant "echo" fields that strict OpenAI-compatible upstreams (e.g.
+// Mistral) reject with 422 extra_forbidden when sent back as input history. They carry
+// no value upstream and are dropped on the OpenAI target path (#1649). `audio` is
+// deliberately NOT included: OpenAI audio models reference a prior assistant audio
+// response by id on multi-turn, so stripping it would break that (Mistral never emits
+// audio, so it is never present there).
+const OPENAI_INCOMPATIBLE_ECHO_FIELDS = [
+  "reasoning_content",
+  "reasoning",
+  "refusal",
+  "annotations",
+  "cache_control",
+];
+
 export function translateRequest(
   sourceFormat,
   targetFormat,
@@ -242,7 +266,7 @@ export function translateRequest(
   if (targetFormat === FORMATS.CLAUDE) {
     const isClaudePassthrough = sourceFormat === FORMATS.CLAUDE;
     const preserveCache = isClaudePassthrough || options?.preserveCacheControl === true;
-    result = prepareClaudeRequest(result, provider, preserveCache);
+    result = prepareClaudeRequest(result, provider, preserveCache, model);
   }
 
   // Normalize openai-responses input shape for providers that require list input.
@@ -305,7 +329,7 @@ export function translateRequest(
     interleavedField: resolvedCapabilities?.interleavedField ?? null,
   });
   if (isReasoner && result.messages && Array.isArray(result.messages)) {
-    const canReplayReasoningOnly = isDeepSeekReplayTarget(normalizedProvider, normalizedModel);
+    const canReplayReasoningOnly = isReasoningOnlyReplayTarget(normalizedProvider, normalizedModel);
 
     for (const [messageIndex, msg] of result.messages.entries()) {
       if (msg.role !== "assistant") continue;
@@ -415,8 +439,10 @@ export function translateRequest(
     Array.isArray(result.messages)
   ) {
     for (const msg of result.messages) {
-      if (msg.reasoning_content !== undefined) {
-        delete msg.reasoning_content;
+      for (const field of OPENAI_INCOMPATIBLE_ECHO_FIELDS) {
+        if (msg[field] !== undefined) {
+          delete msg[field];
+        }
       }
     }
   }
@@ -426,9 +452,11 @@ export function translateRequest(
 
 // Translate response chunk: target -> openai -> source
 export function translateResponse(targetFormat, sourceFormat, chunk, state) {
-  // If same format, return as-is
+  // If same format, return as-is — but never propagate the null/flush signal as a
+  // literal `[null]`, which leaks an empty `data: null` SSE event between chunks and
+  // crashes strict clients (#1052).
   if (sourceFormat === targetFormat) {
-    return [chunk];
+    return chunk == null ? [] : [chunk];
   }
 
   let results = [chunk];
@@ -537,6 +565,7 @@ export function initState(sourceFormat) {
       funcCallIds: {},
       funcArgsDone: {},
       funcItemDone: {},
+      completedOutputItems: [],
       completedSent: false,
     };
   }

@@ -7,6 +7,9 @@ import {
   type ResolvedProviderCatalogEntry,
   type StaticProviderCatalogCategory,
 } from "@/lib/providers/catalog";
+import { isClaudeCodeCompatibleProvider } from "@/shared/constants/providers";
+import { getModelsByProviderId } from "@/shared/constants/models";
+import { providerHasServiceKind } from "@/lib/providers/serviceKindIndex";
 import { compareTr, matchesSearch } from "@/shared/utils/turkishText";
 import type { ProviderDisplayMode } from "./providerPageStorage";
 
@@ -22,6 +25,20 @@ export interface ProviderEntry<TProvider = Record<string, unknown>> {
   displayAuthType: "oauth" | "apikey" | "compatible" | "no-auth";
   toggleAuthType: "oauth" | "free" | "apikey" | "no-auth";
 }
+
+export type CompatibleProviderInfo = {
+  id: string;
+  name: string;
+  color: string;
+  textIcon: string;
+  apiType?: string;
+};
+
+export type CompatibleProviderGroups = {
+  openai: CompatibleProviderInfo[];
+  anthropic: CompatibleProviderInfo[];
+  claudeCode: CompatibleProviderInfo[];
+};
 
 export function shouldApplyConfiguredOnlyFilter(
   showConfiguredOnly: boolean,
@@ -108,13 +125,72 @@ export function buildStaticProviderEntries(
   );
 }
 
+export function buildCompatibleProviderGroups(
+  providerNodes: Array<{ id: string; name?: string; type?: string; apiType?: string }>,
+  labels: {
+    openaiCompatibleName: string;
+    anthropicCompatibleName: string;
+    claudeCodeCompatibleName: string;
+  }
+): CompatibleProviderGroups {
+  const openai: CompatibleProviderInfo[] = [];
+  const anthropic: CompatibleProviderInfo[] = [];
+  const claudeCode: CompatibleProviderInfo[] = [];
+
+  for (const node of providerNodes) {
+    if (node.type === "openai-compatible") {
+      openai.push({
+        id: node.id,
+        name: node.name || labels.openaiCompatibleName,
+        color: "#10A37F",
+        textIcon: "OC",
+        apiType: node.apiType,
+      });
+      continue;
+    }
+
+    if (node.type !== "anthropic-compatible") continue;
+
+    if (isClaudeCodeCompatibleProvider(node.id)) {
+      claudeCode.push({
+        id: node.id,
+        name: node.name || labels.claudeCodeCompatibleName,
+        color: "#B45309",
+        textIcon: "CC",
+      });
+      continue;
+    }
+
+    anthropic.push({
+      id: node.id,
+      name: node.name || labels.anthropicCompatibleName,
+      color: "#D97757",
+      textIcon: "AC",
+    });
+  }
+
+  return { openai, anthropic, claudeCode };
+}
+
 export function filterConfiguredProviderEntries<TProvider>(
   entries: ProviderEntry<TProvider>[],
   showConfiguredOnly: boolean,
   searchQuery?: string,
-  showFreeOnly?: boolean
+  showFreeOnly?: boolean,
+  modelSearchQuery?: string,
+  serviceKindFilter?: string | null
 ): ProviderEntry<TProvider>[] {
   let filtered = entries;
+
+  // #4240: category (serviceKind) filter — keep providers whose declared OR
+  // registry-derived serviceKinds include the selected kind. Composes with the
+  // configured-only / free / search predicates below.
+  if (serviceKindFilter) {
+    filtered = filtered.filter((entry) => {
+      const declared = (entry.provider as { serviceKinds?: string[] }).serviceKinds;
+      return providerHasServiceKind(entry.providerId, declared, serviceKindFilter);
+    });
+  }
 
   if (showConfiguredOnly) {
     // no-auth providers never create a DB connection row (stats.total === 0) but
@@ -139,6 +215,14 @@ export function filterConfiguredProviderEntries<TProvider>(
         matchesSearch(String(provider.name || ""), searchQuery) ||
         matchesSearch(entry.providerId, searchQuery)
       );
+    });
+  }
+
+  if (modelSearchQuery && modelSearchQuery.trim()) {
+    const q = modelSearchQuery.trim();
+    filtered = filtered.filter((entry) => {
+      const models = getModelsByProviderId(entry.providerId);
+      return models.some((m) => matchesSearch(m.id, q) || matchesSearch(m.name, q));
     });
   }
 
@@ -191,4 +275,25 @@ export function resolveDashboardProviderInfo(
   }
 ): ResolvedProviderCatalogEntry | null {
   return resolveProviderCatalogEntry(providerId, options);
+}
+
+/**
+ * Append or replace a provider node by `id`, never appending a duplicate (#4746).
+ *
+ * The compatible-provider "add" modals previously did `setProviderNodes((prev) => [...prev, node])`,
+ * so adding the same provider twice (refresh-then-add, double-click, retry, or React StrictMode
+ * double-invocation in dev) left the same `id` in the array twice — surfacing duplicate cards and
+ * invalidating the `compatibleProviderGroups` memo on every no-op add. This upsert dedups by id:
+ *  - new id  → append a new array,
+ *  - same id, deep-equal payload → return `prev` unchanged (stable identity ⇒ memo does not re-run),
+ *  - same id, changed payload → replace in place.
+ */
+export function upsertProviderNodeById<T extends { id?: string | null }>(prev: T[], node: T): T[] {
+  if (!node || node.id == null) return [...prev, node];
+  const idx = prev.findIndex((p) => p?.id === node.id);
+  if (idx === -1) return [...prev, node];
+  if (JSON.stringify(prev[idx]) === JSON.stringify(node)) return prev;
+  const next = prev.slice();
+  next[idx] = node;
+  return next;
 }

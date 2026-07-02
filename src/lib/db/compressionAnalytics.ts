@@ -30,6 +30,21 @@ export interface CompressionAnalyticsRow {
   rtk_raw_output_total_bytes?: number | null;
 }
 
+/**
+ * One row per engine that ran inside a stacked compression pipeline. A stacked
+ * request writes a single aggregate `compression_analytics` row (engine = mode) plus
+ * N of these — so per-engine savings are queryable historically, not just live.
+ */
+export interface CompressionEngineBreakdownRow {
+  timestamp: string;
+  request_id?: string | null;
+  engine: string;
+  original_tokens: number;
+  compressed_tokens: number;
+  tokens_saved: number;
+  duration_ms?: number | null;
+}
+
 export interface CompressionAnalyticsSummary {
   totalRequests: number;
   totalTokensSaved: number;
@@ -139,6 +154,135 @@ export function insertCompressionAnalyticsRow(row: CompressionAnalyticsRow): voi
   );
 }
 
+/**
+ * Record one Anthropic server-side Context Editing receipt as a
+ * `compression_analytics` row under engine `"context-editing"`.
+ *
+ * The provider cleared `clearedInputTokens` of stale tool-use/thinking context from
+ * its own window, so that maps to `tokens_saved` (original = cleared, compressed = 0).
+ * Unlike the local engines there is no separate usage receipt to attach, so the
+ * `request_id` is suffixed (`<id>::context-editing`): it stays traceable to the
+ * originating request while staying collision-free with the exact-match
+ * `attachCompressionUsageReceipt` UPDATE, which would otherwise latch onto this row.
+ *
+ * Best-effort: a zero/absent receipt is a no-op (context editing did not fire).
+ */
+export function recordContextEditingTelemetry(
+  requestId: string | null | undefined,
+  telemetry:
+    | { clearedInputTokens?: number; clearedToolUses?: number; editCount?: number }
+    | null
+    | undefined,
+  provider: string | null = "claude"
+): void {
+  const cleared = telemetry?.clearedInputTokens ?? 0;
+  if (!Number.isFinite(cleared) || cleared <= 0) return;
+  insertCompressionAnalyticsRow({
+    timestamp: new Date().toISOString(),
+    provider,
+    mode: "context-editing",
+    engine: "context-editing",
+    original_tokens: cleared,
+    compressed_tokens: 0,
+    tokens_saved: cleared,
+    request_id: requestId ? `${requestId}::context-editing` : null,
+  });
+}
+
+let breakdownTableEnsuredForDb: unknown = null;
+
+function ensureCompressionEngineBreakdownTable(): void {
+  const db = getDbInstance();
+  if (breakdownTableEnsuredForDb === db) return;
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS compression_engine_breakdown (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      timestamp TEXT NOT NULL,
+      request_id TEXT,
+      engine TEXT NOT NULL,
+      original_tokens INTEGER NOT NULL DEFAULT 0,
+      compressed_tokens INTEGER NOT NULL DEFAULT 0,
+      tokens_saved INTEGER NOT NULL DEFAULT 0,
+      duration_ms INTEGER
+    );
+    CREATE INDEX IF NOT EXISTS idx_ceb_engine_ts ON compression_engine_breakdown(engine, timestamp);
+    CREATE INDEX IF NOT EXISTS idx_ceb_request ON compression_engine_breakdown(request_id);
+  `);
+  breakdownTableEnsuredForDb = db;
+}
+
+export function insertCompressionEngineBreakdown(rows: CompressionEngineBreakdownRow[]): void {
+  if (!rows.length) return;
+  const db = getDbInstance();
+  ensureCompressionEngineBreakdownTable();
+  const stmt = db.prepare(
+    `INSERT INTO compression_engine_breakdown
+       (timestamp, request_id, engine, original_tokens, compressed_tokens, tokens_saved, duration_ms)
+     VALUES (?, ?, ?, ?, ?, ?, ?)`
+  );
+  const insertAll = db.transaction((items: CompressionEngineBreakdownRow[]) => {
+    for (const r of items) {
+      stmt.run(
+        r.timestamp,
+        r.request_id ?? null,
+        r.engine,
+        r.original_tokens,
+        r.compressed_tokens,
+        r.tokens_saved,
+        r.duration_ms ?? null
+      );
+    }
+  });
+  insertAll(rows);
+}
+
+/**
+ * Idempotent table init for callers that only read `compression_engine_breakdown`
+ * (not write). Mirrors the side-effect normally triggered by
+ * `insertCompressionEngineBreakdown` / `getPerEngineAnalytics`.
+ */
+export function ensureCompressionAnalyticsTables(): void {
+  const db = getDbInstance();
+  ensureCompressionAnalyticsColumns();
+  if (breakdownTableEnsuredForDb !== db) {
+    ensureCompressionEngineBreakdownTable();
+  }
+}
+
+/**
+ * Fetch all per-engine breakdown rows for the supplied request_ids (one row per
+ * engine inside a stacked compression pipeline). Returns a Map keyed by request_id
+ * so the caller can pair rows with their parent `compression_analytics` row without
+ * issuing N+1 queries. Empty input returns an empty map.
+ */
+export function getCompressionEngineBreakdownForRequests(
+  requestIds: Array<string | null | undefined>
+): Map<string, CompressionEngineBreakdownRow[]> {
+  const out = new Map<string, CompressionEngineBreakdownRow[]>();
+  const ids = requestIds.filter((id): id is string => Boolean(id));
+  if (ids.length === 0) return out;
+  ensureCompressionAnalyticsTables();
+  const placeholders = ids.map(() => "?").join(",");
+  const db = getDbInstance();
+  const rows = db
+    .prepare(
+      `SELECT timestamp, request_id, engine,
+              original_tokens, compressed_tokens, tokens_saved, duration_ms
+         FROM compression_engine_breakdown
+        WHERE request_id IN (${placeholders})
+        ORDER BY request_id ASC, id ASC`
+    )
+    .all(...ids) as CompressionEngineBreakdownRow[];
+  for (const r of rows) {
+    const key = r.request_id;
+    if (!key) continue;
+    const list = out.get(key) ?? [];
+    list.push(r);
+    out.set(key, list);
+  }
+  return out;
+}
+
 export function attachCompressionUsageReceipt(
   requestId: string | null | undefined,
   usage: Record<string, unknown> | null | undefined,
@@ -203,6 +347,55 @@ function toFiniteInt(value: unknown): number | null {
 
 function appendCondition(whereClause: string, condition: string): string {
   return whereClause ? `${whereClause} AND ${condition}` : `WHERE ${condition}`;
+}
+
+type EngineAggRow = { runs: number; original: number; compressed: number; saved: number };
+
+export function getPerEngineAnalytics(engineId: string, days = 7) {
+  const db = getDbInstance();
+  ensureCompressionAnalyticsColumns();
+  ensureCompressionEngineBreakdownTable();
+  const since = new Date(Date.now() - days * 86400_000).toISOString();
+
+  // (1) Per-engine contributions from stacked runs (one breakdown row per engine).
+  const breakdown = db
+    .prepare(
+      `SELECT COUNT(*) AS runs,
+              COALESCE(SUM(original_tokens), 0) AS original,
+              COALESCE(SUM(compressed_tokens), 0) AS compressed,
+              COALESCE(SUM(tokens_saved), 0) AS saved
+       FROM compression_engine_breakdown
+       WHERE engine = ? AND timestamp >= ?`
+    )
+    .get(engineId, since) as EngineAggRow;
+
+  // (2) Legacy single-engine rows from compression_analytics, EXCLUDING any request
+  // that already has a per-engine breakdown — so a stacked run's aggregate row is not
+  // double-counted on top of its breakdown rows.
+  const legacy = db
+    .prepare(
+      `SELECT COUNT(*) AS runs,
+              COALESCE(SUM(original_tokens), 0) AS original,
+              COALESCE(SUM(compressed_tokens), 0) AS compressed,
+              COALESCE(SUM(tokens_saved), 0) AS saved
+       FROM compression_analytics
+       WHERE COALESCE(engine, mode) = ? AND timestamp >= ?
+         AND (
+           request_id IS NULL
+           OR request_id NOT IN (
+             SELECT request_id FROM compression_engine_breakdown WHERE request_id IS NOT NULL
+           )
+         )`
+    )
+    .get(engineId, since) as EngineAggRow;
+
+  const runs = breakdown.runs + legacy.runs;
+  const original = breakdown.original + legacy.original;
+  const compressed = breakdown.compressed + legacy.compressed;
+  const tokensSaved = Math.max(0, breakdown.saved + legacy.saved);
+  const avgSavingsPercent =
+    original > 0 ? Math.round(((original - compressed) / original) * 1000) / 10 : 0;
+  return { engineId, runs, tokensSaved, avgSavingsPercent, days };
 }
 
 export function getCompressionAnalyticsSummary(since?: string): CompressionAnalyticsSummary {
@@ -419,4 +612,103 @@ export function getCompressionAnalyticsSummary(since?: string): CompressionAnaly
       estimatedTokensSaved: mcpDescriptionRow?.saved ?? 0,
     },
   };
+}
+
+export interface LatestCompressionAnalyticsRun {
+  id: number;
+  timestamp: string;
+  combo_id: string | null;
+  compression_combo_id: string | null;
+  mode: string;
+  original_tokens: number;
+  compressed_tokens: number;
+  tokens_saved: number;
+  duration_ms: number | null;
+  request_id: string | null;
+  engine: string | null;
+  validation_fallback: number | null;
+}
+
+export function getLatestCompressionAnalyticsRun(): LatestCompressionAnalyticsRun | undefined {
+  const db = getDbInstance();
+  return db
+    .prepare(
+      `SELECT id, timestamp, combo_id, compression_combo_id, mode,
+              original_tokens, compressed_tokens, tokens_saved, duration_ms,
+              request_id, engine, validation_fallback
+         FROM compression_analytics
+        ORDER BY timestamp DESC, id DESC
+        LIMIT 1`
+    )
+    .get() as LatestCompressionAnalyticsRun | undefined;
+}
+
+export interface CompressionReplayRow extends LatestCompressionAnalyticsRun {
+  provider: string | null;
+  receipt_source: string | null;
+  estimated_usd_saved: number | null;
+  actual_total_tokens: number | null;
+}
+
+export interface GetRecentCompressionRunsOptions {
+  limit?: number;
+  sinceIso?: string;
+  provider?: string | null;
+  model?: string | null;
+}
+
+/**
+ * Return the most recent compression runs from `compression_analytics`, newest first.
+ *
+ * - `limit`        clamped to [1, 1000]; default 100.
+ * - `sinceIso`     inclusive lower bound on `timestamp`. Defaults to "all-time".
+ * - `provider`     exact-match on `provider` column (case-insensitive). Ignored when null/empty.
+ * - `model`        best-effort: the `compression_analytics` table does not currently store
+ *                  `model` directly, so the filter matches `request_id LIKE '%<model>%'`.
+ *                  Pre-existing rows from a given request carry the originating model id
+ *                  in their request-id fragment via upstream call sites; passing a model
+ *                  that was never observed returns zero rows without erroring. Pass null
+ *                  or empty to disable the filter.
+ *
+ * Used by GET /api/compression/replay to power the dashboard's "replay history" panel.
+ */
+export function getRecentCompressionAnalyticsRuns(
+  opts: GetRecentCompressionRunsOptions = {}
+): CompressionReplayRow[] {
+  const limit = Math.max(1, Math.min(1000, Math.floor(opts.limit ?? 100) || 100));
+  const sinceIso = opts.sinceIso ?? null;
+  const provider = opts.provider?.trim() || null;
+  const model = opts.model?.trim() || null;
+
+  let where = "";
+  const params: unknown[] = [];
+  if (sinceIso) {
+    where = "WHERE timestamp >= ?";
+    params.push(sinceIso);
+  }
+  if (provider) {
+    if (where) where += " AND LOWER(provider) = LOWER(?)";
+    else where = "WHERE LOWER(provider) = LOWER(?)";
+    params.push(provider);
+  }
+  if (model) {
+    if (where) where += " AND request_id LIKE ?";
+    else where = "WHERE request_id LIKE ?";
+    params.push(`%${model}%`);
+  }
+  params.push(limit);
+
+  const db = getDbInstance();
+  return db
+    .prepare(
+      `SELECT id, timestamp, combo_id, compression_combo_id, mode,
+              original_tokens, compressed_tokens, tokens_saved, duration_ms,
+              request_id, engine, provider, receipt_source,
+              estimated_usd_saved, actual_total_tokens, validation_fallback
+         FROM compression_analytics
+         ${where}
+        ORDER BY timestamp DESC, id DESC
+        LIMIT ?`
+    )
+    .all(...params) as CompressionReplayRow[];
 }

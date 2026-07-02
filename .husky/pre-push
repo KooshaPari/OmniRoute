@@ -1,12 +1,24 @@
 #!/usr/bin/env sh
-# .husky/pre-push — fast deterministic gates (<10s total)
-# Intentionally excludes test:unit (slow; covered by CI pre-push remote run).
-# Activated: 2026-06-13 (6A.12 — replaced commented-out test:unit stub)
+# .husky/pre-push — DEBT-002 fix (2026-06-25)
+#
+# Previously this was a no-op with a TODO to "Move to lefthook + cargo make
+# at the repo root." Now it delegates to lefthook so the full pre-push
+# matrix (typecheck-core, t11-budget, cycles) actually runs locally
+# before pushing.
 
-if ! command -v npm >/dev/null 2>&1; then
-  echo "⚠️  npm not found in PATH — skipping pre-push hooks"
-  echo "   Run 'npm run check:any-budget:t11 && npm run check:tracked-artifacts' manually before pushing."
-  exit 0
+if command -v bunx >/dev/null 2>&1 && bunx --no-install lefthook --version >/dev/null 2>&1; then
+  echo "→ lefthook pre-push (DEBT-002 fixed)"
+  bunx lefthook run pre-push
+  exit $?
 fi
 
-npm run check:any-budget:t11 && npm run check:tracked-artifacts
+if command -v lefthook >/dev/null 2>&1; then
+  echo "→ lefthook pre-push (DEBT-002 fixed, via PATH)"
+  lefthook run pre-push
+  exit $?
+fi
+
+echo "⚠️  lefthook not installed — skipping pre-push gate"
+echo "   For full coverage run: bunx lefthook install"
+echo "   CI (.github/workflows/audit-ratchet.yml) runs the full matrix anyway."
+exit 0

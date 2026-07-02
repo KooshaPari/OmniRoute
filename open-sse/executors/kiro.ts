@@ -22,10 +22,13 @@ type UsageSummary = {
 type KiroStreamState = {
   endDetected: boolean;
   finishEmitted: boolean;
+  startEmitted: boolean;
   stopSeen: boolean;
   hasToolCalls: boolean;
   toolCallIndex: number;
   seenToolIds: Map<string, number>;
+  toolArgsEmitted: Map<string, string>;
+  toolArgsBuffered: Map<string, { toolIndex: number; canonical: string }>;
   totalContentLength?: number;
   contextUsagePercentage?: number;
   hasContextUsage?: boolean;
@@ -110,12 +113,68 @@ for (let i = 0; i < 256; i++) {
   CRC32_TABLE[i] = c >>> 0;
 }
 
+// Full per-frame message-CRC validation is O(frame bytes) and runs for EVERY frame of
+// every Kiro response on the main thread. The transport is TLS-protected and the 8-byte
+// prelude CRC already guards framing, so the full-message CRC is redundant overhead that
+// contributes to the CPU-runaway on large/long generations. Keep it opt-in for debugging.
+const KIRO_VERIFY_FULL_CRC = process.env.KIRO_VERIFY_FULL_CRC === "true";
+
 function crc32(buf: Uint8Array) {
   let crc = 0xffffffff;
   for (let i = 0; i < buf.length; i++) {
     crc = CRC32_TABLE[(crc ^ buf[i]) & 0xff] ^ (crc >>> 8);
   }
   return (crc ^ 0xffffffff) >>> 0;
+}
+
+/**
+ * Flush buffered tool arguments at finish boundaries.
+ *
+ * Kiro/CodeWhisperer streams toolUseEvent.input as PARTIAL OBJECTS that grow over time
+ * (e.g. {command:"cat /home"} then {command:"cat /home/wxsys"}). Re-stringifying each one
+ * and emitting it as an OpenAI argument delta produces overlapping prefixes that
+ * concatenate into unparseable garbage downstream ("Unterminated string").
+ *
+ * Fix: defer object-form payloads into state.toolArgsBuffered keyed by toolCallId, keep
+ * only the latest canonical, and emit ONCE here as the complete arguments string (the
+ * final object is the source of truth — intermediate states are noise). String-form
+ * payloads are already concatenable deltas and are emitted incrementally.
+ */
+export function flushBufferedToolArgs(
+  state: Pick<KiroStreamState, "toolArgsBuffered" | "toolArgsEmitted">,
+  controller: { enqueue: (chunk: Uint8Array) => void },
+  ctx: { responseId: string; created: number; model: string }
+): void {
+  if (!state.toolArgsBuffered || state.toolArgsBuffered.size === 0) return;
+  const { responseId, created, model } = ctx;
+  for (const [toolCallId, info] of state.toolArgsBuffered) {
+    const alreadyEmitted = state.toolArgsEmitted.get(toolCallId) || "";
+    if (info.canonical && info.canonical !== alreadyEmitted) {
+      const argsChunk: JsonRecord = {
+        id: responseId,
+        object: "chat.completion.chunk",
+        created,
+        model,
+        choices: [
+          {
+            index: 0,
+            delta: {
+              tool_calls: [
+                {
+                  index: info.toolIndex,
+                  function: { arguments: info.canonical },
+                },
+              ],
+            },
+            finish_reason: null,
+          },
+        ],
+      };
+      controller.enqueue(TEXT_ENCODER.encode(`data: ${JSON.stringify(argsChunk)}\n\n`));
+      state.toolArgsEmitted.set(toolCallId, info.canonical);
+    }
+  }
+  state.toolArgsBuffered.clear();
 }
 
 function buildKiroFinishChunk(
@@ -298,10 +357,13 @@ export class KiroExecutor extends BaseExecutor {
     const state: KiroStreamState = {
       endDetected: false,
       finishEmitted: false,
+      startEmitted: false,
       stopSeen: false,
       hasToolCalls: false,
       toolCallIndex: 0,
       seenToolIds: new Map(),
+      toolArgsEmitted: new Map(),
+      toolArgsBuffered: new Map(),
     };
 
     const transformStream = new TransformStream(
@@ -323,6 +385,39 @@ export class KiroExecutor extends BaseExecutor {
 
             const event = parseEventFrame(eventData);
             if (!event) continue;
+
+            // Emit a role-only start chunk on the FIRST successfully-parsed AWS
+            // EventStream frame. CodeWhisperer sends framing/metadata events before
+            // the first content token, and on large/agentic contexts the gap before
+            // that first `assistantResponseEvent` can be many seconds. The backend
+            // stream-readiness gate (ensureStreamReadiness) holds the ENTIRE response
+            // from the client until it observes a useful SSE frame, so without an
+            // early frame the client sees a frozen connection for that whole window
+            // (up to STREAM_READINESS_TIMEOUT_MS — 180s as configured by VibeProxy),
+            // then a burst — the "minutes instead of seconds, not streaming" symptom.
+            // A role-only `chat.completion.chunk` is a non-ping structured payload, so
+            // it satisfies hasStreamReadinessSignal and hands the stream off
+            // immediately. Mirrors the early lifecycle frame other executors already
+            // emit (Claude message_start / OpenAI response.created). The downstream
+            // idle timeout still guards genuine post-start stalls.
+            if (!state.startEmitted) {
+              state.startEmitted = true;
+              const startChunk: JsonRecord = {
+                id: responseId,
+                object: "chat.completion.chunk",
+                created,
+                model,
+                choices: [
+                  {
+                    index: 0,
+                    delta: { role: "assistant" },
+                    finish_reason: null,
+                  },
+                ],
+              };
+              chunkIndex++;
+              controller.enqueue(TEXT_ENCODER.encode(`data: ${JSON.stringify(startChunk)}\n\n`));
+            }
 
             const eventType = event.headers[":event-type"] || "";
 
@@ -428,46 +523,56 @@ export class KiroExecutor extends BaseExecutor {
                 }
 
                 if (toolInput !== undefined) {
-                  let argumentsStr;
-
                   if (typeof toolInput === "string") {
-                    argumentsStr = toolInput;
-                  } else if (typeof toolInput === "object") {
-                    argumentsStr = JSON.stringify(toolInput);
-                  } else {
-                    continue;
-                  }
+                    // String-form payloads are already concatenable incremental deltas —
+                    // emit immediately and track what we've sent.
+                    state.toolArgsEmitted.set(
+                      toolCallId,
+                      (state.toolArgsEmitted.get(toolCallId) || "") + toolInput
+                    );
 
-                  const argsChunk = {
-                    id: responseId,
-                    object: "chat.completion.chunk",
-                    created,
-                    model,
-                    choices: [
-                      {
-                        index: 0,
-                        delta: {
-                          tool_calls: [
-                            {
-                              index: toolIndex,
-                              function: {
-                                arguments: argumentsStr,
+                    const argsChunk = {
+                      id: responseId,
+                      object: "chat.completion.chunk",
+                      created,
+                      model,
+                      choices: [
+                        {
+                          index: 0,
+                          delta: {
+                            tool_calls: [
+                              {
+                                index: toolIndex,
+                                function: {
+                                  arguments: toolInput,
+                                },
                               },
-                            },
-                          ],
+                            ],
+                          },
+                          finish_reason: null,
                         },
-                        finish_reason: null,
-                      },
-                    ],
-                  };
-                  chunkIndex++;
-                  controller.enqueue(TEXT_ENCODER.encode(`data: ${JSON.stringify(argsChunk)}\n\n`));
+                      ],
+                    };
+                    chunkIndex++;
+                    controller.enqueue(
+                      TEXT_ENCODER.encode(`data: ${JSON.stringify(argsChunk)}\n\n`)
+                    );
+                  } else if (typeof toolInput === "object" && toolInput !== null) {
+                    // Object-form payloads are PARTIAL OBJECTS that grow over time. Buffer
+                    // the latest canonical and flush once at a finish boundary, otherwise the
+                    // overlapping JSON prefixes concatenate into unparseable garbage.
+                    state.toolArgsBuffered.set(toolCallId, {
+                      toolIndex,
+                      canonical: JSON.stringify(toolInput),
+                    });
+                  }
                 }
               }
             }
 
             // Handle messageStopEvent
             if (eventType === "messageStopEvent") {
+              flushBufferedToolArgs(state, controller, { responseId, created, model });
               state.stopSeen = true;
             }
 
@@ -535,6 +640,10 @@ export class KiroExecutor extends BaseExecutor {
         },
 
         flush(controller) {
+          // Flush any buffered tool arguments (partial-object payloads) before finishing —
+          // idempotent against toolArgsEmitted if messageStopEvent already flushed them.
+          flushBufferedToolArgs(state, controller, { responseId, created, model });
+
           // Emit finish chunk if not already sent
           if (!state.finishEmitted) {
             state.finishEmitted = true;
@@ -624,14 +733,19 @@ function parseEventFrame(data: Uint8Array): EventFrame | null {
       return null;
     }
 
-    // Message CRC covers bytes [0..totalLength-5] (everything except the CRC itself)
-    const messageCRC = view.getUint32(data.length - 4, false);
-    const computedMessageCRC = crc32(data.slice(0, data.length - 4));
-    if (messageCRC !== computedMessageCRC) {
-      console.warn(
-        `[Kiro] Message CRC mismatch: expected ${messageCRC}, got ${computedMessageCRC} — skipping corrupted frame`
-      );
-      return null;
+    // Message CRC covers bytes [0..totalLength-5] (everything except the CRC itself).
+    // Skipped by default (O(frame bytes) per frame) — the prelude CRC above already
+    // validates framing and the stream is TLS-protected. Enable KIRO_VERIFY_FULL_CRC=true
+    // to restore full validation for debugging corrupted-stream issues.
+    if (KIRO_VERIFY_FULL_CRC) {
+      const messageCRC = view.getUint32(data.length - 4, false);
+      const computedMessageCRC = crc32(data.slice(0, data.length - 4));
+      if (messageCRC !== computedMessageCRC) {
+        console.warn(
+          `[Kiro] Message CRC mismatch: expected ${messageCRC}, got ${computedMessageCRC} — skipping corrupted frame`
+        );
+        return null;
+      }
     }
     // Parse headers
     const headers: Record<string, string> = {};

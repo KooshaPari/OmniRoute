@@ -372,12 +372,12 @@ test("web-cookie provider validators surface auth and subscription failures", as
   __setPplxTlsFetchOverride(async () => {
     return { status: 403, headers: new Headers(), text: null, body: null };
   });
+  __setGrokTlsFetchOverride(async () => {
+    return { status: 401, headers: new Headers(), text: "Unauthorized", body: null };
+  });
 
   globalThis.fetch = async (url, init = {}) => {
     const target = String(url);
-    if (target.includes("grok.com/rest/app-chat/conversations/new")) {
-      return new Response(JSON.stringify({ error: "unauthorized" }), { status: 401 });
-    }
     if (target.includes("app.blackbox.ai/api/auth/session")) {
       const cookie = (init.headers as Record<string, string>)?.Cookie || "";
       if (cookie.includes("expired-cookie")) {
@@ -1780,7 +1780,7 @@ test("specialty validator accepts Nous Research credentials on chat completions"
       const headers = init.headers as Record<string, string>;
       const body = JSON.parse(String(init.body));
       assert.equal(headers.Authorization, "Bearer nous-key");
-      assert.equal(body.model, "nousresearch/hermes-4-70b");
+      assert.equal(body.model, "Hermes-4-70B");
       return new Response(
         JSON.stringify({
           id: "chatcmpl-nous",
@@ -1802,6 +1802,33 @@ test("specialty validator accepts Nous Research credentials on chat completions"
   assert.equal(nous.method, "nous_chat_completions");
 });
 
+test("BytePlus key validation reaches the Ark endpoint instead of 'not supported' (#3877)", async () => {
+  // #3877: byteplus was in APIKEY_PROVIDERS but never registered in the routing
+  // registry, so validation returned {unsupported:true} → UI showed "invalid" for any
+  // key. With the registry entry, a valid ark-... key probes the Ark /models endpoint
+  // with Bearer auth and validates.
+  let probedModelsUrl: string | null = null;
+  globalThis.fetch = async (url, init = {}) => {
+    const target = String(url);
+    if (target === "https://ark.ap-southeast.bytepluses.com/api/v3/models") {
+      probedModelsUrl = target;
+      const headers = toPlainHeaders(init.headers);
+      assert.equal(headers.Authorization, "Bearer ark-test-key");
+      return new Response(JSON.stringify({ data: [{ id: "kimi-k2-thinking" }] }), { status: 200 });
+    }
+    throw new Error(`unexpected fetch: ${target}`);
+  };
+
+  const result = await validateProviderApiKey({
+    provider: "byteplus",
+    apiKey: "ark-test-key",
+  });
+
+  assert.equal(result.unsupported, undefined, "byteplus must not be 'validation not supported'");
+  assert.equal(result.valid, true);
+  assert.equal(probedModelsUrl, "https://ark.ap-southeast.bytepluses.com/api/v3/models");
+});
+
 test("specialty validator rejects invalid Nous Research credentials", async () => {
   globalThis.fetch = async (url, init = {}) => {
     const target = String(url);
@@ -1821,6 +1848,34 @@ test("specialty validator rejects invalid Nous Research credentials", async () =
   });
 
   assert.equal(nous.error, "Invalid API key");
+});
+
+test("specialty validator accepts Nous Research key when probe model is rejected (400)", async () => {
+  // #3881: a valid key whose probe model is rejected (model-not-found / bad request)
+  // must still validate — the 4xx proves auth was accepted, only the request shape
+  // was wrong. Mirrors the longcat/nvidia validators.
+  globalThis.fetch = async (url, init = {}) => {
+    const target = String(url);
+
+    if (target === "https://inference-api.nousresearch.com/v1/chat/completions") {
+      const headers = init.headers as Record<string, string>;
+      assert.equal(headers.Authorization, "Bearer nous-key");
+      return new Response(
+        JSON.stringify({ error: { message: "model not found", type: "invalid_request_error" } }),
+        { status: 400 }
+      );
+    }
+
+    throw new Error(`unexpected fetch: ${target}`);
+  };
+
+  const nous = await validateProviderApiKey({
+    provider: "nous-research",
+    apiKey: "nous-key",
+  });
+
+  assert.equal(nous.valid, true);
+  assert.equal(nous.method, "nous_chat_completions");
 });
 
 test("specialty validator rejects invalid Poe credentials", async () => {
@@ -2600,7 +2655,10 @@ test("qwen-web validator probes /api/v2/user (not /api/v2/models) and returns va
   globalThis.fetch = async (url, init = {}) => {
     probedUrl = String(url);
     sentHeaders = toPlainHeaders(init.headers);
-    return new Response(JSON.stringify({ data: { id: "u-1", name: "Tester" } }), {
+    // Qwen's /api/v2/user returns a real user object for a valid session. Since
+    // #3958 the validator inspects the body for `user` (Qwen answers 200 even for
+    // invalid tokens), so a valid response must carry one.
+    return new Response(JSON.stringify({ user: { id: "u-1", name: "Tester" } }), {
       status: 200,
       headers: { "content-type": "application/json" },
     });
@@ -2690,4 +2748,53 @@ test("isSecurityBlockError: a URL-guard block remains a security block", () => {
     isRetryable: false,
   });
   assert.equal(isSecurityBlockError(guardBlock), true);
+});
+
+// ─── huggingface validator (whoami-v2 auth probe) ────────────────────────────
+// Fine-grained HF Inference-Provider tokens are valid even when model/task
+// endpoints reject them. The validator must probe whoami-v2 as a pure auth
+// check: only 401/403 is invalid; any other non-OK status is transient.
+
+test("huggingface validator accepts a token whoami-v2 recognizes", async () => {
+  const calls: { url: string; headers: Record<string, string> }[] = [];
+  globalThis.fetch = async (url, init = {}) => {
+    calls.push({ url: String(url), headers: toPlainHeaders(init.headers) });
+    return new Response(JSON.stringify({ name: "hf-user", auth: { type: "access_token" } }), {
+      status: 200,
+    });
+  };
+
+  const result = await validateProviderApiKey({ provider: "huggingface", apiKey: "hf_validtoken" });
+
+  assert.equal(result.valid, true);
+  assert.equal(result.error, null);
+  assert.equal(result.method, "huggingface_whoami");
+  assert.equal(calls.length, 1);
+  assert.equal(calls[0].url, "https://huggingface.co/api/whoami-v2");
+  assert.equal(calls[0].headers.Authorization, "Bearer hf_validtoken");
+});
+
+test("huggingface validator treats 401/403 as an invalid token", async () => {
+  globalThis.fetch = async () => new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401 });
+  const unauthorized = await validateProviderApiKey({ provider: "huggingface", apiKey: "hf_bad" });
+  assert.equal(unauthorized.valid, false);
+  assert.equal(unauthorized.error, "Invalid API key");
+
+  globalThis.fetch = async () => new Response(JSON.stringify({ error: "Forbidden" }), { status: 403 });
+  const forbidden = await validateProviderApiKey({ provider: "huggingface", apiKey: "hf_bad" });
+  assert.equal(forbidden.valid, false);
+  assert.equal(forbidden.error, "Invalid API key");
+});
+
+test("huggingface validator does NOT mark a fine-grained token invalid on a non-auth status", async () => {
+  // This is the false-negative the port fixes: a 503/404 from a model/task
+  // probe used to read as "invalid key". whoami-v2 returning a non-auth,
+  // non-OK status must surface as a transient error, never "Invalid API key".
+  globalThis.fetch = async () => new Response("upstream down", { status: 503 });
+
+  const result = await validateProviderApiKey({ provider: "huggingface", apiKey: "hf_finegrained" });
+
+  assert.equal(result.valid, false);
+  assert.notEqual(result.error, "Invalid API key");
+  assert.match(result.error || "", /HuggingFace token check returned 503/);
 });

@@ -53,14 +53,34 @@ test("provider models helpers resolve provider IDs through aliases", () => {
   assert.deepEqual(getModelsByProviderId("provider-that-does-not-exist"), []);
 });
 
+test("getProviderModels returns models for both the alias and the raw provider id", () => {
+  // Pick a provider whose alias differs from its id (e.g. "github" → "gh").
+  const aliased = Object.entries(PROVIDER_ID_TO_ALIAS).find(([id, a]) => id !== a) as
+    | [string, string]
+    | undefined;
+  if (!aliased) return; // no aliased providers → trivially satisfied
+
+  const [rawId, alias] = aliased;
+  const byAlias = getProviderModels(alias);
+  const byRawId = getProviderModels(rawId);
+
+  assert.ok(byAlias.length > 0, `expected models under alias "${alias}"`);
+  assert.deepEqual(
+    byRawId,
+    byAlias,
+    `getProviderModels("${rawId}") should return the same models as getProviderModels("${alias}")`
+  );
+});
+
 test("Reka registry exposes preset models", () => {
   const rekaModels = getModelsByProviderId("reka");
   const ids = rekaModels.map((model) => model.id);
 
   assert.equal(PROVIDER_ID_TO_ALIAS.reka, "reka");
   assert.equal(getDefaultModel("reka"), "reka-flash-3");
-  assert.deepEqual(ids, ["reka-flash-3", "reka-edge-2603"]);
+  assert.deepEqual(ids, ["reka-flash-3", "reka-flash", "reka-edge-2603"]);
   assert.equal(isValidModel("reka", "reka-edge-2603"), true);
+  assert.equal(isValidModel("reka", "reka-flash"), true);
 });
 
 test("GitHub Copilot registry reflects the current supported model lineup", () => {

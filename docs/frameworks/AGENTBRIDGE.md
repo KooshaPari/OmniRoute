@@ -1,7 +1,7 @@
 ---
 title: "AgentBridge"
-version: 3.8.6
-lastUpdated: 2026-05-28
+version: 3.8.31
+lastUpdated: 2026-06-20
 ---
 
 # AgentBridge
@@ -10,7 +10,7 @@ AgentBridge is OmniRoute's MITM (Man-in-the-Middle) proxy that intercepts HTTPS 
 
 **Dashboard location:** `/dashboard/tools/agent-bridge`
 **Sidebar group:** Tools (after Cloud Agents)
-**See also:** [`TRAFFIC_INSPECTOR.md`](./TRAFFIC_INSPECTOR.md) — monitor all intercepted traffic in real-time.
+**See also:** [`TRAFFIC_INSPECTOR.md`](./TRAFFIC_INSPECTOR.md) — monitor all intercepted traffic in real-time; [`docs/security/MITM-TPROXY-DECRYPT.md`](../security/MITM-TPROXY-DECRYPT.md) — the Linux TPROXY transparent-decrypt capture mode driven by the `/api/tools/agent-bridge/tproxy` route.
 
 ---
 
@@ -22,7 +22,7 @@ When an IDE agent (e.g., GitHub Copilot, Cursor, Claude Code) makes an API call,
 
 This means you can:
 
-- **Reroute any agent to any provider**: Copilot talking to OpenAI? Redirect it to Anthropic Claude, Gemini, or any of OmniRoute's 160+ providers.
+- **Reroute any agent to any provider**: Copilot talking to OpenAI? Redirect it to Anthropic Claude, Gemini, or any of OmniRoute's 226+ providers.
 - **Apply model mappings**: `gemini-3-flash` → `claude-sonnet-4.7` transparently at the handler level.
 - **Observe all agent traffic**: every intercepted request is published to the [Traffic Inspector](./TRAFFIC_INSPECTOR.md).
 - **Apply OmniRoute resilience**: combo routing, circuit breakers, fallbacks, and cost tracking work for IDE agent traffic too.
@@ -200,6 +200,29 @@ certutil -addstore -f Root $env:USERPROFILE\.omniroute\mitm\ca.crt
 
 Or use the "Trust Cert" button in the dashboard (runs the appropriate command for your OS, with sudo prompt if needed).
 
+#### Electron-based IDEs ignore the OS trust store (`NODE_EXTRA_CA_CERTS`)
+
+Some IDEs — notably **Antigravity IDE**, and other Electron / VS Code-derived apps — bundle
+their own Node.js runtime that **does not consult the OS trust store** for outbound
+`fetch`/HTTPS. Trusting the CA at the OS/NSS level is enough for the IDE's native **backend**
+(e.g. a Go language server, which uses the OS CA bundle), but the **Electron frontend** will
+still fail TLS — it surfaces as the app being *logged out* or showing a *"connection error"*
+even though the MITM log shows the backend's bootstrap calls returning `200`. Two steps are
+required, and both matter:
+
+1. Point the runtime at the CA explicitly:
+   ```bash
+   export NODE_EXTRA_CA_CERTS=/path/to/omniroute-agentbridge-ca.crt
+   ```
+2. **Launch the IDE from that shell.** Starting it from the desktop icon / Dock / Start menu
+   does **not** inherit shell exports, and `~/.config/environment.d/*.conf` only applies after
+   a fresh graphical login. Fully quit the IDE first — Electron's singleton lock means a second
+   launch just focuses the existing process and the new environment is ignored.
+
+The OS-trust + NSS step above remains necessary (the Chromium network stack used by some auth
+flows reads the per-user NSS store, and has its own static pins for `*.googleapis.com` that a
+locally-trusted CA overrides). `NODE_EXTRA_CA_CERTS` covers the Node `fetch` path on top of it.
+
 ### 3.3 DNS routing
 
 For each agent you want to intercept, its API host(s) must resolve to `127.0.0.1`. AgentBridge manages `/etc/hosts` entries automatically when you toggle DNS for an agent in the Setup Wizard.
@@ -221,9 +244,74 @@ Use the Model Mapping Table in each agent card to define source → target mappi
 
 Wildcard `*` maps any unrecognized model to the specified target. Persisted in `agent_bridge_mappings` table.
 
+> **Tip — discover the agent's real model IDs.** An IDE may send model names that differ from
+> its UI labels and that change between major versions. For example **Antigravity 2** sends
+> `gemini-3.1-pro-low`, `gemini-pro-agent`, and `gemini-3.1-flash-lite` over the wire — not the
+> `gemini-2.5-pro` shown in older docs. Send one chat with no matching mapping in place: the MITM
+> logs the exact incoming `model:` and passes the request through. Map that literal value, then
+> the next request is intercepted and routed to your target.
+
 ### 3.5 Risk notice
 
 AgentBridge intercepts credentials (OAuth tokens, API keys) that the IDE uses to authenticate with upstream providers. These are **masked before logging** (see §2.7) but are visible to OmniRoute's MITM layer. First activation of each agent shows a dismissible risk notice modal.
+
+### 3.6 Maintenance & Diagnostics
+
+The dashboard exposes a **Maintenance & Diagnostics** card (`AgentBridgeMaintenanceCard`, in `src/app/(dashboard)/dashboard/tools/agent-bridge/components/`) that surfaces operational MITM routes which previously had no UI. Its subtitle: *"Self-test the capture pipeline, undo leftover system state, and move your setup between machines."* The card client helpers live in `src/lib/inspector/agentBridgeMaintenanceApi.ts`.
+
+| Button | Route | What it does |
+|--------|-------|--------------|
+| **Diagnose** | `GET /api/tools/agent-bridge/diagnose` | Runs the capture-pipeline self-test and shows a per-check report (✓/✗ + remediation hint). |
+| **Repair** | `POST /api/tools/agent-bridge/repair` | Undoes orphaned MITM system state (DNS spoof entries, root CA, system proxy) left behind by a crash or SIGKILL. Idempotent — reports "Nothing to repair" when state is clean. |
+| **Remove CA** | `DELETE /api/tools/agent-bridge/cert` | Untrusts and removes the MITM root CA from the OS trust store (explicit, idempotent). Shown only when the CA is currently trusted; requires an inline "Remove CA?" confirmation. |
+| **Export config** | `GET /api/tools/agent-bridge/config` | Downloads the portable config JSON (see §3.7). |
+| **Import config** | `POST /api/tools/agent-bridge/config` | Uploads a previously-exported config JSON (see §3.7). |
+
+**Diagnostics checks** (`summarizeDiagnostics()` in `src/mitm/inspector/diagnostics.ts`). The route runs the effectful probe for each and feeds the booleans into the pure summarizer; a single `healthy` verdict plus a per-failure hint is returned:
+
+| Check name | What it verifies | Hint on failure |
+|------------|------------------|-----------------|
+| `server-running` | The MITM server process is active | "The MITM server is not running. Start it from the AgentBridge tab." |
+| `server-reachable` | The MITM server accepts connections on its port (TCP probe) | "The MITM server is not accepting connections on its port. Check that the port is free and that you have privileges to bind it." |
+| `cert-exists` | The MITM certificate has been generated on disk | "No MITM certificate has been generated yet. Generate one from the AgentBridge tab." |
+| `cert-trusted` | The MITM root CA is in the OS trust store | "The MITM root CA is not trusted by the OS store, so TLS interception will fail. Trust the certificate from the AgentBridge tab." |
+| `dns-configured` | Target hostnames are spoofed in `/etc/hosts` | "Target hostnames are not spoofed in /etc/hosts, so traffic never reaches the proxy. Enable DNS for the agent(s) you want to capture." |
+
+**Orphaned-state banner:** when the page detects state left behind by a crash (DNS spoof / CA / system proxy), the card shows an amber banner — *"A previous session left system state behind (DNS spoof, CA, or system proxy). Run Repair to clean it up."* — and highlights the **Repair** button. `Repair` is the application-layer analogue of ProxyBridge's `--cleanup` flag (it delegates to `repairMitm()` in `src/mitm/manager.ts`).
+
+> The MITM root CA is kept installed across stop/start to avoid repeated sudo
+> prompts (the same behavior as mitmproxy/Charles), so removing it is an explicit
+> **Remove CA** action rather than something that happens automatically on stop.
+
+### 3.7 Portable config import/export
+
+AgentBridge can serialize the **operator-tunable** state into a versioned JSON blob so a setup can be replicated across machines. The serializer is `src/lib/inspector/configPortability.ts` (`exportConfig()` / `importConfig()`), validated by `AgentBridgeConfigSchema`.
+
+The export includes exactly three pieces (built-in defaults are intentionally **NOT** exported, so importing never duplicates or fights them):
+
+| Field | Source | Notes |
+|-------|--------|-------|
+| `bypassPatterns` | user-defined bypass patterns (`agent_bridge_bypass`) | default bank/gov/okta patterns are excluded |
+| `customHosts` | Traffic Inspector custom hosts (`inspector_custom_hosts`) | each: `{ host, kind: "llm"\|"app"\|"custom", label? }` |
+| `agentMappings` | per-agent model mappings (`agent_bridge_mappings`) | `{ [agentId]: [{ source, target }] }` for every agent that has mappings |
+
+```jsonc
+// GET /api/tools/agent-bridge/config
+{
+  "version": 1,
+  "bypassPatterns": ["*.internal.example.com"],
+  "customHosts": [{ "host": "api.example.com", "kind": "llm", "label": null }],
+  "agentMappings": { "copilot": [{ "source": "gpt-4o", "target": "claude-sonnet-4.7" }] }
+}
+```
+
+**Import behavior** (`POST /api/tools/agent-bridge/config`): bypass patterns and per-agent mappings **replace wholesale**; custom hosts are added **idempotently** (`INSERT OR IGNORE`). The response reports how many of each were applied:
+
+```jsonc
+{ "ok": true, "bypassPatterns": 1, "customHosts": 1, "agents": 1 }
+```
+
+What is **NOT** in the config: server running state, cert paths, per-agent DNS state, upstream CA path, and TPROXY settings — those are host/runtime state, not portable preferences.
 
 ---
 
@@ -300,6 +388,9 @@ When `AGENTBRIDGE_UPSTREAM_CA_CERT` is set, the file is read at startup. If the 
 - **Port 443 requires privilege**: On Linux, AgentBridge needs `setcap 'cap_net_bind_service=+ep'` on the Node binary, or run via `authbind`. The Setup Wizard displays OS-specific instructions.
 - **IDE restart required**: After DNS redirect, the IDE must be restarted for the new host resolution to take effect.
 - **Hardcoded OAuth tokens**: Some agents (Kiro, Antigravity) store OAuth refresh tokens locally. These are transparent to AgentBridge — it sees the Bearer token in each request, which is masked before logging.
+- **Electron frontends need `NODE_EXTRA_CA_CERTS`**: IDEs whose frontend runs on a bundled Node/Electron runtime ignore the OS/NSS trust store and must be launched from a shell with `NODE_EXTRA_CA_CERTS` set (see §3.2). Symptom when missing: the IDE backend authenticates (MITM shows `200`s) but the UI stays logged out.
+- **Multiple installs of the same IDE are independent**: a system install (e.g. `/usr/share/antigravity/antigravity`) and a user-local "Full" install (e.g. `~/AntigravityIDE_Full/antigravity-ide`) are separate processes with their own runtimes — each must be relaunched with the CA injected. Identify which one is running by its binary path before relaunching.
+- **Identity is set by the agent's system prompt, not the routed model**: when you remap an agent's model to a different provider, the reply still claims the agent's native identity (e.g. Antigravity answers "I am powered by Gemini") because the IDE injects that into the system prompt. Confirm the real backend in `call_logs` / `proxy_logs` (`provider`, `model`, `target_format`), not by asking the model who it is.
 
 ---
 
@@ -323,6 +414,22 @@ If the IDE shows TLS errors after starting AgentBridge:
 1. Verify the cert was installed: `security find-certificate -c "OmniRoute AgentBridge"` (macOS) or `certutil -L -d sql:$HOME/.pki/nssdb` (Linux/NSS)
 2. Some apps maintain their own trust store (Firefox, Chrome on Linux). Run "Trust Cert" again and check the NSS/Firefox-specific cert store.
 3. Restart the IDE after trusting — in-flight TLS sessions use the old trust state.
+
+### IDE logged out / "connection error" despite a trusted CA
+
+Symptom: after redirecting DNS and trusting the CA, an Electron-based IDE (e.g. Antigravity)
+opens **logged out** or shows an authentication/connection error, yet the MITM log shows the
+bootstrap calls (`loadCodeAssist`, `fetchAvailableModels`, …) returning `200`.
+
+Cause: the IDE's **bundled Node/Electron runtime ignores the OS trust store**. The native
+backend (a Go language server) trusts the OS CA and authenticates, but the Electron frontend
+does not — so the UI believes it is offline.
+
+Fix (both steps): export `NODE_EXTRA_CA_CERTS=<ca.crt>` **and relaunch the IDE from that
+shell**, not from the desktop icon. Fully quit the IDE first — Electron's singleton lock means
+a second launch just focuses the existing process and the new environment is ignored. See §3.2.
+This mirrors an open upstream report where a standalone agent works through a MITM but the IDE
+variant fails under the same setup.
 
 ### DNS not propagated
 
@@ -364,20 +471,33 @@ Base path: `/api/tools/agent-bridge/`
 
 | Method | Path | Description |
 |--------|------|-------------|
-| GET | `/api/tools/agent-bridge/agents` | List all 9 agents with current state |
-| GET | `/api/tools/agent-bridge/state` | Global server state (running, port, cert info) |
-| POST | `/api/tools/agent-bridge/server` | Start/stop/restart server (`action: "start"\|"stop"\|"restart"\|"trust-cert"\|"regenerate-cert"`) |
-| GET | `/api/tools/agent-bridge/agents/{id}` | State of one agent (dns_enabled, cert_trusted, etc.) |
+| GET | `/api/tools/agent-bridge/state` | Global server state + per-agent detection/status |
+| GET | `/api/tools/agent-bridge/agents` | List registered agents (id, name, hosts, viability, state) |
+| GET | `/api/tools/agent-bridge/agents/{id}` | State of one agent (target config + detection + stored state) |
+| PATCH | `/api/tools/agent-bridge/agents/{id}` | Update `setup_completed` for agent |
+| GET | `/api/tools/agent-bridge/agents/{id}/detect` | Run detection probe for agent (`installed`, `version?`, `path?`) |
 | POST | `/api/tools/agent-bridge/agents/{id}/dns` | Enable/disable DNS for agent (`{enabled: boolean}`) |
 | GET | `/api/tools/agent-bridge/agents/{id}/mappings` | Model mappings for agent |
-| PUT | `/api/tools/agent-bridge/agents/{id}/mappings` | Update model mappings |
-| GET | `/api/tools/agent-bridge/bypass` | List bypass patterns |
-| PUT | `/api/tools/agent-bridge/bypass` | Update bypass patterns |
-| POST | `/api/tools/agent-bridge/cert` | Download or regenerate CA cert |
+| PUT | `/api/tools/agent-bridge/agents/{id}/mappings` | Replace model mappings |
+| POST | `/api/tools/agent-bridge/server` | Start/stop/restart server (`action: "start"\|"stop"\|"restart"\|"trust-cert"\|"regenerate-cert"`) |
+| GET | `/api/tools/agent-bridge/cert` | Cert status (`exists`, `trusted`, `path`) |
+| POST | `/api/tools/agent-bridge/cert` | Trust (install) the MITM root CA |
+| DELETE | `/api/tools/agent-bridge/cert` | Untrust (remove) the MITM root CA — idempotent (see §3.6) |
+| POST | `/api/tools/agent-bridge/cert/regenerate` | Regenerate the self-signed MITM cert |
+| GET | `/api/tools/agent-bridge/cert/download` | Stream the PEM cert for download |
+| GET | `/api/tools/agent-bridge/bypass` | List bypass patterns (`default` + `user`) |
+| POST | `/api/tools/agent-bridge/bypass` | Replace user-defined bypass patterns wholesale |
+| DELETE | `/api/tools/agent-bridge/bypass?pattern=...` | Remove a single user-defined bypass pattern |
+| GET | `/api/tools/agent-bridge/diagnose` | Capture-pipeline self-test (see §3.6) |
+| POST | `/api/tools/agent-bridge/repair` | Undo orphaned MITM system state (see §3.6) |
+| GET | `/api/tools/agent-bridge/config` | Export portable config JSON (see §3.7) |
+| POST | `/api/tools/agent-bridge/config` | Import portable config JSON (see §3.7) |
 | GET | `/api/tools/agent-bridge/upstream-ca` | Get configured upstream CA path |
-| POST | `/api/tools/agent-bridge/upstream-ca` | Set upstream CA cert path |
+| POST | `/api/tools/agent-bridge/upstream-ca` | Validate + persist upstream CA path |
+| POST | `/api/tools/agent-bridge/upstream-ca/test` | Validate-only (dry-run) an upstream CA path — does not persist |
+| GET / POST / DELETE | `/api/tools/agent-bridge/tproxy` | TPROXY transparent-decrypt capture mode — see [`docs/security/MITM-TPROXY-DECRYPT.md`](../security/MITM-TPROXY-DECRYPT.md) |
 
-Full OpenAPI schemas: `docs/reference/openapi.yaml` → tag `AgentBridge`.
+Full OpenAPI schemas: `docs/openapi.yaml` → tag `AgentBridge`.
 
 ---
 

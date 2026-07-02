@@ -91,6 +91,8 @@ const nextConfig = {
     },
   },
   output: "standalone",
+  compress: true,
+  productionBrowserSourceMaps: false,
   // OmniRoute is a proxy for AI APIs — request bodies routinely include
   // multi-MB payloads (vision models, image edits, base64-encoded files,
   // long chat histories with embedded images). Next.js's Server Action
@@ -108,6 +110,30 @@ const nextConfig = {
     // uploads (OpenAI-compatible /v1/files) routinely exceed this. Match the
     // 512 MB server-side cap; tune via env if needed.
     proxyClientMaxBodySize: process.env.NEXT_PROXY_BODY_LIMIT || "512mb",
+    // PR-2 of diegosouzapw/OmniRoute#3932: tree-shake barrel re-exports so
+    // route bundles don't pull in 14 locale files, every lucide-react icon,
+    // or the full date-fns surface when only one helper is used.
+    //
+    // NOTE: this list must only contain EXTERNAL barrel libraries. Do NOT add
+    // the internal `@omniroute/open-sse` workspace here: optimizePackageImports
+    // makes Next.js resolve every export of the package's barrel at build time,
+    // and open-sse's `index.ts` re-exports the entire streaming engine
+    // (executors/translators/services/handlers/mcp-server — thousands of
+    // modules). Combined with the #3501 god-file splits (which multiplied the
+    // re-export edges), this drove the webpack production pass into a heap
+    // runaway that OOM'd even at a 28 GB --max-old-space-size (RSS pinned at the
+    // ceiling in a GC death-spiral). Removing it keeps the build's heap bounded.
+    // optimizePackageImports is designed for external libs, not workspaces.
+    optimizePackageImports: [
+      "lobehub/icons",
+      "@lobehub/icons",
+      "lucide-react",
+      "date-fns",
+      "lodash",
+      "lodash-es",
+      "material-symbols",
+      "next-intl",
+    ],
   },
   outputFileTracingRoot: projectRoot,
   outputFileTracingIncludes: {
@@ -120,6 +146,10 @@ const nextConfig = {
       "./open-sse/services/compression/rules/**/*.json",
       "./open-sse/lib/sha3_wasm_bg.wasm",
       "./open-sse/lib/deepseek-pow-solver.cjs",
+      // sql.js WASM is loaded at runtime by the sqljsAdapter fallback tier
+      // (better-sqlite3 → node:sqlite → sql.js). Next traces sql-wasm.js but can
+      // omit the runtime sql-wasm.wasm asset from the standalone bundle.
+      "./node_modules/sql.js/dist/sql-wasm.wasm",
     ],
   },
   outputFileTracingExcludes: {
@@ -216,6 +246,27 @@ const nextConfig = {
         mermaid: {
           test: /[\\/]node_modules[\\/]mermaid[\\/]/,
           name: "vendor-mermaid",
+          chunks: "all",
+          priority: 20,
+        },
+        // PR-2 of diegosouzapw/OmniRoute#3932: isolate the heavy long-tail
+        // vendor chunks that only some routes actually need, so dashboard
+        // pages don't pay for the docs bundle (or vice versa).
+        nextIntl: {
+          test: /[\\/]node_modules[\\/]next-intl[\\/]/,
+          name: "vendor-next-intl",
+          chunks: "all",
+          priority: 25,
+        },
+        fumadocs: {
+          test: /[\\/]node_modules[\\/](fumadocs-ui|fumadocs-core|fumadocs-mdx)[\\/]/,
+          name: "vendor-fumadocs",
+          chunks: "all",
+          priority: 20,
+        },
+        comboGraph: {
+          test: /[\\/]node_modules[\\/]@?dagre[\\/]|[\\/]node_modules[\\/]@?elkjs[\\/]/,
+          name: "vendor-combo-graph",
           chunks: "all",
           priority: 20,
         },

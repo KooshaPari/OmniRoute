@@ -1,7 +1,7 @@
 ---
 title: "OmniRoute Auto-Combo Engine"
-version: 3.8.2
-lastUpdated: 2026-05-13
+version: 3.8.31
+lastUpdated: 2026-06-20
 ---
 
 # OmniRoute Auto-Combo Engine
@@ -25,6 +25,25 @@ lastUpdated: 2026-05-13
 | `auto/offline` | offline | Favors providers with highest quota availability                         |
 | `auto/smart`   | smart   | Quality-first + higher exploration rate (10%) for better model discovery |
 | `auto/lkgp`    | lkgp    | Explicit LKGP (same as default `auto`)                                   |
+
+### Category × Tier Composition (`auto/<category>:<tier>`)
+
+OpenRouter-style suffixes separate **what kind of route** (category) from **how to optimize it** (tier), so you can compose them freely (#4235 Phase B, `open-sse/services/autoCombo/suffixComposition.ts`):
+
+- **Categories** (filter the candidate pool by capability): `coding` · `reasoning` · `vision` · `chat` · `multimodal`. `vision`/`multimodal` keep vision-capable models; `reasoning` keeps reasoning/thinking models.
+- **Tiers** (pick the scoring weights / pool filter): `fast` (ship-fast) · `cheap` (alias `floor`, cost-saver) · `reliable` (circuit-breaker health + latency stability) · `free` / `pro` (filter the pool by model tier via `classifyTier` — free-tier vs. premium).
+
+| Example                | Resolves to                                                       |
+| ---------------------- | ----------------------------------------------------------------- |
+| `auto/coding:fast`     | coding pool, low-latency weights                                  |
+| `auto/coding:cheap`    | coding pool, cost-optimized (alias `auto/coding:floor`)           |
+| `auto/reasoning:pro`   | reasoning/thinking models only, premium tier                      |
+| `auto/vision`          | vision-capable models (no tier → balanced weights)                |
+| `auto/multimodal:free` | multimodal-capable models, free tier only                         |
+
+Any valid `auto/<category>[:<tier>]` resolves on demand; a curated subset is advertised in `/v1/models` and the dashboard (`AUTO_SUFFIX_VARIANTS` in `open-sse/services/autoCombo/builtinCatalog.ts`). Filtering is **fail-open** — if a constraint matches no connected models, the full pool is used so routing never breaks. The core scorer (`combo.ts`) is unchanged; the category/tier filter is applied in `buildAutoCandidates`.
+
+> **Live model intelligence:** auto-routing fitness is informed by live **Arena ELO** rankings + **models.dev** tier data when the `ARENA_ELO_SYNC_ENABLED` flag is on (falls back to the static fitness map otherwise).
 
 **How to use:**
 
@@ -128,7 +147,7 @@ Notes:
 
 ## All Routing Strategies
 
-OmniRoute's combo engine supports **14 routing strategies** (declared in `src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES`). The Auto Combo engine itself is exposed under the `auto` strategy; the others are available for persisted combos.
+OmniRoute's combo engine supports **17 routing strategies** (declared in `src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES`). The Auto Combo engine itself is exposed under the `auto` strategy; the others are available for persisted combos.
 
 | Strategy            | Description                                                        |
 | :------------------ | :----------------------------------------------------------------- |
@@ -142,12 +161,74 @@ OmniRoute's combo engine supports **14 routing strategies** (declared in `src/sh
 | `least-used`        | Pick target with lowest current load                               |
 | `cost-optimized`    | Minimize $ per request given catalog pricing                       |
 | `reset-aware` ⭐    | Prioritize by quota reset time — short reset windows ranked higher |
+| `reset-window`      | Prefer targets whose quota window resets soonest                   |
+| `headroom`          | Pick the target with the most remaining quota headroom            |
 | `strict-random`     | Random without deduplication of repeats                            |
 | `auto`              | Use Auto Combo scoring (9-factor) — **recommended**                |
 | `lkgp`              | Last-Known-Good Path (sticky route to last successful target)      |
 | `context-optimized` | Pick target with best fit for current context size                 |
+| `fusion` 🧬         | Fan out to a panel of models in parallel, then synthesize one answer via a judge (see below) |
 
-⭐ = New in v3.8.0
+⭐ = New in v3.8.0 · 🧬 = New in v3.8.36
+
+## Fusion Strategy
+
+`fusion` is the one strategy that does **not** pick a single target. It fans the prompt
+out to **every panel model in parallel**, then a configurable **judge model** synthesizes
+a single final answer from all panel responses. Ported from upstream `decolua/9router`
+(OpenRouter's Fusion design); implementation in `open-sse/services/fusion.ts`.
+
+How it works:
+
+1. **Fan-out** — the prompt is sent to every panel model at once, forced non-streaming
+   with tools stripped (the judge needs complete prose to synthesize).
+2. **Quorum-grace collection** — as soon as `minPanel` answers arrive, a short grace
+   timer starts for the stragglers, then fusion proceeds with whatever was collected.
+   This caps the slowest model's penalty on wall time, bounded by a hard timeout.
+3. **Judge synthesis** — panel answers are anonymized (`Source 1`, `Source 2`, … — so
+   the judge weighs substance, not model brand) and handed to the judge, which analyzes
+   consensus / contradictions / partial coverage / unique insights / blind spots, then
+   writes **one** authoritative answer. The judge call keeps the client's original
+   `stream` flag + tools, so streaming and downstream tool use still work.
+4. **Graceful degradation** — 0 panel answers → `503`; exactly 1 survivor → that answer
+   is returned directly (nothing to fuse); a single-model panel answers directly.
+
+### Configuration
+
+Configured on the combo's `config` blob (no schema migration — it reuses the existing
+`combos` table):
+
+| Field                              | Type     | Default   | Purpose                                                      |
+| :--------------------------------- | :------- | :-------- | :----------------------------------------------------------- |
+| `config.judgeModel`                | `string` | first panel model | Model that synthesizes the final answer            |
+| `config.fusionTuning.minPanel`     | `number` | `2`       | Successful answers required before the grace timer starts (clamped to `[2, panelSize]`) |
+| `config.fusionTuning.stragglerGraceMs` | `number` | `8000`  | How long to wait for laggards once quorum is reached         |
+| `config.fusionTuning.panelHardTimeoutMs` | `number` | `90000` | Absolute cap so one hung model can't stall the request       |
+
+Defaults live in `FUSION_DEFAULTS` (`open-sse/services/fusion.ts`).
+
+### Example
+
+```bash
+curl -X POST http://localhost:20128/api/combos \
+  -H "Authorization: Bearer <key>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "fusion-panel",
+    "strategy": "fusion",
+    "targets": [
+      { "model": "cc/claude-opus-4-7" },
+      { "model": "cx/gpt-5.5" },
+      { "model": "glm/glm-5.1" }
+    ],
+    "config": {
+      "judgeModel": "cc/claude-opus-4-7",
+      "fusionTuning": { "minPanel": 2, "stragglerGraceMs": 8000, "panelHardTimeoutMs": 90000 }
+    }
+  }'
+```
+
+Then call it like any combo: `{"model":"fusion-panel","messages":[...]}`.
 
 ## Virtual Auto-Combo Factory
 
@@ -500,5 +581,5 @@ See `docs/marketing/TIERS.md` for tier definitions and provider classification.
 | `open-sse/services/autoCombo/autoPrefix.ts`               | `auto/` prefix parser + 6 variants                                         |
 | `open-sse/services/autoCombo/virtualFactory.ts`           | Builds in-memory `AutoComboConfig` from live connections                   |
 | `open-sse/services/autoCombo/providerRegistryAccessor.ts` | Test hook for mocking provider registry                                    |
-| `src/shared/constants/routingStrategies.ts`               | `ROUTING_STRATEGY_VALUES` (14 strategies)                                  |
+| `src/shared/constants/routingStrategies.ts`               | `ROUTING_STRATEGY_VALUES` (17 strategies)                                  |
 | `src/sse/handlers/chat.ts`                                | Integration: auto-prefix short-circuit                                     |

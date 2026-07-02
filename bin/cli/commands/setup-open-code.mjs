@@ -29,6 +29,7 @@ import os from "node:os";
 
 import { printHeading, printInfo, printSuccess, printError } from "../io.mjs";
 import { t } from "../i18n.mjs";
+import { resolveActiveContext } from "../contexts.mjs";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -44,8 +45,7 @@ const PACKAGE_ROOT = resolve(__dirname, "..", "..", "..");
 // (see root package.json `files`: ["@omniroute/", ...]). The env override
 // exists so tests can point at a fixture without building the real plugin.
 const BUNDLED_PLUGIN_DIR =
-  process.env.OMNIROUTE_OPENCODE_PLUGIN_DIR ||
-  join(PACKAGE_ROOT, "@omniroute", "opencode-plugin");
+  process.env.OMNIROUTE_OPENCODE_PLUGIN_DIR || join(PACKAGE_ROOT, "@omniroute", "opencode-plugin");
 
 /**
  * Resolve the OpenCode config directory. Honours XDG_CONFIG_HOME and the
@@ -89,7 +89,7 @@ function resolveOpenCodeDirs() {
  *     a clear error instead of running tsup here, because the CLI runtime
  *     may not have tsup available (it's a devDependency).
  *
- * @returns {{ distEntry: string, cjsEntry: string, packageDir: string }}
+ * @returns {{ distEntry: string, packageDir: string }}
  */
 function resolveBundledPlugin() {
   if (!existsSync(BUNDLED_PLUGIN_DIR)) {
@@ -102,17 +102,17 @@ function resolveBundledPlugin() {
   }
 
   const esmEntry = join(BUNDLED_PLUGIN_DIR, "dist", "index.js");
-  const cjsEntry = join(BUNDLED_PLUGIN_DIR, "dist", "index.cjs");
 
-  if (!existsSync(esmEntry) || !existsSync(cjsEntry)) {
+  if (!existsSync(esmEntry)) {
     throw new Error(
       `@omniroute/opencode-plugin dist/ not built (looked for ${esmEntry}).\n` +
         `Run \`cd ${BUNDLED_PLUGIN_DIR} && npm install && npm run build\` and re-run this command.`
     );
   }
 
-  // Prefer ESM. OpenCode (≥1.15) loads ESM modules natively.
-  return { distEntry: esmEntry, cjsEntry, packageDir: BUNDLED_PLUGIN_DIR };
+  // ESM-only build (CJS was dropped in tsup config). OpenCode (>=1.15) loads
+  // ESM modules natively.
+  return { distEntry: esmEntry, packageDir: BUNDLED_PLUGIN_DIR };
 }
 
 /**
@@ -255,7 +255,17 @@ function runOpenCodeAuth(providerId) {
  */
 export async function runSetupOpenCodeCommand(opts = {}) {
   const providerId = opts.providerId || "omniroute";
-  const baseURL = opts.baseURL || opts.baseUrl || "http://localhost:20128";
+  // Remote-aware: explicit --remote/--base-url → active context → localhost.
+  let baseURL = opts.remote || opts.baseURL || opts.baseUrl;
+  if (!baseURL) {
+    try {
+      const ctx = resolveActiveContext(opts.context ?? process.env.OMNIROUTE_CONTEXT);
+      baseURL = ctx?.baseUrl;
+    } catch {
+      /* no context */
+    }
+  }
+  if (!baseURL) baseURL = "http://localhost:20128";
   const displayName = opts.displayName || null;
   const wantsAuth = Boolean(opts.auth);
   const nonInteractive = Boolean(opts.nonInteractive);
@@ -357,8 +367,11 @@ export function registerSetupOpenCode(setupCommand) {
     )
     .option(
       "--base-url <url>",
-      "OmniRoute base URL the plugin should talk to (default: http://localhost:20128)",
-      "http://localhost:20128"
+      "OmniRoute base URL the plugin should talk to (default: active context or http://localhost:20128)"
+    )
+    .option(
+      "--remote <url>",
+      "Remote OmniRoute URL, e.g. http://192.168.0.15:20128 (overrides --base-url and the context)"
     )
     .option("--display-name <name>", "Display name in the OpenCode UI (optional)")
     .option(
@@ -377,6 +390,7 @@ export function registerSetupOpenCode(setupCommand) {
         output: globalOpts.output,
         apiKey: opts.apiKey ?? globalOpts.apiKey,
         baseUrl: opts.baseUrl ?? globalOpts.baseUrl,
+        context: globalOpts.context ?? opts.context,
       };
       const { exitCode } = await runSetupOpenCodeCommand(merged);
       if (exitCode !== 0) process.exit(exitCode);
