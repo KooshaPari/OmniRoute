@@ -1,14 +1,15 @@
-//! C-ABI FFI surface for the sharecli macOS tray / desktop app.
+//! C-ABI FFI surface for sharecli desktop apps (macOS, Windows).
 //!
 //! FFI choice: plain C ABI via `extern "C"` + `#[no_mangle]`.
 //! No uniffi or cxx is needed here because the primary data path goes through
-//! the IPC Unix socket (NDJSON); FFI only handles daemon lifecycle and a
-//! quick synchronous health peek that Swift calls on tray activation.
+//! the IPC socket (Unix socket on Unix, TCP loopback on Windows); FFI only
+//! handles daemon lifecycle and a quick synchronous health peek.
 //!
-//! The Swift bridging header is at `desktop/ShareCLITray/sharecli_ffi.h`.
+//! Swift bridging header: `desktop/ShareCLITray/sharecli_ffi.h`
+//! C# P/Invoke: `windows/ShareCLITray/Interop.cs`
 //!
 //! Thread-safety: each exported fn is self-contained; the Tokio runtime is
-//! created lazily inside `sharecli_ipc_start` and lives for the process lifetime.
+//! created lazily and lives for the process lifetime.
 
 use std::ffi::{CStr, CString};
 use std::os::raw::{c_char, c_int};
@@ -64,24 +65,38 @@ pub extern "C" fn sharecli_free_string(ptr: *mut c_char) {
     }
 }
 
-/// Quick synchronous health snapshot over the IPC socket.
+/// Quick synchronous health snapshot over the IPC socket/TCP.
 /// Returns a JSON string (must free with `sharecli_free_string`) or null on error.
 #[no_mangle]
 pub extern "C" fn sharecli_health_json() -> *mut c_char {
     let result = rt().block_on(async {
         use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader};
-        use tokio::net::UnixStream;
-
-        let sock = socket_path_str();
-        let mut stream = UnixStream::connect(&sock).await?;
 
         let req = "{\"id\":1,\"method\":\"health.status\",\"params\":{}}\n";
-        stream.write_all(req.as_bytes()).await?;
 
-        let (r, _) = stream.into_split();
-        let mut lines = BufReader::new(r).lines();
-        let line = lines.next_line().await?;
-        anyhow::Ok(line.unwrap_or_default())
+        #[cfg(unix)]
+        {
+            use tokio::net::UnixStream;
+            let sock = socket_path_str();
+            let mut stream = UnixStream::connect(&sock).await?;
+            stream.write_all(req.as_bytes()).await?;
+            let (r, _) = stream.into_split();
+            let mut lines = BufReader::new(r).lines();
+            let line = lines.next_line().await?;
+            anyhow::Ok(line.unwrap_or_default())
+        }
+
+        #[cfg(windows)]
+        {
+            use tokio::net::TcpStream;
+            let addr = ipc_addr();
+            let mut stream = TcpStream::connect(&addr).await?;
+            stream.write_all(req.as_bytes()).await?;
+            let (r, _) = stream.into_split();
+            let mut lines = BufReader::new(r).lines();
+            let line = lines.next_line().await?;
+            anyhow::Ok(line.unwrap_or_default())
+        }
     });
 
     match result {
@@ -106,19 +121,33 @@ pub extern "C" fn sharecli_request(request_json: *const c_char) -> *mut c_char {
 
     let result = rt().block_on(async {
         use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader};
-        use tokio::net::UnixStream;
-
-        let sock = socket_path_str();
-        let mut stream = UnixStream::connect(&sock).await?;
 
         let mut payload = req_str.clone();
         payload.push('\n');
-        stream.write_all(payload.as_bytes()).await?;
 
-        let (r, _) = stream.into_split();
-        let mut lines = BufReader::new(r).lines();
-        let line = lines.next_line().await?;
-        anyhow::Ok(line.unwrap_or_default())
+        #[cfg(unix)]
+        {
+            use tokio::net::UnixStream;
+            let sock = socket_path_str();
+            let mut stream = UnixStream::connect(&sock).await?;
+            stream.write_all(payload.as_bytes()).await?;
+            let (r, _) = stream.into_split();
+            let mut lines = BufReader::new(r).lines();
+            let line = lines.next_line().await?;
+            anyhow::Ok(line.unwrap_or_default())
+        }
+
+        #[cfg(windows)]
+        {
+            use tokio::net::TcpStream;
+            let addr = ipc_addr();
+            let mut stream = TcpStream::connect(&addr).await?;
+            stream.write_all(payload.as_bytes()).await?;
+            let (r, _) = stream.into_split();
+            let mut lines = BufReader::new(r).lines();
+            let line = lines.next_line().await?;
+            anyhow::Ok(line.unwrap_or_default())
+        }
     });
 
     match result {
@@ -162,4 +191,9 @@ fn find_sidecar(name: &str) -> Option<String> {
         }
     }
     None
+}
+
+#[cfg(windows)]
+fn ipc_addr() -> String {
+    std::env::var("SHARECLI_IPC_ADDR").unwrap_or_else(|_| "127.0.0.1:27182".to_string())
 }
