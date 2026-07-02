@@ -20,6 +20,7 @@ import type { AutoVariant } from "./autoPrefix";
 import { classifyTier } from "../tierResolver";
 import { getResolvedModelCapabilities } from "@/lib/modelCapabilities";
 import { isVisionModelId } from "@/shared/constants/visionModels";
+import { getRegistryEntry } from "../../config/providerRegistry";
 
 export type AutoCategory = "coding" | "reasoning" | "vision" | "chat" | "multimodal";
 export type AutoTier = "fast" | "cheap" | "floor" | "free" | "reliable" | "pro";
@@ -123,7 +124,11 @@ export function buildAutoCandidateFilter(
         const caps = getResolvedModelCapabilities({ provider: c.provider, model: c.model });
         return caps.reasoning === true || caps.supportsThinking === true;
       } catch {
-        return false;
+        // Capability resolution is DB-backed and can fail when the DB is
+        // unavailable (e.g. no-DB test env). Fall back to the provider
+        // registry's static reasoning declaration so a model flagged
+        // `supportsReasoning` isn't silently dropped from the reasoning pool.
+        return registryDeclaresReasoning(c);
       }
     });
   }
@@ -143,5 +148,15 @@ function safeClassifyTier(c: PoolCandidate): string {
     return classifyTier(c.provider, c.model).tier;
   } catch {
     return "cheap";
+  }
+}
+
+function registryDeclaresReasoning(c: PoolCandidate): boolean {
+  try {
+    const entry = getRegistryEntry(c.provider);
+    const model = entry?.models?.find((m) => m.id === c.model);
+    return model?.supportsReasoning === true;
+  } catch {
+    return false;
   }
 }
