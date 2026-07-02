@@ -17,6 +17,7 @@ pub fn build(b: *std.Build) void {
         .root_module = lib_module,
         .linkage = .static,
     });
+    lib.bundle_compiler_rt = true;
     b.installArtifact(lib);
 
     // --- Test step: `zig build test` ---
