@@ -5,7 +5,7 @@ Auto-seeded by the repo-steward governance sweep (see
 
 ## Status
 - This repo is now visible in the fleet health scan (`worklogs` directory present).
-- No application changes were made.
+- Call log pipeline capture now defaults to a 4096 KiB buffer cap.
 
 ## Next steps
 - Subsequent governance / hygiene passes will append dated entries here.
