@@ -36,6 +36,7 @@ import {
   recordRelayUsage,
 } from "@/lib/db/relayProxies";
 import { buildErrorBody } from "@omniroute/open-sse/utils/error";
+import { connectionManager } from "@/lib/http2/connectionManager";
 import { z } from "zod";
 import {
   checkIpRateLimit,
@@ -310,7 +311,7 @@ export async function POST(request: Request) {
 
     let upstream: Response;
     try {
-      upstream = await fetch(`${BIFROST_BASE_URL}/v1/chat/completions`, {
+      upstream = await connectionManager.fetch(`${BIFROST_BASE_URL}/v1/chat/completions`, {
         method: "POST",
         headers: upstreamHeaders,
         body: JSON.stringify(body),
