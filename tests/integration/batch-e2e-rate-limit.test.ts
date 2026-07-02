@@ -34,6 +34,25 @@ function sleep(ms: number) {
   return new Promise((r) => setTimeout(r, ms));
 }
 
+async function safeJsonResponse(response: Response, context: string) {
+  const bodyText = await response.text();
+  if (!response.headers.get("content-type")?.includes("application/json")) {
+    throw new Error(
+      `${context} expected JSON response but got ${
+        response.headers.get("content-type") || "unknown content-type"
+      }. status=${response.status}. body=${bodyText.slice(0, 500)}`
+    );
+  }
+
+  try {
+    return JSON.parse(bodyText);
+  } catch (error) {
+    throw new Error(
+      `${context} JSON parse failed (status=${response.status}). body=${bodyText.slice(0, 500)}`
+    );
+  }
+}
+
 /* ---------- Fake embedding relay ---------- */
 function createFakeEmbeddingRelay() {
   let requestCount = 0;
@@ -231,7 +250,7 @@ test.before(async () => {
       baseUrl: RELAY_BASE,
     }),
   });
-  const nodeBody = nodeResp.ok ? await nodeResp.json() : null;
+  const nodeBody = nodeResp.ok ? await safeJsonResponse(nodeResp, "provider node create") : null;
   if (!nodeResp.ok) {
     // If /api/provider-nodes fails, try the direct DB import approach
     throw new Error(
@@ -281,9 +300,8 @@ test("batch E2E: upload file, create batch, verify rate-limit logs appear", asyn
     method: "POST",
     body: formData,
   });
-  const uploadText = await uploadResp.text();
-  assert.equal(uploadResp.status, 200, `File upload failed (${uploadResp.status}): ${uploadText}`);
-  const uploadBody = JSON.parse(uploadText);
+  const uploadBody = (await safeJsonResponse(uploadResp, "file upload")) as any;
+  assert.equal(uploadResp.status, 200, `File upload failed (${uploadResp.status})`);
   const fileId = uploadBody.id;
   assert.ok(fileId, "file id missing from upload response");
 
@@ -297,9 +315,8 @@ test("batch E2E: upload file, create batch, verify rate-limit logs appear", asyn
       completion_window: "24h",
     }),
   });
-  const batchText = await batchResp.text();
-  assert.equal(batchResp.status, 200, `Batch creation failed (${batchResp.status}): ${batchText}`);
-  const batchBody = JSON.parse(batchText);
+  const batchBody = (await safeJsonResponse(batchResp, "batch create")) as any;
+  assert.equal(batchResp.status, 200, `Batch creation failed (${batchResp.status})`);
   const batchId = batchBody.id;
   assert.ok(batchId, "batch id missing from create response");
 
@@ -311,7 +328,7 @@ test("batch E2E: upload file, create batch, verify rate-limit logs appear", asyn
     await sleep(2_000);
     attempts++;
     const sr = await fetch(`${app.baseUrl}/api/v1/batches/${batchId}`);
-    const sb = (await sr.json()) as any;
+    const sb = (await safeJsonResponse(sr, `poll batch status (attempt ${attempts})`)) as any;
     batchStatus = sb.status;
     console.log(
       `[poll ${attempts}] batch ${batchId} status=${batchStatus} completed=${sb.request_counts?.completed} failed=${sb.request_counts?.failed}`
@@ -348,7 +365,7 @@ test("batch E2E: upload file, create batch, verify rate-limit logs appear", asyn
 
   // 5. Verify batch results
   const finalResp = await fetch(`${app.baseUrl}/api/v1/batches/${batchId}`);
-  const finalBody = (await finalResp.json()) as any;
+  const finalBody = (await safeJsonResponse(finalResp, "final batch fetch")) as any;
   assert.equal(
     finalBody.request_counts?.completed,
     2,
