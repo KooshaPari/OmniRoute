@@ -43,6 +43,22 @@
 
 ---
 
+## [3.8.44] — TBD
+
+### ✨ New Features
+
+_TBD_
+
+### 🔧 Bug Fixes
+
+_TBD_
+
+### 📝 Maintenance
+
+_TBD_
+
+---
+
 ## [3.8.43] — 2026-07-02
 
 ### ✨ New Features
