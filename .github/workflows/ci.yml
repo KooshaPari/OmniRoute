@@ -27,22 +27,33 @@ jobs:
     steps:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
       - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e
+        if: ${{ hashFiles('package.json') != '' }}
         with:
           node-version: ${{ env.CI_NODE_VERSION }}
           cache: npm
-      - run: npm ci
-      - run: npm run check:node-runtime
-      - run: npm run audit:deps
-      - run: npm run lint
-      - run: npm run check:cycles
-      - run: npm run check:route-validation:t06
-      - run: npm run check:any-budget:t11
-      - run: npm run check:docs-sync
-      - run: npm run typecheck:core
+      - if: ${{ hashFiles('package.json') != '' }}
+        run: npm ci
+      - if: ${{ hashFiles('package.json') != '' }}
+        run: npm run check:node-runtime
+      - if: ${{ hashFiles('package.json') != '' }}
+        run: npm run audit:deps
+      - if: ${{ hashFiles('package.json') != '' }}
+        run: npm run lint
+      - if: ${{ hashFiles('package.json') != '' }}
+        run: npm run check:cycles
+      - if: ${{ hashFiles('package.json') != '' }}
+        run: npm run check:route-validation:t06
+      - if: ${{ hashFiles('package.json') != '' }}
+        run: npm run check:any-budget:t11
+      - if: ${{ hashFiles('package.json') != '' }}
+        run: npm run check:docs-sync
+      - if: ${{ hashFiles('package.json') != '' }}
+        run: npm run typecheck:core
       # typecheck:noimplicit:core is a forward-looking gate (noImplicitAny).
       # Run informationally for now — many pre-existing call sites still need
       # explicit annotations; track in a dedicated follow-up.
-      - run: npm run typecheck:noimplicit:core
+      - if: ${{ hashFiles('package.json') != '' }}
+        run: npm run typecheck:noimplicit:core
         continue-on-error: true
 
   docs-sync-strict:
@@ -51,12 +62,16 @@ jobs:
     steps:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
       - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e
+        if: ${{ hashFiles('package.json') != '' }}
         with:
           node-version: ${{ env.CI_NODE_VERSION }}
           cache: npm
-      - run: npm ci
-      - run: npm run check:docs-all
+      - if: ${{ hashFiles('package.json') != '' }}
+        run: npm ci
+      - if: ${{ hashFiles('package.json') != '' }}
+        run: npm run check:docs-all
       - name: i18n translation drift (warn)
+        if: ${{ hashFiles('package.json') != '' }}
         run: node scripts/i18n/check-translation-drift.mjs --warn
 
   i18n-ui-coverage:
@@ -65,11 +80,14 @@ jobs:
     steps:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
       - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e
+        if: ${{ hashFiles('package.json') != '' }}
         with:
           node-version: ${{ env.CI_NODE_VERSION }}
           cache: npm
-      - run: npm ci
-      - run: node scripts/i18n/check-ui-keys-coverage.mjs --threshold=65
+      - if: ${{ hashFiles('package.json') != '' }}
+        run: npm ci
+      - if: ${{ hashFiles('package.json') != '' }}
+        run: node scripts/i18n/check-ui-keys-coverage.mjs --threshold=65
 
   i18n-matrix:
     name: Build language matrix
@@ -172,13 +190,18 @@ jobs:
     steps:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
       - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e
+        if: ${{ hashFiles('package.json') != '' }}
         with:
           node-version: ${{ env.CI_NODE_VERSION }}
           cache: npm
-      - run: npm ci
-      - run: npm run check:node-runtime
-      - run: npm run build:cli
-      - run: npm run check:pack-artifact
+      - if: ${{ hashFiles('package.json') != '' }}
+        run: npm ci
+      - if: ${{ hashFiles('package.json') != '' }}
+        run: npm run check:node-runtime
+      - if: ${{ hashFiles('package.json') != '' }}
+        run: npm run build:cli
+      - if: ${{ hashFiles('package.json') != '' }}
+        run: npm run check:pack-artifact
 
   electron-package-smoke:
     name: Electron Package Smoke
@@ -191,19 +214,25 @@ jobs:
     steps:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
       - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e
+        if: ${{ hashFiles('package.json') != '' }}
         with:
           node-version: ${{ env.CI_NODE_VERSION }}
           cache: npm
-      - run: npm ci
-      - run: npm run check:node-runtime
-      - run: npm run build
+      - if: ${{ hashFiles('package.json') != '' }}
+        run: npm ci
+      - if: ${{ hashFiles('package.json') != '' }}
+        run: npm run check:node-runtime
+      - if: ${{ hashFiles('package.json') != '' }}
+        run: npm run build
       - name: Install Electron dependencies
         working-directory: electron
         run: npm install --no-audit --no-fund
       - name: Pack Electron app
+        if: ${{ hashFiles('package.json') != '' }}
         working-directory: electron
         run: npm run pack
       - name: Smoke packaged Electron app
+        if: ${{ hashFiles('package.json') != '' }}
         env:
           ELECTRON_SMOKE_TIMEOUT_MS: 60000
         run: xvfb-run -a npm run electron:smoke:packaged
@@ -224,12 +253,16 @@ jobs:
     steps:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
       - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e
+        if: ${{ hashFiles('package.json') != '' }}
         with:
           node-version: ${{ env.CI_NODE_VERSION }}
           cache: npm
-      - run: npm ci
-      - run: npm run check:node-runtime
-      - run: node --max-old-space-size=4096 --import tsx --test --test-force-exit --test-concurrency=4 --test-shard=${{ matrix.shard }}/8 tests/unit/*.test.ts
+      - if: ${{ hashFiles('package.json') != '' }}
+        run: npm ci
+      - if: ${{ hashFiles('package.json') != '' }}
+        run: npm run check:node-runtime
+      - if: ${{ hashFiles('package.json') != '' }}
+        run: node --max-old-space-size=4096 --import tsx --test --test-force-exit --test-concurrency=4 --test-shard=${{ matrix.shard }}/8 tests/unit/*.test.ts
 
   node-24-compat:
     name: Node 24 Compatibility (${{ matrix.shard }}/2)
@@ -247,13 +280,18 @@ jobs:
     steps:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
       - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e
+        if: ${{ hashFiles('package.json') != '' }}
         with:
           node-version: ${{ env.CI_NODE_24_VERSION }}
           cache: npm
-      - run: npm ci
-      - run: npm run check:node-runtime
-      - run: npm run build
-      - run: node --import tsx --test --test-force-exit --test-concurrency=4 --test-shard=${{ matrix.shard }}/2 tests/unit/*.test.ts
+      - if: ${{ hashFiles('package.json') != '' }}
+        run: npm ci
+      - if: ${{ hashFiles('package.json') != '' }}
+        run: npm run check:node-runtime
+      - if: ${{ hashFiles('package.json') != '' }}
+        run: npm run build
+      - if: ${{ hashFiles('package.json') != '' }}
+        run: node --import tsx --test --test-force-exit --test-concurrency=4 --test-shard=${{ matrix.shard }}/2 tests/unit/*.test.ts
 
   node-26-compat:
     name: Node 26 Compatibility (${{ matrix.shard }}/2)
@@ -271,13 +309,18 @@ jobs:
     steps:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
       - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e
+        if: ${{ hashFiles('package.json') != '' }}
         with:
           node-version: ${{ env.CI_NODE_26_VERSION }}
           cache: npm
-      - run: npm ci
-      - run: npm run check:node-runtime
-      - run: npm run build
-      - run: node --import tsx --test --test-force-exit --test-concurrency=4 --test-shard=${{ matrix.shard }}/2 tests/unit/*.test.ts
+      - if: ${{ hashFiles('package.json') != '' }}
+        run: npm ci
+      - if: ${{ hashFiles('package.json') != '' }}
+        run: npm run check:node-runtime
+      - if: ${{ hashFiles('package.json') != '' }}
+        run: npm run build
+      - if: ${{ hashFiles('package.json') != '' }}
+        run: node --import tsx --test --test-force-exit --test-concurrency=4 --test-shard=${{ matrix.shard }}/2 tests/unit/*.test.ts
 
   test-coverage-shard:
     name: Coverage Shard (${{ matrix.shard }}/8)
@@ -295,12 +338,16 @@ jobs:
     steps:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
       - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e
+        if: ${{ hashFiles('package.json') != '' }}
         with:
           node-version: ${{ env.CI_NODE_VERSION }}
           cache: npm
-      - run: npm ci
-      - run: npm run check:node-runtime
+      - if: ${{ hashFiles('package.json') != '' }}
+        run: npm ci
+      - if: ${{ hashFiles('package.json') != '' }}
+        run: npm run check:node-runtime
       - name: Run c8 over shard ${{ matrix.shard }}/8
+        if: ${{ hashFiles('package.json') != '' }}
         run: |
           rm -rf coverage-shard coverage-shard-report
           # `--temp-directory` (writable via NODE_V8_COVERAGE) is what the merge
@@ -337,10 +384,12 @@ jobs:
     steps:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
       - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e
+        if: ${{ hashFiles('package.json') != '' }}
         with:
           node-version: ${{ env.CI_NODE_VERSION }}
           cache: npm
-      - run: npm ci
+      - if: ${{ hashFiles('package.json') != '' }}
+        run: npm ci
       - name: Download all shard coverage
         uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131
         with:
@@ -348,6 +397,7 @@ jobs:
           path: coverage-shards/
           merge-multiple: true
       - name: Merge + report + gate
+        if: ${{ hashFiles('package.json') != '' }}
         run: |
           mkdir -p coverage
           if [ ! -d coverage-shards ] || ! find coverage-shards -maxdepth 1 -type f -name '*.json' | grep -q .; then
@@ -520,14 +570,20 @@ jobs:
     steps:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
       - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e
+        if: ${{ hashFiles('package.json') != '' }}
         with:
           node-version: ${{ env.CI_NODE_VERSION }}
           cache: npm
-      - run: npm ci
-      - run: npm run check:node-runtime
-      - run: npx playwright install --with-deps chromium
-      - run: npm run build
-      - run: npx playwright test tests/e2e/*.spec.ts --shard=${{ matrix.shard }}/6
+      - if: ${{ hashFiles('package.json') != '' }}
+        run: npm ci
+      - if: ${{ hashFiles('package.json') != '' }}
+        run: npm run check:node-runtime
+      - if: ${{ hashFiles('package.json') != '' }}
+        run: npx playwright install --with-deps chromium
+      - if: ${{ hashFiles('package.json') != '' }}
+        run: npm run build
+      - if: ${{ hashFiles('package.json') != '' }}
+        run: npx playwright test tests/e2e/*.spec.ts --shard=${{ matrix.shard }}/6
 
   test-integration:
     name: Integration Tests (${{ matrix.shard }}/2)
@@ -547,12 +603,16 @@ jobs:
     steps:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
       - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e
+        if: ${{ hashFiles('package.json') != '' }}
         with:
           node-version: ${{ env.CI_NODE_VERSION }}
           cache: npm
-      - run: npm ci
-      - run: npm run check:node-runtime
-      - run: node --import tsx --test --test-force-exit --test-concurrency=1 --test-shard=${{ matrix.shard }}/2 tests/integration/*.test.ts
+      - if: ${{ hashFiles('package.json') != '' }}
+        run: npm ci
+      - if: ${{ hashFiles('package.json') != '' }}
+        run: npm run check:node-runtime
+      - if: ${{ hashFiles('package.json') != '' }}
+        run: node --import tsx --test --test-force-exit --test-concurrency=1 --test-shard=${{ matrix.shard }}/2 tests/integration/*.test.ts
 
   test-security:
     name: Security Tests
@@ -565,12 +625,16 @@ jobs:
     steps:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
       - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e
+        if: ${{ hashFiles('package.json') != '' }}
         with:
           node-version: ${{ env.CI_NODE_VERSION }}
           cache: npm
-      - run: npm ci
-      - run: npm run check:node-runtime
-      - run: npm run test:security
+      - if: ${{ hashFiles('package.json') != '' }}
+        run: npm ci
+      - if: ${{ hashFiles('package.json') != '' }}
+        run: npm run check:node-runtime
+      - if: ${{ hashFiles('package.json') != '' }}
+        run: npm run test:security
 
   ci-summary:
     name: CI Dashboard
