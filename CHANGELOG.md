@@ -51,13 +51,11 @@ _TBD_
 
 ### 🔧 Bug Fixes
 
-- **fix(providers): Api Airforce model discovery no longer produces a doubled `/v1` path** — a base URL ending in `/v1/chat/completions` (e.g. `https://api.airforce/v1/chat/completions`) was only stripped of `/chat/completions`, leaving a trailing `/v1` that the endpoint builder then doubled into `…/v1/v1/models`. That 308 redirect was surfaced as `REDIRECT_BLOCKED` and aborted the whole discovery probe loop before the correct `…/v1/models` candidate. The `/v1` suffix is now stripped independently (guarding a host literally named `v1`), and a `REDIRECT_BLOCKED` on one candidate continues to the next endpoint instead of aborting. Regression guards: `tests/unit/provider-models-route.test.ts`. ([#5904](https://github.com/diegosouzapw/OmniRoute/pull/5904) — thanks [@hamsa0x7](https://github.com/hamsa0x7)). Also reported/fixed independently by [@anki1kr](https://github.com/anki1kr) in [#5920](https://github.com/diegosouzapw/OmniRoute/pull/5920).
+- **fix(sse):** strip ANSI/VT100 escape codes from gemini-cli stream frames so ANSI-prefixed `data:` lines are no longer silently dropped. (thanks @anki1kr)
 
 ### 📝 Maintenance
 
-- **chore(release):** release-pipeline hardening — `check:test-masking` (vs `origin/main`) is now a HARD gate in the release-green pre-flight (`validate-release-green.mjs`), so a non-allowlisted net-assert reduction surfaces locally instead of in a ~40-min CI layer on the release PR; plus two reconciliation helpers — `npm run release:contributors` (reproducible `### 🙌 Contributors` table via a parenthetical-group parser) and `npm run release:uncovered` (lists commits with no CHANGELOG bullet). ([#5926](https://github.com/diegosouzapw/OmniRoute/pull/5926) — thanks @diegosouzapw)
-
-- **chore(ci):** the `check:pr-evidence` FAIL report now tells you that editing the PR body does not re-run the gate (`ci.yml` ignores the `edited` event) — push a commit to re-validate. ([#5944](https://github.com/diegosouzapw/OmniRoute/pull/5944) — thanks @diegosouzapw)
+_TBD_
 
 ---
 
