@@ -537,14 +537,17 @@ export class BaseExecutor {
    * providerSpecificData.baseUrl over the static provider config baseUrl.
    */
   protected resolveBaseUrl(credentials: ProviderCredentials | null, fallback?: string): string {
-    return credentials?.providerSpecificData?.baseUrl || fallback || this.config.baseUrl || "";
+    const psdBaseUrl = credentials?.providerSpecificData?.baseUrl;
+    return (
+      (typeof psdBaseUrl === "string" ? psdBaseUrl : "") || fallback || this.config.baseUrl || ""
+    );
   }
 
   /**
    * Resolve the effective API key via extra-keys round-robin rotation.
    * Mutates `credentials.providerSpecificData.selectedKeyId` on rotation.
    */
-  protected resolveEffectiveKey(credentials: ProviderCredentials): string {
+  protected resolveEffectiveKey(credentials: ProviderCredentials): string | undefined {
     const extraKeys =
       (credentials.providerSpecificData?.extraApiKeys as string[] | undefined) ?? [];
     const selectedKeyId = (credentials.providerSpecificData as Record<string, unknown> | undefined)
@@ -574,7 +577,7 @@ export class BaseExecutor {
   protected buildHeadersPreamble(
     credentials: ProviderCredentials,
     stream: boolean
-  ): { headers: Record<string, string>; effectiveKey: string } {
+  ): { headers: Record<string, string>; effectiveKey: string | undefined } {
     const headers: Record<string, string> = {
       "Content-Type": "application/json",
       ...this.config.headers,
@@ -898,7 +901,11 @@ export class BaseExecutor {
     const strippedFields = new Set<string>();
 
     for (let urlIndex = 0; urlIndex < fallbackCount; urlIndex++) {
-      const requestCredentials = withForcedResponsesUpstream(this.provider, body, activeCredentials);
+      const requestCredentials = withForcedResponsesUpstream(
+        this.provider,
+        body,
+        activeCredentials
+      );
       const url = this.buildUrl(model, stream, urlIndex, requestCredentials);
       const headers = this.buildHeaders(requestCredentials, stream, clientHeaders, model);
       applyConfiguredUserAgent(headers, requestCredentials?.providerSpecificData);

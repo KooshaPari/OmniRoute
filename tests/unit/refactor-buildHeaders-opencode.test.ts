@@ -75,10 +75,14 @@ test("OpencodeExecutor.buildHeaders: Content-Type always application/json", () =
   assert.equal(headers["Content-Type"], "application/json");
 });
 
-test("OpencodeExecutor.buildHeaders: defaults User-Agent to opencode/local when no client UA", () => {
+test("OpencodeExecutor.buildHeaders: omits User-Agent when no client UA (forward-only, not fabricated)", () => {
+  // Forward-only contract (see opencode-executor.test.ts): opencode client identity headers
+  // are opencode-internal — inventing them risks upstream rejection, so we never fabricate a
+  // default. A pure dedup refactor (#5720) briefly regressed this by defaulting to
+  // "opencode/local"; the executor forwards a client-sent User-Agent but adds none of its own.
   const executor = new OpencodeExecutor("opencode");
   const headers = executor.buildHeaders({ apiKey: "key-1" }, true);
-  assert.equal(headers["User-Agent"], "opencode/local");
+  assert.equal(headers["User-Agent"], undefined);
 });
 
 test("OpencodeExecutor.buildHeaders: preserves client User-Agent when provided", () => {
@@ -89,10 +93,12 @@ test("OpencodeExecutor.buildHeaders: preserves client User-Agent when provided",
   assert.equal(headers["User-Agent"], "opencode/1.17.12");
 });
 
-test("OpencodeExecutor.buildHeaders: defaults x-opencode-client to cli when absent", () => {
+test("OpencodeExecutor.buildHeaders: omits x-opencode-client when absent (forward-only, not fabricated)", () => {
+  // x-opencode-client / x-opencode-project valid values are opencode-internal; fabricating a
+  // default ("cli") risks upstream rejection, so they stay forward-only (see opencode-executor.test.ts).
   const executor = new OpencodeExecutor("opencode");
   const headers = executor.buildHeaders({ apiKey: "key-1" }, true);
-  assert.equal(headers["x-opencode-client"], "cli");
+  assert.equal(headers["x-opencode-client"], undefined);
 });
 
 test("OpencodeExecutor.buildHeaders: preserves x-opencode-client from client headers", () => {

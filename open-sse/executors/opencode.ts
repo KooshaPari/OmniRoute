@@ -254,13 +254,6 @@ export class OpencodeExecutor extends BaseExecutor {
       });
     }
 
-    if (!headers["User-Agent"] && !headers["user-agent"]) {
-      headers["User-Agent"] = "opencode/local";
-    }
-    if (!headers["x-opencode-client"]) {
-      headers["x-opencode-client"] = "cli";
-    }
-
     void model;
 
     return headers;
