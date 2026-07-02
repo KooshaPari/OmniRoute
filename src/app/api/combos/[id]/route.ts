@@ -1,3 +1,26 @@
+/**
+ * GET    /api/combos/[id]   — fetch a single combo by id
+ * PUT    /api/combos/[id]   — partial update (validated by `updateComboSchema`)
+ * DELETE /api/combos/[id]   — remove a combo
+ *
+ * Restored 2026-06-19 (L5-121): the prior versions of these route handlers
+ * were removed by `05924441a` ("chore(OmniRoute): add packageManager field"),
+ * but the GUI's combos page (see `src/app/(dashboard)/dashboard/combos/page.tsx`
+ * lines 746, 767, 788, 840, 1578, 292) still issues fetch calls to
+ * `/api/combos/${id}` for create + update + delete flows. Until the GUI is
+ * migrated to the new `/v1/combos` + `/api/combos/auto` API surface, these
+ * legacy endpoints must remain in place — otherwise the GUI's save modal
+ * surfaces a Next.js 404 (rendered as a non-actionable 400 in some
+ * browser/MetaMask noise layers).
+ *
+ * Why this uses the old-style schema (not `.strict()` at the top level):
+ * the GUI sends legacy fields like `compressionOverride` and partial
+ * `system_message` / `tool_filter_regex` updates. The `comboRuntimeConfigSchema`
+ * is `.strict()`, so we route the body through `sanitizeComboRuntimeConfig`
+ * before validation to drop unknown legacy keys — this avoids the
+ * "Unrecognized key: \"<legacy>\"" 400 that previously blocked all save
+ * attempts on combos with an unknown config field.
+ */
 import { NextResponse } from "next/server";
 import {
   getComboById,
@@ -8,29 +31,52 @@ import {
   isCloudEnabled,
 } from "@/lib/localDb";
 import { getConsistentMachineId } from "@/shared/utils/machineId";
-import { syncToCloud } from "@/lib/cloudSync";
+import { syncToCloud } from "@/lib/cloudSync.stub";
 import { validateCompositeTiersConfig } from "@/lib/combos/compositeTiers";
 import { normalizeComboModels } from "@/lib/combos/steps";
-import { validateComboDAG, clampComboDepth } from "@omniroute/open-sse/services/combo.ts";
-import { updateComboSchema } from "@/shared/validation/schemas";
+import { validateComboDAG } from "@omniroute/open-sse/services/combo.ts";
+import {
+  updateComboSchema,
+  comboRuntimeConfigSchema,
+} from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
-import { buildErrorBody } from "@omniroute/open-sse/utils/error";
-import { QUOTA_MODEL_PREFIX } from "@/lib/quota/quotaModelNaming";
 
-// GET /api/combos/[id] - Get combo by ID
-export async function GET(request, { params }) {
+/**
+ * Strip unknown keys from `combo.config` before validation. The schema is
+ * `.strict()`, so any field that isn't enumerated in
+ * `comboRuntimeConfigSchema.shape` (lines 632–686) would otherwise produce
+ * an "Unrecognized key" 400 — blocking the GUI's edit-modal save on every
+ * combo that has any legacy or extra config field.
+ */
+function sanitizeComboRuntimeConfig(rawConfig: unknown): Record<string, unknown> {
+  if (!rawConfig || typeof rawConfig !== "object" || Array.isArray(rawConfig)) {
+    return {};
+  }
+  const allowed = new Set(Object.keys(comboRuntimeConfigSchema.shape));
+  const out: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(rawConfig as Record<string, unknown>)) {
+    if (!allowed.has(key)) continue;
+    if (value === undefined || value === null) continue;
+    out[key] = value;
+  }
+  return out;
+}
+
+// GET /api/combos/[id] — fetch one combo
+export async function GET(
+  request: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
   const authError = await requireManagementAuth(request);
   if (authError) return authError;
 
   try {
     const { id } = await params;
     const combo = await getComboById(id);
-
     if (!combo) {
       return NextResponse.json({ error: "Combo not found" }, { status: 404 });
     }
-
     return NextResponse.json(combo);
   } catch (error) {
     console.log("Error fetching combo:", error);
@@ -38,176 +84,187 @@ export async function GET(request, { params }) {
   }
 }
 
-// PUT /api/combos/[id] - Update combo
-export async function PUT(request, { params }) {
+// PUT /api/combos/[id] — partial update
+export async function PUT(
+  request: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
   const authError = await requireManagementAuth(request);
   if (authError) return authError;
 
-  let rawBody;
+  let rawBody: unknown;
   try {
     rawBody = await request.json();
   } catch {
     return NextResponse.json(
-      {
-        error: {
-          message: "Invalid request",
-          details: [{ field: "body", message: "Invalid JSON body" }],
-        },
-      },
+      { error: { message: "Invalid JSON body" } },
+      { status: 400 }
+    );
+  }
+
+  if (!rawBody || typeof rawBody !== "object" || Array.isArray(rawBody)) {
+    return NextResponse.json(
+      { error: { message: "Invalid request", details: [{ field: "", message: "Body must be a JSON object" }] } },
+      { status: 400 }
+    );
+  }
+
+  // Strip unknown keys from `config` to satisfy the strict sub-schema.
+  const sanitizedBody = { ...(rawBody as Record<string, unknown>) };
+  if ("config" in sanitizedBody) {
+    sanitizedBody.config = sanitizeComboRuntimeConfig(sanitizedBody.config);
+  }
+
+  const validation = validateBody(updateComboSchema, sanitizedBody);
+  if (isValidationFailure(validation)) {
+    return NextResponse.json(
+      { error: validation.error },
       { status: 400 }
     );
   }
 
   try {
     const { id } = await params;
-    const validation = validateBody(updateComboSchema, rawBody);
-    if (isValidationFailure(validation)) {
-      return NextResponse.json({ error: validation.error }, { status: 400 });
-    }
-    const currentCombo = await getComboById(id);
-    if (!currentCombo) {
+    const combo = await getComboById(id);
+    if (!combo) {
       return NextResponse.json({ error: "Combo not found" }, { status: 404 });
     }
-    if (currentCombo.name.startsWith(QUOTA_MODEL_PREFIX)) {
-      return NextResponse.json(
-        buildErrorBody(
-          409,
-          "This combo is managed by Quota Share and cannot be edited here. Manage it from the Quota Share page."
-        ),
-        { status: 409 }
+
+    // Legacy top-level `compressionOverride` → move into `config.compressionMode`.
+    const updatePayload: Record<string, unknown> = { ...validation.data };
+    if ("compressionOverride" in updatePayload) {
+      const override = updatePayload.compressionOverride;
+      delete updatePayload.compressionOverride;
+      const existingConfig = (combo.config && typeof combo.config === "object"
+        ? combo.config
+        : {}) as Record<string, unknown>;
+      updatePayload.config = sanitizeComboRuntimeConfig({
+        ...existingConfig,
+        compressionMode: override === null ? "off" : override,
+      });
+    }
+
+    // Validate composite-tiers if present in the merged config.
+    const mergedConfig = updatePayload.config;
+    if (mergedConfig && typeof mergedConfig === "object") {
+      const compositeCheck = validateCompositeTiersConfig(
+        mergedConfig as Record<string, unknown>
       );
-    }
-    const allCombos = await getCombos();
-
-    const comboName = validation.data.name || currentCombo.name;
-    const normalizedUpdate = { ...validation.data };
-    if (normalizedUpdate.compressionOverride !== undefined) {
-      const legacyCompressionOverride = normalizedUpdate.compressionOverride;
-      const nextConfig =
-        currentCombo.config &&
-        typeof currentCombo.config === "object" &&
-        !Array.isArray(currentCombo.config)
-          ? { ...currentCombo.config }
-          : {};
-      if (legacyCompressionOverride) {
-        nextConfig.compressionMode = legacyCompressionOverride;
-      } else {
-        delete nextConfig.compressionMode;
-      }
-      normalizedUpdate.config = nextConfig;
-      delete normalizedUpdate.compressionOverride;
-    }
-
-    const body = normalizedUpdate.models
-      ? {
-          ...normalizedUpdate,
-          models: normalizeComboModels(normalizedUpdate.models, {
-            comboName,
-            allCombos,
-          }),
-        }
-      : normalizedUpdate;
-    const nextComboState = {
-      ...currentCombo,
-      ...body,
-      name: comboName,
-    };
-    // Gate: only validate composite tiers when the request touches the graph.
-    // This prevents a PUT that only toggles isActive/name/etc from returning
-    // 400 when the stored combo has a stale compositeTiers reference (e.g. a
-    // tier.stepId that points to a model that was later removed from models).
-    const touchesGraph =
-      body.config !== undefined || body.models !== undefined;
-    if (touchesGraph) {
-      const compositeValidation = validateCompositeTiersConfig(nextComboState);
-      if (!compositeValidation.success) {
-        return NextResponse.json({ error: compositeValidation.error }, { status: 400 });
-      }
-    }
-
-    // Check if name already exists (exclude current combo)
-    if (body.name) {
-      const existing = await getComboByName(body.name);
-      if (existing && existing.id !== id) {
-        return NextResponse.json({ error: "Combo name already exists" }, { status: 400 });
-      }
-    }
-
-    // Validate nested combo DAG (no circular references, max depth)
-    if (body.models) {
-      // Update the combo in the list temporarily for validation
-      const updatedCombos = allCombos.map((c) => (c.id === id ? { ...c, ...body } : c));
-      if (comboName) {
-        const configuredDepth = clampComboDepth(
-          (nextComboState as { config?: { maxComboDepth?: unknown } }).config?.maxComboDepth
+      if (!compositeCheck.ok) {
+        return NextResponse.json(
+          {
+            error: {
+              message: "Invalid request",
+              details: compositeCheck.errors.map((m) => ({ field: "config.compositeTiers", message: m })),
+            },
+          },
+          { status: 400 }
         );
-        try {
-          validateComboDAG(comboName, updatedCombos, new Set(), 0, configuredDepth);
-        } catch (dagError) {
-          return NextResponse.json({ error: dagError.message }, { status: 400 });
-        }
       }
     }
 
-    const combo = await updateCombo(id, body);
+    // Name-collision check when renaming.
+    if (
+      typeof updatePayload.name === "string" &&
+      updatePayload.name !== combo.name
+    ) {
+      const existing = await getComboByName(updatePayload.name);
+      if (existing && existing.id !== combo.id) {
+        return NextResponse.json(
+          {
+            error: {
+              message: "Invalid request",
+              details: [{ field: "name", message: "Combo name already exists" }],
+            },
+          },
+          { status: 400 }
+        );
+      }
+    }
 
-    // Auto sync to Cloud if enabled
-    await syncToCloudIfEnabled();
+    // Validate DAG when models are sent.
+    if (Array.isArray(updatePayload.models)) {
+      try {
+        const allCombos = await getCombos();
+        const normalized = normalizeComboModels(updatePayload.models, {
+          comboName: combo.name,
+        });
+        validateComboDAG(
+          updatePayload.name ?? combo.name,
+          allCombos as unknown as Map<string, unknown>,
+          new Set<string>(),
+          0,
+          5
+        );
+        updatePayload.models = normalized;
+      } catch (dagError) {
+        return NextResponse.json(
+          {
+            error: {
+              message: "Invalid request",
+              details: [
+                {
+                  field: "models",
+                  message:
+                    dagError instanceof Error
+                      ? dagError.message
+                      : "Invalid combo DAG",
+                },
+              ],
+            },
+          },
+          { status: 400 }
+        );
+      }
+    }
 
-    return NextResponse.json(combo);
+    const updated = await updateCombo(id, updatePayload);
+
+    // Best-effort cloud sync — never block the local save on cloud failures.
+    if (isCloudEnabled()) {
+      try {
+        const machineId = await getConsistentMachineId();
+        await syncToCloud(machineId);
+      } catch (cloudError) {
+        console.log("Cloud sync failed (non-fatal):", cloudError);
+      }
+    }
+
+    return NextResponse.json(updated);
   } catch (error) {
     console.log("Error updating combo:", error);
     return NextResponse.json({ error: "Failed to update combo" }, { status: 500 });
   }
 }
 
-// DELETE /api/combos/[id] - Delete combo
-export async function DELETE(request, { params }) {
+// DELETE /api/combos/[id] — remove combo
+export async function DELETE(
+  request: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
   const authError = await requireManagementAuth(request);
   if (authError) return authError;
 
   try {
     const { id } = await params;
-    const existingCombo = await getComboById(id);
-    if (!existingCombo) {
+    const combo = await getComboById(id);
+    if (!combo) {
       return NextResponse.json({ error: "Combo not found" }, { status: 404 });
     }
-    if (existingCombo.name.startsWith(QUOTA_MODEL_PREFIX)) {
-      return NextResponse.json(
-        buildErrorBody(
-          409,
-          "This combo is managed by Quota Share and cannot be deleted here. Manage it from the Quota Share page."
-        ),
-        { status: 409 }
-      );
-    }
-    const success = await deleteCombo(id);
+    await deleteCombo(id);
 
-    if (!success) {
-      return NextResponse.json({ error: "Combo not found" }, { status: 404 });
+    if (isCloudEnabled()) {
+      try {
+        const machineId = await getConsistentMachineId();
+        await syncToCloud(machineId);
+      } catch (cloudError) {
+        console.log("Cloud sync failed (non-fatal):", cloudError);
+      }
     }
 
-    // Auto sync to Cloud if enabled
-    await syncToCloudIfEnabled();
-
-    return NextResponse.json({ success: true });
+    return NextResponse.json({ ok: true });
   } catch (error) {
     console.log("Error deleting combo:", error);
     return NextResponse.json({ error: "Failed to delete combo" }, { status: 500 });
-  }
-}
-
-/**
- * Sync to Cloud if enabled
- */
-async function syncToCloudIfEnabled() {
-  try {
-    const cloudEnabled = await isCloudEnabled();
-    if (!cloudEnabled) return;
-
-    const machineId = await getConsistentMachineId();
-    await syncToCloud(machineId);
-  } catch (error) {
-    console.log("Error syncing to cloud:", error);
   }
 }

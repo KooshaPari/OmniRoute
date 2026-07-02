@@ -141,6 +141,7 @@
 | **B7** | Migration playbook (`docs/operations/bifrost-migration.md`) | ops | S | ✅ PR #91 OPEN 2026-06-19 |
 | **B8** | Bifrost MCP client integration (use Bifrost as upstream MCP source for OmniRoute's MCP-router) | mcp | M | ✅ PR #93 OPEN 2026-06-19 |
 | **B9** | Kill switch: keep OmniRoute's `open-sse/` engine as fallback if Bifrost fails SLOs for 7 days | core | S | ✅ PR #95 OPEN 2026-06-20 |
+| **B9.1** | Wire kill switch into `BifrostBackendExecutor` (pre-check `isActive`, post `recordObservation`, healthCheck propagation, `BIFROST_KILLSWITCH_DISABLED` env-bypass) | core | S | ✅ DONE 2026-06-20 |
 
 ### 2.5.3 Decision review schedule
 

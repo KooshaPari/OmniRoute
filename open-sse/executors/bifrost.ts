@@ -46,10 +46,15 @@ import {
   type BifrostFetcher,
 } from "../../src/lib/db/bifrostModels.ts";
 import {
-  isActive as isKillSwitchActive,
-  recordObservation as recordKillSwitchObservation,
+  isActive as killSwitchIsActive,
+  recordObservation,
+  getState as killSwitchGetState,
+  type KillSwitchState,
 } from "../services/bifrostKillSwitch.ts";
-import { getExecutor } from "./index.ts";
+import {
+  BifrostKillSwitchActiveError,
+  BIFROST_KILLSWITCH_ACTIVE,
+} from "../services/bifrostKillSwitch.ts";
 
 const DEFAULT_HOST = "127.0.0.1";
 const DEFAULT_PORT = 8080;
@@ -75,6 +80,36 @@ function isBifrostEnabled(): boolean {
   const flag = process.env.BIFROST_ENABLED;
   if (!flag) return false;
   return flag === "true" || flag === "1";
+}
+
+/**
+ * Escape hatch: BIFROST_KILLSWITCH_DISABLED=true bypasses the kill switch
+ * entirely. Useful for operators who need Bifrost to keep serving even
+ * when the kill switch is tripped, or for testing the kill-switch path
+ * in isolation. Default behavior (env unset / "false") honors the kill
+ * switch.
+ *
+ * Reference: PLAN.md § 2.5.2 (B9.1) — "kill switch must be defeatable
+ * via env var for emergency operation".
+ */
+function isKillSwitchDisabled(): boolean {
+  const flag = process.env.BIFROST_KILLSWITCH_DISABLED;
+  if (!flag) return false;
+  return flag === "true" || flag === "1";
+}
+
+/**
+ * Look up the current kill switch state for this provider, or undefined
+ * if no observations have been recorded yet (i.e. no state in the map).
+ * Wraps `getState` so callers can treat the absence of state as a
+ * non-tripped condition without a try/catch.
+ */
+function killSwitchStateFor(provider: string): KillSwitchState | undefined {
+  try {
+    return killSwitchGetState(provider);
+  } catch {
+    return undefined;
+  }
 }
 
 /**
@@ -124,19 +159,32 @@ export class BifrostBackendExecutor extends BaseExecutor {
       );
     }
 
-    // B9 wiring: kill switch pre-check. If the kill switch is active for
-    // this provider (degradation detected by prior observations), throw
-    // so the dispatcher falls back to the legacy chatCore path.
-    // Recorded under the BIFROST_TAG for log correlation.
-    if (isKillSwitchActive(this.provider)) {
+    // ── Kill switch pre-check (B9.1) ─────────────────────────────
+    // If the kill switch is active for this provider, throw
+    // BifrostKillSwitchActiveError. The dispatcher catches this and falls
+    // back to the legacy chatCore path. The env var
+    // BIFROST_KILLSWITCH_DISABLED=true is an escape hatch for emergency
+    // operation (operators who need Bifrost to keep serving even when
+    // tripped).
+    if (!isKillSwitchDisabled() && killSwitchIsActive(this.provider)) {
+      const state = killSwitchStateFor(this.provider);
       input.log?.warn?.(
         BIFROST_TAG,
-        `Bifrost kill switch active for "${this.provider}" — falling back to legacy chatCore`
+        `Kill switch active for "${this.provider}" ` +
+          `(reason=${state?.reason ?? "unknown"}, severity=${state?.severity ?? "warn"}). ` +
+          `Falling back to legacy chatCore path.`
       );
-      throw new Error(
-        `[${BIFROST_TAG}] Kill switch active for provider "${this.provider}". ` +
-          `Falling back to legacy chatCore until kill switch clears.`
+      if (state) {
+        throw new BifrostKillSwitchActiveError(this.provider, state);
+      }
+      // Defensive: if isActive() returns true but we can't read state,
+      // throw a generic error with the canonical code so dispatchers
+      // can still match on it.
+      const err = new Error(
+        `[${BIFROST_TAG}] Bifrost kill switch is active for provider "${this.provider}".`
       );
+      (err as Error & { code?: string }).code = BIFROST_KILLSWITCH_ACTIVE;
+      throw err;
     }
 
     const bifrostProviderId = resolveBifrostProviderId(this.provider);
@@ -196,43 +244,54 @@ export class BifrostBackendExecutor extends BaseExecutor {
       `Bifrost → ${url} (omniProvider: ${this.provider}, bifrostProvider: ${bifrostProviderId}, model: ${model})`
     );
 
-    const fetchStart = Date.now();
-    let fetchResponse: Response | undefined;
+    // ── execute + record observation (B9.1) ──────────────────────
+    // We measure latency around the fetch and always record an
+    // observation. `ok` is true on 2xx and false on any other status or
+    // thrown error. The kill switch uses these to auto-trip when
+    // thresholds (p99 latency, error rate, cost ratio) are exceeded.
+    const startTime = Date.now();
+    let response: Response;
     try {
-      fetchResponse = await fetch(url, {
+      response = await fetch(url, {
         method: "POST",
         headers,
         body: JSON.stringify(body),
         signal: combinedSignal,
       });
-    } finally {
-      // B9 wiring: record observation regardless of success/failure so the
-      // sliding-window stats stay accurate. ok is true iff we got a Response
-      // (network errors throw before fetchResponse is assigned).
-      const latencyMs = Date.now() - fetchStart;
-      const ok = fetchResponse !== undefined;
-      try {
-        recordKillSwitchObservation({
+    } catch (err) {
+      // Fetch threw (network error, abort, timeout). Record a failed
+      // observation and re-throw. The dispatcher will handle the error.
+      if (!isKillSwitchDisabled()) {
+        recordObservation({
           timestamp: Date.now(),
           provider: this.provider,
-          latencyMs,
-          ok,
+          latencyMs: Date.now() - startTime,
+          ok: false,
         });
-      } catch (ksErr) {
-        // Never let kill-switch bookkeeping break the request path.
-        input.log?.warn?.(
-          BIFROST_TAG,
-          `recordObservation failed: ${ksErr instanceof Error ? ksErr.message : String(ksErr)}`
-        );
       }
+      throw err;
     }
-
-    const response = fetchResponse!;
 
     if (response.status === HTTP_STATUS.RATE_LIMITED) {
       input.log?.warn?.(BIFROST_TAG, `Bifrost rate limited: ${response.status}`);
     } else if (response.status >= 500) {
       input.log?.warn?.(BIFROST_TAG, `Bifrost upstream error: ${response.status}`);
+    }
+
+    // Record a successful (2xx) or failed (non-2xx) observation. Cost
+    // fields are optional — callers that have them can wire them in via
+    // input.killSwitchCost if/when that field is added.
+    if (!isKillSwitchDisabled()) {
+      const cost = (input as { killSwitchCost?: { costUsd?: number; legacyCostUsd?: number } })
+        .killSwitchCost;
+      recordObservation({
+        timestamp: Date.now(),
+        provider: this.provider,
+        latencyMs: Date.now() - startTime,
+        ok: response.ok,
+        costUsd: cost?.costUsd,
+        legacyCostUsd: cost?.legacyCostUsd,
+      });
     }
 
     return {
@@ -263,6 +322,23 @@ export class BifrostBackendExecutor extends BaseExecutor {
         error: "Bifrost not enabled (BIFROST_ENABLED unset)",
       };
     }
+
+    // ── Kill switch healthCheck propagation (B9.1) ──────────────
+    // If the kill switch is active, surface it as a failed health check
+    // with reason='kill_switch_active'. This lets orchestrators and
+    // dashboards see the tripped state without needing to query the
+    // kill switch directly. BIFROST_KILLSWITCH_DISABLED=true bypasses
+    // this propagation (escape hatch).
+    if (!isKillSwitchDisabled() && killSwitchIsActive(this.provider)) {
+      const state = killSwitchStateFor(this.provider);
+      return {
+        ok: false,
+        latencyMs: Date.now() - start,
+        error: "kill_switch_active",
+        version: state?.reason ?? undefined,
+      };
+    }
+
     const baseUrl = await resolveBifrostBaseUrl();
 
     // 1. Probe /health first.
@@ -325,155 +401,4 @@ export class BifrostBackendExecutor extends BaseExecutor {
   }
 }
 
-// ── Dispatcher fallback wrapper (B9 wiring closure) ────────────────
-
-/**
- * Error class for the "Bifrost is configured but cannot serve this request
- * and no legacy fallback is available" case. Surfaces a clear 5xx so the
- * dispatcher can return a meaningful 503-ish response instead of a generic
- * `Internal Server Error`.
- */
-export class BifrostNoFallbackError extends Error {
-  constructor(
-    public readonly provider: string,
-    public readonly underlying: string,
-  ) {
-    super(
-      `[${BIFROST_TAG}] No legacy fallback available for provider "${provider}". ` +
-        `Underlying error: ${underlying}. ` +
-        `Either disable Bifrost for this provider or add a specialized executor.`,
-    );
-    this.name = "BifrostNoFallbackError";
-  }
-}
-
-/**
- * Detect whether an Error thrown by BifrostBackendExecutor indicates that
- * the kill switch tripped (auto-detected or manually force-activated) and
- * the dispatcher should fall back to the legacy executor. Returns the
- * matched provider string when matched, undefined otherwise.
- */
-function matchKillSwitchFallback(err: unknown): string | undefined {
-  if (!(err instanceof Error)) return undefined;
-  // The kill-switch throw inside execute() uses this exact template:
-  //   `[BIFROST] Kill switch active for provider "X". Falling back ...`
-  const m = /Kill switch active for provider "([^"]+)"/.exec(err.message);
-  return m?.[1];
-}
-
-/**
- * Dispatch a chat request through Bifrost, with automatic fallback to the
- * legacy executor (open-sse/executors/default.ts or a specialized one) when
- * the Bifrost kill switch is active for the resolved provider.
- *
- * This is the dispatcher-facing entry point that closes the B9 wiring
- * contract: the executor throws on kill-switch-trip, the dispatcher catches
- * it here and routes through the legacy executor instead of returning a
- * 500 to the user.
- *
- * Other errors (provider unsupported, network failure, 5xx upstream) are
- * propagated unchanged so callers can apply their own retry/backoff logic.
- *
- * @param executor  A BifrostBackendExecutor instance (already configured
- *                  for the target provider via provider config or env).
- * @param input     ExecuteInput shape from BaseExecutor.
- * @returns         Same shape as BifrostBackendExecutor.execute().
- */
-export async function dispatchBifrostWithFallback(
-  executor: BifrostBackendExecutor,
-  input: ExecuteInput,
-): ReturnType<BifrostBackendExecutor["execute"]> {
-  try {
-    return await executor.execute(input);
-  } catch (err) {
-    const fallbackProvider = matchKillSwitchFallback(err);
-    if (fallbackProvider === undefined) {
-      // Not a kill-switch error — propagate as-is so callers can apply
-      // their own retry / backoff / 5xx mapping logic.
-      throw err;
-    }
-    input.log?.warn?.(
-      BIFROST_TAG,
-      `Bifrost kill switch tripped for "${fallbackProvider}" — falling back to legacy executor ` +
-        `(reason: ${err instanceof Error ? err.message : String(err)})`,
-    );
-    const legacy = getExecutor(fallbackProvider);
-    // Avoid an infinite fallback loop: if getExecutor returned another
-    // BifrostBackendExecutor (e.g. someone wired it as the default), bail
-    // out with a distinct error so the dispatcher can return a clean 503.
-    if (legacy instanceof BifrostBackendExecutor) {
-      throw new BifrostNoFallbackError(
-        fallbackProvider,
-        err instanceof Error ? err.message : String(err),
-      );
-    }
-    input.log?.info?.(
-      BIFROST_TAG,
-      `Legacy fallback → ${legacy.constructor.name} for provider "${fallbackProvider}"`,
-    );
-    return legacy.execute(input);
-  }
-}
-
 export default BifrostBackendExecutor;
-
-// ── Dispatcher-facing executor factory (L1a) ──────────────────────
-
-/**
- * Whether Bifrost integration should route a given provider through the
- * BifrostBackendExecutor instead of the legacy `getExecutor()` path.
- *
- * Two activation paths (per docs/frameworks/BIFROST-BACKEND.md):
- *   1. Global env switch:  `BIFROST_ENABLED=1` routes ALL providers
- *      (with per-provider fallback to legacy on kill-switch / unsupported).
- *   2. Per-connection toggle: `providerSpecificData.bifrostMode === true`
- *      routes only that specific connection.
- *
- * L1a implements path (1) only; path (2) requires the upstreamProxy.ts
- * module that this fork is missing (fork drift — see DAG S6 P6d).
- */
-export function shouldRouteViaBifrost(provider: string, opts?: {
-  providerSpecificData?: { bifrostMode?: boolean | null } | null;
-}): boolean {
-  if (process.env.BIFROST_ENABLED === "1" || process.env.BIFROST_ENABLED === "true") {
-    return true;
-  }
-  if (opts?.providerSpecificData?.bifrostMode === true) {
-    return true;
-  }
-  void provider;
-  return false;
-}
-
-/**
- * Build a dispatcher-shaped executor that forwards `.execute(input)` calls
- * to `dispatchBifrostWithFallback(new BifrostBackendExecutor(provider, {}), input)`.
- *
- * Returned object mimics the BaseExecutor surface (just `.execute` +
- * `.getProvider`) so it can be returned from `resolveExecutorWithProxy()`
- * in place of `getExecutor(provider)` without any downstream changes.
- *
- * The empty `{} as ProviderConfig` is safe because BifrostBackendExecutor
- * does not consult `this.config` for URL construction (it derives the URL
- * from the BIFROST_BASE_URL env var); see bifrost.ts:90-92.
- */
-export function createBifrostBackedExecutor(
-  provider: string,
-  log?: {
-    info?: (tag: string, msg: string) => void;
-    warn?: (tag: string, msg: string) => void;
-  },
-): {
-  execute: (input: ExecuteInput) => ReturnType<BifrostBackendExecutor["execute"]>;
-  getProvider: () => string;
-} {
-  log?.info?.(
-    BIFROST_TAG,
-    `${provider} → BifrostBackendExecutor (Tier-1 router, fallback-wrapped)`,
-  );
-  const bifrost = new BifrostBackendExecutor(provider, {} as ConstructorParameters<typeof BaseExecutor>[1]);
-  return {
-    getProvider: () => bifrost.getProvider(),
-    execute: (input) => dispatchBifrostWithFallback(bifrost, input),
-  };
-}

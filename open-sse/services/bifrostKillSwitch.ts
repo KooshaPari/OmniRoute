@@ -399,3 +399,52 @@ export function resetAll(): void {
 export function resetProvider(provider: string): void {
   stateMap.delete(provider);
 }
+
+// ── Kill Switch Active Error ────────────────────────────────────────────
+
+/**
+ * Error code for kill switch activation. The dispatcher (chatCore.ts or the
+ * Bifrost executor) checks for this code to fall back to the legacy
+ * chatCore path when Bifrost is degraded. Reference: ADR-031 § Dispatcher
+ * Fallback, PLAN.md § 2.5.2 (B9.1).
+ */
+export const BIFROST_KILLSWITCH_ACTIVE = "BIFROST_KILLSWITCH_ACTIVE";
+
+/**
+ * Thrown by `BifrostBackendExecutor.execute()` when the kill switch is
+ * active for the provider. The dispatcher catches this error (and any
+ * other BIFROST_KILLSWITCH_ACTIVE-typed error) and falls through to the
+ * legacy chatCore executor transparently.
+ *
+ * Carries the full `KillSwitchState` so the dispatcher can log a useful
+ * diagnostic without re-querying the kill switch.
+ */
+export class BifrostKillSwitchActiveError extends Error {
+  public readonly code = BIFROST_KILLSWITCH_ACTIVE;
+  public readonly provider: string;
+  public readonly state: KillSwitchState;
+  public readonly reason: KillReason | null;
+  public readonly severity: KillSeverity | null;
+  public readonly activatedAt: number | null;
+
+  constructor(provider: string, state: KillSwitchState) {
+    const reason = state.reason ?? "manual";
+    const severity = state.severity ?? "warn";
+    const when = state.activatedAt
+      ? ` (activated ${new Date(state.activatedAt).toISOString()})`
+      : "";
+    super(
+      `Bifrost kill switch active for provider "${provider}": ` +
+        `reason=${reason}, severity=${severity}${when}. ` +
+        `Dispatcher will fall back to legacy chatCore path.`,
+    );
+    this.name = "BifrostKillSwitchActiveError";
+    this.provider = provider;
+    this.state = state;
+    this.reason = state.reason;
+    this.severity = state.severity;
+    this.activatedAt = state.activatedAt;
+    // Preserve prototype chain across transpilation targets.
+    Object.setPrototypeOf(this, BifrostKillSwitchActiveError.prototype);
+  }
+}

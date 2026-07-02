@@ -984,6 +984,30 @@ Refs: `docs/adr/0031-bifrost-tier1-router.md`, `PLAN.md` § 2.5.2 (B9),
 
 ---
 
+## Recent Changes (B9.1 wiring, 2026-06-20)
+
+Closes the wiring step that `Recent Changes (B9 Bifrost kill switch + security, 2026-06-20)`
+deferred to "next session, post-merge" — the kill-switch state machine
+now actually drives the Bifrost executor.
+
+| File | Lines | Purpose |
+|---|---|---|
+| `open-sse/executors/bifrost.ts` | 369 | Pre-check `isActive()` + post `recordObservation()` + healthCheck short-circuit + `BIFROST_KILLSWITCH_DISABLED` escape hatch |
+| `open-sse/services/bifrostKillSwitch.ts` | 431 | Add `BifrostKillSwitchActiveError` + `BIFROST_KILLSWITCH_ACTIVE` constant (stable `.name` for the dispatcher) |
+| `tests/unit/bifrost-kill-switch-wiring.test.ts` | 292 | 12 cases, 4 describe blocks (pre-check / post-record / env-bypass / healthCheck) |
+
+**Wiring pattern (kept public API of `BifrostBackendExecutor.execute()` unchanged):**
+
+1. **Pre-check** — after the BIFROST_ENABLED and provider-support checks, `isActive(this.provider)` is consulted. If true, throw `BifrostKillSwitchActiveError` (`name = BIFROST_KILLSWITCH_ACTIVE`); the dispatcher (`chatCore.ts` / `trafficShadow.ts`) catches it and falls back to legacy `chatCore`.
+2. **Post-record** — after `fetch()` returns (or throws), call `recordObservation({ timestamp, provider, latencyMs, ok: response.ok })`. `ok=false` feeds the error-rate threshold; network errors record `ok=false` and rethrow.
+3. **healthCheck() propagation** — when the per-provider kill switch is active, return `{ ok: false, error: "kill_switch_active", latencyMs }` before touching the network, so k8s liveness/load-balancer probes can short-circuit.
+4. **Escape hatch** — `BIFROST_KILLSWITCH_DISABLED=true` skips both the pre-check throw and the post-record call. Production should leave this unset.
+
+Refs: `PLAN.md` § 2.5.2 (B9.1 row), `docs/adr/0031-bifrost-tier1-router.md`,
+PR #95 (B9 close-out), PR (this turn).
+
+---
+
 ## Cross-references
 
 - [`SPEC.md`](SPEC.md) — v8 spec (v3.9.0 in flight)
