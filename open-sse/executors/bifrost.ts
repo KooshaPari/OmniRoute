@@ -114,6 +114,20 @@ function killSwitchStateFor(provider: string): KillSwitchState | undefined {
 }
 
 /**
+ * Thrown when a provider has `bifrostNoFallback` set and there is no legacy
+ * path to fall back to. Callers can `instanceof` check this to surface a
+ * clean 503 ("service unavailable — no fallback") rather than a generic 500.
+ */
+export class BifrostNoFallbackError extends Error {
+  constructor(provider: string, reason: string) {
+    super(`Bifrost: no fallback available for provider "${provider}": ${reason}`);
+    this.name = "BifrostNoFallbackError";
+    // Maintain proper prototype chain for instanceof in transpiled environments
+    Object.setPrototypeOf(this, BifrostNoFallbackError.prototype);
+  }
+}
+
+/**
  * BifrostBackend — Tier-1 router executor.
  *
  * Extends BaseExecutor but overrides `execute()` entirely. Does NOT use
@@ -460,6 +474,43 @@ export function shouldRouteViaBifrost(provider: string, opts?: {
  * does not consult `this.config` for URL construction (it derives the URL
  * from the BIFROST_BASE_URL env var); see bifrost.ts:90-92.
  */
+/**
+ * Execute a request through the Bifrost executor with automatic fallback to
+ * the legacy `getExecutor(provider)` path when the kill switch is active.
+ *
+ * Falls back ONLY on `BifrostKillSwitchActiveError`. All other errors
+ * (e.g. "Bifrost is not enabled", network failures) are re-thrown as-is
+ * so callers can surface them as appropriate HTTP errors.
+ *
+ * Uses a lazy dynamic import of the executor registry (`./index.ts`) to
+ * avoid a circular module dependency (index.ts imports bifrost.ts).
+ *
+ * Reference: ADR-031 § Dispatcher Fallback, PLAN.md § 2.5.2 (B9.1).
+ */
+export async function dispatchBifrostWithFallback(
+  exec: BifrostBackendExecutor,
+  input: ExecuteInput,
+): ReturnType<BifrostBackendExecutor["execute"]> {
+  try {
+    return await exec.execute(input);
+  } catch (err) {
+    // Only fall back on kill switch errors. Any other failure propagates.
+    if (
+      err instanceof Error &&
+      (err as { code?: string }).code !== BIFROST_KILLSWITCH_ACTIVE &&
+      !(err instanceof BifrostKillSwitchActiveError)
+    ) {
+      throw err;
+    }
+    // Kill switch active: fall through to legacy executor.
+    const provider = exec.getProvider();
+    // Lazy import to avoid circular dependency (index.ts → bifrost.ts → index.ts)
+    const { getExecutor } = await import("./index.ts");
+    const legacyExec = getExecutor(provider);
+    return legacyExec.execute(input);
+  }
+}
+
 export function createBifrostBackedExecutor(
   provider: string,
   log?: {

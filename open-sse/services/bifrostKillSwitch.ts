@@ -408,7 +408,7 @@ export function resetProvider(provider: string): void {
  * chatCore path when Bifrost is degraded. Reference: ADR-031 § Dispatcher
  * Fallback, PLAN.md § 2.5.2 (B9.1).
  */
-export const BIFROST_KILLSWITCH_ACTIVE = "BIFROST_KILLSWITCH_ACTIVE";
+export const BIFROST_KILLSWITCH_ACTIVE = "BIFROST_KILL_SWITCH_ACTIVE";
 
 /**
  * Thrown by `BifrostBackendExecutor.execute()` when the kill switch is
@@ -434,7 +434,7 @@ export class BifrostKillSwitchActiveError extends Error {
       ? ` (activated ${new Date(state.activatedAt).toISOString()})`
       : "";
     super(
-      `Bifrost kill switch active for provider "${provider}": ` +
+      `${BIFROST_KILLSWITCH_ACTIVE}: Bifrost kill switch active for provider "${provider}": ` +
         `reason=${reason}, severity=${severity}${when}. ` +
         `Dispatcher will fall back to legacy chatCore path.`,
     );
