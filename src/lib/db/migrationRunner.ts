@@ -426,9 +426,15 @@ function isSchemaAlreadyApplied(
       // was dropped on integration; this canonical migration creates the table
       // that recordPluginExecution()/getPluginAnalytics() rely on.
       return hasTable(db, "plugin_analytics");
-    case "112":
-      // tenant_quotas renumbered 100 → 112 (post-merge recovery duplicated the
-      // 100 slot). DBs that already applied it under 100 must not re-run as 112.
+    case "120":
+      // routing_decisions_audit renumbered 108 → 120 (upstream v3.8.43 added
+      // 108_provider_quota_reset_events, causing a collision). DBs that applied
+      // it as 108 already have the routing_decisions table.
+      return hasTable(db, "routing_decisions");
+    case "121":
+      // tenant_quotas renumbered 112 → 121 (upstream v3.8.43 added
+      // 112_batch_item_checkpoints, causing a collision). Also covers DBs that
+      // applied tenant_quotas under the earlier 100-slot number.
       return hasTable(db, "tenant_quotas");
     case "113":
       // cli_access_tokens renumbered 100 → 113 (duplicated 100 slot).
