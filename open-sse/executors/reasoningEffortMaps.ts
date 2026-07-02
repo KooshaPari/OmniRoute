@@ -61,6 +61,8 @@ export const MISTRAL_NO_REASONING_EFFORT_PATTERN = /devstral/i;
  *     to xhigh (the OmniRoute-internal top tier) and rejected by the upstream.
  *     Scoped to opencode-go deliberately: OpenRouter's DeepSeek path
  *     (pi#4055) is the documented inverse and expects xhigh, not max.
+ *   - Ollama Cloud, which accepts literal max for models such as GLM 5.2 and
+ *     rejects the internal xhigh alias.
  */
 export function supportsMaxEffortForProvider(provider: string, model: string): boolean {
   const isClaude =
@@ -68,7 +70,8 @@ export function supportsMaxEffortForProvider(provider: string, model: string): b
     supportsClaudeMaxEffort(model);
   const isOpencodeGoDeepSeek =
     provider === "opencode-go" && model.toLowerCase().includes("deepseek");
-  return isClaude || isOpencodeGoDeepSeek;
+  const isOllamaCloud = provider === "ollama-cloud";
+  return isClaude || isOpencodeGoDeepSeek || isOllamaCloud;
 }
 
 /**
