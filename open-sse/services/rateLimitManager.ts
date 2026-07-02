@@ -18,6 +18,12 @@ import {
   resolveResilienceSettings,
   type RequestQueueSettings,
 } from "../../src/lib/resilience/settings";
+import {
+  STANDARD_HEADERS,
+  ANTHROPIC_HEADERS,
+  parseResetTime,
+  toPlainHeaders,
+} from "./rateLimitManager/headers";
 
 interface LearnedLimitEntry {
   provider: string;
@@ -140,9 +146,7 @@ function resolveMinTime(override: number | undefined | null): number {
 
 // Resolve a maxConcurrent override. 0 or missing means "effectively infinite".
 function resolveMaxConcurrent(override: number | undefined | null): number {
-  return typeof override === "number" && override > 0
-    ? override
-    : EFFECTIVELY_INFINITE_CONCURRENCY;
+  return typeof override === "number" && override > 0 ? override : EFFECTIVELY_INFINITE_CONCURRENCY;
 }
 
 function buildLimiterDefaults() {
@@ -159,14 +163,9 @@ function buildLimiterDefaults() {
 }
 
 function updateAllLimiterSettings() {
+  const defaults = buildLimiterDefaults();
   for (const limiter of limiters.values()) {
-    limiter.updateSettings({
-      maxConcurrent: currentRequestQueueSettings.concurrentRequests,
-      minTime: currentRequestQueueSettings.minTimeBetweenRequestsMs,
-      reservoir: currentRequestQueueSettings.requestsPerMinute,
-      reservoirRefreshAmount: currentRequestQueueSettings.requestsPerMinute,
-      reservoirRefreshInterval: 60 * 1000,
-    });
+    limiter.updateSettings(defaults);
   }
 }
 
@@ -234,7 +233,9 @@ function watchdogTick() {
         limiters.delete(key);
         lastDispatchAt.delete(key);
         limiterLastUsed.delete(key);
-        logRateLimit(`🧹 [RATE-LIMIT] Evicting idle limiter: ${key} (inactive for ${Math.round((now - lastUsed) / 1000)}s)`);
+        logRateLimit(
+          `🧹 [RATE-LIMIT] Evicting idle limiter: ${key} (inactive for ${Math.round((now - lastUsed) / 1000)}s)`
+        );
         trackAsyncOperation(limiter.disconnect());
       }
     }
@@ -535,7 +536,12 @@ export async function withRateLimit(provider, connectionId, model, fn, signal = 
 
   // Proactive sliding-window fallback for header-less providers with a declared cap
   // (Fase 8.2). No-op unless PROVIDER_DEFAULT_RATE_LIMITS has an entry for `provider`.
-  await awaitProviderDefaultSlot(provider, connectionId, signal, currentRequestQueueSettings.maxWaitMs);
+  await awaitProviderDefaultSlot(
+    provider,
+    connectionId,
+    signal,
+    currentRequestQueueSettings.maxWaitMs
+  );
 
   const limiter = getLimiter(provider, connectionId, model);
   const maxWaitMs = currentRequestQueueSettings.maxWaitMs;
@@ -596,101 +602,6 @@ export async function withRateLimit(provider, connectionId, model, fn, signal = 
     }
     throw err;
   }
-}
-
-// ─── Header Parsing ──────────────────────────────────────────────────────────
-
-/**
- * Standard headers used by most providers (OpenAI, Fireworks, etc.)
- */
-const STANDARD_HEADERS = {
-  limit: "x-ratelimit-limit-requests",
-  remaining: "x-ratelimit-remaining-requests",
-  reset: "x-ratelimit-reset-requests",
-  limitTokens: "x-ratelimit-limit-tokens",
-  remainingTokens: "x-ratelimit-remaining-tokens",
-  resetTokens: "x-ratelimit-reset-tokens",
-  retryAfter: "retry-after",
-  overLimit: "x-ratelimit-over-limit",
-};
-
-/**
- * Anthropic uses custom headers
- */
-const ANTHROPIC_HEADERS = {
-  limit: "anthropic-ratelimit-requests-limit",
-  remaining: "anthropic-ratelimit-requests-remaining",
-  reset: "anthropic-ratelimit-requests-reset",
-  limitTokens: "anthropic-ratelimit-input-tokens-limit",
-  remainingTokens: "anthropic-ratelimit-input-tokens-remaining",
-  resetTokens: "anthropic-ratelimit-input-tokens-reset",
-  retryAfter: "retry-after",
-};
-
-/**
- * Parse a reset time string into milliseconds.
- * Formats: "1s", "1m", "1h", "1ms", "60", ISO date, Unix timestamp
- */
-function parseResetTime(value) {
-  if (!value) return null;
-
-  // Duration strings: "1s", "500ms", "1m30s"
-  const durationMatch = value.match(/^(?:(\d+)h)?(?:(\d+)m(?!s))?(?:(\d+)s)?(?:(\d+)ms)?$/);
-  if (durationMatch) {
-    const [, h, m, s, ms] = durationMatch;
-    return (
-      (parseInt(h || 0) * 3600 + parseInt(m || 0) * 60 + parseInt(s || 0)) * 1000 +
-      parseInt(ms || 0)
-    );
-  }
-
-  // Pure number: assume seconds
-  const num = parseFloat(value);
-  if (!isNaN(num) && num > 0) {
-    // If it looks like a Unix timestamp (> year 2025)
-    if (num > 1700000000) {
-      return Math.max(0, num * 1000 - Date.now());
-    }
-    return num * 1000;
-  }
-
-  // ISO date string
-  try {
-    const date = new Date(value);
-    if (!isNaN(date.getTime())) {
-      return Math.max(0, date.getTime() - Date.now());
-    }
-  } catch {}
-
-  return null;
-}
-
-function toPlainHeaders(headers: unknown): Record<string, string> {
-  if (!headers) return {};
-  const plain: Record<string, string> = {};
-  const obj = headers as Record<string, unknown>;
-  if (typeof obj.forEach === "function") {
-    try {
-      (obj.forEach as (cb: (v: string, k: string) => void) => void)((v: string, k: string) => {
-        plain[k.toLowerCase()] = v;
-      });
-      return plain;
-    } catch {}
-  }
-  if (typeof obj.entries === "function") {
-    try {
-      for (const [k, v] of (obj.entries as () => Iterable<[string, string]>)()) {
-        plain[k.toLowerCase()] = v;
-      }
-      return plain;
-    } catch {}
-  }
-  try {
-    for (const [k, v] of Object.entries(obj)) {
-      plain[k.toLowerCase()] = v == null ? "" : String(v);
-    }
-  } catch {}
-  return plain;
 }
 
 /**
@@ -920,6 +831,8 @@ export async function __resetRateLimitManagerForTests() {
   lastDispatchAt.clear();
   limiterLastUsed.clear();
   shutdownHandlersRegistered = false;
+  tpmBuckets.clear();
+  tpdBuckets.clear();
 
   for (const key of Object.keys(learnedLimits)) {
     delete learnedLimits[key];
@@ -1032,3 +945,119 @@ export function updateFromResponseBody(provider, connectionId, responseBody, sta
     });
   }
 }
+
+// ── TokenBucket — lightweight token-based rate limiter ────────────────────────
+//
+// Bottleneck's reservoir is request-count based, not token-count based.
+// This class provides a simple token bucket that refills continuously over time,
+// suitable for TPM (tokens-per-minute) and TPD (tokens-per-day) enforcement.
+
+export class TokenBucket {
+  private _capacity: number;
+  private _refillRatePerMs: number;
+  private _tokens: number;
+  private _lastRefillAt: number;
+
+  /**
+   * @param capacity       Maximum token count (bucket ceiling).
+   * @param refillRatePerMs Tokens added per millisecond (e.g. 1/60000 for 1 TPM).
+   */
+  constructor(capacity: number, refillRatePerMs: number) {
+    this._capacity = capacity;
+    this._refillRatePerMs = refillRatePerMs;
+    this._tokens = capacity;
+    this._lastRefillAt = Date.now();
+  }
+
+  /** Current available tokens (lazily refilled on read). */
+  get currentTokens(): number {
+    this._refill();
+    return this._tokens;
+  }
+
+  /**
+   * Attempt to consume `tokens` from the bucket.
+   * Returns `true` if successful, `false` if insufficient tokens.
+   */
+  tryConsume(tokens: number): boolean {
+    this._refill();
+    if (tokens <= 0) {
+      // Zero or negative consumption always allowed; no state change needed
+      // unless the bucket itself has zero capacity.
+      return this._capacity > 0 || this._tokens >= 0;
+    }
+    if (this._tokens < tokens) return false;
+    this._tokens -= tokens;
+    return true;
+  }
+
+  private _refill(): void {
+    if (this._refillRatePerMs <= 0) return;
+    const now = Date.now();
+    const elapsed = now - this._lastRefillAt;
+    if (elapsed <= 0) return;
+    this._tokens = Math.min(this._capacity, this._tokens + elapsed * this._refillRatePerMs);
+    this._lastRefillAt = now;
+  }
+}
+
+// Per-connection TPM/TPD token buckets (keyed by connectionId)
+const tpmBuckets = new Map<string, TokenBucket>();
+const tpdBuckets = new Map<string, TokenBucket>();
+
+/**
+ * Attempt to consume `tokenCount` tokens for a given provider+connection.
+ *
+ * Checks TPM and TPD overrides from `connectionRateLimitOverrides`. If no
+ * overrides are set (or rate limiting is not enabled for the connection),
+ * the call always returns `{ allowed: true }`.
+ *
+ * Returns `{ allowed: false, retryAfterMs: number, reason: string }` when a
+ * limit is exceeded.
+ */
+export function tryConsumeTokens(
+  _provider: string,
+  connectionId: string,
+  _model: string,
+  tokenCount: number,
+): { allowed: true } | { allowed: false; retryAfterMs: number; reason: string } {
+  if (!enabledConnections.has(connectionId)) return { allowed: true };
+  if (tokenCount <= 0) return { allowed: true };
+
+  const overrides = connectionRateLimitOverrides.get(connectionId);
+  if (!overrides) return { allowed: true };
+
+  const tpm: number | undefined =
+    typeof overrides.tpm === "number" && overrides.tpm > 0 ? overrides.tpm : undefined;
+  const tpd: number | undefined =
+    typeof overrides.tpd === "number" && overrides.tpd > 0 ? overrides.tpd : undefined;
+
+  if (tpm !== undefined) {
+    if (!tpmBuckets.has(connectionId)) {
+      // TPM: refill capacity every minute (1/60000 tokens per ms)
+      tpmBuckets.set(connectionId, new TokenBucket(tpm, tpm / 60_000));
+    }
+    const bucket = tpmBuckets.get(connectionId)!;
+    if (!bucket.tryConsume(tokenCount)) {
+      return { allowed: false, retryAfterMs: 60_000, reason: "tpm_exceeded" };
+    }
+  }
+
+  if (tpd !== undefined) {
+    if (!tpdBuckets.has(connectionId)) {
+      // TPD: refill capacity every day (1/86400000 tokens per ms)
+      tpdBuckets.set(connectionId, new TokenBucket(tpd, tpd / 86_400_000));
+    }
+    const bucket = tpdBuckets.get(connectionId)!;
+    if (!bucket.tryConsume(tokenCount)) {
+      return { allowed: false, retryAfterMs: 86_400_000, reason: "tpd_exceeded" };
+    }
+  }
+
+  return { allowed: true };
+}
+
+// ── Test-only exports ─────────────────────────────────────────────────────────
+
+/** Exposed for unit tests only — do not import in production code. */
+export const __TokenBucketForTests = TokenBucket;
