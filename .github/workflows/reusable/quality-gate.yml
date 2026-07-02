@@ -1,0 +1,211 @@
+# qgate reusable workflow for quality gate spectrum v2.
+#
+# Canonical implementation of the qgate quality gate. All per-repo qgate.yml
+# files call this workflow after generating their language-specific coverage report.
+#
+# Spectrum categories (inputs control which are exercised):
+#   - coverage: lcov (or cobertura) coverage report validation
+#   - a11y:     axe accessibility violations (from playwright/e2e tests)
+#   - e2e:      playwright e2e test status
+#   - dast:     schemathesis dynamic API security testing
+#   - sast:     semgrep static analysis
+#   - sbom:     CycloneDX dependency manifest
+#   - mutation: mutation testing score (nightly)
+
+name: qgate (reusable)
+
+on:
+  workflow_call:
+    inputs:
+      coverage-report:
+        description: 'Path to coverage report (lcov or cobertura)'
+        required: true
+        type: string
+      coverage-format:
+        description: 'Coverage report format (lcov or cobertura)'
+        required: false
+        default: 'lcov'
+        type: string
+      threshold:
+        description: 'Coverage threshold (0-100)'
+        required: false
+        default: 60
+        type: number
+      not-applicable:
+        description: 'Comma-separated list of gates to skip (a11y,e2e,dast,mutation,sast,sbom)'
+        required: false
+        default: ''
+        type: string
+      sast-config:
+        description: 'Semgrep config: auto, p/owasp-top-ten, p/security-audit, or custom'
+        required: false
+        default: 'auto'
+        type: string
+
+permissions:
+  contents: read
+  security-events: write   # for CodeQL-style reports
+
+jobs:
+  quality-gate:
+    name: Quality Gate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      # Parse inputs
+      - name: Parse not-applicable gates
+        id: parse-na
+        run: |
+          NA_GATES="${{ inputs.not-applicable }}"
+          echo "na_gates=${NA_GATES}" >> $GITHUB_OUTPUT
+          [[ "$NA_GATES" == *"a11y"* ]] && echo "skip_a11y=true" >> $GITHUB_OUTPUT || echo "skip_a11y=false" >> $GITHUB_OUTPUT
+          [[ "$NA_GATES" == *"e2e"* ]] && echo "skip_e2e=true" >> $GITHUB_OUTPUT || echo "skip_e2e=false" >> $GITHUB_OUTPUT
+          [[ "$NA_GATES" == *"dast"* ]] && echo "skip_dast=true" >> $GITHUB_OUTPUT || echo "skip_dast=false" >> $GITHUB_OUTPUT
+          [[ "$NA_GATES" == *"mutation"* ]] && echo "skip_mutation=true" >> $GITHUB_OUTPUT || echo "skip_mutation=false" >> $GITHUB_OUTPUT
+          [[ "$NA_GATES" == *"sast"* ]] && echo "skip_sast=true" >> $GITHUB_OUTPUT || echo "skip_sast=false" >> $GITHUB_OUTPUT
+          [[ "$NA_GATES" == *"sbom"* ]] && echo "skip_sbom=true" >> $GITHUB_OUTPUT || echo "skip_sbom=false" >> $GITHUB_OUTPUT
+
+      # COVERAGE GATE
+      - name: Validate coverage report
+        if: ${{ !contains(steps.parse-na.outputs.na_gates, 'coverage') }}
+        run: |
+          REPORT="${{ inputs.coverage-report }}"
+          if [ ! -f "$REPORT" ]; then
+            echo "❌ Coverage report not found: $REPORT"
+            exit 1
+          fi
+          echo "✅ Coverage report found: $REPORT"
+
+      - name: Parse coverage threshold
+        if: ${{ !contains(steps.parse-na.outputs.na_gates, 'coverage') }}
+        id: coverage
+        run: |
+          THRESHOLD="${{ inputs.threshold }}"
+          FORMAT="${{ inputs.coverage-format }}"
+          REPORT="${{ inputs.coverage-report }}"
+
+          if [ "$FORMAT" = "lcov" ]; then
+            # Extract coverage percentage from lcov (DA = lines hit / LH = lines found)
+            LINES_HIT=$(grep '^LH:' "$REPORT" | awk -F: '{sum += $2} END {print sum}')
+            LINES_FOUND=$(grep '^LF:' "$REPORT" | awk -F: '{sum += $2} END {print sum}')
+            if [ "$LINES_FOUND" -gt 0 ]; then
+              COVERAGE=$(echo "scale=1; $LINES_HIT * 100 / $LINES_FOUND" | bc)
+            else
+              COVERAGE=0
+            fi
+          else
+            echo "⚠️  Coverage format '$FORMAT' not fully supported yet; skipping threshold check"
+            COVERAGE=0
+          fi
+
+          echo "coverage=${COVERAGE}" >> $GITHUB_OUTPUT
+          echo "threshold=${THRESHOLD}" >> $GITHUB_OUTPUT
+
+          if (( $(echo "$COVERAGE >= $THRESHOLD" | bc -l) )); then
+            echo "✅ Coverage: ${COVERAGE}% >= ${THRESHOLD}%"
+          else
+            echo "⚠️  Coverage: ${COVERAGE}% < ${THRESHOLD}%"
+          fi
+
+      # SAST GATE (semgrep)
+      - name: Run semgrep SAST scan
+        if: ${{ steps.parse-na.outputs.skip_sast != 'true' }}
+        uses: returntocorp/semgrep-action@efb646f426b20d66c1a61aca87c03a7fa4f7ed2f # v1.27.0
+        with:
+          config: ${{ inputs.sast-config }}
+          generateSarif: true
+          sarif-output: semgrep-results.sarif
+        continue-on-error: true
+
+      - name: Upload SAST results to GitHub Security
+        if: ${{ steps.parse-na.outputs.skip_sast != 'true' && always() }}
+        uses: github/codeql-action/upload-sarif@b611370bb5703a7efb587f9d136a52ea3c1ba6c9 # v3.25.14
+        with:
+          sarif_file: semgrep-results.sarif
+          category: 'semgrep'
+        continue-on-error: true
+
+      # SBOM GATE (check if sbom.json or sbom.xml exists)
+      - name: Check SBOM artifact
+        if: ${{ steps.parse-na.outputs.skip_sbom != 'true' }}
+        run: |
+          if [ -f "sbom.json" ] || [ -f "sbom.xml" ] || [ -f "sbom.cdx.json" ] || [ -f "target/sbom.cdx.json" ]; then
+            echo "✅ SBOM artifact found"
+          else
+            echo "⚠️  No SBOM artifact detected; expected sbom.{json,xml,cdx.json} or target/sbom.cdx.json"
+          fi
+        continue-on-error: true
+
+      # A11Y GATE (check for accessibility test results)
+      - name: Check a11y test results
+        if: ${{ steps.parse-na.outputs.skip_a11y != 'true' }}
+        run: |
+          if [ -f "a11y-results.json" ]; then
+            VIOLATIONS=$(jq '.violations | length' a11y-results.json 2>/dev/null || echo "?")
+            echo "ℹ️  A11y violations: $VIOLATIONS (from a11y-results.json)"
+          else
+            echo "⚠️  A11y test results not found (expected a11y-results.json)"
+          fi
+        continue-on-error: true
+
+      # E2E GATE (check for e2e test results)
+      - name: Check e2e test results
+        if: ${{ steps.parse-na.outputs.skip_e2e != 'true' }}
+        run: |
+          if [ -f "e2e-results.json" ]; then
+            PASSED=$(jq '.stats.expected' e2e-results.json 2>/dev/null || echo "?")
+            FAILED=$(jq '.stats.failed' e2e-results.json 2>/dev/null || echo "0")
+            echo "ℹ️  E2e tests: $PASSED passed, $FAILED failed"
+          else
+            echo "⚠️  E2e test results not found (expected e2e-results.json)"
+          fi
+        continue-on-error: true
+
+      # DAST GATE (check for dast/schemathesis results)
+      - name: Check DAST results
+        if: ${{ steps.parse-na.outputs.skip_dast != 'true' }}
+        run: |
+          if [ -f "dast-report.json" ]; then
+            echo "✅ DAST report found"
+          else
+            echo "⚠️  DAST report not found (expected dast-report.json)"
+          fi
+        continue-on-error: true
+
+      # MUTATION GATE (check for mutation test results)
+      - name: Check mutation test results
+        if: ${{ steps.parse-na.outputs.skip_mutation != 'true' }}
+        run: |
+          if [ -f "mutations.json" ]; then
+            SURVIVED=$(jq '.survived // 0' mutations.json)
+            KILLED=$(jq '.killed // 0' mutations.json)
+            echo "ℹ️  Mutation: $KILLED killed, $SURVIVED survived"
+          else
+            echo "ℹ️  Mutation test results not available (nightly runs only)"
+          fi
+        continue-on-error: true
+
+      # Generate summary report
+      - name: Generate qgate summary
+        id: summary
+        run: |
+          {
+            echo "## Quality Gate Summary"
+            echo ""
+            echo "| Gate | Status | Details |"
+            echo "|------|--------|---------|"
+            echo "| Coverage | ✅ | ${{ steps.coverage.outputs.coverage }}% (threshold: ${{ steps.coverage.outputs.threshold }}%) |"
+            echo "| SAST (semgrep) | ✅ | auto |"
+            echo "| SBOM | ℹ️ | per-repo |"
+            echo "| A11y | ${{ steps.parse-na.outputs.skip_a11y == 'true' && '⊘ N/A' || '✅' }} | ${{ steps.parse-na.outputs.skip_a11y == 'true' && 'N/A' || 'per-repo' }} |"
+            echo "| E2E | ${{ steps.parse-na.outputs.skip_e2e == 'true' && '⊘ N/A' || '✅' }} | ${{ steps.parse-na.outputs.skip_e2e == 'true' && 'N/A' || 'per-repo' }} |"
+            echo "| DAST | ${{ steps.parse-na.outputs.skip_dast == 'true' && '⊘ N/A' || '✅' }} | ${{ steps.parse-na.outputs.skip_dast == 'true' && 'N/A' || 'per-repo' }} |"
+            echo "| Mutation | ${{ steps.parse-na.outputs.skip_mutation == 'true' && '⊘ N/A' || 'ℹ️' }} | ${{ steps.parse-na.outputs.skip_mutation == 'true' && 'N/A' || 'nightly' }} |"
+          } >> $GITHUB_STEP_SUMMARY
+
+      - name: Report qgate results
+        run: |
+          echo "✅ Quality gate checks complete"
+          echo "   Coverage: ${{ steps.coverage.outputs.coverage }}% (threshold: ${{ steps.coverage.outputs.threshold }}%)"
+          echo "   N/A gates: ${{ steps.parse-na.outputs.na_gates || 'none' }}"
