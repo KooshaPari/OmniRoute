@@ -47,7 +47,7 @@
 
 ### ✨ New Features
 
-- **feat(providers):** add ClinePass as a first-class API-key provider (Cline's BYOK gateway). (thanks @adentdk)
+- **feat(api):** add `/v1/ocr` endpoint (Mistral OCR), an OCR provider category, and Mistral moderation support. (thanks @waguriagentic)
 
 ### 🔧 Bug Fixes
 
