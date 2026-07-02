@@ -535,6 +535,11 @@ export async function GET(
         base = base.slice(0, -12);
       }
 
+      // Strip trailing /v1 unconditionally so the next step re-adds it exactly once.
+      // Without this, baseUrls that embed /v1 (e.g. "https://api.airforce/v1/chat/completions")
+      // become "…/v1" after stripping "/chat/completions", and then appending "/v1/models"
+      // produces "…/v1/v1/models" — a 308 redirect that blocked model fetch (#5899).
+      // Guard against a literal "scheme://v1" authority so we never strip the host itself.
       if (base.endsWith("/v1") && !base.endsWith("://v1")) {
         base = base.slice(0, -3);
       }
@@ -1724,7 +1729,11 @@ export async function GET(
           base = base.slice(0, -"/chat/completions".length);
         } else if (base.endsWith("/completions")) {
           base = base.slice(0, -"/completions".length);
-        } else if (base.endsWith("/v1")) {
+        }
+        // Strip a trailing /v1 unconditionally (same #5899 double-prefix guard as the
+        // discovery path above): a customBaseUrl like ".../v1/chat/completions" would
+        // otherwise leave base as ".../v1" and produce ".../v1/v1/models" below.
+        if (base.endsWith("/v1") && !base.endsWith("://v1")) {
           base = base.slice(0, -"/v1".length);
         }
         url = `${base}/v1/models`;
