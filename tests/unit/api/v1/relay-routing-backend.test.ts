@@ -2,6 +2,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import {
   getBifrostRoutingConfig,
+  getRelayRouterBackendDefinition,
   getRoutingFallbackHeader,
   resolveRelayRoutingBackend,
   shouldTryBifrost,
@@ -30,6 +31,12 @@ test("relay routing backend auto-enables bifrost when base URL is configured", (
   assert.equal(config?.streamingEnabled, true);
   assert.equal(config?.enabled, true);
   assert.equal(shouldTryBifrost("auto", config), true);
+});
+
+test("relay routing backend resolves definitions from the router backend registry", () => {
+  assert.equal(getRelayRouterBackendDefinition("ts")?.id, "ts");
+  assert.equal(getRelayRouterBackendDefinition("bifrost")?.id, "bifrost");
+  assert.equal(getRelayRouterBackendDefinition("auto")?.id, "bifrost");
 });
 
 test("relay routing backend honors explicit TS and strict bifrost modes", () => {

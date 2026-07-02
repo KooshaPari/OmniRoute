@@ -1,3 +1,6 @@
+import { getRouterBackend } from "@/domain/routing/routerBackends";
+import type { RouterBackendDefinition } from "@/domain/routing/routerBackends";
+
 export type RelayRoutingBackend = "ts" | "bifrost" | "auto";
 
 const VALID_BACKENDS = new Set<RelayRoutingBackend>(["ts", "bifrost", "auto"]);
@@ -13,7 +16,9 @@ export interface BifrostRoutingConfig {
 export function getBifrostRoutingConfig(
   env: NodeJS.ProcessEnv = process.env
 ): BifrostRoutingConfig | null {
-  const baseUrl = env.BIFROST_BASE_URL?.replace(/\/$/, "");
+  const backend = getRouterBackend("bifrost");
+  const baseUrlEnv = backend?.envBaseUrl ?? "BIFROST_BASE_URL";
+  const baseUrl = env[baseUrlEnv]?.replace(/\/$/, "");
   if (!baseUrl) return null;
   const timeoutMs = Number.parseInt(env.BIFROST_TIMEOUT_MS || "", 10);
 
@@ -24,6 +29,15 @@ export function getBifrostRoutingConfig(
     streamingEnabled: env.BIFROST_STREAMING_ENABLED !== "0",
     enabled: env.BIFROST_ENABLED !== "0",
   };
+}
+
+export function getRelayRouterBackendDefinition(
+  backend: RelayRoutingBackend
+): RouterBackendDefinition | null {
+  if (backend === "auto") {
+    return getRouterBackend("bifrost");
+  }
+  return getRouterBackend(backend);
 }
 
 export function resolveRelayRoutingBackend(
