@@ -1,40 +1,48 @@
 name: OpenSSF Scorecard
+
 on:
+  workflow_dispatch:
   branch_protection_rule:
   schedule:
-    - cron: "27 7 * * 1"
-  push:
-    branches: ["main"]
+    - cron: '0 9 * * 1'
 
 permissions: read-all
 
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 jobs:
-  analysis:
+  scorecard:
     name: Scorecard analysis
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
     permissions:
-      # security-events: write removed — Scorecard findings are advisory and no longer
-      # uploaded to the code-scanning Security tab (they are supply-chain/posture scores,
-      # not code vulnerabilities, and drowned out real CodeQL alerts). The run still
-      # produces the OpenSSF badge (publish_results) and a downloadable SARIF artifact.
+      security-events: write
       id-token: write
       contents: read
+      actions: read
     steps:
-      - name: Checkout
-        uses: actions/checkout@v7
+      - name: Checkout repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
           persist-credentials: false
 
-      - name: Run analysis
-        uses: ossf/scorecard-action@v2.4.3
+      - name: Run OpenSSF Scorecard
+        uses: ossf/scorecard-action@05b42c624433fc40578a4040d5cf5e36ddca8cde
         with:
           results_file: results.sarif
           results_format: sarif
           publish_results: true
 
-      - name: Upload artifact
-        uses: actions/upload-artifact@v7
+      - name: Upload SARIF artifact
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
-          name: SARIF file
+          name: scorecard-sarif
           path: results.sarif
           retention-days: 5
+
+      - name: Upload SARIF to code scanning
+        uses: github/codeql-action/upload-sarif@0daab03d71ff584ef619d027a3fd9146679c5d84
+        with:
+          sarif_file: results.sarif

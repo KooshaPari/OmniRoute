@@ -1,130 +1,85 @@
 {
-  "workbench.sideBar.location": "left",
+  // Editor
+  "editor.formatOnSave": true,
+  "editor.rulers": [100],
+  "editor.tabSize": 2,
+  "files.insertFinalNewline": true,
+  "files.trimTrailingWhitespace": true,
   "css.lint.unknownAtRules": "ignore",
-  "sonarlint.rules": {
-    "css:S4662": {
-      "level": "off"
-    },
-    "javascript:S6747": {
-      "level": "off"
-    },
-    "javascript:S7764": {
-      "level": "off"
-    },
-    "javascript:S6772": {
-      "level": "off"
-    },
-    "javascript:S3776": {
-      "level": "off"
-    }
-  },
   "git.ignoreLimitWarning": true,
-
-  // ─── Git: não adicionar os ~44 repos aninhados (9 worktrees + _references/* +
-  // _mono_repo/* + _ideia/_tasks/.agents) ao Source Control. Era a causa do
-  // "validando muito": um git status + watcher por repo. Só o repo raiz fica. ───
-  "git.autoRepositoryDetection": false,
-  "git.repositoryScanMaxDepth": 0,
-  "git.detectSubmodules": false,
-  "git.autofetch": false,
-  "git.autorefresh": true,
-
-  // ─── Performance: não seguir o symlink de node_modules criado pelas worktrees ───
-  // As worktrees em .worktrees/ apontam node_modules para o checkout principal;
-  // sem isto a busca atravessa o symlink mesmo com node_modules excluído.
-  "search.followSymlinks": false,
-
-  // ─── TypeScript server (monorepo grande: ~6,6k arquivos rastreados, Next.js 16) ───
-  "typescript.tsserver.maxTsServerMemory": 4096,
-  "typescript.disableAutomaticTypeAcquisition": true,
-  "typescript.tsc.autoDetect": "off",
-  "npm.autoDetect": "off",
-  // O tsserver tem o próprio watcher (independente de files.watcherExclude).
-  // excludeDirectories evita que ele vigie as árvores pesadas.
-  "typescript.tsserver.watchOptions": {
-    "excludeDirectories": [
-      "**/node_modules",
-      "**/.next",
-      "**/.build",
-      "**/dist",
-      "**/coverage",
-      "**/.worktrees"
-    ]
+  // TypeScript/JavaScript
+  "[typescript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnSave": true,
+    "editor.rulers": [100],
+    "editor.tabSize": 2
   },
-
-  // Para esconder os diretórios gerados da árvore do Explorer, descomente:
-  // "files.exclude": {
-  //   "**/.worktrees": true,
-  //   "**/coverage": true,
-  //   "**/dist": true,
-  //   "**/.build": true,
-  //   "**/.next": true,
-  //   "**/_references": true,
-  //   "**/_mono_repo": true,
-  //   "**/_tasks": true,
-  //   "**/omniroute-*.tgz": true
-  // },
+  "[typescriptreact]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnSave": true,
+    "editor.rulers": [100],
+    "editor.tabSize": 2
+  },
+  "[javascript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnSave": true,
+    "editor.rulers": [100],
+    "editor.tabSize": 2
+  },
+  "[javascriptreact]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnSave": true,
+    "editor.rulers": [100],
+    "editor.tabSize": 2
+  },
+  // Files
+  "files.exclude": {
+    "**/.git": true,
+    "**/node_modules": true,
+    "**/dist": true,
+    "**/.venv": true,
+    "**/_references": true,
+    "**/_mono_repo": true,
+    "**/electron": true,
+    "**/.next": true,
+    "**/coverage": true,
+    "**/_tasks": true
+  },
   "files.watcherExclude": {
-    "**/.git/objects/**": true,
-    "**/.git/subtree-cache/**": true,
     "**/node_modules/**": true,
+    "**/dist/**": true,
+    "**/_references/**": true,
+    "**/_mono_repo/**": true,
+    "**/electron/**": true,
     "**/.next/**": true,
-    "**/.build/**": true,
+    "**/coverage/**": true,
+    "**/_tasks/**": true,
+    "**/.git/objects/**": true,
     "**/dist/**": true,
     "**/build/**": true,
     "**/out/**": true,
-    "**/coverage/**": true,
-    "**/.coverage/**": true,
-    "**/.nyc_output/**": true,
     "**/.cache/**": true,
     "**/.turbo/**": true,
-    "**/.swc/**": true,
-    "**/.stryker-tmp/**": true,
-    "**/stryker-output-*/**": true,
-    "**/playwright-report/**": true,
-    "**/test-results/**": true,
-    "**/.worktrees/**": true,
-    "**/.claude/worktrees/**": true,
-    "**/electron/**": true,
-    "**/_references/**": true,
-    "**/_mono_repo/**": true,
-    "**/_tasks/**": true,
-    "**/logs/**": true,
-    "**/*.tgz": true,
-    "**/*.tsbuildinfo": true,
     "**/OmniRoute-*/**": true,
     "**/*-merge-*/**": true,
     "**/*-worktree-*/**": true,
     "**/*-issues-*/**": true,
     "**/*-reorg*/**": true
   },
+  // Search
   "search.exclude": {
     "**/node_modules": true,
+    "**/dist": true,
+    "**/.git": true,
+    "**/_references": true,
+    "**/_mono_repo": true,
+    "**/electron": true,
     "**/.next": true,
-    "**/.build": true,
+    "**/coverage": true,
+    "**/_tasks": true,
     "**/dist": true,
     "**/build": true,
     "**/out": true,
-    "**/coverage": true,
-    "**/.coverage": true,
-    "**/.nyc_output": true,
-    "**/.cache": true,
-    "**/.turbo": true,
-    "**/.swc": true,
-    "**/.stryker-tmp": true,
-    "**/stryker-output-*": true,
-    "**/playwright-report": true,
-    "**/test-results": true,
-    "**/.worktrees": true,
-    "**/.claude/worktrees": true,
-    "**/electron": true,
-    "**/_references": true,
-    "**/_mono_repo": true,
-    "**/_tasks": true,
-    "**/logs": true,
-    "**/*.tgz": true,
-    "**/*.tsbuildinfo": true,
-    "**/package-lock.json": true,
     "**/OmniRoute-*": true,
     "**/*-merge-*": true,
     "**/*-worktree-*": true,

@@ -10,6 +10,11 @@ import { normalizeComboRecord } from "@/lib/combos/steps";
 
 type JsonRecord = Record<string, unknown>;
 
+export type ComboRecord = JsonRecord & {
+  version: 2;
+  models: unknown[];
+};
+
 function asRecord(value: unknown): JsonRecord {
   return value && typeof value === "object" && !Array.isArray(value) ? (value as JsonRecord) : {};
 }
@@ -59,10 +64,10 @@ function normalizeStoredCombo(
   combo: JsonRecord,
   db: ReturnType<typeof getDbInstance>,
   extraNames: string[] = []
-): JsonRecord {
+) {
   return normalizeComboRecord(combo, {
     allCombos: getComboNameSet(db, extraNames),
-  }) as JsonRecord;
+  });
 }
 
 function parseComboRow(row: unknown): JsonRecord | null {
@@ -90,7 +95,7 @@ function getNextSortOrder() {
   return (sortOrder ?? 0) + 1;
 }
 
-export async function getCombos() {
+export async function getCombos(): Promise<ComboRecord[]> {
   const db = getDbInstance();
   const rawCombos = db
     .prepare("SELECT data, sort_order, context_cache_protection FROM combos ORDER BY sort_order ASC, name COLLATE NOCASE ASC")
@@ -109,7 +114,7 @@ export async function getCombos() {
   );
 }
 
-export async function getComboById(id: string) {
+export async function getComboById(id: string): Promise<ComboRecord | null> {
   const db = getDbInstance();
   const row = db.prepare("SELECT data, sort_order, context_cache_protection FROM combos WHERE id = ?").get(id);
   const combo = parseComboRow(row);
@@ -117,7 +122,7 @@ export async function getComboById(id: string) {
   return normalizeStoredCombo(combo, db, typeof combo.name === "string" ? [combo.name] : []);
 }
 
-export async function getComboByName(name: string) {
+export async function getComboByName(name: string): Promise<ComboRecord | null> {
   const db = getDbInstance();
   const row = db.prepare("SELECT data, sort_order, context_cache_protection FROM combos WHERE name = ?").get(name);
   const combo = parseComboRow(row);

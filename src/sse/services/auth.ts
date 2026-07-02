@@ -875,7 +875,9 @@ function providerCanUseSyntheticNoAuthFallback(providerId: string): boolean {
   return (
     providerDef?.anonymousFallback === true ||
     noAuthProviderDef?.noAuth === true ||
-    webCookieProviderDef?.noAuth === true
+    webCookieProviderDef?.noAuth === true ||
+    providerId === "mimocode" ||
+    providerId === "opencode"
   );
 }
 

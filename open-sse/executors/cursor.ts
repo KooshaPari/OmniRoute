@@ -11,6 +11,7 @@ declare const EdgeRuntime: string | undefined;
  */
 
 import { BaseExecutor, mergeUpstreamExtraHeaders } from "./base.ts";
+import { generateTraceparent } from "../observability/traceparent.ts";
 import { PROVIDERS, HTTP_STATUS } from "../config/constants.ts";
 import {
   buildAgentRequestBody,
@@ -743,7 +744,7 @@ export class CursorExecutor extends BaseExecutor {
     const ghostMode = credentials.providerSpecificData?.ghostMode !== false;
     const cleanToken = accessToken.includes("::") ? accessToken.split("::")[1] : accessToken;
     const requestId = crypto.randomUUID();
-    const traceParent = `00-${crypto.randomBytes(16).toString("hex")}-${crypto.randomBytes(8).toString("hex")}-01`;
+    const traceParent = generateTraceparent({ sampled: true });
 
     // Mirrors cursor-agent's actual headers for agent.v1.AgentService/Run.
     // Notably: no x-cursor-checksum, no machineId, no x-amzn-trace-id.

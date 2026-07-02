@@ -8,15 +8,10 @@ export interface ComboModelStep {
   model: string;
   providerId?: string | null;
   connectionId?: string | null;
-  /**
-   * Account allowlist (#3266): scope this step's round-robin/weighted selection
-   * to a subset of the provider's connections. Empty/absent = whole active pool.
-   * Reuses the `allowedConnectionIds` plumbing tag routing already populates.
-   */
-  allowedConnectionIds?: string[] | null;
   weight: number;
   label?: string;
   tags?: string[];
+  allowedConnectionIds?: string[];
 }
 
 export interface ComboRefStep {
@@ -277,8 +272,8 @@ export function normalizeComboStep(
     : undefined;
   const allowedConnectionIds = Array.isArray(value.allowedConnectionIds)
     ? value.allowedConnectionIds
-        .map((connId) => toTrimmedString(connId))
-        .filter((connId): connId is string => !!connId)
+        .map((id) => toTrimmedString(id))
+        .filter((id): id is string => !!id)
     : undefined;
 
   return {

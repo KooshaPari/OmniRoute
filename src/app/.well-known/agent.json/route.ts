@@ -1,34 +1,20 @@
 /**
- * Agent Card Endpoint — /.well-known/agent.json
- *
- * Serves the OmniRoute A2A Agent Card for discovery by other agents.
- * Conforms to A2A Protocol v0.3.
- *
- * The Agent Card is dynamically generated to include the current version
- * from package.json and skills based on available combos.
+ * Agent Card Discovery Endpoint (/.well-known/agent.json)
+ * Advertises OmniRoute's A2A capabilities to external agents
  */
 
 import { NextResponse } from "next/server";
 
-const PACKAGE_VERSION = process.env.npm_package_version || "1.8.1";
-const BASE_URL = process.env.OMNIROUTE_BASE_URL || "http://localhost:20128";
+export const revalidate = 3600; // Cache for 1 hour
 
-/**
- * GET /.well-known/agent.json
- *
- * Returns the OmniRoute Agent Card that describes this gateway's
- * capabilities as an A2A agent.
- */
 export async function GET() {
+  const version = process.env.npm_package_version || "1.0.0";
+
   const agentCard = {
-    name: "OmniRoute AI Gateway",
-    description:
-      "Intelligent AI routing gateway with 36+ providers, smart fallback, " +
-      "quota tracking, format translation, and auto-managed combos. " +
-      "Routes AI requests to the optimal provider based on cost, latency, " +
-      "quota availability, and task requirements.",
-    url: `${BASE_URL}/a2a`,
-    version: PACKAGE_VERSION,
+    name: "OmniRoute",
+    description: "Intelligent AI gateway with auto-routing across 180+ LLM providers",
+    url: `${process.env.OMNIROUTE_BASE_URL || "http://localhost:20128"}/a2a`,
+    version,
     capabilities: {
       streaming: true,
       pushNotifications: false,
@@ -36,84 +22,67 @@ export async function GET() {
     skills: [
       {
         id: "smart-routing",
-        name: "Smart Request Routing",
-        description:
-          "Routes AI requests to the optimal provider based on quota, cost, " +
-          "latency, and reliability. Supports combo-based routing with " +
-          "multiple strategies: priority, weighted, round-robin, cost-optimized.",
-        tags: ["routing", "llm", "optimization", "fallback"],
+        name: "Smart Routing",
+        description: "Routes prompts through OmniRoute intelligent pipeline",
+        tags: ["routing", "llm", "multi-provider", "cost-optimization"],
         examples: [
-          "Route this coding task to the fastest available model",
-          "Send this review to an analytical model under $0.50 budget",
-          "Find the cheapest provider with available quota",
+          "Write a hello world in Python",
+          "Explain quantum computing using the cheapest provider",
         ],
       },
       {
         id: "quota-management",
-        name: "Quota & Cost Management",
-        description:
-          "Tracks and manages API quotas across 36+ providers with " +
-          "auto-fallback when quotas are exhausted. Provides real-time " +
-          "cost tracking and budget enforcement.",
-        tags: ["quota", "cost", "monitoring", "budget"],
+        name: "Quota Management",
+        description: "Natural-language queries about provider quotas",
+        tags: ["quota", "analytics", "cost"],
         examples: [
-          "Check remaining quota for all providers",
-          "Which provider has the most available quota?",
-          "Generate a cost report for today",
+          "Which provider has the most quota remaining?",
+          "Suggest a free combo for coding",
         ],
       },
       {
         id: "provider-discovery",
         name: "Provider Discovery",
-        description:
-          "Discovers providers that can handle a requested capability " +
-          "such as chat, images, audio, search, embeddings, rerank, or video. " +
-          "Reports availability, health, configuration status, and a recommended provider.",
-        tags: ["providers", "discovery", "capabilities", "health"],
+        description: "Lists installed providers with capabilities, free-tier flags, OAuth status",
+        tags: ["provider", "discovery", "capabilities"],
         examples: [
-          "Which providers can handle image generation?",
-          "Find healthy providers for embeddings",
-          "What local providers are configured?",
+          "What providers are available?",
+          "Which providers support vision?",
         ],
       },
       {
         id: "cost-analysis",
         name: "Cost Analysis",
-        description:
-          "Analyzes usage costs by provider and model, compares recent periods, " +
-          "and returns cost-saving opportunities for agents to act on.",
-        tags: ["cost", "usage", "analytics", "optimization"],
+        description: "Estimates cost of a request/conversation given the catalog + recent usage",
+        tags: ["cost", "pricing", "analytics"],
         examples: [
-          "How much did we spend this week?",
-          "Which provider is costing the most?",
-          "Suggest cost-saving opportunities for the last 30 days",
+          "How much will this request cost?",
+          "Compare costs across providers",
         ],
       },
       {
         id: "health-report",
         name: "Health Report",
-        description:
-          "Aggregates provider health, circuit breaker states, rate limit queues, " +
-          "lockouts, and telemetry into a structured report for orchestration.",
-        tags: ["health", "monitoring", "resilience", "telemetry"],
+        description: "Aggregates circuit breaker, cooldown, lockout state per provider",
+        tags: ["health", "monitoring", "resilience"],
         examples: [
-          "Is everything healthy?",
-          "Report degraded providers and retry timing",
-          "Summarize active rate limits and lockouts",
+          "What providers are healthy?",
+          "Show me provider health status",
         ],
       },
       {
-        id: "list-capabilities",
-        name: "List Capabilities",
-        description:
-          "Returns the full catalog of 42 OmniRoute agent skills (22 API + 20 CLI) " +
-          "with raw URLs for the SKILL.md docs.",
-        tags: ["discovery", "capabilities"],
-        examples: ["What can you do?", "List your skills", "Show capabilities"],
+        id: "agent-dispatch",
+        name: "Agent Dispatch",
+        description: "Dispatches coding tasks to the substrate engine for code execution",
+        tags: ["coding", "execution", "agent", "substrate"],
+        examples: [
+          "Dispatch a code generation task to substrate",
+          "Run this coding task through the forge engine",
+        ],
       },
     ],
     authentication: {
-      schemes: ["api-key"],
+      schemes: ["bearer"],
       apiKeyHeader: "Authorization",
     },
   };
@@ -122,6 +91,21 @@ export async function GET() {
     headers: {
       "Cache-Control": "public, max-age=3600",
       "Content-Type": "application/json",
+    },
+  });
+}
+
+/**
+ * CORS preflight for agent discovery
+ */
+export async function OPTIONS() {
+  return new NextResponse(null, {
+    status: 204,
+    headers: {
+      Allow: "GET, HEAD, OPTIONS",
+      "Access-Control-Allow-Methods": "GET, HEAD, OPTIONS",
+      "Access-Control-Allow-Headers": "Content-Type",
+      "Access-Control-Allow-Origin": "*",
     },
   });
 }

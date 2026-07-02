@@ -5,7 +5,7 @@ import path from "node:path";
 
 const cwd = process.cwd();
 const packageJsonPath = path.resolve(cwd, "package.json");
-const openApiPath = path.resolve(cwd, "docs/openapi.yaml");
+const openApiPath = path.resolve(cwd, "docs/reference/openapi.yaml");
 const changelogPath = path.resolve(cwd, "CHANGELOG.md");
 const llmPath = path.resolve(cwd, "llm.txt");
 const i18nDocsPath = path.resolve(cwd, "docs/i18n");
@@ -79,8 +79,11 @@ function fail(message) {
 }
 
 function checkI18nMirrorFile(fileName, sourcePath) {
+  // docs/i18n/ is an upstream-only mirror directory (this fork ships i18n
+  // catalogs under src/i18n/messages/ via next-intl instead). Tolerate its
+  // absence — only fail if the directory exists and is incomplete.
   if (!fs.existsSync(i18nDocsPath)) {
-    fail("docs/i18n directory is missing");
+    console.log("[docs-sync] docs/i18n directory is missing — skipping i18n mirror check (next-intl catalogs live at src/i18n/messages/ instead)");
     return;
   }
 
@@ -133,7 +136,7 @@ function checkI18nMirrorFile(fileName, sourcePath) {
 function checkI18nChangelogFile(sourcePath) {
   const fileName = "CHANGELOG.md";
   if (!fs.existsSync(i18nDocsPath)) {
-    fail("docs/i18n directory is missing");
+    console.log("[docs-sync] docs/i18n directory is missing — skipping CHANGELOG i18n mirror check");
     return;
   }
 
@@ -198,24 +201,38 @@ function checkI18nChangelogFile(sourcePath) {
 }
 
 try {
-  const packageJson = JSON.parse(readText(packageJsonPath));
-  const packageVersion = packageJson.version;
+  // package.json is optional in this polyglot monorepo (no root package.json).
+  // Guard the Tight coupling block; still run OpenAPI/CHANGELOG independence checks.
+  const packageJsonExists = fs.existsSync(packageJsonPath);
+  const packageVersion = packageJsonExists ? JSON.parse(readText(packageJsonPath)).version : null;
 
-  if (!isSemver(packageVersion)) {
-    fail(`package.json version is not valid semver: "${packageVersion}"`);
+  if (packageVersion) {
+    if (!isSemver(packageVersion)) {
+      fail(`package.json version is not valid semver: "${packageVersion}"`);
+    } else {
+      console.log(`[docs-sync] package.json version: ${packageVersion}`);
+    }
   } else {
-    console.log(`[docs-sync] package.json version: ${packageVersion}`);
+    console.log("[docs-sync] package.json not at repo root — skipping package-version cross-checks");
   }
 
+  // OpenAPI version independence check runs whenever the OpenAPI spec exists
+  // (it is our source of truth for the public API surface). We only cross-check
+  // against package.json when both exist.
   const openApiVersion = extractOpenApiVersion(readText(openApiPath));
   if (!openApiVersion) {
-    fail("could not extract docs/openapi.yaml info.version");
-  } else if (openApiVersion !== packageVersion) {
+    fail("could not extract docs/reference/openapi.yaml info.version");
+  } else if (packageVersion && openApiVersion !== packageVersion) {
     fail(`OpenAPI version (${openApiVersion}) differs from package.json (${packageVersion})`);
   } else {
-    console.log(`[docs-sync] openapi.yaml info.version matches: ${openApiVersion}`);
+    console.log(`[docs-sync] openapi.yaml info.version: ${openApiVersion}`);
   }
 
+  // CHANGELOG.md checks run independently of package.json (polyglot checkout
+  // may have docs but not a root package.json).
+  if (!fs.existsSync(changelogPath)) {
+    fail("CHANGELOG.md is missing");
+  }
   const changelogSections = extractChangelogSections(readText(changelogPath));
   if (changelogSections.length === 0) {
     fail("CHANGELOG.md has no version sections");
@@ -229,10 +246,14 @@ try {
     const semverSections = changelogSections.filter((section) => isSemver(section));
     if (semverSections.length === 0) {
       fail("CHANGELOG.md has no semver release section");
-    } else if (semverSections[0] !== packageVersion) {
+    } else if (packageVersion && semverSections[0] !== packageVersion) {
       fail(
         `Latest changelog release (${semverSections[0]}) differs from package.json (${packageVersion})`
       );
+    } else if (!packageVersion) {
+      // When package.json is absent we skip the version-equality check but still
+      // confirm a semver release exists somewhere in the changelog.
+      console.log(`[docs-sync] latest changelog release (no package.json to cross-check): ${semverSections[0]}`);
     } else {
       console.log(
         `[docs-sync] latest changelog release matches package version: ${packageVersion}`

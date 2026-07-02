@@ -1,16 +1,39 @@
+/**
+ * GET  /api/combos — list all combos (management-auth-gated)
+ * POST /api/combos — create a new combo (validated by `createComboSchema`)
+ *
+ * Restored 2026-06-19 (L5-121): see `src/app/api/combos/[id]/route.ts` header
+ * for the full rationale. This handler is called from the combos page list
+ * load (`page.tsx:718,746`) and the "new combo" modal submission.
+ */
 import { NextResponse } from "next/server";
 import { getCombos, createCombo, getComboByName, isCloudEnabled } from "@/lib/localDb";
 import { getConsistentMachineId } from "@/shared/utils/machineId";
-import { syncToCloud } from "@/lib/cloudSync";
+import { syncToCloud } from "@/lib/cloudSync.stub";
 import { validateCompositeTiersConfig } from "@/lib/combos/compositeTiers";
 import { normalizeComboModels } from "@/lib/combos/steps";
-import { validateComboDAG, clampComboDepth } from "@omniroute/open-sse/services/combo.ts";
-import { createComboSchema } from "@/shared/validation/schemas";
+import {
+  createComboSchema,
+  comboRuntimeConfigSchema,
+} from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
-import { comboErrorResponse } from "@/lib/api/comboErrorResponse";
 
-// GET /api/combos - Get all combos
+function sanitizeComboRuntimeConfig(rawConfig: unknown): Record<string, unknown> {
+  if (!rawConfig || typeof rawConfig !== "object" || Array.isArray(rawConfig)) {
+    return {};
+  }
+  const allowed = new Set(Object.keys(comboRuntimeConfigSchema.shape));
+  const out: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(rawConfig as Record<string, unknown>)) {
+    if (!allowed.has(key)) continue;
+    if (value === undefined || value === null) continue;
+    out[key] = value;
+  }
+  return out;
+}
+
+// GET /api/combos — list all combos
 export async function GET(request: Request) {
   const authError = await requireManagementAuth(request);
   if (authError) return authError;
@@ -24,96 +47,96 @@ export async function GET(request: Request) {
   }
 }
 
-// POST /api/combos - Create new combo
-export async function POST(request) {
+// POST /api/combos — create combo
+export async function POST(request: Request) {
   const authError = await requireManagementAuth(request);
   if (authError) return authError;
 
+  let rawBody: unknown;
   try {
-    const body = await request.json();
+    rawBody = await request.json();
+  } catch {
+    return NextResponse.json(
+      { error: { message: "Invalid JSON body" } },
+      { status: 400 }
+    );
+  }
 
-    // Zod validation (covers name format, length, etc.)
-    const validation = validateBody(createComboSchema, body);
-    if (isValidationFailure(validation)) {
-      return NextResponse.json({ error: validation.error }, { status: 400 });
-    }
-    const allCombos = await getCombos();
-    const normalizedModels = normalizeComboModels(validation.data.models, {
-      comboName: validation.data.name,
-      // `allCombos` from `getCombos()` is typed as the DB-shaped record
-      // (JsonRecord & { version: 2; models: ComboStep[] }) which is
-      // structurally compatible with the local ComboCollectionLike in
-      // `normalizeComboModels` but TS does not infer the relationship.
-      allCombos: allCombos as never,
-    });
-    const comboInput = {
-      ...validation.data,
-      models: normalizedModels,
-    };
-    const { name, strategy, config } = comboInput;
-    const compositeValidation = validateCompositeTiersConfig(comboInput);
-    if (compositeValidation.success === false) {
-      const failure = compositeValidation as {
-        success: false;
-        error: { message: string; details: unknown[] };
-      };
-      return comboErrorResponse(
-        "COMBO_003",
-        400,
-        { reason: failure.error.message, details: failure.error.details },
-        request
-      );
-    }
+  if (!rawBody || typeof rawBody !== "object" || Array.isArray(rawBody)) {
+    return NextResponse.json(
+      {
+        error: {
+          message: "Invalid request",
+          details: [{ field: "", message: "Body must be a JSON object" }],
+        },
+      },
+      { status: 400 }
+    );
+  }
 
-    // Check if name already exists
-    const existing = await getComboByName(name);
+  const sanitizedBody = { ...(rawBody as Record<string, unknown>) };
+  if ("config" in sanitizedBody) {
+    sanitizedBody.config = sanitizeComboRuntimeConfig(sanitizedBody.config);
+  }
+
+  const validation = validateBody(createComboSchema, sanitizedBody);
+  if (isValidationFailure(validation)) {
+    return NextResponse.json({ error: validation.error }, { status: 400 });
+  }
+
+  try {
+    const existing = await getComboByName(validation.data.name);
     if (existing) {
-      return NextResponse.json({ error: "Combo name already exists" }, { status: 400 });
-    }
-
-    // Validate nested combo DAG (no circular references, max depth)
-    // Temporarily add the new combo to validate its graph
-    const tempCombo = {
-      ...comboInput,
-      name,
-      strategy,
-      config,
-    };
-    try {
-      validateComboDAG(
-        name,
-        [...allCombos, tempCombo],
-        new Set(),
-        0,
-        clampComboDepth((config as { maxComboDepth?: unknown } | undefined)?.maxComboDepth)
+      return NextResponse.json(
+        {
+          error: {
+            message: "Invalid request",
+            details: [{ field: "name", message: "Combo name already exists" }],
+          },
+        },
+        { status: 400 }
       );
-    } catch (dagError) {
-      return NextResponse.json({ error: dagError.message }, { status: 400 });
     }
 
-    const combo = await createCombo(comboInput);
+    if (validation.data.config) {
+      const compositeCheck = validateCompositeTiersConfig(validation.data.config);
+      if (!compositeCheck.ok) {
+        return NextResponse.json(
+          {
+            error: {
+              message: "Invalid request",
+              details: compositeCheck.errors.map((m) => ({
+                field: "config.compositeTiers",
+                message: m,
+              })),
+            },
+          },
+          { status: 400 }
+        );
+      }
+    }
 
-    // Auto sync to Cloud if enabled
-    await syncToCloudIfEnabled();
+    const normalized = normalizeComboModels(validation.data.models ?? [], {
+      comboName: validation.data.name,
+    });
 
-    return NextResponse.json(combo, { status: 201 });
+    const created = await createCombo({
+      ...validation.data,
+      models: normalized,
+    });
+
+    if (isCloudEnabled()) {
+      try {
+        const machineId = await getConsistentMachineId();
+        await syncToCloud(machineId);
+      } catch (cloudError) {
+        console.log("Cloud sync failed (non-fatal):", cloudError);
+      }
+    }
+
+    return NextResponse.json(created);
   } catch (error) {
     console.log("Error creating combo:", error);
     return NextResponse.json({ error: "Failed to create combo" }, { status: 500 });
-  }
-}
-
-/**
- * Sync to Cloud if enabled
- */
-async function syncToCloudIfEnabled() {
-  try {
-    const cloudEnabled = await isCloudEnabled();
-    if (!cloudEnabled) return;
-
-    const machineId = await getConsistentMachineId();
-    await syncToCloud(machineId);
-  } catch (error) {
-    console.log("Error syncing to cloud:", error);
   }
 }
