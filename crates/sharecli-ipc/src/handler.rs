@@ -9,12 +9,13 @@
 //!   config.set          → { key, value }  (dot-path into TOML)
 //!   monitoring.report   → MonitoringReport
 
+use std::sync::Arc;
+
 use anyhow::Result;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
-use sharecli::{ProcessPool, ProcessInfo};
 use sharecli::config::Config;
-use std::sync::Arc;
+use sharecli::{ProcessInfo, ProcessPool};
 use tokio::sync::RwLock;
 
 // ---------------------------------------------------------------------------
@@ -38,11 +39,7 @@ pub struct Response {
 
 impl Response {
     fn ok(id: u64, result: impl Serialize) -> Self {
-        Self {
-            id,
-            result: serde_json::to_value(result).unwrap_or(Value::Null),
-            error: None,
-        }
+        Self { id, result: serde_json::to_value(result).unwrap_or(Value::Null), error: None }
     }
 
     fn err(id: u64, msg: impl std::fmt::Display) -> Self {
@@ -121,9 +118,9 @@ impl Handler {
             }
 
             "process.kill" => {
-                let pid: u32 = req.params["pid"]
-                    .as_u64()
-                    .ok_or_else(|| anyhow::anyhow!("missing pid"))? as u32;
+                let pid: u32 =
+                    req.params["pid"].as_u64().ok_or_else(|| anyhow::anyhow!("missing pid"))?
+                        as u32;
                 self.pool.kill(pid).await?;
                 Ok(Value::Bool(true))
             }
@@ -152,9 +149,8 @@ impl Handler {
             }
 
             "config.set" => {
-                let key = req.params["key"]
-                    .as_str()
-                    .ok_or_else(|| anyhow::anyhow!("missing key"))?;
+                let key =
+                    req.params["key"].as_str().ok_or_else(|| anyhow::anyhow!("missing key"))?;
                 let value = &req.params["value"];
                 self.apply_config_patch(key, value).await?;
                 Ok(Value::Bool(true))
@@ -209,9 +205,7 @@ fn set_nested(val: &mut Value, path: &[&str], new: Value) -> Result<(), String> 
     }
     match val {
         Value::Object(map) => {
-            let entry = map
-                .entry(path[0])
-                .or_insert(Value::Object(serde_json::Map::new()));
+            let entry = map.entry(path[0]).or_insert(Value::Object(serde_json::Map::new()));
             set_nested(entry, &path[1..], new)
         }
         _ => Err(format!("expected object at segment '{}'", path[0])),

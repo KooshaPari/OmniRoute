@@ -7,10 +7,11 @@
 //! Request:  `{"id": N, "method": "...", "params": {...}}`
 //! Response: `{"id": N, "result": ..., "error": null}` or `{"id": N, "result": null, "error": "..."}`
 
-use anyhow::Result;
 use std::path::PathBuf;
-use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader};
 use std::sync::Arc;
+
+use anyhow::Result;
+use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader};
 use tokio::net::{UnixListener, UnixStream};
 use tracing::{error, info};
 
@@ -73,7 +74,6 @@ pub fn socket_path() -> PathBuf {
     if let Ok(v) = std::env::var("SHARECLI_IPC_SOCK") {
         return PathBuf::from(v);
     }
-    let base = dirs::data_local_dir()
-        .unwrap_or_else(|| PathBuf::from("/tmp"));
+    let base = dirs::data_local_dir().unwrap_or_else(|| PathBuf::from("/tmp"));
     base.join("sharecli").join("ipc.sock")
 }

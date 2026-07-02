@@ -280,12 +280,11 @@ fn spawn_posix(params: *const SpawnParams) i32 {
         if (params.cwd) |cwd| {
             std.posix.chdir(std.mem.sliceTo(cwd, 0)) catch std.posix.exit(127);
         }
-        const err = std.posix.execveZ(
+        std.posix.execveZ(
             params.program,
             params.argv,
             params.envp orelse @ptrCast(std.c.environ),
-        );
-        _ = err;
+        ) catch {};
         std.posix.exit(127);
     }
     return @intCast(pid);

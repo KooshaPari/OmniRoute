@@ -3,13 +3,14 @@
 //! Spawn/monitor/kill delegated to substrate [`ProcessPort`] (`runtime-process`);
 //! sharecli retains metadata tagging, pooling, and resource limits.
 
-use anyhow::{bail, Result};
-use runtime_process::CommandGroupProcess;
 use std::collections::HashMap;
 use std::path::PathBuf;
 use std::process::Stdio;
 use std::sync::Arc;
 use std::time::{Duration, Instant};
+
+use anyhow::{bail, Result};
+use runtime_process::CommandGroupProcess;
 use substrate::{ProcessHandle, ProcessPort, ProcessSpawnSpec};
 use sysinfo::{Pid, System};
 use tokio::process::Command;
@@ -149,26 +150,30 @@ impl ProcessPool {
         harness: Option<String>,
     ) -> Result<ProcessInfo> {
         // Determine whether the spawn-policy throttle applies to this harness.
-        let is_build = harness.as_deref().map(is_build_harness).unwrap_or_else(|| is_build_harness(cmd));
+        let is_build =
+            harness.as_deref().map(is_build_harness).unwrap_or_else(|| is_build_harness(cmd));
 
         // Apply policy when present and harness is a build harness.
         let _permit;
-        let (effective_cmd, effective_args, extra_env): (String, Vec<String>, Vec<(String, String)>) =
-            if is_build {
-                if let Some(ref policy) = self.spawn_policy {
-                    // Acquire build slot (queues if at cap).
-                    _permit = Some(policy.acquire_build_permit().await?);
-                    let (prog, shaped_args) = policy.apply_taskpolicy(cmd, args);
-                    let env = policy.build_env_overrides();
-                    (prog, shaped_args, env)
-                } else {
-                    _permit = None;
-                    (cmd.to_string(), args.to_vec(), vec![])
-                }
+        let (effective_cmd, effective_args, extra_env): (
+            String,
+            Vec<String>,
+            Vec<(String, String)>,
+        ) = if is_build {
+            if let Some(ref policy) = self.spawn_policy {
+                // Acquire build slot (queues if at cap).
+                _permit = Some(policy.acquire_build_permit().await?);
+                let (prog, shaped_args) = policy.apply_taskpolicy(cmd, args);
+                let env = policy.build_env_overrides();
+                (prog, shaped_args, env)
             } else {
                 _permit = None;
                 (cmd.to_string(), args.to_vec(), vec![])
-            };
+            }
+        } else {
+            _permit = None;
+            (cmd.to_string(), args.to_vec(), vec![])
+        };
 
         // Propagate env-var overrides into the process environment before spawn.
         // substrate's `ProcessSpawnSpec` does not yet carry env — set them on
@@ -182,14 +187,14 @@ impl ProcessPool {
             })
             .collect();
 
-        let spec = ProcessSpawnSpec {
-            program: effective_cmd.clone(),
-            args: effective_args.clone(),
-            cwd,
-        };
+        let spec =
+            ProcessSpawnSpec { program: effective_cmd.clone(), args: effective_args.clone(), cwd };
 
-        let handle =
-            self.port.spawn(&spec).await.map_err(|e| anyhow::anyhow!("spawn {}: {e}", effective_cmd))?;
+        let handle = self
+            .port
+            .spawn(&spec)
+            .await
+            .map_err(|e| anyhow::anyhow!("spawn {}: {e}", effective_cmd))?;
         // _env_guards drops here, restoring env vars before any async point.
 
         let pid = handle.pid;

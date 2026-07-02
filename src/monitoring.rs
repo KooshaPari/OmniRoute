@@ -4,9 +4,10 @@
 // than scattering per-item allows across a placeholder.
 #![allow(dead_code)]
 
-use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::time::{SystemTime, UNIX_EPOCH};
+
+use serde::{Deserialize, Serialize};
 use tracing::warn;
 
 use crate::config;

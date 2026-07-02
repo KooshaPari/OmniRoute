@@ -38,9 +38,10 @@
 //! `spc_semaphore_acquire` via `spawn_blocking`), `RUSTC_WRAPPER` wiring for
 //! sccache, and the `ProcessPool` integration.
 
+use std::sync::Arc;
+
 use anyhow::Result;
 use spawn_core_sys::ZigSemaphore;
-use std::sync::Arc;
 
 use crate::config::SpawnPolicyConfig;
 
@@ -151,10 +152,8 @@ impl SpawnPolicy {
     /// * `RUSTC_WRAPPER=sccache` — only when `use_sccache = true` AND `sccache`
     ///   is found on PATH.
     pub fn build_env_overrides(&self) -> Vec<(String, String)> {
-        let mut env = vec![(
-            "CARGO_BUILD_JOBS".to_string(),
-            self.config.max_concurrent_builds.to_string(),
-        )];
+        let mut env =
+            vec![("CARGO_BUILD_JOBS".to_string(), self.config.max_concurrent_builds.to_string())];
 
         if self.config.use_sccache && sccache_on_path() {
             env.push(("RUSTC_WRAPPER".to_string(), "sccache".to_string()));
@@ -169,12 +168,18 @@ impl SpawnPolicy {
 // ---------------------------------------------------------------------------
 
 fn sccache_on_path() -> bool {
-    std::env::var_os("PATH").and_then(|path_var| {
-        std::env::split_paths(&path_var).find_map(|dir| {
-            let candidate = dir.join("sccache");
-            if candidate.exists() { Some(candidate) } else { None }
+    std::env::var_os("PATH")
+        .and_then(|path_var| {
+            std::env::split_paths(&path_var).find_map(|dir| {
+                let candidate = dir.join("sccache");
+                if candidate.exists() {
+                    Some(candidate)
+                } else {
+                    None
+                }
+            })
         })
-    }).is_some()
+        .is_some()
 }
 
 // ---------------------------------------------------------------------------
@@ -183,10 +188,12 @@ fn sccache_on_path() -> bool {
 
 #[cfg(test)]
 mod tests {
+    use std::sync::Arc;
+
+    use tokio::time::Duration;
+
     use super::*;
     use crate::config::SpawnPolicyConfig;
-    use std::sync::Arc;
-    use tokio::time::Duration;
 
     fn policy(max: usize) -> Arc<SpawnPolicy> {
         Arc::new(SpawnPolicy::new(SpawnPolicyConfig {
@@ -211,6 +218,7 @@ mod tests {
     #[tokio::test]
     async fn semaphore_queues_excess_tasks() {
         use std::sync::Mutex;
+
         use tokio::task::JoinSet;
 
         let policy = policy(2);
@@ -228,7 +236,9 @@ mod tests {
                     let mut a = active.lock().unwrap();
                     *a += 1;
                     let mut pk = peak.lock().unwrap();
-                    if *a > *pk { *pk = *a; }
+                    if *a > *pk {
+                        *pk = *a;
+                    }
                 }
                 tokio::time::sleep(Duration::from_millis(15)).await;
                 {
