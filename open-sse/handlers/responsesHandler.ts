@@ -68,8 +68,19 @@ export async function handleResponsesCore({
     return result;
   }
 
-  // Transform SSE stream to Responses API format (no logging in worker)
-  const transformStream = createResponsesApiTransformStream(null);
+  // Transform SSE stream to Responses API format (no logging in worker).
+  // Pass the original request body + tools list so the transformer can:
+  //   - emit a parallel Anthropic-style `tool_use` block for every
+  //     `function_call` when the request's `tools[]` uses Anthropic shape
+  //     (has `input_schema` and no Chat-style `parameters`);
+  //   - echo back `prompt_cache_key` on the response object;
+  //   - attach `output_format` (structured outputs / json_schema) to the
+  //     response so the client can validate the emitted `message` content.
+  // These parity fields are inert when the request doesn't supply them.
+  const transformStream = createResponsesApiTransformStream(null, 3000, {
+    request: body,
+    tools: Array.isArray(body?.tools) ? body.tools : [],
+  });
   const transformedBody = response.body.pipeThrough(transformStream).pipeThrough(
     createSseHeartbeatTransform({
       signal,
