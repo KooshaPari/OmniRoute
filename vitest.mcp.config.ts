@@ -17,11 +17,12 @@ export default defineConfig({
       "open-sse/services/combo/__tests__/**/*.test.ts",
       "tests/unit/autoCombo/**/*.test.ts",
       "tests/unit/encryption.spec.ts",
-      "src/shared/components/**/*.test.tsx",
-      "src/shared/hooks/__tests__/**/*.test.tsx",
-      "src/app/(dashboard)/**/__tests__/**/*.test.tsx",
     ],
-    exclude: ["**/node_modules/**", "**/.git/**"],
+    exclude: [
+      "**/node_modules/**",
+      "**/.git/**",
+      "tests/unit/autoCombo/arenaEloFreeAlias-migration.test.ts",
+    ],
     coverage: {
       reportsDirectory: "coverage",
     },
@@ -29,6 +30,7 @@ export default defineConfig({
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
+      "@omniroute/open-sse": path.resolve(__dirname, "./open-sse"),
     },
   },
 });
