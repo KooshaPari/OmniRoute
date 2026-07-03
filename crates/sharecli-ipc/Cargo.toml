@@ -2,19 +2,32 @@
 name = "sharecli-ipc"
 version = "0.1.0"
 edition = "2021"
-description = "IPC server for sharecli desktop client — Unix socket JSON-RPC"
+description = "IPC server + coalesce/debounce/queue primitives for sharecli — Unix socket JSON-RPC + Lock-Wait-Cache command deduplication"
 
 [dependencies]
-sharecli = { path = "../../" }
-tokio = { version = "1", features = ["full"] }
+# Coalesce/cache primitives
+sha2 = "0.10"
+fs2 = "0.4"
+tempfile = "3"
+
+# Serialization
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
+
+# Errors
 anyhow = "1"
+
+# IPC server (bin only)
+sharecli = { path = "../../" }
+tokio = { version = "1", features = ["full"] }
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 tracing = "0.1"
 tokio-util = { version = "0.7", features = ["codec"] }
 bytes = "1"
 dirs = "5"
+
+[dev-dependencies]
+tempfile = "3"
 
 [[bin]]
 name = "sharecli-ipc"
