@@ -23,6 +23,12 @@ test("raw HTTP guard rejects high-risk unsupported methods before Next.js handle
       url: "/api/keys/0",
       allow: "GET, PATCH, DELETE",
     },
+    {
+      label: "key devices TRACE",
+      method: "TRACE",
+      url: "/api/keys/0/devices",
+      allow: "GET",
+    },
   ];
 
   for (const testCase of cases) {

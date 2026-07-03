@@ -4,6 +4,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { makeManagementSessionRequest } from "../helpers/managementSession.ts";
+import { __setProxyHealthTcpCheckForTesting } from "../../src/lib/proxyHealth.ts";
 
 const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-route-edges-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
@@ -125,6 +126,15 @@ async function withPrepareOverride(match, override, fn) {
     return await fn();
   } finally {
     db.prepare = originalPrepare;
+  }
+}
+
+async function withReachableProxy(fn: () => Promise<unknown>) {
+  __setProxyHealthTcpCheckForTesting(async () => true);
+  try {
+    return await fn();
+  } finally {
+    __setProxyHealthTcpCheckForTesting(null);
   }
 }
 
@@ -910,34 +920,36 @@ test("embeddings route tolerates custom-model and provider-node lookup failures"
     });
 
   try {
-    await withPrepareFailure(
-      "SELECT key, value FROM key_value WHERE namespace = 'customModels'",
-      "custom models unavailable",
-      async () => {
-        const response = await embeddingsRoute.GET();
-        const body = (await response.json()) as any;
+    await withReachableProxy(async () => {
+      await withPrepareFailure(
+        "SELECT key, value FROM key_value WHERE namespace = 'customModels'",
+        "custom models unavailable",
+        async () => {
+          const response = await embeddingsRoute.GET();
+          const body = (await response.json()) as any;
 
-        assert.equal(response.status, 200);
-        assert.ok(body.data.some((model) => model.id === "openai/text-embedding-3-small"));
-      }
-    );
+          assert.equal(response.status, 200);
+          assert.ok(body.data.some((model) => model.id === "openai/text-embedding-3-small"));
+        }
+      );
 
-    await withPrepareFailure(
-      "SELECT * FROM provider_nodes",
-      "provider nodes unavailable",
-      async () => {
-        const response = await embeddingsRoute.POST(
-          makeRequest("http://localhost/v1/embeddings", {
-            method: "POST",
-            body: { model: "openai/text-embedding-3-small", input: "hello" },
-          })
-        );
-        const body = (await response.json()) as any;
+      await withPrepareFailure(
+        "SELECT * FROM provider_nodes",
+        "provider nodes unavailable",
+        async () => {
+          const response = await embeddingsRoute.POST(
+            makeRequest("http://localhost/v1/embeddings", {
+              method: "POST",
+              body: { model: "openai/text-embedding-3-small", input: "hello" },
+            })
+          );
+          const body = (await response.json()) as any;
 
-        assert.equal(response.status, 200);
-        assert.equal(body.model, "openai/text-embedding-3-small");
-      }
-    );
+          assert.equal(response.status, 200);
+          assert.equal(body.model, "openai/text-embedding-3-small");
+        }
+      );
+    });
   } finally {
     globalThis.fetch = originalFetch;
   }
@@ -1023,17 +1035,19 @@ test("embeddings route returns normalized upstream failures", async () => {
   globalThis.fetch = async () => new Response("upstream boom", { status: 502 });
 
   try {
-    const response = await embeddingsRoute.POST(
-      makeRequest("http://localhost/v1/embeddings", {
-        method: "POST",
-        body: { model: "openai/text-embedding-3-small", input: "hello" },
-      })
-    );
-    const body = (await response.json()) as any;
+    await withReachableProxy(async () => {
+      const response = await embeddingsRoute.POST(
+        makeRequest("http://localhost/v1/embeddings", {
+          method: "POST",
+          body: { model: "openai/text-embedding-3-small", input: "hello" },
+        })
+      );
+      const body = (await response.json()) as any;
 
-    assert.equal(response.status, 502);
-    assert.equal(body.error.message, "upstream boom");
-    assert.equal(body.error.type, "upstream_error");
+      assert.equal(response.status, 502);
+      assert.equal(body.error.message, "upstream boom");
+      assert.equal(body.error.type, "upstream_error");
+    });
   } finally {
     globalThis.fetch = originalFetch;
   }
@@ -1086,58 +1100,60 @@ test("embeddings route tolerates non-array provider nodes and remote fallback lo
     });
 
   try {
-    await withPrepareOverride(
-      "SELECT * FROM provider_nodes",
-      ({ statement }) =>
-        new Proxy(statement, {
-          get(target, prop, receiver) {
-            if (prop === "all") {
-              return () => ({ broken: true });
-            }
-            return Reflect.get(target, prop, receiver);
-          },
-        }),
-      async () => {
-        const response = await embeddingsRoute.POST(
-          makeRequest("http://localhost/v1/embeddings", {
-            method: "POST",
-            body: { model: "openai/text-embedding-3-small", input: "hello" },
-          })
-        );
-        assert.equal(response.status, 200);
-      }
-    );
+    await withReachableProxy(async () => {
+      await withPrepareOverride(
+        "SELECT * FROM provider_nodes",
+        ({ statement }) =>
+          new Proxy(statement, {
+            get(target, prop, receiver) {
+              if (prop === "all") {
+                return () => ({ broken: true });
+              }
+              return Reflect.get(target, prop, receiver);
+            },
+          }),
+        async () => {
+          const response = await embeddingsRoute.POST(
+            makeRequest("http://localhost/v1/embeddings", {
+              method: "POST",
+              body: { model: "openai/text-embedding-3-small", input: "hello" },
+            })
+          );
+          assert.equal(response.status, 200);
+        }
+      );
 
-    let providerNodeSelects = 0;
-    const remoteFallback = await withPrepareOverride(
-      "SELECT * FROM provider_nodes",
-      ({ statement }) =>
-        new Proxy(statement, {
-          get(target, prop, receiver) {
-            if (prop === "all") {
-              return (...args) => {
-                providerNodeSelects++;
-                if (providerNodeSelects === 1) {
-                  return [];
-                }
-                throw new Error("remote provider node lookup failed");
-              };
-            }
-            return Reflect.get(target, prop, receiver);
-          },
-        }),
-      async () =>
-        embeddingsRoute.POST(
-          makeRequest("http://localhost/v1/embeddings", {
-            method: "POST",
-            body: { model: "remote/demo-embed", input: "hello" },
-          })
-        )
-    );
-    const remoteFallbackBody = (await remoteFallback.json()) as any;
+      let providerNodeSelects = 0;
+      const remoteFallback = await withPrepareOverride(
+        "SELECT * FROM provider_nodes",
+        ({ statement }) =>
+          new Proxy(statement, {
+            get(target, prop, receiver) {
+              if (prop === "all") {
+                return (...args) => {
+                  providerNodeSelects++;
+                  if (providerNodeSelects === 1) {
+                    return [];
+                  }
+                  throw new Error("remote provider node lookup failed");
+                };
+              }
+              return Reflect.get(target, prop, receiver);
+            },
+          }),
+        async () =>
+          embeddingsRoute.POST(
+            makeRequest("http://localhost/v1/embeddings", {
+              method: "POST",
+              body: { model: "remote/demo-embed", input: "hello" },
+            })
+          )
+      );
+      const remoteFallbackBody = (await remoteFallback.json()) as any;
 
-    assert.equal(remoteFallback.status, 400);
-    assert.match(remoteFallbackBody.error.message, /Unknown embedding provider|No matching/i);
+      assert.equal(remoteFallback.status, 400);
+      assert.match(remoteFallbackBody.error.message, /Unknown embedding provider|No matching/i);
+    });
   } finally {
     globalThis.fetch = originalFetch;
   }

@@ -282,6 +282,12 @@ export class AuggieExecutor extends BaseExecutor {
       env: process.env,
       stdio: ["pipe", "pipe", "pipe"],
     });
+    // If the CLI exits before consuming stdin, the write/end below can surface an
+    // async EPIPE/EINVAL on the stream. Swallow those stream-level errors so the
+    // executor settles from the child close/error path instead of crashing.
+    child.stdin?.on("error", () => {});
+    child.stdout?.on("error", () => {});
+    child.stderr?.on("error", () => {});
     try {
       child.stdin.write(promptText);
       child.stdin.end();
@@ -382,6 +388,12 @@ export class AuggieExecutor extends BaseExecutor {
           emitError(isEnoentLike(message) ? cliNotFoundMessage(auggieBin) : sanitizeErrorMessage(message));
           return;
         }
+
+        // Mirror qoderCli's stream guards: a fast-exiting child can emit async
+        // EPIPE/EINVAL when stdin closes under our write/end calls.
+        child.stdin?.on("error", () => {});
+        child.stdout?.on("error", () => {});
+        child.stderr?.on("error", () => {});
 
         try {
           child.stdin.write(promptText);
