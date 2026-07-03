@@ -339,34 +339,7 @@ export function openaiToClaudeRequest(model, body, stream) {
       return true;
     });
 
-    // Filter orphaned tool_result blocks whose tool_use_id has no matching tool_use
-    const allToolUseIds = new Set<string>();
-    for (const msg of result.messages) {
-      if (msg.role === "assistant" && Array.isArray(msg.content)) {
-        for (const block of msg.content) {
-          if (block.type === "tool_use" && block.id) {
-            allToolUseIds.add(String(block.id));
-          }
-        }
-      }
-    }
-    for (const msg of result.messages) {
-      if (msg.role === "user" && Array.isArray(msg.content)) {
-        msg.content = msg.content.filter((block) => {
-          if (block.type === "tool_result" && block.tool_use_id) {
-            return allToolUseIds.has(String(block.tool_use_id));
-          }
-          return true;
-        });
-      }
-    }
-    // Remove user messages that became empty after orphan filtering
-    result.messages = result.messages.filter((msg) => {
-      if (msg.role === "user" && Array.isArray(msg.content) && msg.content.length === 0) {
-        return false;
-      }
-      return true;
-    });
+    result.messages = enforceToolResultAdjacency(result.messages);
 
     // Add cache_control to last assistant message
     for (let i = result.messages.length - 1; i >= 0; i--) {
@@ -500,6 +473,77 @@ export function openaiToClaudeRequest(model, body, stream) {
   }
 
   return result;
+}
+
+// Anthropic requires each user tool_result turn to immediately follow the
+// assistant turn containing the matching tool_use. OpenAI-compatible clients can
+// send intervening user text before a later role:"tool" message, so repair the
+// ordering here and drop true orphan results.
+function enforceToolResultAdjacency(messages: ClaudeMessage[]): ClaudeMessage[] {
+  const assistantByToolUseId = new Map<string, ClaudeMessage>();
+  for (const msg of messages) {
+    if (msg.role !== "assistant" || !Array.isArray(msg.content)) continue;
+    for (const block of msg.content) {
+      if (block.type === "tool_use" && block.id && !assistantByToolUseId.has(String(block.id))) {
+        assistantByToolUseId.set(String(block.id), msg);
+      }
+    }
+  }
+
+  const resultsByAssistant = new Map<ClaudeMessage, Map<string, ClaudeContentBlock>>();
+  const strippedMessages: ClaudeMessage[] = [];
+
+  for (const msg of messages) {
+    if (msg.role !== "user" || !Array.isArray(msg.content)) {
+      strippedMessages.push(msg);
+      continue;
+    }
+
+    const remainingBlocks: ClaudeContentBlock[] = [];
+    for (const block of msg.content) {
+      if (block.type !== "tool_result") {
+        remainingBlocks.push(block);
+        continue;
+      }
+
+      const toolUseId = typeof block.tool_use_id === "string" ? block.tool_use_id : "";
+      const assistant = toolUseId ? assistantByToolUseId.get(toolUseId) : undefined;
+      if (!assistant) continue;
+
+      let grouped = resultsByAssistant.get(assistant);
+      if (!grouped) {
+        grouped = new Map<string, ClaudeContentBlock>();
+        resultsByAssistant.set(assistant, grouped);
+      }
+      if (!grouped.has(toolUseId)) grouped.set(toolUseId, block);
+    }
+
+    if (remainingBlocks.length > 0) {
+      strippedMessages.push({ ...msg, content: remainingBlocks });
+    }
+  }
+
+  const reordered: ClaudeMessage[] = [];
+  for (const msg of strippedMessages) {
+    reordered.push(msg);
+    if (msg.role !== "assistant" || !Array.isArray(msg.content)) continue;
+
+    const grouped = resultsByAssistant.get(msg);
+    if (!grouped) continue;
+
+    const adjacentResults: ClaudeContentBlock[] = [];
+    for (const block of msg.content) {
+      if (block.type !== "tool_use" || !block.id) continue;
+      const toolResult = grouped.get(String(block.id));
+      if (toolResult) adjacentResults.push(toolResult);
+    }
+
+    if (adjacentResults.length > 0) {
+      reordered.push({ role: "user", content: adjacentResults });
+    }
+  }
+
+  return reordered;
 }
 
 // Get content blocks from single message
