@@ -20,11 +20,12 @@
 - **feat(api-keys):** track devices/connections per API key — an in-memory, TTL-evicted device fingerprint tracker (SHA-256 of masked IP + truncated user-agent) wired non-blocking into the chat path and surfaced via `GET /api/keys/[id]/devices` with a dashboard device-count chip. (thanks @mugnimaestra)
 - **feat(proxy):** add Webshare proxy pool import and sync — a `WebshareProvider` (`FreeProxyProvider`) that paginates `proxy.webshare.io/api/v2/proxy/list/` gated on `FREE_PROXY_WEBSHARE_API_KEY`, SSRF-guards imported hosts, and tombstones retired proxy IDs via `pruneStaleFreeProxies()`. (thanks @ricatix)
 - **feat(dashboard):** suggest HuggingFace Hub media models in the media provider view. (thanks @yicone)
-- **feat(i18n):** auto-detect the browser language on first visit. (thanks @ayanmw)
 
 ### 🔧 Bug Fixes
 
 - **ci:** Pin scorecard workflow to ubuntu-24.04
+- **embeddings:** forward the connection-level proxy to embedding requests so embeddings honor the same proxy as chat/completions. (thanks @diegosouzapw)
+- **resilience:** parse `Retry-After` from the 429 JSON body (not just headers) when computing connection cooldown, so providers that return the hint in the body get an accurate backoff. (thanks @diegosouzapw)
 
 ### 📝 Maintenance
 
