@@ -261,20 +261,47 @@ async fn main() -> Result<()> {
 }
 
 async fn fleet_status() -> Result<()> {
-    use sharecli_fleet::ThermalGovernor;
+    use sharecli_fleet::{ThermalGovernor, DEFAULT_COORDINATOR};
 
-    // Constructing the governor validates that the thermal subsystem is wired.
-    // Thermal polling (Green/Yellow/Red) lands with the NATS backend follow-up.
     let _gov = ThermalGovernor::new();
-    println!("Thermal governor: ready (polling pending backend wiring)");
-    println!("Fleet registry: not connected (run `sharecli fleet register` first)");
+    println!("Thermal governor: ready");
+
+    match sharecli_fleet::connect(DEFAULT_COORDINATOR).await {
+        Ok(_client) => {
+            println!("Fleet registry: connected to {DEFAULT_COORDINATOR}");
+        }
+        Err(e) => {
+            println!("Fleet registry: not connected ({e})");
+            println!("  Run `sharecli fleet register` to join the fleet.");
+        }
+    }
     Ok(())
 }
 
 async fn fleet_register(name: Option<&str>, coordinator: &str) -> Result<()> {
-    let hostname = name.unwrap_or("local");
+    let hostname = name.unwrap_or_else(|| {
+        // Best-effort: fall back to "local" if gethostname is unavailable.
+        "local"
+    });
+
     println!("Registering device '{hostname}' with coordinator '{coordinator}'");
-    println!("(Fleet NATS wiring pending — stub)");
+
+    match sharecli_fleet::connect(coordinator).await {
+        Ok(client) => {
+            let record = sharecli_fleet::DeviceRecord {
+                device_id: format!("{hostname}-{}", std::process::id()),
+                hostname: hostname.to_string(),
+                os: std::env::consts::OS.to_string(),
+                available_slots: 4,
+            };
+            sharecli_fleet::announce(&client, &record).await?;
+            println!("Registered device '{}' (os={}, slots={})", record.device_id, record.os, record.available_slots);
+        }
+        Err(e) => {
+            println!("Registration failed: {e}");
+            println!("  Is the NATS coordinator running at '{coordinator}'?");
+        }
+    }
     Ok(())
 }
 
