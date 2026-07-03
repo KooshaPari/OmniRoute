@@ -282,6 +282,9 @@ export class AuggieExecutor extends BaseExecutor {
       env: process.env,
       stdio: ["pipe", "pipe", "pipe"],
     });
+    child.stdin.on("error", () => {
+      /* ignore async stdin errors — child 'error'/'close' handlers surface failures */
+    });
     try {
       child.stdin.write(promptText);
       child.stdin.end();

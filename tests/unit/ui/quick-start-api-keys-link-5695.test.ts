@@ -21,7 +21,9 @@ const messages = JSON.parse(
 
 test("#5695 Quick Start step 1 links to the API Manager (API Keys), not Endpoint", () => {
   // The endpoint render-prop Link inside the step1Desc rich block.
-  const hrefMatch = source.match(/t\.rich\("step1Desc"[\s\S]*?<Link href="([^"]*)"/);
+  const hrefMatch = source.match(
+    /t\.rich\("step1Desc"[\s\S]*?endpoint:\s*\([^)]*\)\s*=>\s*\(\s*<Link\s+href="([^"]*)"/
+  );
   assert.ok(hrefMatch, "expected to find the step1Desc endpoint Link in HomePageClient.tsx");
   assert.equal(
     hrefMatch![1],

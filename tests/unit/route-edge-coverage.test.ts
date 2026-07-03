@@ -26,7 +26,6 @@ const moderationsRoute = await import("../../src/app/api/v1/moderations/route.ts
 const rerankRoute = await import("../../src/app/api/v1/rerank/route.ts");
 const searchRoute = await import("../../src/app/api/v1/search/route.ts");
 const videosRoute = await import("../../src/app/api/v1/videos/generations/route.ts");
-
 const MACHINE_ID = "1234567890abcdef";
 
 async function resetStorage() {
@@ -71,6 +70,7 @@ async function seedOpenAIConnection({
   provider = "openai",
   rateLimitedUntil = null,
 } = {}) {
+  await settingsProxyRoute.DELETE(new Request("http://localhost/api/settings/proxy?level=global", { method: "DELETE" }));
   return providersDb.createProviderConnection({
     provider,
     authType: "apikey",
