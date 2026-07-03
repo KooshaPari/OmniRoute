@@ -10,6 +10,9 @@
 //! ```text
 //! caller ──► Hypervisor::run(SpawnRequest)
 //!                │
+//!                ├─ ThermalGate::poll() ─► Green/Yellow → proceed
+//!                │                         Red → sleep-retry (loud) or Err
+//!                │
 //!                ├─ compute command_key (sharecli-ipc)
 //!                │
 //!                └─ CoalesceCache::with_lock
@@ -22,20 +25,103 @@
 //!                                             → SpawnOutcome { from_cache: false }
 //! ```
 //!
+//! # Thermal gate behaviour
+//!
+//! Before any spawn the hypervisor queries the [`ThermalGate`] trait object:
+//!
+//! - [`ThermalDecision::Allow`]  — spawn proceeds normally.
+//! - [`ThermalDecision::Warn`]   — spawn proceeds but a warning is logged.
+//! - [`ThermalDecision::Refuse`] — spawn is back-pressured.  The hypervisor
+//!   enters a visible retry loop ("Waiting for thermal headroom… (N/M)"), and
+//!   if the device remains RED after [`THERMAL_MAX_RETRIES`] attempts it returns
+//!   an explicit `Err`.  This is **never a silent no-op**.
+//!
 //! # TODO hooks (follow-up PRs)
-//! - `// DONE(hypervisor): thermal-gate` — queries `sharecli-fleet::ThermalGovernor`
-//!   before spawning; returns `Err` when the device is in `Red` state; warns on `Yellow`.
 //! - `// TODO(hypervisor): fuse-io` — mount FUSE intercept layer from `sharecli-fuse`
 //!   over the child's working directory for IO ownership tracking.
 //! - `// TODO(hypervisor): speculative` — pre-execute high-probability commands during
 //!   idle periods and pre-populate the coalesce cache.
 
-use std::path::PathBuf;
+use std::{path::PathBuf, sync::Arc, time::Duration};
 
-use anyhow::{Context, Result};
-use sharecli_fleet::{ThermalGovernor, ThermalLevel};
-use sharecli_ipc::{CachedResult, CoalesceCache, command_key};
-use tracing::debug;
+use anyhow::{anyhow, Context, Result};
+use sharecli_fleet::thermal::{ThermalGovernor, ThermalLevel};
+use sharecli_ipc::{command_key, CachedResult, CoalesceCache};
+use tracing::{debug, warn};
+
+// ---------------------------------------------------------------------------
+// Thermal gate — trait + decisions
+// ---------------------------------------------------------------------------
+
+/// Decision returned by a [`ThermalGate`] implementation.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum ThermalDecision {
+    /// Device is cool — spawn may proceed unconditionally.
+    Allow,
+    /// Device is warm — spawn may proceed but caller should log a warning.
+    Warn,
+    /// Device is hot — spawn must be back-pressured or refused.
+    Refuse,
+}
+
+/// A seam that the [`Hypervisor`] calls before every spawn to determine whether
+/// the device has enough thermal headroom.
+///
+/// The production implementation ([`SystemThermalGate`]) delegates to
+/// [`ThermalGovernor`] from `sharecli-fleet`.  Tests inject a fake via
+/// [`FakeThermalGate`].
+pub trait ThermalGate: Send + Sync {
+    /// Poll the current thermal state and return a spawn decision.
+    fn check(&self) -> ThermalDecision;
+}
+
+/// Production [`ThermalGate`] — wraps [`ThermalGovernor`] from `sharecli-fleet`.
+///
+/// Maps `ThermalLevel::Green` → [`ThermalDecision::Allow`],
+///      `ThermalLevel::Yellow` → [`ThermalDecision::Warn`],
+///      `ThermalLevel::Red`    → [`ThermalDecision::Refuse`].
+///
+/// If `poll()` returns an error (e.g. missing sysctl) the gate defaults to
+/// [`ThermalDecision::Allow`] and logs a warning so that sysctl unavailability
+/// does not block spawns on non-macOS CI runners.
+#[derive(Debug, Default)]
+pub struct SystemThermalGate {
+    governor: ThermalGovernor,
+}
+
+impl SystemThermalGate {
+    /// Create a new gate backed by the real [`ThermalGovernor`].
+    pub fn new() -> Self {
+        Self { governor: ThermalGovernor::new() }
+    }
+}
+
+impl ThermalGate for SystemThermalGate {
+    fn check(&self) -> ThermalDecision {
+        match self.governor.poll() {
+            Ok(ThermalLevel::Green) => ThermalDecision::Allow,
+            Ok(ThermalLevel::Yellow) => ThermalDecision::Warn,
+            Ok(ThermalLevel::Red) => ThermalDecision::Refuse,
+            Err(e) => {
+                warn!(err = %e, "thermal-gate: poll failed — defaulting to Allow");
+                ThermalDecision::Allow
+            }
+        }
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Thermal gate — retry constants
+// ---------------------------------------------------------------------------
+
+/// How many times the hypervisor will sleep-retry when the gate returns
+/// [`ThermalDecision::Refuse`] before giving up with an explicit error.
+pub const THERMAL_MAX_RETRIES: u32 = 5;
+
+/// Duration of each sleep in the thermal back-pressure retry loop.
+///
+/// 2 s per attempt → up to ~10 s total wait before a hard error is returned.
+pub const THERMAL_RETRY_SLEEP: Duration = Duration::from_secs(2);
 
 // ---------------------------------------------------------------------------
 // Public types
@@ -79,12 +165,7 @@ pub struct SpawnOutcome {
 
 impl From<CachedResult> for SpawnOutcome {
     fn from(c: CachedResult) -> Self {
-        Self {
-            exit_code: c.exit_code,
-            stdout: c.stdout,
-            stderr: c.stderr,
-            from_cache: true,
-        }
+        Self { exit_code: c.exit_code, stdout: c.stdout, stderr: c.stderr, from_cache: true }
     }
 }
 
@@ -103,37 +184,47 @@ impl From<SpawnOutcome> for CachedResult {
 /// Owns a [`CoalesceCache`] and routes every [`SpawnRequest`] through the
 /// Lock-Wait-Cache protocol: identical concurrent commands coalesce into a
 /// single execution, with all waiters receiving the same cached result.
+///
+/// A [`ThermalGate`] is consulted before every spawn.  When the device is in a
+/// RED thermal state the hypervisor enters a visible sleep-retry loop and, if
+/// the state does not clear within [`THERMAL_MAX_RETRIES`] attempts, returns an
+/// explicit error rather than silently dropping or degrading the spawn.
 pub struct Hypervisor {
     cache: CoalesceCache,
-    thermal: ThermalGovernor,
     #[allow(dead_code)]
     config: HypervisorConfig,
+    thermal_gate: Arc<dyn ThermalGate>,
 }
 
 impl Hypervisor {
-    /// Create a new `Hypervisor` with its coalesce cache rooted at `cache_root`.
+    /// Create a new `Hypervisor` with its coalesce cache rooted at `cache_root`
+    /// and the production [`SystemThermalGate`].
     pub fn new(cache_root: impl Into<PathBuf>) -> Self {
-        let cache_root = cache_root.into();
-        let config = HypervisorConfig { cache_root: cache_root.clone() };
-        Self {
-            cache: CoalesceCache::new(cache_root),
-            thermal: ThermalGovernor::new(),
-            config,
-        }
+        Self::with_thermal_gate(cache_root, Arc::new(SystemThermalGate::new()))
     }
 
-    /// Create a `Hypervisor` with a custom [`ThermalGovernor`] (test-only).
-    #[cfg(test)]
-    pub fn with_governor(
-        cache_root: impl Into<PathBuf>,
-        thermal: ThermalGovernor,
-    ) -> Self {
+    /// Create a `Hypervisor` with an explicit [`ThermalGate`] implementation.
+    ///
+    /// Intended for tests that inject a [`FakeThermalGate`] (or any other
+    /// implementation) to exercise gate behaviour without real hardware.
+    pub fn with_thermal_gate(cache_root: impl Into<PathBuf>, gate: Arc<dyn ThermalGate>) -> Self {
         let cache_root = cache_root.into();
         let config = HypervisorConfig { cache_root: cache_root.clone() };
-        Self { cache: CoalesceCache::new(cache_root), thermal, config }
+        Self { cache: CoalesceCache::new(cache_root), config, thermal_gate: gate }
     }
 
     /// Run a managed spawn with Lock-Wait-Cache coalescing.
+    ///
+    /// # Thermal gating
+    /// Before touching the coalesce cache the hypervisor polls [`ThermalGate`]:
+    ///
+    /// - **Green** → proceed normally.
+    /// - **Yellow** → log a warning, then proceed.
+    /// - **Red** → print "Waiting for thermal headroom… (N/M)" to stderr and
+    ///   sleep [`THERMAL_RETRY_SLEEP`] between each attempt, up to
+    ///   [`THERMAL_MAX_RETRIES`] times.  If the gate is still RED after all
+    ///   retries, return `Err("spawn refused: device is thermally throttled …")`.
+    ///   This is **never a silent no-op**.
     ///
     /// # Coalescing behaviour
     /// - If no cached result exists for this command the process is spawned,
@@ -152,6 +243,10 @@ impl Hypervisor {
     /// Record command-frequency histograms here; trigger pre-execution from a
     /// background task when a command crosses the speculation threshold.
     pub async fn run(&self, req: SpawnRequest) -> Result<SpawnOutcome> {
+        // ── Thermal gate ─────────────────────────────────────────────────────
+        self.thermal_gate_check().await?;
+
+        // ── Cache lookup ─────────────────────────────────────────────────────
         let key = command_key(&req.argv, &req.cwd, &req.env);
         debug!(key = %key.0, argv = ?req.argv, "hypervisor::run");
 
@@ -165,24 +260,6 @@ impl Hypervisor {
                 stderr: cached.stderr,
                 from_cache: true,
             });
-        }
-
-        // Thermal gate — defer spawns when the device is throttled.
-        // Cache hits are still served regardless of thermal state.
-        match self.thermal.poll()? {
-            ThermalLevel::Green => {}
-            ThermalLevel::Yellow => {
-                tracing::warn!(
-                    key = %key.0,
-                    "thermal: yellow — proceeding with caution"
-                );
-            }
-            ThermalLevel::Red => {
-                anyhow::bail!(
-                    "thermal: red — device is throttled, deferring spawn {:?}",
-                    req.argv,
-                );
-            }
         }
 
         // Cache miss — acquire the advisory flock, re-check inside the lock
@@ -210,6 +287,50 @@ impl Hypervisor {
             from_cache: false,
         })
     }
+
+    /// Poll the thermal gate with a visible sleep-retry loop on RED.
+    ///
+    /// Returns `Ok(())` when the gate allows spawning.
+    /// Returns `Err` if the gate refuses after all retries.
+    async fn thermal_gate_check(&self) -> Result<()> {
+        let mut attempt = 0u32;
+
+        loop {
+            match self.thermal_gate.check() {
+                ThermalDecision::Allow => {
+                    debug!("thermal-gate: Green — spawn allowed");
+                    return Ok(());
+                }
+                ThermalDecision::Warn => {
+                    warn!("thermal-gate: Yellow — device is warm, proceeding with spawn");
+                    return Ok(());
+                }
+                ThermalDecision::Refuse => {
+                    attempt += 1;
+                    // Loud, actionable message — never a silent no-op.
+                    eprintln!(
+                        "sharecli: Waiting for thermal headroom\u{2026} ({attempt}/{THERMAL_MAX_RETRIES})"
+                    );
+                    warn!(
+                        attempt,
+                        max = THERMAL_MAX_RETRIES,
+                        "thermal-gate: Red — spawn back-pressured"
+                    );
+
+                    if attempt >= THERMAL_MAX_RETRIES {
+                        return Err(anyhow!(
+                            "spawn refused: device is thermally throttled after \
+                             {THERMAL_MAX_RETRIES} retries ({sleep}s each). \
+                             Reduce concurrent builds or wait for the device to cool down.",
+                            sleep = THERMAL_RETRY_SLEEP.as_secs(),
+                        ));
+                    }
+
+                    tokio::time::sleep(THERMAL_RETRY_SLEEP).await;
+                }
+            }
+        }
+    }
 }
 
 // ---------------------------------------------------------------------------
@@ -220,10 +341,8 @@ impl Hypervisor {
 ///
 /// Used inside `CoalesceCache::with_lock` which takes a synchronous closure.
 fn spawn_process_sync(req: &SpawnRequest) -> Result<SpawnOutcome> {
-    let (program, args) = req
-        .argv
-        .split_first()
-        .with_context(|| "spawn_process_sync: argv is empty")?;
+    let (program, args) =
+        req.argv.split_first().with_context(|| "spawn_process_sync: argv is empty")?;
 
     let output = std::process::Command::new(program)
         .args(args)
@@ -233,12 +352,33 @@ fn spawn_process_sync(req: &SpawnRequest) -> Result<SpawnOutcome> {
         .with_context(|| format!("failed to spawn {:?}", req.argv))?;
 
     let exit_code = output.status.code().unwrap_or(-1);
-    Ok(SpawnOutcome {
-        exit_code,
-        stdout: output.stdout,
-        stderr: output.stderr,
-        from_cache: false,
-    })
+    Ok(SpawnOutcome { exit_code, stdout: output.stdout, stderr: output.stderr, from_cache: false })
+}
+
+// ---------------------------------------------------------------------------
+// Test helpers (pub(crate) for tests module; also exported for integration tests)
+// ---------------------------------------------------------------------------
+
+/// A controllable [`ThermalGate`] for unit tests.
+///
+/// The gate's decision is set at construction time and never changes, making it
+/// suitable for table-driven tests that need deterministic thermal states.
+#[derive(Debug)]
+pub struct FakeThermalGate {
+    decision: ThermalDecision,
+}
+
+impl FakeThermalGate {
+    /// Create a fake gate that always returns `decision`.
+    pub fn new(decision: ThermalDecision) -> Self {
+        Self { decision }
+    }
+}
+
+impl ThermalGate for FakeThermalGate {
+    fn check(&self) -> ThermalDecision {
+        self.decision
+    }
 }
 
 // ---------------------------------------------------------------------------
@@ -247,6 +387,8 @@ fn spawn_process_sync(req: &SpawnRequest) -> Result<SpawnOutcome> {
 
 #[cfg(test)]
 mod tests {
+    use std::sync::atomic::{AtomicU32, Ordering};
+
     use super::*;
     use tempfile::TempDir;
 
@@ -258,6 +400,8 @@ mod tests {
         return vec!["cmd".to_string(), "/C".to_string(), "echo".to_string(), msg.to_string()];
     }
 
+    // ── Existing cache-coalescing tests ──────────────────────────────────────
+
     /// (a) Running a simple echo command for the first time should succeed with
     ///     `from_cache = false` and the expected stdout.
     #[tokio::test]
@@ -265,11 +409,8 @@ mod tests {
         let dir = TempDir::new().expect("tempdir");
         let hv = Hypervisor::new(dir.path());
 
-        let req = SpawnRequest {
-            argv: echo_argv("hello"),
-            cwd: dir.path().to_path_buf(),
-            env: vec![],
-        };
+        let req =
+            SpawnRequest { argv: echo_argv("hello"), cwd: dir.path().to_path_buf(), env: vec![] };
 
         let outcome = hv.run(req).await.expect("run should succeed");
 
@@ -287,11 +428,8 @@ mod tests {
         let dir = TempDir::new().expect("tempdir");
         let hv = Hypervisor::new(dir.path());
 
-        let req = SpawnRequest {
-            argv: echo_argv("world"),
-            cwd: dir.path().to_path_buf(),
-            env: vec![],
-        };
+        let req =
+            SpawnRequest { argv: echo_argv("world"), cwd: dir.path().to_path_buf(), env: vec![] };
 
         // First call — live spawn.
         let first = hv.run(req.clone()).await.expect("first run");
@@ -305,41 +443,128 @@ mod tests {
         assert_eq!(second.exit_code, first.exit_code);
     }
 
-    /// (c) Thermal gate in Red state must reject the spawn with an error.
+    // ── Thermal gate unit tests ──────────────────────────────────────────────
+
+    /// Green gate: spawn must succeed immediately without any retry.
     #[tokio::test]
-    async fn run_thermal_red_rejects() {
+    async fn thermal_gate_green_allows_spawn() {
         let dir = TempDir::new().expect("tempdir");
-        let red_governor = ThermalGovernor::with_mock(ThermalLevel::Red);
-        let hv = Hypervisor::with_governor(dir.path(), red_governor);
+        let gate = Arc::new(FakeThermalGate::new(ThermalDecision::Allow));
+        let hv = Hypervisor::with_thermal_gate(dir.path(), gate);
 
         let req = SpawnRequest {
-            argv: echo_argv("hot-test"),
+            argv: echo_argv("green-gate"),
             cwd: dir.path().to_path_buf(),
             env: vec![],
         };
 
-        let err = hv.run(req).await.unwrap_err();
-        let msg = format!("{err:#}");
-        assert!(msg.contains("thermal: red"), "error should mention thermal: red, got: {msg}");
+        let outcome = hv.run(req).await.expect("Green gate must allow spawn");
+        assert_eq!(outcome.exit_code, 0);
+        let stdout = String::from_utf8_lossy(&outcome.stdout);
+        assert!(stdout.contains("green-gate"));
     }
 
-    /// (d) Thermal gate in Yellow state must proceed normally (with a warning).
+    /// Yellow gate: spawn must succeed (warm device does not block).
     #[tokio::test]
-    async fn run_thermal_yellow_proceeds() {
+    async fn thermal_gate_yellow_allows_spawn_with_warning() {
         let dir = TempDir::new().expect("tempdir");
-        let yellow_governor = ThermalGovernor::with_mock(ThermalLevel::Yellow);
-        let hv = Hypervisor::with_governor(dir.path(), yellow_governor);
+        let gate = Arc::new(FakeThermalGate::new(ThermalDecision::Warn));
+        let hv = Hypervisor::with_thermal_gate(dir.path(), gate);
 
         let req = SpawnRequest {
-            argv: echo_argv("warm-test"),
+            argv: echo_argv("yellow-gate"),
             cwd: dir.path().to_path_buf(),
             env: vec![],
         };
 
-        let outcome = hv.run(req).await.expect("yellow should still allow spawns");
-        assert_eq!(outcome.exit_code, 0, "echo should exit 0");
-        assert!(!outcome.from_cache, "must not come from cache");
+        // Yellow must not block or error.
+        let outcome = hv.run(req).await.expect("Yellow gate must allow spawn");
+        assert_eq!(outcome.exit_code, 0);
         let stdout = String::from_utf8_lossy(&outcome.stdout);
-        assert!(stdout.contains("warm-test"), "stdout should contain 'warm-test'");
+        assert!(stdout.contains("yellow-gate"));
+    }
+
+    /// Red gate: spawn must be refused with an explicit, actionable error
+    /// after THERMAL_MAX_RETRIES attempts.  The error message must mention
+    /// "thermally throttled" so the operator can act on it.
+    #[tokio::test(start_paused = true)]
+    async fn thermal_gate_red_refuses_spawn_with_loud_error() {
+        let dir = TempDir::new().expect("tempdir");
+        let gate = Arc::new(FakeThermalGate::new(ThermalDecision::Refuse));
+        let hv = Hypervisor::with_thermal_gate(dir.path(), gate);
+
+        let req = SpawnRequest {
+            argv: echo_argv("red-gate"),
+            cwd: dir.path().to_path_buf(),
+            env: vec![],
+        };
+
+        let result = hv.run(req).await;
+        assert!(result.is_err(), "Red gate must refuse spawn");
+
+        let err = result.unwrap_err();
+        let msg = err.to_string();
+        assert!(
+            msg.contains("thermally throttled"),
+            "error must mention 'thermally throttled', got: {msg}"
+        );
+        assert!(
+            msg.contains(&THERMAL_MAX_RETRIES.to_string()),
+            "error must mention retry count, got: {msg}"
+        );
+    }
+
+    /// A gate that transitions Green → Red → Green validates that the retry
+    /// loop recovers once the device cools down.
+    ///
+    /// The gate starts RED for the first call, then returns Green on the second
+    /// call — simulating thermal recovery after one sleep-retry.
+    #[tokio::test(start_paused = true)]
+    async fn thermal_gate_recovers_after_one_red_attempt() {
+        /// A gate that returns Refuse on the first check, then Allow forever.
+        struct OneRedThenGreen {
+            calls: AtomicU32,
+        }
+        impl ThermalGate for OneRedThenGreen {
+            fn check(&self) -> ThermalDecision {
+                let n = self.calls.fetch_add(1, Ordering::SeqCst);
+                if n == 0 {
+                    ThermalDecision::Refuse
+                } else {
+                    ThermalDecision::Allow
+                }
+            }
+        }
+
+        let dir = TempDir::new().expect("tempdir");
+        let gate = Arc::new(OneRedThenGreen { calls: AtomicU32::new(0) });
+        let hv = Hypervisor::with_thermal_gate(dir.path(), gate);
+
+        let req =
+            SpawnRequest { argv: echo_argv("recover"), cwd: dir.path().to_path_buf(), env: vec![] };
+
+        // With `start_paused` tokio::time::sleep resolves immediately in tests.
+        let outcome = hv.run(req).await.expect("should succeed after one RED retry");
+        assert_eq!(outcome.exit_code, 0);
+        let stdout = String::from_utf8_lossy(&outcome.stdout);
+        assert!(stdout.contains("recover"));
+    }
+
+    /// FakeThermalGate::check() must return the decision it was constructed with.
+    #[test]
+    fn fake_thermal_gate_returns_configured_decision() {
+        for decision in [ThermalDecision::Allow, ThermalDecision::Warn, ThermalDecision::Refuse] {
+            let gate = FakeThermalGate::new(decision);
+            assert_eq!(gate.check(), decision);
+        }
+    }
+
+    /// ThermalDecision variants are Copy + Eq — spot-check the impls.
+    #[test]
+    fn thermal_decision_copy_eq() {
+        let a = ThermalDecision::Allow;
+        let b = a;
+        assert_eq!(a, b);
+        assert_ne!(ThermalDecision::Allow, ThermalDecision::Refuse);
     }
 }
