@@ -59,8 +59,10 @@ test("router config patch compare reports recommendation and metric deltas", () 
   writePatch(candidate, "balanced-v2", 94, 0.004, 120);
 
   const result = spawnSync(
-    "bun",
+    process.execPath,
     [
+      "--import",
+      "tsx",
       compareScript,
       "--baseline",
       baseline,
@@ -122,8 +124,10 @@ test("router config patch compare only fails threshold regressions when requeste
   writePatch(candidate, "balanced-v2", 90, 0.008, 200);
 
   const warning = spawnSync(
-    "bun",
+    process.execPath,
     [
+      "--import",
+      "tsx",
       compareScript,
       "--baseline",
       baseline,
@@ -141,8 +145,10 @@ test("router config patch compare only fails threshold regressions when requeste
     { encoding: "utf8" }
   );
   const failing = spawnSync(
-    "bun",
+    process.execPath,
     [
+      "--import",
+      "tsx",
       compareScript,
       "--baseline",
       baseline,
@@ -186,8 +192,10 @@ test("router config patch compare reports unchanged recommendations without fail
   writePatch(candidate, "balanced-v1", 95, 0.003, 110);
 
   const result = spawnSync(
-    "bun",
+    process.execPath,
     [
+      "--import",
+      "tsx",
       compareScript,
       "--baseline",
       baseline,
@@ -238,8 +246,8 @@ test("router config patch compare rejects invalid patch inputs", () => {
   );
 
   const result = spawnSync(
-    "bun",
-    [compareScript, "--baseline", baseline, "--candidate", candidate],
+    process.execPath,
+    ["--import", "tsx", compareScript, "--baseline", baseline, "--candidate", candidate],
     { encoding: "utf8" }
   );
 
@@ -283,13 +291,13 @@ test("router config patch compare rejects malformed JSON and invalid evidence", 
   );
 
   const malformedResult = spawnSync(
-    "bun",
-    [compareScript, "--baseline", baseline, "--candidate", malformed],
+    process.execPath,
+    ["--import", "tsx", compareScript, "--baseline", baseline, "--candidate", malformed],
     { encoding: "utf8" }
   );
   const invalidEvidenceResult = spawnSync(
-    "bun",
-    [compareScript, "--baseline", baseline, "--candidate", invalidEvidence],
+    process.execPath,
+    ["--import", "tsx", compareScript, "--baseline", baseline, "--candidate", invalidEvidence],
     { encoding: "utf8" }
   );
 

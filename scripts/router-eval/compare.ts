@@ -17,6 +17,15 @@ type Args = {
 };
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
+const isBunRuntime = "Bun" in globalThis;
+
+function runTypeScriptScript(args: string[]) {
+  return spawnSync(process.execPath, isBunRuntime ? args : ["--import", "tsx", ...args], {
+    cwd: repoRoot,
+    encoding: "utf8",
+    stdio: ["ignore", "pipe", "pipe"],
+  });
+}
 
 function getArgValue(name: string): string | undefined {
   const index = process.argv.indexOf(`--${name}`);
@@ -95,11 +104,7 @@ function main(): void {
     args.maxCostIncrease,
   ];
 
-  const result = spawnSync("bun", checkArgs, {
-    cwd: repoRoot,
-    encoding: "utf8",
-    stdio: ["ignore", "pipe", "pipe"],
-  });
+  const result = runTypeScriptScript(checkArgs);
 
   if (result.error) {
     console.error(`[router-eval:compare] failed to launch comparison: ${result.error.message}`);

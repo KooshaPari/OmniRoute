@@ -9,17 +9,9 @@ import Database from "better-sqlite3";
 const scriptPath = "scripts/router-eval/index.ts";
 
 function runCli(args: string[]) {
-  const bunResult = spawnSync("bun", [scriptPath, ...args], {
+  return spawnSync(process.execPath, ["--import", "tsx", scriptPath, ...args], {
     encoding: "utf8",
   });
-
-  if (bunResult.error && (bunResult.error as NodeJS.ErrnoException).code === "ENOENT") {
-    return spawnSync(process.execPath, ["--import", "tsx", scriptPath, ...args], {
-      encoding: "utf8",
-    });
-  }
-
-  return bunResult;
 }
 
 test("router-eval CLI prints a markdown report for JSONL input", () => {

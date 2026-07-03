@@ -68,6 +68,15 @@ type RouterConfigPatchArtifact = {
 };
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
+const isBunRuntime = "Bun" in globalThis;
+
+function runTypeScriptScript(args: string[]) {
+  return spawnSync(process.execPath, isBunRuntime ? args : ["--import", "tsx", ...args], {
+    cwd: repoRoot,
+    encoding: "utf8",
+    stdio: ["ignore", "pipe", "pipe"],
+  });
+}
 
 function getArgValue(name: string): string | undefined {
   const index = process.argv.indexOf(`--${name}`);
@@ -354,33 +363,25 @@ function main(): void {
   for (const candidate of candidates) {
     ensureReadable(candidate.path, `${candidate.name} corpus`);
     const runId = `${searchId}-${candidate.name}`;
-    const result = spawnSync(
-      "bun",
-      [
-        "scripts/router-eval/compare.ts",
-        "--baseline",
-        baseline,
-        "--candidate",
-        candidate.path,
-        "--baseline-name",
-        "baseline",
-        "--candidate-name",
-        candidate.name,
-        "--artifact-dir",
-        searchDir,
-        "--run-id",
-        runId,
-        "--max-aiq-drop",
-        maxAiqDrop,
-        "--max-cost-increase",
-        maxCostIncrease,
-      ],
-      {
-        cwd: repoRoot,
-        encoding: "utf8",
-        stdio: ["ignore", "pipe", "pipe"],
-      }
-    );
+    const result = runTypeScriptScript([
+      "scripts/router-eval/compare.ts",
+      "--baseline",
+      baseline,
+      "--candidate",
+      candidate.path,
+      "--baseline-name",
+      "baseline",
+      "--candidate-name",
+      candidate.name,
+      "--artifact-dir",
+      searchDir,
+      "--run-id",
+      runId,
+      "--max-aiq-drop",
+      maxAiqDrop,
+      "--max-cost-increase",
+      maxCostIncrease,
+    ]);
     if (result.stdout) process.stdout.write(result.stdout);
     if (result.stderr) process.stderr.write(result.stderr);
     if (result.error) {

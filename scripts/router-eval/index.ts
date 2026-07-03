@@ -2,8 +2,6 @@
 import fs from "node:fs";
 import path from "node:path";
 
-import { Database } from "bun:sqlite";
-
 import {
   compareRouterEvalRuns,
   createRouterEvalArtifact,
@@ -48,6 +46,16 @@ type DbUsageHistoryRow = {
 };
 
 type DbReplaySource = "auto" | "call-logs" | "usage-history";
+
+type SqliteStatement = {
+  get: (...params: unknown[]) => unknown;
+  all: (...params: unknown[]) => unknown[];
+};
+
+type SqliteDatabase = {
+  prepare: (sql: string) => SqliteStatement;
+  close: () => void;
+};
 
 type ArgSpec = {
   input?: string;
@@ -178,13 +186,16 @@ function parseReplaySource(rawSource?: string): DbReplaySource {
   throw new Error(`Unsupported db source: ${rawSource}`);
 }
 
-function hasReplayTable(database: Database, tableName: string): boolean {
+function hasReplayTable(database: SqliteDatabase, tableName: string): boolean {
   return Boolean(
     database.prepare("SELECT 1 FROM sqlite_master WHERE type='table' AND name=?").get(tableName)
   );
 }
 
-function resolveReplaySource(database: Database, requestedSource: DbReplaySource): DbReplaySource {
+function resolveReplaySource(
+  database: SqliteDatabase,
+  requestedSource: DbReplaySource
+): DbReplaySource {
   const hasUsageHistory = hasReplayTable(database, "usage_history");
   const hasCallLogs = hasReplayTable(database, "call_logs");
 
@@ -217,7 +228,7 @@ function toSuccessFromStatus(status: unknown): boolean {
   return false;
 }
 
-function readCallLogDb(db: Database, since?: string, limit?: number): RouterObservation[] {
+function readCallLogDb(db: SqliteDatabase, since?: string, limit?: number): RouterObservation[] {
   const queryParts = [
     "SELECT id, model, requested_model, duration, tokens_in, tokens_out, status, combo_name, provider, error_summary, timestamp, correlation_id",
     "FROM call_logs",
@@ -260,7 +271,11 @@ function readCallLogDb(db: Database, since?: string, limit?: number): RouterObse
   return observations;
 }
 
-function readUsageHistoryDb(db: Database, since?: string, limit?: number): RouterObservation[] {
+function readUsageHistoryDb(
+  db: SqliteDatabase,
+  since?: string,
+  limit?: number
+): RouterObservation[] {
   const queryParts = [
     "SELECT id, provider, model, tokens_input, tokens_output, service_tier, status, success, latency_ms, error_code, combo_strategy, timestamp",
     "FROM usage_history",
@@ -307,15 +322,25 @@ function readUsageHistoryDb(db: Database, since?: string, limit?: number): Route
   return observations;
 }
 
-function readDb(
+async function openSqliteDatabase(sqliteFile: string): Promise<SqliteDatabase> {
+  if ("Bun" in globalThis) {
+    const sqlite = await import("bun:sqlite");
+    return new sqlite.Database(sqliteFile, { readonly: true });
+  }
+
+  const sqlite = await import("better-sqlite3");
+  return new sqlite.default(sqliteFile, { readonly: true });
+}
+
+async function readDb(
   filePath: string,
   since?: string,
   limit?: number,
   source: DbReplaySource = "auto"
-): RouterObservation[] {
+): Promise<RouterObservation[]> {
   const sqliteFile = filePath || SQLITE_FILE;
   if (!sqliteFile) throw new Error("SQLite mode requires a path or SQLITE_FILE");
-  const db = new Database(sqliteFile, { readonly: true });
+  const db = await openSqliteDatabase(sqliteFile);
   try {
     const normalized = parseReplaySource(source);
     const activeSource = resolveReplaySource(db, normalized);
@@ -398,13 +423,13 @@ async function run() {
   const candidate: RouterObservation[] = args.input
     ? await readJsonl(args.input)
     : hasCandidateDb
-      ? readDb(resolveDbPath(args.db), args.since, args.limit, args.dbSource)
+      ? await readDb(resolveDbPath(args.db), args.since, args.limit, args.dbSource)
       : await readJsonl();
 
   const baseline: RouterObservation[] | undefined = args.baselineInput
     ? await readJsonl(args.baselineInput)
     : args.baselineDb
-      ? readDb(resolveDbPath(args.baselineDb), args.since, args.limit, args.baselineDbSource)
+      ? await readDb(resolveDbPath(args.baselineDb), args.since, args.limit, args.baselineDbSource)
       : undefined;
 
   if (candidate.length === 0) {

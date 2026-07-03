@@ -57,8 +57,10 @@ test("router eval search ranks candidates and writes retained summary artifacts"
   writeCorpus(fast, "fast", 100, 0.003);
 
   const result = spawnSync(
-    "bun",
+    process.execPath,
     [
+      "--import",
+      "tsx",
       searchScript,
       "--baseline",
       baseline,
@@ -153,8 +155,10 @@ test("router eval search objective modes can choose different candidates", () =>
     runId: string
   ): { recommendedConfigId?: string; objective?: string } {
     const result = spawnSync(
-      "bun",
+      process.execPath,
       [
+        "--import",
+        "tsx",
         searchScript,
         "--baseline",
         baseline,
@@ -211,8 +215,10 @@ test("router eval search cost objective can select a non-AIQ-top config inside a
   ]);
 
   const result = spawnSync(
-    "bun",
+    process.execPath,
     [
+      "--import",
+      "tsx",
       searchScript,
       "--baseline",
       baseline,

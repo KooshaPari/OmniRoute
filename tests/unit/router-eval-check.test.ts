@@ -81,8 +81,10 @@ test("router eval check writes artifacts and passes non-regressing corpora", () 
   );
 
   const result = spawnSync(
-    "bun",
+    process.execPath,
     [
+      "--import",
+      "tsx",
       checkScript,
       "--baseline",
       baseline,
@@ -143,8 +145,10 @@ test("router eval check can include patch compare as a retained gate", () => {
   writePatch(candidatePatch, "balanced-v2", 94, 0.004, 120);
 
   const result = spawnSync(
-    "bun",
+    process.execPath,
     [
+      "--import",
+      "tsx",
       checkScript,
       "--baseline",
       baseline,
@@ -238,8 +242,10 @@ test("router eval check fails when patch gate regresses beyond thresholds", () =
   writePatch(candidatePatch, "balanced-v2", 90, 0.008, 200);
 
   const result = spawnSync(
-    "bun",
+    process.execPath,
     [
+      "--import",
+      "tsx",
       checkScript,
       "--baseline",
       baseline,
@@ -323,8 +329,10 @@ test("router eval check rejects unpaired patch inputs", () => {
   writePatch(candidatePatch, "balanced-v2", 96, 0.003, 110);
 
   const baselineOnly = spawnSync(
-    "bun",
+    process.execPath,
     [
+      "--import",
+      "tsx",
       checkScript,
       "--baseline",
       baseline,
@@ -340,8 +348,10 @@ test("router eval check rejects unpaired patch inputs", () => {
     { encoding: "utf8" }
   );
   const candidateOnly = spawnSync(
-    "bun",
+    process.execPath,
     [
+      "--import",
+      "tsx",
       checkScript,
       "--baseline",
       baseline,
@@ -405,8 +415,10 @@ test("router eval check can retain artifacts for trend summaries", () => {
   );
 
   const checkResult = spawnSync(
-    "bun",
+    process.execPath,
     [
+      "--import",
+      "tsx",
       checkScript,
       "--baseline",
       baseline,
@@ -421,8 +433,8 @@ test("router eval check can retain artifacts for trend summaries", () => {
   );
 
   const trendResult = spawnSync(
-    "bun",
-    ["scripts/router-eval/trends.ts", "--artifact-dir", artifactDir],
+    process.execPath,
+    ["--import", "tsx", "scripts/router-eval/trends.ts", "--artifact-dir", artifactDir],
     { encoding: "utf8" }
   );
 

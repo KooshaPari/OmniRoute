@@ -31,8 +31,10 @@ function runSearch(
   runId: string
 ): string {
   const result = spawnSync(
-    "bun",
+    process.execPath,
     [
+      "--import",
+      "tsx",
       searchScript,
       "--baseline",
       baseline,
@@ -82,8 +84,10 @@ test("router eval retained chain runs search patches through the check wrapper g
       "new-search"
     );
     const result = spawnSync(
-      "bun",
+      process.execPath,
       [
+        "--import",
+        "tsx",
         checkScript,
         "--baseline",
         baseline,

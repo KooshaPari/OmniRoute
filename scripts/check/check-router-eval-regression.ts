@@ -62,6 +62,15 @@ type GateManifest = {
 };
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
+const isBunRuntime = "Bun" in globalThis;
+
+function runTypeScriptScript(args: string[]) {
+  return spawnSync(process.execPath, isBunRuntime ? args : ["--import", "tsx", ...args], {
+    cwd: repoRoot,
+    encoding: "utf8",
+    stdio: ["ignore", "pipe", "pipe"],
+  });
+}
 const defaultFixtureDir = path.join(repoRoot, "tests/fixtures/router-eval");
 const defaultArtifactDir = path.join(os.tmpdir(), "omniroute-router-eval");
 
@@ -194,36 +203,28 @@ function runPatchGate(args: Args): number {
   fs.mkdirSync(path.dirname(args.patchOutput), { recursive: true });
   fs.mkdirSync(path.dirname(args.patchJsonOutput), { recursive: true });
 
-  const result = spawnSync(
-    "bun",
-    [
-      "scripts/router-eval/patch-compare.ts",
-      "--baseline",
-      args.baselinePatch,
-      "--candidate",
-      args.candidatePatch,
-      "--output",
-      args.patchOutput,
-      "--json-output",
-      args.patchJsonOutput,
-      "--run-id",
-      args.runId,
-      "--max-aiq-drop",
-      args.maxPatchAiqDrop,
-      "--max-cost-increase",
-      args.maxPatchCostIncrease,
-      "--max-latency-increase",
-      args.maxPatchLatencyIncrease,
-      "--max-regression-increase",
-      args.maxPatchRegressionIncrease,
-      "--fail-on-regression",
-    ],
-    {
-      cwd: repoRoot,
-      encoding: "utf8",
-      stdio: ["ignore", "pipe", "pipe"],
-    }
-  );
+  const result = runTypeScriptScript([
+    "scripts/router-eval/patch-compare.ts",
+    "--baseline",
+    args.baselinePatch,
+    "--candidate",
+    args.candidatePatch,
+    "--output",
+    args.patchOutput,
+    "--json-output",
+    args.patchJsonOutput,
+    "--run-id",
+    args.runId,
+    "--max-aiq-drop",
+    args.maxPatchAiqDrop,
+    "--max-cost-increase",
+    args.maxPatchCostIncrease,
+    "--max-latency-increase",
+    args.maxPatchLatencyIncrease,
+    "--max-regression-increase",
+    args.maxPatchRegressionIncrease,
+    "--fail-on-regression",
+  ]);
 
   if (result.error) {
     console.error(`[router-eval] failed to launch patch compare: ${result.error.message}`);
@@ -241,30 +242,22 @@ function main(): void {
   fs.mkdirSync(path.dirname(args.output), { recursive: true });
   fs.mkdirSync(path.dirname(args.jsonOutput), { recursive: true });
 
-  const result = spawnSync(
-    "bun",
-    [
-      "scripts/router-eval/index.ts",
-      "--input",
-      args.candidate,
-      "--baseline-input",
-      args.baseline,
-      "--max-aiq-drop",
-      args.maxAiqDrop,
-      "--max-cost-increase",
-      args.maxCostIncrease,
-      "--output",
-      args.output,
-      "--json-output",
-      args.jsonOutput,
-      "--fail-on-regression",
-    ],
-    {
-      cwd: repoRoot,
-      encoding: "utf8",
-      stdio: ["ignore", "pipe", "pipe"],
-    }
-  );
+  const result = runTypeScriptScript([
+    "scripts/router-eval/index.ts",
+    "--input",
+    args.candidate,
+    "--baseline-input",
+    args.baseline,
+    "--max-aiq-drop",
+    args.maxAiqDrop,
+    "--max-cost-increase",
+    args.maxCostIncrease,
+    "--output",
+    args.output,
+    "--json-output",
+    args.jsonOutput,
+    "--fail-on-regression",
+  ]);
 
   if (result.error) {
     console.error(`[router-eval] failed to launch bun: ${result.error.message}`);

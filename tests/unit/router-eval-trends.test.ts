@@ -58,9 +58,13 @@ test("router eval trends reads retained and flat artifacts with limit", () => {
   );
   writeFileSync(join(dir, "bad.json"), "{not json");
 
-  const result = spawnSync("bun", [trendsScript, "--artifact-dir", dir, "--limit", "2"], {
-    encoding: "utf8",
-  });
+  const result = spawnSync(
+    process.execPath,
+    ["--import", "tsx", trendsScript, "--artifact-dir", dir, "--limit", "2"],
+    {
+      encoding: "utf8",
+    }
+  );
 
   try {
     assert.equal(result.status, 0);
@@ -88,9 +92,13 @@ test("router eval trends can print dashboard summaries", () => {
     JSON.stringify(artifact("2026-01-02T00:00:00.000Z", "new", 90))
   );
 
-  const result = spawnSync("bun", [trendsScript, "--artifact-dir", dir, "--dashboard"], {
-    encoding: "utf8",
-  });
+  const result = spawnSync(
+    process.execPath,
+    ["--import", "tsx", trendsScript, "--artifact-dir", dir, "--dashboard"],
+    {
+      encoding: "utf8",
+    }
+  );
 
   try {
     assert.equal(result.status, 0);
@@ -105,7 +113,11 @@ test("router eval trends can print dashboard summaries", () => {
 
 test("router eval trends exits clearly for empty artifact dirs", () => {
   const dir = mkdtempSync(join(tmpdir(), "router-eval-trends-empty-"));
-  const result = spawnSync("bun", [trendsScript, "--artifact-dir", dir], { encoding: "utf8" });
+  const result = spawnSync(
+    process.execPath,
+    ["--import", "tsx", trendsScript, "--artifact-dir", dir],
+    { encoding: "utf8" }
+  );
 
   try {
     assert.equal(result.status, 2);

@@ -40,8 +40,10 @@ test("router eval compare retains named comparison artifacts", () => {
   );
 
   const result = spawnSync(
-    "bun",
+    process.execPath,
     [
+      "--import",
+      "tsx",
       compareScript,
       "--baseline",
       baseline,
