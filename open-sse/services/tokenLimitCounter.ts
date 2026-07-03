@@ -176,6 +176,15 @@ export interface TokenLimitBreach {
   nextResetAt: number;
 }
 
+function isMoreRestrictiveBreach(
+  breach: TokenLimitBreach,
+  current: TokenLimitBreach | null
+): boolean {
+  if (current === null) return true;
+  if (breach.remaining < current.remaining) return true;
+  return breach.remaining === current.remaining && breach.limitValue < current.limitValue;
+}
+
 /**
  * Enforcement check. Loads every enabled limit applicable to (apiKeyId, provider,
  * model) — model-scoped, provider-scoped, and global — reads DB-authoritative
@@ -225,11 +234,7 @@ export function checkTokenLimits(
     };
 
     // Most-restrictive wins: smallest remaining. Tie-break: smaller limitValue.
-    if (
-      worst === null ||
-      breach.remaining < worst.remaining ||
-      (breach.remaining === worst.remaining && breach.limitValue < worst.limitValue)
-    ) {
+    if (isMoreRestrictiveBreach(breach, worst)) {
       worst = breach;
     }
   }

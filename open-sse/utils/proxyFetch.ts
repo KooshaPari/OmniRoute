@@ -232,8 +232,10 @@ function isLocalAddress(hostname: string): boolean {
     return true;
   }
   if (host.endsWith(".local") || host.endsWith(".lan") || host.endsWith(".internal")) return true;
-  // RFC1918 + loopback + link-local (169.254, incl. cloud metadata 169.254.169.254)
-  // + CGNAT (100.64/10). 127/8 covers all loopback, not just 127.0.0.1.
+  return isPrivateIpAddress(host);
+}
+
+function isPrivateIpAddress(host: string): boolean {
   if (host.startsWith("192.168.")) return true;
   if (host.startsWith("10.")) return true;
   if (host.startsWith("127.")) return true;

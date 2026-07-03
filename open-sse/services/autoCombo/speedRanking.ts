@@ -195,6 +195,62 @@ function healthScoreFor(state: SpeedCandidate["circuitBreakerState"]): number {
   return 0; // OPEN — caller is expected to filter these out beforehand, but be defensive.
 }
 
+function speedPoolMaxima(pool: ReadonlyArray<SpeedCandidate>) {
+  return {
+    ttft: poolMax(pool, (c) => positiveFinite(c.avgTtftMs) ?? positiveFinite(c.p95LatencyMs)),
+    e2e: poolMax(pool, (c) => positiveFinite(c.avgE2ELatencyMs) ?? positiveFinite(c.p95LatencyMs)),
+    p95: poolMax(pool, (c) => positiveFinite(c.p95LatencyMs)),
+    tps: poolMaxHigherBetter(pool, (c) => positiveFinite(c.avgTokensPerSecond)),
+    stdDev: poolMax(pool, (c) => positiveFinite(c.latencyStdDev), 0.001),
+  };
+}
+
+function speedFactorsFor(
+  candidate: SpeedCandidate,
+  maxima: ReturnType<typeof speedPoolMaxima>,
+  failureRate: number
+): SpeedFactors {
+  return {
+    ttft: lowerIsBetter(positiveFinite(candidate.avgTtftMs), maxima.ttft),
+    tps: higherIsBetter(positiveFinite(candidate.avgTokensPerSecond), maxima.tps),
+    e2e: lowerIsBetter(positiveFinite(candidate.avgE2ELatencyMs), maxima.e2e),
+    p95: lowerIsBetter(positiveFinite(candidate.p95LatencyMs), maxima.p95),
+    health: healthScoreFor(candidate.circuitBreakerState),
+    reliability: clamp01(1 - failureRate),
+    stability: lowerIsBetter(positiveFinite(candidate.latencyStdDev), maxima.stdDev),
+  };
+}
+
+function weightedSpeedScore(factors: SpeedFactors, weights: SpeedRankingWeights): number {
+  return (
+    factors.ttft * weights.ttft +
+    factors.tps * weights.tps +
+    factors.e2e * weights.e2e +
+    factors.p95 * weights.p95 +
+    factors.health * weights.health +
+    factors.reliability * weights.reliability +
+    factors.stability * weights.stability
+  );
+}
+
+function applySpeedPenalties(weightedSum: number, factors: SpeedFactors): number {
+  const reliabilityMultiplier = Math.max(0.05, Math.pow(0.25 + 0.75 * factors.reliability, 2));
+  const stabilityMultiplier = Math.max(0.05, Math.pow(0.25 + 0.75 * factors.stability, 2));
+  return clamp01(weightedSum * reliabilityMultiplier * stabilityMultiplier * Math.max(0.25, factors.health));
+}
+
+function speedReason(candidate: SpeedCandidate, factors: SpeedFactors, metrics: SpeedRankedCandidate["metrics"]): string {
+  const reasonParts = [
+    `ttft=${metrics.avgTtftMs == null ? "n/a" : `${Math.round(metrics.avgTtftMs)}ms`}`,
+    `tps=${metrics.avgTokensPerSecond == null ? "n/a" : metrics.avgTokensPerSecond.toFixed(1)}`,
+    `e2e=${metrics.avgE2ELatencyMs == null ? "n/a" : `${Math.round(metrics.avgE2ELatencyMs)}ms`}`,
+    `p95=${metrics.p95LatencyMs == null ? "n/a" : `${Math.round(metrics.p95LatencyMs)}ms`}`,
+    `failRate=${(metrics.failureRate * 100).toFixed(2)}%`,
+    `cb=${candidate.circuitBreakerState}`,
+  ];
+  return `SpeedRanking[${FACTOR_LABEL.ttft}=${factors.ttft.toFixed(2)}, ${FACTOR_LABEL.tps}=${factors.tps.toFixed(2)}, ${FACTOR_LABEL.e2e}=${factors.e2e.toFixed(2)}, ${FACTOR_LABEL.p95}=${factors.p95.toFixed(2)}, ${FACTOR_LABEL.reliability}=${factors.reliability.toFixed(2)}, ${FACTOR_LABEL.health}=${factors.health.toFixed(2)}, ${FACTOR_LABEL.stability}=${factors.stability.toFixed(2)}] → ${reasonParts.join(", ")}`;
+}
+
 /**
  * Rank candidates for the speed-optimized routing mode.
  *
@@ -221,23 +277,9 @@ export function rankBySpeed(
     : candidates.filter((c) => c.circuitBreakerState !== "OPEN");
   if (pool.length === 0) return [];
 
-  // Pre-compute pool-relative maxima so each metric is normalized within the
-  // observable range.  Using the pool max (not a hard-coded SLO) lets the
-  // ranking work when every candidate is "fast" — the fastest one still wins.
-  const maxTtft = poolMax(pool, (c) => positiveFinite(c.avgTtftMs) ?? positiveFinite(c.p95LatencyMs));
-  const maxE2e = poolMax(
-    pool,
-    (c) => positiveFinite(c.avgE2ELatencyMs) ?? positiveFinite(c.p95LatencyMs)
-  );
-  const maxP95 = poolMax(pool, (c) => positiveFinite(c.p95LatencyMs));
-  const maxTps = poolMaxHigherBetter(pool, (c) => positiveFinite(c.avgTokensPerSecond));
-  const maxStdDev = poolMax(pool, (c) => positiveFinite(c.latencyStdDev), 0.001);
+  const maxima = speedPoolMaxima(pool);
 
   const ranked = pool.map((candidate) => {
-    // Use the metric only when it is explicitly observed on the candidate;
-    // fall back to `null` rather than substituting p95 so a brand-new
-    // candidate (no telemetry at all) is treated as the pool median (0.5)
-    // rather than as "fastest" via a p95 default of 0.
     const p95 = positiveFinite(candidate.p95LatencyMs);
     const ttft = positiveFinite(candidate.avgTtftMs);
     const e2e = positiveFinite(candidate.avgE2ELatencyMs);
@@ -246,76 +288,25 @@ export function rankBySpeed(
     const failureRate = toBoundedRate(
       candidate.failureRate ?? (typeof candidate.errorRate === "number" ? candidate.errorRate : 0)
     );
-
-    const factors: SpeedFactors = {
-      ttft: lowerIsBetter(ttft, maxTtft),
-      tps: higherIsBetter(tps, maxTps),
-      e2e: lowerIsBetter(e2e, maxE2e),
-      p95: lowerIsBetter(p95, maxP95),
-      health: healthScoreFor(candidate.circuitBreakerState),
-      reliability: clamp01(1 - failureRate),
-      stability: lowerIsBetter(stdDev, maxStdDev),
+    const factors = speedFactorsFor(candidate, maxima, failureRate);
+    const score = applySpeedPenalties(weightedSpeedScore(factors, weights), factors);
+    const metrics = {
+      avgTtftMs: ttft,
+      avgTokensPerSecond: tps,
+      avgE2ELatencyMs: e2e,
+      p95LatencyMs: p95,
+      latencyStdDev: stdDev,
+      failureRate,
+      circuitBreakerState: candidate.circuitBreakerState,
     };
-
-    // Composite weighted score (computed first; multiplicative penalties applied below).
-    const weightedSum =
-      factors.ttft * weights.ttft +
-      factors.tps * weights.tps +
-      factors.e2e * weights.e2e +
-      factors.p95 * weights.p95 +
-      factors.health * weights.health +
-      factors.reliability * weights.reliability +
-      factors.stability * weights.stability;
-
-    // Multiplicative penalties: an unreliable or unhealthy provider-model can
-    // still be the "fastest on paper", but we downweight it so a flaky fast
-    // option does not beat a slightly-slower steady one.  The 0.25 floor on
-    // the health multiplier preserves an OPEN breaker as a last-resort option
-    // when `includeUnhealthy` is true (a closed pool would otherwise skip it).
-    // The reliability multiplier uses a steep (0.25 + 0.75·reliability)² curve
-    // so a 30% failure-rate provider (reliability 0.7) earns ≈0.57× while a
-    // 1% failure-rate provider (reliability 0.99) earns ≈0.99× — enough to
-    // overcome the speed advantage of a fast-but-flaky pair.  The stability
-    // multiplier uses the same curve against the std-dev factor so a 1500ms
-    // std-dev bursty provider loses to a 50ms std-dev steady one.
-    const reliabilityMultiplier = Math.max(
-      0.05,
-      Math.pow(0.25 + 0.75 * factors.reliability, 2)
-    );
-    const stabilityMultiplier = Math.max(
-      0.05,
-      Math.pow(0.25 + 0.75 * factors.stability, 2)
-    );
-    const healthMultiplier = Math.max(0.25, factors.health);
-    const score = clamp01(
-      weightedSum * reliabilityMultiplier * stabilityMultiplier * healthMultiplier
-    );
-
-    const reasonParts: string[] = [];
-    reasonParts.push(
-      `ttft=${ttft == null ? "n/a" : `${Math.round(ttft)}ms`}`,
-      `tps=${tps == null ? "n/a" : tps.toFixed(1)}`,
-      `e2e=${e2e == null ? "n/a" : `${Math.round(e2e)}ms`}`,
-      `p95=${p95 == null ? "n/a" : `${Math.round(p95)}ms`}`,
-      `failRate=${(failureRate * 100).toFixed(2)}%`,
-      `cb=${candidate.circuitBreakerState}`
-    );
 
     return {
       provider: candidate.provider,
       model: candidate.model,
       score,
       factors,
-      metrics: {
-        avgTtftMs: ttft,
-        avgTokensPerSecond: tps,
-        avgE2ELatencyMs: e2e,
-        p95LatencyMs: p95,
-        latencyStdDev: stdDev,
-        failureRate,
-        circuitBreakerState: candidate.circuitBreakerState,
-      },
-      reason: `SpeedRanking[${FACTOR_LABEL.ttft}=${factors.ttft.toFixed(2)}, ${FACTOR_LABEL.tps}=${factors.tps.toFixed(2)}, ${FACTOR_LABEL.e2e}=${factors.e2e.toFixed(2)}, ${FACTOR_LABEL.p95}=${factors.p95.toFixed(2)}, ${FACTOR_LABEL.reliability}=${factors.reliability.toFixed(2)}, ${FACTOR_LABEL.health}=${factors.health.toFixed(2)}, ${FACTOR_LABEL.stability}=${factors.stability.toFixed(2)}] → ${reasonParts.join(", ")}`,
+      metrics,
+      reason: speedReason(candidate, factors, metrics),
     };
   });
 

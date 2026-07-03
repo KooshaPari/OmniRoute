@@ -28,6 +28,40 @@ function normalizeResponsesOutputItemIds(item: unknown): unknown {
   return changed ? normalized : item;
 }
 
+function normalizeResponsesNestedItem(payload: JsonRecord): boolean {
+  if (!payload.item || typeof payload.item !== "object" || Array.isArray(payload.item)) return false;
+  const normalizedItem = normalizeResponsesOutputItemIds(payload.item);
+  if (normalizedItem === payload.item) return false;
+  payload.item = normalizedItem;
+  return true;
+}
+
+function normalizeResponseObjectIds(payload: JsonRecord): boolean {
+  if (!payload.response || typeof payload.response !== "object" || Array.isArray(payload.response)) {
+    return false;
+  }
+
+  const response = payload.response as JsonRecord;
+  let responseChanged = false;
+  const normalizedResponse = { ...response };
+  const responseId = stringifyIdValue(response.id);
+  if (responseId !== null && response.id !== responseId) {
+    normalizedResponse.id = responseId;
+    responseChanged = true;
+  }
+
+  if (Array.isArray(response.output)) {
+    const normalizedOutput = response.output.map(normalizeResponsesOutputItemIds);
+    if (normalizedOutput.some((item, index) => item !== response.output[index])) {
+      normalizedResponse.output = normalizedOutput;
+      responseChanged = true;
+    }
+  }
+
+  if (responseChanged) payload.response = normalizedResponse;
+  return responseChanged;
+}
+
 export function normalizeResponsesSseIds(payload: JsonRecord): boolean {
   let changed = false;
 
@@ -39,42 +73,8 @@ export function normalizeResponsesSseIds(payload: JsonRecord): boolean {
     }
   }
 
-  if (payload.item && typeof payload.item === "object" && !Array.isArray(payload.item)) {
-    const normalizedItem = normalizeResponsesOutputItemIds(payload.item);
-    if (normalizedItem !== payload.item) {
-      payload.item = normalizedItem;
-      changed = true;
-    }
-  }
-
-  if (
-    payload.response &&
-    typeof payload.response === "object" &&
-    !Array.isArray(payload.response)
-  ) {
-    const response = payload.response as JsonRecord;
-    let responseChanged = false;
-    const normalizedResponse = { ...response };
-
-    const responseId = stringifyIdValue(response.id);
-    if (responseId !== null && response.id !== responseId) {
-      normalizedResponse.id = responseId;
-      responseChanged = true;
-    }
-
-    if (Array.isArray(response.output)) {
-      const normalizedOutput = response.output.map(normalizeResponsesOutputItemIds);
-      if (normalizedOutput.some((item, index) => item !== response.output[index])) {
-        normalizedResponse.output = normalizedOutput;
-        responseChanged = true;
-      }
-    }
-
-    if (responseChanged) {
-      payload.response = normalizedResponse;
-      changed = true;
-    }
-  }
+  if (normalizeResponsesNestedItem(payload)) changed = true;
+  if (normalizeResponseObjectIds(payload)) changed = true;
 
   return changed;
 }
