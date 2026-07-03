@@ -33,6 +33,7 @@ const {
   GEMINI_CONFIG,
   GITHUB_CONFIG,
   GITLAB_DUO_CONFIG,
+  GROK_CLI_CONFIG,
   KILOCODE_CONFIG,
   KIMI_CODING_CONFIG,
   KIRO_CONFIG,
@@ -67,6 +68,7 @@ const EXPECTED_PROVIDER_KEYS = [
   "cline",
   "windsurf",
   "devin-cli",
+  "grok-cli",
   "codebuddy-cn",
 ];
 
@@ -89,6 +91,7 @@ const EXPECTED_CONFIG_BY_PROVIDER = {
   windsurf: WINDSURF_CONFIG,
   "devin-cli": WINDSURF_CONFIG,
   trae: TRAE_CONFIG,
+  "grok-cli": GROK_CLI_CONFIG,
   "codebuddy-cn": CODEBUDDY_CN_CONFIG,
 };
 
@@ -634,11 +637,19 @@ test("Gemini and Antigravity run mocked browser OAuth exchanges and post-exchang
   );
   const antigravityExtra = await PROVIDERS.antigravity.postExchange(antigravityTokens);
   const antigravityMapped = PROVIDERS.antigravity.mapTokens(antigravityTokens, antigravityExtra);
+  // postExchange runs onboarding fire-and-forget now (it must never block the OAuth
+  // login response); give the background onboard call a tick to consume its mocked
+  // fetch so the sequence drains deterministically.
+  await new Promise((r) => setTimeout(r, 50));
 
   assert.equal(geminiMapped.email, "gemini@example.com");
   assert.equal(geminiMapped.projectId, "gemini-project");
   assert.equal(antigravityMapped.email, "anti@example.com");
-  assert.equal(antigravityMapped.projectId, "anti-project-final");
+  // projectId comes from loadCodeAssist ("anti-project"), NOT the backgrounded
+  // onboardUser response ("anti-project-final"). Onboarding is fire-and-forget, so it
+  // no longer updates the returned projectId synchronously — matching the 9router web
+  // flow, which also returns the loadCodeAssist project id.
+  assert.equal(antigravityMapped.projectId, "anti-project");
 });
 
 test("Qoder enabled mode exchanges tokens and loads profile metadata through mocked endpoints", async () => {
