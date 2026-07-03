@@ -21,6 +21,9 @@
 - **feat(proxy):** add Webshare proxy pool import and sync — a `WebshareProvider` (`FreeProxyProvider`) that paginates `proxy.webshare.io/api/v2/proxy/list/` gated on `FREE_PROXY_WEBSHARE_API_KEY`, SSRF-guards imported hosts, and tombstones retired proxy IDs via `pruneStaleFreeProxies()`. (thanks @ricatix)
 - **feat(dashboard):** suggest HuggingFace Hub media models in the media provider view. (thanks @yicone)
 - **feat(i18n):** auto-detect the browser language on first visit. (thanks @ayanmw)
+- **feat(providers):** add NVIDIA NIM image generation (FLUX models). (thanks @eng2007)
+- **feat(providers):** add Augment (Auggie CLI) as a local no-auth provider. (thanks @chamdanilukman)
+- **feat(providers):** add b.ai as an OpenAI-compatible (API-key) provider. (thanks @DEYLNN)
 
 ### 🔧 Bug Fixes
 
