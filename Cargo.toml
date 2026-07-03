@@ -57,4 +57,5 @@ members = [
     "crates/sharecli-tray-linux",
     "crates/sharecli-fleet",
     "crates/spawn-core-sys",
+    "crates/sharecli-fuse",
 ]

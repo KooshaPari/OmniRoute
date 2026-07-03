@@ -1,0 +1,16 @@
+[package]
+name = "sharecli-fuse"
+version = "0.1.0"
+edition = "2021"
+description = "FUSE IO-interception layer for the sharecli OS process/IO/syscall hypervisor"
+license = "MIT"
+
+[dependencies]
+anyhow = "1"
+tracing = "0.1"
+
+# FUSE binding — cross-platform: Linux via libfuse3, macOS via macFUSE.
+# Gated at compile time; see lib.rs #[cfg(any(target_os = "linux", target_os = "macos"))].
+[target.'cfg(any(target_os = "linux", target_os = "macos"))'.dependencies]
+fuser = "0.17"
+libc = "0.2"
