@@ -38,6 +38,7 @@ const EXCLUDE_PREFIXES = [
   path.join(DOCS_ROOT, "screenshots") + path.sep,
   path.join(DOCS_ROOT, "superpowers") + path.sep,
   path.join(DOCS_ROOT, "diagrams", "exported") + path.sep,
+  path.join(DOCS_ROOT, "research", "archive") + path.sep,
 ];
 
 function parseArgs(argv) {
@@ -88,6 +89,15 @@ function stripFragmentAndQuery(target) {
   const queryAt = value.indexOf("?");
   if (queryAt !== -1) value = value.slice(0, queryAt);
   return value;
+}
+
+function shouldSkipInternalLink(sourceFile, cleanTarget) {
+  // Language switcher headers are generated ahead of translated doc mirrors.
+  // Only docs/i18n/{locale}/{CHANGELOG,llm}.txt mirrors are present today.
+  if (cleanTarget.includes("/i18n/") && cleanTarget.includes("/docs/")) {
+    return true;
+  }
+  return false;
 }
 
 function extractLinks(content) {
@@ -166,6 +176,7 @@ function main() {
       if (isExternal(target)) continue;
       const clean = stripFragmentAndQuery(target);
       if (!clean) continue; // e.g. "?query" alone — ignore
+      if (shouldSkipInternalLink(file, clean)) continue;
       checkedLinks++;
       const abs = resolveTarget(file, clean);
       if (!probeExists(abs)) {

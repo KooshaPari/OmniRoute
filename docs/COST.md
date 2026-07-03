@@ -28,7 +28,7 @@
 
 > **Note**: costs are estimated from GitHub Actions usage + provider API
 > tests. Actual numbers should be pulled from the GitHub billing API monthly.
-> See `scripts/audit/cost-report.mjs` (planned, post-v3.9.0).
+> A dedicated cost-report script is planned post-v3.9.0.
 
 ---
 
