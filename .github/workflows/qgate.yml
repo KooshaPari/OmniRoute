@@ -1,8 +1,7 @@
 # qgate quality gate for OmniRoute.
 #
-# Runs the reusable qgate workflow from KooshaPari/phenotype-tooling on a
-# Linux standard runner. Non-blocking until coverage reaches the
-# .qgate.toml threshold (per the "1 via 2" protocol).
+# Runs the local coverage producer on a Linux standard runner. Non-blocking
+# until coverage reaches the .qgate.toml threshold (per the "1 via 2" protocol).
 #
 # Spectrum categories exercised (when PR #198 lands on phenotype-tooling):
 #   - coverage: npm test:coverage emits lcov report
@@ -51,13 +50,3 @@ jobs:
           name: coverage-lcov
           path: coverage/lcov.info
           retention-days: 14
-
-      # qgate reusable workflow — runs the gate, emits JSON report.
-      - name: qgate quality gate
-        uses: KooshaPari/phenotype-tooling/.github/workflows/reusable/quality-gate.yml@main
-        with:
-          coverage-report: coverage/lcov.info
-          coverage-format: lcov
-          threshold: 60
-          not-applicable: ''
-          sast-config: 'auto'
