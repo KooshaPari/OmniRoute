@@ -94,10 +94,7 @@ function stripFragmentAndQuery(target) {
 function shouldSkipInternalLink(sourceFile, cleanTarget) {
   // Language switcher headers are generated ahead of translated doc mirrors.
   // Only docs/i18n/{locale}/{CHANGELOG,llm}.txt mirrors are present today.
-  if (cleanTarget.includes("/i18n/") && cleanTarget.includes("/docs/")) {
-    return true;
-  }
-  return false;
+  return cleanTarget.includes("/i18n/") && cleanTarget.includes("/docs/");
 }
 
 function extractLinks(content) {
