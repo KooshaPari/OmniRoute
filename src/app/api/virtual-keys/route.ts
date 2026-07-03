@@ -18,6 +18,88 @@ import {
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import * as log from "@/sse/utils/logger";
 
+type MintVirtualKeyBody = {
+  tenantId?: string;
+  tenant_id?: string;
+  label?: string;
+  allowedModels?: string[];
+  allowed_models?: string[];
+  maxCostUsd?: number | null;
+  max_cost_usd?: number | null;
+  maxRpd?: number | null;
+  max_rpd?: number | null;
+  expiresAt?: string | null;
+  expires_at?: string | null;
+};
+
+type SafeParseIssue = { message: string };
+
+function isStringArray(value: unknown): value is string[] {
+  return Array.isArray(value) && value.every((item) => typeof item === "string");
+}
+
+function validateOptionalString(body: Record<string, unknown>, key: string): SafeParseIssue | null {
+  const value = body[key];
+  if (value === undefined || value === null) return null;
+  return typeof value === "string" && value.length > 0
+    ? null
+    : { message: `${key} must be a non-empty string` };
+}
+
+function validateOptionalStringArray(body: Record<string, unknown>, key: string): SafeParseIssue | null {
+  const value = body[key];
+  if (value === undefined || value === null) return null;
+  return isStringArray(value) ? null : { message: `${key} must be an array of strings` };
+}
+
+function validateOptionalNonNegativeNumber(body: Record<string, unknown>, key: string): SafeParseIssue | null {
+  const value = body[key];
+  if (value === undefined || value === null) return null;
+  return typeof value === "number" && Number.isFinite(value) && value >= 0
+    ? null
+    : { message: `${key} must be a non-negative number` };
+}
+
+function validateOptionalNonNegativeInteger(body: Record<string, unknown>, key: string): SafeParseIssue | null {
+  const value = body[key];
+  if (value === undefined || value === null) return null;
+  return typeof value === "number" && Number.isInteger(value) && value >= 0
+    ? null
+    : { message: `${key} must be a non-negative integer` };
+}
+
+const mintVirtualKeySchema = {
+  safeParse(value: unknown):
+    | { success: true; data: MintVirtualKeyBody }
+    | { success: false; error: { issues: SafeParseIssue[] } } {
+    if (!value || typeof value !== "object" || Array.isArray(value)) {
+      return { success: false, error: { issues: [{ message: "Body must be a JSON object" }] } };
+    }
+    const body = value as Record<string, unknown>;
+    const validators = [
+      validateOptionalString(body, "tenantId"),
+      validateOptionalString(body, "tenant_id"),
+      validateOptionalString(body, "label"),
+      validateOptionalStringArray(body, "allowedModels"),
+      validateOptionalStringArray(body, "allowed_models"),
+      validateOptionalNonNegativeNumber(body, "maxCostUsd"),
+      validateOptionalNonNegativeNumber(body, "max_cost_usd"),
+      validateOptionalNonNegativeInteger(body, "maxRpd"),
+      validateOptionalNonNegativeInteger(body, "max_rpd"),
+      validateOptionalString(body, "expiresAt"),
+      validateOptionalString(body, "expires_at"),
+    ];
+    const issue = validators.find((item): item is SafeParseIssue => item !== null);
+    if (issue) {
+      return { success: false, error: { issues: [issue] } };
+    }
+    if (!body.tenantId && !body.tenant_id) {
+      return { success: false, error: { issues: [{ message: "tenantId is required" }] } };
+    }
+    return { success: true, data: body as MintVirtualKeyBody };
+  },
+};
+
 function asString(value: unknown): string | null {
   return typeof value === "string" && value.length > 0 ? value : null;
 }
@@ -91,7 +173,15 @@ export async function POST(request: Request) {
   if (!rawBody || typeof rawBody !== "object") {
     return NextResponse.json({ error: "Body must be a JSON object" }, { status: 400 });
   }
-  const body = rawBody as Record<string, unknown>;
+  const parsed = mintVirtualKeySchema.safeParse(rawBody);
+  if (!parsed.success) {
+    const firstIssue = parsed.error.issues[0];
+    return NextResponse.json(
+      { error: firstIssue?.message ?? "Invalid virtual key body" },
+      { status: 400 },
+    );
+  }
+  const body = parsed.data;
 
   const tenantId = asString(body["tenantId"] ?? body["tenant_id"]);
   if (!tenantId) {
