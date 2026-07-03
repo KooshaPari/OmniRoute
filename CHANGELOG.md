@@ -21,6 +21,7 @@
 - **feat(providers):** add NVIDIA NIM image generation (FLUX models). (thanks @eng2007)
 - **feat(providers):** add Augment (Auggie CLI) as a local no-auth provider. (thanks @chamdanilukman)
 - **feat(providers):** add ModelScope as an OpenAI-compatible (API-key) provider. (thanks @tn5052)
+- **feat(providers):** add Qiniu as an OpenAI-compatible (API-key) provider. (thanks @JackChiang233)
 
 ### 🔧 Bug Fixes
 
