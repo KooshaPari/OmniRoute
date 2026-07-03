@@ -79,6 +79,8 @@
     "gen:provider-reference": "bun scripts/docs/gen-provider-reference.ts",
     "bench:compression": "bun scripts/compression/benchmark.ts",
     "eval:compression": "node --import tsx scripts/compression-eval/index.ts",
+    "eval:router": "bun scripts/router-eval/index.ts",
+    "test:router-eval:bun": "bun test ./tests/unit/router-eval.test.ts ./tests/unit/router-eval-cli.test.ts",
     "release:sync-changelog-i18n": "node scripts/release/sync-changelog-i18n.mjs",
     "build": "node scripts/build/build-next-isolated.mjs",
     "build:secure": "OMNIROUTE_BUILD_PROFILE=minimal node scripts/build/build-next-isolated.mjs",
