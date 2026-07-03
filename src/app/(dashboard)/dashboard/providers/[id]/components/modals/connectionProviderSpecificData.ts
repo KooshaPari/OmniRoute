@@ -13,6 +13,7 @@ type FormData = QuotaScrapingFieldValues & {
   apiRegion: string;
   ccCompatibleContext1m: boolean;
   ccCompatibleRedactThinking: boolean;
+  ccCompatibleSummarizeThinking: boolean;
   consoleApiKey: string;
   customUserAgent: string;
   cx: string;
@@ -88,7 +89,7 @@ export function assignEditApiKeyProviderSpecificData(options: {
   defaultRegion: string;
   isGlm: boolean;
   isCloudflare: boolean;
-  supportsGoogleProjectId: boolean;
+  isAntigravityFamily: boolean;
   trimmedCloudCodeProjectId: string;
   isGooglePse: boolean;
   isCcCompatible: boolean;
@@ -115,7 +116,7 @@ export function assignEditApiKeyProviderSpecificData(options: {
   else if (o.isCloudflare && o.formData.accountId.trim()) {
     o.target.accountId = o.formData.accountId.trim();
   }
-  if (o.supportsGoogleProjectId) o.target.projectId = o.trimmedCloudCodeProjectId || null;
+  if (o.isAntigravityFamily) o.target.projectId = o.trimmedCloudCodeProjectId || null;
   if (o.isCcCompatible) {
     o.target.requestDefaults = mergeCcCompatibleRequestDefaults(
       o.target.requestDefaults,

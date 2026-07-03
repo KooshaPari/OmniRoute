@@ -7,7 +7,10 @@ import {
   type ResolvedProviderCatalogEntry,
   type StaticProviderCatalogCategory,
 } from "@/lib/providers/catalog";
-import { isClaudeCodeCompatibleProvider } from "@/shared/constants/providers";
+import {
+  isClaudeCodeCompatibleProvider,
+  supportsApiKeyOnFreeProvider,
+} from "@/shared/constants/providers";
 import { getModelsByProviderId } from "@/shared/constants/models";
 import { providerHasServiceKind } from "@/lib/providers/serviceKindIndex";
 import { compareTr, matchesSearch } from "@/shared/utils/turkishText";
@@ -32,6 +35,8 @@ export type CompatibleProviderInfo = {
   color: string;
   textIcon: string;
   apiType?: string;
+  /** Optional operator-supplied remote icon URL (#2166). */
+  iconUrl?: string;
 };
 
 export type CompatibleProviderGroups = {
@@ -64,6 +69,26 @@ export function shouldShowFirstProviderHint(
 }
 
 type ProviderRecord<TProvider = Record<string, unknown>> = Record<string, TProvider>;
+
+/**
+ * Whether a provider connection should be counted on a provider card rendered in
+ * the given section. Dual-auth providers (qoder, opencode, codebuddy-cn, …) are
+ * OAuth-categorized but also accept a PAT/API key stored as authType "apikey";
+ * their single OAuth card must count BOTH, else a working PAT connection shows as
+ * "not connected" on the dashboard.
+ */
+export function connectionMatchesProviderCard(
+  conn: { provider?: string; authType?: string } | null | undefined,
+  providerId: string,
+  cardAuthType: "oauth" | "free" | "apikey"
+): boolean {
+  if (!conn || conn.provider !== providerId) return false;
+  if (cardAuthType === "free") return true;
+  if (supportsApiKeyOnFreeProvider(providerId)) {
+    return conn.authType === "oauth" || conn.authType === "apikey";
+  }
+  return conn.authType === cardAuthType;
+}
 
 type GetProviderStats = (
   providerId: string,
@@ -126,7 +151,13 @@ export function buildStaticProviderEntries(
 }
 
 export function buildCompatibleProviderGroups(
-  providerNodes: Array<{ id: string; name?: string; type?: string; apiType?: string }>,
+  providerNodes: Array<{
+    id: string;
+    name?: string;
+    type?: string;
+    apiType?: string;
+    iconUrl?: string | null;
+  }>,
   labels: {
     openaiCompatibleName: string;
     anthropicCompatibleName: string;
@@ -145,6 +176,7 @@ export function buildCompatibleProviderGroups(
         color: "#10A37F",
         textIcon: "OC",
         apiType: node.apiType,
+        iconUrl: node.iconUrl || undefined,
       });
       continue;
     }
@@ -157,6 +189,7 @@ export function buildCompatibleProviderGroups(
         name: node.name || labels.claudeCodeCompatibleName,
         color: "#B45309",
         textIcon: "CC",
+        iconUrl: node.iconUrl || undefined,
       });
       continue;
     }
@@ -166,6 +199,7 @@ export function buildCompatibleProviderGroups(
       name: node.name || labels.anthropicCompatibleName,
       color: "#D97757",
       textIcon: "AC",
+      iconUrl: node.iconUrl || undefined,
     });
   }
 
@@ -275,4 +309,25 @@ export function resolveDashboardProviderInfo(
   }
 ): ResolvedProviderCatalogEntry | null {
   return resolveProviderCatalogEntry(providerId, options);
+}
+
+/**
+ * Append or replace a provider node by `id`, never appending a duplicate (#4746).
+ *
+ * The compatible-provider "add" modals previously did `setProviderNodes((prev) => [...prev, node])`,
+ * so adding the same provider twice (refresh-then-add, double-click, retry, or React StrictMode
+ * double-invocation in dev) left the same `id` in the array twice — surfacing duplicate cards and
+ * invalidating the `compatibleProviderGroups` memo on every no-op add. This upsert dedups by id:
+ *  - new id  → append a new array,
+ *  - same id, deep-equal payload → return `prev` unchanged (stable identity ⇒ memo does not re-run),
+ *  - same id, changed payload → replace in place.
+ */
+export function upsertProviderNodeById<T extends { id?: string | null }>(prev: T[], node: T): T[] {
+  if (!node || node.id == null) return [...prev, node];
+  const idx = prev.findIndex((p) => p?.id === node.id);
+  if (idx === -1) return [...prev, node];
+  if (JSON.stringify(prev[idx]) === JSON.stringify(node)) return prev;
+  const next = prev.slice();
+  next[idx] = node;
+  return next;
 }

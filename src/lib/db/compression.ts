@@ -17,6 +17,7 @@ import {
   type AggressiveConfig,
   type CavemanConfig,
   type CavemanOutputModeConfig,
+  type OutputStyleSelectionEntry,
   type CompressionLanguageConfig,
   type CompressionPipelineStep,
   type CompressionConfig,
@@ -27,6 +28,11 @@ import {
   type RtkConfig,
   type UltraConfig,
 } from "@omniroute/open-sse/services/compression/types.ts";
+import {
+  isPreserveSystemPromptMode,
+  normalizePreserveSystemPromptMode,
+} from "@omniroute/open-sse/services/compression/preserveSystemPromptMode.ts";
+import { maybePrewarmUltraSlmOnConfig } from "@omniroute/open-sse/services/compression/ultra.ts";
 
 const NAMESPACE = "compression";
 const COMPRESSION_MODES = new Set<CompressionMode>([
@@ -46,6 +52,12 @@ let compressionSettingsCache: {
   expiresAt: number;
   dbRef: WeakRef<object>;
 } | null = null;
+
+// Phase 4 (B): one cold-start SLM pre-warm attempt per process. The save path fires
+// on every enable transition; this guard keeps the read path from re-warming on every
+// cache miss (the read path runs at most once per 5s, but a cold start should warm once,
+// not repeatedly). Best-effort either way (`maybePrewarmUltraSlmOnConfig` never throws).
+let _ultraSlmColdPrewarmAttempted = false;
 
 function toRecord(value: unknown): JsonRecord {
   return value && typeof value === "object" ? (value as JsonRecord) : {};
@@ -106,6 +118,21 @@ function normalizeCavemanOutputModeConfig(value: unknown): CavemanOutputModeConf
         ? record.autoClarity
         : DEFAULT_CAVEMAN_OUTPUT_MODE_CONFIG.autoClarity,
   };
+}
+
+function normalizeOutputStyleSelection(value: unknown): OutputStyleSelectionEntry[] {
+  if (!Array.isArray(value)) return [];
+  const out: OutputStyleSelectionEntry[] = [];
+  for (const raw of value) {
+    const record = toRecord(raw);
+    const id = typeof record.id === "string" ? record.id.trim() : "";
+    const level =
+      record.level === "lite" || record.level === "full" || record.level === "ultra"
+        ? record.level
+        : null;
+    if (id && level) out.push({ id, level });
+  }
+  return out;
 }
 
 function normalizeRtkConfig(value: unknown): RtkConfig {
@@ -512,6 +539,7 @@ export async function getCompressionSettings(): Promise<CompressionConfig> {
     ...DEFAULT_COMPRESSION_CONFIG,
     cavemanConfig: { ...DEFAULT_CAVEMAN_CONFIG },
     cavemanOutputMode: { ...DEFAULT_CAVEMAN_OUTPUT_MODE_CONFIG },
+    outputStyles: [],
     rtkConfig: { ...DEFAULT_RTK_CONFIG },
     languageConfig: { ...DEFAULT_COMPRESSION_LANGUAGE_CONFIG },
     stackedPipeline: normalizeStackedPipeline(undefined),
@@ -525,6 +553,11 @@ export async function getCompressionSettings(): Promise<CompressionConfig> {
   // Tracks whether a usable stored `engines` row was found. When absent (pre-migration-102 install)
   // we derive the engines map from the legacy fields below so behavior is preserved.
   let storedEngines: Record<string, EngineToggle> | null = null;
+
+  // Tracks whether an authoritative `preserveSystemPromptMode` row was persisted. When absent
+  // (legacy install that only stored the `preserveSystemPrompt` boolean) the mode is derived
+  // from that boolean below so it keeps its old behaviour instead of inheriting the new default.
+  let sawPreserveSystemPromptModeRow = false;
 
   for (const row of rows) {
     const record = toRecord(row);
@@ -563,6 +596,13 @@ export async function getCompressionSettings(): Promise<CompressionConfig> {
       case "preserveSystemPrompt":
         config.preserveSystemPrompt = parsed !== false;
         break;
+      case "preserveSystemPromptMode":
+        // T05/C5 — authoritative intent; ignore unknown tokens (keep the default mode).
+        if (isPreserveSystemPromptMode(parsed)) {
+          config.preserveSystemPromptMode = parsed;
+          sawPreserveSystemPromptModeRow = true;
+        }
+        break;
       case "mcpDescriptionCompressionEnabled":
         config.mcpDescriptionCompressionEnabled = parsed !== false;
         break;
@@ -590,6 +630,9 @@ export async function getCompressionSettings(): Promise<CompressionConfig> {
       case "cavemanOutputMode":
         config.cavemanOutputMode = normalizeCavemanOutputModeConfig(parsed);
         break;
+      case "outputStyles":
+        config.outputStyles = normalizeOutputStyleSelection(parsed);
+        break;
       case "rtkConfig":
         config.rtkConfig = normalizeRtkConfig(parsed);
         break;
@@ -614,7 +657,27 @@ export async function getCompressionSettings(): Promise<CompressionConfig> {
         config.activeComboId =
           typeof parsed === "string" && parsed.trim() ? parsed.trim() : null;
         break;
+      case "ultraEngine":
+        // Phase 4 (B): SLM tier selector. Only the two known values; anything else
+        // falls back to the heuristic default so a malformed row can never enable SLM.
+        config.ultraEngine = parsed === "slm" ? "slm" : "heuristic";
+        break;
+      case "ultraSlmPrewarm":
+        config.ultraSlmPrewarm = parsed === true;
+        break;
     }
+  }
+
+  // T05/C5 back-compat: a legacy install persisted only the `preserveSystemPrompt` boolean and no
+  // `preserveSystemPromptMode` row. The DEFAULT spread above seeds the new `always` mode, which would
+  // otherwise shadow that boolean (an explicit mode wins in normalizePreserveSystemPromptMode) and
+  // silently flip `preserveSystemPrompt=false` installs from "compress unless cached" to "always
+  // preserve". When no mode row was stored, derive the authoritative mode from the boolean instead.
+  if (!sawPreserveSystemPromptModeRow) {
+    config.preserveSystemPromptMode = normalizePreserveSystemPromptMode({
+      preserveSystemPrompt: config.preserveSystemPrompt,
+      preserveSystemPromptMode: undefined,
+    });
   }
 
   // Engines map: prefer the stored row; otherwise derive from the legacy fields (migration 102
@@ -637,6 +700,17 @@ export async function getCompressionSettings(): Promise<CompressionConfig> {
     expiresAt: Date.now() + 5000,
     dbRef: new WeakRef(db),
   };
+
+  // Phase 4 (B): cold-restart pre-warm — when the stored config already selects the SLM
+  // tier with pre-warm on, warm the model once (best-effort, fire-and-forget, guarded so
+  // a frequently-hit read path warms at most once per process). Cache hits return above.
+  if (!_ultraSlmColdPrewarmAttempted) {
+    _ultraSlmColdPrewarmAttempted = true;
+    void maybePrewarmUltraSlmOnConfig({
+      ultraEngine: config.ultraEngine,
+      ultraSlmPrewarm: config.ultraSlmPrewarm,
+    });
+  }
 
   return config;
 }
@@ -666,7 +740,14 @@ export async function updateCompressionSettings(
   backupDbFile("pre-write");
   compressionSettingsCache = null;
   invalidateDbCache();
-  return getCompressionSettings();
+  const next = await getCompressionSettings();
+  // Phase 4 (B): the SAVE path covers the enable transition — if this write turns the
+  // SLM tier + pre-warm on, warm the model once (best-effort, fire-and-forget).
+  void maybePrewarmUltraSlmOnConfig({
+    ultraEngine: next.ultraEngine,
+    ultraSlmPrewarm: next.ultraSlmPrewarm,
+  });
+  return next;
 }
 
 function normalizeMcpAccessibilityConfig(value: unknown): McpAccessibilityConfig {

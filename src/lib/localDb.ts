@@ -83,6 +83,7 @@ export {
   getCombos,
   getComboById,
   getComboByName,
+  getComboByNameInsensitive,
   createCombo,
   updateCombo,
   reorderCombos,
@@ -91,6 +92,8 @@ export {
 
 export * from "./db/compressionCacheStats";
 export * from "./db/compressionCombos";
+export * from "./db/compressionRunTelemetry";
+export * from "./db/modelContextOverrides";
 
 export {
   // API Keys
@@ -288,12 +291,18 @@ export {
   countBatches,
   getPendingBatches,
   getTerminalBatches,
+  ensureBatchItemCheckpoints,
+  countBatchItemCheckpoints,
+  listBatchItemCheckpoints,
+  markBatchItemProcessing,
+  markBatchItemResult,
+  markBatchItemError,
   deleteBatch,
   deleteCompletedBatches,
 } from "./db/batches";
 
 export type { FileRecord } from "./db/files";
-export type { BatchRecord } from "./db/batches";
+export type { BatchItemCheckpoint, BatchRecord } from "./db/batches";
 
 export type { ModelComboMapping } from "./db/modelComboMappings";
 
@@ -312,6 +321,22 @@ export {
 export type { Webhook, WebhookKind } from "./db/webhooks";
 
 export { insertDelivery, getDeliveries } from "./db/webhookDeliveries";
+
+export {
+  upsertDiscoveryResult,
+  getDiscoveryResults,
+  getDiscoveryResultById,
+  markVerified,
+  deleteDiscoveryResult,
+} from "./db/discoveryResults";
+
+export type {
+  DiscoveryResult,
+  DiscoveryMethod,
+  DiscoveryAuthType,
+  DiscoveryRiskLevel,
+  DiscoveryStatus,
+} from "./db/discoveryResults";
 export type { WebhookDelivery } from "./db/webhookDeliveries";
 
 export {
@@ -322,6 +347,7 @@ export {
 } from "./db/quotaSnapshots";
 
 export * from "./db/sessionAccountAffinity";
+export * from "./db/quotaResetEvents";
 
 export type { QuotaSnapshotRow, ProviderUtilizationPoint } from "@/shared/types/utilization";
 
@@ -531,7 +557,9 @@ export {
   promoteFreeProxyToPool,
   deleteFreeProxy,
   clearFreeProxiesBySource,
+  pruneStaleFreeProxies,
   getFreeProxyStats,
+  recordFreeProxySync,
 } from "./db/freeProxies";
 
 export type { FreeProxyRecord, FreeProxyStats } from "./db/freeProxies";
@@ -573,6 +601,8 @@ export {
   upsertAllocations,
   listAllocationsForApiKey,
 } from "./db/quotaPools";
+// Quota per-(key, model) caps — Group B Fase 3 #7
+export { getModelCap, listModelCaps, setModelCap, deleteModelCap } from "./db/quotaModelCaps";
 
 export {
   // Quota Groups (B2)
@@ -753,47 +783,7 @@ export { exportProxyLogsSince } from "./db/proxyLogs";
 
 // ---------------------------------------------------------------------------
 // Per-connection 429 cooldown wrappers (#5957 / #5958 — Issue 1 follow-ups)
+// Logic lives in db/providers/rateLimit.ts (Hard Rule #2 — localDb is re-export
+// only); re-exported here for the historical localDb import contract.
 // ---------------------------------------------------------------------------
-// Thin best-effort wrappers around `setConnectionRateLimitUntil` so callers
-// (executors, handlers, dashboard panels) can mark a connection cooling or
-// release it without managing try/catch themselves. The wrapper always
-// resolves — a DB failure logs nothing and never throws back into the chat
-// path, matching the contract used by `open-sse/executors/antigravity.ts:343`.
-import { setConnectionRateLimitUntil as _setConnectionRateLimitUntilImpl } from "./db/providers";
-
-/**
- * Mark a connection as rate-limited until `Date.now() + retryAfterMs`.
- *
- * Best-effort: never throws. The T05 startup helper
- * `clearStaleCrashCooldowns` will not undo a write made through this
- * wrapper because the timestamp is always strictly in the future at the
- * moment of write. See Issue #1 (per-account 429 cascade not persisting).
- */
-export function markConnectionRateLimitedUntil(
-  connectionId: string,
-  retryAfterMs: number,
-): void {
-  if (typeof connectionId !== "string" || connectionId.length === 0) return;
-  if (!Number.isFinite(retryAfterMs) || retryAfterMs <= 0) return;
-  try {
-    _setConnectionRateLimitUntilImpl(connectionId, Date.now() + retryAfterMs);
-  } catch {
-    // best-effort
-  }
-}
-
-/**
- * Clear a connection's persisted 429 cooldown.
- *
- * Best-effort: never throws. Mirrors `resetAccountState`'s in-memory clear
- * (open-sse/services/accountFallback.ts:1695) so the in-memory AccountState
- * and the DB row agree.
- */
-export function clearConnectionRateLimit(connectionId: string): void {
-  if (typeof connectionId !== "string" || connectionId.length === 0) return;
-  try {
-    _setConnectionRateLimitUntilImpl(connectionId, null);
-  } catch {
-    // best-effort
-  }
-}
+export { markConnectionRateLimitedUntil, clearConnectionRateLimit } from "./db/providers";

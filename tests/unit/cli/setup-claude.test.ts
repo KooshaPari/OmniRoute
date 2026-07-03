@@ -1,8 +1,35 @@
-import { test } from "node:test";
+import { test, before, after } from "node:test";
 import assert from "node:assert/strict";
-import { buildProfileSettings } from "../../../bin/cli/commands/setup-claude.mjs";
+import fs from "node:fs/promises";
+import os from "node:os";
+import path from "node:path";
+import {
+  buildProfileSettings,
+  syncClaudeProfilesFromModels,
+} from "../../../bin/cli/commands/setup-claude.mjs";
 import { buildClaudeEnv, resolveLaunchTarget } from "../../../bin/cli/commands/launch.mjs";
 import { categoriseModel } from "../../../bin/cli/commands/setup-codex.mjs";
+
+// #5959 — deflake: `node --test` runs each file in a child process that streams
+// its report back to the parent as V8-serialized frames on fd 1 (stdout). The CLI
+// helpers under test (`syncClaudeProfilesFromModels`) print progress via
+// `console.log`, and that stdout output interleaves with the serialized frames,
+// corrupting the stream — the parent then throws
+// "Unable to deserialize cloned data due to invalid or unsupported version" at
+// file teardown ~50% of runs (all subtests pass; only the file errors). No test
+// here asserts on stdout, so silence the stdout-writing console methods for the
+// duration of this file. Restored in `after` for good hygiene.
+const _console = { log: console.log, info: console.info, warn: console.warn };
+before(() => {
+  console.log = () => {};
+  console.info = () => {};
+  console.warn = () => {};
+});
+after(() => {
+  console.log = _console.log;
+  console.info = _console.info;
+  console.warn = _console.warn;
+});
 
 // ── setup-claude profile generation ──────────────────────────────────────────
 
@@ -32,6 +59,63 @@ test("buildProfileSettings omits effortLevel for the simple tier", () => {
 test("profile names match setup-codex (cross-CLI consistency)", () => {
   assert.equal(categoriseModel("glm/glm-5.2").name, "glm52");
   assert.equal(categoriseModel("kmc/kimi-k2.7").name, "kimi-k27");
+});
+
+test("syncClaudeProfilesFromModels writes directory-per-profile settings + threads baseUrl, skips non-ids", async () => {
+  const claudeHome = await fs.mkdtemp(path.join(os.tmpdir(), "omniroute-claude-profiles-"));
+  try {
+    const result = await syncClaudeProfilesFromModels([{ id: "glm/glm-5.2" }, { id: "" }], {
+      claudeHome,
+      baseUrl: "http://vps:20128",
+    });
+
+    assert.equal(result.written, 1);
+    assert.equal(result.skipped, 1);
+    assert.deepEqual(
+      result.profiles.map((p) => p.name),
+      ["glm52"]
+    );
+
+    // Directory-per-profile: <claudeHome>/profiles/<name>/settings.json
+    const settingsPath = path.join(claudeHome, "profiles", "glm52", "settings.json");
+    const json = JSON.parse(await fs.readFile(settingsPath, "utf8"));
+    assert.equal(json.model, "glm/glm-5.2");
+    assert.equal(json.env.ANTHROPIC_BASE_URL, "http://vps:20128");
+    assert.equal(json.env.CLAUDE_CODE_ENABLE_GATEWAY_MODEL_DISCOVERY, "1");
+    // The auth token must never be written to disk.
+    assert.equal(JSON.stringify(json).includes("ANTHROPIC_AUTH_TOKEN"), false);
+  } finally {
+    await fs.rm(claudeHome, { recursive: true, force: true });
+  }
+});
+
+test("syncClaudeProfilesFromModels dry-run writes nothing and reports via the injected log (#5959)", async () => {
+  const claudeHome = await fs.mkdtemp(path.join(os.tmpdir(), "omniroute-claude-dry-"));
+  // The collector keeps the dry-run's multi-byte "──" heading OFF this child
+  // process's stdout: under the node:test runner that write corrupts the V8
+  // serialization stream ~50% of runs (#5959, "Unable to deserialize cloned
+  // data due to invalid or unsupported version").
+  const lines: string[] = [];
+  try {
+    const result = await syncClaudeProfilesFromModels([{ id: "glm/glm-5.2" }], {
+      claudeHome,
+      baseUrl: "http://vps:20128",
+      dryRun: true,
+      log: (line: string) => lines.push(line),
+    });
+    assert.equal(result.written, 1);
+    // Dry-run reports the would-be file + its content through the log sink…
+    assert.equal(lines.length, 2);
+    const settingsPath = path.join(claudeHome, "profiles", "glm52", "settings.json");
+    assert.ok(lines[0].includes(settingsPath));
+    const printed = JSON.parse(lines[1]);
+    assert.equal(printed.model, "glm/glm-5.2");
+    assert.equal(printed.env.ANTHROPIC_BASE_URL, "http://vps:20128");
+    // …and writes nothing to disk.
+    await assert.rejects(fs.stat(settingsPath), /ENOENT/);
+  } finally {
+    await fs.rm(claudeHome, { recursive: true, force: true });
+  }
 });
 
 // ── launch env (Claude Code) ─────────────────────────────────────────────────

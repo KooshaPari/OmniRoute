@@ -1,4 +1,5 @@
 import { CORS_HEADERS } from "./cors.ts";
+import { unwrapClinepassEnvelope } from "./clinepassEnvelope.ts";
 import { getDefaultErrorMessage, getErrorInfo } from "../config/errorConfig.ts";
 import { normalizePayloadForLog } from "@/lib/logPayloads";
 import type { ModelCooldownErrorPayload } from "@/types";
@@ -230,7 +231,14 @@ export async function parseUpstreamError(response: Response, provider: string | 
       const parsed = JSON.parse(text);
       // Handle array responses (e.g., from some Gemini APIs)
       const json = (Array.isArray(parsed) && parsed.length > 0 ? parsed[0] : parsed) || {};
-      message = json.error?.message || json.message || json.error || text;
+      // ClinePass wraps upstream errors in a {success:false, error} envelope.
+      // Extract the upstream error string (an upstream JSON field, not a local
+      // stack) — still routed through sanitizeErrorMessage/buildErrorBody by
+      // every consumer below (Rule #12).
+      const { error: clinepassEnvError } = unwrapClinepassEnvelope(json, provider);
+      message = clinepassEnvError
+        ? clinepassEnvError.message
+        : json.error?.message || json.message || json.error || text;
       errorCode = json.error?.code || json.code;
       errorType = json.error?.type || json.type;
     } catch {
@@ -487,7 +495,7 @@ export function normalizeCookie(raw: string): string {
  * @returns {string} Formatted error message
  */
 export function formatProviderError(
-  error: { code?: string | number; message?: string } | Error,
+  error: { code?: string | number; message?: string; cause?: unknown } | Error,
   provider: string,
   model: string,
   statusCode?: string | number | null
@@ -495,5 +503,13 @@ export function formatProviderError(
   const providerCode = "code" in error ? error.code : undefined;
   const code = statusCode || providerCode || "FETCH_FAILED";
   const message = error.message || "Unknown error";
-  return `[${code}]: ${message}`;
+  // Expose low-level cause (e.g. UND_ERR_SOCKET, ECONNRESET, ETIMEDOUT) for diagnosing fetch failures
+  const cause = (error as { cause?: unknown }).cause;
+  const causeObj =
+    cause && typeof cause === "object" ? (cause as Record<string, unknown>) : undefined;
+  const causeCode = typeof causeObj?.code === "string" ? causeObj.code : undefined;
+  const causeMsg = typeof causeObj?.message === "string" ? causeObj.message : undefined;
+  const causeStr =
+    causeCode || causeMsg ? ` (cause: ${[causeCode, causeMsg].filter(Boolean).join(": ")})` : "";
+  return `[${code}]: ${message}${causeStr}`;
 }

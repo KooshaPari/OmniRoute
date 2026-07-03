@@ -1,5 +1,6 @@
 "use client";
 
+import { useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
 import {
   formatCountdown,
@@ -21,6 +22,20 @@ const CURRENCY_SYMBOLS: Record<string, string> = {
   INR: "₹",
 };
 
+const DEFAULT_VISIBLE_ROWS = 3;
+
+/** Pure helper — sorts quotas by remaining percentage, highest first. */
+export function sortQuotasByRemaining(quotas: any[]): any[] {
+  return [...quotas].sort(
+    (a, b) => getQuotaRemainingPercentage(b) - getQuotaRemainingPercentage(a)
+  );
+}
+
+/** Pure helper — slices the sorted quotas down to the visible window. */
+export function getVisibleQuotas(sortedQuotas: any[], expanded: boolean): any[] {
+  return expanded ? sortedQuotas : sortedQuotas.slice(0, DEFAULT_VISIBLE_ROWS);
+}
+
 interface Props {
   quotas: any[];
   loading: boolean;
@@ -30,6 +45,7 @@ interface Props {
   hasStaleData: boolean;
   onRefresh: () => void;
   onOpenCutoff: () => void;
+  onOpenCost: () => void;
   canEditCutoff: boolean;
   hasCutoffOverrides: boolean;
 }
@@ -115,12 +131,21 @@ export default function QuotaCardExpanded({
   hasStaleData,
   onRefresh,
   onOpenCutoff,
+  onOpenCost,
   canEditCutoff,
   hasCutoffOverrides,
 }: Props) {
   const t = useTranslations("usage");
   const tr = (key: string, fallback: string, values?: UsageTranslationValues) =>
     translateUsageOrFallback(t, key, fallback, values);
+
+  const [expanded, setExpanded] = useState(false);
+  const sortedQuotas = useMemo(() => sortQuotasByRemaining(quotas), [quotas]);
+  const visibleQuotas = useMemo(
+    () => getVisibleQuotas(sortedQuotas, expanded),
+    [sortedQuotas, expanded]
+  );
+  const hiddenCount = sortedQuotas.length - visibleQuotas.length;
 
   const refreshedLabel = refreshedAt
     ? new Date(refreshedAt).toLocaleTimeString([], {
@@ -153,10 +178,28 @@ export default function QuotaCardExpanded({
         <div className="text-[11px] text-text-muted italic">{t("noQuotaData")}</div>
       ) : (
         <div className="flex flex-col divide-y divide-border/40">
-          {quotas.map((q, i) => (
+          {visibleQuotas.map((q, i) => (
             <QuotaDetailRow key={`${q.name}-${q.modelKey ?? ""}-${i}`} q={q} />
           ))}
         </div>
+      )}
+
+      {!loading && !error && sortedQuotas.length > DEFAULT_VISIBLE_ROWS && (
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            setExpanded((prev) => !prev);
+          }}
+          className="inline-flex items-center justify-center gap-1 text-[11px] font-medium px-2 py-1 rounded-md border border-border bg-bg-subtle hover:bg-black/[0.04] dark:hover:bg-white/[0.04] cursor-pointer"
+        >
+          <span className="material-symbols-outlined text-[12px]">
+            {expanded ? "expand_less" : "expand_more"}
+          </span>
+          {expanded
+            ? tr("showLessQuotas", "Show less")
+            : tr("showMoreQuotas", `Show ${hiddenCount} more`, { count: hiddenCount })}
+        </button>
       )}
 
       <div className="flex items-center justify-between gap-2 pt-1.5 border-t border-border/40">
@@ -188,6 +231,17 @@ export default function QuotaCardExpanded({
           >
             <span className="material-symbols-outlined text-[12px]">tune</span>
             {tr("editCutoffs", "Edit cutoffs")}
+          </button>
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              onOpenCost();
+            }}
+            className="inline-flex items-center gap-1 text-[11px] font-medium px-2 py-1 rounded-md border border-border bg-bg-subtle hover:bg-black/[0.04] dark:hover:bg-white/[0.04] cursor-pointer"
+          >
+            <span className="material-symbols-outlined text-[12px]">bar_chart</span>
+            USD Cost
           </button>
           <button
             type="button"

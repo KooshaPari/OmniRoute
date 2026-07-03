@@ -119,6 +119,7 @@ export default function EditConnectionModal({
     ...EMPTY_QUOTA_SCRAPING_FIELDS,
     ccCompatibleContext1m: false,
     ccCompatibleRedactThinking: false,
+    ccCompatibleSummarizeThinking: false,
     cloudCodeProjectId: "",
     antigravityClientProfile: "ide",
     blockExtraUsage:
@@ -163,9 +164,7 @@ export default function EditConnectionModal({
   const setOpenRouterPreset = openRouterPreset.setValue;
   const isCodex = provider === "codex";
   const isClaude = provider === "claude";
-  const isGeminiCli = provider === "gemini-cli";
-  const isAntigravity = provider === "antigravity";
-  const supportsGoogleProjectId = isGeminiCli || isAntigravity;
+  const isAntigravityFamily = provider === "antigravity" || provider === "agy";
   const localProviderMetadata = getLocalProviderMetadata(provider);
   const isLocalSelfHostedProvider = !!localProviderMetadata;
   const isGooglePse = provider === "google-pse-search";
@@ -280,6 +279,7 @@ export default function EditConnectionModal({
         ollamaCloudUsageCookie: "",
         ccCompatibleContext1m: ccRequestDefaults.context1m,
         ccCompatibleRedactThinking: ccRequestDefaults.redactThinking,
+        ccCompatibleSummarizeThinking: ccRequestDefaults.summarizeThinking,
         cloudCodeProjectId:
           (connection.providerSpecificData?.projectId as string) || connection.projectId || "",
         antigravityClientProfile: normalizeAntigravityClientProfileSetting(
@@ -430,7 +430,7 @@ export default function EditConnectionModal({
         overrides.maxConcurrent = Number(formData.rateLimitMaxConcurrent);
       updates.rateLimitOverrides = Object.keys(overrides).length > 0 ? overrides : null;
 
-      if (supportsGoogleProjectId) {
+      if (isAntigravityFamily) {
         updates.projectId = trimmedCloudCodeProjectId || null;
       }
 
@@ -504,7 +504,7 @@ export default function EditConnectionModal({
           defaultRegion,
           isGlm,
           isCloudflare,
-          supportsGoogleProjectId,
+          isAntigravityFamily,
           trimmedCloudCodeProjectId,
           isGooglePse,
           isCcCompatible,
@@ -529,11 +529,11 @@ export default function EditConnectionModal({
           updates.providerSpecificData.openaiStoreEnabled =
             formData.codexOpenaiStoreEnabled === true;
         }
-        if (supportsGoogleProjectId) {
+        if (isAntigravityFamily) {
           updates.providerSpecificData.projectId = trimmedCloudCodeProjectId || null;
         }
       }
-      if (isAntigravity) {
+      if (isAntigravityFamily) {
         updates.providerSpecificData = {
           ...(connection.providerSpecificData || {}),
           ...(updates.providerSpecificData || {}),
@@ -654,14 +654,8 @@ export default function EditConnectionModal({
           <div className="flex flex-col gap-4 rounded-lg border border-border/50 bg-surface/20 p-4">
             {isCcCompatible && (
               <CcCompatibleRequestDefaultsFields
-                context1m={formData.ccCompatibleContext1m}
-                redactThinking={formData.ccCompatibleRedactThinking}
-                onContext1mChange={(checked) =>
-                  setFormData({ ...formData, ccCompatibleContext1m: checked })
-                }
-                onRedactThinkingChange={(checked) =>
-                  setFormData({ ...formData, ccCompatibleRedactThinking: checked })
-                }
+                values={formData}
+                onChange={(patch) => setFormData({ ...formData, ...patch })}
               />
             )}
             {openRouterPreset.input}
@@ -690,32 +684,26 @@ export default function EditConnectionModal({
           t={t}
           editMode
         />
-        {supportsGoogleProjectId && (
+        {isAntigravityFamily && (
           <div className="flex flex-col gap-4 rounded-lg border border-border/50 bg-surface/20 p-4">
-            {isAntigravity && (
-              <Select
-                label={t("antigravityClientProfileLabel")}
-                value={formData.antigravityClientProfile}
-                options={ANTIGRAVITY_CLIENT_PROFILE_OPTIONS.map((option) => ({
-                  value: option.value,
-                  label: t(option.labelKey),
-                }))}
-                onChange={(e) =>
-                  setFormData({ ...formData, antigravityClientProfile: e.target.value })
-                }
-                hint={t("antigravityClientProfileHint")}
-              />
-            )}
+            <Select
+              label={t("antigravityClientProfileLabel")}
+              value={formData.antigravityClientProfile}
+              options={ANTIGRAVITY_CLIENT_PROFILE_OPTIONS.map((option) => ({
+                value: option.value,
+                label: t(option.labelKey),
+              }))}
+              onChange={(e) =>
+                setFormData({ ...formData, antigravityClientProfile: e.target.value })
+              }
+              hint={t("antigravityClientProfileHint")}
+            />
             <Input
-              label={isAntigravity ? t("antigravityProjectIdLabel") : t("geminiCliProjectIdLabel")}
+              label={t("antigravityProjectIdLabel")}
               value={formData.cloudCodeProjectId}
               onChange={(e) => setFormData({ ...formData, cloudCodeProjectId: e.target.value })}
-              placeholder={
-                isAntigravity
-                  ? t("antigravityProjectIdPlaceholder")
-                  : t("geminiCliProjectIdPlaceholder")
-              }
-              hint={isAntigravity ? t("antigravityProjectIdHint") : t("geminiCliProjectIdHint")}
+              placeholder={t("antigravityProjectIdPlaceholder")}
+              hint={t("antigravityProjectIdHint")}
               className="font-mono text-xs"
             />
           </div>
@@ -750,25 +738,33 @@ export default function EditConnectionModal({
             setFormData({ ...formData, priority: Number.parseInt(e.target.value) || 1 })
           }
         />
-        <Input
-          label={t("accountConcurrencyCapLabel")}
-          type="number"
-          min={0}
-          step={1}
-          value={formData.maxConcurrent}
-          onChange={(e) => {
-            const nextValue = e.target.value;
-            setFormData({ ...formData, maxConcurrent: nextValue });
-            if (saveError && nextValue.trim()) {
-              const numericValue = Number(nextValue);
-              if (Number.isInteger(numericValue) && numericValue >= 0) {
-                setSaveError(null);
+        <div className="flex flex-col gap-2 rounded-lg border border-primary/30 bg-primary/5 p-4">
+          <div className="flex items-center gap-1.5 text-sm font-semibold text-primary">
+            <span className="material-symbols-outlined text-[18px]" aria-hidden="true">
+              dynamic_feed
+            </span>
+            {t("accountConcurrencyCapLabel")}
+          </div>
+          <Input
+            type="number"
+            min={0}
+            step={1}
+            aria-label={t("accountConcurrencyCapLabel")}
+            value={formData.maxConcurrent}
+            onChange={(e) => {
+              const nextValue = e.target.value;
+              setFormData({ ...formData, maxConcurrent: nextValue });
+              if (saveError && nextValue.trim()) {
+                const numericValue = Number(nextValue);
+                if (Number.isInteger(numericValue) && numericValue >= 0) {
+                  setSaveError(null);
+                }
               }
-            }
-          }}
-          placeholder="0"
-          hint={t("accountConcurrencyCapHint")}
-        />
+            }}
+            placeholder="0"
+            hint={t("accountConcurrencyCapHint")}
+          />
+        </div>
         {saveError && (
           <div className="text-sm text-red-500 bg-red-500/10 border border-red-500/20 rounded-lg px-3 py-2">
             {saveError}

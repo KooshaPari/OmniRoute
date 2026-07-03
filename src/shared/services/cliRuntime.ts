@@ -182,17 +182,6 @@ const CLI_TOOLS: Record<string, any> = {
       env: ".qwen/.env",
     },
   },
-  "gemini-cli": {
-    defaultCommand: "gemini",
-    envBinKey: "CLI_GEMINI_BIN",
-    requiresBinary: true,
-    healthcheckTimeoutMs: 8000,
-    paths: {
-      auth: ".gemini/oauth_creds.json",
-      accounts: ".gemini/google_accounts.json",
-      settings: ".gemini/settings.json",
-    },
-  },
   // ── Plan 14 — new "custom" configType tools ───────────────────────────────
   forge: {
     defaultCommand: "forge",
@@ -221,6 +210,15 @@ const CLI_TOOLS: Record<string, any> = {
       config: ".config/deepseek-tui/config.toml",
     },
   },
+  codewhale: {
+    defaultCommand: "codewhale",
+    envBinKey: "CLI_CODEWHALE_BIN",
+    requiresBinary: true,
+    healthcheckTimeoutMs: 8000,
+    paths: {
+      config: ".codewhale/config.toml",
+    },
+  },
   smelt: {
     defaultCommand: "smelt",
     envBinKey: "CLI_SMELT_BIN",
@@ -237,6 +235,18 @@ const CLI_TOOLS: Record<string, any> = {
     healthcheckTimeoutMs: 8000,
     paths: {
       config: ".pi/config.json",
+    },
+  },
+  // Config path reconciled with bin/cli/commands/setup-crush.mjs::resolveCrushTarget's
+  // default (~/.config/crush/crush.json) so the dashboard and `omniroute setup-crush`
+  // agree on one canonical config location.
+  crush: {
+    defaultCommand: "crush",
+    envBinKey: "CLI_CRUSH_BIN",
+    requiresBinary: true,
+    healthcheckTimeoutMs: 8000,
+    paths: {
+      config: ".config/crush/crush.json",
     },
   },
 };

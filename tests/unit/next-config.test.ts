@@ -37,6 +37,15 @@ test("next config exposes standalone build settings and canonical rewrites", asy
     "fumadocs-ui",
     "fumadocs-core",
   ]);
+  // #6062: `ws` and its native masking helpers must stay external so the
+  // copilot-m365-web executor keeps a working WebSocket masking path at runtime
+  // (bundling ws breaks `bufferutil` → `TypeError: b.mask is not a function`).
+  for (const pkg of ["ws", "bufferutil", "utf-8-validate"]) {
+    assert.ok(
+      nextConfig.serverExternalPackages.includes(pkg),
+      `expected serverExternalPackages to externalize "${pkg}" (#6062)`
+    );
+  }
   assert.equal(headers[0].source, "/:path*");
   assert.match(securityHeaders["Content-Security-Policy"], /default-src 'self'/);
   assert.match(securityHeaders["Content-Security-Policy"], /frame-ancestors 'none'/);
@@ -77,6 +86,13 @@ test("next config declares Turbopack aliases, runtime assets and server external
     tracingIncludes.includes("./open-sse/services/compression/engines/rtk/filters/**/*.json")
   );
   assert.ok(tracingIncludes.includes("./open-sse/services/compression/rules/**/*.json"));
+  // sql.js WASM must ship in the standalone bundle: sqljsAdapter resolves it from
+  // node_modules/sql.js/dist/sql-wasm.wasm at runtime (driver fallback tier), but
+  // Next traces sql-wasm.js without auto-including the runtime .wasm asset.
+  assert.ok(
+    tracingIncludes.includes("./node_modules/sql.js/dist/sql-wasm.wasm"),
+    "sql-wasm.wasm must be trace-included so the sql.js fallback works in standalone builds"
+  );
   assert.ok(tracingExcludes.includes("./_tasks/**/*"));
   assert.ok(tracingExcludes.includes("./tests/**/*"));
 
@@ -231,4 +247,23 @@ test("next-intl webpack hook preserves caller config and filters known extractor
     config.ignoreWarnings[0]({ message: "Critical dependency: request is expression" }),
     false
   );
+});
+
+test("optimizePackageImports excludes the internal @omniroute/open-sse workspace (build-OOM guard)", async () => {
+  // Regression guard: adding the internal `@omniroute/open-sse` workspace to
+  // optimizePackageImports makes Next.js resolve its entire barrel at build
+  // time, driving the webpack production pass into a heap runaway that OOM'd
+  // even at 28 GB. optimizePackageImports is for EXTERNAL barrel libs only.
+  const { default: nextConfig } = await loadNextConfig("optimize-pkg-imports");
+  const list = nextConfig.experimental?.optimizePackageImports ?? [];
+
+  assert.ok(Array.isArray(list), "optimizePackageImports should be an array");
+  assert.ok(
+    !list.includes("@omniroute/open-sse"),
+    "do NOT add the internal @omniroute/open-sse workspace to optimizePackageImports — it OOMs the production build"
+  );
+  // The intended external barrel libs must remain optimized.
+  for (const lib of ["lucide-react", "date-fns", "next-intl"]) {
+    assert.ok(list.includes(lib), `expected external barrel lib ${lib} to stay optimized`);
+  }
 });

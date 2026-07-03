@@ -38,11 +38,7 @@ import {
   type McpToolDefinition,
   type OpenAITool,
 } from "../utils/cursorAgentProtobuf.ts";
-import {
-  resolveCursorImages,
-  extractImageUrls,
-  CursorImageError,
-} from "../utils/cursorImages.ts";
+import { resolveCursorImages, extractImageUrls, CursorImageError } from "../utils/cursorImages.ts";
 import {
   estimateInputTokens,
   estimateOutputTokens,
@@ -51,11 +47,29 @@ import {
 import { getCursorVersion } from "../utils/cursorVersionDetector.ts";
 import { sanitizeErrorMessage } from "../utils/error.ts";
 import { generateToolCallId } from "../translator/helpers/toolCallHelper.ts";
+import {
+  parseComposerToolCalls,
+  createStreamingState,
+  feedStreamingChunk,
+  type StreamingState as ComposerStreamingState,
+} from "../utils/composerToolCalls.ts";
 import { cursorSessionManager, type CursorSession } from "../services/cursorSessionManager.ts";
 import crypto from "crypto";
 import * as fs from "node:fs";
 import * as zlib from "node:zlib";
 import { promisify } from "node:util";
+import { toolChoiceDirectiveLine, buildCursorOutputConstraints } from "./cursor/prompt.ts";
+import {
+  isComposerModel,
+  visibleComposerContentFromThinking,
+  composerReasoningRemainder,
+} from "./cursor/composer.ts";
+// Composer helpers re-exported for external importers (tests).
+export {
+  isComposerModel,
+  visibleComposerContentFromThinking,
+  composerReasoningRemainder,
+} from "./cursor/composer.ts";
 
 // Reject reason text aligned with kaitranntt/CLIProxyAPIPlus — proven to
 // keep cursor's model from retrying the same built-in tool indefinitely.
@@ -82,78 +96,6 @@ const TOOL_COMMIT_DIRECTIVE = [
 // agent endpoint that primer is counterproductive — it references a
 // non-existent switch_mode tool and measurably LOWERED the tool-call rate in
 // live A/B (56% vs 69%), so it is intentionally not ported.
-
-function isRecordLike(v: unknown): v is Record<string, unknown> {
-  return typeof v === "object" && v !== null;
-}
-
-/**
- * Translate OpenAI `tool_choice` into an extra directive line — cursor's agent
- * endpoint has no native equivalent. `"required"` forces some tool; a specific
- * `{type:"function", function:{name}}` forces that tool. `"auto"`/`"none"`/
- * absent add nothing here ("none" is handled by dropping tools entirely).
- * Ported from composer-api (directToolChoiceHint / tool_choice === "required").
- */
-function toolChoiceDirectiveLine(toolChoice: unknown): string {
-  if (toolChoice === "required") {
-    return "\nYou MUST call at least one of the available tools now; do not answer without calling a tool.";
-  }
-  if (
-    isRecordLike(toolChoice) &&
-    toolChoice.type === "function" &&
-    isRecordLike(toolChoice.function) &&
-    typeof toolChoice.function.name === "string" &&
-    toolChoice.function.name
-  ) {
-    return `\nYou MUST call the \`${toolChoice.function.name}\` tool now and not any other tool.`;
-  }
-  return "";
-}
-
-/**
- * Build an OUTPUT CONSTRAINTS block from OpenAI request params that cursor's
- * agent endpoint silently ignores (response_format / max_tokens / stop), so
- * they're surfaced to the model as prompt instructions instead. Ported from
- * composer-api (appendChatOptions / appendJsonConstraint / appendStopConstraint).
- * Returns "" when no constraints apply.
- */
-function buildCursorOutputConstraints(body: {
-  max_tokens?: unknown;
-  max_completion_tokens?: unknown;
-  stop?: unknown;
-  response_format?: unknown;
-}): string {
-  const constraints: string[] = [];
-
-  const rawMax = body.max_completion_tokens ?? body.max_tokens;
-  const maxTokens = typeof rawMax === "number" && Number.isFinite(rawMax) ? Math.floor(rawMax) : 0;
-  if (maxTokens > 0) {
-    constraints.push(`Keep the answer within about ${maxTokens} output tokens.`);
-  }
-
-  const stop = body.stop;
-  if (typeof stop === "string" && stop) {
-    constraints.push(`Do not include any text at or after this stop sequence: ${stop}`);
-  } else if (Array.isArray(stop) && stop.length) {
-    constraints.push(`Stop before any of these sequences: ${stop.filter(Boolean).join(", ")}`);
-  }
-
-  const fmt = body.response_format;
-  if (isRecordLike(fmt)) {
-    if (fmt.type === "json_object") {
-      constraints.push("Return a single valid JSON object and no surrounding prose or code fences.");
-    } else if (fmt.type === "json_schema") {
-      const js = isRecordLike(fmt.json_schema) ? fmt.json_schema.schema : fmt.schema;
-      constraints.push(
-        `Return only valid JSON (no prose or code fences) matching this schema: ${JSON.stringify(js ?? fmt)}`
-      );
-    }
-  }
-
-  return constraints.length
-    ? `\n\nOUTPUT CONSTRAINTS:\n${constraints.map((c) => `- ${c}`).join("\n")}`
-    : "";
-}
 
 /**
  * Build the ExecClientMessage frame that responds to a built-in tool request.
@@ -305,40 +247,6 @@ function tryParseJsonError(payload: Buffer): { message: string; status: number }
   }
 }
 
-// ─── Composer thinking-as-content decoding ─────────────────────────────────
-//
-// The Cursor `composer-*` family encodes its visible reply inside the
-// `thinking` field, marked off from the (private) chain-of-thought by a
-// final `</think>` sentinel. Everything AFTER the last `</think>` is the
-// user-facing reply; the prefix must stay hidden.
-//
-// Ported from decolua/9router#1310 by Noé Rivera. Same algorithm, adapted
-// to OmniRoute's StreamCtx-based pipeline so streaming + non-streaming
-// share the accumulation path.
-
-const COMPOSER_THINK_END = "</think>";
-
-export function isComposerModel(model: string | undefined | null): boolean {
-  const id = String(model ?? "")
-    .split("/")
-    .pop();
-  return /^composer(?:-|$)/i.test(id ?? "");
-}
-
-export function visibleComposerContentFromThinking(thinking: string): string {
-  if (!thinking) return "";
-  const endIdx = thinking.lastIndexOf(COMPOSER_THINK_END);
-  if (endIdx < 0) return "";
-  return thinking.slice(endIdx + COMPOSER_THINK_END.length).trimStart();
-}
-
-export function composerReasoningRemainder(thinking: string): string {
-  if (!thinking) return "";
-  const endIdx = thinking.lastIndexOf(COMPOSER_THINK_END);
-  if (endIdx < 0) return thinking;
-  return thinking.slice(0, endIdx);
-}
-
 // ─── Phase 4: streaming dispatch context ───────────────────────────────────
 //
 // One StreamCtx flows through a single execute() call. It owns the live
@@ -382,6 +290,14 @@ export type StreamCtx = {
   // the visible suffix (after the last `</think>`) has already been streamed
   // out as `content` deltas, so we only emit the incremental tail per frame.
   composerVisibleEmittedLength: number;
+  // Composer DeepSeek-format inline tool-call parser state (decolua/9router#1335).
+  // Null for non-Composer models (no overhead). When set, the streaming parser
+  // holds back text inside `<｜tool▁calls▁begin｜>...<｜tool▁calls▁end｜>` markers
+  // and emits structured tool_calls SSE chunks once the block closes.
+  composerToolParserState: ComposerStreamingState | null;
+  // True once we've emitted structured tool_calls from the inline Composer parser
+  // (to avoid double-emitting if the block appears in multiple accumulated frames).
+  composerInlineToolCallsEmitted: boolean;
 };
 
 export function newStreamCtx(model: string, emit: (chunk: string) => void): StreamCtx {
@@ -402,6 +318,8 @@ export function newStreamCtx(model: string, emit: (chunk: string) => void): Stre
     toolCalls: [],
     pendingToolCalls: new Map(),
     composerVisibleEmittedLength: 0,
+    composerToolParserState: isComposerModel(model) ? createStreamingState() : null,
+    composerInlineToolCallsEmitted: false,
   };
 }
 
@@ -624,10 +542,53 @@ export function processFrame(
       if (isComposerModel(ctx.model)) {
         const visible = visibleComposerContentFromThinking(ctx.thinkingText);
         if (visible.length > ctx.composerVisibleEmittedLength) {
-          const deltaContent = visible.slice(ctx.composerVisibleEmittedLength);
-          ctx.composerVisibleEmittedLength = visible.length;
-          ctx.totalText += deltaContent;
-          emitChunk(ctx, { content: deltaContent });
+          // Feed the full accumulated visible text into the DeepSeek inline
+          // tool-call streaming parser (decolua/9router#1335). It tracks how
+          // much has already been safely emitted and returns only the new
+          // safe delta — i.e. text that precedes any `<｜tool▁calls▁begin｜>`
+          // marker (or a partial prefix of one). When the closing marker
+          // arrives, it sets ready=true and provides the parsed tool_calls.
+          if (ctx.composerToolParserState) {
+            const parseOut = feedStreamingChunk(ctx.composerToolParserState, visible);
+            // composerVisibleEmittedLength tracks what the parser has "emitted"
+            // — stays in sync via state.emitted.
+            ctx.composerVisibleEmittedLength = ctx.composerToolParserState.emitted;
+            if (parseOut.safeDelta) {
+              ctx.totalText += parseOut.safeDelta;
+              emitChunk(ctx, { content: parseOut.safeDelta });
+            }
+            if (
+              parseOut.ready &&
+              parseOut.toolCalls.length > 0 &&
+              !ctx.composerInlineToolCallsEmitted
+            ) {
+              ctx.composerInlineToolCallsEmitted = true;
+              for (const tc of parseOut.toolCalls) {
+                const toolCallIndex = ctx.emittedToolCallIndex++;
+                ctx.toolCalls.push({
+                  id: tc.id,
+                  name: tc.function.name,
+                  argumentsJson: tc.function.arguments,
+                });
+                emitChunk(ctx, {
+                  tool_calls: [
+                    {
+                      index: toolCallIndex,
+                      id: tc.id,
+                      type: "function",
+                      function: { name: tc.function.name, arguments: tc.function.arguments },
+                    },
+                  ],
+                });
+              }
+            }
+          } else {
+            // Non-composer or state not initialised — fall back to direct emit.
+            const deltaContent = visible.slice(ctx.composerVisibleEmittedLength);
+            ctx.composerVisibleEmittedLength = visible.length;
+            ctx.totalText += deltaContent;
+            emitChunk(ctx, { content: deltaContent });
+          }
         }
       } else {
         emitChunk(ctx, { reasoning_content: d.text });
@@ -1357,6 +1318,39 @@ export class CursorExecutor extends BaseExecutor {
       // one delta before finish.
       emitChunk(ctx, { role: "assistant", content: "" });
     }
+
+    // End-of-stream Composer inline tool-call fallback (decolua/9router#1335):
+    // if the entire response arrived as a single big chunk (or the streaming
+    // parser state never reached "ready"), try a full non-streaming parse on
+    // the accumulated visible content so we still emit structured tool_calls
+    // and don't leak the markers as plain text.
+    if (isComposerModel(ctx.model) && !ctx.composerInlineToolCallsEmitted && ctx.totalText) {
+      const parsed = parseComposerToolCalls(ctx.totalText);
+      if (parsed.toolCalls.length > 0) {
+        ctx.composerInlineToolCallsEmitted = true;
+        // Replace totalText with the residual (markers stripped).
+        ctx.totalText = parsed.content;
+        for (const tc of parsed.toolCalls) {
+          const toolCallIndex = ctx.emittedToolCallIndex++;
+          ctx.toolCalls.push({
+            id: tc.id,
+            name: tc.function.name,
+            argumentsJson: tc.function.arguments,
+          });
+          emitChunk(ctx, {
+            tool_calls: [
+              {
+                index: toolCallIndex,
+                id: tc.id,
+                type: "function",
+                function: { name: tc.function.name, arguments: tc.function.arguments },
+              },
+            ],
+          });
+        }
+      }
+    }
+
     // OpenAI finish_reason: "tool_calls" if the model invoked any declared
     // tool, else "stop". A turn with mixed text + tool_calls finishes with
     // "tool_calls" (the tool calls are the actionable signal for the client).
@@ -1392,6 +1386,25 @@ export class CursorExecutor extends BaseExecutor {
 
     // Non-streaming: chat.completion shape. Include tool_calls in the
     // assistant message when the model invoked any (Phase 5).
+
+    // Composer DeepSeek inline tool-call fallback (decolua/9router#1335): for
+    // non-streaming requests, the streaming parser never runs — parse the
+    // accumulated visible content once here instead.
+    if (isComposerModel(ctx.model) && !ctx.composerInlineToolCallsEmitted && ctx.totalText) {
+      const parsed = parseComposerToolCalls(ctx.totalText);
+      if (parsed.toolCalls.length > 0) {
+        ctx.composerInlineToolCallsEmitted = true;
+        ctx.totalText = parsed.content;
+        for (const tc of parsed.toolCalls) {
+          ctx.toolCalls.push({
+            id: tc.id,
+            name: tc.function.name,
+            argumentsJson: tc.function.arguments,
+          });
+        }
+      }
+    }
+
     const usage = buildCursorUsage(ctx, body);
     const finishReason = ctx.toolCalls.length > 0 ? "tool_calls" : "stop";
     const message: {

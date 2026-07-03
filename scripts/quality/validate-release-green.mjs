@@ -12,21 +12,32 @@
 // the real state of the release branch at any time.
 //
 // DESIGN — never blocking to contributors:
-//   • HARD checks (typecheck, lint errors, unit, vitest, db-rules, public-creds,
-//     optionally package-artifact) → a failure here is a real defect; exit 1.
-//   • DRIFT checks (eslint WARNINGS, cognitive-complexity, file-size) → ratchet
-//     drift accrued across the cycle is NOT a contributor's fault; it is reported
-//     and rebaselined by the maintainer at release. Drift NEVER changes the exit
-//     code, so wiring this as a check can never block anyone on drift.
+//   • HARD checks (typecheck, lint errors, db-rules, public-creds, docs-all,
+//     unit, vitest, integration, optionally package-artifact) → a failure here is
+//     a real defect; exit 1.
+//   • DRIFT checks (eslint WARNINGS, cognitive-complexity, file-size, cyclomatic
+//     complexity, dead-code, type-coverage, compression-budget, openapi-coverage,
+//     workflow-lint/zizmor, codeql-ratchet) → ratchet drift accrued across the
+//     cycle is NOT a contributor's fault; it is reported and rebaselined by the
+//     maintainer at release. Drift NEVER changes the exit code, so wiring this as
+//     a check can never block anyone on drift.
+//
+// COMPLETENESS: this mirrors the FULL release-PR gate set (quality-gate +
+// quality-extended + docs-sync-strict + integration), not a subset — and reports
+// EVERY red in one pass (the report is collected, not fail-fast), so the release
+// PR is green on its first CI run instead of revealing reds in ~40-min layers. The
+// only release-PR gates it cannot reproduce locally are GitHub-side CodeQL semantic
+// analysis and SonarQube/SonarCloud (external services).
 //
 // This script DIAGNOSES + REPORTS only (no auto-fix). The fix-to-green
-// orchestration lives in the (future) /green-prs + review-prs flows that call it.
+// orchestration lives in the /green-prs + review-prs flows that call it.
 //
 // Usage:
 //   node scripts/quality/validate-release-green.mjs [--json] [--with-build] [--quick]
 //     --json        emit machine-readable JSON to stdout (report goes to stderr)
 //     --with-build  also run check:pack-artifact (needs a dist/ build — slow)
-//     --quick       skip the slow unit + vitest suites (drift + typecheck + lint only)
+//     --quick       skip the slow unit + vitest + integration suites (drift + fast
+//                   gates only)
 
 import { execFileSync } from "node:child_process";
 import { readFileSync } from "node:fs";
@@ -108,21 +119,41 @@ export function computeVerdict(results) {
 
 // ─── Orchestration (only when run directly) ─────────────────────────────────
 
-function run(cmd, cmdArgs) {
+/**
+ * Map a thrown `execFileSync` error to a {code, out} gate result. Exported as a pure helper
+ * so the timeout/hang path has a regression test: a gate that exceeds its ceiling (e.g. the unit
+ * suite wedged on an unreleased SQLite handle — see CLAUDE.md "Database Handles in Tests") is
+ * killed by `execFileSync` (`err.killed === true`) and MUST surface as a visible non-zero gate,
+ * never an infinite block that the release captain mistakes for a hang and kills the pre-flight.
+ */
+export function classifyRunError(err, timeoutMs) {
+  if (err && err.killed && timeoutMs) {
+    return {
+      code: 124,
+      out: `gate exceeded its ${Math.round(timeoutMs / 1000)}s ceiling and was killed — treat as a hung/failed gate (e.g. an unreleased DB handle in the unit suite); does NOT pass`,
+    };
+  }
+  return {
+    code: typeof err?.status === "number" ? err.status : 1,
+    out: `${err?.stdout || ""}${err?.stderr || ""}`,
+  };
+}
+
+function run(cmd, cmdArgs, opts = {}) {
   try {
     const out = execFileSync(cmd, cmdArgs, {
       cwd: ROOT,
       encoding: "utf8",
       stdio: ["ignore", "pipe", "pipe"],
       maxBuffer: 256 * 1024 * 1024,
-      env: { ...process.env, FORCE_COLOR: "0" },
+      env: { ...process.env, FORCE_COLOR: "0", ...(opts.env || {}) },
+      // A hard ceiling for the long, silent test suites (execFileSync buffers all output until
+      // exit, so they show no progress while running). undefined = no timeout for fast gates.
+      ...(opts.timeout ? { timeout: opts.timeout } : {}),
     });
     return { code: 0, out };
   } catch (err) {
-    return {
-      code: typeof err.status === "number" ? err.status : 1,
-      out: `${err.stdout || ""}${err.stderr || ""}`,
-    };
+    return classifyRunError(err, opts.timeout);
   }
 }
 
@@ -139,9 +170,26 @@ function main() {
     process.stderr.write(`${icon} [${r.kind}] ${r.label}${r.detail ? ` — ${r.detail}` : ""}\n`);
   };
 
-  const hardCmd = (id, label, cmd, cmdArgs) => {
-    const { code, out } = run(cmd, cmdArgs);
+  // Announce a gate BEFORE running it. The long suites (unit/vitest/integration) run silently
+  // for many minutes (execFileSync buffers their output until exit), which previously looked like
+  // a hang and got the pre-flight killed before it surfaced the unit reds (the v3.8.42 miss).
+  const announce = (label) => process.stderr.write(`▶ ${label}…\n`);
+
+  const hardCmd = (id, label, cmd, cmdArgs, opts) => {
+    announce(label);
+    const { code, out } = run(cmd, cmdArgs, opts);
     record({ id, label, kind: "hard", ok: code === 0, detail: code === 0 ? "pass" : firstFailureLine(out) });
+  };
+
+  // A ratchet command (check:complexity, check:dead-code, …) exits 1 ONLY on a
+  // measured regression and self-skips (exit 0) when its tooling is absent — so a
+  // non-zero exit here is drift to rebaseline at release, never a contributor block.
+  // ALL checks run regardless of earlier failures (the report is collected, not
+  // fail-fast) so one pass surfaces every red instead of revealing them in layers.
+  const driftCmd = (id, label, cmd, cmdArgs, okDetail = "within baseline", opts) => {
+    announce(label);
+    const { code, out } = run(cmd, cmdArgs, opts);
+    record({ id, label, kind: "drift", ok: code === 0, detail: code === 0 ? okDetail : firstFailureLine(out) });
   };
 
   process.stderr.write("🔎 Release-green validation (current working tree)\n\n");
@@ -150,7 +198,8 @@ function main() {
 
   // ESLint: ONE pass → errors (hard) + warnings (drift)
   {
-    const { out } = run("npx", ["eslint", ".", "--format", "json"]);
+    announce("ESLint (errors + warnings — ~3-6min)");
+    const { out } = run("npx", ["eslint", ".", "--format", "json"], { timeout: 15 * 60 * 1000 });
     const parsed = parseEslintJson(out);
     if (!parsed) {
       record({ id: "lint", label: "ESLint", kind: "hard", ok: false, detail: "could not parse eslint json" });
@@ -177,6 +226,7 @@ function main() {
 
   // Cognitive-complexity (drift)
   {
+    announce("Cognitive complexity (ratchet)");
     const { out } = run(npmCmd, ["run", "check:cognitive-complexity"]);
     const current = parseCognitiveCount(out);
     const base = baselineValue("cognitiveComplexity");
@@ -205,12 +255,58 @@ function main() {
     });
   }
 
+  // test-masking (hard) — a PR-context gate: it only runs on the release PR (PR→main) in CI, so
+  // net-assert reductions accrue unseen on release/** and explode on the release PR. Reproduce it
+  // here against origin/main so a non-allowlisted reduction surfaces in the pre-flight, not in a
+  // ~40-min CI layer (v3.8.43 cost 3 such round-trips). Legitimate reductions get allowlisted in
+  // config/quality/test-masking-allowlist.json; tautology/skip/deletion signals are never allowlistable.
   if (!QUICK) {
-    hardCmd("unit", "Unit tests (full, CI concurrency)", npmCmd, ["run", "test:unit:ci"]);
-    hardCmd("vitest", "Vitest (MCP / autoCombo / cache)", npmCmd, ["run", "test:vitest"]);
+    announce("Test-masking (weakened-assert guard vs main)");
+    // best-effort fetch so the merge-base diff is accurate; ignore fetch failure (offline pre-flight)
+    run("git", ["fetch", "--no-tags", "origin", "main", "--depth=200"], { timeout: 60 * 1000 });
+    const { code, out } = run(npmCmd, ["run", "check:test-masking"], {
+      env: { GITHUB_BASE_REF: "main" },
+    });
+    record({
+      id: "test-masking",
+      label: "Test-masking (weakened-assert guard)",
+      kind: "hard",
+      ok: code === 0,
+      detail: code === 0 ? "no weakening" : firstFailureLine(out),
+    });
+  }
+
+  // Remaining quality-gate / quality-extended ratchets that the PR→release
+  // fast-gates skip and that historically surfaced — one at a time, because the
+  // CI Quality Ratchet job is fail-fast — only on the release PR. Running them all
+  // here (drift, never blocking) means a single rebaseline pass at release.
+  driftCmd("complexity", "Cyclomatic complexity (ratchet)", npmCmd, ["run", "check:complexity"]);
+  driftCmd("dead-code", "Dead-code (ratchet)", npmCmd, ["run", "check:dead-code"]);
+  driftCmd("type-coverage", "Type coverage (ratchet)", npmCmd, ["run", "check:type-coverage"]);
+  driftCmd("compression-budget", "Compression budget (ratchet)", npmCmd, ["run", "check:compression-budget"]);
+  driftCmd("openapi-coverage", "OpenAPI route coverage (ratchet)", npmCmd, ["run", "check:openapi-coverage"]);
+  driftCmd("workflow-lint", "Workflow lint (zizmor ratchet)", npmCmd, ["run", "check:workflows", "--", "--ratchet"]);
+  driftCmd("codeql-ratchet", "CodeQL alerts (ratchet)", npmCmd, ["run", "check:codeql-ratchet"]);
+
+  // Docs sync + fabricated-docs (strict) is a real-defect gate (invented env vars /
+  // routes, i18n mirror drift) — HARD.
+  hardCmd("docs-all", "Docs sync + fabricated-docs (strict)", npmCmd, ["run", "check:docs-all"]);
+
+  if (!QUICK) {
+    // These are the gates that catch inherited base-red tests from cycle PRs (the fast-path
+    // PR→release does NOT run unit/vitest/integration per-PR — the v3.8.42 release PR exploded
+    // with 15 such reds). They run SILENTLY for many minutes; the announce line above + these
+    // hard ceilings keep a long-but-healthy run from being mistaken for a hang (the ceiling also
+    // converts a genuine DB-handle hang into a visible failure instead of an infinite block).
+    hardCmd("unit", "Unit tests (full suite, CI concurrency — runs ~20-35min silently)", npmCmd, ["run", "test:unit:ci"], { timeout: 45 * 60 * 1000 });
+    hardCmd("vitest", "Vitest (MCP / autoCombo / cache — ~3-8min)", npmCmd, ["run", "test:vitest"], { timeout: 15 * 60 * 1000 });
+    // Integration tests run ONLY on the release PR full CI (PR→main), so an assertion
+    // regression here (e.g. a contributor flipping a Codex fingerprint key order) is
+    // invisible until release — run them in the pre-flight as a HARD gate.
+    hardCmd("integration", "Integration tests (~3-10min)", npmCmd, ["run", "test:integration"], { timeout: 20 * 60 * 1000 });
   }
   if (WITH_BUILD) {
-    hardCmd("pack-artifact", "Package artifact (npm pack policy)", npmCmd, ["run", "check:pack-artifact"]);
+    hardCmd("pack-artifact", "Package artifact (npm pack policy)", npmCmd, ["run", "check:pack-artifact"], { timeout: 20 * 60 * 1000 });
   }
 
   const { releaseGreen, hardFailures, drift } = computeVerdict(results);
