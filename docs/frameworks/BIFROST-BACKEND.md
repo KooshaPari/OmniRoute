@@ -1,3 +1,8 @@
+---
+title: Bifrost Backend (Tier-1 Router Bridge)
+description: Migration of OmniRoute's Tier-1 router to the Bifrost Go gateway and what stays in OmniRoute.
+---
+
 # Bifrost Backend (Tier-1 Router Bridge)
 
 > **Status:** Phase 1 of v8.1 (ADR-031, 2026-06-18).
