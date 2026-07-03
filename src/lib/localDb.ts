@@ -750,3 +750,50 @@ export type {
 // proxy_logs — export query (#3500 slice 4)
 // ---------------------------------------------------------------------------
 export { exportProxyLogsSince } from "./db/proxyLogs";
+
+// ---------------------------------------------------------------------------
+// Per-connection 429 cooldown wrappers (#5957 / #5958 — Issue 1 follow-ups)
+// ---------------------------------------------------------------------------
+// Thin best-effort wrappers around `setConnectionRateLimitUntil` so callers
+// (executors, handlers, dashboard panels) can mark a connection cooling or
+// release it without managing try/catch themselves. The wrapper always
+// resolves — a DB failure logs nothing and never throws back into the chat
+// path, matching the contract used by `open-sse/executors/antigravity.ts:343`.
+import { setConnectionRateLimitUntil as _setConnectionRateLimitUntilImpl } from "./db/providers";
+
+/**
+ * Mark a connection as rate-limited until `Date.now() + retryAfterMs`.
+ *
+ * Best-effort: never throws. The T05 startup helper
+ * `clearStaleCrashCooldowns` will not undo a write made through this
+ * wrapper because the timestamp is always strictly in the future at the
+ * moment of write. See Issue #1 (per-account 429 cascade not persisting).
+ */
+export function markConnectionRateLimitedUntil(
+  connectionId: string,
+  retryAfterMs: number,
+): void {
+  if (typeof connectionId !== "string" || connectionId.length === 0) return;
+  if (!Number.isFinite(retryAfterMs) || retryAfterMs <= 0) return;
+  try {
+    _setConnectionRateLimitUntilImpl(connectionId, Date.now() + retryAfterMs);
+  } catch {
+    // best-effort
+  }
+}
+
+/**
+ * Clear a connection's persisted 429 cooldown.
+ *
+ * Best-effort: never throws. Mirrors `resetAccountState`'s in-memory clear
+ * (open-sse/services/accountFallback.ts:1695) so the in-memory AccountState
+ * and the DB row agree.
+ */
+export function clearConnectionRateLimit(connectionId: string): void {
+  if (typeof connectionId !== "string" || connectionId.length === 0) return;
+  try {
+    _setConnectionRateLimitUntilImpl(connectionId, null);
+  } catch {
+    // best-effort
+  }
+}
