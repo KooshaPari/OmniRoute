@@ -65,66 +65,7 @@ import {
   stainlessRuntimeVersion,
   stripProxyToolPrefix,
 } from "./claudeIdentity.ts";
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return !!value && typeof value === "object" && !Array.isArray(value);
-}
-
-function shouldForceResponsesUpstream(
-  provider: string,
-  body: unknown,
-  credentials: ProviderCredentials | null
-): boolean {
-  if (!provider.startsWith("openai-compatible-")) return false;
-  if (!isRecord(body)) return false;
-
-  const providerSpecificData = credentials?.providerSpecificData ?? null;
-  if (providerSpecificData?._omnirouteForceResponsesUpstream === true) return true;
-  if (getOpenAICompatibleType(provider, providerSpecificData) === "responses") return false;
-
-  const hasResponsesShape =
-    body.input !== undefined ||
-    body.previous_response_id !== undefined ||
-    body.max_output_tokens !== undefined ||
-    body.reasoning !== undefined;
-  if (!hasResponsesShape) return false;
-
-  const tools = Array.isArray(body.tools) ? body.tools : [];
-  return tools.some((toolValue) => {
-    if (!isRecord(toolValue)) return false;
-    const toolType = typeof toolValue.type === "string" ? toolValue.type : "";
-    return toolType === "namespace" || /^tool_search/.test(toolType);
-  });
-}
-
-function withForcedResponsesUpstream(
-  provider: string,
-  body: unknown,
-  credentials: ProviderCredentials
-): ProviderCredentials {
-  if (!shouldForceResponsesUpstream(provider, body, credentials)) return credentials;
-  return {
-    ...credentials,
-    providerSpecificData: {
-      ...credentials.providerSpecificData,
-      _omnirouteForceResponsesUpstream: true,
-    },
-  };
-}
-
-/**
- * Sanitizes a custom API path to prevent path traversal attacks.
- * Valid paths must start with '/', contain no '..' segments,
- * no null bytes, and be reasonable in length.
- */
-function sanitizePath(path: string): boolean {
-  if (typeof path !== "string") return false;
-  if (!path.startsWith("/")) return false;
-  if (path.includes("\0")) return false; // null byte
-  if (path.includes("..")) return false; // path traversal
-  if (path.length > 512) return false; // sanity limit
-  return true;
-}
+import { sanitizePath, withForcedResponsesUpstream } from "./openaiCompatibleRouting.ts";
 
 type JsonRecord = Record<string, unknown>;
 
@@ -1164,14 +1105,11 @@ export class BaseExecutor {
 
           const seed = activeCredentials?.accessToken || activeCredentials?.apiKey || "anon";
           const psd = activeCredentials?.providerSpecificData as
-            | Record<string, unknown>
-            | undefined;
+            Record<string, unknown> | undefined;
 
           let identitySource:
-            | "upstream-metadata"
-            | "upstream-header"
-            | "synthesized"
-            | "synthesized-cloaked" = "synthesized";
+            "upstream-metadata" | "upstream-header" | "synthesized" | "synthesized-cloaked" =
+            "synthesized";
           let sessionId: string;
           let deviceId: string;
           let accountUUID: string;
