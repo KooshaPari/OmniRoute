@@ -52,5 +52,6 @@ members = [
     "crates/sharecli-ipc",
     "crates/sharecli-ffi",
     "crates/sharecli-tray-linux",
+    "crates/sharecli-fleet",
     "crates/spawn-core-sys",
 ]
