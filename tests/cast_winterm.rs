@@ -18,6 +18,7 @@ use sharecli::cast::{
 // helpers
 // ---------------------------------------------------------------------------
 
+#[allow(dead_code)]
 fn exit_ok() -> std::process::ExitStatus {
     std::process::Command::new("true").status().unwrap()
 }

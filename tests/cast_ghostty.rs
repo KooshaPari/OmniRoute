@@ -91,7 +91,7 @@ fn send_goto_window_failure_propagates() {
         vec![("pbcopy", &[] as &[&str]), ("ghostty", &["+action", "goto_window", "1"] as &[&str])];
     let outputs: Vec<io::Result<Output>> = vec![
         Ok(Output { status: exit_ok(), stdout: vec![], stderr: vec![] }),
-        Err(Error::new(ErrorKind::Other, "window not found")),
+        Err(Error::other("window not found")),
     ];
     let runner = MockProcessRunner::custom(&cmds, outputs);
     let caster = GhosttyCaster::new(runner);
@@ -110,7 +110,7 @@ fn send_paste_failure_propagates() {
     let outputs: Vec<io::Result<Output>> = vec![
         Ok(Output { status: exit_ok(), stdout: vec![], stderr: vec![] }),
         Ok(Output { status: exit_ok(), stdout: vec![], stderr: vec![] }),
-        Err(Error::new(ErrorKind::Other, "paste failed")),
+        Err(Error::other("paste failed")),
     ];
     let runner = MockProcessRunner::custom(&cmds, outputs);
     let caster = GhosttyCaster::new(runner);

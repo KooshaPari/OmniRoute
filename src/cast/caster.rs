@@ -95,14 +95,19 @@ impl ProcessRunner for SystemRunner {
 ///
 /// Tests push expected (`bin`, `args`) pairs and the corresponding responses
 /// up front, then `run()` pops the next one and panics if shape mismatches.
-#[cfg(test)]
+// `MockProcessRunner` is exercised only from the external integration-test
+// crate (`tests/cast_*.rs`), which the lib's own dead-code pass cannot see, so
+// it is flagged as never-constructed during a plain `cargo clippy` on the lib.
+// It is genuinely used — allow dead_code here rather than gate it behind
+// `#[cfg(test)]` (which would hide it from the integration tests entirely).
+#[allow(dead_code)]
 #[derive(Default)]
 pub struct MockProcessRunner {
     commands: std::sync::Mutex<std::collections::VecDeque<(String, Vec<String>)>>,
     outputs: std::sync::Mutex<std::collections::VecDeque<io::Result<std::process::Output>>>,
 }
 
-#[cfg(test)]
+#[allow(dead_code)]
 impl MockProcessRunner {
     pub fn new() -> Self {
         Self::default()
@@ -147,7 +152,6 @@ impl MockProcessRunner {
     }
 }
 
-#[cfg(test)]
 impl ProcessRunner for MockProcessRunner {
     fn run(&self, bin: &str, args: &[&str]) -> io::Result<std::process::Output> {
         let expected = self
