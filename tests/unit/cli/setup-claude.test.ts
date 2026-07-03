@@ -70,6 +70,8 @@ test("syncClaudeProfilesFromModels writes directory-per-profile settings + threa
 
 test("syncClaudeProfilesFromModels dry-run writes nothing", async () => {
   const claudeHome = await fs.mkdtemp(path.join(os.tmpdir(), "omniroute-claude-dry-"));
+  const originalLog = console.log;
+  console.log = () => {};
   try {
     const result = await syncClaudeProfilesFromModels([{ id: "glm/glm-5.2" }], {
       claudeHome,
@@ -82,6 +84,7 @@ test("syncClaudeProfilesFromModels dry-run writes nothing", async () => {
       /ENOENT/
     );
   } finally {
+    console.log = originalLog;
     await fs.rm(claudeHome, { recursive: true, force: true });
   }
 });
