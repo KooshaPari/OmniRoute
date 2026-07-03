@@ -5,9 +5,7 @@ import {
   getComboModelString,
   getComboStepTarget,
 } from "../../src/lib/combos/steps.ts";
-
 import { registerToolSearchTool } from "./toolSearch/register.ts";
-
 import {
   MCP_TOOLS,
   getHealthInput,
@@ -39,7 +37,6 @@ import {
   oneproxyStatsInput,
 } from "./schemas/tools.ts";
 import { startMcpHeartbeat } from "./runtimeHeartbeat.ts";
-
 import { z } from "zod";
 import { closeAuditDb, logToolCall } from "./audit.ts";
 import {
@@ -48,7 +45,6 @@ import {
   type McpToolExtraLike,
 } from "./scopeEnforcement.ts";
 import { getMcpHttpAuthHeadersForInternalFetch } from "./httpAuthContext.ts";
-
 import {
   handleSimulateRoute,
   handleSetBudgetGuard,
@@ -58,7 +54,6 @@ import {
   handleGetProviderMetrics,
   handleBestComboForTask,
   handleExplainRoute,
-  handlePickFastestModel,
   handleGetSessionSnapshot,
   handleDbHealthCheck,
   handleSyncPricing,
@@ -68,6 +63,7 @@ import {
   handleOneproxyRotate,
   handleOneproxyStats,
 } from "./tools/advancedTools.ts";
+import { handlePickFastestModel } from "./tools/pickFastestModel.ts";
 import { memoryTools } from "./tools/memoryTools.ts";
 import { skillTools } from "./tools/skillTools.ts";
 import { agentSkillTools } from "./tools/agentSkillTools.ts";
@@ -1087,17 +1083,7 @@ export function createMcpServer(): McpServer {
     )
   );
 
-  server.registerTool(
-    "omniroute_pick_fastest_model",
-    {
-      description:
-        "Picks the fastest reliable provider×model pair using live TTFT/TPS/E2E/p95/health/failure/stability telemetry, and optionally applies the result to a target combo",
-      inputSchema: pickFastestModelInput,
-    },
-    withScopeEnforcement("omniroute_pick_fastest_model", (args) =>
-      handlePickFastestModel(pickFastestModelInput.parse(args))
-    )
-  );
+  server.registerTool("omniroute_pick_fastest_model", { description: "Picks the fastest reliable provider-model pair from live telemetry.", inputSchema: pickFastestModelInput }, withScopeEnforcement("omniroute_pick_fastest_model", (args) => handlePickFastestModel(pickFastestModelInput.parse(args))));
 
   server.registerTool(
     "omniroute_get_session_snapshot",

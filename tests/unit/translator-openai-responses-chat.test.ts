@@ -417,7 +417,6 @@ test("Chat -> Responses maps max_completion_tokens to max_output_tokens", () => 
   assert.equal((result as any).max_tokens, undefined);
   assert.equal((result as any).max_completion_tokens, undefined);
 });
-
 test("Chat -> Responses maps legacy max_tokens to max_output_tokens when max_completion_tokens is absent", () => {
   const result = openaiToOpenAIResponsesRequest(
     "gpt-4o",
@@ -449,4 +448,3 @@ test("Chat -> Responses prefers max_completion_tokens over max_tokens when both 
   assert.equal((result as any).max_tokens, undefined);
   assert.equal((result as any).max_completion_tokens, undefined);
 });
-
