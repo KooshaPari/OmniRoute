@@ -74,7 +74,7 @@ jobs:
           exit 0
 
       - name: Checkout registry
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Detect existing audit workflows in ${{ matrix.repo.name }}
         env:
@@ -96,7 +96,7 @@ jobs:
 
       - name: golangci-lint (Go repos only)
         if: ${{ matrix.repo.language == 'go' }}
-        uses: golangci/golangci-lint-action@v6
+        uses: golangci/golangci-lint-action@v9
         with:
           working-directory: ${{ matrix.repo.name }}
           version: v1.61
@@ -124,7 +124,7 @@ jobs:
         continue-on-error: true
 
       - name: Upload reports
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: audit-${{ matrix.repo.name }}-${{ github.run_id }}
           path: |
