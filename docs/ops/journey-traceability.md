@@ -1,3 +1,7 @@
+---
+title: Journey Traceability
+---
+
 # Journey Traceability
 
 Implements the phenotype-infra journey-traceability standard for OmniRoute as the canonical routing framework for the Phenotype org.
