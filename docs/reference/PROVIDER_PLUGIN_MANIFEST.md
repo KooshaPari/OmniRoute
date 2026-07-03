@@ -20,6 +20,11 @@ OmniRoute advertises that URL to Bifrost and CLIProxyAPI via the
 `OMNIROUTE_PROVIDER_MANIFEST_URL` when the sidecar needs a public or container
 network URL instead of the local request origin.
 
+OmniRoute advertises that URL to Bifrost and CLIProxyAPI via the
+`X-OmniRoute-Provider-Manifest-Url` request header. Set
+`OMNIROUTE_PROVIDER_MANIFEST_URL` when the sidecar needs a public or container
+network URL instead of the local request origin.
+
 ## Goal
 
 Move provider metadata toward a plugin contract so the hot request path can
