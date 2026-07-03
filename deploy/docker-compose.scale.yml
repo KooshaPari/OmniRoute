@@ -17,7 +17,7 @@ services:
       - omniroute-net
 
   redis:
-    image: redis:7-latest
+    image: redis:7-alpine
     container_name: omniroute-redis
     ports:
       - "6379:6379"
