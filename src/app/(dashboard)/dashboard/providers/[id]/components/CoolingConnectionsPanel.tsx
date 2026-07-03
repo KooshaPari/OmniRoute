@@ -36,7 +36,9 @@ function isCoolingNow(connection: ConnectionRowConnection, now: number): boolean
   return Number.isFinite(until) && until > now;
 }
 
-export default function CoolingConnectionsPanel({ connections }: CoolingConnectionsPanelProps) {
+export default function CoolingConnectionsPanel(
+  { connections }: Readonly<CoolingConnectionsPanelProps>,
+) {
   // Tick once per second so the human-readable countdown updates.
   const [now, setNow] = useState<number>(() => Date.now());
   useEffect(() => {
