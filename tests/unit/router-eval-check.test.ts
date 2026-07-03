@@ -5,6 +5,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 const checkScript = "scripts/check/check-router-eval-regression.ts";
+const subprocessTestOptions = { timeout: 20000 };
 
 function withTempDir<T>(handler: (workspace: string) => T): T {
   const tempRoot = path.join(process.cwd(), ".tmp");
@@ -21,7 +22,7 @@ function writeJsonl(filePath: string, row: Record<string, unknown>): void {
   fs.writeFileSync(filePath, `${JSON.stringify(row)}\n`, "utf8");
 }
 
-test("router eval check writes markdown and JSON artifacts", () => {
+test("router eval check writes markdown and JSON artifacts", subprocessTestOptions, () => {
   withTempDir((workspace) => {
     const baseline = path.join(workspace, "baseline.ndjson");
     const candidate = path.join(workspace, "candidate.ndjson");
@@ -60,7 +61,7 @@ test("router eval check writes markdown and JSON artifacts", () => {
   });
 });
 
-test("router eval check uses the checked-in fixture corpus by default", { timeout: 20000 }, () => {
+test("router eval check uses the checked-in fixture corpus by default", subprocessTestOptions, () => {
   withTempDir((workspace) => {
     const markdown = path.join(workspace, "router-eval.md");
     const json = path.join(workspace, "router-eval.json");
@@ -79,7 +80,7 @@ test("router eval check uses the checked-in fixture corpus by default", { timeou
   });
 });
 
-test("router eval check retains run inputs, outputs, and manifest", { timeout: 20000 }, () => {
+test("router eval check retains run inputs, outputs, and manifest", subprocessTestOptions, () => {
   withTempDir((workspace) => {
     const baseline = path.join(workspace, "baseline.ndjson");
     const candidate = path.join(workspace, "candidate.ndjson");

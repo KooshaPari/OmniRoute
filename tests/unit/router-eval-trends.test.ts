@@ -5,6 +5,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 const trendsScript = "scripts/router-eval/trends.ts";
+const subprocessTestOptions = { timeout: 20000 };
 
 function withTempDir<T>(prefix: string, handler: (workspace: string) => T): T {
   const tempRoot = path.join(process.cwd(), ".tmp");
@@ -45,7 +46,7 @@ function artifact(generatedAt: string, configId: string, aiq: number) {
   };
 }
 
-test("router eval trends reads retained and flat artifacts with limit", { timeout: 20000 }, () => {
+test("router eval trends reads retained and flat artifacts with limit", subprocessTestOptions, () => {
   withTempDir("router-eval-trends-", (workspace) => {
     const runA = path.join(workspace, "run-a");
     const runB = path.join(workspace, "run-b");
@@ -70,7 +71,7 @@ test("router eval trends reads retained and flat artifacts with limit", { timeou
   });
 });
 
-test("router eval trends can print dashboard summaries", () => {
+test("router eval trends can print dashboard summaries", subprocessTestOptions, () => {
   withTempDir("router-eval-dashboard-", (workspace) => {
     const runA = path.join(workspace, "run-a");
     const runB = path.join(workspace, "run-b");
@@ -93,7 +94,7 @@ test("router eval trends can print dashboard summaries", () => {
   });
 });
 
-test("router eval trends tolerates sparse report artifacts", () => {
+test("router eval trends tolerates sparse report artifacts", subprocessTestOptions, () => {
   withTempDir("router-eval-sparse-", (workspace) => {
     fs.writeFileSync(
       path.join(workspace, "sparse.json"),
@@ -121,7 +122,7 @@ test("router eval trends tolerates sparse report artifacts", () => {
   });
 });
 
-test("router eval trends tolerates sparse comparison artifacts", () => {
+test("router eval trends tolerates sparse comparison artifacts", subprocessTestOptions, () => {
   withTempDir("router-eval-sparse-comparison-", (workspace) => {
     const runDir = path.join(workspace, "run-sparse");
     fs.mkdirSync(runDir);
@@ -154,7 +155,7 @@ test("router eval trends tolerates sparse comparison artifacts", () => {
   });
 });
 
-test("router eval trends exits clearly for empty artifact dirs", () => {
+test("router eval trends exits clearly for empty artifact dirs", subprocessTestOptions, () => {
   withTempDir("router-eval-empty-", (workspace) => {
     const result = spawnSync(
       "bun",
