@@ -23,6 +23,7 @@ interface CompatibleFormState {
   baseUrl: string;
   chatPath: string;
   modelsPath: string;
+  iconUrl: string;
 }
 
 const CC_DEFAULT_CHAT_PATH = "/v1/messages?beta=true";
@@ -75,6 +76,7 @@ function createInitialForm(mode: CompatibleMode): CompatibleFormState {
     baseUrl: defaults.baseUrl,
     chatPath: defaults.chatPath,
     modelsPath: "",
+    iconUrl: "",
   };
 }
 
@@ -92,9 +94,11 @@ export default function AddCompatibleProviderModal({
   const [checkKey, setCheckKey] = useState("");
   const [checkModelId, setCheckModelId] = useState("");
   const [validating, setValidating] = useState(false);
-  const [validationResult, setValidationResult] = useState<
-    null | { valid: boolean; error?: string | null; method?: string | null }
-  >(null);
+  const [validationResult, setValidationResult] = useState<null | {
+    valid: boolean;
+    error?: string | null;
+    method?: string | null;
+  }>(null);
   const [showAdvanced, setShowAdvanced] = useState(false);
 
   const apiTypeOptions = useMemo(
@@ -181,6 +185,7 @@ export default function AddCompatibleProviderModal({
       if (defaults.hasApiType) body.apiType = formData.apiType;
       if (defaults.hasModelsPath) body.modelsPath = formData.modelsPath || "";
       if (defaults.compatMode) body.compatMode = defaults.compatMode;
+      body.iconUrl = formData.iconUrl.trim();
 
       const res = await fetch("/api/provider-nodes", {
         method: "POST",
@@ -275,6 +280,13 @@ export default function AddCompatibleProviderModal({
           onChange={(e) => setFormData({ ...formData, baseUrl: e.target.value })}
           placeholder={baseUrlPlaceholder}
           hint={baseUrlHint}
+        />
+        <Input
+          label={t("iconUrlLabel")}
+          value={formData.iconUrl}
+          onChange={(e) => setFormData({ ...formData, iconUrl: e.target.value })}
+          placeholder="https://example.com/logo.png"
+          hint={t("iconUrlHint")}
         />
 
         <button
