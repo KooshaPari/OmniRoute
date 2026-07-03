@@ -56,7 +56,7 @@ export function buildProfileSettings(modelId, baseUrl, cfg) {
  * behaviorally identical. Writes `<claudeHome>/profiles/<name>/settings.json`
  * (directory-per-profile); never touches the active/default Claude config.
  * @param {Array} models
- * @param {{claudeHome?:string, baseUrl:string, dryRun?:boolean, only?:string}} opts
+ * @param {{claudeHome?:string, baseUrl:string, dryRun?:boolean, only?:string, log?:Function}} opts
  * @returns {Promise<{written:number, skipped:number, profiles:Array<{name:string, model:string, filePath:string}>}>}
  */
 export async function syncClaudeProfilesFromModels(models, opts = {}) {
@@ -65,6 +65,7 @@ export async function syncClaudeProfilesFromModels(models, opts = {}) {
   const baseUrl = opts.baseUrl;
   const dryRun = Boolean(opts.dryRun);
   const onlyFilter = opts.only ? opts.only.split(",").map((s) => s.trim()) : null;
+  const log = opts.log || console.log;
 
   if (!dryRun && !existsSync(profilesRoot)) {
     mkdirSync(profilesRoot, { recursive: true });
@@ -96,8 +97,8 @@ export async function syncClaudeProfilesFromModels(models, opts = {}) {
     const content = buildProfileSettings(id, baseUrl, cfg);
 
     if (dryRun) {
-      console.log(`\n── [dry-run] ${filePath} ──`);
-      console.log(content);
+      log(`\n── [dry-run] ${filePath} ──`);
+      log(content);
     } else {
       mkdirSync(dir, { recursive: true });
       writeFileSync(filePath, content, "utf8");

@@ -70,13 +70,19 @@ test("syncClaudeProfilesFromModels writes directory-per-profile settings + threa
 
 test("syncClaudeProfilesFromModels dry-run writes nothing", async () => {
   const claudeHome = await fs.mkdtemp(path.join(os.tmpdir(), "omniroute-claude-dry-"));
+  const dryRunOutput: string[] = [];
+  const log = (...args: unknown[]) => {
+    dryRunOutput.push(args.map(String).join(" "));
+  };
   try {
     const result = await syncClaudeProfilesFromModels([{ id: "glm/glm-5.2" }], {
       claudeHome,
       baseUrl: "http://vps:20128",
       dryRun: true,
+      log,
     });
     assert.equal(result.written, 1);
+    assert.match(dryRunOutput.join("\n"), /profiles\/glm52\/settings\.json/);
     await assert.rejects(
       fs.stat(path.join(claudeHome, "profiles", "glm52", "settings.json")),
       /ENOENT/
