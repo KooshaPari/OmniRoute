@@ -26,9 +26,9 @@ import { Card } from "@/components/ui/card";
 import { formatResetCountdown } from "@/lib/localDb";
 import type { ConnectionRowConnection } from "./ConnectionRow";
 
-export interface CoolingConnectionsPanelProps {
-  readonly connections: readonly ConnectionRowConnection[];
-}
+export type CoolingConnectionsPanelProps = Readonly<{
+  connections: ReadonlyArray<ConnectionRowConnection>;
+}>;
 
 function isCoolingNow(connection: ConnectionRowConnection, now: number): boolean {
   if (!connection.rateLimitedUntil) return false;
