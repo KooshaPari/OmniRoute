@@ -40,17 +40,16 @@ on:
       NPM_TOKEN:
         required: true
 
-permissions:
-  contents: read
-  id-token: write
-  packages: write
-
 env:
   NPM_PUBLISH_NODE_VERSION: "24"
 
 jobs:
   publish:
     runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      id-token: write
+      packages: write
     steps:
       - name: Checkout
         uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
@@ -175,6 +174,9 @@ jobs:
 
   publish-opencode-plugin:
     runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      packages: write
     steps:
       - name: Checkout
         uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10

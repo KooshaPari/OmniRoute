@@ -14,15 +14,12 @@ on:
         required: true
         type: string
 
-permissions:
-  contents: write
-  id-token: write
-  packages: write
-
 jobs:
   validate:
     name: Validate version
     runs-on: ubuntu-24.04
+    permissions:
+      contents: read
     outputs:
       version: ${{ steps.validate.outputs.version }}
     steps:
@@ -33,11 +30,13 @@ jobs:
 
       - name: Validate version format
         id: validate
+        env:
+          INPUT_VERSION: ${{ inputs.version }}
         run: |
           if [[ "${{ github.event_name }}" == "push" ]]; then
             VERSION="${GITHUB_REF#refs/tags/}"
           else
-            VERSION="${{ inputs.version }}"
+            VERSION="${INPUT_VERSION}"
           fi
 
           if [[ ! "$VERSION" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
@@ -51,6 +50,8 @@ jobs:
     name: Build Electron (${{ matrix.platform }})
     needs: validate
     runs-on: ${{ matrix.runner }}
+    permissions:
+      contents: read
     strategy:
       fail-fast: false
       matrix:
@@ -188,6 +189,8 @@ jobs:
     name: Create Release
     needs: [validate, build]
     runs-on: ubuntu-24.04
+    permissions:
+      contents: write
     steps:
       - name: Checkout
         uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
