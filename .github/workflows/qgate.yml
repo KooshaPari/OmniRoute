@@ -61,4 +61,3 @@ jobs:
           threshold: 60
           not-applicable: ''
           sast-config: 'auto'
-        secrets: inherit
