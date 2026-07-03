@@ -1,6 +1,6 @@
 ---
 title: Journey Traceability
-description: Traceability model for OmniRoute requirements, code, tests, and evidence.
+description: Phenotype-infra journey-traceability standard for OmniRoute as the canonical routing framework.
 ---
 
 # Journey Traceability

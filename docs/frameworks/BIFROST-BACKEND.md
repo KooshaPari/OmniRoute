@@ -1,6 +1,6 @@
 ---
-title: Bifrost Backend
-description: Tier-1 router bridge architecture for OmniRoute.
+title: Bifrost Backend (Tier-1 Router Bridge)
+description: Migration of OmniRoute's Tier-1 router to the Bifrost Go gateway and what stays in OmniRoute.
 ---
 
 # Bifrost Backend (Tier-1 Router Bridge)
