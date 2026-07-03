@@ -427,9 +427,9 @@ export async function resolveProxyForConnection(connectionId: string, apiKeyId?:
 
     if (perKeyEnabled) {
       try {
-        const apiKeyRow = db.prepare("SELECT proxy_id FROM api_keys WHERE id = ?").get(apiKeyId) as
-          | { proxy_id?: string | null }
-          | undefined;
+        const apiKeyRow = db.prepare("SELECT proxy_id FROM api_keys WHERE id = ?").get(apiKeyId) as {
+          proxy_id?: string | null;
+        } | undefined;
         if (apiKeyRow?.proxy_id) {
           const proxyRow = db
             .prepare(
