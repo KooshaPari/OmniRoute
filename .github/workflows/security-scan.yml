@@ -30,12 +30,31 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
 
-      - name: Run Gitleaks
-        uses: gitleaks/gitleaks-action@25c0c5ec309e0043bd9a3fb03da1eee4b1426b35
+      - name: Install Gitleaks
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GITLEAKS_ENABLE_COMMENTS: false
-          GITLEAKS_ENABLE_UPLOAD: true
+          GITLEAKS_VERSION: "8.30.0"
+        run: |
+          set -euo pipefail
+          mkdir -p "$HOME/.local/bin"
+          curl -sSfL \
+            "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz" \
+            -o /tmp/gitleaks.tar.gz
+          tar -xzf /tmp/gitleaks.tar.gz -C /tmp gitleaks
+          install -m 0755 /tmp/gitleaks "$HOME/.local/bin/gitleaks"
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+
+      - name: Scan pull request commits
+        if: github.event_name == 'pull_request'
+        run: |
+          set -euo pipefail
+          gitleaks git \
+            --log-opts="origin/${{ github.base_ref }}..HEAD" \
+            --config .gitleaks.toml \
+            --redact \
+            --no-banner
+
+      - name: Run repository secret ratchet
+        run: node scripts/check/check-secrets.mjs --ratchet
 
   deps-audit:
     name: Dependency Audit (npm)
