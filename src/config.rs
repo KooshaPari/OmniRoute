@@ -47,6 +47,9 @@ pub struct Config {
 
     /// Build-contention throttle policy
     pub spawn_policy: SpawnPolicyConfig,
+
+    /// Cross-machine text-injection (`cast`) settings
+    pub cast: CastConfig,
 }
 
 impl Default for Config {
@@ -62,6 +65,7 @@ impl Default for Config {
             project_limits: ProjectLimitsConfig::default(),
             spawn: SpawnConfig::default(),
             spawn_policy: SpawnPolicyConfig::default(),
+            cast: CastConfig::default(),
         }
     }
 }
@@ -373,6 +377,53 @@ impl Config {
 // ---------------------------------------------------------------------------
 // CLI command enums (defined here to avoid circular dependencies)
 // ---------------------------------------------------------------------------
+
+// ---------------------------------------------------------------------------
+// Cast configuration
+// ---------------------------------------------------------------------------
+
+/// Settings for the `cast` subcommand (cross-machine text injection into
+/// registered terminal panes).
+///
+/// Add to `~/.config/sharecli/config.toml`:
+///
+/// ```toml
+/// [cast]
+/// default_transport = "wezterm"   # or "ghostty" / "clipboard"
+/// pane_map_path = "~/.config/sharecli/pane-map.toml"
+/// handshake_timeout_ms = 250
+/// max_retry_attempts = 3
+/// retry_backoff_ms = 200
+/// ```
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(default)]
+pub struct CastConfig {
+    /// Default transport to use when `cast send` is invoked.
+    /// One of: `wezterm`, `ghostty`, `clipboard`.
+    pub default_transport: String,
+    /// Override the on-disk path for the pane registry. When `None`, defaults
+    /// to `<config_dir>/sharecli/pane-map.toml`.
+    pub pane_map_path: Option<String>,
+    /// Time (ms) to wait for an OSC 9;4 echo confirmation before declaring
+    /// the send failed and triggering a retry.
+    pub handshake_timeout_ms: u64,
+    /// Max retries for transient send failures.
+    pub max_retry_attempts: u32,
+    /// Initial backoff (ms) between retry attempts (doubles each retry).
+    pub retry_backoff_ms: u64,
+}
+
+impl Default for CastConfig {
+    fn default() -> Self {
+        Self {
+            default_transport: "wezterm".into(),
+            pane_map_path: None,
+            handshake_timeout_ms: 250,
+            max_retry_attempts: 3,
+            retry_backoff_ms: 200,
+        }
+    }
+}
 
 #[derive(clap::Subcommand, Debug)]
 pub enum ConfigCmd {

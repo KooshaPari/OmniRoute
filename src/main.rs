@@ -3,6 +3,7 @@
 use anyhow::Result;
 use clap::{Parser, Subcommand};
 
+mod cast;
 mod commands;
 mod config;
 mod monitoring;
@@ -10,8 +11,8 @@ mod runtime;
 mod spawn_policy;
 
 use commands::{
-    check_limits, config as config_cmd, health, pool_status, project as project_cmd, ps, run_pool,
-    set_limits, start, status, stop,
+    cast as cast_cmd, check_limits, config as config_cmd, health, pool_status, project as project_cmd,
+    ps, run_pool, set_limits, start, status, stop,
 };
 use runtime::ProcessPool;
 
@@ -181,6 +182,11 @@ enum Commands {
         #[command(subcommand)]
         cmd: FleetCmd,
     },
+    /// Cross-machine text injection into registered terminal panes
+    Cast {
+        #[command(subcommand)]
+        cmd: CastCmd,
+    },
 }
 
 #[derive(Subcommand, Debug)]
@@ -196,6 +202,30 @@ enum FleetCmd {
         #[arg(short, long, default_value = "nats://localhost:4222")]
         coordinator: String,
     },
+}
+
+#[derive(Subcommand, Debug)]
+enum CastCmd {
+    /// Register a pane: `cast register <name> <address>`
+    Register {
+        /// Friendly pane name (e.g. `civis-1`)
+        name: String,
+        /// Address in the form `machine:host[:window[:pane]]`
+        address: String,
+    },
+    /// Unregister a pane
+    Unregister { name: String },
+    /// List all registered panes
+    List,
+    /// Send text to a registered pane
+    Send {
+        /// Registered pane name
+        name: String,
+        /// File to read; pass `-` (or omit) to read from stdin
+        file: Option<String>,
+    },
+    /// Show the on-disk path of the pane-map file
+    Where,
 }
 
 /// Returns true when the NO_COLOR environment variable is set (per https://no-color.org).
@@ -254,6 +284,13 @@ async fn main() -> Result<()> {
             FleetCmd::Register { name, coordinator } => {
                 fleet_register(name.as_deref(), coordinator).await?
             }
+        },
+        Commands::Cast { cmd } => match cmd {
+            CastCmd::Register { name, address } => cast_cmd::register(&name, &address)?,
+            CastCmd::Unregister { name } => cast_cmd::unregister(&name)?,
+            CastCmd::List => cast_cmd::list()?,
+            CastCmd::Send { name, file } => cast_cmd::send(&name, file.as_deref())?,
+            CastCmd::Where => cast_cmd::where_file()?,
         },
     }
 

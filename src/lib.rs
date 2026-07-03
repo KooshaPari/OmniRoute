@@ -6,6 +6,7 @@
 //! - Process management via local runtime types
 //! - Multi-project orchestration
 
+pub mod cast;
 pub mod commands;
 pub mod config;
 pub mod coordination;
