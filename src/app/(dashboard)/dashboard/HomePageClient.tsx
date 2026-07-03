@@ -1092,8 +1092,7 @@ export default function HomePageClient({ machineId }: HomePageClientProps) {
                   <p className="text-text-muted mt-0.5">
                     {t.rich("step1Desc", {
                       endpoint: (chunks) => (
-                        <Link
-                          href="/dashboard/api-manager"
+                        <Link href="/dashboard/api-manager"
                           className="text-primary hover:underline"
                         >
                           {chunks}
