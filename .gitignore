@@ -19,3 +19,9 @@ Thumbs.db
 .codex/
 .gemini/
 .cursor/
+
+# Swift / Xcode build artifacts
+desktop/ShareCLITray/.build/
+
+# Git worktrees (embedded repos)
+worktrees/

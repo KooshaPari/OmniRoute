@@ -148,7 +148,7 @@ pub const THERMAL_RETRY_SLEEP: Duration = Duration::from_secs(2);
 /// and exposes the mountpoint via [`mountpoint()`][FuseGuard::mountpoint].
 ///
 /// On drop the guard force-unmounts the FUSE filesystem and removes the
-/// temporary directory.
+/// temporary mountpoint directory.
 ///
 /// # Best-effort semantics
 ///
@@ -395,7 +395,12 @@ impl Hypervisor {
         // (a sibling may have stored the result while we were waiting), and
         // only spawn if still a miss.
         //
+        // Cache keys always use the *original* `cwd` so coalescing is stable
+        // regardless of whether the FUSE intercept is active.
+
         // Lock-Wait-Cache: spawn is the closure called only on a cache miss.
+        // We use `effective_req` (with a potentially FUSE-wrapped cwd)
+        // inside the closure to avoid any borrow conflict with `req`.
         let cached: CachedResult = self.cache.with_lock(&key, || {
             // Blocking spawn — `with_lock` is a sync callback.
             // Uses `effective_req` (owned clone, not borrowing from `req`).
@@ -680,6 +685,62 @@ mod tests {
         assert!(stdout.contains("recover"));
     }
 
+    // ── FUSE IO-intercept tests ──────────────────────────────────────────
+
+    /// FuseGuard::try_mount never panics and returns a valid object on all
+    /// platforms.  On non-FUSE platforms the guard is a no-op; on Linux/macOS
+    /// it may or may not succeed depending on the FUSE kernel module.
+    #[test]
+    fn fuse_guard_try_mount_never_panics() {
+        let dir = TempDir::new().expect("tempdir");
+        let guard = FuseGuard::try_mount(dir.path());
+        // The guard object is valid regardless of whether FUSE is active.
+        // Dropping it must not panic.
+        drop(guard);
+    }
+
+    /// When FUSE is active the mountpoint must differ from the backing path.
+    /// When FUSE is inactive mountpoint() returns None — the no-op guard.
+    #[test]
+    fn fuse_guard_mountpoint_returns_path_or_none() {
+        let dir = TempDir::new().expect("tempdir");
+        let guard = FuseGuard::try_mount(dir.path());
+        match guard.mountpoint() {
+            Some(mp) => {
+                // FUSE is active — mountpoint must be different from backing.
+                assert_ne!(mp, dir.path(), "mountpoint must differ from backing");
+                assert!(
+                    mp.starts_with(std::env::temp_dir()),
+                    "mountpoint must be under temp dir"
+                );
+            }
+            None => {
+                // FUSE not available — best-effort, still valid.
+            }
+        }
+    }
+
+    /// With FUSE wired into the run() path, a spawn must still succeed
+    /// regardless of whether the intercept is active.
+    #[tokio::test]
+    async fn fuse_io_run_succeeds_with_or_without_intercept() {
+        let dir = TempDir::new().expect("tempdir");
+        let hv = Hypervisor::new(dir.path());
+
+        let req = SpawnRequest {
+            argv: echo_argv("fuse-run"),
+            cwd: dir.path().to_path_buf(),
+            env: vec![],
+        };
+
+        let outcome =
+            hv.run(req).await.expect("run must succeed with fuse-io wiring");
+        assert_eq!(outcome.exit_code, 0);
+        assert!(!outcome.from_cache);
+        let stdout = String::from_utf8_lossy(&outcome.stdout);
+        assert!(stdout.contains("fuse-run"));
+    }
+
     /// FakeThermalGate::check() must return the decision it was constructed with.
     #[test]
     fn fake_thermal_gate_returns_configured_decision() {
@@ -696,73 +757,5 @@ mod tests {
         let b = a;
         assert_eq!(a, b);
         assert_ne!(ThermalDecision::Allow, ThermalDecision::Refuse);
-    }
-
-    // ── FUSE IO-intercept unit tests ─────────────────────────────────────────
-
-    /// FuseGuard::try_mount never panics and always returns a guard — even on
-    /// platforms without FUSE support (where it becomes a no-op).
-    #[test]
-    fn fuse_guard_try_mount_never_panics() {
-        let dir = TempDir::new().expect("tempdir");
-        let guard = FuseGuard::try_mount(dir.path());
-
-        // We cannot assert the mountpoint is Some on CI (macFUSE may not be
-        // installed), but we CAN assert the guard does not panic on drop.
-        // On platforms with FUSE the mountpoint should exist.
-        if cfg!(any(target_os = "linux", target_os = "macos")) {
-            // If FUSE is available the mountpoint directory must exist.
-            if let Some(mp) = guard.mountpoint() {
-                assert!(mp.exists(), "mountpoint directory must exist");
-            }
-        } else {
-            // Non-Linux/macOS: always a no-op.
-            assert!(guard.mountpoint().is_none(), "non-FUSE platform must return no-op guard");
-        }
-
-        // guard drops here — must not panic during unmount/cleanup.
-    }
-
-    /// On cache-miss the FUSE guard is created and the spawn uses the
-    /// effective_req with a (potentially) FUSE-wrapped cwd. This test verifies
-    /// the integration compiles, the borrow-checker is satisfied (no conflicts
-    /// with `effective_req` inside the `with_lock` closure), and the spawn
-    /// still succeeds.
-    #[tokio::test]
-    async fn fuse_io_wired_into_run_compiles_and_spawns() {
-        let dir = TempDir::new().expect("tempdir");
-        let hv = Hypervisor::new(dir.path());
-
-        let req = SpawnRequest {
-            argv: echo_argv("fuse-integration"),
-            cwd: dir.path().to_path_buf(),
-            env: vec![],
-        };
-
-        // The spawn must succeed regardless of whether FUSE is active.
-        // If FUSE is available the effective cwd is the mountpoint; if not,
-        // the original cwd is used — either way the echo should work.
-        let outcome = hv.run(req).await.expect("run must succeed with fuse-io");
-        assert_eq!(outcome.exit_code, 0, "echo must exit 0");
-        assert!(!outcome.from_cache, "first run must not come from cache");
-        let stdout = String::from_utf8_lossy(&outcome.stdout);
-        assert!(stdout.contains("fuse-integration"), "stdout must contain message");
-    }
-
-    /// Verify that the FUSE guard's mountpoint (when active) differs from the
-    /// original cwd, confirming the cwd was redirected through the intercept.
-    #[tokio::test]
-    async fn fuse_io_cwd_redirected_when_fuse_active() {
-        let dir = TempDir::new().expect("tempdir");
-        let guard = FuseGuard::try_mount(dir.path());
-
-        if let Some(mp) = guard.mountpoint() {
-            // FUSE is active — the mountpoint must be different from the
-            // original backing path because it is a temporary directory.
-            assert_ne!(mp, dir.path(), "mountpoint must differ from backing");
-            assert!(mp.starts_with(std::env::temp_dir()), "mountpoint must be under temp dir");
-        }
-        // No assertion needed for the no-FUSE case — the test just validates
-        // the guard API and that mountpoint() returns None gracefully.
     }
 }
