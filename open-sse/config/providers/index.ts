@@ -42,6 +42,7 @@ import { deepseekProvider } from "./registry/deepseek/index.ts";
 import { deepseek_webProvider } from "./registry/deepseek/web/index.ts";
 import { dgridProvider } from "./registry/dgrid/index.ts";
 import { baiProvider } from "./registry/bai/index.ts";
+import { qiniuProvider } from "./registry/qiniu/index.ts";
 import { kimi_coding_apikeyProvider } from "./registry/kimi/coding-apikey/index.ts";
 import { kimi_codingProvider } from "./registry/kimi/coding/index.ts";
 import { kimiProvider } from "./registry/kimi/index.ts";
@@ -79,6 +80,7 @@ import { leonardoProvider } from "./registry/leonardo/index.ts";
 import { grok_webProvider } from "./registry/grok-web/index.ts";
 import { kieProvider } from "./registry/kie/index.ts";
 import { monsterapiProvider } from "./registry/monsterapi/index.ts";
+import { modelscopeProvider } from "./registry/modelscope/index.ts";
 import { sensenovaProvider } from "./registry/sensenova/index.ts";
 import { hyperbolicProvider } from "./registry/hyperbolic/index.ts";
 import { lambda_aiProvider } from "./registry/lambda-ai/index.ts";
@@ -215,6 +217,7 @@ export const REGISTRY: Record<string, RegistryEntry> = {
   "deepseek-web": deepseek_webProvider,
   dgrid: dgridProvider,
   bai: baiProvider,
+  qiniu: qiniuProvider,
   "kimi-coding-apikey": kimi_coding_apikeyProvider,
   "kimi-coding": kimi_codingProvider,
   kimi: kimiProvider,
@@ -252,6 +255,7 @@ export const REGISTRY: Record<string, RegistryEntry> = {
   "grok-web": grok_webProvider,
   kie: kieProvider,
   monsterapi: monsterapiProvider,
+  modelscope: modelscopeProvider,
   sensenova: sensenovaProvider,
   hyperbolic: hyperbolicProvider,
   "lambda-ai": lambda_aiProvider,

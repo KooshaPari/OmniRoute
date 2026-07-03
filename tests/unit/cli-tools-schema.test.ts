@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-test("CLI_TOOLS registry contains all expected tools (plan 14 — 28 total)", async () => {
+test("CLI_TOOLS registry contains all expected tools (plan 14 — 29 total + codewhale)", async () => {
   const { CLI_TOOLS } = await import("../../src/shared/constants/cliTools.ts");
   // windsurf and amp removed per plan 14 D17 (MITM backlog plan 11)
   // New entries added: roo, jcode, deepseek-tui, smelt, pi, aider, forge,
@@ -29,6 +29,7 @@ test("CLI_TOOLS registry contains all expected tools (plan 14 — 28 total)", as
     "roo",
     "jcode",
     "deepseek-tui",
+    "codewhale",
     "smelt",
     "pi",
     "goose",
