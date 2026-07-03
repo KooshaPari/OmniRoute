@@ -18,6 +18,7 @@
 - **e2e:** Remove orphaned testIgnore entries (analytics-tabs, protocol-visibility, skills-marketplace) whose specs no longer exist
 - **feat(server):** support reverse-proxy subpath deployment via OMNIROUTE_BASE_PATH (basePath-aware auth redirects). (thanks @SillyHippy)
 - **feat(api-keys):** track devices/connections per API key — an in-memory, TTL-evicted device fingerprint tracker (SHA-256 of masked IP + truncated user-agent) wired non-blocking into the chat path and surfaced via `GET /api/keys/[id]/devices` with a dashboard device-count chip. (thanks @mugnimaestra)
+- **feat(proxy):** add Webshare proxy pool import and sync — a `WebshareProvider` (`FreeProxyProvider`) that paginates `proxy.webshare.io/api/v2/proxy/list/` gated on `FREE_PROXY_WEBSHARE_API_KEY`, SSRF-guards imported hosts, and tombstones retired proxy IDs via `pruneStaleFreeProxies()`. (thanks @ricatix)
 
 ### 🔧 Bug Fixes
 
