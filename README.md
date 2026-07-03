@@ -60,6 +60,93 @@ sharecli optimize
 sharecli prune --idle 30m --dry-run
 ```
 
+## Install / Launch the Tray
+
+Download the latest release archive from the [Releases page](https://github.com/KooshaPari/sharecli/releases) — no build tools required.
+
+### macOS (Apple Silicon)
+
+```bash
+# Download
+curl -LO https://github.com/KooshaPari/sharecli/releases/latest/download/sharecli-macos-arm64.tar.gz
+
+# Extract
+tar xzf sharecli-macos-arm64.tar.gz
+
+# Install CLI to PATH
+sudo cp sharecli-macos-arm64/sharecli /usr/local/bin/
+sudo cp sharecli-macos-arm64/sharecli-ipc /usr/local/bin/
+
+# Launch the tray
+open sharecli-macos-arm64/ShareCLITray.app
+
+# Or copy the .app to Applications for permanent install
+cp -R sharecli-macos-arm64/ShareCLITray.app /Applications/
+```
+
+### macOS (Intel)
+
+```bash
+curl -LO https://github.com/KooshaPari/sharecli/releases/latest/download/sharecli-macos-x86_64.tar.gz
+tar xzf sharecli-macos-x86_64.tar.gz
+sudo cp sharecli-macos-x86_64/sharecli /usr/local/bin/
+open sharecli-macos-x86_64/ShareCLITray.app
+```
+
+### Linux (x86_64)
+
+```bash
+# Download
+curl -LO https://github.com/KooshaPari/sharecli/releases/latest/download/sharecli-linux-x86_64.tar.gz
+
+# Extract
+tar xzf sharecli-linux-x86_64.tar.gz
+
+# Install CLI to PATH
+sudo cp sharecli-linux-x86_64/sharecli /usr/local/bin/
+sudo cp sharecli-linux-x86_64/sharecli-ipc /usr/local/bin/
+
+# Launch the tray (StatusNotifierItem / AppIndicator)
+./sharecli-linux-x86_64/sharecli-tray
+
+# Or install the tray for auto-start
+sudo cp sharecli-linux-x86_64/sharecli-tray /usr/local/bin/
+```
+
+> **Note:** The Linux tray requires a StatusNotifierItem host (GNOME, KDE, or via `snixembed`/`trayer` on other WMs). Run `sharecli-ipc` first in the background to provide the data socket.
+
+### Windows (x86_64)
+
+```powershell
+# Download (PowerShell)
+Invoke-WebRequest -Uri https://github.com/KooshaPari/sharecli/releases/latest/download/sharecli-windows-x64.zip -OutFile sharecli-windows-x64.zip
+
+# Extract
+Expand-Archive -Path sharecli-windows-x64.zip -DestinationPath sharecli-windows-x64
+
+# Install CLI to PATH
+# (Add sharecli-windows-x64 to your PATH environment variable)
+
+# Launch the WinUI 3 tray
+.\sharecli-windows-x64\ShareCLITray.exe
+```
+
+### Windows (arm64)
+
+```powershell
+Invoke-WebRequest -Uri https://github.com/KooshaPari/sharecli/releases/latest/download/sharecli-windows-arm64.zip -OutFile sharecli-windows-arm64.zip
+Expand-Archive -Path sharecli-windows-arm64.zip -DestinationPath sharecli-windows-arm64
+```
+
+### Verify the install
+
+```bash
+sharecli --version
+sharecli status
+```
+
+Each archive ships with a `VERSION` file matching the git tag.
+
 ## Commands
 
 | Command | Description |

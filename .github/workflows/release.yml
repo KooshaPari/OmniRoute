@@ -1,63 +1,353 @@
+# ============================================================================
+# Release Pipeline — cargo-dist + platform tray clients
+# ============================================================================
+# Triggered by any tag matching `v*`.  Builds:
+#   Linux  · sharecli CLI + sharecli-tray (ksni) + sharecli-ipc daemon → .tar.gz
+#   macOS  · sharecli CLI + sharecli-ipc daemon + ShareCLITray.app     → .tar.gz
+#   Windows· sharecli CLI + sharecli-ipc daemon + ShareCLITray.exe     → .zip
+#
+# The Rust binaries use the standard release profile (LTO, stripped).
+# For the tray clients that live outside Cargo (Swift .app, WinUI 3 .exe)
+# separate build steps run after the Rust workspace finishes.
+# ============================================================================
+
 name: Release
 
 on:
   push:
     tags:
-      - 'v*'
+      - "v*"
 
 permissions:
   contents: write
 
+env:
+  CARGO_TERM_COLOR: always
+
+# ---------------------------------------------------------------------------
+# Reusable composite action: build Rust workspace for a given target triple
+# ---------------------------------------------------------------------------
 jobs:
-  build:
-    name: Build ${{ matrix.target }}
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        include:
-          - os: ubuntu-22.04
-            target: x86_64-unknown-linux-gnu
-            artifact: sharecli-linux-x86_64
-          - os: macos-14
-            target: aarch64-apple-darwin
-            artifact: sharecli-macos-arm64
-
-    steps:
-      - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@stable
-        with:
-          targets: ${{ matrix.target }}
-      - name: Build
-        env:
-          CARGO_NET_OFFLINE: "false"
-        run: cargo build --release --bin sharecli --target ${{ matrix.target }}
-      - name: Rename artifact
-        run: |
-          cp target/${{ matrix.target }}/release/sharecli ${{ matrix.artifact }}
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: ${{ matrix.artifact }}
-          path: ${{ matrix.artifact }}
-
-  release:
-    name: Create Release
-    needs: build
+  # ── Linux (x86_64) ────────────────────────────────────────────────────
+  linux:
+    name: linux-x86_64
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/download-artifact@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: x86_64-unknown-linux-gnu
+
+      - name: Install Zig (spawn-core build dependency)
+        uses: mlugg/setup-zig@v1
+        with:
+          version: 0.14.1
+
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Build Rust workspace (release)
+        run: cargo build --release --target x86_64-unknown-linux-gnu
+
+      - name: Stage artifacts
+        run: |
+          mkdir -p staging/sharecli-linux-x86_64
+          # CLI binary
+          cp target/x86_64-unknown-linux-gnu/release/sharecli \
+             staging/sharecli-linux-x86_64/
+          # IPC daemon
+          cp target/x86_64-unknown-linux-gnu/release/sharecli-ipc \
+             staging/sharecli-linux-x86_64/ 2>/dev/null || true
+          # Linux tray (ksni)
+          cp target/x86_64-unknown-linux-gnu/release/sharecli-tray \
+             staging/sharecli-linux-x86_64/ 2>/dev/null || true
+          # Fleet (if built)
+          cp target/x86_64-unknown-linux-gnu/release/sharecli-fleet \
+             staging/sharecli-linux-x86_64/ 2>/dev/null || true
+          # Version marker
+          echo "${{ github.ref_name }}" > staging/sharecli-linux-x86_64/VERSION
+
+      - name: Build Linux installer archive
+        run: |
+          cd staging
+          tar czf ../sharecli-linux-x86_64.tar.gz sharecli-linux-x86_64/
+          cd ..
+          ls -lh sharecli-linux-x86_64.tar.gz
+
+      - name: Upload Linux archive
+        uses: actions/upload-artifact@v4
+        with:
+          name: sharecli-linux-x86_64
+          path: sharecli-linux-x86_64.tar.gz
+          if-no-files-found: error
+
+  # ── macOS (arm64) ─────────────────────────────────────────────────────
+  macos-arm64:
+    name: macos-arm64
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-apple-darwin
+
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Build Rust workspace (release)
+        run: cargo build --release --target aarch64-apple-darwin
+
+      - name: Build macOS Swift tray
+        run: |
+          # The Swift tray links libsharecli_ffi at runtime via rpath.
+          # `cargo build --release` above already produced the dylib.
+          cd desktop/ShareCLITray
+          xcrun swift build \
+            -c release \
+            -Xlinker "-L${{ github.workspace }}/target/aarch64-apple-darwin/release" \
+            -Xlinker "-lsharecli_ffi" \
+            -Xlinker "-rpath" \
+            -Xlinker "@executable_path/../Frameworks"
+
+      - name: Stage artifacts
+        run: |
+          mkdir -p staging/sharecli-macos-arm64
+          # CLI binary
+          cp target/aarch64-apple-darwin/release/sharecli \
+             staging/sharecli-macos-arm64/
+          # IPC daemon
+          cp target/aarch64-apple-darwin/release/sharecli-ipc \
+             staging/sharecli-macos-arm64/ 2>/dev/null || true
+          # Rust FFI dylib (needed by the Swift app at runtime)
+          cp target/aarch64-apple-darwin/release/libsharecli_ffi.dylib \
+             staging/sharecli-macos-arm64/ 2>/dev/null || true
+          # Swift tray .app bundle
+          SWIFT_BUILD_DIR="desktop/ShareCLITray/.build/release"
+          if [ -d "$SWIFT_BUILD_DIR/ShareCLITray.app" ]; then
+            cp -R "$SWIFT_BUILD_DIR/ShareCLITray.app" \
+              staging/sharecli-macos-arm64/
+          fi
+          # Version marker
+          echo "${{ github.ref_name }}" > staging/sharecli-macos-arm64/VERSION
+
+      - name: Build macOS installer archive
+        run: |
+          cd staging
+          tar czf ../sharecli-macos-arm64.tar.gz sharecli-macos-arm64/
+          cd ..
+          ls -lh sharecli-macos-arm64.tar.gz
+
+      - name: Upload macOS archive
+        uses: actions/upload-artifact@v4
+        with:
+          name: sharecli-macos-arm64
+          path: sharecli-macos-arm64.tar.gz
+          if-no-files-found: error
+
+  # ── macOS (x86_64 / Intel) ────────────────────────────────────────────
+  macos-x64:
+    name: macos-x86_64
+    runs-on: macos-13
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: x86_64-apple-darwin
+
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Build Rust workspace (release)
+        run: cargo build --release --target x86_64-apple-darwin
+
+      - name: Build macOS Swift tray (Intel)
+        run: |
+          cd desktop/ShareCLITray
+          xcrun swift build \
+            -c release \
+            -Xlinker "-L${{ github.workspace }}/target/x86_64-apple-darwin/release" \
+            -Xlinker "-lsharecli_ffi" \
+            -Xlinker "-rpath" \
+            -Xlinker "@executable_path/../Frameworks"
+
+      - name: Stage artifacts
+        run: |
+          mkdir -p staging/sharecli-macos-x86_64
+          cp target/x86_64-apple-darwin/release/sharecli \
+             staging/sharecli-macos-x86_64/
+          cp target/x86_64-apple-darwin/release/sharecli-ipc \
+             staging/sharecli-macos-x86_64/ 2>/dev/null || true
+          cp target/x86_64-apple-darwin/release/libsharecli_ffi.dylib \
+             staging/sharecli-macos-x86_64/ 2>/dev/null || true
+          SWIFT_BUILD_DIR="desktop/ShareCLITray/.build/release"
+          if [ -d "$SWIFT_BUILD_DIR/ShareCLITray.app" ]; then
+            cp -R "$SWIFT_BUILD_DIR/ShareCLITray.app" \
+              staging/sharecli-macos-x86_64/
+          fi
+          echo "${{ github.ref_name }}" > staging/sharecli-macos-x86_64/VERSION
+
+      - name: Build macOS installer archive (Intel)
+        run: |
+          cd staging
+          tar czf ../sharecli-macos-x86_64.tar.gz sharecli-macos-x86_64/
+          cd ..
+          ls -lh sharecli-macos-x86_64.tar.gz
+
+      - name: Upload macOS Intel archive
+        uses: actions/upload-artifact@v4
+        with:
+          name: sharecli-macos-x86_64
+          path: sharecli-macos-x86_64.tar.gz
+          if-no-files-found: error
+
+  # ── Windows (x86_64) ──────────────────────────────────────────────────
+  windows-x64:
+    name: windows-x86_64
+    runs-on: windows-2022
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: x86_64-pc-windows-msvc
+
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Build Rust workspace (release)
+        run: cargo build --release --target x86_64-pc-windows-msvc
+
+      - name: Build WinUI 3 tray
+        run: |
+          dotnet build windows/ShareCLITray/ShareCLITray.csproj `
+            -c Release `
+            -r win-x64 `
+            --self-contained
+
+      - name: Stage artifacts
+        run: |
+          New-Item -ItemType Directory -Force -Path staging/sharecli-windows-x64
+          # CLI binary
+          Copy-Item "target/x86_64-pc-windows-msvc/release/sharecli.exe" `
+            "staging/sharecli-windows-x64/"
+          Copy-Item "target/x86_64-pc-windows-msvc/release/sharecli-ipc.exe" `
+            "staging/sharecli-windows-x64/" -ErrorAction SilentlyContinue
+          # WinUI 3 tray
+          $trayPath = "windows/ShareCLITray/bin/Release/net8.0-windows10.0.19041.0/win-x64"
+          if (Test-Path $trayPath) {
+            Copy-Item -Recurse "$trayPath/*" "staging/sharecli-windows-x64/"
+          }
+          # Version marker
+          "${{ github.ref_name }}" | Out-File -Encoding utf8 `
+            "staging/sharecli-windows-x64/VERSION"
+
+      - name: Build Windows installer archive
+        run: |
+          Compress-Archive -Path staging/sharecli-windows-x64/* `
+            -DestinationPath sharecli-windows-x64.zip
+          Get-Item sharecli-windows-x64.zip
+
+      - name: Upload Windows archive
+        uses: actions/upload-artifact@v4
+        with:
+          name: sharecli-windows-x64
+          path: sharecli-windows-x64.zip
+          if-no-files-found: error
+
+  # ── Windows (arm64) ───────────────────────────────────────────────────
+  windows-arm64:
+    name: windows-arm64
+    runs-on: windows-2022
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-pc-windows-msvc
+
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Build Rust workspace (release)
+        run: cargo build --release --target aarch64-pc-windows-msvc
+
+      - name: Build WinUI 3 tray (arm64)
+        run: |
+          dotnet build windows/ShareCLITray/ShareCLITray.csproj `
+            -c Release `
+            -r win-arm64 `
+            --self-contained
+
+      - name: Stage artifacts
+        run: |
+          New-Item -ItemType Directory -Force -Path staging/sharecli-windows-arm64
+          Copy-Item "target/aarch64-pc-windows-msvc/release/sharecli.exe" `
+            "staging/sharecli-windows-arm64/"
+          Copy-Item "target/aarch64-pc-windows-msvc/release/sharecli-ipc.exe" `
+            "staging/sharecli-windows-arm64/" -ErrorAction SilentlyContinue
+          $trayPath = "windows/ShareCLITray/bin/Release/net8.0-windows10.0.19041.0/win-arm64"
+          if (Test-Path $trayPath) {
+            Copy-Item -Recurse "$trayPath/*" "staging/sharecli-windows-arm64/"
+          }
+          "${{ github.ref_name }}" | Out-File -Encoding utf8 `
+            "staging/sharecli-windows-arm64/VERSION"
+
+      - name: Build Windows installer archive (arm64)
+        run: |
+          Compress-Archive -Path staging/sharecli-windows-arm64/* `
+            -DestinationPath sharecli-windows-arm64.zip
+          Get-Item sharecli-windows-arm64.zip
+
+      - name: Upload Windows arm64 archive
+        uses: actions/upload-artifact@v4
+        with:
+          name: sharecli-windows-arm64
+          path: sharecli-windows-arm64.zip
+          if-no-files-found: error
+
+  # ── GitHub Release (gathers all platform archives) ────────────────────
+  release:
+    name: Publish Release
+    needs:
+      - linux
+      - macos-arm64
+      - macos-x64
+      - windows-x64
+      - windows-arm64
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
         with:
           path: artifacts/
           merge-multiple: true
+
       - name: Create checksums
         run: |
           cd artifacts
-          sha256sum sharecli-* > checksums.txt
+          ls -lh
+          sha256sum sharecli-*.* > checksums.txt
           cat checksums.txt
-      - name: Publish release
+
+      - name: Publish Release
         uses: softprops/action-gh-release@v2
         with:
+          tag_name: ${{ github.ref_name }}
+          name: ShareCLI ${{ github.ref_name }}
+          body_path: CHANGELOG.md
           files: |
             artifacts/sharecli-*
             artifacts/checksums.txt

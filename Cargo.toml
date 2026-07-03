@@ -60,3 +60,25 @@ members = [
     "crates/sharecli-fuse",
     "crates/sharecli-core",
 ]
+
+# ---------------------------------------------------------------------------
+# cargo-dist release automation
+# ---------------------------------------------------------------------------
+# This section is consumed by `cargo dist` and the release workflow to
+# produce per-platform binaries + installer archives for the CLI and the
+# Linux tray.  The macOS Swift tray and Windows WinUI 3 tray are assembled
+# by separate steps in the workflow (they are not cargo crates).
+[workspace.metadata.dist]
+dist = true
+targets = [
+    "aarch64-apple-darwin",
+    "x86_64-apple-darwin",
+    "x86_64-unknown-linux-gnu",
+    "x86_64-pc-windows-msvc",
+    "aarch64-pc-windows-msvc",
+]
+# Apps built by cargo-dist (all Rust workspace binaries we ship).
+# The Swift tray + WinUI 3 tray are added by the workflow.
+ci = ["github"]
+hosting = ["github"]
+app-local = ["sharecli", "sharecli-ipc", "sharecli-tray-linux"]
