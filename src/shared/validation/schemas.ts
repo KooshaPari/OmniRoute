@@ -2343,6 +2343,7 @@ export const v1SearchSchema = z
         "youcom-search",
         "searxng-search",
         "zai-search",
+        "duckduckgo-free",
       ])
       .optional(),
     max_results: z.coerce.number().int().min(1).max(100).default(5),
