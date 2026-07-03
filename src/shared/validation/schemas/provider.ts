@@ -206,8 +206,8 @@ export const removeModelAliasSchema = z.object({
 
 export const createProviderNodeSchema = z
   .object({
-    name: z.string().trim().min(1, "Name is required"),
-    prefix: z.string().trim().min(1, "Prefix is required"),
+    name: z.string().trim().min(1, "Name is required").optional(),
+    prefix: z.string().trim().min(1, "Prefix is required").optional(),
     apiType: z
       .enum([
         "chat",
@@ -221,6 +221,7 @@ export const createProviderNodeSchema = z
     baseUrl: z.string().trim().min(1).optional(),
     type: z.enum(["openai-compatible", "anthropic-compatible"]).optional(),
     compatMode: z.enum(["cc"]).optional(),
+    preset: z.enum(["vibeproxy-openai"]).optional(),
     chatPath: z.string().trim().startsWith("/").max(500).optional().or(z.literal("")),
     modelsPath: z.string().trim().startsWith("/").max(500).optional().or(z.literal("")),
     // #2166: optional operator-supplied remote icon URL for the provider node. Empty
@@ -232,7 +233,35 @@ export const createProviderNodeSchema = z
   })
   .superRefine((value, ctx) => {
     const nodeType = value.type || "openai-compatible";
-    if (nodeType === "openai-compatible" && !value.apiType) {
+    if (!value.preset && !value.name) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Name is required",
+        path: ["name"],
+      });
+    }
+    if (!value.preset && !value.prefix) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Prefix is required",
+        path: ["prefix"],
+      });
+    }
+    if (value.preset && !value.baseUrl) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Base URL is required for provider preset",
+        path: ["baseUrl"],
+      });
+    }
+    if (value.preset && value.type && value.type !== "openai-compatible") {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Provider preset requires an OpenAI compatible node",
+        path: ["type"],
+      });
+    }
+    if (nodeType === "openai-compatible" && !value.apiType && !value.preset) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         message: "Invalid OpenAI compatible API type",

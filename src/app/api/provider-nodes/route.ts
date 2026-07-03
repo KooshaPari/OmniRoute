@@ -19,6 +19,19 @@ const ANTHROPIC_COMPATIBLE_DEFAULTS = {
   baseUrl: "https://api.anthropic.com/v1",
 };
 
+const PROVIDER_NODE_PRESETS = {
+  "vibeproxy-openai": {
+    name: "VibeProxy",
+    prefix: "vibeproxy",
+    type: "openai-compatible",
+    apiType: "chat",
+    chatPath: "/chat/completions",
+    modelsPath: "/models",
+  },
+} as const;
+
+type ProviderNodePresetId = keyof typeof PROVIDER_NODE_PRESETS;
+
 function sanitizeAnthropicBaseUrl(baseUrl: string) {
   return (baseUrl || "")
     .trim()
@@ -31,6 +44,30 @@ function sanitizeClaudeCodeCompatibleBaseUrl(baseUrl: string) {
     .trim()
     .replace(/\/$/, "")
     .replace(/\/(?:v\d+\/)?messages(?:\?[^#]*)?$/i, "");
+}
+
+function normalizeOpenAICompatibleBaseUrl(baseUrl: string) {
+  return (baseUrl || "")
+    .trim()
+    .replace(/\/+$/, "")
+    .replace(/\/(?:chat\/completions|responses)(?:\?[^#]*)?$/i, "");
+}
+
+function applyProviderNodePreset(data: any) {
+  const presetId = data?.preset as ProviderNodePresetId | undefined;
+  const preset = presetId ? PROVIDER_NODE_PRESETS[presetId] : null;
+  if (!preset) return data;
+
+  return {
+    ...data,
+    name: data.name || preset.name,
+    prefix: data.prefix || preset.prefix,
+    type: data.type || preset.type,
+    apiType: data.apiType || preset.apiType,
+    baseUrl: data.baseUrl ? normalizeOpenAICompatibleBaseUrl(data.baseUrl) : data.baseUrl,
+    chatPath: data.chatPath || preset.chatPath,
+    modelsPath: data.modelsPath || preset.modelsPath,
+  };
 }
 
 // GET /api/provider-nodes - List all provider nodes
@@ -69,6 +106,7 @@ export async function POST(request) {
     if (isValidationFailure(validation)) {
       return NextResponse.json({ error: validation.error }, { status: 400 });
     }
+    const resolvedData = applyProviderNodePreset(validation.data);
     const {
       name,
       prefix,
@@ -80,7 +118,7 @@ export async function POST(request) {
       modelsPath,
       customHeaders,
       iconUrl,
-    } = validation.data;
+    } = resolvedData;
 
     // Determine type
     const nodeType = type || "openai-compatible";
