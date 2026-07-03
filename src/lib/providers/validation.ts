@@ -3553,6 +3553,22 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
   // ── Specialty provider validation ──
   const SPECIALTY_VALIDATORS = {
     jules: validateJulesProvider,
+    // auggie is a fully local, credential-less CLI passthrough; there is no API
+    // key to check upstream. Confirm the local CLI is installed and runnable.
+    auggie: async () => {
+      const { checkAuggieCliVersion } = await import(
+        "@omniroute/open-sse/executors/auggie.ts"
+      );
+      const result = await checkAuggieCliVersion();
+      if (!result.ok) {
+        return {
+          valid: false,
+          error: result.error || "Auggie CLI not found. Install it and run `auggie login`.",
+          unsupported: false,
+        };
+      }
+      return { valid: true, error: null, unsupported: false, method: result.version };
+    },
     qoder: ({ apiKey, providerSpecificData }: any) =>
       validateQoderCliPat({ apiKey, providerSpecificData }),
     "command-code": validateCommandCodeProvider,
