@@ -89,6 +89,9 @@ test("next config declares Turbopack aliases, runtime assets and server external
 
   for (const packageName of [
     "thread-stream",
+    "ws",
+    "bufferutil",
+    "utf-8-validate",
     "better-sqlite3",
     // sqlite-vec ships a native vec0.so loaded at runtime; without externalizing it
     // the Turbopack build fails with "Unknown module type" on the .so (issue #3066).

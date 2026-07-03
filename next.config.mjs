@@ -178,6 +178,11 @@ const nextConfig = {
     "pino-pretty",
     "thread-stream",
     "pino-abstract-transport",
+    // `ws` must stay external so server-side WebSocket executors keep the real
+    // native masking implementation and optional helpers in the runtime bundle.
+    "ws",
+    "bufferutil",
+    "utf-8-validate",
     "better-sqlite3",
     // sqlite-vec ships a native vec0.so loaded at runtime via createRequire().
     // Turbopack otherwise tries to bundle the .so and fails with "Unknown module
