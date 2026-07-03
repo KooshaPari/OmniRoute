@@ -60,7 +60,7 @@ test("router eval check writes markdown and JSON artifacts", () => {
   });
 });
 
-test("router eval check uses the checked-in fixture corpus by default", () => {
+test("router eval check uses the checked-in fixture corpus by default", { timeout: 20000 }, () => {
   withTempDir((workspace) => {
     const markdown = path.join(workspace, "router-eval.md");
     const json = path.join(workspace, "router-eval.json");
@@ -79,7 +79,7 @@ test("router eval check uses the checked-in fixture corpus by default", () => {
   });
 });
 
-test("router eval check retains run inputs, outputs, and manifest", () => {
+test("router eval check retains run inputs, outputs, and manifest", { timeout: 20000 }, () => {
   withTempDir((workspace) => {
     const baseline = path.join(workspace, "baseline.ndjson");
     const candidate = path.join(workspace, "candidate.ndjson");

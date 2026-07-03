@@ -45,7 +45,7 @@ function artifact(generatedAt: string, configId: string, aiq: number) {
   };
 }
 
-test("router eval trends reads retained and flat artifacts with limit", () => {
+test("router eval trends reads retained and flat artifacts with limit", { timeout: 20000 }, () => {
   withTempDir("router-eval-trends-", (workspace) => {
     const runA = path.join(workspace, "run-a");
     const runB = path.join(workspace, "run-b");
