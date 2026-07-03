@@ -1292,6 +1292,9 @@ export function checkFallbackError(
    * circuit-breaker failure when this flag is set. */
   skipProviderBreaker?: boolean;
   quotaResetHintMs?: number;
+  /** #6061: the provider-configured cooldown (ms) before backoff scaling, surfaced so the
+   * caller can persist an explicit reset window instead of the engine's scaled cooldown. */
+  configuredCooldownMs?: number;
 } {
   // G-02: detect embedded service supervisor failures (X-Omni-Fallback-Hint: connection_cooldown).
   // These are NOT upstream AI provider failures — they are local supervisor state changes.
