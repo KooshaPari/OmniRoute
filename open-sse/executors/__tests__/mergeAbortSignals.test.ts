@@ -10,6 +10,7 @@ describe("mergeAbortSignals", () => {
     const merged = mergeAbortSignals(a.signal, b.signal);
     expect(merged).toBeDefined();
     expect(merged?.aborted).toBe(true);
+    expect(merged?.reason).toBe(a.signal.reason);
   });
 
   it("returns a fresh composite signal when both inputs are fresh", () => {
@@ -25,6 +26,7 @@ describe("mergeAbortSignals", () => {
     const upstream = new AbortController();
     const downstream = new AbortController();
     const merged = mergeAbortSignals(upstream.signal, downstream.signal)!;
+    expect(merged).toBeInstanceOf(AbortSignal);
     expect(merged.aborted).toBe(false);
     upstream.abort();
     expect(merged.aborted).toBe(true);
@@ -66,6 +68,7 @@ describe("mergeAbortSignals", () => {
     const fresh = new AbortController();
     const merged = mergeAbortSignals(aborted.signal, fresh.signal);
     expect(merged).not.toBe(aborted.signal);
+    expect(merged?.aborted).toBe(true);
     expect(merged?.reason).toBeInstanceOf(Error);
   });
 });

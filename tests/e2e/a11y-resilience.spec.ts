@@ -36,7 +36,9 @@ test.describe("A11y — Resilience Routes", () => {
     await page.waitForLoadState("networkidle");
 
     await page.keyboard.press("Tab");
-    await expect(page.locator("a[href], button").first()).toBeFocused();
+    const firstActionable = page.locator("a[href], button").first();
+    await expect(firstActionable).toBeVisible();
+    await expect(firstActionable).toBeFocused();
   });
 
   test("status page exposes live region during loading or status section after load", async ({
