@@ -89,6 +89,7 @@ import { logAuditEvent } from "../../lib/compliance/index";
 import { enforceApiKeyPolicy } from "../../shared/utils/apiKeyPolicy";
 import { cloneLogPayload } from "@/lib/logPayloads";
 import { handleInternalUsageCommand } from "@/lib/usage/internalUsageCommand";
+import { shouldPersistUnavailableStateForComboFailure } from "../services/unavailableStatePolicy";
 import {
   applyTaskAwareRouting,
   getTaskRoutingConfig,
@@ -1597,11 +1598,12 @@ async function handleSingleModelChat(
             model,
             providerProfile,
             {
-              persistUnavailableState: !(
-                isCombo &&
-                result.status === 429 &&
-                (failureKind === "rate_limit" || failureKind === "transient")
-              ),
+              persistUnavailableState: shouldPersistUnavailableStateForComboFailure({
+                isCombo,
+                provider,
+                status: result.status,
+                failureKind,
+              }),
               isCombo,
             }
           );
