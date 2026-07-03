@@ -9,7 +9,7 @@ use anyhow::{anyhow, bail, Result};
 
 use crate::cast::{
     caster::{Caster, ClipboardCaster, GhosttyCaster, RetryCaster, SendOutcome, SshWinTermCaster, WeztermCaster},
-    Host, PaneAddress, PaneRegistry,
+    PaneAddress, PaneRegistry,
 };
 
 /// Register a new pane. `cast register <name> <address>`.

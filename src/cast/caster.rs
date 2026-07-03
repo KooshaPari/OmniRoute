@@ -125,7 +125,7 @@ impl MockProcessRunner {
         cmds: &[(&str, &[&str])],
         outputs: Vec<io::Result<std::process::Output>>,
     ) -> Self {
-        let mut r = Self::new();
+        let r = Self::new();
         for (bin, args) in cmds {
             r.commands
                 .lock()

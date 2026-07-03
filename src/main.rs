@@ -233,11 +233,6 @@ fn is_no_color() -> bool {
     std::env::var("NO_COLOR").is_ok_and(|v| !v.is_empty())
 }
 
-/// Returns true when the NO_COLOR environment variable is set (per https://no-color.org).
-fn is_no_color() -> bool {
-    std::env::var("NO_COLOR").is_ok_and(|v| !v.is_empty())
-}
-
 #[tokio::main]
 async fn main() -> Result<()> {
     let cli = Cli::parse();
