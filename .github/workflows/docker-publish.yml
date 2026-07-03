@@ -28,10 +28,6 @@ on:
         type: boolean
         default: false
 
-permissions:
-  contents: read
-  packages: write
-
 jobs:
   prepare:
     name: Resolve Docker release metadata
@@ -203,6 +199,9 @@ jobs:
       - build
     if: needs.prepare.outputs.skip != 'true'
     runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      packages: write
     env:
       IMAGE_NAME: diegosouzapw/omniroute
       GHCR_IMAGE_NAME: ghcr.io/diegosouzapw/omniroute
