@@ -1,6 +1,6 @@
 services:
   loadbalancer:
-    image: caddy:2-latest
+    image: caddy:2
     container_name: omniroute-lb
     ports:
       - "20128:20128"
