@@ -4082,6 +4082,8 @@
     "nameLabel": "Name",
     "prefixLabel": "Prefix",
     "baseUrlLabel": "Base URL",
+    "iconUrlLabel": "Icon URL",
+    "iconUrlHint": "Optional image URL used as this provider's icon in the dashboard.",
     "apiTypeLabel": "API Type",
     "prefixHint": "Required. Unique prefix for model names.",
     "nameHint": "Required. A friendly label for this node.",
@@ -5978,6 +5980,12 @@
           "empty": "No prefixes configured. Bypass effectively off."
         },
         "cli_tools_runtime_note": "Spawn-capable prefix. Compile-time deny; cannot be made bypassable. Shown read-only."
+      },
+      "cors": {
+        "wildcard": {
+          "title": "Wildcard CORS origins",
+          "desc": "Wildcard origins can expose protected routes to unintended hosts. Prefer explicit origins for production access."
+        }
       },
       "password": {
         "prompt": {
