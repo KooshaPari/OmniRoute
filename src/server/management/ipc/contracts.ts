@@ -32,6 +32,11 @@ export type ManagementIpcEndpoint = {
   address: string;
 };
 
+function runtimeSocketPath(): string {
+  const runtimeDir = process.env.XDG_RUNTIME_DIR || process.env.TMPDIR || "/tmp";
+  return `${runtimeDir.replace(/\/$/, "")}/omniroute/daemon.sock`;
+}
+
 export function defaultManagementIpcEndpoint(platform = process.platform): ManagementIpcEndpoint {
   if (platform === "win32") {
     return {
@@ -45,7 +50,7 @@ export function defaultManagementIpcEndpoint(platform = process.platform): Manag
     return {
       platform: "darwin",
       transport: "unix-socket",
-      address: "/tmp/omniroute-daemon.sock",
+      address: runtimeSocketPath(),
     };
   }
 
@@ -53,13 +58,13 @@ export function defaultManagementIpcEndpoint(platform = process.platform): Manag
     return {
       platform: "linux",
       transport: "unix-socket",
-      address: `${process.env.XDG_RUNTIME_DIR || "/tmp"}/omniroute/daemon.sock`,
+      address: runtimeSocketPath(),
     };
   }
 
   return {
     platform: "fallback",
     transport: "loopback-http",
-    address: "http://localhost:20128/api/management",
+    address: "http://127.0.0.1:20128/api/management/rpc",
   };
 }

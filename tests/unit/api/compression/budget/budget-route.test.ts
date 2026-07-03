@@ -25,7 +25,7 @@ describe("POST /api/compression/budget", () => {
     const { status, body } = await postJson({ currentBudget: 1024 });
 
     assert.equal(status, 400);
-    assert.equal(body.error, "currentBudget and additionalTokens are required numbers");
+    assert.equal(body.error, "currentBudget and additionalTokens are required non-negative numbers");
   });
 
   test("accepts a valid budget top-up body", async () => {

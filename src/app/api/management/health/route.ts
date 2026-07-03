@@ -34,7 +34,7 @@ export async function GET(request: Request) {
   } catch (error) {
     checks.ping = {
       status: "error",
-      error: error instanceof Error ? error.message : String(error),
+      error: "db_ping_failed",
     };
   }
 
@@ -46,7 +46,7 @@ export async function GET(request: Request) {
   } catch (error) {
     checks.database = {
       status: "degraded",
-      error: error instanceof Error ? error.message : String(error),
+      error: "db_health_check_failed",
     };
   }
 

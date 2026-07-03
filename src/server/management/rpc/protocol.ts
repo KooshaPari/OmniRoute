@@ -21,6 +21,15 @@ export function decodeManagementRpcFrame(frame: string): ManagementRpcFrame {
   if (decoded.protocol !== "omniroute.management.rpc" || decoded.version !== 1) {
     throw new Error("Unsupported OmniRoute management RPC frame");
   }
+  if (!decoded.request || typeof decoded.request !== "object") {
+    throw new Error("Invalid OmniRoute management RPC request");
+  }
+  if (typeof decoded.request.id !== "string" || decoded.request.id.length === 0) {
+    throw new Error("Invalid OmniRoute management RPC request id");
+  }
+  if (typeof decoded.request.command !== "string" || decoded.request.command.length === 0) {
+    throw new Error("Invalid OmniRoute management RPC command");
+  }
   return decoded;
 }
 

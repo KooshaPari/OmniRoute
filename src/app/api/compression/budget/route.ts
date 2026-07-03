@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
-import { getDefaultThinkingBudget } from '@omniroute/open-sse/services/thinkingBudget';
-import { capThinkingBudget } from '@/lib/modelCapabilities';
+import { capThinkingBudget, getDefaultThinkingBudget } from '@/lib/modelCapabilities';
 
 const budgetTopUpSchema = z.object({
   currentBudget: z.number().finite().nonnegative(),

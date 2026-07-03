@@ -30,8 +30,8 @@ export async function GET(request: Request) {
         timestamp: new Date().toISOString(),
         data: {
           service: "omniroute-management-events",
-          transports: ["sse", "websocket-planned", "local-rpc-planned"],
-          status: "ready",
+          transports: ["sse-heartbeat"],
+          status: "heartbeat-only",
         },
       });
 
