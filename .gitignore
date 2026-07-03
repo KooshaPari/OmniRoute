@@ -94,6 +94,7 @@ test_output.log
 antigravity-manager-analysis/
 .sisyphus/
 .plans/
+artifacts/router-eval/
 
 # open-sse tests
 open-sse/test/*
