@@ -29,7 +29,6 @@ export function App() {
   const routePlan = useMemo(() => tabs.map((tab) => `/api/management/${tab.id}`), []);
 
   useEffect(() => {
-    setStatus("loading");
     fetchManagement<Record<string, unknown>>(active.id).then((result) => {
       setStatus(result.ok ? "online" : "needs facade");
       setPayload(JSON.stringify(result, null, 2));

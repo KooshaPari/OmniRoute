@@ -19,6 +19,7 @@ env:
   CI_NODE_VERSION: "24"
   CI_NODE_24_VERSION: "24"
   CI_NODE_26_VERSION: "26"
+  ZIZMOR_VERSION: "1.16.3"
 
 jobs:
   changes:
@@ -298,8 +299,10 @@ jobs:
           install -m 0755 /tmp/osv/*linux_amd64 "$HOME/.local/bin/osv-scanner"
           # actionlint — official download script
           bash <(curl -fsSL https://raw.githubusercontent.com/rhysd/actionlint/main/scripts/download-actionlint.bash) latest "$HOME/.local/bin"
-          # zizmor — PyPI (pipx preferred, pip --user fallback); lands in ~/.local/bin
-          pipx install zizmor || pip install --user zizmor
+          # zizmor — PyPI (pipx preferred, pip --user fallback); lands in ~/.local/bin.
+          # Pin the scanner so the ratcheted baseline is compared against a stable
+          # rule set; the baseline should move only through explicit rebaseline work.
+          pipx install "zizmor==${ZIZMOR_VERSION}" || pip install --user "zizmor==${ZIZMOR_VERSION}"
           # oasdiff — download latest linux amd64 tarball via gh (authed), extract binary
           rm -rf /tmp/oasd && mkdir -p /tmp/oasd
           gh release download --repo oasdiff/oasdiff --pattern '*linux_amd64.tar.gz' --dir /tmp/oasd
