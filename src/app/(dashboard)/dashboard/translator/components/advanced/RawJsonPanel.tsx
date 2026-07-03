@@ -1,12 +1,14 @@
 "use client";
 
 import { useState, useCallback, useEffect, useMemo } from "react";
+import dynamic from "next/dynamic";
 import { useTranslations } from "next-intl";
 import { Card, Button, Select, Badge } from "@/shared/components";
 import Collapsible from "@/shared/components/Collapsible";
-import Editor from "@/shared/components/MonacoEditor";
 import { getExampleTemplates, FORMAT_META, FORMAT_OPTIONS } from "../../exampleTemplates";
 import type { AdvancedAccordionProps } from "../../types";
+
+const Editor = dynamic(() => import("@/shared/components/MonacoEditor"), { ssr: false });
 
 /** Props specific to RawJsonPanel (extends shared accordion props). */
 export interface RawJsonPanelProps extends Omit<AdvancedAccordionProps, "slug"> {
