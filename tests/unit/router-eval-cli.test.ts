@@ -52,6 +52,18 @@ test("runRouterEvalCli renders markdown from JSONL replay", async () => {
   assert.match(result.output, /\| alpha \|/);
 });
 
+test("runRouterEvalCli renders the checked-in fixture corpus", async () => {
+  const result = await runRouterEvalCli([
+    "--input",
+    "tests/fixtures/router-eval/candidate.ndjson",
+  ]);
+
+  assert.equal(result.code, 0);
+  assert.match(result.output, /# Router Eval Report/);
+  assert.match(result.output, /\| priority \|/);
+  assert.match(result.output, /Observations: 2/);
+});
+
 test("runRouterEvalCli emits regression status and fail code", async () => {
   const result = await withTempFiles(async (workspace) => {
     const candidate = path.join(workspace, "candidate.jsonl");
