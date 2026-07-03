@@ -4514,6 +4514,8 @@
     "blockClaudeExtraUsageLabel": "Bloquear Claude Extra Usage",
     "disableCoolingDescription": "__MISSING__:Skip the transient cooldown so this connection stays eligible even after recoverable errors (terminal states like banned/expired still apply).",
     "disableCoolingLabel": "__MISSING__:Disable cooldown for this connection",
+    "bifrostModeDescription": "Route this provider through the Bifrost Tier-1 router for lower latency and higher throughput (requires BIFROST_ENABLED).",
+    "bifrostModeLabel": "Bifrost routing",
     "bulkPasteAdded": "{count, plural, one {1 chave adicionada} other {# chaves adicionadas}}",
     "bulkPasteDuplicatesIgnored": "{count, plural, one {1 duplicata ignorada} other {# duplicatas ignoradas}}",
     "bulkPasteHint": "Cole uma chave de API por linha. Linhas vazias são ignoradas e chaves duplicadas são puladas.",

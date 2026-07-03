@@ -1,13 +1,36 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { z } from 'zod';
-import { getDefaultThinkingBudget } from '@omniroute/open-sse/services/thinkingBudget';
-import { capThinkingBudget } from '@/lib/modelCapabilities';
+import { capThinkingBudget, getDefaultThinkingBudget } from '@/lib/modelCapabilities';
 
-const budgetTopUpSchema = z.object({
-  currentBudget: z.number().finite().nonnegative(),
-  model: z.string().optional(),
-  additionalTokens: z.number().finite().nonnegative(),
-});
+type TopUpThinkingBudgetBody = {
+  currentBudget: number;
+  model?: string;
+  additionalTokens: number;
+};
+
+const topUpThinkingBudgetSchema = {
+  safeParse(value: unknown):
+    | { success: true; data: TopUpThinkingBudgetBody }
+    | { success: false } {
+    if (!value || typeof value !== 'object' || Array.isArray(value)) {
+      return { success: false };
+    }
+    const body = value as Record<string, unknown>;
+    if (typeof body.currentBudget !== 'number' || typeof body.additionalTokens !== 'number') {
+      return { success: false };
+    }
+    if (body.model !== undefined && typeof body.model !== 'string') {
+      return { success: false };
+    }
+    return {
+      success: true,
+      data: {
+        currentBudget: body.currentBudget,
+        additionalTokens: body.additionalTokens,
+        model: body.model,
+      },
+    };
+  },
+};
 
 export async function GET(request: NextRequest) {
   try {
@@ -25,16 +48,15 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
-    const parsed = budgetTopUpSchema.safeParse(body);
+    const parsed = topUpThinkingBudgetSchema.safeParse(await request.json());
     if (!parsed.success) {
       return NextResponse.json(
-        { error: 'currentBudget and additionalTokens are required non-negative numbers' },
+        { error: 'currentBudget and additionalTokens are required numbers' },
         { status: 400 }
       );
     }
     const { currentBudget, model, additionalTokens } = parsed.data;
-    const budget = capThinkingBudget(model, currentBudget + additionalTokens);
+    const budget = capThinkingBudget(model ?? '', currentBudget + additionalTokens);
     return NextResponse.json({ budget });
   } catch (error) {
     return NextResponse.json(

@@ -36,6 +36,9 @@ services:
     build:
       context: ..
       dockerfile: Dockerfile
+      args:
+        OMNIROUTE_BUILD_MEMORY_MB: ${OMNIROUTE_BUILD_MEMORY_MB:-3072}
+        OMNIROUTE_BUILD_DOCS_MODE: ${OMNIROUTE_BUILD_DOCS_MODE:-skip}
     container_name: omniroute-1
     environment:
       - NODE_OPTIONS=--max-old-space-size=8192
@@ -61,6 +64,9 @@ services:
     build:
       context: ..
       dockerfile: Dockerfile
+      args:
+        OMNIROUTE_BUILD_MEMORY_MB: ${OMNIROUTE_BUILD_MEMORY_MB:-3072}
+        OMNIROUTE_BUILD_DOCS_MODE: ${OMNIROUTE_BUILD_DOCS_MODE:-skip}
     container_name: omniroute-2
     environment:
       - NODE_OPTIONS=--max-old-space-size=8192
@@ -86,6 +92,9 @@ services:
     build:
       context: ..
       dockerfile: Dockerfile
+      args:
+        OMNIROUTE_BUILD_MEMORY_MB: ${OMNIROUTE_BUILD_MEMORY_MB:-3072}
+        OMNIROUTE_BUILD_DOCS_MODE: ${OMNIROUTE_BUILD_DOCS_MODE:-skip}
     container_name: omniroute-3
     environment:
       - NODE_OPTIONS=--max-old-space-size=8192

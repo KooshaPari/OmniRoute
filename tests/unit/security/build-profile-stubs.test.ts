@@ -6,6 +6,30 @@
  */
 import { test } from "node:test";
 import assert from "node:assert/strict";
+import path from "node:path";
+import { pathToFileURL } from "node:url";
+
+async function importSourceConfigWithEnv(mode: string | undefined) {
+  const previous = process.env.OMNIROUTE_BUILD_DOCS_MODE;
+  if (mode === undefined) {
+    delete process.env.OMNIROUTE_BUILD_DOCS_MODE;
+  } else {
+    process.env.OMNIROUTE_BUILD_DOCS_MODE = mode;
+  }
+
+  try {
+    const spec = pathToFileURL(
+      path.resolve(process.cwd(), "source.config.ts")
+    ).href;
+    return await import(`${spec}?docs-mode=${mode ?? "default"}-${Date.now()}`);
+  } finally {
+    if (previous === undefined) {
+      delete process.env.OMNIROUTE_BUILD_DOCS_MODE;
+    } else {
+      process.env.OMNIROUTE_BUILD_DOCS_MODE = previous;
+    }
+  }
+}
 
 test("featureDisabledError carries the featureName", async () => {
   const mod = await import("../../../src/lib/build-profile/featureDisabled.ts");
@@ -46,4 +70,13 @@ test("ninerouter.stub.ts: install / resolveSpawnArgs throw FeatureDisabledError"
   const stub = await import("../../../src/lib/services/installers/ninerouter.stub.ts");
   await assert.rejects(() => stub.installNinerouter(), /9router-installer/);
   assert.throws(() => stub.resolveSpawnArgs("api-key", 20130), /9router-installer/);
+});
+
+test("source.config.ts skips docs enumeration when OMNIROUTE_BUILD_DOCS_MODE=skip", async () => {
+  const skipped = await importSourceConfigWithEnv("skip");
+  const normal = await importSourceConfigWithEnv(undefined);
+
+  assert.deepEqual(skipped.docs.docs.files, []);
+  assert.ok(Array.isArray(normal.docs.docs.files));
+  assert.ok(normal.docs.docs.files.length > 0);
 });

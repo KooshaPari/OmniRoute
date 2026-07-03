@@ -84,6 +84,15 @@ export function validateProviderSpecificData(
     });
   }
 
+  const bifrostMode = data.bifrostMode;
+  if (bifrostMode !== undefined && typeof bifrostMode !== "boolean") {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "providerSpecificData.bifrostMode must be a boolean",
+      path: ["bifrostMode"],
+    });
+  }
+
   const autoFetchModels = data.autoFetchModels;
   if (autoFetchModels !== undefined && typeof autoFetchModels !== "boolean") {
     ctx.addIssue({

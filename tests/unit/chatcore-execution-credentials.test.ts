@@ -1,9 +1,9 @@
 // tests/unit/chatcore-execution-credentials.test.ts
 // Characterization of resolveExecutionCredentials — the per-execution credentials builder extracted
 // from handleChatCore (chatCore god-file decomposition, #3501). Locks: the native-Codex passthrough
-// endpoint override, the Azure AI / OCI apiType=responses forcing (+ responses-upstream marker) only
-// under the OpenAI Responses target format, respecting an explicit apiType, and the Claude Code
-// session-id threading.
+// endpoint override, the Azure AI / OCI / openai-compatible-* apiType=responses forcing
+// (+ responses-upstream marker) under the OpenAI Responses target format, respecting an explicit
+// apiType, and the Claude Code session-id threading.
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { resolveExecutionCredentials } from "../../open-sse/handlers/chatCore/executionCredentials.ts";
@@ -68,7 +68,29 @@ test("an explicit apiType=responses is preserved (guard short-circuits the reass
   assert.equal(psd._omnirouteForceResponsesUpstream, true);
 });
 
-test("non azure/oci providers never get apiType forcing", () => {
+test("openai-compatible-responses provider gets apiType forcing", () => {
+  const out = resolveExecutionCredentials({
+    ...base,
+    provider: "openai-compatible-responses",
+    targetFormat: RESPONSES,
+  }) as Record<string, unknown>;
+  const psd = out.providerSpecificData as Record<string, unknown>;
+  assert.equal(psd.apiType, "responses");
+  assert.equal(psd._omnirouteForceResponsesUpstream, true);
+});
+
+test("openai-compatible-chat provider gets apiType forcing when target is responses", () => {
+  const out = resolveExecutionCredentials({
+    ...base,
+    provider: "openai-compatible-chat",
+    targetFormat: RESPONSES,
+  }) as Record<string, unknown>;
+  const psd = out.providerSpecificData as Record<string, unknown>;
+  assert.equal(psd.apiType, "responses");
+  assert.equal(psd._omnirouteForceResponsesUpstream, true);
+});
+
+test("native providers (openai) still do not get apiType forcing", () => {
   const out = resolveExecutionCredentials({
     ...base,
     provider: "openai",

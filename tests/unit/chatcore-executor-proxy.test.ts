@@ -25,6 +25,9 @@ const { clearUpstreamProxyConfigCache } = await import(
   "../../open-sse/handlers/chatCore/comboContextCache.ts"
 );
 
+// Save & restore BIFROST_ENABLED so each test can toggle it.
+const originalBifrostEnv = process.env.BIFROST_ENABLED;
+
 before(async () => {
   await coreDb.ensureDbInitialized();
 });
@@ -36,6 +39,12 @@ beforeEach(() => {
 after(() => {
   coreDb.resetDbInstance();
   fs.rmSync(testDataDir, { recursive: true, force: true });
+  // Restore original BIFROST_ENABLED
+  if (originalBifrostEnv === undefined) {
+    delete process.env.BIFROST_ENABLED;
+  } else {
+    process.env.BIFROST_ENABLED = originalBifrostEnv;
+  }
 });
 
 test("no config (disabled by default) returns the provider's own executor", async () => {
@@ -165,4 +174,61 @@ test("mode 'fallback' applies global CLIProxyAPI model mappings on proxy retry",
     model: "openai/gpt-4o",
     messages: [],
   });
+});
+
+// ── Bifrost Tier-1 router path (Phase 1) ─────────────────────────
+
+test("BIFROST_ENABLED=1 returns a bifrost-backed executor with execute+getProvider", async () => {
+  process.env.BIFROST_ENABLED = "1";
+  try {
+    const exec = await resolveExecutorWithProxy("openai");
+    assert.notEqual(exec, getExecutor("openai"), "should not be the native executor");
+    assert.equal(typeof exec.execute, "function", "should have execute()");
+    assert.equal(typeof exec.getProvider, "function", "should have getProvider()");
+    assert.equal(exec.getProvider(), "openai", "getProvider() should return the provider id");
+  } finally {
+    delete process.env.BIFROST_ENABLED;
+  }
+});
+
+test("BIFROST_ENABLED=1 bifrost executor is distinct from native executor for anthropic", async () => {
+  process.env.BIFROST_ENABLED = "1";
+  try {
+    const exec = await resolveExecutorWithProxy("anthropic");
+    assert.notEqual(exec, getExecutor("anthropic"), "bifrost exec should differ from native");
+    assert.notEqual(exec, getExecutor("cliproxyapi"), "bifrost exec should differ from cliproxyapi");
+  } finally {
+    delete process.env.BIFROST_ENABLED;
+  }
+});
+
+test("BIFROST_ENABLED=true also activates bifrost path", async () => {
+  process.env.BIFROST_ENABLED = "true";
+  try {
+    const exec = await resolveExecutorWithProxy("openai");
+    assert.notEqual(exec, getExecutor("openai"), "BIFROST_ENABLED=true should activate bifrost");
+    assert.equal(typeof exec.execute, "function");
+  } finally {
+    delete process.env.BIFROST_ENABLED;
+  }
+});
+
+test("bifrost path does not interfere with upstream proxy cliproxyapi mode", async () => {
+  process.env.BIFROST_ENABLED = "1";
+  try {
+    // cliproxyapi mode should still work when bifrost is also enabled (bifrost check is first)
+    await upstreamProxyDb.upsertUpstreamProxyConfig({
+      providerId: "openai",
+      mode: "cliproxyapi",
+      enabled: true,
+    });
+    clearUpstreamProxyConfigCache("openai");
+    const exec = await resolveExecutorWithProxy("openai");
+    // bifrost should win since the check is first
+    assert.notEqual(exec, getExecutor("openai"), "bifrost should win over cliproxyapi");
+    assert.equal(typeof exec.execute, "function");
+    assert.equal(typeof exec.getProvider, "function");
+  } finally {
+    delete process.env.BIFROST_ENABLED;
+  }
 });

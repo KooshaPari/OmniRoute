@@ -129,6 +129,7 @@ export default function EditConnectionModal({
     passthroughModels: connection?.providerSpecificData?.passthroughModels === true,
     disableCooling: connection?.providerSpecificData?.disableCooling === true,
     importFreeModelsOnly: connection?.providerSpecificData?.importFreeModelsOnly === true,
+    bifrostMode: connection?.providerSpecificData?.bifrostMode === true,
   });
   const [testing, setTesting] = useState(false);
   const [testResult, setTestResult] = useState(null);
@@ -293,6 +294,7 @@ export default function EditConnectionModal({
         passthroughModels: connection?.providerSpecificData?.passthroughModels === true,
         disableCooling: connection?.providerSpecificData?.disableCooling === true,
         importFreeModelsOnly: connection?.providerSpecificData?.importFreeModelsOnly === true,
+        bifrostMode: connection?.providerSpecificData?.bifrostMode === true,
       });
       const existing = connection.providerSpecificData?.extraApiKeys;
       setExtraApiKeys(Array.isArray(existing) ? existing : []);
@@ -545,6 +547,7 @@ export default function EditConnectionModal({
       }
       if (updates.providerSpecificData) {
         updates.providerSpecificData.disableCooling = formData.disableCooling ? true : undefined;
+        updates.providerSpecificData.bifrostMode = formData.bifrostMode ? true : undefined;
       }
       const freeOnlyChanged =
         showFreeModelsToggle &&
@@ -676,6 +679,12 @@ export default function EditConnectionModal({
             onChange={(checked) => setFormData({ ...formData, disableCooling: checked })}
             label={t("disableCoolingLabel")}
             description={t("disableCoolingDescription")}
+          />
+          <Toggle
+            checked={formData.bifrostMode}
+            onChange={(checked) => setFormData({ ...formData, bifrostMode: checked })}
+            label={t("bifrostModeLabel")}
+            description={t("bifrostModeDescription")}
           />
         </div>
         <QuotaScrapingFields

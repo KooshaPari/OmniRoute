@@ -71,6 +71,12 @@ services:
     build:
       context: .
       target: runner-base
+      args:
+        # Desktop Docker builds are more constrained than native/CI runs.
+        # Keep the webpack builder below the Dockerfile default unless the host
+        # explicitly overrides it in `.env`.
+        OMNIROUTE_BUILD_MEMORY_MB: ${OMNIROUTE_BUILD_MEMORY_MB:-3072}
+        OMNIROUTE_BUILD_DOCS_MODE: ${OMNIROUTE_BUILD_DOCS_MODE:-skip}
     image: omniroute:base
     ports:
       - "${DASHBOARD_PORT:-20128}:${DASHBOARD_PORT:-20128}"
@@ -88,6 +94,9 @@ services:
     build:
       context: .
       target: runner-web
+      args:
+        OMNIROUTE_BUILD_MEMORY_MB: ${OMNIROUTE_BUILD_MEMORY_MB:-3072}
+        OMNIROUTE_BUILD_DOCS_MODE: ${OMNIROUTE_BUILD_DOCS_MODE:-skip}
     image: omniroute:web
     ports:
       - "${DASHBOARD_PORT:-20128}:${DASHBOARD_PORT:-20128}"
@@ -102,6 +111,9 @@ services:
     build:
       context: .
       target: runner-cli
+      args:
+        OMNIROUTE_BUILD_MEMORY_MB: ${OMNIROUTE_BUILD_MEMORY_MB:-3072}
+        OMNIROUTE_BUILD_DOCS_MODE: ${OMNIROUTE_BUILD_DOCS_MODE:-skip}
     image: omniroute:cli
     ports:
       - "${DASHBOARD_PORT:-20128}:${DASHBOARD_PORT:-20128}"
@@ -121,6 +133,9 @@ services:
     build:
       context: .
       target: runner-base
+      args:
+        OMNIROUTE_BUILD_MEMORY_MB: ${OMNIROUTE_BUILD_MEMORY_MB:-3072}
+        OMNIROUTE_BUILD_DOCS_MODE: ${OMNIROUTE_BUILD_DOCS_MODE:-skip}
     image: omniroute:base
     ports:
       - "${DASHBOARD_PORT:-20128}:${DASHBOARD_PORT:-20128}"

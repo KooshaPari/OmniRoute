@@ -621,10 +621,11 @@ export async function handleTestCombo(args: { comboId: string; testPrompt: strin
 export async function handleGetProviderMetrics(args: { provider: string }) {
   const start = Date.now();
   try {
-    const [healthRaw, quotaRaw, analyticsRaw] = await Promise.allSettled([
+    const [healthRaw, quotaRaw, analyticsRaw, killSwitchRaw] = await Promise.allSettled([
       apiFetch("/api/monitoring/health"),
       apiFetch(`/api/usage/quota?provider=${encodeURIComponent(args.provider)}`),
       apiFetch(`/api/usage/analytics?period=session&provider=${encodeURIComponent(args.provider)}`),
+      apiFetch(`/api/bifrost/kill-switch?provider=${encodeURIComponent(args.provider)}`),
     ]);
 
     const health = healthRaw.status === "fulfilled" ? toRecord(healthRaw.value) : {};
@@ -633,6 +634,7 @@ export async function handleGetProviderMetrics(args: { provider: string }) {
         ? normalizeQuotaResponse(quotaRaw.value, { provider: args.provider })
         : normalizeQuotaResponse({});
     const analytics = analyticsRaw.status === "fulfilled" ? toRecord(analyticsRaw.value) : {};
+    const killSwitch = killSwitchRaw.status === "fulfilled" ? killSwitchRaw.value : null;
 
     const cb = toArrayOfRecords(health.circuitBreakers).find(
       (breaker) => toString(breaker.provider) === args.provider
@@ -650,6 +652,9 @@ export async function handleGetProviderMetrics(args: { provider: string }) {
       errorRate: toNumber(analytics.errorRate, 0),
       lastError: toString(analytics.lastError) || null,
       circuitBreakerState: toString(cb?.state, "CLOSED"),
+      bifrostKillSwitch: killSwitch && typeof killSwitch === "object" && "state" in killSwitch
+        ? (killSwitch as Record<string, unknown>).state
+        : null,
       quotaInfo: providerQuota
         ? {
             used: providerQuota.quotaUsed,

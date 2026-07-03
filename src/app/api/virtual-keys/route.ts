@@ -10,7 +10,6 @@
  * BFF/proxy edge, not here — this is an admin-only management surface).
  */
 import { NextResponse } from "next/server";
-import { z } from "zod";
 import {
   mintVirtualKey,
   listVirtualKeysForTenant,
@@ -18,6 +17,88 @@ import {
 } from "@/lib/db/virtualKeys";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import * as log from "@/sse/utils/logger";
+
+type MintVirtualKeyBody = {
+  tenantId?: string;
+  tenant_id?: string;
+  label?: string;
+  allowedModels?: string[];
+  allowed_models?: string[];
+  maxCostUsd?: number | null;
+  max_cost_usd?: number | null;
+  maxRpd?: number | null;
+  max_rpd?: number | null;
+  expiresAt?: string | null;
+  expires_at?: string | null;
+};
+
+type SafeParseIssue = { message: string };
+
+function isStringArray(value: unknown): value is string[] {
+  return Array.isArray(value) && value.every((item) => typeof item === "string");
+}
+
+function validateOptionalString(body: Record<string, unknown>, key: string): SafeParseIssue | null {
+  const value = body[key];
+  if (value === undefined || value === null) return null;
+  return typeof value === "string" && value.length > 0
+    ? null
+    : { message: `${key} must be a non-empty string` };
+}
+
+function validateOptionalStringArray(body: Record<string, unknown>, key: string): SafeParseIssue | null {
+  const value = body[key];
+  if (value === undefined || value === null) return null;
+  return isStringArray(value) ? null : { message: `${key} must be an array of strings` };
+}
+
+function validateOptionalNonNegativeNumber(body: Record<string, unknown>, key: string): SafeParseIssue | null {
+  const value = body[key];
+  if (value === undefined || value === null) return null;
+  return typeof value === "number" && Number.isFinite(value) && value >= 0
+    ? null
+    : { message: `${key} must be a non-negative number` };
+}
+
+function validateOptionalNonNegativeInteger(body: Record<string, unknown>, key: string): SafeParseIssue | null {
+  const value = body[key];
+  if (value === undefined || value === null) return null;
+  return typeof value === "number" && Number.isInteger(value) && value >= 0
+    ? null
+    : { message: `${key} must be a non-negative integer` };
+}
+
+const mintVirtualKeySchema = {
+  safeParse(value: unknown):
+    | { success: true; data: MintVirtualKeyBody }
+    | { success: false; error: { issues: SafeParseIssue[] } } {
+    if (!value || typeof value !== "object" || Array.isArray(value)) {
+      return { success: false, error: { issues: [{ message: "Body must be a JSON object" }] } };
+    }
+    const body = value as Record<string, unknown>;
+    const validators = [
+      validateOptionalString(body, "tenantId"),
+      validateOptionalString(body, "tenant_id"),
+      validateOptionalString(body, "label"),
+      validateOptionalStringArray(body, "allowedModels"),
+      validateOptionalStringArray(body, "allowed_models"),
+      validateOptionalNonNegativeNumber(body, "maxCostUsd"),
+      validateOptionalNonNegativeNumber(body, "max_cost_usd"),
+      validateOptionalNonNegativeInteger(body, "maxRpd"),
+      validateOptionalNonNegativeInteger(body, "max_rpd"),
+      validateOptionalString(body, "expiresAt"),
+      validateOptionalString(body, "expires_at"),
+    ];
+    const issue = validators.find((item): item is SafeParseIssue => item !== null);
+    if (issue) {
+      return { success: false, error: { issues: [issue] } };
+    }
+    if (!body.tenantId && !body.tenant_id) {
+      return { success: false, error: { issues: [{ message: "tenantId is required" }] } };
+    }
+    return { success: true, data: body as MintVirtualKeyBody };
+  },
+};
 
 function asString(value: unknown): string | null {
   return typeof value === "string" && value.length > 0 ? value : null;
@@ -30,22 +111,15 @@ function asStringArrayOrUndefined(value: unknown): string[] | undefined {
   return filtered.length > 0 ? filtered : undefined;
 }
 
-const virtualKeyBodySchema = z.object({
-  tenantId: z.string().min(1).optional(),
-  tenant_id: z.string().min(1).optional(),
-  label: z.string().optional(),
-  allowedModels: z.array(z.string()).optional(),
-  allowed_models: z.array(z.string()).optional(),
-  maxCostUsd: z.number().finite().nonnegative().nullable().optional(),
-  max_cost_usd: z.number().finite().nonnegative().nullable().optional(),
-  maxRpd: z.number().int().nonnegative().nullable().optional(),
-  max_rpd: z.number().int().nonnegative().nullable().optional(),
-  expiresAt: z.string().nullable().optional(),
-  expires_at: z.string().nullable().optional(),
-}).refine((body) => Boolean(body.tenantId ?? body.tenant_id), {
-  message: "tenantId is required",
-  path: ["tenantId"],
-});
+function asNumberOrNull(value: unknown): number | null {
+  if (value === null) return null;
+  if (typeof value === "number" && Number.isFinite(value)) return value;
+  if (typeof value === "string" && value.trim().length > 0) {
+    const parsed = Number(value);
+    if (Number.isFinite(parsed)) return parsed;
+  }
+  return undefined as unknown as null;
+}
 
 // GET /api/virtual-keys?tenantId=X
 export async function GET(request: Request) {
@@ -99,11 +173,15 @@ export async function POST(request: Request) {
   if (!rawBody || typeof rawBody !== "object") {
     return NextResponse.json({ error: "Body must be a JSON object" }, { status: 400 });
   }
-  const parsedBody = virtualKeyBodySchema.safeParse(rawBody);
-  if (!parsedBody.success) {
-    return NextResponse.json({ error: "Invalid virtual key request body" }, { status: 400 });
+  const parsed = mintVirtualKeySchema.safeParse(rawBody);
+  if (!parsed.success) {
+    const firstIssue = parsed.error.issues[0];
+    return NextResponse.json(
+      { error: firstIssue?.message ?? "Invalid virtual key body" },
+      { status: 400 },
+    );
   }
-  const body = parsedBody.data;
+  const body = parsed.data;
 
   const tenantId = asString(body["tenantId"] ?? body["tenant_id"]);
   if (!tenantId) {

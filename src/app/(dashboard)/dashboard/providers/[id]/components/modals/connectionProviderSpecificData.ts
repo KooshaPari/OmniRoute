@@ -11,6 +11,7 @@ import {
 type FormData = QuotaScrapingFieldValues & {
   accountId: string;
   apiRegion: string;
+  bifrostMode: boolean;
   ccCompatibleContext1m: boolean;
   ccCompatibleRedactThinking: boolean;
   ccCompatibleSummarizeThinking: boolean;
@@ -68,6 +69,7 @@ export function buildAddProviderSpecificData(options: {
     data.consoleApiKey = formData.consoleApiKey.trim();
   }
   assignQuotaScrapingProviderData(provider, formData, data);
+  if (formData.bifrostMode) data.bifrostMode = true;
   if (isGooglePse && formData.cx.trim()) data.cx = formData.cx.trim();
   if (usesBaseUrl) data.baseUrl = validatedBaseUrl;
   else if (showsRegion) data.region = formData.region.trim() || defaultRegion;
@@ -103,6 +105,7 @@ export function assignEditApiKeyProviderSpecificData(options: {
     customUserAgent: o.formData.customUserAgent.trim(),
     ...o.openRouterPreset.getPatch(),
     ...(o.formData.passthroughModels ? { passthroughModels: true } : {}),
+    ...(o.formData.bifrostMode ? { bifrostMode: true } : {}),
   });
   if (o.provider === "bailian-coding-plan") {
     o.target.consoleApiKey = o.formData.consoleApiKey.trim() || undefined;
