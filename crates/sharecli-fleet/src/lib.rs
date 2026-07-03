@@ -7,4 +7,4 @@ pub mod registry;
 pub mod thermal;
 
 pub use registry::{DeviceRecord, FleetRegistry, DEFAULT_SUBJECT_PREFIX};
-pub use thermal::ThermalGovernor;
+pub use thermal::{ThermalGovernor, ThermalLevel};
