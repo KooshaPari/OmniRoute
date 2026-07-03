@@ -16,6 +16,7 @@
 - **hygiene:** Add CodeRabbit review config (.coderabbit.yaml) and Gemini context (.gemini/config.json, .gemini/prompts.md)
 - **hygiene:** Add ADR.md with fleet hygiene decisions (ADR-001 baseline, ADR-002 e2e restoration, ADR-003 dual dependency automation)
 - **e2e:** Remove orphaned testIgnore entries (analytics-tabs, protocol-visibility, skills-marketplace) whose specs no longer exist
+- **feat(server):** support reverse-proxy subpath deployment via OMNIROUTE_BASE_PATH (basePath-aware auth redirects). (thanks @SillyHippy)
 
 ### 🔧 Bug Fixes
 
