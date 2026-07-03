@@ -2,56 +2,63 @@ name: Release
 
 on:
   push:
-    branches: [main]
-    paths-ignore:
-      - 'docs/**'
-      - '**.md'
+    tags:
+      - 'v*'
 
 permissions:
   contents: write
-  packages: write
 
 jobs:
-  release:
-    runs-on: ubuntu-latest
-    if: contains(github.event.head_commit.message, 'release:') || contains(github.event.head_commit.message, 'chore(release)')
-    outputs:
-      version: ${{ steps.version.outputs.version }}
+  build:
+    name: Build ${{ matrix.target }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-22.04
+            target: x86_64-unknown-linux-gnu
+            artifact: sharecli-linux-x86_64
+          - os: macos-14
+            target: aarch64-apple-darwin
+            artifact: sharecli-macos-arm64
+
     steps:
       - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
         with:
-          fetch-depth: 0
-
-      
-      - name: Setup Rust
-        uses: dtolnay/rust-toolchain@stable
-
+          targets: ${{ matrix.target }}
       - name: Build
-        run: cargo build --release
-
-      - name: Test
-        run: cargo test --release
-
-      - name: Determine version
-        id: version
+        env:
+          CARGO_NET_OFFLINE: "false"
+        run: cargo build --release --bin sharecli --target ${{ matrix.target }}
+      - name: Rename artifact
         run: |
-          VERSION=$(grep '^version' Cargo.toml | head -1 | cut -d'"' -f2)
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          cp target/${{ matrix.target }}/release/sharecli ${{ matrix.artifact }}
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact }}
+          path: ${{ matrix.artifact }}
 
-      - name: Publish to crates.io
-        run: |
-          cargo publish --token ${{ secrets.CARGO_REGISTRY_TOKEN }}
-      
-
-  promote:
-    needs: release
-    runs-on: ubuntu-latest
+  release:
+    name: Create Release
+    needs: build
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
-
-      - name: Promote to staging
-        uses: KooshaPari/phenotypeActions/promote@main
+      - uses: actions/download-artifact@v4
         with:
-          version: ${{ needs.release.outputs.version }}
-          channel: beta
-          registry: crates.io
+          path: artifacts/
+          merge-multiple: true
+      - name: Create checksums
+        run: |
+          cd artifacts
+          sha256sum sharecli-* > checksums.txt
+          cat checksums.txt
+      - name: Publish release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            artifacts/sharecli-*
+            artifacts/checksums.txt
+          generate_release_notes: true
