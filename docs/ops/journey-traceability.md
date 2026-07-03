@@ -1,3 +1,8 @@
+---
+title: Journey Traceability
+description: Traceability model for OmniRoute requirements, code, tests, and evidence.
+---
+
 # Journey Traceability
 
 Implements the phenotype-infra journey-traceability standard for OmniRoute as the canonical routing framework for the Phenotype org.
@@ -25,22 +30,26 @@ Every user-facing or operator-facing flow should be traceable across:
 ## Rich Media Stubs
 
 <!-- RICH-MEDIA-STUB type="animated-gif" subject="Chat fallback routing journey" journey="chat-fallback-routing" status="TODO" -->
-![Chat fallback routing — request, primary provider failure, fallback provider success, and final response](../assets/rich-media/omniroute/chat-fallback-routing.gif)
+Pending rich media: chat fallback routing journey covering request, primary provider failure,
+fallback provider success, and final response.
 
 *Expected capture: send an OpenAI-compatible chat request, simulate or fixture a primary-provider failure, show fallback selection, and verify final response plus provider trace metadata.*
 
 <!-- RICH-MEDIA-STUB type="annotated-screenshot" subject="Provider health dashboard" journey="provider-health-dashboard" status="TODO" -->
-![Provider health dashboard — available providers, degraded providers, routing policy, and last-check timestamp](../assets/rich-media/omniroute/provider-health-dashboard.png)
+Pending rich media: provider health dashboard showing available providers, degraded providers,
+routing policy, and last-check timestamp.
 
 *Expected capture: open the dashboard health/provider view, annotate stale/degraded provider states, freshness timestamp, and operator remediation action.*
 
 <!-- RICH-MEDIA-STUB type="journey-eval" subject="MCP tool invocation contract verdict" journey="mcp-tool-invocation" status="TODO" -->
-![MCP tool invocation verdict — tool request, schema validation, response, and eval verdict](../assets/rich-media/omniroute/mcp-tool-invocation.png)
+Pending rich media: MCP tool invocation verdict showing tool request, schema validation,
+response, and eval verdict.
 
 *Expected capture: invoke a representative MCP tool through OmniRoute, validate request/response schema, and attach a pass/fail verdict for FR-OMNI-MCP-001 and NFR-OMNI-CONTRACT-001.*
 
 <!-- RICH-MEDIA-STUB type="annotated-screenshot" subject="Endpoint and provider settings update" journey="endpoint-provider-settings" status="TODO" -->
-![Endpoint and provider settings — endpoint URL, provider key state, validation feedback, and save result](../assets/rich-media/omniroute/endpoint-provider-settings.png)
+Pending rich media: endpoint and provider settings update showing endpoint URL, provider key
+state, validation feedback, and save result.
 
 *Expected capture: update endpoint/provider settings in the UI or CLI, show validation feedback, and prove the saved configuration affects a subsequent request.*
 
