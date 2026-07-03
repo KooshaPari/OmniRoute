@@ -17,6 +17,7 @@
 - **hygiene:** Add ADR.md with fleet hygiene decisions (ADR-001 baseline, ADR-002 e2e restoration, ADR-003 dual dependency automation)
 - **e2e:** Remove orphaned testIgnore entries (analytics-tabs, protocol-visibility, skills-marketplace) whose specs no longer exist
 - **feat(server):** support reverse-proxy subpath deployment via OMNIROUTE_BASE_PATH (basePath-aware auth redirects). (thanks @SillyHippy)
+- **feat(api-keys):** track devices/connections per API key — an in-memory, TTL-evicted device fingerprint tracker (SHA-256 of masked IP + truncated user-agent) wired non-blocking into the chat path and surfaced via `GET /api/keys/[id]/devices` with a dashboard device-count chip. (thanks @mugnimaestra)
 
 ### 🔧 Bug Fixes
 
