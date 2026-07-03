@@ -21,7 +21,11 @@ Windows: \\.\pipe\omniroute-daemon
 Frames are newline-delimited JSON so the same codec works over Unix sockets, Windows named pipes, and loopback streams.
 
 ```json
-{"protocol":"omniroute.management.rpc","version":1,"request":{"id":"1","command":"daemon.status"}}
+{
+  "protocol": "omniroute.management.rpc",
+  "version": 1,
+  "request": { "id": "1", "command": "daemon.status" }
+}
 ```
 
 REST remains the compatibility surface. Privileged lifecycle operations should prefer IPC/RPC so local clients do not depend on browser cookies or public loopback HTTP.
