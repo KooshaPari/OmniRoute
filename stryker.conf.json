@@ -43,6 +43,7 @@
   "tap": {
     "testFiles": [
       "tests/unit/account-fallback-anthropic-quota.test.ts",
+      "tests/unit/account-fallback-retry-after-json.test.ts",
       "tests/unit/account-fallback-route-restriction-403.test.ts",
       "tests/unit/account-fallback-service.test.ts",
       "tests/unit/api-key-rotator-health.test.ts",
