@@ -165,6 +165,7 @@ export const updateSettingsSchema = z.object({
   customBannedSignals: z.array(z.string().max(200)).optional(),
   debugMode: z.boolean().optional(),
   issueAgent: issueAgentSettingsSchema.optional(),
+  logToolSources: z.boolean().optional(),
   hiddenSidebarItems: z.array(z.enum(HIDEABLE_SIDEBAR_ITEM_IDS)).optional(),
   hiddenSidebarGroupLabels: z.array(z.enum(HIDEABLE_SIDEBAR_GROUP_IDS)).optional(),
   sidebarSectionOrder: z
