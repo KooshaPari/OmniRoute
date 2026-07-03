@@ -6487,7 +6487,11 @@ components:
         error:
           type: object
           properties:
+            code:
+              type: string
             message:
+              type: string
+            correlation_id:
               type: string
             type:
               type: string
