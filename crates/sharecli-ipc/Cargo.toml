@@ -6,7 +6,7 @@ description = "IPC server + coalesce/debounce/queue primitives for sharecli — 
 
 [dependencies]
 # Coalesce/cache primitives
-sha2 = "0.10"
+sha2 = "0.11"
 fs2 = "0.4"
 tempfile = "3"
 
