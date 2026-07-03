@@ -97,6 +97,7 @@ import {
   type ResilienceSettings,
 } from "../../src/lib/resilience/settings";
 import { resolveReasoningBufferedMaxTokens, toPositiveInteger } from "./reasoningTokenBuffer.ts";
+import { getSelectedConnectionId, withComboDecisionTraceHeader } from "./combo/decisionTrace.ts";
 import { RESET_WINDOW_NAMES } from "./combo/types.ts";
 import type {
   ComboLike,
@@ -1975,10 +1976,7 @@ export async function handleComboChat({
 
           // Success — validate response quality before returning
           if (result.ok) {
-            const selectedConnectionId =
-              result.headers?.get("X-OmniRoute-Selected-Connection-Id") ||
-              result.headers?.get("x-omniroute-selected-connection-id") ||
-              undefined;
+            const selectedConnectionId = getSelectedConnectionId(result);
             const effectiveConnectionId = selectedConnectionId || target.connectionId || "";
 
             const quality = await validateResponseQuality(
@@ -2221,7 +2219,17 @@ export async function handleComboChat({
               })();
             }
 
-            return { ok: true, response: quality.clonedResponse ?? result };
+            return {
+              ok: true,
+              response: withComboDecisionTraceHeader(quality.clonedResponse ?? result, {
+                strategy,
+                provider: provider || "unknown",
+                model: modelStr,
+                connectionId: effectiveConnectionId || undefined,
+                fallbackCount,
+                latencyMs,
+              }),
+            };
           }
 
           // Extract error info from response
@@ -2327,10 +2335,7 @@ export async function handleComboChat({
             structuredError
           );
           const { cooldownMs } = fallbackResult;
-          const selectedConnectionId =
-            result.headers?.get("X-OmniRoute-Selected-Connection-Id") ||
-            result.headers?.get("x-omniroute-selected-connection-id") ||
-            undefined;
+          const selectedConnectionId = getSelectedConnectionId(result);
           const targetWithConnection = selectedConnectionId
             ? { ...target, connectionId: selectedConnectionId }
             : target;
@@ -3071,10 +3076,7 @@ async function handleRoundRobinCombo({
           });
           recordedAttempts++;
 
-          const selectedConnectionId =
-            result.headers?.get("X-OmniRoute-Selected-Connection-Id") ||
-            result.headers?.get("x-omniroute-selected-connection-id") ||
-            undefined;
+          const selectedConnectionId = getSelectedConnectionId(result);
           const effectiveConnectionId = selectedConnectionId || target.connectionId || "";
 
           const rawModel = parseModel(modelStr).model || modelStr;
@@ -3230,10 +3232,7 @@ async function handleRoundRobinCombo({
           structuredError
         );
         const { cooldownMs } = fallbackResult;
-        const selectedConnectionId =
-          result.headers?.get("X-OmniRoute-Selected-Connection-Id") ||
-          result.headers?.get("x-omniroute-selected-connection-id") ||
-          undefined;
+        const selectedConnectionId = getSelectedConnectionId(result);
         const targetWithConnection = selectedConnectionId
           ? { ...target, connectionId: selectedConnectionId }
           : target;
