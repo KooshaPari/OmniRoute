@@ -27,7 +27,7 @@ import { formatResetCountdown } from "@/lib/localDb";
 import type { ConnectionRowConnection } from "./ConnectionRow";
 
 export interface CoolingConnectionsPanelProps {
-  connections: ConnectionRowConnection[];
+  readonly connections: readonly ConnectionRowConnection[];
 }
 
 function isCoolingNow(connection: ConnectionRowConnection, now: number): boolean {
