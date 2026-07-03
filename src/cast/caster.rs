@@ -13,7 +13,7 @@ use std::time::Duration;
 use anyhow::{anyhow, Result};
 use serde::Deserialize;
 
-use super::address::PaneAddress;
+use super::address::{Host, PaneAddress};
 
 /// Outcome of a send — distinguishes the failure modes the caller cares about.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -61,6 +61,9 @@ pub fn which(bin: &str) -> Option<std::path::PathBuf> {
 /// shelling out.
 pub trait ProcessRunner: Send + Sync {
     fn run(&self, bin: &str, args: &[&str]) -> io::Result<Output>;
+
+    /// Run a command with the given bytes piped to its stdin.
+    fn run_with_stdin(&self, bin: &str, args: &[&str], stdin: &[u8]) -> io::Result<Output>;
 }
 
 /// Default `ProcessRunner` — invokes a real subprocess.
@@ -70,6 +73,99 @@ pub struct SystemRunner;
 impl ProcessRunner for SystemRunner {
     fn run(&self, bin: &str, args: &[&str]) -> io::Result<Output> {
         Command::new(bin).args(args).output()
+    }
+
+    fn run_with_stdin(&self, bin: &str, args: &[&str], stdin: &[u8]) -> io::Result<Output> {
+        let mut child = Command::new(bin).args(args).stdin(std::process::Stdio::piped()).stdout(std::process::Stdio::piped()).stderr(std::process::Stdio::piped()).spawn()?;
+        use std::io::Write;
+        child.stdin.take().unwrap().write_all(stdin)?;
+        child.wait_with_output()
+    }
+}
+
+/// Mock `ProcessRunner` — asserts command shape and returns canned outputs.
+///
+/// Tests push expected (`bin`, `args`) pairs and the corresponding responses
+/// up front, then `run()` pops the next one and panics if shape mismatches.
+#[derive(Default)]
+pub struct MockProcessRunner {
+    commands: std::sync::Mutex<std::collections::VecDeque<(String, Vec<String>)>>,
+    outputs: std::sync::Mutex<std::collections::VecDeque<io::Result<std::process::Output>>>,
+}
+
+impl MockProcessRunner {
+    pub fn new() -> Self {
+        Self::default()
+    }
+
+    /// Push an expectation that `bin` will be invoked with `args` and succeed.
+    pub fn push_ok(&mut self, bin: &str, args: &[&str]) {
+        self.commands
+            .lock()
+            .unwrap()
+            .push_back((bin.to_string(), args.iter().map(|s| s.to_string()).collect()));
+        self.outputs.lock().unwrap().push_back(Ok(std::process::Output {
+            status: std::process::ExitStatus::default(),
+            stdout: Vec::new(),
+            stderr: Vec::new(),
+        }));
+    }
+
+    /// Create a runner pre-loaded with commands that all succeed.
+    pub fn from_ok(cmds: &[(&str, &[&str])]) -> Self {
+        let mut r = Self::new();
+        for (bin, args) in cmds {
+            r.push_ok(bin, args);
+        }
+        r
+    }
+
+    /// Create a runner with one output per command.
+    pub fn custom(
+        cmds: &[(&str, &[&str])],
+        outputs: Vec<io::Result<std::process::Output>>,
+    ) -> Self {
+        let mut r = Self::new();
+        for (bin, args) in cmds {
+            r.commands
+                .lock()
+                .unwrap()
+                .push_back((bin.to_string(), args.iter().map(|s| s.to_string()).collect()));
+        }
+        *r.outputs.lock().unwrap() = std::collections::VecDeque::from(outputs);
+        r
+    }
+}
+
+impl ProcessRunner for MockProcessRunner {
+    fn run(&self, bin: &str, args: &[&str]) -> io::Result<std::process::Output> {
+        let expected = self
+            .commands
+            .lock()
+            .unwrap()
+            .pop_front()
+            .expect("MockProcessRunner: no more commands expected");
+        assert_eq!(expected.0, bin, "MockProcessRunner: bin mismatch");
+        assert_eq!(
+            expected.1,
+            args.iter().map(|s| s.to_string()).collect::<Vec<_>>(),
+            "MockProcessRunner: args mismatch for bin {}",
+            bin
+        );
+        self.outputs
+            .lock()
+            .unwrap()
+            .pop_front()
+            .unwrap_or_else(|| Ok(std::process::Output {
+                status: std::process::ExitStatus::default(),
+                stdout: Vec::new(),
+                stderr: Vec::new(),
+            }))
+    }
+
+    fn run_with_stdin(&self, bin: &str, args: &[&str], _stdin: &[u8]) -> io::Result<std::process::Output> {
+        // Mock captures the invocation for assertion; ignores stdin bytes.
+        self.run(bin, args)
     }
 }
 
@@ -123,22 +219,26 @@ impl<R: ProcessRunner> Caster for GhosttyCaster<R> {
             return SendOutcome::Unsupported("ghostty binary not on PATH".into());
         }
 
-        // Step 1: focus the target window (1-indexed).
+        // Step 1: put text into the system clipboard via pbcopy (stdin).
+        if let Err(e) = self.runner.run_with_stdin("pbcopy", &[], text.as_bytes()) {
+            return SendOutcome::Failed(format!("pbcopy failed: {}", e));
+        }
+
+        // Step 2: focus the target window (1-indexed).
         let win_idx = addr.window.to_string();
         if let Err(e) = self.runner.run("ghostty", &["+action", "goto_window", &win_idx]) {
             return SendOutcome::Failed(format!("ghostty goto_window failed: {}", e));
         }
 
-        // Step 2: send the text (types into the now-focused surface).
-        // `text` may contain newlines; `ghostty +action text` accepts them.
-        match self.runner.run("ghostty", &["+action", "text", text]) {
+        // Step 3: paste from clipboard into the now-focused surface.
+        match self.runner.run("ghostty", &["+action", "paste-from-clipboard"]) {
             Ok(o) if o.status.success() => SendOutcome::Delivered,
             Ok(o) => SendOutcome::Failed(format!(
-                "ghostty text exited {}: {}",
+                "ghostty paste-from-clipboard exited {}: {}",
                 o.status,
                 String::from_utf8_lossy(&o.stderr)
             )),
-            Err(e) => SendOutcome::Failed(format!("ghostty text spawn failed: {}", e)),
+            Err(e) => SendOutcome::Failed(format!("ghostty paste spawn failed: {}", e)),
         }
     }
 }
@@ -377,6 +477,92 @@ pub fn send_with_fallback(
         }
     }
     SendOutcome::Unsupported(last_unsupported.unwrap_or_else(|| "no casters configured".into()))
+}
+
+/// Cast to a remote Windows host via SSH, setting the remote clipboard.
+///
+/// Connects to the remote host via `ssh` and pipes text to the remote
+/// clipboard via PowerShell's `Set-Clipboard` cmdlet. Reports
+/// [`SendOutcome::NeedsFocus`] on success because the user must focus
+/// the remote Windows Terminal window and paste manually (Ctrl+V).
+///
+/// This is the best we can do without a remote key-injection daemon.
+/// Windows Terminal does not expose a send-text IPC surface like wezterm.
+///
+/// The PaneAddress must have a [`Host::Ssh`] variant or [`Host::Tailscale`]
+/// variant. Local addresses return [`SendOutcome::Unsupported`].
+///
+/// FR: FR-CAST-005
+#[derive(Clone, Debug)]
+pub struct SshWinTermCaster<R: ProcessRunner = SystemRunner> {
+    runner: R,
+}
+
+impl SshWinTermCaster<SystemRunner> {
+    pub fn system() -> Self {
+        Self { runner: SystemRunner }
+    }
+}
+
+impl<R: ProcessRunner> SshWinTermCaster<R> {
+    pub fn new(runner: R) -> Self {
+        Self { runner }
+    }
+}
+
+impl<R: ProcessRunner> Caster for SshWinTermCaster<R> {
+    fn name(&self) -> &'static str {
+        "ssh-winterm"
+    }
+
+    fn resolve_pane_id(&self, _addr: &PaneAddress) -> Result<Option<u32>> {
+        // SSH-based casting doesn't resolve pane IDs — we just set the remote
+        // clipboard and let the user paste manually.
+        Ok(None)
+    }
+
+    fn send(&self, addr: &PaneAddress, text: &str) -> SendOutcome {
+        let ssh_target = match &addr.host {
+            Host::Ssh { user, host } => format!("{}@{}", user, host),
+            Host::Tailscale => format!("{}.ts.net", addr.machine),
+            Host::Local => {
+                return SendOutcome::Unsupported("SshWinTermCaster is for remote hosts only; use WeztermCaster or GhosttyCaster for local".into())
+            }
+        };
+
+        if which("ssh").is_none() {
+            return SendOutcome::Unsupported("ssh binary not on PATH".into());
+        }
+
+        // Pipe text through SSH to remote PowerShell Set-Clipboard.
+        // The remote Windows machine must have PowerShell 5.1+ (Set-Clipboard
+        // was introduced in PowerShell 5.0).
+        let result = self.runner.run_with_stdin(
+            "ssh",
+            &[
+                &ssh_target,
+                "powershell",
+                "-NoProfile",
+                "-Command",
+                "$input | Set-Clipboard",
+            ],
+            text.as_bytes(),
+        );
+
+        match result {
+            Ok(o) if o.status.success() => {
+                // Text is on the remote clipboard. The user must now focus
+                // their WT window and paste manually.
+                SendOutcome::NeedsFocus
+            }
+            Ok(o) => SendOutcome::Failed(format!(
+                "ssh winterm exited {}: {}",
+                o.status,
+                String::from_utf8_lossy(&o.stderr)
+            )),
+            Err(e) => SendOutcome::Failed(format!("ssh winterm spawn failed: {}", e)),
+        }
+    }
 }
 
 // ---------------------------------------------------------------------------

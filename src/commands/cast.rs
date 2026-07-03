@@ -8,7 +8,7 @@ use std::sync::Arc;
 use anyhow::{anyhow, bail, Result};
 
 use crate::cast::{
-    caster::{Caster, ClipboardCaster, GhosttyCaster, RetryCaster, SendOutcome, WeztermCaster},
+    caster::{Caster, ClipboardCaster, GhosttyCaster, RetryCaster, SendOutcome, SshWinTermCaster, WeztermCaster},
     Host, PaneAddress, PaneRegistry,
 };
 
@@ -63,14 +63,6 @@ pub fn send(name: &str, file: Option<&str>) -> Result<()> {
         bail!("refusing to send empty text to pane '{}'", name);
     }
 
-    // Refuse cross-machine casts for now (SSH-cascade needs follow-up work).
-    if !matches!(addr.host, Host::Local) {
-        bail!(
-            "cross-machine cast to {} is not yet supported (host must be 'local' in this build)",
-            addr.host
-        );
-    }
-
     let casters: Vec<(Arc<dyn Caster>, String)> = vec![
         (
             Arc::new(RetryCaster::new(WeztermCaster::system(), 3, 200)),
@@ -79,6 +71,10 @@ pub fn send(name: &str, file: Option<&str>) -> Result<()> {
         (
             Arc::new(RetryCaster::new(GhosttyCaster::system(), 3, 200)),
             "ghostty-retry".to_string(),
+        ),
+        (
+            Arc::new(RetryCaster::new(SshWinTermCaster::system(), 2, 1000)),
+            "ssh-winterm-retry".to_string(),
         ),
         (Arc::new(ClipboardCaster), "clipboard".to_string()),
     ];

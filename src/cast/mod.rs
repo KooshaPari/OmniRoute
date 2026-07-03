@@ -14,8 +14,10 @@ pub mod registry;
 use std::path::PathBuf;
 
 pub use address::{Host, PaneAddress};
+#[allow(unused_imports)]
 pub use caster::{
-    Caster, ClipboardCaster, ProcessRunner, SendOutcome, SystemRunner, WeztermCaster,
+    Caster, ClipboardCaster, GhosttyCaster, ProcessRunner, SshWinTermCaster,
+    SendOutcome, SystemRunner, WeztermCaster,
 };
 pub use registry::PaneRegistry;
 

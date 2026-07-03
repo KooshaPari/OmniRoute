@@ -59,6 +59,11 @@ impl ProcessRunner for MockProcessRunner {
                 ))
             })
     }
+
+    fn run_with_stdin(&self, bin: &str, args: &[&str], _stdin: &[u8]) -> io::Result<Output> {
+        // Delegate to run — stdin content is not inspected in mock tests.
+        self.run(bin, args)
+    }
 }
 
 fn ok_output(stdout: &str) -> io::Result<Output> {
