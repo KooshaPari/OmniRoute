@@ -29,6 +29,9 @@ sysinfo = "0.39"
 # Zig hot core: POSIX semaphore, posix_spawn, setpriority, waitpid
 spawn-core-sys = { path = "crates/spawn-core-sys" }
 
+# Fleet: device registry + thermal governor
+sharecli-fleet = { path = "crates/sharecli-fleet" }
+
 # Utilities
 chrono = { version = "0.4", features = ["serde"] }
 dirs = "5"

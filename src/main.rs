@@ -175,6 +175,27 @@ enum Commands {
         #[arg(required = true)]
         project: String,
     },
+
+    /// Fleet device management
+    Fleet {
+        #[command(subcommand)]
+        cmd: FleetCmd,
+    },
+}
+
+#[derive(Subcommand, Debug)]
+enum FleetCmd {
+    /// Show fleet registry status and thermal level
+    Status,
+    /// Register this device into the fleet
+    Register {
+        /// Friendly device name (defaults to "local")
+        #[arg(short, long)]
+        name: Option<String>,
+        /// Fleet coordinator address (e.g. nats://localhost:4222)
+        #[arg(short, long, default_value = "nats://localhost:4222")]
+        coordinator: String,
+    },
 }
 
 /// Returns true when the NO_COLOR environment variable is set (per https://no-color.org).
@@ -228,8 +249,32 @@ async fn main() -> Result<()> {
             set_limits(project, *memory, *processes).await?
         }
         Commands::Check { project } => check_limits(project).await?,
+        Commands::Fleet { cmd } => match cmd {
+            FleetCmd::Status => fleet_status().await?,
+            FleetCmd::Register { name, coordinator } => {
+                fleet_register(name.as_deref(), coordinator).await?
+            }
+        },
     }
 
+    Ok(())
+}
+
+async fn fleet_status() -> Result<()> {
+    use sharecli_fleet::ThermalGovernor;
+
+    // Constructing the governor validates that the thermal subsystem is wired.
+    // Thermal polling (Green/Yellow/Red) lands with the NATS backend follow-up.
+    let _gov = ThermalGovernor::new();
+    println!("Thermal governor: ready (polling pending backend wiring)");
+    println!("Fleet registry: not connected (run `sharecli fleet register` first)");
+    Ok(())
+}
+
+async fn fleet_register(name: Option<&str>, coordinator: &str) -> Result<()> {
+    let hostname = name.unwrap_or("local");
+    println!("Registering device '{hostname}' with coordinator '{coordinator}'");
+    println!("(Fleet NATS wiring pending — stub)");
     Ok(())
 }
 
