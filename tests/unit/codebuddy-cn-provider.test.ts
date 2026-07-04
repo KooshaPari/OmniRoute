@@ -86,7 +86,7 @@ test("getExecutor returns the CodeBuddyCnExecutor for 'codebuddy-cn' and the 'cb
   assert.ok(aliasExec instanceof CodeBuddyCnExecutor, "alias 'cbcn' must resolve to same executor");
 });
 
-test("CodeBuddyCnExecutor.transformRequest forces stream:true and leaves reasoning unset for plain requests", () => {
+test("CodeBuddyCnExecutor.transformRequest forces stream:true and adds OpenAI-style reasoning_summary", () => {
   const e = new CodeBuddyCnExecutor();
   const out = e.transformRequest(
     "glm-5.2",
@@ -97,15 +97,8 @@ test("CodeBuddyCnExecutor.transformRequest forces stream:true and leaves reasoni
   assert.ok(out && typeof out === "object" && !Array.isArray(out));
   const body = out as Record<string, unknown>;
   assert.equal(body.stream, true, "stream must be forced to true");
-  // Reasoning is opt-in (#5019): a plain request that did not ask for reasoning
-  // must not get reasoning_effort/reasoning_summary injected — forcing them makes
-  // CodeBuddy trip its content filter and error.
-  assert.equal(
-    Object.prototype.hasOwnProperty.call(body, "reasoning_effort"),
-    false,
-    "plain request must not inject reasoning_effort (opt-in only)"
-  );
-  assert.notEqual(body.reasoning_summary, "auto", "plain request must not inject reasoning_summary");
+  assert.equal(body.reasoning_effort, "medium", "default reasoning_effort must be 'medium'");
+  assert.equal(body.reasoning_summary, "auto", "reasoning_summary must be 'auto'");
 });
 
 test("CodeBuddyCnExecutor preserves explicit reasoning_effort", () => {

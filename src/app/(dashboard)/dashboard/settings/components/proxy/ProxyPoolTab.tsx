@@ -5,20 +5,17 @@ import { useTranslations } from "next-intl";
 import ProxyRegistryManager from "../ProxyRegistryManager";
 import VercelRelayModal from "./VercelRelayModal";
 import DenoRelayModal from "./DenoRelayModal";
-import CloudflareRelayModal from "./CloudflareRelayModal";
 
 export default function ProxyPoolTab() {
   const t = useTranslations("settings");
   const [vercelModalOpen, setVercelModalOpen] = useState(false);
   const [denoModalOpen, setDenoModalOpen] = useState(false);
-  const [cloudflareModalOpen, setCloudflareModalOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement | null>(null);
 
   const showVercelRelay = process.env.NEXT_PUBLIC_VERCEL_RELAY_ENABLED !== "false";
   const showDenoRelay = process.env.NEXT_PUBLIC_DENO_RELAY_ENABLED !== "false";
-  const showCloudflareRelay = process.env.NEXT_PUBLIC_CLOUDFLARE_RELAY_ENABLED !== "false";
-  const showAnyRelay = showVercelRelay || showDenoRelay || showCloudflareRelay;
+  const showAnyRelay = showVercelRelay || showDenoRelay;
 
   // Close the dropdown on outside click — mirrors the upstream PR-1437
   // grouped-button UX so adding more relay backends does not blow up the
@@ -34,12 +31,8 @@ export default function ProxyPoolTab() {
     return () => document.removeEventListener("mousedown", onMouseDown);
   }, [menuOpen]);
 
-  const handleVercelDeployed = (_poolProxyId: string, relayUrl: string) => {
+  const handleDeployed = (_poolProxyId: string, relayUrl: string) => {
     alert(`${t("vercelRelaySuccess")}: ${relayUrl}`);
-  };
-
-  const handleCloudflareDeployed = (_poolProxyId: string, relayUrl: string) => {
-    alert(`${t("cloudflareRelaySuccess")}: ${relayUrl}`);
   };
 
   return (
@@ -93,24 +86,6 @@ export default function ProxyPoolTab() {
                     {t("denoRelayButton")}
                   </button>
                 )}
-                {showCloudflareRelay && (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setCloudflareModalOpen(true);
-                      setMenuOpen(false);
-                    }}
-                    className="flex w-full items-center gap-2 rounded px-3 py-2 text-sm hover:bg-surface-alt"
-                  >
-                    <span
-                      className="material-symbols-outlined text-[20px] text-primary"
-                      aria-hidden="true"
-                    >
-                      cloud
-                    </span>
-                    {t("cloudflareRelayButton")}
-                  </button>
-                )}
               </div>
             )}
           </div>
@@ -120,17 +95,12 @@ export default function ProxyPoolTab() {
       <VercelRelayModal
         isOpen={vercelModalOpen}
         onClose={() => setVercelModalOpen(false)}
-        onDeployed={handleVercelDeployed}
+        onDeployed={handleDeployed}
       />
       <DenoRelayModal
         isOpen={denoModalOpen}
         onClose={() => setDenoModalOpen(false)}
-        onDeployed={handleVercelDeployed}
-      />
-      <CloudflareRelayModal
-        isOpen={cloudflareModalOpen}
-        onClose={() => setCloudflareModalOpen(false)}
-        onDeployed={handleCloudflareDeployed}
+        onDeployed={handleDeployed}
       />
     </div>
   );

@@ -10,74 +10,13 @@ const DENO_API_BASE = process.env.DENO_DEPLOY_API_BASE || "https://api.deno.com/
 const POLL_INTERVAL_MS = 2000;
 const POLL_MAX_ATTEMPTS = 30; // ~60 s
 
-/**
- * SSRF-safe resolution of the relay path against an already-validated target.
- *
- * The relay worker receives an attacker-controlled `x-relay-path` and must
- * append it to the target ORIGIN without letting the caller swap the host that
- * `x-relay-target` was validated for. The pre-#4643-fix worker did
- * `target.replace(/\/$/, "") + relayPath`, which is bypassable via userinfo
- * (`/x@evil.com`), a backslash (`\evil.com`), or a protocol-relative path
- * (`//evil.com/x`). We instead resolve with `new URL(relayPath, targetUrl)` and
- * re-assert that the resolved host/credentials still match the target.
- *
- * Pure (only `URL`, no Node/Deno globals) so the SAME source can be embedded
- * verbatim into the Deno edge worker AND unit-tested directly in Node. Returns a
- * tagged result instead of throwing so the worker can map it to an HTTP status.
- */
-export function resolveRelayTarget(
-  target: string,
-  relayPath: string
-): { ok: true; url: string } | { ok: false; status: 400 | 403; reason: string } {
-  let targetUrl;
-  try {
-    targetUrl = new URL(target);
-  } catch {
-    return { ok: false, status: 400, reason: "invalid x-relay-target" };
-  }
-  // Reject the host-confusion vectors up front. A backslash or '@' has no place
-  // in a legitimate path/query, and `new URL` (special-scheme parsing) would
-  // otherwise treat them as authority/userinfo delimiters.
-  if (
-    typeof relayPath !== "string" ||
-    relayPath.indexOf("@") !== -1 ||
-    relayPath.indexOf("\\") !== -1 ||
-    relayPath.charAt(0) !== "/"
-  ) {
-    return { ok: false, status: 403, reason: "forbidden x-relay-path" };
-  }
-  let finalUrl;
-  try {
-    finalUrl = new URL(relayPath, targetUrl);
-  } catch {
-    return { ok: false, status: 403, reason: "forbidden x-relay-path" };
-  }
-  // A protocol-relative path ("//evil.com/x") resolves to a different host;
-  // userinfo would surface as username/password. Either means the path tried to
-  // re-point the request away from the validated target — reject.
-  if (
-    finalUrl.hostname !== targetUrl.hostname ||
-    finalUrl.protocol !== targetUrl.protocol ||
-    finalUrl.port !== targetUrl.port ||
-    finalUrl.username ||
-    finalUrl.password
-  ) {
-    return { ok: false, status: 403, reason: "forbidden x-relay-path (host mismatch)" };
-  }
-  return { ok: true, url: finalUrl.toString() };
-}
-
 // Inlined Deno Deploy relay worker. The relayAuth secret is generated
 // server-side (no user input); the runtime SSRF guard is inlined into the
 // edge function because Deno Deploy isolates each app and cannot import
-// Node-side helpers. The path-resolution guard (`resolveRelayTarget`) is the
-// SAME source used by the server and by the unit tests — embedded here via
-// Function#toString so the worker enforces byte-for-byte the audited policy.
-// Mirrors the Vercel-relay guard so a future audit can diff the two.
+// Node-side helpers. Mirrors the Vercel-relay guard byte-for-byte so a
+// future audit can diff the two and confirm they enforce the same policy.
 function buildRelayWorker(relayAuth: string): string {
-  return `${resolveRelayTarget.toString()}
-
-function isPrivateHostname(h) {
+  return `function isPrivateHostname(h) {
   if (!h) return true;
   const host = h.trim().toLowerCase().replace(/^\\[|\\]$/g, "");
   if (
@@ -123,10 +62,6 @@ Deno.serve(async (request) => {
     return new Response("forbidden x-relay-target (private/loopback host)", { status: 403 });
   }
   const relayPath = request.headers.get("x-relay-path") || "/";
-  const resolved = resolveRelayTarget(target, relayPath);
-  if (!resolved.ok) {
-    return new Response(resolved.reason, { status: resolved.status });
-  }
   const headers = new Headers(request.headers);
   ["x-relay-target", "x-relay-path", "x-relay-auth", "host"].forEach(h => headers.delete(h));
   const init = { method: request.method, headers };
@@ -135,7 +70,7 @@ Deno.serve(async (request) => {
     init.duplex = "half";
   }
   try {
-    const upstream = await fetch(resolved.url, init);
+    const upstream = await fetch(target.replace(/\\/$/, "") + relayPath, init);
     return new Response(upstream.body, { status: upstream.status, headers: upstream.headers });
   } catch (error) {
     return new Response(JSON.stringify({ error: String(error && error.message || error) }), {
@@ -145,13 +80,6 @@ Deno.serve(async (request) => {
   }
 });`;
 }
-
-/**
- * Test-only hook exposing the generated worker source so the SSRF regression
- * test can assert the worker no longer string-concatenates the relay path and
- * embeds the shared `resolveRelayTarget` guard. Not part of the route contract.
- */
-export const __buildRelayWorkerForTest = buildRelayWorker;
 
 async function pollRevision(
   revisionId: string,

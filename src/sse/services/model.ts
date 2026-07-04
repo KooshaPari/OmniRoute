@@ -1,14 +1,12 @@
 // Re-export from open-sse with localDb integration
-import {
-  getModelAliases,
-  getComboByName,
-  getComboById,
-  getComboByNameInsensitive,
-  getProviderNodes,
-  getCustomModels,
-} from "@/lib/localDb";
+import { getModelAliases, getComboByName, getProviderNodes, getCustomModels } from "@/lib/localDb";
 import { getCachedSettings } from "@/lib/localDb";
-import { parseModel, getModelInfoCore } from "@omniroute/open-sse/services/model.ts";
+import { getComboStepTarget } from "@/lib/combos/steps";
+import {
+  parseModel,
+  resolveModelAliasFromMap,
+  getModelInfoCore,
+} from "@omniroute/open-sse/services/model.ts";
 import { REGISTRY } from "@omniroute/open-sse/config/providerRegistry.ts";
 
 export { parseModel };
@@ -36,7 +34,7 @@ function getReservedProviderPrefixes(): Set<string> {
 /**
  * Build a combined model alias map that merges both alias stores:
  * 1. DB-namespace aliases (key_value WHERE namespace='modelAliases') — set via
- *    /api/models/alias/ and seeded at startup.
+ *    /api/models/alias/ and seeded at startup (e.g. gemini-cli default aliases).
  * 2. Settings-based aliases (settings.modelAliases) — set via the Settings UI and
  *    /api/settings/model-aliases/ (stored as a JSON blob in namespace='settings').
  *
@@ -60,6 +58,14 @@ async function getCombinedModelAliases(): Promise<Record<string, unknown>> {
 
   // Settings-based aliases win over DB-namespace aliases on key collision
   return { ...dbAliases, ...settingsAliases };
+}
+
+/**
+ * Resolve model alias from localDb
+ */
+export async function resolveModelAlias(alias) {
+  const aliases = await getModelAliases();
+  return resolveModelAliasFromMap(alias, aliases);
 }
 
 /**
@@ -121,7 +127,8 @@ export async function getModelInfo(modelStr) {
     // are never in the reserved set, so the #2778 combo path still works.
     // Ported from upstream 9router 047fdc89.
     const reserved = getReservedProviderPrefixes();
-    const isReservedPrefix = typeof prefixToCheck === "string" && reserved.has(prefixToCheck);
+    const isReservedPrefix =
+      typeof prefixToCheck === "string" && reserved.has(prefixToCheck);
 
     if (!isReservedPrefix) {
       // Check OpenAI Compatible nodes
@@ -206,22 +213,6 @@ export async function getCombo(modelStr) {
     }
   }
 
-  // #4446: the opencode-plugin publishes combos as ModelV2 `id: combo.id`, and
-  // the OpenCode `--model` dispatch path forwards a lowercased bare slug. The
-  // exact, case-sensitive name match above misses both a combo addressed by its
-  // stored id (UUID/slug) and a lowercased display name (e.g. "master-light" for
-  // a combo named "MASTER-LIGHT"). These two fallbacks only run after the exact
-  // match fails, so they never re-route a combo that already resolves today.
-  combo = await getComboById(modelStr);
-  if (combo && combo.models && combo.models.length > 0) {
-    return combo;
-  }
-
-  combo = await getComboByNameInsensitive(modelStr);
-  if (combo && combo.models && combo.models.length > 0) {
-    return combo;
-  }
-
   return null;
 }
 
@@ -251,4 +242,16 @@ export async function getComboForModel(modelStr) {
   }
 
   return null;
+}
+
+/**
+ * Legacy: get combo models as string array
+ * @returns {Promise<string[]|null>}
+ */
+export async function getComboModels(modelStr) {
+  const combo = await getCombo(modelStr);
+  if (!combo) return null;
+  return (combo.models || [])
+    .map((entry) => getComboStepTarget(entry))
+    .filter((entry): entry is string => typeof entry === "string" && entry.length > 0);
 }

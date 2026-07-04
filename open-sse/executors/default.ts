@@ -1,7 +1,12 @@
-import { BaseExecutor, type ExecuteInput } from "./base.ts";
+import { BaseExecutor, setUserAgentHeader, type ExecuteInput } from "./base.ts";
 import { PROVIDERS, OAUTH_ENDPOINTS } from "../config/constants.ts";
 import { getAccessToken } from "../services/tokenRefresh.ts";
-
+import {
+  getRotatingApiKey,
+  getValidApiKey,
+  resolveKeyForRequest,
+} from "../services/apiKeyRotator.ts";
+import type { KeyHealth } from "../services/apiKeyRotator.ts";
 import {
   buildClaudeCodeCompatibleHeaders,
   CLAUDE_CODE_COMPATIBLE_DEFAULT_CHAT_PATH,
@@ -9,12 +14,7 @@ import {
 } from "../services/claudeCodeCompatible.ts";
 import { getGigachatAccessToken } from "../services/gigachatAuth.ts";
 import { getRegistryEntry } from "../config/providerRegistry.ts";
-import { getModelTargetFormat } from "../config/providerModels.ts";
-import {
-  mergeClientAnthropicBeta,
-  normalizeAnthropicHeaderVariants,
-} from "../config/anthropicHeaders.ts";
-import { isOfficialAnthropicBaseUrl } from "../utils/anthropicHost.ts";
+import { mergeClientAnthropicBeta } from "../config/anthropicHeaders.ts";
 import { applyProviderRequestDefaults } from "../services/providerRequestDefaults.ts";
 import { stripUnsupportedParams } from "../translator/paramSupport.ts";
 import {
@@ -24,30 +24,15 @@ import {
   isClaudeCodeCompatible,
 } from "../services/provider.ts";
 import { sanitizeQwenThinkingToolChoice } from "../services/qwenThinking.ts";
-import { getSapResourceGroup } from "../config/sap.ts";
-import {
-  normalizeBailianMessagesUrl,
-  normalizeDataRobotChatUrl,
-  normalizeAzureAiChatUrl,
-  normalizeWatsonxChatUrl,
-  normalizeOciChatUrl,
-  normalizeSapChatUrl,
-  normalizeXiaomiMimoChatUrl,
-  normalizeOpenAIChatUrl,
-  getOpenRouterConnectionPreset,
-} from "./default/urlNormalizers.ts";
+import { buildDataRobotChatUrl } from "../config/datarobot.ts";
+import { buildAzureAiChatUrl } from "../config/azureAi.ts";
+import { buildWatsonxChatUrl } from "../config/watsonx.ts";
+import { buildOciChatUrl } from "../config/oci.ts";
+import { buildSapChatUrl, getSapResourceGroup } from "../config/sap.ts";
 import { buildMaritalkChatUrl } from "../config/maritalk.ts";
 import { LOCAL_PROVIDERS } from "@/shared/constants/providers";
 import { isForbiddenCustomHeaderName } from "@/shared/constants/upstreamHeaders";
 import { getClaudeCodeCompatibleRequestDefaults } from "@/lib/providers/requestDefaults";
-import { buildClineHeaders } from "@/shared/utils/clineAuth";
-import {
-  normalizeHerokuChatUrl,
-  normalizeDatabricksChatUrl,
-  normalizeSnowflakeChatUrl,
-  normalizeGigachatChatUrl,
-} from "@/lib/providers/validation/urlHelpers";
-import { forwardOpencodeClientHeaders } from "../utils/opencodeHeaders.ts";
 
 import type { PoolConfig } from "../services/sessionPool/types.ts";
 
@@ -93,6 +78,90 @@ function applyCustomHeaders(headers: Record<string, string>, rawCustomHeaders: u
   }
 }
 
+function normalizeBaseUrl(baseUrl) {
+  return (baseUrl || "").trim().replace(/\/$/, "");
+}
+
+function normalizeBailianMessagesUrl(baseUrl) {
+  const normalized = normalizeBaseUrl(baseUrl).replace(/\?beta=true$/, "");
+  const messagesUrl = normalized.endsWith("/messages") ? normalized : `${normalized}/messages`;
+  return messagesUrl;
+}
+
+function normalizeHerokuChatUrl(baseUrl) {
+  const normalized = normalizeBaseUrl(baseUrl);
+  if (normalized.endsWith("/v1/chat/completions")) return normalized;
+  return `${normalized}/v1/chat/completions`;
+}
+
+function normalizeDatabricksChatUrl(baseUrl) {
+  const normalized = normalizeBaseUrl(baseUrl);
+  if (normalized.endsWith("/chat/completions")) return normalized;
+  return `${normalized}/chat/completions`;
+}
+
+function normalizeDataRobotChatUrl(baseUrl) {
+  return buildDataRobotChatUrl(baseUrl);
+}
+
+function normalizeAzureAiChatUrl(baseUrl: string, apiType: "chat" | "responses" = "chat") {
+  return buildAzureAiChatUrl(baseUrl, apiType);
+}
+
+function normalizeWatsonxChatUrl(baseUrl: string) {
+  return buildWatsonxChatUrl(baseUrl);
+}
+
+function normalizeOciChatUrl(baseUrl: string, apiType: "chat" | "responses" = "chat") {
+  return buildOciChatUrl(baseUrl, apiType);
+}
+
+function normalizeSapChatUrl(baseUrl) {
+  return buildSapChatUrl(baseUrl);
+}
+
+function normalizeXiaomiMimoChatUrl(baseUrl) {
+  const normalized = normalizeBaseUrl(baseUrl).replace(/\/chat\/completions$/, "");
+  return `${normalized}/chat/completions`;
+}
+
+function normalizeSnowflakeChatUrl(baseUrl) {
+  const normalized = normalizeBaseUrl(baseUrl)
+    .replace(/\/cortex\/inference:complete$/, "")
+    .replace(/\/api\/v2$/, "");
+  return `${normalized}/api/v2/cortex/inference:complete`;
+}
+
+function normalizeGigachatChatUrl(baseUrl) {
+  const normalized = normalizeBaseUrl(baseUrl).replace(/\/chat\/completions$/, "");
+  return `${normalized}/chat/completions`;
+}
+
+function normalizeOpenAIChatUrl(baseUrl) {
+  const normalized = normalizeBaseUrl(baseUrl);
+  if (
+    normalized.endsWith("/chat/completions") ||
+    normalized.endsWith("/responses") ||
+    normalized.endsWith("/chat")
+  ) {
+    return normalized;
+  }
+  if (normalized.endsWith("/v1")) {
+    return `${normalized}/chat/completions`;
+  }
+  // Assume OpenAI-compatible /v1/chat/completions path structure
+  // when the base URL is a bare hostname or custom path (e.g. llama.cpp, vLLM, LM Studio).
+  return `${normalized}/v1/chat/completions`;
+}
+
+function getOpenRouterConnectionPreset(
+  providerSpecificData?: Record<string, unknown> | null
+): string | null {
+  const preset =
+    typeof providerSpecificData?.preset === "string" ? providerSpecificData.preset.trim() : "";
+  return preset || null;
+}
+
 export class DefaultExecutor extends BaseExecutor {
   constructor(provider) {
     super(provider, PROVIDERS[provider] || PROVIDERS.openai);
@@ -112,9 +181,8 @@ export class DefaultExecutor extends BaseExecutor {
       const normalized = baseUrl.replace(/\/$/, "");
       const customPath = typeof psd?.chatPath === "string" && psd.chatPath ? psd.chatPath : null;
       if (customPath) return `${normalized}${customPath}`;
-      const forceResponses = psd?._omnirouteForceResponsesUpstream === true;
       const path =
-        forceResponses || getOpenAICompatibleType(this.provider, psd) === "responses"
+        getOpenAICompatibleType(this.provider, psd) === "responses"
           ? "/responses"
           : "/chat/completions";
       return `${normalized}${path}`;
@@ -133,38 +201,20 @@ export class DefaultExecutor extends BaseExecutor {
       return `${normalized}${customPath || "/messages"}`;
     }
     switch (this.provider) {
-      case "openai": {
-        // #5842: responses-only models (o1-pro / gpt-5.x-pro) 404 on
-        // /v1/chat/completions ("only supported in v1/responses"). Route them to
-        // the native /responses endpoint — the per-model targetFormat (registry tag
-        // + the -pro heuristic in getModelTargetFormat) is the single source of
-        // truth, keeping the URL in lockstep with the chatCore body translation.
-        // Mirrors the gh executor's targetFormat-driven routing (9router#102).
-        const customBaseUrl =
-          typeof credentials?.providerSpecificData?.baseUrl === "string" &&
-          credentials.providerSpecificData.baseUrl.trim()
-            ? (credentials.providerSpecificData.baseUrl as string)
-            : null;
-        const chatUrl = customBaseUrl ? normalizeOpenAIChatUrl(customBaseUrl) : this.config.baseUrl;
-        if (getModelTargetFormat("openai", model) === "openai-responses") {
-          return chatUrl.replace(/\/chat\/completions\/?$/, "/responses");
-        }
-        return chatUrl;
-      }
       case "bailian-coding-plan": {
-        const baseUrl = this.resolveBaseUrl(credentials);
+        const baseUrl = credentials?.providerSpecificData?.baseUrl || this.config.baseUrl;
         return normalizeBailianMessagesUrl(baseUrl);
       }
       case "heroku": {
-        const baseUrl = this.resolveBaseUrl(credentials);
+        const baseUrl = credentials?.providerSpecificData?.baseUrl || this.config.baseUrl;
         return normalizeHerokuChatUrl(baseUrl);
       }
       case "databricks": {
-        const baseUrl = this.resolveBaseUrl(credentials);
+        const baseUrl = credentials?.providerSpecificData?.baseUrl || this.config.baseUrl;
         return normalizeDatabricksChatUrl(baseUrl);
       }
       case "datarobot": {
-        const baseUrl = this.resolveBaseUrl(credentials);
+        const baseUrl = credentials?.providerSpecificData?.baseUrl || this.config.baseUrl;
         return normalizeDataRobotChatUrl(baseUrl);
       }
       case "azure-ai": {
@@ -174,11 +224,11 @@ export class DefaultExecutor extends BaseExecutor {
           forceResponses || credentials?.providerSpecificData?.apiType === "responses"
             ? "responses"
             : "chat";
-        const baseUrl = this.resolveBaseUrl(credentials);
+        const baseUrl = credentials?.providerSpecificData?.baseUrl || this.config.baseUrl;
         return normalizeAzureAiChatUrl(baseUrl, apiType);
       }
       case "watsonx": {
-        const baseUrl = this.resolveBaseUrl(credentials);
+        const baseUrl = credentials?.providerSpecificData?.baseUrl || this.config.baseUrl;
         return normalizeWatsonxChatUrl(baseUrl);
       }
       case "oci": {
@@ -188,34 +238,33 @@ export class DefaultExecutor extends BaseExecutor {
           forceResponses || credentials?.providerSpecificData?.apiType === "responses"
             ? "responses"
             : "chat";
-        const baseUrl = this.resolveBaseUrl(credentials);
+        const baseUrl = credentials?.providerSpecificData?.baseUrl || this.config.baseUrl;
         return normalizeOciChatUrl(baseUrl, apiType);
       }
       case "sap": {
-        const baseUrl = this.resolveBaseUrl(credentials);
+        const baseUrl = credentials?.providerSpecificData?.baseUrl || this.config.baseUrl;
         return normalizeSapChatUrl(baseUrl);
       }
       case "xiaomi-mimo": {
-        const baseUrl = this.resolveBaseUrl(credentials);
+        const baseUrl = credentials?.providerSpecificData?.baseUrl || this.config.baseUrl;
         return normalizeXiaomiMimoChatUrl(baseUrl);
       }
       case "snowflake": {
-        const baseUrl = this.resolveBaseUrl(credentials);
+        const baseUrl = credentials?.providerSpecificData?.baseUrl || this.config.baseUrl;
         return normalizeSnowflakeChatUrl(baseUrl);
       }
       case "gigachat": {
-        const baseUrl = this.resolveBaseUrl(credentials);
+        const baseUrl = credentials?.providerSpecificData?.baseUrl || this.config.baseUrl;
         return normalizeGigachatChatUrl(baseUrl);
       }
       case "maritalk": {
-        const baseUrl = this.resolveBaseUrl(credentials);
+        const baseUrl = credentials?.providerSpecificData?.baseUrl || this.config.baseUrl;
         return buildMaritalkChatUrl(baseUrl);
       }
       case "siliconflow": {
-        const baseUrl = this.resolveBaseUrl(credentials);
+        const baseUrl = credentials?.providerSpecificData?.baseUrl || this.config.baseUrl;
         return normalizeOpenAIChatUrl(baseUrl);
       }
-      case "ollama-local":
       case "llama-cpp":
       case "lm-studio":
       case "modal":
@@ -239,7 +288,7 @@ export class DefaultExecutor extends BaseExecutor {
       }
       case "zai":
       case "glm-coding-apikey": {
-        const zaiBaseUrl = this.resolveBaseUrl(credentials);
+        const zaiBaseUrl = credentials?.providerSpecificData?.baseUrl || this.config.baseUrl;
         return `${zaiBaseUrl}?beta=true`;
       }
       case "claude":
@@ -279,7 +328,40 @@ export class DefaultExecutor extends BaseExecutor {
   }
 
   buildHeaders(credentials, stream = true, clientHeaders?: Record<string, string> | null) {
-    const { headers, effectiveKey } = this.buildHeadersPreamble(credentials, stream);
+    const headers = { "Content-Type": "application/json", ...this.config.headers };
+
+    // Allow per-provider User-Agent override via environment variable.
+    const providerId = this.config?.id || this.provider;
+    if (providerId) {
+      const envKey = `${providerId.toUpperCase().replace(/[^A-Z0-9]/g, "_")}_USER_AGENT`;
+      const envUA = process.env[envKey]?.trim();
+      if (envUA) {
+        headers["User-Agent"] = envUA;
+        if ("user-agent" in headers) {
+          headers["user-agent"] = envUA;
+        }
+      }
+    }
+
+    // T07: resolve extra keys round-robin locally since DefaultExecutor overrides BaseExecutor buildHeaders
+    const extraKeys =
+      (credentials.providerSpecificData?.extraApiKeys as string[] | undefined) ?? [];
+    const selectedKeyId = (credentials.providerSpecificData as Record<string, unknown> | undefined)
+      ?.selectedKeyId as string | undefined;
+    let effectiveKey = credentials.apiKey;
+    if (extraKeys.length > 0 && credentials.connectionId && credentials.apiKey) {
+      const resolved = resolveKeyForRequest(
+        credentials.connectionId,
+        credentials.apiKey,
+        extraKeys,
+        selectedKeyId ?? null
+      );
+      effectiveKey = resolved?.key ?? credentials.apiKey;
+      if (resolved && credentials.providerSpecificData) {
+        (credentials.providerSpecificData as Record<string, unknown>).selectedKeyId =
+          resolved.keyId;
+      }
+    }
 
     switch (this.provider) {
       case "gemini":
@@ -365,12 +447,6 @@ export class DefaultExecutor extends BaseExecutor {
       case "glm-coding-apikey":
         headers["x-api-key"] = effectiveKey || credentials.accessToken;
         break;
-      case "cline":
-        // Cline's API requires the bearer token prefixed with `workos:` plus a
-        // set of Cline client-identification headers; plain `Bearer <token>`
-        // is rejected upstream. buildClineHeaders() emits both.
-        Object.assign(headers, buildClineHeaders(effectiveKey || credentials.accessToken));
-        break;
       default:
         if (isClaudeCodeCompatible(this.provider)) {
           const ccRequestDefaults = getClaudeCodeCompatibleRequestDefaults(
@@ -393,35 +469,14 @@ export class DefaultExecutor extends BaseExecutor {
           } else if (credentials.accessToken) {
             headers["Authorization"] = `Bearer ${credentials.accessToken}`;
           }
-          // Port of decolua/9router commit b977bf74:
-          // Third-party Anthropic-compatible gateways frequently require
-          // Authorization: Bearer ALONGSIDE x-api-key — without it they
-          // return 401 missing_api_key on every forward. Only emit the
-          // Bearer fallback for non-official upstreams; api.anthropic.com
-          // (and the empty/default baseUrl that targets it) must keep the
-          // x-api-key-only behavior to avoid regressing the official path.
-          if (effectiveKey && !headers["Authorization"]) {
-            const baseUrl = credentials?.providerSpecificData?.baseUrl || "";
-            const isOfficialAnthropic = isOfficialAnthropicBaseUrl(baseUrl);
-            if (!isOfficialAnthropic) {
-              headers["Authorization"] = `Bearer ${effectiveKey}`;
-            }
-          }
-          // Default the anthropic-version header only when the caller/operator
-          // has not already supplied one. The lookup is case-insensitive so a
-          // pre-set "Anthropic-Version" (e.g. from this.config.headers or a
-          // custom header) is not clobbered with a duplicate lowercase entry.
-          const hasAnthropicVersion = Object.keys(headers).some(
-            (key) => key.toLowerCase() === "anthropic-version"
-          );
-          if (!hasAnthropicVersion) {
+          if (!headers["anthropic-version"]) {
             headers["anthropic-version"] = "2023-06-01";
           }
         } else {
           // Use registry authHeader if available, otherwise default to bearer
           const entry = getRegistryEntry(this.provider);
           const authHeader = entry?.authHeader || "bearer";
-          const token = effectiveKey || credentials.accessToken || entry?.anonymousApiKey;
+          const token = effectiveKey || credentials.accessToken;
           if (token) {
             if (authHeader === "x-api-key") {
               headers["x-api-key"] = token;
@@ -457,7 +512,25 @@ export class DefaultExecutor extends BaseExecutor {
     // Forward client request metadata headers (from OpenCode or similar clients)
     // Allowlist-based: only specific x-opencode-* headers and User-Agent are forwarded
     if (clientHeaders) {
-      forwardOpencodeClientHeaders(headers, clientHeaders);
+      const clientUA = clientHeaders["User-Agent"] || clientHeaders["user-agent"];
+      if (clientUA) {
+        setUserAgentHeader(headers, clientUA);
+      }
+
+      const opencodeHeaderKeys = [
+        "x-opencode-session",
+        "x-opencode-request",
+        "x-opencode-project",
+        "x-opencode-client",
+      ];
+      for (const headerName of opencodeHeaderKeys) {
+        const value = Object.entries(clientHeaders).find(
+          ([key]) => key.toLowerCase() === headerName.toLowerCase()
+        )?.[1];
+        if (value) {
+          headers[headerName] = value;
+        }
+      }
 
       // #3974: merge the client's negotiated anthropic-beta (allowlisted) into the
       // outbound set. The registry's static ANTHROPIC_BETA_CLAUDE_OAUTH lacks
@@ -471,63 +544,7 @@ export class DefaultExecutor extends BaseExecutor {
       }
     }
 
-    normalizeAnthropicHeaderVariants(headers);
-
     return headers;
-  }
-
-  /**
-   * Downgrade `response_format: { type: "json_schema" }` to `json_object` for
-   * `openai-compatible-*` providers, injecting the JSON schema into the system
-   * prompt instead. DeepSeek / Ollama / local OpenAI-compatible models often
-   * lack native Structured Output and return empty or malformed content when a
-   * `json_schema` response_format is forwarded as-is. Gated on the
-   * `openai-compatible-` provider family so providers with native Structured
-   * Output support keep the native `json_schema` path.
-   */
-  applyJsonSchemaFallback<T>(body: T): T {
-    if (!this.provider?.startsWith?.("openai-compatible-")) return body;
-    if (!body || typeof body !== "object" || Array.isArray(body)) return body;
-
-    const record = body as Record<string, unknown>;
-    const rf = record.response_format as
-      { type?: string; json_schema?: { schema?: unknown } } | undefined;
-    if (rf?.type !== "json_schema" || !rf.json_schema?.schema) return body;
-
-    const schemaJson = JSON.stringify(rf.json_schema.schema, null, 2);
-    const prompt = `You must respond with valid JSON that strictly follows this JSON schema:\n\`\`\`json\n${schemaJson}\n\`\`\`\nRespond ONLY with the JSON object, no other text.`;
-
-    const messages: Array<Record<string, unknown>> = Array.isArray(record.messages)
-      ? (record.messages as Array<Record<string, unknown>>).map((m) => ({ ...m }))
-      : [];
-    const sys = messages.find((m) => m.role === "system");
-    if (sys) {
-      if (typeof sys.content === "string") {
-        sys.content = `${sys.content}\n\n${prompt}`;
-      } else if (Array.isArray(sys.content)) {
-        sys.content.push({ type: "text", text: `\n\n${prompt}` });
-      }
-    } else {
-      messages.unshift({ role: "system", content: prompt });
-    }
-
-    return { ...record, messages, response_format: { type: "json_object" } } as T;
-  }
-
-  // Some Responses-compatible upstreams (e.g. LM Studio) reject a request whose
-  // `text` is an object missing `text.format` with a 400 missing_required_parameter.
-  // The Responses API default for that field is { type: "text" }, so default it
-  // for openai-compatible "responses" providers before forwarding upstream.
-  defaultResponsesTextFormat<T>(body: T): T {
-    if (!this.provider?.startsWith?.("openai-compatible-")) return body;
-    if (!this.provider.includes("responses")) return body;
-    if (!body || typeof body !== "object" || Array.isArray(body)) return body;
-    const record = body as Record<string, unknown>;
-    const text = record.text;
-    if (!text || typeof text !== "object" || Array.isArray(text)) return body;
-    const textRecord = text as Record<string, unknown>;
-    if (textRecord.format !== undefined) return body;
-    return { ...record, text: { ...textRecord, format: { type: "text" } } } as T;
   }
 
   /**
@@ -541,27 +558,6 @@ export class DefaultExecutor extends BaseExecutor {
   transformRequest(model, body, stream, credentials) {
     const cleanedBody = super.transformRequest(model, body, stream, credentials);
     let withDefaults = applyProviderRequestDefaults(cleanedBody, this.config.requestDefaults);
-    withDefaults = this.applyJsonSchemaFallback(withDefaults);
-    withDefaults = this.defaultResponsesTextFormat(withDefaults);
-
-    // Port of decolua/9router commit d652300e:
-    // Cerebras returns 400 (wrong_api_format) and Mistral returns 422
-    // (extra_forbidden) when the forwarded body carries `client_metadata`
-    // (an OpenAI Codex / Claude CLI passthrough field with no equivalent on
-    // these upstreams). Strip it before sending downstream. Other providers
-    // (notably `openai` / `codex`) intentionally keep it.
-    if (
-      withDefaults &&
-      typeof withDefaults === "object" &&
-      !Array.isArray(withDefaults) &&
-      (this.provider === "cerebras" || this.provider === "mistral") &&
-      Object.prototype.hasOwnProperty.call(withDefaults, "client_metadata")
-    ) {
-      const withoutClientMetadata = { ...(withDefaults as Record<string, unknown>) };
-      delete withoutClientMetadata.client_metadata;
-      withDefaults = withoutClientMetadata;
-    }
-
     const targetFormat = getTargetFormat(this.provider, credentials?.providerSpecificData);
     const requestFormat =
       withDefaults && typeof withDefaults === "object" && !Array.isArray(withDefaults)
@@ -585,12 +581,12 @@ export class DefaultExecutor extends BaseExecutor {
         // injection when `thinking` / `enable_thinking` is set. Skip injection in
         // those cases instead of unconditionally adding `stream_options`.
         const defaultsRecord = withDefaults as Record<string, unknown>;
-        const bodyDisablesStreamOptions =
-          defaultsRecord.stream !== undefined && defaultsRecord.stream !== true;
         const qwenBlocksStreamOptions =
           this.provider === "qwen" &&
-          (Boolean(defaultsRecord.thinking) || Boolean(defaultsRecord.enable_thinking));
-        if (bodyDisablesStreamOptions || qwenBlocksStreamOptions) {
+          (defaultsRecord.stream === false ||
+            Boolean(defaultsRecord.thinking) ||
+            Boolean(defaultsRecord.enable_thinking));
+        if (qwenBlocksStreamOptions) {
           if (Object.prototype.hasOwnProperty.call(defaultsRecord, "stream_options")) {
             const withoutStreamOptions = { ...defaultsRecord };
             delete withoutStreamOptions.stream_options;
@@ -599,7 +595,6 @@ export class DefaultExecutor extends BaseExecutor {
         } else if (!credentials?.providerSpecificData?.disableStreamOptions) {
           withDefaults = {
             ...withDefaults,
-            stream: true,
             stream_options: {
               ...((defaultsRecord.stream_options as object) || {}),
               include_usage: true,
@@ -663,7 +658,8 @@ export class DefaultExecutor extends BaseExecutor {
     // ../translator/paramSupport.ts so adding one means editing one table.
     if (typeof withDefaults === "object" && withDefaults !== null) {
       const bodyRecord = withDefaults as Record<string, unknown>;
-      const outboundModel = typeof bodyRecord.model === "string" ? bodyRecord.model : model;
+      const outboundModel =
+        typeof bodyRecord.model === "string" ? bodyRecord.model : model;
       stripUnsupportedParams(this.provider, outboundModel, bodyRecord);
     }
 
@@ -687,52 +683,7 @@ export class DefaultExecutor extends BaseExecutor {
       }
     }
 
-    // ClinePass reasoning models burn all of max_tokens on the thinking phase
-    // when the budget is too small, leaving content empty (finish_reason:
-    // "length"). Bump max_tokens to a safe floor when reasoning is enabled and
-    // the budget is undersized. CLINEPASS-GATED — no-op for every other provider.
-    if (typeof withDefaults === "object" && withDefaults !== null) {
-      this.ensureThinkingBudget(withDefaults as Record<string, unknown>, model);
-    }
-
     return withDefaults;
-  }
-
-  // ClinePass / OpenRouter-style thinking models leave content empty when the
-  // reasoning budget consumes all of max_tokens. Bump max_tokens to a safe
-  // minimum only when reasoning is enabled and the budget is undersized.
-  // CLINEPASS-GATED: returns early for every other provider.
-  ensureThinkingBudget(body: Record<string, unknown>, model: string): Record<string, unknown> {
-    if (!body || this.provider !== "clinepass") return body;
-
-    const outboundModel = typeof body.model === "string" ? body.model : model;
-    const entry = getRegistryEntry(this.provider);
-    const modelEntry = entry?.models?.find((m) => m.id === outboundModel);
-    if (!modelEntry?.supportsReasoning) return body;
-
-    const extraBody = body.extra_body as Record<string, unknown> | undefined;
-    const thinking = extraBody?.thinking as Record<string, unknown> | undefined;
-    const effort = body.reasoning_effort;
-    const reasoningEnabled =
-      thinking?.type === "enabled" ||
-      (typeof effort === "string" && effort !== "none" && effort !== "off") ||
-      effort === true;
-    if (!reasoningEnabled) return body;
-
-    const MIN_TOKENS = 4096;
-    const maxOutput =
-      typeof modelEntry.maxOutputTokens === "number" && modelEntry.maxOutputTokens > 0
-        ? modelEntry.maxOutputTokens
-        : MIN_TOKENS;
-    const target = Math.min(MIN_TOKENS, maxOutput);
-    const current = body.max_tokens ?? body.max_completion_tokens;
-
-    if (typeof current !== "number" || current <= 0) {
-      body.max_tokens = target;
-    } else if (current < MIN_TOKENS && current < maxOutput) {
-      body.max_tokens = MIN_TOKENS;
-    }
-    return body;
   }
 
   /**
