@@ -105,7 +105,7 @@ impl Watchdog {
     pub fn register(&mut self, name: impl Into<String>, max_restarts: u32) -> &WatchdogEntry {
         let name = name.into();
         self.entries
-            .insert(name.clone(), WatchdogEntry::new(name, max_restarts));
+            .insert(name.clone(), WatchdogEntry::new(name.clone(), max_restarts));
         self.entries
             .get(&name)
             .expect("entry was just inserted and must be present")
