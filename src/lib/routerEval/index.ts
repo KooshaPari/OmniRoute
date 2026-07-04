@@ -293,6 +293,10 @@ export function formatLatency(value: number | null): string {
   return `${round(value, 2)}ms`;
 }
 
+function formatList(values: string[]): string {
+  return values.length > 0 ? values.join(", ") : "n/a";
+}
+
 export function formatRouterEvalReport(report: RouterEvalReport): string {
   const lines = [
     "# Router Eval Report",
@@ -302,10 +306,10 @@ export function formatRouterEvalReport(report: RouterEvalReport): string {
     `Pareto frontier size: ${report.paretoFrontier.length}`,
     `Median quality rate: ${formatPercentage(report.medianAccuracyRate)}`,
     "",
-    "| config | samples | accuracy | success | avg latency | avg cost | AIQ |",
-    "|---|---:|---:|---:|---:|---:|---:|",
+    "| config | samples | backend | providers | cooldowns | accuracy | success | avg latency | avg cost | AIQ |",
+    "|---|---:|---|---|---:|---:|---:|---:|---:|---:|",
     ...report.configs.map((config) =>
-      `| ${config.configId} | ${config.totalObservations} | ${formatPercentage(config.accuracyRate)} | ${formatPercentage(config.successRate)} | ${formatLatency(config.avgLatencyMs)} | ${formatCost(config.avgCostUsd)} | ${round(config.aiqScore, 4)} |`
+      `| ${config.configId} | ${config.totalObservations} | ${formatList(config.routerBackends)} | ${formatList(config.providerIds)} | ${config.cooldownObservations} | ${formatPercentage(config.accuracyRate)} | ${formatPercentage(config.successRate)} | ${formatLatency(config.avgLatencyMs)} | ${formatCost(config.avgCostUsd)} | ${round(config.aiqScore, 4)} |`
     ),
     "",
     "## Pareto frontier",

@@ -102,6 +102,42 @@ test("aggregateRouterObservations computes deterministic config summaries", () =
   assert.equal(report.configs[0]!.successRate, 1);
 });
 
+test("aggregateRouterObservations summarizes backend provenance", () => {
+  const report = aggregateRouterObservations([
+    {
+      sampleId: "n1",
+      configId: "native",
+      expectedModel: "gpt-4o",
+      selectedModel: "gpt-4o",
+      routerBackend: "native",
+      providerId: "openai",
+      cooldownApplied: true,
+      cooldownReason: "provider_error_budget",
+      latencyMs: 100,
+      costUsd: 1,
+      success: true,
+    },
+    {
+      sampleId: "n2",
+      configId: "native",
+      expectedModel: "gpt-4o",
+      selectedModel: "gpt-4o",
+      routerBackend: "native",
+      providerId: "anthropic",
+      cooldownApplied: false,
+      latencyMs: 90,
+      costUsd: 1,
+      success: true,
+    },
+  ]);
+
+  const native = report.configs.find((config) => config.configId === "native");
+  assert.deepEqual(native?.routerBackends, ["native"]);
+  assert.deepEqual(native?.providerIds, ["anthropic", "openai"]);
+  assert.equal(native?.cooldownObservations, 1);
+  assert.match(formatRouterEvalReport(report), /native \| 2 \| native \| anthropic, openai \| 1/);
+});
+
 test("pareto frontier collapses dominated configs", () => {
   const observations: RouterEvalObservation[] = [
     {
