@@ -11,6 +11,10 @@ export interface RouterEvalObservation {
   configId: string;
   expectedModel: string | null;
   selectedModel: string | null;
+  routerBackend?: string | null;
+  providerId?: string | null;
+  cooldownApplied?: boolean | null;
+  cooldownReason?: string | null;
   latencyMs: number | null;
   costUsd: number | null;
   success: boolean | null;
@@ -21,6 +25,9 @@ export interface RouterEvalConfigSummary {
   totalObservations: number;
   matchObservations: number;
   successfulObservations: number;
+  routerBackends: string[];
+  providerIds: string[];
+  cooldownObservations: number;
   avgLatencyMs: number | null;
   avgCostUsd: number | null;
   accuracyRate: number | null;
@@ -65,6 +72,9 @@ type MutableSummary = {
   latencyCount: number;
   costSum: number;
   costCount: number;
+  routerBackends: Set<string>;
+  providerIds: Set<string>;
+  cooldownObservations: number;
 };
 
 function toFiniteNumber(value: unknown): number | null {
@@ -143,6 +153,9 @@ export function aggregateRouterObservations(observations: RouterEvalObservation[
       latencyCount: 0,
       costSum: 0,
       costCount: 0,
+      routerBackends: new Set(),
+      providerIds: new Set(),
+      cooldownObservations: 0,
     };
 
     summary.totalObservations++;
@@ -159,6 +172,9 @@ export function aggregateRouterObservations(observations: RouterEvalObservation[
       summary.costSum += observation.costUsd;
       summary.costCount++;
     }
+    if (observation.routerBackend != null) summary.routerBackends.add(observation.routerBackend);
+    if (observation.providerId != null) summary.providerIds.add(observation.providerId);
+    if (observation.cooldownApplied === true) summary.cooldownObservations++;
 
     byConfig.set(key, summary);
   }
@@ -172,6 +188,9 @@ export function aggregateRouterObservations(observations: RouterEvalObservation[
       totalObservations: summary.totalObservations,
       matchObservations: summary.matchCount,
       successfulObservations: summary.successCount,
+      routerBackends: Array.from(summary.routerBackends).sort(),
+      providerIds: Array.from(summary.providerIds).sort(),
+      cooldownObservations: summary.cooldownObservations,
       avgLatencyMs: round(summary.latencyCount > 0 ? summary.latencySum / summary.latencyCount : null),
       avgCostUsd: round(summary.costCount > 0 ? summary.costSum / summary.costCount : null),
       accuracyRate,
@@ -343,6 +362,25 @@ export function parseObservation(raw: unknown, fallbackConfigId = "default"): Ro
     normalizeString(row.requestedModel) ??
     normalizeString(row.requested_model) ??
     null;
+  const routerBackend =
+    normalizeString(row.routerBackend) ??
+    normalizeString(row.router_backend) ??
+    normalizeString(row.backend) ??
+    null;
+  const providerId =
+    normalizeString(row.providerId) ??
+    normalizeString(row.provider_id) ??
+    normalizeString(row.provider) ??
+    null;
+  const cooldownApplied = typeof row.cooldownApplied === "boolean"
+    ? row.cooldownApplied
+    : typeof row.cooldown_applied === "boolean"
+      ? row.cooldown_applied
+      : null;
+  const cooldownReason =
+    normalizeString(row.cooldownReason) ??
+    normalizeString(row.cooldown_reason) ??
+    null;
   const rawLatency = toFiniteNumber(
     row.latency_ms ??
       row.latencyMs ??
@@ -361,6 +399,10 @@ export function parseObservation(raw: unknown, fallbackConfigId = "default"): Ro
     configId,
     expectedModel,
     selectedModel,
+    routerBackend,
+    providerId,
+    cooldownApplied,
+    cooldownReason,
     latencyMs: rawLatency,
     costUsd: rawCost,
     success,

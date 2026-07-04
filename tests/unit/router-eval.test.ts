@@ -32,6 +32,25 @@ test("parseObservation reads mixed JSONL field names", () => {
   assert.equal(parsed.success, true);
 });
 
+test("parseObservation preserves native router backend provenance fields", () => {
+  const parsed = parseObservation({
+    sample_id: "s-native",
+    config_id: "native-router",
+    expected_model: "gpt-4o",
+    selected_model: "gpt-4o",
+    router_backend: "native",
+    provider_id: "openai",
+    cooldown_applied: true,
+    cooldown_reason: "provider_error_budget",
+    status: 200,
+  });
+
+  assert.equal(parsed.routerBackend, "native");
+  assert.equal(parsed.providerId, "openai");
+  assert.equal(parsed.cooldownApplied, true);
+  assert.equal(parsed.cooldownReason, "provider_error_budget");
+});
+
 test("aggregateRouterObservations computes deterministic config summaries", () => {
   const observations: RouterEvalObservation[] = [
     {
