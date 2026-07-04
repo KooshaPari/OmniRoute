@@ -80,6 +80,16 @@ export async function GET() {
           "Run this coding task through the forge engine",
         ],
       },
+      {
+        id: "mint-virtual-key",
+        name: "Mint Virtual Key",
+        description: "Mints a scoped per-tenant virtual key when the task carries keys:write",
+        tags: ["keys", "tenant", "credentials", "a2a"],
+        examples: [
+          "Mint a virtual key for tenant acme-dev",
+          "Create a capped key for this tenant",
+        ],
+      },
     ],
     authentication: {
       schemes: ["bearer"],
