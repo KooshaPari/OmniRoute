@@ -91,9 +91,7 @@ mod linux {
                 ),
                 _ => "Daemon offline".into(),
             };
-            items.push(
-                StandardItem { label: header, enabled: false, ..Default::default() }.into(),
-            );
+            items.push(StandardItem { label: header, enabled: false, ..Default::default() }.into());
             items.push(MenuItem::Separator);
 
             if self.processes.is_empty() {
@@ -102,9 +100,7 @@ mod linux {
                 } else {
                     "Start sharecli-ipc to connect".to_string()
                 };
-                items.push(
-                    StandardItem { label, enabled: false, ..Default::default() }.into(),
-                );
+                items.push(StandardItem { label, enabled: false, ..Default::default() }.into());
             } else {
                 for proc in &self.processes {
                     let submenu = build_process_submenu(proc);
@@ -112,10 +108,7 @@ mod linux {
                         "{} [{}]{}",
                         proc.name,
                         proc.pid,
-                        proc.project
-                            .as_deref()
-                            .map(|p| format!(" · {p}"))
-                            .unwrap_or_default(),
+                        proc.project.as_deref().map(|p| format!(" · {p}")).unwrap_or_default(),
                     );
                     items.push(SubMenu { label, submenu, ..Default::default() }.into());
                 }

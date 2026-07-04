@@ -62,9 +62,7 @@ mod platform {
     impl InterceptFs {
         /// Create a new [`InterceptFs`] rooted at `backing`.
         pub fn new(backing: &Path) -> Self {
-            Self {
-                backing: backing.to_path_buf(),
-            }
+            Self { backing: backing.to_path_buf() }
         }
     }
 
@@ -94,13 +92,7 @@ mod platform {
         ///
         /// TODO(hypervisor): hook per-inode metering counters here so the
         ///   thermal governor can observe per-file-class read pressure.
-        fn getattr(
-            &self,
-            _req: &Request,
-            ino: INodeNo,
-            _fh: Option<FileHandle>,
-            reply: ReplyAttr,
-        ) {
+        fn getattr(&self, _req: &Request, ino: INodeNo, _fh: Option<FileHandle>, reply: ReplyAttr) {
             trace!(?ino, "getattr");
             if ino.0 == ROOT_INO {
                 match std::fs::metadata(&self.backing) {

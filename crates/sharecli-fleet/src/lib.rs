@@ -42,11 +42,7 @@ pub async fn subscribe(client: &Client) -> anyhow::Result<async_nats::Subscriber
 ///
 /// Runs in the background — spawn with `tokio::spawn(health_beat(...))`.
 /// Stops cleanly when the `async_nats::Client` is dropped or the interval is cancelled.
-pub async fn health_beat(
-    client: Client,
-    record: DeviceRecord,
-    interval: std::time::Duration,
-) {
+pub async fn health_beat(client: Client, record: DeviceRecord, interval: std::time::Duration) {
     let mut ticker = tokio::time::interval(interval);
     loop {
         ticker.tick().await;

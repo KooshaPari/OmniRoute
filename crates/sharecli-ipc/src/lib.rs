@@ -170,8 +170,7 @@ impl CoalesceCache {
         tmp.flush().context("flush temp file")?;
 
         let dest = self.entry_path(key);
-        tmp.persist(&dest)
-            .with_context(|| format!("persist cache entry to {}", dest.display()))?;
+        tmp.persist(&dest).with_context(|| format!("persist cache entry to {}", dest.display()))?;
 
         Ok(())
     }
@@ -187,11 +186,7 @@ impl CoalesceCache {
     /// 5. Release the lock (file handle drop).
     ///
     /// Returns the [`CachedResult`] whether it came from `f()` or the cache.
-    pub fn with_lock<T>(
-        &self,
-        key: &CommandKey,
-        f: impl FnOnce() -> Result<T>,
-    ) -> Result<T>
+    pub fn with_lock<T>(&self, key: &CommandKey, f: impl FnOnce() -> Result<T>) -> Result<T>
     where
         T: Into<CachedResult> + From<CachedResult>,
     {
@@ -286,11 +281,7 @@ mod tests {
         // Nothing stored yet.
         assert!(cache.lookup(&key).unwrap().is_none(), "fresh cache should be empty");
 
-        let result = CachedResult {
-            exit_code: 0,
-            stdout: b"all good".to_vec(),
-            stderr: vec![],
-        };
+        let result = CachedResult { exit_code: 0, stdout: b"all good".to_vec(), stderr: vec![] };
 
         cache.store(&key, &result).expect("store");
 

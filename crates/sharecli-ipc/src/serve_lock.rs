@@ -116,19 +116,15 @@ pub fn decide(state: &ServeState, policy: OnConflict) -> Decision {
 
 /// Default lock directory: `$XDG_RUNTIME_DIR` if set, else the system temp dir.
 fn lock_dir() -> PathBuf {
-    std::env::var_os("XDG_RUNTIME_DIR")
-        .map(PathBuf::from)
-        .unwrap_or_else(std::env::temp_dir)
+    std::env::var_os("XDG_RUNTIME_DIR").map(PathBuf::from).unwrap_or_else(std::env::temp_dir)
 }
 
 /// Well-known pidfile path for a service: `<lock_dir>/<service>.serve.lock`.
 ///
 /// `service` is sanitized (path separators → `_`) so it can't escape `lock_dir`.
 pub fn pidfile_path(service: &str) -> PathBuf {
-    let safe: String = service
-        .chars()
-        .map(|c| if matches!(c, '/' | '\\' | ':') { '_' } else { c })
-        .collect();
+    let safe: String =
+        service.chars().map(|c| if matches!(c, '/' | '\\' | ':') { '_' } else { c }).collect();
     lock_dir().join(format!("{safe}.serve.lock"))
 }
 
@@ -173,8 +169,7 @@ pub fn probe(service: &str) -> Result<ServeState> {
     }
 
     let mut buf = String::new();
-    file.read_to_string(&mut buf)
-        .with_context(|| format!("read pidfile {}", path.display()))?;
+    file.read_to_string(&mut buf).with_context(|| format!("read pidfile {}", path.display()))?;
 
     // Empty or malformed pidfile with no live holder → treat as Free.
     let info: ServeInfo = match serde_json::from_str(buf.trim()) {
@@ -189,10 +184,7 @@ pub fn probe(service: &str) -> Result<ServeState> {
     // (a running server) or the recorded pid is still alive. Otherwise it's a
     // stale entry from a crashed server that never cleaned up.
     let alive = exclusively_held || pid_alive(info.pid);
-    Ok(ServeState::Running {
-        info,
-        stale: !alive,
-    })
+    Ok(ServeState::Running { info, stale: !alive })
 }
 
 /// RAII holder of an exclusive serve-lock. While alive, this process owns the
@@ -240,18 +232,12 @@ impl ServeLock {
             started_at_unix: now_unix(),
         };
         let mut f = file;
-        f.set_len(0)
-            .with_context(|| format!("truncate pidfile {}", path.display()))?;
+        f.set_len(0).with_context(|| format!("truncate pidfile {}", path.display()))?;
         let bytes = serde_json::to_vec(&info).context("serialize ServeInfo")?;
-        f.write_all(&bytes)
-            .with_context(|| format!("write pidfile {}", path.display()))?;
+        f.write_all(&bytes).with_context(|| format!("write pidfile {}", path.display()))?;
         f.flush().ok();
 
-        Ok(Some(Self {
-            path,
-            file: f,
-            info,
-        }))
+        Ok(Some(Self { path, file: f, info }))
     }
 
     /// The identity written to the pidfile for this lock.

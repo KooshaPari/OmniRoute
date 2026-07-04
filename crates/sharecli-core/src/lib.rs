@@ -216,16 +216,11 @@ impl Drop for FuseGuard {
             // which removes the now-empty mountpoint directory).
             #[cfg(target_os = "linux")]
             {
-                let _ = std::process::Command::new("fusermount")
-                    .arg("-uz")
-                    .arg(mp)
-                    .status();
+                let _ = std::process::Command::new("fusermount").arg("-uz").arg(mp).status();
             }
             #[cfg(target_os = "macos")]
             {
-                let _ = std::process::Command::new("umount")
-                    .arg(mp)
-                    .status();
+                let _ = std::process::Command::new("umount").arg(mp).status();
             }
         }
     }
@@ -709,10 +704,7 @@ mod tests {
             Some(mp) => {
                 // FUSE is active — mountpoint must be different from backing.
                 assert_ne!(mp, dir.path(), "mountpoint must differ from backing");
-                assert!(
-                    mp.starts_with(std::env::temp_dir()),
-                    "mountpoint must be under temp dir"
-                );
+                assert!(mp.starts_with(std::env::temp_dir()), "mountpoint must be under temp dir");
             }
             None => {
                 // FUSE not available — best-effort, still valid.
@@ -733,8 +725,7 @@ mod tests {
             env: vec![],
         };
 
-        let outcome =
-            hv.run(req).await.expect("run must succeed with fuse-io wiring");
+        let outcome = hv.run(req).await.expect("run must succeed with fuse-io wiring");
         assert_eq!(outcome.exit_code, 0);
         assert!(!outcome.from_cache);
         let stdout = String::from_utf8_lossy(&outcome.stdout);
