@@ -671,6 +671,7 @@ Each provider has a specialized executor extending `BaseExecutor` (in `open-sse/
 | `CodexExecutor`        | OpenAI Codex                                                                                                                                                | Injects system instructions, forces reasoning effort                 |
 | `CursorExecutor`       | Cursor IDE                                                                                                                                                  | ConnectRPC protocol, Protobuf encoding, request signing via checksum |
 | `GithubExecutor`       | GitHub Copilot                                                                                                                                              | Copilot token refresh, VSCode-mimicking headers                      |
+| `GeminiCLIExecutor`    | Gemini CLI                                                                                                                                                  | Google OAuth token refresh cycle                                     |
 | `KiroExecutor`         | AWS CodeWhisperer/Kiro                                                                                                                                      | AWS EventStream binary format → SSE conversion                       |
 | `OpenCodeExecutor`     | OpenCode                                                                                                                                                    | AI SDK compatible provider setup                                     |
 | `PollinationsExecutor` | Pollinations AI                                                                                                                                             | No API key required, rate-limited requests                           |
@@ -686,6 +687,7 @@ All other providers (including custom compatible nodes) use the `DefaultExecutor
 | ---------------- | ---------------- | --------------------- | ---------------- | ---------- | ------------- | ------------------ |
 | Claude           | claude           | API Key / OAuth       | ✅               | ✅         | ✅            | ⚠️ Admin only      |
 | Gemini           | gemini           | API Key / OAuth       | ✅               | ✅         | ✅            | ⚠️ Cloud Console   |
+| Gemini CLI       | gemini-cli       | OAuth                 | ✅               | ✅         | ✅            | ⚠️ Cloud Console   |
 | Antigravity      | antigravity      | OAuth                 | ✅               | ✅         | ✅            | ✅ Full quota API  |
 | OpenAI           | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
 | Codex            | openai-responses | OAuth                 | ✅ forced        | ❌         | ✅            | ✅ Rate limits     |
@@ -734,7 +736,7 @@ Target formats include:
 
 - OpenAI chat/Responses
 - Claude
-- Gemini/Antigravity envelope
+- Gemini/Gemini-CLI/Antigravity envelope
 - Kiro
 - Cursor
 

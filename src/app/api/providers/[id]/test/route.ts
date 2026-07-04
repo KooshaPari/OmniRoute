@@ -81,6 +81,21 @@ const OAUTH_TEST_CONFIG = {
     }),
     refreshable: true,
   },
+  xai: {
+    url: "https://api.x.ai/v1/chat/completions",
+    method: "POST",
+    authHeader: "Authorization",
+    authPrefix: "Bearer ",
+    extraHeaders: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      model: "grok-4.3",
+      messages: [{ role: "user", content: "ping" }],
+      max_tokens: 1,
+      stream: false,
+      reasoning: { effort: "high" },
+    }),
+    refreshable: true,
+  },
   github: {
     url: "https://api.github.com/user",
     method: "GET",
