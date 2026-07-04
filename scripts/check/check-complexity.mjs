@@ -23,6 +23,8 @@ const BASELINE_PATH = path.resolve(
 );
 const UPDATE = process.argv.includes("--update");
 const CONFIG_PATH = path.join(ROOT, "eslint.complexity.config.mjs");
+const ESLINT_BIN = path.join(ROOT, "node_modules/eslint/bin/eslint.js");
+const NPX_BIN = process.platform === "win32" ? "npx.cmd" : "npx";
 // Exported for the gate's own unit test (tests/unit/build/check-complexity.test.ts), which
 // locks the scan scope to the one documented in eslint.complexity.config.mjs `files` and in
 // complexity-baseline.json. The positional paths MUST match that scope (src+open-sse+electron+bin)
@@ -52,9 +54,14 @@ export function evaluateComplexity(current, baseline) {
 function measureComplexityCount() {
   let stdout;
   try {
-    stdout = execFileSync("npx", ["--yes", ...ESLINT_ARGS], {
+    const command = fs.existsSync(ESLINT_BIN) ? process.execPath : NPX_BIN;
+    const args = fs.existsSync(ESLINT_BIN)
+      ? [ESLINT_BIN, ...ESLINT_ARGS.slice(1)]
+      : ["--yes", ...ESLINT_ARGS];
+    stdout = execFileSync(command, args, {
       encoding: "utf8",
       maxBuffer: 64 * 1024 * 1024,
+      shell: !fs.existsSync(ESLINT_BIN) && process.platform === "win32",
     });
   } catch (err) {
     // ESLint sai com código !=0 quando há erros (e nossas regras são "error"); o relatório
