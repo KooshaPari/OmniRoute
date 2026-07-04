@@ -68,7 +68,7 @@ function makeRequest(url, { method = "GET", token, body, headers } = {}) {
 async function seedOpenAIConnection({
   email = "embeddings@example.com",
   provider = "openai",
-  rateLimitedUntil = null, proxyEnabled = true,
+  rateLimitedUntil = null,
 } = {}) {
   return providersDb.createProviderConnection({
     provider,
@@ -83,7 +83,13 @@ async function seedOpenAIConnection({
     errorCode: "refresh_failed",
     rateLimitedUntil,
     backoffLevel: 2,
-    proxyEnabled,
+    // These embeddings edge-case tests do not exercise proxying. Pin the
+    // connection to a direct egress (proxy off) so resolveProxyForConnection
+    // returns "direct" regardless of any global/provider proxyConfig the
+    // settings-proxy suite left behind in the shared DATA_DIR. Without this,
+    // #5975 (embeddings now honor the connection-level proxy) makes the leaked
+    // provider.local:8080 fast-fail the upstream with PROXY_UNREACHABLE.
+    proxyEnabled: false,
   });
 }
 
@@ -900,7 +906,7 @@ test("v1 routes surface provider-rate-limit sentinels instead of missing credent
 });
 
 test("embeddings route tolerates custom-model and provider-node lookup failures", async () => {
-  await resetStorage(); await seedOpenAIConnection({ proxyEnabled: false });
+  await resetStorage(); await seedOpenAIConnection();
 
   const originalFetch = globalThis.fetch;
   globalThis.fetch = async () =>
@@ -1017,7 +1023,7 @@ test("embeddings route supports local provider nodes without credentials and enf
 });
 
 test("embeddings route returns normalized upstream failures", async () => {
-  await resetStorage(); await seedOpenAIConnection({ proxyEnabled: false });
+  await resetStorage(); await seedOpenAIConnection();
 
   const originalFetch = globalThis.fetch;
   globalThis.fetch = async () => new Response("upstream boom", { status: 502 });
@@ -1076,7 +1082,7 @@ test("embeddings route GET skips malformed, non-embedding, and duplicate custom 
 });
 
 test("embeddings route tolerates non-array provider nodes and remote fallback lookup errors", async () => {
-  await resetStorage(); await seedOpenAIConnection({ proxyEnabled: false });
+  await resetStorage(); await seedOpenAIConnection();
 
   const originalFetch = globalThis.fetch;
   globalThis.fetch = async () =>
