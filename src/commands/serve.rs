@@ -7,6 +7,7 @@
 use crate::config::Config;
 use crate::config_watcher::ConfigWatcher;
 use crate::health_check::{HealthCheckScheduler, HealthCheckStore};
+use crate::notifier::Notifier;
 use crate::serve_lock::{decide, probe, Decision, OnConflict, ServeState};
 use anyhow::Result;
 use axum::http::header;
@@ -70,6 +71,8 @@ struct AppState {
     config: Arc<RwLock<Config>>,
     /// Shared health-check status for all monitored processes.
     health_store: HealthCheckStore,
+    /// Notification dispatcher (desktop + webhooks).
+    notifier: Arc<Notifier>,
 }
 
 // ---------------------------------------------------------------------------
@@ -142,11 +145,15 @@ pub async fn run(bind: &str, on_conflict: OnConflict) -> Result<()> {
         }
     });
 
+    // Build notifier from config.
+    let notifier = Notifier::new(initial_config.notifications.clone());
+
     // Build the health-check store and start per-process schedulers.
     let health_store: HealthCheckStore =
         Arc::new(tokio::sync::Mutex::new(std::collections::HashMap::new()));
     {
-        let scheduler = HealthCheckScheduler::new(Arc::clone(&health_store));
+        let scheduler =
+            HealthCheckScheduler::with_notifier(Arc::clone(&health_store), Arc::clone(&notifier));
         scheduler.start(initial_config.health_checks.clone());
     }
 
@@ -155,6 +162,7 @@ pub async fn run(bind: &str, on_conflict: OnConflict) -> Result<()> {
         shutdown_tx: Arc::new(shutdown_tx),
         config: config_arc,
         health_store,
+        notifier,
     };
 
     // Spawn background thermal poller (uses parse_pressure_level as the canonical parser).

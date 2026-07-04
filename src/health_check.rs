@@ -20,6 +20,8 @@ use tokio::net::TcpStream;
 use tokio::sync::Mutex;
 use tracing::{info, warn};
 
+use crate::notifier::{NotificationEvent, NotificationKind, Notifier};
+
 // ---------------------------------------------------------------------------
 // Public types
 // ---------------------------------------------------------------------------
@@ -75,12 +77,18 @@ pub type HealthCheckStore = Arc<Mutex<HashMap<String, HealthStatus>>>;
 /// Spawns one tokio task per process that polls the configured endpoints.
 pub struct HealthCheckScheduler {
     store: HealthCheckStore,
+    notifier: Option<Arc<Notifier>>,
 }
 
 impl HealthCheckScheduler {
-    /// Create a scheduler backed by the given store.
+    /// Create a scheduler backed by the given store (no notifications).
     pub fn new(store: HealthCheckStore) -> Self {
-        Self { store }
+        Self { store, notifier: None }
+    }
+
+    /// Create a scheduler with notification dispatch enabled.
+    pub fn with_notifier(store: HealthCheckStore, notifier: Arc<Notifier>) -> Self {
+        Self { store, notifier: Some(notifier) }
     }
 
     /// Start background polling tasks for every entry in `configs`.
@@ -89,7 +97,8 @@ impl HealthCheckScheduler {
     pub fn start(&self, configs: HashMap<String, HealthCheckConfig>) {
         for (name, cfg) in configs {
             let store = Arc::clone(&self.store);
-            tokio::spawn(poll_loop(name, cfg, store));
+            let notifier = self.notifier.clone();
+            tokio::spawn(poll_loop(name, cfg, store, notifier));
         }
     }
 }
@@ -98,7 +107,12 @@ impl HealthCheckScheduler {
 // Background polling loop (one per process)
 // ---------------------------------------------------------------------------
 
-async fn poll_loop(name: String, cfg: HealthCheckConfig, store: HealthCheckStore) {
+async fn poll_loop(
+    name: String,
+    cfg: HealthCheckConfig,
+    store: HealthCheckStore,
+    notifier: Option<Arc<Notifier>>,
+) {
     let interval = Duration::from_secs(cfg.interval_secs.max(1));
     let mut timer = tokio::time::interval(interval);
 
@@ -107,12 +121,17 @@ async fn poll_loop(name: String, cfg: HealthCheckConfig, store: HealthCheckStore
 
     loop {
         timer.tick().await;
-        probe_all(&name, &cfg, &store).await;
+        probe_all(&name, &cfg, &store, notifier.as_deref()).await;
     }
 }
 
 /// Run all endpoint probes for `name`; update store on completion.
-async fn probe_all(name: &str, cfg: &HealthCheckConfig, store: &HealthCheckStore) {
+async fn probe_all(
+    name: &str,
+    cfg: &HealthCheckConfig,
+    store: &HealthCheckStore,
+    notifier: Option<&Notifier>,
+) {
     if cfg.endpoints.is_empty() {
         return;
     }
@@ -155,6 +174,20 @@ async fn probe_all(name: &str, cfg: &HealthCheckConfig, store: &HealthCheckStore
                     status.consecutive_failures,
                     last_error.as_deref().unwrap_or("unknown"),
                 );
+                // Dispatch notification on the first transition to unhealthy.
+                if let Some(n) = notifier {
+                    let event = NotificationEvent::new(
+                        NotificationKind::HealthCheckFailed,
+                        name,
+                        format!(
+                            "process '{}' unhealthy after {} consecutive failures: {}",
+                            name,
+                            status.consecutive_failures,
+                            last_error.as_deref().unwrap_or("unknown"),
+                        ),
+                    );
+                    n.dispatch(&event).await;
+                }
             }
             status.healthy = false;
         } else {
@@ -282,7 +315,7 @@ mod tests {
         };
 
         // First probe — 1 failure, still healthy (threshold not reached).
-        probe_all("svc", &cfg, &store).await;
+        probe_all("svc", &cfg, &store, None).await;
         {
             let map = store.lock().await;
             let s = &map["svc"];
@@ -291,7 +324,7 @@ mod tests {
         }
 
         // Second probe — 2 failures, still healthy.
-        probe_all("svc", &cfg, &store).await;
+        probe_all("svc", &cfg, &store, None).await;
         {
             let map = store.lock().await;
             assert_eq!(map["svc"].consecutive_failures, 2);
@@ -299,7 +332,7 @@ mod tests {
         }
 
         // Third probe — hits threshold → unhealthy.
-        probe_all("svc", &cfg, &store).await;
+        probe_all("svc", &cfg, &store, None).await;
         {
             let map = store.lock().await;
             let s = &map["svc"];

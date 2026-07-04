@@ -54,6 +54,9 @@ pub struct Config {
     /// Per-process health-check schedules (process name → config).
     /// Each entry spawns a background poller when `sharecli serve` runs.
     pub health_checks: HashMap<String, crate::health_check::HealthCheckConfig>,
+
+    /// Notification channels (desktop + webhooks).
+    pub notifications: crate::notifier::NotifierConfig,
 }
 
 impl Default for Config {
@@ -71,6 +74,7 @@ impl Default for Config {
             spawn_policy: SpawnPolicyConfig::default(),
             cast: CastConfig::default(),
             health_checks: HashMap::new(),
+            notifications: crate::notifier::NotifierConfig::default(),
         }
     }
 }
