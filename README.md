@@ -1,239 +1,162 @@
 # sharecli
 
-Shared CLI process manager for multi-project agent orchestration.
+A process supervisor CLI for managing long-running services with declarative
+configuration, hot-reload, and rich observability.
 
-## Purpose
+`sharecli` watches a single TOML config, supervises the processes declared in
+it, exposes a small HTTP API for health and metrics, and ships with first-class
+desktop and webhook notifications, shell completions, `proc-compose`
+integration, Prometheus metrics, and an executable plugin registry.
 
-Centralized process management for Phenotype's multi-project agent infrastructure:
-- Single control plane for all agent processes across repos
-- Resource pooling to reduce memory overhead
-- Unified monitoring and health checks
-- Graceful lifecycle management
-- Process-compose integration
+## Features
+
+- **Config hot-reload** — uses `notify` to watch the config file and apply
+  changes to the running supervisor in place (no restart required).
+- **Health-check scheduler** — runs periodic HTTP/TCP/exec probes against
+  each managed process and tracks pass/fail history.
+- **Schema validation** — every config is validated against a strict JSON
+  Schema before reload, so a typo never crashes the running supervisor.
+- **Desktop + webhook notifications** — surface state transitions
+  (`started`, `crashed`, `unhealthy`, `recovered`) to the OS notification
+  daemon and to arbitrary HTTP webhooks with HMAC-SHA256 signatures.
+- **Shell completions** — generates `bash`, `zsh`, `fish`, and `powershell`
+  completions from the live CLI definition.
+- **`proc-compose` integration** — discovers and supervises the services
+  declared in a `proc-compose.toml` alongside the main config.
+- **Prometheus metrics** — exposes counters, gauges, and histograms for
+  process state, restarts, health checks, and request latency at
+  `/metrics/prometheus`.
+- **Plugin registry** — discover, install, and run executable plugins
+  that extend `sharecli` with new subcommands (see
+  `sharecli plugin`).
+
+## Install
+
+### From source (recommended)
+
+```bash
+cargo install sharecli
+```
+
+This installs the `sharecli` binary into `~/.cargo/bin`.
+
+### From a pre-built release
+
+Download a release archive from the
+[releases page](https://github.com/KooshaPari/sharecli/releases) and
+extract the binary somewhere on your `PATH`:
+
+```bash
+tar -xzf sharecli-<version>-<target>.tar.gz
+sudo install -m 0755 sharecli /usr/local/bin/sharecli
+```
+
+### Build from a git checkout
+
+```bash
+git clone https://github.com/KooshaPari/sharecli.git
+cd sharecli
+cargo build --release
+./target/release/sharecli --version
+```
 
 ## Quick Start
 
-```bash
-# Initialize configuration
-sharecli config init
+1. Drop a config file at `./sharecli.toml`:
 
-# Add a project
-sharecli project add helios-cli ~/CodeProjects/Phenotype/repos/helios-cli
+   ```toml
+   [server]
+   bind = "127.0.0.1:9090"
 
-# Discover all projects in a directory
-sharecli project discover ~/CodeProjects/Phenotype/repos
+   [[process]]
+   name = "echo"
+   command = ["sh", "-c", "while true; do echo tick; sleep 5; done"]
 
-# List registered projects
-sharecli project list
+   [process.healthcheck]
+   kind = "tcp"
+   port = 0
+   interval = "10s"
+   ```
 
-# List managed processes
-sharecli ps
+2. Start the supervisor:
 
-# Status with resource summary
-sharecli status
+   ```bash
+   sharecli serve
+   ```
 
-# Start a harness process
-sharecli start helios-cli --harness claude
+3. Inspect managed processes from the CLI:
 
-# Stop by project
-sharecli stop --project helios-cli
+   ```bash
+   sharecli proc-compose status
+   ```
 
-# Stop all processes
-sharecli stop --all
+4. Generate shell completions (example for `zsh`):
 
-# Generate process-compose.yml for registered projects
-sharecli project generate
+   ```bash
+   sharecli completions zsh > "${fpath[1]}/_sharecli"
+   # restart your shell, or: autoload -U compinit && compinit
+   ```
 
-# Run with pooled runtime
-sharecli run node --project my-project
-
-# Set project resource limits
-sharecli limits set helios-cli --memory 4096 --max-procs 10
-
-# Check project limits
-sharecli check helios-cli
-
-# Optimize - analyze and suggest improvements
-sharecli optimize
-
-# Prune idle processes (dry-run by default)
-sharecli prune --idle 30m --dry-run
-```
-
-## Install / Launch the Tray
-
-Download the latest release archive from the [Releases page](https://github.com/KooshaPari/sharecli/releases) — no build tools required.
-
-### macOS (Apple Silicon)
-
-```bash
-# Download
-curl -LO https://github.com/KooshaPari/sharecli/releases/latest/download/sharecli-macos-arm64.tar.gz
-
-# Extract
-tar xzf sharecli-macos-arm64.tar.gz
-
-# Install CLI to PATH
-sudo cp sharecli-macos-arm64/sharecli /usr/local/bin/
-sudo cp sharecli-macos-arm64/sharecli-ipc /usr/local/bin/
-
-# Launch the tray
-open sharecli-macos-arm64/ShareCLITray.app
-
-# Or copy the .app to Applications for permanent install
-cp -R sharecli-macos-arm64/ShareCLITray.app /Applications/
-```
-
-### macOS (Intel)
-
-```bash
-curl -LO https://github.com/KooshaPari/sharecli/releases/latest/download/sharecli-macos-x86_64.tar.gz
-tar xzf sharecli-macos-x86_64.tar.gz
-sudo cp sharecli-macos-x86_64/sharecli /usr/local/bin/
-open sharecli-macos-x86_64/ShareCLITray.app
-```
-
-### Linux (x86_64)
-
-```bash
-# Download
-curl -LO https://github.com/KooshaPari/sharecli/releases/latest/download/sharecli-linux-x86_64.tar.gz
-
-# Extract
-tar xzf sharecli-linux-x86_64.tar.gz
-
-# Install CLI to PATH
-sudo cp sharecli-linux-x86_64/sharecli /usr/local/bin/
-sudo cp sharecli-linux-x86_64/sharecli-ipc /usr/local/bin/
-
-# Launch the tray (StatusNotifierItem / AppIndicator)
-./sharecli-linux-x86_64/sharecli-tray
-
-# Or install the tray for auto-start
-sudo cp sharecli-linux-x86_64/sharecli-tray /usr/local/bin/
-```
-
-> **Note:** The Linux tray requires a StatusNotifierItem host (GNOME, KDE, or via `snixembed`/`trayer` on other WMs). Run `sharecli-ipc` first in the background to provide the data socket.
-
-### Windows (x86_64)
-
-```powershell
-# Download (PowerShell)
-Invoke-WebRequest -Uri https://github.com/KooshaPari/sharecli/releases/latest/download/sharecli-windows-x64.zip -OutFile sharecli-windows-x64.zip
-
-# Extract
-Expand-Archive -Path sharecli-windows-x64.zip -DestinationPath sharecli-windows-x64
-
-# Install CLI to PATH
-# (Add sharecli-windows-x64 to your PATH environment variable)
-
-# Launch the WinUI 3 tray
-.\sharecli-windows-x64\ShareCLITray.exe
-```
-
-### Windows (arm64)
-
-```powershell
-Invoke-WebRequest -Uri https://github.com/KooshaPari/sharecli/releases/latest/download/sharecli-windows-arm64.zip -OutFile sharecli-windows-arm64.zip
-Expand-Archive -Path sharecli-windows-arm64.zip -DestinationPath sharecli-windows-arm64
-```
-
-### Verify the install
-
-```bash
-sharecli --version
-sharecli status
-```
-
-Each archive ships with a `VERSION` file matching the git tag.
-
-## Commands
-
-| Command | Description |
-|---------|-------------|
-| `sharecli ps` | List managed processes with filtering |
-| `sharecli start` | Start harness process for a project |
-| `sharecli stop` | Stop processes by PID, project, or harness |
-| `sharecli status` | Health check with resource summary |
-| `sharecli config` | Config init, validate, show, get, set |
-| `sharecli project` | Add, remove, list, show, discover, generate projects |
-| `sharecli run` | Run with pooled runtime (node/bun) |
-| `sharecli pool` | Show shared runtime pool status |
-| `sharecli health` | Probe shared runtime health (supports `--harness` hints) |
-| `sharecli limits` | Set/get project resource limits |
-| `sharecli check` | Check project resource limits |
-| `sharecli optimize` | Analyze and suggest resource optimizations |
-| `sharecli prune` | Kill idle processes |
-
-## Architecture
-
-```
-sharecli/
-├── src/
-│   ├── main.rs          # CLI entry point
-│   ├── lib.rs           # Library exports
-│   ├── config.rs        # TOML config + CLI command enums
-│   ├── runtime.rs       # ProcessPool + SharedRuntime
-│   ├── monitoring.rs    # HealthStatus, ProcessStats
-│   └── commands/
-│       └── mod.rs       # All CLI command implementations
-├── config/
-│   ├── sharecli.toml.example
-│   └── process-compose/
-│       └── template.yml
-└── Cargo.toml
-```
+Other shells: `sharecli completions bash`, `sharecli completions fish`,
+`sharecli completions powershell`.
 
 ## Configuration
 
-Configuration is stored in `~/.config/sharecli/config.toml`:
+The full config schema is documented at
+`docs/configuration.md`; the minimal shape is:
 
 ```toml
-[projects]
-helios-cli = "~/CodeProjects/Phenotype/repos/helios-cli"
-portage = "~/CodeProjects/Phenotype/repos/portage"
+# sharecli.toml
 
-[runtime]
-max_memory_mb = 4096
-max_processes = 100
+[server]
+bind          = "127.0.0.1:9090"
+log_level     = "info"        # trace | debug | info | warn | error
+config_path   = "./sharecli.toml"
+
+[notifications]
+desktop       = true
+webhook_url   = "https://example.com/sharecli-hook"
+webhook_secret = "env:SHARECLI_WEBHOOK_SECRET"  # HMAC-SHA256 signing key
+
+[healthcheck]
+default_interval = "10s"
+default_timeout   = "2s"
+
+[[process]]
+name     = "api"
+command  = ["./bin/api", "--port", "8080"]
+cwd      = "./"
+env      = { RUST_LOG = "info" }
+restart  = "on-failure"        # no | always | on-failure
+backoff  = { initial = "1s", max = "30s", multiplier = 2.0 }
+
+[process.healthcheck]
+kind     = "http"
+url      = "http://127.0.0.1:8080/healthz"
+interval = "5s"
+timeout  = "1s"
 ```
 
-## Process-Compose Integration
+Secrets prefixed with `env:` are resolved from the process environment at
+start time and never written to disk.
 
-Generate a `process-compose.yml` for your registered projects:
+## API
 
-```bash
-sharecli project generate
-```
+`sharecli serve` exposes the following endpoints on the configured bind
+address (default `127.0.0.1:9090`). All endpoints respond with JSON unless
+noted; non-`200` responses include a `{"error": "..."}` body.
 
-This creates services for each registered project with health probes and logging.
+| Method | Path                   | Description                                                    |
+| ------ | ---------------------- | -------------------------------------------------------------- |
+| GET    | `/health`              | Liveness probe for the supervisor itself. Always `200` if up.  |
+| GET    | `/health/processes`    | Per-process status (state, PID, uptime, last health check).   |
+| GET    | `/config`              | Effective config (secrets redacted) currently in effect.       |
+| GET    | `/metrics/prometheus`  | Prometheus exposition format (text/plain; `version=0.0.4`).   |
 
-## Resource Limits
-
-Set per-project resource limits to prevent runaway processes:
-
-```bash
-sharecli limits set my-project --memory 2048 --max-procs 5
-sharecli check my-project
-```
-
-## Optimization
-
-Analyze running processes and suggest optimizations:
-
-```bash
-sharecli optimize
-```
+A request that targets an unknown process can append
+`?name=<process-name>` to `/health/processes`.
 
 ## License
 
-MIT
-
-## Documentation
-
-This repository includes the following cross-cutting documents:
-
-- [`AGENTS.md`](AGENTS.md) — operating instructions for AI agents and human contributors
-- [`SPEC.md`](SPEC.md) — formal specification of behavior and contracts
-- [`docs/`](docs/) — design notes, ADRs, and supporting documentation (see [`docs/index.md`](docs/index.md))
-
+Dual-licensed under MIT or Apache 2.0, at your option.
+See [LICENSE](LICENSE) and [LICENSE-APACHE](LICENSE-APACHE).
