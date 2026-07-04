@@ -59,9 +59,8 @@ jobs:
         run: |
           node dist/server.js > server.log 2>&1 &
           echo $! > server.pid
-          for attempt in $(seq 1 30); do
+          for i in $(seq 1 30); do
             if curl -sf http://localhost:20128/api/monitoring/health >/dev/null; then echo "server up"; break; fi
-            echo "waiting for server ($attempt/30)"
             sleep 2
           done
       - name: Install k6
@@ -101,7 +100,7 @@ jobs:
           cache: npm
       - run: npm ci
       - name: Cache Playwright browsers
-        uses: actions/cache@v6.1.0
+        uses: actions/cache@v6.0.0
         with:
           path: ~/.cache/ms-playwright
           key: playwright-chromium-${{ runner.os }}-${{ hashFiles('package-lock.json') }}

@@ -22,6 +22,7 @@ import ImportProgressModal from "./ImportProgressModal";
 import { AdaptaTutorialModal } from "./AdaptaTutorialModal";
 import { ImportCodexAuthModal, ApplyCodexAuthModal } from "./modals/ImportCodexAuthModal";
 import { ImportClaudeAuthModal, ApplyClaudeAuthModal } from "./modals/ImportClaudeAuthModal";
+import { ImportGeminiAuthModal, ApplyGeminiAuthModal } from "./modals/ImportGeminiAuthModal";
 import ImportGrokCliAuthModal from "./modals/ImportGrokCliAuthModal";
 import { type ConnectionRowConnection } from "./ConnectionRow";
 import { type BatchTestResults } from "../hooks/useProviderConnections";
@@ -116,6 +117,13 @@ interface ProviderModalsPanelProps {
   handleApplyClaudeAuthLocal: (id: string) => Promise<void>;
   importClaudeModalOpen: boolean;
   setImportClaudeModalOpen: (open: boolean) => void;
+  // Gemini auth
+  applyGeminiModalConnectionId: string | null;
+  setApplyGeminiModalConnectionId: (id: string | null) => void;
+  applyingGeminiAuthId: string | null;
+  handleApplyGeminiAuthLocal: (id: string) => Promise<void>;
+  importGeminiModalOpen: boolean;
+  setImportGeminiModalOpen: (open: boolean) => void;
   // Grok Build auth
   importGrokCliModalOpen: boolean;
   setImportGrokCliModalOpen: (open: boolean) => void;
@@ -199,6 +207,12 @@ export default function ProviderModalsPanel({
   handleApplyClaudeAuthLocal,
   importClaudeModalOpen,
   setImportClaudeModalOpen,
+  applyGeminiModalConnectionId,
+  setApplyGeminiModalConnectionId,
+  applyingGeminiAuthId,
+  handleApplyGeminiAuthLocal,
+  importGeminiModalOpen,
+  setImportGeminiModalOpen,
   importGrokCliModalOpen,
   setImportGrokCliModalOpen,
   batchTestResults,
@@ -364,6 +378,25 @@ export default function ProviderModalsPanel({
           onClose={() => setImportClaudeModalOpen(false)}
           onSuccess={() => {
             setImportClaudeModalOpen(false);
+            void fetchConnections();
+          }}
+        />
+      )}
+      {providerId === "gemini-cli" && applyGeminiModalConnectionId && (
+        <ApplyGeminiAuthModal
+          key={applyGeminiModalConnectionId}
+          connectionId={applyGeminiModalConnectionId}
+          inProgress={!!applyingGeminiAuthId}
+          onConfirm={handleApplyGeminiAuthLocal}
+          onClose={() => setApplyGeminiModalConnectionId(null)}
+        />
+      )}
+      {providerId === "gemini-cli" && importGeminiModalOpen && (
+        <ImportGeminiAuthModal
+          key="import-gemini-modal"
+          onClose={() => setImportGeminiModalOpen(false)}
+          onSuccess={() => {
+            setImportGeminiModalOpen(false);
             void fetchConnections();
           }}
         />

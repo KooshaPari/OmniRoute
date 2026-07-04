@@ -19,8 +19,6 @@ import {
   compatibleProviderSupportsModelImport,
   getCompatibleFallbackModels,
 } from "@/lib/providers/managedAvailableModels";
-import { getProviderServiceKinds } from "@/lib/providers/serviceKindIndex";
-import { providerLacksModelListing } from "@/lib/providers/modelListingCapability";
 import { normalizeModelCatalogSource } from "@/shared/utils/modelCatalogSearch";
 import { useCopyToClipboard } from "@/shared/hooks/useCopyToClipboard";
 import useEmailPrivacyStore from "@/store/emailPrivacyStore";
@@ -43,7 +41,6 @@ import ProviderPlaygroundPanel from "./components/ProviderPlaygroundPanel";
 import ProviderModelsSection from "./components/ProviderModelsSection";
 import CustomModelsSection from "./components/CustomModelsSection";
 import ConnectionsListPanel from "./components/ConnectionsListPanel";
-import CoolingConnectionsPanel from "./components/CoolingConnectionsPanel";
 import ConnectionsHeaderToolbar from "./components/ConnectionsHeaderToolbar";
 import ZedImportCard from "./components/ZedImportCard";
 import ProviderPageHeader from "./components/ProviderPageHeader";
@@ -82,17 +79,7 @@ export default function ProviderDetailPageClient() {
     isAnthropicCompatibleProvider(providerId) && !isClaudeCodeCompatibleProvider(providerId);
   const isCompatible = isOpenAICompatible || isAnthropicCompatible || isCcCompatible;
   const isAnthropicProtocolCompatible = isAnthropicCompatible || isCcCompatible;
-  // #5420: hide model listing for tool-only providers (web search / web fetch),
-  // not just `-search`-suffixed ids. Declared serviceKinds come from the static
-  // provider catalog (e.g. firecrawl → ["webFetch"]); compatible providers resolve
-  // to null here and fall through to the empty-kinds check (model listing stays on).
-  const declaredServiceKinds = (
-    resolveDashboardProviderInfo(providerId) as { serviceKinds?: readonly string[] } | null
-  )?.serviceKinds;
-  const isSearchProvider = providerLacksModelListing(
-    providerId,
-    getProviderServiceKinds(providerId, declaredServiceKinds)
-  );
+  const isSearchProvider = providerId.endsWith("-search");
 
   // ── Phase 1f hooks ────────────────────────────────────────────────────────
   const {
@@ -373,6 +360,12 @@ export default function ProviderDetailPageClient() {
     exportingClaudeAuthId,
     handleApplyClaudeAuthLocal,
     handleExportClaudeAuthFile,
+    applyingGeminiAuthId,
+    applyGeminiModalConnectionId,
+    setApplyGeminiModalConnectionId,
+    exportingGeminiAuthId,
+    handleApplyGeminiAuthLocal,
+    handleExportGeminiAuthFile,
   } = useAuthFileHandlers({ parseApiErrorMessage, getAttachmentFilename, notify, t });
 
   // Phase 1e: compat-state derivations
@@ -552,67 +545,68 @@ export default function ProviderDetailPageClient() {
               t={t}
             />
           ) : (
-            <>
-              <CoolingConnectionsPanel connections={connections} />
-              <ConnectionsListPanel
-                connections={connections}
-                providerId={providerId}
-                isCcCompatible={isCcCompatible}
-                isOAuth={isOAuth}
-                codexGlobalServiceMode={codexGlobalServiceMode}
-                selectedIds={selectedIds}
-                batchUpdating={batchUpdating}
-                batchRetesting={batchRetesting}
-                batchDeleting={batchDeleting}
-                batchTesting={batchTesting}
-                retestingId={retestingId}
-                refreshingId={refreshingId}
-                distributingProxies={distributingProxies}
-                healthFilter={healthFilter}
-                page={page}
-                PAGE_SIZE={PAGE_SIZE}
-                connProxyMap={connProxyMap}
-                proxyConfig={proxyConfig}
-                applyingCodexAuthId={applyingCodexAuthId}
-                exportingCodexAuthId={exportingCodexAuthId}
-                applyingClaudeAuthId={applyingClaudeAuthId}
-                exportingClaudeAuthId={exportingClaudeAuthId}
-                emailsVisible={emailsVisible}
-                setSelectedIds={setSelectedIds}
-                setPage={setPage}
-                setHealthFilter={setHealthFilter}
-                handleDelete={handleDelete}
-                handleUpdateConnectionStatus={handleUpdateConnectionStatus}
-                handleToggleRateLimit={handleToggleRateLimit}
-                handleToggleClaudeExtraUsage={handleToggleClaudeExtraUsage}
-                handleToggleCliproxyapiMode={handleToggleCliproxyapiMode}
-                handleToggleCodexLimit={handleToggleCodexLimit}
-                handleToggleProxyEnabled={handleToggleProxyEnabled}
-                handleTogglePerKeyProxyEnabled={handleTogglePerKeyProxyEnabled}
-                handleRetestConnection={handleRetestConnection}
-                handleRefreshToken={handleRefreshToken}
-                handleSwapPriority={handleSwapPriority}
-                handleBatchSetActive={handleBatchSetActive}
-                handleBatchDeleteOpenModal={handleBatchDeleteOpenModal}
-                handleBatchRetest={handleBatchRetest}
-                handleToggleSelectOne={handleToggleSelectOne}
-                handleToggleSelectAll={handleToggleSelectAll}
-                handleDistributeProxies={handleDistributeProxies}
-                cpaProviderEnabled={cpaProviderEnabled}
-                onOpenEditModal={(conn) => {
-                  setSelectedConnection(conn);
-                  setShowEditModal(true);
-                }}
-                onOpenOAuth={(conn) => gateConnectionFlow(() => setShowOAuthModal(true, conn))}
-                onSetProxyTarget={setProxyTarget}
-                onOpenApplyCodexModal={setApplyCodexModalConnectionId}
-                onExportCodexAuthFile={handleExportCodexAuthFile}
-                onOpenApplyClaudeModal={setApplyClaudeModalConnectionId}
-                onExportClaudeAuthFile={handleExportClaudeAuthFile}
-                gateConnectionFlow={gateConnectionFlow}
-                t={t}
-              />
-            </>
+            <ConnectionsListPanel
+              connections={connections}
+              providerId={providerId}
+              isCcCompatible={isCcCompatible}
+              isOAuth={isOAuth}
+              codexGlobalServiceMode={codexGlobalServiceMode}
+              selectedIds={selectedIds}
+              batchUpdating={batchUpdating}
+              batchRetesting={batchRetesting}
+              batchDeleting={batchDeleting}
+              batchTesting={batchTesting}
+              retestingId={retestingId}
+              refreshingId={refreshingId}
+              distributingProxies={distributingProxies}
+              healthFilter={healthFilter}
+              page={page}
+              PAGE_SIZE={PAGE_SIZE}
+              connProxyMap={connProxyMap}
+              proxyConfig={proxyConfig}
+              applyingCodexAuthId={applyingCodexAuthId}
+              exportingCodexAuthId={exportingCodexAuthId}
+              applyingClaudeAuthId={applyingClaudeAuthId}
+              exportingClaudeAuthId={exportingClaudeAuthId}
+              applyingGeminiAuthId={applyingGeminiAuthId}
+              exportingGeminiAuthId={exportingGeminiAuthId}
+              emailsVisible={emailsVisible}
+              setSelectedIds={setSelectedIds}
+              setPage={setPage}
+              setHealthFilter={setHealthFilter}
+              handleDelete={handleDelete}
+              handleUpdateConnectionStatus={handleUpdateConnectionStatus}
+              handleToggleRateLimit={handleToggleRateLimit}
+              handleToggleClaudeExtraUsage={handleToggleClaudeExtraUsage}
+              handleToggleCliproxyapiMode={handleToggleCliproxyapiMode}
+              handleToggleCodexLimit={handleToggleCodexLimit}
+              handleToggleProxyEnabled={handleToggleProxyEnabled}
+              handleTogglePerKeyProxyEnabled={handleTogglePerKeyProxyEnabled}
+              handleRetestConnection={handleRetestConnection}
+              handleRefreshToken={handleRefreshToken}
+              handleSwapPriority={handleSwapPriority}
+              handleBatchSetActive={handleBatchSetActive}
+              handleBatchDeleteOpenModal={handleBatchDeleteOpenModal}
+              handleBatchRetest={handleBatchRetest}
+              handleToggleSelectOne={handleToggleSelectOne}
+              handleToggleSelectAll={handleToggleSelectAll}
+              handleDistributeProxies={handleDistributeProxies}
+              cpaProviderEnabled={cpaProviderEnabled}
+              onOpenEditModal={(conn) => {
+                setSelectedConnection(conn);
+                setShowEditModal(true);
+              }}
+              onOpenOAuth={(conn) => gateConnectionFlow(() => setShowOAuthModal(true, conn))}
+              onSetProxyTarget={setProxyTarget}
+              onOpenApplyCodexModal={setApplyCodexModalConnectionId}
+              onExportCodexAuthFile={handleExportCodexAuthFile}
+              onOpenApplyClaudeModal={setApplyClaudeModalConnectionId}
+              onExportClaudeAuthFile={handleExportClaudeAuthFile}
+              onOpenApplyGeminiModal={setApplyGeminiModalConnectionId}
+              onExportGeminiAuthFile={handleExportGeminiAuthFile}
+              gateConnectionFlow={gateConnectionFlow}
+              t={t}
+            />
           )}
         </Card>
       )}
@@ -762,6 +756,12 @@ export default function ProviderDetailPageClient() {
         handleApplyClaudeAuthLocal={handleApplyClaudeAuthLocal}
         importClaudeModalOpen={importClaudeModalOpen}
         setImportClaudeModalOpen={setImportClaudeModalOpen}
+        applyGeminiModalConnectionId={applyGeminiModalConnectionId}
+        setApplyGeminiModalConnectionId={setApplyGeminiModalConnectionId}
+        applyingGeminiAuthId={applyingGeminiAuthId}
+        handleApplyGeminiAuthLocal={handleApplyGeminiAuthLocal}
+        importGeminiModalOpen={importGeminiModalOpen}
+        setImportGeminiModalOpen={setImportGeminiModalOpen}
         importGrokCliModalOpen={importGrokCliModalOpen}
         setImportGrokCliModalOpen={setImportGrokCliModalOpen}
         batchTestResults={batchTestResults}

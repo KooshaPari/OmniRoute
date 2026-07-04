@@ -15,11 +15,7 @@
  * The only standardization is the log MESSAGE wording (round-robin previously dropped the
  * "on remaining targets" suffix) — diagnostic text only, same #code + provider info.
  */
-import {
-  classifyErrorText,
-  hasPerModelQuota,
-  isProviderExhaustedReason,
-} from "../accountFallback.ts";
+import { classifyErrorText, hasPerModelQuota, isProviderExhaustedReason } from "../accountFallback.ts";
 import { RateLimitReason } from "../../config/constants.ts";
 import { isProviderCircuitOpenResult } from "./comboPredicates.ts";
 import type { ComboLogger, ResolvedComboTarget } from "./types.ts";
@@ -55,8 +51,6 @@ export type ApplyComboTargetExhaustionOptions = {
   log: ComboLogger;
   tag: string;
   exhaustedLogLevel: "info" | "debug";
-  /** Structured error object from upstream response — preferred over raw errorText for classification */
-  structuredError?: { code?: string; type?: string; message?: string };
 };
 
 /**
@@ -79,7 +73,6 @@ export function applyComboTargetExhaustion(
     log,
     tag,
     exhaustedLogLevel,
-    structuredError,
   } = opts;
   const { exhaustedProviders, exhaustedConnections, transientRateLimitedProviders } = sets;
   const provider = target.provider;
@@ -91,20 +84,17 @@ export function applyComboTargetExhaustion(
     Boolean(provider && provider !== "unknown") &&
     !hasPerModelQuota(provider, rawModel) &&
     (isProviderExhaustedReason(fallbackResult) ||
-      classifyErrorText(structuredError?.code || errorText) === RateLimitReason.QUOTA_EXHAUSTED ||
+      classifyErrorText(errorText) === RateLimitReason.QUOTA_EXHAUSTED ||
       allAccountsRateLimited);
   if (providerExhausted) {
     exhaustedProviders.add(provider);
     const emit = exhaustedLogLevel === "debug" ? log.debug : log.info;
-    emit?.(
-      tag,
-      `Provider ${provider} quota exhausted — marking for skip on remaining targets (#1731)`
-    );
+    emit?.(tag, `Provider ${provider} quota exhausted — marking for skip on remaining targets (#1731)`);
   } else {
     if (result.status === 429 && !isTokenLimitBreach && provider && provider !== "unknown") {
       transientRateLimitedProviders.add(provider);
     }
-    markConnectionLevelExhaustion(target, { result, errorText, sets, log, tag, rawModel });
+    markConnectionLevelExhaustion(target, { result, errorText, sets, log, tag });
   }
 
   return providerExhausted;
@@ -118,12 +108,9 @@ export function applyComboTargetExhaustion(
  */
 function markConnectionLevelExhaustion(
   target: ResolvedComboTarget,
-  opts: Pick<
-    ApplyComboTargetExhaustionOptions,
-    "result" | "errorText" | "sets" | "log" | "tag" | "rawModel"
-  >
+  opts: Pick<ApplyComboTargetExhaustionOptions, "result" | "errorText" | "sets" | "log" | "tag">
 ): void {
-  const { result, errorText, sets, log, tag, rawModel } = opts;
+  const { result, errorText, sets, log, tag } = opts;
   const provider = target.provider;
   if (
     !provider ||
@@ -133,13 +120,7 @@ function markConnectionLevelExhaustion(
     // #5085: empty-content 502 is a healthy connection returning no body — model-level, not
     // connection-level. Don't exhaust the provider; let the remaining legs (incl. same-provider)
     // be tried in-request.
-    isEmptyContentFailure(result.status, errorText) ||
-    // Per-model-quota providers (gemini, github, passthrough, compatible) multiplex models
-    // behind one connection. A model-level 500 (e.g. Gemini "Internal error encountered")
-    // must NOT exhaust the connection — other models on the same connection may still succeed.
-    // Other connection-level statuses (408/502/503/504/524) indicate the connection itself is
-    // bad, so they correctly exhaust even for per-model-quota providers.
-    (result.status === 500 && hasPerModelQuota(provider, rawModel))
+    isEmptyContentFailure(result.status, errorText)
   ) {
     return;
   }
