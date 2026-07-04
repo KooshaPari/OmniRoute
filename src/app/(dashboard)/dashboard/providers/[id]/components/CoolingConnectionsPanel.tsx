@@ -22,7 +22,7 @@
  */
 
 import { useEffect, useState } from "react";
-import { Card } from "@/components/ui/card";
+import Card from "@/shared/components/Card";
 import { formatResetCountdown } from "@/lib/localDb";
 import type { ConnectionRowConnection } from "./ConnectionRow";
 
