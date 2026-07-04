@@ -124,6 +124,42 @@ test("provider nodes route creates OpenAI-compatible nodes with normalized defau
   assert.equal(body.node.modelsPath, null);
 });
 
+test("provider nodes route creates VibeProxy-compatible preset nodes", async () => {
+  const response = await providerNodesRoute.POST(
+    makeRequest({
+      preset: "vibeproxy-openai",
+      baseUrl: " http://127.0.0.1:8317/v1/chat/completions ",
+    })
+  );
+  const body = (await response.json()) as any;
+
+  assert.equal(response.status, 201);
+  assert.match(body.node.id, new RegExp(`^${OPENAI_COMPATIBLE_PREFIX}chat-`));
+  assert.equal(body.node.type, "openai-compatible");
+  assert.equal(body.node.name, "VibeProxy");
+  assert.equal(body.node.prefix, "vibeproxy");
+  assert.equal(body.node.apiType, "chat");
+  assert.equal(body.node.baseUrl, "http://127.0.0.1:8317/v1");
+  assert.equal(body.node.chatPath, "/chat/completions");
+  assert.equal(body.node.modelsPath, "/models");
+});
+
+test("provider nodes route requires a base URL for VibeProxy-compatible presets", async () => {
+  const response = await providerNodesRoute.POST(
+    makeRequest({
+      preset: "vibeproxy-openai",
+    })
+  );
+  const body = (await response.json()) as any;
+
+  assert.equal(response.status, 400);
+  assert.equal(body.error.message, "Invalid request");
+  assert.match(
+    body.error.details.find((detail) => detail.field === "baseUrl")?.message || "",
+    /Base URL is required for provider preset/
+  );
+});
+
 test("provider nodes route allows local OpenAI-compatible base URLs by default", async () => {
   delete process.env.OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS;
 
