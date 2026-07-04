@@ -7,6 +7,8 @@ const cwd = process.cwd();
 const packageJsonPath = path.resolve(cwd, "package.json");
 const openApiPath = path.resolve(cwd, "docs/openapi.yaml");
 const changelogPath = path.resolve(cwd, "CHANGELOG.md");
+const llmPath = path.resolve(cwd, "llm.txt");
+const i18nDocsPath = path.resolve(cwd, "docs/i18n");
 
 function readText(filePath) {
   if (!fs.existsSync(filePath)) {
@@ -47,6 +49,23 @@ function extractChangelogSections(content) {
   return headings.map((match) => match[1]);
 }
 
+function stripTopHeading(content) {
+  return content.replace(/^# .+\r?\n+/, "");
+}
+
+function extractI18nMirrorBody(content) {
+  const separator = content.match(/^---\s*$/m);
+  if (!separator || separator.index === undefined) {
+    return null;
+  }
+
+  return content.slice(separator.index + separator[0].length).replace(/^\r?\n+/, "");
+}
+
+function normalizeMirrorBody(content) {
+  return content.replace(/\r\n/g, "\n").trim();
+}
+
 function isSemver(value) {
   // Accept X.Y.Z and X.Y.Z-prerelease.N (e.g. 3.0.0-rc.1, 3.0.0-beta.2)
   return /^\d+\.\d+\.\d+(-[a-zA-Z0-9.]+)?$/.test(value);
@@ -59,39 +78,147 @@ function fail(message) {
   console.error(`[docs-sync] FAIL - ${message}`);
 }
 
-try {
-  // package.json is optional in this dispatch monorepo (no root package.json).
-  // Guard the Tight coupling block; still run OpenAPI/CHANGELOG independence checks.
-  const packageJsonExists = fs.existsSync(packageJsonPath);
-  const packageVersion = packageJsonExists ? JSON.parse(readText(packageJsonPath)).version : null;
-
-  if (packageVersion) {
-    if (!isSemver(packageVersion)) {
-      fail(`package.json version is not valid semver: "${packageVersion}"`);
-    } else {
-      console.log(`[docs-sync] package.json version: ${packageVersion}`);
-    }
-  } else {
-    console.log("[docs-sync] package.json not at repo root — skipping package-version cross-checks");
+function checkI18nMirrorFile(fileName, sourcePath) {
+  if (!fs.existsSync(i18nDocsPath)) {
+    fail("docs/i18n directory is missing");
+    return;
   }
 
-  // OpenAPI version independence check runs whenever the OpenAPI spec exists
-  // (it is our source of truth for the public API surface). We only cross-check
-  // against package.json when both exist.
+  const sourceBody = normalizeMirrorBody(stripTopHeading(readText(sourcePath)));
+  const locales = fs
+    .readdirSync(i18nDocsPath, { withFileTypes: true })
+    .filter((entry) => entry.isDirectory())
+    .map((entry) => entry.name)
+    .sort();
+
+  let checked = 0;
+  for (const locale of locales) {
+    const targetPath = path.join(i18nDocsPath, locale, fileName);
+    if (!fs.existsSync(targetPath)) {
+      fail(`docs/i18n/${locale}/${fileName} is missing`);
+      continue;
+    }
+
+    const body = extractI18nMirrorBody(readText(targetPath));
+    if (body === null) {
+      fail(`docs/i18n/${locale}/${fileName} is missing the i18n mirror separator`);
+      continue;
+    }
+
+    if (normalizeMirrorBody(body) !== sourceBody) {
+      fail(`docs/i18n/${locale}/${fileName} differs from root ${fileName}`);
+      continue;
+    }
+
+    checked += 1;
+  }
+
+  if (checked > 0) {
+    console.log(`[docs-sync] ${fileName} i18n mirrors match root content: ${checked} locales`);
+  }
+}
+
+/**
+ * Check i18n CHANGELOG mirrors by verifying that all version sections from the
+ * root CHANGELOG exist in each translation. Unlike strict mirror files (llm.txt),
+ * CHANGELOG translations have translated section headings (e.g. "Security" →
+ * "Segurança"), so byte-for-byte comparison is intentionally skipped.
+ *
+ * Validates:
+ * 1. File exists in each locale
+ * 2. Has the i18n mirror separator (---)
+ * 3. Contains all version sections (## [X.Y.Z]) from root, in the same order
+ * 4. Body is non-empty and within a reasonable size tolerance of the source
+ */
+function checkI18nChangelogFile(sourcePath) {
+  const fileName = "CHANGELOG.md";
+  if (!fs.existsSync(i18nDocsPath)) {
+    fail("docs/i18n directory is missing");
+    return;
+  }
+
+  const sourceContent = readText(sourcePath);
+  const sourceBody = normalizeMirrorBody(stripTopHeading(sourceContent));
+  const sourceVersions = extractChangelogSections(sourceContent);
+  const locales = fs
+    .readdirSync(i18nDocsPath, { withFileTypes: true })
+    .filter((entry) => entry.isDirectory())
+    .map((entry) => entry.name)
+    .sort();
+
+  let checked = 0;
+  for (const locale of locales) {
+    const targetPath = path.join(i18nDocsPath, locale, fileName);
+    if (!fs.existsSync(targetPath)) {
+      fail(`docs/i18n/${locale}/${fileName} is missing`);
+      continue;
+    }
+
+    const targetContent = readText(targetPath);
+    const body = extractI18nMirrorBody(targetContent);
+    if (body === null) {
+      fail(`docs/i18n/${locale}/${fileName} is missing the i18n mirror separator`);
+      continue;
+    }
+
+    const normalizedBody = normalizeMirrorBody(body);
+    if (normalizedBody.length === 0) {
+      fail(`docs/i18n/${locale}/${fileName} has empty body after separator`);
+      continue;
+    }
+
+    // Verify all version sections from root exist in the translation
+    const targetVersions = extractChangelogSections(targetContent);
+    const missingVersions = sourceVersions.filter((v) => !targetVersions.includes(v));
+    if (missingVersions.length > 0) {
+      fail(
+        `docs/i18n/${locale}/${fileName} is missing version sections: ${missingVersions.slice(0, 3).join(", ")}${missingVersions.length > 3 ? ` (+${missingVersions.length - 3} more)` : ""}`
+      );
+      continue;
+    }
+
+    // Verify body line count is within 25% tolerance of source (translations
+    // should preserve structure — drastic line-count differences indicate
+    // stale or missing content)
+    const sourceLines = sourceBody.split("\n").length;
+    const targetLines = normalizedBody.split("\n").length;
+    const sizeDiff = Math.abs(targetLines - sourceLines) / sourceLines;
+    if (sizeDiff > 0.25) {
+      fail(
+        `docs/i18n/${locale}/${fileName} body line count differs by ${(sizeDiff * 100).toFixed(0)}% from root (expected within 25%)`
+      );
+      continue;
+    }
+
+    checked += 1;
+  }
+
+  if (checked > 0) {
+    console.log(
+      `[docs-sync] ${fileName} i18n translations validated: ${checked} locales (version sections + size check)`
+    );
+  }
+}
+
+try {
+  const packageJson = JSON.parse(readText(packageJsonPath));
+  const packageVersion = packageJson.version;
+
+  if (!isSemver(packageVersion)) {
+    fail(`package.json version is not valid semver: "${packageVersion}"`);
+  } else {
+    console.log(`[docs-sync] package.json version: ${packageVersion}`);
+  }
+
   const openApiVersion = extractOpenApiVersion(readText(openApiPath));
   if (!openApiVersion) {
     fail("could not extract docs/openapi.yaml info.version");
-  } else if (packageVersion && openApiVersion !== packageVersion) {
+  } else if (openApiVersion !== packageVersion) {
     fail(`OpenAPI version (${openApiVersion}) differs from package.json (${packageVersion})`);
   } else {
-    console.log(`[docs-sync] openapi.yaml info.version: ${openApiVersion}`);
+    console.log(`[docs-sync] openapi.yaml info.version matches: ${openApiVersion}`);
   }
 
-  // CHANGELOG.md checks run independently of package.json (dispatch checkout
-  // may have docs but not a root package.json).
-  if (!fs.existsSync(changelogPath)) {
-    fail("CHANGELOG.md is missing");
-  }
   const changelogSections = extractChangelogSections(readText(changelogPath));
   if (changelogSections.length === 0) {
     fail("CHANGELOG.md has no version sections");
@@ -105,14 +232,10 @@ try {
     const semverSections = changelogSections.filter((section) => isSemver(section));
     if (semverSections.length === 0) {
       fail("CHANGELOG.md has no semver release section");
-    } else if (packageVersion && semverSections[0] !== packageVersion) {
+    } else if (semverSections[0] !== packageVersion) {
       fail(
         `Latest changelog release (${semverSections[0]}) differs from package.json (${packageVersion})`
       );
-    } else if (!packageVersion) {
-      // When package.json is absent we skip the version-equality check but still
-      // confirm a semver release exists somewhere in the changelog.
-      console.log(`[docs-sync] latest changelog release (no package.json to cross-check): ${semverSections[0]}`);
     } else {
       console.log(
         `[docs-sync] latest changelog release matches package version: ${packageVersion}`
@@ -120,9 +243,10 @@ try {
     }
   }
 
-  // ADR 0005 makes docs/i18n generated, gitignored output. Strict sync checks
-  // only canonical tracked sources; translation freshness belongs to the
-  // generation pipeline and must not depend on local mirror presence.
+  // llm.txt mirrors must be exact copies (no translation)
+  checkI18nMirrorFile("llm.txt", llmPath);
+  // CHANGELOG.md mirrors are translations — check version sections and size, not exact content
+  checkI18nChangelogFile(changelogPath);
 
   // Anti-regression: legacy duplicate docs that have been superseded must not return.
   // Use docs/reference/* as the source of truth.
