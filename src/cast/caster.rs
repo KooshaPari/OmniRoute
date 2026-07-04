@@ -67,6 +67,15 @@ pub trait ProcessRunner: Send + Sync {
 
     /// Run a command with the given bytes piped to its stdin.
     fn run_with_stdin(&self, bin: &str, args: &[&str], stdin: &[u8]) -> io::Result<Output>;
+
+    /// Report whether `bin` is available for this runner.
+    ///
+    /// The default probes the real `PATH` (production behaviour). Mock runners
+    /// override this so injected command sequences drive the outcome instead of
+    /// the host's `PATH`, keeping caster tests hermetic on any CI runner.
+    fn is_available(&self, bin: &str) -> bool {
+        which(bin).is_some()
+    }
 }
 
 /// Default `ProcessRunner` — invokes a real subprocess.
@@ -185,6 +194,12 @@ impl ProcessRunner for MockProcessRunner {
         // Mock captures the invocation for assertion; ignores stdin bytes.
         self.run(bin, args)
     }
+
+    fn is_available(&self, _bin: &str) -> bool {
+        // The mock drives outcomes via its queued command expectations, so it
+        // must report every binary as available regardless of the host PATH.
+        true
+    }
 }
 
 /// Caster that uses Ghostty's `+action` subcommands.
@@ -235,8 +250,9 @@ impl<R: ProcessRunner> Caster for GhosttyCaster<R> {
     fn send(&self, addr: &PaneAddress, text: &str) -> SendOutcome {
         // Ghostty is only available on macOS (and partially on Linux).
         // If the `ghostty` binary is not on PATH, report unsupported
-        // so the fallback chain can continue.
-        if which("ghostty").is_none() {
+        // so the fallback chain can continue. Probing via the runner (not the
+        // free `which`) lets injected mocks stay hermetic on CI.
+        if !self.runner.is_available("ghostty") {
             return SendOutcome::Unsupported("ghostty binary not on PATH".into());
         }
 
