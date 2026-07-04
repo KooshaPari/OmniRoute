@@ -155,6 +155,7 @@ export {
   setProxyForLevel,
   deleteProxyForLevel,
   resolveProxyForConnection,
+  resetProxyResolutionCacheForTests,
   setProxyConfig,
 } from "./db/settings";
 

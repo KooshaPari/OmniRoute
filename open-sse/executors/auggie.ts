@@ -79,6 +79,22 @@ function buildAuggieArgs(model: string): string[] {
   return ["--print", "--quiet", "--model", model, "--"];
 }
 
+function writePromptToChildStdin(
+  child: ReturnType<typeof spawn>,
+  promptText: string,
+  onError?: (err: NodeJS.ErrnoException) => void
+) {
+  child.stdin?.on("error", (err: NodeJS.ErrnoException) => {
+    onError?.(err);
+  });
+  try {
+    child.stdin?.write(promptText);
+    child.stdin?.end();
+  } catch (err) {
+    onError?.(err as NodeJS.ErrnoException);
+  }
+}
+
 // ─── Binary discovery ────────────────────────────────────────────────────────
 
 export function resolveAuggieBin(): string {
@@ -282,12 +298,7 @@ export class AuggieExecutor extends BaseExecutor {
       env: process.env,
       stdio: ["pipe", "pipe", "pipe"],
     });
-    try {
-      child.stdin.write(promptText);
-      child.stdin.end();
-    } catch {
-      /* ignore write errors — 'error'/'close' handlers surface the failure */
-    }
+    writePromptToChildStdin(child, promptText);
     return child;
   }
 
@@ -383,12 +394,10 @@ export class AuggieExecutor extends BaseExecutor {
           return;
         }
 
-        try {
-          child.stdin.write(promptText);
-          child.stdin.end();
-        } catch {
-          /* ignore — error/close handlers below surface failures */
-        }
+        let stdinWriteError: NodeJS.ErrnoException | null = null;
+        writePromptToChildStdin(child, promptText, (err) => {
+          stdinWriteError = err;
+        });
 
         if (signal) {
           signal.addEventListener("abort", () => {
@@ -414,10 +423,11 @@ export class AuggieExecutor extends BaseExecutor {
 
         child.on("close", (code) => {
           if (finished) return;
-          if (code !== 0) {
+          const effectiveCode = code ?? (stdinWriteError ? 1 : 0);
+          if (effectiveCode !== 0) {
             emitError(
               sanitizeErrorMessage(
-                `Auggie CLI exited with code ${code}${stderrTail ? `: ${stderrTail}` : ""}`
+                `Auggie CLI exited with code ${effectiveCode}${stderrTail ? `: ${stderrTail}` : ""}`
               )
             );
             return;

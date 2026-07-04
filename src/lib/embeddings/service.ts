@@ -254,8 +254,8 @@ export async function createEmbeddingResponse(
       connectionId: options.connectionId || null,
     });
 
-  const result = connectionIdForProxy
-    ? await runWithProxyContext(proxyInfo?.proxy || null, runEmbedding)
+  const result = proxyInfo?.proxy
+    ? await runWithProxyContext(proxyInfo.proxy, runEmbedding)
     : await runEmbedding();
 
   const responseHeaders = new Headers(result.headers);

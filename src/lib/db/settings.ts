@@ -39,6 +39,10 @@ export function bumpProxyConfigGeneration() {
   proxyResolutionCache.clear();
 }
 
+export function resetProxyResolutionCacheForTests() {
+  bumpProxyConfigGeneration();
+}
+
 function cacheProxyResolution(
   connectionId: string,
   generation: number,
