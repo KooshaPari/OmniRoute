@@ -57,7 +57,7 @@ jobs:
       # false-failing the blocking mutationScore ratchet. See check-mutation-test-coverage.mjs.
       - run: npm run check:mutation-test-coverage
       - run: npm run check:any-budget:t11
-      # Build-scope guard: fails if worktrees/cruft leak into the tsconfig include
+# Build-scope guard: fails if worktrees/cruft leak into the tsconfig include
       # scope (would OOM `next build`). Instant. See incident 2026-06-25 / #5031.
       - run: npm run check:build-scope
       # Pack-policy (unexpected-files allowlist) WITHOUT a build — catches a stray file
@@ -69,6 +69,13 @@ jobs:
       # Quality Ratchet (v3.8.36: +30 complexity / +15 cognitive surfaced only post-merge).
       - run: npm run check:complexity
       - run: npm run check:cognitive-complexity
+      # Drift gate for open-sse/AGENT-INDEX.md (issue #6065 follow-up).
+      # Catches (a) stale AGENT-INDEX.md after edits to open-sse/executors/index.ts,
+      # (b) orphan files / orphan imports / stale KNOWN_HELPER_FILES entries. The
+      # generator at scripts/build/gen-agent-index.mjs is single-source-of-truth;
+      # this gate makes drift blocking. Also runs as the final step of
+      # `npm run check:docs-all` for the docs-validation chain.
+      - run: npm run check:agent-index
       - name: Typecheck (core)
         run: npm run typecheck:core
       # TIA: build the impact map at runtime (gitignored, ~21MB) and run only the
