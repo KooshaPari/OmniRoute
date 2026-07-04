@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ConsoleEndpoint, fetchManagement, managementBaseUrl, setManagementBaseUrl } from "./api";
 import { connectManagementEvents, type ManagementEvent } from "./events";
 
@@ -19,18 +19,35 @@ const tabs: Tab[] = [
   { id: "usage/call-logs", label: "Logs", summary: "Recent calls, provider errors, quota events." },
 ];
 
+type Status = "idle" | "loading" | "online" | "needs facade" | "saved";
+
 export function App() {
   const [active, setActive] = useState<Tab>(tabs[0]);
   const [baseUrl, setBaseUrl] = useState(managementBaseUrl());
-  const [status, setStatus] = useState("idle");
+  const [loadedStatus, setLoadedStatus] = useState<Exclude<Status, "loading" | "saved">>("idle");
+  const [savedStatus, setSavedStatus] = useState<boolean>(false);
   const [payload, setPayload] = useState<string>("No request made yet.");
   const [events, setEvents] = useState<ManagementEvent[]>([]);
+  // pending fetch tokens per tab — only the latest response is allowed to settle state,
+  // which avoids cascading renders from stale tab-switch race resolutions.
+  const pendingTokenRef = useRef<number>(0);
 
   const routePlan = useMemo(() => tabs.map((tab) => `/api/management/${tab.id}`), []);
 
+  const status: Status = savedStatus
+    ? "saved"
+    : loadedStatus === "idle"
+      ? "loading"
+      : loadedStatus;
+
   useEffect(() => {
+    const token = ++pendingTokenRef.current;
+    setSavedStatus(false);
     fetchManagement<Record<string, unknown>>(active.id).then((result) => {
-      setStatus(result.ok ? "online" : "needs facade");
+      if (token !== pendingTokenRef.current) {
+        return;
+      }
+      setLoadedStatus(result.ok ? "online" : "needs facade");
       setPayload(JSON.stringify(result, null, 2));
     });
   }, [active]);
@@ -38,13 +55,18 @@ export function App() {
   useEffect(() => {
     return connectManagementEvents({
       onEvent: (event) => setEvents((current) => [event, ...current].slice(0, 6)),
-      onStatus: setStatus,
+      onStatus: (next) => {
+        if (next === "saved" || next === "idle") {
+          return;
+        }
+        setLoadedStatus(next === "online" || next === "needs facade" ? next : "idle");
+      },
     });
   }, []);
 
   function saveBaseUrl() {
     setManagementBaseUrl(baseUrl);
-    setStatus("saved");
+    setSavedStatus(true);
   }
 
   return (

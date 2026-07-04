@@ -1,6 +1,6 @@
 ---
-title: Bifrost Backend
-description: Tier-1 router bridge architecture for OmniRoute.
+title: Bifrost Backend (Tier-1 Router Bridge)
+description: Migration of OmniRoute's Tier-1 router to the Bifrost Go gateway and what stays in OmniRoute.
 ---
 
 # Bifrost Backend (Tier-1 Router Bridge)
@@ -9,7 +9,7 @@ description: Tier-1 router bridge architecture for OmniRoute.
 > **Decision:** OmniRoute's underlying Tier-1 router is migrating to
 > [`maximhq/bifrost`](https://github.com/maximhq/bifrost) (Go, MIT).
 > OmniRoute remains the Tier-2 engine: A2A, MCP-router, ACP, skills,
-> policy, guardrails, dashboard. See [`docs/adr/0031-bifrost-tier1-router.md`](../adr/0031-bifrost-tier1-router.md)
+> policy, guardrails, dashboard. See [`docs/adr/0031-bifrost-tier1-router.md`](adr/0031-bifrost-tier1-router.md)
 > for the full decision rationale and comparison matrix.
 
 ---
@@ -108,8 +108,9 @@ go build -o bifrost ./cmd/bifrost
 `KooshaPari/bifrost` shallowly into `vendor/bifrost/`, builds the
 `./cmd/bifrost` binary, and writes the artifact to
 `dist/bifrost/bifrost`. The `vendor/bifrost/` source tree is
-gitignored; `vendor/bifrost/VENDOR.md` is the intended update
-procedure when the vendored source tree is materialized.
+gitignored; only `vendor/bifrost/VENDOR.md` is tracked. See
+[`vendor/bifrost/VENDOR.md`](../vendor/bifrost/VENDOR.md) for the
+update procedure.
 
 **Path resolution:** `BIFROST_BASE_URL` (default `http://127.0.0.1:8080`)
 is the only env var the executor needs. `BIFROST_BINARY` is *not* read
@@ -284,11 +285,11 @@ Per ADR-031 § "Decision Review":
 
 ## Cross-references
 
-- [`docs/adr/0031-bifrost-tier1-router.md`](../adr/0031-bifrost-tier1-router.md) — ADR (MADR format)
-- `ADR.md` — top-level ADR index (ADR-031 entry)
-- `SPEC.md` § 3 — Architecture overview (v8.1 update)
-- `PLAN.md` § 2.5 — v8.1 Bifrost track (B1–B9)
-- [`docs/ROUTING-CONVERGENCE-STATUS.md`](../ROUTING-CONVERGENCE-STATUS.md) — Tier-1/Tier-2 split
+- [`docs/adr/0031-bifrost-tier1-router.md`](adr/0031-bifrost-tier1-router.md) — ADR (MADR format)
+- [`ADR.md`](../ADR.md) — top-level ADR index (ADR-031 entry)
+- [`SPEC.md`](../SPEC.md) § 3 — Architecture overview (v8.1 update)
+- [`PLAN.md`](../PLAN.md) § 2.5 — v8.1 Bifrost track (B1–B9)
+- [`docs/ROUTING-CONVERGENCE-STATUS.md`](ROUTING-CONVERGENCE-STATUS.md) — Tier-1/Tier-2 split
 - `open-sse/executors/bifrost.ts` — BifrostBackendExecutor implementation
 - `open-sse/executors/bifrostProviderMap.ts` — provider ID translation
 - `tests/unit/bifrost-backend.test.ts` — vitest suite (12 cases)
