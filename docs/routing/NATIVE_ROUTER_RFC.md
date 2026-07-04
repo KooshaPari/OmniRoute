@@ -1,7 +1,7 @@
 # Native Router Workstream RFC
 
 Status: proposed
-Tracker: https://github.com/diegosouzapw/OmniRoute/issues/5670
+Tracker: [#5670](https://github.com/diegosouzapw/OmniRoute/issues/5670)
 Related PRs: #6071, #6079, #6081, #6083
 
 ## Problem

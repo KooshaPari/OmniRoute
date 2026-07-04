@@ -1,7 +1,7 @@
 # Issue Agent Security Boundary RFC
 
 Status: proposed
-Tracker: https://github.com/diegosouzapw/OmniRoute/issues/5620
+Tracker: [#5620](https://github.com/diegosouzapw/OmniRoute/issues/5620)
 Related PR: #5867
 
 ## Problem
