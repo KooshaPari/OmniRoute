@@ -12,6 +12,7 @@ export {
   getProviderConnectionById,
   createProviderConnection,
   updateProviderConnection,
+  clearConnectionErrorIfUnchanged,
   deleteProviderConnection,
   deleteProviderConnections,
   deleteProviderConnectionsByProvider,
@@ -163,6 +164,7 @@ export {
   setProxyForLevel,
   deleteProxyForLevel,
   resolveProxyForConnection,
+  resetProxyResolutionCacheForTests,
   setProxyConfig,
 } from "./db/settings";
 

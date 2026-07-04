@@ -35,8 +35,7 @@ async function resetStorage() {
   delete process.env.REQUIRE_API_KEY;
   delete process.env.ENABLE_SOCKS5_PROXY;
 
-  core.resetDbInstance();
-  apiKeysDb.resetApiKeyState();
+  core.resetDbInstance(); apiKeysDb.resetApiKeyState(); localDb.resetProxyResolutionCacheForTests();
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
 }
@@ -907,7 +906,7 @@ test("v1 routes surface provider-rate-limit sentinels instead of missing credent
 });
 
 test("embeddings route tolerates custom-model and provider-node lookup failures", async () => {
-  await seedOpenAIConnection();
+  await resetStorage(); await seedOpenAIConnection();
 
   const originalFetch = globalThis.fetch;
   globalThis.fetch = async () =>
@@ -1024,7 +1023,7 @@ test("embeddings route supports local provider nodes without credentials and enf
 });
 
 test("embeddings route returns normalized upstream failures", async () => {
-  await seedOpenAIConnection();
+  await resetStorage(); await seedOpenAIConnection();
 
   const originalFetch = globalThis.fetch;
   globalThis.fetch = async () => new Response("upstream boom", { status: 502 });
@@ -1083,7 +1082,7 @@ test("embeddings route GET skips malformed, non-embedding, and duplicate custom 
 });
 
 test("embeddings route tolerates non-array provider nodes and remote fallback lookup errors", async () => {
-  await seedOpenAIConnection();
+  await resetStorage(); await seedOpenAIConnection();
 
   const originalFetch = globalThis.fetch;
   globalThis.fetch = async () =>

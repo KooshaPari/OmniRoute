@@ -4,7 +4,7 @@
  * CoolingConnectionsPanel — Dashboard readout of connections currently in a
  * persisted 429 cooldown. Sourced from `useProviderConnections().connections`
  * filtered on `rateLimitedUntil`. Live human-readable countdown via the
- * existing `formatResetCountdown` helper re-exported by `@/lib/localDb`.
+ * client-safe countdown helper below.
  *
  * Why this exists: Fix A (per-account 429 cascade not persisting) writes the
  * cooldown to `provider_connections.rate_limited_until` so the cascade
@@ -22,8 +22,7 @@
  */
 
 import { useEffect, useState } from "react";
-import { Card } from "@/components/ui/card";
-import { formatResetCountdown } from "@/lib/localDb";
+import Card from "@/shared/components/Card";
 import type { ConnectionRowConnection } from "./ConnectionRow";
 
 export interface CoolingConnectionsPanelProps {
@@ -34,6 +33,23 @@ function isCoolingNow(connection: ConnectionRowConnection, now: number): boolean
   if (!connection.rateLimitedUntil) return false;
   const until = new Date(connection.rateLimitedUntil).getTime();
   return Number.isFinite(until) && until > now;
+}
+
+function formatCoolingCountdown(untilIso: string, now: number): string {
+  const until = new Date(untilIso).getTime();
+  if (!Number.isFinite(until)) return "unknown";
+  const remainingMs = until - now;
+  if (remainingMs <= 0) return "now";
+
+  const totalSeconds = Math.ceil(remainingMs / 1000);
+  const seconds = totalSeconds % 60;
+  const totalMinutes = Math.floor(totalSeconds / 60);
+  const minutes = totalMinutes % 60;
+  const hours = Math.floor(totalMinutes / 60);
+
+  if (hours > 0) return `${hours}h ${minutes}m`;
+  if (totalMinutes > 0) return `${totalMinutes}m ${seconds}s`;
+  return `${seconds}s`;
 }
 
 export default function CoolingConnectionsPanel(
@@ -84,7 +100,7 @@ export default function CoolingConnectionsPanel(
                 className="font-mono text-xs text-amber-700 dark:text-amber-300"
                 data-testid="cooling-countdown"
               >
-                {formatResetCountdown(until)}
+                {formatCoolingCountdown(until, now)}
               </span>
             </li>
           );

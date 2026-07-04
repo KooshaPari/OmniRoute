@@ -71,7 +71,7 @@ test("S2b: provider error rules match canonical-cased plain header records", asy
   });
   assert.ok(opencodeMatch, "Opencode quota headers must be case-insensitive");
   assert.equal(opencodeMatch.reason, "quota_exhausted");
-  assert.equal(opencodeMatch.scope, "provider");
+  assert.equal(opencodeMatch.scope, "connection");
 
   const minimaxMatch = getProviderErrorRuleMatch("Minimax", 429, {
     "X-Model-Quota-Remaining": "haiku=0,sonnet=42",

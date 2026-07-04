@@ -22,7 +22,6 @@ import {
   getWizardOAuthProviderOptions,
   type WizardProviderOption,
 } from "./providerOnboardingCatalog";
-import { buildProviderDetailsHref } from "./providerOnboardingHref";
 import {
   createCompatibleProviderNode,
   createOnboardingConnection,
@@ -261,19 +260,14 @@ function ResultSummary({
         )}
 
         <div className="flex flex-wrap gap-2">
-          {(() => {
-            const detailsHref = buildProviderDetailsHref(connection);
-            return (
-              detailsHref && (
-                <Link
-                  href={detailsHref}
-                  className="inline-flex items-center justify-center rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-primary/90"
-                >
-                  {providerText(t, "onboardingOpenProviderDetails", "Open provider details")}
-                </Link>
-              )
-            );
-          })()}
+          {connection?.id && (
+            <Link
+              href={`/dashboard/providers/${connection.id}`}
+              className="inline-flex items-center justify-center rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-primary/90"
+            >
+              {providerText(t, "onboardingOpenProviderDetails", "Open provider details")}
+            </Link>
+          )}
           <Link
             href="/dashboard/providers"
             className="inline-flex items-center justify-center rounded-lg border border-border bg-bg-subtle px-4 py-2 text-sm font-medium text-text-main transition-colors hover:bg-bg-card"

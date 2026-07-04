@@ -156,7 +156,7 @@ paths:
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
-          $ref: "#/components/responses/Unauthorized"
+          $ref: "#/components/responses/ManagementAuthenticationRequired"
   /api/playground/presets:
     get:
       tags:
@@ -5827,7 +5827,7 @@ paths:
         "200":
           description: Distinct devices seen for the API key.
         "401":
-          $ref: "#/components/responses/Unauthorized"
+          $ref: "#/components/responses/ManagementAuthenticationRequired"
         "404":
           $ref: "#/components/responses/NotFound"
   /api/settings/purge-usage-history:
