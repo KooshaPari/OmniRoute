@@ -16,10 +16,10 @@ import { getOrCreateApiKey } from "./apiKey";
 import { scheduleServiceModelSync, stopServiceModelSync } from "./modelSync";
 import type { ServiceStatus } from "./types";
 
-const NINEROUTER_PORT = parseInt(process.env.NINEROUTER_PORT ?? "20130", 10);
-const CLIPROXY_PORT = parseInt(process.env.CLIPROXYAPI_PORT ?? String(CLIPROXY_DEFAULT_PORT), 10);
-const MUX_PORT = parseInt(process.env.MUX_SERVICE_PORT ?? String(MUX_DEFAULT_PORT), 10);
-const BIFROST_PORT = parseInt(process.env.BIFROST_PORT ?? String(BIFROST_DEFAULT_PORT), 10);
+const NINEROUTER_PORT = Number.parseInt(process.env.NINEROUTER_PORT ?? "20130", 10);
+const CLIPROXY_PORT = Number.parseInt(process.env.CLIPROXYAPI_PORT ?? String(CLIPROXY_DEFAULT_PORT), 10);
+const MUX_PORT = Number.parseInt(process.env.MUX_SERVICE_PORT ?? String(MUX_DEFAULT_PORT), 10);
+const BIFROST_PORT = Number.parseInt(process.env.BIFROST_PORT ?? String(BIFROST_DEFAULT_PORT), 10);
 
 type ServiceEntry = {
   tool: string;

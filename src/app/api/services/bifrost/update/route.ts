@@ -28,7 +28,7 @@ export async function POST(): Promise<Response> {
     if (wasRunning) {
       const freshSup = await getOrInitSupervisor();
       await freshSup.start().catch((err: unknown) => {
-        const msg = err instanceof Error ? err.message : String(err);
+        const msg = sanitizeErrorMessage(err);
         console.warn("[Services] Could not restart bifrost after update:", msg);
       });
     }
@@ -39,7 +39,7 @@ export async function POST(): Promise<Response> {
       newVersion: result.installedVersion,
     });
   } catch (err) {
-    const msg = sanitizeErrorMessage(err instanceof Error ? err.message : String(err));
+    const msg = sanitizeErrorMessage(err);
     return createErrorResponse({ status: 500, message: msg });
   }
 }

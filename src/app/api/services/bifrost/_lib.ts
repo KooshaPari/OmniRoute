@@ -8,7 +8,7 @@ import { ServiceSupervisor } from "@/lib/services/ServiceSupervisor";
 import { resolveSpawnArgs, BIFROST_DEFAULT_PORT } from "@/lib/services/installers/bifrost";
 
 const TOOL = "bifrost";
-const PORT = parseInt(process.env.BIFROST_PORT ?? String(BIFROST_DEFAULT_PORT), 10);
+const PORT = Number.parseInt(process.env.BIFROST_PORT ?? String(BIFROST_DEFAULT_PORT), 10);
 
 export async function getOrInitSupervisor(): Promise<ServiceSupervisor> {
   const existing = getSupervisor(TOOL);
