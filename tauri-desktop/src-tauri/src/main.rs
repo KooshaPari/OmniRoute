@@ -5,6 +5,8 @@ use tauri::{
     Manager,
 };
 
+mod signals;
+
 fn tray_icon() -> Image<'static> {
     const SIZE: u32 = 32;
     let radius = SIZE as f32 / 2.0 - 3.0;
