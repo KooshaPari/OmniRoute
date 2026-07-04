@@ -70,7 +70,23 @@ jobs:
       PR_RECONCILE_RUN_ATTEMPT: ${{ github.run_attempt }}
       PR_RECONCILE_DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
     steps:
+      - name: Checkout pull request workflow code
+        if: >-
+          ${{
+            github.event_name == 'pull_request' &&
+            github.event.pull_request.head.repo.full_name == github.repository
+          }}
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+
       - name: Checkout trusted workflow code
+        if: >-
+          ${{
+            github.event_name != 'pull_request' ||
+            github.event.pull_request.head.repo.full_name != github.repository
+          }}
         uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
         with:
           ref: ${{ github.event.repository.default_branch }}
