@@ -36,6 +36,15 @@ interface ImageModelAliasEntry {
   description?: string;
 }
 
+interface ImageCatalogModelEntry {
+  id: string;
+  name: string;
+  provider: string;
+  supportedSizes: string[];
+  inputModalities: string[];
+  description?: string;
+}
+
 const IMAGE_MODEL_ALIASES: Record<string, ImageModelAliasEntry> = {
   "gemini-3.1-flash-image-preview": {
     provider: "antigravity",
@@ -539,6 +548,69 @@ export const IMAGE_PROVIDERS: Record<string, ImageProviderConfig> = {
     ],
     supportedSizes: ["1024x1024", "1024x1280", "1280x1024"],
   },
+
+  // NVIDIA NIM image generation (FLUX models). Distinct from the NVIDIA *chat* entry
+  // (open-sse/config/providers/registry/nvidia/index.ts, host integrate.api.nvidia.com,
+  // OpenAI-compatible) — image generation lives on ai.api.nvidia.com/v1/genai/<model>
+  // with a native NIM body per model, so it gets a dedicated `nvidia-nim` format/handler
+  // (handleNvidiaNimImageGeneration) rather than reusing the OpenAI image path.
+  // Ported from upstream 9router#1195.
+  nvidia: {
+    id: "nvidia",
+    baseUrl: "https://ai.api.nvidia.com/v1/genai",
+    authType: "apikey",
+    authHeader: "bearer",
+    format: "nvidia-nim",
+    models: [
+      { id: "black-forest-labs/flux.1-dev", name: "FLUX.1 Dev", inputModalities: ["text", "image"] },
+      { id: "black-forest-labs/flux.1-schnell", name: "FLUX.1 Schnell" },
+      {
+        id: "black-forest-labs/flux.1-kontext-dev",
+        name: "FLUX.1 Kontext Dev (Edit)",
+        inputModalities: ["text", "image"],
+      },
+      {
+        id: "black-forest-labs/flux.2-klein-4b",
+        name: "FLUX.2 Klein 4B",
+        inputModalities: ["text", "image"],
+      },
+    ],
+    supportedSizes: ["1024x1024", "768x1344", "512x512"],
+  },
+
+  // SenseNova (商汤日日新) Text-to-Image on the free Token Plan. OpenAI-compatible
+  // `/v1/images/generations`, so the generic OpenAI image handler routes it — same
+  // SenseNova api-key/connection as the chat provider. (9router#2233)
+  sensenova: {
+    id: "sensenova",
+    baseUrl: "https://api.sensenova.cn/v1/images/generations",
+    authType: "apikey",
+    authHeader: "bearer",
+    format: "openai",
+    models: [{ id: "sensenova-u1-fast", name: "SenseNova U1 Fast" }],
+    supportedSizes: ["1024x1024"],
+  },
+
+  // HuggingFace Hub Inference API text-to-image task. Returns raw image bytes
+  // (not JSON), so it uses a dedicated "huggingface-image" format handled by
+  // handleHuggingFaceImageGeneration. Same base URL convention as the HF
+  // STT/TTS entries in audioRegistry.ts. Model list is deliberately small —
+  // the dashboard's "suggested models" chip row (GET
+  // /api/v1/providers/suggested-models) surfaces additional HF Hub models
+  // beyond this seed list.
+  huggingface: {
+    id: "huggingface",
+    baseUrl: "https://api-inference.huggingface.co/models",
+    authType: "apikey",
+    authHeader: "bearer",
+    format: "huggingface-image",
+    models: [
+      { id: "black-forest-labs/FLUX.1-dev", name: "FLUX.1 Dev (HF)" },
+      { id: "black-forest-labs/FLUX.1-schnell", name: "FLUX.1 Schnell (HF)" },
+      { id: "stabilityai/stable-diffusion-xl-base-1.0", name: "Stable Diffusion XL (HF)" },
+    ],
+    supportedSizes: ["1024x1024"],
+  },
 };
 
 /**
@@ -590,34 +662,47 @@ export function parseImageModel(modelStr) {
 /**
  * Get all image models as a flat list
  */
-export function getAllImageModels() {
-  const models = [];
-  for (const [providerId, config] of Object.entries(IMAGE_PROVIDERS)) {
-    for (const model of config.models) {
-      models.push({
-        id: `${providerId}/${model.id}`,
-        name: model.name,
-        provider: providerId,
-        supportedSizes: config.supportedSizes,
-        inputModalities: model.inputModalities || ["text"],
-        description: model.description || undefined,
-      });
-    }
-  }
-  for (const [alias, target] of Object.entries(IMAGE_MODEL_ALIASES)) {
-    if (!target.listInCatalog) continue;
-    const providerConfig = IMAGE_PROVIDERS[target.provider];
-    const modelConfig = findImageModelConfig(target.provider, target.model);
-    models.push({
-      id: alias,
-      name: target.name || modelConfig?.name || alias,
-      provider: target.provider,
-      supportedSizes: providerConfig?.supportedSizes || [],
-      inputModalities: target.inputModalities || modelConfig?.inputModalities || ["text"],
-      description: target.description || modelConfig?.description || undefined,
-    });
-  }
-  return models;
+function imageProviderCatalogEntries(
+  providerId: string,
+  config: ImageProviderConfig
+): ImageCatalogModelEntry[] {
+  return config.models.map((model) => ({
+    id: `${providerId}/${model.id}`,
+    name: model.name,
+    provider: providerId,
+    supportedSizes: config.supportedSizes,
+    inputModalities: model.inputModalities || ["text"],
+    description: model.description || undefined,
+  }));
+}
+
+function imageAliasCatalogEntry(
+  alias: string,
+  target: ImageModelAliasEntry
+): ImageCatalogModelEntry | null {
+  if (!target.listInCatalog) return null;
+
+  const providerConfig = IMAGE_PROVIDERS[target.provider];
+  const modelConfig = findImageModelConfig(target.provider, target.model);
+  return {
+    id: alias,
+    name: target.name || modelConfig?.name || alias,
+    provider: target.provider,
+    supportedSizes: providerConfig?.supportedSizes || [],
+    inputModalities: target.inputModalities || modelConfig?.inputModalities || ["text"],
+    description: target.description || modelConfig?.description || undefined,
+  };
+}
+
+export function getAllImageModels(): ImageCatalogModelEntry[] {
+  const providerModels = Object.entries(IMAGE_PROVIDERS).flatMap(([providerId, config]) =>
+    imageProviderCatalogEntries(providerId, config)
+  );
+  const aliasModels = Object.entries(IMAGE_MODEL_ALIASES).flatMap(([alias, target]) => {
+    const entry = imageAliasCatalogEntry(alias, target);
+    return entry ? [entry] : [];
+  });
+  return [...providerModels, ...aliasModels];
 }
 
 export function getImageModelAliases() {

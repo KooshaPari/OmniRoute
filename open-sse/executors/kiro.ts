@@ -8,6 +8,12 @@ import {
 import { PROVIDERS } from "../config/constants.ts";
 import { v4 as uuidv4 } from "uuid";
 import { refreshKiroToken } from "../services/tokenRefresh.ts";
+import {
+  splitInlineThinking,
+  flushPendingThinking,
+  type KiroThinkingState,
+} from "./kiroThinking.ts";
+import { ByteQueue, TEXT_ENCODER, parseEventFrame } from "./kiro/eventstream.ts";
 
 type JsonRecord = Record<string, unknown>;
 
@@ -34,98 +40,11 @@ type KiroStreamState = {
   hasContextUsage?: boolean;
   hasMeteringEvent?: boolean;
   usage?: UsageSummary;
+  hasReasoningContent?: boolean;
+  reasoningChunkCount?: number;
+  // Inline-thinking splitter state (populated only when thinkingExpected=true).
+  thinking?: KiroThinkingState;
 };
-
-type EventFrame = {
-  headers: Record<string, string>;
-  payload: JsonRecord | null;
-};
-
-class ByteQueue {
-  private chunks: Uint8Array[] = [];
-  private headOffset = 0;
-  length = 0;
-
-  push(chunk: Uint8Array) {
-    if (!(chunk instanceof Uint8Array) || chunk.length === 0) return;
-    this.chunks.push(chunk);
-    this.length += chunk.length;
-  }
-
-  peekUint32BE(offset = 0): number | null {
-    if (this.length < offset + 4) return null;
-
-    let value = 0;
-    for (let i = 0; i < 4; i++) {
-      value = (value << 8) | this.byteAt(offset + i);
-    }
-    return value >>> 0;
-  }
-
-  read(length: number): Uint8Array | null {
-    if (length < 0 || this.length < length) return null;
-
-    const output = new Uint8Array(length);
-    let written = 0;
-
-    while (written < length) {
-      const head = this.chunks[0];
-      const available = head.length - this.headOffset;
-      const take = Math.min(available, length - written);
-      output.set(head.subarray(this.headOffset, this.headOffset + take), written);
-      written += take;
-      this.headOffset += take;
-      this.length -= take;
-
-      if (this.headOffset >= head.length) {
-        this.chunks.shift();
-        this.headOffset = 0;
-      }
-    }
-
-    return output;
-  }
-
-  private byteAt(offset: number): number {
-    let remaining = offset;
-    for (let i = 0; i < this.chunks.length; i++) {
-      const chunk = this.chunks[i];
-      const start = i === 0 ? this.headOffset : 0;
-      const available = chunk.length - start;
-      if (remaining < available) {
-        return chunk[start + remaining];
-      }
-      remaining -= available;
-    }
-    return 0;
-  }
-}
-
-// ── CRC32 lookup table (IEEE polynomial, no dependency) ──
-const CRC32_TABLE = new Uint32Array(256);
-const TEXT_ENCODER = new TextEncoder();
-const TEXT_DECODER = new TextDecoder();
-for (let i = 0; i < 256; i++) {
-  let c = i;
-  for (let j = 0; j < 8; j++) {
-    c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1;
-  }
-  CRC32_TABLE[i] = c >>> 0;
-}
-
-// Full per-frame message-CRC validation is O(frame bytes) and runs for EVERY frame of
-// every Kiro response on the main thread. The transport is TLS-protected and the 8-byte
-// prelude CRC already guards framing, so the full-message CRC is redundant overhead that
-// contributes to the CPU-runaway on large/long generations. Keep it opt-in for debugging.
-const KIRO_VERIFY_FULL_CRC = process.env.KIRO_VERIFY_FULL_CRC === "true";
-
-function crc32(buf: Uint8Array) {
-  let crc = 0xffffffff;
-  for (let i = 0; i < buf.length; i++) {
-    crc = CRC32_TABLE[(crc ^ buf[i]) & 0xff] ^ (crc >>> 8);
-  }
-  return (crc ^ 0xffffffff) >>> 0;
-}
 
 /**
  * Flush buffered tool arguments at finish boundaries.
@@ -338,18 +257,53 @@ export class KiroExecutor extends BaseExecutor {
       return { response, url, headers, transformedBody };
     }
 
-    // For Kiro, we need to transform the binary EventStream to SSE
-    // Create a TransformStream to convert binary to SSE text
-    const transformedResponse = this.transformEventStreamToSSE(response, model);
+    // For Kiro, we need to transform the binary EventStream to SSE.
+    // Create a TransformStream to convert binary to SSE text.
+    //
+    // When the user enabled thinking, Claude on Kiro streams its reasoning
+    // **inline** as `<thinking>…</thinking>` blocks inside
+    // `assistantResponseEvent.content` rather than as separate
+    // `reasoningContentEvent` frames. We pass a hint so the transform stream
+    // can split that inline reasoning into the OpenAI `delta.reasoning_content`
+    // channel.
+    const tb = transformedBody as Record<string, unknown>;
+    const userContent =
+      ((
+        (
+          (tb?.conversationState as Record<string, unknown>)?.currentMessage as Record<
+            string,
+            unknown
+          >
+        )?.userInputMessage as Record<string, unknown>
+      )?.content as string) || "";
+    const thinkingExpected = userContent.includes("<thinking_mode>enabled</thinking_mode>");
+    const transformedResponse = this.transformEventStreamToSSE(response, model, {
+      thinkingExpected,
+    });
 
     return { response: transformedResponse, url, headers, transformedBody };
   }
 
   /**
-   * Transform AWS EventStream binary response to SSE text stream
-   * Using TransformStream instead of ReadableStream.pull() to avoid Workers timeout
+   * Transform AWS EventStream binary response to SSE text stream.
+   * Using TransformStream instead of ReadableStream.pull() to avoid Workers timeout.
+   *
+   * @param response        Upstream raw fetch response (binary EventStream).
+   * @param model           Logical model id (kept in OpenAI chunks for clients).
+   * @param opts
+   * @param opts.thinkingExpected  When true, scan inbound
+   *   `assistantResponseEvent.content` for inline `<thinking>…</thinking>`
+   *   blocks and split them into the OpenAI `delta.reasoning_content` channel.
+   *   Required for Claude on Kiro when `<thinking_mode>enabled</thinking_mode>`
+   *   is in the system prompt, because Kiro streams reasoning inline rather
+   *   than as separate `reasoningContentEvent` frames.
    */
-  transformEventStreamToSSE(response: Response, model: string) {
+  transformEventStreamToSSE(
+    response: Response,
+    model: string,
+    opts: { thinkingExpected?: boolean } = {}
+  ) {
+    const thinkingExpected = !!opts.thinkingExpected;
     const buffer = new ByteQueue();
     let chunkIndex = 0;
     const responseId = `chatcmpl-${Date.now()}`;
@@ -364,6 +318,9 @@ export class KiroExecutor extends BaseExecutor {
       seenToolIds: new Map(),
       toolArgsEmitted: new Map(),
       toolArgsBuffered: new Map(),
+      hasReasoningContent: false,
+      reasoningChunkCount: 0,
+      thinking: thinkingExpected ? { thinkingMode: false, pendingTag: "" } : undefined,
     };
 
     const transformStream = new TransformStream(
@@ -434,21 +391,78 @@ export class KiroExecutor extends BaseExecutor {
               }
               state.totalContentLength += content.length;
 
-              const chunk: JsonRecord = {
-                id: responseId,
-                object: "chat.completion.chunk",
-                created,
-                model,
-                choices: [
-                  {
-                    index: 0,
-                    delta: chunkIndex === 0 ? { role: "assistant", content } : { content },
-                    finish_reason: null,
+              if (thinkingExpected && state.thinking) {
+                // Claude on Kiro emits reasoning inline as `<thinking>…</thinking>`
+                // when `<thinking_mode>enabled</thinking_mode>` is in the system prompt.
+                // Split it into the OpenAI `reasoning_content` channel so downstream
+                // consumers see the same shape they would get from a native reasoning model.
+                const thinkingState = state.thinking;
+                splitInlineThinking(
+                  thinkingState,
+                  content,
+                  (text) => {
+                    if (!text) return;
+                    const chunk: JsonRecord = {
+                      id: responseId,
+                      object: "chat.completion.chunk",
+                      created,
+                      model,
+                      choices: [
+                        {
+                          index: 0,
+                          delta:
+                            chunkIndex === 0
+                              ? { role: "assistant", content: text }
+                              : { content: text },
+                          finish_reason: null,
+                        },
+                      ],
+                    };
+                    chunkIndex++;
+                    controller.enqueue(TEXT_ENCODER.encode(`data: ${JSON.stringify(chunk)}\n\n`));
                   },
-                ],
-              };
-              chunkIndex++;
-              controller.enqueue(TEXT_ENCODER.encode(`data: ${JSON.stringify(chunk)}\n\n`));
+                  (reasoning) => {
+                    if (!reasoning) return;
+                    state.hasReasoningContent = true;
+                    const reasoningDelta: JsonRecord =
+                      (state.reasoningChunkCount ?? 0) === 0 && chunkIndex === 0
+                        ? { role: "assistant", reasoning_content: reasoning }
+                        : { reasoning_content: reasoning };
+                    const chunk: JsonRecord = {
+                      id: responseId,
+                      object: "chat.completion.chunk",
+                      created,
+                      model,
+                      choices: [
+                        {
+                          index: 0,
+                          delta: reasoningDelta,
+                          finish_reason: null,
+                        },
+                      ],
+                    };
+                    chunkIndex++;
+                    state.reasoningChunkCount = (state.reasoningChunkCount ?? 0) + 1;
+                    controller.enqueue(TEXT_ENCODER.encode(`data: ${JSON.stringify(chunk)}\n\n`));
+                  }
+                );
+              } else {
+                const chunk: JsonRecord = {
+                  id: responseId,
+                  object: "chat.completion.chunk",
+                  created,
+                  model,
+                  choices: [
+                    {
+                      index: 0,
+                      delta: chunkIndex === 0 ? { role: "assistant", content } : { content },
+                      finish_reason: null,
+                    },
+                  ],
+                };
+                chunkIndex++;
+                controller.enqueue(TEXT_ENCODER.encode(`data: ${JSON.stringify(chunk)}\n\n`));
+              }
             }
 
             // Handle codeEvent
@@ -644,6 +658,41 @@ export class KiroExecutor extends BaseExecutor {
           // idempotent against toolArgsEmitted if messageStopEvent already flushed them.
           flushBufferedToolArgs(state, controller, { responseId, created, model });
 
+          // Drain any pending inline-thinking tag fragment so we don't drop
+          // trailing characters when the stream ends mid-tag (e.g. `<thi`).
+          if (thinkingExpected && state.thinking) {
+            const thinkingState = state.thinking;
+            flushPendingThinking(
+              thinkingState,
+              (text) => {
+                if (!text) return;
+                const chunk: JsonRecord = {
+                  id: responseId,
+                  object: "chat.completion.chunk",
+                  created,
+                  model,
+                  choices: [{ index: 0, delta: { content: text }, finish_reason: null }],
+                };
+                chunkIndex++;
+                controller.enqueue(TEXT_ENCODER.encode(`data: ${JSON.stringify(chunk)}\n\n`));
+              },
+              (reasoning) => {
+                if (!reasoning) return;
+                const chunk: JsonRecord = {
+                  id: responseId,
+                  object: "chat.completion.chunk",
+                  created,
+                  model,
+                  choices: [
+                    { index: 0, delta: { reasoning_content: reasoning }, finish_reason: null },
+                  ],
+                };
+                chunkIndex++;
+                controller.enqueue(TEXT_ENCODER.encode(`data: ${JSON.stringify(chunk)}\n\n`));
+              }
+            );
+          }
+
           // Emit finish chunk if not already sent
           if (!state.finishEmitted) {
             state.finishEmitted = true;
@@ -710,103 +759,6 @@ export class KiroExecutor extends BaseExecutor {
       log?.error?.("TOKEN", `Kiro refresh error: ${err.message}`);
       return null;
     }
-  }
-}
-
-/**
- * Parse AWS EventStream frame
- */
-function parseEventFrame(data: Uint8Array): EventFrame | null {
-  try {
-    const view = new DataView(data.buffer, data.byteOffset);
-    const totalLength = view.getUint32(0, false);
-    const headersLength = view.getUint32(4, false);
-
-    // ── CRC32 validation ──
-    // Prelude CRC covers bytes [0..7] (totalLength + headersLength)
-    const preludeCRC = view.getUint32(8, false);
-    const computedPreludeCRC = crc32(data.slice(0, 8));
-    if (preludeCRC !== computedPreludeCRC) {
-      console.warn(
-        `[Kiro] Prelude CRC mismatch: expected ${preludeCRC}, got ${computedPreludeCRC} — skipping corrupted frame`
-      );
-      return null;
-    }
-
-    // Message CRC covers bytes [0..totalLength-5] (everything except the CRC itself).
-    // Skipped by default (O(frame bytes) per frame) — the prelude CRC above already
-    // validates framing and the stream is TLS-protected. Enable KIRO_VERIFY_FULL_CRC=true
-    // to restore full validation for debugging corrupted-stream issues.
-    if (KIRO_VERIFY_FULL_CRC) {
-      const messageCRC = view.getUint32(data.length - 4, false);
-      const computedMessageCRC = crc32(data.slice(0, data.length - 4));
-      if (messageCRC !== computedMessageCRC) {
-        console.warn(
-          `[Kiro] Message CRC mismatch: expected ${messageCRC}, got ${computedMessageCRC} — skipping corrupted frame`
-        );
-        return null;
-      }
-    }
-    // Parse headers
-    const headers: Record<string, string> = {};
-    let offset = 12; // After prelude
-    const headerEnd = 12 + headersLength;
-
-    while (offset < headerEnd && offset < data.length) {
-      const nameLen = data[offset];
-      offset++;
-      if (offset + nameLen > data.length) break;
-
-      const name = TEXT_DECODER.decode(data.subarray(offset, offset + nameLen));
-      offset += nameLen;
-
-      const headerType = data[offset];
-      offset++;
-
-      if (headerType === 7) {
-        // String type
-        const valueLen = (data[offset] << 8) | data[offset + 1];
-        offset += 2;
-        if (offset + valueLen > data.length) break;
-
-        const value = TEXT_DECODER.decode(data.subarray(offset, offset + valueLen));
-        offset += valueLen;
-        headers[name] = value;
-      } else {
-        break;
-      }
-    }
-
-    // Parse payload
-    const payloadStart = 12 + headersLength;
-    const payloadEnd = data.length - 4; // Exclude message CRC
-
-    let payload: JsonRecord | null = null;
-    if (payloadEnd > payloadStart) {
-      const payloadStr = TEXT_DECODER.decode(data.subarray(payloadStart, payloadEnd));
-
-      // Skip empty or whitespace-only payloads
-      if (!payloadStr || !payloadStr.trim()) {
-        return { headers, payload: null };
-      }
-
-      try {
-        payload = JSON.parse(payloadStr);
-      } catch (parseError) {
-        const err = parseError instanceof Error ? parseError : new Error(String(parseError));
-        // Log parse error for debugging
-        console.warn(
-          `[Kiro] Failed to parse payload: ${err.message} | payload: ${payloadStr.substring(0, 100)}`
-        );
-        payload = { raw: payloadStr };
-      }
-    }
-
-    return { headers, payload };
-  } catch (err) {
-    const error = err instanceof Error ? err : new Error(String(err));
-    console.warn(`[Kiro] Frame parse error: ${error.message}`);
-    return null;
   }
 }
 

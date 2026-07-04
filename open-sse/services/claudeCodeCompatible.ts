@@ -12,6 +12,7 @@ import {
   disableThinkingIfToolChoiceForced,
   enforceCacheControlLimit,
 } from "./claudeCodeConstraints.ts";
+import { applyClaudeCodeCompatibleThinkingDisplay } from "./claudeCodeCompatibleThinkingDisplay.ts";
 import { obfuscateInBody } from "./claudeCodeObfuscation.ts";
 import { applySystemTransformPipeline, PROVIDER_CC_BRIDGE } from "./systemTransforms.ts";
 import {
@@ -40,12 +41,11 @@ export {
   CLAUDE_CODE_COMPATIBLE_REDACT_THINKING_BETA,
   resolveClaudeCodeCompatibleAnthropicBeta,
 } from "./claudeCodeCompatibleBeta.ts";
-export const CLAUDE_CODE_COMPATIBLE_VERSION = "2.1.187";
-export const CLAUDE_CODE_COMPATIBLE_USER_AGENT = "claude-cli/2.1.187 (external, sdk-cli)";
+export const CLAUDE_CODE_COMPATIBLE_VERSION = "2.1.195";
+export const CLAUDE_CODE_COMPATIBLE_USER_AGENT = "claude-cli/2.1.195 (external, sdk-cli)";
 export const CLAUDE_CODE_COMPATIBLE_STAINLESS_PACKAGE_VERSION = "0.94.0";
 export const CLAUDE_CODE_COMPATIBLE_STAINLESS_RUNTIME_VERSION = "v24.3.0";
 export const CONTEXT_1M_BETA_HEADER = "context-1m-2025-08-07";
-const COPILOT_REASONING_SUMMARY_MARKER = "_omnirouteCopilotReasoningSummary";
 const CLAUDE_CODE_COMPATIBLE_DEFAULT_SYSTEM_BLOCKS = [
   {
     type: "text",
@@ -54,6 +54,7 @@ const CLAUDE_CODE_COMPATIBLE_DEFAULT_SYSTEM_BLOCKS = [
 ];
 const CONTEXT_1M_SUPPORTED_MODELS = [
   "claude-fable-5",
+  "claude-sonnet-5",
   "claude-opus-4-8",
   "claude-opus-4-7",
   "claude-opus-4-6",
@@ -86,6 +87,7 @@ type BuildRequestOptions = {
   preserveCacheControl?: boolean;
   preserveClaudeMessages?: boolean;
   redactThinking?: boolean;
+  summarizeThinking?: boolean;
 };
 
 function supportsClaudeXHighEffort(model: string | null | undefined): boolean {
@@ -239,7 +241,7 @@ export function buildClaudeCodeCompatibleRequest({
   sessionId,
   preserveCacheControl = false,
   preserveClaudeMessages = false,
-  redactThinking = false,
+  summarizeThinking = false,
 }: BuildRequestOptions) {
   const normalized = normalizedBody || {};
   const preparedClaudeBody = claudeBody
@@ -297,6 +299,7 @@ export function buildClaudeCodeCompatibleRequest({
     claudeBody: preparedClaudeBody ?? claudeBody,
     sourceBody,
     normalizedBody,
+    summarizeThinking,
   });
   const outputConfig = resolveClaudeCodeCompatibleOutputConfig({
     claudeBody,
@@ -1051,10 +1054,12 @@ function resolveClaudeCodeCompatibleThinking({
   claudeBody,
   sourceBody,
   normalizedBody,
+  summarizeThinking = false,
 }: {
   claudeBody?: Record<string, unknown> | null;
   sourceBody?: Record<string, unknown> | null;
   normalizedBody?: Record<string, unknown> | null;
+  summarizeThinking?: boolean;
 }) {
   const thinking =
     readRecord(cloneValue(claudeBody?.thinking)) ||
@@ -1062,31 +1067,21 @@ function resolveClaudeCodeCompatibleThinking({
     readRecord(cloneValue(normalizedBody?.thinking));
 
   if (thinking) {
-    return applyClaudeCodeCompatibleThinkingDisplay(thinking, normalizedBody);
+    return applyClaudeCodeCompatibleThinkingDisplay(thinking, {
+      normalizedBody,
+      summarizeThinking,
+    });
   }
 
   return applyClaudeCodeCompatibleThinkingDisplay(
     {
       type: "adaptive",
     },
-    normalizedBody
+    {
+      normalizedBody,
+      summarizeThinking,
+    }
   );
-}
-
-function applyClaudeCodeCompatibleThinkingDisplay(
-  thinking: Record<string, unknown>,
-  normalizedBody?: Record<string, unknown> | null
-) {
-  if (
-    normalizedBody?.[COPILOT_REASONING_SUMMARY_MARKER] !== "summarized" ||
-    thinking.type === "disabled"
-  ) {
-    return thinking;
-  }
-  return {
-    ...thinking,
-    display: "summarized",
-  };
 }
 
 function resolveClaudeCodeCompatibleOutputConfig({

@@ -1,0 +1,10 @@
+name: l53-helioscope-vm
+on:
+  schedule: [{cron: '0 11 * * 1'}]
+  workflow_dispatch: {}
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: echo "Helioscope VM inventory — track VM fleet drift"

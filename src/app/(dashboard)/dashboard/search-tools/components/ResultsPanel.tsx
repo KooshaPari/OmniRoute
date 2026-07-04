@@ -2,9 +2,11 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import { useTranslations } from "next-intl";
 import { Badge } from "@/shared/components";
-import Editor from "@/shared/components/MonacoEditor";
+
+const Editor = dynamic(() => import("@/shared/components/MonacoEditor"), { ssr: false });
 
 interface SearchResult {
   title: string;

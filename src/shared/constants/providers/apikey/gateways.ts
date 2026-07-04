@@ -28,6 +28,20 @@ export const APIKEY_PROVIDERS_GATEWAYS = {
       "Use a Command Code API key. Requests are sent to Command Code's /alpha/generate endpoint.",
     apiHint: "Create or copy an API key from Command Code, then paste it here as a Bearer token.",
   },
+  clinepass: {
+    id: "clinepass",
+    alias: "clinepass",
+    name: "ClinePass",
+    icon: "vpn_key",
+    color: "#5B9BD5",
+    textIcon: "CP",
+    passthroughModels: true,
+    website: "https://cline.bot",
+    notice: {
+      text: "ClinePass is Cline's paid BYOK gateway ($9.99/mo). Bring your own Cline API key; requests hit api.cline.bot with the cline-pass/* model namespace.",
+      apiKeyUrl: "https://app.cline.bot/settings/api-keys",
+    },
+  },
   openrouter: {
     id: "openrouter",
     alias: "openrouter",
@@ -56,6 +70,20 @@ export const APIKEY_PROVIDERS_GATEWAYS = {
     apiHint:
       "Create a DGrid API key at https://dgrid.ai, then use https://api.dgrid.ai/v1 " +
       "as the OpenAI-compatible base URL.",
+  },
+  qiniu: {
+    id: "qiniu",
+    alias: "qiniu",
+    name: "Qiniu",
+    icon: "cloud",
+    color: "#1E88E5",
+    textIcon: "QN",
+    passthroughModels: true,
+    website: "https://www.qiniu.com",
+    apiHint:
+      "Create a Qiniu AI inference API key at https://portal.qiniu.com/ai-inference/api-key, " +
+      "then paste it here as a Bearer token. OpenAI-compatible endpoint " +
+      "at https://api.qnaigc.com/v1, proxying DeepSeek, Claude, Kimi and more behind one key.",
   },
   orcarouter: {
     id: "orcarouter",
@@ -362,6 +390,11 @@ export const APIKEY_PROVIDERS_GATEWAYS = {
     website: "https://cablyai.com",
     authHint: "Bearer API key for the CablyAI OpenAI-compatible gateway.",
     passthroughModels: true,
+    subscriptionRisk: true,
+    riskNoticeVariant: "deprecated",
+    deprecated: true,
+    deprecationReason:
+      "cablyai.com no longer resolves (DNS NXDOMAIN, verified 2026-06-30) — the domain is gone and every request fails with a DNS error (#5568).",
   },
   thebai: {
     id: "thebai",
@@ -372,6 +405,19 @@ export const APIKEY_PROVIDERS_GATEWAYS = {
     textIcon: "TB",
     website: "https://theb.ai",
     authHint: "Bearer API key for the TheB.AI OpenAI-compatible gateway.",
+    passthroughModels: true,
+  },
+  bai: {
+    id: "bai",
+    alias: "bai",
+    name: "b.ai",
+    icon: "hub",
+    color: "#6366F1",
+    textIcon: "BA",
+    website: "https://b.ai",
+    authHint:
+      "Bearer API key for the b.ai OpenAI-compatible LLM gateway (distinct from TheB.AI). " +
+      "Create a key at https://docs.b.ai, then use https://api.b.ai/v1 as the OpenAI-compatible base URL.",
     passthroughModels: true,
   },
   fenayai: {
@@ -423,6 +469,23 @@ export const APIKEY_PROVIDERS_GATEWAYS = {
     freeNote:
       "No free tier as of 2026 — Chutes moved to pay-as-you-go (free Early Access ended 2026-03).",
     authHint: "Bearer API key for the Chutes OpenAI-compatible gateway.",
+    passthroughModels: true,
+  },
+  // Factory AI ("Factory Droids") subscription gateway — the same backend the
+  // local `droid` CLI shells into, exposed here as an OpenAI-compatible HTTP
+  // endpoint. Auth surface per https://github.com/Factory-AI/droid-sdk-typescript
+  // is `FACTORY_API_KEY` (Bearer). Subscription tier uses app.factory.ai quota.
+  factory: {
+    id: "factory",
+    alias: "factory",
+    name: "Factory",
+    icon: "smart_toy",
+    color: "#0F172A",
+    textIcon: "FA",
+    website: "https://factory.ai",
+    authHint: "Bearer API key for the Factory OpenAI-compatible gateway.",
+    apiHint:
+      "Get your Factory API key at https://app.factory.ai/settings/api-keys, then paste it as a Bearer token. OpenAI-compatible endpoint at https://api.factory.ai/v1.",
     passthroughModels: true,
   },
   bluesminds: {

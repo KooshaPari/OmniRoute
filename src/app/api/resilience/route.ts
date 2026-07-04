@@ -136,6 +136,7 @@ export async function GET() {
       comboCooldownWait: resilience.comboCooldownWait,
       quotaShareConcurrencyLimit: resilience.quotaShareConcurrencyLimit,
       providerCooldown: resilience.providerCooldown,
+      selfHealing: resilience.selfHealing,
       legacy: buildLegacyResilienceCompat(resilience),
     });
   } catch (err: unknown) {
@@ -208,6 +209,9 @@ export async function PATCH(request) {
             providerCooldown: body.providerCooldown as ResilienceSettingsPatch["providerCooldown"],
           }
         : {}),
+      ...(body.selfHealing
+        ? { selfHealing: body.selfHealing as ResilienceSettingsPatch["selfHealing"] }
+        : {}),
       ...normalizeLegacyPatch(body),
     });
 
@@ -243,7 +247,9 @@ export async function PATCH(request) {
         maxRetryWaitSec: nextResilience.waitForCooldown.maxRetryWaitSec,
       },
       comboCooldownWait: nextResilience.comboCooldownWait,
+      quotaShareConcurrencyLimit: nextResilience.quotaShareConcurrencyLimit,
       providerCooldown: nextResilience.providerCooldown,
+      selfHealing: nextResilience.selfHealing,
       legacy: buildLegacyResilienceCompat(nextResilience),
     });
   } catch (err: unknown) {

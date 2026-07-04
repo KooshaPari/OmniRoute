@@ -14,6 +14,8 @@ import type { ProviderCandidate, ScoredProvider } from "./scoring.ts";
 import { scorePool } from "./scoring.ts";
 import { getTaskFitness } from "./taskFitness.ts";
 import { clamp01 } from "../../utils/number.ts";
+import { rankBySpeed } from "./speedRanking.ts";
+import type { SpeedCandidate } from "./speedRanking.ts";
 
 export interface SlaRoutingPolicy {
   targetP95Ms?: number;
@@ -48,6 +50,36 @@ export interface RouterStrategy {
 }
 
 // ── RulesStrategy: wraps 6-factor scoring engine ────────────────────────────
+
+function toSpeedCandidate(c: ProviderCandidate): SpeedCandidate {
+  return {
+    // Identity
+    provider: c.provider,
+    model: c.model,
+    // Resource state
+    quotaRemaining: c.quotaRemaining,
+    quotaTotal: c.quotaTotal,
+    circuitBreakerState: c.circuitBreakerState,
+    // Costs
+    costPer1MTokens: c.costPer1MTokens,
+    // Latency metrics
+    p95LatencyMs: c.p95LatencyMs,
+    avgTtftMs: c.avgTtftMs,
+    avgE2ELatencyMs: c.avgE2ELatencyMs,
+    avgTokensPerSecond: c.avgTokensPerSecond,
+    latencyStdDev: c.latencyStdDev,
+    // Reliability
+    errorRate: c.errorRate,
+    failureRate: c.failureRate,
+    // Tier signals (forwarded so weights stay available for downstream tuning)
+    accountTier: c.accountTier,
+    quotaResetIntervalSecs: c.quotaResetIntervalSecs,
+    contextAffinity: c.contextAffinity,
+    resetWindowAffinity: c.resetWindowAffinity,
+    connectionPoolSize: c.connectionPoolSize,
+    connectionId: c.connectionId,
+  };
+}
 
 class RulesStrategyImpl implements RouterStrategy {
   readonly name = "rules";
@@ -102,30 +134,33 @@ class CostStrategyImpl implements RouterStrategy {
 
 class LatencyStrategyImpl implements RouterStrategy {
   readonly name = "latency";
-  readonly description = "Prioritizes lowest p95 latency with reliability weighting";
+  readonly description =
+    "Prioritizes the fastest reliable provider-model pair using TTFT, TPS, E2E latency, health, fail rate, and stability";
 
   select(pool: ProviderCandidate[], context: RoutingContext): RoutingDecision {
-    const healthy = pool.filter((c) => c.circuitBreakerState !== "OPEN");
-    const candidates = healthy.length > 0 ? healthy : pool;
-    const sorted = [...candidates].sort((a, b) => {
-      const aPenalty = a.errorRate * 1000;
-      const bPenalty = b.errorRate * 1000;
-      return a.p95LatencyMs + aPenalty - (b.p95LatencyMs + bPenalty);
-    });
-    const best = sorted[0];
-    if (!best) throw new Error("[LatencyStrategy] No candidates available");
+    const ranked = rankBySpeed(pool.map(toSpeedCandidate));
+    const winner = ranked[0];
+    if (!winner) {
+      throw new Error("[LatencyStrategy] No candidates available after speed ranking");
+    }
 
-    const latencyScore = best.p95LatencyMs > 0 ? Math.max(0.001, 10_000 / best.p95LatencyMs) : 1;
-    const reliability = Math.max(0, 1 - best.errorRate);
-    const finalScore = latencyScore * 0.7 + reliability * 0.3;
-
+    const w = winner;
+    const wMetrics = winner.metrics;
     return {
-      provider: best.provider,
-      model: best.model,
+      provider: w.provider,
+      model: w.model,
       strategy: this.name,
-      reason: `LatencyStrategy: p95=${best.p95LatencyMs}ms, errorRate=${(best.errorRate * 100).toFixed(2)}%`,
-      candidatesConsidered: candidates.length,
-      finalScore,
+      reason:
+        `LatencyStrategy(score=${winner.score.toFixed(3)}): ` +
+        `ttft=${wMetrics.avgTtftMs?.toFixed(0) ?? "n/a"}ms ` +
+        `tps=${wMetrics.avgTokensPerSecond?.toFixed(1) ?? "n/a"} ` +
+        `e2e=${wMetrics.avgE2ELatencyMs?.toFixed(0) ?? wMetrics.p95LatencyMs?.toFixed(0) ?? "n/a"}ms ` +
+        `p95=${wMetrics.p95LatencyMs?.toFixed(0) ?? "n/a"}ms ` +
+        `failRate=${((wMetrics.failureRate ?? 0) * 100).toFixed(2)}% ` +
+        `stability=${wMetrics.latencyStdDev?.toFixed(0) ?? "n/a"}ms ` +
+        `cb=${wMetrics.circuitBreakerState ?? "n/a"}`,
+      candidatesConsidered: ranked.length,
+      finalScore: winner.score,
     };
   }
 }

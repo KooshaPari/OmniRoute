@@ -30,7 +30,13 @@ import { getProviderOutboundGuard } from "@/shared/network/outboundUrlGuard";
 import { extractCookieValue, normalizeSessionCookieHeader } from "@/lib/providers/webCookieAuth";
 import { buildJulesApiUrl } from "@/lib/cloudAgent/julesApi.ts";
 import { getGigachatAccessToken } from "@omniroute/open-sse/services/gigachatAuth.ts";
+import { resolveNvidiaValidationModel } from "@/lib/providers/nvidiaValidationModel";
+import { MODAL_DEFAULT_VALIDATION_MODEL_ID } from "@/shared/constants/modal";
+import { validateQwenWebProvider, validateKimiWebProvider } from "@/lib/providers/validation/webProvidersA";
+import { validateClaudeWebProvider, validateGeminiWebProvider, validateCopilotM365WebProvider, validateCopilotWebProvider, validateT3WebProvider } from "@/lib/providers/validation/webProvidersB";
+import { validateHuggingFaceProvider } from "@/lib/providers/validation/openaiFormat";
 import { validateQoderCliPat } from "@omniroute/open-sse/services/qoderCli.ts";
+import { generateTraceparent } from "@omniroute/open-sse/observability/traceparent.ts";
 import {
   AZURE_AI_DEFAULT_BASE_URL,
   buildAzureAiChatUrl,
@@ -2826,15 +2832,7 @@ async function validateGrokWebProvider({ apiKey, providerSpecificData = {} }: an
       };
     }
 
-    // Generate the same Cloudflare-bypass headers the GrokWebExecutor uses.
-    const randomHex = (n: number) => {
-      const a = new Uint8Array(n);
-      crypto.getRandomValues(a);
-      return Array.from(a, (b) => b.toString(16).padStart(2, "0")).join("");
-    };
     const statsigMsg = `e:TypeError: Cannot read properties of null (reading 'children')`;
-    const traceId = randomHex(16);
-    const spanId = randomHex(8);
 
     const response = await validationWrite("https://grok.com/rest/app-chat/conversations/new", {
       method: "POST",
@@ -2861,7 +2859,7 @@ async function validateGrokWebProvider({ apiKey, providerSpecificData = {} }: an
             "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36",
           "x-statsig-id": btoa(statsigMsg),
           "x-xai-request-id": crypto.randomUUID(),
-          traceparent: `00-${traceId}-${spanId}-00`,
+          traceparent: generateTraceparent({ sampled: false }),
         },
         providerSpecificData
       ),
@@ -3489,6 +3487,38 @@ async function validateInnerAiProvider({ apiKey, providerSpecificData = {} }: an
   }
 }
 
+// #5422: Bytez key validation cannot use a chat probe. A Bytez account only serves models
+// that have been added to its catalog, so even Bytez's own documented model ids return 404
+// ("Model does not exist or has yet to be added to the Bytez catalog") for a fresh/free key —
+// the generic OpenAI-like chat probe misreads that 404 as "endpoint not supported". Validate
+// against the model-independent, auth-only tasks endpoint instead (verified live):
+//   GET …/models/v2/list/tasks → 200 (valid key) | 401 { error: "Unauthorized" } (invalid).
+// The pure status→result mapping is factored out so it is unit-testable without network.
+export function bytezValidationResultFromStatus(status: number): {
+  valid: boolean;
+  error: string | null;
+} {
+  if (status === 200) {
+    return { valid: true, error: null };
+  }
+  if (status === 401 || status === 403) {
+    return { valid: false, error: "Invalid API key" };
+  }
+  return { valid: false, error: `Validation failed: ${status}` };
+}
+
+export async function validateBytezProvider({ apiKey, providerSpecificData = {} }: any) {
+  try {
+    const res = await validationRead("https://api.bytez.com/models/v2/list/tasks", {
+      method: "GET",
+      headers: buildBearerHeaders(apiKey, providerSpecificData),
+    });
+    return bytezValidationResultFromStatus(res.status);
+  } catch (error: unknown) {
+    return toValidationErrorResult(error);
+  }
+}
+
 export async function validateProviderApiKey({ provider, apiKey, providerSpecificData = {} }: any) {
   const requiresApiKey = !providerAllowsOptionalApiKey(provider);
   const isLocal = isLocalProvider(provider);
@@ -3522,10 +3552,63 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
 
   // ── Specialty provider validation ──
   const SPECIALTY_VALIDATORS = {
+    "v0-vercel": async ({ apiKey, providerSpecificData }: any) => {
+      try {
+        const configuredBaseUrl =
+          typeof providerSpecificData?.baseUrl === "string" && providerSpecificData.baseUrl.trim()
+            ? providerSpecificData.baseUrl.trim()
+            : "https://api.v0.dev";
+
+        const root = normalizeBaseUrl(configuredBaseUrl)
+          .replace(/\/v1\/chat\/completions$/, "")
+          .replace(/\/v1$/, "");
+
+        const res = await validationRead(
+          `${root}/v1/chats?limit=1`,
+          {
+            method: "GET",
+            headers: buildBearerHeaders(apiKey, providerSpecificData),
+          },
+          isLocal
+        );
+
+        if (res.ok) {
+          return { valid: true, error: null, method: "v0_platform_chats_list" };
+        }
+
+        if (res.status === 401 || res.status === 403) {
+          return { valid: false, error: "Invalid API key" };
+        }
+
+        return { valid: false, error: `v0 validation failed: ${res.status}` };
+      } catch (error: any) {
+        return toValidationErrorResult(error);
+      }
+    },
     jules: validateJulesProvider,
+    // auggie is a fully local, credential-less CLI passthrough; there is no API
+    // key to check upstream. Confirm the local CLI is installed and runnable.
+    auggie: async () => {
+      const { checkAuggieCliVersion } = await import(
+        "@omniroute/open-sse/executors/auggie.ts"
+      );
+      const result = await checkAuggieCliVersion();
+      if (!result.ok) {
+        return {
+          valid: false,
+          error: result.error || "Auggie CLI not found. Install it and run `auggie login`.",
+          unsupported: false,
+        };
+      }
+      return { valid: true, error: null, unsupported: false, method: result.version };
+    },
     qoder: ({ apiKey, providerSpecificData }: any) =>
       validateQoderCliPat({ apiKey, providerSpecificData }),
     "command-code": validateCommandCodeProvider,
+    huggingface: validateHuggingFaceProvider,
+    // #5422: auth-only probe — Bytez 404s on every chat model until the account adds it to
+    // its catalog, so the generic chat probe can't validate a fresh key.
+    bytez: validateBytezProvider,
     deepgram: validateDeepgramProvider,
     assemblyai: validateAssemblyAIProvider,
     nanobanana: validateNanoBananaProvider,
@@ -3557,7 +3640,7 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
         apiKey,
         providerSpecificData,
         baseUrl: normalizeBaseUrl(providerSpecificData?.baseUrl || ""),
-        modelId: "Qwen/Qwen3-4B-Thinking-2507-FP8",
+        modelId: MODAL_DEFAULT_VALIDATION_MODEL_ID,
         isLocal,
       }),
     "nous-research": validateNousResearchProvider,
@@ -3572,12 +3655,19 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
     gigachat: validateGigachatProvider,
     "deepseek-web": validateDeepSeekWebProvider,
     "grok-web": validateGrokWebProvider,
+    "qwen-web": validateQwenWebProvider,
+    "kimi-web": validateKimiWebProvider,
     "chatgpt-web": validateChatGptWebProvider,
     "perplexity-web": validatePerplexityWebProvider,
     "blackbox-web": validateBlackboxWebProvider,
     "muse-spark-web": validateMuseSparkWebProvider,
     "inner-ai": validateInnerAiProvider,
     "adapta-web": validateAdaptaWebProvider,
+    "claude-web": validateClaudeWebProvider,
+    "gemini-web": validateGeminiWebProvider,
+    "copilot-m365-web": validateCopilotM365WebProvider,
+    "copilot-web": validateCopilotWebProvider,
+    "t3-web": validateT3WebProvider,
     "azure-openai": validateAzureOpenAIProvider,
     "azure-ai": validateAzureAiProvider,
     "voyage-ai": ({ apiKey, providerSpecificData }: any) => {
@@ -3654,7 +3744,7 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
             method: "POST",
             headers: buildBearerHeaders(apiKey, providerSpecificData),
             body: JSON.stringify({
-              model: "longcat",
+              model: "LongCat-2.0",
               messages: [{ role: "user", content: "test" }],
               max_tokens: 1,
             }),

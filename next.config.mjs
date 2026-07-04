@@ -21,7 +21,11 @@ const contentSecurityPolicy = [
   "font-src 'self' https://fonts.gstatic.com data:",
   "img-src 'self' data: blob: https:",
   "media-src 'self' data: blob:",
-  "connect-src 'self' http://localhost:* http://127.0.0.1:* ws://localhost:* ws://127.0.0.1:* https: wss:",
+  // `ws:` is permitted scheme-wide (mirroring the bare `wss:` already allowed) so the
+  // dashboard can open `ws://<lan-or-tailscale-host>:*` to its own Live WS server when
+  // OmniRoute is reached from a non-loopback host. Same-origin HTTP fetches stay covered
+  // by `'self'`; the loopback origins remain listed explicitly for clarity. (#5083)
+  "connect-src 'self' http://localhost:* http://127.0.0.1:* ws://localhost:* ws://127.0.0.1:* https: ws: wss:",
   "worker-src 'self' blob:",
   "manifest-src 'self'",
 ].join("; ");
@@ -78,8 +82,25 @@ const minimalBuildAliases = isMinimalBuild
     }
   : {};
 
+function readTimeoutMs(...values) {
+  for (const value of values) {
+    const normalized = typeof value === "string" ? value.trim() : value;
+    if (normalized == null || normalized === "") continue;
+    const parsed = Number(normalized);
+    if (Number.isFinite(parsed) && parsed >= 0) return Math.floor(parsed);
+  }
+  return 600_000;
+}
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // Opt-in subpath deployment behind a reverse proxy (e.g. nginx/Caddy serving
+  // OmniRoute under https://host/omniroute/). Empty by default so root-path
+  // deployments are unaffected. Next.js strips this prefix from `pathname`
+  // before route matching, so authz classification (classifyRoute/isLocalOnlyPath)
+  // keeps operating on un-prefixed paths — see src/server/authz/pipeline.ts for
+  // the two redirect call sites that re-add it via `request.nextUrl.basePath`.
+  basePath: process.env.OMNIROUTE_BASE_PATH || "",
   distDir,
   // Turbopack config: redirect native modules to stubs at build time
   turbopack: {
@@ -110,6 +131,10 @@ const nextConfig = {
     // uploads (OpenAI-compatible /v1/files) routinely exceed this. Match the
     // 512 MB server-side cap; tune via env if needed.
     proxyClientMaxBodySize: process.env.NEXT_PROXY_BODY_LIMIT || "512mb",
+    // Next's internal router proxy defaults to 30s when this is unset. OmniRoute
+    // can legitimately hold non-streaming chat requests open for minutes while an
+    // upstream provider finishes, so reuse the existing request-timeout knobs.
+    proxyTimeout: readTimeoutMs(process.env.REQUEST_TIMEOUT_MS, process.env.FETCH_TIMEOUT_MS),
     // PR-2 of diegosouzapw/OmniRoute#3932: tree-shake barrel re-exports so
     // route bundles don't pull in 14 locale files, every lucide-react icon,
     // or the full date-fns surface when only one helper is used.

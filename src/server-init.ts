@@ -10,6 +10,7 @@ import { startCleanupScheduler } from "./lib/db/cleanup";
 import { getSettings } from "./lib/db/settings";
 import { applyRuntimeSettings } from "./lib/config/runtimeSettings";
 import { setSystemPromptConfig } from "@omniroute/open-sse/services/systemPrompt.ts";
+import { hydrateThinkingBudgetConfig } from "@omniroute/open-sse/services/thinkingBudget.ts";
 import { startRuntimeConfigHotReload } from "./lib/config/hotReload";
 import { startSpendBatchWriter } from "./lib/spend/batchWriter";
 import { registerDefaultGuardrails } from "./lib/guardrails";
@@ -86,6 +87,14 @@ async function startServer() {
       startupLog.info("Global System Prompt restored from settings");
     }
 
+    // Restore the proxy-level Thinking-Budget config (#5312). It lives in
+    // `settings.thinkingBudget` and is NOT covered by applyRuntimeSettings, so
+    // without this the dashboard mode (auto/custom/adaptive) silently reverts to
+    // the passthrough default on every restart.
+    if (hydrateThinkingBudgetConfig(settings)) {
+      startupLog.info("Thinking-Budget config restored from settings");
+    }
+
     // Initialize cloud sync
     startSpendBatchWriter();
     registerDefaultGuardrails();
@@ -108,6 +117,25 @@ async function startServer() {
     startReasoningCacheCleanupJob();
     startCleanupScheduler();
     startRuntimeConfigHotReload();
+
+    // Self-healing telemetry: hydrate the per-provider rolling windows
+    // from the DB so anomaly detection has historical context from the
+    // first request after restart. Gated on the feature flag so the
+    // default-off behaviour is unchanged.
+    try {
+      const { isFeatureFlagEnabled } = await import("./lib/featureFlags");
+      const { getSelfHealingManager } = await import("./lib/resilience/anomalyHook");
+      if (isFeatureFlagEnabled("OMNIROUTE_SELF_HEALING_ENABLED")) {
+        const mgr = getSelfHealingManager();
+        // Provider IDs are not enumerable at this point in the boot;
+        // hydration happens lazily on the first recordHealthSample call.
+        startupLog.info("Self-healing telemetry enabled (lazy hydration)");
+        void mgr; // referenced to ensure the singleton is constructed
+      }
+    } catch (err) {
+      startupLog.warn({ err }, "Self-healing hydration skipped (non-fatal)");
+    }
+
     startupLog.info("Server started with cloud sync initialized");
 
     // Log server start event to audit log

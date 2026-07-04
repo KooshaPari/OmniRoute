@@ -17,8 +17,8 @@ import {
   recordProviderFailure,
   selectLockoutCooldownMs,
 } from "./accountFallback.ts";
-import { RateLimitReason } from "../config/constants.ts";
 import { errorResponse, unavailableResponse } from "../utils/error.ts";
+import { buildTargetTimeoutRunner } from "./combo/targetTimeoutRunner.ts";
 import {
   recordComboIntent,
   recordComboRequest,
@@ -46,12 +46,7 @@ import { extractSessionAffinityKey } from "@/sse/services/auth";
 import { getHiddenModelsByProvider } from "@/models";
 import { resolveModelLockoutSettings } from "../../src/lib/resilience/modelLockoutSettings";
 import { fetchCodexQuota } from "./codexQuotaFetcher.ts";
-import {
-  evaluateQuotaCutoff,
-  getQuotaFetcher,
-  type PreflightQuotaThresholds,
-  type QuotaInfo,
-} from "./quotaPreflight.ts";
+import { evaluateQuotaCutoff, getQuotaFetcher, type QuotaInfo } from "./quotaPreflight.ts";
 import * as semaphore from "./rateLimitSemaphore.ts";
 import { getCircuitBreaker } from "../../src/shared/utils/circuitBreaker";
 import { fisherYatesShuffle, getNextFromDeck } from "../../src/shared/utils/shuffleDeck";
@@ -65,12 +60,9 @@ import { classifyWithConfig } from "./intentClassifier.ts";
 import { selectProvider as selectAutoProvider } from "./autoCombo/engine.ts";
 import { selectWithStrategy } from "./autoCombo/routerStrategy.ts";
 import { parseAutoPrefix } from "./autoCombo/autoPrefix.ts";
+import { parseAutoConfig } from "./combo/autoConfig.ts";
 import { handlePipelineCombo, buildPipelineResponse } from "./autoCombo/pipelineRouter.ts";
-import {
-  DEFAULT_WEIGHTS,
-  type ProviderCandidate,
-  type ScoringWeights,
-} from "./autoCombo/scoring.ts";
+import { type ProviderCandidate } from "./autoCombo/scoring.ts";
 import { supportsToolCalling } from "./modelCapabilities.ts";
 import { estimateTokens } from "./contextManager.ts";
 import { getSessionConnection } from "./sessionManager.ts";
@@ -184,7 +176,6 @@ import {
 } from "./combo/autoStrategy.ts";
 import {
   resolveResetWindowConfig,
-  resolveSlaRoutingPolicy,
   calculateResetWindowAffinity,
   type ResetWindowConfig,
 } from "./combo/quotaScoring.ts";
@@ -197,25 +188,23 @@ import {
   type PreScreenResult,
 } from "./combo/quotaStrategies.ts";
 import {
+  buildAutoQuotaThresholds,
+  resolveQuotaExhaustionCutoffForTarget,
+} from "./combo/quotaExhaustionCutoff.ts";
+import {
   classifyTask,
   getConversationCacheKey,
   isTaskRoutingStrategy,
   reorderByTaskWeight,
 } from "./taskAwareRouting.ts";
 
-// Backward-compatible re-exports — these were public from combo.ts before the
-// types extraction (Quality Gate v2 / Fase 9). Keep the external surface stable.
 export { RESET_WINDOW_NAMES };
-// chatCore.ts's dynamic `import("../services/combo")` reads these two — keep them
-// re-exported from combo.ts after the auto-strategy extraction (combo split D8).
 export { QUOTA_SOFT_DEPRIORITIZE_FACTOR, setCandidateQuotaSoftPenalty };
 export { scoreAutoTargets, expandAutoComboCandidatePool };
 export type { SingleModelTarget, ResolvedComboTarget };
 export { validateResponseQuality };
 export { clampComboDepth, shouldSkipForPredictedTtft, shouldRecordProviderBreakerFailure };
 export { resolveShadowTargets, scheduleShadowRouting };
-// preScreenTargets was public from combo.ts before the reset-aware quota
-// extraction (combo split D7b). Keep the external surface stable.
 export { preScreenTargets };
 export { resolveComboRuntimeUnits, resolveComboTargets, filterTargetsByRequestCompatibility };
 export {
@@ -226,15 +215,6 @@ export {
   validateComboDAG,
 } from "./combo/comboStructure.ts";
 
-// Reset-aware / reset-window quota config, scoring, and window-math helpers were
-// extracted to combo/quotaScoring.ts (pure) and the stateful cache + strategy
-// orderers to combo/quotaStrategies.ts (combo split D7b). The two cache Maps
-// (resetAwareConnectionCache, resetAwareQuotaCache) live as single instances in
-// quotaStrategies.ts alongside their only readers/writers (state cohesion).
-// combo.ts imports back the three reset-window helpers buildAutoCandidates +
-// orchestration need, plus the strategy orderers and preScreenTargets (above).
-
-// Bootstrap defaults from ClawRouter benchmark (used when no local latency history exists yet)
 const DEFAULT_MODEL_P95_MS: Record<string, number> = {
   "grok-4-fast-non-reasoning": 1143,
   "grok-4-1-fast-non-reasoning": 1244,
@@ -246,9 +226,6 @@ const DEFAULT_MODEL_P95_MS: Record<string, number> = {
   "deepseek-chat": 2000,
 };
 const MIN_HISTORY_SAMPLES = 10;
-// Assumed fraction of tokens that are output when blending input+output prices
-// for auto-combo cost scoring. 0.4 = 40% output, 60% input.
-// Matches the example in GitHub issue #1812 (e.g. o3-like model: $3 input/$15 output).
 const OUTPUT_TOKEN_RATIO = 0.4;
 
 function normalizeNestedComboMode(value: unknown): NestedComboMode {
@@ -274,55 +251,6 @@ function getBootstrapLatencyMs(modelId: string): number {
 function clampPercent(value: number): number {
   if (!Number.isFinite(value)) return 100;
   return Math.max(0, Math.min(100, value));
-}
-
-function asThresholdMap(value: unknown): Record<string, number> {
-  if (!value || typeof value !== "object" || Array.isArray(value)) return {};
-  const result: Record<string, number> = {};
-  for (const [key, raw] of Object.entries(value as Record<string, unknown>)) {
-    const numeric = Number(raw);
-    if (key && Number.isFinite(numeric)) result[key] = numeric;
-  }
-  return result;
-}
-
-function quotaWindowLookupNames(provider: string, windowName: string): string[] {
-  const names = [windowName];
-  const lower = windowName.toLowerCase();
-  if (lower !== windowName) names.push(lower);
-  if (provider === "codex") {
-    if (lower.includes("session") || lower === "5h" || lower === "five_hour") names.push("session");
-    if (lower.includes("weekly") || lower === "7d" || lower === "seven_day") names.push("weekly");
-    if (lower.includes("monthly") || lower === "30d") names.push("monthly");
-  }
-  return [...new Set(names)];
-}
-
-function buildAutoQuotaThresholds(
-  provider: string,
-  connection: Record<string, unknown> | undefined,
-  resilienceSettings: ResilienceSettings | null | undefined
-): PreflightQuotaThresholds {
-  const quotaPreflight = (resilienceSettings ?? resolveResilienceSettings(null))?.quotaPreflight;
-  const defaultThresholdPercent = quotaPreflight?.defaultThresholdPercent ?? 2;
-  const warnThresholdPercent = quotaPreflight?.warnThresholdPercent ?? 20;
-  const providerWindowMap = asThresholdMap(quotaPreflight?.providerWindowDefaults?.[provider]);
-  const perConnectionWindowOverrides = asThresholdMap(connection?.quotaWindowThresholds);
-
-  return {
-    resolveMinRemainingPercent: (windowName: string | null): number => {
-      if (windowName !== null) {
-        for (const lookupWindowName of quotaWindowLookupNames(provider, windowName)) {
-          const override = perConnectionWindowOverrides[lookupWindowName];
-          if (typeof override === "number") return override;
-          const providerDefault = providerWindowMap[lookupWindowName];
-          if (typeof providerDefault === "number") return providerDefault;
-        }
-      }
-      return defaultThresholdPercent;
-    },
-    resolveWarnRemainingPercent: () => warnThresholdPercent,
-  };
 }
 
 function quotaRemainingPercentFromQuota(quota: unknown): number {
@@ -444,11 +372,22 @@ export async function buildAutoCandidates(
     const connectionIds = providerConnections
       .map((c) => (c && typeof c === "object" && typeof c.id === "string" ? c.id : null))
       .filter((id): id is string => id !== null);
-    if (connectionIds.length === 0) {
+    const allowedConnectionIds = Array.isArray(target.allowedConnectionIds)
+      ? new Set(
+          target.allowedConnectionIds.filter(
+            (connectionId): connectionId is string =>
+              typeof connectionId === "string" && connectionId.trim().length > 0
+          )
+        )
+      : null;
+    const scopedConnectionIds = allowedConnectionIds
+      ? connectionIds.filter((connectionId) => allowedConnectionIds.has(connectionId))
+      : connectionIds;
+    if (scopedConnectionIds.length === 0) {
       expandedTargets.push(target);
       continue;
     }
-    for (const connectionId of connectionIds) {
+    for (const connectionId of scopedConnectionIds) {
       expandedTargets.push({
         ...target,
         connectionId,
@@ -492,6 +431,9 @@ export async function buildAutoCandidates(
       const historicalP95Latency = Number(historicalModelMetric?.p95LatencyMs);
       const historicalStdDev = Number(historicalModelMetric?.latencyStdDev);
       const historicalSuccessRate = Number(historicalModelMetric?.successRate); // 0..1
+      const historicalAvgTtft = Number(historicalModelMetric?.avgTtftMs);
+      const historicalAvgE2E = Number(historicalModelMetric?.avgE2ELatencyMs);
+      const historicalAvgTokensPerSecond = Number(historicalModelMetric?.avgTokensPerSecond);
 
       const p95LatencyMs = hasHistoricalSignal
         ? Number.isFinite(historicalP95Latency) && historicalP95Latency > 0
@@ -593,6 +535,20 @@ export async function buildAutoCandidates(
         circuitBreakerState,
         costPer1MTokens,
         p95LatencyMs,
+        avgTtftMs:
+          hasHistoricalSignal && Number.isFinite(historicalAvgTtft) && historicalAvgTtft > 0
+            ? historicalAvgTtft
+            : undefined,
+        avgE2ELatencyMs:
+          hasHistoricalSignal && Number.isFinite(historicalAvgE2E) && historicalAvgE2E > 0
+            ? historicalAvgE2E
+            : undefined,
+        avgTokensPerSecond:
+          hasHistoricalSignal &&
+          Number.isFinite(historicalAvgTokensPerSecond) &&
+          historicalAvgTokensPerSecond > 0
+            ? historicalAvgTokensPerSecond
+            : undefined,
         latencyStdDev,
         errorRate,
         accountTier: "standard" as const,
@@ -727,10 +683,6 @@ export async function handleComboChat({
   apiKeyAllowedConnections = null,
   nesting = null,
 }: HandleComboChatOptions): Promise<Response> {
-  // Combo setup phase (god-file decomposition fase 1): strategy / relay / resilience /
-  // universal-handoff / context-cache pinning / agent middleware / config cascade / timeout.
-  // phaseComboSetup rewrites ctx.body (pinning + middleware); rebind `body` from it so the
-  // rest of handleComboChat is unchanged. See combo/comboSetup.ts + combo/context.ts.
   const comboCtx = createComboContext({ body, combo, settings, relayOptions, log });
   const {
     strategy,
@@ -746,88 +698,11 @@ export async function handleComboChat({
   } = phaseComboSetup(comboCtx);
   body = comboCtx.body;
 
-  // ── Per-model timeout wrapper ────────────────────────────────────────────
-  // Combo target timeouts inherit FETCH_TIMEOUT_MS by default. Operators can
-  // configure targetTimeoutMs to shorten fallback latency, but never to extend
-  // beyond the current upstream request timeout.
-  //
-  // The timeoutController is forwarded to the inner caller via target.modelAbortSignal.
-  // When the timeout fires we (a) resolve the race with a synthetic 524 and
-  // (b) abort the inner request so its upstream fetch is cancelled and downstream
-  // cooldown/breaker/usage mutations stop — preventing "ghost" state mutations
-  // that diverge from the routing decision the operator sees.
-  const handleSingleModelWithTimeout = async (
-    b: Record<string, unknown>,
-    modelStr: string,
-    target?: SingleModelTarget
-  ): Promise<Response> => {
-    if (comboTargetTimeoutMs <= 0) {
-      return handleSingleModel(b, modelStr, target).catch((err) =>
-        errorResponse(502, err?.message ?? "Upstream model error")
-      );
-    }
-
-    const timeoutController = new AbortController();
-    let timeoutId: ReturnType<typeof setTimeout> | undefined;
-    let timedOut = false;
-    const timeoutPromise = new Promise<Response>((resolve) => {
-      timeoutId = setTimeout(() => {
-        timedOut = true;
-        log.warn(
-          "COMBO",
-          `Model ${modelStr} exceeded ${comboTargetTimeoutMs}ms timeout — falling back`
-        );
-        // Abort the inner request so its upstream fetch is cancelled and
-        // downstream cooldown/breaker/usage mutations don't continue mutating
-        // state behind the routing decision's back.
-        timeoutController.abort(new Error("combo-per-model-timeout"));
-        resolve(
-          new Response(JSON.stringify({ error: { message: `Model ${modelStr} timed out` } }), {
-            status: 524,
-            headers: { "Content-Type": "application/json" },
-          })
-        );
-      }, comboTargetTimeoutMs);
-    });
-    const targetWithSignal = {
-      ...(target ?? {}),
-      modelAbortSignal: timeoutController.signal,
-    };
-    const parentHedgeSignal = target?.modelAbortSignal ?? null;
-    let onParentHedgeAbort: (() => void) | null = null;
-    if (parentHedgeSignal) {
-      if (parentHedgeSignal.aborted) {
-        timeoutController.abort(new Error("hedge-cancelled"));
-      } else {
-        onParentHedgeAbort = () => {
-          timeoutController.abort(new Error("hedge-cancelled"));
-        };
-        parentHedgeSignal.addEventListener("abort", onParentHedgeAbort, { once: true });
-      }
-    }
-    try {
-      return await Promise.race([
-        handleSingleModel(b, modelStr, targetWithSignal).catch((err) => {
-          if (timedOut) {
-            // Inner call rejected because we aborted it. The synthetic 524 from
-            // timeoutPromise already wins the race; return an empty response so
-            // the loser branch resolves cleanly without leaking err.message.
-            return new Response(null, { status: 599 });
-          }
-          return errorResponse(502, err?.message ?? "Upstream model error");
-        }),
-        timeoutPromise,
-      ]);
-    } finally {
-      clearTimeout(timeoutId);
-      // Detach our listener from the SHARED parent hedge signal. Without this, every target
-      // attempt left a listener on the long-lived parent signal for the whole request, so a
-      // request that tries many combo targets accumulated listeners on one signal.
-      if (parentHedgeSignal && onParentHedgeAbort) {
-        parentHedgeSignal.removeEventListener("abort", onParentHedgeAbort);
-      }
-    }
-  };
+  const handleSingleModelWithTimeout = buildTargetTimeoutRunner({
+    handleSingleModel,
+    comboTargetTimeoutMs,
+    log,
+  });
 
   // Route to pinned model if context caching specifies one (Fix #679)
   if (pinnedModel) {
@@ -1261,41 +1136,16 @@ export async function handleComboChat({
     recordComboIntent(combo.name, intent);
     const taskType = mapIntentToTaskType(intent);
 
-    const rawAutoConfigSource =
-      combo?.autoConfig ||
-      (isRecord(combo?.config?.auto) ? combo.config.auto : null) ||
-      combo?.config ||
-      {};
-    const autoConfigSource: Record<string, unknown> = isRecord(rawAutoConfigSource)
-      ? rawAutoConfigSource
-      : {};
-    const routingStrategy =
-      typeof autoConfigSource.routerStrategy === "string"
-        ? autoConfigSource.routerStrategy
-        : typeof autoConfigSource.routingStrategy === "string"
-          ? autoConfigSource.routingStrategy
-          : typeof autoConfigSource.strategyName === "string"
-            ? autoConfigSource.strategyName
-            : "rules";
-
-    const candidatePool = Array.isArray(autoConfigSource.candidatePool)
-      ? autoConfigSource.candidatePool
-      : [...new Set(eligibleTargets.map((target) => target.provider))];
-
-    const weights =
-      autoConfigSource.weights && typeof autoConfigSource.weights === "object"
-        ? (autoConfigSource.weights as ScoringWeights)
-        : DEFAULT_WEIGHTS;
-    const explorationRate = Number.isFinite(Number(autoConfigSource.explorationRate))
-      ? Number(autoConfigSource.explorationRate)
-      : 0.05;
-    const budgetCap = Number.isFinite(Number(autoConfigSource.budgetCap))
-      ? Number(autoConfigSource.budgetCap)
-      : undefined;
-    const modePack =
-      typeof autoConfigSource.modePack === "string" ? autoConfigSource.modePack : undefined;
-    const resetWindowConfig = resolveResetWindowConfig(autoConfigSource);
-    const slaPolicy = resolveSlaRoutingPolicy(autoConfigSource);
+    const {
+      routingStrategy,
+      candidatePool,
+      weights,
+      explorationRate,
+      budgetCap,
+      modePack,
+      resetWindowConfig,
+      slaPolicy,
+    } = parseAutoConfig(combo, eligibleTargets);
 
     let lastKnownGoodProvider: string | undefined;
     try {
@@ -1306,12 +1156,22 @@ export async function handleComboChat({
       log.warn("COMBO", "Failed to retrieve Last Known Good Provider. This is non-fatal.", { err });
     }
 
+    const autoCandidateResilienceSettings =
+      relayOptions?.bypassProviderQuotaPolicy === true
+        ? {
+            ...resilienceSettings,
+            quotaPreflight: {
+              ...resilienceSettings.quotaPreflight,
+              enabled: false,
+            },
+          }
+        : resilienceSettings;
     const candidates = await buildAutoCandidates(
       eligibleTargets,
       combo.name,
       relayOptions?.sessionId,
       resetWindowConfig,
-      resilienceSettings
+      autoCandidateResilienceSettings
     );
     const routableCandidates = candidates.filter(
       (candidate) => candidate.quotaCutoffBlocked !== true
@@ -1656,6 +1516,12 @@ export async function handleComboChat({
         )
       : new Map<string, PreScreenResult>();
 
+  // #5923 (Finding #4) — reset-window config for the shared per-target quota-
+  // exhaustion cutoff below. The "auto" strategy already applies its own cutoff
+  // via buildAutoCandidates/routableCandidates, so this only affects the other
+  // 16 strategies (priority, weighted, etc.) that funnel through executeTarget.
+  const quotaCutoffResetWindowConfig = resolveResetWindowConfig(config as Record<string, unknown>);
+
   if (orderedTargets.length === 0) {
     return comboModelNotFoundResponse("Combo has no executable targets");
   }
@@ -1808,6 +1674,33 @@ export async function handleComboChat({
           return null;
         }
 
+        // #5923 (Finding #4) — honor the same opt-in quota-exhaustion cutoff the
+        // "auto" strategy already applies (buildAutoCandidates), for every other
+        // strategy (priority, weighted, etc.). Strictly scoped per (provider,
+        // connectionId): a 0%-remaining connection is skipped here, but sibling
+        // connections/models on the same provider are untouched — the provider
+        // circuit breaker is never touched by this check. The "auto" strategy is
+        // excluded to avoid a redundant duplicate fetch — it already filtered its
+        // candidate pool via `routableCandidates` before reaching this loop.
+        if (strategy !== "auto" && provider && target.connectionId) {
+          const quotaCutoff = await resolveQuotaExhaustionCutoffForTarget(
+            provider,
+            target.connectionId,
+            resilienceSettings,
+            quotaCutoffResetWindowConfig,
+            combo.name,
+            log
+          );
+          if (quotaCutoff.blocked) {
+            log.info(
+              "COMBO",
+              `Skipping ${modelStr} — quota exhaustion cutoff (${quotaCutoff.reason || "quota_exhausted"})`
+            );
+            if (i > 0) fallbackCount++;
+            return null;
+          }
+        }
+
         // Pre-screen snapshot is NOT used as a permanent skip — availability
         // is always re-checked via isModelAvailable below because connection
         // cooldowns can expire between setTry retries, making a previously
@@ -1909,8 +1802,11 @@ export async function handleComboChat({
           });
 
           // Deep clone the body to ensure context preservation and prevent mutations
-          // from affecting other targets in the combo
-          let attemptBody = JSON.parse(JSON.stringify(body));
+          // from affecting other targets in the combo. structuredClone avoids the
+          // full intermediate JSON string that JSON.parse(JSON.stringify(...)) builds
+          // (a second multi-hundred-KB allocation per target on large agent payloads),
+          // halving the per-target transient heap on the hot path (#5152).
+          let attemptBody = structuredClone(body);
 
           // Proactive Context Compression for fallbacks (Zero-Latency optimization)
           if (
@@ -1996,7 +1892,12 @@ export async function handleComboChat({
               undefined;
             const effectiveConnectionId = selectedConnectionId || target.connectionId || "";
 
-            const quality = await validateResponseQuality(result, clientRequestedStream, log);
+            const quality = await validateResponseQuality(
+              result,
+              clientRequestedStream,
+              log,
+              config.responseValidation
+            );
             if (!quality.valid) {
               log.warn(
                 "COMBO",
@@ -2358,6 +2259,7 @@ export async function handleComboChat({
             log,
             tag: "COMBO",
             exhaustedLogLevel: "info",
+            structuredError,
           });
 
           // #2101: Prevent infinite fallback loops with 400 Bad Request errors that are genuinely
@@ -2372,8 +2274,7 @@ export async function handleComboChat({
             fallbackResult.shouldFallback &&
             !isContextOverflow400(errorText) &&
             !isParamValidation400(errorText) &&
-            (fallbackResult.reason === RateLimitReason.MODEL_CAPACITY ||
-              errorText.toLowerCase().includes("context") ||
+            (errorText.toLowerCase().includes("context") ||
               errorText.toLowerCase().includes("prompt") ||
               errorText.toLowerCase().includes("token") ||
               errorText.toLowerCase().includes("malformed") ||
@@ -2433,6 +2334,15 @@ export async function handleComboChat({
             !isTokenLimitBreach &&
             [408, 429, 500, 502, 503, 504].includes(result.status);
           if (retry < maxRetries && isTransient && !providerExhausted) {
+            if (
+              provider &&
+              rawModel &&
+              isModelLocked(provider, targetWithConnection.connectionId || "", rawModel)
+            ) {
+              log.info("COMBO", `Skipping retry for ${modelStr} — model lockout active`);
+              if (i > 0) fallbackCount++;
+              return null;
+            }
             // Record model lockout immediately on the first transient failure —
             // once the model is cooling down, retrying it would waste an upstream
             // call and extend the cooldown via exponential backoff.
@@ -2876,6 +2786,23 @@ async function handleRoundRobinCombo({
     rrCounters.set(combo.name, counter + 1);
   }
 
+  // #3825: per-conversation session stickiness for round-robin. weighted/priority honor a
+  // sticky connection via applySessionStickiness, but this RR handler returns before that
+  // call — so sessionless RR combos rotated every turn, busting the upstream prompt-cache.
+  // Reuse the SAME mechanism: start the rotation at the conversation's sticky connection
+  // (the loop still falls through to the other targets on failure → failover preserved).
+  const _rrSessionSticky = await applySessionStickiness(
+    filteredTargets,
+    body?.messages as Array<{ role?: string; content?: unknown }>
+  );
+  let rrStartIndex = startIndex;
+  if (_rrSessionSticky.stuck) {
+    const stickyIdx = filteredTargets.findIndex(
+      (t) => t.connectionId === _rrSessionSticky.targets[0]?.connectionId
+    );
+    if (stickyIdx >= 0) rrStartIndex = stickyIdx;
+  }
+
   const clientRequestedStream = body?.stream === true;
   const startTime = Date.now();
   let lastError: string | null = null;
@@ -2894,7 +2821,7 @@ async function handleRoundRobinCombo({
 
   // Try each model starting from the round-robin target
   for (let offset = 0; offset < modelCount; offset++) {
-    const modelIndex = (startIndex + offset) % modelCount;
+    const modelIndex = (rrStartIndex + offset) % modelCount;
     const target = filteredTargets[modelIndex];
     const modelStr = target.modelStr;
     const provider = target.provider;
@@ -3024,7 +2951,12 @@ async function handleRoundRobinCombo({
 
         // Success — validate response quality before returning
         if (result.ok) {
-          const quality = await validateResponseQuality(result, clientRequestedStream, log);
+          const quality = await validateResponseQuality(
+            result,
+            clientRequestedStream,
+            log,
+            config.responseValidation
+          );
           if (!quality.valid) {
             log.warn(
               "COMBO-RR",
@@ -3084,6 +3016,12 @@ async function handleRoundRobinCombo({
 
           if (stickyRoundRobinEnabled) {
             recordStickyRoundRobinSuccess(combo.name, target, stickyLimit, filteredTargets);
+          }
+
+          // #3825: (re)record the sticky binding so the next turn re-pins (prompt-cache).
+          if (_rrSessionSticky.messageHash) {
+            const stickyConn = effectiveConnectionId || target.connectionId;
+            if (stickyConn) recordStickyBinding(_rrSessionSticky.messageHash, stickyConn);
           }
 
           if (provider) {
@@ -3243,6 +3181,7 @@ async function handleRoundRobinCombo({
           log,
           tag: "COMBO-RR",
           exhaustedLogLevel: "debug",
+          structuredError,
         });
 
         // Transient errors → mark in semaphore so round-robin stops stampeding this target.

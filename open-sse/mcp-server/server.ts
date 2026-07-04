@@ -1,15 +1,3 @@
-/**
- * OmniRoute MCP Server — Model Context Protocol server exposing
- * OmniRoute gateway intelligence as tools for AI agents.
- *
- * Supports two transports:
- *   1. stdio  — for IDE integration (VS Code, Cursor, Claude Desktop)
- *   2. HTTP   — for remote/programmatic access
- *
- * Tools wrap existing OmniRoute API endpoints and add intelligence
- * such as routing simulation, budget guards, and session snapshots.
- */
-
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import {
@@ -17,7 +5,7 @@ import {
   getComboModelString,
   getComboStepTarget,
 } from "../../src/lib/combos/steps.ts";
-
+import { registerToolSearchTool } from "./toolSearch/register.ts";
 import {
   MCP_TOOLS,
   getHealthInput,
@@ -38,6 +26,7 @@ import {
   getProviderMetricsInput,
   bestComboForTaskInput,
   explainRouteInput,
+  pickFastestModelInput,
   getSessionSnapshotInput,
   dbHealthCheckInput,
   syncPricingInput,
@@ -48,7 +37,6 @@ import {
   oneproxyStatsInput,
 } from "./schemas/tools.ts";
 import { startMcpHeartbeat } from "./runtimeHeartbeat.ts";
-
 import { z } from "zod";
 import { closeAuditDb, logToolCall } from "./audit.ts";
 import {
@@ -56,7 +44,7 @@ import {
   resolveCallerScopeContext,
   type McpToolExtraLike,
 } from "./scopeEnforcement.ts";
-
+import { getMcpHttpAuthHeadersForInternalFetch } from "./httpAuthContext.ts";
 import {
   handleSimulateRoute,
   handleSetBudgetGuard,
@@ -75,6 +63,7 @@ import {
   handleOneproxyRotate,
   handleOneproxyStats,
 } from "./tools/advancedTools.ts";
+import { handlePickFastestModel } from "./tools/pickFastestModel.ts";
 import { memoryTools } from "./tools/memoryTools.ts";
 import { skillTools } from "./tools/skillTools.ts";
 import { agentSkillTools } from "./tools/agentSkillTools.ts";
@@ -86,6 +75,7 @@ import { poolTools } from "./tools/poolTools.ts";
 import { gamificationTools } from "./tools/gamificationTools.ts";
 import { notionTools } from "./tools/notionTools.ts";
 import { obsidianTools } from "./tools/obsidianTools.ts";
+import { dispatchTools } from "./tools/dispatchTools.ts";
 import { compressMcpRegistryMetadata } from "./descriptionCompressor.ts";
 import { reduceToolManifest, readMcpToolProfileFromEnv } from "./toolCardinality.ts";
 import { smartFilterText } from "../services/compression/engines/mcpAccessibility/index.ts";
@@ -100,8 +90,6 @@ import { getCodexRequestDefaults } from "../../src/lib/providers/requestDefaults
 import { normalizeQuotaResponse } from "../../src/shared/contracts/quota.ts";
 import { AI_PROVIDERS, NOAUTH_PROVIDERS } from "../../src/shared/constants/providers.ts";
 import { resolveOmniRouteBaseUrl } from "../../src/shared/utils/resolveOmniRouteBaseUrl.ts";
-
-// ============ Configuration ============
 
 const OMNIROUTE_BASE_URL = resolveOmniRouteBaseUrl();
 const MCP_ENFORCE_SCOPES = process.env.OMNIROUTE_MCP_ENFORCE_SCOPES === "true";
@@ -120,7 +108,8 @@ const TOTAL_MCP_TOOL_COUNT =
   gamificationTools.length +
   pluginTools.length +
   notionTools.length +
-  obsidianTools.length;
+  obsidianTools.length +
+  dispatchTools.length;
 
 type JsonRecord = Record<string, unknown>;
 
@@ -217,9 +206,6 @@ function normalizeComboModels(
   });
 }
 
-/**
- * Internal fetch helper that calls OmniRoute API endpoints.
- */
 function getOmniRouteApiKey(): string {
   return process.env.OMNIROUTE_API_KEY || "";
 }
@@ -229,7 +215,10 @@ async function omniRouteFetch(path: string, options: RequestInit = {}): Promise<
   const apiKey = getOmniRouteApiKey();
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
+    // Static env key is only a fallback; the per-caller MCP identity forwarded via
+    // withMcpHttpAuthContext must win over it (#5819).
     ...(apiKey ? { Authorization: `Bearer ${apiKey}` } : {}),
+    ...getMcpHttpAuthHeadersForInternalFetch(),
     ...((options.headers as Record<string, string>) || {}),
   };
 
@@ -298,9 +287,17 @@ function getCatalogModelCapabilities(model: JsonRecord): string[] {
   return ["chat"];
 }
 
-function normalizeCatalogStatus(model: JsonRecord, source: string, warning?: string): McpCatalogStatus {
+function normalizeCatalogStatus(
+  model: JsonRecord,
+  source: string,
+  warning?: string
+): McpCatalogStatus {
   const explicitStatus = toString(model.status);
-  if (explicitStatus === "available" || explicitStatus === "degraded" || explicitStatus === "unavailable") {
+  if (
+    explicitStatus === "available" ||
+    explicitStatus === "degraded" ||
+    explicitStatus === "unavailable"
+  ) {
     return explicitStatus;
   }
 
@@ -358,7 +355,8 @@ export async function getMcpModelsCatalog(
   connections = Array.isArray(connections) ? connections : [];
 
   const activeConnections = connections.filter((connection) => {
-    const provider = typeof connection?.provider === "string" ? normalizeProviderId(connection.provider) : null;
+    const provider =
+      typeof connection?.provider === "string" ? normalizeProviderId(connection.provider) : null;
     if (!provider || !connection?.id || connection.isActive === false) return false;
     if (requestedProvider && provider !== requestedProvider) return false;
     return true;
@@ -371,7 +369,9 @@ export async function getMcpModelsCatalog(
   }));
 
   if (requestedProvider && requestSpecs.length === 0) {
-    const isNoAuthProvider = Object.values(NOAUTH_PROVIDERS).some((provider) => provider.id === requestedProvider);
+    const isNoAuthProvider = Object.values(NOAUTH_PROVIDERS).some(
+      (provider) => provider.id === requestedProvider
+    );
     if (isNoAuthProvider) {
       requestSpecs.push({
         provider: requestedProvider,
@@ -393,7 +393,10 @@ export async function getMcpModelsCatalog(
 
   for (const spec of requestSpecs) {
     const raw = toRecord(await fetchJson(spec.path));
-    const source = toString(raw.source, spec.path.startsWith("/api/providers/") ? "api" : "v1_catalog");
+    const source = toString(
+      raw.source,
+      spec.path.startsWith("/api/providers/") ? "api" : "v1_catalog"
+    );
     const warning = raw.warning ? String(raw.warning) : undefined;
     if (warning) warnings.add(warning);
     sources.add(source);
@@ -433,7 +436,12 @@ function withScopeEnforcement(
 ) {
   return async (args: unknown, extra?: McpToolExtraLike): Promise<TextToolResult> => {
     const scopeContext = resolveCallerScopeContext(extra, Array.from(MCP_ALLOWED_SCOPES));
-    const scopeCheck = evaluateToolScopes(toolName, scopeContext.scopes, MCP_ENFORCE_SCOPES, toolScopes);
+    const scopeCheck = evaluateToolScopes(
+      toolName,
+      scopeContext.scopes,
+      MCP_ENFORCE_SCOPES,
+      toolScopes
+    );
     if (!scopeCheck.allowed) {
       const missingScopes =
         scopeCheck.missing.length > 0 ? scopeCheck.missing.join(", ") : "unavailable";
@@ -469,8 +477,6 @@ function withScopeEnforcement(
     return handler(args, extra);
   };
 }
-
-// ============ Tool Handlers ============
 
 async function handleGetHealth() {
   const start = Date.now();
@@ -822,11 +828,6 @@ async function handleWebFetch(args: {
   }
 }
 
-// ============ MCP Server Setup ============
-
-/**
- * Create and configure the OmniRoute MCP Server with all essential tools.
- */
 export function createMcpServer(): McpServer {
   const server = new McpServer({
     name: "omniroute",
@@ -896,9 +897,9 @@ export function createMcpServer(): McpServer {
     ...gamificationTools.map((t) => t.name),
     ...obsidianTools.map((t) => t.name),
     ...notionTools.map((t) => t.name),
+    ...dispatchTools.map((t) => t.name),
   ]);
 
-  // Register essential tools
   server.registerTool(
     "omniroute_get_health",
     {
@@ -989,8 +990,6 @@ export function createMcpServer(): McpServer {
       handleListModelsCatalog(listModelsCatalogInput.parse(args))
     )
   );
-
-  // ── Advanced Tools (Phase 3) ──────────────────────────────
 
   server.registerTool(
     "omniroute_simulate_route",
@@ -1087,6 +1086,8 @@ export function createMcpServer(): McpServer {
     )
   );
 
+  server.registerTool("omniroute_pick_fastest_model", { description: "Picks the fastest reliable provider-model pair from live telemetry.", inputSchema: pickFastestModelInput }, withScopeEnforcement("omniroute_pick_fastest_model", (args) => handlePickFastestModel(pickFastestModelInput.parse(args))));
+
   server.registerTool(
     "omniroute_get_session_snapshot",
     {
@@ -1143,9 +1144,7 @@ export function createMcpServer(): McpServer {
         "Fetches and extracts content from a URL using OmniRoute's web fetch gateway. Supports multiple providers (Firecrawl, Jina Reader, Tavily) with automatic failover. Returns the page content as markdown, HTML, links, or screenshot, along with metadata.",
       inputSchema: webFetchInput,
     },
-    withScopeEnforcement("omniroute_web_fetch", (args) =>
-      handleWebFetch(webFetchInput.parse(args))
-    )
+    withScopeEnforcement("omniroute_web_fetch", (args) => handleWebFetch(webFetchInput.parse(args)))
   );
 
   server.registerTool(
@@ -1169,8 +1168,6 @@ export function createMcpServer(): McpServer {
       handleCacheFlush(cacheFlushInput.parse(args))
     )
   );
-
-  // ── 1proxy Tools ──────────────────────────────
 
   server.registerTool(
     "omniroute_oneproxy_fetch",
@@ -1207,6 +1204,8 @@ export function createMcpServer(): McpServer {
       handleOneproxyStats(oneproxyStatsInput.parse(args))
     )
   );
+
+  registerToolSearchTool(server, withScopeEnforcement);
 
   // ── Memory Tools ──────────────────────────────
   Object.values(memoryTools).forEach((toolDef: any) => {
@@ -1308,6 +1307,30 @@ export function createMcpServer(): McpServer {
           }
         },
         toolDef.scopes
+      )
+    );
+  });
+
+  // ── Substrate Dispatch Tools ──────────────────
+  dispatchTools.forEach((toolDef) => {
+    server.registerTool(
+      toolDef.name,
+      {
+        description: toolDef.description,
+        inputSchema: toolDef.inputSchema as unknown as z.ZodTypeAny,
+      },
+      withScopeEnforcement(
+        toolDef.name,
+        async (args) => {
+          try {
+            const parsedArgs = (toolDef.inputSchema as unknown as z.ZodTypeAny).parse(args ?? {}) as Record<string, unknown>;
+            const result = await toolDef.handler(parsedArgs);
+            return { content: [{ type: "text" as const, text: JSON.stringify(result, null, 2) }] };
+          } catch (err) {
+            const msg = err instanceof Error ? err.message : String(err);
+            return { content: [{ type: "text" as const, text: `Error: ${msg}` }], isError: true };
+          }
+        }
       )
     );
   });
@@ -1459,7 +1482,8 @@ export function createMcpServer(): McpServer {
   });
 
   // ── Dynamic Skill Tools (from skills table) ──
-  const skillToMcpToolName = (skill: { name: string }) => `skill_${skill.name.replace(/[^a-z0-9_-]/gi, "_")}`;
+  const skillToMcpToolName = (skill: { name: string }) =>
+    `skill_${skill.name.replace(/[^a-z0-9_-]/gi, "_")}`;
   try {
     const enabledSkills = skillRegistry.list().filter((s) => s.enabled);
     for (const skill of enabledSkills) {

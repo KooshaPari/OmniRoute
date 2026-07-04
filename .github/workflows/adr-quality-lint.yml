@@ -1,0 +1,12 @@
+name: adr-quality-lint
+on:
+  pull_request:
+    paths: ['docs/adr/**']
+  push:
+    paths: ['docs/adr/**']
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: python3 .githooks/adr-quality-lint.py

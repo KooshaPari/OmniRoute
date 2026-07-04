@@ -1,7 +1,21 @@
-:20128 {
-	reverse_proxy localhost:3001 localhost:3002 localhost:3003 {
+:{$CADDY_PORT:20128} {
+	handle /api/v1/* {
+		reverse_proxy {$CADDY_API_UPSTREAM:omniroute-base:20129} {
+			health_uri {$CADDY_API_HEALTH_URI:/v1/models}
+			health_interval 10s
+			health_timeout 5s
+			header_up X-Forwarded-Proto {http.request.proto}
+			header_up X-Forwarded-Host {http.request.host}
+			header_up X-Forwarded-For {http.request.remote}
+			transport http {
+				keepalive off
+			}
+		}
+	}
+
+	reverse_proxy {$CADDY_UI_UPSTREAMS:omniroute-1:3000 omniroute-2:3000 omniroute-3:3000} {
 		lb_policy least_conn
-		health_uri /v1/models
+		health_uri {$CADDY_UI_HEALTH_URI:/v1/models}
 		health_interval 10s
 		health_timeout 5s
 		header_up X-Forwarded-Proto {http.request.proto}

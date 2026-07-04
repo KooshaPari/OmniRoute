@@ -136,6 +136,15 @@ function serializeToolResultContent(content: unknown): string {
 }
 
 /**
+ * Wrap system-prompt content in <system-reminder> tags before it is merged into
+ * a Kiro user message. Kiro/CodeWhisperer has no `system` role, so without this
+ * the system prompt would appear as raw user text (issue #2306).
+ */
+function wrapSystemReminder(text: string): string {
+  return `<system-reminder>\n${text}\n</system-reminder>`;
+}
+
+/**
  * Convert OpenAI messages to Kiro format
  * Rules: system/tool/user -> user role, merge consecutive same roles
  */
@@ -158,7 +167,15 @@ function convertMessages(messages, tools, model) {
 
   const flushPending = () => {
     if (currentRole === "user") {
-      const content = pendingUserContent.join("\n\n").trim() || "(empty)";
+      // Kiro accepts an empty user `content` when the turn carries toolResults or
+      // images (the agentic tool-loop case), so the "(empty)" placeholder is only
+      // needed for a genuinely bare turn. Without this check, a trailing
+      // tool-result-only turn (no follow-up user text) would get the literal
+      // "(empty)" injected as if the user had typed it, which can confuse Kiro.
+      // See decolua/9router#2183 for the same bug class.
+      const text = pendingUserContent.join("\n\n").trim();
+      const hasContext = pendingToolResults.length > 0 || pendingImages.length > 0;
+      const content = text || (hasContext ? "" : "(empty)");
       const userMsg: {
         userInputMessage: {
           content: string;
@@ -333,7 +350,11 @@ function convertMessages(messages, tools, model) {
           content: [{ text: toolContent }],
         });
       } else if (content) {
-        pendingUserContent.push(content);
+        // #2306: Kiro/CodeWhisperer has no `system` role, so system messages are
+        // normalized to `user`. Wrap their content in <system-reminder> tags so
+        // the model can tell the system prompt apart from real user input instead
+        // of treating the full Claude Code prompt as something the user typed.
+        pendingUserContent.push(msg.role === "system" ? wrapSystemReminder(content) : content);
       }
     } else if (role === "assistant") {
       // Extract text content and tool uses
@@ -405,14 +426,14 @@ function convertMessages(messages, tools, model) {
 
   // Kiro requires currentMessage to be a user turn. If the request ends with a
   // user turn, move that final turn into currentMessage. If it ends with an
-  // assistant/tool turn, keep chronological history intact and ask Kiro to
-  // continue instead of reordering prior turns.
+  // assistant/tool turn, synthesize a neutral filler ("...") instead of the
+  // literal "Continue", which Kiro can read as a real instruction (#5231).
   if (history.length > 0 && history[history.length - 1].userInputMessage) {
     currentMessage = history.pop();
   } else {
     currentMessage = {
       userInputMessage: {
-        content: "Continue",
+        content: "...",
         modelId: model,
       },
     };
@@ -435,7 +456,7 @@ function convertMessages(messages, tools, model) {
 
   // Fallback: if the schema was never attached to any user turn (e.g. the
   // input contained no user messages and currentMessage is a synthesized
-  // "Continue" turn), attach the provided tools directly to currentMessage so
+  // neutral-filler turn), attach the provided tools directly to currentMessage so
   // Kiro still sees the schema it needs to validate assistant.toolUses in
   // history.
   if (
@@ -669,8 +690,11 @@ export function buildKiroPayload(model, body, stream, credentials) {
 
   // Normalize model name: Claude Code sends dashes (claude-sonnet-4-6),
   // Kiro API expects dots (claude-sonnet-4.6). Convert trailing version segment.
+  // The minor group is bounded to 1-2 digits so date-suffixed ids (e.g.
+  // claude-opus-4-20250514) are never mistaken for a dash-separated minor
+  // version and corrupted into claude-opus-4.20250514 (upstream 9router #2270).
   const normalizedModel = model.replace(
-    /^(claude-(?:opus|sonnet|haiku|3-\d+)-\d+)-(\d+)$/,
+    /^(claude-(?:opus|sonnet|haiku|3-\d+)-\d+)-(\d{1,2})$/,
     "$1.$2"
   );
   const messages = body.messages || [];

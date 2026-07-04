@@ -9,6 +9,7 @@ import { useRouter } from "next/navigation";
 import { Card, CardSkeleton, Button, Modal } from "@/shared/components";
 import ProviderIcon from "@/shared/components/ProviderIcon";
 import { AI_PROVIDERS, NOAUTH_PROVIDERS, OAUTH_PROVIDERS } from "@/shared/constants/providers";
+import { extractApiErrorMessage } from "@/shared/http/apiErrorMessage";
 import { useNotificationStore } from "@/store/notificationStore";
 import { copyToClipboard } from "@/shared/utils/clipboard";
 import { getProviderDisplayLabel } from "@/shared/utils/providerDisplayLabel";
@@ -685,7 +686,7 @@ export default function HomePageClient({ machineId }: HomePageClientProps) {
       if (contentType.includes("application/json")) {
         const data = await res.json();
         if (!res.ok || !data.success) {
-          notify.error(data.error || "Failed to start update.");
+          notify.error(extractApiErrorMessage(data, "Failed to start update."));
           setUpdating(false);
           setUpdatePhase("idle");
           return;
@@ -842,7 +843,7 @@ export default function HomePageClient({ machineId }: HomePageClientProps) {
                         error
                       </span>
                     ) : (
-                      <span className="material-symbols-outlined text-yellow-500 text-[18px]">
+                      <span className="material-symbols-outlined text-amber-500 text-[18px]">
                         warning
                       </span>
                     )}
@@ -1109,7 +1110,7 @@ export default function HomePageClient({ machineId }: HomePageClientProps) {
                   <p className="text-text-muted mt-0.5">
                     {t.rich("step1Desc", {
                       endpoint: (chunks) => (
-                        <Link href="/dashboard/endpoint" className="text-primary hover:underline">
+                        <Link href="/dashboard/api-manager" className="text-primary hover:underline">
                           {chunks}
                         </Link>
                       ),

@@ -18,6 +18,7 @@ import {
   DEFAULT_RESILIENCE_SETTINGS,
   resolveResilienceSettings,
 } from "../../src/lib/resilience/settings";
+import { resolveModelLockoutSettings } from "../../src/lib/resilience/modelLockoutSettings";
 import {
   getAllCircuitBreakerStatuses,
   getCircuitBreaker,
@@ -30,13 +31,15 @@ import {
 import { resolveProviderId } from "../../src/shared/constants/providers";
 import { resolveUseUpstream429BreakerHints } from "../../src/shared/utils/providerHints";
 import { getCodexModelScope } from "../config/codexQuotaScopes.ts";
+import { getQuotaScopedModelForProvider } from "./antigravityQuotaFamily.ts";
 import { isRpdExhausted, isRpmExhausted } from "./geminiRateLimitTracker.ts";
+import { parseRetryHintFromJsonBody } from "./retryAfterJson.ts";
 
 export type ProviderProfile = {
   baseCooldownMs: number;
   useUpstreamRetryHints: boolean;
-  /** Issue #2100 follow-up. Stored override; undefined → per-provider default. */
   useUpstream429BreakerHints?: boolean;
+  maxCooldownMs: number;
   maxBackoffSteps: number;
   failureThreshold: number;
   resetTimeoutMs: number;
@@ -157,6 +160,12 @@ export const CREDITS_EXHAUSTED_SIGNALS = [
   "out of credits",
   "payment required",
   "free tier of the model has been exhausted",
+  // #5239: providers (e.g. DeepSeek/GLM-style) return "Insufficient account balance"
+  // on a depleted key. 402 is already terminalized by status, but catch non-402
+  // out-of-credit bodies here too.
+  "insufficient balance",
+  "insufficient_balance",
+  "insufficient account balance",
 ];
 
 // T11: Signals that indicate OAuth token is invalid/expired (not permanent deactivation)
@@ -323,9 +332,8 @@ function buildProviderProfile(
   return {
     baseCooldownMs: connectionCooldown.baseCooldownMs,
     useUpstreamRetryHints: connectionCooldown.useUpstreamRetryHints,
-    // Issue #2100 follow-up: propagate stored override (boolean | undefined)
-    // so the runtime resolver picks user setting first, then per-provider default.
     useUpstream429BreakerHints: connectionCooldown.useUpstream429BreakerHints,
+    maxCooldownMs: resolveModelLockoutSettings(settings).maxCooldownMs,
     maxBackoffSteps: connectionCooldown.maxBackoffSteps,
     failureThreshold: providerBreaker.failureThreshold,
     resetTimeoutMs: providerBreaker.resetTimeoutMs,
@@ -390,7 +398,10 @@ function getCanonicalLockProvider(provider: string): string {
 
 function getModelLockKey(provider: string, connectionId: string, model: string) {
   const canonicalProvider = getCanonicalLockProvider(provider);
-  const lockModel = canonicalProvider === "codex" ? getCodexModelScope(model) : model;
+  const lockModel =
+    canonicalProvider === "codex"
+      ? getCodexModelScope(model)
+      : getQuotaScopedModelForProvider(canonicalProvider, model) || model;
   return `${canonicalProvider}:${connectionId}:${lockModel}`;
 }
 
@@ -1025,22 +1036,15 @@ function parseDelayString(value: unknown): number | null {
   return Number.isNaN(num) ? null : num * 1000;
 }
 
-/**
- * T07: Parse retry time from error text body with combined "XhYmZs" format.
- * Examples: "Your quota will reset after 2h30m14s", "reset after 45m", "reset after 30s"
- * Returns milliseconds or null if not parseable.
- *
- * @param {string} errorText - Error message text from response body
- * @returns {number|null} Retry duration in milliseconds
- */
+// T07: parse retry time from error text body with combined "XhYmZs" format.
 export function parseRetryFromErrorText(errorText: unknown): number | null {
   if (!errorText || typeof errorText !== "string") return null;
   const msg: string = String(errorText);
 
-  // Issue #2321: Anthropic OAuth occasionally embeds an absolute ISO 8601
-  // timestamp instead of a relative duration (e.g. "Try again at
-  // 2026-05-17T10:00:00Z" or "Please wait until 2026-05-17T10:00:00.000Z").
-  // Convert to a future-duration in milliseconds if it parses.
+  const bodyHintMs = parseRetryHintFromJsonBody(msg, MAX_PROVIDER_COOLDOWN_MS);
+  if (bodyHintMs !== null) return bodyHintMs;
+
+  // Issue #2321: parse embedded absolute ISO retry timestamps.
   const isoMatch =
     /\b(?:try again at|wait until|reset(?:s)? at|available at|retry after)\s+(\d{4}-\d{2}-\d{2}[Tt ]\d{2}:\d{2}(?::\d{2})?(?:\.\d+)?(?:Z|[+-]\d{2}:?\d{2})?)/i.exec(
       msg
@@ -1286,6 +1290,7 @@ export function checkFallbackError(
    * provider itself). Callers should apply connection cooldown only — do NOT record a provider
    * circuit-breaker failure when this flag is set. */
   skipProviderBreaker?: boolean;
+  quotaResetHintMs?: number;
 } {
   // G-02: detect embedded service supervisor failures (X-Omni-Fallback-Hint: connection_cooldown).
   // These are NOT upstream AI provider failures — they are local supervisor state changes.
@@ -1468,11 +1473,13 @@ export function checkFallbackError(
       // profile.useUpstreamRetryHints.
       const hintMs = getUpstreamRetryHintMs();
       const SUBSCRIPTION_QUOTA_COOLDOWN_MS = 60 * 60 * 1000; // 1 hour
+      const bodyHint = parseRetryFromErrorText(errorStr);
       return {
         shouldFallback: true,
         cooldownMs: hintMs ?? SUBSCRIPTION_QUOTA_COOLDOWN_MS,
         reason: RateLimitReason.QUOTA_EXHAUSTED,
         usedUpstreamRetryHint: Boolean(hintMs),
+        quotaResetHintMs: bodyHint ?? undefined,
       };
     }
 
@@ -1482,7 +1489,11 @@ export function checkFallbackError(
       quotaResetHintMs &&
       classifyErrorText(errorStr) === RateLimitReason.QUOTA_EXHAUSTED
     ) {
-      return buildRetryableFallback(RateLimitReason.QUOTA_EXHAUSTED);
+      const fallbackResult = buildRetryableFallback(RateLimitReason.QUOTA_EXHAUSTED);
+      return {
+        ...fallbackResult,
+        quotaResetHintMs,
+      };
     }
 
     // #2929: A route-restriction 403 (e.g. Fireworks Fire Pass keys returning
