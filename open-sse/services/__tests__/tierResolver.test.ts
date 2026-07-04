@@ -44,7 +44,7 @@ describe("TierResolver", () => {
     });
 
     it("classifies LongCat as free", () => {
-      const result = classifyTier("longcat", "LongCat-2.0");
+      const result = classifyTier("longcat", "flash-lite");
       assert.equal(result.tier, PROVIDER_TIER.FREE);
       assert.equal(result.hasFreeTier, true);
     });
@@ -231,6 +231,7 @@ describe("TierResolver", () => {
         "longcat",
         "cloudflare-ai",
         "qwen",
+        "gemini-cli",
         "nvidia-nim",
         "cerebras",
         "groq",

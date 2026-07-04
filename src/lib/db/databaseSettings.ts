@@ -3,7 +3,7 @@ import fs from "node:fs";
 import { DEFAULT_DATABASE_SETTINGS, type DatabaseSettings } from "@/types/databaseSettings";
 
 import { backupDbFile } from "./backup";
-import { DATA_DIR, SQLITE_FILE, applyDatabaseOptimizationSettings, getDbInstance } from "./core";
+import { DATA_DIR, SQLITE_FILE, getDbInstance } from "./core";
 import { invalidateDbCache } from "./readCache";
 import { getDatabaseStats } from "./stats";
 import { getState as getVacuumSchedulerState, refreshVacuumScheduler } from "./vacuumScheduler";
@@ -93,15 +93,6 @@ function toBooleanSetting(value: unknown): boolean | null {
   if (["1", "true", "yes", "on"].includes(normalized)) return true;
   if (["0", "false", "no", "off"].includes(normalized)) return false;
   return null;
-}
-
-function normalizeOptimizationSettings(settings: UserDatabaseSettings) {
-  const fallback = DEFAULT_DATABASE_SETTINGS.optimization.cacheSize;
-  const numericCacheSize = Number(settings.optimization.cacheSize);
-  settings.optimization.cacheSize =
-    Number.isFinite(numericCacheSize) && numericCacheSize > 0
-      ? Math.min(1000000, Math.floor(numericCacheSize))
-      : fallback;
 }
 
 function readNamespace(namespace: string): Record<string, unknown> {
@@ -229,7 +220,6 @@ export function getUserDatabaseSettings(): UserDatabaseSettings {
   mergeTopLevelSections(settings, mainSettings);
   mergeDatabaseSettingsNamespace(settings, readNamespace(DATABASE_SETTINGS_NAMESPACE));
   mergeRuntimeLogSettings(settings, mainSettings);
-  normalizeOptimizationSettings(settings);
 
   return settings;
 }
@@ -269,7 +259,6 @@ export function updateDatabaseSettings(
       mergeSectionObject(nextSettings, section, updates[section]);
     }
   }
-  normalizeOptimizationSettings(nextSettings);
 
   const db = getDbInstance();
   const insert = db.prepare(
@@ -300,10 +289,7 @@ export function updateDatabaseSettings(
 
   backupDbFile("pre-write");
   invalidateDbCache("settings");
-  if (optimizationUpdated) {
-    applyDatabaseOptimizationSettings(nextSettings.optimization);
-    refreshVacuumScheduler();
-  }
+  if (optimizationUpdated) refreshVacuumScheduler();
 
   return nextSettings;
 }

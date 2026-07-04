@@ -10,11 +10,7 @@
  *
  * #4517.
  */
-// NOTE: tests/unit/autoCombo/ is a vitest-only scope (the node:test runner in
-// test:unit:ci does not walk this dir), so this suite uses the vitest API even
-// though it asserts via node:assert. (#4753 originally landed it with node:test
-// imports → vitest reported "No test suite found" and the test ran nowhere.)
-import { describe, it, beforeAll, afterAll, beforeEach } from "vitest";
+import { describe, it, before, after, beforeEach } from "node:test";
 import assert from "node:assert/strict";
 import {
   buildAutoCandidateFilter,
@@ -24,7 +20,7 @@ import {
 describe("suffixComposition :free tier (#4517)", () => {
   const ORIGINAL_ENV = { ...process.env };
 
-  beforeAll(() => {
+  before(() => {
     // Snapshot env so we can restore it after each test.
   });
 
@@ -34,7 +30,7 @@ describe("suffixComposition :free tier (#4517)", () => {
     process.env = { ...ORIGINAL_ENV };
   });
 
-  afterAll(() => {
+  after(() => {
     process.env = ORIGINAL_ENV;
   });
 
@@ -84,9 +80,7 @@ describe("suffixComposition :free tier (#4517)", () => {
     assert.equal(filter, null);
   });
 
-  // TODO: skip until DB migration version collision is resolved (POST-MERGE-AUDIT.md)
-  // getResolvedModelCapabilities() calls the DB which throws the migration collision error.
-  it.skip("buildAutoCandidateFilter keeps free candidates alongside capability checks", () => {
+  it("buildAutoCandidateFilter keeps free candidates alongside capability checks", () => {
     // The category and tier checks are AND-combined. For "coding:free" the
     // category check is a pass-through (no vision/reasoning filter), so
     // any free model should be kept.

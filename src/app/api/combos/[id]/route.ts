@@ -76,6 +76,47 @@ function stripLegacyComboConfigKeys(rawConfig) {
   return mutated ? next : rawConfig;
 }
 
+/**
+ * Keys that were present in older combo configs (≤ v3.8.31) but have since been
+ * removed from comboRuntimeConfigSchema. The dashboard modal sanitises the three
+ * UI-level keys (timeoutMs, healthCheckEnabled, healthCheckTimeoutMs) before PUT,
+ * but v3.8.31-era stored configs also carry these 12 keys which were spread back
+ * into the body on edit+save. We strip them server-side so removed keys don't
+ * accumulate in `combos.data` and so the next read produces a clean config.
+ *
+ * Idempotent — running twice is a no-op.
+ */
+const LEGACY_REMOVED_COMBO_CONFIG_KEYS = Object.freeze([
+  "queueDepth",
+  "fallbackDelayMs",
+  "handoffProviders",
+  "maxComboDepth",
+  "manifestRouting",
+  "complexityAwareRouting",
+  "pipeline_enabled",
+  "pipelineConcurrency",
+  "shadowRouting",
+  "evalRouting",
+  "resetAwareEnabled",
+  "resetAwareWindow",
+]);
+
+function stripLegacyComboConfigKeys(rawConfig) {
+  if (!rawConfig || typeof rawConfig !== "object" || Array.isArray(rawConfig)) {
+    return rawConfig;
+  }
+  let mutated = false;
+  const next = {};
+  for (const [key, value] of Object.entries(rawConfig)) {
+    if (LEGACY_REMOVED_COMBO_CONFIG_KEYS.includes(key)) {
+      mutated = true;
+      continue;
+    }
+    next[key] = value;
+  }
+  return mutated ? next : rawConfig;
+}
+
 // GET /api/combos/[id] - Get combo by ID
 export async function GET(request, { params }) {
   const authError = await requireManagementAuth(request);

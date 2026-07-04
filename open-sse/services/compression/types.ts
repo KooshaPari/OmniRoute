@@ -11,7 +11,6 @@
 
 import { ENGINE_IDS } from "./engineCatalog.ts";
 import type { ContextBudgetConfig } from "./adaptiveCompression/types.ts";
-import type { FidelityGateConfig } from "./fidelityGate.ts";
 
 // Re-export so consumers that already import from this module (e.g. src/lib/db/compression.ts)
 // can get ENGINE_IDS without a second bare `@omniroute/open-sse/...engineCatalog.ts` specifier.
@@ -142,8 +141,6 @@ export interface CompressionConfig {
   comboOverrides: Record<string, CompressionMode>;
   compressionComboId?: string | null;
   stackedPipeline?: CompressionPipelineStep[];
-  /** Opt-in per-step fidelity gate (default disabled). */
-  fidelityGate?: FidelityGateConfig;
   cavemanConfig?: CavemanConfig;
   cavemanOutputMode?: CavemanOutputModeConfig;
   /** Phase 4A: selected output styles (supersedes cavemanOutputMode via a back-compat shim). */
@@ -235,8 +232,6 @@ export interface CompressionStats {
     techniquesUsed: string[];
     rulesApplied?: string[];
     durationMs?: number;
-    rejected?: boolean;
-    rejectReason?: string;
   }>;
 }
 

@@ -97,8 +97,7 @@ describe("Task Fitness", () => {
   describe("-free alias resolution (#4517)", () => {
     beforeEach(() => invalidateFitnessCache());
 
-    // TODO: skip until DB migration version collision is resolved (POST-MERGE-AUDIT.md)
-    it.skip("returns the base model's arena_elo when given a -free variant", async () => {
+    it("returns the base model's arena_elo when given a -free variant", async () => {
       // The fix: getTaskFitnessWithSource strips a trailing "-free" suffix
       // and re-queries arena_elo with the base id. We seed an arena_elo
       // row directly via the DB module, look up the free variant, and
@@ -131,8 +130,7 @@ describe("Task Fitness", () => {
       }
     });
 
-    // TODO: skip until DB migration version collision is resolved (POST-MERGE-AUDIT.md)
-    it.skip("does not strip -free when arena_elo is present on the literal model id", () => {
+    it("does not strip -free when arena_elo is present on the literal model id", () => {
       // If both "foo-free" and "foo" have arena_elo rows, the literal "foo-free"
       // wins (we never go through the alias path). This protects future
       // benchmark uploads that specifically tag free tiers.
@@ -630,12 +628,9 @@ describe("Task Fitness DB Resolution Chain", () => {
   });
 
   it("getTaskFitnessWithSource identifies fitness_table as source for known models", () => {
-    const model = "claude-sonnet";
-    const category = "coding";
-
-    const result = getTaskFitnessWithSource(model, category);
+    const result = getTaskFitnessWithSource("gpt-4o", "coding");
     expect(result.source).toBe("fitness_table");
-    expect(result.score).toBe(0.95);
+    expect(result.score).toBe(0.9);
   });
 
   it("case insensitivity: model names are lowercased before lookup", () => {
