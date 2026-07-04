@@ -17,6 +17,7 @@ pub mod notifier;
 pub mod runtime;
 pub mod serve_lock;
 pub mod spawn_policy;
+pub mod watchdog;
 
 pub use anyhow::Result;
 pub use runtime::{
