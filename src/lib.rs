@@ -27,3 +27,4 @@ pub use runtime::{
 pub mod health;
 pub mod log_sink;
 pub mod config_loader;
+pub mod metrics;
