@@ -63,7 +63,6 @@ jobs:
       GITHUB_TOKEN: ${{ github.token }}
       KILO_RECONCILE_WEBHOOK_URL: ${{ secrets.KILO_RECONCILE_WEBHOOK_URL }}
       KILO_RECONCILE_WEBHOOK_TOKEN: ${{ secrets.KILO_RECONCILE_WEBHOOK_TOKEN }}
-      PR_RECONCILE_EVENT_PATH: ${{ github.event_path }}
       PR_RECONCILE_EVENT_NAME: ${{ github.event_name }}
       PR_RECONCILE_REPOSITORY: ${{ github.repository }}
       PR_RECONCILE_RUN_ID: ${{ github.run_id }}
@@ -105,7 +104,7 @@ jobs:
           set -euo pipefail
           mkdir -p artifacts/pr-reconcile
           node --import tsx scripts/pr-reconcile/cli.ts collect \
-            --event-path "$PR_RECONCILE_EVENT_PATH" \
+            --event-path "$GITHUB_EVENT_PATH" \
             --event-name "$PR_RECONCILE_EVENT_NAME" \
             --repository "$PR_RECONCILE_REPOSITORY" \
             --run-id "$PR_RECONCILE_RUN_ID" \
