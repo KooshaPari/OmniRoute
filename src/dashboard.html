@@ -67,6 +67,29 @@
     font-size: 11px;
     color: #4a5568;
   }
+  #thermal-status {
+    margin-left: auto;
+    font-size: 12px;
+    padding: 4px 10px;
+    border-radius: 4px;
+    background: #16213e;
+    color: #22c55e;
+    border: 1px solid #22c55e;
+    transition: color 0.3s, border-color 0.3s, background 0.3s;
+  }
+  #thermal-status.warning {
+    color: #f59e0b;
+    border-color: #f59e0b;
+  }
+  #thermal-status.critical {
+    color: #ef4444;
+    border-color: #ef4444;
+    animation: pulse 1s infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50%       { opacity: 0.5; }
+  }
 </style>
 </head>
 <body>
@@ -74,6 +97,7 @@
   <div id="status-dot"></div>
   <h1>sharecli</h1>
   <span id="status-label">connecting...</span>
+  <span id="thermal-status">&#x1F321; Normal</span>
 </header>
 
 <table>
@@ -111,6 +135,15 @@
     ws.onmessage = (evt) => {
       let data;
       try { data = JSON.parse(evt.data); } catch { return; }
+      // Handle thermal events
+      if (data.event === 'thermal_warning') {
+        setThermal('warning', '⚠️ Warning');
+        return;
+      }
+      if (data.event === 'thermal_critical') {
+        setThermal('critical', '🔴 Critical');
+        return;
+      }
       const procs = Array.isArray(data.processes) ? data.processes : [];
       renderTable(procs);
       lastUpdate.textContent = 'last update: ' + new Date().toLocaleTimeString();
@@ -144,6 +177,12 @@
         <td class="status">${status}</td>
       </tr>`;
     }).join('');
+  }
+
+  const thermalEl = document.getElementById('thermal-status');
+  function setThermal(cls, text) {
+    thermalEl.className = cls;
+    thermalEl.textContent = text;
   }
 
   function esc(s) {
