@@ -30,6 +30,15 @@ interface A2ATaskManagerInstance {
     errorMessage?: string
   ): void;
   getTask(id: string): A2ATask | undefined;
+  getStats(): {
+    total: number;
+    pending: number;
+    working: number;
+    completed: number;
+    failed: number;
+    cancelled: number;
+    streamActive: boolean;
+  };
   cancelTask(id: string): A2ATask;
   beginStream(): void;
   endStream(): void;
@@ -102,6 +111,25 @@ export class A2ATaskManager {
     return task;
   }
 
+  getStats() {
+    this.cleanupExpired();
+    const stats = {
+      total: 0,
+      pending: 0,
+      working: 0,
+      completed: 0,
+      failed: 0,
+      cancelled: 0,
+    };
+
+    for (const task of this.tasks.values()) {
+      stats.total += 1;
+      stats[task.state] += 1;
+    }
+
+    return stats;
+  }
+
   cancelTask(id: string): A2ATask {
     const task = this.tasks.get(id);
     if (!task) throw new Error(`Task not found: ${id}`);
@@ -151,6 +179,10 @@ const taskManager: A2ATaskManagerInstance = {
 
   getTask(id) {
     return _singleton.getTask(id);
+  },
+
+  getStats() {
+    return { ..._singleton.getStats(), streamActive };
   },
 
   cancelTask(id) {

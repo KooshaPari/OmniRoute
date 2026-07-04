@@ -2427,9 +2427,9 @@ async function validateAnthropicCompatibleProvider({
       return { valid: true, error: null };
     }
 
-    if (modelsRes.status === 401 || modelsRes.status === 403) {
-      return { valid: false, error: "Invalid API key" };
-    }
+    // Anthropic-compatible proxies often protect or omit `/models`; the
+    // canonical auth probe is POST `/messages`, so do not reject until that
+    // fallback also returns an auth error.
   } catch {
     // /models fetch failed — fall through to messages test
   }
@@ -3668,14 +3668,6 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
     }
   }
 
-  if (SPECIALTY_VALIDATORS[provider]) {
-    try {
-      return await SPECIALTY_VALIDATORS[provider]({ apiKey, providerSpecificData });
-    } catch (error: any) {
-      return toValidationErrorResult(error);
-    }
-  }
-
   if (isOpenAICompatibleProvider(provider)) {
     try {
       return await validateOpenAICompatibleProvider({ apiKey, providerSpecificData });
@@ -4022,6 +4014,14 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
       ])
     ),
   };
+
+  if (SPECIALTY_VALIDATORS[provider]) {
+    try {
+      return await SPECIALTY_VALIDATORS[provider]({ apiKey, providerSpecificData });
+    } catch (error: any) {
+      return toValidationErrorResult(error);
+    }
+  }
 
   const entry = getRegistryEntry(provider);
   if (!entry) {
