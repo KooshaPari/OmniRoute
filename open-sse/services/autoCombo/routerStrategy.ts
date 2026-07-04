@@ -144,25 +144,34 @@ class LatencyStrategyImpl implements RouterStrategy {
       throw new Error("[LatencyStrategy] No candidates available after speed ranking");
     }
 
-    const w = winner;
-    const wMetrics = winner.metrics;
     return {
-      provider: w.provider,
-      model: w.model,
+      provider: winner.provider,
+      model: winner.model,
       strategy: this.name,
-      reason:
-        `LatencyStrategy(score=${winner.score.toFixed(3)}): ` +
-        `ttft=${wMetrics.avgTtftMs?.toFixed(0) ?? "n/a"}ms ` +
-        `tps=${wMetrics.avgTokensPerSecond?.toFixed(1) ?? "n/a"} ` +
-        `e2e=${wMetrics.avgE2ELatencyMs?.toFixed(0) ?? wMetrics.p95LatencyMs?.toFixed(0) ?? "n/a"}ms ` +
-        `p95=${wMetrics.p95LatencyMs?.toFixed(0) ?? "n/a"}ms ` +
-        `failRate=${((wMetrics.failureRate ?? 0) * 100).toFixed(2)}% ` +
-        `stability=${wMetrics.latencyStdDev?.toFixed(0) ?? "n/a"}ms ` +
-        `cb=${wMetrics.circuitBreakerState ?? "n/a"}`,
+      reason: latencyDecisionReason(winner),
       candidatesConsidered: ranked.length,
       finalScore: winner.score,
     };
   }
+}
+
+function metricString(value: number | null | undefined, digits = 0): string {
+  return value == null ? "n/a" : value.toFixed(digits);
+}
+
+function latencyDecisionReason(winner: ReturnType<typeof rankBySpeed>[number]): string {
+  const metrics = winner.metrics;
+  const e2e = metrics.avgE2ELatencyMs ?? metrics.p95LatencyMs;
+  return (
+    `LatencyStrategy(score=${winner.score.toFixed(3)}): ` +
+    `ttft=${metricString(metrics.avgTtftMs)}ms ` +
+    `tps=${metricString(metrics.avgTokensPerSecond, 1)} ` +
+    `e2e=${metricString(e2e)}ms ` +
+    `p95=${metricString(metrics.p95LatencyMs)}ms ` +
+    `failRate=${((metrics.failureRate ?? 0) * 100).toFixed(2)}% ` +
+    `stability=${metricString(metrics.latencyStdDev)}ms ` +
+    `cb=${metrics.circuitBreakerState ?? "n/a"}`
+  );
 }
 
 // ── SLAStrategy: favor targets that meet latency/error/cost SLOs ───────────

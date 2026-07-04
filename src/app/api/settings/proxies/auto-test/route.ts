@@ -8,7 +8,9 @@ import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 import { createErrorResponse } from "@/lib/api/errorResponse";
 
 const TEST_TIMEOUT_MS = 5000;
-const TEST_URL = "https://httpbin.org/ip";
+// Reachability probe target. Configurable so operators can point it at an
+// internal/self-hosted endpoint instead of the public default.
+const TEST_URL = process.env.PROXY_HEALTH_TEST_URL || "https://httpbin.org/ip";
 const CONCURRENCY = 10;
 
 const autoTestSchema = z.object({

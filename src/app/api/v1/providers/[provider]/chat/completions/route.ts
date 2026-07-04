@@ -3,15 +3,8 @@ import { initTranslators } from "@omniroute/open-sse/translator/index.ts";
 import { errorResponse } from "@omniroute/open-sse/utils/error.ts";
 import { HTTP_STATUS } from "@omniroute/open-sse/config/constants.ts";
 import { getRegistryEntry } from "@omniroute/open-sse/config/providerRegistry.ts";
-import { z } from "zod";
 
 let initialized = false;
-
-const providerChatRequestSchema = z
-  .object({
-    model: z.string().optional(),
-  })
-  .passthrough();
 
 async function ensureInitialized() {
   if (!initialized) {
@@ -60,12 +53,16 @@ export async function POST(request, { params }) {
     return errorResponse(HTTP_STATUS.BAD_REQUEST, "Invalid JSON body");
   }
 
-  const validation = providerChatRequestSchema.safeParse(rawBody);
-  if (!validation.success) {
+  if (!rawBody || typeof rawBody !== "object" || Array.isArray(rawBody)) {
     return errorResponse(HTTP_STATUS.BAD_REQUEST, "Request body must be a JSON object");
   }
 
-  const body = validation.data;
+  const body = rawBody as { model?: string; [key: string]: unknown };
+
+  // Keep the route-level checks minimal: only guard fields needed for provider prefix handling.
+  if (body.model !== undefined && typeof body.model !== "string") {
+    return errorResponse(HTTP_STATUS.BAD_REQUEST, "model must be a string");
+  }
 
   // Validate model belongs to this provider
   if (body.model) {

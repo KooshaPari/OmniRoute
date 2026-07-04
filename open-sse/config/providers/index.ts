@@ -51,6 +51,8 @@ import { groqProvider } from "./registry/groq/index.ts";
 import { inference_netProvider } from "./registry/inference-net/index.ts";
 import { llm7Provider } from "./registry/llm7/index.ts";
 import { cerebrasProvider } from "./registry/cerebras/index.ts";
+import { charmHyperProvider } from "./registry/charm-hyper/index.ts";
+import { nubeProvider } from "./registry/nube/index.ts";
 import { clinepassProvider } from "./registry/clinepass/index.ts";
 import { sparkdeskProvider } from "./registry/sparkdesk/index.ts";
 import { nlpcloudProvider } from "./registry/nlpcloud/index.ts";
@@ -89,7 +91,6 @@ import { t3_webProvider } from "./registry/t3-web/index.ts";
 import { klusterProvider } from "./registry/kluster/index.ts";
 import { iflytekProvider } from "./registry/iflytek/index.ts";
 import { crofProvider } from "./registry/crof/index.ts";
-import { clinepassProvider } from "./registry/clinepass/index.ts";
 import { moonshotProvider } from "./registry/moonshot/index.ts";
 import { bazaarlinkProvider } from "./registry/bazaarlink/index.ts";
 import { perplexityProvider } from "./registry/perplexity/index.ts";
@@ -177,6 +178,8 @@ import { grok_cliProvider } from "./registry/grok-cli/index.ts";
 import { codebuddy_cnProvider } from "./registry/codebuddy-cn/index.ts";
 import { pioneerProvider } from "./registry/pioneer/index.ts";
 import { zenmux_freeProvider } from "./registry/zenmux-free/index.ts";
+import { sumopodProvider } from "./registry/sumopod/index.ts";
+import { x5labProvider } from "./registry/x5lab/index.ts";
 
 export const REGISTRY: Record<string, RegistryEntry> = {
   aimlapi: aimlapiProvider,
@@ -228,6 +231,8 @@ export const REGISTRY: Record<string, RegistryEntry> = {
   "inference-net": inference_netProvider,
   llm7: llm7Provider,
   cerebras: cerebrasProvider,
+  "charm-hyper": charmHyperProvider,
+  nube: nubeProvider,
   clinepass: clinepassProvider,
   sparkdesk: sparkdeskProvider,
   nlpcloud: nlpcloudProvider,
@@ -266,7 +271,6 @@ export const REGISTRY: Record<string, RegistryEntry> = {
   kluster: klusterProvider,
   iflytek: iflytekProvider,
   crof: crofProvider,
-  clinepass: clinepassProvider,
   moonshot: moonshotProvider,
   bazaarlink: bazaarlinkProvider,
   perplexity: perplexityProvider,
@@ -356,4 +360,6 @@ export const REGISTRY: Record<string, RegistryEntry> = {
   "codebuddy-cn": codebuddy_cnProvider,
   pioneer: pioneerProvider,
   "zenmux-free": zenmux_freeProvider,
+  sumopod: sumopodProvider,
+  x5lab: x5labProvider,
 };

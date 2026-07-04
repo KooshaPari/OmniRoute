@@ -20,9 +20,7 @@ export async function GET(request: Request) {
 
   try {
     const { searchParams } = new URL(request.url);
-    const lookupResponse =
-      (await resolveProxyLookupResponse(searchParams, "whereUsed")) ||
-      (await resolveProxyLookupResponse(searchParams, "where_used"));
+    const lookupResponse = await resolveProxyLookupResponse(searchParams, "where_used");
     if (lookupResponse) return lookupResponse;
 
     const { limit, offset } = toPagination(searchParams);

@@ -21,11 +21,6 @@ OmniRoute advertises that URL to Bifrost and CLIProxyAPI via the
 `OMNIROUTE_PROVIDER_MANIFEST_URL` when the sidecar needs a public or container
 network URL instead of the local request origin.
 
-Code that needs to consume the manifest over HTTP should use
-`open-sse/config/providerPluginManifestClient.ts` instead of hard-coding the
-route. The client resolves `OMNIROUTE_PROVIDER_MANIFEST_URL`, then an explicit
-base URL, then the local OmniRoute API default.
-
 ## Goal
 
 Move provider metadata toward a plugin contract so the hot request path can

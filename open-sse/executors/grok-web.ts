@@ -27,7 +27,6 @@ import {
   type TlsFetchResult,
 } from "../services/grokTlsClient.ts";
 import { sanitizeErrorMessage } from "../utils/error.ts";
-import { generateTraceparent } from "../observability/traceparent.ts";
 import type { GrokStreamEvent } from "./grok-web/types.ts";
 import {
   type OpenAIToolCall,
@@ -96,6 +95,14 @@ function generateStatsigId(): string {
       ? `e:TypeError: Cannot read properties of null (reading 'children["${randomString(5, true)}"]')`
       : `e:TypeError: Cannot read properties of undefined (reading '${randomString(10)}')`;
   return btoa(msg);
+}
+
+// ─── Helpers ────────────────────────────────────────────────────────────────
+
+function randomHex(bytes: number): string {
+  const arr = new Uint8Array(bytes);
+  crypto.getRandomValues(arr);
+  return Array.from(arr, (b) => b.toString(16).padStart(2, "0")).join("");
 }
 
 // ─── NDJSON parsing ─────────────────────────────────────────────────────────
@@ -728,6 +735,9 @@ export class GrokWebExecutor extends BaseExecutor {
     };
 
     // Build headers
+    const traceId = randomHex(16);
+    const spanId = randomHex(8);
+
     const headers: Record<string, string> = {
       Accept: "*/*",
       "Accept-Encoding": "gzip, deflate, br, zstd",
@@ -748,7 +758,7 @@ export class GrokWebExecutor extends BaseExecutor {
       "User-Agent": GROK_USER_AGENT,
       "x-statsig-id": generateStatsigId(),
       "x-xai-request-id": crypto.randomUUID(),
-      traceparent: generateTraceparent({ sampled: false }),
+      traceparent: `00-${traceId}-${spanId}-00`,
     };
 
     // Cookie auth — accepts a bare value, "sso=<value>", or a full DevTools

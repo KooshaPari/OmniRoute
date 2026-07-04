@@ -16,7 +16,9 @@ import { createProxyDispatcher, clearDispatcherCache } from "@omniroute/open-sse
 import { fetch as undiciFetch } from "undici";
 
 const TEST_TIMEOUT_MS = 5000;
-const TEST_URL = "https://httpbin.org/ip";
+// Reachability probe target for proxy health checks. Configurable so operators
+// can point it at an internal/self-hosted endpoint instead of the public default.
+const TEST_URL = process.env.PROXY_HEALTH_TEST_URL || "https://httpbin.org/ip";
 const CONCURRENCY = 10;
 const INITIAL_DELAY_MS = 60_000;
 const DEFAULT_INTERVAL_MS = 600_000;
@@ -24,9 +26,7 @@ const DEFAULT_REMOVE_AFTER = 3;
 const LOG_PREFIX = "[ProxyHealth]";
 
 declare global {
-  // eslint-disable-next-line no-var
   var __proxyHealthInterval: ReturnType<typeof setInterval> | undefined;
-  // eslint-disable-next-line no-var
   var __proxyHealthConsecutiveFailures: Map<string, number> | undefined;
 }
 
