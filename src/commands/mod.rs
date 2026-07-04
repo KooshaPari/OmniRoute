@@ -1,6 +1,8 @@
 //! CLI commands for sharecli
 
 pub mod cast;
+pub mod serve;
+pub use serve::run as serve_run;
 
 use std::path::PathBuf;
 use std::sync::Arc;

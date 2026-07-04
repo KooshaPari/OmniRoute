@@ -11,6 +11,11 @@ repository = "https://github.com/KooshaPari/sharecli"
 # CLI
 clap = { version = "4.5", features = ["derive", "env"] }
 tokio = { version = "1", features = ["full"] }
+axum = { version = "0.8", features = ["ws"] }
+tokio-tungstenite = "0.26"
+futures-util = "0.3"
+fs2 = "0.4"
+libc = "0.2"
 anyhow = "1"
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }

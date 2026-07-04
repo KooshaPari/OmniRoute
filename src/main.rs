@@ -9,11 +9,12 @@ mod commands;
 mod config;
 mod monitoring;
 mod runtime;
+mod serve_lock;
 mod spawn_policy;
 
 use commands::{
     cast as cast_cmd, check_limits, config as config_cmd, health, pool_status,
-    project as project_cmd, ps, run_pool, set_limits, start, status, stop,
+    project as project_cmd, ps, run_pool, serve_run, set_limits, start, status, stop,
 };
 use runtime::ProcessPool;
 
@@ -189,6 +190,17 @@ enum Commands {
         cap: u32,
     },
 
+    /// Start the HTTP + WebSocket dashboard server
+    Serve {
+        /// Address to bind (host:port)
+        #[arg(short, long, default_value = "127.0.0.1:9000")]
+        bind: String,
+
+        /// Behaviour when a server is already running: abort | attach | replace
+        #[arg(long, default_value = "abort")]
+        on_conflict: String,
+    },
+
     /// Fleet device management
     Fleet {
         #[command(subcommand)]
@@ -291,6 +303,15 @@ async fn main() -> Result<()> {
             set_limits(project, *memory, *processes).await?
         }
         Commands::Check { project } => check_limits(project).await?,
+        Commands::Serve { bind, on_conflict } => {
+            use crate::serve_lock::OnConflict;
+            let policy = match on_conflict.as_str() {
+                "attach" => OnConflict::Attach,
+                "replace" => OnConflict::Replace,
+                _ => OnConflict::Abort,
+            };
+            serve_run(bind, policy).await?
+        }
         Commands::Thermal { cap } => {
             let gov = sharecli_fleet::thermal::ThermalGovernor::new();
             thermal_tui::run(&gov, *cap)?;

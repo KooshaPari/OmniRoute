@@ -12,6 +12,7 @@ pub mod config;
 pub mod coordination;
 pub mod monitoring;
 pub mod runtime;
+pub mod serve_lock;
 pub mod spawn_policy;
 
 pub use anyhow::Result;
