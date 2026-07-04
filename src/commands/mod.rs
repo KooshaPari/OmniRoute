@@ -1,6 +1,7 @@
 //! CLI commands for sharecli
 
 pub mod cast;
+pub mod report;
 pub mod serve;
 pub use serve::run as serve_run;
 

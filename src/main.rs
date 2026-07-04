@@ -201,6 +201,13 @@ enum Commands {
         on_conflict: String,
     },
 
+    /// Print a one-shot fleet analytics snapshot
+    Report {
+        /// Output format: text (default) or json
+        #[arg(long, default_value = "text")]
+        format: String,
+    },
+
     /// Fleet device management
     Fleet {
         #[command(subcommand)]
@@ -303,6 +310,11 @@ async fn main() -> Result<()> {
             set_limits(project, *memory, *processes).await?
         }
         Commands::Check { project } => check_limits(project).await?,
+        Commands::Report { format } => {
+            use std::str::FromStr as _;
+            let fmt = commands::report::ReportFormat::from_str(format)?;
+            commands::report::run(fmt).await?
+        }
         Commands::Serve { bind, on_conflict } => {
             use crate::serve_lock::OnConflict;
             let policy = match on_conflict.as_str() {
