@@ -50,7 +50,7 @@ jobs:
 
       - name: Collect latency trace (synthetic)
         run: |
-          mkdir -p "$(dirname ${{ env.TRACE_FILE }})"
+          mkdir -p "$(dirname "${{ env.TRACE_FILE }}")"
           node scripts/check/check-latency-trace.mjs --output "${{ env.TRACE_FILE }}" --budget "${{ env.BUDGET_FILE }}" \
             || echo "::warning::Trace collection did not return all endpoints; using partial trace"
 
@@ -70,7 +70,7 @@ jobs:
           if [ "$exit_code" -ne 0 ]; then
             echo "::error::Some endpoints exceeded hard cap budget"
           fi
-          exit $exit_code
+          exit "$exit_code"
 
       - name: Annotate PR with budget results
         if: always()
@@ -138,7 +138,7 @@ jobs:
           if [ "$exit_code" -ne 0 ]; then
             echo "::error::p99 latency regression >10% detected"
           fi
-          exit $exit_code
+          exit "$exit_code"
 
       - name: Comment PR with regression report
         if: always()

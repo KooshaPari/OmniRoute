@@ -54,15 +54,17 @@ jobs:
         id: k6
         continue-on-error: false
         run: |
-          k6 run k6-tests/${SCENARIO}-test.js \
+          k6 run "k6-tests/${SCENARIO}-test.js" \
             --env TARGET="${TARGET}" \
             --summary-export /tmp/k6-summary.json
 
       - name: Fail on error budget breach
         if: failure()
         run: |
-          echo "## k6 load-test failure (${SCENARIO})" >> "$GITHUB_STEP_SUMMARY"
-          echo "" >> "$GITHUB_STEP_SUMMARY"
-          echo "The ${SCENARIO} test against ${TARGET} breached the error budget." >> "$GITHUB_STEP_SUMMARY"
-          echo "Check the workflow logs or re-run with \`scenario: ${SCENARIO}\` and \`target: ${TARGET}\`." >> "$GITHUB_STEP_SUMMARY"
+          {
+            echo "## k6 load-test failure (${SCENARIO})"
+            echo ""
+            echo "The ${SCENARIO} test against ${TARGET} breached the error budget."
+            echo "Check the workflow logs or re-run with \`scenario: ${SCENARIO}\` and \`target: ${TARGET}\`."
+          } >> "$GITHUB_STEP_SUMMARY"
           exit 1

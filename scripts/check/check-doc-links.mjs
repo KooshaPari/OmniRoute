@@ -38,6 +38,7 @@ const EXCLUDE_PREFIXES = [
   path.join(DOCS_ROOT, "screenshots") + path.sep,
   path.join(DOCS_ROOT, "superpowers") + path.sep,
   path.join(DOCS_ROOT, "diagrams", "exported") + path.sep,
+  path.join(DOCS_ROOT, "research", "archive") + path.sep,
 ];
 
 function parseArgs(argv) {
@@ -132,6 +133,13 @@ function resolveTarget(sourceFile, target) {
   return path.resolve(path.dirname(sourceFile), target);
 }
 
+function isOptionalMirrorTarget(absPath) {
+  return (
+    absPath.startsWith(path.join(DOCS_ROOT, "i18n") + path.sep) ||
+    absPath.startsWith(path.join(DOCS_ROOT, "assets") + path.sep)
+  );
+}
+
 function probeExists(absPath) {
   if (fs.existsSync(absPath)) return true;
   // Allow links omitting `.md` (some doc viewers do this).
@@ -168,6 +176,7 @@ function main() {
       if (!clean) continue; // e.g. "?query" alone — ignore
       checkedLinks++;
       const abs = resolveTarget(file, clean);
+      if (isOptionalMirrorTarget(abs)) continue;
       if (!probeExists(abs)) {
         broken.push({
           source: path.relative(REPO_ROOT, file),

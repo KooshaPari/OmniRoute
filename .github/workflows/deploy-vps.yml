@@ -34,7 +34,7 @@ jobs:
           # an unreachable host no longer red-fails every release/push pipeline.
           # When the host IS reachable, the deploy step below still runs in full and
           # its health gate surfaces any genuine deploy failure.
-          if timeout 15 bash -c 'exec 3<>"/dev/tcp/${VPS_HOST}/22"' 2>/dev/null; then
+          if timeout 15 bash -c "exec 3<>\"/dev/tcp/${VPS_HOST}/22\"" 2>/dev/null; then
             echo "reachable=true" >> "$GITHUB_OUTPUT"
             echo "✅ VPS_HOST:22 reachable from the runner — proceeding with deploy."
           else

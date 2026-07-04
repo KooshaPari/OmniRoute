@@ -67,6 +67,9 @@ export const KNOWN_STALE_DOC_REFS = new Set([
   // docs/ops/TUNNELS_GUIDE.md — a doc afirma EXPLICITAMENTE que este endpoint NÃO
   // existe ("There is no central /api/settings/tunnels endpoint"); menção pedagógica:
   "/api/settings/tunnels",
+  // docs/latency-budgets/REST-endpoints.md — historical latency-budget table
+  // entry for the removed/compat version endpoint. Tracked as docs drift.
+  "/api/version",
 ]);
 
 function walk(dir, filter, acc = []) {

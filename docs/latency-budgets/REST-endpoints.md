@@ -3,7 +3,7 @@
 **Pillar:** L17 (latency-budget-to-CI)
 **Status:** Authoritative. Extends the per-endpoint budgets from `docs/PERF_BUDGETS.md`
 with CI enforcement hooks for every REST endpoint in the API surface.
-**Refs:** [`docs/PERF_BUDGETS.md`](../PERF_BUDGETS.md),
+**Refs:** `docs/PERF_BUDGETS.md`,
 [`.github/workflows/latency-budget.yml`](../../.github/workflows/latency-budget.yml),
 [`tools/latency-budget-to-ci/budget.py`](../../tools/latency-budget-to-ci/budget.py)
 

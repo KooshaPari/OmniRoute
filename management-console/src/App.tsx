@@ -23,17 +23,42 @@ export function App() {
   const [active, setActive] = useState<Tab>(tabs[0]);
   const [baseUrl, setBaseUrl] = useState(managementBaseUrl());
   const [status, setStatus] = useState("idle");
-  const [payload, setPayload] = useState<string>("No request made yet.");
+  const [payloadState, setPayloadState] = useState<{
+    endpoint: ConsoleEndpoint;
+    payload: string;
+    status: string;
+  }>({
+    endpoint: tabs[0].id,
+    payload: "No request made yet.",
+    status: "idle",
+  });
   const [events, setEvents] = useState<ManagementEvent[]>([]);
 
   const routePlan = useMemo(() => tabs.map((tab) => `/api/management/${tab.id}`), []);
+  const tabPayload = payloadState.endpoint === active.id ? payloadState.payload : "Loading...";
+  const tabStatus = payloadState.endpoint === active.id ? payloadState.status : "loading";
+  const displayStatus = tabStatus === "loading" ? tabStatus : status;
 
   useEffect(() => {
-    setStatus("loading");
+    let isCurrent = true;
+
     fetchManagement<Record<string, unknown>>(active.id).then((result) => {
-      setStatus(result.ok ? "online" : "needs facade");
-      setPayload(JSON.stringify(result, null, 2));
+      if (!isCurrent) {
+        return;
+      }
+
+      const nextStatus = result.ok ? "online" : "needs facade";
+      setStatus(nextStatus);
+      setPayloadState({
+        endpoint: active.id,
+        payload: JSON.stringify(result, null, 2),
+        status: nextStatus,
+      });
     });
+
+    return () => {
+      isCurrent = false;
+    };
   }, [active]);
 
   useEffect(() => {
@@ -74,14 +99,14 @@ export function App() {
       </aside>
       <section className="content">
         <div className="hero">
-          <p className="eyebrow">Status: {status}</p>
+          <p className="eyebrow">Status: {displayStatus}</p>
           <h2>{active.label}</h2>
           <p>{active.summary}</p>
         </div>
         <section className="grid">
           <article className="card wide">
             <h3>Facade response</h3>
-            <pre>{payload}</pre>
+            <pre>{tabPayload}</pre>
           </article>
           <article className="card">
             <h3>Migration rule</h3>
