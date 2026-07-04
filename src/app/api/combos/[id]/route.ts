@@ -76,47 +76,6 @@ function stripLegacyComboConfigKeys(rawConfig) {
   return mutated ? next : rawConfig;
 }
 
-/**
- * Keys that were present in older combo configs (≤ v3.8.31) but have since been
- * removed from comboRuntimeConfigSchema. The dashboard modal sanitises the three
- * UI-level keys (timeoutMs, healthCheckEnabled, healthCheckTimeoutMs) before PUT,
- * but v3.8.31-era stored configs also carry these 12 keys which were spread back
- * into the body on edit+save. We strip them server-side so removed keys don't
- * accumulate in `combos.data` and so the next read produces a clean config.
- *
- * Idempotent — running twice is a no-op.
- */
-const LEGACY_REMOVED_COMBO_CONFIG_KEYS = Object.freeze([
-  "queueDepth",
-  "fallbackDelayMs",
-  "handoffProviders",
-  "maxComboDepth",
-  "manifestRouting",
-  "complexityAwareRouting",
-  "pipeline_enabled",
-  "pipelineConcurrency",
-  "shadowRouting",
-  "evalRouting",
-  "resetAwareEnabled",
-  "resetAwareWindow",
-]);
-
-function stripLegacyComboConfigKeys(rawConfig) {
-  if (!rawConfig || typeof rawConfig !== "object" || Array.isArray(rawConfig)) {
-    return rawConfig;
-  }
-  let mutated = false;
-  const next = {};
-  for (const [key, value] of Object.entries(rawConfig)) {
-    if (LEGACY_REMOVED_COMBO_CONFIG_KEYS.includes(key)) {
-      mutated = true;
-      continue;
-    }
-    next[key] = value;
-  }
-  return mutated ? next : rawConfig;
-}
-
 // GET /api/combos/[id] - Get combo by ID
 export async function GET(request, { params }) {
   const authError = await requireManagementAuth(request);
@@ -158,17 +117,10 @@ export async function PUT(request, { params }) {
     const { id } = await params;
     const validation = validateBody(updateComboSchema, rawBody);
     if (isValidationFailure(validation)) {
-      // Surface the first field-level issue so clients can highlight the
-      // offending field without parsing the full issues array (#5083 Bug 3).
-      const firstDetail = validation.error.details?.[0] ?? null;
       return comboErrorResponse(
         "COMBO_002",
         400,
-        {
-          issues: validation.error,
-          firstField: firstDetail?.field ?? null,
-          firstMessage: firstDetail?.message ?? null,
-        },
+        { issues: validation.error },
         request
       );
     }

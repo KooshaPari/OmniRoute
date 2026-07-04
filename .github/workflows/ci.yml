@@ -846,6 +846,7 @@ jobs:
           path: |
             coverage/coverage-summary.json
             coverage/coverage-report.md
+            coverage/lcov.info
           if-no-files-found: warn
 
   sonarqube:

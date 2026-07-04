@@ -10,15 +10,6 @@
 import { getDbInstance } from "../db/core";
 import { protectPayloadForLog } from "../logPayloads";
 import {
-  asRecord,
-  normalizeServiceTier,
-  percentile,
-  stdDev,
-  toNumber,
-  toStringOrNull,
-  truncatePendingPreview,
-} from "./usageHistory/helpers";
-import {
   clearCompletedDetails,
   maybeEnrichCompletedDetail,
   scheduleCompletedDetailCleanup,
@@ -34,6 +25,7 @@ import {
   getReasoningTokens,
 } from "./tokenAccounting";
 
+type JsonRecord = Record<string, unknown>;
 export type PendingRequestMetadata = {
   clientEndpoint?: string | null;
   clientRequest?: unknown;
@@ -46,7 +38,6 @@ export type PendingRequestMetadata = {
   errorCode?: string | null;
   stage?: string | null;
   stageUpdatedAt?: number | null;
-  correlationId?: string | null;
 };
 export type PendingRequestDetail = {
   id: string;
@@ -67,13 +58,91 @@ export type PendingRequestDetail = {
   durationMs?: number | null;
   stage?: string | null;
   stageUpdatedAt?: number | null;
-  correlationId?: string | null;
   streamChunks?: {
     provider?: string[];
     openai?: string[];
     client?: string[];
   } | null;
 };
+
+function asRecord(value: unknown): JsonRecord {
+  return value && typeof value === "object" && !Array.isArray(value) ? (value as JsonRecord) : {};
+}
+
+function toStringOrNull(value: unknown): string | null {
+  return typeof value === "string" && value.trim().length > 0 ? value : null;
+}
+
+function normalizeServiceTier(value: unknown): string {
+  const tier = typeof value === "string" ? value.trim().toLowerCase() : "";
+  if (tier === "priority" || tier === "fast") return "priority";
+  if (tier === "flex") return "flex";
+  return "standard";
+}
+
+function toNumber(value: unknown): number {
+  if (typeof value === "number" && Number.isFinite(value)) return value;
+  if (typeof value === "string" && value.trim().length > 0) {
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : 0;
+  }
+  return 0;
+}
+
+function percentile(sortedValues: number[], p: number): number {
+  if (sortedValues.length === 0) return 0;
+  if (sortedValues.length === 1) return sortedValues[0];
+  const bounded = Math.max(0, Math.min(1, p));
+  const idx = Math.round((sortedValues.length - 1) * bounded);
+  return sortedValues[idx] ?? sortedValues[sortedValues.length - 1];
+}
+
+function stdDev(values: number[], avg: number): number {
+  if (values.length <= 1) return 0;
+  const variance = values.reduce((acc, v) => acc + (v - avg) ** 2, 0) / values.length;
+  return Math.sqrt(Math.max(0, variance));
+}
+
+const MAX_PREVIEW_DEPTH = 6;
+const MAX_PREVIEW_STRING = 1200;
+const MAX_PREVIEW_ARRAY_ITEMS = 12;
+const MAX_PREVIEW_OBJECT_KEYS = 24;
+
+function truncatePendingPreview(value: unknown, depth = 0): unknown {
+  if (depth >= MAX_PREVIEW_DEPTH) {
+    return "[TRUNCATED_DEPTH]";
+  }
+
+  if (typeof value === "string") {
+    return value.length > MAX_PREVIEW_STRING ? `${value.slice(0, MAX_PREVIEW_STRING)}...` : value;
+  }
+
+  if (Array.isArray(value)) {
+    const preview = value
+      .slice(0, MAX_PREVIEW_ARRAY_ITEMS)
+      .map((item) => truncatePendingPreview(item, depth + 1));
+    if (value.length > MAX_PREVIEW_ARRAY_ITEMS) {
+      preview.push({ _truncatedItems: value.length - MAX_PREVIEW_ARRAY_ITEMS });
+    }
+    return preview;
+  }
+
+  if (!value || typeof value !== "object") {
+    return value;
+  }
+
+  const entries = Object.entries(value as JsonRecord);
+  const truncatedEntries = entries
+    .slice(0, MAX_PREVIEW_OBJECT_KEYS)
+    .map(([key, entryValue]) => [key, truncatePendingPreview(entryValue, depth + 1)]);
+  const preview = Object.fromEntries(truncatedEntries);
+
+  if (entries.length > MAX_PREVIEW_OBJECT_KEYS) {
+    preview._truncatedKeys = entries.length - MAX_PREVIEW_OBJECT_KEYS;
+  }
+
+  return preview;
+}
 
 function normalizePendingMetadata(metadata?: PendingRequestMetadata): PendingRequestMetadata {
   if (!metadata) return {};
@@ -123,9 +192,6 @@ function normalizePendingMetadata(metadata?: PendingRequestMetadata): PendingReq
   }
   if (metadata.errorCode !== undefined) {
     normalized.errorCode = toStringOrNull(metadata.errorCode) || null;
-  }
-  if (metadata.correlationId !== undefined) {
-    normalized.correlationId = toStringOrNull(metadata.correlationId) || null;
   }
 
   return normalized;
@@ -571,94 +637,42 @@ export async function saveRequestUsage(entry: any) {
     const timestamp = entry.timestamp || new Date().toISOString();
     const serviceTier = normalizeServiceTier(entry.serviceTier ?? entry.service_tier);
 
-    const tokensInput = getLoggedInputTokens(entry.tokens);
-    const tokensOutput = getLoggedOutputTokens(entry.tokens);
-
-    // Dedup guard: skip INSERT when an identical row already exists in the same
-    // second. This prevents double-counting when onRequestSuccess fires more
-    // than once (e.g. combo routing calling the callback from both the
-    // streaming and non-streaming paths for the same underlying request).
-    // Keyed on the natural identity of a request: timestamp + provider + model
-    // + connectionId + apiKeyId + token counts. If only the endpoint is missing
-    // on the existing row, fill it in rather than inserting a duplicate.
-    let inserted = false;
-
-    db.transaction(() => {
-      const existing = db
-        .prepare(
-          `SELECT id, endpoint FROM usage_history
-           WHERE timestamp = ?
-             AND COALESCE(provider, '')     = COALESCE(?, '')
-             AND COALESCE(model, '')        = COALESCE(?, '')
-             AND COALESCE(connection_id, '') = COALESCE(?, '')
-             AND COALESCE(api_key_id, '')   = COALESCE(?, '')
-             AND tokens_input  = ?
-             AND tokens_output = ?
-           ORDER BY id DESC LIMIT 1`
-        )
-        .get(
-          timestamp,
-          entry.provider || null,
-          entry.model || null,
-          entry.connectionId || null,
-          entry.apiKeyId || null,
-          tokensInput,
-          tokensOutput
-        ) as { id: number; endpoint: string | null } | undefined;
-
-      if (existing) {
-        // Back-fill endpoint if the original row missed it.
-        if (!existing.endpoint && entry.endpoint) {
-          db.prepare(`UPDATE usage_history SET endpoint = ? WHERE id = ?`).run(
-            entry.endpoint,
-            existing.id
-          );
-        }
-        return; // duplicate — do not insert
-      }
-
-      db.prepare(
-        `
-        INSERT INTO usage_history (provider, model, connection_id, api_key_id, api_key_name,
-          tokens_input, tokens_output, tokens_cache_read, tokens_cache_creation, tokens_reasoning,
-          service_tier, status, success, latency_ms, ttft_ms, error_code, combo_strategy, endpoint, timestamp)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    db.prepare(
       `
-      ).run(
-        entry.provider || null,
-        entry.model || null,
-        entry.connectionId || null,
-        entry.apiKeyId || null,
-        entry.apiKeyName || null,
-        tokensInput,
-        tokensOutput,
-        getPromptCacheReadTokens(entry.tokens),
-        getPromptCacheCreationTokens(entry.tokens),
-        getReasoningTokens(entry.tokens),
-        serviceTier,
-        entry.status || null,
-        entry.success === false ? 0 : 1,
-        Number.isFinite(Number(entry.latencyMs)) ? Number(entry.latencyMs) : 0,
-        Number.isFinite(Number(entry.timeToFirstTokenMs))
-          ? Number(entry.timeToFirstTokenMs)
-          : Number.isFinite(Number(entry.latencyMs))
-            ? Number(entry.latencyMs)
-            : 0,
-        entry.errorCode || null,
-        entry.comboStrategy || entry.combo_strategy || null,
-        entry.endpoint || null,
-        timestamp
-      );
-
-      inserted = true;
-    })();
+      INSERT INTO usage_history (provider, model, connection_id, api_key_id, api_key_name,
+        tokens_input, tokens_output, tokens_cache_read, tokens_cache_creation, tokens_reasoning,
+        service_tier, status, success, latency_ms, ttft_ms, error_code, combo_strategy, endpoint, timestamp)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `
+    ).run(
+      entry.provider || null,
+      entry.model || null,
+      entry.connectionId || null,
+      entry.apiKeyId || null,
+      entry.apiKeyName || null,
+      getLoggedInputTokens(entry.tokens),
+      getLoggedOutputTokens(entry.tokens),
+      getPromptCacheReadTokens(entry.tokens),
+      getPromptCacheCreationTokens(entry.tokens),
+      getReasoningTokens(entry.tokens),
+      serviceTier,
+      entry.status || null,
+      entry.success === false ? 0 : 1,
+      Number.isFinite(Number(entry.latencyMs)) ? Number(entry.latencyMs) : 0,
+      Number.isFinite(Number(entry.timeToFirstTokenMs))
+        ? Number(entry.timeToFirstTokenMs)
+        : Number.isFinite(Number(entry.latencyMs))
+          ? Number(entry.latencyMs)
+          : 0,
+      entry.errorCode || null,
+      entry.comboStrategy || entry.combo_strategy || null,
+      entry.endpoint || null,
+      timestamp
+    );
 
     // Decoupled via the event bus so usageHistory never imports providerLimits
     // (which would pull the executors/translator graph into the type-check surface).
-    // Only emit when a row was actually inserted — not on dedup no-ops.
-    if (inserted) {
-      emitUsageRecorded(entry.provider, entry.connectionId);
-    }
+    emitUsageRecorded(entry.provider, entry.connectionId);
   } catch (error) {
     console.error("Failed to save usage stats:", error);
   }
@@ -732,9 +746,6 @@ export interface ModelLatencyStatsEntry {
   successfulRequests: number;
   successRate: number; // 0..1
   avgLatencyMs: number;
-  avgTtftMs: number | null;
-  avgE2ELatencyMs: number;
-  avgTokensPerSecond: number | null;
   p50LatencyMs: number;
   p95LatencyMs: number;
   p99LatencyMs: number;
@@ -770,14 +781,12 @@ export async function getModelLatencyStats(
     model: string | null;
     success: number | null;
     latency_ms: number | null;
-    ttft_ms: number | null;
-    tokens_output: number | null;
   };
 
   const rows = db
     .prepare(
       `
-      SELECT provider, model, success, latency_ms, ttft_ms, tokens_output
+      SELECT provider, model, success, latency_ms
       FROM usage_history
       WHERE timestamp >= @sinceIso
         AND provider IS NOT NULL
@@ -797,8 +806,6 @@ export async function getModelLatencyStats(
       successfulRequests: number;
       successfulLatencies: number[];
       allLatencies: number[];
-      successfulTtfts: number[];
-      successfulTokensPerSecond: number[];
     }
   >();
 
@@ -816,8 +823,6 @@ export async function getModelLatencyStats(
         successfulRequests: 0,
         successfulLatencies: [],
         allLatencies: [],
-        successfulTtfts: [],
-        successfulTokensPerSecond: [],
       });
     }
 
@@ -829,22 +834,9 @@ export async function getModelLatencyStats(
     if (isSuccess) bucket.successfulRequests += 1;
 
     const latency = toNumber(row.latency_ms);
-    const ttft = toNumber(row.ttft_ms);
     if (latency > 0) {
       bucket.allLatencies.push(latency);
-      if (isSuccess) {
-        bucket.successfulLatencies.push(latency);
-
-        if (ttft > 0) {
-          bucket.successfulTtfts.push(ttft);
-        }
-
-        const outputTokens = toNumber(row.tokens_output);
-        const generationMs = Math.max(latency - Math.max(ttft, 0), 1);
-        if (outputTokens > 0) {
-          bucket.successfulTokensPerSecond.push(outputTokens / (generationMs / 1000));
-        }
-      }
+      if (isSuccess) bucket.successfulLatencies.push(latency);
     }
   }
 
@@ -859,15 +851,6 @@ export async function getModelLatencyStats(
 
     const sorted = [...baseLatencies].sort((a, b) => a - b);
     const avg = sorted.reduce((acc, n) => acc + n, 0) / sorted.length;
-    const avgTtft =
-      bucket.successfulTtfts.length > 0
-        ? bucket.successfulTtfts.reduce((acc, n) => acc + n, 0) / bucket.successfulTtfts.length
-        : null;
-    const avgTokensPerSecond =
-      bucket.successfulTokensPerSecond.length > 0
-        ? bucket.successfulTokensPerSecond.reduce((acc, n) => acc + n, 0) /
-          bucket.successfulTokensPerSecond.length
-        : null;
     const successRate =
       bucket.totalRequests > 0 ? bucket.successfulRequests / bucket.totalRequests : 0;
 
@@ -879,10 +862,6 @@ export async function getModelLatencyStats(
       successfulRequests: bucket.successfulRequests,
       successRate,
       avgLatencyMs: Math.round(avg),
-      avgTtftMs: avgTtft === null ? null : Math.round(avgTtft),
-      avgE2ELatencyMs: Math.round(avg),
-      avgTokensPerSecond:
-        avgTokensPerSecond === null ? null : Math.round(avgTokensPerSecond * 10) / 10,
       p50LatencyMs: Math.round(percentile(sorted, 0.5)),
       p95LatencyMs: Math.round(percentile(sorted, 0.95)),
       p99LatencyMs: Math.round(percentile(sorted, 0.99)),

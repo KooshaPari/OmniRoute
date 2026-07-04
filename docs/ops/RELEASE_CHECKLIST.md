@@ -1,17 +1,17 @@
 ---
 title: "Release Checklist"
-version: 3.8.40
-lastUpdated: 2026-06-28
+version: 3.8.2
+lastUpdated: 2026-05-13
 ---
 
 # Release Checklist
 
-> **Last updated:** 2026-06-28 — v3.8.40
+> **Last updated:** 2026-05-13 — v3.8.0
 > Streamlined release flow that leverages Claude Code skills for automation.
 >
-> **Keep the queue/branch green between releases:** see [RELEASE_GREEN.md](./RELEASE_GREEN.md)
-> (`/green-prs` family + `npm run check:release-green` + `/babysit` + nightly). Running
-> this periodically — and especially **before** this checklist — makes the release PR start green.
+> **Manter a fila/branch verdes entre releases:** veja [RELEASE_GREEN.md](./RELEASE_GREEN.md)
+> (família `/green-prs` + `npm run check:release-green` + `/babysit` + nightly). Rodar
+> periodicamente — e principalmente **antes** deste checklist — faz a release PR nascer verde.
 
 ## TL;DR
 
@@ -21,7 +21,7 @@ lastUpdated: 2026-06-28
 
 # 2. Run quality gate locally
 npm run check              # lint + tests
-npm run test:coverage      # full coverage gate (60/60/60/60)
+npm run test:coverage      # full coverage gate (75/75/75/70)
 
 # 3. Build & smoke
 npm run build
@@ -66,17 +66,14 @@ npm run test:e2e           # optional but recommended
 - [ ] `npm run check:cycles` — no circular deps
 - [ ] `npm run check:any-budget:t11` — within budget
 - [ ] `npm run check:route-validation:t06` — clean
-- [ ] `npm run check:node-runtime` — supported runtime floor met (`>=22.22.2 <23`, `>=24.0.0 <27`, per `SUPPORTED_NODE_RANGE` in `src/shared/utils/nodeRuntimeSupport.ts`; aligned with `package.json` `engines`)
+- [ ] `npm run check:node-runtime` — supported floor met (`>=20.20.2 <21`, `>=22.22.2 <23`, `>=24.0.0 <25`)
 
 ### Testing
 
 - [ ] `npm run test:unit` — pass
 - [ ] `npm run test:vitest` — pass (MCP server, autoCombo, cache)
-- [ ] `npm run test:coverage` — gate 60/60/60/60 satisfied (statements/lines/functions/branches)
+- [ ] `npm run test:coverage` — gate 75/75/75/70 satisfied (statements/lines/functions/branches)
 - [ ] `npm run test:integration` — pass (if changes touch DB / handlers)
-- [ ] `npm run test:combo:matrix` — pass (combo strategy matrix: proves all 17 routing strategies' selection decisions deterministically; run when touching combo routing, strategy resolution, or fallback logic)
-- [ ] `RUN_COMBO_LIVE=1 npm run test:combo:live` — **optional/manual** (gated real-upstream smoke; sources a read-only DB snapshot from VPS `root@192.168.0.15`; hits real providers, costs credits; never runs in CI; skips cleanly without the gate)
-- [ ] `npm run test:combo:live:vps` — **optional/manual** (Phase-3 VPS live smoke: 7 HTTP scenarios against the live `.15` server via plain Node ESM; requires `ssh root@192.168.0.15`; creates/deletes only `__live_test__*` combos; hits real providers; never runs in CI)
 - [ ] `npm run test:e2e` — pass (UI changes)
 - [ ] `npm run test:protocols:e2e` — pass (MCP/A2A changes)
 - [ ] `npm run test:ecosystem` — pass
@@ -86,7 +83,7 @@ npm run test:e2e           # optional but recommended
 Husky hooks live in `.husky/` and run automatically on git operations.
 
 - **pre-commit:** `npx lint-staged + node scripts/check/check-docs-sync.mjs + npm run check:any-budget:t11`
-- **pre-push:** fast deterministic gates — `npm run check:any-budget:t11 && npm run check:tracked-artifacts` (activated 2026-06-13). Intentionally excludes `test:unit` (slow; covered by the CI `test-unit` job).
+- **pre-push:** currently disabled (commented out). When re-enabled, runs `npm run test:unit`.
   - Run `npm run test:unit` manually before pushing release branches.
 
 If a hook fails: fix the underlying issue, don't bypass with `--no-verify`.
@@ -158,11 +155,11 @@ If `electron/` changed:
 
 The repository uses three distinct output directories — never mix them up:
 
-| Directory | Purpose                                                  | Tracked?        |
-| --------- | -------------------------------------------------------- | --------------- |
-| `src/`    | Application source (TypeScript / TSX)                    | Yes             |
-| `.build/` | Build intermediates — `next build` output (`distDir`)    | No (gitignored) |
-| `dist/`   | Shippable npm bundle — assembled by `assembleStandalone` | No (gitignored) |
+| Directory     | Purpose                                                       | Tracked? |
+| ------------- | ------------------------------------------------------------- | -------- |
+| `src/`        | Application source (TypeScript / TSX)                         | Yes      |
+| `.build/`     | Build intermediates — `next build` output (`distDir`)         | No (gitignored) |
+| `dist/`       | Shippable npm bundle — assembled by `assembleStandalone`      | No (gitignored) |
 
 > **Operator note:** the remote VPS image directory remains `/usr/lib/node_modules/omniroute/app/`.
 > Only the **in-repo** build output moved (`app/` → `dist/`). The deploy skills rsync
@@ -312,7 +309,7 @@ If release has critical issue:
 - Never use `git push --force` to `main` or `release/*` branches
 - Never skip Husky hooks (`--no-verify`)
 - Never commit secrets, credentials, or `.env` files
-- Coverage must stay ≥60/60/60/60 (statements/lines/functions/branches)
+- Coverage must stay ≥75/75/75/70 (statements/lines/functions/branches)
 - Always include or update tests when changing production code in `src/`, `open-sse/`, `electron/`, or `bin/`
 
 ## Automated Sync Check

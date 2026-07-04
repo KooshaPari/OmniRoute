@@ -561,7 +561,7 @@ Dashboard at `http://localhost:20128` · API at `http://localhost:20128/v1`.
 
 **2) Connect a FREE provider (no signup)**
 
-Dashboard → **Providers** → connect **Kiro AI** (free Claude unlimited) or **OpenCode Free** (no auth) → done.
+Dashboard → **Providers** → connect **Kiro AI** (free Claude, ~50 credits/month per account) or **OpenCode Free** (no auth) → done.
 
 **3) Point your coding tool**
 
@@ -730,7 +730,7 @@ podman compose --profile base up -d
 **$0 forever:**
 
 ```
-1. kr/claude-sonnet-4.5   (Kiro — unlimited)
+1. kr/claude-sonnet-4.5   (Kiro — ~50 credits/mo per acct)
 2. if/kimi-k2-thinking    (Qoder — unlimited)
 3. pol/gpt-5              (Pollinations — no key)
 4. lc/longcat-flash-lite  (50M tok/day backup)
@@ -787,7 +787,7 @@ Compression: aggressive (~50%) → double your free quota · Cost: $0/mo
 | `DATA_DIR`        | `~/.omniroute` | Database & config storage        |
 
 **Will I be charged by OmniRoute?** No — it's free, open-source software on your machine. You only pay paid providers directly. OmniRoute has no billing system.
-**Are FREE providers really unlimited?** Yes — Kiro, Qoder, Pollinations, LongCat, Cloudflare. No catch.
+**Are FREE providers really unlimited?** Mostly — Qoder, Pollinations, LongCat, and Cloudflare are free with no per-account credit cap. Kiro is free too but capped at ~50 credits/month per account. Stack multiple free providers in a combo and auto-fallback keeps you serving for $0.
 **Will compression hurt quality?** No — it only compresses the **input**; code, URLs, JSON are always protected.
 **Does it work where AI is blocked?** Yes — 3-level proxy + 1proxy marketplace reach all 231 providers.
 

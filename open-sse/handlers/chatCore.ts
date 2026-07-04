@@ -445,6 +445,7 @@ export async function handleChatCore({
         statusCode,
         errorCode,
         latencyMs: Date.now() - startTime,
+        endpoint: endpointPath,
       })
     ).catch(() => {});
   };
@@ -3532,6 +3533,7 @@ export async function handleChatCore({
       effectiveServiceTier,
       isCombo,
       comboStrategy,
+      endpoint: endpointPath,
     });
 
     // Translate response to client's expected format (usually OpenAI)
@@ -3989,6 +3991,7 @@ export async function handleChatCore({
       effectiveServiceTier,
       isCombo,
       comboStrategy,
+      endpoint: endpointPath,
     });
 
     persistAttemptLogs({
