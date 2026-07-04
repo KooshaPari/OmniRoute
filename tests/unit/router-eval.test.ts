@@ -32,6 +32,25 @@ test("parseObservation reads mixed JSONL field names", () => {
   assert.equal(parsed.success, true);
 });
 
+test("parseObservation preserves native router backend provenance fields", () => {
+  const parsed = parseObservation({
+    sample_id: "s-native",
+    config_id: "native-router",
+    expected_model: "gpt-4o",
+    selected_model: "gpt-4o",
+    router_backend: "native",
+    provider_id: "openai",
+    cooldown_applied: true,
+    cooldown_reason: "provider_error_budget",
+    status: 200,
+  });
+
+  assert.equal(parsed.routerBackend, "native");
+  assert.equal(parsed.providerId, "openai");
+  assert.equal(parsed.cooldownApplied, true);
+  assert.equal(parsed.cooldownReason, "provider_error_budget");
+});
+
 test("aggregateRouterObservations computes deterministic config summaries", () => {
   const observations: RouterEvalObservation[] = [
     {
@@ -81,6 +100,42 @@ test("aggregateRouterObservations computes deterministic config summaries", () =
   assert.ok(report.bestAiq >= 0);
   assert.equal(report.paretoFrontier.length, 2);
   assert.equal(report.configs[0]!.successRate, 1);
+});
+
+test("aggregateRouterObservations summarizes backend provenance", () => {
+  const report = aggregateRouterObservations([
+    {
+      sampleId: "n1",
+      configId: "native",
+      expectedModel: "gpt-4o",
+      selectedModel: "gpt-4o",
+      routerBackend: "native",
+      providerId: "openai",
+      cooldownApplied: true,
+      cooldownReason: "provider_error_budget",
+      latencyMs: 100,
+      costUsd: 1,
+      success: true,
+    },
+    {
+      sampleId: "n2",
+      configId: "native",
+      expectedModel: "gpt-4o",
+      selectedModel: "gpt-4o",
+      routerBackend: "native",
+      providerId: "anthropic",
+      cooldownApplied: false,
+      latencyMs: 90,
+      costUsd: 1,
+      success: true,
+    },
+  ]);
+
+  const native = report.configs.find((config) => config.configId === "native");
+  assert.deepEqual(native?.routerBackends, ["native"]);
+  assert.deepEqual(native?.providerIds, ["anthropic", "openai"]);
+  assert.equal(native?.cooldownObservations, 1);
+  assert.match(formatRouterEvalReport(report), /native \| 2 \| native \| anthropic, openai \| 1/);
 });
 
 test("pareto frontier collapses dominated configs", () => {
