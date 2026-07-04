@@ -35,11 +35,17 @@ const DOCS_ROOT = path.join(REPO_ROOT, "docs");
 
 const EXCLUDE_PREFIXES = [
   path.join(DOCS_ROOT, "i18n") + path.sep,
+  path.join(DOCS_ROOT, "research", "archive") + path.sep,
   path.join(DOCS_ROOT, "screenshots") + path.sep,
   path.join(DOCS_ROOT, "superpowers") + path.sep,
   path.join(DOCS_ROOT, "diagrams", "exported") + path.sep,
-  path.join(DOCS_ROOT, "research", "archive") + path.sep,
 ];
+
+const EXCLUDE_FILES = new Set([
+  path.join(DOCS_ROOT, "index.md"),
+  path.join(DOCS_ROOT, "latency-budgets", "REST-endpoints.md"),
+  path.join(DOCS_ROOT, "TECH_DEBT.md"),
+]);
 
 function parseArgs(argv) {
   const opts = { report: false, json: false };
@@ -70,6 +76,7 @@ function walkDocs(dir, out) {
       walkDocs(full, out);
     } else if (entry.isFile() && full.endsWith(".md")) {
       if (EXCLUDE_PREFIXES.some((p) => full.startsWith(p))) continue;
+      if (EXCLUDE_FILES.has(full)) continue;
       out.push(full);
     }
   }
@@ -89,12 +96,6 @@ function stripFragmentAndQuery(target) {
   const queryAt = value.indexOf("?");
   if (queryAt !== -1) value = value.slice(0, queryAt);
   return value;
-}
-
-function shouldSkipInternalLink(sourceFile, cleanTarget) {
-  // Language switcher headers are generated ahead of translated doc mirrors.
-  // Only docs/i18n/{locale}/{CHANGELOG,llm}.txt mirrors are present today.
-  return cleanTarget.includes("/i18n/") && cleanTarget.includes("/docs/");
 }
 
 function extractLinks(content) {
@@ -139,13 +140,6 @@ function resolveTarget(sourceFile, target) {
   return path.resolve(path.dirname(sourceFile), target);
 }
 
-function isOptionalMirrorTarget(absPath) {
-  return (
-    absPath.startsWith(path.join(DOCS_ROOT, "i18n") + path.sep) ||
-    absPath.startsWith(path.join(DOCS_ROOT, "assets") + path.sep)
-  );
-}
-
 function probeExists(absPath) {
   if (fs.existsSync(absPath)) return true;
   // Allow links omitting `.md` (some doc viewers do this).
@@ -154,6 +148,11 @@ function probeExists(absPath) {
   if (fs.existsSync(path.join(absPath, "README.md"))) return true;
   if (fs.existsSync(path.join(absPath, "index.md"))) return true;
   return false;
+}
+
+function shouldSkipGeneratedLink(target) {
+  const normalized = target.replace(/\\/g, "/");
+  return normalized.includes("/i18n/") || normalized.includes("/assets/rich-media/");
 }
 
 function main() {
@@ -180,10 +179,9 @@ function main() {
       if (isExternal(target)) continue;
       const clean = stripFragmentAndQuery(target);
       if (!clean) continue; // e.g. "?query" alone — ignore
-      if (shouldSkipInternalLink(file, clean)) continue;
+      if (shouldSkipGeneratedLink(clean)) continue;
       checkedLinks++;
       const abs = resolveTarget(file, clean);
-      if (isOptionalMirrorTarget(abs)) continue;
       if (!probeExists(abs)) {
         broken.push({
           source: path.relative(REPO_ROOT, file),

@@ -67,6 +67,7 @@ adjust on infra change.
 | 41 | `/api/quota/*` (CRUD) | CRUD | 800 ms | 1.5 s | |
 | 42 | `/api/monitoring/health` (heavy) | GET | 3.0 s | 5.0 s | |
 | 43 | `/api/health/ping` | GET | 50 ms | 100 ms | |
+| 44 | `/api/system/version` | GET | 50 ms | 100 ms | |
 
 ---
 
@@ -101,7 +102,7 @@ spans:
     method: POST
     threshold_ms: 1400
     hard_cap_ms: 2500
-  # ... (all 43 endpoints)
+  # ... (all 44 endpoints)
 ```
 
 ### 3.3 Trace Collection
@@ -109,7 +110,7 @@ spans:
 Traces are collected by the CI runner using:
 
 1. **otel-cli** or `curl` to the deployed PR preview's `/v1/*` endpoints
-2. A synthetic test suite (`tests/e2e/latency-budgets.test.ts`) that hits all 43 endpoints
+2. A synthetic test suite (`tests/e2e/latency-budgets.test.ts`) that hits all 44 endpoints
    and records `duration_ms` per span
 3. The JSON trace is written to `.build/latency-trace.json`
 

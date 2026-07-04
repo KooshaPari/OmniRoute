@@ -5,7 +5,7 @@ import { HTTP_STATUS } from "@omniroute/open-sse/config/constants.ts";
 import { getRegistryEntry } from "@omniroute/open-sse/config/providerRegistry.ts";
 import { z } from "zod";
 
-const providerChatBodySchema = z
+const providerChatRouteSchema = z
   .object({
     model: z.string().optional(),
   })
@@ -60,18 +60,21 @@ export async function POST(request, { params }) {
     return errorResponse(HTTP_STATUS.BAD_REQUEST, "Invalid JSON body");
   }
 
-  const bodyValidation = providerChatBodySchema.safeParse(rawBody);
-  if (!bodyValidation.success) {
-    const hasModelTypeError = bodyValidation.error.issues.some(
-      (issue) => issue.path.join(".") === "model" && issue.code === "invalid_type"
-    );
-    if (hasModelTypeError) {
-      return errorResponse(HTTP_STATUS.BAD_REQUEST, "model must be a string");
-    }
+  if (!rawBody || typeof rawBody !== "object" || Array.isArray(rawBody)) {
     return errorResponse(HTTP_STATUS.BAD_REQUEST, "Request body must be a JSON object");
   }
 
-  const body = bodyValidation.data;
+  const validation = providerChatRouteSchema.safeParse(rawBody);
+  if (!validation.success) {
+    return errorResponse(HTTP_STATUS.BAD_REQUEST, "model must be a string");
+  }
+
+  const body = rawBody as { model?: string; [key: string]: unknown };
+
+  // Keep the route-level checks minimal: only guard fields needed for provider prefix handling.
+  if (body.model !== undefined && typeof body.model !== "string") {
+    return errorResponse(HTTP_STATUS.BAD_REQUEST, "model must be a string");
+  }
 
   // Validate model belongs to this provider
   if (body.model) {

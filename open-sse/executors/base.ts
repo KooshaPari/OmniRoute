@@ -6,17 +6,12 @@ import {
 import { applyContextEditingToBody } from "../config/contextEditing.ts";
 import { findOffendingField, stripGroqUnsupportedFields } from "../config/providerFieldStrips.ts";
 import { applyFingerprint, isCliCompatEnabled } from "../config/cliFingerprints.ts";
-import { supportsClaudeMaxEffort, supportsXHighEffort } from "../config/providerModels.ts";
 import { getThinkingBudgetConfig, ThinkingMode } from "../services/thinkingBudget.ts";
 import type { PoolConfig } from "../services/sessionPool/types.ts";
 import type { Session } from "../services/sessionPool/session.ts";
 import { SessionPool } from "../services/sessionPool/sessionPool.ts";
 import { PoolRegistry } from "../services/sessionPool/poolRegistry.ts";
-import {
-  getRotatingApiKey,
-  getValidApiKey,
-  resolveKeyForRequest,
-} from "../services/apiKeyRotator.ts";
+import { resolveKeyForRequest } from "../services/apiKeyRotator.ts";
 import type { KeyHealth } from "../services/apiKeyRotator.ts";
 import { getOpenAICompatibleType, isClaudeCodeCompatible } from "../services/provider.ts";
 import {
@@ -41,6 +36,9 @@ import { obfuscateInBody } from "../services/claudeCodeObfuscation.ts";
 import { sanitizeClaudeToolSchemas } from "../translator/helpers/schemaCoercion.ts";
 import { sanitizeResponsesInputItems } from "../services/responsesInputSanitizer.ts";
 import { applySystemTransformPipeline, PROVIDER_CLAUDE } from "../services/systemTransforms.ts";
+import {
+  sanitizeReasoningEffortForProvider,
+} from "./reasoningEffortMaps.ts";
 import * as prl from "../utils/providerRequestLogging.ts";
 import {
   fixToolPairs,
@@ -66,6 +64,7 @@ import {
   stripProxyToolPrefix,
 } from "./claudeIdentity.ts";
 import { withForcedResponsesUpstream } from "./forceResponsesUpstream.ts";
+import { stripVersionedToolModelPrefix } from "./stripVersionedToolModelPrefix.ts";
 import {
   mergeUpstreamExtraHeaders,
   setUserAgentHeader,
@@ -82,10 +81,7 @@ export {
   isOpenAICompatibleEndpoint,
   stripStainlessHeadersForOpenAICompat,
 } from "./base/headers.ts";
-import { sanitizeReasoningEffortForProvider } from "./base/reasoningEffort.ts";
-// Reasoning-effort sanitation extracted to a pure leaf; re-exported for external
-// importers (mimoThinking service + tests) that import it from "./base.ts".
-export { sanitizeReasoningEffortForProvider } from "./base/reasoningEffort.ts";
+export { sanitizeReasoningEffortForProvider } from "./reasoningEffortMaps.ts";
 
 /**
  * Sanitizes a custom API path to prevent path traversal attacks.
@@ -175,7 +171,15 @@ export type CountTokensInput = {
   signal?: AbortSignal | null;
 };
 
-export function mergeAbortSignals(primary: AbortSignal, secondary: AbortSignal): AbortSignal {
+export function mergeAbortSignals(
+  primary?: AbortSignal | null,
+  secondary?: AbortSignal | null
+): AbortSignal | undefined {
+  if (!primary) return secondary ?? undefined;
+  if (!secondary) return primary;
+  if (primary.aborted) return primary;
+  if (secondary.aborted) return secondary;
+
   const controller = new AbortController();
 
   const abortFrom = (source: AbortSignal) => {
@@ -183,15 +187,6 @@ export function mergeAbortSignals(primary: AbortSignal, secondary: AbortSignal):
       controller.abort(source.reason);
     }
   };
-
-  if (primary.aborted) {
-    abortFrom(primary);
-    return controller.signal;
-  }
-  if (secondary.aborted) {
-    abortFrom(secondary);
-    return controller.signal;
-  }
 
   primary.addEventListener("abort", () => abortFrom(primary), { once: true });
   secondary.addEventListener("abort", () => abortFrom(secondary), { once: true });
@@ -201,27 +196,6 @@ export function mergeAbortSignals(primary: AbortSignal, secondary: AbortSignal):
 function hasActiveClaudeThinking(body: Record<string, unknown>): boolean {
   const thinking = body.thinking as Record<string, unknown> | undefined;
   return thinking?.type === "enabled" || thinking?.type === "adaptive";
-}
-
-/**
- * Strip the OmniRoute provider prefix from versioned built-in tool model
- * fields (e.g. `cc/claude-opus-4-8` → `claude-opus-4-8`). Versioned built-in
- * tool types carry an 8-digit date suffix (`advisor_20260301`, `bash_20250124`);
- * the real Claude CLI sends a bare model id there, never a prefixed one, so a
- * leaked OmniRoute prefix makes Anthropic reject the request. Mutates in place.
- */
-export function stripVersionedToolModelPrefix(tools: unknown): void {
-  if (!Array.isArray(tools)) return;
-  for (const t of tools as Array<Record<string, unknown>>) {
-    if (
-      typeof t.type === "string" &&
-      /^[a-z][a-z0-9_]*_\d{8}$/.test(t.type) &&
-      typeof t.model === "string" &&
-      t.model.includes("/")
-    ) {
-      t.model = t.model.split("/").pop();
-    }
-  }
 }
 
 /**
@@ -380,7 +354,7 @@ export class BaseExecutor {
     stream = true,
     clientHeaders?: Record<string, string> | null,
     model?: string,
-    health?: Record<string, KeyHealth>
+    _health?: Record<string, KeyHealth>
   ): Record<string, string> {
     void clientHeaders;
     void model;
