@@ -3,7 +3,7 @@
 > Status: **Accepted**
 > Date: 2026-06-18
 > Deciders: OmniRoute core team + Phenotype platform team
-> Driver: `chore/l5-109-omniroute-fork-cleanup-2026-06-18` (L5-110)
+> Driver: user directive 2026-06-18
 > Supersedes: None (additive)
 
 ## Context
@@ -16,7 +16,7 @@ OmniRoute's `open-sse/` engine is a 5-protocol surface (OpenAI-compat, Anthropic
 - Per-request circuit-breaker state evaluation.
 - SSE stream chunking and reconnect bookkeeping.
 
-The Phenotype org has been pointing at the **maximhq `bifrost`** Go AI gateway — vendored at `KooshaPari/bifrost`, locally available at `pheno/bifrost`, `HexaKit/bifrost`, `Pyron/bifrost`, `argis-extensions/bifrost` — as a candidate for absorbing this low-level routing work. The user directive (2026-06-18) asked us to evaluate the candidate set and pick the right one.
+The Phenotype org has been pointing at the **maximhq `bifrost`** Go AI gateway — vendored as a canonical fork (KP/bifrost, mirror of maximhq/bifrost + 4 commits ahead), available locally at the build target (`vendor/bifrost/`) — as a candidate for absorbing this low-level routing work. The user directive (2026-06-18) asked us to evaluate the candidate set and pick the right one.
 
 We want to keep OmniRoute's higher-level value-add (A2A agent orchestration, MCP-router polyglot facade, ACP registry, skill registry, policy engine, guardrails, web dashboard) intact. The question is: **what should replace OmniRoute's underlying router infrastructure (provider dispatch, format translation, fallback, load balancing, circuit-breaking, semantic cache, observability) in the future?**
 
@@ -58,7 +58,7 @@ This is a **2-tier** architecture (same pattern as Envoy AI Gateway's two-tier m
                               upstream provider APIs
 ```
 
-**Adoption mode (initial, v8.1):** OmniRoute calls Bifrost over its **HTTP gateway** at `http://localhost:8080/v1/chat/completions`. A new `BifrostBackend` executor in `open-sse/executors/bifrost.ts` implements the `ProviderAdapter` interface and routes through the gateway. Provider name mapping happens via `open-sse/executors/bifrostProviderMap.ts`. **Opt-in per combo; existing combos unchanged.**
+**Adoption mode (initial, v8.1):** OmniRoute calls Bifrost over its **HTTP gateway** at `http://localhost:8080/v1/chat/completions`. A new `BifrostBackend` executor in `open-sse/executors/bifrost.ts` implements the `ProviderAdapter` interface and routes through the gateway. Provider name mapping happens via `open-sse/services/bifrostProviderMap.ts`. **Opt-in per combo; existing combos unchanged.**
 
 **Adoption mode (long-term, v9.0):** Evaluate in-process Go SDK vs sidecar over UDS, pick based on benchmark.
 
@@ -66,7 +66,7 @@ This is a **2-tier** architecture (same pattern as Envoy AI Gateway's two-tier m
 
 ### Option A: Adopt `maximhq/bifrost` (Go, MIT, 5.9k stars) — CHOSEN
 
-- **Pros**: 50x faster than LiteLLM, <100µs overhead at 5k RPS, 23+ providers, MCP, semantic cache, virtual keys, budget mgmt, Prometheus observability, drop-in OpenAI compat. Already vendored at `KooshaPari/bifrost` and `pheno/bifrost`, `HexaKit/bifrost`, `Pyron/bifrost`, `argis-extensions/bifrost`. MIT-licensed (compatible with fleet OSS-first policy). Go runtime aligns with fleet's polyglot strategy (`pheno-go-ctxkit`, `phenotype-bus`, `dispatch-mcp`).
+- **Pros**: 50x faster than LiteLLM, <100µs overhead at 5k RPS, 23+ providers, MCP, semantic cache, virtual keys, budget mgmt, Prometheus observability, drop-in OpenAI compat. Already vendored in this fork as `vendor/bifrost/`. MIT-licensed (compatible with fleet OSS-first policy). Go runtime aligns with fleet's polyglot strategy (`pheno-go-ctxkit`, `phenotype-bus`, `dispatch-mcp`).
 - **Cons**: Adds a runtime dependency. Bifrost's provider catalog is smaller than OmniRoute's (23 vs 232), so the long tail stays on OmniRoute's executors.
 - **Risk**: Low — vendored, MIT, battle-tested (5.9k stars, 5.2k commits), 23+ providers, drop-in OpenAI compat.
 
@@ -146,7 +146,7 @@ This is a **2-tier** architecture (same pattern as Envoy AI Gateway's two-tier m
 
 - **Operational**: Bifrost becomes a runtime dependency. Mitigated by: (a) the in-process Go SDK is an option post-v9, (b) the Bifrost HTTP gateway is small (single binary) and well-containerized, (c) the local vendored copy can be built from source if upstream is unavailable.
 - **Provider coverage**: Bifrost's 23+ providers cover all of OmniRoute's tier-1 surface (OpenAI, Anthropic, Bedrock, Vertex, Groq, Mistral, Cohere, etc.). The 200+ long tail of OmniRoute providers (free tier, OAuth, self-hosted) will still go through OmniRoute's existing executor layer; Bifrost is opt-in per combo.
-- **Translation cost**: A small mapping layer is needed between OmniRoute's provider/model names and Bifrost's. Implemented in `open-sse/executors/bifrostProviderMap.ts` and tested via `tests/unit/bifrost-backend.test.ts`.
+- **Translation cost**: A small mapping layer is needed between OmniRoute's provider/model names and Bifrost's. Implemented in `open-sse/services/bifrostProviderMap.ts` and tested via `tests/unit/bifrost-provider-map.test.ts`.
 - **Lock-in**: If we ever need to swap Bifrost out, we swap the executor. The higher layers don't care about Bifrost internals.
 
 ### Neutral
@@ -171,8 +171,8 @@ This is a **2-tier** architecture (same pattern as Envoy AI Gateway's two-tier m
 - `PLAN.md` § 8 (v8.1 Bifrost Integration) — rollout milestones.
 - `docs/ROUTING-CONVERGENCE-STATUS.md` — disambiguation + tier map.
 - `open-sse/executors/bifrost.ts` — implementation.
-- `open-sse/executors/bifrostProviderMap.ts` — provider name mapping.
+- `open-sse/services/bifrostProviderMap.ts` — provider name mapping.
 - `docs/frameworks/BIFROST-BACKEND.md` — usage guide.
-- `worklogs/2026-06-18-L5-110-bifrost-decision.md` — session worklog.
+- `worklogs/` (session worklog archive)
 - [`maximhq/bifrost`](https://github.com/maximhq/bifrost) — upstream Go gateway.
-- [`KooshaPari/bifrost`](https://github.com/KooshaPari/bifrost) — vendored fork.
+- [`diegosouzapw/bifrost`](https://github.com/diegosouzapw/bifrost) — vendored fork.

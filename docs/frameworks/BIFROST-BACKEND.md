@@ -1,8 +1,3 @@
----
-title: Bifrost Backend (Tier-1 Router Bridge)
-description: Migration of OmniRoute's Tier-1 router to the Bifrost Go gateway and what stays in OmniRoute.
----
-
 # Bifrost Backend (Tier-1 Router Bridge)
 
 > **Status:** Phase 1 of v8.1 (ADR-031, 2026-06-18).
@@ -95,7 +90,7 @@ just bifrost-build      # output: dist/bifrost/bifrost
 # Listens on 127.0.0.1:8080 by default; /health returns 200 OK.
 
 # Option B — from the upstream repo
-git clone https://github.com/KooshaPari/bifrost
+git clone https://github.com/maximhq/bifrost
 cd bifrost
 go build -o bifrost ./cmd/bifrost
 ./bifrost --config config.yaml
@@ -105,7 +100,7 @@ go build -o bifrost ./cmd/bifrost
 ```
 
 `scripts/build-bifrost.sh` is the canonical build entrypoint. It clones
-`KooshaPari/bifrost` shallowly into `vendor/bifrost/`, builds the
+`maximhq/bifrost` shallowly into `vendor/bifrost/`, builds the
 `./cmd/bifrost` binary, and writes the artifact to
 `dist/bifrost/bifrost`. The `vendor/bifrost/` source tree is
 gitignored; only `vendor/bifrost/VENDOR.md` is tracked. See
@@ -201,7 +196,7 @@ Bifrost process off the request path for model-validation.
 
 See `src/lib/db/bifrostModels.ts:55-280` for the full public API,
 `tests/unit/bifrost-models-db.test.ts` for the 36-case test matrix, and
-`worklogs/2026-06-18-L5-111-bifrost-models-cache.md` for the design
+`the project root` for the design
 rationale.
 
 ---

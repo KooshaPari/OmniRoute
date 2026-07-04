@@ -1,7 +1,7 @@
 # Bifrost Tier-1 Router Migration Playbook (B7)
 
 **Status**: DRAFT (2026-06-19)
-**Owner**: @KooshaPari/core
+**Owner**: @diegosouzapw/core
 **Tracks**: v8.1 Bifrost track, B7 of [PLAN.md](../../PLAN.md) § 2.5.2
 **Refs**: ADR-031, BIFROST-BACKEND.md, trafficShadow.ts, bifrost.ts
 
@@ -61,7 +61,7 @@ Bifrost is **not** a fork replacement for OmniRoute. It is the *router substrate
 
 ## 3. Phase 1: Shadow (B6) — DONE
 
-B6 is already deployed via [PR #89](https://github.com/KooshaPari/OmniRoute/pull/89). The shadow infrastructure is in `open-sse/services/trafficShadow.ts`.
+B6 (traffic-shadow) ships alongside this playbook.
 
 ### What was done
 
@@ -186,7 +186,7 @@ echo "DROP TABLE IF EXISTS bifrost_shadow_decisions, bifrost_shadow_metrics;" | 
 ### Step 3c — Remove shadow conditionals from bifrost.ts
 
 Open `open-sse/executors/bifrost.ts` and remove:
-- Legacy shadow-mode override conditionals
+- The `SHADOW_MODE_OVERRIDE` env check
 - The `shadowConfig` initialization
 - The `isShadowEnabled`, `shouldShadowRequest`, `recordShadowOutcome` calls
 
@@ -235,7 +235,7 @@ After any rollback:
    - Timestamp of when metrics regressed
    - Bifrost version + OmniRoute commit
    - Shadow metric deltas (p99, error rate, cost)
-   - Flag to `@KooshaPari/core`
+   - Flag to the on-call security circle
 
 3. **Do not re-attempt** until the root cause is identified and fixed.
 
