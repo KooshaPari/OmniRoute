@@ -5652,7 +5652,7 @@ paths:
         "200":
           description: Distinct devices seen for the API key.
         "401":
-          $ref: "#/components/responses/Unauthorized"
+          $ref: "#/components/responses/ManagementAuthenticationRequired"
         "404":
           $ref: "#/components/responses/NotFound"
   /api/settings/purge-usage-history:

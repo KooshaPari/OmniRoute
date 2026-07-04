@@ -44,7 +44,3 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
     return NextResponse.json(buildErrorBody(500, sanitizeErrorMessage(error)), { status: 500 });
   }
 }
-
-export function TRACE() {
-  return NextResponse.json({ error: "Method not allowed" }, { status: 405 });
-}
