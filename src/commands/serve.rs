@@ -11,6 +11,7 @@ use axum::{
     routing::get,
     Router,
 };
+use axum::http::header;
 use serde_json::json;
 
 use crate::runtime::ProcessPool;
@@ -46,7 +47,10 @@ pub async fn run(bind: &str, on_conflict: OnConflict) -> Result<()> {
 
     println!("sharecli serve listening on {url}");
 
-    let app = Router::new().route("/healthz", get(healthz)).route("/ws", get(ws_handler));
+    let app = Router::new()
+        .route("/", get(dashboard))
+        .route("/healthz", get(healthz))
+        .route("/ws", get(ws_handler));
 
     let listener = tokio::net::TcpListener::bind(bind).await?;
 
@@ -62,6 +66,12 @@ pub async fn run(bind: &str, on_conflict: OnConflict) -> Result<()> {
     // Explicit drop for clarity; drop order would handle it anyway.
     drop(lock);
     Ok(())
+}
+
+const DASHBOARD_HTML: &str = include_str!("../dashboard.html");
+
+async fn dashboard() -> impl IntoResponse {
+    ([(header::CONTENT_TYPE, "text/html; charset=utf-8")], DASHBOARD_HTML)
 }
 
 async fn healthz() -> impl IntoResponse {

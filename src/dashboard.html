@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>sharecli dashboard</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: #1a1a2e;
+    color: #e2e8f0;
+    font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
+    font-size: 13px;
+    padding: 24px;
+  }
+  header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+  h1 { font-size: 18px; color: #a78bfa; letter-spacing: 0.05em; }
+  #status-dot {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    background: #ef4444;
+    flex-shrink: 0;
+    transition: background 0.3s;
+  }
+  #status-dot.connected { background: #22c55e; }
+  #status-label { font-size: 11px; color: #94a3b8; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  thead th {
+    background: #16213e;
+    color: #7c3aed;
+    text-align: left;
+    padding: 8px 12px;
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    border-bottom: 1px solid #2d2d4e;
+  }
+  tbody tr {
+    border-bottom: 1px solid #1e1e3a;
+    transition: background 0.15s;
+  }
+  tbody tr:hover { background: #16213e; }
+  tbody td {
+    padding: 7px 12px;
+    color: #cbd5e1;
+    white-space: nowrap;
+  }
+  td.pid { color: #94a3b8; }
+  td.mem { color: #f59e0b; }
+  td.status { color: #22c55e; }
+  #empty-row td {
+    color: #4a5568;
+    text-align: center;
+    padding: 24px;
+    font-style: italic;
+  }
+  #last-update {
+    margin-top: 12px;
+    font-size: 11px;
+    color: #4a5568;
+  }
+</style>
+</head>
+<body>
+<header>
+  <div id="status-dot"></div>
+  <h1>sharecli</h1>
+  <span id="status-label">connecting...</span>
+</header>
+
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>PID</th>
+      <th>Memory MB</th>
+      <th>Project</th>
+      <th>Status</th>
+    </tr>
+  </thead>
+  <tbody id="proc-body">
+    <tr id="empty-row"><td colspan="5">waiting for data...</td></tr>
+  </tbody>
+</table>
+<div id="last-update"></div>
+
+<script>
+  const dot = document.getElementById('status-dot');
+  const label = document.getElementById('status-label');
+  const body = document.getElementById('proc-body');
+  const lastUpdate = document.getElementById('last-update');
+  let reconnectTimer = null;
+
+  function connect() {
+    const ws = new WebSocket('ws://localhost:9000/ws');
+
+    ws.onopen = () => {
+      dot.classList.add('connected');
+      label.textContent = 'connected';
+      if (reconnectTimer) { clearTimeout(reconnectTimer); reconnectTimer = null; }
+    };
+
+    ws.onmessage = (evt) => {
+      let data;
+      try { data = JSON.parse(evt.data); } catch { return; }
+      const procs = Array.isArray(data.processes) ? data.processes : [];
+      renderTable(procs);
+      lastUpdate.textContent = 'last update: ' + new Date().toLocaleTimeString();
+    };
+
+    ws.onclose = ws.onerror = () => {
+      dot.classList.remove('connected');
+      label.textContent = 'disconnected — reconnecting in 3s';
+      if (!reconnectTimer) {
+        reconnectTimer = setTimeout(() => { reconnectTimer = null; connect(); }, 3000);
+      }
+    };
+  }
+
+  function renderTable(procs) {
+    if (procs.length === 0) {
+      body.innerHTML = '<tr id="empty-row"><td colspan="5">no processes found</td></tr>';
+      return;
+    }
+    body.innerHTML = procs.map(p => {
+      const name    = esc(p.name    ?? '—');
+      const pid     = esc(String(p.pid ?? '—'));
+      const mem     = p.memory_mb != null ? Number(p.memory_mb).toFixed(1) : '—';
+      const project = esc(p.project ?? '—');
+      const status  = 'running';
+      return `<tr>
+        <td>${name}</td>
+        <td class="pid">${pid}</td>
+        <td class="mem">${mem}</td>
+        <td>${project}</td>
+        <td class="status">${status}</td>
+      </tr>`;
+    }).join('');
+  }
+
+  function esc(s) {
+    return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  connect();
+</script>
+</body>
+</html>
