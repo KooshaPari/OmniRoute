@@ -42,6 +42,9 @@ const virtualKeyBodySchema = z.object({
   max_rpd: z.number().int().nonnegative().nullable().optional(),
   expiresAt: z.string().nullable().optional(),
   expires_at: z.string().nullable().optional(),
+}).refine((body) => Boolean(body.tenantId ?? body.tenant_id), {
+  message: "tenantId is required",
+  path: ["tenantId"],
 });
 
 // GET /api/virtual-keys?tenantId=X

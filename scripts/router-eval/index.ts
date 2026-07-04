@@ -234,29 +234,24 @@ function addSharedDbFilters(
   }
 }
 
-function readCallLogDb(
+type ReplayDbOptions = { since?: string; limit?: string; provider?: string; model?: string };
+
+function readReplayDb<Row extends { id: string | number }>(
   db: SqliteAdapter,
-  options: { since?: string; limit?: string; provider?: string; model?: string }
+  tableName: string,
+  selectColumns: string[],
+  modelColumns: string[],
+  options: ReplayDbOptions,
+  rowMapper: (row: Row) => RouterEvalObservation
 ): RouterEvalObservation[] {
-  const columns = getTableColumns(db, "call_logs");
+  const columns = getTableColumns(db, tableName);
   const params: unknown[] = [];
   const queryParts = [
-    `SELECT ${[
-      "id",
-      selectColumn(columns, "model"),
-      selectColumn(columns, "requested_model"),
-      selectColumn(columns, "combo_name"),
-      selectColumn(columns, "provider"),
-      selectColumn(columns, "status"),
-      selectColumn(columns, "duration"),
-      selectColumn(columns, "tokens_in"),
-      selectColumn(columns, "tokens_out"),
-      selectColumn(columns, "error_summary"),
-    ].join(", ")}`,
-    "FROM call_logs",
+    `SELECT ${selectColumns.map((column) => selectColumn(columns, column)).join(", ")}`,
+    `FROM ${tableName}`,
     "WHERE 1=1",
   ];
-  addSharedDbFilters(queryParts, params, options, ["model", "requested_model"], columns);
+  addSharedDbFilters(queryParts, params, options, modelColumns, columns);
   queryParts.push(columns.has("timestamp") ? "ORDER BY timestamp ASC" : "ORDER BY id ASC");
   const limitValue = coerceLimit(options.limit);
   if (limitValue) {
@@ -264,21 +259,43 @@ function readCallLogDb(
     params.push(limitValue);
   }
 
-  const logs = db.prepare(queryParts.join(" ")).all(...params) as Array<{
-    id: string | number;
-    model: string | null;
-    requested_model: string | null;
-    combo_name: string | null;
-    provider: string | null;
-    status: number | null;
-    duration: number | null;
-    tokens_in: number | null;
-    tokens_out: number | null;
-    error_summary: string | null;
-  }>;
+  const rows = db.prepare(queryParts.join(" ")).all(...params) as Row[];
+  return toObservationsFromRows(rows.map(rowMapper), "default");
+}
 
-  return toObservationsFromRows(
-    logs.map((log) => ({
+function readCallLogDb(
+  db: SqliteAdapter,
+  options: ReplayDbOptions
+): RouterEvalObservation[] {
+  return readReplayDb(
+    db,
+    "call_logs",
+    [
+      "id",
+      "model",
+      "requested_model",
+      "combo_name",
+      "provider",
+      "status",
+      "duration",
+      "tokens_in",
+      "tokens_out",
+      "error_summary",
+    ],
+    ["model", "requested_model"],
+    options,
+    (log: {
+      id: string | number;
+      model: string | null;
+      requested_model: string | null;
+      combo_name: string | null;
+      provider: string | null;
+      status: number | null;
+      duration: number | null;
+      tokens_in: number | null;
+      tokens_out: number | null;
+      error_summary: string | null;
+    }) => ({
       sampleId: String(log.id),
       configId: log.combo_name ?? log.provider ?? "default",
       expected_model: log.requested_model ?? null,
@@ -287,54 +304,41 @@ function readCallLogDb(
       costUsd: estimateCost(log.tokens_in, log.tokens_out),
       success: log.status != null && log.status >= 200 && log.status < 300 && !log.error_summary,
       status: log.status ?? null,
-    })),
-    "default"
+    })
   );
 }
 
 function readUsageHistoryDb(
   db: SqliteAdapter,
-  options: { since?: string; limit?: string; provider?: string; model?: string }
+  options: ReplayDbOptions
 ): RouterEvalObservation[] {
-  const columns = getTableColumns(db, "usage_history");
-  const params: unknown[] = [];
-  const queryParts = [
-    `SELECT ${[
+  return readReplayDb(
+    db,
+    "usage_history",
+    [
       "id",
-      selectColumn(columns, "provider"),
-      selectColumn(columns, "model"),
-      selectColumn(columns, "tokens_input"),
-      selectColumn(columns, "tokens_output"),
-      selectColumn(columns, "status"),
-      selectColumn(columns, "success"),
-      selectColumn(columns, "latency_ms"),
-      selectColumn(columns, "combo_strategy"),
-    ].join(", ")}`,
-    "FROM usage_history",
-    "WHERE 1=1",
-  ];
-  addSharedDbFilters(queryParts, params, options, ["model"], columns);
-  queryParts.push(columns.has("timestamp") ? "ORDER BY timestamp ASC" : "ORDER BY id ASC");
-  const limitValue = coerceLimit(options.limit);
-  if (limitValue) {
-    queryParts.push("LIMIT ?");
-    params.push(limitValue);
-  }
-
-  const rows = db.prepare(queryParts.join(" ")).all(...params) as Array<{
-    id: string | number;
-    provider: string | null;
-    model: string | null;
-    tokens_input: number | null;
-    tokens_output: number | null;
-    status: string | number | null;
-    success: number | boolean | null;
-    latency_ms: number | null;
-    combo_strategy: string | null;
-  }>;
-
-  return toObservationsFromRows(
-    rows.map((row) => ({
+      "provider",
+      "model",
+      "tokens_input",
+      "tokens_output",
+      "status",
+      "success",
+      "latency_ms",
+      "combo_strategy",
+    ],
+    ["model"],
+    options,
+    (row: {
+      id: string | number;
+      provider: string | null;
+      model: string | null;
+      tokens_input: number | null;
+      tokens_output: number | null;
+      status: string | number | null;
+      success: number | boolean | null;
+      latency_ms: number | null;
+      combo_strategy: string | null;
+    }) => ({
       sampleId: String(row.id),
       configId: row.combo_strategy ?? row.provider ?? "default",
       expected_model: row.model ?? null,
@@ -343,8 +347,7 @@ function readUsageHistoryDb(
       costUsd: estimateCost(row.tokens_input, row.tokens_output),
       success: row.success === true || row.success === 1,
       status: row.status,
-    })),
-    "default"
+    })
   );
 }
 

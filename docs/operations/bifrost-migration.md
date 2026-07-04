@@ -186,7 +186,7 @@ echo "DROP TABLE IF EXISTS bifrost_shadow_decisions, bifrost_shadow_metrics;" | 
 ### Step 3c — Remove shadow conditionals from bifrost.ts
 
 Open `open-sse/executors/bifrost.ts` and remove:
-- The `SHADOW_MODE_OVERRIDE` env check
+- Legacy shadow-mode override conditionals
 - The `shadowConfig` initialization
 - The `isShadowEnabled`, `shouldShadowRequest`, `recordShadowOutcome` calls
 

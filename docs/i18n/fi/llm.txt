@@ -1,4 +1,4 @@
-# OmniRoute (Suomi)
+# OmniRoute (Français)
 
 🌐 **Languages:** 🇺🇸 [English](../../../llm.txt) · 🇸🇦 [ar](../ar/llm.txt) · 🇧🇬 [bg](../bg/llm.txt) · 🇧🇩 [bn](../bn/llm.txt) · 🇨🇿 [cs](../cs/llm.txt) · 🇩🇰 [da](../da/llm.txt) · 🇩🇪 [de](../de/llm.txt) · 🇪🇸 [es](../es/llm.txt) · 🇮🇷 [fa](../fa/llm.txt) · 🇫🇮 [fi](../fi/llm.txt) · 🇫🇷 [fr](../fr/llm.txt) · 🇮🇳 [gu](../gu/llm.txt) · 🇮🇱 [he](../he/llm.txt) · 🇮🇳 [hi](../hi/llm.txt) · 🇭🇺 [hu](../hu/llm.txt) · 🇮🇩 [id](../id/llm.txt) · 🇮🇳 [in](../in/llm.txt) · 🇮🇹 [it](../it/llm.txt) · 🇯🇵 [ja](../ja/llm.txt) · 🇰🇷 [ko](../ko/llm.txt) · 🇮🇳 [mr](../mr/llm.txt) · 🇲🇾 [ms](../ms/llm.txt) · 🇳🇱 [nl](../nl/llm.txt) · 🇳🇴 [no](../no/llm.txt) · 🇵🇭 [phi](../phi/llm.txt) · 🇵🇱 [pl](../pl/llm.txt) · 🇵🇹 [pt](../pt/llm.txt) · 🇧🇷 [pt-BR](../pt-BR/llm.txt) · 🇷🇴 [ro](../ro/llm.txt) · 🇷🇺 [ru](../ru/llm.txt) · 🇸🇰 [sk](../sk/llm.txt) · 🇸🇪 [sv](../sv/llm.txt) · 🇰🇪 [sw](../sw/llm.txt) · 🇮🇳 [ta](../ta/llm.txt) · 🇮🇳 [te](../te/llm.txt) · 🇹🇭 [th](../th/llm.txt) · 🇹🇷 [tr](../tr/llm.txt) · 🇺🇦 [uk-UA](../uk-UA/llm.txt) · 🇵🇰 [ur](../ur/llm.txt) · 🇻🇳 [vi](../vi/llm.txt) · 🇨🇳 [zh-CN](../zh-CN/llm.txt)
 

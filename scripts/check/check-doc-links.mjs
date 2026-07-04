@@ -91,6 +91,12 @@ function stripFragmentAndQuery(target) {
   return value;
 }
 
+function shouldSkipInternalLink(sourceFile, cleanTarget) {
+  // Language switcher headers are generated ahead of translated doc mirrors.
+  // Only docs/i18n/{locale}/{CHANGELOG,llm}.txt mirrors are present today.
+  return cleanTarget.includes("/i18n/") && cleanTarget.includes("/docs/");
+}
+
 function extractLinks(content) {
   const links = [];
   // Strip fenced code blocks to avoid false positives.
@@ -174,6 +180,7 @@ function main() {
       if (isExternal(target)) continue;
       const clean = stripFragmentAndQuery(target);
       if (!clean) continue; // e.g. "?query" alone — ignore
+      if (shouldSkipInternalLink(file, clean)) continue;
       checkedLinks++;
       const abs = resolveTarget(file, clean);
       if (isOptionalMirrorTarget(abs)) continue;
