@@ -415,6 +415,9 @@ export async function buildAutoCandidates(
       const historicalP95Latency = Number(historicalModelMetric?.p95LatencyMs);
       const historicalStdDev = Number(historicalModelMetric?.latencyStdDev);
       const historicalSuccessRate = Number(historicalModelMetric?.successRate); // 0..1
+      const historicalAvgTtft = Number(historicalModelMetric?.avgTtftMs);
+      const historicalAvgE2E = Number(historicalModelMetric?.avgE2ELatencyMs);
+      const historicalAvgTokensPerSecond = Number(historicalModelMetric?.avgTokensPerSecond);
 
       const p95LatencyMs = hasHistoricalSignal
         ? Number.isFinite(historicalP95Latency) && historicalP95Latency > 0
@@ -516,6 +519,20 @@ export async function buildAutoCandidates(
         circuitBreakerState,
         costPer1MTokens,
         p95LatencyMs,
+        avgTtftMs:
+          hasHistoricalSignal && Number.isFinite(historicalAvgTtft) && historicalAvgTtft > 0
+            ? historicalAvgTtft
+            : undefined,
+        avgE2ELatencyMs:
+          hasHistoricalSignal && Number.isFinite(historicalAvgE2E) && historicalAvgE2E > 0
+            ? historicalAvgE2E
+            : undefined,
+        avgTokensPerSecond:
+          hasHistoricalSignal &&
+          Number.isFinite(historicalAvgTokensPerSecond) &&
+          historicalAvgTokensPerSecond > 0
+            ? historicalAvgTokensPerSecond
+            : undefined,
         latencyStdDev,
         errorRate,
         accountTier: "standard" as const,
