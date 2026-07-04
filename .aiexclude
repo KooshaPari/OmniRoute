@@ -1,0 +1,32 @@
+# .aiexclude — agent navigation hint, NOT a security boundary.
+#
+# This file is honored by AI coding agents that respect gitignore-style
+# exclusion (Continue, Aider, Cursor's `ignore` settings, etc.). When an
+# agent is asked to work on a *specific* provider file, this list tells
+# the agent which sibling files it does NOT need to load into context.
+#
+# Always include open-sse/AGENT-INDEX.md (this directory's curated index)
+# in agent context -- it is small (~30 KB) and lets the agent navigate the
+# provider surface without loading every executor.
+#
+# Format: standard gitignore globs. Lines starting with `#` are comments.
+# This file is OPT-IN for agents; some agents ignore it. The
+# AGENT-INDEX.md is the primary navigability surface; this is a hint
+# for agents that honour ignore-files.
+#
+# Maintenance: keep this file small and focused. If you find yourself
+# adding many globs, the underlying problem is too large a context
+# surface -- file a follow-up issue rather than maintaining a long list
+# here.
+
+# Keep the curated executor index always available -- it is the
+# navigation index for everything below.
+!open-sse/AGENT-INDEX.md
+
+# Per-provider executors: agents working on `cursor.ts` should not load
+# every other executor into context. Encourage the agent to read the
+# curated index first, then open only the executor the task is about.
+open-sse/executors/*.ts
+!open-sse/executors/index.ts
+!open-sse/executors/base.ts
+!open-sse/executors/default.ts

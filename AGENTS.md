@@ -42,6 +42,14 @@ The script `scripts/check/check-fabricated-docs.mjs` extracts every route path, 
 name, function name, and file reference from `docs/**/*.md` and verifies each one against the
 codebase. Run it locally before pushing docs; it runs in CI via `npm run check:docs-all`.
 
+> **Agent navigability:** The repo root `.aiexclude` lists which `open-sse/executors/*.ts`
+> files AI agents should NOT load into context by default. When an agent is asked to work
+> on a specific provider, the convention is to load `open-sse/AGENT-INDEX.md` (curated
+> surface, ~30 KB), open only the relevant executor file, and consult
+> `open-sse/config/providerRegistry.ts` for cross-cutting config. The `.aiexclude` is
+> honoured by Continue, Aider, and Cursor-style agents; the AGENT-INDEX is the primary
+> navigation surface and the authoritative fallback for agents that ignore exclude files.
+
 ## Stack
 
 - **Runtime**: Next.js 16 (App Router), Node.js `>=22.0.0 <23 || >=24.0.0 <27`, ES Modules (`"type": "module"`)
@@ -69,6 +77,7 @@ codebase. Run it locally before pushing docs; it runs in CI via `npm run check:d
 | `npm run typecheck:noimplicit:core` | Strict checking (no implicit any)                                  |
 | `npm run check`                     | Run lint + test                                                    |
 | `npm run check:cycles`              | Check for circular dependencies                                    |
+| `npm run check:agent-index`         | Drift gate for `open-sse/AGENT-INDEX.md` (regen: `gen:agent-index`)|
 | `npm run electron:dev`              | Run Electron app in dev mode                                       |
 | `npm run electron:build`            | Build Electron app for current OS                                  |
 
@@ -293,6 +302,8 @@ Providers are registered in `src/shared/constants/providers.ts` with Zod validat
 Provider-specific request executors: `base.ts`, `default.ts`, `cursor.ts`, `codex.ts`,
 `antigravity.ts`, `github.ts`, `kiro.ts`, `qoder.ts`, `vertex.ts`,
 `cloudflare-ai.ts`, `opencode.ts`, `pollinations.ts`, `puter.ts`.
+
+> **Working on a specific provider?** Read [`open-sse/AGENT-INDEX.md`](open-sse/AGENT-INDEX.md) first — it is the single-page index of all 50+ executor classes (file, primary ids, aliases, recent activity) generated from `open-sse/executors/index.ts`. Regenerate with `npm run gen:agent-index`; gate with `npm run check:agent-index` (runs in `npm run check:docs-all`).
 
 #### Executor Internals
 
