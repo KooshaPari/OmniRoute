@@ -175,6 +175,7 @@ pub async fn run(bind: &str, on_conflict: OnConflict) -> Result<()> {
         .route("/healthz", get(healthz))
         .route("/config", get(config_handler))
         .route("/health/processes", get(health_processes_handler))
+        .route("/metrics/prometheus", get(metrics_prometheus_handler))
         .route("/ws", get(ws_handler))
         .with_state(state);
 
@@ -362,6 +363,87 @@ async fn health_processes_handler(State(state): State<AppState>) -> impl IntoRes
     Json(serde_json::to_value(out).unwrap_or_else(|_| json!({})))
 }
 
+// ---------------------------------------------------------------------------
+// Prometheus metrics handler
+// ---------------------------------------------------------------------------
+
+/// `GET /metrics/prometheus` — Prometheus text-format metrics for all tracked processes.
+async fn metrics_prometheus_handler(State(state): State<AppState>) -> impl IntoResponse {
+    let pool = ProcessPool::new();
+    let processes = pool.list().await;
+    let health_map = state.health_store.lock().await;
+    let body = render_prometheus_metrics(&processes, &health_map);
+    ([(header::CONTENT_TYPE, "text/plain; version=0.0.4; charset=utf-8")], body)
+}
+
+/// Escape a Prometheus label value: backslash, double-quote, and newline must be escaped.
+fn escape_label_value(s: &str) -> String {
+    s.replace('\\', "\\\\").replace('"', "\\\"").replace('\n', "\\n")
+}
+
+/// Render all sharecli process metrics in Prometheus text exposition format.
+///
+/// This is a pure function — no I/O — so it is straightforward to unit-test.
+pub fn render_prometheus_metrics(
+    processes: &[crate::runtime::ProcessInfo],
+    health_map: &std::collections::HashMap<String, crate::health_check::HealthStatus>,
+) -> String {
+    let mut out = String::with_capacity(512);
+
+    // -- sharecli_process_memory_mb ------------------------------------------
+    out.push_str("# HELP sharecli_process_memory_mb Resident memory usage in MiB per process\n");
+    out.push_str("# TYPE sharecli_process_memory_mb gauge\n");
+    for p in processes {
+        let name = escape_label_value(&p.name);
+        out.push_str(&format!(
+            "sharecli_process_memory_mb{{process=\"{}\"}} {}\n",
+            name, p.memory_mb
+        ));
+    }
+
+    // -- sharecli_process_up -------------------------------------------------
+    out.push_str(
+        "# HELP sharecli_process_up 1 if the process is considered healthy, 0 otherwise\n",
+    );
+    out.push_str("# TYPE sharecli_process_up gauge\n");
+    for p in processes {
+        let name = escape_label_value(&p.name);
+        let up = if let Some(status) = health_map.get(&p.name) {
+            if status.healthy {
+                1u8
+            } else {
+                0u8
+            }
+        } else {
+            // No health-check configured → process is running, treat as up.
+            1u8
+        };
+        out.push_str(&format!("sharecli_process_up{{process=\"{}\"}} {}\n", name, up));
+    }
+
+    // -- sharecli_health_check_consecutive_failures --------------------------
+    out.push_str("# HELP sharecli_health_check_consecutive_failures Number of consecutive health-check failures\n");
+    out.push_str("# TYPE sharecli_health_check_consecutive_failures gauge\n");
+    for (proc_name, status) in health_map.iter() {
+        let name = escape_label_value(proc_name);
+        out.push_str(&format!(
+            "sharecli_health_check_consecutive_failures{{process=\"{}\"}} {}\n",
+            name, status.consecutive_failures
+        ));
+    }
+
+    // -- sharecli_health_check_status ----------------------------------------
+    out.push_str("# HELP sharecli_health_check_status 1 if health check is passing, 0 otherwise\n");
+    out.push_str("# TYPE sharecli_health_check_status gauge\n");
+    for (proc_name, status) in health_map.iter() {
+        let name = escape_label_value(proc_name);
+        let val = if status.healthy { 1u8 } else { 0u8 };
+        out.push_str(&format!("sharecli_health_check_status{{process=\"{}\"}} {}\n", name, val));
+    }
+
+    out
+}
+
 async fn build_snapshot() -> serde_json::Value {
     let pool = ProcessPool::new();
     let procs = pool.list().await;
@@ -494,6 +576,100 @@ mod tests {
         let s = serde_json::to_string(&evt).unwrap();
         assert!(s.contains("\"event\":\"thermal_critical\""));
         assert!(s.contains("\"pressure\":4"));
+    }
+
+    // --- render_prometheus_metrics unit tests ---
+
+    fn make_process(name: &str, memory_mb: u64) -> crate::runtime::ProcessInfo {
+        crate::runtime::ProcessInfo {
+            pid: 1234,
+            name: name.to_string(),
+            cmd: vec!["fake".to_string()],
+            memory_mb,
+            start_time: 0,
+            project: None,
+            harness: None,
+        }
+    }
+
+    fn make_health(healthy: bool, failures: u32) -> crate::health_check::HealthStatus {
+        crate::health_check::HealthStatus {
+            healthy,
+            consecutive_failures: failures,
+            last_error: None,
+            last_check: std::time::Instant::now(),
+        }
+    }
+
+    #[test]
+    fn prometheus_output_contains_required_metric_names() {
+        let processes = vec![make_process("myapp", 256)];
+        let mut hmap = std::collections::HashMap::new();
+        hmap.insert("myapp".to_string(), make_health(true, 0));
+        let out = render_prometheus_metrics(&processes, &hmap);
+        assert!(out.contains("sharecli_process_memory_mb"), "missing memory metric");
+        assert!(out.contains("sharecli_process_up"), "missing process_up metric");
+        assert!(
+            out.contains("sharecli_health_check_consecutive_failures"),
+            "missing failures metric"
+        );
+        assert!(out.contains("sharecli_health_check_status"), "missing health_check_status metric");
+    }
+
+    #[test]
+    fn prometheus_process_up_reflects_health_status() {
+        let processes = vec![make_process("svc", 64)];
+
+        let mut healthy_map = std::collections::HashMap::new();
+        healthy_map.insert("svc".to_string(), make_health(true, 0));
+        let healthy_out = render_prometheus_metrics(&processes, &healthy_map);
+        assert!(
+            healthy_out.contains("sharecli_process_up{process=\"svc\"} 1"),
+            "healthy process should have process_up=1"
+        );
+
+        let mut unhealthy_map = std::collections::HashMap::new();
+        unhealthy_map.insert("svc".to_string(), make_health(false, 3));
+        let unhealthy_out = render_prometheus_metrics(&processes, &unhealthy_map);
+        assert!(
+            unhealthy_out.contains("sharecli_process_up{process=\"svc\"} 0"),
+            "unhealthy process should have process_up=0"
+        );
+    }
+
+    #[test]
+    fn prometheus_gauge_values_match_inputs() {
+        let processes = vec![make_process("worker", 512)];
+        let mut hmap = std::collections::HashMap::new();
+        hmap.insert("worker".to_string(), make_health(true, 7));
+        let out = render_prometheus_metrics(&processes, &hmap);
+        assert!(out.contains("sharecli_process_memory_mb{process=\"worker\"} 512"));
+        assert!(out.contains("sharecli_health_check_consecutive_failures{process=\"worker\"} 7"));
+    }
+
+    #[test]
+    fn prometheus_label_escaping_handles_special_chars() {
+        // Process name with double-quote and backslash
+        let processes = vec![make_process("my\"app\\test", 128)];
+        let hmap = std::collections::HashMap::new();
+        let out = render_prometheus_metrics(&processes, &hmap);
+        // Escaped label value should appear; raw chars must not appear unescaped inside quotes
+        assert!(
+            out.contains(r#"process="my\"app\\test""#),
+            "label value not properly escaped: {out}"
+        );
+    }
+
+    #[test]
+    fn prometheus_process_up_defaults_to_1_when_no_health_check() {
+        // Process present in pool but NOT in health_store → should be up=1
+        let processes = vec![make_process("orphan", 32)];
+        let hmap = std::collections::HashMap::new(); // empty
+        let out = render_prometheus_metrics(&processes, &hmap);
+        assert!(
+            out.contains("sharecli_process_up{process=\"orphan\"} 1"),
+            "process without health check should default to up=1"
+        );
     }
 
     // --- broadcast channel test ---
