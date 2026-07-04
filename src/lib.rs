@@ -25,3 +25,4 @@ pub use runtime::{
     SharedRuntime,
 };
 pub mod health;
+pub mod log_sink;
