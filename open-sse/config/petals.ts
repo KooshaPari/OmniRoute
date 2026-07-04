@@ -1,7 +1,23 @@
-export const PETALS_DEFAULT_BASE_URL = "https://chat.petals.dev/api/v1/generate";
-export const PETALS_DEFAULT_MODEL = "petals-team/StableBeluga2";
+import { stripTrailingSlashes } from "../utils/urlSanitize.ts";
 
-export function normalizePetalsBaseUrl(baseUrl?: string | null) {
-  const normalized = typeof baseUrl === "string" ? baseUrl.trim().replace(/\/$/, "") : "";
-  return normalized || PETALS_DEFAULT_BASE_URL;
+export const PETALS_DEFAULT_BASE_URL = "https://chat.petals.dev/api/v1/generate";
+export const PETALS_DEFAULT_MODEL = "meta-llama/Llama-2-70b-chat-hf";
+
+export function normalizePetalsBaseUrl(value: string | null | undefined): string {
+  const normalized = stripTrailingSlashes((value || PETALS_DEFAULT_BASE_URL).trim());
+  if (!normalized) return PETALS_DEFAULT_BASE_URL;
+
+  if (/\/api\/v1\/generate$/i.test(normalized)) {
+    return normalized;
+  }
+
+  if (/\/api\/v1$/i.test(normalized)) {
+    return `${normalized}/generate`;
+  }
+
+  if (/\/api$/i.test(normalized)) {
+    return `${normalized}/v1/generate`;
+  }
+
+  return `${normalized}/api/v1/generate`;
 }

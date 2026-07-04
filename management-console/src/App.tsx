@@ -23,41 +23,23 @@ export function App() {
   const [active, setActive] = useState<Tab>(tabs[0]);
   const [baseUrl, setBaseUrl] = useState(managementBaseUrl());
   const [status, setStatus] = useState("idle");
-  const [payloadState, setPayloadState] = useState<{
-    endpoint: ConsoleEndpoint;
-    payload: string;
-    status: string;
-  }>({
-    endpoint: tabs[0].id,
-    payload: "No request made yet.",
-    status: "idle",
-  });
+  const [payload, setPayload] = useState<string>("No request made yet.");
   const [events, setEvents] = useState<ManagementEvent[]>([]);
 
   const routePlan = useMemo(() => tabs.map((tab) => `/api/management/${tab.id}`), []);
-  const tabPayload = payloadState.endpoint === active.id ? payloadState.payload : "Loading...";
-  const tabStatus = payloadState.endpoint === active.id ? payloadState.status : "loading";
-  const displayStatus = tabStatus === "loading" ? tabStatus : status;
 
   useEffect(() => {
-    let isCurrent = true;
-
-    fetchManagement<Record<string, unknown>>(active.id).then((result) => {
-      if (!isCurrent) {
-        return;
-      }
-
-      const nextStatus = result.ok ? "online" : "needs facade";
-      setStatus(nextStatus);
-      setPayloadState({
-        endpoint: active.id,
-        payload: JSON.stringify(result, null, 2),
-        status: nextStatus,
-      });
+    let cancelled = false;
+    queueMicrotask(() => {
+      if (!cancelled) setStatus("loading");
     });
-
+    fetchManagement<Record<string, unknown>>(active.id).then((result) => {
+      if (cancelled) return;
+      setStatus(result.ok ? "online" : "needs facade");
+      setPayload(JSON.stringify(result, null, 2));
+    });
     return () => {
-      isCurrent = false;
+      cancelled = true;
     };
   }, [active]);
 
@@ -99,14 +81,14 @@ export function App() {
       </aside>
       <section className="content">
         <div className="hero">
-          <p className="eyebrow">Status: {displayStatus}</p>
+          <p className="eyebrow">Status: {status}</p>
           <h2>{active.label}</h2>
           <p>{active.summary}</p>
         </div>
         <section className="grid">
           <article className="card wide">
             <h3>Facade response</h3>
-            <pre>{tabPayload}</pre>
+            <pre>{payload}</pre>
           </article>
           <article className="card">
             <h3>Migration rule</h3>

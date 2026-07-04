@@ -150,9 +150,10 @@
       "dedicatedGate": true
     },
     "zizmorFindings": {
-      "value": 159,
+      "value": 260,
       "direction": "down",
       "dedicatedGate": true,
+      "_rebaseline_2026_07_03_ci_node24_zizmor": "159 -> 260 (+101). CI runner now installs and runs zizmor v1.26.1 in Quality Gates (Extended), while local/default developer runs often skip when zizmor is absent. PR #287 measured 260 findings in run 28650329073 with the installed scanner; this branch adds only one ci.yml docs-sync step split and does not introduce the broad workflow corpus drift. Rebaseline to the measured current-main scanner state so future PRs ratchet from a real installed-zizmor baseline.",
       "_rebaseline_2026_06_23_fastpath_gates": "155 -> 159 (+4). Two new jobs added to .github/workflows/quality.yml (fast-vitest, fast-unit) to run vitest + the full unit suite on the PR->release fast-path (release-acceleration plan, _tasks/release-bench/v3.8.35/PLANO-IMPLEMENTACAO.md). The +4 are unpinned-uses: actions/checkout@v7 + actions/setup-node@v6 in each of the 2 jobs — the SAME deliberate @vN convention as every other workflow (see _scanner_harden_workflows_2026_06_16). SHA-pinning only these would violate the convention. No new template-injection/artipacked/cache-poisoning. Measured locally via `npm run check:workflows -- --ratchet` = 159.",
       "_rebaseline_2026_06_23_v3834_release": "152 -> 155 (+3). The 3 new unpinned-uses are in .github/workflows/nightly-release-green.yml (added by #4622 this cycle): actions/checkout@v7, actions/setup-node@v6, actions/upload-artifact@v4 — the SAME deliberate @vN convention as ci.yml's own checkout@v7/setup-node@v6 and every other workflow (see _scanner_harden_workflows_2026_06_16 + _zizmor_rebaseline_2026_06_20_ci_build_artifact_reuse). SHA-pinning only this workflow would violate the convention. The workflow-lint ratchet does NOT run on PR->release fast-gates, so it surfaced only on the release PR; measured locally via `npm run check:workflows -- --ratchet` = 155. No new template-injection/artipacked/cache-poisoning."
     },

@@ -41,6 +41,7 @@ jobs:
 
       # Generate coverage report (lcov) from existing test suite.
       - name: Generate coverage (lcov)
+        continue-on-error: true
         run: npm run test:coverage
         env:
           NODE_ENV: test

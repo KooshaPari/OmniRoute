@@ -1,9 +1,10 @@
 # REST Endpoint Latency Budgets — OmniRoute
 
 **Pillar:** L17 (latency-budget-to-CI)
-**Status:** Authoritative. Defines per-endpoint budgets with CI enforcement hooks
-for every REST endpoint in the API surface.
-**Refs:** [`.github/workflows/latency-budget.yml`](../../.github/workflows/latency-budget.yml),
+**Status:** Authoritative. Extends the per-endpoint budgets from `docs/PERF_BUDGETS.md`
+with CI enforcement hooks for every REST endpoint in the API surface.
+**Refs:** [`docs/PERF_BUDGETS.md`](../PERF_BUDGETS.md),
+[`.github/workflows/latency-budget.yml`](../../.github/workflows/latency-budget.yml),
 [`tools/latency-budget-to-ci/budget.py`](../../tools/latency-budget-to-ci/budget.py)
 
 ---
@@ -66,7 +67,6 @@ adjust on infra change.
 | 41 | `/api/quota/*` (CRUD) | CRUD | 800 ms | 1.5 s | |
 | 42 | `/api/monitoring/health` (heavy) | GET | 3.0 s | 5.0 s | |
 | 43 | `/api/health/ping` | GET | 50 ms | 100 ms | |
-| 44 | `/api/system/version` | GET | 50 ms | 100 ms | |
 
 ---
 
@@ -101,7 +101,7 @@ spans:
     method: POST
     threshold_ms: 1400
     hard_cap_ms: 2500
-  # ... (all 44 endpoints)
+  # ... (all 43 endpoints)
 ```
 
 ### 3.3 Trace Collection
@@ -109,7 +109,8 @@ spans:
 Traces are collected by the CI runner using:
 
 1. **otel-cli** or `curl` to the deployed PR preview's `/v1/*` endpoints
-2. A synthetic test suite should hit all 44 endpoints and record `duration_ms` per span
+2. A synthetic test suite (`tests/e2e/latency-budgets.test.ts`) that hits all 43 endpoints
+   and records `duration_ms` per span
 3. The JSON trace is written to `.build/latency-trace.json`
 
 ### 3.4 Failure Modes
