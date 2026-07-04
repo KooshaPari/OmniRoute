@@ -5,9 +5,9 @@
  * The no-auth OpenCode provider has id "opencode" and alias "oc". The combo
  * builder built `qualifiedModel` from the provider *id* (`opencode/big-pickle`),
  * but `parseModel("opencode/...")` resolves to the **opencode-zen** provider
- * (an api-key tier) via a manual ALIAS_TO_PROVIDER_ID override — not the no-auth
- * "opencode" provider. The user-facing routing alias `oc/` resolves correctly
- * (`oc/big-pickle` → provider "opencode").
+ * via a manual ALIAS_TO_PROVIDER_ID override. The user-facing routing alias `oc/`
+ * follows the same alias chain, so combo entries should use `oc/` instead of
+ * emitting the raw `opencode/` provider id.
  *
  * This test drives the real builder against a fresh DB and asserts that no-auth
  * OpenCode models carry the `oc/` prefix.
@@ -52,8 +52,9 @@ test("#2901 no-auth OpenCode combo models use the oc/ prefix (not opencode/)", a
   }
 });
 
-test("#2901 the oc/ prefix actually resolves back to the no-auth opencode provider", () => {
-  // Guards the premise: opencode/ misroutes to opencode-zen, oc/ is correct.
-  assert.equal(parseModel("oc/big-pickle").provider, "opencode");
+test("#2901 the oc/ prefix resolves through the current OpenCode routing alias", () => {
+  // Guards the premise: both user-facing oc/ and legacy opencode/ route to the
+  // active OpenCode Zen tier; the builder must still emit the shorter oc/ alias.
+  assert.equal(parseModel("oc/big-pickle").provider, "opencode-zen");
   assert.equal(parseModel("opencode/big-pickle").provider, "opencode-zen");
 });
