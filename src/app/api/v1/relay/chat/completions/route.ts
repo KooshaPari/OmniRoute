@@ -20,10 +20,13 @@ import {
 } from "./relaySecurity";
 import {
   getBifrostRoutingConfig,
+  getRoutingBackendHeader,
   getRoutingFallbackHeader,
+  getRoutingFallbackReasonHeader,
   resolveRelayRoutingBackend,
   shouldTryBifrostForRequest,
   type BifrostRoutingConfig,
+  type RelayRoutingFallbackReason,
 } from "./routingBackend";
 import { getProviderPluginManifestEntryForModel } from "@omniroute/open-sse/config/providerPluginManifestRegistry.ts";
 import { getProviderPluginManifestHeader } from "@omniroute/open-sse/config/providerPluginManifestUrl.ts";
@@ -99,7 +102,7 @@ async function forwardToBifrost(
 
     const headers = new Headers(upstream.headers);
     headers.set("X-Routed-By", "bifrost");
-    headers.set("X-Routing-Backend", "bifrost");
+    headers.set("X-Routing-Backend", getRoutingBackendHeader("bifrost"));
     headers.set("X-Relay-Token", token.tokenPrefix + "...");
     if (!wantsStream) {
       headers.set("Content-Type", upstream.headers.get("Content-Type") ?? "application/json");
@@ -292,7 +295,8 @@ export async function POST(request: Request) {
 
     const backend = resolveRelayRoutingBackend();
     const bifrostConfig = getBifrostRoutingConfig();
-    let bifrostFallbackReason: string | null = null;
+    let bifrostFallbackReason: RelayRoutingFallbackReason | null = null;
+    let legacyRoutingFallback: string | null = null;
     const bifrostDecision = shouldTryBifrostForRequest(
       backend,
       bifrostConfig,
@@ -303,10 +307,10 @@ export async function POST(request: Request) {
       bifrostFallbackReason = bifrostDecision.fallbackReason;
     }
     if (bifrostDecision.tryBifrost) {
-      const cooldown =
-        backend === "auto" ? getActiveBifrostCooldown(bifrostConfig.baseUrl) : null;
+      const cooldown = backend === "auto" ? getActiveBifrostCooldown(bifrostConfig.baseUrl) : null;
       if (cooldown) {
-        bifrostFallbackReason = `bifrost-cooldown; remaining=${cooldown.remainingMs}`;
+        bifrostFallbackReason = "bifrost-cooldown";
+        legacyRoutingFallback = `bifrost-cooldown; remaining=${cooldown.remainingMs}`;
       } else {
         try {
           const bifrostResponse = await forwardToBifrost(
@@ -329,11 +333,13 @@ export async function POST(request: Request) {
               headers: {
                 ...JSON_CORS_HEADERS,
                 "X-Bifrost-Fallback": "/api/v1/relay/chat/completions",
+                "X-Routing-Backend": getRoutingBackendHeader("bifrost"),
               },
             });
           }
           recordBifrostFailure(bifrostConfig.baseUrl, message);
           bifrostFallbackReason = "bifrost-error";
+          legacyRoutingFallback = "bifrost-error";
         }
       }
     }
@@ -359,12 +365,20 @@ export async function POST(request: Request) {
     // Add relay headers
     const newHeaders = new Headers(response.headers);
     newHeaders.set("X-Relay-Token", token.tokenPrefix + "...");
-    newHeaders.set("X-Routing-Backend", "ts");
+    newHeaders.set("X-Routing-Backend", getRoutingBackendHeader("ts"));
     const routingFallback = getRoutingFallbackHeader(backend, bifrostConfig);
     if (routingFallback) {
       // #5526 helper gates emission (auto + enabled); #5519 dynamic cooldown/error
-      // reason wins as the value when set, else falls back to the static "bifrost".
-      newHeaders.set("X-Routing-Fallback", bifrostFallbackReason ?? routingFallback);
+      // reason wins as the value when set, else falls back to the static backend id.
+      const fallbackReason = getRoutingFallbackReasonHeader(
+        bifrostFallbackReason,
+        backend,
+        bifrostConfig
+      );
+      if (fallbackReason) {
+        newHeaders.set("X-Routing-Fallback-Reason", fallbackReason);
+        newHeaders.set("X-Routing-Fallback", legacyRoutingFallback ?? fallbackReason);
+      }
     }
 
     return new Response(response.body, {
