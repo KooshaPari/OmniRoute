@@ -8,6 +8,7 @@ use sharecli_thermal_tui as thermal_tui;
 mod cast;
 mod commands;
 mod config;
+mod config_validator;
 mod config_watcher;
 mod health_check;
 mod monitoring;
@@ -310,7 +311,15 @@ async fn main() -> Result<()> {
     let cli = Cli::parse();
 
     // Initialise global config (must happen before any command handler)
-    config::init_global();
+    let cfg = config::init_global();
+
+    // Validate config and exit with clear errors if invalid
+    {
+        let errors = config_validator::validate_config(cfg);
+        if !errors.is_empty() {
+            config_validator::report_and_exit(&errors);
+        }
+    }
 
     if !cli.quiet {
         let builder = tracing_subscriber::fmt().with_max_level(if cli.verbose {

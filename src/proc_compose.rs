@@ -139,11 +139,7 @@ pub fn load_config(path: &Path) -> Result<ProcComposeConfig> {
 /// Walk parent directories from `start`, returning the first
 /// `process-compose.yaml` or `process-compose.yml` found.
 pub fn find_config(start: &Path) -> Option<PathBuf> {
-    let mut dir = if start.is_dir() {
-        start.to_path_buf()
-    } else {
-        start.parent()?.to_path_buf()
-    };
+    let mut dir = if start.is_dir() { start.to_path_buf() } else { start.parent()?.to_path_buf() };
 
     loop {
         for name in &["process-compose.yaml", "process-compose.yml"] {
@@ -165,14 +161,10 @@ pub fn print_status(defs: &[ProcessDef]) {
         println!("No processes defined in process-compose.yaml.");
         return;
     }
-    println!("{:<25} {:<12} {:<20} {:<20} {}", "NAME", "RESTART", "WORKING_DIR", "DEPENDS_ON", "COMMAND");
+    println!("{:<25} {:<12} {:<20} {:<20} COMMAND", "NAME", "RESTART", "WORKING_DIR", "DEPENDS_ON");
     println!("{}", "-".repeat(100));
     for d in defs {
-        let deps = if d.depends_on.is_empty() {
-            "-".to_string()
-        } else {
-            d.depends_on.join(", ")
-        };
+        let deps = if d.depends_on.is_empty() { "-".to_string() } else { d.depends_on.join(", ") };
         let cmd = if d.command.len() > 40 {
             format!("{}…", &d.command[..39])
         } else {
