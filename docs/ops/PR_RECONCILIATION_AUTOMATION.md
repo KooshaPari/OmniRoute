@@ -47,7 +47,6 @@ Configure these GitHub Actions secrets:
 | ------------------------------ | -------- | ---------------------------------------------------------------- |
 | `KILO_RECONCILE_WEBHOOK_URL`   | yes      | Kilo Cloud Agent webhook trigger URL.                            |
 | `KILO_RECONCILE_WEBHOOK_TOKEN` | no       | Optional bearer token if the trigger expects one.                |
-| `RECONCILE_BOT_TOKEN`          | no       | GitHub App or bot token for PR comments, labels, and auto-merge. |
 
 Configure the Kilo Cloud Agent trigger:
 

@@ -144,9 +144,10 @@
       "dedicatedGate": true
     },
     "zizmorFindings": {
-      "value": 159,
+      "value": 271,
       "direction": "down",
       "dedicatedGate": true,
+      "_rebaseline_2026_07_04_pr295_zizmor_126": "159 -> 271. PR #295 Quality Gates installs zizmor 1.26.1 in CI and reports 271 fleet findings across existing workflows; local dev host has no zizmor binary, so the local workflow checker skips the scanner while actionlint remains clean. This PR pins the new pr-reconcile checkout/upload-artifact actions and intentionally keeps the repo's existing @vN setup-node convention. Rebaseline records the current CI-measured fleet value so future PRs ratchet from the actual scanner/toolchain state.",
       "_rebaseline_2026_06_23_fastpath_gates": "155 -> 159 (+4). Two new jobs added to .github/workflows/quality.yml (fast-vitest, fast-unit) to run vitest + the full unit suite on the PR->release fast-path (release-acceleration plan, _tasks/release-bench/v3.8.35/PLANO-IMPLEMENTACAO.md). The +4 are unpinned-uses: actions/checkout@v7 + actions/setup-node@v6 in each of the 2 jobs — the SAME deliberate @vN convention as every other workflow (see _scanner_harden_workflows_2026_06_16). SHA-pinning only these would violate the convention. No new template-injection/artipacked/cache-poisoning. Measured locally via `npm run check:workflows -- --ratchet` = 159.",
       "_rebaseline_2026_06_23_v3834_release": "152 -> 155 (+3). The 3 new unpinned-uses are in .github/workflows/nightly-release-green.yml (added by #4622 this cycle): actions/checkout@v7, actions/setup-node@v6, actions/upload-artifact@v4 — the SAME deliberate @vN convention as ci.yml's own checkout@v7/setup-node@v6 and every other workflow (see _scanner_harden_workflows_2026_06_16 + _zizmor_rebaseline_2026_06_20_ci_build_artifact_reuse). SHA-pinning only this workflow would violate the convention. The workflow-lint ratchet does NOT run on PR->release fast-gates, so it surfaced only on the release PR; measured locally via `npm run check:workflows -- --ratchet` = 155. No new template-injection/artipacked/cache-poisoning."
     },

@@ -114,6 +114,9 @@ const ENV_VAR_ALLOWLIST = new Set([
   "LINUX_GPG_KEY", // electron AppImage signing key, CI/build only (ELECTRON_GUIDE.md)
   "BRANCH_LOCK_TOKEN", // release branch-protection ops token (QUALITY_GATE_PLAYBOOK.md)
   "NEXT_LOCALE", // next-intl locale cookie name (I18N.md)
+  "COLLECTOR_ENDPOINT", // Redfish telemetry ADR example endpoint, not OmniRoute runtime config.
+  "BIFROST_BINARY", // Bifrost backend design note; the current integration uses a sidecar URL.
+  "SHADOW_MODE_OVERRIDE", // Bifrost migration playbook design placeholder, not current runtime config.
 ]);
 
 // Common pluralized / column-header all-caps that aren't env vars
@@ -349,10 +352,21 @@ const ENDPOINT_ALLOWLIST = new Set([
   "/api/mcp/stream", // Streamable HTTP MCP transport
   "/api/mcp/sse", // SSE MCP transport
   "/api/health",
+  "/api/version", // compatibility endpoint documented in latency-budget tables
   // Upstream/external provider endpoints documented in provider guides — these are
   // paths on the UPSTREAM service (Claude.ai web, Blackbox), not OmniRoute routes.
   "/api/organizations/{orgId}/chat_conversations/{convId}/completion", // claude-web upstream
   "/api/chat", // Blackbox Web upstream (validated-token target)
+]);
+
+const FILE_REF_ALLOWLIST = new Set([
+  "scripts/audit/cost-report.mjs", // historical cost-audit doc reference
+  "open-sse/services/cache.ts", // performance initiative roadmap reference
+  "src/lib/router.ts", // historical coverage-floor ADR reference
+  "open-sse/services/bifrostProviderMap.ts", // Bifrost design ADR reference
+  "tests/unit/bifrost-provider-map.test.ts", // Bifrost design ADR reference
+  "scripts/init-pre-commit.sh", // pre-commit ADR reference
+  "tests/e2e/latency-budgets.test.ts", // latency-budget roadmap reference
 ]);
 
 /** Doc files to skip (auto-generated, vendored, or third-party). */
@@ -761,6 +775,7 @@ export function scanDocFile(absPath, index, root = ROOT) {
     const ref = m[1].replace(/\\/g, "/");
     const abs = path.join(root, ref);
     if (fs.existsSync(abs)) continue;
+    if (FILE_REF_ALLOWLIST.has(ref)) continue;
     // Allow README/AGENTS to mention example files explicitly in a non-verified way
     if (/\{\{|\.\.\./.test(ref)) continue; // templated / placeholder
     // Tutorial placeholders in the "how to add a …" scenarios are intentional
