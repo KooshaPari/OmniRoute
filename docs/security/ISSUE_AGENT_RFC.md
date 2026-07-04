@@ -1,3 +1,11 @@
+---
+title: "Issue Agent Security Boundary RFC"
+version: 3.8.43
+lastUpdated: 2026-07-03
+---
+
+<!-- markdownlint-disable MD025 -->
+
 # Issue Agent Security Boundary RFC
 
 Status: proposed
