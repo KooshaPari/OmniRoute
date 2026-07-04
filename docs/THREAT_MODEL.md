@@ -167,7 +167,7 @@ summary in § 4.
 | **T** | L | |
 | **R** | L | |
 | **I** | L — Generated images are public URLs | URLs are signed with TTL; provider-controlled CDN |
-| **D** | M — Image gen is $expensive | Per-key cost-budget middleware (`src/lib/middleware/costBudget.ts`, added in [the pheno-mcp-router substrate (per ADR-013 polyglot reuse via canonical ports)]) |
+| **D** | M — Image gen is $expensive | Per-key cost-budget middleware (`src/lib/middleware/costBudget.ts`, added in [the MCP router substrate (per ADR-013 polyglot reuse via canonical ports)]) |
 | **E** | L | |
 
 ### 3.9 `/api/v1/videos/generations` — POST (async)
@@ -340,6 +340,6 @@ deltas are documented in `docs/openapi.yaml` (request schema constraints).
 
 | Date | Reviewer | Change |
 |---|---|---|
-| 2026-06-18 | @KooshaPari/core (L5-118) | Initial STRIDE per endpoint, top-20 highest-risk routes + tier summary |
+| 2026-06-18 | security-circle lead | Initial STRIDE per endpoint, top-20 highest-risk routes + tier summary |
 | 2026-06-25 (planned) | security-circle | Re-score after DEBT-001, DEBT-051 close-outs |
 | 2026-09-18 (planned) | security-circle | Quarterly full re-review; refresh mitigations list |
