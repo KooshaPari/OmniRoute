@@ -2,7 +2,9 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import {
   getBifrostRoutingConfig,
+  getRoutingBackendHeader,
   getRoutingFallbackHeader,
+  getRoutingFallbackReasonHeader,
   resolveRelayRoutingBackend,
   shouldTryBifrost,
   shouldTryBifrostForRequest,
@@ -74,8 +76,22 @@ test("relay routing backend exposes TS fallback header only for enabled auto bif
     BIFROST_BASE_URL: "http://127.0.0.1:8080",
   });
 
+  assert.equal(getRoutingBackendHeader("ts"), "ts");
+  assert.equal(getRoutingBackendHeader("bifrost"), "bifrost");
   assert.equal(getRoutingFallbackHeader("auto", config), "bifrost");
+  assert.equal(getRoutingFallbackReasonHeader(null, "auto", config), "bifrost");
+  assert.equal(getRoutingFallbackReasonHeader("bifrost-error", "auto", config), "bifrost-error");
+  assert.equal(
+    getRoutingFallbackReasonHeader("bifrost-cooldown", "auto", config),
+    "bifrost-cooldown"
+  );
+  assert.equal(
+    getRoutingFallbackReasonHeader("bifrost-ineligible", "auto", config),
+    "bifrost-ineligible"
+  );
   assert.equal(getRoutingFallbackHeader("ts", config), undefined);
+  assert.equal(getRoutingFallbackReasonHeader(null, "ts", config), undefined);
+  assert.equal(getRoutingFallbackReasonHeader("bifrost-error", "ts", config), undefined);
   assert.equal(getRoutingFallbackHeader("bifrost", config), undefined);
   assert.equal(
     getRoutingFallbackHeader(

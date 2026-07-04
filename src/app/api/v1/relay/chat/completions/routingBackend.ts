@@ -1,6 +1,12 @@
 import { getSupervisor } from "@/lib/services/registry";
 
 export type RelayRoutingBackend = "ts" | "bifrost" | "auto";
+export type RelayRoutingFallbackReason =
+  | "bifrost"
+  | "bifrost-cooldown"
+  | "bifrost-error"
+  | "bifrost-ineligible"
+  | "bifrost-provider-unknown";
 
 const VALID_BACKENDS = new Set<RelayRoutingBackend>(["ts", "bifrost", "auto"]);
 
@@ -21,7 +27,7 @@ export type ProviderSidecarLookup = (model: string | undefined) => SidecarEligib
 
 export interface BifrostRoutingDecision {
   tryBifrost: boolean;
-  fallbackReason?: string;
+  fallbackReason?: RelayRoutingFallbackReason;
 }
 
 export function getBifrostRoutingConfig(
@@ -82,9 +88,10 @@ export function shouldTryBifrostForRequest(
     return { tryBifrost: true };
   }
 
-  const model = typeof (body as { model?: unknown } | null)?.model === "string"
-    ? (body as { model: string }).model
-    : undefined;
+  const model =
+    typeof (body as { model?: unknown } | null)?.model === "string"
+      ? (body as { model: string }).model
+      : undefined;
   const provider = lookupProviderSidecar(model);
   if (provider?.eligible) {
     return { tryBifrost: true };
@@ -96,9 +103,23 @@ export function shouldTryBifrostForRequest(
   };
 }
 
+export function getRoutingBackendHeader(backend: Exclude<RelayRoutingBackend, "auto">): string {
+  return backend;
+}
+
 export function getRoutingFallbackHeader(
   backend: RelayRoutingBackend,
   config: BifrostRoutingConfig | null
-): "bifrost" | undefined {
+): RelayRoutingFallbackReason | undefined {
   return backend === "auto" && config?.enabled ? "bifrost" : undefined;
+}
+
+export function getRoutingFallbackReasonHeader(
+  reason: RelayRoutingFallbackReason | null,
+  backend: RelayRoutingBackend,
+  config: BifrostRoutingConfig | null
+): RelayRoutingFallbackReason | undefined {
+  const fallbackBackend = getRoutingFallbackHeader(backend, config);
+  if (!fallbackBackend) return undefined;
+  return reason ?? fallbackBackend;
 }
