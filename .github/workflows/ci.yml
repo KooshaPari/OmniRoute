@@ -81,7 +81,7 @@ jobs:
       - id: langs
         run: |
           LANG_DIR="src/i18n/messages"
-          LANGS=$(ls "$LANG_DIR"/*.json | xargs -n1 basename | sed 's/.json$//' | grep -v '^en$' | jq -R . | jq -s . | jq -c .)
+          LANGS=$(find "$LANG_DIR" -maxdepth 1 -name '*.json' -exec basename {} .json \; | grep -v '^en$' | jq -R . | jq -s . | jq -c .)
           echo "langs=${LANGS}" >> "$GITHUB_OUTPUT"
 
   i18n:
@@ -600,42 +600,39 @@ jobs:
             esac
           }
 
-          echo "# 🚀 CI Dashboard" >> "$GITHUB_STEP_SUMMARY"
-          echo "" >> "$GITHUB_STEP_SUMMARY"
-
-          echo "## 🧱 Core Checks" >> "$GITHUB_STEP_SUMMARY"
-          echo "| Job | Status |" >> "$GITHUB_STEP_SUMMARY"
-          echo "|-----|--------|" >> "$GITHUB_STEP_SUMMARY"
-          echo "| Lint | $(status '${{ needs.lint.result }}') |" >> "$GITHUB_STEP_SUMMARY"
-          echo "| Docs Sync (Strict) | $(status '${{ needs.docs-sync-strict.result }}') |" >> "$GITHUB_STEP_SUMMARY"
-          echo "| i18n UI Coverage | $(status '${{ needs.i18n-ui-coverage.result }}') |" >> "$GITHUB_STEP_SUMMARY"
-          echo "| PR Test Policy | $(status '${{ needs.pr-test-policy.result }}') |" >> "$GITHUB_STEP_SUMMARY"
-
-          echo "| SonarQube | $(status '${{ needs.sonarqube.result }}') |" >> "$GITHUB_STEP_SUMMARY"
-
-          echo "" >> "$GITHUB_STEP_SUMMARY"
-          echo "## 🏗️ Build" >> "$GITHUB_STEP_SUMMARY"
-          echo "| Job | Status |" >> "$GITHUB_STEP_SUMMARY"
-          echo "|-----|--------|" >> "$GITHUB_STEP_SUMMARY"
-          echo "| Build Matrix | $(status '${{ needs.build.result }}') |" >> "$GITHUB_STEP_SUMMARY"
-          echo "| Package Artifact | $(status '${{ needs.package-artifact.result }}') |" >> "$GITHUB_STEP_SUMMARY"
-          echo "| Electron Package Smoke | $(status '${{ needs.electron-package-smoke.result }}') |" >> "$GITHUB_STEP_SUMMARY"
-
-          echo "" >> "$GITHUB_STEP_SUMMARY"
-          echo "## 🧪 Tests" >> "$GITHUB_STEP_SUMMARY"
-          echo "| Suite | Status |" >> "$GITHUB_STEP_SUMMARY"
-          echo "|-------|--------|" >> "$GITHUB_STEP_SUMMARY"
-          echo "| Unit | $(status '${{ needs.test-unit.result }}') |" >> "$GITHUB_STEP_SUMMARY"
-          echo "| Node 24 Compatibility | $(status '${{ needs.node-24-compat.result }}') |" >> "$GITHUB_STEP_SUMMARY"
-          echo "| Node 26 Compatibility | $(status '${{ needs.node-26-compat.result }}') |" >> "$GITHUB_STEP_SUMMARY"
-          echo "| Coverage | $(status '${{ needs.test-coverage.result }}') |" >> "$GITHUB_STEP_SUMMARY"
-          echo "| PR Coverage Comment | $(status '${{ needs.coverage-pr-comment.result }}') |" >> "$GITHUB_STEP_SUMMARY"
-          echo "| E2E | $(status '${{ needs.test-e2e.result }}') |" >> "$GITHUB_STEP_SUMMARY"
-          echo "| Integration | $(status '${{ needs.test-integration.result }}') |" >> "$GITHUB_STEP_SUMMARY"
-          echo "| Security Tests | $(status '${{ needs.test-security.result }}') |" >> "$GITHUB_STEP_SUMMARY"
-
-          echo "" >> "$GITHUB_STEP_SUMMARY"
-          echo "## 🌍 Translations" >> "$GITHUB_STEP_SUMMARY"
+          {
+            echo "# 🚀 CI Dashboard"
+            echo ""
+            echo "## 🧱 Core Checks"
+            echo "| Job | Status |"
+            echo "|-----|--------|"
+            echo "| Lint | $(status '${{ needs.lint.result }}') |"
+            echo "| Docs Sync (Strict) | $(status '${{ needs.docs-sync-strict.result }}') |"
+            echo "| i18n UI Coverage | $(status '${{ needs.i18n-ui-coverage.result }}') |"
+            echo "| PR Test Policy | $(status '${{ needs.pr-test-policy.result }}') |"
+            echo "| SonarQube | $(status '${{ needs.sonarqube.result }}') |"
+            echo ""
+            echo "## 🏗️ Build"
+            echo "| Job | Status |"
+            echo "|-----|--------|"
+            echo "| Build Matrix | $(status '${{ needs.build.result }}') |"
+            echo "| Package Artifact | $(status '${{ needs.package-artifact.result }}') |"
+            echo "| Electron Package Smoke | $(status '${{ needs.electron-package-smoke.result }}') |"
+            echo ""
+            echo "## 🧪 Tests"
+            echo "| Suite | Status |"
+            echo "|-------|--------|"
+            echo "| Unit | $(status '${{ needs.test-unit.result }}') |"
+            echo "| Node 24 Compatibility | $(status '${{ needs.node-24-compat.result }}') |"
+            echo "| Node 26 Compatibility | $(status '${{ needs.node-26-compat.result }}') |"
+            echo "| Coverage | $(status '${{ needs.test-coverage.result }}') |"
+            echo "| PR Coverage Comment | $(status '${{ needs.coverage-pr-comment.result }}') |"
+            echo "| E2E | $(status '${{ needs.test-e2e.result }}') |"
+            echo "| Integration | $(status '${{ needs.test-integration.result }}') |"
+            echo "| Security Tests | $(status '${{ needs.test-security.result }}') |"
+            echo ""
+            echo "## 🌍 Translations"
+          } >> "$GITHUB_STEP_SUMMARY"
 
           total=0
           langs=0
@@ -650,16 +647,22 @@ jobs:
             done
           fi
 
-          echo "" >> "$GITHUB_STEP_SUMMARY"
-          echo "| Metric | Value |" >> "$GITHUB_STEP_SUMMARY"
-          echo "|--------|------|" >> "$GITHUB_STEP_SUMMARY"
-          echo "| Languages checked | $langs |" >> "$GITHUB_STEP_SUMMARY"
-          echo "| Total untranslated | $total |" >> "$GITHUB_STEP_SUMMARY"
+          {
+            echo ""
+            echo "| Metric | Value |"
+            echo "|--------|------|"
+            echo "| Languages checked | $langs |"
+            echo "| Total untranslated | $total |"
+          } >> "$GITHUB_STEP_SUMMARY"
 
           if [ "$total" -gt 0 ]; then
-            echo "" >> "$GITHUB_STEP_SUMMARY"
-            echo "⚠️ **Translations need attention**" >> "$GITHUB_STEP_SUMMARY"
+            {
+              echo ""
+              echo "⚠️ **Translations need attention**"
+            } >> "$GITHUB_STEP_SUMMARY"
           else
-            echo "" >> "$GITHUB_STEP_SUMMARY"
-            echo "✅ **All translations complete**" >> "$GITHUB_STEP_SUMMARY"
+            {
+              echo ""
+              echo "✅ **All translations complete**"
+            } >> "$GITHUB_STEP_SUMMARY"
           fi
