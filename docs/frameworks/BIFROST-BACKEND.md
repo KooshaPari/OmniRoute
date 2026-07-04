@@ -1,3 +1,9 @@
+---
+title: "Bifrost Backend (Tier-1 Router Bridge)"
+version: 3.8.44
+lastUpdated: 2026-07-04
+---
+
 # Bifrost Backend (Tier-1 Router Bridge)
 
 > **Status:** Phase 1 of v8.1 (ADR-031, 2026-06-18).
