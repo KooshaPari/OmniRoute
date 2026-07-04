@@ -1,7 +1,8 @@
 //! sharecli - Shared CLI process manager
 
 use anyhow::Result;
-use clap::{Parser, Subcommand};
+use clap::{CommandFactory, Parser, Subcommand};
+use clap_complete::Shell;
 use sharecli_thermal_tui as thermal_tui;
 
 mod cast;
@@ -48,7 +49,7 @@ enum Commands {
         project: Option<String>,
 
         /// Filter by harness type (claude, forge, node, bun)
-        #[arg(short, long)]
+        #[arg(long)]
         harness: Option<String>,
 
         /// Show all processes including system ones
@@ -63,7 +64,7 @@ enum Commands {
         project: String,
 
         /// Harness type (claude, forge, node, bun)
-        #[arg(short, long, default_value = "claude")]
+        #[arg(long, default_value = "claude")]
         harness: String,
 
         /// Working directory
@@ -77,7 +78,7 @@ enum Commands {
     /// Stop managed processes
     Stop {
         /// Process ID to stop
-        #[arg(short, long)]
+        #[arg(long)]
         pid: Option<u32>,
 
         /// Project to stop all processes for
@@ -85,7 +86,7 @@ enum Commands {
         project: Option<String>,
 
         /// Harness type to stop
-        #[arg(short, long)]
+        #[arg(long)]
         harness: Option<String>,
 
         /// Stop all managed processes
@@ -234,6 +235,12 @@ enum Commands {
         #[command(subcommand)]
         cmd: ProcComposeCmd,
     },
+
+    /// Generate shell completion script
+    Completions {
+        /// Shell to generate completions for
+        shell: Shell,
+    },
 }
 
 #[derive(Subcommand, Debug)]
@@ -376,6 +383,10 @@ async fn main() -> Result<()> {
             CastCmd::Where => cast_cmd::where_file()?,
         },
         Commands::ProcCompose { cmd } => proc_compose_cmd(cmd)?,
+        Commands::Completions { shell } => {
+            let mut cmd = Cli::command();
+            clap_complete::generate(*shell, &mut cmd, "sharecli", &mut std::io::stdout());
+        }
     }
 
     Ok(())
@@ -437,8 +448,9 @@ fn proc_compose_cmd(cmd: &ProcComposeCmd) -> Result<()> {
             Ok(p)
         } else {
             let cwd = std::env::current_dir()?;
-            proc_compose::find_config(&cwd)
-                .ok_or_else(|| anyhow::anyhow!("No process-compose.yaml found in {cwd:?} or any parent directory"))
+            proc_compose::find_config(&cwd).ok_or_else(|| {
+                anyhow::anyhow!("No process-compose.yaml found in {cwd:?} or any parent directory")
+            })
         }
     };
 
@@ -542,6 +554,18 @@ async fn prune(idle_seconds: u64, force: bool) -> Result<()> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_completions_zsh_contains_compdef() {
+        let mut cmd = Cli::command();
+        let mut buf = Vec::new();
+        clap_complete::generate(Shell::Zsh, &mut cmd, "sharecli", &mut buf);
+        let output = String::from_utf8(buf).expect("valid utf-8");
+        assert!(
+            output.contains("#compdef"),
+            "zsh completion should start with #compdef, got: {output}"
+        );
+    }
 
     #[test]
     fn test_no_color_respects_env_var() {
