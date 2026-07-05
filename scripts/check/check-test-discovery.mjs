@@ -64,18 +64,22 @@ export const COLLECTORS = [
   { glob: "tests/integration/combo-live/*.live.test.ts", sources: ["package.json"] },
   // Node native runner — test:system
   { glob: "tests/e2e/system-failover.test.ts", sources: ["package.json"] },
+  { glob: "tests/e2e/selfHealing.test.ts", sources: ["package.json"] },
   // vitest.mcp.config.ts — test:vitest
   { glob: "open-sse/mcp-server/__tests__/**/*.test.ts", sources: ["vitest.mcp.config.ts"] },
+  { glob: "open-sse/executors/__tests__/**/*.test.ts", sources: ["vitest.mcp.config.ts"] },
+  { glob: "open-sse/handlers/**/__tests__/**/*.test.ts", sources: ["vitest.mcp.config.ts"] },
   { glob: "open-sse/services/autoCombo/__tests__/**/*.test.ts", sources: ["vitest.mcp.config.ts"] },
   { glob: "open-sse/services/combo/__tests__/**/*.test.ts", sources: ["vitest.mcp.config.ts"] },
-  // Single-file include: the rest of open-sse/services/__tests__/ are frozen orphans
-  // (empty/dormant stubs); only this one is wired to run under test:vitest.
-  {
-    glob: "open-sse/services/__tests__/antigravity-quota-family.test.ts",
-    sources: ["vitest.mcp.config.ts"],
-  },
+  { glob: "open-sse/services/__tests__/**/*.test.ts", sources: ["vitest.mcp.config.ts"] },
+  { glob: "open-sse/translator/helpers/__tests__/**/*.test.ts", sources: ["vitest.mcp.config.ts"] },
+  { glob: "src/app/api/**/__tests__/**/*.test.ts", sources: ["vitest.mcp.config.ts"] },
+  { glob: "src/lib/db/__tests__/**/*.test.ts", sources: ["vitest.mcp.config.ts"] },
+  { glob: "src/lib/resilience/__tests__/**/*.test.ts", sources: ["vitest.mcp.config.ts"] },
+  { glob: "src/shared/utils/*.test.ts", sources: ["vitest.mcp.config.ts"] },
   { glob: "tests/unit/autoCombo/**/*.test.ts", sources: ["vitest.mcp.config.ts"] },
   { glob: "tests/unit/encryption.spec.ts", sources: ["vitest.mcp.config.ts"] },
+  { glob: "tests/unit/transformer/**/*.test.ts", sources: ["vitest.mcp.config.ts"] },
   { glob: "src/shared/components/**/*.test.tsx", sources: ["vitest.mcp.config.ts"] },
   { glob: "src/shared/hooks/__tests__/**/*.test.tsx", sources: ["vitest.mcp.config.ts"] },
   { glob: "src/app/(dashboard)/**/__tests__/**/*.test.tsx", sources: ["vitest.mcp.config.ts"] },

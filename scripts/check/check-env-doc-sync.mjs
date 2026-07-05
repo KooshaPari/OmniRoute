@@ -158,9 +158,15 @@ const IGNORE_FROM_CODE = new Set([
   // XDG standard data directory — set by OS/desktop session, not OmniRoute config.
   // Read by setup-open-code.mjs to locate platform-specific OpenCode data dir.
   "XDG_DATA_HOME",
+  "XDG_RUNTIME_DIR",
+  "TMPDIR",
   // Test-only override: points setup-open-code.mjs at a fixture plugin dir without
   // requiring the real bundled plugin to be built.
   "OMNIROUTE_OPENCODE_PLUGIN_DIR",
+  // Script/test-only switches. These are consumed by focused check or fixture code,
+  // not OmniRoute runtime configuration.
+  "OPENAI_COMPATIBLE_FOO_USER_AGENT",
+  "T11_STRICT",
 ]);
 
 // Vars documented in ENVIRONMENT.md but intentionally absent from .env.example.
