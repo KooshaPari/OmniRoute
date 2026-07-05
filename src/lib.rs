@@ -122,3 +122,6 @@ pub mod word_count;
 
 pub mod mime_qp;
 pub mod csv_writer;
+
+pub mod html_escape;
+pub mod ipaddr_validation;
