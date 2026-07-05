@@ -1,343 +1,201 @@
-#!/usr/bin/env node
-import { execFileSync } from "node:child_process";
-import fs from "node:fs";
-import path from "node:path";
-import process from "node:process";
+import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { dirname } from "node:path";
 
-import { buildDispatchRequest, buildReconcilePayload, decodeBase64Json } from "./core.ts";
-import { normalizeBotComment, normalizeCheckRun, normalizeReviewThread } from "./core.ts";
-import { parseLabels, safeJsonParse, shouldSkipPullRequest } from "./core.ts";
-import type { BotCommentInput, CheckRunInput, NormalizedFeedback } from "./core.ts";
-import type { PullRequestPayload, ReviewThreadInput } from "./core.ts";
+type Command = "collect" | "dispatch";
 
-type Args = Record<string, string | boolean>;
+type CliOptions = Record<string, string | boolean>;
 
-interface GitHubPullRequest {
-  number: number;
-  title: string;
-  html_url: string;
-  draft?: boolean;
-  user?: { login?: string };
-  head: {
-    ref: string;
-    sha: string;
-    repo?: { fork?: boolean; full_name?: string };
+type ReconcilePayload = {
+  eventName: string;
+  repository: string;
+  runId: string;
+  runAttempt: string;
+  collectedAt: string;
+  pullRequest?: {
+    number?: number;
+    title?: string;
+    url?: string;
+    headSha?: string;
+    headRef?: string;
+    baseRef?: string;
+    author?: string;
   };
-  base: {
-    ref: string;
-    repo?: { full_name?: string };
+  review?: {
+    state?: string;
+    author?: string;
+    body?: string;
+    url?: string;
   };
-  labels?: Array<{ name: string }>;
-  author_association?: string;
-}
+  comment?: {
+    author?: string;
+    body?: string;
+    url?: string;
+  };
+  workflowRun?: {
+    id?: number;
+    name?: string;
+    conclusion?: string;
+    url?: string;
+    headSha?: string;
+  };
+};
 
-const command = process.argv[2];
-const args = parseArgs(process.argv.slice(3));
-
-try {
-  if (command === "collect") {
-    await collect(args);
-  } else if (command === "dispatch") {
-    await dispatch(args);
-  } else {
-    usage();
-    process.exit(command ? 1 : 0);
+function parseArgs(argv: string[]): { command: Command; options: CliOptions } {
+  const [commandRaw, ...rest] = argv;
+  if (commandRaw !== "collect" && commandRaw !== "dispatch") {
+    throw new Error("usage: cli.ts <collect|dispatch> [--key value] [--flag]");
   }
-} catch (error) {
-  console.error(error instanceof Error ? error.message : String(error));
-  process.exit(1);
+
+  const options: CliOptions = {};
+  for (let i = 0; i < rest.length; i += 1) {
+    const token = rest[i];
+    if (!token.startsWith("--")) {
+      throw new Error(`unexpected argument: ${token}`);
+    }
+
+    const key = token.slice(2);
+    const next = rest[i + 1];
+    if (!next || next.startsWith("--")) {
+      options[key] = true;
+      continue;
+    }
+
+    options[key] = next;
+    i += 1;
+  }
+
+  return { command: commandRaw, options };
 }
 
-async function collect(args: Args): Promise<void> {
-  const repository = stringArg(args, "repository") ?? stringArg(args, "repo") ?? env("PR_RECONCILE_REPOSITORY");
-  if (!repository) throw new Error("collect requires --repository or PR_RECONCILE_REPOSITORY");
+function requiredString(options: CliOptions, key: string): string {
+  const value = options[key];
+  if (typeof value !== "string" || value.length === 0) {
+    throw new Error(`missing required --${key}`);
+  }
+  return value;
+}
 
-  const event = readEvent(stringArg(args, "event-path"));
-  const prNumber = numberArg(args, "pr") ?? inferPullRequestNumber(event);
-  if (!prNumber) throw new Error("could not infer pull request number");
+function optionalString(options: CliOptions, key: string): string | undefined {
+  const value = options[key];
+  return typeof value === "string" && value.length > 0 ? value : undefined;
+}
 
-  const pr = readPullRequest(repository, prNumber, event);
-  const labels = parseLabels(pr.labels);
-  const attemptCount = numberArg(args, "run-attempt") ?? Number(env("PR_RECONCILE_RUN_ATTEMPT") ?? 1);
-  const maxAttempts = numberArg(args, "max-attempts") ?? 5;
-  const skip = shouldSkipPullRequest({
-    draft: Boolean(pr.draft),
-    labels,
-    isFork: Boolean(pr.head.repo?.fork || pr.head.repo?.full_name !== pr.base.repo?.full_name),
-    authorAssociation: pr.author_association,
-    attemptCount,
-    maxAttempts,
-  });
+function asObject(value: unknown): Record<string, any> {
+  return value && typeof value === "object" ? (value as Record<string, any>) : {};
+}
 
-  const pullRequest: PullRequestPayload = {
-    number: pr.number,
-    title: pr.title,
-    url: pr.html_url,
-    headRef: pr.head.ref,
-    headSha: pr.head.sha,
-    baseRef: pr.base.ref,
-    author: pr.user?.login ?? "unknown",
-    labels,
-    draft: Boolean(pr.draft),
-    isFork: Boolean(pr.head.repo?.fork || pr.head.repo?.full_name !== pr.base.repo?.full_name),
-    authorAssociation: pr.author_association,
+function pullRequestFromEvent(event: Record<string, any>): ReconcilePayload["pullRequest"] {
+  const pr = asObject(event.pull_request ?? event.workflow_run?.pull_requests?.[0]);
+  if (!Object.keys(pr).length) return undefined;
+
+  return {
+    number: typeof pr.number === "number" ? pr.number : undefined,
+    title: typeof pr.title === "string" ? pr.title : undefined,
+    url: typeof pr.html_url === "string" ? pr.html_url : undefined,
+    headSha: typeof pr.head?.sha === "string" ? pr.head.sha : undefined,
+    headRef: typeof pr.head?.ref === "string" ? pr.head.ref : undefined,
+    baseRef: typeof pr.base?.ref === "string" ? pr.base.ref : undefined,
+    author: typeof pr.user?.login === "string" ? pr.user.login : undefined,
+  };
+}
+
+function reviewFromEvent(event: Record<string, any>): ReconcilePayload["review"] {
+  const review = asObject(event.review);
+  if (!Object.keys(review).length) return undefined;
+
+  return {
+    state: typeof review.state === "string" ? review.state : undefined,
+    author: typeof review.user?.login === "string" ? review.user.login : undefined,
+    body: typeof review.body === "string" ? review.body : undefined,
+    url: typeof review.html_url === "string" ? review.html_url : undefined,
+  };
+}
+
+function commentFromEvent(event: Record<string, any>): ReconcilePayload["comment"] {
+  const comment = asObject(event.comment);
+  if (!Object.keys(comment).length) return undefined;
+
+  return {
+    author: typeof comment.user?.login === "string" ? comment.user.login : undefined,
+    body: typeof comment.body === "string" ? comment.body : undefined,
+    url: typeof comment.html_url === "string" ? comment.html_url : undefined,
+  };
+}
+
+function workflowRunFromEvent(event: Record<string, any>): ReconcilePayload["workflowRun"] {
+  const workflowRun = asObject(event.workflow_run);
+  if (!Object.keys(workflowRun).length) return undefined;
+
+  return {
+    id: typeof workflowRun.id === "number" ? workflowRun.id : undefined,
+    name: typeof workflowRun.name === "string" ? workflowRun.name : undefined,
+    conclusion: typeof workflowRun.conclusion === "string" ? workflowRun.conclusion : undefined,
+    url: typeof workflowRun.html_url === "string" ? workflowRun.html_url : undefined,
+    headSha: typeof workflowRun.head_sha === "string" ? workflowRun.head_sha : undefined,
+  };
+}
+
+async function collect(options: CliOptions): Promise<void> {
+  const eventPath = requiredString(options, "event-path");
+  const output = requiredString(options, "output");
+  const event = JSON.parse(await readFile(eventPath, "utf8"));
+
+  const payload: ReconcilePayload = {
+    eventName: requiredString(options, "event-name"),
+    repository: requiredString(options, "repository"),
+    runId: requiredString(options, "run-id"),
+    runAttempt: requiredString(options, "run-attempt"),
+    collectedAt: new Date().toISOString(),
+    pullRequest: pullRequestFromEvent(event),
+    review: reviewFromEvent(event),
+    comment: commentFromEvent(event),
+    workflowRun: workflowRunFromEvent(event),
   };
 
-  const feedback = skip.skip
-    ? []
-    : dedupeFeedback([
-        ...collectBotComments(repository, prNumber),
-        ...collectReviewThreads(repository, prNumber),
-        ...collectCheckRuns(repository, pullRequest.headSha),
-      ]);
-
-  const payload = buildReconcilePayload({
-    repository,
-    pullRequest,
-    attempt: {
-      count: attemptCount,
-      max: maxAttempts,
-    },
-    files: skip.skip ? [] : collectFiles(repository, prNumber),
-    feedback: skip.skip
-      ? [
-          {
-            id: `skip:${skip.reason}`,
-            kind: "bot_comment",
-            source: "pr-reconcile",
-            severity: "informational",
-            summary: `Skipped reconciliation: ${skip.reason}`,
-            body: `PR reconciliation was skipped before dispatch because: ${skip.reason}`,
-          },
-        ]
-      : feedback,
-  });
-
-  writeJson(stringArg(args, "output"), payload);
+  await mkdir(dirname(output), { recursive: true });
+  await writeFile(output, `${JSON.stringify(payload, null, 2)}\n`);
+  console.log(`[pr-reconcile] wrote payload: ${output}`);
 }
 
-async function dispatch(args: Args): Promise<void> {
-  const payloadPath = stringArg(args, "payload");
-  if (!payloadPath) throw new Error("dispatch requires --payload");
-  const payload = safeJsonParse(fs.readFileSync(payloadPath, "utf8"));
-  if (!payload) throw new Error(`invalid JSON payload: ${payloadPath}`);
+async function dispatch(options: CliOptions): Promise<void> {
+  const payloadPath = requiredString(options, "payload");
+  const payload = JSON.parse(await readFile(payloadPath, "utf8"));
+  const webhookUrl = optionalString(options, "webhook-url");
 
-  if (args["dry-run"]) {
-    console.log(JSON.stringify({ dryRun: true, payloadBytes: JSON.stringify(payload).length }, null, 2));
+  if (options["dry-run"] || !webhookUrl) {
+    console.log("[pr-reconcile] dry run; dispatch skipped");
+    console.log(JSON.stringify(payload, null, 2));
     return;
   }
 
-  const webhookUrl = stringArg(args, "webhook-url") ?? env("KILO_RECONCILE_WEBHOOK_URL");
-  if (!webhookUrl) throw new Error("dispatch requires --webhook-url or KILO_RECONCILE_WEBHOOK_URL");
-  const token = stringArg(args, "token") ?? env("KILO_RECONCILE_WEBHOOK_TOKEN");
-  const request = buildDispatchRequest({ webhookUrl, token, payload });
-  const response = await fetch(request.url, request.init);
-  if (!response.ok) {
-    const body = await response.text();
-    throw new Error(`dispatch failed: ${response.status} ${body.slice(0, 500)}`);
-  }
-  console.log(JSON.stringify({ dispatched: true, status: response.status }, null, 2));
-}
+  const headers: Record<string, string> = { "content-type": "application/json" };
+  const token = process.env.KILO_RECONCILE_WEBHOOK_TOKEN;
+  if (token) headers.authorization = `Bearer ${token}`;
 
-function readPullRequest(repository: string, prNumber: number, event: unknown): GitHubPullRequest {
-  const fromEvent = eventPullRequest(event);
-  if (fromEvent?.number === prNumber) return fromEvent;
-  const api = ghJson<GitHubPullRequest>(["api", `repos/${repository}/pulls/${prNumber}`]);
-  if (!api) throw new Error(`could not read PR #${prNumber}`);
-  return api;
-}
-
-function collectBotComments(repository: string, prNumber: number): NormalizedFeedback[] {
-  const comments = ghJson<Array<{ id: number; user?: { login?: string }; body?: string; html_url?: string; created_at?: string }>>([
-    "api",
-    `repos/${repository}/issues/${prNumber}/comments`,
-    "--paginate",
-  ]);
-  return (comments ?? [])
-    .map((comment) =>
-      normalizeBotComment({
-        id: `issue-comment:${comment.id}`,
-        author: comment.user?.login ?? "unknown",
-        body: comment.body ?? "",
-        url: comment.html_url,
-        createdAt: comment.created_at,
-      })
-    )
-    .filter((feedback): feedback is NormalizedFeedback => Boolean(feedback));
-}
-
-function collectReviewThreads(repository: string, prNumber: number): NormalizedFeedback[] {
-  const [owner, name] = repository.split("/");
-  const data = ghJson<{ repository?: { pullRequest?: { reviewThreads?: { nodes?: unknown[] } } } }>([
-    "api",
-    "graphql",
-    "-f",
-    `owner=${owner}`,
-    "-f",
-    `name=${name}`,
-    "-F",
-    `number=${prNumber}`,
-    "-f",
-    "query=query($owner:String!,$name:String!,$number:Int!){repository(owner:$owner,name:$name){pullRequest(number:$number){reviewThreads(first:100){nodes{id,isResolved,isOutdated,path,line,comments(first:20){nodes{id,body,url,createdAt,author{login}}}}}}}}",
-  ]);
-  const nodes = data?.repository?.pullRequest?.reviewThreads?.nodes ?? [];
-  return nodes
-    .map((node) => normalizeReviewThread(graphqlThreadToInput(node)))
-    .filter((feedback): feedback is NormalizedFeedback => Boolean(feedback));
-}
-
-function collectCheckRuns(repository: string, headSha: string): NormalizedFeedback[] {
-  const data = ghJson<{ check_runs?: Array<{ name: string; conclusion?: string; status?: string; details_url?: string; output?: { text?: string; summary?: string } }> }>([
-    "api",
-    `repos/${repository}/commits/${headSha}/check-runs`,
-    "-H",
-    "Accept: application/vnd.github+json",
-  ]);
-  return (data?.check_runs ?? [])
-    .map((run) =>
-      normalizeCheckRun({
-        name: run.name,
-        conclusion: run.conclusion,
-        status: run.status,
-        detailsUrl: run.details_url,
-        text: run.output?.text ?? run.output?.summary,
-      } satisfies CheckRunInput)
-    )
-    .filter((feedback): feedback is NormalizedFeedback => Boolean(feedback));
-}
-
-function collectFiles(repository: string, prNumber: number): string[] {
-  const files = ghJson<Array<{ filename?: string }>>([
-    "api",
-    `repos/${repository}/pulls/${prNumber}/files`,
-    "--paginate",
-  ]);
-  return [...new Set((files ?? []).map((file) => file.filename).filter(Boolean) as string[])];
-}
-
-function graphqlThreadToInput(node: unknown): ReviewThreadInput {
-  const value = node as {
-    id?: string;
-    isResolved?: boolean;
-    isOutdated?: boolean;
-    path?: string;
-    line?: number;
-    comments?: { nodes?: Array<{ id?: string; body?: string; url?: string; createdAt?: string; author?: { login?: string } }> };
-  };
-  return {
-    id: value.id ?? "review-thread:unknown",
-    isResolved: value.isResolved,
-    isOutdated: value.isOutdated,
-    path: value.path,
-    line: value.line,
-    comments: (value.comments?.nodes ?? []).map(
-      (comment): BotCommentInput => ({
-        id: comment.id ?? "review-comment:unknown",
-        author: comment.author?.login ?? "unknown",
-        body: comment.body ?? "",
-        url: comment.url,
-        createdAt: comment.createdAt,
-      })
-    ),
-  };
-}
-
-function dedupeFeedback(feedback: NormalizedFeedback[]): NormalizedFeedback[] {
-  const seen = new Set<string>();
-  return feedback.filter((item) => {
-    const key = `${item.kind}:${item.id}`;
-    if (seen.has(key)) return false;
-    seen.add(key);
-    return true;
+  const response = await fetch(webhookUrl, {
+    method: "POST",
+    headers,
+    body: JSON.stringify(payload),
   });
-}
 
-function ghJson<T>(args: string[]): T | null {
-  try {
-    const stdout = execFileSync("gh", args, {
-      encoding: "utf8",
-      stdio: ["ignore", "pipe", "pipe"],
-      env: process.env,
-      maxBuffer: 20 * 1024 * 1024,
-    });
-    return safeJsonParse<T>(stdout);
-  } catch {
-    return null;
+  if (!response.ok) {
+    throw new Error(`webhook dispatch failed: ${response.status} ${await response.text()}`);
   }
+
+  console.log(`[pr-reconcile] dispatched payload: ${response.status}`);
 }
 
-function readEvent(eventPath?: string): unknown {
-  if (eventPath && fs.existsSync(eventPath)) {
-    return safeJsonParse(fs.readFileSync(eventPath, "utf8"));
+async function main(): Promise<void> {
+  const { command, options } = parseArgs(process.argv.slice(2));
+  if (command === "collect") {
+    await collect(options);
+    return;
   }
-  const encoded = env("PR_RECONCILE_EVENT_JSON_B64");
-  return encoded ? decodeBase64Json(encoded) : null;
+
+  await dispatch(options);
 }
 
-function eventPullRequest(event: unknown): GitHubPullRequest | null {
-  const value = event as { pull_request?: GitHubPullRequest; workflow_run?: { pull_requests?: GitHubPullRequest[] } };
-  return value?.pull_request ?? value?.workflow_run?.pull_requests?.[0] ?? null;
-}
-
-function inferPullRequestNumber(event: unknown): number | null {
-  const value = event as {
-    pull_request?: { number?: number };
-    issue?: { number?: number; pull_request?: unknown };
-    workflow_run?: { pull_requests?: Array<{ number?: number }> };
-  };
-  return value?.pull_request?.number ??
-    (value?.issue?.pull_request ? value.issue.number : undefined) ??
-    value?.workflow_run?.pull_requests?.[0]?.number ??
-    null;
-}
-
-function writeJson(output: string | undefined, value: unknown): void {
-  const json = `${JSON.stringify(value, null, 2)}\n`;
-  if (output) {
-    fs.mkdirSync(path.dirname(output), { recursive: true });
-    fs.writeFileSync(output, json);
-  } else {
-    process.stdout.write(json);
-  }
-}
-
-function parseArgs(argv: string[]): Args {
-  const parsed: Args = {};
-  for (let i = 0; i < argv.length; i += 1) {
-    const arg = argv[i];
-    if (!arg.startsWith("--")) continue;
-    const key = arg.slice(2);
-    const next = argv[i + 1];
-    if (!next || next.startsWith("--")) {
-      parsed[key] = true;
-    } else {
-      parsed[key] = next;
-      i += 1;
-    }
-  }
-  return parsed;
-}
-
-function stringArg(args: Args, key: string): string | undefined {
-  const value = args[key];
-  return typeof value === "string" ? value : undefined;
-}
-
-function numberArg(args: Args, key: string): number | undefined {
-  const value = stringArg(args, key);
-  if (!value) return undefined;
-  const parsed = Number(value);
-  return Number.isFinite(parsed) ? parsed : undefined;
-}
-
-function env(key: string): string | undefined {
-  const value = process.env[key];
-  return value && value.length > 0 ? value : undefined;
-}
-
-function usage(): void {
-  console.log(
-    "Usage: node --import tsx scripts/pr-reconcile/cli.ts collect --repository owner/repo --pr 123 --output payload.json\n" +
-      "       node --import tsx scripts/pr-reconcile/cli.ts dispatch --payload payload.json --webhook-url https://..."
-  );
-}
+main().catch((error) => {
+  console.error(error instanceof Error ? error.message : error);
+  process.exitCode = 1;
+});
