@@ -1,7 +1,7 @@
 use std::sync::Arc;
 use serde::{Deserialize, Serialize};
 use tokio::sync::RwLock;
-use crate::error::{AppError, AppResult};
+use crate::error::AppResult;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub enum GatewayState {
@@ -15,9 +15,15 @@ pub enum GatewayState {
     Quit,
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone)]
 pub struct GatewayProcess {
     state: Arc<RwLock<GatewayState>>,
+}
+
+impl Default for GatewayProcess {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl GatewayProcess {
