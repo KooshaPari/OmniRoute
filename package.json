@@ -51,7 +51,9 @@
   ],
   "workspaces": [
     "open-sse",
-    "packages/tokn"
+    "packages/tokn",
+    "apps/*",
+    "packages/*"
   ],
   "engines": {
     "node": ">=22.0.0 <23 || >=24.0.0 <27"
@@ -74,8 +76,14 @@
   "license": "MIT",
   "author": "KooshaPari (maintainer) / diegosouzapw (upstream)",
   "contributors": [
-    { "name": "KooshaPari", "url": "https://kooshapari.com" },
-    { "name": "diegosouzapw (upstream)", "url": "https://github.com/diegosouzapw" }
+    {
+      "name": "KooshaPari",
+      "url": "https://kooshapari.com"
+    },
+    {
+      "name": "diegosouzapw (upstream)",
+      "url": "https://github.com/diegosouzapw"
+    }
   ],
   "repository": {
     "type": "git",
