@@ -42,7 +42,8 @@ let _initDone = false;
 async function _resolveOtelBinding(): Promise<void> {
   // Tier 1 — @pheno-otel/tracing (sibling Rust-to-JS bridge)
   try {
-    const mod = await import("@pheno-otel/tracing");
+    const tracingPackage = "@pheno-otel/tracing";
+    const mod = await import(tracingPackage);
     if (typeof mod.getActiveSpanContext === "function") {
       _getter = () => {
         const ctx = mod.getActiveSpanContext();

@@ -68,17 +68,8 @@ export const COLLECTORS = [
   { glob: "open-sse/mcp-server/__tests__/**/*.test.ts", sources: ["vitest.mcp.config.ts"] },
   { glob: "open-sse/services/autoCombo/__tests__/**/*.test.ts", sources: ["vitest.mcp.config.ts"] },
   { glob: "open-sse/services/combo/__tests__/**/*.test.ts", sources: ["vitest.mcp.config.ts"] },
-  // Single-file include: the rest of open-sse/services/__tests__/ are frozen orphans
-  // (empty/dormant stubs); only this one is wired to run under test:vitest.
-  {
-    glob: "open-sse/services/__tests__/antigravity-quota-family.test.ts",
-    sources: ["vitest.mcp.config.ts"],
-  },
   { glob: "tests/unit/autoCombo/**/*.test.ts", sources: ["vitest.mcp.config.ts"] },
   { glob: "tests/unit/encryption.spec.ts", sources: ["vitest.mcp.config.ts"] },
-  { glob: "src/shared/components/**/*.test.tsx", sources: ["vitest.mcp.config.ts"] },
-  { glob: "src/shared/hooks/__tests__/**/*.test.tsx", sources: ["vitest.mcp.config.ts"] },
-  { glob: "src/app/(dashboard)/**/__tests__/**/*.test.tsx", sources: ["vitest.mcp.config.ts"] },
   // vitest.config.ts via test:vitest:ui (roda com path-filter `tests/unit/ui`, então o
   // conjunto EFETIVO é a interseção do include `tests/unit/**/*.test.tsx` com o filtro)
   {
