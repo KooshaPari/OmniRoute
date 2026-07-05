@@ -395,11 +395,13 @@ export {
   insertCompressionAnalyticsRow,
   getCompressionAnalyticsSummary,
 } from "./db/compressionAnalytics";
+export { getCompressionBudgetHistory } from "./db/compressionBudgetHistory";
 
 export type {
   CompressionAnalyticsRow,
   CompressionAnalyticsSummary,
 } from "./db/compressionAnalytics";
+export type { CompressionBudgetHistoryPoint } from "./db/compressionBudgetHistory";
 
 export {
   // Reasoning Replay Cache (#1628)

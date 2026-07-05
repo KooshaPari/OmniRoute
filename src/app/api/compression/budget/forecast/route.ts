@@ -29,7 +29,7 @@ import {
   type BudgetHistoryPoint,
   type BudgetForecast,
 } from "@omniroute/open-sse/services/compression/budgetForecast";
-import { getCompressionBudgetHistory } from "@/lib/db/compressionAnalytics";
+import { getCompressionBudgetHistory } from "@/lib/db/compressionBudgetHistory";
 
 /** Default projection horizon: 1 hour. */
 const DEFAULT_HORIZON_MS = 60 * 60 * 1000;
