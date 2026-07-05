@@ -61,7 +61,7 @@ const DEFAULT_HOST = "127.0.0.1";
 const DEFAULT_PORT = 8080;
 const DEFAULT_BASE_URL = `http://${DEFAULT_HOST}:${DEFAULT_PORT}`;
 const HEALTH_CHECK_TIMEOUT_MS = 5000;
-const BIFROST_TAG = "BIFROST";
+export const BIFROST_TAG = "BIFROST";
 
 /**
  * Resolve the Bifrost base URL. Reads from env, falls back to the

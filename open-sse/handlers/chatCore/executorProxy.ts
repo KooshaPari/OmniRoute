@@ -10,6 +10,11 @@
  */
 
 import { getExecutor } from "../../executors/index.ts";
+import {
+  shouldRouteViaBifrost,
+  createBifrostBackedExecutor,
+} from "../../executors/bifrost.ts";
+import { wrapBifrostExecutorWithShadow } from "../../executors/bifrostShadowWrap.ts";
 import { getCachedSettings } from "@/lib/db/readCache";
 import { getUpstreamProxyConfigCached } from "./comboContextCache.ts";
 
@@ -77,7 +82,24 @@ async function executeCliproxyapiMapped(
   return proxyExec.execute(await mapCliproxyapiInput(providerId, input, providerMapping));
 }
 
-export async function resolveExecutorWithProxy(prov: string, log?: LoggerLike) {
+export async function resolveExecutorWithProxy(
+  prov: string,
+  log?: LoggerLike,
+  opts?: { providerSpecificData?: { bifrostMode?: boolean | null } | null },
+) {
+  // WP-B4: Bifrost-as-primary with legacy shadow.
+  // Check before the proxy-config path so a provider that wants
+  // Bifrost routing gets it regardless of the proxy mode.
+  if (shouldRouteViaBifrost(prov, { providerSpecificData: opts?.providerSpecificData })) {
+    log?.info?.("BIFROST", `${prov} → BifrostBackendExecutor (Tier-1, shadow-wrapped)`);
+    const bifrost = createBifrostBackedExecutor(prov, log);
+    const wrapped = wrapBifrostExecutorWithShadow(bifrost, {
+      provider: prov,
+      log: log as unknown as { info?: (tag: string, msg: string) => void },
+      legacyExecute: (input) => getExecutor(prov).execute(input as never),
+    });
+    return wrapped.wrapped as unknown as Awaited<ReturnType<typeof getExecutor>>;
+  }
   const cfg = await getUpstreamProxyConfigCached(prov);
   if (!cfg.enabled || cfg.mode === "native") return getExecutor(prov);
 
