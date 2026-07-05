@@ -100,6 +100,26 @@ export const dashboardRoutes = new Hono()
     { key: 'beta-compression', description: 'TOON + GCF best-of-N encoder', default: false, rollout: 25, conditions: [], userOverride: null },
   ] }))
   .put('/flags/:key', zValidator('json', FlagOverrideSchema), (c) => c.json({ ok: true, key: c.req.param('key'), override: c.req.valid('json').userOverride }))
+  // Phase 2.12 extra routes
+  .get('/billing/invoices', (c) => c.json({ invoices: [] }))
+  .get('/keys/:id', (c) => c.json({
+    id: c.req.param('id'), name: 'demo', prefix: 'omni_pk_demo',
+    fullKey: 'omni_pk_demo_xxxxxxxxxxxxxxxxxxxxxxxxxxxx',
+    createdAt: '2026-07-01T00:00:00Z', lastUsedAt: null, revoked: false,
+  }))
+  .get('/keys/:id/usage', (c) => c.json({
+    usage: Array.from({ length: 30 }, (_, i) => ({
+      date: new Date(Date.now() - (29 - i) * 86400000).toISOString().slice(0, 10),
+      requests: Math.floor(Math.random() * 1000),
+    })),
+  }))
+  .get('/usage/by-model', (c) => c.json({ rows: [] }))
+  .get('/cost/by-provider', (c) => c.json({ providers: [] }))
+  .post('/audit/export', (c) => c.json({
+    url: 'https://example.com/exports/audit-' + Date.now() + '.json',
+    rows: 0,
+    ts: new Date().toISOString(),
+  }))
   .get('/health/stream', (c) => {
     return streamSSE(c, async (stream) => {
       let id = 0;
@@ -112,3 +132,4 @@ export const dashboardRoutes = new Hono()
       await new Promise<void>((resolve) => stream.onAbort(() => resolve()));
     });
   });
+});
