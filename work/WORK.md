@@ -1,6 +1,6 @@
 # OmniRoute / Phenotype Work Ledger
 
-[OmniRoute:~, RootRecovery:!, RouterEval:P, PhenoCI:~, AgilePlus:~, Substrate:ok, Tracera:?, Vercel:~]
+[OmniRoute:~~, RootRecovery:!, RouterEval:P, PhenoCI:~~, AgilePlus:~~, Substrate:ok, Tracera:?, Vercel:~~]
 
 This is the canonical handoff file for the polyrepo work queue. Other Markdown handoff files in
 `work/` are superseded once their durable content is merged here. Future agents should read and
@@ -9,13 +9,13 @@ update this file directly instead of creating parallel `codex_*`, `*_handoff`, `
 
 State symbols:
 
-| symbol | meaning |
-|---|---|
-| `ok` | verified clean or complete in current evidence |
-| `~` | active or partially complete |
-| `!` | active blocker or failing gate |
-| `P` | parked until prerequisite changes |
-| `?` | needs fresh state refresh |
+| symbol | meaning                                        |
+| ------ | ---------------------------------------------- |
+| `ok`   | verified clean or complete in current evidence |
+| `~`    | active or partially complete                   |
+| `!`    | active blocker or failing gate                 |
+| `P`    | parked until prerequisite changes              |
+| `?`    | needs fresh state refresh                      |
 
 ## Current Objective
 
@@ -47,13 +47,14 @@ this DAG.
 - Repo/worktree: `/Users/kooshapari/CodeProjects/Phenotype/repos-wtrees/pr-286-auto-fix`
 - Branch: `fix/omniroute-auto-fix`
 - PR: `KooshaPari/OmniRoute#286`
-- Current pushed head: `efcd8fcfa03b9e508ca58485b154497089426d77`
+- Current pushed head: `3d201d97ae2f669ac54b93b5082ead5933b2a3cf`
 - Follow-up commits pushed in this session:
   - `6379224fc fix(ci): repair omniroute auto-fix gates`
   - `4567773cb fix(ci): clear pr286 docs and quality gates`
   - `b2162bee1 fix(ci): refresh dependency allowlist for auto-fix`
   - `ba59c7884 fix(ci): rebaseline file-size gate for pr286`
   - `efcd8fcfa fix(ci): satisfy db rules for pr286`
+  - `3d201d97a fix(ci): split compression budget history helper`
 - Local gates green after the second commit:
   - `npm run check:docs-all`
   - `npm run check:route-validation:t06`
@@ -63,9 +64,20 @@ this DAG.
   - `node scripts/check/check-file-size.mjs`
   - `node scripts/check/check-db-rules.mjs`
   - targeted `npm exec eslint` for compression forecast DB/route/localDb changes
+  - targeted `npm exec eslint` for split compression budget history helper
   - `npm run check:fabricated-docs`
   - `git diff --check`
 - CI after latest push: fresh GitHub jobs are pending. Early checks observed green/skipped:
+  - `Build language matrix` passed
+  - `Change Classification` passed
+  - `Dependency Audit (npm)` passed
+  - `Docs Lint (prose - advisory)` passed
+  - `Latency budget result` passed
+  - `OpenSSF Scorecard` passed
+  - `PR Test Policy` passed
+  - `REST endpoint budget check` passed
+  - `REST endpoint latency regression` passed
+  - `Secrets Scan (Gitleaks)` passed
   - `Socket Security: Pull Request Alerts` passed
   - `Socket Security: Project Report` passed
   - duplicate lightweight `lint` statuses passed
@@ -82,12 +94,10 @@ this DAG.
 - Local caveat: `npm run check:complexity` and `npm run quality:collect` produced stale PTY
   sessions locally under the snip-wrapped terminal, but the direct ratchet script passed against
   the tightened baseline. Treat CI as authoritative for those collector-heavy gates.
-- Current live CI note: one `Lint` job finished `FAILURE` while the lighter `lint` check is
-  `SUCCESS`; the workflow run remains in progress and the failing job log is still locked until the
-  run fully settles.
-- Latest refresh: PR286 is still running with `Lint` failing and the log unavailable; PR294 is
-  still `DIRTY`/`CONFLICTING` with Kilo pending, so neither lane is ready for a safe branch edit
-  yet.
+- Current live CI note: the new `3d201d97a` run is still settling. `gh pr checks` returned
+  nonzero because pending checks remain, but the observed completed checks listed above were green.
+- Latest refresh: PR286 is running on `3d201d97a`; PR294 is still `DIRTY`/`CONFLICTING` with Kilo
+  pending, so neither lane is ready for merge yet.
 - PR295 sample: `UNSTABLE` and `MERGEABLE`, but the run is dominated by failing coverage / unit /
   E2E shards alongside green lint/build/security gates, so it looks like a broad CI lane rather
   than a small deterministic patch target.
@@ -98,6 +108,11 @@ this DAG.
 - Latest failed `Lint` run moved to `check:db-rules`; current head moves compression budget SQL
   into `src/lib/db/compressionAnalytics.ts`, adds seven `src/lib/localDb.ts` re-exports, and
   `node scripts/check/check-db-rules.mjs` is locally green.
+- Follow-up failed `Lint` run moved to `check:file-size` because
+  `src/lib/db/compressionAnalytics.ts` exceeded the new-file cap. Current head extracts the
+  forecast history query into `src/lib/db/compressionBudgetHistory.ts`, re-exports it from
+  `src/lib/localDb.ts`, and keeps `src/lib/db/compressionAnalytics.ts` at 778 lines. Local
+  `check-db-rules`, `check-file-size`, targeted lint, and `git diff --check` are green.
 
 ### PR294 status
 
@@ -119,22 +134,22 @@ this DAG.
 
 ### Open OmniRoute PR queue at last refresh
 
-| PR | state | head | updated UTC | note |
-|---:|---|---|---|---|
-| 298 | CLEAN | `codex/latency-routing-policy-doc` | 2026-07-04T12:13:38Z | doc lane |
-| 297 | CLEAN | `codex/model-latency-stats-api-doc` | 2026-07-04T12:10:58Z | doc lane |
-| 296 | CLEAN | `codex/cli-model-latency-stats` | 2026-07-04T11:36:04Z | CLI latency lane |
-| 295 | UNSTABLE | `fix/caddy-lb-policy-forwarded-headers` | 2026-07-05T02:18:21Z | root checkout branch; avoid dirty collisions |
-| 294 | DIRTY | `fix/429-cascade-persist-and-monthly-quota` | 2026-07-05T00:14:51Z | Kilo pending, merge conflict remains |
-| 293 | DIRTY | `feature/cline-pass-provider` | 2026-07-03T10:36:44Z | next dirty provider lane |
-| 292 | DIRTY | `fix/quality-dead-code-baseline-4436` | 2026-07-03T21:46:53Z | quality/dead-code lane |
-| 291 | DIRTY | `chore/codeowners-default-reviewer` | 2026-07-03T10:03:07Z | ownership docs lane |
-| 290 | DIRTY | `chore/pin-actions` | 2026-07-03T10:22:22Z | CI pinning lane |
-| 289 | UNSTABLE | `fix/off-next-ci-257` | 2026-07-03T23:22:38Z | CI restore lane |
-| 288 | DIRTY | `feat/in-flight-fixes-1783052951` | 2026-07-03T11:14:28Z | Bifrost fallback lane |
-| 287 | UNSTABLE | `fix/main-docs-build-gates` | 2026-07-04T00:21:02Z | docs/build gates |
-| 286 | UNSTABLE | `fix/omniroute-auto-fix` | 2026-07-05T02:51:07Z | active PR286 remediation |
-| 259 | DIRTY | `feat/router-eval-retained-trends-refresh` | 2026-07-03T10:39:54Z | oldest open remote PR; conflict triage needed |
+|  PR | state    | head                                        | updated UTC          | note                                          |
+| --: | -------- | ------------------------------------------- | -------------------- | --------------------------------------------- |
+| 298 | CLEAN    | `codex/latency-routing-policy-doc`          | 2026-07-04T12:13:38Z | doc lane                                      |
+| 297 | CLEAN    | `codex/model-latency-stats-api-doc`         | 2026-07-04T12:10:58Z | doc lane                                      |
+| 296 | CLEAN    | `codex/cli-model-latency-stats`             | 2026-07-04T11:36:04Z | CLI latency lane                              |
+| 295 | UNSTABLE | `fix/caddy-lb-policy-forwarded-headers`     | 2026-07-05T02:18:21Z | root checkout branch; avoid dirty collisions  |
+| 294 | DIRTY    | `fix/429-cascade-persist-and-monthly-quota` | 2026-07-05T00:14:51Z | Kilo pending, merge conflict remains          |
+| 293 | DIRTY    | `feature/cline-pass-provider`               | 2026-07-03T10:36:44Z | next dirty provider lane                      |
+| 292 | DIRTY    | `fix/quality-dead-code-baseline-4436`       | 2026-07-03T21:46:53Z | quality/dead-code lane                        |
+| 291 | DIRTY    | `chore/codeowners-default-reviewer`         | 2026-07-03T10:03:07Z | ownership docs lane                           |
+| 290 | DIRTY    | `chore/pin-actions`                         | 2026-07-03T10:22:22Z | CI pinning lane                               |
+| 289 | UNSTABLE | `fix/off-next-ci-257`                       | 2026-07-03T23:22:38Z | CI restore lane                               |
+| 288 | DIRTY    | `feat/in-flight-fixes-1783052951`           | 2026-07-03T11:14:28Z | Bifrost fallback lane                         |
+| 287 | UNSTABLE | `fix/main-docs-build-gates`                 | 2026-07-04T00:21:02Z | docs/build gates                              |
+| 286 | UNSTABLE | `fix/omniroute-auto-fix`                    | 2026-07-05T02:51:07Z | active PR286 remediation                      |
+| 259 | DIRTY    | `feat/router-eval-retained-trends-refresh`  | 2026-07-03T10:39:54Z | oldest open remote PR; conflict triage needed |
 
 ### OmniRoute forward DAG
 
@@ -147,6 +162,7 @@ OMNIROUTE-PR-HARVEST
 |  |- commit b2162bee1 pushed         [ok]
 |  |- commit ba59c7884 pushed         [ok]
 |  |- commit efcd8fcfa pushed         [ok]
+|  |- commit 3d201d97a pushed         [ok]
 |  |- GitHub checks                   [pending]
 |  `- next: poll CI, patch only new actionable failures
 |
@@ -445,12 +461,12 @@ Markdown ledgers after this merge:
 
 ## Agent Notes
 
-| agent | task | state | summary |
-|---|---|---|---|
-| root | canonical ledger merge | working | replacing colliding handoffs with single `WORK.md` |
-| pheno_ci_state | PR258 CI refresh | done | found recursive-submodule and unresolved-action-pin blockers |
-| router_eval_state | PR6071 refresh | done | found PR closed/conflicting and missing temp worktree |
-| root_recovery_state | root blocker refresh | done | found missing `isForbiddenCustomHeaderName` export as first blocker |
+| agent               | task                   | state   | summary                                                             |
+| ------------------- | ---------------------- | ------- | ------------------------------------------------------------------- |
+| root                | canonical ledger merge | working | replacing colliding handoffs with single `WORK.md`                  |
+| pheno_ci_state      | PR258 CI refresh       | done    | found recursive-submodule and unresolved-action-pin blockers        |
+| router_eval_state   | PR6071 refresh         | done    | found PR closed/conflicting and missing temp worktree               |
+| root_recovery_state | root blocker refresh   | done    | found missing `isForbiddenCustomHeaderName` export as first blocker |
 
 ## Next Owner Prompt
 
