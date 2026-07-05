@@ -253,6 +253,58 @@ function ensureMigrationsTable(db: SqliteAdapter): void {
   `);
 }
 
+function ensureHistoricalBaseTables(db: SqliteAdapter): void {
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS webhooks (
+      id TEXT PRIMARY KEY,
+      url TEXT NOT NULL,
+      events TEXT NOT NULL DEFAULT '["*"]',
+      secret TEXT,
+      enabled INTEGER NOT NULL DEFAULT 1,
+      description TEXT NOT NULL DEFAULT '',
+      created_at TEXT NOT NULL DEFAULT (datetime('now')),
+      last_triggered_at TEXT,
+      last_status INTEGER,
+      failure_count INTEGER NOT NULL DEFAULT 0
+    );
+
+    CREATE TABLE IF NOT EXISTS version_manager (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      tool TEXT NOT NULL UNIQUE,
+      current_version TEXT,
+      installed_version TEXT,
+      pinned_version TEXT,
+      binary_path TEXT,
+      status TEXT NOT NULL DEFAULT 'not_installed',
+      pid INTEGER,
+      port INTEGER DEFAULT 8317,
+      api_key TEXT,
+      management_key TEXT,
+      auto_update INTEGER NOT NULL DEFAULT 1,
+      auto_start INTEGER NOT NULL DEFAULT 0,
+      last_health_check TEXT,
+      last_update_check TEXT,
+      health_status TEXT DEFAULT 'unknown',
+      config_overrides TEXT,
+      error_message TEXT,
+      created_at TEXT NOT NULL DEFAULT (datetime('now')),
+      updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+    );
+
+    CREATE TABLE IF NOT EXISTS upstream_proxy_config (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      provider_id TEXT NOT NULL UNIQUE,
+      mode TEXT NOT NULL DEFAULT 'native',
+      cliproxyapi_model_mapping TEXT,
+      native_priority INTEGER NOT NULL DEFAULT 1,
+      cliproxyapi_priority INTEGER NOT NULL DEFAULT 2,
+      enabled INTEGER NOT NULL DEFAULT 1,
+      created_at TEXT NOT NULL DEFAULT (datetime('now')),
+      updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+    );
+  `);
+}
+
 function isOptionalFts5Migration(migration: { version: string; name: string }): boolean {
   return OPTIONAL_FTS5_MIGRATION_VERSIONS.has(migration.version);
 }
@@ -406,6 +458,14 @@ function hasColumn(db: SqliteAdapter, tableName: string, columnName: string): bo
   return columns.some((column) => column.name === columnName);
 }
 
+function hasKeyValue(db: SqliteAdapter, namespace: string, key: string): boolean {
+  if (!hasTable(db, "key_value")) return false;
+  const row = db
+    .prepare("SELECT 1 AS ok FROM key_value WHERE namespace = ? AND key = ? LIMIT 1")
+    .get(namespace, key) as { ok?: number } | undefined;
+  return row?.ok === 1;
+}
+
 function ensureColumn(db: SqliteAdapter, tableName: string, columnName: string, ddl: string): void {
   if (!hasColumn(db, tableName, columnName)) {
     db.exec(ddl);
@@ -526,6 +586,34 @@ function isSchemaAlreadyApplied(
       // was dropped on integration; this canonical migration creates the table
       // that recordPluginExecution()/getPluginAnalytics() rely on.
       return hasTable(db, "plugin_analytics");
+    case "100":
+      return hasTable(db, "bifrost_models") && hasTable(db, "bifrost_models_meta");
+    case "101":
+      return hasTable(db, "bifrost_shadow_events");
+    case "102":
+      return hasTable(db, "virtual_keys");
+    case "103":
+      return hasTable(db, "cost_events");
+    case "104":
+      return hasTable(db, "traffic_shadow_log");
+    case "105":
+      return hasTable(db, "traffic_shadow_config");
+    case "120":
+      return hasTable(db, "cli_access_tokens");
+    case "115":
+      return (
+        hasColumn(db, "api_keys", "usage_limit_enabled") &&
+        hasColumn(db, "api_keys", "daily_usage_limit_usd") &&
+        hasColumn(db, "api_keys", "weekly_usage_limit_usd")
+      );
+    case "116":
+      return hasKeyValue(db, "compression", "activeComboId");
+    case "118":
+      return hasKeyValue(db, "databaseSettings", "optimization.cacheSize");
+    case "119":
+      return hasColumn(db, "usage_history", "endpoint");
+    case "121":
+      return hasTable(db, "tenant_quotas");
     default:
       return false;
   }
@@ -560,6 +648,21 @@ function applySearchRequestTypeMigration(db: SqliteAdapter): void {
 }
 
 function applyCompressionReceiptsMigration(db: SqliteAdapter): void {
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS compression_analytics (
+      id TEXT PRIMARY KEY,
+      request_id TEXT,
+      combo_id TEXT,
+      provider TEXT,
+      mode TEXT,
+      original_tokens INTEGER DEFAULT 0,
+      compressed_tokens INTEGER DEFAULT 0,
+      tokens_saved INTEGER DEFAULT 0,
+      duration_ms INTEGER,
+      timestamp TEXT NOT NULL DEFAULT (datetime('now'))
+    );
+  `);
+
   ensureColumn(
     db,
     "compression_analytics",
@@ -885,6 +988,7 @@ function createPreMigrationBackup(db: SqliteAdapter): string | null {
 export function runMigrations(db: SqliteAdapter, options?: { isNewDb?: boolean }): number {
   const isNewDb = options?.isNewDb === true;
   ensureMigrationsTable(db);
+  ensureHistoricalBaseTables(db);
 
   const files = filterSupersededDuplicateMigrations(getMigrationFiles());
   rehomeLegacyVersionSlotMigrations(db, files);

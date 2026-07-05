@@ -11,6 +11,21 @@
 --   last_validated  — ISO timestamp of last validation
 --   country_code    — two-letter ISO country code
 
+CREATE TABLE IF NOT EXISTS proxy_registry (
+  id TEXT PRIMARY KEY,
+  name TEXT NOT NULL,
+  type TEXT NOT NULL,
+  host TEXT NOT NULL,
+  port INTEGER NOT NULL,
+  username TEXT DEFAULT '',
+  password TEXT DEFAULT '',
+  region TEXT,
+  notes TEXT,
+  status TEXT NOT NULL DEFAULT 'active',
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),
+  updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
 ALTER TABLE proxy_registry ADD COLUMN source TEXT NOT NULL DEFAULT 'manual';
 ALTER TABLE proxy_registry ADD COLUMN quality_score INTEGER;
 ALTER TABLE proxy_registry ADD COLUMN latency_ms INTEGER;

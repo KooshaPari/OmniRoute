@@ -165,6 +165,7 @@ import {
 import { invalidateCodexQuotaCache } from "../services/codexQuotaFetcher.ts";
 import { translateNonStreamingResponse } from "./responseTranslator.ts";
 import { extractUsageFromResponse } from "./usageExtractor.ts";
+import { recordStreamingCost } from "./chatCore/streamingCost.ts";
 import {
   extractSSEErrorMessage,
   parseSSEToClaudeResponse,
@@ -5597,13 +5598,15 @@ export async function handleChatCore({
       } catch {}
     }
 
-    if (apiKeyInfo?.id && streamUsage) {
-      calculateCost(provider, model, streamUsage, { serviceTier: effectiveServiceTier })
-        .then((estimatedCost) => {
-          if (estimatedCost > 0) recordCost(apiKeyInfo.id, estimatedCost);
-        })
-        .catch(() => {});
-    }
+    recordStreamingCost({
+      apiKeyId: apiKeyInfo?.id,
+      provider,
+      model,
+      streamUsage,
+      serviceTier: effectiveServiceTier,
+      calculateCost,
+      recordCost,
+    });
 
     // === Quota Share POST-hook streaming (B/F7) — fire-and-forget, fail-open ===
     // Resolve the real per-request cost (calculateCost) so USD-unit pools accrue

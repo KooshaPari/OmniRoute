@@ -1,4 +1,4 @@
--- 104_normalize_database_cache_size.sql
+-- 113_normalize_database_cache_size.sql
 -- Normalize the old SQLite cache-size default to the new UI contract:
 -- databaseSettings.optimization.cacheSize is a positive KiB value, e.g. 16384.
 -- Only legacy defaults are rewritten; custom positive values are preserved.

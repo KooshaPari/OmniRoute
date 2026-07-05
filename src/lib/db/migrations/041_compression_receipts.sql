@@ -1,5 +1,18 @@
 -- 041: Add real usage receipt fields to compression analytics.
 
+CREATE TABLE IF NOT EXISTS compression_analytics (
+  id TEXT PRIMARY KEY,
+  request_id TEXT,
+  combo_id TEXT,
+  provider TEXT,
+  mode TEXT,
+  original_tokens INTEGER DEFAULT 0,
+  compressed_tokens INTEGER DEFAULT 0,
+  tokens_saved INTEGER DEFAULT 0,
+  duration_ms INTEGER,
+  timestamp TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
 ALTER TABLE compression_analytics ADD COLUMN actual_prompt_tokens INTEGER;
 ALTER TABLE compression_analytics ADD COLUMN actual_completion_tokens INTEGER;
 ALTER TABLE compression_analytics ADD COLUMN actual_total_tokens INTEGER;

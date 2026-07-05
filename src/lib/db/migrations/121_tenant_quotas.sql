@@ -1,4 +1,4 @@
--- Migration 100: tenant_quotas
+-- Migration 109: tenant_quotas
 --
 -- Per-tenant quota ledger for the A2A `quota-management` skill
 -- (closes 1/6 remaining DEBT-006 a2a skill stubs). The primary key is

@@ -1,4 +1,4 @@
--- 103_strip_legacy_combo_config_keys.sql
+-- 112_strip_legacy_combo_config_keys.sql
 -- One-shot sweep over `combos.data` to remove v3.8.31-era config keys that were
 -- subsequently dropped from comboRuntimeConfigSchema. Without this sweep, a
 -- combo created on ≤ v3.8.31 still carries the legacy keys in its persisted
