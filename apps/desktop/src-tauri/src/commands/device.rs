@@ -1,10 +1,10 @@
-use tauri::Manager;
+use tauri::AppHandle;
 use crate::error::AppResult;
 
 #[tauri::command]
-pub async fn get_device_id(app: tauri::AppHandle) -> AppResult<String> {
-    use tauri_plugin_os::OsExt;
-    let os = app.os();
-    let host = os.hostname().unwrap_or_else(|_| "unknown".to_string());
+pub async fn get_device_id(_app: AppHandle) -> AppResult<String> {
+    let host = std::env::var("HOSTNAME")
+        .or_else(|_| std::env::var("COMPUTERNAME"))
+        .unwrap_or_else(|_| "unknown".to_string());
     Ok(format!("{}-{}", host, std::process::id()))
 }

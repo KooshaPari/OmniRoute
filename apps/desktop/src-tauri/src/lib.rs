@@ -1,4 +1,3 @@
-use tauri::Manager;
 mod commands;
 mod error;
 mod gateway;
@@ -7,15 +6,14 @@ mod tray;
 use gateway::GatewayProcess;
 
 pub fn run() {
-    tracing_subscriber::fmt()
+    let _ = tracing_subscriber::fmt()
         .with_env_filter(tracing_subscriber::EnvFilter::from_default_env())
-        .init();
+        .try_init();
 
     let gateway = GatewayProcess::new();
 
     tauri::Builder::default()
         .plugin(tauri_plugin_updater::Builder::new().build())
-        .plugin(tauri_plugin_stronghold::Builder::new().build())
         .plugin(tauri_plugin_deep_link::init())
         .plugin(tauri_plugin_fs::init())
         .plugin(tauri_plugin_log::Builder::new().build())

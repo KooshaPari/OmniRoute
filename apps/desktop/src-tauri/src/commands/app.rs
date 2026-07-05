@@ -1,4 +1,5 @@
 use serde::Serialize;
+use tauri::AppHandle;
 use tauri::Manager;
 use crate::error::AppResult;
 
@@ -10,7 +11,7 @@ pub struct AppInfo {
 }
 
 #[tauri::command]
-pub async fn get_app_info(app: tauri::AppHandle) -> AppResult<AppInfo> {
+pub async fn get_app_info(app: AppHandle) -> AppResult<AppInfo> {
     let version = app.package_info().version.to_string();
     Ok(AppInfo {
         name: "OmniRoute".to_string(),
@@ -20,12 +21,12 @@ pub async fn get_app_info(app: tauri::AppHandle) -> AppResult<AppInfo> {
 }
 
 #[tauri::command]
-pub async fn get_version(app: tauri::AppHandle) -> AppResult<String> {
+pub async fn get_version(app: AppHandle) -> AppResult<String> {
     Ok(app.package_info().version.to_string())
 }
 
 #[tauri::command]
-pub async fn quit(app: tauri::AppHandle) -> AppResult<()> {
+pub async fn quit(app: AppHandle) -> AppResult<()> {
     app.exit(0);
     Ok(())
 }
