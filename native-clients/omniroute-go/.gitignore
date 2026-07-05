@@ -1,0 +1,8 @@
+omniroute
+coverage.out
+dist/
+*.log
+.env
+*.bak
+*~
+.DS_Store
