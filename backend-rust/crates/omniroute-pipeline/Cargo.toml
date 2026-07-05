@@ -3,23 +3,24 @@ name = "omniroute-pipeline"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
-description = "OmniRoute streaming, compression (RTK+Caveman), cache, circuit breaker"
+description = "OmniRoute pipeline: request -> provider -> response, with SSE parsing, usage accumulation, and cancellation."
 
 [dependencies]
 omniroute-core = { path = "../omniroute-core" }
 
 tokio = { workspace = true }
 tokio-stream = { workspace = true }
+tokio-util = { workspace = true }
 futures = { workspace = true }
 async-trait = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
-simd-json = { workspace = true }
 thiserror = { workspace = true }
 tracing = { workspace = true }
 bytes = { workspace = true }
 parking_lot = { workspace = true }
-dashmap = { workspace = true }
-once_cell = { workspace = true }
 chrono = { workspace = true }
 uuid = { workspace = true }
+
+[dev-dependencies]
+tokio = { workspace = true, features = ["full", "test-util", "macros"] }
