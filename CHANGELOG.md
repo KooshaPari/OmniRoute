@@ -23,6 +23,13 @@
 
 ---
 
+## [3.8.43] — 2026-07-05
+
+### ✨ New Features
+
+- **fix(check-docs-sync):** point at docs/openapi.yaml (v3.8.35 consolidation); update docs/openapi.yaml info.version to 3.8.43
+
+
 ## [3.8.37] — 2026-06-26
 
 ### ✨ New Features
