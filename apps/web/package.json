@@ -8,10 +8,12 @@
     "build": "vite build",
     "preview": "vite preview",
     "test": "vitest run",
-    "typecheck": "svelte-check --tsconfig ./tsconfig.json"
+    "typecheck": "svelte-check --tsconfig ./tsconfig.json",
+    "i18n:compile": "paraglide-js compile --project ./project.inlang --outdir ./src/lib/i18n"
   },
   "dependencies": {
     "@omniroute/api-contracts": "workspace:*",
+    "@inlang/paraglide-js": "^2.0.0",
     "svelte": "^5.0.0",
     "@sveltejs/kit": "^2.0.0",
     "@sveltejs/adapter-node": "^5.0.0",
