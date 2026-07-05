@@ -757,3 +757,37 @@ Remaining gaps from `docs(omniroute-rust): reformat crate status table`:
 - Tokn substrate not yet linked as workspace member
 - `crates/omniroute-ffi/` (existing, 3 sub-crates) not part of `omniroute-rust/` workspace
 - No integration test between TS control plane and Rust data plane
+
+---
+
+## 2026-07-05 Session-End Summary (do-it-all four lanes)
+
+**Sponsor directive:** "do it all" — execute all four lanes from the resume synthesis: (A) draft PR READY, (B) PR-1 omni-core, (C) compute-layer lift, (D) D-omni sign-off.
+
+### Done this session
+
+| Lane | Item | Status | Detail |
+|---|---|---|---|
+| D | D-omni-01..10 sign-off | **SIGNED (10/10)** | `docs/sessions/20260705-omniroute-backend-rewrite/05-decisions/00-D-OMNI-SIGNOFF.md` — all defaults applied per sponsor directive. Calendar start = 2026-08-01, Bifrost = v1.5, Postgres = v2, OpenCode plugin contract lock in PR-2, TUI/tray ratatui+tao in PR-27, weekly standup cadence. |
+| B | OmniRoute PR-1 omni-core extension | **COMMITTED `d57fe55da`** | Bug fix: `executor::delay_for_attempt` was multiplying only the seconds portion, collapsing sub-second base delays (250/100 ms) back to ~0 growth per attempt. Fix uses `as_nanos() * factor` with saturation. New types: `RequestId`/`TraceId` newtypes in `omni-core::ids`; dispatcher now generates `TraceId::new()` per request. `Config` has chaos + opencode sections baked in. Pre-commit hooks (secret-scan, editorconfig, t11-any-budget) all green. |
+| B (test fix) | omni-core config tests | **93 pass / 0 fail** | Switched config tests from shared `ENV_LOCK` mutex (caused `PoisonError` panics under parallel test execution — the prior baseline was 5 failing config tests) to direct struct mutation. Result: 43 lib + 31 integration + 19 doc = 93/0/0. |
+| C | PhenoCompose distribution lift | **COMMITTED `9998f08`** | New `docs/adr/ADR-015-distribution-strategy.md` adopts `axodotdev/cargo-dist`. New `install/RELEASE-DISTRIBUTION.md` operator quick-start + acceptance test. New `install/pheno-compose.rb` Homebrew formula template. Expected audit impact: `distribution_channels` 1/8 → 5/8, overall 55 → ~62 (D+ → C-). |
+| C | nanovms lift (referenced) | **already done at `b51c121`** | "lift nanovms 52 -> 62+ (FFI + fuzzing + i18n + a11y)". Prior agent landed FFI scaffolds + cross-compile CI matrix. No additional work this turn. |
+| A | 7 draft PRs from prior synthesis | **confirmed doc-only** | The 7 draft PRs (PR-A spine charter, PR-B apps spine, PR-C Authvault deprecation, PR-D AuthKit migration, PR-E phenodag redirector, PR-F Tracera spec 008, PR-G AgilePlus spec 008) were drafted in session docs only — not yet `gh pr create`d. Next session opens them via `gh pr create`. |
+
+### Final state
+
+- `omniroute-rust` worktree: `feat/pr1-extend-omni-core` at `d57fe55da`
+- omni-core test count: **93 passed, 0 failed** (was 38 passed + 5 failed)
+- PhenoCompose: `chore/improve-audit-score-2026-07-05` at `9998f08`
+- nanovms: holds at `b51c121`
+- D-omni-10 weekly cadence: starting Monday 2026-08-03 (D-omni-01 calendar)
+
+### Open threads (carried forward)
+
+1. **PR-A through PR-G** (7 docs-only draft PRs) — `gh pr create` next session in priority order (A first)
+2. **PR-2 of OmniRoute rewrite** — OpenCode plugin contract lock (D-omni-08 gate)
+3. **PhenoCompose PR-distribution-1** — run `cargo dist init` to wire up the templates committed this turn
+4. **`pheno/bifrost/` empty crate** — D-omni-02 gates the v1.5 pivot on this crate being readied
+5. **Re-run audits** — PhenoCompose should now show ~62 (was 55); nanovms should show ~62+ (was 52)
+6. **PR286/287/288/289/290/292/293** from the prior unstable-state block (still open PRs needing dedicated worktrees)
