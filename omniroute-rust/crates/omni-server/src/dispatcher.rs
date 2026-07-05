@@ -30,6 +30,7 @@ use tracing::{debug, error, warn, Instrument};
 use uuid::Uuid;
 
 use omni_core::executor::{CompleteResponse, ExecutorRequest, ExecutorResponse, StreamEvent};
+use omni_core::ids::{RequestId, TraceId};
 use omni_core::provider::ProviderKind;
 use omni_protocol::WireFormat;
 use omni_router::{ProviderHandle, RoutingContext, Strategy};
@@ -640,7 +641,8 @@ impl Dispatcher {
         headers.insert("x-omni-credential".to_string(), credential);
         headers.insert("x-omni-base-url".to_string(), handle.base_url.clone());
         let req = ExecutorRequest {
-            request_id,
+            request_id: RequestId::from(request_id),
+            trace_id: TraceId::new(),
             provider: omni_core::provider::ProviderId(handle.id.0.clone()),
             model: model.to_string(),
             body,
@@ -804,7 +806,8 @@ impl<'a> AppDispatcherHandle<'a> {
         headers.insert("x-omni-credential".to_string(), credential);
         headers.insert("x-omni-base-url".to_string(), handle.base_url.clone());
         let req = ExecutorRequest {
-            request_id,
+            request_id: RequestId::from(request_id),
+            trace_id: TraceId::new(),
             provider: omni_core::provider::ProviderId(handle.id.0.clone()),
             model: model.to_string(),
             body: json!({"stream": true}),

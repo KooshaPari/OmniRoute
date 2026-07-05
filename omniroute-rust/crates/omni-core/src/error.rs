@@ -38,7 +38,7 @@ impl ErrorKind {
             Self::RateLimited => 429,
             Self::UpstreamUnavailable | Self::UpstreamTimeout => 502,
             Self::UpstreamStatus(code) if (500..600).contains(&code) => code,
-            Self::UpstreamStatus(code) => 502,
+            Self::UpstreamStatus(_) => 502,
             Self::Internal | Self::Db => 500,
             Self::NotImplemented => 501,
             Self::ConfigInvalid => 500,
@@ -52,8 +52,7 @@ impl ErrorKind {
             self,
             Self::UpstreamUnavailable
                 | Self::UpstreamTimeout
-                | Self::UpstreamStatus(429)
-                | Self::UpstreamStatus(500..=504)
+                | Self::UpstreamStatus(429 | 500..=504)
                 | Self::RateLimited
         )
     }
