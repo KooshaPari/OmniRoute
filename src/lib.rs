@@ -79,3 +79,5 @@ pub mod credit_card;
 pub mod vlq;
 pub mod tar_util;
 pub mod ipv4_util;
+pub mod config_merger;
+pub mod binary_search;
