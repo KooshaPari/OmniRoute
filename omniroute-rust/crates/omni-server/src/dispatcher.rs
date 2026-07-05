@@ -296,7 +296,7 @@ impl Dispatcher {
                         status,
                         usage.as_ref().map(|u| (u.prompt_tokens, u.completion_tokens, u.cost_usd)),
                         None,
-                    );
+                    ).await;
                     return Ok(DispatchOutcome::Json(out));
                 }
                 Ok(ExecutorResponse::Streaming(_)) => {
@@ -513,7 +513,7 @@ impl Dispatcher {
                 status.as_u16(),
                 None,
                 Some(("upstream_error", body_v.to_string())),
-            );
+            ).await;
             return Err(ServerError::Upstream(format!(
                 "upstream {}: {}",
                 status,
@@ -536,7 +536,7 @@ impl Dispatcher {
                 .as_ref()
                 .map(|u| (u.prompt_tokens, u.total_tokens, u.cost_usd)),
             None,
-        );
+        ).await;
         Ok(DispatchOutcome::Json(body_v))
     }
 
@@ -601,7 +601,7 @@ impl Dispatcher {
                         complete.status,
                         complete.usage.as_ref().map(|u| (u.prompt_tokens, u.completion_tokens, u.cost_usd)),
                         None,
-                    );
+                    ).await;
                     let out = build_anthropic_message_response(&ctx.model, &complete);
                     return Ok(DispatchOutcome::Json(out));
                 }
