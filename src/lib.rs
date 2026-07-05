@@ -86,3 +86,6 @@ pub mod slice_ext;
 pub mod perm;
 pub mod xml_escape;
 pub mod erf;
+
+pub mod distance;
+pub mod color;
