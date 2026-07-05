@@ -35,3 +35,4 @@ pub mod scheduler;
 
 pub mod api;
 pub mod queue;
+pub mod cache;
