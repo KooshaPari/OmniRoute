@@ -95,3 +95,6 @@ pub mod md_table;
 
 pub mod radix_trie;
 pub mod jsonschema_subset;
+
+pub mod binary_search_ex;
+pub mod kmp_search;
