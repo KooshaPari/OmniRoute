@@ -80,6 +80,16 @@ export async function GET() {
           "Run this coding task through the forge engine",
         ],
       },
+      {
+        id: "mint-virtual-key",
+        name: "Mint Virtual Key",
+        description: "Creates scoped virtual keys for delegated agent or client access",
+        tags: ["credentials", "virtual-key", "delegation", "access-control"],
+        examples: [
+          "Mint a virtual key for a delegated coding agent",
+          "Create a scoped key for a desktop client session",
+        ],
+      },
     ],
     authentication: {
       schemes: ["bearer"],

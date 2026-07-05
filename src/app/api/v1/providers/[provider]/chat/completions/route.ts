@@ -3,6 +3,13 @@ import { initTranslators } from "@omniroute/open-sse/translator/index.ts";
 import { errorResponse } from "@omniroute/open-sse/utils/error.ts";
 import { HTTP_STATUS } from "@omniroute/open-sse/config/constants.ts";
 import { getRegistryEntry } from "@omniroute/open-sse/config/providerRegistry.ts";
+import { z } from "zod";
+
+const providerChatRouteSchema = z
+  .object({
+    model: z.string().optional(),
+  })
+  .passthrough();
 
 let initialized = false;
 
@@ -55,6 +62,11 @@ export async function POST(request, { params }) {
 
   if (!rawBody || typeof rawBody !== "object" || Array.isArray(rawBody)) {
     return errorResponse(HTTP_STATUS.BAD_REQUEST, "Request body must be a JSON object");
+  }
+
+  const validation = providerChatRouteSchema.safeParse(rawBody);
+  if (!validation.success) {
+    return errorResponse(HTTP_STATUS.BAD_REQUEST, "model must be a string");
   }
 
   const body = rawBody as { model?: string; [key: string]: unknown };
