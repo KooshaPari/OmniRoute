@@ -110,3 +110,6 @@ pub mod lz4_block;
 
 pub mod crc64;
 pub mod glob_pattern;
+
+pub mod base85;
+pub mod xxhash3;
