@@ -42,6 +42,25 @@ this DAG.
 
 `[OmniRoute:✓, Tracera:◐, AgilePlus:○, DesktopDeploy:✗, Vercel:◐]`
 
+### 2026-07-05 live refresh
+
+- PR286 is still `UNSTABLE` / `MERGEABLE` at head
+  `3d201d97ae2f669ac54b93b5082ead5933b2a3cf`.
+- Latest `gh pr checks 286 --watch=false` snapshot is materially worse than the earlier pending
+  state:
+  - `Lint` fail
+  - `Electron Package Smoke` fail
+  - `Integration Tests (1/2)` pass, `Integration Tests (2/2)` fail
+  - `Unit Tests (1/8)` through `Unit Tests (8/8)` fail
+  - `Coverage Shard (4/8)`, `(7/8)`, and `(8/8)` fail
+  - `E2E Tests (1/9)` fail
+  - `Analyze`, `Build`, `CodeQL`, `Contract Tests`, `Dependency Audit`, `Docs`, `OpenSSF`,
+    `PR Test Policy`, and `Latency budget` are green
+- `gh run view 28727801591 --job ... --log-failed` still reports the run is in progress, so the
+  failing logs are not yet readable.
+- Current next action is still to wait for the run to settle, then patch only after the first
+  actionable failure log appears.
+
 ### Active lane: PR286
 
 - Repo/worktree: `/Users/kooshapari/CodeProjects/Phenotype/repos-wtrees/pr-286-auto-fix`
@@ -163,8 +182,8 @@ OMNIROUTE-PR-HARVEST
 |  |- commit ba59c7884 pushed         [ok]
 |  |- commit efcd8fcfa pushed         [ok]
 |  |- commit 3d201d97a pushed         [ok]
-|  |- GitHub checks                   [pending]
-|  `- next: poll CI, patch only new actionable failures
+|  |- GitHub checks                   [wip]
+|  `- next: wait for readable logs, then patch the first actionable red shard
 |
 |- PR294-429-CASCADE                  [wip]
 |  |- Sonar/Semgrep/CodeRabbit        [ok]

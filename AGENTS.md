@@ -546,6 +546,49 @@ Cloudflare Quick/Named, ngrok, Tailscale Funnel. See [`docs/ops/TUNNELS_GUIDE.md
 
 ---
 
+## Process Safety -- Codex|Forge + Claude|Ghostty (NEVER KILL)
+
+**Rule (sponsor directive 2026-07-05 03:46 UTC):** Codex|Forge interactive
+processes running in tandem with Claude|Ghostty MUST NEVER be killed by
+any automated safety/memory/cleanup system.
+
+**Scope of the rule:**
+- Codex CLI (and the Codex Claude Code plugin runtime)
+- Forge Agent SDK (forge3 daemon, `~/.cargo/bin/forge3`)
+- Claude Code / Claude Code-compatible runtime
+- Ghostty terminal emulator
+- Any child process spawned by the above
+
+**Why:** These processes together form the active interactive session.
+Killing any of them terminates the user's working context, breaks the
+agent loop, and can corrupt in-flight work. Automated kill-switches that
+target "idle" or "long-running" processes will misfire on legitimate
+agent sessions that look idle to them but are not.
+
+**Permitted actions:**
+- The user may explicitly kill a process (via Ctrl-C, Task Manager, or
+  `kill` from a separate shell).
+- A sub-agent may terminate when its task is complete (it must close
+  itself via the host runtime's close primitive).
+- The root agent may interrupt a sub-agent that is over budget, stuck, or
+  out of scope (per AGENTS.md "Owner scope" rules).
+
+**Forbidden actions:**
+- Auto-killer triggered by uptime > N hours.
+- Auto-killer triggered by idle CPU/memory on the parent terminal.
+- Auto-killer triggered by "user has not typed in N minutes" heuristics.
+- Any process supervisor that targets Codex|Forge + Claude|Ghostty by
+  pattern without confirming with the user first.
+
+**Operator action if an auto-kill is observed:**
+1. Stop the auto-killer.
+2. Re-launch Codex and re-enter the working directory.
+3. Reattach the Ghostty session.
+4. Resume from `docs/sessions/<latest-session>/00_SESSION_OVERVIEW.md`.
+
+**This rule is canonical and supersedes any conflicting heuristic in
+local process supervisors, memory-cleaner scripts, or safety agents.**
+
 ## Subdirectory AGENTS.md Files
 
 - **[`src/lib/db/AGENTS.md`](src/lib/db/AGENTS.md)** — SQLite persistence, domain modules, migrations
