@@ -2,8 +2,15 @@ import { describe, it, expect } from "vitest";
 import { mergeAbortSignals } from "../mergeAbortSignals";
 
 describe("mergeAbortSignals", () => {
-  it("returns undefined when no signals are provided", () => {
-    expect(mergeAbortSignals(undefined, undefined)).toBeUndefined();
+  it("returns an already-aborted composite signal when both are already aborted", () => {
+    const a = new AbortController();
+    const b = new AbortController();
+    a.abort();
+    b.abort();
+    const merged = mergeAbortSignals(a.signal, b.signal);
+    expect(merged).toBeDefined();
+    expect(merged?.aborted).toBe(true);
+    expect(merged?.reason).toBe(a.signal.reason);
   });
 
   it("returns undefined when both signals are undefined", () => {
@@ -57,6 +64,7 @@ describe("mergeAbortSignals", () => {
     const upstream = new AbortController();
     const downstream = new AbortController();
     const merged = mergeAbortSignals(upstream.signal, downstream.signal)!;
+    expect(merged).toBeInstanceOf(AbortSignal);
     expect(merged.aborted).toBe(false);
     upstream.abort();
     expect(merged.aborted).toBe(true);

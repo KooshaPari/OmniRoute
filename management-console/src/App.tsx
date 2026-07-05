@@ -50,6 +50,9 @@ export function App() {
       setLoadedStatus(result.ok ? "online" : "needs facade");
       setPayload(JSON.stringify(result, null, 2));
     });
+    return () => {
+      cancelled = true;
+    };
   }, [active]);
 
   useEffect(() => {

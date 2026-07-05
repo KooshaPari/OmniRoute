@@ -188,7 +188,3 @@ spans:
     method: GET
     threshold_ms: 50
     hard_cap_ms: 100
-  - name: "/api/version"
-    method: GET
-    threshold_ms: 50
-    hard_cap_ms: 100

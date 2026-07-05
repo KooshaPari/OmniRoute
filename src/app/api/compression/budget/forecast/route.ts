@@ -60,7 +60,7 @@ export async function GET(request: Request): Promise<Response> {
 
   let history: BudgetHistoryPoint[];
   try {
-    history = readCompressionHistory(windowMs, provider);
+    history = readCompressionBudgetHistory(windowMs, provider, MAX_HISTORY_ROWS);
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
     console.error("[api/compression/budget/forecast] DB read failed:", msg);

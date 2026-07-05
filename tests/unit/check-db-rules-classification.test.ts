@@ -56,9 +56,9 @@ function hasImporter(mod: string, roots: string[]): boolean {
   const escaped = mod.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
   const patterns = [
     // static: from "…/db/<mod>"
-    new RegExp(`from\\s+['""][^'"]+/db/${escaped}['"]`),
+    new RegExp(`from\\s+['""][^'"]+/db/${escaped}(?:\\.ts)?['"]`),
     // dynamic: import("…/db/<mod>") or require("…/db/<mod>")
-    new RegExp(`(?:import|require)\\s*\\(\\s*['""][^'"]+/db/${escaped}['"]`),
+    new RegExp(`(?:import|require)\\s*\\(\\s*['""][^'"]+/db/${escaped}(?:\\.ts)?['"]`),
     // dynamic template: import(`…/db/<mod>.ts`) — bin/cli/runtime.mjs uses template literals
     new RegExp(`import\\s*\\(\`[^'"\`]+/db/${escaped}\\.ts\`\\)`),
     // relative import within db/: from "./<mod>" or from "./<mod>"
@@ -121,18 +121,22 @@ test("INTENTIONALLY_INTERNAL is exported from check-db-rules.mjs", () => {
   assert.ok(INTENTIONALLY_INTERNAL.size > 0, "INTENTIONALLY_INTERNAL must not be empty");
 });
 
-test("INTENTIONALLY_INTERNAL contains the expected 33 audited modules", () => {
+test("INTENTIONALLY_INTERNAL contains the expected 41 audited modules", () => {
   const expected = [
     "_rowTypes",
     "accessTokens",
     "apiKeyColumnFallbacks",
     "apiKeyUsageLimitFields",
+    "bifrostModels",
+    "bifrostShadow",
     "caseMapping",
     "cleanup",
     "cliToolState",
     "comboForecast",
     "commandCodeAuth",
     "compression",
+    "compressionBudgetHistory",
+    "costTracking",
     "detailedLogs",
     "discovery",
     "domainState",
@@ -145,16 +149,20 @@ test("INTENTIONALLY_INTERNAL contains the expected 33 audited modules", () => {
     "optimizationSettings",
     "pluginMetrics",
     "prompts",
+    "providerHealthHistory",
     "providerNodeSelect",
     "providerStats",
     "recovery",
+    "routingDecisions",
     "schemaColumns",
     "secrets",
     "serviceModels",
     "stateReset",
     "stats",
     "tierConfig",
+    "trafficShadow",
     "vacuumScheduler",
+    "virtualKeys",
     "webSessionDedup",
   ];
   for (const mod of expected) {

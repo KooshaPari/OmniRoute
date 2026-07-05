@@ -359,7 +359,10 @@ jobs:
           node-version: ${{ env.CI_NODE_VERSION }}
           cache: npm
       - uses: ./.github/actions/npm-ci-retry
-      - run: npm run check:docs-all
+      - run: npm run check:docs-sync
+      - run: npm run check:docs-counts
+      - run: npm run check:env-doc-sync
+      - run: npm run check:deprecated-versions
       # Previously-orphaned contract gates (existed as files, never wired anywhere).
       # All exit 0 today: cli-i18n is a hard gate, openapi-coverage is a ratchet
       # (floor ~36), openapi-security-tiers is advisory (Hard Rules #15/#17).

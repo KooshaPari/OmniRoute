@@ -102,7 +102,7 @@ spans:
     method: POST
     threshold_ms: 1400
     hard_cap_ms: 2500
-  # ... (all 44 endpoints)
+  # ... (all 43 endpoints)
 ```
 
 ### 3.3 Trace Collection
@@ -110,7 +110,7 @@ spans:
 Traces are collected by the CI runner using:
 
 1. **otel-cli** or `curl` to the deployed PR preview's `/v1/*` endpoints
-2. A synthetic test suite (`tests/e2e/latency-budgets.test.ts`) that hits all 44 endpoints
+2. A synthetic test suite (`tests/e2e/latency-budgets.test.ts`) that hits all 43 endpoints
    and records `duration_ms` per span
 3. The JSON trace is written to `.build/latency-trace.json`
 

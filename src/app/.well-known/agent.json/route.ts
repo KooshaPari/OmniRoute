@@ -71,6 +71,16 @@ export async function GET() {
         ],
       },
       {
+        id: "list-capabilities",
+        name: "List Capabilities",
+        description: "Returns the full OmniRoute agent skill catalog with raw skill URLs",
+        tags: ["discovery", "skills", "catalog", "a2a"],
+        examples: [
+          "List OmniRoute agent capabilities",
+          "Show me available A2A skills",
+        ],
+      },
+      {
         id: "agent-dispatch",
         name: "Agent Dispatch",
         description: "Dispatches coding tasks to the substrate engine for code execution",

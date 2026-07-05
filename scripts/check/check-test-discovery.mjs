@@ -80,6 +80,7 @@ export const COLLECTORS = [
   { glob: "tests/integration/combo-live/*.live.test.ts", sources: ["package.json"] },
   // Node native runner — test:system
   { glob: "tests/e2e/system-failover.test.ts", sources: ["package.json"] },
+  { glob: "tests/e2e/selfHealing.test.ts", sources: ["package.json"] },
   // vitest.mcp.config.ts — test:vitest
   { glob: "open-sse/mcp-server/__tests__/**/*.test.ts", sources: ["vitest.mcp.config.ts"] },
   {
@@ -99,6 +100,7 @@ export const COLLECTORS = [
   { glob: "src/lib/resilience/__tests__/**/*.test.ts", sources: ["vitest.mcp.config.ts"] },
   { glob: "tests/unit/autoCombo/**/*.test.ts", sources: ["vitest.mcp.config.ts"] },
   { glob: "tests/unit/encryption.spec.ts", sources: ["vitest.mcp.config.ts"] },
+  { glob: "tests/unit/transformer/**/*.test.ts", sources: ["vitest.mcp.config.ts"] },
   { glob: "src/shared/components/**/*.test.tsx", sources: ["vitest.mcp.config.ts"] },
   { glob: "src/shared/hooks/__tests__/**/*.test.tsx", sources: ["vitest.mcp.config.ts"] },
   { glob: "src/shared/utils/**/*.test.ts", sources: ["vitest.mcp.config.ts"] },

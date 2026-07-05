@@ -60,7 +60,14 @@ export async function POST(request, { params }) {
     return errorResponse(HTTP_STATUS.BAD_REQUEST, "Invalid JSON body");
   }
 
-  if (!rawBody || typeof rawBody !== "object" || Array.isArray(rawBody)) {
+  const bodyValidation = providerChatBodySchema.safeParse(rawBody);
+  if (!bodyValidation.success) {
+    const hasModelTypeError = bodyValidation.error.issues.some(
+      (issue) => issue.path.join(".") === "model" && issue.code === "invalid_type"
+    );
+    if (hasModelTypeError) {
+      return errorResponse(HTTP_STATUS.BAD_REQUEST, "model must be a string");
+    }
     return errorResponse(HTTP_STATUS.BAD_REQUEST, "Request body must be a JSON object");
   }
 
