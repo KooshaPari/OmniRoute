@@ -1,0 +1,18 @@
+{
+  "name": "@omniroute/design-tokens",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": { ".": "./src/index.ts", "./tailwind": "./src/tailwind.ts" },
+  "scripts": {
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": { "tailwindcss": "^4.0.0" },
+  "devDependencies": {
+    "typescript": "^5.7.0",
+    "vitest": "^2.0.0"
+  }
+}
