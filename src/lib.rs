@@ -39,3 +39,5 @@ pub mod cache;
 pub mod rate_limiter;
 pub mod backoff;
 pub mod feature_flags;
+pub mod object_pool;
+pub mod retry;
