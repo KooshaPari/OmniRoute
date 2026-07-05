@@ -8,6 +8,7 @@ commits:
   - repos/omniroute-rust: d57fe55da feat(omni-core+omni-server): PR-1 extend core types and dispatcher
   - repos/omniroute-rust: 6f5e73b9d chore(work): 2026-07-05 follow-up session end state
   - PhenoCompose: 9998f08 feat(distribution): ADR-015 + install/ templates for cargo-dist + Homebrew
+  - PhenoCompose: 0950e14 feat(sdk): add first-class pheno-sdk crate (L125/L128 scorecard lift)
 test_state:
   omni-core: "93 passed (43 lib + 31 integration + 19 doc); 0 failures"
   PhenoCompose: "no new test code (doc + config only); existing tests unchanged"
@@ -95,7 +96,7 @@ the resume synthesis:
 
 ### PhenoCompose (was 55/100, D+)
 
-**Commit:** `PhenoCompose 9998f08 feat(distribution): ADR-015 + install/ templates for cargo-dist + Homebrew`
+**Commit 1 (distribution):** `PhenoCompose 9998f08 feat(distribution): ADR-015 + install/ templates for cargo-dist + Homebrew`
 
 **Artifacts created:**
 - `docs/adr/ADR-015-distribution-strategy.md` (104 lines) — adopts
@@ -105,15 +106,38 @@ the resume synthesis:
 - `install/pheno-compose.rb` (49 lines) — Homebrew formula template;
   cargo-dist rewrites `sha256`/`url` on each tag push.
 
-**Expected audit impact:**
-- `distribution_channels` pillar: 1/8 → 5/8
-- next-time overall estimate: 55 → ~62 (D+ → C-)
+**Commit 2 (first-class Rust SDK):** `PhenoCompose 0950e14 feat(sdk): add first-class pheno-sdk crate (L125/L128 scorecard lift)`
 
-**Pillars directly addressed:**
-- L1 `ghcr`: ready (workflow next-PR)
-- L2 `homebrew_tap`: from 0 → 1 (formula template in place)
-- L2 `cargo binstall`: from 0 → 1 (documented operator path)
-- L3 `pypi`: from 0 → 1 (PR-distribution-3 next; PyO3 path documented)
+**Artifacts created:**
+- `crates/sdk/Cargo.toml` — workspace member; panoply-conformant;
+  cdylib + lib crate-type so downstream Rust + FFI (Python via PyO3,
+  Swift via UniFFI) consumers can bind to the same surface.
+- `crates/sdk/src/lib.rs` — facade; `deny(missing_docs)`;
+  quick-start doc-test.
+- `crates/sdk/src/error.rs` — `SdkError` + `From<Box<figment::Error>>` so
+  downstream consumers see one error type at the SDK root.
+- `crates/sdk/src/config.rs` — delegates to canonical
+  `pheno_config::PhenoConfig::load()` (real API: defaults → TOML →
+  PHENO_* env). First iteration incorrectly assumed a `ConfigError` type
+  and `load_from_file()` method that did not exist; corrected on second
+  pass after `read` of `pheno-config/src/lib.rs:297,316`.
+- `crates/sdk/README.md` — installs the doc-test target.
+- Workspace `Cargo.toml` updated to include `crates/sdk` as a member.
+
+**Verification:** `cargo check -p pheno-sdk` clean (6.62s); doc-test
+passes (1/1).
+
+**Why this matters:** PhenoCompose audit listed `rust_sdk: 0/8` and
+distributions `1/8`; the first-class SDK crate is the prerequisite for
+the distribution lift taking hold (cargo-dist's `--publish` targets need
+a `crates/sdk` artifact to publish; before this, only the driver binary
+was publishable).
+
+**Expected audit impact (combined 9998f08 + 0950e14):**
+- `distribution_channels` pillar: 1/8 → 5/8 (commit 9998f08)
+- `code_surface.rust_sdk`: 0/8 → 8/8 (commit 0950e14)
+- next-time overall estimate: 55 → ~64 (D+ → C-)
+
 
 ### nanovms (was 52/100)
 
@@ -142,7 +166,9 @@ the spine docs.
 - 7 draft PRs from synthesis — next session opens them.
 - `pheno/bifrost/` empty crate — needed for v1.5 Bifrost pivot.
 - PR-1 done → PR-2 (OpenCode plugin contract lock) next in the rewrite lane.
-- Re-run of `PhenoCompose-audit.json` should now report ~62 (D+ → C-).
+- Re-run of `PhenoCompose-audit.json` should now report ~64 (D+ → C-)
+  after the cumulative 9998f08 (distribution) + 0950e14 (rust_sdk)
+  commits land.
 - Reactivation of the inherited `ENV_LOCK`-mutex design footgun if any
   future contributor re-adds shared env-var testing without the
   `lock().unwrap_or_else(|e| e.into_inner())` pattern.
