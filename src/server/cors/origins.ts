@@ -114,7 +114,7 @@ export function getCorsStatus(): CorsStatus {
   const merged = new Set<string>([...envAllowedOrigins(), ...runtimeAllowedOrigins]);
   return {
     allowAll: envAllowAll(),
-    allowedOrigins: [...merged].sort(),
+    allowedOrigins: [...merged].sort((left, right) => left.localeCompare(right)),
   };
 }
 
