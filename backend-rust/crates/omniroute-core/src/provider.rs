@@ -299,7 +299,7 @@ mod tests {
         };
         let body = render_upstream_body(&req, Some("gpt-4o-2024-08-06")).unwrap();
         assert_eq!(body["model"], "gpt-4o-2024-08-06");
-        assert_eq!(body["temperature"], 0.7);
+        assert!((body["temperature"].as_f64().unwrap() - 0.7f64).abs() < 1e-6, "temperature drift: {}", body["temperature"]);
         assert_eq!(body["max_tokens"], 256);
     }
 }
