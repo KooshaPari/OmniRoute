@@ -6,13 +6,17 @@ type OmniRouteBaseUrlEnv = {
   NEXT_PUBLIC_BASE_URL?: string;
 };
 
+type OmniRouteBaseUrlEnvInput = OmniRouteBaseUrlEnv | NodeJS.ProcessEnv;
+
 function normalizeBaseUrl(value?: string): string | null {
   const trimmed = value?.trim();
   if (!trimmed) return null;
   return trimmed.replace(/\/+$/, "");
 }
 
-export function resolveOmniRouteBaseUrl(env: OmniRouteBaseUrlEnv = process.env): string {
+export function resolveOmniRouteBaseUrl(
+  env: OmniRouteBaseUrlEnvInput = process.env
+): string {
   return (
     normalizeBaseUrl(env.OMNIROUTE_BASE_URL) ||
     normalizeBaseUrl(env.BASE_URL) ||
