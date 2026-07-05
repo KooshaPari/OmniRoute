@@ -38,7 +38,12 @@ const EXCLUDE_PREFIXES = [
   path.join(DOCS_ROOT, "screenshots") + path.sep,
   path.join(DOCS_ROOT, "superpowers") + path.sep,
   path.join(DOCS_ROOT, "diagrams", "exported") + path.sep,
+  path.join(DOCS_ROOT, "research", "archive") + path.sep,
 ];
+
+const EXCLUDE_FILES = new Set([
+  path.join(DOCS_ROOT, "index.md"),
+]);
 
 function parseArgs(argv) {
   const opts = { report: false, json: false };
@@ -68,6 +73,7 @@ function walkDocs(dir, out) {
       if (EXCLUDE_PREFIXES.some((p) => prefixed.startsWith(p))) continue;
       walkDocs(full, out);
     } else if (entry.isFile() && full.endsWith(".md")) {
+      if (EXCLUDE_FILES.has(full)) continue;
       if (EXCLUDE_PREFIXES.some((p) => full.startsWith(p))) continue;
       out.push(full);
     }
@@ -142,6 +148,11 @@ function probeExists(absPath) {
   return false;
 }
 
+function isExcludedTarget(absPath) {
+  const normalized = path.resolve(absPath);
+  return EXCLUDE_PREFIXES.some((prefix) => normalized.startsWith(prefix));
+}
+
 function main() {
   const opts = parseArgs(process.argv);
 
@@ -168,6 +179,7 @@ function main() {
       if (!clean) continue; // e.g. "?query" alone — ignore
       checkedLinks++;
       const abs = resolveTarget(file, clean);
+      if (isExcludedTarget(abs)) continue;
       if (!probeExists(abs)) {
         broken.push({
           source: path.relative(REPO_ROOT, file),

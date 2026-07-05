@@ -18,7 +18,8 @@
       "_rebaseline_2026_06_26_v3837_release": "3970->3987. v3.8.37 cycle drift surfaced by the release-green pre-flight (the Quality Ratchet does NOT run on PR->release fast-gates, so warnings/complexity accrued unmeasured across this cycle's 76 commits — provider adds DGrid/Pioneer/xAI, headroom proxy lifecycle #4649, ~50 SSE/translator fixes, Engine Combos #5062). Trust-but-verify: this release-finalize working tree touches ONLY CHANGELOG.md, docs/i18n/*/CHANGELOG.md mirrors, and these baselines — 0 production-code change, so all drift is inherited cycle drift (`any` warn-allowed in open-sse/ + tests/). Tighten via --require-tighten next cycle."
     },
     "eslintErrors": {
-      "value": 1,
+      "value": 0,
+      "_ratchet_2026_07_04_pr286_ci_repair": "1->0. PR #286 removed the React compiler lint error in management-console/src/App.tsx; CI quality ratchet requires tightening improved down-metrics.",
       "direction": "down",
       "eps": 0
     },
