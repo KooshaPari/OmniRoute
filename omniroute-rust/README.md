@@ -14,20 +14,20 @@ this workspace is a **clean-break, prod-grade** replacement.
 
 ## Crate layout
 
-| Crate | Role | Status |
-|---|---|---|
-| `omni-core`         | errors, config, executor trait, ids, model, provider | done |
-| `omni-protocol`     | OpenAI / Claude / Gemini / Codex / A2A / MCP wire types | in flight |
-| `omni-translator`   | format detection + conversion registry | in flight |
-| `omni-storage`      | sqlx SQLite + migrations | in flight |
-| `omni-router`       | executor registry + routing + circuit breaker | queued |
-| `omni-compression`  | RTK + Caveman + Aggressive + Adaptive engines | in flight |
-| `omni-server`       | axum HTTP server, OpenAI-compat, SSE, /metrics | queued |
-| `omni-mcp`          | MCP server + tools | queued |
-| `omni-a2a`          | A2A v0.3 protocol | queued |
-| `omni-telemetry`    | tracing + metrics + audit + OTel | in flight |
-| `omni-cli`          | clap CLI (`omniroute` binary) | queued |
-| `omni-sdk`          | Rust client SDK | queued |
+| Crate              | Role                                                    | Status    |
+| ------------------ | ------------------------------------------------------- | --------- |
+| `omni-core`        | errors, config, executor trait, ids, model, provider    | done      |
+| `omni-protocol`    | OpenAI / Claude / Gemini / Codex / A2A / MCP wire types | in flight |
+| `omni-translator`  | format detection + conversion registry                  | in flight |
+| `omni-storage`     | sqlx SQLite + migrations                                | in flight |
+| `omni-router`      | executor registry + routing + circuit breaker           | queued    |
+| `omni-compression` | RTK + Caveman + Aggressive + Adaptive engines           | in flight |
+| `omni-server`      | axum HTTP server, OpenAI-compat, SSE, /metrics          | queued    |
+| `omni-mcp`         | MCP server + tools                                      | queued    |
+| `omni-a2a`         | A2A v0.3 protocol                                       | queued    |
+| `omni-telemetry`   | tracing + metrics + audit + OTel                        | in flight |
+| `omni-cli`         | clap CLI (`omniroute` binary)                           | queued    |
+| `omni-sdk`         | Rust client SDK                                         | queued    |
 
 ## Public API (wire-compatible with TS fork)
 
