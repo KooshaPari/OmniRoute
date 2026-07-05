@@ -40,9 +40,13 @@ export function App() {
       ? "loading"
       : loadedStatus;
 
+  const selectTab = useCallback((tab: Tab) => {
+    setSavedStatus(false);
+    setActive(tab);
+  }, []);
+
   useEffect(() => {
     const token = ++pendingTokenRef.current;
-    setSavedStatus(false);
     fetchManagement<Record<string, unknown>>(active.id).then((result) => {
       if (token !== pendingTokenRef.current) {
         return;
@@ -85,7 +89,7 @@ export function App() {
             <button
               key={tab.id}
               className={tab.id === active.id ? "nav active" : "nav"}
-              onClick={() => setActive(tab)}
+              onClick={() => selectTab(tab)}
             >
               <span>{tab.label}</span>
               <small>{tab.id}</small>
