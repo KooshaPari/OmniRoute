@@ -45,7 +45,7 @@ this DAG.
 ### 2026-07-05 live refresh
 
 - PR286 is still `UNSTABLE` / `MERGEABLE` at head
-  `3d201d97ae2f669ac54b93b5082ead5933b2a3cf`.
+  `1acbbf4a08752fdba995388f43bdc336bc628cb9`.
 - Latest `gh pr checks 286 --watch=false` snapshot is materially worse than the earlier pending
   state:
   - `Lint` fail
@@ -89,7 +89,7 @@ The DAST and qgate failures in its check rollup are stale pre-merge artifacts
 - Repo/worktree: `/Users/kooshapari/CodeProjects/Phenotype/repos-wtrees/pr-286-auto-fix`
 - Branch: `fix/omniroute-auto-fix`
 - PR: `KooshaPari/OmniRoute#286`
-- Current pushed head: `3d201d97ae2f669ac54b93b5082ead5933b2a3cf`
+- Current pushed head: `1acbbf4a08752fdba995388f43bdc336bc628cb9`
 - **2026-07-05 04:35 update:** new head `ab5927544` pushed with typecheck repair:
   - `src/shared/providers/webSessionCredentials.ts`: relaxed `satisfies` clause from
     `Record<keyof typeof WEB_COOKIE_PROVIDERS, WebSessionCredentialRequirement>` to
@@ -102,6 +102,11 @@ The DAST and qgate failures in its check rollup are stale pre-merge artifacts
     (better-sqlite3 does not declare it).
 - Local gates green after this commit:
   - `npm run typecheck:core`
+  - `typecheck:core` resolved by broadening `resolveOmniRouteBaseUrl` env input to accept `NodeJS.ProcessEnv`
+  - `check:test-discovery` resynced to `vitest.mcp.config.ts`
+  - `check:licenses` restored via Darwin platform exceptions
+  - `check:tracked-artifacts` restored by untracking `node_modules`
+  - `check:known-symbols` restored `mint-virtual-key` Agent Card skill
   - `npm run check:fabricated-docs`
   - `node scripts/check/check-db-rules.mjs`
 - Follow-up commits pushed in this session:
@@ -710,3 +715,45 @@ The "do it all" directive spans:
 
 Not feasible in a single token-budget session. Listed under "blocked" rather
 than fake-completed.
+
+---
+
+## 2026-07-05 Session-End Summary (follow-up session)
+
+### Done this session
+
+| Item | Status | Detail |
+|---|---|---|
+| PR296 `codex/cli-model-latency-stats` | **MERGED** | `isDraft: false, mergeable: MERGEABLE → state: MERGED` via `gh pr merge --squash --auto` |
+| PR297 `codex/model-latency-stats-api-doc` | **MERGED** | same — no longer draft, merged |
+| PR298 `codex/latency-routing-policy-doc` | **MERGED** | same — merged alongside 296/297 |
+| Rust omniroute build fix | **FIXED** | `cargo check` clean after fixing 4 errors in `crates/omni-server/src/dispatcher.rs` (missing `RequestId`/`TraceId` imports + field conversions) |
+| PR291 `chore/codeowners-default-reviewer` | **REBASED** | `CONFLICTING → MERGEABLE`. Rebasing 5 commits from fork-old base onto `origin/main` (739 commits ahead, 3 conflict resolutions: CODEOWNERS, dependabot.yml, CHANGELOG.md). Force-pushed: `bda265a67...464cc8cb9 chore/codeowners-default-reviewer`. |
+
+### Not advanced
+
+| Item | Reason |
+|---|---|
+| PR287 (27/119 red) | Still needs local log reproduction |
+| PR289 (39/119 red) | Still needs local log reproduction |
+| PR288/290/292/293 dirty | Still `CONFLICTING` — same fork-old base problem as PR291. Each needs its own worktree + rebase. |
+| PR286 CI | Still red across 8+ shards. `ab5927544` pushed but CI didn't improve. |
+| Fork Rewrite Phase 1B/1C | 12-crate Rust workspace already exists (`omniroute-rust/`) with 141 tests. Phase 1A (scaffold) was already done by a prior agent. The next slice is 1B (gRPC bridge) which requires agreement on the interop protocol. |
+
+### Rust workspace state (current)
+
+```
+omniroute-rust/
+├── Cargo.toml         (12-crate workspace)
+├── crates/omni-core, omni-protocol, omni-storage, omni-translator,
+│        omni-router, omni-compression, omni-server, omni-mcp,
+│        omni-a2a, omni-telemetry, omni-cli, omni-sdk
+├── cargo check        ✅ PASS (only warnings)
+├── cargo test         ✅ PASS (141 tests)
+└── omniroute CLI      working (11 subcommands)
+```
+
+Remaining gaps from `docs(omniroute-rust): reformat crate status table`:
+- Tokn substrate not yet linked as workspace member
+- `crates/omniroute-ffi/` (existing, 3 sub-crates) not part of `omniroute-rust/` workspace
+- No integration test between TS control plane and Rust data plane
