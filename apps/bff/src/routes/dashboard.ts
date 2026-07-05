@@ -11,18 +11,7 @@ const SettingsSchema = z.object({
   language: z.string(),
   theme: z.enum(['auto', 'light', 'dark']),
 });
-
-const KeyCreateSchema = z.object({
-  name: z.string().min(1).max(100),
-});
-
-const SecuritySchema = z.object({
-  csrfEnabled: z.boolean(),
-  jwtSecretRotatedAt: z.string().nullable(),
-  mitmCertInstalled: z.boolean(),
-  sessionSecretStrong: z.boolean(),
-  openaiApiKeyLeakage: z.enum(['safe', 'warning', 'unsafe', 'unknown']),
-});
+const KeyCreateSchema = z.object({ name: z.string().min(1).max(100) });
 
 export const dashboardRoutes = new Hono()
   .get('/health', (c) => c.json({ status: 'healthy', ts: new Date().toISOString() }))
@@ -31,40 +20,34 @@ export const dashboardRoutes = new Hono()
   .get('/usage', (c) => c.json({ rows: [] }))
   .get('/combos', (c) => c.json({ combos: [] }))
   .get('/security', (c) => c.json({
-    csrfEnabled: true,
-    jwtSecretRotatedAt: '2026-06-15T00:00:00Z',
-    mitmCertInstalled: false,
-    sessionSecretStrong: true,
-    openaiApiKeyLeakage: 'safe' as const,
-  } satisfies z.infer<typeof SecuritySchema>))
+    csrfEnabled: true, jwtSecretRotatedAt: '2026-06-15T00:00:00Z',
+    mitmCertInstalled: false, sessionSecretStrong: true, openaiApiKeyLeakage: 'safe',
+  }))
   .get('/keys', (c) => c.json({ keys: [] }))
   .post('/keys', zValidator('json', KeyCreateSchema), (c) => c.json({
     ok: true,
-    key: {
-      id: crypto.randomUUID(),
-      name: c.req.valid('json').name,
-      prefix: 'omni_pk_' + Math.random().toString(36).slice(2, 10),
-      createdAt: new Date().toISOString(),
-      lastUsedAt: null,
-      revoked: false,
-    },
+    key: { id: crypto.randomUUID(), name: c.req.valid('json').name, prefix: 'omni_pk_' + Math.random().toString(36).slice(2, 10), createdAt: new Date().toISOString(), lastUsedAt: null, revoked: false },
   }))
   .post('/keys/:id/revoke', (c) => c.json({ ok: true, id: c.req.param('id') }))
-  .get('/settings', (c) => c.json({
-    baseUrl: 'http://localhost:20128',
-    telemetry: true,
-    autoUpdate: true,
-    language: 'en',
-    theme: 'auto',
-  }))
+  .get('/settings', (c) => c.json({ baseUrl: 'http://localhost:20128', telemetry: true, autoUpdate: true, language: 'en', theme: 'auto' }))
   .post('/settings', zValidator('json', SettingsSchema), (c) => c.json({ ok: true, settings: c.req.valid('json') }))
+  .get('/cost', (c) => c.json({ rows: [] }))
+  .get('/billing', (c) => c.json({ name: 'Pro', pricePerMonth: 49, seats: 5, renewsAt: '2026-08-01' }))
+  .get('/logs', (c) => c.json({ logs: [] }))
+  .get('/mcp', (c) => c.json({ servers: [] }))
+  .get('/a2a', (c) => c.json({ agents: [] }))
+  .get('/skills', (c) => c.json({ skills: [] }))
+  .get('/memory', (c) => c.json({ entries: [] }))
+  .get('/cache', (c) => c.json({ hits: 12450, misses: 320, sizeMb: 42, evictions: 18 }))
+  .get('/batch', (c) => c.json({ batches: [] }))
+  .get('/webhooks', (c) => c.json({ webhooks: [] }))
+  .get('/audit', (c) => c.json({ events: [] }))
   .get('/health/stream', (c) => {
     return streamSSE(c, async (stream) => {
       let id = 0;
-      const send = async (level: 'info' | 'warn' | 'error', message: string) => {
+      const send = async (level: 'info'|'warn'|'error', message: string) => {
         await stream.writeSSE({
-          id: String(id++),
-          event: 'health',
+          id: String(id++), event: 'health',
           data: JSON.stringify({ ts: new Date().toISOString(), level, message }),
         });
       };
