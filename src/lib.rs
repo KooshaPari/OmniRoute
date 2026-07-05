@@ -34,3 +34,4 @@ pub mod env_manager;
 pub mod scheduler;
 
 pub mod api;
+pub mod queue;
