@@ -98,3 +98,6 @@ pub mod jsonschema_subset;
 
 pub mod binary_search_ex;
 pub mod kmp_search;
+
+pub mod bloom_filter;
+pub mod lru_cache_ext;
