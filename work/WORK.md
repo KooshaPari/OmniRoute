@@ -1,6 +1,6 @@
 # OmniRoute / Phenotype Work Ledger
 
-[OmniRoute:~~, RootRecovery:!, RouterEval:P, PhenoCI:~~, AgilePlus:~~, Substrate:ok, Tracera:?, Vercel:~~]
+[OmniRoute:✓, Tracera:◐, AgilePlus:○, DesktopDeploy:✗, Vercel:◐]
 
 This is the canonical handoff file for the polyrepo work queue. Other Markdown handoff files in
 `work/` are superseded once their durable content is merged here. Future agents should read and
@@ -35,6 +35,45 @@ this DAG.
 5. Preserve shared dirty work. Do not revert files unless the operator explicitly asks.
 6. Keep root-agent work in manager mode: delegate where useful, verify locally, then synthesize.
 7. Keep cockpit output compact: top bracket, progress tree, DAG, agents table, next questions.
+8. Keep `repos/work/WORK.md` as the only active handoff ledger; archive notes stay separate unless merged here.
+
+## Forward Local DAG
+
+```text
+ROOT-WORK-HANDOFF
+|- PR286-OMNIROUTE-AUTO-FIX           [wip]
+|  |- current head                    [wip] `1acbbf4a08752fdba995388f43bdc336bc628cb9`
+|  |- known green gates               [ok] docs-check, typecheck-core, db-rules, known-symbols, route-guard
+|  |- known red gates                 [wip] Vitest/MCP shard set; need actionable failing logs
+|  |- next                           [wip] wait for readable CI logs, then patch first concrete regression
+|  `- ownership                      [ok] local only until CI settles and push becomes worth it
+|
+|- LOCAL-HANDOFF-CONSOLIDATION        [wip]
+|  |- repos/work/WORK.md              [ok] canonical ledger
+|  |- repos/work/*.md                 [ok] other than WORK.md = archival or session note
+|  |- repos/.remember/*               [ok] live memory inputs / historical context
+|  `- next                           [wip] keep one merged DAG here; do not spawn parallel ledgers
+|
+|- REPO-ORIENTATION-LAYER             [ok]
+|  |- repos/PLAN.md                   [ok] top-level roadmap
+|  |- repos/STATUS.md                 [ok] repo surface map
+|  |- repos/POLYREPO.md               [ok] cross-repo ownership model
+|  |- repos/UPSTREAM_SYNC.md          [ok] upstream sync policy
+|  `- repos/06-RISKS-AND-OPEN-QUESTIONS.md [wip] unresolved scope / assumptions
+|
+|- SPINE-REPO-OVERLAYS                [wip]
+|  |- AgilePlus                       [wip] cockpit / control plane
+|  |- Tracera                         [wip] trace spine / observability split
+|  |- BytePort                        [ok] status doc exists; backlog mostly security/runtime gaps
+|  |- Authvault                       [ok] build status and audit docs exist
+|  `- Agentora / AuthKit / agent-user-status / agentapi-plusplus / apikit-httpora-final [wip] docs present, need triage into active vs archive
+|
+|- NEXT-50-500-TASKS                  [wip]
+|  |- first 5                         [wip] finish PR286 CI, reconcile ledger, refresh repo inventory, identify active repo owners, classify archive debt
+|  |- next 20                         [wip] convert repo docs into a single ownership matrix, mark stale status files, extract unresolved blockers, tag merge-ready lanes, isolate archive-only repos
+|  |- next 50                         [wip] audit all top-level repos for active vs archival state, fold duplicates, normalize DAGs, and create one canonical per-repo status pointer
+|  `- next 500                        [wip] full polyrepo ownership graph, dependency edges, merge order, and per-repo health catalog
+```
 
 ## 2026-07-05 OmniRoute PR Queue Checkpoint
 
