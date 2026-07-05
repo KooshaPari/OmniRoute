@@ -55,3 +55,5 @@ pub mod stats;
 pub mod hash_util;
 pub mod bloom;
 pub mod text_slab;
+pub mod csv_util;
+pub mod levenshtein;
