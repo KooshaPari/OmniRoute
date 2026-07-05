@@ -42,6 +42,8 @@ export function App() {
 
   useEffect(() => {
     const token = ++pendingTokenRef.current;
+    // Reset transient "saved" badge whenever the user switches tabs; intentional setState-in-effect.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setSavedStatus(false);
     fetchManagement<Record<string, unknown>>(active.id).then((result) => {
       if (token !== pendingTokenRef.current) {
