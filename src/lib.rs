@@ -73,3 +73,5 @@ pub mod stream;
 pub mod pin;
 pub mod sortedset;
 pub mod priority_queue;
+pub mod typed_id;
+pub mod sliding_window;
