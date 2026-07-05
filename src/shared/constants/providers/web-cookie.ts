@@ -302,4 +302,66 @@ export const WEB_COOKIE_PROVIDERS = {
     authHint:
       "Login at zenmux.ai, then export all cookies using EditThisCookie or Cookie-Editor and paste the full Cookie header string here. Refresh every ~30 days.",
   },
+  "duckduckgo-web": {
+    id: "duckduckgo-web",
+    alias: "ddg-web",
+    name: "DuckDuckGo AI Chat",
+    icon: "auto_awesome",
+    color: "#DE5833",
+    textIcon: "DDG",
+    website: "https://duckduckgo.com",
+    hasFree: true,
+    freeNote: "Free — DuckDuckGo AI Chat with duckai auth cookie. No subscription required.",
+    authHint:
+      "Paste your duckai cookie value or the full Cookie header from duckduckgo.com (DevTools → Network → request → Cookie).",
+    riskNoticeVariant: "webCookie",
+  },
+  "t3-chat-web": {
+    id: "t3-chat-web",
+    alias: "t3chat-web",
+    name: "T3 Chat Web",
+    icon: "auto_awesome",
+    color: "#7C3AED",
+    textIcon: "T3W",
+    website: "https://t3.chat",
+    authHint:
+      "Paste your T3 Chat token from t3.chat (DevTools → Application → Local Storage → token).",
+    riskNoticeVariant: "webCookie",
+  },
+  "chatglm-web": {
+    id: "chatglm-web",
+    alias: "glm-web",
+    name: "ChatGLM Web (Zhipu)",
+    icon: "auto_awesome",
+    color: "#3B82F6",
+    textIcon: "GLM",
+    website: "https://chatglm.cn",
+    authHint:
+      "Paste your chatglm_session cookie value or the full Cookie header from chatglm.cn (DevTools → Application → Cookies).",
+    riskNoticeVariant: "webCookie",
+  },
+  "xiaomimimo-web": {
+    id: "xiaomimimo-web",
+    alias: "mimo-web",
+    name: "Xiaomi MiMo Web (AI Studio)",
+    icon: "auto_awesome",
+    color: "#FF6900",
+    textIcon: "MIMO",
+    website: "https://aistudio.xiaomimimo.com",
+    authHint:
+      "Paste your session cookie value or the full Cookie header from aistudio.xiaomimimo.com (DevTools → Application → Cookies).",
+    riskNoticeVariant: "webCookie",
+  },
+  "manus-web": {
+    id: "manus-web",
+    alias: "manus",
+    name: "Manus AI Web",
+    icon: "auto_awesome",
+    color: "#1F2937",
+    textIcon: "MN",
+    website: "https://manus.im",
+    authHint:
+      "Paste your manus_session cookie value or the full Cookie header from manus.im (DevTools → Application → Cookies).",
+    riskNoticeVariant: "webCookie",
+  },
 };
