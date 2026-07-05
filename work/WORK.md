@@ -129,11 +129,14 @@ WORK-LEDGER
 |
 ROOT-RECOVERY
 |- DIRTY-TREE-CONTAINMENT [active]
-|- HEADER-EXPORT-BLOCKER [next]
+|- HEADER-EXPORT-BLOCKER [done]
 |  |- inspect upstreamHeaders naming
-|  |- add alias or update all imports
+|  |- current state already exports isForbiddenCustomHeaderName
+|  `- typecheck:core green
+|- PROXY-ASSIGNMENTS-SCHEMA [done]
+|  |- add proxy_assignments bootstrap to 040_oneproxy_proxy_fields.sql
 |  `- rerun focused proxy-management route test
-|- DB-MIGRATION-NUMBERING [blocked-after-header]
+|- DB-MIGRATION-NUMBERING [next]
 |  |- inspect deleted 100-105 migrations
 |  |- reconcile check-migration-numbering gaps
 |  `- rerun migration numbering check
@@ -181,23 +184,26 @@ POLYREPO-STATE
 
 ### B. RootRecovery lane
 
-6. Inspect `src/shared/constants/upstreamHeaders.ts`.
-7. Choose the smallest forward fix for `isForbiddenCustomHeaderName`.
-8. If semantics are identical, export `isForbiddenCustomHeaderName` as an alias of
-   `isForbiddenUpstreamHeaderName`.
-9. If semantics differ, update all imports to the current function and adjust tests.
-10. Rerun the focused proxy-management route test:
+6. Done: inspected `src/shared/constants/upstreamHeaders.ts`; current state already exports both
+   `isForbiddenUpstreamHeaderName` and `isForbiddenCustomHeaderName`.
+7. Done: confirmed validation schemas import the current exports.
+8. Done: no alias patch needed; semantics differ intentionally (`custom` also blocks auth headers).
+9. Done: focused route test exposed the real next blocker, missing `proxy_assignments` in fresh
+   isolated DB bootstrap.
+10. Done: added `proxy_assignments` table and indexes to `040_oneproxy_proxy_fields.sql`.
+11. Done: reran the focused proxy-management route test:
     `npm exec --yes tsx -- --import ./open-sse/utils/setupPolyfill.ts --import ./tests/_setup/isolateDataDir.ts --test --test-force-exit tests/unit/proxy-management-v1-route.test.ts`
-11. Rerun targeted TypeScript check for the validation schema import surface.
-12. Inspect deleted migration files `100-105` before touching migration numbering.
-13. Run `node scripts/check/check-migration-numbering.mjs`.
-14. Reconcile missing migration-number gaps without reverting shared user edits.
-15. Rerun the migration numbering check.
-16. Reproduce `chat-helpers` assertions after import and migration blockers clear.
-17. Reproduce Kiro translator failures after import and migration blockers clear.
-18. Recheck `.well-known/agent.json` and A2A skill surface after root fixes.
-19. Run `oxlint` or the repo's preferred lint on touched TS files.
-20. Keep root branch commit preparation separate from Pheno CI edits.
+    and it returned `ok`.
+12. Done: reran `npm run typecheck:core`; it returned `ok`.
+13. Inspect deleted migration files `100-105` before touching migration numbering.
+14. Run `node scripts/check/check-migration-numbering.mjs`.
+15. Reconcile missing migration-number gaps without reverting shared user edits.
+16. Rerun the migration numbering check.
+17. Reproduce `chat-helpers` assertions after import and migration blockers clear.
+18. Reproduce Kiro translator failures after import and migration blockers clear.
+19. Recheck `.well-known/agent.json` and A2A skill surface after root fixes.
+20. Run `oxlint` or the repo's preferred lint on touched TS files.
+21. Keep root branch commit preparation separate from Pheno CI edits.
 
 ### C. Pheno CI lane
 
