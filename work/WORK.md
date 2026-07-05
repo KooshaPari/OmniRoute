@@ -483,7 +483,7 @@ Markdown ledgers after this merge:
 | agent               | task                   | state   | summary                                                             |
 | ------------------- | ---------------------- | ------- | ------------------------------------------------------------------- |
 | root                | canonical ledger merge | working | replacing colliding handoffs with single `WORK.md`                  |
-| pheno_ci_state      | PR258 CI refresh       | done    | found recursive-submodule and unresolved-action-pin blockers        |
+| pheno_ci_state      | PR258 CI refresh       | done    | branch-clean checkout fix pushed; remaining failures look like baseline CI debt |
 | router_eval_state   | PR6071 refresh         | done    | found PR closed/conflicting and missing temp worktree               |
 | root_recovery_state | root blocker refresh   | done    | found missing `isForbiddenCustomHeaderName` export as first blocker |
 
@@ -494,6 +494,53 @@ Resume from `/Users/kooshapari/CodeProjects/Phenotype/repos/work/WORK.md`. First
 the only Markdown ledger in `work/`. Then continue the Pheno CI workflow repair or RootRecovery
 header-export blocker, whichever is least likely to collide with active dirty work. Keep cockpit
 ticks with the top repo bracket and fold any subagent findings back into `WORK.md`.
+```
+
+## 2026-07-05 Root Recovery Verification
+
+### State Bracket
+
+`[OmniRoute:~~, RootRecovery:~ , RouterEval:P, PhenoCI:~ , AgilePlus:~~, Substrate:ok, Tracera:?, Vercel:~~]`
+
+### Current Evidence
+
+- `src/shared/constants/upstreamHeaders.ts` exports both `isForbiddenUpstreamHeaderName` and `isForbiddenCustomHeaderName`.
+- `npm exec --yes tsx -- --test --test-concurrency=1 tests/integration/agent-skills-discovery.test.ts` passed.
+- The old RootRecovery blocker note in `work/WORK.md` is stale relative to current code.
+
+### RootRecovery Forward DAG
+
+```text
+ROOT-RECOVERY-VERIFY
+|- export state                  [ok]
+|- focused test                  [ok]
+|- stale blocker note            [ok: cleared from current evidence]
+`- next                          [wip] pick the next real root blocker
+```
+
+## 2026-07-05 Pheno PR258 Checkpoint
+
+### State Bracket
+
+`[OmniRoute:~~, RootRecovery:!, RouterEval:P, PhenoCI:~ , AgilePlus:~~, Substrate:ok, Tracera:?, Vercel:~~]`
+
+### Current Evidence
+
+- PR258 head is `e79530bc9d0d03e3c416af9a619aa4662c42e4ba`.
+- The duplicate AgilePlus checkout fallback has been removed and pushed.
+- `git diff --check` is clean for the branch.
+- Latest `gh pr checks 258` shows broad red baseline gates: `Config Lint`, `Conventional Commits`, `Core Build`, `Core Documentation`, `Core MSRV (1.86)`, `Core Workspace Quality`, `Domain Zero-Dep Lint`, `Python Quality`, `Rust Build`, `Rust Coverage`, `Rust Extras (machete, semver, typos)`, `Rust Lint`, `Rust MSRV (stable)`, `Rust Quality`, `Rust Security Audit`, and `SonarCloud Code Analysis`.
+- Sampled log (`Config Lint`) is still setup/toolchain related and does not point to a branch-specific source failure.
+
+### Pheno Forward DAG
+
+```text
+PHENO-PR258-CHECK
+|- checkout fallback removal   [ok]
+|- latest push                 [ok]
+|- branch-specific regression  [ok: none found in sampled gate]
+|- baseline CI debt            [wip]
+`- next                       [wip] move to the next meaningful lane
 ```
 
 ## 2026-07-04 Root OmniRoute Recovery Checkpoint
