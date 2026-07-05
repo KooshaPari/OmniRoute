@@ -10,7 +10,6 @@ import {
   ledgerQueueDepth,
   _resetLedgerForTests,
 } from "../../src/lib/db/costLedger.ts";
-import { summarizeCostForTenant } from "../../src/lib/db/costTracking.ts";
 
 function makeInput(overrides: Partial<{ tenantId: string; costUsd: number; provider: string; model: string }> = {}) {
   return {
