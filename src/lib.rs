@@ -104,3 +104,6 @@ pub mod lru_cache_ext;
 
 pub mod skiplist;
 pub mod trie_compressed;
+
+pub mod flatbuffers_lite;
+pub mod lz4_block;
