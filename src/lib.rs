@@ -63,3 +63,4 @@ pub mod itoa;
 pub mod astar;
 pub mod graph;
 pub mod disjoint_set;
+pub mod stack;
