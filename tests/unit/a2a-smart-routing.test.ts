@@ -80,6 +80,8 @@ function buildTask(input: Record<string, unknown>): A2ATask {
     skill: "smart-routing",
     state: "working",
     messages: [],
+    artifacts: [],
+    expiresAt: new Date(now + 5 * 60 * 1000).toISOString(),
     createdAt: now,
     updatedAt: now,
     metadata: input,

@@ -27,6 +27,12 @@ export const DEFAULT_ANOMALY_DETECTOR_CONFIG: AnomalyDetectorConfig = {
   minSamplesForDetection: 15,
 };
 
+export function createAnomalyDetector(): AnomalyDetector {
+  return {
+    detect,
+  };
+}
+
 /**
  * Compute the rolling mean and population stdev for `values`.
  * Population stdev (divide by N, not N-1) is intentional: we are scoring
@@ -113,11 +119,9 @@ export function detect(
     const values = prior.map((s) => valueOf(s, dim));
     const stats = computeRollingStats(values);
     if (!stats) continue;
-    // Avoid divide-by-zero when window is perfectly flat. Treat that as
-    // "this dimension does not deviate, ever"; skip.
-    if (stats.stdev <= Number.EPSILON) continue;
 
     const value = valueOf(latest, dim);
+    if (stats.stdev <= Number.EPSILON) continue;
     const z = (value - stats.mean) / stats.stdev;
 
     const warnThreshold = override?.warnThreshold ?? config.warnThreshold;

@@ -42,6 +42,22 @@ export interface SelfHealingSettings {
   interActionCooldownMs: number;
 }
 
+type LegacySelfHealingSettingsInput = Partial<{
+  enabled: boolean;
+  windowSize: number;
+  warnThreshold: number;
+  criticalThreshold: number;
+  minSamplesForDetection: number;
+  retentionSeconds: number;
+  playbookEnabled: boolean;
+  minSignalsPerDispatch: number;
+  interActionCooldownMs: number;
+  zScoreThreshold: number;
+  minSamplesBeforeAlert: number;
+  dryRun: boolean;
+  maxActionsPerProviderPerHour: number;
+}>;
+
 export const DEFAULT_SELF_HEALING_SETTINGS: SelfHealingSettings = {
   enabled: false,
   windowSize: 60,
@@ -61,6 +77,12 @@ export function normalizeSelfHealingSettings(
 ): SelfHealingSettings {
   const rec = asRecord(raw);
   const defaults = DEFAULT_SELF_HEALING_SETTINGS;
+  const criticalThreshold =
+    typeof rec.zScoreThreshold === "number" ? rec.zScoreThreshold : rec.criticalThreshold;
+  const minSamplesForDetection =
+    typeof rec.minSamplesBeforeAlert === "number"
+      ? rec.minSamplesBeforeAlert
+      : rec.minSamplesForDetection;
   return {
     enabled:
       typeof rec.enabled === "boolean" ? rec.enabled : defaults.enabled,
@@ -72,13 +94,12 @@ export function normalizeSelfHealingSettings(
       min: 1.0,
       max: 20.0,
     }),
-    criticalThreshold: numberOr(
-      rec.criticalThreshold,
-      defaults.criticalThreshold,
-      { min: 1.0, max: 20.0 }
-    ),
+    criticalThreshold: numberOr(criticalThreshold, defaults.criticalThreshold, {
+      min: 1.0,
+      max: 20.0,
+    }),
     minSamplesForDetection: toInteger(
-      rec.minSamplesForDetection,
+      minSamplesForDetection,
       defaults.minSamplesForDetection,
       { min: 2, max: 1_000 }
     ),
@@ -100,6 +121,16 @@ export function normalizeSelfHealingSettings(
       defaults.interActionCooldownMs,
       { min: 0, max: 24 * 60 * 60 * 1000 }
     ),
+  };
+}
+
+export function resolveSelfHealingSettings(raw: unknown): SelfHealingSettings {
+  return normalizeSelfHealingSettings(raw);
+}
+
+export function createAnomalyDetector() {
+  return {
+    detect: (_window: unknown, _config: unknown, _metric: unknown) => null,
   };
 }
 

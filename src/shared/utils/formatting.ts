@@ -108,6 +108,22 @@ export function fmtCompact(n: number | null | undefined) {
   return new Intl.NumberFormat().format(n || 0);
 }
 
+export function formatCostAbbreviated(usd: number | null | undefined): string {
+  const value = Number(usd || 0);
+  if (!Number.isFinite(value) || value === 0) return "$0";
+  const sign = value < 0 ? "-" : "";
+  const abs = Math.abs(value);
+  const format = (n: number) => {
+    const precision = n < 0.01 ? 6 : 1;
+    return n.toFixed(precision).replace(/\.0+$/, "").replace(/(\.[1-9]*)0+$/, "$1");
+  };
+  if (abs >= 1_000_000_000_000) return `${sign}$${format(abs / 1_000_000_000_000)}T`;
+  if (abs >= 1_000_000_000) return `${sign}$${format(abs / 1_000_000_000)}B`;
+  if (abs >= 1_000_000) return `${sign}$${format(abs / 1_000_000)}M`;
+  if (abs >= 1_000) return `${sign}$${format(abs / 1_000)}K`;
+  return `${sign}$${format(abs)}`;
+}
+
 /**
  * Format a number with full locale formatting.
  * @param {number} n - Number to format
@@ -125,7 +141,7 @@ export function fmtFull(n: number | null | undefined) {
  */
 export function formatCost(usd: number | null | undefined): string {
   const value = Number(usd || 0);
-  if (!Number.isFinite(value) || value === 0) return "$0.00";
+  if (!Number.isFinite(value) || value === 0) return "$0";
   if (value < 0.01) return `$${value.toFixed(6)}`;
   if (value < 1) return `$${value.toFixed(4)}`;
   return `$${value.toFixed(2)}`;
@@ -146,7 +162,7 @@ export function truncateUrl(url: string | null | undefined, max = 50) {
     const display = parsed.hostname + parsed.pathname;
     return display.length > max ? display.slice(0, max) + "…" : display;
   } catch {
-    return url.length > max ? url.slice(0, max) + "…" : url;
+    return url.length > max ? url.slice(0, max + 1).replace(/[-_\s]+$/, "") + "…" : url;
   }
 }
 
