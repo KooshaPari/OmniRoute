@@ -340,6 +340,13 @@ export {
 
 export * from "./db/sessionAccountAffinity";
 export * from "./db/quotaResetEvents";
+export * from "./db/bifrostModels";
+export * from "./db/bifrostShadow";
+export * from "./db/costTracking";
+export * from "./db/providerHealthHistory";
+export * from "./db/routingDecisions";
+export * from "./db/trafficShadow";
+export * from "./db/virtualKeys";
 
 export type { QuotaSnapshotRow, ProviderUtilizationPoint } from "@/shared/types/utilization";
 
@@ -396,11 +403,13 @@ export {
   insertCompressionAnalyticsRow,
   getCompressionAnalyticsSummary,
 } from "./db/compressionAnalytics";
+export { getCompressionBudgetHistory } from "./db/compressionBudgetHistory";
 
 export type {
   CompressionAnalyticsRow,
   CompressionAnalyticsSummary,
 } from "./db/compressionAnalytics";
+export type { CompressionBudgetHistoryPoint } from "./db/compressionBudgetHistory";
 
 export {
   // Reasoning Replay Cache (#1628)
