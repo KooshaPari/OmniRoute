@@ -138,3 +138,5 @@ pub mod toml_lite;
 pub mod tar_header;
 pub mod json5;
 pub mod s_expression;
+pub mod url_safe_base64;
+pub mod dns_zone;
