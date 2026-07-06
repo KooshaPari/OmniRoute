@@ -51,13 +51,7 @@ import { useOpenRouterPresetControl } from "../OpenRouterPresetInput";
 import WebSessionCredentialGuide from "../WebSessionCredentialGuide";
 import CcCompatibleRequestDefaultsFields from "./CcCompatibleRequestDefaultsFields";
 import { assignEditApiKeyProviderSpecificData } from "./connectionProviderSpecificData";
-import {
-  isM365TierCapableProvider,
-  normalizeM365TierValue,
-  type M365TierValue,
-} from "./m365Tier";
 import QuotaScrapingFields, { EMPTY_QUOTA_SCRAPING_FIELDS } from "./QuotaScrapingFields";
-import GlmTeamQuotaFields, { EMPTY_GLM_TEAM_QUOTA_FIELDS } from "./GlmTeamQuotaFields";
 
 export interface EditConnectionModalConnection {
   id?: string;
@@ -78,7 +72,6 @@ export interface EditConnectionModalProps {
   isOpen: boolean;
   connection: EditConnectionModalConnection | null;
   providerId: string;
-  providerWebsite?: string;
   onSave: (data: unknown) => Promise<void | unknown>;
   /** Triggered after a successful save when the "import only free models" flag changed. */
   onResyncModels?: (connectionId: string) => void | Promise<void>;
@@ -91,7 +84,6 @@ export default function EditConnectionModal({
   isOpen,
   connection,
   providerId,
-  providerWebsite,
   onSave,
   onResyncModels,
   onClose,
@@ -125,7 +117,6 @@ export default function EditConnectionModal({
     codexServiceTier: "default" as CodexServiceTier,
     codexOpenaiStoreEnabled: false,
     consoleApiKey: "",
-    ...EMPTY_GLM_TEAM_QUOTA_FIELDS,
     ...EMPTY_QUOTA_SCRAPING_FIELDS,
     ccCompatibleContext1m: false,
     ccCompatibleRedactThinking: false,
@@ -139,7 +130,6 @@ export default function EditConnectionModal({
     passthroughModels: connection?.providerSpecificData?.passthroughModels === true,
     disableCooling: connection?.providerSpecificData?.disableCooling === true,
     importFreeModelsOnly: connection?.providerSpecificData?.importFreeModelsOnly === true,
-    m365Tier: normalizeM365TierValue(connection?.providerSpecificData?.tier) as M365TierValue,
   });
   const [testing, setTesting] = useState(false);
   const [testResult, setTestResult] = useState(null);
@@ -175,7 +165,8 @@ export default function EditConnectionModal({
       typeof connection?.providerSpecificData?.baseUrl === "string" &&
       connection.providerSpecificData.baseUrl.trim().length > 0
   );
-  const usesBaseUrl = isConfigurableBaseUrl || (isBaseUrlOverrideEligible && showBaseUrlOverride);
+  const usesBaseUrl =
+    isConfigurableBaseUrl || (isBaseUrlOverrideEligible && showBaseUrlOverride);
   const defaultBaseUrl = getProviderBaseUrlDefault(provider);
   const isVertex = provider === "vertex" || provider === "vertex-partner";
   const isBedrock = provider === "bedrock";
@@ -190,7 +181,6 @@ export default function EditConnectionModal({
   const localProviderMetadata = getLocalProviderMetadata(provider);
   const isLocalSelfHostedProvider = !!localProviderMetadata;
   const isGooglePse = provider === "google-pse-search";
-  const isM365TierCapable = isM365TierCapableProvider(provider);
   const webSessionCredential = getWebSessionCredentialRequirement(provider);
   const isNoAuthWebSessionCredential = webSessionCredential?.kind === "none";
   const isWebSessionCredential = !!webSessionCredential && webSessionCredential.kind !== "none";
@@ -246,14 +236,6 @@ export default function EditConnectionModal({
         stringField(connection.providerSpecificData?.opencodeGoWorkspaceId) ||
         stringField(connection.providerSpecificData?.openCodeGoWorkspaceId) ||
         stringField(connection.providerSpecificData?.workspaceId);
-      const existingGlmOrganizationId =
-        stringField(connection.providerSpecificData?.glmOrganizationId) ||
-        stringField(connection.providerSpecificData?.bigmodelOrganization) ||
-        stringField(connection.providerSpecificData?.glmOrganization);
-      const existingGlmProjectId =
-        stringField(connection.providerSpecificData?.glmProjectId) ||
-        stringField(connection.providerSpecificData?.bigmodelProject) ||
-        stringField(connection.providerSpecificData?.glmProject);
       const codexRequestDefaults = getCodexRequestDefaults(connection.providerSpecificData);
       const ccRequestDefaults = getClaudeCodeCompatibleRequestDefaults(
         connection.providerSpecificData
@@ -305,8 +287,6 @@ export default function EditConnectionModal({
         codexServiceTier: codexRequestDefaults.serviceTier ?? "default",
         codexOpenaiStoreEnabled: connection.providerSpecificData?.openaiStoreEnabled === true,
         consoleApiKey: existingConsoleApiKey,
-        glmOrganizationId: existingGlmOrganizationId,
-        glmProjectId: existingGlmProjectId,
         opencodeGoWorkspaceId: existingOpenCodeGoWorkspaceId,
         opencodeGoAuthCookie: "",
         ollamaCloudUsageCookie: "",
@@ -325,7 +305,6 @@ export default function EditConnectionModal({
         passthroughModels: connection?.providerSpecificData?.passthroughModels === true,
         disableCooling: connection?.providerSpecificData?.disableCooling === true,
         importFreeModelsOnly: connection?.providerSpecificData?.importFreeModelsOnly === true,
-        m365Tier: normalizeM365TierValue(connection.providerSpecificData?.tier) as M365TierValue,
       });
       const existing = connection.providerSpecificData?.extraApiKeys;
       setExtraApiKeys(Array.isArray(existing) ? existing : []);
@@ -344,10 +323,7 @@ export default function EditConnectionModal({
       setApiKeyHealth(health || {});
       setNewExtraKey("");
       setOpenRouterPreset(existingOpenRouterPreset);
-      setShowAdvanced(
-        !!existingCustomUserAgent ||
-          normalizeM365TierValue(connection.providerSpecificData?.tier) !== ""
-      );
+      setShowAdvanced(!!existingCustomUserAgent);
       setTestResult(null);
       setValidationResult(null);
       setSaveError(null);
@@ -819,7 +795,6 @@ export default function EditConnectionModal({
               <WebSessionCredentialGuide
                 requirement={webSessionCredential}
                 providerName={providerDisplayName}
-                providerWebsite={providerWebsite}
                 t={t}
               />
             )}
@@ -898,21 +873,6 @@ export default function EditConnectionModal({
                   placeholder="my-app/1.0"
                   hint={t("customUserAgentHint")}
                 />
-                {isM365TierCapable && (
-                  <Select
-                    label={t("m365TierLabel")}
-                    value={formData.m365Tier ?? ""}
-                    options={[
-                      { value: "", label: t("m365TierIndividualOption") },
-                      { value: "edu", label: t("m365TierEduOption") },
-                      { value: "enterprise", label: t("m365TierEnterpriseOption") },
-                    ]}
-                    onChange={(e) =>
-                      setFormData({ ...formData, m365Tier: e.target.value as M365TierValue })
-                    }
-                    hint={t("m365TierHint")}
-                  />
-                )}
                 <Toggle
                   size="sm"
                   checked={formData.passthroughModels}
@@ -1047,26 +1007,19 @@ export default function EditConnectionModal({
         )}
 
         {isGlm && (
-          <div className="flex flex-col gap-3">
-            <div>
-              <label className="text-sm font-medium text-text-main mb-1 block">
-                {t("apiRegionLabel")}
-              </label>
-              <select
-                value={formData.apiRegion}
-                onChange={(e) => setFormData({ ...formData, apiRegion: e.target.value })}
-                className="w-full px-3 py-2 text-sm border border-border rounded-lg bg-background focus:outline-none focus:border-primary"
-              >
-                <option value="international">{t("apiRegionInternational")}</option>
-                <option value="china">{t("apiRegionChina")}</option>
-              </select>
-              <p className="text-xs text-text-muted mt-1">{t("apiRegionHint")}</p>
-            </div>
-            <GlmTeamQuotaFields
-              values={formData}
-              onChange={(patch) => setFormData({ ...formData, ...patch })}
-              t={t}
-            />
+          <div>
+            <label className="text-sm font-medium text-text-main mb-1 block">
+              {t("apiRegionLabel")}
+            </label>
+            <select
+              value={formData.apiRegion}
+              onChange={(e) => setFormData({ ...formData, apiRegion: e.target.value })}
+              className="w-full px-3 py-2 text-sm border border-border rounded-lg bg-background focus:outline-none focus:border-primary"
+            >
+              <option value="international">{t("apiRegionInternational")}</option>
+              <option value="china">{t("apiRegionChina")}</option>
+            </select>
+            <p className="text-xs text-text-muted mt-1">{t("apiRegionHint")}</p>
           </div>
         )}
 

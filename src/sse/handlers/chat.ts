@@ -57,6 +57,7 @@ import { updateCombo } from "@/lib/db/combos";
 import { promoteSuccessfulComboModel } from "@/lib/combos/autoPromote";
 import {
   deleteSessionAccountAffinity,
+  evictSessionAccountAffinityForConnection,
   getCachedSettings,
   getSessionAccountAffinity,
 } from "@/lib/localDb";
@@ -199,10 +200,11 @@ const comboPromoteDeps = { updateCombo, info: log.info, warn: log.warn };
 export async function handleChat(
   request: any,
   clientRawRequest: any = null,
-  preParsedBody: any = null
+  preParsedBody: any = null,
+  correlationId?: string
 ) {
   // Pipeline: Start request telemetry
-  const reqId = generateRequestId();
+  const reqId = correlationId || generateRequestId();
   const telemetry = new RequestTelemetry(reqId);
 
   let body;
@@ -772,6 +774,7 @@ export async function handleChat(
             cachedSettings: settings,
             providerId: target?.providerId ?? null,
             correlationId: reqId,
+            modelPinned: (target as any)?.modelPinned ?? false,
           },
           target?.effectiveComboStrategy ?? combo.strategy,
           true
@@ -1357,6 +1360,7 @@ async function handleSingleModelChat(
         cachedSettings: runtimeOptions.cachedSettings,
         skipUpstreamRetry: runtimeOptions.skipUpstreamRetry ?? false,
         correlationId: runtimeOptions?.correlationId ?? null,
+        modelPinned: runtimeOptions?.modelPinned ?? false,
       });
       if (telemetry) telemetry.endPhase();
 
@@ -1700,6 +1704,21 @@ async function handleSingleModelChat(
       if (shouldFallback) {
         recordAccountCooldown(cooldownMs, { lastCooldownMs, requestRetryLastCooldownMs });
         log.warn("AUTH", `Account ${accountId}... unavailable (${result.status}), trying fallback`);
+        // #6219: evict the sticky session pin when the pinned account fails over,
+        // otherwise the next request re-pins the same throttled account until
+        // restart. Guarded by connection match so a pin for a different (healthy)
+        // account is left intact.
+        if (runtimeOptions.sessionAffinityKey) {
+          try {
+            evictSessionAccountAffinityForConnection(
+              runtimeOptions.sessionAffinityKey,
+              provider,
+              credentials.connectionId
+            );
+          } catch {
+            // best-effort: selection also excludes this connection for the current retry.
+          }
+        }
         excludedConnectionIds.add(credentials.connectionId);
         lastError = result.error;
         lastStatus = result.status;

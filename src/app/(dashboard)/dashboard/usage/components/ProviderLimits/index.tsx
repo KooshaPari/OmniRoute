@@ -27,6 +27,14 @@ import { PROVIDER_LABEL, PROVIDER_ORDER, TIER_FILTERS } from "./constants";
 import { formatAutoRefreshCountdown } from "./formatters";
 import { translateUsageOrFallback, type UsageTranslationValues } from "./i18nFallback";
 import { compareTr } from "@/shared/utils/turkishText";
+import { fetchWithTimeout } from "@/shared/utils/fetchTimeout";
+
+// Bound the two first-paint requests so a stalled connection cannot wedge
+// `initialLoading` on `true` and freeze the quota page on its skeleton forever
+// (same infinite-skeleton class as the providers page). A `try/catch` degrades a
+// *rejection* to a default, but only a timeout/abort can rescue a `fetch()` that
+// never settles (browser connection-pool starvation under the RSC prefetch storm).
+const PROVIDER_LIMITS_FETCH_TIMEOUT_MS = 20_000;
 
 const LS_PURCHASE_FILTER = "omniroute:limits:purchaseFilter";
 const LS_STATUS_FILTER = "omniroute:limits:statusFilter";
@@ -269,7 +277,9 @@ export default function ProviderLimits({
 
   const fetchConnections = useCallback(async () => {
     try {
-      const response = await fetch("/api/providers/client");
+      const response = await fetchWithTimeout("/api/providers/client", {
+        timeoutMs: PROVIDER_LIMITS_FETCH_TIMEOUT_MS,
+      });
       if (!response.ok) throw new Error("Failed");
       const data = await response.json();
       const list = data.connections || [];
@@ -340,7 +350,9 @@ export default function ProviderLimits({
 
   const fetchCachedProviderLimits = useCallback(async () => {
     try {
-      const response = await fetch("/api/usage/provider-limits");
+      const response = await fetchWithTimeout("/api/usage/provider-limits", {
+        timeoutMs: PROVIDER_LIMITS_FETCH_TIMEOUT_MS,
+      });
       if (!response.ok) throw new Error("Failed");
       const data = await response.json();
       return data.caches || {};

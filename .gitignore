@@ -72,7 +72,6 @@ yarn-error.log*
 # env files (can opt-in for committing if needed)
 .env*
 !.env.example
-!.env.homolog.example
 # Provider API keys (never commit)
 *.api-key
 .nvidia-api-key
@@ -233,25 +232,4 @@ omniroute.md
 
 # mise configuration
 mise.toml
-_artifacts/          # release-green artifacts
-.claude-flow/
-
-# ESLint file cache (npm run lint --cache / complexity ratchets)
-.eslintcache
-.eslintcache-complexity
-
-
-# CI/local quality artifacts (eslint-results.json, quality-ratchet.md, etc.)
-.artifacts/
-
-# Homologation E2E suite (npm run homolog) — real-environment credentials + report output
-.env.homolog
-tests/homolog/.auth/
-tests/homolog/ui/.auth/
-homolog-report/
-docker-compose.yml.bak
-
-# _tasks e um repo git SEPARADO (ver AGENTS.md). A linha _tasks/ (com barra) NAO
-# ignora um SYMLINK chamado _tasks; /_tasks (ancorado) cobre arquivo/symlink/dir na raiz
-# e impede que um git add -A recapture o symlink (incidente 2026-08-08).
-/_tasks
+_artifacts/
