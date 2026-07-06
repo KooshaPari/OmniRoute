@@ -150,3 +150,4 @@ pub mod bitcoin_bech32;
 pub mod ssh_packet;
 pub mod x509_chain;
 pub mod oauth1_signature;
+pub mod uuid_v7;
