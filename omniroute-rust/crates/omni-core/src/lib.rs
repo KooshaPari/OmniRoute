@@ -36,7 +36,15 @@
 //!   `UpstreamResponseSlug` (echoed verbatim from the upstream).
 //! - `response::UpstreamRef::{Minted, Echoed}` tags the kind of upstream id.
 
-#![forbid(unsafe_code)]
+//! PR-7 (2026-07-05) — streaming SSE contract:
+//! `streaming::ChatEvent` enum + `streaming::SseFrame::encode` for the
+//! gateway's SSE wire format. `streaming::TokenUsage` is the canonical
+//! accounting shape (input / output / total u64).
+//!
+//! - `streaming::SseEventName::{Begin, Chunk, Done, Error, Heartbeat}` is
+//!   the locked set of event names. Plugin consumers (D-omni-08) decode
+//!   against this.
+
 #![warn(clippy::all, clippy::pedantic)]
 #![allow(clippy::module_name_repetitions)]
 
@@ -48,8 +56,9 @@ pub mod ids;
 pub mod model;
 pub mod provider;
 pub mod response;
-pub mod storage;
 pub mod sqlite_storage;
+pub mod storage;
+pub mod streaming;
 
 pub use config::{
     A2aConfig, BindConfig, ChaosConfig, CompressionConfig, Config, ConfigBuilder, DataDir,
@@ -67,3 +76,4 @@ pub use ids::{
 pub use model::{Model, ModelCapabilities, ModelRef, Modality};
 pub use provider::{Provider, ProviderId, ProviderKind, ProviderMetadata};
 pub use response::{ResponseCorrelation, UpstreamRef};
+pub use streaming::{ChatEvent, SseEventName, SseFrame, TokenUsage, SSE_KEEP_ALIVE_SECONDS, SSE_MAX_CHUNK_BYTES};
