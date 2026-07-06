@@ -10,6 +10,7 @@
   let usage = $state<Usage>([]);
   let revealed = $state(false);
   let loading = $state(true);
+  const maxUsage = $derived(usage.length ? Math.max(1, ...usage.map((u) => u.requests)) : 1);
 
   onMount(async () => {
     const id = $page.params.id;
@@ -58,9 +59,8 @@
         <p class="text-gray-500">No usage recorded.</p>
       {:else}
         <div class="flex items-end gap-px h-24">
-          {@const max = Math.max(1, ...usage.map((u) => u.requests))}
           {#each usage as u}
-            <div class="flex-1 bg-blue-400 rounded-t" style="height: {(u.requests / max) * 100}%" title="{u.date}: {u.requests} req"></div>
+            <div class="flex-1 bg-blue-400 rounded-t" style="height: {(u.requests / maxUsage) * 100}%" title="{u.date}: {u.requests} req"></div>
           {/each}
         </div>
       {/if}

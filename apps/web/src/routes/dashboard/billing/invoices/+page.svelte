@@ -29,7 +29,11 @@
             <td class="px-3 py-2 font-mono text-xs">{i.number}</td>
             <td class="px-3 py-2 text-right">${i.amount.toFixed(2)}</td>
             <td class="px-3 py-2"><span class="px-2 py-0.5 rounded text-xs {statusColor[i.status]}">{i.status}</span></td>
-            <td class="px-3 py-2 text-right">{i.pdfUrl ? <a href={i.pdfUrl} class="text-blue-600 hover:underline text-sm">download</a> : '—'}</td>
+            <td class="px-3 py-2 text-right">
+              {#if i.pdfUrl}
+                <a href={i.pdfUrl} class="text-blue-600 hover:underline text-sm">download</a>
+              {:else}—{/if}
+            </td>
           </tr>
         {/each}
       </tbody>

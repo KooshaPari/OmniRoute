@@ -1,6 +1,8 @@
 <script lang="ts">
   import '../app.css';
   import CommandPalette from '$lib/components/foundation/CommandPalette.svelte';
+  import { initWebVitals } from '$lib/observability/web-vitals';
+  import { onMount } from 'svelte';
   import { page } from '$app/stores';
   import { t, getLocale, setLocale, supportedLanguages } from '$lib/i18n';
 
@@ -32,14 +34,11 @@
     { href: '/dashboard/security', key: 'nav.security' },
     { href: '/dashboard/settings/general', key: 'nav.settings' },
   ];
+
+  onMount(() => { initWebVitals(); });
 </script>
 
 <CommandPalette />
-  <script>
-    import { initWebVitals } from "$lib/observability/web-vitals";
-    import { onMount } from "svelte";
-    onMount(() => { initWebVitals(); });
-  </script>
 
 <main class="min-h-screen bg-[var(--color-surface)]">
   <header class="border-b border-gray-200 bg-white">
