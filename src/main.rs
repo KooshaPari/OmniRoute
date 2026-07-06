@@ -6,18 +6,31 @@ use clap::{CommandFactory, Parser, Subcommand};
 use clap_complete::Shell;
 use sharecli_thermal_tui as thermal_tui;
 
+mod apfs_uuid;
+mod base85;
 mod cast;
 mod commands;
 mod config;
 mod config_validator;
 mod config_watcher;
+mod crc64;
+mod csv_writer;
+mod hash_util;
 mod health_check;
+mod jsonschema_subset;
+mod md_table;
 mod monitoring;
 mod notifier;
 mod proc_compose;
+mod radix_trie;
 mod runtime;
 mod serve_lock;
+mod skiplist;
 mod spawn_policy;
+mod util_cmd;
+mod xml_escape;
+mod xxhash3;
+mod xxtea;
 
 use commands::{
     cast as cast_cmd, check_limits, config as config_cmd, health, pool_status,
@@ -245,6 +258,12 @@ enum Commands {
         /// Shell to generate completions for
         shell: Shell,
     },
+
+    /// Exercise the bundled utility modules (base85, csv, crc, hash, json, sha, uuid, xml, markdown, trie/skiplist)
+    Util {
+        #[command(subcommand)]
+        cmd: util_cmd::UtilCmd,
+    },
 }
 
 #[derive(Subcommand, Debug)]
@@ -399,6 +418,7 @@ async fn main() -> Result<()> {
             let mut cmd = Cli::command();
             clap_complete::generate(*shell, &mut cmd, "sharecli", &mut std::io::stdout());
         }
+        Commands::Util { cmd } => cmd.run()?,
     }
 
     Ok(())
