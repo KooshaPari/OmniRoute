@@ -26,15 +26,13 @@ defaults:
 jobs:
   test:
     name: Test (Node ${{ matrix.node }})
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     strategy:
       fail-fast: false
       matrix:
         node: ["22", "24"]
     steps:
-      - uses: actions/checkout@v7
-        with:
-          persist-credentials: false
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
       - uses: actions/setup-node@v6
         with:
           node-version: ${{ matrix.node }}
@@ -46,12 +44,10 @@ jobs:
 
   build:
     name: Build
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs: test
     steps:
-      - uses: actions/checkout@v7
-        with:
-          persist-credentials: false
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
       - uses: actions/setup-node@v6
         with:
           node-version: "22"
@@ -59,7 +55,7 @@ jobs:
           cache-dependency-path: "@omniroute/opencode-plugin/package-lock.json"
       - run: npm install --no-audit --no-fund
       - run: npm run build
-      - uses: actions/upload-artifact@v7
+      - uses: actions/upload-artifact@v4
         with:
           name: opencode-plugin-dist
           path: "@omniroute/opencode-plugin/dist"

@@ -1,4 +1,7 @@
 name: Publish Fork Image to GHCR
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 on:
   push:
@@ -7,10 +10,9 @@ on:
       - "v*"
   workflow_dispatch:
 
-# Least-privilege default: read-only at the top level; the build job that pushes to
-# GHCR grants packages: write itself (Scorecard TokenPermissions).
 permissions:
   contents: read
+  packages: write
 
 env:
   IMAGE_NAME: ghcr.io/kang-heewon/omniroute
@@ -19,15 +21,10 @@ jobs:
   build:
     name: Build and Push Fork Image
     if: github.repository == 'kang-heewon/OmniRoute'
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write
+    runs-on: ubuntu-24.04
     steps:
       - name: Checkout
-        uses: actions/checkout@v7
-        with:
-          persist-credentials: false
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v4
