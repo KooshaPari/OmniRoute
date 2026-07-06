@@ -16,6 +16,26 @@ The fork (ArgisMonitor) is maintained by KooshaPari / Phenotype.
 Copyright (c) 2026 KooshaPari / Phenotype.
 ```
 
+## Redirect chain
+
+ArgisMonitor is the renamed continuation of this fork. The chain is:
+
+```
+diegosouzapw/OmniRoute  (upstream, MIT)
+        ↓  fork (2025)
+KooshaPari/OmniRoute    (preserved identifiers, additive rename policy)
+        ↓  in-place rename (2026)
+KooshaPari/ArgisMonitor (this repo, all publish surface flipped)
+```
+
+Internal source identifiers (`omniroute`, `OmniRoute`, `@omniroute/*`,
+`OMNIROUTE_*`, `~/.omniroute`) are preserved as legacy aliases to keep
+upstream rebases tractable. The new canonical surface is `argismonitor`,
+`ArgisMonitor`, `@argismonitor/*`, `ARGIS_*`, `~/.argismonitor`. See
+[`docs/FORK.md`](./FORK.md) § 3 for the additive-rename policy and
+[`docs/RENAMES-STRATEGY.md`](./RENAMES-STRATEGY.md) for the migration
+guide.
+
 ## Trademarks
 
 - **ArgisMonitor** is a trademark of KooshaPari / Phenotype.

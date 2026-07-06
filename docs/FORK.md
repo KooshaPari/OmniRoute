@@ -136,6 +136,35 @@ rebase. Instead:
   fork adds `en-AI` (machine-translated English, marked in
   `docs/i18n/EN-AI.md`) and removes the `pt-BR` source-of-truth claim.
 
+### 3.6 Redirect chain + install-time tombstones
+
+The legacy `omniroute` binary, the `@omniroute/*` npm packages, and the
+`~/.omniroute/` data dir are kept alive as **deprecated aliases**. Each
+of them emits a tombstone the first time it is used in a session:
+
+1. **Binary tombstone**: running `omniroute` prints
+   ```
+   [argismonitor] 'omniroute' is a legacy alias for 'argismonitor'.
+   This shim will be removed after the deprecation window.
+   See https://argismonitor.phenotype.space/docs/renames
+   ```
+   on stderr, then forwards execution to `argismonitor`.
+2. **Env-var tombstone**: setting any of `OMNIROUTE_DATA_DIR`,
+   `OMNIROUTE_LANG`, `OMNIROUTE_NO_UPDATE_NOTIFIER`, or
+   `OMNIROUTE_CLI_SKIP_REPO_ENV` triggers a one-time stderr banner listing
+   the new `ARGIS_*` keys. Set `ARGIS_LEGACY_OFF=1` (or
+   `OMNIROUTE_LEGACY=1`) to silence.
+3. **Data-dir tombstone**: if `~/.omniroute/` is detected, a one-time
+   banner offers `argismonitor data-dir --migrate` and writes a marker
+   file (`.argismonitor-legacy-migration-pending`) into the legacy dir so
+   a fresh shell does not re-prompt.
+4. **npm registry tombstone**: when the legacy `omniroute` package is
+   next published, its `description` is flipped to
+   `Deprecated: this package has been renamed to 'argismonitor'. See
+   https://argismonitor.phenotype.space/docs/renames` and a
+   `npm deprecate omniroute@* "renamed: see argismonitor.phenotype.space"`
+   call is queued by `packaging/npm/deprecate-omniroute.sh`.
+
 ### 3.5 PRs and issues
 
 - This fork accepts issues and PRs.
