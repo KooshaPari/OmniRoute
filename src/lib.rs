@@ -133,3 +133,6 @@ pub mod zip_crc32;
 pub mod msgpack;
 pub mod macho_parse;
 pub mod ini_parser;
+pub mod wasm_opcode;
+pub mod toml_lite;
+pub mod wasm_opcode;
