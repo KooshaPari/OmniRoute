@@ -136,3 +136,5 @@ pub mod ini_parser;
 pub mod wasm_opcode;
 pub mod toml_lite;
 pub mod tar_header;
+pub mod json5;
+pub mod s_expression;
