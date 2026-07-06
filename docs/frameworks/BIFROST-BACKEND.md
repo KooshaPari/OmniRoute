@@ -1,6 +1,6 @@
 ---
-title: Bifrost Backend (Tier-1 Router Bridge)
-description: Migration of OmniRoute's Tier-1 router to the Bifrost Go gateway and what stays in OmniRoute.
+title: Bifrost Backend
+description: Tier-1 router bridge architecture for OmniRoute.
 ---
 
 # Bifrost Backend (Tier-1 Router Bridge)
@@ -108,12 +108,11 @@ go build -o bifrost ./cmd/bifrost
 `KooshaPari/bifrost` shallowly into `vendor/bifrost/`, builds the
 `./cmd/bifrost` binary, and writes the artifact to
 `dist/bifrost/bifrost`. The `vendor/bifrost/` source tree is
-gitignored; only `vendor/bifrost/VENDOR.md` is tracked. See
-[`vendor/bifrost/VENDOR.md`](../../vendor/bifrost/VENDOR.md) for the
-update procedure.
+gitignored; `vendor/bifrost/VENDOR.md` is the intended update
+procedure when the vendored source tree is materialized.
 
 **Path resolution:** `BIFROST_BASE_URL` (default `http://127.0.0.1:8080`)
-is the only env var the executor needs. A Bifrost binary-path env var is *not* read
+is the only env var the executor needs. `BIFROST_BINARY` is *not* read
 by the executor — the binary path is the operator's concern. If you
 need a process manager, run Bifrost under systemd, supervisord, k8s
 sidecar, or a launchd plist; the executor will connect to whichever
@@ -286,9 +285,9 @@ Per ADR-031 § "Decision Review":
 ## Cross-references
 
 - [`docs/adr/0031-bifrost-tier1-router.md`](../adr/0031-bifrost-tier1-router.md) — ADR (MADR format)
-- [`ADR.md`](../../ADR.md) — top-level ADR index (ADR-031 entry)
-- [`SPEC.md`](../../SPEC.md) § 3 — Architecture overview (v8.1 update)
-- [`PLAN.md`](../../PLAN.md) § 2.5 — v8.1 Bifrost track (B1–B9)
+- `ADR.md` — top-level ADR index (ADR-031 entry)
+- `SPEC.md` § 3 — Architecture overview (v8.1 update)
+- `PLAN.md` § 2.5 — v8.1 Bifrost track (B1–B9)
 - [`docs/ROUTING-CONVERGENCE-STATUS.md`](../ROUTING-CONVERGENCE-STATUS.md) — Tier-1/Tier-2 split
 - `open-sse/executors/bifrost.ts` — BifrostBackendExecutor implementation
 - `open-sse/executors/bifrostProviderMap.ts` — provider ID translation

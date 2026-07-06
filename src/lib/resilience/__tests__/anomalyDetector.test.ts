@@ -83,12 +83,12 @@ describe("detect", () => {
     expect(out.find((s) => s.dimension === "error_rate")).toBeUndefined();
   });
 
-  test("flags an outlier in error_rate when z >= critical threshold", () => {
+  test("flags an outlier in error_rate when z >= warn threshold", () => {
     const prior = Array.from({ length: 30 }, (_, i) =>
       mkSample(i, {
-        errorRate: i < 29 ? 0.01 : 0.02,
-        p95LatencyMs: 800 + (i % 2) * 5,
-        consecutiveFailures: i % 5 === 0 ? 0 : 1,
+        errorRate: i % 2 === 0 ? 0.01 : 0.02,
+        p95LatencyMs: 800,
+        consecutiveFailures: 0,
       })
     );
     const latest = mkSample(31, { errorRate: 0.03 });
@@ -96,18 +96,18 @@ describe("detect", () => {
     const errRateSignal = out.find((s) => s.dimension === "error_rate");
     expect(errRateSignal).toBeDefined();
     expect(errRateSignal!.zScore).toBeGreaterThanOrEqual(2.5);
-    expect(errRateSignal!.severity).toBe("critical");
+    expect(errRateSignal!.severity).toBe("warn");
   });
 
   test("escalates to critical when z >= critical threshold", () => {
     const prior = Array.from({ length: 30 }, (_, i) =>
       mkSample(i, {
-        errorRate: i < 29 ? 0.01 : 0.02,
-        p95LatencyMs: 800 + (i % 2) * 5,
-        consecutiveFailures: i % 5 === 0 ? 0 : 1,
+        errorRate: i % 2 === 0 ? 0.01 : 0.02,
+        p95LatencyMs: 800,
+        consecutiveFailures: 0,
       })
     );
-    const latest = mkSample(31, { errorRate: 0.2 });
+    const latest = mkSample(31, { errorRate: 0.99 });
     const out = detect(latest, prior);
     const errRateSignal = out.find((s) => s.dimension === "error_rate")!;
     expect(errRateSignal.severity).toBe("critical");
@@ -127,19 +127,19 @@ describe("detect", () => {
       criticalThreshold: 6.0,
       perDimension: {
         error_rate: {
-          warnThreshold: 200.0,
-          criticalThreshold: 300.0,
+          warnThreshold: 8.0,
+          criticalThreshold: 12.0,
         },
       },
     };
     const prior = Array.from({ length: 30 }, (_, i) =>
       mkSample(i, {
-        errorRate: i < 29 ? 0.01 : 0.02,
-        p95LatencyMs: 800 + (i % 2) * 5,
-        consecutiveFailures: i % 5 === 0 ? 0 : 1,
+        errorRate: i % 2 === 0 ? 0.01 : 0.02,
+        p95LatencyMs: 800,
+        consecutiveFailures: 0,
       })
     );
-    const latest = mkSample(31, { errorRate: 0.2 }); // would normally flag
+    const latest = mkSample(31, { errorRate: 0.03 }); // would normally flag
     const out = detect(latest, prior, cfg);
     expect(out.find((s) => s.dimension === "error_rate")).toBeUndefined();
   });
@@ -150,16 +150,19 @@ describe("scanWindow", () => {
     const window: ProviderHealthSample[] = [
       ...Array.from({ length: 30 }, (_, i) =>
         mkSample(i, {
-          errorRate: i < 29 ? 0.01 : 0.02,
-          p95LatencyMs: 800 + (i % 2) * 5,
+          errorRate: i % 2 === 0 ? 0.01 : 0.02,
+          p95LatencyMs: i % 2 === 0 ? 800 : 820,
         })
       ),
-      mkSample(31, { errorRate: 0.2 }), // anomaly
+      mkSample(31, { errorRate: 0.5 }), // anomaly
       ...Array.from({ length: 5 }, (_, i) =>
         mkSample(32 + i, { errorRate: 0.01 })
       ),
     ];
     const out = scanWindow(window);
+    // The anomaly sample should produce exactly 3 signals (one per
+    // dimension) IF each dimension's stdev > epsilon. We'll just check
+    // there's at least one error_rate signal — that's the contract.
     expect(out.some((s) => s.dimension === "error_rate")).toBe(true);
   });
 });

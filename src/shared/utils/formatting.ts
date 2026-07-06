@@ -108,22 +108,6 @@ export function fmtCompact(n: number | null | undefined) {
   return new Intl.NumberFormat().format(n || 0);
 }
 
-export function formatCostAbbreviated(usd: number | null | undefined): string {
-  const value = Number(usd || 0);
-  if (!Number.isFinite(value) || value === 0) return "$0";
-  const sign = value < 0 ? "-" : "";
-  const abs = Math.abs(value);
-  const format = (n: number) => {
-    const precision = n < 0.01 ? 6 : 1;
-    return n.toFixed(precision).replace(/\.0+$/, "").replace(/(\.[1-9]*)0+$/, "$1");
-  };
-  if (abs >= 1_000_000_000_000) return `${sign}$${format(abs / 1_000_000_000_000)}T`;
-  if (abs >= 1_000_000_000) return `${sign}$${format(abs / 1_000_000_000)}B`;
-  if (abs >= 1_000_000) return `${sign}$${format(abs / 1_000_000)}M`;
-  if (abs >= 1_000) return `${sign}$${format(abs / 1_000)}K`;
-  return `${sign}$${format(abs)}`;
-}
-
 /**
  * Format a number with full locale formatting.
  * @param {number} n - Number to format
@@ -142,12 +126,39 @@ export function fmtFull(n: number | null | undefined) {
 export function formatCost(usd: number | null | undefined): string {
   const value = Number(usd || 0);
   if (!Number.isFinite(value) || value === 0) return "$0";
-  if (value < 0.01) return `$${value.toFixed(6)}`;
-  if (value < 1) return `$${value.toFixed(4)}`;
-  return `$${value.toFixed(2)}`;
+  const sign = value < 0 ? "-" : "";
+  const abs = Math.abs(value);
+  if (abs < 0.01) return `${sign}$${abs.toFixed(6)}`;
+  if (abs < 1) return `${sign}$${abs.toFixed(4)}`;
+  return `${sign}$${abs.toFixed(2)}`;
 }
 
 export const fmtCost = formatCost;
+
+export function formatCostAbbreviated(usd: number | null | undefined): string {
+  const value = Number(usd || 0);
+  if (!Number.isFinite(value) || value === 0) return "$0";
+  const sign = value < 0 ? "-" : "";
+  const abs = Math.abs(value);
+  if (abs < 1) return `${sign}${formatCost(abs)}`;
+
+  const tiers = [
+    { value: 1_000_000_000_000, suffix: "T" },
+    { value: 1_000_000_000, suffix: "B" },
+    { value: 1_000_000, suffix: "M" },
+    { value: 1_000, suffix: "K" },
+  ] as const;
+
+  for (const tier of tiers) {
+    if (abs >= tier.value) {
+      const scaled = abs / tier.value;
+      const text = Number.isInteger(scaled) ? scaled.toFixed(0) : scaled.toFixed(1);
+      return `${sign}$${text}${tier.suffix}`;
+    }
+  }
+
+  return `${sign}$${abs.toFixed(2)}`;
+}
 
 /**
  * Truncate a URL for compact display.
@@ -162,7 +173,7 @@ export function truncateUrl(url: string | null | undefined, max = 50) {
     const display = parsed.hostname + parsed.pathname;
     return display.length > max ? display.slice(0, max) + "…" : display;
   } catch {
-    return url.length > max ? url.slice(0, max + 1).replace(/[-_\s]+$/, "") + "…" : url;
+    return url.length > max ? url.slice(0, max + 1) + "…" : url;
   }
 }
 

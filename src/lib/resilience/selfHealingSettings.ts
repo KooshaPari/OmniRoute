@@ -40,23 +40,15 @@ export interface SelfHealingSettings {
   /** Cooldown between playbook actions on the same provider (ms).
    *  Prevents runaway loops when an anomaly persists. Default: 60000. */
   interActionCooldownMs: number;
-}
-
-type LegacySelfHealingSettingsInput = Partial<{
-  enabled: boolean;
-  windowSize: number;
-  warnThreshold: number;
-  criticalThreshold: number;
-  minSamplesForDetection: number;
-  retentionSeconds: number;
-  playbookEnabled: boolean;
-  minSignalsPerDispatch: number;
-  interActionCooldownMs: number;
+  /** Legacy manager threshold retained for the self-healing coordinator. */
   zScoreThreshold: number;
+  /** Legacy manager sample guard retained for the self-healing coordinator. */
   minSamplesBeforeAlert: number;
+  /** Legacy dry-run switch retained for persisted playbook dispatch. */
   dryRun: boolean;
+  /** Legacy per-provider action cap retained for update detection. */
   maxActionsPerProviderPerHour: number;
-}>;
+}
 
 export const DEFAULT_SELF_HEALING_SETTINGS: SelfHealingSettings = {
   enabled: false,
@@ -68,6 +60,10 @@ export const DEFAULT_SELF_HEALING_SETTINGS: SelfHealingSettings = {
   playbookEnabled: true,
   minSignalsPerDispatch: 1,
   interActionCooldownMs: 60_000,
+  zScoreThreshold: 2.5,
+  minSamplesBeforeAlert: 15,
+  dryRun: false,
+  maxActionsPerProviderPerHour: 3,
 };
 
 // ─────────────────── Normalizer ───────────────────
@@ -77,12 +73,6 @@ export function normalizeSelfHealingSettings(
 ): SelfHealingSettings {
   const rec = asRecord(raw);
   const defaults = DEFAULT_SELF_HEALING_SETTINGS;
-  const criticalThreshold =
-    typeof rec.zScoreThreshold === "number" ? rec.zScoreThreshold : rec.criticalThreshold;
-  const minSamplesForDetection =
-    typeof rec.minSamplesBeforeAlert === "number"
-      ? rec.minSamplesBeforeAlert
-      : rec.minSamplesForDetection;
   return {
     enabled:
       typeof rec.enabled === "boolean" ? rec.enabled : defaults.enabled,
@@ -94,12 +84,13 @@ export function normalizeSelfHealingSettings(
       min: 1.0,
       max: 20.0,
     }),
-    criticalThreshold: numberOr(criticalThreshold, defaults.criticalThreshold, {
-      min: 1.0,
-      max: 20.0,
-    }),
+    criticalThreshold: numberOr(
+      rec.criticalThreshold,
+      defaults.criticalThreshold,
+      { min: 1.0, max: 20.0 }
+    ),
     minSamplesForDetection: toInteger(
-      minSamplesForDetection,
+      rec.minSamplesForDetection,
       defaults.minSamplesForDetection,
       { min: 2, max: 1_000 }
     ),
@@ -121,18 +112,26 @@ export function normalizeSelfHealingSettings(
       defaults.interActionCooldownMs,
       { min: 0, max: 24 * 60 * 60 * 1000 }
     ),
+    zScoreThreshold: numberOr(
+      rec.zScoreThreshold,
+      defaults.zScoreThreshold,
+      { min: 1.0, max: 20.0 }
+    ),
+    minSamplesBeforeAlert: toInteger(
+      rec.minSamplesBeforeAlert,
+      defaults.minSamplesBeforeAlert,
+      { min: 2, max: 1_000 }
+    ),
+    dryRun: typeof rec.dryRun === "boolean" ? rec.dryRun : defaults.dryRun,
+    maxActionsPerProviderPerHour: toInteger(
+      rec.maxActionsPerProviderPerHour,
+      defaults.maxActionsPerProviderPerHour,
+      { min: 1, max: 1_000 }
+    ),
   };
 }
 
-export function resolveSelfHealingSettings(raw: unknown): SelfHealingSettings {
-  return normalizeSelfHealingSettings(raw);
-}
-
-export function createAnomalyDetector() {
-  return {
-    detect: (_window: unknown, _config: unknown, _metric: unknown) => null,
-  };
-}
+export const resolveSelfHealingSettings = normalizeSelfHealingSettings;
 
 export function selfHealingSettingsToJson(
   settings: SelfHealingSettings
@@ -147,6 +146,10 @@ export function selfHealingSettingsToJson(
     playbookEnabled: settings.playbookEnabled,
     minSignalsPerDispatch: settings.minSignalsPerDispatch,
     interActionCooldownMs: settings.interActionCooldownMs,
+    zScoreThreshold: settings.zScoreThreshold,
+    minSamplesBeforeAlert: settings.minSamplesBeforeAlert,
+    dryRun: settings.dryRun,
+    maxActionsPerProviderPerHour: settings.maxActionsPerProviderPerHour,
   };
 }
 

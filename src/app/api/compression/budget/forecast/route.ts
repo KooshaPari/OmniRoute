@@ -26,10 +26,9 @@
 import { NextResponse } from "next/server";
 import {
   projectBudgetSavings,
-  type BudgetHistoryPoint,
   type BudgetForecast,
 } from "@omniroute/open-sse/services/compression/budgetForecast";
-import { getCompressionBudgetHistory } from "@/lib/db/compressionBudgetHistory";
+import { readCompressionHistory } from "@/lib/db/compressionBudgetForecast";
 
 /** Default projection horizon: 1 hour. */
 const DEFAULT_HORIZON_MS = 60 * 60 * 1000;
@@ -61,7 +60,7 @@ export async function GET(request: Request): Promise<Response> {
 
   let history: BudgetHistoryPoint[];
   try {
-    history = getCompressionBudgetHistory(windowMs, provider);
+    history = readCompressionBudgetHistory(windowMs, provider, MAX_HISTORY_ROWS);
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
     console.error("[api/compression/budget/forecast] DB read failed:", msg);
