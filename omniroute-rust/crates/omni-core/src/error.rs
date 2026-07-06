@@ -145,12 +145,27 @@ impl Error {
         Self::WithKind { kind: ErrorKind::Unauthorized, message: message.into() }
     }
 
+    pub fn forbidden(message: impl Into<String>) -> Self {
+        Self::WithKind { kind: ErrorKind::Forbidden, message: message.into() }
+    }
+
     pub fn not_found(message: impl Into<String>) -> Self {
         Self::WithKind { kind: ErrorKind::NotFound, message: message.into() }
     }
 
+    pub fn rate_limited(message: impl Into<String>) -> Self {
+        Self::WithKind { kind: ErrorKind::RateLimited, message: message.into() }
+    }
+
     pub fn upstream(message: impl Into<String>) -> Self {
         Self::WithKind { kind: ErrorKind::UpstreamUnavailable, message: message.into() }
+    }
+
+    pub fn upstream_status(message: impl Into<String>, status: u16) -> Self {
+        Self::WithKind {
+            kind: ErrorKind::UpstreamStatus(status),
+            message: message.into(),
+        }
     }
 
     pub fn internal(message: impl Into<String>) -> Self {
@@ -161,6 +176,154 @@ impl Error {
     pub fn with_kind(kind: ErrorKind, message: impl Into<String>) -> Self {
         Self::WithKind { kind, message: message.into() }
     }
+
+    /// Returns true when this error originates from the caller's request
+    /// (4xx-equivalent) rather than from the provider.
+    #[must_use]
+    pub fn is_client_fault(&self) -> bool {
+        let code = self.http_status();
+        (400..500).contains(&code)
+    }
+
+    /// Returns true when this error originates from the upstream provider
+    /// (5xx-equivalent, excluding 501 NotImplemented which is our fault).
+    #[must_use]
+    pub fn is_upstream_fault(&self) -> bool {
+        self.kind().is_provider_fault()
+    }
+
+    /// Stable string code (machine-friendly) for logs, metrics, and retry routing.
+    /// Inverse of `Display for ErrorKind`.
+    #[must_use]
+    pub fn stable_code(&self) -> String {
+        self.kind().to_string()
+    }
+}
+
+impl From<ErrorKind> for Error {
+    fn from(kind: ErrorKind) -> Self {
+        Self::with_kind(kind, "")
+    }
 }
 
 pub type Result<T> = std::result::Result<T, Error>;
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn constructors_set_expected_kind_and_message() {
+        assert_eq!(Error::bad_request("a").kind(), ErrorKind::BadRequest);
+        assert_eq!(Error::unauthorized("a").kind(), ErrorKind::Unauthorized);
+        assert_eq!(Error::forbidden("a").kind(), ErrorKind::Forbidden);
+        assert_eq!(Error::not_found("a").kind(), ErrorKind::NotFound);
+        assert_eq!(Error::rate_limited("a").kind(), ErrorKind::RateLimited);
+        assert_eq!(Error::upstream("a").kind(), ErrorKind::UpstreamUnavailable);
+        assert_eq!(
+            Error::upstream_status("a", 503).kind(),
+            ErrorKind::UpstreamStatus(503)
+        );
+        assert_eq!(Error::internal("a").kind(), ErrorKind::Internal);
+        assert_eq!(
+            Error::with_kind(ErrorKind::Other, "a").kind(),
+            ErrorKind::Other
+        );
+        assert_eq!(
+            Error::with_kind(ErrorKind::Other, "msg").stable_code(),
+            "other"
+        );
+    }
+
+    #[test]
+    fn http_status_matches_kind() {
+        assert_eq!(Error::bad_request("x").http_status(), 400);
+        assert_eq!(Error::unauthorized("x").http_status(), 401);
+        assert_eq!(Error::forbidden("x").http_status(), 403);
+        assert_eq!(Error::not_found("x").http_status(), 404);
+        assert_eq!(Error::rate_limited("x").http_status(), 429);
+        assert_eq!(Error::upstream("x").http_status(), 502);
+        assert_eq!(Error::upstream_status("x", 503).http_status(), 503);
+        assert_eq!(Error::upstream_status("x", 404).http_status(), 502);
+        assert_eq!(Error::internal("x").http_status(), 500);
+    }
+
+    #[test]
+    fn is_retryable_and_provider_fault_logic() {
+        assert!(ErrorKind::UpstreamUnavailable.is_retryable());
+        assert!(ErrorKind::UpstreamTimeout.is_retryable());
+        assert!(ErrorKind::RateLimited.is_retryable());
+        assert!(ErrorKind::UpstreamStatus(500).is_retryable());
+        assert!(ErrorKind::UpstreamStatus(503).is_retryable());
+        assert!(ErrorKind::UpstreamStatus(504).is_retryable());
+        assert!(!ErrorKind::UpstreamStatus(404).is_retryable());
+        assert!(!ErrorKind::BadRequest.is_retryable());
+
+        assert!(ErrorKind::UpstreamUnavailable.is_provider_fault());
+        assert!(ErrorKind::UpstreamStatus(500).is_provider_fault());
+        assert!(!ErrorKind::BadRequest.is_provider_fault());
+    }
+
+    #[test]
+    fn client_vs_upstream_classification() {
+        assert!(Error::bad_request("x").is_client_fault());
+        assert!(Error::forbidden("x").is_client_fault());
+        assert!(Error::rate_limited("x").is_client_fault());
+        assert!(!Error::bad_request("x").is_upstream_fault());
+
+        assert!(Error::upstream("x").is_upstream_fault());
+        assert!(Error::upstream_status("x", 500).is_upstream_fault());
+        assert!(!Error::upstream("x").is_client_fault());
+
+        assert!(!Error::internal("x").is_client_fault());
+        assert!(!Error::internal("x").is_upstream_fault());
+    }
+
+    #[test]
+    fn from_error_kind_yields_empty_message() {
+        let e: Error = ErrorKind::RateLimited.into();
+        assert_eq!(e.kind(), ErrorKind::RateLimited);
+        assert_eq!(e.http_status(), 429);
+    }
+
+    #[test]
+    fn display_for_kind_roundtrips_via_stable_code() {
+        for k in [
+            ErrorKind::BadRequest,
+            ErrorKind::Unauthorized,
+            ErrorKind::Forbidden,
+            ErrorKind::NotFound,
+            ErrorKind::Conflict,
+            ErrorKind::RateLimited,
+            ErrorKind::UpstreamUnavailable,
+            ErrorKind::UpstreamTimeout,
+            ErrorKind::Internal,
+            ErrorKind::NotImplemented,
+            ErrorKind::ConfigInvalid,
+            ErrorKind::Db,
+            ErrorKind::Other,
+        ] {
+            // Each must round-trip back through Display
+            let display = k.to_string();
+            let reconstructed: ErrorKind = serde_json::from_str(&format!(
+                "\"{display}\""
+            ))
+            .expect("kind must round-trip via Display + serde");
+            assert_eq!(reconstructed, k, "round-trip failed for {display}");
+        }
+    }
+
+    #[test]
+    fn upstream_status_round_trips_via_serde_only() {
+        // UpstreamStatus carries a u16, so its Display is "upstream_status_<code>"
+        // (human-friendly) but serde expects the structured tuple form.
+        let k = ErrorKind::UpstreamStatus(503);
+        let s = serde_json::to_string(&k).expect("serialize");
+        let parsed: ErrorKind = serde_json::from_str(&s).expect("parse back");
+        assert_eq!(parsed, k);
+
+        // Display form is intentionally human-friendly and does NOT round-trip
+        // back to the structured variant via serde (only Display round-trips).
+        assert_eq!(k.to_string(), "upstream_status_503");
+    }
+}
