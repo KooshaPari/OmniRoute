@@ -25,6 +25,17 @@
 //! - `storage::InMemoryRequestStore` / `storage::InMemoryCallLogStore`
 //!   canonical reference implementations.
 
+//! PR-5 (2026-07-05) — sqlite storage:
+//! - `sqlite_storage::SqliteRequestStore` / `sqlite_storage::SqliteCallLogStore`
+//!   behind the `sqlite-storage` feature flag. Feature-gated so the default
+//!   build keeps a smaller binary.
+//!
+//! PR-6 (2026-07-05) — response correlation:
+//! - `response::ResponseCorrelation` joins an inbound `RequestId` with the
+//!   upstream's `ResponseId` (server-minted UUIDv7) or
+//!   `UpstreamResponseSlug` (echoed verbatim from the upstream).
+//! - `response::UpstreamRef::{Minted, Echoed}` tags the kind of upstream id.
+
 #![forbid(unsafe_code)]
 #![warn(clippy::all, clippy::pedantic)]
 #![allow(clippy::module_name_repetitions)]
@@ -36,6 +47,7 @@ pub mod executor;
 pub mod ids;
 pub mod model;
 pub mod provider;
+pub mod response;
 pub mod storage;
 pub mod sqlite_storage;
 
@@ -49,7 +61,9 @@ pub use executor::{
     RetryPolicy, StreamEvent, UsageMetrics,
 };
 pub use ids::{
-    ApiCallId, ApiKeySlug, ComboId, ModelId, RequestId, SessionId, TenantId, TraceId,
+    ApiCallId, ApiKeySlug, ComboId, ModelId, RequestId, ResponseId, SessionId, TenantId, TraceId,
+    UpstreamResponseSlug,
 };
 pub use model::{Model, ModelCapabilities, ModelRef, Modality};
 pub use provider::{Provider, ProviderId, ProviderKind, ProviderMetadata};
+pub use response::{ResponseCorrelation, UpstreamRef};

@@ -105,6 +105,55 @@ uuid_id! {
 
     /// ID of a combo routing configuration.
     ComboId,
+
+    /// Identifier of the upstream provider's response, used to correlate a
+    /// single inbound request with the streaming or non-streaming reply that
+    /// comes back. For OpenAI-compatible upstreams we mint this server-side
+    /// (UUID v7); for non-OpenAI upstreams we echo the upstream's `id` field
+    /// (validated as a non-empty opaque slug, see [`Self::from_slug`]).
+    ///
+    /// The correlation between the [`RequestId`] and the [`ResponseId`] is
+    /// maintained inside [`crate::response::ResponseCorrelation`].
+    ResponseId,
+}
+
+/// Slug-based variant of [`ResponseId`] for non-OpenAI-compatible upstreams
+/// that don't have UUIDv7 IDs. Validated as `non_empty_after_trim` at
+/// construction time.
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[serde(transparent)]
+pub struct UpstreamResponseSlug(pub String);
+
+impl UpstreamResponseSlug {
+    /// True if the slug is empty after trimming.
+    #[must_use]
+    pub fn is_empty(&self) -> bool {
+        self.0.trim().is_empty()
+    }
+
+    /// Construct from a string slice, returning `None` if the input is empty
+    /// after trimming.
+    #[must_use]
+    pub fn parse(s: &str) -> Option<Self> {
+        let trimmed = s.trim();
+        if trimmed.is_empty() {
+            None
+        } else {
+            Some(Self(trimmed.to_string()))
+        }
+    }
+}
+
+impl fmt::Display for UpstreamResponseSlug {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str(&self.0)
+    }
+}
+
+impl AsRef<str> for UpstreamResponseSlug {
+    fn as_ref(&self) -> &str {
+        &self.0
+    }
 }
 
 // ---------------------------------------------------------------------------
@@ -273,5 +322,35 @@ mod tests {
         }
         let m = ModelId::from("claude-sonnet-4-5");
         assert_eq!(takes_str(m.as_ref()), "claude-sonnet-4-5".len());
+    }
+
+    #[test]
+    fn response_id_round_trips() {
+        let r = ResponseId::new();
+        let s = r.to_string();
+        let back: ResponseId = s.parse().unwrap();
+        assert_eq!(r, back);
+    }
+
+    #[test]
+    fn response_id_uniqueness_across_calls() {
+        // Two consecutive ResponseId::new() must differ (UUID v7 uniqueness).
+        let a = ResponseId::new();
+        let b = ResponseId::new();
+        assert_ne!(a, b);
+    }
+
+    #[test]
+    fn upstream_response_slug_parse_accepts_non_empty() {
+        let s = UpstreamResponseSlug::parse("cmpl-abc123").expect("non-empty");
+        assert_eq!(s.as_ref(), "cmpl-abc123");
+        assert!(!s.is_empty());
+    }
+
+    #[test]
+    fn upstream_response_slug_parse_rejects_empty_and_whitespace() {
+        assert!(UpstreamResponseSlug::parse("").is_none());
+        assert!(UpstreamResponseSlug::parse("   ").is_none());
+        assert!(UpstreamResponseSlug::parse("\t\n").is_none());
     }
 }
