@@ -143,3 +143,6 @@ pub mod dns_zone;
 pub mod dhcp_options;
 pub mod ssh_known_hosts;
 pub mod ntp_timestamp;
+
+pub mod pem_decode;
+pub mod ldap_filter;
