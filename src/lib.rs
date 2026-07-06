@@ -125,3 +125,6 @@ pub mod csv_writer;
 
 pub mod html_escape;
 pub mod ipaddr_validation;
+
+pub mod json_pointer;
+pub mod markdown_inline;
