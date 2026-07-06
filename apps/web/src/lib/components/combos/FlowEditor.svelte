@@ -42,7 +42,7 @@
     },
   ]);
 
-  let initialEdges = $derived<Edge[]>(() => {
+  let initialEdges = $derived.by<Edge[]>(() => {
     const edges: Edge[] = [
       { id: 'e-primary', source: 'primary', target: 'output', label: 'success' },
     ];
@@ -61,7 +61,7 @@
       });
     });
     return edges;
-  }());
+  });
 
   let nodes = $state(initialNodes);
   let edges = $state(initialEdges);
