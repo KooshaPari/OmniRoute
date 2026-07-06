@@ -25,13 +25,18 @@ export async function getCurrentVersion() {
   }
 }
 
+// Headline package is `argismonitor`. The legacy `omniroute` package is kept as
+// an in-flight deprecation mirror; when present (npm still serves the name), the
+// legacy build's `omniroute update` resolves against `omniroute` instead.
+export const PACKAGE_NAME = process.env.OMNIROUTE_LEGACY === "1" ? "omniroute" : "argismonitor";
+
 // `--prefer-online` forces npm to revalidate its HTTP cache against the registry.
 // Without it `npm view` can return a stale cached version (e.g. report 3.8.30 as
 // "latest" after 3.8.31 was published), so the updater told users on an old build
 // they were already on the latest version (#4376). `execFn` is injectable for tests.
 export async function getLatestVersion(execFn = execFileAsync) {
   try {
-    const { stdout } = await execFn("npm", ["view", "omniroute", "version", "--prefer-online"], {
+    const { stdout } = await execFn("npm", ["view", PACKAGE_NAME, "version", "--prefer-online"], {
       timeout: 15000,
     });
     return stdout.trim();
@@ -113,22 +118,23 @@ export async function runUpdateCommand(opts = {}) {
   }
 
   if (showChangelog) {
+    const repo = process.env.OMNIROUTE_LEGACY === "1" ? "KooshaPari/OmniRoute" : "KooshaPari/ArgisMonitor";
     try {
-      const { stdout } = await execFileAsync("npm", ["view", "omniroute", "changelog"], {
+      const { stdout } = await execFileAsync("npm", ["view", PACKAGE_NAME, "changelog"], {
         timeout: 10000,
       });
       if (stdout.trim()) {
         console.log(stdout.trim());
       } else {
-        console.log(`Changelog: https://github.com/your-org/omniroute/releases/tag/v${latest}`);
+        console.log(`Changelog: https://github.com/${repo}/releases/tag/v${latest}`);
       }
     } catch {
-      console.log(`Changelog: https://github.com/your-org/omniroute/releases/tag/v${latest}`);
+      console.log(`Changelog: https://github.com/${repo}/releases/tag/v${latest}`);
     }
     return 0;
   }
 
-  printHeading("OmniRoute Update");
+  printHeading("ArgisMonitor Update");
   console.log(`  Current version: ${current}`);
   console.log(`  Latest version:  ${latest}`);
 
@@ -141,13 +147,13 @@ export async function runUpdateCommand(opts = {}) {
   console.log(`\n  Update available: ${current} → ${latest}`);
 
   if (checkOnly) {
-    console.log("\n  Run `omniroute update --apply` to install automatically.");
+    console.log(`\n  Run \`${PACKAGE_NAME} update --apply\` to install automatically.`);
     return 1; // exit 1 = outdated (useful for scripts)
   }
 
   if (dryRun) {
-    console.log("\n  [DRY RUN] Would run: npm install -g omniroute@latest --include=optional");
-    if (!skipBackup) console.log("  [DRY RUN] Would create backup in ~/.omniroute/backups/");
+    console.log(`\n  [DRY RUN] Would run: npm install -g ${PACKAGE_NAME}@latest --include=optional`);
+    if (!skipBackup) console.log(`  [DRY RUN] Would create backup in ~/${PACKAGE_NAME === "argismonitor" ? "argismonitor" : "omniroute"}/backups/`);
     return 0;
   }
 
@@ -175,19 +181,19 @@ export async function runUpdateCommand(opts = {}) {
     }
   }
 
-  printInfo("Updating OmniRoute...");
+  printInfo(`Updating ${PACKAGE_NAME}...`);
   try {
     const { execSync } = await import("child_process");
     // --include=optional keeps the optionalDependencies (better-sqlite3, keytar,
     // tls-client, llmlingua SLM stack) on update so an omit=optional config can't drop them.
-    execSync("npm install -g omniroute@latest --include=optional", { stdio: "inherit" });
+    execSync(`npm install -g ${PACKAGE_NAME}@latest --include=optional`, { stdio: "inherit" });
     printSuccess(`Updated to version ${latest}`);
-    printInfo("Run `omniroute --version` to verify.");
+    printInfo(`Run \`${PACKAGE_NAME} --version\` to verify.`);
     return 0;
   } catch (err) {
     printError(`Update failed: ${err.message}`);
     printInfo("Restore from backup:");
-    const backupDir = path.join(homedir(), ".omniroute", "backups");
+    const backupDir = path.join(homedir(), `.${PACKAGE_NAME === "argismonitor" ? "argismonitor" : "omniroute"}`, "backups");
     printInfo(`  ls ${backupDir}`);
     return 1;
   }

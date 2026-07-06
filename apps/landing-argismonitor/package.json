@@ -1,0 +1,16 @@
+{
+  "name": "argismonitor-landing",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Public landing + dev/internal surface for ArgisMonitor (formerly OmniRoute).",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "deploy": "vercel deploy --prod"
+  },
+  "devDependencies": {
+    "vite": "^5.4.0"
+  }
+}

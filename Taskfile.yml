@@ -1,0 +1,119 @@
+# ArgisMonitor — Taskfile (simple dev layer)
+#
+# The user-facing CLI (`argismonitor`) is in `bin/`. This Taskfile is for
+# developers working in this repo: test, build, deploy, run, lint, format.
+# Use `task` (https://taskfile.dev) — no Makefile. Pascal for Windows users.
+#
+# Quick reference:
+#   task                  list all tasks
+#   task test             run unit tests
+#   task test:cold        cold-cache test run (no jest cache)
+#   task test:hot         fast feedback loop
+#   task build            full bundle
+#   task dev              local server, hot reload
+#   task deploy:local     local-only deploy (Caddy + WSL)
+#   task deploy:hybrid    Vercel public + Caddy internal
+#   task deploy:prod      full prod deploy
+#   task doctor           sanity-check toolchain
+#   task upgrade:check    see what's newer
+
+version: '3'
+
+vars:
+  NODE: '{{.NODE| default "node"}}'
+  NPM: '{{.NPM| default "npm"}}'
+  CARGO: '{{.CARGO| default "cargo"}}'
+  BIN: argismonitor
+
+tasks:
+  default:
+    cmds:
+      - task --list
+
+  doctor:
+    desc: "Sanity-check the dev toolchain."
+    cmds:
+      - '{{.NODE}} --version'
+      - '{{.NPM}} --version'
+      - 'task:which {{.CARGO}} || echo "cargo not on PATH (OK if not building Rust deps)"'
+      - 'task:which caddy || echo "caddy not on PATH (OK if not running ops)"'
+      - 'task:which gh   || echo "gh not on PATH (OK if not using gh)"'
+
+  test:
+    desc: "Run unit tests with cache."
+    cmds:
+      - '{{.NPM}} test'
+
+  test:cold:
+    desc: "Cold-cache test run (no jest cache)."
+    cmds:
+      - '{{.NPM}} test -- --no-cache --runInBand'
+
+  test:hot:
+    desc: "Fast feedback loop — typecheck + lint + tests that touch git only."
+    cmds:
+      - '{{.NPM}} run lint'
+      - '{{.NPM}} run typecheck'
+      - '{{.NPM}} test -- --changedSince=main'
+
+  build:
+    desc: "Full bundle build (CLI + web)."
+    cmds:
+      - '{{.NPM}} run build:cli'
+      - '{{.NPM}} run build:web'
+
+  dev:
+    desc: "Local server, hot reload."
+    cmds:
+      - '{{.NPM}} run dev'
+
+  deploy:local:
+    desc: "Local-only deploy (Caddy on WSL, no Vercel)."
+    cmds:
+      - task: deploy:build
+      - 'sudo caddy validate --config ops/caddy/Caddyfile.argismonitor'
+      - 'sudo systemctl reload caddy'
+
+  deploy:hybrid:
+    desc: "Hybrid deploy: Vercel public + Caddy internal."
+    cmds:
+      - task: deploy:build
+      - 'cd apps/landing-argismonitor && vercel deploy --prod'
+
+  deploy:prod:
+    desc: "Full prod deploy: Vercel + Caddy + npm publish trigger."
+    cmds:
+      - task: deploy:hybrid
+      - task: deploy:local
+      - echo "Now create a GitHub release to trigger argismonitor-publish.yml"
+
+  deploy:build:
+    desc: "Build every artifact needed for deploy."
+    cmds:
+      - '{{.NPM}} run build:cli'
+      - 'cd apps/landing-argismonitor && {{.NPM}} run build'
+
+  upgrade:check:
+    desc: "See what's newer on the npm channel."
+    cmds:
+      - '{{.BIN}} upgrade --check'
+
+  upgrade:apply:
+    desc: "Apply the latest stable npm release."
+    cmds:
+      - '{{.BIN}} upgrade --apply'
+
+  format:
+    desc: "Format sources (prettier + gofmt-style for .ts/.mjs)."
+    cmds:
+      - '{{.NPM}} run format'
+
+  lint:
+    desc: "Lint sources (ESLint + cycle + import-order)."
+    cmds:
+      - '{{.NPM}} run lint'
+
+  typecheck:
+    desc: "TypeScript typecheck (strict)."
+    cmds:
+      - '{{.NPM}} run typecheck'
