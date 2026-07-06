@@ -360,6 +360,13 @@ impl CallLogStore for InMemoryCallLogStore {
 }
 
 fn now_ms() -> i64 {
+    now_ms_or_zero()
+}
+
+/// Returns the current wall-clock time in milliseconds since the Unix
+/// epoch, or `0` if the system clock is set before 1970. `pub(crate)` so
+/// the SQLite storage layer can stamp `finished_at_ms` consistently.
+pub(crate) fn now_ms_or_zero() -> i64 {
     std::time::SystemTime::now()
         .duration_since(std::time::UNIX_EPOCH)
         .map(|d| d.as_millis() as i64)

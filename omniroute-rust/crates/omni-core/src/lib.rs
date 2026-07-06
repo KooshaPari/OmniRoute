@@ -37,6 +37,7 @@ pub mod ids;
 pub mod model;
 pub mod provider;
 pub mod storage;
+pub mod sqlite_storage;
 
 pub use config::{
     A2aConfig, BindConfig, ChaosConfig, CompressionConfig, Config, ConfigBuilder, DataDir,
