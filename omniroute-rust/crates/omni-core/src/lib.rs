@@ -19,6 +19,7 @@
 #![allow(clippy::module_name_repetitions)]
 
 pub mod config;
+pub mod contracts;
 pub mod error;
 pub mod executor;
 pub mod ids;
