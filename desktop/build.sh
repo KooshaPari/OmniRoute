@@ -24,6 +24,17 @@ fi
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 TARGET_DIR="$REPO_ROOT/target/$PROFILE"
 
+# Build macOS .icns from the Backbone-2 iconset so cargo bundle / swift build
+# can pick it up. iconutil is a macOS-only tool; skip on other platforms.
+if [[ "$(uname -s)" == "Darwin" ]]; then
+    ICONSET="$REPO_ROOT/assets/icons/sharecli.iconset"
+    ICNS="$REPO_ROOT/assets/icons/sharecli.icns"
+    if [[ -d "$ICONSET" ]]; then
+        echo "==> Building .icns from .iconset"
+        iconutil -c icns "$ICONSET" -o "$ICNS"
+    fi
+fi
+
 echo "==> Building Rust crates (profile: $PROFILE)"
 cd "$REPO_ROOT"
 cargo build "${CARGO_FLAGS[@]}" -p sharecli-ipc -p sharecli-ffi

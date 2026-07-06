@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CFBundleIconName</key>
+	<string>sharecli</string>
+	<key>CFBundleIconFile</key>
+	<string>sharecli.iconset/icon_512x512</string>
+	<key>CFBundleIdentifier</key>
+	<string>phenotype.sharecli.tray</string>
+	<key>CFBundleName</key>
+	<string>ShareCLITray</string>
+	<key>CFBundleDisplayName</key>
+	<string>sharecli</string>
+	<key>CFBundlePackageType</key>
+	<string>APPL</string>
+	<key>CFBundleShortVersionString</key>
+	<string>0.1.0</string>
+	<key>CFBundleVersion</key>
+	<string>1</string>
+	<key>LSUIElement</key>
+	<true/>
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<key>NSAllowsLocalNetworking</key>
+		<true/>
+	</dict>
+</dict>
+</plist>

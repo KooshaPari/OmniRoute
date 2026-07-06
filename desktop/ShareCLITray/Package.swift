@@ -23,6 +23,11 @@ let package = Package(
             name: "ShareCLITray",
             dependencies: ["ShareCLICore", "CShareCLIFFI"],
             path: "Sources/ShareCLITray",
+            resources: [
+                .copy("../../../../assets/icons/sharecli.iconset"),
+                .copy("../../../../assets/icons/sharecli-256x256.png"),
+                .copy("../../../../assets/icons/sharecli-512x512.png"),
+            ],
             linkerSettings: [
                 // Link against the compiled Rust dylib.
                 // Build with: cargo build -p sharecli-ffi (or --release)

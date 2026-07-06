@@ -11,6 +11,11 @@ repository = "https://github.com/KooshaPari/sharecli"
 installers = ["cargo-binstall"]
 targets = ["aarch64-apple-darwin", "x86_64-unknown-linux-gnu"]
 
+[package.metadata.bundle.macos]
+identifier = "phenotype.sharecli"
+icon = ["assets/icons/sharecli-512x512.png"]
+category = "DeveloperTool"
+
 [dependencies]
 # CLI
 clap = { version = "4.5", features = ["derive", "env"] }
