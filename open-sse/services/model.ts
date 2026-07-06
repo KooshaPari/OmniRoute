@@ -1,5 +1,6 @@
 import { PROVIDER_ID_TO_ALIAS, PROVIDER_MODELS } from "../config/providerModels.ts";
 import { resolveWildcardAlias } from "./wildcardRouter.ts";
+import { isRecognizedBuiltinAuto } from "./autoCombo/builtinCatalog.ts";
 
 type ProviderModelAliasMap = Record<string, Record<string, string>>;
 type ModelAliasValue = string | { provider?: string; model?: string };
@@ -641,6 +642,26 @@ export async function getModelInfoCore(
   const { extendedContext } = parsed;
 
   if (!parsed.isAlias) {
+    // GUARD: auto/<x> is a combo address, not a concrete provider/model pair.
+    // auto/* (both recognized combos like auto/coding AND unrecognized like auto/cline)
+    // belong in the combo resolver, not in model resolution. If it reaches here, it's
+    // a routing bug (combo resolution should intercept it first). Return an error
+    // instead of allowing it to proceed as provider="auto" (which 404s downstream
+    // with "no active credentials for provider: auto").
+    if (parsed.provider === "auto") {
+      const suffix = parsed.model || "";
+      const isRecognized = isRecognizedBuiltinAuto(modelStr, suffix);
+      return {
+        provider: null,
+        model: null,
+        extendedContext,
+        errorType: "model_not_found",
+        errorMessage: isRecognized
+          ? `auto/* combo "${modelStr}" reached model resolution instead of being handled by the combo router. This is a routing bug.`
+          : `"${modelStr}" is not a recognized combo. Valid combos are: auto, auto/coding, auto/fast, auto/cheap, auto/offline, auto/smart, auto/lkgp, or auto/*:* suffix forms.`,
+      };
+    }
+
     const normalizedModel = normalizeCrossProxyModelId(parsed.model).modelId;
     const canonicalModel = resolveProviderModelAlias(parsed.provider, normalizedModel);
     return {

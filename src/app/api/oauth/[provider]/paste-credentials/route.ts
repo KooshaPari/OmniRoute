@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { finalizeTokens } from "@/lib/oauth/providers";
 import { persistOAuthConnection } from "@/lib/oauth/connectionPersistence";
 import { parsePastedCredentials } from "@/lib/oauth/pasteCredentials";
-import { oauthPasteCredentialsSchema } from "@/shared/validation/schemas";
+import { oauthPasteCredentialsSchema } from "@/shared/validation/schemas/auth";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 import { isAuthRequired, isAuthenticated } from "@/shared/utils/apiAuth";
 import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";

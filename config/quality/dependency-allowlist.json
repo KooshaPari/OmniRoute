@@ -62,6 +62,7 @@
     "electron",
     "electron-builder",
     "electron-updater",
+    "electrobun",
     "eslint",
     "eslint-config-next",
     "eslint-plugin-sonarjs",

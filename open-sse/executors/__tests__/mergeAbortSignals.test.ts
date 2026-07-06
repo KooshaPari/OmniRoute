@@ -2,8 +2,15 @@ import { describe, it, expect } from "vitest";
 import { mergeAbortSignals } from "../mergeAbortSignals";
 
 describe("mergeAbortSignals", () => {
-  it("returns undefined when no signals are provided", () => {
-    expect(mergeAbortSignals(undefined, undefined)).toBeUndefined();
+  it("returns an already-aborted composite signal when both are already aborted", () => {
+    const a = new AbortController();
+    const b = new AbortController();
+    a.abort();
+    b.abort();
+    const merged = mergeAbortSignals(a.signal, b.signal);
+    expect(merged).toBeDefined();
+    expect(merged?.aborted).toBe(true);
+    expect(merged?.reason).toBe(a.signal.reason);
   });
 
   it("returns undefined when both signals are undefined", () => {
@@ -43,16 +50,21 @@ describe("mergeAbortSignals", () => {
     expect(merged?.aborted).toBe(true);
   });
 
-  it("returns undefined when both are fresh (non-aborted) signals", () => {
+  it("returns a merged signal when both are fresh (non-aborted) signals", () => {
     const a = new AbortController();
     const b = new AbortController();
-    expect(mergeAbortSignals(a.signal, b.signal)).toBeUndefined();
+    const merged = mergeAbortSignals(a.signal, b.signal);
+    expect(merged).toBeDefined();
+    expect(merged).not.toBe(a.signal);
+    expect(merged).not.toBe(b.signal);
+    expect(merged?.aborted).toBe(false);
   });
 
   it("propagates an abort from the first signal onto the merged controller", () => {
     const upstream = new AbortController();
     const downstream = new AbortController();
     const merged = mergeAbortSignals(upstream.signal, downstream.signal)!;
+    expect(merged).toBeInstanceOf(AbortSignal);
     expect(merged.aborted).toBe(false);
     upstream.abort();
     expect(merged.aborted).toBe(true);
@@ -85,7 +97,7 @@ describe("mergeAbortSignals", () => {
     // a second abort on the upstream is a no-op for the listener we registered
     upstream.abort(new Error("second"));
     expect(merged.aborted).toBe(true);
-    expect((merged.reason as Error).message).toBe("second");
+    expect((merged.reason as Error).message).not.toBe("second");
   });
 
   it("returns the first aborted signal directly when one is already aborted", () => {

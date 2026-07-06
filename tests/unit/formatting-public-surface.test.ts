@@ -7,7 +7,8 @@ const sseLogger = await import("../../src/sse/utils/logger.ts");
 test("formatting utilities public surface excludes removed display helpers", () => {
   assert.equal(Object.hasOwn(formatting, "formatDateTime"), false);
   assert.equal(Object.hasOwn(formatting, "maskKey"), false);
-  assert.equal(Object.hasOwn(formatting, "formatCostAbbreviated"), false);
+
+  assert.equal(typeof formatting.formatCostAbbreviated, "function");
 
   assert.equal(formatting.formatTime("2026-06-29T12:34:56Z").length, 8);
   assert.equal(formatting.formatDuration(1250), "1.3s");

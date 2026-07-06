@@ -21,12 +21,13 @@
 
 import type { AnomalyDetector, DetectorConfig } from "./anomalyDetector";
 import type { SelfHealingSettings } from "./selfHealingSettings";
+import { resolveSelfHealingSettings } from "./selfHealingSettings";
 import {
   type HealthSample,
   type ProviderHealthRecord,
   appendHealthSample,
-  getRecentHealthSamples,
-  pruneHealthSamplesOlderThan,
+  recentSamplesFor,
+  pruneSamplesBefore,
   recordAnomaly,
   recordPlaybook,
 } from "@/lib/db/providerHealthHistory";
@@ -90,19 +91,28 @@ export class SelfHealingManager {
    */
   updateSettings(next: SelfHealingSettings): boolean {
     const prev = this.settings;
-    this.settings = next;
+    const normalizedNext = resolveSelfHealingSettings(next);
+    const nextCriticalThreshold =
+      typeof (next as { zScoreThreshold?: unknown }).zScoreThreshold === "number"
+        ? (next as { zScoreThreshold?: number }).zScoreThreshold
+        : normalizedNext.criticalThreshold;
+    this.settings = normalizedNext;
     return (
-      prev.windowSize !== next.windowSize ||
-      prev.zScoreThreshold !== next.zScoreThreshold ||
-      prev.dryRun !== next.dryRun ||
-      prev.maxActionsPerProviderPerHour !== next.maxActionsPerProviderPerHour ||
-      prev.minSamplesBeforeAlert !== next.minSamplesBeforeAlert
+      prev.enabled !== this.settings.enabled ||
+      prev.windowSize !== this.settings.windowSize ||
+      prev.warnThreshold !== this.settings.warnThreshold ||
+      prev.criticalThreshold !== nextCriticalThreshold ||
+      prev.minSamplesForDetection !== this.settings.minSamplesForDetection ||
+      prev.retentionSeconds !== this.settings.retentionSeconds ||
+      prev.playbookEnabled !== this.settings.playbookEnabled ||
+      prev.minSignalsPerDispatch !== this.settings.minSignalsPerDispatch ||
+      prev.interActionCooldownMs !== this.settings.interActionCooldownMs
     );
   }
 
   /** Hydrate the in-memory window for a provider from the DB. */
   async hydrateProvider(providerId: string): Promise<void> {
-    const samples = await getRecentHealthSamples(providerId, this.settings.windowSize);
+    const samples = recentSamplesFor(providerId, this.settings.windowSize);
     this.windows.set(providerId, samples);
   }
 
@@ -120,11 +130,11 @@ export class SelfHealingManager {
     this.windows.set(sample.providerId, window);
 
     // 2. Detect
-    if (window.length < this.settings.minSamplesBeforeAlert) return null;
+    if (window.length < this.settings.minSamplesForDetection) return null;
     const detectorCfg: DetectorConfig = {
       windowSize: this.settings.windowSize,
-      zScoreThreshold: this.settings.zScoreThreshold,
-      minSamples: this.settings.minSamplesBeforeAlert,
+      zScoreThreshold: this.settings.criticalThreshold,
+      minSamples: this.settings.minSamplesForDetection,
     };
     const detected = this.detector.detect(window, detectorCfg, sample.metric);
     if (!detected) return null;
@@ -185,7 +195,7 @@ export class SelfHealingManager {
 
   /** Prune DB rows older than the configured TTL. Returns rows pruned. */
   async pruneStale(ttlSec: number): Promise<number> {
-    return pruneHealthSamplesOlderThan(this.clock() / 1000 - ttlSec);
+    return pruneSamplesBefore(this.clock() / 1000 - ttlSec);
   }
 
   /** Prune DB rows older than the manager's configured retentionSeconds.

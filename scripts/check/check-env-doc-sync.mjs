@@ -163,8 +163,11 @@ const IGNORE_FROM_CODE = new Set([
   // Test-only override: points setup-open-code.mjs at a fixture plugin dir without
   // requiring the real bundled plugin to be built.
   "OMNIROUTE_OPENCODE_PLUGIN_DIR",
-  // Unit-test fixture for provider-specific user-agent normalization.
+  // Unit-test synthetic provider identity env var; real provider-specific
+  // user-agent envs are generated from configured provider ids.
   "OPENAI_COMPATIBLE_FOO_USER_AGENT",
+  // Test harness strictness flag for T11 budget checks.
+  "T11_STRICT",
 ]);
 
 // Vars documented in ENVIRONMENT.md but intentionally absent from .env.example.

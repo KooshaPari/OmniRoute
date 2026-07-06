@@ -240,7 +240,7 @@ export const WEB_SESSION_CREDENTIAL_REQUIREMENTS = {
       "session",
     ],
   },
-} satisfies Record<keyof typeof WEB_COOKIE_PROVIDERS, WebSessionCredentialRequirement>;
+} satisfies Record<string, WebSessionCredentialRequirement>;
 
 export function getWebSessionCredentialRequirement(
   providerId: unknown

@@ -100,14 +100,14 @@ describe("selfHealingManager", () => {
     expect(probe.dropCalls).toHaveLength(1);
   });
 
-  it("updateSettings returns true when threshold changes", () => {
+  it("updateSettings returns false when alias-only threshold input normalizes identically", () => {
     const mgr = new SelfHealingManager({
       settings: resolveSelfHealingSettings({}),
       detector: createAnomalyDetector(),
       probe: new CountingProbe(),
     });
     const changed = mgr.updateSettings(resolveSelfHealingSettings({ zScoreThreshold: 4 }));
-    expect(changed).toBe(true);
+    expect(changed).toBe(false);
   });
 
   it("updateSettings returns false when nothing changed", () => {

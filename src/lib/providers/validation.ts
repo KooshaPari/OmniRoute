@@ -19,6 +19,7 @@ import {
   isOpenAICompatibleProvider,
   isSelfHostedChatProvider,
   providerAllowsOptionalApiKey,
+  WEB_COOKIE_PROVIDERS,
 } from "@/shared/constants/providers";
 import {
   SAFE_OUTBOUND_FETCH_PRESETS,
@@ -26,7 +27,12 @@ import {
   getSafeOutboundFetchErrorStatus,
   safeOutboundFetch,
 } from "@/shared/network/safeOutboundFetch";
-import { getProviderOutboundGuard } from "@/shared/network/outboundUrlGuard";
+import {
+  areLocalProviderUrlsAllowed,
+  getProviderOutboundGuard,
+  isCloudMetadataHost,
+  isPrivateHost,
+} from "@/shared/network/outboundUrlGuard";
 import { extractCookieValue, normalizeSessionCookieHeader } from "@/lib/providers/webCookieAuth";
 import { buildJulesApiUrl } from "@/lib/cloudAgent/julesApi.ts";
 import { getGigachatAccessToken } from "@omniroute/open-sse/services/gigachatAuth.ts";
@@ -82,9 +88,22 @@ import {
 } from "@omniroute/open-sse/config/maritalk.ts";
 import { signAwsRequest } from "@omniroute/open-sse/utils/awsSigV4.ts";
 import { validateImageProviderApiKey } from "@/lib/providers/imageValidation";
+import { directHttpsRequest } from "@/lib/providers/validation/headers";
+
+export { isRetryableProxyTarget, isSecurityBlockError } from "@/lib/providers/validation/transport";
 
 const OPENAI_LIKE_FORMATS = new Set(["openai", "openai-responses"]);
 const GEMINI_LIKE_FORMATS = new Set(["gemini", "gemini-cli"]);
+
+function isAllowedLocalValidationBaseUrl(baseUrl: string) {
+  if (!areLocalProviderUrlsAllowed()) return false;
+  try {
+    const hostname = new URL(baseUrl).hostname;
+    return isPrivateHost(hostname) && !isCloudMetadataHost(hostname);
+  } catch {
+    return false;
+  }
+}
 
 function normalizeBaseUrl(baseUrl: string) {
   // Guard against a non-string baseUrl reaching .trim() / .replace() — see #2463
@@ -355,6 +374,8 @@ async function validateOpenAILikeProvider({
   isLocal = false,
 }: any) {
   try {
+    const isLocalValidationTarget =
+      isLocal || isAllowedLocalValidationBaseUrl(String(baseUrl || ""));
     // Guard against a non-string modelsUrl reaching .trim()/.startsWith() — a malformed
     // providerSpecificData / registry value would otherwise throw a TypeError mid-validation
     // ("trim is not a function" / "startsWith is not a function"). See #2463 class.
@@ -381,7 +402,7 @@ async function validateOpenAILikeProvider({
           ...(apiKey ? { Authorization: `Bearer ${apiKey}` } : {}),
         },
       },
-      isLocal
+      isLocalValidationTarget
     );
 
     if (response.ok) {
@@ -430,7 +451,7 @@ async function validateOpenAILikeProvider({
         },
         body: JSON.stringify(testBody),
       },
-      isLocal
+      isLocalValidationTarget
     );
 
     if (chatRes.ok) {
@@ -1211,7 +1232,56 @@ async function validateHerokuProvider({ apiKey, providerSpecificData = {} }: any
       max_tokens: 1,
     },
     providerSpecificData,
+    isLocal: isAllowedLocalValidationBaseUrl(baseUrl),
   });
+}
+
+async function validateZaiProvider({ apiKey, providerSpecificData = {} }: any) {
+  const configuredBaseUrl =
+    typeof providerSpecificData?.baseUrl === "string" && providerSpecificData.baseUrl.trim()
+      ? providerSpecificData.baseUrl.trim()
+      : "https://api.z.ai/api/anthropic/v1/messages?beta=true";
+  const baseUrl = normalizeBaseUrl(configuredBaseUrl);
+  const url = baseUrl.includes("/messages") ? baseUrl : `${baseUrl}/api/anthropic/v1/messages?beta=true`;
+
+  try {
+    const response = await validationWrite(
+      url,
+      {
+        method: "POST",
+        headers: applyCustomUserAgent(
+          {
+            "Content-Type": "application/json",
+            "Anthropic-Version": "2023-06-01",
+            "x-api-key": apiKey,
+          },
+          providerSpecificData
+        ),
+        body: JSON.stringify({
+          model: providerSpecificData.validationModelId || "glm-5.1",
+          max_tokens: 1,
+          messages: [{ role: "user", content: "test" }],
+        }),
+      },
+      isAllowedLocalValidationBaseUrl(url)
+    );
+
+    if (response.status === 401 || response.status === 403) {
+      return { valid: false, error: "Invalid API key" };
+    }
+    if (response.ok || response.status === 502) {
+      return { valid: true, error: null };
+    }
+    if (response.status === 404) {
+      return { valid: false, error: "Provider validation endpoint not supported" };
+    }
+    if (response.status >= 500) {
+      return { valid: false, error: `Provider unavailable (${response.status})` };
+    }
+    return { valid: true, error: null };
+  } catch (error: unknown) {
+    return toValidationErrorResult(error);
+  }
 }
 
 async function validateDatabricksProvider({ apiKey, providerSpecificData = {} }: any) {
@@ -2178,6 +2248,7 @@ async function validateOpenAICompatibleProvider({ apiKey, providerSpecificData =
   if (!baseUrl) {
     return { valid: false, error: "No base URL configured for OpenAI compatible provider" };
   }
+  const isLocalValidationTarget = isAllowedLocalValidationBaseUrl(baseUrl);
 
   const validationModelId =
     typeof providerSpecificData?.validationModelId === "string"
@@ -2190,7 +2261,7 @@ async function validateOpenAICompatibleProvider({ apiKey, providerSpecificData =
     const modelsRes = await validationRead(`${baseUrl}/models`, {
       method: "GET",
       headers: buildBearerHeaders(apiKey, providerSpecificData),
-    });
+    }, isLocalValidationTarget);
 
     modelsReachable = true;
 
@@ -2253,7 +2324,7 @@ async function validateOpenAICompatibleProvider({ apiKey, providerSpecificData =
         messages: [{ role: "user", content: "test" }],
         max_tokens: 1,
       }),
-    });
+    }, isLocalValidationTarget);
 
     if (chatRes.ok) {
       return { valid: true, error: null, method: "chat_completions" };
@@ -2332,6 +2403,7 @@ async function validateAnthropicCompatibleProvider({
   if (!baseUrl) {
     return { valid: false, error: "No base URL configured for Anthropic compatible provider" };
   }
+  const isLocalValidationTarget = isLocal || isAllowedLocalValidationBaseUrl(baseUrl);
 
   const headers = applyCustomUserAgent(
     {
@@ -2351,16 +2423,16 @@ async function validateAnthropicCompatibleProvider({
         method: "GET",
         headers,
       },
-      isLocal
+      isLocalValidationTarget
     );
 
     if (modelsRes.ok) {
       return { valid: true, error: null };
     }
 
-    if (modelsRes.status === 401 || modelsRes.status === 403) {
-      return { valid: false, error: "Invalid API key" };
-    }
+    // Anthropic-compatible proxies often protect or omit `/models`; the
+    // canonical auth probe is POST `/messages`, so do not reject until that
+    // fallback also returns an auth error.
   } catch {
     // /models fetch failed — fall through to messages test
   }
@@ -2379,7 +2451,7 @@ async function validateAnthropicCompatibleProvider({
           messages: [{ role: "user", content: "test" }],
         }),
       },
-      isLocal
+      isLocalValidationTarget
     );
 
     if (messagesRes.status === 401 || messagesRes.status === 403) {
@@ -2650,6 +2722,21 @@ const SEARCH_VALIDATOR_CONFIGS: Record<
       },
     };
   },
+  firecrawl: (apiKey) => ({
+    url: "https://api.firecrawl.dev/v1/scrape",
+    init: {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
+      body: JSON.stringify({ url: "https://example.com", formats: ["markdown"] }),
+    },
+  }),
+  "jina-reader": (apiKey) => ({
+    url: "https://r.jina.ai/https://example.com",
+    init: {
+      method: "GET",
+      headers: { Authorization: `Bearer ${apiKey}` },
+    },
+  }),
 };
 
 // See open-sse/executors/muse-spark-web.ts for the rationale: Meta migrated
@@ -3487,6 +3574,53 @@ async function validateInnerAiProvider({ apiKey, providerSpecificData = {} }: an
   }
 }
 
+export async function validateWebCookieProvider({
+  provider,
+  apiKey,
+  providerSpecificData = {},
+}: any) {
+  const entry = (WEB_COOKIE_PROVIDERS as Record<string, { website?: string } | undefined>)[provider];
+  if (!entry) {
+    return { valid: false, error: "Provider validation not supported", unsupported: true };
+  }
+
+  const cookie = typeof apiKey === "string" ? apiKey.trim() : "";
+  if (!cookie) {
+    return {
+      valid: false,
+      error: "Cookie is required for web-cookie provider validation",
+      unsupported: false,
+    };
+  }
+
+  try {
+    const url = new URL("/models", entry.website || "https://example.com").toString();
+    const response = await globalThis.fetch(url, {
+      method: "GET",
+      headers: applyCustomUserAgent(
+        {
+          Accept: "application/json",
+          Cookie: cookie,
+        },
+        providerSpecificData
+      ),
+    });
+
+    if (response.status === 401 || response.status === 403) {
+      return {
+        valid: false,
+        error: "SESSION_EXPIRED",
+        errorCode: "AUTH_007",
+        unsupported: false,
+      };
+    }
+
+    return { valid: true, error: null, unsupported: false };
+  } catch (error: unknown) {
+    return toValidationErrorResult(error);
+  }
+}
+
 // #5422: Bytez key validation cannot use a chat probe. A Bytez account only serves models
 // that have been added to its catalog, so even Bytez's own documented model ids return 404
 // ("Model does not exist or has yet to be added to the Bytez catalog") for a fresh/free key —
@@ -3519,12 +3653,132 @@ export async function validateBytezProvider({ apiKey, providerSpecificData = {} 
   }
 }
 
+const WEB_COOKIE_VALIDATORS: Record<string, (args: any) => Promise<any>> = {
+  "deepseek-web": validateDeepSeekWebProvider,
+  "grok-web": validateGrokWebProvider,
+  "qwen-web": validateQwenWebProvider,
+  "kimi-web": validateKimiWebProvider,
+  "chatgpt-web": validateChatGptWebProvider,
+  "perplexity-web": validatePerplexityWebProvider,
+  "blackbox-web": validateBlackboxWebProvider,
+  "muse-spark-web": validateMuseSparkWebProvider,
+  "inner-ai": validateInnerAiProvider,
+  "adapta-web": validateAdaptaWebProvider,
+  "claude-web": validateClaudeWebProvider,
+  "gemini-web": validateGeminiWebProvider,
+  "copilot-m365-web": validateCopilotM365WebProvider,
+  "copilot-web": validateCopilotWebProvider,
+  "t3-web": validateT3WebProvider,
+};
+
+export async function validateWebCookieProvider({
+  provider,
+  apiKey,
+  providerSpecificData = {},
+}: any) {
+  const validator = WEB_COOKIE_VALIDATORS[provider];
+  if (!validator) {
+    return { valid: false, error: "Unsupported web-cookie provider", unsupported: true };
+  }
+  if (!apiKey) {
+    return { valid: false, error: "Web cookie credential required", unsupported: false };
+  }
+  if (provider === "chatgpt-web") {
+    const cookieHeader = normalizeSessionCookieHeader(String(apiKey));
+    const response = await directHttpsRequest(
+      "https://chatgpt.com/backend-api/models",
+      {
+        method: "GET",
+        headers: applyCustomUserAgent(
+          {
+            Accept: "application/json",
+            Cookie: cookieHeader,
+          },
+          providerSpecificData
+        ),
+      },
+      5000
+    );
+    if (response.status === 401 || response.status === 403) {
+      return {
+        valid: false,
+        error: "SESSION_EXPIRED",
+        errorCode: "AUTH_007",
+        unsupported: false,
+      };
+    }
+    return { valid: true, error: null, unsupported: false };
+  }
+  return validator({ apiKey, providerSpecificData });
+}
+
+async function validateZaiProvider({ apiKey, providerSpecificData = {} }: any) {
+  try {
+    const baseUrl = normalizeBaseUrl(
+      providerSpecificData?.baseUrl || "https://api.z.ai/api/anthropic/v1/messages"
+    );
+    const url = `${baseUrl}${baseUrl.includes("?") ? "&" : "?"}beta=true`;
+    const response = await directHttpsRequest(
+      url,
+      {
+        method: "POST",
+        headers: applyCustomUserAgent(
+          {
+            "Content-Type": "application/json",
+            "anthropic-version": "2023-06-01",
+            "x-api-key": apiKey,
+          },
+          providerSpecificData
+        ),
+        body: JSON.stringify({
+          model: providerSpecificData?.validationModelId || "glm-5.1",
+          max_tokens: 1,
+          messages: [{ role: "user", content: "test" }],
+        }),
+      },
+      15000
+    );
+
+    if (response.status === 401 || response.status === 403) {
+      return { valid: false, error: "Invalid API key" };
+    }
+    if (
+      response.ok ||
+      response.status === 400 ||
+      response.status === 422 ||
+      response.status === 429 ||
+      response.status === 502
+    ) {
+      return { valid: true, error: null };
+    }
+    if (response.status === 404 || response.status === 405) {
+      return { valid: false, error: "Provider validation endpoint not supported" };
+    }
+    if (response.status >= 500) {
+      return { valid: false, error: `Provider unavailable (${response.status})` };
+    }
+    return { valid: false, error: `Validation failed: ${response.status}` };
+  } catch (error: unknown) {
+    return toValidationErrorResult(error);
+  }
+}
+
 export async function validateProviderApiKey({ provider, apiKey, providerSpecificData = {} }: any) {
   const requiresApiKey = !providerAllowsOptionalApiKey(provider);
   const isLocal = isLocalProvider(provider);
 
   if (!provider || (requiresApiKey && !apiKey)) {
     return { valid: false, error: "Provider and API key required", unsupported: false };
+  }
+
+  const searchValidatorConfig = SEARCH_VALIDATOR_CONFIGS[provider];
+  if (searchValidatorConfig) {
+    try {
+      const { url, init } = searchValidatorConfig(apiKey, providerSpecificData);
+      return await validateSearchProvider(url, init, providerSpecificData, isLocal);
+    } catch (error: any) {
+      return toValidationErrorResult(error);
+    }
   }
 
   if (isOpenAICompatibleProvider(provider)) {
@@ -3605,6 +3859,7 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
     qoder: ({ apiKey, providerSpecificData }: any) =>
       validateQoderCliPat({ apiKey, providerSpecificData }),
     "command-code": validateCommandCodeProvider,
+    zai: validateZaiProvider,
     huggingface: validateHuggingFaceProvider,
     // #5422: auth-only probe — Bytez 404s on every chat model until the account adds it to
     // its catalog, so the generic chat probe can't validate a fresh key.
@@ -3627,6 +3882,7 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
     kie: validateKieProvider,
     "aws-polly": validateAwsPollyProvider,
     "bailian-coding-plan": validateBailianCodingPlanProvider,
+    zai: validateZaiProvider,
     heroku: validateHerokuProvider,
     databricks: validateDatabricksProvider,
     datarobot: validateDataRobotProvider,
