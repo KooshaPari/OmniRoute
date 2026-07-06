@@ -128,3 +128,6 @@ pub mod ipaddr_validation;
 
 pub mod json_pointer;
 pub mod markdown_inline;
+
+pub mod zip_crc32;
+pub mod msgpack;
