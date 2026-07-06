@@ -19,7 +19,9 @@
     "@sveltejs/adapter-node": "^5.0.0",
     "hono": "^4.0.0",
     "zod": "^4.0.0",
-    "web-vitals": "^4.0.0"
+    "web-vitals": "^4.0.0",
+    "@trpc/client": "^11.0.0",
+    "@trpc/server": "^11.0.0"
   },
   "devDependencies": {
     "@sveltejs/vite-plugin-svelte": "^5.0.0",
