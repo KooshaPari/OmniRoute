@@ -1,47 +1,46 @@
 <script lang="ts">
   import Card from '$lib/components/ui/Card.svelte';
   import Button from '$lib/components/ui/Button.svelte';
-  import { onMount } from 'svelte';
+  import { trpc } from '$lib/trpc/client';
 
-  type Provider = {
-    id: string;
-    name: string;
-    type: string;
-    config: Record<string, unknown>;
-    createdAt?: string;
-  };
-
-  let providers = $state<Provider[]>([]);
+  let providers = $state<{ id: string; name: string; type: string; createdAt?: string }[]>([]);
   let loading = $state(true);
   let error = $state<string | null>(null);
   let filter = $state('');
 
-  onMount(async () => {
+  async function refresh() {
     try {
-      const res = await fetch('http://localhost:4322/api/dashboard/providers', { credentials: 'include' });
-      if (res.ok) {
-        const j = await res.json();
-        providers = j.providers ?? [];
-      } else {
-        error = `BFF returned ${res.status}`;
-      }
+      providers = (await trpc.providers.list.query()) as typeof providers;
+      error = null;
     } catch (err) {
       error = `BFF unreachable: ${(err as Error).message}`;
     } finally {
       loading = false;
     }
-  });
+  }
+  $effect(() => { refresh(); });
 
   const filtered = $derived(
     filter
-      ? providers.filter((p) =>
-          `${p.name} ${p.type} ${p.id}`.toLowerCase().includes(filter.toLowerCase())
-        )
+      ? providers.filter((p) => `${p.name} ${p.type} ${p.id}`.toLowerCase().includes(filter.toLowerCase()))
       : providers
   );
+
+  async function add() {
+    const name = prompt('Provider name?'); if (!name) return;
+    const type = (prompt('Type? openai|anthropic|gemini|mistral|cohere|openrouter|custom') ?? 'openai') as 'openai';
+    await trpc.providers.create.mutate({ id: crypto.randomUUID(), name, type, config: {} });
+    await refresh();
+  }
+
+  async function remove(id: string) {
+    if (!confirm(`Delete provider ${id}?`)) return;
+    await trpc.providers.delete.mutate({ id });
+    await refresh();
+  }
 </script>
 
-<Card title="Providers">
+<Card title="Providers (tRPC)">
   <div class="flex items-center gap-3 mb-4">
     <input
       type="search"
@@ -49,7 +48,8 @@
       bind:value={filter}
       class="flex-1 px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
     />
-    <Button>+ Add provider</Button>
+    <Button onclick={add}>+ Add provider</Button>
+    <Button variant="secondary" onclick={refresh}>Refresh</Button>
   </div>
 
   {#if loading}
@@ -79,7 +79,7 @@
               <td class="px-3 py-2 text-gray-500">{p.createdAt ? new Date(p.createdAt).toLocaleString() : '—'}</td>
               <td class="px-3 py-2 text-right">
                 <button class="text-blue-600 hover:underline text-sm">Edit</button>
-                <button class="text-red-600 hover:underline text-sm ml-3">Delete</button>
+                <button class="text-red-600 hover:underline text-sm ml-3" onclick={() => remove(p.id)}>Delete</button>
               </td>
             </tr>
           {/each}
