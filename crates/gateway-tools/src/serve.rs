@@ -238,11 +238,24 @@ async fn cockpit() -> Response {
   ul.routes {{ list-style: none; padding: 0; }}
   ul.routes li {{ padding: 0.25rem 0; border-bottom: 1px dotted #30363d; }}
   .meta {{ color: #8b949e; font-size: 0.9em; }}
+  nav {{ background: #0d1117; padding: 0.8rem 1.2rem; margin: -2rem auto -1rem auto; max-width: 56rem; border-bottom: 1px solid #3fb950; padding: 0.6rem 1.5rem; }}
+  nav a {{ margin-right: 1.2rem; font-weight: bold; }}
+  ul.modules {{ list-style: none; padding: 0; }}
+  ul.modules li {{ padding: 0.3em 0.6em; border-bottom: 1px dotted #30363d; }}
+  ul.modules li:hover {{ background: #1a1a1a; }}
 </style>
 </head>
 <body>
+  <nav>
+    <a href="/">/ (cockpit)</a>
+    <a href="/health">/health</a>
+    <a href="/v1/modules">/v1/modules</a>
+    <a href="/v1/cast">/v1/cast</a>
+    <a href="/v1/util">/v1/util</a>
+    <a href="/v1/splash">/v1/splash</a>
+  </nav>
   <h1>sharecli gateway-tools <span class="pill">serve</span></h1>
-  <p class="meta">Backbone-2 family &middot; pulse-green <code>#3fb950</code> + warm-amber <code>#d29922</code> on panel <code>#161b22</code>.</p>
+  <p class="meta">Backbone-2 family &middot; pulse-green <code>#3fb950</code> + warm-amber <code>#d29922</code> on panel <code>#161b22</code>. L114: nav header + module list added.</p>
   <p>Server-rendered HTML cockpit &mdash; the same data exposed over JSON at <code>/v1/util</code> is embedded inline below. <strong>{mod_count}</strong> utility modules currently registered.</p>
 
   <h2>Routes</h2>
@@ -255,21 +268,27 @@ async fn cockpit() -> Response {
     <li><a href="/v1/inspect/dns">/v1/inspect/&lt;module&gt;</a> &mdash; top fn count for one module</li>
   </ul>
 
-  <h2>Modules</h2>
-  <ul>
-    <li><code>jwt</code> &mdash; <code>gateway::jwt_hs256</code></li>
-    <li><code>dns</code> &mdash; <code>gateway::dns_message_parser</code></li>
-    <li><code>redis</code> &mdash; <code>gateway::redis_resp</code></li>
-    <li><code>tls</code> &mdash; <code>gateway::tls_record</code></li>
-    <li><code>pkcs7</code> &mdash; <code>gateway::pkcs7_padding</code></li>
-    <li><code>patch</code> &mdash; <code>gateway::json_patch</code></li>
-    <li><code>metrics</code> &mdash; <code>gateway::prometheus_exposition</code></li>
-    <li><code>pem</code> &mdash; <code>gateway::pem_codec</code></li>
-    <li><code>m3u</code> &mdash; <code>gateway::m3u_parser</code></li>
-    <li><code>chunked</code> &mdash; <code>gateway::chunked_transfer</code></li>
+  <h2>Modules ({mod_count})</h2>
+  <ul class="modules">
+    <li><a href="/v1/util"><code>jwt</code></a> &mdash; <code>gateway::jwt_hs256</code> (5 pub_fns)</li>
+    <li><a href="/v1/util"><code>dns</code></a> &mdash; <code>gateway::dns_message_parser</code> (5 pub_fns)</li>
+    <li><a href="/v1/util"><code>redis</code></a> &mdash; <code>gateway::redis_resp</code> (5 pub_fns)</li>
+    <li><a href="/v1/util"><code>tls</code></a> &mdash; <code>gateway::tls_record</code> (5 pub_fns)</li>
+    <li><a href="/v1/util"><code>pkcs7</code></a> &mdash; <code>gateway::pkcs7_padding</code> (5 pub_fns)</li>
+    <li><a href="/v1/util"><code>patch</code></a> &mdash; <code>gateway::json_patch</code> (5 pub_fns)</li>
+    <li><a href="/v1/util"><code>metrics</code></a> &mdash; <code>gateway::prometheus_exposition</code> (5 pub_fns)</li>
+    <li><a href="/v1/util"><code>pem</code></a> &mdash; <code>gateway::pem_codec</code> (5 pub_fns)</li>
+    <li><a href="/v1/util"><code>m3u</code></a> &mdash; <code>gateway::m3u_parser</code> (5 pub_fns)</li>
+    <li><a href="/v1/util"><code>chunked</code></a> &mdash; <code>gateway::chunked_transfer</code> (5 pub_fns)</li>
   </ul>
 
-  <p class="meta">Hard-coded module count: {mod_count}. Source-of-truth: <code>util_registry()</code> in <code>serve.rs</code>.</p>
+  <h2>Casts</h2>
+  <ul class="modules">
+    <li><a href="/v1/cast">jwt / dns / redis / tls / pkcs7 / patch / metrics / pem / m3u / chunked</a></li>
+    <li><a href="/v1/cast">inspect / serve</a></li>
+  </ul>
+
+  <p class="meta">Source-of-truth: <code>util_registry()</code> + <code>cast_registry()</code> in <code>serve.rs</code>.</p>
 </body>
 </html>
 "#
