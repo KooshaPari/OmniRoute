@@ -55,6 +55,7 @@ pub mod executor;
 pub mod ids;
 pub mod model;
 pub mod provider;
+pub mod registry;
 pub mod response;
 pub mod sqlite_storage;
 pub mod storage;

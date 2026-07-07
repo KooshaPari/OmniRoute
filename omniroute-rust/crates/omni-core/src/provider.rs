@@ -150,7 +150,7 @@ impl fmt::Display for ProviderKind {
 
 /// Catalog-style metadata for a provider. Persistable to SQLite and
 /// round-trips through serde.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct ProviderMetadata {
     pub id: ProviderId,
     pub kind: ProviderKind,
