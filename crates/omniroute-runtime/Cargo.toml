@@ -1,0 +1,45 @@
+[package]
+name = "omniroute-runtime"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+description = "OmniRoute data-plane binary — hyper server + executor loop"
+
+[lints.rust]
+unsafe_code = "forbid"
+missing_docs = "warn"
+
+[[bin]]
+name = "omniroute-routed"
+path = "src/bin/routed.rs"
+
+[dependencies]
+omniroute-core = { workspace = true }
+omniroute-provider = { workspace = true }
+
+# Async runtime + HTTP server (the only crate that pulls these in)
+tokio = { workspace = true }
+hyper = { workspace = true }
+hyper-util = { workspace = true }
+http = { workspace = true }
+http-body-util = { workspace = true }
+bytes = { workspace = true }
+
+# Serialization + errors
+serde = { workspace = true }
+serde_json = { workspace = true }
+thiserror = { workspace = true }
+anyhow = { workspace = true }
+
+# Logging
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+
+# Misc
+chrono = { workspace = true }
+uuid = { workspace = true }
+percent-encoding = { workspace = true }
+
+[dev-dependencies]
+tokio = { workspace = true, features = ["test-util"] }

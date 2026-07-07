@@ -1,0 +1,27 @@
+[package]
+name = "omniroute-provider"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+description = "Provider adapters for OmniRoute — OpenAI, Anthropic, Gemini, OpenAI-compatible"
+
+[lints.rust]
+unsafe_code = "forbid"
+missing_docs = "warn"
+
+[dependencies]
+omniroute-core = { workspace = true }
+async-trait = { workspace = true }
+reqwest = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+thiserror = { workspace = true }
+tokio = { workspace = true }
+tracing = { workspace = true }
+chrono = { workspace = true }
+url = { workspace = true }
+
+[dev-dependencies]
+tokio = { workspace = true }
+serde_json = { workspace = true }

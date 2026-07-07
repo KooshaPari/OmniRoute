@@ -1,0 +1,30 @@
+[package]
+name = "omniroute-core"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+description = "OmniRoute core types, traits, and errors — no tokio/hyper dependency"
+
+[lints.rust]
+unsafe_code = "forbid"
+missing_docs = "warn"
+
+[dependencies]
+async-trait = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+thiserror = { workspace = true }
+chrono = { workspace = true }
+uuid = { workspace = true }
+url = { workspace = true }
+rand = { workspace = true }
+# Minimal tokio surface for the Provider trait's mpsc::Sender in
+# `chat_completion_stream`. The runtime/executor crate pulls in
+# `tokio` with the `full` feature; this crate only needs the `sync`
+# primitives, so the dep is kept as small as possible.
+tokio = { version = "1", default-features = false, features = ["sync"] }
+
+[dev-dependencies]
+serde_json = { workspace = true }
+tokio = { workspace = true }
