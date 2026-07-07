@@ -51,7 +51,7 @@ sharecli-fleet = { path = "crates/sharecli-fleet" }
 sharecli-thermal-tui = { path = "crates/sharecli-thermal-tui" }
 
 # Config hot-reload
-notify = { version = "7", features = ["serde"] }
+notify = { version = "8", features = ["serde"] }
 
 # process-compose.yaml parsing
 serde_yaml = "0.9"
