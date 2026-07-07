@@ -1,0 +1,22 @@
+[package]
+name = "gateway-tools"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+description = "CLI surface exposing `gateway` utility modules as observable MVP toolbelt."
+
+[[bin]]
+name = "gateway-tools"
+path = "src/main.rs"
+
+[dependencies]
+gateway = { path = "../gateway" }
+clap.workspace = true
+serde_json.workspace = true
+serde.workspace = true
+anyhow.workspace = true
+axum.workspace = true
+tokio = { workspace = true, features = ["macros", "rt-multi-thread", "net"] }
+tower = { workspace = true, features = ["util"] }
