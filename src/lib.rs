@@ -160,3 +160,10 @@ pub mod m3u8_playlist;
 
 pub mod imap_response;
 pub mod smtp_envelope;
+
+// L121: hypervisor/scheduler primitives (FUSE interception, coalesce/debounce/queue, speculative cache)
+pub mod bounded_queue;
+pub mod coalesce;
+pub mod debounce;
+pub mod fuse_io;
+pub mod speculative_cache;
