@@ -12,6 +12,7 @@
 //!
 //! | Method | Path           | Purpose                                                      |
 //! |--------|----------------|--------------------------------------------------------------|
+//! | GET    | `/`            | Server-rendered HTML cockpit (Backbone-2 pulse-green)        |
 //! | GET    | `/health`      | Liveness probe (JSON `{status, service, family, port}`)       |
 //! | GET    | `/v1/cast`     | List of CLI subcommands exposed by `gateway-tools`           |
 //! | GET    | `/v1/util`     | List of `gateway` utility modules + path + public-fn count   |
@@ -19,9 +20,10 @@
 //! | GET    | `/v1/inspect/<module>` | Top public fn signatures for one module (plaintext)    |
 //! | *      | `/*` (404)     | JSON `{"error": "not_found", "path": "..."}`                 |
 //!
-//! Palette (Backbone-2 family): sync-violet `#a371f7` + warm-amber `#d29922`.
-//! No external state, no auth, no IO -- this is a cockpit surface, not a
-//! production gateway. The actual gateway runs in `crates/gateway`.
+//! Palette (Backbone-2 family, sharecli flavor): pulse-green `#3fb950` +
+//! warm-amber `#d29922` on `#161b22` panel. No external state, no auth, no
+//! IO -- this is a cockpit surface, not a production gateway. The actual
+//! gateway runs in `crates/gateway`.
 
 use anyhow::{Context, Result};
 use axum::{
@@ -205,6 +207,82 @@ async fn not_found(uri: axum::http::Uri) -> (StatusCode, Json<ErrorBody>) {
 }
 
 // ---------------------------------------------------------------------------
+// HTML cockpit (L113) -- GET / returns a server-rendered HTML index that
+// links the JSON routes and renders the module list inline. Palette uses the
+// sharecli Backbone-2 colors (pulse-green + warm-amber on a #161b22 panel)
+// rather than the sync-violet variant used on the substrate side. The module
+// count is hard-coded from the `util_registry()` length below.
+// ---------------------------------------------------------------------------
+
+/// Hard-coded module count for the sharecli `util_registry()` (matches the
+/// 10-row vec: jwt/dns/redis/tls/pkcs7/patch/metrics/pem/m3u/chunked).
+/// Keep in sync with `util_registry()` when adding a new module.
+const SHARECLI_MODULE_COUNT: usize = 10;
+
+async fn cockpit() -> Response {
+    let mod_count = SHARECLI_MODULE_COUNT;
+    let html = format!(
+        r#"<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>sharecli gateway-tools</title>
+<style>
+  body {{ background: #161b22; color: #d29922; font-family: 'Courier New', monospace; margin: 2rem auto; max-width: 56rem; padding: 0 1.5rem; }}
+  h1   {{ color: #3fb950; border-bottom: 2px solid #3fb950; padding-bottom: 0.3rem; }}
+  h2   {{ color: #3fb950; margin-top: 2rem; }}
+  a    {{ color: #3fb950; }}
+  a:hover {{ background: #3fb950; color: #161b22; }}
+  .pill {{ background: #3fb950; color: #161b22; padding: 0.1em 0.5em; border-radius: 0.2em; font-weight: bold; }}
+  code {{ color: #d29922; background: #0d1117; padding: 0.05em 0.3em; border-radius: 0.2em; }}
+  ul.routes {{ list-style: none; padding: 0; }}
+  ul.routes li {{ padding: 0.25rem 0; border-bottom: 1px dotted #30363d; }}
+  .meta {{ color: #8b949e; font-size: 0.9em; }}
+</style>
+</head>
+<body>
+  <h1>sharecli gateway-tools <span class="pill">serve</span></h1>
+  <p class="meta">Backbone-2 family &middot; pulse-green <code>#3fb950</code> + warm-amber <code>#d29922</code> on panel <code>#161b22</code>.</p>
+  <p>Server-rendered HTML cockpit &mdash; the same data exposed over JSON at <code>/v1/util</code> is embedded inline below. <strong>{mod_count}</strong> utility modules currently registered.</p>
+
+  <h2>Routes</h2>
+  <ul class="routes">
+    <li><a href="/health">/health</a> &mdash; liveness probe (JSON)</li>
+    <li><a href="/v1/modules">/v1/modules</a> &mdash; <em>alias</em> for /v1/util (gateway utility module index)</li>
+    <li><a href="/v1/splash">/v1/splash</a> &mdash; ASCII splash as text/plain</li>
+    <li><a href="/v1/cast">/v1/cast</a> &mdash; CLI subcommand index (json)</li>
+    <li><a href="/v1/util">/v1/util</a> &mdash; gateway utility module index (json)</li>
+    <li><a href="/v1/inspect/dns">/v1/inspect/&lt;module&gt;</a> &mdash; top fn count for one module</li>
+  </ul>
+
+  <h2>Modules</h2>
+  <ul>
+    <li><code>jwt</code> &mdash; <code>gateway::jwt_hs256</code></li>
+    <li><code>dns</code> &mdash; <code>gateway::dns_message_parser</code></li>
+    <li><code>redis</code> &mdash; <code>gateway::redis_resp</code></li>
+    <li><code>tls</code> &mdash; <code>gateway::tls_record</code></li>
+    <li><code>pkcs7</code> &mdash; <code>gateway::pkcs7_padding</code></li>
+    <li><code>patch</code> &mdash; <code>gateway::json_patch</code></li>
+    <li><code>metrics</code> &mdash; <code>gateway::prometheus_exposition</code></li>
+    <li><code>pem</code> &mdash; <code>gateway::pem_codec</code></li>
+    <li><code>m3u</code> &mdash; <code>gateway::m3u_parser</code></li>
+    <li><code>chunked</code> &mdash; <code>gateway::chunked_transfer</code></li>
+  </ul>
+
+  <p class="meta">Hard-coded module count: {mod_count}. Source-of-truth: <code>util_registry()</code> in <code>serve.rs</code>.</p>
+</body>
+</html>
+"#
+    );
+    (
+        StatusCode::OK,
+        [("content-type", "text/html; charset=utf-8")],
+        html,
+    )
+        .into_response()
+}
+
+// ---------------------------------------------------------------------------
 // Router + state plumbing
 // ---------------------------------------------------------------------------
 
@@ -216,6 +294,7 @@ struct ServeState {
 fn router(port: u16) -> Router {
     let state = ServeState { port };
     Router::new()
+        .route("/", get(cockpit))
         .route("/health", get(health))
         .route("/v1/cast", get(cast))
         .route("/v1/util", get(util))
@@ -248,6 +327,7 @@ pub async fn run_serve(port: u16) -> Result<()> {
         .with_context(|| format!("failed to read local_addr for :{port}"))?;
     eprintln!("[gateway-tools] listening on http://{bound}");
     eprintln!("[gateway-tools] routes:");
+    eprintln!("  GET http://{bound}/");
     eprintln!("  GET http://{bound}/health");
     eprintln!("  GET http://{bound}/v1/cast");
     eprintln!("  GET http://{bound}/v1/util");
@@ -259,15 +339,16 @@ pub async fn run_serve(port: u16) -> Result<()> {
     Ok(())
 }
 
-/// Print the substrate / Backbone-2 splash + listen URL on startup.
-/// Sync-violet + warm-amber, NO_COLOR-aware.
+/// Print the sharecli / Backbone-2 splash + listen URL on startup.
+/// Pulse-green + warm-amber, NO_COLOR-aware. (Substrate side uses sync-violet;
+/// sharecli-side uses pulse-green per the Backbone-2 sharecli variant.)
 fn substrate_splash_listen(port: u16) {
-    let violet = "\x1b[38;2;163;113;247m";
+    let green = "\x1b[38;2;63;185;80m";
     let amber = "\x1b[38;2;210;153;34m";
     let reset = "\x1b[0m";
     if std::env::var("NO_COLOR").is_ok_and(|v| !v.is_empty()) {
         eprintln!(
-            "substrate gateway-tools serve  (Backbone-2 sync-violet #a371f7 + amber #d29922)  --  port {port}"
+            "sharecli gateway-tools serve  (Backbone-2 pulse-green #3fb950 + amber #d29922)  --  port {port}"
         );
     } else {
         let splash = r#"
@@ -277,9 +358,9 @@ fn substrate_splash_listen(port: u16) {
    ___) |  _  |___) || | |  _|   | | |  _ <| |  | |
   |____/|_| |_|____/ |_| |_|     |_| |_| \_\_|  |_|
 "#;
-        eprintln!("{violet}{splash}{reset}");
+        eprintln!("{green}{splash}{reset}");
         eprintln!(
-            "{amber}substrate gateway-tools serve{reset}  sync-violet (#a371f7)  +  warm-amber (#d29922)  --  port {port}"
+            "{amber}sharecli gateway-tools serve{reset}  pulse-green (#3fb950)  +  warm-amber (#d29922)  --  port {port}"
         );
     }
 }
@@ -412,5 +493,43 @@ mod tests {
         let v: serde_json::Value = serde_json::from_slice(&body).unwrap();
         assert_eq!(v["error"], "not_found");
         assert_eq!(v["path"], "/totally/unknown");
+    }
+
+    #[tokio::test]
+    async fn cockpit_returns_html_with_palette_and_mod_count() {
+        let resp = app()
+            .oneshot(Request::builder().uri("/").body(Body::empty()).unwrap())
+            .await
+            .unwrap();
+        assert_eq!(resp.status(), StatusCode::OK);
+        let ct = resp
+            .headers()
+            .get("content-type")
+            .unwrap()
+            .to_str()
+            .unwrap()
+            .to_string();
+        assert!(
+            ct.starts_with("text/html"),
+            "expected text/html content-type, got {ct}"
+        );
+        let body = axum::body::to_bytes(resp.into_body(), 64 * 1024).await.unwrap();
+        let s = String::from_utf8(body.to_vec()).unwrap();
+        // sharecli palette (NOT sync-violet — that's the substrate side)
+        assert!(s.contains("#3fb950"), "missing pulse-green in cockpit HTML");
+        assert!(s.contains("#d29922"), "missing warm-amber in cockpit HTML");
+        assert!(s.contains("#161b22"), "missing panel #161b22 in cockpit HTML");
+        // hard-coded module count baked into the HTML body
+        assert!(
+            s.contains(&format!("<strong>{}</strong>", SHARECLI_MODULE_COUNT)),
+            "missing mod_count <strong>{}</strong> in cockpit HTML",
+            SHARECLI_MODULE_COUNT
+        );
+        // links to the JSON sibling routes
+        assert!(s.contains("/health"));
+        assert!(s.contains("/v1/util"));
+        assert!(s.contains("/v1/splash"));
+        // branding — sharecli, not substrate
+        assert!(s.contains("sharecli gateway-tools"));
     }
 }
