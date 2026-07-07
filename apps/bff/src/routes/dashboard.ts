@@ -132,4 +132,3 @@ export const dashboardRoutes = new Hono()
       await new Promise<void>((resolve) => stream.onAbort(() => resolve()));
     });
   });
-});
