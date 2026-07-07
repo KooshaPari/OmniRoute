@@ -120,6 +120,22 @@ export const dashboardRoutes = new Hono()
     rows: 0,
     ts: new Date().toISOString(),
   }))
+  .get('/performance', (c) => {
+    const range = c.req.query('range') ?? '24h';
+    return c.json({ range, rows: [
+      { model: 'claude-sonnet-4', provider: 'anthropic', requests: 12483, p50: 180, p95: 520, p99: 1240, successRate: 0.987, cost: 12.48 },
+      { model: 'gpt-4o', provider: 'openai', requests: 8217, p50: 220, p95: 680, p99: 1520, successRate: 0.974, cost: 9.84 },
+      { model: 'gemini-2.5-pro', provider: 'google', requests: 4192, p50: 290, p95: 820, p99: 1880, successRate: 0.992, cost: 4.21 },
+    ] });
+  })
+  .get('/quotas', (c) => c.json({ buckets: [
+    { id: 'default', label: 'Default tier', cap: 60, unit: 'req/min', used: 12, overflow: 'fallback' },
+    { id: 'pro', label: 'Pro tier', cap: 600, unit: 'req/min', used: 87, overflow: 'queue' },
+  ] }))
+  .put('/quotas', (c) => c.json({ ok: true }))
+  .get('/rules', (c) => c.json({ rules: [] }))
+  .put('/rules', (c) => c.json({ ok: true }))
+  
   .get('/health/stream', (c) => {
     return streamSSE(c, async (stream) => {
       let id = 0;
