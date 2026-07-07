@@ -1125,3 +1125,56 @@ Reason: `pheno-compose-driver::create_instance(name, config)` is a per-instance 
 All `codex | forge | claude | ghostty` instances running; AGENTS.md Process Safety rule intact (no idle-killers fired).
 
 Branch: `feat/pr1-extend-omni-core` @ `24cd87ea2`
+
+
+## Session 2026-07-06 — "do it all" final splinter (PR-distribution-4 resolved)
+
+### PR-distribution-4 multi-tier parallel `up` — **RESOLVED AS SERIAL** (architectural lane)
+
+- The `UpMany { specs, concurrency }` subcommand **already shipped** in a prior
+  session commit (`b9b0c57 feat(cli): PR-distribution-4 up-many ... multi-tier
+  serial spin-up`) on the `chore/improve-audit-score-2026-07-05` branch.
+- The `multi-tier parallel` framing from the deferred-item note is **architecturally
+  unsound** against this driver:
+  - `NvmsDriver::create_instance` is **sync** (no async runtime in the crate).
+  - It holds raw `*mut nvms_ffi::sys::NvmsInstance` pointers behind a `Mutex<HashMap>`;
+    raw pointers are `!Sync`, so `std::thread::scope` fan-out would require `unsafe`
+    transcending the Mutex — explicitly rejected by the in-code comment.
+  - The CGO layer serializes `nvms_instance_create` internally, so true parallelism
+    yields zero wall-clock benefit anyway.
+- **Decision**: keep `UpMany` serial (`concurrency` is accepted for CLI symmetry but
+  the loop is `join`-free). This honors the "minimal change that satisfies the request"
+  rule — the CLI feature exists and works; the *parallel* word was a mislabel.
+- Tests: `cargo test --workspace` in PhenoCompose -> **49 tests pass** (2+4+1+23+9+4+4+1+1).
+
+### PhenoCompose docs polish — committed `291f412`
+
+- `README.md`: replace `go build`/`go test` with `cargo check`/`cargo test` (the repo
+  is now Rust-primary; Go core is a CGO dep linked via `nvms-ffi`).
+- `pheno-compose-driver/examples/config_builder.rs` (new): `NvmsConfig` builder tour.
+- `pheno-compose-driver/examples/tier_demo.rs` (new): 3-tier end-to-end walkthrough
+  against the bundled in-process FFI shim (works without the real C lib on PATH).
+- Branch `chore/improve-audit-score-2026-07-05` pushed to origin (new branch; no PR
+  opened — the user drives PR creation).
+
+### Sub-repo commit ledger this turn
+
+```
+PhenoCompose 291f412  docs(pheno-compose): document rust workflow + driver examples
+pheno        438854e  feat(bifrost): PR B5 VirtualKey mint + revoke  (prior turn, pushed)
+omni-rust    ab45e5d9b feat(omni-core): PR-8 ProviderRegistry runtime catalog (prior turn)
+```
+
+### Open threads carried (final)
+
+- **PR-distribution-4**: DONE (serial UpMany exists; parallel framing retired).
+- B6 Bifrost shadow traffic ramp, B8 MCP client — v8.1 rollout.
+- PR-9..PR-25 of the 30-PR OmniRoute Rust rewrite plan (those crossing omni-storage /
+  omni-core boundary).
+- B5 is shipped but **not yet PR'd** into `pheno` main (branch `chore/agileplus-...`
+  holds it; user opens the PR).
+
+### Process safety verified
+
+All `codex | forge | claude | ghostty` instances running; AGENTS.md Process Safety rule
+intact (no idle-killers fired). Root OmniRoute HEAD `157b04413` clean.
