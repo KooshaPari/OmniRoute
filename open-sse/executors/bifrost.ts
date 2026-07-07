@@ -86,7 +86,6 @@ function isBifrostEnabled(): boolean {
 }
 
 /**
-<<<<<<< HEAD
  * Escape hatch: BIFROST_KILLSWITCH_DISABLED=true bypasses the kill switch
  * entirely. Useful for operators who need Bifrost to keep serving even
  * when the kill switch is tripped, or for testing the kill-switch path
@@ -128,7 +127,9 @@ export class BifrostNoFallbackError extends Error {
     // Maintain proper prototype chain for instanceof in transpiled environments
     Object.setPrototypeOf(this, BifrostNoFallbackError.prototype);
   }
-=======
+}
+
+/**
  * Whether the executor must consult the local `bifrost_models` cache before
  * dispatching and throw if the requested model is missing. Off by default
  * (zero overhead in the steady state). Set `BIFROST_MODEL_CACHE_REQUIRED=1`
@@ -184,7 +185,7 @@ async function enforceBifrostModelCache(
 ): Promise<void> {
   const required = isBifrostCacheRequired();
   const refreshOnMiss = isBifrostCacheRefreshOnMiss();
-  if (!required && !refreshOnMiss) return; // fast-path: feature off, no DB hit
+  if (!required && !refreshOnMiss) return;
 
   const cached = getBifrostModel(provider, model);
   if (cached) {
@@ -195,7 +196,6 @@ async function enforceBifrostModelCache(
     return;
   }
 
-  // Cache miss. If REFRESH_ON_MISS is set, try to populate before deciding.
   if (refreshOnMiss) {
     log?.info?.(
       BIFROST_TAG,
@@ -224,7 +224,6 @@ async function enforceBifrostModelCache(
             `Disable the cache toggle or fix the Bifrost /v1/models endpoint.`,
         );
       }
-      // Refresh failed but not required: continue with stale (or absent) cache.
       return;
     }
     const postRefresh = getBifrostModel(provider, model);
@@ -249,9 +248,7 @@ async function enforceBifrostModelCache(
     BIFROST_TAG,
     `bifrost_models cache miss for ${provider}/${model} — proceeding without cache enforcement`,
   );
->>>>>>> 4b1d949f7 (feat(bifrost): L5-122 execute cache — model-id enforcement)
 }
-
 /**
  * BifrostBackend — Tier-1 router executor.
  *
