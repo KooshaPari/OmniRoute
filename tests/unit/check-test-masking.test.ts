@@ -8,7 +8,10 @@ import {
   evaluateMasking,
   evaluateDeletedFiles,
   partitionDeletedRenamed,
-  evaluateSplitLineage,
+  countSignificantTokens,
+  extractProdConditions,
+  extractImports,
+  findReimplementedConditions,
 } from "../../scripts/check/check-test-masking.mjs";
 
 // ─── Existing tests (must stay green) ────────────────────────────────────────
@@ -389,102 +392,6 @@ test("a rename that DROPS asserts still fires (gutting-via-rename)", () => {
   assert.match(r[0], /REMO/);
 });
 
-test("split lineage aggregates assertions across explicit changed children", () => {
-  const result = evaluateSplitLineage({
-    from: "tests/unit/monolith.test.ts",
-    to: "tests/unit/monolith.streaming.test.ts",
-    destinations: ["tests/unit/monolith.streaming.test.ts", "tests/unit/monolith.options.test.ts"],
-    baseSrc: "assert.equal(a, 1); assert.equal(b, 2);",
-    headSources: {
-      "tests/unit/monolith.streaming.test.ts": "assert.equal(a, 1);",
-      "tests/unit/monolith.options.test.ts": "assert.equal(b, 2);",
-    },
-    changedPaths: new Set([
-      "tests/unit/monolith.streaming.test.ts",
-      "tests/unit/monolith.options.test.ts",
-    ]),
-  });
-  assert.deepEqual(result.flags, []);
-  assert.equal(result.aggregate?.baseAsserts, 2);
-  assert.equal(result.aggregate?.headAsserts, 2);
-  assert.deepEqual(evaluateMasking([result.aggregate]), []);
-});
-
-test("split lineage supports a retained source path plus an added child", () => {
-  const source = "tests/unit/monolith.test.ts";
-  const child = "tests/unit/monolith.cache.test.ts";
-  const result = evaluateSplitLineage({
-    from: source,
-    to: source,
-    destinations: [source, child],
-    baseSrc: "assert.equal(a, 1); assert.equal(b, 2);",
-    headSources: {
-      [source]: "assert.equal(a, 1);",
-      [child]: "assert.equal(b, 2);",
-    },
-    changedPaths: new Set([source, child]),
-  });
-
-  assert.deepEqual(result.flags, []);
-  assert.equal(result.aggregate?.baseAsserts, 2);
-  assert.equal(result.aggregate?.headAsserts, 2);
-  assert.deepEqual(evaluateMasking([result.aggregate]), []);
-});
-
-test("split lineage fails closed when a declared child is not part of the diff", () => {
-  const result = evaluateSplitLineage({
-    from: "tests/unit/monolith.test.ts",
-    to: "tests/unit/monolith.streaming.test.ts",
-    destinations: ["tests/unit/monolith.streaming.test.ts", "tests/unit/monolith.options.test.ts"],
-    baseSrc: "assert.equal(a, 1);",
-    headSources: {
-      "tests/unit/monolith.streaming.test.ts": "assert.equal(a, 1);",
-      "tests/unit/monolith.options.test.ts": "assert.equal(a, 1);",
-    },
-    changedPaths: new Set(["tests/unit/monolith.streaming.test.ts"]),
-  });
-  assert.equal(result.aggregate, null);
-  assert.ok(result.flags.some((flag) => /não pertence a este diff/.test(flag)));
-});
-
-test("split lineage fails closed when the detected rename destination is omitted", () => {
-  const result = evaluateSplitLineage({
-    from: "tests/unit/monolith.test.ts",
-    to: "tests/unit/monolith.streaming.test.ts",
-    destinations: ["tests/unit/monolith.options.test.ts", "tests/unit/monolith.utilities.test.ts"],
-    baseSrc: "assert.equal(a, 1);",
-    headSources: {
-      "tests/unit/monolith.options.test.ts": "assert.equal(a, 1);",
-      "tests/unit/monolith.utilities.test.ts": "assert.equal(a, 1);",
-    },
-    changedPaths: new Set([
-      "tests/unit/monolith.options.test.ts",
-      "tests/unit/monolith.utilities.test.ts",
-    ]),
-  });
-  assert.equal(result.aggregate, null);
-  assert.ok(result.flags.some((flag) => /não inclui o destino renomeado/.test(flag)));
-});
-
-test("split lineage aggregate still flags net assertion removal", () => {
-  const result = evaluateSplitLineage({
-    from: "tests/unit/monolith.test.ts",
-    to: "tests/unit/monolith.streaming.test.ts",
-    destinations: ["tests/unit/monolith.streaming.test.ts", "tests/unit/monolith.options.test.ts"],
-    baseSrc: "assert.equal(a, 1); assert.equal(b, 2); assert.equal(c, 3);",
-    headSources: {
-      "tests/unit/monolith.streaming.test.ts": "assert.equal(a, 1);",
-      "tests/unit/monolith.options.test.ts": "assert.equal(b, 2);",
-    },
-    changedPaths: new Set([
-      "tests/unit/monolith.streaming.test.ts",
-      "tests/unit/monolith.options.test.ts",
-    ]),
-  });
-  assert.equal(result.flags.length, 0);
-  assert.equal(evaluateMasking([result.aggregate]).length, 1);
-});
-
 test("evaluateMasking: allowlist exempts ONLY reduction — tautology/skip still flagged", () => {
   const r = evaluateMasking(
     [
@@ -505,4 +412,131 @@ test("evaluateMasking: allowlist exempts ONLY reduction — tautology/skip still
   assert.equal(r.length, 2, "tautology + skip still flagged despite allowlist");
   assert.ok(r.some((f) => /tautolog/i.test(f)));
   assert.ok(r.some((f) => /skip/i.test(f)));
+});
+
+// ─── 6348 Subcheck 4: inline-reimplemented prod conditions (REPORT-ONLY) ──────
+
+test("countSignificantTokens: `status >= 500` has 3 significant tokens", () => {
+  assert.equal(countSignificantTokens("status >= 500"), 3);
+});
+
+test("countSignificantTokens: `x === LIMIT && y` has 3 significant tokens", () => {
+  assert.equal(countSignificantTokens("x === LIMIT && y"), 3);
+});
+
+test("countSignificantTokens: trivial `x > 0` has <3 significant tokens (noise guard)", () => {
+  assert.ok(countSignificantTokens("x > 0") < 3);
+});
+
+test("extractProdConditions: pulls the if-condition and its owning symbol", () => {
+  const prod = [
+    "export function isServerError(status) {",
+    "  if (status >= 500) {",
+    "    return true;",
+    "  }",
+    "  return false;",
+    "}",
+  ].join("\n");
+  const conds = extractProdConditions(prod);
+  const hit = conds.find((c) => c.condition === "status >= 500");
+  assert.ok(hit, "the ≥3-token condition is extracted");
+  assert.equal(hit.owner, "isServerError");
+});
+
+test("extractProdConditions: ignores trivial <3-token conditions", () => {
+  const prod = "export function f(x) {\n  if (x > 0) return 1;\n  return 0;\n}";
+  assert.deepEqual(extractProdConditions(prod), []);
+});
+
+test("extractImports: collects named bindings and module specifiers", () => {
+  const src = `import { isServerError, foo } from "../src/http";\nimport def from "./bar";`;
+  const names = extractImports(src);
+  assert.ok(names.has("isServerError"));
+  assert.ok(names.has("foo"));
+  assert.ok(names.has("def"));
+});
+
+const PROD_SERVER_ERROR = [
+  "export function isServerError(status) {",
+  "  if (status >= 500) {",
+  "    return true;",
+  "  }",
+  "  return false;",
+  "}",
+].join("\n");
+
+test("MASKED: test re-implements `status >= 500` without importing the owner → flagged", () => {
+  const testSrc = [
+    'import { test } from "node:test";',
+    'import assert from "node:assert";',
+    "// re-encodes the prod branch locally instead of importing isServerError",
+    "function localCheck(status) {",
+    "  return status >= 500;",
+    "}",
+    'test("server error", () => {',
+    "  assert.equal(localCheck(503), true);",
+    "});",
+  ].join("\n");
+  const flags = findReimplementedConditions(
+    [PROD_SERVER_ERROR],
+    testSrc,
+    extractImports(testSrc)
+  );
+  assert.equal(flags.length, 1);
+  assert.equal(flags[0].condition, "status >= 500");
+  assert.equal(flags[0].owner, "isServerError");
+});
+
+test("CLEAN: test imports and calls the real function → not flagged", () => {
+  const testSrc = [
+    'import { test } from "node:test";',
+    'import assert from "node:assert";',
+    'import { isServerError } from "../../src/http";',
+    'test("server error", () => {',
+    "  assert.equal(isServerError(503), true);",
+    "  assert.equal(isServerError(200), false);",
+    "});",
+  ].join("\n");
+  const flags = findReimplementedConditions(
+    [PROD_SERVER_ERROR],
+    testSrc,
+    extractImports(testSrc)
+  );
+  assert.deepEqual(flags, []);
+});
+
+test("CLEAN: importing the owner exempts even a textual copy of its condition", () => {
+  // The test both imports the owner AND happens to spell the condition — importing
+  // the owner means it exercises the real symbol, so the condition is not masked.
+  const testSrc = [
+    'import { isServerError } from "../../src/http";',
+    "// documents that isServerError fires when status >= 500",
+    'test("t", () => { isServerError(503); });',
+  ].join("\n");
+  const flags = findReimplementedConditions(
+    [PROD_SERVER_ERROR],
+    testSrc,
+    extractImports(testSrc)
+  );
+  assert.deepEqual(flags, []);
+});
+
+test("CLEAN: trivial `x > 0` condition is never flagged (noise guard)", () => {
+  const prod = "export function f(x) {\n  if (x > 0) return 1;\n  return 0;\n}";
+  const testSrc = [
+    'import { test } from "node:test";',
+    "function local(x) { return x > 0; }",
+    'test("t", () => { local(1); });',
+  ].join("\n");
+  const flags = findReimplementedConditions([prod], testSrc, extractImports(testSrc));
+  assert.deepEqual(flags, []);
+});
+
+test("findReimplementedConditions: matches despite operator-spacing differences", () => {
+  const prod = "export function big(status) {\n  if (status >= 500) return true;\n}";
+  // test spells the same condition with no spaces around the operator
+  const testSrc = "function local(status){ return status>=500; }";
+  const flags = findReimplementedConditions([prod], testSrc, extractImports(testSrc));
+  assert.equal(flags.length, 1);
+  assert.equal(flags[0].condition, "status >= 500");
 });

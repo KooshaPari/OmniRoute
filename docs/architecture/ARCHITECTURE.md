@@ -6,7 +6,7 @@ lastUpdated: 2026-06-28
 
 # OmniRoute Architecture
 
-🌐 **Translations:** Generated on demand; see [the i18n guide](../guides/I18N.md).
+🌐 **Languages:** 🇺🇸 [English](./ARCHITECTURE.md) | 🇧🇷 [Português (Brasil)](../i18n/pt-BR/docs/architecture/ARCHITECTURE.md) | 🇪🇸 [Español](../i18n/es/docs/architecture/ARCHITECTURE.md) | 🇫🇷 [Français](../i18n/fr/docs/architecture/ARCHITECTURE.md) | 🇮🇹 [Italiano](../i18n/it/docs/architecture/ARCHITECTURE.md) | 🇷🇺 [Русский](../i18n/ru/docs/architecture/ARCHITECTURE.md) | 🇨🇳 [中文 (简体)](../i18n/zh-CN/docs/architecture/ARCHITECTURE.md) | 🇩🇪 [Deutsch](../i18n/de/docs/architecture/ARCHITECTURE.md) | 🇮🇳 [हिन्दी](../i18n/in/docs/architecture/ARCHITECTURE.md) | 🇹🇭 [ไทย](../i18n/th/docs/architecture/ARCHITECTURE.md) | 🇺🇦 [Українська](../i18n/uk-UA/docs/architecture/ARCHITECTURE.md) | 🇸🇦 [العربية](../i18n/ar/docs/architecture/ARCHITECTURE.md) | 🇯🇵 [日本語](../i18n/ja/docs/architecture/ARCHITECTURE.md) | 🇻🇳 [Tiếng Việt](../i18n/vi/docs/architecture/ARCHITECTURE.md) | 🇧🇬 [Български](../i18n/bg/docs/architecture/ARCHITECTURE.md) | 🇩🇰 [Dansk](../i18n/da/docs/architecture/ARCHITECTURE.md) | 🇫🇮 [Suomi](../i18n/fi/docs/architecture/ARCHITECTURE.md) | 🇮🇱 [עברית](../i18n/he/docs/architecture/ARCHITECTURE.md) | 🇭🇺 [Magyar](../i18n/hu/docs/architecture/ARCHITECTURE.md) | 🇮🇩 [Bahasa Indonesia](../i18n/id/docs/architecture/ARCHITECTURE.md) | 🇰🇷 [한국어](../i18n/ko/docs/architecture/ARCHITECTURE.md) | 🇲🇾 [Bahasa Melayu](../i18n/ms/docs/architecture/ARCHITECTURE.md) | 🇳🇱 [Nederlands](../i18n/nl/docs/architecture/ARCHITECTURE.md) | 🇳🇴 [Norsk](../i18n/no/docs/architecture/ARCHITECTURE.md) | 🇵🇹 [Português (Portugal)](../i18n/pt/docs/architecture/ARCHITECTURE.md) | 🇷🇴 [Română](../i18n/ro/docs/architecture/ARCHITECTURE.md) | 🇵🇱 [Polski](../i18n/pl/docs/architecture/ARCHITECTURE.md) | 🇸🇰 [Slovenčina](../i18n/sk/docs/architecture/ARCHITECTURE.md) | 🇸🇪 [Svenska](../i18n/sv/docs/architecture/ARCHITECTURE.md) | 🇵🇭 [Filipino](../i18n/phi/docs/architecture/ARCHITECTURE.md) | 🇨🇿 [Čeština](../i18n/cs/docs/architecture/ARCHITECTURE.md)
 
 _Last updated: 2026-06-28_
 
@@ -17,13 +17,13 @@ It provides a single OpenAI-compatible endpoint (`/v1/*`) and routes traffic acr
 
 Core capabilities:
 
-- OpenAI-compatible API surface for CLI/tools (237 providers, 68 executors)
+- OpenAI-compatible API surface for CLI/tools (237 providers, 75 executors)
 - Request/response translation across provider formats
 - Model combo fallback (multi-model sequence)
 - Structured combo steps (`provider + model + connection`) with runtime ordering by `compositeTiers`
 - Account-level fallback (multi-account per provider)
 - Quota preflight and quota-aware P2C account selection in the main chat path
-- OAuth + API-key provider connection management (17 OAuth provider modules)
+- OAuth + API-key provider connection management (19 OAuth provider modules)
 - Embedding generation via `/v1/embeddings` (6 providers, 9 models)
 - Image generation via `/v1/images/generations` (10+ providers, 20+ models)
 - Audio transcription via `/v1/audio/transcriptions` (7 providers)
@@ -66,7 +66,7 @@ Core capabilities:
 - Prompt injection guard middleware
 - Prompt compression pipeline with Caveman, RTK, stacked pipelines, compression combos, language packs, and analytics
 - ACP (Agent Communication Protocol) registry
-- Modular OAuth providers (16 individual modules under `src/lib/oauth/providers/`)
+- Modular OAuth providers (19 individual modules under `src/lib/oauth/providers/`)
 - Uninstall/full-uninstall scripts
 - OAuth environment repair action
 - WebSocket bridge for OpenAI-compatible WS clients (`/v1/ws`)
@@ -464,8 +464,7 @@ A finite-state-machine driven router layered above combo selection to direct
 traffic based on the detected workflow stage (planning, execution,
 review) and background-task affinity.
 
-- Workflow progress state is carried in A2A task metadata and rendered by the
-  endpoint dashboard.
+- Workflow FSM: `open-sse/services/workflowFSM.ts`
 - Task-aware router: `open-sse/services/taskAwareRouter.ts`
 - Background task detector: `open-sse/services/backgroundTaskDetector.ts`
 - Intent classifier: `open-sse/services/intentClassifier.ts`

@@ -140,3 +140,22 @@ test("pre-flight wires the test-masking PR-context gate against origin/main (v3.
   // run() must honor a per-gate env override so GITHUB_BASE_REF actually reaches the child.
   assert.match(src, /\.\.\.\(opts\.env \|\| \{\}\)/, "run() must merge opts.env into the child env");
 });
+
+test("pre-flight runs the slow suites CONCURRENTLY (v3.8.45 perf — was ~1h serial)", async () => {
+  const fs = await import("node:fs");
+  const src = fs.readFileSync(
+    new URL("../../scripts/quality/validate-release-green.mjs", import.meta.url),
+    "utf8"
+  );
+  // main() must be async and the slow suites (unit/vitest/integration/pack-artifact)
+  // must run via a single Promise.all over runAsync — not four sequential hardCmd calls.
+  assert.match(src, /async function main\(\)/, "main must be async to await the parallel wave");
+  assert.match(src, /const execFileAsync = promisify\(execFile\)/, "async runner must exist");
+  assert.match(src, /await Promise\.all\(\s*slow\.map\(/, "slow suites must run concurrently");
+  // The four slow-gate ids must all be present in the parallel wave.
+  for (const id of ["unit", "vitest", "integration", "pack-artifact"]) {
+    assert.ok(src.includes(`id: "${id}"`), `slow gate ${id} must be in the parallel wave`);
+  }
+  // Each still saves its per-gate log for red diagnosis without a re-run.
+  assert.match(src, /slow\.forEach\([\s\S]*?saveGateLog\(g\.id/, "each slow gate persists its log");
+});

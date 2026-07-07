@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { NextResponse } from "next/server";
 import { buildComboTestRequestBody, extractComboTestResponseText } from "@/lib/combos/testHealth";
-import { getApiKeys, getComboByName, getCombos } from "@/lib/localDb";
+import { getComboByName, getCombos, pickApiKeyForInternalUse } from "@/lib/localDb";
 import { getRuntimePorts } from "@/lib/runtime/ports";
 import { resolveNestedComboTargets } from "@omniroute/open-sse/services/combo.ts";
 import { testComboSchema } from "@/shared/validation/schemas";
@@ -9,18 +9,13 @@ import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 
 async function getInternalApiKey(): Promise<string | null> {
-  try {
-    const keys = await getApiKeys();
-    const active = (
-      keys as unknown as Array<{ key: string; isActive?: boolean; revokedAt?: string | null }>
-    ).find((k) => k.key && k.isActive !== false && !k.revokedAt);
-    return active?.key ?? null;
-  } catch {
-    return null;
-  }
+  // Combo health-check probes hit /v1/chat/completions, which enforces
+  // per-key model allowlists (see shared/utils/apiKeyPolicy.ts). Picking
+  // an arbitrary active key is unsafe — see pickApiKeyForInternalUse.
+  return pickApiKeyForInternalUse("combo-health-check");
 }
 
-function buildComboTestResult(target: Record<string, unknown>, partial: Record<string, unknown> = {}) {
+function buildComboTestResult(target, partial = {}) {
   return {
     model: target.modelStr,
     provider: target.provider,
@@ -32,7 +27,7 @@ function buildComboTestResult(target: Record<string, unknown>, partial: Record<s
   };
 }
 
-async function testComboTarget(target: Record<string, unknown>, baseInternalUrl: string, internalApiKey: string | null): Promise<Record<string, unknown> | null> {
+async function testComboTarget(target, baseInternalUrl, internalApiKey: string | null) {
   const startTime = Date.now();
   try {
     // Issue #2359: combo entries with a malformed/missing modelStr surfaced
@@ -163,7 +158,7 @@ export async function POST(request) {
     }
 
     const allCombos = await getCombos();
-    const targets = resolveNestedComboTargets(combo as unknown as Parameters<typeof resolveNestedComboTargets>[0], allCombos as unknown as Parameters<typeof resolveNestedComboTargets>[1]);
+    const targets = resolveNestedComboTargets(combo, allCombos);
 
     if (targets.length === 0) {
       return NextResponse.json({ error: "Combo has no models" }, { status: 400 });
@@ -174,7 +169,7 @@ export async function POST(request) {
     const results = await Promise.all(
       targets.map((target) => testComboTarget(target, baseInternalUrl, internalApiKey))
     );
-    const resolvedResult = results.find((result): result is NonNullable<typeof result> => result?.status === "ok") || null;
+    const resolvedResult = results.find((result) => result.status === "ok") || null;
     const resolvedBy = resolvedResult?.model || null;
 
     return NextResponse.json({
