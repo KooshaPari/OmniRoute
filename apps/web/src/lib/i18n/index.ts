@@ -26,10 +26,10 @@ const messages: Record<string, Record<string, string>> = {
   ar: ar as Record<string, string>,
   ru: ru as Record<string, string>,
   it: it as Record<string, string>,
-  pt-BR: pt_BR as Record<string, string>,
+  'pt-BR': pt_BR as Record<string, string>,
   ko: ko as Record<string, string>,
   ja: ja as Record<string, string>,
-  zh-CN: zh_CN as Record<string, string>,
+  'zh-CN': zh_CN as Record<string, string>,
   de: de as Record<string, string>,
 };
 
