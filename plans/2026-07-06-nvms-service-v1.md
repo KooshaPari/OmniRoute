@@ -2,13 +2,13 @@
 
 **Phase 1b of BytePort Evolution — companion service to `byteport-engine` NVMS adapter.**
 
-| Field | Value |
-|---|---|
-| Spec version | v1 (2026-07-06) |
-| Status | Draft → Review |
-| Owner | BytePort backend team |
-| Repo target | `nanovms` (or new sibling `nvms-service` if scope warrants split) |
-| Companion | `BytePort/crates/byteport-engine/src/adapters/nvms/http.rs` |
+| Field                | Value                                                                                             |
+| -------------------- | ------------------------------------------------------------------------------------------------- |
+| Spec version         | v1 (2026-07-06)                                                                                   |
+| Status               | Draft → Review                                                                                    |
+| Owner                | BytePort backend team                                                                             |
+| Repo target          | `nanovms` (or new sibling `nvms-service` if scope warrants split)                                 |
+| Companion            | `BytePort/crates/byteport-engine/src/adapters/nvms/http.rs`                                       |
 | Spec source-of-truth | [`plans/2026-07-04-byteport-evolution-v1.md`](plans/2026-07-04-byteport-evolution-v1.md) Phase 1b |
 
 ---
@@ -132,27 +132,27 @@ The HTTP server listens on `$XDG_RUNTIME_DIR/byteport/nvms.sock`
 
 ### 4.1 Endpoints (v1)
 
-| Method | Path                          | Maps to port method        | Notes |
-|--------|-------------------------------|----------------------------|-------|
-| `POST` | `/v1/sandboxes`               | `SandboxPort.Create`       | Body: `SandboxConfig` JSON |
-| `POST` | `/v1/sandboxes/{id}/start`    | `SandboxPort.Start`        | Empty body |
-| `POST` | `/v1/sandboxes/{id}/stop`     | `SandboxPort.Stop`         | Body: `{ "force": bool }` |
-| `DELETE` | `/v1/sandboxes/{id}`         | `SandboxPort.Delete`       | Empty body |
-| `GET`  | `/v1/sandboxes`               | `SandboxPort.List`         | Returns `[]Sandbox` |
-| `GET`  | `/v1/sandboxes/{id}`          | `SandboxPort.Get`          | Returns `Sandbox` |
-| `GET`  | `/v1/sandboxes/{id}/logs`     | `SandboxPort.Logs(follow)` | v2: NDJSON streaming |
-| `POST` | `/v1/sandboxes/{id}/exec`     | `SandboxPort.Exec`         | Body: `{"cmd": ["sh","-c","ls"]}` |
-| `GET`  | `/v1/sandboxes/{id}/metrics`  | `SandboxPort.Metrics`      | Returns `SandboxMetrics` |
-| `GET`  | `/healthz`                    | (no port)                  | Liveness probe |
-| `GET`  | `/readyz`                     | (no port)                  | Readiness: ports.IsAvailable() |
+| Method   | Path                         | Maps to port method        | Notes                             |
+| -------- | ---------------------------- | -------------------------- | --------------------------------- |
+| `POST`   | `/v1/sandboxes`              | `SandboxPort.Create`       | Body: `SandboxConfig` JSON        |
+| `POST`   | `/v1/sandboxes/{id}/start`   | `SandboxPort.Start`        | Empty body                        |
+| `POST`   | `/v1/sandboxes/{id}/stop`    | `SandboxPort.Stop`         | Body: `{ "force": bool }`         |
+| `DELETE` | `/v1/sandboxes/{id}`         | `SandboxPort.Delete`       | Empty body                        |
+| `GET`    | `/v1/sandboxes`              | `SandboxPort.List`         | Returns `[]Sandbox`               |
+| `GET`    | `/v1/sandboxes/{id}`         | `SandboxPort.Get`          | Returns `Sandbox`                 |
+| `GET`    | `/v1/sandboxes/{id}/logs`    | `SandboxPort.Logs(follow)` | v2: NDJSON streaming              |
+| `POST`   | `/v1/sandboxes/{id}/exec`    | `SandboxPort.Exec`         | Body: `{"cmd": ["sh","-c","ls"]}` |
+| `GET`    | `/v1/sandboxes/{id}/metrics` | `SandboxPort.Metrics`      | Returns `SandboxMetrics`          |
+| `GET`    | `/healthz`                   | (no port)                  | Liveness probe                    |
+| `GET`    | `/readyz`                    | (no port)                  | Readiness: ports.IsAvailable()    |
 
 ### 4.2 Headers
 
-| Header | Required | Example |
-|--------|----------|---------|
-| `Authorization` | yes | `Bearer nvms-7e4d…` (NVMS issues its own short-lived token at start) |
-| `Content-Type` | for POST | `application/json` |
-| `X-BytePort-Request-Id` | optional | UUID for log correlation |
+| Header                  | Required | Example                                                              |
+| ----------------------- | -------- | -------------------------------------------------------------------- |
+| `Authorization`         | yes      | `Bearer nvms-7e4d…` (NVMS issues its own short-lived token at start) |
+| `Content-Type`          | for POST | `application/json`                                                   |
+| `X-BytePort-Request-Id` | optional | UUID for log correlation                                             |
 
 ### 4.3 Error model
 
@@ -197,7 +197,7 @@ Returns `201 Created`:
   "vm_flavor": "microvm",
   "type": "vm",
   "ip_address": "",
-  "ports": [{"host_port": 8080, "container_port": 80, "protocol": "tcp"}],
+  "ports": [{ "host_port": 8080, "container_port": 80, "protocol": "tcp" }],
   "created_at": "2026-07-06T12:34:56Z"
 }
 ```
@@ -302,7 +302,7 @@ adapters:
 
 logging:
   level: info
-  format: json  # json | text
+  format: json # json | text
 
 limits:
   max_concurrent_sandboxes: 64
@@ -312,10 +312,10 @@ limits:
 
 ### 6.1 Env-var overrides
 
-| Env | Overrides |
-|-----|-----------|
-| `NVMS_LISTEN_SOCKET` | `listen.socket` |
-| `NVMS_LOG_LEVEL` | `logging.level` |
+| Env                   | Overrides                         |
+| --------------------- | --------------------------------- |
+| `NVMS_LISTEN_SOCKET`  | `listen.socket`                   |
+| `NVMS_LOG_LEVEL`      | `logging.level`                   |
 | `NVMS_MAX_CONCURRENT` | `limits.max_concurrent_sandboxes` |
 
 ---
@@ -340,9 +340,16 @@ arbitrary host paths. Each adapter declares its capability set in
 Every API call is logged to `~/.local/share/nanovms/audit.jsonl` with:
 
 ```json
-{"ts": "...", "request_id": "...", "method": "POST",
- "path": "/v1/sandboxes", "actor": "byteport-engine",
- "status": 201, "duration_ms": 42, "sandbox_id": "sb-9d3e"}
+{
+  "ts": "...",
+  "request_id": "...",
+  "method": "POST",
+  "path": "/v1/sandboxes",
+  "actor": "byteport-engine",
+  "status": 201,
+  "duration_ms": 42,
+  "sandbox_id": "sb-9d3e"
+}
 ```
 
 `actor` is derived from the bearer token's `sub` claim.
@@ -475,12 +482,12 @@ change. Lives in both repos; CI runs on both sides.
 
 ## 12. Why UDS (not TCP / not gRPC)
 
-| Option | Latency (avg) | Pros | Cons |
-|--------|---------------|------|------|
-| **HTTP over UDS** ✅ | ~80μs | Zero network code, ACL-friendly, `byteport-engine` already speaks HTTP via reqwest | One extra JSON parse on each side |
-| gRPC over UDS | ~70μs | Schema-first, streaming native | New deps (`grpc-go`, `tonic`); byteport-engine doesn't speak gRPC |
-| HTTP over loopback | ~200μs | Easy debugging with `curl` | Needs firewall config; larger attack surface |
-| UDS with custom protocol | ~50μs | Lowest latency | Maintenance burden; no ecosystem tooling |
+| Option                   | Latency (avg) | Pros                                                                               | Cons                                                              |
+| ------------------------ | ------------- | ---------------------------------------------------------------------------------- | ----------------------------------------------------------------- |
+| **HTTP over UDS** ✅     | ~80μs         | Zero network code, ACL-friendly, `byteport-engine` already speaks HTTP via reqwest | One extra JSON parse on each side                                 |
+| gRPC over UDS            | ~70μs         | Schema-first, streaming native                                                     | New deps (`grpc-go`, `tonic`); byteport-engine doesn't speak gRPC |
+| HTTP over loopback       | ~200μs        | Easy debugging with `curl`                                                         | Needs firewall config; larger attack surface                      |
+| UDS with custom protocol | ~50μs         | Lowest latency                                                                     | Maintenance burden; no ecosystem tooling                          |
 
 **Chosen:** HTTP over UDS — reuses byteport-engine's existing
 reqwest stack, debuggable with `curl --unix-socket`,

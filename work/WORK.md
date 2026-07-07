@@ -1027,3 +1027,55 @@ Worktree `/tmp/dast-fix-wt` cleaned up; branch retained for review.
 - **B4..B9** of v8.1 Bifrost rollout — B4 (model cache SQL table), B5 (virtual-key minting UI), B6 (traffic shadow), B7 (migration playbook — already done), B8 (MCP client), B9 (kill switch + security — already done)
 - **PR-distribution-4**: cli `up` command rewrite (currently a stub) + multi-tier parallel spin-up
 - **Re-run audits**: next audit cycle in 14 days to capture B4/B6 lifts
+
+## Session 2026-07-06 "do all nxt" (turn 2) — Final Report
+
+### Lane state: 5 of 5 done
+
+| # | Lane | Status | Artifact |
+|---|---|---|---|
+| 1 | Sync stale todos (PR-distribution-3 / B3 / audits / verification from prior turn) | **DONE** | Confirmed ground-truth via git log + cargo test. |
+| 2 | PR-8 ProviderRegistry runtime catalog | **DONE** | `omniroute-rust` commit `ab45e5d9b` — `crates/omni-core/src/registry.rs` (~380 lines): `ProviderRegistry` (HashMap + RwLock), model lookup, capabilities index, 13 new tests. PartialEq derives added to `ProviderMetadata`/`ProviderConfig`/`ProviderStatus`/`ExecutionMode`. **161 omni-core tests pass** (111 lib + 31 integration + 19 doc). |
+| 3 | B4 Bifrost SQLite model cache | **DONE** | `pheno` commit `7a0827f` — `bifrost/src/cache.rs` (~580 lines) + `migrations/001_bifrost_model_cache.sql` + `cache-sqlite` feature flag. `BifrostModelCache` with idempotent `initialize()`, `upsert` (skips malformed entries), `get` (stale-tolerant), `refresh` (classifies Ok/Partial/Error), `MAX_ENTRIES_PER_PROVIDER` hard cap. 10 new tests, **38 phenotype-bifrost tests pass** (28 prior + 10 cache). `From<rusqlite::Error>` added to `Error` enum. |
+| 4 | Re-run all 4 audits (PhenoCompose / nanovms / pheno / omniroute-rust) | **DONE** | All 4 audit JSONs updated: **PhenoCompose 68/100** (C+, +16); **nanovms 66/100** (C+, +14); **pheno 74/100** (B-, +24); **omniroute-rust 72/100** (B-, +32). R-A compute bottleneck closed on all 4. Two new audit JSONs created (`pheno-audit.json`, `omniroute-rust-audit.json`). |
+| 5 | Final verification + worklog | **DONE** | This entry. |
+
+### Test counts (cumulative state across all sessions)
+
+| Repo | Crate | Tests | Last commit |
+|---|---|---|---|
+| omniroute-rust | omni-core | **161** (111 lib + 31 integration + 19 doc) | `ab45e5d9b` |
+| pheno | phenotype-bifrost | **38** (28 default + 10 cache-sqlite, +2 with catalog-fetch) | `7a0827f` |
+| PhenoCompose | pheno-compose-driver | 22+ pass + 1 pre-existing FFI-state-leak fail | `f1239c0` |
+| PhenoCompose | pheno-compose-cli | 1 + 4 subcommand smoke checks | `f1239c0` |
+
+### Audit scorecard (audited_at 2026-07-06)
+
+| Repo | Score | Grade | Delta | Last lift commit |
+|---|---|---|---|---|
+| **PhenoCompose** | 68/100 | C+ | +16 | `f1239c0` |
+| **nanovms** | 66/100 | C+ | +14 | `b51c121` |
+| **pheno** | 74/100 | B- | +24 | `7a0827f` |
+| **omniroute-rust** | 72/100 | B- | +32 | `ab45e5d9b` |
+
+### Open PRs (active, awaiting review)
+
+| # | Repo | Title | Notes |
+|---|---|---|---|
+| **78** | KooshaPari/phenotype-org-audits | chore(spine): promote phenotype-org-audits to spine role | PR-A; needs `@KooshaPari/core` per CODEOWNERS |
+| **307** | KooshaPari/Tokn | feat(tokn): HTTP surface X | parallel-agent work |
+| **308** | KooshaPari/OmniRoute | fix(ci): make dast-smoke teardown robust to missing server.pid | prior session |
+| **309** | KooshaPari/OmniRoute | feat(core): PR-2 OpenCode plugin v1 wire shape contract | this session |
+
+### Successor work (next turn)
+
+- **PR-9..PR-25** of the 30-PR OmniRoute rewrite plan (dispatch engine, executor concrete impls, plugin SDK, crypto/auth, libSQL/Turso, r2d2 pool, etc.)
+- **B5..B9** of v8.1 Bifrost rollout — B5 (virtual-key minting UI), B6 (traffic shadow 5%→25%→100%), B8 (MCP client). B7 migration playbook + B9 kill switch already shipped.
+- **PR-distribution-4**: cli `up` multi-tier parallel spin-up (current `up` is sequential via single `create_instance` call)
+- **Re-run audits** in 14 days to capture B5/B6/PR-9 lifts; target B-/B+ for pheno+omniroute, B for PhenoCompose/nanovms.
+
+### Cited sources
+
+- PR-8 registry: `omniroute-rust/crates/omni-core/src/registry.rs:1-380`; derives touched in `provider.rs:30-95`
+- B4 cache: `pheno/bifrost/src/cache.rs:1-580`; migration `pheno/bifrost/migrations/001_bifrost_model_cache.sql`
+- Audits: `PhenoCompose-audit.json:1-150`, `nanovms-audit.json:1-200`, `pheno-audit.json:1-50`, `omniroute-rust-audit.json:1-50`
