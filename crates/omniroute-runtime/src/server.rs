@@ -19,6 +19,7 @@ use omniroute_core::ProviderRegistry;
 
 use crate::chat::chat_completions;
 use crate::health::{healthz, readyz};
+use crate::metrics::{metrics_endpoint, SharedMetrics};
 
 /// Response body type used throughout the runtime.
 pub type ResponseBody = Full<Bytes>;
@@ -43,6 +44,7 @@ pub fn default_socket_path() -> PathBuf {
 pub struct Server {
     socket_path: PathBuf,
     registry: Arc<ProviderRegistry>,
+    metrics: SharedMetrics,
 }
 
 impl Server {
@@ -52,6 +54,20 @@ impl Server {
         Self {
             socket_path,
             registry,
+            metrics: SharedMetrics::new(),
+        }
+    }
+
+    /// Create a server with the given metrics handle (for tests).
+    pub fn with_metrics(
+        socket_path: PathBuf,
+        registry: Arc<ProviderRegistry>,
+        metrics: SharedMetrics,
+    ) -> Self {
+        Self {
+            socket_path,
+            registry,
+            metrics,
         }
     }
 
@@ -63,6 +79,11 @@ impl Server {
     /// Returns the socket path the server will bind to.
     pub fn socket_path(&self) -> &std::path::Path {
         &self.socket_path
+    }
+
+    /// Access the shared metrics handle (read-only).
+    pub fn metrics(&self) -> &SharedMetrics {
+        &self.metrics
     }
 
     /// Run the server until the process is signalled or the socket errors.
@@ -86,14 +107,17 @@ impl Server {
         );
 
         let registry = self.registry;
+        let metrics = self.metrics;
         loop {
             let (stream, _addr) = listener.accept().await?;
             let io = TokioIo::new(stream);
             let registry = registry.clone();
+            let metrics = metrics.clone();
             tokio::spawn(async move {
                 let svc = service_fn(move |req| {
                     let registry = registry.clone();
-                    async move { route(req, registry).await }
+                    let metrics = metrics.clone();
+                    async move { route(req, registry, metrics).await }
                 });
                 if let Err(e) = hyper::server::conn::http1::Builder::new()
                     .serve_connection(io, svc)
@@ -110,12 +134,16 @@ impl Server {
 async fn route(
     req: Request<hyper::body::Incoming>,
     registry: Arc<ProviderRegistry>,
+    metrics: SharedMetrics,
 ) -> Result<Response<ResponseBody>, hyper::Error> {
     let path = req.uri().path().to_string();
     match (req.method(), path.as_str()) {
-        (&hyper::Method::POST, "/v1/chat/completions") => Ok(chat_completions(registry, req).await),
+        (&hyper::Method::POST, "/v1/chat/completions") => {
+            Ok(chat_completions(registry, metrics, req).await)
+        }
         (&hyper::Method::GET, "/healthz") => Ok(healthz(VERSION)),
         (&hyper::Method::GET, "/readyz") => Ok(readyz(&registry).await),
+        (&hyper::Method::GET, "/metrics") => Ok(metrics_endpoint(&metrics)),
         _ => Ok(not_found(&path)),
     }
 }

@@ -24,8 +24,12 @@
 
 pub mod chat;
 pub mod health;
+pub mod metrics;
 pub mod retry;
 pub mod server;
 pub mod sse;
 
+pub use metrics::{
+    CircuitBreaker, CircuitConfig, CircuitOpen, CircuitRegistry, CircuitState, Metrics,
+};
 pub use server::{ResponseBody, Server};
