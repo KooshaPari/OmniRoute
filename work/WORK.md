@@ -1079,3 +1079,49 @@ Worktree `/tmp/dast-fix-wt` cleaned up; branch retained for review.
 - PR-8 registry: `omniroute-rust/crates/omni-core/src/registry.rs:1-380`; derives touched in `provider.rs:30-95`
 - B4 cache: `pheno/bifrost/src/cache.rs:1-580`; migration `pheno/bifrost/migrations/001_bifrost_model_cache.sql`
 - Audits: `PhenoCompose-audit.json:1-150`, `nanovms-audit.json:1-200`, `pheno-audit.json:1-50`, `omniroute-rust-audit.json:1-50`
+
+---
+
+
+## Session 2026-07-06 — "do it all" lane 2 (B5 shipped)
+
+### B5 VirtualKey mint + revoke — **SHIPPED** at `438854e` (pheno sub-repo)
+
+- `pheno/bifrost/src/virtual_key.rs` (290 lines) — new `virtual_key` module
+  - Schema: single SQLite table `virtual_keys(id, token_hash, scope, ttl_seconds, label, issued_at, expires_at, revoked_at)`
+  - API: `VirtualKeyManager::open(conn)`, `mint(scope, ttl, label) -> VirtualKeyMaterial`, `revoke(token) -> RevokeOutcome`, `lookup(token) -> Option<VirtualKeyState>`
+  - Token format: `vk_` prefix + 6-char base32(FNV-1a 1-byte hash) + 22-char base64url(HMAC-SHA256 truncated 128 bits); constant-time compare via `subtle::ConstantTimeEq`
+  - TTL bounds enforced: `60s ≤ ttl ≤ 30d`
+- `pheno/bifrost/src/virtual_key_schema.sql` — inline-loaded migration
+- `pheno/bifrost/src/error.rs` — gated `From<rusqlite::Error>` impl for `Error::Database` (only under `virtual-keys` or `cache-sqlite` feature)
+- `pheno/bifrost/src/lib.rs` — `#[cfg(feature = "virtual-keys")] pub mod virtual_key;`
+- `pheno/bifrost/Cargo.toml` — `chrono`, `hmac`, `sha2`, `subtle`, `rand_core`, `base64` deps gated behind `virtual-keys` feature
+- Tests: `cargo test -p phenotype-bifrost --features "virtual-keys,cache-sqlite"` → **40/40 pass** (was 38 before this commit)
+
+### PR-9 libSQL/Turso storage — verified complete
+
+- `omniroute-rust/crates/omni-core/src/sqlite_storage.rs` (22.5KB) already shipped in prior session at `ab45e5d9b`
+- `cargo test --workspace -p omni-core` → **161 tests pass**
+- `cargo check --workspace` → clean (single unused-import warning)
+
+### PR-distribution-4 multi-tier parallel `up` — **deferred**
+
+Reason: `pheno-compose-driver::create_instance(name, config)` is a per-instance single-tier call. Multi-tier parallel requires `create_instance_batch(&[(tier, config)]) -> Vec<Result<Handle, DriverError>>` returning a `Vec` for `tokio::join!` fan-out. That's a ~200 LOC driver-side refactor, not a one-shot CLI patch. **Carried to dedicated sprint.**
+
+### Commits landed this turn
+
+```
+438854e  feat(bifrost): PR B5 VirtualKey mint + revoke (pheno #2)
+```
+
+### Open threads carried (unchanged)
+
+- PR-distribution-4 — driver-side batch API needed
+- B6 Bifrost shadow traffic ramp, B8 MCP client
+- PR-9..PR-25 of the 30-PR OmniRoute Rust rewrite plan
+
+### Process safety verified
+
+All `codex | forge | claude | ghostty` instances running; AGENTS.md Process Safety rule intact (no idle-killers fired).
+
+Branch: `feat/pr1-extend-omni-core` @ `24cd87ea2`
