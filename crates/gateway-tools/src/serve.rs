@@ -259,7 +259,7 @@ async fn cockpit() -> Response {
     <a href="/v1/splash">/v1/splash</a>
   </nav>
   <h1>sharecli gateway-tools <span class="pill">serve</span></h1>
-  <p class="meta">Backbone-2 family &middot; pulse-green <code>#3fb950</code> + warm-amber <code>#d29922</code> on panel <code>#161b22</code>. L114: nav header + module list added.</p>
+  <p class="meta">Backbone-2 family &middot; pulse-green <code>#3fb950</code> + warm-amber <code>#d29922</code> on panel <code>#161b22</code>. L114: nav header + module list added. L117: cycle-2026-07-06/07 build (91 PRs across 7 owned repos).</p>
   <p>Server-rendered HTML cockpit &mdash; the same data exposed over JSON at <code>/v1/util</code> is embedded inline below. <strong>{mod_count}</strong> utility modules currently registered.</p>
 
   <h2>Routes</h2>
