@@ -1,0 +1,23 @@
+[
+  {
+    "name": "Web shell (initial JS, gzipped)",
+    "path": "apps/web/build/client/_app/immutable/entry/*.js",
+    "limit": "120 KB",
+    "ignore": []
+  },
+  {
+    "name": "Per-route bundle (gzipped)",
+    "path": "apps/web/build/client/_app/immutable/nodes/*.js",
+    "limit": "50 KB"
+  },
+  {
+    "name": "shared-types (ESM, gzipped)",
+    "path": "packages/shared-types/dist/index.mjs",
+    "limit": "30 KB"
+  },
+  {
+    "name": "sdk-js (ESM, gzipped)",
+    "path": "packages/sdk-js/dist/index.mjs",
+    "limit": "20 KB"
+  }
+]
