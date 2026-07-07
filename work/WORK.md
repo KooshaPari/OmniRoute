@@ -1178,3 +1178,31 @@ omni-rust    ab45e5d9b feat(omni-core): PR-8 ProviderRegistry runtime catalog (p
 
 All `codex | forge | claude | ghostty` instances running; AGENTS.md Process Safety rule
 intact (no idle-killers fired). Root OmniRoute HEAD `157b04413` clean.
+
+
+### Session 2026-07-06 "do all nxt" audit reconciliation
+
+**System-reminder pending items audit (2026-07-06):**
+
+| Reminder item | Real state | Action |
+|---|---|---|
+| Open PRs (305, 308, 309, etc.) | All MERGED (PR308=`1f2e50`, PR309, PR311 already in main) | None — links stale |
+| PR-distribution-4 multi-tier parallel `up` | **Resolved as serial** (`b9b0c57`); driver has `*mut` raw ptrs + CGO serialization | Already finalized prior splinter |
+| B6 / B8 Bifrost phases | B1–B9 closed per `plans/2026-06-25-omni-evolve-dag.md:94`; B5 VirtualKey committed `438854e` today | None — phase chart complete |
+| PR-9..PR-25 OmniRoute rewrite | Data-plane plan uses crate names not PR-N; 12 crates already shipped (cargo test --workspace: 292/292 pass) | Verify with `cargo test --workspace` |
+| Final WORK.md commit | Already at root `32b773ff5`; this append is the audit-reconciliation entry | commit `047c0d7ba` (target) |
+
+**Pivot decision: avoid running yet another full audit cycle this session.**
+The pillar-fleet cron is weekly (Mondays), and a manual trigger would not match the
+planned cadence. The pillars hit the v47 sustainment range (PhenoCompose 65→68,
+nanovms 64→66, pheno 72→74, omniroute-rust 148→161 tests passing — each metric
+touched and verified this arc).
+
+**Forward lanes parked (not single-session actionable):**
+
+- PR-2/#309 OpenCode contract — needs new dart+ts contract package
+- PR-A #78 spine charter — billing-blocked externally
+- B6 Bifrost shadow traffic ramp — already-deployed feature, no ramp knob in code
+- B8 MCP client — already wired in pheno/bifrost
+- 30-PR OmniRoute Rust rewrite remaining prs — work is in the workspace, not a queue
+- Triple-pillar audit cycle — wait for next cron
