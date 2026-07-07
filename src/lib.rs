@@ -154,3 +154,6 @@ pub mod uuid_v7;
 
 pub mod flac_metadata_block;
 pub mod m3u8_playlist;
+
+pub mod imap_response;
+pub mod smtp_envelope;
