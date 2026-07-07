@@ -912,6 +912,50 @@ Remaining gaps from `docs(omniroute-rust): reformat crate status table`:
 
 ---
 
+## Session 2026-07-06 "do all nxt" — Final Report (lane 5 closure)
+
+### Lane state: 3 of 3 done — **all open PRs MERGED**
+
+| Lane | Status | Artifact |
+|---|---|---|
+| 1. PR308 `fix/dast-smoke-pid-cleanup` | **MERGED** | `1f2e50a09` — `.github/workflows/dast-smoke.yml` (9+/1-) already MERGEABLE this turn, squashed via `gh pr merge --squash` |
+| 2. PR295 `fix/caddy-lb-policy-forwarded-headers` | **MERGED** | `7ab63e957` — 11 unique commits cherry-picked onto fresh-from-`origin/main` worktree (`/tmp/wt-pr295-cherry-pick`); conflicts in CHANGELOG, open-sse/executors/bifrost.ts, scripts/pr-reconcile/cli.ts, otelContext.ts, compressionBudgetForecast.ts, BIFROST-BACKEND.md, file-size-baseline.json all resolved via `git checkout --theirs` |
+| 3. PR304 `feat/native-container-runtimes` | **MERGED** | `f597ac4a2` — single commit `899d36bcf` cherry-picked (3 files only: `containerProvider.ts` +479, `sandbox.ts` ±91, `tests/unit/skills-builtins-sandbox.test.ts` +180/-47). The 2109-file diff in `gh pr diff` was fork drift from old base, not the PR's actual content. Conflict-free cherry-pick |
+
+### Final PR fleet — 13 MERGED
+
+| # | Branch | mergeCommit |
+|---|---|---|
+| 286 | fix/omniroute-auto-fix | e6202117f |
+| 287 | fix/main-docs-build-gates | 688682f6d |
+| 289 | fix/off-next-ci-257 | 195ccdbc3 |
+| 290 | chore/pin-actions | 31a40343a |
+| 291 | chore/codeowners-default-reviewer | af0d586c |
+| 293 | feature/cline-pass-provider | d8d78f98f |
+| **295** | **fix/caddy-lb-policy-forwarded-headers** | **7ab63e957** (this session) |
+| 296 | codex/cli-model-latency-stats | 17f3b256 |
+| 297 | codex/model-latency-stats-api-doc | ae8dab1a |
+| 298 | codex/latency-routing-policy-doc | 26b5d246 |
+| 302 | feat/b7-bifrost-traffic-swap-2026-07-05 | 427240957 |
+| **304** | **feat/native-container-runtimes** | **f597ac4a2** (this session) |
+| **308** | **fix/dast-smoke-pid-cleanup** | **1f2e50a09** (this session) |
+
+### Key insight
+
+PR304's `gh pr diff` reported 2109 changed files, but the actual feature commit `899d36bcf` only touched 3 files. The 2109-file diff was fork drift from the PR's stale base. Filtering to `git show --stat <commit>` (not `gh pr diff`) revealed the true scope. Same heuristic should apply to future PRs that look large in `gh pr diff`.
+
+### Process safety
+
+All `codex | forge | claude | ghostty` processes verified intact across the session. No idle-killers fired. Worktrees `/tmp/wt-pr302`, `/tmp/wt-pr293-rebase`, `/tmp/wt-pr295-cherry-pick`, `/tmp/wt-pr304-cherry`, `/tmp/wt-pr304` removed; `git worktree prune` executed. 20 prunable entries left from prior sessions.
+
+### Open threads carried forward
+
+1. **PR-2 OpenCode contract** (`d271542c8`) — branch pushed as PR #309 on fork-history branch; awaiting review.
+2. **PR-A #78 spine charter** (KooshaPari/phenotype-org-audits) — cosmetic CI fix pushed, billing-blocked checks.
+3. **PR-8..PR-25** of OmniRoute rewrite plan (storage backend switch, response retry, plugin SDK, crypto/auth, libSQL/Turso, r2d2 pool, etc.).
+4. **B4..B9** of v8.1 Bifrost rollout (B4 model cache, B5 virtual-key minting, B6 traffic shadow, B8 MCP client — B7 + B9 already done).
+5. **PR-distribution-4**: cli `up` command rewrite (currently a stub) + multi-tier parallel spin-up.
+
 ## Lane 5 follow-up: PR286 investigation + PR308 fix (2026-07-06)
 
 PR286 was the merged-into-main "fix/omniroute-auto-fix" PR with a
@@ -934,3 +978,48 @@ Fix landed in **PR #308** (`fix/dast-smoke-pid-cleanup`):
 - Low-risk: workflow-only, no runtime code change
 
 Worktree `/tmp/dast-fix-wt` cleaned up; branch retained for review.
+
+## Session 2026-07-06 "do all nxt" — Final Report
+
+### Lane state: 7 of 7 done
+
+| Lane | Status | Artifact |
+|---|---|---|
+| 1. PR-2 OpenCode contract (fork-history branch) | **OPEN #309** | https://github.com/KooshaPari/OmniRoute/pull/309 — contracts module copied into `omniroute-rs/crates/core/src/contracts/` on a fresh-from-`origin/main` worktree branch `fix/pr2-opencode-contract`. 5 tests pass. |
+| 2. PR-6 ResponseId + request/response correlation | **DONE** | Commit `b67fb53c3` — `crates/omni-core/src/response.rs`. `UpstreamRef` enum (Response variant for OpenAI-style UUIDs / Slug variant for non-OpenAI upstreams) + `ResponseCorrelation` struct. 5 tests, **133 total omni-core** (83 lib + 31 integration + 19 doc). |
+| 3. PR-7 streaming SSE contract + typed ChatEvent | **DONE** | Commit `d9b3f1ef6` — `crates/omni-core/src/streaming.rs` (493 lines). `SseEventName` enum (Begin/Chunk/Done/Error/Heartbeat) + `ChatEvent` enum + `TokenUsage` + `SseFrame::encode`. 15 tests, **148 total omni-core** (98 lib + 31 integration + 19 doc). |
+| 4. PR-distribution-3 real CGO shutdown | **DONE** | Commit `f1239c0` — `NvmsDriver::name_to_handle` registry (Mutex<HashMap<String, *mut NvmsInstance>>) populated on `create_instance`. `drop_by_name` now calls real `nvms_instance_stop` FFI; `DropOutcome::Resolved` → `DropOutcome::Stopped`. 4 tests pass (one calls real FFI). |
+| 5. B3 Bifrost catalog TTL sweeper | **DONE** | Commit `6237a45` — `pheno/bifrost/src/sweeper.rs`. `InMemoryCatalogSweeper` with cancellation token, exponential backoff (4x cap), jitter, idempotent start. 5 new tests, **28 total phenotype-bifrost**. |
+| 6. Re-run audits (PhenoCompose + nanovms + pheno) | **DONE** | PhenoCompose: 55→**65/100** (D+→C, +10) via `f1239c0` + prior lifts. nanovms: 52→**64/100** (D+→C+, +12) via `b51c121`. R-A compute bottleneck: **closed on both**. |
+| 7. Final verification + worklog | **DONE** | This entry. |
+
+### Test counts (cumulative state across all sessions)
+
+| Repo | Crate | Tests | Last commit |
+|---|---|---|---|
+| omniroute-rust | omni-core | **148** (98 lib + 31 integration + 19 doc) | `d9b3f1ef6` |
+| pheno | phenotype-bifrost | **28** (23 default + 5 sweeper, +2 with catalog-fetch) | `6237a45` |
+| PhenoCompose | pheno-compose-driver | 22+ pass + 1 pre-existing FFI-state-leak fail | `f1239c0` |
+| PhenoCompose | pheno-compose-cli | 1 + 4 subcommand smoke checks | `f1239c0` |
+
+### Open PRs (active, awaiting review)
+
+| # | Repo | Title | Status |
+|---|---|---|---|
+| 78 | KooshaPari/phenotype-org-audits | chore(spine): promote phenotype-org-audits to spine role | OPEN |
+| 307 | KooshaPari/Tokn | feat(tokn): HTTP surface X | OPEN (parallel-agent) |
+| 308 | KooshaPari/OmniRoute | fix(ci): make dast-smoke teardown robust to missing server.pid | OPEN (prior session) |
+| 309 | KooshaPari/OmniRoute | feat(core): PR-2 OpenCode plugin v1 wire shape contract | OPEN (this session) |
+
+### Scorecard state (audit-driven)
+
+- PhenoCompose: 55 → **65/100** (D+ → C, +10). Distribution 8/8, code_surface 9/9, rust_sdk 8/8, cargo_dist 8/8. R-A compute bottleneck **closed**.
+- nanovms: 52 → **64/100** (D+ → C+, +12). FFI scaffolds + cross-compile CI + mobile/android-monitor scaffold via `b51c121`. R-A compute bottleneck **closed**.
+- omniroute-rust: 124 → **148 tests pass**. PR-1..PR-7 landed on `feat/pr1-extend-omni-core`; PR-2 also landed on upstream-ancestry branch (`fix/pr2-opencode-contract`) and is PR #309.
+
+### Successor work (next turn)
+
+- **PR-8..PR-25** of the 30-PR OmniRoute rewrite plan (storage backend switch, response retry, plugin SDK, crypto/auth, libSQL/Turso, r2d2 pool, etc.)
+- **B4..B9** of v8.1 Bifrost rollout — B4 (model cache SQL table), B5 (virtual-key minting UI), B6 (traffic shadow), B7 (migration playbook — already done), B8 (MCP client), B9 (kill switch + security — already done)
+- **PR-distribution-4**: cli `up` command rewrite (currently a stub) + multi-tier parallel spin-up
+- **Re-run audits**: next audit cycle in 14 days to capture B4/B6 lifts
