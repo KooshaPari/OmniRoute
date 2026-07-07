@@ -1,4 +1,4 @@
-name: Release
+name: release
 
 on:
   push:
@@ -9,71 +9,43 @@ permissions:
 
 jobs:
   desktop:
-    name: Build desktop (Tauri 2)
+    name: Tauri build (${{ matrix.target }})
     strategy:
       fail-fast: false
       matrix:
-        os: [macos-latest, windows-latest, ubuntu-latest]
-    runs-on: ${{ matrix.os }}
-    timeout-minutes: 60
+        include:
+          - target: macos-latest    # universal: aarch64 + x86_64
+            args: --target universal-apple-darwin
+          - target: windows-latest
+            args: --target x86_64-pc-windows-msvc
+          - target: ubuntu-latest
+            args: --target x86_64-unknown-linux-gnu
+    runs-on: ${{ matrix.target }}
+    timeout-minutes: 120
     steps:
-      - uses: actions/checkout@v4
-
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
       - uses: pnpm/action-setup@v4
-        with:
-          version: 10.33.2
-
+        with: { version: 10 }
       - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: pnpm
-
-      - uses: oven-sh/setup-bun@v1
-        with:
-          bun-version: 1.3.11
-
-      - uses: dtolnay/rust-toolchain@stable
-        with:
-          toolchain: 1.85
-
-      - name: Install
-        run: pnpm install --frozen-lockfile
-
-      - name: Build packages
-        run: pnpm build:packages
-
-      - name: Build web
-        run: pnpm build:web
-
-      - name: Build Tauri bundle
-        uses: tauri-apps/tauri-action@v0
+        with: { node-version: 22, cache: pnpm }
+      - uses: dtolnay/rust-toolchain@5c142a9a4cb939ce7a7645f2e9651ab4428b7832
+        with: { toolchain: stable }
+      - uses: Swatinem/rust-cache@v2
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter web build
+      - uses: tauri-apps/tauri-action@2d370b56ce63ae0a3e4f2c4ab85c6b8a4f1a8d4b
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
+          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+          APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
         with:
-          projectPath: apps/desktop
+          args: ${{ matrix.args }}
           tagName: ${{ github.ref_name }}
-          releaseName: "OmniRoute v4 ${{ github.ref_name }}"
-          releaseBody: "OmniRoute v4 desktop release"
+          releaseName: "argismonitor ${{ github.ref_name }}"
+          releaseBody: "Automated Tauri build for ${{ github.ref_name }}."
           releaseDraft: true
           prerelease: false
-
-  web:
-    name: Build + publish web
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 10.33.2
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: pnpm
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm build:packages
-      - run: pnpm build:web
-      - uses: actions/upload-artifact@v4
-        with:
-          name: web-build
-          path: apps/web/build

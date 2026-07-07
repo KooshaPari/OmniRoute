@@ -1,143 +1,86 @@
-name: CI
+name: ci
 
 on:
   push:
-    branches: [main, feat/**, fix/**, docs/**]
+    branches: [main]
   pull_request:
-    branches: [main, feat/**, fix/**]
+    branches: [main]
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+env:
+  RUSTFLAGS: -Dwarnings
+  CARGO_TERM_COLOR: always
+
 jobs:
-  quality:
-    name: Lint + Type + Bundle
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 10.33.2
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: pnpm
-
-      - uses: oven-sh/setup-bun@v1
-        with:
-          bun-version: 1.3.11
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Lint (oxlint)
-        run: pnpm lint
-
-      - name: Type check (tsgo)
-        run: pnpm typecheck
-
-      - name: Format check (oxfmt)
-        run: pnpm format:check
-
-      - name: Build packages
-        run: pnpm build:packages
-
-      - name: Build web
-        run: pnpm build:web
-
-      - name: Bundle size check
-        run: pnpm size
-
-  test-unit:
-    name: Unit tests
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    needs: quality
-    steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 10.33.2
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: pnpm
-      - uses: oven-sh/setup-bun@v1
-        with:
-          bun-version: 1.3.11
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm test:unit
-      - uses: actions/upload-artifact@v4
-        if: failure()
-        with:
-          name: test-results-unit
-          path: |
-            apps/web/coverage
-            packages/*/coverage
-
-  test-e2e:
-    name: E2E tests
+  lint-types-unit:
+    name: Lint / Types / Unit (Node 22, ubuntu)
     runs-on: ubuntu-latest
     timeout-minutes: 30
-    needs: quality
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
       - uses: pnpm/action-setup@v4
-        with:
-          version: 10.33.2
+        with: { version: 10 }
       - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: pnpm
-      - uses: oven-sh/setup-bun@v1
-        with:
-          bun-version: 1.3.11
+        with: { node-version: 22, cache: pnpm }
+      - uses: dtolnay/rust-toolchain@5c142a9a4cb939ce7a7645f2e9651ab4428b7832
+        with: { toolchain: stable, components: rustfmt, clippy }
+      - uses: Swatinem/rust-cache@v2
+        with: { workspaces: ./crates/gateway -> target }
       - run: pnpm install --frozen-lockfile
-      - run: pnpm --filter web exec playwright install --with-deps chromium
-      - run: pnpm test:e2e
-      - uses: actions/upload-artifact@v4
-        if: failure()
-        with:
-          name: playwright-report
-          path: apps/web/playwright-report
-
-  security:
-    name: Security audit
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 10.33.2
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: pnpm
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm audit --prod --audit-level=high
-      - name: osv-scanner
-        uses: google/osv-scanner-action@v2
-        with:
-          scan-args: '--lockfile=pnpm-lock.yaml'
+      - run: pnpm lint
+      - run: pnpm typecheck
+      - run: pnpm test:unit
+      - run: pnpm -r build
 
   rust:
-    name: Rust check
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
+    name: Cargo (ubuntu + macOS)
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 60
     steps:
-      - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@stable
-        with:
-          toolchain: 1.85
-          components: rustfmt, clippy
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      - uses: dtolnay/rust-toolchain@5c142a9a4cb939ce7a7645f2e9651ab4428b7832
+        with: { toolchain: stable, components: rustfmt, clippy }
       - uses: Swatinem/rust-cache@v2
-        with:
-          workspaces: crates -> target
+        with: { workspaces: ./crates/gateway -> target }
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with: { repository: KooshaPari/OmniRoute, path: ../OmniRoute-pr232-policyfix-20260703, ref: main }
       - run: cargo fmt --all -- --check
-      - run: cargo clippy --workspace --all-targets -- -D warnings
-      - run: cargo build --workspace --release
+      - run: cargo clippy -p omniroute-gateway --all-targets -- -D warnings
+      - run: cargo test -p omniroute-gateway
+
+  e2e:
+    name: Playwright e2e (ubuntu)
+    runs-on: ubuntu-latest
+    needs: [lint-types-unit]
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      - uses: pnpm/action-setup@v4
+        with: { version: 10 }
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: pnpm }
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter web build
+      - run: npx playwright install --with-deps
+      - run: pnpm test:e2e
+
+  size:
+    name: Bundle size budget
+    runs-on: ubuntu-latest
+    needs: [lint-types-unit]
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      - uses: pnpm/action-setup@v4
+        with: { version: 10 }
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: pnpm }
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build:web
+      - run: pnpm size

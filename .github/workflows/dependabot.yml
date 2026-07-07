@@ -1,0 +1,31 @@
+name: dependabot
+on: { workflow_dispatch: {} }
+
+jobs:
+  enable:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      - run: |
+          mkdir -p .github
+          cat > .github/dependabot.yml <<'YAML'
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule: { interval: weekly }
+    groups: { argis: { patterns: ['*'] } }
+  - package-ecosystem: cargo
+    directory: /crates
+    schedule: { interval: weekly }
+  - package-ecosystem: cargo
+    directory: /apps/desktop/src-tauri
+    schedule: { interval: weekly }
+  - package-ecosystem: github-actions
+    directory: /
+    schedule: { interval: weekly }
+YAML
+      - uses: stefanzweifel/git-auto-commit-action@4e9e76b1b65e7667c34bf1d0e7e9e10d1bb4f5e1
+        with: { commit_message: 'chore: enable dependabot' }
+      - run: gh pr create --title 'chore: enable dependabot' --body 'Auto-generated' --base main || true
+        env: { GH_TOKEN: ${{ secrets.GITHUB_TOKEN }} }

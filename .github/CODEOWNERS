@@ -1,0 +1,5 @@
+# Default owners
+*           @kooshapari
+
+# CI changes require review from the platform team
+/.github/   @kooshapari
