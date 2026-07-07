@@ -3,7 +3,7 @@
 // Skips gracefully if cargo/rustc is unavailable.
 
 import { spawnSync } from 'node:child_process';
-import { existsSync } from 'node:fs';
+import { existsSync, symlinkSync } from 'node:fs';
 import { dirname, resolve, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -46,11 +46,10 @@ console.log(`[tokn] built in ${((Date.now() - t0) / 1000).toFixed(1)}s → ${rel
 // path work without modification. On macOS, cargo produces
 // libomniroute_tokn_ffi.dylib; the symlink makes omniroute_tokn_ffi.node resolve
 // to the same file.
-const linkTarget = require('path').join(WS_ROOT, 'target', 'release', 'omniroute_tokn_ffi.node');
-const fs = require('fs');
+const linkTarget = join(WS_ROOT, 'target', 'release', 'omniroute_tokn_ffi.node');
 try {
-  if (fs.existsSync(releaseBin) && !fs.existsSync(linkTarget)) {
-    fs.symlinkSync(releaseBin, linkTarget);
+  if (existsSync(releaseBin) && !existsSync(linkTarget)) {
+    symlinkSync(releaseBin, linkTarget);
     console.log(`[tokn] linked ${linkTarget} -> ${releaseBin}`);
   }
 } catch (err) {
