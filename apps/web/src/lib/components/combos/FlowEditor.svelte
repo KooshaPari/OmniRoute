@@ -1,6 +1,12 @@
 <script lang="ts">
   import { SvelteFlow, Background, Controls, MiniMap, type Node, type Edge } from '@xyflow/svelte';
   import '@xyflow/svelte/dist/style.css';
+import RouterNode from './nodes/RouterNode.svelte';
+import ModelCardNode from './nodes/ModelCardNode.svelte';
+import ConditionNode from './nodes/ConditionNode.svelte';
+import FallbackNode from './nodes/FallbackNode.svelte';
+import QuotaBucketNode from './nodes/QuotaBucketNode.svelte';
+import RejectNode from './nodes/RejectNode.svelte';
 
   type ComboNodeData = {
     label: string;
@@ -67,7 +73,14 @@
   let edges = $state(initialEdges);
   $effect(() => { onchange?.(nodes, edges); });
 
-  const nodeTypes = {};
+  const nodeTypes = {
+    router: RouterNode,
+    model: ModelCardNode,
+    condition: ConditionNode,
+    fallback: FallbackNode,
+    quota: QuotaBucketNode,
+    reject: RejectNode,
+  };
 </script>
 
 <div class="border border-gray-200 rounded-lg h-[500px] bg-gray-50">
