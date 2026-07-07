@@ -1,5 +1,5 @@
 import { Hono } from 'hono';
-import { kbridge, kbridgeAvailable } from '../kbridge/client';
+import { kbridge, kbridgeAvailable } from '../../kbridge/client';
 
 export const gatewayRoutes = new Hono()
   .get('/ping', async (c) => {
