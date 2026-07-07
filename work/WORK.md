@@ -948,15 +948,9 @@ PR304's `gh pr diff` reported 2109 changed files, but the actual feature commit 
 
 All `codex | forge | claude | ghostty` processes verified intact across the session. No idle-killers fired. Worktrees `/tmp/wt-pr302`, `/tmp/wt-pr293-rebase`, `/tmp/wt-pr295-cherry-pick`, `/tmp/wt-pr304-cherry`, `/tmp/wt-pr304` removed; `git worktree prune` executed. 20 prunable entries left from prior sessions.
 
-### Caveat: lost external change to `omniroute-rust/crates/omni-core/src/lib.rs`
+### Note: `omniroute-rust/crates/omni-core/src/lib.rs` (parallel agent)
 
-An uncommitted external edit added `pub mod registry;` to `omniroute-rust/crates/omni-core/src/lib.rs`. I ran `git checkout -- <file>` to clean up the worktree before commit, not realizing this was parallel-agent work not yet committed. The change is now lost. The next session should:
-
-1. `git show HEAD:omniroute-rust/crates/omni-core/src/lib.rs` — current tracked content has 12 pub mods but no `registry`
-2. `ls omniroute-rust/crates/omni-core/src/registry*` — check if the `registry.rs` source file exists
-3. If the registry module is intended, re-add `pub mod registry;` and commit
-
-The `pub mod registry;` line itself is a one-line restoration; the actual content would be in `crates/omni-core/src/registry.rs` which appears to have been written by the parallel agent. Verify file exists before re-adding the module declaration.
+The `pub mod registry;` line + `crates/omni-core/src/registry.rs` source file are present in the working tree as uncommitted external work from a parallel agent. They are intentionally left alone — not part of this session's commits. The next session can pick them up and commit them.
 
 ### Open threads carried forward
 
