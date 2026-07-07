@@ -1,3 +1,7 @@
+## [0.2.0] - 2026-07-04
+
+See GitHub releases for full list.
+
 # Changelog
 
 All notable changes to **sharecli** are documented here.
