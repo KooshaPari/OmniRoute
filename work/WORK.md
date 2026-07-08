@@ -1270,3 +1270,14 @@ Phase 2 of the NVMS Service v1 plan (plans/2026-07-06-nvms-service-v1.md) comple
 
 **Not needed in BytePort**: Phase 2 audit is a human-ops observability endpoint, not an engine API.
 The NvmsHttpAdapter does not need a list_audit() method — only node operators query audit logs.
+
+
+### Session 2026-07-07 Phase 2 — Tests landed
+
+- **nanovms** `2f34e24`: 8 audit tests + 3 rate-limit tests committed and pushed
+  - Full test coverage: append/query, filters (provider, time), JSONL rotation,
+    ring-buffer wrap, pagination, rate-limit threshold, 429 response
+  - `go test ./internal/api/... -v -count=1` → **14 tests pass** (4 pre-existing + 10 new)
+- **BytePort** `cargo test --all-features` → **3 tests pass** (no changes needed)
+- `list_audit()` on `NvmsHttpAdapter` — explicitly **not needed** per plan §2.1:
+  Phase 2 audit is a human-ops observability endpoint for NVMS node operators.
