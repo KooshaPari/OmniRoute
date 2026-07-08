@@ -4,6 +4,7 @@ version.workspace = true
 edition.workspace = true
 license.workspace = true
 description = "OmniRoute SQLite storage layer (call_logs, usage_history, keys, combos)"
+include = ["src/**/*", "migrations/**/*.sql"]
 
 [dependencies]
 omniroute-core = { path = "../omniroute-core" }

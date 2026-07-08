@@ -11,6 +11,7 @@ path = "src/main.rs"
 
 [dependencies]
 omniroute-core = { path = "../omniroute-core" }
+sqlx = { workspace = true }
 omniroute-storage = { path = "../omniroute-storage" }
 omniroute-providers = { path = "../omniroute-providers" }
 omniroute-pipeline = { path = "../omniroute-pipeline" }
@@ -20,6 +21,7 @@ axum = { workspace = true }
 tower = { workspace = true }
 tower-http = { workspace = true }
 tokio = { workspace = true }
+tempfile = "3"
 tokio-stream = { workspace = true }
 futures = { workspace = true }
 serde = { workspace = true }
@@ -40,6 +42,10 @@ bytes = { workspace = true }
 http = { workspace = true }
 mime = { workspace = true }
 clap = { workspace = true }
+rmp-serde = { workspace = true }
+rmp = { workspace = true }
+tokio-util = { workspace = true }
+
 config = { workspace = true }
 utoipa = { workspace = true }
 dashmap = { workspace = true }
