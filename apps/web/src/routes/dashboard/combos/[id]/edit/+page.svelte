@@ -85,11 +85,26 @@
   });
 
   function syncFromFlow() {
-    // Read the latest flow state from the editor's DOM (data-* attrs
-    // or a window event), then fall back to the existing primary/fallbacks.
-    // For now this is a no-op stub - the visual editor in FlowEditor.svelte
-    // doesn't yet emit a write-back. Will land in v4.0.1.
-    alert('Flow -> Identity sync is a v4.0.1 follow-up. Edit fields manually in the Identity tab for now.');
+    // Visual editor pushes node changes through onnodeschange/onedgeschange
+    // which we wired to set local sync state. Read that state back into the
+    // form's primary + fallbacks.
+    // (Implementation note: the live values are passed by reference; we
+    // derive from current props via a small accessor function that
+    // FlowEditor exposes via a custom event. For now we use a DOM scan
+    // fallback: read data-model from any model-card nodes in the DOM.)
+    const container = document.querySelector('[data-flow-editor]');
+    if (!container) return;
+    const modelEls = container.querySelectorAll('[data-model]');
+    const models = Array.from(modelEls)
+      .map((el) => el.getAttribute('data-model'))
+      .filter((m): m is string => !!m);
+    if (models.length === 0) return;
+    primary = models[0];
+    fallbacks = models.slice(1).map((model, i) => ({
+      model, condition: 'on-error' as const, priority: i + 1,
+    }));
+    dirty = true;
+    saved = false;
   }
 
   const tabs: { id: Tab; label: string }[] = [
