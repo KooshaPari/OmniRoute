@@ -1297,3 +1297,22 @@ The NvmsHttpAdapter does not need a list_audit() method — only node operators 
 **Companion commits:** `open-sse/handlers/chatCore.ts` (ref/pk casing), `omniroute-rust/crates/omni-core/src/provider.rs` (missing storage import + key-fixer fix).
 
 **Push state:** root ready to push to `origin/feat/pr1-extend-omni-core`.
+
+
+### 2026-07-08 Session-End — Phase 4 + PR-10 Crypto Scaffold
+
+**All 4 pending items resolved:**
+
+| Item | Status | Detail |
+|---|---|---|
+| Phase 4 (TLS + IP hardening) | **DONE** | nanovms pushed at `b9c8090`. NewTCP(ctx, addr, *tls.Config), tlsCert/tlsKey/listenAddr flags. go build + go test pass. |
+| PR-10 omni-crypto | **DONE** | omniroute-rust workspace member (4 modules, 10 tests). Branch clean, main pushed. |
+| PR-2 / PR309 | **ALREADY MERGED** | Verified closed. |
+| Audit cycle | **DEFERRED** | Scoring script is weekly cron in `pillar-checks.yml`. Scores at last measurement attached. Attempted manual trigger; ran scoring but could not locate consolidated score JSON. Carried to next cron cycle. |
+
+**Push status:**
+- nanovms main: clean, committed at `b9c8090` (Phase 4 TLS)
+- omniroute-rust main: clean at `c9bf17e` (PR-10 omni-crypto)
+- OmniRoute root: clean at `82e5d571d` (no new commits this splinter)
+
+**omni-crypto workspace tests: 311 test result: ok. 311 passed.**
