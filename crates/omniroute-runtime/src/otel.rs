@@ -15,12 +15,12 @@
 //! ```
 
 use opentelemetry::trace::TracerProvider as _;
-use opentelemetry_sdk::trace::TracerProvider;
+use opentelemetry_sdk::trace::SdkTracerProvider;
 use tracing_subscriber::prelude::*;
 
 /// Guard that flushes and shuts down the OTel pipeline on drop.
 pub struct TelemetryGuard {
-    _provider: TracerProvider,
+    _provider: SdkTracerProvider,
 }
 
 impl TelemetryGuard {
@@ -50,10 +50,7 @@ pub fn init_from_env() -> Option<TelemetryGuard> {
         return None;
     }
 
-    let exporter = match opentelemetry_otlp::SpanExporter::builder()
-        .with_tonic()
-        .build()
-    {
+    let exporter = match opentelemetry_otlp::SpanExporter::builder().build() {
         Ok(e) => e,
         Err(e) => {
             tracing::warn!("failed to build OTLP span exporter: {e}; telemetry disabled");
@@ -61,8 +58,8 @@ pub fn init_from_env() -> Option<TelemetryGuard> {
         }
     };
 
-    let provider = TracerProvider::builder()
-        .with_batch_exporter(exporter, opentelemetry_sdk::runtime::Tokio)
+    let provider = SdkTracerProvider::builder()
+        .with_batch_exporter(exporter)
         .build();
 
     Some(TelemetryGuard { _provider: provider })
