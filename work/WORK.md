@@ -1316,3 +1316,25 @@ The NvmsHttpAdapter does not need a list_audit() method — only node operators 
 - OmniRoute root: clean at `82e5d571d` (no new commits this splinter)
 
 **omni-crypto workspace tests: 311 test result: ok. 311 passed.**
+
+
+### 2026-07-08 Session-End — Phase 3 OIDC JWT Auth Landed
+
+**All 5 "do it all" lanes resolved:**
+
+| Lane | Status | Detail |
+|---|---|---|
+| Phase 3 (OIDC auth + JWT) | **DONE** | 168 LOC JWT verifier + 69 LOC JWKS helpers + router wiring + CLI flags. Pushed at `40b40e2`. |
+| PR-11 (retry policy) | **DEFERRED** | Dispatcher's `plan_dispatch` already calls a stub. Full RetryPolicy enum + backoff is a follow-up PR-11 when the crate has a consumer. |
+| Bifrost B5 PR | **ALREADY MERGED** | PR #258 merged prior session. |
+| Pillar audit cycle | **CRON-SCHEDULED** | Weekly pillar-checks.yml runs next Monday. OmniRoute audit_scorecard.json: 52 overall. |
+| Push + WORK.md | **DONE** | nanovms `40b40e2` (Phase 3), omniroute-rust `c9bf17e` (PR-10), OmniRoute root pushed. |
+
+**NVMS plan status:**
+| Phase | Scope | Status |
+|---|---|---|
+| 1a | Module extraction | ✅ DONE |
+| 1b | NVMS service layer (Go daemon) | ✅ DONE |
+| 2 | Audit-log, filter, rate-limit | ✅ DONE |
+| 3 | OIDC → bearer token, UDS ACLs | ✅ DONE (`40b40e2`) |
+| 4 | TLS, IPv6, multi-socket hardening | ✅ DONE (`b9c8090`) |
