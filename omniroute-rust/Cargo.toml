@@ -13,6 +13,7 @@ members = [
     "crates/omni-telemetry",
     "crates/omni-cli",
     "crates/omni-sdk",
+    "crates/omni-crypto",
 ]
 
 [workspace.package]

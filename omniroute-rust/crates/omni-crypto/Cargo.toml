@@ -1,0 +1,28 @@
+[package]
+name = "omni-crypto"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+
+[dependencies]
+sha2 = "0.10"
+hmac = "0.12"
+rand = "0.8"
+# workspace deps
+serde = { workspace = true, features = ["derive"] }
+rand_core = "0.6"
+base64 = "0.22"
+thiserror = { workspace = true }
+
+# local deps (not in workspace)
+blake3 = "1"
+hex = "0.4"
+ed25519-dalek = "2"
+getrandom = "0.2"
+
+[dev-dependencies]
+rand = { workspace = true }
+
+[features]
+default = []
