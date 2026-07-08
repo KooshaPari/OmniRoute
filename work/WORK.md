@@ -41,8 +41,8 @@ this DAG.
 
 ```text
 ROOT-WORK-HANDOFF
-|- PR286-OMNIROUTE-AUTO-FIX           [wip]
-|  |- current head                    [wip] `1acbbf4a08752fdba995388f43bdc336bc628cb9`
+|- PR286-OMNIROUTE-AUTO-FIX           [ok] MERGED e6202117f
+|  |- current head                    [ok] `1acbbf4a08752fdba995388f43bdc336bc628cb9`
 |  |- known green gates               [ok] docs-check, typecheck-core, db-rules, known-symbols, route-guard
 |  |- known red gates                 [wip] Vitest/MCP shard set; need actionable failing logs
 |  |- next                           [wip] wait for readable CI logs, then patch first concrete regression
@@ -1206,3 +1206,15 @@ touched and verified this arc).
 - B8 MCP client — already wired in pheno/bifrost
 - 30-PR OmniRoute Rust rewrite remaining prs — work is in the workspace, not a queue
 - Triple-pillar audit cycle — wait for next cron
+
+## Session 2026-07-07 — "do all" parallel-agent dispatch + t11 gate fix
+
+### Accomplished this session
+
+| Item | Status | Detail |
+|---|---|---|
+| **Parallel-agent dispatch (6 lanes)** | Executed via forge agents | PR-2 OpenCode contract extension (Rust: `927b68e1a`); Bifrost shadow dispatch already wired; pillar-audit script executed (scores captured); PR-distribution-4 serial verified; PRs 305/308/309 MERGED; PR-9..PR-25 workspace verified |
+| **Remote base shift** | Detected + reconciled | Parallel agent force-pushed `feat/pr1-extend-omni-core` to `58a7dd787` (3099 new commits: kbridge, pipeline, providers workspace). Rebased to re-apply t11 fix. |
+| **t11 quality gate fix** | `ee32d8b17` | `open-sse/handlers/chatCore.ts:3851`: replaced `{} as any` with `{} satisfies ProviderConfig`. Budget was 0; shadow-dispatch site introduced `any` post-merge. All quality gates green (t11, cycles, typecheck). |
+| **dispatcher capability-check fix** | `9dd567e3d` | `plan_via_provider` bypassed capability checks when preferred_provider was set. Test added. `cargo test --workspace` → 301 pass. |
+| **Push to origin** | `ee32d8b17` | Force-pushed to remote after remote base shift. CI gates passing. |
