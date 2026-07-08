@@ -86,3 +86,24 @@ debug = true
 [profile.dev]
 opt-level = 0
 debug = true
+
+# === LINT BASELINE (Tier 1.3) =====================================================
+# Workspace-wide lint policy. Member crates opt in via `lints.workspace = true`.
+# `cargo clippy --workspace --all-targets -- -D warnings` is enforced in CI.
+# Lints allowed at the workspace level are deprecated idioms that the data plane
+# still relies on (match_same_arms in retry logic, module_name_repetitions in
+# provider modules).
+[workspace.lints.clippy]
+pedantic = { level = "warn", priority = -1 }
+# Allowed pedantic lints:
+module_name_repetitions = "allow"   # e.g. ProviderRegistry inside provider module
+match_same_arms = "allow"          # retry classification
+must_use_candidate = "allow"       # Provider implementations have side effects
+missing_errors_doc = "allow"       # rustdoc errors_doc not yet a stable API
+missing_panics_doc = "allow"       # ditto
+# Hard-deny correctness lints that clippy warns about
+correctness = { level = "deny", priority = -1 }
+suspicious = { level = "deny", priority = -1 }
+# warn-by-default — currently MSRV 1.75 doesn't support inline_const_with_stable_features
+# so we silence the rust::Lint coupling
+unnecessary_self_imports = "deny"

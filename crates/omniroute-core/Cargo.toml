@@ -6,10 +6,6 @@ rust-version.workspace = true
 license.workspace = true
 description = "OmniRoute core types, traits, and errors — no tokio/hyper dependency"
 
-[lints.rust]
-unsafe_code = "forbid"
-missing_docs = "warn"
-
 [dependencies]
 async-trait = { workspace = true }
 serde = { workspace = true }
@@ -28,3 +24,7 @@ tokio = { version = "1", default-features = false, features = ["sync"] }
 [dev-dependencies]
 serde_json = { workspace = true }
 tokio = { workspace = true }
+
+[lints]
+workspace = true
+
