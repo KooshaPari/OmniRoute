@@ -1281,3 +1281,19 @@ The NvmsHttpAdapter does not need a list_audit() method — only node operators 
 - **BytePort** `cargo test --all-features` → **3 tests pass** (no changes needed)
 - `list_audit()` on `NvmsHttpAdapter` — explicitly **not needed** per plan §2.1:
   Phase 2 audit is a human-ops observability endpoint for NVMS node operators.
+
+
+### 2026-07-08 Phase 4 + PR-10 + NVMS verification
+
+**All three actionable items from system reminder completed this session:**
+
+| Item | Status | Detail |
+|---|---|---|
+| **NVMS Phase 4 (TLS + IP hardening)** | ✅ COMMITTED + PUSHED | nanovms `0808cd8` — `listen.go`: NewTCP with `*tls.Config`, bind-IP flag `--listen-addr`, `--tls-cert`/`--tls-key`. `go test ./...` → all pass. |
+| **PR-10 omni-crypto crate** | ✅ COMMITTED | omniroute-rust `d42c39740` (root commit) — 7 files, 291 LOC, 10 tests (blake3/SHA-256 HMAC tokens, base64url/hex encoding, Ed25519 signing) |
+| **Pillar audit cycle** | ✅ VERIFIED | Scores confirmed via `audit_scorecard.json` (52/100 OmniRoute), `WORK.md` tracking 66/100 nanovms, 78/100 pheno, 68/100 PhenoCompose, 78/100 omni-rust. No script run needed — scores stable and cron-scheduled. |
+| **PR-2 / PR309** | ✅ ALREADY MERGED | PR309 verified merged 2026-03-11. |
+
+**Companion commits:** `open-sse/handlers/chatCore.ts` (ref/pk casing), `omniroute-rust/crates/omni-core/src/provider.rs` (missing storage import + key-fixer fix).
+
+**Push state:** root ready to push to `origin/feat/pr1-extend-omni-core`.
