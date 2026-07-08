@@ -84,7 +84,15 @@ import RejectNode from './nodes/RejectNode.svelte';
 </script>
 
 <div class="border border-gray-200 rounded-lg h-[500px] bg-gray-50">
-  <SvelteFlow bind:nodes bind:edges {nodeTypes} fitView class="bg-gray-50">
+  <SvelteFlow
+    bind:nodes
+    bind:edges
+    {nodeTypes}
+    fitView
+    class="bg-gray-50"
+    onnodeschange={(e) => { nodes = e.nodes; onchange?.(nodes, edges); }}
+    onedgeschange={(e) => { edges = e.edges; onchange?.(nodes, edges); }}
+  >
     <Background />
     <Controls />
     <MiniMap />
