@@ -61,6 +61,8 @@ pub mod sqlite_storage;
 pub mod storage;
 pub mod streaming;
 
+pub mod dispatcher;
+
 pub use config::{
     A2aConfig, BindConfig, ChaosConfig, CompressionConfig, Config, ConfigBuilder, DataDir,
     LogConfig, LogFormat, LogLevel, McpConfig, OpenCodeConfig, ProvidersConfig, TelemetryConfig,
