@@ -1218,3 +1218,55 @@ touched and verified this arc).
 | **t11 quality gate fix** | `ee32d8b17` | `open-sse/handlers/chatCore.ts:3851`: replaced `{} as any` with `{} satisfies ProviderConfig`. Budget was 0; shadow-dispatch site introduced `any` post-merge. All quality gates green (t11, cycles, typecheck). |
 | **dispatcher capability-check fix** | `9dd567e3d` | `plan_via_provider` bypassed capability checks when preferred_provider was set. Test added. `cargo test --workspace` → 301 pass. |
 | **Push to origin** | `ee32d8b17` | Force-pushed to remote after remote base shift. CI gates passing. |
+
+## Session 2026-07-07 "do all enxt" — Final Report
+
+### Lane state: 2 of 2 done
+
+| # | Lane | Status | Artifact |
+|---|---|---|---|
+| 1 | **PR-9 dispatch engine** | **DONE** | `omniroute-rust` commits `459e1beca` + `9dd567e3d`: `pub mod dispatcher` registered in lib.rs (line 62). `dispatch.rs` (~430 lines): `DispatchRequest`/`DispatchPlan`/`plan_dispatch()` with capability-based provider selection + `build_plan()`. 9 new tests. **170 omni-core tests pass** (120 lib + 31 integration + 19 doc). Full workspace: **301 tests pass**. |
+| 2 | **B5 VirtualKey mint + revoke** | **DONE** | `pheno` commit `438854e` (parallel-agent landed) — `VirtualKey` struct with `mint()`/`revoke()` methods. 4 new tests. **42 phenotype-bifrost tests pass**. Audit updated: 78/100 (B-). |
+
+### Test counts (final across all repos)
+
+| Repo | Crate | Tests | Last commit |
+|---|---|---|---|
+| **omniroute-rust** | omni-core (full workspace) | **301** (170 core + rest) | `b58039e82` |
+| **pheno** | phenotype-bifrost | **42** | `438854e` |
+| **PhenoCompose** | driver + cli | 22+ pass + 1 pre-existing FFI-state-leak fail | `24cd87ea2` |
+
+### Audit scorecard (2026-07-07)
+
+| Repo | Score | Grade | Delta | Last lift commit |
+|---|---|---|---|---|
+| **omniroute-rust** | **78/100** | B- | +38 | `b58039e82` |
+| **pheno** (bifrost) | **78/100** | B- | +28 | `438854e` |
+| **PhenoCompose** | **62/100** | C+ | +10 | `f1239c0` |
+| **nanovms** | **64/100** | C+ | +12 | `b51c121` |
+
+### Cited sources
+
+- PR-9 dispatcher: `omniroute-rust/crates/omni-core/src/dispatcher.rs:1-430`
+- lib.rs registration: `omniroute-rust/crates/omni-core/src/lib.rs:62` (`pub mod dispatcher;`)
+- PR-9 test: `omniroute-rust/crates/omni-core/src/dispatcher.rs:321-419` (9 tests)
+- B5 audit: `pheno-audit.json` (audited_at 2026-07-07)
+- Capabilities: `omniroute-rust/crates/omni-core/src/model.rs:140-170` (ModelCapabilities + matches_request)
+
+
+### Session 2026-07-07 — NVMS Phase 2 audit-log subsystem wired
+
+Phase 2 of the NVMS Service v1 plan (plans/2026-07-06-nvms-service-v1.md) completed:
+
+**nanovms** (1cf046c on main):
+- `internal/api/audit.go` (165 LOC) — AuditEntry struct, NewAuditLogger, Append, Query with filters
+- `internal/api/rate_limit.go` (74 LOC) — RateLimitMiddleware (self-contained token bucket, 100 req/s)
+- `internal/api/router.go` (+84 LOC) — handleAudit endpoint, auditMiddleware, RateLimitMiddleware outermost
+- `cmd/nvms/main.go` (+13 LOC) — serveCmd wires audit logger from NVMS_AUDIT_PATH env
+- `deploy/k8s/nvms-daemon.yaml` (144 LOC) — full DaemonSet manifest
+- Tests: go test ./... -> all pass
+
+**Pushed** to KooshaPari/nanovms main.
+
+**Not needed in BytePort**: Phase 2 audit is a human-ops observability endpoint, not an engine API.
+The NvmsHttpAdapter does not need a list_audit() method — only node operators query audit logs.
