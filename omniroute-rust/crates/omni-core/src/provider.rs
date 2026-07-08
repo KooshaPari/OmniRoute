@@ -91,11 +91,12 @@ impl From<&String> for ProviderId {
 
 /// Coarse provider classification used by the translator and the
 /// executor factory.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum ProviderKind {
     #[serde(rename = "openai")]
     OpenAI,
+    #[default]
     #[serde(rename = "anthropic")]
     Anthropic,
     #[serde(rename = "google")]
@@ -150,11 +151,13 @@ impl fmt::Display for ProviderKind {
 
 /// Catalog-style metadata for a provider. Persistable to SQLite and
 /// round-trips through serde.
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize, PartialEq, Eq)]
 pub struct ProviderMetadata {
     pub id: ProviderId,
     pub kind: ProviderKind,
+    #[serde(default)]
     pub display_name: String,
+    #[serde(default)]
     /// Base URL for the upstream API (no trailing slash).
     pub base_url: String,
     /// Canonical model slugs this provider exposes.

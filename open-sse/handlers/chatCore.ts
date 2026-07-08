@@ -1,3 +1,4 @@
+import { usePolyglotForEdge } from "../rpc/polyglotHotPath.ts";
 import { injectMemoryAndSkills } from "./chatCore/memorySkillsInjection.ts";
 import { checkIdempotencyCache } from "./chatCore/idempotency.ts";
 import { checkSemanticCache } from "./chatCore/semanticCache.ts";
@@ -1039,6 +1040,9 @@ async function readNonStreamingResponseBody(
   };
   let rawBody = "";
   const deadline = FETCH_BODY_TIMEOUT_MS > 0 ? Date.now() + FETCH_BODY_TIMEOUT_MS : 0;
+
+  // polyglot: log the SSE chunking edge tier once at the start of the hot loop
+  usePolyglotForEdge("sse.chunk.sseStream").then(() => {}).catch(() => {});
 
   try {
     while (true) {
