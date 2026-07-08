@@ -41,6 +41,19 @@ pub struct ModelV1 {
     pub display_name: Option<String>,
     #[serde(default)]
     pub capabilities: ModelCapabilitiesV1,
+    pub context_length: i64,
+    #[serde(default)]
+    pub max_input_tokens: Option<i64>,
+    #[serde(default)]
+    pub max_output_tokens: Option<i64>,
+    #[serde(default)]
+    pub input_modalities: Vec<String>,
+    #[serde(default)]
+    pub output_modalities: Vec<String>,
+    #[serde(default)]
+    pub release_date: Option<String>,
+    #[serde(default)]
+    pub api_format: Option<String>,
 }
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize, PartialEq)]
@@ -55,6 +68,18 @@ pub struct ModelCapabilitiesV1 {
     pub vision: bool,
     #[serde(default)]
     pub json_mode: bool,
+    #[serde(default)]
+    pub tool_calling: bool,
+    #[serde(default)]
+    pub reasoning: bool,
+    #[serde(default)]
+    pub thinking: bool,
+    #[serde(default)]
+    pub attachment: bool,
+    #[serde(default)]
+    pub structured_output: bool,
+    #[serde(default)]
+    pub temperature: bool,
 }
 
 #[cfg(test)]
@@ -76,7 +101,8 @@ mod tests {
                     "id": "gpt-4o-mini",
                     "object": "model",
                     "created": 1721260800,
-                    "owned_by": "openai"
+                    "owned_by": "openai",
+                    "context_length": 128000
                 }
             ]
         }"#;
@@ -86,9 +112,22 @@ mod tests {
         let m = &parsed.data[0];
         assert_eq!(m.id, "gpt-4o-mini");
         assert_eq!(m.object, "model");
+        assert_eq!(m.context_length, 128000);
         // All optional fields default cleanly.
         assert!(m.display_name.is_none());
         assert!(!m.capabilities.chat);
+        assert!(!m.capabilities.tool_calling);
+        assert!(!m.capabilities.reasoning);
+        assert!(!m.capabilities.thinking);
+        assert!(!m.capabilities.attachment);
+        assert!(!m.capabilities.structured_output);
+        assert!(!m.capabilities.temperature);
+        assert!(m.max_input_tokens.is_none());
+        assert!(m.max_output_tokens.is_none());
+        assert!(m.input_modalities.is_empty());
+        assert!(m.output_modalities.is_empty());
+        assert!(m.release_date.is_none());
+        assert!(m.api_format.is_none());
         // has_more absent → default false.
         assert!(!parsed.has_more);
         assert!(parsed.last_id.is_none());
@@ -105,12 +144,25 @@ mod tests {
                     "created": 1751328000,
                     "owned_by": "anthropic",
                     "display_name": "Claude Sonnet 4.5",
+                    "context_length": 200000,
+                    "max_input_tokens": 200000,
+                    "max_output_tokens": 8192,
+                    "input_modalities": ["text", "image"],
+                    "output_modalities": ["text"],
+                    "release_date": "2025-05-01",
+                    "api_format": "anthropic",
                     "capabilities": {
                         "chat": true,
                         "stream": true,
                         "tools": true,
                         "vision": true,
-                        "json_mode": true
+                        "json_mode": true,
+                        "tool_calling": true,
+                        "reasoning": true,
+                        "thinking": false,
+                        "attachment": true,
+                        "structured_output": true,
+                        "temperature": true
                     }
                 }
             ],
@@ -119,7 +171,20 @@ mod tests {
         }"#;
         let parsed: ModelsResponseV1 = serde_json::from_str(raw).expect("must parse");
         assert_eq!(parsed.data[0].capabilities.tools, true);
+        assert_eq!(parsed.data[0].capabilities.tool_calling, true);
+        assert_eq!(parsed.data[0].capabilities.reasoning, true);
+        assert_eq!(parsed.data[0].capabilities.thinking, false);
+        assert_eq!(parsed.data[0].capabilities.attachment, true);
+        assert_eq!(parsed.data[0].capabilities.structured_output, true);
+        assert_eq!(parsed.data[0].capabilities.temperature, true);
         assert_eq!(parsed.data[0].display_name.as_deref(), Some("Claude Sonnet 4.5"));
+        assert_eq!(parsed.data[0].context_length, 200000);
+        assert_eq!(parsed.data[0].max_input_tokens, Some(200000));
+        assert_eq!(parsed.data[0].max_output_tokens, Some(8192));
+        assert_eq!(parsed.data[0].input_modalities, vec!["text".to_string(), "image".to_string()]);
+        assert_eq!(parsed.data[0].output_modalities, vec!["text".to_string()]);
+        assert_eq!(parsed.data[0].release_date.as_deref(), Some("2025-05-01"));
+        assert_eq!(parsed.data[0].api_format.as_deref(), Some("anthropic"));
         assert_eq!(parsed.last_id.as_deref(), Some("claude-sonnet-4-5"));
     }
 
@@ -144,13 +209,16 @@ mod tests {
                 "object": "model",
                 "created": 1,
                 "owned_by": "openai",
+                "context_length": 128000,
                 "capabilities": {
                     "chat": true,
                     "future_capability_x": "ignored"
-                }
+                },
+                "unknown_model_field": "will be ignored"
             }]
         }"#;
         let parsed: ModelsResponseV1 = serde_json::from_str(raw).expect("must parse");
         assert!(parsed.data[0].capabilities.chat);
+        assert_eq!(parsed.data[0].context_length, 128000);
     }
 }
