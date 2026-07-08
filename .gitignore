@@ -232,6 +232,3 @@ omniroute.md
 
 # mise configuration
 mise.toml
-
-# Backup files from sed
-*.bak

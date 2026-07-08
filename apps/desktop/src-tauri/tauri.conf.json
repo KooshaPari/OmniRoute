@@ -1,5 +1,6 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
+  "_comment": "Auto-updater disabled (empty pubkey) until CERT-PROVISIONING.md is run. The updater silently no-ops.",
   "productName": "argismonitor",
   "version": "0.1.0",
   "identifier": "online.phenotype.argismonitor",

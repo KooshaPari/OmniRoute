@@ -1,5 +1,5 @@
 {
-  "name": "@argismonitor/api-contracts",
+  "name": "@omniroute/api-contracts",
   "version": "0.1.0",
   "private": true,
   "type": "module",
