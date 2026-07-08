@@ -256,6 +256,13 @@ impl Provider {
         }
     }
 
+    /// Convenience: set credential and return self (builder).
+    #[must_use]
+    pub fn with_credential(mut self, credential: impl Into<String>) -> Self {
+        self.credential = Some(credential.into());
+        self
+    }
+
     /// Validate the underlying metadata. Convenience wrapper.
     pub fn validate(&self) -> Result<()> {
         self.metadata.validate()
