@@ -36,11 +36,32 @@ anyhow = { workspace = true }
 tracing = { workspace = true }
 tracing-subscriber = { workspace = true }
 
+# Observability (optional — default-on via `otel` feature)
+opentelemetry = { version = "0.28", optional = true }
+opentelemetry_sdk = { version = "0.28", features = ["rt-tokio"], optional = true }
+opentelemetry-otlp = { version = "0.28", features = ["tonic"], optional = true }
+tracing-opentelemetry = { version = "0.29", optional = true }
+
+# OTLP gRPC transport (otel-only)
+tonic = { version = "0.12", features = ["tls"], optional = true }
+prost = { version = "0.13", optional = true }
+
 # Misc
 chrono = { workspace = true }
 uuid = { workspace = true }
 percent-encoding = { workspace = true }
 once_cell = { workspace = true }
+
+[features]
+default = []
+otel = [
+    "dep:opentelemetry",
+    "dep:opentelemetry_sdk",
+    "dep:opentelemetry-otlp",
+    "dep:tracing-opentelemetry",
+    "dep:tonic",
+    "dep:prost",
+]
 
 [dev-dependencies]
 tokio = { workspace = true, features = ["test-util"] }

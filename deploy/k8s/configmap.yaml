@@ -1,0 +1,31 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: omniroute-data-plane
+  namespace: omniroute
+  labels:
+    app.kubernetes.io/name: omniroute
+    app.kubernetes.io/component: data-plane
+data:
+  RUST_LOG: "info,omniroute_core=debug,omniroute_provider=debug,omniroute_runtime=debug"
+  RUST_BACKTRACE: "1"
+  OMNIROUTE_DATA_PLANE_SOCKET: "/tmp/omniroute/routed.sock"
+  OTEL_SERVICE_NAME: "omniroute-data-plane"
+  OTEL_EXPORTER_OTLP_ENDPOINT: "http://otel-collector:4317"
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: omniroute-web
+  namespace: omniroute
+  labels:
+    app.kubernetes.io/name: omniroute
+    app.kubernetes.io/component: web
+data:
+  NODE_ENV: "production"
+  NEXT_TELEMETRY_DISABLED: "1"
+  DATA_DIR: "/data"
+  BIFROST_ENABLED: "0"
+  RUST_DATA_PLANE_SOCKET: "/tmp/omniroute/routed.sock"
+  OTEL_SERVICE_NAME: "omniroute-web"
+  OTEL_EXPORTER_OTLP_ENDPOINT: "http://otel-collector:4317"

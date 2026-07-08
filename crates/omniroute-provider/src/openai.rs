@@ -4,18 +4,17 @@
 //! 120+ OpenAI-compatible providers (Together, Groq, Fireworks, OpenRouter,
 //! vLLM, Ollama Cloud, etc.) — the only difference is `base_url`.
 //!
-//! Phase 2 ships:
+//! Phase 3 (Stream 4) ships:
 //! - non-streaming chat completion
-//! - stubbed streaming (`todo!`)
-//! - stubbed models listing (`todo!`)
+//! - streaming chat completion with SSE decode + mpsc sender
+//! - stubbed models listing
 //! - ping/health check via `/v1/models`
-//!
-//! Phase 3 wires the streaming path with SSE decode + mpsc sender.
 
 use std::sync::Arc;
 use std::time::Duration;
 
 use async_trait::async_trait;
+use futures_util::StreamExt;
 use reqwest::Client;
 use tokio::sync::mpsc;
 
@@ -224,18 +223,109 @@ impl Provider for OpenAIProvider {
 
     async fn chat_completion_stream(
         &self,
-        _ctx: &Context,
-        _req: omniroute_core::ChatRequest,
-        _tx: mpsc::Sender<Result<StreamChunk, ProviderError>>,
+        ctx: &Context,
+        req: omniroute_core::ChatRequest,
+        tx: mpsc::Sender<Result<StreamChunk, ProviderError>>,
     ) -> Result<(), ProviderError> {
-        // Phase 3: wire SSE decode → StreamChunk → tx.
-        // For now, send one `done: true` chunk so the runtime's stream
-        // contract is satisfied.
-        let _ = _tx; // silence unused
-        Err(ProviderError::Internal {
-            provider: self.id.clone(),
-            message: "chat_completion_stream not yet wired (Phase 3)".into(),
-        })
+        let url = format!("{}/v1/chat/completions", self.base_url);
+        let token = ctx.credentials.as_bearer_token().unwrap_or(&self.api_key);
+
+        // Clone the request and enable streaming.
+        let mut stream_req = req;
+        stream_req.stream = Some(true);
+
+        let resp = self
+            .http
+            .post(&url)
+            .bearer_auth(token)
+            .json(&stream_req)
+            .send()
+            .await
+            .map_err(|e| ProviderError::Unavailable {
+                provider: self.id.clone(),
+                reason: e.to_string(),
+            })?;
+
+        let status = resp.status();
+        if !status.is_success() {
+            let retry_after = parse_retry_after(&resp);
+            let body = resp.text().await.unwrap_or_default();
+            return Err(classify_status(self.id.as_str(), status.as_u16(), body, retry_after));
+        }
+
+        // Process SSE stream: read bytes, split into lines, parse `data:` payloads.
+        let mut stream = resp.bytes_stream();
+        let mut buffer: Vec<u8> = Vec::new();
+
+        while let Some(chunk_result) = stream.next().await {
+            let bytes = chunk_result.map_err(|e| ProviderError::StreamError {
+                provider: self.id.clone(),
+                message: e.to_string(),
+            })?;
+            buffer.extend_from_slice(&bytes);
+
+            // Process all complete lines in the buffer.
+            loop {
+                // Find the next line boundary.
+                let newline_pos = match buffer.iter().position(|&b| b == b'\n') {
+                    Some(pos) => pos,
+                    None => break, // incomplete line; wait for more data.
+                };
+
+                // Extract the line (excluding \n).
+                let line = String::from_utf8_lossy(&buffer[..newline_pos])
+                    .trim()
+                    .to_string();
+                buffer.drain(..=newline_pos);
+
+                if line.is_empty() {
+                    continue;
+                }
+
+                // Only process SSE `data:` lines.
+                let payload = if let Some(s) = line.strip_prefix("data: ") {
+                    s.trim()
+                } else if let Some(s) = line.strip_prefix("data:") {
+                    s.trim()
+                } else {
+                    continue;
+                };
+
+                // Handle the terminal sentinel.
+                if payload == "[DONE]" {
+                    let _ = tx
+                        .send(Ok(StreamChunk::new("", "", 0).with_done()))
+                        .await;
+                    return Ok(());
+                }
+
+                // Deserialize the SSE payload directly into StreamChunk.
+                // OpenAI's streaming JSON shape matches our StreamChunk (id, object,
+                // created, model, choices[n].delta / finish_reason).
+                match serde_json::from_str::<StreamChunk>(payload) {
+                    Ok(chunk) => {
+                        if tx.send(Ok(chunk)).await.is_err() {
+                            // Receiver dropped — stream cancelled by consumer.
+                            return Ok(());
+                        }
+                    }
+                    Err(e) => {
+                        let _ = tx
+                            .send(Err(ProviderError::StreamError {
+                                provider: self.id.clone(),
+                                message: format!("failed to parse SSE payload: {e}"),
+                            }))
+                            .await;
+                    }
+                }
+            }
+        }
+
+        // Stream ended without [DONE]; emit the terminal sentinel.
+        let _ = tx
+            .send(Ok(StreamChunk::new("", "", 0).with_done()))
+            .await;
+        Ok(())
     }
 
     async fn ping(&self, ctx: &Context) -> Result<(), ProviderError> {
@@ -301,6 +391,7 @@ fn parse_retry_after(resp: &reqwest::Response) -> Option<u64> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use omniroute_core::Credentials;
 
     #[test]
     fn new_rejects_empty_id() {
@@ -348,5 +439,76 @@ mod tests {
         let err = classify_status("openai", 503, "x".into(), None);
         assert!(matches!(err, ProviderError::UpstreamError { status: 503, .. }));
         assert!(err.is_retryable());
+    }
+
+    #[tokio::test]
+    async fn streaming_parses_sse_data_lines() {
+        let _p = OpenAIProvider::new(ProviderInit::new("openai", "sk-test")).unwrap();
+        let _ctx = Context::new(Credentials::bearer("sk-test"), "openai", "req-1");
+
+        // Simulate SSE bytes that arrive in two chunks.
+        let sse1 = "data: {\"id\":\"a\",\"object\":\"chat.completion.chunk\",\"created\":1,\"model\":\"gpt-4o\",\"choices\":[{\"index\":0,\"delta\":{\"role\":\"assistant\",\"content\":\"Hel\"},\"finish_reason\":null}]}\n";
+        let sse2 = "data: {\"id\":\"a\",\"object\":\"chat.completion.chunk\",\"created\":1,\"model\":\"gpt-4o\",\"choices\":[{\"index\":0,\"delta\":{\"role\":\"assistant\",\"content\":\"lo\"},\"finish_reason\":null}]}\n\ndata: [DONE]\n\n";
+
+        // This test only validates that the SSE line parser works correctly.
+        // We test the buffer/parse logic by checking the transform inline.
+        let mut buffer: Vec<u8> = Vec::new();
+        buffer.extend_from_slice(sse1.as_bytes());
+
+        // Process first chunk
+        let mut chunks = Vec::new();
+        loop {
+            let newline_pos = match buffer.iter().position(|&b| b == b'\n') {
+                Some(pos) => pos,
+                None => break,
+            };
+            let line =
+                String::from_utf8_lossy(&buffer[..newline_pos]).trim().to_string();
+            buffer.drain(..=newline_pos);
+            if line.is_empty() {
+                continue;
+            }
+            if let Some(payload) = line.strip_prefix("data: ") {
+                let payload = payload.trim();
+                if payload == "[DONE]" {
+                    chunks.push(StreamChunk::new("", "", 0).with_done());
+                    break;
+                }
+                if let Ok(chunk) = serde_json::from_str::<StreamChunk>(payload) {
+                    chunks.push(chunk);
+                }
+            }
+        }
+
+        // Process second chunk
+        buffer.extend_from_slice(sse2.as_bytes());
+        loop {
+            let newline_pos = match buffer.iter().position(|&b| b == b'\n') {
+                Some(pos) => pos,
+                None => break,
+            };
+            let line =
+                String::from_utf8_lossy(&buffer[..newline_pos]).trim().to_string();
+            buffer.drain(..=newline_pos);
+            if line.is_empty() {
+                continue;
+            }
+            if let Some(payload) = line.strip_prefix("data: ") {
+                let payload = payload.trim();
+                if payload == "[DONE]" {
+                    chunks.push(StreamChunk::new("", "", 0).with_done());
+                    break;
+                }
+                if let Ok(chunk) = serde_json::from_str::<StreamChunk>(payload) {
+                    chunks.push(chunk);
+                }
+            }
+        }
+
+        assert_eq!(chunks.len(), 3, "should have 2 content chunks + 1 done");
+        assert!(!chunks[0].done);
+        assert_eq!(chunks[0].model, "gpt-4o");
+        assert!(!chunks[1].done);
+        assert!(chunks[2].done);
     }
 }

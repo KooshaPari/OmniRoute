@@ -2,13 +2,16 @@
 //!
 //! The runtime layer calls [`register_defaults_from_env`] at startup; if
 //! `OMNIROUTE_OPENAI_API_KEY` is set, an [`OpenAIProvider`] is registered
-//! under the `"openai"` ID. Phase 3 will add Anthropic / Gemini / Bedrock.
+//! under the `"openai"` ID. Same pattern for Anthropic (`OMNIROUTE_ANTHROPIC_API_KEY`)
+//! and Gemini (`OMNIROUTE_GEMINI_API_KEY`).
 
 use std::collections::HashMap;
 use std::sync::Arc;
 
 use omniroute_core::ProviderRegistry;
 
+use crate::anthropic::{AnthropicProvider, ProviderInit as AnthropicProviderInit};
+use crate::gemini::{GeminiProvider, ProviderInit as GeminiProviderInit};
 use crate::openai::{OpenAIProvider, ProviderInit};
 
 /// Per-provider configuration for the registry builder.
@@ -54,17 +57,42 @@ impl ProviderRegistryBuilder {
     pub fn build(self) -> ProviderRegistry {
         let registry = ProviderRegistry::new();
         for cfg in self.configs {
-            let mut init = ProviderInit::new(cfg.id.clone(), cfg.api_key);
-            if let Some(url) = cfg.base_url {
-                init = init.with_base_url(url);
-            }
-            match OpenAIProvider::new(init) {
-                Ok(p) => registry.register(p),
-                Err(e) => tracing::warn!(
-                    provider = %cfg.id,
-                    error = %e,
-                    "skipping provider registration"
-                ),
+            match cfg.id.as_str() {
+                "anthropic" | "claude" => {
+                    let mut init = AnthropicProviderInit::new(&cfg.id, &cfg.api_key);
+                    if let Some(url) = cfg.base_url {
+                        init = init.with_base_url(url);
+                    }
+                    match AnthropicProvider::new(init) {
+                        Ok(p) => registry.register(p),
+                        Err(e) => tracing::warn!(provider = %cfg.id, error = %e, "skipping registration"),
+                    }
+                }
+                "gemini" | "palm" => {
+                    let mut init = GeminiProviderInit::new(&cfg.id, &cfg.api_key);
+                    if let Some(url) = cfg.base_url {
+                        init = init.with_base_url(url);
+                    }
+                    match GeminiProvider::new(init) {
+                        Ok(p) => registry.register(p),
+                        Err(e) => tracing::warn!(provider = %cfg.id, error = %e, "skipping registration"),
+                    }
+                }
+                _ => {
+                    // Default to OpenAI-compatible (covers openai, groq, together, etc.).
+                    let mut init = ProviderInit::new(cfg.id.clone(), cfg.api_key);
+                    if let Some(url) = cfg.base_url {
+                        init = init.with_base_url(url);
+                    }
+                    match OpenAIProvider::new(init) {
+                        Ok(p) => registry.register(p),
+                        Err(e) => tracing::warn!(
+                            provider = %cfg.id,
+                            error = %e,
+                            "skipping provider registration"
+                        ),
+                    }
+                }
             }
         }
         registry
@@ -86,8 +114,8 @@ impl Default for ProviderRegistryBuilder {
 /// - `OMNIROUTE_TOGETHER_API_KEY` — registers as `"together"`
 /// - `OMNIROUTE_FIREWORKS_API_KEY` — registers as `"fireworks"`
 /// - `OMNIROUTE_OPENROUTER_API_KEY` — registers as `"openrouter"`
-///
-/// Phase 3 will add Anthropic, Gemini, Bedrock, and custom-URL providers.
+/// - `OMNIROUTE_ANTHROPIC_API_KEY` — registers as `"anthropic"`
+/// - `OMNIROUTE_GEMINI_API_KEY` — registers as `"gemini"`
 pub fn register_defaults_from_env() -> ProviderRegistry {
     let mut builder = ProviderRegistryBuilder::new();
     let mut cfgs: HashMap<&'static str, (&'static str, &'static str)> = HashMap::new();
@@ -104,6 +132,14 @@ pub fn register_defaults_from_env() -> ProviderRegistry {
     cfgs.insert(
         "openrouter",
         ("OMNIROUTE_OPENROUTER_API_KEY", "OMNIROUTE_OPENROUTER_BASE_URL"),
+    );
+    cfgs.insert(
+        "anthropic",
+        ("OMNIROUTE_ANTHROPIC_API_KEY", "OMNIROUTE_ANTHROPIC_BASE_URL"),
+    );
+    cfgs.insert(
+        "gemini",
+        ("OMNIROUTE_GEMINI_API_KEY", "OMNIROUTE_GEMINI_BASE_URL"),
     );
 
     for (id, (key_env, base_env)) in cfgs {
@@ -151,6 +187,8 @@ mod tests {
         // SAFETY: tests are serial in this scope.
         std::env::remove_var("OMNIROUTE_OPENAI_API_KEY");
         std::env::remove_var("OMNIROUTE_GROQ_API_KEY");
+        std::env::remove_var("OMNIROUTE_ANTHROPIC_API_KEY");
+        std::env::remove_var("OMNIROUTE_GEMINI_API_KEY");
         let reg = register_defaults_from_env();
         assert!(reg.ids().is_empty());
     }

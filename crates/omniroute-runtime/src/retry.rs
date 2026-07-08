@@ -7,7 +7,7 @@
 use std::future::Future;
 use std::time::Duration;
 
-use omniroute_core::{ProviderError, RetryConfig, backoff_delay};
+pub use omniroute_core::{ProviderError, RetryConfig, backoff_delay};
 
 /// Run `f` with retry/backoff. Stops on the first success or the first
 /// non-retryable error.

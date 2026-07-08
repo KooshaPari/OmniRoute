@@ -42,10 +42,13 @@ anyhow = "1"
 
 # Logging
 tracing = "0.1"
-tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+tracing-subscriber = { version = "0.3", features = ["env-filter", "json"] }
 
 # Time
 chrono = { version = "0.4", features = ["serde"] }
+
+# Async stream processing (transitive from reqwest's stream feature)
+futures-util = { version = "0.3", default-features = false, features = ["std"] }
 
 # Misc
 uuid = { version = "1", features = ["v4", "serde"] }
@@ -54,6 +57,16 @@ url = "2"
 percent-encoding = "2"
 bytes = "1"
 once_cell = "1"
+
+# Observability (runtime-only)
+opentelemetry = "0.28"
+opentelemetry_sdk = { version = "0.28", features = ["rt-tokio"] }
+opentelemetry-otlp = { version = "0.28", features = ["tonic"] }
+tracing-opentelemetry = "0.29"
+
+# OTLP gRPC transport (runtime-only)
+tonic = { version = "0.12", features = ["tls"] }
+prost = "0.13"
 
 # Internal crates
 omniroute-core = { path = "crates/omniroute-core", version = "0.1.0" }

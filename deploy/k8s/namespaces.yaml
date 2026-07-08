@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: omniroute
+  labels:
+    app.kubernetes.io/name: omniroute
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: byteport
+  labels:
+    app.kubernetes.io/name: byteport
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: nanovms
+  labels:
+    app.kubernetes.io/name: nanovms

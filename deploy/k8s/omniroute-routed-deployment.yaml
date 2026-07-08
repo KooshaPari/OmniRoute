@@ -1,0 +1,90 @@
+# OmniRoute Rust data plane (routed) — production deployment
+# Runs the Rust hyper server on a Unix Domain Socket shared with
+# the TypeScript Next.js control plane via an emptyDir volume.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: omniroute-routed
+  namespace: omniroute
+  labels:
+    app.kubernetes.io/name: omniroute
+    app.kubernetes.io/component: routed
+    app.kubernetes.io/version: "0.1.0"
+spec:
+  replicas: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: omniroute
+      app.kubernetes.io/component: routed
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: omniroute
+        app.kubernetes.io/component: routed
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9100"
+        prometheus.io/path: "/metrics"
+    spec:
+      terminationGracePeriodSeconds: 30
+      serviceAccountName: omniroute-routed
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        fsGroup: 10001
+      containers:
+        - name: routed
+          image: ghcr.io/kooshapari/omniroute-routed:latest
+          imagePullPolicy: IfNotPresent
+          args: ["serve"]
+          env:
+            - name: XDG_RUNTIME_DIR
+              value: /var/run/omniroute
+            - name: RUST_LOG
+              value: "omniroute=info"
+            - name: RUST_BACKTRACE
+              value: "0"
+            - name: OMNIROUTE_OPENAI_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: omniroute-provider-keys
+                  key: openai-api-key
+                  optional: true
+            - name: OMNIROUTE_DATA_PLANE_SOCKET
+              value: /var/run/omniroute/routed.sock
+          ports:
+            - containerPort: 9100
+              name: metrics
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 9100
+            initialDelaySeconds: 5
+            periodSeconds: 15
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: 9100
+            initialDelaySeconds: 10
+            periodSeconds: 30
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "64Mi"
+            limits:
+              cpu: "500m"
+              memory: "256Mi"
+          volumeMounts:
+            - name: data-plane-socket
+              mountPath: /var/run/omniroute
+      volumes:
+        - name: data-plane-socket
+          emptyDir:
+            medium: Memory
+            sizeLimit: 10Mi

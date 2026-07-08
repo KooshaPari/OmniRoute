@@ -1,0 +1,47 @@
+# syntax=docker/dockerfile:1.7
+# SPDX-License-Identifier: MIT
+# Cross-build stage: Rust data plane (omniroute-rust)
+
+# ============================================================
+# Stage 1: Build the Rust data plane binary
+# ============================================================
+FROM rust:1.81-alpine3.20 AS builder
+
+RUN apk add --no-cache musl-dev pkgconfig openssl-dev perl make
+
+WORKDIR /build
+
+# Cache dependencies
+COPY crates/omniroute-core/Cargo.toml crates/omniroute-core/Cargo.toml
+COPY crates/omniroute-provider/Cargo.toml crates/omniroute-provider/Cargo.toml
+COPY crates/omniroute-runtime/Cargo.toml crates/omniroute-runtime/Cargo.toml
+COPY Cargo.toml Cargo.lock ./
+
+RUN mkdir -p crates/omniroute-core/src crates/omniroute-provider/src crates/omniroute-runtime/src \
+    && touch crates/omniroute-core/src/lib.rs crates/omniroute-provider/src/lib.rs crates/omniroute-runtime/src/lib.rs \
+    && cargo fetch
+
+# Copy source and build
+COPY crates/ ./crates/
+RUN cargo build --release --bin routed \
+    && cp target/release/routed /routed
+
+# ============================================================
+# Stage 2: Minimal runtime image
+# ============================================================
+FROM alpine:3.20
+
+RUN apk add --no-cache ca-certificates tini libgcc
+
+COPY --from=builder /routed /usr/local/bin/routed
+
+# UDS socket directory
+RUN mkdir -p /run/omniroute && chmod 755 /run/omniroute
+
+EXPOSE 9090
+ENV OMNIROUTE_SOCKET_PATH=/run/omniroute/routed.sock
+
+HEALTHCHECK --interval=15s --timeout=3s --start-period=5s --retries=3 \
+    CMD ["wget", "-qO-", "http+unix://%2Frun%2Fomniroute%2Frouted.sock/healthz"]
+
+ENTRYPOINT ["/sbin/tini", "--", "/usr/local/bin/routed"]

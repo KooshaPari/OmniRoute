@@ -1,5 +1,5 @@
 # ──────────────────────────────────────────────────────────────────────
-#  OmniRoute — Docker Compose
+#  OmniRoute — Docker Compose (Phase 7 Production GA)
 # ──────────────────────────────────────────────────────────────────────
 #
 #  Profiles:
@@ -9,13 +9,15 @@
 #    host  → runner-base + host-mounted CLI binaries (Linux-first)
 #    cliproxyapi → CLIProxyAPI sidecar on port 8317
 #
+#  Non-profile services (always up):
+#    redis             → rate-limiter backend
+#    otel-collector    → OTLP gRPC collector → Tempo/Prometheus/Grafana
+#    omniroute-routed  → Rust data plane (UDS socket, T2 hot path)
+#
 #  Usage:
 #    docker compose --profile base up -d
-#    docker compose --profile web up -d   # gemini-web / claude-web / claude-turnstile
-#    docker compose --profile cli up -d
-#    docker compose --profile host up -d
-#    docker compose --profile cliproxyapi up -d
 #    docker compose --profile cli --profile cliproxyapi up -d
+#    docker compose --profile base -f docker-compose.yml up -d
 #
 #  Before first run, copy .env.example → .env and edit your secrets.
 # ──────────────────────────────────────────────────────────────────────
@@ -25,12 +27,14 @@ x-common: &common
   stop_grace_period: 40s
   env_file: .env
   environment:
-    - DATA_DIR=/app/data # Must match the volume mount below
+    - DATA_DIR=/app/data
     - PORT=${PORT:-20128}
     - DASHBOARD_PORT=${DASHBOARD_PORT:-20128}
     - API_PORT=${API_PORT:-20129}
     - API_HOST=${API_HOST:-0.0.0.0}
     - REDIS_URL=${REDIS_URL:-redis://redis:6379}
+    - OTEL_SERVICE_NAME=omniroute
+    - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
   volumes:
     - ./data:/app/data
   healthcheck:
@@ -57,6 +61,52 @@ services:
       timeout: 5s
       retries: 3
 
+  # ── OpenTelemetry Collector ───────────────────────────────────────
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:0.116.0
+    container_name: omniroute-otel-collector
+    restart: unless-stopped
+    ports:
+      - "${OTEL_GRPC_PORT:-4317}:4317" # OTLP gRPC
+      - "${OTEL_HTTP_PORT:-4318}:4318" # OTLP HTTP
+    volumes:
+      - ./deploy/k8s/otel-collector.yaml:/etc/otelcol-contrib/config.yaml:ro
+    command: ["--config=/etc/otelcol-contrib/config.yaml"]
+    healthcheck:
+      test: ["CMD", "grpc_health_probe", "-addr=localhost:4317"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  # ── Rust Data Plane (T2 UDS hot path) ─────────────────────────────
+  omniroute-routed:
+    image: omniroute-routed:latest
+    container_name: omniroute-routed
+    build:
+      context: .
+      dockerfile: Dockerfile.routed
+      target: routed-release
+    restart: unless-stopped
+    ports:
+      - "${ROUTED_METRICS_PORT:-9091}:9091" # Prometheus /metrics
+    volumes:
+      - routed-data:/tmp/omniroute
+    environment:
+      - RUST_LOG=${RUST_LOG:-info}
+      - XDG_RUNTIME_DIR=/tmp/omniroute
+      - OMNIROUTE_DATA_PLANE_SOCKET=/tmp/omniroute/routed.sock
+      - OTEL_SERVICE_NAME=omniroute-routed
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://127.0.0.1:9091/healthz"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
+    depends_on:
+      otel-collector:
+        condition: service_started
+
   # ── Profile: base (minimal, no CLI tools) ──────────────────────────
   omniroute-base:
     <<: *common
@@ -72,9 +122,6 @@ services:
       - base
 
   # ── Profile: web (runner-web + Chromium/Playwright) ────────────────
-  # Required for web-cookie providers (gemini-web, claude-web, claude-turnstile).
-  # The default `base` image ships without Chromium, so those providers fail
-  # with "Executable doesn't exist at .../ms-playwright/chromium..." (#2832).
   omniroute-web:
     <<: *common
     container_name: omniroute
@@ -128,18 +175,9 @@ services:
       - CLI_EXTRA_PATHS=/host-local/bin:/host-node/bin
       - CLI_CONFIG_HOME=/host-home
       - CLI_ALLOW_CONFIG_WRITES=true
-      # Uncomment per-tool overrides as needed:
-      # - CLI_CURSOR_BIN=agent
-      # - CLI_CLINE_BIN=cline
-      # - CLI_CONTINUE_BIN=cn
     volumes:
       - ./data:/app/data
-      # ── Host binary mounts (read-only) ──
-      # Adjust paths below to match YOUR host system.
       - ~/.local/bin:/host-local/bin:ro
-      # Node global binaries (adjust node version path)
-      # - ~/.nvm/versions/node/v24.14.1/bin:/host-node/bin:ro
-      # ── Host config mounts (read-write) ──
       - ~/.codex:/host-home/.codex:rw
       - ~/.claude:/host-home/.claude:rw
       - ~/.factory:/host-home/.factory:rw
@@ -176,3 +214,5 @@ volumes:
     name: cliproxyapi-data
   redis-data:
     name: omniroute-redis-data
+  routed-data:
+    name: omniroute-routed-data
