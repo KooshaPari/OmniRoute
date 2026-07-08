@@ -1,0 +1,156 @@
+# Rust data-plane CI
+#
+# Validates the Rust crates that form the Polyglot Tier-1 substrate per
+# ADR-032. Each crate is a separate workspace at the top level of the
+# monorepo, so this workflow discovers all Cargo.toml files and runs
+# clippy + tests on each independently.
+#
+# Crates covered:
+#   - OmniRoute/crates/omniroute-{core,provider,runtime}        (data plane)
+#   - phenotype-shared/crates/phenotype-{manifest,port-adapter-shim}  (shared)
+#   - BytePort/crates/byteport-engine                             (multi-engine)
+#
+# Also runs the cross-repo smoke harness (tests/e2e/phenotype-stack-smoke.sh)
+# which boots routed + byteport + nvms and exercises a real round-trip
+# through the UDS proxy.
+#
+# See also:
+#   - rust-ffi.yml            (polyglot cdylib crates)
+#   - ci.yml                  (TypeScript / Next.js control plane)
+#   - tests/e2e/phenotype-stack-smoke.sh
+#   - plans/2026-07-04-* (audit + plan docs)
+
+name: Rust Data Plane
+
+on:
+  push:
+    branches: [main, master, develop, "feat/**", "fix/**", "chore/**"]
+    paths:
+      - "OmniRoute/Cargo.toml"
+      - "OmniRoute/Cargo.lock"
+      - "OmniRoute/crates/**"
+      - "phenotype-shared/Cargo.toml"
+      - "phenotype-shared/crates/**"
+      - "BytePort/Cargo.toml"
+      - "BytePort/Cargo.lock"
+      - "BytePort/crates/byteport-engine/**"
+      - ".github/workflows/rust-data-plane.yml"
+  pull_request:
+    paths:
+      - "OmniRoute/Cargo.toml"
+      - "OmniRoute/Cargo.lock"
+      - "OmniRoute/crates/**"
+      - "phenotype-shared/Cargo.toml"
+      - "phenotype-shared/crates/**"
+      - "BytePort/Cargo.toml"
+      - "BytePort/Cargo.lock"
+      - "BytePort/crates/byteport-engine/**"
+      - ".github/workflows/rust-data-plane.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  CARGO_TERM_COLOR: always
+  RUSTFLAGS: "-D warnings"
+  RUST_BACKTRACE: "1"
+  RUSTUP_MAX_RUST_VERSION: stable
+
+jobs:
+  # -----------------------------------------------------------------
+  # 1. Per-crate clippy + test matrix.
+  # -----------------------------------------------------------------
+  test:
+    name: ${{ matrix.name }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: omniroute-runtime (default)
+            crate: OmniRoute
+            cmd: cargo clippy --workspace --tests -- -D warnings && cargo test --workspace
+          - name: omniroute-runtime (otel feature)
+            crate: OmniRoute
+            cmd: cargo clippy -p omniroute-runtime --features otel -- -D warnings && cargo test -p omniroute-runtime --features otel
+          - name: phenotype-shared
+            crate: phenotype-shared
+            cmd: cargo clippy --workspace --tests -- -D warnings && cargo test --workspace
+          - name: byteport-engine
+            crate: BytePort
+            cmd: cargo clippy -p byteport-engine -- -D warnings && cargo test -p byteport-engine
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy, rustfmt
+
+      - name: Cache cargo registry + target
+        uses: actions/swiftlane/gha-rust-cache@v1
+        with:
+          crate-name: ${{ matrix.crate }}
+
+      - name: Run ${{ matrix.name }}
+        working-directory: ${{ matrix.crate }}
+        run: ${{ matrix.cmd }}
+
+  # -----------------------------------------------------------------
+  # 2. fmt check (workspace consistency).
+  # -----------------------------------------------------------------
+  fmt:
+    name: cargo fmt
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt
+      - name: fmt OmniRoute
+        working-directory: OmniRoute
+        run: cargo fmt --all -- --check
+      - name: fmt phenotype-shared
+        working-directory: phenotype-shared
+        run: cargo fmt --all -- --check
+      - name: fmt BytePort (byteport-engine)
+        working-directory: BytePort
+        run: cargo fmt -p byteport-engine -- --check
+
+  # -----------------------------------------------------------------
+  # 3. Cross-repo smoke harness — boot routed + byteport + nvms,
+  #    curl a real LLM-shaped request through the UDS proxy, assert
+  #    metrics + traces + responses. Requires docker compose.
+  # -----------------------------------------------------------------
+  smoke:
+    name: phenotype stack smoke
+    runs-on: ubuntu-latest
+    needs: [test, fmt]
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Docker Compose
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y docker-compose-plugin
+
+      - name: Run phenotype-stack-smoke.sh
+        env:
+          OMNIROUTE_SKIP_BUILD: "0"   # build the routed binary in this job
+        run: bash tests/e2e/phenotype-stack-smoke.sh --smoke-only
+
+      - name: Upload smoke logs on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: smoke-logs
+          path: |
+            /tmp/phenotype-smoke-*.log
+            /tmp/routed-*.log
+            /tmp/byteport-*.log
+            /tmp/nvms-*.log
