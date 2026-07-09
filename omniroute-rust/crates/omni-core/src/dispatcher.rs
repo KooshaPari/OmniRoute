@@ -87,7 +87,11 @@ impl core::fmt::Display for PlanError {
             Self::ProviderNotFound(pid) => {
                 write!(f, "preferred provider {pid} not registered")
             }
-            Self::CapabilityNotSupported { model_id, provider_id, capability } => {
+            Self::CapabilityNotSupported {
+                model_id,
+                provider_id,
+                capability,
+            } => {
                 write!(
                     f,
                     "{model_id} (provider {provider_id}) does not support {capability}"
@@ -175,10 +179,7 @@ fn plan_via_provider(
 }
 
 /// Return all providers that list the given model in their metadata.
-fn candidates_for_model<'r>(
-    registry: &'r ProviderRegistry,
-    model_id: &ModelId,
-) -> Vec<Provider> {
+fn candidates_for_model<'r>(registry: &'r ProviderRegistry, model_id: &ModelId) -> Vec<Provider> {
     registry
         .list()
         .into_iter()
@@ -187,10 +188,7 @@ fn candidates_for_model<'r>(
 }
 
 /// Build a plan from a resolved provider, checking capability constraints.
-fn build_plan(
-    provider: &Provider,
-    request: &DispatchRequest,
-) -> Result<DispatchPlan, PlanError> {
+fn build_plan(provider: &Provider, request: &DispatchRequest) -> Result<DispatchPlan, PlanError> {
     // TODO(PR-10): fetch real ModelCapabilities from the provider catalog.
     // For now we default to all-false and only reject if the model name
     // is absent from the provider's model list (already checked above).
@@ -220,17 +218,13 @@ fn build_plan(
 impl From<PlanError> for Error {
     fn from(e: PlanError) -> Self {
         match e {
-            PlanError::ModelNotFound(mid) => {
-                Error::not_found(format!("model {mid} not found"))
-            }
+            PlanError::ModelNotFound(mid) => Error::not_found(format!("model {mid} not found")),
             PlanError::ProviderNotFound(pid) => {
                 Error::not_found(format!("provider {pid} not found"))
             }
-            PlanError::CapabilityNotSupported { model_id, .. } => {
-                Error::forbidden(format!(
-                    "model {model_id} does not support the requested capability"
-                ))
-            }
+            PlanError::CapabilityNotSupported { model_id, .. } => Error::forbidden(format!(
+                "model {model_id} does not support the requested capability"
+            )),
         }
     }
 }

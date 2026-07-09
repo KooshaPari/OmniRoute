@@ -5,12 +5,12 @@ use std::collections::BTreeMap;
 use std::collections::BTreeSet;
 use std::time::Duration;
 
+use omni_core::ids::{ApiCallId, ApiKeySlug, ComboId, ModelId, RequestId, SessionId, TenantId};
 use omni_core::{
     Config, Error, ErrorKind, ExecutorCapabilities, ExecutorRequest, Modality, Model,
     ModelCapabilities, ModelRef, ProviderId, ProviderKind, ProviderMetadata, RetryPolicy,
     StreamEvent,
 };
-use omni_core::ids::{ApiCallId, ApiKeySlug, ComboId, ModelId, RequestId, SessionId, TenantId};
 
 // ---------------------------------------------------------------------------
 // config
@@ -27,7 +27,9 @@ fn config_builder_data_dir_overrides_db_url() {
         .data_dir(std::path::PathBuf::from("/tmp/or-smoke"))
         .build()
         .expect("sqlite:// URL must validate");
-    assert!(cfg.database_url.starts_with("sqlite:///tmp/or-smoke/storage.sqlite"));
+    assert!(cfg
+        .database_url
+        .starts_with("sqlite:///tmp/or-smoke/storage.sqlite"));
 }
 
 #[test]

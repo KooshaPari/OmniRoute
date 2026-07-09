@@ -219,11 +219,21 @@ impl RequestStore for SqliteRequestStore {
         // owned Strings (not Parameters) so the plan cache stays warm
         // for the common cases (no filter, provider-only).
         let mut sql = String::from("SELECT COUNT(*) AS n FROM requests WHERE 1=1");
-        if filter.tenant_id.is_some() { sql.push_str(" AND tenant_id = ?"); }
-        if filter.provider.is_some()  { sql.push_str(" AND provider = ?");  }
-        if filter.status.is_some()    { sql.push_str(" AND status = ?");    }
-        if filter.since_ms.is_some()  { sql.push_str(" AND created_at_ms >= ?"); }
-        if filter.model.is_some()     { sql.push_str(" AND model = ?");     }
+        if filter.tenant_id.is_some() {
+            sql.push_str(" AND tenant_id = ?");
+        }
+        if filter.provider.is_some() {
+            sql.push_str(" AND provider = ?");
+        }
+        if filter.status.is_some() {
+            sql.push_str(" AND status = ?");
+        }
+        if filter.since_ms.is_some() {
+            sql.push_str(" AND created_at_ms >= ?");
+        }
+        if filter.model.is_some() {
+            sql.push_str(" AND model = ?");
+        }
 
         let mut q = sqlx::query(&sql);
         if let Some(t) = &filter.tenant_id {
@@ -323,11 +333,23 @@ impl CallLogStore for SqliteCallLogStore {
                 .map_err(|e| Error::with_kind(ErrorKind::Db, format!("call_log.trace_id: {e}")))?;
             out.push(CallLogEntry {
                 trace_id: TraceId(trace_id),
-                provider_id: ProviderId(row.try_get::<String, _>("provider_id").map_err(map_sqlx_err)?),
+                provider_id: ProviderId(
+                    row.try_get::<String, _>("provider_id")
+                        .map_err(map_sqlx_err)?,
+                ),
                 model: row.try_get("model").map_err(map_sqlx_err)?,
-                prompt_tokens: row.try_get::<i64, _>("prompt_tokens").map_err(map_sqlx_err)?.max(0) as u32,
-                completion_tokens: row.try_get::<i64, _>("completion_tokens").map_err(map_sqlx_err)?.max(0) as u32,
-                elapsed_ms: row.try_get::<i64, _>("elapsed_ms").map_err(map_sqlx_err)?.max(0) as u64,
+                prompt_tokens: row
+                    .try_get::<i64, _>("prompt_tokens")
+                    .map_err(map_sqlx_err)?
+                    .max(0) as u32,
+                completion_tokens: row
+                    .try_get::<i64, _>("completion_tokens")
+                    .map_err(map_sqlx_err)?
+                    .max(0) as u32,
+                elapsed_ms: row
+                    .try_get::<i64, _>("elapsed_ms")
+                    .map_err(map_sqlx_err)?
+                    .max(0) as u64,
                 outcome: outcome_from_str(
                     &row.try_get::<String, _>("outcome").map_err(map_sqlx_err)?,
                 )?,
@@ -344,8 +366,9 @@ impl CallLogStore for SqliteCallLogStore {
 fn map_sqlx_err(e: sqlx::Error) -> Error {
     match &e {
         sqlx::Error::RowNotFound => Error::not_found(format!("{e}")),
-        sqlx::Error::Database(db_err) if db_err.code().as_deref() == Some("2067")
-            || db_err.code().as_deref() == Some("1555") =>
+        sqlx::Error::Database(db_err)
+            if db_err.code().as_deref() == Some("2067")
+                || db_err.code().as_deref() == Some("1555") =>
         {
             // SQLITE_CONSTRAINT_UNIQUE / PRIMARY KEY
             Error::with_kind(ErrorKind::Conflict, format!("{e}"))
@@ -356,21 +379,21 @@ fn map_sqlx_err(e: sqlx::Error) -> Error {
 
 fn status_str(s: RequestStatus) -> &'static str {
     match s {
-        RequestStatus::Pending       => "pending",
-        RequestStatus::Success       => "success",
-        RequestStatus::ClientError   => "client_error",
+        RequestStatus::Pending => "pending",
+        RequestStatus::Success => "success",
+        RequestStatus::ClientError => "client_error",
         RequestStatus::UpstreamError => "upstream_error",
-        RequestStatus::Canceled      => "canceled",
+        RequestStatus::Canceled => "canceled",
     }
 }
 
 fn status_from_str(s: &str) -> Result<RequestStatus> {
     Ok(match s {
-        "pending"        => RequestStatus::Pending,
-        "success"        => RequestStatus::Success,
-        "client_error"   => RequestStatus::ClientError,
+        "pending" => RequestStatus::Pending,
+        "success" => RequestStatus::Success,
+        "client_error" => RequestStatus::ClientError,
         "upstream_error" => RequestStatus::UpstreamError,
-        "canceled"       => RequestStatus::Canceled,
+        "canceled" => RequestStatus::Canceled,
         other => {
             return Err(Error::with_kind(
                 ErrorKind::Db,
@@ -383,8 +406,8 @@ fn status_from_str(s: &str) -> Result<RequestStatus> {
 fn call_outcome_str(o: CallOutcome) -> &'static str {
     match o {
         CallOutcome::Success => "success",
-        CallOutcome::Retry   => "retry",
-        CallOutcome::Failed  => "failed",
+        CallOutcome::Retry => "retry",
+        CallOutcome::Failed => "failed",
         CallOutcome::Skipped => "skipped",
     }
 }
@@ -392,8 +415,8 @@ fn call_outcome_str(o: CallOutcome) -> &'static str {
 fn outcome_from_str(s: &str) -> Result<CallOutcome> {
     Ok(match s {
         "success" => CallOutcome::Success,
-        "retry"   => CallOutcome::Retry,
-        "failed"  => CallOutcome::Failed,
+        "retry" => CallOutcome::Retry,
+        "failed" => CallOutcome::Failed,
         "skipped" => CallOutcome::Skipped,
         other => {
             return Err(Error::with_kind(
@@ -437,9 +460,18 @@ fn row_to_record(row: &sqlx::sqlite::SqliteRow) -> Result<RequestRecord> {
         created_at_ms: row.try_get("created_at_ms").map_err(map_sqlx_err)?,
         finished_at_ms: row.try_get("finished_at_ms").map_err(map_sqlx_err)?,
         status: status_from_str(&status_str_v)?,
-        prompt_tokens: row.try_get::<i64, _>("prompt_tokens").map_err(map_sqlx_err)?.max(0) as u32,
-        completion_tokens: row.try_get::<i64, _>("completion_tokens").map_err(map_sqlx_err)?.max(0) as u32,
-        cached_tokens: row.try_get::<i64, _>("cached_tokens").map_err(map_sqlx_err)?.max(0) as u32,
+        prompt_tokens: row
+            .try_get::<i64, _>("prompt_tokens")
+            .map_err(map_sqlx_err)?
+            .max(0) as u32,
+        completion_tokens: row
+            .try_get::<i64, _>("completion_tokens")
+            .map_err(map_sqlx_err)?
+            .max(0) as u32,
+        cached_tokens: row
+            .try_get::<i64, _>("cached_tokens")
+            .map_err(map_sqlx_err)?
+            .max(0) as u32,
         error_code: row.try_get("error_code").map_err(map_sqlx_err)?,
     })
 }
@@ -484,11 +516,7 @@ mod tests {
         let store = SqliteRequestStore::in_memory().await.unwrap();
         let id = RequestId::new();
         store.insert(&rec(id, "gpt-4o")).await.unwrap();
-        let patch = FinalizePatch::success(
-            ProviderId::from("openai"),
-            "gpt-4o",
-            100, 50, 25,
-        );
+        let patch = FinalizePatch::success(ProviderId::from("openai"), "gpt-4o", 100, 50, 25);
         store.finalize(id, patch).await.unwrap();
         let got = store.get(id).await.unwrap();
         assert_eq!(got.status, RequestStatus::Success);
@@ -503,7 +531,10 @@ mod tests {
     async fn finalize_unknown_id_returns_not_found() {
         let store = SqliteRequestStore::in_memory().await.unwrap();
         let err = store
-            .finalize(RequestId::new(), FinalizePatch::upstream_error("rate_limit"))
+            .finalize(
+                RequestId::new(),
+                FinalizePatch::upstream_error("rate_limit"),
+            )
             .await
             .unwrap_err();
         assert!(matches!(err.kind(), ErrorKind::NotFound));
@@ -534,14 +565,24 @@ mod tests {
         let id2 = RequestId::new();
         store.insert(&rec(id1, "gpt-4o")).await.unwrap();
         store.insert(&rec(id2, "claude-3")).await.unwrap();
-        store.finalize(id1, FinalizePatch::success(
-            ProviderId::from("openai"), "gpt-4o", 10, 10, 0,
-        )).await.unwrap();
+        store
+            .finalize(
+                id1,
+                FinalizePatch::success(ProviderId::from("openai"), "gpt-4o", 10, 10, 0),
+            )
+            .await
+            .unwrap();
 
-        let f1 = RequestFilter { provider: Some(ProviderId::from("openai")), ..RequestFilter::default() };
+        let f1 = RequestFilter {
+            provider: Some(ProviderId::from("openai")),
+            ..RequestFilter::default()
+        };
         assert_eq!(store.count(&f1).await.unwrap(), 1);
 
-        let f2 = RequestFilter { status: Some(RequestStatus::Pending), ..RequestFilter::default() };
+        let f2 = RequestFilter {
+            status: Some(RequestStatus::Pending),
+            ..RequestFilter::default()
+        };
         assert_eq!(store.count(&f2).await.unwrap(), 1);
 
         let f3 = RequestFilter::all();
@@ -552,24 +593,30 @@ mod tests {
     async fn call_log_appends_and_lists_for_trace() {
         let store = SqliteCallLogStore::in_memory().await.unwrap();
         let trace = TraceId::new();
-        store.append(CallLogEntry {
-            trace_id: trace,
-            provider_id: ProviderId::from("openai"),
-            model: "gpt-4o".to_string(),
-            prompt_tokens: 12,
-            completion_tokens: 34,
-            elapsed_ms: 100,
-            outcome: CallOutcome::Success,
-        }).await.unwrap();
-        store.append(CallLogEntry {
-            trace_id: trace,
-            provider_id: ProviderId::from("anthropic"),
-            model: "claude-3".to_string(),
-            prompt_tokens: 5,
-            completion_tokens: 6,
-            elapsed_ms: 200,
-            outcome: CallOutcome::Failed,
-        }).await.unwrap();
+        store
+            .append(CallLogEntry {
+                trace_id: trace,
+                provider_id: ProviderId::from("openai"),
+                model: "gpt-4o".to_string(),
+                prompt_tokens: 12,
+                completion_tokens: 34,
+                elapsed_ms: 100,
+                outcome: CallOutcome::Success,
+            })
+            .await
+            .unwrap();
+        store
+            .append(CallLogEntry {
+                trace_id: trace,
+                provider_id: ProviderId::from("anthropic"),
+                model: "claude-3".to_string(),
+                prompt_tokens: 5,
+                completion_tokens: 6,
+                elapsed_ms: 200,
+                outcome: CallOutcome::Failed,
+            })
+            .await
+            .unwrap();
 
         let rows = store.list_for_trace(trace).await.unwrap();
         assert_eq!(rows.len(), 2);
@@ -586,9 +633,13 @@ mod tests {
         let id = RequestId::new();
         store.insert(&rec(id, "gpt-4o")).await.unwrap();
         let before = crate::storage::now_ms_or_zero();
-        store.finalize(id, FinalizePatch::success(
-            ProviderId::from("openai"), "gpt-4o", 1, 1, 0,
-        )).await.unwrap();
+        store
+            .finalize(
+                id,
+                FinalizePatch::success(ProviderId::from("openai"), "gpt-4o", 1, 1, 0),
+            )
+            .await
+            .unwrap();
         let got = store.get(id).await.unwrap();
         let finished = got.finished_at_ms.unwrap();
         assert!(finished >= before);

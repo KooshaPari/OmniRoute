@@ -239,8 +239,7 @@ impl Default for CompressionConfig {
     fn default() -> Self {
         Self {
             enabled: env_flag("OMNIROUTE_COMPRESSION_ENABLED", false),
-            mode: std::env::var("OMNIROUTE_COMPRESSION_MODE")
-                .unwrap_or_else(|_| "off".into()),
+            mode: std::env::var("OMNIROUTE_COMPRESSION_MODE").unwrap_or_else(|_| "off".into()),
             budget_ratio: std::env::var("OMNIROUTE_COMPRESSION_BUDGET_RATIO")
                 .ok()
                 .and_then(|s| s.parse().ok())
@@ -505,7 +504,10 @@ fn env_flag_default_true(name: &str) -> bool {
 }
 
 fn env_f64(name: &str, default: f64) -> f64 {
-    std::env::var(name).ok().and_then(|s| s.parse().ok()).unwrap_or(default)
+    std::env::var(name)
+        .ok()
+        .and_then(|s| s.parse().ok())
+        .unwrap_or(default)
 }
 
 /// Helper: write a `.env` template to disk under a data dir, idempotent.
@@ -536,7 +538,11 @@ impl Default for Config {
         Self {
             data_dir,
             bind: BindConfig::default(),
-            log: LogConfig { level: LogLevel::default(), format: LogFormat::default(), file: None },
+            log: LogConfig {
+                level: LogLevel::default(),
+                format: LogFormat::default(),
+                file: None,
+            },
             database_url,
             provider_timeout: env_duration_secs("OMNIROUTE_PROVIDER_TIMEOUT", 60),
             stream_idle_timeout: env_duration_secs("OMNIROUTE_STREAM_IDLE_TIMEOUT", 120),
@@ -552,7 +558,11 @@ impl Default for Config {
 }
 
 fn env_duration_secs(name: &str, default_secs: u64) -> Duration {
-    std::env::var(name).ok().and_then(|s| s.parse().ok()).map(Duration::from_secs).unwrap_or_else(|| Duration::from_secs(default_secs))
+    std::env::var(name)
+        .ok()
+        .and_then(|s| s.parse().ok())
+        .map(Duration::from_secs)
+        .unwrap_or_else(|| Duration::from_secs(default_secs))
 }
 
 #[cfg(test)]
@@ -639,5 +649,4 @@ mod tests {
         assert!(cfg.chaos.enabled);
         assert_eq!(cfg.opencode.contract_version, "v2");
     }
-
 }

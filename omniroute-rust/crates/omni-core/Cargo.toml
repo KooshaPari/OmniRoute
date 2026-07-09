@@ -25,6 +25,9 @@ dotenvy   = { workspace = true }
 indexmap  = { workspace = true }
 sqlx      = { workspace = true }
 reqwest   = { workspace = true }
+bytes     = { workspace = true }
+rand      = { workspace = true }
 
 [dev-dependencies]
 pretty_assertions = { workspace = true }
+tokio = { workspace = true, features = ["test-util"] }

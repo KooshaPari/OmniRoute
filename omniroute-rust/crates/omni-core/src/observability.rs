@@ -116,7 +116,11 @@ impl TokenUsage {
     /// Construct from input + output; total is derived.
     #[must_use]
     pub fn new(input: u64, output: u64) -> Self {
-        Self { input, output, total: input + output }
+        Self {
+            input,
+            output,
+            total: input + output,
+        }
     }
 }
 
@@ -270,9 +274,10 @@ impl Observability {
         provider: ProviderId,
         model: ModelId,
     ) -> Result<RequestSpan, Error> {
-        let mut inner = self.inner.write().map_err(|e| {
-            Error::internal(format!("observability lock poisoned: {e}"))
-        })?;
+        let mut inner = self
+            .inner
+            .write()
+            .map_err(|e| Error::internal(format!("observability lock poisoned: {e}")))?;
         if inner.inflight.contains_key(&trace_id) {
             return Err(Error::bad_request(format!(
                 "trace_id {trace_id} already in flight; cannot double-record start"
@@ -305,13 +310,12 @@ impl Observability {
         outcome: RequestOutcome,
         usage: TokenUsage,
     ) -> Result<(), Error> {
-        let mut inner = self.inner.write().map_err(|e| {
-            Error::internal(format!("observability lock poisoned: {e}"))
-        })?;
+        let mut inner = self
+            .inner
+            .write()
+            .map_err(|e| Error::internal(format!("observability lock poisoned: {e}")))?;
         let mut span = inner.inflight.remove(&trace_id).ok_or_else(|| {
-            Error::not_found(format!(
-                "trace_id {trace_id}: no inflight span to complete"
-            ))
+            Error::not_found(format!("trace_id {trace_id}: no inflight span to complete"))
         })?;
         span.finished_at = Some(Instant::now());
         span.outcome = outcome;
@@ -422,8 +426,12 @@ mod tests {
         let span = start(&o, "openai");
         assert_eq!(span.outcome, RequestOutcome::Pending);
         assert!(o.inflight_count() == 1);
-        o.record_completion(span.trace_id, RequestOutcome::Success, TokenUsage::new(10, 20))
-            .expect("complete");
+        o.record_completion(
+            span.trace_id,
+            RequestOutcome::Success,
+            TokenUsage::new(10, 20),
+        )
+        .expect("complete");
         assert_eq!(o.inflight_count(), 0);
         let m = o.metrics();
         assert_eq!(m.total_started, 1);
@@ -481,8 +489,12 @@ mod tests {
         let o = obs();
         for _ in 0..(MAX_COMPLETED + 100) {
             let span = start(&o, "openai");
-            o.record_completion(span.trace_id, RequestOutcome::Success, TokenUsage::default())
-                .expect("complete");
+            o.record_completion(
+                span.trace_id,
+                RequestOutcome::Success,
+                TokenUsage::default(),
+            )
+            .expect("complete");
         }
         assert_eq!(o.completed_len(), MAX_COMPLETED);
         assert_eq!(o.metrics().total_started, (MAX_COMPLETED + 100) as u64);
@@ -522,8 +534,12 @@ mod tests {
         let fetched = o.get_inflight(&span.trace_id);
         assert!(fetched.is_some());
         assert_eq!(fetched.unwrap().provider, ProviderId::from("openai"));
-        o.record_completion(span.trace_id, RequestOutcome::Success, TokenUsage::default())
-            .expect("complete");
+        o.record_completion(
+            span.trace_id,
+            RequestOutcome::Success,
+            TokenUsage::default(),
+        )
+        .expect("complete");
         assert!(o.get_inflight(&span.trace_id).is_none());
     }
 

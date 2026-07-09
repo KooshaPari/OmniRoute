@@ -97,7 +97,9 @@ impl ModelRef {
     /// ```
     #[must_use]
     pub fn parse(raw: &str) -> Self {
-        Self { raw: raw.to_string() }
+        Self {
+            raw: raw.to_string(),
+        }
     }
 
     /// Split `"provider/model"` into `(provider, model)`. Returns `None`

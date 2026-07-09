@@ -115,6 +115,12 @@ uuid_id! {
     /// The correlation between the [`RequestId`] and the [`ResponseId`] is
     /// maintained inside [`crate::response::ResponseCorrelation`].
     ResponseId,
+
+    /// Identifier of a single bidirectional SSE streaming channel (Chat
+    /// Completions streaming endpoint). One StreamId is minted per stream
+    /// open and is reused across every chunk of that stream for log
+    /// correlation.
+    StreamId,
 }
 
 /// Slug-based variant of [`ResponseId`] for non-OpenAI-compatible upstreams
@@ -259,6 +265,7 @@ slug_id! {
     /// assert_eq!(k.as_str(), "ork_prod_abc123");
     /// ```
     ApiKeySlug,
+
 }
 
 #[cfg(test)]

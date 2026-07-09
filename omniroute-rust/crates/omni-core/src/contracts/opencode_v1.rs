@@ -177,11 +177,17 @@ mod tests {
         assert_eq!(parsed.data[0].capabilities.attachment, true);
         assert_eq!(parsed.data[0].capabilities.structured_output, true);
         assert_eq!(parsed.data[0].capabilities.temperature, true);
-        assert_eq!(parsed.data[0].display_name.as_deref(), Some("Claude Sonnet 4.5"));
+        assert_eq!(
+            parsed.data[0].display_name.as_deref(),
+            Some("Claude Sonnet 4.5")
+        );
         assert_eq!(parsed.data[0].context_length, 200000);
         assert_eq!(parsed.data[0].max_input_tokens, Some(200000));
         assert_eq!(parsed.data[0].max_output_tokens, Some(8192));
-        assert_eq!(parsed.data[0].input_modalities, vec!["text".to_string(), "image".to_string()]);
+        assert_eq!(
+            parsed.data[0].input_modalities,
+            vec!["text".to_string(), "image".to_string()]
+        );
         assert_eq!(parsed.data[0].output_modalities, vec!["text".to_string()]);
         assert_eq!(parsed.data[0].release_date.as_deref(), Some("2025-05-01"));
         assert_eq!(parsed.data[0].api_format.as_deref(), Some("anthropic"));

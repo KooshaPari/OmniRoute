@@ -27,14 +27,15 @@
 //!
 //! | HTTP status | Error kind  | retryable | notes |
 //! |-------------|-------------|-----------|-------|
-//! | 400–499     | ClientError | false     | caller must fix the request |
-//! | 500–599     | UpstreamErr | true      | automatic retry |
+//! | 400–499     | BadRequest  | false     | caller must fix the request |
+//! | 500–599     | `Upstream`  | true      | automatic retry |
 //! | 429         | RateLimited | true      | backoff + retry |
-//! | connection  | UpstreamErr | true      | transient |
-//! | timeout     | UpstreamErr | true      | requester may increase timeout |
+//! | connection  | `Upstream`  | true      | transient |
+//! | timeout     | `Upstream`  | true      | requester may increase timeout |
 //! | 200 OK      | —           | —         | success |
 
 use async_trait::async_trait;
+use bytes::Bytes;
 use futures::{stream, StreamExt};
 use reqwest::Client;
 use std::time::Duration;
@@ -43,7 +44,7 @@ use crate::error::{Error, ErrorKind};
 use crate::executor::{
     Executor, ExecutorCapabilities, ExecutorRequest, ExecutorResponse, StreamEvent,
 };
-use crate::provider::Provider;
+use crate::provider::{Provider, ProviderId};
 
 /// Default HTTP executor that calls upstream LLM API endpoints.
 ///
@@ -55,6 +56,7 @@ pub struct DefaultExecutor {
     client: Client,
     provider: Provider,
     base_url: String,
+    model_catalog: Vec<String>,
 }
 
 impl DefaultExecutor {
@@ -65,6 +67,13 @@ impl DefaultExecutor {
     /// OpenAI-compatible URL (`https://api.openai.com/v1/chat/completions`)
     /// only when none is configured.
     pub fn new(provider: Provider) -> Self {
+        let model_catalog = provider
+            .metadata
+            .models
+            .iter()
+            .map(|model| model.as_str().to_string())
+            .collect();
+
         let base_url = if provider.metadata.base_url.is_empty() {
             "https://api.openai.com/v1".to_string()
         } else {
@@ -79,6 +88,7 @@ impl DefaultExecutor {
                 .expect("reqwest Client::builder() should never fail with the config above"),
             provider,
             base_url,
+            model_catalog,
         }
     }
 
@@ -94,7 +104,8 @@ impl DefaultExecutor {
     /// `"Bearer sk-abc123"`) or `None` if the provider has no credentials
     /// configured (which will cause a 401 from the upstream).
     fn auth_header(&self) -> Option<String> {
-        self.provider.credential
+        self.provider
+            .credential
             .as_ref()
             .map(|key| format!("Bearer {key}"))
     }
@@ -111,7 +122,7 @@ impl DefaultExecutor {
         model_id: &str,
     ) -> Vec<StreamEvent>
     where
-        B: futures::Stream<Item = Result<reqwest::Bytes, reqwest::Error>> + Unpin,
+        B: futures::Stream<Item = Result<Bytes, reqwest::Error>> + Unpin,
     {
         let mut events: Vec<StreamEvent> = Vec::new();
         let mut buffer = String::new();
@@ -249,15 +260,20 @@ impl DefaultExecutor {
 
 #[async_trait]
 impl Executor for DefaultExecutor {
+    fn provider_id(&self) -> ProviderId {
+        self.provider.metadata.id.clone()
+    }
+
     fn capabilities(&self) -> ExecutorCapabilities {
         // DefaultExecutor supports all base capabilities.
         ExecutorCapabilities::default()
     }
 
-    async fn execute(
-        &self,
-        request: ExecutorRequest,
-    ) -> Result<ExecutorResponse, Error> {
+    fn models(&self) -> &[String] {
+        &self.model_catalog
+    }
+
+    async fn execute(&self, request: ExecutorRequest) -> Result<ExecutorResponse, Error> {
         if request.stream {
             self.execute_stream(request).await
         } else {
@@ -272,10 +288,7 @@ impl Executor for DefaultExecutor {
 
 /// Streaming-request logic.
 impl DefaultExecutor {
-    async fn execute_stream(
-        &self,
-        request: ExecutorRequest,
-    ) -> Result<ExecutorResponse, Error> {
+    async fn execute_stream(&self, request: ExecutorRequest) -> Result<ExecutorResponse, Error> {
         let endpoint = self.endpoint("/chat/completions");
         let url_str: &str = &endpoint;
 
@@ -294,8 +307,15 @@ impl DefaultExecutor {
             req_builder = req_builder.header(key.as_str(), value.as_str());
         }
 
-        // Set the request body
-        let req_builder = req_builder.body(request.body.clone());
+        // Set the request body — reqwest's body type implements
+        // `From<Vec<u8>>` so we serialize the JSON value to bytes.
+        let body_bytes = serde_json::to_vec(&request.body).map_err(|e| {
+            Error::with_kind(
+                ErrorKind::BadRequest,
+                format!("failed to serialize request body: {e}"),
+            )
+        })?;
+        let req_builder = req_builder.body(body_bytes);
 
         // Apply timeout from the request, or default to 120s
         let req_builder = match request.timeout {
@@ -308,11 +328,11 @@ impl DefaultExecutor {
             Ok(resp) => resp,
             Err(e) => {
                 return Err(if e.is_timeout() {
-                    Error::upstream_status(504, "upstream timeout")
+                    Error::upstream_status("upstream timeout", 504)
                 } else if e.is_connect() {
-                    Error::upstream_status(502, format!("upstream connection failed: {e}"))
+                    Error::upstream_status(format!("upstream connection failed: {e}"), 502)
                 } else {
-                    Error::upstream_status(502, format!("upstream request failed: {e}"))
+                    Error::upstream_status(format!("upstream request failed: {e}"), 502)
                 });
             }
         };
@@ -336,11 +356,11 @@ impl DefaultExecutor {
                     if status_code == 429 {
                         ErrorKind::RateLimited
                     } else {
-                        ErrorKind::ClientError
+                        ErrorKind::BadRequest
                     }
                 }
-                500..=599 => ErrorKind::UpstreamError,
-                _ => ErrorKind::UpstreamError,
+                500..=599 => ErrorKind::UpstreamUnavailable,
+                _ => ErrorKind::UpstreamUnavailable,
             };
 
             return Err(Error::with_kind(kind, message));
@@ -350,7 +370,9 @@ impl DefaultExecutor {
         let body = response.bytes_stream();
         let events = Self::parse_streaming_response(body, provider_id, model_id).await;
 
-        Ok(ExecutorResponse::Streaming(Box::pin(stream::iter(events.into_iter().map(Ok)))))
+        Ok(ExecutorResponse::Streaming(Box::pin(stream::iter(
+            events.into_iter().map(Ok),
+        ))))
     }
 }
 
@@ -376,7 +398,13 @@ impl DefaultExecutor {
             req_builder = req_builder.header(key.as_str(), value.as_str());
         }
 
-        let req_builder = req_builder.body(request.body.clone());
+        let body_bytes = serde_json::to_vec(&request.body).map_err(|e| {
+            Error::with_kind(
+                ErrorKind::BadRequest,
+                format!("failed to serialize request body: {e}"),
+            )
+        })?;
+        let req_builder = req_builder.body(body_bytes);
 
         let req_builder = match request.timeout {
             Some(d) => req_builder.timeout(d),
@@ -387,11 +415,11 @@ impl DefaultExecutor {
             Ok(resp) => resp,
             Err(e) => {
                 return Err(if e.is_timeout() {
-                    Error::upstream_status(504, "upstream timeout")
+                    Error::upstream_status("upstream timeout", 504)
                 } else if e.is_connect() {
-                    Error::upstream_status(502, format!("upstream connection failed: {e}"))
+                    Error::upstream_status(format!("upstream connection failed: {e}"), 502)
                 } else {
-                    Error::upstream_status(502, format!("upstream request failed: {e}"))
+                    Error::upstream_status(format!("upstream request failed: {e}"), 502)
                 });
             }
         };
@@ -409,8 +437,8 @@ impl DefaultExecutor {
 
             let kind = match status_code {
                 429 => ErrorKind::RateLimited,
-                400..=499 => ErrorKind::ClientError,
-                _ => ErrorKind::UpstreamError,
+                400..=499 => ErrorKind::BadRequest,
+                _ => ErrorKind::UpstreamUnavailable,
             };
 
             return Err(Error::with_kind(kind, message));
@@ -421,8 +449,8 @@ impl DefaultExecutor {
             Ok(b) => b,
             Err(e) => {
                 return Err(Error::upstream_status(
-                    502,
                     format!("failed to read response body: {e}"),
+                    502,
                 ));
             }
         };
@@ -431,7 +459,7 @@ impl DefaultExecutor {
             Ok(v) => v,
             Err(e) => {
                 return Err(Error::with_kind(
-                    ErrorKind::UpstreamError,
+                    ErrorKind::UpstreamUnavailable,
                     format!("upstream returned invalid JSON: {e}"),
                 ));
             }
@@ -473,7 +501,9 @@ impl DefaultExecutor {
             terminal: true,
         }];
 
-        Ok(ExecutorResponse::Streaming(Box::pin(stream::iter(events.into_iter().map(Ok)))))
+        Ok(ExecutorResponse::Streaming(Box::pin(stream::iter(
+            events.into_iter().map(Ok),
+        ))))
     }
 }
 
@@ -531,10 +561,19 @@ mod tests {
         // test_provider() already calls .with_credential("sk-test123")
         let executor = DefaultExecutor::new(provider);
         let auth = executor.auth_header();
-        assert!(auth.is_some(), "auth_header should return Some with api_key set");
+        assert!(
+            auth.is_some(),
+            "auth_header should return Some with api_key set"
+        );
         let val = auth.unwrap();
-        assert!(val.starts_with("Bearer "), "auth header should start with 'Bearer '");
-        assert!(val.contains("sk-test123"), "auth header should contain the key");
+        assert!(
+            val.starts_with("Bearer "),
+            "auth header should start with 'Bearer '"
+        );
+        assert!(
+            val.contains("sk-test123"),
+            "auth header should contain the key"
+        );
     }
 
     #[test]
@@ -546,7 +585,10 @@ mod tests {
             ..Default::default()
         });
         let executor = DefaultExecutor::new(provider);
-        assert!(executor.auth_header().is_none(), "no auth header without credentials");
+        assert!(
+            executor.auth_header().is_none(),
+            "no auth header without credentials"
+        );
     }
 
     #[test]
@@ -554,10 +596,7 @@ mod tests {
         let provider = test_provider();
         let executor = DefaultExecutor::new(provider);
         let ep = executor.endpoint("/chat/completions");
-        assert_eq!(
-            ep,
-            "https://api.test-provider.com/v1/chat/completions"
-        );
+        assert_eq!(ep, "https://api.test-provider.com/v1/chat/completions");
     }
 
     #[test]
@@ -622,7 +661,8 @@ mod tests {
 
     #[test]
     fn parse_sse_error_payload() {
-        let line = r#"data: {"error":{"message":"Insufficient quota","type":"insufficient_quota"}}"#;
+        let line =
+            r#"data: {"error":{"message":"Insufficient quota","type":"insufficient_quota"}}"#;
         let evt = DefaultExecutor::parse_sse_line(line, "p", "m");
         assert!(evt.is_some(), "error payload should parse");
         let ev = evt.unwrap();

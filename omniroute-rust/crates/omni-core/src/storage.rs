@@ -420,7 +420,10 @@ mod tests {
     async fn insert_rejects_duplicate_id() {
         let store = InMemoryRequestStore::new();
         let id = RequestId::new();
-        store.insert(&rec(id, "gpt-4o", RequestStatus::Pending)).await.unwrap();
+        store
+            .insert(&rec(id, "gpt-4o", RequestStatus::Pending))
+            .await
+            .unwrap();
         let err = store
             .insert(&rec(id, "gpt-4o", RequestStatus::Pending))
             .await
@@ -479,10 +482,7 @@ mod tests {
             .unwrap();
         let got = store.get(id).await.unwrap();
         assert_eq!(got.status, RequestStatus::UpstreamError);
-        assert_eq!(
-            got.error_code.as_deref(),
-            Some("upstream_unavailable")
-        );
+        assert_eq!(got.error_code.as_deref(), Some("upstream_unavailable"));
     }
 
     #[tokio::test]
@@ -513,10 +513,7 @@ mod tests {
             .await
             .unwrap();
 
-        assert_eq!(
-            store.count(&RequestFilter::all()).await.unwrap(),
-            2
-        );
+        assert_eq!(store.count(&RequestFilter::all()).await.unwrap(), 2);
         assert_eq!(
             store
                 .count(&RequestFilter::for_provider(ProviderId::from("openai")))

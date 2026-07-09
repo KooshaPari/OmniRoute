@@ -30,8 +30,8 @@ use std::time::Duration;
 
 use serde::{Deserialize, Serialize};
 
-use crate::ids::{RequestId, ResponseId};
 use crate::ids::ModelId;
+use crate::ids::{RequestId, ResponseId};
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -229,11 +229,7 @@ impl SseFrame {
             // Heartbeat frames MUST NOT carry an `id:` line per spec.
             ChatEvent::Heartbeat { .. } => (SseEventName::Heartbeat, None),
         };
-        Ok(Self {
-            name,
-            id,
-            data,
-        })
+        Ok(Self { name, id, data })
     }
 
     /// Render this frame to its on-wire string form (ends with `\n\n`).
@@ -360,9 +356,7 @@ mod tests {
         assert_eq!(name, Some("error"));
         let back: ChatEvent = serde_json::from_str(data).unwrap();
         if let ChatEvent::Error {
-            code,
-            retry_after,
-            ..
+            code, retry_after, ..
         } = back
         {
             assert_eq!(code, "rate_limited");

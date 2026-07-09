@@ -138,27 +138,45 @@ impl Error {
     }
 
     pub fn bad_request(message: impl Into<String>) -> Self {
-        Self::WithKind { kind: ErrorKind::BadRequest, message: message.into() }
+        Self::WithKind {
+            kind: ErrorKind::BadRequest,
+            message: message.into(),
+        }
     }
 
     pub fn unauthorized(message: impl Into<String>) -> Self {
-        Self::WithKind { kind: ErrorKind::Unauthorized, message: message.into() }
+        Self::WithKind {
+            kind: ErrorKind::Unauthorized,
+            message: message.into(),
+        }
     }
 
     pub fn forbidden(message: impl Into<String>) -> Self {
-        Self::WithKind { kind: ErrorKind::Forbidden, message: message.into() }
+        Self::WithKind {
+            kind: ErrorKind::Forbidden,
+            message: message.into(),
+        }
     }
 
     pub fn not_found(message: impl Into<String>) -> Self {
-        Self::WithKind { kind: ErrorKind::NotFound, message: message.into() }
+        Self::WithKind {
+            kind: ErrorKind::NotFound,
+            message: message.into(),
+        }
     }
 
     pub fn rate_limited(message: impl Into<String>) -> Self {
-        Self::WithKind { kind: ErrorKind::RateLimited, message: message.into() }
+        Self::WithKind {
+            kind: ErrorKind::RateLimited,
+            message: message.into(),
+        }
     }
 
     pub fn upstream(message: impl Into<String>) -> Self {
-        Self::WithKind { kind: ErrorKind::UpstreamUnavailable, message: message.into() }
+        Self::WithKind {
+            kind: ErrorKind::UpstreamUnavailable,
+            message: message.into(),
+        }
     }
 
     pub fn upstream_status(message: impl Into<String>, status: u16) -> Self {
@@ -169,12 +187,18 @@ impl Error {
     }
 
     pub fn internal(message: impl Into<String>) -> Self {
-        Self::WithKind { kind: ErrorKind::Internal, message: message.into() }
+        Self::WithKind {
+            kind: ErrorKind::Internal,
+            message: message.into(),
+        }
     }
 
     /// Build an error with an explicit kind (for kinds without a dedicated constructor).
     pub fn with_kind(kind: ErrorKind, message: impl Into<String>) -> Self {
-        Self::WithKind { kind, message: message.into() }
+        Self::WithKind {
+            kind,
+            message: message.into(),
+        }
     }
 
     /// Returns true when this error originates from the caller's request
@@ -305,10 +329,8 @@ mod tests {
         ] {
             // Each must round-trip back through Display
             let display = k.to_string();
-            let reconstructed: ErrorKind = serde_json::from_str(&format!(
-                "\"{display}\""
-            ))
-            .expect("kind must round-trip via Display + serde");
+            let reconstructed: ErrorKind = serde_json::from_str(&format!("\"{display}\""))
+                .expect("kind must round-trip via Display + serde");
             assert_eq!(reconstructed, k, "round-trip failed for {display}");
         }
     }

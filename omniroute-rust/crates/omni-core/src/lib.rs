@@ -78,7 +78,9 @@ pub use ids::{
     ApiCallId, ApiKeySlug, ComboId, ModelId, RequestId, ResponseId, SessionId, TenantId, TraceId,
     UpstreamResponseSlug,
 };
-pub use model::{Model, ModelCapabilities, ModelRef, Modality};
+pub use model::{Modality, Model, ModelCapabilities, ModelRef};
 pub use provider::{Provider, ProviderId, ProviderKind, ProviderMetadata};
 pub use response::{ResponseCorrelation, UpstreamRef};
-pub use streaming::{ChatEvent, SseEventName, SseFrame, TokenUsage, SSE_KEEP_ALIVE_SECONDS, SSE_MAX_CHUNK_BYTES};
+pub use streaming::{
+    ChatEvent, SseEventName, SseFrame, TokenUsage, SSE_KEEP_ALIVE_SECONDS, SSE_MAX_CHUNK_BYTES,
+};

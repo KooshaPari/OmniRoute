@@ -72,18 +72,16 @@ impl ResponseCorrelation {
         Self {
             request_id,
             trace_id,
-            upstream: UpstreamRef::Minted { id: ResponseId::new() },
+            upstream: UpstreamRef::Minted {
+                id: ResponseId::new(),
+            },
         }
     }
 
     /// Build a correlation that echoes a non-empty upstream slug.
     /// Returns `None` if the slug was empty after trimming.
     #[must_use]
-    pub fn echoed(
-        request_id: RequestId,
-        trace_id: TraceId,
-        upstream_id: &str,
-    ) -> Option<Self> {
+    pub fn echoed(request_id: RequestId, trace_id: TraceId, upstream_id: &str) -> Option<Self> {
         UpstreamResponseSlug::parse(upstream_id).map(|slug| Self {
             request_id,
             trace_id,
@@ -100,7 +98,12 @@ impl ResponseCorrelation {
     /// String label for logs and span fields.
     #[must_use]
     pub fn label(&self) -> String {
-        format!("req={},trace={},{}", self.request_id, self.trace_id, self.upstream.as_label())
+        format!(
+            "req={},trace={},{}",
+            self.request_id,
+            self.trace_id,
+            self.upstream.as_label()
+        )
     }
 }
 
@@ -118,24 +121,14 @@ mod tests {
 
     #[test]
     fn echoed_correlation_rejects_empty_slugs() {
-        assert!(
-            ResponseCorrelation::echoed(RequestId::new(), TraceId::new(), "")
-                .is_none()
-        );
-        assert!(
-            ResponseCorrelation::echoed(RequestId::new(), TraceId::new(), "   ")
-                .is_none()
-        );
+        assert!(ResponseCorrelation::echoed(RequestId::new(), TraceId::new(), "").is_none());
+        assert!(ResponseCorrelation::echoed(RequestId::new(), TraceId::new(), "   ").is_none());
     }
 
     #[test]
     fn echoed_correlation_accepts_cmpl_slug() {
-        let c = ResponseCorrelation::echoed(
-            RequestId::new(),
-            TraceId::new(),
-            "cmpl-abc123",
-        )
-        .expect("present");
+        let c = ResponseCorrelation::echoed(RequestId::new(), TraceId::new(), "cmpl-abc123")
+            .expect("present");
         assert!(!c.is_minted());
         assert!(c.label().contains("echoed:cmpl-abc123"));
     }
@@ -152,13 +145,9 @@ mod tests {
     #[test]
     fn unminted_vs_echoed_label_distinct() {
         let a = ResponseCorrelation::minted(RequestId::new(), TraceId::new()).label();
-        let b = ResponseCorrelation::echoed(
-            RequestId::new(),
-            TraceId::new(),
-            "chatcmpl-xyz",
-        )
-        .expect("non-empty")
-        .label();
+        let b = ResponseCorrelation::echoed(RequestId::new(), TraceId::new(), "chatcmpl-xyz")
+            .expect("non-empty")
+            .label();
         assert_ne!(a, b);
         assert!(a.contains("minted:"));
         assert!(b.contains("echoed:chatcmpl-xyz"));

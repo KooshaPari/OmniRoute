@@ -57,9 +57,7 @@ impl ProviderRegistry {
     /// aggregated error is returned once the iteration completes. If
     /// you need to know which providers failed, iterate
     /// `validate_each` directly instead.
-    pub fn from_iter(
-        providers: impl IntoIterator<Item = Provider>,
-    ) -> Result<Self> {
+    pub fn from_iter(providers: impl IntoIterator<Item = Provider>) -> Result<Self> {
         let registry = Self::new();
         let mut first_err: Option<Error> = None;
         for provider in providers {
@@ -131,19 +129,32 @@ impl ProviderRegistry {
     /// Number of providers currently registered.
     #[must_use]
     pub fn len(&self) -> usize {
-        self.inner.read().expect("registry rwlock poisoned").by_id.len()
+        self.inner
+            .read()
+            .expect("registry rwlock poisoned")
+            .by_id
+            .len()
     }
 
     /// True when no providers have been registered.
     #[must_use]
     pub fn is_empty(&self) -> bool {
-        self.inner.read().expect("registry rwlock poisoned").by_id.is_empty()
+        self.inner
+            .read()
+            .expect("registry rwlock poisoned")
+            .by_id
+            .is_empty()
     }
 
     /// Borrow a provider by id, if registered.
     #[must_use]
     pub fn get(&self, id: &ProviderId) -> Option<Provider> {
-        self.inner.read().expect("registry rwlock poisoned").by_id.get(id).cloned()
+        self.inner
+            .read()
+            .expect("registry rwlock poisoned")
+            .by_id
+            .get(id)
+            .cloned()
     }
 
     /// Borrow a provider by id, requiring it to be present.
@@ -163,7 +174,13 @@ impl ProviderRegistry {
     /// All providers in lexicographic id order.
     #[must_use]
     pub fn list(&self) -> Vec<Provider> {
-        self.inner.read().expect("registry rwlock poisoned").by_id.values().cloned().collect()
+        self.inner
+            .read()
+            .expect("registry rwlock poisoned")
+            .by_id
+            .values()
+            .cloned()
+            .collect()
     }
 
     /// All providers of a given kind.
@@ -184,14 +201,20 @@ impl ProviderRegistry {
     /// Look up the provider that serves a given model id.
     #[must_use]
     pub fn provider_for_model(&self, model: &ModelId) -> Option<ProviderId> {
-        self.inner.read().expect("registry rwlock poisoned").model_to_provider.get(model).cloned()
+        self.inner
+            .read()
+            .expect("registry rwlock poisoned")
+            .model_to_provider
+            .get(model)
+            .cloned()
     }
 
     /// Reverse lookup: provider + model catalog for a given provider id.
     #[must_use]
     pub fn models_for_provider(&self, id: &ProviderId) -> Vec<ModelId> {
         self.inner
-            .read().expect("registry rwlock poisoned")
+            .read()
+            .expect("registry rwlock poisoned")
             .by_id
             .get(id)
             .map(|p| p.metadata.models.clone())
@@ -201,13 +224,23 @@ impl ProviderRegistry {
     /// True if the registry has the given provider.
     #[must_use]
     pub fn contains(&self, id: &ProviderId) -> bool {
-        self.inner.read().expect("registry rwlock poisoned").by_id.contains_key(id)
+        self.inner
+            .read()
+            .expect("registry rwlock poisoned")
+            .by_id
+            .contains_key(id)
     }
 
     /// Iterator-like helper: ids in lexicographic order.
     #[must_use]
     pub fn ids(&self) -> Vec<ProviderId> {
-        self.inner.read().expect("registry rwlock poisoned").by_id.keys().cloned().collect()
+        self.inner
+            .read()
+            .expect("registry rwlock poisoned")
+            .by_id
+            .keys()
+            .cloned()
+            .collect()
     }
 }
 
@@ -241,8 +274,12 @@ mod tests {
     #[test]
     fn insert_and_get_roundtrips() {
         let r = ProviderRegistry::new();
-        r.insert(Provider::new(meta("openai", ProviderKind::OpenAI, &["gpt-4o"])))
-            .unwrap();
+        r.insert(Provider::new(meta(
+            "openai",
+            ProviderKind::OpenAI,
+            &["gpt-4o"],
+        )))
+        .unwrap();
         assert_eq!(r.len(), 1);
         let p = r.get(&ProviderId::from("openai")).unwrap();
         assert_eq!(p.metadata.id, ProviderId::from("openai"));
@@ -355,7 +392,9 @@ mod tests {
             vec![ModelId::from("gpt-4o"), ModelId::from("gpt-4o-mini")]
         );
         // Missing provider returns empty vec.
-        assert!(r.models_for_provider(&ProviderId::from("missing")).is_empty());
+        assert!(r
+            .models_for_provider(&ProviderId::from("missing"))
+            .is_empty());
     }
 
     #[test]
@@ -405,8 +444,12 @@ mod tests {
     fn registry_is_clone_and_shares_state() {
         let r = ProviderRegistry::new();
         let r2 = r.clone();
-        r.insert(Provider::new(meta("openai", ProviderKind::OpenAI, &["gpt-4o"])))
-            .unwrap();
+        r.insert(Provider::new(meta(
+            "openai",
+            ProviderKind::OpenAI,
+            &["gpt-4o"],
+        )))
+        .unwrap();
         // Both clones see the insert (Arc-shared inner state).
         assert_eq!(r.len(), 1);
         assert_eq!(r2.len(), 1);
@@ -425,9 +468,6 @@ mod tests {
         assert!(!r.contains(&ProviderId::from("c")));
         let mut ids = r.ids();
         ids.sort_by(|l, r| l.as_str().cmp(r.as_str()));
-        assert_eq!(
-            ids,
-            vec![ProviderId::from("a"), ProviderId::from("b")]
-        );
+        assert_eq!(ids, vec![ProviderId::from("a"), ProviderId::from("b")]);
     }
 }

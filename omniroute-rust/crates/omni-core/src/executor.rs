@@ -16,6 +16,7 @@
 //! to verify.
 
 use std::collections::BTreeMap;
+use std::fmt;
 use std::pin::Pin;
 use std::time::Duration;
 
@@ -49,7 +50,7 @@ use crate::provider::ProviderId;
 /// };
 /// assert!(!req.stream);
 /// ```
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 pub struct ExecutorRequest {
     pub request_id: RequestId,
     pub trace_id: TraceId,
@@ -82,6 +83,18 @@ pub struct ExecutorRequest {
 pub enum ExecutorResponse {
     Complete(CompleteResponse),
     Streaming(Pin<Box<dyn Stream<Item = Result<StreamEvent>> + Send>>),
+}
+
+impl fmt::Debug for ExecutorResponse {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        // The inner stream type erases its concrete type, so the only
+        // meaningful Debug we can produce is the variant tag. The
+        // Complete variant is debugged via its `CompleteResponse` field.
+        match self {
+            Self::Complete(c) => f.debug_tuple("Complete").field(c).finish(),
+            Self::Streaming(_) => f.debug_tuple("Streaming").finish(),
+        }
+    }
 }
 
 /// One-shot response body.
@@ -135,19 +148,31 @@ impl StreamEvent {
     /// Construct a non-terminal data event.
     #[must_use]
     pub fn data(data: impl Into<String>) -> Self {
-        Self { data: data.into(), event: None, terminal: false }
+        Self {
+            data: data.into(),
+            event: None,
+            terminal: false,
+        }
     }
 
     /// Construct the terminal event of a stream.
     #[must_use]
     pub fn terminal(data: impl Into<String>) -> Self {
-        Self { data: data.into(), event: Some("done".into()), terminal: true }
+        Self {
+            data: data.into(),
+            event: Some("done".into()),
+            terminal: true,
+        }
     }
 
     /// Construct an event with a structured event name (SSE `event:` field).
     #[must_use]
     pub fn named(event: impl Into<String>, data: impl Into<String>) -> Self {
-        Self { data: data.into(), event: Some(event.into()), terminal: false }
+        Self {
+            data: data.into(),
+            event: Some(event.into()),
+            terminal: false,
+        }
     }
 }
 
@@ -272,10 +297,17 @@ impl RetryPolicy {
         let factor = 1u64 << (attempt - 1).min(30);
         // Multiply the FULL duration as nanos (not just the seconds portion)
         // so sub-second base delays like 250ms actually double correctly.
-        let nanos = self.base_delay.as_nanos().saturating_mul(u128::from(factor));
+        let nanos = self
+            .base_delay
+            .as_nanos()
+            .saturating_mul(u128::from(factor));
         let capped = nanos.min(u128::from(u64::MAX));
         let delay = Duration::from_nanos(capped as u64);
-        if delay > self.max_delay { self.max_delay } else { delay }
+        if delay > self.max_delay {
+            self.max_delay
+        } else {
+            delay
+        }
     }
 
     /// `true` if `attempt` (0-based) is within the retry budget.
@@ -336,7 +368,10 @@ mod tests {
 
     #[test]
     fn retry_policy_should_retry_only_within_budget() {
-        let p = RetryPolicy { max_retries: 3, ..RetryPolicy::default() };
+        let p = RetryPolicy {
+            max_retries: 3,
+            ..RetryPolicy::default()
+        };
         assert!(!p.should_retry(0));
         assert!(p.should_retry(1));
         assert!(p.should_retry(3));
