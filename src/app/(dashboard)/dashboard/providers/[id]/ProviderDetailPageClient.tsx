@@ -39,10 +39,11 @@ import { useModelVisibilityHandlers } from "./hooks/useModelVisibilityHandlers";
 import { useModelCompatState } from "./hooks/useModelCompatState";
 import { useConnectionGate } from "./hooks/useConnectionGate";
 import { useProviderNodeActions } from "./hooks/useProviderNodeActions";
-import ProviderPlaygroundPanel from "./components/ProviderPlaygroundPanel";
+import ProviderExtraPanels from "./components/ProviderExtraPanels";
 import ProviderModelsSection from "./components/ProviderModelsSection";
 import CustomModelsSection from "./components/CustomModelsSection";
 import ConnectionsListPanel from "./components/ConnectionsListPanel";
+import CoolingConnectionsPanel from "./components/CoolingConnectionsPanel";
 import ConnectionsHeaderToolbar from "./components/ConnectionsHeaderToolbar";
 import ZedImportCard from "./components/ZedImportCard";
 import ProviderPageHeader from "./components/ProviderPageHeader";
@@ -551,64 +552,67 @@ export default function ProviderDetailPageClient() {
               t={t}
             />
           ) : (
-            <ConnectionsListPanel
-              connections={connections}
-              providerId={providerId}
-              isCcCompatible={isCcCompatible}
-              isOAuth={isOAuth}
-              codexGlobalServiceMode={codexGlobalServiceMode}
-              selectedIds={selectedIds}
-              batchUpdating={batchUpdating}
-              batchRetesting={batchRetesting}
-              batchDeleting={batchDeleting}
-              batchTesting={batchTesting}
-              retestingId={retestingId}
-              refreshingId={refreshingId}
-              distributingProxies={distributingProxies}
-              healthFilter={healthFilter}
-              page={page}
-              PAGE_SIZE={PAGE_SIZE}
-              connProxyMap={connProxyMap}
-              proxyConfig={proxyConfig}
-              applyingCodexAuthId={applyingCodexAuthId}
-              exportingCodexAuthId={exportingCodexAuthId}
-              applyingClaudeAuthId={applyingClaudeAuthId}
-              exportingClaudeAuthId={exportingClaudeAuthId}
-              emailsVisible={emailsVisible}
-              setSelectedIds={setSelectedIds}
-              setPage={setPage}
-              setHealthFilter={setHealthFilter}
-              handleDelete={handleDelete}
-              handleUpdateConnectionStatus={handleUpdateConnectionStatus}
-              handleToggleRateLimit={handleToggleRateLimit}
-              handleToggleClaudeExtraUsage={handleToggleClaudeExtraUsage}
-              handleToggleCliproxyapiMode={handleToggleCliproxyapiMode}
-              handleToggleCodexLimit={handleToggleCodexLimit}
-              handleToggleProxyEnabled={handleToggleProxyEnabled}
-              handleTogglePerKeyProxyEnabled={handleTogglePerKeyProxyEnabled}
-              handleRetestConnection={handleRetestConnection}
-              handleRefreshToken={handleRefreshToken}
-              handleSwapPriority={handleSwapPriority}
-              handleBatchSetActive={handleBatchSetActive}
-              handleBatchDeleteOpenModal={handleBatchDeleteOpenModal}
-              handleBatchRetest={handleBatchRetest}
-              handleToggleSelectOne={handleToggleSelectOne}
-              handleToggleSelectAll={handleToggleSelectAll}
-              handleDistributeProxies={handleDistributeProxies}
-              cpaProviderEnabled={cpaProviderEnabled}
-              onOpenEditModal={(conn) => {
-                setSelectedConnection(conn);
-                setShowEditModal(true);
-              }}
-              onOpenOAuth={(conn) => gateConnectionFlow(() => setShowOAuthModal(true, conn))}
-              onSetProxyTarget={setProxyTarget}
-              onOpenApplyCodexModal={setApplyCodexModalConnectionId}
-              onExportCodexAuthFile={handleExportCodexAuthFile}
-              onOpenApplyClaudeModal={setApplyClaudeModalConnectionId}
-              onExportClaudeAuthFile={handleExportClaudeAuthFile}
-              gateConnectionFlow={gateConnectionFlow}
-              t={t}
-            />
+            <>
+              <CoolingConnectionsPanel connections={connections} />
+              <ConnectionsListPanel
+                connections={connections}
+                providerId={providerId}
+                isCcCompatible={isCcCompatible}
+                isOAuth={isOAuth}
+                codexGlobalServiceMode={codexGlobalServiceMode}
+                selectedIds={selectedIds}
+                batchUpdating={batchUpdating}
+                batchRetesting={batchRetesting}
+                batchDeleting={batchDeleting}
+                batchTesting={batchTesting}
+                retestingId={retestingId}
+                refreshingId={refreshingId}
+                distributingProxies={distributingProxies}
+                healthFilter={healthFilter}
+                page={page}
+                PAGE_SIZE={PAGE_SIZE}
+                connProxyMap={connProxyMap}
+                proxyConfig={proxyConfig}
+                applyingCodexAuthId={applyingCodexAuthId}
+                exportingCodexAuthId={exportingCodexAuthId}
+                applyingClaudeAuthId={applyingClaudeAuthId}
+                exportingClaudeAuthId={exportingClaudeAuthId}
+                emailsVisible={emailsVisible}
+                setSelectedIds={setSelectedIds}
+                setPage={setPage}
+                setHealthFilter={setHealthFilter}
+                handleDelete={handleDelete}
+                handleUpdateConnectionStatus={handleUpdateConnectionStatus}
+                handleToggleRateLimit={handleToggleRateLimit}
+                handleToggleClaudeExtraUsage={handleToggleClaudeExtraUsage}
+                handleToggleCliproxyapiMode={handleToggleCliproxyapiMode}
+                handleToggleCodexLimit={handleToggleCodexLimit}
+                handleToggleProxyEnabled={handleToggleProxyEnabled}
+                handleTogglePerKeyProxyEnabled={handleTogglePerKeyProxyEnabled}
+                handleRetestConnection={handleRetestConnection}
+                handleRefreshToken={handleRefreshToken}
+                handleSwapPriority={handleSwapPriority}
+                handleBatchSetActive={handleBatchSetActive}
+                handleBatchDeleteOpenModal={handleBatchDeleteOpenModal}
+                handleBatchRetest={handleBatchRetest}
+                handleToggleSelectOne={handleToggleSelectOne}
+                handleToggleSelectAll={handleToggleSelectAll}
+                handleDistributeProxies={handleDistributeProxies}
+                cpaProviderEnabled={cpaProviderEnabled}
+                onOpenEditModal={(conn) => {
+                  setSelectedConnection(conn);
+                  setShowEditModal(true);
+                }}
+                onOpenOAuth={(conn) => gateConnectionFlow(() => setShowOAuthModal(true, conn))}
+                onSetProxyTarget={setProxyTarget}
+                onOpenApplyCodexModal={setApplyCodexModalConnectionId}
+                onExportCodexAuthFile={handleExportCodexAuthFile}
+                onOpenApplyClaudeModal={setApplyClaudeModalConnectionId}
+                onExportClaudeAuthFile={handleExportClaudeAuthFile}
+                gateConnectionFlow={gateConnectionFlow}
+                t={t}
+              />
+            </>
           )}
         </Card>
       )}
@@ -692,8 +696,8 @@ export default function ProviderDetailPageClient() {
       {/* Search provider info */}
       {isSearchProvider && <SearchProviderCard providerId={providerId} t={t} />}
 
-      {/* Playground panel — rendered for providers that declare serviceKinds */}
-      <ProviderPlaygroundPanel providerId={providerId} />
+      {/* Playground + param filters — extracted to components/ProviderExtraPanels.tsx (#6649) */}
+      <ProviderExtraPanels providerId={providerId} />
 
       {/* Modals — Phase 1t.5: extracted to components/ProviderModalsPanel.tsx */}
       <ProviderModalsPanel
@@ -705,6 +709,7 @@ export default function ProviderDetailPageClient() {
         isCommandCode={isCommandCode}
         isUpstreamProxyProvider={isUpstreamProxyProvider}
         subscriptionRisk={subscriptionRisk}
+        existingConnectionCount={connections.length}
         showRiskNoticeModal={showRiskNoticeModal}
         handleConfirmRiskNotice={handleConfirmRiskNotice}
         handleCancelRiskNotice={handleCancelRiskNotice}

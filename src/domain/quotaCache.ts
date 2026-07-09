@@ -23,6 +23,7 @@ import {
   getLatestQuotaSnapshotsForConnection,
 } from "@/lib/db/quotaSnapshots";
 import { recordProviderQuotaResetEventIfChanged } from "@/lib/db/quotaResetEvents";
+import { getCodexQuotaWindowFilterForModel } from "@omniroute/open-sse/config/codexQuotaScopes.ts";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -87,12 +88,6 @@ function advancedWindowResetAt(entry: QuotaCacheEntry, now: number): { exhausted
   // Eagerly mark as available so requests don't wait for the 5-min TTL.
   if (resetMs <= now) {
     return { exhausted: false };
-  }
-
-  // If we know the window duration, check if the *next* window also passed.
-  if (entry.windowDurationMs && entry.windowDurationMs > 0) {
-    const elapsed = now - resetMs;
-    if (elapsed >= 0) return { exhausted: false };
   }
 
   return null;
@@ -206,6 +201,30 @@ function normalizeQuotas(rawQuotas: Record<string, any>): Record<string, QuotaIn
 
 // ─── Public API ─────────────────────────────────────────────────────────────
 
+export function __clearForTests() {
+  cache.clear();
+}
+
+export function isQuotaExhaustedForRequest(
+  connectionId: string,
+  provider: string,
+  requestedModel: string | null = null
+): boolean {
+  if (!isAccountQuotaExhausted(connectionId)) return false;
+  if (provider !== "codex" || !requestedModel) return true;
+  const entry = getQuotaCache(connectionId);
+  const quotaNames = Object.keys(entry?.quotas || {});
+  if (quotaNames.length === 0) return true;
+  const filterWindow = getCodexQuotaWindowFilterForModel(requestedModel);
+  const scopedWindowNames = quotaNames.filter((windowName) => filterWindow?.(windowName));
+  return (
+    scopedWindowNames.length > 0 &&
+    scopedWindowNames.every(
+      (windowName) => getQuotaWindowStatus(connectionId, windowName, 100)?.reachedThreshold
+    )
+  );
+}
+
 /**
  * Store quota data for a connection (called by usage endpoint and background refresh).
  */
@@ -250,15 +269,20 @@ export function setQuotaCache(
             }
           : null,
       });
+      // #5923 (Finding #5) — is_exhausted must reflect THIS window's own remaining
+      // percentage, not the connection-wide AND-across-all-windows aggregate
+      // (`entry.exhausted`). A connection with one 0% window and other non-zero
+      // windows previously never flagged that window's row as exhausted.
+      const windowExhausted = remainingPercentage <= 0;
       // #4438 — only persist on the first observation or a real change.
-      if (!quotaSnapshotChanged(prior, windowKey, remainingPercentage, entry.exhausted)) continue;
+      if (!quotaSnapshotChanged(prior, windowKey, remainingPercentage, windowExhausted)) continue;
       try {
         saveQuotaSnapshot({
           provider,
           connection_id: connectionId,
           window_key: windowKey,
           remaining_percentage: remainingPercentage,
-          is_exhausted: entry.exhausted ? 1 : 0,
+          is_exhausted: windowExhausted ? 1 : 0,
           next_reset_at: quotaInfo.resetAt ?? null,
           window_duration_ms: entry.windowDurationMs ?? null,
           raw_data: null,

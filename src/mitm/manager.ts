@@ -2,7 +2,8 @@ import { spawn, type ChildProcess } from "child_process";
 import path from "path";
 import fs from "fs";
 import { resolveMitmDataDir } from "./dataDir.ts";
-import { addDNSEntry, addDNSEntries, removeDNSEntry, removeDNSEntries } from "./dns/dnsConfig.ts";
+import { removeDNSEntry, removeDNSEntries } from "./dns/dnsConfig.ts";
+import { provisionDnsEntries } from "./dns/provision.ts";
 import { generateCert } from "./cert/generate.ts";
 import { installCertResult, uninstallCert } from "./cert/install.ts";
 import { ALL_TARGETS } from "./targets/index.ts";
@@ -55,6 +56,33 @@ export function interpretMitmStartupError(stderr: string, port: number): string 
 // Store server process
 let serverProcess: ChildProcess | null = null;
 let serverPid: number | null = null;
+
+// Set while startMitm() is in flight, from the guard check through spawn.
+// Guards a TOCTOU race: the "already running" check above only trips once
+// `serverProcess` is assigned by spawn() — ~130 lines and several awaits
+// later (DNS entries, cert generation, cert install). Two concurrent
+// startMitm() calls would both pass that check before either assigns
+// serverProcess. (upstream 9router#2316)
+let mitmStarting = false;
+
+/**
+ * Attempt to acquire the single-flight "MITM server is starting" lock.
+ * Returns `true` if acquired — the caller must release it via
+ * `releaseMitmStartLock()` in a `finally` block — or `false` if another
+ * `startMitm()` call already holds it. Exported so the concurrency guard is
+ * unit-testable without exercising startMitm()'s full side effects
+ * (DNS/cert/spawn).
+ */
+export function tryAcquireMitmStartLock(): boolean {
+  if (mitmStarting) return false;
+  mitmStarting = true;
+  return true;
+}
+
+/** Release the single-flight start lock acquired via `tryAcquireMitmStartLock()`. */
+export function releaseMitmStartLock(): void {
+  mitmStarting = false;
+}
 
 // Set when getMitmStatus() finds a stale PID file (server died without clean
 // teardown). The dashboard surfaces this to offer a one-click Repair. Cleared
@@ -239,9 +267,7 @@ export function buildRepairPlan(): RepairPlan {
  */
 async function revertSystemProxyIfApplied(): Promise<boolean> {
   try {
-    const { getSystemProxyState, clearSystemProxy } = await import(
-      "@/lib/inspector/captureState"
-    );
+    const { getSystemProxyState, clearSystemProxy } = await import("@/lib/inspector/captureState");
     const state = getSystemProxyState();
     if (!state.applied || !state.previousState) return false;
     const { revert } = await import("./inspector/systemProxyConfig.ts");
@@ -463,6 +489,29 @@ export async function startMitm(
     throw new Error("MITM proxy is already running");
   }
 
+  // Check if another startMitm() call is already in flight (TOCTOU guard —
+  // see the `mitmStarting` comment above).
+  if (!tryAcquireMitmStartLock()) {
+    throw new Error("MITM server is already starting");
+  }
+
+  try {
+    return await startMitmInternal(apiKey, sudoPassword, options);
+  } finally {
+    releaseMitmStartLock();
+  }
+}
+
+/**
+ * Internal body of startMitm(), extracted so the single-flight lock in
+ * startMitm() cleanly wraps it in try/finally without re-indenting the
+ * entire implementation.
+ */
+async function startMitmInternal(
+  apiKey: string,
+  sudoPassword: string,
+  options: { port?: number }
+): Promise<{ running: true; pid: number | null; certTrusted: boolean }> {
   // Register best-effort teardown on parent SIGINT/SIGTERM (Gap 7).
   installCleanupHandlers();
 
@@ -525,40 +574,9 @@ export async function startMitm(
   }
 
   // 3. Add DNS entries: Antigravity defaults + all agents with dns_enabled=true +
-  //    all custom hosts with enabled=true.
+  //    all custom hosts with enabled=true. Best-effort — see provisionDnsEntries.
   log.info("Adding DNS entries...");
-  await addDNSEntry(sudoPassword);
-
-  // Collect hosts from agents that have dns_enabled=true in the DB.
-  try {
-    const agentStates = getAllAgentBridgeStates();
-    const agentHostsToAdd: string[] = [];
-    for (const state of agentStates) {
-      if (!state.dns_enabled) continue;
-      const target = ALL_TARGETS.find((t) => t.id === state.agent_id);
-      if (target) {
-        agentHostsToAdd.push(...target.hosts);
-      }
-    }
-    if (agentHostsToAdd.length > 0) {
-      log.info({ count: agentHostsToAdd.length }, "Adding DNS for agent host(s)...");
-      await addDNSEntries(agentHostsToAdd, sudoPassword);
-    }
-  } catch (err) {
-    log.error({ err }, "Failed to add agent DNS entries (continuing)");
-  }
-
-  // Collect enabled custom hosts.
-  try {
-    const customHosts = listCustomHosts({ enabledOnly: true });
-    const customHostNames = customHosts.map((h) => h.host);
-    if (customHostNames.length > 0) {
-      log.info({ count: customHostNames.length }, "Adding DNS for custom host(s)...");
-      await addDNSEntries(customHostNames, sudoPassword);
-    }
-  } catch (err) {
-    log.error({ err }, "Failed to add custom host DNS entries (continuing)");
-  }
+  await provisionDnsEntries(sudoPassword);
 
   // 4. Start MITM server
   log.info("Starting MITM server...");
@@ -577,9 +595,7 @@ export async function startMitm(
   let ingestToken = process.env.INSPECTOR_INTERNAL_INGEST_TOKEN || "";
   if (!ingestToken) {
     try {
-      const ingestMod = await import(
-        "@/app/api/tools/traffic-inspector/internal/ingest/route"
-      );
+      const ingestMod = await import("@/app/api/tools/traffic-inspector/internal/ingest/route");
       if (typeof ingestMod.getIngestTokenForBootstrap === "function") {
         ingestToken = ingestMod.getIngestTokenForBootstrap();
       }

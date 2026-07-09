@@ -322,7 +322,11 @@ export default function OAuthModal({
       // Claude Code and Cline OAuth flows can finish on provider-hosted pages that
       // show an auth code instead of redirecting back to OmniRoute.
       // Start directly in manual mode so users always have an input to paste code/url.
-      if (provider === "claude" || provider === "cline") {
+      // zed-hosted's native-app sign-in always redirects the browser to a local
+      // 127.0.0.1:<port> callback that OmniRoute never listens on (the port is
+      // arbitrary and unrelated to the dashboard's own port) — nothing can
+      // auto-close the popup, so always show the manual paste-URL input.
+      if (provider === "claude" || provider === "cline" || provider === "zed-hosted") {
         forceManual = true;
       }
 
@@ -657,6 +661,26 @@ export default function OAuthModal({
         await submitCredentialBlob(provider, callbackUrl, reauthConnection, setStep, onSuccess);
         return;
       }
+
+      // Codex: a bare ChatGPT access token (JWT, no refresh token) pasted
+      // directly instead of a callback URL/code — mirrors the grok-cli
+      // raw-token paste pattern. Routed through the access-token-only import
+      // endpoint (#1290) instead of the authorization-code exchange below.
+      if (provider === "codex" && /^eyJ/.test(callbackUrl.trim())) {
+        const res = await fetch("/api/oauth/codex/import-token", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ accessToken: callbackUrl.trim() }),
+        });
+        const data = (await parseResponseBody(res)) as Record<string, unknown>;
+        if (!res.ok) {
+          throw new Error(getErrorMessage(data, res.status, "Failed to import access token"));
+        }
+        setStep("success");
+        onSuccess?.();
+        return;
+      }
+
       if (!authData) {
         throw new Error(
           "OAuth session not initialized. Restart the connection flow and try again."

@@ -12,6 +12,7 @@ export {
   getProviderConnectionById,
   createProviderConnection,
   updateProviderConnection,
+  clearConnectionErrorIfUnchanged,
   deleteProviderConnection,
   deleteProviderConnections,
   deleteProviderConnectionsByProvider,
@@ -106,6 +107,7 @@ export {
   updateApiKeyPermissions,
   regenerateApiKey,
   isModelAllowedForKey,
+  pickApiKeyForInternalUse,
   clearApiKeyCaches,
   resetApiKeyState,
 } from "./db/apiKeys";
@@ -181,6 +183,11 @@ export {
   getProxyAssignments,
   getProxyWhereUsed,
   assignProxyToScope,
+  addProxyToScopePool,
+  removeProxyFromScopePool,
+  getScopeProxyPool,
+  setScopeRotationStrategy,
+  getScopeRotationStrategy,
   resolveProxyForConnectionFromRegistry,
   resolveProxyForProvider,
   resolveProxyForScopeFromRegistry,
@@ -321,6 +328,22 @@ export {
 export type { Webhook, WebhookKind } from "./db/webhooks";
 
 export { insertDelivery, getDeliveries } from "./db/webhookDeliveries";
+
+export {
+  upsertDiscoveryResult,
+  getDiscoveryResults,
+  getDiscoveryResultById,
+  markVerified,
+  deleteDiscoveryResult,
+} from "./db/discoveryResults";
+
+export type {
+  DiscoveryResult,
+  DiscoveryMethod,
+  DiscoveryAuthType,
+  DiscoveryRiskLevel,
+  DiscoveryStatus,
+} from "./db/discoveryResults";
 export type { WebhookDelivery } from "./db/webhookDeliveries";
 
 export {
@@ -423,6 +446,7 @@ export {
   upsertSessionAccountAffinity,
   touchSessionAccountAffinity,
   deleteSessionAccountAffinity,
+  evictSessionAccountAffinityForConnection,
   cleanupStaleSessionAccountAffinities,
   startSessionAccountAffinityCleanup,
   stopSessionAccountAffinityCleanupForTests,
@@ -541,6 +565,7 @@ export {
   promoteFreeProxyToPool,
   deleteFreeProxy,
   clearFreeProxiesBySource,
+  pruneStaleFreeProxies,
   getFreeProxyStats,
   recordFreeProxySync,
 } from "./db/freeProxies";
@@ -763,3 +788,12 @@ export type {
 // proxy_logs — export query (#3500 slice 4)
 // ---------------------------------------------------------------------------
 export { exportProxyLogsSince } from "./db/proxyLogs";
+
+// ---------------------------------------------------------------------------
+// Per-connection 429 cooldown wrappers (#5957 / #5958 — Issue 1 follow-ups)
+// Logic lives in db/providers/rateLimit.ts (Hard Rule #2 — localDb is re-export
+// only); re-exported here for the historical localDb import contract.
+// ---------------------------------------------------------------------------
+export { markConnectionRateLimitedUntil, clearConnectionRateLimit } from "./db/providers";
+// Provider param filters — denylist/allowlist config per provider/model (#6625)
+export * from "./db/paramFilters";

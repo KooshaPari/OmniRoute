@@ -21,6 +21,7 @@ export const HIDEABLE_SIDEBAR_ITEM_IDS = [
   "context-lite",
   "context-aggressive",
   "context-ultra",
+  "context-omniglyph",
   "compression-studio",
   // OmniProxy > Tools
   "cli-code",
@@ -29,6 +30,7 @@ export const HIDEABLE_SIDEBAR_ITEM_IDS = [
   "cloud-agents",
   "agent-bridge",
   "traffic-inspector",
+  "discovery",
   // OmniProxy > Integrations
   "api-endpoints",
   "webhooks",

@@ -5,6 +5,10 @@ import { extractSystemRoleMessages } from "./chatCore/claudeSystemRole.ts";
 export { extractSystemRoleMessages } from "./chatCore/claudeSystemRole.ts";
 import { checkIdempotencyCache } from "./chatCore/idempotency.ts";
 import { checkSemanticCache } from "./chatCore/semanticCache.ts";
+import {
+  shouldDefaultAllowClassifier,
+  buildDefaultAllowClaudeMessage,
+} from "./chatCore/claudeClassifierCompat.ts";
 import { applyClientUsageBuffer } from "./chatCore/clientUsageBuffer.ts";
 import { buildPostCallGuardrailContext } from "./chatCore/postCallGuardrailContext.ts";
 import { storeSemanticCacheResponse } from "./chatCore/semanticCacheStore.ts";
@@ -22,6 +26,7 @@ import {
   isStripReasoningRequested,
 } from "./chatCore/headers.ts";
 import { markCodexScopeRateLimited } from "./chatCore/codexFailover.ts";
+import { trackDevice, extractIpFromHeaders } from "../services/deviceTracker.ts";
 import { getCombosCached } from "./chatCore/comboContextCache.ts";
 export { clearCombosCache, clearUpstreamProxyConfigCache } from "./chatCore/comboContextCache.ts";
 import {
@@ -108,6 +113,7 @@ import { stripGpt5SamplingWhenReasoning } from "../services/gpt5SamplingGuard.ts
 import { getUnsupportedParams, REGISTRY } from "../config/providerRegistry.ts";
 import { supportsMaxTokens } from "@/lib/modelCapabilities.ts";
 import { normalizeThinkingForModel } from "@/shared/constants/modelSpecs.ts";
+import { isVisionModelId } from "@/shared/constants/visionModels.ts";
 import {
   buildErrorBody,
   createErrorResult,
@@ -212,6 +218,7 @@ import {
   type NonStreamingSseTerminalState,
 } from "./chatCore/nonStreamingSse.ts";
 import { parseNonStreamingResponseBody } from "./chatCore/nonStreamingResponseParse.ts";
+import { unwrapClinepassEnvelope } from "../utils/clinepassEnvelope.ts";
 import { recordNonStreamingUsageStats } from "./chatCore/nonStreamingUsageStats.ts";
 import {
   createBodyTimeoutError,
@@ -246,6 +253,7 @@ import { isCompactResponsesEndpoint } from "../executors/codex.ts";
 import { buildCodexQuotaPersistence } from "./chatCore/codexQuota.ts";
 import { invalidateCodexQuotaCache } from "../services/codexQuotaFetcher.ts";
 import { translateNonStreamingResponse } from "./responseTranslator.ts";
+import { unwrapClineNonStreamingEnvelope } from "./chatCore/clineResponseEnvelope.ts";
 import { extractUsageFromResponse } from "./usageExtractor.ts";
 import {
   sanitizeOpenAIResponse,
@@ -367,6 +375,7 @@ export async function handleChatCore({
   skipUpstreamRetry = false,
   createPiiTransform = null,
   correlationId = null,
+  modelPinned = false,
 }) {
   let { provider, model, extendedContext } = modelInfo;
   // ── Memory pressure guard ────────────────────────────────────────────
@@ -453,6 +462,15 @@ export async function handleChatCore({
   }
   if (pluginGate.body) {
     body = pluginGate.body;
+  }
+  // Per-API-key device/connection tracking (port of upstream 9router#931,
+  // thanks @mugnimaestra). In-memory only, never blocks the request path.
+  if (apiKeyInfo?.id) {
+    trackDevice(
+      apiKeyInfo.id,
+      extractIpFromHeaders(clientRawRequest?.headers ?? null),
+      userAgent ?? null
+    );
   }
   const agentGoalPolicy = resolveAgentGoalPolicy(body, clientRawRequest?.headers ?? null);
   if (agentGoalPolicy.detected) {
@@ -545,6 +563,10 @@ export async function handleChatCore({
     clientRawRequest,
     provider,
     model,
+    // NEXA fusion-idempotency fix: body.messages feeds the key digest so combo-internal
+    // sub-requests (fusion panel + judge re-enter chatCore sharing the client's headers)
+    // can never collide on the raw Idempotency-Key/x-request-id header key.
+    body,
     effectiveServiceTier,
     startTime,
     log,
@@ -567,6 +589,7 @@ export async function handleChatCore({
     isResponsesEndpoint,
     nativeCodexPassthrough,
     isDroidCLI,
+    isOpencodeClient,
     copilotCompatibleReasoning,
     clientResponseFormat,
   } = resolveChatCoreRequestFormat({ clientRawRequest, body, provider, userAgent });
@@ -575,6 +598,30 @@ export async function handleChatCore({
   const bypassResponse = handleBypassRequest(body, model, userAgent);
   if (bypassResponse) {
     return bypassResponse;
+  }
+
+  // ── Claude Code auto-mode classifier compat (opt-in, default "off") ──
+  // Claude Code's `--permission-mode auto` sends an internal classifier request that
+  // requires the response to START with `<block>no</block>`/`<block>yes</block>`.
+  // When a combo/fallback route sends that call to a cheap model returning 200 with
+  // empty content, Claude Code fails closed on every gated action. Detect the
+  // classifier request and short-circuit with a synthetic ALLOW response, WITHOUT
+  // calling the upstream provider. See chatCore/claudeClassifierCompat.ts.
+  {
+    const classifierSettings = cachedSettings ?? (await getCachedSettings());
+    if (
+      shouldDefaultAllowClassifier(
+        sourceFormat,
+        body as Record<string, unknown>,
+        classifierSettings.claudeClassifierCompat as string | undefined
+      )
+    ) {
+      log?.warn?.(
+        "CHAT",
+        `classifier compat=${classifierSettings.claudeClassifierCompat} | short-circuit default-allow`
+      );
+      return buildDefaultAllowClaudeMessage(requestedModel);
+    }
   }
 
   // Detect source format and get target format
@@ -765,6 +812,7 @@ export async function handleChatCore({
       apiKeyInfo,
       noLogEnabled,
       correlationId,
+      modelPinned,
     });
 
   // Primary path: merge client model id + alias target so config on either key applies; resolved
@@ -833,9 +881,16 @@ export async function handleChatCore({
   // sourceFormat="claude" applies the Anthropic Messages spec default (stream=false
   // when body omits stream), preventing STREAM_EARLY_EOF on /v1/messages when
   // clients send Accept: */* without an explicit stream flag.
-  // providerRequiresStreaming: providers with forceStream:true reject stream:false
-  // upstream (HTTP 400); keep streaming so OmniRoute can convert the stream to JSON
-  // for the client via handleForcedSSEToJson. (#2081)
+  // providerRequiresStreaming: providers with forceStream:true (cline/clinepass)
+  // only implement upstream streaming — a non-streaming request returns
+  // "generateText is not implemented" / an empty body. This flag forces the
+  // UPSTREAM request to stream (see `upstreamStream` below), but it MUST NOT
+  // force the client-facing `stream` flag: a stream:false client (e.g. the
+  // model-test button, plain JSON API callers) still expects a JSON response.
+  // The client-side `if (!stream)` branch drains the forced upstream SSE and
+  // converts it back to JSON via readNonStreamingResponseBody. Passing this
+  // flag into resolveStreamFlag would force `stream=true` and skip that
+  // conversion, yielding STREAM_EARLY_EOF for JSON callers. (#2081, #6126)
   const providerRequiresStreaming = REGISTRY[provider]?.forceStream === true;
   const stream =
     nativeCodexPassthrough && isCompactResponsesEndpoint(endpointPath)
@@ -843,7 +898,6 @@ export async function handleChatCore({
       : resolveStreamFlag(body?.stream, acceptHeader, sourceFormat, {
           userAgent: streamUserAgent,
           streamDefaultMode: apiKeyInfo?.streamDefaultMode,
-          providerRequiresStreaming,
         });
 
   // `settings` is already consolidated once near the top of handleChatCore
@@ -1155,7 +1209,7 @@ export async function handleChatCore({
       // Phase 4A: unified output styles (supersedes cavemanOutputMode via the back-compat shim).
       let outputStyleResult:
         import("../services/compression/outputStyles/apply.ts").OutputStylesResult | null = null;
-      if (config.enabled) {
+      if (config.enabled && compressionHeader?.trim().toLowerCase() !== "off") {
         try {
           const { resolveOutputStyleSelection } =
             await import("../services/compression/outputStyles/backCompat.ts");
@@ -1256,6 +1310,10 @@ export async function handleChatCore({
         const compressionConfig = resolveCacheAwareConfig(config, compressionInputBody, cacheCtx);
         const result = await applyCompressionAsync(compressionInputBody, mode, {
           model: effectiveModel,
+          supportsVision: isVisionModelId(effectiveModel),
+          // Rota direta oficial ('anthropic') vs agregadores: o engine omniglyph
+          // exige 'direct' — agregadores redimensionam imagens (medido 2026-07-06).
+          providerTransport: provider === "anthropic" ? "direct" : "aggregator",
           config: compressionConfig,
           cachingContext: cacheCtx,
           principalId: apiKeyInfo?.id ? String(apiKeyInfo.id) : undefined,
@@ -1548,7 +1606,13 @@ export async function handleChatCore({
     headers: clientRawRequest?.headers,
     userAgent,
   });
-  const upstreamStream = stream || isClaudeCodeCompatible;
+  // `forceStream` providers (e.g. Cline / ClinePass) only implement upstream
+  // streaming — a non-streaming request returns "generateText is not implemented"
+  // / an empty body. Force the upstream request to stream even when the client
+  // wants JSON; the non-streaming branch below accumulates the SSE and converts
+  // it back to JSON (same mechanism already used for Claude-Code-compatible
+  // providers via isClaudeCodeCompatible).
+  const upstreamStream = stream || isClaudeCodeCompatible || providerRequiresStreaming;
   let ccSessionId: string | null = null;
   const stripTypes = getStripTypesForProviderModel(provider || "", model || "");
 
@@ -2052,7 +2116,15 @@ export async function handleChatCore({
   // mode="cliproxyapi": returns the CLIProxyAPI executor instead.
   // mode="fallback": returns a wrapper that tries native first, falls back to CLIProxyAPI on 5xx/network errors.
 
-  const resolveExecutorWithProxy = (prov: string) => resolveExecutorWithProxyFor(prov, log);
+  // #6339: pass the resolved connection's providerSpecificData so a per-connection
+  // cliproxyapiMode="claude-native" override can deep-route this single connection
+  // through CLIProxyAPI regardless of the provider-level upstream_proxy_config mode.
+  const resolveExecutorWithProxy = (prov: string) =>
+    resolveExecutorWithProxyFor(
+      prov,
+      log,
+      (credentials?.providerSpecificData as Record<string, unknown> | null | undefined) ?? null
+    );
 
   // === Quota Share enforcement PRE-hook (B/F7) ===
   // Runs after provider/model/credentials/apiKeyInfo are fully resolved,
@@ -2184,6 +2256,7 @@ export async function handleChatCore({
         targetFormat,
         credentials,
         log,
+        bypassDefaultToolLimit: isOpencodeClient,
       });
 
       updatePendingScope(pendingScope, {
@@ -2374,6 +2447,21 @@ export async function handleChatCore({
                     rateLimitedUntil: new Date(Date.now() + (retryAfterMs || 60_000)).toISOString(),
                     credentials,
                   });
+                  // Fix B: also persist the cooldown to
+                  // `provider_connections.rate_limited_until`. Without this,
+                  // the Codex 429 cascade survives the current request (via
+                  // `markCodexScopeRateLimited`'s in-memory Map) but is lost
+                  // on process restart — the same exhausted Codex key is
+                  // re-picked on the very next request. Mirrors
+                  // `open-sse/executors/antigravity.ts:343`.
+                  // Best-effort: never crash the chat path on DB write failure.
+                  try {
+                    const { setConnectionRateLimitUntil } = await import("@/lib/db/providers");
+                    const untilMs = Date.now() + (retryAfterMs || 60_000);
+                    setConnectionRateLimitUntil(String(failedConnectionId), untilMs);
+                  } catch {
+                    // ignore — best effort
+                  }
                   if (!codexExcludedIds.includes(String(failedConnectionId))) {
                     codexExcludedIds.push(String(failedConnectionId));
                   }
@@ -3517,6 +3605,64 @@ export async function handleChatCore({
     let responseBody = parsed.responseBody;
     let responsePayloadFormat = parsed.responsePayloadFormat;
 
+    // ── ClinePass {success,data} envelope unwrap (before translation) ──────────
+    // ClinePass wraps non-streaming JSON in a {success, data} envelope; errors
+    // use {success:false, error}. Transient {success:false, error:"empty..."}
+    // responses get one 2s retry before surfacing. CLINEPASS-GATED — untouched
+    // for every other provider. Envelope errors route through createErrorResult
+    // (→ buildErrorBody/sanitizeErrorMessage, Rule #12).
+    if (provider === "clinepass") {
+      let { body: unwrapped, error: envError } = unwrapClinepassEnvelope(responseBody, provider);
+      if (envError && /empty/i.test(envError.message || "")) {
+        log?.warn?.("RETRY", "clinepass returned empty content, retrying once after 2s");
+        await new Promise((r) => setTimeout(r, 2000));
+        try {
+          const retryResult = await executeProviderRequest(effectiveModel, false);
+          if (retryResult?.response?.ok) {
+            const retryParsed = await parseNonStreamingResponseBody({
+              providerResponse: retryResult.response,
+              upstreamStream: undefined,
+              providerHeaders: retryResult.headers,
+              finalBody: retryResult.transformedBody,
+              targetFormat,
+              model,
+              log,
+            });
+            if (retryParsed.kind !== "invalid_sse" && retryParsed.kind !== "invalid_json") {
+              providerResponse = retryResult.response;
+              providerUrl = retryResult.url;
+              providerHeaders = retryResult.headers;
+              finalBody = providerRequestCapture.body(retryResult.transformedBody);
+              ({ body: unwrapped, error: envError } = unwrapClinepassEnvelope(
+                retryParsed.responseBody,
+                provider
+              ));
+            }
+          }
+        } catch (retryErr) {
+          log?.warn?.(
+            "RETRY",
+            `clinepass retry failed: ${
+              retryErr instanceof Error ? retryErr.message : String(retryErr)
+            }`
+          );
+        }
+      }
+      if (envError) {
+        appendRequestLog({
+          model,
+          provider,
+          connectionId,
+          status: `FAILED ${HTTP_STATUS.BAD_GATEWAY}`,
+        }).catch(() => {});
+        persistFailureUsage(HTTP_STATUS.BAD_GATEWAY, "clinepass_envelope_error");
+        trackPendingRequest(model, provider, connectionId, false);
+        return createErrorResult(HTTP_STATUS.BAD_GATEWAY, envError.message);
+      }
+      responseBody = unwrapped;
+    }
+    responseBody = unwrapClineNonStreamingEnvelope(provider, responseBody);
+
     // Check for empty content response (fake success) - trigger fallback
     if (isEmptyContentResponse(responseBody)) {
       appendRequestLog({
@@ -3927,6 +4073,13 @@ export async function handleChatCore({
       requestId: skillRequestId,
       compressionResponseMeta,
     });
+    // #6426: align response body `model` with the `X-OmniRoute-Model` header
+    // (both must be the resolved backend model). Some upstreams (notably legacy
+    // /v1/completions text-completion path) return a body `model` field that
+    // differs from the resolved backend id we advertised in the header, leaving
+    // strict clients unable to reconcile the two. Rewrite body.model to `model`
+    // FIRST, then let #1311 echo override it when the opt-in setting is on.
+    if (typeof model === "string" && model) echoModelInObject(translatedResponse, model);
     // #1311: echo the requested alias/combo name in the non-streaming response model.
     if (echoModel) echoModelInObject(translatedResponse, echoModel);
     return {

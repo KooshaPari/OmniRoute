@@ -12,7 +12,9 @@ export interface ProviderRiskNoticeFields {
 
 import { NOAUTH_PROVIDERS } from "./providers/noauth";
 import { OAUTH_PROVIDERS } from "./providers/oauth";
-import { WEB_COOKIE_PROVIDERS } from "./providers/web-cookie";
+import { WEB_COOKIE_PROVIDERS, resolveWebProviderHost } from "./providers/web-cookie";
+export { resolveWebProviderHost };
+export type { WebProviderHostLink } from "./providers/web-cookie";
 import { APIKEY_PROVIDERS } from "./providers/apikey";
 import { LOCAL_PROVIDERS } from "./providers/local";
 import { SEARCH_PROVIDERS } from "./providers/search";
@@ -33,6 +35,11 @@ export const FREE_APIKEY_PROVIDER_IDS = new Set([
   // API key (Authorization: Bearer). Admit it through the same managed-provider
   // gate so POST /api/providers accepts the dual-auth shape.
   "codebuddy-cn",
+  // auggie is a fully local, credential-less CLI passthrough (auth handled by
+  // `auggie login` outside OmniRoute). Admitted here purely so POST /api/providers
+  // accepts an optional connection row for display/priority/testStatus tracking —
+  // no apiKey is ever required or sent upstream.
+  "auggie",
 ]);
 
 export function supportsApiKeyOnFreeProvider(providerId: unknown): boolean {
@@ -191,7 +198,6 @@ const BULK_API_KEY_EXCLUDED = new Set([
   "google-pse-search",
   "command-code",
   "azure",
-  "cloudflare-ai",
 ]);
 
 export function supportsBulkApiKey(providerId: unknown): boolean {
@@ -394,6 +400,7 @@ export const USAGE_SUPPORTED_PROVIDERS = [
   "codex",
   "claude",
   "cursor",
+  "qoder",
   "kimi-coding",
   "kimi-coding-apikey",
   "glm",

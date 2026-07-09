@@ -46,7 +46,13 @@ import {
 } from "../services/cloudCodeThinking.ts";
 import { buildGeminiTools } from "../translator/helpers/geminiToolsSanitizer.ts";
 import { DEFAULT_SAFETY_SETTINGS } from "../translator/helpers/geminiHelper.ts";
-import { normalizeOpenAICompatibleFinishReasonString } from "../utils/finishReason.ts";
+import {
+  type AntigravityCollectedStream,
+  processAntigravitySSEText,
+  flushAntigravitySSEText,
+} from "./antigravity/sseCollect.ts";
+// processAntigravitySSEPayload re-exported for external importers (tests).
+export { processAntigravitySSEPayload } from "./antigravity/sseCollect.ts";
 import {
   applyAntigravityClientProfileHeaders,
   removeHeaderCaseInsensitive,
@@ -153,70 +159,6 @@ function serializeAntigravityRequest(
     return { headers, bodyString: JSON.stringify(serializedBody) };
   }
   return applyFingerprint(provider, { ...headers }, serializedBody);
-}
-
-type AntigravityCollectedStream = {
-  textContent: string;
-  finishReason: string;
-  toolCalls: Array<{
-    id: string;
-    index: number;
-    type: "function";
-    function: { name: string; arguments: string };
-  }>;
-  usage: Record<string, unknown> | null;
-  remainingCredits: Array<{ creditType: string; creditAmount: string }> | null;
-};
-
-function stripZeroWidth(value: unknown): unknown {
-  if (typeof value === "string") {
-    return value.replace(/[\u200B-\u200D\uFEFF]/g, "");
-  }
-  if (Array.isArray(value)) {
-    return value.map((item) => stripZeroWidth(item));
-  }
-  if (value && typeof value === "object") {
-    return Object.fromEntries(
-      Object.entries(value as Record<string, unknown>).map(([key, item]) => [
-        key,
-        stripZeroWidth(item),
-      ])
-    );
-  }
-  return value;
-}
-
-function parseAntigravityTextualToolCall(text: unknown): { name: string; args: unknown } | null {
-  if (typeof text !== "string") return null;
-  const normalized = text.replace(/[\u200B-\u200D\uFEFF]/g, "");
-  const match = normalized.match(
-    /^[\s\S]*?\[Tool call:\s*([^\]\n]+)\]\s*\nArguments:\s*([\s\S]+?)\s*$/
-  );
-  if (!match) return null;
-  const name = match[1]?.trim();
-  const rawArgs = match[2]?.trim();
-  if (!name || !rawArgs) return null;
-  try {
-    return { name, args: stripZeroWidth(JSON.parse(rawArgs)) };
-  } catch {
-    return null;
-  }
-}
-
-function addAntigravityTextualToolCall(
-  collected: AntigravityCollectedStream,
-  parsed: { name: string; args: unknown }
-): void {
-  collected.toolCalls.push({
-    id: `${parsed.name}-${Date.now()}-${collected.toolCalls.length}`,
-    index: collected.toolCalls.length,
-    type: "function",
-    function: {
-      name: parsed.name,
-      arguments: JSON.stringify(parsed.args || {}),
-    },
-  });
-  collected.finishReason = "tool_calls";
 }
 
 type AntigravityRequestEnvelope = Record<string, unknown> & {
@@ -372,84 +314,6 @@ export function markConnectionQuotaExhausted(connectionId: string, retryAfterMs:
  * Accumulate one Antigravity SSE `data:` payload into `collected`. Exported for unit
  * tests (the markdown / candidate-parts extraction branches). @internal
  */
-export function processAntigravitySSEPayload(
-  payload: string,
-  collected: AntigravityCollectedStream,
-  log?: { debug?: (scope: string, message: string) => void }
-) {
-  if (!payload || payload === "[DONE]") return;
-  try {
-    const parsed = JSON.parse(payload);
-    const markdown =
-      typeof parsed?.markdown === "string"
-        ? parsed.markdown
-        : typeof parsed?.response?.markdown === "string"
-          ? parsed.response.markdown
-          : null;
-    if (markdown) {
-      collected.textContent += markdown;
-    }
-    const candidate = parsed?.response?.candidates?.[0];
-    if (candidate?.content?.parts) {
-      for (const part of candidate.content.parts) {
-        if (typeof part.text === "string" && !part.thought && !part.thoughtSignature) {
-          const textualToolCall = parseAntigravityTextualToolCall(part.text);
-          if (textualToolCall) {
-            addAntigravityTextualToolCall(collected, textualToolCall);
-          } else {
-            collected.textContent += part.text;
-          }
-        }
-      }
-    }
-    if (candidate?.finishReason) {
-      collected.finishReason = normalizeOpenAICompatibleFinishReasonString(
-        String(candidate.finishReason).toLowerCase()
-      );
-    }
-    if (parsed?.response?.usageMetadata) {
-      const um = parsed.response.usageMetadata;
-      collected.usage = {
-        prompt_tokens: um.promptTokenCount || 0,
-        completion_tokens: um.candidatesTokenCount || 0,
-        total_tokens: um.totalTokenCount || 0,
-      };
-    }
-    if (Array.isArray(parsed?.remainingCredits)) {
-      collected.remainingCredits = parsed.remainingCredits;
-    }
-  } catch {
-    log?.debug?.("SSE_PARSE", `Skipping malformed SSE line: ${payload.slice(0, 80)}`);
-  }
-}
-
-function processAntigravitySSEText(
-  text: string,
-  partialLine: { value: string },
-  collected: AntigravityCollectedStream,
-  log?: { debug?: (scope: string, message: string) => void }
-) {
-  partialLine.value += text;
-  const lines = partialLine.value.split("\n");
-  partialLine.value = lines.pop() || "";
-
-  for (const line of lines) {
-    const trimmed = line.trim();
-    if (!trimmed.startsWith("data:")) continue;
-    processAntigravitySSEPayload(trimmed.slice(5).trim(), collected, log);
-  }
-}
-
-function flushAntigravitySSEText(
-  partialLine: { value: string },
-  collected: AntigravityCollectedStream,
-  log?: { debug?: (scope: string, message: string) => void }
-) {
-  const trimmed = partialLine.value.trim();
-  partialLine.value = "";
-  if (!trimmed.startsWith("data:")) return;
-  processAntigravitySSEPayload(trimmed.slice(5).trim(), collected, log);
-}
 
 /**
  * Strip provider prefixes (e.g. "antigravity/model" → "model").
@@ -615,6 +479,46 @@ function sanitizeAntigravityGeminiRequest(
 
   return clean;
 }
+
+/**
+ * Ported from decolua/9router#2321 (anki1kr): Vertex AI (used by Antigravity for
+ * Claude-branded models) rejects a conversation ending on an assistant turn —
+ * "This model does not support assistant message prefill" — so the request must
+ * always end on a user turn. Upstream patched `openaiToClaudeRequestForAntigravity`
+ * (dead code here, zero callers — see `open-sse/translator/request/openai-to-claude.ts`);
+ * this relocates the same strip to the LIVE Antigravity dispatch path, where Claude
+ * requests are converted to Gemini `contents` (assistant role is `"model"`, not
+ * `"assistant"`). Mirrors the trailing-strip pop-loop already used for Mistral
+ * (#3396), Copilot (#5802), and the CC-bridge in `claudeCodeCompatible.ts`.
+ *
+ * Scoped strictly to the Claude path by the caller (`isClaude` branch only) — native
+ * Gemini models via Antigravity must be unaffected, since Vertex-Claude is the only
+ * documented rejection surface.
+ *
+ * Guard: never strip `contents` down to empty — an empty `contents` array is itself
+ * an invalid request, so at least one entry (even a lone trailing "model" turn) is
+ * always preserved.
+ */
+function stripTrailingAntigravityAssistantTurn(
+  request: Record<string, unknown>
+): Record<string, unknown> {
+  const contents = request.contents;
+  if (!Array.isArray(contents) || contents.length === 0) {
+    return request;
+  }
+
+  while (
+    contents.length > 1 &&
+    (contents[contents.length - 1] as AntigravityContent)?.role === "model"
+  ) {
+    contents.pop();
+  }
+
+  return request;
+}
+
+// Test-only export so the unit suite can exercise the strip logic directly.
+export const __test_stripTrailingAntigravityAssistantTurn = stripTrailingAntigravityAssistantTurn;
 
 export class AntigravityExecutor extends BaseExecutor {
   constructor() {
@@ -796,7 +700,7 @@ export class AntigravityExecutor extends BaseExecutor {
     };
 
     const transformedRequest = isClaude
-      ? sanitizeAntigravityGeminiRequest(rawTransformedRequest)
+      ? stripTrailingAntigravityAssistantTurn(sanitizeAntigravityGeminiRequest(rawTransformedRequest))
       : rawTransformedRequest;
 
     // Obfuscate sensitive client names in user content (e.g. "OpenCode", "Cursor")

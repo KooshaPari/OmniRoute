@@ -10,6 +10,11 @@ import {
   syncStandaloneNativeAssets as _syncNativeAssets,
   syncStandaloneExtraModules as _syncExtraModules,
 } from "./assembleStandalone.mjs";
+import {
+  isBackendOnlyBuild,
+  stubDashboardPages,
+  restoreDashboardPages,
+} from "./backendOnlyPages.mjs";
 
 /**
  * Layer 1: `app/` has been renamed to `dist/` and the App-Router collision is gone.
@@ -103,7 +108,12 @@ function runNextBuild() {
 }
 
 export function resolveNextBuildBundlerFlag(baseEnv = process.env) {
-  return baseEnv.OMNIROUTE_USE_TURBOPACK === "1" ? "--turbopack" : "--webpack";
+  // Turbopack is the default production bundler (Next 16 stable). Benchmarked on
+  // this codebase: 2-3x faster than the single-threaded webpack pass (17min -> 9min
+  // on a 32-core box; ~20min -> 7min on ubuntu-latest), artifact validated
+  // end-to-end (standalone smoke + e2e/package/electron CI jobs). Webpack stays as
+  // the explicit escape hatch (=0) for bundler-compat regressions.
+  return baseEnv.OMNIROUTE_USE_TURBOPACK === "0" ? "--webpack" : "--turbopack";
 }
 
 export function resolveNextBuildEnv(baseEnv = process.env) {
@@ -184,11 +194,36 @@ export async function main() {
   const movedPaths = [];
   const transientBuildPaths = getTransientBuildPaths();
 
+  // Backend-only fast build: replace the dashboard leaf pages with zero-cost stubs so
+  // `next build` skips the frontend (client vendor chunks + prerender) while keeping every
+  // API route handler. Restored in `finally` and on SIGINT/SIGTERM (git-recoverable regardless).
+  let stubbedPages = [];
+  const restoreStubbedPagesOnce = () => {
+    if (stubbedPages.length > 0) {
+      restoreDashboardPages(stubbedPages);
+      stubbedPages = [];
+    }
+  };
+  const onFatalSignal = (signal) => {
+    console.warn(`[build-next-isolated] Received ${signal} — restoring stubbed pages before exit`);
+    restoreStubbedPagesOnce();
+    process.exit(1);
+  };
+
   try {
     for (const entry of transientBuildPaths) {
       if (!(await exists(entry.sourcePath))) continue;
       await movePath(entry.sourcePath, entry.backupPath);
       movedPaths.push(entry);
+    }
+
+    if (isBackendOnlyBuild()) {
+      console.log(
+        "[build-next-isolated] OMNIROUTE_BUILD_BACKEND_ONLY set — building API only (dashboard UI stubbed)"
+      );
+      stubbedPages = stubDashboardPages(projectRoot);
+      process.once("SIGINT", onFatalSignal);
+      process.once("SIGTERM", onFatalSignal);
     }
 
     await resetStandaloneOutput(projectRoot);
@@ -252,6 +287,12 @@ export async function main() {
     console.error("[build-next-isolated] Build failed:", error);
     process.exitCode = 1;
   } finally {
+    // Restore the stubbed dashboard pages FIRST so the working tree is clean even if the
+    // transient-path restore below throws.
+    restoreStubbedPagesOnce();
+    process.off("SIGINT", onFatalSignal);
+    process.off("SIGTERM", onFatalSignal);
+
     while (movedPaths.length > 0) {
       const entry = movedPaths.pop();
       if (!entry) continue;

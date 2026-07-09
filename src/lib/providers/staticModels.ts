@@ -37,6 +37,7 @@ const STATIC_MODEL_PROVIDERS: Record<string, () => Array<{ id: string; name: str
     { id: "claude-opus-4-8", name: "Claude Opus 4.8" },
     { id: "claude-opus-4-7", name: "Claude Opus 4.7" },
     { id: "claude-opus-4-6", name: "Claude Opus 4.6" },
+    { id: "claude-sonnet-5", name: "Claude Sonnet 5" },
     { id: "claude-sonnet-4-6", name: "Claude Sonnet 4.6" },
     { id: "claude-opus-4-5-20251101", name: "Claude Opus 4.5 (2025-11-01)" },
     { id: "claude-sonnet-4-5-20250929", name: "Claude Sonnet 4.5 (2025-09-29)" },
@@ -95,6 +96,16 @@ const STATIC_MODEL_PROVIDERS: Record<string, () => Array<{ id: string; name: str
     { id: "youtube", name: "YouTube" },
     { id: "google_scholar", name: "Google Scholar" },
     { id: "duckduckgo", name: "DuckDuckGo" },
+  ],
+  "venice-web": () => [
+    // Venice.ai web-cookie provider — no upstream /v1/models endpoint, so seed the
+    // current lineup as a static catalog (#6269). Venice rotates its catalog; keep
+    // in step with the published list at https://docs.venice.ai/models/overview.
+    { id: "venice-uncensored", name: "Venice Uncensored" },
+    { id: "llama-3.3-70b", name: "Llama 3.3 70B" },
+    { id: "qwen3-235b", name: "Qwen3 235B" },
+    { id: "qwen3-4b", name: "Qwen3 4B" },
+    { id: "deepseek-r1-671b", name: "DeepSeek R1 671B" },
   ],
 };
 

@@ -1,5 +1,5 @@
 /**
- * MCP Tool Schemas — Contracts for all 22 core and advanced OmniRoute MCP tools.
+ * MCP Tool Schemas — Contracts for all 23 core and advanced OmniRoute MCP tools.
  *
  * Defines input/output Zod schemas, descriptions, scopes, and audit levels
  * for both essential (Phase 1) and advanced (Phase 2) MCP tools.
@@ -11,6 +11,7 @@
 
 import { z } from "zod";
 import { toolSearchTool } from "./toolSearch.ts";
+import { pickFastestModelTool } from "./pickFastestModel.ts";
 import {
   AUTO_ROUTING_STRATEGY_VALUES,
   ROUTING_STRATEGY_VALUES,
@@ -22,6 +23,7 @@ import {
 // Re-exported here for backward compatibility (many modules import them from ./tools.ts).
 export type { AuditLevel, McpToolDefinition } from "./toolDefinition.ts";
 import type { McpToolDefinition } from "./toolDefinition.ts";
+export { pickFastestModelInput, pickFastestModelOutput } from "./pickFastestModel.ts";
 
 // ============ Phase 1: Essential Tools (8) ============
 
@@ -451,7 +453,7 @@ export const webFetchInput = z.object({
     .min(1, "URL is required")
     .describe("The URL to fetch content from"),
   provider: z
-    .enum(["firecrawl", "jina-reader", "tavily-search"])
+    .enum(["firecrawl", "jina-reader", "tavily-search", "tinyfish"])
     .optional()
     .describe("Specific fetch provider to use (default: first available)"),
   format: z
@@ -494,7 +496,7 @@ export const webFetchOutput = z.object({
 export const webFetchTool: McpToolDefinition<typeof webFetchInput, typeof webFetchOutput> = {
   name: "omniroute_web_fetch",
   description:
-    "Fetches and extracts content from a URL using OmniRoute's web fetch gateway. Supports multiple providers (Firecrawl, Jina Reader, Tavily) with automatic failover. Returns the page content as markdown, HTML, links, or screenshot, along with metadata.",
+    "Fetches and extracts content from a URL using OmniRoute's web fetch gateway. Supports multiple providers (Firecrawl, Jina Reader, Tavily, TinyFish) with automatic failover. Returns the page content as markdown, HTML, links, or screenshot, along with metadata.",
   inputSchema: webFetchInput,
   outputSchema: webFetchOutput,
   scopes: ["execute:search"],
@@ -1091,11 +1093,11 @@ export const compressionStatusTool: McpToolDefinition<
 export const compressionConfigureInput = z.object({
   enabled: z.boolean().optional(),
   strategy: z
-    .enum(["off", "lite", "standard", "aggressive", "ultra", "rtk", "stacked"])
+    .enum(["off", "lite", "standard", "aggressive", "ultra", "rtk", "stacked", "omniglyph"])
     .optional()
     .describe("Compression mode"),
   autoTriggerMode: z
-    .enum(["off", "lite", "standard", "aggressive", "ultra", "rtk", "stacked"])
+    .enum(["off", "lite", "standard", "aggressive", "ultra", "rtk", "stacked", "omniglyph"])
     .optional(),
   maxTokens: z
     .number()
@@ -1466,6 +1468,7 @@ export const MCP_TOOLS = [
   agentSkillsListTool,
   agentSkillsGetTool,
   agentSkillsCoverageTool,
+  pickFastestModelTool,
 ] as const;
 
 export const MCP_ESSENTIAL_TOOLS = MCP_TOOLS.filter((t) => t.phase === 1);

@@ -61,6 +61,20 @@ export const APIKEY_PROVIDERS_INFERENCE = {
     hasFree: true,
     freeNote: "~$1 trial credits on signup for API testing",
   },
+  nube: {
+    id: "nube",
+    alias: "nube",
+    name: "Nube.sh",
+    icon: "cloud",
+    color: "#2563EB",
+    textIcon: "NB",
+    website: "https://nube.sh",
+    hasFree: false,
+    notice: {
+      text: "OpenAI-compatible gateway (LiteLLM). Bring your own API key — models are resolved live from the account (passthrough).",
+      apiKeyUrl: "https://nube.sh/dashboard/api-keys",
+    },
+  },
   siliconflow: {
     id: "siliconflow",
     alias: "siliconflow",
@@ -265,6 +279,21 @@ export const APIKEY_PROVIDERS_INFERENCE = {
     passthroughModels: true,
     authHint: "Get API key at monsterapi.ai",
   },
+  modelscope: {
+    id: "modelscope",
+    alias: "ms",
+    name: "ModelScope",
+    icon: "cloud",
+    color: "#FF6A00",
+    textIcon: "MS",
+    website: "https://modelscope.cn",
+    hasFree: true,
+    // #1764 (upstream 9router): OpenAI-compatible API-Inference. Base URL verified
+    // live against ModelScope's own docs — the upstream PR used the `.ai` TLD, but
+    // the confirmed production domain is `api-inference.modelscope.cn` (see registry
+    // entry + test guard).
+    freeNote: "Free tier via ModelScope API-Inference — Alibaba account required.",
+  },
   byteplus: {
     id: "byteplus",
     alias: "bpm",
@@ -277,6 +306,22 @@ export const APIKEY_PROVIDERS_INFERENCE = {
     notice: {
       text: "Free credits for new accounts. Seed 2.0, Kimi K2 Thinking, GLM 4.7, GPT-OSS-120B available.",
       apiKeyUrl: "https://console.byteplus.com/ark/region:ark+ap-southeast-1/apiKey",
+    },
+    serviceKinds: ["llm"],
+  },
+  digitalocean: {
+    id: "digitalocean",
+    alias: "digitalocean",
+    name: "DigitalOcean",
+    icon: "cloud",
+    color: "#0060FF",
+    textIcon: "DO",
+    passthroughModels: true,
+    website: "https://docs.digitalocean.com/products/ai-platform/",
+    hasFree: false,
+    notice: {
+      text: "Use a DigitalOcean Personal Access Token (dop_v1_...) or a Model Access Key from the Inference console. OAuth tokens (doo_v1_...) may not have the required scopes.",
+      apiKeyUrl: "https://cloud.digitalocean.com/account/api/tokens",
     },
     serviceKinds: ["llm"],
   },

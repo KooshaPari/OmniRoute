@@ -4,12 +4,15 @@ import { getModelInfo } from "@/sse/services/model";
 import { getModelAliases } from "@/lib/db/models";
 import { getResolvedModelCapabilities } from "@/lib/modelCapabilities";
 import {
+  getAuthoritativeContextWindow,
+  getAuthoritativeProviderContextWindow,
   getModelSpec,
   resolveModelAlias as resolveStaticModelAlias,
 } from "@/shared/constants/modelSpecs";
 import { AI_PROVIDERS } from "@/shared/constants/providers";
 import { PROVIDER_ID_TO_ALIAS, PROVIDER_MODELS } from "@/shared/constants/models";
 import { getSyncStatus, getSyncedCapability } from "@/lib/modelsDevSync";
+import { CANONICAL_EFFORT_VALUES } from "@/shared/reasoning/effortStandardization";
 
 const MODEL_METADATA_SCHEMA_VERSION = "model-metadata-v1";
 
@@ -273,14 +276,29 @@ export function enrichCatalogModelEntry<T extends JsonRecord>(
 
   const nextEntry: JsonRecord = { ...entry };
   const existingName = asNonEmptyString(entry.name);
+  const authoritativeContextWindow =
+    getAuthoritativeProviderContextWindow(metadata.provider, metadata.model) ??
+    getAuthoritativeProviderContextWindow(provider, model) ??
+    getAuthoritativeContextWindow(metadata.model) ??
+    getAuthoritativeContextWindow(model);
   const capabilityFields = {
     ...(typeof metadata.capabilities.vision === "boolean"
       ? { vision: metadata.capabilities.vision }
       : {}),
     tool_calling: metadata.capabilities.toolCalling,
     reasoning: metadata.capabilities.reasoning,
+    // #6241: surface thinking support + the canonical effort tiers so the frontend can
+    // render the effort/thinking toggles. `thinking` is kept for back-compat; `supportsThinking`
+    // is the explicit flag and `effort_tiers` lists the selectable reasoning levels
+    // (only when the model actually supports thinking).
     ...(typeof metadata.capabilities.supportsThinking === "boolean"
-      ? { thinking: metadata.capabilities.supportsThinking }
+      ? {
+          thinking: metadata.capabilities.supportsThinking,
+          supportsThinking: metadata.capabilities.supportsThinking,
+          ...(metadata.capabilities.supportsThinking
+            ? { effort_tiers: [...CANONICAL_EFFORT_VALUES] }
+            : {}),
+        }
       : {}),
     ...(typeof metadata.capabilities.attachment === "boolean"
       ? { attachment: metadata.capabilities.attachment }
@@ -309,7 +327,7 @@ export function enrichCatalogModelEntry<T extends JsonRecord>(
   }
 
   if (
-    typeof nextEntry.context_length !== "number" &&
+    (typeof nextEntry.context_length !== "number" || authoritativeContextWindow !== null) &&
     typeof metadata.limits.contextWindow === "number"
   ) {
     nextEntry.context_length = metadata.limits.contextWindow;
@@ -319,7 +337,10 @@ export function enrichCatalogModelEntry<T extends JsonRecord>(
     nextEntry.max_output_tokens = metadata.limits.maxOutputTokens;
   }
 
-  if (typeof metadata.limits.maxInputTokens === "number") {
+  if (
+    typeof metadata.limits.maxInputTokens === "number" &&
+    (typeof nextEntry.max_input_tokens !== "number" || authoritativeContextWindow !== null)
+  ) {
     nextEntry.max_input_tokens = metadata.limits.maxInputTokens;
   }
 

@@ -203,6 +203,7 @@ export default function ApiManagerPageClient() {
   const createKeyFormRef = useRef<HTMLDivElement | null>(null);
   const [keys, setKeys] = useState<ApiKey[]>([]);
   const [allModels, setAllModels] = useState<Model[]>([]);
+  const [modelsLoaded, setModelsLoaded] = useState(false);
   const [allCombos, setAllCombos] = useState<ComboOption[]>([]);
   const [allConnections, setAllConnections] = useState<ProviderConnection[]>([]);
   const [loading, setLoading] = useState(true);
@@ -222,6 +223,7 @@ export default function ApiManagerPageClient() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [usageStats, setUsageStats] = useState<Record<string, KeyUsageStats>>({});
   const [sessionCounts, setSessionCounts] = useState<Record<string, number>>({});
+  const [deviceCounts, setDeviceCounts] = useState<Record<string, number>>({});
   const [allowKeyReveal, setAllowKeyReveal] = useState(false);
   // Per-row API key visibility toggle (eye / eye-off). Keys default to masked.
   // Map id -> fully revealed key string fetched on demand from /api/keys/{id}/reveal.
@@ -319,14 +321,66 @@ export default function ApiManagerPageClient() {
   }, [showAddModal, nameError, scrollCreateKeyFormToTop]);
 
   const fetchModels = async () => {
+    setModelsLoaded(false);
     try {
       const res = await fetch("/v1/models");
       if (res.ok) {
         const data = await res.json();
-        setAllModels(data.data || []);
+        setAllModels(Array.isArray(data.data) ? data.data : []);
+        return;
+      }
+
+      // Fallback for dashboard API-key editing: /v1/models can be protected by
+      // API-key catalog auth, but the dashboard still needs a stable catalog so
+      // users can edit allowedModels. Preserve combo pseudo-models too: /v1/models
+      // lists active combos as owned_by="combo", while /api/models?all=true only
+      // returns the static provider model inventory.
+      const [fallbackRes, combosRes] = await Promise.all([
+        fetch("/api/models?all=true"),
+        fetch("/api/combos"),
+      ]);
+      if (fallbackRes.ok) {
+        const [fallbackData, combosData] = await Promise.all([
+          fallbackRes.json(),
+          combosRes.ok ? combosRes.json() : Promise.resolve({ combos: [] }),
+        ]);
+        const fallbackModels = Array.isArray(fallbackData.models) ? fallbackData.models : [];
+        const comboModels = (Array.isArray(combosData.combos) ? combosData.combos : [])
+          .filter(
+            (combo: any) =>
+              combo?.isActive !== false &&
+              combo?.isHidden !== true &&
+              typeof combo?.name === "string" &&
+              combo.name.trim().length > 0
+          )
+          .map((combo: any) => ({
+            id: combo.name,
+            owned_by: "combo",
+            name: combo.name,
+          }));
+        const modelEntries = fallbackModels
+          .map((m: any) => ({
+            id: typeof m.fullModel === "string" ? m.fullModel : `${m.provider}/${m.model}`,
+            owned_by: typeof m.provider === "string" ? m.provider : "unknown",
+            name: typeof m.alias === "string" ? m.alias : m.model || m.fullModel,
+          }))
+          .filter((m: Model) => typeof m.id === "string" && m.id.length > 0);
+        const seen = new Set<string>();
+        setAllModels(
+          [...comboModels, ...modelEntries].filter((m: Model) => {
+            if (seen.has(m.id)) return false;
+            seen.add(m.id);
+            return true;
+          })
+        );
+      } else {
+        setAllModels([]);
       }
     } catch (error) {
       console.log("Error fetching models:", error);
+      setAllModels([]);
+    } finally {
+      setModelsLoaded(true);
     }
   };
 
@@ -367,6 +421,7 @@ export default function ApiManagerPageClient() {
         // Fetch usage stats after keys are loaded
         fetchUsageStats(data.keys || []);
         fetchSessionCounts(data.keys || []);
+        fetchDeviceCounts(data.keys || []);
       }
     } catch (error) {
       console.log("Error fetching keys:", error);
@@ -444,6 +499,35 @@ export default function ApiManagerPageClient() {
       setSessionCounts(normalized);
     } catch (error) {
       console.log("Error fetching session counts:", error);
+    }
+  };
+
+  // Per-key device/connection counts (port of upstream 9router#931, thanks
+  // @mugnimaestra). One lightweight GET per key against
+  // /api/keys/[id]/devices — device counts are in-memory + TTL-evicted, so
+  // this is a much smaller payload than session data.
+  const fetchDeviceCounts = async (apiKeys: ApiKey[]) => {
+    if (apiKeys.length === 0) {
+      setDeviceCounts({});
+      return;
+    }
+    try {
+      const results = await Promise.all(
+        apiKeys.map(async (key) => {
+          try {
+            const res = await fetch(`/api/keys/${encodeURIComponent(key.id)}/devices`);
+            if (!res.ok) return [key.id, 0] as const;
+            const data = await res.json();
+            const count = typeof data?.count === "number" && Number.isFinite(data.count) ? data.count : 0;
+            return [key.id, count] as const;
+          } catch {
+            return [key.id, 0] as const;
+          }
+        })
+      );
+      setDeviceCounts(Object.fromEntries(results));
+    } catch (error) {
+      console.log("Error fetching device counts:", error);
     }
   };
 
@@ -963,6 +1047,7 @@ export default function ApiManagerPageClient() {
               const maxSessions = typeof key.maxSessions === "number" ? key.maxSessions : 0;
               const hasSessionLimit = maxSessions > 0;
               const activeSessions = sessionCounts[key.id] || 0;
+              const deviceCount = deviceCounts[key.id] || 0;
               const hasSchedule = key.accessSchedule?.enabled === true;
               const keyIsQuota = isQuotaKey(key);
               const groups = quotaGroupsForKey(key);
@@ -1122,6 +1207,15 @@ export default function ApiManagerPageClient() {
                         <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 text-[11px] font-medium">
                           <span className="material-symbols-outlined text-[12px]">group</span>
                           Sessions: {activeSessions}/{maxSessions}
+                        </span>
+                      )}
+                      {deviceCount > 0 && (
+                        <span
+                          className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-cyan-500/10 text-cyan-700 dark:text-cyan-300 text-[11px] font-medium"
+                          title={t("devicesTooltip", { count: deviceCount })}
+                        >
+                          <span className="material-symbols-outlined text-[12px]">devices</span>
+                          {t("devicesCount", { count: deviceCount })}
                         </span>
                       )}
                       {hasThrottle && (
@@ -1492,6 +1586,7 @@ export default function ApiManagerPageClient() {
           apiKey={editingKey}
           modelsByProvider={filteredModelsByProvider}
           allModels={permissionModels}
+          modelsLoaded={modelsLoaded}
           allCombos={allCombos}
           allConnections={allConnections}
           searchModel={searchModel}
@@ -1511,6 +1606,7 @@ const PermissionsModal = memo(function PermissionsModal({
   apiKey,
   modelsByProvider,
   allModels,
+  modelsLoaded,
   allCombos,
   allConnections,
   searchModel,
@@ -1522,6 +1618,7 @@ const PermissionsModal = memo(function PermissionsModal({
   apiKey: ApiKey;
   modelsByProvider: ProviderGroup[];
   allModels: Model[];
+  modelsLoaded: boolean;
   allCombos: ComboOption[];
   allConnections: ProviderConnection[];
   searchModel: string;
@@ -1983,7 +2080,13 @@ const PermissionsModal = memo(function PermissionsModal({
               allowAll ? "text-green-700 dark:text-green-300" : "text-amber-700 dark:text-amber-300"
             }`}
           >
-            {allowAll ? t("allowAllDesc") : t("restrictDesc", { selectedCount, totalModels })}
+            {allowAll
+              ? t("allowAllDesc")
+              : !modelsLoaded
+                ? t("restrictLoading")
+                : totalModels === 0
+                  ? t("restrictCatalogUnavailable", { selectedCount })
+                  : t("restrictDesc", { selectedCount, totalModels })}
           </p>
         </div>
 

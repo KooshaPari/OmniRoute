@@ -37,6 +37,15 @@ test("next config exposes standalone build settings and canonical rewrites", asy
     "fumadocs-ui",
     "fumadocs-core",
   ]);
+  // #6062: `ws` and its native masking helpers must stay external so the
+  // copilot-m365-web executor keeps a working WebSocket masking path at runtime
+  // (bundling ws breaks `bufferutil` → `TypeError: b.mask is not a function`).
+  for (const pkg of ["ws", "bufferutil", "utf-8-validate"]) {
+    assert.ok(
+      nextConfig.serverExternalPackages.includes(pkg),
+      `expected serverExternalPackages to externalize "${pkg}" (#6062)`
+    );
+  }
   assert.equal(headers[0].source, "/:path*");
   assert.match(securityHeaders["Content-Security-Policy"], /default-src 'self'/);
   assert.match(securityHeaders["Content-Security-Policy"], /frame-ancestors 'none'/);
@@ -70,7 +79,10 @@ test("next config declares Turbopack aliases, runtime assets and server external
   const tracingExcludes = nextConfig.outputFileTracingExcludes["/*"];
 
   assert.equal(nextConfig.turbopack.root, process.cwd());
-  assert.equal(nextConfig.turbopack.resolveAlias["@/mitm/manager"], "./src/mitm/manager.stub.ts");
+  // #6344: the @/mitm/manager stub alias is OPT-IN (OMNIROUTE_MITM_STUB=1, Docker only).
+  // A default production build must NOT alias it, or the stub ships to npm/Electron/VPS
+  // artifacts and breaks Agent Bridge start. See the dedicated env-matrix test below.
+  assert.equal(nextConfig.turbopack.resolveAlias["@/mitm/manager"], undefined);
   assert.equal(nextConfig.outputFileTracingRoot, process.cwd());
   assert.ok(tracingIncludes.includes("./src/lib/db/migrations/**/*"));
   assert.ok(
@@ -102,6 +114,25 @@ test("next config declares Turbopack aliases, runtime assets and server external
     "tls",
   ]) {
     assert.ok(serverExternalPackages.has(packageName), `${packageName} should be externalized`);
+  }
+});
+
+test("Turbopack aliases @/mitm/manager to the stub ONLY when OMNIROUTE_MITM_STUB=1 (#6344)", async () => {
+  const original = process.env.OMNIROUTE_MITM_STUB;
+  try {
+    delete process.env.OMNIROUTE_MITM_STUB;
+    const { default: def } = await loadNextConfig("mitm-default");
+    assert.equal(def.turbopack.resolveAlias["@/mitm/manager"], undefined);
+
+    process.env.OMNIROUTE_MITM_STUB = "1";
+    const { default: docker } = await loadNextConfig("mitm-docker");
+    assert.equal(
+      docker.turbopack.resolveAlias["@/mitm/manager"],
+      "./src/mitm/manager.stub.ts"
+    );
+  } finally {
+    if (original === undefined) delete process.env.OMNIROUTE_MITM_STUB;
+    else process.env.OMNIROUTE_MITM_STUB = original;
   }
 });
 

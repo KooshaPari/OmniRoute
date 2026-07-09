@@ -171,6 +171,14 @@ export const COMPRESSION_CONTEXT_GROUP: SidebarItemGroup = {
       icon: "bolt",
     },
     {
+      id: "context-omniglyph",
+      href: "/dashboard/context/omniglyph",
+      i18nKey: "contextOmniglyph",
+      labelFallback: "OmniGlyph",
+      subtitleFallback: "Context-as-image",
+      icon: "grain",
+    },
+    {
       id: "compression-studio",
       href: "/dashboard/compression/studio",
       i18nKey: "compressionStudio",
@@ -228,6 +236,13 @@ const TOOLS_GROUP: SidebarItemGroup = {
       i18nKey: "trafficInspector",
       subtitleKey: "trafficInspectorSubtitle",
       icon: "network_check",
+    },
+    {
+      id: "discovery",
+      href: "/dashboard/discovery",
+      i18nKey: "discovery",
+      subtitleKey: "discoverySubtitle",
+      icon: "travel_explore",
     },
   ],
 };

@@ -18,23 +18,33 @@ import { isOfficialAnthropicBaseUrl } from "../utils/anthropicHost.ts";
 import { applyProviderRequestDefaults } from "../services/providerRequestDefaults.ts";
 import { stripUnsupportedParams } from "../translator/paramSupport.ts";
 import {
+  injectReasoningContentForThinkingModel,
+  isThinkingMessageModel,
+} from "../utils/reasoningContentInjector.ts";
+import {
   detectFormat,
   getOpenAICompatibleType,
   getTargetFormat,
   isClaudeCodeCompatible,
 } from "../services/provider.ts";
 import { sanitizeQwenThinkingToolChoice } from "../services/qwenThinking.ts";
-import { buildDataRobotChatUrl } from "../config/datarobot.ts";
-import { buildAzureAiChatUrl } from "../config/azureAi.ts";
-import { buildWatsonxChatUrl } from "../config/watsonx.ts";
-import { buildOciChatUrl } from "../config/oci.ts";
-import { buildSapChatUrl, getSapResourceGroup } from "../config/sap.ts";
+import { getSapResourceGroup } from "../config/sap.ts";
+import {
+  normalizeBailianMessagesUrl,
+  normalizeDataRobotChatUrl,
+  normalizeAzureAiChatUrl,
+  normalizeWatsonxChatUrl,
+  normalizeOciChatUrl,
+  normalizeSapChatUrl,
+  normalizeXiaomiMimoChatUrl,
+  normalizeOpenAIChatUrl,
+  getOpenRouterConnectionPreset,
+} from "./default/urlNormalizers.ts";
 import { buildMaritalkChatUrl } from "../config/maritalk.ts";
 import { LOCAL_PROVIDERS } from "@/shared/constants/providers";
 import { isForbiddenCustomHeaderName } from "@/shared/constants/upstreamHeaders";
 import { getClaudeCodeCompatibleRequestDefaults } from "@/lib/providers/requestDefaults";
 import { buildClineHeaders } from "@/shared/utils/clineAuth";
-import { normalizeBaseUrl } from "../utils/urlSanitize.ts";
 import {
   normalizeHerokuChatUrl,
   normalizeDatabricksChatUrl,
@@ -85,62 +95,6 @@ function applyCustomHeaders(headers: Record<string, string>, rawCustomHeaders: u
     }
     headers[k] = v;
   }
-}
-
-function normalizeBailianMessagesUrl(baseUrl) {
-  const normalized = normalizeBaseUrl(baseUrl).replace(/\?beta=true$/, "");
-  const messagesUrl = normalized.endsWith("/messages") ? normalized : `${normalized}/messages`;
-  return messagesUrl;
-}
-
-function normalizeDataRobotChatUrl(baseUrl) {
-  return buildDataRobotChatUrl(baseUrl);
-}
-
-function normalizeAzureAiChatUrl(baseUrl: string, apiType: "chat" | "responses" = "chat") {
-  return buildAzureAiChatUrl(baseUrl, apiType);
-}
-
-function normalizeWatsonxChatUrl(baseUrl: string) {
-  return buildWatsonxChatUrl(baseUrl);
-}
-
-function normalizeOciChatUrl(baseUrl: string, apiType: "chat" | "responses" = "chat") {
-  return buildOciChatUrl(baseUrl, apiType);
-}
-
-function normalizeSapChatUrl(baseUrl) {
-  return buildSapChatUrl(baseUrl);
-}
-
-function normalizeXiaomiMimoChatUrl(baseUrl) {
-  const normalized = normalizeBaseUrl(baseUrl).replace(/\/chat\/completions$/, "");
-  return `${normalized}/chat/completions`;
-}
-
-function normalizeOpenAIChatUrl(baseUrl) {
-  const normalized = normalizeBaseUrl(baseUrl);
-  if (
-    normalized.endsWith("/chat/completions") ||
-    normalized.endsWith("/responses") ||
-    normalized.endsWith("/chat")
-  ) {
-    return normalized;
-  }
-  if (normalized.endsWith("/v1")) {
-    return `${normalized}/chat/completions`;
-  }
-  // Assume OpenAI-compatible /v1/chat/completions path structure
-  // when the base URL is a bare hostname or custom path (e.g. llama.cpp, vLLM, LM Studio).
-  return `${normalized}/v1/chat/completions`;
-}
-
-function getOpenRouterConnectionPreset(
-  providerSpecificData?: Record<string, unknown> | null
-): string | null {
-  const preset =
-    typeof providerSpecificData?.preset === "string" ? providerSpecificData.preset.trim() : "";
-  return preset || null;
 }
 
 export class DefaultExecutor extends BaseExecutor {
@@ -595,8 +549,9 @@ export class DefaultExecutor extends BaseExecutor {
     withDefaults = this.defaultResponsesTextFormat(withDefaults);
 
     // Port of decolua/9router commit d652300e:
-    // Cerebras returns 400 (wrong_api_format) and Mistral returns 422
-    // (extra_forbidden) when the forwarded body carries `client_metadata`
+    // Cerebras returns 400 (wrong_api_format), Mistral returns 422
+    // (extra_forbidden), and NVIDIA's OpenAI-compatible wrapper returns 400
+    // (Unsupported parameter) when the forwarded body carries `client_metadata`
     // (an OpenAI Codex / Claude CLI passthrough field with no equivalent on
     // these upstreams). Strip it before sending downstream. Other providers
     // (notably `openai` / `codex`) intentionally keep it.
@@ -604,12 +559,49 @@ export class DefaultExecutor extends BaseExecutor {
       withDefaults &&
       typeof withDefaults === "object" &&
       !Array.isArray(withDefaults) &&
-      (this.provider === "cerebras" || this.provider === "mistral") &&
+      (this.provider === "cerebras" ||
+        this.provider === "mistral" ||
+        this.provider === "nvidia") &&
       Object.prototype.hasOwnProperty.call(withDefaults, "client_metadata")
     ) {
       const withoutClientMetadata = { ...(withDefaults as Record<string, unknown>) };
       delete withoutClientMetadata.client_metadata;
       withDefaults = withoutClientMetadata;
+    }
+
+    // 9router#1649: Mistral's API returns 422 (extra_forbidden) when an
+    // assistant message carries a `reasoning_content` field (replayed thinking
+    // from a prior turn, e.g. via the Codex /responses path). The field is
+    // nested per-message, so the generic top-level 400/field-downgrade retry
+    // doesn't cover it. Strip it from every message before sending — scoped to
+    // Mistral so DeepSeek (which *requires* replayed reasoning_content) is
+    // unaffected.
+    if (
+      this.provider === "mistral" &&
+      withDefaults &&
+      typeof withDefaults === "object" &&
+      !Array.isArray(withDefaults) &&
+      Array.isArray((withDefaults as Record<string, unknown>).messages)
+    ) {
+      const record = withDefaults as Record<string, unknown>;
+      const messages = record.messages as unknown[];
+      let mutated = false;
+      const cleaned = messages.map((msg) => {
+        if (
+          msg &&
+          typeof msg === "object" &&
+          !Array.isArray(msg) &&
+          Object.prototype.hasOwnProperty.call(msg, "reasoning_content")
+        ) {
+          mutated = true;
+          const { reasoning_content: _dropped, ...rest } = msg as Record<string, unknown>;
+          return rest;
+        }
+        return msg;
+      });
+      if (mutated) {
+        withDefaults = { ...record, messages: cleaned };
+      }
     }
 
     const targetFormat = getTargetFormat(this.provider, credentials?.providerSpecificData);
@@ -737,7 +729,69 @@ export class DefaultExecutor extends BaseExecutor {
       }
     }
 
+    // ClinePass reasoning models burn all of max_tokens on the thinking phase
+    // when the budget is too small, leaving content empty (finish_reason:
+    // "length"). Bump max_tokens to a safe floor when reasoning is enabled and
+    // the budget is undersized. CLINEPASS-GATED — no-op for every other provider.
+    if (typeof withDefaults === "object" && withDefaults !== null) {
+      this.ensureThinkingBudget(withDefaults as Record<string, unknown>, model);
+    }
+
+    // 9router#1480: the native Moonshot `kimi` provider (executor "default")
+    // is a thinking-mode upstream that 400s with "reasoning_content must be
+    // passed back" when a prior assistant turn lacks it. OpencodeExecutor
+    // already injects a placeholder for OpenCode-routed thinking models; the
+    // direct kimi connection hit neither injection path. Scope to `kimi` so
+    // gateway-served models that merely match the thinking-model name pattern
+    // (and may reject an extra field) are unaffected.
+    if (this.provider === "kimi") {
+      const outboundModel =
+        typeof (withDefaults as Record<string, unknown>)?.model === "string"
+          ? ((withDefaults as Record<string, unknown>).model as string)
+          : model;
+      if (isThinkingMessageModel(outboundModel)) {
+        withDefaults = injectReasoningContentForThinkingModel(withDefaults);
+      }
+    }
+
     return withDefaults;
+  }
+
+  // ClinePass / OpenRouter-style thinking models leave content empty when the
+  // reasoning budget consumes all of max_tokens. Bump max_tokens to a safe
+  // minimum only when reasoning is enabled and the budget is undersized.
+  // CLINEPASS-GATED: returns early for every other provider.
+  ensureThinkingBudget(body: Record<string, unknown>, model: string): Record<string, unknown> {
+    if (!body || this.provider !== "clinepass") return body;
+
+    const outboundModel = typeof body.model === "string" ? body.model : model;
+    const entry = getRegistryEntry(this.provider);
+    const modelEntry = entry?.models?.find((m) => m.id === outboundModel);
+    if (!modelEntry?.supportsReasoning) return body;
+
+    const extraBody = body.extra_body as Record<string, unknown> | undefined;
+    const thinking = extraBody?.thinking as Record<string, unknown> | undefined;
+    const effort = body.reasoning_effort;
+    const reasoningEnabled =
+      thinking?.type === "enabled" ||
+      (typeof effort === "string" && effort !== "none" && effort !== "off") ||
+      effort === true;
+    if (!reasoningEnabled) return body;
+
+    const MIN_TOKENS = 4096;
+    const maxOutput =
+      typeof modelEntry.maxOutputTokens === "number" && modelEntry.maxOutputTokens > 0
+        ? modelEntry.maxOutputTokens
+        : MIN_TOKENS;
+    const target = Math.min(MIN_TOKENS, maxOutput);
+    const current = body.max_tokens ?? body.max_completion_tokens;
+
+    if (typeof current !== "number" || current <= 0) {
+      body.max_tokens = target;
+    } else if (current < MIN_TOKENS && current < maxOutput) {
+      body.max_tokens = MIN_TOKENS;
+    }
+    return body;
   }
 
   /**

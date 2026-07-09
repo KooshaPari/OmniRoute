@@ -112,6 +112,11 @@ export const updateSettingsSchema = z.object({
   hideEndpointTailscaleFunnel: z.boolean().optional(),
   hideEndpointNgrokTunnel: z.boolean().optional(),
   preferClaudeCodeForUnprefixedClaudeModels: z.boolean().optional(),
+  // Opt-in (default "off"): short-circuits Claude Code's `--permission-mode auto`
+  // internal security-classifier request with a synthetic ALLOW response instead of
+  // calling the upstream provider. "auto" only fires on detected classifier requests;
+  // "always" applies the short-circuit to every Claude-format request.
+  claudeClassifierCompat: z.enum(["off", "auto", "always"]).optional(),
   autoRefreshProviderQuota: z.boolean().optional(),
   autoRefreshProviderQuotaInterval: z.number().int().min(10).max(3600).optional(),
   pinProviderQuotaToHome: z.boolean().optional(),
@@ -144,6 +149,7 @@ export const updateSettingsSchema = z.object({
     .optional(),
   customBannedSignals: z.array(z.string().max(200)).optional(),
   debugMode: z.boolean().optional(),
+  logToolSources: z.boolean().optional(),
   hiddenSidebarItems: z.array(z.enum(HIDEABLE_SIDEBAR_ITEM_IDS)).optional(),
   hiddenSidebarGroupLabels: z.array(z.enum(HIDEABLE_SIDEBAR_GROUP_IDS)).optional(),
   sidebarSectionOrder: z
@@ -177,6 +183,8 @@ export const updateSettingsSchema = z.object({
   fallbackStrategy: z.enum(ACCOUNT_FALLBACK_STRATEGY_VALUES).optional(),
   wildcardAliases: z.array(z.object({ pattern: z.string(), target: z.string() })).optional(),
   stickyRoundRobinLimit: z.number().int().min(0).max(1000).optional(),
+  // #6168: global session-stickiness opt-out (per-combo config overrides this).
+  disableSessionStickiness: z.boolean().optional(),
   requestRetry: z.number().int().min(0).max(10).optional(),
   maxRetryIntervalSec: z.number().int().min(0).max(300).optional(),
   maxBodySizeMb: z
