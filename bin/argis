@@ -1,0 +1,173 @@
+#!/usr/bin/env bash
+# argis - the v4 master CLI. Natural dev flow:
+#   argis dev             - deploy v4 to desktop, expose via Tailscale,
+#                          update Vercel env, return BFF URL
+#   argis deploy          - just the deploy + expose step
+#   argis serve           - just start the services (or restart them)
+#   argis url             - print the current BFF URL
+#   argis logs [bff|gw|next]   - tail the desktop service logs
+#   argis cutover <pct>   - flip OMNI_WEB_STACK_ROLLOUT
+#   argis rollback        - 0% rollout (full Next.js)
+#   argis ssh             - ssh to the desktop
+#   argis status          - health snapshot
+
+set -euo pipefail
+
+V4_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+PHENO="${PHENO_BIN:-$HOME/bin/pheno}"
+DESKTOP_HOST="${DESKTOP_HOST:-desk}"  # the `desk` SSH alias from pheno-compute-layer
+WEB_PORT="${WEB_PORT:-4321}"
+BFF_PORT="${BFF_PORT:-4322}"
+NEXTJS_PORT="${NEXTJS_PORT:-20128}"
+DATA_DIR="${DATA_DIR:-$HOME/.argismonitor}"
+GATEWAY_SOCKET="${GATEWAY_SOCKET:-/var/run/argismonitor/gateway.sock}"
+
+V4_REF="${V4_REF:-origin/feat/v4-svelte-hono-monorepo}"
+
+log() { printf "\033[1;36m[argis]\033[0m %s\n" "$*"; }
+err() { printf "\033[1;31m[argis ERROR]\033[0m %s\n" "$*" >&2; }
+ok()  { printf "\033[1;32m[argis OK]\033[0m %s\n" "$*"; }
+
+desktop_run() {
+  $PHENO run "$@"
+}
+desktop_scp_to() {
+  $PHENO scp-to "$@"
+}
+desktop_scp_from() {
+  $PHENO scp-from "$@"
+}
+
+cmd_deploy() {
+  log "deploying v4 to desktop (ref: $V4_REF)..."
+  # Sync the v4 monorepo to the desktop via rsync
+  desktop_scp_to "$V4_DIR/" "~/argismonitor-monorepo/" || {
+    err "scp-to failed - falling back to git clone on desktop"
+    desktop_run "git clone https://github.com/KooshaPari/OmniRoute.git ~/argismonitor-monorepo && cd ~/argismonitor-monorepo && git checkout $V4_REF"
+  }
+  log "installing deps + building on desktop..."
+  desktop_run "cd ~/argismonitor-monorepo && bun install"
+  log "building web (SvelteKit)..."
+  desktop_run "cd ~/argismonitor-monorepo/apps/web && bun run build"
+  log "building bff (Hono + tRPC)..."
+  desktop_run "cd ~/argismonitor-monorepo/apps/bff && bun run build"
+  log "building Rust gateway (kbridge)..."
+  desktop_run "cd ~/argismonitor-monorepo/backend-rust && cargo build --release -p omniroute-server"
+  ok "desktop build complete"
+}
+
+cmd_serve() {
+  log "starting services on desktop..."
+  desktop_run "mkdir -p $DATA_DIR"
+  # Use nohup + tmux/setsid for persistence; pm2 if available
+  desktop_run "pkill -f 'omniroute-server' || true; pkill -f 'src/server.ts' || true; sleep 1"
+  # Start BFF
+  desktop_run "cd ~/argismonitor-monorepo/apps/bff && DATA_DIR=$DATA_DIR PORT=$BFF_PORT OMNIROUTE_GATEWAY_SOCKET=$GATEWAY_SOCKET nohup bun run src/server.ts > $DATA_DIR/bff.log 2>&1 &"
+  # Start gateway
+  desktop_run "cd ~/argismonitor-monorepo/backend-rust && OMNIRoute_GATEWAY_SOCKET=$GATEWAY_SOCKET nohup ./target/release/omniroute-server --port $NEXTJS_PORT --data-dir $DATA_DIR --kbridge-socket $GATEWAY_SOCKET > $DATA_DIR/gateway.log 2>&1 &"
+  # Start legacy Next.js (Phase 3 cutover only)
+  desktop_run "pkill -f 'next start' || true; cd ~/OmniRoute-b10 && nohup bun run start -- -p $NEXTJS_PORT > $DATA_DIR/nextjs.log 2>&1 &"
+  sleep 2
+  ok "services started - logs in $DATA_DIR/{bff,gateway,nextjs}.log"
+}
+
+cmd_expose() {
+  log "exposing BFF via Tailscale Funnel..."
+  desktop_run "tailscale funnel --bg --bg-local-allow-multiple-clients $BFF_PORT"
+  sleep 2
+  BFF_URL=$(desktop_run "tailscale status --self --json" | jq -r '.Self.DNSName' | sed 's/\.$//')
+  ok "BFF URL: https://${BFF_URL}:$BFF_PORT"
+  echo "$BFF_URL" > "$V4_DIR/.argis-bff-url"
+}
+
+cmd_status() {
+  log "health snapshot:"
+  desktop_run "curl -fsS --max-time 3 http://localhost:$BFF_PORT/healthz" >/dev/null 2>&1 && ok "BFF :$BFF_PORT" || err "BFF :$BFF_PORT down"
+  desktop_run "ss -tln | grep -E ':$BFF_PORT|:$NEXTJS_PORT' | head" || true
+  echo "  BFF URL: $(cat $V4_DIR/.argis-bff-url 2>/dev/null || echo 'not exposed yet')"
+}
+
+cmd_url() {
+  cat "$V4_DIR/.argis-bff-url" 2>/dev/null || echo "not exposed yet - run 'argis expose'"
+}
+
+cmd_logs() {
+  local svc="${1:-bff}"
+  case "$svc" in
+    bff)   desktop_run "tail -f $DATA_DIR/bff.log" ;;
+    gw|gateway) desktop_run "tail -f $DATA_DIR/gateway.log" ;;
+    next|nextjs) desktop_run "tail -f $DATA_DIR/nextjs.log" ;;
+    *) err "usage: argis logs [bff|gateway|nextjs]"; exit 1 ;;
+  esac
+}
+
+cmd_cutover() {
+  local pct="${1:-1}"
+  [[ "$pct" == "0" || "$pct" == "1" || "$pct" == "10" || "$pct" == "50" || "$pct" == "100" ]] || { err "pct must be 0, 1, 10, 50, 100"; exit 1; }
+  log "setting OMNI_WEB_STACK_ROLLOUT=$pct in all Vercel prod envs..."
+  # Get all Vercel projects that match argismonitor-*
+  for proj in $(vercel list --json 2>/dev/null | jq -r 'select(.name | startswith("argismonitor")) | .name'); do
+    log "  -> $proj"
+    vercel env rm OMNI_WEB_STACK_ROLLOUT production --yes --scope $proj >/dev/null 2>&1 || true
+    echo "$pct" | vercel env add OMNI_WEB_STACK_ROLLOUT production --scope $proj >/dev/null
+    vercel deploy --prod --yes --scope $proj >/dev/null &
+  done
+  wait
+  ok "rollout $pct% applied to all matching Vercel projects"
+  log "monitor SLOs for 15m before bumping"
+}
+
+cmd_ssh() {
+  $PHENO shell
+}
+
+cmd_dev() {
+  cmd_deploy
+  cmd_serve
+  cmd_expose
+  cmd_url
+}
+
+case "${1:-help}" in
+  dev)        cmd_dev ;;
+  deploy)    cmd_deploy ;;
+  serve)     cmd_serve ;;
+  expose)    cmd_expose ;;
+  url)       cmd_url ;;
+  status)    cmd_status ;;
+  logs)      shift; cmd_logs "${@}" ;;
+  cutover)   shift; cmd_cutover "${@}" ;;
+  rollback)  cmd_cutover 0 ;;
+  ssh)       cmd_ssh ;;
+  help|*)    cat <<USAGE
+argis - argismonitor v4 master CLI
+
+USAGE:
+  argis dev             deploy + serve + expose (one-shot for fresh dev)
+  argis deploy          just deploy + build (no serve)
+  argis serve           start services (assumes built)
+  argis expose          expose BFF via Tailscale Funnel + print URL
+  argis url             print current BFF URL
+  argis status          health snapshot
+  argis logs [bff|gateway|nextjs]   tail logs on desktop
+  argis cutover <0|1|10|50|100>    flip OMNI_WEB_STACK_ROLLOUT in all Vercel prod envs
+  argis rollback        alias for 'argis cutover 0'
+  argis ssh             open shell on desktop
+
+ENV:
+  PHENO_BIN     pheno CLI (default ~/bin/pheno)
+  DESKTOP_HOST  Tailscale SSH alias (default desk)
+  BFF_PORT      BFF port (default 4322)
+  WEB_PORT      SvelteKit preview port (default 4321)
+  NEXTJS_PORT   legacy Next.js port (default 20128)
+  DATA_DIR      data + log dir on desktop (default ~/.argismonitor)
+  GATEWAY_SOCKET  Rust kbridge Unix socket (default /var/run/argismonitor/gateway.sock)
+  V4_REF        git ref to deploy (default origin/feat/v4-svelte-hono-monorepo)
+
+REQUIRES:
+  - pheno-compute-layer CLI (pheno) on PATH (~/bin/pheno) for desktop SSH
+  - vercel CLI on PATH for env updates
+  - Tailscale running on the desktop + logged in
+USAGE
+    ;;
+esac
