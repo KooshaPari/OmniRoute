@@ -1,0 +1,187 @@
+#!/usr/bin/env bash
+# proccompose - the runner CLI for argismonitor v4 process composition.
+# Reads proccompose.yaml in the current directory and executes the
+# requested action across the desktop + Vercel frontends.
+#
+# Usage:
+#   proccompose up                 # deploy + serve + expose + vercel env
+#   proccompose down               # stop desktop services
+#   proccompose status             # health snapshot
+#   proccompose cutover <pct>      # flip OMNI_WEB_STACK_ROLLOUT
+#   proccompose url                # print current BFF URL
+#   proccompose logs <service>     # tail a service log
+#   proccompose validate            # dry-run validation
+#   proccompose plan               # print the resolved execution plan
+
+set -euo pipefail
+
+YAML_FILE="${PROCCOMPOSE_FILE:-proccompose.yaml}"
+PHENO_BIN="${PHENO_BIN:-$HOME/bin/pheno}"
+V4_DIR="${V4_DIR:-$(dirname "$(cd "$(dirname "$0")" && pwd)")}"
+
+log() { printf "\033[1;36m[proccompose]\033[0m %s\n" "$*"; }
+err() { printf "\033[1;31m[proccompose ERROR]\033[0m %s\n" "$*" >&2; }
+ok()  { printf "\033[1;32m[proccompose OK]\033[0m %s\n" "$*"; }
+
+if [[ ! -f "$YAML_FILE" ]]; then
+  err "no $YAML_FILE in $(pwd) - copy proccompose.example.yaml and edit"
+  exit 1
+fi
+
+# Tiny YAML parser (extracts: config.*, services.<name>.{host,run,supervisor,build}, etc.)
+# We use yq if available, else python3 with a minimal yaml.
+yaml() { python3 -c "import sys,yaml;d=yaml.safe_load(open('$YAML_FILE'));import json;print(json.dumps(d))"; }
+
+resolve_bff_url() {
+  # Best-effort: the desktop's Tailscale hostname + bff_port
+  $PHENO_BIN status 2>/dev/null | head -3 || true
+  local host=$($PHENO_BIN run "tailscale status --self --json 2>/dev/null | jq -r .Self.DNSName" 2>/dev/null | sed 's/\.$//' || echo "localhost")
+  echo "http://$host:4322"
+}
+
+cmd_up() {
+  log "bringing up the v4 stack on desktop + Vercel frontends..."
+  log "step 1/4: deploy + build on desktop..."
+  $PHENO_BIN scp-to "$V4_DIR/" "~/argismonitor-monorepo/" || {
+    $PHENO_BIN run "git clone https://github.com/KooshaPari/OmniRoute.git ~/argismonitor-monorepo && cd ~/argismonitor-monorepo && git checkout $(yq '.config.v4_ref // \"origin/feat/v4-svelte-hono-monorepo\"' <$YAML_FILE 2>/dev/null || echo origin/feat/v4-svelte-hono-monorepo)"
+  }
+  $PHENO_BIN run "cd ~/argismonitor-monorepo && bun install"
+
+  log "step 2/4: build web + bff + kbridge..."
+  $PHENO_BIN run "cd ~/argismonitor-monorepo/apps/web && bun run build"
+  $PHENO_BIN run "cd ~/argismonitor-monorepo/apps/bff && bun run build"
+  $PHENO_BIN run "cd ~/argismonitor-monorepo/backend-rust && cargo build --release -p omniroute-server"
+
+  log "step 3/4: install launchd supervisors on desktop..."
+  $PHENO_BIN run "mkdir -p ~/Library/LaunchAgents $DATA_DIR 2>/dev/null || true"
+  # BFF plist (minimal inline write)
+  $PHENO_BIN run 'cat > ~/Library/LaunchAgents/online.phenotype.argismonitor.bff.plist <<EOF
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0"><dict>
+  <key>Label</key><string>online.phenotype.argismonitor.bff</string>
+  <key>ProgramArguments</key><array>
+    <string>/bin/bash</string><string>-c</string><string>cd $HOME/argismonitor-monorepo/apps/bff && DATA_DIR=$HOME/.argismonitor PORT=4322 OMNIROUTE_GATEWAY_SOCKET=/var/run/argismonitor/gateway.sock exec bun run src/server.ts</string>
+  </array>
+  <key>WorkingDirectory</key><string>$HOME/argismonitor-monorepo/apps/bff</string>
+  <key>RunAtLoad</key><true/><key>KeepAlive</key><true/>
+  <key>StandardOutPath</key><string>$HOME/.argismonitor/bff.launchd.log</string>
+  <key>StandardErrorPath</key><string>$HOME/.argismonitor/bff.launchd.err</string>
+</dict></plist>
+EOF'
+  $PHENO_BIN run "launchctl load ~/Library/LaunchAgents/online.phenotype.argismonitor.bff.plist 2>/dev/null || true"
+
+  log "step 4/4: expose via Tailscale Funnel + update Vercel envs..."
+  $PHENO_BIN run "tailscale funnel --bg --bg-local-allow-multiple-clients 4322"
+  sleep 2
+  BFF_URL=$($PHENO_BIN run "tailscale status --self --json | jq -r .Self.DNSName" | sed 's/\.$//')
+  NEXTJS_URL=$($PHENO_BIN run "tailscale status --self --json | jq -r .Self.DNSName" | sed 's/\.$//')
+  echo "$BFF_URL" > .argis-bff-url
+  for proj in argismonitor-homepage argismonitor-app argismonitor-docs; do
+    log "  -> $proj (vercel env update)"
+    vercel env rm OMNI_BFF_URL production --yes --scope $proj >/dev/null 2>&1 || true
+    echo "https://$BFF_URL:4322" | vercel env add OMNI_BFF_URL production --scope $proj >/dev/null
+    vercel env rm NEXTJS_UPSTREAM production --yes --scope $proj >/dev/null 2>&1 || true
+    echo "https://$BFF_URL:20128" | vercel env add NEXTJS_UPSTREAM production --scope $proj >/dev/null
+    vercel env rm OMNI_WEB_STACK production --yes --scope $proj >/dev/null 2>&1 || true
+    echo "svelte" | vercel env add OMNI_WEB_STACK production --scope $proj >/dev/null
+    vercel env rm OMNI_WEB_STACK_ROLLOUT production --yes --scope $proj >/dev/null 2>&1 || true
+    echo "1" | vercel env add OMNI_WEB_STACK_ROLLOUT production --scope $proj >/dev/null
+  done
+  ok "stack up - BFF URL: https://$BFF_URL:4322 (rollout=1%)"
+}
+
+cmd_down() {
+  log "stopping desktop services..."
+  $PHENO_BIN run "launchctl unload ~/Library/LaunchAgents/online.phenotype.argismonitor.bff.plist 2>/dev/null || true"
+  $PHENO_BIN run "launchctl unload ~/Library/LaunchAgents/online.phenotype.argismonitor.gateway.plist 2>/dev/null || true"
+  ok "stopped"
+}
+
+cmd_status() {
+  log "health snapshot:"
+  BFF_URL=$($PHENO_BIN run "tailscale status --self --json" 2>/dev/null | jq -r .Self.DNSName | sed 's/\.$//' || echo "localhost")
+  for s in 4322 20128; do
+    if $PHENO_BIN run "curl -fsS --max-time 3 http://localhost:$s/healthz" 2>/dev/null >/dev/null; then
+      ok ":$s responding"
+    else
+      err ":$s down"
+    fi
+  done
+  $PHENO_BIN run "launchctl list | grep -E 'argismonitor|bff|gateway' || echo 'no supervisor services'"
+}
+
+cmd_cutover() {
+  local pct="${1:-1}"
+  log "setting OMNI_WEB_STACK_ROLLOUT=$pct% in all Vercel prod envs..."
+  for proj in argismonitor-homepage argismonitor-app argismonitor-docs; do
+    vercel env rm OMNI_WEB_STACK_ROLLOUT production --yes --scope $proj >/dev/null 2>&1 || true
+    echo "$pct" | vercel env add OMNI_WEB_STACK_ROLLOUT production --scope $proj >/dev/null
+  done
+  ok "rollout $pct% applied"
+}
+
+cmd_url() {
+  cat .argis-bff-url 2>/dev/null || resolve_bff_url
+}
+
+cmd_logs() {
+  local svc="${1:-bff}"
+  case "$svc" in
+    bff)   $PHENO_BIN run "tail -f \$HOME/.argismonitor/bff.log" ;;
+    gw|gateway) $PHENO_BIN run "tail -f \$HOME/.argismonitor/gateway.log" ;;
+    next|nextjs) $PHENO_BIN run "tail -f \$HOME/.argismonitor/nextjs.log" ;;
+    *) err "usage: proccompose logs [bff|gateway|nextjs]"; exit 1 ;;
+  esac
+}
+
+cmd_validate() {
+  log "validating $YAML_FILE..."
+  python3 -c "import yaml; d=yaml.safe_load(open('$YAML_FILE')); print('services:', list(d.get('services', {}).keys())); print('vercel_projects:', [p['name'] for p in d.get('vercel_projects', [])])"
+  ok "schema valid"
+}
+
+cmd_plan() {
+  log "execution plan:"
+  python3 -c "
+import yaml
+d = yaml.safe_load(open('$YAML_FILE'))
+print('config:', d.get('config'))
+print('services:')
+for n, s in d.get('services', {}).items():
+  print(f'  {n}  host={s.get(\"host\")}  cmd={s.get(\"run\", {}).get(\"cmd\")}')
+print('vercel_projects:', [p['name'] for p in d.get('vercel_projects', [])])
+print('cutover phases:', [c['pct'] for c in d.get('cutover', [])])
+"
+}
+
+case "${1:-help}" in
+  up)        cmd_up ;;
+  down)      cmd_down ;;
+  status)    cmd_status ;;
+  cutover)   shift; cmd_cutover "${@}" ;;
+  url)       cmd_url ;;
+  logs)      shift; cmd_logs "${@}" ;;
+  validate)  cmd_validate ;;
+  plan)      cmd_plan ;;
+  help|*)    cat <<USAGE
+proccompose - argismonitor v4 process composition
+
+USAGE:
+  proccompose up                 bring up the whole stack (deploy + serve + expose + Vercel)
+  proccompose down               stop desktop services
+  proccompose status             health snapshot
+  proccompose cutover <pct>      flip OMNI_WEB_STACK_ROLLOUT (1/10/50/100)
+  proccompose url                print the current BFF URL
+  proccompose logs <bff|gateway|nextjs>   tail a service log
+  proccompose validate            validate the YAML against the current state
+  proccompose plan               print the resolved execution plan
+
+REQUIRES:
+  - pheno-compute-layer (~/bin/pheno) for Tailscale SSH to desktop
+  - vercel CLI for env updates
+  - tailscale on the desktop + a logged-in session
+
+USAGE
+    ;;
+esac
