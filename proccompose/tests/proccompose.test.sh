@@ -11,8 +11,10 @@ bash -n "$PROCCOMPOSE_BIN" || { echo "FAIL: proccompose has syntax errors"; exit
 
 echo "[2/4] symlink resolution (script dir lookup works)"
 cd "$(dirname "$0")/.."
-"$PROCCOMPOSE_BIN" validate | head -1 || { echo "FAIL: validate failed"; exit 1; }
-cd /tmp && "$PROCCOMPOSE_BIN" validate | head -1 || { echo "FAIL: validate from /tmp failed"; exit 1; }
+out1=$("$PROCCOMPOSE_BIN" validate 2>&1)
+[[ "$out1" == *"OK"* ]] || { echo "FAIL: validate from script dir failed: $out1"; exit 1; }
+cd /tmp && out2=$("$PROCCOMPOSE_BIN" validate 2>&1)
+[[ "$out2" == *"OK"* ]] || { echo "FAIL: validate from /tmp failed: $out2"; exit 1; }
 
 echo "[3/4] plan produces expected output"
 out=$("$PROCCOMPOSE_BIN" plan 2>&1)
