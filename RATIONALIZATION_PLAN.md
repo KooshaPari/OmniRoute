@@ -174,13 +174,14 @@
 
 ---
 
-### APPS / PRODUCTS (6)
+### APPS / PRODUCTS (7)
 
 | Repo | Notes |
 |------|-------|
 | **Tracera** | Keep (requirements traceability) |
 | **AgilePlus** | Keep (spec-driven dev; dual tooling/product role) |
 | **hwLedger** | Keep |
+| **SessionLedger** | Keep (OKF-native session compiler: sl-daemon + sl-viewer) |
 | **eyetracker** | Keep |
 | **PlayCua** | Keep |
 | **slickport** | Keep (pending triage) |
