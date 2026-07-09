@@ -46,7 +46,7 @@ Role split for the spec/governance spine (so indexes stop competing):
 > **Note 2026-06-18**: `phenotype-auth-ts` was archived in this wave and absorbed into [AuthKit](https://github.com/KooshaPari/AuthKit) `typescript/packages/auth-ts/` (PR #120). The row above is stale pending the next rationalization update. **McpKit carve-out (2026-06-18)**: the Rust `phenotype-mcp-asset` lib was extracted from `McpKit/rust/phenotype-mcp-asset/` into temporary [KooshaPari/phenotype-mcp-asset](https://github.com/KooshaPari/phenotype-mcp-asset), then folded into [KooshaPari/PhenoFastMCP-rust](https://github.com/KooshaPari/PhenoFastMCP-rust) at `crates/fastmcp-asset`.|
 | **SDK** | 8 | AuthKit, DataKit, ObservabilityKit, ResilienceKit, TestingKit, PlatformKit, PhenoKits, HexaKit |
 | **tooling** | 11 | AgilePlus, phenotype-dep-guard, phenotype-tooling, phenotype-infra, PhenoDevOps, Conft, agent-devops-setups, helioscope, Benchora, agileplus-spec-harmonizer, PhenoCompose |
-| **product / app** | 11 | Agentora, thegent, Tracera, AgilePlus, PlayCua, Dino, eyetracker, hwLedger, phenoRouterMonitor, slickport, **BytePort** (Tauri 2.x desktop app per ADR-022) |
+| **product / app** | 12 | Agentora, thegent, Tracera, AgilePlus, PlayCua, Dino, eyetracker, hwLedger, phenoRouterMonitor, slickport, **BytePort** (Tauri 2.x desktop app per ADR-022), **SessionLedger** (OKF-native session compiler: sl-daemon + sl-viewer) |
 | **plugin** | 4 | PhenoPlugins, argis-extensions, Tokn |
 | **docs** | 8 | PhenoSpecs, phenotype-registry, PhenoHandbook, phenodocs, phenoXdd, PhenoDesign, phenotype-hub (scaffold), LIBRARY_RESEARCH_REGISTRY |
 | **landing** | 9 | agileplus-landing, byteport-landing, hwledger-landing, odin-landing\*, phenokits-landing, projects-landing, thegent-landing, AppGen (template) |
@@ -526,10 +526,11 @@ TESTING / QA (3)
 GAME / 3D (1)
   phenotype-gfx            — single canonical graphics/visual substrate (Rust core + Zig/Mojo hot-path ports + C#/other edges, ADR-004 single-core-ffi-edges). Unity terrain/water/postfx shims + bevy adapter feature live under `phenotype-gfx/crates/`. Absorbed phenotype-voxel/terrain/water/postfx via [PR #10](https://github.com/KooshaPari/phenotype-gfx/pull/10) (merged 2026-06-18, sha 5380b2bd; 4 source repos archived + deleted L5-114).
 
-APPS / PRODUCTS (6)
+APPS / PRODUCTS (7)
   Tracera                  — requirements traceability
   AgilePlus                (also tooling; dual role)
   hwLedger                 — hardware ledger
+  SessionLedger            — OKF-native session compiler (sl-daemon + sl-viewer; agent capture/archive/replay)
   eyetracker               — eye tracking
   PlayCua                  — computer-use agent
   slickport                — (undocumented; keep for now)

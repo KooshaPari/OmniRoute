@@ -1,0 +1,19 @@
+{
+  "name": "SessionLedger",
+  "full_name": "KooshaPari/SessionLedger",
+  "description": "OKF-native session compiler — capture, archive, and replay AI agent sessions (sl-daemon + sl-viewer)",
+  "role": "session-compiler",
+  "disposition": "AFFIRM",
+  "source": "v38-spine-registration-2026-07-08",
+  "status": "active",
+  "repo_path": "KooshaPari/SessionLedger",
+  "ecosystem": "agent-continuity",
+  "domain": "session-artifacts",
+  "languages": ["rust"],
+  "primary_language": "rust",
+  "has_readme": true,
+  "type": "product",
+  "path": "repos/SessionLedger",
+  "domain_role": "session_compiler",
+  "note": "Desktop viewer + HTTP daemon; OKF v1.0 bundles; audit-v38 pilot target alongside substrate. Distinct from Tokn (token/cost ledger)."
+}

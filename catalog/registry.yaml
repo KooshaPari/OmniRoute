@@ -385,6 +385,22 @@ substrates:
     notes: |
       Phenotype-org hardware ledger. Deferred-tier.
 
+  - id: sessionledger
+    repo: KooshaPari/SessionLedger
+    name: SessionLedger
+    status: active
+    tier: phenotype-framework
+    architecture: layered
+    archetype: app
+    language: rust
+    role: session-compiler
+    boundary: docs/boundary/SessionLedger.md
+    intent: docs/intent/SessionLedger.md
+    notes: |
+      OKF-native session compiler (sl-daemon + sl-viewer). Agent session
+      capture, archive, and replay — product/app alongside hwLedger/Tracera.
+      Distinct from Tokn (token ledger).
+
   - id: kdesktopvirt
     repo: KooshaPari/KDesktopVirt
     name: KDesktopVirt
