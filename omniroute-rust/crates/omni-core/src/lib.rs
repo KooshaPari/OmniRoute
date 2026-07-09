@@ -54,6 +54,7 @@ pub mod error;
 pub mod executor;
 pub mod ids;
 pub mod model;
+pub mod observability;
 pub mod provider;
 pub mod registry;
 pub mod response;
@@ -62,6 +63,7 @@ pub mod storage;
 pub mod streaming;
 
 pub mod dispatcher;
+pub mod executors;
 
 pub use config::{
     A2aConfig, BindConfig, ChaosConfig, CompressionConfig, Config, ConfigBuilder, DataDir,
