@@ -1305,3 +1305,10 @@ MIT License - see [LICENSE](LICENSE) for details.
 
 </div>
 <!-- GitHub Discussions enabled for community Q&A -->
+
+## argis - master CLI for v4 dev + deploy + cutover
+
+`bin/argis` is the v4 master CLI. Run `argis dev` for the full dev flow
+(deploy + serve + expose + Vercel env). See `bin/README.md` for the
+full reference. Composes on `pheno-compute-layer` (Tailscale SSH)
+and the `vercel` CLI.
