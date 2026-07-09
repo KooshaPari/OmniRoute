@@ -18,7 +18,26 @@ project: argismonitor
 
 # Shared config
 config:
-  desktop_host: desk                       # SSH alias from pheno-compute-layer
+  desktop_host: desk
+  # Multi-slot orchestration: dev (always-on), staging (mirror of prod),
+  # prod (the one the world sees). Each slot has its own release
+  # history on the desktop and its own Vercel env.
+  slots:
+    dev:
+      v4_ref: origin/feat/v4-svelte-hono-monorepo
+      rollout_initial: 100
+      vercel_projects: [argismonitor-homepage, argismonitor-app, argismonitor-docs]
+      port_offset: 0
+    staging:
+      v4_ref: origin/feat/v4-svelte-hono-monorepo
+      rollout_initial: 100
+      vercel_projects: [argismonitor-homepage-staging, argismonitor-app-staging, argismonitor-docs-staging]
+      port_offset: 100
+    prod:
+      v4_ref: origin/feat/v4-svelte-hono-monorepo
+      rollout_initial: 0   # start at 0, increment via proccompose cutover
+      vercel_projects: [argismonitor-homepage, argismonitor-app, argismonitor-docs]
+      port_offset: 200                       # SSH alias from pheno-compute-layer
   data_dir: ~/.argismonitor
   gateway_socket: /var/run/argismonitor/gateway.sock
   bff_port: 4322

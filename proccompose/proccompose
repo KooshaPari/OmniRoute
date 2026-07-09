@@ -26,6 +26,8 @@ resolve_yaml() {
   return 1
 }
 SCRIPT_LIB_REAL="$(cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]}" 2>/dev/null)")" 2>/dev/null && pwd)/lib"
+. "$SCRIPT_LIB_REAL/init.sh" 2>/dev/null || true
+INIT_SCRIPT="$SCRIPT_LIB_REAL/init.sh"
 SCRIPT_LIB_SYMLINK="$(cd "$(dirname "${BASH_SOURCE[0]}")" 2>/dev/null && pwd)/lib"
 SCRIPT_LIB="${SCRIPT_LIB_REAL:-$SCRIPT_LIB_SYMLINK}"
 . "$SCRIPT_LIB/release-state.sh"
@@ -428,6 +430,24 @@ cmd_lock() {
   sleep infinity &
   wait
 }
+
+cmd_matrix() {
+  local action="${1:-status}"
+  shift 2>/dev/null || true
+  log "matrix $action on all configured slots..."
+  for slot in dev staging prod; do
+    log "  slot=$slot"
+    case "$action" in
+      status)
+        cmd_status
+        ;;
+      deploy|release|rollback)
+        PROCCOMPOSE_SLOT="$slot" "$@"
+        ;;
+      *) err "matrix $action not implemented - use deploy|release|status|rollback"; return 1 ;;
+    esac
+  done
+}
 case "${1:-help}" in
   up)        cmd_up ;;
   down)      cmd_down ;;
@@ -444,6 +464,8 @@ case "${1:-help}" in
   rollback)  cmd_cutover 0 ;;
   deploy)    cmd_deploy "${@}" ;;
   release)   cmd_release "${@}" ;;
+  init)      cmd_init ;;
+  matrix)    cmd_matrix "${@}" ;;
   releases)   cmd_releases "${@}" ;;
   lock)       cmd_lock "${@}" ;;
   help|*)    cat <<USAGE
@@ -466,6 +488,8 @@ USAGE:
   proccompose releases [slot]  show release history for a slot
   proccompose lock [slot]     acquire the deploy lock (for manual testing)
   proccompose rollback        roll back a release to the previous version
+  proccompose init           bootstrap a fresh host into the deploy plane
+  proccompose matrix <action>  run the same action across dev+staging+prod
 
 REQUIRES:
   - pheno-compute-layer (~/bin/pheno) for Tailscale SSH to desktop
