@@ -1,77 +1,103 @@
-// UDS Router Executor — proxies chat completion requests to the Rust data plane
-// over a Unix Domain Socket. Registered as a fallback-compatible executor that
-// takes priority when the Rust data plane socket is available.
+// UDS Router Executor — proxies OpenAI-compatible requests to the omniroute Rust
+// data plane over a Unix Domain Socket.
 //
-// Integration flow:
-//   chatCore.ts → getExecutor() → UdsRouterExecutor
-//     → forwardToDataPlane() → net.Socket → omniroute-runtime (Rust)
-//     → failover: return null → chatCore falls back to DefaultExecutor
+// Registered as both "uds-router" and "uds" in the executor registry
+// (executors/index.ts). When the socket is reachable and the caller sets
+// stream: true in the request body, the executor returns a streaming Response
+// with a ReadableStream body. Otherwise it collects the full non-streaming
+// response and returns it as a JSON-parsed ExecutorResult.
 //
-// Reference: plans/2026-07-05-omniroute-rust-data-plane-v1.md §9 Phase 5
-//            SPEC.md §17 polyglot binding tiers (T2 UDS RPC)
+// Reference: SPEC.md §17 polyglot binding tiers (T2 UDS RPC)
 
-import { type ExecutorResult, type ModelInfo } from "@/open-sse/types.d";
-import { forwardToDataPlane, udsHealthCheck, getSocketPath } from "@/open-sse/services/udsRouter";
-import logger from "@/lib/logger";
+import { BaseExecutor } from "@/open-sse/executors/base";
+import type { ExecutorResult, ModelInfo, ProviderCredentials } from "@/open-sse/types";
+import {
+  forwardToDataPlane,
+  forwardToDataPlaneStreaming,
+  udsHealthCheck,
+} from "@/open-sse/services/udsRouter";
 
-export const UDS_ROUTER_EXECUTOR_ID = "uds-router";
+export class UDSRouterExecutor extends BaseExecutor {
+  readonly provider: string;
 
-/**
- * Attempts to forward a chat completion request through the Rust data plane.
- *
- * Returns an ExecutorResult on success, or null if:
- *   - The UDS socket is not available
- *   - The request times out or fails
- *
- * Callers MUST fall back to their own executor when this returns null.
- */
-export async function executeViaUdsRouter(
-  provider: string,
-  model: string,
-  messages: unknown[],
-  apiKey: string,
-  extraBody?: Record<string, unknown>
-): Promise<ExecutorResult | null> {
-  if (!udsHealthCheck()) {
-    return null;
+  constructor(provider: string, credentials: ProviderCredentials) {
+    super(provider, credentials);
+    this.provider = provider;
   }
 
-  const body = JSON.stringify({
-    model,
-    messages,
-    stream: false,
-    ...(extraBody ?? {}),
-  });
-
-  const result = await forwardToDataPlane(body, apiKey, provider);
-
-  if (!result) {
-    logger.debug({ provider }, "uds-executor: forward returned null, fallback");
-    return null;
+  /** Returns the socket availability. */
+  health(): boolean {
+    return udsHealthCheck();
   }
 
-  if (result.statusCode >= 400) {
-    logger.warn({ statusCode: result.statusCode, provider }, "uds-executor: upstream error");
-    return null;
+  async execute(
+    body: string,
+    model: string,
+    modelInfo: ModelInfo,
+    providerSpecificData: Record<string, unknown>,
+    type: string | undefined,
+    headers: Record<string, string>
+  ): Promise<ExecutorResult> {
+    const apiKey = this.credentials.apiKey || this.credentials.accessToken || "";
+
+    if (!apiKey) {
+      throw new Error(`UDSRouterExecutor: no API key available for provider ${this.provider}`);
+    }
+
+    // Detect streaming — check the body for stream: true
+    let isStream = false;
+    try {
+      const parsed = JSON.parse(body);
+      if (parsed.stream === true) {
+        isStream = true;
+      }
+    } catch {
+      // Not JSON — treat as non-streaming
+    }
+
+    if (isStream) {
+      return this.executeStreaming(body, apiKey);
+    }
+
+    return this.executeNonStreaming(body, apiKey);
   }
 
-  // Parse the JSON response body
-  try {
-    const parsed = JSON.parse(result.body);
-    return parsed as ExecutorResult;
-  } catch {
-    logger.error({ body: result.body.slice(0, 200) }, "uds-executor: failed to parse response");
-    return null;
-  }
-}
+  private async executeNonStreaming(body: string, apiKey: string): Promise<ExecutorResult> {
+    const result = await forwardToDataPlane(body, apiKey, this.provider);
 
-/**
- * Returns diagnostic info about the UDS router connection state.
- */
-export function getUdsRouterDiagnostics(): Record<string, unknown> {
-  return {
-    socketPath: getSocketPath(),
-    healthy: udsHealthCheck(),
-    executorId: UDS_ROUTER_EXECUTOR_ID,
-  };
+    if (!result) {
+      // UDS unavailable — let the caller fall back
+      throw new Error(`UDSRouterExecutor: data plane unavailable for ${this.provider}`);
+    }
+
+    // Build a web Response from the collected UDS response
+    const response = new Response(result.body, {
+      status: result.statusCode,
+      headers: {
+        "content-type": result.headers["content-type"] ?? "application/json",
+      },
+    });
+
+    return {
+      response,
+      url: "",
+      headers: new Headers(),
+      transformedBody: false,
+    };
+  }
+
+  private async executeStreaming(body: string, apiKey: string): Promise<ExecutorResult> {
+    const response = await forwardToDataPlaneStreaming(body, apiKey, this.provider);
+
+    if (!response) {
+      throw new Error(`UDSRouterExecutor: data plane streaming unavailable for ${this.provider}`);
+    }
+
+    return {
+      response,
+      url: "",
+      headers: new Headers(),
+      transformedBody: false,
+    };
+  }
 }

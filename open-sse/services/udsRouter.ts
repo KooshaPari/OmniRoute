@@ -1,184 +1,266 @@
-// UDS Router — forwards OpenAI-compatible chat requests to the Rust data plane
-// over a Unix Domain Socket. Acts as a transparent proxy from the TypeScript
-// control plane to the Rust hot path.
+// UDS Router — forwards requests to the Rust data plane over a Unix Domain Socket.
 //
-// Architecture:
-//   chatCore.ts → UDSRouter → net.Socket → $XDG_RUNTIME_DIR/omniroute/routed.sock
-//                                                                    ↓
-//                                                        omniroute-runtime (Rust)
-//                                                                    ↓
-//                                                        provider adapter → upstream
+// Supports both non-streaming (forwardToDataPlane) and streaming
+// (forwardToDataPlaneStreaming) modes. The streaming path returns a web Response
+// with a ReadableStream body, compatible with ExecutorResult.response from base.ts.
 //
-// When the UDS socket is unavailable, the router MUST return `null` so
-// callers can fall back to the legacy executor path (graceful degradation).
+// Socket path resolution (in priority order):
+//   1. OMNIROUTE_DATA_PLANE_SOCKET env var
+//   2. $XDG_RUNTIME_DIR/omniroute/routed.sock
+//   3. /tmp/omniroute/routed.sock
 //
-// Reference: plans/2026-07-05-omniroute-rust-data-plane-v1.md §9 Phase 5
-//            SPEC.md §17 polyglot binding tiers (T2 UDS RPC)
+// Reference: SPEC.md §17 polyglot binding tiers (T2 UDS RPC)
 
-import * as net from "node:net";
-import * as http from "node:http";
-import * as fs from "node:fs";
-import * as path from "node:path";
+import { request as httpRequest, type RequestOptions } from "node:http";
+import { Socket } from "node:net";
 import logger from "@/lib/logger";
 
-// ── Socket path resolution ──────────────────────────────────────────────────
+const DEFAULT_SOCKET_PATHS = ["/tmp/omniroute/routed.sock"];
+
+let _socketPath: string | null = null;
 
 /**
- * Resolve the omniroute-runtime UDS socket path.
- *
- * Resolution order (matching the Rust runtime's own logic):
- *   1. OMNIROUTE_DATA_PLANE_SOCKET env var
- *   2. $XDG_RUNTIME_DIR/omniroute/routed.sock
- *   3. /tmp/omniroute/routed.sock
+ * Returns the resolved UDS socket path, cached after first resolution.
  */
-export function resolveSocketPath(): string {
-  const env = process.env["OMNIROUTE_DATA_PLANE_SOCKET"];
-  if (env) return env;
+export function getSocketPath(): string {
+  if (_socketPath) return _socketPath;
 
-  const xdg = process.env["XDG_RUNTIME_DIR"];
-  if (xdg) return path.join(xdg, "omniroute", "routed.sock");
+  const envPath = process.env.OMNIROUTE_DATA_PLANE_SOCKET;
+  if (envPath) {
+    _socketPath = envPath;
+    return _socketPath;
+  }
 
-  return "/tmp/omniroute/routed.sock";
+  const runtimeDir = process.env.XDG_RUNTIME_DIR;
+  if (runtimeDir) {
+    _socketPath = runtimeDir + "/omniroute/routed.sock";
+    return _socketPath;
+  }
+
+  _socketPath = DEFAULT_SOCKET_PATHS[0];
+  return _socketPath;
 }
 
-// ── Socket health check ─────────────────────────────────────────────────────
+// --- Health check ---
+
+let _lastHealthCheck = 0;
+let _cachedHealth = false;
 
 /**
- * Returns true if the Rust data plane UDS socket exists and is listening.
- *
- * Does NOT attempt to connect — just checks file existence + socket type.
- * Call `udsHealthCheck()` rather than raw `fs.existsSync()` to avoid TOCTOU;
- * the caller must still handle connection failures gracefully.
+ * Quick UDS health check — caches for 5s.
+ * Returns true if the data plane socket is reachable.
  */
 export function udsHealthCheck(): boolean {
-  const sock = resolveSocketPath();
+  const now = Date.now();
+  if (now - _lastHealthCheck < 5000) return _cachedHealth;
+
+  const path = getSocketPath();
+  const sock = new Socket();
   try {
-    const stat = fs.statSync(sock);
-    return stat.isSocket();
+    sock.connect(path);
+    _cachedHealth = true;
   } catch {
-    return false;
+    _cachedHealth = false;
+  } finally {
+    sock.destroy();
   }
+  _lastHealthCheck = now;
+  return _cachedHealth;
 }
 
-// ── Forward a chat-completions request over UDS ─────────────────────────────
+// --- Non-streaming ---
 
-export interface UdsForwardResult {
-  statusCode: number;
-  headers: http.IncomingHttpHeaders;
+export interface DataPlaneResponse {
   body: string;
+  statusCode: number;
+  headers: Record<string, string>;
 }
 
 /**
- * Forward a POST /v1/chat/completions payload to the Rust data plane over UDS.
- *
- * @param body JSON-stringified chat completion request body.
- * @param apiKey  Provider API key (forwarded as Authorization header).
- * @param providerId  Provider identifier (e.g. "openai", "anthropic").
- * @returns UdsForwardResult on success, or null if the socket is unavailable
- *          / the request can't be completed.
+ * Sends a non-streaming request to the Rust data plane.
+ * Collects the full response before resolving.
  */
-export async function forwardToDataPlane(
+export function forwardToDataPlane(
   body: string,
   apiKey: string,
-  providerId: string
-): Promise<UdsForwardResult | null> {
-  const socketPath = resolveSocketPath();
-
-  if (!udsHealthCheck()) {
-    logger.debug({ socketPath }, "udsfwd: socket not available, skipping");
-    return null;
-  }
-
-  return new Promise<UdsForwardResult | null>((resolve) => {
-    const socket = new net.Socket();
+  provider: string
+): Promise<DataPlaneResponse | null> {
+  return new Promise((resolve) => {
+    const path = getSocketPath();
+    const sock = new Socket();
     let responseData = "";
-    let statusCode = 0;
-    let headers: http.IncomingHttpHeaders = {};
+    let statusCode = 200;
+    let responseHeaders: Record<string, string> = {};
+    let headersParsed = false;
 
-    // ── Timeout ──────────────────────────────────────────────────────
-    const timeoutMs = 30_000;
-    const timer = setTimeout(() => {
-      logger.warn({ socketPath }, "udsfwd: timeout");
-      socket.destroy();
+    const timeout = setTimeout(() => {
+      sock.destroy();
       resolve(null);
-    }, timeoutMs);
+    }, 30_000);
 
-    // ── Connect over UDS ─────────────────────────────────────────────
-    socket.connect(socketPath, () => {
-      // Build minimal HTTP/1.1 request
-      const reqLine =
-        `POST /v1/chat/completions HTTP/1.1\r\n` +
-        `Host: omniroute-rust\r\n` +
-        `Content-Type: application/json\r\n` +
-        `Authorization: Bearer ${apiKey}\r\n` +
-        `X-OmniRoute-Provider: ${providerId}\r\n` +
-        `Content-Length: ${Buffer.byteLength(body)}\r\n` +
-        `Connection: close\r\n` +
-        `\r\n` +
-        body;
+    sock.connect(path, () => {
+      const request = [
+        "POST /v1/chat/completions HTTP/1.1",
+        "Host: omniroute",
+        "Content-Type: application/json",
+        `Authorization: Bearer ${apiKey}`,
+        `X-OmniRoute-Provider: ${provider}`,
+        `Content-Length: ${Buffer.byteLength(body)}`,
+        "Connection: close",
+        "",
+        body,
+      ].join("\r\n");
 
-      socket.write(reqLine);
+      sock.write(request);
     });
 
-    // ── Collect response ─────────────────────────────────────────────
-    socket.on("data", (chunk: Buffer) => {
+    sock.on("data", (chunk: Buffer) => {
       responseData += chunk.toString("utf-8");
-    });
 
-    socket.on("close", () => {
-      clearTimeout(timer);
-      if (!responseData) {
-        resolve(null);
-        return;
-      }
+      if (!headersParsed) {
+        const headerEnd = responseData.indexOf("\r\n\r\n");
+        if (headerEnd !== -1) {
+          headersParsed = true;
+          const rawHeaders = responseData.slice(0, headerEnd);
+          const lines = rawHeaders.split("\r\n");
 
-      // Naive HTTP/1.1 response parser: split headers / body on "\r\n\r\n"
-      const headerEnd = responseData.indexOf("\r\n\r\n");
-      if (headerEnd === -1) {
-        // No headers — raw connection returned no valid HTTP
-        resolve(null);
-        return;
-      }
+          // Parse status line
+          const statusMatch = lines[0].match(/HTTP\/\d\.\d\s+(\d+)/);
+          if (statusMatch) statusCode = parseInt(statusMatch[1], 10);
 
-      const rawHeaders = responseData.slice(0, headerEnd);
-      const body = responseData.slice(headerEnd + 4);
-
-      // Parse status line
-      const statusMatch = rawHeaders.match(/^HTTP\/\d+\.\d+\s+(\d+)/);
-      if (statusMatch) {
-        statusCode = parseInt(statusMatch[1], 10);
-      }
-
-      // Parse headers
-      const parsedHeaders: http.IncomingHttpHeaders = {};
-      for (const line of rawHeaders.split("\r\n").slice(1)) {
-        const sep = line.indexOf(":");
-        if (sep !== -1) {
-          const k = line.slice(0, sep).trim().toLowerCase();
-          const v = line.slice(sep + 1).trim();
-          if (parsedHeaders[k]) {
-            parsedHeaders[k] = [parsedHeaders[k] as string, v].flat();
-          } else {
-            parsedHeaders[k] = v;
+          // Parse headers
+          for (let i = 1; i < lines.length; i++) {
+            const colon = lines[i].indexOf(":");
+            if (colon > 0) {
+              const key = lines[i].slice(0, colon).trim().toLowerCase();
+              const val = lines[i].slice(colon + 1).trim();
+              responseHeaders[key] = val;
+            }
           }
         }
       }
-      headers = parsedHeaders;
-
-      resolve({ statusCode, headers, body });
     });
 
-    socket.on("error", (err: NodeJS.ErrnoException) => {
-      clearTimeout(timer);
-      logger.debug({ err: err.message, socketPath }, "udsfwd: socket error");
+    sock.on("close", () => {
+      clearTimeout(timeout);
+
+      if (!headersParsed) {
+        resolve(null);
+        return;
+      }
+
+      // Extract body (everything after the header block)
+      const headerEnd = responseData.indexOf("\r\n\r\n");
+      const body = headerEnd !== -1 ? responseData.slice(headerEnd + 4) : responseData;
+
+      resolve({ body, statusCode, headers: responseHeaders });
+    });
+
+    sock.on("error", () => {
+      clearTimeout(timeout);
       resolve(null);
     });
   });
 }
 
+// --- Streaming ---
+
 /**
- * Returns the socket path for diagnostics / status pages.
+ * Sends a streaming request to the Rust data plane and returns a web Response
+ * with a ReadableStream body, compatible with the base.ts ExecutorResult.response
+ * contract.
+ *
+ * Uses Node's http.request with a UDS createConnection() agent for proper HTTP
+ * framing. The response body is a ReadableStream that emits SSE chunks as they
+ * arrive from the upstream provider.
  */
-export function getSocketPath(): string {
-  return resolveSocketPath();
+export function forwardToDataPlaneStreaming(
+  body: string,
+  apiKey: string,
+  provider: string
+): Promise<Response | null> {
+  return new Promise((resolve) => {
+    const path = getSocketPath();
+    const timeout = setTimeout(() => {
+      resolve(null);
+    }, 30_000);
+
+    const opts: RequestOptions = {
+      method: "POST",
+      path: "/v1/chat/completions",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${apiKey}`,
+        "X-OmniRoute-Provider": provider,
+        "Content-Length": String(Buffer.byteLength(body)),
+        Connection: "keep-alive",
+      },
+      createConnection: () => {
+        const sock = new Socket();
+        sock.connect(path);
+        return sock;
+      },
+    };
+
+    const req = httpRequest(opts, (incoming) => {
+      clearTimeout(timeout);
+
+      const statusCode = incoming.statusCode ?? 500;
+      if (statusCode >= 400) {
+        // Collect full error body before resolving
+        let errBody = "";
+        incoming.on("data", (chunk: Buffer) => {
+          errBody += chunk.toString("utf-8");
+        });
+        incoming.on("end", () => {
+          const errorResponse = new Response(errBody, {
+            status: statusCode,
+            statusText: incoming.statusMessage ?? "Error",
+            headers: { "content-type": "application/json" },
+          });
+          resolve(errorResponse);
+        });
+        return;
+      }
+
+      // Convert the Node IncomingMessage (Readable) into a web ReadableStream
+      const webStream = new ReadableStream({
+        start(controller) {
+          incoming.on("data", (chunk: Buffer) => {
+            controller.enqueue(chunk);
+          });
+          incoming.on("end", () => {
+            controller.close();
+          });
+          incoming.on("error", (err) => {
+            controller.error(err);
+          });
+        },
+      });
+
+      // Build the response headers from the incoming message
+      const respHeaders: Record<string, string> = {};
+      for (let i = 0; i < (incoming.rawHeaders?.length ?? 0); i += 2) {
+        const key = incoming.rawHeaders?.[i]?.toLowerCase() ?? "";
+        const val = incoming.rawHeaders?.[i + 1] ?? "";
+        respHeaders[key] = val;
+      }
+
+      const response = new Response(webStream, {
+        status: statusCode,
+        statusText: incoming.statusMessage ?? "OK",
+        headers: respHeaders,
+      });
+
+      resolve(response);
+    });
+
+    req.on("error", () => {
+      clearTimeout(timeout);
+      resolve(null);
+    });
+
+    req.write(body);
+    req.end();
+  });
 }
