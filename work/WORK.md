@@ -125,8 +125,10 @@ FORWARD-DAG-2026-07-09
 |  |- argis-extensions              [wip] many open UNSTABLE PRs; local go tidy branch dirty
 |  |- PhenoSpecs                    [wip] main behind origin by 12, local uncommitted docs
 |  |- pheno, agentapi-plusplus, Apisync [wip] each has local drift or open dependency PR noise
-|  |- note                          [wip] one legacy `#[path]` test edge still references `phenoShared` in `PhenoPlugins` and needs vendored move
-|  `- next                          [wip] lock ownership matrix and prune low-signal branches
+|  |- boundary                   [ok] vendored local BDD shim in `PhenoPlugins/crates/pheno-plugin-vessel/tests/bdd/steps_shared.rs`; `#[path]` phenoShared edge removed
+|  |- boundary-scan              [ok] nested-worktree sweep found no active non-comment `phenoShared` imports in child git trees; remaining `#[path]` items are intra-crate test fixtures
+|  |- cross-repo boundary risk           [ok] `ObservabilityKit/rust/phenotype-health-runtime/Cargo.toml` moved from phenoShared git dep to local crate-only dependencies
+|  `- next                               [wip] lock ownership matrix and prune low-signal branches
 
 `- NEXT-50-500-TASKS                  [wip]
    |- next 5      [wip] reconcile BytePort/Tracera/AgilePlus worktree debt, then reopen PR294-like lanes with conflict evidence
@@ -151,7 +153,9 @@ FORWARD-DAG-2026-07-09
 - `repos/PhenoSpecs` branch `main` dirty and behind origin (`ahead 3`, `behind 12`).
 - `repos/Apisync` branch `main` dirty and behind origin (`behind 6`).
 - `repos/agentapi-plusplus` branch `main` dirty (`ahead 2`, `behind 19`) with boundary docs.
-- `repos/PhenoPlugins/crates/pheno-plugin-vessel/tests/bdd/steps.rs` still has one legacy `#[path]` import into `phenoShared` and remains an action item for full boundary removal.
+- `repos/PhenoPlugins/crates/pheno-plugin-vessel/tests/bdd/steps.rs` now re-exports local `steps_shared` helpers, with no remaining `#[path]` reference to `phenoShared`.
+- `nested repo scan` completed across child worktrees: no remaining active code-level `phenoShared` hard-calls; only legacy comment/docs references and local intra-crate `#[path]` test module inclusions remain.
+- `ObservabilityKit/rust/phenotype-health-runtime/Cargo.toml` now no longer has external `phenoShared` dependencies; cargo check/tests pass for `phenotype-health-runtime` after removing the legacy crate pin.
 
 ### Omniroute PR queue sample (remote)
 
