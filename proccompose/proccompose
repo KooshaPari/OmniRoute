@@ -240,6 +240,88 @@ out['yaml_file'] = '$YAML_FILE'
 print(json.dumps(out, indent=2))
 "
 }
+
+cmd_dry_run() {
+  log "dry-run: full execution graph for $YAML_FILE"
+  echo ""
+  echo "  (no commands will be executed; just the plan)"
+  echo ""
+
+  python3 <<PYTHON
+import yaml
+d = yaml.safe_load(open("$YAML_FILE"))
+cfg = d.get('config', {})
+print("  config:")
+for k, v in cfg.items():
+    print(f"    {k:14s} = {v}")
+print()
+print("  services (executed in dependency order):")
+for n, s in d.get('services', {}).items():
+  host = s.get('host', '?')
+  cmd = s.get('run', {}).get('cmd', '?')
+  deps = s.get('run', {}).get('depends_on', [])
+  sup = 'launchd' if s.get('supervisor', {}).get('type') == 'launchd' else '(none)'
+  print(f"    [{host:8s}] {n}")
+  print(f"               cmd: {cmd}")
+  print(f"               supervisor: {sup}")
+  if deps:
+    print(f"               depends_on: {', '.join(deps)}")
+print()
+print("  vercel_projects (env wired in declaration order):")
+for p in d.get('vercel_projects', []):
+  print(f"    {p['name']}: OMNI_BFF_URL, NEXTJS_UPSTREAM, OMNI_WEB_STACK, OMNI_WEB_STACK_ROLLOUT")
+print()
+print("  cutover phases (1 -> 10 -> 50 -> 100, gated by SLO):")
+for c in d.get('cutover', []):
+  print(f"    {c['pct']:>3d}% for {c['duration_hours']:>3d}h, success: {', '.join(c['success_criteria'])}")
+print()
+print("  monitor:")
+m = d.get('monitor', {})
+print(f"    SLO p95 < {m.get('slo', {}).get('p95_latency_ms', '?')}ms, error_rate < {m.get('slo', {}).get('error_rate_max', '?')}")
+print(f"    alert: {m.get('alert', {}).get('on_breach', '?')}")
+PYTHON
+  echo ""
+  log "to execute this plan for real, run:  proccompose up"
+  log "to roll back, run:              proccompose cutover 0  (or 'proccompose rollback')"
+}
+
+cmd_ci() {
+  log "CI mode: run a full stack in this sandbox using a fake desktop."
+  log "This is for the GitHub Actions workflow + local dev iterations."
+  log "All Tailscale/pheno operations are replaced with local bash."
+  log ""
+  # Bootstrap a fake data dir
+  local fake_data="$HOME/.argismonitor.ci"
+  mkdir -p "$fake_data"
+  # Start a fake BFF on the configured port (assumes web + bff + kbridge are built)
+  if [[ ! -f "$V4_DIR/apps/bff/dist/index.js" ]]; then
+    log "BFF not built - run 'bun run build' in $V4_DIR/apps/bff first"
+    return 1
+  fi
+  log "starting fake-BFF on :$bff_port (data: $fake_data)..."
+  cd "$V4_DIR/apps/bff"
+  DATA_DIR=$fake_data PORT=$bff_port OMNIROUTE_GATEWAY_SOCKET=$fake_data/gateway.sock nohup bun run dist/index.js > "$fake_data/bff.log" 2>&1 &
+  echo $! > "$fake_data/bff.pid"
+  sleep 2
+  log "verifying fake-BFF health..."
+  if curl -fsS --max-time 3 "http://localhost:$bff_port/healthz" >/dev/null; then
+    ok "fake-BFF healthy on :$bff_port"
+  else
+    err "fake-BFF did not start - check $fake_data/bff.log"
+    return 1
+  fi
+  log "running proccompose tests against fake-BFF..."
+  cd "$V4_DIR/proccompose"
+  bash tests/proccompose.test.sh
+  log "stopping fake-BFF..."
+  kill "$(cat $fake_data/bff.pid 2>/dev/null)" 2>/dev/null || true
+  ok "ci mode complete"
+}
+
+cmd_watch() {
+  local svc="${1:-bff}"
+  cmd_logs "$svc"
+}
 case "${1:-help}" in
   up)        cmd_up ;;
   down)      cmd_down ;;
@@ -249,6 +331,11 @@ case "${1:-help}" in
   logs)      shift; cmd_logs "${@}" ;;
   validate)  cmd_validate ;;
   plan)      cmd_plan ;;
+  doctor)    cmd_doctor ;;
+  dry-run)   cmd_dry_run ;;
+  ci)        cmd_ci ;;
+  watch)     cmd_watch ;;
+  rollback)  cmd_cutover 0 ;;
   help|*)    cat <<USAGE
 proccompose - argismonitor v4 process composition
 

@@ -1,0 +1,36 @@
+name: argismonitor-ci
+on:
+  push:
+    branches: [feat/v4-svelte-hono-monorepo, main]
+  pull_request:
+    branches: [feat/v4-svelte-hono-monorepo, main]
+  workflow_dispatch:
+
+jobs:
+  v4-build-test:
+    name: Build + test v4 stack
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.11
+      - name: Install v4 monorepo deps
+        run: bun install
+      - name: Build web
+        run: cd apps/web && bun run build
+      - name: Build bff
+        run: cd apps/bff && bun run build
+      - name: Run unit tests
+        run: cd packages/api-contracts && bun test
+        continue-on-error: false
+      - name: Run proccompose unit tests
+        run: cd proccompose && bash tests/proccompose.test.sh
+      - name: Run proccompose CI mode (fake BFF on ${{ matrix.bff_port || 4322 }})
+        env:
+          bff_port: 14322
+        run: |
+          cd proccompose
+          mkdir -p $HOME/.argismonitor.ci
+          bff_port=$bff_port proccompose ci
