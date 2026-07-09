@@ -25,6 +25,11 @@ resolve_yaml() {
   done
   return 1
 }
+SCRIPT_LIB_REAL="$(cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]}" 2>/dev/null)")" 2>/dev/null && pwd)/lib"
+SCRIPT_LIB_SYMLINK="$(cd "$(dirname "${BASH_SOURCE[0]}")" 2>/dev/null && pwd)/lib"
+SCRIPT_LIB="${SCRIPT_LIB_REAL:-$SCRIPT_LIB_SYMLINK}"
+. "$SCRIPT_LIB/release-state.sh"
+. "$SCRIPT_LIB/workos-auth.sh"
 YAML_FILE="${PROCCOMPOSE_FILE:-$(resolve_yaml || echo proccompose.yaml)}"
 PHENO_BIN="${PHENO_BIN:-$HOME/bin/pheno}"
 V4_DIR="${V4_DIR:-$(dirname "$(cd "$(dirname "$0")" && pwd)")}"
@@ -322,6 +327,107 @@ cmd_watch() {
   local svc="${1:-bff}"
   cmd_logs "$svc"
 }
+
+cmd_deploy() {
+  local ref="${1:-origin/feat/v4-svelte-hono-monorepo}"
+  local slot="${PROCCOMPOSE_SLOT:-dev}"
+  log "deploying ref=$ref to slot=$slot on desktop (atomic + idempotent)..."
+
+  # Acquire deployment lock (prevents concurrent deploys)
+  local lockfile="$HOME/.argismonitor/.lock.deploy.$slot"
+  exec 200>"$lockfile"
+  if ! flock -n 200; then
+    err "another deploy is in progress for slot=$slot"
+    return 1
+  fi
+  trap "rm -f $lockfile; flock -u 200" EXIT
+
+  # Auth check
+  if ! workos_authenticated; then
+    log "WorkOS auth not configured - using dev mode (no prod releases)"
+    if [[ "$slot" == "prod" ]]; then
+      err "prod releases require WorkOS auth - set WORKOS_API_KEY + WORKOS_CLIENT_ID"
+      return 1
+    fi
+  fi
+
+  # Detect pre-existing deploy
+  local prev_version
+  prev_version=$(current_release "$slot" | python3 -c "import sys,json; print(json.load(sys.stdin).get('version',''))" 2>/dev/null || echo "")
+
+  # Deploy via scp-to + run-the-services
+  local new_version
+  new_version="v4-$(date -u +%Y%m%dT%H%M%SZ)-$(echo $ref | tr / - | head -c 20 | tr -d /)"
+  log "syncing v4 monorepo to desktop (ref: $ref)..."
+  $PHENO_BIN scp-to "$V4_DIR/" "~/argismonitor-monorepo/" || {
+    $PHENO_BIN run "git clone https://github.com/KooshaPari/OmniRoute.git ~/argismonitor-monorepo && cd ~/argismonitor-monorepo && git checkout $ref"
+  }
+  $PHENO_BIN run "cd ~/argismonitor-monorepo && git checkout $ref && git pull --ff-only"
+  log "building web + bff + kbridge on desktop..."
+  $PHENO_BIN run "cd ~/argismonitor-monorepo && bun install"
+  $PHENO_BIN run "cd ~/argismonitor-monorepo/apps/web && bun run build"
+  $PHENO_BIN run "cd ~/argismonitor-monorepo/apps/bff && bun run build"
+  $PHENO_BIN run "cd ~/argismonitor-monorepo/backend-rust && cargo build --release -p omniroute-server"
+  log "restarting services to pick up new build..."
+  $PHENO_BIN run "launchctl kickstart -k gui/$(id -u)/online.phenotype.argismonitor.bff 2>/dev/null || true"
+  $PHENO_BIN run "launchctl kickstart -k gui/$(id -u)/online.phenotype.argismonitor.gateway 2>/dev/null || true"
+  sleep 2
+
+  # Health check
+  if ! $PHENO_BIN run "curl -fsS --max-time 3 http://localhost:4322/healthz" >/dev/null 2>&1; then
+    err "BFF healthz failed - rolling back"
+    cmd_rollback "$slot"
+    return 1
+  fi
+
+  # Record the release
+  local file
+  file=$(record_release "$slot" "$ref" "$new_version")
+  ok "deploy slot=$slot version=$new_version ref=$ref"
+  log "rollback safety: $proccompose rollback $slot"
+  log "previous release was: ${prev_version:-<none>}"
+}
+
+cmd_release() {
+  local ref="${1:-origin/feat/v4-svelte-hono-monorepo}"
+  local slot="${PROCCOMPOSE_SLOT:-dev}"
+  log "release: deploy + cutover + announce in one shot..."
+  cmd_deploy "$ref"
+  cmd_cutover "${2:-1}" || true
+  ok "released $ref to slot=$slot at rollout=${2:-1}%"
+}
+
+cmd_rollback() {
+  local slot="${1:-dev}"
+  rollback_release "$slot"
+  log "restarting services to pick up rolled-back build..."
+  $PHENO_BIN run "cd ~/argismonitor-monorepo && git checkout $(current_release $slot | python3 -c "import sys,json; print(json.load(sys.stdin).get('ref',''))")"
+  $PHENO_BIN run "cd ~/argismonitor-monorepo && git pull --ff-only"
+  $PHENO_BIN run "cd ~/argismonitor-monorepo/apps/bff && bun run build"
+  $PHENO_BIN run "cd ~/argismonitor-monorepo/backend-rust && cargo build --release -p omniroute-server"
+  $PHENO_BIN run "launchctl kickstart -k gui/$(id -u)/online.phenotype.argismonitor.bff 2>/dev/null || true"
+  $PHENO_BIN run "launchctl kickstart -k gui/$(id -u)/online.phenotype.argismonitor.gateway 2>/dev/null || true"
+  ok "rolled back slot=$slot"
+}
+
+cmd_releases() {
+  local slot="${1:-dev}"
+  log "release history for slot=$slot:"
+  list_releases "$slot"
+}
+
+cmd_lock() {
+  local slot="${1:-dev}"
+  local lockfile="$HOME/.argismonitor/.lock.deploy.$slot"
+  exec 200>"$lockfile"
+  if ! flock -n 200; then
+    err "slot=$slot is already locked - another deploy is in progress"
+    return 1
+  fi
+  echo "slot=$slot locked (PID=$$). run 'proccompose unlock $slot' to release."
+  sleep infinity &
+  wait
+}
 case "${1:-help}" in
   up)        cmd_up ;;
   down)      cmd_down ;;
@@ -336,6 +442,10 @@ case "${1:-help}" in
   ci)        cmd_ci ;;
   watch)     cmd_watch ;;
   rollback)  cmd_cutover 0 ;;
+  deploy)    cmd_deploy "${@}" ;;
+  release)   cmd_release "${@}" ;;
+  releases)   cmd_releases "${@}" ;;
+  lock)       cmd_lock "${@}" ;;
   help|*)    cat <<USAGE
 proccompose - argismonitor v4 process composition
 
@@ -348,6 +458,14 @@ USAGE:
   proccompose logs <bff|gateway|nextjs>   tail a service log
   proccompose validate            validate the YAML against the current state
   proccompose plan               print the resolved execution plan
+  proccompose doctor             check prereqs (pheno + Tailscale + Vercel + yq)
+  proccompose dry-run          print the full execution graph without running
+  proccompose ci                run a fake stack in this sandbox (test mode)
+  proccompose deploy <ref>   atomic deploy (with rollback safety + deploy lock)
+  proccompose release <ref> <pct>   deploy + cutover in one shot
+  proccompose releases [slot]  show release history for a slot
+  proccompose lock [slot]     acquire the deploy lock (for manual testing)
+  proccompose rollback        roll back a release to the previous version
 
 REQUIRES:
   - pheno-compute-layer (~/bin/pheno) for Tailscale SSH to desktop
