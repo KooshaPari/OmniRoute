@@ -464,10 +464,12 @@ substrates:
     archetype: library
     language: python
     role: visualization
-    boundary: null
-    intent: null
+    boundary: music-visual-studio
+    intent: Spec-first music-to-visual toolkit (FastAPI bridge, Electrobun desktop, R3F web, Rust MIR/wgpu).
     notes: |
       Visualization lib; depended-on (kept per program).
+      audit-v38 scorecard: https://github.com/KooshaPari/Melosviz/blob/main/audit/SCORECARD.md
+      spine mirror: phenotype-org-audits/audit-v38/output/MelosViz/
 
   - id: nanovms
     repo: KooshaPari/nanovms
