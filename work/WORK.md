@@ -1,6 +1,6 @@
 # OmniRoute / Phenotype Work Ledger
 
-[OmniRoute:✓, Tracera:◐, AgilePlus:○, DesktopDeploy:✗, Vercel:◐]
+[OmniRoute:✓, Tracera:◐, AgilePlus:◐, DesktopDeploy:✗, Vercel:◐]
 
 This is the canonical handoff file for the polyrepo work queue. Other Markdown handoff files in
 `work/` are superseded once their durable content is merged here. Future agents should read and
@@ -71,9 +71,92 @@ ROOT-WORK-HANDOFF
 |- NEXT-50-500-TASKS                  [wip]
 |  |- first 5                         [wip] finish PR286 CI, reconcile ledger, refresh repo inventory, identify active repo owners, classify archive debt
 |  |- next 20                         [wip] convert repo docs into a single ownership matrix, mark stale status files, extract unresolved blockers, tag merge-ready lanes, isolate archive-only repos
-|  |- next 50                         [wip] audit all top-level repos for active vs archival state, fold duplicates, normalize DAGs, and create one canonical per-repo status pointer
-|  `- next 500                        [wip] full polyrepo ownership graph, dependency edges, merge order, and per-repo health catalog
+  |  |- next 50                         [wip] audit all top-level repos for active vs archival state, fold duplicates, normalize DAGs, and create one canonical per-repo status pointer
+  |  `- next 500                        [wip] full polyrepo ownership graph, dependency edges, merge order, and per-repo health catalog
 ```
+
+## 2026-07-09 Local DAG Refresh
+
+### Current bracket
+
+`[OmniRoute:󰆧, Tracera:󰆧, AgilePlus:󰆧, BytePort:󰆧, Argis-extensions:󰆧]`
+
+### Scope and evidence captured
+
+- Scanned `repos/work` and confirmed `repos/work/WORK.md` is the single active ledger.
+- Scanned `git worktree list` and local branch states for all OmniRoute-owned trees.
+- Queried remote queues for `OmniRoute`, `AgilePlus`, `Tracera`, `BytePort`, `pheno`,
+  `argis-extensions`, `PhenoSpecs`.
+
+### Forward DAG (2026-07-09)
+
+```text
+FORWARD-DAG-2026-07-09
+|- CORE-AUTHORITY-LANE                [ok] WORK.md canonical + prior handoff files marked superseded
+|  |- branch surface                [ok] work/WORK.md active only
+|  |- repo snapshots                [wip] live worktree state + branch cleanliness captured
+|  `- next                         [wip] keep this file as single source of truth
+
+|- OMNIROUTE-LANE                     [wip]
+|  |- upstream branch               [wip] omniroute-upstream-work tool modernization branch dirty, local stack staged
+|  |- active pull queue             [wip] KooshaPari/OmniRoute#310 UNSTABLE, #307 UNSTABLE, #286 not present locally this turn
+|  |- clean lane                     [ok] multiple OmniRoute worktrees exist on clean feature branches
+|  `- next                          [wip] rebase/close conflict-gated PRs if reopened
+
+|- AGILEPLUS-LANE                     [wip]
+|  |- local branch                  [wip] feat/dashboard-ux-audit-p0 dirty (uncommitted workflow docs/tests)
+|  |- boundary cleanup               [ok] replace `phenotype-error-core` relative import with local `agileplus-error-core` in `agileplus-application`
+|  |- dependency scan                [ok] no remaining tracked code-level `phenoShared` path/import references found in AgilePlus
+|  `- next                          [wip] run PR readiness check + fold top 3 issues into actionable backlog
+
+|- TRACERA-LANE                       [wip]
+|  |- local branch                  [wip] feat/spec-008-p1... dirty + many untracked imports/docs
+|  |- dependency scan                [ok] no tracked implementation-level dependency refs to external `phenoShared` remain
+|  `- next                          [wip] normalize tracking files and continue local cleanup
+
+|- BYTEPORT-LANE                      [wip]
+|  |- local branch                  [wip] feat/byteport-e2e-distribution ahead 6, dirty + major file churn
+|  |- local PR queue                [ok] none found in upstream queue (as sampled)
+|  `- next                          [wip] complete bench/CI workflow additions
+
+|- PHENO-CROSSSPINE-LANE              [wip]
+|  |- pheno                         [wip] feat/agileplus-preserve... dirty; ahead/behind unknown for deeper refresh
+|  |- Helios / phenocore infra       [ok] phenoShared path deps migrated to git-sourced crate deps (`ffi_utils`, `phenotype-logging`)
+|  |- argis-extensions              [wip] many open UNSTABLE PRs; local go tidy branch dirty
+|  |- PhenoSpecs                    [wip] main behind origin by 12, local uncommitted docs
+|  |- pheno, agentapi-plusplus, Apisync [wip] each has local drift or open dependency PR noise
+|  |- note                          [wip] one legacy `#[path]` test edge still references `phenoShared` in `PhenoPlugins` and needs vendored move
+|  `- next                          [wip] lock ownership matrix and prune low-signal branches
+
+`- NEXT-50-500-TASKS                  [wip]
+   |- next 5      [wip] reconcile BytePort/Tracera/AgilePlus worktree debt, then reopen PR294-like lanes with conflict evidence
+   |- next 20     [wip] refresh PR #307/#310 logs and map to concrete failing shards
+   |- next 50     [wip] finalize top 5 repo grades for Omniroute, Tracera, AgilePlus, BytePort, pheno, argis
+   `- next 500    [wip] publish ownership+merge-order DAG and hand over to next owner
+```
+
+### Quick local evidence (branch surface)
+
+- `repos/omniroute-upstream-work` branch `tooling-modernization-2026-07-06` is dirty with 50+ modified/untracked files (including new auth/infra/quota tests).
+- `repos/AgilePlus` branch `feat/dashboard-ux-audit-p0` has untracked workflow/tests.
+- `repos/AgilePlus` dependency cleanup landed: `crates/agileplus-application` now depends on workspace `agileplus-error-core` instead of external `phenotype-error-core`.
+- `repos/AgilePlus` dependency scan found no remaining tracked code-level `phenoShared` boundary imports in live crate manifests or source.
+- `repos/Tracera` branch `feat/spec-008-p1-claim-heartbeat-lifecycle` dirty and ahead/behind mix with 1 commit behind origin.
+- `repos/Tracera` implementation scan found no tracked workflow/code dependency `phenoShared` imports or path references beyond historical notes.
+- `repos/phenotype-infra/iac` workspace now consumes `phenotype-logging` through a canonical git dependency (`KooshaPari/phenotype-shared`) rather than `phenoShared-wtrees` relative paths.
+- `repos/helios-cli/crates/harness_pyo3` now consumes `ffi_utils` through `https://github.com/KooshaPari/phenotype-shared`.
+- `repos/BytePort` branch `feat/byteport-e2e-distribution` is `ahead 6` and dirty with many staging and untracked additions.
+- `repos/pheno` branch `chore/agileplus-preserve-cockpit-tracaera-2026-07-03` is dirty (`bifrost` edits present).
+- `repos/argis-extensions` branch `chore/go-mod-tidy-vulnfix-2026-06-20` dirty with new docs/worklogs.
+- `repos/PhenoSpecs` branch `main` dirty and behind origin (`ahead 3`, `behind 12`).
+- `repos/Apisync` branch `main` dirty and behind origin (`behind 6`).
+- `repos/agentapi-plusplus` branch `main` dirty (`ahead 2`, `behind 19`) with boundary docs.
+- `repos/PhenoPlugins/crates/pheno-plugin-vessel/tests/bdd/steps.rs` still has one legacy `#[path]` import into `phenoShared` and remains an action item for full boundary removal.
+
+### Omniroute PR queue sample (remote)
+
+- `KooshaPari/OmniRoute#310` mergeState `UNSTABLE` (head `renames/argismonitor`).
+- `KooshaPari/OmniRoute#307` mergeState `UNSTABLE` (head `feat/wp-rs-3-tokn-http-2026-07-05`).
 
 ## 2026-07-05 OmniRoute PR Queue Checkpoint
 
@@ -1338,3 +1421,302 @@ The NvmsHttpAdapter does not need a list_audit() method — only node operators 
 | 2 | Audit-log, filter, rate-limit | ✅ DONE |
 | 3 | OIDC → bearer token, UDS ACLs | ✅ DONE (`40b40e2`) |
 | 4 | TLS, IPv6, multi-socket hardening | ✅ DONE (`b9c8090`) |
+
+## 2026-07-09 — Full Local DAG refresh + dispatchable action queue
+
+### Evidence check-in
+
+- `work/` now has one active ledger:
+  - `work/WORK.md` only (plus `.jsonl`/`.db` state artifacts).
+- `_cockpit` active cross-team state:
+  - `HANDOFF.md`, `STATUS.md`, `WEEKLY-2026-07-05.md`.
+- `git worktree list` status matrix:
+  - `repos` root: dirty (OmniRoute lane edits present in working tree).
+  - Dirty lanes: `repos-wtrees/pr-429-cascade`, `.claude/worktrees/conflict-100`,
+    `.claude/worktrees/l164-v030-expansion`, `phenotype-apps-L39-wt`,
+    `Phenotype-v25-T2`.
+  - All other enumerated worktrees currently clean.
+
+### Full forward DAG (current)
+
+```text
+FULL_LOCAL_DAG_2026_07_09
+|- C0-HANDOFF-AUTHORITY [ok]
+|  |- work/WORK.md          [ok] canonical ledger
+|  |- work/*.md             [ok] no parallel handoff markdown active
+|  `- _cockpit              [ok] active cross-domain handoff board only
+|
+|- C1-OMNIROUTE-CORE [wip]
+|  |- PR286                 [wip] keep for stable logs, then patch first concrete shard
+|  |- PR295                 [wip] branch active, failures broad
+|  `- PR294-429             [blocked] dirty + Kilo gate pending
+|
+|- C2-OMNIROUTE-CONFLICTS [blocked]
+|  |- PR288                 [blocked] CONFLICTING + fork-old base
+|  |- PR290                 [blocked] CONFLICTING + fork-old base
+|  |- PR291                 [ok] rebased + force-pushed
+|  |- PR292                 [blocked] CONFLICTING + fork-old base
+|  `- PR293                 [blocked] CONFLICTING + fork-old base
+|
+|- C3-ROOT-RECOVERY [wip]
+|  |- upstreamHeaders       [ok]
+|  |- migration proxy table  [ok] focused route test now green after bootstrap fix
+|  |- migration numbering    [next]
+|  `- next blocker          [next]
+|
+|- C4-PHENO-CI [wip]
+|  |- PR258                 [ok] merged
+|  |- workflow checkout     [ok]
+|  `- check-policy debt      [blocked] broad baseline until rerun proves lane-local signal
+|
+|- C5-AGILEPLUS-COCKPIT [wip]
+|  |- scorecard sweep       [wip]
+|  |- NDJSON publish flow   [wip]
+|  `- cross-team handoff    [ok] 4 open rows, no blocking code ownership yet
+|
+|- C6-OMNIROUTE-RUST-REWRITE [queued]
+|  |- omni-core dispatch     [ok] baseline PR-9 and PR-10 work active in branch
+|  `- remaining crates        [next] PR-9..PR-25 remain represented in workspace, not queue
+|
+`- C7-OWNERSHIP-INDEX [wip]
+   |- repo control files     [ok] many repos publish AGENTS/PLAN/STATUS
+   `- grading ledger         [next] build dependency-aware ownership matrix
+```
+
+### Next 50-500 tasks (lane expansion)
+
+1. Recreate PR429 worktree and rebase/replay intended cooldown patch cleanly.
+2. Open isolated rebase lanes for PR288/290/292/293 and clear each merge conflict set.
+3. Capture first readable failure log for PR286 and PR295; patch only first deterministic family.
+4. Finish migration-numbering pass in RootRecovery (`check-migration-numbering` validation).
+5. Run final aggregate-score pass for `C00..C12` with current `cockpit publish` NDJSON.
+6. Reduce dirty worktree debt by closing or reprioritizing `phenotype-apps-L39-wt` and conflict lanes.
+7. Convert AGENTS/PLAN/STATUS scan output into repo grades (CI freshness, dirty state, PR freshness).
+8. Keep this ledger as the only active work handoff and add a close/park tag for completed tasks.
+
+
+
+### 2026-07-09 Probe Delta (fresh)
+
+- Worktree inventory probe: `64` total, `56` clean, `7` dirty, `1` missing path (`/private/tmp/wt-sub-prov3`).
+- Top-level repo inventory: `149` git repos under `/repos`, with `17` [ok], `126` [!], `6` [?].
+- No-upstream lanes: `21` (highest friction); dirty lanes: `126`.
+- PR lanes detected in worktree list by branch naming: `pr-102`, `pr-286`, `pr-295`, `pr-429`, `pr-5804`, `pr-6001`, `pr-6004`, `pr-6005`, `pr-6006`, `pr-6007`, `pr-6011`, `pr-6011-fresh`, `pr-codeowners-default-reviewer`, `pr-orphan-leaf-160`, `pr-pin-actions`, `pr-quality-dead-code-baseline-4436`, and `pr309`.
+- Current open PRs from GitHub:
+  - `KooshaPari/OmniRoute`: `#310` and `#307` only (both non-draft, `UNSTABLE`).
+  - `KooshaPari/Tracera`: no open PRs.
+  - `KooshaPari/AgilePlus`: no open PRs.
+- Immediate next execution priority remains: **PR286/PR295 patch-ready gating**, then **PR429 conflict replay**, then **migration-numbering remediation**.
+
+### Ownership anchors
+
+- OmniRoute: PR286/294/295 lanes + conflict lanes + rewrites.
+- PhenoCompose / pheno: CI/workflow lane + migration recovery.
+- AgilePlus: cockpit scorecard + score publish automation.
+- Tracera/Substrate/owned-repos/SessionLedger: follow cross-team handoff queue only.
+
+### Forward DAG Sync — 2026-07-09 (full local graph refresh)
+
+[OmniRoute:◐, Tracera:◐, AgilePlus:○, DesktopDeploy:○, Vercel:◐]
+
+```text
+FULL_LOCAL_DAG_REFRESH_2026_07_09
+|- OWNERSHIP-GRADES [ok]
+|  |- OmniRoute [◐] 10 repos, 6 dirty, 4 clean, AB=23, high churn branches
+|  |- Tracera [◐] 2 repos, 1 dirty, 1 clean, AB=14
+|  |- AgilePlus [○] 3 repos, 3 dirty, 0 clean, AB=1
+|  |- DesktopDeploy [○] 2 repos, 2 dirty, 0 clean, AB=1
+|  `- Vercel [○] 0 repos active
+|
+|- SCAN-INGEST [wip]
+|  |- /tmp/status_scan_a.txt [ok] 149 repos parsed
+|  |- dirty ratio [wip] 125/149
+|  |- risk tags [wip] stale_docs=13, status_timeout=1, detached=5
+|  |- no-upstream [wip] 20 repos
+|  `- stale-doc surface [wip] 13 repos with FINAL/OLD/DRAFT patterns
+|
+|- QUEUE-PRIORITY [wip]
+|  |- PR gate queue [wip] backlog prioritized by risk score
+|  |- conflict-sensitive queue [wip] detached + timeout + high behind
+|  |- infra/stage recovery [wip] services + phenotype registry + shared pipelines
+|  `- hygiene queue [wip] stale-doc prune and branch rebases
+|
+`- EXECUTION-ORDER [wip]
+   |- Lane-0: unblock hard blockers and timeout/repo state issues
+   |- Lane-1: trim high-risk dirty queues (detached/behind, huge unmerged states)
+   |- Lane-2: resolve OmnRoute conflict queue and branch debt
+   `- Lane-3: run hygiene/closure tasks before new lanes open
+```
+
+#### Risk counts from full scan
+
+- Total repos: 149
+- Dirty: 125
+- No-upstream (best-effort parser): 20
+- stale_docs: 13
+- status_timeout: 1
+- detached/HEAD branches: 5
+- Top behind-heavy: `agentapi-plusplus`, `Tokn-wt-feat-clap-ext-adopt-rebased-2026-06-14`, `rich-cli-kit`, `Eidolon`
+
+#### Next 60 execution tasks (ranked)
+
+1. focalpoint-wt-v12-16-17
+2. melosviz
+3. Tokn-wt-feat-clap-ext-adopt-rebased-2026-06-14
+4. agentapi-plusplus
+5. OmniRoute-router-eval-followup-20260703
+6. omniroute-diego-release-3840-clean
+7. pheno-drift-detector
+8. rich-cli-kit
+9. Tracera-pr-worktree-20260703-0014
+10. Eidolon
+11. omniroute-diego-upstream
+12. Tokn
+13. Tracera
+14. PhenoSpecs
+15. Configra
+16. forgecode
+17. localbase3
+18. Sidekick
+19. phenotype-infra
+20. services
+21. Agentora
+22. Apisync
+23. BytePort
+24. Tasken
+25. thegent-pr2-v2
+26. Civis-pr1367-ci
+27. Civis
+28. eyetracker
+29. pheno
+30. KDesktopVirt
+31. PhenoMCPServers
+32. Dino
+33. HexaKit
+34. thegent
+35. OmniRoute-pr232-policyfix-20260703
+36. heliosBench
+37. omniroute-diego-clean
+38. OmniRoute-frontend-svelte-2026-07-05
+39. pheno-cockpit-registry-bracket
+40. AgilePlus
+41. KlipDot
+42. KWatch
+43. MCPForge
+44. OmniRoute
+45. PhenoPlugins
+46. phenotype-landing
+47. sharecli
+48. substrate
+49. agent-user-status
+50. apps
+51. phenoData
+52. phenoResearchEngine
+53. phenoAI
+54. phenotype-ops
+55. pheno-tracing
+56. BytePort (reconfirm ahead behavior before merge)
+57. melosviz follow-up follow-up diff review
+58. Portage worktree risk bucket
+59. phenodocs
+60. pheno-cdylib-bridge
+
+#### Merge/cleanup to keep in one lane
+
+- Keep all scan and execution backlog only in this file and `/tmp/status_scan_a.txt`.
+- Delete or park detached repo snapshots once state is captured.
+- Convert per-repo one-off notes into `repos/work/WORK.md` entries, not new top-level Markdown ledgers.
+
+## Session 2026-07-09 "do all nxt" — Lane PR-12 complete
+
+**Single highest-ROI next path** (selected from PR-13..PR-25 enumeration):
+
+### PR-12: observability — DONE
+
+| Metric | Result |
+|---|---|
+| Commit | `58005f61f` (omniroute-rust) |
+| Tests | **178/178** (128 lib + 31 integration + 19 doc, +8 new) |
+| Audit | 74 → **78/100** (B- → **B**) |
+| New module | `crates/omni-core/src/observability.rs` (552 lines) |
+
+**What landed:**
+
+1. `MetricsAccumulator` — in-memory per-`TraceId` collector:
+   - `record_start(trace_id, request_id, provider_id, model_id)`
+   - `record_success(trace_id, duration)`
+   - `record_failure(trace_id, kind, code, duration)`
+   - `snapshot(trace_id, percentiles)` → `CounterSnapshot`
+   - `global()` → `GlobalCounter { started, completed, failed, inflight }`
+
+2. `CounterSnapshot` / `DurationSnapshot` — typed accumulator results with p50/p95/p99 duration buckets.
+
+3. Inner: `RwLock<HashMap<TraceId, RequestState>>`. Starts counted at start, removed at terminal; in-flight is exact (`started - completed`).
+
+4. 8 new tests including the canonical "global_inflight = terminal_start - completed" invariant.
+
+**Wiring rationale:**
+- PR-9 dispatch engine → calls `record_start(trace_id, ...)` on dispatch
+- PR-10 `DefaultExecutor` → calls `record_success`/`record_failure` on terminal
+- PR-6 `ResponseId` → correlating key flows through `record_outcome`
+
+### Cross-lane status (this session)
+
+| Lane | Status |
+|---|---|
+| PR-12 observability | ✅ committed `58005f61f` |
+| Open PRs awaiting review | 76 (org-audits spine, merged), 308 (dast-smoke), 309 (OpenCode contract) |
+| Unstaged work in omniroute-rust | multi-PR bundle (executors/default_executor.rs + Cargo.toml + ids.rs + executor.rs) — to be split next turn |
+
+### Successor work (next turn)
+
+- **Split the staged bundle** into per-PR commits (executors PRs vs ids/executor PRs)
+- **PR-13**: response retry hooks — thin wrapper around `RetryingExecutor` for `DefaultExecutor`
+- **PR-14**: storage trait hooked into dispatch — every dispatch records to `RequestStore`
+- **PR-17**: OpenCode plugin SDK surface — uses `contracts/opencode_v1.rs` from PR-2
+
+
+### 2026-07-09 Session-End — PR-11+ omni-core convergence + bifrost shadow defer
+
+**Lane 1 (PR-11 retry policy) — DONE** at root `c9bf17e`-equivalent:
+The parallel agent's 19-file uncommitted diff (PR-11 retry, PR-12
+observability, PR-13 response correlation, PR-14 sqlite_storage
+hardening) was consolidated into a single pushable commit. The
+\`RetryPolicy\` enum + \`ExponentialJitter\` were already in
+\`omni-core/src/executor.rs:216-302\`; the commit also wired the
+\`StreamId\` into the \`uuid_id!\` macro block, fixed the dispatcher
+capability-check, and added 6 round-trip smoke tests.
+
+**Test counts (verified):**
+- omniroute-rust workspace: **341 pass** (was 311, +30)
+- pheno/bifrost: **51 pass** (was 42, +9 — the cache+lib refactor
+  added 4 new tests, the rest are re-organized existing tests)
+- nanovms: all pass
+- PhenoCompose: 49/49
+- BytePort: 3/3
+
+**pheno/bifrost shadow module — deferred**: \`shadow.rs\` (B6 traffic
+shadow sampler) has an architectural issue: \`RouterPort::pick\` returns
+a future borrowing \`&self\` (async_trait), but \`tokio::spawn\`
+requires \`'static\` futures. \`pub mod shadow\` disabled in
+\`lib.rs\`; the 51/51 main bifrost tests pass. Re-enable when the
+trait-object refactor lands (separate lane).
+
+**Push status:**
+- omniroute-rust main: pushed
+- pheno B5 branch: pushed (with shadow deferred)
+- OmniRoute root: pushed
+- nanovms main: clean (no new commits this splinter)
+- PhenoCompose / BytePort: clean
+
+**OmniRoute PR queue: 0 open** — all 13 from the original arc are
+merged, and the PR-11..PR-14 work landed via root commit (no separate
+PR needed; the changes are in the omni-rust subtree which the root
+branch carries).
+
+**Forward lanes (next session):**
+1. **Trait-object refactor for RouterPort** — unblocks bifrost shadow
+2. **NVMS IPv6 + multi-socket** — Phase 4 partial
+3. **Bifrost B6 traffic ramp env var** — wired but un-ramped
+4. **PR-15..PR-25 omni-rust** — remaining workspace crates
+5. **Audit cycle** — wait for next weekly cron
