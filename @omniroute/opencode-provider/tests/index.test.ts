@@ -671,16 +671,16 @@ test("createOmniRouteModesBlock honours numeric overrides limited to OC schema",
   assert.equal(block.build.top_p, 0.9);
 });
 
-// #3419 — soft-deprecation in favour of @omniroute/opencode-plugin. Guard the
+// #3419 — soft-deprecation in favour of @argismonitor/opencode-plugin. Guard the
 // deprecation notice so it can't be silently dropped while the package is kept
 // publishing (it still works; it is just no longer the recommended path).
-test("package is marked deprecated in favour of @omniroute/opencode-plugin (#3419)", () => {
+test("package is marked deprecated in favour of @argismonitor/opencode-plugin (#3419)", () => {
   const here = dirname(fileURLToPath(import.meta.url));
   const pkg = JSON.parse(readFileSync(join(here, "..", "package.json"), "utf8"));
   assert.match(pkg.description, /DEPRECATED/);
-  assert.match(pkg.description, /@omniroute\/opencode-plugin/);
+  assert.match(pkg.description, /@argismonitor\/opencode-plugin/);
 
   const readme = readFileSync(join(here, "..", "README.md"), "utf8");
   assert.match(readme, /Deprecated/i);
-  assert.match(readme, /@omniroute\/opencode-plugin/);
+  assert.match(readme, /@argismonitor\/opencode-plugin/);
 });
