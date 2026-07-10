@@ -162,6 +162,64 @@ FORWARD-DAG-2026-07-09
 - `KooshaPari/OmniRoute#310` mergeState `UNSTABLE` (head `renames/argismonitor`).
 - `KooshaPari/OmniRoute#307` mergeState `UNSTABLE` (head `feat/wp-rs-3-tokn-http-2026-07-05`).
 
+## 2026-07-10 Execution State
+
+### Current bracket
+
+`[Civis:~, OmniRoute:~, Tracera:~, AgilePlus:~, BytePort:~, pheno:~, argis-extensions:~, ObservabilityKit:~, PhenoSpecs:!, Apisync:!, agentapi-plusplus:!]`
+
+### Verified local ownership snapshot
+
+- **Civis** — branch `codex/civis-engine-server-sync`, head `329d46dfd` (`fix: restore diplomacy helper compatibility in engine api`), one dirty generated file: `.ci/quality-manifest.json`.
+- **OmniRoute** — `fix/quality-dead-code-baseline-4436`, 54 dirty paths; preserve for its active PR/quality lane.
+- **Tracera** — `feat/spec-008-p1-claim-heartbeat-lifecycle`, 58 dirty paths; preserve lifecycle work.
+- **AgilePlus** — `feat/dashboard-ux-audit-p0`, 25 dirty paths; preserve dashboard/audit work.
+- **BytePort** — `feat/byteport-e2e-distribution`, 59 dirty paths; preserve distribution lane.
+- **pheno** — `chore/agileplus-preserve-cockpit-tracaera-2026-07-03`, 3 dirty paths; preserve cockpit bridge work.
+- **argis-extensions** — `chore/go-mod-tidy-vulnfix-2026-06-20`, 7 dirty paths; preserve Go hygiene lane.
+- **ObservabilityKit** — `chore/orch-v12-s1-007-tier-0-hygiene`, 13 dirty paths; preserve runtime hygiene work.
+- **PhenoSpecs** — `main`, 4 dirty paths; behind-origin reconciliation remains gated.
+- **Apisync** — `main`, 3 dirty paths; behind-origin reconciliation remains gated.
+- **agentapi-plusplus** — `main`, 5 dirty paths; preserve boundary documentation and defer synchronization.
+
+### Forward publication DAG (2026-07-10)
+
+```text
+FORWARD-DAG-2026-07-10
+|- CIVIS-PR1382                         [wip]
+|  |- committed engine compatibility     [ok] 329d46dfd
+|  |- engine library gate                [ok] cargo check -p civ-engine --lib
+|  |- watch regression gate              [ok] cargo test -p civ-watch (134/134)
+|  |- quality manifest                   [wip] generated snapshot dirty; refresh only after final gates
+|  |- push and PR refresh                [wip] push branch safely, inspect PR #1382 checks
+|  `- next                              [wip] targeted scenario/oracle gate, regenerate manifest, push
+|
+|- POLYREPO-CONTAINMENT                  [ok]
+|  |- dirty worktrees                    [ok] inventoried; no unrelated cleanup permitted
+|  |- ownership bracket                  [ok] refreshed above
+|  `- next                              [wip] refresh ahead/behind and PR state after Civis publication
+|
+|- OMNIROUTE-QUALITY                     [wip]
+|  |- active dirty quality lane          [wip] 54 paths on fix/quality-dead-code-baseline-4436
+|  `- next                              [wip] inspect CI/PR failures after Civis lane is published
+|
+|- CROSS-SPINE-LANES                     [wip]
+|  |- Tracera / AgilePlus / BytePort     [wip] preserve active implementation trees
+|  |- pheno / argis / ObservabilityKit   [wip] preserve cross-repo boundary and hygiene work
+|  `- next                              [wip] assign scoped review agents and classify merge-ready lanes
+|
+`- LEDGER-CONSOLIDATION                  [wip]
+   |- canonical file                    [ok] work/WORK.md only active ledger
+   |- evidence                           [wip] update after each publication/checkpoint
+   `- next                              [wip] record Civis push/PR result and next failing gate
+```
+
+### Civis publication policy
+
+- Keep `.ci/quality-manifest.json` uncommitted until the final targeted gates produce current evidence; then commit the regenerated snapshot with the associated verification.
+- Do not force-push or reset shared worktrees. If the remote branch moved, fetch and reconcile with a normal rebase/merge while preserving local commits.
+- PR #1382 remains the publication target; after pushing, inspect its checks and address only the first actionable failure cluster.
+
 ## 2026-07-05 OmniRoute PR Queue Checkpoint
 
 ### Current top bracket
