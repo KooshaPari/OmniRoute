@@ -26,6 +26,7 @@ resolve_yaml() {
   return 1
 }
 SCRIPT_LIB_REAL="$(cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]}" 2>/dev/null)")" 2>/dev/null && pwd)/lib"
+. "$SCRIPT_LIB_REAL/mcp-server.sh" 2>/dev/null || true
 . "$SCRIPT_LIB_REAL/init.sh" 2>/dev/null || true
 INIT_SCRIPT="$SCRIPT_LIB_REAL/init.sh"
 SCRIPT_LIB_SYMLINK="$(cd "$(dirname "${BASH_SOURCE[0]}")" 2>/dev/null && pwd)/lib"
@@ -337,12 +338,12 @@ cmd_deploy() {
 
   # Acquire deployment lock (prevents concurrent deploys)
   local lockfile="$HOME/.argismonitor/.lock.deploy.$slot"
-  exec 200>"$lockfile"
-  if ! flock -n 200; then
+  # Portable mkdir-based lock (flock is util-linux only)
+  if ! mkdir "$lockfile.lock" 2>/dev/null; then
     err "another deploy is in progress for slot=$slot"
     return 1
   fi
-  trap "rm -f $lockfile; flock -u 200" EXIT
+  trap "rmdir \"$lockfile.lock\" 2>/dev/null" EXIT
 
   # Auth check
   if ! workos_authenticated; then
@@ -421,8 +422,7 @@ cmd_releases() {
 cmd_lock() {
   local slot="${1:-dev}"
   local lockfile="$HOME/.argismonitor/.lock.deploy.$slot"
-  exec 200>"$lockfile"
-  if ! flock -n 200; then
+  if ! mkdir "$lockfile.lock" 2>/dev/null; then
     err "slot=$slot is already locked - another deploy is in progress"
     return 1
   fi
@@ -448,6 +448,51 @@ cmd_matrix() {
     esac
   done
 }
+
+cmd_watch_all() {
+  log "tailing all desktop services in parallel (BFF + gateway + legacy Next.js)..."
+  $PHENO_BIN run "tail -F \$HOME/.argismonitor/{bff,gateway,nextjs}.log"
+}
+
+cmd_auto_rollback() {
+  local slot="${PROCCOMPOSE_SLOT:-dev}"
+  local current_pct="${1:-}"
+  if [[ -z "$current_pct" ]]; then
+    current_pct=$($PHENO_BIN run "cat \$HOME/.argismonitor/state/$slot.rollout" 2>/dev/null || echo "0")
+  fi
+  log "auto-rollback gate: polling SLOs (slot=$slot, current_pct=$current_pct)..."
+  log "rollback triggers: error_rate > 0.01 OR p95 > 800ms"
+  local breach=0
+  for i in 1 2 3 4 5 6 7 8 9 10 11 12; do
+    sleep 10
+    if ! $PHENO_BIN run "curl -fsS --max-time 3 http://localhost:$bff_port/api/dashboard/observability/overview" 2>/dev/null; then
+      log "BFF unreachable at iteration $i - escalating"
+      breach=1
+      break
+    fi
+    err_rate=$($PHENO_BIN run "curl -fsS http://localhost:$bff_port/api/dashboard/observability/overview 2>/dev/null | python3 -c 'import sys,json; print(json.load(sys.stdin).get("errorRate", 0))'" 2>/dev/null || echo "0")
+    p95=$($PHENO_BIN run "curl -fsS http://localhost:$bff_port/api/dashboard/observability/overview 2>/dev/null | python3 -c 'import sys,json; print(json.load(sys.stdin).get("p95", 0))'" 2>/dev/null || echo "0")
+    log "iter $i: error_rate=$err_rate p95=${p95}ms"
+    err_gt=$(python3 -c "print(1 if float('$err_rate' or 0) > 0.01 else 0)" 2>/dev/null || echo 0)
+    p95_gt=$(python3 -c "print(1 if float('$p95' or 0) > 800 else 0)" 2>/dev/null || echo 0)
+    if [[ "$err_gt" == "1" || "$p95_gt" == "1" ]]; then
+      log "SLO breach: error_rate=$err_rate p95=${p95}ms"
+      breach=1
+      break
+    fi
+  done
+  if [[ "$breach" == "1" ]]; then
+    log "rolling back slot=$slot to previous release..."
+    cmd_rollback "$slot"
+    if [[ -n "$current_pct" && "$current_pct" -gt 0 ]]; then
+      log "zeroing cutover on Vercel to match the rollback..."
+      cmd_cutover 0
+    fi
+    ok "auto-rollback complete"
+  else
+    ok "SLOs nominal - no rollback needed"
+  fi
+}
 case "${1:-help}" in
   up)        cmd_up ;;
   down)      cmd_down ;;
@@ -465,6 +510,10 @@ case "${1:-help}" in
   deploy)    cmd_deploy "${@}" ;;
   release)   cmd_release "${@}" ;;
   init)      cmd_init ;;
+  mcp-server) mcp_server "${@}" ;;
+  mcp-call)   shift; mcp_call "$@" ;;
+  watch-all) cmd_watch_all ;;
+  auto-rollback) cmd_auto_rollback "${@}" ;;
   matrix)    cmd_matrix "${@}" ;;
   releases)   cmd_releases "${@}" ;;
   lock)       cmd_lock "${@}" ;;
@@ -483,13 +532,17 @@ USAGE:
   proccompose doctor             check prereqs (pheno + Tailscale + Vercel + yq)
   proccompose dry-run          print the full execution graph without running
   proccompose ci                run a fake stack in this sandbox (test mode)
-  proccompose deploy <ref>   atomic deploy (with rollback safety + deploy lock)
-  proccompose release <ref> <pct>   deploy + cutover in one shot
+  proccompose deploy \<ref\>   atomic deploy (with rollback safety + deploy lock)
+  proccompose release \<ref\> \<pct\>   deploy + cutover in one shot
   proccompose releases [slot]  show release history for a slot
   proccompose lock [slot]     acquire the deploy lock (for manual testing)
   proccompose rollback        roll back a release to the previous version
   proccompose init           bootstrap a fresh host into the deploy plane
-  proccompose matrix <action>  run the same action across dev+staging+prod
+  proccompose mcp-server \[stdio\|sse\]  expose proccompose as MCP tools (12 tools: deploy/release/cutover/rollback/...)
+  proccompose mcp-call \<tool\>   invoke a single MCP tool directly from CLI
+  proccompose watch-all       tail BFF + gateway + legacy Next.js in parallel
+  proccompose auto-rollback [pct]  poll SLOs, revert if breach (error_rate > 1% or p95 > 800ms)
+  proccompose matrix \<action\>  run the same action across dev+staging+prod
 
 REQUIRES:
   - pheno-compute-layer (~/bin/pheno) for Tailscale SSH to desktop
