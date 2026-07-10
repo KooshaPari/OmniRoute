@@ -8,6 +8,8 @@
 
 _Living section — bullets land here as PRs merge into `release/v3.8.47` (parallel-cycle model; cycle opened at the v3.8.46 release freeze). Finalized at the v3.8.47 release._
 
+- **9router Codex import**: the Codex bulk-import endpoint (`POST /api/oauth/codex/import`) now accepts 9router's camelCase account export (`accessToken`/`refreshToken`/`idToken`/`expiresAt` + nested `providerSpecificData`), not just snake_case — `normalizeCodexImportRecord` maps the camelCase aliases onto the existing snake_case keys, filling each only when absent so snake_case/mixed exports keep working unchanged ([#6665](https://github.com/diegosouzapw/OmniRoute/issues/6665)) — thanks @deadcoder0904. Regression guard: `tests/unit/codexBulkImport.test.ts` (9router camelCase record, pre-supplied `providerSpecificData` without an id_token, snake_case-not-overridden, and a full `{accounts:[...]}` flatten).
+
 ### ✨ New Features
 
 - **Provider/model param filters**: config-driven parameter denylist/allowlist per provider/model with auto-learn from upstream 400s (#6649 — thanks @ThongAccount, closes #6625)
