@@ -26,6 +26,7 @@ resolve_yaml() {
   return 1
 }
 SCRIPT_LIB_REAL="$(cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]}" 2>/dev/null)")" 2>/dev/null && pwd)/lib"
+. "$SCRIPT_LIB_REAL/mcp-transport.sh" 2>/dev/null || true
 . "$SCRIPT_LIB_REAL/mcp-server.sh" 2>/dev/null || true
 . "$SCRIPT_LIB_REAL/init.sh" 2>/dev/null || true
 INIT_SCRIPT="$SCRIPT_LIB_REAL/init.sh"
@@ -493,6 +494,46 @@ cmd_auto_rollback() {
     ok "SLOs nominal - no rollback needed"
   fi
 }
+
+cmd_test() {
+  log "running v4 BFF test suite (pre-deploy verifier)..."
+  cd "$V4_DIR"
+  if [[ ! -f "apps/bff/package.json" ]]; then
+    err "v4 worktree not found at $V4_DIR"
+    return 1
+  fi
+  log "bun install in apps/bff..."
+  cd apps/bff && bun install --silent 2>/dev/null || true
+  log "running unit tests..."
+  cd "$V4_DIR/packages/api-contracts" && bun test 2>&1 | tail -20
+  cd "$V4_DIR/packages/design-tokens" && bun test 2>&1 | tail -10
+  cd "$V4_DIR/proccompose" && bash tests/proccompose.test.sh 2>&1 | tail -10
+  ok "v4 test suite complete"
+}
+
+cmd_diff() {
+  local slot="${1:-dev}"
+  log "plan-vs-current-state for slot=$slot:"
+  echo ""
+  echo "  Plan (from proccompose.yaml):"
+  proccompose plan 2>&1 | grep -E "config|services|vercel_projects|cutover phases" | head -10
+  echo ""
+  echo "  Current (from desktop):"
+  current_release "$slot" | python3 - <<'PYTHON' 2>/dev/null || echo "  (no current release on desktop - run proccompose deploy first)"
+import sys, json
+d = json.loads(sys.stdin.read())
+if d:
+    print("  ref:     " + d.get("ref", ""))
+    print("  version: " + d.get("version", ""))
+    print("  when:    " + d.get("timestamp", ""))
+PYTHON
+  echo ""
+  echo "  Recent releases (last 5):"
+  list_releases "$slot" 2>&1 | head -10
+  echo ""
+  echo "  Health (live):"
+  proccompose status 2>&1 | head -10
+}
 case "${1:-help}" in
   up)        cmd_up ;;
   down)      cmd_down ;;
@@ -510,6 +551,11 @@ case "${1:-help}" in
   deploy)    cmd_deploy "${@}" ;;
   release)   cmd_release "${@}" ;;
   init)      cmd_init ;;
+  test)       cmd_test ;;
+  diff)       cmd_diff "${@}" ;;
+  serve-stdio) mcp_serve_stdio ;;
+  mcp)        mcp_server "${@}" ;;
+  mcp-call)   shift; mcp_call "$@" ;;
   mcp-server) mcp_server "${@}" ;;
   mcp-call)   shift; mcp_call "$@" ;;
   watch-all) cmd_watch_all ;;
@@ -542,6 +588,9 @@ USAGE:
   proccompose mcp-call \<tool\>   invoke a single MCP tool directly from CLI
   proccompose watch-all       tail BFF + gateway + legacy Next.js in parallel
   proccompose auto-rollback [pct]  poll SLOs, revert if breach (error_rate > 1% or p95 > 800ms)
+  proccompose test           run the v4 BFF test suite (pre-deploy verifier)
+  proccompose diff [slot]   show plan-vs-current-state for a slot (forensics)
+  proccompose serve-stdio   run proccompose as an MCP server (JSON-RPC 2.0 over stdin)
   proccompose matrix \<action\>  run the same action across dev+staging+prod
 
 REQUIRES:
