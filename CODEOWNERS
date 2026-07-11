@@ -1,0 +1,47 @@
+# CODEOWNERS — NanoVMS (Nano Virtual Machine Services)
+# Canonical reviewer: @KooshaPari
+#
+# GitHub CODEOWNERS location priority:
+#   1. .github/CODEOWNERS  (already present, more detailed)
+#   2. /CODEOWNERS         (this file — kept in sync as a root-level alias)
+#   3. /docs/CODEOWNERS
+#
+# See: https://docs.github.com/en/repositories/creating-and-managing-repositories/about-code-owners
+
+# Default catch-all
+* @KooshaPari
+
+# Per-language drill-down
+/*.go @KooshaPari
+/*.mod @KooshaPari
+/*.sum @KooshaPari
+/*.rs @KooshaPari
+/*.ts @KooshaPari
+/*.py @KooshaPari
+
+# Core source tree
+/api/ @KooshaPari
+/go/ @KooshaPari
+/sdk/ @KooshaPari
+/tests/ @KooshaPari
+/scripts/ @KooshaPari
+/docs/ @KooshaPari
+
+# Module + build config
+/go.mod @KooshaPari
+/go.sum @KooshaPari
+/package.json @KooshaPari
+/Makefile @KooshaPari
+/Taskfile.yml @KooshaPari
+/justfile @KooshaPari
+
+# Governance + CI
+/SECURITY.md @KooshaPari
+/CODEOWNERS @KooshaPari
+/CONTRIBUTING.md @KooshaPari
+/CHANGELOG.md @KooshaPari
+/LICENSE @KooshaPari
+/.github/ @KooshaPari
+/.github/workflows/ @KooshaPari
+/.github/dependabot.yml @KooshaPari
+/.github/FUNDING.yml @KooshaPari
