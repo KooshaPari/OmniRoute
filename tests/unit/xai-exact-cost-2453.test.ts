@@ -91,6 +91,13 @@ test("normalizeUsage: drops a non-finite cost_in_usd_ticks", () => {
   assert.equal(normalized.cost_in_usd_ticks, undefined);
 });
 
+test("normalizeUsage: rejects null, empty, and negative exact costs", () => {
+  for (const value of [null, "", -1]) {
+    const normalized = normalizeUsage({ prompt_tokens: 10, cost_in_usd_ticks: value });
+    assert.equal(normalized.cost_in_usd_ticks, undefined, `unexpected exact cost for ${value}`);
+  }
+});
+
 test("extractUsageFromResponse: xAI OpenAI-shaped usage carries cost_in_usd_ticks through", () => {
   const usage = extractUsageFromResponse(
     {
@@ -124,6 +131,16 @@ test("extractUsageFromResponse CONTROL: non-xAI OpenAI usage without the field s
     reasoning_tokens: 2,
   });
   assert.ok(!("cost_in_usd_ticks" in usage), "must not add a stray undefined key");
+});
+
+test("extractUsageFromResponse: rejects malformed exact cost values", () => {
+  for (const value of [null, "", -1]) {
+    const usage = extractUsageFromResponse(
+      { usage: { prompt_tokens: 12, completion_tokens: 8, cost_in_usd_ticks: value } },
+      "xai"
+    );
+    assert.ok(!("cost_in_usd_ticks" in usage), `unexpected exact cost for ${value}`);
+  }
 });
 
 test("extractUsage (streaming): xAI OpenAI-format chunk carries cost_in_usd_ticks through", () => {
