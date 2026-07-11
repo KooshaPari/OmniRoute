@@ -1,10 +1,42 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": ["config:recommended"],
-  "labels": ["dependencies", "automated"],
+  // KooshaPari / Phenotype. renovate preset. The preset ID is `phenotype` and
+  // lives at github.com/KooshaPari/renovate-config until published.
+  "extends": [
+    "config:recommended",
+    "github>KooshaPari/renovate-config:phenotype",
+    ":automergeMinor",
+    ":automergePatch",
+    ":disableMajor"
+  ],
+  "labels": ["dependencies", "automated", "renovate"],
   "commitMessagePrefix": "chore(deps)",
   "prHourlyLimit": 5,
   "prConcurrentLimit": 10,
-  "timezone": "America/New_York",
-  "schedule": ["before 9am on monday"]
+  "timezone": "America/Los_Angeles",
+  "schedule": ["before 6am on monday"],
+  "packageRules": [
+    {
+      "description": "Pin GitHub Actions to a known-good digest",
+      "matchManagers": ["github-actions"],
+      "pinDigests": true
+    },
+    {
+      "description": "Lock major-version updates for security-sensitive deps",
+      "matchPackageNames": ["npm", "rust", "openssl", "node"],
+      "enabled": false
+    },
+    {
+      "description": "Auto-merge patch updates for renovate bot config itself",
+      "matchFiles": ["renovate.json5", ".github/renovate.json5"],
+      "automerge": true
+    }
+  ],
+  "vulnerabilityAlerts": {
+    "enabled": true,
+    "labels": ["security", "renovate"],
+    "prPriority": 10,
+    "schedule": ["at any time"]
+  },
+  "osvVulnerabilityAlerts": true
 }

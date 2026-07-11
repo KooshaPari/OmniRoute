@@ -1,0 +1,70 @@
+# ArgisMonitor — per-project Caddy envelope
+#
+# This Caddyfile is the dev/internal surface for ArgisMonitor. It sits
+# inside the local-WSL Caddy envelope (the bigger envelope covers every
+# Phenotype. project; this is the per-project overlay).
+#
+# Public docs / landing pages live on Vercel + GH Pages (see
+# apps/landing-argismonitor/vercel.json). This Caddyfile serves:
+#
+#   argismonitor.pheno.studio     — dev/internal landing (dev dashboard)
+#   api.argismonitor.pheno.studio — OpenAI-compatible HTTP API + MCP
+#   otel.argismonitor.pheno.studio — OTel / QA dashboards
+#   qa.argismonitor.pheno.studio  — QA test runner UI
+#   sdk.argismonitor.pheno.studio — developer SDK surface
+#
+# Apply with:
+#   sudo cp Caddyfile.argismonitor /etc/caddy/sites-enabled/argismonitor
+#   sudo caddy validate --config /etc/caddy/Caddyfile
+#   sudo systemctl reload caddy
+
+# --- Public HTTPS terminator ----------------------------------------------
+{
+    # Tailscale cert / Let's Encrypt via Caddy DNS plugin.
+    email ops@phenotype.space
+}
+
+argismonitor.pheno.studio, *.argismonitor.pheno.studio {
+    encode zstd gzip
+    reverse_proxy localhost:3100 {
+        header_up Host {host}
+        header_up X-Real-IP {remote}
+        header_up X-Forwarded-For {remote}
+        header_up X-Forwarded-Proto {scheme}
+    }
+
+    @api path /v1/* /mcp /mcp/*
+    reverse_proxy @api localhost:3101 {
+        header_up Host {host}
+        header_up X-Real-IP {remote}
+        header_up X-Forwarded-For {remote}
+        header_up X-Forwarded-Proto {scheme}
+    }
+
+    @otel host otel.argismonitor.pheno.studio
+    reverse_proxy @otel localhost:3102
+
+    @qa host qa.argismonitor.pheno.studio
+    reverse_proxy @qa localhost:3103
+
+    @sdk host sdk.argismonitor.pheno.studio
+    reverse_proxy @sdk localhost:3104
+
+    log {
+        output file /var/log/caddy/argismonitor.access.log {
+            roll_size 100mb
+            roll_keep 14
+        }
+    }
+
+    header {
+        # Defense in depth on top of Vercel's headers
+        Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+        X-Content-Type-Options "nosniff"
+        X-Frame-Options "DENY"
+        Referrer-Policy "strict-origin-when-cross-origin"
+        Permissions-Policy "interest-cohort=()"
+        # Strip server banner
+        -Server
+    }
+}

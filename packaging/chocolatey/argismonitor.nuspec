@@ -1,0 +1,43 @@
+# ArgisMonitor Chocolatey package (Gate 4, file-only).
+#
+# This file lives at:  chocolatey-packages/argismonitor/argismonitor.nuspec
+# in the `KooshaPari/chocolatey-packages` repository (or autobuilt by
+# `tools/build-chocolatey.ps1` in the main repo).
+#
+# Apply with:
+#   choco pack argismonitor.nuspec
+#   choco push argismonitor.<version>.nupkg --api-key <KEY> --source https://push.chocolatey.org/
+
+<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2015/06/nuspec.xsd">
+  <metadata>
+    <id>argismonitor</id>
+    <version>3.8.44</version>
+    <packageSourceUrl>https://github.com/KooshaPari/ArgisMonitor</packageSourceUrl>
+    <owners>KooshaPari</owners>
+    <title>ArgisMonitor (formerly OmniRoute)</title>
+    <authors>KooshaPari / Phenotype.</authors>
+    <projectUrl>https://argismonitor.phenotype.space</projectUrl>
+    <iconUrl>https://argismonitor.phenotype.space/icon.png</iconUrl>
+    <licenseUrl>https://github.com/KooshaPari/ArgisMonitor/blob/main/LICENSE</licenseUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <projectSourceUrl>https://github.com/KooshaPari/ArgisMonitor</projectSourceUrl>
+    <docsUrl>https://argismonitor.phenotype.space/docs</docsUrl>
+    <bugTrackerUrl>https://github.com/KooshaPari/ArgisMonitor/issues</bugTrackerUrl>
+    <tags>ai router openai anthropic mcp admin cli cross-platform</tags>
+    <summary>ArgisMonitor — Unified AI router with 160+ providers, MCP/A2A, desktop, PWA</summary>
+    <description>
+      ArgisMonitor is a fork of diegosouzapw/OmniRoute, maintained as part of the
+      Phenotype. initiative. See https://argismonitor.phenotype.space for details.
+
+      ## Notes
+      - Requires Node.js 20+ (auto-installed if missing via `choco install nodejs-lts`).
+      - Legacy `omniroute` binary is preserved as a deprecated alias during the
+        deprecation window; install the new name and migrate.
+    </description>
+  </metadata>
+  <files>
+    <file src="tools\**" target="tools" />
+    <file src="install.ps1" target="install.ps1" />
+  </files>
+</package>
