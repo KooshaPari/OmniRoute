@@ -49,8 +49,8 @@ ROOT-WORK-HANDOFF
 | lane                       | state | next owner action                                                           |
 | -------------------------- | ----- | --------------------------------------------------------------------------- |
 | OmniRoute                  | ok    | retain isolated repair evidence; rerun remote checks when adopted           |
-| AgilePlus cockpit          | wip   | create proper nested AgilePlus worktree, rehydrate commit, run check/tests  |
-| review loop                | wip   | rehydrate from AgilePlus agent-dispatch branch; run focused test            |
+| AgilePlus cockpit          | wip   | fresh proper worktree at `418e597`; finish cargo check and route tests       |
+| review loop                | ok    | focused final-cycle test passes 1/1 in `/private/tmp/agileplus-review`      |
 | Civis                      | !     | repair stale manifest/verification drift, regenerate only after green gates |
 | Tracera / BytePort / pheno | ~     | preserve dirty owned trees; audit one lane at a time                        |
 
@@ -206,3 +206,20 @@ No row may move to `ok` from historical evidence alone.
 | 2026-07-12T23:31:15Z | EVT-6855-CUTOFF | OmniRoute #6855 | defer | updated `2026-07-12T01:45:53Z`; `mergeable_state=dirty`   | root     |
 | 2026-07-12T23:31:15Z | EVT-6794-CUTOFF | OmniRoute #6794 | defer | updated `2026-07-12T12:55:34Z`; `mergeable_state=clean`   | root     |
 | 2026-07-12T23:31:15Z | EVT-QUEUE-EMPTY | OmniRoute queue | defer | no open non-draft PR older than 48h                       | root     |
+
+## Current Slice Evidence (2026-07-12)
+
+| id | state | evidence | next transition |
+| --- | --- | --- | --- |
+| T011 | ok | PR #289 is merged: `gh` reports merge commit `195ccdbc30748101318ea9d3fd79120a206cb5e7`; historical failures are not an open gate. | refresh the default-branch workflow queue before any new CI fix |
+| T053 | wip | `OmniRoute/deploy/docker-compose.scale.yml` defines `omniroute-1/2/3:3000`; prior `deploy/Caddyfile` defaulted to nonexistent `omniroute-base:20129`. | validate the corrected Caddy route in runtime |
+| T054 | wip | `docker compose -f deploy/docker-compose.scale.yml config` exits successfully after the Caddy route change. | run Caddy config validation and health probes |
+| T055 | blocked | `Tracera/docker-compose.yml` references `./Dockerfile`, but `Tracera/Dockerfile` is absent; only `Dockerfile.local` and `.container-runtime-context/Dockerfile` exist. | choose and implement the canonical build context in an isolated Tracera worktree |
+| T057 | wip | `Tracera/vercel.json` builds `frontend` only and contains no backend function rewrites. | document frontend-only scope or add a verified serverless adapter |
+| T033 | wip | `omniroute-rust` exposes Axum TCP HTTP/SSE; no Unix socket, gRPC, WebSocket, or GraphQL implementation was found. | add transport decision record and benchmark plan before claiming enterprise throughput |
+
+### Machine transition rule
+
+An agent may change a row only by adding a dated evidence line containing a re-runnable command,
+commit, PR, or file path. `blocked` means a concrete repository or external prerequisite is named;
+it does not authorize speculative edits in a dirty worktree.
