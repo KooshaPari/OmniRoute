@@ -49,6 +49,17 @@ export const QUOTA_SOFT_DEPRIORITIZE_FACTOR = Number(
   process.env.QUOTA_SOFT_DEPRIORITIZE_FACTOR ?? "0.7"
 );
 
+// #4540: Status soft-deprioritization factor.
+// When the quota-preflight HARD cutoff is OFF (default), a candidate whose connection
+// is in a terminal/transient unavailable status (credits_exhausted / rate_limited /
+// banned / expired / future-dated unavailable) is NOT hard-blocked — instead its
+// auto-combo score is multiplied by this factor so an exhausted provider ranks strictly
+// below an otherwise-identical healthy one, without surfacing a misleading 429.
+// Override via STATUS_SOFT_DEPRIORITIZE_FACTOR env var (range 0..1, default 0.5).
+export const STATUS_SOFT_DEPRIORITIZE_FACTOR = Number(
+  process.env.STATUS_SOFT_DEPRIORITIZE_FACTOR ?? "0.5"
+);
+
 // G2: Module-level registry of active combo execution candidates.
 // Maps executionKey → Map<stepId, candidate mutable ref>.
 // Populated by buildAutoCandidates registrations; cleaned up after each execution.
@@ -330,19 +341,31 @@ export function scoreAutoTargets(
   weights: ScoringWeights,
   manifestHint?: RoutingHint | null
 ) {
-  const candidateByExecutionKey = new Map(
-    candidates.map((candidate: ProviderCandidate & { executionKey: string }) => [
-      candidate.executionKey,
-      candidate,
-    ])
-  );
-  return targets
-    .map((target) => {
-      const candidate = candidateByExecutionKey.get(target.executionKey);
-      if (!candidate) return null;
+  const targetByExecutionKey = new Map(targets.map((target) => [target.executionKey, target]));
+  const activeCandidates = candidates.filter((candidate) => candidate.quotaCutoffBlocked !== true);
+
+  return activeCandidates
+    .map((candidate) => {
+      const baseTarget =
+        targetByExecutionKey.get(candidate.executionKey) ||
+        targets.find(
+          (target) =>
+            target.stepId === candidate.stepId ||
+            (target.provider === candidate.provider && target.modelStr === candidate.modelStr)
+        );
+      if (!baseTarget) return null;
+
+      const target: ResolvedComboTarget = {
+        ...baseTarget,
+        stepId: candidate.stepId,
+        executionKey: candidate.executionKey,
+        modelStr: candidate.modelStr,
+        provider: candidate.provider,
+        connectionId: candidate.connectionId ?? baseTarget.connectionId,
+      };
       const factors = calculateFactors(
         candidate as ProviderCandidate,
-        candidates,
+        activeCandidates,
         taskType ?? "general",
         getTaskFitness,
         manifestHint ?? undefined
@@ -351,6 +374,12 @@ export function scoreAutoTargets(
       // B17: Quota Share soft-policy deprioritization
       if ("quotaSoftPenalty" in candidate && candidate.quotaSoftPenalty === true) {
         score *= QUOTA_SOFT_DEPRIORITIZE_FACTOR;
+      }
+      // #4540: terminal/transient connection status soft penalty (no hard block).
+      // A no-fetcher exhausted provider keeps quotaRemaining=100, so without this its
+      // score would tie a healthy provider's. The penalty pushes it strictly below.
+      if ("statusPenalty" in candidate && candidate.statusPenalty === true) {
+        score *= STATUS_SOFT_DEPRIORITIZE_FACTOR;
       }
       return {
         target,

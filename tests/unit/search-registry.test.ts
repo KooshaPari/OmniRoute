@@ -16,6 +16,9 @@ const {
 
 const { computeCacheKey, getOrCoalesce, getCacheStats, SEARCH_CACHE_DEFAULT_TTL_MS } =
   await import("../../open-sse/services/searchCache.ts");
+const { normalizePetalsBaseUrl, PETALS_DEFAULT_BASE_URL } = await import(
+  "../../open-sse/config/petals.ts"
+);
 
 // ─── Registry Tests ──────────────────────────────────────────
 
@@ -44,6 +47,23 @@ test("duckduckgo-free config is a no-key, fallback-only provider", () => {
   assert.equal(d.costPerQuery, 0);
   assert.equal(d.fallbackOnly, true, "must only be used as a last resort");
   assert.deepEqual(d.searchTypes, ["web"]);
+});
+
+test("petals config normalizes generate endpoint URLs", () => {
+  assert.equal(normalizePetalsBaseUrl(undefined), PETALS_DEFAULT_BASE_URL);
+  assert.equal(normalizePetalsBaseUrl("https://chat.petals.dev"), PETALS_DEFAULT_BASE_URL);
+  assert.equal(
+    normalizePetalsBaseUrl("https://chat.petals.dev/api"),
+    PETALS_DEFAULT_BASE_URL
+  );
+  assert.equal(
+    normalizePetalsBaseUrl("https://chat.petals.dev/api/v1"),
+    PETALS_DEFAULT_BASE_URL
+  );
+  assert.equal(
+    normalizePetalsBaseUrl("https://chat.petals.dev/api/v1/generate"),
+    PETALS_DEFAULT_BASE_URL
+  );
 });
 
 test("serper-search config is correct", () => {
@@ -337,6 +357,13 @@ test("SEARCH_CACHE_DEFAULT_TTL_MS is positive", () => {
 });
 
 // ─── Validation Schema Tests ────────────────────────────────
+
+test("shared validation exports the v1 search request schema", async () => {
+  const schemas = await import("../../src/shared/validation/schemas.ts");
+
+  assert.equal("v1SearchSchema" in schemas, true);
+  assert.equal(typeof schemas.v1SearchSchema.safeParse, "function");
+});
 
 test("v1SearchSchema validates correct input", async () => {
   const { v1SearchSchema } = await import("../../src/shared/validation/schemas.ts");

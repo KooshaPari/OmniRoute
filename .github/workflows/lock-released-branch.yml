@@ -101,7 +101,7 @@ jobs:
     steps:
       - name: Reject push if matching release tag exists
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ github.token }}
           REPO: ${{ github.repository }}
           REF: ${{ github.ref_name }}
         run: |

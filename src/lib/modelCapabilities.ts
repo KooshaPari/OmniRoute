@@ -5,6 +5,7 @@ import {
 import { parseModel, resolveCanonicalProviderModel } from "@omniroute/open-sse/services/model.ts";
 import { MODEL_SPECS, getModelSpec, type ModelSpec } from "@/shared/constants/modelSpecs";
 import { getSyncedCapability } from "@/lib/modelsDevSync";
+import { getModelContextOverride } from "@/lib/db/modelContextOverrides";
 import { isVisionModelId } from "@/shared/constants/visionModels";
 
 const TOOL_CALLING_UNSUPPORTED_PATTERNS: string[] = [];
@@ -53,7 +54,7 @@ export interface ResolvedModelCapabilities {
   temperature: boolean | null;
   contextWindow: number | null;
   maxInputTokens: number | null;
-  maxOutputTokens: number;
+  maxOutputTokens: number | null;
   defaultThinkingBudget: number;
   thinkingBudgetCap: number | null;
   thinkingOverhead: number | null;
@@ -382,7 +383,7 @@ export function getResolvedModelCapabilities(input: CapabilityInput): ResolvedMo
       synced?.limit_output ??
       (typeof registryModel?.maxOutputTokens === "number" ? registryModel.maxOutputTokens : null) ??
       spec?.maxOutputTokens ??
-      MODEL_SPECS.__default__.maxOutputTokens,
+      null,
     defaultThinkingBudget: spec?.defaultThinkingBudget ?? 0,
     thinkingBudgetCap: spec?.thinkingBudgetCap ?? null,
     thinkingOverhead: spec?.thinkingOverhead ?? null,
@@ -416,9 +417,11 @@ export function supportsMaxTokens(input: CapabilityInput): boolean {
   return getResolvedModelCapabilities(input).supportsMaxTokens;
 }
 
-export function capMaxOutputTokens(input: CapabilityInput, requested?: number): number {
+export function capMaxOutputTokens(input: CapabilityInput, requested?: number): number | null {
   const cap = getResolvedModelCapabilities(input).maxOutputTokens;
-  return requested ? Math.min(requested, cap) : cap;
+  const hasRequested = typeof requested === "number" && Number.isFinite(requested);
+  if (cap === null) return hasRequested ? requested : null;
+  return hasRequested ? Math.min(requested, cap) : cap;
 }
 
 export function getDefaultThinkingBudget(input: CapabilityInput): number {
@@ -438,5 +441,9 @@ export function getModelContextLimit(
     typeof providerOrInput === "string" && modelId !== undefined
       ? getResolvedModelCapabilities({ provider: providerOrInput, model: modelId })
       : getResolvedModelCapabilities(providerOrInput);
-  return resolved.contextWindow;
+  // Feature 5004: a persisted override (operator-set or auto-discovered) wins over the
+  // static catalog / models.dev sync. `getResolvedModelCapabilities` stays override-free
+  // so the reconciler can compare the catalog value against provider-declared windows.
+  const override = getModelContextOverride(resolved.provider, resolved.model);
+  return override ?? resolved.contextWindow;
 }

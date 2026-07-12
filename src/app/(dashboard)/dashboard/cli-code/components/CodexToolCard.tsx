@@ -7,6 +7,7 @@ import { useTranslations } from "next-intl";
 
 import ProviderIcon from "@/shared/components/ProviderIcon";
 import { normalizeCodexBaseUrl } from "@/shared/utils/codexBaseUrl";
+import { isApplyDisabled, isResetDisabled } from "./codexButtonState";
 
 export default function CodexToolCard({
   tool,
@@ -32,9 +33,7 @@ export default function CodexToolCard({
     "gpt-5.5",
     "gpt-5.3-codex",
     "gpt-5.4",
-    "gpt-5.2-codex",
     "gpt-5.1-codex-max",
-    "gpt-5.2",
     "gpt-5.1-codex-mini",
   ];
   const [modelMappings, setModelMappings] = useState<Record<string, string>>({});
@@ -714,7 +713,12 @@ openai_base_url = "${getEffectiveBaseUrl()}"
                   variant="primary"
                   size="sm"
                   onClick={handleApplySettings}
-                  disabled={!selectedApiKey || !selectedModel}
+                  disabled={isApplyDisabled({
+                    selectedModel,
+                    selectedApiKey,
+                    cloudEnabled,
+                    apiKeys,
+                  })}
                   loading={applying}
                 >
                   <span className="material-symbols-outlined text-[14px] mr-1">save</span>
@@ -724,7 +728,7 @@ openai_base_url = "${getEffectiveBaseUrl()}"
                   variant="outline"
                   size="sm"
                   onClick={handleResetSettings}
-                  disabled={!codexStatus.hasOmniRoute}
+                  disabled={isResetDisabled({ restoring })}
                   loading={restoring}
                 >
                   <span className="material-symbols-outlined text-[14px] mr-1">restore</span>

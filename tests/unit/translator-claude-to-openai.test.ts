@@ -259,11 +259,55 @@ test("Claude -> OpenAI turns thinking and tool_use blocks into assistant tool_ca
   });
 });
 
+test("Claude -> OpenAI passes pre-stringified tool_use input through verbatim (no double-encoding)", () => {
+  // #2279: some upstream Claude sources emit tool_use.input already JSON-encoded
+  // as a string. Re-running JSON.stringify on it would double-encode the
+  // payload (wrapping it in an extra pair of quotes with escaped internals).
+  const result = claudeToOpenAIRequest(
+    "gpt-4o",
+    {
+      messages: [
+        {
+          role: "assistant",
+          content: [
+            {
+              type: "tool_use",
+              id: "tu_2",
+              name: "read_file",
+              input: '{"path":"/tmp/demo"}',
+            },
+          ],
+        },
+      ],
+    },
+    false
+  );
+
+  assert.deepEqual(result.messages[0].tool_calls, [
+    {
+      id: "tu_2",
+      type: "function",
+      function: {
+        name: "read_file",
+        arguments: '{"path":"/tmp/demo"}',
+      },
+    },
+  ]);
+});
+
 test("Claude -> OpenAI converts tool_result blocks into tool messages and preserves trailing user text", () => {
   const result = claudeToOpenAIRequest(
     "gpt-4o",
     {
       messages: [
+        // #4385: a tool_result must be paired with a preceding assistant tool_call,
+        // otherwise it is an orphan that OpenAI-compatible upstreams reject (and that
+        // claudeToOpenAIRequest now filters). Pair it so this test still exercises the
+        // content-extraction mechanics (array [text, image] → "20C") on a valid sequence.
+        {
+          role: "assistant",
+          content: [{ type: "tool_use", id: "tu_1", name: "weather", input: {} }],
+        },
         {
           role: "user",
           content: [
@@ -287,11 +331,15 @@ test("Claude -> OpenAI converts tool_result blocks into tool messages and preser
   );
 
   assert.deepEqual(result.messages[0], {
+    role: "assistant",
+    tool_calls: [{ id: "tu_1", type: "function", function: { name: "weather", arguments: "{}" } }],
+  });
+  assert.deepEqual(result.messages[1], {
     role: "tool",
     tool_call_id: "tu_1",
     content: "20C",
   });
-  assert.deepEqual(result.messages[1], {
+  assert.deepEqual(result.messages[2], {
     role: "user",
     content: "Thanks",
   });

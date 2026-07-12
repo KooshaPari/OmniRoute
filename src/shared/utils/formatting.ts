@@ -39,21 +39,6 @@ export function formatDuration(ms: number | null | undefined) {
 }
 
 /**
- * Format an ISO date to a full date+time string (pt-BR locale).
- * @param {string} iso - ISO 8601 date string
- * @returns {string}
- */
-export function formatDateTime(iso: string | null | undefined) {
-  try {
-    if (!iso) return "-";
-    const d = new Date(iso);
-    return d.toLocaleDateString("pt-BR") + ", " + d.toLocaleTimeString("en-US", { hour12: false });
-  } catch {
-    return iso;
-  }
-}
-
-/**
  * Mask a string by showing only start and end characters.
  * @param {string} value - Value to mask
  * @param {number} start - Number of characters to show at start (default: 2)
@@ -112,16 +97,6 @@ export function formatApiKeyLabel(
 }
 
 /**
- * Mask a sensitive key for log output.
- * @param {string} key - API key or token to mask
- * @returns {string}
- */
-export function maskKey(key: string | null | undefined) {
-  if (!key || key.length < 8) return "***";
-  return `${key.slice(0, 4)}...${key.slice(-4)}`;
-}
-
-/**
  * Format large numbers with K/M/B suffixes.
  * @param {number} n - Number to format
  * @returns {string}
@@ -150,61 +125,39 @@ export function fmtFull(n: number | null | undefined) {
  */
 export function formatCost(usd: number | null | undefined): string {
   const value = Number(usd || 0);
-  if (!Number.isFinite(value) || value === 0) return "$0.00";
-  if (value < 0.01) return `$${value.toFixed(6)}`;
-  if (value < 1) return `$${value.toFixed(4)}`;
-  return `$${value.toFixed(2)}`;
+  if (!Number.isFinite(value) || value === 0) return "$0";
+  const sign = value < 0 ? "-" : "";
+  const abs = Math.abs(value);
+  if (abs < 0.01) return `${sign}$${abs.toFixed(6)}`;
+  if (abs < 1) return `${sign}$${abs.toFixed(4)}`;
+  return `${sign}$${abs.toFixed(2)}`;
 }
 
 export const fmtCost = formatCost;
 
-/**
- * Format a USD cost for display using abbreviated K/M/B/T suffixes.
- * Sub-cent values show additional precision.
- *   - Values >= 1T are shown as $X.XT
- *   - Values >= 1B are shown as $X.XB
- *   - Values >= 1M are shown as $X.XM
- *   - Values >= 1K are shown as $X.XK
- *   - Otherwise shown as $X.XX
- * @param {number} usd - Cost in USD
- * @returns {string}
- */
 export function formatCostAbbreviated(usd: number | null | undefined): string {
   const value = Number(usd || 0);
   if (!Number.isFinite(value) || value === 0) return "$0";
-  const abs = Math.abs(value);
-  if (abs < 0.01) {
-    if (value < 0) {
-      return `-$${Math.abs(value).toFixed(6)}`;
-    }
-    return `$${value.toFixed(6)}`;
-  }
-  let divisor: number, suffix: string;
-  if (abs >= 1_000_000_000_000) {
-    divisor = 1_000_000_000_000;
-    suffix = "T";
-  } else if (abs >= 1_000_000_000) {
-    divisor = 1_000_000_000;
-    suffix = "B";
-  } else if (abs >= 1_000_000) {
-    divisor = 1_000_000;
-    suffix = "M";
-  } else if (abs >= 1_000) {
-    divisor = 1_000;
-    suffix = "K";
-  } else {
-    if (value < 0) {
-      return `-$${Math.abs(value).toFixed(2)}`;
-    }
-    return `$${value.toFixed(2)}`;
-  }
-  const abbreviated = abs / divisor;
-  let formatted = abbreviated.toFixed(1);
-  if (formatted.includes(".")) {
-    formatted = formatted.replace(/\.?0+$/, "");
-  }
   const sign = value < 0 ? "-" : "";
-  return `${sign}$${formatted}${suffix}`;
+  const abs = Math.abs(value);
+  if (abs < 1) return `${sign}${formatCost(abs)}`;
+
+  const tiers = [
+    { value: 1_000_000_000_000, suffix: "T" },
+    { value: 1_000_000_000, suffix: "B" },
+    { value: 1_000_000, suffix: "M" },
+    { value: 1_000, suffix: "K" },
+  ] as const;
+
+  for (const tier of tiers) {
+    if (abs >= tier.value) {
+      const scaled = abs / tier.value;
+      const text = Number.isInteger(scaled) ? scaled.toFixed(0) : scaled.toFixed(1);
+      return `${sign}$${text}${tier.suffix}`;
+    }
+  }
+
+  return `${sign}$${abs.toFixed(2)}`;
 }
 
 /**
@@ -220,7 +173,7 @@ export function truncateUrl(url: string | null | undefined, max = 50) {
     const display = parsed.hostname + parsed.pathname;
     return display.length > max ? display.slice(0, max) + "…" : display;
   } catch {
-    return url.length > max ? url.slice(0, max) + "…" : url;
+    return url.length > max ? url.slice(0, max + 1) + "…" : url;
   }
 }
 

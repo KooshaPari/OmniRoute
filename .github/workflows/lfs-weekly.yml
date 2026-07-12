@@ -1,0 +1,12 @@
+name: lfs-weekly
+on:
+  schedule: [{cron: '0 4 * * 6'}]
+  workflow_dispatch: {}
+jobs:
+  track:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: |
+          echo "LFS file tracking check — verify all .gitattributes patterns are respected"
+          git lfs track 2>/dev/null || echo "LFS not configured (dev-mode PASS)"

@@ -6,6 +6,7 @@
  */
 
 import { MAX_TIMER_TIMEOUT_MS } from "../../src/shared/utils/runtimeTimeouts.ts";
+import type { ResponseValidationConfig } from "./combo/responseValidation.ts";
 
 /**
  * Maximum number of concurrent pre-screen checks (provider profile + availability)
@@ -25,6 +26,18 @@ export const PRE_SCREEN_CONCURRENCY = 5;
  */
 export const DEFAULT_COMBO_TARGET_TIMEOUT_MS = 120_000;
 
+/**
+ * Default pre-cascade semaphore queue depth for round-robin combos (#3872). When a
+ * combo member's concurrency slot is saturated, this many requests wait in the
+ * member's queue before `SEMAPHORE_QUEUE_FULL` triggers a cascade to the next member.
+ * Kept at 20 for backward compatibility; operators wanting faster failover can lower
+ * it (0 = never queue, fail over to the next member immediately).
+ */
+export const DEFAULT_COMBO_QUEUE_DEPTH = 20;
+
+/** Upper bound for the configurable combo queue depth (defensive clamp). */
+export const MAX_COMBO_QUEUE_DEPTH = 100;
+
 const DEFAULT_COMBO_CONFIG = {
   strategy: "priority",
   maxRetries: 1,
@@ -32,11 +45,13 @@ const DEFAULT_COMBO_CONFIG = {
   fallbackDelayMs: 0,
   concurrencyPerModel: 3, // max simultaneous requests per model (round-robin)
   queueTimeoutMs: 30000, // max wait time in semaphore queue (round-robin)
+  queueDepth: DEFAULT_COMBO_QUEUE_DEPTH, // pre-cascade semaphore queue depth (round-robin, #3872)
   handoffThreshold: 0.85,
   handoffModel: "",
   handoffProviders: ["codex"],
   maxMessagesForSummary: 30,
   maxComboDepth: 3,
+  nestedComboMode: "flatten",
   trackMetrics: true,
   reasoningTokenBufferEnabled: true,
   manifestRouting: false,
@@ -49,6 +64,9 @@ const DEFAULT_COMBO_CONFIG = {
   resetAwareTieBandPercent: 5,
   resetAwareExhaustionGuardPercent: 10,
   failoverBeforeRetry: true,
+  // Feature 4985: configurable response-body validation predicate (per-combo). When set,
+  // a 200 OK whose body fails the predicate fails over to the next target.
+  responseValidation: undefined as ResponseValidationConfig | undefined,
   maxSetRetries: 0,
   setRetryDelayMs: 2000,
   // Zero-latency optimizations are opt-in because some modes can race targets or
@@ -145,6 +163,18 @@ export function resolveComboTargetTimeoutMs(
   if (ceilingTimeoutMs <= 0) return ceilingTimeoutMs;
   if (fallbackDefaultMs <= 0) return ceilingTimeoutMs;
   return Math.min(fallbackDefaultMs, ceilingTimeoutMs);
+}
+
+/**
+ * Resolve the effective pre-cascade semaphore queue depth for a round-robin combo
+ * (#3872). Falls back to `DEFAULT_COMBO_QUEUE_DEPTH` for missing/invalid/negative
+ * values and clamps to `MAX_COMBO_QUEUE_DEPTH`. `0` is valid and meaningful: it makes
+ * a saturated combo member fail over to the next member immediately instead of queueing.
+ */
+export function resolveComboQueueDepth(config: Record<string, unknown> | null | undefined): number {
+  const raw = isRecord(config) ? Number(config.queueDepth) : Number.NaN;
+  if (!Number.isFinite(raw) || raw < 0) return DEFAULT_COMBO_QUEUE_DEPTH;
+  return Math.min(Math.floor(raw), MAX_COMBO_QUEUE_DEPTH);
 }
 
 /**

@@ -12,18 +12,6 @@ const playwrightWebServerTimeout = Number.parseInt(
 export default defineConfig({
   testDir: "./tests/e2e",
   testMatch: ["**/*.spec.ts"],
-  // Temporarily exclude E2E tests broken by the Nav Restructure refactor
-  // (settings page → redirect to settings/general, logs page split into
-  // subpages, protocol tabs moved out of /endpoint). Track restoration as
-  // a follow-up once the new nav structure stabilises.
-  testIgnore: [
-    "**/analytics-tabs.spec.ts",
-    "**/memory-settings.spec.ts",
-    "**/protocol-visibility.spec.ts",
-    "**/resilience-plan-alignment.spec.ts",
-    "**/settings-toggles.spec.ts",
-    "**/skills-marketplace.spec.ts",
-  ],
   fullyParallel: false,
   // Per-test cap. 600s was high enough that one hung test (× retries) could
   // exhaust the e2e job's wall-clock budget, so the GitHub job hit its

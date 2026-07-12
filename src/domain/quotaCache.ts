@@ -17,7 +17,12 @@ import { getUsageForProvider } from "@omniroute/open-sse/services/usage.ts";
 import { getProviderConnectionById, resolveProxyForConnection } from "@/lib/localDb";
 import { runWithProxyContext } from "@omniroute/open-sse/utils/proxyFetch.ts";
 import { safePercentage } from "@/shared/utils/formatting";
-import { saveQuotaSnapshot, cleanupOldSnapshots } from "@/lib/db/quotaSnapshots";
+import {
+  saveQuotaSnapshot,
+  cleanupOldSnapshots,
+  getLatestQuotaSnapshotsForConnection,
+} from "@/lib/db/quotaSnapshots";
+import { recordProviderQuotaResetEventIfChanged } from "@/lib/db/quotaResetEvents";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -156,6 +161,34 @@ function earliestResetAt(quotas: Record<string, QuotaInfo>): string | null {
   return earliest;
 }
 
+/**
+ * #4438 — Decide whether a quota snapshot row is worth persisting.
+ *
+ * The background refresh ticks every 60s for ALL connections, so idle accounts
+ * (whose quota never changes) were generating 400K+ identical snapshot rows/day.
+ * Returns true only when this window has no prior cached observation, or when its
+ * `remaining_percentage` / `is_exhausted` differs from the last cached entry — so
+ * the first observation and every real change persist, but idle no-op refreshes
+ * stop writing. Pure (no I/O) for trivial unit testing.
+ */
+export function quotaSnapshotChanged(
+  prior:
+    | { quotas?: Record<string, { remainingPercentage: number }>; exhausted?: boolean }
+    | null
+    | undefined,
+  windowKey: string,
+  remainingPercentage: number,
+  exhausted: boolean
+): boolean {
+  if (!prior) return true;
+  const priorWindow = prior.quotas?.[windowKey];
+  if (!priorWindow) return true;
+  return (
+    priorWindow.remainingPercentage !== remainingPercentage ||
+    (prior.exhausted ?? false) !== exhausted
+  );
+}
+
 function normalizeQuotas(rawQuotas: Record<string, any>): Record<string, QuotaInfo> {
   const result: Record<string, QuotaInfo> = {};
   for (const [key, q] of Object.entries(rawQuotas)) {
@@ -183,6 +216,9 @@ export function setQuotaCache(
 ) {
   const quotas = normalizeQuotas(rawQuotas);
   const exhausted = isExhausted(quotas);
+  // #4438 — capture the prior entry BEFORE overwriting the cache so we can skip
+  // redundant snapshot writes for idle connections whose quota didn't change.
+  const prior = cache.get(connectionId);
   const entry: QuotaCacheEntry = {
     connectionId,
     provider,
@@ -201,13 +237,33 @@ export function setQuotaCache(
         (quotaInfo.total > 0
           ? Math.round(((quotaInfo.total - (quotaInfo.used || 0)) / quotaInfo.total) * 100)
           : 0);
+      recordProviderQuotaResetEventIfChanged({
+        provider,
+        connectionId,
+        windowKey,
+        currentResetAt: quotaInfo.resetAt ?? null,
+        currentRemainingPercentage: remainingPercentage,
+        previousObservation: prior?.quotas?.[windowKey]
+          ? {
+              resetAt: prior.quotas[windowKey].resetAt,
+              remainingPercentage: prior.quotas[windowKey].remainingPercentage,
+            }
+          : null,
+      });
+      // #5923 (Finding #5) — is_exhausted must reflect THIS window's own remaining
+      // percentage, not the connection-wide AND-across-all-windows aggregate
+      // (`entry.exhausted`). A connection with one 0% window and other non-zero
+      // windows previously never flagged that window's row as exhausted.
+      const windowExhausted = remainingPercentage <= 0;
+      // #4438 — only persist on the first observation or a real change.
+      if (!quotaSnapshotChanged(prior, windowKey, remainingPercentage, windowExhausted)) continue;
       try {
         saveQuotaSnapshot({
           provider,
           connection_id: connectionId,
           window_key: windowKey,
           remaining_percentage: remainingPercentage,
-          is_exhausted: entry.exhausted ? 1 : 0,
+          is_exhausted: windowExhausted ? 1 : 0,
           next_reset_at: quotaInfo.resetAt ?? null,
           window_duration_ms: entry.windowDurationMs ?? null,
           raw_data: null,
@@ -226,12 +282,73 @@ export function getQuotaCache(connectionId: string): QuotaCacheEntry | null {
   return cache.get(connectionId) || null;
 }
 
+function hydrateQuotaCacheFromSnapshots(connectionId: string): QuotaCacheEntry | null {
+  if (cache.has(connectionId)) return cache.get(connectionId) || null;
+
+  let snapshots;
+  try {
+    snapshots = getLatestQuotaSnapshotsForConnection(connectionId);
+  } catch {
+    return null;
+  }
+  if (!snapshots.length) return null;
+
+  const quotas: Record<string, QuotaInfo> = {};
+  let provider = "";
+  let fetchedAt = 0;
+  let exhausted = false;
+  let windowDurationMs: number | null = null;
+
+  for (const snapshot of snapshots) {
+    const camelSnapshot = snapshot as unknown as {
+      windowKey?: string;
+      remainingPercentage?: number | null;
+      isExhausted?: number;
+      nextResetAt?: string | null;
+      windowDurationMs?: number | null;
+      createdAt?: string;
+    };
+    const windowKey = camelSnapshot.windowKey ?? snapshot.window_key;
+    if (!windowKey) continue;
+    provider = provider || snapshot.provider || "";
+    quotas[windowKey] = {
+      remainingPercentage: clampPercent(
+        Number(camelSnapshot.remainingPercentage ?? snapshot.remaining_percentage ?? 0)
+      ),
+      resetAt: camelSnapshot.nextResetAt ?? snapshot.next_reset_at ?? null,
+    };
+    exhausted = exhausted || (camelSnapshot.isExhausted ?? snapshot.is_exhausted) === 1;
+    const snapshotWindowDurationMs =
+      camelSnapshot.windowDurationMs ?? snapshot.window_duration_ms ?? null;
+    if (snapshotWindowDurationMs && snapshotWindowDurationMs > 0) {
+      windowDurationMs = snapshotWindowDurationMs;
+    }
+    const createdAtVal = camelSnapshot.createdAt ?? snapshot.created_at;
+    const createdAtMs = createdAtVal ? parseDate(createdAtVal) : null;
+    if (createdAtMs !== null) fetchedAt = Math.max(fetchedAt, createdAtMs);
+  }
+
+  if (Object.keys(quotas).length === 0) return null;
+
+  const entry: QuotaCacheEntry = {
+    connectionId,
+    provider,
+    quotas,
+    fetchedAt: fetchedAt || Date.now(),
+    exhausted,
+    nextResetAt: exhausted ? earliestResetAt(quotas) : null,
+    windowDurationMs,
+  };
+  cache.set(connectionId, entry);
+  return entry;
+}
+
 /**
  * Check if an account's quota is exhausted based on cached data.
  * Returns false if no cache entry exists (unknown = assume available).
  */
 export function isAccountQuotaExhausted(connectionId: string): boolean {
-  const entry = cache.get(connectionId);
+  const entry = cache.get(connectionId) || hydrateQuotaCacheFromSnapshots(connectionId);
   if (!entry) return false;
   if (!entry.exhausted) return false;
 
@@ -263,7 +380,7 @@ export function getQuotaWindowStatus(
   windowName: string,
   thresholdPercent = DEFAULT_QUOTA_THRESHOLD_PERCENT
 ): QuotaWindowStatus | null {
-  const entry = cache.get(connectionId);
+  const entry = cache.get(connectionId) || hydrateQuotaCacheFromSnapshots(connectionId);
   if (!entry) return null;
 
   const now = Date.now();

@@ -8,6 +8,8 @@
 // matching `EngineConfigPage` / `CompressionHub`, both of which hydrate cleanly.
 
 import { useEffect, useState } from "react";
+import { STACKED_PIPELINE_ENGINE_INTENSITIES } from "@/shared/validation/compressionConfigSchemas";
+import { CompressionPipelineEditor } from "@/shared/components/compression/CompressionPipelineEditor";
 import CompressionHub from "./CompressionHub";
 
 type PipelineStep = { engine: string; intensity?: string };
@@ -29,17 +31,9 @@ const EMPTY_PIPELINE: PipelineStep[] = [
   { engine: "caveman", intensity: "full" },
 ];
 
-const ENGINE_INTENSITIES: Record<string, string[]> = {
-  rtk: ["minimal", "standard", "aggressive"],
-  caveman: ["lite", "full", "ultra"],
-  lite: ["lite"],
-  aggressive: ["standard"],
-  ultra: ["ultra"],
-  headroom: ["standard"],
-  "session-dedup": ["standard"],
-  ccr: ["standard"],
-  llmlingua: ["standard"],
-};
+// Engine list is sourced from the API schema so the dropdown can never offer an engine
+// the `PUT /api/context/combos/[id]` route would reject with HTTP 400 (#4955).
+const ENGINE_INTENSITIES: Record<string, readonly string[]> = STACKED_PIPELINE_ENGINE_INTENSITIES;
 
 function NamedCombosManager() {
   const [combos, setCombos] = useState<CompressionCombo[]>([]);
@@ -54,6 +48,8 @@ function NamedCombosManager() {
   const [outputModeIntensity, setOutputModeIntensity] = useState("full");
   const [assignmentIds, setAssignmentIds] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
+  const [activeComboId, setActiveComboId] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   const refresh = () => {
     fetch("/api/context/combos")
@@ -72,6 +68,10 @@ function NamedCombosManager() {
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => setLanguagePacks(Array.isArray(data?.packs) ? data.packs : []))
       .catch(() => {});
+    fetch("/api/settings/compression")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => setActiveComboId(data?.activeComboId ?? null))
+      .catch(() => {});
   }, []);
 
   const resetForm = () => {
@@ -83,6 +83,7 @@ function NamedCombosManager() {
     setOutputMode(false);
     setOutputModeIntensity("full");
     setAssignmentIds([]);
+    setError(null);
   };
 
   const loadAssignments = async (id: string) => {
@@ -107,7 +108,15 @@ function NamedCombosManager() {
 
   const saveCombo = async () => {
     const trimmed = name.trim();
-    if (!trimmed) return;
+    if (!trimmed) {
+      setError("Enter a combo name before saving.");
+      return;
+    }
+    if (pipeline.length === 0) {
+      setError("Add at least one pipeline step before saving.");
+      return;
+    }
+    setError(null);
     setSaving(true);
     try {
       const payload = {
@@ -126,7 +135,11 @@ function NamedCombosManager() {
           body: JSON.stringify(payload),
         }
       );
-      if (!res.ok) return;
+      if (!res.ok) {
+        const body = await res.json().catch(() => null);
+        setError(body?.error || `Failed to save combo (HTTP ${res.status}).`);
+        return;
+      }
       const combo = await res.json();
       await fetch(`/api/context/combos/${combo.id}/assignments`, {
         method: "PUT",
@@ -144,29 +157,6 @@ function NamedCombosManager() {
     if (!confirm(`Delete combo "${combo.name}"?`)) return;
     const res = await fetch(`/api/context/combos/${combo.id}`, { method: "DELETE" });
     if (res.ok) refresh();
-  };
-
-  const setDefault = async (id: string) => {
-    const res = await fetch(`/api/context/combos/${id}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ isDefault: true }),
-    });
-    if (res.ok) refresh();
-  };
-
-  const updateStep = (index: number, patch: Partial<PipelineStep>) => {
-    setPipeline((current) =>
-      current.map((step, stepIndex) => {
-        if (stepIndex !== index) return step;
-        const next = { ...step, ...patch };
-        const allowed = ENGINE_INTENSITIES[next.engine] ?? ["standard"];
-        return {
-          ...next,
-          intensity: allowed.includes(next.intensity ?? "") ? next.intensity : allowed[0],
-        };
-      })
-    );
   };
 
   const togglePack = (language: string, enabled: boolean) => {
@@ -208,51 +198,12 @@ function NamedCombosManager() {
           />
         </div>
 
-        <div className="mt-4 space-y-3">
-          <div className="flex items-center justify-between">
-            <h3 className="text-sm font-semibold text-text-main">Pipeline</h3>
-            <button
-              onClick={() =>
-                setPipeline((current) => [...current, { engine: "caveman", intensity: "full" }])
-              }
-              className="rounded-lg border border-border px-3 py-1.5 text-xs text-text-main"
-            >
-              Add step
-            </button>
-          </div>
-          {pipeline.map((step, index) => (
-            <div key={index} className="grid grid-cols-[1fr_1fr_auto] gap-2">
-              <select
-                value={step.engine}
-                onChange={(event) => updateStep(index, { engine: event.target.value })}
-                className="rounded-lg border border-border bg-bg px-3 py-2 text-sm text-text-main"
-              >
-                {Object.keys(ENGINE_INTENSITIES).map((engine) => (
-                  <option key={engine} value={engine}>
-                    {engine}
-                  </option>
-                ))}
-              </select>
-              <select
-                value={step.intensity ?? ""}
-                onChange={(event) => updateStep(index, { intensity: event.target.value })}
-                className="rounded-lg border border-border bg-bg px-3 py-2 text-sm text-text-main"
-              >
-                {(ENGINE_INTENSITIES[step.engine] ?? ["standard"]).map((intensity) => (
-                  <option key={intensity} value={intensity}>
-                    {intensity}
-                  </option>
-                ))}
-              </select>
-              <button
-                onClick={() => setPipeline((current) => current.filter((_, i) => i !== index))}
-                className="rounded-lg border border-border px-3 py-2 text-sm text-text-main"
-                disabled={pipeline.length <= 1}
-              >
-                Remove
-              </button>
-            </div>
-          ))}
+        <div className="mt-4">
+          <CompressionPipelineEditor
+            steps={pipeline}
+            onChange={setPipeline}
+            engineIntensities={ENGINE_INTENSITIES}
+          />
         </div>
 
         <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-3">
@@ -319,6 +270,12 @@ function NamedCombosManager() {
           </div>
         </div>
 
+        {error && (
+          <p className="mt-4 text-sm text-danger" role="alert">
+            {error}
+          </p>
+        )}
+
         <div className="mt-4 flex flex-wrap gap-2">
           <button
             onClick={saveCombo}
@@ -346,9 +303,12 @@ function NamedCombosManager() {
                 <h3 className="truncate text-base font-semibold text-text-main">{combo.name}</h3>
                 <p className="mt-1 text-sm text-text-muted">{combo.description}</p>
               </div>
-              {combo.isDefault && (
-                <span className="rounded-full bg-primary/10 px-2 py-1 text-xs font-medium text-primary">
-                  Default
+              {combo.id === activeComboId && (
+                <span
+                  data-testid={`active-badge-${combo.id}`}
+                  className="rounded-full bg-green-500/10 px-2 py-1 text-xs font-medium text-green-500"
+                >
+                  ● Active
                 </span>
               )}
             </div>
@@ -373,14 +333,6 @@ function NamedCombosManager() {
               >
                 Edit
               </button>
-              {!combo.isDefault && (
-                <button
-                  onClick={() => setDefault(combo.id)}
-                  className="rounded-lg border border-border px-3 py-1.5 text-xs text-text-main"
-                >
-                  Set as default
-                </button>
-              )}
               {!combo.isDefault && (
                 <button
                   onClick={() => deleteCombo(combo)}

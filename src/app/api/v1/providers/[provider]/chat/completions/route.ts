@@ -3,8 +3,13 @@ import { initTranslators } from "@omniroute/open-sse/translator/index.ts";
 import { errorResponse } from "@omniroute/open-sse/utils/error.ts";
 import { HTTP_STATUS } from "@omniroute/open-sse/config/constants.ts";
 import { getRegistryEntry } from "@omniroute/open-sse/config/providerRegistry.ts";
-import { providerChatCompletionSchema } from "@/shared/validation/schemas";
-import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
+import { z } from "zod";
+
+const providerChatBodySchema = z
+  .object({
+    model: z.string().optional(),
+  })
+  .passthrough();
 
 let initialized = false;
 
@@ -30,6 +35,7 @@ export async function OPTIONS() {
 /**
  * POST /v1/providers/{provider}/chat/completions
  * Routes to the specified provider, validating model/provider match.
+ * Full body format validation is delegated to handleChat.
  */
 export async function POST(request, { params }) {
   const { provider: rawProvider } = await params;
@@ -45,18 +51,27 @@ export async function POST(request, { params }) {
 
   await ensureInitialized();
 
-  // Clone request with provider-prefixed model
-  let rawBody;
+  // Parse body once so this provider-scoped route can normalize the model prefix
+  // before delegating full chat-format validation to handleChat.
+  let rawBody: unknown;
   try {
     rawBody = await request.json();
   } catch {
     return errorResponse(HTTP_STATUS.BAD_REQUEST, "Invalid JSON body");
   }
-  const validation = validateBody(providerChatCompletionSchema, rawBody);
-  if (isValidationFailure(validation)) {
-    return errorResponse(HTTP_STATUS.BAD_REQUEST, validation.error.message);
+
+  const bodyValidation = providerChatBodySchema.safeParse(rawBody);
+  if (!bodyValidation.success) {
+    const hasModelTypeError = bodyValidation.error.issues.some(
+      (issue) => issue.path.join(".") === "model" && issue.code === "invalid_type"
+    );
+    if (hasModelTypeError) {
+      return errorResponse(HTTP_STATUS.BAD_REQUEST, "model must be a string");
+    }
+    return errorResponse(HTTP_STATUS.BAD_REQUEST, "Request body must be a JSON object");
   }
-  const body = validation.data;
+
+  const body = bodyValidation.data;
 
   // Validate model belongs to this provider
   if (body.model) {

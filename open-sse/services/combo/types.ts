@@ -44,6 +44,7 @@ export type ComboLogger = {
 export type SingleModelTarget =
   | (ResolvedComboTarget & {
       allowRateLimitedConnection?: boolean;
+      effectiveComboStrategy?: string | null;
       modelAbortSignal?: AbortSignal | null;
     })
   | { modelAbortSignal: AbortSignal };
@@ -62,7 +63,18 @@ export type IsModelAvailable = (
 export type ComboRelayOptions = {
   sessionId?: string | null;
   config?: Record<string, unknown> | null;
+  bypassProviderQuotaPolicy?: boolean;
   [key: string]: unknown;
+};
+
+export type NestedComboMode = "flatten" | "execute";
+
+export type ComboNestingContext = {
+  depth: number;
+  maxDepth: number;
+  visitedComboNames: string[];
+  rootComboName: string;
+  attemptBudget: { count: number; limit: number };
 };
 
 export type HandleComboChatOptions = {
@@ -76,6 +88,7 @@ export type HandleComboChatOptions = {
   relayOptions?: ComboRelayOptions | null;
   signal?: AbortSignal | null;
   apiKeyAllowedConnections?: string[] | null;
+  nesting?: ComboNestingContext | null;
 };
 
 export type HandleRoundRobinOptions = Omit<
@@ -88,6 +101,9 @@ export type HistoricalLatencyStatsEntry = {
   p95LatencyMs?: number;
   latencyStdDev?: number;
   successRate?: number;
+  avgTtftMs?: number | null;
+  avgE2ELatencyMs?: number;
+  avgTokensPerSecond?: number | null;
 };
 
 export type AutoProviderCandidate = ProviderCandidate & {
@@ -101,6 +117,22 @@ export type AutoProviderCandidate = ProviderCandidate & {
    * for the key routed through this target's connectionId.
    */
   quotaSoftPenalty?: boolean;
+  /** True when provider-account quota preflight cutoff says this candidate must not be routed. */
+  quotaCutoffBlocked?: boolean;
+  /** Diagnostic reason for quotaCutoffBlocked. */
+  quotaCutoffReason?: string;
+  /**
+   * #4540: True when this candidate's connection is in a terminal/transient
+   * unavailable status (credits_exhausted / rate_limited / banned / expired /
+   * future-dated unavailable) but the quota-preflight HARD cutoff is OFF (default).
+   * In that case the candidate is NOT hard-blocked — instead its auto-combo score
+   * is multiplied by STATUS_SOFT_DEPRIORITIZE_FACTOR so an exhausted provider ranks
+   * strictly below an otherwise-identical healthy one, without emitting a misleading
+   * "below quota cutoff" 429. Set by buildAutoCandidates from the connection testStatus.
+   */
+  statusPenalty?: boolean;
+  /** Diagnostic reason for statusPenalty (the connection testStatus that triggered it). */
+  statusPenaltyReason?: string;
 };
 
 export type ResolvedComboTarget = {
@@ -126,13 +158,15 @@ export type ShadowRoutingConfig = {
   timeoutMs: number;
 };
 
-export type ComboRuntimeStep =
-  | ResolvedComboTarget
-  | {
-      kind: "combo-ref";
-      stepId: string;
-      executionKey: string;
-      comboName: string;
-      weight: number;
-      label: string | null;
-    };
+export type ResolvedComboRefTarget = {
+  kind: "combo-ref";
+  stepId: string;
+  executionKey: string;
+  comboName: string;
+  weight: number;
+  label: string | null;
+};
+
+export type ResolvedComboUnit = ResolvedComboTarget | ResolvedComboRefTarget;
+
+export type ComboRuntimeStep = ResolvedComboUnit;

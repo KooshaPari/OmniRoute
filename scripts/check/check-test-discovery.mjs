@@ -53,18 +53,33 @@ export const COLLECTORS = [
   // "vitest" e explodem no node runner). Subdir novo: adicione aqui E nos scripts
   // (o drift-check + o gate de órfãos forçam a manutenção em sincronia).
   {
-    glob: "tests/unit/{api,auth,authz,build,cli,cli-helper,combo,compression,correctness,cors,dashboard,db,db-adapters,docs,gamification,guardrails,lib,mcp,runtime,security,services,settings,shared,ui}/**/*.test.ts",
+    glob: "tests/unit/{api,auth,authz,build,cli,cli-helper,combo,compression,correctness,cors,dashboard,db,db-adapters,docs,gamification,guardrails,lib,mcp,memory,runtime,security,services,settings,shared,ui,usage}/**/*.test.ts",
     sources: ["package.json", ".github/workflows/ci.yml"],
   },
   // Node native runner — test:integration (top-level only; tests/integration/services/ NÃO roda)
   { glob: "tests/integration/*.test.ts", sources: ["package.json"] },
+  // Node native runner — test:combo:matrix / test:integration (combo strategy decision matrix, 17 strategies)
+  { glob: "tests/integration/combo-matrix/*.test.ts", sources: ["package.json"] },
+  // Node native runner — test:combo:live (gated real-upstream smoke; RUN_COMBO_LIVE=1 + VPS creds)
+  { glob: "tests/integration/combo-live/*.live.test.ts", sources: ["package.json"] },
   // Node native runner — test:system
   { glob: "tests/e2e/system-failover.test.ts", sources: ["package.json"] },
+  { glob: "tests/e2e/selfHealing.test.ts", sources: ["package.json"] },
   // vitest.mcp.config.ts — test:vitest
   { glob: "open-sse/mcp-server/__tests__/**/*.test.ts", sources: ["vitest.mcp.config.ts"] },
+  { glob: "open-sse/executors/__tests__/**/*.test.ts", sources: ["vitest.mcp.config.ts"] },
+  { glob: "open-sse/handlers/**/__tests__/**/*.test.ts", sources: ["vitest.mcp.config.ts"] },
   { glob: "open-sse/services/autoCombo/__tests__/**/*.test.ts", sources: ["vitest.mcp.config.ts"] },
+  { glob: "open-sse/services/combo/__tests__/**/*.test.ts", sources: ["vitest.mcp.config.ts"] },
+  { glob: "open-sse/services/__tests__/**/*.test.ts", sources: ["vitest.mcp.config.ts"] },
+  { glob: "open-sse/translator/helpers/__tests__/**/*.test.ts", sources: ["vitest.mcp.config.ts"] },
+  { glob: "src/app/api/**/__tests__/**/*.test.ts", sources: ["vitest.mcp.config.ts"] },
+  { glob: "src/lib/db/__tests__/**/*.test.ts", sources: ["vitest.mcp.config.ts"] },
+  { glob: "src/lib/resilience/__tests__/**/*.test.ts", sources: ["vitest.mcp.config.ts"] },
+  { glob: "src/shared/utils/*.test.ts", sources: ["vitest.mcp.config.ts"] },
   { glob: "tests/unit/autoCombo/**/*.test.ts", sources: ["vitest.mcp.config.ts"] },
   { glob: "tests/unit/encryption.spec.ts", sources: ["vitest.mcp.config.ts"] },
+  { glob: "tests/unit/transformer/**/*.test.ts", sources: ["vitest.mcp.config.ts"] },
   { glob: "src/shared/components/**/*.test.tsx", sources: ["vitest.mcp.config.ts"] },
   { glob: "src/shared/hooks/__tests__/**/*.test.tsx", sources: ["vitest.mcp.config.ts"] },
   { glob: "src/app/(dashboard)/**/__tests__/**/*.test.tsx", sources: ["vitest.mcp.config.ts"] },

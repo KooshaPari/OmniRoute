@@ -49,11 +49,11 @@ export const CLI_FINGERPRINTS: Record<string, CliFingerprint> = {
       "instructions",
       "store",
       "reasoning",
+      "prompt_cache_key",
       "tools",
       "tool_choice",
       "include",
       "service_tier",
-      "prompt_cache_key",
       "client_metadata",
       "parallel_tool_calls",
       "metadata",
@@ -197,19 +197,6 @@ export const CLI_FINGERPRINTS: Record<string, CliFingerprint> = {
       "enabledCreditTypes",
     ],
     userAgent: getAntigravityUserAgent,
-  },
-  "gemini-cli": {
-    headerOrder: [
-      "Host",
-      "Content-Type",
-      "User-Agent",
-      "X-Goog-Api-Client",
-      "Accept",
-      "Accept-Encoding",
-      "Connection",
-      "Authorization",
-    ],
-    bodyFieldOrder: ["model", "project", "user_prompt_id", "request"],
   },
   qwen: {
     headerOrder: [

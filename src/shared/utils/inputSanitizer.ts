@@ -25,8 +25,14 @@ const INJECTION_PATTERNS = [
   },
   {
     name: "system_prompt_leak",
+    // #4041: require a system/initial/hidden/original qualifier before prompt|instructions.
+    // The old pattern matched a bare "instructions" after reveal/show/display/etc, so it
+    // tripped `high` on essentially all coding-agent traffic ("show the instructions",
+    // "display your instructions"), making the always-on guard a hot-path false-positive.
+    // Real leak attempts ("reveal your system prompt", "print the initial prompt") still
+    // match, and qualified instruction leaks ("display your system instructions") now do too.
     pattern:
-      /\b(reveals?|shows?|displays?|prints?|outputs?|repeats?)\s+((your|the)\s+)?(system\s+prompt|instructions?|initial\s+prompt|hidden\s+prompt)/i,
+      /\b(reveals?|shows?|displays?|prints?|outputs?|repeats?)\s+((your|the)\s+)?(system|initial|hidden|original)\s+(prompt|instructions?)/i,
     severity: "high",
   },
   {
@@ -56,8 +62,8 @@ const INJECTION_PATTERNS = [
  * latency/GC source. Injection directives sit near the top of a prompt, so
  * scanning hundreds of KB of pasted code / RAG context buys only CPU. We bound
  * the scan to the first 16 KB (generous: real directives are far shorter) before
- * the regex loop. The 10 MB body-size cap that protects ingestion lives
- * elsewhere; this constant only bounds the regex scan. Refs #3932 / #4041.
+ * the regex loop. The body-size caps that protect ingestion live elsewhere;
+ * this constant only bounds the regex scan. Refs #3932 / #4041.
  */
 export const MAX_INJECTION_SCAN_BYTES = 16 * 1024;
 
@@ -131,13 +137,18 @@ function getConfig() {
 function extractMessageContents(body) {
   const contents = [];
 
-  const messages = body.messages || body.input || [];
+  const messageSource = body.messages !== undefined ? body.messages : body.input;
+  const messages = Array.isArray(messageSource)
+    ? messageSource
+    : messageSource === undefined || messageSource === null
+      ? []
+      : [messageSource];
   for (const msg of messages) {
     if (typeof msg === "string") {
       contents.push(msg);
-    } else if (typeof msg.content === "string") {
+    } else if (msg && typeof msg.content === "string") {
       contents.push(msg.content);
-    } else if (Array.isArray(msg.content)) {
+    } else if (msg && Array.isArray(msg.content)) {
       for (const part of msg.content) {
         if (typeof part === "string") {
           contents.push(part);
@@ -294,7 +305,12 @@ export function sanitizeRequest(body, logger = console) {
  */
 function redactBody(body) {
   const clone = JSON.parse(JSON.stringify(body));
-  const messages = clone.messages || clone.input || [];
+  const messageSource = clone.messages !== undefined ? clone.messages : clone.input;
+  const messages = Array.isArray(messageSource)
+    ? messageSource
+    : messageSource && typeof messageSource === "object"
+      ? [messageSource]
+      : [];
 
   for (const msg of messages) {
     if (typeof msg.content === "string") {

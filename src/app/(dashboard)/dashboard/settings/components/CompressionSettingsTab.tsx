@@ -5,7 +5,6 @@ import { Card, Button } from "@/shared/components";
 import { useTranslations } from "next-intl";
 import CompressionTokenSaverCard, {
   type CompressionTokenSaverConfig,
-  type CompressionTokenSaverPatch,
 } from "./CompressionTokenSaverCard";
 
 type CompressionMode = "off" | "lite" | "standard" | "aggressive" | "ultra" | "rtk" | "stacked";
@@ -66,6 +65,7 @@ interface CompressionConfig extends CompressionTokenSaverConfig {
   autoTriggerTokens: number;
   cacheMinutes: number;
   preserveSystemPrompt: boolean;
+  preserveSystemPromptMode?: "always" | "whenNoCache" | "never";
   mcpDescriptionCompressionEnabled?: boolean;
   comboOverrides: Record<string, CompressionMode>;
   cavemanConfig?: CavemanConfig;
@@ -227,48 +227,6 @@ export default function CompressionSettingsTab() {
     }
   };
 
-  const saveTokenSaver = async (updates: CompressionTokenSaverPatch) => {
-    const nextUpdates: Partial<CompressionConfig> = {};
-
-    if (typeof updates.enabled === "boolean") {
-      nextUpdates.enabled = updates.enabled;
-    }
-
-    if (updates.cavemanConfig) {
-      nextUpdates.cavemanConfig = {
-        ...(config.cavemanConfig ?? {
-          enabled: true,
-          compressRoles: ["user"],
-          skipRules: [],
-          minMessageLength: 50,
-          preservePatterns: [],
-          intensity: "full",
-        }),
-        ...updates.cavemanConfig,
-      };
-    }
-
-    if (updates.cavemanOutputMode) {
-      nextUpdates.cavemanOutputMode = {
-        ...(config.cavemanOutputMode ?? {
-          enabled: false,
-          intensity: "full",
-          autoClarity: true,
-        }),
-        ...updates.cavemanOutputMode,
-      };
-    }
-
-    if (updates.rtkConfig) {
-      nextUpdates.rtkConfig = {
-        ...(config.rtkConfig ?? { enabled: true, intensity: "standard" }),
-        ...updates.rtkConfig,
-      };
-    }
-
-    await save(nextUpdates);
-  };
-
   const toggleCavemanRole = (role: "user" | "assistant" | "system") => {
     const currentRoles = config.cavemanConfig?.compressRoles ?? ["user"];
     const newRoles = currentRoles.includes(role)
@@ -322,7 +280,7 @@ export default function CompressionSettingsTab() {
       </div>
 
       <div className="space-y-6">
-        <CompressionTokenSaverCard config={config} saving={saving} onSave={saveTokenSaver} />
+        <CompressionTokenSaverCard config={config} />
 
         {config.enabled && (
           <div className="space-y-3">
@@ -415,18 +373,26 @@ export default function CompressionSettingsTab() {
 
             <label className="flex items-center justify-between">
               <span className="text-sm text-text-muted">{t("compressionPreserveSystem")}</span>
-              <button
-                onClick={() => save({ preserveSystemPrompt: !config.preserveSystemPrompt })}
-                className={`relative w-10 h-5 rounded-full transition-colors ${
-                  config.preserveSystemPrompt ? "bg-green-500" : "bg-border"
-                }`}
+              <select
+                value={
+                  config.preserveSystemPromptMode ??
+                  (config.preserveSystemPrompt === false ? "whenNoCache" : "always")
+                }
+                onChange={(e) =>
+                  save({
+                    preserveSystemPromptMode: e.target.value as
+                      | "always"
+                      | "whenNoCache"
+                      | "never",
+                  })
+                }
+                className="w-36 px-2 py-1 text-sm rounded border border-border bg-surface text-text-main"
+                data-testid="preserve-system-mode-select"
               >
-                <span
-                  className={`absolute top-0.5 w-4 h-4 rounded-full bg-white transition-transform ${
-                    config.preserveSystemPrompt ? "left-5" : "left-0.5"
-                  }`}
-                />
-              </button>
+                <option value="always">{t("compressionPreserveSystemAlways")}</option>
+                <option value="whenNoCache">{t("compressionPreserveSystemWhenNoCache")}</option>
+                <option value="never">{t("compressionPreserveSystemNever")}</option>
+              </select>
             </label>
 
             <label className="flex items-center justify-between">
@@ -459,38 +425,20 @@ export default function CompressionSettingsTab() {
           config.defaultMode !== "lite" &&
           config.cavemanConfig && (
             <div className="space-y-3 pt-4 border-t border-border/30">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h4 className="text-sm font-medium text-text-main">
-                    {t("compressionCavemanConfig")}
-                  </h4>
-                  <p className="text-xs text-text-muted mt-0.5">
-                    {t("compressionCavemanConfigDesc")}
-                  </p>
-                </div>
-                <button
-                  onClick={() =>
-                    save({
-                      cavemanConfig: {
-                        ...config.cavemanConfig!,
-                        enabled: !config.cavemanConfig!.enabled,
-                      },
-                    })
-                  }
-                  className={`relative w-10 h-5 rounded-full transition-colors ${
-                    config.cavemanConfig.enabled ? "bg-green-500" : "bg-border"
-                  }`}
-                >
-                  <span
-                    className={`absolute top-0.5 w-4 h-4 rounded-full bg-white transition-transform ${
-                      config.cavemanConfig.enabled ? "left-5" : "left-0.5"
-                    }`}
-                  />
-                </button>
+              {/* Engine on/off is owned by the single-source panel (/dashboard/context/settings):
+                  the panel's `engines.caveman.enabled` is authoritative (planResolution.ts). This tab
+                  keeps only the advanced caveman tuning the panel does not expose. */}
+              <div data-testid="caveman-panel-note">
+                <h4 className="text-sm font-medium text-text-main">
+                  {t("compressionCavemanConfig")}
+                </h4>
+                <p className="text-xs text-text-muted mt-0.5">
+                  {t("compressionCavemanConfigDesc")} {t("compressionCavemanPanelHint")}{" "}
+                  <code className="text-text-muted">/dashboard/context/settings</code>
+                </p>
               </div>
 
-              {config.cavemanConfig.enabled && (
-                <>
+              <>
                   <div className="space-y-2">
                     <p className="text-sm text-text-muted">{t("compressionRoles")}</p>
                     <div className="flex flex-wrap gap-2">
@@ -529,27 +477,9 @@ export default function CompressionSettingsTab() {
                     />
                   </label>
 
-                  <label className="flex items-center justify-between">
-                    <span className="text-sm text-text-muted">
-                      {t("compressionSettingsCavemanIntensity")}
-                    </span>
-                    <select
-                      value={config.cavemanConfig.intensity}
-                      onChange={(e) =>
-                        save({
-                          cavemanConfig: {
-                            ...config.cavemanConfig!,
-                            intensity: e.target.value as CavemanIntensity,
-                          },
-                        })
-                      }
-                      className="w-28 px-2 py-1 text-sm rounded border border-border bg-surface text-text-main"
-                    >
-                      <option value="lite">lite</option>
-                      <option value="full">full</option>
-                      <option value="ultra">ultra</option>
-                    </select>
-                  </label>
+                  {/* Caveman intensity (level) is set in the panel
+                      (/dashboard/context/settings); kept out of this tab to avoid a
+                      duplicate level control. */}
 
                   <div className="space-y-2">
                     <p className="text-sm text-text-muted">{t("compressionSkipRules")}</p>
@@ -595,64 +525,21 @@ export default function CompressionSettingsTab() {
                       className="w-full min-h-[80px] px-3 py-2 text-sm rounded-lg border border-border bg-surface text-text-main font-mono resize-y"
                     />
                   </div>
-                </>
-              )}
+              </>
             </div>
           )}
 
         {config.enabled && config.cavemanOutputMode && (
           <div className="space-y-3 pt-4 border-t border-border/30">
-            <div className="flex items-center justify-between">
-              <div>
-                <h4 className="text-sm font-medium text-text-main">
-                  {t("compressionSettingsCavemanOutputMode")}
-                </h4>
-                <p className="text-xs text-text-muted mt-0.5">
-                  Injects terse response instructions without rewriting provider output.
-                </p>
-              </div>
-              <button
-                onClick={() =>
-                  save({
-                    cavemanOutputMode: {
-                      ...config.cavemanOutputMode!,
-                      enabled: !config.cavemanOutputMode!.enabled,
-                    },
-                  })
-                }
-                className={`relative w-10 h-5 rounded-full transition-colors ${
-                  config.cavemanOutputMode.enabled ? "bg-green-500" : "bg-border"
-                }`}
-              >
-                <span
-                  className={`absolute top-0.5 w-4 h-4 rounded-full bg-white transition-transform ${
-                    config.cavemanOutputMode.enabled ? "left-5" : "left-0.5"
-                  }`}
-                />
-              </button>
+            <div>
+              <h4 className="text-sm font-medium text-text-main">
+                {t("compressionSettingsCavemanOutputMode")}
+              </h4>
+              <p className="text-xs text-text-muted mt-0.5">
+                Injects terse response instructions without rewriting provider output. Its on/off
+                and level are set in the panel (/dashboard/context/settings).
+              </p>
             </div>
-
-            <label className="flex items-center justify-between">
-              <span className="text-sm text-text-muted">
-                {t("compressionSettingsOutputIntensity")}
-              </span>
-              <select
-                value={config.cavemanOutputMode.intensity}
-                onChange={(e) =>
-                  save({
-                    cavemanOutputMode: {
-                      ...config.cavemanOutputMode!,
-                      intensity: e.target.value as CavemanIntensity,
-                    },
-                  })
-                }
-                className="w-28 px-2 py-1 text-sm rounded border border-border bg-surface text-text-main"
-              >
-                <option value="lite">lite</option>
-                <option value="full">full</option>
-                <option value="ultra">ultra</option>
-              </select>
-            </label>
 
             <label className="flex items-center justify-between">
               <span className="text-sm text-text-muted">

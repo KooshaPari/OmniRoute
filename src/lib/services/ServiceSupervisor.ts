@@ -24,6 +24,11 @@ export class ServiceSupervisor extends EventEmitter {
 
   constructor(private readonly config: ServiceConfig) {
     super();
+    // Defensive: long-running supervisors can accumulate listeners on internal
+    // child emitters across restart cycles; raise the cap so the MaxListeners
+    // warning doesn't fire spuriously. 50 is well above any realistic internal
+    // listener count (typical: 3-5 per cycle) while still surfacing true leaks.
+    this.setMaxListeners(50);
     this.buffer = new RingBuffer(config.logsBufferBytes);
     this.checker = new HealthChecker(config.healthUrl, config.healthIntervalMs, (h) => {
       this.health = h;

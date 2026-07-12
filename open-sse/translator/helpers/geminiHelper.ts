@@ -1,5 +1,7 @@
 // Gemini helper functions for translator
 
+import { safeParseJSON } from "./jsonUtil.ts";
+
 type JsonRecord = Record<string, unknown>;
 
 // Unsupported JSON Schema constraints that should be removed for Antigravity.
@@ -10,7 +12,14 @@ export const GEMINI_UNSUPPORTED_SCHEMA_KEYS = new Set([
   "maxLength",
   "exclusiveMinimum",
   "exclusiveMaximum",
-  "pattern",
+  // `multipleOf` is not part of the Gemini/antigravity OpenAPI 3.0 schema subset;
+  // leaving it in function_declarations triggers a hard upstream 400
+  // ("Unknown name \"multipleOf\""). `minimum`/`maximum` ARE accepted and kept.
+  "multipleOf",
+  // NOTE: `pattern` is intentionally NOT in this set. Antigravity (Gemini-derived
+  // surface) accepts `pattern` on string constraints, and glob/grep/file-search
+  // tools depend on it to express their argument regex. Removing it produced
+  // upstream 400s and wrong-tool semantics (decolua/9router#1368).
   "minItems",
   "maxItems",
   "format",
@@ -90,6 +99,15 @@ export const DEFAULT_SAFETY_SETTINGS = [
   { category: "HARM_CATEGORY_CIVIC_INTEGRITY", threshold: "OFF" },
 ];
 
+function normalizeAudioMimeType(format: unknown): string {
+  const normalized =
+    typeof format === "string" && format.trim() ? format.trim().toLowerCase() : "wav";
+  if (normalized === "mp3") {
+    return "audio/mpeg";
+  }
+  return `audio/${normalized}`;
+}
+
 // Convert OpenAI content to Gemini parts
 export function convertOpenAIContentToParts(content: unknown): JsonRecord[] {
   const parts: JsonRecord[] = [];
@@ -101,6 +119,30 @@ export function convertOpenAIContentToParts(content: unknown): JsonRecord[] {
       const rec = toRecord(item);
       if (rec.type === "text") {
         parts.push({ text: rec.text });
+      } else if (rec.type === "input_audio" || rec.type === "audio") {
+        const audio = toRecord(rec.input_audio || rec.audio);
+        if (typeof audio.data === "string" && audio.data) {
+          parts.push({
+            inlineData: {
+              mimeType: normalizeAudioMimeType(audio.format),
+              data: audio.data.replace(/^data:[a-zA-Z0-9/+-]+;base64,/, ""),
+            },
+          });
+        }
+      } else if (rec.type === "audio_url") {
+        // OpenAI-style audio_url (data: URI). Mirrors the image_url data-URL
+        // parser below but produces an audio inlineData part (#913).
+        const audioUrl = toRecord(rec.audio_url);
+        const url = typeof audioUrl.url === "string" ? audioUrl.url : "";
+        if (url.startsWith("data:")) {
+          const commaIndex = url.indexOf(",");
+          if (commaIndex !== -1) {
+            const mimePart = url.substring(5, commaIndex); // skip "data:"
+            const data = url.substring(commaIndex + 1);
+            const mimeType = mimePart.split(";")[0] || "audio/wav";
+            parts.push({ inlineData: { mimeType, data } });
+          }
+        }
       } else {
         // 1. Handle Gemini native inline_data injected into OpenAI arrays (e.g. Cherry Studio)
         const geminiInline = toRecord(rec.inline_data || rec.inlineData);
@@ -207,14 +249,9 @@ export function extractTextContent(content: unknown): string {
   return "";
 }
 
-// Try parse JSON safely
+// Try parse JSON safely (null fallback on parse error; re-export keeps legacy API).
 export function tryParseJSON(str: unknown): unknown {
-  if (typeof str !== "string") return str;
-  try {
-    return JSON.parse(str);
-  } catch {
-    return null;
-  }
+  return safeParseJSON(str, null);
 }
 
 // Generate request ID

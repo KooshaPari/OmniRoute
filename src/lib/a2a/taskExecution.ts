@@ -1,64 +1,73 @@
-import type { A2ATask, TaskArtifact } from "./taskManager";
+/**
+ * A2A Skill Handler Registry and Execution
+ */
 
-type TaskManagerLike = {
-  updateTask: (
-    taskId: string,
-    state: "completed" | "failed",
-    artifacts?: Array<{ type: string; content: string }>,
-    message?: string
-  ) => unknown;
-};
+import { A2ATask } from "./taskManager";
 
-type StreamTaskResult = {
-  artifacts: TaskArtifact[];
-  metadata: Record<string, unknown>;
-};
+export interface A2ASkillResult {
+  artifacts: Array<{ type: string; content: string }>;
+  metadata?: Record<string, unknown>;
+}
 
-export type A2ASkillHandler = (task: A2ATask) => Promise<StreamTaskResult>;
+export type A2ASkillHandler = (task: A2ATask) => Promise<A2ASkillResult>;
 
 export const A2A_SKILL_HANDLERS: Record<string, A2ASkillHandler> = {
   "smart-routing": async (task) => {
     const skillModule = await import("./skills/smartRouting");
     return skillModule.executeSmartRouting(task);
   },
+
   "quota-management": async (task) => {
     const skillModule = await import("./skills/quotaManagement");
     return skillModule.executeQuotaManagement(task);
   },
+
   "provider-discovery": async (task) => {
     const skillModule = await import("./skills/providerDiscovery");
     return skillModule.executeProviderDiscovery(task);
   },
+
   "cost-analysis": async (task) => {
     const skillModule = await import("./skills/costAnalysis");
     return skillModule.executeCostAnalysis(task);
   },
+
   "health-report": async (task) => {
     const skillModule = await import("./skills/healthReport");
     return skillModule.executeHealthReport(task);
   },
+
   "list-capabilities": async (task) => {
     const skillModule = await import("./skills/listCapabilities");
     return skillModule.executeListCapabilities(task);
   },
+
+  "agent-dispatch": async (task) => {
+    const skillModule = await import("./skills/agentDispatch");
+    return skillModule.executeAgentDispatch(task);
+  },
+
+  "mint-virtual-key": async (task) => {
+    const skillModule = await import("./skills/mintVirtualKey");
+    return skillModule.executeMintVirtualKey(task);
+  },
 };
 
+/**
+ * Execute an A2A skill task with state management
+ */
 export async function executeA2ATaskWithState(
-  tm: TaskManagerLike,
+  taskManager: any,
   task: A2ATask,
-  handler: (task: A2ATask) => Promise<StreamTaskResult>
-) {
+  handler: A2ASkillHandler
+): Promise<A2ASkillResult> {
   try {
     const result = await handler(task);
-    tm.updateTask(task.id, "completed", result.artifacts);
+    taskManager.updateTask(task.id, "completed", result.artifacts);
     return result;
   } catch (err) {
-    const msg = err instanceof Error ? err.message : String(err);
-    try {
-      tm.updateTask(task.id, "failed", [{ type: "error", content: msg }], msg);
-    } catch {
-      // Task may already be terminal (e.g., cancelled). Preserve original error.
-    }
+    const message = err instanceof Error ? err.message : String(err);
+    taskManager.updateTask(task.id, "failed", [{ type: "error", content: message }], message);
     throw err;
   }
 }

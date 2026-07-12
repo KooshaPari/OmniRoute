@@ -1,5 +1,5 @@
 /**
- * MCP Tool Schemas — Contracts for all 22 core and advanced OmniRoute MCP tools.
+ * MCP Tool Schemas — Contracts for all 23 core and advanced OmniRoute MCP tools.
  *
  * Defines input/output Zod schemas, descriptions, scopes, and audit levels
  * for both essential (Phase 1) and advanced (Phase 2) MCP tools.
@@ -10,33 +10,20 @@
  */
 
 import { z } from "zod";
+import { toolSearchTool } from "./toolSearch.ts";
+import { pickFastestModelTool } from "./pickFastestModel.ts";
 import {
   AUTO_ROUTING_STRATEGY_VALUES,
   ROUTING_STRATEGY_VALUES,
 } from "../../../src/shared/constants/routingStrategies.ts";
 
 // ============ Shared Types ============
-
-export type AuditLevel = "none" | "basic" | "full";
-
-export interface McpToolDefinition<TInput extends z.ZodTypeAny, TOutput extends z.ZodTypeAny> {
-  /** Tool name (MCP identifier) */
-  name: string;
-  /** Human-readable description for AI agents */
-  description: string;
-  /** Zod schema for input validation */
-  inputSchema: TInput;
-  /** Zod schema for output validation */
-  outputSchema: TOutput;
-  /** Required API key scopes */
-  scopes: readonly string[];
-  /** Audit logging level */
-  auditLevel: AuditLevel;
-  /** Phase: 1 = essential, 2 = advanced */
-  phase: 1 | 2;
-  /** Source endpoints on OmniRoute that this tool wraps */
-  sourceEndpoints: readonly string[];
-}
+// AuditLevel + McpToolDefinition live in the leaf ./toolDefinition.ts so that
+// toolSearch.ts can import the type without forming a tools.ts ↔ toolSearch.ts cycle.
+// Re-exported here for backward compatibility (many modules import them from ./tools.ts).
+export type { AuditLevel, McpToolDefinition } from "./toolDefinition.ts";
+import type { McpToolDefinition } from "./toolDefinition.ts";
+export { pickFastestModelInput, pickFastestModelOutput } from "./pickFastestModel.ts";
 
 // ============ Phase 1: Essential Tools (8) ============
 
@@ -459,6 +446,65 @@ export const webSearchTool: McpToolDefinition<typeof webSearchInput, typeof webS
   sourceEndpoints: ["/v1/search"],
 };
 
+// --- Tool 10: omniroute_web_fetch ---
+export const webFetchInput = z.object({
+  url: z
+    .string({ error: "URL is required" })
+    .min(1, "URL is required")
+    .describe("The URL to fetch content from"),
+  provider: z
+    .enum(["firecrawl", "jina-reader", "tavily-search"])
+    .optional()
+    .describe("Specific fetch provider to use (default: first available)"),
+  format: z
+    .enum(["markdown", "html", "links", "screenshot"])
+    .optional()
+    .default("markdown")
+    .describe("Output format for the fetched content"),
+  include_metadata: z
+    .boolean()
+    .optional()
+    .default(false)
+    .describe("Include page metadata (title, description) in the response"),
+  depth: z
+    .number()
+    .int()
+    .min(0)
+    .max(2)
+    .optional()
+    .describe("Crawl depth for Firecrawl (0 = single page, max 2)"),
+  wait_for_selector: z
+    .string()
+    .optional()
+    .describe("CSS selector to wait for before extracting content (Firecrawl only)"),
+});
+
+export const webFetchOutput = z.object({
+  provider: z.string(),
+  url: z.string(),
+  content: z.string(),
+  links: z.array(z.string()),
+  metadata: z
+    .object({
+      title: z.string().nullable(),
+      description: z.string().nullable(),
+    })
+    .nullable(),
+  screenshot_url: z.string().nullable(),
+});
+
+export const webFetchTool: McpToolDefinition<typeof webFetchInput, typeof webFetchOutput> = {
+  name: "omniroute_web_fetch",
+  description:
+    "Fetches and extracts content from a URL using OmniRoute's web fetch gateway. Supports multiple providers (Firecrawl, Jina Reader, Tavily) with automatic failover. Returns the page content as markdown, HTML, links, or screenshot, along with metadata.",
+  inputSchema: webFetchInput,
+  outputSchema: webFetchOutput,
+  scopes: ["execute:search"],
+  auditLevel: "basic",
+  phase: 1,
+  sourceEndpoints: ["/v1/web/fetch"],
+};
+
 // ============ Phase 2: Advanced Tools (8) ============
 
 // --- Tool 9: omniroute_simulate_route ---
@@ -643,7 +689,7 @@ export const testComboTool: McpToolDefinition<typeof testComboInput, typeof test
 
 // --- Tool 14: omniroute_get_provider_metrics ---
 export const getProviderMetricsInput = z.object({
-  provider: z.string().describe("Provider name (e.g., 'claude', 'gemini-cli', 'codex')"),
+  provider: z.string().describe("Provider name (e.g., 'claude', 'antigravity', 'codex')"),
 });
 
 export const getProviderMetricsOutput = z.object({
@@ -1384,10 +1430,10 @@ export const agentSkillsCoverageTool: McpToolDefinition<
   sourceEndpoints: ["/api/agent-skills"],
 };
 
-// ============ Tool Registry ============
+export { toolSearchInput, toolSearchOutput, toolSearchTool } from "./toolSearch.ts";
 
-/** All MCP tool definitions, ordered by phase then name */
 export const MCP_TOOLS = [
+  toolSearchTool,
   getHealthTool,
   listCombosTool,
   getComboMetricsTool,
@@ -1397,6 +1443,7 @@ export const MCP_TOOLS = [
   costReportTool,
   listModelsCatalogTool,
   webSearchTool,
+  webFetchTool,
   simulateRouteTool,
   setBudgetGuardTool,
   setRoutingStrategyTool,
@@ -1421,15 +1468,13 @@ export const MCP_TOOLS = [
   agentSkillsListTool,
   agentSkillsGetTool,
   agentSkillsCoverageTool,
+  pickFastestModelTool,
 ] as const;
 
-/** Essential tools only (Phase 1) */
 export const MCP_ESSENTIAL_TOOLS = MCP_TOOLS.filter((t) => t.phase === 1);
 
-/** Advanced tools only (Phase 2) */
 export const MCP_ADVANCED_TOOLS = MCP_TOOLS.filter((t) => t.phase === 2);
 
-/** Map of tool name → tool definition */
 export const MCP_TOOL_MAP = Object.fromEntries(MCP_TOOLS.map((t) => [t.name, t])) as Record<
   string,
   (typeof MCP_TOOLS)[number]

@@ -6,7 +6,7 @@
  * thinking-capable model into a no-thinking mode purely by *model selection*, the
  * gateway exposes a synthetic catalog id:
  *
- *     claude-3-omniroute-no-thinking/<provider>/<model>
+ *     no-think/<provider>/<model>
  *
  * When such an id arrives on a request we strip the prefix back to the real
  * `<provider>/<model>` and suppress reasoning (`thinking:{type:"disabled"}` for the
@@ -21,7 +21,7 @@
  */
 import { getModelSpec } from "@/shared/constants/modelSpecs";
 
-export const NO_THINKING_PREFIX = "claude-3-omniroute-no-thinking/";
+export const NO_THINKING_PREFIX = "no-think/";
 
 /** True when `modelId` carries the no-thinking gateway prefix. */
 export function isNoThinkingAlias(modelId: unknown): modelId is string {
@@ -102,22 +102,47 @@ export function shouldExposeNoThinkingAlias(model: CatalogModelEntry): boolean {
   if (spec.noThinkingAlias === false) return false;
 
   return (
-    spec.supportsThinking === true &&
-    spec.rejectsThinkingDisabled !== true &&
-    /claude/i.test(name)
+    spec.supportsThinking === true && spec.rejectsThinkingDisabled !== true && /claude/i.test(name)
   );
+}
+
+/**
+ * Normalize the provider prefix inside a qualified model id using an alias→canonical map.
+ * e.g. "cc/claude-opus-4-6" → "claude/claude-opus-4-6" when aliasToCanonical["cc"]="claude".
+ * Ids without a "/" or whose prefix is not in the map are returned unchanged.
+ */
+function normalizeProviderPrefix(
+  qualifiedId: string,
+  aliasToCanonical: Record<string, string>
+): string {
+  const slash = qualifiedId.indexOf("/");
+  if (slash < 0) return qualifiedId;
+  const prefix = qualifiedId.slice(0, slash);
+  const canonical = aliasToCanonical[prefix];
+  return canonical && canonical !== prefix
+    ? `${canonical}${qualifiedId.slice(slash)}`
+    : qualifiedId;
 }
 
 /**
  * Append a no-thinking variant for every eligible model. Returns the original array
  * reference unchanged when nothing is eligible (no allocation in the common case).
+ *
+ * @param aliasToCanonical - When provided, the inner provider prefix of each variant id is
+ *   normalized to its canonical form (e.g. "cc" → "claude"). Pass this when the catalog is
+ *   emitting canonical-prefixed ids so no-think variants stay consistent with the prefix mode.
  */
-export function appendNoThinkingVariants<T extends CatalogModelEntry>(models: T[]): T[] {
+export function appendNoThinkingVariants<T extends CatalogModelEntry>(
+  models: T[],
+  aliasToCanonical?: Record<string, string>
+): T[] {
   if (!Array.isArray(models)) return models;
   const variants: T[] = [];
   for (const model of models) {
     if (!shouldExposeNoThinkingAlias(model)) continue;
-    const aliasId = toNoThinkingAlias(model.id as string);
+    const rawId = model.id as string;
+    const qualifiedId = aliasToCanonical ? normalizeProviderPrefix(rawId, aliasToCanonical) : rawId;
+    const aliasId = toNoThinkingAlias(qualifiedId);
     const variant: T = { ...model, id: aliasId, root: aliasId };
     if (typeof model.name === "string" && model.name) {
       variant.name = `${model.name} (no thinking)`;

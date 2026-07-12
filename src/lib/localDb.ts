@@ -21,6 +21,7 @@ export {
   // Provider Nodes
   getProviderNodes,
   getProviderNodeById,
+  resolveProviderNodeForConnection,
   createProviderNode,
   updateProviderNode,
   deleteProviderNode,
@@ -64,6 +65,7 @@ export {
   getModelUpstreamExtraHeaders,
   getModelIsHidden,
   setModelIsHidden,
+  getHiddenModelsByProvider,
 
   // Synced Available Models
   getSyncedAvailableModels,
@@ -81,6 +83,7 @@ export {
   getCombos,
   getComboById,
   getComboByName,
+  getComboByNameInsensitive,
   createCombo,
   updateCombo,
   reorderCombos,
@@ -89,6 +92,8 @@ export {
 
 export * from "./db/compressionCacheStats";
 export * from "./db/compressionCombos";
+export * from "./db/compressionRunTelemetry";
+export * from "./db/modelContextOverrides";
 
 export {
   // API Keys
@@ -286,12 +291,18 @@ export {
   countBatches,
   getPendingBatches,
   getTerminalBatches,
+  ensureBatchItemCheckpoints,
+  countBatchItemCheckpoints,
+  listBatchItemCheckpoints,
+  markBatchItemProcessing,
+  markBatchItemResult,
+  markBatchItemError,
   deleteBatch,
   deleteCompletedBatches,
 } from "./db/batches";
 
 export type { FileRecord } from "./db/files";
-export type { BatchRecord } from "./db/batches";
+export type { BatchItemCheckpoint, BatchRecord } from "./db/batches";
 
 export type { ModelComboMapping } from "./db/modelComboMappings";
 
@@ -320,6 +331,7 @@ export {
 } from "./db/quotaSnapshots";
 
 export * from "./db/sessionAccountAffinity";
+export * from "./db/quotaResetEvents";
 
 export type { QuotaSnapshotRow, ProviderUtilizationPoint } from "@/shared/types/utilization";
 
@@ -529,7 +541,9 @@ export {
   promoteFreeProxyToPool,
   deleteFreeProxy,
   clearFreeProxiesBySource,
+  pruneStaleFreeProxies,
   getFreeProxyStats,
+  recordFreeProxySync,
 } from "./db/freeProxies";
 
 export type { FreeProxyRecord, FreeProxyStats } from "./db/freeProxies";
@@ -571,6 +585,8 @@ export {
   upsertAllocations,
   listAllocationsForApiKey,
 } from "./db/quotaPools";
+// Quota per-(key, model) caps — Group B Fase 3 #7
+export { getModelCap, listModelCaps, setModelCap, deleteModelCap } from "./db/quotaModelCaps";
 
 export {
   // Quota Groups (B2)

@@ -93,6 +93,11 @@ const IGNORE_FROM_CODE = new Set([
   "PR_BODY",
   // CLI machine-id token opt-out (server-side flag; not user-configurable via .env).
   "OMNIROUTE_DISABLE_CLI_TOKEN",
+  // Gated combo live-smoke harness (scripts/test/_vpsClient.mjs) — override the VPS HTTP
+  // smoke target host/key. Test/CI-only signals with safe defaults
+  // ("http://192.168.0.15:20128" / null), never OmniRoute runtime config (#5151).
+  "COMBO_LIVE_BASE_URL",
+  "COMBO_LIVE_API_KEY",
   // update-notifier opt-out for the CLI binary.
   "OMNIROUTE_NO_UPDATE_NOTIFIER",
   // Headless CLI execution flag for Electron.
@@ -132,6 +137,10 @@ const IGNORE_FROM_CODE = new Set([
   // Test-only opt-out: instructs bin/omniroute.mjs to skip auto-loading the
   // repository .env so isolation tests get a deterministic environment.
   "OMNIROUTE_CLI_SKIP_REPO_ENV",
+  // Eval-harness only: operator-supplied provider credentials JSON read by the
+  // opt-in `npm run eval:compression` CLI (scripts/compression-eval/index.ts).
+  // A dev/ops measurement tool, never OmniRoute runtime config.
+  "OMNIROUTE_EVAL_CREDENTIALS",
   // Build-time only: set by `build:release` (git short SHA) and read by
   // write-build-sha.mjs to stamp dist/BUILD_SHA — injected by the build, never
   // configured by users in .env.
@@ -149,9 +158,15 @@ const IGNORE_FROM_CODE = new Set([
   // XDG standard data directory — set by OS/desktop session, not OmniRoute config.
   // Read by setup-open-code.mjs to locate platform-specific OpenCode data dir.
   "XDG_DATA_HOME",
+  "XDG_RUNTIME_DIR",
+  "TMPDIR",
   // Test-only override: points setup-open-code.mjs at a fixture plugin dir without
   // requiring the real bundled plugin to be built.
   "OMNIROUTE_OPENCODE_PLUGIN_DIR",
+  // Script/test-only switches. These are consumed by focused check or fixture code,
+  // not OmniRoute runtime configuration.
+  "OPENAI_COMPATIBLE_FOO_USER_AGENT",
+  "T11_STRICT",
 ]);
 
 // Vars documented in ENVIRONMENT.md but intentionally absent from .env.example.
@@ -195,6 +210,9 @@ const DOC_ONLY_ALLOWLIST = new Set([
   // Source-code constants referenced in the docs narrative for the local
   // endpoints / route-guard classification (PR-3 in #3932).
   "LOCAL_ONLY_API_PREFIXES",
+  // SQL keyword mentioned in the new VACUUM scheduler docs (#4437).
+  // The check's regex picks up the bare word in description text.
+  "VACUUM",
 ]);
 
 // Vars present in .env.example but intentionally absent from ENVIRONMENT.md.

@@ -5,7 +5,7 @@
  */
 
 export interface ModelSpec {
-  maxOutputTokens: number;
+  maxOutputTokens?: number;
   contextWindow?: number;
   defaultThinkingBudget?: number;
   thinkingBudgetCap?: number;
@@ -26,7 +26,7 @@ export interface ModelSpec {
   // (2026-05-19): "Any request that tries to set a fixed thinking budget gets a 400 error."
   adaptiveThinkingOnly?: boolean;
   // Explicit operator override for the no-thinking gateway alias (Fase 8.1). When unset,
-  // the catalog auto-advertises a `claude-3-omniroute-no-thinking/…` variant for
+  // the catalog auto-advertises a `no-think/…` variant for
   // Claude-family thinking-capable models that honor `disabled`. Set `true` to force the
   // variant on for any other model, or `false` to suppress it. See open-sse/utils/noThinkingAlias.ts.
   noThinkingAlias?: boolean;
@@ -196,6 +196,22 @@ export const MODEL_SPECS: Record<string, ModelSpec> = {
     supportsTools: true,
     supportsVision: true,
     aliases: BEDROCK_CLAUDE_ALIASES("claude-sonnet-4-6", "claude-sonnet-4.6"),
+  },
+
+  // ── Claude Sonnet 5 ─────────────────────────────────────────────
+  "claude-sonnet-5": {
+    // 1M context, 128K max output. Adaptive-thinking-only (manual
+    // budget_tokens / thinking.type:"enabled" return 400; effort-steered);
+    // unlike Fable 5 it still accepts thinking.type:"disabled".
+    maxOutputTokens: 128000,
+    contextWindow: 1000000,
+    defaultThinkingBudget: 32000,
+    thinkingBudgetCap: 120000,
+    supportsThinking: true,
+    supportsTools: true,
+    supportsVision: true,
+    adaptiveThinkingOnly: true,
+    aliases: BEDROCK_CLAUDE_ALIASES("claude-sonnet-5"),
   },
 
   // ── Claude Opus 4.6 ─────────────────────────────────────────────
@@ -457,9 +473,7 @@ export const MODEL_SPECS: Record<string, ModelSpec> = {
   },
 
   // Defaults
-  __default__: {
-    maxOutputTokens: 8192,
-  },
+  __default__: {},
 };
 
 export function getModelSpec(modelId: string): ModelSpec | undefined {
@@ -515,10 +529,12 @@ export function normalizeThinkingForModel<T extends Record<string, unknown>>(
   return body;
 }
 
-export function capMaxOutputTokens(modelId: string, requested?: number): number {
+export function capMaxOutputTokens(modelId: string, requested?: number): number | undefined {
   const spec = getModelSpec(modelId);
-  const cap = spec?.maxOutputTokens ?? MODEL_SPECS.__default__.maxOutputTokens;
-  return requested ? Math.min(requested, cap) : cap;
+  const cap = spec?.maxOutputTokens;
+  const hasRequested = typeof requested === "number" && Number.isFinite(requested);
+  if (typeof cap !== "number") return hasRequested ? requested : undefined;
+  return hasRequested ? Math.min(requested, cap) : cap;
 }
 
 export function getDefaultThinkingBudget(modelId: string): number {

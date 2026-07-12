@@ -14,7 +14,6 @@ import {
 } from "@/shared/constants/upstreamHeaders";
 import { MAX_TIMER_TIMEOUT_MS } from "@/shared/utils/runtimeTimeouts";
 
-
 // ──── Combo Schemas ────
 
 export const comboStepMetaSchema = {
@@ -123,8 +122,29 @@ export const slaRoutingPolicySchema = z
   })
   .strict();
 
+// Feature 4985 — configurable response-body validation for combo routing. A 200 OK whose
+// body fails this predicate fails over to the next target (same path as an HTTP error).
+export const responseValidationSchema = z
+  .object({
+    forbiddenSubstrings: z.array(z.string().min(1).max(500)).max(50).optional(),
+    requiredSubstrings: z.array(z.string().min(1).max(500)).max(50).optional(),
+    minContentLength: z.coerce.number().int().min(0).max(1_000_000).optional(),
+    jsonPathPredicates: z
+      .array(
+        z.object({
+          path: z.string().trim().min(1).max(300),
+          condition: z.enum(["exists", "nonEmpty", "equals", "notEquals"]),
+          value: z.union([z.string().max(1000), z.number(), z.boolean()]).optional(),
+        })
+      )
+      .max(20)
+      .optional(),
+  })
+  .strict();
+
 export const comboRuntimeConfigSchema = z
   .object({
+    responseValidation: responseValidationSchema.optional(),
     strategy: comboStrategySchema.optional(),
     maxRetries: z.coerce.number().int().min(0).max(10).optional(),
     retryDelayMs: z.coerce.number().int().min(0).max(60000).optional(),
@@ -133,6 +153,13 @@ export const comboRuntimeConfigSchema = z
     targetTimeoutMs: z.coerce.number().int().min(0).max(MAX_TIMER_TIMEOUT_MS).optional(),
     concurrencyPerModel: z.coerce.number().int().min(1).max(20).optional(),
     queueTimeoutMs: z.coerce.number().int().min(1000).max(120000).optional(),
+    // #3872: pre-cascade semaphore queue depth (round-robin). 0 = fail over immediately.
+    queueDepth: z.coerce.number().int().min(0).max(100).optional(),
+    // Per-combo sticky round-robin batch size. When unset, handleRoundRobinCombo
+    // falls back to the global `settings.stickyRoundRobinLimit` so the existing
+    // knob still controls the default. 0 clamps to 1 (no batching) upstream.
+    stickyRoundRobinLimit: z.coerce.number().int().min(0).max(1000).optional(),
+    stickyWeightedLimit: z.coerce.number().int().min(0).max(1000).optional(),
     healthCheckEnabled: z.boolean().optional(),
     healthCheckTimeoutMs: z.coerce.number().int().min(100).max(30000).optional(),
     handoffThreshold: z.coerce.number().min(0.5).max(0.94).optional(),
@@ -140,6 +167,7 @@ export const comboRuntimeConfigSchema = z
     handoffProviders: z.array(z.string().trim().min(1).max(100)).max(10).optional(),
     maxMessagesForSummary: z.coerce.number().int().min(5).max(100).optional(),
     maxComboDepth: z.coerce.number().int().min(1).max(10).optional(),
+    nestedComboMode: z.enum(["flatten", "execute"]).optional(),
     trackMetrics: z.boolean().optional(),
     reasoningTokenBufferEnabled: z.boolean().optional(),
     compressionMode: compressionModeSchema.optional(),
@@ -178,29 +206,39 @@ export const comboRuntimeConfigSchema = z
     resetWindowQuotaCacheMaxStaleMs: z.coerce.number().int().min(0).max(3_600_000).optional(),
     shadowRouting: shadowRoutingSchema.optional(),
     evalRouting: evalRoutingSchema.optional(),
+    // Fusion strategy (open-sse/services/fusion.ts): the panel is the combo's
+    // targets; `judgeModel` synthesizes the final answer (defaults to the first
+    // panel model when unset); `fusionTuning` controls quorum-grace collection.
+    judgeModel: z.string().trim().max(200).optional(),
+    fusionTuning: z
+      .object({
+        minPanel: z.coerce.number().int().min(1).max(50).optional(),
+        stragglerGraceMs: z.coerce.number().int().min(0).max(120_000).optional(),
+        panelHardTimeoutMs: z.coerce.number().int().min(1000).max(600_000).optional(),
+      })
+      .strict()
+      .optional(),
   })
-  .strict()
-  .superRefine((config, ctx) => {
-    if (config.zeroLatencyOptimizationsEnabled === true) return;
+  .passthrough()
+  .transform((config) => {
+    // Backward-compat shim: combos stored prior to v3.8.33 may carry zero-latency
+    // feature flags (fallbackCompressionMode !== "off", hedging === true, or
+    // predictiveTtftMs > 0) without the accompanying zeroLatencyOptimizationsEnabled
+    // gate that the new schema requires. Auto-promote the flag when any such feature
+    // is enabled but the gate is unset/false, so stored combos continue to round-trip
+    // through PUT /api/combos/{id} without returning 400. This replaces the prior
+    // superRefine that hard-rejected these payloads (see issue #4382).
+    if (config.zeroLatencyOptimizationsEnabled === true) return config;
 
-    const addZeroLatencyIssue = (path: string[]) => {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message:
-          "zeroLatencyOptimizationsEnabled must be true to enable zero-latency combo features",
-        path,
-      });
-    };
+    const hasZeroLatencyFeature =
+      config.hedging === true ||
+      (typeof config.predictiveTtftMs === "number" && config.predictiveTtftMs > 0) ||
+      (!!config.fallbackCompressionMode && config.fallbackCompressionMode !== "off");
 
-    if (config.hedging === true) {
-      addZeroLatencyIssue(["hedging"]);
+    if (hasZeroLatencyFeature) {
+      return { ...config, zeroLatencyOptimizationsEnabled: true };
     }
-    if (typeof config.predictiveTtftMs === "number" && config.predictiveTtftMs > 0) {
-      addZeroLatencyIssue(["predictiveTtftMs"]);
-    }
-    if (config.fallbackCompressionMode && config.fallbackCompressionMode !== "off") {
-      addZeroLatencyIssue(["fallbackCompressionMode"]);
-    }
+    return config;
   });
 
 export const comboNameSchema = z
@@ -215,6 +253,7 @@ export const comboNameSchema = z
 
 export const createComboSchema = z.object({
   name: comboNameSchema,
+  description: z.string().max(2000).optional(),
   models: z.array(comboModelEntry).optional().default([]),
   strategy: comboStrategySchema.optional().default("priority"),
   config: comboRuntimeConfigSchema.optional(),
@@ -223,6 +262,12 @@ export const createComboSchema = z.object({
   tool_filter_regex: z.string().max(1000).optional(),
   context_cache_protection: z.boolean().optional(),
   context_length: z.number().int().min(1000).max(2000000).optional(),
+  // Optional embedding dimensions override for embedding combos.
+  // When set, the value is injected into every upstream embedding request as
+  // the `dimensions` field (and translated to `outputDimensionality` for Gemini).
+  // Stored as a string to match the OpenAI API convention; coerced to number
+  // by the embedding handler. Leave unset to use each model's default.
+  dimensions: z.string().regex(/^\d+$/, "dimensions must be a positive integer string").optional().nullable(),
 });
 
 export const updateComboDefaultsSchema = z
@@ -261,6 +306,7 @@ export const updateComboDefaultsSchema = z
 export const updateComboSchema = z
   .object({
     name: comboNameSchema.optional(),
+    description: z.string().max(2000).optional().nullable(),
     models: z.array(comboModelEntry).optional(),
     strategy: comboStrategySchema.optional(),
     config: comboRuntimeConfigSchema.optional(),
@@ -271,10 +317,12 @@ export const updateComboSchema = z
     context_cache_protection: z.boolean().optional(),
     context_length: z.number().int().min(1000).max(2000000).optional().nullable(),
     compressionOverride: comboCompressionOverrideSchema.optional(),
+    dimensions: z.string().regex(/^\d+$/, "dimensions must be a positive integer string").optional().nullable(),
   })
   .superRefine((value, ctx) => {
     if (
       value.name === undefined &&
+      value.description === undefined &&
       value.models === undefined &&
       value.strategy === undefined &&
       value.config === undefined &&
@@ -284,7 +332,8 @@ export const updateComboSchema = z
       value.tool_filter_regex === undefined &&
       value.context_cache_protection === undefined &&
       value.context_length === undefined &&
-      value.compressionOverride === undefined
+      value.compressionOverride === undefined &&
+      value.dimensions === undefined
     ) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,

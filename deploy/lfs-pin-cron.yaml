@@ -1,0 +1,254 @@
+# deploy/lfs-pin-cron.yaml
+#
+# Weekly Kubernetes CronJob that runs `git lfs migrate` on stale binary
+# files in OmniRoute repositories. Prevents repository bloat by
+# automatically migrating large files (>= 1 MB) that have been pushed
+# without LFS tracking.
+#
+# The job:
+#   1. Clones the target repo (shallow, latest commit)
+#   2. Scans for binary/stale files not tracked by LFS
+#   3. Runs `git lfs migrate import --everything --include="<patterns>"`
+#   4. Forces the updated refs to origin
+#
+# Environment variables (set in the CronJob template or via ConfigMap):
+#   GIT_REPO_URL       — SSH or HTTPS URL of the repo to scan
+#   GIT_BRANCH         — target branch (default: main)
+#   LFS_FILE_PATTERNS  — glob patterns for files to manage (default: see below)
+#   LFS_SIZE_THRESHOLD — size threshold in bytes (default: 1048576 = 1 MiB)
+#   LFS_DRY_RUN        — set to "true" to skip the `git push` (advisory)
+#   GIT_KNOWN_HOSTS    — base64-encoded SSH known_hosts content
+#
+# Requirements:
+#   - Kubernetes 1.19+ (batch/v1 CronJob)
+#   - git-lfs installed on the runner image
+#   - SSH deploy key stored as a Kubernetes Secret (note: lfs-ssh-key)
+#   - Write access to the target repository
+#
+# Installation:
+#   1. Create the SSH deploy key secret:
+#      kubectl create secret generic lfs-ssh-key \
+#        --from-file=id_rsa=<path-to-deploy-key> \
+#        --from-file=known_hosts=<path-to-known_hosts> \
+#        --namespace omniroute
+#   2. Customize the env vars in the job template below
+#   3. Apply:
+#      kubectl apply -f deploy/lfs-pin-cron.yaml
+#
+# Manual trigger:
+#   kubectl create job --from=cronjob/lfs-pin-cron lfs-pin-manual
+#
+# Ref: https://git-lfs.com
+
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: lfs-pin-cron
+  namespace: omniroute
+  labels:
+    app.kubernetes.io/name: omniroute
+    app.kubernetes.io/component: lfs-migration
+    app.kubernetes.io/part-of: repo-maintenance
+spec:
+  # Every Sunday at 03:00 UTC
+  schedule: "0 3 * * 0"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  startingDeadlineSeconds: 300
+
+  jobTemplate:
+    spec:
+      backoffLimit: 2
+      activeDeadlineSeconds: 3600
+      template:
+        spec:
+          restartPolicy: Never
+
+          # Run as a non-root user with minimal capabilities
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1000
+            fsGroup: 1000
+            seccompProfile:
+              type: RuntimeDefault
+
+          volumes:
+            - name: ssh-key
+              secret:
+                secretName: lfs-ssh-key
+                defaultMode: 0600
+            - name: git-config
+              emptyDir:
+                medium: Memory
+                sizeLimit: 8Mi
+
+          initContainers:
+            - name: setup-git
+              image: alpine/git:2.47
+              imagePullPolicy: IfNotPresent
+              command:
+                - /bin/sh
+                - -c
+                - |
+                  set -euo pipefail
+
+                  # Configure SSH for git+SSH access using the deploy key
+                  mkdir -p /home/git/.ssh
+                  cp /ssh-key/id_rsa /home/git/.ssh/id_rsa
+                  chmod 0600 /home/git/.ssh/id_rsa
+
+                  if [ -f /ssh-key/known_hosts ]; then
+                    cp /ssh-key/known_hosts /home/git/.ssh/known_hosts
+                    chmod 0644 /home/git/.ssh/known_hosts
+                  fi
+
+                  # Git LFS requires user.name and user.email
+                  git config --global user.name "LFS Pin Cron"
+                  git config --global user.email "lfs-pin-cron@omniroute.local"
+                  git config --global lfs.allowincompletepush true
+                  git config --global lfs.locksverify false
+
+                  # Copy config to shared volume for the main container
+                  cp -r /home/git/.ssh /git-config/
+                  cp /home/git/.gitconfig /git-config/
+              volumeMounts:
+                - name: ssh-key
+                  mountPath: /ssh-key
+                  readOnly: true
+                - name: git-config
+                  mountPath: /git-config
+
+          containers:
+            - name: lfs-migrate
+              image: alpine/git:2.47
+              imagePullPolicy: IfNotPresent
+              command:
+                - /bin/sh
+                - -c
+                - |
+                  set -euo pipefail
+
+                  # ── Configuration ──────────────────────────────────────
+                  REPO_URL="${GIT_REPO_URL}"
+                  BRANCH="${GIT_BRANCH:-main}"
+                  PATTERNS="${LFS_FILE_PATTERNS:-*.tar.gz,*.zip,*.bin,*.exe,*.dmg,*.pkg,*.deb,*.rpm,*.iso,*.img,*.parquet,*.arrow,*.onnx,*.pb,*.h5,*.pkl,*.joblib,*.npy,*.npz}"
+                  SIZE_THRESHOLD="${LFS_SIZE_THRESHOLD:-1048576}"
+                  DRY_RUN="${LFS_DRY_RUN:-false}"
+                  WORK_DIR="/tmp/repo"
+
+                  echo "[lfs-pin] Starting weekly LFS migration scan"
+                  echo "[lfs-pin] Repo: $REPO_URL  Branch: $BRANCH"
+                  echo "[lfs-pin] Patterns: $PATTERNS"
+                  echo "[lfs-pin] Size threshold: $SIZE_THRESHOLD bytes"
+                  echo "[lfs-pin] DRY_RUN: $DRY_RUN"
+                  echo ""
+
+                  # ── Setup SSH (from init container) ────────────────────
+                  mkdir -p /root/.ssh
+                  cp -r /git-config/ssh/* /root/.ssh/ 2>/dev/null || true
+                  cp /git-config/.gitconfig /root/ 2>/dev/null || true
+                  chmod 0600 /root/.ssh/id_rsa
+                  chmod 0644 /root/.ssh/known_hosts 2>/dev/null || true
+
+                  # ── Clone repo (latest commit only) ────────────────────
+                  echo "[lfs-pin] Cloning $REPO_URL (branch: $BRANCH, depth: 1)"
+                  rm -rf "$WORK_DIR"
+                  git clone --depth 1 --branch "$BRANCH" "$REPO_URL" "$WORK_DIR" 2>&1
+                  cd "$WORK_DIR"
+
+                  # ── Check for LFS availability ─────────────────────────
+                  if ! git lfs version &>/dev/null; then
+                    echo "[lfs-pin] ERROR: git-lfs not installed. Install git-lfs on the runner."
+                    exit 1
+                  fi
+
+                  # ── Find stale binary files exceeding threshold ────────
+                  echo "[lfs-pin] Scanning for unstored binary files..."
+                  IFS=',' read -ra GLOB_ARGS <<< "$PATTERNS"
+                  STALE_FILES=()
+                  for pattern in "${GLOB_ARGS[@]}"; do
+                    while IFS= read -r -d '' f; do
+                      if [ -f "$f" ]; then
+                        # Check size
+                        SIZE=$(stat -c%s "$f" 2>/dev/null || stat -f%z "$f" 2>/dev/null || echo "0")
+                        if [ "$SIZE" -ge "$SIZE_THRESHOLD" ] 2>/dev/null; then
+                          STALE_FILES+=("$f")
+                        fi
+                      fi
+                    done < <(find . -path ./.git -prune -o -name "$pattern" -print0 2>/dev/null || true)
+                  done
+
+                  if [ ${#STALE_FILES[@]} -eq 0 ]; then
+                    echo "[lfs-pin] No stale binary files found. Exiting."
+                    exit 0
+                  fi
+
+                  echo "[lfs-pin] Found ${#STALE_FILES[@]} stale file(s):"
+                  printf '  %s\n' "${STALE_FILES[@]}"
+                  echo ""
+
+                  # ── Run git lfs migrate ────────────────────────────────
+                  echo "[lfs-pin] Running: git lfs migrate import --everything"
+                  echo "[lfs-pin]   --include=\"$PATTERNS\""
+                  echo "[lfs-pin]   --above=$SIZE_THRESHOLD"
+                  echo ""
+
+                  git lfs migrate import \
+                    --everything \
+                    --include="$PATTERNS" \
+                    --above="$SIZE_THRESHOLD" \
+                    --verbose 2>&1
+
+                  echo ""
+                  echo "[lfs-pin] Migration complete. Verifying LFS tracking..."
+                  git lfs ls-files --all 2>&1 | head -20 || true
+                  echo ""
+
+                  # ── Push updated refs ──────────────────────────────────
+                  if [ "$DRY_RUN" = "true" ]; then
+                    echo "[lfs-pin] DRY_RUN=true — skipping push"
+                    echo "[lfs-pin] Would push: git push origin --force --all"
+                    echo "[lfs-pin] Would push: git push origin --force --tags"
+                  else
+                    echo "[lfs-pin] Pushing updated refs to origin..."
+                    git push origin --force --all 2>&1
+                    git push origin --force --tags 2>&1
+                    echo "[lfs-pin] Push complete."
+                  fi
+
+                  echo ""
+                  echo "[lfs-pin] LFS migration finished at $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+
+              env:
+                - name: GIT_REPO_URL
+                  value: "git@github.com:KooshaPari/OmniRoute.git"
+                - name: GIT_BRANCH
+                  value: "main"
+                - name: LFS_FILE_PATTERNS
+                  value: "*.zip,*.tar.gz,*.tgz,*.bz2,*.xz,*.bin,*.exe,*.dmg,*.pkg,*.deb,*.rpm,*.iso,*.img,*.parquet,*.arrow,*.onnx,*.pb,*.h5,*.pkl,*.joblib,*.npy,*.npz"
+                - name: LFS_SIZE_THRESHOLD
+                  value: "1048576"
+                - name: LFS_DRY_RUN
+                  value: "true"
+
+              volumeMounts:
+                - name: git-config
+                  mountPath: /git-config
+                  readOnly: true
+
+              securityContext:
+                allowPrivilegeEscalation: false
+                capabilities:
+                  drop: ["ALL"]
+                readOnlyRootFilesystem: false
+                runAsNonRoot: true
+                runAsUser: 1000
+
+              resources:
+                requests:
+                  cpu: 200m
+                  memory: 256Mi
+                limits:
+                  cpu: 1
+                  memory: 512Mi
