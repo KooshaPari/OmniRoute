@@ -102,5 +102,70 @@ test("GET /api/usage/model-latency-stats rejects invalid query params", async ()
   const body = (await response.json()) as any;
 
   assert.equal(response.status, 400);
-  assert.equal(body.error.type, "invalid_request");
+  assert.equal(body.error.type, "invalid_request_error");
+});
+
+test("GET /api/usage/model-latency-stats sorts by latency with lowest p95 first", async () => {
+  const now = Date.now();
+  const rows = [
+    { provider: "anthropic", model: "claude-opus", latencyMs: 900, success: true },
+    { provider: "openai", model: "gpt-4o", latencyMs: 200, success: true },
+    { provider: "google", model: "gemini-flash", latencyMs: 120, success: true },
+  ];
+  for (const [index, row] of rows.entries()) {
+    await usageHistory.saveRequestUsage({
+      ...row,
+      timestamp: new Date(now - index * 60_000).toISOString(),
+    });
+  }
+
+  const response = await route.GET(
+    makeRequest(
+      "http://localhost/api/usage/model-latency-stats?windowHours=1&minSamples=1&sortBy=latency"
+    )
+  );
+  const body = (await response.json()) as any;
+
+  assert.equal(response.status, 200);
+  assert.equal(body.sortBy, "latency");
+  assert.deepEqual(
+    body.entries.map((entry: { model: string }) => entry.model),
+    ["gemini-flash", "gpt-4o", "claude-opus"]
+  );
+});
+
+test("GET /api/usage/model-latency-stats sorts by reliability with highest success rate first", async () => {
+  const now = Date.now();
+  const rows = [
+    { provider: "anthropic", model: "claude-opus", latencyMs: 200, success: false },
+    { provider: "openai", model: "gpt-4o", latencyMs: 200, success: true },
+    { provider: "google", model: "gemini-flash", latencyMs: 200, success: true },
+  ];
+  for (const [index, row] of rows.entries()) {
+    await usageHistory.saveRequestUsage({
+      ...row,
+      timestamp: new Date(now - index * 60_000).toISOString(),
+    });
+  }
+
+  const response = await route.GET(
+    makeRequest(
+      "http://localhost/api/usage/model-latency-stats?windowHours=1&minSamples=1&sortBy=reliability"
+    )
+  );
+  const body = (await response.json()) as any;
+
+  assert.equal(response.status, 200);
+  assert.equal(body.sortBy, "reliability");
+  assert.equal(body.entries.at(-1).model, "claude-opus");
+});
+
+test("GET /api/usage/model-latency-stats rejects unknown sortBy", async () => {
+  const response = await route.GET(
+    makeRequest("http://localhost/api/usage/model-latency-stats?sortBy=throughput")
+  );
+  const body = (await response.json()) as any;
+
+  assert.equal(response.status, 400);
+  assert.equal(body.error.type, "invalid_request_error");
 });

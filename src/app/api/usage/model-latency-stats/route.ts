@@ -5,7 +5,7 @@ import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import { getModelLatencyStats } from "@/lib/usage/usageHistory";
 import { buildErrorBody } from "@omniroute/open-sse/utils/error.ts";
 
-const sortBySchema = z.enum(["balanced", "latency", "reliability", "throughput"]);
+const sortBySchema = z.enum(["balanced", "latency", "reliability"]);
 type SortBy = z.infer<typeof sortBySchema>;
 
 type ModelLatencyEntry = Awaited<ReturnType<typeof getModelLatencyStats>>[string];
@@ -46,11 +46,11 @@ function balancedScore(entry: ModelLatencyEntry): number {
   const successRate = finiteNumber(entry.successRate, 0);
   const p95LatencyMs = finiteNumber(entry.p95LatencyMs, Number.POSITIVE_INFINITY);
   const latencyStdDev = finiteNumber(entry.latencyStdDev, Number.POSITIVE_INFINITY);
-  const throughput = finiteNumber(entry.avgTokensPerSecond, 0);
   const latencyScore = Number.isFinite(p95LatencyMs) && p95LatencyMs > 0 ? 1 / p95LatencyMs : 0;
-  const stabilityScore = Number.isFinite(latencyStdDev) && latencyStdDev > 0 ? 1 / latencyStdDev : 0;
+  const stabilityScore =
+    Number.isFinite(latencyStdDev) && latencyStdDev > 0 ? 1 / latencyStdDev : 0;
 
-  return successRate * 0.5 + latencyScore * 250 * 0.3 + stabilityScore * 100 * 0.1 + throughput * 0.001;
+  return successRate * 0.5 + latencyScore * 250 * 0.3 + stabilityScore * 100 * 0.2;
 }
 
 function sortEntries(entries: ModelLatencyEntry[], sortBy: SortBy): ModelLatencyEntry[] {
@@ -70,11 +70,6 @@ function sortEntries(entries: ModelLatencyEntry[], sortBy: SortBy): ModelLatency
           finiteNumber(b.latencyStdDev, Number.POSITIVE_INFINITY)
         );
       }
-    } else if (sortBy === "throughput") {
-      comparison = descending(
-        finiteNumber(a.avgTokensPerSecond, 0),
-        finiteNumber(b.avgTokensPerSecond, 0)
-      );
     } else {
       comparison = descending(balancedScore(a), balancedScore(b));
     }
