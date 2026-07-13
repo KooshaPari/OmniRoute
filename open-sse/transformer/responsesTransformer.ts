@@ -1,85 +1,83 @@
-import { shouldParseTextualReasoningTags } from "../handlers/responseSanitizer.ts";
 import { appendToolCallArgumentDelta } from "../utils/toolCallArguments.ts";
-export { createResponsesLogger } from "./responsesLogger.ts";
+import { shouldParseTextualReasoningTags } from "../handlers/responseSanitizer.ts";
+import * as fs from "fs";
+import * as path from "path";
 /**
  * Responses API Transformer
  * Converts OpenAI Chat Completions SSE to Codex Responses API SSE format
  * Can be used in both Next.js and Cloudflare Workers
  */
 
+// Dynamic import for Node.js-only modules (fs/path unavailable in Workers)
+let _fs = null;
+let _path = null;
+async function getFs() {
+  if (_fs === null) {
+    try {
+      _fs = (await import("fs")).default;
+    } catch {
+      _fs = false;
+    }
+  }
+  return _fs || null;
+}
+async function getPath() {
+  if (_path === null) {
+    try {
+      _path = (await import("path")).default;
+    } catch {
+      _path = false;
+    }
+  }
+  return _path || null;
+}
+
+// Create log directory for responses (Node.js only)
+export function createResponsesLogger(model, logsDir = null) {
+  // Skip logging in worker environment (no fs)
+  if (typeof fs.mkdirSync !== "function") {
+    return null;
+  }
+
+  const timestamp = new Date().toISOString().replace(/[:.]/g, "").slice(0, 15);
+  const uniqueId = Math.random().toString(36).slice(2, 8);
+  const baseDir = logsDir || (typeof process !== "undefined" ? process.cwd() : ".");
+  // previous: const baseDir = logsDir || resolveDataDir(); — reverted in #555 for Workers compat
+  const logDir = path.join(baseDir, "logs", `responses_${model}_${timestamp}_${uniqueId}`);
+
+  try {
+    fs.mkdirSync(logDir, { recursive: true });
+  } catch {
+    return null;
+  }
+
+  let inputEvents = [];
+  let outputEvents = [];
+
+  return {
+    logInput: (event) => {
+      inputEvents.push(event);
+    },
+    logOutput: (event) => {
+      outputEvents.push(event);
+    },
+    flush: () => {
+      try {
+        fs.writeFileSync(path.join(logDir, "1_input_stream.txt"), inputEvents.join("\n"));
+        fs.writeFileSync(path.join(logDir, "2_output_stream.txt"), outputEvents.join("\n"));
+      } catch (e) {
+        console.log("[RESPONSES] Failed to write logs:", e.message);
+      }
+    },
+  };
+}
+
 /**
  * Create TransformStream that converts Chat Completions SSE to Responses API SSE
  * @param {Object} logger - Optional logger instance
- * @param {number} [keepaliveIntervalMs=3000] - Heartbeat interval
- * @param {Object} [options] - Request-derived parity options
- * @param {Object} [options.request] - Original Responses API request body. Used to
- *   decide whether to emit Claude-style `tool_use` blocks alongside the Chat
- *   Completions `function_call` item, whether to echo back `prompt_cache_key`,
- *   and whether to attach a structured-output `output_format` to the response.
- * @param {boolean} [options.emitToolUse=false] - Force-emit a parallel
- *   `type: "tool_use"` block for every `function_call` item, regardless of
- *   the request shape. Set to `true` for Claude Code / Anthropic-shaped
- *   clients that expect Anthropic-style tool blocks in the output array.
- * @param {Object} [options.tools] - The original `tools[]` array from the
- *   request. Used to detect Anthropic-style entries (presence of
- *   `input_schema` without Chat-style `parameters`) so the transformer can
- *   auto-enable `tool_use` emission only for those.
- * @param {boolean} [options.parseTextualReasoningTags=false] - Parse inline
- *   reasoning tags for a route already identified as tag-native. This explicit
- *   hint covers upstream SSE chunks that omit their model id.
  * @returns {TransformStream}
  */
-export function createResponsesApiTransformStream(
-  logger = null,
-  keepaliveIntervalMs = 3000,
-  options = {}
-) {
-  const opts = options || {};
-  const toolsList = Array.isArray(opts.tools) ? opts.tools : [];
-  // Auto-enable tool_use emission when ANY tool entry looks Anthropic-shaped
-  // (has `input_schema` and lacks Chat-Completions `parameters`). This lets
-  // Claude Code and other Anthropic-shaped clients consume the same stream
-  // without an explicit opt-in header.
-  const requestWantsToolUse = toolsList.some(
-    (t) =>
-      t &&
-      typeof t === "object" &&
-      t.input_schema &&
-      typeof t.input_schema === "object" &&
-      !t.parameters
-  );
-  const emitToolUse = Boolean(opts.emitToolUse) || requestWantsToolUse;
-
-  // Cache-control passthrough: the request may carry a `prompt_cache_key`
-  // (Anthropic) or a `cache_control` marker on an input item. Surface both
-  // on the response so the client can correlate cache hits/creation.
-  const promptCacheKey =
-    typeof opts.request?.prompt_cache_key === "string"
-      ? opts.request.prompt_cache_key
-      : typeof opts.request?.promptCacheKey === "string"
-        ? opts.request.promptCacheKey
-        : null;
-
-  // Structured outputs: echo the declared json_schema so the client can
-  // validate the emitted `message` content without a second round-trip.
-  const requestFormat = opts.request?.response_format || opts.request?.output_format;
-  let outputFormat = null;
-  if (requestFormat && typeof requestFormat === "object") {
-    if (requestFormat.type === "json_schema" && requestFormat.json_schema) {
-      const schema = requestFormat.json_schema;
-      outputFormat = {
-        type: "json_schema",
-        name: typeof schema.name === "string" ? schema.name : "response",
-        schema: schema.schema || {},
-        strict: schema.strict !== false,
-      };
-    } else if (requestFormat.type === "json_object") {
-      outputFormat = { type: "json_object" };
-    } else if (requestFormat.type === "text") {
-      outputFormat = { type: "text" };
-    }
-  }
-
+export function createResponsesApiTransformStream(logger = null, keepaliveIntervalMs = 3000) {
   const state = {
     seq: 0,
     responseId: `resp_${Date.now()}`,
@@ -95,7 +93,7 @@ export function createResponsesApiTransformStream(
     reasoningPartAdded: false,
     reasoningDone: false,
     inThinking: false,
-    parseTextualReasoningTags: opts.parseTextualReasoningTags === true,
+    parseTextualReasoningTags: false,
     funcArgsBuf: {},
     funcNames: {},
     funcCallIds: {},
@@ -110,13 +108,10 @@ export function createResponsesApiTransformStream(
     completedSent: false,
     usage: null,
     keepaliveTimer: null,
-    emitToolUse,
-    promptCacheKey,
-    outputFormat,
-    // Track tools that have been "added" (output_item.added emitted) for the
-    // parallel tool_use stream. Keyed by the same `fc_<callId>` id so the
-    // emitted `tool_use` reuses the same id (clients correlate on id).
-    toolUseItemAdded: {},
+    // #6906: true once a finish_reason chunk closed all output items but deferred
+    // response.completed — a trailing usage-only chunk (choices: [], usage: {...}) may
+    // still arrive for stream_options.include_usage=true upstreams.
+    awaitingTrailingUsage: false,
   };
 
   const encoder = new TextEncoder();
@@ -322,38 +317,6 @@ export function createResponsesApiTransformStream(
         item: funcItem,
       });
 
-      // Parallel Anthropic-style `tool_use` block — same `id`, parsed `input`.
-      // The on-the-wire `arguments` is a JSON string; `input` must be an object,
-      // so we attempt a parse and fall back to an empty object (the safe default
-      // for partial / invalid JSON; the function_call item is the source of truth).
-      if (state.emitToolUse) {
-        let input = {};
-        try {
-          const parsed = JSON.parse(args);
-          if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
-            input = parsed;
-          }
-        } catch {
-          // Leave as `{}` — the function_call item carries the full string.
-        }
-        const toolUseItem = {
-          id: `fc_${callId}`,
-          type: "tool_use",
-          name: state.funcNames[idx] || "",
-          input,
-        };
-        emit(controller, "response.output_item.done", {
-          type: "response.output_item.done",
-          output_index: normalizedIndex,
-          item: toolUseItem,
-        });
-        // Only record as completed when the function_call is also recorded
-        // as the final output (mirrors the recordAsCompleted gate above).
-        if (recordAsCompleted) {
-          recordCompletedItem(normalizedIndex, toolUseItem);
-        }
-      }
-
       // Only record as a completed output item when this is a final close (not a
       // superseded-call eviction where a new call replaced this one at the same index).
       if (recordAsCompleted) {
@@ -383,29 +346,8 @@ export function createResponsesApiTransformStream(
         output,
       };
 
-      if (state.outputFormat) {
-        response.output_format = state.outputFormat;
-      }
-      if (state.promptCacheKey) {
-        response.prompt_cache_key = state.promptCacheKey;
-      }
-
       if (state.usage) {
-        // Forward prompt-cache counters from the upstream usage envelope into
-        // the Responses API usage object. The transformer is a passthrough
-        // here — we never invent cache numbers; we only surface what the
-        // upstream reported under the names Anthropic uses
-        // (cache_creation_input_tokens / cache_read_input_tokens) and the
-        // OpenAI-compatible name (cached_tokens / cache_creation_input_tokens).
-        const usage = { ...state.usage };
-        if (
-          typeof usage.cache_creation_input_tokens !== "number" &&
-          typeof usage.cache_creation === "object" &&
-          usage.cache_creation
-        ) {
-          usage.cache_creation_input_tokens = 0;
-        }
-        response.usage = usage;
+        response.usage = state.usage;
       }
 
       emit(controller, "response.completed", {
@@ -465,6 +407,11 @@ export function createResponsesApiTransformStream(
             if (parsed.usage) {
               state.usage = parsed.usage;
             }
+            // #6906: trailing usage-only chunk after finish_reason already deferred
+            // completion — send it now with the usage just captured above.
+            if (state.awaitingTrailingUsage && !state.completedSent) {
+              sendCompleted(controller);
+            }
             continue;
           }
 
@@ -484,25 +431,17 @@ export function createResponsesApiTransformStream(
             state.started = true;
             state.responseId = parsed.id ? `resp_${parsed.id}` : state.responseId;
 
-            const baseResponse = {
-              id: state.responseId,
-              object: "response",
-              created_at: state.created,
-              status: "in_progress",
-              background: false,
-              error: null,
-              output: [],
-            };
-            if (state.outputFormat) {
-              baseResponse.output_format = state.outputFormat;
-            }
-            if (state.promptCacheKey) {
-              baseResponse.prompt_cache_key = state.promptCacheKey;
-            }
-
             emit(controller, "response.created", {
               type: "response.created",
-              response: { ...baseResponse },
+              response: {
+                id: state.responseId,
+                object: "response",
+                created_at: state.created,
+                status: "in_progress",
+                background: false,
+                error: null,
+                output: [],
+              },
             });
 
             emit(controller, "response.in_progress", {
@@ -657,25 +596,6 @@ export function createResponsesApiTransformStream(
                     name: state.funcNames[tcIdx] || "",
                   },
                 });
-
-                // Emit a parallel Anthropic-style `tool_use` block in the SAME
-                // output slot. Claude Code and other Anthropic-shaped clients
-                // expect items with `type: "tool_use"` and `input` (parsed JSON)
-                // rather than `type: "function_call"` and `arguments` (string).
-                // The shared `id` lets the client correlate the two shapes.
-                if (state.emitToolUse) {
-                  state.toolUseItemAdded[tcIdx] = true;
-                  emit(controller, "response.output_item.added", {
-                    type: "response.output_item.added",
-                    output_index: tcIdx,
-                    item: {
-                      id: `fc_${newCallId}`,
-                      type: "tool_use",
-                      name: state.funcNames[tcIdx] || "",
-                      input: {},
-                    },
-                  });
-                }
               }
 
               if (!state.funcArgsBuf[tcIdx]) state.funcArgsBuf[tcIdx] = "";
@@ -719,7 +639,18 @@ export function createResponsesApiTransformStream(
             for (const i in state.msgItemAdded) closeMessage(controller, i);
             closeReasoning(controller);
             for (const i in state.funcCallIds) closeToolCall(controller, i);
-            sendCompleted(controller);
+            if (state.usage) {
+              // Usage already captured — either it arrived in this same chunk, or an
+              // earlier usage-bearing chunk already populated state.usage. Either way
+              // there is nothing left to wait for, so complete right away.
+              sendCompleted(controller);
+            } else {
+              // #6906: defer response.completed — a trailing usage-only chunk may
+              // still arrive (stream_options.include_usage=true). The empty-choices
+              // branch above (or flush() at stream end, as a fallback) actually
+              // calls sendCompleted().
+              state.awaitingTrailingUsage = true;
+            }
           }
         }
       },

@@ -15,6 +15,7 @@ import Tooltip from "@/shared/components/Tooltip";
 import { useCopyToClipboard } from "@/shared/hooks/useCopyToClipboard";
 import { FieldLabelWithHelp, WeightTotalBar } from "./parts";
 import { ResponseValidationEditor, type ResponseValidationValue } from "./ResponseValidationEditor";
+import ReasoningTokenBufferToggle from "./ReasoningTokenBufferToggle";
 import { pickDisplayValue } from "@/shared/utils/maskEmail";
 import useEmailPrivacyStore from "@/store/emailPrivacyStore";
 import { useNotificationStore } from "@/store/notificationStore";
@@ -36,7 +37,6 @@ import {
   resolveComboBuilderProviderId,
 } from "@/lib/combos/builderDraft";
 import { normalizeComboConfigMode } from "@/shared/constants/comboConfigMode";
-import { comboRuntimeConfigSchema } from "@/shared/validation/schemas";
 import AutoComboCatalog from "./AutoComboCatalog";
 import BuilderIntelligentStep from "./BuilderIntelligentStep";
 import IntelligentComboPanel from "./IntelligentComboPanel";
@@ -49,11 +49,6 @@ import {
 } from "@/lib/combos/intelligentRouting";
 import { resolveServerErrorMessage } from "@/lib/api/serverErrorMessage";
 import { useTranslations } from "next-intl";
-import {
-  msToOptionalSecondsInput,
-  secondsInputToOptionalMs,
-  updateFusionTuning,
-} from "./comboFormInputs";
 
 const ModelSelectModal = dynamic(() => import("@/shared/components/ModelSelectModal"), {
   ssr: false,
@@ -198,36 +193,38 @@ const LEGACY_COMBO_RESILIENCE_KEYS = new Set([
   "resetAwareEnabled",
   "resetAwareWindow",
 ]);
-// Allowlist of fields the current `comboRuntimeConfigSchema` knows about. Any
-// other key in `combo.config` (from older DBs or newer clients) would trigger a
-// 400 on the server because the schema is `.strict()`. Building the Set lazily
-// avoids a hard import cycle on the schema module from this client component.
-let ALLOWED_COMBO_CONFIG_KEYS_CACHE: Set<string> | null = null;
-function getAllowedComboConfigKeys(): Set<string> {
-  if (ALLOWED_COMBO_CONFIG_KEYS_CACHE) return ALLOWED_COMBO_CONFIG_KEYS_CACHE;
-  try {
-    const shape = (comboRuntimeConfigSchema as unknown as { shape: Record<string, unknown> })
-      ?.shape;
-    ALLOWED_COMBO_CONFIG_KEYS_CACHE = new Set(
-      shape ? Object.keys(shape) : []
-    );
-  } catch {
-    ALLOWED_COMBO_CONFIG_KEYS_CACHE = new Set();
-  }
-  return ALLOWED_COMBO_CONFIG_KEYS_CACHE;
+const MS_PER_SECOND = 1000;
+
+function msToOptionalSecondsInput(value) {
+  const ms = Number(value);
+  if (!Number.isFinite(ms) || ms <= 0) return "";
+  return String(Math.round(ms / MS_PER_SECOND));
 }
+
+function secondsInputToOptionalMs(value, maxSeconds = 86400) {
+  if (!value) return undefined;
+  const seconds = Number(value);
+  if (!Number.isFinite(seconds) || seconds <= 0) return undefined;
+  return Math.min(maxSeconds, Math.round(seconds)) * MS_PER_SECOND;
+}
+
 function sanitizeComboRuntimeConfig(config) {
   if (!config || typeof config !== "object") return {};
-  const allowed = getAllowedComboConfigKeys();
   return Object.fromEntries(
     Object.entries(config).filter(
       ([key, value]) =>
-        value !== undefined &&
-        value !== null &&
-        !LEGACY_COMBO_RESILIENCE_KEYS.has(key) &&
-        (allowed.size === 0 || allowed.has(key))
+        value !== undefined && value !== null && !LEGACY_COMBO_RESILIENCE_KEYS.has(key)
     )
   );
+}
+
+function updateFusionTuning(config, field, rawValue) {
+  const value = rawValue === "" ? undefined : Number(rawValue);
+  const next = { ...(config.fusionTuning || {}), [field]: value };
+  const pruned = Object.fromEntries(
+    Object.entries(next).filter(([, v]) => typeof v === "number" && Number.isFinite(v))
+  );
+  return { ...config, fusionTuning: Object.keys(pruned).length > 0 ? pruned : undefined };
 }
 
 const STRATEGY_RECOMMENDATIONS_FALLBACK = {
@@ -522,9 +519,7 @@ function getStrategyBadgeClass(strategy) {
 function getI18nOrFallback(t, key, fallback) {
   try {
     if (typeof t.has === "function" && t.has(key)) return t(key);
-  } catch {
-    // Some translations require ICU variables; fallback keeps optional helper text safe.
-  }
+  } catch {}
   return fallback;
 }
 
@@ -1023,7 +1018,6 @@ export default function CombosPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      {/* Header */}
       <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <div>
           <h1 className="text-2xl font-semibold">{t("title")}</h1>
@@ -2063,7 +2057,6 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders, combo
     }
   }, [builderStage, comboBuilderStages]);
 
-  // DnD state
   const hasPricingForModel = useCallback(
     (modelValue) => {
       const parsed = parseQualifiedModel(modelValue);
@@ -2752,9 +2745,7 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders, combo
       saveData.description = null;
     }
 
-    // Include config only if any values are set
     const configToSave = sanitizeComboRuntimeConfig(config);
-    // Add round-robin specific fields to config
     if (strategy === "round-robin") {
       if (config.concurrencyPerModel !== undefined)
         configToSave.concurrencyPerModel = config.concurrencyPerModel;
@@ -3740,7 +3731,6 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders, combo
                       />
                     </div>
                   </div>
-                  {/* failoverBeforeRetry + maxSetRetries + setRetryDelayMs */}
                   <div className="grid grid-cols-2 gap-2 pt-2 border-t border-black/5 dark:border-white/5">
                     <div className="col-span-2">
                       <div className="flex items-center gap-2 py-1">
@@ -3775,6 +3765,9 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders, combo
                           </span>
                         </Tooltip>
                       </div>
+                    </div>
+                    <div className="col-span-2">
+                      <ReasoningTokenBufferToggle config={config} setConfig={setConfig} t={t} />
                     </div>
                     <div>
                       <FieldLabelWithHelp
@@ -4097,7 +4090,7 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders, combo
                         <input
                           type="text"
                           value={config.handoffModel ?? ""}
-                          placeholder="codex/gpt-5.4"
+                          placeholder="codex/gpt-5.6-sol"
                           onChange={(e) =>
                             setConfig({
                               ...config,
@@ -4166,7 +4159,11 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders, combo
                       </div>
                       <div>
                         <FieldLabelWithHelp
-                          label={getI18nOrFallback(t, "fusionStragglerGraceMs", "Straggler grace (ms)")}
+                          label={getI18nOrFallback(
+                            t,
+                            "fusionStragglerGraceMs",
+                            "Straggler grace (ms)"
+                          )}
                           help={getI18nOrFallback(
                             t,
                             "fusionStragglerGraceMsHelp",
@@ -4181,7 +4178,9 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders, combo
                           value={config.fusionTuning?.stragglerGraceMs ?? ""}
                           placeholder="8000"
                           onChange={(e) =>
-                            setConfig(updateFusionTuning(config, "stragglerGraceMs", e.target.value))
+                            setConfig(
+                              updateFusionTuning(config, "stragglerGraceMs", e.target.value)
+                            )
                           }
                           className="w-full text-xs py-1.5 px-2 rounded border border-black/10 dark:border-white/10 bg-transparent focus:border-primary focus:outline-none"
                         />
@@ -4580,7 +4579,6 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders, combo
             </div>
           )}
 
-          {/* Actions */}
           {isExpertMode ? (
             <div className="flex gap-2 pt-1">
               <Button onClick={onClose} variant="ghost" fullWidth size="sm">

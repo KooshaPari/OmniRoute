@@ -146,7 +146,7 @@ export async function scrubCodexPersistedCatalogs(): Promise<CodexCatalogScrubRe
     connections: connections.length,
     connectionsChanged,
     modelsRemoved: removedIds.size,
-    removedIds: Array.from(removedIds).sort((a, b) => a.localeCompare(b)),
+    removedIds: Array.from(removedIds).sort(),
   };
 }
 
@@ -299,7 +299,7 @@ export function createCodexCatalogRevalidationCoordinator(
   let queuedInit: CodexCatalogRevalidationRequest | null = null;
 
   return (options) => {
-    if (activeRun !== null) {
+    if (activeRun) {
       if (options.reason === "init" && activeReason !== "init") {
         queuedInit = options;
       }

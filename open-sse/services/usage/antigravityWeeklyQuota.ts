@@ -66,7 +66,7 @@ export async function fetchAntigravityUserQuotaSummaryCached(
   }
 
   const inflight = _weeklyQuotaInflight.get(cacheKey);
-  if (inflight !== undefined) return inflight;
+  if (inflight) return inflight;
 
   const promise = (async () => {
     try {

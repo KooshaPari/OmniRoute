@@ -45,7 +45,10 @@ import {
   estimateOutputTokens,
   addBufferToUsage,
 } from "../utils/usageTracking.ts";
-import { getCursorVersion } from "../utils/cursorVersionDetector.ts";
+import {
+  formatCursorAgentClientVersion,
+  getCursorAgentCliVersion,
+} from "../utils/cursorAgentCliVersion.ts";
 import { sanitizeErrorMessage } from "../utils/error.ts";
 import { generateToolCallId } from "../translator/helpers/toolCallHelper.ts";
 import {
@@ -648,7 +651,7 @@ export class CursorExecutor extends BaseExecutor {
       traceparent: traceParent,
       "user-agent": "connect-es/1.6.1",
       "x-cursor-client-type": "cli",
-      "x-cursor-client-version": `cli-${getCursorVersion()}`,
+      "x-cursor-client-version": formatCursorAgentClientVersion(getCursorAgentCliVersion()),
       "x-ghost-mode": ghostMode ? "true" : "false",
       "x-original-request-id": requestId,
       "x-request-id": requestId,

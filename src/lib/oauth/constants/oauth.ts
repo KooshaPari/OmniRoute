@@ -461,6 +461,7 @@ export const PROVIDERS = {
   CURSOR: "cursor",
   KILOCODE: "kilocode",
   CLINE: "cline",
+  CLINEPASS: "clinepass",
   WINDSURF: "windsurf",
   DEVIN_CLI: "devin-cli",
   TRAE: "trae",

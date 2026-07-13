@@ -14,14 +14,12 @@
  * (`if (file.endsWith("check-test-masking.test.ts")) continue;` in
  * scripts/check/check-test-masking.mjs) for precisely this reason — this test
  * asserts evaluateMasking() now applies the same exclusion for its diff-based
- * tautology counters, against the REAL current source of
+ * tautology counters, using the real base(origin/main)/head(HEAD) diff of
  * tests/unit/check-test-masking.test.ts.
  */
 import test from "node:test";
 import assert from "node:assert/strict";
-import fs from "node:fs";
-import path from "node:path";
-import { fileURLToPath } from "node:url";
+import { execFileSync } from "node:child_process";
 
 import {
   countTautologies,
@@ -30,17 +28,16 @@ import {
 } from "../../scripts/check/check-test-masking.mjs";
 
 const FILE = "tests/unit/check-test-masking.test.ts";
-const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
+
+function git(args: string[]): string {
+  return execFileSync("git", args, { encoding: "utf8" });
+}
 
 test("#6634: check-test-masking.test.ts's own tautology fixtures must not self-flag as weakening", () => {
-  // Read the REAL current source from disk rather than a git ref: the Unit Tests
-  // job checks out a shallow/single-ref tree with no origin/main, so `git show
-  // origin/main:<file>` failed the shard before it ever exercised the masking
-  // behavior under test. An empty base models the file's pre-#6404 state (no
-  // fixtures), which maximizes headTaut - baseTaut — the strictest input for the
-  // exclusion this test asserts.
-  const baseSrc = "";
-  const headSrc = fs.readFileSync(path.join(REPO_ROOT, FILE), "utf8");
+  // origin/main predates the #6404 fixtures (countBareTautologies/scanBareTautologies
+  // tests) that legitimately embed tautology-pattern literals as string fixtures.
+  const baseSrc = git(["show", "origin/main:" + FILE]);
+  const headSrc = git(["show", "HEAD:" + FILE]);
 
   const perFile = [
     {

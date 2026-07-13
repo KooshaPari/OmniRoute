@@ -1,24 +1,15 @@
 #!/usr/bin/env sh
-# .husky/pre-push — DEBT-002 fix (2026-06-25)
-#
-# Previously this was a no-op with a TODO to "Move to lefthook + cargo make
-# at the repo root." Now it delegates to lefthook so the full pre-push
-# matrix (typecheck-core, t11-budget, cycles) actually runs locally
-# before pushing.
+# .husky/pre-push — intentionally light.
+# any-budget + tracked-artifacts already run on pre-commit; re-running them on
+# every push only doubles local wall time for the same existence reason (CI still
+# enforces both). Keep this hook as a PATH/npm sanity check + reminder.
+# Intentionally excludes test:unit / typecheck (slow; covered by CI).
 
-if command -v bunx >/dev/null 2>&1 && bunx --no-install lefthook --version >/dev/null 2>&1; then
-  echo "→ lefthook pre-push (DEBT-002 fixed)"
-  bunx lefthook run pre-push
-  exit $?
+if ! command -v npm >/dev/null 2>&1; then
+  echo "⚠️  npm not found in PATH — skipping pre-push hooks"
+  echo "   Run 'npm run check:any-budget:t11 && npm run check:tracked-artifacts' manually before pushing."
+  exit 0
 fi
 
-if command -v lefthook >/dev/null 2>&1; then
-  echo "→ lefthook pre-push (DEBT-002 fixed, via PATH)"
-  lefthook run pre-push
-  exit $?
-fi
-
-echo "⚠️  lefthook not installed — skipping pre-push gate"
-echo "   For full coverage run: bunx lefthook install"
-echo "   CI (.github/workflows/audit-ratchet.yml) runs the full matrix anyway."
+# No-op success: real local gates live in pre-commit; CI owns the rest.
 exit 0

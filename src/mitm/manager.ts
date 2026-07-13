@@ -1,6 +1,6 @@
-import { spawn, type ChildProcess } from "node:child_process";
-import path from "node:path";
-import fs from "node:fs";
+import { spawn, type ChildProcess } from "child_process";
+import path from "path";
+import fs from "fs";
 import { resolveMitmDataDir } from "./dataDir.ts";
 import { removeDNSEntry, removeDNSEntries } from "./dns/dnsConfig.ts";
 import { provisionDnsEntries } from "./dns/provision.ts";
@@ -9,10 +9,6 @@ import { installCertResult, uninstallCert } from "./cert/install.ts";
 import { ALL_TARGETS } from "./targets/index.ts";
 import { detectAgent } from "./detection/index.ts";
 import type { AgentId, DetectionResult, MitmTarget } from "./types.ts";
-import { Worker as NodeWorker } from "node:worker_threads";
-
-const USE_WORKER = process.env.MITM_USE_WORKER === "1";
-
 import { getAllAgentBridgeStates } from "@/lib/db/agentBridgeState.ts";
 import { listCustomHosts } from "@/lib/db/inspectorCustomHosts.ts";
 import { getUserBypassPatterns } from "@/lib/db/agentBridgeBypass.ts";
@@ -171,9 +167,10 @@ export function writeBypassJson(userPatterns?: string[]): void {
   } catch {
     // mkdir failures are non-fatal; the write below will report the real error.
   }
-  const patterns = Array.isArray(userPatterns)
-    ? userPatterns
-    : getUserBypassPatterns();
+  const patterns =
+    Array.isArray(userPatterns) && userPatterns.length >= 0
+      ? userPatterns
+      : getUserBypassPatterns();
   const payload = {
     version: 1,
     generatedAt: new Date().toISOString(),
@@ -437,7 +434,7 @@ export async function getMitmStatus(): Promise<{
   if (!running) {
     try {
       if (fs.existsSync(PID_FILE)) {
-        const savedPid = Number.parseInt(fs.readFileSync(PID_FILE, "utf-8").trim(), 10);
+        const savedPid = parseInt(fs.readFileSync(PID_FILE, "utf-8").trim(), 10);
         if (savedPid && isProcessAlive(savedPid)) {
           running = true;
           pid = savedPid;
@@ -482,7 +479,7 @@ export async function getMitmStatus(): Promise<{
  * @param {string} apiKey - OmniRoute API key
  * @param {string} sudoPassword - Sudo password for DNS/cert operations
  */
-export async function startMitm( // NOSONAR - legacy orchestration flow is covered by DAST/contract tests
+export async function startMitm(
   apiKey: string,
   sudoPassword: string,
   options: { port?: number } = {}
@@ -555,7 +552,12 @@ async function startMitmInternal(
   const certPath = path.join(resolveMitmDataDir(), "mitm", "server.crt");
   if (!fs.existsSync(certPath)) {
     log.info("Generating SSL certificate...");
-    await generateCert();
+    try {
+      await generateCert();
+    } catch (err) {
+      log.error({ err }, "Failed to generate SSL certificate");
+      throw err;
+    }
   }
 
   // 2. Install certificate to system keychain. A failure here must NOT abort the
@@ -579,7 +581,11 @@ async function startMitmInternal(
   // 3. Add DNS entries: Antigravity defaults + all agents with dns_enabled=true +
   //    all custom hosts with enabled=true. Best-effort — see provisionDnsEntries.
   log.info("Adding DNS entries...");
-  await provisionDnsEntries(sudoPassword);
+  try {
+    await provisionDnsEntries(sudoPassword);
+  } catch (err) {
+    log.error({ err }, "DNS provisioning threw unexpectedly (continuing)");
+  }
 
   // 4. Start MITM server
   log.info("Starting MITM server...");
@@ -607,129 +613,106 @@ async function startMitmInternal(
     }
   }
 
-  const useWorker = process.env.MITM_USE_WORKER === "1";
-  const workerEnv = {
-    ...process.env,
-    ROUTER_API_KEY: apiKey,
-    MITM_LOCAL_PORT: String(port),
-    INSPECTOR_INTERNAL_INGEST_TOKEN: ingestToken,
-    NODE_ENV: "production",
-  } as NodeJS.ProcessEnv;
+  serverProcess = spawn(process.execPath, [MITM_SERVER_PATH], {
+    env: {
+      ...process.env,
+      ROUTER_API_KEY: apiKey,
+      MITM_LOCAL_PORT: String(port),
+      INSPECTOR_INTERNAL_INGEST_TOKEN: ingestToken,
+      NODE_ENV: "production",
+    },
+    detached: false,
+    stdio: ["ignore", "pipe", "pipe"],
+  });
 
-  if (useWorker) {
-    // --- Worker path (in-process, no subprocess) ---
-    const { Worker } = await import("node:worker_threads");
-    const { pathToFileURL } = await import("node:url");
-    mitmWorker = new Worker(pathToFileURL(MITM_SERVER_PATH).href, {
-      env: workerEnv,
-    });
-    mitmWorker.on("message", (msg) => {
-      if (typeof msg === "object" && msg !== null && "port" in msg) {
-        serverReadyResolve(msg.port as number);
-      }
-    });
-    mitmWorker.on("error", (err) => {
-      log.error({ err }, "MITM worker error");
-      mitmWorker = null;
-    });
-    mitmWorker.on("exit", (code) => {
-      log.info({ code }, "MITM worker exited");
-      mitmWorker = null;
-    });
-    // No PID file for workers (same process)
-  } else {
-    // --- Spawn path (original behavior) ---
-    serverProcess = spawn(process.execPath, [MITM_SERVER_PATH], {
-      env: workerEnv,
-      detached: false,
-      stdio: ["ignore", "pipe", "pipe"],
-    });
+  const proc = serverProcess;
+  serverPid = proc.pid ?? null;
 
-    const proc = serverProcess;
-    serverPid = proc.pid ?? null;
-
-    // Save PID to file
-    if (serverPid !== null) {
+  // Save PID to file — best-effort, must not orphan spawned child process
+  if (serverPid !== null) {
+    try {
       fs.writeFileSync(PID_FILE, String(serverPid));
+    } catch (err) {
+      log.error({ err, pid: serverPid }, "Failed to write MITM PID file (continuing)");
     }
+  }
 
-    // Buffer recent stderr so a startup failure can be reported with its real
-    // cause (capped to avoid unbounded growth on a chatty/looping process). (#3606)
-    let stderrBuffer = "";
+  // Buffer recent stderr so a startup failure can be reported with its real
+  // cause (capped to avoid unbounded growth on a chatty/looping process). (#3606)
+  let stderrBuffer = "";
 
-    // Log server output
-    proc.stdout?.on("data", (data) => {
-      log.info({ source: "mitm-server" }, data.toString().trim());
-    });
+  // Log server output
+  proc.stdout?.on("data", (data) => {
+    log.info({ source: "mitm-server" }, data.toString().trim());
+  });
 
-    proc.stderr?.on("data", (data) => {
-      const chunk = data.toString();
-      stderrBuffer = (stderrBuffer + chunk).slice(-4000);
-      log.error({ source: "mitm-server" }, chunk.trim());
-    });
+  proc.stderr?.on("data", (data) => {
+    const chunk = data.toString();
+    stderrBuffer = (stderrBuffer + chunk).slice(-4000);
+    log.error({ source: "mitm-server" }, chunk.trim());
+  });
 
-    proc.on("exit", (code) => {
-      log.info({ exitCode: code }, "MITM server exited");
-      serverProcess = null;
-      serverPid = null;
+  proc.on("exit", (code) => {
+    log.info({ exitCode: code }, "MITM server exited");
+    serverProcess = null;
+    serverPid = null;
 
-      // Remove PID file
-      try {
-        fs.unlinkSync(PID_FILE);
-      } catch (error) {
-        // Ignore
+    // Remove PID file
+    try {
+      fs.unlinkSync(PID_FILE);
+    } catch (error) {
+      // Ignore
+    }
+  });
+
+  // Wait and verify server actually started
+  const started = await new Promise<boolean>((resolve) => {
+    let resolved = false;
+    const timeout = setTimeout(() => {
+      if (!resolved) {
+        resolved = true;
+        resolve(true);
+      }
+    }, 2000);
+
+    proc.on("exit", () => {
+      clearTimeout(timeout);
+      if (!resolved) {
+        resolved = true;
+        resolve(false);
       }
     });
 
-    // Wait and verify server actually started
-    const started = await new Promise<boolean>((resolve) => {
-      let resolved = false;
-      const timeout = setTimeout(() => {
-        if (!resolved) {
-          resolved = true;
-          resolve(true);
-        }
-      }, 2000);
-
-      proc.on("exit", () => {
+    // Fail fast on any "❌" diagnostic line from server.cjs (covers EADDRINUSE,
+    // EACCES, missing ROUTER_API_KEY, and any other server.on("error") cause).
+    proc.stderr?.on("data", (data) => {
+      const msg = data.toString();
+      if (msg.includes("❌")) {
         clearTimeout(timeout);
         if (!resolved) {
           resolved = true;
           resolve(false);
         }
-      });
-
-      // Fail fast on any "❌" diagnostic line from server.cjs (covers EADDRINUSE,
-      // EACCES, missing ROUTER_API_KEY, and any other server.on("error") cause).
-      proc.stderr?.on("data", (data) => {
-        const msg = data.toString();
-        if (msg.includes("❌")) {
-          clearTimeout(timeout);
-          if (!resolved) {
-            resolved = true;
-            resolve(false);
-          }
-        }
-      });
+      }
     });
+  });
 
-    if (!started) {
-      throw new Error(interpretMitmStartupError(stderrBuffer, port));
-    }
-
-    return {
-      running: true,
-      pid: serverPid,
-      certTrusted,
-    };
+  if (!started) {
+    throw new Error(interpretMitmStartupError(stderrBuffer, port));
   }
+
+  return {
+    running: true,
+    pid: serverPid,
+    certTrusted,
+  };
 }
 
 /**
  * Stop MITM proxy
  * @param {string} sudoPassword - Sudo password for DNS cleanup
  */
-export async function stopMitm(sudoPassword: string): Promise<{ running: false; pid: null }> { // NOSONAR - legacy orchestration flow is covered by DAST/contract tests
+export async function stopMitm(sudoPassword: string): Promise<{ running: false; pid: null }> {
   // 1. Kill server process (in-memory or from PID file)
   const proc = serverProcess;
   if (proc && !proc.killed) {
@@ -745,7 +728,7 @@ export async function stopMitm(sudoPassword: string): Promise<{ running: false; 
     // Fallback: kill by PID file
     try {
       if (fs.existsSync(PID_FILE)) {
-        const savedPid = Number.parseInt(fs.readFileSync(PID_FILE, "utf-8").trim(), 10);
+        const savedPid = parseInt(fs.readFileSync(PID_FILE, "utf-8").trim(), 10);
         if (savedPid && isProcessAlive(savedPid)) {
           log.info({ pid: savedPid }, "Killing MITM server by PID...");
           process.kill(savedPid, "SIGTERM");

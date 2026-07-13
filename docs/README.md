@@ -177,8 +177,7 @@ Mermaid sources and exported SVG/PNG diagrams referenced from the docs above. Se
 
 ## i18n/
 
-Translated mirrors are generated on demand in 42 locales and are not tracked.
-See [the i18n guide](guides/I18N.md) for supported locales and generation commands.
+Translated mirrors of the documentation in 43 locales. See [i18n/README.md](i18n/README.md) for the supported language list.
 
 ## screenshots/
 

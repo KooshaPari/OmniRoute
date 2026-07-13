@@ -1,144 +1,191 @@
-/**
- * Keyv/SQLite-backed fixed-window rate limiter.
- *
- * The public rules API is deliberately compatible with the earlier Redis
- * implementation: each request is checked against every configured window
- * and increments every window only when all limits allow it.  Keyv is the
- * persistent backend when the legacy REDIS_URL opt-in is present; otherwise a
- * bounded process-local fallback avoids probing localhost or importing Redis.
- */
-import { Keyv } from "keyv";
-import { KeyvSqlite } from "@keyv/sqlite";
-import { resolve } from "node:path";
+import type Redis from "ioredis";
 
-interface RateLimitEntry {
-  count: number;
-  windowStart: number;
-  windowMs: number;
+// Redis is optional. When REDIS_URL is unset, use a process-local fallback
+// instead of probing localhost on every API request.
+const REDIS_URL = process.env.REDIS_URL?.trim() || "";
+if (process.env.NODE_ENV === "production" && !REDIS_URL) {
+  console.warn("[REDIS] REDIS_URL is not set in production. Using in-memory rate limiting.");
+}
+
+// #6559 — `ioredis` must stay a LAZY dependency here. This module is bundled
+// (via esbuild --packages=external) into the MCP server output, and esbuild
+// hoists any static top-level `import ... from "ioredis"` into a real
+// top-level ESM import in the compiled bundle — even though this module is
+// only ever reached through a dynamic `await import(...)` several call-sites
+// deep (apiKeys.ts -> mcpCallerIdentity.ts -> compressionTools.ts -> server.ts).
+// A static import forces Node to resolve `ioredis` at module-link time,
+// before any `--mcp` startup code runs, and `ioredis` is not guaranteed to
+// ship in the MCP-only bundle's node_modules. Mirrors the established
+// soft-dependency pattern in src/lib/quota/redisQuotaStore.ts.
+let redisClientPromise: Promise<Redis> | null = null;
+
+export function isRedisConfigured(): boolean {
+  return REDIS_URL.length > 0;
+}
+
+/**
+ * State-change-gated log throttle for the Redis error handler.
+ *
+ * #4878: when REDIS_URL points at a non-running server, ioredis retries on a
+ * backoff and fires the "error" event on every attempt, flooding the logs with
+ * identical "[REDIS] Error:" lines. We only want to log when the error STATE
+ * actually changes (first occurrence, or a different error message), not on
+ * every retry of the same failure.
+ */
+export function createRedisLogThrottle() {
+  let lastLogged: string | null = null;
+  return {
+    shouldLog(message: string): boolean {
+      if (message === lastLogged) return false;
+      lastLogged = message;
+      return true;
+    },
+    reset(): void {
+      lastLogged = null;
+    },
+  };
+}
+
+const redisLogThrottle = createRedisLogThrottle();
+
+// Exposed for unit tests — returns a fresh, isolated throttle instance.
+export function _createRedisLogThrottleForTests() {
+  return createRedisLogThrottle();
+}
+
+/**
+ * Return the singleton Redis client, creating it (lazily importing `ioredis`)
+ * on first call. Throws SYNCHRONOUSLY (not a rejected Promise) when Redis is
+ * not configured — callers rely on this to fail fast without an `await`.
+ * Otherwise returns a Promise that resolves once the client is constructed.
+ */
+export function getRedisClient(): Promise<Redis> {
+  if (!isRedisConfigured()) {
+    throw new Error("Redis is not configured");
+  }
+
+  if (!redisClientPromise) {
+    redisClientPromise = (async () => {
+      // Lazy dynamic import — see the #6559 note above the singleton declaration.
+      const mod = await import("ioredis");
+      const RedisCtor = (mod.default ?? mod) as typeof Redis;
+      const client = new RedisCtor(REDIS_URL, {
+        maxRetriesPerRequest: 3,
+        enableReadyCheck: false,
+        retryStrategy(times) {
+          return Math.min(times * 50, 2000); // Exponential backoff
+        },
+      });
+      client.on("error", (err) => {
+        // Throttle: log once per error-state change instead of on every retry (#4878).
+        if (redisLogThrottle.shouldLog(err.message)) {
+          console.error("[REDIS] Error:", err.message);
+        }
+      });
+      // A successful connection resets the throttle so the next failure logs again.
+      client.on("ready", () => redisLogThrottle.reset());
+      return client;
+    })();
+  }
+  return redisClientPromise;
 }
 
 export interface RateLimitRule {
   limit: number;
-  /** Fixed-window duration in seconds. */
-  window: number;
+  window: number; // in seconds
 }
 
 export interface RateLimitResult {
   allowed: boolean;
   failedWindow?: number;
-  /** Present for the positional API. */
-  remaining?: number;
-  resetMs?: number;
-  limit?: number;
 }
 
 /**
- * Retain this explicit legacy opt-in rather than silently connecting to a
- * localhost Redis instance.  The configured persistence implementation is
- * Keyv/SQLite, not a Redis client.
+ * Atomic Lua script for multi-rule rate limiting using fixed window.
+ * Returns {1, 0} if allowed, or {0, failedWindow} if rejected.
  */
-const REDIS_URL = process.env.REDIS_URL?.trim() || "";
+const RATE_LIMIT_SCRIPT = `
+local key_prefix = KEYS[1]
+local current_time = tonumber(ARGV[1])
 
-function defaultDataDir(): string {
-  return process.env.DATA_DIR || process.env.HOME || "/tmp";
-}
+local rules = {}
+for i = 2, #ARGV, 2 do
+  table.insert(rules, {
+    limit = tonumber(ARGV[i]),
+    window = tonumber(ARGV[i+1])
+  })
+end
 
-let keyvStore: Keyv | null = null;
-let testMode = false;
-let keyvCheckTail: Promise<void> = Promise.resolve();
+-- First pass: check if any limit is exceeded
+for i, rule in ipairs(rules) do
+  local current_window = math.floor(current_time / rule.window)
+  local window_key = key_prefix .. ":" .. rule.window .. ":" .. current_window
 
-function getKeyvStore(): Keyv {
-  if (!keyvStore) {
-    const dbPath = resolve(defaultDataDir(), "rate-limiter-keyv.sqlite");
-    keyvStore = new Keyv({ store: new KeyvSqlite({ uri: dbPath }) });
-  }
-  return keyvStore;
-}
+  local count = tonumber(redis.call("GET", window_key) or "0")
+  if count >= rule.limit then
+    return { 0, rule.window } -- Reject, return which window failed
+  end
+end
 
-const positionalCounters = new Map<string, RateLimitEntry>();
+-- Second pass: increment all rules
+for i, rule in ipairs(rules) do
+  local current_window = math.floor(current_time / rule.window)
+  local window_key = key_prefix .. ":" .. rule.window .. ":" .. current_window
+
+  local count = redis.call("INCR", window_key)
+  if count == 1 then
+    -- TTL is twice the window size to ensure it covers the current window safely
+    redis.call("EXPIRE", window_key, rule.window * 2)
+  end
+end
+
+return { 1, 0 } -- Accepted
+`;
+
 const TEST_MEMORY_STORE = new Map<string, number>();
 const FALLBACK_MEMORY_STORE = new Map<string, number>();
-const MAX_LOCAL_RATE_LIMIT_ENTRIES = 10_000;
+let explicitTestMode = false;
 
-type RedisCompatibilityClient = {
-  del: (...args: unknown[]) => Promise<unknown>;
-  get: (...args: unknown[]) => Promise<unknown>;
-  set: (...args: unknown[]) => Promise<unknown>;
-};
-
-export function isRedisConfigured(): boolean {
-  return false;
-}
-
-function isKeyvPersistenceEnabled(): boolean {
-  return REDIS_URL.length > 0;
-}
+// Minimum store size before we bother sweeping (avoids O(n) cost on tiny stores)
+const EVICTION_THRESHOLD = 50;
 
 /**
- * Redis was intentionally removed from this limiter.  Keep the historical
- * export strict so callers cannot accidentally treat a no-op as a live cache.
+ * Evict all in-memory rate-limit window keys whose window has already ended.
+ *
+ * Key format: `rl:api_key:{id}:{windowSize}:{windowNumber}`
+ * A key expires at epoch-second `(windowNumber + 1) * windowSize`.
+ *
+ * Exported so tests can exercise it directly and so callers can invoke it
+ * with any store (TEST_MEMORY_STORE or FALLBACK_MEMORY_STORE).
+ *
+ * Fixes: #4041 — FALLBACK_MEMORY_STORE accumulated indefinitely → OOM (#4771).
  */
-export function getRedisClient(): RedisCompatibilityClient {
-  if (!isRedisConfigured()) {
-    throw new Error("Redis is not configured");
-  }
-  throw new Error("Redis is not available in the Keyv rate limiter");
-}
-
-/** Remove completed legacy fixed-window keys without touching unknown keys. */
 export function evictStaleRateLimitWindows(store: Map<string, number>, nowSeconds: number): void {
   for (const key of store.keys()) {
+    // Format: rl:api_key:{id}:{windowSize}:{windowNumber}
+    // Split only on the last two colons to handle ids that contain colons.
     const lastColon = key.lastIndexOf(":");
+    if (lastColon === -1) continue;
     const secondLastColon = key.lastIndexOf(":", lastColon - 1);
-    if (lastColon === -1 || secondLastColon === -1) continue;
+    if (secondLastColon === -1) continue;
 
     const windowNumber = Number(key.slice(lastColon + 1));
     const windowSize = Number(key.slice(secondLastColon + 1, lastColon));
-    if (!Number.isFinite(windowNumber) || !Number.isFinite(windowSize) || windowSize <= 0) continue;
-    if ((windowNumber + 1) * windowSize <= nowSeconds) store.delete(key);
+
+    if (!Number.isFinite(windowNumber) || !Number.isFinite(windowSize) || windowSize <= 0) {
+      continue;
+    }
+
+    const windowEnd = (windowNumber + 1) * windowSize;
+    if (windowEnd <= nowSeconds) {
+      store.delete(key);
+    }
   }
 }
 
-/** Force hermetic process-local storage for tests. */
-export function setRateLimiterTestMode(enabled: boolean): void {
-  testMode = enabled;
-  if (enabled) {
-    TEST_MEMORY_STORE.clear();
-    positionalCounters.clear();
-  }
-}
-
-/** Reset all process-local limiter state between tests. */
-export function __resetRateLimitManagerForTests(): void {
-  positionalCounters.clear();
-  TEST_MEMORY_STORE.clear();
-  FALLBACK_MEMORY_STORE.clear();
-}
-
-export function cleanupRateLimiters(): void {
-  __resetRateLimitManagerForTests();
-  keyvStore = null;
-}
-
-function ruleWindowKey(keyId: string, rule: RateLimitRule, nowSeconds: number): string {
-  return `rl:api_key:${keyId}:${rule.window}:${Math.floor(nowSeconds / rule.window)}`;
-}
-
-function validateRules(rules: RateLimitRule[]): RateLimitRule[] {
-  const windows = new Set<number>();
-  return rules.map((rule) => {
-    if (!Number.isFinite(rule.limit) || rule.limit < 1 || !Number.isInteger(rule.limit)) {
-      throw new TypeError("Rate limit rule limit must be a positive integer");
-    }
-    if (!Number.isFinite(rule.window) || rule.window < 1 || !Number.isInteger(rule.window)) {
-      throw new TypeError("Rate limit rule window must be a positive integer in seconds");
-    }
-    if (windows.has(rule.window)) {
-      throw new TypeError("Rate limit rules must not contain duplicate windows");
-    }
-    windows.add(rule.window);
-    return rule;
-  });
+export function setRateLimiterTestMode(enabled: boolean) {
+  explicitTestMode = enabled;
+  if (enabled) TEST_MEMORY_STORE.clear();
 }
 
 function checkInMemoryRateLimit(
@@ -146,129 +193,73 @@ function checkInMemoryRateLimit(
   keyId: string,
   rules: RateLimitRule[]
 ): RateLimitResult {
-  const nowSeconds = Math.floor(Date.now() / 1000);
-  const keys = rules.map((rule) => ruleWindowKey(keyId, rule, nowSeconds));
-  if (store.size >= MAX_LOCAL_RATE_LIMIT_ENTRIES) {
-    evictStaleRateLimitWindows(store, nowSeconds);
-    const missingRule = rules.find((_, index) => !store.has(keys[index]));
-    if (missingRule && store.size >= MAX_LOCAL_RATE_LIMIT_ENTRIES) {
-      return { allowed: false, failedWindow: missingRule.window };
+  const now = Math.floor(Date.now() / 1000);
+
+  // Opportunistic eviction: sweep stale windows when the store has grown past
+  // the threshold. Bounded O(n) sweep — no timer, no background work.
+  if (store.size > EVICTION_THRESHOLD) {
+    evictStaleRateLimitWindows(store, now);
+  }
+  for (const rule of rules) {
+    const currentWindow = Math.floor(now / rule.window);
+    const windowKey = `rl:api_key:${keyId}:${rule.window}:${currentWindow}`;
+    const count = store.get(windowKey) || 0;
+    if (count >= rule.limit) {
+      return { allowed: false, failedWindow: rule.window };
     }
   }
 
-  for (let index = 0; index < rules.length; index += 1) {
-    if ((store.get(keys[index]) ?? 0) >= rules[index].limit) {
-      return { allowed: false, failedWindow: rules[index].window };
-    }
+  for (const rule of rules) {
+    const currentWindow = Math.floor(now / rule.window);
+    const windowKey = `rl:api_key:${keyId}:${rule.window}:${currentWindow}`;
+    store.set(windowKey, (store.get(windowKey) || 0) + 1);
   }
-  for (const key of keys) {
-    store.set(key, (store.get(key) ?? 0) + 1);
-  }
+
   return { allowed: true };
 }
 
-async function checkKeyvRateLimit(keyId: string, rules: RateLimitRule[]): Promise<RateLimitResult> {
-  const previousCheck = keyvCheckTail;
-  let releaseCheck: () => void = () => undefined;
-  keyvCheckTail = new Promise<void>((resolve) => {
-    releaseCheck = resolve;
-  });
-  await previousCheck;
-
-  try {
-    return await checkKeyvRateLimitLocked(keyId, rules);
-  } finally {
-    releaseCheck();
-  }
-}
-
-async function checkKeyvRateLimitLocked(
+export async function checkRateLimit(
   keyId: string,
   rules: RateLimitRule[]
 ): Promise<RateLimitResult> {
-  try {
-    const store = getKeyvStore();
-    const nowMs = Date.now();
-    const nowSeconds = Math.floor(nowMs / 1000);
-    const keys = rules.map((rule) => ruleWindowKey(keyId, rule, nowSeconds));
-    const counts = await Promise.all(keys.map((key) => store.get<number>(key)));
-    for (let index = 0; index < rules.length; index += 1) {
-      if ((counts[index] ?? 0) >= rules[index].limit) {
-        return { allowed: false, failedWindow: rules[index].window };
-      }
-    }
-    await Promise.all(
-      rules.map((rule, index) => {
-        const remainingMs = (Math.floor(nowSeconds / rule.window) + 1) * rule.window * 1000 - nowMs;
-        return store.set(keys[index], (counts[index] ?? 0) + 1, remainingMs + 1000);
-      })
-    );
-    return { allowed: true };
-  } catch {
-    // If persistence becomes unavailable, retain local protection rather than
-    // failing open or attempting an implicit Redis connection.
+  if (!rules || rules.length === 0) return { allowed: true };
+
+  // ── In-memory mock for unit tests ──
+  const isTestMode =
+    explicitTestMode ||
+    process.env.NODE_ENV === "test" ||
+    process.env.DISABLE_SQLITE_AUTO_BACKUP === "true";
+
+  if (isTestMode) {
+    return checkInMemoryRateLimit(TEST_MEMORY_STORE, keyId, rules);
+  }
+
+  if (!isRedisConfigured()) {
     return checkInMemoryRateLimit(FALLBACK_MEMORY_STORE, keyId, rules);
   }
-}
 
-export async function checkRateLimit(
-  keyId: string,
-  rules: RateLimitRule[]
-): Promise<RateLimitResult>;
-export async function checkRateLimit(
-  keyId: string,
-  limit: number,
-  windowMs: number
-): Promise<RateLimitResult>;
-export async function checkRateLimit(
-  keyId: string,
-  rulesOrLimit: RateLimitRule[] | number,
-  windowMs?: number
-): Promise<RateLimitResult> {
-  if (Array.isArray(rulesOrLimit)) return checkRateLimitWithRules(keyId, rulesOrLimit);
-  if (!Number.isFinite(rulesOrLimit) || rulesOrLimit < 1 || !Number.isInteger(rulesOrLimit)) {
-    throw new TypeError("Rate limit must be a positive integer");
-  }
-  if (!Number.isFinite(windowMs) || !windowMs || windowMs < 1) {
-    throw new TypeError("Rate limit window must be a positive number of milliseconds");
+  const redis = await getRedisClient();
+
+  const args: (string | number)[] = [Math.floor(Date.now() / 1000)];
+
+  for (const rule of rules) {
+    args.push(rule.limit, rule.window);
   }
 
-  const now = Date.now();
-  const windowStart = Math.floor(now / windowMs) * windowMs;
-  const resetMs = windowStart + windowMs;
-  const entryKey = `${keyId}:${windowStart}`;
-  if (positionalCounters.size >= MAX_LOCAL_RATE_LIMIT_ENTRIES) {
-    for (const [storedKey, storedEntry] of positionalCounters) {
-      if (storedEntry.windowStart + storedEntry.windowMs <= now) positionalCounters.delete(storedKey);
+  try {
+    const result = (await redis.eval(RATE_LIMIT_SCRIPT, 1, `rl:api_key:${keyId}`, ...args)) as [
+      number,
+      number,
+    ];
+
+    if (result[0] === 0) {
+      return { allowed: false, failedWindow: result[1] };
     }
-    if (!positionalCounters.has(entryKey) && positionalCounters.size >= MAX_LOCAL_RATE_LIMIT_ENTRIES) {
-      return { allowed: false, remaining: 0, resetMs, limit: rulesOrLimit };
-    }
+
+    return { allowed: true };
+  } catch (error) {
+    // Fail-open strategy if Redis goes down to prevent complete API outage
+    console.error("[RATE_LIMITER] Redis eval failed, bypassing rate limit:", error);
+    return { allowed: true };
   }
-  const entry = positionalCounters.get(entryKey) ?? { count: 0, windowStart, windowMs };
-  entry.count += 1;
-  positionalCounters.set(entryKey, entry);
-  return {
-    allowed: entry.count <= rulesOrLimit,
-    remaining: Math.max(0, rulesOrLimit - entry.count),
-    resetMs,
-    limit: rulesOrLimit,
-  };
 }
-
-/**
- * Apply every fixed-window rule to one request.  This preserves the public
- * array contract used by API-key policy and the existing E2E suite.
- */
-export async function checkRateLimitWithRules(
-  keyId: string,
-  suppliedRules: RateLimitRule[]
-): Promise<RateLimitResult> {
-  const rules = validateRules(suppliedRules);
-  if (rules.length === 0) return { allowed: true };
-  if (testMode) return checkInMemoryRateLimit(TEST_MEMORY_STORE, keyId, rules);
-  if (!isKeyvPersistenceEnabled()) return checkInMemoryRateLimit(FALLBACK_MEMORY_STORE, keyId, rules);
-  return checkKeyvRateLimit(keyId, rules);
-}
-
-export { checkRateLimitWithRules as checkRateLimitArray };
