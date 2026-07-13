@@ -28,6 +28,7 @@ resolve_yaml() {
 SCRIPT_LIB_REAL="$(cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]}" 2>/dev/null)")" 2>/dev/null && pwd)/lib"
 . "$SCRIPT_LIB_REAL/mcp-transport.sh" 2>/dev/null || true
 . "$SCRIPT_LIB_REAL/mcp-server.sh" 2>/dev/null || true
+. "$SCRIPT_LIB_REAL/mcp-sse-transport.sh" 2>/dev/null || true
 . "$SCRIPT_LIB_REAL/init.sh" 2>/dev/null || true
 INIT_SCRIPT="$SCRIPT_LIB_REAL/init.sh"
 SCRIPT_LIB_SYMLINK="$(cd "$(dirname "${BASH_SOURCE[0]}")" 2>/dev/null && pwd)/lib"
@@ -554,6 +555,7 @@ case "${1:-help}" in
   test)       cmd_test ;;
   diff)       cmd_diff "${@}" ;;
   serve-stdio) mcp_serve_stdio ;;
+  serve-sse)   shift; serve_sse_main "${@}" ;;
   mcp)        mcp_server "${@}" ;;
   mcp-call)   shift; mcp_call "$@" ;;
   mcp-server) mcp_server "${@}" ;;
@@ -591,6 +593,7 @@ USAGE:
   proccompose test           run the v4 BFF test suite (pre-deploy verifier)
   proccompose diff [slot]   show plan-vs-current-state for a slot (forensics)
   proccompose serve-stdio   run proccompose as an MCP server (JSON-RPC 2.0 over stdin)
+  proccompose serve-sse [port]  run proccompose as an MCP server (JSON-RPC 2.0 over HTTP/SSE, default :4323)
   proccompose matrix \<action\>  run the same action across dev+staging+prod
 
 REQUIRES:

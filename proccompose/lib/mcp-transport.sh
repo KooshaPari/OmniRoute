@@ -50,25 +50,7 @@ mcp_stdio_reply() {
 
 mcp_stdio_tools_list() {
   local id="$1"
-  mcp_stdio_reply "$id" "false" '{
-    "tools": [
-      {"name":"proccompose_doctor","description":"Check prereqs (pheno + Tailscale + Vercel + yq + proccompose.yaml)","inputSchema":{"type":"object","properties":{}}},
-      {"name":"proccompose_deploy","description":"Atomic deploy of a git ref to the desktop (build, restart, health, rollback)","inputSchema":{"type":"object","properties":{"ref":{"type":"string"},"slot":{"type":"string"}},"required":["ref"]}},
-      {"name":"proccompose_release","description":"Deploy + cutover in one shot","inputSchema":{"type":"object","properties":{"ref":{"type":"string"},"rollout_pct":{"type":"integer"},"slot":{"type":"string"}},"required":["ref"]}},
-      {"name":"proccompose_cutover","description":"Flip OMNI_WEB_STACK_ROLLOUT on Vercel","inputSchema":{"type":"object","properties":{"pct":{"type":"integer"},"slot":{"type":"string"}},"required":["pct"]}},
-      {"name":"proccompose_rollback","description":"Atomic rollback to previous release","inputSchema":{"type":"object","properties":{"slot":{"type":"string"}}}},
-      {"name":"proccompose_status","description":"Health snapshot (JSON)","inputSchema":{"type":"object","properties":{}}},
-      {"name":"proccompose_releases","description":"Release history for a slot","inputSchema":{"type":"object","properties":{"slot":{"type":"string"}}}},
-      {"name":"proccompose_logs","description":"Tail a desktop service log","inputSchema":{"type":"object","properties":{"service":{"type":"string"},"tail_lines":{"type":"integer"}}}},
-      {"name":"proccompose_url","description":"Print current BFF URL","inputSchema":{"type":"object","properties":{}}},
-      {"name":"proccompose_dry_run","description":"Print the full execution graph","inputSchema":{"type":"object","properties":{}}},
-      {"name":"proccompose_matrix","description":"Run an action across all slots","inputSchema":{"type":"object","properties":{"action":{"type":"string"}}}},
-      {"name":"proccompose_init","description":"Bootstrap a fresh host","inputSchema":{"type":"object","properties":{}}},
-      {"name":"proccompose_auto_rollback","description":"Poll SLOs, revert on breach","inputSchema":{"type":"object","properties":{"slot":{"type":"string"},"pct":{"type":"integer"}}}},
-      {"name":"proccompose_test","description":"Run the v4 test suite (pre-deploy verifier)","inputSchema":{"type":"object","properties":{}}},
-      {"name":"proccompose_diff","description":"Show plan-vs-current-state for a slot","inputSchema":{"type":"object","properties":{"slot":{"type":"string"}}}
-    ]
-  }'
+  mcp_stdio_reply "$id" "false" '{ "tools": [ {"name":"proccompose_doctor","description":"Check prereqs (pheno + Tailscale + Vercel + yq + proccompose.yaml)","inputSchema":{"type":"object","properties":{}}}, {"name":"proccompose_deploy","description":"Atomic deploy of a git ref to the desktop (build, restart, health, rollback)","inputSchema":{"type":"object","properties":{"ref":{"type":"string"},"slot":{"type":"string"}},"required":["ref"]}}, {"name":"proccompose_release","description":"Deploy + cutover in one shot","inputSchema":{"type":"object","properties":{"ref":{"type":"string"},"rollout_pct":{"type":"integer"},"slot":{"type":"string"}},"required":["ref"]}}, {"name":"proccompose_cutover","description":"Flip OMNI_WEB_STACK_ROLLOUT on Vercel","inputSchema":{"type":"object","properties":{"pct":{"type":"integer"},"slot":{"type":"string"}},"required":["pct"]}}, {"name":"proccompose_rollback","description":"Atomic rollback to previous release","inputSchema":{"type":"object","properties":{"slot":{"type":"string"}}}}, {"name":"proccompose_status","description":"Health snapshot (JSON)","inputSchema":{"type":"object","properties":{}}}, {"name":"proccompose_releases","description":"Release history for a slot","inputSchema":{"type":"object","properties":{"slot":{"type":"string"}}}}, {"name":"proccompose_logs","description":"Tail a desktop service log","inputSchema":{"type":"object","properties":{"service":{"type":"string"},"tail_lines":{"type":"integer"}}}}, {"name":"proccompose_url","description":"Print current BFF URL","inputSchema":{"type":"object","properties":{}}}, {"name":"proccompose_dry_run","description":"Print the full execution graph","inputSchema":{"type":"object","properties":{}}}, {"name":"proccompose_matrix","description":"Run an action across all slots","inputSchema":{"type":"object","properties":{"action":{"type":"string"}}}}, {"name":"proccompose_init","description":"Bootstrap a fresh host","inputSchema":{"type":"object","properties":{}}}, {"name":"proccompose_auto_rollback","description":"Poll SLOs, revert on breach","inputSchema":{"type":"object","properties":{"slot":{"type":"string"},"pct":{"type":"integer"}}}}, {"name":"proccompose_test","description":"Run the v4 test suite (pre-deploy verifier)","inputSchema":{"type":"object","properties":{}}}, {"name":"proccompose_diff","description":"Show plan-vs-current-state for a slot","inputSchema":{"type":"object","properties":{"slot":{"type":"string"}}}} ] }'
 }
 
 mcp_stdio_tool_call() {
