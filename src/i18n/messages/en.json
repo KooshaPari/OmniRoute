@@ -7989,6 +7989,7 @@
     "errorForceDeleteConfirm": "This proxy is still assigned. Force delete and remove all assignments?",
     "errorMigrateFailed": "Failed to migrate legacy proxy config",
     "errorBulkFailed": "Failed to execute bulk assignment",
+    "poolSaveFailed": "Failed to save proxy pool",
     "success": "✓",
     "failure": "✗",
     "failed": "Failed",
