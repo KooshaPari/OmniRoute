@@ -1,7 +1,6 @@
-import { getModelInfo, getComboForModel } from "../services/model";
+import { getModelInfo } from "../services/model";
 import { clearAccountError, markAccountUnavailable } from "../services/auth";
 import { connectionHasExtraKeys } from "@omniroute/open-sse/services/apiKeyRotator.ts";
-import { createBuiltinAutoCombo } from "@omniroute/open-sse/services/autoCombo/builtinCatalog.ts";
 import * as log from "../utils/logger";
 import { updateProviderCredentials } from "../services/tokenRefresh";
 import {
@@ -39,6 +38,7 @@ import { resolveUseUpstream429BreakerHints } from "../../shared/utils/providerHi
 import { logProxyEvent } from "../../lib/proxyLogger";
 import { logTranslationEvent } from "../../lib/translatorEvents";
 import { getRuntimeProviderProfile } from "@omniroute/open-sse/services/accountFallback.ts";
+import { resolveAutoModelOrError } from "./resolveAutoModelOrError";
 
 // Models that explicitly cannot run on the codex/ChatGPT-Pro OAuth pool — when
 // a caller writes `codex/deepseek-v4-pro` we transparently reroute to the
@@ -180,59 +180,8 @@ export async function resolveModelOrError(
     }
   }
 
-  // "auto" is a built-in virtual combo prefix, not a provider. parseModel("auto/fast")
-  // splits it into provider="auto" model="fast", so resolve it before credential lookup.
-  if (modelInfo.provider === "auto") {
-    const suffix = modelInfo.model || "";
-    const fuzzyCandidates = [`auto/best-${suffix}`, `auto/${suffix}`];
-
-    const exactCombo = await getComboForModel(modelStr);
-    if (exactCombo) {
-      log.info("ROUTING", `"auto" provider → combo "${modelStr}"`);
-      return { combo: exactCombo, provider: "auto", model: suffix };
-    }
-
-    // Preserve persisted fuzzy combo behavior before falling back to built-in virtual catalog ids.
-    for (const candidate of fuzzyCandidates) {
-      const fuzzyCombo = await getComboForModel(candidate);
-      if (fuzzyCombo) {
-        log.info("ROUTING", `"auto/${suffix}" → combo "${candidate}" (fuzzy)`);
-        return { combo: fuzzyCombo, provider: "auto", model: suffix };
-      }
-    }
-
-    try {
-      const virtualCombo = await createBuiltinAutoCombo(modelStr, suffix);
-      log.info(
-        "AUTO",
-        `"auto" provider → built-in virtual combo "${modelStr}" (${virtualCombo.candidatePool?.length || 0} candidates)`
-      );
-      return { combo: virtualCombo, provider: "auto", model: suffix };
-    } catch (err) {
-      log.warn("CHAT", `Failed to create built-in auto combo "${modelStr}"`, { err });
-    }
-
-    // Fuzzy: "fast" → "auto/best-fast", "chat" → "auto/best-chat"
-    for (const candidate of fuzzyCandidates) {
-      try {
-        const virtualCombo = await createBuiltinAutoCombo(
-          candidate,
-          candidate.replace(/^auto\/?/, "")
-        );
-        log.info(
-          "AUTO",
-          `"auto/${suffix}" → built-in virtual combo "${candidate}" (fuzzy, ${virtualCombo.candidatePool?.length || 0} candidates)`
-        );
-        return { combo: virtualCombo, provider: "auto", model: suffix };
-      } catch {
-        /* Try next fuzzy candidate */
-      }
-    }
-
-    const message = `Model '${modelStr}' is not a valid combo or provider. Unknown built-in auto combo.`;
-    log.warn("CHAT", message, { model: modelStr });
-    return { error: errorResponse(HTTP_STATUS.BAD_REQUEST, message) };
-  }
+  const autoResolved = await resolveAutoModelOrError(modelStr, modelInfo);
+  if (autoResolved) return autoResolved;
 
   if (!modelInfo.provider) {
     // model_not_found: raised by resolveModelByProviderInference when no

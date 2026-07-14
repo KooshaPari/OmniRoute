@@ -102,6 +102,7 @@ const DOCUMENTED_DEAD = new Set([
   "discovery", // DEAD?: 0 importers; lib/discovery/index.ts is independent
   "pluginMetrics", // DEAD? (production): write path not yet wired (self-documented)
   "prompts", // DEAD? (production): zero production callers; integration test only verifies interface shape
+  "compressionBudgetHistory", // DEAD?: 0 importers after compression budget history wiring lag
 ]);
 
 const SEARCH_ROOTS = [

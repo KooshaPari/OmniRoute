@@ -14,7 +14,13 @@ const ROOT = join(__dirname, "..", "..");
 const DEFAULT_TIMEOUT_MS = 45_000;
 const DEFAULT_SETTLE_MS = 2_000;
 const DEFAULT_URL = "http://127.0.0.1:20128/login";
-export const LINUX_EXECUTABLE_NAMES = ["omniroute-desktop", "omniroute", "OmniRoute"];
+export const LINUX_EXECUTABLE_NAMES = [
+  "argismonitor-desktop",
+  "ArgisMonitor",
+  "omniroute-desktop",
+  "omniroute",
+  "OmniRoute",
+];
 export const FATAL_LOG_PATTERNS = [
   /Cannot find module/i,
   /MODULE_NOT_FOUND/,
@@ -371,7 +377,13 @@ async function ensureSmokeEnvDirs(smokeEnv, dataDir) {
   // requestSingleInstanceLock() runs synchronously at module load and
   // fails silently if the directory doesn't exist yet — causing exit(0).
   if (platform() === "win32" && smokeEnv.APPDATA) {
-    for (const subdir of ["omniroute-desktop", "OmniRoute", "omniroute"]) {
+    for (const subdir of [
+      "argismonitor-desktop",
+      "ArgisMonitor",
+      "omniroute-desktop",
+      "OmniRoute",
+      "omniroute",
+    ]) {
       dirs.push(join(smokeEnv.APPDATA, subdir));
     }
   }

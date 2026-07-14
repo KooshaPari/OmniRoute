@@ -9,7 +9,8 @@ import { resolveDataDir as cliResolveDataDir } from "../../bin/cli/data-dir.mjs"
 import { resolveDataDir as runtimeResolveDataDir } from "../../src/lib/dataPaths.ts";
 
 const REPO_ROOT = path.join(path.dirname(fileURLToPath(import.meta.url)), "..", "..");
-const BIN = path.join(REPO_ROOT, "bin", "omniroute.mjs");
+// Canonical CLI binary after ArgisMonitor rename; omniroute.mjs is a shim.
+const BIN = path.join(REPO_ROOT, "bin", "argismonitor.mjs");
 
 async function withTempEnv(
   fn: (paths: { root: string; home: string; cwd: string }) => void | Promise<void>

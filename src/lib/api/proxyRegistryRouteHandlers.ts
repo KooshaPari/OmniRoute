@@ -32,7 +32,10 @@ export async function resolveProxyLookupResponse(
   whereUsedParam: string
 ): Promise<Response | null> {
   const id = searchParams.get("id");
-  const whereUsed = searchParams.get(whereUsedParam) === "1";
+  const whereUsed =
+    searchParams.get(whereUsedParam) === "1" ||
+    searchParams.get("whereUsed") === "1" ||
+    searchParams.get("where_used") === "1";
 
   if (id && whereUsed) {
     const usage = await getProxyWhereUsed(id);
