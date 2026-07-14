@@ -43,7 +43,6 @@ export function App() {
 
   useEffect(() => {
     const token = ++pendingTokenRef.current;
-    setSavedStatus(false);
     fetchManagement<Record<string, unknown>>(active.id).then((result) => {
       if (token !== pendingTokenRef.current) {
         return;
@@ -86,7 +85,10 @@ export function App() {
             <button
               key={tab.id}
               className={tab.id === active.id ? "nav active" : "nav"}
-              onClick={() => setActive(tab)}
+              onClick={() => {
+                setSavedStatus(false);
+                setActive(tab);
+              }}
             >
               <span>{tab.label}</span>
               <small>{tab.id}</small>

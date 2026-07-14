@@ -3574,53 +3574,6 @@ async function validateInnerAiProvider({ apiKey, providerSpecificData = {} }: an
   }
 }
 
-export async function validateWebCookieProvider({
-  provider,
-  apiKey,
-  providerSpecificData = {},
-}: any) {
-  const entry = (WEB_COOKIE_PROVIDERS as Record<string, { website?: string } | undefined>)[provider];
-  if (!entry) {
-    return { valid: false, error: "Provider validation not supported", unsupported: true };
-  }
-
-  const cookie = typeof apiKey === "string" ? apiKey.trim() : "";
-  if (!cookie) {
-    return {
-      valid: false,
-      error: "Cookie is required for web-cookie provider validation",
-      unsupported: false,
-    };
-  }
-
-  try {
-    const url = new URL("/models", entry.website || "https://example.com").toString();
-    const response = await globalThis.fetch(url, {
-      method: "GET",
-      headers: applyCustomUserAgent(
-        {
-          Accept: "application/json",
-          Cookie: cookie,
-        },
-        providerSpecificData
-      ),
-    });
-
-    if (response.status === 401 || response.status === 403) {
-      return {
-        valid: false,
-        error: "SESSION_EXPIRED",
-        errorCode: "AUTH_007",
-        unsupported: false,
-      };
-    }
-
-    return { valid: true, error: null, unsupported: false };
-  } catch (error: unknown) {
-    return toValidationErrorResult(error);
-  }
-}
-
 // #5422: Bytez key validation cannot use a chat probe. A Bytez account only serves models
 // that have been added to its catalog, so even Bytez's own documented model ids return 404
 // ("Model does not exist or has yet to be added to the Bytez catalog") for a fresh/free key —
