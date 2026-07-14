@@ -3665,57 +3665,6 @@ export async function validateWebCookieProvider({
   return validator({ apiKey, providerSpecificData });
 }
 
-async function validateZaiProvider({ apiKey, providerSpecificData = {} }: any) {
-  try {
-    const baseUrl = normalizeBaseUrl(
-      providerSpecificData?.baseUrl || "https://api.z.ai/api/anthropic/v1/messages"
-    );
-    const url = `${baseUrl}${baseUrl.includes("?") ? "&" : "?"}beta=true`;
-    const response = await directHttpsRequest(
-      url,
-      {
-        method: "POST",
-        headers: applyCustomUserAgent(
-          {
-            "Content-Type": "application/json",
-            "anthropic-version": "2023-06-01",
-            "x-api-key": apiKey,
-          },
-          providerSpecificData
-        ),
-        body: JSON.stringify({
-          model: providerSpecificData?.validationModelId || "glm-5.1",
-          max_tokens: 1,
-          messages: [{ role: "user", content: "test" }],
-        }),
-      },
-      15000
-    );
-
-    if (response.status === 401 || response.status === 403) {
-      return { valid: false, error: "Invalid API key" };
-    }
-    if (
-      response.ok ||
-      response.status === 400 ||
-      response.status === 422 ||
-      response.status === 429 ||
-      response.status === 502
-    ) {
-      return { valid: true, error: null };
-    }
-    if (response.status === 404 || response.status === 405) {
-      return { valid: false, error: "Provider validation endpoint not supported" };
-    }
-    if (response.status >= 500) {
-      return { valid: false, error: `Provider unavailable (${response.status})` };
-    }
-    return { valid: false, error: `Validation failed: ${response.status}` };
-  } catch (error: unknown) {
-    return toValidationErrorResult(error);
-  }
-}
-
 export async function validateProviderApiKey({ provider, apiKey, providerSpecificData = {} }: any) {
   const requiresApiKey = !providerAllowsOptionalApiKey(provider);
   const isLocal = isLocalProvider(provider);
@@ -3835,7 +3784,6 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
     kie: validateKieProvider,
     "aws-polly": validateAwsPollyProvider,
     "bailian-coding-plan": validateBailianCodingPlanProvider,
-    zai: validateZaiProvider,
     heroku: validateHerokuProvider,
     databricks: validateDatabricksProvider,
     datarobot: validateDataRobotProvider,
