@@ -48,7 +48,7 @@
       <div>
         <h3 class="text-sm font-semibold text-gray-700 mb-2">Channels</h3>
         <div class="space-y-2">
-          {#each Object.entries(prefs.channels) as [k, v]}
+          {#each (Object.keys(prefs.channels) as Array<keyof Prefs['channels']>) as k}
             <label class="flex items-center gap-2">
               <input type="checkbox" bind:checked={prefs.channels[k as keyof Prefs['channels']]} class="rounded" />
               <span class="text-sm capitalize">{k}</span>
@@ -60,10 +60,10 @@
       <div>
         <h3 class="text-sm font-semibold text-gray-700 mb-2">Events</h3>
         <div class="space-y-2">
-          {#each Object.entries(prefs.events) as [k, v]}
+          {#each (Object.keys(prefs.events) as Array<keyof Prefs['events']>) as k}
             <label class="flex items-center gap-2">
               <input type="checkbox" bind:checked={prefs.events[k as keyof Prefs['events']]} class="rounded" />
-              <span class="text-sm capitalize">{k.replace(/([A-Z])/g, ' $1').trim()}</span>
+              <span class="text-sm capitalize">{String(k).replace(/([A-Z])/g, ' $1').trim()}</span>
             </label>
           {/each}
         </div>
