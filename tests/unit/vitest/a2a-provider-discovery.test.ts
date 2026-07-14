@@ -177,7 +177,10 @@ describe("providerDiscovery A2A skill", () => {
     );
     const payload = parseArtifact(result);
 
-    expect(payload.providers.map((p) => p.id)).toEqual(["openai"]);
+    // config openai + OPENAI_API_KEY env entry both match vendor="openai"
+    expect(payload.providers.every((p) => p.vendor === "openai")).toBe(true);
+    expect(payload.providers.map((p) => p.id)).toContain("openai");
+    expect(payload.providers.length).toBeGreaterThanOrEqual(1);
   });
 
   it("returns an empty catalog when nothing is on disk or in env", async () => {

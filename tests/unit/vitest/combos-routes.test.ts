@@ -1,49 +1,71 @@
 /**
  * Tests for `PUT /api/combos/[id]` and `POST /api/combos`.
  *
- * Restored routes (L5-121, commit `9093a241a`):
- *   - `src/app/api/combos/route.ts` (GET, POST)
- *   - `src/app/api/combos/[id]/route.ts` (GET, PUT, DELETE)
- *
- * The GUI's combos page (`src/app/(dashboard)/dashboard/combos/page.tsx`)
- * still issues fetch calls to these legacy paths; the routes must remain
- * in place until the GUI migrates to `/v1/combos` + `/api/combos/auto`.
- *
- * This is the canonical test file. The earlier-named
- * `combos-routes-regression.test.ts` was created during the L5-121
- * investigation; this file is the merged, definitive set of 13 cases.
- *
- * Run with:
- *   DISABLE_SQLITE_AUTO_BACKUP=true AUTH_TOKEN=test-token \
- *     bun test tests/unit/combos-routes.test.ts
+ * Invokes Next route handlers directly (no live server).
  */
-import { afterAll, beforeAll, describe, expect, test } from "vitest";
-import { ensureDbInitialized, resetDbInstance } from "@/lib/db/stateReset";
-import { createCombo, getComboById } from "@/lib/localDb";
+import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
+import { afterAll, beforeAll, beforeEach, describe, expect, test } from "vitest";
 
-const BASE = "http://localhost:3000";
-const AUTH = { "Content-Type": "application/json", "X-Forwarded-For": "127.0.0.1" };
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-combos-routes-"));
+process.env.DATA_DIR = TEST_DATA_DIR;
+delete process.env.AUTH_TOKEN;
+process.env.DISABLE_SQLITE_AUTO_BACKUP = "true";
+
+const core = await import("../../../src/lib/db/core.ts");
+const { createCombo, getComboById } = await import("../../../src/lib/localDb.ts");
+const listRoute = await import("../../../src/app/api/combos/route.ts");
+const idRoute = await import("../../../src/app/api/combos/[id]/route.ts");
+
+async function resetStorage() {
+  core.resetDbInstance();
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
+}
 
 beforeAll(async () => {
-  process.env.AUTH_TOKEN = "test-token";
-  process.env.DISABLE_SQLITE_AUTO_BACKUP = "true";
-  await ensureDbInitialized();
+  await core.ensureDbInitialized();
 });
 
-afterAll(async () => {
-  await resetDbInstance();
+beforeEach(async () => {
+  await resetStorage();
+});
+
+afterAll(() => {
+  core.resetDbInstance();
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
 });
 
 async function callRoute(
   method: "GET" | "POST" | "PUT" | "DELETE",
-  path: string,
-  body?: unknown
+  pathName: string,
+  body?: unknown,
+  rawBody?: string
 ): Promise<{ status: number; data: any }> {
-  const res = await fetch(`${BASE}${path}`, {
+  const init: RequestInit = {
     method,
-    headers: AUTH,
-    body: body !== undefined ? JSON.stringify(body) : undefined,
-  });
+    headers: { "content-type": "application/json", "x-forwarded-for": "127.0.0.1" },
+  };
+  if (rawBody !== undefined) {
+    init.body = rawBody;
+  } else if (body !== undefined) {
+    init.body = JSON.stringify(body);
+  }
+  const request = new Request(`http://127.0.0.1${pathName}`, init);
+  const idMatch = pathName.match(/^\/api\/combos\/([^/?]+)/);
+  let res: Response;
+  if (pathName === "/api/combos" || pathName === "/api/combos/") {
+    res = method === "POST" ? await listRoute.POST(request) : await listRoute.GET(request);
+  } else if (idMatch) {
+    const params = Promise.resolve({ id: decodeURIComponent(idMatch[1]!) });
+    if (method === "GET") res = await idRoute.GET(request, { params });
+    else if (method === "PUT") res = await idRoute.PUT(request, { params });
+    else if (method === "DELETE") res = await idRoute.DELETE(request, { params });
+    else throw new Error(`unsupported ${method} ${pathName}`);
+  } else {
+    throw new Error(`unsupported path ${pathName}`);
+  }
   const text = await res.text();
   let data: any = text;
   try {
@@ -66,19 +88,17 @@ async function seedCombo(name: string, extras: Record<string, unknown> = {}) {
 }
 
 describe("[id]/route.ts handlers are exported", () => {
-  test("exports GET, PUT, DELETE", async () => {
-    const route = await import("../../src/app/api/combos/[id]/route.ts");
-    expect(typeof route.GET).toBe("function");
-    expect(typeof route.PUT).toBe("function");
-    expect(typeof route.DELETE).toBe("function");
+  test("exports GET, PUT, DELETE", () => {
+    expect(typeof idRoute.GET).toBe("function");
+    expect(typeof idRoute.PUT).toBe("function");
+    expect(typeof idRoute.DELETE).toBe("function");
   });
 });
 
 describe("combos/route.ts handlers are exported", () => {
-  test("exports GET, POST", async () => {
-    const route = await import("../../src/app/api/combos/route.ts");
-    expect(typeof route.GET).toBe("function");
-    expect(typeof route.POST).toBe("function");
+  test("exports GET, POST", () => {
+    expect(typeof listRoute.GET).toBe("function");
+    expect(typeof listRoute.POST).toBe("function");
   });
 });
 
@@ -151,12 +171,8 @@ describe("PUT /api/combos/[id] — 400 triggers", () => {
 
   test("invalid JSON body returns 400 with 'Invalid JSON body'", async () => {
     const id = await seedCombo(`badjson-${Date.now()}`);
-    const res = await fetch(`${BASE}/api/combos/${id}`, {
-      method: "PUT",
-      headers: AUTH,
-      body: "{ this is not json",
-    });
-    expect(res.status).toBe(400);
+    const r = await callRoute("PUT", `/api/combos/${id}`, undefined, "{ this is not json");
+    expect(r.status).toBe(400);
   });
 });
 
