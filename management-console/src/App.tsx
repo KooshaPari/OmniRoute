@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { ConsoleEndpoint, fetchManagement, managementBaseUrl, setManagementBaseUrl } from "./api";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { ConsoleEndpoint, fetchManagement, managementBaseUrl, postToknDecide, setManagementBaseUrl } from "./api";
 import { connectManagementEvents, type ManagementEvent } from "./events";
 
 type Tab = {
@@ -16,6 +16,7 @@ const tabs: Tab[] = [
   { id: "virtual-keys", label: "Virtual Keys", summary: "Scoped keys, cost controls, revocation." },
   { id: "routing", label: "Routing", summary: "Auto-combo, cooldown, retry, and policy state." },
   { id: "compression/budget", label: "Compression", summary: "RTK/Caveman budgets, forecasts, pressure." },
+  { id: "tokn", label: "Tokn", summary: "Live Rust routing substrate (impl, version, decisions)." },
   { id: "usage/call-logs", label: "Logs", summary: "Recent calls, provider errors, quota events." },
 ];
 
@@ -42,8 +43,6 @@ export function App() {
 
   useEffect(() => {
     const token = ++pendingTokenRef.current;
-    // Reset transient "saved" badge whenever the user switches tabs; intentional setState-in-effect.
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     setSavedStatus(false);
     fetchManagement<Record<string, unknown>>(active.id).then((result) => {
       if (token !== pendingTokenRef.current) {
@@ -52,9 +51,6 @@ export function App() {
       setLoadedStatus(result.ok ? "online" : "needs facade");
       setPayload(JSON.stringify(result, null, 2));
     });
-    return () => {
-      cancelled = true;
-    };
   }, [active]);
 
   useEffect(() => {
@@ -104,6 +100,7 @@ export function App() {
           <h2>{active.label}</h2>
           <p>{active.summary}</p>
         </div>
+        {active.id === "tokn" ? <ToknPanel /> : null}
         <section className="grid">
           <article className="card wide">
             <h3>Facade response</h3>
@@ -134,5 +131,69 @@ export function App() {
         </section>
       </section>
     </main>
+  );
+}
+
+function ToknPanel() {
+  const [modelInput, setModelInput] = useState("gpt-4o");
+  const [tenantInput, setTenantInput] = useState("");
+  const [stats, setStats] = useState<Awaited<ReturnType<typeof fetchManagement<unknown>>> | null>(null);
+  const [decision, setDecision] = useState<string>("Run a decision to populate this card.");
+  const [busy, setBusy] = useState(false);
+
+  async function refreshStats() {
+    const r = await fetchManagement<unknown>("tokn");
+    setStats(r);
+  }
+
+  useEffect(() => {
+    void refreshStats();
+  }, []);
+
+  async function runDecide() {
+    setBusy(true);
+    try {
+      const r = await postToknDecide(modelInput, tenantInput.trim() || undefined);
+      setDecision(JSON.stringify(r, null, 2));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  const statsOk = !!stats && stats.ok;
+  const implKind = (stats?.data as { stats?: { implKind?: string } } | undefined)?.stats?.implKind ?? "unknown";
+  const version = (stats?.data as { stats?: { version?: string } } | undefined)?.stats?.version ?? "unknown";
+  const healthy = (stats?.data as { stats?: { healthy?: boolean } } | undefined)?.stats?.healthy ?? false;
+
+  return (
+    <section className="grid">
+      <article className="card wide">
+        <h3>Rust substrate stats</h3>
+        <p>Impl: <strong>{implKind}</strong></p>
+        <p>Version: <strong>{version}</strong></p>
+        <p>Healthy: <strong>{healthy ? "yes" : "no"}</strong></p>
+        <p>Reachable: <strong>{statsOk ? "yes" : "no"}</strong></p>
+        <button className="primary" onClick={refreshStats}>Refresh stats</button>
+        <pre>{stats ? JSON.stringify(stats, null, 2) : "Loading..."}</pre>
+      </article>
+      <article className="card">
+        <h3>Decision preview</h3>
+        <label className="field">
+          Model
+          <input value={modelInput} onChange={(e) => setModelInput(e.target.value)} />
+        </label>
+        <label className="field">
+          Tenant (optional)
+          <input value={tenantInput} onChange={(e) => setTenantInput(e.target.value)} />
+        </label>
+        <button className="primary" onClick={runDecide} disabled={busy}>
+          {busy ? "Running..." : "Run decide()"}
+        </button>
+      </article>
+      <article className="card wide">
+        <h3>Decision result</h3>
+        <pre>{decision}</pre>
+      </article>
+    </section>
   );
 }
