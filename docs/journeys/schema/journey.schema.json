@@ -1,0 +1,288 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/KooshaPari/OmniRoute/blob/main/docs/journeys/schema/journey.schema.json",
+  "title": "OmniRoute deterministic journey evidence manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "slug",
+    "title",
+    "persona",
+    "purpose",
+    "preconditions",
+    "fixture",
+    "viewport",
+    "steps",
+    "accessibility",
+    "redaction",
+    "evidence",
+    "provenance"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": 1
+    },
+    "slug": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+    },
+    "title": {
+      "type": "string",
+      "minLength": 1
+    },
+    "persona": {
+      "type": "string",
+      "minLength": 1
+    },
+    "purpose": {
+      "type": "string",
+      "minLength": 1
+    },
+    "preconditions": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "fixture": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "network",
+        "secrets"
+      ],
+      "properties": {
+        "kind": {
+          "enum": [
+            "none",
+            "repository"
+          ]
+        },
+        "network": {
+          "enum": [
+            "blocked",
+            "mocked",
+            "local-only"
+          ]
+        },
+        "secrets": {
+          "const": false
+        }
+      }
+    },
+    "viewport": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "width",
+        "height",
+        "deviceScaleFactor"
+      ],
+      "properties": {
+        "width": {
+          "type": "integer",
+          "minimum": 320
+        },
+        "height": {
+          "type": "integer",
+          "minimum": 480
+        },
+        "deviceScaleFactor": {
+          "type": "number",
+          "minimum": 1,
+          "maximum": 3
+        }
+      }
+    },
+    "steps": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "action",
+          "target",
+          "assertions"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-z0-9-]+$"
+          },
+          "action": {
+            "enum": [
+              "goto",
+              "click",
+              "fill",
+              "press",
+              "observe"
+            ]
+          },
+          "target": {
+            "type": "string",
+            "minLength": 1
+          },
+          "value": {
+            "type": "string"
+          },
+          "assertions": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        }
+      }
+    },
+    "accessibility": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "keyboardOnly",
+        "reducedMotion",
+        "checks"
+      ],
+      "properties": {
+        "keyboardOnly": {
+          "type": "boolean"
+        },
+        "reducedMotion": {
+          "const": true
+        },
+        "checks": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "enum": [
+              "document-title",
+              "heading-order",
+              "landmarks",
+              "focus-visible",
+              "accessible-names",
+              "contrast",
+              "no-horizontal-overflow"
+            ]
+          }
+        }
+      }
+    },
+    "redaction": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "denyPatterns",
+        "maskSelectors",
+        "reviewRequired"
+      ],
+      "properties": {
+        "denyPatterns": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "maskSelectors": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "reviewRequired": {
+          "const": true
+        }
+      }
+    },
+    "evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "captureStatus",
+        "artifacts",
+        "retentionDays",
+        "blocker"
+      ],
+      "properties": {
+        "captureStatus": {
+          "enum": [
+            "blocked",
+            "captured",
+            "published"
+          ]
+        },
+        "artifacts": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "kind",
+              "path"
+            ],
+            "properties": {
+              "kind": {
+                "enum": [
+                  "screenshot",
+                  "trace",
+                  "video",
+                  "accessibility-report"
+                ]
+              },
+              "path": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        },
+        "retentionDays": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "blocker": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "baseBranch",
+        "testFile",
+        "testTitle",
+        "command"
+      ],
+      "properties": {
+        "baseBranch": {
+          "const": "main"
+        },
+        "testFile": {
+          "type": "string",
+          "pattern": "^tests/"
+        },
+        "testTitle": {
+          "type": "string",
+          "minLength": 1
+        },
+        "command": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    }
+  }
+}
