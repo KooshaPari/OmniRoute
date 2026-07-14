@@ -93,6 +93,7 @@ export {
 export * from "./db/compressionCacheStats";
 export * from "./db/compressionCombos";
 export * from "./db/compressionRunTelemetry";
+export * from "./db/compressionScheduler";
 export * from "./db/modelContextOverrides";
 
 export {
