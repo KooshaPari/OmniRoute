@@ -34,17 +34,10 @@ queue_rules:
     # is intentionally NOT a condition here: the owner-applied `queue` label IS the
     # approval in this repo's single-maintainer model (see governance header).
     merge_conditions:
-      # "Zero failures" — EXCEPT the advisory dast-smoke: it is continue-on-error by
-      # design and its GH-hosted CLI build hangs recurrently (drafts #7184/#7221 were
-      # dequeued solely by it). Any OTHER failure still blocks (anti-fail-open kept).
-      - or:
-          - "#check-failure=0"
-          - and:
-              - "#check-failure=1"
-              - check-failure=dast-smoke
+      - "#check-failure=0"
       - "#check-pending=0"
       - "#check-success>=1"
-      - "check-success=Merge integrity (changelog + generated skills)"
+      - check-success=Merge integrity (changelog + generated skills)
     # Batching: validate up to 10 queued PRs together (the manual train's sweet spot);
     # don't hold a lone PR hostage waiting for siblings.
     batch_size: 10
@@ -53,16 +46,6 @@ queue_rules:
     merge_method: squash
 
 pull_request_rules:
-  - name: Request review from team
-    conditions:
-      - -closed
-      - -draft
-      - author != KooshaPari
-    actions:
-      request_reviews:
-        users:
-          - KooshaPari
-
   - name: clean up the queue label after merge
     conditions:
       - merged
