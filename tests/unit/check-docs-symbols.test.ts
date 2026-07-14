@@ -156,8 +156,8 @@ test("collectRouteFiles finds the real route tree (non-empty, all route.ts)", ()
   for (const f of files) assert.match(f, /route\.tsx?$/);
 });
 
-test("KNOWN_STALE_DOC_REFS is a frozen, documented allowlist (non-empty)", () => {
-  assert.ok(allowlist.size > 0);
+test("KNOWN_STALE_DOC_REFS is a frozen, documented allowlist (/api/ paths; may be empty)", () => {
+  // Once all stale references are fixed, an empty allowlist is the desired state.
   for (const p of allowlist) assert.match(p, /^\/api\//);
 });
 
@@ -183,7 +183,6 @@ test("stale-enforcement: all current KNOWN_STALE_DOC_REFS entries look like /api
   // Structural invariant: every allowlist entry must be an /api/ path, not a file path
   // or a prose snippet.  Live staleness is enforced at gate runtime by assertNoStale().
   const al = allowlist as Set<string>;
-  assert.ok(al.size > 0, "KNOWN_STALE_DOC_REFS should be non-empty");
   for (const entry of al) {
     assert.match(entry, /^\/api\//, `every allowlist entry must start with /api/: ${entry}`);
   }
