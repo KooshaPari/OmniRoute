@@ -12,6 +12,14 @@
 
 ---
 
+## [3.8.44] — 2026-07-14
+
+### Fork / ArgisMonitor
+
+- Publish-surface rename toward ArgisMonitor, Rust tokn substrate slices, Bifrost bridge wiring, and consolidation of issue-agent / CI gate fixes on the KooshaPari fork line.
+
+---
+
 ## [3.8.5] — 2026-05-27
 
 ### ✨ New Features

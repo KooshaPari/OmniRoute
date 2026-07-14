@@ -489,7 +489,7 @@ export class BaseExecutor {
         : { model };
 
     let timeoutId: ReturnType<typeof setTimeout> | null = null;
-    let activeSignal = signal || null;
+    let activeSignal: AbortSignal | null | undefined = signal || null;
     let controller: AbortController | null = null;
     const timeoutMs = this.getCountTokensTimeoutMs();
 

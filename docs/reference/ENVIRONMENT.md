@@ -1195,3 +1195,20 @@ Optional operator knobs for local agent executors, Bifrost shadowing, OpenTeleme
 | `PROXY_AUTO_REMOVE_AFTER` | `3` | `src/lib/proxyHealth/scheduler.ts` | Consecutive failures required before proxy auto-removal. |
 | `SUBSTRATE_BIN` | _(unset)_ | Substrate integration | Local Substrate dispatcher binary override. |
 | `SUBSTRATE_HTTP_URL` | _(unset)_ | Substrate integration | Substrate HTTP cockpit/dispatcher URL. |
+
+
+## Fork / substrate env vars
+
+- `ARGIS_CLI_SKIP_REPO_ENV`
+- `ARGIS_DATA_DIR`
+- `ARGIS_LANG`
+- `ARGIS_LEGACY_OFF`
+- `ARGIS_NO_UPDATE_NOTIFIER`
+- `BIFROST_MODEL_CACHE_REFRESH_ON_MISS`
+- `BIFROST_MODEL_CACHE_REQUIRED`
+- `OMNIROUTE_DATA_DIR`
+- `OMNIROUTE_ISSUE_AGENT_ENABLED`
+- `OMNIROUTE_LEGACY`
+- `OMNIROUTE_RUNTIME_DIR`
+- `OMNIROUTE_RUST_PORT`
+

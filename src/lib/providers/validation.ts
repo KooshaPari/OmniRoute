@@ -3574,53 +3574,6 @@ async function validateInnerAiProvider({ apiKey, providerSpecificData = {} }: an
   }
 }
 
-export async function validateWebCookieProvider({
-  provider,
-  apiKey,
-  providerSpecificData = {},
-}: any) {
-  const entry = (WEB_COOKIE_PROVIDERS as Record<string, { website?: string } | undefined>)[provider];
-  if (!entry) {
-    return { valid: false, error: "Provider validation not supported", unsupported: true };
-  }
-
-  const cookie = typeof apiKey === "string" ? apiKey.trim() : "";
-  if (!cookie) {
-    return {
-      valid: false,
-      error: "Cookie is required for web-cookie provider validation",
-      unsupported: false,
-    };
-  }
-
-  try {
-    const url = new URL("/models", entry.website || "https://example.com").toString();
-    const response = await globalThis.fetch(url, {
-      method: "GET",
-      headers: applyCustomUserAgent(
-        {
-          Accept: "application/json",
-          Cookie: cookie,
-        },
-        providerSpecificData
-      ),
-    });
-
-    if (response.status === 401 || response.status === 403) {
-      return {
-        valid: false,
-        error: "SESSION_EXPIRED",
-        errorCode: "AUTH_007",
-        unsupported: false,
-      };
-    }
-
-    return { valid: true, error: null, unsupported: false };
-  } catch (error: unknown) {
-    return toValidationErrorResult(error);
-  }
-}
-
 // #5422: Bytez key validation cannot use a chat probe. A Bytez account only serves models
 // that have been added to its catalog, so even Bytez's own documented model ids return 404
 // ("Model does not exist or has yet to be added to the Bytez catalog") for a fresh/free key —
@@ -3710,57 +3663,6 @@ export async function validateWebCookieProvider({
     return { valid: true, error: null, unsupported: false };
   }
   return validator({ apiKey, providerSpecificData });
-}
-
-async function validateZaiProvider({ apiKey, providerSpecificData = {} }: any) {
-  try {
-    const baseUrl = normalizeBaseUrl(
-      providerSpecificData?.baseUrl || "https://api.z.ai/api/anthropic/v1/messages"
-    );
-    const url = `${baseUrl}${baseUrl.includes("?") ? "&" : "?"}beta=true`;
-    const response = await directHttpsRequest(
-      url,
-      {
-        method: "POST",
-        headers: applyCustomUserAgent(
-          {
-            "Content-Type": "application/json",
-            "anthropic-version": "2023-06-01",
-            "x-api-key": apiKey,
-          },
-          providerSpecificData
-        ),
-        body: JSON.stringify({
-          model: providerSpecificData?.validationModelId || "glm-5.1",
-          max_tokens: 1,
-          messages: [{ role: "user", content: "test" }],
-        }),
-      },
-      15000
-    );
-
-    if (response.status === 401 || response.status === 403) {
-      return { valid: false, error: "Invalid API key" };
-    }
-    if (
-      response.ok ||
-      response.status === 400 ||
-      response.status === 422 ||
-      response.status === 429 ||
-      response.status === 502
-    ) {
-      return { valid: true, error: null };
-    }
-    if (response.status === 404 || response.status === 405) {
-      return { valid: false, error: "Provider validation endpoint not supported" };
-    }
-    if (response.status >= 500) {
-      return { valid: false, error: `Provider unavailable (${response.status})` };
-    }
-    return { valid: false, error: `Validation failed: ${response.status}` };
-  } catch (error: unknown) {
-    return toValidationErrorResult(error);
-  }
 }
 
 export async function validateProviderApiKey({ provider, apiKey, providerSpecificData = {} }: any) {
@@ -3882,7 +3784,6 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
     kie: validateKieProvider,
     "aws-polly": validateAwsPollyProvider,
     "bailian-coding-plan": validateBailianCodingPlanProvider,
-    zai: validateZaiProvider,
     heroku: validateHerokuProvider,
     databricks: validateDatabricksProvider,
     datarobot: validateDataRobotProvider,

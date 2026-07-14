@@ -63,7 +63,7 @@ const DEFAULT_HOST = "127.0.0.1";
 const DEFAULT_PORT = 8080;
 const DEFAULT_BASE_URL = `http://${DEFAULT_HOST}:${DEFAULT_PORT}`;
 const HEALTH_CHECK_TIMEOUT_MS = 5000;
-export const BIFROST_TAG = "BIFROST";
+const BIFROST_TAG = "BIFROST";
 
 /**
  * Resolve the Bifrost base URL. Reads from env, falls back to the
@@ -86,7 +86,6 @@ function isBifrostEnabled(): boolean {
 }
 
 /**
-<<<<<<< ours
  * Escape hatch: BIFROST_KILLSWITCH_DISABLED=true bypasses the kill switch
  * entirely. Useful for operators who need Bifrost to keep serving even
  * when the kill switch is tripped, or for testing the kill-switch path
@@ -128,7 +127,9 @@ export class BifrostNoFallbackError extends Error {
     // Maintain proper prototype chain for instanceof in transpiled environments
     Object.setPrototypeOf(this, BifrostNoFallbackError.prototype);
   }
-=======
+}
+
+/**
  * Whether the executor must consult the local `bifrost_models` cache before
  * dispatching and throw if the requested model is missing. Off by default
  * (zero overhead in the steady state). Set `BIFROST_MODEL_CACHE_REQUIRED=1`
@@ -249,7 +250,6 @@ async function enforceBifrostModelCache(
     BIFROST_TAG,
     `bifrost_models cache miss for ${provider}/${model} — proceeding without cache enforcement`,
   );
->>>>>>> theirs
 }
 
 /**
