@@ -21,7 +21,7 @@
  *   DISABLE_SQLITE_AUTO_BACKUP=true AUTH_TOKEN=test-token \
  *     bun test tests/unit/combos-routes-regression.test.ts
  */
-import { afterAll, beforeAll, describe, expect, test } from "bun:test";
+import { afterAll, beforeAll, describe, expect, test } from "vitest";
 import { ensureDbInitialized, resetDbInstance } from "@/lib/db/stateReset";
 import { createCombo, getComboById } from "@/lib/localDb";
 
