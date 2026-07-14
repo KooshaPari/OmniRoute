@@ -5,6 +5,7 @@
 // route, which proxies to the Rust binary (the source of truth).
 
 import { NextResponse } from "next/server";
+import { z } from "zod";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 
 export const dynamic = "force-dynamic";
@@ -13,10 +14,10 @@ const RUST_PORT = Number(process.env.OMNIROUTE_RUST_PORT ?? 20129);
 const RUST_BASE = `http://127.0.0.1:${RUST_PORT}`;
 const PROXY_TIMEOUT_MS = 2_000;
 
-interface ToknDecideBody {
-  model: string;
-  tenantId?: string;
-}
+const ToknDecideBodySchema = z.object({
+  model: z.string().trim().min(1),
+  tenantId: z.string().optional(),
+});
 
 interface ToknDecideResponse {
   provider: string;
@@ -29,16 +30,19 @@ export async function POST(request: Request) {
   const authError = await requireManagementAuth(request);
   if (authError) return authError;
 
-  let body: ToknDecideBody;
+  let rawBody: unknown;
   try {
-    body = (await request.json()) as ToknDecideBody;
+    rawBody = await request.json();
   } catch {
     return NextResponse.json({ error: "invalid_json" }, { status: 400 });
   }
 
-  if (!body.model || typeof body.model !== "string" || body.model.trim() === "") {
+  const parsed = ToknDecideBodySchema.safeParse(rawBody);
+  if (!parsed.success) {
     return NextResponse.json({ error: "model is required" }, { status: 400 });
   }
+
+  const body = parsed.data;
 
   try {
     const upstream = await fetch(`${RUST_BASE}/v1/tokn/decide`, {
