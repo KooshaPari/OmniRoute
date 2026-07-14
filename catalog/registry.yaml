@@ -276,7 +276,7 @@ substrates:
   - id: eventra
     repo: KooshaPari/Eventra
     name: Eventra
-    status: active
+    status: archived
     tier: pheno-lib
     architecture: layered
     archetype: library
@@ -285,7 +285,9 @@ substrates:
     boundary: null
     intent: null
     notes: |
-      Event workspace (phenotype-event-contracts/-bus/-sourcing). Source of HexaKit event edges. Distinct from phenoEvents.
+      Archived 2026-07-14. Historical CQRS/event-sourcing workspace; no new work.
+      Reusable runtime bus, durable outbox, DLQ, retry, and OTLP capabilities
+      migrated to canonical phenoEvents in phenoEvents #30 and released as v0.1.0.
 
   - id: focalpoint
     repo: KooshaPari/FocalPoint
@@ -723,7 +725,9 @@ substrates:
     boundary: null
     intent: null
     notes: |
-      Plain event lib (no workspace members). Distinct from Eventra.
+      Canonical reusable Rust runtime event bus. v0.1.0 includes SQLite durable
+      outbox, retries, DLQ, idempotency, projections, and OTLP tracing.
+      Eventra is archived; new runtime event-bus work belongs here.
 
   - id: phenohandbook
     repo: KooshaPari/PhenoHandbook

@@ -1,26 +1,28 @@
 ---
 repo: "phenoEvents"
-role: unknown
+role: canonical-runtime-event-bus
 status: active
-last_boundary_review: 2026-06-17
+last_boundary_review: 2026-07-14
 review_cadence: 30d
 in_scope:
-  - "<to be filled>"
+  - "Durable SQLite outbox, retry, DLQ, idempotency, and projection runtime"
+  - "Reusable event envelopes and OTLP tracing integration"
 out_of_scope:
-  - "<to be filled>"
+  - "Eventra historical CQRS/event-sourcing workspace maintenance"
 ---
 
 # Boundary — phenoEvents
 
 ## In Scope
 
-<To be filled.>
+Reusable Rust runtime event delivery: event envelopes, in-memory and SQLite
+delivery, durable outbox relay, retry/DLQ, projections, and OTLP tracing.
 
 ## Out of Scope
 
 | Not here | Lives in | Reason |
 | -------- | -------- | ------ |
-| `<capability>` | `<other-repo-or-N/A>` | `<why>` |
+| Historical Eventra workspace | `KooshaPari/Eventra` (archived) | Runtime-bus work migrated here. |
 
 ## Boundary Crossings
 
@@ -30,10 +32,10 @@ out_of_scope:
 
 ## Last Boundary Review
 
-**Date:** 2026-06-17
-**Reviewer:** forge subagent (L7-001 sweep)
-**Worklog / finding:** `worklogs/L7-001-intent-boundary-curation-2026-06-17.json`
+**Date:** 2026-07-14
+**Reviewer:** migration completion audit
+**Worklog / finding:** phenoEvents #30/#33; Eventra #78
 **Decisions:**
-- Initial scaffolding; needs human review.
+- Canonical runtime-bus boundary established and Eventra archived.
 
-**Next review:** 2026-07-17
+**Next review:** 2026-10-14

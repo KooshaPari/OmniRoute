@@ -212,15 +212,15 @@ DELETE archived repo  IFF:
 - **Coverage:** macOS webcam (nokhwa + core-graphics) only — Win/Linux/iOS/Android/Web gaps to close (BEN-EYE-001..006)
 - **Recommendation:** **KEEP_ACTIVE** — establish per-platform SOTA gap closure roadmap
 
-### Event-bus Runtime (added 2026-06-23)
-- **Canonical owner:** `KooshaPari/Eventra`
-- **Stack:** Rust (CQRS + Event Sourcing)
-- **Boundary:** Rust event-bus runtime (`phenotype-event-bus` + `phenotype-event-sourcing` + `phenotype-event-contracts`)
-- **Status:** active (Wave 5b absorbed from phenoShared 2026-06; **KEEP_COMPAT** per `docs/disposition/phenotype-event-bus-runtime-boundary.md`)
-- **Absorb from:** phenoShared (Wave 5b)
-- **Consumer pattern:** In-memory bus + envelope-shaped events; new runtime features delegate to phenoEvents
-- **Coverage:** in-memory only (sqlx/sqlite adapter modules missing despite feature flags)
-- **Recommendation:** **KEEP_ACTIVE** — implement persistence adapters + observability (open ISS #22, #23, #24)
+### Event-bus Runtime (updated 2026-07-14)
+- **Canonical owner:** `KooshaPari/phenoEvents` ([v0.1.0](https://github.com/KooshaPari/phenoEvents/releases/tag/v0.1.0))
+- **Stack:** Rust (SQLite durable outbox + OTLP)
+- **Boundary:** Reusable runtime event bus, envelope handling, retries, DLQ, idempotency, projections, and tracing.
+- **Status:** active; Eventra archived after the Eventra #65 migration landed in phenoEvents #30.
+- **Absorb from:** Eventra reusable runtime-bus substrate and historical phenoShared Wave 5b work.
+- **Consumer pattern:** Depend on `pheno-events` for new runtime delivery and observability needs.
+- **Coverage:** SQLite durable delivery, retry/DLQ, duplicate detection, projections, and OTLP smoke coverage.
+- **Recommendation:** **KEEP_ACTIVE** — consolidate eligible consumers onto phenoEvents; retain Eventra only as read-only history.
 
 ### Configuration (Rust) (refreshed 2026-06-23)
 - **Canonical owner:** `KooshaPari/Configra`
@@ -262,4 +262,3 @@ DELETE archived repo  IFF:
 - **Consumer pattern:** Repointed by eyetracker (consent+SSO), eventra (tenant_id), configra (VaultStore), quillr (token introspection)
 - **Coverage:** Strong on internal JWT/RBAC/PKCE state binding; weak on OIDC/ABAC/WebAuthn/TOTP/KMS/DPoP/audit hash-chain
 - **Recommendation:** **KEEP_ACTIVE** — AUT-SOTA-001..007 (key rotation, OIDC, WebAuthn, TOTP, KMS, DPoP, rate-limiting)
-

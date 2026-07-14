@@ -1,9 +1,9 @@
 ---
 repo: "phenoEvents"
 aliases: []
-role: unknown
+role: canonical-runtime-event-bus
 status: active
-last_verified: 2026-06-17
+last_verified: 2026-07-14
 bound_prompts: 3
 bound_plans: 0
 bound_responses: 0
@@ -14,7 +14,9 @@ device: macbook
 
 ## Intent Statement
 
-<To be filled in by hand from the most recent binding prompt. This repo is bound to 3 prompts, 0 plans, and 0 agent responses captured between 2025-08 and 2026-06-17.>
+Canonical Rust runtime event bus for durable SQLite outbox delivery, retries,
+DLQ, idempotency, projections, and OTLP tracing. Released as v0.1.0 after
+absorbing Eventra's reusable runtime-bus work.
 
 ## Bound Prompts
 
@@ -50,4 +52,5 @@ See: [`docs/boundary/phenoEvents.md`](../boundary/phenoEvents.md)
 
 | Date | Change | Worklog |
 | ---- | ------ | ------- |
+| 2026-07-14 | Canonical runtime-bus release v0.1.0; Eventra archived | phenoEvents #30/#33, Eventra #78 |
 | 2026-06-17 | Initial binding (L7-001 sweep) | `worklogs/L7-001-intent-boundary-curation-2026-06-17.json` |
