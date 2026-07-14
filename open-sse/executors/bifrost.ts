@@ -250,7 +250,7 @@ async function enforceBifrostModelCache(
     BIFROST_TAG,
     `bifrost_models cache miss for ${provider}/${model} — proceeding without cache enforcement`,
   );
-
+}
 
 /**
  * BifrostBackend — Tier-1 router executor.
