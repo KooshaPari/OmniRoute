@@ -1,4 +1,6 @@
 import { createRequire } from "node:module";
+import { homedir } from "node:os";
+import { join } from "node:path";
 import { createBetterSqliteAdapter } from "./betterSqliteAdapter";
 import {
   createNodeSqliteAdapterFromDatabase,
@@ -7,6 +9,16 @@ import {
 import type { SqliteAdapter } from "./types";
 
 const _require = createRequire(import.meta.url);
+
+/**
+ * `omniroute repair` installs the native SQLite binding here when the bundled
+ * optional dependency cannot load. Keep this lookup aligned with
+ * bin/cli/runtime/sqliteRuntime.mjs so a repaired runtime is usable by the
+ * server, not only by the CLI health check.
+ */
+export function resolveRuntimeModuleRoot(): string {
+  return process.env.OMNIROUTE_RUNTIME_DIR ?? join(homedir(), ".omniroute", "runtime");
+}
 
 declare global {
   var __omnirouteSqlJsAdapters: Map<string, SqliteAdapter> | undefined;
@@ -28,6 +40,22 @@ export function tryOpenSync(
   if (!process.versions.bun) {
     try {
       const BetterSqlite = _require("better-sqlite3") as {
+        new (p: string, o?: object): import("better-sqlite3").Database;
+      };
+      const db = new BetterSqlite(filePath, options);
+      return createBetterSqliteAdapter(db);
+    } catch {
+      // continua para próximo driver
+    }
+  }
+
+  // `better-sqlite3` may have been repaired into a user-writable runtime
+  // directory after an ABI mismatch or a package-manager optional-dependency
+  // omission. Resolve it from that package root before falling back to WASM.
+  if (!process.versions.bun) {
+    try {
+      const runtimeRequire = createRequire(join(resolveRuntimeModuleRoot(), "package.json"));
+      const BetterSqlite = runtimeRequire("better-sqlite3") as {
         new (p: string, o?: object): import("better-sqlite3").Database;
       };
       const db = new BetterSqlite(filePath, options);

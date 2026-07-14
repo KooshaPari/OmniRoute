@@ -1,10 +1,21 @@
 import { test, describe } from "node:test";
 import assert from "node:assert/strict";
 
-const { tryOpenSync, openDatabaseAsync, preInitSqlJs, getSqlJsAdapter } =
+const { tryOpenSync, openDatabaseAsync, preInitSqlJs, getSqlJsAdapter, resolveRuntimeModuleRoot } =
   await import("../../../src/lib/db/adapters/driverFactory.ts");
 
 describe("driverFactory", () => {
+  test("resolve o diretório de runtime configurado para o driver nativo", () => {
+    const previous = process.env.OMNIROUTE_RUNTIME_DIR;
+    process.env.OMNIROUTE_RUNTIME_DIR = "C:\\temp\\omniroute-runtime";
+    try {
+      assert.equal(resolveRuntimeModuleRoot(), "C:\\temp\\omniroute-runtime");
+    } finally {
+      if (previous === undefined) delete process.env.OMNIROUTE_RUNTIME_DIR;
+      else process.env.OMNIROUTE_RUNTIME_DIR = previous;
+    }
+  });
+
   test("tryOpenSync retorna adapter síncrono ou null", () => {
     const adapter = tryOpenSync(":memory:");
     if (adapter) {
