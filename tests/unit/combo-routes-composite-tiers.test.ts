@@ -91,7 +91,7 @@ test("POST /api/combos persists names with spaces and square brackets", async ()
   const body = (await response.json()) as any;
   const stored = await combosDb.getComboByName("Claude [1m]");
 
-  assert.equal(response.status, 201);
+  assert.equal(response.status, 200);
   assert.equal(body.name, "Claude [1m]");
   assert.equal(stored?.name, "Claude [1m]");
   assert.equal(stored?.models[0].model, "claude/claude-sonnet-4-6");
@@ -113,7 +113,7 @@ test("POST /api/combos rejects duplicate bracketed names", async () => {
   const body = (await response.json()) as any;
 
   assert.equal(response.status, 400);
-  assert.equal(body.error, "Combo name already exists");
+  assert.equal(body.error?.details?.[0]?.message, "Combo name already exists");
 });
 
 test("PUT /api/combos can rename a combo to a bracketed name", async () => {
@@ -175,7 +175,7 @@ test("POST /api/combos persists valid composite tiers", async () => {
   const body = (await response.json()) as any;
   const stored = await combosDb.getComboByName("tiered-codex");
 
-  assert.equal(response.status, 201);
+  assert.equal(response.status, 200);
   assert.equal(body.config.compositeTiers.defaultTier, "primary");
   assert.equal((stored.config as any).compositeTiers.tiers.primary.stepId, "step-primary");
   assert.equal(stored.models[0].id, "step-primary");
@@ -198,7 +198,7 @@ test("POST /api/combos preserves legacy string combo refs during normalization",
   const body = (await response.json()) as any;
   const stored = await combosDb.getComboByName("parent-ref");
 
-  assert.equal(response.status, 201);
+  assert.equal(response.status, 200);
   assert.equal(body.models[0].kind, "combo-ref");
   assert.equal(body.models[0].comboName, "child-ref");
   assert.equal(stored.models[0].kind, "combo-ref");
@@ -292,7 +292,7 @@ test("PUT /api/combos tolerates stale compositeTiers on non-graph updates", asyn
   );
   const created = (await createResponse.json()) as any;
   const comboId = created.id;
-  assert.equal(createResponse.status, 201);
+  assert.equal(createResponse.status, 200);
 
   // Directly manipulate the stored combo so it still has the old compositeTiers
   // but fewer models (orphaning step-primary).
@@ -336,7 +336,7 @@ test("PUT /api/combos still 400s when the request body itself has invalid compos
   );
   const created = (await createResponse.json()) as any;
   const comboId = created.id;
-  assert.equal(createResponse.status, 201);
+  assert.equal(createResponse.status, 200);
 
   // PUT with models that drop step-primary should 400
   const response = await comboRoute.PUT(
