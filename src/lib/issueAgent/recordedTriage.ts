@@ -31,7 +31,7 @@ export interface RecordedTriageContextSummary {
 export interface RecordedTriageRun {
   accepted: true;
   mode: "recorded-triage";
-  runner: "deterministic-recorded-triage";
+  runner: "deterministic-recorded-triage" | "omniroute-chat-completions";
   runId: string;
   issueUrl: string;
   repository: string;
@@ -76,7 +76,9 @@ function classifyIntent(text: string): RecordedTriageContextSummary["intent"] {
   return "unknown";
 }
 
-function summarizeContext(input: RecordedTriageContextInput | undefined): RecordedTriageContextSummary {
+function summarizeContext(
+  input: RecordedTriageContextInput | undefined
+): RecordedTriageContextSummary {
   const comments = Array.isArray(input?.comments) ? input.comments.slice(0, 50) : [];
   const title = normalizeText(input?.title, 160);
   const body = normalizeText(input?.body);

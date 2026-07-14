@@ -1,14 +1,20 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { appendIssueAgentAuditRecord } from "@/lib/issueAgent/audit";
+import { executeRecordedTriageChatCompletion } from "@/lib/issueAgent/execution";
 import { normalizeGitHubIssueExport } from "@/lib/issueAgent/githubExport";
 import { createRecordedTriageRun } from "@/lib/issueAgent/recordedTriage";
+import { POST as postChatCompletion } from "@/app/api/v1/chat/completions/route";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 
 const issueAgentRunRequestSchema = z.object({
   mode: z.string().optional(),
   issueUrl: z.string().optional(),
   dryRun: z.boolean().optional(),
+  model: z.string().min(1).max(256).optional(),
+  provider: z.string().min(1).max(128).optional(),
+  routingPolicy: z.string().min(1).max(128).optional(),
+  timeoutMs: z.number().int().min(1).max(120_000).optional(),
   recordedContext: z.unknown().optional(),
   githubExport: z.unknown().optional(),
 });
@@ -61,16 +67,36 @@ export async function POST(request: Request) {
   }
 
   try {
-    const normalized = parsed.githubExport
-      ? normalizeGitHubIssueExport(parsed.githubExport)
-      : null;
+    const normalized = parsed.githubExport ? normalizeGitHubIssueExport(parsed.githubExport) : null;
     const run = createRecordedTriageRun({
       ...parsed,
       issueUrl: parsed.issueUrl ?? normalized?.issueUrl,
       recordedContext: parsed.recordedContext ?? normalized?.recordedContext,
     });
     const audit = await appendIssueAgentAuditRecord(run);
-    return NextResponse.json({ ...run, auditPath: audit.path });
+    if (run.dryRun) {
+      return NextResponse.json({ ...run, auditPath: audit.path });
+    }
+
+    const completion = await executeRecordedTriageChatCompletion(
+      {
+        run,
+        model: parsed.model,
+        provider: parsed.provider,
+        routingPolicy: parsed.routingPolicy,
+        timeoutMs: parsed.timeoutMs,
+      },
+      postChatCompletion
+    );
+    return NextResponse.json(
+      {
+        ...run,
+        runner: "omniroute-chat-completions",
+        auditPath: audit.path,
+        completion: completion.body,
+      },
+      { status: completion.status }
+    );
   } catch (error) {
     const message = error instanceof Error ? error.message : "Invalid issue-agent request";
     return NextResponse.json({ error: message }, { status: 400 });
