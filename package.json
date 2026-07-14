@@ -230,7 +230,7 @@
     "build:tokn-ffi": "cd packages/tokn && node scripts/build.mjs",
     "test:tokn": "tsx --test src/lib/tokn/__tests__/*.test.ts",
     "ci:v4:lint": "bunx oxlint apps packages",
-    "ci:v4:typecheck": "bun --filter \"@argismonitor/web\" --filter \"@argismonitor/bff\" typecheck",
+    "ci:v4:typecheck": "bun run --cwd apps/web typecheck && bun run --cwd apps/bff typecheck",
     "ci:v4:test": "bun --filter \"./apps/*\" test"
   },
   "dependencies": {
