@@ -1,0 +1,28 @@
+[package]
+name = "omni-sdk"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+description = "OmniRoute Rust client SDK"
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
+serde      = { workspace = true }
+serde_json = { workspace = true }
+thiserror  = { workspace = true }
+async-trait= { workspace = true }
+reqwest    = { workspace = true, features = ["json", "stream", "rustls-tls"] }
+tokio      = { workspace = true }
+futures    = { workspace = true }
+http       = { workspace = true }
+bytes      = { workspace = true }
+chrono     = { workspace = true }
+url        = { workspace = true }
+omni-core     = { path = "../omni-core" }
+omni-protocol = { path = "../omni-protocol" }
+
+[dev-dependencies]
+pretty_assertions = { workspace = true }
