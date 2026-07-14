@@ -175,7 +175,13 @@ bin/omniroute.mjs
 # Consistent with .dockerignore / .npmignore
 .omc/
 audit-report.json
+# Each v4 package owns a committed Bun lockfile for frozen CI installs.
 bun.lock
+!apps/web/bun.lock
+!apps/bff/bun.lock
+!apps/desktop/bun.lock
+!packages/api-contracts/bun.lock
+!packages/design-tokens/bun.lock
 
 # Private environment variables for .http-client
 http-client.private.env.json
