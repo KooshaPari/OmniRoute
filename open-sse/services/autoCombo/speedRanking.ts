@@ -224,7 +224,10 @@ export function rankBySpeed(
   // Pre-compute pool-relative maxima so each metric is normalized within the
   // observable range.  Using the pool max (not a hard-coded SLO) lets the
   // ranking work when every candidate is "fast" — the fastest one still wins.
-  const maxTtft = poolMax(pool, (c) => positiveFinite(c.avgTtftMs) ?? positiveFinite(c.p95LatencyMs));
+  const maxTtft = poolMax(
+    pool,
+    (c) => positiveFinite(c.avgTtftMs) ?? positiveFinite(c.p95LatencyMs)
+  );
   const maxE2e = poolMax(
     pool,
     (c) => positiveFinite(c.avgE2ELatencyMs) ?? positiveFinite(c.p95LatencyMs)
@@ -234,13 +237,12 @@ export function rankBySpeed(
   const maxStdDev = poolMax(pool, (c) => positiveFinite(c.latencyStdDev), 0.001);
 
   const ranked = pool.map((candidate) => {
-    // Use the metric only when it is explicitly observed on the candidate;
-    // fall back to `null` rather than substituting p95 so a brand-new
-    // candidate (no telemetry at all) is treated as the pool median (0.5)
-    // rather than as "fastest" via a p95 default of 0.
+    // Prefer directly observed timing metrics, but use p95 latency when a
+    // candidate has not accumulated a dedicated TTFT or E2E sample yet. A
+    // candidate with no timing telemetry still remains at the neutral 0.5.
     const p95 = positiveFinite(candidate.p95LatencyMs);
-    const ttft = positiveFinite(candidate.avgTtftMs);
-    const e2e = positiveFinite(candidate.avgE2ELatencyMs);
+    const ttft = positiveFinite(candidate.avgTtftMs) ?? p95;
+    const e2e = positiveFinite(candidate.avgE2ELatencyMs) ?? p95;
     const tps = positiveFinite(candidate.avgTokensPerSecond);
     const stdDev = positiveFinite(candidate.latencyStdDev);
     const failureRate = toBoundedRate(
@@ -278,14 +280,8 @@ export function rankBySpeed(
     // overcome the speed advantage of a fast-but-flaky pair.  The stability
     // multiplier uses the same curve against the std-dev factor so a 1500ms
     // std-dev bursty provider loses to a 50ms std-dev steady one.
-    const reliabilityMultiplier = Math.max(
-      0.05,
-      Math.pow(0.25 + 0.75 * factors.reliability, 2)
-    );
-    const stabilityMultiplier = Math.max(
-      0.05,
-      Math.pow(0.25 + 0.75 * factors.stability, 2)
-    );
+    const reliabilityMultiplier = Math.max(0.05, Math.pow(0.25 + 0.75 * factors.reliability, 2));
+    const stabilityMultiplier = Math.max(0.05, Math.pow(0.25 + 0.75 * factors.stability, 2));
     const healthMultiplier = Math.max(0.25, factors.health);
     const score = clamp01(
       weightedSum * reliabilityMultiplier * stabilityMultiplier * healthMultiplier
