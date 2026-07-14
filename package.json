@@ -3,6 +3,7 @@
   "version": "3.8.49",
   "description": "Unified AI router with 160+ providers, RTK+Caveman compression, auto fallback, MCP/A2A, desktop, PWA, and OpenAI-compatible APIs.",
   "type": "module",
+  "packageManager": "bun@1.3.14",
   "bin": {
     "omniroute": "bin/omniroute.mjs",
     "omniroute-reset-password": "bin/reset-password.mjs"

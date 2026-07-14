@@ -118,7 +118,7 @@ jobs:
           node-version: "24"
           cache: npm
 
-      - uses: ./.github/actions/npm-ci-retry
+      - uses: ./.github/actions/bun-install-retry
 
       - name: Release-green validation (full)
         id: validate

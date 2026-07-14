@@ -70,7 +70,7 @@ jobs:
         with:
           node-version: "26"
           cache: npm
-      - uses: ./.github/actions/npm-ci-retry
+      - uses: ./.github/actions/bun-install-retry
       - run: npm run build
 
   compat-tests:
@@ -97,7 +97,7 @@ jobs:
         with:
           node-version: ${{ matrix.node }}
           cache: npm
-      - uses: ./.github/actions/npm-ci-retry
+      - uses: ./.github/actions/bun-install-retry
       - run: npm run check:node-runtime
       - run: npm run test:unit:ci:shard
 
