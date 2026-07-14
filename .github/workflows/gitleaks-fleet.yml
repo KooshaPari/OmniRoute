@@ -1,6 +1,6 @@
 name: gitleaks-fleet
 on:
-  schedule: [{cron: '0 1 * * *'}]
+  schedule: [{ cron: "0 1 * * *" }]
   workflow_dispatch: {}
   push:
     branches: [main]
@@ -9,6 +9,9 @@ on:
 jobs:
   scan:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
     steps:
       - uses: actions/checkout@v4
         with:

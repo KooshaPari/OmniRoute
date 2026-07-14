@@ -7,12 +7,11 @@ on:
     branches: [main]
     types: [opened, synchronize, reopened, ready_for_review]
   schedule:
-    - cron: "0 6 * * 1"  # Every Monday at 06:00 UTC
+    - cron: "0 6 * * 1" # Every Monday at 06:00 UTC
   workflow_dispatch:
 
 permissions:
   contents: read
-  security-events: write
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -23,6 +22,9 @@ jobs:
     name: Secrets Scan (Gitleaks)
     runs-on: ubuntu-24.04
     timeout-minutes: 10
+    permissions:
+      contents: read
+      security-events: write
     steps:
       - name: Checkout repository
         uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10

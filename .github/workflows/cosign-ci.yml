@@ -2,16 +2,16 @@ name: cosign-ci
 on:
   push:
     branches: [main]
-    tags: ['v*']
+    tags: ["v*"]
 jobs:
   sign:
     runs-on: ubuntu-latest
-    permissions: {id-token: write, contents: read}
+    permissions: { id-token: write, contents: read }
     steps:
       - uses: actions/checkout@v4
       - uses: sigstore/cosign-installer@v3
-      - run: cosign sign-blob --yes Cargo.lock --output-signature Cargo.lock.sig
+      - run: cosign sign-blob --yes tauri-desktop/src-tauri/Cargo.lock --output-signature tauri-desktop/src-tauri/Cargo.lock.sig
       - uses: actions/upload-artifact@v4
         with:
           name: cosign-signatures
-          path: "*.sig"
+          path: "**/*.sig"
