@@ -1,9 +1,9 @@
 ---
 repo: "Eventra"
 aliases: []
-role: unknown
-status: active
-last_verified: 2026-06-17
+role: historical
+status: archived
+last_verified: 2026-07-14
 bound_prompts: 1
 bound_plans: 0
 bound_responses: 0
@@ -14,7 +14,8 @@ device: macbook
 
 ## Intent Statement
 
-<To be filled in by hand from the most recent binding prompt. This repo is bound to 1 prompts, 0 plans, and 0 agent responses captured between 2025-08 and 2026-06-17.>
+Archived historical workspace. Its reusable runtime event-bus responsibilities
+were migrated to phenoEvents and released as v0.1.0 on 2026-07-14.
 
 ## Bound Prompts
 
@@ -49,3 +50,4 @@ See: [`docs/boundary/Eventra.md`](../boundary/Eventra.md)
 | Date | Change | Worklog |
 | ---- | ------ | ------- |
 | 2026-06-17 | Initial binding (L7-001 sweep) | `worklogs/L7-001-intent-boundary-curation-2026-06-17.json` |
+| 2026-07-14 | Archived; reusable runtime bus moved to phenoEvents v0.1.0 | phenoEvents #30, Eventra #78 |
