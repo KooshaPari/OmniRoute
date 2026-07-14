@@ -6,6 +6,7 @@
 // and a few pure functions still compute identically.
 import { test } from "node:test";
 import assert from "node:assert/strict";
+import fs from "node:fs";
 
 const HOST = await import("../../src/lib/providers/validation.ts");
 const urls = await import("../../src/lib/providers/validation/urlHelpers.ts");
@@ -39,7 +40,10 @@ test("re-exported guards are the same function objects as transport's", () => {
 test("urlHelpers: normalizeBaseUrl trims + strips trailing slash; addModelsSuffix swaps endpoints", () => {
   assert.equal(urls.normalizeBaseUrl("  https://api.x.com/v1/  "), "https://api.x.com/v1");
   assert.equal(urls.normalizeBaseUrl(123 as unknown as string), ""); // non-string guard (#2463)
-  assert.equal(urls.addModelsSuffix("https://api.x.com/v1/chat/completions"), "https://api.x.com/v1/models");
+  assert.equal(
+    urls.addModelsSuffix("https://api.x.com/v1/chat/completions"),
+    "https://api.x.com/v1/models"
+  );
   assert.equal(urls.addModelsSuffix("https://api.x.com/v1/models"), "https://api.x.com/v1/models");
 });
 
@@ -54,4 +58,15 @@ test("transport: isRetryableProxyTarget fails closed on bad URL and blocks priva
   assert.equal(transport.isRetryableProxyTarget("not a url"), false);
   assert.equal(transport.isRetryableProxyTarget("http://169.254.169.254/"), false);
   assert.equal(transport.isRetryableProxyTarget("https://api.openai.com/v1"), true);
+});
+
+test("validation dispatcher modules stay within the repository file-size limit", () => {
+  for (const relativePath of [
+    "../../src/lib/providers/validation.ts",
+    "../../src/lib/providers/validation/specialtyProviders.ts",
+  ]) {
+    const source = fs.readFileSync(new URL(relativePath, import.meta.url), "utf8");
+    const lineCount = source.trimEnd().split("\n").length;
+    assert.ok(lineCount <= 500, `${relativePath} has ${lineCount} lines; maximum is 500`);
+  }
 });
