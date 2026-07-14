@@ -1,7 +1,9 @@
 import { redirect, type Handle } from '@sveltejs/kit';
 
-const UPSTREAM = process.env.NEXTJS_UPSTREAM ?? 'http://localhost:20128';
-const DEFAULT_ROLLOUT = Number(process.env.OMNI_WEB_STACK_ROLLOUT ?? '100');
+import { env } from "$env/dynamic/private";
+
+const UPSTREAM = env.NEXTJS_UPSTREAM ?? "http://localhost:20128";
+const DEFAULT_ROLLOUT = Number(env.OMNI_WEB_STACK_ROLLOUT ?? "100");
 
 function bucketForUser(cookie: string | undefined): number {
   // Simple consistent bucket from cookie or random for anonymous

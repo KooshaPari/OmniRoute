@@ -1,7 +1,8 @@
 type Level = 'debug' | 'info' | 'warn' | 'error';
 
 const LEVELS: Record<Level, number> = { debug: 0, info: 1, warn: 2, error: 3 };
-const minLevel: Level = (typeof process !== 'undefined' && (process.env.LOG_LEVEL as Level)) || 'info';
+const configuredLevel = import.meta.env.PUBLIC_LOG_LEVEL;
+const minLevel: Level = configuredLevel in LEVELS ? (configuredLevel as Level) : "info";
 
 function emit(level: Level, scope: string, message: string, extra?: Record<string, unknown>) {
   if (LEVELS[level] < LEVELS[minLevel]) return;
