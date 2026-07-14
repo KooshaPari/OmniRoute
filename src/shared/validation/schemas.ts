@@ -1065,10 +1065,6 @@ export const providerModelMutationSchema = z.object({
   targetFormat: z
     .enum(["openai", "openai-responses", "claude", "gemini", "gemini-cli", "antigravity"])
     .optional(),
-  // #1294: optional token limits from the add-custom-model form (wire names);
-  // persisted as inputTokenLimit / outputTokenLimit.
-  max_input_tokens: z.number().int().positive().optional(),
-  max_output_tokens: z.number().int().positive().optional(),
   normalizeToolCallId: z.boolean().optional(),
   preserveOpenAIDeveloperRole: z.boolean().nullable().optional(),
   upstreamHeaders: upstreamHeadersRecordSchema.nullable().optional(),
