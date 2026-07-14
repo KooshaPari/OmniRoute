@@ -53,20 +53,7 @@ function isFileRef(p) {
 // o path na doc, ou remover a menção. NÃO adicione novas aqui sem justificativa — esse
 // é o ponto do gate. Issues de tracking devem ser abertas para cada cluster.
 export const KNOWN_STALE_DOC_REFS = new Set([
-  // docs/reference/API_REFERENCE.md — guardrails/shadow doc-fiction RESOLVED in #3496:
-  // GET /api/guardrails + POST /api/guardrails/test are now REAL routes (wrapping the
-  // existing guardrailRegistry); the fictional enable/disable/logs rows and the entire
-  // shadow table were removed from the doc (shadow A-B comparison is combo-config +
-  // /api/combos/metrics). No allowlist entries needed for these anymore.
-  // (DISCOVERY_TOOL_DESIGN.md saiu de docs/research/ para o repo isolado _tasks/research/
-  // — gitignored, fora do escopo deste gate. As 4 entradas /api/discovery/* viraram
-  // obsoletas e foram removidas para satisfazer o stale-enforcement da allowlist.)
-  // docs/reference/ENVIRONMENT.md — endpoint UPSTREAM do provedor Blackbox Web,
-  // citado na descrição de env var (não é rota do OmniRoute):
-  "/api/chat",
-  // docs/ops/TUNNELS_GUIDE.md — a doc afirma EXPLICITAMENTE que este endpoint NÃO
-  // existe ("There is no central /api/settings/tunnels endpoint"); menção pedagógica:
-  "/api/settings/tunnels",
+  // Empty is the desired state once all stale references have been fixed.
 ]);
 
 function walk(dir, filter, acc = []) {
