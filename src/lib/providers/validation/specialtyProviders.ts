@@ -46,6 +46,11 @@ import {
   validateOpenAILikeProvider,
 } from "./openaiFormat";
 import { SEARCH_VALIDATOR_CONFIGS, validateSearchProvider } from "./searchProviders";
+import {
+  validatePetalsProvider,
+  validatePoolsideProvider,
+  validateV0VercelProvider,
+} from "./specialtyChatProviders";
 import { toValidationErrorResult, validationRead, validationWrite } from "./transport";
 import { normalizeBaseUrl } from "./urlHelpers";
 import {
@@ -124,6 +129,19 @@ async function validateQoder({ apiKey, providerSpecificData = {} }: ValidatorArg
 function imageValidator(provider: string): SpecialtyValidator {
   return ({ apiKey, providerSpecificData = {} }) =>
     validateImageProviderApiKey({ provider, apiKey, providerSpecificData });
+}
+
+async function validateAuggie() {
+  const { checkAuggieCliVersion } = await import("@omniroute/open-sse/executors/auggie.ts");
+  const result = await checkAuggieCliVersion();
+  if (!result.ok) {
+    return {
+      valid: false,
+      error: result.error || "Auggie CLI not found. Install it and run `auggie login`.",
+      unsupported: false,
+    };
+  }
+  return { valid: true, error: null, unsupported: false, method: result.version };
 }
 
 function validateModal(
@@ -318,13 +336,16 @@ function buildOpenGatewayValidator(defaultBaseUrl: string, model: string): Speci
 }
 
 const SPECIALTY_VALIDATORS: Record<string, SpecialtyValidator> = {
+  "v0-vercel": validateV0VercelProvider,
   jules: validateJulesProvider,
+  auggie: validateAuggie,
   qoder: validateQoder,
   "command-code": validateCommandCodeProvider,
   huggingface: validateHuggingFaceProvider,
   bytez: validateBytezProvider,
   deepgram: validateDeepgramProvider,
   assemblyai: validateAssemblyAIProvider,
+  nanobanana: imageValidator("nanobanana"),
   "fal-ai": imageValidator("fal-ai"),
   "stability-ai": imageValidator("stability-ai"),
   "black-forest-labs": imageValidator("black-forest-labs"),
@@ -344,6 +365,7 @@ const SPECIALTY_VALIDATORS: Record<string, SpecialtyValidator> = {
   bedrock: validateBedrockProvider,
   modal: validateModal,
   "nous-research": validateNousResearchProvider,
+  petals: validatePetalsProvider,
   poe: validatePoeProvider,
   clarifai: validateClarifaiProvider,
   reka: validateRekaProvider,
@@ -376,6 +398,7 @@ const SPECIALTY_VALIDATORS: Record<string, SpecialtyValidator> = {
   "vertex-partner": validateVertex,
   longcat: validateLongcat,
   nvidia: validateNvidia,
+  poolside: validatePoolsideProvider,
   zai: validateZai,
   "xiaomi-mimo": buildOpenGatewayValidator("https://api.xiaomimimo.com/v1", "mimo-v2.5-pro"),
   gitlawb: buildOpenGatewayValidator(
