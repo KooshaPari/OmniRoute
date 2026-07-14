@@ -29,7 +29,7 @@ import {
 // ── small tables — full snapshot ─────────────────────────────────────────────
 
 describe("migrationRunner/constants — exact small-table snapshots", () => {
-  it("LEGACY_VERSION_SLOT_MIGRATIONS is the 9-entry list, in order", () => {
+  it("LEGACY_VERSION_SLOT_MIGRATIONS is the 11-entry list, in order", () => {
     assert.deepEqual(
       LEGACY_VERSION_SLOT_MIGRATIONS.map((m) => `${m.version}:${m.name}`),
       [
@@ -42,6 +42,8 @@ describe("migrationRunner/constants — exact small-table snapshots", () => {
         "033:add_batch_id_to_call_logs",
         "046:remove_status_from_files",
         "051:remove_status_from_files",
+        "100:cli_access_tokens",
+        "101:api_key_usage_limits",
       ]
     );
   });
