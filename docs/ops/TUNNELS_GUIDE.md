@@ -208,8 +208,10 @@ If Funnel is not enabled in the admin console, the response includes
 | `/api/tunnels/tailscale/enable`       | `POST` | `{sudoPassword?, hostname?, port?}` | management |
 | `/api/tunnels/tailscale/disable`      | `POST` | `{sudoPassword?}`                   | management |
 
-There is no central `/api/settings/tunnels` endpoint — each backend is
-independent.
+Tunnel management is provider-specific. The implementations live in
+`src/app/api/tunnels/cloudflared/route.ts`, `src/app/api/tunnels/ngrok/route.ts`,
+and `src/app/api/tunnels/tailscale/route.ts` plus its action subroutes; use the
+endpoints in the table above rather than a shared settings route.
 
 ## OAuth callback considerations
 

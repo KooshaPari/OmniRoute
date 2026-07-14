@@ -156,9 +156,8 @@ test("collectRouteFiles finds the real route tree (non-empty, all route.ts)", ()
   for (const f of files) assert.match(f, /route\.tsx?$/);
 });
 
-test("KNOWN_STALE_DOC_REFS is a frozen, documented allowlist (/api/ paths; may be empty)", () => {
-  // Once all stale references are fixed, an empty allowlist is the desired state.
-  for (const p of allowlist) assert.match(p, /^\/api\//);
+test("KNOWN_STALE_DOC_REFS contains only the documented upstream exception", () => {
+  assert.deepEqual([...allowlist], ["/api/chat"]);
 });
 
 // NOTE: the compression research docs that used to live in docs/research/compression/

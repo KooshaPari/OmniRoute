@@ -53,7 +53,9 @@ function isFileRef(p) {
 // o path na doc, ou remover a menção. NÃO adicione novas aqui sem justificativa — esse
 // é o ponto do gate. Issues de tracking devem ser abertas para cada cluster.
 export const KNOWN_STALE_DOC_REFS = new Set([
-  // Empty is the desired state once all stale references have been fixed.
+  // docs/reference/ENVIRONMENT.md — upstream Blackbox Web endpoint named by the
+  // BLACKBOX_WEB_VALIDATED_TOKEN contract; it is not an OmniRoute route.
+  "/api/chat",
 ]);
 
 function walk(dir, filter, acc = []) {
