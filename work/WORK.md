@@ -29,21 +29,21 @@ subordinate evidence records; they cannot independently promote, demote, or rele
 ROOT-WORK-HANDOFF
 |- LEDGER                         [wip] recreated after checkout moved to older root commit
 |  `- next                         preserve concurrent staged work and keep this file canonical
-|- OMNIROUTE-CI                   [ok] isolated repair 6597cb0cf verified build + typecheck
+|- OMNIROUTE-CI                   [wip] isolated repair 6597cb0cf verified build + typecheck
 |- AGILEPLUS-COCKPIT              [wip] historical isolated commit 418e597; rehydrate and revalidate
 |  |- ownership_bracket            [wip] historical port needs rehydration and current validation
 |  `- next                         restore a proper AgilePlus worktree and rerun cargo check/tests
-|- REVIEW-LOOP                    [ok] final-cycle regression passes 1/1 in rehydrated worktree
-|  |- implementation               [ok] 9d16bba delay seam + Pending -> Approved final-cycle test
-|  `- validation                    [ok] isolated manifest repair 0f306f6; focused test green
+|- REVIEW-LOOP                    [wip] final-cycle regression passes 1/1 in rehydrated worktree
+|  |- implementation               [wip] 9d16bba delay seam + Pending -> Approved final-cycle test
+|  `- validation                    [wip] isolated manifest repair 0f306f6; focused test green
 |- CIVIS                          [!] quality manifest SHA stale; PR1382/core verification needs repair
-|  |- game dependency              [ok] phenotype-gfx::phenotype-voxel pinned at 7ed27211554f
-|  |- build order                  [ok] phenotype-voxel -> civ-voxel -> civ-engine -> server/protocol/bevy
+|  |- game dependency              [wip] phenotype-gfx::phenotype-voxel pinned at 7ed27211554f
+|  |- build order                  [wip] phenotype-voxel -> civ-voxel -> civ-engine -> server/protocol/bevy
 |  `- first source gate            [!] duplicate incompatible PowerRegistry models in crates/powers/src/registry.rs
-|  |- bevy window repair            [ok] isolated commit facc1f822; targeted check/test pass
+|  |- bevy window repair            [!] facc1f822 still has stray `}`; superseding fix required
 |  `- powers registry repair        [wip] retain static origin-main model; remove divergent Vec model
 |     `- rejected attempt            [!] no-go: collapsed 66-power catalog to 1 and removed public APIs
-|- POLYREPO-CONTAINMENT            [ok] current root preserved; staged unrelated work not touched
+|- POLYREPO-CONTAINMENT            [wip] current root preserved; staged unrelated work not touched
 `- NEXT                           [wip] rehydrate isolated lanes, validate, then publish only green work
 ```
 
@@ -65,9 +65,11 @@ ROOT-WORK-HANDOFF
   dependency. It is pinned by `civ-voxel` at `7ed27211554f`; local `phenotype-gfx` Cargo.lock
   dirt cannot affect the immutable source. The active failure is in-tree: duplicate `PowerRegistry`
   models and redefined types in `crates/powers/src/registry.rs` introduced after known-green state.
-- Isolated Civis commit `facc1f822` repairs BOM/duplicate declarations and missing structure in
-  `clients/bevy-ref/src/bin/bevy_window.rs`; its targeted Bevy check/test and security hook pass.
-  Workspace-wide formatting remains an independent pre-existing gate.
+- Isolated Civis commit `facc1f822` repaired most BOM/duplicate/structure corruption in
+  `clients/bevy-ref/src/bin/bevy_window.rs`, but independent rustfmt audit found a remaining stray
+  `}` at line 1632; do not merge it unchanged. A superseding isolated repair is required.
+- Workspace formatting baseline is 135 files / 752 hunks / 4,618 lines of churn plus the unparsed
+  Bevy window file. Smallest independent batch is `civ-watch` (one file, one indentation hunk).
 - Powers reconciliation review rejected the first isolated diff: it reduced the required 66-power
   catalog to one power, orphaned synergy/cooldown modules, removed serialization contracts, and let
   the oracle self-adjust its threshold. Replacement work must preserve 66 total / 37 Live powers,
@@ -221,7 +223,7 @@ WBS-007 (Civis manifest repair) -> PR1382 verification
 | GAP-002 | PR #6855           | migrations and phase split are release-safe        | `hold`        | P1                        | PR comments + conflict check                      | root                                        | RFC #6933, rebase, perf/security notes, phase split  |
 | GAP-003 | PR #6794           | release branch has no unresolved electron conflict | `defer`       | P1                        | `gh api .../pulls/6794`                           | root                                        | rebase clean and packaged evidence attached          |
 | GAP-004 | #6856 CI           | merged change has no unexplained regression        | `wip`         | P2                        | check-runs for merged SHA                         | root                                        | residual failed shard triaged or rerun by maintainer |
-| GAP-005 | AgilePlus cockpit  | isolated commit is reproducible                    | `wip`         | P1                        | `cargo check && cargo test` in dedicated worktree | AgilePlus owner                             | current command evidence recorded                    |
+| GAP-005 | AgilePlus cockpit  | isolated commit is reproducible                    | `wip`         | P1                        | `cargo check --manifest-path AgilePlus/Cargo.toml && cargo test --manifest-path AgilePlus/Cargo.toml` from the repositories root | AgilePlus owner                             | current command evidence recorded                    |
 | GAP-006 | review loop        | nested workspace is complete                       | `blocked`     | P1                        | focused Cargo test                                | review-loop owner                           | manifests restored and test passes                   |
 | GAP-007 | Civis              | attested SHA equals verified HEAD                  | `blocked`     | P1                        | quality-manifest verifier                         | Civis owner                                 | regenerated manifest and green quality gate          |
 
@@ -243,7 +245,7 @@ dated Evidence Log record under the consolidated Status Protocol at the end of t
 | ---- | ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
 | T011 | ok      | PR #289 is merged: `gh` reports merge commit `195ccdbc30748101318ea9d3fd79120a206cb5e7`; historical failures are not an open gate.                                     | refresh the default-branch workflow queue before any new CI fix                        |
 | T053 | wip     | `OmniRoute/deploy/docker-compose.scale.yml` defines `omniroute-1/2/3:3000`; prior `deploy/Caddyfile` defaulted to nonexistent `omniroute-base:20129`.                  | validate the corrected Caddy route in runtime                                          |
-| T054 | wip     | `docker compose -f deploy/docker-compose.scale.yml config` exits successfully after the Caddy route change.                                                            | run Caddy config validation and health probes                                          |
+| T054 | wip     | `docker compose -f OmniRoute/deploy/docker-compose.scale.yml config` exits successfully after the Caddy route change.                                                  | run Caddy config validation and health probes                                          |
 | T055 | blocked | `Tracera/docker-compose.yml` references `./Dockerfile`, but `Tracera/Dockerfile` is absent; only `Dockerfile.local` and `.container-runtime-context/Dockerfile` exist. | choose and implement the canonical build context in an isolated Tracera worktree       |
 | T057 | wip     | `Tracera/vercel.json` builds `frontend` only and contains no backend function rewrites.                                                                                | document frontend-only scope or add a verified serverless adapter                      |
 | T033 | wip     | `omniroute-rust` exposes Axum TCP HTTP/SSE; no Unix socket, gRPC, WebSocket, or GraphQL implementation was found.                                                      | add transport decision record and benchmark plan before claiming enterprise throughput |
