@@ -31,7 +31,7 @@ ROOT-WORK-HANDOFF
 |  `- next                         preserve concurrent staged work and keep this file canonical
 |- OMNIROUTE-CI                   [ok] isolated repair 6597cb0cf verified build + typecheck
 |- AGILEPLUS-COCKPIT              [wip] historical isolated commit 418e597; rehydrate and revalidate
-|  |- ownership_bracket            [ok] ported through event/session/SQLite/snapshot in isolated work
+|  |- ownership_bracket            [wip] historical port needs rehydration and current validation
 |  `- next                         restore a proper AgilePlus worktree and rerun cargo check/tests
 |- REVIEW-LOOP                    [ok] final-cycle regression passes 1/1 in rehydrated worktree
 |  |- implementation               [ok] 9d16bba delay seam + Pending -> Approved final-cycle test
@@ -42,6 +42,7 @@ ROOT-WORK-HANDOFF
 |  `- first source gate            [!] duplicate incompatible PowerRegistry models in crates/powers/src/registry.rs
 |  |- bevy window repair            [ok] isolated commit facc1f822; targeted check/test pass
 |  `- powers registry repair        [wip] retain static origin-main model; remove divergent Vec model
+|     `- rejected attempt            [!] no-go: collapsed 66-power catalog to 1 and removed public APIs
 |- POLYREPO-CONTAINMENT            [ok] current root preserved; staged unrelated work not touched
 `- NEXT                           [wip] rehydrate isolated lanes, validate, then publish only green work
 ```
@@ -67,6 +68,10 @@ ROOT-WORK-HANDOFF
 - Isolated Civis commit `facc1f822` repairs BOM/duplicate declarations and missing structure in
   `clients/bevy-ref/src/bin/bevy_window.rs`; its targeted Bevy check/test and security hook pass.
   Workspace-wide formatting remains an independent pre-existing gate.
+- Powers reconciliation review rejected the first isolated diff: it reduced the required 66-power
+  catalog to one power, orphaned synergy/cooldown modules, removed serialization contracts, and let
+  the oracle self-adjust its threshold. Replacement work must preserve 66 total / 37 Live powers,
+  public APIs, serialization, and consumer-level tests before manifest regeneration.
 
 ## Ownership / Next Actions
 
@@ -83,12 +88,14 @@ ROOT-WORK-HANDOFF
 No resets, forced pushes, or unrelated cleanup. Do not mark a lane complete without current command
 evidence. Historical disposable worktree paths are not publication claims.
 
-## Forward Task DAG (owner: root manager; refreshed 2026-07-12)
+## Forward Task DAG (Subordinate Execution Plan; owner: root manager; refreshed 2026-07-12)
 
 Tasks are intentionally concrete and resumable. Agents may claim a task by adding their name and
 evidence here; they must preserve protected staged work and close their child session before exit.
+This task DAG is subordinate to `ORG-P0..ORG-P5`; it does not define organization state or release
+authority.
 
-### Control plane and evidence
+### Coordination and evidence
 
 - [ ] T001 Reconcile the current root status and record protected paths.
 - [ ] T002 Refresh this ledger after every merged slice.
@@ -216,7 +223,7 @@ WBS-007 (Civis manifest repair) -> PR1382 verification
 | GAP-004 | #6856 CI           | merged change has no unexplained regression        | `wip`         | P2                        | check-runs for merged SHA                         | root                                        | residual failed shard triaged or rerun by maintainer |
 | GAP-005 | AgilePlus cockpit  | isolated commit is reproducible                    | `wip`         | P1                        | `cargo check && cargo test` in dedicated worktree | AgilePlus owner                             | current command evidence recorded                    |
 | GAP-006 | review loop        | nested workspace is complete                       | `blocked`     | P1                        | focused Cargo test                                | review-loop owner                           | manifests restored and test passes                   |
-| GAP-007 | Civis              | attested SHA equals verified HEAD                  | `blocked`     | quality-manifest verifier | Civis owner                                       | regenerated manifest and green quality gate |
+| GAP-007 | Civis              | attested SHA equals verified HEAD                  | `blocked`     | P1                        | quality-manifest verifier                         | Civis owner                                 | regenerated manifest and green quality gate          |
 
 ## Evidence Log
 
@@ -261,9 +268,9 @@ CI can be re-run.
 | id | phase | state | owner | depends_on | evidence | exit |
 | -- | ----- | ----- | ----- | ---------- | -------- | ---- |
 | ORG-P0 | inventory/freshness | wip | root manager | - | `git worktree list --porcelain`; `git -C OmniRoute status --short`; `git -C AgilePlus status --short`; recovery rows `WTR-001..004` | all active repository status, branch, worktree, and freshness records are current |
-| ORG-P1 | status/evidence schema | wip | root manager | ORG-P0 | `work/WORK.md`; `rg -n "ORG-P[0-5]|Status Protocol|Evidence Log" work/WORK.md` | every tracked lane has a machine-recheckable owner, dependency, evidence, and exit condition |
-| ORG-P2 | QA/gap matrix | wip | QA owner | ORG-P1 | `OmniRoute/scripts/quality/run-all-gates.mjs`; `npm run quality:scan:fast` | all P0/P1 gaps have a current command or CI result and a recorded disposition |
-| ORG-P3 | PR/CI/router corpus/cockpit/C0-C10/AgilePlus FR gaps | blocked | OmniRoute, Civis, AgilePlus owners | ORG-P2 | `npm run quality:scan:fast`; `AgilePlus/tooling/governance_index.py --check-schema`; `AgilePlus/.github/workflows/fr-coverage.yml`; `Civis/.ci/quality-manifest.json`; PR #1382 | PR and CI corpus refreshed; router/cockpit C0-C10 and FR gaps have verified owners and exits |
+| ORG-P1 | status/evidence schema | wip | root manager | ORG-P0 | `work/WORK.md`; `rg -n -e "ORG-P[0-5]" -e "Status Protocol" -e "Evidence Log" work/WORK.md` | every tracked lane has a machine-recheckable owner, dependency, evidence, and exit condition |
+| ORG-P2 | QA/gap matrix | wip | QA owner | ORG-P1 | `OmniRoute/scripts/quality/run-all-gates.mjs`; `npm --prefix OmniRoute run quality:scan:fast` | all P0/P1 gaps have a current command or CI result and a recorded disposition |
+| ORG-P3 | PR/CI/router corpus/cockpit/C0-C10/AgilePlus FR gaps | blocked | OmniRoute, Civis, AgilePlus owners | ORG-P2 | `npm --prefix OmniRoute run quality:scan:fast`; `AgilePlus/tooling/governance_index.py --check-schema`; `AgilePlus/.github/workflows/fr-coverage.yml`; `Civis/.ci/quality-manifest.json`; PR #1382 | PR and CI corpus refreshed; router/cockpit C0-C10 and FR gaps have verified owners and exits |
 | ORG-P4 | machine sync | blocked | platform owner | ORG-P3 | `work/agileplus-work.db`; reproducible read/write check while writer-coordinated | safe writer-coordinated sync completes and records a reproducible read/write check |
 | ORG-P5 | release handoff | hold | release owner | ORG-P3, ORG-P4 | governing `ORG-P0..ORG-P4` evidence; PR #1382; dated Evidence Log records | handoff contains only current green commands/CI, PR links, and owner acceptance |
 
@@ -271,7 +278,7 @@ CI can be re-run.
 
 | gap_id | surface | state | evidence | owner | exit |
 | ------ | ------- | ----- | -------- | ----- | ---- |
-| GAP-ORG-001 | OmniRoute quality scan | wip | `OmniRoute/scripts/quality/run-all-gates.mjs`; `npm run quality:scan:fast` reported 12 pass / 7 fail, including migration-prefix and `localDb` findings | OmniRoute owner | rerun after scoped remediation; attach current passing or triaged failing output |
+| GAP-ORG-001 | OmniRoute quality scan | wip | `OmniRoute/scripts/quality/run-all-gates.mjs`; `npm --prefix OmniRoute run quality:scan:fast` reported 12 pass / 7 fail, including migration-prefix and `localDb` findings | OmniRoute owner | rerun after scoped remediation; attach current passing or triaged failing output |
 | GAP-ORG-002 | AgilePlus governance and planning | blocked | `AgilePlus/tooling/governance_index.py --check-schema` identifies missing `022` plan | AgilePlus owner | add and validate the required plan, then record validator output |
 | GAP-ORG-003 | AgilePlus traceability | blocked | `AgilePlus/.github/workflows/fr-coverage.yml`; FR-024-4, FR-024-5, FR-024-7, and FR-024-8 remain gaps | AgilePlus owner | implement/verify workflows and map each FR to current test or command evidence |
 | GAP-ORG-004 | AgilePlus machine sync | blocked | `work/agileplus-work.db` is `SQLITE_BUSY`; writer ownership is active | platform owner | coordinate with the writer, then run a non-contentious sync/readback check |
