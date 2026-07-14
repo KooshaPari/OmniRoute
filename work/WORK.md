@@ -1,6 +1,6 @@
 # OmniRoute / Phenotype Work Ledger
 
-[OmniRoute:◐, Tracera:◐, AgilePlus:◐, DesktopDeploy:✗, Vercel:◐]
+[Civis:◐, phenotype-gfx:?, game-deps:?, OmniRoute:P, AgilePlus:P, Tracera:P]
 
 Canonical polyrepo handoff for the long-horizon AgilePlus/Phenotype DAG. Preserve unrelated dirty
 trees; use isolated worktrees for overlapping implementation; update this file instead of creating
@@ -10,6 +10,14 @@ parallel handoff ledgers.
 
 Advance dashboard cleanup, cockpit bridge automation, lifecycle/review-loop regression coverage,
 targeted validation, dirty-tree containment, commit preparation, and handoff/push when feasible.
+
+## Scope Override (2026-07-13)
+
+Sponsor direction: focus exclusively on Civis and the active gaming-development dependency graph
+attached to it. OmniRoute, AgilePlus, Tracera, BytePort, and other unrelated lanes are parked;
+preserve their dirty worktrees without new implementation or cleanup. The active critical path is
+Civis verification, stale quality-manifest repair, game-dependency build order, and publication
+readiness.
 
 ## Live DAG (2026-07-12)
 
@@ -49,7 +57,7 @@ ROOT-WORK-HANDOFF
 | lane                       | state | next owner action                                                           |
 | -------------------------- | ----- | --------------------------------------------------------------------------- |
 | OmniRoute                  | ok    | retain isolated repair evidence; rerun remote checks when adopted           |
-| AgilePlus cockpit          | wip   | fresh proper worktree at `418e597`; finish cargo check and route tests       |
+| AgilePlus cockpit          | wip   | fresh proper worktree at `418e597`; finish cargo check and route tests      |
 | review loop                | ok    | focused final-cycle test passes 1/1 in `/private/tmp/agileplus-review`      |
 | Civis                      | !     | repair stale manifest/verification drift, regenerate only after green gates |
 | Tracera / BytePort / pheno | ~     | preserve dirty owned trees; audit one lane at a time                        |
@@ -209,17 +217,26 @@ No row may move to `ok` from historical evidence alone.
 
 ## Current Slice Evidence (2026-07-12)
 
-| id | state | evidence | next transition |
-| --- | --- | --- | --- |
-| T011 | ok | PR #289 is merged: `gh` reports merge commit `195ccdbc30748101318ea9d3fd79120a206cb5e7`; historical failures are not an open gate. | refresh the default-branch workflow queue before any new CI fix |
-| T053 | wip | `OmniRoute/deploy/docker-compose.scale.yml` defines `omniroute-1/2/3:3000`; prior `deploy/Caddyfile` defaulted to nonexistent `omniroute-base:20129`. | validate the corrected Caddy route in runtime |
-| T054 | wip | `docker compose -f deploy/docker-compose.scale.yml config` exits successfully after the Caddy route change. | run Caddy config validation and health probes |
-| T055 | blocked | `Tracera/docker-compose.yml` references `./Dockerfile`, but `Tracera/Dockerfile` is absent; only `Dockerfile.local` and `.container-runtime-context/Dockerfile` exist. | choose and implement the canonical build context in an isolated Tracera worktree |
-| T057 | wip | `Tracera/vercel.json` builds `frontend` only and contains no backend function rewrites. | document frontend-only scope or add a verified serverless adapter |
-| T033 | wip | `omniroute-rust` exposes Axum TCP HTTP/SSE; no Unix socket, gRPC, WebSocket, or GraphQL implementation was found. | add transport decision record and benchmark plan before claiming enterprise throughput |
+| id   | state   | evidence                                                                                                                                                               | next transition                                                                        |
+| ---- | ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
+| T011 | ok      | PR #289 is merged: `gh` reports merge commit `195ccdbc30748101318ea9d3fd79120a206cb5e7`; historical failures are not an open gate.                                     | refresh the default-branch workflow queue before any new CI fix                        |
+| T053 | wip     | `OmniRoute/deploy/docker-compose.scale.yml` defines `omniroute-1/2/3:3000`; prior `deploy/Caddyfile` defaulted to nonexistent `omniroute-base:20129`.                  | validate the corrected Caddy route in runtime                                          |
+| T054 | wip     | `docker compose -f deploy/docker-compose.scale.yml config` exits successfully after the Caddy route change.                                                            | run Caddy config validation and health probes                                          |
+| T055 | blocked | `Tracera/docker-compose.yml` references `./Dockerfile`, but `Tracera/Dockerfile` is absent; only `Dockerfile.local` and `.container-runtime-context/Dockerfile` exist. | choose and implement the canonical build context in an isolated Tracera worktree       |
+| T057 | wip     | `Tracera/vercel.json` builds `frontend` only and contains no backend function rewrites.                                                                                | document frontend-only scope or add a verified serverless adapter                      |
+| T033 | wip     | `omniroute-rust` exposes Axum TCP HTTP/SSE; no Unix socket, gRPC, WebSocket, or GraphQL implementation was found.                                                      | add transport decision record and benchmark plan before claiming enterprise throughput |
 
 ### Machine transition rule
 
 An agent may change a row only by adding a dated evidence line containing a re-runnable command,
 commit, PR, or file path. `blocked` means a concrete repository or external prerequisite is named;
 it does not authorize speculative edits in a dirty worktree.
+
+## Worktree Recovery Evidence (2026-07-13)
+
+| id      | state           | evidence                                                                                                                                                                                                                                                  | next transition                                                                                                        |
+| ------- | --------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| WTR-001 | wip             | Oldest recoverable OmniRoute worktree is `repos/omniroute-wtrees/fix-5211-mcp-auth` on `fix/5211-mcp-internal-auth`, last updated 2026-06-28; it is clean, tracks `upstream/release/v3.8.39`, and is `+2/-13` with no fork PR.                            | audit the delta, rebase only in an isolated recovery lane, then validate and publish a focused PR if still applicable. |
+| WTR-002 | preserve        | `repos/OmniRoute/.worktrees/fix-5976-ci-rescue` contains more than 200 tracked deletions under `docs/i18n`; no fork PR covers it.                                                                                                                         | snapshot and publish a recoverable branch before resolving or removing any content.                                    |
+| WTR-003 | preserve        | `repos/OmniRoute/.claude/worktrees/land-pr016` is a detached, conflicted worktree with `UU open-sse/executors/base.ts`; its HEAD duplicates `qgate-reusable`.                                                                                             | capture the conflict state or resolve it in a dedicated recovery worktree before cleanup.                              |
+| WTR-004 | reclaim-pending | `feat-cc-responses-parity`, `feat-omniroute-qgate`, `fix-untracked-files`, `reconcile-prep`, and `rebase-pr016` map to merged PRs #174, #219, #211, #212, and #221; none is eligible for deletion until commit containment and clean status are verified. | prove containment, remove generated residue where applicable, then reclaim the worktree and branch metadata.           |
