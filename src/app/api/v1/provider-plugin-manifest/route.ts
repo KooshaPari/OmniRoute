@@ -8,6 +8,9 @@ const CACHE_HEADERS = {
   "Cache-Control": "public, max-age=60",
 } as const;
 
+// The provider registry is module-static; process reloads rebuild this snapshot.
+let cachedPayload: { body: string; etag: string } | null = null;
+
 export async function OPTIONS() {
   return new Response(null, {
     headers: {
@@ -31,9 +34,16 @@ function matchesEtag(ifNoneMatch: string | null, etag: string): boolean {
   );
 }
 
-export async function GET(request: Request) {
+function getManifestPayload(): { body: string; etag: string } {
+  if (cachedPayload) return cachedPayload;
+
   const body = JSON.stringify(generateProviderPluginManifest());
-  const etag = createEtag(body);
+  cachedPayload = { body, etag: createEtag(body) };
+  return cachedPayload;
+}
+
+export async function GET(request: Request) {
+  const { body, etag } = getManifestPayload();
   const headers = { ...CACHE_HEADERS, ETag: etag };
 
   if (matchesEtag(request.headers.get("If-None-Match"), etag)) {
