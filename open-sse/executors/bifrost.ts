@@ -127,6 +127,7 @@ export class BifrostNoFallbackError extends Error {
     // Maintain proper prototype chain for instanceof in transpiled environments
     Object.setPrototypeOf(this, BifrostNoFallbackError.prototype);
   }
+}
 
 /**
  * Whether the executor must consult the local `bifrost_models` cache before
