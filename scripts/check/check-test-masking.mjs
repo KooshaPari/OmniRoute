@@ -169,7 +169,9 @@ function main() {
   // redução de asserts abaixo (gutting-via-rename ainda flaga); só deleções reais
   // e renames test→não-teste contam como remoção de teste.
   const { deletedTests, renames } = partitionDeletedRenamed(
-    git(["diff", "--name-status", "-M", "--diff-filter=DR", `${base}...HEAD`])
+    // -M10%: import-path rewrites during relocation often score well below the
+    // default 50% similarity; still treat test→test moves as renames, not deletes.
+    git(["diff", "--name-status", "-M10%", "--diff-filter=DR", `${base}...HEAD`])
   );
 
   const relocatedOutOfTest = [];
