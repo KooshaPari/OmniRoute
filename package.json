@@ -74,8 +74,14 @@
   "license": "MIT",
   "author": "KooshaPari (maintainer) / diegosouzapw (upstream)",
   "contributors": [
-    { "name": "KooshaPari", "url": "https://kooshapari.com" },
-    { "name": "diegosouzapw (upstream)", "url": "https://github.com/diegosouzapw" }
+    {
+      "name": "KooshaPari",
+      "url": "https://kooshapari.com"
+    },
+    {
+      "name": "diegosouzapw (upstream)",
+      "url": "https://github.com/diegosouzapw"
+    }
   ],
   "repository": {
     "type": "git",
@@ -222,7 +228,10 @@
     "release:contributors": "node scripts/release/gen-contributors.mjs",
     "release:uncovered": "node scripts/release/list-uncovered-commits.mjs",
     "build:tokn-ffi": "cd packages/tokn && node scripts/build.mjs",
-    "test:tokn": "tsx --test src/lib/tokn/__tests__/*.test.ts"
+    "test:tokn": "tsx --test src/lib/tokn/__tests__/*.test.ts",
+    "ci:v4:lint": "bunx oxlint apps packages",
+    "ci:v4:typecheck": "bun run --cwd apps/web typecheck && bun run --cwd apps/bff typecheck",
+    "ci:v4:test": "bun --filter \"./apps/*\" test"
   },
   "dependencies": {
     "@aws-sdk/client-bedrock-runtime": "^3.1073.0",
