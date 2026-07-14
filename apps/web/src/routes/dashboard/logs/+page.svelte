@@ -18,8 +18,8 @@
 
 <Card title="Logs (live)">
   <div class="flex items-center gap-2 mb-3">
-    <label class="text-sm text-gray-700">Filter:</label>
-    <select bind:value={level} class="px-2 py-1 border border-gray-300 rounded text-sm">
+    <label for="logs-level" class="text-sm text-gray-700">Filter:</label>
+    <select id="logs-level" bind:value={level} class="px-2 py-1 border border-gray-300 rounded text-sm">
       <option value="all">all</option>
       <option value="info">info+</option>
       <option value="warn">warn+</option>

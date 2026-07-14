@@ -15,8 +15,8 @@
 
   <div class="space-y-4">
     <div>
-      <label class="text-sm font-medium text-gray-700">Traffic split: {slotAPct}% / {slotBPct}%</label>
-      <input type="range" min="0" max="100" bind:value={trafficSplit} class="w-full" />
+      <label for="ab-traffic-split" class="text-sm font-medium text-gray-700">Traffic split: {slotAPct}% / {slotBPct}%</label>
+      <input id="ab-traffic-split" type="range" min="0" max="100" bind:value={trafficSplit} class="w-full" />
       <div class="flex justify-between text-xs text-gray-500">
         <span>Slot A: {slotAPct}%</span>
         <span>Slot B: {slotBPct}%</span>

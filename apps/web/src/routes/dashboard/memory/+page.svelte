@@ -14,8 +14,8 @@
 <Card title="Memory store">
   <p class="text-sm text-gray-600 mb-4">Cross-conversation memory entries used by agents. KV storage with TTL.</p>
   <div class="flex items-center gap-2 mb-3">
-    <label class="text-sm">Scope:</label>
-    <select bind:value={scope} class="px-2 py-1 border border-gray-300 rounded text-sm">
+    <label for="memory-scope" class="text-sm">Scope:</label>
+    <select id="memory-scope" bind:value={scope} class="px-2 py-1 border border-gray-300 rounded text-sm">
       <option value="all">all</option>
       <option value="global">global</option>
       <option value="user">user</option>

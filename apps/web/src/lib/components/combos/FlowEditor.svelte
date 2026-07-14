@@ -69,8 +69,12 @@ import RejectNode from './nodes/RejectNode.svelte';
     return edges;
   });
 
-  let nodes = $state(initialNodes);
-  let edges = $state(initialEdges);
+  let nodes = $state<ComboNode[]>([]);
+  let edges = $state<Edge[]>([]);
+  $effect.pre(() => {
+    nodes = initialNodes;
+    edges = initialEdges;
+  });
   $effect(() => { onchange?.(nodes, edges); });
 
   const nodeTypes = {

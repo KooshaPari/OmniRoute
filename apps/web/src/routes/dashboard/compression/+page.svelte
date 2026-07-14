@@ -65,8 +65,9 @@
 
   <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
     <div>
-      <label class="text-sm font-medium text-gray-700">Input</label>
+      <label for="compression-input" class="text-sm font-medium text-gray-700">Input</label>
       <textarea
+        id="compression-input"
         bind:value={input}
         rows="6"
         class="w-full mt-1 px-3 py-2 border border-gray-300 rounded font-mono text-sm"

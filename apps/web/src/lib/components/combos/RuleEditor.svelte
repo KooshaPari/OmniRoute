@@ -55,8 +55,8 @@
             <span class="text-gray-400 font-mono text-sm w-6 text-right pt-0.5">{i + 1}</span>
             <div class="flex-1 grid grid-cols-2 gap-2">
               <div>
-                <label class="text-xs text-gray-500">If</label>
-                <select bind:value={r.condition.type} class="w-full px-2 py-1 border border-gray-300 rounded text-sm">
+                <label for={`rule-${r.id}-condition`} class="text-xs text-gray-500">If</label>
+                <select id={`rule-${r.id}-condition`} bind:value={r.condition.type} class="w-full px-2 py-1 border border-gray-300 rounded text-sm">
                   <option value="header">header</option>
                   <option value="query">query param</option>
                   <option value="body">body path</option>
@@ -85,8 +85,8 @@
                 {/if}
               </div>
               <div>
-                <label class="text-xs text-gray-500">Then</label>
-                <select bind:value={r.action.type} class="w-full px-2 py-1 border border-gray-300 rounded text-sm">
+                <label for={`rule-${r.id}-action`} class="text-xs text-gray-500">Then</label>
+                <select id={`rule-${r.id}-action`} bind:value={r.action.type} class="w-full px-2 py-1 border border-gray-300 rounded text-sm">
                   <option value="model">route to model</option>
                   <option value="fallback_chain">fallback chain</option>
                   <option value="reject">reject</option>

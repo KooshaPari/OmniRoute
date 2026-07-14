@@ -65,8 +65,25 @@
 </script>
 
 {#if open}
-  <div class="fixed inset-0 z-50 bg-black/40 flex items-start justify-center pt-24" onclick={() => open = false} role="presentation">
-    <div class="bg-white rounded-lg shadow-2xl w-full max-w-xl mx-4 overflow-hidden" onclick={(e) => e.stopPropagation()} role="dialog">
+  <div
+    class="fixed inset-0 z-50 bg-black/40 flex items-start justify-center pt-24"
+    onclick={() => open = false}
+    onkeydown={(e) => {
+      if (e.key === "Escape") open = false;
+    }}
+    role="presentation"
+  >
+    <div
+      class="bg-white rounded-lg shadow-2xl w-full max-w-xl mx-4 overflow-hidden"
+      onclick={(e) => e.stopPropagation()}
+      onkeydown={(e) => {
+        if (e.key === "Escape") open = false;
+      }}
+      role="dialog"
+      aria-modal="true"
+      aria-label="Command palette"
+      tabindex="-1"
+    >
       <input
         bind:this={inputEl}
         bind:value={query}
