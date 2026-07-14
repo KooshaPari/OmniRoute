@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "releaseWorkflow": ".github/workflows/release.yml",
+  "versionGroups": [
+    {
+      "name": "v4-application",
+      "members": [
+        { "path": "apps/web/package.json", "format": "json", "field": "version" },
+        { "path": "apps/bff/package.json", "format": "json", "field": "version" },
+        { "path": "apps/desktop/package.json", "format": "json", "field": "version" },
+        { "path": "apps/desktop/src-tauri/tauri.conf.json", "format": "json", "field": "version" },
+        { "path": "apps/desktop/src-tauri/Cargo.toml", "format": "toml-package-version" }
+      ]
+    }
+  ],
+  "independentSurfaces": [
+    {
+      "path": "package.json",
+      "reason": "Legacy npm/CLI surface has an independent existing version line; this validator does not change or align it."
+    }
+  ],
+  "requiredControls": [
+    "pinned-actions",
+    "frozen-installs",
+    "checksums",
+    "sbom",
+    "provenance",
+    "no-secret-repository-clone",
+    "tag-version-validation"
+  ]
+}
