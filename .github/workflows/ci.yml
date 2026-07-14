@@ -85,7 +85,7 @@ jobs:
         with:
           node-version: ${{ env.CI_NODE_VERSION }}
           cache: npm
-      - uses: ./.github/actions/npm-ci-retry
+      - uses: ./.github/actions/bun-install-retry
       - run: npm run check:node-runtime
       - run: npm run audit:deps
       - name: Restore ESLint file cache
@@ -162,7 +162,7 @@ jobs:
         with:
           node-version: ${{ env.CI_NODE_VERSION }}
           cache: npm
-      - uses: ./.github/actions/npm-ci-retry
+      - uses: ./.github/actions/bun-install-retry
       - name: Restore ESLint file cache
         uses: actions/cache@v6
         with:
@@ -271,7 +271,7 @@ jobs:
         with:
           node-version: ${{ env.CI_NODE_VERSION }}
           cache: npm
-      - uses: ./.github/actions/npm-ci-retry
+      - uses: ./.github/actions/bun-install-retry
       # Dead-code, cognitive-complexity, type-coverage foram promovidos ao job
       # quality-gate (bloqueante) na Fase 7 INT — não rodam aqui para evitar duplo custo.
       - name: Circular deps (dpdm; advisory)
@@ -379,7 +379,7 @@ jobs:
         with:
           node-version: ${{ env.CI_NODE_VERSION }}
           cache: npm
-      - uses: ./.github/actions/npm-ci-retry
+      - uses: ./.github/actions/bun-install-retry
       - run: npm run check:docs-all
       # Previously-orphaned contract gates (existed as files, never wired anywhere).
       # All exit 0 today: cli-i18n is a hard gate, openapi-coverage is a ratchet
@@ -443,7 +443,7 @@ jobs:
         with:
           node-version: ${{ env.CI_NODE_VERSION }}
           cache: npm
-      - uses: ./.github/actions/npm-ci-retry
+      - uses: ./.github/actions/bun-install-retry
       - run: node scripts/i18n/check-ui-keys-coverage.mjs --threshold=65
 
   # D4 (plano mestre testes+CI): a matrix de ~40 jobs de <1min por idioma saturava sozinha
@@ -545,7 +545,7 @@ jobs:
         with:
           node-version: ${{ env.CI_NODE_VERSION }}
           cache: npm
-      - uses: ./.github/actions/npm-ci-retry
+      - uses: ./.github/actions/bun-install-retry
       - run: npm run check:node-runtime
       # NOTE: the webpack `.build/next/cache` actions/cache step was removed with the
       # Turbopack switch below — Turbopack does not read/write the webpack cache dir
@@ -593,7 +593,7 @@ jobs:
         with:
           node-version: ${{ env.CI_NODE_VERSION }}
           cache: npm
-      - uses: ./.github/actions/npm-ci-retry
+      - uses: ./.github/actions/bun-install-retry
       - run: npm run check:node-runtime
       - name: Download Next.js build artifact
         uses: actions/download-artifact@v8
@@ -631,7 +631,7 @@ jobs:
         with:
           node-version: ${{ env.CI_NODE_VERSION }}
           cache: npm
-      - uses: ./.github/actions/npm-ci-retry
+      - uses: ./.github/actions/bun-install-retry
       - run: npm run check:node-runtime
       - name: Download Next.js build artifact
         uses: actions/download-artifact@v8
@@ -680,7 +680,7 @@ jobs:
         with:
           node-version: ${{ env.CI_NODE_VERSION }}
           cache: npm
-      - uses: ./.github/actions/npm-ci-retry
+      - uses: ./.github/actions/bun-install-retry
       - run: npm run check:node-runtime
       # QW-d (plano mestre): fonte única — o MESMO npm script dos runs locais (adiciona o
       # setupPolyfill que o comando inline omitia; o glob canônico vive só no package.json).
@@ -727,7 +727,7 @@ jobs:
         with:
           node-version: ${{ env.CI_NODE_VERSION }}
           cache: npm
-      - uses: ./.github/actions/npm-ci-retry
+      - uses: ./.github/actions/bun-install-retry
       # The second test runner (CLAUDE.md: "Both test runners must pass") — was never
       # wired into CI until the 2026-06-09 quality audit (Fase 6A.2).
       - run: npm run test:vitest
@@ -758,7 +758,7 @@ jobs:
         with:
           node-version: ${{ env.CI_NODE_VERSION }}
           cache: npm
-      - uses: ./.github/actions/npm-ci-retry
+      - uses: ./.github/actions/bun-install-retry
       - name: Download all shard coverage
         uses: actions/download-artifact@v8
         with:
@@ -983,7 +983,7 @@ jobs:
         with:
           node-version: ${{ env.CI_NODE_VERSION }}
           cache: npm
-      - uses: ./.github/actions/npm-ci-retry
+      - uses: ./.github/actions/bun-install-retry
       - run: npm run check:node-runtime
       - name: Cache Playwright browsers
         uses: actions/cache@v6
@@ -1027,7 +1027,7 @@ jobs:
         with:
           node-version: ${{ env.CI_NODE_VERSION }}
           cache: npm
-      - uses: ./.github/actions/npm-ci-retry
+      - uses: ./.github/actions/bun-install-retry
       - run: npm run check:node-runtime
       # (tsx/esm = QW-b; o alinhamento de ESCOPO do integration com o npm script fica p/ follow-up)
       - run: node --import tsx/esm --import ./tests/_setup/isolateDataDir.ts --test --test-force-exit --test-concurrency=1 --test-shard=${{ matrix.shard }}/2 tests/integration/*.test.ts
@@ -1050,7 +1050,7 @@ jobs:
         with:
           node-version: ${{ env.CI_NODE_VERSION }}
           cache: npm
-      - uses: ./.github/actions/npm-ci-retry
+      - uses: ./.github/actions/bun-install-retry
       - run: npm run check:node-runtime
       - run: npm run test:security
 
