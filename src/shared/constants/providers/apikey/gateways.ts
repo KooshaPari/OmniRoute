@@ -28,20 +28,6 @@ export const APIKEY_PROVIDERS_GATEWAYS = {
       "Use a Command Code API key. Requests are sent to Command Code's /alpha/generate endpoint.",
     apiHint: "Create or copy an API key from Command Code, then paste it here as a Bearer token.",
   },
-  clinepass: {
-    id: "clinepass",
-    alias: "clinepass",
-    name: "ClinePass",
-    icon: "vpn_key",
-    color: "#5B9BD5",
-    textIcon: "CP",
-    passthroughModels: true,
-    website: "https://cline.bot",
-    notice: {
-      text: "ClinePass is Cline's paid BYOK gateway ($9.99/mo). Bring your own Cline API key; requests hit api.cline.bot with the cline-pass/* model namespace.",
-      apiKeyUrl: "https://app.cline.bot/settings/api-keys",
-    },
-  },
   openrouter: {
     id: "openrouter",
     alias: "openrouter",
@@ -125,12 +111,17 @@ export const APIKEY_PROVIDERS_GATEWAYS = {
     alias: "clinepass",
     name: "ClinePass",
     icon: "vpn_key",
-    color: "#6B7280",
+    color: "#5B9BD5",
     textIcon: "CP",
+    passthroughModels: true,
     // Real values from https://cline.bot/cline-pass and the upstream
     // cline/cline docs/getting-started/clinepass.mdx (PR #11986).
     // Tracks diegosouzapw/OmniRoute#5518.
     website: "https://cline.bot/cline-pass",
+    notice: {
+      text: "ClinePass is Cline's paid BYOK gateway ($9.99/mo). Bring your own Cline API key; requests hit api.cline.bot with the cline-pass/* model namespace.",
+      apiKeyUrl: "https://app.cline.bot/settings/api-keys",
+    },
     authHint:
       "Use your ClinePass API key (env CLINE_API_KEY) in Authorization: Bearer <key>. " +
       "OpenAI-compatible endpoint at https://api.cline.bot/api/v1.",
