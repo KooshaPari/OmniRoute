@@ -180,11 +180,17 @@ export async function resolveModelOrError(
     }
   }
 
-  // "auto" is a built-in virtual combo prefix, not a provider. parseModel("auto/fast")
-  // splits it into provider="auto" model="fast", so resolve it before credential lookup.
-  if (modelInfo.provider === "auto") {
-    const suffix = modelInfo.model || "";
-    const fuzzyCandidates = [`auto/best-${suffix}`, `auto/${suffix}`];
+  // "auto" is a built-in virtual combo prefix, not a provider. getModelInfo()
+  // intentionally returns provider:null for auto/* (combo router owns those
+  // addresses), so detect the prefix from modelStr as well as provider==="auto".
+  const isAutoAddress = modelStr === "auto" || modelStr.startsWith("auto/");
+  if (isAutoAddress || modelInfo.provider === "auto") {
+    const suffix =
+      modelInfo.provider === "auto"
+        ? modelInfo.model || ""
+        : modelStr === "auto"
+          ? ""
+          : modelStr.slice("auto/".length);
 
     const exactCombo = await getComboForModel(modelStr);
     if (exactCombo) {
@@ -193,6 +199,7 @@ export async function resolveModelOrError(
     }
 
     // Preserve persisted fuzzy combo behavior before falling back to built-in virtual catalog ids.
+    const fuzzyCandidates = [`auto/best-${suffix}`, `auto/${suffix}`];
     for (const candidate of fuzzyCandidates) {
       const fuzzyCombo = await getComboForModel(candidate);
       if (fuzzyCombo) {
