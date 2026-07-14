@@ -1,13 +1,14 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
+import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
 import {
   checkIpRateLimit,
   getClientIp,
   sanitizeForensicHeader,
 } from "../../../../src/app/api/v1/relay/chat/completions/relaySecurity.ts";
-import { getDbInstance } from "../../../../src/lib/db/core.ts";
-import { getRelayLogs } from "../../../../src/lib/db/relayProxies.ts";
 
 // ─── T-12 (#3932 PR-4): bifrost sidecar proxy route ──────────────────────
 //
@@ -15,6 +16,13 @@ import { getRelayLogs } from "../../../../src/lib/db/relayProxies.ts";
 // calling the exported POST handler. The handler is module-scope configured
 // (BIFROST_BASE_URL is read at import time), so env must be set BEFORE the
 // dynamic import below.
+
+const ORIGINAL_DATA_DIR = process.env.DATA_DIR;
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-bifrost-sidecar-"));
+process.env.DATA_DIR = TEST_DATA_DIR;
+
+const { getDbInstance, resetDbInstance } = await import("../../../../src/lib/db/core.ts");
+const { getRelayLogs } = await import("../../../../src/lib/db/relayProxies.ts");
 
 const ORIGINAL_BIFROST_BASE_URL = process.env.BIFROST_BASE_URL;
 const ORIGINAL_BIFROST_API_KEY = process.env.BIFROST_API_KEY;
@@ -68,6 +76,14 @@ function restoreEnv() {
   else process.env.BIFROST_STREAMING_ENABLED = ORIGINAL_BIFROST_STREAMING;
   globalThis.fetch = ORIGINAL_FETCH;
 }
+
+test.after(() => {
+  restoreEnv();
+  resetDbInstance();
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  if (ORIGINAL_DATA_DIR === undefined) delete process.env.DATA_DIR;
+  else process.env.DATA_DIR = ORIGINAL_DATA_DIR;
+});
 
 // Case 1: BIFROST_BASE_URL unset. We test this first because the route's
 // module-scope `BIFROST_BASE_URL` would be empty for the entire test file.
