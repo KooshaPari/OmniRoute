@@ -20,7 +20,13 @@ jobs:
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: 1.3.11
-      - run: bun install --filter "./apps/*" --filter "./packages/*" --ignore-scripts
+      - name: Install v4 app deps
+        run: |
+          bun install --cwd packages/api-contracts --ignore-scripts
+          bun install --cwd packages/design-tokens --ignore-scripts
+          bun install --cwd apps/bff --ignore-scripts
+          bun install --cwd apps/web --ignore-scripts
+          bun install --cwd apps/desktop --ignore-scripts
       - run: bun run ci:v4:lint
 
   typecheck:
@@ -32,7 +38,13 @@ jobs:
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: 1.3.11
-      - run: bun install --filter "./apps/*" --filter "./packages/*" --ignore-scripts
+      - name: Install v4 app deps
+        run: |
+          bun install --cwd packages/api-contracts --ignore-scripts
+          bun install --cwd packages/design-tokens --ignore-scripts
+          bun install --cwd apps/bff --ignore-scripts
+          bun install --cwd apps/web --ignore-scripts
+          bun install --cwd apps/desktop --ignore-scripts
       - run: cd apps/web && bunx svelte-kit sync
       - run: bun run ci:v4:typecheck
 
@@ -45,7 +57,13 @@ jobs:
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: 1.3.11
-      - run: bun install --filter "./apps/*" --filter "./packages/*" --ignore-scripts
+      - name: Install v4 app deps
+        run: |
+          bun install --cwd packages/api-contracts --ignore-scripts
+          bun install --cwd packages/design-tokens --ignore-scripts
+          bun install --cwd apps/bff --ignore-scripts
+          bun install --cwd apps/web --ignore-scripts
+          bun install --cwd apps/desktop --ignore-scripts
       - run: bun test
 
   build-web:
@@ -57,7 +75,13 @@ jobs:
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: 1.3.11
-      - run: bun install --filter "./apps/*" --filter "./packages/*" --ignore-scripts
+      - name: Install v4 app deps
+        run: |
+          bun install --cwd packages/api-contracts --ignore-scripts
+          bun install --cwd packages/design-tokens --ignore-scripts
+          bun install --cwd apps/bff --ignore-scripts
+          bun install --cwd apps/web --ignore-scripts
+          bun install --cwd apps/desktop --ignore-scripts
       - run: cd apps/web && bunx svelte-kit sync && bun run build
 
   build-bff:
@@ -69,7 +93,13 @@ jobs:
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: 1.3.11
-      - run: bun install --filter "./apps/*" --filter "./packages/*" --ignore-scripts
+      - name: Install v4 app deps
+        run: |
+          bun install --cwd packages/api-contracts --ignore-scripts
+          bun install --cwd packages/design-tokens --ignore-scripts
+          bun install --cwd apps/bff --ignore-scripts
+          bun install --cwd apps/web --ignore-scripts
+          bun install --cwd apps/desktop --ignore-scripts
       - run: cd apps/bff && bun run build
 
   build-desktop:
@@ -82,7 +112,13 @@ jobs:
         with:
           bun-version: 1.3.11
       - uses: dtolnay/rust-toolchain@stable
-      - run: bun install --filter "./apps/*" --filter "./packages/*" --ignore-scripts
+      - name: Install v4 app deps
+        run: |
+          bun install --cwd packages/api-contracts --ignore-scripts
+          bun install --cwd packages/design-tokens --ignore-scripts
+          bun install --cwd apps/bff --ignore-scripts
+          bun install --cwd apps/web --ignore-scripts
+          bun install --cwd apps/desktop --ignore-scripts
       - run: cargo check --manifest-path apps/desktop/src-tauri/Cargo.toml
 
   build-desktop-linux:
@@ -95,7 +131,13 @@ jobs:
         with:
           bun-version: 1.3.11
       - uses: dtolnay/rust-toolchain@stable
-      - run: bun install --filter "./apps/*" --filter "./packages/*" --ignore-scripts
+      - name: Install v4 app deps
+        run: |
+          bun install --cwd packages/api-contracts --ignore-scripts
+          bun install --cwd packages/design-tokens --ignore-scripts
+          bun install --cwd apps/bff --ignore-scripts
+          bun install --cwd apps/web --ignore-scripts
+          bun install --cwd apps/desktop --ignore-scripts
       - run: sudo apt-get update && sudo apt-get install -y libwebkit2gtk-4.1-dev libgtk-3-dev libayatana-appindicator3-dev librsvg2-dev
       - run: cargo check --manifest-path apps/desktop/src-tauri/Cargo.toml
 
@@ -109,7 +151,13 @@ jobs:
         with:
           bun-version: 1.3.11
       - uses: dtolnay/rust-toolchain@stable
-      - run: bun install --filter "./apps/*" --filter "./packages/*" --ignore-scripts
+      - name: Install v4 app deps
+        run: |
+          bun install --cwd packages/api-contracts --ignore-scripts
+          bun install --cwd packages/design-tokens --ignore-scripts
+          bun install --cwd apps/bff --ignore-scripts
+          bun install --cwd apps/web --ignore-scripts
+          bun install --cwd apps/desktop --ignore-scripts
       - run: cargo check --manifest-path apps/desktop/src-tauri/Cargo.toml
 
   size-budget:
@@ -123,7 +171,13 @@ jobs:
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: 1.3.11
-      - run: bun install --filter "./apps/*" --filter "./packages/*" --ignore-scripts
+      - name: Install v4 app deps
+        run: |
+          bun install --cwd packages/api-contracts --ignore-scripts
+          bun install --cwd packages/design-tokens --ignore-scripts
+          bun install --cwd apps/bff --ignore-scripts
+          bun install --cwd apps/web --ignore-scripts
+          bun install --cwd apps/desktop --ignore-scripts
       - run: bunx size-limit
 
   e2e:
@@ -137,7 +191,13 @@ jobs:
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: 1.3.11
-      - run: bun install --filter "./apps/*" --filter "./packages/*" --ignore-scripts
+      - name: Install v4 app deps
+        run: |
+          bun install --cwd packages/api-contracts --ignore-scripts
+          bun install --cwd packages/design-tokens --ignore-scripts
+          bun install --cwd apps/bff --ignore-scripts
+          bun install --cwd apps/web --ignore-scripts
+          bun install --cwd apps/desktop --ignore-scripts
       - run: bunx playwright install --with-deps chromium
       - run: bun run test:e2e
 
@@ -152,7 +212,13 @@ jobs:
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: 1.3.11
-      - run: bun install --filter "./apps/*" --filter "./packages/*" --ignore-scripts
+      - name: Install v4 app deps
+        run: |
+          bun install --cwd packages/api-contracts --ignore-scripts
+          bun install --cwd packages/design-tokens --ignore-scripts
+          bun install --cwd apps/bff --ignore-scripts
+          bun install --cwd apps/web --ignore-scripts
+          bun install --cwd apps/desktop --ignore-scripts
       - run: cd apps/web && bunx svelte-kit sync && bun run build
       - run: cd apps/bff && bun run build
       - run: bunx playwright install --with-deps chromium
@@ -169,7 +235,13 @@ jobs:
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: 1.3.11
-      - run: bun install --filter "./apps/*" --filter "./packages/*" --ignore-scripts
+      - name: Install v4 app deps
+        run: |
+          bun install --cwd packages/api-contracts --ignore-scripts
+          bun install --cwd packages/design-tokens --ignore-scripts
+          bun install --cwd apps/bff --ignore-scripts
+          bun install --cwd apps/web --ignore-scripts
+          bun install --cwd apps/desktop --ignore-scripts
       - run: cd apps/web && bunx svelte-kit sync && bun run build
       - run: cd apps/web && bun run preview &
       - run: sleep 5
@@ -186,7 +258,13 @@ jobs:
       - uses: oven-sh/setup-bun@v2
         with: { bun-version: 1.3.11 }
       - uses: dtolnay/rust-toolchain@stable
-      - run: bun install --filter "./apps/*" --filter "./packages/*" --ignore-scripts
+      - name: Install v4 app deps
+        run: |
+          bun install --cwd packages/api-contracts --ignore-scripts
+          bun install --cwd packages/design-tokens --ignore-scripts
+          bun install --cwd apps/bff --ignore-scripts
+          bun install --cwd apps/web --ignore-scripts
+          bun install --cwd apps/desktop --ignore-scripts
       - uses: apple-actions/import-codesign-certs@v3
         with:
           p12-file-base64: ${{ secrets.APPLE_CERTIFICATE }}
