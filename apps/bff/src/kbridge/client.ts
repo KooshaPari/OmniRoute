@@ -1,5 +1,4 @@
 import { connect, type Socket } from 'node:net';
-import * as msgpack from 'msgpackr';
 import { decodeMessage, encodeMessage, type KbridgeRequest, type KbridgeResponse } from './protocol';
 import { buildKbridgeRequest, type KbridgeOpParams } from './call';
 
@@ -33,7 +32,7 @@ function connectSocket(): Socket {
   });
   s.on('error', (err) => {
     console.error('[kbridge] socket error', err);
-    for (const [id, p] of inflight) p.reject(err);
+    for (const [, p] of inflight) p.reject(err);
     inflight.clear();
     socket = null;
   });
