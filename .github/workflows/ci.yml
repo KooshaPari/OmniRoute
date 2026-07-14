@@ -11,6 +11,17 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  bun-version-parity:
+    name: Bun version parity
+    runs-on: ubuntu-24.04
+    timeout-minutes: 2
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.14
+      - run: bun scripts/check/check-v4-bun-version.mjs
+
   lint:
     name: Lint (oxlint)
     runs-on: ubuntu-24.04
