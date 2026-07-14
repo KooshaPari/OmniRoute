@@ -84,6 +84,7 @@ export const PACK_ARTIFACT_ROOT_ALLOWED_EXACT_PATHS: string[] = [
   "bin/mcp-server.mjs",
   "bin/nodeRuntimeSupport.mjs",
   "bin/omniroute.mjs",
+  "bin/argismonitor.mjs",
   "bin/reset-password.mjs",
   // Operator incident-recovery / cold-start shell tooling (rollback, snapshot,
   // restore, cold-start bench) shipped in bin/ for self-hosters — not imported by
@@ -157,6 +158,7 @@ export const PACK_ARTIFACT_REQUIRED_PATHS: string[] = [
   "bin/mcp-server.mjs",
   "bin/nodeRuntimeSupport.mjs",
   "bin/omniroute.mjs",
+  "bin/argismonitor.mjs",
   "package.json",
   "scripts/build/native-binary-compat.mjs",
   "scripts/build/postinstall.mjs",
