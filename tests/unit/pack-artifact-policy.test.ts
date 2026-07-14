@@ -94,6 +94,7 @@ test("findMissingArtifactPaths flags missing root runtime files in the tarball",
     [
       "dist/server.js",
       "bin/omniroute.mjs",
+      "bin/argismonitor.mjs",
       "package.json",
       "scripts/build/postinstall.mjs",
       "scripts/build/postinstallSupport.mjs",
@@ -103,7 +104,7 @@ test("findMissingArtifactPaths flags missing root runtime files in the tarball",
 
   // findMissingArtifactPaths returns the missing required paths sorted
   // alphabetically (bin/ < dist/ < scripts/ < src/), minus the paths present
-  // above (dist/server.js, bin/omniroute.mjs, package.json, the postinstall scripts).
+  // above (dist/server.js, both CLI bins, package.json, the postinstall scripts).
   assert.deepEqual(missingPaths, [
     "bin/cli/program.mjs",
     "bin/mcp-server.mjs",
