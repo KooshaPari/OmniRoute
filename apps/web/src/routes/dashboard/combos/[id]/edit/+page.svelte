@@ -200,7 +200,7 @@
       <p class="text-xs text-gray-500">Synced from Identity (Form ↔ Flow)</p>
       <Button size="sm" variant="secondary" onclick={syncFromFlow}>Sync from flow</Button>
     </div>
-      <FlowEditor primaryModel={flowState.primary} fallbackModels={flowState.fallbacks} costBudget={flowState.costBudget} />
+      <FlowEditor primaryModel={flowState.primary} fallbackModels={flowState.fallbacks} />
       <p class="text-xs text-gray-500 mt-3">
         The flow editor reflects the same ComboNode/Edge data structures as the form. Drag nodes to rearrange, edit edges by clicking.
         Custom node types: <span class="font-mono">router</span> (entry), <span class="font-mono">model</span> (callable),

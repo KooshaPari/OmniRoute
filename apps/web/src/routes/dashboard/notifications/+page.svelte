@@ -50,7 +50,7 @@
         <div class="space-y-2">
           {#each Object.entries(prefs.channels) as [k, v]}
             <label class="flex items-center gap-2">
-              <input type="checkbox" bind:checked={prefs.channels[k]} class="rounded" />
+              <input type="checkbox" bind:checked={prefs.channels[k as keyof Prefs['channels']]} class="rounded" />
               <span class="text-sm capitalize">{k}</span>
             </label>
           {/each}
@@ -62,7 +62,7 @@
         <div class="space-y-2">
           {#each Object.entries(prefs.events) as [k, v]}
             <label class="flex items-center gap-2">
-              <input type="checkbox" bind:checked={prefs.events[k]} class="rounded" />
+              <input type="checkbox" bind:checked={prefs.events[k as keyof Prefs['events']]} class="rounded" />
               <span class="text-sm capitalize">{k.replace(/([A-Z])/g, ' $1').trim()}</span>
             </label>
           {/each}

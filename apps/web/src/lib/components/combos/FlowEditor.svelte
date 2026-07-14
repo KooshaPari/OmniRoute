@@ -90,8 +90,6 @@ import RejectNode from './nodes/RejectNode.svelte';
     {nodeTypes}
     fitView
     class="bg-gray-50"
-    onnodeschange={(e) => { nodes = e.nodes; onchange?.(nodes, edges); }}
-    onedgeschange={(e) => { edges = e.edges; onchange?.(nodes, edges); }}
   >
     <Background />
     <Controls />

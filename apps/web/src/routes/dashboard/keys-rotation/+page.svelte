@@ -45,7 +45,7 @@
         <div class="font-medium">Current key</div>
         <code class="block mt-1 px-3 py-2 bg-gray-100 rounded text-sm font-mono break-all">{currentKey}</code>
         <p class="text-xs text-gray-500 mt-1">This is your current API key. After rotation, it will be revoked.</p>
-        <Button onclick={rotate} disabled={rotating} class="mt-2">{rotating ? 'Rotating...' : 'Rotate now'}</Button>
+        <div class="mt-2"><Button onclick={rotate} disabled={rotating}>{rotating ? 'Rotating...' : 'Rotate now'}</Button></div>
       </div>
     </li>
 
