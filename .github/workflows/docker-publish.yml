@@ -31,6 +31,9 @@ on:
 jobs:
   prepare:
     name: Resolve Docker release metadata
+    # This workflow publishes the upstream Docker Hub image. Forks publish
+    # their own GHCR image through build-fork.yml instead.
+    if: github.repository == 'diegosouzapw/omniroute'
     runs-on: ubuntu-24.04
     outputs:
       version: ${{ steps.version.outputs.version }}
