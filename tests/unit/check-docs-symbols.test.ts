@@ -128,6 +128,11 @@ test("flags a hallucinated doc path as 'file → path'", () => {
   assert.deepEqual(findStale(docs, routes, new Set()), ["docs/x.md → /api/ghost"]);
 });
 
+test("does not globally suppress the Blackbox-like /api/chat path", () => {
+  const docs = [{ file: "docs/x.md", paths: ["/api/chat"] }];
+  assert.deepEqual(findStale(docs, routes, new Set()), ["docs/x.md → /api/chat"]);
+});
+
 test("allowlisted stale path is frozen (not flagged)", () => {
   const docs = [{ file: "docs/x.md", paths: ["/api/ghost"] }];
   assert.deepEqual(findStale(docs, routes, new Set(["/api/ghost"])), []);
@@ -156,8 +161,8 @@ test("collectRouteFiles finds the real route tree (non-empty, all route.ts)", ()
   for (const f of files) assert.match(f, /route\.tsx?$/);
 });
 
-test("KNOWN_STALE_DOC_REFS contains only the documented upstream exception", () => {
-  assert.deepEqual([...allowlist], ["/api/chat"]);
+test("KNOWN_STALE_DOC_REFS is empty after all stale references are fixed", () => {
+  assert.deepEqual([...allowlist], []);
 });
 
 // NOTE: the compression research docs that used to live in docs/research/compression/
