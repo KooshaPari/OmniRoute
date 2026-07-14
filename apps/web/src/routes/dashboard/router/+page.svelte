@@ -41,8 +41,8 @@
     {@const r = router}
     <div class="space-y-4 max-w-2xl">
       <div>
-        <label class="text-sm font-medium text-gray-700">Default model</label>
-        <input bind:value={r.defaultModel} class="w-full mt-1 px-3 py-2 border border-gray-300 rounded font-mono text-sm" />
+        <label for="router-default-model" class="text-sm font-medium text-gray-700">Default model</label>
+        <input id="router-default-model" bind:value={r.defaultModel} class="w-full mt-1 px-3 py-2 border border-gray-300 rounded font-mono text-sm" />
       </div>
       <fieldset>
         <legend class="text-sm font-medium text-gray-700">Per-task overrides</legend>
@@ -55,8 +55,9 @@
         </div>
       </fieldset>
       <div>
-        <label class="text-sm font-medium text-gray-700">Fallback chain (one model per line)</label>
+        <label for="router-fallback-chain" class="text-sm font-medium text-gray-700">Fallback chain (one model per line)</label>
         <textarea
+          id="router-fallback-chain"
           rows="4"
           value={r.fallbackChain.join('\n')}
           oninput={(e) => r.fallbackChain = (e.target as HTMLTextAreaElement).value.split('\n').filter((s) => s.trim())}
@@ -64,8 +65,8 @@
         ></textarea>
       </div>
       <div>
-        <label class="text-sm font-medium text-gray-700">Monthly cost budget (USD)</label>
-        <input type="number" step="1" min="0" bind:value={r.costBudgetUsd} class="w-full mt-1 px-3 py-2 border border-gray-300 rounded" />
+        <label for="router-cost-budget" class="text-sm font-medium text-gray-700">Monthly cost budget (USD)</label>
+        <input id="router-cost-budget" type="number" step="1" min="0" bind:value={r.costBudgetUsd} class="w-full mt-1 px-3 py-2 border border-gray-300 rounded" />
       </div>
       {#if saved}<p class="text-sm text-green-600">Saved.</p>{/if}
       <Button onclick={save} disabled={saving}>{saving ? 'Saving...' : 'Save router config'}</Button>

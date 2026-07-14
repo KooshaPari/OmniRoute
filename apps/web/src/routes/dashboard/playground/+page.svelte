@@ -69,29 +69,29 @@
   <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
     <div class="space-y-3">
       <div>
-        <label class="text-sm font-medium text-gray-700">Model</label>
-        <select bind:value={model} class="w-full mt-1 px-3 py-2 border border-gray-300 rounded">
+        <label for="playground-model" class="text-sm font-medium text-gray-700">Model</label>
+        <select id="playground-model" bind:value={model} class="w-full mt-1 px-3 py-2 border border-gray-300 rounded">
           {#each models as m}<option value={m.id}>{m.name} ({m.provider})</option>{/each}
         </select>
       </div>
       <div>
-        <label class="text-sm font-medium text-gray-700">System prompt</label>
-        <textarea bind:value={systemPrompt} rows="3" class="w-full mt-1 px-3 py-2 border border-gray-300 rounded font-mono text-sm"></textarea>
+        <label for="playground-system-prompt" class="text-sm font-medium text-gray-700">System prompt</label>
+        <textarea id="playground-system-prompt" bind:value={systemPrompt} rows="3" class="w-full mt-1 px-3 py-2 border border-gray-300 rounded font-mono text-sm"></textarea>
       </div>
       <div>
-        <label class="text-sm font-medium text-gray-700">User prompt</label>
-        <textarea bind:value={userPrompt} rows="6" class="w-full mt-1 px-3 py-2 border border-gray-300 rounded"></textarea>
+        <label for="playground-user-prompt" class="text-sm font-medium text-gray-700">User prompt</label>
+        <textarea id="playground-user-prompt" bind:value={userPrompt} rows="6" class="w-full mt-1 px-3 py-2 border border-gray-300 rounded"></textarea>
       </div>
       <div>
-        <label class="text-sm font-medium text-gray-700">Temperature: {temperature.toFixed(2)}</label>
-        <input type="range" min="0" max="2" step="0.05" bind:value={temperature} class="w-full" />
+        <label for="playground-temperature" class="text-sm font-medium text-gray-700">Temperature: {temperature.toFixed(2)}</label>
+        <input id="playground-temperature" type="range" min="0" max="2" step="0.05" bind:value={temperature} class="w-full" />
       </div>
       <Button onclick={stream} disabled={streaming || !model}>
         {streaming ? 'Streaming...' : 'Run'}
       </Button>
     </div>
     <div>
-      <label class="text-sm font-medium text-gray-700">Response</label>
+      <div class="text-sm font-medium text-gray-700">Response</div>
       <div class="mt-1 p-3 border border-gray-300 rounded bg-gray-50 min-h-96 max-h-[600px] overflow-y-auto whitespace-pre-wrap font-mono text-sm">{response || '—'}</div>
       {#if latencyMs !== null || tokens !== null || cost !== null}
         <div class="mt-2 flex gap-4 text-sm text-gray-500">

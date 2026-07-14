@@ -29,24 +29,24 @@
 <Card title="Audit log export">
   <form onsubmit={(e) => { e.preventDefault(); doExport(); }} class="space-y-4 max-w-md">
     <div>
-      <label class="text-sm font-medium text-gray-700">From (ISO date)</label>
-      <input type="date" bind:value={from} class="w-full mt-1 px-3 py-2 border border-gray-300 rounded" />
+      <label for="audit-export-from" class="text-sm font-medium text-gray-700">From (ISO date)</label>
+      <input id="audit-export-from" type="date" bind:value={from} class="w-full mt-1 px-3 py-2 border border-gray-300 rounded" />
     </div>
     <div>
-      <label class="text-sm font-medium text-gray-700">To (ISO date)</label>
-      <input type="date" bind:value={to} class="w-full mt-1 px-3 py-2 border border-gray-300 rounded" />
+      <label for="audit-export-to" class="text-sm font-medium text-gray-700">To (ISO date)</label>
+      <input id="audit-export-to" type="date" bind:value={to} class="w-full mt-1 px-3 py-2 border border-gray-300 rounded" />
     </div>
     <div>
-      <label class="text-sm font-medium text-gray-700">Actor (user/email or empty for all)</label>
-      <input bind:value={actor} placeholder="e.g. koosha@phenotype" class="w-full mt-1 px-3 py-2 border border-gray-300 rounded" />
+      <label for="audit-export-actor" class="text-sm font-medium text-gray-700">Actor (user/email or empty for all)</label>
+      <input id="audit-export-actor" bind:value={actor} placeholder="e.g. koosha@phenotype" class="w-full mt-1 px-3 py-2 border border-gray-300 rounded" />
     </div>
     <div>
-      <label class="text-sm font-medium text-gray-700">Action prefix (e.g. provider.create or empty)</label>
-      <input bind:value={action} placeholder="" class="w-full mt-1 px-3 py-2 border border-gray-300 rounded" />
+      <label for="audit-export-action" class="text-sm font-medium text-gray-700">Action prefix (e.g. provider.create or empty)</label>
+      <input id="audit-export-action" bind:value={action} placeholder="" class="w-full mt-1 px-3 py-2 border border-gray-300 rounded" />
     </div>
     <div>
-      <label class="text-sm font-medium text-gray-700">Format</label>
-      <select bind:value={format} class="w-full mt-1 px-3 py-2 border border-gray-300 rounded">
+      <label for="audit-export-format" class="text-sm font-medium text-gray-700">Format</label>
+      <select id="audit-export-format" bind:value={format} class="w-full mt-1 px-3 py-2 border border-gray-300 rounded">
         <option value="json">JSON</option>
         <option value="csv">CSV</option>
       </select>
