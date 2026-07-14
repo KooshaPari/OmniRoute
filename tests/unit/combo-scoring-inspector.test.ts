@@ -26,6 +26,8 @@ const { normalizeComboStep } = await import("../../src/lib/combos/steps.ts");
 const { lockModel, clearAllModelLockouts } =
   await import("../../open-sse/services/accountFallback.ts");
 const { resetAllCircuitBreakers } = await import("../../src/shared/utils/circuitBreaker.ts");
+const { DEFAULT_WEIGHTS } = await import("../../open-sse/services/autoCombo/scoring.ts");
+const { MODE_PACKS } = await import("../../open-sse/services/autoCombo/modePacks.ts");
 
 async function resetStorage() {
   comboMetrics.resetAllComboMetrics();
@@ -165,6 +167,8 @@ test("scoring inspector ranks targets and explains score contributions", async (
   assert.equal(response.method, "read_only_recompute");
   assert.equal(response.combos.length, 1);
   assert.equal(response.combos[0].strategy, "auto");
+  assert.equal(response.combos[0].weightSource, "default");
+  assert.equal(response.combos[0].modePack, null);
   assert.equal(response.combos[0].targets.length, 2);
   assert.equal(response.combos[0].selectedExecutionKey, firstStep.id);
   assert.equal(response.combos[0].targets[0].executionKey, firstStep.id);
@@ -179,6 +183,60 @@ test("scoring inspector ranks targets and explains score contributions", async (
   assert.ok(
     response.combos[0].targets[0].factors.some((factor) => factor.source === "combo_health")
   );
+});
+
+test("scoring inspector reports mode packs over explicit auto weights", async () => {
+  const combo = await combosDb.createCombo({
+    name: "combo-scoring-mode-pack",
+    strategy: "auto",
+    models: ["openai/gpt-4o-mini"],
+    config: {
+      auto: {
+        modePack: "ship-fast",
+        weights: { ...DEFAULT_WEIGHTS },
+      },
+    },
+  });
+
+  const response = await inspector.buildComboScoringInspectorResponse({
+    range: "24h",
+    horizon: "7d",
+    comboId: String(combo.id),
+    combos: [combo],
+    skipAutopilot: true,
+  });
+
+  assert.equal(response.combos.length, 1);
+  assert.equal(response.combos[0].weightSource, "mode_pack");
+  assert.equal(response.combos[0].modePack, "ship-fast");
+  assert.deepEqual(response.combos[0].weights, MODE_PACKS["ship-fast"]);
+});
+
+test("scoring inspector reports valid explicit auto weights", async () => {
+  const explicitWeights = {
+    ...DEFAULT_WEIGHTS,
+    latencyInv: 0.2,
+    costInv: 0.07,
+  };
+  const combo = await combosDb.createCombo({
+    name: "combo-scoring-explicit-weights",
+    strategy: "auto",
+    models: ["openai/gpt-4o-mini"],
+    autoConfig: { weights: explicitWeights },
+  });
+
+  const response = await inspector.buildComboScoringInspectorResponse({
+    range: "24h",
+    horizon: "7d",
+    comboId: String(combo.id),
+    combos: [combo],
+    skipAutopilot: true,
+  });
+
+  assert.equal(response.combos.length, 1);
+  assert.equal(response.combos[0].weightSource, "explicit");
+  assert.equal(response.combos[0].modePack, null);
+  assert.deepEqual(response.combos[0].weights, explicitWeights);
 });
 
 test("scoring inspector marks non-auto combos as explanatory recompute", async () => {
