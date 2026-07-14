@@ -119,8 +119,9 @@ describe("costAnalysis A2A skill", () => {
     );
     const payload = parseArtifact(result);
 
-    expect(payload.tokens.input).toBe(1000);
-    expect(payload.tokens.output).toBe(500);
+    // system + 4000-char user @ 4 chars/token → ceil((28+4000)/4)=1007; output ≈ input/2
+    expect(payload.tokens.input).toBe(1007);
+    expect(payload.tokens.output).toBe(504);
     expect(payload.warnings.some((w: string) => w.includes("4 chars/token"))).toBe(true);
     expect(payload.cost_usd).toBeGreaterThan(0);
   });

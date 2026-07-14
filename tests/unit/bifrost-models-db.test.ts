@@ -289,7 +289,9 @@ describe("bifrostModels — refreshBifrostModels", () => {
     }));
     await assert.rejects(
       () => bm.refreshBifrostModels("openai", () => huge),
-      (err: Error) => err.name === "BifrostCacheError" && /exceeded max/i.test(err.message),
+      (err: Error) =>
+        err.name === "BifrostCacheError" &&
+        /returned \d+ entries \(max \d+\)/i.test(err.message),
     );
     const meta = bm.getBifrostModelMeta("openai");
     assert.strictEqual(meta?.lastStatus, "error");

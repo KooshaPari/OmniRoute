@@ -274,7 +274,8 @@ test("chat completions route emits early keepalive while waiting for stream read
   assert.match(response.headers.get("content-type") || "", /text\/event-stream/);
 
   const body = await readAll(response);
-  assert.match(body, /: omniroute-keepalive/);
+  // Chat completions uses the OpenAI JSON keepalive chunk (not the SSE comment).
+  assert.match(body, /omniroute-keepalive/);
   assert.match(body, /OK/);
   assert.match(body, /\[DONE\]/);
 });

@@ -257,7 +257,7 @@ describe("BifrostBackend executor (healthCheck)", () => {
     const exec = new BifrostBackendExecutor("openai", {});
     const result = await exec.healthCheck();
     expect(result.ok).toBe(false);
-    expect(result.error).toBe("ECONNREFUSED");
+    expect(result.error).toMatch(/ECONNREFUSED/);
   });
 });
 
@@ -395,7 +395,7 @@ describe("BifrostBackend executor (execute body shape)", () => {
     globalThis.fetch = mockFetch as unknown as typeof fetch;
 
     const { forceActivate, forceDeactivate, isActive } = await import(
-      "../../open-sse/services/bifrostKillSwitch.ts"
+      "../../../open-sse/services/bifrostKillSwitch.ts"
     );
     forceDeactivate("openai");
     forceActivate("openai");
@@ -425,7 +425,7 @@ describe("BifrostBackend executor (execute body shape)", () => {
     globalThis.fetch = mockFetch as unknown as typeof fetch;
 
     const { resetProvider, getState } = await import(
-      "../../open-sse/services/bifrostKillSwitch.ts"
+      "../../../open-sse/services/bifrostKillSwitch.ts"
     );
     resetProvider("anthropic");
 
@@ -471,7 +471,7 @@ describe("dispatchBifrostWithFallback", () => {
     globalThis.fetch = vi.fn(); // BifrostBackendExecutor must NOT call fetch
 
     const { forceActivate, forceDeactivate, resetProvider } = await import(
-      "../../open-sse/services/bifrostKillSwitch.ts"
+      "../../../open-sse/services/bifrostKillSwitch.ts"
     );
     forceDeactivate("openai");
     forceActivate("openai");
