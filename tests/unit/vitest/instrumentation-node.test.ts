@@ -25,7 +25,7 @@ describe("initOtel", () => {
     delete process.env.OTEL_SERVICE_NAME;
     // Reset the idempotency latch inside instrumentation-node.ts so each test
     // gets a clean slate (vi.resetModules alone doesn't reset module-scope lets).
-    const mod = await import("../../src/instrumentation-node.ts");
+    const mod = await import("../../../src/instrumentation-node.ts");
     mod.__resetOtelInitForTests();
   });
 
@@ -35,14 +35,14 @@ describe("initOtel", () => {
   });
 
   it("returns false (no-op) when OTEL_EXPORTER_OTLP_ENDPOINT is unset", async () => {
-    const mod = await import("../../src/instrumentation-node.ts");
+    const mod = await import("../../../src/instrumentation-node.ts");
     const result = await mod.initOtel();
     expect(result).toBe(false);
   });
 
   it("returns false (no-op) when OTEL_EXPORTER_OTLP_ENDPOINT is empty string", async () => {
     process.env.OTEL_EXPORTER_OTLP_ENDPOINT = "";
-    const mod = await import("../../src/instrumentation-node.ts");
+    const mod = await import("../../../src/instrumentation-node.ts");
     const result = await mod.initOtel();
     expect(result).toBe(false);
   });
@@ -50,7 +50,7 @@ describe("initOtel", () => {
   it("returns false when OTEL_SDK_DISABLED=true even with endpoint set", async () => {
     process.env.OTEL_EXPORTER_OTLP_ENDPOINT = "http://collector:4318";
     process.env.OTEL_SDK_DISABLED = "true";
-    const mod = await import("../../src/instrumentation-node.ts");
+    const mod = await import("../../../src/instrumentation-node.ts");
     const result = await mod.initOtel();
     expect(result).toBe(false);
   });
@@ -59,7 +59,7 @@ describe("initOtel", () => {
     process.env.OTEL_EXPORTER_OTLP_ENDPOINT = "http://collector:4318";
     const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
 
-    const mod = await import("../../src/instrumentation-node.ts");
+    const mod = await import("../../../src/instrumentation-node.ts");
     const result = await mod.initOtel();
 
     // In test env, the SDK package isn't installed, so dynamic
@@ -78,7 +78,7 @@ describe("initOtel", () => {
     process.env.OTEL_EXPORTER_OTLP_ENDPOINT = "http://collector:4318";
     const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
 
-    const mod = await import("../../src/instrumentation-node.ts");
+    const mod = await import("../../../src/instrumentation-node.ts");
     const r1 = await mod.initOtel();
     // Reset spy to count calls from second invocation only.
     warnSpy.mockClear();
@@ -94,18 +94,18 @@ describe("initOtel", () => {
     process.env.OTEL_SERVICE_NAME = "";
     vi.spyOn(console, "warn").mockImplementation(() => {});
 
-    const mod = await import("../../src/instrumentation-node.ts");
+    const mod = await import("../../../src/instrumentation-node.ts");
     // Should not throw.
     await expect(mod.initOtel()).resolves.toBeDefined();
   });
 
   it("exports initOtel as a function", async () => {
-    const mod = await import("../../src/instrumentation-node.ts");
+    const mod = await import("../../../src/instrumentation-node.ts");
     expect(typeof mod.initOtel).toBe("function");
   });
 
   it("exports registerNodejs as a function", async () => {
-    const mod = await import("../../src/instrumentation-node.ts");
+    const mod = await import("../../../src/instrumentation-node.ts");
     expect(typeof mod.registerNodejs).toBe("function");
   });
 });

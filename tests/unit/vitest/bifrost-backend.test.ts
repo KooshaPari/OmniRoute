@@ -22,15 +22,15 @@ import {
   listBifrostSupportedProviders,
   listBifrostUnsupportedProviders,
   resolveBifrostProviderId,
-} from "../../open-sse/executors/bifrostProviderMap.ts";
-import { BifrostBackendExecutor } from "../../open-sse/executors/bifrost.ts";
+} from "../../../open-sse/executors/bifrostProviderMap.ts";
+import { BifrostBackendExecutor } from "../../../open-sse/executors/bifrost.ts";
 import {
   BifrostNoFallbackError,
   createBifrostBackedExecutor,
   dispatchBifrostWithFallback,
   shouldRouteViaBifrost,
-} from "../../open-sse/executors/bifrost.ts";
-import { BaseExecutor } from "../../open-sse/executors/base.ts";
+} from "../../../open-sse/executors/bifrost.ts";
+import { BaseExecutor } from "../../../open-sse/executors/base.ts";
 
 describe("bifrostProviderMap", () => {
   it("exports a non-empty catalog of Bifrost provider IDs", () => {

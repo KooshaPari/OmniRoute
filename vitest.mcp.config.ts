@@ -25,6 +25,7 @@ export default defineConfig({
       "src/shared/utils/**/*.test.ts",
       "src/app/(dashboard)/**/__tests__/**/*.test.tsx",
       "tests/unit/autoCombo/**/*.test.ts",
+      "tests/unit/vitest/**/*.test.ts",
       "tests/unit/encryption.spec.ts",
       "tests/unit/transformer/**/*.test.ts",
     ],

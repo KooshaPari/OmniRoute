@@ -14,7 +14,7 @@ import { trace, context } from "@opentelemetry/api";
 import {
   withComboSpan,
   type ComboSpanInput,
-} from "../../open-sse/observability/comboSpan.ts";
+} from "../../../open-sse/observability/comboSpan.ts";
 
 describe("comboSpan", () => {
   const ORIGINAL_ENV = { ...process.env };

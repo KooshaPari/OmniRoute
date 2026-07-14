@@ -21,7 +21,7 @@ import {
   readTraceparentFromHeaders,
   TRACEPARENT_VERSION,
   type Traceparent,
-} from "../../open-sse/observability/traceparent.ts";
+} from "../../../open-sse/observability/traceparent.ts";
 
 describe("traceparent", () => {
   describe("generateTraceparent", () => {
