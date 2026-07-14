@@ -1488,3 +1488,81 @@ test(
     }
   }
 );
+
+test(
+  "rehomeLegacyVersionSlotMigrations frees the v3.8.43 fork slots for canonical migrations",
+  serial,
+  async () => {
+    const runner = await importFresh("src/lib/db/migrationRunner.ts");
+    const db = createDb();
+    const legacySlots = [
+      ["100", "cli_access_tokens"],
+      ["101", "api_key_usage_limits"],
+      ["102", "compression_engines_map"],
+      ["103", "strip_legacy_combo_config_keys"],
+      ["104", "normalize_database_cache_size"],
+      ["105", "usage_history_endpoint"],
+      ["113", "provider_node_icon_url"],
+      ["114", "mux_service_seed"],
+      ["115", "bifrost_service"],
+      ["116", "call_logs_reasoning_source"],
+      ["117", "proxy_pool_rotation"],
+      ["118", "provider_param_filters"],
+      ["119", "model_capability_overrides"],
+      ["120", "interception_rules"],
+      ["122", "free_proxy_sync_errors"],
+    ] as const;
+
+    try {
+      db.exec(`
+        CREATE TABLE _omniroute_migrations (
+          version TEXT PRIMARY KEY,
+          name TEXT NOT NULL,
+          applied_at TEXT NOT NULL DEFAULT (datetime('now'))
+        );
+      `);
+      for (const [version, name] of legacySlots) {
+        db.prepare("INSERT INTO _omniroute_migrations (version, name) VALUES (?, ?)").run(
+          version,
+          name
+        );
+      }
+
+      const files = Object.fromEntries(
+        legacySlots.map(([version]) => [
+          `${version}_canonical.sql`,
+          `CREATE TABLE canonical_${version} (id INTEGER PRIMARY KEY);`,
+        ])
+      );
+      const consoleErrors: string[] = [];
+      const originalError = console.error;
+      console.error = (...args: any[]) => {
+        consoleErrors.push(args.map(String).join(" "));
+      };
+
+      try {
+        const count = withMockedMigrationFs(files, () => runner.runMigrations(db));
+        assert.equal(count, legacySlots.length);
+        assert.equal(
+          consoleErrors.some((entry) => entry.includes("CRITICAL") && entry.includes("renumbered")),
+          false
+        );
+
+        for (const [version, name] of legacySlots) {
+          const legacy = db
+            .prepare("SELECT name FROM _omniroute_migrations WHERE version = ?")
+            .get(`legacy-${version}-${name}`) as { name: string } | undefined;
+          const canonical = db
+            .prepare("SELECT name FROM _omniroute_migrations WHERE version = ?")
+            .get(version) as { name: string } | undefined;
+          assert.equal(legacy?.name, name);
+          assert.equal(canonical?.name, "canonical");
+        }
+      } finally {
+        console.error = originalError;
+      }
+    } finally {
+      db.close();
+    }
+  }
+);

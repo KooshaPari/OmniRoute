@@ -81,6 +81,26 @@ export const LEGACY_VERSION_SLOT_MIGRATIONS = [
   { version: "033", name: "add_batch_id_to_call_logs" },
   { version: "046", name: "remove_status_from_files" },
   { version: "051", name: "remove_status_from_files" },
+  // v3.8.43 fork line used 100-105 for local feature migrations before the
+  // upstream Bifrost/virtual-key block claimed those slots. Preserve those
+  // historical records under legacy versions so the canonical files can run.
+  { version: "100", name: "cli_access_tokens" },
+  { version: "101", name: "api_key_usage_limits" },
+  { version: "102", name: "compression_engines_map" },
+  { version: "103", name: "strip_legacy_combo_config_keys" },
+  { version: "104", name: "normalize_database_cache_size" },
+  { version: "105", name: "usage_history_endpoint" },
+  // Those migrations were later renumbered again after the upstream block.
+  // Their old records must not shadow the canonical 113-122 files.
+  { version: "113", name: "provider_node_icon_url" },
+  { version: "114", name: "mux_service_seed" },
+  { version: "115", name: "bifrost_service" },
+  { version: "116", name: "call_logs_reasoning_source" },
+  { version: "117", name: "proxy_pool_rotation" },
+  { version: "118", name: "provider_param_filters" },
+  { version: "119", name: "model_capability_overrides" },
+  { version: "120", name: "interception_rules" },
+  { version: "122", name: "free_proxy_sync_errors" },
 ] as const;
 
 export const SUPERSEDED_DUPLICATE_MIGRATIONS = [
