@@ -26,7 +26,6 @@ const { createResponsesApiTransformStream } =
 
 const encoder = new TextEncoder();
 const decoder = new TextDecoder();
-
 interface SseEvent {
   event: string | null;
   data: string | null;
