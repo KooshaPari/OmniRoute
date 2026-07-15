@@ -59,17 +59,6 @@ function getFlagValue(flag) {
   return process.argv[idx + 1];
 }
 
-function runGit(args) {
-  const result = spawnSync("git", args, {
-    encoding: "utf8",
-    cwd: root,
-  });
-  if (result.status !== 0) {
-    return null;
-  }
-  return result.stdout.trim();
-}
-
 function getArgFlag(flag) {
   return process.argv.includes(flag);
 }
@@ -346,24 +335,11 @@ async function verifyManifest() {
   }
 
   if (manifest.gitSha !== expectedSha) {
-    const distance = Number(runGit(["rev-list", "--count", `${manifest.gitSha}..${expectedSha}`]));
-    if (!Number.isFinite(distance) || Number.isNaN(distance)) {
-      console.error(
-        `Manifest SHA (${manifest.gitSha}) is not in commit ancestry of ${expectedSha}. Regenerate and commit with: bunx lefthook run pre-push && bun run local-ci:attest:write`,
-      );
-      process.exitCode = 1;
-      return;
-    }
-    if (distance > 1) {
-      console.error(
-        `Manifest SHA is ${distance} commits behind HEAD. Regenerate and commit with: bunx lefthook run pre-push && bun run local-ci:attest:write`,
-      );
-      process.exitCode = 1;
-      return;
-    }
-    console.warn(
-      `Manifest SHA (${manifest.gitSha}) is 1 commit behind HEAD (${expectedSha}). Regenerate before finalizing: bunx lefthook run pre-push && bun run local-ci:attest:write`,
+    console.error(
+      `Manifest SHA mismatch. Manifest: ${manifest.gitSha}, expected: ${expectedSha}. Regenerate and commit with: bunx lefthook run pre-push && bun run local-ci:attest:write`,
     );
+    process.exitCode = 1;
+    return;
   }
 
   if (!manifest.content || manifest.content.hash !== expectedContent.hash) {
@@ -392,16 +368,18 @@ async function verifyManifest() {
     }
 
     let proof;
+    let proofHash;
     try {
       const loaded = await loadGateProof(requiredGate.name);
       proof = loaded.proof;
-      const actualProofHash = loaded.proofHash;
-      if (actualProofHash !== result.proofHash) {
-        proofValidationFailures.push(`Proof hash mismatch for ${requiredGate.name}`);
-      }
+      proofHash = loaded.proofHash;
     } catch (error) {
       proofValidationFailures.push(error.message);
       continue;
+    }
+
+    if (proof.gitSha !== expectedSha) {
+      proofValidationFailures.push(`Proof ${requiredGate.name} gitSha mismatch: ${proof.gitSha} (expected ${expectedSha})`);
     }
 
     if (result.proofPath) {
@@ -410,9 +388,9 @@ async function verifyManifest() {
         proofValidationFailures.push(`Missing manifest-referenced proof artifact for ${requiredGate.name}`);
       }
     }
-    if (proof?.gitSha !== expectedSha) {
+    if (result.proofHash !== proofHash) {
       proofValidationFailures.push(
-        `Manifest gate ${requiredGate.name} proof SHA mismatch: ${proof?.gitSha} (required ${expectedSha})`,
+        `Manifest proofHash mismatch for ${requiredGate.name}: manifest ${result.proofHash} vs actual ${proofHash}`,
       );
     }
   }
