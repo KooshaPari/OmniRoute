@@ -11,6 +11,14 @@ a ratchet baseline or a pass/fail policy, and whether it blocks the build or is 
 For a short summary and the allowlist policy, see the "Quality Gates & Ratchets" section
 in `CLAUDE.md`.
 
+## Local-first CI policy (2026-07-14)
+
+Local development pre-push checks now emit a committed manifest at `.ci/local-first-ci-manifest.json`.
+The workflow at `.github/workflows/local-first-ci.yml` verifies this manifest on `push` and on PRs
+that carry the `local-first-ci` label, and fails PRs that have stale/mismatched artifacts.
+CI-heavy workflows are label-gated in their `on` surface and run on PRs only when explicitly
+allowed via `ci-billing-exception`; this makes paid workflow execution explicit.
+
 ---
 
 ## Gate Inventory (~50 scripts)

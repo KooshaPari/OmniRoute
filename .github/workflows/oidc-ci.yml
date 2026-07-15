@@ -4,7 +4,7 @@ on:
   schedule: [{cron: '0 8 * * 1'}]
 jobs:
   verify:
-    runs-on: [self-hosted, linux, x64]
+    runs-on: ubuntu-24.04
     permissions: {id-token: write, contents: read}
     steps:
       - uses: actions/checkout@v4

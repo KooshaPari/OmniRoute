@@ -45,7 +45,7 @@ env:
 
 jobs:
   publish:
-    runs-on: [self-hosted, linux, x64]
+    runs-on: ubuntu-24.04
     permissions:
       contents: read
       id-token: write
@@ -173,7 +173,7 @@ jobs:
           echo "✅ Action finished for GitHub Packages"
 
   publish-opencode-plugin:
-    runs-on: [self-hosted, linux, x64]
+    runs-on: ubuntu-24.04
     permissions:
       contents: read
       packages: write

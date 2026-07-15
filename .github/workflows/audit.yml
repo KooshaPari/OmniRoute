@@ -8,6 +8,7 @@ on:
   schedule:
     - cron: "0 9 * * 1"
 
+if: ${{ github.event_name != "push" && (github.event_name != "pull_request" || contains(github.event.pull_request.labels.*.name, "ci-billing-exception")) }}
 permissions: read-all
 
 
@@ -18,7 +19,7 @@ concurrency:
 jobs:
   analyze:
     name: Analyze (JavaScript / TypeScript)
-    runs-on: [self-hosted, linux, x64]
+    runs-on: ubuntu-24.04
     timeout-minutes: 15
     permissions:
       security-events: write

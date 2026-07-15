@@ -10,6 +10,7 @@ on:
     - cron: "0 6 * * 1" # Every Monday at 06:00 UTC
   workflow_dispatch:
 
+if: ${{ github.event_name != "push" && (github.event_name != "pull_request" || contains(github.event.pull_request.labels.*.name, "ci-billing-exception")) }}
 permissions:
   contents: read
 
@@ -20,7 +21,7 @@ concurrency:
 jobs:
   gitleaks:
     name: Secrets Scan (Gitleaks)
-    runs-on: [self-hosted, linux, x64]
+    runs-on: ubuntu-24.04
     timeout-minutes: 10
     permissions:
       contents: read
@@ -41,7 +42,7 @@ jobs:
 
   deps-audit:
     name: Dependency Audit (npm)
-    runs-on: [self-hosted, linux, x64]
+    runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:
       - name: Checkout repository
@@ -64,7 +65,7 @@ jobs:
 
   codeql:
     name: CodeQL Analysis
-    runs-on: [self-hosted, linux, x64]
+    runs-on: ubuntu-24.04
     timeout-minutes: 15
     permissions:
       security-events: write
@@ -89,7 +90,7 @@ jobs:
 
   ossf-scorecard:
     name: OpenSSF Scorecard
-    runs-on: [self-hosted, linux, x64]
+    runs-on: ubuntu-24.04
     timeout-minutes: 15
     permissions:
       security-events: write

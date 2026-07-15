@@ -34,7 +34,7 @@ concurrency:
 jobs:
   release-green:
     name: Validate active release branch
-    runs-on: [self-hosted, linux, x64]
+    runs-on: ubuntu-24.04
     env:
       JWT_SECRET: ci-nightly-secret-with-sufficient-length-for-validation
       API_KEY_SECRET: ci-nightly-api-key-secret-long

@@ -69,7 +69,7 @@ pre-commit:
           || echo "(no obvious secrets in staged diff)"
 
 pre-push:
-  parallel: true
+  parallel: false
   commands:
     typecheck-core:
       run: |
@@ -89,6 +89,9 @@ pre-push:
     cycles-push:
       glob: "{src,open-sse}/**/*.ts"
       run: bun scripts/check/check-cycles.mjs
+
+    local-ci-attestation:
+      run: bun run local-ci:attest:write
 
 commit-msg:
   scripts:

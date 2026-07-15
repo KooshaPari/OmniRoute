@@ -10,7 +10,7 @@ permissions:
 jobs:
   heap:
     name: Heap-growth gate
-    runs-on: [self-hosted, linux, x64]
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v7
         with:
@@ -24,7 +24,7 @@ jobs:
 
   chaos:
     name: Resilience chaos (fault injection)
-    runs-on: [self-hosted, linux, x64]
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v7
         with:
@@ -38,7 +38,7 @@ jobs:
 
   k6-soak:
     name: k6 load/soak
-    runs-on: [self-hosted, linux, x64]
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v7
         with:
@@ -77,7 +77,7 @@ jobs:
 
   a11y:
     name: A11y axe (nightly, freeze-and-alert)
-    runs-on: [self-hosted, linux, x64]
+    runs-on: ubuntu-24.04
     # The Playwright webServer (`start` mode) builds Next via build-next-isolated.mjs and
     # boots the standalone server itself (waits on /api/monitoring/health, 15min webServer
     # timeout). Unlike the per-PR test-e2e job, this nightly job has no pre-built artifact,

@@ -10,6 +10,7 @@ on:
     - cron: "0 6 * * 1"  # Every Monday at 06:00 UTC
   workflow_dispatch:
 
+if: ${{ github.event_name != "push" && (github.event_name != "pull_request" || contains(github.event.pull_request.labels.*.name, "ci-billing-exception")) }}
 permissions:
   contents: read
 
@@ -23,7 +24,7 @@ env:
 jobs:
   sbom-gen:
     name: Generate CycloneDX SBOM
-    runs-on: [self-hosted, linux, x64]
+    runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10

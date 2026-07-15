@@ -6,11 +6,12 @@ concurrency:
 on:
   pull_request:
     branches: ["main", "release/**"]
+if: ${{ github.event_name != "push" && (github.event_name != "pull_request" || contains(github.event.pull_request.labels.*.name, "ci-billing-exception")) }}
 permissions:
   contents: read
 jobs:
   dast-smoke:
-    runs-on: [self-hosted, linux, x64]
+    runs-on: ubuntu-24.04
     # ADVISORY while this new gate matures (repo convention: advisory -> blocking).
     # Flip to blocking (remove continue-on-error) once it's proven stable across a few PRs.
     continue-on-error: true

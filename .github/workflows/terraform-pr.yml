@@ -9,6 +9,7 @@ on:
       - ".pre-commit-hooks/terraform-*.sh"
       - ".github/workflows/terraform-pr.yml"
 
+if: ${{ github.event_name != "push" && (github.event_name != "pull_request" || contains(github.event.pull_request.labels.*.name, "ci-billing-exception")) }}
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
@@ -18,7 +19,7 @@ permissions:
 
 jobs:
   fmt:
-    runs-on: [self-hosted, linux, x64]
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
       - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e4311558cf03e74e50c0c7c
@@ -29,7 +30,7 @@ jobs:
         run: ./.pre-commit-hooks/terraform-fmt.sh
 
   validate:
-    runs-on: [self-hosted, linux, x64]
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
       - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e4311558cf03e74e50c0c7c

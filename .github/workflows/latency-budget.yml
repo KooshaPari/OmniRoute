@@ -20,6 +20,7 @@ on:
     types: [opened, synchronize, reopened, ready_for_review]
   workflow_dispatch:
 
+if: ${{ github.event_name != "push" && (github.event_name != "pull_request" || contains(github.event.pull_request.labels.*.name, "ci-billing-exception")) }}
 permissions:
   contents: read
   pull-requests: write
@@ -32,7 +33,7 @@ env:
 jobs:
   budget-check:
     name: REST endpoint budget check
-    runs-on: [self-hosted, linux, x64]
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v4.2.2
         with:
@@ -104,7 +105,7 @@ jobs:
 
   budget-regression:
     name: REST endpoint latency regression
-    runs-on: [self-hosted, linux, x64]
+    runs-on: ubuntu-24.04
     if: github.event_name == 'pull_request'
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v4.2.2
@@ -175,7 +176,7 @@ jobs:
   # Summary job to aggregate results for branch protection
   latency-budget-result:
     name: Latency budget result
-    runs-on: [self-hosted, linux, x64]
+    runs-on: ubuntu-24.04
     needs: [budget-check, budget-regression]
     if: always()
     steps:

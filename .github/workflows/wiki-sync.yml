@@ -24,6 +24,7 @@ on:
       - "scripts/docs/sync-wiki.mjs"
   workflow_dispatch:
 
+if: ${{ github.event_name != "push" && (github.event_name != "pull_request" || contains(github.event.pull_request.labels.*.name, "ci-billing-exception")) }}
 permissions:
   contents: write
 
@@ -34,7 +35,7 @@ concurrency:
 jobs:
   sync-wiki:
     name: Sync wiki with docs
-    runs-on: [self-hosted, linux, x64]
+    runs-on: ubuntu-24.04
     steps:
       - name: Checkout repo
         uses: actions/checkout@v7

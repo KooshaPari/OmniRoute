@@ -233,6 +233,8 @@
     "ci:v4:lint": "bunx oxlint@1.74.0 apps packages",
     "integrity:manifest": "node scripts/check/verify-integrity-manifest.mjs",
     "integrity:manifest:write": "node scripts/check/verify-integrity-manifest.mjs --write",
+    "local-ci:attest": "node scripts/check/local-first-ci-attestation.mjs",
+    "local-ci:attest:write": "node scripts/check/local-first-ci-attestation.mjs --write",
     "ci:v4:typecheck": "bun run --cwd apps/web typecheck && bun run --cwd apps/bff typecheck",
     "ci:v4:typecheck:ts7": "bun run --cwd packages/api-contracts typecheck:ts7 && bun run --cwd packages/design-tokens typecheck:ts7 && bun run --cwd apps/bff typecheck:ts7 && bun run --cwd apps/web typecheck:ts7",
     "ci:v4:test": "bun --filter \"./apps/*\" test"

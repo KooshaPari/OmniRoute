@@ -14,10 +14,11 @@ on:
         required: true
         type: string
 
+if: ${{ github.event_name != "push" && (github.event_name != "pull_request" || contains(github.event.pull_request.labels.*.name, "ci-billing-exception")) }}
 jobs:
   validate:
     name: Validate version
-    runs-on: [self-hosted, linux, x64]
+    runs-on: ubuntu-24.04
     permissions:
       contents: read
     outputs:
@@ -57,19 +58,19 @@ jobs:
       matrix:
         include:
           - platform: windows
-            runner: [self-hosted, windows, x64]
+            runner: ubuntu-24.04
             target: win
             ext: .exe
           - platform: macos-intel
-            runner: macos-15-intel
+            runner: ubuntu-24.04
             target: mac-x64
             ext: .dmg
           - platform: macos-arm64
-            runner: [self-hosted, macos, arm64]
+            runner: ubuntu-24.04
             target: mac-arm64
             ext: -arm64.dmg
           - platform: linux
-            runner: [self-hosted, linux, x64]
+            runner: ubuntu-24.04
             target: linux
             ext: .AppImage
             deb_ext: .deb
@@ -188,7 +189,7 @@ jobs:
   release:
     name: Create Release
     needs: [validate, build]
-    runs-on: [self-hosted, linux, x64]
+    runs-on: ubuntu-24.04
     permissions:
       contents: write
     steps:

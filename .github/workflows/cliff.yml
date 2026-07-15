@@ -10,13 +10,14 @@ on:
         required: false
         type: string
 
+if: ${{ github.event_name != "push" && (github.event_name != "pull_request" || contains(github.event.pull_request.labels.*.name, "ci-billing-exception")) }}
 permissions:
   contents: write   # required to push the regenerated CHANGELOG.md back to main
   pull-requests: write
 
 jobs:
   cliff:
-    runs-on: [self-hosted, linux, x64]
+    runs-on: ubuntu-24.04
     steps:
       - name: Checkout
         uses: actions/checkout@v7

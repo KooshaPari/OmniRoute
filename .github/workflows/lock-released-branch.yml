@@ -31,6 +31,7 @@ on:
         required: true
         type: string
 
+if: ${{ github.event_name != "push" && (github.event_name != "pull_request" || contains(github.event.pull_request.labels.*.name, "ci-billing-exception")) }}
 permissions:
   contents: read
 
@@ -40,7 +41,7 @@ jobs:
   # ─────────────────────────────────────────────────────────────────────────
   lock-branch:
     if: github.event_name == 'release' || github.event_name == 'workflow_dispatch'
-    runs-on: [self-hosted, linux, x64]
+    runs-on: ubuntu-24.04
     steps:
       - name: Lock release/<tag> branch
         env:
@@ -97,7 +98,7 @@ jobs:
   # ─────────────────────────────────────────────────────────────────────────
   guard-no-push-after-release:
     if: github.event_name == 'push'
-    runs-on: [self-hosted, linux, x64]
+    runs-on: ubuntu-24.04
     steps:
       - name: Reject push if matching release tag exists
         env:

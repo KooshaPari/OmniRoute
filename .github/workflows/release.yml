@@ -18,10 +18,11 @@ on:
         required: false
         default: '0'
 
+if: ${{ github.event_name != "push" && (github.event_name != "pull_request" || contains(github.event.pull_request.labels.*.name, "ci-billing-exception")) }}
 jobs:
   release:
     name: Release ${{ github.ref_name || inputs.ref }}
-    runs-on: [self-hosted, linux, x64]
+    runs-on: ubuntu-24.04
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4

@@ -28,13 +28,14 @@ on:
         type: boolean
         default: false
 
+if: ${{ github.event_name != "push" && (github.event_name != "pull_request" || contains(github.event.pull_request.labels.*.name, "ci-billing-exception")) }}
 jobs:
   prepare:
     name: Resolve Docker release metadata
     # This workflow publishes the upstream Docker Hub image. Forks publish
     # their own GHCR image through build-fork.yml instead.
     if: github.repository == 'diegosouzapw/omniroute'
-    runs-on: [self-hosted, linux, x64]
+    runs-on: ubuntu-24.04
     outputs:
       version: ${{ steps.version.outputs.version }}
       promote_latest: ${{ steps.version.outputs.promote_latest }}
@@ -130,10 +131,10 @@ jobs:
       matrix:
         include:
           - platform: linux/amd64
-            runner: [self-hosted, linux, x64]
+            runner: ubuntu-24.04
             arch: amd64
           - platform: linux/arm64
-            runner: [self-hosted, linux, arm64]
+            runner: ubuntu-24.04
             arch: arm64
     env:
       IMAGE_NAME: diegosouzapw/omniroute
@@ -201,7 +202,7 @@ jobs:
       - prepare
       - build
     if: needs.prepare.outputs.skip != 'true'
-    runs-on: [self-hosted, linux, x64]
+    runs-on: ubuntu-24.04
     permissions:
       contents: read
       packages: write
