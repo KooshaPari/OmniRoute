@@ -1,3 +1,7 @@
+---
+title: v4 release artifact dry run
+---
+
 # v4 release artifact dry run
 
 This workflow produces an ephemeral release-candidate artifact without creating a GitHub Release, publishing npm packages, signing files, deploying services, or changing native targets.
