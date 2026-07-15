@@ -2,45 +2,101 @@ import { Hono } from 'hono';
 
 const UPSTREAM = process.env.OMNIROUTE_UPSTREAM ?? 'http://localhost:20128';
 const DEFAULT_ROLLOUT = Number(process.env.OMNI_WEB_STACK_ROLLOUT ?? '100');
+const DEFAULT_TIMEOUT_MS = Number(process.env.OMNIROUTE_UPSTREAM_TIMEOUT_MS ?? '30000');
 
-function shouldServeNext(cookieHeader: string | null): boolean {
+const HOP_BY_HOP_HEADERS = new Set([
+  'connection',
+  'content-length',
+  'host',
+  'keep-alive',
+  'proxy-authenticate',
+  'proxy-authorization',
+  'te',
+  'trailer',
+  'transfer-encoding',
+  'upgrade',
+]);
+
+function shouldServeNext(cookieHeader: string | null, rollout: number): boolean {
   if (!cookieHeader) return false;
   const m = cookieHeader.match(/(?:^|;\s*)web_stack=(svelte|next)/);
   if (m) return m[1] === 'next';
   let h = 0;
   for (let i = 0; i < cookieHeader.length; i++) h = (h * 31 + cookieHeader.charCodeAt(i)) | 0;
-  return Math.abs(h) % 100 >= DEFAULT_ROLLOUT;
+  return Math.abs(h) % 100 >= rollout;
 }
 
-export const proxyRoutes = new Hono().all('/*', async (c) => {
-  if (shouldServeNext(c.req.header('cookie') ?? null)) {
-    return c.json({
-      message: 'This route is currently served by the Next.js frontend. Set web_stack=svelte or visit the upstream directly.',
-      nextjs_upstream: UPSTREAM,
-    }, 410);
-  }
-
-  const url = new URL(c.req.url);
-  const upstreamUrl = `${UPSTREAM}${url.pathname.replace('/api/v1', '/v1')}${url.search}`;
-
+function proxyHeaders(source: Headers): Headers {
   const headers = new Headers();
-  c.req.raw.headers.forEach((value, key) => {
-    if (!['host', 'content-length'].includes(key.toLowerCase())) headers.set(key, value);
+  const connectionHeaders = new Set(
+    (source.get('connection') ?? '')
+      .split(',')
+      .map((header) => header.trim().toLowerCase())
+      .filter(Boolean),
+  );
+
+  source.forEach((value, key) => {
+    const normalizedKey = key.toLowerCase();
+    if (!HOP_BY_HOP_HEADERS.has(normalizedKey) && !connectionHeaders.has(normalizedKey)) {
+      headers.set(key, value);
+    }
   });
-  headers.set('x-proxied-by', 'argismonitor-bff');
 
-  const init: RequestInit = {
-    method: c.req.method,
-    headers,
-    body: ['GET', 'HEAD'].includes(c.req.method) ? undefined : c.req.raw.body,
-  };
+  return headers;
+}
 
-  try {
-    const upstream = await fetch(upstreamUrl, init);
-    const responseHeaders = new Headers(upstream.headers);
-    responseHeaders.set('x-proxied-by', 'argismonitor-bff');
-    return new Response(upstream.body, { status: upstream.status, headers: responseHeaders });
-  } catch (err) {
-    return c.json({ error: 'upstream_unreachable', message: (err as Error).message }, 502);
-  }
-});
+type ProxyOptions = {
+  upstream?: string;
+  rollout?: number;
+  timeoutMs?: number;
+};
+
+export function createProxyRoutes({
+  upstream = UPSTREAM,
+  rollout = DEFAULT_ROLLOUT,
+  timeoutMs = DEFAULT_TIMEOUT_MS,
+}: ProxyOptions = {}) {
+  return new Hono().all('/*', async (c) => {
+    if (shouldServeNext(c.req.header('cookie') ?? null, rollout)) {
+      return c.json({
+        message: 'This route is currently served by the Next.js frontend. Set web_stack=svelte or visit the upstream directly.',
+        nextjs_upstream: upstream,
+      }, 410);
+    }
+
+    const url = new URL(c.req.url);
+    const upstreamUrl = `${upstream}${url.pathname.replace('/api/v1', '/v1')}${url.search}`;
+
+    const headers = proxyHeaders(c.req.raw.headers);
+    headers.set('x-proxied-by', 'argismonitor-bff');
+
+    const controller = new AbortController();
+    const abortUpstream = () => controller.abort(c.req.raw.signal.reason);
+    c.req.raw.signal.addEventListener('abort', abortUpstream, { once: true });
+    const timeout = setTimeout(() => controller.abort(new Error('upstream_timeout')), timeoutMs);
+
+    const init: RequestInit = {
+      method: c.req.method,
+      headers,
+      body: ['GET', 'HEAD'].includes(c.req.method) ? undefined : c.req.raw.body,
+      signal: controller.signal,
+    };
+
+    try {
+      const upstreamResponse = await fetch(upstreamUrl, init);
+      const responseHeaders = proxyHeaders(upstreamResponse.headers);
+      responseHeaders.set('x-proxied-by', 'argismonitor-bff');
+      return new Response(upstreamResponse.body, { status: upstreamResponse.status, headers: responseHeaders });
+    } catch (err) {
+      if (controller.signal.aborted && !c.req.raw.signal.aborted) {
+        return c.json({ error: 'upstream_timeout', message: 'Upstream request timed out' }, 504);
+      }
+      return c.json({ error: 'upstream_unreachable', message: (err as Error).message }, 502);
+    } finally {
+      clearTimeout(timeout);
+      c.req.raw.signal.removeEventListener('abort', abortUpstream);
+    }
+  });
+}
+
+export const proxyRoutes = createProxyRoutes();
