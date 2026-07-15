@@ -2,18 +2,19 @@ import { CORS_HEADERS } from "@/shared/utils/cors";
 import { generateProviderPluginManifest } from "@omniroute/open-sse/config/providerPluginManifestRegistry.ts";
 import { getServiceRow } from "@/lib/db/versionManager";
 import { getServiceModels, type ServiceModel } from "@/lib/db/serviceModels";
+import {
+  SERVICE_BACKEND_PLUGIN_IDS,
+  getServiceToolFromPluginId,
+  isServiceBackendPluginId,
+} from "@/lib/services/serviceBackends";
 import type {
   ProviderPluginManifest,
   ProviderPluginManifestEntry,
   ProviderPluginModel,
 } from "@omniroute/open-sse/config/providerPluginManifest.ts";
 
-const SERVICE_BACKEND_PLUGIN_IDS = new Set(["9router", "cliproxyapi"]);
-const SERVICE_BACKEND_EXPOSURE_REQUIRED = new Set(["9router", "cliproxyapi"]);
-const SERVICE_BACKEND_EXPOSURE_TOOL_BY_PLUGIN_ID = new Map<string, string>([
-  ["9router", "9router"],
-  ["cliproxyapi", "cliproxy"],
-]);
+const SERVICE_BACKEND_EXPOSURE_REQUIRED = new Set(SERVICE_BACKEND_PLUGIN_IDS);
+const SERVICE_BACKEND_PLUGIN_ID_SET = new Set<string>(SERVICE_BACKEND_PLUGIN_IDS);
 
 const SERVICE_BACKEND_PROVIDER_TEMPLATE: Record<
   string,
@@ -107,14 +108,14 @@ function pickServiceModels(tool: string, reader: (toolName: string) => ServiceMo
 async function shouldExposeServiceModels(toolName: string): Promise<boolean> {
   if (!SERVICE_BACKEND_EXPOSURE_REQUIRED.has(toolName)) return true;
 
-  const serviceTool = SERVICE_BACKEND_EXPOSURE_TOOL_BY_PLUGIN_ID.get(toolName) ?? toolName;
+  const serviceTool = getServiceToolFromPluginId(toolName) ?? toolName;
   const row = await getServiceRow(serviceTool);
   if (!row) return true;
   return row.providerExpose;
 }
 
 function shouldInjectBackendPluginModels(provider: ProviderPluginManifestEntry) {
-  return SERVICE_BACKEND_PLUGIN_IDS.has(provider.id);
+  return isServiceBackendPluginId(provider.id);
 }
 
 export async function injectServiceModelsIntoManifest(
@@ -123,7 +124,7 @@ export async function injectServiceModelsIntoManifest(
   exposeReader?: (toolName: string) => Promise<boolean> | boolean
 ): Promise<ProviderPluginManifest> {
   const providers: ProviderPluginManifestEntry[] = [...manifest.providers];
-  for (const providerId of SERVICE_BACKEND_PLUGIN_IDS) {
+  for (const providerId of SERVICE_BACKEND_PLUGIN_ID_SET) {
     const exists = providers.some((provider) => provider.id === providerId);
     if (exists) continue;
 
