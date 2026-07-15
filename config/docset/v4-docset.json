@@ -15,7 +15,7 @@
   "publication": {
     "deployable": false,
     "releaseAttachable": false,
-    "reason": "Owner approval is required for the public product identity and canonical repository/documentation URLs before deployment or release attachment."
+    "reason": "GitHub Pages remains disabled until current-main publication, accessibility, provenance, base-path, URL, and rollback gates pass."
   },
   "releaseAttachment": {
     "mediaType": "application/gzip",

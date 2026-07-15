@@ -7,10 +7,12 @@ const root = process.cwd();
 const contractPath = path.join(root, "config/docset/v4-docset.json");
 const contractBytes = await readFile(contractPath);
 const contract = JSON.parse(contractBytes);
+const sourceCommit = process.env.SOURCE_COMMIT;
 const versionManifestBytes = await readFile(path.join(root, contract.versionSource));
 const version = JSON.parse(versionManifestBytes).version;
 if (!version) throw new Error("Version source has no version");
 if (contract.schemaVersion !== 1) throw new Error("Unsupported docset contract");
+if (!/^[0-9a-f]{40}$/.test(sourceCommit || "")) throw new Error("SOURCE_COMMIT must be the exact checked-out commit SHA");
 if (contract.reviewedInputs.length === 0 && contract.publication.deployable) {
   throw new Error("An empty docset cannot be deployable");
 }
@@ -37,7 +39,7 @@ if (process.argv.includes("--finalize")) {
     schemaVersion: 1,
     docsetId: contract.docsetId,
     version,
-    sourceCommit: process.env.GITHUB_SHA || "local",
+    sourceCommit,
     filename: archiveName,
     mediaType: contract.releaseAttachment.mediaType,
     size: (await stat(archivePath)).size,
@@ -62,7 +64,7 @@ const provenance = {
   schemaVersion: 1,
   docsetId: contract.docsetId,
   version,
-  sourceCommit: process.env.GITHUB_SHA || "local",
+  sourceCommit,
   contractSha256: createHash("sha256").update(contractBytes).digest("hex"),
   versionSource: contract.versionSource,
   versionSourceSha256: createHash("sha256").update(versionManifestBytes).digest("hex"),

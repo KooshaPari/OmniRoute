@@ -1,12 +1,24 @@
 {
   "schemaVersion": 1,
   "site": {
-    "title": "OmniRoute documentation",
+    "title": "ArgisMonitor documentation",
     "description": "Task-oriented documentation scaffold for the v4 product surface.",
     "status": "scaffold",
+    "repository": "KooshaPari/OmniRoute",
+    "deployment": {
+      "provider": "github-pages",
+      "defaultUrl": "https://kooshapari.github.io/OmniRoute/",
+      "basePath": "/OmniRoute/",
+      "enabled": false,
+      "blocker": "Enable GitHub Pages and pass current-main publication, accessibility, provenance, URL, and rollback gates before deployment."
+    },
+    "wiki": {
+      "enabled": false,
+      "status": "retired-while-repository-wiki-disabled"
+    },
     "publication": {
       "deployable": false,
-      "reason": "Owner approval is required for the public product identity and canonical repository/documentation URLs before deployment or release attachment."
+      "reason": "GitHub Pages remains disabled until current-main publication, accessibility, provenance, base-path, URL, and rollback gates pass."
     }
   },
   "sections": [

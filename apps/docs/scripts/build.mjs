@@ -9,8 +9,10 @@ const sourcePath = path.join(appRoot, "content", "public-boundary.json");
 const outputRoot = path.join(appRoot, "dist");
 const checkOnly = process.argv.includes("--check");
 const source = JSON.parse(await readFile(sourcePath, "utf8"));
+const sourceCommit = process.env.SOURCE_COMMIT;
 
 if (source.schemaVersion !== 1) throw new Error("Unsupported content schema");
+if (!/^[0-9a-f]{40}$/.test(sourceCommit || "")) throw new Error("SOURCE_COMMIT must be the exact checked-out commit SHA");
 if (!source.site?.title || !source.site?.description) throw new Error("Site metadata is required");
 if (source.site.publication?.deployable !== false || !source.site.publication.reason) {
   throw new Error("External deployment must remain disabled with an explicit blocker");
@@ -82,6 +84,7 @@ const searchIndex = source.sections.map(({ slug, title, description, publishable
 }));
 const buildManifest = {
   schemaVersion: 1,
+  sourceCommit,
   source: "content/public-boundary.json",
   sourceSha256: createHash("sha256").update(JSON.stringify(source)).digest("hex"),
   outputs: ["index.html", "styles.css", "search-index.json"],
