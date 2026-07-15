@@ -2,7 +2,7 @@
 
 > **Status**: Living document. Each ADR is immutable once accepted; changes
 > require a new ADR that supersedes the old one.
-> **Last updated**: 2026-06-18 (this turn).
+> **Last updated**: 2026-07-14.
 > **Owner**: OmniRoute core team (see `CODEOWNERS`).
 
 This file is the **top-level index** of architecture decisions for `OmniRoute`.

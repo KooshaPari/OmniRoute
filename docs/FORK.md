@@ -142,11 +142,12 @@ The legacy `omniroute` binary, the `@omniroute/*` npm packages, and the
 `~/.omniroute/` data dir are kept alive as **deprecated aliases**. Each
 of them emits a tombstone the first time it is used in a session:
 
-1. **Binary tombstone**: running `omniroute` prints
+1. **Binary warning**: [`bin/omniroute.mjs`](../bin/omniroute.mjs) prints the following exact notice when `OMNIROUTE_LEGACY` is not `1` and CI is unset:
    ```
-   [argismonitor] 'omniroute' is a legacy alias for 'argismonitor'.
-   This shim is supported for one major release after ADR-032.
-   See https://kooshapari.github.io/OmniRoute/renames
+   ⚠ `omniroute` is deprecated and forwards to `argismonitor`.
+     Reinstall as:  npm install -g argismonitor
+     Silence notice: OMNIROUTE_LEGACY=1 omniroute ...
+     See docs/RENAMES-STRATEGY.md for the migration window.
    ```
    on stderr, then forwards execution to `argismonitor`.
 2. **Env-var tombstone**: setting any of `OMNIROUTE_DATA_DIR`,
@@ -160,10 +161,8 @@ of them emits a tombstone the first time it is used in a session:
    a fresh shell does not re-prompt.
 4. **npm registry tombstone**: when the legacy `omniroute` package is
    next published, its `description` is flipped to
-   `Deprecated: this package has been renamed to 'argismonitor'. See
-   https://kooshapari.github.io/OmniRoute/renames` and a
-   future registry deprecation requires separate release approval
-   call is queued by `packaging/npm/deprecate-omniroute.sh`.
+   `Deprecated: this package has been renamed to 'argismonitor'`. Any
+   registry deprecation requires separate release approval.
 
 ### 3.5 PRs and issues
 

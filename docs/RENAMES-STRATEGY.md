@@ -41,7 +41,7 @@ back-compat. Internal identifiers are migrated per the schedule in §6.
 | 15 | Internal config keys | preserved | unchanged | Future | Untouched |
 | 16 | Domain `omniroute.online` (upstream) | preserved | unchanged | n/a | Out of scope (upstream) |
 | 17 | Docs target `kooshapari.github.io/OmniRoute` | new | approved target | Gate 6 | Pages disabled |
-| 18 | Domain `argismonitor.pheno.studio` (this fork) | new | added | Gate 6 | Pending |
+| 18 | Additional fork domain | n/a | none approved | n/a | Out of scope |
 | 19 | Cargo / crate name (none — Node-only) | n/a | n/a | n/a | n/a |
 | 20 | NuGet package (future) | n/a | n/a | n/a | n/a |
 
