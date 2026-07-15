@@ -10,6 +10,8 @@ services:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
     environment:
       - CADDY_ADMIN=:2019
+      - CADDY_API_UPSTREAM=omniroute-1:3000 omniroute-2:3000 omniroute-3:3000
+      - CADDY_UI_UPSTREAM=omniroute-1:3000 omniroute-2:3000 omniroute-3:3000
     restart: always
     depends_on:
       - omniroute-1

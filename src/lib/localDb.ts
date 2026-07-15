@@ -741,6 +741,18 @@ export type {
 } from "./db/usageLogs";
 
 // ---------------------------------------------------------------------------
+// routing_decisions — A2A routing audit log (DEBT-011)
+// ---------------------------------------------------------------------------
+export {
+  saveRoutingDecision,
+  getRoutingDecisions,
+  getRoutingDecisionsByProvider,
+  getRoutingDecisionCount,
+  resetRoutingDecisionsTableCache,
+} from "./db/routingDecisions";
+export type { RoutingDecisionRow } from "./db/routingDecisions";
+
+// ---------------------------------------------------------------------------
 // semantic_cache — cache entries CRUD (#3500 slice 4)
 // ---------------------------------------------------------------------------
 export {

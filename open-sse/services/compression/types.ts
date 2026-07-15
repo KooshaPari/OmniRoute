@@ -239,6 +239,15 @@ export interface CompressionResult {
   body: Record<string, unknown>;
   compressed: boolean;
   stats: CompressionStats | null;
+  /**
+   * Engine-specific metadata envelope. Engines that need to carry state across
+   * the pipeline (e.g. a reverse-map for decompression) store their typed data
+   * here instead of embedding a magic key on `body`. Each engine uses a unique
+   * well-known key defined alongside its implementation.
+   *
+   * @example session-dedup stores `SessionDedupState` under `"sessionDedup"`.
+   */
+  engineData?: Record<string, unknown>;
 }
 
 export const DEFAULT_COMPRESSION_CONFIG: CompressionConfig = {

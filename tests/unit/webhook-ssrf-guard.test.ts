@@ -33,7 +33,11 @@ const BLOCKED_URLS = [
   "http://172.31.255.255/admin", // RFC 1918 upper bound
   "http://100.64.0.1/", // CGNAT
   "http://[fe80::1]/", // link-local IPv6
-  "http://[fc00::1]/", // ULA IPv6
+  "http://[fea0::1]/", // link-local IPv6 fe80::/10 edge
+  "http://[febf:abcd::1]/", // link-local IPv6 fe80::/10 upper bound
+  "http://[fc00::1]/", // ULA IPv6 fc00::/7
+  "http://[fd00::1]/", // ULA IPv6 fd00::/8
+  "http://[fd12:3456:789a::1]/", // ULA IPv6 (full form)
   "http://user:pass@example.com/", // embedded credentials
   "ftp://example.com/path", // forbidden scheme
   "file:///etc/passwd", // forbidden scheme
@@ -44,6 +48,9 @@ const ALLOWED_URLS = [
   "https://hooks.slack.com/services/T000/B000/XXXX",
   "https://discord.com/api/webhooks/123/abc",
   "https://api.telegram.org/bot12345:ABCDEF/sendMessage",
+  "http://[2001:db8::1]/path", // IPv6 documentation (public)
+  "http://[2001:4860:4860::8888]/", // Google DNS IPv6
+  "http://[2607:f8b0:4000::1]/", // Google IPv6 range
 ];
 
 describe("isPrivateHost — RFC1918, loopback, link-local, IMDS coverage", () => {
@@ -71,10 +78,25 @@ describe("isPrivateHost — RFC1918, loopback, link-local, IMDS coverage", () =>
     assert.equal(isPrivateHost("100.127.255.254"), true);
   });
 
-  it("blocks IPv6 ULA + link-local", () => {
+  it("blocks IPv6 ULA range (fc00::/7)", () => {
     assert.equal(isPrivateHost("fc00::1"), true);
+    assert.equal(isPrivateHost("fd00::1"), true);
     assert.equal(isPrivateHost("fd12:3456:789a::1"), true);
+    assert.equal(isPrivateHost("fdff:ffff:ffff:ffff:ffff:ffff:ffff:ffff"), true);
+  });
+
+  it("blocks IPv6 link-local range (fe80::/10)", () => {
+    // fe80::/10 spans fe80: → febf: — verify edges and interior
     assert.equal(isPrivateHost("fe80::1"), true);
+    assert.equal(isPrivateHost("fe81::1"), true);
+    assert.equal(isPrivateHost("fe90::1"), true);
+    assert.equal(isPrivateHost("fea0::1"), true);
+    assert.equal(isPrivateHost("feb0::1"), true);
+    assert.equal(isPrivateHost("febf:abcd::1"), true);
+  });
+
+  it("blocks IPv6 loopback (::1)", () => {
+    assert.equal(isPrivateHost("::1"), true);
   });
 
   it("blocks .localhost and .local suffix hostnames", () => {
@@ -87,6 +109,13 @@ describe("isPrivateHost — RFC1918, loopback, link-local, IMDS coverage", () =>
     assert.equal(isPrivateHost("api.openai.com"), false);
     assert.equal(isPrivateHost("8.8.8.8"), false);
     assert.equal(isPrivateHost("1.1.1.1"), false);
+  });
+
+  it("permits public IPv6 addresses", () => {
+    assert.equal(isPrivateHost("2001:db8::1"), false); // documentation
+    assert.equal(isPrivateHost("2001:4860:4860::8888"), false); // Google DNS
+    assert.equal(isPrivateHost("2607:f8b0::1"), false); // Google
+    assert.equal(isPrivateHost("2a00:1450:4000::1"), false); // Google UK
   });
 });
 
@@ -128,5 +157,47 @@ describe("deliverWebhook — runtime SSRF guard returns error without firing fet
     assert.equal(res.success, false);
     assert.equal(res.status, 0);
     assert.ok(typeof res.error === "string" && /private|blocked|local/i.test(res.error));
+  });
+
+  it("returns blocked-URL error for IPv6 link-local (fe80::/10 edge)", async () => {
+    const res = await deliverWebhook(
+      "http://[fea0::1]:8080/hook",
+      { event: "test.ping", timestamp: new Date().toISOString(), data: {} },
+      null
+    );
+    assert.equal(res.success, false);
+    assert.equal(res.status, 0);
+    assert.ok(
+      typeof res.error === "string" && /private|blocked|local/i.test(res.error),
+      `expected guard error for fea0::1, got: ${res.error}`
+    );
+  });
+
+  it("returns blocked-URL error for IPv6 ULA (fd00::/8 edge)", async () => {
+    const res = await deliverWebhook(
+      "http://[fd00::1]:8080/hook",
+      { event: "test.ping", timestamp: new Date().toISOString(), data: {} },
+      null
+    );
+    assert.equal(res.success, false);
+    assert.equal(res.status, 0);
+    assert.ok(
+      typeof res.error === "string" && /private|blocked|local/i.test(res.error),
+      `expected guard error for fd00::1, got: ${res.error}`
+    );
+  });
+
+  it("returns blocked-URL error for IPv6 loopback", async () => {
+    const res = await deliverWebhook(
+      "http://[::1]:20128/admin",
+      { event: "test.ping", timestamp: new Date().toISOString(), data: {} },
+      null
+    );
+    assert.equal(res.success, false);
+    assert.equal(res.status, 0);
+    assert.ok(
+      typeof res.error === "string" && /private|blocked|local/i.test(res.error),
+      `expected guard error for ::1, got: ${res.error}`
+    );
   });
 });

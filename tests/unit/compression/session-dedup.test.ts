@@ -6,7 +6,11 @@
 import { describe, it, before } from "node:test";
 import assert from "node:assert/strict";
 
-import { sessionDedupEngine } from "../../../open-sse/services/compression/engines/session-dedup/index.ts";
+import {
+  sessionDedupEngine,
+  SESSION_DEDUP_KEY,
+  type SessionDedupState,
+} from "../../../open-sse/services/compression/engines/session-dedup/index.ts";
 import {
   registerBuiltinCompressionEngines,
   getCompressionEngine,
@@ -114,6 +118,36 @@ describe("session-dedup engine", () => {
     const messages = result.body.messages as Array<{ role: string; content: string }>;
     // System prompt must always remain intact regardless
     assert.ok(messages[0].content.includes(REPEATED_BLOCK), "system prompt must never be touched");
+  });
+
+  it("returns explicit SessionDedupState envelope in engineData (DEBT-009)", () => {
+    const body = makeBody([
+      { role: "user", content: `First:\n${REPEATED_BLOCK}` },
+      { role: "assistant", content: "ok" },
+      { role: "user", content: `Second:\n${REPEATED_BLOCK}` },
+    ]);
+
+    const result = sessionDedupEngine.apply(body as Record<string, unknown>);
+
+    // Must have the envelope under the well-known key
+    assert.ok(result.engineData, "engineData must be present on a compressed result");
+    const state: SessionDedupState | undefined = result.engineData![SESSION_DEDUP_KEY] as SessionDedupState | undefined;
+    assert.ok(state, `engineData must contain the "${SESSION_DEDUP_KEY}" key`);
+    assert.ok(state!.reverseMap, "SessionDedupState must contain a reverseMap");
+
+    // The reverse map must contain an entry for the repeated block
+    const sha = Object.keys(state!.reverseMap).find(
+      (k) => state!.reverseMap[k] === REPEATED_BLOCK
+    );
+    assert.ok(sha, "reverseMap must contain an entry mapping to the full REPEATED_BLOCK");
+    assert.equal(state!.reverseMap[sha!], REPEATED_BLOCK, "reverseMap sha must map to the correct block");
+
+    // The magic key must NOT appear on body itself (the debt fix)
+    assert.equal(
+      (result.body as Record<string, unknown>)[SESSION_DEDUP_KEY],
+      undefined,
+      "session-dedup state must NOT be a magic key on body"
+    );
   });
 
   it("does not corrupt multipart (non-string) content items", () => {

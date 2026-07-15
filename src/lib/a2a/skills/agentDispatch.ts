@@ -1,15 +1,103 @@
 /**
  * Agent Dispatch A2A Skill
- * Dispatches coding tasks to the substrate engine (forge or other drivers)
+ *
+ * Dispatches coding tasks to external agent CLIs (forge, codex, claude).
+ * The skill spawns the specified CLI binary with the user's prompt and
+ * captures the result. This is a fire-and-execute dispatch — the skill
+ * returns once the CLI exits (or the timeout fires). Long-running agents
+ * should use an appropriate timeout.
+ *
+ * Available engines and their invocation convention:
+ *   - forge: forge "<prompt>"
+ *   - codex: codex "<prompt>"          (also accepts pipe/stdin)
+ *   - claude: claude -p "<prompt>"     (-p flag for one-off prompts)
+ *
+ * The engine binary is resolved from:
+ *   1. The environment variable (e.g. FORGE_BIN, CODEX_BIN, CLAUDE_BIN)
+ *   2. The system PATH via the binary name
+ *
+ * Inputs (via task.metadata):
+ *   - engine   (optional, "forge" | "codex" | "claude", default: "forge")
+ *   - cwd      (optional, string, default: process.cwd())
+ *   - timeout  (optional, number ms, default: 300000)
+ *
+ * The dispatch prompt is taken from task.messages where role === "user".
+ *
+ * Output (artifacts[0].content is JSON on success, text on error):
+ *   success: { success: true, engine, cwd, exitCode, stdout, stderr }
+ *   error:   { error: "missing_metadata"|"invalid_input"|"dispatch_failed",
+ *              message }
+ *
+ * Result metadata:
+ *   success: true  → { success: true, engine, exitCode }
+ *   success: false → { success: false, error, ... }
  */
-
 import { spawn } from "child_process";
 import { z } from "zod";
 import { A2ATask } from "../taskManager";
 import { A2ASkillResult } from "../taskExecution";
 
+// ── Engine registry ──────────────────────────────────────────────────────────
+
+interface EngineEntry {
+  /** The binary name to spawn. */
+  binary: string;
+  /** Environment variable override for the binary path. */
+  envBinKey: string;
+  /**
+   * Build the argument vector from the prompt.
+   * Different CLIs have different conventions:
+   *   - forge/codex: pass prompt as a positional argument
+   *   - claude: requires -p flag for one-off prompts
+   */
+  buildArgs: (prompt: string) => string[];
+  /** Human-readable display name. */
+  displayName: string;
+}
+
+const ENGINE_REGISTRY: Record<string, EngineEntry> = {
+  forge: {
+    binary: "forge",
+    envBinKey: "FORGE_BIN",
+    displayName: "ForgeCode",
+    buildArgs: (prompt) => [prompt],
+  },
+  codex: {
+    binary: "codex",
+    envBinKey: "CODEX_BIN",
+    displayName: "OpenAI Codex CLI",
+    buildArgs: (prompt) => [prompt],
+  },
+  claude: {
+    binary: "claude",
+    envBinKey: "CLAUDE_BIN",
+    displayName: "Anthropic Claude Code CLI",
+    buildArgs: (prompt) => ["-p", prompt],
+  },
+};
+
+const VALID_ENGINES = new Set(Object.keys(ENGINE_REGISTRY));
+
+// ── Zod schema ───────────────────────────────────────────────────────────────
+
+const AgentDispatchParamsSchema = z.object({
+  engine: z
+    .string()
+    .refine((v) => VALID_ENGINES.has(v), {
+      message: `engine must be one of: ${Array.from(VALID_ENGINES).join(", ")}`,
+    })
+    .default("forge"),
+  cwd: z.string().optional().default(process.cwd()),
+  timeout: z.number().optional().default(300000), // 5 minutes default
+});
+
+type AgentDispatchParams = z.infer<typeof AgentDispatchParamsSchema>;
+
+// ── Error sanitization ───────────────────────────────────────────────────────
+
 /**
- * Sanitize error messages to prevent leaking stack traces and file paths
+ * Sanitize error messages to prevent leaking stack traces and file paths.
+ * Keeps the first line only, strips path-like patterns.
  */
 function sanitizeErrorMessage(message: unknown): string {
   let str = typeof message === "string" ? message : String(message ?? "");
@@ -25,107 +113,129 @@ function sanitizeErrorMessage(message: unknown): string {
   return parts.join("");
 }
 
-// Zod schema for validating task input
-const AgentDispatchParamsSchema = z.object({
-  cwd: z.string().optional().default(process.cwd()),
-  engine: z.enum(["forge", "codex", "claude"]).optional().default("forge"),
-  timeout: z.number().optional().default(300000), // 5 minutes default
-});
-
-type AgentDispatchParams = z.infer<typeof AgentDispatchParamsSchema>;
+// ── Binary resolution ────────────────────────────────────────────────────────
 
 /**
- * Parse metadata from A2A task to extract dispatch parameters
+ * Resolve the engine binary path. Priority:
+ * 1. Environment variable override (e.g. FORGE_BIN="/path/to/forge")
+ * 2. Default binary name in the PATH
  */
-function parseDispatchParams(metadata?: Record<string, unknown>): AgentDispatchParams {
-  try {
-    return AgentDispatchParamsSchema.parse(metadata || {});
-  } catch (err) {
-    if (err instanceof z.ZodError) {
-      throw new Error(
-        `Invalid dispatch parameters: ${err.errors.map((e) => `${e.path.join(".")}: ${e.message}`).join("; ")}`
-      );
-    }
-    throw err;
+function resolveBinary(engine: string): string {
+  const entry = ENGINE_REGISTRY[engine];
+  if (!entry) return engine;
+
+  const envOverride = process.env[entry.envBinKey];
+  if (envOverride && envOverride.trim().length > 0) {
+    return envOverride.trim();
   }
+  return entry.binary;
+}
+
+// ── Subprocess spawn ─────────────────────────────────────────────────────────
+
+interface SpawnResult {
+  success: boolean;
+  stdout: string;
+  stderr: string;
+  exitCode: number;
 }
 
 /**
- * Spawn subprocess to invoke substrate driver-cli
+ * Spawn the engine binary with the prompt and capture output.
+ * Uses the same pattern as cliRuntime.ts::runProcess but simplified
+ * for direct prompt dispatch rather than healthchecks.
  */
-function invokeSubstrate(
+function spawnEngine(
+  binary: string,
   args: string[],
+  cwd: string,
   timeout: number,
-  cwd: string
-): Promise<{ success: boolean; stdout: string; stderr: string; exitCode: number }> {
+): Promise<SpawnResult> {
   return new Promise((resolve) => {
-    const substrateBin = process.env.SUBSTRATE_BIN || "cargo";
-    const actualArgs =
-      substrateBin === "cargo"
-        ? [
-            "run",
-            "-q",
-            "-p",
-            "driver-cli",
-            "--",
-            ...args,
-          ]
-        : args;
-
-    const proc = spawn(substrateBin, actualArgs, {
-      cwd,
-      timeout,
-      stdio: ["pipe", "pipe", "pipe"],
-    });
+    // Security: reject commands with shell metacharacters
+    if (/[;&|`$<>\n\r]/.test(binary)) {
+      resolve({
+        success: false,
+        stdout: "",
+        stderr: "Rejected: unsafe binary path contains shell metacharacters",
+        exitCode: -1,
+      });
+      return;
+    }
 
     let stdout = "";
     let stderr = "";
 
-    proc.stdout?.on("data", (chunk) => {
+    const proc = spawn(binary, args, {
+      cwd,
+      timeout,
+      stdio: ["ignore", "pipe", "pipe"],
+      // Windows: .cmd/.bat wrappers need the shell; bare .exe does not.
+      ...(process.platform === "win32" && /\.(cmd|bat)$/i.test(binary)
+        ? { shell: true }
+        : {}),
+    });
+
+    proc.stdout?.on("data", (chunk: Buffer) => {
       stdout += chunk.toString();
     });
 
-    proc.stderr?.on("data", (chunk) => {
+    proc.stderr?.on("data", (chunk: Buffer) => {
       stderr += chunk.toString();
     });
 
-    const timeoutHandle = setTimeout(() => {
-      proc.kill();
-      resolve({
-        success: false,
-        stdout,
-        stderr: `Timeout after ${timeout}ms`,
-        exitCode: 124,
-      });
-    }, timeout + 1000); // Add 1s buffer to let process finish naturally
+    // Extra safety: OS-level timer in case proc doesn't respond to SIGKILL
+    const killTimer = setTimeout(() => {
+      proc.kill("SIGKILL");
+    }, timeout + 5000);
 
     proc.on("close", (code) => {
-      clearTimeout(timeoutHandle);
+      clearTimeout(killTimer);
       resolve({
-        success: (code || 0) === 0,
-        stdout,
-        stderr,
-        exitCode: code || 0,
+        success: (code ?? 1) === 0,
+        stdout: stdout.trim(),
+        stderr: stderr.trim(),
+        exitCode: code ?? 1,
       });
     });
 
     proc.on("error", (err) => {
-      clearTimeout(timeoutHandle);
+      clearTimeout(killTimer);
       resolve({
         success: false,
-        stdout,
-        stderr: err.message,
+        stdout: stdout.trim(),
+        stderr: `Failed to spawn ${binary}: ${err.message}`,
         exitCode: 1,
       });
     });
   });
 }
 
+// ── Metadata parsing ─────────────────────────────────────────────────────────
+
+function parseDispatchParams(metadata?: Record<string, unknown>): AgentDispatchParams {
+  try {
+    return AgentDispatchParamsSchema.parse(metadata || {});
+  } catch (err) {
+    if (err instanceof z.ZodError) {
+      throw new Error(
+        `Invalid dispatch parameters: ${err.errors.map((e) => `${e.path.join(".")}: ${e.message}`).join("; ")}`,
+      );
+    }
+    throw err;
+  }
+}
+
+// ── A2A entry point ──────────────────────────────────────────────────────────
+
 /**
- * Execute agent-dispatch skill
+ * Execute the agent-dispatch A2A skill.
+ *
+ * Extracts the dispatch prompt from the last user message in the task,
+ * resolves the engine binary, spawns it, and returns the captured output.
  */
 export async function executeAgentDispatch(task: A2ATask): Promise<A2ASkillResult> {
-  // Validate and parse parameters
+  // ── Validate and parse parameters ────────────────────────────────────────
   let params: AgentDispatchParams;
   try {
     params = parseDispatchParams(task.metadata);
@@ -145,13 +255,14 @@ export async function executeAgentDispatch(task: A2ATask): Promise<A2ASkillResul
     };
   }
 
-  // Extract the coding prompt from messages
+  // ── Extract the prompt from user messages ────────────────────────────────
   const prompt = task.messages
     .filter((m) => m.role === "user")
     .map((m) => m.content)
-    .join("\n");
+    .join("\n")
+    .trim();
 
-  if (!prompt.trim()) {
+  if (!prompt) {
     const errMsg = "No user message content to dispatch";
     return {
       artifacts: [
@@ -167,21 +278,30 @@ export async function executeAgentDispatch(task: A2ATask): Promise<A2ASkillResul
     };
   }
 
-  // Build dispatch command arguments
-  const args = [
-    "dispatch",
-    `--engine=${params.engine}`,
-    `--cwd=${params.cwd}`,
-    "--", // Separator before the prompt
-    prompt,
-  ];
+  // ── Resolve the engine binary ────────────────────────────────────────────
+  const engine = params.engine;
+  const entry = ENGINE_REGISTRY[engine];
+  const binary = resolveBinary(engine);
+  const args = entry.buildArgs(prompt);
 
-  // Invoke substrate driver-cli
-  const result = await invokeSubstrate(args, params.timeout, params.cwd);
+  // ── Spawn the engine ─────────────────────────────────────────────────────
+  const result = await spawnEngine(binary, args, params.cwd, params.timeout);
 
-  // Parse result
   if (!result.success) {
-    const errorMsg = result.stderr || result.stdout || `Process exited with code ${result.exitCode}`;
+    // Build a descriptive error message
+    const parts: string[] = [];
+    if (result.stderr) parts.push(result.stderr);
+    if (result.exitCode !== 0) {
+      parts.push(`Process exited with code ${result.exitCode}`);
+    }
+    // If both are empty, the binary likely wasn't found
+    if (parts.length === 0) {
+      parts.push(
+        `${entry.displayName} (${binary}) is not installed or not found on PATH. Install it or set ${entry.envBinKey} to the full binary path.`,
+      );
+    }
+    const errorMsg = parts.join("; ");
+
     return {
       artifacts: [
         {
@@ -192,17 +312,17 @@ export async function executeAgentDispatch(task: A2ATask): Promise<A2ASkillResul
       metadata: {
         error: sanitizeErrorMessage(errorMsg),
         success: false,
+        engine,
         exitCode: result.exitCode,
       },
     };
   }
 
-  // Try to parse JSON result from stdout
+  // ── Try to parse JSON from stdout ────────────────────────────────────────
   let parsedResult: unknown;
   try {
     parsedResult = JSON.parse(result.stdout);
   } catch {
-    // If not JSON, return raw stdout
     parsedResult = result.stdout;
   }
 
@@ -210,14 +330,18 @@ export async function executeAgentDispatch(task: A2ATask): Promise<A2ASkillResul
     artifacts: [
       {
         type: typeof parsedResult === "object" ? "data" : "text",
-        content: typeof parsedResult === "string" ? parsedResult : JSON.stringify(parsedResult, null, 2),
+        content:
+          typeof parsedResult === "string"
+            ? parsedResult
+            : JSON.stringify(parsedResult, null, 2),
       },
     ],
     metadata: {
-      engine: params.engine,
+      engine,
       cwd: params.cwd,
       success: true,
       exitCode: result.exitCode,
+      stdoutLength: result.stdout.length,
     },
   };
 }

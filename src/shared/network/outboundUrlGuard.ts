@@ -70,11 +70,12 @@ export function isPrivateHost(hostname: string) {
   }
 
   if (isIP(normalized) === 6) {
+    const firstGroup = normalized.split(":")[0];
     return (
       normalized === "::1" ||
       normalized.startsWith("fc") ||
       normalized.startsWith("fd") ||
-      normalized.startsWith("fe80:")
+      /^fe[89ab]/i.test(firstGroup)
     );
   }
 
@@ -99,6 +100,10 @@ export function isCloudMetadataHost(hostname: string): boolean {
   if (!host) return false;
   if (CLOUD_METADATA_HOSTNAMES.has(host)) return true;
   if (host.startsWith("169.254.")) return true; // IPv4 link-local /16
+  if (isIP(host) === 6) {
+    const firstGroup = host.split(":")[0];
+    if (/^fe[89ab]/i.test(firstGroup)) return true; // IPv6 link-local fe80::/10
+  }
   return false;
 }
 

@@ -25,6 +25,9 @@ const METADATA_TARGETS = [
   "http://metadata.google.internal/computeMetadata/v1/",
   "http://100.100.100.200/latest/meta-data/",
   "http://169.254.1.2/anything",
+  "http://[fe80::1]/hook",
+  "http://[fea0::1]:8080/hook",
+  "http://[febf:abcd::1]/path",
 ];
 
 describe("webhook guard blocks cloud-metadata unconditionally (#3269 hardening)", () => {
@@ -33,8 +36,14 @@ describe("webhook guard blocks cloud-metadata unconditionally (#3269 hardening)"
     assert.equal(isCloudMetadataHost("metadata.google.internal"), true);
     assert.equal(isCloudMetadataHost("100.100.100.200"), true);
     assert.equal(isCloudMetadataHost("169.254.55.66"), true);
+    assert.equal(isCloudMetadataHost("fe80::1"), true);
+    assert.equal(isCloudMetadataHost("fe81::1"), true);
+    assert.equal(isCloudMetadataHost("fea0::1"), true);
+    assert.equal(isCloudMetadataHost("febf:abcd::1"), true);
     assert.equal(isCloudMetadataHost("10.0.0.5"), false);
     assert.equal(isCloudMetadataHost("hooks.example.com"), false);
+    assert.equal(isCloudMetadataHost("fd00::1"), false);
+    assert.equal(isCloudMetadataHost("2001:db8::1"), false);
   });
 
   it("blocks metadata targets even when the private opt-in is ON", () => {
@@ -57,6 +66,16 @@ describe("webhook guard blocks cloud-metadata unconditionally (#3269 hardening)"
     try {
       const url = parseAndValidateWebhookUrl("http://192.168.0.10/hook");
       assert.equal(url.hostname, "192.168.0.10");
+    } finally {
+      delete process.env[FLAG];
+    }
+  });
+
+  it("still allows a private IPv6 ULA host when opted in (not metadata)", () => {
+    process.env[FLAG] = "true";
+    try {
+      const url = parseAndValidateWebhookUrl("http://[fd00::1]:8080/hook");
+      assert.equal(url.hostname, "fd00::1");
     } finally {
       delete process.env[FLAG];
     }

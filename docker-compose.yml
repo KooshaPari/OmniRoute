@@ -48,6 +48,19 @@ x-common: &common
     start_period: 15s
 
 services:
+  # ── Caddy reverse proxy (single canonical gateway) ───────────────
+  loadbalancer:
+    image: caddy:2-latest
+    container_name: omniroute-lb
+    restart: unless-stopped
+    ports:
+      - "${CADDY_HTTP_PORT:-20128}:20128"
+    volumes:
+      - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
+    environment:
+      - CADDY_API_UPSTREAM=omniroute:20129
+      - CADDY_UI_UPSTREAM=omniroute:20128
+
   # ── Redis (Rate Limiter Backend) ──────────────────────────────────
   redis:
     image: docker.io/library/redis:7-alpine
@@ -73,8 +86,8 @@ services:
       target: runner-base
     image: omniroute:base
     ports:
-      - "${DASHBOARD_PORT:-20128}:${DASHBOARD_PORT:-20128}"
-      - "${API_PORT:-20129}:${API_PORT:-20129}"
+      - "${DASHBOARD_PORT:-20128}"
+      - "${API_PORT:-20129}"
     profiles:
       - base
 
@@ -90,8 +103,8 @@ services:
       target: runner-web
     image: omniroute:web
     ports:
-      - "${DASHBOARD_PORT:-20128}:${DASHBOARD_PORT:-20128}"
-      - "${API_PORT:-20129}:${API_PORT:-20129}"
+      - "${DASHBOARD_PORT:-20128}"
+      - "${API_PORT:-20129}"
     profiles:
       - web
 
@@ -104,8 +117,8 @@ services:
       target: runner-cli
     image: omniroute:cli
     ports:
-      - "${DASHBOARD_PORT:-20128}:${DASHBOARD_PORT:-20128}"
-      - "${API_PORT:-20129}:${API_PORT:-20129}"
+      - "${DASHBOARD_PORT:-20128}"
+      - "${API_PORT:-20129}"
     volumes:
       - ./data:/app/data
       - /var/run/docker.sock:/var/run/docker.sock
@@ -123,8 +136,8 @@ services:
       target: runner-base
     image: omniroute:base
     ports:
-      - "${DASHBOARD_PORT:-20128}:${DASHBOARD_PORT:-20128}"
-      - "${API_PORT:-20129}:${API_PORT:-20129}"
+      - "${DASHBOARD_PORT:-20128}"
+      - "${API_PORT:-20129}"
     environment:
       - DATA_DIR=/app/data
       - PORT=${PORT:-20128}

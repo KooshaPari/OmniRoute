@@ -11,7 +11,7 @@
  *             owns each hash.
  *   Pass 2 — for each non-system message (index i), find blocks whose hash was
  *             first seen in a STRICTLY EARLIER message (index j < i). Replace the
- *             LONGEST such block's text with `[dedup:ref sha=<8hex>]`.
+ *             LONGEST such block's text with `[dedup:ref sha=<24hex>]`.
  *             First occurrence is always kept intact.
  *
  * Greedy, longest-first replacement: sort duplicate blocks by length descending;
@@ -23,9 +23,12 @@
  *   - Only dedup blocks ≥ minBlockChars (default 80 chars) AND ≥ MIN_BLOCK_LINES lines.
  *   - First occurrence is ALWAYS kept intact; only later identical occurrences are replaced.
  *
- * Reconstruction:
- *   Replace every `[dedup:ref sha=XXXXXXXX]` marker with the original block text
- *   from the reverse map attached as `__sessionDedupMap__` on the body object.
+ * TODO — Reconstruction / decompression is NOT yet implemented.
+ *   The engine currently only compresses (dedup → `[dedup:ref sha=…]` markers).
+ *   A future decompression pass should replace markers with original block text
+ *   using the reverse map exposed via engineData["sessionDedup"]
+ *   (see SessionDedupState interface) rather than a magic key on the body object.
+ *   DEBT-009: explicit envelope pattern is implemented; decompression pass is next.
  */
 
 import crypto from "node:crypto";
@@ -45,6 +48,27 @@ const ENGINE_ID = "session-dedup";
 const DEFAULT_MIN_BLOCK_CHARS = 80;
 /** Minimum number of lines a block must span to be a dedup candidate. */
 const MIN_BLOCK_LINES = 3;
+
+// ─── explicit envelope key ─────────────────────────────────────────────────────
+
+/**
+ * Well-known key under `CompressionResult.engineData` where the session-dedup
+ * engine stores its reverse map (sha → original block text). Consumers that
+ * need to reconstruct original content (e.g. a future decompression pass)
+ * read the typed `SessionDedupState` from this key rather than looking for a
+ * magic property on the body object.
+ */
+export const SESSION_DEDUP_KEY = "sessionDedup";
+
+/**
+ * Explicit envelope type for session-dedup reverse-map state.
+ * Stored under `engineData[SESSION_DEDUP_KEY]` on the compression result
+ * — never embedded as a magic key on the body object.
+ */
+export interface SessionDedupState {
+  /** sha → original block text */
+  reverseMap: Record<string, string>;
+}
 
 // ─── hash helper (SHA-256 prefix, collision-resistant) ───────────────────────
 
@@ -97,10 +121,15 @@ function dedupMessageTexts(
 ): {
   deduped: Map<number, string>;
   dedupCount: number;
+  /** Reverse map: sha → original block text (used for future decompression). */
+  reverseMap: Record<string, string>;
 } {
   // Pass 1: for each message, extract suffix blocks and record first ownership.
   // `firstSeen`: sha → { ownerMsgIdx, block }
   const firstSeen = new Map<string, { ownerMsgIdx: number; block: string }>();
+  // Reverse map: sha → original block text (only populated for blocks that
+  // are owned by the first message where they appear).
+  const reverseMap: Record<string, string> = {};
 
   for (const { msgIdx, text } of msgTexts) {
     const lines = text.split("\n");
@@ -109,6 +138,7 @@ function dedupMessageTexts(
       const sha = hashBlock(block);
       if (!firstSeen.has(sha)) {
         firstSeen.set(sha, { ownerMsgIdx: msgIdx, block });
+        reverseMap[sha] = block;
       }
     }
   }
@@ -163,7 +193,7 @@ function dedupMessageTexts(
     }
   }
 
-  return { deduped, dedupCount };
+  return { deduped, dedupCount, reverseMap };
 }
 
 // ─── message array processing ─────────────────────────────────────────────────
@@ -180,7 +210,7 @@ type MessageLike = {
 function processMessages(
   messages: MessageLike[],
   minBlockChars: number
-): { messages: MessageLike[]; dedupCount: number } {
+): { messages: MessageLike[]; dedupCount: number; reverseMap: Record<string, string> } {
   // Collect (msgIdx, text) for non-system string-content messages.
   // For multipart, index each text part separately.
   const msgTexts: Array<{ msgIdx: number; text: string }> = [];
@@ -202,13 +232,13 @@ function processMessages(
   }
 
   if (msgTexts.length < 2) {
-    return { messages, dedupCount: 0 };
+    return { messages, dedupCount: 0, reverseMap: {} };
   }
 
-  const { deduped, dedupCount } = dedupMessageTexts(msgTexts, minBlockChars);
+  const { deduped, dedupCount, reverseMap } = dedupMessageTexts(msgTexts, minBlockChars);
 
   if (dedupCount === 0) {
-    return { messages, dedupCount: 0 };
+    return { messages, dedupCount: 0, reverseMap: {} };
   }
 
   const result = messages.map((msg, i) => {
@@ -237,7 +267,7 @@ function processMessages(
     return { ...msg };
   });
 
-  return { messages: result, dedupCount };
+  return { messages: result, dedupCount, reverseMap };
 }
 
 // ─── schema & validation ──────────────────────────────────────────────────────
@@ -317,7 +347,7 @@ export const sessionDedupEngine: CompressionEngine = {
     }
 
     const start = performance.now();
-    const { messages: dedupedMessages, dedupCount } = processMessages(
+    const { messages: dedupedMessages, dedupCount, reverseMap } = processMessages(
       messages as MessageLike[],
       minBlockChars
     );
@@ -341,7 +371,14 @@ export const sessionDedupEngine: CompressionEngine = {
       durationMs
     );
 
-    return { body: newBody, compressed: true, stats };
+    return {
+      body: newBody,
+      compressed: true,
+      stats,
+      engineData: {
+        [SESSION_DEDUP_KEY]: { reverseMap } satisfies SessionDedupState,
+      },
+    };
   },
 
   compress(body: Record<string, unknown>, config?: Record<string, unknown>): CompressionResult {

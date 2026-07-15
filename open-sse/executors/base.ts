@@ -38,6 +38,38 @@ import { sanitizeClaudeToolSchemas } from "../translator/helpers/schemaCoercion.
 import { sanitizeResponsesInputItems } from "../services/responsesInputSanitizer.ts";
 import { applySystemTransformPipeline, PROVIDER_CLAUDE } from "../services/systemTransforms.ts";
 import * as prl from "../utils/providerRequestLogging.ts";
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return !!value && typeof value === "object" && !Array.isArray(value);
+}
+
+function shouldForceResponsesUpstream(
+  provider: string,
+  body: unknown,
+  credentials: unknown
+): boolean {
+  if (!provider.startsWith("openai-compatible-")) return false;
+  if (!isRecord(body)) return false;
+  const providerSpecificData = isRecord(credentials)
+    ? (credentials.providerSpecificData as Record<string, unknown> | null | undefined)
+    : null;
+  if (providerSpecificData?._omnirouteForceResponsesUpstream === true) return true;
+  if (getOpenAICompatibleType(provider, providerSpecificData ?? null) === "responses") return false;
+
+  const hasResponsesShape =
+    body.input !== undefined ||
+    body.previous_response_id !== undefined ||
+    body.max_output_tokens !== undefined ||
+    body.reasoning !== undefined;
+  if (!hasResponsesShape) return false;
+
+  const tools = Array.isArray(body.tools) ? body.tools : [];
+  return tools.some((toolValue) => {
+    if (!isRecord(toolValue)) return false;
+    const toolType = typeof toolValue.type === "string" ? toolValue.type : "";
+    return toolType === "namespace" || /^tool_search/.test(toolType);
+  });
+}
 import {
   fixToolPairs,
   fixToolAdjacency,
@@ -756,6 +788,19 @@ export class BaseExecutor {
     let lastError: unknown = null;
     let lastStatus = 0;
     let activeCredentials = credentials;
+    if (shouldForceResponsesUpstream(this.provider, body, activeCredentials)) {
+      const credentialRecord = isRecord(activeCredentials) ? activeCredentials : {};
+      const providerSpecificData = isRecord(credentialRecord.providerSpecificData)
+        ? credentialRecord.providerSpecificData
+        : {};
+      activeCredentials = {
+        ...credentialRecord,
+        providerSpecificData: {
+          ...providerSpecificData,
+          _omnirouteForceResponsesUpstream: true,
+        },
+      };
+    }
     // Track per-URL intra-retry attempts to avoid infinite loops
     const retryAttemptsByUrl: Record<number, number> = {};
 

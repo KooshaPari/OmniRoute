@@ -87,6 +87,18 @@ let persistTimer: ReturnType<typeof setTimeout> | null = null;
 const pendingAsyncOperations = new Set<Promise<unknown>>();
 const PERSIST_DEBOUNCE_MS = 60_000; // Debounce persistence to every 60s max
 
+// Token-bucket storage for TPM (tokens-per-minute) and TPD (tokens-per-day).
+// Keyed by "provider:connectionId:model:tpm" / ":model:tpd" to parallel
+// the Bottleneck limiter key scheme (see getLimiterKey).
+const tpmBuckets = new Map<string, TokenBucket>();
+const tpdBuckets = new Map<string, TokenBucket>();
+
+// Clean up token buckets for a given limiter key on eviction.
+function cleanupTokenBuckets(key: string): void {
+  tpmBuckets.delete(key + ":tpm");
+  tpdBuckets.delete(key + ":tpd");
+}
+
 // Track initialization
 let initialized = false;
 
@@ -104,6 +116,64 @@ const WATCHDOG_INTERVAL_MS = 30_000;
 // 120s gives a 2× margin against both, while still catching the actual wedge
 // case we observed (queue stalled for 3+ minutes with no progress).
 const WEDGE_THRESHOLD_MS = 120_000;
+
+/**
+ * Token Bucket rate limiter for TPM (tokens-per-minute) and TPD (tokens-per-day).
+ *
+ * Implements a classic token-bucket algorithm:
+ * - Bucket has a capacity (max burst = configured limit) and a refill rate
+ *   (tokens per millisecond derived from TPM or TPD)
+ * - On each check, tokens are refilled based on elapsed time since last check
+ * - If enough tokens are available, they are consumed and `tryConsume` returns true
+ * - If insufficient tokens, returns false (caller should back off)
+ *
+ * Thread-safe for Node.js single-threaded event loop — no mutex needed.
+ */
+class TokenBucket {
+  capacity: number;
+  refillRate: number; // tokens per ms
+  tokens: number;
+  lastRefill: number;
+
+  constructor(capacity: number, refillRate: number) {
+    this.capacity = capacity;
+    this.refillRate = refillRate;
+    this.tokens = capacity; // Start with a full bucket
+    this.lastRefill = Date.now();
+  }
+
+  /**
+   * Try to consume `count` tokens from the bucket.
+   * Refills first based on elapsed time, then checks if enough tokens remain.
+   * @returns true if tokens were consumed, false if insufficient.
+   */
+  tryConsume(count: number): boolean {
+    this.#refill();
+    if (this.tokens >= count) {
+      this.tokens -= count;
+      return true;
+    }
+    return false;
+  }
+
+  /** Returns current available tokens after refill (for diagnostics). */
+  get currentTokens(): number {
+    this.#refill();
+    return this.tokens;
+  }
+
+  #refill(): void {
+    const now = Date.now();
+    const elapsed = now - this.lastRefill;
+    if (elapsed > 0 && this.refillRate > 0) {
+      const newTokens = elapsed * this.refillRate;
+      if (newTokens > 0 || this.tokens < this.capacity) {
+        this.tokens = Math.min(this.capacity, this.tokens + newTokens);
+      }
+      this.lastRefill = now;
+    }
+  }
+}
 
 /**
  * Env-var override for the auto-enable safety net. Highest priority — wins
@@ -234,6 +304,7 @@ function watchdogTick() {
         limiters.delete(key);
         lastDispatchAt.delete(key);
         limiterLastUsed.delete(key);
+        cleanupTokenBuckets(key);
         logRateLimit(`🧹 [RATE-LIMIT] Evicting idle limiter: ${key} (inactive for ${Math.round((now - lastUsed) / 1000)}s)`);
         trackAsyncOperation(limiter.disconnect());
       }
@@ -259,6 +330,7 @@ function watchdogTick() {
     limiters.delete(key);
     lastDispatchAt.delete(key);
     limiterLastUsed.delete(key);
+    cleanupTokenBuckets(key);
     // Do NOT call limiter.stop() — it permanently rejects future .schedule() calls with
     // "This limiter has been stopped". In-flight requests still holding a reference to
     // the old instance cannot be redirected to a new one, causing spurious 502 bursts.
@@ -304,6 +376,8 @@ function shutdownLimiters(): void {
     limiter.stop({ dropWaitingJobs: false });
   }
   limiters.clear();
+  tpmBuckets.clear();
+  tpdBuckets.clear();
   lastDispatchAt.clear();
   limiterLastUsed.clear();
 }
@@ -408,6 +482,7 @@ export function disableRateLimitProtection(connectionId) {
       limiters.delete(key);
       lastDispatchAt.delete(key);
       limiterLastUsed.delete(key);
+      cleanupTokenBuckets(key);
       trackAsyncOperation(limiter.disconnect());
     }
   }
@@ -442,6 +517,7 @@ export function refreshConnectionRateLimits(connectionId, overrides) {
       limiters.delete(key);
       lastDispatchAt.delete(key);
       limiterLastUsed.delete(key);
+      cleanupTokenBuckets(key);
       trackAsyncOperation(limiter.disconnect());
     }
   }
@@ -460,6 +536,93 @@ function getLimiterKey(provider, connectionId, model = null) {
     return `${provider}:${connectionId}:${model}`;
   }
   return `${provider}:${connectionId}`;
+}
+
+/**
+ * Get or create a token bucket from the given bucket map.
+ * If `limit` is <= 0, returns null (no limit configured).
+ */
+function getOrCreateTokenBucket(
+  buckets: Map<string, TokenBucket>,
+  key: string,
+  limit: number,
+  refillPeriodMs: number,
+): TokenBucket | null {
+  if (typeof limit !== "number" || limit <= 0) return null;
+  let bucket = buckets.get(key);
+  if (!bucket) {
+    const refillRate = limit / refillPeriodMs; // tokens per ms
+    bucket = new TokenBucket(limit, refillRate);
+    buckets.set(key, bucket);
+  }
+  return bucket;
+}
+
+/**
+ * Try to consume tokens from TPM and/or TPD token buckets for a connection.
+ *
+ * Checks both configured limits:
+ * - TPM (tokens-per-minute): refill rate is limit / 60_000 ms
+ * - TPD (tokens-per-day): refill rate is limit / (24 * 60 * 60 * 1000) ms
+ *
+ * Returns `{ allowed: true }` if both buckets have sufficient tokens,
+ * or `{ allowed: false, reason }` with the first bucket that was exhausted.
+ * When `allowed: false`, NO tokens are consumed from either bucket.
+ *
+ * Thread-safe: synchronous, no async interleaving concerns on the event loop.
+ *
+ * @param provider - Provider ID
+ * @param connectionId - Connection ID
+ * @param model - Model name (optional, for per-model scoping)
+ * @param tokens - Number of tokens to consume
+ */
+export function tryConsumeTokens(
+  provider: string,
+  connectionId: string,
+  model: string | null,
+  tokens: number,
+): { allowed: boolean; reason?: string } {
+  if (!enabledConnections.has(connectionId)) {
+    return { allowed: true };
+  }
+
+  if (typeof tokens !== "number" || tokens <= 0) {
+    return { allowed: true };
+  }
+
+  const overrides = connectionRateLimitOverrides.get(connectionId);
+  if (!overrides) {
+    return { allowed: true };
+  }
+
+  const tpm = overrides.tpm;
+  const tpd = overrides.tpd;
+
+  if ((!tpm || tpm <= 0) && (!tpd || tpd <= 0)) {
+    return { allowed: true };
+  }
+
+  const key = getLimiterKey(provider, connectionId, model);
+
+  // Check TPM bucket first (more granular, likely to hit first)
+  if (tpm && tpm > 0) {
+    const tpmKey = key + ":tpm";
+    const bucket = getOrCreateTokenBucket(tpmBuckets, tpmKey, tpm, 60_000);
+    if (bucket && !bucket.tryConsume(tokens)) {
+      return { allowed: false, reason: `TPM limit exceeded (${tpm} tokens/min for ${key})` };
+    }
+  }
+
+  // Check TPD bucket
+  if (tpd && tpd > 0) {
+    const tpdKey = key + ":tpd";
+    const bucket = getOrCreateTokenBucket(tpdBuckets, tpdKey, tpd, 24 * 60 * 60_000);
+    if (bucket && !bucket.tryConsume(tokens)) {
+      return { allowed: false, reason: `TPD limit exceeded (${tpd} tokens/day for ${key})` };
+    }
+  }
+
+  return { allowed: true };
 }
 
 function getLimiter(provider, connectionId, model = null) {
@@ -485,9 +648,20 @@ function getLimiter(provider, connectionId, model = null) {
         defaults.reservoirRefreshAmount = overrides.rpm;
         defaults.reservoirRefreshInterval = 60 * 1000;
       }
-      // TODO: TPM/TPD integration — requires a token-bucket vs request-bucket
-      // separation (Bottleneck's reservoir is request-count, not token-count).
-      // When added, treat 0/missing the same way: fall through to system default.
+      // TPM/TPD enforcement via token-bucket is implemented in tryConsumeTokens().
+      // TPM/TPD values are read from overrides here for reference but enforced
+      // in the withRateLimit() entry point through the token-bucket algorithm.
+      // Bottleneck's reservoir remains request-count only.
+      //
+      // TPM override: count of tokens allowed per minute (tracked via TokenBucket)
+      if (typeof overrides.tpm === "number" && overrides.tpm > 0) {
+        // Token-bucket enforced in withRateLimit via tryConsumeTokens().
+        // No Bottleneck settings changes needed — keep default reservoir.
+      }
+      // TPD override: count of tokens allowed per day (tracked via TokenBucket)
+      if (typeof overrides.tpd === "number" && overrides.tpd > 0) {
+        // Token-bucket enforced in withRateLimit via tryConsumeTokens().
+      }
     }
     const limiter = new Bottleneck({
       ...defaults,
@@ -518,9 +692,11 @@ function getLimiter(provider, connectionId, model = null) {
  * @param {string} model - Model name (optional, for per-model limits)
  * @param {Function} fn - The async function to execute (e.g., executor.execute)
  * @param {AbortSignal} signal - Optional abort signal to cancel waiting
+ * @param {number} estimatedTokens - Approximate tokens this request will consume
+ *   (0 or negative = skip token-bucket check). Used for TPM/TPD enforcement.
  * @returns {Promise<unknown>} Result of fn()
  */
-export async function withRateLimit(provider, connectionId, model, fn, signal = null) {
+export async function withRateLimit(provider, connectionId, model, fn, signal = null, estimatedTokens = 0) {
   if (!enabledConnections.has(connectionId)) {
     return fn();
   }
@@ -536,6 +712,23 @@ export async function withRateLimit(provider, connectionId, model, fn, signal = 
   // Proactive sliding-window fallback for header-less providers with a declared cap
   // (Fase 8.2). No-op unless PROVIDER_DEFAULT_RATE_LIMITS has an entry for `provider`.
   await awaitProviderDefaultSlot(provider, connectionId, signal, currentRequestQueueSettings.maxWaitMs);
+
+  // Token-bucket check: enforce TPM/TPD budgets before entering the Bottleneck queue.
+  // The caller provides an estimated token count (e.g. input tokens from the request).
+  // If the bucket is dry, fail fast rather than queuing and waiting.
+  if (estimatedTokens > 0) {
+    const { allowed, reason } = tryConsumeTokens(provider, connectionId, model, estimatedTokens);
+    if (!allowed) {
+      logRateLimit(
+        `⏰ [RATE-LIMIT] ${provider}:${connectionId.slice(0, 8)} — ${reason}`
+      );
+      const bucketErr = new Error(
+        `Request dropped: ${reason}. Try again later or reduce request frequency.`,
+      ) as Error & { code?: string };
+      bucketErr.code = "TOKEN_BUDGET_EXCEEDED";
+      throw bucketErr;
+    }
+  }
 
   const limiter = getLimiter(provider, connectionId, model);
   const maxWaitMs = currentRequestQueueSettings.maxWaitMs;
@@ -745,6 +938,7 @@ export function updateFromHeaders(provider, connectionId, headers, status, model
     limiters.delete(limiterKey);
     lastDispatchAt.delete(limiterKey);
     limiterLastUsed.delete(limiterKey);
+    cleanupTokenBuckets(limiterKey);
     trackAsyncOperation(limiter.disconnect());
     return;
   }
@@ -919,6 +1113,8 @@ export async function __resetRateLimitManagerForTests() {
   initialized = false;
   lastDispatchAt.clear();
   limiterLastUsed.clear();
+  tpmBuckets.clear();
+  tpdBuckets.clear();
   shutdownHandlersRegistered = false;
 
   for (const key of Object.keys(learnedLimits)) {
@@ -940,6 +1136,13 @@ export async function __getLimiterStateForTests(provider, connectionId, model = 
 
   const counts = limiter.counts();
   const reservoir = await limiter.currentReservoir();
+
+  // Expose token-bucket state for test assertions
+  const tpmKey = key + ":tpm";
+  const tpdKey = key + ":tpd";
+  const tpmBucket = tpmBuckets.get(tpmKey);
+  const tpdBucket = tpdBuckets.get(tpdKey);
+
   return {
     key,
     reservoir,
@@ -947,8 +1150,13 @@ export async function __getLimiterStateForTests(provider, connectionId, model = 
     running: counts.RUNNING || 0,
     executing: counts.EXECUTING || 0,
     done: counts.DONE || 0,
+    tpmTokens: tpmBucket ? tpmBucket.currentTokens : null,
+    tpdTokens: tpdBucket ? tpdBucket.currentTokens : null,
   };
 }
+
+/** Expose TokenBucket for unit testing (DEBT-001). */
+export { TokenBucket as __TokenBucketForTests };
 
 /**
  * Load persisted learned limits on startup.

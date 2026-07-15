@@ -103,6 +103,44 @@ describe("POST /api/webhooks — SSRF guard on create", () => {
     assert.equal(res.status, 201, "public URL must be accepted");
   });
 
+  it("rejects custom webhook pointing to IPv6 loopback ([::1])", async () => {
+    const req = jsonRequest("http://localhost/api/webhooks", "POST", {
+      url: "http://[::1]:20128/api/v1/management/proxies",
+      kind: "custom",
+    });
+    const res = await webhooksRoute.POST(req);
+    assert.equal(res.status, 400, "IPv6 loopback must be rejected");
+    const body = await res.json();
+    assert.ok(body.error, "error body must be present");
+  });
+
+  it("rejects slack webhook pointing to IPv6 link-local ([fe80::1])", async () => {
+    const req = jsonRequest("http://localhost/api/webhooks", "POST", {
+      url: "http://[fe80::1]/hook",
+      kind: "slack",
+    });
+    const res = await webhooksRoute.POST(req);
+    assert.equal(res.status, 400, "IPv6 link-local must be rejected");
+  });
+
+  it("rejects custom webhook pointing to IPv6 private ULA ([fd00::1])", async () => {
+    const req = jsonRequest("http://localhost/api/webhooks", "POST", {
+      url: "http://[fd00::1]:8080/hook",
+      kind: "custom",
+    });
+    const res = await webhooksRoute.POST(req);
+    assert.equal(res.status, 400, "IPv6 ULA must be rejected");
+  });
+
+  it("accepts custom webhook with public IPv6 address", async () => {
+    const req = jsonRequest("http://localhost/api/webhooks", "POST", {
+      url: "http://[2001:db8::1]/hook",
+      kind: "custom",
+    });
+    const res = await webhooksRoute.POST(req);
+    assert.equal(res.status, 201, "public IPv6 must be accepted");
+  });
+
   it("does not trip the SSRF guard for telegram kind (url is a chat_id, not HTTP)", async () => {
     const req = jsonRequest("http://localhost/api/webhooks", "POST", {
       url: "@my-telegram-channel",
@@ -139,6 +177,22 @@ describe("PUT /api/webhooks/[id] — SSRF guard on update", () => {
     });
     assert.equal(res.status, 400, "PUT must reject loopback host");
   });
+
+  it("rejects an update that flips a webhook URL to IPv6 loopback", async () => {
+    const created = createWebhook({
+      url: "https://example.com/initial",
+      events: ["*"],
+      kind: "custom",
+    });
+
+    const req = jsonRequest(`http://localhost/api/webhooks/${created.id}`, "PUT", {
+      url: "http://[::1]:20128/admin",
+    });
+    const res = await webhookByIdRoute.PUT(req, {
+      params: Promise.resolve({ id: created.id }),
+    });
+    assert.equal(res.status, 400, "PUT must reject IPv6 loopback host");
+  });
 });
 
 describe("POST /api/webhooks/[id]/test — defense in depth on dispatch", () => {
@@ -146,6 +200,28 @@ describe("POST /api/webhooks/[id]/test — defense in depth on dispatch", () => 
     // Bypass schema by inserting directly via the DB layer.
     const stale = createWebhook({
       url: "http://127.0.0.1:1/should-be-blocked",
+      events: ["*"],
+      kind: "custom",
+    });
+
+    const req = new Request(`http://localhost/api/webhooks/${stale.id}/test`, { method: "POST" });
+    const res = await webhookTestRoute.POST(req, {
+      params: Promise.resolve({ id: stale.id }),
+    });
+    assert.equal(res.status, 200, "test endpoint still returns a structured diagnostic envelope");
+    const body = await res.json();
+    assert.equal(body.delivered, false, "blocked URL must not report a successful delivery");
+    assert.equal(body.status, 0, "no upstream status from a guarded call");
+    assert.equal(body.responseBody, "", "no upstream body must be exfiltrated");
+    assert.ok(
+      typeof body.error === "string" && /block|private|invalid/i.test(body.error),
+      `error message must signal the block: ${body.error}`
+    );
+  });
+
+  it("does not exfiltrate response body when persisted URL is IPv6 loopback", async () => {
+    const stale = createWebhook({
+      url: "http://[::1]:1/should-be-blocked",
       events: ["*"],
       kind: "custom",
     });

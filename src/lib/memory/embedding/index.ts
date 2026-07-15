@@ -62,7 +62,7 @@ export function resolveEmbeddingSource(settings: MemorySettingsExtended): Embedd
         model: null,
         dimensions: null,
         signature: makeSignature(null, null, null),
-        reason: "no_key: embeddingProviderModel não configurado",
+        reason: "no_key: embeddingProviderModel not configured",
       };
     }
     // We can't do async here, so we report it as potentially available
@@ -73,7 +73,7 @@ export function resolveEmbeddingSource(settings: MemorySettingsExtended): Embedd
       model,
       dimensions: null,
       signature: makeSignature("remote", model, null),
-      reason: `provider remoto configurado: ${model}`,
+      reason: `remote provider configured: ${model}`,
     };
   }
 
@@ -84,7 +84,7 @@ export function resolveEmbeddingSource(settings: MemorySettingsExtended): Embedd
         model: null,
         dimensions: null,
         signature: makeSignature(null, null, null),
-        reason: "static desabilitado nas configurações",
+        reason: "static disabled in settings",
       };
     }
     return {
@@ -92,7 +92,7 @@ export function resolveEmbeddingSource(settings: MemorySettingsExtended): Embedd
       model: STATIC_MODEL,
       dimensions: 256,
       signature: makeSignature("static", STATIC_MODEL, 256),
-      reason: "static (potion-base-8M) selecionado explicitamente",
+      reason: "static (potion-base-8M) explicitly selected",
     };
   }
 
@@ -103,7 +103,7 @@ export function resolveEmbeddingSource(settings: MemorySettingsExtended): Embedd
         model: null,
         dimensions: null,
         signature: makeSignature(null, null, null),
-        reason: "transformers desabilitado nas configurações",
+        reason: "transformers disabled in settings",
       };
     }
     return {
@@ -111,7 +111,7 @@ export function resolveEmbeddingSource(settings: MemorySettingsExtended): Embedd
       model: TRANSFORMERS_MODEL,
       dimensions: 384,
       signature: makeSignature("transformers", TRANSFORMERS_MODEL, 384),
-      reason: "transformers.js (MiniLM-L6-v2) selecionado explicitamente",
+      reason: "transformers.js (MiniLM-L6-v2) explicitly selected",
     };
   }
 
@@ -134,7 +134,7 @@ export function resolveEmbeddingSource(settings: MemorySettingsExtended): Embedd
           model: providerModel,
           dimensions: null,
           signature: makeSignature("remote", providerModel, null),
-          reason: `auto: provider ${providerId} configurado`,
+          reason: `auto: provider ${providerId} configured`,
         };
       }
     }
@@ -145,7 +145,7 @@ export function resolveEmbeddingSource(settings: MemorySettingsExtended): Embedd
         model: STATIC_MODEL,
         dimensions: 256,
         signature: makeSignature("static", STATIC_MODEL, 256),
-        reason: "auto: potion-base-8M (static) disponível",
+        reason: "auto: potion-base-8M (static) available",
       };
     }
 
@@ -155,14 +155,14 @@ export function resolveEmbeddingSource(settings: MemorySettingsExtended): Embedd
         model: TRANSFORMERS_MODEL,
         dimensions: 384,
         signature: makeSignature("transformers", TRANSFORMERS_MODEL, 384),
-        reason: "auto: transformers.js (MiniLM-L6-v2) disponível",
+        reason: "auto: transformers.js (MiniLM-L6-v2) available",
       };
     }
 
-    return noSource("auto: nenhuma fonte de embedding disponível");
+    return noSource("auto: no embedding source available");
   }
 
-  return noSource("fonte de embedding desconhecida");
+  return noSource("unknown embedding source");
 }
 
 /**
