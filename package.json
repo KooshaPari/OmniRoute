@@ -216,7 +216,7 @@
     "uninstall:full": "node scripts/build/uninstall.mjs --full",
     "prepare": "husky",
     "system-info": "node scripts/dev/system-info.mjs",
-    "build:cli-api": "node --import tsx/esm scripts/cli/generate-api-commands.mjs",
+    "build:cli-api": "bun scripts/cli/generate-api-commands.mjs",
     "release:contributors": "node scripts/release/gen-contributors.mjs",
     "release:uncovered": "node scripts/release/list-uncovered-commits.mjs",
     "test:coverage:runner": "node --max-old-space-size=8192 --import tsx/esm --import ./open-sse/utils/setupPolyfill.ts --import ./tests/_setup/isolateDataDir.ts --test --test-force-exit --test-concurrency=8 tests/unit/*.test.ts \"tests/unit/{api,auth,authz,build,cli,cli-helper,combo,compression,correctness,cors,db,db-adapters,docs,gamification,guardrails,lib,mcp,memory,runtime,security,services,settings,shared,ui,usage}/**/*.test.ts\" \"tests/unit/**/*.test.mjs\" && cross-env DISABLE_SQLITE_AUTO_BACKUP=true NODE_OPTIONS=--max-old-space-size=8192 c8 --merge-async --output-dir coverage --exclude=tests/** --exclude=**/*.test.* --reporter=text-summary --reporter=html --reporter=json-summary --reporter=lcov --check-coverage --statements 60 --lines 60 --functions 60 --branches 60 node --max-old-space-size=8192 --import tsx --import ./open-sse/utils/setupPolyfill.ts --import ./tests/_setup/isolateDataDir.ts --test --test-force-exit --test-concurrency=8 \"tests/unit/dashboard/**/*.test.ts\" && npm run test:unit:serial",
