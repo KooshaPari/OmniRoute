@@ -6,9 +6,9 @@ import process from "node:process";
 const root = process.cwd();
 const output = path.join(root, "release-candidate");
 const manifests = [
-  ["web", "apps/web/package.json", "npm"],
-  ["bff", "apps/bff/package.json", "npm"],
-  ["desktop", "apps/desktop/package.json", "npm"],
+  ["web", "apps/web/package.json", "application"],
+  ["bff", "apps/bff/package.json", "application"],
+  ["desktop", "apps/desktop/package.json", "application"],
   ["desktop-tauri", "apps/desktop/src-tauri/tauri.conf.json", "application"],
 ];
 const components = [];
@@ -42,6 +42,36 @@ if (versions.length !== 1) {
   throw new Error(`v4 version mismatch: ${components.map(({ name, version }) => `${name}=${version}`).join(", ")}`);
 }
 const version = versions[0];
+
+const readinessConfig = JSON.parse(
+  await readFile(path.join(root, "config/release/v4-readiness.json"), "utf8"),
+);
+const readinessGroup = readinessConfig.versionGroups?.find(({ name }) => name === "v4-application");
+if (!readinessGroup) throw new Error("v4 readiness contract has no v4-application version group");
+const readinessVersions = [];
+for (const member of readinessGroup.members) {
+  const source = await readFile(path.join(root, member.path), "utf8");
+  let memberVersion;
+  if (member.format === "json") {
+    memberVersion = member.field
+      .split(".")
+      .reduce((value, key) => value?.[key], JSON.parse(source));
+  } else if (member.format === "toml-package-version") {
+    const packageBlock = source.match(/\[package\]([\s\S]*?)(?:\n\[|$)/)?.[1] ?? "";
+    memberVersion = packageBlock.match(/^version\s*=\s*"([^"]+)"/m)?.[1];
+  }
+  readinessVersions.push({ path: member.path, version: memberVersion ?? null });
+}
+if (
+  readinessVersions.some(({ version: memberVersion }) => memberVersion !== version)
+) {
+  throw new Error(
+    `artifact version ${version} disagrees with readiness contract: ${readinessVersions
+      .map(({ path: memberPath, version: memberVersion }) => `${memberPath}=${memberVersion}`)
+      .join(", ")}`,
+  );
+}
+
 const tag = process.env.RELEASE_TAG?.trim();
 if (tag && tag !== `v${version}`) {
   throw new Error(`release tag ${tag} does not match v4 version v${version}`);
@@ -76,7 +106,7 @@ const preflight = {
   signing: false,
   nativeCompatibilityChanged: false,
   npmCompatibilityChanged: false,
-  manifests: components.map(({ name, version, properties }) => ({ name, version, properties })),
+  readinessContract: {\n    schemaVersion: readinessConfig.schemaVersion,\n    versionGroup: readinessGroup.name,\n    members: readinessVersions,\n  },\n  manifests: components.map(({ name, version, properties }) => ({ name, version, properties })),
 };
 
 await mkdir(output, { recursive: true });
