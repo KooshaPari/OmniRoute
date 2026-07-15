@@ -1,4 +1,8 @@
 name: argismonitor-ci
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 on:
   push:
     branches: [feat/v4-svelte-hono-monorepo, main]
