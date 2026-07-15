@@ -119,36 +119,6 @@
 
 <br/>
 
-> **📣 This project is now distributed as `argismonitor`.**
->
-> `OmniRoute` is the upstream (`diegosouzapw/OmniRoute`, MIT). This fork
-> (`KooshaPari/OmniRoute`) is published under the new name **`argismonitor`**
-> on npm and the **`KooshaPari/ArgisMonitor`** GitHub repo. The internal
-> identifier `omniroute` is preserved as a deprecated alias for upstream-merge
-> safety; new installs should use `argismonitor`.
->
-> |  | old (deprecated) | new (canonical) |
-> |--|------------------|-----------------|
-> | binary | `omniroute` | `argismonitor` |
-> | npm | `omniroute` | `argismonitor` |
-> | data dir | `~/.omniroute` | `~/.argismonitor` (legacy preserved) |
-> | env vars | `OMNIROUTE_*` | `ARGIS_*` (legacy aliased) |
-> | repo | `KooshaPari/OmniRoute` | `KooshaPari/ArgisMonitor` |
->
-> ```bash
-> # Migrate in 30 seconds
-> npm uninstall -g omniroute
-> npm install -g argismonitor
-> argismonitor --version   # canonical
-> OMNIROUTE_LEGACY=1 omniroute --version   # legacy shim still works
-> ```
->
-> Removal window for the legacy aliases is **6 months** after `argismonitor`
-> is published as `latest` on npm. See `docs/RENAMES-STRATEGY.md` for the
-> full migration matrix and `docs/FORK.md` for fork attribution.
-
-<br/>
-
 <div align="center">
 
 # 💰 ~1.6B Free Tokens / Month
@@ -1294,6 +1264,12 @@ OmniRoute is free and open source, built and maintained in the open. If it saves
 ## 📄 License
 
 MIT License - see [LICENSE](LICENSE) for details.
+
+## Fork identity and upstream attribution
+
+This repository is the `KooshaPari/OmniRoute` fork, distributed as **ArgisMonitor** through the existing `argismonitor` package and `argismonitor` CLI. The `omniroute` CLI remains a supported compatibility alias for one major release after the 2026-07-14 identity decision.
+
+The upstream project is [`diegosouzapw/OmniRoute`](https://github.com/diegosouzapw/OmniRoute), used under the preserved MIT license without implying upstream endorsement. Fork governance, divergence, and attribution are documented in [`docs/FORK.md`](docs/FORK.md); the binding identity and rollback decision is [`ADR-032`](docs/adr/ADR-032-argismonitor-identity-baseline.md).
 
 ---
 

@@ -4,7 +4,7 @@
 > [`diegosouzapw/OmniRoute`](https://github.com/diegosouzapw/OmniRoute),
 > the original OmniRoute project, published under the MIT License by
 > Diego Souza. The fork is maintained as **ArgisMonitor** under
-> [`KooshaPari/ArgisMonitor`](https://github.com/KooshaPari/ArgisMonitor)
+> [`KooshaPari/OmniRoute`](https://github.com/KooshaPari/OmniRoute)
 > (npm: [`argismonitor`](https://www.npmjs.com/package/argismonitor)).
 > All upstream work is credited; this fork's divergence is detailed below.
 
@@ -70,12 +70,12 @@ distribution with extra hardening, this fork is the supported path.
 
 | Surface | Upstream | This fork |
 |---------|----------|-----------|
-| Repo | `diegosouzapw/OmniRoute` | `KooshaPari/OmniRoute` (fork) + `KooshaPari/ArgisMonitor` (mirror, future primary) |
+| Repo | `diegosouzapw/OmniRoute` | `KooshaPari/OmniRoute` |
 | npm package | `omniroute` | **`argismonitor`** + deprecated `omniroute` (shim) |
 | Scoped packages | `@omniroute/opencode-plugin` | `@argismonitor/opencode-plugin` (+ legacy `@omniroute/*` published-as-deprecated) |
 | Bin / CLI command | `omniroute` | `argismonitor` (with `omniroute` legacy alias) |
 | Default install path | `~/.omniroute/` | `~/.argismonitor/` (legacy `~/.omniroute/` still honored for upgrades) |
-| Domain | (upstream domain) | `argismonitor.phenotype.space` (docs) + `argismonitor.pheno.studio` (deploy/internal) |
+| Documentation | (upstream surface) | `https://kooshapari.github.io/OmniRoute/` after Pages is enabled and verified |
 | Workflow file | `npm-publish.yml` | `argismonitor-publish.yml` (added; old file kept) |
 
 ### 3.2 Renames strategy — additive, upstream-safe
@@ -92,7 +92,7 @@ rebase. Instead:
 3. **Shims provide back-compat**: the `omniroute` binary forwards to
    `argismonitor`; the `~/.omniroute/` data dir is still honored; the
    `OMNIROUTE_*` env vars still work.
-4. **Deprecation window**: during the deprecation window, both names
+4. **Compatibility window**: for one major release after ADR-032, both names
    resolve. The shims print a one-time warning pointing at the new
    canonical name.
 5. **Migration**: see [`RENAMES-STRATEGY.md`](./RENAMES-STRATEGY.md)
@@ -117,9 +117,9 @@ rebase. Instead:
   nightly release builds. See [`UPDATE-STRATEGY.md`](./UPDATE-STRATEGY.md).
 - **Developer CLI**: `argismonitor dev` simple (Taskfile) +
   `argismonitor devctl` rich (clap/commander). See [`DEV-CLI.md`](./DEV-CLI.md).
-- **Landing pages**: `argismonitor.phenotype.space` (public/docs on
-  Vercel + GH Pages), `argismonitor.pheno.studio` (internal/dev on
-  WSL+Caddy envelope). See [`LANDING-PAGES.md`](./LANDING-PAGES.md).
+- **Documentation target**: the default repository-coupled GitHub Pages URL,
+  `https://kooshapari.github.io/OmniRoute/`. Pages is not enabled or deployed
+  by the identity baseline.
 - **OTel / QA dashboards**: per-project, plus a fleet view at
   `phenotype.space/dashboards`. See [`OBSERVABILITY.md`](./OBSERVABILITY.md).
 
@@ -145,8 +145,8 @@ of them emits a tombstone the first time it is used in a session:
 1. **Binary tombstone**: running `omniroute` prints
    ```
    [argismonitor] 'omniroute' is a legacy alias for 'argismonitor'.
-   This shim will be removed after the deprecation window.
-   See https://argismonitor.phenotype.space/docs/renames
+   This shim is supported for one major release after ADR-032.
+   See https://kooshapari.github.io/OmniRoute/renames
    ```
    on stderr, then forwards execution to `argismonitor`.
 2. **Env-var tombstone**: setting any of `OMNIROUTE_DATA_DIR`,
@@ -161,8 +161,8 @@ of them emits a tombstone the first time it is used in a session:
 4. **npm registry tombstone**: when the legacy `omniroute` package is
    next published, its `description` is flipped to
    `Deprecated: this package has been renamed to 'argismonitor'. See
-   https://argismonitor.phenotype.space/docs/renames` and a
-   `npm deprecate omniroute@* "renamed: see argismonitor.phenotype.space"`
+   https://kooshapari.github.io/OmniRoute/renames` and a
+   future registry deprecation requires separate release approval
    call is queued by `packaging/npm/deprecate-omniroute.sh`.
 
 ### 3.5 PRs and issues
@@ -191,17 +191,15 @@ attributions are preserved in [`NOTICE.md`](./NOTICE.md).
 
 ## 5. Trademark
 
-- **ArgisMonitor** and **Phenotype.** are trademarks owned by
-  KooshaPari (DBA: Phenotype., without terminal period for legal
-  records, with period used for styling).
+- This document makes no trademark ownership claim for ArgisMonitor or Phenotype.
 - **OmniRoute** is a trademark of its upstream owner; this fork does
   not claim ownership and uses the mark only for accurate provenance.
 - **KooshaPari** is the personal moniker of the maintainer.
 
 ## 6. Contact / maintainer
 
-- Repo: <https://github.com/KooshaPari/ArgisMonitor>
-- Issues: <https://github.com/KooshaPari/ArgisMonitor/issues>
-- Domain: <https://argismonitor.phenotype.space>
+- Repo: <https://github.com/KooshaPari/OmniRoute>
+- Issues: <https://github.com/KooshaPari/OmniRoute/issues>
+- Documentation target: <https://kooshapari.github.io/OmniRoute/> (not live until Pages is enabled)
 
 — KooshaPari / Phenotype.

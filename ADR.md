@@ -40,6 +40,7 @@ chronological + thematic view.
 | **ADR-009** | [Bifrost Disambiguation (2026-06-18)](#adr-009--bifrost-disambiguation-2026-06-18) | Accepted | 2026-06-18 | — |
 | **ADR-010** | [71-Pillar Audit Adoption Deferred (2026-06-18)](#adr-010--71-pillar-audit-adoption-deferred-2026-06-18) | Accepted | 2026-06-18 | — |
 | **ADR-031** | [Bifrost as Tier-1 Router Layer (2026-06-18)](#adr-031--bifrost-as-tier-1-router-layer-2026-06-18) | Accepted | 2026-06-18 | `chore/l5-109-omniroute-fork-cleanup-2026-06-18` |
+| **ADR-032** | [ArgisMonitor identity baseline](docs/adr/ADR-032-argismonitor-identity-baseline.md) | Accepted | 2026-07-14 | — |
 | **0031** | [Bifrost as Tier-1 Router Layer (MADR)](docs/adr/0031-bifrost-tier1-router.md) | Accepted | 2026-06-18 | — |
 | **0001** | [Record Architecture Decisions (template)](docs/adr/0001-record-architecture-decisions.md) | Accepted | 2026-05-30 | MADR template |
 | **0002** | [Test Runner: vitest vs jest](docs/adr/0002-test-runner-vitest-vs-jest.md) | Accepted | 2026-06-08 | — |
