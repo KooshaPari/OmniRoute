@@ -11,7 +11,7 @@ import type { EmbeddingResult, EmbeddingError } from "./types";
 
 const TRANSFORMERS_MODEL =
   process.env.MEMORY_TRANSFORMERS_MODEL || "Xenova/all-MiniLM-L6-v2";
-const TRANSFORMERS_PACKAGE = "@" + "huggingface" + "/" + "transformers";
+const TRANSFORMERS_PACKAGE = ["@", "huggingface", "/", "transformers"].join("");
 
 // Singleton pipeline, initialized once
 type PipelineFn = (text: string | string[], options?: Record<string, unknown>) => Promise<unknown>;
@@ -31,8 +31,7 @@ async function getOrLoadPipeline(): Promise<PipelineFn> {
   _pipelineLoading = (async (): Promise<PipelineFn> => {
     // Lazy import — runtime-only and module-resolution-obscured so optional
     // installs do not fail at build-time.
-    const importer = new Function("pkg", "return import(pkg)");
-    const transformers = await importer(TRANSFORMERS_PACKAGE);
+    const transformers = await import(TRANSFORMERS_PACKAGE);
     const { pipeline } = transformers as { pipeline: (task: string, model: string, opts?: Record<string, unknown>) => Promise<PipelineFn> };
     const pipe = await pipeline("feature-extraction", TRANSFORMERS_MODEL, { dtype: "q8" });
     _pipeline = pipe;
