@@ -1,0 +1,26 @@
+name: v4 Quickstart provenance
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - ".github/workflows/v4-quickstart-provenance.yml"
+      - "docs/public/QUICKSTART_V4.md"
+      - "scripts/docs/validate-v4-quickstart.mjs"
+      - "apps/web/package.json"
+      - "apps/bff/package.json"
+      - "apps/bff/src/index.ts"
+      - "apps/web/src/routes/+page.svelte"
+      - "tests/e2e/smoke.spec.ts"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      - run: node scripts/docs/validate-v4-quickstart.mjs

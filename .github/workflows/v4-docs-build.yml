@@ -1,0 +1,44 @@
+name: v4 docs scaffold build
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - ".github/workflows/v4-docs-build.yml"
+      - "apps/docs/**"
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/v4-docs-build.yml"
+      - "apps/docs/**"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: v4-docs-build-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      - name: Validate public boundary
+        run: node apps/docs/scripts/build.mjs --check
+      - name: Build deterministic preview
+        run: |
+          node apps/docs/scripts/build.mjs
+          test -s apps/docs/dist/index.html
+          test -s apps/docs/dist/build-manifest.json
+          grep -q '"deployable": false' apps/docs/dist/build-manifest.json
+      - name: Upload non-deployable preview
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: v4-docs-scaffold-${{ github.sha }}
+          path: apps/docs/dist/
+          if-no-files-found: error
+          retention-days: 7
+          include-hidden-files: false
