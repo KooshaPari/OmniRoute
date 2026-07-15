@@ -203,7 +203,7 @@ export async function executeWebSearch(
       .filter((provider) => supportsSearchType(provider, searchType))
       .sort((a, b) => a.costPerQuery - b.costPerQuery)
       .map((provider) => provider.id)
-      .filter((providerId) => providerId !== providerConfig.id);
+      .filter((providerId) => providerConfig && providerId !== providerConfig.id);
 
     for (const providerId of otherIds) {
       const creds = await resolveSearchCredentials(providerId);

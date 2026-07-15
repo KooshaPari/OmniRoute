@@ -11,7 +11,7 @@
 // Provider Colors (used across all logger components)
 // ═══════════════════════════════════════════
 
-export const PROVIDER_COLORS = {
+export const PROVIDER_COLORS: Record<string, { bg: string; text: string; label: string }> = {
   github: { bg: "#6e40c9", text: "#fff", label: "GitHub" },
   kiro: { bg: "#FF9900", text: "#000", label: "Kiro" },
   antigravity: { bg: "#4285F4", text: "#fff", label: "AG" },
@@ -29,7 +29,7 @@ export const PROVIDER_COLORS = {
 // Protocol Colors (RequestLoggerV2)
 // ═══════════════════════════════════════════
 
-export const PROTOCOL_COLORS = {
+export const PROTOCOL_COLORS: Record<string, { bg: string; text: string; label: string }> = {
   openai: { bg: "#1A1A2E", text: "#fff", label: "OpenAI-Chat" },
   "openai-responses": { bg: "#1A1A2E", text: "#fff", label: "OpenAI-Responses" },
   claude: { bg: "#D97757", text: "#fff", label: "Claude" },
@@ -38,12 +38,12 @@ export const PROTOCOL_COLORS = {
   bypass: { bg: "#6B7280", text: "#fff", label: "Bypass" },
 };
 
-const PROTOCOL_KEY_ALIASES = {
+const PROTOCOL_KEY_ALIASES: Record<string, string> = {
   "openai-chat": "openai",
   "openai-response": "openai-responses",
 };
 
-function normalizeProtocolKey(protocol) {
+function normalizeProtocolKey(protocol: string) {
   return PROTOCOL_KEY_ALIASES[protocol] || protocol;
 }
 
@@ -96,7 +96,7 @@ export const MODEL_COLORS = [
  * @param {number} index
  * @returns {string} Hex color
  */
-export function getModelColor(index) {
+export function getModelColor(index: number) {
   return MODEL_COLORS[index % MODEL_COLORS.length];
 }
 
@@ -109,7 +109,7 @@ export function getModelColor(index) {
  * @param {number} status - HTTP status code
  * @returns {{ bg: string, text: string }}
  */
-export function getHttpStatusStyle(status) {
+export function getHttpStatusStyle(status: number) {
   if (status >= 200 && status < 300) return { bg: "#059669", text: "#fff" };
   if (status >= 400 && status < 500) return { bg: "#D97706", text: "#fff" };
   if (status >= 500) return { bg: "#DC2626", text: "#fff" };
@@ -122,7 +122,7 @@ export function getHttpStatusStyle(status) {
  * @param {string} status - Status string ("success", "error", "timeout")
  * @returns {{ bg: string, text: string }}
  */
-export function getProxyStatusStyle(status) {
+export function getProxyStatusStyle(status: string) {
   if (status === "success") return { bg: "#059669", text: "#fff" };
   if (status === "error") return { bg: "#DC2626", text: "#fff" };
   if (status === "timeout") return { bg: "#D97706", text: "#fff" };
@@ -134,7 +134,7 @@ export function getProxyStatusStyle(status) {
  * @param {string} provider - Provider key
  * @returns {{ bg: string, text: string, label: string }}
  */
-export function getProviderColor(provider) {
+export function getProviderColor(provider: string) {
   return (
     PROVIDER_COLORS[provider] || {
       bg: "#374151",
@@ -144,17 +144,11 @@ export function getProviderColor(provider) {
   );
 }
 
-/**
- * Get default fallback for a protocol color lookup.
- * @param {string} protocol - Protocol key
- * @param {string} fallbackProvider - Provider key to use as a secondary protocol key
- * @returns {{ bg: string, text: string, label: string }}
- */
-export function getProtocolColor(protocol, fallbackProvider) {
+export function getProtocolColor(protocol: string, fallbackProvider?: string) {
   const normalized = normalizeProtocolKey(protocol);
   return (
     PROTOCOL_COLORS[normalized] ||
-    PROTOCOL_COLORS[fallbackProvider] || {
+    (fallbackProvider ? PROTOCOL_COLORS[fallbackProvider] : undefined) || {
       bg: "#6B7280",
       text: "#fff",
       label: (protocol || fallbackProvider || "-").toUpperCase(),

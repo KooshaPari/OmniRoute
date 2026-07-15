@@ -6,7 +6,8 @@ import type { SqliteAdapter, PreparedStatement, RunResult } from "./types";
 const SAVE_DEBOUNCE_MS = 100;
 const CHECKPOINT_INTERVAL_MS = 60_000;
 
-let _sqlJsLib: Awaited<ReturnType<(typeof import("sql.js"))["default"]>> | null = null;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+let _sqlJsLib: any = null;
 
 function resolveSqlJsWasmPath(): string {
   const candidatePaths = [
@@ -31,14 +32,15 @@ function resolveSqlJsWasmPath(): string {
   return candidatePaths[0];
 }
 
-async function loadSqlJs(): Promise<typeof _sqlJsLib> {
+async function loadSqlJs(): Promise<any> {
   if (_sqlJsLib) return _sqlJsLib;
-  const initSqlJs = ((await import("sql.js")) as { default: (typeof import("sql.js"))["default"] })
-    .default;
+  // @ts-ignore - sql.js has no type declarations; @ts-expect-error would fire in non-strict mode
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const initSqlJs: any = await import("sql.js");
   const wasmPath = resolveSqlJsWasmPath();
 
-  _sqlJsLib = await initSqlJs({
-    locateFile(fileName) {
+  _sqlJsLib = await (initSqlJs as any)({
+    locateFile(fileName: string) {
       if (fileName === "sql-wasm.wasm") {
         return wasmPath;
       }

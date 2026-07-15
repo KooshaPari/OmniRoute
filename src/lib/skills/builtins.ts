@@ -286,7 +286,7 @@ export const builtinSkills: Record<string, SkillHandler> = {
       body:
         normalizedMethod === "GET" || normalizedMethod === "HEAD"
           ? undefined
-          : normalizeBody(body, headers),
+          : (normalizeBody(body, headers) as BodyInit),
       timeoutMs: normalizePositiveInteger(timeoutMs, 10_000, 60_000),
       allowRedirect: false,
       retry: false,

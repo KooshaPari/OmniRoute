@@ -12,7 +12,7 @@ function normalizeBaseUrl(value?: string): string | null {
   return trimmed.replace(/\/+$/, "");
 }
 
-export function resolveOmniRouteBaseUrl(env: OmniRouteBaseUrlEnv = process.env): string {
+export function resolveOmniRouteBaseUrl(env: OmniRouteBaseUrlEnv = process.env as OmniRouteBaseUrlEnv): string {
   return (
     normalizeBaseUrl(env.OMNIROUTE_BASE_URL) ||
     normalizeBaseUrl(env.BASE_URL) ||

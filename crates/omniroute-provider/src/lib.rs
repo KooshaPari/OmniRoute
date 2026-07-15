@@ -17,10 +17,12 @@
 
 pub mod anthropic;
 pub mod gemini;
+pub mod ollama;
 pub mod openai;
 pub mod registry;
 
 pub use anthropic::{AnthropicProvider, ProviderInit as AnthropicProviderInit};
 pub use gemini::{GeminiProvider, ProviderInit as GeminiProviderInit};
+pub use ollama::OllamaProvider;
 pub use openai::{OpenAIProvider, ProviderInit};
 pub use registry::{ProviderConfig, ProviderRegistryBuilder, register_defaults_from_env};

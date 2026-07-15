@@ -377,6 +377,26 @@ test("settings and pricing readers skip malformed rows while merging surviving l
   }
 });
 
+test("getSettings skips malformed JSON rows and still returns valid defaults", async () => {
+  const db = core.getDbInstance();
+
+  db.prepare("INSERT INTO key_value (namespace, key, value) VALUES (?, ?, ?)").run(
+    "settings",
+    "requireLogin",
+    "{invalid-json"
+  );
+  db.prepare("INSERT INTO key_value (namespace, key, value) VALUES (?, ?, ?)").run(
+    "settings",
+    "cloudEnabled",
+    JSON.stringify(false)
+  );
+
+  const settings = await settingsDb.getSettings();
+
+  assert.equal(settings.requireLogin, true);
+  assert.equal(settings.cloudEnabled, false);
+});
+
 test("proxy config migrates legacy strings and supports bulk merge updates", async () => {
   const db = core.getDbInstance();
 

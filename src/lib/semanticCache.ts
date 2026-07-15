@@ -116,7 +116,7 @@ function getMemoryCache() {
  * @param {string} [apiKeyId] - API key ID for per-key isolation (prevents cross-user cache hits)
  * @returns {string} hex signature
  */
-export function generateSignature(model, conversation, temperature = 0, topP = 1, apiKeyId?: string) {
+export function generateSignature(model: string, conversation: unknown, temperature: number = 0, topP: number = 1, apiKeyId?: string): string {
   const payload = JSON.stringify({
     model,
     messages: normalizeConversation(conversation),
@@ -167,7 +167,7 @@ function normalizeConversation(conversation: unknown) {
  * @param {string} signature
  * @returns {object|null} Cached response or null
  */
-export function getCachedResponse(signature) {
+export function getCachedResponse(signature: string): object | null {
   // 1. Check memory cache
   const memResult = getMemoryCache().get(signature);
   if (memResult) {
@@ -224,7 +224,7 @@ export function getCachedResponse(signature) {
  * @param {number} tokensSaved - Estimated tokens saved
  * @param {number} [ttlMs] - TTL in ms (default: 1 hour)
  */
-export function setCachedResponse(signature, model, response, tokensSaved = 0, ttlMs = 3600000) {
+export function setCachedResponse(signature: string, model: string, response: object, tokensSaved: number = 0, ttlMs: number = 3600000): void {
   const ttl = parseInt(process.env.SEMANTIC_CACHE_TTL_MS || String(ttlMs), 10);
 
   // 1. Memory cache
@@ -408,7 +408,7 @@ export function getCacheStats() {
  * Requires explicit numeric `temperature: 0` — omitted temperature is NOT cached
  * because the provider default may be non-deterministic (e.g. random/creative tasks).
  */
-export function isCacheableForRead(body, headers) {
+export function isCacheableForRead(body: Record<string, unknown>, headers: Record<string, string | undefined>): boolean {
   if ((getHeaderValue(headers, "x-omniroute-no-cache") || "").toLowerCase() === "true") {
     return false;
   }
@@ -422,7 +422,7 @@ export function isCacheableForRead(body, headers) {
  * Requires explicit `temperature: 0` — omitted temperature is NOT cacheable
  * because the provider default may be non-deterministic.
  */
-export function isCacheableForWrite(body, headers) {
+export function isCacheableForWrite(body: Record<string, unknown>, headers: Record<string, string | undefined>): boolean {
   if ((getHeaderValue(headers, "x-omniroute-no-cache") || "").toLowerCase() === "true") {
     return false;
   }

@@ -1720,7 +1720,7 @@ function migrateFromJson(db: SqliteDatabase, jsonPath: string) {
       }
     }
   } catch (err) {
-    console.error("[DB] Migration from db.json failed:", err.message);
+    console.error("[DB] Migration from db.json failed:", (err as Error).message);
   }
 }
 

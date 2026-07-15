@@ -748,3 +748,44 @@ export type {
 // proxy_logs — export query (#3500 slice 4)
 // ---------------------------------------------------------------------------
 export { exportProxyLogsSince } from "./db/proxyLogs";
+
+// ---------------------------------------------------------------------------
+// Fleet Management — nodes, config, scaling policies, alert rules
+// ---------------------------------------------------------------------------
+export {
+  getFleetNode,
+  listFleetNodes,
+  createFleetNode,
+  updateFleetNode,
+  deleteFleetNode,
+  recordHeartbeat,
+  getFleetNodeCount,
+  getFleetNodesByStatus,
+} from "./db/fleetNodes";
+export type { FleetNode, CreateFleetNodeParams, UpdateFleetNodeParams } from "./db/fleetNodes";
+
+export {
+  getLatestFleetConfig,
+  createFleetConfig,
+  listFleetConfigHistory,
+  updateFleetConfigStatus,
+} from "./db/fleetConfig";
+export type { FleetConfig, CreateFleetConfigParams } from "./db/fleetConfig";
+
+export {
+  getScalingPolicy,
+  listScalingPolicies,
+  createScalingPolicy,
+  updateScalingPolicy,
+  deleteScalingPolicy,
+} from "./db/scalingPolicies";
+export type { ScalingPolicy, CreateScalingPolicyParams, UpdateScalingPolicyParams } from "./db/scalingPolicies";
+
+export {
+  getAlertRule,
+  listAlertRules,
+  createAlertRule,
+  updateAlertRule,
+  deleteAlertRule,
+} from "./db/alertRules";
+export type { AlertRule, CreateAlertRuleParams, UpdateAlertRuleParams } from "./db/alertRules";

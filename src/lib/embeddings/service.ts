@@ -82,7 +82,12 @@ export async function createEmbeddingResponse(
             });
           },
           isModelAvailable: undefined,
-          log,
+          log: log as unknown as {
+          info: (...args: unknown[]) => void;
+          warn: (...args: unknown[]) => void;
+          debug: (...args: unknown[]) => void;
+          error: (...args: unknown[]) => void;
+        },
           settings,
           allCombos: allCombos as any,
           relayOptions: undefined,
@@ -197,7 +202,7 @@ export async function createEmbeddingResponse(
     // only reads apiKey/accessToken, both present at runtime. Bridge the wider
     // selection type to the handler's narrow credential shape.
     credentials: credentials as { apiKey?: string; accessToken?: string } | null,
-    log,
+    log: log as unknown as { info: (...args: unknown[]) => void; error: (...args: unknown[]) => void },
     resolvedProvider: providerConfig,
     resolvedModel,
     clientRawRequest: options.clientRawRequest || null,

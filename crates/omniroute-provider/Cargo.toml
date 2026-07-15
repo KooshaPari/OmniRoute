@@ -18,6 +18,7 @@ tracing = { workspace = true }
 chrono = { workspace = true }
 url = { workspace = true }
 futures-util = { workspace = true }
+bytes = "1"
 
 [dev-dependencies]
 tokio = { workspace = true }

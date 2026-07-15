@@ -124,11 +124,11 @@ function emitGuardrailLog(
   if (typeof target !== "function") return;
 
   if (logger === console) {
-    target.call(logger, message, meta || "");
+    Reflect.apply(target, logger, [message, meta ?? ""]);
     return;
   }
 
-  target.call(logger, "GUARDRAIL", message, meta);
+  Reflect.apply(target, logger, ["GUARDRAIL", message, meta]);
 }
 
 function getMode(options: PromptInjectionGuardrailOptions) {
@@ -182,11 +182,11 @@ export function evaluatePromptInjection(
     .map(normalizePatternEntry)
     .filter(Boolean);
 
-  const sanitizerResult = sanitizeRequest(body, {
+  const sanitizerResult = sanitizeRequest(body as Record<string, unknown>, {
     info() {},
     warn() {},
-  } as Console);
-  const contents = extractMessageContents(body);
+  } as unknown as { [key: string]: (...args: any[]) => void });
+  const contents = extractMessageContents(body as Record<string, unknown>);
   // Bound the custom-pattern scan to the first 16 KB, matching detectInjection's
   // cap inside sanitizeRequest above (hot-path perf, #3932 / #4041). Injection
   // directives sit near the top; scanning the full join buys only CPU/GC.
@@ -197,7 +197,7 @@ export function evaluatePromptInjection(
       : joinedContents;
   const customDetections = detectWithPatterns(scanText, patterns);
   const existingDetections = new Set(
-    sanitizerResult.detections.map((d: Detection) => `${d.pattern}:${d.match}:${d.severity}`)
+    ((sanitizerResult.detections ?? []) as Detection[]).map((d: Detection) => `${d.pattern}:${d.match}:${d.severity}`)
   );
 
   for (const detection of customDetections) {
@@ -210,7 +210,7 @@ export function evaluatePromptInjection(
   const result = {
     detections: sanitizerResult.detections as Detection[],
     flagged: sanitizerResult.detections.length > 0 || sanitizerResult.piiDetections.length > 0,
-    piiDetections: sanitizerResult.piiDetections,
+    piiDetections: sanitizerResult.piiDetections as Array<{ count: number; type: string }>,
   };
 
   if (!result.flagged) {

@@ -71,6 +71,14 @@ function toRecord(value: unknown): JsonRecord {
   return value && typeof value === "object" ? (value as JsonRecord) : {};
 }
 
+function safeParseJsonValue(rawValue: string): unknown {
+  try {
+    return JSON.parse(rawValue);
+  } catch {
+    return undefined;
+  }
+}
+
 function toProxyMap(value: unknown): ProxyMap {
   return value && typeof value === "object" ? (value as ProxyMap) : {};
 }
@@ -153,7 +161,14 @@ export async function getSettings() {
     const key = typeof record.key === "string" ? record.key : null;
     const rawValue = typeof record.value === "string" ? record.value : null;
     if (!key || rawValue === null) continue;
-    settings[key] = JSON.parse(rawValue);
+    const parsedValue = safeParseJsonValue(rawValue);
+    if (parsedValue === undefined) {
+      console.warn(
+        `[DB] Skipping malformed settings value for key '${key}' in namespace 'settings'`
+      );
+      continue;
+    }
+    settings[key] = parsedValue;
   }
 
   // Auto-complete onboarding for pre-configured deployments (Docker/VM)

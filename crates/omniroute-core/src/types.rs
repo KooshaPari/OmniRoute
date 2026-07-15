@@ -85,7 +85,7 @@ impl ChatRequest {
 }
 
 /// A single message in a chat conversation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct ChatMessage {
     /// `"system"`, `"user"`, `"assistant"`, `"tool"`.
     pub role: String,
@@ -166,7 +166,7 @@ pub struct ToolFunction {
 }
 
 /// A tool call emitted by the assistant in a non-streaming response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct ToolCall {
     /// Unique call ID (used to address the `"tool"` response).
     pub id: String,
@@ -178,7 +178,7 @@ pub struct ToolCall {
 }
 
 /// Function invocation payload for a [`ToolCall`].
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct ToolCallFunction {
     /// Function name (e.g. `"get_weather"`).
     pub name: String,
@@ -209,7 +209,7 @@ pub struct ChatResponse {
 }
 
 /// One completion choice inside a [`ChatResponse`].
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct Choice {
     /// Index in the `choices` array (0-based).
     pub index: usize,
@@ -235,7 +235,7 @@ pub struct Usage {
 /// For streaming, the runtime emits a sequence of `StreamChunk`s with
 /// `done: false`, then one with `done: true`, then closes the SSE channel.
 /// The `done: true` chunk is encoded as `data: [DONE]\n\n`.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct StreamChunk {
     /// Response ID (matches the first non-`done` chunk).
     pub id: String,
@@ -297,7 +297,7 @@ impl StreamChunk {
 }
 
 /// One streaming delta inside a [`StreamChunk`].
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct StreamChoice {
     /// Index in the `choices` array (0-based).
     pub index: usize,
@@ -309,7 +309,7 @@ pub struct StreamChoice {
 }
 
 /// Error body emitted in a [`StreamChunk`] (mid-stream) or non-streaming response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct ApiError {
     /// Human-readable error message.
     pub message: String,

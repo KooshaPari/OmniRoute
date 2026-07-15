@@ -70,7 +70,7 @@ export function verifyCloudSignature(rawBody: string, sigHeader: string | null):
   }
 }
 
-export async function fetchWithTimeout(url, options = {}, timeoutMs = CLOUD_SYNC_TIMEOUT_MS) {
+export async function fetchWithTimeout(url: string | URL, options?: RequestInit, timeoutMs: number = CLOUD_SYNC_TIMEOUT_MS) {
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
   try {
@@ -85,7 +85,7 @@ export async function fetchWithTimeout(url, options = {}, timeoutMs = CLOUD_SYNC
  * @param {string} machineId
  * @param {string|null} createdKey - Key created during enable
  */
-export async function syncToCloud(machineId, createdKey = null) {
+export async function syncToCloud(machineId: string, createdKey: string | null = null) {
   if (!CLOUD_URL) {
     return { error: "NEXT_PUBLIC_CLOUD_URL is not configured" };
   }
@@ -107,7 +107,7 @@ export async function syncToCloud(machineId, createdKey = null) {
       }),
     });
   } catch (error) {
-    const isTimeout = error?.name === "AbortError";
+    const isTimeout = (error as Error)?.name === "AbortError";
     return { error: isTimeout ? "Cloud sync timeout" : "Cloud sync request failed" };
   }
 

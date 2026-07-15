@@ -1023,6 +1023,8 @@ that should be able to run the docs translator.
 
 ---
 
+| `OMNIROUTE_DATA_PLANE_SOCKET` | _(auto)_ | `open-sse/services/udsRouter.ts` | Overrides the data-plane Unix socket path used by the routed runtime. |
+
 ## Audit: Removed / Dead Variables
 
 The following variables appeared in previous versions of `.env.example` but have **no runtime references** in the current codebase. They have been removed:

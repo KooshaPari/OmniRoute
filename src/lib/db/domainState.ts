@@ -391,12 +391,12 @@ export function batchSaveCostEntries(
     "INSERT INTO domain_cost_history (api_key_id, cost, timestamp) VALUES (?, ?, ?)"
   );
   const tx = db.transaction(
-    (rows: Array<{ apiKeyId: string; cost: number; timestamp: number }>) => {
+    ((rows: Array<{ apiKeyId: string; cost: number; timestamp: number }>) => {
       for (const entry of rows) {
         stmt.run(entry.apiKeyId, entry.cost, entry.timestamp);
       }
-    }
-  );
+    }) as (...args: unknown[]) => void
+  ) as (...args: unknown[]) => void;
 
   tx(entries);
 }

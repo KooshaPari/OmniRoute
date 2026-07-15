@@ -128,10 +128,10 @@ function getConfig() {
  * @param {Object} body
  * @returns {string[]}
  */
-function extractMessageContents(body) {
-  const contents = [];
+function extractMessageContents(body: Record<string, unknown>): string[] {
+  const contents: string[] = [];
 
-  const messages = body.messages || body.input || [];
+  const messages = (body.messages || body.input || []) as any[];
   for (const msg of messages) {
     if (typeof msg === "string") {
       contents.push(msg);
@@ -180,8 +180,8 @@ function extractMessageContents(body) {
  * @param {string} text
  * @returns {Array<{pattern: string, severity: string, match: string}>}
  */
-function detectInjection(text) {
-  const detections = [];
+function detectInjection(text: string): Array<{pattern: string; severity: string; match: string}> {
+  const detections: Array<{pattern: string; severity: string; match: string}> = [];
   // Bound the regex scan to the first 16 KB — see MAX_INJECTION_SCAN_BYTES
   // (hot-path perf, #3932 / #4041). Slice before the loop so each pattern only
   // ever scans the capped prefix, never the full (possibly hundreds of KB) body.
@@ -206,8 +206,8 @@ function detectInjection(text) {
  * @param {boolean} redact - If true, replaces PII with placeholders
  * @returns {{ text: string, detections: Array<{type: string, count: number}> }}
  */
-function processPII(text, redact = false) {
-  const detections = [];
+function processPII(text: string, redact = false): { text: string; detections: Array<{type: string; count: number}> } {
+  const detections: Array<{type: string; count: number}> = [];
   let processed = text;
 
   for (const rule of PII_PATTERNS) {
@@ -230,14 +230,14 @@ function processPII(text, redact = false) {
  * @param {Object} [logger] - Logger instance (defaults to console)
  * @returns {SanitizeResult}
  */
-export function sanitizeRequest(body, logger = console) {
+export function sanitizeRequest(body: Record<string, unknown>, logger: { [key: string]: (...args: any[]) => void } = console as unknown as { [key: string]: (...args: any[]) => void }) {
   const config = getConfig();
 
-  const result = {
+  const result: { blocked: boolean; modified: boolean; detections: unknown[]; piiDetections: unknown[]; sanitizedBody: Record<string, unknown> | null } = {
     blocked: false,
     modified: false,
-    detections: [],
-    piiDetections: [],
+    detections: [] as unknown[],
+    piiDetections: [] as unknown[],
     sanitizedBody: null,
   };
 
@@ -292,9 +292,9 @@ export function sanitizeRequest(body, logger = console) {
  * @param {Object} body
  * @returns {Object}
  */
-function redactBody(body) {
-  const clone = JSON.parse(JSON.stringify(body));
-  const messages = clone.messages || clone.input || [];
+function redactBody(body: Record<string, unknown>): Record<string, unknown> {
+  const clone: Record<string, unknown> = JSON.parse(JSON.stringify(body));
+  const messages = (clone.messages || clone.input || []) as any[];
 
   for (const msg of messages) {
     if (typeof msg.content === "string") {

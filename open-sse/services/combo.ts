@@ -125,6 +125,7 @@ import {
   sortTargetsByUsage,
   orderTargetsByPowerOfTwoChoices,
 } from "./combo/targetSorters.ts";
+import { orderTargetsByConsistentHash } from "./combo/consistentHashStrategy.ts";
 import {
   filterTargetsByRequestCompatibility,
   getModelContextLimitForModelString,
@@ -894,6 +895,17 @@ export async function handleComboChat({
   } else if (strategy === "p2c") {
     orderedTargets = orderTargetsByPowerOfTwoChoices(orderedTargets, combo.name);
     log.info("COMBO", `Power-of-two-choices ordering: selected ${orderedTargets[0]?.modelStr}`);
+  } else if (strategy === "consistent-hash") {
+    orderedTargets = orderTargetsByConsistentHash(orderedTargets, {
+      sessionId: body?.session_id as string | undefined,
+      provider: typeof body?.model === "string"
+        ? (body.model as string).split("/")[0]
+        : undefined,
+      model: typeof body?.model === "string"
+        ? (body.model as string)
+        : undefined,
+    });
+    log.info("COMBO", `Consistent-hash routing: ${orderedTargets[0]?.modelStr} selected for session`);
   } else if (strategy === "least-used") {
     orderedTargets = sortTargetsByUsage(orderedTargets, combo.name);
     log.info("COMBO", `Least-used ordering: ${orderedTargets[0]?.modelStr} has fewest requests`);

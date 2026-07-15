@@ -282,7 +282,7 @@ export function createSseTextTransform(
   };
 
   return new TransformStream({
-    transform(chunk, controller) {
+    transform(chunk: Uint8Array, controller: TransformStreamDefaultController<Uint8Array>) {
       try {
         const chunkStr = decoder.decode(chunk, { stream: true });
         lineBuffer += chunkStr;
@@ -296,7 +296,7 @@ export function createSseTextTransform(
         let context = "[REDACTED_DUE_TO_PII]";
         if (!err?.message?.startsWith("[PII]")) {
           if (typeof chunk === "string") {
-            context = chunk.slice(0, 200);
+            context = (chunk as string).slice(0, 200);
           } else if (chunk instanceof Uint8Array) {
             context = fallbackDecoder.decode(chunk.slice(0, 200));
           } else {
@@ -309,7 +309,7 @@ export function createSseTextTransform(
         controller.error(err);
       }
     },
-    flush(controller) {
+    flush(controller: TransformStreamDefaultController<Uint8Array>) {
       if (errored) return;
       try {
         const remaining = decoder.decode() + lineBuffer;

@@ -3,6 +3,7 @@ export const ROUTING_STRATEGY_VALUES = [
   "weighted",
   "round-robin",
   "context-relay",
+  "consistent-hash",
   "fill-first",
   "p2c",
   "random",
@@ -92,6 +93,13 @@ export const ROUTING_STRATEGIES: RoutingStrategyOption[] = [
     combosDescKey: "contextRelayDesc",
     settingsDescKey: "contextRelayDesc",
     icon: "sync_alt",
+  },
+  {
+    value: "consistent-hash",
+    labelKey: "consistentHash",
+    combosDescKey: "consistentHashDesc",
+    settingsDescKey: "consistentHashDesc",
+    icon: "hash",
   },
   {
     value: "fill-first",

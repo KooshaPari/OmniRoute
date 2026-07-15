@@ -220,7 +220,7 @@ export function insertCompressionEngineBreakdown(rows: CompressionEngineBreakdow
        (timestamp, request_id, engine, original_tokens, compressed_tokens, tokens_saved, duration_ms)
      VALUES (?, ?, ?, ?, ?, ?, ?)`
   );
-  const insertAll = db.transaction((items: CompressionEngineBreakdownRow[]) => {
+  const insertAll = db.transaction(((items: CompressionEngineBreakdownRow[]) => {
     for (const r of items) {
       stmt.run(
         r.timestamp,
@@ -232,7 +232,7 @@ export function insertCompressionEngineBreakdown(rows: CompressionEngineBreakdow
         r.duration_ms ?? null
       );
     }
-  });
+  }) as (...args: unknown[]) => void) as (items: CompressionEngineBreakdownRow[]) => void;
   insertAll(rows);
 }
 

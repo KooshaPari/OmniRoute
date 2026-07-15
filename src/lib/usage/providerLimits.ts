@@ -474,7 +474,8 @@ async function syncClaudeExtraUsageStateIfNeeded(
   return {
     ...connection,
     ...update,
-  };
+    isActive: connection.isActive ?? true,
+  } as ProviderConnectionLike;
 }
 
 /** Persist Antigravity tier from live loadCodeAssist on quota refresh (not only OAuth). */

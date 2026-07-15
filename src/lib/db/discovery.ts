@@ -5,7 +5,7 @@
  */
 
 import { getDbInstance } from "./core";
-import { logger } from "../../open-sse/utils/logger";
+import { logger } from "@omniroute/open-sse/utils/logger";
 
 const log = logger("DB_DISCOVERY");
 

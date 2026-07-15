@@ -26,6 +26,7 @@ use std::sync::Arc;
 
 use omniroute_core::{Context, Credentials, ProviderRegistry};
 use omniroute_provider::openai::{OpenAIProvider, ProviderInit};
+use omniroute_provider::ollama::OllamaProvider;
 use omniroute_provider::register_defaults_from_env;
 use omniroute_runtime::server::Server;
 
@@ -56,6 +57,16 @@ async fn main() {
                 tracing::info!("registered openai provider");
             }
             Err(e) => tracing::warn!(%e, "failed to register openai"),
+        }
+        // Wire Ollama on default endpoint if not explicitly disabled.
+        let ollama_base = std::env::var("OLLAMA_BASE_URL")
+            .unwrap_or_else(|_| "http://localhost:11434".into());
+        match OllamaProvider::new(&ollama_base) {
+            Ok(p) => {
+                reg.register(p);
+                tracing::info!("registered ollama provider at {ollama_base}");
+            }
+            Err(e) => tracing::warn!(%e, "failed to register ollama"),
         }
         reg
     } else {
