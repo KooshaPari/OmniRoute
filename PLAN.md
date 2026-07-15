@@ -151,6 +151,63 @@
 
 ---
 
+### 2.5.4 v8.2 — Polyglot Binding Tiers (added 2026-07-04, ADR-032)
+
+> **Decision (ADR-032)**: extend ADR-031's HTTP sidecar default with a 3-tier
+> binding policy — T1 HTTP sidecar (default), T2 UDS RPC (high-RPS Tier-2),
+> T3 native ABI FFI (inner loops). Each call edge picks the cheapest binding
+> whose guarantees still match the workload. See
+> [`docs/adr/0032-polyglot-binding-tiers.md`](docs/adr/0032-polyglot-binding-tiers.md)
+> for the per-edge mapping and decision rule.
+
+#### 2.5.5 Why 3 tiers (and not FFI-everywhere or HTTP-everywhere)
+
+| Concern | T1 HTTP sidecar | T2 UDS RPC | T3 FFI |
+|---|---|---|---|
+| Process isolation | ✅ | ✅ | ❌ (same process) |
+| Zero-copy buffers | ❌ | ❌ (framed) | ✅ |
+| Build complexity | low | medium (`capnp`/`flatc`/`protoc`) | high (`napi-rs`/`cgo`/`pyo3`) |
+| ABI versioning burden | none | wire-format semver | `#[repr(C)]` discipline |
+| Overhead at p50 | ~1-2 ms | ~50-200 µs | ~1-10 µs |
+
+#### 2.5.6 v8.2 Task Track (F1-F6)
+
+| ID | Task | Owner | Effort | Status |
+|---|---|---|---|---|
+| **F1** | Pick canonical UDS RPC framework (Cap'n Proto vs Protobuf vs FlatBuffers) | core | S | ☐ Q3 2026 |
+| **F2** | `crates/tokn` extraction + UDS RPC server (`open-sse/services/udsRpc.ts` client) | tokn | M | ☐ Q3 2026 |
+| **F3** | Migrate compression engine (lite/caveman/rtk) to UDS RPC | compression | M | ☐ Q3 2026 |
+| **F4** | `napi-rs` bindings for Rust SIMD combo scorer + regex prefilter | core + tokn | L | ☐ Q4 2026 |
+| **F5** | `napi-rs` bindings for Rust semantic cache + reasoning replay | core + tokn | L | ☐ Q4 2026 |
+| **F6** | `cgo` integration for in-process Bifrost Go SDK (Bifrost's v1.0 GA gate) | core | M | ☐ 2027 Q1 |
+
+#### 2.5.7 Per-edge binding map (baseline 2026-07-04)
+
+| Edge | Recommended tier | Driver |
+|---|---|---|
+| Tier-1 router dispatch (TS ↔ Go) | T1 (keep) | Backwards-compat, kill-switch semantics. |
+| Format translation (TS in-process today) | T3 (FFI via `napi-rs`) | Every chat completion; pure-data; hot path. |
+| Prompt compression (lite/caveman/rtk) | T2 → T3 at 1k RPS | Token-burn savings are real-time-budget-critical. |
+| Combo scorer (12-factor Auto-Combo) | T3 (FFI → Rust SIMD) | Numerics-heavy; SIMD halves p99. |
+| SSE chunking | T3 (FFI → Rust `futures::stream`) | Called per upstream byte; zero-copy wins compound. |
+| Rate-limit token-bucket (DEBT-001) | T3 (FFI → Rust `parking_lot`) | 1k+ RPS fairness-critical. |
+| Semantic cache + reasoning replay | T3 (FFI → Rust `dashmap`) | Memory-sharded hashmap + zero-copy serialize. |
+| Guardrail hot path (PII, prompt-injection) | T2 (UDS RPC → Rust `regex`/`aho-corasick`) | Regex-heavy on every request. |
+| MCP server tool dispatch (co-located) | T2 (UDS RPC when co-located) | Skip HTTP overhead. |
+| Pricing sync, dashboard rollups, webhooks | T1 (keep) | Cron / UI / low-RPS. |
+
+#### 2.5.8 Decision review schedule
+
+- **30 days post-F3**: confirm UDS RPC p50/p99 wins vs HTTP loopback ≥ 5×;
+  if not, fall back to in-process TS for that edge.
+- **30 days post-F5**: confirm `napi-rs` zero-copy holds for SSE chunking
+  under load; if not, keep `while(true)` loop and mark F4 as deferred.
+- **90 days post-F6**: decide whether to commit to Bifrost Go SDK as the
+  canonical Tier-1 binding (then T1 HTTP stays as a fallback for non-Go-
+  SDK deployments).
+
+---
+
 ## 3. v8 → v9 Backlog (Q4 2026 → Q1 2027)
 
 > Each item below maps to a SPEC.md § 16 open question. Effort is

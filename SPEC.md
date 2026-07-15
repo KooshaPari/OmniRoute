@@ -678,6 +678,56 @@ pareto_router/ports/adapters) per the 2026-06-03 disambiguation note.
 
 ---
 
+## 17. Polyglot Binding Tiers (ADR-032)
+
+> **Added 2026-07-04 (L5-114).** See [`docs/adr/0032-polyglot-binding-tiers.md`](adr/0032-polyglot-binding-tiers.md)
+> for the full MADR.
+
+OmniRoute's Tier-2 engine (TypeScript) talks to non-TS substrates — Bifrost
+(Go), Tokn (Rust), phenotype-routing (Rust), `dispatch-mcp` (Go) — over
+**three binding tiers**, picked per-edge:
+
+| Tier | Mechanism | Overhead | Hot-path fit |
+|---|---|---|---|
+| **T1 — HTTP sidecar** (default) | `fetch()` over TCP loopback | ~1-2 ms | Tier-1 router (`BifrostBackendExecutor.execute`), dashboards, ops endpoints |
+| **T2 — Unix-domain-socket (UDS) RPC** | JSON-RPC / Cap'n Proto / FlatBuffers over UDS | ~50-200 µs | High-RPS Tier-2 modules (compression, translator, MCP client) |
+| **T3 — Native ABI FFI** | `napi-rs` (Node↔Rust), `cgo` (Node↔Go), `pyo3` (Python↔Rust) | ~1-10 µs | Inner loops (SSE chunking, combo scoring, tokenization, regex prefilter) |
+
+**Default tier per edge:**
+
+| Edge | Tier | Source file |
+|---|---|---|
+| Tier-1 router dispatch (TS ↔ Go) | T1 (keep) | `open-sse/executors/bifrost.ts:107-244` |
+| Format translation (OpenAI↔Anthropic↔Gemini) | T3 (FFI via `napi-rs`) | `open-sse/translator/` (planned F4) |
+| Prompt compression (lite/caveman/rtk) | T2 → T3 at 1k RPS | `open-sse/services/compression/` (planned F3) |
+| Combo scorer (12-factor Auto-Combo) | T3 (FFI → Rust SIMD) | `open-sse/services/autoCombo/scoring.ts` (planned F4) |
+| SSE chunking | T3 (FFI → Rust `futures::stream`) | `open-sse/handlers/chatCore.ts:1042-1058` (planned F4) |
+| Rate-limit token-bucket (DEBT-001) | T3 (FFI → Rust `parking_lot`) | `open-sse/services/rateLimitManager.ts` (planned F5) |
+| Semantic cache + reasoning replay | T3 (FFI → Rust `dashmap`) | `open-sse/services/reasoningCache.ts` (planned F5) |
+| Guardrail hot path (PII, prompt-injection) | T2 (UDS RPC → Rust `regex`/`aho-corasick`) | `src/lib/guardrails/` (planned F3) |
+| MCP server tool dispatch (co-located) | T2 (UDS RPC) | `open-sse/mcp-server/` (planned F3) |
+| Pricing sync, dashboard rollups, webhooks | T1 (keep) | `src/lib/pricingSync.ts`, `src/lib/webhookDispatcher.ts` |
+
+**Why T1 by default?** Backwards compatibility, kill-switch semantics
+inherited from `open-sse/services/bifrostKillSwitch.ts:382-416`, and zero
+new ops surface.
+
+**Why T3 for the inner loops?** Zero-copy buffers (`napi-rs` `Buffer` is a
+direct view into the Rust `Vec<u8>`), sub-10µs overhead, and lock-free
+primitives (`parking_lot`, `dashmap`, `crossbeam`) are not achievable over
+IPC.
+
+**Rollout** (see `PLAN.md` § 2.5.6 for full F1-F6 table):
+
+- **F1**: pick canonical UDS RPC framework (Q3 2026, S)
+- **F2**: `crates/tokn` extraction + UDS RPC server (Q3 2026, M)
+- **F3**: migrate compression + guardrails to UDS RPC (Q3 2026, M)
+- **F4**: `napi-rs` SIMD combo scorer + SSE chunking (Q4 2026, L)
+- **F5**: `napi-rs` semantic cache + reasoning replay (Q4 2026, L)
+- **F6**: `cgo` in-process Bifrost Go SDK (2027 Q1, M)
+
+---
+
 ## 16. Open Questions (v8 → v9)
 
 These are the items NOT in this spec yet, planned for v9 (see `PLAN.md`):

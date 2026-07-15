@@ -591,12 +591,12 @@ Markdown ledgers after this merge:
 
 ## Agent Notes
 
-| agent               | task                   | state   | summary                                                             |
-| ------------------- | ---------------------- | ------- | ------------------------------------------------------------------- |
-| root                | canonical ledger merge | working | replacing colliding handoffs with single `WORK.md`                  |
+| agent               | task                   | state   | summary                                                                         |
+| ------------------- | ---------------------- | ------- | ------------------------------------------------------------------------------- |
+| root                | canonical ledger merge | working | replacing colliding handoffs with single `WORK.md`                              |
 | pheno_ci_state      | PR258 CI refresh       | done    | branch-clean checkout fix pushed; remaining failures look like baseline CI debt |
-| router_eval_state   | PR6071 refresh         | done    | found PR closed/conflicting and missing temp worktree               |
-| root_recovery_state | root blocker refresh   | done    | found missing `isForbiddenCustomHeaderName` export as first blocker |
+| router_eval_state   | PR6071 refresh         | done    | found PR closed/conflicting and missing temp worktree                           |
+| root_recovery_state | root blocker refresh   | done    | found missing `isForbiddenCustomHeaderName` export as first blocker             |
 
 ## Next Owner Prompt
 

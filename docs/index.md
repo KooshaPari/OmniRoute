@@ -1,9 +1,6 @@
 # OmniRoute — Documentation Index
-
 This index lists the design notes, ADRs, and supporting documentation maintained alongside this repository.
-
 ## Top-level documents
-
 - [`ADR-001-canonical-routing.md`](ADR-001-canonical-routing.md) — Adr 001 Canonical Routing
 - [`AGENTROUTER.md`](AGENTROUTER.md) — Agentrouter
 - [`DOCUMENTATION_OVERHAUL_PLAN.md`](DOCUMENTATION_OVERHAUL_PLAN.md) — Documentation Overhaul Plan
@@ -13,9 +10,7 @@ This index lists the design notes, ADRs, and supporting documentation maintained
 - [`SSOT.md`](SSOT.md) — Ssot
 - [`SUBMIT_PR.md`](SUBMIT_PR.md) — Submit Pr
 - [`fix-opencode-context.md`](fix-opencode-context.md) — Fix Opencode Context
-
 ## Subdirectories
-
 - [`adr/`](adr/) — Adr (5 documents)
 - [`architecture/`](architecture/) — Architecture (7 documents)
 - [`comparison/`](comparison/) — Comparison (1 document)
@@ -33,8 +28,4 @@ This index lists the design notes, ADRs, and supporting documentation maintained
 - [`releases/`](releases/) — Releases (1 document)
 - [`research/`](research/) — Research (2 documents)
 - [`routing/`](routing/) — Routing (3 documents)
-- [`security/`](security/) — Security (10 documents)
-
----
-
-_This index is auto-generated. To add new documents, place `.md` files in `docs/` and re-run the documentation indexer._
+... more files changed

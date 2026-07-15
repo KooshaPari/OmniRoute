@@ -40,6 +40,7 @@ chronological + thematic view.
 | **ADR-009** | [Bifrost Disambiguation (2026-06-18)](#adr-009--bifrost-disambiguation-2026-06-18) | Accepted | 2026-06-18 | — |
 | **ADR-010** | [71-Pillar Audit Adoption Deferred (2026-06-18)](#adr-010--71-pillar-audit-adoption-deferred-2026-06-18) | Accepted | 2026-06-18 | — |
 | **ADR-031** | [Bifrost as Tier-1 Router Layer (2026-06-18)](#adr-031--bifrost-as-tier-1-router-layer-2026-06-18) | Accepted | 2026-06-18 | `chore/l5-109-omniroute-fork-cleanup-2026-06-18` |
+| **ADR-032** | [Polyglot Binding Tiers (HTTP → UDS/RPC → FFI) (2026-07-04)](#adr-032--polyglot-binding-tiers-http--udsrpc--ffi-2026-07-04) | Accepted | 2026-07-04 | `chore/l5-109-omniroute-fork-cleanup-2026-06-18` (L5-114) |
 | **0031** | [Bifrost as Tier-1 Router Layer (MADR)](docs/adr/0031-bifrost-tier1-router.md) | Accepted | 2026-06-18 | — |
 | **0001** | [Record Architecture Decisions (template)](docs/adr/0001-record-architecture-decisions.md) | Accepted | 2026-05-30 | MADR template |
 | **0002** | [Test Runner: vitest vs jest](docs/adr/0002-test-runner-vitest-vs-jest.md) | Accepted | 2026-06-08 | — |
@@ -204,6 +205,159 @@ concurrency:
 - `SPEC.md` § 13 — Convergence section.
 - `PLAN.md` § 5 — Convergence plan.
 - `AGENTS.md` § Code Style — ADR-process note.
+
+---
+
+## ADR-032 — Polyglot Binding Tiers (HTTP → UDS/RPC → FFI) (2026-07-04)
+
+**Status:** Accepted
+**Driver:** Continuation of `chore/l5-109-omniroute-fork-cleanup-2026-06-18` (L5-114)
+**Supersedes:** None (additive — extends ADR-031's "M4 evaluate in-process Go SDK vs sidecar" decision with a fleet-wide binding-tier policy)
+**MADR:** [`docs/adr/0032-polyglot-binding-tiers.md`](docs/adr/0032-polyglot-binding-tiers.md) (full MADR with per-edge binding map, benchmarks, and rollout)
+
+### Context
+
+ADR-031 fixed the **Tier-1 router** as `maximhq/bifrost` (Go, MIT, vendored at
+`vendor/bifrost/`) accessed over its **HTTP gateway** at
+`${BIFROST_BASE_URL}/v1/chat/completions`
+(`open-sse/executors/bifrost.ts:107-244`). The HTTP sidecar default is the
+right call for an **initial drop-in** because it preserves backwards
+compatibility, isolates the Go process for kill-switch semantics
+(`open-sse/services/bifrostKillSwitch.ts:382-416`), and avoids requiring a
+Node ABI to talk to Go.
+
+But the Phenotype fleet already has polyglot substrates that can be used
+**outside the Tier-1 router** to squeeze more out of the hot path:
+
+- **Tokn** (`crates/tokn`, Rust, hexagonal routing — `pareto_router/ports/adapters`)
+  is converging into OmniRoute per `PLAN.md` § 5.
+- **phenotype-routing** (Rust, proposed rename of the ADR-001 "bifrost"
+  substrate per `docs/ROUTING-CONVERGENCE-STATUS.md:46`) is the canonical
+  Rust routing substrate.
+- **`dispatch-mcp`** (Go) is already a fleet-wide pattern.
+- **`pheno-go-ctxkit`** (Go, fleet-wide) is the canonical context/HTTP
+  substrate.
+- **`OmniRoute/crates/`** is the planned Rust entry-point per
+  `SPEC.md` § 13 / `PLAN.md` § 5.
+
+The user directive (2026-07-04): **"consider polyglot with native ABI FFI or
+similar direct bindings, or unix sockets/RPCs and others for hot modules/hot
+paths and edges or other modules."**
+
+This ADR formalizes the **3-tier binding policy** that picks the cheapest
+binding whose guarantees still match the workload.
+
+### Decision
+
+**Three binding tiers, picked per-edge by a fixed decision rule:**
+
+| Tier | Mechanism | Overhead at p50 | Hot-path fit | Adoption |
+|---|---|---|---|---|
+| **T1 — HTTP sidecar** (default) | `fetch()` over TCP loopback (`BIFROST_BASE_URL`) | ~1-2 ms (loopback) | Tier-1 router, dashboards, ops endpoints | ✅ shipped (B1-B9, PR #95) |
+| **T2 — Unix-domain-socket (UDS) RPC** | JSON-RPC / Cap'n Proto / FlatBuffers over UDS, framed | ~50-200 µs (no kernel TCP) | High-RPS Tier-2 modules (compression, translator, semantic cache) | ☐ planned (Q3 2026, F1-F3) |
+| **T3 — Native ABI FFI** | `napi-rs` (Node↔Rust), `cgo` (Node↔Go), `pyo3` (Python↔Rust), `wasmtime` (any↔WASM) | ~1-10 µs (zero-copy) | Tight inner loops (SSE chunking, combo scoring, tokenization, regex prefilter) | ☐ planned (Q4 2026, F4-F6) |
+
+### Decision rule (per edge)
+
+```
+1. Is the call edge on the request hot path AND called > 100/sec/process?
+   - No  → T1 (HTTP sidecar). Default. Avoids FFI surface.
+   - Yes → continue.
+2. Does the edge need shared memory / zero-copy streaming?
+   - Yes → T3 (FFI). Hard constraint.
+   - No  → continue.
+3. Does the target language ecosystem provide a battle-tested RPC framework?
+   - Yes → T2 (UDS RPC). Default for cross-language RPC at high RPS.
+   - No  → T3 (FFI). Only if the workload also needs the perf.
+```
+
+### Mapping (per edge; 2026-07-04 baseline)
+
+| Edge | Language pair | Current | Recommended tier | Driver |
+|---|---|---|---|---|
+| Tier-1 router dispatch (Tier-2 → Tier-1) | TS ↔ Go | T1 (HTTP via `BifrostBackendExecutor.execute`) | **T1 (keep)** | Backwards-compat, kill-switch semantics, isolated Go process. |
+| Combo resolution (combo target list expansion) | TS (single process) | TS in-process | **T1 (keep)** | Pure-TS function; no cross-language call. |
+| Format translation (OpenAI↔Anthropic↔Gemini) | TS ↔ Rust | TS in-process (`open-sse/translator/`) | **T3 (FFI via `napi-rs`)** | Called every chat completion; pure-data transformation; hot path; minimal GC pressure. |
+| Prompt compression (lite / caveman / rtk) | TS (engine) | TS in-process (`open-sse/services/compression/`) | **T2 (UDS RPC) → T3 (FFI) when reaching 1k RPS** | Token-burn savings are real-time-budget-critical; pure-data I/O; well-framed. |
+| Semantic cache lookup | TS ↔ Rust | SQLite (`src/lib/db/reasoningCache.ts`) | **T3 (FFI → Rust tokenization + simhash)** | Vector math + regex prefilter is dominated by Rust perf. |
+| Signature cache lookup | TS in-process | SQLite | **T1 (keep)** | Already sub-ms; no perf gain. |
+| Rate limit / quota token-bucket (DEBT-001) | TS in-process | TS in-process (`open-sse/services/rateLimitManager.ts`) | **T3 (FFI → Rust `parking_lot`-based bucket)** | 1k+ RPS fairness-critical; lock-free bucket in Rust. |
+| Combo scorer (12-factor Auto-Combo) | TS in-process | TS in-process (`open-sse/services/autoCombo/scoring.ts`) | **T3 (FFI → Rust SIMD)** | Numerics-heavy; SIMD-accelerated scoring halves p99. |
+| SSE chunking (`open-sse/handlers/chatCore.ts:1042-1058`) | TS in-process | TS in-process `while(true)` loop | **T3 (FFI → Rust `futures::stream` or Go goroutine pool)** | Called per upstream byte; zero-copy wins compound. |
+| Webhook HMAC signing (`src/lib/webhookDispatcher.ts`) | TS in-process | TS in-process | **T1 (keep)** | Low RPS; correctness > perf. |
+| Reasoning replay (`open-sse/services/reasoningCache.ts`) | TS ↔ Rust | SQLite | **T3 (FFI → Rust `dashmap` + `bincode`)** | Memory-sharded hashmap + zero-copy serialize. |
+| A2A skill invocation (peer agent dispatch, ADR-004) | TS ↔ TS | HTTP (`POST /a2a`) | **T1 (keep)** | Cross-org RPC; already async-friendly. |
+| MCP server tool dispatch (Tier-2 → Tier-1 MCP client) | TS ↔ Go (Bifrost MCP client) | JSON-RPC over HTTP/SSE | **T2 (UDS RPC when co-located)** | Co-located deploys skip HTTP overhead. |
+| Provider model catalog (B4) | TS ↔ Go | HTTP `/v1/models` (cached in SQLite) | **T3 (FFI → Bifrost Go SDK)** | Already cached; refresh is cron-driven, not hot path. |
+| Pricing sync (`src/lib/pricingSync.ts`) | TS in-process | HTTP LiteLLM nightly cron | **T1 (keep)** | Cron, not hot path. |
+| Dashboard analytics rollups | TS ↔ SQLite | SQL via `better-sqlite3` | **T1 (keep)** | UI-bound, not perf-bound. |
+| Guardrail hot path (`src/lib/guardrails/`) | TS in-process | TS in-process | **T2 (UDS RPC → Rust `regex`/`aho-corasick`)** | PII-masker and prompt-injection are regex-heavy on every request. |
+
+### Why T2 (UDS RPC) over T3 (FFI) by default
+
+- **Process isolation** — UDS preserves the kill-switch semantics already
+  implemented in `open-sse/services/bifrostKillSwitch.ts`. A panicking Rust
+  or Go process via FFI takes down the whole Node process.
+- **Ecosystem maturity** — Cap'n Proto, FlatBuffers, and `prost` (Protobuf)
+  all have stable Rust + Go + TS bindings and battle-tested framing.
+- **No ABI versioning burden** — FFI surfaces need `#[repr(C)]` discipline
+  + semver-pinned layouts; UDS RPC uses wire-format semver instead.
+- **Cost-overhead fits hot path** — 50-200µs UDS loopback is an order of
+  magnitude under HTTP loopback (1-2ms) and within budget for non-
+  byte-by-byte workloads.
+
+### Why T3 (FFI) for the inner loops
+
+- **Zero-copy possible** — `napi-rs` `Buffer` is a direct view into the
+  Rust `Vec<u8>`; FlatBuffers over UDS still serializes per call.
+- **Sub-10µs overhead** — required for byte-by-byte SSE chunking and SIMD
+  scoring where every microsecond compounds.
+- **Lock-free primitives** — `parking_lot`, `dashmap`, `crossbeam` are
+  faster than anything achievable over IPC.
+
+### Rollout (F1-F6)
+
+| ID | Item | Owner | Effort | Status |
+|---|---|---|---|---|
+| **F1** | Pick canonical UDS RPC framework (Cap'n Proto vs Protobuf vs FlatBuffers) | core | S | ☐ Q3 2026 |
+| **F2** | `crates/tokn` extraction + UDS RPC server (`open-sse/services/udsRpc.ts` client) | tokn | M | ☐ Q3 2026 |
+| **F3** | Migrate compression engine (lite/caveman/rtk) to UDS RPC | compression | M | ☐ Q3 2026 |
+| **F4** | `napi-rs` bindings for Rust SIMD combo scorer + regex prefilter | core + tokn | L | ☐ Q4 2026 |
+| **F5** | `napi-rs` bindings for Rust semantic cache + reasoning replay | core + tokn | L | ☐ Q4 2026 |
+| **F6** | `cgo` integration for in-process Bifrost Go SDK (Bifrost's v1.0 GA gate) | core | M | ☐ 2027 Q1 |
+
+### Consequences
+
+**Positive:**
+- Per-edge cost discipline — T1 HTTP is no longer forced on edges where
+  T2/T3 dominates.
+- Phenotype-fleet convergence unblocked — `Tokn::tokenledger::routing` and
+  `crates/tokn` can land in OmniRoute without an HTTP detour.
+- Zero new ops surface — UDS RPC inherits the same process-isolation
+  guarantees as the HTTP sidecar.
+
+**Negative / Risks:**
+- **ABI versioning** — T3 FFI surfaces must be semver-pinned; ABI breaks
+  cause segfaults. Mitigated by `#[repr(C)]` + a `version()` symbol on
+  every FFI crate.
+- **Process proliferation** — T2 UDS adds one process per language surface;
+  Mitigated by a single `omniroute-polyglot-host` supervisor process that
+  spawns N language servers on startup.
+- **Build complexity** — `napi-rs` and `cgo` need Rust/Go toolchains on
+  the build host. Mitigated by the existing `Justfile` + per-platform
+  prebuilt artifacts (`dist/ffi/<triple>/`).
+
+### Cross-References
+
+- `docs/adr/0031-bifrost-tier1-router.md` — Tier-1 router decision (HTTP sidecar default).
+- `docs/adr/0032-polyglot-binding-tiers.md` — full MADR with benchmarks.
+- `docs/operations/bifrost-migration.md` — Phase 1-3 rollout.
+- `open-sse/executors/bifrost.ts:107-244` — Tier-1 binding.
+- `open-sse/services/bifrostKillSwitch.ts:382-416` — kill-switch + dispatcher fallback.
+- `open-sse/services/trafficShadow.ts` — shadow comparison (B6).
+- `PLAN.md` § 5 — Phenotype-org convergence.
+- `docs/ROUTING-CONVERGENCE-STATUS.md` — three-bifrost disambiguation.
+- `crates/tokn` — Rust entry-point per `PLAN.md` § 5.
 
 ---
 
