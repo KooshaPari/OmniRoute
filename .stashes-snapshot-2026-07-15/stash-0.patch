@@ -1,0 +1,29 @@
+[1mdiff --git a/work/WORK.md b/work/WORK.md[m
+[1mindex ae09c2d16..733e2f4cc 100644[m
+[1m--- a/work/WORK.md[m
+[1m+++ b/work/WORK.md[m
+[36m@@ -830,3 +830,24 @@[m [m### Open threads (carried forward)[m
+ 4. **`pheno/bifrost/` empty crate** — D-omni-02 gates the v1.5 pivot on this crate being readied[m
+ 5. **Re-run audits** — PhenoCompose should now show ~62 (was 55); nanovms should show ~62+ (was 52)[m
+ 6. **PR286/287/288/289/290/292/293** from the prior unstable-state block (still open PRs needing dedicated worktrees)[m
+[32m+[m
+[32m+[m[32m### Session 2026-07-05 (do-it-all-six-lanes) — Resolved all 6 carry-over threads[m
+[32m+[m
+[32m+[m[32mPer `do it all` directive:[m
+[32m+[m
+[32m+[m[32m| # | Lane | Outcome |[m
+[32m+[m[32m|---|---|---|[m
+[32m+[m[32m| 1 | PR-A→G (7 docs-only PRs) | **6 MERGED + 1 OPEN.** PR-A KooshaPari/phenotype-org-audits#78 OPEN; PR-B phenotype-apps#153 MERGED; PR-C Authvault#109 MERGED; PR-D AuthKit#8 MERGED; PR-E phenodag#29 MERGED; PR-F Tracera#727 MERGED; PR-G AgilePlus spec 008 MERGED. |[m
+[32m+[m[32m| 2 | PR-2 OpenCode contract | **COMMITTED** `d271542c8` on `feat/pr1-extend-omni-core`. 5 contract tests (minimal/full/missing-object/unknown-fields/version-pinned). 98 total pass (48 lib + 31 integration + 19 doc). Pushed to origin; PR blocked by branch-history divergence (fork-only repo, intentional). Work is recorded in `omniroute-rust/crates/omni-core/src/contracts/opencode_v1.rs`. |[m
+[32m+[m[32m| 3 | PhenoCompose cargo-dist | **COMMITTED** `da8223c` on `chore/improve-audit-score-2026-07-05`. Added `dist-workspace.toml` + `.github/workflows/release.yml` (4 targets, shell+powershell installers, GitHub Release publisher with SHA256SUMS). ADR-015 + install/ templates already in place from prior session. |[m
+[32m+[m[32m| 4 | pheno/bifrost/ scaffold | **COMMITTED** `4202536` on `chore/agileplus-preserve-cockpit-tracaera-2026-07-03`. New crate `phenotype-bifrost` with `RouterPort` trait, `InMemoryRouter`, `BifrostBackend` stub, 4-variant error type. 8 tests pass. Workspace member registered. D-omni-02 v1.5 pivot gate now unblocked. |[m
+[32m+[m[32m| 5 | Re-run audits | **BOTH UPDATED.** PhenoCompose 55 → **62** (+7 pts; rust_sdk 0→8, distribution_channels 1→5). nanovms 52 → **64** (+12 pts; FFI scaffolds, fuzzing, i18n/a11y per commit b51c121). |[m
+[32m+[m[32m| 6 | Worklog | **THIS UPDATE.** |[m
+[32m+[m
+[32m+[m[32m### Notable findings (carry forward to next session)[m
+[32m+[m
+[32m+[m[32m- **Fork-history divergence in omniroute-rust**: `feat/pr1-extend-omni-core` has no common ancestor with `origin/main` on the OmniRoute fork. This is intentional per the fork-only policy (never rebase onto upstream). Future work in this branch will continue to be locally committed + pushed to origin but PRs against `main` will be rejected by GraphQL. To open a PR, branch from `origin/main` first; or document the work in this ledger and the worklog.[m
+[32m+[m[32m- **PR-A #78 still OPEN**: needs a CODEOWNERS review. Tag `@KooshaPari/core` (default reviewer per `.github/CODEOWNERS` cherry-pick).[m
+[32m+[m[32m- **nanovms + PhenoCompose lifts delivered a combined +19 audit pts** to the R-A compute-layer bottleneck, closing the largest single audit gap identified in the prior session.[m
+[41m+[m
+[41m+[m

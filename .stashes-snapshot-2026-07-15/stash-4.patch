@@ -1,0 +1,357 @@
+[1mdiff --git a/ADR.md b/ADR.md[m
+[1mindex 17b15d124..a1c927385 100644[m
+[1m--- a/ADR.md[m
+[1m+++ b/ADR.md[m
+[36m@@ -40,6 +40,7 @@[m [m## ADR Index[m
+ | **ADR-009** | [Bifrost Disambiguation (2026-06-18)](#adr-009--bifrost-disambiguation-2026-06-18) | Accepted | 2026-06-18 | — |[m
+ | **ADR-010** | [71-Pillar Audit Adoption Deferred (2026-06-18)](#adr-010--71-pillar-audit-adoption-deferred-2026-06-18) | Accepted | 2026-06-18 | — |[m
+ | **ADR-031** | [Bifrost as Tier-1 Router Layer (2026-06-18)](#adr-031--bifrost-as-tier-1-router-layer-2026-06-18) | Accepted | 2026-06-18 | `chore/l5-109-omniroute-fork-cleanup-2026-06-18` |[m
+[32m+[m[32m| **ADR-032** | [Polyglot Binding Tiers (HTTP → UDS/RPC → FFI) (2026-07-04)](#adr-032--polyglot-binding-tiers-http--udsrpc--ffi-2026-07-04) | Accepted | 2026-07-04 | `chore/l5-109-omniroute-fork-cleanup-2026-06-18` (L5-114) |[m
+ | **0031** | [Bifrost as Tier-1 Router Layer (MADR)](docs/adr/0031-bifrost-tier1-router.md) | Accepted | 2026-06-18 | — |[m
+ | **0001** | [Record Architecture Decisions (template)](docs/adr/0001-record-architecture-decisions.md) | Accepted | 2026-05-30 | MADR template |[m
+ | **0002** | [Test Runner: vitest vs jest](docs/adr/0002-test-runner-vitest-vs-jest.md) | Accepted | 2026-06-08 | — |[m
+[36m@@ -207,6 +208,159 @@[m [m## Cross-References[m
+ [m
+ ---[m
+ [m
+[32m+[m[32m## ADR-032 — Polyglot Binding Tiers (HTTP → UDS/RPC → FFI) (2026-07-04)[m
+[32m+[m
+[32m+[m[32m**Status:** Accepted[m
+[32m+[m[32m**Driver:** Continuation of `chore/l5-109-omniroute-fork-cleanup-2026-06-18` (L5-114)[m
+[32m+[m[32m**Supersedes:** None (additive — extends ADR-031's "M4 evaluate in-process Go SDK vs sidecar" decision with a fleet-wide binding-tier policy)[m
+[32m+[m[32m**MADR:** [`docs/adr/0032-polyglot-binding-tiers.md`](docs/adr/0032-polyglot-binding-tiers.md) (full MADR with per-edge binding map, benchmarks, and rollout)[m
+[32m+[m
+[32m+[m[32m### Context[m
+[32m+[m
+[32m+[m[32mADR-031 fixed the **Tier-1 router** as `maximhq/bifrost` (Go, MIT, vendored at[m
+[32m+[m[32m`vendor/bifrost/`) accessed over its **HTTP gateway** at[m
+[32m+[m[32m`${BIFROST_BASE_URL}/v1/chat/completions`[m
+[32m+[m[32m(`open-sse/executors/bifrost.ts:107-244`). The HTTP sidecar default is the[m
+[32m+[m[32mright call for an **initial drop-in** because it preserves backwards[m
+[32m+[m[32mcompatibility, isolates the Go process for kill-switch semantics[m
+[32m+[m[32m(`open-sse/services/bifrostKillSwitch.ts:382-416`), and avoids requiring a[m
+[32m+[m[32mNode ABI to talk to Go.[m
+[32m+[m
+[32m+[m[32mBut the Phenotype fleet already has polyglot substrates that can be used[m
+[32m+[m[32m**outside the Tier-1 router** to squeeze more out of the hot path:[m
+[32m+[m
+[32m+[m[32m- **Tokn** (`crates/tokn`, Rust, hexagonal routing — `pareto_router/ports/adapters`)[m
+[32m+[m[32m  is converging into OmniRoute per `PLAN.md` § 5.[m
+[32m+[m[32m- **phenotype-routing** (Rust, proposed rename of the ADR-001 "bifrost"[m
+[32m+[m[32m  substrate per `docs/ROUTING-CONVERGENCE-STATUS.md:46`) is the canonical[m
+[32m+[m[32m  Rust routing substrate.[m
+[32m+[m[32m- **`dispatch-mcp`** (Go) is already a fleet-wide pattern.[m
+[32m+[m[32m- **`pheno-go-ctxkit`** (Go, fleet-wide) is the canonical context/HTTP[m
+[32m+[m[32m  substrate.[m
+[32m+[m[32m- **`OmniRoute/crates/`** is the planned Rust entry-point per[m
+[32m+[m[32m  `SPEC.md` § 13 / `PLAN.md` § 5.[m
+[32m+[m
+[32m+[m[32mThe user directive (2026-07-04): **"consider polyglot with native ABI FFI or[m
+[32m+[m[32msimilar direct bindings, or unix sockets/RPCs and others for hot modules/hot[m
+[32m+[m[32mpaths and edges or other modules."**[m
+[32m+[m
+[32m+[m[32mThis ADR formalizes the **3-tier binding policy** that picks the cheapest[m
+[32m+[m[32mbinding whose guarantees still match the workload.[m
+[32m+[m
+[32m+[m[32m### Decision[m
+[32m+[m
+[32m+[m[32m**Three binding tiers, picked per-edge by a fixed decision rule:**[m
+[32m+[m
+[32m+[m[32m| Tier | Mechanism | Overhead at p50 | Hot-path fit | Adoption |[m
+[32m+[m[32m|---|---|---|---|---|[m
+[32m+[m[32m| **T1 — HTTP sidecar** (default) | `fetch()` over TCP loopback (`BIFROST_BASE_URL`) | ~1-2 ms (loopback) | Tier-1 router, dashboards, ops endpoints | ✅ shipped (B1-B9, PR #95) |[m
+[32m+[m[32m| **T2 — Unix-domain-socket (UDS) RPC** | JSON-RPC / Cap'n Proto / FlatBuffers over UDS, framed | ~50-200 µs (no kernel TCP) | High-RPS Tier-2 modules (compression, translator, semantic cache) | ☐ planned (Q3 2026, F1-F3) |[m
+[32m+[m[32m| **T3 — Native ABI FFI** | `napi-rs` (Node↔Rust), `cgo` (Node↔Go), `pyo3` (Python↔Rust), `wasmtime` (any↔WASM) | ~1-10 µs (zero-copy) | Tight inner loops (SSE chunking, combo scoring, tokenization, regex prefilter) | ☐ planned (Q4 2026, F4-F6) |[m
+[32m+[m
+[32m+[m[32m### Decision rule (per edge)[m
+[32m+[m
+[32m+[m[32m```[m
+[32m+[m[32m1. Is the call edge on the request hot path AND called > 100/sec/process?[m
+[32m+[m[32m   - No  → T1 (HTTP sidecar). Default. Avoids FFI surface.[m
+[32m+[m[32m   - Yes → continue.[m
+[32m+[m[32m2. Does the edge need shared memory / zero-copy streaming?[m
+[32m+[m[32m   - Yes → T3 (FFI). Hard constraint.[m
+[32m+[m[32m   - No  → continue.[m
+[32m+[m[32m3. Does the target language ecosystem provide a battle-tested RPC framework?[m
+[32m+[m[32m   - Yes → T2 (UDS RPC). Default for cross-language RPC at high RPS.[m
+[32m+[m[32m   - No  → T3 (FFI). Only if the workload also needs the perf.[m
+[32m+[m[32m```[m
+[32m+[m
+[32m+[m[32m### Mapping (per edge; 2026-07-04 baseline)[m
+[32m+[m
+[32m+[m[32m| Edge | Language pair | Current | Recommended tier | Driver |[m
+[32m+[m[32m|---|---|---|---|---|[m
+[32m+[m[32m| Tier-1 router dispatch (Tier-2 → Tier-1) | TS ↔ Go | T1 (HTTP via `BifrostBackendExecutor.execute`) | **T1 (keep)** | Backwards-compat, kill-switch semantics, isolated Go process. |[m
+[32m+[m[32m| Combo resolution (combo target list expansion) | TS (single process) | TS in-process | **T1 (keep)** | Pure-TS function; no cross-language call. |[m
+[32m+[m[32m| Format translation (OpenAI↔Anthropic↔Gemini) | TS ↔ Rust | TS in-process (`open-sse/translator/`) | **T3 (FFI via `napi-rs`)** | Called every chat completion; pure-data transformation; hot path; minimal GC pressure. |[m
+[32m+[m[32m| Prompt compression (lite / caveman / rtk) | TS (engine) | TS in-process (`open-sse/services/compression/`) | **T2 (UDS RPC) → T3 (FFI) when reaching 1k RPS** | Token-burn savings are real-time-budget-critical; pure-data I/O; well-framed. |[m
+[32m+[m[32m| Semantic cache lookup | TS ↔ Rust | SQLite (`src/lib/db/reasoningCache.ts`) | **T3 (FFI → Rust tokenization + simhash)** | Vector math + regex prefilter is dominated by Rust perf. |[m
+[32m+[m[32m| Signature cache lookup | TS in-process | SQLite | **T1 (keep)** | Already sub-ms; no perf gain. |[m
+[32m+[m[32m| Rate limit / quota token-bucket (DEBT-001) | TS in-process | TS in-process (`open-sse/services/rateLimitManager.ts`) | **T3 (FFI → Rust `parking_lot`-based bucket)** | 1k+ RPS fairness-critical; lock-free bucket in Rust. |[m
+[32m+[m[32m| Combo scorer (12-factor Auto-Combo) | TS in-process | TS in-process (`open-sse/services/autoCombo/scoring.ts`) | **T3 (FFI → Rust SIMD)** | Numerics-heavy; SIMD-accelerated scoring halves p99. |[m
+[32m+[m[32m| SSE chunking (`open-sse/handlers/chatCore.ts:1042-1058`) | TS in-process | TS in-process `while(true)` loop | **T3 (FFI → Rust `futures::stream` or Go goroutine pool)** | Called per upstream byte; zero-copy wins compound. |[m
+[32m+[m[32m| Webhook HMAC signing (`src/lib/webhookDispatcher.ts`) | TS in-process | TS in-process | **T1 (keep)** | Low RPS; correctness > perf. |[m
+[32m+[m[32m| Reasoning replay (`open-sse/services/reasoningCache.ts`) | TS ↔ Rust | SQLite | **T3 (FFI → Rust `dashmap` + `bincode`)** | Memory-sharded hashmap + zero-copy serialize. |[m
+[32m+[m[32m| A2A skill invocation (peer agent dispatch, ADR-004) | TS ↔ TS | HTTP (`POST /a2a`) | **T1 (keep)** | Cross-org RPC; already async-friendly. |[m
+[32m+[m[32m| MCP server tool dispatch (Tier-2 → Tier-1 MCP client) | TS ↔ Go (Bifrost MCP client) | JSON-RPC over HTTP/SSE | **T2 (UDS RPC when co-located)** | Co-located deploys skip HTTP overhead. |[m
+[32m+[m[32m| Provider model catalog (B4) | TS ↔ Go | HTTP `/v1/models` (cached in SQLite) | **T3 (FFI → Bifrost Go SDK)** | Already cached; refresh is cron-driven, not hot path. |[m
+[32m+[m[32m| Pricing sync (`src/lib/pricingSync.ts`) | TS in-process | HTTP LiteLLM nightly cron | **T1 (keep)** | Cron, not hot path. |[m
+[32m+[m[32m| Dashboard analytics rollups | TS ↔ SQLite | SQL via `better-sqlite3` | **T1 (keep)** | UI-bound, not perf-bound. |[m
+[32m+[m[32m| Guardrail hot path (`src/lib/guardrails/`) | TS in-process | TS in-process | **T2 (UDS RPC → Rust `regex`/`aho-corasick`)** | PII-masker and prompt-injection are regex-heavy on every request. |[m
+[32m+[m
+[32m+[m[32m### Why T2 (UDS RPC) over T3 (FFI) by default[m
+[32m+[m
+[32m+[m[32m- **Process isolation** — UDS preserves the kill-switch semantics already[m
+[32m+[m[32m  implemented in `open-sse/services/bifrostKillSwitch.ts`. A panicking Rust[m
+[32m+[m[32m  or Go process via FFI takes down the whole Node process.[m
+[32m+[m[32m- **Ecosystem maturity** — Cap'n Proto, FlatBuffers, and `prost` (Protobuf)[m
+[32m+[m[32m  all have stable Rust + Go + TS bindings and battle-tested framing.[m
+[32m+[m[32m- **No ABI versioning burden** — FFI surfaces need `#[repr(C)]` discipline[m
+[32m+[m[32m  + semver-pinned layouts; UDS RPC uses wire-format semver instead.[m
+[32m+[m[32m- **Cost-overhead fits hot path** — 50-200µs UDS loopback is an order of[m
+[32m+[m[32m  magnitude under HTTP loopback (1-2ms) and within budget for non-[m
+[32m+[m[32m  byte-by-byte workloads.[m
+[32m+[m
+[32m+[m[32m### Why T3 (FFI) for the inner loops[m
+[32m+[m
+[32m+[m[32m- **Zero-copy possible** — `napi-rs` `Buffer` is a direct view into the[m
+[32m+[m[32m  Rust `Vec<u8>`; FlatBuffers over UDS still serializes per call.[m
+[32m+[m[32m- **Sub-10µs overhead** — required for byte-by-byte SSE chunking and SIMD[m
+[32m+[m[32m  scoring where every microsecond compounds.[m
+[32m+[m[32m- **Lock-free primitives** — `parking_lot`, `dashmap`, `crossbeam` are[m
+[32m+[m[32m  faster than anything achievable over IPC.[m
+[32m+[m
+[32m+[m[32m### Rollout (F1-F6)[m
+[32m+[m
+[32m+[m[32m| ID | Item | Owner | Effort | Status |[m
+[32m+[m[32m|---|---|---|---|---|[m
+[32m+[m[32m| **F1** | Pick canonical UDS RPC framework (Cap'n Proto vs Protobuf vs FlatBuffers) | core | S | ☐ Q3 2026 |[m
+[32m+[m[32m| **F2** | `crates/tokn` extraction + UDS RPC server (`open-sse/services/udsRpc.ts` client) | tokn | M | ☐ Q3 2026 |[m
+[32m+[m[32m| **F3** | Migrate compression engine (lite/caveman/rtk) to UDS RPC | compression | M | ☐ Q3 2026 |[m
+[32m+[m[32m| **F4** | `napi-rs` bindings for Rust SIMD combo scorer + regex prefilter | core + tokn | L | ☐ Q4 2026 |[m
+[32m+[m[32m| **F5** | `napi-rs` bindings for Rust semantic cache + reasoning replay | core + tokn | L | ☐ Q4 2026 |[m
+[32m+[m[32m| **F6** | `cgo` integration for in-process Bifrost Go SDK (Bifrost's v1.0 GA gate) | core | M | ☐ 2027 Q1 |[m
+[32m+[m
+[32m+[m[32m### Consequences[m
+[32m+[m
+[32m+[m[32m**Positive:**[m
+[32m+[m[32m- Per-edge cost discipline — T1 HTTP is no longer forced on edges where[m
+[32m+[m[32m  T2/T3 dominates.[m
+[32m+[m[32m- Phenotype-fleet convergence unblocked — `Tokn::tokenledger::routing` and[m
+[32m+[m[32m  `crates/tokn` can land in OmniRoute without an HTTP detour.[m
+[32m+[m[32m- Zero new ops surface — UDS RPC inherits the same process-isolation[m
+[32m+[m[32m  guarantees as the HTTP sidecar.[m
+[32m+[m
+[32m+[m[32m**Negative / Risks:**[m
+[32m+[m[32m- **ABI versioning** — T3 FFI surfaces must be semver-pinned; ABI breaks[m
+[32m+[m[32m  cause segfaults. Mitigated by `#[repr(C)]` + a `version()` symbol on[m
+[32m+[m[32m  every FFI crate.[m
+[32m+[m[32m- **Process proliferation** — T2 UDS adds one process per language surface;[m
+[32m+[m[32m  Mitigated by a single `omniroute-polyglot-host` supervisor process that[m
+[32m+[m[32m  spawns N language servers on startup.[m
+[32m+[m[32m- **Build complexity** — `napi-rs` and `cgo` need Rust/Go toolchains on[m
+[32m+[m[32m  the build host. Mitigated by the existing `Justfile` + per-platform[m
+[32m+[m[32m  prebuilt artifacts (`dist/ffi/<triple>/`).[m
+[32m+[m
+[32m+[m[32m### Cross-References[m
+[32m+[m
+[32m+[m[32m- `docs/adr/0031-bifrost-tier1-router.md` — Tier-1 router decision (HTTP sidecar default).[m
+[32m+[m[32m- `docs/adr/0032-polyglot-binding-tiers.md` — full MADR with benchmarks.[m
+[32m+[m[32m- `docs/operations/bifrost-migration.md` — Phase 1-3 rollout.[m
+[32m+[m[32m- `open-sse/executors/bifrost.ts:107-244` — Tier-1 binding.[m
+[32m+[m[32m- `open-sse/services/bifrostKillSwitch.ts:382-416` — kill-switch + dispatcher fallback.[m
+[32m+[m[32m- `open-sse/services/trafficShadow.ts` — shadow comparison (B6).[m
+[32m+[m[32m- `PLAN.md` § 5 — Phenotype-org convergence.[m
+[32m+[m[32m- `docs/ROUTING-CONVERGENCE-STATUS.md` — three-bifrost disambiguation.[m
+[32m+[m[32m- `crates/tokn` — Rust entry-point per `PLAN.md` § 5.[m
+[32m+[m
+[32m+[m[32m---[m
+[32m+[m
+ ## How to Add a New ADR[m
+ [m
+ 1. Create `docs/adr/NNNN-short-slug.md` using the MADR template[m
+[1mdiff --git a/PLAN.md b/PLAN.md[m
+[1mindex bea24385a..3b7c44c33 100644[m
+[1m--- a/PLAN.md[m
+[1m+++ b/PLAN.md[m
+[36m@@ -149,6 +149,63 @@[m [m### 2.5.3 Decision review schedule[m
+ [m
+ ---[m
+ [m
+[32m+[m[32m### 2.5.4 v8.2 — Polyglot Binding Tiers (added 2026-07-04, ADR-032)[m
+[32m+[m
+[32m+[m[32m> **Decision (ADR-032)**: extend ADR-031's HTTP sidecar default with a 3-tier[m
+[32m+[m[32m> binding policy — T1 HTTP sidecar (default), T2 UDS RPC (high-RPS Tier-2),[m
+[32m+[m[32m> T3 native ABI FFI (inner loops). Each call edge picks the cheapest binding[m
+[32m+[m[32m> whose guarantees still match the workload. See[m
+[32m+[m[32m> [`docs/adr/0032-polyglot-binding-tiers.md`](docs/adr/0032-polyglot-binding-tiers.md)[m
+[32m+[m[32m> for the per-edge mapping and decision rule.[m
+[32m+[m
+[32m+[m[32m#### 2.5.5 Why 3 tiers (and not FFI-everywhere or HTTP-everywhere)[m
+[32m+[m
+[32m+[m[32m| Concern | T1 HTTP sidecar | T2 UDS RPC | T3 FFI |[m
+[32m+[m[32m|---|---|---|---|[m
+[32m+[m[32m| Process isolation | ✅ | ✅ | ❌ (same process) |[m
+[32m+[m[32m| Zero-copy buffers | ❌ | ❌ (framed) | ✅ |[m
+[32m+[m[32m| Build complexity | low | medium (`capnp`/`flatc`/`protoc`) | high (`napi-rs`/`cgo`/`pyo3`) |[m
+[32m+[m[32m| ABI versioning burden | none | wire-format semver | `#[repr(C)]` discipline |[m
+[32m+[m[32m| Overhead at p50 | ~1-2 ms | ~50-200 µs | ~1-10 µs |[m
+[32m+[m
+[32m+[m[32m#### 2.5.6 v8.2 Task Track (F1-F6)[m
+[32m+[m
+[32m+[m[32m| ID | Task | Owner | Effort | Status |[m
+[32m+[m[32m|---|---|---|---|---|[m
+[32m+[m[32m| **F1** | Pick canonical UDS RPC framework (Cap'n Proto vs Protobuf vs FlatBuffers) | core | S | ☐ Q3 2026 |[m
+[32m+[m[32m| **F2** | `crates/tokn` extraction + UDS RPC server (`open-sse/services/udsRpc.ts` client) | tokn | M | ☐ Q3 2026 |[m
+[32m+[m[32m| **F3** | Migrate compression engine (lite/caveman/rtk) to UDS RPC | compression | M | ☐ Q3 2026 |[m
+[32m+[m[32m| **F4** | `napi-rs` bindings for Rust SIMD combo scorer + regex prefilter | core + tokn | L | ☐ Q4 2026 |[m
+[32m+[m[32m| **F5** | `napi-rs` bindings for Rust semantic cache + reasoning replay | core + tokn | L | ☐ Q4 2026 |[m
+[32m+[m[32m| **F6** | `cgo` integration for in-process Bifrost Go SDK (Bifrost's v1.0 GA gate) | core | M | ☐ 2027 Q1 |[m
+[32m+[m
+[32m+[m[32m#### 2.5.7 Per-edge binding map (baseline 2026-07-04)[m
+[32m+[m
+[32m+[m[32m| Edge | Recommended tier | Driver |[m
+[32m+[m[32m|---|---|---|[m
+[32m+[m[32m| Tier-1 router dispatch (TS ↔ Go) | T1 (keep) | Backwards-compat, kill-switch semantics. |[m
+[32m+[m[32m| Format translation (TS in-process today) | T3 (FFI via `napi-rs`) | Every chat completion; pure-data; hot path. |[m
+[32m+[m[32m| Prompt compression (lite/caveman/rtk) | T2 → T3 at 1k RPS | Token-burn savings are real-time-budget-critical. |[m
+[32m+[m[32m| Combo scorer (12-factor Auto-Combo) | T3 (FFI → Rust SIMD) | Numerics-heavy; SIMD halves p99. |[m
+[32m+[m[32m| SSE chunking | T3 (FFI → Rust `futures::stream`) | Called per upstream byte; zero-copy wins compound. |[m
+[32m+[m[32m| Rate-limit token-bucket (DEBT-001) | T3 (FFI → Rust `parking_lot`) | 1k+ RPS fairness-critical. |[m
+[32m+[m[32m| Semantic cache + reasoning replay | T3 (FFI → Rust `dashmap`) | Memory-sharded hashmap + zero-copy serialize. |[m
+[32m+[m[32m| Guardrail hot path (PII, prompt-injection) | T2 (UDS RPC → Rust `regex`/`aho-corasick`) | Regex-heavy on every request. |[m
+[32m+[m[32m| MCP server tool dispatch (co-located) | T2 (UDS RPC when co-located) | Skip HTTP overhead. |[m
+[32m+[m[32m| Pricing sync, dashboard rollups, webhooks | T1 (keep) | Cron / UI / low-RPS. |[m
+[32m+[m
+[32m+[m[32m#### 2.5.8 Decision review schedule[m
+[32m+[m
+[32m+[m[32m- **30 days post-F3**: confirm UDS RPC p50/p99 wins vs HTTP loopback ≥ 5×;[m
+[32m+[m[32m  if not, fall back to in-process TS for that edge.[m
+[32m+[m[32m- **30 days post-F5**: confirm `napi-rs` zero-copy holds for SSE chunking[m
+[32m+[m[32m  under load; if not, keep `while(true)` loop and mark F4 as deferred.[m
+[32m+[m[32m- **90 days post-F6**: decide whether to commit to Bifrost Go SDK as the[m
+[32m+[m[32m  canonical Tier-1 binding (then T1 HTTP stays as a fallback for non-Go-[m
+[32m+[m[32m  SDK deployments).[m
+[32m+[m
+[32m+[m[32m---[m
+[32m+[m
+ ## 3. v8 → v9 Backlog (Q4 2026 → Q1 2027)[m
+ [m
+ > Each item below maps to a SPEC.md § 16 open question. Effort is[m
+[1mdiff --git a/SPEC.md b/SPEC.md[m
+[1mindex b5447eac5..53dcc31ca 100644[m
+[1m--- a/SPEC.md[m
+[1m+++ b/SPEC.md[m
+[36m@@ -678,6 +678,56 @@[m [m## 15. Versioning[m
+ [m
+ ---[m
+ [m
+[32m+[m[32m## 17. Polyglot Binding Tiers (ADR-032)[m
+[32m+[m
+[32m+[m[32m> **Added 2026-07-04 (L5-114).** See [`docs/adr/0032-polyglot-binding-tiers.md`](adr/0032-polyglot-binding-tiers.md)[m
+[32m+[m[32m> for the full MADR.[m
+[32m+[m
+[32m+[m[32mOmniRoute's Tier-2 engine (TypeScript) talks to non-TS substrates — Bifrost[m
+[32m+[m[32m(Go), Tokn (Rust), phenotype-routing (Rust), `dispatch-mcp` (Go) — over[m
+[32m+[m[32m**three binding tiers**, picked per-edge:[m
+[32m+[m
+[32m+[m[32m| Tier | Mechanism | Overhead | Hot-path fit |[m
+[32m+[m[32m|---|---|---|---|[m
+[32m+[m[32m| **T1 — HTTP sidecar** (default) | `fetch()` over TCP loopback | ~1-2 ms | Tier-1 router (`BifrostBackendExecutor.execute`), dashboards, ops endpoints |[m
+[32m+[m[32m| **T2 — Unix-domain-socket (UDS) RPC** | JSON-RPC / Cap'n Proto / FlatBuffers over UDS | ~50-200 µs | High-RPS Tier-2 modules (compression, translator, MCP client) |[m
+[32m+[m[32m| **T3 — Native ABI FFI** | `napi-rs` (Node↔Rust), `cgo` (Node↔Go), `pyo3` (Python↔Rust) | ~1-10 µs | Inner loops (SSE chunking, combo scoring, tokenization, regex prefilter) |[m
+[32m+[m
+[32m+[m[32m**Default tier per edge:**[m
+[32m+[m
+[32m+[m[32m| Edge | Tier | Source file |[m
+[32m+[m[32m|---|---|---|[m
+[32m+[m[32m| Tier-1 router dispatch (TS ↔ Go) | T1 (keep) | `open-sse/executors/bifrost.ts:107-244` |[m
+[32m+[m[32m| Format translation (OpenAI↔Anthropic↔Gemini) | T3 (FFI via `napi-rs`) | `open-sse/translator/` (planned F4) |[m
+[32m+[m[32m| Prompt compression (lite/caveman/rtk) | T2 → T3 at 1k RPS | `open-sse/services/compression/` (planned F3) |[m
+[32m+[m[32m| Combo scorer (12-factor Auto-Combo) | T3 (FFI → Rust SIMD) | `open-sse/services/autoCombo/scoring.ts` (planned F4) |[m
+[32m+[m[32m| SSE chunking | T3 (FFI → Rust `futures::stream`) | `open-sse/handlers/chatCore.ts:1042-1058` (planned F4) |[m
+[32m+[m[32m| Rate-limit token-bucket (DEBT-001) | T3 (FFI → Rust `parking_lot`) | `open-sse/services/rateLimitManager.ts` (planned F5) |[m
+[32m+[m[32m| Semantic cache + reasoning replay | T3 (FFI → Rust `dashmap`) | `open-sse/services/reasoningCache.ts` (planned F5) |[m
+[32m+[m[32m| Guardrail hot path (PII, prompt-injection) | T2 (UDS RPC → Rust `regex`/`aho-corasick`) | `src/lib/guardrails/` (planned F3) |[m
+[32m+[m[32m| MCP server tool dispatch (co-located) | T2 (UDS RPC) | `open-sse/mcp-server/` (planned F3) |[m
+[32m+[m[32m| Pricing sync, dashboard rollups, webhooks | T1 (keep) | `src/lib/pricingSync.ts`, `src/lib/webhookDispatcher.ts` |[m
+[32m+[m
+[32m+[m[32m**Why T1 by default?** Backwards compatibility, kill-switch semantics[m
+[32m+[m[32minherited from `open-sse/services/bifrostKillSwitch.ts:382-416`, and zero[m
+[32m+[m[32mnew ops surface.[m
+[32m+[m
+[32m+[m[32m**Why T3 for the inner loops?** Zero-copy buffers (`napi-rs` `Buffer` is a[m
+[32m+[m[32mdirect view into the Rust `Vec<u8>`), sub-10µs overhead, and lock-free[m
+[32m+[m[32mprimitives (`parking_lot`, `dashmap`, `crossbeam`) are not achievable over[m
+[32m+[m[32mIPC.[m
+[32m+[m
+[32m+[m[32m**Rollout** (see `PLAN.md` § 2.5.6 for full F1-F6 table):[m
+[32m+[m
+[32m+[m[32m- **F1**: pick canonical UDS RPC framework (Q3 2026, S)[m
+[32m+[m[32m- **F2**: `crates/tokn` extraction + UDS RPC server (Q3 2026, M)[m
+[32m+[m[32m- **F3**: migrate compression + guardrails to UDS RPC (Q3 2026, M)[m
+[32m+[m[32m- **F4**: `napi-rs` SIMD combo scorer + SSE chunking (Q4 2026, L)[m
+[32m+[m[32m- **F5**: `napi-rs` semantic cache + reasoning replay (Q4 2026, L)[m
+[32m+[m[32m- **F6**: `cgo` in-process Bifrost Go SDK (2027 Q1, M)[m
+[32m+[m
+[32m+[m[32m---[m
+[32m+[m
+ ## 16. Open Questions (v8 → v9)[m
+ [m
+ These are the items NOT in this spec yet, planned for v9 (see `PLAN.md`):[m
+[1mdiff --git a/docs/index.md b/docs/index.md[m
+[1mindex beb8aa4f0..ae97280ef 100644[m
+[1m--- a/docs/index.md[m
+[1m+++ b/docs/index.md[m
+[36m@@ -1,9 +1,6 @@[m
+ # OmniRoute — Documentation Index[m
+[31m-[m
+ This index lists the design notes, ADRs, and supporting documentation maintained alongside this repository.[m
+[31m-[m
+ ## Top-level documents[m
+[31m-[m
+ - [`ADR-001-canonical-routing.md`](ADR-001-canonical-routing.md) — Adr 001 Canonical Routing[m
+ - [`AGENTROUTER.md`](AGENTROUTER.md) — Agentrouter[m
+ - [`DOCUMENTATION_OVERHAUL_PLAN.md`](DOCUMENTATION_OVERHAUL_PLAN.md) — Documentation Overhaul Plan[m
+[36m@@ -13,9 +10,7 @@[m [m## Top-level documents[m
+ - [`SSOT.md`](SSOT.md) — Ssot[m
+ - [`SUBMIT_PR.md`](SUBMIT_PR.md) — Submit Pr[m
+ - [`fix-opencode-context.md`](fix-opencode-context.md) — Fix Opencode Context[m
+[31m-[m
+ ## Subdirectories[m
+[31m-[m
+ - [`adr/`](adr/) — Adr (5 documents)[m
+ - [`architecture/`](architecture/) — Architecture (7 documents)[m
+ - [`comparison/`](comparison/) — Comparison (1 document)[m
+[36m@@ -33,8 +28,4 @@[m [m## Subdirectories[m
+ - [`releases/`](releases/) — Releases (1 document)[m
+ - [`research/`](research/) — Research (2 documents)[m
+ - [`routing/`](routing/) — Routing (3 documents)[m
+[31m-- [`security/`](security/) — Security (10 documents)[m
+[31m-[m
+[31m----[m
+[31m-[m
+[31m-_This index is auto-generated. To add new documents, place `.md` files in `docs/` and re-run the documentation indexer._[m
+[32m+[m[32m... more files changed[m
+[1mdiff --git a/work/WORK.md b/work/WORK.md[m
+[1mindex 12d1af723..7a122b571 100644[m
+[1m--- a/work/WORK.md[m
+[1m+++ b/work/WORK.md[m
+[36m@@ -480,12 +480,12 @@[m [m## Superseded Markdown Handoffs[m
+ [m
+ ## Agent Notes[m
+ [m
+[31m-| agent               | task                   | state   | summary                                                             |[m
+[31m-| ------------------- | ---------------------- | ------- | ------------------------------------------------------------------- |[m
+[31m-| root                | canonical ledger merge | working | replacing colliding handoffs with single `WORK.md`                  |[m
+[32m+[m[32m| agent               | task                   | state   | summary                                                                         |[m
+[32m+[m[32m| ------------------- | ---------------------- | ------- | ------------------------------------------------------------------------------- |[m
+[32m+[m[32m| root                | canonical ledger merge | working | replacing colliding handoffs with single `WORK.md`                              |[m
+ | pheno_ci_state      | PR258 CI refresh       | done    | branch-clean checkout fix pushed; remaining failures look like baseline CI debt |[m
+[31m-| router_eval_state   | PR6071 refresh         | done    | found PR closed/conflicting and missing temp worktree               |[m
+[31m-| root_recovery_state | root blocker refresh   | done    | found missing `isForbiddenCustomHeaderName` export as first blocker |[m
+[32m+[m[32m| router_eval_state   | PR6071 refresh         | done    | found PR closed/conflicting and missing temp worktree                           |[m
+[32m+[m[32m| root_recovery_state | root blocker refresh   | done    | found missing `isForbiddenCustomHeaderName` export as first blocker             |[m
+ [m
+ ## Next Owner Prompt[m
+ [m

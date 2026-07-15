@@ -1,0 +1,130 @@
+[1mdiff --git a/open-sse/handlers/chatCore.ts b/open-sse/handlers/chatCore.ts[m
+[1mindex 8f9a810cf..7d600d70e 100644[m
+[1m--- a/open-sse/handlers/chatCore.ts[m
+[1m+++ b/open-sse/handlers/chatCore.ts[m
+[36m@@ -3829,7 +3829,7 @@[m [mexport async function handleChatCore({[m
+     }[m
+ [m
+     // ── Phase 9.1: Cache store (non-streaming, temp=0) ──[m
+[31m-    storeSemanticCacheResponse({[m
+[32m+[m[32m    await storeSemanticCacheResponse({[m
+       enabled: semanticCacheEnabled,[m
+       body,[m
+       headers: clientRawRequest?.headers,[m
+[36m@@ -4129,7 +4129,7 @@[m [mexport async function handleChatCore({[m
+     }[m
+ [m
+     // Semantic cache: store assembled streaming response for future cache hits[m
+[31m-    storeStreamingSemanticCacheResponse({[m
+[32m+[m[32m    await storeStreamingSemanticCacheResponse({[m
+       enabled: semanticCacheEnabled,[m
+       streamStatus,[m
+       streamResponseBody,[m
+[1mdiff --git a/open-sse/handlers/chatCore/semanticCache.ts b/open-sse/handlers/chatCore/semanticCache.ts[m
+[1mindex bb247b085..d5fefd0ce 100644[m
+[1m--- a/open-sse/handlers/chatCore/semanticCache.ts[m
+[1m+++ b/open-sse/handlers/chatCore/semanticCache.ts[m
+[36m@@ -47,7 +47,9 @@[m [mexport async function checkSemanticCache({[m
+       body.top_p,[m
+       apiKeyId ?? undefined[m
+     );[m
+[31m-    const cached = getCachedResponse(signature);[m
+[32m+[m[32m    const cached = await getCachedResponse(signature, {[m
+[32m+[m[32m      messages: body.messages ?? body.input,[m
+[32m+[m[32m    });[m
+     if (cached) {[m
+       log?.debug?.("CACHE", `Semantic cache HIT for ${model} (stream=${stream})`);[m
+       reqLogger.logConvertedResponse(cached as Record<string, unknown>);[m
+[1mdiff --git a/open-sse/handlers/chatCore/semanticCacheStore.ts b/open-sse/handlers/chatCore/semanticCacheStore.ts[m
+[1mindex 8d119a863..361459f58 100644[m
+[1m--- a/open-sse/handlers/chatCore/semanticCacheStore.ts[m
+[1m+++ b/open-sse/handlers/chatCore/semanticCacheStore.ts[m
+[36m@@ -30,7 +30,7 @@[m [mexport interface SemanticCacheStoreDeps {[m
+   isCacheableForWrite: typeof defaultIsCacheableForWrite;[m
+   isSmallEnoughForSemanticCache: typeof defaultIsSmallEnough;[m
+   generateSignature: typeof defaultGenerateSignature;[m
+[31m-  setCachedResponse: typeof defaultSetCachedResponse;[m
+[32m+[m[32m  setCachedResponse: (signature: string, model: string, response: unknown, tokensSaved: number) => Promise<void>;[m
+ }[m
+ [m
+ const DEFAULT_DEPS: SemanticCacheStoreDeps = {[m
+[36m@@ -40,7 +40,7 @@[m [mconst DEFAULT_DEPS: SemanticCacheStoreDeps = {[m
+   setCachedResponse: defaultSetCachedResponse,[m
+ };[m
+ [m
+[31m-export function storeSemanticCacheResponse([m
+[32m+[m[32mexport async function storeSemanticCacheResponse([m
+   args: {[m
+     enabled: boolean;[m
+     body: CacheBody;[m
+[36m@@ -52,7 +52,7 @@[m [mexport function storeSemanticCacheResponse([m
+     log?: LoggerLike;[m
+   },[m
+   deps: SemanticCacheStoreDeps = DEFAULT_DEPS[m
+[31m-): void {[m
+[32m+[m[32m): Promise<void> {[m
+   if ([m
+     !args.enabled ||[m
+     !deps.isCacheableForWrite(args.body, args.headers) ||[m
+[36m@@ -68,6 +68,6 @@[m [mexport function storeSemanticCacheResponse([m
+     args.apiKeyId ?? undefined[m
+   );[m
+   const tokensSaved = args.usage?.prompt_tokens + args.usage?.completion_tokens || 0;[m
+[31m-  deps.setCachedResponse(signature, args.model, args.translatedResponse, tokensSaved);[m
+[32m+[m[32m  await deps.setCachedResponse(signature, args.model, args.translatedResponse, tokensSaved);[m
+   args.log?.debug?.("CACHE", `Stored response for ${args.model} (${tokensSaved} tokens)`);[m
+ }[m
+[1mdiff --git a/open-sse/handlers/chatCore/streamingSemanticCacheStore.ts b/open-sse/handlers/chatCore/streamingSemanticCacheStore.ts[m
+[1mindex 3aa16a978..b5ca5e7eb 100644[m
+[1m--- a/open-sse/handlers/chatCore/streamingSemanticCacheStore.ts[m
+[1m+++ b/open-sse/handlers/chatCore/streamingSemanticCacheStore.ts[m
+[36m@@ -29,7 +29,7 @@[m [mexport interface StreamingSemanticCacheStoreDeps {[m
+   isCacheableForWrite: typeof defaultIsCacheableForWrite;[m
+   isSmallEnoughForSemanticCache: typeof defaultIsSmallEnough;[m
+   generateSignature: typeof defaultGenerateSignature;[m
+[31m-  setCachedResponse: typeof defaultSetCachedResponse;[m
+[32m+[m[32m  setCachedResponse: (signature: string, model: string, response: unknown, tokensSaved: number) => Promise<void>;[m
+ }[m
+ [m
+ const DEFAULT_DEPS: StreamingSemanticCacheStoreDeps = {[m
+[36m@@ -56,10 +56,10 @@[m [mfunction streamTokensSaved(streamUsage: Record<string, unknown> | null | undefin[m
+   return (Number(u?.prompt_tokens ?? 0) || 0) + (Number(u?.completion_tokens ?? 0) || 0);[m
+ }[m
+ [m
+[31m-function writeStreamingCacheEntry([m
+[32m+[m[32masync function writeStreamingCacheEntry([m
+   args: StreamingCacheArgs,[m
+   deps: StreamingSemanticCacheStoreDeps[m
+[31m-): void {[m
+[32m+[m[32m): Promise<void> {[m
+   try {[m
+     const cleanBody = { ...(args.streamResponseBody as Record<string, unknown>) };[m
+     delete cleanBody._streamed;[m
+[36m@@ -72,17 +72,17 @@[m [mfunction writeStreamingCacheEntry([m
+       args.apiKeyId ?? undefined[m
+     );[m
+     const tokensSaved = streamTokensSaved(args.streamUsage);[m
+[31m-    deps.setCachedResponse(sig, args.model, cleanBody, tokensSaved);[m
+[32m+[m[32m    await deps.setCachedResponse(sig, args.model, cleanBody, tokensSaved);[m
+     args.log?.debug?.("CACHE", `Stored streaming response for ${args.model} (${tokensSaved} tokens)`);[m
+   } catch {[m
+     // Cache write failed — non-critical[m
+   }[m
+ }[m
+ [m
+[31m-export function storeStreamingSemanticCacheResponse([m
+[32m+[m[32mexport async function storeStreamingSemanticCacheResponse([m
+   args: StreamingCacheArgs,[m
+   deps: StreamingSemanticCacheStoreDeps = DEFAULT_DEPS[m
+[31m-): void {[m
+[32m+[m[32m): Promise<void> {[m
+   if ([m
+     !args.enabled ||[m
+     args.streamStatus !== 200 ||[m
+[36m@@ -91,5 +91,5 @@[m [mexport function storeStreamingSemanticCacheResponse([m
+   ) {[m
+     return;[m
+   }[m
+[31m-  writeStreamingCacheEntry(args, deps);[m
+[32m+[m[32m  await writeStreamingCacheEntry(args, deps);[m
+ }[m

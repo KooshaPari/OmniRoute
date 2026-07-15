@@ -1,0 +1,182 @@
+[1mdiff --git a/open-sse/executors/bifrost.ts b/open-sse/executors/bifrost.ts[m
+[1mindex 55e3c9b64..83a17e168 100644[m
+[1m--- a/open-sse/executors/bifrost.ts[m
+[1m+++ b/open-sse/executors/bifrost.ts[m
+[36m@@ -41,9 +41,11 @@[m [mimport {[m
+   resolveBifrostProviderId,[m
+ } from "./bifrostProviderMap.ts";[m
+ import {[m
+[32m+[m[32m  getBifrostModel,[m
+   listBifrostModelsForProvider,[m
+   refreshBifrostModels,[m
+   type BifrostFetcher,[m
+[32m+[m[32m  type BifrostModelListEntry,[m
+ } from "../../src/lib/db/bifrostModels.ts";[m
+ import {[m
+   isActive as isKillSwitchActive,[m
+[36m@@ -77,6 +79,129 @@[m [mfunction isBifrostEnabled(): boolean {[m
+   return flag === "true" || flag === "1";[m
+ }[m
+ [m
+[32m+[m[32m/**[m
+[32m+[m[32m * Whether the executor must consult the local `bifrost_models` cache before[m
+[32m+[m[32m * dispatching and throw if the requested model is missing. Off by default[m
+[32m+[m[32m * (zero overhead in the steady state). Set `BIFROST_MODEL_CACHE_REQUIRED=1`[m
+[32m+[m[32m * for strict-mode deployments that want to guarantee Bifrost serves only[m
+[32m+[m[32m * models it has advertised. Companion flag `BIFROST_MODEL_CACHE_REFRESH_ON_MISS=1`[m
+[32m+[m[32m * triggers a one-roundtrip refresh from `/v1/models` on a miss before[m
+[32m+[m[32m * deciding whether to throw.[m
+[32m+[m[32m */[m
+[32m+[m[32mfunction isBifrostCacheRequired(): boolean {[m
+[32m+[m[32m  const flag = process.env.BIFROST_MODEL_CACHE_REQUIRED;[m
+[32m+[m[32m  return flag === "1" || flag === "true";[m
+[32m+[m[32m}[m
+[32m+[m
+[32m+[m[32m/**[m
+[32m+[m[32m * Whether to refresh the `bifrost_models` cache on a miss (one roundtrip[m
+[32m+[m[32m * to Bifrost's `/v1/models`) before re-checking. Useful in two modes:[m
+[32m+[m[32m *   - With `BIFROST_MODEL_CACHE_REQUIRED=1`: populate the cache lazily,[m
+[32m+[m[32m *     then throw if still missing.[m
+[32m+[m[32m *   - Standalone: warm the cache opportunistically without blocking the[m
+[32m+[m[32m *     request (a refresh failure logs but does not throw).[m
+[32m+[m[32m */[m
+[32m+[m[32mfunction isBifrostCacheRefreshOnMiss(): boolean {[m
+[32m+[m[32m  const flag = process.env.BIFROST_MODEL_CACHE_REFRESH_ON_MISS;[m
+[32m+[m[32m  return flag === "1" || flag === "true";[m
+[32m+[m[32m}[m
+[32m+[m
+[32m+[m[32m/**[m
+[32m+[m[32m * Internal helper. Consults the `bifrost_models` cache for (provider, model)[m
+[32m+[m[32m * and enforces optional strict-mode + refresh-on-miss behavior. Throws on[m
+[32m+[m[32m * strict-mode miss-after-refresh; logs + returns otherwise.[m
+[32m+[m[32m *[m
+[32m+[m[32m * Insertion point in `execute()`: after the model override is applied so[m
+[32m+[m[32m * the cache key reflects the post-override id (Azure deployment-name →[m
+[32m+[m[32m * model-id normalization is the canonical case).[m
+[32m+[m[32m *[m
+[32m+[m[32m * Behavior matrix:[m
+[32m+[m[32m *   - Both toggles off (default): early return, zero overhead.[m
+[32m+[m[32m *   - Hit (cached + not expired): log info + return.[m
+[32m+[m[32m *   - Miss + REQUIRED + REFRESH_ON_MISS: refresh → re-check; throw if still missing.[m
+[32m+[m[32m *   - Miss + REQUIRED + no REFRESH: throw "not in cache".[m
+[32m+[m[32m *   - Miss + no REQUIRED + REFRESH: refresh best-effort; never throw.[m
+[32m+[m[32m *[m
+[32m+[m[32m * @returns void on success; throws on strict-mode miss or refresh-failure-while-required.[m
+[32m+[m[32m */[m
+[32m+[m[32masync function enforceBifrostModelCache([m
+[32m+[m[32m  provider: string,[m
+[32m+[m[32m  model: string,[m
+[32m+[m[32m  baseUrl: string,[m
+[32m+[m[32m  log?: {[m
+[32m+[m[32m    info?: (tag: string, msg: string) => void;[m
+[32m+[m[32m    warn?: (tag: string, msg: string) => void;[m
+[32m+[m[32m  },[m
+[32m+[m[32m): Promise<void> {[m
+[32m+[m[32m  const required = isBifrostCacheRequired();[m
+[32m+[m[32m  const refreshOnMiss = isBifrostCacheRefreshOnMiss();[m
+[32m+[m[32m  if (!required && !refreshOnMiss) return; // fast-path: feature off, no DB hit[m
+[32m+[m
+[32m+[m[32m  const cached = getBifrostModel(provider, model);[m
+[32m+[m[32m  if (cached) {[m
+[32m+[m[32m    log?.info?.([m
+[32m+[m[32m      BIFROST_TAG,[m
+[32m+[m[32m      `bifrost_models cache hit for ${provider}/${model} (fetched ${cached.fetchedAt})`,[m
+[32m+[m[32m    );[m
+[32m+[m[32m    return;[m
+[32m+[m[32m  }[m
+[32m+[m
+[32m+[m[32m  // Cache miss. If REFRESH_ON_MISS is set, try to populate before deciding.[m
+[32m+[m[32m  if (refreshOnMiss) {[m
+[32m+[m[32m    log?.info?.([m
+[32m+[m[32m      BIFROST_TAG,[m
+[32m+[m[32m      `bifrost_models cache miss for ${provider}/${model} — refreshing from ${baseUrl}/v1/models`,[m
+[32m+[m[32m    );[m
+[32m+[m[32m    const fetcher: BifrostFetcher = async (prov: string) => {[m
+[32m+[m[32m      const url = `${baseUrl}/v1/models?provider=${encodeURIComponent(prov)}`;[m
+[32m+[m[32m      const r = await fetch(url, {[m
+[32m+[m[32m        signal: AbortSignal.timeout(HEALTH_CHECK_TIMEOUT_MS),[m
+[32m+[m[32m      });[m
+[32m+[m[32m      if (!r.ok) throw new Error(`Bifrost /v1/models HTTP ${r.status}`);[m
+[32m+[m[32m      const body = (await r.json()) as { data?: BifrostModelListEntry[] };[m
+[32m+[m[32m      return Array.isArray(body.data) ? body.data : [];[m
+[32m+[m[32m    };[m
+[32m+[m[32m    try {[m
+[32m+[m[32m      await refreshBifrostModels(provider, fetcher, {[m
+[32m+[m[32m        ttlSeconds: 60 * 60,[m
+[32m+[m[32m      });[m
+[32m+[m[32m    } catch (refreshErr) {[m
+[32m+[m[32m      const msg = refreshErr instanceof Error ? refreshErr.message : String(refreshErr);[m
+[32m+[m[32m      log?.warn?.(BIFROST_TAG, `Cache refresh failed for ${provider}: ${msg}`);[m
+[32m+[m[32m      if (required) {[m
+[32m+[m[32m        throw new Error([m
+[32m+[m[32m          `[${BIFROST_TAG}] BIFROST_MODEL_CACHE_REQUIRED=1 and cache refresh failed for ` +[m
+[32m+[m[32m            `${provider}/${model}. Underlying: ${msg}. ` +[m
+[32m+[m[32m            `Disable the cache toggle or fix the Bifrost /v1/models endpoint.`,[m
+[32m+[m[32m        );[m
+[32m+[m[32m      }[m
+[32m+[m[32m      // Refresh failed but not required: continue with stale (or absent) cache.[m
+[32m+[m[32m      return;[m
+[32m+[m[32m    }[m
+[32m+[m[32m    const postRefresh = getBifrostModel(provider, model);[m
+[32m+[m[32m    if (postRefresh) {[m
+[32m+[m[32m      log?.info?.([m
+[32m+[m[32m        BIFROST_TAG,[m
+[32m+[m[32m        `bifrost_models cache hit for ${provider}/${model} after refresh`,[m
+[32m+[m[32m      );[m
+[32m+[m[32m      return;[m
+[32m+[m[32m    }[m
+[32m+[m[32m  }[m
+[32m+[m
+[32m+[m[32m  if (required) {[m
+[32m+[m[32m    throw new Error([m
+[32m+[m[32m      `[${BIFROST_TAG}] BIFROST_MODEL_CACHE_REQUIRED=1 and model "${model}" ` +[m
+[32m+[m[32m        `is not in the bifrost_models cache for provider "${provider}". ` +[m
+[32m+[m[32m        `Set BIFROST_MODEL_CACHE_REFRESH_ON_MISS=1 to populate lazily, or refresh manually ` +[m
+[32m+[m[32m        `(see refreshBifrostModels in src/lib/db/bifrostModels.ts).`,[m
+[32m+[m[32m    );[m
+[32m+[m[32m  }[m
+[32m+[m[32m  log?.warn?.([m
+[32m+[m[32m    BIFROST_TAG,[m
+[32m+[m[32m    `bifrost_models cache miss for ${provider}/${model} — proceeding without cache enforcement`,[m
+[32m+[m[32m  );[m
+[32m+[m[32m}[m
+[32m+[m
+ /**[m
+  * BifrostBackend — Tier-1 router executor.[m
+  *[m
+[36m@@ -148,6 +273,13 @@[m [mexport class BifrostBackendExecutor extends BaseExecutor {[m
+ [m
+     const baseUrl = await resolveBifrostBaseUrl();[m
+     const model = applyBifrostModelOverride(this.provider, input.model);[m
+[32m+[m
+[32m+[m[32m    // L1c: model-cache enforcement. Off by default; opt in via[m
+[32m+[m[32m    // BIFROST_MODEL_CACHE_REQUIRED=1 (strict) and/or[m
+[32m+[m[32m    // BIFROST_MODEL_CACHE_REFRESH_ON_MISS=1 (lazy populate on miss).[m
+[32m+[m[32m    // No-op when both toggles are unset.[m
+[32m+[m[32m    await enforceBifrostModelCache(this.provider, model, baseUrl, input.log);[m
+[32m+[m
+     const url = `${baseUrl}/v1/chat/completions`;[m
+ [m
+     // Transform body: rewrite the `model` field if the override function[m
+[36m@@ -301,17 +433,18 @@[m [mexport class BifrostBackendExecutor extends BaseExecutor {[m
+         };[m
+       }[m
+       // Cache miss: hit Bifrost's /v1/models once and refresh.[m
+[31m-      const fetcher: BifrostFetcher = async (url: string) => {[m
+[32m+[m[32m      const fetcher: BifrostFetcher = async (prov: string) => {[m
+[32m+[m[32m        const url = `${baseUrl}/v1/models?provider=${encodeURIComponent(prov)}`;[m
+         const r = await fetch(url, {[m
+           signal: AbortSignal.timeout(HEALTH_CHECK_TIMEOUT_MS),[m
+         });[m
+         if (!r.ok) {[m
+           throw new Error(`Bifrost /v1/models HTTP ${r.status}`);[m
+         }[m
+[31m-        return (await r.json()) as { data?: unknown };[m
+[32m+[m[32m        const body = (await r.json()) as { data?: BifrostModelListEntry[] };[m
+[32m+[m[32m        return Array.isArray(body.data) ? body.data : [];[m
+       };[m
+       await refreshBifrostModels(this.provider, fetcher, {[m
+[31m-        baseUrl,[m
+         ttlSeconds: 60 * 60,[m
+       });[m
+       return { ok: true, latencyMs: Date.now() - start };[m

@@ -1,0 +1,105 @@
+[1mdiff --git a/scripts/check/check-test-discovery.mjs b/scripts/check/check-test-discovery.mjs[m
+[1mindex 9ea80e077..f8d8c8f93 100644[m
+[1m--- a/scripts/check/check-test-discovery.mjs[m
+[1m+++ b/scripts/check/check-test-discovery.mjs[m
+[36m@@ -65,6 +65,8 @@[m [mexport const COLLECTORS = [[m
+   // Node native runner — test:system[m
+   { glob: "tests/e2e/system-failover.test.ts", sources: ["package.json"] },[m
+   // vitest.mcp.config.ts — test:vitest[m
+[32m+[m[32m  { glob: "open-sse/executors/__tests__/**/*.test.ts", sources: ["vitest.mcp.config.ts"] },[m
+[32m+[m[32m  { glob: "open-sse/handlers/**/__tests__/**/*.test.ts", sources: ["vitest.mcp.config.ts"] },[m
+   { glob: "open-sse/mcp-server/__tests__/**/*.test.ts", sources: ["vitest.mcp.config.ts"] },[m
+   { glob: "open-sse/services/autoCombo/__tests__/**/*.test.ts", sources: ["vitest.mcp.config.ts"] },[m
+   { glob: "open-sse/services/combo/__tests__/**/*.test.ts", sources: ["vitest.mcp.config.ts"] },[m
+[36m@@ -74,11 +76,26 @@[m [mexport const COLLECTORS = [[m
+     glob: "open-sse/services/__tests__/antigravity-quota-family.test.ts",[m
+     sources: ["vitest.mcp.config.ts"],[m
+   },[m
+[32m+[m[32m  { glob: "open-sse/services/__tests__/budgetForecast.test.ts", sources: ["vitest.mcp.config.ts"] },[m
+[32m+[m[32m  { glob: "open-sse/services/__tests__/thinkingBudget.test.ts", sources: ["vitest.mcp.config.ts"] },[m
+[32m+[m[32m  {[m
+[32m+[m[32m    glob: "open-sse/translator/helpers/__tests__/geminiHelper.test.ts",[m
+[32m+[m[32m    sources: ["vitest.mcp.config.ts"],[m
+[32m+[m[32m  },[m
+[32m+[m[32m  {[m
+[32m+[m[32m    glob: "src/app/api/compression/replay/__tests__/**/*.test.ts",[m
+[32m+[m[32m    sources: ["vitest.mcp.config.ts"],[m
+[32m+[m[32m  },[m
+[32m+[m[32m  { glob: "src/lib/db/__tests__/providerHealthHistory.test.ts", sources: ["vitest.mcp.config.ts"] },[m
+[32m+[m[32m  { glob: "src/lib/resilience/__tests__/**/*.test.ts", sources: ["vitest.mcp.config.ts"] },[m
+   { glob: "tests/unit/autoCombo/**/*.test.ts", sources: ["vitest.mcp.config.ts"] },[m
+   { glob: "tests/unit/encryption.spec.ts", sources: ["vitest.mcp.config.ts"] },[m
+   { glob: "src/shared/components/**/*.test.tsx", sources: ["vitest.mcp.config.ts"] },[m
+   { glob: "src/shared/hooks/__tests__/**/*.test.tsx", sources: ["vitest.mcp.config.ts"] },[m
+   { glob: "src/app/(dashboard)/**/__tests__/**/*.test.tsx", sources: ["vitest.mcp.config.ts"] },[m
+[32m+[m[32m  { glob: "src/shared/utils/*.test.ts", sources: ["vitest.mcp.config.ts"] },[m
+[32m+[m[32m  { glob: "tests/e2e/selfHealing.test.ts", sources: ["vitest.mcp.config.ts"] },[m
+[32m+[m[32m  { glob: "tests/unit/transformer/**/*.test.ts", sources: ["vitest.mcp.config.ts"] },[m
+   // vitest.config.ts via test:vitest:ui (roda com path-filter `tests/unit/ui`, então o[m
+   // conjunto EFETIVO é a interseção do include `tests/unit/**/*.test.tsx` com o filtro)[m
+   {[m
+[1mdiff --git a/src/app/.well-known/agent.json/route.ts b/src/app/.well-known/agent.json/route.ts[m
+[1mindex 2d017be94..636bf0343 100644[m
+[1m--- a/src/app/.well-known/agent.json/route.ts[m
+[1m+++ b/src/app/.well-known/agent.json/route.ts[m
+[36m@@ -80,6 +80,16 @@[m [mexport async function GET() {[m
+           "Run this coding task through the forge engine",[m
+         ],[m
+       },[m
+[32m+[m[32m      {[m
+[32m+[m[32m        id: "mint-virtual-key",[m
+[32m+[m[32m        name: "Mint Virtual Key",[m
+[32m+[m[32m        description: "Mints scoped virtual keys for controlled provider access",[m
+[32m+[m[32m        tags: ["auth", "virtual-key", "provider", "security"],[m
+[32m+[m[32m        examples: [[m
+[32m+[m[32m          "Mint a virtual key for this provider",[m
+[32m+[m[32m          "Create a scoped key for agent access",[m
+[32m+[m[32m        ],[m
+[32m+[m[32m      },[m
+     ],[m
+     authentication: {[m
+       schemes: ["bearer"],[m
+[1mdiff --git a/src/shared/providers/webSessionCredentials.ts b/src/shared/providers/webSessionCredentials.ts[m
+[1mindex 04a8ce692..f5789ce00 100644[m
+[1m--- a/src/shared/providers/webSessionCredentials.ts[m
+[1m+++ b/src/shared/providers/webSessionCredentials.ts[m
+[36m@@ -250,7 +250,7 @@[m [mexport function getWebSessionCredentialRequirement([m
+     WEB_SESSION_CREDENTIAL_REQUIREMENTS[[m
+       providerId as keyof typeof WEB_SESSION_CREDENTIAL_REQUIREMENTS[m
+     ] ?? null[m
+[31m-  );[m
+[32m+[m[32m  ) as WebSessionCredentialRequirement | null;[m
+ }[m
+ [m
+ export function requiresWebSessionCredential(providerId: unknown): boolean {[m
+[1mdiff --git a/vitest.mcp.config.ts b/vitest.mcp.config.ts[m
+[1mindex ed962ce20..4fd985527 100644[m
+[1m--- a/vitest.mcp.config.ts[m
+[1m+++ b/vitest.mcp.config.ts[m
+[36m@@ -12,11 +12,26 @@[m [mexport default defineConfig({[m
+     testTimeout: 120000,[m
+     hookTimeout: 30000,[m
+     include: [[m
+[32m+[m[32m      "open-sse/executors/__tests__/**/*.test.ts",[m
+[32m+[m[32m      "open-sse/handlers/**/__tests__/**/*.test.ts",[m
+       "open-sse/mcp-server/__tests__/**/*.test.ts",[m
+       "open-sse/services/autoCombo/__tests__/**/*.test.ts",[m
+       "open-sse/services/combo/__tests__/**/*.test.ts",[m
+[32m+[m[32m      "open-sse/services/__tests__/antigravity-quota-family.test.ts",[m
+[32m+[m[32m      "open-sse/services/__tests__/budgetForecast.test.ts",[m
+[32m+[m[32m      "open-sse/services/__tests__/thinkingBudget.test.ts",[m
+[32m+[m[32m      "open-sse/translator/helpers/__tests__/geminiHelper.test.ts",[m
+[32m+[m[32m      "src/app/(dashboard)/**/__tests__/**/*.test.tsx",[m
+[32m+[m[32m      "src/app/api/compression/replay/__tests__/**/*.test.ts",[m
+[32m+[m[32m      "src/lib/db/__tests__/providerHealthHistory.test.ts",[m
+[32m+[m[32m      "src/lib/resilience/__tests__/**/*.test.ts",[m
+[32m+[m[32m      "src/shared/components/**/*.test.tsx",[m
+[32m+[m[32m      "src/shared/hooks/__tests__/**/*.test.tsx",[m
+[32m+[m[32m      "src/shared/utils/*.test.ts",[m
+[32m+[m[32m      "tests/e2e/selfHealing.test.ts",[m
+       "tests/unit/autoCombo/**/*.test.ts",[m
+       "tests/unit/encryption.spec.ts",[m
+[32m+[m[32m      "tests/unit/transformer/**/*.test.ts",[m
+     ],[m
+     exclude: [[m
+       "**/node_modules/**",[m
