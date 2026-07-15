@@ -22,7 +22,7 @@ concurrency:
 jobs:
   capture:
     name: Capture anonymous home smoke
-    runs-on: ubuntu-24.04
+    runs-on: [self-hosted, linux, x64]
     timeout-minutes: 15
     env:
       CI: "true"
@@ -102,3 +102,4 @@ jobs:
           if-no-files-found: warn
           retention-days: 14
           include-hidden-files: false
+

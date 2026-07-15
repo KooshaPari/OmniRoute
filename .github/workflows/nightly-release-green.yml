@@ -34,7 +34,7 @@ concurrency:
 jobs:
   release-green:
     name: Validate active release branch
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux, x64]
     env:
       JWT_SECRET: ci-nightly-secret-with-sufficient-length-for-validation
       API_KEY_SECRET: ci-nightly-api-key-secret-long
@@ -135,3 +135,4 @@ jobs:
             release-green.json
             release-green.log
           if-no-files-found: ignore
+

@@ -4,7 +4,8 @@ on:
   workflow_dispatch: {}
 jobs:
   deck:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux, x64]
     steps:
       - uses: actions/checkout@v4
       - run: echo "SLA executive dashboard — consolidate SLA/uptime figures"
+

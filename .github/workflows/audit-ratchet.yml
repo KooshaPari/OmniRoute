@@ -33,7 +33,7 @@ concurrency:
 jobs:
   audit-ratchet:
     name: Audit Ratchet
-    runs-on: ubuntu-24.04
+    runs-on: [self-hosted, linux, x64]
     timeout-minutes: 5
     steps:
       - name: Checkout
@@ -94,3 +94,4 @@ jobs:
           path: docs/audits/
           if-no-files-found: warn
           retention-days: 90
+

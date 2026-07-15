@@ -32,7 +32,7 @@ env:
 jobs:
   budget-check:
     name: REST endpoint budget check
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux, x64]
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v4.2.2
         with:
@@ -104,7 +104,7 @@ jobs:
 
   budget-regression:
     name: REST endpoint latency regression
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux, x64]
     if: github.event_name == 'pull_request'
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v4.2.2
@@ -175,7 +175,7 @@ jobs:
   # Summary job to aggregate results for branch protection
   latency-budget-result:
     name: Latency budget result
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux, x64]
     needs: [budget-check, budget-regression]
     if: always()
     steps:
@@ -188,3 +188,4 @@ jobs:
             exit 1
           fi
           echo "All latency budget gates passed"
+

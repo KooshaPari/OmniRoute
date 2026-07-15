@@ -29,7 +29,7 @@ jobs:
   qgate:
     continue-on-error: true   # remove once coverage ≥60%
 
-    runs-on: ubuntu-latest   # Linux standard only — no billed runners
+    runs-on: [self-hosted, linux, x64]   # Linux standard only — no billed runners
 
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
@@ -55,3 +55,4 @@ jobs:
           name: coverage-lcov
           path: coverage/lcov.info
           retention-days: 14
+

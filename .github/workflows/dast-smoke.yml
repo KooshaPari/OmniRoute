@@ -10,7 +10,7 @@ permissions:
   contents: read
 jobs:
   dast-smoke:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux, x64]
     # ADVISORY while this new gate matures (repo convention: advisory -> blocking).
     # Flip to blocking (remove continue-on-error) once it's proven stable across a few PRs.
     continue-on-error: true
@@ -64,3 +64,4 @@ jobs:
           name: dast-smoke-logs
           path: server.log
           retention-days: 7
+

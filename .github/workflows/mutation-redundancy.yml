@@ -22,7 +22,7 @@ permissions:
 jobs:
   stryker-nobail:
     name: Stryker disableBail (batch ${{ matrix.batch.name }})
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux, x64]
     strategy:
       fail-fast: false
       matrix:
@@ -61,3 +61,4 @@ jobs:
           path: reports/mutation/
           if-no-files-found: warn
           retention-days: 14
+

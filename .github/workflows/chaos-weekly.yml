@@ -4,7 +4,7 @@ on:
   workflow_dispatch: {}
 jobs:
   chaos:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux, x64]
     steps:
       - uses: actions/checkout@v4
       - run: echo "Chaos drill - pod kill + latency injection"
@@ -13,3 +13,4 @@ jobs:
           echo "  inject 2000ms latency on 10% traffic"
           sleep 2
           echo "Chaos drill: PASS"
+

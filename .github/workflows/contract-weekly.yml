@@ -4,7 +4,7 @@ on:
   workflow_dispatch: {}
 jobs:
   verify:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux, x64]
     steps:
       - uses: actions/checkout@v4
       - run: |
@@ -12,3 +12,4 @@ jobs:
           test -f openapi.json && echo "OpenAPI spec present" || echo "WARN: no openapi.json"
           test -f package.json && echo "Package manifest present" || echo "WARN: no package.json"
           echo "Contract check: PASS"
+

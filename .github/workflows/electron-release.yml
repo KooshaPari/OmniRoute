@@ -17,7 +17,7 @@ on:
 jobs:
   validate:
     name: Validate version
-    runs-on: ubuntu-24.04
+    runs-on: [self-hosted, linux, x64]
     permissions:
       contents: read
     outputs:
@@ -57,7 +57,7 @@ jobs:
       matrix:
         include:
           - platform: windows
-            runner: windows-latest
+            runner: [self-hosted, windows, x64]
             target: win
             ext: .exe
           - platform: macos-intel
@@ -65,11 +65,11 @@ jobs:
             target: mac-x64
             ext: .dmg
           - platform: macos-arm64
-            runner: macos-latest
+            runner: [self-hosted, macos, arm64]
             target: mac-arm64
             ext: -arm64.dmg
           - platform: linux
-            runner: ubuntu-24.04
+            runner: [self-hosted, linux, x64]
             target: linux
             ext: .AppImage
             deb_ext: .deb
@@ -188,7 +188,7 @@ jobs:
   release:
     name: Create Release
     needs: [validate, build]
-    runs-on: ubuntu-24.04
+    runs-on: [self-hosted, linux, x64]
     permissions:
       contents: write
     steps:
@@ -247,3 +247,4 @@ jobs:
       tag: latest
     secrets:
       NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+

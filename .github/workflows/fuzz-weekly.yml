@@ -4,10 +4,11 @@ on:
   workflow_dispatch: {}
 jobs:
   fuzz:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux, x64]
     steps:
       - uses: actions/checkout@v4
       - uses: actions-rust-lang/setup-rust-toolchain@v1
       - run: cargo install cargo-fuzz
       - run: cargo fuzz build --fuzz-dir fuzz
       - run: cargo fuzz list --fuzz-dir fuzz
+
