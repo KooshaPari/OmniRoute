@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 1,
+  "docsetId": "omniroute-v4",
+  "versionSource": "apps/web/package.json",
+  "reviewedInputs": [],
+  "excludedInputs": [
+    "docs/audits/**",
+    "docs/reports/**",
+    "docs/research/**",
+    "docs/sessions/**",
+    "worklogs/**"
+  ],
+  "publication": {
+    "deployable": false,
+    "releaseAttachable": false,
+    "reason": "No reviewed public input is present on current main. PR #329 defines a separate scaffold and PR #334 proposes the first reviewed content slice."
+  },
+  "releaseAttachment": {
+    "mediaType": "application/gzip",
+    "filenameTemplate": "omniroute-v4-docset-{version}.tar.gz",
+    "requiredSidecars": [
+      "omniroute-v4-docset-{version}.tar.gz.sha256",
+      "omniroute-v4-docset-{version}.attachment.json"
+    ]
+  }
+}
