@@ -51,6 +51,10 @@ test("provider plugin manifest registry prefers model-prefix provider mapping wh
   assert.equal(prefixed.id, "openai");
 });
 
+test("provider plugin manifest registry returns null for non-existent provider", () => {
+  assert.equal(getProviderPluginManifestEntry("unknown-provider-id"), null);
+});
+
 test("provider plugin manifest registry returns null for unknown models", () => {
   assert.equal(getProviderPluginManifestEntryForModel("nonexistent/provider"), null);
   assert.equal(getProviderPluginManifestEntryForModel("unknown-model"), null);
