@@ -1,0 +1,63 @@
+# git-cliff configuration for OmniRoute
+# Docs: https://git-cliff.org/docs/configuration
+# Generates CHANGELOG.md from conventional commits.
+
+[changelog]
+header = """
+# Changelog
+
+All notable changes to this project will be documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).\n
+"""
+# body template
+body = """
+{% if version %}\
+    ## [{{ version }}] - {{ timestamp | date(format="%Y-%m-%d") }}\n
+{% else %}\
+    ## [unreleased]\n
+{% endif %}\
+{% for group, commits in commits | filter(attribute="merge_commit", value=false) | group_by(attribute="group") %}
+### {{ group | upper_first }}\n
+{% for commit in commits | filter(attribute="merge_commit", value=false) | sort(attribute="message") %}
+- {% if commit.breaking %}[**breaking**] {% endif %}{{ commit.message | upper_first }} ([{{ commit.id | truncate(length=7, end="") }}]({{ commit.links[0] }}))
+{% endfor %}
+{% endfor %}\n
+"""
+# trim the template
+trim = true
+# postprocessors
+postprocessors = [
+  { pattern = '<REPO>', replace = "https://github.com/Phenotype/OmniRoute" },
+]
+
+[git]
+conventional_commits = true
+filter_unconventional = true
+split_commits = false
+protect_breaking_commits = true
+filter_commits = false
+tag_pattern = "v[0-9]*"
+topo_order = false
+sort_commits = "oldest"
+commit_parsers = [
+  { message = "^feat", group = "Features" },
+  { message = "^fix", group = "Bug Fixes" },
+  { message = "^doc", group = "Documentation" },
+  { message = "^docs", group = "Documentation" },
+  { message = "^perf", group = "Performance" },
+  { message = "^refactor", group = "Refactor" },
+  { message = "^style", group = "Styling" },
+  { message = "^test", group = "Testing" },
+  { message = "^build", group = "Build System" },
+  { message = "^ci", group = "Continuous Integration" },
+  { message = "^chore\\(release\\)", skip = true },
+  { message = "^chore", group = "Miscellaneous Tasks" },
+  { body = ".*security", group = "Security" },
+  { message = "^revert", group = "Reverts" },
+]
+link_parsers = [
+  { pattern = "#(\\d+)", href = "https://github.com/Phenotype/OmniRoute/issues/$1" },
+  { pattern = "RFC(\\d+)", text = "RFC#${1}", href = "https://github.com/Phenotype/OmniRoute/issues/$1" },
+]
