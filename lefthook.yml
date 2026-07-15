@@ -73,22 +73,29 @@ pre-push:
   commands:
     typecheck-core:
       run: |
-        # TypeScript core type check (mirrors `npm run typecheck:core` from
-        # the workspace). We use `bunx tsc` because the open-sse workspace
-        # has its own tsconfig.
-        if [ -f open-sse/tsconfig.json ]; then
-          bunx --no-install tsc --noEmit -p open-sse/tsconfig.json
-        fi
+        node scripts/check/local-first-ci-attestation.mjs \
+          --record \
+          --gate typecheck-core \
+          --command "bunx --no-install tsc --noEmit -p open-sse/tsconfig.json"
 
     integrity-manifest:
-      run: bun run integrity:manifest
+      run: node scripts/check/local-first-ci-attestation.mjs \
+          --record \
+          --gate integrity-manifest \
+          --command "bun run integrity:manifest"
 
     t11-any-budget-push:
-      run: bun scripts/check/check-t11-any-budget.mjs
+      run: node scripts/check/local-first-ci-attestation.mjs \
+          --record \
+          --gate t11-any-budget-push \
+          --command "bun scripts/check/check-t11-any-budget.mjs"
 
     cycles-push:
       glob: "{src,open-sse}/**/*.ts"
-      run: bun scripts/check/check-cycles.mjs
+      run: node scripts/check/local-first-ci-attestation.mjs \
+          --record \
+          --gate cycles-push \
+          --command "bun scripts/check/check-cycles.mjs"
 
     local-ci-attestation:
       run: bun run local-ci:attest:write

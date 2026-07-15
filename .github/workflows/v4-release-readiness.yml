@@ -15,7 +15,6 @@ on:
       - "apps/desktop/src-tauri/Cargo.toml"
   workflow_dispatch:
 
-if: ${{ github.event_name != "push" && (github.event_name != "pull_request" || contains(github.event.pull_request.labels.*.name, "ci-billing-exception")) }}
 permissions:
   contents: read
 
@@ -25,6 +24,7 @@ concurrency:
 
 jobs:
   validate:
+    if: ${{ github.event_name != "push" && (github.event_name != "pull_request" || contains(github.event.pull_request.labels.*.name, "ci-billing-exception")) }}
     runs-on: ubuntu-24.04
     timeout-minutes: 5
     steps:
@@ -42,4 +42,5 @@ jobs:
           if-no-files-found: error
           retention-days: 14
           include-hidden-files: false
+
 

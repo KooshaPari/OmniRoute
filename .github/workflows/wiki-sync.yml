@@ -24,7 +24,6 @@ on:
       - "scripts/docs/sync-wiki.mjs"
   workflow_dispatch:
 
-if: ${{ github.event_name != "push" && (github.event_name != "pull_request" || contains(github.event.pull_request.labels.*.name, "ci-billing-exception")) }}
 permissions:
   contents: write
 
@@ -34,6 +33,7 @@ concurrency:
 
 jobs:
   sync-wiki:
+    if: ${{ github.event_name != "push" && (github.event_name != "pull_request" || contains(github.event.pull_request.labels.*.name, "ci-billing-exception")) }}
     name: Sync wiki with docs
     runs-on: ubuntu-24.04
     steps:
@@ -68,4 +68,5 @@ jobs:
           else
             echo "Wiki already in sync — nothing to push."
           fi
+
 
