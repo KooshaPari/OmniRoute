@@ -29,7 +29,7 @@ export interface StreamingSemanticCacheStoreDeps {
   isCacheableForWrite: typeof defaultIsCacheableForWrite;
   isSmallEnoughForSemanticCache: typeof defaultIsSmallEnough;
   generateSignature: typeof defaultGenerateSignature;
-  setCachedResponse: typeof defaultSetCachedResponse;
+  setCachedResponse: (signature: string, model: string, response: unknown, tokensSaved: number) => Promise<void>;
 }
 
 const DEFAULT_DEPS: StreamingSemanticCacheStoreDeps = {
@@ -56,10 +56,10 @@ function streamTokensSaved(streamUsage: Record<string, unknown> | null | undefin
   return (Number(u?.prompt_tokens ?? 0) || 0) + (Number(u?.completion_tokens ?? 0) || 0);
 }
 
-function writeStreamingCacheEntry(
+async function writeStreamingCacheEntry(
   args: StreamingCacheArgs,
   deps: StreamingSemanticCacheStoreDeps
-): void {
+): Promise<void> {
   try {
     const cleanBody = { ...(args.streamResponseBody as Record<string, unknown>) };
     delete cleanBody._streamed;
@@ -72,17 +72,17 @@ function writeStreamingCacheEntry(
       args.apiKeyId ?? undefined
     );
     const tokensSaved = streamTokensSaved(args.streamUsage);
-    deps.setCachedResponse(sig, args.model, cleanBody, tokensSaved);
+    await deps.setCachedResponse(sig, args.model, cleanBody, tokensSaved);
     args.log?.debug?.("CACHE", `Stored streaming response for ${args.model} (${tokensSaved} tokens)`);
   } catch {
     // Cache write failed — non-critical
   }
 }
 
-export function storeStreamingSemanticCacheResponse(
+export async function storeStreamingSemanticCacheResponse(
   args: StreamingCacheArgs,
   deps: StreamingSemanticCacheStoreDeps = DEFAULT_DEPS
-): void {
+): Promise<void> {
   if (
     !args.enabled ||
     args.streamStatus !== 200 ||
@@ -91,5 +91,5 @@ export function storeStreamingSemanticCacheResponse(
   ) {
     return;
   }
-  writeStreamingCacheEntry(args, deps);
+  await writeStreamingCacheEntry(args, deps);
 }

@@ -5532,7 +5532,7 @@ export async function handleChatCore({
     }
 
     // ── Phase 9.1: Cache store (non-streaming, temp=0) ──
-    storeSemanticCacheResponse({
+    await storeSemanticCacheResponse({
       enabled: semanticCacheEnabled,
       body,
       headers: clientRawRequest?.headers,
@@ -5915,7 +5915,11 @@ export async function handleChatCore({
 
     // Semantic cache: store assembled streaming response for future cache hits
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
     storeStreamingSemanticCacheResponse({
+=======
+    await storeStreamingSemanticCacheResponse({
+>>>>>>> Stashed changes
       enabled: semanticCacheEnabled,
       streamStatus,
       streamResponseBody,

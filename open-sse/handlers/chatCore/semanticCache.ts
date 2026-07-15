@@ -47,7 +47,9 @@ export async function checkSemanticCache({
       body.top_p,
       apiKeyId ?? undefined
     );
-    const cached = getCachedResponse(signature);
+    const cached = await getCachedResponse(signature, {
+      messages: body.messages ?? body.input,
+    });
     if (cached) {
       log?.debug?.("CACHE", `Semantic cache HIT for ${model} (stream=${stream})`);
       reqLogger.logConvertedResponse(cached as Record<string, unknown>);

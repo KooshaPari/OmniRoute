@@ -30,7 +30,7 @@ export interface SemanticCacheStoreDeps {
   isCacheableForWrite: typeof defaultIsCacheableForWrite;
   isSmallEnoughForSemanticCache: typeof defaultIsSmallEnough;
   generateSignature: typeof defaultGenerateSignature;
-  setCachedResponse: typeof defaultSetCachedResponse;
+  setCachedResponse: (signature: string, model: string, response: unknown, tokensSaved: number) => Promise<void>;
 }
 
 const DEFAULT_DEPS: SemanticCacheStoreDeps = {
@@ -40,7 +40,7 @@ const DEFAULT_DEPS: SemanticCacheStoreDeps = {
   setCachedResponse: defaultSetCachedResponse,
 };
 
-export function storeSemanticCacheResponse(
+export async function storeSemanticCacheResponse(
   args: {
     enabled: boolean;
     body: CacheBody;
@@ -52,7 +52,7 @@ export function storeSemanticCacheResponse(
     log?: LoggerLike;
   },
   deps: SemanticCacheStoreDeps = DEFAULT_DEPS
-): void {
+): Promise<void> {
   if (
     !args.enabled ||
     !deps.isCacheableForWrite(args.body, args.headers) ||
@@ -68,6 +68,6 @@ export function storeSemanticCacheResponse(
     args.apiKeyId ?? undefined
   );
   const tokensSaved = args.usage?.prompt_tokens + args.usage?.completion_tokens || 0;
-  deps.setCachedResponse(signature, args.model, args.translatedResponse, tokensSaved);
+  await deps.setCachedResponse(signature, args.model, args.translatedResponse, tokensSaved);
   args.log?.debug?.("CACHE", `Stored response for ${args.model} (${tokensSaved} tokens)`);
 }
