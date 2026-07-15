@@ -106,7 +106,12 @@ const preflight = {
   signing: false,
   nativeCompatibilityChanged: false,
   npmCompatibilityChanged: false,
-  readinessContract: {\n    schemaVersion: readinessConfig.schemaVersion,\n    versionGroup: readinessGroup.name,\n    members: readinessVersions,\n  },\n  manifests: components.map(({ name, version, properties }) => ({ name, version, properties })),
+  readinessContract: {
+    schemaVersion: readinessConfig.schemaVersion,
+    versionGroup: readinessGroup.name,
+    members: readinessVersions,
+  },
+  manifests: components.map(({ name, version, properties }) => ({ name, version, properties })),
 };
 
 await mkdir(output, { recursive: true });
