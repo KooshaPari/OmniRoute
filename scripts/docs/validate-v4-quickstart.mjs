@@ -34,11 +34,11 @@ requireEvidence(homeSource.includes("Welcome to argismonitor v4"), "implemented 
 requireEvidence(doc.includes("Welcome to argismonitor v4"), "documented home heading missing");
 
 const smokeMatchesSource = smokeTest.includes("Welcome to argismonitor v4");
-requireEvidence(!smokeMatchesSource, "remove the stale-test warning: smoke test now matches source");
-requireEvidence(doc.includes("test is stale relative"), "known test/source mismatch is not disclosed");
+requireEvidence(smokeMatchesSource, "smoke-test heading no longer matches source");
+requireEvidence(!doc.includes("test is stale relative"), "stale smoke-test warning remains in Quickstart");
 
 if (failures.length) {
   console.error(failures.map((failure) => `- ${failure}`).join("\n"));
   process.exit(1);
 }
-console.log("Validated v4 Quickstart commands and provenance; stale smoke-test mismatch remains explicitly disclosed.");
+console.log("Validated v4 Quickstart commands, smoke heading, and source provenance.");

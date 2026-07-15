@@ -1,9 +1,10 @@
-import { mkdir, readFile, rm, writeFile } from "node:fs/promises";
+import { copyFile, mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import { createHash } from "node:crypto";
 import path from "node:path";
 import process from "node:process";
 
 const appRoot = path.resolve(import.meta.dirname, "..");
+const repositoryRoot = path.resolve(appRoot, "..", "..");
 const sourcePath = path.join(appRoot, "content", "public-boundary.json");
 const outputRoot = path.join(appRoot, "dist");
 const checkOnly = process.argv.includes("--check");
@@ -11,6 +12,9 @@ const source = JSON.parse(await readFile(sourcePath, "utf8"));
 
 if (source.schemaVersion !== 1) throw new Error("Unsupported content schema");
 if (!source.site?.title || !source.site?.description) throw new Error("Site metadata is required");
+if (source.site.publication?.deployable !== false || !source.site.publication.reason) {
+  throw new Error("External deployment must remain disabled with an explicit blocker");
+}
 if (!Array.isArray(source.sections) || source.sections.length === 0) throw new Error("At least one section is required");
 
 const slugs = new Set();
@@ -21,7 +25,17 @@ for (const section of source.sections) {
   if (!section.title || !section.description || typeof section.publishable !== "boolean") {
     throw new Error(`Incomplete section: ${section.slug}`);
   }
+  if (section.publishable && !section.source) throw new Error(`Publishable section has no source: ${section.slug}`);
 }
+
+const publishableSections = source.sections.filter((section) => section.publishable);
+if (publishableSections.length !== 1 || publishableSections[0].slug !== "quickstart") {
+  throw new Error("Quickstart must be the sole publishable section");
+}
+const reviewedInputs = await Promise.all(publishableSections.map(async (section) => {
+  const bytes = await readFile(path.join(repositoryRoot, section.source));
+  return { slug: section.slug, source: section.source, sha256: createHash("sha256").update(bytes).digest("hex") };
+}));
 
 const escapeHtml = (value) => String(value)
   .replaceAll("&", "&amp;")
@@ -34,7 +48,7 @@ const cards = source.sections.map((section) => `
   <article id="${escapeHtml(section.slug)}" aria-labelledby="${escapeHtml(section.slug)}-title">
     <p class="status">${section.publishable ? "Reviewed" : "Content pending review"}</p>
     <h2 id="${escapeHtml(section.slug)}-title">${escapeHtml(section.title)}</h2>
-    <p>${escapeHtml(section.description)}</p>
+    <p>${escapeHtml(section.description)}</p>${section.publishable ? `\n    <p><a href="./${escapeHtml(section.slug)}.md">Read the reviewed source</a></p>` : ""}
   </article>`).join("");
 
 const html = `<!doctype html>
@@ -71,7 +85,10 @@ const buildManifest = {
   source: "content/public-boundary.json",
   sourceSha256: createHash("sha256").update(JSON.stringify(source)).digest("hex"),
   outputs: ["index.html", "styles.css", "search-index.json"],
-  deployable: source.sections.some((section) => section.publishable),
+  deployable: source.site.publication.deployable,
+  deploymentBlocker: source.site.publication.reason,
+  publishableSections: publishableSections.map(({ slug }) => slug),
+  reviewedInputs,
 };
 
 if (checkOnly) {
@@ -85,4 +102,7 @@ await writeFile(path.join(outputRoot, "index.html"), html);
 await writeFile(path.join(outputRoot, "styles.css"), css);
 await writeFile(path.join(outputRoot, "search-index.json"), JSON.stringify(searchIndex, null, 2) + "\n");
 await writeFile(path.join(outputRoot, "build-manifest.json"), JSON.stringify(buildManifest, null, 2) + "\n");
+for (const input of reviewedInputs) {
+  await copyFile(path.join(repositoryRoot, input.source), path.join(outputRoot, `${input.slug}.md`));
+}
 console.log(`Built deterministic docs scaffold with ${source.sections.length} section(s); deployable=${buildManifest.deployable}.`);
