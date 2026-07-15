@@ -1,0 +1,50 @@
+name: v4 offline docset contract
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - ".github/workflows/v4-offline-docset.yml"
+      - "config/docset/v4-docset.json"
+      - "tools/docset/build-v4-docset.mjs"
+      - "apps/web/package.json"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: v4-offline-docset-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      - name: Validate contract and prepare stage
+        run: node tools/docset/build-v4-docset.mjs
+      - name: Build deterministic offline archive
+        shell: bash
+        run: |
+          set -euo pipefail
+          version="$(node -p "require('./apps/web/package.json').version")"
+          tar --sort=name --mtime='@0' --owner=0 --group=0 --numeric-owner -C docset-artifact/stage -cf - . | gzip -n > "docset-artifact/omniroute-v4-docset-${version}.tar.gz"
+          node tools/docset/build-v4-docset.mjs --finalize
+      - name: Enforce non-publication state
+        run: |
+          node -e "const p=require('./docset-artifact/stage/provenance.json'); if(p.deployable||p.releaseAttachable||p.reviewedInputs.length) process.exit(1)"
+          node -e "const fs=require('fs'); const f=fs.readdirSync('docset-artifact').find(x=>x.endsWith('.attachment.json')); const a=require('./docset-artifact/'+f); if(a.releaseAttachable||a.deployment) process.exit(1)"
+          sha256sum --check docset-artifact/*.tar.gz.sha256
+      - name: Upload contract artifact
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: v4-offline-docset-contract-${{ github.sha }}
+          path: |
+            docset-artifact/*.tar.gz
+            docset-artifact/*.sha256
+            docset-artifact/*.attachment.json
+          if-no-files-found: error
+          retention-days: 14
+          include-hidden-files: false
