@@ -14,6 +14,16 @@ test("provider plugin manifest registry resolves providers by id", () => {
   assert.equal(openaiById.id, "openai");
 });
 
+test("provider plugin manifest registry resolves providers by alias", () => {
+  const manifest = generateProviderPluginManifest();
+  const withAlias = manifest.providers.find((provider) => provider.alias);
+  assert.ok(withAlias?.alias);
+
+  const byAlias = getProviderPluginManifestEntry(withAlias.alias);
+  assert.ok(byAlias);
+  assert.equal(byAlias.id, withAlias.id);
+});
+
 test("provider plugin manifest registry resolves model to owning provider", () => {
   const entryByModel = getProviderPluginManifestEntryForModel("gpt-5.6");
 

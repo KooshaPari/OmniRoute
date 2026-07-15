@@ -51,7 +51,8 @@ export function getProviderPluginManifestEntryForModel(
 
   ensureManifestCache();
 
-  const providerPrefix = model.includes("/") ? model.split("/", 1)[0] : "";
+  const slashIndex = model.indexOf("/");
+  const providerPrefix = slashIndex > -1 ? model.slice(0, slashIndex) : "";
   if (providerPrefix) {
     const prefixed = getProviderPluginManifestEntry(providerPrefix);
     if (prefixed) return prefixed;
