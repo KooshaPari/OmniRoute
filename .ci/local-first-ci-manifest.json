@@ -1,44 +1,44 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-07-15T05:56:20.732Z",
-  "gitSha": "ee12c8b6902e3bfce35a5e72b660563e3ddb0744",
+  "generatedAt": "2026-07-15T05:57:57.444Z",
+  "gitSha": "4dfa1cc807141067798704c91285f17a1de04a9b",
   "gateResults": [
     {
       "name": "typecheck-core",
       "status": "passed",
       "command": "bunx --no-install tsc --noEmit --noCheck --ignoreDeprecations 6.0 -p open-sse/tsconfig.json",
       "proofPath": ".ci/local-first-ci-gates/typecheck-core.proof.json",
-      "proofHash": "0a1856967ccdb4820fb93bedce4f2ad101ea56c8121050ee490e478ccb46eed5",
-      "executedAt": "2026-07-15T05:56:14.182Z"
+      "proofHash": "36cff3b85222c453879bedbe24aed47f084f63fb3e46590e2bfcde55a46c2714",
+      "executedAt": "2026-07-15T05:57:50.238Z"
     },
     {
       "name": "integrity-manifest",
       "status": "passed",
       "command": "bun run integrity:manifest:write",
       "proofPath": ".ci/local-first-ci-gates/integrity-manifest.proof.json",
-      "proofHash": "b0db60d7115be6a127e9fdd2895b4b6e5b67055303f66b9c07a5de97f655dbb0",
-      "executedAt": "2026-07-15T05:56:16.603Z"
+      "proofHash": "8b8e9655224b2e3b747ad6e097feb4f6e0836dde16c4c45bb3b93ab781d7f71f",
+      "executedAt": "2026-07-15T05:57:52.534Z"
     },
     {
       "name": "t11-any-budget-push",
       "status": "passed",
       "command": "bun scripts/check/check-t11-any-budget.mjs",
       "proofPath": ".ci/local-first-ci-gates/t11-any-budget-push.proof.json",
-      "proofHash": "d41c5e277bd084b78a3e3b2db31b014ad40c45e71f3cb9cada126513a0df127b",
-      "executedAt": "2026-07-15T05:56:18.085Z"
+      "proofHash": "58623a2eb71a08cdfd7afb4c3dad84ac7e3a8bc0d860f9f3aa887cea13b589f7",
+      "executedAt": "2026-07-15T05:57:54.253Z"
     },
     {
       "name": "cycles-push",
       "status": "passed",
       "command": "bun scripts/check/check-cycles.mjs",
       "proofPath": ".ci/local-first-ci-gates/cycles-push.proof.json",
-      "proofHash": "411a5ac1fbe5f56743c946d5c105942322f97f1e4545969c747f6b85a132b2c2",
-      "executedAt": "2026-07-15T05:56:19.743Z"
+      "proofHash": "3b3c34bdf7156a06867ac33bfe9c9110064feb412f7471fc4e42e51bf6812c83",
+      "executedAt": "2026-07-15T05:57:56.478Z"
     }
   ],
   "content": {
     "algorithm": "sha256",
-    "hash": "abda9f0dd49034be66bb3f815707352b95dd06a70496492ec32db54257a38d1c",
+    "hash": "51b2bf70e24c69b1c3a5937dc2134b60eeaa33a58ba896dc4430bc842c34ab7f",
     "fileCount": 134,
     "trackedFiles": [
       ".github/workflows/README.md",

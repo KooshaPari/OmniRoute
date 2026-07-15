@@ -1,9 +1,9 @@
 command: bun scripts/check/check-cycles.mjs
-startedAt: 2026-07-15T05:56:18.648Z
-finishedAt: 2026-07-15T05:56:19.487Z
+startedAt: 2026-07-15T05:57:55.038Z
+finishedAt: 2026-07-15T05:57:56.151Z
 exitCode: 0
 signal: none
-gitSha: ee12c8b6902e3bfce35a5e72b660563e3ddb0744
+gitSha: 4dfa1cc807141067798704c91285f17a1de04a9b
 stdout:
 [cycles] OK - no cycles detected across 345 files in: src/shared/components, src/lib/db, src/lib/compliance, open-sse/translator, open-sse/mcp-server
 

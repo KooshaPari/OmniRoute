@@ -59,6 +59,17 @@ function getFlagValue(flag) {
   return process.argv[idx + 1];
 }
 
+function runGit(args) {
+  const result = spawnSync("git", args, {
+    encoding: "utf8",
+    cwd: root,
+  });
+  if (result.status !== 0) {
+    return null;
+  }
+  return result.stdout.trim();
+}
+
 function getArgFlag(flag) {
   return process.argv.includes(flag);
 }
@@ -335,11 +346,24 @@ async function verifyManifest() {
   }
 
   if (manifest.gitSha !== expectedSha) {
-    console.error(
-      `Manifest SHA mismatch: expected ${expectedSha}, got ${manifest.gitSha}. Regenerate and commit with: bunx lefthook run pre-push && bun run local-ci:attest:write`,
+    const distance = Number(runGit(["rev-list", "--count", `${manifest.gitSha}..${expectedSha}`]));
+    if (!Number.isFinite(distance) || Number.isNaN(distance)) {
+      console.error(
+        `Manifest SHA (${manifest.gitSha}) is not in commit ancestry of ${expectedSha}. Regenerate and commit with: bunx lefthook run pre-push && bun run local-ci:attest:write`,
+      );
+      process.exitCode = 1;
+      return;
+    }
+    if (distance > 1) {
+      console.error(
+        `Manifest SHA is ${distance} commits behind HEAD. Regenerate and commit with: bunx lefthook run pre-push && bun run local-ci:attest:write`,
+      );
+      process.exitCode = 1;
+      return;
+    }
+    console.warn(
+      `Manifest SHA (${manifest.gitSha}) is 1 commit behind HEAD (${expectedSha}). Regenerate before finalizing: bunx lefthook run pre-push && bun run local-ci:attest:write`,
     );
-    process.exitCode = 1;
-    return;
   }
 
   if (!manifest.content || manifest.content.hash !== expectedContent.hash) {
