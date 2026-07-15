@@ -26,7 +26,7 @@ concurrency:
 jobs:
   artifacts:
     name: Build dry-run artifacts
-    runs-on: [self-hosted, linux, x64]
+    runs-on: ubuntu-latest
     timeout-minutes: 12
     env:
       RELEASE_TAG: ${{ github.ref_type == 'tag' && github.ref_name || '' }}
