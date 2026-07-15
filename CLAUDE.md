@@ -1,27 +1,18 @@
-# CLAUDE.md
+# Melosviz
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+## Build & Test
 
-## Quick Start
+Use the project's primary build command (see README). Run the test suite
+locally before pushing.
 
-```bash
-npm install                    # Install deps (auto-generates .env from .env.example)
-npm run dev                    # Dev server at http://localhost:20128
-npm run build                  # Production build (Next.js 16 standalone)
-npm run lint                   # ESLint (0 errors expected; warnings are pre-existing)
-npm run typecheck:core         # TypeScript check (should be clean)
-npm run typecheck:noimplicit:core  # Strict check (no implicit any)
-npm run test:coverage          # Unit tests + coverage gate (60/60/60/60 — statements/lines/functions/branches)
-npm run check                  # lint + test combined
-npm run check:cycles           # Detect circular dependencies
-```
+## Project Layout
 
-### Running Tests
+TBD: describe the top-level directories and their roles. Until then, this
+file is a stub.
 
-```bash
-# Single test file (Node.js native test runner — most tests)
-node --import tsx/esm --test tests/unit/your-file.test.ts
+## Conventions
 
+<<<<<<< Updated upstream
 # Vitest (MCP server, autoCombo, cache)
 npm run test:vitest
 
@@ -560,3 +551,10 @@ When parsing streaming LLM responses (e.g. Responses API), check if a chunk repr
 ### 3. Database Handles in Tests
 
 Ensure that any unit tests that trigger database migrations or establish SQLite connections call `resetDbInstance()` and properly clean up/close all DB handles in a `test.after(...)` hook. Failure to release database connection handles will cause Node's native test runner to hang indefinitely.
+=======
+- Follow the existing code style; do not bypass linters/formatters/type
+  checkers.
+- Add or update tests for any new behavior.
+- Reference: `~/.claude/CLAUDE.md` and `../../CLAUDE.md` (global Phenotype
+  governance).
+>>>>>>> Stashed changes

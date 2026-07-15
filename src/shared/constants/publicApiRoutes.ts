@@ -3,10 +3,12 @@ const PUBLIC_API_ROUTE_PREFIXES = [
   "/api/auth/logout",
   "/api/auth/status",
   "/api/init",
+  "/api/monitoring/health",
   "/api/v1/",
   "/api/cloud/",
   "/api/sync/bundle",
   "/api/oauth/",
+<<<<<<< Updated upstream
   // Public, ticket-gated Codex device-flow completion (validate + persist).
   // The handler enforces its own single-use ticket check; no dashboard auth.
   "/api/codex/connect/",
@@ -18,12 +20,11 @@ const PUBLIC_API_ROUTE_PREFIXES = [
   // The handler enforces its own auth via extractUsageCommandApiKey/isValidApiKey
   // and the allowUsageCommand flag — it must not be gated by management auth.
   "/api/usage/om-usage",
+=======
+>>>>>>> Stashed changes
 ];
 
-const PUBLIC_READONLY_API_ROUTE_PREFIXES = [
-  "/api/monitoring/health",
-  "/api/settings/require-login",
-];
+const PUBLIC_READONLY_API_ROUTE_PREFIXES = ["/api/settings/require-login"];
 
 const PUBLIC_READONLY_METHODS = new Set(["GET", "HEAD", "OPTIONS"]);
 

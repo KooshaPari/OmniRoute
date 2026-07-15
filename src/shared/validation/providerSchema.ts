@@ -2,14 +2,17 @@
  * Provider Schema Validation — Phase 7.2
  *
  * Zod schemas for provider constant validation.
- * Validates provider category maps
+ * Validates FREE_PROVIDERS, OAUTH_PROVIDERS, and APIKEY_PROVIDERS
  * at module load time to catch configuration drift early.
  *
  * @module shared/validation/providerSchema
  */
 
 import { z } from "zod";
+<<<<<<< Updated upstream
 import { SERVICE_KIND_VALUES } from "@/shared/constants/serviceKinds";
+=======
+>>>>>>> Stashed changes
 
 export const ProviderSchema = z.object({
   id: z.string().min(1),
@@ -20,18 +23,12 @@ export const ProviderSchema = z.object({
   textIcon: z.string().optional(),
   website: z.string().url().optional(),
   passthroughModels: z.boolean().optional(),
-  subscriptionRisk: z.boolean().optional(),
-  riskNoticeVariant: z.enum(["oauth", "webCookie", "deprecated", "embedded-service"]).optional(),
-  isEmbeddedService: z.boolean().optional(),
   deprecated: z.boolean().optional(),
   deprecationReason: z.string().optional(),
   hasFree: z.boolean().optional(),
   freeNote: z.string().optional(),
   authHint: z.string().optional(),
   apiHint: z.string().optional(),
-  serviceKinds: z.array(z.enum(SERVICE_KIND_VALUES)).optional(),
-  noAuth: z.boolean().optional(),
-  anonymousFallback: z.boolean().optional(),
 });
 
 export const ProvidersMapSchema = z.record(z.string(), ProviderSchema);

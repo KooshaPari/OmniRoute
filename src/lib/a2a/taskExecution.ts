@@ -1,41 +1,43 @@
-/**
- * A2A Skill Handler Registry and Execution
- */
+import type { A2ATask, TaskArtifact } from "./taskManager";
 
-import { A2ATask } from "./taskManager";
+type TaskManagerLike = {
+  updateTask: (
+    taskId: string,
+    state: "completed" | "failed",
+    artifacts?: Array<{ type: string; content: string }>,
+    message?: string
+  ) => unknown;
+};
 
-export interface A2ASkillResult {
-  artifacts: Array<{ type: string; content: string }>;
-  metadata?: Record<string, unknown>;
-}
+type StreamTaskResult = {
+  artifacts: TaskArtifact[];
+  metadata: Record<string, unknown>;
+};
 
-export type A2ASkillHandler = (task: A2ATask) => Promise<A2ASkillResult>;
+export type A2ASkillHandler = (task: A2ATask) => Promise<StreamTaskResult>;
 
 export const A2A_SKILL_HANDLERS: Record<string, A2ASkillHandler> = {
   "smart-routing": async (task) => {
     const skillModule = await import("./skills/smartRouting");
     return skillModule.executeSmartRouting(task);
   },
-
   "quota-management": async (task) => {
     const skillModule = await import("./skills/quotaManagement");
     return skillModule.executeQuotaManagement(task);
   },
-
   "provider-discovery": async (task) => {
     const skillModule = await import("./skills/providerDiscovery");
     return skillModule.executeProviderDiscovery(task);
   },
-
   "cost-analysis": async (task) => {
     const skillModule = await import("./skills/costAnalysis");
     return skillModule.executeCostAnalysis(task);
   },
-
   "health-report": async (task) => {
     const skillModule = await import("./skills/healthReport");
     return skillModule.executeHealthReport(task);
   },
+<<<<<<< Updated upstream
 
   "list-capabilities": async (task) => {
     const skillModule = await import("./skills/listCapabilities");
@@ -51,23 +53,26 @@ export const A2A_SKILL_HANDLERS: Record<string, A2ASkillHandler> = {
     const skillModule = await import("./skills/mintVirtualKey");
     return skillModule.executeMintVirtualKey(task);
   },
+=======
+>>>>>>> Stashed changes
 };
 
-/**
- * Execute an A2A skill task with state management
- */
 export async function executeA2ATaskWithState(
-  taskManager: any,
+  tm: TaskManagerLike,
   task: A2ATask,
-  handler: A2ASkillHandler
-): Promise<A2ASkillResult> {
+  handler: (task: A2ATask) => Promise<StreamTaskResult>
+) {
   try {
     const result = await handler(task);
-    taskManager.updateTask(task.id, "completed", result.artifacts);
+    tm.updateTask(task.id, "completed", result.artifacts);
     return result;
   } catch (err) {
-    const message = err instanceof Error ? err.message : String(err);
-    taskManager.updateTask(task.id, "failed", [{ type: "error", content: message }], message);
+    const msg = err instanceof Error ? err.message : String(err);
+    try {
+      tm.updateTask(task.id, "failed", [{ type: "error", content: msg }], msg);
+    } catch {
+      // Task may already be terminal (e.g., cancelled). Preserve original error.
+    }
     throw err;
   }
 }

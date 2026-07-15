@@ -1,4 +1,5 @@
 import { HTTP_STATUS, FETCH_TIMEOUT_MS } from "../config/constants.ts";
+<<<<<<< Updated upstream
 import {
   mergeClientAnthropicBeta,
   normalizeAnthropicHeaderVariants,
@@ -13,26 +14,23 @@ import { SessionPool } from "../services/sessionPool/sessionPool.ts";
 import { PoolRegistry } from "../services/sessionPool/poolRegistry.ts";
 import { resolveKeyForRequest } from "../services/apiKeyRotator.ts";
 import type { KeyHealth } from "../services/apiKeyRotator.ts";
+=======
+import { applyFingerprint, isCliCompatEnabled } from "../config/cliFingerprints.ts";
+import { getRotatingApiKey } from "../services/apiKeyRotator.ts";
+>>>>>>> Stashed changes
 import { getOpenAICompatibleType, isClaudeCodeCompatible } from "../services/provider.ts";
-import {
-  runWithOnPersist,
-  getRefreshLeadMs,
-  isUnrecoverableRefreshError,
-} from "../services/tokenRefresh.ts";
 import type { ProviderRequestDefaults } from "../services/providerRequestDefaults.ts";
 import { signRequestBody } from "../services/claudeCodeCCH.ts";
 import {
   appendAnthropicBetaHeader,
   CONTEXT_1M_BETA_HEADER,
-  enforceThinkingTemperature,
   modelSupportsContext1mBeta,
 } from "../services/claudeCodeCompatible.ts";
 import { getClaudeCodeCompatibleRequestDefaults } from "@/lib/providers/requestDefaults";
-import {
-  cloakThirdPartyToolNames,
-  remapToolNamesInRequest,
-} from "../services/claudeCodeToolRemapper.ts";
+import { supportsXHighEffort } from "../config/providerModels.ts";
+import { remapToolNamesInRequest } from "../services/claudeCodeToolRemapper.ts";
 import { obfuscateInBody } from "../services/claudeCodeObfuscation.ts";
+<<<<<<< Updated upstream
 import { sanitizeClaudeToolSchemas } from "../translator/helpers/schemaCoercion.ts";
 import { sanitizeResponsesInputItems } from "../services/responsesInputSanitizer.ts";
 import { applySystemTransformPipeline, PROVIDER_CLAUDE } from "../services/systemTransforms.ts";
@@ -82,6 +80,10 @@ export {
   stripStainlessHeadersForOpenAICompat,
 } from "./base/headers.ts";
 export { sanitizeReasoningEffortForProvider } from "./reasoningEffortMaps.ts";
+=======
+import { randomUUID } from "node:crypto";
+import { createHash } from "node:crypto";
+>>>>>>> Stashed changes
 
 /**
  * Sanitizes a custom API path to prevent path traversal attacks.
@@ -121,7 +123,6 @@ export type ProviderCredentials = {
   accessToken?: string;
   refreshToken?: string;
   apiKey?: string;
-  projectId?: string | null;
   expiresAt?: string;
   connectionId?: string; // T07: used for API key rotation index
   maxConcurrent?: number | null;
@@ -148,19 +149,8 @@ export type ExecuteInput = {
   upstreamExtraHeaders?: Record<string, string> | null;
   /** Original client request headers (read-only). Executors may forward select headers upstream. */
   clientHeaders?: Record<string, string> | null;
-  /** Callback to persist tokens that are proactively refreshed during execution.
-   * Accepts a partial credentials patch (e.g. `{ accessToken, refreshToken }` or
-   * `{ testStatus: "expired", isActive: false }`); the caller merges into the
-   * stored connection row. */
-  onCredentialsRefreshed?: (
-    newCredentials: Partial<ProviderCredentials> & Record<string, unknown>
-  ) => Promise<void> | void;
-  /** When true, skip the intra-URL 429 retry in execute() so the caller handles fallback. */
-  skipUpstreamRetry?: boolean;
-  /** Delegated Context Editing (Claude only): when enabled, attach the
-   * `context_management.clear_tool_uses` strategy so the provider clears stale
-   * tool-use blocks server-side. Honored only on the genuine `claude` path. */
-  contextEditing?: { enabled: boolean } | null;
+  /** Callback to persist tokens that are proactively refreshed during execution. */
+  onCredentialsRefreshed?: (newCredentials: ProviderCredentials) => Promise<void> | void;
 };
 
 export type CountTokensInput = {
@@ -180,6 +170,35 @@ export function mergeAbortSignals(
   if (primary.aborted) return primary;
   if (secondary.aborted) return secondary;
 
+<<<<<<< Updated upstream
+=======
+export function getCustomUserAgent(providerSpecificData?: JsonRecord | null): string | null {
+  const customUserAgent =
+    typeof providerSpecificData?.customUserAgent === "string"
+      ? providerSpecificData.customUserAgent.trim()
+      : "";
+  return customUserAgent || null;
+}
+
+export function setUserAgentHeader(headers: Record<string, string>, userAgent: string): void {
+  headers["User-Agent"] = userAgent;
+  if ("user-agent" in headers) {
+    headers["user-agent"] = userAgent;
+  }
+}
+
+export function applyConfiguredUserAgent(
+  headers: Record<string, string>,
+  providerSpecificData?: JsonRecord | null
+): void {
+  const customUserAgent = getCustomUserAgent(providerSpecificData);
+  if (customUserAgent) {
+    setUserAgentHeader(headers, customUserAgent);
+  }
+}
+
+export function mergeAbortSignals(primary: AbortSignal, secondary: AbortSignal): AbortSignal {
+>>>>>>> Stashed changes
   const controller = new AbortController();
 
   const abortFrom = (source: AbortSignal) => {
@@ -193,11 +212,14 @@ export function mergeAbortSignals(
   return controller.signal;
 }
 
+<<<<<<< Updated upstream
 function hasActiveClaudeThinking(body: Record<string, unknown>): boolean {
   const thinking = body.thinking as Record<string, unknown> | undefined;
   return thinking?.type === "enabled" || thinking?.type === "adaptive";
 }
 
+=======
+>>>>>>> Stashed changes
 /**
  * BaseExecutor - Base class for provider executors.
  * Implements the Strategy pattern: subclasses override specific methods
@@ -207,10 +229,6 @@ export class BaseExecutor {
   provider: string;
   config: ProviderConfig;
 
-  // Session pool support — subclasses can set poolConfig to opt in
-  protected poolConfig?: PoolConfig;
-  private _pool: import("../services/sessionPool/sessionPool.ts").SessionPool | null = null;
-
   constructor(provider: string, config: ProviderConfig) {
     this.provider = provider;
     this.config = config;
@@ -218,22 +236,6 @@ export class BaseExecutor {
 
   getProvider() {
     return this.provider;
-  }
-
-  protected getPool(): SessionPool | null {
-    if (!this.poolConfig) return null;
-    if (!this._pool) {
-      const pool = new SessionPool(this.provider, this.poolConfig);
-      pool.warmUp(this.poolConfig.minSessions).catch(() => {});
-      PoolRegistry.register(this.provider, pool);
-      this._pool = pool;
-    }
-    return this._pool;
-  }
-
-  protected buildPoolHeaders(session: Session | null): Record<string, string> {
-    if (!session) return {};
-    return session.buildHeaders();
   }
 
   getBaseUrls() {
@@ -250,10 +252,6 @@ export class BaseExecutor {
       return FETCH_TIMEOUT_MS;
     }
     return Math.max(1, Math.floor(configured));
-  }
-
-  getCountTokensTimeoutMs() {
-    return this.getTimeoutMs();
   }
 
   buildUrl(
@@ -279,7 +277,7 @@ export class BaseExecutor {
       return `${normalized}${path}`;
     }
     const baseUrls = this.getBaseUrls();
-    return baseUrls[urlIndex] || baseUrls[0] || this.config.baseUrl || "";
+    return baseUrls[urlIndex] || baseUrls[0] || this.config.baseUrl;
   }
 
   /**
@@ -326,8 +324,15 @@ export class BaseExecutor {
    */
   protected buildHeadersPreamble(
     credentials: ProviderCredentials,
+<<<<<<< Updated upstream
     stream: boolean
   ): { headers: Record<string, string>; effectiveKey: string | undefined } {
+=======
+    stream = true,
+    clientHeaders?: Record<string, string> | null
+  ): Record<string, string> {
+    void clientHeaders;
+>>>>>>> Stashed changes
     const headers: Record<string, string> = {
       "Content-Type": "application/json",
       ...this.config.headers,
@@ -363,6 +368,16 @@ export class BaseExecutor {
     if (credentials.accessToken) {
       headers["Authorization"] = `Bearer ${credentials.accessToken}`;
     } else if (credentials.apiKey) {
+<<<<<<< Updated upstream
+=======
+      // T07: rotate between primary + extra API keys when extraApiKeys is configured
+      const extraKeys =
+        (credentials.providerSpecificData?.extraApiKeys as string[] | undefined) ?? [];
+      const effectiveKey =
+        extraKeys.length > 0 && credentials.connectionId
+          ? getRotatingApiKey(credentials.connectionId, credentials.apiKey, extraKeys)
+          : credentials.apiKey;
+>>>>>>> Stashed changes
       headers["Authorization"] = `Bearer ${effectiveKey}`;
     }
 
@@ -389,10 +404,6 @@ export class BaseExecutor {
     if (body && typeof body === "object" && !Array.isArray(body)) {
       const cloned = { ...body } as Record<string, unknown>;
 
-      if (Array.isArray(cloned.input)) {
-        cloned.input = sanitizeResponsesInputItems(cloned.input, false);
-      }
-
       if (Array.isArray(cloned.tools)) {
         cloned.tools = cloned.tools.map((tool: unknown) => {
           if (tool && typeof tool === "object" && !Array.isArray(tool)) {
@@ -410,9 +421,6 @@ export class BaseExecutor {
           return tool;
         });
       }
-
-      // Fix #1884: Cursor sends prompt_cache_retention which breaks strict upstream endpoints
-      delete cloned.prompt_cache_retention;
 
       // Also clean up top level optional fields that commonly cause issues when empty
       const optionalKeys = ["user", "stop", "seed", "response_format"];
@@ -437,10 +445,7 @@ export class BaseExecutor {
   static FETCH_START_TIMEOUT_MS = FETCH_TIMEOUT_MS;
 
   // Override in subclass for provider-specific refresh
-  async refreshCredentials(
-    credentials: ProviderCredentials,
-    log: ExecutorLog | null
-  ): Promise<Partial<ProviderCredentials> | null> {
+  async refreshCredentials(credentials: ProviderCredentials, log: ExecutorLog | null) {
     void credentials;
     void log;
     return null;
@@ -449,12 +454,7 @@ export class BaseExecutor {
   needsRefresh(credentials?: ProviderCredentials | null) {
     if (!credentials?.expiresAt) return false;
     const expiresAtMs = new Date(credentials.expiresAt).getTime();
-    // Use the provider-specific lead time (REFRESH_LEAD_MS) so rotating-token
-    // providers like Codex refresh proactively far ahead of expiry. Keeping the
-    // refresh_token "warm" prevents Auth0 from marking it as stale and revoking
-    // the token family on first use after long idle.
-    const lead = getRefreshLeadMs(this.provider);
-    return expiresAtMs - Date.now() < lead;
+    return expiresAtMs - Date.now() < 5 * 60 * 1000;
   }
 
   parseError(response: Response, bodyText: string) {
@@ -491,12 +491,12 @@ export class BaseExecutor {
     let timeoutId: ReturnType<typeof setTimeout> | null = null;
     let activeSignal: AbortSignal | null | undefined = signal || null;
     let controller: AbortController | null = null;
-    const timeoutMs = this.getCountTokensTimeoutMs();
+    const timeoutMs = this.getTimeoutMs();
 
-    if (timeoutMs > 0) {
+    if (!activeSignal) {
       controller = new AbortController();
       timeoutId = setTimeout(() => controller?.abort(), timeoutMs);
-      activeSignal = signal ? mergeAbortSignals(signal, controller.signal) : controller.signal;
+      activeSignal = controller.signal;
     }
 
     try {
@@ -531,21 +531,17 @@ export class BaseExecutor {
     }
   }
 
-  async execute(input: ExecuteInput) {
-    const {
-      model,
-      body,
-      stream,
-      credentials,
-      signal,
-      log,
-      extendedContext,
-      upstreamExtraHeaders,
-      clientHeaders,
-      skipUpstreamRetry = false,
-      onCredentialsRefreshed,
-      contextEditing,
-    } = input;
+  async execute({
+    model,
+    body,
+    stream,
+    credentials,
+    signal,
+    log,
+    extendedContext,
+    upstreamExtraHeaders,
+    clientHeaders,
+  }: ExecuteInput) {
     const fallbackCount = this.getFallbackCount();
     let lastError: unknown = null;
     let lastStatus = 0;
@@ -555,102 +551,28 @@ export class BaseExecutor {
 
     if (this.needsRefresh(credentials)) {
       try {
-        // Fix A: wire onCredentialsRefreshed through runWithOnPersist so it runs
-        // INSIDE the per-connection mutex inside getAccessToken. Not every
-        // executor routes through getAccessToken (e.g. github.ts), so use a flag
-        // to detect whether the persist callback actually fired and fall back to
-        // post-refresh mutation when it didn't.
-        let proactivePersistRan = false;
-        const proactiveOnPersist = onCredentialsRefreshed
-          ? async (refreshResult: Record<string, unknown>) => {
-              proactivePersistRan = true;
-              activeCredentials = {
-                ...credentials,
-                ...(refreshResult as Partial<ProviderCredentials>),
-              };
-              await onCredentialsRefreshed(refreshResult as Partial<ProviderCredentials>);
-            }
-          : null;
-
-        const refreshed = await runWithOnPersist(proactiveOnPersist, () =>
-          this.refreshCredentials(credentials, log || null)
-        );
-
-        if (refreshed && !proactivePersistRan) {
-          // ─────────────────────────────────────────────────────────────────────
-          // ⚠️ SOURCE OF TRUTH — do not flip the proactive path back to
-          //    "persist expired+inactive". Ask the operator first.
-          //
-          // History (do not repeat past regressions):
-          //   - ad3d4b696 (#2718, 2026-05-25): per-connection mutex + onPersist
-          //     wiring so multi-account Codex (rotating refresh tokens) stops
-          //     hitting refresh_token_reused under concurrent load.
-          //   - 0c94c397d (#2743, 2026-05-26): a multi-agent review added a
-          //     `await onCredentialsRefreshed({ testStatus: "expired",
-          //     isActive: false })` here. That BROKE multi-account Codex —
-          //     transient sentinels (refresh_token_reused recoverable via
-          //     rotation map; generic invalid_request blips) were treated as
-          //     terminal, so the proactive path sequentially disabled
-          //     working accounts in the DB before any upstream call confirmed
-          //     the failure. Reverted intentionally.
-          //
-          // Contract for the PROACTIVE refresh path:
-          //   - Classify the sentinel ONLY to avoid spreading it into
-          //     activeCredentials (which would send a non-token upstream).
-          //   - DO NOT persist `{ testStatus: "expired", isActive: false }`
-          //     from here. That decision belongs to the REACTIVE path in
-          //     open-sse/handlers/chatCore.ts:~3912, which runs AFTER the
-          //     upstream confirmed the auth failure. By then the rotation
-          //     map (tokenRefresh.ts:~1541) and the DB-staleness check have
-          //     already had their chance to recover the request.
-          //
-          // If a future review/agent thinks the expired-flip is "missing"
-          // here, STOP — flipping it here re-introduces the multi-account
-          // Codex regression. Discuss with the operator before touching.
-          // ─────────────────────────────────────────────────────────────────────
-          if (isUnrecoverableRefreshError(refreshed)) {
-            const refreshCode = (refreshed as Record<string, unknown>).code;
-            log?.warn?.(
-              "TOKEN",
-              `${this.provider.toUpperCase()} | proactive refresh returned unrecoverable sentinel (code=${String(refreshCode ?? "unknown")}); keeping stale credentials, deferring to reactive path.`
-            );
-            // Intentionally NOT spreading the sentinel and NOT persisting
-            // expired status. The next upstream call either succeeds (rotation
-            // map / DB-staleness saved us) or fails — chatCore.ts then marks
-            // the account expired with confidence.
-          } else {
-            activeCredentials = {
-              ...credentials,
-              ...refreshed,
-            };
-            if (onCredentialsRefreshed) {
-              await onCredentialsRefreshed(refreshed);
-            }
+        const refreshed = await this.refreshCredentials(credentials, log || null);
+        if (refreshed) {
+          activeCredentials = {
+            ...credentials,
+            ...refreshed,
+          };
+          // Persist the proactively refreshed credentials to prevent consuming rotating tokens
+          // without updating the central database connection.
+          if (arguments[0].onCredentialsRefreshed) {
+            await arguments[0].onCredentialsRefreshed(refreshed);
           }
         }
       } catch (error) {
-        // tokenRefresh.ts:1352 documents that onPersist throws are re-thrown so
-        // the caller is aware of the persistence failure. Honor that contract:
-        // log at error level (not warn), with sanitized message — and let the
-        // request continue with stale credentials so the user-visible error
-        // surfaces upstream rather than being silently absorbed here.
-        log?.error?.(
+        log?.warn?.(
           "TOKEN",
           `Credential refresh failed for ${this.provider}: ${error instanceof Error ? error.message : String(error)}`
         );
       }
     }
 
-    // Set by the Context Editing 400-fallback below: once an upstream rejects the
-    // `context_management` param, suppress its re-injection on every later
-    // retry/fallback URL (each iteration rebuilds a fresh `transformedBody`).
-    let contextEditingDisabled = false;
-    // Tracks which request fields have already been stripped via the generic 400
-    // field-downgrade below, so each known field is stripped at most once across
-    // all fallback URLs (bounded retry loop).
-    const strippedFields = new Set<string>();
-
     for (let urlIndex = 0; urlIndex < fallbackCount; urlIndex++) {
+<<<<<<< Updated upstream
       const requestCredentials = withForcedResponsesUpstream(
         this.provider,
         body,
@@ -659,16 +581,11 @@ export class BaseExecutor {
       const url = this.buildUrl(model, stream, urlIndex, requestCredentials);
       const headers = this.buildHeaders(requestCredentials, stream, clientHeaders, model);
       applyConfiguredUserAgent(headers, requestCredentials?.providerSpecificData);
-
-      // Strip OpenAI SDK (X-Stainless-*) metadata + normalize SDK-derived User-Agent
-      // on OpenAI-compatible passthrough requests — some upstream gateways 403 on them.
-      const strippedStainless = stripStainlessHeadersForOpenAICompat(headers, this.provider, url);
-      if (strippedStainless.length > 0) {
-        log?.debug?.(
-          "HEADERS",
-          `Stripped X-Stainless-* from OpenAI-compatible request: ${strippedStainless.join(", ")}`
-        );
-      }
+=======
+      const url = this.buildUrl(model, stream, urlIndex, activeCredentials);
+      const headers = this.buildHeaders(activeCredentials, stream, clientHeaders);
+      applyConfiguredUserAgent(headers, activeCredentials?.providerSpecificData);
+>>>>>>> Stashed changes
 
       const ccRequestDefaults = isClaudeCodeCompatible(this.provider)
         ? getClaudeCodeCompatibleRequestDefaults(requestCredentials?.providerSpecificData)
@@ -683,6 +600,7 @@ export class BaseExecutor {
         appendAnthropicBetaHeader(headers, CONTEXT_1M_BETA_HEADER);
       }
 
+<<<<<<< Updated upstream
       const rawTransformedBody = await this.transformRequest(
         model,
         body,
@@ -700,38 +618,31 @@ export class BaseExecutor {
           transformedBody as Record<string, unknown>
         ) as typeof transformedBody;
       }
+=======
+      const transformedBody = await this.transformRequest(model, body, stream, activeCredentials);
+>>>>>>> Stashed changes
 
       try {
-        // Timeout only covers response start; stream stalls are handled downstream.
+        // Only enforce the timeout while waiting for the initial fetch() response.
+        // Once headers arrive, active streams must not be cut off by total elapsed time;
+        // post-start stalls are handled separately by STREAM_IDLE_TIMEOUT_MS / bodyTimeout.
         const fetchStartTimeoutMs = this.getTimeoutMs();
-        const fetchWithStartTimeout = async (requestUrl: string, requestOptions: RequestInit) => {
-          const timeoutController = fetchStartTimeoutMs > 0 ? new AbortController() : null;
-          let timeoutId: ReturnType<typeof setTimeout> | null = null;
-          if (timeoutController) {
-            timeoutId = setTimeout(() => {
-              const timeoutError = new Error(
-                `Fetch timeout after ${fetchStartTimeoutMs}ms on ${requestUrl}`
-              );
-              timeoutError.name = "TimeoutError";
-              timeoutController.abort(timeoutError);
-            }, fetchStartTimeoutMs);
-          }
-
-          const timeoutSignal = timeoutController?.signal ?? null;
-          const combinedSignal =
-            signal && timeoutSignal
-              ? mergeAbortSignals(signal, timeoutSignal)
-              : signal || timeoutSignal;
-          const optionsWithSignal = combinedSignal
-            ? { ...requestOptions, signal: combinedSignal }
-            : requestOptions;
-
-          try {
-            return await fetch(requestUrl, optionsWithSignal);
-          } finally {
-            if (timeoutId) clearTimeout(timeoutId);
-          }
-        };
+        const timeoutController = fetchStartTimeoutMs > 0 ? new AbortController() : null;
+        let timeoutId: ReturnType<typeof setTimeout> | null = null;
+        if (timeoutController) {
+          timeoutId = setTimeout(() => {
+            const timeoutError = new Error(
+              `Fetch timeout after ${fetchStartTimeoutMs}ms on ${url}`
+            );
+            timeoutError.name = "TimeoutError";
+            timeoutController.abort(timeoutError);
+          }, fetchStartTimeoutMs);
+        }
+        const timeoutSignal = timeoutController?.signal ?? null;
+        const combinedSignal =
+          signal && timeoutSignal
+            ? mergeAbortSignals(signal, timeoutSignal)
+            : signal || timeoutSignal;
 
         const isClaudeCodeClient =
           clientHeaders?.["x-app"] === "cli" ||
@@ -740,90 +651,76 @@ export class BaseExecutor {
           (clientHeaders?.["user-agent"] &&
             clientHeaders["user-agent"].toLowerCase().includes("claude-cli"));
 
-        // Anthropic's user:sessions:claude_code OAuth scope expects CLI-shaped
-        // traffic. Apply the cloak whenever we have an OAuth token, regardless
-        // of upstream client.
-        const hasClaudeOAuthToken =
-          typeof activeCredentials?.accessToken === "string" &&
-          activeCredentials.accessToken.startsWith("sk-ant-oat") &&
-          !activeCredentials?.apiKey;
-
         if (
           this.provider === "claude" &&
-          (isClaudeCodeClient || hasClaudeOAuthToken) &&
+          isClaudeCodeClient &&
           typeof transformedBody === "object" &&
           transformedBody !== null
         ) {
           const tb = transformedBody as Record<string, unknown>;
-
-          stripProxyToolPrefix(tb);
           remapToolNamesInRequest(tb);
-          // Cloak third-party tool names + sanitize invalid tool schemas so
-          // Anthropic does not refuse native Claude OAuth traffic with a
-          // misleading "out of extra usage" placeholder. See Spec E.
-          cloakThirdPartyToolNames(tb);
-          if (Array.isArray(tb.tools)) {
-            tb.tools = sanitizeClaudeToolSchemas(tb.tools);
-          }
           obfuscateInBody(tb);
 
-          // NOTE (issue #2260): This is the native `claude` provider OAuth path.
-          // It is intentionally NOT routed through applyCcBridgeTransformPipeline.
-          // The native OAuth path already prepends its own billing line + sentinel
-          // (see lines ~744-773 below, dayStamp-based, cc_entrypoint=cli, cch=00000
-          // placeholder, signed at body level). The CC bridge transforms DSL is
-          // wired into buildAndSignClaudeCodeRequest (claudeCodeCompatible.ts step 5b)
-          // which is the anthropic-compatible-cc-* relay path — a different,
-          // separately classified surface. Do not double-prepend here.
+          const ccVersion = "2.1.121";
+          // Fix #1638: Use a stable fingerprint instead of message-derived one.
+          // The original computeFingerprint() hashed first-user-message chars, which
+          // changes every conversation turn. This mutated the system[] prefix on each
+          // request, invalidating Anthropic's prompt-cache prefix and forcing ~100%
+          // cache_create (vs 96% cache_read with a stable prefix). Using a per-day
+          // hash keeps the billing header format while preserving cache affinity.
+          const dayStamp = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+          const fp = createHash("sha256")
+            .update(`${dayStamp}${ccVersion}`)
+            .digest("hex")
+            .slice(0, 3);
+          const billingLine = `x-anthropic-billing-header: cc_version=${ccVersion}.${fp}; cc_entrypoint=cli; cch=00000;`;
 
-          // Real CLI never sets cache_control on tools.
-          if (Array.isArray(tb.tools)) {
-            for (const t of tb.tools as Array<Record<string, unknown>>) {
-              delete t.cache_control;
+          if (Array.isArray(tb.system)) {
+            const sysBlocks = tb.system as Array<Record<string, unknown>>;
+            // Fix #1712: Remove any existing billing headers from the client
+            // to prevent stacking that breaks Anthropic prompt cache prefix matching.
+            for (let i = sysBlocks.length - 1; i >= 0; i--) {
+              const block = sysBlocks[i];
+              if (
+                block &&
+                typeof block.text === "string" &&
+                block.text.startsWith("x-anthropic-billing-header:")
+              ) {
+                sysBlocks.splice(i, 1);
+              }
             }
-            // Also strip OmniRoute provider prefix from versioned built-in tool
-            // model fields (e.g. cc/claude-opus-4-8 → claude-opus-4-8).
-            stripVersionedToolModelPrefix(tb.tools);
+            const firstSystemCacheControl =
+              sysBlocks[0] &&
+              typeof sysBlocks[0] === "object" &&
+              !Array.isArray(sysBlocks[0]) &&
+              sysBlocks[0].cache_control
+                ? sysBlocks[0].cache_control
+                : undefined;
+            const billingBlock: Record<string, unknown> = { type: "text", text: billingLine };
+            if (firstSystemCacheControl) {
+              billingBlock.cache_control = firstSystemCacheControl;
+            }
+            sysBlocks.unshift(billingBlock);
+          } else if (typeof tb.system === "string") {
+            tb.system = [
+              { type: "text", text: billingLine },
+              { type: "text", text: tb.system },
+            ];
+          } else {
+            tb.system = [{ type: "text", text: billingLine }];
           }
 
-          // Per-request behavior overrides via custom client headers.
-          //   x-omniroute-effort:   low | medium | high | xhigh | max | off
-          //   x-omniroute-thinking: adaptive | off
-          // A header value applies only when the corresponding body field is
-          // not already set; "off" force-strips the field.
-          const headerEffort = (
-            clientHeaders?.["x-omniroute-effort"] ?? clientHeaders?.["X-OmniRoute-Effort"]
-          )
-            ?.trim()
-            .toLowerCase();
-          const headerThinking = (
-            clientHeaders?.["x-omniroute-thinking"] ?? clientHeaders?.["X-OmniRoute-Thinking"]
-          )
-            ?.trim()
-            .toLowerCase();
-          let appliedEffort: string | null = null;
-          let appliedThinking: string | null = null;
-
-          if (headerEffort === "off") {
-            if (tb.output_config && typeof tb.output_config === "object") {
-              delete (tb.output_config as Record<string, unknown>).effort;
-            }
-            appliedEffort = "off";
-          } else if (
-            headerEffort &&
-            ["low", "medium", "high", "xhigh", "max"].includes(headerEffort)
-          ) {
-            const oc =
-              tb.output_config && typeof tb.output_config === "object"
-                ? (tb.output_config as Record<string, unknown>)
-                : {};
-            if (oc.effort === undefined) {
-              oc.effort = headerEffort;
-              tb.output_config = oc;
-              appliedEffort = headerEffort;
-            }
+          if (!tb.metadata || typeof tb.metadata !== "object") {
+            tb.metadata = {
+              user_id: JSON.stringify({
+                device_id: createHash("sha256").update("omniroute").digest("hex").slice(0, 24),
+                account_uuid: "",
+                session_id: randomUUID(),
+              }),
+            };
           }
 
+<<<<<<< Updated upstream
           // Anthropic rejects `thinking` (enabled/adaptive) when tool_choice forces a
           // specific tool ({type:"any"|"tool"}): "Thinking may not be enabled when
           // tool_choice forces tool use". Treat forced tool_choice as an implicit
@@ -890,17 +787,29 @@ export class BaseExecutor {
               };
               tb.context_management = { edits: [{ type: "clear_thinking_20251015", keep: "all" }] };
             }
+=======
+          const supportsAdaptiveThinking = supportsXHighEffort("claude", model);
+
+          // Fix #1761: Only inject adaptive thinking/high effort if the client didn't
+          // explicitly set these fields. This allows users to opt-out by sending
+          // `thinking: null` or `output_config: { effort: "low" }` to prevent forced
+          // quota drain on Claude Max accounts.
+          const originalBody = body as Record<string, unknown>;
+          const clientExplicitThinking = originalBody?.thinking !== undefined;
+          const clientExplicitEffort = originalBody?.output_config !== undefined;
+
+          if (supportsAdaptiveThinking && !tb.thinking && !clientExplicitThinking) {
+            tb.thinking = { type: "adaptive" };
+>>>>>>> Stashed changes
           }
 
-          // Real CLI always pairs context_management with thinking. Mirror
-          // that invariant so long sessions don't accumulate thinking blocks
-          // toward the context cap.
-          if (hasActiveClaudeThinking(tb) && !tb.context_management) {
+          if (supportsAdaptiveThinking && !tb.context_management && !clientExplicitThinking) {
             tb.context_management = {
               edits: [{ type: "clear_thinking_20251015", keep: "all" }],
             };
           }
 
+<<<<<<< Updated upstream
           const seed = activeCredentials?.accessToken || activeCredentials?.apiKey || "anon";
           const psd = activeCredentials?.providerSpecificData as
             Record<string, unknown> | undefined;
@@ -937,310 +846,92 @@ export class BaseExecutor {
               : cloakIdentity
                 ? "synthesized-cloaked"
                 : "synthesized";
+=======
+          if (supportsAdaptiveThinking && !tb.output_config && !clientExplicitEffort) {
+            tb.output_config = { effort: "high" };
+>>>>>>> Stashed changes
           }
 
-          // system[0] (billing) and system[1] (sentinel) must not carry
-          // cache_control — that belongs on upstream prompt blocks at [2..].
-          const dayStamp = new Date().toISOString().slice(0, 10);
-          const buildHash = buildHashFor(CLAUDE_CODE_VERSION, dayStamp);
-          const billingLine = `x-anthropic-billing-header: cc_version=${CLAUDE_CODE_VERSION}.${buildHash}; cc_entrypoint=cli; cch=00000;`;
-          const SENTINEL = "You are Claude Code, Anthropic's official CLI for Claude.";
-
-          const sysBlocks: Array<Record<string, unknown>> = Array.isArray(tb.system)
-            ? (tb.system as Array<Record<string, unknown>>)
-            : typeof tb.system === "string"
-              ? [{ type: "text", text: tb.system }]
-              : [];
-
-          // Strip any pre-existing billing/sentinel before re-prepending — keeps
-          // retries idempotent and avoids stacking that breaks prompt-cache prefix
-          // matching (see issue #1712).
-          for (let i = sysBlocks.length - 1; i >= 0; i--) {
-            const t = sysBlocks[i]?.text;
-            if (typeof t === "string" && t.startsWith("x-anthropic-billing-header:")) {
-              sysBlocks.splice(i, 1);
-            }
-          }
-          for (let i = sysBlocks.length - 1; i >= 0; i--) {
-            const t = sysBlocks[i]?.text;
-            if (typeof t === "string" && t.startsWith(SENTINEL)) {
-              sysBlocks.splice(i, 1);
-            }
-          }
-          sysBlocks.unshift({ type: "text", text: billingLine }, { type: "text", text: SENTINEL });
-          tb.system = sysBlocks;
-
-          // Run the configurable system-transforms pipeline for the native
-          // `claude` provider (issue #2260 / comment 4459544580). The default
-          // claude pipeline runs cosmetic ops only (Open WebUI paragraph
-          // anchors, identity-prefix paragraph drop, ZWJ obfuscation of
-          // sensitive words). It deliberately does NOT include
-          // `inject_billing_header` — billing + sentinel are already
-          // prepended above. Users can extend the pipeline via Settings UI.
-          {
-            const transformResult = applySystemTransformPipeline(PROVIDER_CLAUDE, tb);
-            if (transformResult.appliedOpKinds.length > 0) {
-              console.log(
-                `[SystemTransforms] claude-native: ${transformResult.appliedOpKinds.join(", ")}`
-              );
-            }
-          }
-
-          if (!tb.metadata || typeof tb.metadata !== "object") tb.metadata = {};
-          (tb.metadata as Record<string, unknown>).user_id = buildUserIdJson({
-            deviceId,
-            accountUUID,
-            sessionId,
-          });
-
-          // Headers. Accept stays application/json even on streams (Stainless
-          // convention; SSE decoding is gated on body.stream). anthropic-beta
-          // is selected per request shape; the full set on a quota probe is
-          // itself a fingerprint.
-          // Respect the client's negotiated anthropic-beta (real Claude Code) instead
-          // of force-injecting thinking/effort betas it never requested (#3415).
-          const clientAnthropicBeta =
-            clientHeaders?.["anthropic-beta"] ?? clientHeaders?.["Anthropic-Beta"] ?? null;
           const ccHeaders: Record<string, string> = {
-            Accept: "application/json",
             "anthropic-version": "2023-06-01",
-            // #3974: merge the client's allowlisted betas (e.g. tool-search-tool)
-            // on top of the shape-derived set so deferred-tool requests are not
-            // rejected; selectBetaFlags still gates thinking/effort per #3415.
-            "anthropic-beta": mergeClientAnthropicBeta(
-              selectBetaFlags(tb, null, clientAnthropicBeta),
-              clientAnthropicBeta
-            ),
+            "anthropic-beta":
+              "claude-code-20250219,oauth-2025-04-20,interleaved-thinking-2025-05-14,redact-thinking-2026-02-12,context-management-2025-06-27,prompt-caching-scope-2026-01-05,advisor-tool-2026-03-01,advanced-tool-use-2025-11-20,effort-2025-11-24",
             "anthropic-dangerous-direct-browser-access": "true",
             "x-app": "cli",
-            "User-Agent": `claude-cli/${CLAUDE_CODE_VERSION} (external, cli)`,
-            "X-Stainless-Package-Version": CLAUDE_CODE_STAINLESS_VERSION,
+            "User-Agent": `claude-cli/${ccVersion} (external, cli)`,
+            "X-Stainless-Package-Version": "0.81.0",
             "X-Stainless-Timeout": "600",
+            "accept-language": "*",
             "accept-encoding": "gzip, deflate, br, zstd",
             connection: "keep-alive",
             "x-client-request-id": randomUUID(),
-            "X-Claude-Code-Session-Id": sessionId,
+            "X-Claude-Code-Session-Id": randomUUID(),
           };
-
-          // Drop case variants of the same header name before merging — undici
-          // would otherwise concatenate them (issue #1454).
+          // Remove any existing case variants of ccHeaders keys before merging.
+          // The claude provider config sets "Anthropic-Version" (Title-Case) while
+          // ccHeaders uses all-lowercase keys.  Both JS keys normalise to the same
+          // HTTP header name, so undici would combine them into "2023-06-01, 2023-06-01"
+          // causing a 400 from Anthropic (see issue #1454).
           const ccKeysLower = new Set(Object.keys(ccHeaders).map((k) => k.toLowerCase()));
           for (const key of Object.keys(headers)) {
-            if (ccKeysLower.has(key.toLowerCase())) delete headers[key];
+            if (ccKeysLower.has(key.toLowerCase())) {
+              delete headers[key];
+            }
           }
           Object.assign(headers, ccHeaders);
           delete headers["X-Stainless-Helper-Method"];
 
-          // Stainless OS/Arch/Runtime are host-derived (Stainless SDK does the
-          // same at runtime). Hardcoding them was a unique-per-deployment tell.
-          headers["X-Stainless-Arch"] = stainlessArch();
+          // Add X-Stainless headers to match real Claude Code
+          headers["X-Stainless-Arch"] = "x64";
           headers["X-Stainless-Lang"] = "js";
-          headers["X-Stainless-OS"] = stainlessOS();
+          headers["X-Stainless-OS"] = "Windows";
           headers["X-Stainless-Runtime"] = "node";
-          headers["X-Stainless-Runtime-Version"] = stainlessRuntimeVersion();
+          headers["X-Stainless-Runtime-Version"] = "v24.3.0";
           headers["X-Stainless-Retry-Count"] = "0";
           delete headers["X-Stainless-Os"];
 
-          const overrideTag =
-            appliedEffort || appliedThinking
-              ? ` overrides=effort:${appliedEffort ?? "-"},thinking:${appliedThinking ?? "-"}`
-              : "";
-          log?.debug?.(
-            "CLAUDE",
-            `identity=${identitySource} sid=${sessionId.slice(0, 8)} dev=${deviceId.slice(0, 8)} acct=${accountUUID.slice(0, 8)}${overrideTag}`
+          console.log(
+            `[CLAUDE-PATCH] provider=${this.provider} tools remapped, billing header injected, body fields added, headers patched`
           );
         }
 
-        // CLI fingerprint ordering — always-on for native Claude OAuth, opt-in
-        // for other providers. Header + body field order is itself a fingerprint.
+        // Apply CLI fingerprint ordering if enabled for this provider
         let finalHeaders = headers;
-        // Strip internal sentinel fields set by remapToolNamesInRequest before
-        // serializing — Anthropic rejects unknown top-level fields (issue #2260).
-        delete (transformedBody as Record<string, unknown>)[
-          "_claudeCodeRequiresLowercaseToolNames"
-        ];
-        // Guard against orphan tool_use / tool_result pairs. Clients can ship
-        // truncated histories mid-tool-call which Anthropic rejects with
-        // `messages.N: tool_use ids were found without tool_result blocks
-        // immediately after: toolu_...`. fixToolPairs strips orphans, then
-        // stripTrailingAssistantOrphanToolUse catches the case where the
-        // request body itself ends on an unmatched assistant(tool_use) —
-        // invalid for an upstream-send turn since the body must end on a
-        // user message. Both are idempotent on clean histories.
-        {
-          const tb = transformedBody as Record<string, unknown>;
-          if (Array.isArray(tb?.messages)) {
-            const fixed = fixToolPairs(tb.messages as Record<string, unknown>[]);
-            // fixToolAdjacency enforces Claude's strict adjacency rule
-            // (tool_result must be in immediately next message).
-            // Only apply for Claude/Claude-compatible — OpenAI allows results
-            // spread across multiple subsequent messages.
-            const isClaude = this.provider === "claude" || isClaudeCodeCompatible(this.provider);
-            // For Claude, fixToolAdjacency may strip tool_use blocks whose
-            // tool_result isn't in the next message; re-run fixToolPairs to
-            // drop any tool_result orphaned by that strip (discussion #2410).
-            const adjacent = isClaude ? fixToolPairs(fixToolAdjacency(fixed)) : fixed;
-            const stripped = stripTrailingAssistantOrphanToolUse(adjacent);
-            // Some providers (e.g. Mistral) require the last message to be user
-            // or tool and reject trailing assistant text messages with 400 (#3396).
-            tb.messages = stripTrailingAssistantForProvider(stripped, this.provider);
-          }
-        }
-
-        // Anthropic's extended-thinking contract forbids non-default sampling
-        // params: temperature must be 1 and top_p >= 0.95 (or unset) whenever
-        // thinking is enabled/adaptive. Thinking can be injected by per-model
-        // requestDefaults *after* the translator/constraint passes, so normalize
-        // at this final dispatch point — the single chokepoint every Claude
-        // routing mode (grouped/raw/combo) and the native passthrough share,
-        // before fingerprinting and CCH signing serialize the body.
-        if (this.provider === "claude" || isClaudeCodeCompatible(this.provider)) {
-          enforceThinkingTemperature(transformedBody as Record<string, unknown>);
-        }
-
-        // Delegated Context Editing (opt-in): attach the clear_tool_uses strategy so
-        // the provider clears stale tool-use blocks server-side. Runs at this same
-        // chokepoint, composing with the clear_thinking edit the fingerprint path may
-        // have already set. Scoped to genuine `claude` (real Anthropic key/OAuth) and
-        // `anthropic-compatible-cc-*` relays — the latter advertise Claude Code
-        // compatibility, so they are the relays most likely to accept the beta. A
-        // rejecting upstream is caught by the 400-fallback below. Deliberately
-        // EXCLUDED: `claude-web` (a browser relay with a `create_conversation_params`
-        // request shape that never sees `context_management`) and generic
-        // `anthropic-compatible-*` (third-party endpoints with uncertain beta support).
-        // `contextEditingDisabled` (set by the 400-fallback) suppresses re-injection
-        // when a fresh `transformedBody` is built for a retry/fallback URL.
-        if (
-          (this.provider === "claude" || isClaudeCodeCompatible(this.provider)) &&
-          contextEditing?.enabled &&
-          !contextEditingDisabled
-        ) {
-          applyContextEditingToBody(transformedBody as Record<string, unknown>, {
-            enabled: true,
-          });
-          log?.debug?.(
-            "CONTEXT_EDITING",
-            "Delegated context editing on — attached clear_tool_uses to the Claude request"
-          );
-        }
-
         let bodyString = JSON.stringify(transformedBody);
 
-        const shouldFingerprint =
-          isCliCompatEnabled(this.provider) ||
-          (this.provider === "claude" && (isClaudeCodeClient || hasClaudeOAuthToken));
-        if (shouldFingerprint) {
+        if (isCliCompatEnabled(this.provider)) {
           const fingerprinted = applyFingerprint(this.provider, headers, transformedBody);
           finalHeaders = fingerprinted.headers;
           bodyString = fingerprinted.bodyString;
         }
 
-        // CCH signing — replaces the cch=00000 placeholder in the billing
-        // header with an xxHash64 integrity token over the serialized body.
+        // CCH signing: Claude Code-compatible providers AND native claude provider
+        // require an xxHash64 integrity token over the serialized body.
         if (isClaudeCodeCompatible(this.provider) || this.provider === "claude") {
           bodyString = await signRequestBody(bodyString);
         }
 
         mergeUpstreamExtraHeaders(finalHeaders, upstreamExtraHeaders);
-        const serializedBody = prl.parseBody(bodyString);
-        // #4307 — Preserve the non-enumerable tool-name cloak/remap reverse map
-        // (`_toolNameMap`, set on the live `transformedBody` by
-        // remapToolNamesInRequest / cloakThirdPartyToolNames) that the JSON
-        // round-trip above drops. chatCore's response-side un-cloak reads it off
-        // `result.transformedBody` to restore the client's original tool-name
-        // casing (e.g. `read`, not the cloaked `Read`). Without this re-attach the
-        // map is lost and the client receives the cloaked casing — a regression
-        // from #3941's serialized-body capture. Mirrors antigravity.ts's
-        // `attachToolNameMap`; non-enumerable so it never re-serializes upstream.
-        if (
-          transformedBody &&
-          typeof transformedBody === "object" &&
-          serializedBody &&
-          typeof serializedBody === "object"
-        ) {
-          const liveToolNameMap = (transformedBody as Record<string, unknown>)._toolNameMap;
-          if (
-            liveToolNameMap instanceof Map &&
-            liveToolNameMap.size > 0 &&
-            !((serializedBody as Record<string, unknown>)._toolNameMap instanceof Map)
-          ) {
-            Object.defineProperty(serializedBody, "_toolNameMap", {
-              value: liveToolNameMap,
-              enumerable: false,
-              configurable: true,
-              writable: true,
-            });
-          }
-        }
+
         const fetchOptions: RequestInit = {
           method: "POST",
           headers: finalHeaders,
           body: bodyString,
         };
+        if (combinedSignal) fetchOptions.signal = combinedSignal;
 
-        let response = await fetchWithStartTimeout(url, fetchOptions);
-
-        // Context Editing 400-fallback for Claude-compatible relays.
-        if (
-          response.status === HTTP_STATUS.BAD_REQUEST &&
-          contextEditing?.enabled &&
-          !contextEditingDisabled &&
-          transformedBody &&
-          typeof transformedBody === "object" &&
-          (transformedBody as Record<string, unknown>).context_management !== undefined
-        ) {
-          const errText = await response
-            .clone()
-            .text()
-            .catch(() => "");
-          if (/context[_-]management|context editing/i.test(errText)) {
-            contextEditingDisabled = true;
-            delete (transformedBody as Record<string, unknown>).context_management;
-            let retryBody = JSON.stringify(transformedBody);
-            if (isClaudeCodeCompatible(this.provider) || this.provider === "claude") {
-              retryBody = await signRequestBody(retryBody);
-            }
-            log?.debug?.(
-              "CONTEXT_EDITING",
-              `Upstream 400 rejected context_management on ${url} — retrying without it`
-            );
-            response = await fetchWithStartTimeout(url, { ...fetchOptions, body: retryBody });
-          }
-        }
-
-        // Generic reactive 400 field-downgrade; each field is stripped at most once.
-        if (
-          response.status === HTTP_STATUS.BAD_REQUEST &&
-          transformedBody &&
-          typeof transformedBody === "object"
-        ) {
-          const errText = await response
-            .clone()
-            .text()
-            .catch(() => "");
-          const offending = findOffendingField(errText);
-          if (
-            offending &&
-            !strippedFields.has(offending) &&
-            (transformedBody as Record<string, unknown>)[offending] !== undefined
-          ) {
-            strippedFields.add(offending);
-            delete (transformedBody as Record<string, unknown>)[offending];
-            let retryBody = JSON.stringify(transformedBody);
-            if (isClaudeCodeCompatible(this.provider) || this.provider === "claude") {
-              retryBody = await signRequestBody(retryBody);
-            }
-            log?.debug?.(
-              "FIELD_400",
-              `Upstream 400 rejected ${offending} on ${url} — retrying without it`
-            );
-            response = await fetchWithStartTimeout(url, { ...fetchOptions, body: retryBody });
+        let response;
+        try {
+          response = await fetch(url, fetchOptions);
+        } finally {
+          if (timeoutId) {
+            clearTimeout(timeoutId);
+            timeoutId = null;
           }
         }
 
         // Intra-URL retry: if 429 and we haven't exhausted per-URL retries, wait and retry the same URL
         if (
-          !skipUpstreamRetry &&
           response.status === HTTP_STATUS.RATE_LIMITED &&
           (retryAttemptsByUrl[urlIndex] ?? 0) < BaseExecutor.RETRY_CONFIG.maxAttempts
         ) {
@@ -1255,18 +946,13 @@ export class BaseExecutor {
           continue;
         }
 
-        // T07: Handle 401 authentication errors — log and continue to fallback
-        if (response.status === 401 && credentials.connectionId && credentials.apiKey) {
-          log?.warn?.("AUTH", `401 on ${url} - API key may be invalid`);
-        }
-
-        if (!skipUpstreamRetry && this.shouldRetry(response.status, urlIndex)) {
+        if (this.shouldRetry(response.status, urlIndex)) {
           log?.debug?.("RETRY", `${response.status} on ${url}, trying fallback ${urlIndex + 1}`);
           lastStatus = response.status;
           continue;
         }
 
-        return { response, url, headers: finalHeaders, transformedBody: serializedBody };
+        return { response, url, headers: finalHeaders, transformedBody };
       } catch (error) {
         // Distinguish timeout errors from other abort errors
         const err = error instanceof Error ? error : new Error(String(error));
@@ -1274,7 +960,7 @@ export class BaseExecutor {
           log?.warn?.("TIMEOUT", `Fetch timeout after ${this.getTimeoutMs()}ms on ${url}`);
         }
         lastError = err;
-        if (!skipUpstreamRetry && urlIndex + 1 < fallbackCount) {
+        if (urlIndex + 1 < fallbackCount) {
           log?.debug?.("RETRY", `Error on ${url}, trying fallback ${urlIndex + 1}`);
           continue;
         }

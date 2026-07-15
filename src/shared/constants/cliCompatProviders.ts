@@ -1,3 +1,4 @@
+import { CLI_TOOLS } from "./cliTools";
 import { normalizeCliCompatProviderId } from "../utils/cliCompat";
 
 export { normalizeCliCompatProviderId };
@@ -52,14 +53,25 @@ export const CLI_COMPAT_OMITTED_PROVIDER_IDS = [
  * Provider IDs toggled in Settings -> CLI Fingerprint.
  *
  * Source of truth:
- * - expose only providers with an implemented `CLI_FINGERPRINTS` entry
- * - keep legacy-compatible display IDs such as `copilot` while persisting normalized provider IDs
+ * - derive from visible CLI tools when a provider mapping exists
+ * - keep legacy-compatible IDs that are still used by existing setups
  */
+const TOOL_ID_TO_PROVIDER_ID: Record<string, string> = {
+  kilo: "kilocode",
+  copilot: "github",
+};
+
+const DERIVED_PROVIDER_IDS = Object.values(CLI_TOOLS)
+  .map((tool: any) => normalizeCliCompatProviderId(TOOL_ID_TO_PROVIDER_ID[tool.id] ?? tool.id))
+  // "continue" currently has no provider id in AI_PROVIDERS
+  .filter((providerId) => IMPLEMENTED_CLI_FINGERPRINT_PROVIDER_IDS.includes(providerId as any));
+
 export const CLI_COMPAT_PROVIDER_IDS = Array.from(
-  new Set([...IMPLEMENTED_CLI_FINGERPRINT_PROVIDER_IDS])
+  new Set([...DERIVED_PROVIDER_IDS, ...IMPLEMENTED_CLI_FINGERPRINT_PROVIDER_IDS])
 );
 
 export const CLI_COMPAT_TOGGLE_IDS = Array.from(new Set(CLI_COMPAT_DISPLAY_PROVIDER_IDS));
+<<<<<<< Updated upstream
 
 export const CLI_COMPAT_PROVIDER_DISPLAY: Record<
   (typeof CLI_COMPAT_DISPLAY_PROVIDER_IDS)[number],
@@ -86,3 +98,5 @@ export const CLI_COMPAT_PROVIDER_DISPLAY: Record<
     description: "Qwen Code and Qoder CLI compatibility",
   },
 };
+=======
+>>>>>>> Stashed changes

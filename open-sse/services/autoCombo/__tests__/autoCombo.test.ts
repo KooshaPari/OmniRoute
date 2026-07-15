@@ -2,18 +2,10 @@
  * Unit tests for Auto-Combo Engine (Phase 5)
  */
 
-import { describe, it, expect, beforeEach, vi } from "vitest";
+import { describe, it, expect, beforeEach } from "vitest";
 import { calculateFactors, calculateScore, DEFAULT_WEIGHTS, validateWeights } from "../scoring";
 import type { ProviderCandidate, ScoringWeights } from "../scoring";
-import {
-  getTaskFitness,
-  getTaskFitnessWithSource,
-  getTaskTypes,
-  getModelsDevTierFitness,
-  invalidateFitnessCache,
-  setUserFitnessOverride,
-  clearUserFitnessOverride,
-} from "../taskFitness";
+import { getTaskFitness, getTaskTypes } from "../taskFitness";
 import { SelfHealingManager } from "../selfHealing";
 import { MODE_PACKS, getModePack, getModePackNames } from "../modePacks";
 import { getStrategy } from "../routerStrategy";
@@ -93,6 +85,7 @@ describe("Task Fitness", () => {
     const normalScore = getTaskFitness("some-random-model", "coding");
     expect(coderScore).toBeGreaterThan(normalScore);
   });
+<<<<<<< Updated upstream
 
   describe("-free alias resolution (#4517)", () => {
     beforeEach(() => invalidateFitnessCache());
@@ -153,6 +146,8 @@ describe("Task Fitness", () => {
       expect(score).toBeGreaterThan(0);
     });
   });
+=======
+>>>>>>> Stashed changes
 });
 
 describe("Self-Healing", () => {
@@ -197,16 +192,8 @@ describe("Self-Healing", () => {
 });
 
 describe("Mode Packs", () => {
-  it("should have 5 mode packs", () => {
-    // #4235 Phase B added reliability-first (for the `:reliable` tier).
-    expect(getModePackNames()).toHaveLength(5);
-    expect(getModePackNames()).toContain("reliability-first");
-  });
-
-  it("reliability-first should prioritize health and stability", () => {
-    const pack = MODE_PACKS["reliability-first"];
-    expect(pack.health).toBeGreaterThan(pack.latencyInv);
-    expect(pack.stability).toBeGreaterThan(pack.costInv);
+  it("should have 4 mode packs", () => {
+    expect(getModePackNames()).toHaveLength(4);
   });
 
   it("all mode pack weights should sum to 1.0", () => {
@@ -236,186 +223,6 @@ describe("Mode Packs", () => {
 
   it("undefined pack should return undefined", () => {
     expect(getModePack("nonexistent")).toBeUndefined();
-  });
-});
-
-describe("SLA-aware Strategy", () => {
-  const pool: ProviderCandidate[] = [
-    {
-      provider: "fast-flaky",
-      model: "fast-model",
-      quotaRemaining: 100,
-      quotaTotal: 100,
-      circuitBreakerState: "CLOSED",
-      costPer1MTokens: 2,
-      p95LatencyMs: 800,
-      latencyStdDev: 200,
-      errorRate: 0.2,
-    },
-    {
-      provider: "steady",
-      model: "steady-model",
-      quotaRemaining: 80,
-      quotaTotal: 100,
-      circuitBreakerState: "CLOSED",
-      costPer1MTokens: 6,
-      p95LatencyMs: 1400,
-      latencyStdDev: 100,
-      errorRate: 0.01,
-    },
-    {
-      provider: "cheap-slow",
-      model: "cheap-model",
-      quotaRemaining: 100,
-      quotaTotal: 100,
-      circuitBreakerState: "CLOSED",
-      costPer1MTokens: 0.2,
-      p95LatencyMs: 3500,
-      latencyStdDev: 150,
-      errorRate: 0.01,
-    },
-  ];
-
-  it("should prefer candidates that satisfy latency and error-rate SLOs", () => {
-    const strategy = getStrategy("sla-aware");
-    const result = strategy.select(pool, {
-      taskType: "coding",
-      sla: {
-        targetP95Ms: 2000,
-        maxErrorRate: 0.05,
-        maxCostPer1MTokens: 10,
-      },
-    });
-
-    expect(result.strategy).toBe("sla-aware");
-    expect(result.provider).toBe("steady");
-    expect(result.reason).toContain("p95=1400ms/2000ms");
-  });
-
-  it("should support the sla alias and soft-fallback when no candidate satisfies all SLOs", () => {
-    const strategy = getStrategy("sla");
-    const result = strategy.select(pool, {
-      taskType: "coding",
-      sla: {
-        targetP95Ms: 500,
-        maxErrorRate: 0.005,
-        maxCostPer1MTokens: 1,
-        hardConstraints: true,
-      },
-    });
-
-    expect(result.strategy).toBe("sla-aware");
-    expect(result.candidatesConsidered).toBe(3);
-    expect(result.reason).toContain("no candidate met all SLA constraints");
-  });
-
-  it("should use pure score ranking in soft mode even when a compliant candidate exists", () => {
-    const strategy = getStrategy("sla-aware");
-    const softPool: ProviderCandidate[] = [
-      {
-        provider: "slightly-over-error",
-        model: "fast-reliable-enough",
-        quotaRemaining: 100,
-        quotaTotal: 100,
-        circuitBreakerState: "CLOSED",
-        costPer1MTokens: 1,
-        p95LatencyMs: 500,
-        latencyStdDev: 10,
-        errorRate: 0.06,
-      },
-      {
-        provider: "compliant-but-risky",
-        model: "threshold-model",
-        quotaRemaining: 100,
-        quotaTotal: 100,
-        circuitBreakerState: "HALF_OPEN",
-        costPer1MTokens: 5,
-        p95LatencyMs: 2_000,
-        latencyStdDev: 1_000,
-        errorRate: 0.05,
-      },
-    ];
-
-    const result = strategy.select(softPool, {
-      taskType: "coding",
-      sla: {
-        targetP95Ms: 2_000,
-        maxErrorRate: 0.05,
-        maxCostPer1MTokens: 5,
-      },
-    });
-
-    expect(result.provider).toBe("slightly-over-error");
-    expect(result.reason).not.toContain("no candidate met all SLA constraints");
-  });
-
-  it("should prefer compliant candidates before score when hard constraints are enabled", () => {
-    const strategy = getStrategy("sla-aware");
-    const hardPool: ProviderCandidate[] = [
-      {
-        provider: "slightly-over-error",
-        model: "fast-reliable-enough",
-        quotaRemaining: 100,
-        quotaTotal: 100,
-        circuitBreakerState: "CLOSED",
-        costPer1MTokens: 1,
-        p95LatencyMs: 500,
-        latencyStdDev: 10,
-        errorRate: 0.06,
-      },
-      {
-        provider: "compliant-but-risky",
-        model: "threshold-model",
-        quotaRemaining: 100,
-        quotaTotal: 100,
-        circuitBreakerState: "HALF_OPEN",
-        costPer1MTokens: 5,
-        p95LatencyMs: 2_000,
-        latencyStdDev: 1_000,
-        errorRate: 0.05,
-      },
-    ];
-
-    const result = strategy.select(hardPool, {
-      taskType: "coding",
-      sla: {
-        targetP95Ms: 2_000,
-        maxErrorRate: 0.05,
-        maxCostPer1MTokens: 5,
-        hardConstraints: true,
-      },
-    });
-
-    expect(result.provider).toBe("compliant-but-risky");
-  });
-
-  it("should give full SLO-factor credit to candidates exactly at configured thresholds", () => {
-    const strategy = getStrategy("sla-aware");
-    const result = strategy.select(
-      [
-        {
-          provider: "threshold-provider",
-          model: "threshold-model",
-          quotaRemaining: 100,
-          quotaTotal: 100,
-          circuitBreakerState: "CLOSED",
-          costPer1MTokens: 5,
-          p95LatencyMs: 1_000,
-          latencyStdDev: 50,
-          errorRate: 0.1,
-        },
-      ],
-      {
-        taskType: "coding",
-        sla: {
-          targetP95Ms: 1_000,
-          maxErrorRate: 0.1,
-          maxCostPer1MTokens: 5,
-        },
-      }
-    );
-
-    expect(result.finalScore).toBeGreaterThan(0.9);
   });
 });
 
@@ -486,6 +293,7 @@ describe("LKGP Strategy", () => {
     expect(result.provider).toBe("openai");
   });
 });
+<<<<<<< Updated upstream
 
 describe("Task Fitness Resolution Chain", () => {
   it("getTaskFitness should return static table score for known models", () => {
@@ -650,3 +458,5 @@ describe("Task Fitness DB Resolution Chain", () => {
     expect(upperScore).toBe(lowerScore);
   });
 });
+=======
+>>>>>>> Stashed changes

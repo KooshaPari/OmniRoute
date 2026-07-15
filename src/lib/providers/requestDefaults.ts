@@ -3,7 +3,6 @@ const CLAUDE_CODE_COMPATIBLE_PROVIDER_PREFIX = "anthropic-compatible-cc-";
 
 import { normalizeExcludedModelPatterns } from "@/domain/connectionModelRules";
 import { normalizeRoutingTags } from "@/domain/tagRouter";
-import { normalizeOpenRouterPreset } from "@/shared/constants/openRouterPreset";
 
 export const CODEX_REASONING_EFFORT_VALUES = ["none", "low", "medium", "high", "xhigh"] as const;
 
@@ -19,14 +18,6 @@ function normalizeString(value: unknown): string | undefined {
   if (typeof value !== "string") return undefined;
   const normalized = value.trim().toLowerCase();
   return normalized || undefined;
-}
-
-const BEDROCK_REGION_PATTERN = /^[a-z]{2}(?:-gov)?-[a-z]+-\d+$/i;
-
-function normalizeAwsRegion(value: unknown): string | undefined {
-  const normalized = normalizeString(value);
-  if (!normalized || !BEDROCK_REGION_PATTERN.test(normalized)) return undefined;
-  return normalized;
 }
 
 function hasNonEmptyString(value: unknown): boolean {
@@ -47,13 +38,10 @@ export function normalizeCodexReasoningEffort(value: unknown): CodexReasoningEff
   return normalized as CodexReasoningEffort;
 }
 
-export type CodexServiceTier = "default" | "priority" | "flex";
-
-export function normalizeCodexServiceTier(value: unknown): CodexServiceTier | undefined {
+export function normalizeCodexServiceTier(value: unknown): "priority" | undefined {
   const normalized = normalizeString(value);
   if (!normalized) return undefined;
   if (normalized === "fast" || normalized === "priority") return "priority";
-  if (normalized === "default" || normalized === "flex") return normalized;
   return undefined;
 }
 
@@ -61,6 +49,7 @@ export function normalizeClaudeCodeCompatibleContext1m(value: unknown): true | u
   return value === true ? true : undefined;
 }
 
+<<<<<<< Updated upstream
 export function normalizeClaudeCodeCompatibleRedactThinking(value: unknown): true | undefined {
   return value === true ? true : undefined;
 }
@@ -69,6 +58,8 @@ export function normalizeClaudeCodeCompatibleSummarizeThinking(value: unknown): 
   return value === true ? true : undefined;
 }
 
+=======
+>>>>>>> Stashed changes
 export function normalizeRequestDefaults(
   provider: string | null | undefined,
   value: unknown
@@ -101,6 +92,7 @@ export function normalizeRequestDefaults(
     } else {
       delete normalized.context1m;
     }
+<<<<<<< Updated upstream
 
     const redactThinking = normalizeClaudeCodeCompatibleRedactThinking(record.redactThinking);
     if (redactThinking) {
@@ -117,6 +109,8 @@ export function normalizeRequestDefaults(
     } else {
       delete normalized.summarizeThinking;
     }
+=======
+>>>>>>> Stashed changes
   }
 
   return Object.keys(normalized).length > 0 ? normalized : undefined;
@@ -148,31 +142,8 @@ export function normalizeProviderSpecificData(
     delete normalized.blockExtraUsage;
   }
 
-  // #2997: per-connection transient-cooldown opt-out — only persist a real boolean.
-  if ("disableCooling" in normalized && typeof normalized.disableCooling !== "boolean") {
-    delete normalized.disableCooling;
-  }
-
   if ("autoFetchModels" in normalized && typeof normalized.autoFetchModels !== "boolean") {
     delete normalized.autoFetchModels;
-  }
-
-  if ("preset" in normalized) {
-    const preset = provider === "openrouter" ? normalizeOpenRouterPreset(normalized.preset) : null;
-    if (preset) {
-      normalized.preset = preset;
-    } else {
-      delete normalized.preset;
-    }
-  }
-
-  if (provider === "bedrock" && "region" in normalized) {
-    const region = normalizeAwsRegion(normalized.region);
-    if (region) {
-      normalized.region = region;
-    } else {
-      delete normalized.region;
-    }
   }
 
   if ("tag" in normalized) {
@@ -222,13 +193,6 @@ export function sanitizeProviderSpecificDataForResponse(value: unknown): JsonRec
   delete sanitized.awsSecretAccessKey;
   delete sanitized.sessionToken;
   delete sanitized.awsSessionToken;
-  delete sanitized.openCodeGoAuthCookie;
-  delete sanitized.opencodeGoAuthCookie;
-  delete sanitized.authCookie;
-  delete sanitized.ollamaUsageCookie;
-  delete sanitized.ollamaCloudUsageCookie;
-  delete sanitized.ollamaCloudCookie;
-  delete sanitized.usageCookie;
   return sanitized;
 }
 
@@ -285,7 +249,7 @@ export function getProviderRequestDefaults(
 
 export function getCodexRequestDefaults(providerSpecificData: unknown): {
   reasoningEffort?: CodexReasoningEffort;
-  serviceTier?: CodexServiceTier;
+  serviceTier?: "priority";
 } {
   const defaults = getProviderRequestDefaults("codex", providerSpecificData);
   const reasoningEffort = normalizeCodexReasoningEffort(defaults.reasoningEffort);
@@ -298,14 +262,18 @@ export function getCodexRequestDefaults(providerSpecificData: unknown): {
 
 export function getClaudeCodeCompatibleRequestDefaults(providerSpecificData: unknown): {
   context1m?: true;
+<<<<<<< Updated upstream
   redactThinking?: true;
   summarizeThinking?: true;
+=======
+>>>>>>> Stashed changes
 } {
   const defaults = getProviderRequestDefaults(
     "anthropic-compatible-cc-default",
     providerSpecificData
   );
   const context1m = normalizeClaudeCodeCompatibleContext1m(defaults.context1m);
+<<<<<<< Updated upstream
   const redactThinking = normalizeClaudeCodeCompatibleRedactThinking(defaults.redactThinking);
   const summarizeThinking = normalizeClaudeCodeCompatibleSummarizeThinking(
     defaults.summarizeThinking
@@ -314,5 +282,9 @@ export function getClaudeCodeCompatibleRequestDefaults(providerSpecificData: unk
     ...(context1m ? { context1m } : {}),
     ...(redactThinking ? { redactThinking } : {}),
     ...(summarizeThinking ? { summarizeThinking } : {}),
+=======
+  return {
+    ...(context1m ? { context1m } : {}),
+>>>>>>> Stashed changes
   };
 }

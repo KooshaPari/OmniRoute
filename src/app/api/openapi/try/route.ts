@@ -5,7 +5,6 @@
 
 import { z } from "zod";
 import { NextRequest, NextResponse } from "next/server";
-import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import { validateBody, isValidationFailure } from "@/shared/validation/helpers";
 
@@ -139,7 +138,7 @@ export async function POST(request: NextRequest) {
         status: 0,
         statusText: "Network Error",
         headers: {},
-        body: { error: sanitizeErrorMessage(error) || "Request failed" },
+        body: { error: error.message || "Request failed" },
         latencyMs: 0,
         contentType: "application/json",
       },

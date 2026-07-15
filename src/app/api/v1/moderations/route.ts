@@ -1,16 +1,11 @@
 import { handleModeration } from "@omniroute/open-sse/handlers/moderations.ts";
 import { getProviderCredentials, clearRecoveredProviderState } from "@/sse/services/auth";
-import { withInjectionGuard } from "@/middleware/promptInjectionGuard";
 import { parseModerationModel } from "@omniroute/open-sse/config/moderationRegistry.ts";
 import { errorResponse } from "@omniroute/open-sse/utils/error.ts";
 import { HTTP_STATUS } from "@omniroute/open-sse/config/constants.ts";
 import { enforceApiKeyPolicy } from "@/shared/utils/apiKeyPolicy";
 import { v1ModerationSchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
-import {
-  isAllRateLimitedCredentials,
-  rateLimitedProviderResponse,
-} from "@/app/api/v1/_shared/rateLimit";
 
 /**
  * Handle CORS preflight
@@ -28,7 +23,7 @@ export async function OPTIONS() {
  * POST /v1/moderations — content moderation
  * OpenAI Moderations API compatible.
  */
-async function postHandler(request, context) {
+export async function POST(request) {
   let rawBody;
   try {
     rawBody = await request.json();
@@ -59,9 +54,6 @@ async function postHandler(request, context) {
       `No credentials for provider: ${resolvedProvider}`
     );
   }
-  if (isAllRateLimitedCredentials(credentials)) {
-    return rateLimitedProviderResponse(resolvedProvider, credentials);
-  }
 
   const response = await handleModeration({ body: { ...body, model }, credentials });
   if (response?.ok) {
@@ -69,5 +61,3 @@ async function postHandler(request, context) {
   }
   return response;
 }
-
-export const POST = withInjectionGuard(postHandler);

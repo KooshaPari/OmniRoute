@@ -5,6 +5,7 @@
  * Most specific wins.
  */
 
+<<<<<<< Updated upstream
 import { MAX_TIMER_TIMEOUT_MS } from "../../src/shared/utils/runtimeTimeouts.ts";
 import type { ResponseValidationConfig } from "./combo/responseValidation.ts";
 
@@ -38,21 +39,21 @@ export const DEFAULT_COMBO_QUEUE_DEPTH = 20;
 /** Upper bound for the configurable combo queue depth (defensive clamp). */
 export const MAX_COMBO_QUEUE_DEPTH = 100;
 
+=======
+>>>>>>> Stashed changes
 const DEFAULT_COMBO_CONFIG = {
   strategy: "priority",
   maxRetries: 1,
   retryDelayMs: 2000,
-  fallbackDelayMs: 0,
   concurrencyPerModel: 3, // max simultaneous requests per model (round-robin)
   queueTimeoutMs: 30000, // max wait time in semaphore queue (round-robin)
-  queueDepth: DEFAULT_COMBO_QUEUE_DEPTH, // pre-cascade semaphore queue depth (round-robin, #3872)
   handoffThreshold: 0.85,
   handoffModel: "",
   handoffProviders: ["codex"],
   maxMessagesForSummary: 30,
   maxComboDepth: 3,
-  nestedComboMode: "flatten",
   trackMetrics: true,
+<<<<<<< Updated upstream
   reasoningTokenBufferEnabled: true,
   manifestRouting: false,
   // Complexity-aware auto routing (2026): when on, the auto router scores
@@ -104,6 +105,8 @@ const DEFAULT_COMBO_CONFIG = {
     latencyWeight: 0.15,
     cacheTtlMs: 60000,
   },
+=======
+>>>>>>> Stashed changes
 };
 
 const LEGACY_COMBO_RESILIENCE_KEYS = new Set([
@@ -111,71 +114,6 @@ const LEGACY_COMBO_RESILIENCE_KEYS = new Set([
   "healthCheckEnabled",
   "healthCheckTimeoutMs",
 ]);
-
-type ComboConfigRecord = Record<string, unknown>;
-
-type ComboConfigLike =
-  | {
-      config?: ComboConfigRecord | null;
-    }
-  | null
-  | undefined;
-
-type ComboSettingsLike =
-  | {
-      comboDefaults?: ComboConfigRecord | null;
-      providerOverrides?: Record<string, ComboConfigRecord | null | undefined> | null;
-    }
-  | null
-  | undefined;
-
-function isRecord(value: unknown): value is ComboConfigRecord {
-  return !!value && typeof value === "object" && !Array.isArray(value);
-}
-
-function normalizePositiveTimeoutMs(value: unknown): number {
-  const numericValue = Number(value);
-  if (!Number.isFinite(numericValue) || numericValue <= 0) return 0;
-  return Math.min(Math.floor(numericValue), MAX_TIMER_TIMEOUT_MS);
-}
-
-export function resolveComboTargetTimeoutMs(
-  config: Record<string, unknown> | null | undefined,
-  upstreamTimeoutMs: number,
-  defaultTimeoutMs: number = 0
-): number {
-  const ceilingTimeoutMs = normalizePositiveTimeoutMs(upstreamTimeoutMs);
-  const configuredTimeoutMs = isRecord(config)
-    ? normalizePositiveTimeoutMs(config.targetTimeoutMs)
-    : 0;
-
-  // Explicit per-combo config: honour it, but never extend past the upstream ceiling.
-  if (configuredTimeoutMs > 0) {
-    if (ceilingTimeoutMs <= 0) return configuredTimeoutMs;
-    return Math.min(configuredTimeoutMs, ceilingTimeoutMs);
-  }
-
-  // Unset config: fall back to the saner combo default (when provided) so a hung target
-  // fails over fast instead of inheriting the full upstream timeout. Never exceed the
-  // ceiling. When no default is given OR the upstream timeout is disabled (0 = unbounded),
-  // preserve the legacy "inherit the upstream ceiling" behavior.
-  const fallbackDefaultMs = normalizePositiveTimeoutMs(defaultTimeoutMs);
-  if (ceilingTimeoutMs <= 0) return ceilingTimeoutMs;
-  if (fallbackDefaultMs <= 0) return ceilingTimeoutMs;
-  return Math.min(fallbackDefaultMs, ceilingTimeoutMs);
-}
-
-/**
- * Resolve the effective pre-cascade semaphore queue depth for a round-robin combo
- * (#3872). Falls back to `DEFAULT_COMBO_QUEUE_DEPTH` for missing/invalid/negative
- * values and clamps to `MAX_COMBO_QUEUE_DEPTH`. `0` is valid and meaningful: it makes
- * a saturated combo member fail over to the next member immediately instead of queueing.
- */
-export function resolveComboQueueDepth(config: Record<string, unknown> | null | undefined): number {
-  const raw = isRecord(config) ? Number(config.queueDepth) : Number.NaN;
-  if (!Number.isFinite(raw) || raw < 0) return DEFAULT_COMBO_QUEUE_DEPTH;
-  return Math.min(Math.floor(raw), MAX_COMBO_QUEUE_DEPTH);
-}
 
 /**
  * Resolve effective config for a combo, applying cascade:
@@ -186,17 +124,13 @@ export function resolveComboQueueDepth(config: Record<string, unknown> | null | 
  * @param {string} [provider] - Optional provider to apply provider-level overrides
  * @returns {Object} Resolved config
  */
-export function resolveComboConfig(
-  combo: ComboConfigLike,
-  settings: ComboSettingsLike,
-  provider?: string | null
-) {
+export function resolveComboConfig(combo, settings, provider?: string | null) {
   const global = settings?.comboDefaults || {};
   const providerOverride = provider ? settings?.providerOverrides?.[provider] || {} : {};
   const comboConfig = combo?.config || {};
 
   // Clean undefined values before spreading
-  const clean = (obj: ComboConfigRecord) =>
+  const clean = (obj) =>
     Object.fromEntries(
       Object.entries(obj).filter(
         ([key, value]) =>
@@ -204,27 +138,11 @@ export function resolveComboConfig(
       )
     );
 
-  const merged = {
+  return {
     ...DEFAULT_COMBO_CONFIG,
     ...clean(global),
     ...clean(providerOverride),
     ...clean(comboConfig),
-  };
-
-  return {
-    ...merged,
-    shadowRouting: {
-      ...DEFAULT_COMBO_CONFIG.shadowRouting,
-      ...(isRecord(global.shadowRouting) ? clean(global.shadowRouting) : {}),
-      ...(isRecord(providerOverride.shadowRouting) ? clean(providerOverride.shadowRouting) : {}),
-      ...(isRecord(comboConfig.shadowRouting) ? clean(comboConfig.shadowRouting) : {}),
-    },
-    evalRouting: {
-      ...DEFAULT_COMBO_CONFIG.evalRouting,
-      ...(isRecord(global.evalRouting) ? clean(global.evalRouting) : {}),
-      ...(isRecord(providerOverride.evalRouting) ? clean(providerOverride.evalRouting) : {}),
-      ...(isRecord(comboConfig.evalRouting) ? clean(comboConfig.evalRouting) : {}),
-    },
   };
 }
 
@@ -233,16 +151,4 @@ export function resolveComboConfig(
  */
 export function getDefaultComboConfig() {
   return { ...DEFAULT_COMBO_CONFIG };
-}
-
-/**
- * Resolve the effective combo config the same way handleComboChat does: cascade via
- * resolveComboConfig when settings exist, else the defaults merged with the combo's own
- * config. Encapsulated here so the ternary lives in one place (DRY) and its inferred union
- * return type is the single source of truth for ComboContext.config (combo/context.ts).
- */
-export function resolveComboSetupConfig(combo: ComboConfigLike, settings: ComboSettingsLike) {
-  return settings
-    ? resolveComboConfig(combo, settings)
-    : { ...getDefaultComboConfig(), ...((combo?.config as Record<string, unknown>) || {}) };
 }

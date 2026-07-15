@@ -6,7 +6,7 @@ const DEFAULT_APP_LOG_MAX_SIZE = 50 * 1024 * 1024;
 const DEFAULT_APP_LOG_MAX_FILES = 20;
 const DEFAULT_CALL_LOG_MAX_ENTRIES = 10000;
 const DEFAULT_CALL_LOGS_TABLE_MAX_ROWS = 100000;
-const DEFAULT_CALL_LOG_PIPELINE_MAX_SIZE_KB = 4096;
+const DEFAULT_CALL_LOG_PIPELINE_MAX_SIZE_KB = 512;
 const DEFAULT_PROXY_LOGS_TABLE_MAX_ROWS = 100000;
 const DEFAULT_APP_LOG_PATH = path.join(process.cwd(), "logs", "application", "app.log");
 
@@ -14,12 +14,6 @@ function parsePositiveInt(value: string | undefined, fallback: number): number {
   if (!value) return fallback;
   const parsed = Number.parseInt(value, 10);
   return Number.isInteger(parsed) && parsed > 0 ? parsed : fallback;
-}
-
-function parseNonNegativeInt(value: string | undefined, fallback: number): number {
-  if (value === undefined || value === "") return fallback;
-  const parsed = Number.parseInt(value, 10);
-  return Number.isInteger(parsed) && parsed >= 0 ? parsed : fallback;
 }
 
 function parseBoolean(value: string | undefined, fallback: boolean): boolean {
@@ -71,26 +65,6 @@ export function getCallLogRetentionDays(): number {
   return parsePositiveInt(process.env.CALL_LOG_RETENTION_DAYS, DEFAULT_CALL_LOG_RETENTION_DAYS);
 }
 
-/**
- * Returns the explicit operator-set retention override (a positive integer), or `null`
- * when the env var is unset/empty/invalid. Callers give an explicit env var precedence
- * over the dashboard's database retention, while falling back to the dashboard (not the
- * hardcoded 7-day default) when the operator did not set the env var. (#4354)
- */
-function parsePositiveIntOrNull(value: string | undefined): number | null {
-  if (value === undefined || value === "") return null;
-  const parsed = Number.parseInt(value, 10);
-  return Number.isInteger(parsed) && parsed > 0 ? parsed : null;
-}
-
-export function getAppLogRetentionDaysOverride(): number | null {
-  return parsePositiveIntOrNull(process.env.APP_LOG_RETENTION_DAYS);
-}
-
-export function getCallLogRetentionDaysOverride(): number | null {
-  return parsePositiveIntOrNull(process.env.CALL_LOG_RETENTION_DAYS);
-}
-
 export function getAppLogMaxFiles(): number {
   return parsePositiveInt(process.env.APP_LOG_MAX_FILES, DEFAULT_APP_LOG_MAX_FILES);
 }
@@ -126,27 +100,4 @@ export function getAppLogLevel(defaultLevel: string): string {
 
 export function getAppLogFormat(defaultFormat: string): string {
   return process.env.APP_LOG_FORMAT || defaultFormat;
-}
-
-// ─── Chat log truncation limits ─────────────────────────────────────────────
-
-export function getChatLogTextLimit(): number {
-  return parsePositiveInt(process.env.CHAT_LOG_TEXT_LIMIT, 64 * 1024);
-}
-
-export function getChatLogArrayTailItems(): number {
-  return parsePositiveInt(process.env.CHAT_LOG_ARRAY_TAIL_ITEMS, 24);
-}
-
-export function getChatLogMaxDepth(): number {
-  return parsePositiveInt(process.env.CHAT_LOG_MAX_DEPTH, 6);
-}
-
-export function getChatLogMaxObjectKeys(): number {
-  return parseNonNegativeInt(process.env.CHAT_LOG_MAX_OBJECT_KEYS, 80);
-}
-
-export function isChatDebugFileEnabled(): boolean {
-  if (parseBoolean(process.env.CHAT_DEBUG_FILE, false)) return true;
-  return process.env.APP_LOG_LEVEL?.trim().toLowerCase() === "debug";
 }

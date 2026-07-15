@@ -1,6 +1,7 @@
 import { BaseExecutor, type ExecuteInput, type ProviderCredentials } from "./base.ts";
 import { PROVIDERS } from "../config/constants.ts";
 import { getModelTargetFormat } from "../config/providerModels.ts";
+<<<<<<< Updated upstream
 import {
   injectReasoningContentForThinkingModel,
   isThinkingMessageModel,
@@ -36,6 +37,8 @@ interface OpencodeAccountState {
 
 const OPENCODE_COOLDOWN_BASE_MS = 5_000;
 const OPENCODE_COOLDOWN_MAX_MS = 60_000;
+=======
+>>>>>>> Stashed changes
 
 const EFFORT_LEVELS = ["low", "medium", "high", "max"] as const;
 
@@ -56,99 +59,14 @@ function parseDeepSeekEffortLevel(model: string): { baseModel: string; effort: s
 export class OpencodeExecutor extends BaseExecutor {
   _requestFormat: string | null = null;
 
-  /**
-   * Per-account rotation state, rebuilt from credentials on each request. The
-   * default entry (fingerprint "") represents the single anonymous account with
-   * no configured proxy — preserves the historical direct pass-through when the
-   * user has not configured any per-account proxy.
-   */
-  private accounts: OpencodeAccountState[] = [
-    { fingerprint: "", cooldownUntil: 0, consecutiveFails: 0, proxy: null },
-  ];
-  private nextAccountIdx = 0;
-
   constructor(provider: string) {
     super(provider, PROVIDERS[provider] || PROVIDERS.openai);
-  }
-
-  /**
-   * Rebuild `accounts` from `providerSpecificData.fingerprints` +
-   * `providerSpecificData.accountProxies`. Each configured account id becomes a
-   * rotation slot carrying its own proxy. When the user configured no accounts
-   * at all, the single default direct account is kept (backward compatible).
-   */
-  private syncAccountsFromCredentials(credentials: ProviderCredentials): void {
-    const psd = credentials?.providerSpecificData;
-    const fingerprints = Array.isArray(psd?.fingerprints)
-      ? (psd!.fingerprints as unknown[]).filter((f): f is string => typeof f === "string")
-      : [];
-
-    const accountProxies = psd?.accountProxies as OpencodeAccountProxyConfig[] | undefined;
-    const proxyMap = Array.isArray(accountProxies)
-      ? new Map(accountProxies.map((ap) => [ap.fingerprint, ap.proxy ?? null] as const))
-      : null;
-
-    if (fingerprints.length === 0) {
-      // No configured accounts — keep a single direct account.
-      this.accounts = [{ fingerprint: "", cooldownUntil: 0, consecutiveFails: 0, proxy: null }];
-      this.nextAccountIdx = 0;
-      return;
-    }
-
-    const previous = new Map(this.accounts.map((a) => [a.fingerprint, a] as const));
-    this.accounts = fingerprints.map((fp) => {
-      const prior = previous.get(fp);
-      return {
-        fingerprint: fp,
-        cooldownUntil: prior?.cooldownUntil ?? 0,
-        consecutiveFails: prior?.consecutiveFails ?? 0,
-        proxy: proxyMap ? (proxyMap.get(fp) ?? null) : null,
-      };
-    });
-    if (this.nextAccountIdx >= this.accounts.length) this.nextAccountIdx = 0;
-  }
-
-  private isAccountReady(account: OpencodeAccountState): boolean {
-    return account.cooldownUntil <= Date.now();
-  }
-
-  /** Round-robin pick, skipping accounts in cooldown; falls back to the next index. */
-  private pickAccount(): OpencodeAccountState {
-    for (let i = 0; i < this.accounts.length; i++) {
-      const idx = (this.nextAccountIdx + i) % this.accounts.length;
-      const acct = this.accounts[idx];
-      if (this.isAccountReady(acct)) {
-        this.nextAccountIdx = (idx + 1) % this.accounts.length;
-        return acct;
-      }
-    }
-    const fallbackIdx = this.nextAccountIdx % this.accounts.length;
-    this.nextAccountIdx = (this.nextAccountIdx + 1) % this.accounts.length;
-    return this.accounts[fallbackIdx];
-  }
-
-  private markCooldown(account: OpencodeAccountState): void {
-    account.consecutiveFails++;
-    const backoff = Math.min(
-      OPENCODE_COOLDOWN_BASE_MS * Math.pow(2, account.consecutiveFails - 1),
-      OPENCODE_COOLDOWN_MAX_MS
-    );
-    account.cooldownUntil = Date.now() + backoff + Math.random() * 1000;
-  }
-
-  private markSuccess(account: OpencodeAccountState): void {
-    account.consecutiveFails = 0;
-  }
-
-  /** Mask an account id for logs (UI calls it a fingerprint). */
-  private static maskAccountId(fingerprint: string): string {
-    if (!fingerprint) return "direct";
-    return `${fingerprint.slice(0, 8)}…`;
   }
 
   async execute(input: ExecuteInput) {
     this._requestFormat = getModelTargetFormat(this.provider, input.model) || "openai";
     try {
+<<<<<<< Updated upstream
       this.syncAccountsFromCredentials(input.credentials);
 
       const hasProxies = this.accounts.some((a) => a.proxy !== null);
@@ -196,6 +114,9 @@ export class OpencodeExecutor extends BaseExecutor {
 
       // All accounts returned 429 (or errored) — surface the last response.
       return lastResult ?? (await super.execute(input));
+=======
+      return await super.execute(input);
+>>>>>>> Stashed changes
     } finally {
       this._requestFormat = null;
     }
@@ -223,12 +144,7 @@ export class OpencodeExecutor extends BaseExecutor {
     }
   }
 
-  buildHeaders(
-    credentials: ProviderCredentials | null,
-    stream = true,
-    clientHeaders?: Record<string, string> | null,
-    model?: string
-  ) {
+  buildHeaders(credentials: ProviderCredentials | null, stream = true) {
     const headers: Record<string, string> = { "Content-Type": "application/json" };
     const key = credentials?.apiKey || credentials?.accessToken;
 
@@ -248,6 +164,7 @@ export class OpencodeExecutor extends BaseExecutor {
       headers["Accept"] = "text/event-stream";
     }
 
+<<<<<<< Updated upstream
     if (clientHeaders) {
       forwardOpencodeClientHeaders(headers, clientHeaders, {
         synthesizeRequestId: true,
@@ -256,6 +173,8 @@ export class OpencodeExecutor extends BaseExecutor {
 
     void model;
 
+=======
+>>>>>>> Stashed changes
     return headers;
   }
 
@@ -265,7 +184,7 @@ export class OpencodeExecutor extends BaseExecutor {
     stream: boolean,
     credentials: ProviderCredentials
   ): any {
-    let modifiedBody = super.transformRequest(model, body, stream, credentials);
+    const modifiedBody = super.transformRequest(model, body, stream, credentials);
     if (
       modifiedBody &&
       typeof modifiedBody === "object" &&
@@ -274,6 +193,7 @@ export class OpencodeExecutor extends BaseExecutor {
     ) {
       modifiedBody.tools = modifiedBody.tools.slice(0, 128);
     }
+<<<<<<< Updated upstream
     if (modifiedBody && typeof modifiedBody === "object" && !Array.isArray(modifiedBody)) {
       const mb = modifiedBody as Record<string, unknown>;
       const parsed = parseDeepSeekEffortLevel(model);
@@ -292,6 +212,8 @@ export class OpencodeExecutor extends BaseExecutor {
     if (isThinkingMessageModel(model)) {
       modifiedBody = injectReasoningContentForThinkingModel(modifiedBody);
     }
+=======
+>>>>>>> Stashed changes
     return modifiedBody;
   }
 }

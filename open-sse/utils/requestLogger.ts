@@ -1,6 +1,3 @@
-import { getPendingById } from "@/lib/usage/usageHistory";
-import { sanitizeErrorMessage } from "./error.ts";
-
 type JsonRecord = Record<string, unknown>;
 
 type HeaderInput =
@@ -48,16 +45,12 @@ type RequestLoggerOptions = {
   captureStreamChunks?: boolean;
   maxStreamChunkBytes?: number;
   maxStreamChunkItems?: number;
-  requestId?: string | null;
-  model?: string;
-  provider?: string;
-  connectionId?: string | null;
 };
 
 const DEFAULT_MAX_STREAM_CHUNK_BYTES = 128 * 1024;
-const DEFAULT_MAX_STREAM_CHUNK_ITEMS = 10_240;
+const DEFAULT_MAX_STREAM_CHUNK_ITEMS = 512;
 const MAX_LOG_STRING_LENGTH = 64 * 1024;
-export const MAX_LOG_ARRAY_ITEMS = 24;
+const MAX_LOG_ARRAY_ITEMS = 24;
 const MAX_LOG_OBJECT_KEYS = 80;
 
 function maskSensitiveHeaders(headers: HeaderInput): Record<string, unknown> {
@@ -73,10 +66,6 @@ function maskSensitiveHeaders(headers: HeaderInput): Record<string, unknown> {
 
   for (const key of Object.keys(masked)) {
     const lowerKey = key.toLowerCase();
-    // Whitelist x-ratelimit- headers from redaction
-    if (lowerKey.startsWith("x-ratelimit-")) {
-      continue;
-    }
     if (!sensitiveKeys.some((candidate) => lowerKey.includes(candidate))) {
       continue;
     }
@@ -105,31 +94,16 @@ function truncateLogString(value: string, maxLength = MAX_LOG_STRING_LENGTH): st
   return `${value.slice(0, Math.floor(maxLength / 2))}\n[...truncated ${value.length - maxLength} chars...]\n${value.slice(-Math.ceil(maxLength / 2))}`;
 }
 
-/**
- * Recursively clone `value` for logging, with size bounds applied:
- * - Arrays longer than MAX_LOG_ARRAY_ITEMS are truncated to the tail with a
- *   sentinel marker prepended.
- * - The `tools` field is exempt from array truncation: the full tool inventory
- *   is debug-critical for understanding which tools the model had access to,
- *   and individual tool descriptions are independently bounded by
- *   truncateLogString, so the total size remains naturally capped.
- *
- * The optional `key` parameter carries the parent object's field name when
- * recursing into an object's values, enabling the per-field exemption above.
- * Top-level arrays (no key context) remain subject to truncation.
- */
-export function cloneBoundedForLog(value: unknown, depth = 0, key: string | null = null): unknown {
+function cloneBoundedForLog(value: unknown, depth = 0): unknown {
   if (value === null || value === undefined) return value;
   if (typeof value === "string") return truncateLogString(value);
   if (typeof value !== "object") return value;
   if (depth >= 6) return "[MaxDepth]";
 
   if (Array.isArray(value)) {
-    const exempt = key === "tools";
-    const shouldTruncate = !exempt && value.length > MAX_LOG_ARRAY_ITEMS;
-    const source = shouldTruncate ? value.slice(-MAX_LOG_ARRAY_ITEMS) : value;
+    const source = value.length > MAX_LOG_ARRAY_ITEMS ? value.slice(-MAX_LOG_ARRAY_ITEMS) : value;
     const mapped = source.map((item) => cloneBoundedForLog(item, depth + 1));
-    if (shouldTruncate) {
+    if (value.length > MAX_LOG_ARRAY_ITEMS) {
       return [
         {
           _omniroute_truncated_array: true,
@@ -144,8 +118,8 @@ export function cloneBoundedForLog(value: unknown, depth = 0, key: string | null
 
   const result: JsonRecord = {};
   const entries = Object.entries(value as JsonRecord);
-  for (const [k, item] of entries.slice(0, MAX_LOG_OBJECT_KEYS)) {
-    result[k] = cloneBoundedForLog(item, depth + 1, k);
+  for (const [key, item] of entries.slice(0, MAX_LOG_OBJECT_KEYS)) {
+    result[key] = cloneBoundedForLog(item, depth + 1);
   }
   if (entries.length > MAX_LOG_OBJECT_KEYS) {
     result._omniroute_truncated_keys = entries.length - MAX_LOG_OBJECT_KEYS;
@@ -210,16 +184,17 @@ function compactPipelinePayloads(
         )
       );
       if (Object.keys(compactedChunks).length > 0) {
-        result.streamChunks = compactedChunks;
+        result.streamChunks = compactedChunks as RequestPipelinePayloads["streamChunks"];
       }
       continue;
     }
 
-    result[key as keyof RequestPipelinePayloads] = value;
+    result[key as keyof RequestPipelinePayloads] = value as never;
   }
 
   return hasOwnValues(result) ? result : null;
 }
+<<<<<<< Updated upstream
 function makeStreamChunkMethods(options: RequestLoggerOptions, captureChunks: boolean) {
   const streamChunks = createEmptyStreamChunks();
   const streamChunkBytes = {
@@ -273,18 +248,23 @@ function makeStreamChunkMethods(options: RequestLoggerOptions, captureChunks: bo
     const ts = new Date().toISOString().slice(11, 23);
     appendBoundedChunk(arr, bytes, `[${ts}] ${chunk}`, maxBytes, maxItems);
   };
+=======
+>>>>>>> Stashed changes
 
+function createNoOpLogger(): RequestLogger {
   return {
-    streamChunks,
-    streamChunkBytes,
-    appendProviderChunk(chunk: string) {
-      append(streamChunks.provider, streamChunkBytes.provider, chunk);
-    },
-    appendOpenAIChunk(chunk: string) {
-      append(streamChunks.openai, streamChunkBytes.openai, chunk);
-    },
-    appendConvertedChunk(chunk: string) {
-      append(streamChunks.client, streamChunkBytes.client, chunk);
+    sessionPath: null,
+    logClientRawRequest() {},
+    logOpenAIRequest() {},
+    logTargetRequest() {},
+    logProviderResponse() {},
+    appendProviderChunk() {},
+    appendOpenAIChunk() {},
+    logConvertedResponse() {},
+    appendConvertedChunk() {},
+    logError() {},
+    getPipelinePayloads() {
+      return null;
     },
   };
 }
@@ -295,32 +275,27 @@ export async function createRequestLogger(
   _model?: string,
   options: RequestLoggerOptions = {}
 ): Promise<RequestLogger> {
-  const captureStreamChunks = options.captureStreamChunks !== false;
-  // Stream chunk capture is always set up — even when the logger is disabled,
-  // so that active requests always have real-time stream data available via
-  // the /api/logs/active endpoint.
-  const chunkMethods = makeStreamChunkMethods(options, captureStreamChunks);
-
   if (options.enabled === false) {
-    return {
-      sessionPath: null,
-      logClientRawRequest() {},
-      logOpenAIRequest() {},
-      logTargetRequest() {},
-      logProviderResponse() {},
-      appendProviderChunk: chunkMethods.appendProviderChunk,
-      appendOpenAIChunk: chunkMethods.appendOpenAIChunk,
-      logConvertedResponse() {},
-      appendConvertedChunk: chunkMethods.appendConvertedChunk,
-      logError() {},
-      getPipelinePayloads() {
-        return null;
-      },
-    };
+    return createNoOpLogger();
   }
 
+  const captureStreamChunks = options.captureStreamChunks !== false;
+  const maxStreamChunkBytes =
+    Number.isInteger(options.maxStreamChunkBytes) && Number(options.maxStreamChunkBytes) > 0
+      ? Number(options.maxStreamChunkBytes)
+      : DEFAULT_MAX_STREAM_CHUNK_BYTES;
+  const maxStreamChunkItems =
+    Number.isInteger(options.maxStreamChunkItems) && Number(options.maxStreamChunkItems) > 0
+      ? Number(options.maxStreamChunkItems)
+      : DEFAULT_MAX_STREAM_CHUNK_ITEMS;
+  const streamChunks = createEmptyStreamChunks();
+  const streamChunkBytes = {
+    provider: { value: 0, truncated: false },
+    openai: { value: 0, truncated: false },
+    client: { value: 0, truncated: false },
+  };
   const payloads: RequestPipelinePayloads = {
-    ...(captureStreamChunks ? { streamChunks: chunkMethods.streamChunks } : {}),
+    ...(captureStreamChunks ? { streamChunks } : {}),
   };
 
   return {
@@ -361,20 +336,51 @@ export async function createRequestLogger(
       };
     },
 
-    appendProviderChunk: chunkMethods.appendProviderChunk,
-    appendOpenAIChunk: chunkMethods.appendOpenAIChunk,
+    appendProviderChunk(chunk) {
+      if (!captureStreamChunks) return;
+      appendBoundedChunk(
+        streamChunks.provider,
+        streamChunkBytes.provider,
+        chunk,
+        maxStreamChunkBytes,
+        maxStreamChunkItems
+      );
+    },
+
+    appendOpenAIChunk(chunk) {
+      if (!captureStreamChunks) return;
+      appendBoundedChunk(
+        streamChunks.openai,
+        streamChunkBytes.openai,
+        chunk,
+        maxStreamChunkBytes,
+        maxStreamChunkItems
+      );
+    },
+
     logConvertedResponse(body) {
       payloads.clientResponse = {
         timestamp: new Date().toISOString(),
         body: cloneBoundedForLog(body),
       };
     },
-    appendConvertedChunk: chunkMethods.appendConvertedChunk,
+
+    appendConvertedChunk(chunk) {
+      if (!captureStreamChunks) return;
+      appendBoundedChunk(
+        streamChunks.client,
+        streamChunkBytes.client,
+        chunk,
+        maxStreamChunkBytes,
+        maxStreamChunkItems
+      );
+    },
 
     logError(error, requestBody = null) {
       payloads.error = {
         timestamp: new Date().toISOString(),
-        error: sanitizeErrorMessage(error instanceof Error ? error.message : String(error)),
+        error: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined,
         requestBody: cloneBoundedForLog(requestBody),
       };
     },
@@ -384,3 +390,5 @@ export async function createRequestLogger(
     },
   };
 }
+
+export function logError(_provider: string, _entry: unknown) {}

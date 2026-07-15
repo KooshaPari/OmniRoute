@@ -4,6 +4,7 @@
  */
 import { register } from "../registry.ts";
 import { FORMATS } from "../formats.ts";
+<<<<<<< Updated upstream
 import { appendToolCallArgumentDelta } from "../../utils/toolCallArguments.ts";
 import { fallbackToolCallId } from "../helpers/toolCallHelper.ts";
 import { shouldParseTextualReasoningTags } from "../../handlers/responseSanitizer.ts";
@@ -17,6 +18,12 @@ import {
 
 // normalizeUpstreamFailure is re-exported for external importers (tests).
 export { normalizeUpstreamFailure } from "./openai-responses/pureHelpers.ts";
+=======
+
+function normalizeToolName(value) {
+  return typeof value === "string" ? value.trim() : "";
+}
+>>>>>>> Stashed changes
 
 /**
  * Translate OpenAI chunk to Responses API events
@@ -105,6 +112,7 @@ export function openaiToOpenAIResponsesResponse(chunk, state) {
     emitReasoningDelta(state, emit, delta.reasoning_content);
   }
   if (delta.content) {
+<<<<<<< Updated upstream
     if (
       state.reasoningId &&
       !state.reasoningDone &&
@@ -113,6 +121,8 @@ export function openaiToOpenAIResponsesResponse(chunk, state) {
       closeReasoning(state, emit);
     }
 
+=======
+>>>>>>> Stashed changes
     let content = delta.content;
 
     if (parseTextualReasoningTags) {
@@ -139,20 +149,18 @@ export function openaiToOpenAIResponsesResponse(chunk, state) {
     }
 
     if (content) {
+<<<<<<< Updated upstream
       const msgIdx = state.reasoningId ? state.reasoningIndex + 1 : idx;
       emitTextContent(state, emit, msgIdx, content);
+=======
+      emitTextContent(state, emit, idx, content);
+>>>>>>> Stashed changes
     }
   }
 
   // Handle tool_calls
   if (delta.tool_calls) {
-    // Close reasoning first so tool calls do not collide with an open
-    // reasoning item, then close the message at its real index.
-    if (state.reasoningId && !state.reasoningDone) {
-      closeReasoning(state, emit);
-    }
-    const msgIdx = state.reasoningId ? state.reasoningIndex + 1 : idx;
-    closeMessage(state, emit, msgIdx);
+    closeMessage(state, emit, idx);
     for (const tc of delta.tool_calls) {
       emitToolCall(state, emit, tc);
     }
@@ -169,6 +177,7 @@ export function openaiToOpenAIResponsesResponse(chunk, state) {
   return events;
 }
 
+<<<<<<< Updated upstream
 // Normalize output_index to a non-negative integer (replaces fragile parseInt calls)
 // Record a finalized item keyed by output_index so buildDenseOutput can sort later
 function recordCompletedItem(state, outputIndex, item) {
@@ -194,6 +203,8 @@ function buildDenseOutput(state) {
     .map(({ item }) => item);
 }
 
+=======
+>>>>>>> Stashed changes
 // Helper functions
 function startReasoning(state, emit, idx) {
   if (!state.reasoningId) {
@@ -249,19 +260,15 @@ function closeReasoning(state, emit) {
       part: { type: "summary_text", text: state.reasoningBuf },
     });
 
-    const reasoningItem = {
-      id: state.reasoningId,
-      type: "reasoning",
-      summary: [{ type: "summary_text", text: state.reasoningBuf }],
-    };
-
     emit("response.output_item.done", {
       type: "response.output_item.done",
       output_index: state.reasoningIndex,
-      item: reasoningItem,
+      item: {
+        id: state.reasoningId,
+        type: "reasoning",
+        summary: [{ type: "summary_text", text: state.reasoningBuf }],
+      },
     });
-
-    recordCompletedItem(state, state.reasoningIndex, reasoningItem);
   }
 }
 
@@ -306,13 +313,12 @@ function closeMessage(state, emit, idx) {
   if (state.msgItemAdded[idx] && !state.msgItemDone[idx]) {
     state.msgItemDone[idx] = true;
     const fullText = state.msgTextBuf[idx] || "";
-    const normalizedIndex = normalizeOutputIndex(idx);
-    const msgId = `msg_${state.responseId}_${normalizedIndex}`;
+    const msgId = `msg_${state.responseId}_${idx}`;
 
     emit("response.output_text.done", {
       type: "response.output_text.done",
       item_id: msgId,
-      output_index: normalizedIndex,
+      output_index: parseInt(idx),
       content_index: 0,
       text: fullText,
       logprobs: [],
@@ -321,25 +327,21 @@ function closeMessage(state, emit, idx) {
     emit("response.content_part.done", {
       type: "response.content_part.done",
       item_id: msgId,
-      output_index: normalizedIndex,
+      output_index: parseInt(idx),
       content_index: 0,
       part: { type: "output_text", annotations: [], logprobs: [], text: fullText },
     });
 
-    const msgItem = {
-      id: msgId,
-      type: "message",
-      content: [{ type: "output_text", annotations: [], logprobs: [], text: fullText }],
-      role: "assistant",
-    };
-
     emit("response.output_item.done", {
       type: "response.output_item.done",
-      output_index: normalizedIndex,
-      item: msgItem,
+      output_index: parseInt(idx),
+      item: {
+        id: msgId,
+        type: "message",
+        content: [{ type: "output_text", annotations: [], logprobs: [], text: fullText }],
+        role: "assistant",
+      },
     });
-
-    recordCompletedItem(state, normalizedIndex, msgItem);
   }
 }
 
@@ -351,9 +353,7 @@ function emitToolCall(state, emit, tc) {
   // T37: If we already have a tool call at this index but the ID changed,
   // we must close the current one and start a new one to prevent merging.
   if (state.funcCallIds[tcIdx] && newCallId && state.funcCallIds[tcIdx] !== newCallId) {
-    // Superseded call: close and emit output_item.done but do NOT record as final output
-    // since this call was replaced by a new one at the same index.
-    closeToolCall(state, emit, tcIdx, false);
+    closeToolCall(state, emit, tcIdx);
     delete state.funcCallIds[tcIdx];
     delete state.funcNames[tcIdx];
     delete state.funcArgsBuf[tcIdx];
@@ -363,32 +363,19 @@ function emitToolCall(state, emit, tc) {
 
   if (funcName) state.funcNames[tcIdx] = funcName;
 
-  // Codex custom tools (apply_patch) are surfaced to the client as custom_tool_call items
-  // and stream their raw patch via custom_tool_call_input.* events instead of the
-  // function_call_arguments.* events used for regular function tools. (#1007)
-  const isCustomTool = (state.funcNames[tcIdx] || funcName) === "apply_patch";
-
   if (!state.funcCallIds[tcIdx] && newCallId) {
     state.funcCallIds[tcIdx] = newCallId;
 
     emit("response.output_item.added", {
       type: "response.output_item.added",
       output_index: tcIdx,
-      item: isCustomTool
-        ? {
-            id: `fc_${newCallId}`,
-            type: "custom_tool_call",
-            input: "",
-            call_id: newCallId,
-            name: state.funcNames[tcIdx] || "",
-          }
-        : {
-            id: `fc_${newCallId}`,
-            type: "function_call",
-            arguments: "",
-            call_id: newCallId,
-            name: state.funcNames[tcIdx] || "",
-          },
+      item: {
+        id: `fc_${newCallId}`,
+        type: "function_call",
+        arguments: "",
+        call_id: newCallId,
+        name: state.funcNames[tcIdx] || "",
+      },
     });
   }
 
@@ -396,92 +383,41 @@ function emitToolCall(state, emit, tc) {
 
   if (tc.function?.arguments) {
     const refCallId = state.funcCallIds[tcIdx] || newCallId;
-    const existingArgs = state.funcArgsBuf[tcIdx] || "";
-    const nextArgs = appendToolCallArgumentDelta(existingArgs, tc.function.arguments);
-    const emittedDelta = nextArgs.slice(existingArgs.length);
-    state.funcArgsBuf[tcIdx] = nextArgs;
-
-    if (refCallId && emittedDelta) {
-      const deltaEvent = isCustomTool
-        ? "response.custom_tool_call_input.delta"
-        : "response.function_call_arguments.delta";
-      emit(deltaEvent, {
-        type: deltaEvent,
+    if (refCallId) {
+      emit("response.function_call_arguments.delta", {
+        type: "response.function_call_arguments.delta",
         item_id: `fc_${refCallId}`,
         output_index: tcIdx,
-        delta: emittedDelta,
+        delta: tc.function.arguments,
       });
     }
+    state.funcArgsBuf[tcIdx] += tc.function.arguments;
   }
 }
 
-function closeToolCall(state, emit, idx, recordAsCompleted = true) {
+function closeToolCall(state, emit, idx) {
   const callId = state.funcCallIds[idx];
   if (callId && !state.funcItemDone[idx]) {
-    const normalizedIndex = normalizeOutputIndex(idx);
     const args = state.funcArgsBuf[idx] || "{}";
-    const isCustomTool = (state.funcNames[idx] || "") === "apply_patch";
 
-    let funcItem;
-    if (isCustomTool) {
-      // The model produced JSON {"input":"..."} against the normalized custom-tool schema.
-      // Unwrap it back to the raw patch string the Codex runtime expects. (#1007)
-      let rawInput = args;
-      try {
-        const parsed = JSON.parse(args);
-        if (parsed && typeof parsed.input === "string") rawInput = parsed.input;
-      } catch {
-        // Not JSON — fall back to the raw buffered arguments.
-      }
+    emit("response.function_call_arguments.done", {
+      type: "response.function_call_arguments.done",
+      item_id: `fc_${callId}`,
+      output_index: parseInt(idx),
+      arguments: args,
+    });
 
-      emit("response.custom_tool_call_input.done", {
-        type: "response.custom_tool_call_input.done",
-        item_id: `fc_${callId}`,
-        output_index: normalizedIndex,
-        input: rawInput,
-      });
-
-      funcItem = {
-        id: `fc_${callId}`,
-        type: "custom_tool_call",
-        input: rawInput,
-        call_id: callId,
-        name: state.funcNames[idx] || "",
-      };
-
-      emit("response.output_item.done", {
-        type: "response.output_item.done",
-        output_index: normalizedIndex,
-        item: funcItem,
-      });
-    } else {
-      emit("response.function_call_arguments.done", {
-        type: "response.function_call_arguments.done",
-        item_id: `fc_${callId}`,
-        output_index: normalizedIndex,
-        arguments: args,
-      });
-
-      funcItem = {
+    emit("response.output_item.done", {
+      type: "response.output_item.done",
+      output_index: parseInt(idx),
+      item: {
         id: `fc_${callId}`,
         type: "function_call",
         arguments: args,
         call_id: callId,
         name: state.funcNames[idx] || "",
-      };
-
-      emit("response.output_item.done", {
-        type: "response.output_item.done",
-        output_index: normalizedIndex,
-        item: funcItem,
-      });
-    }
-
-    // Only record as a completed output item when this is a final close (not a
-    // superseded-call eviction where a new call replaced this one at the same index).
-    if (recordAsCompleted) {
-      recordCompletedItem(state, normalizedIndex, funcItem);
-    }
+      },
+    });
 
     state.funcItemDone[idx] = true;
     state.funcArgsDone[idx] = true;
@@ -492,11 +428,33 @@ function sendCompleted(state, emit) {
   if (!state.completedSent) {
     state.completedSent = true;
 
-    // Build a dense, deterministic output array from items recorded as they were emitted
-    // (each close*() call records its item via recordCompletedItem — including the
-    // #1007 custom_tool_call shape for apply_patch). Sorted by output_index then by
-    // emission sequence for stable ordering.
-    const output = buildDenseOutput(state);
+    // Build output from accumulated state
+    const output = [];
+    if (state.reasoningId) {
+      output.push({
+        id: state.reasoningId,
+        type: "reasoning",
+        summary: [{ type: "summary_text", text: state.reasoningBuf }],
+      });
+    }
+    for (const idx in state.msgItemAdded) {
+      output.push({
+        id: `msg_${state.responseId}_${idx}`,
+        type: "message",
+        role: "assistant",
+        content: [{ type: "output_text", annotations: [], text: state.msgTextBuf[idx] || "" }],
+      });
+    }
+    for (const idx in state.funcCallIds) {
+      const callId = state.funcCallIds[idx];
+      output.push({
+        id: `fc_${callId}`,
+        type: "function_call",
+        call_id: callId,
+        name: state.funcNames[idx] || "",
+        arguments: state.funcArgsBuf[idx] || "{}",
+      });
+    }
 
     const response: Record<string, unknown> = {
       id: state.responseId,
@@ -537,6 +495,7 @@ function flushEvents(state) {
   return events;
 }
 
+<<<<<<< Updated upstream
 /**
  * OpenAI Chat Completions streams announce the assistant role on the FIRST delta
  * (e.g. `{ "role": "assistant", "content": "" }` or `{ "role": "assistant",
@@ -610,19 +569,43 @@ function buildResponsesReasoningDeltaChunk(state, text) {
 }
 
 /**
+=======
+function normalizeUpstreamFailure(data, fallbackType = "server_error") {
+  const response = data?.response && typeof data.response === "object" ? data.response : null;
+  const error =
+    response?.error && typeof response.error === "object"
+      ? response.error
+      : data?.error && typeof data.error === "object"
+        ? data.error
+        : null;
+
+  const code = typeof error?.code === "string" ? error.code : "";
+  const message =
+    typeof error?.message === "string"
+      ? error.message
+      : typeof data?.message === "string"
+        ? data.message
+        : "Upstream failure";
+
+  return {
+    status: code === "rate_limit_exceeded" ? 429 : 502,
+    type: code === "rate_limit_exceeded" ? "rate_limit_error" : fallbackType,
+    code: code || (fallbackType === "rate_limit_error" ? "rate_limit_exceeded" : "bad_gateway"),
+    message,
+  };
+}
+
+/**
+>>>>>>> Stashed changes
  * Translate OpenAI Responses API chunk to OpenAI Chat Completions format
  * This is for when Codex returns data and we need to send it to an OpenAI-compatible client
  */
 export function openaiResponsesToOpenAIResponse(chunk, state) {
-  return withAssistantRoleOnFirstDelta(state, openaiResponsesToOpenAIResponseStream(chunk, state));
-}
-
-function openaiResponsesToOpenAIResponseStream(chunk, state) {
   if (!chunk) {
     // Flush: send final chunk with finish_reason
     if (!state.finishReasonSent && state.started) {
       state.finishReasonSent = true;
-      const finishReason = computeFinishReason(state);
+      const hadToolCalls = (state.toolCallIndex || 0) > 0;
       return {
         id: state.chatId || `chatcmpl-${Date.now()}`,
         object: "chat.completion.chunk",
@@ -632,7 +615,7 @@ function openaiResponsesToOpenAIResponseStream(chunk, state) {
           {
             index: 0,
             delta: {},
-            finish_reason: finishReason,
+            finish_reason: hadToolCalls ? "tool_calls" : "stop",
           },
         ],
       };
@@ -694,7 +677,7 @@ function openaiResponsesToOpenAIResponseStream(chunk, state) {
   // Function call started
   if (eventType === "response.output_item.added" && data.item?.type === "function_call") {
     const item = data.item;
-    state.currentToolCallId = item.call_id || fallbackToolCallId();
+    state.currentToolCallId = item.call_id || `call_${Date.now()}`;
     state.currentToolCallArgsBuffer = ""; // reset per-call arg buffer
     state.currentToolCallDeferred = false;
 
@@ -773,7 +756,7 @@ function openaiResponsesToOpenAIResponseStream(chunk, state) {
     const item = data.item;
     const buffered = state.currentToolCallArgsBuffer || "";
     const currentIndex = state.toolCallIndex; // capture before increment
-    const callId = item.call_id || state.currentToolCallId || fallbackToolCallId();
+    const callId = item.call_id || state.currentToolCallId || `call_${Date.now()}`;
     const toolName = normalizeToolName(item.name);
 
     if (state.currentToolCallDeferred) {
@@ -787,7 +770,15 @@ function openaiResponsesToOpenAIResponseStream(chunk, state) {
 
       state.toolCallIndex++;
 
-      const argsToEmit = stripEmptyOptionalToolArgs(item.arguments, toolName);
+      let argsToEmit = item.arguments;
+      if (argsToEmit != null && typeof argsToEmit === "object" && !Array.isArray(argsToEmit)) {
+        // Fix #1674: Strip empty string placeholders emitted by GPT-5.5 for optional fields
+        const cleaned = { ...argsToEmit };
+        for (const [k, v] of Object.entries(cleaned)) {
+          if (v === "") delete cleaned[k];
+        }
+        argsToEmit = cleaned;
+      }
 
       const argsStr =
         argsToEmit != null
@@ -829,7 +820,14 @@ function openaiResponsesToOpenAIResponseStream(chunk, state) {
 
     // Only emit if arguments exist in the done event AND they weren't already streamed via deltas
     if (item.arguments != null && !buffered) {
-      const argsToEmit = stripEmptyOptionalToolArgs(item.arguments, toolName);
+      let argsToEmit = item.arguments;
+      if (argsToEmit != null && typeof argsToEmit === "object" && !Array.isArray(argsToEmit)) {
+        const cleaned = { ...argsToEmit };
+        for (const [k, v] of Object.entries(cleaned)) {
+          if (v === "") delete cleaned[k];
+        }
+        argsToEmit = cleaned;
+      }
 
       const argsStr = typeof argsToEmit === "string" ? argsToEmit : JSON.stringify(argsToEmit);
       if (argsStr) {
@@ -908,7 +906,8 @@ function openaiResponsesToOpenAIResponseStream(chunk, state) {
 
     if (!state.finishReasonSent) {
       state.finishReasonSent = true;
-      const reason = computeFinishReason(state);
+      const hadToolCalls = (state.toolCallIndex || 0) > 0;
+      const reason = hadToolCalls ? "tool_calls" : "stop";
       state.finishReason = reason; // Mark for usage injection in stream.js
 
       const finalChunk: Record<string, unknown> = {
@@ -964,15 +963,11 @@ function openaiResponsesToOpenAIResponseStream(chunk, state) {
     };
   }
 
-  // Handle true reasoning summary ("Thought for 15s").
-  // Emit as `delta.reasoning_content` — matches the shape used by the
-  // `reasoning_content_text.delta` branch above and is what Chat clients
-  // (OpenCode, Claude Code, Cursor, etc.) actually render in their thinking
-  // panel. A nested `delta.reasoning.summary` object is swallowed by most
-  // stream mergers and never reaches the user.
+  // Handle true reasoning summary ("Thought for 15s")
   if (eventType === "response.reasoning_summary_text.delta") {
     const reasoningDelta = data.delta || "";
     if (!reasoningDelta) return null;
+<<<<<<< Updated upstream
     markResponsesReasoningDeltaEmitted(state, data.item_id);
     return buildResponsesReasoningDeltaChunk(state, reasoningDelta);
   }
@@ -1000,6 +995,21 @@ function openaiResponsesToOpenAIResponseStream(chunk, state) {
     const summaryText = extractResponsesReasoningSummaryText(item);
     if (!summaryText) return null;
     return buildResponsesReasoningDeltaChunk(state, summaryText);
+=======
+    return {
+      id: state.chatId,
+      object: "chat.completion.chunk",
+      created: state.created,
+      model: state.model || "gpt-4",
+      choices: [
+        {
+          index: 0,
+          delta: { reasoning: { summary: reasoningDelta } },
+          finish_reason: null,
+        },
+      ],
+    };
+>>>>>>> Stashed changes
   }
 
   // Ignore other events

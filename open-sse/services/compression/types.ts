@@ -1,14 +1,14 @@
 /**
- * Compression Pipeline Types — Lite, Caveman, Aggressive, Ultra, RTK, and Stacked modes.
+ * Compression Pipeline Types — Phase 1 (Lite) + Phase 2 (Standard/Caveman) + Phase 3 (Aggressive) + Phase 4 (Ultra)
  *
  * Shared type definitions for the compression pipeline.
  * Phase 1: 'off' and 'lite' modes.
  * Phase 2: 'standard' mode (caveman engine).
  * Phase 3: 'aggressive' mode (summarization + tool compression + aging).
  * Phase 4: 'ultra' mode (heuristic token pruning + optional SLM tier).
- * Phase 5: 'rtk' and 'stacked' modes (tool-output filters + multi-engine pipeline).
  */
 
+<<<<<<< Updated upstream
 import { ENGINE_IDS } from "./engineCatalog.ts";
 import type { ContextBudgetConfig } from "./adaptiveCompression/types.ts";
 import type { FidelityGateConfig } from "./fidelityGate.ts";
@@ -39,6 +39,9 @@ export type CompressionEngineId =
   | "headroom"
   | "ccr"
   | "llmlingua";
+=======
+export type CompressionMode = "off" | "lite" | "standard" | "aggressive" | "ultra";
+>>>>>>> Stashed changes
 
 export interface CavemanRule {
   name: string;
@@ -46,9 +49,6 @@ export interface CavemanRule {
   replacement: string | ((match: string, ...groups: string[]) => string);
   context: "all" | "user" | "system" | "assistant";
   preservePatterns?: RegExp[];
-  category?: "filler" | "context" | "structural" | "dedup" | "terse" | "ultra";
-  description?: string;
-  minIntensity?: CavemanIntensity;
 }
 
 export interface CavemanConfig {
@@ -57,6 +57,7 @@ export interface CavemanConfig {
   skipRules: string[];
   minMessageLength: number;
   preservePatterns: string[];
+<<<<<<< Updated upstream
   intensity: CavemanIntensity;
   language?: string;
   autoDetectLanguage?: boolean;
@@ -138,6 +139,8 @@ export interface CompressionPipelineStep {
 export interface EngineToggle {
   enabled: boolean;
   level?: string;
+=======
+>>>>>>> Stashed changes
 }
 
 /** T05/C5 — system-prompt preservation intent (see `CompressionConfig.preserveSystemPromptMode`). */
@@ -146,7 +149,6 @@ export type PreserveSystemPromptMode = "always" | "whenNoCache" | "never";
 export interface CompressionConfig {
   enabled: boolean;
   defaultMode: CompressionMode;
-  autoTriggerMode?: CompressionMode;
   autoTriggerTokens: number;
   cacheMinutes: number;
   /**
@@ -157,6 +159,7 @@ export interface CompressionConfig {
    * `resolveCacheAwareConfig` when a cacheable prefix is detected.
    */
   preserveSystemPrompt: boolean;
+<<<<<<< Updated upstream
   /**
    * T05/C5 — authoritative system-prompt preservation intent:
    * - `always`: never compress the system prompt.
@@ -235,6 +238,12 @@ export interface CompressionConfig {
   ultraSlmPrewarm?: boolean;
   /** Opt-in result memoization for deterministic engines only (default off). */
   memoizeCompressionResults?: boolean;
+=======
+  comboOverrides: Record<string, CompressionMode>;
+  cavemanConfig?: CavemanConfig;
+  aggressive?: AggressiveConfig;
+  ultra?: UltraConfig;
+>>>>>>> Stashed changes
 }
 
 export interface CompressionStats {
@@ -243,11 +252,10 @@ export interface CompressionStats {
   savingsPercent: number;
   techniquesUsed: string[];
   mode: CompressionMode;
-  engine?: string;
-  compressionComboId?: string | null;
   timestamp: number;
   rulesApplied?: string[];
   durationMs?: number;
+<<<<<<< Updated upstream
   validationWarnings?: string[];
   validationErrors?: string[];
   fallbackApplied?: boolean;
@@ -274,11 +282,14 @@ export interface CompressionStats {
     totalTokens?: number;
     source: "provider" | "estimated" | "stream";
   };
+=======
+>>>>>>> Stashed changes
   aggressive?: {
     summarizerSavings: number;
     toolResultSavings: number;
     agingSavings: number;
   };
+<<<<<<< Updated upstream
   engineBreakdown?: Array<{
     engine: string;
     originalTokens: number;
@@ -292,6 +303,8 @@ export interface CompressionStats {
   }>;
   /** Present only when QuantumLock stabilized ≥1 fragment this run. */
   quantumLock?: QuantumLockStats;
+=======
+>>>>>>> Stashed changes
 }
 
 export interface CompressionResult {
@@ -303,29 +316,23 @@ export interface CompressionResult {
 export const DEFAULT_COMPRESSION_CONFIG: CompressionConfig = {
   enabled: false,
   defaultMode: "off",
-  autoTriggerMode: "lite",
   autoTriggerTokens: 0,
   cacheMinutes: 5,
   preserveSystemPrompt: true,
+<<<<<<< Updated upstream
   preserveSystemPromptMode: "always",
   mcpDescriptionCompressionEnabled: true,
+=======
+>>>>>>> Stashed changes
   comboOverrides: {},
-  compressionComboId: null,
-  stackedPipeline: [
-    { engine: "rtk", intensity: "standard" },
-    { engine: "caveman", intensity: "full" },
-  ],
-  engines: Object.fromEntries(ENGINE_IDS.map((id) => [id, { enabled: false }])),
-  activeComboId: null,
-  ultraEngine: "heuristic",
-  ultraSlmPrewarm: false,
 };
 
 export const DEFAULT_CAVEMAN_CONFIG: CavemanConfig = {
-  enabled: false,
+  enabled: true,
   compressRoles: ["user"],
   skipRules: [],
   minMessageLength: 50,
+<<<<<<< Updated upstream
   // Protect code blocks, inline code, file paths, URLs, and error/stack lines
   // from caveman compression so signal-carrying content is never mangled.
   preservePatterns: [
@@ -376,6 +383,9 @@ export const DEFAULT_COMPRESSION_LANGUAGE_CONFIG: CompressionLanguageConfig = {
 
 export const DEFAULT_CONTEXT_EDITING_CONFIG: ContextEditingConfig = {
   enabled: false,
+=======
+  preservePatterns: [],
+>>>>>>> Stashed changes
 };
 
 /** Aging thresholds for progressive message degradation (Phase 3) */
@@ -402,7 +412,6 @@ export interface AggressiveConfig {
   summarizerEnabled: boolean;
   maxTokensPerMessage: number;
   minSavingsThreshold: number;
-  preserveSystemPrompt?: boolean;
 }
 
 /** Options for the Summarizer interface (Phase 3) */
@@ -461,7 +470,6 @@ export interface UltraConfig {
    * 0 = always apply when mode is "ultra".
    */
   maxTokensPerMessage: number;
-  preserveSystemPrompt?: boolean;
 }
 
 export const DEFAULT_ULTRA_CONFIG: UltraConfig = {
@@ -471,9 +479,3 @@ export const DEFAULT_ULTRA_CONFIG: UltraConfig = {
   slmFallbackToAggressive: true,
   maxTokensPerMessage: 0,
 };
-
-export type { McpAccessibilityConfig } from "./engines/mcpAccessibility/constants.ts";
-export {
-  DEFAULT_MCP_ACCESSIBILITY_CONFIG,
-  clampMcpAccessibilityConfig,
-} from "./engines/mcpAccessibility/constants.ts";

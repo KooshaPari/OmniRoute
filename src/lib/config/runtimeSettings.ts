@@ -1,5 +1,4 @@
 import { clearHealthCheckLogCache } from "@/lib/tokenHealthCheck";
-import { setCustomBannedSignals } from "@omniroute/open-sse/services/accountFallback.ts";
 
 type JsonRecord = Record<string, unknown>;
 
@@ -13,20 +12,11 @@ export type RuntimeReloadSection =
   | "healthCheckLogs"
   | "thoughtSignature"
   | "modelsDevSync"
-  | "corsOrigins"
-  | "ccBridgeTransforms"
-  | "systemTransforms"
-  | "authzBypass"
-  | "bannedSignals";
+  | "corsOrigins";
 
 export interface RuntimeReloadChange {
   section: RuntimeReloadSection;
   source: string;
-}
-
-interface AuthzBypassSnapshot {
-  enabled: boolean;
-  prefixes: string[];
 }
 
 interface RuntimeSettingsSnapshot {
@@ -41,19 +31,7 @@ interface RuntimeSettingsSnapshot {
   modelsDevSyncEnabled: boolean;
   modelsDevSyncInterval: number | null;
   corsOrigins: string;
-  ccBridgeTransforms: unknown;
-  systemTransforms: unknown;
-  authzBypass: AuthzBypassSnapshot;
-  customBannedSignals: string[];
 }
-
-// Default bypass policy: kill-switch on, `/api/mcp/` bypassable. Mirrors the
-// pre-T-011 compile-time constant so the route guard works identically before
-// the first `applyRuntimeSettings` call (e.g. cold-boot requests).
-const DEFAULT_AUTHZ_BYPASS_SNAPSHOT: AuthzBypassSnapshot = {
-  enabled: true,
-  prefixes: ["/api/mcp/"],
-};
 
 const DEFAULT_RUNTIME_SETTINGS_SNAPSHOT: RuntimeSettingsSnapshot = {
   payloadRules: null,
@@ -67,19 +45,9 @@ const DEFAULT_RUNTIME_SETTINGS_SNAPSHOT: RuntimeSettingsSnapshot = {
   modelsDevSyncEnabled: false,
   modelsDevSyncInterval: null,
   corsOrigins: "",
-  ccBridgeTransforms: null,
-  systemTransforms: null,
-  authzBypass: DEFAULT_AUTHZ_BYPASS_SNAPSHOT,
-  customBannedSignals: [],
 };
 
 let lastAppliedSnapshot: RuntimeSettingsSnapshot | null = null;
-
-// Module-local mirror of the current bypass policy. Read by the route guard
-// on every non-loopback hit to a LOCAL_ONLY path via `getAuthzBypassSnapshot`.
-// Initialised to the default so cold-boot requests (before any
-// `applyRuntimeSettings` call) behave identically to PR #2473.
-let currentAuthzBypass: AuthzBypassSnapshot = DEFAULT_AUTHZ_BYPASS_SNAPSHOT;
 
 function isTruthyEnvFlag(value: string | undefined): boolean {
   if (typeof value !== "string") return false;
@@ -191,41 +159,6 @@ function normalizePayloadRules(value: unknown): unknown {
   return parseStoredJson(value, "payloadRules");
 }
 
-function normalizeAuthzBypass(settings: Record<string, unknown>): AuthzBypassSnapshot {
-  const enabled =
-    settings.localOnlyManageScopeBypassEnabled === false
-      ? false
-      : settings.localOnlyManageScopeBypassEnabled === true
-        ? true
-        : DEFAULT_AUTHZ_BYPASS_SNAPSHOT.enabled;
-  const rawPrefixes = settings.localOnlyManageScopeBypassPrefixes;
-  const prefixes = Array.isArray(rawPrefixes)
-    ? Array.from(
-        new Set(
-          rawPrefixes
-            .map((entry) => (typeof entry === "string" ? entry.trim() : ""))
-            .filter((entry) => entry.length > 0 && entry.startsWith("/"))
-        )
-      )
-    : [...DEFAULT_AUTHZ_BYPASS_SNAPSHOT.prefixes];
-  return { enabled, prefixes };
-}
-
-/**
- * O(1) accessor for the current LOCAL_ONLY manage-scope bypass policy.
- *
- * Consumed by the route-guard hot path (`isLocalOnlyBypassableByManageScope`).
- * Returns the default snapshot (`{ enabled: true, prefixes: ["/api/mcp/"] }`)
- * before the first `applyRuntimeSettings` call so cold-boot requests behave
- * identically to PR #2473. Mutated only by `applyAuthzBypassSection`.
- *
- * Hot-reload latency: <50 ms (no I/O, no async, pure read of module-local
- * state). Spec §Non-Functional Requirements / Performance.
- */
-export function getAuthzBypassSnapshot(): AuthzBypassSnapshot {
-  return currentAuthzBypass;
-}
-
 export function buildRuntimeSettingsSnapshot(
   settings: Record<string, unknown>
 ): RuntimeSettingsSnapshot {
@@ -247,10 +180,6 @@ export function buildRuntimeSettingsSnapshot(
     modelsDevSyncEnabled: settings.modelsDevSyncEnabled === true,
     modelsDevSyncInterval: normalizeNumber(settings.modelsDevSyncInterval),
     corsOrigins: typeof settings.corsOrigins === "string" ? settings.corsOrigins : "",
-    ccBridgeTransforms: parseStoredJson(settings.ccBridgeTransforms, "ccBridgeTransforms"),
-    systemTransforms: parseStoredJson(settings.systemTransforms, "systemTransforms"),
-    authzBypass: normalizeAuthzBypass(settings),
-    customBannedSignals: normalizeStringArray(settings.customBannedSignals),
   };
 }
 
@@ -311,16 +240,10 @@ async function applyCacheControlSection() {
   invalidateCacheControlSettingsCache();
 }
 
-async function applyUsageTrackingSection(newBuffer: number | null) {
-  const { invalidateBufferTokensCache, setBufferTokensCache } =
+async function applyUsageTrackingSection() {
+  const { invalidateBufferTokensCache } =
     await import("@omniroute/open-sse/utils/usageTracking.ts");
-  if (typeof newBuffer === "number" && newBuffer >= 0) {
-    // Set the value directly so the first request after a settings save gets the
-    // correct count synchronously — no race window back to DEFAULT (2000).
-    setBufferTokensCache(newBuffer);
-  } else {
-    invalidateBufferTokensCache();
-  }
+  invalidateBufferTokensCache();
 }
 
 async function applyThoughtSignatureSection(mode: string) {
@@ -332,48 +255,6 @@ async function applyThoughtSignatureSection(mode: string) {
 async function applyCorsOriginsSection(corsOrigins: string) {
   const { setRuntimeAllowedOrigins } = await import("@/server/cors/origins");
   setRuntimeAllowedOrigins(corsOrigins);
-}
-
-/**
- * Legacy alias for the v2 systemTransforms config. The `ccBridgeTransforms`
- * settings field carried the single-provider shape `{ enabled, pipeline }`
- * during Phase 2 (commit e3e962db, pre-release). v2 unifies everything under
- * `systemTransforms.providers[*]`. We migrate the legacy shape into the v2
- * registry on every reload so users with persisted Phase-2 data keep working.
- *
- * `setSystemTransformsConfig` accepts both shapes and routes legacy into
- * `providers[PROVIDER_CC_BRIDGE]`.
- */
-async function applyCcBridgeTransformsSection(ccBridgeTransforms: unknown) {
-  const { setSystemTransformsConfig } =
-    await import("@omniroute/open-sse/services/systemTransforms.ts");
-  if (ccBridgeTransforms && typeof ccBridgeTransforms === "object") {
-    setSystemTransformsConfig(ccBridgeTransforms);
-  }
-}
-
-/**
- * Swap the in-process bypass policy. Synchronous, O(1), no I/O — the SLA
- * (<50 ms hot-reload) is structurally satisfied by this shape.
- */
-function applyAuthzBypassSection(snapshot: AuthzBypassSnapshot) {
-  currentAuthzBypass = { enabled: snapshot.enabled, prefixes: [...snapshot.prefixes] };
-}
-
-async function applySystemTransformsSection(systemTransforms: unknown) {
-  const { setSystemTransformsConfig, resetSystemTransformsConfig } =
-    await import("@omniroute/open-sse/services/systemTransforms.ts");
-
-  if (
-    systemTransforms === null ||
-    systemTransforms === undefined ||
-    typeof systemTransforms !== "object"
-  ) {
-    resetSystemTransformsConfig();
-    return;
-  }
-
-  setSystemTransformsConfig(systemTransforms);
 }
 
 async function applyModelsDevSyncSection(
@@ -476,11 +357,15 @@ export async function applyRuntimeSettings(
   }
 
   if (force || hasChanged(currentSnapshot.usageTokenBuffer, previousSnapshot.usageTokenBuffer)) {
+<<<<<<< Updated upstream
     const newBuffer =
       typeof currentSnapshot.usageTokenBuffer === "number"
         ? currentSnapshot.usageTokenBuffer
         : null;
     await applyUsageTrackingSection(newBuffer);
+=======
+    await applyUsageTrackingSection();
+>>>>>>> Stashed changes
     markChanged("usageTracking");
   }
 
@@ -515,6 +400,7 @@ export async function applyRuntimeSettings(
     markChanged("corsOrigins");
   }
 
+<<<<<<< Updated upstream
   if (
     force ||
     hasChanged(currentSnapshot.ccBridgeTransforms, previousSnapshot.ccBridgeTransforms)
@@ -541,11 +427,12 @@ export async function applyRuntimeSettings(
     markChanged("bannedSignals");
   }
 
+=======
+>>>>>>> Stashed changes
   lastAppliedSnapshot = currentSnapshot;
   return changes;
 }
 
 export function resetRuntimeSettingsStateForTests() {
   lastAppliedSnapshot = null;
-  currentAuthzBypass = DEFAULT_AUTHZ_BYPASS_SNAPSHOT;
 }

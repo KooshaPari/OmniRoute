@@ -219,25 +219,6 @@ export async function registerNodejs(): Promise<void> {
   const { initConsoleInterceptor } = await import("@/lib/consoleInterceptor");
   initConsoleInterceptor();
 
-  // Clear stale transient connection cooldowns persisted from an unclean crash.
-  // A crash mid-burst can leave far-future `rate_limited_until` values in the DB
-  // that cause every connection to be skipped by getProviderCredentials(), making
-  // all subsequent requests time out at Bottleneck's maxWaitMs (120 s default).
-  // Terminal states (banned / expired / credits_exhausted) are intentionally kept.
-  // See: https://github.com/diegosouzapw/OmniRoute/issues/3625 (Part A)
-  try {
-    const { clearStaleCrashCooldowns } = await import("@/lib/db/providers");
-    const { cleared } = clearStaleCrashCooldowns();
-    if (cleared > 0) {
-      console.log(
-        `[STARTUP] Cleared ${cleared} stale transient connection cooldown(s) from prior crash (#3625)`
-      );
-    }
-  } catch (err: unknown) {
-    const msg = err instanceof Error ? err.message : String(err);
-    console.warn("[STARTUP] Could not clear stale crash cooldowns (non-fatal):", msg);
-  }
-
   const [
     { initGracefulShutdown },
     { initApiBridgeServer },
@@ -294,15 +275,11 @@ export async function registerNodejs(): Promise<void> {
   }
 
   try {
-    const [
-      { migrateCodexConnectionDefaultsFromLegacySettings },
-      { startSessionAccountAffinityCleanup },
-      { seedDefaultModelAliases },
-    ] = await Promise.all([
-      import("@/lib/providers/codexConnectionDefaults"),
-      import("@/lib/db/sessionAccountAffinity"),
-      import("@/lib/modelAliasSeed"),
-    ]);
+    const [{ migrateCodexConnectionDefaultsFromLegacySettings }, { seedDefaultModelAliases }] =
+      await Promise.all([
+        import("@/lib/providers/codexConnectionDefaults"),
+        import("@/lib/modelAliasSeed"),
+      ]);
     let settings = await getSettings();
     const passwordState = await ensurePersistentManagementPasswordHash({
       logger: console,
@@ -319,6 +296,7 @@ export async function registerNodejs(): Promise<void> {
       );
     }
 
+<<<<<<< Updated upstream
     // Restore Global System Prompt into in-memory config (#2468/#2470)
     if (settings.systemPrompt) {
       const { setSystemPromptConfig } =
@@ -339,11 +317,12 @@ export async function registerNodejs(): Promise<void> {
       console.log("[STARTUP] Thinking-Budget config restored from settings");
     }
 
+=======
+>>>>>>> Stashed changes
     const seededModelAliases = await seedDefaultModelAliases();
     console.log(
       `[STARTUP] Model alias seed: applied=${seededModelAliases.applied.length}, skipped=${seededModelAliases.skipped.length}, failed=${seededModelAliases.failed.length}`
     );
-    startSessionAccountAffinityCleanup();
 
     const migration = await migrateCodexConnectionDefaultsFromLegacySettings();
     if (migration.migrated) {
@@ -372,7 +351,7 @@ export async function registerNodejs(): Promise<void> {
     initAuditLog();
     console.log("[COMPLIANCE] Audit log table initialized");
 
-    const cleanup = await cleanupExpiredLogs();
+    const cleanup = cleanupExpiredLogs();
     if (
       cleanup.deletedUsage ||
       cleanup.deletedCallLogs ||
@@ -387,6 +366,7 @@ export async function registerNodejs(): Promise<void> {
     const msg = err instanceof Error ? err.message : String(err);
     console.warn("[COMPLIANCE] Could not initialize audit log:", msg);
   }
+<<<<<<< Updated upstream
 
   await import("@/lib/db/core").then(({ ensureDbInitialized }) => ensureDbInitialized());
 
@@ -497,4 +477,6 @@ export async function registerNodejs(): Promise<void> {
       console.warn("[STARTUP] memory decay sweep failed to start (non-fatal):", msg);
     }
   }
+=======
+>>>>>>> Stashed changes
 }

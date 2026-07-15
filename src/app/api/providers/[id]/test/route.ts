@@ -13,7 +13,6 @@ import { validateProviderApiKey } from "@/lib/providers/validation";
 import { getCliRuntimeStatus } from "@/shared/services/cliRuntime";
 // Use the shared open-sse token refresh with built-in dedup/race-condition cache
 import { getAccessToken } from "@omniroute/open-sse/services/tokenRefresh.ts";
-import { rotationGroupFor } from "@omniroute/open-sse/services/refreshSerializer.ts";
 import { saveCallLog } from "@/lib/usageDb";
 import { logProxyEvent } from "@/lib/proxyLogger";
 import { runWithProxyContext } from "@omniroute/open-sse/utils/proxyFetch.ts";
@@ -22,12 +21,6 @@ import {
   isGitLabDirectAccessDisabled,
   resolveGitLabOAuthBaseUrl,
 } from "@/lib/oauth/gitlab";
-import { providerAllowsOptionalApiKey } from "@/shared/constants/providers";
-import { removeConnectionHealth } from "@omniroute/open-sse/services/apiKeyRotator.ts";
-
-// Bound the OAuth probe so a hung upstream can't block the connection-test queue
-// forever (#1449). Mirrors the 30s timeout the API-key path uses via validateProviderApiKey.
-const OAUTH_TEST_TIMEOUT_MS = 30_000;
 
 // OAuth provider test endpoints
 const OAUTH_TEST_CONFIG = {
@@ -37,26 +30,10 @@ const OAUTH_TEST_CONFIG = {
     refreshable: true,
   },
   codex: {
-    // Port of decolua/9router#347: probe the real Codex /responses endpoint instead
-    // of relying on `checkExpiry`. Codex OAuth tokens are ChatGPT session tokens
-    // (not OpenAI API keys) — api.openai.com/v1/models rejects them with 403.
-    // Hitting the actual endpoint with a minimal invalid body returns 400 when
-    // auth is accepted (the body is the reason for the failure) and 401/403 when
-    // the token is bad. That is a real auth signal — checkExpiry alone could not
-    // distinguish a revoked-but-not-yet-expired token from a working one.
-    url: "https://chatgpt.com/backend-api/codex/responses",
-    method: "POST",
-    authHeader: "Authorization",
-    authPrefix: "Bearer ",
-    extraHeaders: {
-      "Content-Type": "application/json",
-      originator: "codex-cli",
-      "User-Agent": "codex-cli/1.0.18 (macOS; arm64)",
-    },
-    // Minimal invalid body — triggers a fast 400 without consuming quota.
-    body: JSON.stringify({ model: "gpt-5.3-codex", input: [], stream: false, store: false }),
-    // 400 = bad request, but auth was accepted; only 401/403 means the token is bad.
-    acceptStatuses: [400],
+    // Codex OAuth tokens are ChatGPT session tokens, NOT standard OpenAI API keys.
+    // They don't work with api.openai.com/v1/models (returns 403 "Access denied").
+    // Use checkExpiry mode instead — actual connectivity is validated via Usage/Limits.
+    checkExpiry: true,
     refreshable: true,
   },
   antigravity: {
@@ -130,16 +107,13 @@ const OAUTH_TEST_CONFIG = {
     checkExpiry: true,
     refreshable: true,
   },
-  "codebuddy-cn": {
-    // Upstream test endpoint mirrors "tokenExists: true" from the CodeBuddy port —
-    // validate auth via token presence + refresh path. Live connectivity is
-    // verified through real /v2/chat/completions traffic.
-    checkExpiry: true,
-    refreshable: true,
-  },
 };
 
-import { CLI_RUNTIME_PROVIDER_MAP } from "./cliRuntimeProviderMap";
+const CLI_RUNTIME_PROVIDER_MAP = {
+  cline: "cline",
+  kilocode: "kilo",
+  qoder: "qoder",
+};
 
 /** POST body is optional; when present, only known fields are validated. */
 const providerConnectionTestBodySchema = z.object({
@@ -166,19 +140,7 @@ function makeDiagnosis(
   };
 }
 
-/**
- * A provider/account that the upstream has deactivated (vs. a revoked/expired token).
- * #1444: a Codex account can have a perfectly healthy OAuth refresh while its ChatGPT
- * account is deactivated, in which case the API returns 401 — mislabeling that as
- * "Token invalid or revoked" hides the real cause. Mirrors the deactivation phrases the
- * account-fallback classifier already trusts.
- */
-function isAccountDeactivatedMessage(text: string): boolean {
-  const n = (text || "").toLowerCase();
-  return n.includes("account_deactivated") || (n.includes("deactivat") && n.includes("account"));
-}
-
-export function classifyFailure({
+function classifyFailure({
   error,
   statusCode = null,
   refreshFailed = false,
@@ -199,13 +161,6 @@ export function classifyFailure({
 
   if (refreshFailed || normalized.includes("refresh failed")) {
     return makeDiagnosis("token_refresh_failed", "oauth", message, "refresh_failed");
-  }
-
-  // #1444: a deactivated account is distinct from a revoked/expired token — surface it
-  // as account_deactivated (which the dashboard renders as "Account Deactivated") before
-  // the generic 401/403 branch below would mark it "upstream_auth_error".
-  if (isAccountDeactivatedMessage(normalized)) {
-    return makeDiagnosis("account_deactivated", "account", message, "account_deactivated");
   }
 
   if (numericStatus === 401 || numericStatus === 403) {
@@ -272,42 +227,9 @@ export function classifyFailure({
   );
 }
 
-function hasQoderToken(connection: any): boolean {
-  if (typeof connection?.apiKey === "string" && connection.apiKey.trim().length > 0) return true;
-  const psd = connection?.providerSpecificData;
-  if (psd && typeof psd === "object") {
-    const pat =
-      (psd as Record<string, unknown>).personalAccessToken ??
-      (psd as Record<string, unknown>).pat ??
-      (psd as Record<string, unknown>).accessToken;
-    if (typeof pat === "string" && pat.trim().length > 0) return true;
-  }
-  return false;
-}
-
 async function getProviderRuntimeStatus(connection: any) {
   const provider = typeof connection?.provider === "string" ? connection.provider : "";
   let toolId = CLI_RUNTIME_PROVIDER_MAP[provider];
-
-  // Issue #2247: detect Qoder in OAuth/CLI-flavored mode with a PAT pasted
-  // BEFORE the CLI-runtime early-return below, otherwise the disambiguation
-  // message never reaches the user (they keep seeing the generic "CLI not
-  // installed" + 401 cascade). For Qoder, this short-circuits the runtime
-  // check entirely with an actionable diagnosis.
-  const isQoderOauthWithToken =
-    provider === "qoder" && connection?.authType !== "apikey" && hasQoderToken(connection);
-  if (isQoderOauthWithToken) {
-    const message =
-      "Qoder OAuth/Local CLI mode is selected but a Personal Access Token is stored on this connection. Switch this connection to API Key auth instead.";
-    return {
-      installed: false,
-      runnable: false,
-      reason: "qoder_oauth_with_token",
-      diagnosis: makeDiagnosis("runtime_error", "local", message, "qoder_oauth_with_token"),
-      error: message,
-    };
-  }
-
   if (provider === "qoder" && connection?.authType !== "apikey") {
     toolId = null;
   }
@@ -358,46 +280,13 @@ async function refreshOAuthToken(connection: any) {
   if (!refreshToken) return null;
 
   try {
-    // Fix B: Pass connectionId + accessToken + expiresAt so getAccessToken enters
-    // the per-connection mutex (Layer 1) instead of falling through to the
-    // token-hash fallback (Layer 2). Without connectionId, parallel dashboard
-    // batch-tests would each acquire a separate Layer-2 lock keyed by token hash
-    // and concurrently POST the same refresh_token to Codex/OpenAI, triggering
-    // refresh_token_reused on rotating providers.
+    // Kiro needs extra fields the generic function expects
     const credentials = {
-      connectionId: connection.id,
-      accessToken: connection.accessToken,
       refreshToken,
-      expiresAt: connection.expiresAt,
       providerSpecificData: connection.providerSpecificData || {},
     };
 
-    // Fix A: onPersist runs INSIDE the mutex inside getAccessToken so the DB
-    // write happens before the lock releases. This prevents a concurrent caller
-    // from reading the stale refresh_token between the network call and the DB
-    // update.
-    const result = await getAccessToken(provider, credentials, console, null, async (refreshed) => {
-      if (!refreshed?.accessToken) return;
-      const update: any = {
-        accessToken: refreshed.accessToken,
-      };
-      if (refreshed.refreshToken) update.refreshToken = refreshed.refreshToken;
-      if (refreshed.expiresAt) {
-        update.expiresAt = refreshed.expiresAt;
-        update.tokenExpiresAt = refreshed.expiresAt;
-      } else if (refreshed.expiresIn) {
-        const expiresAt = new Date(Date.now() + refreshed.expiresIn * 1000).toISOString();
-        update.expiresAt = expiresAt;
-        update.tokenExpiresAt = expiresAt;
-      }
-      if (refreshed.providerSpecificData) {
-        update.providerSpecificData = {
-          ...(connection.providerSpecificData || {}),
-          ...refreshed.providerSpecificData,
-        };
-      }
-      await updateProviderConnection(connection.id, update);
-    });
+    const result = await getAccessToken(provider, credentials, console);
     return result; // { accessToken, expiresIn, refreshToken } or null
   } catch (err) {
     console.log(`Error refreshing ${provider} token:`, (err as any).message);
@@ -436,10 +325,7 @@ async function syncToCloudIfEnabled() {
  * Auto-refreshes token if expired
  * @returns {{ valid: boolean, error: string|null, refreshed: boolean, newTokens: object|null }}
  */
-export async function testOAuthConnection(
-  connection: any,
-  timeoutMs: number = OAUTH_TEST_TIMEOUT_MS
-) {
+async function testOAuthConnection(connection: any) {
   const config = OAUTH_TEST_CONFIG[connection.provider];
 
   if (!config) {
@@ -478,14 +364,9 @@ export async function testOAuthConnection(
   let refreshed = false;
   let newTokens = null;
 
-  // Auto-refresh if token is expired and provider supports refresh.
-  // Front 2: NEVER burn a rotating provider's single-use refresh_token from a
-  // connection test. Under a shared Auth0 client (Codex/OpenAI) a test-time
-  // refresh can cascade-invalidate sibling accounts' refresh_token families
-  // (openai/codex#9648). Leave rotation to the reactive, mutex-guarded 401 path.
+  // Auto-refresh if token is expired and provider supports refresh
   const tokenExpired = isTokenExpired(connection);
-  const isRotatingProvider = rotationGroupFor(connection.provider) !== null;
-  if (config.refreshable && tokenExpired && connection.refreshToken && !isRotatingProvider) {
+  if (config.refreshable && tokenExpired && connection.refreshToken) {
     const tokens = await refreshOAuthToken(connection);
     if (tokens) {
       accessToken = tokens.accessToken;
@@ -517,19 +398,6 @@ export async function testOAuthConnection(
     }
     // Check if token is expired (no refresh available)
     if (tokenExpired) {
-      // Front 2: for rotating providers we intentionally did NOT refresh above.
-      // An expired access_token here is recoverable on next real use via the
-      // reactive 401 path, so don't report the account as broken (which would
-      // tempt the operator to re-test and never resolve). Keep it active.
-      if (isRotatingProvider && connection.refreshToken) {
-        return {
-          valid: true,
-          error: null,
-          refreshed: false,
-          newTokens: null,
-          diagnosis: makeDiagnosis("ok", "oauth", null, null),
-        };
-      }
       const error = "Token expired";
       return {
         valid: false,
@@ -555,16 +423,12 @@ export async function testOAuthConnection(
     };
 
     const url = typeof config.getUrl === "function" ? config.getUrl(connection) : config.url;
-    const fetchInit: RequestInit = {
+    const res = await fetch(url, {
       method: config.method,
       headers,
-      signal: AbortSignal.timeout(timeoutMs),
-    };
-    // Port of decolua/9router#347: providers like Codex must send a body so the
-    // upstream returns 400 (auth ok) instead of 405/415.
-    if (config.body) fetchInit.body = config.body;
-    const res = await fetch(url, fetchInit);
+    });
 
+<<<<<<< Updated upstream
     // Port of decolua/9router#347: some providers (Codex) intentionally trigger a
     // 400 because the probe body is invalid. A 400 from such a provider means auth
     // succeeded; only 401/403 means the token is bad.
@@ -572,6 +436,9 @@ export async function testOAuthConnection(
       res.ok ||
       (Array.isArray(config.acceptStatuses) && config.acceptStatuses.includes(res.status));
     if (accepted) {
+=======
+    if (res.ok) {
+>>>>>>> Stashed changes
       return {
         valid: true,
         error: null,
@@ -607,21 +474,15 @@ export async function testOAuthConnection(
       const tokens = await refreshOAuthToken(connection);
       if (tokens) {
         // Retry with new token
-        const retryInit: RequestInit = {
+        const retryRes = await fetch(url, {
           method: config.method,
           headers: {
             [config.authHeader]: `${config.authPrefix}${tokens.accessToken}`,
             ...config.extraHeaders,
           },
-          signal: AbortSignal.timeout(timeoutMs),
-        };
-        if (config.body) retryInit.body = config.body;
-        const retryRes = await fetch(url, retryInit);
+        });
 
-        const retryAccepted =
-          retryRes.ok ||
-          (Array.isArray(config.acceptStatuses) && config.acceptStatuses.includes(retryRes.status));
-        if (retryAccepted) {
+        if (retryRes.ok) {
           return {
             valid: true,
             error: null,
@@ -631,12 +492,7 @@ export async function testOAuthConnection(
           };
         }
 
-        // #1444: a fresh token that still gets a 401 because the account itself was
-        // deactivated must be labeled account_deactivated, not a generic auth error.
-        const retryBody = await retryRes.text().catch(() => "");
-        const error = isAccountDeactivatedMessage(retryBody)
-          ? "Account deactivated by the provider"
-          : `API returned ${retryRes.status} after token refresh`;
+        const error = `API returned ${retryRes.status} after token refresh`;
         return {
           valid: false,
           error,
@@ -655,14 +511,8 @@ export async function testOAuthConnection(
       };
     }
 
-    // #1444: read a 401/403 body so a deactivated account is labeled distinctly from a
-    // revoked token. (The body is unread here for non-gitlab providers; the guard keeps
-    // it safe if it was already consumed.)
-    const bodyText =
-      res.status === 401 || res.status === 403 ? await res.text().catch(() => "") : "";
-    const error = isAccountDeactivatedMessage(bodyText)
-      ? "Account deactivated by the provider"
-      : res.status === 401
+    const error =
+      res.status === 401
         ? "Token invalid or revoked"
         : res.status === 403
           ? "Access denied"
@@ -676,13 +526,7 @@ export async function testOAuthConnection(
       diagnosis: classifyFailure({ error, statusCode: res.status }),
     };
   } catch (err) {
-    // AbortSignal.timeout(...) surfaces as an AbortError/TimeoutError once the probe
-    // exceeds its deadline (#1449). Report it with a clear, actionable message instead
-    // of leaking the raw "The operation was aborted" text.
-    const isTimeout = err?.name === "TimeoutError" || err?.name === "AbortError";
-    const error = isTimeout
-      ? `Test timed out after ${Math.round(timeoutMs / 1000)}s`
-      : toSafeMessage(err?.message, "Connection test failed");
+    const error = toSafeMessage(err?.message, "Connection test failed");
     return {
       valid: false,
       error,
@@ -696,8 +540,7 @@ export async function testOAuthConnection(
  * Test API key connection
  */
 async function testApiKeyConnection(connection: any) {
-  const requiresApiKey = !providerAllowsOptionalApiKey(connection.provider);
-  if (requiresApiKey && !connection.apiKey) {
+  if (!connection.apiKey) {
     const error = "Missing API key";
     return {
       valid: false,
@@ -823,16 +666,6 @@ export async function testSingleConnection(connectionId: string, validationModel
 
   if (result.valid) {
     updateData.backoffLevel = 0;
-
-    const psd = connection?.providerSpecificData as Record<string, unknown> | undefined;
-    updateData.providerSpecificData = {
-      ...(psd || {}),
-      apiKeyHealth: {},
-    };
-
-    try {
-      removeConnectionHealth(connectionId);
-    } catch {}
   }
 
   // If token was refreshed, update tokens in DB

@@ -9,41 +9,16 @@
  * windows are typically short-lived).
  */
 
-interface QueueItem {
-  resolve: (release: () => void) => void;
-  reject: (error: Error) => void;
-  timer: ReturnType<typeof setTimeout>;
-}
-
-interface ModelGate {
-  running: number;
-  max: number;
-  queue: QueueItem[];
-  rateLimitedUntil: number | null;
-}
-
-interface AcquireOptions {
-  maxConcurrency?: number;
-  timeoutMs?: number;
-  /**
-   * Maximum number of requests allowed to wait in the per-model queue (#3872). When
-   * the queue is already this deep, a new acquire rejects immediately with
-   * `SEMAPHORE_QUEUE_FULL` instead of waiting, so the round-robin combo loop cascades
-   * to the next member right away (0 = never queue → fail over immediately). Omitted /
-   * negative keeps the historical unbounded-queue behavior.
-   */
-  maxQueueSize?: number;
-}
-
-interface RateLimitStatsEntry {
-  running: number;
-  queued: number;
-  max: number;
-  rateLimitedUntil: string | null;
-}
+/**
+ * @typedef {Object} ModelGate
+ * @property {number} running - Currently running requests
+ * @property {number} max - Max concurrent requests
+ * @property {Array<{resolve: Function, reject: Function, timer: NodeJS.Timeout}>} queue - FIFO wait queue
+ * @property {number|null} rateLimitedUntil - Timestamp when rate-limit expires (null = not limited)
+ */
 
 /** @type {Map<string, ModelGate>} */
-const gates = new Map<string, ModelGate>();
+const gates = new Map();
 
 /**
  * Get or create gate for a model
@@ -51,7 +26,7 @@ const gates = new Map<string, ModelGate>();
  * @param {number} maxConcurrency
  * @returns {ModelGate}
  */
-function getGate(modelStr: string, maxConcurrency = 3): ModelGate {
+function getGate(modelStr, maxConcurrency = 3) {
   if (!gates.has(modelStr)) {
     gates.set(modelStr, {
       running: 0,
@@ -60,7 +35,7 @@ function getGate(modelStr: string, maxConcurrency = 3): ModelGate {
       rateLimitedUntil: null,
     });
   }
-  const gate = gates.get(modelStr)!;
+  const gate = gates.get(modelStr);
   // Update max if config changed
   gate.max = maxConcurrency;
   return gate;
@@ -71,7 +46,7 @@ function getGate(modelStr: string, maxConcurrency = 3): ModelGate {
  * @param {ModelGate} gate
  * @returns {boolean}
  */
-function isRateLimited(gate: ModelGate): boolean {
+function isRateLimited(gate) {
   if (!gate.rateLimitedUntil) return false;
   if (Date.now() >= gate.rateLimitedUntil) {
     gate.rateLimitedUntil = null;
@@ -84,20 +59,15 @@ function isRateLimited(gate: ModelGate): boolean {
  * Try to drain queued requests when slots become available
  * @param {string} modelStr
  */
-function drainQueue(modelStr: string): void {
+function drainQueue(modelStr) {
   const gate = gates.get(modelStr);
   if (!gate) return;
 
   while (gate.queue.length > 0 && gate.running < gate.max && !isRateLimited(gate)) {
     const next = gate.queue.shift();
-    if (!next) break;
     clearTimeout(next.timer);
     gate.running++;
     next.resolve(createReleaseFn(modelStr));
-  }
-
-  if (gate.running === 0 && gate.queue.length === 0) {
-    gates.delete(modelStr);
   }
 }
 
@@ -106,7 +76,7 @@ function drainQueue(modelStr: string): void {
  * @param {string} modelStr
  * @returns {Function}
  */
-function createReleaseFn(modelStr: string): () => void {
+function createReleaseFn(modelStr) {
   let released = false;
   return () => {
     if (released) return;
@@ -114,10 +84,6 @@ function createReleaseFn(modelStr: string): () => void {
     const gate = gates.get(modelStr);
     if (gate && gate.running > 0) {
       gate.running--;
-      if (gate.running === 0 && gate.queue.length === 0) {
-        gates.delete(modelStr);
-        return;
-      }
       drainQueue(modelStr);
     }
   };
@@ -132,32 +98,16 @@ function createReleaseFn(modelStr: string): () => void {
  * @param {Object} [options]
  * @param {number} [options.maxConcurrency=3] - Max concurrent requests for this model
  * @param {number} [options.timeoutMs=30000] - Max wait time in queue
- * @param {number} [options.maxQueueSize] - Max queued waiters before SEMAPHORE_QUEUE_FULL (#3872)
  * @returns {Promise<Function>} Release function — MUST be called when done
- * @throws {Error} If queue timeout expires ("SEMAPHORE_TIMEOUT") or the queue is full ("SEMAPHORE_QUEUE_FULL")
+ * @throws {Error} If queue timeout expires ("SEMAPHORE_TIMEOUT")
  */
-export function acquire(
-  modelStr: string,
-  { maxConcurrency = 3, timeoutMs = 30000, maxQueueSize }: AcquireOptions = {}
-): Promise<() => void> {
+export function acquire(modelStr, { maxConcurrency = 3, timeoutMs = 30000 } = {}) {
   const gate = getGate(modelStr, maxConcurrency);
 
   // Fast path: slot available and not rate-limited
   if (gate.running < gate.max && !isRateLimited(gate)) {
     gate.running++;
     return Promise.resolve(createReleaseFn(modelStr));
-  }
-
-  // #3872: bounded queue — once the queue is full, fail fast so the round-robin combo
-  // cascades to the next member immediately instead of deep-queueing for up to timeoutMs.
-  if (typeof maxQueueSize === "number" && maxQueueSize >= 0 && gate.queue.length >= maxQueueSize) {
-    const err = new Error(`Semaphore queue full (${maxQueueSize}) for ${modelStr}`) as Error & {
-      code?: string;
-    };
-    err.code = "SEMAPHORE_QUEUE_FULL";
-    // Drop a freshly-created idle gate so we don't leak an empty entry.
-    if (gate.running === 0 && gate.queue.length === 0) gates.delete(modelStr);
-    return Promise.reject(err);
   }
 
   // Slow path: enqueue and wait
@@ -185,7 +135,7 @@ export function acquire(
  * @param {string} modelStr - The model identifier
  * @param {number} cooldownMs - How long to block (milliseconds)
  */
-export function markRateLimited(modelStr: string, cooldownMs: number): void {
+export function markRateLimited(modelStr, cooldownMs) {
   const gate = getGate(modelStr);
   gate.rateLimitedUntil = Date.now() + cooldownMs;
 
@@ -202,8 +152,8 @@ export function markRateLimited(modelStr: string, cooldownMs: number): void {
  * Get stats for all tracked models (for monitoring/UI)
  * @returns {Object} Map of modelStr → { running, queued, max, rateLimitedUntil }
  */
-export function getStats(): Record<string, RateLimitStatsEntry> {
-  const stats: Record<string, RateLimitStatsEntry> = {};
+export function getStats() {
+  const stats = {};
   for (const [model, gate] of gates) {
     stats[model] = {
       running: gate.running,
@@ -220,7 +170,7 @@ export function getStats(): Record<string, RateLimitStatsEntry> {
 /**
  * Reset all gates (for testing)
  */
-export function resetAll(): void {
+export function resetAll() {
   for (const [, gate] of gates) {
     for (const item of gate.queue) {
       clearTimeout(item.timer);

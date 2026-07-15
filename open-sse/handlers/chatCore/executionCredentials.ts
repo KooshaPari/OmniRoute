@@ -40,18 +40,22 @@ export function resolveExecutionCredentials(opts: {
       ? { ...nextCredentials.providerSpecificData }
       : {};
 
-  // Some providers (Azure AI Foundry, OCI OpenAI-compatible) choose upstream
-  // endpoint path from providerSpecificData.apiType. When a model routes to
-  // OpenAI Responses format, force apiType=responses unless explicitly set.
+  // Some providers (Azure AI Foundry, OCI OpenAI-compatible, and generic
+  // openai-compatible-* providers) choose upstream endpoint path from
+  // providerSpecificData.apiType. When a model routes to OpenAI Responses
+  // format, force apiType=responses unless explicitly set.
+  const isResponsesCapableProvider =
+    provider === "azure-ai" || provider === "oci" ||
+    (typeof provider === "string" && provider.startsWith("openai-compatible-"));
   if (
     targetFormat === FORMATS.OPENAI_RESPONSES &&
-    (provider === "azure-ai" || provider === "oci") &&
+    isResponsesCapableProvider &&
     providerSpecificData.apiType !== "responses"
   ) {
     providerSpecificData.apiType = "responses";
   }
 
-  if (targetFormat === FORMATS.OPENAI_RESPONSES && (provider === "azure-ai" || provider === "oci")) {
+  if (targetFormat === FORMATS.OPENAI_RESPONSES && isResponsesCapableProvider) {
     providerSpecificData._omnirouteForceResponsesUpstream = true;
   }
 

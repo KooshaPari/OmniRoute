@@ -22,22 +22,7 @@ function isOpenAiCompatiblePath(pathname: string): boolean {
   return OPENAI_COMPAT_PATHS.some((pattern) => pattern.test(pathname));
 }
 
-function requestWantsStreaming(req: IncomingMessage): boolean {
-  const accept = String(req.headers.accept || "").toLowerCase();
-  if (accept.includes("text/event-stream")) return true;
-
-  const pathname = (req.url || "/").split("?")[0] || "/";
-  return /^\/(?:v1\/)?(?:responses|chat\/completions)(?:\/|$)/.test(pathname);
-}
-
-function getProxyTimeoutMs(req: IncomingMessage): number {
-  if (!requestWantsStreaming(req)) return API_BRIDGE_TIMEOUTS.proxyTimeoutMs;
-
-  return Math.max(API_BRIDGE_TIMEOUTS.proxyTimeoutMs, API_BRIDGE_TIMEOUTS.serverRequestTimeoutMs);
-}
-
 function proxyRequest(req: IncomingMessage, res: ServerResponse, dashboardPort: number): void {
-  const proxyTimeoutMs = getProxyTimeoutMs(req);
   const targetReq = http.request(
     {
       hostname: "127.0.0.1",
@@ -48,14 +33,9 @@ function proxyRequest(req: IncomingMessage, res: ServerResponse, dashboardPort: 
         ...req.headers,
         host: `127.0.0.1:${dashboardPort}`,
       },
-      timeout: proxyTimeoutMs,
+      timeout: API_BRIDGE_TIMEOUTS.proxyTimeoutMs,
     },
     (targetRes) => {
-      const contentType = String(targetRes.headers["content-type"] || "").toLowerCase();
-      if (contentType.includes("text/event-stream")) {
-        targetReq.setTimeout(0);
-      }
-
       res.writeHead(targetRes.statusCode || 502, targetRes.headers);
       targetRes.pipe(res);
     }
@@ -68,7 +48,7 @@ function proxyRequest(req: IncomingMessage, res: ServerResponse, dashboardPort: 
     res.end(
       JSON.stringify({
         error: "api_bridge_timeout",
-        detail: `Proxy request timed out after ${proxyTimeoutMs}ms`,
+        detail: `Proxy request timed out after ${API_BRIDGE_TIMEOUTS.proxyTimeoutMs}ms`,
       })
     );
   });

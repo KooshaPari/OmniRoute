@@ -1,5 +1,3 @@
 export function normalizeCliCompatProviderId(providerId: string): string {
-  const normalized = providerId.toLowerCase();
-  if (normalized === "copilot") return "github";
-  return normalized;
+  return providerId.toLowerCase() === "copilot" ? "github" : providerId.toLowerCase();
 }

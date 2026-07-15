@@ -5,40 +5,13 @@ import { getConsistentMachineId } from "@/shared/utils/machineId";
 import { syncToCloud } from "@/lib/cloudSync";
 import { kiroImportSchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
-import { isAuthRequired, isAuthenticated } from "@/shared/utils/apiAuth";
 import { runWithProxyContext } from "@omniroute/open-sse/utils/proxyFetch.ts";
-import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
-
-/**
- * Build the user-facing error message for a failed Kiro/Amazon-Q token import.
- * The catch previously returned a bare `Internal server error`, which hid the
- * real cause — the failure happens while validating/refreshing the imported
- * refresh token against AWS (e.g. `invalid_grant`, an expired token, or a region
- * mismatch) — so the dashboard only ever showed a generic 500 (#3589). The cause
- * is now surfaced through `sanitizeErrorMessage()` (Rule #12 — no stack, no
- * secrets), falling back to the generic message only when there is nothing to
- * report. The `{ error: <string> }` shape is unchanged, so the import UI keeps
- * rendering it the same way.
- */
-export function buildKiroImportError(error: unknown): string {
-  const raw = error instanceof Error ? error.message : String(error ?? "");
-  return sanitizeErrorMessage(raw) || "Internal server error";
-}
-
-async function requireOAuthImportAuth(request: Request) {
-  if (!(await isAuthRequired(request))) return null;
-  if (await isAuthenticated(request)) return null;
-  return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-}
 
 /**
  * POST /api/oauth/kiro/import
  * Import and validate refresh token from Kiro IDE
  */
-export async function POST(request: Request) {
-  const authResponse = await requireOAuthImportAuth(request);
-  if (authResponse) return authResponse;
-
+export async function POST(request: any) {
   let rawBody;
   try {
     rawBody = await request.json();
@@ -61,14 +34,19 @@ export async function POST(request: Request) {
     if (isValidationFailure(validation)) {
       return NextResponse.json({ error: validation.error }, { status: 400 });
     }
+<<<<<<< Updated upstream
     const { refreshToken, region, clientId, clientSecret, authMethod, profileArn } =
       validation.data;
+=======
+    const { refreshToken } = validation.data;
+>>>>>>> Stashed changes
 
     const kiroService = new KiroService();
 
     // Resolve proxy for this provider (provider-level → global → direct)
     const proxy = await resolveProxyForProvider(targetProvider);
 
+<<<<<<< Updated upstream
     // For IDC tokens the client already has OIDC client credentials extracted from the
     // SSO cache registration file by auto-import (#2059). Refresh directly via the
     // regional OIDC endpoint without calling registerClient() again. For social /
@@ -103,6 +81,12 @@ export async function POST(request: Request) {
         kiroService.validateImportToken(refreshToken.trim(), region)
       );
     }
+=======
+    // Validate and refresh token (through proxy if configured)
+    const tokenData = await runWithProxyContext(proxy, () =>
+      kiroService.validateImportToken(refreshToken.trim())
+    );
+>>>>>>> Stashed changes
 
     // Extract email from JWT if available
     const email = kiroService.extractEmailFromJWT(tokenData.accessToken);
@@ -119,6 +103,7 @@ export async function POST(request: Request) {
       expiresAt: new Date(Date.now() + (tokenData.expiresIn || 3600) * 1000).toISOString(),
       email: email || null,
       providerSpecificData: {
+<<<<<<< Updated upstream
         profileArn: resolvedProfileArn,
         authMethod: resolvedAuthMethod,
         provider: isIdc ? "Enterprise" : "Imported",
@@ -132,6 +117,11 @@ export async function POST(request: Request) {
                 : {}),
             }
           : {}),
+=======
+        profileArn: tokenData.profileArn,
+        authMethod: "imported",
+        provider: "Imported",
+>>>>>>> Stashed changes
       },
       testStatus: "active",
     });
@@ -148,8 +138,8 @@ export async function POST(request: Request) {
       },
     });
   } catch (error: any) {
-    console.error("Kiro-compatible import token error:", error);
-    return NextResponse.json({ error: buildKiroImportError(error) }, { status: 500 });
+    console.log("Kiro-compatible import token error:", error);
+    return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
 

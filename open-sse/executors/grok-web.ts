@@ -19,6 +19,7 @@ import {
   type ExecuteInput,
 } from "./base.ts";
 import { FETCH_TIMEOUT_MS } from "../config/constants.ts";
+<<<<<<< Updated upstream
 import { buildGrokCookieHeader } from "@/lib/providers/webCookieAuth";
 import {
   tlsFetchGrok,
@@ -44,6 +45,9 @@ import {
   cleanGrokThinkingText,
   extractStructuredReasoning,
 } from "./grok-web/text-cleanup.ts";
+=======
+import { extractCookieValue } from "@/lib/providers/webCookieAuth";
+>>>>>>> Stashed changes
 
 // ─── Constants ──────────────────────────────────────────────────────────────
 
@@ -98,6 +102,84 @@ function generateStatsigId(): string {
   return btoa(msg);
 }
 
+<<<<<<< Updated upstream
+=======
+// ─── Helpers ────────────────────────────────────────────────────────────────
+
+function randomHex(bytes: number): string {
+  const arr = new Uint8Array(bytes);
+  crypto.getRandomValues(arr);
+  return Array.from(arr, (b) => b.toString(16).padStart(2, "0")).join("");
+}
+
+// ─── OpenAI message → Grok query translation ───────────────────────────────
+
+function parseOpenAIMessages(messages: Array<Record<string, unknown>>): string {
+  const parts: string[] = [];
+  let lastUserIdx = -1;
+
+  // Extract text from each message
+  const extracted: Array<{ role: string; text: string }> = [];
+
+  for (const msg of messages) {
+    let role = String(msg.role || "user");
+    if (role === "developer") role = "system";
+
+    let content = "";
+    if (typeof msg.content === "string") {
+      content = msg.content;
+    } else if (Array.isArray(msg.content)) {
+      content = (msg.content as Array<Record<string, unknown>>)
+        .filter((c) => c.type === "text")
+        .map((c) => String(c.text || ""))
+        .join(" ");
+    }
+    if (!content.trim()) continue;
+    extracted.push({ role, text: content });
+  }
+
+  // Find last user message index
+  for (let i = extracted.length - 1; i >= 0; i--) {
+    if (extracted[i].role === "user") {
+      lastUserIdx = i;
+      break;
+    }
+  }
+
+  // Build combined message — last user message is raw, others are prefixed
+  for (let i = 0; i < extracted.length; i++) {
+    const { role, text } = extracted[i];
+    if (i === lastUserIdx) {
+      parts.push(text);
+    } else {
+      parts.push(`${role}: ${text}`);
+    }
+  }
+
+  return parts.join("\n\n");
+}
+
+// ─── NDJSON stream types ────────────────────────────────────────────────────
+
+interface GrokStreamResponse {
+  token?: string;
+  responseId?: string;
+  llmInfo?: { modelHash?: string };
+  modelResponse?: {
+    message?: string;
+    responseId?: string;
+    generatedImageUrls?: string[];
+    metadata?: { llm_info?: { modelHash?: string } };
+    pipelineToken?: string;
+  };
+}
+
+interface GrokStreamEvent {
+  result?: { response?: GrokStreamResponse };
+  error?: { message?: string; code?: string };
+}
+
+>>>>>>> Stashed changes
 // ─── NDJSON parsing ─────────────────────────────────────────────────────────
 
 async function* readGrokNdjsonEvents(
@@ -150,7 +232,6 @@ async function* readGrokNdjsonEvents(
 interface ContentChunk {
   delta?: string;
   thinking?: string;
-  toolCalls?: OpenAIToolCall[];
   fingerprint?: string;
   responseId?: string;
   fullMessage?: string;
@@ -161,16 +242,11 @@ interface ContentChunk {
 async function* extractContent(
   eventStream: ReadableStream<Uint8Array>,
   isThinkingModel: boolean,
-  toolRegistry: GrokToolRegistry,
-  signal?: AbortSignal | null,
-  suppressThinkingAfterVisibleContent = false
+  signal?: AbortSignal | null
 ): AsyncGenerator<ContentChunk> {
   let fingerprint = "";
   let responseId = "";
-  const contentFilter = new GrokMarkupFilter();
-  const thinkingFilter = new GrokMarkupFilter();
-  let emittedThinking = "";
-  let emittedVisibleContent = false;
+  let thinkOpened = false;
 
   for await (const event of readGrokNdjsonEvents(eventStream, signal)) {
     // Error handling
@@ -190,37 +266,21 @@ async function* extractContent(
       responseId = resp.responseId;
     }
 
-    const nativeToolCall = mapGrokNativeToolToOpenAI(resp, toolRegistry);
-    if (nativeToolCall) {
-      yield { toolCalls: [nativeToolCall], fingerprint, responseId };
-      return;
-    }
-
-    if (resp.messageTag === "raw_function_result" || resp.messageTag === "tool_usage_card") {
-      continue;
-    }
-
     // modelResponse = final/complete response
     if (resp.modelResponse) {
       const mr = resp.modelResponse;
 
-      const finalThinking = isThinkingModel ? extractStructuredReasoning(mr) : "";
-      if ((!suppressThinkingAfterVisibleContent || !emittedVisibleContent) && finalThinking) {
-        const cleanedThinking = thinkingFilter.feed(finalThinking);
-        const thinkingDelta = cleanedThinking.startsWith(emittedThinking)
-          ? cleanedThinking.slice(emittedThinking.length)
-          : cleanedThinking;
-        if (thinkingDelta) {
-          emittedThinking += thinkingDelta;
-          yield { thinking: thinkingDelta };
+      // Close thinking block if open
+      if (thinkOpened && isThinkingModel) {
+        if (mr.message) {
+          yield { thinking: mr.message };
         }
+        thinkOpened = false;
       }
 
       // Extract final message
       if (mr.message) {
-        const fullMessage = cleanGrokContentText(mr.message);
-        if (fullMessage) emittedVisibleContent = true;
-        yield { fullMessage, fingerprint, responseId };
+        yield { fullMessage: mr.message, fingerprint, responseId };
       }
 
       // Extract fingerprint from metadata
@@ -231,45 +291,10 @@ async function* extractContent(
     }
 
     // Streaming token
-    const thinking = isThinkingModel ? extractStructuredReasoning(resp) : "";
-    if ((!suppressThinkingAfterVisibleContent || !emittedVisibleContent) && thinking) {
-      const cleanedThinking = thinkingFilter.feed(thinking);
-      const thinkingDelta = cleanedThinking.startsWith(emittedThinking)
-        ? cleanedThinking.slice(emittedThinking.length)
-        : cleanedThinking;
-      if (thinkingDelta) {
-        emittedThinking += thinkingDelta;
-        yield { thinking: thinkingDelta, fingerprint, responseId };
-      }
-    }
     if (resp.token != null) {
-      if (resp.isThinking) {
-        const thinkingDelta =
-          suppressThinkingAfterVisibleContent && emittedVisibleContent
-            ? ""
-            : cleanGrokThinkingText(resp);
-        if (thinkingDelta) yield { thinking: thinkingDelta, fingerprint, responseId };
-        continue;
-      }
-      const cleanedDelta = contentFilter.feed(resp.token);
-      if (cleanedDelta) {
-        emittedVisibleContent = true;
-        yield { delta: cleanedDelta, fingerprint, responseId };
-      }
+      yield { delta: resp.token, fingerprint, responseId };
     }
   }
-
-  const trailingThinking =
-    suppressThinkingAfterVisibleContent && emittedVisibleContent ? "" : thinkingFilter.flush();
-  if (trailingThinking) {
-    const thinkingDelta = trailingThinking.startsWith(emittedThinking)
-      ? trailingThinking.slice(emittedThinking.length)
-      : trailingThinking;
-    if (thinkingDelta) yield { thinking: thinkingDelta, fingerprint, responseId };
-  }
-  const trailingContent = contentFilter.flush();
-  const trailingContentWithTrace = trailingContent;
-  if (trailingContentWithTrace) yield { delta: trailingContentWithTrace, fingerprint, responseId };
 
   yield { done: true, fingerprint, responseId };
 }
@@ -280,205 +305,64 @@ function sseChunk(data: unknown): string {
   return `data: ${JSON.stringify(data)}\n\n`;
 }
 
-function enqueueStreamingToolCalls(
-  controller: ReadableStreamDefaultController<Uint8Array>,
-  encoder: TextEncoder,
-  params: {
-    id: string;
-    created: number;
-    model: string;
-    fingerprint: string;
-    toolCalls: OpenAIToolCall[];
-  }
-): void {
-  for (let i = 0; i < params.toolCalls.length; i++) {
-    controller.enqueue(
-      encoder.encode(
-        sseChunk({
-          id: params.id,
-          object: "chat.completion.chunk",
-          created: params.created,
-          model: params.model,
-          system_fingerprint: params.fingerprint || null,
-          choices: [
-            {
-              index: 0,
-              delta: { tool_calls: [{ index: i, ...params.toolCalls[i] }] },
-              finish_reason: null,
-              logprobs: null,
-            },
-          ],
-        })
-      )
-    );
-  }
-  controller.enqueue(
-    encoder.encode(
-      sseChunk({
-        id: params.id,
-        object: "chat.completion.chunk",
-        created: params.created,
-        model: params.model,
-        system_fingerprint: params.fingerprint || null,
-        choices: [{ index: 0, delta: {}, finish_reason: "tool_calls", logprobs: null }],
-      })
-    )
-  );
-  controller.enqueue(encoder.encode("data: [DONE]\n\n"));
-}
-
 function buildStreamingResponse(
   eventStream: ReadableStream<Uint8Array>,
   model: string,
   cid: string,
   created: number,
   isThinkingModel: boolean,
-  toolRegistry: GrokToolRegistry,
   signal?: AbortSignal | null
 ): ReadableStream<Uint8Array> {
   const encoder = new TextEncoder();
 
-  return new ReadableStream(
-    {
-      async start(controller) {
-        try {
-          // Initial role chunk
-          controller.enqueue(
-            encoder.encode(
-              sseChunk({
-                id: cid,
-                object: "chat.completion.chunk",
-                created,
-                model,
-                system_fingerprint: null,
-                choices: [
-                  { index: 0, delta: { role: "assistant" }, finish_reason: null, logprobs: null },
-                ],
-              })
-            )
-          );
+  return new ReadableStream({
+    async start(controller) {
+      try {
+        // Initial role chunk
+        controller.enqueue(
+          encoder.encode(
+            sseChunk({
+              id: cid,
+              object: "chat.completion.chunk",
+              created,
+              model,
+              system_fingerprint: null,
+              choices: [
+                { index: 0, delta: { role: "assistant" }, finish_reason: null, logprobs: null },
+              ],
+            })
+          )
+        );
 
-          let fp = "";
-          let buffered = "";
+        let fp = "";
 
-          for await (const chunk of extractContent(
-            eventStream,
-            isThinkingModel,
-            toolRegistry,
-            signal,
-            true
-          )) {
-            if (chunk.fingerprint) fp = chunk.fingerprint;
+        for await (const chunk of extractContent(eventStream, isThinkingModel, signal)) {
+          if (chunk.fingerprint) fp = chunk.fingerprint;
 
-            if (chunk.error) {
-              controller.enqueue(
-                encoder.encode(
-                  sseChunk({
-                    id: cid,
-                    object: "chat.completion.chunk",
-                    created,
-                    model,
-                    system_fingerprint: fp || null,
-                    choices: [
-                      {
-                        index: 0,
-                        delta: { content: `[Error: ${chunk.error}]` },
-                        finish_reason: null,
-                        logprobs: null,
-                      },
-                    ],
-                  })
-                )
-              );
-              break;
-            }
-
-            if (chunk.thinking) {
-              controller.enqueue(
-                encoder.encode(
-                  sseChunk({
-                    id: cid,
-                    object: "chat.completion.chunk",
-                    created,
-                    model,
-                    system_fingerprint: fp || null,
-                    choices: [
-                      {
-                        index: 0,
-                        delta: { reasoning_content: chunk.thinking },
-                        finish_reason: null,
-                        logprobs: null,
-                      },
-                    ],
-                  })
-                )
-              );
-              continue;
-            }
-
-            if (chunk.toolCalls) {
-              enqueueStreamingToolCalls(controller, encoder, {
-                id: cid,
-                created,
-                model,
-                fingerprint: fp,
-                toolCalls: chunk.toolCalls,
-              });
-              return;
-            }
-
-            if (chunk.done) break;
-
-            if (chunk.fullMessage) {
-              const toolCalls = parseClientToolCallMarkup(chunk.fullMessage, toolRegistry);
-              if (toolCalls) {
-                enqueueStreamingToolCalls(controller, encoder, {
+          if (chunk.error) {
+            controller.enqueue(
+              encoder.encode(
+                sseChunk({
                   id: cid,
+                  object: "chat.completion.chunk",
                   created,
                   model,
-                  fingerprint: fp,
-                  toolCalls,
-                });
-                return;
-              }
-            }
-
-            if (chunk.delta) {
-              buffered += chunk.delta;
-              const toolCalls = parseClientToolCallMarkup(buffered, toolRegistry);
-              if (toolCalls) {
-                enqueueStreamingToolCalls(controller, encoder, {
-                  id: cid,
-                  created,
-                  model,
-                  fingerprint: fp,
-                  toolCalls,
-                });
-                return;
-              }
-              if (hasOpenToolCallMarkup(buffered)) continue;
-              controller.enqueue(
-                encoder.encode(
-                  sseChunk({
-                    id: cid,
-                    object: "chat.completion.chunk",
-                    created,
-                    model,
-                    system_fingerprint: fp || null,
-                    choices: [
-                      {
-                        index: 0,
-                        delta: { content: chunk.delta },
-                        finish_reason: null,
-                        logprobs: null,
-                      },
-                    ],
-                  })
-                )
-              );
-            }
+                  system_fingerprint: fp || null,
+                  choices: [
+                    {
+                      index: 0,
+                      delta: { content: `[Error: ${chunk.error}]` },
+                      finish_reason: null,
+                      logprobs: null,
+                    },
+                  ],
+                })
+              )
+            );
+            break;
           }
 
+<<<<<<< Updated upstream
           // Stop chunk
           controller.enqueue(
             encoder.encode(
@@ -522,11 +406,98 @@ function buildStreamingResponse(
           try {
             controller.close();
           } catch {}
+=======
+          if (chunk.thinking) {
+            controller.enqueue(
+              encoder.encode(
+                sseChunk({
+                  id: cid,
+                  object: "chat.completion.chunk",
+                  created,
+                  model,
+                  system_fingerprint: fp || null,
+                  choices: [
+                    {
+                      index: 0,
+                      delta: { reasoning_content: chunk.thinking },
+                      finish_reason: null,
+                      logprobs: null,
+                    },
+                  ],
+                })
+              )
+            );
+            continue;
+          }
+
+          if (chunk.done) break;
+
+          if (chunk.delta) {
+            controller.enqueue(
+              encoder.encode(
+                sseChunk({
+                  id: cid,
+                  object: "chat.completion.chunk",
+                  created,
+                  model,
+                  system_fingerprint: fp || null,
+                  choices: [
+                    {
+                      index: 0,
+                      delta: { content: chunk.delta },
+                      finish_reason: null,
+                      logprobs: null,
+                    },
+                  ],
+                })
+              )
+            );
+          }
+>>>>>>> Stashed changes
         }
-      },
+
+        // Stop chunk
+        controller.enqueue(
+          encoder.encode(
+            sseChunk({
+              id: cid,
+              object: "chat.completion.chunk",
+              created,
+              model,
+              system_fingerprint: fp || null,
+              choices: [{ index: 0, delta: {}, finish_reason: "stop", logprobs: null }],
+            })
+          )
+        );
+        controller.enqueue(encoder.encode("data: [DONE]\n\n"));
+      } catch (err) {
+        controller.enqueue(
+          encoder.encode(
+            sseChunk({
+              id: cid,
+              object: "chat.completion.chunk",
+              created,
+              model,
+              system_fingerprint: null,
+              choices: [
+                {
+                  index: 0,
+                  delta: {
+                    content: `[Stream error: ${err instanceof Error ? err.message : String(err)}]`,
+                  },
+                  finish_reason: "stop",
+                  logprobs: null,
+                },
+              ],
+            })
+          )
+        );
+        controller.enqueue(encoder.encode("data: [DONE]\n\n"));
+      } finally {
+        controller.close();
+      }
     },
-    { highWaterMark: 16384 }
-  );
+  });
 }
 
 async function buildNonStreamingResponse(
@@ -535,14 +506,13 @@ async function buildNonStreamingResponse(
   cid: string,
   created: number,
   isThinkingModel: boolean,
-  toolRegistry: GrokToolRegistry,
   signal?: AbortSignal | null
 ): Promise<Response> {
   let fullContent = "";
   let fingerprint = "";
   const thinkingParts: string[] = [];
 
-  for await (const chunk of extractContent(eventStream, isThinkingModel, toolRegistry, signal)) {
+  for await (const chunk of extractContent(eventStream, isThinkingModel, signal)) {
     if (chunk.fingerprint) fingerprint = chunk.fingerprint;
 
     if (chunk.error) {
@@ -557,56 +527,12 @@ async function buildNonStreamingResponse(
       thinkingParts.push(chunk.thinking);
       continue;
     }
-    if (chunk.toolCalls) {
-      return new Response(
-        JSON.stringify({
-          id: cid,
-          object: "chat.completion",
-          created,
-          model,
-          system_fingerprint: fingerprint || null,
-          choices: [
-            {
-              index: 0,
-              message: { role: "assistant", content: null, tool_calls: chunk.toolCalls },
-              finish_reason: "tool_calls",
-              logprobs: null,
-            },
-          ],
-          usage: { prompt_tokens: 0, completion_tokens: 0, total_tokens: 0 },
-        }),
-        { status: 200, headers: { "Content-Type": "application/json" } }
-      );
-    }
     if (chunk.done) break;
     if (chunk.fullMessage) {
       fullContent = chunk.fullMessage;
     } else if (chunk.delta) {
       fullContent += chunk.delta;
     }
-  }
-
-  const manifestToolCalls = parseClientToolCallMarkup(fullContent, toolRegistry);
-  if (manifestToolCalls) {
-    return new Response(
-      JSON.stringify({
-        id: cid,
-        object: "chat.completion",
-        created,
-        model,
-        system_fingerprint: fingerprint || null,
-        choices: [
-          {
-            index: 0,
-            message: { role: "assistant", content: null, tool_calls: manifestToolCalls },
-            finish_reason: "tool_calls",
-            logprobs: null,
-          },
-        ],
-        usage: { prompt_tokens: 0, completion_tokens: 0, total_tokens: 0 },
-      }),
-      { status: 200, headers: { "Content-Type": "application/json" } }
-    );
   }
 
   const msg: Record<string, unknown> = { role: "assistant", content: fullContent };
@@ -624,14 +550,7 @@ async function buildNonStreamingResponse(
       created,
       model,
       system_fingerprint: fingerprint || null,
-      choices: [
-        {
-          index: 0,
-          message: msg,
-          finish_reason: "stop",
-          logprobs: null,
-        },
-      ],
+      choices: [{ index: 0, message: msg, finish_reason: "stop", logprobs: null }],
       usage: {
         prompt_tokens: promptTokens,
         completion_tokens: completionTokens,
@@ -675,15 +594,10 @@ export class GrokWebExecutor extends BaseExecutor {
     if (!modelInfo) {
       log?.info?.("GROK-WEB", `Unmapped model ${model}, defaulting to fast mode`);
     }
-    const toolRegistry = buildGrokToolRegistry(body as Record<string, unknown>);
     const { modeId, isThinking } = modelInfo || MODEL_MAP.fast;
 
     // Parse OpenAI messages → single Grok message string
-    const message = buildGrokMessage(
-      messages,
-      toolRegistry,
-      (body as Record<string, unknown>).tool_choice
-    );
+    const message = parseOpenAIMessages(messages);
     if (!message.trim()) {
       const errResp = new Response(
         JSON.stringify({
@@ -751,12 +665,11 @@ export class GrokWebExecutor extends BaseExecutor {
       traceparent: generateTraceparent({ sampled: false }),
     };
 
-    // Cookie auth — accepts a bare value, "sso=<value>", or a full DevTools
-    // cookie blob. Forwards both `sso` and (when present) the paired `sso-rw`
-    // write cookie, which Grok's anti-bot now requires (#3063).
+    // Cookie auth — accepts a bare value, "sso=<value>", or a full
+    // DevTools cookie blob; we extract the sso pair and ignore the rest.
     if (credentials.apiKey) {
-      const cookieHeader = buildGrokCookieHeader(credentials.apiKey);
-      if (cookieHeader) headers["Cookie"] = cookieHeader;
+      const token = extractCookieValue(credentials.apiKey, "sso");
+      if (token) headers["Cookie"] = `sso=${token}`;
     }
 
     // Apply upstream extra headers
@@ -768,43 +681,23 @@ export class GrokWebExecutor extends BaseExecutor {
     const timeoutSignal = AbortSignal.timeout(FETCH_TIMEOUT_MS);
     const combinedSignal = signal ? mergeAbortSignals(signal, timeoutSignal) : timeoutSignal;
 
-    // Fetch from Grok via TLS-impersonating client (#3180).
-    // Grok sits behind Cloudflare Enterprise which rejects Node's native TLS
-    // fingerprint even with valid sso+sso-rw cookies. We use tls-client-node
-    // to send a Chrome-like handshake instead.
-    let tlsResult: TlsFetchResult;
+    // Fetch from Grok
+    const fetchOptions: RequestInit = {
+      method: "POST",
+      headers,
+      body: JSON.stringify(grokPayload),
+      signal: combinedSignal,
+    };
+
+    let response: Response;
     try {
-      tlsResult = await tlsFetchGrok(GROK_CHAT_API, {
-        method: "POST",
-        headers,
-        body: JSON.stringify(grokPayload),
-        timeoutMs: FETCH_TIMEOUT_MS,
-        signal: combinedSignal,
-        stream: true,
-        streamEofSymbol: "[DONE]",
-      });
+      response = await fetch(GROK_CHAT_API, fetchOptions);
     } catch (err) {
-      if (err instanceof TlsClientUnavailableError) {
-        log?.error?.("GROK-WEB", `TLS client unavailable: ${err.message}`);
-        const errResp = new Response(
-          JSON.stringify({
-            error: {
-              message: sanitizeErrorMessage(`Grok TLS client unavailable: ${err.message}`),
-              type: "upstream_error",
-              code: "TLS_CLIENT_UNAVAILABLE",
-            },
-          }),
-          { status: 502, headers: { "Content-Type": "application/json" } }
-        );
-        return { response: errResp, url: GROK_CHAT_API, headers, transformedBody: grokPayload };
-      }
       log?.error?.("GROK-WEB", `Fetch failed: ${err instanceof Error ? err.message : String(err)}`);
       const errResp = new Response(
         JSON.stringify({
           error: {
-            message: sanitizeErrorMessage(
-              `Grok connection failed: ${err instanceof Error ? err.message : String(err)}`
-            ),
+            message: `Grok connection failed: ${err instanceof Error ? err.message : String(err)}`,
             type: "upstream_error",
           },
         }),
@@ -813,9 +706,8 @@ export class GrokWebExecutor extends BaseExecutor {
       return { response: errResp, url: GROK_CHAT_API, headers, transformedBody: grokPayload };
     }
 
-    if (!tlsResult.body) {
-      // Non-streaming fallback (shouldn't happen for chat, but handle gracefully)
-      const status = tlsResult.status;
+    if (!response.ok) {
+      const status = response.status;
       let errMsg = `Grok returned HTTP ${status}`;
       if (status === 401 || status === 403) {
         errMsg =
@@ -833,6 +725,16 @@ export class GrokWebExecutor extends BaseExecutor {
       return { response: errResp, url: GROK_CHAT_API, headers, transformedBody: grokPayload };
     }
 
+    if (!response.body) {
+      const errResp = new Response(
+        JSON.stringify({
+          error: { message: "Grok returned empty response body", type: "upstream_error" },
+        }),
+        { status: 502, headers: { "Content-Type": "application/json" } }
+      );
+      return { response: errResp, url: GROK_CHAT_API, headers, transformedBody: grokPayload };
+    }
+
     // Build OpenAI-compatible response
     const cid = `chatcmpl-grok-${crypto.randomUUID().slice(0, 12)}`;
     const created = Math.floor(Date.now() / 1000);
@@ -840,12 +742,11 @@ export class GrokWebExecutor extends BaseExecutor {
     let finalResponse: Response;
     if (stream) {
       const sseStream = buildStreamingResponse(
-        tlsResult.body,
+        response.body,
         model,
         cid,
         created,
         isThinking,
-        toolRegistry,
         signal
       );
       finalResponse = new Response(sseStream, {
@@ -858,12 +759,11 @@ export class GrokWebExecutor extends BaseExecutor {
       });
     } else {
       finalResponse = await buildNonStreamingResponse(
-        tlsResult.body,
+        response.body,
         model,
         cid,
         created,
         isThinking,
-        toolRegistry,
         signal
       );
     }

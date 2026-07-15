@@ -117,7 +117,6 @@ function sanitizeApiKeyForSync(apiKey: unknown): JsonRecord {
     "key",
     "machineId",
     "allowedModels",
-    "allowedCombos",
     "allowedConnections",
     "noLog",
     "autoResolve",
@@ -125,7 +124,6 @@ function sanitizeApiKeyForSync(apiKey: unknown): JsonRecord {
     "accessSchedule",
     "maxRequestsPerDay",
     "maxRequestsPerMinute",
-    "throttleDelayMs",
     "maxSessions",
   ]);
 }

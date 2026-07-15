@@ -1,7 +1,9 @@
-import {getRequestConfig} from 'next-intl/server';
-import {hasLocale} from 'next-intl';
-import {LOCALES, DEFAULT_LOCALE} from './config';
+import { getRequestConfig } from "next-intl/server";
+import { cookies, headers } from "next/headers";
+import { LOCALES, DEFAULT_LOCALE, LOCALE_COOKIE } from "./config";
+import type { Locale } from "./config";
 
+<<<<<<< Updated upstream
 const UNSAFE_DOTTED_KEY_SEGMENTS = new Set(["__proto__", "prototype", "constructor"]);
 
 function assignDottedKey(target: Record<string, unknown>, dottedKey: string, value: unknown) {
@@ -42,13 +44,28 @@ export function normalizeComplianceEventTypes(messages: Record<string, unknown>)
 
 export default getRequestConfig(async ({requestLocale}) => {
   let locale = await requestLocale;
+=======
+export default getRequestConfig(async () => {
+  // 1. Try cookie
+  const cookieStore = await cookies();
+  let locale: string = cookieStore.get(LOCALE_COOKIE)?.value || "";
+>>>>>>> Stashed changes
 
-  if (!locale || !hasLocale(LOCALES, locale)) {
+  // 2. Try custom header (set by middleware)
+  if (!locale) {
+    const headerStore = await headers();
+    locale = headerStore.get("x-locale") || "";
+  }
+
+  // 3. Validate & fallback
+  if (!LOCALES.includes(locale as Locale)) {
     locale = DEFAULT_LOCALE;
   }
 
+  const messages = (await import(`./messages/${locale}.json`)).default;
+
   return {
     locale,
-    messages: (await import(`./messages/${locale}.json`)).default
+    messages,
   };
 });

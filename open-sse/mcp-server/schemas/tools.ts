@@ -10,12 +10,15 @@
  */
 
 import { z } from "zod";
+<<<<<<< Updated upstream
 import { toolSearchTool } from "./toolSearch.ts";
 import { pickFastestModelTool } from "./pickFastestModel.ts";
 import {
   AUTO_ROUTING_STRATEGY_VALUES,
   ROUTING_STRATEGY_VALUES,
 } from "../../../src/shared/constants/routingStrategies.ts";
+=======
+>>>>>>> Stashed changes
 
 // ============ Shared Types ============
 // AuditLevel + McpToolDefinition live in the leaf ./toolDefinition.ts so that
@@ -100,7 +103,17 @@ export const listCombosOutput = z.object({
           priority: z.number(),
         })
       ),
-      strategy: z.enum(ROUTING_STRATEGY_VALUES),
+      strategy: z.enum([
+        "priority",
+        "weighted",
+        "round-robin",
+        "context-relay",
+        "strict-random",
+        "random",
+        "least-used",
+        "cost-optimized",
+        "auto",
+      ]),
       enabled: z.boolean(),
       metrics: z
         .object({
@@ -357,7 +370,6 @@ export const listModelsCatalogOutput = z.object({
       provider: z.string(),
       capabilities: z.array(z.string()),
       status: z.enum(["available", "degraded", "unavailable"]),
-      thinkingEffort: z.string().optional(),
       pricing: z
         .object({
           inputPerMillion: z.number().nullable(),
@@ -446,65 +458,6 @@ export const webSearchTool: McpToolDefinition<typeof webSearchInput, typeof webS
   sourceEndpoints: ["/v1/search"],
 };
 
-// --- Tool 10: omniroute_web_fetch ---
-export const webFetchInput = z.object({
-  url: z
-    .string({ error: "URL is required" })
-    .min(1, "URL is required")
-    .describe("The URL to fetch content from"),
-  provider: z
-    .enum(["firecrawl", "jina-reader", "tavily-search"])
-    .optional()
-    .describe("Specific fetch provider to use (default: first available)"),
-  format: z
-    .enum(["markdown", "html", "links", "screenshot"])
-    .optional()
-    .default("markdown")
-    .describe("Output format for the fetched content"),
-  include_metadata: z
-    .boolean()
-    .optional()
-    .default(false)
-    .describe("Include page metadata (title, description) in the response"),
-  depth: z
-    .number()
-    .int()
-    .min(0)
-    .max(2)
-    .optional()
-    .describe("Crawl depth for Firecrawl (0 = single page, max 2)"),
-  wait_for_selector: z
-    .string()
-    .optional()
-    .describe("CSS selector to wait for before extracting content (Firecrawl only)"),
-});
-
-export const webFetchOutput = z.object({
-  provider: z.string(),
-  url: z.string(),
-  content: z.string(),
-  links: z.array(z.string()),
-  metadata: z
-    .object({
-      title: z.string().nullable(),
-      description: z.string().nullable(),
-    })
-    .nullable(),
-  screenshot_url: z.string().nullable(),
-});
-
-export const webFetchTool: McpToolDefinition<typeof webFetchInput, typeof webFetchOutput> = {
-  name: "omniroute_web_fetch",
-  description:
-    "Fetches and extracts content from a URL using OmniRoute's web fetch gateway. Supports multiple providers (Firecrawl, Jina Reader, Tavily) with automatic failover. Returns the page content as markdown, HTML, links, or screenshot, along with metadata.",
-  inputSchema: webFetchInput,
-  outputSchema: webFetchOutput,
-  scopes: ["execute:search"],
-  auditLevel: "basic",
-  phase: 1,
-  sourceEndpoints: ["/v1/web/fetch"],
-};
-
 // ============ Phase 2: Advanced Tools (8) ============
 
 // --- Tool 9: omniroute_simulate_route ---
@@ -585,9 +538,21 @@ export const setBudgetGuardTool: McpToolDefinition<
 // --- Tool 11: omniroute_set_routing_strategy ---
 export const setRoutingStrategyInput = z.object({
   comboId: z.string().describe("Combo ID or name to update"),
-  strategy: z.enum(ROUTING_STRATEGY_VALUES).describe("Routing strategy to apply"),
+  strategy: z
+    .enum([
+      "priority",
+      "weighted",
+      "round-robin",
+      "context-relay",
+      "strict-random",
+      "random",
+      "least-used",
+      "cost-optimized",
+      "auto",
+    ])
+    .describe("Routing strategy to apply"),
   autoRoutingStrategy: z
-    .enum(AUTO_ROUTING_STRATEGY_VALUES)
+    .enum(["rules", "cost", "eco", "latency", "fast"])
     .optional()
     .describe("Optional strategy used by auto mode (only used when strategy='auto')"),
 });
@@ -608,7 +573,7 @@ export const setRoutingStrategyTool: McpToolDefinition<
 > = {
   name: "omniroute_set_routing_strategy",
   description:
-    "Updates a combo routing strategy (priority/weighted/auto/etc.) at runtime. Supports selecting the sub-strategy used by auto mode (rules/cost/latency/sla-aware).",
+    "Updates a combo routing strategy (priority/weighted/auto/etc.) at runtime. Supports selecting the sub-strategy used by auto mode (rules/cost/latency).",
   inputSchema: setRoutingStrategyInput,
   outputSchema: setRoutingStrategyOutput,
   scopes: ["write:combos"],
@@ -1029,41 +994,14 @@ export const compressionStatusOutput = z.object({
   strategy: z.string(),
   settings: z.object({
     maxTokens: z.number(),
-    autoTriggerMode: z.string(),
     targetRatio: z.number(),
-    preserveSystemPrompt: z.boolean(),
-    mcpDescriptionCompressionEnabled: z.boolean(),
+    aggressiveness: z.string(),
   }),
   analytics: z.object({
     totalRequests: z.number(),
     compressedRequests: z.number(),
     tokensSaved: z.number(),
     avgCompressionRatio: z.number(),
-    byMode: z.record(
-      z.string(),
-      z.object({
-        count: z.number(),
-        tokensSaved: z.number(),
-        avgSavingsPct: z.number(),
-      })
-    ),
-    validationFallbacks: z.number(),
-    requestsWithReceipts: z.number(),
-    realUsage: z.object({
-      requestsWithReceipts: z.number(),
-      promptTokens: z.number(),
-      completionTokens: z.number(),
-      totalTokens: z.number(),
-      cacheReadTokens: z.number(),
-      cacheWriteTokens: z.number(),
-      estimatedUsdSaved: z.number(),
-      bySource: z.record(z.string(), z.number()),
-    }),
-    mcpDescriptionCompression: z.object({
-      descriptionsCompressed: z.number(),
-      charsSaved: z.number(),
-      estimatedTokensSaved: z.number(),
-    }),
   }),
   cacheStats: z
     .object({
@@ -1093,21 +1031,12 @@ export const compressionStatusTool: McpToolDefinition<
 export const compressionConfigureInput = z.object({
   enabled: z.boolean().optional(),
   strategy: z
-    .enum(["off", "lite", "standard", "aggressive", "ultra", "rtk", "stacked"])
+    .string()
     .optional()
-    .describe("Compression mode"),
-  autoTriggerMode: z
-    .enum(["off", "lite", "standard", "aggressive", "ultra", "rtk", "stacked"])
-    .optional(),
-  maxTokens: z
-    .number()
-    .int()
-    .min(0)
-    .optional()
-    .describe("Maximum tokens before compression triggers"),
+    .describe("Compression strategy: 'none' | 'standard' | 'aggressive' | 'ultra'"),
+  maxTokens: z.number().optional().describe("Maximum tokens before compression triggers"),
   targetRatio: z.number().optional().describe("Target compression ratio (0.0–1.0)"),
-  preserveSystemPrompt: z.boolean().optional(),
-  mcpDescriptionCompressionEnabled: z.boolean().optional(),
+  aggressiveness: z.string().optional().describe("Aggressiveness level: 'low' | 'medium' | 'high'"),
 });
 
 export const compressionConfigureOutput = z.object({
@@ -1116,11 +1045,9 @@ export const compressionConfigureOutput = z.object({
   settings: z.object({
     enabled: z.boolean(),
     strategy: z.string(),
-    autoTriggerMode: z.string(),
     maxTokens: z.number(),
     targetRatio: z.number(),
-    preserveSystemPrompt: z.boolean(),
-    mcpDescriptionCompressionEnabled: z.boolean(),
+    aggressiveness: z.string(),
   }),
 });
 
@@ -1130,7 +1057,7 @@ export const compressionConfigureTool: McpToolDefinition<
 > = {
   name: "omniroute_compression_configure",
   description:
-    "Configure compression settings at runtime. Supports enabling/disabling compression, changing strategy (off/lite/standard/aggressive/ultra/rtk/stacked), adjusting maxTokens threshold, targetRatio, auto-trigger mode, system prompt preservation, and MCP description compression.",
+    "Configure compression settings at runtime. Supports enabling/disabling compression, changing strategy (none/standard/aggressive/ultra), adjusting maxTokens threshold, targetRatio, and aggressiveness level.",
   inputSchema: compressionConfigureInput,
   outputSchema: compressionConfigureOutput,
   scopes: ["write:compression"],
@@ -1139,6 +1066,7 @@ export const compressionConfigureTool: McpToolDefinition<
   sourceEndpoints: ["/api/compression/configure"],
 };
 
+<<<<<<< Updated upstream
 export const setCompressionEngineInput = z.object({
   engine: z.enum(["off", "caveman", "rtk", "stacked"]).optional(),
   cavemanIntensity: z.enum(["lite", "full", "ultra"]).optional(),
@@ -1431,6 +1359,9 @@ export const agentSkillsCoverageTool: McpToolDefinition<
 };
 
 export { toolSearchInput, toolSearchOutput, toolSearchTool } from "./toolSearch.ts";
+=======
+// ============ Tool Registry ============
+>>>>>>> Stashed changes
 
 export const MCP_TOOLS = [
   toolSearchTool,
@@ -1443,7 +1374,6 @@ export const MCP_TOOLS = [
   costReportTool,
   listModelsCatalogTool,
   webSearchTool,
-  webFetchTool,
   simulateRouteTool,
   setBudgetGuardTool,
   setRoutingStrategyTool,
@@ -1459,6 +1389,7 @@ export const MCP_TOOLS = [
   cacheFlushTool,
   compressionStatusTool,
   compressionConfigureTool,
+<<<<<<< Updated upstream
   setCompressionEngineTool,
   listCompressionCombosTool,
   compressionComboStatsTool,
@@ -1469,6 +1400,8 @@ export const MCP_TOOLS = [
   agentSkillsGetTool,
   agentSkillsCoverageTool,
   pickFastestModelTool,
+=======
+>>>>>>> Stashed changes
 ] as const;
 
 export const MCP_ESSENTIAL_TOOLS = MCP_TOOLS.filter((t) => t.phase === 1);

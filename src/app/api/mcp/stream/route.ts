@@ -10,7 +10,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSettings } from "@/lib/db/settings";
 import { handleMcpStreamableHTTP } from "../../../../../open-sse/mcp-server/httpTransport";
-import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 
 async function guardEnabled(): Promise<NextResponse | null> {
   const settings = await getSettings();
@@ -33,24 +32,18 @@ async function guardEnabled(): Promise<NextResponse | null> {
 }
 
 export async function POST(request: NextRequest) {
-  const authError = await requireManagementAuth(request);
-  if (authError) return authError;
   const blocked = await guardEnabled();
   if (blocked) return blocked;
   return handleMcpStreamableHTTP(request);
 }
 
 export async function GET(request: NextRequest) {
-  const authError = await requireManagementAuth(request);
-  if (authError) return authError;
   const blocked = await guardEnabled();
   if (blocked) return blocked;
   return handleMcpStreamableHTTP(request);
 }
 
 export async function DELETE(request: NextRequest) {
-  const authError = await requireManagementAuth(request);
-  if (authError) return authError;
   const blocked = await guardEnabled();
   if (blocked) return blocked;
   return handleMcpStreamableHTTP(request);

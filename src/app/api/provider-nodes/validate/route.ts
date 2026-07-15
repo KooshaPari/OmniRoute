@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import { getAuditRequestContext, logAuditEvent } from "@/lib/compliance/index";
 import { validateClaudeCodeCompatibleProvider } from "@/lib/providers/validation";
 import {
@@ -12,48 +11,6 @@ import { getProviderValidationGuard } from "@/shared/network/outboundUrlGuard";
 import { isCcCompatibleProviderEnabled } from "@/shared/utils/featureFlags";
 import { providerNodeValidateSchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
-
-// Matches a base URL whose host is localhost / 127.0.0.1 (with an optional port).
-const LOCALHOST_BASE_URL_RE = /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?(?:[/?#]|$)/i;
-
-// Extract the underlying network error code from a SafeOutboundFetchError chain.
-// safeOutboundFetch wraps fetch failures and preserves the original error as `cause`,
-// so a connection-refused surfaces as cause.code === "ECONNREFUSED".
-function getOutboundCauseCode(error: unknown): string | undefined {
-  const cause = (error as { cause?: unknown })?.cause;
-  if (cause && typeof cause === "object") {
-    const direct = (cause as { code?: unknown }).code;
-    if (typeof direct === "string") return direct;
-    const nested = (cause as { cause?: { code?: unknown } }).cause?.code;
-    if (typeof nested === "string") return nested;
-  }
-  return undefined;
-}
-
-// When a connection error happens against a localhost base URL, the most common
-// cause is running OmniRoute in Docker — `localhost` then points at the container,
-// not the host. Augment the surfaced message with an actionable hint in that case.
-// Ported from decolua/9router#642.
-export function augmentDockerLocalhostHint(
-  error: unknown,
-  baseUrl: string | undefined,
-  fallbackMessage: string
-): string {
-  if (!baseUrl || !LOCALHOST_BASE_URL_RE.test(baseUrl)) return fallbackMessage;
-
-  const code =
-    error instanceof SafeOutboundFetchError && error.code === "TIMEOUT"
-      ? "ETIMEDOUT"
-      : getOutboundCauseCode(error);
-
-  if (code === "ECONNREFUSED") {
-    return "Connection refused — are you running OmniRoute in Docker? localhost points to the container, not your host. Use your host IP (e.g. http://192.168.x.x:11434) or http://host.docker.internal:11434 on Linux/Mac.";
-  }
-  if (code === "ETIMEDOUT") {
-    return "Connection timeout — are you running OmniRoute in Docker? Use your host IP (e.g. http://192.168.x.x:11434) or http://host.docker.internal:11434 on Linux/Mac.";
-  }
-  return fallbackMessage;
-}
 
 function sanitizeAnthropicBaseUrl(baseUrl: string) {
   return (baseUrl || "")
@@ -69,6 +26,7 @@ function sanitizeClaudeCodeCompatibleBaseUrl(baseUrl: string) {
     .replace(/\/(?:v\d+\/)?messages(?:\?[^#]*)?$/i, "");
 }
 
+<<<<<<< Updated upstream
 // Status-specific error message for /models probe failures.
 function getModelsErrorMessage(status: number) {
   if (status === 401 || status === 403) return "API key unauthorized";
@@ -117,6 +75,8 @@ async function probeChatFallback({
   });
 }
 
+=======
+>>>>>>> Stashed changes
 function sanitizeAuditBaseUrl(baseUrl: string) {
   if (!baseUrl) return null;
   try {
@@ -129,9 +89,6 @@ function sanitizeAuditBaseUrl(baseUrl: string) {
 
 // POST /api/provider-nodes/validate - Validate API key against base URL
 export async function POST(request) {
-  const authError = await requireManagementAuth(request);
-  if (authError) return authError;
-
   const auditContext = getAuditRequestContext(request);
   let rawBody;
   try {
@@ -153,8 +110,7 @@ export async function POST(request) {
     if (isValidationFailure(validation)) {
       return NextResponse.json({ error: validation.error }, { status: 400 });
     }
-    const { baseUrl, apiKey, type, compatMode, chatPath, modelsPath, modelId } = validation.data;
-    const trimmedModelId = typeof modelId === "string" ? modelId.trim() : "";
+    const { baseUrl, apiKey, type, compatMode, chatPath, modelsPath } = validation.data;
 
     // Anthropic Compatible Validation
     if (type === "anthropic-compatible") {
@@ -199,64 +155,22 @@ export async function POST(request) {
         },
       });
 
-      if (res.ok) return NextResponse.json({ valid: true, error: null });
-      // Auth errors: chat fallback would not recover. Skip and surface clear message.
-      if (res.status === 401 || res.status === 403) {
-        return NextResponse.json({ valid: false, error: "API key unauthorized" });
-      }
-      // Optional /chat/completions fallback when caller supplied a model ID
-      // (some Anthropic-compatible proxies expose only the chat endpoint).
-      if (trimmedModelId) {
-        const chatRes = await probeChatFallback({
-          baseUrl: normalizedBase,
-          apiKey: apiKey ?? "",
-          modelId: trimmedModelId,
-          extraHeaders: { "x-api-key": apiKey ?? "", "anthropic-version": "2023-06-01" },
-        });
-        if (chatRes.ok) return NextResponse.json({ valid: true, error: null, method: "chat" });
-        return NextResponse.json({
-          valid: false,
-          error: getChatErrorMessage(chatRes.status),
-          method: "chat",
-        });
-      }
-      return NextResponse.json({ valid: false, error: getModelsErrorMessage(res.status) });
+      return NextResponse.json({ valid: res.ok, error: res.ok ? null : "Invalid API key" });
     }
 
     // OpenAI Compatible Validation (Default)
-    const openAiBase = baseUrl.replace(/\/$/, "");
-    const modelsUrl = `${openAiBase}${modelsPath || "/models"}`;
+    const modelsUrl = `${baseUrl.replace(/\/$/, "")}${modelsPath || "/models"}`;
     const res = await safeOutboundFetch(modelsUrl, {
       ...SAFE_OUTBOUND_FETCH_PRESETS.validationRead,
       guard: getProviderValidationGuard(),
       headers: { Authorization: `Bearer ${apiKey}` },
     });
 
-    if (res.ok) return NextResponse.json({ valid: true, error: null });
-    if (res.status === 401 || res.status === 403) {
-      return NextResponse.json({ valid: false, error: "API key unauthorized" });
-    }
-    if (trimmedModelId) {
-      const chatRes = await probeChatFallback({
-        baseUrl: openAiBase,
-        apiKey: apiKey ?? "",
-        modelId: trimmedModelId,
-      });
-      if (chatRes.ok) return NextResponse.json({ valid: true, error: null, method: "chat" });
-      return NextResponse.json({
-        valid: false,
-        error: getChatErrorMessage(chatRes.status),
-        method: "chat",
-      });
-    }
-    return NextResponse.json({ valid: false, error: getModelsErrorMessage(res.status) });
+    return NextResponse.json({ valid: res.ok, error: res.ok ? null : "Invalid API key" });
   } catch (error) {
-    const attemptedBaseUrl =
-      rawBody && typeof rawBody === "object" && "baseUrl" in rawBody
-        ? String((rawBody as { baseUrl?: unknown }).baseUrl || "")
-        : "";
     const status = getSafeOutboundFetchErrorStatus(error);
     if (status) {
+<<<<<<< Updated upstream
       const rawMessage =
         error instanceof SafeOutboundFetchError && error.code === "INVALID_URL"
           ? "Invalid provider base URL format"
@@ -265,6 +179,18 @@ export async function POST(request) {
             : "Validation failed";
       const message = augmentDockerLocalhostHint(error, attemptedBaseUrl, rawMessage);
       if (error instanceof SafeOutboundFetchError && error.code === "URL_GUARD_BLOCKED") {
+=======
+      const message = error instanceof Error ? error.message : "Validation failed";
+      if (
+        error instanceof SafeOutboundFetchError &&
+        error.code === "URL_GUARD_BLOCKED" &&
+        message.includes(PROVIDER_URL_BLOCKED_MESSAGE)
+      ) {
+        const attemptedBaseUrl =
+          rawBody && typeof rawBody === "object" && "baseUrl" in rawBody
+            ? String((rawBody as { baseUrl?: unknown }).baseUrl || "")
+            : "";
+>>>>>>> Stashed changes
         logAuditEvent({
           action: "provider.validation.ssrf_blocked",
           actor: "admin",
@@ -283,7 +209,6 @@ export async function POST(request) {
       return NextResponse.json({ error: message }, { status });
     }
     console.log("Error validating provider node:", error);
-    const message = augmentDockerLocalhostHint(error, attemptedBaseUrl, "Validation failed");
-    return NextResponse.json({ error: message }, { status: 500 });
+    return NextResponse.json({ error: "Validation failed" }, { status: 500 });
   }
 }

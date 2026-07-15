@@ -4,8 +4,6 @@ import {
   type CompressionConfig,
   DEFAULT_COMPRESSION_CONFIG,
   DEFAULT_CAVEMAN_CONFIG,
-  DEFAULT_RTK_CONFIG,
-  DEFAULT_COMPRESSION_LANGUAGE_CONFIG,
 } from "./types.ts";
 
 const CHARS_PER_TOKEN = 4;
@@ -15,6 +13,9 @@ export function estimateCompressionTokens(text: string | object | null | undefin
   const str = typeof text === "string" ? text : JSON.stringify(text);
   return Math.ceil(str.length / CHARS_PER_TOKEN);
 }
+
+/** @deprecated Use estimateCompressionTokens instead. */
+export const estimateTokensForStats = estimateCompressionTokens;
 
 export function createCompressionStats(
   originalBody: Record<string, unknown>,
@@ -53,7 +54,5 @@ export function getDefaultCompressionConfig(): CompressionConfig {
   return {
     ...DEFAULT_COMPRESSION_CONFIG,
     cavemanConfig: { ...DEFAULT_CAVEMAN_CONFIG },
-    rtkConfig: { ...DEFAULT_RTK_CONFIG },
-    languageConfig: { ...DEFAULT_COMPRESSION_LANGUAGE_CONFIG },
   };
 }

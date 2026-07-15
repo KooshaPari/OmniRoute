@@ -24,7 +24,6 @@ export const MCP_SCOPE_LIST = [
   "write:cache",
   "read:compression",
   "write:compression",
-  "read:proxies",
 ] as const;
 
 export type McpScope = (typeof MCP_SCOPE_LIST)[number];
@@ -41,7 +40,6 @@ export const MCP_TOOL_SCOPES: Record<string, readonly McpScope[]> = {
   omniroute_check_quota: ["read:quota"],
   omniroute_route_request: ["execute:completions"],
   omniroute_web_search: ["execute:search"],
-  omniroute_web_fetch: ["execute:search"],
   omniroute_cost_report: ["read:usage"],
   omniroute_list_models_catalog: ["read:models"],
 
@@ -60,6 +58,7 @@ export const MCP_TOOL_SCOPES: Record<string, readonly McpScope[]> = {
   omniroute_cache_flush: ["write:cache"],
   omniroute_compression_status: ["read:compression"],
   omniroute_compression_configure: ["write:compression"],
+<<<<<<< Updated upstream
   omniroute_set_compression_engine: ["write:compression"],
   omniroute_list_compression_combos: ["read:compression"],
   omniroute_compression_combo_stats: ["read:compression"],
@@ -75,4 +74,6 @@ export const MCP_TOOL_SCOPES: Record<string, readonly McpScope[]> = {
   omniroute_pool_warm: ["write:resilience"],
   // Stealth browser pool observability (#3368 PR7)
   omniroute_browser_pool_status: ["read:health"],
+=======
+>>>>>>> Stashed changes
 } as const;

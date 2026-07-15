@@ -25,9 +25,38 @@ import {
   unsupportedFeature,
 } from "./openai-responses/helpers.ts";
 
+<<<<<<< Updated upstream
 // chat -> Responses direction extracted to a pure leaf; re-exported for external
 // importers (tests). Host imports it back for registration below.
 export { openaiToOpenAIResponsesRequest } from "./openai-responses/toResponses.ts";
+=======
+type JsonRecord = Record<string, unknown>;
+const RESPONSES_STORE_MARKER = "_omnirouteResponsesStore";
+
+function toRecord(value: unknown): JsonRecord {
+  return value && typeof value === "object" && !Array.isArray(value) ? (value as JsonRecord) : {};
+}
+
+function toArray(value: unknown): unknown[] {
+  return Array.isArray(value) ? value : [];
+}
+
+function toString(value: unknown, fallback = ""): string {
+  return typeof value === "string" ? value : fallback;
+}
+
+function normalizeResponsesReasoningEffort(value: unknown): string {
+  const effort = toString(value).toLowerCase();
+  return effort === "max" ? "xhigh" : effort;
+}
+
+function unsupportedFeature(message: string): Error & { statusCode: number; errorType: string } {
+  const error = new Error(message) as Error & { statusCode: number; errorType: string };
+  error.statusCode = 400;
+  error.errorType = "unsupported_feature";
+  return error;
+}
+>>>>>>> Stashed changes
 
 /**
  * Convert OpenAI Responses API request to OpenAI Chat Completions format
@@ -54,20 +83,13 @@ export function openaiResponsesToOpenAIRequest(
       const tool = toRecord(toolValue);
       const toolType = toString(tool.type);
       // Allow: function tools, tools already in Chat format (have .function property), CLI subagent tools,
-      // namespace tools (MCP tool groups used by Codex/OpenAI Responses API), and web_search server tools
-      // (Anthropic versioned: web_search_20250305, web_search_20250101, etc. — or plain web_search).
-      // tool_search is a Responses API built-in sent by newer Codex clients; silently skip it here
-      // (it will be filtered out during tools conversion below).
+      // and namespace tools (MCP tool groups used by Codex/OpenAI Responses API).
       if (
         toolType &&
         toolType !== "function" &&
         toolType !== "custom" &&
         toolType !== "command" &&
         toolType !== "namespace" &&
-        toolType !== "local_shell" &&
-        !WEB_SEARCH_TOOL_TYPES.test(toolType) &&
-        !TOOL_SEARCH_TOOL_TYPES.test(toolType) &&
-        !IMAGE_GENERATION_TOOL_TYPES.test(toolType) &&
         !tool.function
       ) {
         throw unsupportedFeature(
@@ -77,35 +99,13 @@ export function openaiResponsesToOpenAIRequest(
     }
   }
 
-  const result: JsonRecord = { ...root };
-
-  // GPT-5 verbosity: Responses `text.verbosity` → Chat Completions top-level `verbosity`.
-  // Chat has no `text` wrapper, so carry the level across and drop the Responses-only
-  // `text` object (a strict Chat endpoint 400s on unknown fields).
-  const responsesVerbosity = normalizeVerbosity(toRecord(result.text).verbosity);
-  if (responsesVerbosity) result.verbosity = responsesVerbosity;
-  delete result.text;
-
-  // background: true requests a deferred Responses API run (the upstream
-  // returns 202 with response_id and the client polls GET /responses/<id>).
-  // OmniRoute is a forward proxy that streams responses synchronously —
-  // implementing the queue/poll contract would require persistence and a
-  // separate retrieval surface. Degrade: log a marker when true was
-  // actually requested (operators can observe clients that should be
-  // reconfigured) and strip the flag. Clients that set background=true
-  // opportunistically (Capy Captain Pro, Codex agents) work unchanged.
-  // Clients that strictly require the async contract still observe a
-  // completed response on the first poll and can adapt.
-  if (result.background === true) {
-    const providerStr = toString(credentialRecord.provider);
-    const modelStr = toString(model);
-    console.warn(
-      `BACKGROUND_DEGRADE provider=${providerStr || "unknown"} model=${modelStr || "unknown"}`
+  if (root.background) {
+    throw unsupportedFeature(
+      "Unsupported Responses API feature: background mode is not supported by omniroute"
     );
   }
-  if (result.background !== undefined) {
-    delete result.background;
-  }
+
+  const result: JsonRecord = { ...root };
   const messages: JsonRecord[] = [];
   result.messages = messages;
 
@@ -118,6 +118,7 @@ export function openaiResponsesToOpenAIRequest(
   let currentAssistantMsg: JsonRecord | null = null;
   let pendingToolResults: JsonRecord[] = [];
 
+<<<<<<< Updated upstream
   // Upstream providers reject messages:[] with "400: at least one message is required".
   // When the client sends input:[] (empty), inject a placeholder user message — mirrors
   // upstream 9router#419 (and the existing empty-string handling elsewhere in this file).
@@ -126,6 +127,9 @@ export function openaiResponsesToOpenAIRequest(
     rawInputItems.length === 0
       ? [{ type: "message", role: "user", content: [{ type: "input_text", text: "..." }] }]
       : rawInputItems;
+=======
+  const inputItems = toArray(root.input);
+>>>>>>> Stashed changes
   for (const itemValue of inputItems) {
     const item = toRecord(itemValue);
 
@@ -190,13 +194,6 @@ export function openaiResponsesToOpenAIRequest(
       if (!fnName) {
         continue;
       }
-      // #2893: Skip tool calls with an empty call_id — they can never be matched
-      // to their function_call_output, so the upstream rejects the orphaned tool
-      // result with "Messages with role 'tool' must be a response to a preceding
-      // message with 'tool_calls'". Dropping the unmatched pair avoids the 400.
-      if (!toString(item.call_id).trim()) {
-        continue;
-      }
 
       // Start or append assistant message with tool_calls
       if (!currentAssistantMsg) {
@@ -249,66 +246,6 @@ export function openaiResponsesToOpenAIRequest(
       continue;
     }
 
-    if (itemType === "custom_tool_call") {
-      // Codex custom tool call (e.g. apply_patch): `input` is a raw string, not JSON
-      // arguments. Map it onto the assistant tool_calls list as a function call whose
-      // arguments wrap the raw string as { input }, matching the { input: string }
-      // schema the request-side tools normalization advertises for custom tools.
-      const fnName = toString(item.name).trim();
-      if (!fnName) {
-        continue;
-      }
-      if (!currentAssistantMsg) {
-        currentAssistantMsg = {
-          role: "assistant",
-          content: null,
-          tool_calls: [],
-        };
-      }
-      const toolCalls = Array.isArray(currentAssistantMsg.tool_calls)
-        ? currentAssistantMsg.tool_calls
-        : [];
-      toolCalls.push({
-        id: toString(item.call_id),
-        type: "function",
-        function: {
-          name: fnName,
-          arguments: JSON.stringify({ input: item.input }),
-        },
-      });
-      currentAssistantMsg.tool_calls = toolCalls;
-      continue;
-    }
-
-    if (itemType === "custom_tool_call_output") {
-      // Result of a custom tool call — translate the same way as function_call_output.
-      if (currentAssistantMsg) {
-        messages.push(currentAssistantMsg);
-        currentAssistantMsg = null;
-      }
-      if (pendingToolResults.length > 0) {
-        for (const toolResult of pendingToolResults) {
-          messages.push(toolResult);
-        }
-        pendingToolResults = [];
-      }
-      // Unwrap JSON-wrapped output {"output":"...","metadata":{...}} → plain string.
-      const rawOut = typeof item.output === "string" ? item.output : JSON.stringify(item.output);
-      let toolContent = rawOut;
-      try {
-        const parsed = JSON.parse(rawOut);
-        if (parsed && typeof parsed.output === "string") toolContent = parsed.output;
-      } catch {
-        // Not JSON — keep the raw output as the tool content.
-      }
-      messages.push({
-        role: "tool",
-        tool_call_id: toString(item.call_id),
-        content: toolContent,
-      });
-      continue;
-    }
-
     if (itemType === "reasoning") {
       // Skip reasoning items - they are display-only metadata
       continue;
@@ -327,118 +264,19 @@ export function openaiResponsesToOpenAIRequest(
 
   // Convert tools format
   if (Array.isArray(root.tools)) {
-    result.tools = root.tools
-      .filter((toolValue) => {
-        const tool = toRecord(toolValue);
-        const toolType = toString(tool.type);
-        // tool_search (#2766) and image_generation (#2950) are Responses API built-ins
-        // with no Chat Completions equivalent; drop them silently.
-        return (
-          !TOOL_SEARCH_TOOL_TYPES.test(toolType) && !IMAGE_GENERATION_TOOL_TYPES.test(toolType)
-        );
-      })
-      .flatMap((toolValue) => {
-        const tool = toRecord(toolValue);
-        if (tool.function) return toolValue;
-        const toolType = toString(tool.type);
-        // MCP tool groups: Codex/OpenAI Responses clients declare each MCP server as a
-        // `namespace` tool — { type:"namespace", name, tools:[{name, description, parameters}] }.
-        // Non-Codex backends (Kiro/Claude) have no `namespace` type, so flatten each sub-tool
-        // into a standalone Chat function (#1534). Without this the whole group collapsed into
-        // one empty-schema function named `mcp__<server>__` and every MCP call failed with
-        // `unsupported call: mcp__<server>__`.
-        if (toolType === "namespace") {
-          const subTools = Array.isArray(tool.tools) ? tool.tools : [];
-          return subTools
-            .map((subValue) => toRecord(subValue))
-            .filter((sub) => toString(sub.name))
-            .map((sub) => ({
-              type: "function",
-              function: {
-                name: toString(sub.name),
-                description: toString(sub.description),
-                parameters: sub.parameters ??
-                  sub.input_schema ?? {
-                    type: "object",
-                    properties: {},
-                  },
-              },
-            }));
-        }
-        // Pass web_search server tools through with their original type (versioned or plain).
-        // These have no Chat Completions equivalent; preserve as-is so upstreams that understand
-        // Anthropic-style web_search_YYYYMMDD naming receive the exact name they expect.
-        if (WEB_SEARCH_TOOL_TYPES.test(toolType)) {
-          return toolValue;
-        }
-        // local_shell is a Responses API built-in (Codex CLI injects it for shell
-        // execution). Non-OpenAI upstreams (Kiro/Claude) have no local_shell type,
-        // so map it to a regular "shell" function tool. The response translator
-        // already emits these as function_call, which Codex maps back to a shell call.
-        if (toolType === "local_shell") {
-          return {
-            type: "function",
-            function: {
-              name: "shell",
-              description: "Run a shell command and return its output.",
-              parameters: {
-                type: "object",
-                properties: {
-                  command: {
-                    type: "array",
-                    items: { type: "string" },
-                    description: "Command and arguments to execute.",
-                  },
-                  workdir: { type: "string", description: "Working directory." },
-                  timeout_ms: { type: "number", description: "Timeout in milliseconds." },
-                },
-                required: ["command"],
-              },
-            },
-          };
-        }
-        // Responses API "hosted" tools (e.g. Codex's request_user_input,
-        // { type: "request_user_input" }) carry no explicit `name` and cannot be
-        // represented as a Chat Completions function declaration. Emitting them with
-        // an empty name produces an anonymous functionDeclaration that downstream
-        // providers such as Gemini reject with a 400 ("Invalid function name").
-        // Skip any tool without a non-empty string name; named tools are unaffected.
-        const name = tool.name;
-        if (typeof name !== "string" || name.trim() === "") return [];
-
-        // Custom/freeform tools (e.g. Codex apply_patch with type:"custom" and a grammar
-        // format) carry no `parameters` field. Converting them to an empty function schema
-        // makes downstream models invoke them with {}, but the Codex runtime expects
-        // { input: string }. Normalize all custom tools to a well-defined { input: string }
-        // schema so the model produces valid arguments. (#1007)
-        if (toolType === "custom") {
-          return {
-            type: "function",
-            function: {
-              name: toString(tool.name),
-              description: toString(tool.description),
-              parameters: {
-                type: "object",
-                properties: {
-                  input: { type: "string" },
-                },
-                required: ["input"],
-                additionalProperties: false,
-              },
-              strict: tool.strict,
-            },
-          };
-        }
-        return {
-          type: "function",
-          function: {
-            name,
-            description: toString(tool.description),
-            parameters: tool.parameters,
-            strict: tool.strict,
-          },
-        };
-      });
+    result.tools = root.tools.map((toolValue) => {
+      const tool = toRecord(toolValue);
+      if (tool.function) return toolValue;
+      return {
+        type: "function",
+        function: {
+          name: toString(tool.name),
+          description: toString(tool.description),
+          parameters: tool.parameters,
+          strict: tool.strict,
+        },
+      };
+    });
   }
 
   // Filter orphaned tool results (no matching tool_call in assistant messages)
@@ -453,11 +291,8 @@ export function openaiResponsesToOpenAIRequest(
   }
   result.messages = messages.filter((m) => {
     const rec = toRecord(m);
-    // #2893: drop ANY tool result whose tool_call_id has no matching tool_call —
-    // including empty/missing ids (the previous `&& rec.tool_call_id` guard let
-    // empty-id orphans slip through and triggered an upstream 400).
-    if (rec.role === "tool") {
-      return allToolCallIds.has(String(rec.tool_call_id ?? ""));
+    if (rec.role === "tool" && rec.tool_call_id) {
+      return allToolCallIds.has(String(rec.tool_call_id));
     }
     return true;
   });
@@ -472,8 +307,6 @@ export function openaiResponsesToOpenAIRequest(
     const tcType = toString(tc.type);
     if (tcType === "function" && tc.name !== undefined && !tc.function) {
       result.tool_choice = { type: "function", function: { name: tc.name } };
-    } else if (tcType === "local_shell") {
-      result.tool_choice = { type: "function", function: { name: "shell" } };
     } else if (tcType && tcType !== "function" && tcType !== "allowed_tools") {
       // Built-in tool types (web_search_preview, file_search, etc.) have no Chat equivalent
       throw unsupportedFeature(
@@ -492,38 +325,296 @@ export function openaiResponsesToOpenAIRequest(
     result[RESPONSES_STORE_MARKER] = root.store;
   }
   delete result.store;
-
-  // Promote Responses `reasoning.effort` to the Chat-Completions-native
-  // `reasoning_effort` field so OpenAI-family upstreams (and the downstream
-  // openai-to-claude translator's extended-thinking path) keep the hint when a
-  // Responses client is routed across formats. The Copilot-only `summary` ->
-  // Claude summarized-thinking marker stays behind the UA gate from
-  // translateRequest because it is Copilot-specific glue, not an OpenAI-native
-  // field. Ported from upstream PR decolua/9router#1817 (ryanngit).
-  if (root.reasoning && typeof root.reasoning === "object" && !Array.isArray(root.reasoning)) {
-    const reasoningRec = toRecord(root.reasoning);
-    const effort = toString(reasoningRec.effort);
-    if (effort && result.reasoning_effort === undefined) {
-      result.reasoning_effort = normalizeResponsesReasoningEffort(effort);
-    }
-    if (
-      credentialRecord._copilotClient === true &&
-      shouldRequestClaudeSummarizedThinking(reasoningRec.summary)
-    ) {
-      result[COPILOT_REASONING_SUMMARY_MARKER] = "summarized";
-    }
-  }
   delete result.reasoning;
-  // Strip Responses-API-only fields that Chat Completions rejects with 400.
-  // safety_identifier is sent by LobeHub and has no Chat Completions equivalent (#2770).
-  delete result.safety_identifier;
-  // client_metadata is sent by Codex CLI and has no Chat Completions equivalent.
-  // Strict upstreams (e.g. Mistral) reject it with HTTP 422 extra_forbidden.
-  delete result.client_metadata;
 
   return result;
 }
 
+<<<<<<< Updated upstream
+=======
+/**
+ * Convert OpenAI Chat Completions to OpenAI Responses API format
+ */
+export function openaiToOpenAIResponsesRequest(
+  model: unknown,
+  body: unknown,
+  stream: unknown,
+  credentials: unknown
+): unknown {
+  void stream;
+
+  const root = toRecord(body);
+  const credentialRecord = toRecord(credentials);
+  const storeEnabled = isOpenAIResponsesStoreEnabled(credentialRecord.providerSpecificData);
+  const result: JsonRecord = {
+    model,
+    input: [],
+    stream: true,
+  };
+  if (!storeEnabled) {
+    result.store = false;
+  }
+
+  const input = result.input as JsonRecord[];
+
+  // Extract first system message as instructions
+  let hasSystemMessage = false;
+  const messages = toArray(root.messages);
+
+  for (const messageValue of messages) {
+    const msg = toRecord(messageValue);
+    const role = toString(msg.role);
+
+    if (role === "system" || role === "developer") {
+      if (!hasSystemMessage) {
+        result.instructions = typeof msg.content === "string" ? msg.content : "";
+        hasSystemMessage = true;
+      }
+      continue;
+    }
+
+    // Convert user messages
+    if (role === "user") {
+      const content =
+        typeof msg.content === "string"
+          ? [{ type: "input_text", text: msg.content }]
+          : Array.isArray(msg.content)
+            ? msg.content.map((contentValue) => {
+                const contentItem = toRecord(contentValue);
+                if (contentItem.type === "text") {
+                  return { type: "input_text", text: toString(contentItem.text) };
+                }
+                if (contentItem.type === "image_url") {
+                  const imgUrl = contentItem.image_url as
+                    | string
+                    | { url?: string; detail?: string };
+                  const imgResult: JsonRecord = {
+                    type: "input_image",
+                    image_url: typeof imgUrl === "string" ? imgUrl : imgUrl?.url || "",
+                  };
+                  if (typeof imgUrl === "object" && imgUrl?.detail !== undefined) {
+                    imgResult.detail = imgUrl.detail;
+                  }
+                  return imgResult;
+                }
+                if (contentItem.type === "file") {
+                  const file = toRecord(contentItem.file);
+                  const fileResult: JsonRecord = { type: "input_file" };
+                  if (file.file_data !== undefined) fileResult.file_data = file.file_data;
+                  if (file.file_id !== undefined) fileResult.file_id = file.file_id;
+                  if (file.file_url !== undefined) fileResult.file_url = file.file_url;
+                  if (file.filename !== undefined) fileResult.filename = file.filename;
+                  return fileResult;
+                }
+                return contentValue;
+              })
+            : [{ type: "input_text", text: "" }];
+
+      input.push({
+        type: "message",
+        role: "user",
+        content,
+      });
+    }
+
+    // Convert assistant messages
+    if (role === "assistant") {
+      // Skip reasoning_content — OpenAI Responses API requires server-generated
+      // rs_* IDs for reasoning items. Synthesizing client-side IDs (e.g. reasoning_N)
+      // causes 400 errors from Responses-compatible upstreams. (#224)
+
+      // Skip thinking blocks in array content — same rs_* ID constraint applies
+
+      // Build assistant output content
+      const outputContent: unknown[] = [];
+      if (typeof msg.content === "string" && msg.content) {
+        outputContent.push({ type: "output_text", text: msg.content });
+      } else if (Array.isArray(msg.content)) {
+        for (const contentValue of msg.content) {
+          const contentItem = toRecord(contentValue);
+          if (contentItem.type === "text") {
+            outputContent.push({ type: "output_text", text: toString(contentItem.text) });
+          } else if (contentItem.type === "thinking" || contentItem.type === "redacted_thinking") {
+            // Reasoning already moved above
+            continue;
+          } else {
+            outputContent.push(contentValue);
+          }
+        }
+      }
+
+      // Only add assistant message if content exists
+      if (outputContent.length > 0) {
+        input.push({
+          type: "message",
+          role: "assistant",
+          content: outputContent,
+        });
+      }
+
+      // Convert tool_calls to function_call items
+      if (Array.isArray(msg.tool_calls)) {
+        for (const toolCallValue of msg.tool_calls) {
+          const toolCall = toRecord(toolCallValue);
+          const fn = toRecord(toolCall.function);
+          // Skip tool calls with empty names to avoid infinite placeholder_tool loops
+          const fnName = toString(fn.name).trim();
+          if (!fnName) {
+            continue;
+          }
+          input.push({
+            type: "function_call",
+            call_id: toString(toolCall.id).trim() || generateToolCallId(),
+            name: fnName,
+            arguments: toString(fn.arguments, "{}"),
+          });
+        }
+      }
+
+      // Handle deprecated function_call field (pre-tool_calls API)
+      if (msg.function_call && !msg.tool_calls) {
+        const fc = toRecord(msg.function_call);
+        const fnName = toString(fc.name).trim();
+        if (fnName) {
+          input.push({
+            type: "function_call",
+            call_id: `call_${fnName}`,
+            name: fnName,
+            arguments: toString(fc.arguments, "{}"),
+          });
+        }
+      }
+    }
+
+    // Convert tool results
+    if (role === "tool") {
+      input.push({
+        type: "function_call_output",
+        call_id: toString(msg.tool_call_id),
+        output:
+          typeof msg.content === "string"
+            ? msg.content
+            : Array.isArray(msg.content)
+              ? msg.content.map((c) => {
+                  const part = toRecord(c);
+                  if (part.type === "text")
+                    return { type: "input_text", text: toString(part.text) };
+                  return c;
+                })
+              : String(msg.content ?? ""),
+      });
+    }
+
+    // Handle deprecated function role messages
+    if (role === "function") {
+      input.push({
+        type: "function_call_output",
+        call_id: `call_${toString(msg.name)}`,
+        output: typeof msg.content === "string" ? msg.content : String(msg.content ?? ""),
+      });
+    }
+  }
+
+  // Filter orphaned function_call_output items (no matching function_call)
+  // This happens when Claude Code compaction removes messages but leaves tool results
+  const knownCallIds = new Set(
+    input
+      .filter(
+        (item: { type?: string; call_id?: string }) => item.type === "function_call" && item.call_id
+      )
+      .map((item: { type?: string; call_id?: string }) => item.call_id)
+  );
+  result.input = input.filter((item: { type?: string; call_id?: string }) => {
+    if (item.type === "function_call_output" && item.call_id) {
+      return knownCallIds.has(item.call_id);
+    }
+    return true;
+  });
+
+  // If no system message, keep empty instructions
+  if (!hasSystemMessage) {
+    result.instructions = "";
+  }
+
+  // Convert tools format
+  if (Array.isArray(root.tools)) {
+    result.tools = root.tools.map((toolValue) => {
+      const tool = toRecord(toolValue);
+      if (tool.type === "function") {
+        const fn = toRecord(tool.function);
+        return {
+          type: "function",
+          name: toString(fn.name),
+          description: toString(fn.description),
+          parameters: fn.parameters,
+          strict: fn.strict,
+        };
+      }
+      return toolValue;
+    });
+  }
+
+  // Translate tool_choice: Chat {type,function:{name}} → Responses {type,name}
+  if (root.tool_choice !== undefined) {
+    if (typeof root.tool_choice === "string") {
+      result.tool_choice = root.tool_choice;
+    } else if (typeof root.tool_choice === "object" && !Array.isArray(root.tool_choice)) {
+      const tc = toRecord(root.tool_choice);
+      if (tc.type === "function" && tc.function) {
+        const fn = toRecord(tc.function);
+        result.tool_choice = { type: "function", name: fn.name };
+      } else {
+        result.tool_choice = root.tool_choice;
+      }
+    } else {
+      result.tool_choice = root.tool_choice;
+    }
+  }
+
+  // Pass through relevant fields
+  if (root.previous_response_id !== undefined) {
+    result.previous_response_id = root.previous_response_id;
+  }
+  if (root.prompt_cache_key !== undefined) {
+    result.prompt_cache_key = root.prompt_cache_key;
+  }
+  if (root.session_id !== undefined) {
+    result.session_id = root.session_id;
+  }
+  if (root.conversation_id !== undefined) {
+    result.conversation_id = root.conversation_id;
+  }
+  if (root.service_tier !== undefined) result.service_tier = root.service_tier;
+  if (root.temperature !== undefined) result.temperature = root.temperature;
+  // Translate max_tokens / max_completion_tokens → max_output_tokens for Responses API.
+  // The Responses API does not accept max_tokens or max_completion_tokens; it requires
+  // max_output_tokens. max_completion_tokens takes priority as the newer Chat Completions field.
+  if (root.max_completion_tokens !== undefined) {
+    result.max_output_tokens = root.max_completion_tokens;
+  } else if (root.max_tokens !== undefined) {
+    result.max_output_tokens = root.max_tokens;
+  }
+  if (root.top_p !== undefined) result.top_p = root.top_p;
+  if (root.reasoning !== undefined) {
+    result.reasoning = root.reasoning;
+  } else if (root.reasoning_effort !== undefined) {
+    const effort = normalizeResponsesReasoningEffort(root.reasoning_effort);
+    if (effort) {
+      result.reasoning = { effort };
+    }
+  }
+  if (storeEnabled) {
+    if (root[RESPONSES_STORE_MARKER] !== undefined) {
+      result.store = root[RESPONSES_STORE_MARKER];
+    } else if (root.store !== undefined) {
+      result.store = root.store;
+    }
+  }
+
+  return result;
+}
+
+>>>>>>> Stashed changes
 // Register both directions
 register(FORMATS.OPENAI_RESPONSES, FORMATS.OPENAI, openaiResponsesToOpenAIRequest, null);
 register(FORMATS.OPENAI, FORMATS.OPENAI_RESPONSES, openaiToOpenAIResponsesRequest, null);

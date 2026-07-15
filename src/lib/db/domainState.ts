@@ -38,24 +38,6 @@ interface BudgetResetLogRecord {
   periodEnd: number;
 }
 
-interface FallbackChainEntry {
-  provider: string;
-  priority: number;
-  enabled: boolean;
-}
-
-interface LockoutStateRecord {
-  attempts: number[];
-  lockedUntil: number | null;
-}
-
-interface CircuitBreakerStateRecord {
-  state: string;
-  failureCount: number;
-  lastFailureTime: number | null;
-  options?: JsonRecord | null;
-}
-
 let _budgetSchemaChecked = false;
 
 function asRecord(value: unknown): JsonRecord {
@@ -132,7 +114,7 @@ function ensureBudgetSchema() {
  * @param {string} model
  * @param {Array<{provider: string, priority: number, enabled: boolean}>} chain
  */
-export function saveFallbackChain(model: string, chain: FallbackChainEntry[]) {
+export function saveFallbackChain(model, chain) {
   const db = getDbInstance();
   db.prepare("INSERT OR REPLACE INTO domain_fallback_chains (model, chain) VALUES (?, ?)").run(
     model,
@@ -145,7 +127,7 @@ export function saveFallbackChain(model: string, chain: FallbackChainEntry[]) {
  * @param {string} model
  * @returns {Array<{provider: string, priority: number, enabled: boolean}> | null}
  */
-export function loadFallbackChain(model: string): FallbackChainEntry[] | null {
+export function loadFallbackChain(model) {
   const db = getDbInstance();
   const row = db.prepare("SELECT chain FROM domain_fallback_chains WHERE model = ?").get(model);
   const chain = asRecord(row).chain;
@@ -175,7 +157,7 @@ export function loadAllFallbackChains() {
  * @param {string} model
  * @returns {boolean}
  */
-export function deleteFallbackChain(model: string) {
+export function deleteFallbackChain(model) {
   const db = getDbInstance();
   const info = db.prepare("DELETE FROM domain_fallback_chains WHERE model = ?").run(model);
   return info.changes > 0;
@@ -196,7 +178,7 @@ export function deleteAllFallbackChains() {
  * @param {string} apiKeyId
  * @param {{ dailyLimitUsd: number, monthlyLimitUsd?: number, warningThreshold?: number }} config
  */
-export function saveBudget(apiKeyId: string, config: Partial<BudgetConfigRecord>) {
+export function saveBudget(apiKeyId, config) {
   ensureBudgetSchema();
   const db = getDbInstance();
   db.prepare(
@@ -234,7 +216,7 @@ export function saveBudget(apiKeyId: string, config: Partial<BudgetConfigRecord>
  * @param {string} apiKeyId
  * @returns {{ dailyLimitUsd: number, monthlyLimitUsd: number, warningThreshold: number } | null}
  */
-export function loadBudget(apiKeyId: string): BudgetConfigRecord | null {
+export function loadBudget(apiKeyId) {
   ensureBudgetSchema();
   const db = getDbInstance();
   const row = db.prepare("SELECT * FROM domain_budgets WHERE api_key_id = ?").get(apiKeyId);
@@ -246,9 +228,7 @@ export function loadBudget(apiKeyId: string): BudgetConfigRecord | null {
     monthlyLimitUsd: toNumber(record.monthly_limit_usd),
     warningThreshold: toNumber(record.warning_threshold, 0.8),
     resetInterval:
-      typeof record.reset_interval === "string"
-        ? (record.reset_interval as BudgetResetInterval)
-        : "daily",
+      typeof record.reset_interval === "string" ? record.reset_interval : ("daily" as const),
     resetTime: typeof record.reset_time === "string" ? record.reset_time : "00:00",
     budgetResetAt: toNumber(record.budget_reset_at, 0) || null,
     lastBudgetResetAt: toNumber(record.last_budget_reset_at, 0) || null,
@@ -355,7 +335,7 @@ export function loadBudgetResetLogs(apiKeyId: string, limit = 10) {
  * Delete a budget config.
  * @param {string} apiKeyId
  */
-export function deleteBudget(apiKeyId: string) {
+export function deleteBudget(apiKeyId) {
   ensureBudgetSchema();
   const db = getDbInstance();
   db.prepare("DELETE FROM domain_budgets WHERE api_key_id = ?").run(apiKeyId);
@@ -370,7 +350,7 @@ export function deleteBudget(apiKeyId: string) {
  * @param {number} cost
  * @param {number} [timestamp]
  */
-export function saveCostEntry(apiKeyId: string, cost: number, timestamp = Date.now()) {
+export function saveCostEntry(apiKeyId, cost, timestamp = Date.now()) {
   ensureBudgetSchema();
   const db = getDbInstance();
   db.prepare("INSERT INTO domain_cost_history (api_key_id, cost, timestamp) VALUES (?, ?, ?)").run(
@@ -401,24 +381,13 @@ export function batchSaveCostEntries(
   tx(entries);
 }
 
-export function loadCostTotal(apiKeyId: string, sinceTimestamp: number) {
-  ensureBudgetSchema();
-  const db = getDbInstance();
-  const row = db
-    .prepare(
-      "SELECT COALESCE(SUM(cost), 0) AS total FROM domain_cost_history WHERE api_key_id = ? AND timestamp >= ?"
-    )
-    .get(apiKeyId, sinceTimestamp) as { total?: number } | undefined;
-  return Number(row?.total || 0);
-}
-
 /**
  * Load cost entries for an API key within a time window.
  * @param {string} apiKeyId
  * @param {number} sinceTimestamp
  * @returns {Array<{cost: number, timestamp: number}>}
  */
-export function loadCostEntries(apiKeyId: string, sinceTimestamp: number) {
+export function loadCostEntries(apiKeyId, sinceTimestamp) {
   ensureBudgetSchema();
   const db = getDbInstance();
   return db
@@ -457,7 +426,7 @@ export function loadCostEntriesInRange(
  * @param {number} olderThanTimestamp
  * @returns {number} deleted count
  */
-export function cleanOldCostEntries(olderThanTimestamp: number) {
+export function cleanOldCostEntries(olderThanTimestamp) {
   ensureBudgetSchema();
   const db = getDbInstance();
   const info = db
@@ -470,7 +439,7 @@ export function cleanOldCostEntries(olderThanTimestamp: number) {
  * Delete all cost data for an API key.
  * @param {string} apiKeyId
  */
-export function deleteCostEntries(apiKeyId: string) {
+export function deleteCostEntries(apiKeyId) {
   ensureBudgetSchema();
   const db = getDbInstance();
   db.prepare("DELETE FROM domain_cost_history WHERE api_key_id = ?").run(apiKeyId);
@@ -494,7 +463,7 @@ export function deleteAllCostData() {
  * @param {string} identifier
  * @param {{ attempts: number[], lockedUntil: number|null }} state
  */
-export function saveLockoutState(identifier: string, state: LockoutStateRecord) {
+export function saveLockoutState(identifier, state) {
   const db = getDbInstance();
   db.prepare(
     `INSERT OR REPLACE INTO domain_lockout_state (identifier, attempts, locked_until)
@@ -507,7 +476,7 @@ export function saveLockoutState(identifier: string, state: LockoutStateRecord) 
  * @param {string} identifier
  * @returns {{ attempts: number[], lockedUntil: number|null } | null}
  */
-export function loadLockoutState(identifier: string): LockoutStateRecord | null {
+export function loadLockoutState(identifier) {
   const db = getDbInstance();
   const row = db.prepare("SELECT * FROM domain_lockout_state WHERE identifier = ?").get(identifier);
   if (!row) return null;
@@ -524,7 +493,7 @@ export function loadLockoutState(identifier: string): LockoutStateRecord | null 
  * Delete lockout state for an identifier.
  * @param {string} identifier
  */
-export function deleteLockoutState(identifier: string) {
+export function deleteLockoutState(identifier) {
   const db = getDbInstance();
   db.prepare("DELETE FROM domain_lockout_state WHERE identifier = ?").run(identifier);
 }
@@ -558,7 +527,7 @@ export function loadAllLockedIdentifiers() {
  * @param {string} name
  * @param {{ state: string, failureCount: number, lastFailureTime: number|null, options?: object }} cbState
  */
-export function saveCircuitBreakerState(name: string, cbState: CircuitBreakerStateRecord) {
+export function saveCircuitBreakerState(name, cbState) {
   const db = getDbInstance();
   db.prepare(
     `INSERT OR REPLACE INTO domain_circuit_breakers (name, state, failure_count, last_failure_time, options)
@@ -577,7 +546,7 @@ export function saveCircuitBreakerState(name: string, cbState: CircuitBreakerSta
  * @param {string} name
  * @returns {{ state: string, failureCount: number, lastFailureTime: number|null, options?: object } | null}
  */
-export function loadCircuitBreakerState(name: string): CircuitBreakerStateRecord | null {
+export function loadCircuitBreakerState(name) {
   const db = getDbInstance();
   const row = db.prepare("SELECT * FROM domain_circuit_breakers WHERE name = ?").get(name);
   if (!row) return null;
@@ -616,7 +585,7 @@ export function loadAllCircuitBreakerStates() {
  * Delete a circuit breaker state.
  * @param {string} name
  */
-export function deleteCircuitBreakerState(name: string) {
+export function deleteCircuitBreakerState(name) {
   const db = getDbInstance();
   db.prepare("DELETE FROM domain_circuit_breakers WHERE name = ?").run(name);
 }

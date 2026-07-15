@@ -1,10 +1,7 @@
 import { NextResponse } from "next/server";
 import { MCP_TOOLS, MCP_TOOL_MAP } from "@omniroute/open-sse/mcp-server/schemas/tools";
-import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 
-export async function GET(request: Request) {
-  const authError = await requireManagementAuth(request);
-  if (authError) return authError;
+export async function GET() {
   try {
     return NextResponse.json({
       total: MCP_TOOLS.length,

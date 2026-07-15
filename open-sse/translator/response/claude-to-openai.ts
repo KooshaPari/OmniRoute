@@ -114,6 +114,7 @@ export function claudeToOpenAIResponse(chunk, state) {
 
     case "content_block_stop": {
       if (state.inThinkingBlock && chunk.index === state.currentBlockIndex) {
+<<<<<<< Updated upstream
         // Defer the </think> close marker instead of emitting immediately.
         // If the next block is tool_use there will be no text_delta, so the
         // marker would appear as a spurious assistant text chunk before
@@ -123,6 +124,10 @@ export function claudeToOpenAIResponse(chunk, state) {
         // behavior) or in the message_delta finish path when no tool_calls
         // were collected.
         state.pendingThinkClose = true;
+=======
+        // Thinking block closed — no additional content needed;
+        // reasoning_content chunks have already been streamed
+>>>>>>> Stashed changes
         state.inThinkingBlock = false;
       }
       state.textBlockStarted = false;
@@ -134,21 +139,6 @@ export function claudeToOpenAIResponse(chunk, state) {
       // Extract usage from message_delta event (Claude native format)
       // Normalize to OpenAI format (prompt_tokens/completion_tokens) for consistent logging
       if (chunk.usage && typeof chunk.usage === "object") {
-        const previousUsage = state.usage && typeof state.usage === "object" ? state.usage : {};
-        const previousInputTokens =
-          typeof previousUsage.input_tokens === "number"
-            ? previousUsage.input_tokens
-            : typeof previousUsage.prompt_tokens === "number"
-              ? previousUsage.prompt_tokens
-              : 0;
-        const previousCacheReadTokens =
-          typeof previousUsage.cache_read_input_tokens === "number"
-            ? previousUsage.cache_read_input_tokens
-            : 0;
-        const previousCacheCreationTokens =
-          typeof previousUsage.cache_creation_input_tokens === "number"
-            ? previousUsage.cache_creation_input_tokens
-            : 0;
         const inputTokens =
           typeof chunk.usage.input_tokens === "number" ? chunk.usage.input_tokens : 0;
         const outputTokens =
@@ -163,32 +153,21 @@ export function claudeToOpenAIResponse(chunk, state) {
             : 0;
 
         // Use OpenAI format keys for consistent logging in stream.js
-        // Issue #1426: Include cache_read tokens in prompt_tokens so cached input
-        // is visible to downstream billing systems.
-        // Issue #2215: Exclude cache_creation_input_tokens from prompt_tokens —
-        // Anthropic's cache-creation pads short prompts up to a 1024-token
-        // minimum, so a 2-token "hi" can be reported as ~2008 prompt_tokens and
-        // inflate downstream billing ~250x. cache_creation is still exposed
-        // separately via prompt_tokens_details.cache_creation_tokens below.
-        const billableInputTokens =
-          inputTokens > 0 || cacheReadTokens > 0 || cacheCreationTokens > 0
-            ? inputTokens + cacheReadTokens
-            : previousInputTokens;
+        // Issue #1426: Include cached tokens in prompt_tokens and input_tokens
+        const totalInputTokens = inputTokens + cacheReadTokens + cacheCreationTokens;
         state.usage = {
-          prompt_tokens: billableInputTokens,
+          prompt_tokens: totalInputTokens,
           completion_tokens: outputTokens,
-          input_tokens: billableInputTokens,
+          input_tokens: totalInputTokens,
           output_tokens: outputTokens,
         };
 
         // Store cache tokens if present (needed for prompt_tokens_details in final chunk)
-        const effectiveCacheReadTokens = cacheReadTokens || previousCacheReadTokens;
-        const effectiveCacheCreationTokens = cacheCreationTokens || previousCacheCreationTokens;
-        if (effectiveCacheReadTokens > 0) {
-          state.usage.cache_read_input_tokens = effectiveCacheReadTokens;
+        if (cacheReadTokens > 0) {
+          state.usage.cache_read_input_tokens = cacheReadTokens;
         }
-        if (effectiveCacheCreationTokens > 0) {
-          state.usage.cache_creation_input_tokens = effectiveCacheCreationTokens;
+        if (cacheCreationTokens > 0) {
+          state.usage.cache_creation_input_tokens = cacheCreationTokens;
         }
       }
 
@@ -238,8 +217,7 @@ export function claudeToOpenAIResponse(chunk, state) {
           const cachedTokens = state.usage.cache_read_input_tokens || 0;
           const cacheCreationTokens = state.usage.cache_creation_input_tokens || 0;
 
-          // prompt_tokens = input_tokens (input + cache_read, per #2215 —
-          // cache_creation is exposed separately in prompt_tokens_details below).
+          // prompt_tokens = input_tokens (which now includes cache_read + cache_creation)
           // completion_tokens = output_tokens
           // total_tokens = prompt_tokens + completion_tokens
           const promptTokens = inputTokens;

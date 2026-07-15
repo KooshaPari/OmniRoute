@@ -2,6 +2,7 @@
  * AI SDK compatibility helpers (T26).
  */
 
+<<<<<<< Updated upstream
 export type StreamDefaultMode = "legacy" | "json";
 
 export interface ResolveStreamFlagOptions {
@@ -31,6 +32,8 @@ export function normalizeStreamDefaultMode(value: unknown): StreamDefaultMode {
   return value === "json" ? "json" : "legacy";
 }
 
+=======
+>>>>>>> Stashed changes
 /**
  * Detects when a client explicitly prefers JSON (non-SSE) responses.
  */
@@ -64,14 +67,8 @@ export function acceptHeaderForcesStream(acceptHeader: unknown, bodyStream: unkn
  * Accept header only acts as fallback when stream is not explicitly set.
  * Fixes #656: clients sending both `stream: true` and `Accept: application/json`
  * should still get streaming responses — body intent takes precedence.
- *
- * Optional `sourceFormat` argument lets callers apply spec-correct defaults
- * when both `stream` and `Accept` are ambiguous. The Anthropic Messages API
- * and the OpenAI Responses API both default to non-stream when the body omits
- * `stream`. Without this hint, OmniRoute previously routed those requests with
- * a curl-default wildcard Accept header through the streaming branch even
- * though upstream returned JSON, producing STREAM_EARLY_EOF / HTTP 502.
  */
+<<<<<<< Updated upstream
 export function resolveStreamFlag(
   bodyStream: unknown,
   acceptHeader: unknown,
@@ -132,12 +129,14 @@ export function resolveStreamFlag(
 
   // No explicit stream param — preserve OmniRoute's streaming default unless
   // the client explicitly asks for JSON and does not also accept SSE.
+=======
+export function resolveStreamFlag(bodyStream: unknown, acceptHeader: unknown): boolean {
+  // Explicit body value always wins
+  if (bodyStream === true) return true;
+  if (bodyStream === false) return false;
+  // No explicit stream param — fall back to Accept header heuristic
+>>>>>>> Stashed changes
   return !clientWantsJsonResponse(acceptHeader);
-}
-
-export function isKnownJsonOnlyClient(userAgent: unknown): boolean {
-  if (typeof userAgent !== "string") return false;
-  return /nextcloud\s+openai\/localai\s+integration/i.test(userAgent);
 }
 
 /**

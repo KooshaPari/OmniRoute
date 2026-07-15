@@ -13,7 +13,6 @@
 import fs from "fs";
 import os from "os";
 import path from "path";
-import { isRunningInDocker } from "./dockerDetect";
 
 /** Minimal keytar surface (CJS/native; typings may not expose `default`). */
 type KeytarModule = {
@@ -100,19 +99,7 @@ function extractProviderFromService(service: string): string {
 }
 
 /**
- * Discovers all Zed OAuth credentials stored in the system keychain.
- *
- * SECURITY-AUDITOR-NOTE: This function appears in Socket.dev finding for
- * `app/.next/server/app/api/providers/zed/import/route.js`. Behaviour:
- *   - Called from `POST /api/providers/zed/discover` and `POST /api/providers/zed/import`,
- *     which are gated by `requireManagementAuth`.
- *   - From v3.8.6 onward, `/import` requires `confirmedAccounts` (per-account
- *     user consent) before persisting any credential. See the matching note in
- *     `src/app/api/providers/zed/import/route.ts`.
- *   - Reads only Zed editor patterns (`zed-openai`, `ai.zed.anthropic`, …).
- *     The raw token never leaves the host — the `/discover` response carries
- *     only a 16-char fingerprint.
- *   - See docs/security/SOCKET_DEV_FINDINGS.md §2 for the full attestation.
+ * Discovers all Zed OAuth credentials stored in the system keychain
  *
  * @returns Array of discovered credentials with provider, service, and token
  */
@@ -145,7 +132,7 @@ export async function discoverZedCredentials(): Promise<ZedCredential[]> {
         });
       }
     } catch (error: any) {
-      console.debug("No credentials found for %s:", pattern, error?.message || error);
+      console.debug(`No credentials found for ${pattern}:`, error?.message || error);
       // Continue to next pattern
     }
   }
@@ -199,7 +186,7 @@ export async function getZedCredential(provider: string): Promise<ZedCredential 
         }
       }
     } catch (error: any) {
-      console.debug("Failed to get credential for %s:", pattern, error?.message || error);
+      console.debug(`Failed to get credential for ${pattern}:`, error?.message || error);
     }
   }
 

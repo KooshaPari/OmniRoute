@@ -1,45 +1,114 @@
-## Summary
+<!--
+Thanks for opening a pull request!
 
-- Describe the user-facing or operational change.
+Please complete the sections below. Sections marked with an asterisk
+are required. Reviewers use this template to verify scope, risk, and
+readiness, so please be thorough but concise.
 
-## Related Issues
+If a section does not apply, write "N/A" rather than deleting it.
+-->
+
+## What*
+
+<!-- One- or two-sentence summary of the change.
+     Example: "Add retry-with-backoff to the platform SDK client." -->
+
+## Why*
+
+<!-- The motivation: bug, user request, spec link, incident, or tech-debt item.
+     Link the issue, ticket, or design doc (e.g. Closes #123, Refs SPEC.md §4.2). -->
+
+## How*
+
+<!-- Implementation notes reviewers should know.
+     - High-level approach
+     - Key files / modules touched
+     - Non-obvious decisions or trade-offs
+     - Backward-compatibility implications -->
+
+### Type of Change
+
+- [ ] Bug fix (non-breaking change that fixes an issue)
+- [ ] New feature (non-breaking change that adds functionality)
+- [ ] Breaking change (fix or feature that would cause existing functionality to not work as expected)
+- [ ] Refactor / cleanup (no behavior change)
+- [ ] Performance improvement
+- [ ] Documentation only
+- [ ] Build / CI / tooling
+- [ ] Security fix
+
+## Testing*
+
+<!-- Describe how this was verified. Check all that apply. -->
+
+- [ ] Unit tests added or updated
+- [ ] Integration / end-to-end tests added or updated
+- [ ] Manual smoke test performed
+- [ ] Lint / format / type-check passes locally
+- [ ] Existing tests still pass
+
+### Test Commands
+
+<!-- Paste the exact commands you ran, e.g. -->
+
+```sh
+# Example:
+# cargo test --workspace
+# pnpm -r test
+# go test ./...
+```
+
+### Test Evidence
+
+<!-- Paste relevant output, screenshots, or links to CI runs. -->
+
+## Checklist*
+
+<!-- Standard pre-merge checks. -->
+
+- [ ] My code follows the project's style guidelines
+- [ ] I have performed a self-review of my own code
+- [ ] I have commented my code, particularly in hard-to-understand areas
+- [ ] I have updated the documentation (README, CHANGELOG, docs/) as needed
+- [ ] My changes generate no new warnings
+- [ ] I have added tests that prove my fix is effective or that my feature works
+- [ ] New and existing unit tests pass locally with my changes
+- [ ] Any dependent changes have been merged and published
+
+## Risk & Rollout*
+
+<!-- Force the author to think about blast radius. -->
+
+- **Risk level**: `low` / `medium` / `high`
+- **Blast radius**: <!-- who/what is affected: users, services, schemas, etc. -->
+- **Feature flag required?**: `yes` / `no` — if yes, link the flag
+- **Migration / data backfill needed?**: `yes` / `no` — describe
+- **Rollback plan**: <!-- single revert? disable flag? drain queue? -->
+
+### Affected Surfaces
+
+<!-- Check every surface this PR touches. -->
+
+- [ ] Public API / SDK
+- [ ] CLI / install / packaging
+- [ ] Configuration / environment variables
+- [ ] Database schema or migrations
+- [ ] Network / IPC / RPC contracts
+- [ ] Authentication / authorization
+- [ ] Telemetry / logging / tracing
+- [ ] Dependencies (added, removed, or upgraded)
+- [ ] Documentation site or example apps
+
+## Related
+
+<!-- Issues, PRs, design docs, specs. -->
 
 - Closes #
-- Related to #
-
-## Validation
-
-- [ ] `npm run lint`
-- [ ] `npm run test:unit`
-- [ ] `npm run test:coverage`
-- [ ] Coverage is still `>= 60%` for statements, lines, functions, and branches
-- [ ] SonarQube PR analysis is green or any remaining issues are explicitly documented below
-
-## Tests Added Or Updated
-
-- List every changed or added automated test file.
-- If no production code changed, state that here.
-
-## Coverage Notes
-
-- If this PR changes `src/`, `open-sse/`, `electron/`, or `bin/`, explain which tests cover the change.
-- If coverage moved down in any touched file, explain why and what follow-up task will recover it.
+- Refs #
+- Related: #
 
 ## Reviewer Notes
 
-- Call out any risky areas, migrations, feature flags, or manual validation that reviewers should know about.
+<!-- Anything reviewers should pay extra attention to: tricky logic,
+     concurrency, performance, security, etc. -->
 
-## 71-pillar self-check
-
-This repo is scored weekly under the 71-pillar framework (see
-`findings/71-pillar-2026-06-18.md` and ADR-024). For non-trivial PRs,
-identify which pillars your change touches so reviewers can spot
-regressions early.
-
-- [ ] **No pillar regressions**: scan the per-pillar scorecard before/after; this PR does not move any pillar from 3→2 or 2→1.
-- [ ] **Domain touched** (pick one or more; see audit § 2): `AX` (L1–L12) · `Perf` (L13–L19) · `Quality` (L20–L27) · `DX` (L28–L37) · `UX` (L38–L45) · `Security` (L46–L55) · `Observability` (L56–L63) · `Docs` (L64–L68) · `Governance` (L69–L71)
-- [ ] **Pillars improved** (optional): list pillar IDs that this PR moves up (e.g. `L67: 1 → 3 — added openapi.yaml`). Refer to `findings/71-pillar-2026-06-18.md` for pillar definitions.
-- [ ] **Re-audit cadence**: this PR does not require a mid-week re-run of the full 71-pillar scorecard (small docs/tests/1-line fixes do not).
-- [ ] **Audit doc unchanged**: this PR does not modify `findings/71-pillar-*.md` directly; remediation score updates go in `findings/71-pillar-<date>-remediation.md` per the audit-ratchet workflow.
-
-If unsure, leave the domain + pillars blank and the reviewer will fill them in. The 71-pillar scorecard is owned by the worklog-schema circle and is re-run weekly (Mon 09:00 PDT).

@@ -1,13 +1,8 @@
 // Re-export from open-sse with local logger
 import * as log from "../utils/logger";
-import {
-  updateProviderConnection,
-  resolveProxyForConnection,
-  resolveProxyForProvider,
-} from "@/lib/localDb";
+import { updateProviderConnection, resolveProxyForProvider } from "@/lib/localDb";
 import {
   TOKEN_EXPIRY_BUFFER_MS as BUFFER_MS,
-  getRefreshLeadMs as _getRefreshLeadMs,
   refreshAccessToken as _refreshAccessToken,
   refreshClaudeOAuthToken as _refreshClaudeOAuthToken,
   refreshGoogleToken as _refreshGoogleToken,
@@ -22,38 +17,19 @@ import {
   getAllAccessTokens as _getAllAccessTokens,
 } from "@omniroute/open-sse/services/tokenRefresh.ts";
 
-// DEPRECATED: withConnectionRefreshMutex was removed. The per-connection mutex
-// is now consolidated in open-sse/services/tokenRefresh.ts and protected by
-// passing an `onPersist` callback to `getAccessToken`, which runs the DB write
-// INSIDE the mutex closure (atomic [network + persist]). The old src/sse-side
-// mutex Map was redundant and created the illusion of two locks when there was
-// actually only one. Removing it eliminates the dual-Map confusion. See
-// docs/architecture/SSE_BOUNDARY.md and tests/unit/token-refresh-race-comprehensive.test.ts.
-
 export const TOKEN_EXPIRY_BUFFER_MS = BUFFER_MS;
-
-async function resolveProxyForCredentials(provider: string, credentials?: any) {
-  if (credentials?.connectionId) {
-    const resolved = await resolveProxyForConnection(credentials.connectionId);
-    if (resolved?.proxy) {
-      return resolved.proxy;
-    }
-  }
-
-  return resolveProxyForProvider(provider);
-}
 
 export const refreshAccessToken = async (
   provider: string,
   refreshToken: string,
   credentials: any
 ) => {
-  const proxy = await resolveProxyForCredentials(provider, credentials);
+  const proxy = await resolveProxyForProvider(provider);
   return _refreshAccessToken(provider, refreshToken, credentials, log, proxy);
 };
 
-export const refreshClaudeOAuthToken = async (refreshToken: string, credentials?: any) => {
-  const proxy = await resolveProxyForCredentials("claude", credentials);
+export const refreshClaudeOAuthToken = async (refreshToken: string) => {
+  const proxy = await resolveProxyForProvider("claude");
   return _refreshClaudeOAuthToken(refreshToken, log, proxy);
 };
 
@@ -61,49 +37,44 @@ export const refreshGoogleToken = async (
   refreshToken: string,
   clientId: string,
   clientSecret: string,
-  provider: string = "gemini",
-  credentials?: any
+  provider: string = "gemini"
 ) => {
-  const proxy = await resolveProxyForCredentials(provider, credentials);
+  const proxy = await resolveProxyForProvider(provider);
   return _refreshGoogleToken(refreshToken, clientId, clientSecret, log, proxy);
 };
 
-export const refreshQwenToken = async (refreshToken: string, credentials?: any) => {
-  const proxy = await resolveProxyForCredentials("qwen", credentials);
+export const refreshQwenToken = async (refreshToken: string) => {
+  const proxy = await resolveProxyForProvider("qwen");
   return _refreshQwenToken(refreshToken, log, proxy);
 };
 
-export const refreshCodexToken = async (refreshToken: string, credentials?: any) => {
-  const proxy = await resolveProxyForCredentials("codex", credentials);
+export const refreshCodexToken = async (refreshToken: string) => {
+  const proxy = await resolveProxyForProvider("codex");
   return _refreshCodexToken(refreshToken, log, proxy);
 };
 
-export const refreshQoderToken = async (refreshToken: string, credentials?: any) => {
-  const proxy = await resolveProxyForCredentials("qoder", credentials);
+export const refreshQoderToken = async (refreshToken: string) => {
+  const proxy = await resolveProxyForProvider("qoder");
   return _refreshQoderToken(refreshToken, log, proxy);
 };
 
-export const refreshGitHubToken = async (refreshToken: string, credentials?: any) => {
-  const proxy = await resolveProxyForCredentials("github", credentials);
+export const refreshGitHubToken = async (refreshToken: string) => {
+  const proxy = await resolveProxyForProvider("github");
   return _refreshGitHubToken(refreshToken, log, proxy);
 };
 
-export const refreshCopilotToken = async (githubAccessToken: string, credentials?: any) => {
-  const proxy = await resolveProxyForCredentials("github", credentials);
+export const refreshCopilotToken = async (githubAccessToken: string) => {
+  const proxy = await resolveProxyForProvider("github");
   return _refreshCopilotToken(githubAccessToken, log, proxy);
 };
 
-export const getAccessToken = async (
-  provider: string,
-  credentials: any,
-  onPersist?: (result: any) => Promise<void>
-) => {
-  const proxy = await resolveProxyForCredentials(provider, credentials);
-  return _getAccessToken(provider, credentials, log, proxy, onPersist);
+export const getAccessToken = async (provider: string, credentials: any) => {
+  const proxy = await resolveProxyForProvider(provider);
+  return _getAccessToken(provider, credentials, log, proxy);
 };
 
 export const refreshTokenByProvider = async (provider: string, credentials: any) => {
-  const proxy = await resolveProxyForCredentials(provider, credentials);
+  const proxy = await resolveProxyForProvider(provider);
   return _refreshTokenByProvider(provider, credentials, log, proxy);
 };
 
@@ -144,9 +115,6 @@ export async function updateProviderCredentials(connectionId: string, newCredent
     if (newCredentials.testStatus) {
       updates.testStatus = newCredentials.testStatus;
     }
-    if (newCredentials.isActive !== undefined) {
-      updates.isActive = newCredentials.isActive;
-    }
 
     const result = await updateProviderConnection(connectionId, updates);
     log.info("TOKEN_REFRESH", "Credentials updated in localDb", {
@@ -167,52 +135,28 @@ export async function updateProviderCredentials(connectionId: string, newCredent
 export async function checkAndRefreshToken(provider: string, credentials: any) {
   let updatedCredentials = { ...credentials };
 
-  // Check regular token expiry. Use the provider-specific lead time so rotating-
-  // token providers (Codex/OpenAI) refresh FAR ahead of access_token expiry. This
-  // keeps the refresh_token "warm" — refreshed regularly enough that Auth0 doesn't
-  // mark it as stale and revoke the token family on first use after long idle.
+  // Check regular token expiry
   if (updatedCredentials.expiresAt) {
     const expiresAt = new Date(updatedCredentials.expiresAt).getTime();
     const now = Date.now();
-    const refreshLead = _getRefreshLeadMs(provider, updatedCredentials.providerSpecificData);
 
-    if (expiresAt - now < refreshLead) {
+    if (expiresAt - now < TOKEN_EXPIRY_BUFFER_MS) {
       log.info("TOKEN_REFRESH", "Token expiring soon, refreshing proactively", {
         provider,
         expiresIn: Math.round((expiresAt - now) / 1000),
-        refreshLeadMs: refreshLead,
       });
 
-      const connectionId: string | undefined = updatedCredentials.connectionId;
-
-      // Pass onPersist so the DB write happens INSIDE the open-sse per-connection
-      // mutex, making [network call + DB write] one atomic step. This eliminates the
-      // race where a concurrent request reads stale DB credentials before the write
-      // and re-uses a rotated refresh token (refresh_token_reused on Codex/OpenAI).
-      // The separate withConnectionRefreshMutex wrapper is no longer needed here.
-      const persistCallback = connectionId
-        ? async (result: any) => {
-            await updateProviderCredentials(connectionId, result);
-          }
-        : undefined;
-
-      const newCredentials = await getAccessToken(provider, updatedCredentials, persistCallback);
-
+      const newCredentials = await getAccessToken(provider, updatedCredentials);
       if (newCredentials && newCredentials.accessToken) {
-        // For the no-connectionId path (no mutex, no onPersist), persist here as before.
-        if (!connectionId) {
-          await updateProviderCredentials(updatedCredentials.connectionId, newCredentials);
-        }
+        await updateProviderCredentials(updatedCredentials.connectionId, newCredentials);
 
         updatedCredentials = {
           ...updatedCredentials,
           accessToken: newCredentials.accessToken,
           refreshToken: newCredentials.refreshToken || updatedCredentials.refreshToken,
-          expiresAt: newCredentials.expiresAt
-            ? newCredentials.expiresAt
-            : newCredentials.expiresIn
-              ? new Date(Date.now() + newCredentials.expiresIn * 1000).toISOString()
-              : updatedCredentials.expiresAt,
+          expiresAt: newCredentials.expiresIn
+            ? new Date(Date.now() + newCredentials.expiresIn * 1000).toISOString()
+            : updatedCredentials.expiresAt,
         };
       }
     }
@@ -229,10 +173,7 @@ export async function checkAndRefreshToken(provider: string, credentials: any) {
         expiresIn: Math.round((copilotExpiresAt - now) / 1000),
       });
 
-      const copilotToken = await refreshCopilotToken(
-        updatedCredentials.accessToken,
-        updatedCredentials
-      );
+      const copilotToken = await refreshCopilotToken(updatedCredentials.accessToken);
       if (copilotToken) {
         await updateProviderCredentials(updatedCredentials.connectionId, {
           providerSpecificData: {
@@ -258,9 +199,9 @@ export async function checkAndRefreshToken(provider: string, credentials: any) {
 
 // Local-specific: Refresh GitHub and Copilot tokens together
 export async function refreshGitHubAndCopilotTokens(credentials: any) {
-  const newGitHubCredentials = await refreshGitHubToken(credentials.refreshToken, credentials);
+  const newGitHubCredentials = await refreshGitHubToken(credentials.refreshToken);
   if (newGitHubCredentials?.accessToken) {
-    const copilotToken = await refreshCopilotToken(newGitHubCredentials.accessToken, credentials);
+    const copilotToken = await refreshCopilotToken(newGitHubCredentials.accessToken);
     if (copilotToken) {
       return {
         ...newGitHubCredentials,

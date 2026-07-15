@@ -239,11 +239,7 @@ export async function resolveComboForModel(
     const regex = globToRegex(row.pattern);
     if (regex.test(modelStr)) {
       try {
-        const combo = JSON.parse(row.combo_data) as Record<string, unknown>;
-        if (combo.isActive === false) {
-          continue;
-        }
-        return combo;
+        return JSON.parse(row.combo_data);
       } catch {
         // Corrupted combo data — skip
         continue;

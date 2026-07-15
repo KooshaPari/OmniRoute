@@ -1,6 +1,9 @@
 import { getModelInfo } from "../services/model";
 import { clearAccountError, markAccountUnavailable } from "../services/auth";
+<<<<<<< Updated upstream
 import { connectionHasExtraKeys } from "@omniroute/open-sse/services/apiKeyRotator.ts";
+=======
+>>>>>>> Stashed changes
 import * as log from "../utils/logger";
 import { updateProviderCredentials } from "../services/tokenRefresh";
 import {
@@ -27,96 +30,15 @@ import {
   type AppliedProxySink,
 } from "@omniroute/open-sse/utils/proxyFetch.ts";
 import { resolveProxyForConnection } from "@/lib/localDb";
-import {
-  CircuitBreakerOpenError,
-  getCircuitBreaker,
-  isLocalStreamLifecycleError,
-} from "../../shared/utils/circuitBreaker";
-import { classify429FromError, type FailureKind } from "../../shared/utils/classify429";
-import { resolveUseUpstream429BreakerHints } from "../../shared/utils/providerHints";
-
+import { CircuitBreakerOpenError, getCircuitBreaker } from "../../shared/utils/circuitBreaker";
 import { logProxyEvent } from "../../lib/proxyLogger";
 import { logTranslationEvent } from "../../lib/translatorEvents";
 import { getRuntimeProviderProfile } from "@omniroute/open-sse/services/accountFallback.ts";
 import { resolveAutoModelOrError } from "./resolveAutoModelOrError";
 
-// Models that explicitly cannot run on the codex/ChatGPT-Pro OAuth pool — when
-// a caller writes `codex/deepseek-v4-pro` we transparently reroute to the
-// canonical provider whose API key is configured. Saves callers from having
-// to know about the OAuth-vs-API-key split.
-const NON_OAUTH_MODEL_PREFIX = /^(deepseek|qwen|kimi|glm|minimax|mimo)/i;
-const PREFERRED_BY_FAMILY: Record<string, string> = {
-  deepseek: "deepseek",
-  qwen: "bailian",
-  kimi: "moonshot",
-  glm: "zhipu",
-  minimax: "minimax",
-  mimo: "moonshot",
-};
-
-const CODEX_NATIVE_RESPONSES_MODELS = new Set(["gpt-5.5"]);
-
-type TrafficType = "production" | "shadow";
-
-type ExecuteChatWithBreakerOptions = {
-  trafficType?: TrafficType;
-  [key: string]: any;
-};
-
-function getHeaderValue(headers: Record<string, unknown> | null | undefined, name: string) {
-  if (!headers || typeof headers !== "object") return "";
-  const lowerName = name.toLowerCase();
-  for (const [key, value] of Object.entries(headers)) {
-    if (key.toLowerCase() !== lowerName) continue;
-    return Array.isArray(value) ? value.join(",") : String(value ?? "");
-  }
-  return "";
-}
-
-function isCodexNativeResponsesRequest(
-  body: any,
-  endpointPath: string,
-  headers: Record<string, unknown> | null | undefined
-) {
-  const normalizedEndpoint = String(endpointPath || "").replace(/\/+$/, "");
-  if (!/(^|\/)responses(?=\/|$)/i.test(normalizedEndpoint)) return false;
-  if (/\/responses\/compact$/i.test(normalizedEndpoint)) return true;
-
-  const userAgent = getHeaderValue(headers, "user-agent").toLowerCase();
-  if (userAgent.includes("codex")) return true;
-  if (getHeaderValue(headers, "x-codex-session-id")) return true;
-  if (getHeaderValue(headers, "x-codex-window-id")) return true;
-  if (getHeaderValue(headers, "x-codex-turn-metadata")) return true;
-
-  const metadataSource =
-    body && typeof body === "object" && body.metadata && typeof body.metadata === "object"
-      ? String(body.metadata.source || "")
-      : "";
-  return metadataSource.toLowerCase().includes("codex");
-}
-
-async function hasOnlyActiveCodexAccount() {
-  try {
-    const { getProviderConnections } = await import("@/lib/db/providers");
-    const connections = await getProviderConnections({ isActive: true });
-    const providers = new Set(
-      connections
-        .map((connection: any) => String(connection?.provider || "").trim())
-        .filter(Boolean)
-    );
-    return providers.size === 1 && providers.has("codex");
-  } catch {
-    return false;
-  }
-}
-
-export async function resolveModelOrError(
-  modelStr: string,
-  body: any,
-  endpointPath: string = "",
-  requestHeaders: Record<string, unknown> | null | undefined = null
-) {
+export async function resolveModelOrError(modelStr: string, body: any, endpointPath: string = "") {
   const modelInfo = await getModelInfo(modelStr);
+<<<<<<< Updated upstream
   const sourceFormat = detectFormatFromEndpoint(body, endpointPath);
 
   if (
@@ -183,61 +105,29 @@ export async function resolveModelOrError(
   const autoResolved = await resolveAutoModelOrError(modelStr, modelInfo);
   if (autoResolved) return autoResolved;
 
+=======
+>>>>>>> Stashed changes
   if (!modelInfo.provider) {
-    // model_not_found: raised by resolveModelByProviderInference when no
-    // provider could be inferred — return a clear error instead of the
-    // misleading "openai" default that the old code silently fell back to.
-    if ((modelInfo as any).errorType === "model_not_found") {
+    if ((modelInfo as any).errorType === "ambiguous_model") {
       const message =
         (modelInfo as any).errorMessage ||
-        `Model '${modelStr}' could not be resolved to a known provider.`;
-      log.warn("CHAT", message, { model: modelStr });
+        `Ambiguous model '${modelStr}'. Use provider/model prefix (ex: gh/${modelStr} or cc/${modelStr}).`;
+      log.warn("CHAT", message, {
+        model: modelStr,
+        candidates:
+          (modelInfo as any).candidateAliases || (modelInfo as any).candidateProviders || [],
+      });
       return { error: errorResponse(HTTP_STATUS.BAD_REQUEST, message) };
     }
-
-    if ((modelInfo as any).errorType === "ambiguous_model") {
-      // Family disambiguation: if the model name begins with a known
-      // non-OAuth family prefix, auto-pick the family-native provider
-      // from the candidate set instead of returning a 400. Saves callers
-      // (codex CLI, hermes, etc.) from having to guess the right alias.
-      const candidates: string[] = (modelInfo as any).candidateProviders || [];
-      const modelLower = (modelInfo.model || modelStr).toLowerCase();
-      const family = modelLower.match(NON_OAUTH_MODEL_PREFIX)?.[1];
-      const pick = family && PREFERRED_BY_FAMILY[family];
-      if (pick && candidates.includes(pick)) {
-        log.info(
-          "ROUTING",
-          `${modelStr} → ${pick}/${modelInfo.model} (ambiguity auto-resolved by family)`
-        );
-        modelInfo.provider = pick;
-      } else {
-        const message =
-          (modelInfo as any).errorMessage ||
-          `Ambiguous model '${modelStr}'. Use provider/model prefix (ex: gh/${modelStr} or cc/${modelStr}).`;
-        log.warn("CHAT", message, {
-          model: modelStr,
-          candidates:
-            (modelInfo as any).candidateAliases || (modelInfo as any).candidateProviders || [],
-        });
-        return { error: errorResponse(HTTP_STATUS.BAD_REQUEST, message) };
-      }
-    } else {
-      log.warn("CHAT", "Invalid model format", { model: modelStr });
-      return { error: errorResponse(HTTP_STATUS.BAD_REQUEST, "Invalid model format") };
-    }
+    log.warn("CHAT", "Invalid model format", { model: modelStr });
+    return { error: errorResponse(HTTP_STATUS.BAD_REQUEST, "Invalid model format") };
   }
 
   const { provider, model, extendedContext } = modelInfo;
-  // apiFormat: optional custom-model marker — see chatCore.ts for shape narrowing rationale.
-  const apiFormat: string | undefined =
-    modelInfo && typeof modelInfo === "object" && "apiFormat" in modelInfo
-      ? typeof (modelInfo as { apiFormat?: unknown }).apiFormat === "string"
-        ? ((modelInfo as { apiFormat?: string }).apiFormat as string)
-        : undefined
-      : undefined;
+  const sourceFormat = detectFormatFromEndpoint(body, endpointPath);
   const providerAlias = PROVIDER_ID_TO_ALIAS[provider] || provider;
   let targetFormat = getModelTargetFormat(providerAlias, model) || getTargetFormat(provider);
-  if (apiFormat === "responses") {
+  if ((modelInfo as any).apiFormat === "responses") {
     targetFormat = "openai-responses";
     log.info("ROUTING", `Custom model apiFormat=responses → targetFormat=openai-responses`);
   }
@@ -249,7 +139,7 @@ export async function resolveModelOrError(
     log.info("ROUTING", `Provider: ${provider}, Model: ${model}${ctxTag}`);
   }
 
-  return { provider, model, sourceFormat, targetFormat, extendedContext, apiFormat };
+  return { provider, model, sourceFormat, targetFormat, extendedContext };
 }
 
 export async function checkPipelineGates(
@@ -263,36 +153,17 @@ export async function checkPipelineGates(
       circuitBreakerThreshold?: number;
       circuitBreakerReset?: number;
       failureThreshold?: number;
-      degradationThreshold?: number;
       resetTimeoutMs?: number;
     } | null;
   } = {}
 ) {
   const bypassReason = options.bypassReason || "pipeline override";
   const providerProfile = options.providerProfile ?? (await getRuntimeProviderProfile(provider));
-  // Issue #2100 follow-up: opt-in upstream 429 hint trust per provider.
-  const useHints429 = resolveUseUpstream429BreakerHints(
-    provider,
-    (providerProfile as { useUpstream429BreakerHints?: boolean }).useUpstream429BreakerHints
-  );
   const breaker = getCircuitBreaker(provider, {
     failureThreshold: providerProfile.failureThreshold ?? providerProfile.circuitBreakerThreshold,
-    degradationThreshold: providerProfile.degradationThreshold,
     resetTimeout: providerProfile.resetTimeoutMs ?? providerProfile.circuitBreakerReset,
-    // #4602: a local WS-bridge "Controller is already closed" throw is not an
-    // upstream outage — keep it from tripping the whole-provider breaker.
-    isFailure: (e) => !isLocalStreamLifecycleError(e),
     onStateChange: (name: string, from: string, to: string) =>
       log.info("CIRCUIT", `${name}: ${from} → ${to}`),
-    ...(useHints429
-      ? {
-          cooldownByKind: {
-            rate_limit: 60_000,
-            quota_exhausted: 3_600_000,
-          } satisfies Partial<Record<FailureKind, number>>,
-          classifyError: classify429FromError,
-        }
-      : {}),
   });
   if (options.ignoreCircuitBreaker && !breaker.canExecute()) {
     log.info("CIRCUIT", `Bypassing OPEN circuit breaker for ${provider} (${bypassReason})`);
@@ -326,19 +197,17 @@ export async function executeChatWithBreaker({
   comboStepId,
   comboExecutionKey,
   extendedContext,
-  modelApiFormat,
   providerProfile,
+<<<<<<< Updated upstream
   cachedSettings,
   skipUpstreamRetry = false,
   trafficType = "production",
   correlationId = null,
 }: ExecuteChatWithBreakerOptions): Promise<{ result: any; tlsFingerprintUsed: boolean }> {
+=======
+}: any): Promise<{ result: any; tlsFingerprintUsed: boolean }> {
+>>>>>>> Stashed changes
   let tlsFingerprintUsed = false;
-  const normalizedTrafficType: TrafficType =
-    typeof trafficType === "string" && trafficType.trim().toLowerCase() === "shadow"
-      ? "shadow"
-      : "production";
-  const isShadowTraffic = normalizedTrafficType === "shadow";
 
   // #5217: capture the proxy actually applied during execution so the caller can
   // merge it into proxyInfo before the egress log (executors pinning a per-account
@@ -352,7 +221,7 @@ export async function executeChatWithBreaker({
       runWithProxyContext(proxyInfo?.proxy || null, () =>
         (handleChatCore as any)({
           body: { ...body, model: `${provider}/${model}` },
-          modelInfo: { provider, model, extendedContext, apiFormat: modelApiFormat },
+          modelInfo: { provider, model, extendedContext },
           credentials: refreshedCredentials,
           log: handlerLog,
           clientRawRequest,
@@ -364,10 +233,13 @@ export async function executeChatWithBreaker({
           isCombo,
           comboStepId,
           comboExecutionKey,
+<<<<<<< Updated upstream
           cachedSettings,
           skipUpstreamRetry,
           trafficType: normalizedTrafficType,
           correlationId,
+=======
+>>>>>>> Stashed changes
           onCredentialsRefreshed: async (newCreds: any) => {
             await updateProviderCredentials(credentials.connectionId, {
               accessToken: newCreds.accessToken,
@@ -379,17 +251,15 @@ export async function executeChatWithBreaker({
               // apiKey blob mid-request — forward it so the DB credential
               // doesn't go stale after Set-Cookie rotation.
               apiKey: newCreds.apiKey,
-              testStatus: newCreds.testStatus ?? "active",
-              isActive: newCreds.isActive,
+              testStatus: "active",
             });
           },
           onRequestSuccess: async () => {
-            if (isShadowTraffic) return;
             await clearAccountError(credentials.connectionId, credentials);
           },
           onStreamFailure: async (failure: any) => {
-            if (isShadowTraffic) return;
             if (!credentials.connectionId) return;
+<<<<<<< Updated upstream
             if (
               Number(failure?.status) === 499 ||
               failure?.code === "client_disconnected" ||
@@ -412,41 +282,20 @@ export async function executeChatWithBreaker({
               );
               return;
             }
+=======
+>>>>>>> Stashed changes
             await markAccountUnavailable(
               credentials.connectionId,
               Number(failure?.status || HTTP_STATUS.BAD_GATEWAY),
               String(failure?.message || failure?.code || "stream failure"),
               provider,
               model,
-              providerProfile,
-              { isCombo }
+              providerProfile
             );
           },
         })
       )
       );
-
-    if (isShadowTraffic) {
-      if (!bypassCircuitBreaker && breaker && !breaker.canExecute()) {
-        const retryAfterMs = breaker.getRetryAfterMs();
-        return {
-          result: {
-            success: false,
-            response: providerCircuitOpenResponse(provider, Math.ceil(retryAfterMs / 1000)),
-            status: HTTP_STATUS.SERVICE_UNAVAILABLE,
-          },
-          tlsFingerprintUsed: false,
-        };
-      }
-
-      if (!proxyInfo?.proxy && isTlsFingerprintActive()) {
-        const tracked = await runWithTlsTracking(chatFn);
-        return { result: tracked.result, tlsFingerprintUsed: tracked.tlsFingerprintUsed };
-      }
-
-      const result = await chatFn();
-      return { result, tlsFingerprintUsed: false };
-    }
 
     if (bypassCircuitBreaker) {
       if (!proxyInfo?.proxy && isTlsFingerprintActive()) {
@@ -534,24 +383,6 @@ export function handleNoCredentials(
       credentials.retryAfterHuman
     );
   }
-
-  if (credentials?.allExpired) {
-    // Every connection for this provider is in a terminal state (expired,
-    // banned, or credits_exhausted). Surface as 401 with a re-auth hint
-    // instead of the generic 400 "No credentials", so dashboards/CLIs can
-    // distinguish "never configured" from "needs to reconnect".
-    const status = credentials.expiredStatus || "expired";
-    const count = credentials.expiredCount || 1;
-    const reason =
-      status === "credits_exhausted"
-        ? "credits exhausted"
-        : status === "banned"
-          ? "banned by upstream"
-          : "authentication expired";
-    const message = `[${provider}] All ${count} connection(s) ${reason} — please reconnect in the dashboard`;
-    log.warn("CHAT", message);
-    return errorResponse(HTTP_STATUS.UNAUTHORIZED, message);
-  }
   if (lastError && lastStatus) {
     log.warn("CHAT", "Preserving last upstream error after credential exhaustion", {
       provider,
@@ -561,6 +392,7 @@ export function handleNoCredentials(
     return errorResponse(lastStatus, lastError);
   }
   if (!excludeConnectionId) {
+<<<<<<< Updated upstream
     // Ported from upstream decolua/9router#336 (Ibrahim Ryan): surface as 404
     // NOT_FOUND instead of 400 BAD_REQUEST so combo routing can fall through to
     // the next target. The combo target loop (open-sse/services/combo.ts) treats
@@ -573,6 +405,10 @@ export function handleNoCredentials(
     // credentials is an expected operator-driven state, not a server fault.
     log.warn("AUTH", `No active credentials for provider: ${provider}`);
     return errorResponse(HTTP_STATUS.NOT_FOUND, `No active credentials for provider: ${provider}`);
+=======
+    log.error("AUTH", `No credentials for provider: ${provider}`);
+    return errorResponse(HTTP_STATUS.BAD_REQUEST, `No credentials for provider: ${provider}`);
+>>>>>>> Stashed changes
   }
   log.warn("CHAT", "No more accounts available", { provider });
   return errorResponse(
@@ -581,56 +417,16 @@ export function handleNoCredentials(
   );
 }
 
-/**
- * Bug #3758 (Problem A): NVIDIA NIM (and other flaky OpenAI-compatible upstreams)
- * intermittently send HTTP 200, then close the SSE early with zero useful frames.
- * The readiness gate surfaces this as `STREAM_EARLY_EOF` / HTTP 502. On the
- * single-model (non-combo) path that 502 used to be returned immediately for every
- * provider except `antigravity`, so a transient upstream hang-up looked like a hard
- * failure to the caller (e.g. the test-chat scenario).
- *
- * This decides whether a single-model request should re-attempt after an early
- * close. It deliberately:
- *  - retries ONLY on `STREAM_EARLY_EOF` (the strong "upstream hung up after 200"
- *    signal) — NOT on `STREAM_READINESS_TIMEOUT` / `stream_timeout`, which is a
- *    slow-but-alive upstream where retrying would only double latency; and
- *  - is bounded to exactly ONE retry via the per-request `attempt` counter, so it
- *    can never loop (the second consecutive early close surfaces the 502).
- *
- * Pure function (no side effects): the caller performs a plain same-connection
- * re-attempt and must NOT mark the account unavailable for an early close — it is a
- * transient upstream glitch, not a bad key.
- */
-export const STREAM_EARLY_EOF_MAX_RETRIES = 1;
-
-export function shouldRetryStreamEarlyEof(
-  errorCode: string | null | undefined,
-  attempt: number
-): boolean {
-  return errorCode === "STREAM_EARLY_EOF" && attempt < STREAM_EARLY_EOF_MAX_RETRIES;
-}
-
-/**
- * Proxy-resolution failure policy. Default: fail-closed (rethrow) so a request
- * with an assigned-but-unresolvable proxy never silently egresses on the real IP.
- * Opt back into the legacy DIRECT fallback with PROXY_FAIL_OPEN=true.
- */
-export function decideProxyResolutionFailure(
-  err: unknown,
-  env: { PROXY_FAIL_OPEN?: string } = process.env
-): null {
-  if ((env.PROXY_FAIL_OPEN ?? "").trim().toLowerCase() === "true") {
-    log.warn(
-      "PROXY",
-      `Proxy resolution failed — PROXY_FAIL_OPEN=true, falling back to DIRECT: ${
-        err instanceof Error ? err.message : String(err)
-      }`
-    );
+export async function safeResolveProxy(connectionId: string) {
+  try {
+    return await resolveProxyForConnection(connectionId);
+  } catch (proxyErr: any) {
+    log.debug("PROXY", `Failed to resolve proxy: ${proxyErr.message}`);
     return null;
   }
-  throw err instanceof Error ? err : new Error(String(err));
 }
 
+<<<<<<< Updated upstream
 export async function safeResolveProxy(connectionId: string, apiKeyId?: string) {
   try {
     return await resolveProxyForConnection(connectionId, apiKeyId);
@@ -662,6 +458,9 @@ export function applyExecutorProxyToInfo(
 // Async because the egress-IP lookup lazy-imports proxyEgress; callers treat
 // this as fire-and-forget logging (the internal try/catch swallows everything).
 export async function safeLogEvents({
+=======
+export function safeLogEvents({
+>>>>>>> Stashed changes
   result,
   proxyInfo,
   proxyLatency,
@@ -680,22 +479,7 @@ export async function safeLogEvents({
       clientRawRequest?.headers?.["x-real-ip"] ||
       clientRawRequest?.headers?.["cf-connecting-ip"] ||
       null;
-    const rawIpValue = Array.isArray(rawIp) ? rawIp[0] : rawIp;
-    const clientIp = typeof rawIpValue === "string" ? rawIpValue.split(",")[0].trim() : null;
-
-    // Resolve the egress IP (the IP the upstream actually saw) from cache — never
-    // blocking the request. Warm it in the background for next time. null until
-    // the first warm completes; direct (no proxy) is also tracked.
-    let egressIp: string | null = null;
-    try {
-      const { getCachedEgressIp, warmEgressIp } = await import("../../lib/proxyEgress");
-      const { proxyConfigToUrl } = await import("@omniroute/open-sse/utils/proxyDispatcher.ts");
-      const proxyUrl = proxyInfo?.proxy ? proxyConfigToUrl(proxyInfo.proxy) : null;
-      egressIp = getCachedEgressIp(proxyUrl);
-      warmEgressIp(proxyUrl);
-    } catch {
-      // egress visibility is best-effort; never break the request path
-    }
+    const publicIp = rawIp ? rawIp.split(",")[0].trim() : null;
 
     logProxyEvent({
       status: result.success
@@ -708,8 +492,7 @@ export async function safeLogEvents({
       levelId: proxyInfo?.levelId || null,
       provider,
       targetUrl: `${provider}/${model}`,
-      clientIp,
-      egressIp,
+      publicIp,
       latencyMs: proxyLatency,
       error: result.success ? null : result.error || null,
       connectionId: credentials.connectionId,
@@ -751,6 +534,7 @@ export function withSessionHeader(response: Response, sessionId: string | null):
     return cloned;
   }
 }
+<<<<<<< Updated upstream
 
 export function withCorrelationId(response: Response, correlationId: string | null): Response {
   if (!response || !correlationId) return response;
@@ -788,3 +572,5 @@ export function withSelectedConnectionHeader(
     return cloned;
   }
 }
+=======
+>>>>>>> Stashed changes

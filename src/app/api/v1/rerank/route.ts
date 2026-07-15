@@ -1,6 +1,5 @@
 import { handleRerank } from "@omniroute/open-sse/handlers/rerank.ts";
 import { getProviderCredentials, clearRecoveredProviderState } from "@/sse/services/auth";
-import { withInjectionGuard } from "@/middleware/promptInjectionGuard";
 import { parseRerankModel, getRerankProvider } from "@omniroute/open-sse/config/rerankRegistry.ts";
 import { errorResponse } from "@omniroute/open-sse/utils/error.ts";
 import { HTTP_STATUS } from "@omniroute/open-sse/config/constants.ts";
@@ -8,10 +7,6 @@ import { enforceApiKeyPolicy } from "@/shared/utils/apiKeyPolicy";
 import { v1RerankSchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 import { getProviderNodes } from "@/lib/localDb";
-import {
-  isAllRateLimitedCredentials,
-  rateLimitedProviderResponse,
-} from "@/app/api/v1/_shared/rateLimit";
 
 /**
  * Handle CORS preflight
@@ -49,7 +44,7 @@ function buildDynamicRerankProvider(node: any) {
  * Supports cloud providers (Cohere, Together, NVIDIA, Fireworks)
  * and local provider_nodes (oMLX, vLLM, etc.) via dynamic routing.
  */
-async function postHandler(request, context) {
+export async function POST(request) {
   let rawBody;
   try {
     rawBody = await request.json();
@@ -106,9 +101,6 @@ async function postHandler(request, context) {
     if (!credentials) {
       return errorResponse(HTTP_STATUS.BAD_REQUEST, `No credentials for provider: ${provider}`);
     }
-    if (isAllRateLimitedCredentials(credentials)) {
-      return rateLimitedProviderResponse(provider, credentials);
-    }
 
     const response = await handleRerank({
       model: body.model,
@@ -138,9 +130,6 @@ async function postHandler(request, context) {
           HTTP_STATUS.BAD_REQUEST,
           `No credentials for local provider: ${prefix}`
         );
-      }
-      if (isAllRateLimitedCredentials(credentials)) {
-        return rateLimitedProviderResponse(prefix, credentials);
       }
 
       const token = credentials?.apiKey || credentials?.accessToken;
@@ -183,5 +172,3 @@ async function postHandler(request, context) {
     `Invalid rerank model: ${body.model}. Use format: provider/model`
   );
 }
-
-export const POST = withInjectionGuard(postHandler);

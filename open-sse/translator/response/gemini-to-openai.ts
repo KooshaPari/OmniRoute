@@ -1,5 +1,6 @@
 import { register } from "../registry.ts";
 import { FORMATS } from "../formats.ts";
+<<<<<<< Updated upstream
 import {
   buildGeminiThoughtSignatureKey,
   storeGeminiThoughtSignature,
@@ -289,6 +290,9 @@ function emitFunctionCallPart(
     ],
   });
 }
+=======
+import { storeGeminiThoughtSignature } from "../../services/geminiThoughtSignatureStore.ts";
+>>>>>>> Stashed changes
 
 // Convert Gemini response chunk to OpenAI format
 export function geminiToOpenAIResponse(chunk, state) {
@@ -305,40 +309,6 @@ export function geminiToOpenAIResponse(chunk, state) {
   const candidate = response.candidates?.[0];
 
   if (!candidate) {
-    // Mid-stream Gemini API error: the stream can emit an error object
-    // `{ "error": { "code": 503, "message": "...", "status": "UNAVAILABLE" } }`
-    // (optionally wrapped in `response`) instead of a candidates payload — typically
-    // after some partial content. Without this branch the chunk has no candidates and
-    // no promptFeedback, so it is dropped (return null) and the stream ends with a
-    // default finish_reason "stop", masking the failure and skipping combo fallback.
-    // Surface it as state.upstreamError so stream.ts errors the stream out (mirrors the
-    // openai-responses translator's normalizeUpstreamFailure path).
-    const errorObj = response.error || chunk.error;
-    if (errorObj && typeof errorObj === "object") {
-      const rawCode = errorObj.code;
-      const rawStatus = errorObj.status;
-      const status =
-        typeof rawCode === "number" && rawCode >= 400 && rawCode <= 599
-          ? rawCode
-          : rawStatus === "RESOURCE_EXHAUSTED"
-            ? 429
-            : 502;
-      const message =
-        typeof errorObj.message === "string" ? errorObj.message : "Gemini upstream failure";
-      state.upstreamError = {
-        status,
-        type: status === 429 ? "rate_limit_error" : "server_error",
-        code:
-          typeof rawStatus === "string" && rawStatus
-            ? rawStatus
-            : status === 429
-              ? "rate_limit_exceeded"
-              : "bad_gateway",
-        message,
-      };
-      return null;
-    }
-
     const promptFeedback = response.promptFeedback || chunk.promptFeedback;
     if (!promptFeedback) return null;
 
@@ -417,19 +387,7 @@ export function geminiToOpenAIResponse(chunk, state) {
         const hasTextContent = partText !== undefined && partText !== "";
         const hasFunctionCall = !!part.functionCall;
 
-        // Gemini/Antigravity can emit thoughtSignature as a standalone part
-        // immediately before the functionCall part. Keep it pending so the
-        // following functionCall is cached and can be re-attached on later
-        // turns; otherwise OpenAI-format clients lose the signature and the
-        // next Gemini request has to stringify historical tool calls.
-        if (hasThoughtSig && !hasTextContent && !hasFunctionCall) {
-          continue;
-        }
-
         if (hasTextContent) {
-          if (!isThought) {
-            state.hasEmittedContent = true;
-          }
           results.push({
             id: `chatcmpl-${state.messageId}`,
             object: "chat.completion.chunk",
@@ -446,6 +404,7 @@ export function geminiToOpenAIResponse(chunk, state) {
         }
 
         if (hasFunctionCall) {
+<<<<<<< Updated upstream
           if (parseTextualReasoningTags) {
             // Flush any still-open textual reasoning wrapper as reasoning_content BEFORE
             // the tool call. A signed native functionCall arriving while a `<thinking>`
@@ -473,74 +432,30 @@ export function geminiToOpenAIResponse(chunk, state) {
           ? consumeTextualReasoningTags(partText, state, results)
           : partText;
         if (!afterReasoning) continue;
+=======
+          const rawToolName = part.functionCall.name;
+          const fcName = state.toolNameMap?.get(rawToolName) || rawToolName;
+          const fcArgs = part.functionCall.args || {};
+          const toolCallIndex = state.functionIndex++;
 
-        let accumulated = (state.textualToolCallBuffer || "") + afterReasoning;
+          const toolCall = {
+            id: `${fcName}-${Date.now()}-${toolCallIndex}`,
+            index: toolCallIndex,
+            type: "function",
+            function: {
+              name: fcName,
+              arguments: JSON.stringify(fcArgs),
+            },
+          };
+>>>>>>> Stashed changes
 
-        let candidate = parseTextualToolCallCandidate(accumulated);
-
-        if (candidate) {
-          accumulated = accumulated.replace(/[\u200B-\u200D\uFEFF]/g, "");
-          let toolCallIndex = accumulated.lastIndexOf("(empty)[Tool call:");
-          if (toolCallIndex < 0) {
-            toolCallIndex = accumulated.lastIndexOf("[Tool call:");
-          }
-          if (toolCallIndex < 0) {
-            const lastParen = accumulated.lastIndexOf("(");
-            if (lastParen !== -1 && "(empty)[Tool call:".startsWith(accumulated.slice(lastParen))) {
-              toolCallIndex = lastParen;
-            } else {
-              const lastBracket = accumulated.lastIndexOf("[");
-              if (lastBracket !== -1 && "[Tool call:".startsWith(accumulated.slice(lastBracket))) {
-                toolCallIndex = lastBracket;
-              }
-            }
-          }
-
-          if (toolCallIndex > 0) {
-            const leftPart = accumulated.slice(0, toolCallIndex);
-            state.hasEmittedContent = true;
-            results.push({
-              id: `chatcmpl-${state.messageId}`,
-              object: "chat.completion.chunk",
-              created: Math.floor(Date.now() / 1000),
-              model: state.model,
-              choices: [
-                {
-                  index: 0,
-                  delta: { content: leftPart },
-                  finish_reason: null,
-                },
-              ],
-            });
-
-            accumulated = accumulated.slice(toolCallIndex);
-            candidate = parseTextualToolCallCandidate(accumulated);
+          if (state.pendingThoughtSignature) {
+            storeGeminiThoughtSignature(toolCall.id, state.pendingThoughtSignature);
+            state.pendingThoughtSignature = null;
           }
 
-          if (candidate) {
-            if (candidate.kind === "complete") {
-              emitFunctionCallPart(
-                {
-                  functionCall: {
-                    name: candidate.name,
-                    args: candidate.args,
-                  },
-                },
-                state,
-                results
-              );
-              state.textualToolCallBuffer = "";
-            } else {
-              state.textualToolCallBuffer = accumulated;
-            }
-            continue;
-          }
-        }
+          state.toolCalls.set(toolCallIndex, toolCall);
 
-        if (state.textualToolCallBuffer) {
-          const flushedText = state.textualToolCallBuffer + afterReasoning;
-          state.textualToolCallBuffer = "";
-          state.hasEmittedContent = true;
           results.push({
             id: `chatcmpl-${state.messageId}`,
             object: "chat.completion.chunk",
@@ -549,15 +464,17 @@ export function geminiToOpenAIResponse(chunk, state) {
             choices: [
               {
                 index: 0,
-                delta: { content: flushedText },
+                delta: { tool_calls: [toolCall] },
                 finish_reason: null,
               },
             ],
           });
-          continue;
         }
+        continue;
+      }
 
-        state.hasEmittedContent = true;
+      // Text content (non-thinking)
+      if (part.text !== undefined && part.text !== "") {
         results.push({
           id: `chatcmpl-${state.messageId}`,
           object: "chat.completion.chunk",
@@ -566,7 +483,7 @@ export function geminiToOpenAIResponse(chunk, state) {
           choices: [
             {
               index: 0,
-              delta: { content: afterReasoning },
+              delta: { content: part.text },
               finish_reason: null,
             },
           ],
@@ -575,7 +492,41 @@ export function geminiToOpenAIResponse(chunk, state) {
 
       // Function call
       if (part.functionCall) {
-        emitFunctionCallPart(part, state, results);
+        const rawToolName = part.functionCall.name;
+        const fcName = state.toolNameMap?.get(rawToolName) || rawToolName;
+        const fcArgs = part.functionCall.args || {};
+        const toolCallIndex = state.functionIndex++;
+
+        const toolCall = {
+          id: `${fcName}-${Date.now()}-${toolCallIndex}`,
+          index: toolCallIndex,
+          type: "function",
+          function: {
+            name: fcName,
+            arguments: JSON.stringify(fcArgs),
+          },
+        };
+
+        if (state.pendingThoughtSignature) {
+          storeGeminiThoughtSignature(toolCall.id, state.pendingThoughtSignature);
+          state.pendingThoughtSignature = null;
+        }
+
+        state.toolCalls.set(toolCallIndex, toolCall);
+
+        results.push({
+          id: `chatcmpl-${state.messageId}`,
+          object: "chat.completion.chunk",
+          created: Math.floor(Date.now() / 1000),
+          model: state.model,
+          choices: [
+            {
+              index: 0,
+              delta: { tool_calls: [toolCall] },
+              finish_reason: null,
+            },
+          ],
+        });
       }
 
       // Inline data (images)
@@ -603,40 +554,6 @@ export function geminiToOpenAIResponse(chunk, state) {
           ],
         });
       }
-    }
-  }
-
-  // Grounding Metadata (Google Search)
-  const grounding = candidate.groundingMetadata || candidate.grounding_metadata;
-  if (grounding && !state.groundingProcessed) {
-    const citations = [];
-    if (grounding.groundingChunks || grounding.grounding_chunks) {
-      const chunks = grounding.groundingChunks || grounding.grounding_chunks;
-      for (const chunk of chunks) {
-        if (chunk.web) {
-          citations.push({
-            title: chunk.web.title,
-            url: chunk.web.uri,
-          });
-        }
-      }
-    }
-
-    if (citations.length > 0) {
-      results.push({
-        id: `chatcmpl-${state.messageId}`,
-        object: "chat.completion.chunk",
-        created: Math.floor(Date.now() / 1000),
-        model: state.model,
-        choices: [
-          {
-            index: 0,
-            delta: { citations },
-            finish_reason: null,
-          },
-        ],
-      });
-      state.groundingProcessed = true;
     }
   }
 
@@ -689,6 +606,7 @@ export function geminiToOpenAIResponse(chunk, state) {
 
   // Finish reason - include usage in final chunk
   if (candidate.finishReason) {
+<<<<<<< Updated upstream
     if (parseTextualReasoningTags) {
       flushOpenTextualReasoning(state, results);
     }
@@ -730,6 +648,9 @@ export function geminiToOpenAIResponse(chunk, state) {
     // and folds Gemini safety reasons (safety/recitation/blocklist/...) → content_filter
     // so downstream clients can distinguish a blocked completion from a normal stop.
     let finishReason = normalizeOpenAICompatibleFinishReasonString(candidate.finishReason);
+=======
+    let finishReason = candidate.finishReason.toLowerCase();
+>>>>>>> Stashed changes
     if (finishReason === "stop" && state.toolCalls.size > 0) {
       finishReason = "tool_calls";
     }

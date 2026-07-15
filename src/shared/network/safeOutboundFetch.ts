@@ -1,4 +1,4 @@
-import { runWithProxyContext, getOriginalFetch } from "@omniroute/open-sse/utils/proxyFetch.ts";
+import { runWithProxyContext } from "@omniroute/open-sse/utils/proxyFetch.ts";
 import { FetchTimeoutError, fetchWithTimeout } from "@/shared/utils/fetchTimeout";
 import {
   OutboundUrlGuardError,
@@ -31,10 +31,6 @@ export interface SafeOutboundFetchOptions extends RequestInit {
   retry?: SafeOutboundFetchRetryOptions | false;
   guard?: SafeOutboundFetchGuard;
   proxyConfig?: unknown;
-  /** Bypass the global proxy/TLS patched fetch and use the native Node.js
-   *  fetch directly. Use when a provider endpoint has compatibility issues
-   *  with the undici dispatcher layer. */
-  bypassProxyPatch?: boolean;
 }
 
 type SafeOutboundFetchPresetMap = {
@@ -56,7 +52,7 @@ export const SAFE_OUTBOUND_FETCH_PRESETS: SafeOutboundFetchPresetMap = {
     },
   },
   validationWrite: {
-    timeoutMs: 15000,
+    timeoutMs: 7000,
     allowRedirect: false,
     retry: false,
   },
@@ -275,7 +271,6 @@ export async function safeOutboundFetch(url: string | URL, options: SafeOutbound
     retry,
     guard = "none",
     proxyConfig,
-    bypassProxyPatch = false,
     signal,
     ...fetchOptions
   } = options;
@@ -294,15 +289,11 @@ export async function safeOutboundFetch(url: string | URL, options: SafeOutbound
           redirect,
           signal,
           timeoutMs,
-          // When bypassing the proxy patch, use the original native fetch directly.
-          fetchFn: bypassProxyPatch ? getOriginalFetch() : undefined,
         });
 
-      const response = bypassProxyPatch
-        ? await executeFetch()
-        : proxyConfig
-          ? await runWithProxyContext(proxyConfig, executeFetch)
-          : await executeFetch();
+      const response = proxyConfig
+        ? await runWithProxyContext(proxyConfig, executeFetch)
+        : await executeFetch();
 
       if (!allowRedirect && response.status >= 300 && response.status < 400) {
         const location = response.headers.get("location");
@@ -365,7 +356,7 @@ export function getSafeOutboundFetchErrorStatus(error: unknown) {
     error.code === "URL_GUARD_BLOCKED" ||
     error.code === "REDIRECT_BLOCKED"
   ) {
-    return 503;
+    return 400;
   }
 
   return null;

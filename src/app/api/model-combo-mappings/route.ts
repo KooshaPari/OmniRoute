@@ -6,7 +6,6 @@
 
 import { z } from "zod";
 import { NextResponse } from "next/server";
-import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import { getModelComboMappings, createModelComboMapping } from "@/lib/localDb";
 import { validateBody, isValidationFailure } from "@/shared/validation/helpers";
 
@@ -18,23 +17,19 @@ const createMappingSchema = z.object({
   description: z.string().max(1000).optional().default(""),
 });
 
-export async function GET(request: Request) {
-  const authError = await requireManagementAuth(request);
-  if (authError) return authError;
-
+export async function GET() {
   try {
     const mappings = await getModelComboMappings();
     return NextResponse.json({ mappings });
   } catch (error: any) {
-    console.error("Failed to list model-combo mappings:", error);
-    return NextResponse.json({ error: "Failed to list model-combo mappings" }, { status: 500 });
+    return NextResponse.json(
+      { error: error.message || "Failed to list model-combo mappings" },
+      { status: 500 }
+    );
   }
 }
 
 export async function POST(request: Request) {
-  const authError = await requireManagementAuth(request);
-  if (authError) return authError;
-
   try {
     const rawBody = await request.json();
     const validation = validateBody(createMappingSchema, rawBody);
@@ -53,7 +48,9 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ mapping }, { status: 201 });
   } catch (error: any) {
-    console.error("Failed to create model-combo mapping:", error);
-    return NextResponse.json({ error: "Failed to create model-combo mapping" }, { status: 500 });
+    return NextResponse.json(
+      { error: error.message || "Failed to create model-combo mapping" },
+      { status: 500 }
+    );
   }
 }

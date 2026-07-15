@@ -88,7 +88,6 @@ function nowHour(): string {
 }
 
 function hashKey(raw: string): string {
-  if (!raw || typeof raw !== "string") return "";
   return createHash("sha256").update(raw).digest("hex");
 }
 

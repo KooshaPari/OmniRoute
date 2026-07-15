@@ -5,34 +5,6 @@ import { adjustMaxTokens } from "../helpers/maxTokensHelper.ts";
 type JsonRecord = Record<string, unknown>;
 const TOOL_CHOICE_ANY = ["a", "n", "y"].join("");
 
-/**
- * Port of decolua/9router commit 0aaa5ab3 (closes prompt-cache instability):
- * Anthropic injects a dynamic `x-anthropic-billing-header: <value>` line at
- * the top of some system prompts. When we translate Claude → OpenAI and
- * forward to a non-Anthropic upstream, that line both leaks into the
- * assistant prompt and rotates per request, destroying prompt-cache hits.
- * Strip it from each system entry before assembling the OpenAI request.
- */
-function stripAnthropicBillingHeader(text: unknown): string {
-  if (typeof text !== "string") return "";
-  return text.replace(/^x-anthropic-billing-header:[^\n]*(?:\r?\n)?/i, "");
-}
-
-/**
- * Normalize tool input schema for OpenAI compatibility.
- * OpenAI strict mode requires `properties: {}` on object-type schemas,
- * even for zero-argument tools. Anthropic/MCP tools may omit it (#1898).
- */
-function normalizeToolSchema(schema: unknown): Record<string, unknown> {
-  const fallback = { type: "object", properties: {} };
-  if (!schema || typeof schema !== "object" || Array.isArray(schema)) return fallback;
-  const s = schema as Record<string, unknown>;
-  if (s.type === "object" && !s.properties) {
-    return { ...s, properties: {} };
-  }
-  return s;
-}
-
 function normalizeOpenAIReasoningEffort(effort: unknown): string | undefined {
   if (typeof effort !== "string") return undefined;
   const normalized = effort.toLowerCase();
@@ -40,56 +12,8 @@ function normalizeOpenAIReasoningEffort(effort: unknown): string | undefined {
   return normalized || undefined;
 }
 
-function isClaudeServerWebSearchTool(tool: unknown): tool is JsonRecord {
-  if (!tool || typeof tool !== "object" || Array.isArray(tool)) return false;
-  const record = tool as JsonRecord;
-  return (
-    record.name === "web_search" &&
-    typeof record.type === "string" &&
-    /^web_search_\d{8}$/.test(record.type)
-  );
-}
-
-function toStringArray(value: unknown): string[] {
-  if (!Array.isArray(value)) return [];
-  return value
-    .filter((entry): entry is string => typeof entry === "string")
-    .map((entry) => entry.trim())
-    .filter(Boolean);
-}
-
-function convertClaudeServerWebSearchTool(tool: JsonRecord): JsonRecord {
-  const allowedDomains = toStringArray(tool.allowed_domains);
-  const blockedDomains = toStringArray(tool.blocked_domains);
-  const filters: JsonRecord = {};
-  if (allowedDomains.length > 0) filters.allowed_domains = allowedDomains;
-  if (blockedDomains.length > 0) filters.blocked_domains = blockedDomains;
-
-  return {
-    type: "web_search",
-    ...(Object.keys(filters).length > 0 ? { filters } : {}),
-    ...(tool.user_location &&
-    typeof tool.user_location === "object" &&
-    !Array.isArray(tool.user_location)
-      ? { user_location: tool.user_location }
-      : {}),
-  };
-}
-
-function hasClaudeServerWebSearchTool(tools: unknown): boolean {
-  return Array.isArray(tools) && tools.some((tool) => isClaudeServerWebSearchTool(tool));
-}
-
-function shouldUseNativeResponsesWebSearch(credentials: unknown): boolean {
-  return (
-    credentials !== null &&
-    typeof credentials === "object" &&
-    !Array.isArray(credentials) &&
-    (credentials as JsonRecord)._targetFormat === FORMATS.OPENAI_RESPONSES
-  );
-}
-
 // Convert Claude request to OpenAI format
+<<<<<<< Updated upstream
 export function claudeToOpenAIRequest(model, body, stream, credentials: unknown = null) {
   // #2069 — when the routed provider honors OpenAI-format cache_control breakpoints
   // (DashScope/alibaba, etc.) and the upstream caller requested preservation, keep
@@ -101,6 +25,9 @@ export function claudeToOpenAIRequest(model, body, stream, credentials: unknown 
     !Array.isArray(credentials) &&
     (credentials as JsonRecord)._preserveCacheControl === true;
 
+=======
+export function claudeToOpenAIRequest(model, body, stream) {
+>>>>>>> Stashed changes
   const result: {
     model: string;
     messages: JsonRecord[];
@@ -130,6 +57,7 @@ export function claudeToOpenAIRequest(model, body, stream, credentials: unknown 
 
   // System message
   if (body.system) {
+<<<<<<< Updated upstream
     // When preserving cache_control for a caching-capable provider, and the client
     // tagged any system block, keep the array-of-blocks shape so the breakpoint
     // survives (DashScope reads cache_control off content blocks). Otherwise fall
@@ -138,6 +66,11 @@ export function claudeToOpenAIRequest(model, body, stream, credentials: unknown 
       preserveCacheControl &&
       Array.isArray(body.system) &&
       body.system.some((s) => s && typeof s === "object" && s.cache_control !== undefined);
+=======
+    const systemContent = Array.isArray(body.system)
+      ? body.system.map((s) => s.text || "").join("\n")
+      : body.system;
+>>>>>>> Stashed changes
 
     const systemContent = systemHasCacheControl
       ? body.system.map((s) => {
@@ -182,41 +115,33 @@ export function claudeToOpenAIRequest(model, body, stream, credentials: unknown 
     }
   }
 
-  // #4714 / #4385: re-group every role:"tool" message immediately after the
-  // assistant turn whose tool_calls issued it (dropping genuine orphans), then
-  // fill placeholders for any tool_call left unanswered.
-  result.messages = regroupToolMessages(result.messages);
-
-  // Fix missing tool responses - OpenAI requires every tool_call to have a response.
-  // Runs after regrouping so real results are already adjacent and only a truly
-  // unanswered tool_call receives a "[No response received]" placeholder.
+  // Fix missing tool responses - OpenAI requires every tool_call to have a response
   fixMissingToolResponses(result.messages);
-
-  const useNativeResponsesWebSearch = shouldUseNativeResponsesWebSearch(credentials);
 
   // Tools
   if (body.tools && Array.isArray(body.tools)) {
     const normalizedTools = body.tools
       .map((tool) => {
-        if (useNativeResponsesWebSearch && isClaudeServerWebSearchTool(tool)) {
-          return convertClaudeServerWebSearchTool(tool);
-        }
-
-        if (!tool || typeof tool !== "object" || Array.isArray(tool)) return null;
-        const record = tool as JsonRecord;
-        const name = typeof record.name === "string" ? record.name.trim() : "";
+        const name = typeof tool.name === "string" ? tool.name.trim() : "";
         if (!name) return null; // skip tools with empty/invalid name
 
         return {
           type: "function",
           function: {
             name,
-            description: typeof record.description === "string" ? record.description : "", // fix: never null (#276)
-            parameters: normalizeToolSchema(record.input_schema),
+            description: typeof tool.description === "string" ? tool.description : "", // fix: never null (#276)
+            parameters: tool.input_schema || { type: "object", properties: {} },
           },
         };
       })
-      .filter((tool): tool is JsonRecord => Boolean(tool));
+      .filter(
+        (
+          tool
+        ): tool is {
+          type: "function";
+          function: { name: string; description: string; parameters: unknown };
+        } => Boolean(tool)
+      );
 
     if (normalizedTools.length > 0) {
       result.tools = normalizedTools;
@@ -225,10 +150,7 @@ export function claudeToOpenAIRequest(model, body, stream, credentials: unknown 
 
   // Tool choice
   if (body.tool_choice) {
-    result.tool_choice = convertToolChoice(
-      body.tool_choice,
-      useNativeResponsesWebSearch && hasClaudeServerWebSearchTool(body.tools)
-    );
+    result.tool_choice = convertToolChoice(body.tool_choice);
   }
 
   // Reasoning effort: map Claude-side thinking controls to OpenAI reasoning_effort.
@@ -253,62 +175,6 @@ export function claudeToOpenAIRequest(model, body, stream, credentials: unknown 
   }
 
   return result;
-}
-
-// #4714: Re-group tool result messages so every role:"tool" message sits
-// immediately after the assistant message whose tool_calls issued it, in
-// tool_calls order. Claude Code can issue parallel tool_use in one assistant turn
-// but have their tool_result blocks arrive across SEPARATE user turns with
-// interleaved text; the naive conversion then left a role:"tool" stranded after a
-// user message, which OpenAI-compatible upstreams reject with 400 "Messages with
-// role 'tool' must be a response to a preceding message with 'tool_calls'".
-// Tool messages whose tool_call_id matches no assistant.tool_calls are dropped here
-// (supersedes the standalone #4385 orphan filter — same drop behavior, plus ordering).
-function regroupToolMessages(messages: JsonRecord[]): JsonRecord[] {
-  // tool_call_id -> index of the assistant message that issued it (first wins).
-  const callIdToAssistant = new Map<string, number>();
-  messages.forEach((msg, idx) => {
-    if (msg.role === "assistant" && Array.isArray(msg.tool_calls)) {
-      for (const tc of msg.tool_calls as { id?: string }[]) {
-        if (tc.id && !callIdToAssistant.has(String(tc.id))) {
-          callIdToAssistant.set(String(tc.id), idx);
-        }
-      }
-    }
-  });
-
-  // Collect tool messages per assistant index, keyed by tool_call_id (first result wins).
-  const toolsByAssistant = new Map<number, Map<string, JsonRecord>>();
-  for (const msg of messages) {
-    if (msg.role !== "tool") continue;
-    const callId = String(msg.tool_call_id ?? "");
-    const assistantIdx = callIdToAssistant.get(callId);
-    if (assistantIdx === undefined) continue; // orphan -> drop
-    let group = toolsByAssistant.get(assistantIdx);
-    if (!group) {
-      group = new Map();
-      toolsByAssistant.set(assistantIdx, group);
-    }
-    if (!group.has(callId)) group.set(callId, msg);
-  }
-
-  // Rebuild: keep non-tool messages in order; attach each assistant's tool results
-  // immediately after it, ordered by the assistant's own tool_calls sequence.
-  const out: JsonRecord[] = [];
-  messages.forEach((msg, idx) => {
-    if (msg.role === "tool") return; // moved into its assistant's group
-    out.push(msg);
-    if (msg.role === "assistant" && Array.isArray(msg.tool_calls)) {
-      const group = toolsByAssistant.get(idx);
-      if (group) {
-        for (const tc of msg.tool_calls as { id?: string }[]) {
-          const tool = tc.id ? group.get(String(tc.id)) : undefined;
-          if (tool) out.push(tool);
-        }
-      }
-    }
-  });
-  return out;
 }
 
 // Fix missing tool responses - add empty responses for tool_calls without responses
@@ -511,7 +377,7 @@ function convertClaudeMessage(msg, preserveCacheControl = false) {
 }
 
 // Convert tool choice
-function convertToolChoice(choice, hasServerWebSearch = false) {
+function convertToolChoice(choice) {
   if (!choice) return "auto";
   if (typeof choice === "string") return choice;
 
@@ -521,9 +387,6 @@ function convertToolChoice(choice, hasServerWebSearch = false) {
     case TOOL_CHOICE_ANY:
       return "required";
     case "tool":
-      if (hasServerWebSearch && choice.name === "web_search") {
-        return { type: "web_search" };
-      }
       return { type: "function", function: { name: choice.name } };
     default:
       return "auto";

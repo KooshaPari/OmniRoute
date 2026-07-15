@@ -12,6 +12,7 @@ import { createRequire } from "module";
 
 const CACHE_TTL_MS = 60 * 60 * 1000;
 const DB_KEY = "cursorupdate.lastUpdatedAndShown.version";
+<<<<<<< Updated upstream
 /**
  * Version reported when the Cursor IDE state DB is unavailable (the common
  * case for a headless OmniRoute deployment). Kept in sync with
@@ -19,6 +20,9 @@ const DB_KEY = "cursorupdate.lastUpdatedAndShown.version";
  * assert against the single source of truth instead of a drifting literal.
  */
 export const FALLBACK_VERSION = "3.9";
+=======
+const FALLBACK_VERSION = "3.2.14";
+>>>>>>> Stashed changes
 
 let cachedVersion: string | null = null;
 let cachedAt = 0;

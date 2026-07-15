@@ -1,5 +1,4 @@
 import { getDbInstance, rowToCamel, objToSnake } from "./core";
-import { deleteFile } from "./files";
 import { v4 as uuidv4 } from "uuid";
 
 function parseBatchRow(row: any): BatchRecord {
@@ -25,23 +24,6 @@ function parseBatchRow(row: any): BatchRecord {
       camel.usage = null;
     }
   }
-  // Normalize numeric date fields to ensure they are valid numbers
-  const coerceNum = (v: any): number | null => {
-    if (typeof v === "number" && Number.isFinite(v)) return v;
-    if (v == null) return null;
-    const n = Number(v);
-    return Number.isFinite(n) ? n : null;
-  };
-
-  camel.createdAt = coerceNum(camel.createdAt) ?? 0;
-  camel.inProgressAt = coerceNum(camel.inProgressAt);
-  camel.expiresAt = coerceNum(camel.expiresAt);
-  camel.finalizingAt = coerceNum(camel.finalizingAt);
-  camel.completedAt = coerceNum(camel.completedAt);
-  camel.failedAt = coerceNum(camel.failedAt);
-  camel.expiredAt = coerceNum(camel.expiredAt);
-  camel.cancellingAt = coerceNum(camel.cancellingAt);
-  camel.cancelledAt = coerceNum(camel.cancelledAt);
   return camel as BatchRecord;
 }
 
@@ -123,11 +105,11 @@ export function createBatch(
     BatchRecord,
     | "id"
     | "createdAt"
+    | "status"
     | "requestCountsTotal"
     | "requestCountsCompleted"
     | "requestCountsFailed"
-    | "status"
-  > & { status?: BatchRecord["status"] }
+  >
 ): BatchRecord {
   const db = getDbInstance();
   const id = "batch_" + uuidv4().replaceAll("-", "").substring(0, 24);
@@ -136,7 +118,7 @@ export function createBatch(
     ...batch,
     id,
     createdAt,
-    status: batch.status || "validating",
+    status: "validating",
     requestCountsTotal: 0,
     requestCountsCompleted: 0,
     requestCountsFailed: 0,
@@ -344,19 +326,6 @@ export function listBatches(apiKeyId?: string, limit: number = 20, after?: strin
   return rows.map((row) => parseBatchRow(row));
 }
 
-export function countBatches(apiKeyId?: string): number {
-  const db = getDbInstance();
-  if (apiKeyId) {
-    const row = db
-      .prepare("SELECT COUNT(*) as c FROM batches WHERE api_key_id = ?")
-      .get(apiKeyId) as { c: number } | undefined;
-    return row ? Number(row.c) : 0;
-  } else {
-    const row = db.prepare("SELECT COUNT(*) as c FROM batches").get() as { c: number } | undefined;
-    return row ? Number(row.c) : 0;
-  }
-}
-
 export function getPendingBatches(): BatchRecord[] {
   const db = getDbInstance();
   const rows = db
@@ -376,6 +345,7 @@ export function getTerminalBatches(): BatchRecord[] {
     .all();
   return rows.map((row) => parseBatchRow(row));
 }
+<<<<<<< Updated upstream
 
 export function deleteBatch(id: string): boolean {
   const db = getDbInstance();
@@ -448,3 +418,5 @@ export function deleteCompletedBatches(): { deletedBatches: number; deletedFiles
   const result = db.prepare("DELETE FROM batches WHERE status = 'completed'").run();
   return { deletedBatches: result.changes, deletedFiles };
 }
+=======
+>>>>>>> Stashed changes

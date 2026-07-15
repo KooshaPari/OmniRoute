@@ -4,28 +4,22 @@ import { QoderExecutor } from "./qoder.ts";
 import { KiroExecutor } from "./kiro.ts";
 import { CodexExecutor } from "./codex.ts";
 import { CursorExecutor } from "./cursor.ts";
-import { TraeExecutor } from "./trae.ts";
 import { DefaultExecutor } from "./default.ts";
-import { BedrockExecutor } from "./bedrock.ts";
-import { GlmExecutor } from "./glm.ts";
 import { PollinationsExecutor } from "./pollinations.ts";
 import { CloudflareAIExecutor } from "./cloudflare-ai.ts";
 import { OpencodeExecutor } from "./opencode.ts";
 import { PuterExecutor } from "./puter.ts";
 import { VertexExecutor } from "./vertex.ts";
 import { CliproxyapiExecutor } from "./cliproxyapi.ts";
-import { NineRouterExecutor } from "./ninerouter.ts";
 import { PerplexityWebExecutor } from "./perplexity-web.ts";
 import { GrokWebExecutor } from "./grok-web.ts";
-import { GeminiWebExecutor } from "./gemini-web.ts";
-import { GeminiBusinessExecutor } from "./gemini-business.ts";
 import { ChatGptWebExecutor } from "./chatgpt-web.ts";
 import { BlackboxWebExecutor } from "./blackbox-web.ts";
 import { MuseSparkWebExecutor } from "./muse-spark-web.ts";
 import { AzureOpenAIExecutor } from "./azure-openai.ts";
-import { CommandCodeExecutor } from "./commandCode.ts";
 import { GitlabExecutor } from "./gitlab.ts";
 import { NlpCloudExecutor } from "./nlpcloud.ts";
+<<<<<<< Updated upstream
 import { WindsurfExecutor } from "./windsurf.ts";
 import { DevinCliExecutor } from "./devin-cli.ts";
 import { AuggieExecutor } from "./auggie.ts";
@@ -59,54 +53,47 @@ import { ZenmuxFreeExecutor } from "./zenmux-free.ts";
 const executors = {
   antigravity: new AntigravityExecutor(),
   agy: new AntigravityExecutor(),
+=======
+import { PetalsExecutor } from "./petals.ts";
+
+const executors = {
+  antigravity: new AntigravityExecutor(),
+  "gemini-cli": new GeminiCLIExecutor(),
+>>>>>>> Stashed changes
   github: new GithubExecutor(),
   qoder: new QoderExecutor(),
   kiro: new KiroExecutor(),
   "amazon-q": new KiroExecutor("amazon-q"),
-  bedrock: new BedrockExecutor(),
   codex: new CodexExecutor(),
   cursor: new CursorExecutor(),
-  trae: new TraeExecutor(),
-  glm: new GlmExecutor("glm"),
-  "glm-cn": new GlmExecutor("glm-cn"),
-  glmt: new GlmExecutor("glmt"),
   cu: new CursorExecutor(), // Alias for cursor
   "azure-openai": new AzureOpenAIExecutor(),
-  "command-code": new CommandCodeExecutor(),
-  cmd: new CommandCodeExecutor(), // Alias
   gitlab: new GitlabExecutor(),
   "gitlab-duo": new GitlabExecutor("gitlab-duo"),
   nlpcloud: new NlpCloudExecutor(),
+  petals: new PetalsExecutor(),
   pollinations: new PollinationsExecutor(),
   pol: new PollinationsExecutor(), // Alias
   "cloudflare-ai": new CloudflareAIExecutor(),
   cf: new CloudflareAIExecutor(), // Alias
   "opencode-zen": new OpencodeExecutor("opencode-zen"),
   "opencode-go": new OpencodeExecutor("opencode-go"),
-  opencode: new OpencodeExecutor("opencode-zen"), // Alias for opencode-zen
   puter: new PuterExecutor(),
   pu: new PuterExecutor(), // Alias
   vertex: new VertexExecutor(),
   "vertex-partner": new VertexExecutor(),
   cliproxyapi: new CliproxyapiExecutor(),
   cpa: new CliproxyapiExecutor(), // Alias
-  "9router": new NineRouterExecutor(),
-  nr: new NineRouterExecutor(), // Alias
   "perplexity-web": new PerplexityWebExecutor(),
   "pplx-web": new PerplexityWebExecutor(), // Alias
   "grok-web": new GrokWebExecutor(),
-  "claude-web": new ClaudeWebWithAutoRefresh(),
-  "cw-web": new ClaudeWebWithAutoRefresh(), // Alias
-  "gemini-web": new GeminiWebExecutor(),
-  gweb: new GeminiWebExecutor(), // Alias
-  "gemini-business": new GeminiBusinessExecutor(),
-  gembiz: new GeminiBusinessExecutor(), // Alias
   "chatgpt-web": new ChatGptWebExecutor(),
   "cgpt-web": new ChatGptWebExecutor(), // Alias
   "blackbox-web": new BlackboxWebExecutor(),
   "bb-web": new BlackboxWebExecutor(), // Alias
   "muse-spark-web": new MuseSparkWebExecutor(),
   "ms-web": new MuseSparkWebExecutor(), // Alias
+<<<<<<< Updated upstream
   windsurf: new WindsurfExecutor(),
   ws: new WindsurfExecutor(), // Alias
   "devin-cli": new DevinCliExecutor(),
@@ -156,6 +143,8 @@ const executors = {
   "zenmux-free": new ZenmuxFreeExecutor(),
   zmf: new ZenmuxFreeExecutor(), // Alias for zenmux-free
   auggie: new AuggieExecutor(),
+=======
+>>>>>>> Stashed changes
 };
 
 const defaultCache = new Map();
@@ -177,28 +166,22 @@ export { QoderExecutor } from "./qoder.ts";
 export { KiroExecutor } from "./kiro.ts";
 export { CodexExecutor } from "./codex.ts";
 export { CursorExecutor } from "./cursor.ts";
-export { TraeExecutor } from "./trae.ts";
 export { DefaultExecutor } from "./default.ts";
-export { BedrockExecutor } from "./bedrock.ts";
-export { GlmExecutor } from "./glm.ts";
 export { PollinationsExecutor } from "./pollinations.ts";
 export { CloudflareAIExecutor } from "./cloudflare-ai.ts";
 export { OpencodeExecutor } from "./opencode.ts";
 export { PuterExecutor } from "./puter.ts";
 export { CliproxyapiExecutor } from "./cliproxyapi.ts";
-export { NineRouterExecutor } from "./ninerouter.ts";
 export { VertexExecutor } from "./vertex.ts";
 export { PerplexityWebExecutor } from "./perplexity-web.ts";
 export { GrokWebExecutor } from "./grok-web.ts";
-export { GeminiWebExecutor } from "./gemini-web.ts";
-export { KieExecutor } from "./kie.ts";
 export { ChatGptWebExecutor } from "./chatgpt-web.ts";
 export { BlackboxWebExecutor } from "./blackbox-web.ts";
 export { MuseSparkWebExecutor } from "./muse-spark-web.ts";
 export { AzureOpenAIExecutor } from "./azure-openai.ts";
-export { CommandCodeExecutor } from "./commandCode.ts";
 export { GitlabExecutor } from "./gitlab.ts";
 export { NlpCloudExecutor } from "./nlpcloud.ts";
+<<<<<<< Updated upstream
 export { WindsurfExecutor } from "./windsurf.ts";
 export { DevinCliExecutor } from "./devin-cli.ts";
 export { AuggieExecutor } from "./auggie.ts";
@@ -220,3 +203,6 @@ export { MimocodeExecutor } from "./mimocode.ts";
 export { GrokCliExecutor } from "./grok-cli.ts";
 export { CodeBuddyCnExecutor } from "./codebuddy-cn.ts";
 export { ZenmuxFreeExecutor } from "./zenmux-free.ts";
+=======
+export { PetalsExecutor } from "./petals.ts";
+>>>>>>> Stashed changes

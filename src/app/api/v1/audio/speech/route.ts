@@ -1,5 +1,4 @@
 import { handleAudioSpeech } from "@omniroute/open-sse/handlers/audioSpeech.ts";
-import { withInjectionGuard } from "@/middleware/promptInjectionGuard";
 import { getProviderCredentials, clearRecoveredProviderState } from "@/sse/services/auth";
 import {
   parseSpeechModel,
@@ -13,13 +12,6 @@ import { enforceApiKeyPolicy } from "@/shared/utils/apiKeyPolicy";
 import { getProviderNodes } from "@/lib/localDb";
 import { v1AudioSpeechSchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
-import {
-  isAllRateLimitedCredentials,
-  rateLimitedProviderResponse,
-} from "@/app/api/v1/_shared/rateLimit";
-import { attachOmniRouteMetaToResponse } from "@/domain/omnirouteResponseMeta";
-import { calculateModalCost } from "@/lib/usage/costCalculator";
-import { generateRequestId } from "@/shared/utils/requestId";
 
 /**
  * Handle CORS preflight
@@ -37,7 +29,7 @@ export async function OPTIONS() {
  * POST /v1/audio/speech — text-to-speech
  * OpenAI TTS API compatible. Returns audio stream.
  */
-async function postHandler(request, context) {
+export async function POST(request) {
   let rawBody;
   try {
     rawBody = await request.json();
@@ -50,7 +42,6 @@ async function postHandler(request, context) {
     return errorResponse(HTTP_STATUS.BAD_REQUEST, validation.error.message);
   }
   const body = validation.data;
-  const startTime = Date.now();
 
   // Enforce API key policies (model restrictions + budget limits)
   const policy = await enforceApiKeyPolicy(request, body.model);
@@ -99,12 +90,9 @@ async function postHandler(request, context) {
     if (!credentials) {
       return errorResponse(HTTP_STATUS.BAD_REQUEST, `No credentials for provider: ${provider}`);
     }
-    if (isAllRateLimitedCredentials(credentials)) {
-      return rateLimitedProviderResponse(provider, credentials);
-    }
   }
 
-  let response = await handleAudioSpeech({
+  const response = await handleAudioSpeech({
     body,
     credentials,
     resolvedProvider: providerConfig,
@@ -112,21 +100,6 @@ async function postHandler(request, context) {
   });
   if (response?.ok) {
     await clearRecoveredProviderState(credentials);
-    // TTS is billed per input character; attach cost telemetry without
-    // touching the audio Content-Type / body (ADD-only headers).
-    const characters = typeof body.input === "string" ? body.input.length : 0;
-    const costUsd = await calculateModalCost("audio", provider, resolvedModel || body.model, {
-      characters,
-    });
-    response = attachOmniRouteMetaToResponse(response, {
-      provider,
-      model: resolvedModel || body.model,
-      costUsd,
-      latencyMs: Date.now() - startTime,
-      requestId: generateRequestId(),
-    });
   }
   return response;
 }
-
-export const POST = withInjectionGuard(postHandler);

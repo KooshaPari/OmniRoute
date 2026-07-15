@@ -1,24 +1,15 @@
 // @ts-nocheck
-import "./setupPolyfill.ts";
 import { AsyncLocalStorage } from "node:async_hooks";
 import { fetch as undiciFetch } from "undici";
 import {
-  buildVercelRelayHeaders,
   createProxyDispatcher,
   getDefaultDispatcher,
-  getRetryDispatcher,
-  isRelayType,
   normalizeProxyUrl,
   proxyConfigToUrl,
   proxyUrlForLogs,
 } from "./proxyDispatcher.ts";
 import tlsClient from "./tlsClient.ts";
 import { isProxyReachable } from "@/lib/proxyHealth";
-import {
-  isControlPlaneProxyDirectFallbackEnabled,
-  isFeatureFlagEnabled,
-} from "@/shared/utils/featureFlags";
-import { findWorkingProxy } from "./proxyFallback.ts";
 
 function isTlsFingerprintEnabled() {
   return process.env.ENABLE_TLS_FINGERPRINT === "true";
@@ -59,6 +50,7 @@ type FetchWithDispatcher = (
   init?: FetchWithDispatcherOptions
 ) => Promise<Response>;
 
+<<<<<<< Updated upstream
 /**
  * Flatten a fetch error's `cause` chain (and any Happy-Eyeballs `AggregateError`
  * sub-errors) into a single diagnostic line: code/syscall/errno/address:port + a
@@ -136,6 +128,8 @@ export type ProxyFetchDeps = {
   nativeFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
 };
 
+=======
+>>>>>>> Stashed changes
 type PatchState = {
   originalFetch: typeof globalThis.fetch;
   proxyContext: AsyncLocalStorage<unknown>;
@@ -191,29 +185,16 @@ function noProxyMatch(targetUrl) {
 
     if (!patternHost) return false;
 
-    // Support wildcard matching (e.g. 192.168.* or *.local).
-    // Uses a linear glob scan instead of dynamic RegExp to avoid ReDoS.
+    // Support wildcard matching (e.g. 192.168.* or *.local)
     if (patternHost.includes("*")) {
-      const parts = patternHost.split("*");
-      let pos = 0;
-      let ok = hostname.startsWith(parts[0]);
-      if (ok) {
-        pos = parts[0].length;
-        for (let i = 1; i < parts.length && ok; i++) {
-          const seg = parts[i];
-          if (i === parts.length - 1) {
-            ok = seg === "" || (hostname.endsWith(seg) && hostname.length - seg.length >= pos);
-          } else {
-            const idx = seg ? hostname.indexOf(seg, pos) : pos;
-            if (idx === -1) {
-              ok = false;
-            } else {
-              pos = idx + seg.length;
-            }
-          }
-        }
-      }
-      if (ok) return true;
+      const regexStr =
+        "^" +
+        patternHost
+          .split("*")
+          .map((s) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"))
+          .join(".*") +
+        "$";
+      if (new RegExp(regexStr).test(hostname)) return true;
     }
 
     if (patternHost.startsWith(".")) {
@@ -224,24 +205,11 @@ function noProxyMatch(targetUrl) {
 }
 
 function isLocalAddress(hostname: string): boolean {
-  const host = hostname
-    .replace(/^\[/, "")
-    .replace(/\]$/, "")
-    .replace(/^::ffff:/i, "");
-  if (host === "localhost" || host === "0.0.0.0" || host === "127.0.0.1" || host === "::1") {
-    return true;
-  }
-  if (host.endsWith(".local") || host.endsWith(".lan") || host.endsWith(".internal")) return true;
-  // RFC1918 + loopback + link-local (169.254, incl. cloud metadata 169.254.169.254)
-  // + CGNAT (100.64/10). 127/8 covers all loopback, not just 127.0.0.1.
-  if (host.startsWith("192.168.")) return true;
-  if (host.startsWith("10.")) return true;
-  if (host.startsWith("127.")) return true;
-  if (host.startsWith("169.254.")) return true;
-  if (/^172\.(1[6-9]|2\d|3[0-1])\./.test(host)) return true;
-  if (/^100\.(6[4-9]|[7-9]\d|1[01]\d|12[0-7])\./.test(host)) return true;
-  // IPv6 ULA (fc00::/7 → fc/fd prefix) and link-local (fe80::/10)
-  if (/^f[cd][0-9a-f]*:/i.test(host) || host.startsWith("fe80:")) return true;
+  if (hostname === "localhost" || hostname === "127.0.0.1" || hostname === "::1") return true;
+  if (hostname.startsWith("192.168.")) return true;
+  if (hostname.startsWith("10.")) return true;
+  if (hostname.match(/^172\.(1[6-9]|2\d|3[0-1])\./)) return true;
+  if (hostname.endsWith(".local") || hostname.endsWith(".lan")) return true;
   return false;
 }
 
@@ -270,7 +238,7 @@ function resolveEnvProxyUrl(targetUrl) {
   return normalizeProxyUrl(proxyUrl, "environment proxy");
 }
 
-export function resolveProxyForRequest(targetUrl) {
+function resolveProxyForRequest(targetUrl) {
   let target;
   try {
     target = new URL(targetUrl);
@@ -302,11 +270,7 @@ function getTargetUrl(input) {
   return String(input);
 }
 
-export async function runWithProxyContext(
-  proxyConfig,
-  fn,
-  opts?: { directFallbackOnUnreachable?: boolean }
-) {
+export async function runWithProxyContext(proxyConfig, fn) {
   if (typeof fn !== "function") {
     throw new TypeError("runWithProxyContext requires a callback function");
   }
@@ -317,29 +281,12 @@ export async function runWithProxyContext(
 
   const resolvedProxyUrl = effectiveProxyConfig ? proxyConfigToUrl(effectiveProxyConfig) : null;
 
-  // The caller must opt in, and the runtime feature flag must also be enabled.
-  // This fallback changes egress IP, so upgrades must not silently turn it on.
-  const directFallbackOnUnreachable =
-    opts?.directFallbackOnUnreachable === true && isControlPlaneProxyDirectFallbackEnabled();
-  // Run fn with the proxy context cleared so the request egresses directly.
-  const runDirect = () => proxyContext.run(null, fn);
-
   // T14: Proxy Fast-Fail
   // Perform a short TCP reachability check before issuing upstream requests.
-  // Skip for edge-relay types (vercel / deno): proxyConfigToUrl returns
-  // "https://<host>" which is the relay endpoint itself, not an HTTP proxy —
-  // the actual routing is handled via x-relay-* headers below.
-  const isVercelRelay = isRelayType((effectiveProxyConfig as { type?: string })?.type);
-  if (resolvedProxyUrl && !isVercelRelay) {
+  if (resolvedProxyUrl) {
     const reachable = await isProxyReachable(resolvedProxyUrl);
     if (!reachable) {
       const proxyLabel = proxyUrlForLogs(resolvedProxyUrl);
-      if (directFallbackOnUnreachable) {
-        console.warn(
-          `[ProxyFetch] Proxy unreachable (${proxyLabel}); using a direct connection for this request.`
-        );
-        return runDirect();
-      }
       const err = new Error(`[Proxy Fast-Fail] Proxy unreachable: ${proxyLabel}`) as Error & {
         code?: string;
         statusCode?: number;
@@ -347,32 +294,6 @@ export async function runWithProxyContext(
       err.code = "PROXY_UNREACHABLE";
       err.statusCode = 503;
       throw err;
-    }
-  }
-
-  // Fail-closed family check: when the proxy URL carries a ?family=ipv6|ipv4 marker
-  // (set for HOSTNAME proxies by proxyConfigToUrl), verify the hostname actually has a
-  // record in that family before egressing. Refuse early rather than silently fall back
-  // to the other family. No-op for IP literals (their family is intrinsic).
-  if (resolvedProxyUrl && !isVercelRelay) {
-    try {
-      const u = new URL(resolvedProxyUrl);
-      const fam = u.searchParams.get("family");
-      if (fam === "ipv6" || fam === "ipv4") {
-        const { assertHostnameSupportsFamily } = await import("./proxyFamilyResolve.ts");
-        await assertHostnameSupportsFamily(u.hostname, fam === "ipv6" ? 6 : 4);
-      }
-    } catch (familyErr) {
-      if (directFallbackOnUnreachable) {
-        console.warn(
-          `[ProxyFetch] Proxy family pre-check failed (${proxyUrlForLogs(resolvedProxyUrl)}); using a direct connection for this request.`
-        );
-        return runDirect();
-      }
-      const e = familyErr as Error & { code?: string; statusCode?: number };
-      e.code = e.code || "PROXY_FAMILY_UNAVAILABLE";
-      e.statusCode = e.statusCode || 503;
-      throw e;
     }
   }
 
@@ -394,34 +315,12 @@ export async function runWithProxyContext(
   });
 }
 
-/**
- * Like {@link runWithProxyContext}, but if the assigned proxy is unreachable or fails
- * its pre-checks the request can degrade to a DIRECT connection instead of throwing.
- *
- * For control-plane flows — OAuth code/token exchange, connection tests, token refresh —
- * where a dead pinned proxy must not block reaching the upstream (it otherwise surfaces
- * as a generic "Internal server error"). Data-plane chat keeps strict pinning via
- * runWithProxyContext so per-account egress-IP isolation is preserved.
- *
- * This remains disabled unless OMNIROUTE_CONTROL_PLANE_PROXY_DIRECT_FALLBACK is enabled
- * from Feature Flags or the environment.
- */
-export async function runWithProxyContextOrDirect(proxyConfig, fn) {
-  return runWithProxyContext(proxyConfig, fn, { directFallbackOnUnreachable: true });
-}
-
-async function patchedFetch(
-  input: RequestInfo | URL,
-  options: FetchWithDispatcherOptions = {},
-  deps: ProxyFetchDeps = {}
-) {
+async function patchedFetch(input: RequestInfo | URL, options: FetchWithDispatcherOptions = {}) {
   if (options?.dispatcher) {
     // When a dispatcher is present, we MUST use the undici library fetch
     // to ensure version compatibility. Node 22 built-in fetch (undici v6)
     // is incompatible with undici v8 dispatchers (missing onRequestStart, etc.)
-    const _undiciDispatcher =
-      deps.undiciFetch ?? (undiciFetch as unknown as (...args: unknown[]) => Promise<Response>);
-    return _undiciDispatcher(input, options);
+    return (undiciFetch as unknown as (...args: unknown[]) => Promise<Response>)(input, options);
   }
 
   const targetUrl = getTargetUrl(input);
@@ -457,6 +356,7 @@ async function patchedFetch(
     }
     // Direct connection (no proxy) — use undici with custom dispatcher for timeout control.
     // Falls back to original native fetch if dispatcher initialization fails (#1054).
+<<<<<<< Updated upstream
     // Retries once on transient dispatcher errors before falling back (fix: proxyfetch-undici-retry).
     //
     // Non-replayable body guard: if the body is stream-like (ReadableStream/Blob)
@@ -564,52 +464,36 @@ async function patchedFetch(
             throw nativeError;
           }
         }
+=======
+    try {
+      return await (undiciFetch as unknown as (...args: unknown[]) => Promise<Response>)(input, {
+        ...options,
+        dispatcher: getDefaultDispatcher(),
+      });
+    } catch (dispatcherError) {
+      const msg =
+        dispatcherError instanceof Error ? dispatcherError.message : String(dispatcherError);
+      // CAUTION: Do NOT fallback to native fetch if the error is a version mismatch (invalid onRequestStart)
+      // because the native fetch will definitely fail with the undici v8 dispatcher.
+      if (msg.includes("onRequestStart")) {
+        console.error(
+          `[ProxyFetch] Fatal version mismatch: Dispatcher (v8) vs Fetch (v6/native). Hardware upgrade or SOCKS5 config isolation required. Error: ${msg}`
+        );
+>>>>>>> Stashed changes
         throw dispatcherError;
       }
+      // Only fallback for connection/dispatcher errors, not HTTP errors
+      if (msg.includes("fetch failed") || msg.includes("ECONNREFUSED") || msg.includes("UND_ERR")) {
+        console.warn(`[ProxyFetch] Undici dispatcher failed, falling back to native fetch: ${msg}`);
+        return originalFetchWithDispatcher(input, options);
+      }
+      throw dispatcherError;
     }
-    // Should not be reached, but satisfy TypeScript control-flow.
-    throw lastDispatcherError;
-  }
-
-  // Edge relay (vercel / deno): instead of routing through an HTTP proxy
-  // dispatcher, we send x-relay-* headers to the edge function which forwards
-  // the request upstream. Both backends share the same envelope shape.
-  const contextProxy = proxyContext.getStore();
-  if (
-    contextProxy &&
-    typeof contextProxy === "object" &&
-    isRelayType((contextProxy as { type?: string }).type)
-  ) {
-    const vc = contextProxy as { type?: string; host?: string; relayAuth?: string };
-    if (!vc.relayAuth) {
-      // Generic message without internal labels — this throw can bubble up to
-      // catch blocks that put error.message in response bodies (combo per-model
-      // timeout, executor catch-all). Don't leak "[ProxyFetch]" diagnostics.
-      const label = vc.type === "vercel" ? "Vercel relay" : `${vc.type || "Edge"} relay`;
-      throw new Error(`${label} configuration error: missing relayAuth`);
-    }
-    const targetUrl = getTargetUrl(input);
-    const relayHeaders = buildVercelRelayHeaders(targetUrl, vc.relayAuth);
-    const mergedHeaders = new Headers(options?.headers);
-    for (const [k, v] of Object.entries(relayHeaders)) mergedHeaders.set(k, v);
-    // Pass host through proxyUrlForLogs so the same redaction policy applies
-    // to relay routing logs (the rest of this module already follows that rule).
-    const hostForLogs = proxyUrlForLogs(vc.host ? `https://${vc.host}` : "");
-    if (process.env.OMNIROUTE_PROXY_FETCH_DEBUG === "true") {
-      console.debug(`[ProxyFetch] Routing via ${vc.type || "edge"} relay: ${hostForLogs}`);
-    }
-    return await originalFetch(`https://${vc.host}`, {
-      ...options,
-      headers: mergedHeaders,
-      duplex: "half",
-    });
   }
 
   try {
     const dispatcher = createProxyDispatcher(proxyUrl);
-    const _undiciProxy =
-      deps.undiciFetch ?? (undiciFetch as unknown as (...args: unknown[]) => Promise<Response>);
-    return await _undiciProxy(input, {
+    return await (undiciFetch as unknown as (...args: unknown[]) => Promise<Response>)(input, {
       ...options,
       dispatcher,
     });
@@ -618,19 +502,6 @@ async function patchedFetch(
     console.error(`[ProxyFetch] Proxy request failed (${source}, fail-closed): ${message}`);
     throw error;
   }
-}
-
-/**
- * Named export for proxyFetch — identical to the patched globalThis.fetch but
- * accepts an optional ProxyFetchDeps for unit test dependency injection.
- * Production code should use globalThis.fetch (or the default export) instead.
- */
-export async function proxyFetch(
-  input: RequestInfo | URL,
-  options: RequestInit = {},
-  deps: ProxyFetchDeps = {}
-): Promise<Response> {
-  return patchedFetch(input, options as FetchWithDispatcherOptions, deps);
 }
 
 if (!isCloud && !patchState.isPatched) {
@@ -651,16 +522,6 @@ export async function runWithTlsTracking(fn) {
 /** Check if TLS fingerprint is enabled and available */
 export function isTlsFingerprintActive() {
   return isTlsFingerprintEnabled() && tlsClient.available;
-}
-
-/**
- * Get the original unpatched global fetch function (Node.js native fetch
- * before the proxy/TLS fingerprint patch was applied).
- * Use this to bypass the patched fetch for specific requests when the
- * proxy dispatcher has compatibility issues with a particular endpoint.
- */
-export function getOriginalFetch(): typeof globalThis.fetch {
-  return originalFetch;
 }
 
 export default isCloud ? originalFetch : patchedFetch;

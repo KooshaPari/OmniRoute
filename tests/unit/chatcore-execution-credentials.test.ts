@@ -68,7 +68,7 @@ test("an explicit apiType=responses is preserved (guard short-circuits the reass
   assert.equal(psd._omnirouteForceResponsesUpstream, true);
 });
 
-test("non azure/oci providers never get apiType forcing", () => {
+test("non-openai-compatible providers never get apiType forcing", () => {
   const out = resolveExecutionCredentials({
     ...base,
     provider: "openai",
@@ -77,6 +77,17 @@ test("non azure/oci providers never get apiType forcing", () => {
   const psd = out.providerSpecificData as Record<string, unknown>;
   assert.equal(psd.apiType, undefined);
   assert.equal(psd._omnirouteForceResponsesUpstream, undefined);
+});
+
+test("openai-compatible-* provider gets apiType=responses and upstream marker under responses target", () => {
+  const out = resolveExecutionCredentials({
+    ...base,
+    provider: "openai-compatible-test",
+    targetFormat: RESPONSES,
+  }) as Record<string, unknown>;
+  const psd = out.providerSpecificData as Record<string, unknown>;
+  assert.equal(psd.apiType, "responses");
+  assert.equal(psd._omnirouteForceResponsesUpstream, true);
 });
 
 test("ccSessionId is threaded into providerSpecificData when present", () => {

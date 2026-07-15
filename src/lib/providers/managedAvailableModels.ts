@@ -4,7 +4,6 @@ import { isClaudeCodeCompatibleProvider } from "@/shared/constants/providers";
 type ManagedAvailableModel = {
   id?: string;
   name?: string;
-  contextLength?: number;
 };
 
 export function getCompatibleFallbackModels(

@@ -12,13 +12,19 @@ import { createErrorResponse, createErrorResponseFromUnknown } from "@/lib/api/e
 import { getProxyById } from "@/lib/localDb";
 import { extractRelayAuth } from "@/lib/db/proxies";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
+<<<<<<< Updated upstream
 import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
 import { buildRelayTestResult } from "./relayTestResult";
+=======
+>>>>>>> Stashed changes
 
 const BASE_SUPPORTED_PROXY_TYPES = new Set(["http", "https"]);
 
 function getErrorMessage(error: unknown, fallbackMessage: string): string {
-  return sanitizeErrorMessage(error) || fallbackMessage;
+  if (error instanceof Error && error.message) {
+    return error.message;
+  }
+  return fallbackMessage;
 }
 
 function getSupportedProxyTypes() {
@@ -69,7 +75,6 @@ export async function POST(request: Request) {
     // the actual secrets for testing.
     const body = rawBody as Record<string, unknown>;
     const proxyId = typeof body.proxyId === "string" ? body.proxyId.trim() : null;
-    let dbProxyNotes: string | null = null;
     if (proxyId) {
       const dbProxy = await getProxyById(proxyId, { includeSecrets: true });
       if (dbProxy) {
@@ -81,11 +86,11 @@ export async function POST(request: Request) {
           username: dbProxy.username,
           password: dbProxy.password,
         };
-        dbProxyNotes = dbProxy.notes ?? null;
       }
     }
 
     const proxyType = String(proxy.type || "http").toLowerCase();
+<<<<<<< Updated upstream
 
     // Relay proxies (Vercel / Deno / Cloudflare): test by hitting ipify via the
     // relay headers. All three share the same x-relay-* header contract; the
@@ -152,6 +157,8 @@ export async function POST(request: Request) {
       }
     }
 
+=======
+>>>>>>> Stashed changes
     if (proxyType === "socks5" && !isSocks5ProxyEnabled()) {
       return createErrorResponse({
         status: 400,

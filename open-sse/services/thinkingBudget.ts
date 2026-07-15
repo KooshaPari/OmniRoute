@@ -12,14 +12,6 @@ export const ThinkingMode = {
   CUSTOM: "custom", // Set fixed budget
   ADAPTIVE: "adaptive", // Scale based on request complexity
 };
-export type ThinkingModeValue = (typeof ThinkingMode)[keyof typeof ThinkingMode];
-
-type JsonRecord = Record<string, unknown>;
-type ThinkingBudgetConfig = {
-  mode: ThinkingModeValue;
-  customBudget: number;
-  effortLevel: string;
-};
 
 import {
   capThinkingBudget,
@@ -29,7 +21,7 @@ import {
 } from "@/lib/modelCapabilities";
 
 // Effort → budget token mapping
-export const EFFORT_BUDGETS: Record<string, number> = {
+export const EFFORT_BUDGETS = {
   none: 0,
   low: 1024,
   medium: 10240,
@@ -40,7 +32,7 @@ export const EFFORT_BUDGETS: Record<string, number> = {
 
 // thinkingLevel string → budget token mapping
 // Used when clients send string-based thinking levels (e.g., VS Code Copilot)
-export const THINKING_LEVEL_MAP: Record<string, number> = {
+export const THINKING_LEVEL_MAP = {
   none: 0,
   low: 4096,
   medium: 8192,
@@ -54,8 +46,9 @@ export const DEFAULT_THINKING_CONFIG = {
   mode: ThinkingMode.PASSTHROUGH,
   customBudget: 10240,
   effortLevel: "medium",
-} satisfies ThinkingBudgetConfig;
+};
 
+<<<<<<< Updated upstream
 // In-memory config (loaded from DB on startup, or default).
 //
 // Backed by globalThis so the singleton is shared across the SEPARATE webpack
@@ -83,12 +76,21 @@ function getStringField(record: JsonRecord, key: string): string {
   const value = record[key];
   return typeof value === "string" ? value : "";
 }
+=======
+// In-memory config (loaded from DB on startup, or default)
+let _config = { ...DEFAULT_THINKING_CONFIG };
+>>>>>>> Stashed changes
 
 /**
  * Set the thinking budget config (called from settings API or startup)
  */
+<<<<<<< Updated upstream
 export function setThinkingBudgetConfig(config: Partial<ThinkingBudgetConfig>) {
   _store[GLOBAL_KEY] = { ...DEFAULT_THINKING_CONFIG, ...config };
+=======
+export function setThinkingBudgetConfig(config) {
+  _config = { ...DEFAULT_THINKING_CONFIG, ...config };
+>>>>>>> Stashed changes
 }
 
 /**
@@ -123,15 +125,15 @@ export function hydrateThinkingBudgetConfig(settings: unknown): boolean {
  * @param {object} body - Request body
  * @returns {object} Body with string thinkingLevel converted to numeric budget
  */
-export function normalizeThinkingLevel(body: unknown) {
+export function normalizeThinkingLevel(body) {
   if (!body || typeof body !== "object") return body;
-  const result: JsonRecord = { ...(body as JsonRecord) };
+  const result = { ...body };
 
   // Handle top-level thinkingLevel or thinking_level string fields
   const levelStr = result.thinkingLevel || result.thinking_level;
   if (typeof levelStr === "string" && THINKING_LEVEL_MAP[levelStr.toLowerCase()] !== undefined) {
     const rawBudget = THINKING_LEVEL_MAP[levelStr.toLowerCase()];
-    const budget = capThinkingBudget(getStringField(result, "model"), rawBudget);
+    const budget = capThinkingBudget(result.model || "", rawBudget);
     // Convert to Claude thinking format as canonical representation
     result.thinking = {
       type: budget > 0 ? "enabled" : "disabled",
@@ -142,29 +144,25 @@ export function normalizeThinkingLevel(body: unknown) {
   }
 
   // Handle Gemini's generationConfig.thinkingConfig.thinkingLevel
-  const generationConfig = toRecord(result.generationConfig);
-  const thinkingConfig = toRecord(generationConfig.thinkingConfig);
-  const thinkingConfigSnake = toRecord(generationConfig.thinking_config);
-  const geminiLevel = thinkingConfig.thinkingLevel || thinkingConfigSnake.thinkingLevel;
+  const geminiLevel =
+    result.generationConfig?.thinkingConfig?.thinkingLevel ||
+    result.generationConfig?.thinking_config?.thinkingLevel;
   if (
     typeof geminiLevel === "string" &&
     THINKING_LEVEL_MAP[geminiLevel.toLowerCase()] !== undefined
   ) {
     const rawBudget = THINKING_LEVEL_MAP[geminiLevel.toLowerCase()];
-    const budget = capThinkingBudget(getStringField(result, "model"), rawBudget);
+    const budget = capThinkingBudget(result.model || "", rawBudget);
     result.generationConfig = {
-      ...generationConfig,
-      thinkingConfig: { ...thinkingConfig, thinkingBudget: budget },
+      ...result.generationConfig,
+      thinkingConfig: { ...result.generationConfig.thinkingConfig, thinkingBudget: budget },
     };
     // Clean up string variants
-    const nextGenerationConfig = result.generationConfig as JsonRecord;
-    const nextThinkingConfig = toRecord(nextGenerationConfig.thinkingConfig);
-    if (Object.keys(nextThinkingConfig).length > 0) {
-      delete nextThinkingConfig.thinkingLevel;
-      nextGenerationConfig.thinkingConfig = nextThinkingConfig;
+    if (result.generationConfig.thinkingConfig) {
+      delete result.generationConfig.thinkingConfig.thinkingLevel;
     }
-    if ("thinking_config" in nextGenerationConfig) {
-      delete nextGenerationConfig.thinking_config;
+    if (result.generationConfig.thinking_config) {
+      delete result.generationConfig.thinking_config;
     }
   }
 
@@ -178,18 +176,17 @@ export function normalizeThinkingLevel(body: unknown) {
  * @param {object} body - Request body
  * @returns {object} Body with thinking config auto-injected if needed
  */
-export function ensureThinkingConfig(body: unknown) {
+export function ensureThinkingConfig(body) {
   if (!body || typeof body !== "object") return body;
-  const bodyRecord = body as JsonRecord;
-  const model = getStringField(bodyRecord, "model");
+  const model = body.model || "";
 
   // Only auto-inject for models with -thinking suffix
   if (!model.endsWith("-thinking")) return body;
 
   // If thinking config already present, don't override
-  if (bodyRecord.thinking) return body;
+  if (body.thinking) return body;
 
-  const result: JsonRecord = { ...bodyRecord };
+  const result = { ...body };
   result.thinking = {
     type: "enabled",
     budget_tokens: getDefaultThinkingBudget(model) || EFFORT_BUDGETS.medium,
@@ -207,17 +204,21 @@ export function ensureThinkingConfig(body: unknown) {
  * @param {object} [config] - Override config (defaults to stored config)
  * @returns {object} Modified body
  */
+<<<<<<< Updated upstream
 export function applyThinkingBudget(
   body: unknown,
   config: Partial<ThinkingBudgetConfig> | null = null
 ) {
   const cfg = config || getConfig();
+=======
+export function applyThinkingBudget(body, config = null) {
+  const cfg = config || _config;
+>>>>>>> Stashed changes
   if (!body || typeof body !== "object") return body;
 
   // Early exit: strip ALL reasoning/thinking params for models that don't support them.
   // Provider-specific Cloud Code restrictions should be handled at the executor boundary.
-  const bodyRecord = body as JsonRecord;
-  const modelStr = typeof bodyRecord.model === "string" ? bodyRecord.model : "";
+  const modelStr = typeof body.model === "string" ? body.model : "";
   if (modelStr && !supportsReasoning(modelStr)) {
     return stripThinkingConfig(body);
   }
@@ -236,7 +237,7 @@ export function applyThinkingBudget(
       return processed;
 
     case ThinkingMode.CUSTOM:
-      return setCustomBudget(processed, cfg.customBudget ?? DEFAULT_THINKING_CONFIG.customBudget);
+      return setCustomBudget(processed, cfg.customBudget);
 
     case ThinkingMode.ADAPTIVE:
       return applyAdaptiveBudget(processed, cfg);
@@ -249,8 +250,8 @@ export function applyThinkingBudget(
 /**
  * AUTO mode: strip all thinking configuration, let provider decide
  */
-function stripThinkingConfig(body: unknown) {
-  const result: JsonRecord = { ...toRecord(body) };
+function stripThinkingConfig(body) {
+  const result = { ...body };
 
   // Claude format
   delete result.thinking;
@@ -259,24 +260,11 @@ function stripThinkingConfig(body: unknown) {
   delete result.reasoning_effort;
   delete result.reasoning;
 
-  // Claude Code output_config.effort — strip the effort hint too, otherwise the
-  // claude→openai translator re-injects reasoning_effort downstream (#3258).
-  if (result.output_config && typeof result.output_config === "object") {
-    const outputConfig = { ...toRecord(result.output_config) };
-    delete outputConfig.effort;
-    if (Object.keys(outputConfig).length === 0) {
-      delete result.output_config;
-    } else {
-      result.output_config = outputConfig;
-    }
-  }
-
   // Gemini format
   if (result.generationConfig) {
-    const generationConfig = { ...toRecord(result.generationConfig) };
-    delete generationConfig.thinking_config;
-    delete generationConfig.thinkingConfig;
-    result.generationConfig = generationConfig;
+    result.generationConfig = { ...result.generationConfig };
+    delete result.generationConfig.thinking_config;
+    delete result.generationConfig.thinkingConfig;
   }
 
   return result;
@@ -285,8 +273,8 @@ function stripThinkingConfig(body: unknown) {
 /**
  * CUSTOM mode: set exact budget tokens
  */
-function setCustomBudget(body: unknown, budget: number) {
-  const result: JsonRecord = { ...toRecord(body) };
+function setCustomBudget(body, budget) {
+  const result = { ...body };
 
   // If body already has thinking config in Claude format, update it
   if (result.thinking || hasThinkingCapableModel(result)) {
@@ -314,10 +302,9 @@ function setCustomBudget(body: unknown, budget: number) {
   }
 
   // Gemini thinking_config
-  const generationConfig = toRecord(result.generationConfig);
-  if (generationConfig.thinking_config || generationConfig.thinkingConfig) {
+  if (result.generationConfig?.thinking_config || result.generationConfig?.thinkingConfig) {
     result.generationConfig = {
-      ...generationConfig,
+      ...result.generationConfig,
       thinking_config: { thinking_budget: budget },
     };
   }
@@ -328,27 +315,21 @@ function setCustomBudget(body: unknown, budget: number) {
 /**
  * ADAPTIVE mode: scale budget based on request complexity
  */
-function applyAdaptiveBudget(body: unknown, cfg: Partial<ThinkingBudgetConfig>) {
-  const bodyRecord = toRecord(body);
-  const messages = Array.isArray(bodyRecord.messages)
-    ? bodyRecord.messages
-    : Array.isArray(bodyRecord.input)
-      ? bodyRecord.input
-      : [];
+function applyAdaptiveBudget(body, cfg) {
+  const messages = body.messages || body.input || [];
   const messageCount = messages.length;
-  const tools = Array.isArray(bodyRecord.tools) ? bodyRecord.tools : [];
+  const tools = body.tools || [];
   const toolCount = tools.length;
 
   // Get last user message length
   let lastMsgLength = 0;
   for (let i = messages.length - 1; i >= 0; i--) {
     const msg = messages[i];
-    const msgRecord = toRecord(msg);
-    if (msgRecord.role === "user") {
+    if (msg.role === "user") {
       lastMsgLength =
-        typeof msgRecord.content === "string"
-          ? msgRecord.content.length
-          : JSON.stringify(msgRecord.content || "").length;
+        typeof msg.content === "string"
+          ? msg.content.length
+          : JSON.stringify(msg.content || "").length;
       break;
     }
   }
@@ -360,13 +341,10 @@ function applyAdaptiveBudget(body: unknown, cfg: Partial<ThinkingBudgetConfig>) 
   if (lastMsgLength > 2000) multiplier += 0.3;
 
   const baseBudget =
-    EFFORT_BUDGETS[typeof cfg.effortLevel === "string" ? cfg.effortLevel : "medium"] ||
-    getDefaultThinkingBudget(getStringField(bodyRecord, "model")) ||
+    EFFORT_BUDGETS[cfg.effortLevel] ||
+    getDefaultThinkingBudget(body.model || "") ||
     EFFORT_BUDGETS.medium;
-  const budget = capThinkingBudget(
-    getStringField(bodyRecord, "model"),
-    Math.ceil(baseBudget * multiplier)
-  );
+  const budget = capThinkingBudget(body.model || "", Math.ceil(baseBudget * multiplier));
 
   return setCustomBudget(body, budget);
 }
@@ -374,8 +352,8 @@ function applyAdaptiveBudget(body: unknown, cfg: Partial<ThinkingBudgetConfig>) 
 /**
  * Check if model name suggests thinking capability
  */
-export function hasThinkingCapableModel(body: unknown) {
-  const model = getStringField(toRecord(body), "model");
+export function hasThinkingCapableModel(body) {
+  const model = body.model || "";
   const resolved = getResolvedModelCapabilities(model);
   if (resolved.supportsThinking === true) return true;
   if (resolved.supportsThinking === false) return false;

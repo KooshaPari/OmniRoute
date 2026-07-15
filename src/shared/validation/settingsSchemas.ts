@@ -7,6 +7,7 @@
  */
 import { z } from "zod";
 import { COMBO_CONFIG_MODES } from "@/shared/constants/comboConfigMode";
+<<<<<<< Updated upstream
 import { MAX_REQUEST_BODY_LIMIT_MB, MIN_REQUEST_BODY_LIMIT_MB } from "@/shared/constants/bodySize";
 import { HIDEABLE_SIDEBAR_GROUP_IDS } from "@/shared/constants/sidebarGroupVisibility";
 import { HIDEABLE_SIDEBAR_ITEM_IDS, SIDEBAR_SECTIONS } from "@/shared/constants/sidebarVisibility";
@@ -16,6 +17,25 @@ import { RESPONSES_PREVIOUS_RESPONSE_ID_MODES } from "@/shared/constants/respons
 // this schema is reachable from client components (dashboard onboarding wizard), and
 // routeGuard drags in server runtime (→ ioredis) that breaks the client/CLI build.
 import { SPAWN_CAPABLE_PREFIXES } from "@/shared/constants/spawnCapablePrefixes";
+=======
+import { HIDEABLE_SIDEBAR_ITEM_IDS } from "@/shared/constants/sidebarVisibility";
+
+const fallbackStrategyValues = [
+  "priority",
+  "weighted",
+  "round-robin",
+  "context-relay",
+  "fill-first",
+  "p2c",
+  "random",
+  "least-used",
+  "cost-optimized",
+  "strict-random",
+  "auto",
+  "context-optimized",
+  "lkgp",
+] as const;
+>>>>>>> Stashed changes
 
 const signatureCacheModeValues = ["enabled", "bypass", "bypass-strict"] as const;
 
@@ -111,80 +131,15 @@ export const updateSettingsSchema = z.object({
   hideEndpointCloudflaredTunnel: z.boolean().optional(),
   hideEndpointTailscaleFunnel: z.boolean().optional(),
   hideEndpointNgrokTunnel: z.boolean().optional(),
-  preferClaudeCodeForUnprefixedClaudeModels: z.boolean().optional(),
-  autoRefreshProviderQuota: z.boolean().optional(),
-  autoRefreshProviderQuotaInterval: z.number().int().min(10).max(3600).optional(),
-  pinProviderQuotaToHome: z.boolean().optional(),
-  showQuickStartOnHome: z.boolean().optional(),
-  showProviderTopologyOnHome: z.boolean().optional(),
-  localOnlyManageScopeBypassEnabled: z.boolean().optional(),
-  // Layer 1 of the spawn-capable guard (Hard Rules #15/#17): reject any bypass
-  // prefix that reaches a SPAWN_CAPABLE_PREFIXES path at PATCH time, with the
-  // BYPASS_PREFIX_NOT_ALLOWED code the settings route handler translates.
-  // Layer 2 (isLocalOnlyBypassableByManageScope) still refuses spawn paths at
-  // runtime even if a malformed DB row claims otherwise. This refine was in the
-  // routeGuard.ts contract docs but missing from the live schema — restored by
-  // the 6A.1 orphan-test re-wire (AC-8 / AC-10c, 2026-06-09).
-  localOnlyManageScopeBypassPrefixes: z
-    .array(
-      z
-        .string()
-        .max(200)
-        .refine(
-          (prefix) => {
-            const normalized = prefix.endsWith("/") ? prefix : `${prefix}/`;
-            return !SPAWN_CAPABLE_PREFIXES.some((sp) => normalized.startsWith(sp));
-          },
-          {
-            message:
-              "BYPASS_PREFIX_NOT_ALLOWED: spawn-capable prefixes cannot be added to the manage-scope bypass list",
-          }
-        )
-    )
-    .optional(),
-  customBannedSignals: z.array(z.string().max(200)).optional(),
   debugMode: z.boolean().optional(),
   hiddenSidebarItems: z.array(z.enum(HIDEABLE_SIDEBAR_ITEM_IDS)).optional(),
-  hiddenSidebarGroupLabels: z.array(z.enum(HIDEABLE_SIDEBAR_GROUP_IDS)).optional(),
-  sidebarSectionOrder: z
-    .array(z.enum(SIDEBAR_SECTIONS.map((s) => s.id) as [string, ...string[]]))
-    .optional(),
-  sidebarItemOrder: z.record(z.string(), z.array(z.string().max(100))).optional(),
-  sidebarActivePreset: z.enum(["all", "minimal", "developer", "admin"]).nullable().optional(),
   comboConfigMode: z.enum(COMBO_CONFIG_MODES).optional(),
-  codexServiceTier: z
-    .object({
-      enabled: z.boolean().optional(),
-      tier: z.enum(["default", "priority", "flex"]).optional(),
-      supportedModels: z.array(z.string().max(200)).max(200).optional(),
-    })
-    .optional(),
-  // Claude Fast Mode: opt-in toggle that asks a paired CLIProxyAPI build
-  // (claude-fastmode-spoof) to rewrite SDK-shaped entrypoints so requests can
-  // reach Anthropic Fast Mode (speed:"fast"). Default off; only the listed
-  // Opus models are gated by the Anthropic binary KT() check. Schema is
-  // intentionally permissive on supportedModels so additional eligible model
-  // ids can be enabled without a schema bump.
-  claudeFastMode: z
-    .object({
-      enabled: z.boolean().optional(),
-      supportedModels: z.array(z.string().max(200)).max(200).optional(),
-    })
-    .optional(),
-  codexSessionAffinityTtlMs: z.number().int().min(0).max(86_400_000).optional(),
-  responsesPreviousResponseIdMode: z.enum(RESPONSES_PREVIOUS_RESPONSE_ID_MODES).optional(),
   // Routing settings (#134)
-  fallbackStrategy: z.enum(ACCOUNT_FALLBACK_STRATEGY_VALUES).optional(),
+  fallbackStrategy: z.enum(fallbackStrategyValues).optional(),
   wildcardAliases: z.array(z.object({ pattern: z.string(), target: z.string() })).optional(),
   stickyRoundRobinLimit: z.number().int().min(0).max(1000).optional(),
   requestRetry: z.number().int().min(0).max(10).optional(),
   maxRetryIntervalSec: z.number().int().min(0).max(300).optional(),
-  maxBodySizeMb: z
-    .number()
-    .int()
-    .min(MIN_REQUEST_BODY_LIMIT_MB)
-    .max(MAX_REQUEST_BODY_LIMIT_MB)
-    .optional(),
   // Auto intent classifier settings (multilingual routing)
   intentDetectionEnabled: z.boolean().optional(),
   intentSimpleMaxWords: z.number().int().min(1).max(500).optional(),
@@ -198,6 +153,7 @@ export const updateSettingsSchema = z.object({
   wsAuth: z.boolean().optional(),
   // CLI Fingerprint compatibility (per-provider)
   cliCompatProviders: z.array(z.string().max(100)).optional(),
+<<<<<<< Updated upstream
   // CC bridge transforms (issue #2260): config-driven pipeline that normalizes
   // system blocks at the Claude Code bridge so any client (OpenCode, Cline,
   // Cursor, Continue, raw API) ends up with classifier-correct structure.
@@ -230,6 +186,8 @@ export const updateSettingsSchema = z.object({
       ),
     })
     .optional(),
+=======
+>>>>>>> Stashed changes
   // Strip provider/model prefix at proxy layer (e.g. "openai/gpt-4" → "gpt-4")
   stripModelPrefix: z.boolean().optional(),
   // Cache control preservation mode
@@ -269,15 +227,9 @@ export const updateSettingsSchema = z.object({
   visionBridgeMaxImages: z.number().int().min(1).max(20).optional(),
   // Missing settings
   lkgpEnabled: z.boolean().optional(),
-  // #1311: echo the requested alias/combo name in the response model field (opt-in)
-  echoRequestedModelName: z.boolean().optional(),
-  // #4481 layer 2: CCR-style Router.webSearch — when a request carries a native
-  // web_search server tool, route the whole request to this model/provider instead of
-  // the default (for providers that don't implement Anthropic's web_search server tool).
-  // Empty/unset = disabled. Value is a model string ("provider,model" / alias / combo).
-  webSearchRouteModel: z.string().max(200).optional(),
   backgroundDegradation: z.unknown().optional(),
   bruteForceProtection: z.boolean().optional(),
+<<<<<<< Updated upstream
   // Auto-routing settings
   autoRoutingEnabled: z.boolean().optional(),
   autoRoutingDefaultVariant: z
@@ -386,3 +338,6 @@ export const databaseSettingsSchema = z
     // Skip location and stats as they're read-only
   })
   .strict();
+=======
+});
+>>>>>>> Stashed changes

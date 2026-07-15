@@ -51,12 +51,12 @@ export function scrubProxyAndFingerprintHeaders(
   headers: Record<string, string>
 ): Record<string, string> {
   const cleaned: Record<string, string> = {};
-  let authorizationValue: string | undefined;
   for (const [key, value] of Object.entries(headers)) {
     const lowerKey = key.toLowerCase();
-    if (lowerKey.startsWith("x-omniroute-") || HEADERS_TO_REMOVE.includes(lowerKey)) {
-      continue;
+    if (!lowerKey.startsWith("x-omniroute-") && !HEADERS_TO_REMOVE.includes(lowerKey)) {
+      cleaned[key] = value;
     }
+<<<<<<< Updated upstream
     if (lowerKey === "authorization") {
       // Defer Authorization so it lands last in the serialized order — matches
       // the native Antigravity fingerprint where Authorization
@@ -65,11 +65,10 @@ export function scrubProxyAndFingerprintHeaders(
       continue;
     }
     cleaned[key] = value;
+=======
+>>>>>>> Stashed changes
   }
   // Set the standard Node.js accept-encoding
   cleaned["Accept-Encoding"] = "gzip, deflate, br";
-  if (authorizationValue !== undefined) {
-    cleaned["Authorization"] = authorizationValue;
-  }
   return cleaned;
 }

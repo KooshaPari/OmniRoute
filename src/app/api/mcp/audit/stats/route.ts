@@ -1,10 +1,7 @@
 import { NextResponse } from "next/server";
 import { getAuditStats } from "@omniroute/open-sse/mcp-server/audit";
-import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 
-export async function GET(request: Request) {
-  const authError = await requireManagementAuth(request);
-  if (authError) return authError;
+export async function GET() {
   try {
     const stats = await getAuditStats();
     return NextResponse.json(stats);

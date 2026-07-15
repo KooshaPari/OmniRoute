@@ -1,6 +1,7 @@
 # CODEOWNERS — default reviewers for this repository.
 # Order matters: later rules override earlier ones.
 
+<<<<<<< Updated upstream
 * @KooshaPari
 
 # Governance / meta
@@ -32,3 +33,7 @@
 # Publishing — Gate 4 artifacts
 /.github/workflows/argismonitor-publish.yml @KooshaPari
 /.github/branch-protection.main.json       @KooshaPari
+=======
+# Default owner
+* @kooshapari
+>>>>>>> Stashed changes

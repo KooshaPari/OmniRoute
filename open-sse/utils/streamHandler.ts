@@ -1,10 +1,8 @@
 import { trackPendingRequest } from "@/lib/usageDb";
-import { STREAM_IDLE_TIMEOUT_MS } from "../config/constants.ts";
-import { FORMATS } from "../translator/formats.ts";
-import { PENDING_REQUEST_CLEARED_MARKER } from "./stream.ts";
 
 // Stream handler with disconnect detection - shared for all providers
 
+<<<<<<< Updated upstream
 // Default budget for the pipeWithDisconnect raw-upstream stall watchdog.
 // Inherits STREAM_IDLE_TIMEOUT_MS so a single env knob still governs the
 // max time we tolerate silence from upstream. Reasoning models (Claude
@@ -14,20 +12,17 @@ import { PENDING_REQUEST_CLEARED_MARKER } from "./stream.ts";
 // the watchdog must track upstream byte activity instead. Ported from
 // decolua/9router#1243.
 const DEFAULT_STREAM_STALL_TIMEOUT_MS = STREAM_IDLE_TIMEOUT_MS;
+=======
+const PENDING_REQUEST_CLEARED_MARKER = "__omniroutePendingRequestCleared";
+>>>>>>> Stashed changes
 
 type StreamDisconnectEvent = {
   reason: string;
   duration: number;
 };
 
-type StreamErrorEvent = {
-  error: unknown;
-  message: string;
-  statusCode: number;
-  duration: number;
-};
-
 type StreamControllerOptions = {
+<<<<<<< Updated upstream
   onDisconnect?: (event: StreamDisconnectEvent) => boolean | void;
   onError?: (event: StreamErrorEvent) => boolean | void;
   provider?: string;
@@ -35,94 +30,16 @@ type StreamControllerOptions = {
   connectionId?: string | null;
   clientResponseFormat?: string | null;
   clientAbortSignal?: AbortSignal | null;
+=======
+  onDisconnect?: (event: StreamDisconnectEvent) => void;
+  log?: unknown;
+  provider?: string;
+  model?: string;
+  connectionId?: string | null;
+>>>>>>> Stashed changes
 };
 
 type StreamController = ReturnType<typeof createStreamController>;
-
-type StreamErrorStatusKind = "rate_limit" | "authentication" | "permission" | "client" | "server";
-
-type StreamErrorStatusMapping = {
-  responses: {
-    type: string;
-    code: string;
-  };
-  claude: {
-    type: string;
-  };
-};
-
-function isResponsesClientFormat(clientResponseFormat?: string | null): boolean {
-  return (
-    clientResponseFormat === FORMATS.OPENAI_RESPONSES ||
-    clientResponseFormat === FORMATS.OPENAI_RESPONSE
-  );
-}
-
-function getStreamErrorStatusKind(statusCode: number): StreamErrorStatusKind {
-  if (statusCode === 429) return "rate_limit";
-  if (statusCode === 401) return "authentication";
-  if (statusCode === 403) return "permission";
-  if (statusCode >= 400 && statusCode < 500) return "client";
-  return "server";
-}
-
-function getStreamErrorStatusMapping(statusCode: number): StreamErrorStatusMapping {
-  switch (getStreamErrorStatusKind(statusCode)) {
-    case "rate_limit":
-      return {
-        responses: { type: "rate_limit_error", code: "rate_limit_exceeded" },
-        claude: { type: "rate_limit_error" },
-      };
-    case "authentication":
-      return {
-        responses: { type: "authentication_error", code: "invalid_authentication" },
-        claude: { type: "authentication_error" },
-      };
-    case "permission":
-      return {
-        responses: { type: "authentication_error", code: "permission_denied" },
-        claude: { type: "permission_error" },
-      };
-    case "client":
-      return {
-        responses: { type: "invalid_request_error", code: "bad_request" },
-        claude: { type: "invalid_request_error" },
-      };
-    case "server":
-      return {
-        responses: { type: "server_error", code: "server_error" },
-        claude: { type: "api_error" },
-      };
-    default:
-      return {
-        responses: { type: "server_error", code: "server_error" },
-        claude: { type: "api_error" },
-      };
-  }
-}
-
-function encodeSseEvent(
-  data: unknown,
-  {
-    event,
-    includeDone = false,
-  }: {
-    event?: string;
-    includeDone?: boolean;
-  } = {}
-) {
-  if (event && /[\r\n]/.test(event)) {
-    throw new Error("SSE event names must not contain newlines");
-  }
-
-  const encoder = new TextEncoder();
-  const prefix = event ? `event: ${event}\n` : "";
-  const chunks = [encoder.encode(`${prefix}data: ${JSON.stringify(data)}\n\n`)];
-  if (includeDone) {
-    chunks.push(encoder.encode("data: [DONE]\n\n"));
-  }
-  return chunks;
-}
 
 // Get HH:MM:SS timestamp
 function getTimeString() {
@@ -134,6 +51,7 @@ function getTimeString() {
   });
 }
 
+<<<<<<< Updated upstream
 function isPendingRequestClearedError(error: unknown): boolean {
   return (
     !!error &&
@@ -198,6 +116,8 @@ function hasClientTerminalSseMarker(text: string, clientResponseFormat?: string 
   return false;
 }
 
+=======
+>>>>>>> Stashed changes
 /**
  * Create stream controller with abort and disconnect detection
  * @param {object} options
@@ -209,12 +129,15 @@ function hasClientTerminalSseMarker(text: string, clientResponseFormat?: string 
 /** @param {StreamControllerOptions} options */
 export function createStreamController({
   onDisconnect,
-  onError,
+  log,
   provider,
   model,
   connectionId,
+<<<<<<< Updated upstream
   clientResponseFormat,
   clientAbortSignal,
+=======
+>>>>>>> Stashed changes
 }: StreamControllerOptions = {}) {
   const abortController = new AbortController();
   const startTime = Date.now();
@@ -288,7 +211,14 @@ export function createStreamController({
       // fire when the client aborts mid-stream, so we must clean up here.
       clearPendingRequest();
 
+<<<<<<< Updated upstream
       abortController.abort(reason);
+=======
+      // Delay abort to allow cleanup
+      abortTimeout = setTimeout(() => {
+        abortController.abort();
+      }, 500);
+>>>>>>> Stashed changes
 
       onDisconnect?.({ reason, duration: Date.now() - startTime });
     },
@@ -320,25 +250,7 @@ export function createStreamController({
         return;
       }
 
-      const alreadyCleared = isPendingRequestClearedError(error);
-      let handled = false;
-      if (!alreadyCleared) {
-        try {
-          handled =
-            onError?.({
-              error,
-              message: getErrorMessage(error),
-              statusCode: getErrorStatusCode(error),
-              duration: Date.now() - startTime,
-            }) === true;
-        } catch {}
-      }
-
-      if (!handled) {
-        clearPendingRequest(error);
-      } else {
-        pendingRequestCleared = true;
-      }
+      clearPendingRequest(error);
 
       if (error instanceof Error && error.name === "AbortError") {
         logStream("aborted");
@@ -352,11 +264,15 @@ export function createStreamController({
       logStream("error: unknown");
     },
 
+<<<<<<< Updated upstream
     abort: () => {
       cleanupClientAbortListener();
       abortController.abort();
     },
     clientResponseFormat,
+=======
+    abort: () => abortController.abort(),
+>>>>>>> Stashed changes
   };
 
   if (clientAbortSignal && typeof clientAbortSignal.addEventListener === "function") {
@@ -374,77 +290,6 @@ export function createStreamController({
   }
 
   return controller;
-}
-
-function buildStreamErrorChunks(
-  errorMsg: string,
-  statusCode: number,
-  clientResponseFormat?: string | null
-) {
-  const statusMapping = getStreamErrorStatusMapping(statusCode);
-
-  if (isResponsesClientFormat(clientResponseFormat)) {
-    const errorEvent = {
-      type: "response.failed",
-      response: {
-        id: null,
-        status: "failed",
-        error: {
-          message: errorMsg,
-          type: statusMapping.responses.type,
-          code: statusMapping.responses.code,
-        },
-      },
-    };
-
-    return encodeSseEvent(errorEvent, { event: "response.failed" });
-  }
-
-  if (clientResponseFormat === FORMATS.CLAUDE) {
-    const errorEvent = {
-      type: "error",
-      error: {
-        type: statusMapping.claude.type,
-        message: errorMsg,
-      },
-    };
-
-    return encodeSseEvent(errorEvent, { event: "error" });
-  }
-
-  const errorEvent = {
-    object: "chat.completion.chunk",
-    choices: [
-      {
-        index: 0,
-        delta: {},
-        finish_reason: "error",
-      },
-    ],
-    error: {
-      message: errorMsg,
-      type: statusMapping.responses.type,
-      code: statusMapping.responses.code,
-    },
-  };
-
-  return encodeSseEvent(errorEvent, { includeDone: true });
-}
-
-/**
- * Minimal `writable` half used by `pipeWithDisconnect`. The real writable is
- * driven entirely by the upstream-piped readable, so the writer only needs an
- * `abort()` hook for `createDisconnectAwareStream`'s `cancel()` path.
- *
- * `abort()` returns `Promise<void>` to match the native
- * `WritableStreamDefaultWriter.abort()` contract — `cancel()` (and any caller
- * that awaits the writer) gets a real thenable instead of `undefined`, which
- * keeps abort/error handling clean. Ported from decolua/9router@6b624af4.
- */
-export function createNoopAbortWritable(): {
-  getWriter: () => { abort: () => Promise<void> };
-} {
-  return { getWriter: () => ({ abort: () => Promise.resolve() }) };
 }
 
 /**
@@ -475,14 +320,25 @@ export function createDisconnectAwareStream(transformStream, streamController) {
     }
   };
 
-  return new ReadableStream(
-    {
-      async pull(controller) {
-        if (!streamController.isConnected()) {
+  return new ReadableStream({
+    async pull(controller) {
+      if (!streamController.isConnected()) {
+        controller.close();
+        return;
+      }
+
+      try {
+        const { done, value } = await reader.read();
+        if (done) {
+          streamController.handleComplete();
           controller.close();
           return;
         }
+        controller.enqueue(value);
+      } catch (error) {
+        streamController.handleError(error);
 
+<<<<<<< Updated upstream
         try {
           const { done, value } = await reader.read();
           if (done) {
@@ -509,12 +365,33 @@ export function createDisconnectAwareStream(transformStream, streamController) {
           }
 
           streamController.handleError(error);
+=======
+        // T35: Encapsulate mid-stream errors as SSE events instead of abruptly aborting
+        // This prevents TransferEncodingError on the client side
+        const errorMsg = error instanceof Error ? error.message : "Upstream stream error";
+        const statusCode =
+          typeof error === "object" && error !== null && "statusCode" in error
+            ? Number((error as { statusCode?: unknown }).statusCode) || 500
+            : 500;
+>>>>>>> Stashed changes
 
-          // T35: Encapsulate mid-stream errors as SSE events instead of abruptly aborting
-          // This prevents TransferEncodingError on the client side
-          const errorMsg = getErrorMessage(error);
-          const statusCode = getErrorStatusCode(error);
+        const errorEvent = {
+          object: "chat.completion.chunk",
+          choices: [
+            {
+              index: 0,
+              delta: {},
+              finish_reason: "error",
+            },
+          ],
+          error: {
+            message: errorMsg,
+            type: "upstream_error",
+            code: statusCode,
+          },
+        };
 
+<<<<<<< Updated upstream
           try {
             for (const chunk of buildStreamErrorChunks(
               errorMsg,
@@ -542,36 +419,36 @@ export function createDisconnectAwareStream(transformStream, streamController) {
         }
         await Promise.allSettled([reader.cancel(reason), writer.abort(reason)]);
       },
+=======
+        const encoder = new TextEncoder();
+        controller.enqueue(encoder.encode(`data: ${JSON.stringify(errorEvent)}\n\n`));
+        controller.enqueue(encoder.encode(`data: [DONE]\n\n`));
+
+        controller.close();
+      }
+>>>>>>> Stashed changes
     },
-    { highWaterMark: 16384 }
-  );
+
+    cancel(reason) {
+      streamController.handleDisconnect(reason || "cancelled");
+      reader.cancel();
+      writer.abort();
+    },
+  });
 }
 
 /**
- * Pipe provider response through transform with disconnect detection.
- *
- * Stall watchdog tracks raw upstream byte activity, not transform output.
- * Reasoning models (Claude thinking via Kiro, etc.) can produce zero SSE
- * output for long stretches while partial EventStream frames keep arriving;
- * measuring stall on the transform output caused false stalls. Any upstream
- * chunk resets the timer. If no bytes arrive for `stallTimeoutMs`, the
- * stream surfaces a "stream stall timeout" error and aborts.
- *
- * Ported from decolua/9router#1243 by @zakirkun.
- *
- * @param providerResponse - Response from provider
- * @param transformStream - Transform stream for SSE
- * @param streamController - Stream controller from createStreamController
- * @param opts.stallTimeoutMs - Override the stall budget (defaults to
- *   STREAM_IDLE_TIMEOUT_MS / DEFAULT_STREAM_STALL_TIMEOUT_MS). `0` disables
- *   the watchdog.
+ * Pipe provider response through transform with disconnect detection
+ * @param {Response} providerResponse - Response from provider
+ * @param {TransformStream} transformStream - Transform stream for SSE
+ * @param {object} streamController - Stream controller from createStreamController
  */
 export function pipeWithDisconnect(
   providerResponse: Response,
   transformStream: TransformStream<Uint8Array, Uint8Array>,
-  streamController: StreamController,
-  opts: { stallTimeoutMs?: number } = {}
+  streamController: StreamController
 ) {
+<<<<<<< Updated upstream
   const stallTimeoutMs = opts.stallTimeoutMs ?? DEFAULT_STREAM_STALL_TIMEOUT_MS;
 
   // Watchdog disabled — preserve legacy behavior verbatim.
@@ -673,8 +550,11 @@ export function pipeWithDisconnect(
   const transformedBody = providerResponse.body
     .pipeThrough(upstreamTap)
     .pipeThrough(transformStream);
+=======
+  const transformedBody = providerResponse.body.pipeThrough(transformStream);
+>>>>>>> Stashed changes
   return createDisconnectAwareStream(
-    { readable: transformedBody, writable: createNoopAbortWritable() },
-    wrappedController
+    { readable: transformedBody, writable: { getWriter: () => ({ abort: () => {} }) } },
+    streamController
   );
 }

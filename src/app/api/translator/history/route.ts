@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
 import { getTranslationEvents } from "@/lib/translatorEvents";
-import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
 
 /**
  * GET /api/translator/history
@@ -44,9 +43,6 @@ export async function GET(request) {
     return NextResponse.json({ success: true, events: normalizedEvents, total });
   } catch (error) {
     console.error("Error fetching history:", error);
-    return NextResponse.json(
-      { success: false, error: sanitizeErrorMessage(error) },
-      { status: 500 }
-    );
+    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
   }
 }

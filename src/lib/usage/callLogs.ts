@@ -5,8 +5,8 @@
  * filesystem artifacts and are loaded only for explicit detail/export flows.
  */
 
-import fs from "node:fs";
-import path from "node:path";
+import fs from "fs";
+import path from "path";
 import type { RequestPipelinePayloads } from "@omniroute/open-sse/utils/requestLogger.ts";
 import { getDbInstance } from "../db/core";
 import { collectReferencedArtifacts, selectCallLogIdsBefore } from "./callLogsBoundedQueries";
@@ -19,10 +19,15 @@ import {
   getPromptCacheCreationTokensOrNull,
   getReasoningTokensOrNull,
 } from "./tokenAccounting";
+<<<<<<< Updated upstream
 import { isNoLog } from "../compliance/noLog";
+=======
+import { isNoLog } from "../compliance";
+import { sanitizePII } from "../piiSanitizer";
+>>>>>>> Stashed changes
 import { protectPayloadForLog, parseStoredPayload } from "../logPayloads";
 import { getCallLogMaxEntries, getCallLogRetentionDays, getCallLogsTableMaxRows } from "../logEnv";
-import { pickDisplayValue } from "@/shared/utils/maskEmail";
+import { pickMaskedDisplayValue } from "@/shared/utils/maskEmail";
 import {
   CALL_LOGS_DIR,
   cleanupEmptyCallLogDirs,
@@ -46,11 +51,6 @@ import {
 
 type JsonRecord = Record<string, unknown>;
 
-const CALL_LOG_ROTATE_THROTTLE_MS = 60_000;
-let lastCallLogRotationScheduledAt = 0;
-let callLogRotateInFlight = false;
-let callLogRotateScheduled = false;
-
 type CallLogSummaryRow = {
   id: string;
   timestamp: string | null;
@@ -68,7 +68,6 @@ type CallLogSummaryRow = {
   tokens_cache_read: number | null;
   tokens_cache_creation: number | null;
   tokens_reasoning: number | null;
-  tokens_compressed: number | null;
   cache_source: string | null;
   request_type: string | null;
   source_format: string | null;
@@ -88,11 +87,12 @@ type CallLogSummaryRow = {
   has_pipeline_details: number | null;
   request_summary: string | null;
   provider_node_prefix?: string | null;
+<<<<<<< Updated upstream
   resolved_account?: string | null;
   correlation_id?: string | null;
+=======
+>>>>>>> Stashed changes
 };
-
-const RESOLVED_ACCOUNT_SQL = "COALESCE(NULLIF(pc.name, ''), NULLIF(pc.email, ''), cl.account)";
 
 type LegacyInlineRow = {
   request_body: string | null;
@@ -124,9 +124,8 @@ async function resolveAccountName(connectionId: string | null | undefined) {
     const connections = await getProviderConnections();
     const conn = connections.find((item) => item.id === connectionId);
     if (conn) {
-      account = pickDisplayValue(
+      account = pickMaskedDisplayValue(
         [toStringOrNull(conn.name), toStringOrNull(conn.email)],
-        true,
         account
       );
     }
@@ -187,7 +186,6 @@ function buildArtifact(
     tokensCacheRead: number | null;
     tokensCacheCreation: number | null;
     tokensReasoning: number | null;
-    tokensCompressed: number | null;
     requestType: string | null;
     sourceFormat: string | null;
     targetFormat: string | null;
@@ -203,7 +201,7 @@ function buildArtifact(
   pipelinePayloads: RequestPipelinePayloads | null
 ): CallLogArtifact {
   return {
-    schemaVersion: 5,
+    schemaVersion: 4,
     summary: {
       id: logEntry.id,
       timestamp: logEntry.timestamp,
@@ -222,7 +220,6 @@ function buildArtifact(
         cacheRead: logEntry.tokensCacheRead,
         cacheWrite: logEntry.tokensCacheCreation,
         reasoning: logEntry.tokensReasoning,
-        compressed: logEntry.tokensCompressed,
       },
       requestType: logEntry.requestType,
       sourceFormat: logEntry.sourceFormat,
@@ -451,7 +448,7 @@ function mapSummaryRow(row: CallLogSummaryRow) {
     model: row.model,
     requestedModel: applyNodePrefix(row.requested_model, provider, nodePrefix),
     provider,
-    account: row.resolved_account || row.account,
+    account: row.account,
     connectionId: row.connection_id,
     duration: toNumber(row.duration),
     tokens: {
@@ -460,7 +457,6 @@ function mapSummaryRow(row: CallLogSummaryRow) {
       cacheRead: row.tokens_cache_read != null ? toNumber(row.tokens_cache_read) : null,
       cacheWrite: row.tokens_cache_creation != null ? toNumber(row.tokens_cache_creation) : null,
       reasoning: row.tokens_reasoning != null ? toNumber(row.tokens_reasoning) : null,
-      compressed: row.tokens_compressed != null ? toNumber(row.tokens_compressed) : null,
     },
     cacheSource: row.cache_source || "upstream",
     requestType: row.request_type,
@@ -551,7 +547,6 @@ export async function saveCallLog(entry: any) {
       tokensCacheRead: getPromptCacheReadTokensOrNull(entry.tokens),
       tokensCacheCreation: getPromptCacheCreationTokensOrNull(entry.tokens),
       tokensReasoning: getReasoningTokensOrNull(entry.tokens),
-      tokensCompressed: entry.tokensCompressed != null ? toNumber(entry.tokensCompressed) : null,
       cacheSource: entry.cacheSource === "semantic" ? "semantic" : "upstream",
       requestType: entry.requestType || null,
       sourceFormat: entry.sourceFormat || null,
@@ -605,7 +600,7 @@ export async function saveCallLog(entry: any) {
       INSERT INTO call_logs (
         id, timestamp, method, path, status, model, requested_model, provider,
         account, connection_id, duration, tokens_in, tokens_out,
-        tokens_cache_read, tokens_cache_creation, tokens_reasoning, tokens_compressed,
+        tokens_cache_read, tokens_cache_creation, tokens_reasoning,
         cache_source, request_type, source_format, target_format, api_key_id, api_key_name,
         combo_name, combo_step_id, combo_execution_key, error_summary, detail_state,
         artifact_relpath, artifact_size_bytes, artifact_sha256,
@@ -615,7 +610,7 @@ export async function saveCallLog(entry: any) {
       VALUES (
         @id, @timestamp, @method, @path, @status, @model, @requestedModel, @provider,
         @account, @connectionId, @duration, @tokensIn, @tokensOut,
-        @tokensCacheRead, @tokensCacheCreation, @tokensReasoning, @tokensCompressed,
+        @tokensCacheRead, @tokensCacheCreation, @tokensReasoning,
         @cacheSource, @requestType, @sourceFormat, @targetFormat, @apiKeyId, @apiKeyName,
         @comboName, @comboStepId, @comboExecutionKey, @errorSummary, @detailState,
         @artifactRelPath, @artifactSizeBytes, @artifactSha256,
@@ -636,16 +631,16 @@ export async function saveCallLog(entry: any) {
       requestSummary,
     });
 
-    scheduleCallLogRotation();
+    rotateCallLogs();
   } catch (error) {
     console.error("[callLogs] Failed to save call log:", (error as Error).message);
   }
 }
 
 export function rotateCallLogs() {
-  try {
-    if (!CALL_LOGS_DIR || !fs.existsSync(CALL_LOGS_DIR)) return;
+  if (!CALL_LOGS_DIR || !fs.existsSync(CALL_LOGS_DIR)) return;
 
+  try {
     const retentionMs = getCallLogRetentionDays() * 24 * 60 * 60 * 1000;
     const cutoff = new Date(Date.now() - retentionMs).toISOString();
 
@@ -658,51 +653,21 @@ export function rotateCallLogs() {
   }
 }
 
-function runScheduledCallLogRotation() {
-  if (callLogRotateInFlight) return;
-  callLogRotateInFlight = true;
-  setImmediate(() => {
-    try {
-      rotateCallLogs();
-    } catch (error) {
-      console.error("[callLogs] Failed to rotate request artifacts:", (error as Error).message);
-    } finally {
-      callLogRotateInFlight = false;
-    }
-  });
-}
-
-export function scheduleCallLogRotation() {
-  if (!CALL_LOGS_DIR) return;
-  const elapsed = Date.now() - lastCallLogRotationScheduledAt;
-  if (elapsed >= CALL_LOG_ROTATE_THROTTLE_MS) {
-    lastCallLogRotationScheduledAt = Date.now();
-    runScheduledCallLogRotation();
-    return;
+if (shouldPersistToDisk) {
+  try {
+    rotateCallLogs();
+  } catch {
+    // Best-effort startup cleanup.
   }
-  if (callLogRotateScheduled) return;
-  callLogRotateScheduled = true;
-  lastCallLogRotationScheduledAt = Date.now();
-  const timer = setTimeout(() => {
-    callLogRotateScheduled = false;
-    runScheduledCallLogRotation();
-  }, CALL_LOG_ROTATE_THROTTLE_MS - elapsed);
-  timer.unref?.();
-}
-
-if (shouldPersistToDisk && process.env.NODE_ENV !== "test") {
-  scheduleCallLogRotation();
 }
 
 export async function getCallLogs(filter: any = {}) {
   const db = getDbInstance();
   let sql = `
     SELECT cl.*,
-      pn.prefix AS provider_node_prefix,
-      ${RESOLVED_ACCOUNT_SQL} AS resolved_account
+      pn.prefix AS provider_node_prefix
     FROM call_logs cl
     LEFT JOIN provider_nodes pn ON pn.id = cl.provider
-    LEFT JOIN provider_connections pc ON pc.id = cl.connection_id
   `;
   const conditions: string[] = [];
   const params: Record<string, unknown> = {};
@@ -713,7 +678,7 @@ export async function getCallLogs(filter: any = {}) {
     } else if (filter.status === "ok") {
       conditions.push("cl.status >= 200 AND cl.status < 300");
     } else {
-      const statusCode = Number.parseInt(filter.status, 10);
+      const statusCode = parseInt(filter.status, 10);
       if (!Number.isNaN(statusCode)) {
         conditions.push("cl.status = @statusCode");
         params.statusCode = statusCode;
@@ -730,7 +695,7 @@ export async function getCallLogs(filter: any = {}) {
     params.providerQ = `%${filter.provider}%`;
   }
   if (filter.account) {
-    conditions.push(`(cl.account LIKE @accountQ OR ${RESOLVED_ACCOUNT_SQL} LIKE @accountQ)`);
+    conditions.push("cl.account LIKE @accountQ");
     params.accountQ = `%${filter.account}%`;
   }
   if (filter.apiKey) {
@@ -744,18 +709,9 @@ export async function getCallLogs(filter: any = {}) {
   if (filter.combo) {
     conditions.push("cl.combo_name IS NOT NULL");
   }
-  if (filter.since) {
-    conditions.push("cl.timestamp >= @since");
-    params.since = filter.since instanceof Date ? filter.since.toISOString() : String(filter.since);
-  }
-  if (filter.until) {
-    conditions.push("cl.timestamp <= @until");
-    params.until = filter.until instanceof Date ? filter.until.toISOString() : String(filter.until);
-  }
   if (filter.search) {
     conditions.push(`(
       cl.model LIKE @searchQ OR cl.path LIKE @searchQ OR cl.account LIKE @searchQ OR
-      ${RESOLVED_ACCOUNT_SQL} LIKE @searchQ OR
       cl.requested_model LIKE @searchQ OR cl.provider LIKE @searchQ OR
       cl.api_key_name LIKE @searchQ OR cl.api_key_id LIKE @searchQ OR
       cl.combo_name LIKE @searchQ OR CAST(cl.status AS TEXT) LIKE @searchQ
@@ -770,11 +726,8 @@ export async function getCallLogs(filter: any = {}) {
     sql += " WHERE " + conditions.join(" AND ");
   }
 
-  const limit = Number.isInteger(filter.limit) && filter.limit > 0 ? filter.limit : 200;
-  const offset = Number.isInteger(filter.offset) && filter.offset > 0 ? filter.offset : 0;
-  sql += ` ORDER BY cl.timestamp DESC LIMIT @__limit OFFSET @__offset`;
-  params.__limit = limit;
-  params.__offset = offset;
+  const limit = filter.limit || 200;
+  sql += ` ORDER BY cl.timestamp DESC LIMIT ${limit}`;
 
   const rows = db.prepare(sql).all(params) as CallLogSummaryRow[];
   return rows.map(mapSummaryRow);
@@ -785,14 +738,14 @@ export async function getCallLogById(id: string) {
   const row = db
     .prepare(
       `SELECT cl.*,
-        pn.prefix AS provider_node_prefix,
-        ${RESOLVED_ACCOUNT_SQL} AS resolved_account
+        pn.prefix AS provider_node_prefix
        FROM call_logs cl
        LEFT JOIN provider_nodes pn ON pn.id = cl.provider
-       LEFT JOIN provider_connections pc ON pc.id = cl.connection_id
        WHERE cl.id = ?`
     )
-    .get(id) as CallLogSummaryRow | undefined;
+    .get(id) as
+    | CallLogSummaryRow
+    | undefined;
   if (!row) return null;
 
   const entry = mapSummaryRow(row);
@@ -810,7 +763,6 @@ export async function getCallLogById(id: string) {
         error: artifactResult.artifact.error ?? entry.error,
         pipelinePayloads: artifactResult.artifact.pipeline ?? buildLegacyPipelinePayloads(id),
         hasPipelineDetails: Boolean(artifactResult.artifact.pipeline) || entry.hasPipelineDetails,
-        active: false,
       };
     }
 
@@ -834,7 +786,6 @@ export async function getCallLogById(id: string) {
         ...legacyInline,
         pipelinePayloads: legacyPipeline,
         hasPipelineDetails: Boolean(legacyPipeline) || entry.hasPipelineDetails,
-        active: false,
       };
     }
   }
@@ -851,7 +802,6 @@ export async function getCallLogById(id: string) {
       error: legacyDisk.error ?? entry.error,
       pipelinePayloads: legacyPipeline,
       hasPipelineDetails: Boolean(legacyPipeline) || entry.hasPipelineDetails,
-      active: false,
     };
   }
 
@@ -865,7 +815,6 @@ export async function getCallLogById(id: string) {
     error: entry.error,
     pipelinePayloads: legacyPipeline,
     hasPipelineDetails: Boolean(legacyPipeline) || entry.hasPipelineDetails,
-    active: false,
   };
 }
 

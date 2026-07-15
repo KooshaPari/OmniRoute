@@ -2,10 +2,9 @@ import { NextResponse } from "next/server";
 import fs from "fs/promises";
 import path from "path";
 import os from "os";
-import * as yaml from "js-yaml";
 import { requireCliToolsAuth } from "@/lib/api/requireCliToolsAuth";
 import { getRuntimePorts } from "@/lib/runtime/ports";
-import { getCliPrimaryConfigPath, getOpenCodeConfigPath } from "@/shared/services/cliRuntime";
+import { getOpenCodeConfigPath } from "@/shared/services/cliRuntime";
 import { mergeOpenCodeConfigText } from "@/shared/services/opencodeConfig";
 import { guideSettingsSaveSchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
@@ -18,14 +17,6 @@ import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
  * Save configuration for guide-based tools that have config files.
  * Currently supports: continue, opencode
  */
-export async function GET(request, { params }) {
-  // cli-tools routes require the shared management auth guard on every exported handler.
-  const authError = await requireCliToolsAuth(request);
-  if (authError) return authError;
-  void params;
-  return NextResponse.json({ error: "GET not supported for this tool" }, { status: 400 });
-}
-
 export async function POST(request, { params }) {
   const authError = await requireCliToolsAuth(request);
   if (authError) return authError;
@@ -68,9 +59,6 @@ export async function POST(request, { params }) {
         return await saveOpenCodeConfig({ baseUrl, apiKey, model, models, modelLabels });
       case "qwen":
         return await saveQwenConfig({ baseUrl, apiKey, model });
-      case "hermes":
-        return await saveHermesConfig({ baseUrl, apiKey, model });
-      // hermes-agent now uses the dedicated /api/cli-tools/hermes-agent-settings endpoint
       default:
         return NextResponse.json(
           { error: `Direct config save not supported for: ${toolId}` },
@@ -138,7 +126,6 @@ async function saveContinueConfig({ baseUrl, apiKey, model }) {
         normalizeApiBase(m.apiBase).includes("omniroute") ||
         normalizeApiBase(m.apiBase).includes(`localhost:${apiPort}`) ||
         normalizeApiBase(m.apiBase).includes(`127.0.0.1:${apiPort}`) ||
-        // eslint-disable-next-line no-restricted-syntax -- teknik string kontrolü, kullanıcı metni araması değil
         String(m.apiKey || "")
           .toLowerCase()
           .includes("sk_omniroute"))
@@ -163,9 +150,9 @@ async function saveContinueConfig({ baseUrl, apiKey, model }) {
 }
 
 /**
- * Save OpenCode config to ~/.config/opencode/opencode.json on ALL platforms
- * (XDG_CONFIG_HOME aware). OpenCode uses XDG `~/.config` even on Windows
- * (%USERPROFILE%\.config), NOT %APPDATA% (#3330).
+ * Save OpenCode config to:
+ * - Linux/macOS: ~/.config/opencode/opencode.json (XDG_CONFIG_HOME aware)
+ * - Windows: %APPDATA%/opencode/opencode.json
  *
  * (#524) OpenCode was silently failing because this handler was missing.
  */
@@ -255,74 +242,6 @@ async function saveQwenConfig({ baseUrl, apiKey, model }) {
   return NextResponse.json({
     success: true,
     message: `Qwen Code config saved to ${configPath}`,
-    configPath,
-  });
-}
-
-/**
- * Save Hermes config to ~/.hermes/config.yaml
- *
- * Hermes stores its primary routing settings in YAML. Preserve any existing
- * keys, but make sure the OmniRoute provider entry is present and selected.
- */
-async function saveHermesConfig({ baseUrl, apiKey, model }) {
-  const configPath =
-    getCliPrimaryConfigPath("hermes") || path.join(os.homedir(), ".hermes", "config.yaml");
-  const configDir = path.dirname(configPath);
-
-  await fs.mkdir(configDir, { recursive: true });
-
-  const normalizedBaseUrl = String(baseUrl || "")
-    .trim()
-    .replace(/\/+$/, "");
-  const providerBaseUrl = normalizedBaseUrl.endsWith("/v1")
-    ? normalizedBaseUrl
-    : `${normalizedBaseUrl}/v1`;
-
-  if (!model) {
-    return NextResponse.json({ error: "model is required for Hermes" }, { status: 400 });
-  }
-  const selectedModel = model;
-
-  let existingConfig: Record<string, any> = {};
-  try {
-    const raw = await fs.readFile(configPath, "utf-8");
-    const parsed = yaml.load(raw);
-    if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
-      existingConfig = parsed as Record<string, any>;
-    }
-  } catch {
-    // No existing config or unparsable YAML — start fresh.
-  }
-
-  const nextConfig = {
-    ...existingConfig,
-    model: {
-      ...(existingConfig.model || {}),
-      default: selectedModel,
-      provider: "omniroute",
-      base_url: providerBaseUrl,
-    },
-    providers: {
-      ...(existingConfig.providers || {}),
-      omniroute: {
-        ...((existingConfig.providers && existingConfig.providers.omniroute) || {}),
-        base_url: providerBaseUrl,
-        api_key:
-          apiKey ||
-          (existingConfig.providers &&
-            existingConfig.providers.omniroute &&
-            existingConfig.providers.omniroute.api_key) ||
-          "",
-      },
-    },
-  };
-
-  await fs.writeFile(configPath, yaml.dump(nextConfig, { lineWidth: -1 }), "utf-8");
-
-  return NextResponse.json({
-    success: true,
-    message: `Hermes config saved to ${configPath}`,
     configPath,
   });
 }

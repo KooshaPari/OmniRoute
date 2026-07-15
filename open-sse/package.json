@@ -1,7 +1,13 @@
 {
+<<<<<<< Updated upstream
   "name": "@argismonitor/open-sse",
   "version": "3.8.44-argismonitor-prep.1",
   "description": "Express SSE sidecar for ArgisMonitor (formerly OmniRoute) — handles streaming, protocol translation, and provider orchestration",
+=======
+  "name": "@omniroute/open-sse",
+  "version": "3.7.7",
+  "description": "Express SSE sidecar for OmniRoute — handles streaming, protocol translation, and provider orchestration",
+>>>>>>> Stashed changes
   "type": "module",
   "main": "index.js",
   "types": "types.d.ts",

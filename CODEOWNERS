@@ -1,6 +1,11 @@
+<<<<<<< Updated upstream
 # CODEOWNERS — OmniRoute
 # Default reviewers for changes in this repository.
 # See https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
 
 # Fallback reviewer for the whole repository
 *           @KooshaPari
+=======
+# Default owners
+* @KooshaPari
+>>>>>>> Stashed changes

@@ -71,6 +71,66 @@ const parsedInterval = parseInt(process.env.MODELS_DEV_SYNC_INTERVAL || "86400",
 const SYNC_INTERVAL_MS =
   Number.isFinite(parsedInterval) && parsedInterval > 0 ? parsedInterval * 1000 : 86400 * 1000;
 
+<<<<<<< Updated upstream
+=======
+// ─── Provider mapping: models.dev provider ID → OmniRoute provider IDs/aliases ──
+//
+// models.dev uses canonical provider IDs (e.g. "openai", "anthropic", "google").
+// OmniRoute uses both full IDs and short aliases (e.g. "cc" for claude, "cx" for codex).
+// We map each models.dev provider to ALL OmniRoute identifiers that should receive
+// its pricing/capability data.
+
+const MODELS_DEV_PROVIDER_MAP: Record<string, string[]> = {
+  // Major providers
+  openai: ["openai", "cx"], // cx = Codex (uses OpenAI models)
+  anthropic: ["anthropic", "cc"], // cc = Claude Code
+  google: ["gemini", "gemini-cli"],
+  vertex_ai: ["gemini", "vertex"],
+  deepseek: ["deepseek", "if"], // if = Qoder (routes through DeepSeek)
+  groq: ["groq"],
+  xai: ["xai"],
+  mistral: ["mistral"],
+  together_ai: ["together", "openrouter"],
+  fireworks: ["fireworks"],
+  cerebras: ["cerebras"],
+  cohere: ["cohere"],
+  nvidia: ["nvidia"],
+  nebius: ["nebius"],
+  siliconflow: ["siliconflow"],
+  hyperbolic: ["hyperbolic"],
+  huggingface: ["hf", "huggingface"],
+  openrouter: ["openrouter"],
+  perplexity: ["pplx", "perplexity"],
+  // OAuth / special providers
+  bedrock: ["kiro", "kr"], // kr = Kiro (AWS Bedrock)
+  // Additional providers that may overlap with OmniRoute
+  alibaba: ["ali", "alibaba", "bcp", "alicode", "alicode-intl"],
+  zai: ["zai", "glm"], // GLM models via Z.AI
+  moonshot: ["moonshot", "kimi", "kimi-coding", "kmc", "kmca"],
+  minimax: ["minimax", "minimax-cn"],
+  longcat: ["lc", "longcat"],
+  pollinations: ["pol", "pollinations"],
+  puter: ["pu", "puter"],
+  cloudflare: ["cf"],
+  scaleway: ["scw"],
+  ollama: ["ollamacloud", "ollama-cloud"],
+  blackbox: ["bb", "blackbox"],
+  kilocode: ["kc", "kilocode"],
+  cline: ["cl", "cline"],
+  cursor: ["cu", "cursor"],
+  github: ["gh", "github"],
+  // Fallback: if no mapping exists, use the models.dev ID as-is
+};
+
+/**
+ * Map a models.dev provider ID to OmniRoute provider IDs.
+ * Returns array of provider identifiers (may include aliases).
+ */
+export function mapProviderId(modelsDevProviderId: string): string[] {
+  return MODELS_DEV_PROVIDER_MAP[modelsDevProviderId] || [modelsDevProviderId];
+}
+
+>>>>>>> Stashed changes
 // ─── Periodic sync state ─────────────────────────────────
 
 let syncTimer: ReturnType<typeof setInterval> | null = null;
@@ -330,65 +390,23 @@ export function getSyncedCapabilities(provider?: string, modelId?: string): Capa
   return result;
 }
 
-/**
- * Resolved providers/aliases to also try when looking up a synced capability.
- * Required because models.dev has historically stored capability rows under the
- * alias side of an alias pair (e.g. "opencode-zen") while the catalog & combo
- * targets reference the canonical id (e.g. "opencode"). Without this fallback,
- * combos whose targets use the canonical id (e.g. "Opencode FREE Omni" → all
- * `opencode/...` models) end up with `context_length: null` in the catalog.
- */
-const SYNCED_CAPABILITY_FALLBACK_ALIASES: Record<string, string[]> = {
-  opencode: ["opencode-zen"],
-  "opencode-zen": ["opencode"],
-  "opencode-go": ["opencode-zen"],
-};
-
 export function getSyncedCapability(
   provider: string,
   modelId: string
 ): ModelCapabilityEntry | null {
   if (!provider || !modelId) return null;
 
-  // Fast path: every provider is in the in-memory cache, skip SQLite entirely.
   if (cachedCapabilitiesLoadedAll) {
-    const lookupCached = (p: string) => cachedCapabilities?.[p]?.[modelId] ?? null;
-    const directCached = lookupCached(provider);
-    if (directCached) return directCached;
-    const fallbacks = SYNCED_CAPABILITY_FALLBACK_ALIASES[provider];
-    if (fallbacks) {
-      for (const alt of fallbacks) {
-        const found = lookupCached(alt);
-        if (found) return found;
-      }
-    }
-    return null;
+    return cachedCapabilities?.[provider]?.[modelId] ?? null;
   }
 
-  // Cold path: hit SQLite. Prepare the statement once, reuse for every alias.
   const db = getDbInstance();
   ensureCapabilitiesTable();
-  const stmt = db.prepare(
-    "SELECT * FROM model_capabilities WHERE provider = ? AND model_id = ? LIMIT 1"
-  );
-  const lookupDb = (p: string): ModelCapabilityEntry | null => {
-    const row = stmt.get(p, modelId);
-    if (!row) return null;
-    return mapCapabilityRecord(toRecord(row));
-  };
-
-  const direct = lookupDb(provider);
-  if (direct) return direct;
-
-  const fallbacks = SYNCED_CAPABILITY_FALLBACK_ALIASES[provider];
-  if (fallbacks) {
-    for (const alt of fallbacks) {
-      const found = lookupDb(alt);
-      if (found) return found;
-    }
-  }
-
-  return null;
+  const row = db
+    .prepare("SELECT * FROM model_capabilities WHERE provider = ? AND model_id = ? LIMIT 1")
+    .get(provider, modelId);
+  if (!row) return null;
+  return mapCapabilityRecord(toRecord(row));
 }
 
 /**

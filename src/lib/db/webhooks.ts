@@ -6,8 +6,6 @@
 import { getDbInstance } from "./core";
 import crypto from "crypto";
 
-export type WebhookKind = "slack" | "telegram" | "discord" | "custom";
-
 export interface Webhook {
   id: string;
   url: string;
@@ -19,8 +17,6 @@ export interface Webhook {
   last_triggered_at: string | null;
   last_status: number | null;
   failure_count: number;
-  kind: WebhookKind;
-  metadata_encrypted: string | null;
 }
 
 interface WebhookRow {
@@ -34,14 +30,11 @@ interface WebhookRow {
   last_triggered_at: string | null;
   last_status: number | null;
   failure_count: number;
-  kind: string;
-  metadata_encrypted: string | null;
 }
 
 function rowToWebhook(row: WebhookRow): Webhook {
   return {
     ...row,
-    kind: (row.kind as WebhookKind) || "custom",
     events: JSON.parse(row.events || '["*"]'),
     enabled: row.enabled === 1,
   };
@@ -70,26 +63,15 @@ export function createWebhook(data: {
   events?: string[];
   secret?: string;
   description?: string;
-  kind?: WebhookKind;
-  metadataEncrypted?: string | null;
 }): Webhook {
   const db = getDbInstance();
   const id = crypto.randomUUID();
   const secret = data.secret || `whsec_${crypto.randomBytes(24).toString("hex")}`;
-  const kind = data.kind || "custom";
 
   db.prepare(
-    `INSERT INTO webhooks (id, url, events, secret, description, kind, metadata_encrypted)
-       VALUES (?, ?, ?, ?, ?, ?, ?)`
-  ).run(
-    id,
-    data.url,
-    JSON.stringify(data.events || ["*"]),
-    secret,
-    data.description || "",
-    kind,
-    data.metadataEncrypted ?? null
-  );
+    `INSERT INTO webhooks (id, url, events, secret, description)
+       VALUES (?, ?, ?, ?, ?)`
+  ).run(id, data.url, JSON.stringify(data.events || ["*"]), secret, data.description || "");
 
   return getWebhook(id)!;
 }
@@ -102,8 +84,6 @@ export function updateWebhook(
     secret: string;
     enabled: boolean;
     description: string;
-    kind: WebhookKind;
-    metadataEncrypted: string | null;
   }>
 ): Webhook | null {
   const db = getDbInstance();
@@ -132,14 +112,6 @@ export function updateWebhook(
   if (data.description !== undefined) {
     fields.push("description = ?");
     values.push(data.description);
-  }
-  if (data.kind !== undefined) {
-    fields.push("kind = ?");
-    values.push(data.kind);
-  }
-  if (data.metadataEncrypted !== undefined) {
-    fields.push("metadata_encrypted = ?");
-    values.push(data.metadataEncrypted);
   }
 
   if (fields.length === 0) return existing;

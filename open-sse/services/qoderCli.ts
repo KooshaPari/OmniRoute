@@ -348,7 +348,7 @@ MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDA8iMH5c02LilrsERw9t6Pv5Nc
 XcW+ML9FoCI6AOvOzwIDAQAB
 -----END PUBLIC KEY-----`;
 
-export function buildCosyHeadersForValidation(bodyStr: string, token: string) {
+function buildCosyHeadersForValidation(bodyStr: string, token: string) {
   const aesKeyBytes = crypto.randomBytes(16);
   const aesKeyStr = aesKeyBytes.toString("hex").slice(0, 16);
   const aesKeyBuf = Buffer.from(aesKeyStr, "utf8");
@@ -393,6 +393,7 @@ export function buildCosyHeadersForValidation(bodyStr: string, token: string) {
   };
 }
 
+<<<<<<< Updated upstream
 // #4683: Qoder PATs (`pt-*`) cannot be used directly as the Cosy
 // `security_oauth_token`. The official qodercli performs a two-step flow: it first
 // exchanges the PAT for a short-lived job token (`jt-*`) at
@@ -508,6 +509,8 @@ export function __clearQoderJobTokenCache(): void {
   qoderJobTokenPending.clear();
 }
 
+=======
+>>>>>>> Stashed changes
 export async function validateQoderCliPat({
   apiKey,
   providerSpecificData = {},
@@ -576,10 +579,8 @@ export async function validateQoderCliPat({
     };
   }
 
-  // Step 2: Auth validation — exchange the PAT for a job token (#4683), then send a
-  // minimal request with the `jt-*` (Cosy rejects a raw `pt-*` with a generic 500).
-  const cosyToken = await resolveQoderJobToken(resolvedToken);
-  const headers = buildCosyHeadersForValidation(bodyStr, cosyToken);
+  // Step 2: Auth validation — send a minimal request with the PAT
+  const headers = buildCosyHeadersForValidation(bodyStr, resolvedToken);
   const endpoint =
     "https://api1.qoder.sh/algo/api/v2/service/pro/sse/agent_chat_generation?AgentId=agent_common";
 
@@ -620,30 +621,8 @@ export async function validateQoderCliPat({
       return { valid: true, error: null, unsupported: false };
     }
 
-    // Treat 5xx as a valid bypass to prevent false negatives from legacy Qoder APIs (#1391).
-    // A Cosy `{"success":false}` 500 is ambiguous: it can be a genuine auth rejection OR a
-    // transient/generic upstream "Internal Server Error". Only mark the PAT invalid when the
-    // body carries an EXPLICIT auth signal — a generic 500 is a server fault, not an auth
-    // verdict, so a working PAT must not be reported as expired (#3247, narrowing #2860).
+    // Treat 5xx as valid bypass to prevent false negatives from legacy Qoder APIs (issue #1391)
     if (res.status >= 500) {
-      const isCosyResponse = /"success"\s*:\s*false/.test(errorDetail);
-      const hasAuthSignal =
-        /(unauthorized|forbidden|expired|revoked|not\s*authorized|permission\s*denied|access\s*denied|invalid\s*(?:token|credential|api[\s_-]*key)|token\s*(?:invalid|expired|revoked))/i.test(
-          errorDetail
-        );
-
-      if (isCosyResponse && hasAuthSignal) {
-        return {
-          valid: false,
-          error:
-            `Authentication failed (HTTP ${res.status}). The Qoder Cosy server rejected the token ` +
-            "as invalid, expired, or not authorized. " +
-            "Please check your token at https://qoder.com/account/integrations." +
-            (errorDetail ? ` Server response: ${errorDetail}` : ""),
-          unsupported: false,
-        };
-      }
-
       return {
         valid: true,
         error: `Validation endpoint returned HTTP ${res.status}${errorDetail ? `: ${errorDetail}` : ""}, treating PAT as valid`,

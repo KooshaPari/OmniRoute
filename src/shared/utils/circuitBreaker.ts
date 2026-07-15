@@ -1,19 +1,15 @@
 /**
- * Circuit Breaker — FASE-04 Observability & Resilience (v2.0)
+ * Circuit Breaker — FASE-04 Observability & Resilience
  *
- * Implements the circuit breaker pattern with:
- * - States: CLOSED → DEGRADED → OPEN → HALF_OPEN → CLOSED
- * - Adaptive backoff: resetTimeout escalates on repeated open→probe→open cycles
- * - Failure-kind-aware thresholds: different limits per failure type
- * - Progressive degradation: high failure rate triggers warning before full open
- * - Transition history tracking for diagnostics
- * - DB persistence via domainState.js
+ * Implements the circuit breaker pattern for external API calls.
+ * Prevents cascading failures by short-circuiting requests to
+ * providers that are consistently failing.
  *
- * States:
- *   CLOSED    — Normal operation, requests pass through
- *   DEGRADED  — Failure rate elevated, requests pass through but warnings logged
- *   OPEN      — Requests are short-circuited
- *   HALF_OPEN — Probing: limited requests allowed to test recovery
+ * States: CLOSED → OPEN → HALF_OPEN → CLOSED
+ *
+ * State is persisted in SQLite via domainState.js for restart durability.
+ *
+ * @module shared/utils/circuitBreaker
  */
 
 import {
@@ -23,48 +19,14 @@ import {
   deleteCircuitBreakerState,
   deleteAllCircuitBreakerStates,
 } from "../../lib/db/domainState";
-import type { FailureKind } from "./classify429";
 
-/**
- * #4602 — Detect a LOCAL stream-lifecycle error that must NOT count as a
- * whole-provider failure. The Codex WebSocket→SSE bridge can throw a bare
- * `Invalid state: Controller is already closed` (an enqueue-after-close on our
- * own ReadableStream controller). It carries no `statusCode`, so it defaults to
- * HTTP 502 and would otherwise trip the provider circuit breaker — blacklisting
- * the entire Codex provider for a bug that lives in our bridge, not upstream.
- * Use this with the breaker's `isFailure` option so the bridge error is ignored
- * by the provider breaker while genuine upstream 5xx failures still count.
- */
-export function isLocalStreamLifecycleError(error: unknown): boolean {
-  if (!error) return false;
-  const message =
-    typeof error === "string"
-      ? error
-      : typeof (error as { message?: unknown }).message === "string"
-        ? ((error as { message: string }).message as string)
-        : "";
-  if (!message) return false;
-  return /controller is already closed/i.test(message);
-}
-
-export const STATE = {
+const STATE = {
   CLOSED: "CLOSED",
-  DEGRADED: "DEGRADED",
   OPEN: "OPEN",
   HALF_OPEN: "HALF_OPEN",
 } as const;
 
 type CircuitState = (typeof STATE)[keyof typeof STATE];
-
-/** Per-failure-kind threshold overrides */
-interface FailureKindThresholds {
-  /** Max failures of this kind before escalating to next state */
-  threshold: number;
-  /** Cooldown override for this failure kind */
-  cooldown?: number;
-  /** Whether this failure kind should trigger immediate OPEN (skip DEGRADED) */
-  immediateOpen?: boolean;
-}
 
 interface CircuitBreakerOptions {
   failureThreshold?: number;
@@ -72,35 +34,6 @@ interface CircuitBreakerOptions {
   halfOpenRequests?: number;
   onStateChange?: ((name: string, oldState: string, newState: string) => void) | null;
   isFailure?: (error: unknown) => boolean;
-  cooldownByKind?: Partial<Record<FailureKind, number>>;
-  classifyError?: (error: unknown) => FailureKind | undefined;
-  /**
-   * Per-failure-kind thresholds.
-   * When set, different failure types have different limits.
-   */
-  kindThresholds?: Partial<Record<FailureKind, Partial<FailureKindThresholds>>>;
-  /**
-   * Degradation threshold — failure count at which state becomes DEGRADED.
-   * Default: 60% of failureThreshold.
-   */
-  degradationThreshold?: number;
-  /**
-   * Max backoff multiplier (exponential). Default: 16x resetTimeout.
-   */
-  maxBackoffMultiplier?: number;
-  /**
-   * How many open→half_open→open cycles before escalating backoff.
-   * Default: 3.
-   */
-  backoffEscalationCount?: number;
-}
-
-interface TransitionRecord {
-  from: string;
-  to: string;
-  timestamp: number;
-  failureCount: number;
-  reason?: string;
 }
 
 export class CircuitBreaker {
@@ -115,22 +48,6 @@ export class CircuitBreaker {
   successCount: number;
   lastFailureTime: number | null;
   halfOpenAllowed: number;
-  cooldownByKind: Partial<Record<FailureKind, number>>;
-  classifyError: ((error: unknown) => FailureKind | undefined) | null;
-  lastFailureKind: FailureKind | null;
-  kindThresholds: Partial<Record<FailureKind, Partial<FailureKindThresholds>>>;
-  degradationThreshold: number;
-  maxBackoffMultiplier: number;
-  backoffEscalationCount: number;
-
-  /** Track failure counts per kind separately */
-  kindFailureCounts: Record<string, number>;
-  /** How many times has the breaker gone from OPEN → HALF_OPEN → OPEN */
-  openCycleCount: number;
-  /** State transition history */
-  transitionHistory: TransitionRecord[];
-  /** Max transition history entries */
-  maxTransitionHistory: number;
 
   constructor(name: string, options: CircuitBreakerOptions = {}) {
     this.name = name;
@@ -145,30 +62,21 @@ export class CircuitBreaker {
     this.successCount = 0;
     this.lastFailureTime = null;
     this.halfOpenAllowed = 0;
-    this.cooldownByKind = options.cooldownByKind ?? {};
-    this.classifyError = options.classifyError ?? null;
-    this.lastFailureKind = null;
-    this.kindThresholds = options.kindThresholds ?? {};
-    this.degradationThreshold =
-      options.degradationThreshold ?? Math.ceil((this.failureThreshold * 60) / 100);
-    this.maxBackoffMultiplier = options.maxBackoffMultiplier ?? 16;
-    this.backoffEscalationCount = options.backoffEscalationCount ?? 3;
 
-    this.kindFailureCounts = {};
-    this.openCycleCount = 0;
-    this.transitionHistory = [];
-    this.maxTransitionHistory = 20;
-
+    // Try to restore state from DB
     this._restoreFromDb();
   }
 
+  /**
+   * Restore state from SQLite if available.
+   * @private
+   */
   _restoreFromDb() {
     try {
       const saved = loadCircuitBreakerState(this.name);
       if (saved) {
         if (
           saved.state === STATE.CLOSED ||
-          saved.state === STATE.DEGRADED ||
           saved.state === STATE.OPEN ||
           saved.state === STATE.HALF_OPEN
         ) {
@@ -176,17 +84,6 @@ export class CircuitBreaker {
         }
         this.failureCount = saved.failureCount;
         this.lastFailureTime = saved.lastFailureTime;
-        const savedKind = saved.options?.lastFailureKind;
-        if (
-          savedKind === "rate_limit" ||
-          savedKind === "quota_exhausted" ||
-          savedKind === "transient"
-        ) {
-          this.lastFailureKind = savedKind;
-        }
-        this.openCycleCount = (saved.options?.openCycleCount as number) ?? 0;
-        this.kindFailureCounts = (saved.options?.kindFailureCounts as Record<string, number>) ?? {};
-
         if (this.state === STATE.HALF_OPEN) {
           this.halfOpenAllowed = this.halfOpenRequests;
         }
@@ -196,6 +93,10 @@ export class CircuitBreaker {
     }
   }
 
+  /**
+   * Persist current state to SQLite.
+   * @private
+   */
   _persistToDb() {
     try {
       saveCircuitBreakerState(this.name, {
@@ -206,32 +107,22 @@ export class CircuitBreaker {
           failureThreshold: this.failureThreshold,
           resetTimeout: this.resetTimeout,
           halfOpenRequests: this.halfOpenRequests,
-          lastFailureKind: this.lastFailureKind,
-          openCycleCount: this.openCycleCount,
-          kindFailureCounts: this.kindFailureCounts,
         },
       });
     } catch {
-      // Non-critical
+      // Non-critical: in-memory still works
     }
   }
 
   /**
-   * Get the effective reset timeout, escalated by open cycle count.
-   * Each open→half_open→open cycle multiplies the timeout.
+   * Execute a function through the circuit breaker.
+   *
+   * @template T
+   * @param {() => Promise<T>} fn - Function to execute
+   * @returns {Promise<T>}
+   * @throws {Error} If circuit is OPEN
    */
-  _effectiveResetTimeout(): number {
-    if (this.openCycleCount <= this.backoffEscalationCount) {
-      return this.resetTimeout;
-    }
-    const escalationFactor = Math.pow(2, this.openCycleCount - this.backoffEscalationCount);
-    return Math.min(
-      this.resetTimeout * escalationFactor,
-      this.resetTimeout * this.maxBackoffMultiplier
-    );
-  }
-
-  async execute<T>(fn: () => Promise<T>): Promise<T> {
+  async execute(fn) {
     this._refreshOpenState();
 
     if (this.state === STATE.OPEN) {
@@ -260,206 +151,130 @@ export class CircuitBreaker {
       return result;
     } catch (error) {
       if (this.isFailure(error)) {
-        let kind: FailureKind | undefined;
-        if (this.classifyError) {
-          try {
-            kind = this.classifyError(error);
-          } catch {
-            kind = undefined;
-          }
-        }
-        this._onFailure(kind);
+        this._onFailure();
       }
       throw error;
     }
   }
 
+  /**
+   * Check if a request can proceed (without executing).
+   * @returns {boolean}
+   */
   canExecute() {
     this._refreshOpenState();
-    if (this.state === STATE.CLOSED || this.state === STATE.DEGRADED) return true;
+
+    if (this.state === STATE.CLOSED) return true;
     if (this.state === STATE.OPEN) return false;
     if (this.state === STATE.HALF_OPEN) return this.halfOpenAllowed > 0;
     return false;
   }
 
+  /**
+   * Get the current state for monitoring.
+   * @returns {{ name: string, state: string, failureCount: number, lastFailureTime: number|null }}
+   */
   getStatus() {
     this._refreshOpenState();
+
     return {
       name: this.name,
       state: this.state,
       failureCount: this.failureCount,
       lastFailureTime: this.lastFailureTime,
       retryAfterMs: this.getRetryAfterMs(),
-      lastFailureKind: this.lastFailureKind,
-      openCycleCount: this.openCycleCount,
-      kindFailureCounts: { ...this.kindFailureCounts },
-      degradationThreshold: this.degradationThreshold,
-      effectiveResetTimeout: this._effectiveResetTimeout(),
     };
   }
 
+  /**
+   * Get remaining wait time before the breaker allows execution again.
+   * @returns {number}
+   */
   getRetryAfterMs() {
     this._refreshOpenState();
-    if (this.state === STATE.CLOSED || this.state === STATE.DEGRADED) return 0;
+
+    if (this.state === STATE.CLOSED) return 0;
     return this._timeUntilReset();
   }
 
+  /**
+   * Force reset the circuit breaker to CLOSED state.
+   */
   reset() {
-    this._transition(STATE.CLOSED, "manual-reset");
+    this._transition(STATE.CLOSED);
     this.failureCount = 0;
     this.successCount = 0;
     this.lastFailureTime = null;
-    this.lastFailureKind = null;
-    this.openCycleCount = 0;
-    this.kindFailureCounts = {};
     this._persistToDb();
   }
 
-  // ─── Internal ─────────────────────────────────
+  // ─── Internal Methods ────────────────────────
 
   _onSuccess() {
     if (this.state === STATE.OPEN) {
-      this._transition(STATE.CLOSED, "success-recovery");
+      // Direct call from combo path: timeout elapsed and request succeeded
+      // without going through execute(), so transition OPEN → CLOSED directly
+      this._transition(STATE.CLOSED);
       this.failureCount = 0;
       this.successCount = 0;
       this.lastFailureTime = null;
-      this.lastFailureKind = null;
-      this.openCycleCount = 0;
-      this.kindFailureCounts = {};
     } else if (this.state === STATE.HALF_OPEN) {
       this.successCount++;
-      this._transition(STATE.CLOSED, "probe-success");
+      this._transition(STATE.CLOSED);
       this.failureCount = 0;
-      this.lastFailureKind = null;
-      this.openCycleCount = 0;
-      this.kindFailureCounts = {};
     } else {
-      // CLOSED or DEGRADED: reset counts
-      this.failureCount = Math.max(0, this.failureCount - 1); // gradual recovery
-      if (this.state === STATE.DEGRADED && this.failureCount <= this.degradationThreshold) {
-        this._transition(STATE.CLOSED, "recovery");
-      }
+      // In CLOSED state, just reset failure count
+      this.failureCount = 0;
     }
     this._persistToDb();
   }
 
-  _onFailure(kind?: FailureKind | null) {
-    const failureKind = kind ?? null;
+  _onFailure() {
     this.failureCount++;
     this.lastFailureTime = Date.now();
-    this.lastFailureKind = failureKind;
 
-    // Track per-kind failure counts
-    if (failureKind) {
-      this.kindFailureCounts[failureKind] = (this.kindFailureCounts[failureKind] || 0) + 1;
-    }
-
-    // Check kind-specific thresholds
-    if (failureKind) {
-      const kindConfig = this.kindThresholds[failureKind];
-      if (kindConfig) {
-        const kindCount = this.kindFailureCounts[failureKind] || 0;
-
-        // Immediate open for critical failure kinds
-        if (kindConfig.immediateOpen && kindCount >= (kindConfig.threshold || 1)) {
-          this._openCircuit(failureKind);
-          return;
-        }
-
-        // Kind-specific threshold reached
-        if (kindCount >= (kindConfig.threshold || this.failureThreshold)) {
-          this._openCircuit(failureKind);
-          return;
-        }
-      }
-    }
-
-    // State transitions based on total failure count
     if (this.state === STATE.OPEN) {
-      // Already OPEN — just update persistence
+      // Already OPEN — just update persistence (re-tripped by combo path)
     } else if (this.state === STATE.HALF_OPEN) {
-      // Probe failed: OPEN with cycle count escalation
-      this.openCycleCount++;
-      this._transition(STATE.OPEN, `probe-failed (cycle ${this.openCycleCount})`);
-    } else if (this.state === STATE.DEGRADED) {
-      // Degraded → Open when threshold reached
-      if (this.failureCount >= this.failureThreshold) {
-        this._openCircuit(failureKind);
-      }
-    } else {
-      // CLOSED → DEGRADED or OPEN
-      if (this.failureCount >= this.failureThreshold) {
-        this._openCircuit(failureKind);
-      } else if (this.failureCount >= this.degradationThreshold) {
-        this._transition(
-          STATE.DEGRADED,
-          `elevated-failures (${this.failureCount}/${this.failureThreshold})`
-        );
-      }
+      this._transition(STATE.OPEN);
+    } else if (this.failureCount >= this.failureThreshold) {
+      this._transition(STATE.OPEN);
     }
     this._persistToDb();
-  }
-
-  _openCircuit(kind: FailureKind | null) {
-    this._transition(STATE.OPEN, kind ? `kind:${kind}` : undefined);
   }
 
   _shouldAttemptReset() {
     if (!this.lastFailureTime) return true;
-    const cooldown = this._effectiveCooldown();
-    return Date.now() - this.lastFailureTime >= cooldown;
-  }
-
-  _effectiveCooldown() {
-    const baseTimeout = this._effectiveResetTimeout();
-    if (this.lastFailureKind !== null) {
-      const override = this.cooldownByKind[this.lastFailureKind];
-      if (typeof override === "number" && Number.isFinite(override) && override >= 0) {
-        return override;
-      }
-    }
-    return baseTimeout;
+    return Date.now() - this.lastFailureTime >= this.resetTimeout;
   }
 
   _timeUntilReset() {
     if (!this.lastFailureTime) return 0;
-    const cooldown = this._effectiveCooldown();
-    return Math.max(0, cooldown - (Date.now() - this.lastFailureTime));
+    return Math.max(0, this.resetTimeout - (Date.now() - this.lastFailureTime));
   }
 
   _refreshOpenState() {
     if (this.state === STATE.OPEN && this._shouldAttemptReset()) {
-      this._transition(STATE.HALF_OPEN, "timeout-elapsed");
+      this._transition(STATE.HALF_OPEN);
       this._persistToDb();
     }
   }
 
-  _transition(newState: CircuitState, reason?: string) {
+  _transition(newState) {
     const oldState = this.state;
     this.state = newState;
-
     if (newState === STATE.HALF_OPEN) {
       this.halfOpenAllowed = this.halfOpenRequests;
     }
-
-    // Record transition
-    this.transitionHistory.push({
-      from: oldState,
-      to: newState,
-      timestamp: Date.now(),
-      failureCount: this.failureCount,
-      reason,
-    });
-    if (this.transitionHistory.length > this.maxTransitionHistory) {
-      this.transitionHistory.shift();
-    }
-
     if (this.onStateChange && oldState !== newState) {
       this.onStateChange(this.name, oldState, newState);
     }
   }
 }
 
+/**
+ * Error thrown when circuit breaker is open.
+ */
 export class CircuitBreakerOpenError extends Error {
   circuitName: string;
   retryAfterMs: number;
@@ -472,67 +287,12 @@ export class CircuitBreakerOpenError extends Error {
   }
 }
 
-// ─── Registry ─────────────────────────────────────
+// ─── Circuit Breaker Registry ────────────────────
 
-const MAX_REGISTRY_SIZE = 500;
 const registry = new Map<string, CircuitBreaker>();
-
-/** Test-only: current number of registered circuit breakers. */
-export function __getCircuitRegistrySizeForTests(): number {
-  return registry.size;
-}
-
-const _registrySweep = setInterval(() => {
-  const now = Date.now();
-  for (const [name, breaker] of registry) {
-    const status = breaker.getStatus();
-    if (
-      status.state === STATE.CLOSED &&
-      status.failureCount === 0 &&
-      (!status.lastFailureTime || now - status.lastFailureTime > 30 * 60 * 1000)
-    ) {
-      registry.delete(name);
-      try {
-        deleteCircuitBreakerState(name);
-      } catch {}
-    }
-  }
-}, 5 * 60_000);
-if (typeof _registrySweep === "object" && "unref" in _registrySweep) {
-  (_registrySweep as { unref?: () => void }).unref?.();
-}
-
-/**
- * Enforce MAX_REGISTRY_SIZE before inserting a new breaker. The cap was previously declared
- * but never used — the only bound was the 5-min sweep, which evicts a breaker only if it is
- * CLOSED, has zero failures, AND has been idle for >30 min. With high-cardinality breaker
- * names that cap could be exceeded for up to 30 min. Evict idle CLOSED breakers (oldest first)
- * to make room; never evict OPEN/HALF_OPEN breakers, since those carry meaningful state. A
- * CLOSED breaker with zero failures is behaviorally identical to a freshly-created one, so
- * evicting and lazily recreating it later changes nothing.
- */
-function evictColdBreakersIfNeeded(): void {
-  if (registry.size < MAX_REGISTRY_SIZE) return;
-  const candidates: { name: string; lastFailureTime: number }[] = [];
-  for (const [name, breaker] of registry) {
-    const status = breaker.getStatus();
-    if (status.state === STATE.CLOSED && status.failureCount === 0) {
-      candidates.push({ name, lastFailureTime: status.lastFailureTime || 0 });
-    }
-  }
-  candidates.sort((a, b) => a.lastFailureTime - b.lastFailureTime);
-  const target = registry.size - MAX_REGISTRY_SIZE + 1;
-  for (let i = 0; i < candidates.length && i < target; i++) {
-    registry.delete(candidates[i].name);
-    try {
-      deleteCircuitBreakerState(candidates[i].name);
-    } catch {}
-  }
-}
 
 export function getCircuitBreaker(name: string, options?: CircuitBreakerOptions): CircuitBreaker {
   if (!registry.has(name)) {
-    evictColdBreakersIfNeeded();
     registry.set(name, new CircuitBreaker(name, options));
   }
   const breaker = registry.get(name)!;
@@ -555,40 +315,22 @@ export function getCircuitBreaker(name: string, options?: CircuitBreakerOptions)
     if (typeof options.isFailure === "function") {
       breaker.isFailure = options.isFailure;
     }
-    if (options.cooldownByKind) {
-      breaker.cooldownByKind = {
-        ...breaker.cooldownByKind,
-        ...options.cooldownByKind,
-      };
-    }
-    if (typeof options.classifyError === "function") {
-      breaker.classifyError = options.classifyError;
-    }
-    if (options.kindThresholds) {
-      breaker.kindThresholds = {
-        ...breaker.kindThresholds,
-        ...options.kindThresholds,
-      };
-    }
-    if (typeof options.degradationThreshold === "number") {
-      breaker.degradationThreshold = options.degradationThreshold;
-    }
-    if (typeof options.maxBackoffMultiplier === "number") {
-      breaker.maxBackoffMultiplier = options.maxBackoffMultiplier;
-    }
-    if (typeof options.backoffEscalationCount === "number") {
-      breaker.backoffEscalationCount = options.backoffEscalationCount;
-    }
     breaker._persistToDb();
   }
   return breaker;
 }
 
+/**
+ * Get all circuit breaker statuses (for monitoring dashboard).
+ * @returns {Array<{ name: string, state: string, failureCount: number }>}
+ */
 export function getAllCircuitBreakerStatuses() {
+  // Merge registry with any persisted states not yet loaded
   try {
     const persisted = loadAllCircuitBreakerStates();
     for (const cb of persisted) {
       if (!registry.has(cb.name)) {
+        // Load the breaker (will restore from DB in constructor)
         getCircuitBreaker(cb.name);
       }
     }
@@ -598,6 +340,9 @@ export function getAllCircuitBreakerStatuses() {
   return Array.from(registry.values()).map((cb) => cb.getStatus());
 }
 
+/**
+ * Reset all circuit breakers (for admin/testing).
+ */
 export function resetAllCircuitBreakers() {
   for (const cb of registry.values()) {
     cb.reset();
@@ -609,3 +354,5 @@ export function resetAllCircuitBreakers() {
     // Non-critical
   }
 }
+
+export { STATE };

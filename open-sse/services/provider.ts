@@ -6,8 +6,6 @@ import {
   CLAUDE_CODE_COMPATIBLE_DEFAULT_CHAT_PATH,
   joinClaudeCodeCompatibleUrl,
 } from "./claudeCodeCompatible.ts";
-import { getClaudeCodeCompatibleRequestDefaults } from "@/lib/providers/requestDefaults";
-import { buildClineHeaders } from "@/shared/utils/clineAuth";
 
 const OPENAI_COMPATIBLE_PREFIX = "openai-compatible-";
 const OPENAI_COMPATIBLE_DEFAULTS = {
@@ -97,28 +95,10 @@ export function detectFormatFromEndpoint(body, endpointPath = "") {
     return "claude";
   }
 
-  // Antigravity/cloudcode-compatible inbound endpoint (D4): the AgentBridge
-  // proxy forwards the IDE's cloudcode envelope here. Path-based detection
-  // (mirrors /messages → claude) makes the pipeline translate the request
-  // antigravity→openai and the response openai→antigravity, so the IDE gets
-  // a cloudcode reply regardless of which provider actually served it.
-  if (/\/antigravity(?=\/|:|$)/i.test(path) || /^antigravity(?=\/|:|$)/i.test(path)) {
-    return "antigravity";
-  }
-
   if (
     /\/(?:chat\/completions|completions)(?=\/|$)/i.test(path) ||
     /^(?:chat\/completions|completions)(?=\/|$)/i.test(path)
   ) {
-    if (
-      body &&
-      typeof body === "object" &&
-      !Array.isArray(body) &&
-      body.input !== undefined &&
-      body.messages === undefined
-    ) {
-      return "openai-responses";
-    }
     return "openai";
   }
 
@@ -315,14 +295,10 @@ export function buildProviderHeaders(provider, credentials, stream = true, body 
   // Specific override for Anthropic Compatible
   if (isClaudeCodeCompatible(provider)) {
     const token = credentials.apiKey || credentials.accessToken || "";
-    const ccRequestDefaults = getClaudeCodeCompatibleRequestDefaults(
-      credentials?.providerSpecificData
-    );
     return buildClaudeCodeCompatibleHeaders(
       token,
       stream,
-      credentials?.providerSpecificData?.ccSessionId,
-      { redactThinking: ccRequestDefaults.redactThinking === true }
+      credentials?.providerSpecificData?.ccSessionId
     );
   }
   if (isAnthropicCompatible(provider)) {
@@ -348,11 +324,6 @@ export function buildProviderHeaders(provider, credentials, stream = true, body 
     if (!stream) {
       headers["Accept"] = "application/json";
     }
-  } else if (provider === "cline") {
-    // Cline's API requires the bearer token prefixed with `workos:` plus a set
-    // of Cline client-identification headers; plain `Bearer <token>` is rejected
-    // upstream. buildClineHeaders() emits both.
-    Object.assign(headers, buildClineHeaders(credentials.apiKey || credentials.accessToken));
   } else if (entry) {
     // Registry-driven auth
     const authHeader = entry.authHeader || "bearer";
@@ -360,11 +331,6 @@ export function buildProviderHeaders(provider, credentials, stream = true, body 
       const token = credentials.apiKey || credentials.accessToken;
       if (token) {
         headers["x-api-key"] = token;
-      }
-    } else if (authHeader === "key") {
-      const token = credentials.apiKey || credentials.accessToken;
-      if (token) {
-        headers["Authorization"] = `Key ${token}`;
       }
     } else if (authHeader === "x-goog-api-key") {
       if (credentials.apiKey) {

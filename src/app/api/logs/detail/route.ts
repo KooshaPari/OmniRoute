@@ -9,7 +9,6 @@ import {
   getRequestDetailLogCount,
   isDetailedLoggingEnabled,
 } from "@/lib/db/detailedLogs";
-import { getUserDatabaseSettings, updateDatabaseSettings } from "@/lib/db/databaseSettings";
 import { updateSettings } from "@/lib/db/settings";
 
 export const dynamic = "force-dynamic";
@@ -37,14 +36,6 @@ export async function POST(req: NextRequest) {
   const enabled = body.enabled === true || body.enabled === "1";
 
   await updateSettings({ call_log_pipeline_enabled: enabled });
-  const databaseSettings = getUserDatabaseSettings();
-  updateDatabaseSettings({
-    logs: {
-      ...databaseSettings.logs,
-      detailedLogsEnabled: enabled,
-      callLogPipelineEnabled: enabled,
-    },
-  });
 
   return NextResponse.json({
     success: true,

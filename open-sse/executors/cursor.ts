@@ -1,16 +1,27 @@
 declare const EdgeRuntime: string | undefined;
 /**
- * CursorExecutor — talks to Cursor's agent.v1.AgentService/Run endpoint.
+ * CursorExecutor — Handles communication with the Cursor IDE API.
  *
- * cursor-agent (CLI) and the cursor IDE both use this RPC for every model id
- * (auto, composer-*, claude-*, gpt-*, gemini-*). The legacy
- * aiserver.v1.ChatService/StreamUnifiedChatWithTools rejects "auto" and
- * "composer-*" with errors, so we migrated this executor over.
+ * This executor is the most complex due to Cursor's non-standard protocol:
  *
- * Wire format & schema details live in ../utils/cursorAgentProtobuf.ts.
+ * SECTION 1: Authentication (generateChecksum)
+ *   - SHA-256 based checksum using machine ID and timestamp
+ *   - WorkOS token refresh for session management
+ *
+ * SECTION 2: Request Encoding (transformRequest, buildHeaders)
+ *   - ConnectRPC Protobuf binary encoding via cursorProtobuf.js
+ *   - Chat body construction with model routing
+ *
+ * SECTION 3: Response Parsing (executeStream, parseEvent*)
+ *   - Binary EventStream → SSE text conversion
+ *   - Gzip decompression of response frames
+ *   - HTTP/2 support with h2 fallback to fetch
+ *
+ * @see cursorProtobuf.js for Protobuf encoding/decoding utilities
  */
 
 import { BaseExecutor, mergeUpstreamExtraHeaders } from "./base.ts";
+<<<<<<< Updated upstream
 import { generateTraceparent } from "../observability/traceparent.ts";
 import { PROVIDERS, HTTP_STATUS } from "../config/constants.ts";
 import {
@@ -180,6 +191,23 @@ const CURSOR_AGENT_PATH = "/agent.v1.AgentService/Run";
 const CURSOR_AGENT_URL = `https://${CURSOR_AGENT_HOST}${CURSOR_AGENT_PATH}`;
 
 // Detect cloud environment (Edge runtime, Cloudflare Workers, etc.)
+=======
+import { getCursorUserAgent } from "../config/providerHeaderProfiles.ts";
+import { PROVIDERS, HTTP_STATUS } from "../config/constants.ts";
+import {
+  generateCursorBody,
+  parseConnectRPCFrame,
+  extractTextFromResponse,
+} from "../utils/cursorProtobuf.ts";
+import { estimateUsage } from "../utils/usageTracking.ts";
+import { getCursorVersion } from "../utils/cursorVersionDetector.ts";
+import { FORMATS } from "../translator/formats.ts";
+import crypto from "crypto";
+import { v5 as uuidv5 } from "uuid";
+import zlib from "zlib";
+
+// Detect cloud environment
+>>>>>>> Stashed changes
 const isCloudEnv = () => {
   if (typeof caches !== "undefined" && typeof caches === "object") return true;
   if (typeof EdgeRuntime !== "undefined") return true;
@@ -187,40 +215,144 @@ const isCloudEnv = () => {
 };
 
 // Lazy import http2 (only in Node.js environment)
-let http2: typeof import("http2") | null = null;
+let http2 = null;
 if (!isCloudEnv()) {
   try {
     http2 = await import("http2");
   } catch {
-    http2 = null;
+    // http2 not available
   }
 }
 
-// Phase 10: CURSOR_DEBUG=1 enables verbose streaming debug logs (decoded
-// frame summaries, exec router dispatches, session lifecycle events).
-// CURSOR_STREAM_DEBUG is kept as a backward-compatible alias.
-const CURSOR_DEBUG = process.env.CURSOR_DEBUG === "1" || process.env.CURSOR_STREAM_DEBUG === "1";
-const debugLog = (...args: unknown[]) => {
-  if (CURSOR_DEBUG) console.log(...args);
+// --- SECTION 1: Authentication Constants ---
+const COMPRESS_FLAG = {
+  NONE: 0x00,
+  GZIP: 0x01,
+  GZIP_ALT: 0x02,
+  GZIP_BOTH: 0x03,
 };
 
-// Phase 8: max wall-clock time before we give up on the upstream and abort
-// the stream. Cursor's longest-observed plain chat takes ~90s; tool-using
-// turns can be longer. Five minutes is generous but bounded. A malformed env
-// value (NaN / non-positive) falls back to the default rather than breaking
-// setTimeout.
-const CURSOR_STREAM_TIMEOUT_MS = (() => {
-  const parsed = parseInt(process.env.CURSOR_STREAM_TIMEOUT_MS || "300000", 10);
-  return Number.isInteger(parsed) && parsed > 0 ? parsed : 300000;
-})();
+const CURSOR_STREAM_DEBUG = process.env.CURSOR_STREAM_DEBUG === "1";
+const debugLog = (...args: unknown[]) => {
+  if (CURSOR_STREAM_DEBUG) console.log(...args);
+};
 
-// Upper bound on a single Connect-RPC frame. The 4-byte length prefix can
-// declare up to 4 GiB; a corrupt or hostile upstream could send a huge length
-// that forces driveH2's rolling buffer to grow unbounded (OOM) while it waits
-// for bytes that never arrive. Real cursor frames are well under 1 MiB
-// (largest observed: a ~13 KB KV blob), so 16 MiB is a generous ceiling that
-// turns the failure into a clean stream error instead of memory exhaustion.
-const CURSOR_MAX_FRAME_BYTES = 16 * 1024 * 1024;
+function decompressPayload(payload, flags) {
+  // Check if payload is JSON error (starts with {"error")
+  if (payload.length > 10 && payload[0] === 0x7b && payload[1] === 0x22) {
+    try {
+      const text = payload.toString("utf-8");
+      if (text.startsWith('{"error"')) {
+        debugLog(`[DECOMPRESS] Detected JSON error, skipping decompression`);
+        return payload;
+      }
+    } catch {}
+  }
+
+  if (
+    flags === COMPRESS_FLAG.GZIP ||
+    flags === COMPRESS_FLAG.GZIP_ALT ||
+    flags === COMPRESS_FLAG.GZIP_BOTH
+  ) {
+    // Primary: try gzip decompression (standard gzip header 0x1f 0x8b)
+    try {
+      return zlib.gunzipSync(payload);
+    } catch (gzipErr) {
+      // Fallback: GZIP_ALT (0x02) and GZIP_BOTH (0x03) frames sometimes use
+      // raw zlib deflate format instead of gzip wrapping (#250)
+      try {
+        return zlib.inflateSync(payload);
+      } catch (deflateErr) {
+        // Last resort: try raw deflate (no zlib header)
+        try {
+          return zlib.inflateRawSync(payload);
+        } catch (rawErr) {
+          debugLog(
+            `[DECOMPRESS ERROR] flags=${flags}, payloadSize=${payload.length}, gzip=${gzipErr.message}, deflate=${deflateErr.message}, raw=${rawErr.message}`
+          );
+          debugLog(
+            `[DECOMPRESS ERROR] First 50 bytes (hex):`,
+            payload.slice(0, 50).toString("hex")
+          );
+          debugLog(
+            `[DECOMPRESS ERROR] First 50 bytes (utf8):`,
+            payload
+              .slice(0, 50)
+              .toString("utf8")
+              .replace(/[^\x20-\x7E]/g, ".")
+          );
+          // Try to use payload as-is if all decompression methods fail
+          return payload;
+        }
+      }
+    }
+  }
+  return payload;
+}
+
+function createErrorResponse(jsonError) {
+  const errorMsg =
+    jsonError?.error?.details?.[0]?.debug?.details?.title ||
+    jsonError?.error?.details?.[0]?.debug?.details?.detail ||
+    jsonError?.error?.message ||
+    "API Error";
+
+  const isRateLimit = jsonError?.error?.code === "resource_exhausted";
+
+  return new Response(
+    JSON.stringify({
+      error: {
+        message: errorMsg,
+        type: isRateLimit ? "rate_limit_error" : "api_error",
+        code: jsonError?.error?.details?.[0]?.debug?.error || "unknown",
+      },
+    }),
+    {
+      status: isRateLimit ? HTTP_STATUS.RATE_LIMITED : HTTP_STATUS.BAD_REQUEST,
+      headers: { "Content-Type": "application/json" },
+    }
+  );
+}
+
+function parseCursorJsonErrorFrame(text: string) {
+  try {
+    return JSON.parse(text);
+  } catch {
+    return null;
+  }
+}
+
+function isToolBoundaryAbort(jsonError: unknown, toolCallCount: number) {
+  if (!jsonError || toolCallCount <= 0) return false;
+  const e = jsonError as Record<string, unknown>;
+  const err = e?.error as Record<string, unknown> | undefined;
+  const details = (err?.details as Record<string, unknown>[] | undefined)?.[0];
+  const debug = details?.debug as Record<string, unknown> | undefined;
+  const debugDetails = debug?.details as Record<string, unknown> | undefined;
+  const code = (err?.code as string) || "";
+  const debugError = (debug?.error as string) || "";
+  const title = (debugDetails?.title as string) || "";
+  const detail = (debugDetails?.detail as string) || "";
+  const message = `${title} ${detail}`.toLowerCase();
+  const isAbortedCode = code === "aborted" || debugError === "ERROR_USER_ABORTED_REQUEST";
+  return isAbortedCode && message.includes("tool call ended before result was received");
+}
+
+function mergeToolCallDelta(existing, incoming) {
+  const mergedName = incoming?.function?.name || existing?.function?.name || "";
+  const existingArgs = existing?.function?.arguments || "";
+  const deltaArgs = incoming?.function?.arguments || "";
+  return {
+    id: incoming.id || existing.id,
+    type: "function",
+    function: {
+      name: mergedName,
+      arguments: `${existingArgs}${deltaArgs}`,
+    },
+    isLast: Boolean(existing?.isLast || incoming?.isLast),
+    index: existing?.index ?? incoming?.index ?? 0,
+  };
+}
 
 type CursorHttpResponse = {
   status: number;
@@ -228,6 +360,7 @@ type CursorHttpResponse = {
   body: Buffer;
 };
 
+<<<<<<< Updated upstream
 function tryParseJsonError(payload: Buffer): { message: string; status: number } | null {
   if (payload.length < 2 || payload[0] !== 0x7b) return null;
   try {
@@ -619,198 +752,149 @@ export function processFrame(
   }
 }
 
+=======
+>>>>>>> Stashed changes
 export class CursorExecutor extends BaseExecutor {
   constructor() {
     super("cursor", PROVIDERS.cursor);
   }
 
   buildUrl() {
-    return CURSOR_AGENT_URL;
+    return `${this.config.baseUrl}${this.config.chatPath || ""}`;
+  }
+
+  // Jyh cipher checksum for Cursor API authentication
+  generateChecksum(machineId) {
+    const timestamp = Math.floor(Date.now() / 1000000);
+    const byteArray = new Uint8Array([
+      (timestamp >> 40) & 0xff,
+      (timestamp >> 32) & 0xff,
+      (timestamp >> 24) & 0xff,
+      (timestamp >> 16) & 0xff,
+      (timestamp >> 8) & 0xff,
+      timestamp & 0xff,
+    ]);
+
+    let t = 165;
+    for (let i = 0; i < byteArray.length; i++) {
+      byteArray[i] = ((byteArray[i] ^ t) + (i % 256)) & 0xff;
+      t = byteArray[i];
+    }
+
+    const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
+    let encoded = "";
+
+    for (let i = 0; i < byteArray.length; i += 3) {
+      const a = byteArray[i];
+      const b = i + 1 < byteArray.length ? byteArray[i + 1] : 0;
+      const c = i + 2 < byteArray.length ? byteArray[i + 2] : 0;
+
+      encoded += alphabet[a >> 2];
+      encoded += alphabet[((a & 3) << 4) | (b >> 4)];
+
+      if (i + 1 < byteArray.length) {
+        encoded += alphabet[((b & 15) << 2) | (c >> 6)];
+      }
+      if (i + 2 < byteArray.length) {
+        encoded += alphabet[c & 63];
+      }
+    }
+
+    return `${encoded}${machineId}`;
   }
 
   buildHeaders(credentials) {
     const accessToken = credentials.accessToken;
     const ghostMode = credentials.providerSpecificData?.ghostMode !== false;
+<<<<<<< Updated upstream
     const cleanToken = accessToken.includes("::") ? accessToken.split("::")[1] : accessToken;
     const requestId = crypto.randomUUID();
     const traceParent = generateTraceparent({ sampled: true });
+=======
+>>>>>>> Stashed changes
 
-    // Mirrors cursor-agent's actual headers for agent.v1.AgentService/Run.
-    // Notably: no x-cursor-checksum, no machineId, no x-amzn-trace-id.
-    // Only advertise gzip (not brotli) — our Connect-RPC frame decoder
-    // only handles gzip-compressed message bodies.
+    // Use stored machineId, or derive a stable one from the access token
+    // (cursor-agent imports don't provide a machineId)
+    const machineId =
+      credentials.providerSpecificData?.machineId ||
+      crypto.createHash("sha256").update(accessToken).digest("hex");
+
+    const cleanToken = accessToken.includes("::") ? accessToken.split("::")[1] : accessToken;
+
     return {
       authorization: `Bearer ${cleanToken}`,
-      "backend-traceparent": traceParent,
       "connect-accept-encoding": "gzip",
       "connect-protocol-version": "1",
       "content-type": "application/connect+proto",
-      traceparent: traceParent,
-      "user-agent": "connect-es/1.6.1",
-      "x-cursor-client-type": "cli",
-      "x-cursor-client-version": `cli-${getCursorVersion()}`,
+      "user-agent": getCursorUserAgent(getCursorVersion()),
+      "x-amzn-trace-id": `Root=${crypto.randomUUID()}`,
+      "x-client-key": crypto.createHash("sha256").update(cleanToken).digest("hex"),
+      "x-cursor-checksum": this.generateChecksum(machineId),
+      "x-cursor-client-version": getCursorVersion(),
+      "x-cursor-client-type": "ide",
+      "x-cursor-client-os":
+        process.platform === "win32"
+          ? "windows"
+          : process.platform === "darwin"
+            ? "macos"
+            : "linux",
+      "x-cursor-client-arch": process.arch === "arm64" ? "aarch64" : "x64",
+      "x-cursor-client-device-type": "desktop",
+      "x-cursor-user-agent": getCursorUserAgent(getCursorVersion()),
+      "x-cursor-config-version": crypto.randomUUID(),
+      "x-cursor-timezone": Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC",
       "x-ghost-mode": ghostMode ? "true" : "false",
-      "x-original-request-id": requestId,
-      "x-request-id": requestId,
+      "x-request-id": crypto.randomUUID(),
+      "x-session-id": uuidv5(cleanToken, uuidv5.DNS),
     };
   }
 
-  /**
-   * Build the request body and return it alongside the request-scoped
-   * blobStore. cursor's models (auto, claude-*, gpt-*) don't reliably
-   * follow system-role content delivered via the KV blob channel — even
-   * though the blob is requested and our reply is accepted, the model
-   * proceeds without applying the prompt.
-   *
-   * As a pragmatic workaround we prepend the system content into the
-   * UserMessage text (the pre-Phase-7 behavior). The KV-blob handshake
-   * machinery is still in place for any future schema where cursor honors
-   * root_prompt_messages_json semantically — verified end-to-end with
-   * wire-tap captures.
-   */
-  /**
-   * Assemble the user text + resolved tools shared by the sync (transformRequest)
-   * and async (buildRequest) request builders. Image resolution is intentionally
-   * NOT done here — it's async and only the cold-path buildRequest needs it.
-   */
-  private assembleTextAndTools(body: {
-    messages?: ChatMessage[];
-    tools?: unknown;
-    tool_choice?: unknown;
-    max_tokens?: unknown;
-    max_completion_tokens?: unknown;
-    stop?: unknown;
-    response_format?: unknown;
-  }): { userText: string; tools: OpenAITool[] | undefined } {
-    const messages: ChatMessage[] = body.messages || [];
-    const declaredTools: OpenAITool[] | undefined = Array.isArray(body.tools)
-      ? (body.tools as OpenAITool[])
-      : undefined;
-    // tool_choice:"none" means "do not call any tool" — honor it by advertising
-    // no tools at all (matches OpenAI semantics; composer-api does the same).
-    const tools = body.tool_choice === "none" ? undefined : declaredTools;
-
-    // flattenMessages prepends any role:"system" messages into the user
-    // text (proven path that cursor's models honor). Image parts in the content
-    // are ignored here (they carry no text) and resolved separately.
-    let userText = flattenMessages(messages);
-
-    // When the request declares tools, prepend the tool-commit directive so
-    // composer-2.5 reliably invokes them instead of narrating intent and
-    // stopping. Measured live: tool-call rate ~53% → ~88% with the directive.
-    // tool_choice "required"/specific-function add a forcing line on top.
-    // Default-on; set CURSOR_TOOL_DIRECTIVE=0 to opt out. See TOOL_COMMIT_DIRECTIVE.
-    if (tools && tools.length > 0 && process.env.CURSOR_TOOL_DIRECTIVE !== "0") {
-      userText = `${TOOL_COMMIT_DIRECTIVE}${toolChoiceDirectiveLine(body.tool_choice)}\n\n${userText}`;
-    }
-
-    // Surface OpenAI output params cursor ignores natively (response_format /
-    // max_tokens / stop) as trailing prompt constraints.
-    userText += buildCursorOutputConstraints(body);
-
-    return { userText, tools };
+  transformRequest(model, body, stream, credentials) {
+    // Messages are already translated by chatCore (claude→openai→cursor)
+    // Do NOT call buildCursorRequest again — double-translation drops tool_results
+    const messages = body.messages || [];
+    const tools = body.tools || [];
+    const reasoningEffort = body.reasoning_effort || null;
+    return generateCursorBody(messages, model, tools, reasoningEffort);
   }
 
-  /**
-   * Resolve any OpenAI image_url parts in the request's user messages into
-   * inlined cursor images. Returns undefined when the request carries no
-   * images (keeps the request byte-identical to the text-only path). Throws
-   * CursorImageError on invalid / oversized / SSRF-blocked input.
-   */
-  private async resolveRequestImages(body: {
-    messages?: ChatMessage[];
-  }): Promise<EncodedImage[] | undefined> {
-    const messages: ChatMessage[] = body.messages || [];
-    const imageUrls: string[] = [];
-    for (const m of messages) {
-      // Images only ride on user turns (the openai-to-cursor translator keeps
-      // them only there). System/assistant/tool turns carry no vision input.
-      if (m.role === "user") {
-        for (const u of extractImageUrls(m.content)) imageUrls.push(u);
-      }
-    }
-    if (imageUrls.length === 0) return undefined;
-    return resolveCursorImages(imageUrls);
-  }
-
-  private async buildRequest(
-    model: string,
-    body: {
-      messages?: ChatMessage[];
-      tools?: unknown;
-      tool_choice?: unknown;
-      conversation_id?: string;
-      max_tokens?: unknown;
-      max_completion_tokens?: unknown;
-      stop?: unknown;
-      response_format?: unknown;
-    }
-  ): Promise<{ body: Uint8Array; blobStore: Map<string, Buffer> }> {
-    const { userText, tools } = this.assembleTextAndTools(body);
-    const images = await this.resolveRequestImages(body);
-
-    const blobStore = new Map<string, Buffer>();
-    const requestBody = buildAgentRequestBody({
-      modelId: model,
-      userText,
-      conversationId: body.conversation_id,
-      tools,
-      blobStore,
-      images,
-    });
-    return { body: requestBody, blobStore };
-  }
-
-  transformRequest(model, body, _stream, _credentials) {
-    // Sync interface method (not used by cursor's own execute() path, which
-    // uses the async buildRequest). Text-only — image resolution is async.
-    const { userText, tools } = this.assembleTextAndTools(body);
-    const blobStore = new Map<string, Buffer>();
-    return buildAgentRequestBody({
-      modelId: model,
-      userText,
-      conversationId: body.conversation_id,
-      tools,
-      blobStore,
-    });
-  }
-
-  // ─── h2 lifecycle: open + drive (Phase 4 streaming refactor) ─────────────
-  //
-  // openH2 establishes the bidirectional stream and waits for the response
-  // headers (so we can decide whether to commit to a streaming SSE Response
-  // or return an error). driveH2 then consumes data events incrementally,
-  // dispatching frames through processFrame so SSE chunks land on the
-  // ReadableStream controller as the upstream produces them.
-  //
-  // The fetch fallback (cloud envs without http2) preserves the legacy
-  // buffer-then-decode behavior — Connect-RPC bidirectional ack-on-same-stream
-  // can't run over a one-shot fetch anyway.
-
-  private async openH2(
+  async makeFetchRequest(
     url: string,
     headers: Record<string, string>,
     body: Uint8Array,
     signal?: AbortSignal
-  ): Promise<{
-    status: number;
-    headers: Record<string, string | number>;
-    client: import("http2").ClientHttp2Session;
-    req: import("http2").ClientHttp2Stream;
-    initialBytes: Buffer;
-    consumeError: () => Promise<Buffer>;
-  }> {
-    if (!http2) throw new Error("http2 module not available");
+  ): Promise<CursorHttpResponse> {
+    const response = await fetch(url, {
+      method: "POST",
+      headers,
+      body: body as unknown as BodyInit,
+      signal,
+    });
 
-    return new Promise((resolve, reject) => {
+    return {
+      status: response.status,
+      headers: Object.fromEntries(response.headers.entries()),
+      body: Buffer.from(await response.arrayBuffer()),
+    };
+  }
+
+  makeHttp2Request(
+    url: string,
+    headers: Record<string, string>,
+    body: Uint8Array,
+    signal?: AbortSignal
+  ): Promise<CursorHttpResponse> {
+    if (!http2) {
+      throw new Error("http2 module not available");
+    }
+
+    return new Promise<CursorHttpResponse>((resolve, reject) => {
       const urlObj = new URL(url);
-      const client = http2!.connect(`https://${urlObj.host}`);
-      const earlyChunks: Buffer[] = [];
-      let resolved = false;
+      const client = http2.connect(`https://${urlObj.host}`);
+      const chunks = [];
+      let responseHeaders = {};
 
-      client.on("error", (err) => {
-        if (!resolved) reject(err);
-      });
+      client.on("error", reject);
 
       const req = client.request({
         ":method": "POST",
@@ -820,238 +904,38 @@ export class CursorExecutor extends BaseExecutor {
         ...headers,
       });
 
-      const onAbort = () => {
-        try {
-          req.close();
-          client.close();
-        } catch {}
-        if (!resolved) {
-          resolved = true;
-          reject(new Error("aborted"));
-        }
-      };
-      if (signal) signal.addEventListener("abort", onAbort);
-
-      req.on("response", (h) => {
-        if (resolved) return;
-        resolved = true;
-        const status = Number(h[":status"] ?? HTTP_STATUS.SERVER_ERROR);
-        // For non-200 statuses, drain the remaining body for an error message.
-        // The caller calls consumeError() to await the full body.
-        const consumeError = () =>
-          new Promise<Buffer>((res) => {
-            const out = [...earlyChunks];
-            req.on("data", (c) => out.push(Buffer.from(c)));
-            req.on("end", () => {
-              try {
-                req.close();
-                client.close();
-              } catch {}
-              if (signal) signal.removeEventListener("abort", onAbort);
-              res(Buffer.concat(out));
-            });
-            req.on("error", () => {
-              try {
-                req.close();
-                client.close();
-              } catch {}
-              if (signal) signal.removeEventListener("abort", onAbort);
-              res(Buffer.concat(out));
-            });
-          });
+      req.on("response", (hdrs) => {
+        responseHeaders = hdrs;
+      });
+      req.on("data", (chunk) => {
+        chunks.push(chunk);
+      });
+      req.on("end", () => {
+        client.close();
         resolve({
-          status,
-          headers: h as Record<string, string | number>,
-          client,
-          req,
-          initialBytes: Buffer.concat(earlyChunks),
-          consumeError,
+          status:
+            typeof responseHeaders[":status"] === "number"
+              ? responseHeaders[":status"]
+              : Number(responseHeaders[":status"] || HTTP_STATUS.SERVER_ERROR),
+          headers: responseHeaders,
+          body: Buffer.concat(chunks),
         });
       });
-
-      // Buffer any data that arrives before the response event resolves.
-      // (In practice the response event fires first, but this guards against
-      // implementation differences in node:http2.)
-      req.on("data", (chunk) => {
-        if (!resolved) earlyChunks.push(Buffer.from(chunk));
-      });
-
       req.on("error", (err) => {
-        if (!resolved) {
-          resolved = true;
-          if (signal) signal.removeEventListener("abort", onAbort);
-          reject(err);
-        }
+        client.close();
+        reject(err);
       });
 
-      // Bidirectional streaming: write the init message but DO NOT send
-      // END_STREAM — cursor's server stops responding once we close our side.
-      // Guard the write like every h2Req.write in processFrame: a synchronous
-      // failure here (e.g. stream already torn down) would otherwise leave the
-      // request hung until the safety timeout instead of failing fast.
-      try {
-        req.write(body);
-      } catch (err) {
-        if (!resolved) {
-          resolved = true;
-          if (signal) signal.removeEventListener("abort", onAbort);
-          try {
-            req.close();
-            client.close();
-          } catch {}
-          reject(err instanceof Error ? err : new Error(String(err)));
-        }
+      if (signal) {
+        signal.addEventListener("abort", () => {
+          req.close();
+          client.close();
+          reject(new Error("Request aborted"));
+        });
       }
-    });
-  }
 
-  /**
-   * Drive an open h2 stream to completion. processFrame populates ctx as
-   * each Connect-RPC frame is decoded; the loop closes when ctx.endReason
-   * is set (turn_ended, kv_after_text, server_end) or the stream errors.
-   *
-   * Phase 8 will add a max-stream safety timeout here.
-   */
-  private driveH2(
-    h2: {
-      req: import("http2").ClientHttp2Stream;
-      client: import("http2").ClientHttp2Session;
-      initialBytes: Buffer;
-    },
-    ctx: StreamCtx,
-    mcpTools: McpToolDefinition[] | undefined,
-    blobStore: Map<string, Buffer> | undefined,
-    signal?: AbortSignal
-  ): Promise<void> {
-    const ackedExecIds = new Set<string>();
-    // Rolling buffer: chunks arrive on `data`, get appended, and consumed
-    // frames are sliced off so we don't re-scan + re-concat on every event
-    // (avoids O(N²) for long-running streams).
-    let buf: Buffer = h2.initialBytes.length > 0 ? h2.initialBytes : Buffer.alloc(0);
-
-    return new Promise((resolve, reject) => {
-      let scanning = false;
-      let settled = false;
-      // Phase 8: safety timeout. If neither turn_ended, kv_after_text, nor
-      // server-end fires within CURSOR_STREAM_TIMEOUT_MS, abort the stream
-      // so a stuck upstream doesn't keep the response open indefinitely.
-      const safetyTimer = setTimeout(() => {
-        if (ctx.endReason) return;
-        debugLog("[cursor-agent] stream safety timeout fired");
-        teardown();
-        reject(new Error("cursor-agent stream timed out"));
-      }, CURSOR_STREAM_TIMEOUT_MS);
-
-      const onData = (chunk: Buffer) => {
-        if (CURSOR_DEBUG && process.env.CURSOR_DUMP_FILE) {
-          fs.appendFileSync(process.env.CURSOR_DUMP_FILE, chunk);
-        }
-        buf = buf.length === 0 ? Buffer.from(chunk) : Buffer.concat([buf, chunk]);
-        void tryScan();
-      };
-      const onEnd = () => {
-        if (settled) return;
-        settled = true;
-        if (!ctx.endReason) ctx.endReason = "server_end";
-        detachListeners();
-        resolve();
-      };
-      const onErr = (err: Error) => {
-        if (settled) return;
-        settled = true;
-        teardown();
-        reject(err);
-      };
-      const onAbort = () => {
-        if (settled) return;
-        settled = true;
-        teardown();
-        reject(new Error("aborted"));
-      };
-
-      // detachListeners removes data/end/error/abort handlers and clears the
-      // safety timer. Called on successful resolve when the caller keeps the
-      // h2 alive (Phase 6 session reuse).
-      const detachListeners = () => {
-        clearTimeout(safetyTimer);
-        h2.req.off("data", onData);
-        h2.req.off("end", onEnd);
-        h2.req.off("error", onErr);
-        if (signal) signal.removeEventListener("abort", onAbort);
-      };
-      // teardown additionally closes the h2 stream. Used on error / abort /
-      // safety-timeout — the connection isn't worth keeping at that point.
-      const teardown = () => {
-        detachListeners();
-        try {
-          h2.req.close();
-          h2.client.close();
-        } catch {}
-      };
-
-      if (signal) signal.addEventListener("abort", onAbort);
-
-      const hasCompleteFrame = () => buf.length >= 5 && buf.length >= 5 + buf.readUInt32BE(1);
-
-      const tryScan = async () => {
-        if (scanning || settled) return;
-        scanning = true;
-        try {
-          let pos = 0;
-          while (!settled && pos + 5 <= buf.length) {
-            const length = buf.readUInt32BE(pos + 1);
-            if (length > CURSOR_MAX_FRAME_BYTES) {
-              // Refuse to buffer an implausibly large frame — fail fast instead
-              // of letting the rolling buffer grow toward OOM.
-              settled = true;
-              teardown();
-              reject(new Error(`cursor-agent frame too large (${length} bytes)`));
-              return;
-            }
-            if (pos + 5 + length > buf.length) break; // partial frame; wait
-            const flag = buf[pos];
-            const raw = buf.subarray(pos + 5, pos + 5 + length);
-            // Per-frame error isolation: if gunzip or processFrame throws on
-            // one frame, log and skip past it instead of getting stuck on
-            // the same offset and hanging until the safety timer fires.
-            try {
-              const payload = flag & 0x1 ? await gunzipAsync(raw) : raw;
-              if (settled) return;
-              processFrame(payload, ctx, ackedExecIds, { h2Req: h2.req, mcpTools, blobStore });
-            } catch (err) {
-              debugLog(
-                "[cursor-agent] frame decode failed at pos",
-                pos,
-                ":",
-                (err as Error).message
-              );
-            }
-            pos += 5 + length;
-            if (ctx.endReason) {
-              buf = buf.subarray(pos);
-              settled = true;
-              detachListeners();
-              resolve();
-              return;
-            }
-          }
-          // Splice off processed bytes so the buffer stays bounded.
-          if (pos > 0) buf = buf.subarray(pos);
-        } finally {
-          scanning = false;
-        }
-
-        if (!settled && hasCompleteFrame()) {
-          void tryScan();
-        }
-      };
-
-      h2.req.on("data", onData);
-      h2.req.on("end", onEnd);
-      h2.req.on("error", onErr);
-
-      // Process any bytes already buffered from openH2.
-      void tryScan();
+      req.write(body);
+      req.end();
     });
   }
 
@@ -1059,236 +943,14 @@ export class CursorExecutor extends BaseExecutor {
     const url = this.buildUrl();
     const headers = this.buildHeaders(credentials);
     mergeUpstreamExtraHeaders(headers, upstreamExtraHeaders);
+    const transformedBody = await this.transformRequest(model, body, stream, credentials);
 
-    const messages: ChatMessage[] = body.messages || [];
-    const conversationId: string =
-      typeof body.conversation_id === "string" && body.conversation_id
-        ? body.conversation_id
-        : crypto.randomUUID();
-    const lastMessage = messages[messages.length - 1];
-    const isToolFollowUp = lastMessage?.role === "tool";
-
-    // Tools embedded in the RequestContext ack throughout the turn —
-    // synced with mcp_tools in the encoded request body.
-    const mcpTools: McpToolDefinition[] | undefined = Array.isArray(body.tools)
-      ? openAIToolsToMcpDefs(body.tools as OpenAITool[])
-      : undefined;
-
-    // Sanitize error messages: strip stack traces and absolute paths to
-    // prevent information exposure. Shared helper in utils/error.ts.
-    const buildErrorResponse = (status: number, message: string, type = "invalid_request_error") =>
-      new Response(
-        JSON.stringify({ error: { message: sanitizeErrorMessage(message), type, code: "" } }),
-        { status, headers: { "Content-Type": "application/json" } }
-      );
-
-    // Cursor's agent.v1.AgentService/Run is a bidirectional Connect-RPC:
-    // request_context, KV blob lookups, and exec rejections must be
-    // written back on the same h2 stream while the response is still
-    // being read. One-shot fetch can't do that, so cloud/edge runtimes
-    // without node:http2 cannot drive cursor at all — fail fast with a
-    // clear error rather than silently producing incomplete output.
-    if (!http2) {
-      return {
-        response: buildErrorResponse(
-          501,
-          "Cursor provider requires Node.js http2, which is unavailable in this runtime (Edge / Cloudflare Workers / similar). Run OmniRoute on a Node.js runtime to use cursor.",
-          "unsupported_runtime"
-        ),
-        url,
-        headers,
-        transformedBody: body,
-      };
-    }
-
-    // ── h2 path with inline session manager (Phase 6) ──
-    //
-    // 1. If this is a tool-result follow-up (last message role:"tool") AND
-    //    we have an alive session for the conversation, send the tool
-    //    result on the existing h2 stream (inline resume).
-    // 2. Otherwise, open a fresh h2 stream, send a new RunRequest, and
-    //    register it as a session.
-    //
-    // Cold-resume fallback (acquire returns undefined, or sendToolResult
-    // doesn't match): always lands on path #2, which now flattens the full
-    // history (including role:"tool" messages) into UserText via
-    // flattenMessages.
-
-    type H2Like = {
-      req: import("http2").ClientHttp2Stream;
-      client: import("http2").ClientHttp2Session;
-      initialBytes: Buffer;
-    };
-
-    let session: CursorSession | undefined;
-    let h2: H2Like;
-    let blobStore: Map<string, Buffer>;
-
-    if (isToolFollowUp) {
-      session = cursorSessionManager.acquire(conversationId);
-    }
-
-    if (session) {
-      // Inline resume: send ExecMcpResult only for tool messages whose
-      // tool_call_id is currently pending in this session. Older tool
-      // messages from prior turns are already consumed by cursor and
-      // sit in the request history harmlessly — sending them again
-      // would either be a no-op or wedge the session, so we skip.
-      // We require at least one match so we don't reuse the session
-      // for a request that has no relevant tool results.
-      blobStore = session.blobStore;
-      let matched = 0;
-      let hadFailure = false;
-      for (const msg of messages) {
-        if (msg.role !== "tool") continue;
-        const id = msg.tool_call_id ?? "";
-        if (!session.pendingToolCalls.has(id)) continue;
-        const content = typeof msg.content === "string" ? msg.content : "";
-        if (cursorSessionManager.sendToolResult(session, id, content, false)) {
-          matched++;
-        } else {
-          hadFailure = true;
-          break;
-        }
-      }
-      if (matched === 0 || hadFailure) {
-        cursorSessionManager.close(session);
-        session = undefined;
-      } else {
-        h2 = {
-          client: session.h2Client,
-          req: session.h2Req,
-          initialBytes: Buffer.alloc(0),
-        };
-      }
-    }
-
-    if (!session) {
-      // Cold path: open fresh h2 stream with the full message history
-      // flattened into UserText (Phase 6 flattenMessages handles role:"tool"
-      // and assistant.tool_calls). buildRequest also resolves any image_url
-      // parts (base64 / remote) into inlined cursor images.
-      let built;
-      try {
-        built = await this.buildRequest(model, body);
-      } catch (err) {
-        // Image resolution failures (invalid / oversized / SSRF-blocked) are
-        // client errors — return a sanitized 400 rather than a 500.
-        if (err instanceof CursorImageError) {
-          return {
-            response: buildErrorResponse(err.status, err.message, "invalid_request_error"),
-            url,
-            headers,
-            transformedBody: body,
-          };
-        }
-        const message = err instanceof Error ? err.message : String(err);
-        return {
-          response: buildErrorResponse(HTTP_STATUS.SERVER_ERROR, message, "connection_error"),
-          url,
-          headers,
-          transformedBody: body,
-        };
-      }
-      blobStore = built.blobStore;
-      let opened;
-      try {
-        opened = await this.openH2(url, headers, built.body, signal);
-      } catch (err) {
-        const message = err instanceof Error ? err.message : String(err);
-        return {
-          response: buildErrorResponse(HTTP_STATUS.SERVER_ERROR, message, "connection_error"),
-          url,
-          headers,
-          transformedBody: body,
-        };
-      }
-      if (opened.status !== 200) {
-        const errBuf = await opened.consumeError();
-        const errText = errBuf.toString("utf8") || "Unknown error";
-        return {
-          response: buildErrorResponse(opened.status, `[${opened.status}]: ${errText}`),
-          url,
-          headers,
-          transformedBody: body,
-        };
-      }
-      h2 = opened;
-      session = cursorSessionManager.open(conversationId, opened.client, opened.req, blobStore);
-    }
-
-    // Closure to share the post-drive lifecycle between stream/non-stream paths.
-    const sessionToUse = session;
-    const finishLifecycle = (ctx: StreamCtx, errored: boolean) => {
-      // Persist any new pendingToolCalls from this turn into the session.
-      for (const [id, info] of ctx.pendingToolCalls) {
-        sessionToUse.pendingToolCalls.set(id, info);
-      }
-      if (errored || ctx.endReason !== "tool_calls") {
-        cursorSessionManager.close(sessionToUse);
-      } else {
-        cursorSessionManager.release(sessionToUse, "awaiting_tool_result");
-      }
-    };
-
-    // Stream mode: ReadableStream that emits SSE chunks as they're decoded.
-    if (stream !== false) {
-      const enc = new TextEncoder();
-      const sseStream = new ReadableStream(
-        {
-          start: async (controller) => {
-            const ctx = newStreamCtx(model, (s) => controller.enqueue(enc.encode(s)));
-            try {
-              await this.driveH2(h2, ctx, mcpTools, blobStore, signal);
-              this.finalizeSseStream(ctx, body);
-              finishLifecycle(ctx, false);
-              controller.close();
-            } catch (err) {
-              finishLifecycle(ctx, true);
-              controller.error(err);
-            }
-          },
-        },
-        { highWaterMark: 16384 }
-      );
-      return {
-        response: new Response(sseStream, {
-          status: 200,
-          headers: {
-            "Content-Type": "text/event-stream",
-            "Cache-Control": "no-cache",
-            Connection: "keep-alive",
-          },
-        }),
-        url,
-        headers,
-        transformedBody: body,
-      };
-    }
-
-    // Non-streaming: drive to completion, return chat.completion JSON.
-    const ctx = newStreamCtx(model, () => {});
     try {
-      await this.driveH2(h2, ctx, mcpTools, blobStore, signal);
-    } catch (err) {
-      finishLifecycle(ctx, true);
-      const message = err instanceof Error ? err.message : String(err);
-      return {
-        response: buildErrorResponse(HTTP_STATUS.SERVER_ERROR, message, "connection_error"),
-        url,
-        headers,
-        transformedBody: body,
-      };
-    }
-    finishLifecycle(ctx, false);
-    return {
-      response: this.buildResponseFromCtx(ctx, body),
-      url,
-      headers,
-      transformedBody: body,
-    };
-  }
+      const response: CursorHttpResponse = http2
+        ? await this.makeHttp2Request(url, headers, transformedBody, signal)
+        : await this.makeFetchRequest(url, headers, transformedBody, signal);
 
+<<<<<<< Updated upstream
   /**
    * Emit the trailing SSE chunks (finish + usage + DONE) onto an already-open
    * stream. Called once driveH2 returns and ctx.endReason is set. The
@@ -1360,31 +1022,169 @@ export class CursorExecutor extends BaseExecutor {
     emitUsage(ctx, body);
     emitDone(ctx);
   }
+=======
+      if (response.status !== 200) {
+        const errorText = response.body?.toString() || "Unknown error";
+        const errorResponse = new Response(
+          JSON.stringify({
+            error: {
+              message: `[${response.status}]: ${errorText}`,
+              type: "invalid_request_error",
+              code: "",
+            },
+          }),
+          {
+            status: response.status,
+            headers: { "Content-Type": "application/json" },
+          }
+        );
+        return { response: errorResponse, url, headers, transformedBody: body };
+      }
+>>>>>>> Stashed changes
 
-  /**
-   * Build a non-streaming chat.completion JSON Response from a fully-driven
-   * StreamCtx. The streaming path emits chunks live via finalizeSseStream
-   * and never calls this method.
-   */
-  private buildResponseFromCtx(ctx: StreamCtx, body: { messages?: ChatMessage[] }): Response {
-    if (ctx.midStreamError && ctx.totalText.length === 0) {
-      return new Response(
+      const transformedResponse =
+        stream !== false
+          ? this.transformProtobufToSSE(response.body, model, body)
+          : this.transformProtobufToJSON(response.body, model, body);
+
+      return { response: transformedResponse, url, headers, transformedBody: body };
+    } catch (error) {
+      const errorResponse = new Response(
         JSON.stringify({
           error: {
-            message: ctx.midStreamError.message,
-            type:
-              ctx.midStreamError.status === HTTP_STATUS.RATE_LIMITED
-                ? "rate_limit_error"
-                : "api_error",
+            message: error.message,
+            type: "connection_error",
+            code: "",
           },
         }),
         {
-          status: ctx.midStreamError.status,
+          status: HTTP_STATUS.SERVER_ERROR,
           headers: { "Content-Type": "application/json" },
         }
       );
+      return { response: errorResponse, url, headers, transformedBody: body };
+    }
+  }
+
+  transformProtobufToJSON(buffer, model, body) {
+    const responseId = `chatcmpl-cursor-${Date.now()}`;
+    const created = Math.floor(Date.now() / 1000);
+
+    let offset = 0;
+    let totalContent = "";
+    const toolCalls = [];
+    const toolCallsMap = new Map(); // Track streaming tool calls by ID
+    const finalizedIds = new Set<string>();
+    let frameCount = 0;
+
+    debugLog(`[CURSOR BUFFER] Total length: ${buffer.length} bytes`);
+
+    while (offset < buffer.length) {
+      if (offset + 5 > buffer.length) {
+        debugLog(
+          `[CURSOR BUFFER] Reached end, offset=${offset}, remaining=${buffer.length - offset}`
+        );
+        break;
+      }
+
+      const flags = buffer[offset];
+      const length = buffer.readUInt32BE(offset + 1);
+
+      debugLog(
+        `[CURSOR BUFFER] Frame ${frameCount + 1}: flags=0x${flags.toString(16).padStart(2, "0")}, length=${length}`
+      );
+
+      if (offset + 5 + length > buffer.length) {
+        debugLog(
+          `[CURSOR BUFFER] Incomplete frame, offset=${offset}, length=${length}, buffer.length=${buffer.length}`
+        );
+        break;
+      }
+
+      let payload = buffer.slice(offset + 5, offset + 5 + length);
+      offset += 5 + length;
+      frameCount++;
+
+      payload = decompressPayload(payload, flags);
+      if (!payload) {
+        debugLog(`[CURSOR BUFFER] Frame ${frameCount}: decompression failed, skipping`);
+        continue;
+      }
+
+      // Check for JSON error frames (byte guard: skip toString on non-JSON frames)
+      if (payload.length > 0 && payload[0] === 0x7b) {
+        try {
+          const text = payload.toString("utf-8");
+          if (text.includes('"error"')) {
+            const hasContent = totalContent || toolCallsMap.size > 0;
+            debugLog(
+              `[CURSOR BUFFER] Error frame (hasContent=${hasContent}): ${text.slice(0, 500)}`
+            );
+            if (hasContent) {
+              break;
+            }
+            return createErrorResponse(JSON.parse(text));
+          }
+        } catch {}
+      }
+
+      const result = extractTextFromResponse(new Uint8Array(payload));
+      debugLog(`[CURSOR DECODED] Frame ${frameCount}:`, result);
+
+      if (result.error) {
+        const hasContent = totalContent || toolCallsMap.size > 0;
+        debugLog(`[CURSOR BUFFER] Decoded error (hasContent=${hasContent}): ${result.error}`);
+        // If we already have content, treat error as stream termination
+        if (hasContent) {
+          break;
+        }
+        return new Response(
+          JSON.stringify({
+            error: {
+              message: result.error,
+              type: "rate_limit_error",
+              code: "rate_limited",
+            },
+          }),
+          {
+            status: HTTP_STATUS.RATE_LIMITED,
+            headers: { "Content-Type": "application/json" },
+          }
+        );
+      }
+
+      if (result.toolCall) {
+        const tc = result.toolCall;
+
+        if (toolCallsMap.has(tc.id)) {
+          // Accumulate arguments for existing tool call
+          const existing = toolCallsMap.get(tc.id);
+          existing.function.arguments += tc.function.arguments;
+          existing.isLast = tc.isLast;
+        } else {
+          // New tool call
+          toolCallsMap.set(tc.id, { ...tc });
+        }
+
+        // Push to final array when isLast is true
+        if (tc.isLast) {
+          const finalToolCall = toolCallsMap.get(tc.id);
+          finalizedIds.add(tc.id);
+          toolCalls.push({
+            id: finalToolCall.id,
+            type: finalToolCall.type,
+            function: {
+              name: finalToolCall.function.name,
+              arguments: finalToolCall.function.arguments,
+            },
+          });
+        }
+      }
+
+      if (result.text) totalContent += result.text;
     }
 
+<<<<<<< Updated upstream
     // Non-streaming: chat.completion shape. Include tool_calls in the
     // assistant message when the model invoked any (Phase 5).
 
@@ -1430,32 +1230,370 @@ export class CursorExecutor extends BaseExecutor {
         : ctx.thinkingText;
       if (reasoningPayload.length > 0) {
         message.reasoning_content = reasoningPayload;
+=======
+    debugLog(
+      `[CURSOR BUFFER] Parsed ${frameCount} frames, toolCallsMap size: ${toolCallsMap.size}, finalized toolCalls: ${toolCalls.length}`
+    );
+
+    // Finalize all remaining tool calls in map (in case stream ended without isLast=true)
+    for (const [id, tc] of toolCallsMap.entries()) {
+      // Check if already in final array
+      if (!finalizedIds.has(id)) {
+        debugLog(`[CURSOR BUFFER] Finalizing incomplete tool call: ${id}, isLast=${tc.isLast}`);
+        toolCalls.push({
+          id: tc.id,
+          type: tc.type,
+          function: {
+            name: tc.function.name,
+            arguments: tc.function.arguments,
+          },
+        });
+>>>>>>> Stashed changes
       }
     }
-    if (ctx.toolCalls.length > 0) {
-      message.tool_calls = ctx.toolCalls.map((tc) => ({
-        id: tc.id,
-        type: "function",
-        function: { name: tc.name, arguments: tc.argumentsJson },
-      }));
+
+    debugLog(`[CURSOR BUFFER] Final toolCalls count: ${toolCalls.length}`);
+
+    const message: Record<string, unknown> = {
+      role: "assistant",
+      content: totalContent || null,
+    };
+
+    if (toolCalls.length > 0) {
+      message.tool_calls = toolCalls;
     }
-    return new Response(
-      JSON.stringify({
-        id: ctx.responseId,
-        object: "chat.completion",
-        created: ctx.created,
-        model: ctx.model,
+
+    const usage = estimateUsage(body, totalContent.length, FORMATS.OPENAI);
+
+    const completion = {
+      id: responseId,
+      object: "chat.completion",
+      created,
+      model,
+      choices: [
+        {
+          index: 0,
+          message,
+          finish_reason: toolCalls.length > 0 ? "tool_calls" : "stop",
+        },
+      ],
+      usage,
+    };
+
+    return new Response(JSON.stringify(completion), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+
+  transformProtobufToSSE(buffer, model, body) {
+    const responseId = `chatcmpl-cursor-${Date.now()}`;
+    const created = Math.floor(Date.now() / 1000);
+
+    const chunks = [];
+    let offset = 0;
+    let totalContent = "";
+    const toolCalls = [];
+    const toolCallsMap = new Map(); // Track streaming tool calls by ID
+    const finalizedIds = new Set<string>();
+    const emittedToolCallIds = new Set<string>();
+    let frameCount = 0;
+
+    debugLog(`[CURSOR BUFFER SSE] Total length: ${buffer.length} bytes`);
+
+    while (offset < buffer.length) {
+      if (offset + 5 > buffer.length) {
+        debugLog(
+          `[CURSOR BUFFER SSE] Reached end, offset=${offset}, remaining=${buffer.length - offset}`
+        );
+        break;
+      }
+
+      const flags = buffer[offset];
+      const length = buffer.readUInt32BE(offset + 1);
+
+      debugLog(
+        `[CURSOR BUFFER SSE] Frame ${frameCount + 1}: flags=0x${flags.toString(16).padStart(2, "0")}, length=${length}`
+      );
+
+      if (offset + 5 + length > buffer.length) {
+        debugLog(
+          `[CURSOR BUFFER SSE] Incomplete frame, offset=${offset}, length=${length}, buffer.length=${buffer.length}`
+        );
+        break;
+      }
+
+      let payload = buffer.slice(offset + 5, offset + 5 + length);
+      offset += 5 + length;
+      frameCount++;
+
+      payload = decompressPayload(payload, flags);
+      if (!payload) {
+        debugLog(`[CURSOR BUFFER SSE] Frame ${frameCount}: decompression failed, skipping`);
+        continue;
+      }
+
+      // Check for JSON error frames (byte-guard: only decode if starts with '{')
+      if (payload[0] === 0x7b) {
+        try {
+          const text = payload.toString("utf-8");
+          if (text.includes('"error"')) {
+            const hasContent = chunks.length > 0 || totalContent || toolCallsMap.size > 0;
+            debugLog(
+              `[CURSOR BUFFER SSE] Error frame (hasContent=${hasContent}): ${text.slice(0, 500)}`
+            );
+            if (hasContent) {
+              break;
+            }
+            return createErrorResponse(JSON.parse(text));
+          }
+        } catch {}
+      }
+
+      const result = extractTextFromResponse(new Uint8Array(payload));
+      debugLog(`[CURSOR DECODED SSE] Frame ${frameCount}:`, result);
+
+      if (result.error) {
+        const hasContent = chunks.length > 0 || totalContent || toolCallsMap.size > 0;
+        debugLog(`[CURSOR BUFFER SSE] Decoded error (hasContent=${hasContent}): ${result.error}`);
+        // If we already have content, treat error as stream termination
+        if (hasContent) {
+          break;
+        }
+        return new Response(
+          JSON.stringify({
+            error: {
+              message: result.error,
+              type: "rate_limit_error",
+              code: "rate_limited",
+            },
+          }),
+          {
+            status: HTTP_STATUS.RATE_LIMITED,
+            headers: { "Content-Type": "application/json" },
+          }
+        );
+      }
+
+      if (result.toolCall) {
+        const tc = result.toolCall;
+
+        if (chunks.length === 0) {
+          chunks.push(
+            `data: ${JSON.stringify({
+              id: responseId,
+              object: "chat.completion.chunk",
+              created,
+              model,
+              choices: [
+                {
+                  index: 0,
+                  delta: { role: "assistant", content: "" },
+                  finish_reason: null,
+                },
+              ],
+            })}\n\n`
+          );
+        }
+
+        if (toolCallsMap.has(tc.id)) {
+          // Accumulate arguments for existing tool call
+          const existing = toolCallsMap.get(tc.id);
+          const oldArgsLen = existing.function.arguments.length;
+          existing.function.arguments += tc.function.arguments;
+          existing.isLast = tc.isLast;
+
+          // Stream the delta arguments
+          if (tc.function.arguments) {
+            emittedToolCallIds.add(tc.id);
+            chunks.push(
+              `data: ${JSON.stringify({
+                id: responseId,
+                object: "chat.completion.chunk",
+                created,
+                model,
+                choices: [
+                  {
+                    index: 0,
+                    delta: {
+                      tool_calls: [
+                        {
+                          index: existing.index,
+                          id: tc.id,
+                          type: "function",
+                          function: {
+                            name: tc.function.name,
+                            arguments: tc.function.arguments,
+                          },
+                        },
+                      ],
+                    },
+                    finish_reason: null,
+                  },
+                ],
+              })}\n\n`
+            );
+          }
+        } else {
+          // New tool call - assign index and add to map
+          const toolCallIndex = toolCalls.length;
+          finalizedIds.add(tc.id);
+          toolCalls.push({ ...tc, index: toolCallIndex });
+          toolCallsMap.set(tc.id, { ...tc, index: toolCallIndex });
+
+          // Stream initial tool call with name
+          emittedToolCallIds.add(tc.id);
+          chunks.push(
+            `data: ${JSON.stringify({
+              id: responseId,
+              object: "chat.completion.chunk",
+              created,
+              model,
+              choices: [
+                {
+                  index: 0,
+                  delta: {
+                    tool_calls: [
+                      {
+                        index: toolCallIndex,
+                        id: tc.id,
+                        type: "function",
+                        function: {
+                          name: tc.function.name,
+                          arguments: tc.function.arguments,
+                        },
+                      },
+                    ],
+                  },
+                  finish_reason: null,
+                },
+              ],
+            })}\n\n`
+          );
+        }
+      }
+
+      if (result.text) {
+        totalContent += result.text;
+        chunks.push(
+          `data: ${JSON.stringify({
+            id: responseId,
+            object: "chat.completion.chunk",
+            created,
+            model,
+            choices: [
+              {
+                index: 0,
+                delta:
+                  chunks.length === 0 && toolCalls.length === 0
+                    ? { role: "assistant", content: result.text }
+                    : { content: result.text },
+                finish_reason: null,
+              },
+            ],
+          })}\n\n`
+        );
+      }
+    }
+
+    debugLog(
+      `[CURSOR BUFFER SSE] Parsed ${frameCount} frames, toolCallsMap size: ${toolCallsMap.size}, toolCalls array: ${toolCalls.length}`
+    );
+
+    // Finalize all remaining tool calls in map (stream may have ended without isLast=true)
+    for (const [id, tc] of toolCallsMap.entries()) {
+      if (!finalizedIds.has(id)) {
+        debugLog(`[CURSOR BUFFER SSE] Finalizing incomplete tool call: ${id}, isLast=${tc.isLast}`);
+        const toolCallIndex = toolCalls.length;
+        toolCalls.push({
+          id: tc.id,
+          type: tc.type,
+          index: toolCallIndex,
+          function: {
+            name: tc.function.name,
+            arguments: tc.function.arguments,
+          },
+        });
+
+        // Emit SSE chunk for the finalized tool call if not already emitted
+        if (!emittedToolCallIds.has(tc.id)) {
+          chunks.push(
+            `data: ${JSON.stringify({
+              id: responseId,
+              object: "chat.completion.chunk",
+              created,
+              model,
+              choices: [
+                {
+                  index: 0,
+                  delta: {
+                    tool_calls: [
+                      {
+                        index: toolCallIndex,
+                        id: tc.id,
+                        type: "function",
+                        function: {
+                          name: tc.function.name,
+                          arguments: tc.function.arguments,
+                        },
+                      },
+                    ],
+                  },
+                  finish_reason: null,
+                },
+              ],
+            })}\n\n`
+          );
+        }
+      }
+    }
+
+    if (chunks.length === 0 && toolCalls.length === 0) {
+      chunks.push(
+        `data: ${JSON.stringify({
+          id: responseId,
+          object: "chat.completion.chunk",
+          created,
+          model,
+          choices: [
+            {
+              index: 0,
+              delta: { role: "assistant", content: "" },
+              finish_reason: null,
+            },
+          ],
+        })}\n\n`
+      );
+    }
+
+    const usage = estimateUsage(body, totalContent.length, FORMATS.OPENAI);
+
+    chunks.push(
+      `data: ${JSON.stringify({
+        id: responseId,
+        object: "chat.completion.chunk",
+        created,
+        model,
         choices: [
           {
             index: 0,
-            message,
-            finish_reason: finishReason,
+            delta: {},
+            finish_reason: toolCalls.length > 0 ? "tool_calls" : "stop",
           },
         ],
         usage,
-      }),
-      { status: 200, headers: { "Content-Type": "application/json" } }
+      })}\n\n`
     );
+    chunks.push("data: [DONE]\n\n");
+
+    return new Response(chunks.join(""), {
+      status: 200,
+      headers: {
+        "Content-Type": "text/event-stream",
+        "Cache-Control": "no-cache",
+        Connection: "keep-alive",
+      },
+    });
   }
 
   async refreshCredentials() {

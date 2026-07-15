@@ -10,10 +10,9 @@ import { getIdempotencyStats } from "@/lib/idempotencyLayer";
 import { getCacheMetrics, getCacheTrend } from "@/lib/db/settings";
 import { getCachedSettings } from "@/lib/localDb";
 import { isAuthenticated } from "@/shared/utils/apiAuth";
-import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
 
 function errorMessage(error: unknown): string {
-  return sanitizeErrorMessage(error);
+  return error instanceof Error ? error.message : String(error);
 }
 
 export async function GET(req: NextRequest) {

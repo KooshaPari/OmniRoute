@@ -5,8 +5,6 @@ import {
   getGitHubCopilotChatHeaders,
   getGitHubCopilotRefreshHeaders,
 } from "../config/providerHeaderProfiles.ts";
-import { sanitizeResponsesInputItems } from "../services/responsesInputSanitizer.ts";
-import { stripUnsupportedParams } from "../translator/paramSupport.ts";
 
 export class GithubExecutor extends BaseExecutor {
   constructor() {
@@ -25,31 +23,9 @@ export class GithubExecutor extends BaseExecutor {
     );
   }
 
-  // GitHub Copilot's /responses endpoint only serves OpenAI (gpt/codex) models.
-  // Gemini and Claude variants on Copilot reject with HTTP 400
-  //   "model <id> does not support Responses API." (unsupported_api_for_model)
-  // Pin a defensive invariant: even if a future registry edit (or an upstream
-  // model-discovery refresh) tagged a Claude/Gemini entry as openai-responses,
-  // the executor must still route it to /chat/completions. Port of 9router#1536
-  // (follow-up to #663); also reinforces the existing comments on the gh
-  // registry entries (claude-opus-4-5-20251101, claude-opus-4.7, gemini-*).
-  supportsResponsesEndpoint(model: string | null | undefined): boolean {
-    const m = (model || "").toLowerCase();
-    if (!m) return true;
-    return !(m.includes("gemini") || m.includes("claude"));
-  }
-
   buildUrl(model: string, _stream: boolean, _urlIndex = 0) {
     const targetFormat = getModelTargetFormat("gh", model);
-    // 9router#102: Copilot Codex models advertise supported_endpoints: ["/responses"]
-    // and 400 on /chat/completions. Route any *-codex id to /responses even when it
-    // isn't in the curated registry, so newly-shipped Codex models work out of the box.
-    // 9router#1536: but never route Gemini/Claude variants to /responses (they 400) —
-    // gate the whole decision on supportsResponsesEndpoint().
-    if (
-      (targetFormat === "openai-responses" || /codex/i.test(model)) &&
-      this.supportsResponsesEndpoint(model)
-    ) {
+    if (targetFormat === "openai-responses") {
       return (
         this.config.responsesBaseUrl ||
         this.config.baseUrl?.replace(/\/chat\/completions\/?$/, "/responses") ||
@@ -93,10 +69,6 @@ export class GithubExecutor extends BaseExecutor {
     const sourceBody = body && typeof body === "object" ? body : {};
     const modifiedBody = { ...sourceBody };
 
-    if (Array.isArray(sourceBody.input)) {
-      modifiedBody.input = sanitizeResponsesInputItems(sourceBody.input, false);
-    }
-
     if (Array.isArray(sourceBody.messages)) {
       modifiedBody.messages = sourceBody.messages.map((msg) => {
         if (!msg || typeof msg !== "object") return msg;
@@ -122,6 +94,7 @@ export class GithubExecutor extends BaseExecutor {
       modifiedBody.tools = modifiedBody.tools.slice(0, 128);
     }
 
+<<<<<<< Updated upstream
     // GitHub Copilot's gpt-5.4 family rejects requests carrying `temperature` with HTTP 400:
     //   "Unsupported parameter: 'temperature' is not supported with this model."
     // OmniRoute's existing `stripGpt5SamplingWhenReasoning` guard only fires for
@@ -213,6 +186,11 @@ export class GithubExecutor extends BaseExecutor {
     return end === messages.length ? messages : messages.slice(0, end);
   }
 
+=======
+    return modifiedBody;
+  }
+
+>>>>>>> Stashed changes
   async execute(input: ExecuteInput) {
     const result = await super.execute(input);
     if (!result || !result.response) return result;
@@ -283,24 +261,18 @@ export class GithubExecutor extends BaseExecutor {
 
   async refreshGitHubToken(refreshToken, log) {
     try {
-      // GitHub Copilot is a public device-flow client: send the public client_id, and
-      // only attach client_secret when one is actually configured — never the literal
-      // "undefined" that new URLSearchParams produces for a missing value (9router#442).
-      const params = new URLSearchParams({
-        grant_type: "refresh_token",
-        refresh_token: refreshToken,
-        client_id: this.config.clientId,
-      });
-      if (this.config.clientSecret) {
-        params.set("client_secret", this.config.clientSecret);
-      }
       const response = await fetch(OAUTH_ENDPOINTS.github.token, {
         method: "POST",
         headers: {
           "Content-Type": "application/x-www-form-urlencoded",
           Accept: "application/json",
         },
-        body: params,
+        body: new URLSearchParams({
+          grant_type: "refresh_token",
+          refresh_token: refreshToken,
+          client_id: this.config.clientId,
+          client_secret: this.config.clientSecret,
+        }),
       });
       if (!response.ok) return null;
       const tokens = await response.json();

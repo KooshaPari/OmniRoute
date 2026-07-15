@@ -1,6 +1,15 @@
 import { handleMusicGeneration } from "@omniroute/open-sse/handlers/musicGeneration.ts";
+<<<<<<< Updated upstream
 import { withInjectionGuard } from "@/middleware/promptInjectionGuard";
 import { getProviderCredentials, clearRecoveredProviderState } from "@/sse/services/auth";
+=======
+import {
+  getProviderCredentials,
+  clearRecoveredProviderState,
+  extractApiKey,
+  isValidApiKey,
+} from "@/sse/services/auth";
+>>>>>>> Stashed changes
 import {
   parseMusicModel,
   getAllMusicModels,
@@ -10,6 +19,7 @@ import { errorResponse } from "@omniroute/open-sse/utils/error.ts";
 import { HTTP_STATUS } from "@omniroute/open-sse/config/constants.ts";
 import * as log from "@/sse/utils/logger";
 import { enforceApiKeyPolicy } from "@/shared/utils/apiKeyPolicy";
+<<<<<<< Updated upstream
 import {
   isAllRateLimitedCredentials,
   rateLimitedProviderResponse,
@@ -22,6 +32,10 @@ import {
   readMediaGenerationBody,
   successfulMediaGenerationResponse,
 } from "@/app/api/v1/_shared/mediaGenerationRoute";
+=======
+import { v1ImageGenerationSchema } from "@/shared/validation/schemas";
+import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
+>>>>>>> Stashed changes
 
 /**
  * Handle CORS preflight
@@ -40,6 +54,7 @@ export async function GET() {
 /**
  * POST /v1/music/generations — generate music
  */
+<<<<<<< Updated upstream
 async function postHandler(request, context) {
   const parsed = await readMediaGenerationBody(request, log, "MUSIC");
   if (!parsed.ok) {
@@ -47,6 +62,22 @@ async function postHandler(request, context) {
   }
   const body = parsed.body;
   const startTime = Date.now();
+=======
+export async function POST(request) {
+  let rawBody;
+  try {
+    rawBody = await request.json();
+  } catch {
+    log.warn("MUSIC", "Invalid JSON body");
+    return errorResponse(HTTP_STATUS.BAD_REQUEST, "Invalid JSON body");
+  }
+
+  const validation = validateBody(v1ImageGenerationSchema, rawBody);
+  if (isValidationFailure(validation)) {
+    return errorResponse(HTTP_STATUS.BAD_REQUEST, validation.error.message);
+  }
+  const body = validation.data;
+>>>>>>> Stashed changes
 
   const promptError = promptRequiredResponse(body);
   if (promptError) return promptError;
@@ -77,15 +108,13 @@ async function postHandler(request, context) {
         `No credentials for music provider: ${provider}`
       );
     }
-    if (isAllRateLimitedCredentials(credentials)) {
-      return rateLimitedProviderResponse(provider, credentials);
-    }
   }
 
   const result = await handleMusicGeneration({ body, credentials, log });
 
   if (result.success) {
     await clearRecoveredProviderState(credentials);
+<<<<<<< Updated upstream
     return successfulMediaGenerationResponse({
       result,
       billingMode: "audio",
@@ -93,10 +122,13 @@ async function postHandler(request, context) {
       model: body.model,
       startTime,
       duration: body.duration,
+=======
+    return new Response(JSON.stringify((result as any).data), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+>>>>>>> Stashed changes
     });
   }
 
   return failedMediaGenerationResponse(result, "Music generation provider error");
 }
-
-export const POST = withInjectionGuard(postHandler);

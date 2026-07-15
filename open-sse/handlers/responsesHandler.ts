@@ -7,8 +7,7 @@ import { CORS_HEADERS } from "../utils/cors.ts";
 import { handleChatCore } from "./chatCore.ts";
 import { convertResponsesApiFormat } from "../translator/helpers/responsesApiHelper.ts";
 import { createResponsesApiTransformStream } from "../transformer/responsesTransformer.ts";
-import { createSseHeartbeatTransform, HEARTBEAT_SHAPES } from "../utils/sseHeartbeat.ts";
-import { SSE_HEARTBEAT_INTERVAL_MS } from "../config/constants.ts";
+import { createSseHeartbeatTransform } from "../utils/sseHeartbeat.ts";
 
 /**
  * Handle /v1/responses request
@@ -68,6 +67,7 @@ export async function handleResponsesCore({
     return result;
   }
 
+<<<<<<< Updated upstream
   // Transform SSE stream to Responses API format (no logging in worker).
   // Pass the original request body + tools list so the transformer can:
   //   - emit a parallel Anthropic-style `tool_use` block for every
@@ -88,6 +88,13 @@ export async function handleResponsesCore({
       shape: HEARTBEAT_SHAPES.OPENAI_RESPONSES_IN_PROGRESS,
     })
   );
+=======
+  // Transform SSE stream to Responses API format (no logging in worker)
+  const transformStream = createResponsesApiTransformStream(null);
+  const transformedBody = response.body
+    .pipeThrough(transformStream)
+    .pipeThrough(createSseHeartbeatTransform({ signal }));
+>>>>>>> Stashed changes
 
   return {
     success: true,

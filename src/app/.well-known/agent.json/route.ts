@@ -1,20 +1,34 @@
 /**
- * Agent Card Discovery Endpoint (/.well-known/agent.json)
- * Advertises OmniRoute's A2A capabilities to external agents
+ * Agent Card Endpoint — /.well-known/agent.json
+ *
+ * Serves the OmniRoute A2A Agent Card for discovery by other agents.
+ * Conforms to A2A Protocol v0.3.
+ *
+ * The Agent Card is dynamically generated to include the current version
+ * from package.json and skills based on available combos.
  */
 
 import { NextResponse } from "next/server";
 
-export const revalidate = 3600; // Cache for 1 hour
+const PACKAGE_VERSION = process.env.npm_package_version || "1.8.1";
+const BASE_URL = process.env.OMNIROUTE_BASE_URL || "http://localhost:20128";
 
+/**
+ * GET /.well-known/agent.json
+ *
+ * Returns the OmniRoute Agent Card that describes this gateway's
+ * capabilities as an A2A agent.
+ */
 export async function GET() {
-  const version = process.env.npm_package_version || "1.0.0";
-
   const agentCard = {
-    name: "OmniRoute",
-    description: "Intelligent AI gateway with auto-routing across 180+ LLM providers",
-    url: `${process.env.OMNIROUTE_BASE_URL || "http://localhost:20128"}/a2a`,
-    version,
+    name: "OmniRoute AI Gateway",
+    description:
+      "Intelligent AI routing gateway with 36+ providers, smart fallback, " +
+      "quota tracking, format translation, and auto-managed combos. " +
+      "Routes AI requests to the optimal provider based on cost, latency, " +
+      "quota availability, and task requirements.",
+    url: `${BASE_URL}/a2a`,
+    version: PACKAGE_VERSION,
     capabilities: {
       streaming: true,
       pushNotifications: false,
@@ -22,50 +36,68 @@ export async function GET() {
     skills: [
       {
         id: "smart-routing",
-        name: "Smart Routing",
-        description: "Routes prompts through OmniRoute intelligent pipeline",
-        tags: ["routing", "llm", "multi-provider", "cost-optimization"],
+        name: "Smart Request Routing",
+        description:
+          "Routes AI requests to the optimal provider based on quota, cost, " +
+          "latency, and reliability. Supports combo-based routing with " +
+          "multiple strategies: priority, weighted, round-robin, cost-optimized.",
+        tags: ["routing", "llm", "optimization", "fallback"],
         examples: [
-          "Write a hello world in Python",
-          "Explain quantum computing using the cheapest provider",
+          "Route this coding task to the fastest available model",
+          "Send this review to an analytical model under $0.50 budget",
+          "Find the cheapest provider with available quota",
         ],
       },
       {
         id: "quota-management",
-        name: "Quota Management",
-        description: "Natural-language queries about provider quotas",
-        tags: ["quota", "analytics", "cost"],
+        name: "Quota & Cost Management",
+        description:
+          "Tracks and manages API quotas across 36+ providers with " +
+          "auto-fallback when quotas are exhausted. Provides real-time " +
+          "cost tracking and budget enforcement.",
+        tags: ["quota", "cost", "monitoring", "budget"],
         examples: [
-          "Which provider has the most quota remaining?",
-          "Suggest a free combo for coding",
+          "Check remaining quota for all providers",
+          "Which provider has the most available quota?",
+          "Generate a cost report for today",
         ],
       },
       {
         id: "provider-discovery",
         name: "Provider Discovery",
-        description: "Lists installed providers with capabilities, free-tier flags, OAuth status",
-        tags: ["provider", "discovery", "capabilities"],
+        description:
+          "Discovers providers that can handle a requested capability " +
+          "such as chat, images, audio, search, embeddings, rerank, or video. " +
+          "Reports availability, health, configuration status, and a recommended provider.",
+        tags: ["providers", "discovery", "capabilities", "health"],
         examples: [
-          "What providers are available?",
-          "Which providers support vision?",
+          "Which providers can handle image generation?",
+          "Find healthy providers for embeddings",
+          "What local providers are configured?",
         ],
       },
       {
         id: "cost-analysis",
         name: "Cost Analysis",
-        description: "Estimates cost of a request/conversation given the catalog + recent usage",
-        tags: ["cost", "pricing", "analytics"],
+        description:
+          "Analyzes usage costs by provider and model, compares recent periods, " +
+          "and returns cost-saving opportunities for agents to act on.",
+        tags: ["cost", "usage", "analytics", "optimization"],
         examples: [
-          "How much will this request cost?",
-          "Compare costs across providers",
+          "How much did we spend this week?",
+          "Which provider is costing the most?",
+          "Suggest cost-saving opportunities for the last 30 days",
         ],
       },
       {
         id: "health-report",
         name: "Health Report",
-        description: "Aggregates circuit breaker, cooldown, lockout state per provider",
-        tags: ["health", "monitoring", "resilience"],
+        description:
+          "Aggregates provider health, circuit breaker states, rate limit queues, " +
+          "lockouts, and telemetry into a structured report for orchestration.",
+        tags: ["health", "monitoring", "resilience", "telemetry"],
         examples: [
+<<<<<<< Updated upstream
           "What providers are healthy?",
           "Show me provider health status",
         ],
@@ -88,6 +120,11 @@ export async function GET() {
         examples: [
           "Dispatch a code generation task to substrate",
           "Run this coding task through the forge engine",
+=======
+          "Is everything healthy?",
+          "Report degraded providers and retry timing",
+          "Summarize active rate limits and lockouts",
+>>>>>>> Stashed changes
         ],
       },
       {
@@ -102,7 +139,7 @@ export async function GET() {
       },
     ],
     authentication: {
-      schemes: ["bearer"],
+      schemes: ["api-key"],
       apiKeyHeader: "Authorization",
     },
   };
@@ -111,21 +148,6 @@ export async function GET() {
     headers: {
       "Cache-Control": "public, max-age=3600",
       "Content-Type": "application/json",
-    },
-  });
-}
-
-/**
- * CORS preflight for agent discovery
- */
-export async function OPTIONS() {
-  return new NextResponse(null, {
-    status: 204,
-    headers: {
-      Allow: "GET, HEAD, OPTIONS",
-      "Access-Control-Allow-Methods": "GET, HEAD, OPTIONS",
-      "Access-Control-Allow-Headers": "Content-Type",
-      "Access-Control-Allow-Origin": "*",
     },
   });
 }

@@ -2,42 +2,26 @@
 
 ## Reporting Vulnerabilities
 
-If you discover a security vulnerability in OmniRoute, please report it responsibly:
+Please report security vulnerabilities via GitHub Security Advisories:
 
-1. **DO NOT** open a public GitHub issue
-2. Use [GitHub Security Advisories](https://github.com/diegosouzapw/OmniRoute/security/advisories/new)
-3. Include: description, reproduction steps, and potential impact
-
-## Response Timeline
-
-| Stage               | Target                      |
-| ------------------- | --------------------------- |
-| Acknowledgment      | 48 hours                    |
-| Triage & Assessment | 5 business days             |
-| Patch Release       | 14 business days (critical) |
+- Open a [private security advisory](../../security/advisories/new)
+- For sensitive issues, contact the repository owner directly
 
 ## Supported Versions
 
-| Version | Support Status |
-| ------- | -------------- |
-| 3.8.x   | ✅ Active      |
-| 3.7.x   | ✅ Security    |
-| < 3.7.0 | ❌ Unsupported |
+Latest `main` branch. Older versions are not supported.
 
----
+## Disclosure Policy
 
-## Security Architecture
+We follow coordinated disclosure with reporters. Once an issue is patched, an advisory will be published.
 
-OmniRoute implements a multi-layered security model:
+## Cargo-deny
 
-```
-Request → CORS → Authz pipeline (classify → policies → enforce)
-       → Guardrails (PII masker, prompt injection, vision bridge)
-       → Rate Limiter → Circuit Breaker → Cooldown → Model Lockout → Provider
-```
+Rust projects in this org enforce a zero-advisory floor via `cargo-deny.yml` workflow (Monday cron + on-demand).
 
-### 🔐 Authentication & Authorization
+## CodeQL
 
+<<<<<<< Updated upstream
 | Feature               | Implementation                                                                                                                            |
 | --------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
 | **Dashboard Login**   | Password-based auth with JWT tokens (HttpOnly cookies)                                                                                    |
@@ -243,3 +227,6 @@ for the publishing recipe.
 - [`docs/security/STEALTH_GUIDE.md`](docs/security/STEALTH_GUIDE.md) — TLS fingerprinting (legal/ethical notice)
 - [`CLAUDE.md`](CLAUDE.md) — hard rules for AI agents
 - [tldrsec/awesome-secure-defaults](https://github.com/tldrsec/awesome-secure-defaults) — curated secure-by-default libraries
+=======
+Static analysis runs Tuesday weekly via `codeql-rust.yml` workflow.
+>>>>>>> Stashed changes

@@ -1,8 +1,6 @@
 import { register } from "../registry.ts";
 import { FORMATS } from "../formats.ts";
 import { CLAUDE_OAUTH_TOOL_PREFIX } from "../request/openai-to-claude.ts";
-import { hasToolCallShim, applyToolCallShimToBuffer } from "../helpers/toolCallShim.ts";
-import { appendToolCallArgumentDelta } from "../../utils/toolCallArguments.ts";
 
 // Helper: stop thinking block if started
 function stopThinkingBlock(state, results) {
@@ -159,22 +157,17 @@ export function openaiToClaudeResponse(chunk, state) {
         stopTextBlock(state, results);
 
         const toolBlockIndex = state.nextBlockIndex++;
+        state.toolCalls.set(idx, {
+          id: tc.id,
+          name: tc.function?.name || "",
+          blockIndex: toolBlockIndex,
+        });
 
         // Strip prefix from tool name for response
         let toolName = tc.function?.name || "";
         if (toolName.startsWith(CLAUDE_OAUTH_TOOL_PREFIX)) {
           toolName = toolName.slice(CLAUDE_OAUTH_TOOL_PREFIX.length);
         }
-
-        state.toolCalls.set(idx, {
-          id: tc.id,
-          name: toolName,
-          blockIndex: toolBlockIndex,
-          // Shimmed tools buffer their raw args and emit a single corrected
-          // input_json_delta at content_block_stop time (see finish handler).
-          shimmed: hasToolCallShim(toolName),
-          argBuffer: "",
-        });
 
         results.push({
           type: "content_block_start",
@@ -191,34 +184,10 @@ export function openaiToClaudeResponse(chunk, state) {
       if (tc.function?.arguments) {
         const toolInfo = state.toolCalls.get(idx);
         if (toolInfo) {
-          // Always buffer the raw stream so shimmed tools can re-emit a
-          // corrected JSON at stop time.
-          const existingArgs = toolInfo.argBuffer || "";
-          const nextArgs = appendToolCallArgumentDelta(existingArgs, tc.function.arguments);
-          let deltaStr = nextArgs.slice(existingArgs.length);
-          toolInfo.argBuffer = nextArgs;
-
-          if (toolInfo.shimmed || !deltaStr) {
-            // Suppress passthrough for shimmed tools; emit one corrective delta at finish.
-            continue;
-          }
-
-          // NOTE: The regex-based "Fix #1852" strip that previously ran here was
-          // removed in #4951. That strip matched patterns like `"key":""` and
-          // `"key":[]` to remove spurious placeholder fields that some models emit
-          // as noise. However, since #3762 the snapshot-dedup logic in
-          // appendToolCallArgumentDelta already collapses repeated/growing snapshots
-          // into a single delta, so noise-only chunks are naturally suppressed.
-          // More critically, the regex unconditionally deleted any field whose value
-          // happened to be "" or [], silently corrupting intentional empty-string or
-          // empty-array arguments (e.g. {"file_path":"","content":"text"} →
-          // {"content":"text"}). Emit deltaStr as-is; the Claude client parses the
-          // assembled partial_json fragments and tolerates unknown extra fields.
-
           results.push({
             type: "content_block_delta",
             index: toolInfo.blockIndex,
-            delta: { type: "input_json_delta", partial_json: deltaStr },
+            delta: { type: "input_json_delta", partial_json: tc.function.arguments },
           });
         }
       }
@@ -238,17 +207,6 @@ export function openaiToClaudeResponse(chunk, state) {
     stopTextBlock(state, results);
 
     for (const [, toolInfo] of state.toolCalls) {
-      // For shimmed tools, emit one corrective input_json_delta with the
-      // fully patched JSON before closing the block.
-      if (toolInfo.shimmed) {
-        const patched = applyToolCallShimToBuffer(toolInfo.name, toolInfo.argBuffer || "");
-        results.push({
-          type: "content_block_delta",
-          index: toolInfo.blockIndex,
-          delta: { type: "input_json_delta", partial_json: patched },
-        });
-      }
-
       results.push({
         type: "content_block_stop",
         index: toolInfo.blockIndex,

@@ -5,7 +5,6 @@ import {
   getModelIsHidden,
   getProviderConnections,
   getProviderNodes,
-  getSettings,
 } from "@/lib/localDb";
 import { getAccountDisplayName, getProviderDisplayName } from "@/lib/display/names";
 import { getCompatibleFallbackModels } from "@/lib/providers/managedAvailableModels";
@@ -14,7 +13,6 @@ import { getSyncedCapabilities } from "@/lib/modelsDevSync";
 import { getModelsByProviderId } from "@/shared/constants/models";
 import {
   AI_PROVIDERS,
-  NOAUTH_PROVIDERS,
   isAnthropicCompatibleProvider,
   isClaudeCodeCompatibleProvider,
   isOpenAICompatibleProvider,
@@ -454,20 +452,13 @@ function normalizeSyncedModels(raw: unknown): SyncedModelLike[] {
 
 export async function getComboBuilderOptions(): Promise<ComboBuilderOptionsPayload> {
   getSyncedCapabilities();
-  const [connections, providerNodes, customModelsMap, syncedModelsMap, combos, settings] =
-    await Promise.all([
-      getProviderConnections(),
-      getProviderNodes(),
-      getAllCustomModels(),
-      getAllSyncedAvailableModels(),
-      getCombos(),
-      getSettings().catch(() => ({}) as Record<string, unknown>),
-    ]);
-  const blockedProviders = new Set(
-    Array.isArray((settings as Record<string, unknown>).blockedProviders)
-      ? ((settings as Record<string, unknown>).blockedProviders as string[])
-      : []
-  );
+  const [connections, providerNodes, customModelsMap, syncedModelsMap, combos] = await Promise.all([
+    getProviderConnections(),
+    getProviderNodes(),
+    getAllCustomModels(),
+    getAllSyncedAvailableModels(),
+    getCombos(),
+  ]);
 
   const providerNodeMap = new Map<string, ProviderNodeLike>();
   for (const providerNode of providerNodes as ProviderNodeLike[]) {
@@ -539,6 +530,7 @@ export async function getComboBuilderOptions(): Promise<ComboBuilderOptionsPaylo
     });
   }
 
+<<<<<<< Updated upstream
   // No-auth providers have no rows in provider_connections, so they are never included in the
   // connectionsByProvider loop above. Add them unless the provider is explicitly blocked.
   for (const noAuthProvider of Object.values(NOAUTH_PROVIDERS)) {
@@ -604,6 +596,8 @@ export async function getComboBuilderOptions(): Promise<ComboBuilderOptionsPaylo
     });
   }
 
+=======
+>>>>>>> Stashed changes
   const comboRefs = (combos as JsonRecord[])
     .filter((combo) => combo.isHidden !== true && combo.isActive !== false)
     .map((combo) => ({

@@ -16,9 +16,12 @@
  */
 
 import { BaseExecutor, type ExecuteInput, type ProviderCredentials } from "./base.ts";
+<<<<<<< Updated upstream
 import { describeChatGptWebHttpError } from "./chatgptWebErrors.ts";
 import { prepareToolMessages } from "../translator/webTools.ts";
 import { buildToolModeResponse } from "./chatgptWebTools.ts";
+=======
+>>>>>>> Stashed changes
 import { createHash, randomUUID, randomBytes } from "node:crypto";
 import { sha3_512Hex } from "../utils/sha3-512.ts";
 import {
@@ -47,7 +50,11 @@ const DEFAULT_PRO_POLL_TIMEOUT_MS = 20 * 60_000;
 const DEFAULT_PRO_POLL_INTERVAL_MS = 4_000;
 
 const CHATGPT_USER_AGENT =
+<<<<<<< Updated upstream
   "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:152.0) Gecko/20100101 Firefox/152.0";
+=======
+  "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36";
+>>>>>>> Stashed changes
 
 // Captured from a real chatgpt.com browser session (April 2026).
 const OAI_CLIENT_VERSION = "prod-81e0c5cdf6140e8c5db714d613337f4aeab94029";
@@ -80,11 +87,48 @@ function deviceIdFor(cookie: string): string {
   return id;
 }
 
+<<<<<<< Updated upstream
 // OmniRoute model ID → ChatGPT internal slug. The public ChatGPT Web catalog
 // keeps OmniRoute's historical dot-form IDs (e.g. "gpt-5.5-pro"), while
 // ChatGPT's backend routes use dash-form slugs (e.g. "gpt-5-5-pro"). The slug
 // catalog comes from /backend-api/models on a logged-in account;
 // "gpt-5-4-t-mini" is ChatGPT's abbreviated slug for "GPT-5.4 Thinking Mini".
+=======
+// OmniRoute model ID → ChatGPT internal slug. OmniRoute uses dot-form IDs
+// (e.g. "gpt-5.3-instant"), ChatGPT's web routes use dash-form
+// (e.g. "gpt-5-3-instant"). The slug catalog comes from
+// /backend-api/models on a logged-in account; "gpt-5-4-t-mini" is ChatGPT's
+// abbreviated slug for "GPT-5.4 Thinking Mini".
+const MODEL_MAP: Record<string, string> = {
+  "gpt-5.3-instant": "gpt-5-3-instant",
+  "gpt-5.3": "gpt-5-3",
+  "gpt-5.3-mini": "gpt-5-3-mini",
+  "gpt-5.5-thinking": "gpt-5-5-thinking",
+  "gpt-5.4-thinking": "gpt-5-4-thinking",
+  "gpt-5.4-thinking-mini": "gpt-5-4-t-mini",
+  "gpt-5.2-instant": "gpt-5-2-instant",
+  "gpt-5.2": "gpt-5-2",
+  "gpt-5.2-thinking": "gpt-5-2-thinking",
+  "gpt-5.1": "gpt-5-1",
+  "gpt-5": "gpt-5",
+  "gpt-5-mini": "gpt-5-mini",
+  o3: "o3",
+};
+
+/** Set of chatgpt.com slugs that the user_last_used_model_config endpoint
+ * accepts a `thinking_effort` value for, derived from MODEL_MAP so adding a
+ * new thinking entry there automatically extends this set. Includes the
+ * abbreviated slug `gpt-5-4-t-mini` (no literal "thinking" substring) — the
+ * reason this set exists at all rather than a substring match.
+ *
+ * Derived from MODEL_MAP keys (always dot-form) that contain "thinking" or
+ * are the `o3` reasoning model; the values are the chatgpt.com-side slugs. */
+const THINKING_CAPABLE_SLUGS: ReadonlySet<string> = new Set(
+  Object.entries(MODEL_MAP)
+    .filter(([k]) => k.includes("thinking") || k === "o3")
+    .map(([, v]) => v)
+);
+>>>>>>> Stashed changes
 
 // ─── Browser-like default headers ──────────────────────────────────────────
 
@@ -300,7 +344,6 @@ async function exchangeSession(
   try {
     data = JSON.parse(response.text || "{}");
   } catch {
-    console.warn("[chatgpt-web] session response JSON parse failed");
     /* empty body or non-JSON */
   }
   if (!data.accessToken) {
@@ -547,7 +590,6 @@ async function prepareChatRequirements(
   try {
     prepData = JSON.parse(prepResp.text || "{}") as ChatRequirements;
   } catch {
-    console.warn("[chatgpt-web] chat requirements prep JSON parse failed");
     /* keep empty */
   }
   // Stage 2: POST /chat-requirements with the prepare_token in the body. This
@@ -577,7 +619,6 @@ async function prepareChatRequirements(
     // Merge: prepare_token from stage 1, everything else from stage 2.
     return { ...crData, prepare_token: prepData.prepare_token };
   } catch {
-    console.warn("[chatgpt-web] chat requirements response JSON parse failed");
     return prepData;
   }
 }
@@ -1111,7 +1152,6 @@ async function* readChatGptSseEvents(
       if (sseEventName && !parsed.type) parsed.type = sseEventName;
       return parsed;
     } catch {
-      console.warn("[chatgpt-web] stream event JSON parse failed");
       return null;
     }
   }
@@ -1635,6 +1675,7 @@ function buildStreamingResponse(
 ): ReadableStream<Uint8Array> {
   const encoder = new TextEncoder();
 
+<<<<<<< Updated upstream
   return new ReadableStream(
     {
       async start(controller) {
@@ -1706,11 +1747,20 @@ function buildStreamingResponse(
           // the filter and render invisibly.
           const startHeartbeat = (intervalMs = 5_000): (() => void) => {
             const heartbeatChunk = sseChunk({
+=======
+  return new ReadableStream({
+    async start(controller) {
+      try {
+        controller.enqueue(
+          encoder.encode(
+            sseChunk({
+>>>>>>> Stashed changes
               id: cid,
               object: "chat.completion.chunk",
               created,
               model,
               system_fingerprint: null,
+<<<<<<< Updated upstream
               choices: [{ index: 0, delta: { content: "​" }, finish_reason: null, logprobs: null }],
             });
             const timer = setInterval(() => {
@@ -1795,6 +1845,24 @@ function buildStreamingResponse(
             // Tell the user something is happening — long polls otherwise
             // look like a hang on the client side. The "..." plus a typing
             // cue renders nicely in Open WebUI.
+=======
+              choices: [
+                { index: 0, delta: { role: "assistant" }, finish_reason: null, logprobs: null },
+              ],
+            })
+          )
+        );
+
+        let conversationId: string | null = null;
+        let imagePointers: ImagePointerRef[] | undefined;
+        let imageGenAsync = false;
+        let parentCandidateMessageId: string | null = null;
+
+        for await (const chunk of extractContent(eventStream, signal)) {
+          if (chunk.conversationId) conversationId = chunk.conversationId;
+          if (chunk.messageId) parentCandidateMessageId = chunk.messageId;
+          if (chunk.error) {
+>>>>>>> Stashed changes
             controller.enqueue(
               encoder.encode(
                 sseChunk({
@@ -1806,7 +1874,7 @@ function buildStreamingResponse(
                   choices: [
                     {
                       index: 0,
-                      delta: { content: "_Generating image…_\n\n" },
+                      delta: { content: `[Error: ${chunk.error}]` },
                       finish_reason: null,
                       logprobs: null,
                     },
@@ -1814,59 +1882,20 @@ function buildStreamingResponse(
                 })
               )
             );
-            const stopHb = startHeartbeat();
-            try {
-              const polled = await pollAsyncImage(conversationId);
-              if (polled.length > 0) imagePointers = polled;
-            } catch (err) {
-              log?.warn?.(
-                "CGPT-WEB",
-                `Async image poll failed: ${err instanceof Error ? err.message : String(err)}`
-              );
-            } finally {
-              stopHb();
-            }
+            break;
           }
 
-          // Resolve and append any image markdown after the text deltas finish
-          // streaming. Downloading and caching the image bytes can take 1-3
-          // seconds for big images, so keep the heartbeat running here too.
-          const stopHb2 = startHeartbeat();
-          let urls: string[] = [];
-          try {
-            urls = await resolveImagePointers(
-              imagePointers,
-              conversationId,
-              resolver,
-              log,
-              parentCandidateMessageId
-            );
-          } finally {
-            stopHb2();
+          if (chunk.done) {
+            imagePointers = chunk.imagePointers;
+            imageGenAsync = chunk.imageGenAsync ?? false;
+            if (chunk.messageId) parentCandidateMessageId = chunk.messageId;
+            break;
           }
-          // Bail out cleanly if the client disconnected during the wait —
-          // any further enqueue throws "Invalid state: Controller is
-          // already closed". Better to no-op than to surface that as a
-          // server error.
-          if (signal?.aborted) return;
-          const mdBlock = imageMarkdown(urls);
-          const safeEnqueue = (bytes: Uint8Array): boolean => {
-            try {
-              controller.enqueue(bytes);
-              return true;
-            } catch {
-              console.warn("[chatgpt-web] controller enqueue failed");
-              return false;
-            }
-          };
-          // The image markdown is now a small URL (we cache the bytes in
-          // memory and serve them at /v1/chatgpt-web/image/<id>), so a
-          // single SSE chunk is fine — no aiohttp LineTooLong concerns
-          // and the markdown renderer in Open WebUI sees the URL whole
-          // and renders an `<img>` immediately.
-          if (mdBlock) {
-            if (
-              !safeEnqueue(
+
+          if (chunk.delta) {
+            const cleaned = cleanChatGptText(chunk.delta);
+            if (cleaned) {
+              controller.enqueue(
                 encoder.encode(
                   sseChunk({
                     id: cid,
@@ -1877,35 +1906,70 @@ function buildStreamingResponse(
                     choices: [
                       {
                         index: 0,
-                        delta: { content: mdBlock },
+                        delta: { content: cleaned },
                         finish_reason: null,
                         logprobs: null,
                       },
                     ],
                   })
                 )
-              )
-            )
-              return;
+              );
+            }
           }
+        }
 
-          if (
-            !safeEnqueue(
-              encoder.encode(
-                sseChunk({
-                  id: cid,
-                  object: "chat.completion.chunk",
-                  created,
-                  model,
-                  system_fingerprint: null,
-                  choices: [{ index: 0, delta: {}, finish_reason: "stop", logprobs: null }],
-                })
-              )
-            )
-          )
-            return;
-          safeEnqueue(encoder.encode("data: [DONE]\n\n"));
-        } catch (err) {
+        // If the assistant kicked off the async image_gen tool, the SSE
+        // stream ends with a "Processing image..." placeholder. Poll the
+        // conversation endpoint in the background for the final pointer.
+        // We only kick polling off if the in-stream pointers are empty —
+        // sometimes the synchronous path also fires and we already have one.
+        // Heartbeat helper: while we wait on long-running async work
+        // (WebSocket for image-gen, /files/download → 2-3 MB image fetch),
+        // the SSE stream goes quiet and Open WebUI's HTTP client times out
+        // at ~30s. We saw this in production: `disconnect: ResponseAborted`
+        // followed by "Controller is already closed".
+        //
+        // Layered traps to avoid:
+        //   - SSE comments (`: ...`) are silently ignored by aiohttp's
+        //     read-activity tracker.
+        //   - Empty `delta:{}` chunks ARE emitted by us but get filtered
+        //     out upstream by `hasValuableContent` in
+        //     `open-sse/utils/streamHelpers.ts` (it requires content,
+        //     role, or finish_reason on OpenAI chunks).
+        //
+        // So heartbeats are zero-width-space content deltas (`"​"`):
+        // they pass the valuable-content filter (non-empty content), reach
+        // the client as data events, and render as nothing visible.
+        const startHeartbeat = (intervalMs = 5_000): (() => void) => {
+          const heartbeatChunk = sseChunk({
+            id: cid,
+            object: "chat.completion.chunk",
+            created,
+            model,
+            system_fingerprint: null,
+            choices: [{ index: 0, delta: { content: "​" }, finish_reason: null, logprobs: null }],
+          });
+          const timer = setInterval(() => {
+            try {
+              controller.enqueue(encoder.encode(heartbeatChunk));
+            } catch {
+              // Controller may already be closed if the client disconnected
+              // — just stop firing.
+              clearInterval(timer);
+            }
+          }, intervalMs);
+          return () => clearInterval(timer);
+        };
+
+        if (
+          imageGenAsync &&
+          conversationId &&
+          (!imagePointers || imagePointers.length === 0) &&
+          pollAsyncImage
+        ) {
+          // Tell the user something is happening — long polls otherwise
+          // look like a hang on the client side. The "..." plus a typing
+          // cue renders nicely in Open WebUI.
           controller.enqueue(
             encoder.encode(
               sseChunk({
@@ -1917,26 +1981,140 @@ function buildStreamingResponse(
                 choices: [
                   {
                     index: 0,
-                    delta: {
-                      content: `[Stream error: ${err instanceof Error ? err.message : String(err)}]`,
-                    },
-                    finish_reason: "stop",
+                    delta: { content: "_Generating image…_\n\n" },
+                    finish_reason: null,
                     logprobs: null,
                   },
                 ],
               })
             )
           );
+<<<<<<< Updated upstream
           controller.enqueue(encoder.encode("data: [DONE]\n\n"));
         } finally {
           try {
             controller.close();
           } catch {}
+=======
+          const stopHb = startHeartbeat();
+          try {
+            const polled = await pollAsyncImage(conversationId);
+            if (polled.length > 0) imagePointers = polled;
+          } catch (err) {
+            log?.warn?.(
+              "CGPT-WEB",
+              `Async image poll failed: ${err instanceof Error ? err.message : String(err)}`
+            );
+          } finally {
+            stopHb();
+          }
+>>>>>>> Stashed changes
         }
-      },
+
+        // Resolve and append any image markdown after the text deltas finish
+        // streaming. Downloading and caching the image bytes can take 1-3
+        // seconds for big images, so keep the heartbeat running here too.
+        const stopHb2 = startHeartbeat();
+        let urls: string[] = [];
+        try {
+          urls = await resolveImagePointers(
+            imagePointers,
+            conversationId,
+            resolver,
+            log,
+            parentCandidateMessageId
+          );
+        } finally {
+          stopHb2();
+        }
+        // Bail out cleanly if the client disconnected during the wait —
+        // any further enqueue throws "Invalid state: Controller is
+        // already closed". Better to no-op than to surface that as a
+        // server error.
+        if (signal?.aborted) return;
+        const mdBlock = imageMarkdown(urls);
+        const safeEnqueue = (bytes: Uint8Array): boolean => {
+          try {
+            controller.enqueue(bytes);
+            return true;
+          } catch {
+            return false;
+          }
+        };
+        // The image markdown is now a small URL (we cache the bytes in
+        // memory and serve them at /v1/chatgpt-web/image/<id>), so a
+        // single SSE chunk is fine — no aiohttp LineTooLong concerns
+        // and the markdown renderer in Open WebUI sees the URL whole
+        // and renders an `<img>` immediately.
+        if (mdBlock) {
+          if (
+            !safeEnqueue(
+              encoder.encode(
+                sseChunk({
+                  id: cid,
+                  object: "chat.completion.chunk",
+                  created,
+                  model,
+                  system_fingerprint: null,
+                  choices: [
+                    {
+                      index: 0,
+                      delta: { content: mdBlock },
+                      finish_reason: null,
+                      logprobs: null,
+                    },
+                  ],
+                })
+              )
+            )
+          )
+            return;
+        }
+
+        if (
+          !safeEnqueue(
+            encoder.encode(
+              sseChunk({
+                id: cid,
+                object: "chat.completion.chunk",
+                created,
+                model,
+                system_fingerprint: null,
+                choices: [{ index: 0, delta: {}, finish_reason: "stop", logprobs: null }],
+              })
+            )
+          )
+        )
+          return;
+        safeEnqueue(encoder.encode("data: [DONE]\n\n"));
+      } catch (err) {
+        controller.enqueue(
+          encoder.encode(
+            sseChunk({
+              id: cid,
+              object: "chat.completion.chunk",
+              created,
+              model,
+              system_fingerprint: null,
+              choices: [
+                {
+                  index: 0,
+                  delta: {
+                    content: `[Stream error: ${err instanceof Error ? err.message : String(err)}]`,
+                  },
+                  finish_reason: "stop",
+                  logprobs: null,
+                },
+              ],
+            })
+          )
+        );
+        controller.enqueue(encoder.encode("data: [DONE]\n\n"));
+      } finally {
+        controller.close();
+      }
     },
-    { highWaterMark: 16384 }
-  );
+  });
 }
 
 async function buildNonStreamingResponse(
@@ -2071,7 +2249,6 @@ function isLocalBaseUrl(baseUrl: string): boolean {
     const host = new URL(baseUrl).hostname.toLowerCase();
     return host === "localhost" || host === "127.0.0.1" || host === "::1" || host === "0.0.0.0";
   } catch {
-    console.warn("[chatgpt-web] URL parse failed, falling back to regex");
     return /\b(?:localhost|127\.0\.0\.1|0\.0\.0\.0)\b/i.test(baseUrl);
   }
 }
@@ -2192,7 +2369,6 @@ async function fetchDownloadUrl(endpoint: string, ctx: ResolverContext): Promise
   try {
     parsed = JSON.parse(response.text || "{}");
   } catch {
-    console.warn("[chatgpt-web] image download URL parse failed");
     return null;
   }
   return parsed.download_url ?? null;
@@ -2360,7 +2536,6 @@ async function registerWebSocket(ctx: ResolverContext): Promise<string | null> {
           return ws;
         }
       } catch {
-        console.warn("[chatgpt-web] WebSocket URL parse failed, falling through");
         /* fall through */
       }
     }
@@ -2400,7 +2575,6 @@ async function waitForImageViaWebSocket(
       try {
         ws.close();
       } catch {
-        console.warn("[chatgpt-web] ws.close failed");
         /* ignore */
       }
       resolve({
@@ -2439,7 +2613,6 @@ async function waitForImageViaWebSocket(
       try {
         payload = JSON.parse(raw);
       } catch {
-        console.warn("[chatgpt-web] WebSocket event JSON parse failed");
         return;
       }
       // chatgpt.com's celsius WS frames look like:
@@ -2939,9 +3112,16 @@ export class ChatGptWebExecutor extends BaseExecutor {
       // upstream message is much more useful than our wrapper. Goes through
       // the executor logger so it respects the application's log config.
       log?.warn?.("CGPT-WEB", `conv ${status}: ${(response.text || "").slice(0, 400)}`);
-      const errMsg = describeChatGptWebHttpError(status);
+      let errMsg = `ChatGPT returned HTTP ${status}`;
       if (status === 401 || status === 403) {
+        errMsg =
+          "ChatGPT auth failed — session may have expired. Re-paste your __Secure-next-auth.session-token.";
         tokenCache.delete(cookieKey(cookie));
+      } else if (status === 404) {
+        errMsg =
+          "ChatGPT returned 404 — usually the model is no longer available on this account or the chat-requirements-token expired. Retry will start a fresh conversation.";
+      } else if (status === 429) {
+        errMsg = "ChatGPT rate limited. Wait a moment and retry.";
       }
       log?.warn?.("CGPT-WEB", errMsg);
       return {

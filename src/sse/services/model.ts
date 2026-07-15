@@ -1,4 +1,5 @@
 // Re-export from open-sse with localDb integration
+<<<<<<< Updated upstream
 import {
   getModelAliases,
   getComboByName,
@@ -10,10 +11,21 @@ import {
 import { getCachedSettings } from "@/lib/localDb";
 import { parseModel, getModelInfoCore } from "@omniroute/open-sse/services/model.ts";
 import { REGISTRY } from "@omniroute/open-sse/config/providerRegistry.ts";
+=======
+import { getModelAliases, getComboByName, getProviderNodes, getCustomModels } from "@/lib/localDb";
+import { getSettings } from "@/lib/localDb";
+import { getComboStepTarget } from "@/lib/combos/steps";
+import {
+  parseModel,
+  resolveModelAliasFromMap,
+  getModelInfoCore,
+} from "@omniroute/open-sse/services/model.ts";
+>>>>>>> Stashed changes
 
 export { parseModel };
 
 /**
+<<<<<<< Updated upstream
  * Reserved provider prefixes — built-in provider ids + aliases. User-defined
  * compatible-node prefixes must not be allowed to shadow these, otherwise a
  * node with prefix="cf" would hijack cloudflare-ai requests (and similar for
@@ -66,22 +78,30 @@ async function getCombinedModelAliases(): Promise<Record<string, unknown>> {
  * Look up custom-model metadata from the DB in a single read:
  *  - apiFormat: "responses" when the model is configured for the Responses API.
  *  - targetFormat: the optional per-model wire format override (#2905).
+=======
+ * Resolve model alias from localDb
  */
-async function lookupCustomModelMeta(
+export async function resolveModelAlias(alias) {
+  const aliases = await getModelAliases();
+  return resolveModelAliasFromMap(alias, aliases);
+}
+
+/**
+ * Look up the apiFormat for a custom model from the DB.
+ * Returns "responses" if the model is configured for the Responses API, otherwise undefined.
+>>>>>>> Stashed changes
+ */
+async function lookupCustomModelApiFormat(
   providerId: string,
   modelId: string
-): Promise<{ apiFormat?: string; targetFormat?: string }> {
+): Promise<string | undefined> {
   try {
     const models = await getCustomModels(providerId);
-    if (!Array.isArray(models)) return {};
+    if (!Array.isArray(models)) return undefined;
     const match = models.find((m: any) => m.id === modelId);
-    if (!match) return {};
-    return {
-      apiFormat: match.apiFormat === "responses" ? "responses" : undefined,
-      targetFormat: typeof match.targetFormat === "string" ? match.targetFormat : undefined,
-    };
+    return match?.apiFormat === "responses" ? "responses" : undefined;
   } catch {
-    return {};
+    return undefined;
   }
 }
 
@@ -92,27 +112,12 @@ export async function getModelInfo(modelStr) {
   const parsed = parseModel(modelStr);
   const { extendedContext } = parsed;
 
-  const attachCustomApiFormat = async (info: any) => {
-    if (!info?.provider || !info?.model) return info;
-    const { apiFormat, targetFormat } = await lookupCustomModelMeta(
-      String(info.provider),
-      String(info.model)
-    );
-    if (apiFormat || targetFormat) {
-      return {
-        ...info,
-        ...(apiFormat && { apiFormat }),
-        ...(targetFormat && { targetFormat }),
-      };
-    }
-    return info;
-  };
-
   // Check custom provider nodes first (for both alias and non-alias formats)
   if (parsed.providerAlias || parsed.provider) {
     // Ensure prefixToCheck is always a concise identifier, not a full model string
     const prefixToCheck = parsed.providerAlias || parsed.provider;
 
+<<<<<<< Updated upstream
     // Compatible-node prefixes are user-defined. They must not be allowed to
     // shadow built-in provider ids/aliases (e.g. `cf` → cloudflare-ai). When
     // prefixToCheck matches a built-in registry id/alias, skip the compatible-
@@ -131,47 +136,46 @@ export async function getModelInfo(modelStr) {
       const openaiNodes = await getProviderNodes({ type: "openai-compatible" });
       const matchedOpenAI = openaiNodes.find(
         (node) => node.prefix === prefixToCheck || node.id === prefixToCheck
+=======
+    // Check OpenAI Compatible nodes
+    const openaiNodes = await getProviderNodes({ type: "openai-compatible" });
+    const matchedOpenAI = openaiNodes.find((node) => node.prefix === prefixToCheck);
+    if (matchedOpenAI) {
+      const apiFormat = await lookupCustomModelApiFormat(
+        matchedOpenAI.id as string,
+        parsed.model as string
+>>>>>>> Stashed changes
       );
-      if (matchedOpenAI) {
-        const { apiFormat, targetFormat } = await lookupCustomModelMeta(
-          matchedOpenAI.id as string,
-          parsed.model as string
-        );
-        return {
-          provider: matchedOpenAI.id,
-          model: parsed.model,
-          extendedContext,
-          ...(apiFormat && { apiFormat }),
-          ...(targetFormat && { targetFormat }),
-        };
-      }
+      return {
+        provider: matchedOpenAI.id,
+        model: parsed.model,
+        extendedContext,
+        ...(apiFormat && { apiFormat }),
+      };
+    }
 
-      // Check Anthropic Compatible nodes
-      const anthropicNodes = await getProviderNodes({ type: "anthropic-compatible" });
-      const matchedAnthropic = anthropicNodes.find(
-        (node) => node.prefix === prefixToCheck || node.id === prefixToCheck
+    // Check Anthropic Compatible nodes
+    const anthropicNodes = await getProviderNodes({ type: "anthropic-compatible" });
+    const matchedAnthropic = anthropicNodes.find((node) => node.prefix === prefixToCheck);
+    if (matchedAnthropic) {
+      const apiFormat = await lookupCustomModelApiFormat(
+        matchedAnthropic.id as string,
+        parsed.model as string
       );
-      if (matchedAnthropic) {
-        const { apiFormat, targetFormat } = await lookupCustomModelMeta(
-          matchedAnthropic.id as string,
-          parsed.model as string
-        );
-        return {
-          provider: matchedAnthropic.id,
-          model: parsed.model,
-          extendedContext,
-          ...(apiFormat && { apiFormat }),
-          ...(targetFormat && { targetFormat }),
-        };
-      }
+      return {
+        provider: matchedAnthropic.id,
+        model: parsed.model,
+        extendedContext,
+        ...(apiFormat && { apiFormat }),
+      };
     }
 
     // stripModelPrefix: if enabled, strip provider prefix and re-resolve
     // the bare model name using existing heuristics (claude-* → anthropic, etc.)
     try {
-      const settings = await getCachedSettings();
+      const settings = await getSettings();
       if (settings.stripModelPrefix === true) {
-        const strippedResult = await getModelInfoCore(parsed.model, getCombinedModelAliases);
+        const strippedResult = await getModelInfoCore(parsed.model, getModelAliases);
         return { ...strippedResult, extendedContext };
       }
     } catch {
@@ -180,10 +184,10 @@ export async function getModelInfo(modelStr) {
   }
 
   if (!parsed.isAlias) {
-    return await attachCustomApiFormat(await getModelInfoCore(modelStr, null));
+    return getModelInfoCore(modelStr, null);
   }
 
-  return await attachCustomApiFormat(await getModelInfoCore(modelStr, getCombinedModelAliases));
+  return getModelInfoCore(modelStr, getModelAliases);
 }
 
 /**
@@ -204,22 +208,6 @@ export async function getCombo(modelStr) {
     if (combo && combo.models && combo.models.length > 0) {
       return combo;
     }
-  }
-
-  // #4446: the opencode-plugin publishes combos as ModelV2 `id: combo.id`, and
-  // the OpenCode `--model` dispatch path forwards a lowercased bare slug. The
-  // exact, case-sensitive name match above misses both a combo addressed by its
-  // stored id (UUID/slug) and a lowercased display name (e.g. "master-light" for
-  // a combo named "MASTER-LIGHT"). These two fallbacks only run after the exact
-  // match fails, so they never re-route a combo that already resolves today.
-  combo = await getComboById(modelStr);
-  if (combo && combo.models && combo.models.length > 0) {
-    return combo;
-  }
-
-  combo = await getComboByNameInsensitive(modelStr);
-  if (combo && combo.models && combo.models.length > 0) {
-    return combo;
   }
 
   return null;

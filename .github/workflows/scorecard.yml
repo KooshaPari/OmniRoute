@@ -1,49 +1,54 @@
-name: OpenSSF Scorecard
-
+name: Scorecard supply-chain security
 on:
-  workflow_dispatch:
+  # For Branch-Protection check. Only the default branch is supported. See
+  # https://github.com/ossf/scorecard/blob/main/docs/checks.md#branch-protection
   branch_protection_rule:
+  # To guarantee Maintained check is occasionally updated. See
+  # https://github.com/ossf/scorecard/blob/main/docs/checks.md#maintained
   schedule:
-    - cron: '0 9 * * 1'
+    - cron: '26 7 * * 0'
+  push:
+    branches: [ main ]
 
+# Declare default permissions as read only.
 permissions: read-all
 
-
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
 jobs:
-  scorecard:
+  analysis:
     name: Scorecard analysis
-    runs-on: ubuntu-24.04
-    timeout-minutes: 15
+    runs-on: ubuntu-latest
     permissions:
+      # Needed to upload the results to code-scanning dashboard.
       security-events: write
+      # Needed to query private dependencies.
+      packages: read
+      # Needed to publish results to the scorecard GitHub Action.
       id-token: write
+      # Read for repo contents API.
       contents: read
-      actions: read
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      - name: "Checkout code"
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
         with:
           persist-credentials: false
-
-      - name: Run OpenSSF Scorecard
-        uses: ossf/scorecard-action@05b42c624433fc40578a4040d5cf5e36ddca8cde
+      - name: "Run analysis"
+        uses: ossf/scorecard-action@dc50aa9510b46c811795eb24b2f1ba02a914e534 # v2.3.3
         with:
           results_file: results.sarif
           results_format: sarif
+          # (Optional) "publish_results" will trigger a "SARIF file" to be
+          # uploaded to the "Code Scanning" tab of the repository.
           publish_results: true
-
-      - name: Upload SARIF artifact
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+      # Upload the results as a SARIF file to the "Code Scanning" tab.
+      - name: "Upload artifact"
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
-          name: scorecard-sarif
+          name: SARIF file
           path: results.sarif
-          retention-days: 5
-
-      - name: Upload SARIF to code scanning
-        uses: github/codeql-action/upload-sarif@0daab03d71ff584ef619d027a3fd9146679c5d84
+          if-no-files-found: error
+      - name: "Upload to code-scanning"
+        if: github.event_name != 'pull_request'
+        uses: github/codeql-action/upload-sarif@v2
         with:
           sarif_file: results.sarif
 

@@ -1,5 +1,5 @@
 /**
- * apiKeyRotator.ts — T07: API Key Round-Robin with Health Tracking
+ * apiKeyRotator.ts — T07: API Key Round-Robin
  *
  * Rotates between a primary API key and extra API keys stored in
  * providerSpecificData.extraApiKeys[]. Uses round-robin by default.
@@ -9,142 +9,19 @@
  *
  * The in-memory rotation index resets on process restart, which is intentional —
  * it ensures even distribution across restarts without persistence overhead.
- *
- * Health tracking: monitors per-key authentication failures. Keys that fail
- * 3+ consecutive times are marked as "invalid" and skipped during rotation.
- * Health status is persisted in providerSpecificData.apiKeyHealth.
  */
 
 // In-memory round-robin index per connection
 const _keyIndexes = new Map<string, number>();
 
-// Tracks which connections have extra API keys (for A3 guard in chatCore.ts)
-// Used to prevent disabling an entire connection when only one key fails.
-const _connectionExtraKeys = new Map<string, boolean>();
-// Eviction limits to prevent unbounded memory growth under heavy load
-const MAX_KEY_HEALTH_ENTRIES = 500;
-const MAX_CONNECTION_EXTRA_KEYS = 500;
-
 /**
- * Record whether a connection has extra API keys.
- * Called by chatCore.ts when a 401 is detected, to inform the A3 guard.
- */
-export function trackConnectionExtraKeys(connectionId: string, extraKeys: string[]): void {
-  const validExtras = extraKeys.filter((k) => typeof k === "string" && k.trim().length > 0);
-  if (!_connectionExtraKeys.has(connectionId) && _connectionExtraKeys.size >= MAX_CONNECTION_EXTRA_KEYS) {
-    const oldest = _connectionExtraKeys.keys().next().value;
-    if (oldest !== undefined) _connectionExtraKeys.delete(oldest);
-  }
-  _connectionExtraKeys.set(connectionId, validExtras.length > 0);
-}
-
-/**
- * Check if a connection has extra API keys (for the A3 guard).
- * Uses the in-memory cache (populated during request execution) and falls back
- * to direct extraKeys data when provided, ensuring reliability across restarts.
- */
-export function connectionHasExtraKeys(connectionId: string, extraKeys?: string[]): boolean {
-  // Direct data check is always authoritative
-  if (extraKeys && extraKeys.length > 0) return true;
-  // Fall back to in-memory cache (populated as side-effect during execution)
-  return _connectionExtraKeys.get(connectionId) ?? false;
-}
-
-// In-memory health status (synced to DB on state changes)
-// Key format: "primary" | "extra_0" | "extra_1" | ...
-interface KeyHealth {
-  status: "active" | "warning" | "invalid";
-  failures: number; // consecutive failures
-  lastFailure: string | null; // ISO timestamp
-  lastSuccess: string | null; // ISO timestamp
-  totalRequests: number;
-  totalFailures: number;
-}
-
-const _keyHealth = new Map<string, KeyHealth>();
-
-const FAILURE_THRESHOLD = 2; // Mark as invalid after 2 consecutive failures
-
-/**
- * Get or create health status for a specific key within a connection scope.
- */
-function getOrCreateHealth(connectionId: string, keyId: string): KeyHealth {
-  const scopedKey = `${connectionId}:${keyId}`;
-  if (!_keyHealth.has(scopedKey)) {
-    if (_keyHealth.size >= MAX_KEY_HEALTH_ENTRIES) {
-      const oldest = _keyHealth.keys().next().value;
-      if (oldest !== undefined) _keyHealth.delete(oldest);
-    }
-    _keyHealth.set(scopedKey, {
-      status: "active",
-      failures: 0,
-      lastFailure: null,
-      lastSuccess: null,
-      totalRequests: 0,
-      totalFailures: 0,
-    });
-  }
-  return _keyHealth.get(scopedKey)!;
-}
-
-/**
- * Get the next valid API key in round-robin rotation.
- * Skips keys marked as "invalid" in health status.
+ * Get the next API key in round-robin rotation for a given connection.
+ * If no extra keys are configured, returns the primary key unchanged.
  *
  * @param connectionId - Unique connection identifier (for index isolation)
  * @param primaryKey - The main api_key from the connection
  * @param extraKeys - Additional API keys from providerSpecificData.extraApiKeys
- * @param health - Optional health status from providerSpecificData.apiKeyHealth
- * @returns The selected API key, or null if no valid keys available
- */
-export function getValidApiKey(
-  connectionId: string,
-  primaryKey: string,
-  extraKeys: string[] = [],
-  health?: Record<string, KeyHealth>
-): { key: string; keyId: string } | null {
-  const validExtras = extraKeys.filter((k) => typeof k === "string" && k.trim().length > 0);
-
-  // Build list of all keys with their IDs
-  const allKeys: Array<{ key: string; keyId: string }> = [];
-
-  // Add primary key if valid
-  if (primaryKey) {
-    const primaryHealth = health?.["primary"] || getOrCreateHealth(connectionId, "primary");
-    if (primaryHealth.status !== "invalid") {
-      allKeys.push({ key: primaryKey, keyId: "primary" });
-    } else {
-      console.warn(
-        `[KeyRotator] Skipping invalid primary key for connection ${connectionId.slice(0, 8)}`
-      );
-    }
-  }
-
-  // Add extra keys if valid
-  for (let i = 0; i < validExtras.length; i++) {
-    const keyId = `extra_${i}`;
-    const keyHealth = health?.[keyId] || getOrCreateHealth(connectionId, keyId);
-    if (keyHealth.status !== "invalid") {
-      allKeys.push({ key: validExtras[i], keyId });
-    }
-  }
-
-  if (allKeys.length === 0) return null;
-  if (allKeys.length === 1) {
-    return { key: allKeys[0].key, keyId: allKeys[0].keyId };
-  }
-
-  // Round-robin among valid keys only
-  const current = _keyIndexes.get(connectionId) ?? 0;
-  const idx = current % allKeys.length;
-  _keyIndexes.set(connectionId, current + 1);
-
-  return { key: allKeys[idx].key, keyId: allKeys[idx].keyId };
-}
-
-/**
- * Get the next API key in round-robin rotation (legacy, without health check).
- * @deprecated Use getValidApiKey() instead
+ * @returns The selected API key (may be primary or one of the extras)
  */
 export function getRotatingApiKey(
   connectionId: string,
@@ -153,6 +30,7 @@ export function getRotatingApiKey(
 ): string {
   const validExtras = extraKeys.filter((k) => typeof k === "string" && k.trim().length > 0);
 
+  // Only 1 key available → no rotation needed
   if (validExtras.length === 0) return primaryKey;
 
   const allKeys = [primaryKey, ...validExtras].filter(Boolean);
@@ -166,6 +44,7 @@ export function getRotatingApiKey(
 }
 
 /**
+<<<<<<< Updated upstream
  * Record a failed authentication attempt for a key.
  * Increments failure count and marks as "invalid" if threshold exceeded.
  *
@@ -309,11 +188,12 @@ export function syncHealthFromDB(connectionId: string, health?: Record<string, K
 }
 
 /**
+=======
+>>>>>>> Stashed changes
  * Reset the rotation index for a connection.
  * Call this when a key fails (401/403) to skip the bad key next time.
  *
  * @param connectionId - Connection to reset
- * @deprecated Use recordKeyFailure() instead
  */
 export function resetRotationIndex(connectionId: string): void {
   _keyIndexes.delete(connectionId);
@@ -327,59 +207,3 @@ export function getApiKeyCount(primaryKey: string, extraKeys: string[] = []): nu
   const validExtras = extraKeys.filter((k) => typeof k === "string" && k.trim().length > 0);
   return (primaryKey ? 1 : 0) + validExtras.length;
 }
-
-/**
- * Resolve the API key and its health status for an ongoing request.
- *
- * Unlike getValidApiKey() (which does round-robin for every call), this
- * method re-uses the previously selected keyId when available — ensuring
- * that a multi-turn request stream keeps using the same key. If no key
- * was selected yet or the stored key is no longer valid, it falls back
- * to fresh round-robin via getValidApiKey().
- *
- * @returns The resolved key+keyId, or null if no valid keys remain.
- */
-export function resolveKeyForRequest(
-  connectionId: string,
-  primaryKey: string,
-  extraKeys: string[],
-  selectedKeyId: string | null
-): { key: string; keyId: string } | null {
-  if (selectedKeyId) {
-    const health = getOrCreateHealth(connectionId, selectedKeyId);
-    if (health.status !== "invalid") {
-      if (selectedKeyId === "primary" && primaryKey) {
-        return { key: primaryKey, keyId: "primary" };
-      }
-      const match = /^extra_(\d+)$/.exec(selectedKeyId);
-      if (match) {
-        const idx = Number.parseInt(match[1], 10);
-        if (idx >= 0 && idx < extraKeys.length && extraKeys[idx].trim().length > 0) {
-          return { key: extraKeys[idx], keyId: selectedKeyId };
-        }
-      }
-    }
-  }
-
-  return getValidApiKey(connectionId, primaryKey, extraKeys);
-}
-
-export function removeConnectionHealth(connectionId: string): void {
-  for (const key of _keyHealth.keys()) {
-    if (key.startsWith(`${connectionId}:`)) {
-      _keyHealth.delete(key);
-    }
-  }
-}
-
-export function removeConnectionIndex(connectionId: string): void {
-  _keyIndexes.delete(connectionId);
-  _connectionExtraKeys.delete(connectionId);
-  for (const key of _keyHealth.keys()) {
-    if (key.startsWith(`${connectionId}:`)) {
-      _keyHealth.delete(key);
-    }
-  }
-}
-
-export type { KeyHealth };

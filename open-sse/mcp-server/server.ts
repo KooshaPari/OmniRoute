@@ -17,7 +17,6 @@ import {
   costReportInput,
   listModelsCatalogInput,
   webSearchInput,
-  webFetchInput,
   simulateRouteInput,
   setBudgetGuardInput,
   setRoutingStrategyInput,
@@ -32,12 +31,13 @@ import {
   syncPricingInput,
   cacheStatsInput,
   cacheFlushInput,
-  oneproxyFetchInput,
-  oneproxyRotateInput,
-  oneproxyStatsInput,
 } from "./schemas/tools.ts";
 import { startMcpHeartbeat } from "./runtimeHeartbeat.ts";
+<<<<<<< Updated upstream
 import { z } from "zod";
+=======
+
+>>>>>>> Stashed changes
 import { closeAuditDb, logToolCall } from "./audit.ts";
 import {
   evaluateToolScopes,
@@ -59,18 +59,12 @@ import {
   handleSyncPricing,
   handleCacheStats,
   handleCacheFlush,
-  handleOneproxyFetch,
-  handleOneproxyRotate,
-  handleOneproxyStats,
 } from "./tools/advancedTools.ts";
 import { handlePickFastestModel } from "./tools/pickFastestModel.ts";
 import { memoryTools } from "./tools/memoryTools.ts";
 import { skillTools } from "./tools/skillTools.ts";
-import { agentSkillTools } from "./tools/agentSkillTools.ts";
-import { skillRegistry } from "../../src/lib/skills/registry.ts";
-import { skillExecutor } from "../../src/lib/skills/executor.ts";
-import { pluginTools } from "./tools/pluginTools.ts";
 import { compressionTools } from "./tools/compressionTools.ts";
+<<<<<<< Updated upstream
 import { poolTools } from "./tools/poolTools.ts";
 import { gamificationTools } from "./tools/gamificationTools.ts";
 import { notionTools } from "./tools/notionTools.ts";
@@ -87,11 +81,13 @@ import {
 import { getDbInstance } from "../../src/lib/db/core.ts";
 import { getProviderConnections } from "../../src/lib/db/providers.ts";
 import { getCodexRequestDefaults } from "../../src/lib/providers/requestDefaults.ts";
+=======
+>>>>>>> Stashed changes
 import { normalizeQuotaResponse } from "../../src/shared/contracts/quota.ts";
-import { AI_PROVIDERS, NOAUTH_PROVIDERS } from "../../src/shared/constants/providers.ts";
 import { resolveOmniRouteBaseUrl } from "../../src/shared/utils/resolveOmniRouteBaseUrl.ts";
 
 const OMNIROUTE_BASE_URL = resolveOmniRouteBaseUrl();
+const OMNIROUTE_API_KEY = process.env.OMNIROUTE_API_KEY || "";
 const MCP_ENFORCE_SCOPES = process.env.OMNIROUTE_MCP_ENFORCE_SCOPES === "true";
 const MCP_ALLOWED_SCOPES = new Set(
   (process.env.OMNIROUTE_MCP_SCOPES || "")
@@ -100,6 +96,7 @@ const MCP_ALLOWED_SCOPES = new Set(
     .filter(Boolean)
 );
 const TOTAL_MCP_TOOL_COUNT =
+<<<<<<< Updated upstream
   MCP_TOOLS.length +
   Object.keys(memoryTools).length +
   Object.keys(skillTools).length +
@@ -110,60 +107,15 @@ const TOTAL_MCP_TOOL_COUNT =
   notionTools.length +
   obsidianTools.length +
   dispatchTools.length;
+=======
+  MCP_TOOLS.length + Object.keys(memoryTools).length + Object.keys(skillTools).length;
+>>>>>>> Stashed changes
 
 type JsonRecord = Record<string, unknown>;
-
-function readMcpDescriptionCompressionEnabled(): boolean {
-  try {
-    const row = getDbInstance()
-      .prepare("SELECT value FROM key_value WHERE namespace = ? AND key = ?")
-      .get("compression", "mcpDescriptionCompressionEnabled") as { value?: string } | undefined;
-    if (!row?.value) return true;
-    return JSON.parse(row.value) !== false;
-  } catch {
-    return true;
-  }
-}
-
-function readMcpAccessibilityConfig(): McpAccessibilityConfig {
-  try {
-    const row = getDbInstance()
-      .prepare("SELECT value FROM key_value WHERE namespace = ? AND key = ?")
-      .get("compression", "mcpAccessibility") as { value?: string } | undefined;
-    if (!row?.value) return { ...DEFAULT_MCP_ACCESSIBILITY_CONFIG };
-    // clampMcpAccessibilityConfig bounds every field (and folds in the non-object guard), so a
-    // persisted out-of-range maxTextChars can't make smartFilterText truncate the whole text.
-    return clampMcpAccessibilityConfig(JSON.parse(row.value));
-  } catch {
-    return { ...DEFAULT_MCP_ACCESSIBILITY_CONFIG };
-  }
-}
 
 type TextToolResult = {
   content: Array<{ type: "text"; text: string }>;
   isError?: boolean;
-};
-
-type McpCatalogStatus = "available" | "degraded" | "unavailable";
-
-type McpCatalogResponse = {
-  models: Array<{
-    id: string;
-    provider: string;
-    capabilities: string[];
-    status: McpCatalogStatus;
-    thinkingEffort?: string;
-    pricing?: unknown;
-  }>;
-  source: string;
-  warning?: string;
-};
-
-type ProviderConnectionLike = {
-  id?: string;
-  provider?: string;
-  isActive?: boolean;
-  providerSpecificData?: unknown;
 };
 
 function toRecord(value: unknown): JsonRecord {
@@ -206,19 +158,28 @@ function normalizeComboModels(
   });
 }
 
+<<<<<<< Updated upstream
 function getOmniRouteApiKey(): string {
   return process.env.OMNIROUTE_API_KEY || "";
 }
 
+=======
+/**
+ * Internal fetch helper that calls OmniRoute API endpoints.
+ */
+>>>>>>> Stashed changes
 async function omniRouteFetch(path: string, options: RequestInit = {}): Promise<unknown> {
   const url = `${OMNIROUTE_BASE_URL}${path}`;
-  const apiKey = getOmniRouteApiKey();
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
+<<<<<<< Updated upstream
     // Static env key is only a fallback; the per-caller MCP identity forwarded via
     // withMcpHttpAuthContext must win over it (#5819).
     ...(apiKey ? { Authorization: `Bearer ${apiKey}` } : {}),
     ...getMcpHttpAuthHeadersForInternalFetch(),
+=======
+    ...(OMNIROUTE_API_KEY ? { Authorization: `Bearer ${OMNIROUTE_API_KEY}` } : {}),
+>>>>>>> Stashed changes
     ...((options.headers as Record<string, string>) || {}),
   };
 
@@ -233,6 +194,7 @@ async function omniRouteFetch(path: string, options: RequestInit = {}): Promise<
   return response.json();
 }
 
+<<<<<<< Updated upstream
 function buildProviderAliasMap(): Record<string, string> {
   const aliasMap: Record<string, string> = {};
 
@@ -429,19 +391,24 @@ export async function getMcpModelsCatalog(
   };
 }
 
+=======
+>>>>>>> Stashed changes
 function withScopeEnforcement(
   toolName: string,
-  handler: (args: unknown, extra?: McpToolExtraLike) => Promise<TextToolResult>,
-  toolScopes?: readonly string[]
+  handler: (args: unknown, extra?: McpToolExtraLike) => Promise<TextToolResult>
 ) {
   return async (args: unknown, extra?: McpToolExtraLike): Promise<TextToolResult> => {
     const scopeContext = resolveCallerScopeContext(extra, Array.from(MCP_ALLOWED_SCOPES));
+<<<<<<< Updated upstream
     const scopeCheck = evaluateToolScopes(
       toolName,
       scopeContext.scopes,
       MCP_ENFORCE_SCOPES,
       toolScopes
     );
+=======
+    const scopeCheck = evaluateToolScopes(toolName, scopeContext.scopes, MCP_ENFORCE_SCOPES);
+>>>>>>> Stashed changes
     if (!scopeCheck.allowed) {
       const missingScopes =
         scopeCheck.missing.length > 0 ? scopeCheck.missing.join(", ") : "unavailable";
@@ -740,7 +707,50 @@ async function handleCostReport(args: { period?: string }) {
 async function handleListModelsCatalog(args: { provider?: string; capability?: string }) {
   const start = Date.now();
   try {
-    const result = await getMcpModelsCatalog(args);
+    let path = "/v1/models";
+    let isProviderSpecific = false;
+    let source = "local_catalog";
+    let warning: string | undefined;
+
+    if (args.provider && !args.capability) {
+      // Use direct provider fetch to get real-time API status
+      path = `/api/providers/${encodeURIComponent(args.provider)}/models?excludeHidden=true`;
+      isProviderSpecific = true;
+    } else {
+      const params = new URLSearchParams();
+      if (args.provider) params.set("provider", args.provider);
+      if (args.capability) params.set("capability", args.capability);
+      if (params.toString()) path += `?${params.toString()}`;
+    }
+
+    const raw = toRecord(await omniRouteFetch(path));
+
+    // If we used the direct provider endpoint
+    let rawModels: unknown[] = [];
+    if (isProviderSpecific) {
+      rawModels = Array.isArray(raw.models) ? raw.models : [];
+      source = typeof raw.source === "string" ? raw.source : "api";
+      if (raw.warning) warning = String(raw.warning);
+    } else {
+      rawModels = Array.isArray(raw.data) ? raw.data : [];
+      source = "local_catalog";
+      // OmniRoute's global /v1/models is always a cached/local catalog
+    }
+
+    const result = {
+      models: rawModels.map((rawModel) => {
+        const model = toRecord(rawModel);
+        return {
+          id: toString(model.id, ""),
+          provider: toString(model.owned_by, toString(model.provider, args.provider || "unknown")),
+          capabilities: toStringArray(model.capabilities, ["chat"]),
+          status: toString(model.status, "available"),
+          pricing: model.pricing,
+        };
+      }),
+      source,
+      ...(warning ? { warning } : {}),
+    };
 
     await logToolCall(
       "omniroute_list_models_catalog",
@@ -795,6 +805,7 @@ async function handleWebSearch(args: {
   }
 }
 
+<<<<<<< Updated upstream
 async function handleWebFetch(args: {
   url: string;
   provider?: "firecrawl" | "jina-reader" | "tavily-search";
@@ -828,11 +839,19 @@ async function handleWebFetch(args: {
   }
 }
 
+=======
+// ============ MCP Server Setup ============
+
+/**
+ * Create and configure the OmniRoute MCP Server with all essential tools.
+ */
+>>>>>>> Stashed changes
 export function createMcpServer(): McpServer {
   const server = new McpServer({
     name: "omniroute",
     version: process.env.npm_package_version || "1.8.1",
   });
+<<<<<<< Updated upstream
   const mcpDescriptionCompressionEnabled = readMcpDescriptionCompressionEnabled();
   const mcpAccessibilityConfig = readMcpAccessibilityConfig();
   // F4.3 tool-cardinality: opt-in tool profile (MCP_TOOL_DENY / MCP_TOOL_ALLOW). null = no filter.
@@ -899,6 +918,8 @@ export function createMcpServer(): McpServer {
     ...notionTools.map((t) => t.name),
     ...dispatchTools.map((t) => t.name),
   ]);
+=======
+>>>>>>> Stashed changes
 
   server.registerTool(
     "omniroute_get_health",
@@ -1138,6 +1159,7 @@ export function createMcpServer(): McpServer {
   );
 
   server.registerTool(
+<<<<<<< Updated upstream
     "omniroute_web_fetch",
     {
       description:
@@ -1148,6 +1170,8 @@ export function createMcpServer(): McpServer {
   );
 
   server.registerTool(
+=======
+>>>>>>> Stashed changes
     "omniroute_cache_stats",
     {
       description:
@@ -1169,6 +1193,7 @@ export function createMcpServer(): McpServer {
     )
   );
 
+<<<<<<< Updated upstream
   server.registerTool(
     "omniroute_oneproxy_fetch",
     {
@@ -1207,62 +1232,10 @@ export function createMcpServer(): McpServer {
 
   registerToolSearchTool(server, withScopeEnforcement);
 
+=======
+>>>>>>> Stashed changes
   // ── Memory Tools ──────────────────────────────
-  Object.values(memoryTools).forEach((toolDef: any) => {
-    server.registerTool(
-      toolDef.name,
-      {
-        description: toolDef.description,
-        // @ts-ignore: dynamic zod access
-        inputSchema: toolDef.inputSchema,
-      },
-      withScopeEnforcement(
-        toolDef.name,
-        async (args) => {
-          try {
-            const parsedArgs = toolDef.inputSchema.parse(args ?? {});
-            // @ts-ignore - handler type lost through dynamic Object.values() access
-            const result = await toolDef.handler(parsedArgs);
-            return { content: [{ type: "text" as const, text: JSON.stringify(result, null, 2) }] };
-          } catch (err) {
-            const msg = err instanceof Error ? err.message : String(err);
-            return { content: [{ type: "text" as const, text: `Error: ${msg}` }], isError: true };
-          }
-        },
-        toolDef.scopes
-      )
-    );
-  });
-
-  // ── Skill Tools ──────────────────────────────
-  Object.values(skillTools).forEach((toolDef: any) => {
-    server.registerTool(
-      toolDef.name,
-      {
-        description: toolDef.description,
-        // @ts-ignore: dynamic zod access
-        inputSchema: toolDef.inputSchema,
-      },
-      withScopeEnforcement(
-        toolDef.name,
-        async (args) => {
-          try {
-            const parsedArgs = toolDef.inputSchema.parse(args ?? {});
-            // @ts-ignore - handler type lost through dynamic Object.values() access
-            const result = await toolDef.handler(parsedArgs);
-            return { content: [{ type: "text" as const, text: JSON.stringify(result, null, 2) }] };
-          } catch (err) {
-            const msg = err instanceof Error ? err.message : String(err);
-            return { content: [{ type: "text" as const, text: `Error: ${msg}` }], isError: true };
-          }
-        },
-        toolDef.scopes
-      )
-    );
-  });
-
-  // ── Agent Skill Tools ─────────────────────────
-  Object.values(agentSkillTools).forEach((toolDef) => {
+  Object.values(memoryTools).forEach((toolDef) => {
     server.registerTool(
       toolDef.name,
       {
@@ -1273,7 +1246,7 @@ export function createMcpServer(): McpServer {
       withScopeEnforcement(toolDef.name, async (args) => {
         try {
           const parsedArgs = toolDef.inputSchema.parse(args ?? {});
-          // @ts-expect-error - handler type lost through dynamic Object.values() access
+          // @ts-ignore: handler expected specific object
           const result = await toolDef.handler(parsedArgs);
           return { content: [{ type: "text" as const, text: JSON.stringify(result, null, 2) }] };
         } catch (err) {
@@ -1284,8 +1257,8 @@ export function createMcpServer(): McpServer {
     );
   });
 
-  // ── Plugin Tools ──────────────────────────────
-  pluginTools.forEach((toolDef) => {
+  // ── Skill Tools ──────────────────────────────
+  Object.values(skillTools).forEach((toolDef) => {
     server.registerTool(
       toolDef.name,
       {
@@ -1293,21 +1266,17 @@ export function createMcpServer(): McpServer {
         // @ts-ignore: dynamic zod access
         inputSchema: toolDef.inputSchema,
       },
-      withScopeEnforcement(
-        toolDef.name,
-        async (args) => {
-          try {
-            const parsedArgs = toolDef.inputSchema.parse(args ?? {});
-            // @ts-ignore: handler expected specific object
-            const result = await toolDef.handler(parsedArgs);
-            return { content: [{ type: "text" as const, text: JSON.stringify(result, null, 2) }] };
-          } catch (err) {
-            const msg = err instanceof Error ? err.message : String(err);
-            return { content: [{ type: "text" as const, text: `Error: ${msg}` }], isError: true };
-          }
-        },
-        toolDef.scopes
-      )
+      withScopeEnforcement(toolDef.name, async (args) => {
+        try {
+          const parsedArgs = toolDef.inputSchema.parse(args ?? {});
+          // @ts-ignore: handler expected specific object
+          const result = await toolDef.handler(parsedArgs);
+          return { content: [{ type: "text" as const, text: JSON.stringify(result, null, 2) }] };
+        } catch (err) {
+          const msg = err instanceof Error ? err.message : String(err);
+          return { content: [{ type: "text" as const, text: `Error: ${msg}` }], isError: true };
+        }
+      })
     );
   });
 
@@ -1336,7 +1305,7 @@ export function createMcpServer(): McpServer {
   });
 
   // ── Compression Tools ─────────────────────────
-  Object.values(compressionTools).forEach((toolDef: any) => {
+  Object.values(compressionTools).forEach((toolDef) => {
     server.registerTool(
       toolDef.name,
       {
@@ -1344,24 +1313,21 @@ export function createMcpServer(): McpServer {
         // @ts-ignore: dynamic zod access
         inputSchema: toolDef.inputSchema,
       },
-      withScopeEnforcement(
-        toolDef.name,
-        async (args) => {
-          try {
-            const parsedArgs = toolDef.inputSchema.parse(args ?? {});
-            // @ts-ignore - handler type lost through dynamic Object.values() access
-            const result = await toolDef.handler(parsedArgs);
-            return { content: [{ type: "text" as const, text: JSON.stringify(result, null, 2) }] };
-          } catch (err) {
-            const msg = err instanceof Error ? err.message : String(err);
-            return { content: [{ type: "text" as const, text: `Error: ${msg}` }], isError: true };
-          }
-        },
-        toolDef.scopes
-      )
+      withScopeEnforcement(toolDef.name, async (args) => {
+        try {
+          const parsedArgs = toolDef.inputSchema.parse(args ?? {});
+          // @ts-ignore: handler expected specific object
+          const result = await toolDef.handler(parsedArgs);
+          return { content: [{ type: "text" as const, text: JSON.stringify(result, null, 2) }] };
+        } catch (err) {
+          const msg = err instanceof Error ? err.message : String(err);
+          return { content: [{ type: "text" as const, text: `Error: ${msg}` }], isError: true };
+        }
+      })
     );
   });
 
+<<<<<<< Updated upstream
   // ── Web-Session Pool Tools (#3368 observability) ─
   // Typed structurally (not `any`) — the shape is pinned by
   // tests/unit/mcp-tool-collections-shape.test.ts, so the loop can stay strict.
@@ -1528,6 +1494,8 @@ export function createMcpServer(): McpServer {
     // Skills not loaded yet — skip dynamic registration until next reconnect
   }
 
+=======
+>>>>>>> Stashed changes
   return server;
 }
 

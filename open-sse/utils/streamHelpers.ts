@@ -14,22 +14,18 @@
 import { FORMATS } from "../translator/formats.ts";
 import { hasAnyReasoningSignal } from "./reasoningFields.ts";
 
-type SSEPayloadOptions = {
-  eventType?: string;
-  logWarning?: boolean;
-};
+// Parse SSE data line
+export function parseSSELine(line) {
+  if (!line) return null;
 
-type SSEChoicePayload = {
-  delta?: Record<string, unknown> & { tool_calls?: unknown };
-  finish_reason?: unknown;
-  [key: string]: unknown;
-};
+  // Trim leading whitespace before checking prefix character
+  const trimmed = line.trimStart();
+  if (!trimmed || trimmed.charCodeAt(0) !== 100) return null; // 'd' = 100
 
-type SSEJsonPayload = Record<string, unknown> & {
-  done?: boolean;
-  choices?: SSEChoicePayload[];
-};
+  const data = trimmed.slice(5).trim();
+  if (data === "[DONE]") return { done: true };
 
+<<<<<<< Updated upstream
 type GeminiStreamPart = Record<string, unknown> & {
   executableCode?: unknown;
   functionCall?: unknown;
@@ -85,23 +81,21 @@ export function parseSSEDataPayload(
   const payload = String(data ?? "").trim();
   if (!payload) return null;
   if (payload === "[DONE]") return { done: true };
+=======
+>>>>>>> Stashed changes
   try {
-    const parsed = JSON.parse(payload) as unknown;
-    const eventType = options.eventType;
-    if (eventType && isRecord(parsed) && typeof parsed.type !== "string") {
-      return { ...parsed, type: eventType } as SSEJsonPayload;
-    }
-    return parsed as SSEJsonPayload;
+    return JSON.parse(data);
   } catch (error) {
-    if (options.logWarning !== false && payload.length > 0) {
+    if (data.length > 0) {
       console.log(
-        `[WARN] Failed to parse SSE payload (${payload.length} chars): ${payload.substring(0, 200)}...`
+        `[WARN] Failed to parse SSE line (${data.length} chars): ${data.substring(0, 200)}...`
       );
     }
     return null;
   }
 }
 
+<<<<<<< Updated upstream
 export function parseSSEDataLines(
   dataLines: string[],
   options: SSEPayloadOptions = {}
@@ -344,18 +338,23 @@ export function isKnownNonClaudeStreamPayload(
     : false;
 }
 
+=======
+>>>>>>> Stashed changes
 // Check if chunk has valuable content (not empty)
-export function hasValuableContent(chunk: Record<string, unknown>, format: string): boolean {
+export function hasValuableContent(chunk, format) {
   // OpenAI format
   if (format === FORMATS.OPENAI) {
-    const choices = Array.isArray(chunk.choices) ? chunk.choices : [];
-    const firstChoice = isRecord(choices[0]) ? choices[0] : null;
-    const delta = isRecord(firstChoice?.delta) ? firstChoice.delta : null;
-    if (!firstChoice || !delta) return false;
+    if (!chunk.choices?.[0]?.delta) return false;
+    const delta = chunk.choices[0].delta;
     if (typeof delta.content === "string" && delta.content.length > 0) return true;
+<<<<<<< Updated upstream
     if (hasAnyReasoningSignal(delta)) return true;
+=======
+    if (typeof delta.reasoning_content === "string" && delta.reasoning_content.length > 0)
+      return true;
+>>>>>>> Stashed changes
     if (Array.isArray(delta.tool_calls) && delta.tool_calls.length > 0) return true;
-    if (firstChoice.finish_reason) return true;
+    if (chunk.choices[0].finish_reason) return true;
     if (typeof delta.role === "string" && delta.role.length > 0) return true;
     return false;
   }
@@ -364,37 +363,28 @@ export function hasValuableContent(chunk: Record<string, unknown>, format: strin
   if (format === FORMATS.CLAUDE) {
     const isContentBlockDelta = chunk.type === "content_block_delta";
     if (isContentBlockDelta) {
-      const delta = isRecord(chunk.delta) ? chunk.delta : {};
-      const hasText = typeof delta.text === "string" && delta.text.length > 0;
-      const hasThinking = typeof delta.thinking === "string" && delta.thinking.length > 0;
-      const hasInputJson = typeof delta.partial_json === "string" && delta.partial_json.length > 0;
+      const hasText = typeof chunk.delta?.text === "string" && chunk.delta.text.length > 0;
+      const hasThinking =
+        typeof chunk.delta?.thinking === "string" && chunk.delta.thinking.length > 0;
+      const hasInputJson =
+        typeof chunk.delta?.partial_json === "string" && chunk.delta.partial_json.length > 0;
       if (!hasText && !hasThinking && !hasInputJson) return false;
     }
     return true;
   }
 
   // Gemini / Antigravity format: filter chunks with no actual content parts
-  if (
-    (format === FORMATS.GEMINI || format === FORMATS.ANTIGRAVITY) &&
-    Array.isArray(chunk.candidates) &&
-    chunk.candidates[0]
-  ) {
-    const candidate = isRecord(chunk.candidates[0]) ? chunk.candidates[0] : {};
+  if ((format === FORMATS.GEMINI || format === FORMATS.ANTIGRAVITY) && chunk.candidates?.[0]) {
+    const candidate = chunk.candidates[0];
     // Keep chunks with finish reason or safety ratings (they signal completion)
     if (candidate.finishReason) return true;
     // Filter out chunks where parts array is empty or missing
-    const content = isRecord(candidate.content) ? candidate.content : null;
-    const parts = Array.isArray(content?.parts) ? content.parts : null;
+    const parts = candidate.content?.parts;
     if (!parts || parts.length === 0) return false;
     // Filter out chunks where all parts have empty text
-    const hasContent = parts.some((p: unknown) => {
-      const part: GeminiStreamPart = isRecord(p) ? p : {};
-      return (
-        (typeof part.text === "string" && part.text.length > 0) ||
-        part.functionCall ||
-        part.executableCode
-      );
-    });
+    const hasContent = parts.some(
+      (p) => (typeof p.text === "string" && p.text.length > 0) || p.functionCall || p.executableCode
+    );
     return hasContent;
   }
 
@@ -406,23 +396,18 @@ export function hasValuableContent(chunk: Record<string, unknown>, format: strin
  * The Cloud Code API wraps responses in { response: { candidates: [...] } }
  * while standard Gemini returns { candidates: [...] } directly.
  */
-export function unwrapGeminiChunk<T extends Record<string, unknown>>(
-  parsed: T
-): T | Record<string, unknown> {
-  if (!parsed.candidates && isRecord(parsed.response)) {
+export function unwrapGeminiChunk(parsed) {
+  if (!parsed.candidates && parsed.response) {
     return parsed.response;
   }
   return parsed;
 }
 
 // Fix invalid id (generic or too short)
-export function fixInvalidId(parsed: Record<string, unknown>): boolean {
-  if (
-    typeof parsed.id === "string" &&
-    (parsed.id === "chat" || parsed.id === "completion" || parsed.id.length < 8)
-  ) {
-    const extendFields = isRecord(parsed.extend_fields) ? parsed.extend_fields : {};
-    const fallbackId = extendFields.requestId || extendFields.traceId || Date.now().toString(36);
+export function fixInvalidId(parsed) {
+  if (parsed.id && (parsed.id === "chat" || parsed.id === "completion" || parsed.id.length < 8)) {
+    const fallbackId =
+      parsed.extend_fields?.requestId || parsed.extend_fields?.traceId || Date.now().toString(36);
     parsed.id = `chatcmpl-${fallbackId}`;
     return true;
   }
@@ -430,8 +415,8 @@ export function fixInvalidId(parsed: Record<string, unknown>): boolean {
 }
 
 // Remove null perf_metrics from usage (common across formats)
-function cleanPerfMetrics(data: unknown): unknown {
-  if (isRecord(data) && isRecord(data.usage) && data.usage.perf_metrics === null) {
+function cleanPerfMetrics(data) {
+  if (data?.usage && typeof data.usage === "object" && data.usage.perf_metrics === null) {
     const { perf_metrics, ...usageWithoutPerf } = data.usage;
     return { ...data, usage: usageWithoutPerf };
   }
@@ -439,12 +424,12 @@ function cleanPerfMetrics(data: unknown): unknown {
 }
 
 // Format output as SSE
-export function formatSSE(data: unknown, sourceFormat: string): string {
+export function formatSSE(data, sourceFormat) {
   if (data === null || data === undefined) return ""; // Skip null/undefined — never send `data: null` (#483)
-  if (isRecord(data) && data.done) return "data: [DONE]\n\n";
+  if (data && data.done) return "data: [DONE]\n\n";
 
   // OpenAI Responses API format
-  if (isRecord(data) && data.event && data.data) {
+  if (data && data.event && data.data) {
     return `event: ${data.event}\ndata: ${JSON.stringify(data.data)}\n\n`;
   }
 
@@ -452,7 +437,7 @@ export function formatSSE(data: unknown, sourceFormat: string): string {
   data = cleanPerfMetrics(data);
 
   // Claude format
-  if (sourceFormat === FORMATS.CLAUDE && isRecord(data) && data.type) {
+  if (sourceFormat === FORMATS.CLAUDE && data && data.type) {
     return `event: ${data.type}\ndata: ${JSON.stringify(data)}\n\n`;
   }
 

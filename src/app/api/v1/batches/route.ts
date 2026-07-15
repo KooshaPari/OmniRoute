@@ -1,5 +1,5 @@
 import { CORS_HEADERS, handleCorsOptions } from "@/shared/utils/cors";
-import { createBatch, getFile, listBatches, countBatches } from "@/lib/localDb";
+import { createBatch, getFile, listBatches } from "@/lib/localDb";
 import { v1BatchCreateSchema } from "@/shared/validation/schemas";
 import { NextResponse } from "next/server";
 import { getApiKeyRequestScope } from "@/app/api/v1/_helpers/apiKeyScope";
@@ -78,8 +78,6 @@ export async function GET(request: Request) {
 
   const formattedData = data.map((b) => formatBatchResponse(b));
 
-  const totalCount = countBatches(apiKeyId || undefined);
-
   return NextResponse.json(
     {
       object: "list",
@@ -87,7 +85,6 @@ export async function GET(request: Request) {
       first_id: formattedData.length > 0 ? formattedData[0].id : null,
       last_id: formattedData.length > 0 ? formattedData.at(-1).id : null,
       has_more: hasMore,
-      total_count: totalCount,
     },
     { headers: CORS_HEADERS }
   );

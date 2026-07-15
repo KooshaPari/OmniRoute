@@ -14,8 +14,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { readFileSync, existsSync } from "fs";
 import { getAppLogFilePath } from "@/lib/logEnv";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
-import { matchesSearch } from "@/shared/utils/turkishText";
-import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error.ts";
 
 const LEVEL_ORDER: Record<string, number> = {
   trace: 5,
@@ -47,22 +45,6 @@ function parseLevel(raw: string | number): string {
   return String(raw).toLowerCase();
 }
 
-function stringifyLogValue(value: unknown): string {
-  if (value === undefined || value === null) return "";
-  if (typeof value === "string") return value;
-  if (value instanceof Error) return value.message || value.name;
-  if (typeof value === "number" || typeof value === "boolean" || typeof value === "bigint") {
-    return String(value);
-  }
-
-  try {
-    const json = JSON.stringify(value);
-    return typeof json === "string" ? json : String(value);
-  } catch {
-    return String(value);
-  }
-}
-
 export async function GET(req: NextRequest) {
   const authError = await requireManagementAuth(req);
   if (authError) return authError;
@@ -70,8 +52,7 @@ export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
     const levelFilter = searchParams.get("level") || "all";
-    const rawLimit = parseInt(searchParams.get("limit") || "500", 10);
-    const limit = Math.min(Number.isFinite(rawLimit) && rawLimit > 0 ? rawLimit : 500, 2000);
+    const limit = Math.min(parseInt(searchParams.get("limit") || "500", 10), 2000);
     const componentFilter = searchParams.get("component") || "";
 
     const logPath = getLogFilePath();
@@ -99,15 +80,8 @@ export async function GET(req: NextRequest) {
           if (entryTime < oneHourAgo) continue;
         }
 
-        // Normalize render-sensitive fields so malformed structured logs cannot crash the viewer.
+        // Normalize level
         entry.level = parseLevel(entry.level);
-        entry.msg = stringifyLogValue(entry.msg ?? entry.message ?? "");
-        entry.message = stringifyLogValue(entry.message ?? entry.msg);
-        if (entry.component !== undefined) entry.component = stringifyLogValue(entry.component);
-        if (entry.module !== undefined) entry.module = stringifyLogValue(entry.module);
-        if (entry.correlationId !== undefined) {
-          entry.correlationId = stringifyLogValue(entry.correlationId);
-        }
 
         // Filter by level
         const entryLevelNum = LEVEL_ORDER[entry.level] || 0;
@@ -116,7 +90,7 @@ export async function GET(req: NextRequest) {
         // Filter by component
         if (componentFilter) {
           const comp = entry.component || entry.module || "";
-          if (!matchesSearch(comp, componentFilter)) continue;
+          if (!comp.toLowerCase().includes(componentFilter.toLowerCase())) continue;
         }
 
         // Normalize timestamp field
@@ -140,9 +114,6 @@ export async function GET(req: NextRequest) {
       },
     });
   } catch (err: any) {
-    return NextResponse.json(
-      { error: sanitizeErrorMessage(err?.message) || "Failed to read logs" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: err.message || "Failed to read logs" }, { status: 500 });
   }
 }

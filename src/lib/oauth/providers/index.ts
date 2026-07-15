@@ -13,7 +13,6 @@
 import { claude } from "./claude";
 import { codex } from "./codex";
 import { antigravity } from "./antigravity";
-import { agy } from "./agy";
 import { qoder } from "./qoder";
 import { qwen } from "./qwen";
 import { kimiCoding } from "./kimi-coding";
@@ -21,18 +20,19 @@ import { github } from "./github";
 import { gitlabDuo } from "./gitlab-duo";
 import { kiro } from "./kiro";
 import { cursor } from "./cursor";
-import { trae } from "./trae";
 import { kilocode } from "./kilocode";
 import { cline } from "./cline";
+<<<<<<< Updated upstream
 import { windsurf } from "./windsurf";
 import { grokCli } from "./grok-cli";
 import { codebuddyCn } from "./codebuddy-cn";
+=======
+>>>>>>> Stashed changes
 
 export const PROVIDERS = {
   claude,
   codex,
   antigravity,
-  agy,
   qoder,
   qwen,
   "kimi-coding": kimiCoding,
@@ -41,14 +41,16 @@ export const PROVIDERS = {
   kiro,
   "amazon-q": kiro,
   cursor,
-  trae,
   kilocode,
   cline,
+<<<<<<< Updated upstream
   windsurf,
   // devin-cli shares the same token format as windsurf (WINDSURF_API_KEY / devin auth login)
   "devin-cli": windsurf,
   "grok-cli": grokCli,
   "codebuddy-cn": codebuddyCn,
+=======
+>>>>>>> Stashed changes
 };
 
 export default PROVIDERS;

@@ -44,51 +44,46 @@ export const CLI_FINGERPRINTS: Record<string, CliFingerprint> = {
     ],
     bodyFieldOrder: [
       "model",
+      "messages",
+      "temperature",
+      "top_p",
+      "max_tokens",
       "stream",
-      "input",
-      "instructions",
-      "store",
-      "reasoning",
-      "prompt_cache_key",
       "tools",
       "tool_choice",
-      "include",
-      "service_tier",
-      "client_metadata",
-      "parallel_tool_calls",
-      "metadata",
+      "response_format",
+      "n",
+      "stop",
     ],
     // Codex builds mode-specific client headers in its executor/config. The CLI fingerprint must
     // only preserve ordering here; overriding User-Agent with a generic value would erase the
     // executor-provided version or user override.
   },
   claude: {
-    // Header order matching real claude-cli: Title-Case (Stainless) keys
-    // alphabetically, then lowercase Anthropic keys alphabetically, then
-    // transport headers added by Node fetch.
     headerOrder: [
-      "Accept",
-      "Authorization",
+      "Host",
       "Content-Type",
-      "User-Agent",
-      "X-Claude-Code-Session-Id",
-      "X-Stainless-Arch",
-      "X-Stainless-Lang",
-      "X-Stainless-OS",
-      "X-Stainless-Package-Version",
-      "X-Stainless-Retry-Count",
-      "X-Stainless-Runtime",
-      "X-Stainless-Runtime-Version",
-      "X-Stainless-Timeout",
+      "x-api-key",
+      "anthropic-version",
       "anthropic-beta",
       "anthropic-dangerous-direct-browser-access",
-      "anthropic-version",
       "x-app",
+      "User-Agent",
+      "X-Claude-Code-Session-Id",
       "x-client-request-id",
+      "X-Stainless-Retry-Count",
+      "X-Stainless-Timeout",
+      "X-Stainless-Lang",
+      "X-Stainless-Package-Version",
+      "X-Stainless-OS",
+      "X-Stainless-Arch",
+      "X-Stainless-Runtime",
+      "X-Stainless-Runtime-Version",
+      "Accept",
+      "accept-language",
+      "accept-encoding",
+      "sec-fetch-mode",
       "Connection",
-      "Host",
-      "Accept-Encoding",
-      "Content-Length",
     ],
     bodyFieldOrder: [
       "model",
@@ -98,7 +93,6 @@ export const CLI_FINGERPRINTS: Record<string, CliFingerprint> = {
       "tool_choice",
       "metadata",
       "max_tokens",
-      "temperature",
       "thinking",
       "context_management",
       "output_config",
@@ -174,27 +168,21 @@ export const CLI_FINGERPRINTS: Record<string, CliFingerprint> = {
   },
   antigravity: {
     headerOrder: [
+      "Host",
+      "Content-Type",
+      "Authorization",
+      "User-Agent",
       "Accept",
       "Accept-Encoding",
-      "Authorization",
-      "Content-Type",
-      "User-Agent",
-      "x-goog-api-client",
-      "x-client-name",
-      "x-client-version",
-      "x-machine-id",
-      "x-vscode-sessionid",
-      "Host",
-      "Connection",
     ],
     bodyFieldOrder: [
       "project",
-      "requestId",
-      "request",
       "model",
       "userAgent",
       "requestType",
+      "requestId",
       "enabledCreditTypes",
+      "request",
     ],
     userAgent: getAntigravityUserAgent,
   },
@@ -304,22 +292,11 @@ export function orderHeaders(
  * Apply a CLI fingerprint to headers and body.
  * Returns { headers, bodyString } with the correct ordering.
  */
-function stripInternalBodyFields(body: unknown): unknown {
-  if (!body || typeof body !== "object" || Array.isArray(body)) return body;
-
-  const record = body as Record<string, unknown>;
-  delete record._claudeCodeRequiresLowercaseToolNames;
-  delete record._nativeCodexPassthrough;
-  delete record._omnirouteResponsesStore;
-  return body;
-}
-
 export function applyFingerprint(
   provider: string,
   headers: Record<string, string>,
   body: unknown
 ): { headers: Record<string, string>; bodyString: string } {
-  body = stripInternalBodyFields(body);
   const normalizedProvider = normalizeCliCompatProviderId(provider || "");
   const fingerprintKey = isClaudeCodeCompatible(provider)
     ? "claude-code-compatible"

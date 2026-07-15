@@ -77,6 +77,7 @@ export interface ComboHealthResponse {
   combos: ComboHealthMetrics[];
 }
 
+<<<<<<< Updated upstream
 export interface ComboRecord {
   id?: string;
   name?: string;
@@ -399,6 +400,10 @@ export interface ComboHealthDashboardResponse {
   errors: Partial<Record<"forecast" | "autopilot" | "scoring", string>>;
 }
 
+=======
+export type UtilizationTimeRange = "1h" | "24h" | "7d" | "30d";
+
+>>>>>>> Stashed changes
 export const BUCKET_SIZES: Record<UtilizationTimeRange, number> = {
   "1h": 1,
   "24h": 10,

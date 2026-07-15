@@ -6,7 +6,6 @@
 
 import { z } from "zod";
 import { NextResponse } from "next/server";
-import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import {
   updateModelComboMapping,
   deleteModelComboMapping,
@@ -22,10 +21,7 @@ const updateMappingSchema = z.object({
   description: z.string().max(1000).optional(),
 });
 
-export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
-  const authError = await requireManagementAuth(request);
-  if (authError) return authError;
-
+export async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
     const mapping = await getModelComboMappingById(id);
@@ -34,15 +30,11 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
     }
     return NextResponse.json({ mapping });
   } catch (error: any) {
-    console.error("Failed to get mapping:", error);
-    return NextResponse.json({ error: "Failed to get mapping" }, { status: 500 });
+    return NextResponse.json({ error: error.message || "Failed to get mapping" }, { status: 500 });
   }
 }
 
 export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
-  const authError = await requireManagementAuth(request);
-  if (authError) return authError;
-
   try {
     const { id } = await params;
     const rawBody = await request.json();
@@ -59,15 +51,14 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
 
     return NextResponse.json({ mapping });
   } catch (error: any) {
-    console.error("Failed to update mapping:", error);
-    return NextResponse.json({ error: "Failed to update mapping" }, { status: 500 });
+    return NextResponse.json(
+      { error: error.message || "Failed to update mapping" },
+      { status: 500 }
+    );
   }
 }
 
-export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
-  const authError = await requireManagementAuth(request);
-  if (authError) return authError;
-
+export async function DELETE(_request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
     const deleted = await deleteModelComboMapping(id);
@@ -78,7 +69,9 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ i
 
     return NextResponse.json({ success: true });
   } catch (error: any) {
-    console.error("Failed to delete mapping:", error);
-    return NextResponse.json({ error: "Failed to delete mapping" }, { status: 500 });
+    return NextResponse.json(
+      { error: error.message || "Failed to delete mapping" },
+      { status: 500 }
+    );
   }
 }

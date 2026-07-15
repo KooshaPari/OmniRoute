@@ -11,7 +11,6 @@ import { jwtVerify } from "jose";
 import { cookies } from "next/headers";
 import { getSettings } from "@/lib/localDb";
 import { isPublicApiRoute } from "@/shared/constants/publicApiRoutes";
-import { extractApiKey } from "@/sse/services/auth";
 
 type RequestLike = {
   cookies?: {
@@ -19,15 +18,9 @@ type RequestLike = {
   };
   headers?: Headers;
   method?: string;
-  nextUrl?: { hostname?: string | null; pathname?: string | null } | null;
+  nextUrl?: { pathname?: string | null } | null;
   url?: string;
 };
-
-const LOOPBACK_HOSTNAMES = new Set(["localhost", "::1"]);
-
-function hasConfiguredPassword(settings: Record<string, unknown>): boolean {
-  return typeof settings.password === "string" && settings.password.length > 0;
-}
 
 function getRequestPathname(request: RequestLike | Request | null | undefined): string | null {
   const nextPathname =
@@ -55,14 +48,6 @@ function getRequestPathname(request: RequestLike | Request | null | undefined): 
   }
 }
 
-function isOnboardingBootstrapPath(pathname: string | null): boolean {
-  return pathname === "/dashboard/onboarding";
-}
-
-function isRequireLoginBootstrapWritePath(pathname: string | null, method: string): boolean {
-  return pathname === "/api/settings/require-login" && method.toUpperCase() === "POST";
-}
-
 function getRequestMethod(request: RequestLike | Request | null | undefined): string {
   if (
     request &&
@@ -73,56 +58,6 @@ function getRequestMethod(request: RequestLike | Request | null | undefined): st
     return request.method.toUpperCase();
   }
   return "GET";
-}
-
-function getRequestHostname(request: RequestLike | Request | null | undefined): string | null {
-  const nextHostname =
-    request &&
-    typeof request === "object" &&
-    "nextUrl" in request &&
-    request.nextUrl &&
-    typeof request.nextUrl.hostname === "string"
-      ? request.nextUrl.hostname
-      : null;
-
-  if (nextHostname) return nextHostname;
-
-  const rawUrl =
-    request && typeof request === "object" && "url" in request && typeof request.url === "string"
-      ? request.url
-      : "";
-
-  if (rawUrl) {
-    try {
-      return new URL(rawUrl, "http://localhost").hostname;
-    } catch {
-      // Fall through to Host header parsing.
-    }
-  }
-
-  const requestHeaders =
-    request && typeof request === "object" && "headers" in request ? request.headers : undefined;
-  const host = requestHeaders?.get("host") || requestHeaders?.get("Host") || null;
-  if (!host) return null;
-
-  try {
-    return new URL(`http://${host}`).hostname;
-  } catch {
-    return host.split(":")[0] || null;
-  }
-}
-
-export function isLoopbackRequest(request: RequestLike | Request | null | undefined): boolean {
-  const hostname = getRequestHostname(request);
-  if (!hostname) return false;
-
-  const normalized = hostname
-    .trim()
-    .toLowerCase()
-    .replace(/^\[(.*)\]$/, "$1");
-  if (LOOPBACK_HOSTNAMES.has(normalized)) return true;
-  if (/^127(?:\.\d{1,3}){3}$/.test(normalized)) return true;
-  return false;
 }
 
 function getCookieValueFromHeader(headers: Headers | undefined, name: string): string | null {
@@ -139,23 +74,15 @@ function getCookieValueFromHeader(headers: Headers | undefined, name: string): s
   return null;
 }
 
-function getRequestApiKey(
-  request: RequestLike | Request | null | undefined,
-  opts?: { allowUrl?: boolean }
-): string | null {
-  if (!request || typeof request !== "object") return null;
+function getBearerToken(request: RequestLike | Request | null | undefined): string | null {
+  const headers =
+    request && typeof request === "object" && "headers" in request ? request.headers : undefined;
+  const authHeader = headers?.get("authorization") || headers?.get("Authorization");
+  if (typeof authHeader !== "string") return null;
 
-  const headers = "headers" in request ? request.headers : undefined;
-  const rawUrl = "url" in request && typeof request.url === "string" ? request.url : null;
-  const pathname = getRequestPathname(request);
-  const syntheticUrl = rawUrl || (pathname ? `http://localhost${pathname}` : null);
-
-  // Management auth never honours a URL-borne credential (defence-in-depth: the
-  // path-scoped token is a client-API affordance only — a credential in the URL
-  // must not authenticate a management route). See the #3300 security follow-up.
-  const allowUrl = opts?.allowUrl !== false;
-
-  return extractApiKey({ headers, url: allowUrl ? syntheticUrl : null }, { allowUrl });
+  const trimmedHeader = authHeader.trim();
+  if (!trimmedHeader.toLowerCase().startsWith("bearer ")) return null;
+  return trimmedHeader.slice(7).trim() || null;
 }
 
 async function validateBearerApiKey(apiKey: string | null): Promise<boolean> {
@@ -164,35 +91,6 @@ async function validateBearerApiKey(apiKey: string | null): Promise<boolean> {
   try {
     const { validateApiKey } = await import("@/lib/db/apiKeys");
     return await validateApiKey(apiKey);
-  } catch {
-    return false;
-  }
-}
-
-/**
- * Check whether a Bearer API key is valid AND carries a scope that authorizes
- * it on management API routes (`/api/*` excluding `/api/v1/*` and the public
- * allowlist). Returns `false` for unscoped keys so that the existing
- * default-deny posture on management routes is preserved.
- *
- * Scope set is sourced from `@/shared/constants/managementScopes` so this
- * helper stays in lockstep with `requireManagementAuth.hasManageScope`.
- */
-async function validateBearerApiKeyForManagement(apiKey: string | null): Promise<boolean> {
-  if (!apiKey) return false;
-
-  try {
-    const [{ validateApiKey, getApiKeyMetadata }, { hasManageScope }] = await Promise.all([
-      import("@/lib/db/apiKeys"),
-      import("@/shared/constants/managementScopes"),
-    ]);
-    const valid = await validateApiKey(apiKey);
-    if (!valid) return false;
-
-    const metadata = await getApiKeyMetadata(apiKey);
-    if (!metadata) return false;
-
-    return hasManageScope(metadata.scopes);
   } catch {
     return false;
   }
@@ -257,16 +155,12 @@ export async function verifyAuth(request: any): Promise<string | null> {
     return null;
   }
 
-  const isManagement = isManagementApiRequest(request);
-  const apiKey = getRequestApiKey(request, { allowUrl: !isManagement });
-  if (isManagement) {
-    if (await validateBearerApiKeyForManagement(apiKey)) {
-      return null;
-    }
-    return apiKey ? "Invalid management token" : "Authentication required";
+  const bearerToken = getBearerToken(request);
+  if (isManagementApiRequest(request)) {
+    return bearerToken ? "Invalid management token" : "Authentication required";
   }
 
-  if (await validateBearerApiKey(apiKey)) {
+  if (await validateBearerApiKey(bearerToken)) {
     return null;
   }
 
@@ -284,7 +178,7 @@ export async function verifyAuth(request: any): Promise<string | null> {
  */
 export async function isAuthenticated(request: Request): Promise<boolean> {
   // If settings say login/auth is disabled, treat all requests as authenticated
-  if (!(await isAuthRequired(request))) {
+  if (!(await isAuthRequired())) {
     return true;
   }
 
@@ -292,13 +186,11 @@ export async function isAuthenticated(request: Request): Promise<boolean> {
     return true;
   }
 
-  const isManagement = isManagementApiRequest(request);
-  const apiKey = getRequestApiKey(request, { allowUrl: !isManagement });
-  if (isManagement) {
-    return validateBearerApiKeyForManagement(apiKey);
+  if (isManagementApiRequest(request)) {
+    return false;
   }
 
-  return validateBearerApiKey(apiKey);
+  return validateBearerApiKey(getBearerToken(request));
 }
 
 /**
@@ -310,37 +202,22 @@ export function isPublicRoute(pathname: string, method = "GET"): boolean {
 
 /**
  * Check if authentication is required based on settings.
- * If requireLogin is explicitly false, auth is skipped. Fresh installs without
- * a password keep their unauthenticated bootstrap path only on loopback
- * requests; exposed network requests must configure INITIAL_PASSWORD or log in.
+ * If requireLogin is false AND no password is set, auth is skipped.
  */
-export async function isAuthRequired(
-  request?: RequestLike | Request | null | undefined
-): Promise<boolean> {
+export async function isAuthRequired(): Promise<boolean> {
   try {
     const settings = await getSettings();
     if (settings.requireLogin === false) return false;
-
-    if (!hasConfiguredPassword(settings) && !process.env.INITIAL_PASSWORD) {
-      if (!request) return false;
-
-      const pathname = getRequestPathname(request);
-      const method = getRequestMethod(request);
-      if (isOnboardingBootstrapPath(pathname)) {
-        return false;
-      }
-
-      if (pathname && isPublicApiRoute(pathname, method)) {
-        return false;
-      }
-
-      if (isRequireLoginBootstrapWritePath(pathname, method)) {
-        return false;
-      }
-
-      return settings.setupComplete === true || !isLoopbackRequest(request);
-    }
-
+    // Allow access with no password set — there's nothing to authenticate against.
+    // This covers two cases:
+    //   1. Fresh installs (setupComplete=false) — first-run, no password yet
+    //   2. setupComplete=true but password was skipped during onboarding (#256)
+    //      The user needs unauthenticated access to /dashboard/settings to set a password.
+    // Note: this is safe because Bearer API key auth is still checked in verifyAuth().
+    // The security concern from #151 (password row lost after being set) is handled by the
+    // hasPassword flag — if a password WAS set and then somehow lost, the user can use the
+    // reset-password CLI tool (bin/reset-password.mjs).
+    if (!settings.password && !process.env.INITIAL_PASSWORD) return false;
     return true;
   } catch (error: any) {
     // On error, require auth (secure by default)

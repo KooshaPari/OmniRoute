@@ -3,7 +3,7 @@
  *
  * Framework for evaluating LLM responses against a golden set.
  * Supports multiple evaluation strategies: exact match, contains,
- * regex, and custom functions.
+ * semantic similarity, and custom functions.
  *
  * @module lib/evals/evalRunner
  */
@@ -146,23 +146,12 @@ export function evaluateCase(evalCase: any, actualOutput: string) {
         break;
 
       case "regex": {
-        const expectedValue = evalCase.expected.value;
-        if (!(expectedValue instanceof RegExp) && typeof expectedValue !== "string") {
-          passed = false;
-          details.error = "No regex value provided for evaluation.";
-          break;
-        }
         const regex =
-          expectedValue instanceof RegExp
-            ? new RegExp(expectedValue.source, expectedValue.flags.replace(/[gy]/g, ""))
-            : new RegExp(expectedValue);
-        if (regex.source.length > 512) {
-          passed = false;
-          details.error = "Regex pattern too large for safe evaluation.";
-          break;
-        }
+          evalCase.expected.value instanceof RegExp
+            ? evalCase.expected.value
+            : new RegExp(evalCase.expected.value);
         passed = regex.test(actualOutput);
-        details.pattern = String(expectedValue);
+        details.pattern = String(evalCase.expected.value);
         break;
       }
 
@@ -189,14 +178,13 @@ export function evaluateCase(evalCase: any, actualOutput: string) {
       durationMs: Date.now() - start,
       details,
     };
-  } catch (error: unknown) {
-    const errorMessage = error instanceof Error ? error.message : String(error);
+  } catch (error: any) {
     return {
       caseId: evalCase.id,
       caseName: evalCase.name,
       passed: false,
       durationMs: Date.now() - start,
-      error: errorMessage,
+      error: error.message,
     };
   }
 }
@@ -275,11 +263,10 @@ export function createScorecard(runs: any[]) {
 }
 
 /**
- * Reset test-registered suites and restore built-in suites.
+ * Reset all suites (for testing).
  */
 export function resetSuites() {
   suites.clear();
-  registerBuiltInSuites();
 }
 
 // ─── Built-in suite registration ───────────────────────────────────────
@@ -293,9 +280,12 @@ registerSuite(multilingualSuite);
 registerSuite(safetySuite);
 registerSuite(instructionSuite);
 registerSuite(codexComparisonSuite);
+<<<<<<< Updated upstream
 
 function registerBuiltInSuites() {
   for (const suite of builtInSuites) {
     registerSuite(suite);
   }
 }
+=======
+>>>>>>> Stashed changes

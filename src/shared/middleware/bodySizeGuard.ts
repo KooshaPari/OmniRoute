@@ -13,11 +13,16 @@
  * @module shared/middleware/bodySizeGuard
  */
 
+<<<<<<< Updated upstream
 import {
   normalizeRequestBodyLimitMb,
   parseRequestBodyLimitBytes,
   requestBodyLimitMbToBytes,
 } from "../constants/bodySize";
+=======
+/** Default maximum body size: 10 MB */
+const DEFAULT_MAX_BODY_BYTES = 10 * 1024 * 1024;
+>>>>>>> Stashed changes
 
 /** Larger limit for backup/import routes: 100 MB */
 export const MAX_BODY_BYTES_IMPORT = 100 * 1024 * 1024;
@@ -25,14 +30,20 @@ export const MAX_BODY_BYTES_IMPORT = 100 * 1024 * 1024;
 /** Larger limit for audio transcription uploads: 100 MB */
 export const MAX_BODY_BYTES_AUDIO = 100 * 1024 * 1024;
 
+<<<<<<< Updated upstream
 /** Larger limit for file uploads: 500 MB */
 export const MAX_BODY_BYTES_FILE = 500 * 1024 * 1024;
 
 /** Larger limit for LLM request payloads: 50 MB */
 export const MAX_BODY_BYTES_LLM_API = 50 * 1024 * 1024;
 
+=======
+>>>>>>> Stashed changes
 /** Configured limit — reads from env or falls back to 10 MB */
-export const MAX_BODY_BYTES = parseRequestBodyLimitBytes(process.env.MAX_BODY_SIZE_BYTES);
+export const MAX_BODY_BYTES = parseInt(
+  process.env.MAX_BODY_SIZE_BYTES || String(DEFAULT_MAX_BODY_BYTES),
+  10
+);
 
 type BodySizeRule = { prefix: string; limit: number };
 
@@ -41,21 +52,22 @@ const ROUTE_LIMITS: BodySizeRule[] = [
   { prefix: "/api/v1/chat/completions", limit: MAX_BODY_BYTES_LLM_API },
   { prefix: "/api/v1/responses", limit: MAX_BODY_BYTES_LLM_API },
   { prefix: "/api/v1/audio/transcriptions", limit: MAX_BODY_BYTES_AUDIO },
-  { prefix: "/api/v1/files", limit: MAX_BODY_BYTES_FILE },
 ];
 
+<<<<<<< Updated upstream
 export function getConfiguredBodySizeLimitBytes(settings?: Record<string, unknown>): number {
   const configuredMb = normalizeRequestBodyLimitMb(settings?.maxBodySizeMb);
   return configuredMb === null ? MAX_BODY_BYTES : requestBodyLimitMbToBytes(configuredMb);
 }
 
+=======
+>>>>>>> Stashed changes
 /**
  * Resolve the body size limit for a request path.
  */
-export function getBodySizeLimit(pathname: string, settings?: Record<string, unknown>): number {
-  const configuredLimit = getConfiguredBodySizeLimitBytes(settings);
+export function getBodySizeLimit(pathname: string): number {
   const customRule = ROUTE_LIMITS.find((rule) => pathname.startsWith(rule.prefix));
-  return customRule ? Math.max(customRule.limit, configuredLimit) : configuredLimit;
+  return customRule?.limit ?? MAX_BODY_BYTES;
 }
 
 /**
@@ -66,7 +78,7 @@ export function checkBodySize(request: Request, limit: number = MAX_BODY_BYTES):
   const contentLength = request.headers.get("content-length");
 
   if (contentLength) {
-    const bytes = Number.parseInt(contentLength, 10);
+    const bytes = parseInt(contentLength, 10);
     if (!Number.isNaN(bytes) && bytes > limit) {
       return new Response(
         JSON.stringify({

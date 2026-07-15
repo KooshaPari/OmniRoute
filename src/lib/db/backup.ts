@@ -2,6 +2,7 @@
  * db/backup.js — Database backup/restore operations.
  */
 
+import Database from "better-sqlite3";
 import path from "path";
 import fs from "fs";
 import {
@@ -37,68 +38,13 @@ function parseNonNegativeInt(value: string | undefined, fallback: number) {
   return Number.isInteger(parsed) && parsed >= 0 ? parsed : fallback;
 }
 
-// #3834: the "Keep latest backups" UI value is persisted here so it survives a page
-// refresh / the loadStorageHealth() refetch. A dedicated namespace avoids any
-// cross-talk with the databaseSettings key_value store (which rewrites all of its own
-// keys on every update). It is intentionally separate from the orphan
-// `databaseSettings.backup.keepLastNBackups` (default 5) so existing installs keep the
-// historical default of 20 until an operator explicitly changes it here.
-const DB_BACKUP_SETTINGS_NAMESPACE = "dbBackup";
-const DB_BACKUP_MAX_FILES_KEY = "maxFiles";
-const DB_BACKUP_RETENTION_DAYS_KEY = "retentionDays";
-
-function getStoredDbBackupInteger(key: string, options: { min: number }): number | undefined {
-  try {
-    const db = getDbInstance();
-    const row = db
-      .prepare("SELECT value FROM key_value WHERE namespace = ? AND key = ?")
-      .get(DB_BACKUP_SETTINGS_NAMESPACE, key) as { value?: string } | undefined;
-    if (!row?.value) return undefined;
-    const parsed = JSON.parse(row.value);
-    return Number.isInteger(parsed) && parsed >= options.min ? parsed : undefined;
-  } catch {
-    return undefined;
-  }
-}
-
-function setStoredDbBackupInteger(key: string, value: number, options: { min: number }): void {
-  if (!Number.isInteger(value) || value < options.min) return;
-  const db = getDbInstance();
-  db.prepare("INSERT OR REPLACE INTO key_value (namespace, key, value) VALUES (?, ?, ?)").run(
-    DB_BACKUP_SETTINGS_NAMESPACE,
-    key,
-    JSON.stringify(value)
-  );
-}
-
-/** Persist the operator-chosen "keep latest backups" retention count (#3834). */
-export function setDbBackupMaxFiles(value: number): void {
-  setStoredDbBackupInteger(DB_BACKUP_MAX_FILES_KEY, value, { min: 1 });
-}
-
 export function getDbBackupMaxFiles() {
-  // Precedence: DB_BACKUP_MAX_FILES env override (ops) → persisted UI value → default.
-  if (process.env.DB_BACKUP_MAX_FILES) {
-    return parsePositiveInt(process.env.DB_BACKUP_MAX_FILES, MAX_DB_BACKUPS);
-  }
-  return getStoredDbBackupInteger(DB_BACKUP_MAX_FILES_KEY, { min: 1 }) ?? MAX_DB_BACKUPS;
-}
-
-/** Persist the operator-chosen age-based backup retention window. */
-export function setDbBackupRetentionDays(value: number): void {
-  setStoredDbBackupInteger(DB_BACKUP_RETENTION_DAYS_KEY, value, { min: 0 });
+  return parsePositiveInt(process.env.DB_BACKUP_MAX_FILES, MAX_DB_BACKUPS);
 }
 
 export function getDbBackupRetentionDays() {
-  // Precedence: DB_BACKUP_RETENTION_DAYS env override (ops) → persisted UI value → default.
-  if (process.env.DB_BACKUP_RETENTION_DAYS) {
-    return parseNonNegativeInt(
-      process.env.DB_BACKUP_RETENTION_DAYS,
-      DEFAULT_DB_BACKUP_RETENTION_DAYS
-    );
-  }
-  return (
-    getStoredDbBackupInteger(DB_BACKUP_RETENTION_DAYS_KEY, { min: 0 }) ??
+  return parseNonNegativeInt(
+    process.env.DB_BACKUP_RETENTION_DAYS,
     DEFAULT_DB_BACKUP_RETENTION_DAYS
   );
 }
@@ -430,7 +376,6 @@ export async function listDbBackups() {
       .sort()
       .reverse();
 
-    const { tryOpenSync } = await import("@/lib/db/adapters/driverFactory");
     return entries.map((filename) => {
       const filePath = path.join(backupDir, filename);
       const stat = fs.statSync(filePath);
@@ -439,17 +384,12 @@ export async function listDbBackups() {
 
       let connectionCount = 0;
       try {
-        const backupDb = tryOpenSync(filePath, { readonly: true });
-        if (backupDb) {
-          try {
-            const row = backupDb
-              .prepare("SELECT COUNT(*) as cnt FROM provider_connections")
-              .get() as CountRow | undefined;
-            connectionCount = Number(row?.cnt ?? 0);
-          } finally {
-            backupDb.close();
-          }
-        }
+        const backupDb = new Database(filePath, { readonly: true });
+        const row = backupDb.prepare("SELECT COUNT(*) as cnt FROM provider_connections").get() as
+          | CountRow
+          | undefined;
+        connectionCount = row?.cnt || 0;
+        backupDb.close();
       } catch {
         /* ignore */
       }
@@ -498,17 +438,9 @@ export async function restoreDbBackup(backupId: string) {
 
   // Validate backup integrity
   try {
-    const { tryOpenSync } = await import("@/lib/db/adapters/driverFactory");
-    const testDb = tryOpenSync(backupPath, { readonly: true });
-    if (!testDb) {
-      throw new Error("Backup file is corrupt: could not open");
-    }
-    let result: Array<{ integrity_check?: string }>;
-    try {
-      result = testDb.pragma("integrity_check") as Array<{ integrity_check?: string }>;
-    } finally {
-      testDb.close();
-    }
+    const testDb = new Database(backupPath, { readonly: true });
+    const result = testDb.pragma("integrity_check") as Array<{ integrity_check?: string }>;
+    testDb.close();
     if (result[0]?.integrity_check !== "ok") {
       throw new Error("Backup integrity check failed");
     }
@@ -590,119 +522,4 @@ export async function restoreDbBackup(backupId: string) {
     comboCount,
     apiKeyCount: keyCount,
   };
-}
-
-// ──────────────── Export-All helpers (for /api/db-backups/exportAll) ────────────────
-
-export interface ExportAllRows {
-  settings: Record<string, string>;
-  combos: unknown[];
-  providers: unknown[];
-  apiKeys: unknown[];
-}
-
-/**
- * Reads summary rows used by the exportAll backup route.
- *
- * - settings:  full key_value table (key → value map)
- * - combos:    full combos table
- * - providers: provider_connections rows, **excluding sensitive credentials**
- *              (id, provider, name, auth_type, is_active, email, created_at only)
- * - apiKeys:   api_keys rows with masked prefix
- *              (id, name, first 8 chars of key, machine_id, created_at)
- *
- * Each category is wrapped in a try/catch so a missing table never aborts the
- * entire export — consistent with the original inline behaviour.
- */
-export function exportAllSummaryRows(): ExportAllRows {
-  const db = getDbInstance();
-
-  const settings: Record<string, string> = {};
-  try {
-    const rows = db.prepare("SELECT key, value FROM key_value").all() as {
-      key: string;
-      value: string;
-    }[];
-    for (const row of rows) {
-      settings[row.key] = row.value;
-    }
-  } catch {
-    // key_value table might not exist
-  }
-
-  const combos: unknown[] = [];
-  try {
-    combos.push(...db.prepare("SELECT * FROM combos").all());
-  } catch {
-    // combos table might not exist
-  }
-
-  const providers: unknown[] = [];
-  try {
-    providers.push(
-      ...db
-        .prepare(
-          "SELECT id, provider, name, auth_type, is_active, email, created_at FROM provider_connections"
-        )
-        .all()
-    );
-  } catch {
-    // provider_connections table might not exist
-  }
-
-  const apiKeys: unknown[] = [];
-  try {
-    apiKeys.push(
-      ...db
-        .prepare(
-          "SELECT id, name, substr(key, 1, 8) as prefix, machine_id, created_at FROM api_keys"
-        )
-        .all()
-    );
-  } catch {
-    // api_keys table might not exist
-  }
-
-  return { settings, combos, providers, apiKeys };
-}
-
-// ──────────────── Import validation helpers (for /api/db-backups/import) ────────────────
-
-/**
- * Queries an **already-opened** SQLite adapter for the list of table names.
- *
- * Used by the import route to validate that a candidate database contains the
- * required OmniRoute tables before replacing the live database.
- *
- * Accepting an adapter as a parameter (rather than calling getDbInstance()) is
- * intentional: the import route opens a *temporary* database for validation,
- * not the live one.
- */
-export function getTableNamesFromAdapter(adapter: {
-  prepare: (sql: string) => { all: () => unknown[] };
-}): string[] {
-  const rows = adapter.prepare("SELECT name FROM sqlite_master WHERE type='table'").all() as Array<{
-    name: string;
-  }>;
-  return rows.map((r) => r.name);
-}
-
-/**
- * Counts rows in a set of tables from the **live** database (post-import).
- * Returns an object keyed by table name with the row count as value.
- */
-export function countImportedRows(): {
-  connCount: number;
-  nodeCount: number;
-  comboCount: number;
-  keyCount: number;
-} {
-  const db = getDbInstance();
-  const connCount =
-    (db.prepare("SELECT COUNT(*) as cnt FROM provider_connections").get() as any)?.cnt || 0;
-  const nodeCount =
-    (db.prepare("SELECT COUNT(*) as cnt FROM provider_nodes").get() as any)?.cnt || 0;
-  const comboCount = (db.prepare("SELECT COUNT(*) as cnt FROM combos").get() as any)?.cnt || 0;
-  const keyCount = (db.prepare("SELECT COUNT(*) as cnt FROM api_keys").get() as any)?.cnt || 0;
-  return { connCount, nodeCount, comboCount, keyCount };
 }

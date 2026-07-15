@@ -1,9 +1,9 @@
 import { ANTIGRAVITY_CONFIG } from "../constants/oauth";
 import {
-  antigravityNativeOAuthUserAgent,
   getAntigravityHeaders,
   getAntigravityLoadCodeAssistMetadata,
 } from "@omniroute/open-sse/services/antigravityHeaders.ts";
+<<<<<<< Updated upstream
 import { extractCodeAssistOnboardTierId } from "@omniroute/open-sse/services/codeAssistSubscription.ts";
 
 // Bound every Antigravity post-exchange call. Without this an unreachable/slow
@@ -40,6 +40,13 @@ export const antigravity = {
   // already sends client_secret (ANTIGRAVITY_OAUTH_CLIENT_SECRET) and omits code_verifier.
   flowType: "authorization_code",
   buildAuthUrl: (config, redirectUri, state, codeChallenge) => {
+=======
+
+export const antigravity = {
+  config: ANTIGRAVITY_CONFIG,
+  flowType: "authorization_code",
+  buildAuthUrl: (config, redirectUri, state) => {
+>>>>>>> Stashed changes
     const params = new URLSearchParams({
       client_id: config.clientId,
       response_type: "code",
@@ -49,18 +56,17 @@ export const antigravity = {
       access_type: "offline",
       prompt: "consent",
     });
-    if (codeChallenge) {
-      params.set("code_challenge", codeChallenge);
-      params.set("code_challenge_method", "S256");
-    }
     return `${config.authorizeUrl}?${params.toString()}`;
   },
+<<<<<<< Updated upstream
   // NOTE: no PKCE. Antigravity is a plain authorization_code grant now (see flowType
   // above). The shared generateAuthData() still mints a codeVerifier for every flow, but
   // we MUST NOT forward it here — the authorize URL carries no code_challenge, so sending
   // a code_verifier makes Google reject the exchange with invalid_grant ("code_verifier
   // provided but code_challenge was not"), surfacing as a 500 on /exchange. Ignore it and
   // authenticate with client_secret only, exactly like the working 9router flow.
+=======
+>>>>>>> Stashed changes
   exchangeToken: async (config, code, redirectUri) => {
     const bodyParams: Record<string, string> = {
       grant_type: "authorization_code",
@@ -78,7 +84,6 @@ export const antigravity = {
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",
         Accept: "application/json",
-        "User-Agent": antigravityNativeOAuthUserAgent(),
       },
       body: new URLSearchParams(bodyParams),
     });
@@ -104,6 +109,7 @@ export const antigravity = {
     let projectId = "";
     let tierId = "legacy-tier";
     try {
+<<<<<<< Updated upstream
       const loadRes = await fetchFirstOk(
         ANTIGRAVITY_CONFIG.loadCodeAssistEndpoints,
         { method: "POST", headers, body: JSON.stringify({ metadata }) },
@@ -112,6 +118,25 @@ export const antigravity = {
       const data = await loadRes.json();
       projectId = data.cloudaicompanionProject?.id || data.cloudaicompanionProject || "";
       tierId = extractCodeAssistOnboardTierId(data);
+=======
+      const loadRes = await fetch(ANTIGRAVITY_CONFIG.loadCodeAssistEndpoint, {
+        method: "POST",
+        headers,
+        body: JSON.stringify({ metadata }),
+      });
+      if (loadRes.ok) {
+        const data = await loadRes.json();
+        projectId = data.cloudaicompanionProject?.id || data.cloudaicompanionProject || "";
+        if (Array.isArray(data.allowedTiers)) {
+          for (const tier of data.allowedTiers) {
+            if (tier.isDefault && tier.id) {
+              tierId = tier.id.trim();
+              break;
+            }
+          }
+        }
+      }
+>>>>>>> Stashed changes
     } catch (e) {
       console.log("Failed to load code assist:", e);
     }
@@ -125,6 +150,7 @@ export const antigravity = {
     if (projectId) {
       const onboardInBackground = async () => {
         for (let i = 0; i < 10; i++) {
+<<<<<<< Updated upstream
           try {
             const onboardRes = await fetchFirstOk(
               ANTIGRAVITY_CONFIG.onboardUserEndpoints,
@@ -135,6 +161,25 @@ export const antigravity = {
             if (result.done === true) break;
           } catch {
             break;
+=======
+          const onboardRes = await fetch(ANTIGRAVITY_CONFIG.onboardUserEndpoint, {
+            method: "POST",
+            headers,
+            body: JSON.stringify({ tierId, metadata, cloudaicompanionProject: projectId }),
+          });
+          if (onboardRes.ok) {
+            const result = await onboardRes.json();
+            if (result.done === true) {
+              if (result.response?.cloudaicompanionProject) {
+                const respProject = result.response.cloudaicompanionProject;
+                projectId =
+                  typeof respProject === "string"
+                    ? respProject.trim()
+                    : respProject.id || projectId;
+              }
+              break;
+            }
+>>>>>>> Stashed changes
           }
           await new Promise((resolve) => setTimeout(resolve, 5000));
         }
@@ -142,7 +187,7 @@ export const antigravity = {
       void onboardInBackground().catch(() => {});
     }
 
-    return { userInfo, projectId, tierId };
+    return { userInfo, projectId };
   },
   mapTokens: (tokens, extra) => ({
     accessToken: tokens.access_token,
@@ -151,9 +196,5 @@ export const antigravity = {
     scope: tokens.scope,
     email: extra?.userInfo?.email,
     projectId: extra?.projectId,
-    providerSpecificData: {
-      projectId: extra?.projectId,
-      tier: extra?.tierId,
-    },
   }),
 };

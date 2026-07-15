@@ -23,8 +23,6 @@ import {
   isClaudeExtraUsageBlockEnabled,
 } from "@/lib/providers/claudeExtraUsage";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
-import { isApiKeyRevealEnabled, maskStoredApiKey } from "@/lib/apiKeyExposure";
-import { refreshConnectionRateLimits, enableRateLimitProtection } from "@/../open-sse/services/rateLimitManager";
 
 function normalizeCodexLimitPolicy(
   incoming: unknown,
@@ -63,13 +61,9 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
       return NextResponse.json({ error: "Connection not found" }, { status: 404 });
     }
 
-    const revealKeys = isApiKeyRevealEnabled();
-
-    // Hide or mask sensitive fields
+    // Hide sensitive fields
     const result: Record<string, any> = { ...connection };
-    if (!revealKeys) {
-      result.apiKey = result.apiKey ? maskStoredApiKey(result.apiKey) : undefined;
-    }
+    delete result.apiKey;
     delete result.accessToken;
     delete result.refreshToken;
     delete result.idToken;
@@ -130,17 +124,10 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
       rateLimitedUntil,
       lastTested,
       healthCheckInterval,
-      group,
-      maxConcurrent,
-      quotaWindowThresholds: incomingWindowThresholds,
-      proxyEnabled,
-      perKeyProxyEnabled,
-      projectId,
       providerSpecificData: incomingPsd,
-      rateLimitOverrides,
     } = body;
 
-    const existing = (await getProviderConnectionById(id)) as Record<string, any> | null;
+    const existing = await getProviderConnectionById(id);
     if (!existing) {
       return NextResponse.json({ error: "Connection not found" }, { status: 404 });
     }
@@ -161,36 +148,6 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
     if (rateLimitedUntil !== undefined) updateData.rateLimitedUntil = rateLimitedUntil;
     if (lastTested !== undefined) updateData.lastTested = lastTested;
     if (healthCheckInterval !== undefined) updateData.healthCheckInterval = healthCheckInterval;
-    if (group !== undefined) updateData.group = group;
-    if (maxConcurrent !== undefined) updateData.maxConcurrent = maxConcurrent;
-    if (incomingWindowThresholds !== undefined) {
-      // PATCH semantics:
-      //   • null            → clear every per-window override on this connection
-      //   • {} (empty map)  → no-op (no keys to merge); existing overrides preserved
-      //   • partial map     → merge into the existing map; a `null` value at any
-      //                        key clears just that window's override
-      if (incomingWindowThresholds === null) {
-        updateData.quotaWindowThresholds = null;
-      } else {
-        const existingMap =
-          existing.quotaWindowThresholds && typeof existing.quotaWindowThresholds === "object"
-            ? { ...(existing.quotaWindowThresholds as Record<string, number>) }
-            : {};
-        for (const [window, value] of Object.entries(incomingWindowThresholds)) {
-          if (value === null) {
-            delete existingMap[window];
-          } else if (typeof value === "number") {
-            existingMap[window] = value;
-          }
-        }
-        updateData.quotaWindowThresholds =
-          Object.keys(existingMap).length === 0 ? null : existingMap;
-      }
-    }
-    if (projectId !== undefined) updateData.projectId = projectId;
-    if (rateLimitOverrides !== undefined) updateData.rateLimitOverrides = rateLimitOverrides;
-    if (proxyEnabled !== undefined) updateData.proxyEnabled = proxyEnabled;
-    if (perKeyProxyEnabled !== undefined) updateData.perKeyProxyEnabled = perKeyProxyEnabled;
 
     // Merge providerSpecificData (partial update — preserve existing keys not sent by caller)
     if (incomingPsd !== undefined && incomingPsd !== null && typeof incomingPsd === "object") {
@@ -214,57 +171,6 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
       updateData.providerSpecificData =
         normalizeProviderSpecificData(existing.provider, mergedPsd) || {};
 
-      const psd = updateData.providerSpecificData as Record<string, any>;
-      if (psd.apiKeyHealth) {
-        const health = psd.apiKeyHealth as Record<string, any>;
-
-        // If the primary API key was explicitly replaced in this request,
-        // clear stale health.primary — it no longer corresponds to the
-        // current key. The next health check will regenerate it.
-        if (updateData.apiKey !== undefined && updateData.apiKey !== existing.apiKey) {
-          delete health.primary;
-        }
-
-        // Stale primary guard: no valid primary key → no primary health.
-        const currentApiKey = updateData.apiKey ?? existing.apiKey ?? null;
-        if (typeof currentApiKey !== "string" || currentApiKey.length === 0) {
-          delete health.primary;
-        }
-
-        // Detect whether the extras list was explicitly changed by the caller.
-        // The index-based mapping (extra_0, extra_1, …) drifts when a key is
-        // inserted or removed mid-list, so we clear ALL extra health entries
-        // when the list actually changes and let the next health check regen.
-        const existingExtras = existingPsd.extraApiKeys;
-        const incomingExtras = incomingPsd?.extraApiKeys;
-        const extrasChanged =
-          Array.isArray(incomingExtras) &&
-          (!Array.isArray(existingExtras) ||
-            existingExtras.length !== incomingExtras.length ||
-            existingExtras.some((v: string, i: number) => v !== incomingExtras[i]));
-
-        const extras = psd.extraApiKeys;
-        const maxExtraIdx = Array.isArray(extras) ? extras.length : 0;
-        for (const key of Object.keys(health)) {
-          if (key.startsWith("extra_")) {
-            if (extrasChanged) {
-              // Extras modified — index drift possible. Clear all to be safe.
-              delete health[key];
-            } else {
-              // Extras unchanged: only clean out-of-range indices.
-              const idx = parseInt(key.slice(6), 10);
-              if (isNaN(idx) || idx >= maxExtraIdx) {
-                delete health[key];
-              }
-            }
-          }
-        }
-
-        if (Object.keys(health).length === 0) {
-          delete psd.apiKeyHealth;
-        }
-      }
-
       if (!isClaudeExtraUsageBlockEnabled(existing.provider, updateData.providerSpecificData)) {
         const clearExtraUsageUpdate = buildClaudeExtraUsageStateClearUpdate({
           provider: existing.provider,
@@ -284,14 +190,6 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
     }
 
     const updated = await updateProviderConnection(id, updateData);
-
-    // If rateLimitOverrides was included in the request, refresh the in-memory
-    // rate limiter state so the change takes effect without a server restart.
-    // Also ensure rate limit protection is active so the limiter is enforced.
-    if (rateLimitOverrides !== undefined) {
-      refreshConnectionRateLimits(id, updated?.rateLimitOverrides ?? null);
-      enableRateLimitProtection(id);
-    }
 
     // Hide sensitive fields
     const result: Record<string, any> = { ...updated };
@@ -342,7 +240,7 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ i
     const { id } = await params;
 
     // Fetch connection before deleting to check provider type
-    const connection = (await getProviderConnectionById(id)) as Record<string, any> | null;
+    const connection = await getProviderConnectionById(id);
     if (!connection) {
       return NextResponse.json({ error: "Connection not found" }, { status: 404 });
     }

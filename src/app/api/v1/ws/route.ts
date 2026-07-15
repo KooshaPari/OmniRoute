@@ -6,6 +6,7 @@ const WS_HANDSHAKE_HEADERS = {
   "Cache-Control": "no-store",
 };
 
+<<<<<<< Updated upstream
 /**
  * Public URL for the live dashboard WebSocket (reverse proxy / Cloudflare
  * Tunnel setups). Read lazily at request time (not module load) so runtime
@@ -36,6 +37,16 @@ function getWsProtocol() {
     },
   };
 }
+=======
+const WS_PROTOCOL = {
+  request: {
+    type: "request",
+    id: "req-1",
+    payload: { model: "openai/gpt-4.1-mini", messages: [] },
+  },
+  cancel: { type: "cancel", id: "req-1" },
+};
+>>>>>>> Stashed changes
 
 export async function OPTIONS() {
   return new Response(null, {
@@ -80,6 +91,7 @@ export async function GET(request: Request) {
         wsAuth: auth.wsAuth,
         authenticated: auth.authenticated,
         authType: auth.authType,
+<<<<<<< Updated upstream
         protocol: getWsProtocol(),
         live: {
           port: parseInt(process.env.LIVE_WS_PORT || "20129", 10),
@@ -90,6 +102,9 @@ export async function GET(request: Request) {
           auth: "api-key",
           description: "Real-time dashboard events via WebSocket",
         },
+=======
+        protocol: WS_PROTOCOL,
+>>>>>>> Stashed changes
       },
       {
         headers: WS_HANDSHAKE_HEADERS,

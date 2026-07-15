@@ -20,8 +20,7 @@ function parseLegacyCodexServiceTier(value: unknown): { enabled: boolean } {
   }
 
   const record = asRecord(value);
-  const tier = typeof record.tier === "string" ? record.tier.trim().toLowerCase() : "";
-  return { enabled: record.enabled === true && (!tier || tier === "priority" || tier === "fast") };
+  return { enabled: record.enabled === true };
 }
 
 export async function migrateCodexConnectionDefaultsFromLegacySettings(): Promise<{

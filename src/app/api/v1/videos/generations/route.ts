@@ -1,7 +1,16 @@
 import { handleVideoGeneration } from "@omniroute/open-sse/handlers/videoGeneration.ts";
+<<<<<<< Updated upstream
 import { resolveVideoCredentialProvider } from "@omniroute/open-sse/handlers/videoGeneration/googleFlow.ts";
 import { withInjectionGuard } from "@/middleware/promptInjectionGuard";
 import { getProviderCredentials, clearRecoveredProviderState } from "@/sse/services/auth";
+=======
+import {
+  getProviderCredentials,
+  clearRecoveredProviderState,
+  extractApiKey,
+  isValidApiKey,
+} from "@/sse/services/auth";
+>>>>>>> Stashed changes
 import {
   parseVideoModel,
   getAllVideoModels,
@@ -11,6 +20,7 @@ import { errorResponse } from "@omniroute/open-sse/utils/error.ts";
 import { HTTP_STATUS } from "@omniroute/open-sse/config/constants.ts";
 import * as log from "@/sse/utils/logger";
 import { enforceApiKeyPolicy } from "@/shared/utils/apiKeyPolicy";
+<<<<<<< Updated upstream
 import {
   isAllRateLimitedCredentials,
   rateLimitedProviderResponse,
@@ -23,6 +33,10 @@ import {
   readMediaGenerationBody,
   successfulMediaGenerationResponse,
 } from "@/app/api/v1/_shared/mediaGenerationRoute";
+=======
+import { v1ImageGenerationSchema } from "@/shared/validation/schemas";
+import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
+>>>>>>> Stashed changes
 
 /**
  * Handle CORS preflight
@@ -41,6 +55,7 @@ export async function GET() {
 /**
  * POST /v1/videos/generations — generate videos
  */
+<<<<<<< Updated upstream
 async function postHandler(request, context) {
   const parsed = await readMediaGenerationBody(request, log, "VIDEO");
   if (!parsed.ok) {
@@ -48,6 +63,22 @@ async function postHandler(request, context) {
   }
   const body = parsed.body;
   const startTime = Date.now();
+=======
+export async function POST(request) {
+  let rawBody;
+  try {
+    rawBody = await request.json();
+  } catch {
+    log.warn("VIDEO", "Invalid JSON body");
+    return errorResponse(HTTP_STATUS.BAD_REQUEST, "Invalid JSON body");
+  }
+
+  const validation = validateBody(v1ImageGenerationSchema, rawBody);
+  if (isValidationFailure(validation)) {
+    return errorResponse(HTTP_STATUS.BAD_REQUEST, validation.error.message);
+  }
+  const body = validation.data;
+>>>>>>> Stashed changes
 
   const promptError = promptRequiredResponse(body);
   if (promptError) return promptError;
@@ -68,20 +99,15 @@ async function postHandler(request, context) {
   // Check provider config for auth bypass
   const providerConfig = getVideoProvider(provider);
 
-  // Get credentials — skip for local providers (authType: "none").
-  // Google Flow has no standalone connection: it reuses the Antigravity Google
-  // OAuth credential (resolveVideoCredentialProvider maps googleflow → antigravity).
+  // Get credentials — skip for local providers (authType: "none")
   let credentials = null;
   if (providerConfig && providerConfig.authType !== "none") {
-    credentials = await getProviderCredentials(resolveVideoCredentialProvider(provider));
+    credentials = await getProviderCredentials(provider);
     if (!credentials) {
       return errorResponse(
         HTTP_STATUS.BAD_REQUEST,
         `No credentials for video provider: ${provider}`
       );
-    }
-    if (isAllRateLimitedCredentials(credentials)) {
-      return rateLimitedProviderResponse(provider, credentials);
     }
   }
 
@@ -89,6 +115,7 @@ async function postHandler(request, context) {
 
   if (result.success) {
     await clearRecoveredProviderState(credentials);
+<<<<<<< Updated upstream
     return successfulMediaGenerationResponse({
       result,
       billingMode: "video",
@@ -96,10 +123,13 @@ async function postHandler(request, context) {
       model: body.model,
       startTime,
       duration: body.duration,
+=======
+    return new Response(JSON.stringify((result as any).data), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+>>>>>>> Stashed changes
     });
   }
 
   return failedMediaGenerationResponse(result, "Video generation provider error");
 }
-
-export const POST = withInjectionGuard(postHandler);

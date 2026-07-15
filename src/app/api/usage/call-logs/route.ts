@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import { getCallLogs } from "@/lib/usageDb";
+<<<<<<< Updated upstream
 import { getCompletedDetails, getPendingById } from "@/lib/usage/usageHistory";
 import { getProviderConnections } from "@/lib/localDb";
 
@@ -114,6 +115,8 @@ export function buildCallLogListRows({
     return rowTimestampMs(b) - rowTimestampMs(a);
   });
 }
+=======
+>>>>>>> Stashed changes
 
 export async function GET(request: Request) {
   try {
@@ -132,8 +135,8 @@ export async function GET(request: Request) {
     if (searchParams.get("search")) filter.search = searchParams.get("search");
     if (searchParams.get("correlationId")) filter.correlationId = searchParams.get("correlationId");
     if (searchParams.get("limit")) filter.limit = parseInt(searchParams.get("limit"));
-    if (searchParams.get("offset")) filter.offset = parseInt(searchParams.get("offset"));
 
+<<<<<<< Updated upstream
     const [logs, connections] = await Promise.all([getCallLogs(filter), getProviderConnections()]);
 
     const rows = buildCallLogListRows({
@@ -152,6 +155,10 @@ export async function GET(request: Request) {
     }
 
     return NextResponse.json(rows);
+=======
+    const logs = await getCallLogs(filter);
+    return NextResponse.json(logs);
+>>>>>>> Stashed changes
   } catch (error) {
     console.error("[API ERROR] /api/usage/call-logs failed:", error);
     return NextResponse.json({ error: "Failed to fetch call logs" }, { status: 500 });

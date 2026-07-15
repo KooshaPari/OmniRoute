@@ -12,9 +12,6 @@ const ANTHROPIC_BETA_BASE = Object.freeze([
   "fast-mode-2026-02-01",
   "redact-thinking-2026-02-12",
   "token-efficient-tools-2026-03-28",
-  "advisor-tool-2026-03-01",
-  "extended-cache-ttl-2025-04-11",
-  "cache-diagnosis-2026-04-07",
 ]);
 
 const CLAUDE_OAUTH_EXTRA_BETAS = Object.freeze(["fine-grained-tool-streaming-2025-05-14"]);
@@ -29,6 +26,7 @@ export const ANTHROPIC_BETA_CLAUDE_OAUTH = [
   ...ANTHROPIC_BETA_BASE.slice(3),
 ].join(",");
 
+<<<<<<< Updated upstream
 /**
  * Client-negotiated `anthropic-beta` values that are safe to forward to the
  * claude.ai backend on top of OmniRoute's own set. Kept to betas the backend
@@ -122,6 +120,9 @@ export function normalizeAnthropicHeaderVariants(headers: Record<string, string>
 }
 
 export const CLAUDE_CLI_VERSION = "2.1.195";
+=======
+export const CLAUDE_CLI_VERSION = "2.1.121";
+>>>>>>> Stashed changes
 export const CLAUDE_CLI_USER_AGENT = `claude-cli/${CLAUDE_CLI_VERSION} (external, cli)`;
-export const CLAUDE_CLI_STAINLESS_PACKAGE_VERSION = "0.94.0";
+export const CLAUDE_CLI_STAINLESS_PACKAGE_VERSION = "0.81.0";
 export const CLAUDE_CLI_STAINLESS_RUNTIME_VERSION = "v24.3.0";

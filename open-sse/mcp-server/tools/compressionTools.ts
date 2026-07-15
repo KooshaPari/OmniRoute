@@ -13,12 +13,7 @@ import {
 } from "../../../src/lib/db/compression.ts";
 import { getCompressionAnalyticsSummary } from "../../../src/lib/db/compressionAnalytics.ts";
 import { getCacheStatsSummary } from "../../../src/lib/db/compressionCacheStats.ts";
-import { listCompressionCombos } from "../../../src/lib/db/compressionCombos.ts";
 import type { McpToolExtraLike } from "../scopeEnforcement.ts";
-import {
-  getMcpDescriptionCompressionStats,
-  snapshotMcpDescriptionCompressionStats,
-} from "../descriptionCompressor.ts";
 
 /**
  * Handle compression_status tool: return current compression config, analytics, and cache stats
@@ -31,42 +26,14 @@ export async function handleCompressionStatus(
   strategy: string;
   settings: {
     maxTokens: number;
-    autoTriggerMode: string;
     targetRatio: number;
-    preserveSystemPrompt: boolean;
-    mcpDescriptionCompressionEnabled: boolean;
+    aggressiveness: string;
   };
   analytics: {
     totalRequests: number;
     compressedRequests: number;
     tokensSaved: number;
     avgCompressionRatio: number;
-    byMode: Record<string, { count: number; tokensSaved: number; avgSavingsPct: number }>;
-    byEngine: Record<string, { count: number; tokensSaved: number; avgSavingsPct: number }>;
-    byCompressionCombo: Record<string, { count: number; tokensSaved: number }>;
-    validationFallbacks: number;
-    requestsWithReceipts: number;
-    realUsage: {
-      requestsWithReceipts: number;
-      promptTokens: number;
-      completionTokens: number;
-      totalTokens: number;
-      cacheReadTokens: number;
-      cacheWriteTokens: number;
-      estimatedUsdSaved: number;
-      bySource: Record<string, number>;
-    };
-    mcpDescriptionCompression: {
-      descriptionsCompressed: number;
-      charsBefore: number;
-      charsAfter: number;
-      charsSaved: number;
-      estimatedTokensSaved: number;
-      persistedEstimatedTokensSaved: number;
-      persistedSnapshots: number;
-      source: "mcp_metadata_estimate";
-      notProviderUsage: true;
-    };
   };
   cacheStats: {
     hits: number;
@@ -78,9 +45,7 @@ export async function handleCompressionStatus(
   const start = Date.now();
   try {
     const settings = await getCompressionSettings();
-    await snapshotMcpDescriptionCompressionStats();
     const analyticsSummary = getCompressionAnalyticsSummary();
-    const mcpDescriptionStats = getMcpDescriptionCompressionStats();
     const cacheStats = getCacheStatsSummary();
 
     const result = {
@@ -88,37 +53,14 @@ export async function handleCompressionStatus(
       strategy: settings.defaultMode || "standard",
       settings: {
         maxTokens: settings.autoTriggerTokens,
-        autoTriggerMode: settings.autoTriggerMode ?? "lite",
         targetRatio: 0.7, // Default target ratio
-        preserveSystemPrompt: settings.preserveSystemPrompt,
-        mcpDescriptionCompressionEnabled: settings.mcpDescriptionCompressionEnabled !== false,
+        aggressiveness: settings.defaultMode || "standard",
       },
       analytics: {
         totalRequests: analyticsSummary.totalRequests,
-        compressedRequests: Object.values(analyticsSummary.byMode ?? {}).reduce(
-          (sum, mode) => sum + mode.count,
-          0
-        ),
+        compressedRequests: analyticsSummary.byMode?.standard?.count || 0,
         tokensSaved: analyticsSummary.totalTokensSaved,
-        avgCompressionRatio: analyticsSummary.avgSavingsPct,
-        byMode: analyticsSummary.byMode ?? {},
-        byEngine: analyticsSummary.byEngine ?? {},
-        byCompressionCombo: analyticsSummary.byCompressionCombo ?? {},
-        validationFallbacks: analyticsSummary.validationFallbacks,
-        requestsWithReceipts: analyticsSummary.realUsage.requestsWithReceipts,
-        realUsage: analyticsSummary.realUsage,
-        mcpDescriptionCompression: {
-          descriptionsCompressed: mcpDescriptionStats.descriptionsCompressed,
-          charsBefore: mcpDescriptionStats.charsBefore,
-          charsAfter: mcpDescriptionStats.charsAfter,
-          charsSaved: mcpDescriptionStats.charsSaved,
-          estimatedTokensSaved: mcpDescriptionStats.estimatedTokensSaved,
-          persistedEstimatedTokensSaved:
-            analyticsSummary.mcpDescriptionCompression.estimatedTokensSaved,
-          persistedSnapshots: analyticsSummary.mcpDescriptionCompression.snapshots,
-          source: "mcp_metadata_estimate" as const,
-          notProviderUsage: true as const,
-        },
+        avgCompressionRatio: analyticsSummary.byMode?.standard?.avgSavingsPct || 0,
       },
       cacheStats: cacheStats
         ? {
@@ -156,11 +98,9 @@ export async function handleCompressionConfigure(
   args: {
     enabled?: boolean;
     strategy?: string;
-    autoTriggerMode?: string;
     maxTokens?: number;
     targetRatio?: number;
-    preserveSystemPrompt?: boolean;
-    mcpDescriptionCompressionEnabled?: boolean;
+    aggressiveness?: string;
   },
   extra?: McpToolExtraLike
 ): Promise<{
@@ -169,11 +109,9 @@ export async function handleCompressionConfigure(
   settings: {
     enabled: boolean;
     strategy: string;
-    autoTriggerMode: string;
     maxTokens: number;
     targetRatio: number;
-    preserveSystemPrompt: boolean;
-    mcpDescriptionCompressionEnabled: boolean;
+    aggressiveness: string;
   };
 }> {
   const start = Date.now();
@@ -186,17 +124,11 @@ export async function handleCompressionConfigure(
     if (args.strategy !== undefined) {
       updates.defaultMode = args.strategy;
     }
-    if (args.autoTriggerMode !== undefined) {
-      updates.autoTriggerMode = args.autoTriggerMode;
-    }
     if (args.maxTokens !== undefined) {
       updates.autoTriggerTokens = args.maxTokens;
     }
-    if (args.preserveSystemPrompt !== undefined) {
-      updates.preserveSystemPrompt = args.preserveSystemPrompt;
-    }
-    if (args.mcpDescriptionCompressionEnabled !== undefined) {
-      updates.mcpDescriptionCompressionEnabled = args.mcpDescriptionCompressionEnabled;
+    if (args.aggressiveness !== undefined) {
+      updates.defaultMode = args.aggressiveness;
     }
 
     const settings = await updateCompressionSettings(updates);
@@ -207,11 +139,9 @@ export async function handleCompressionConfigure(
       settings: {
         enabled: settings.enabled,
         strategy: settings.defaultMode || "standard",
-        autoTriggerMode: settings.autoTriggerMode ?? "lite",
         maxTokens: settings.autoTriggerTokens,
         targetRatio: 0.7, // Default target ratio
-        preserveSystemPrompt: settings.preserveSystemPrompt,
-        mcpDescriptionCompressionEnabled: settings.mcpDescriptionCompressionEnabled !== false,
+        aggressiveness: settings.defaultMode || "standard",
       },
     };
 
@@ -235,6 +165,7 @@ export async function handleCompressionConfigure(
 }
 
 import { z } from "zod";
+<<<<<<< Updated upstream
 import {
   compressionStatusInput,
   compressionConfigureInput,
@@ -319,6 +250,9 @@ export async function handleCompressionComboStats(
     combo: summary.byCompressionCombo[args.comboId] ?? { count: 0, tokensSaved: 0 },
   };
 }
+=======
+import { compressionStatusInput, compressionConfigureInput } from "../schemas/tools.ts";
+>>>>>>> Stashed changes
 
 // T07 — RTK learn/discover exposed via MCP (read-only; suggestions only). Mines the opt-in
 // raw-output sample store, exactly like the /api/context/rtk/{discover,learn} routes.
@@ -367,18 +301,17 @@ export const compressionTools = {
     name: "omniroute_compression_status",
     description:
       "Returns current compression configuration, strategy, analytics summary (requests compressed, tokens saved, avg ratio), and provider-aware cache statistics.",
-    scopes: ["read:compression"],
     inputSchema: compressionStatusInput,
     handler: (args: z.infer<typeof compressionStatusInput>) => handleCompressionStatus(args),
   },
   omniroute_compression_configure: {
     name: "omniroute_compression_configure",
     description:
-      "Configure compression settings at runtime. Supports enabling/disabling compression, changing strategy (off/lite/standard/aggressive/ultra/rtk/stacked), adjusting maxTokens threshold, targetRatio, auto-trigger mode, system prompt preservation, and MCP description compression.",
-    scopes: ["write:compression"],
+      "Configure compression settings at runtime. Supports enabling/disabling compression, changing strategy (none/standard/aggressive/ultra), adjusting maxTokens threshold, targetRatio, and aggressiveness level.",
     inputSchema: compressionConfigureInput,
     handler: (args: z.infer<typeof compressionConfigureInput>) => handleCompressionConfigure(args),
   },
+<<<<<<< Updated upstream
   omniroute_set_compression_engine: {
     name: "omniroute_set_compression_engine",
     description: "Set the active compression engine and Caveman/RTK runtime options.",
@@ -448,4 +381,6 @@ export const compressionTools = {
     inputSchema: rtkLearnInput,
     handler: (args: z.infer<typeof rtkLearnInput>) => handleRtkLearn(args),
   },
+=======
+>>>>>>> Stashed changes
 };

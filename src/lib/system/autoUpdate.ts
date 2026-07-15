@@ -3,28 +3,8 @@ import { closeSync, mkdirSync, openSync, existsSync } from "node:fs";
 import { access } from "node:fs/promises";
 import path from "node:path";
 import { promisify } from "node:util";
-import { homedir } from "node:os";
 
 const execFileAsync = promisify(execFile);
-
-/** @internal — exported for testability. */
-export function resolveProjectRoot(
-  fallback: string,
-  startDir: string = typeof __dirname !== "undefined" ? __dirname : process.cwd()
-): string {
-  const markers = ["package.json", ".git"] as const;
-  let dir = path.resolve(startDir);
-  while (true) {
-    if (markers.some((m) => existsSync(path.join(dir, m)))) return dir;
-    const parent = path.dirname(dir);
-    if (parent === dir) break;
-    dir = parent;
-  }
-  return fallback;
-}
-
-const FALLBACK_CWD = process.env.HOME || homedir() || "/tmp";
-export const PROJECT_ROOT: string = resolveProjectRoot(FALLBACK_CWD);
 
 type ComposeCommand = "docker compose" | "docker-compose";
 export type AutoUpdateMode = "npm" | "docker-compose" | "source";
@@ -125,9 +105,21 @@ export function getAutoUpdateConfig(env: NodeJS.ProcessEnv = process.env): AutoU
 
   let mode = normalizeMode(env.AUTO_UPDATE_MODE);
   if (mode === "npm") {
+<<<<<<< Updated upstream
     const isGitRepo = existsSync(path.join(PROJECT_ROOT, ".git"));
     const currentDir = typeof __dirname !== "undefined" ? __dirname : PROJECT_ROOT;
     mode = resolveAutoUpdateMode(mode, { isGitRepo, currentDir });
+=======
+    const isGitRepo = existsSync(path.join(process.cwd(), ".git"));
+    const currentDir = typeof __dirname !== "undefined" ? __dirname : process.cwd();
+    const isGlobalNodeModules = currentDir.includes("node_modules");
+
+    // If we are not in a global node_modules directory, we are likely a local source install/build.
+    // Even if .git is missing (downloaded zip), we should treat it as source.
+    if (isGitRepo || !isGlobalNodeModules) {
+      mode = "source";
+    }
+>>>>>>> Stashed changes
   }
 
   return {
@@ -166,7 +158,7 @@ export async function validateAutoUpdateRuntime(
   existsImpl: (targetPath: string) => Promise<boolean> = pathExists
 ): Promise<AutoUpdateValidation> {
   if (config.mode === "source") {
-    const gitDir = path.join(PROJECT_ROOT, ".git");
+    const gitDir = path.join(process.cwd(), ".git");
     if (!(await existsImpl(gitDir))) {
       return {
         supported: false,
@@ -246,7 +238,7 @@ export async function validateAutoUpdateRuntime(
 export async function ensureGitTagExists(
   targetTag: string,
   execFileImpl: ExecFileLike = execFileAsync,
-  cwd = PROJECT_ROOT
+  cwd = process.cwd()
 ): Promise<void> {
   try {
     await execFileImpl("git", ["rev-parse", "-q", "--verify", `refs/tags/${targetTag}`], {
@@ -261,10 +253,7 @@ export async function ensureGitTagExists(
 export function buildNpmUpdateScript(latest: string): string {
   return [
     "set -eu",
-    // --include=optional keeps the optionalDependencies (better-sqlite3, keytar,
-    // tls-client, and the llmlingua SLM stack) installed on every update so an
-    // `omit=optional` config / .npmrc cannot silently drop them.
-    `npm install -g omniroute@${latest} --include=optional --ignore-scripts --legacy-peer-deps`,
+    `npm install -g omniroute@${latest} --ignore-scripts --legacy-peer-deps`,
     "if command -v pm2 >/dev/null 2>&1; then",
     "  pm2 restart omniroute || true",
     "fi",
@@ -286,8 +275,8 @@ export function buildSourceUpdateScript(latest: string, gitRemote = "origin"): s
     'backup_branch="pre-update/$(git rev-parse --short HEAD)-$(date +%Y%m%d-%H%M%S)"',
     'git branch "$backup_branch" 2>/dev/null || true',
     `git checkout "${targetTag}"`,
-    "npm install --include=optional --legacy-peer-deps",
-    "node scripts/dev/sync-env.mjs 2>/dev/null || true",
+    "npm install --legacy-peer-deps",
+    "node scripts/sync-env.mjs 2>/dev/null || true",
     "npm run build",
     "if command -v pm2 >/dev/null 2>&1; then",
     "  pm2 restart omniroute --update-env || true",

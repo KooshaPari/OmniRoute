@@ -6,16 +6,10 @@ import {
   readMcpHeartbeat,
   resolveMcpHeartbeatPath,
 } from "@omniroute/open-sse/mcp-server/runtimeHeartbeat";
-import {
-  getMcpHttpStatus,
-  isMcpHttpTransportReady,
-} from "../../../../../open-sse/mcp-server/httpTransport";
+import { getMcpHttpStatus } from "../../../../../open-sse/mcp-server/httpTransport";
 import { getSettings } from "@/lib/db/settings";
-import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 
-export async function GET(request: Request) {
-  const authError = await requireManagementAuth(request);
-  if (authError) return authError;
+export async function GET() {
   try {
     const [heartbeat, stats, lastCallPage, settings] = await Promise.all([
       readMcpHeartbeat(),
@@ -27,18 +21,12 @@ export async function GET(request: Request) {
     const mcpEnabled = !!settings.mcpEnabled;
     const mcpTransport = (settings.mcpTransport as string) || "stdio";
 
-    // Check HTTP transport active-session state separately from endpoint readiness.
+    // Check HTTP transport (SSE / Streamable HTTP) if active
     const httpStatus = getMcpHttpStatus();
 
-    // stdio uses an external process heartbeat. HTTP transports are in-process and lazy-start
-    // on first request, so an enabled HTTP endpoint is online even before any session exists.
+    // stdio uses heartbeat file; HTTP transports use in-process state
     const stdioOnline = isMcpHeartbeatOnline(heartbeat, { requireLivePid: true });
-    const online =
-      mcpTransport === "stdio"
-        ? mcpEnabled && stdioOnline
-        : isMcpHttpTransportReady(mcpEnabled, mcpTransport);
-
-    const scopesEnforced = process.env.OMNIROUTE_MCP_ENFORCE_SCOPES === "true";
+    const online = mcpTransport === "stdio" ? stdioOnline : httpStatus.online;
 
     const lastCall = lastCallPage.entries[0] || null;
     const now = Date.now();
@@ -58,7 +46,6 @@ export async function GET(request: Request) {
       online,
       enabled: mcpEnabled,
       transport: mcpTransport,
-      scopesEnforced,
       heartbeatPath: resolveMcpHeartbeatPath(),
       heartbeat: heartbeat
         ? {

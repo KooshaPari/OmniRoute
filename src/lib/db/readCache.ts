@@ -110,17 +110,9 @@ export async function getCachedProviderConnections(
 
 // ──────────────── LKGP Cache Wrappers ────────────────
 
-interface LKGPRecordCache {
-  provider: string;
-  connectionId?: string;
-}
+const lkgpCache = new TTLCache<string | null>(SETTINGS_TTL_MS);
 
-const lkgpCache = new TTLCache<LKGPRecordCache | null>(SETTINGS_TTL_MS);
-
-export async function getCachedLKGP(
-  comboName: string,
-  modelId: string
-): Promise<LKGPRecordCache | null> {
+export async function getCachedLKGP(comboName: string, modelId: string): Promise<string | null> {
   const cacheKey = `lkgp:${comboName}:${modelId}`;
   const cached = lkgpCache.get(cacheKey);
   if (cached !== undefined) return cached;
@@ -134,45 +126,18 @@ export async function getCachedLKGP(
 export async function setCachedLKGP(
   comboName: string,
   modelId: string,
-  providerId: string,
-  connectionId?: string
+  providerId: string
 ): Promise<void> {
   const { setLKGP } = await import("@/lib/db/settings");
-  await setLKGP(comboName, modelId, providerId, connectionId);
+  await setLKGP(comboName, modelId, providerId);
   lkgpCache.invalidate(`lkgp:${comboName}:${modelId}`);
 }
 
-// ──────────────── Combo Cache Invalidation Signal ────────────────
-//
-// The nested-combo expansion caches live in request handlers
-// (`src/sse/handlers/chat.ts` getCombosCachedForChat and
-// `open-sse/handlers/chatCore.ts` getCombosCached), each with a 10s TTL. A db
-// module must NOT import a request handler (that would create an import cycle),
-// so instead those caches consult this monotonically-incrementing version.
-// Combo writes call `invalidateDbCache("combos")`, which bumps the version;
-// the handlers compare the version they were populated at against the current
-// one and treat a mismatch as a cache miss — so combo edits take effect
-// immediately instead of after the 10s window (#3147).
-let combosCacheVersion = 0;
-
 /**
- * Current combo-cache version. Cache layers snapshot this when they populate
- * and re-read it on every access; a change means the underlying combos were
- * written and the cached expansion must be refreshed.
+ * Invalidate all caches (call after writes to any of: settings, pricing, connections).
  */
-export function getCombosCacheVersion(): number {
-  return combosCacheVersion;
-}
-
-/**
- * Invalidate all caches (call after writes to any of: settings, pricing,
- * connections, combos).
- */
-export function invalidateDbCache(
-  scope?: "settings" | "pricing" | "connections" | "combos"
-): void {
+export function invalidateDbCache(scope?: "settings" | "pricing" | "connections"): void {
   if (!scope || scope === "settings") settingsCache.invalidate();
   if (!scope || scope === "pricing") pricingCache.invalidate();
   if (!scope || scope === "connections") connectionsCache.invalidate();
-  if (!scope || scope === "combos") combosCacheVersion++;
 }

@@ -21,12 +21,6 @@ import {
   getOrCoalesce,
   SEARCH_CACHE_DEFAULT_TTL_MS,
 } from "@omniroute/open-sse/services/searchCache.ts";
-import {
-  isAllRateLimitedCredentials,
-  rateLimitedProviderResponse,
-  type RateLimitedCredentials,
-} from "@/app/api/v1/_shared/rateLimit";
-import { withInjectionGuard } from "@/middleware/promptInjectionGuard";
 
 const CORS_HEADERS = {
   "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
@@ -60,28 +54,19 @@ export async function GET() {
   });
 }
 
-type SearchCredentials = Record<string, any>;
-type SearchCredentialLookup = SearchCredentials | RateLimitedCredentials | null;
-
-async function resolveSearchCredentials(providerId: string): Promise<SearchCredentialLookup> {
-  const credentials = await getProviderCredentials(providerId).catch(() => null);
-  if (credentials && !isAllRateLimitedCredentials(credentials)) return credentials;
-
+// Helper: resolve credentials with fallback (e.g., perplexity-search → perplexity)
+async function resolveSearchCredentials(providerId: string) {
+  const creds = await getProviderCredentials(providerId).catch(() => null);
+  if (creds) return creds;
   const fallbackId = SEARCH_CREDENTIAL_FALLBACKS[providerId];
-  if (!fallbackId) return credentials;
-
-  const fallbackCredentials = await getProviderCredentials(fallbackId).catch(() => null);
-  if (fallbackCredentials && !isAllRateLimitedCredentials(fallbackCredentials)) {
-    return fallbackCredentials;
-  }
-
-  return fallbackCredentials || credentials;
+  if (fallbackId) return getProviderCredentials(fallbackId).catch(() => null);
+  return null;
 }
 
 async function resolveSearchExecutionCredentials(providerConfig: {
   id: string;
   authType: string;
-}): Promise<SearchCredentialLookup> {
+}): Promise<Record<string, any> | null> {
   const credentials = await resolveSearchCredentials(providerConfig.id);
   if (credentials) return credentials;
   return providerConfig.authType === "none" ? {} : null;
@@ -102,7 +87,7 @@ function buildDomainFilter(filters?: {
 /**
  * POST /v1/search — execute a web search
  */
-async function postHandler(request: Request, context: unknown) {
+export async function POST(request: Request) {
   let rawBody: unknown;
   try {
     rawBody = await request.json();
@@ -146,18 +131,10 @@ async function postHandler(request: Request, context: unknown) {
   let credentials: Record<string, any> | null = null;
   let alternateProviderId: string | undefined;
   let alternateCredentials: Record<string, any> | null = null;
-  let firstRateLimitedCredentials: {
-    providerId: string;
-    credentials: RateLimitedCredentials;
-  } | null = null;
 
   if (body.provider) {
     // Explicit provider — single credential lookup (with fallback)
-    const explicitCredentials = await resolveSearchExecutionCredentials(providerConfig);
-    if (isAllRateLimitedCredentials(explicitCredentials)) {
-      return rateLimitedProviderResponse(providerConfig.id, explicitCredentials);
-    }
-    credentials = explicitCredentials;
+    credentials = await resolveSearchExecutionCredentials(providerConfig);
     if (!credentials) {
       return errorResponse(
         HTTP_STATUS.BAD_REQUEST,
@@ -166,21 +143,12 @@ async function postHandler(request: Request, context: unknown) {
     }
   } else {
     // Auto-select — try the resolved provider first, then iterate others by cost
-    const selectedCredentials = await resolveSearchExecutionCredentials(providerConfig);
-    if (isAllRateLimitedCredentials(selectedCredentials)) {
-      firstRateLimitedCredentials = {
-        providerId: providerConfig.id,
-        credentials: selectedCredentials,
-      };
-    } else {
-      credentials = selectedCredentials;
-    }
+    credentials = await resolveSearchExecutionCredentials(providerConfig);
 
     if (!credentials) {
-      // Sort by cost to find cheapest with credentials (fallback-only providers
-      // are reached via the last-resort step below, never the primary pick).
+      // Sort by cost to find cheapest with credentials
       const sortedIds = Object.values(SEARCH_PROVIDERS)
-        .filter((provider) => !provider.fallbackOnly && supportsSearchType(provider, body.search_type))
+        .filter((provider) => supportsSearchType(provider, body.search_type))
         .sort((a, b) => a.costPerQuery - b.costPerQuery)
         .map((p) => p.id);
 
@@ -188,10 +156,6 @@ async function postHandler(request: Request, context: unknown) {
         if (pid === providerConfig.id) continue;
         const altConfig = getSearchProvider(pid);
         const altCreds = altConfig ? await resolveSearchExecutionCredentials(altConfig) : null;
-        if (isAllRateLimitedCredentials(altCreds)) {
-          firstRateLimitedCredentials ??= { providerId: pid, credentials: altCreds };
-          continue;
-        }
         if (altConfig && altCreds) {
           providerConfig = altConfig;
           credentials = altCreds;
@@ -201,22 +165,15 @@ async function postHandler(request: Request, context: unknown) {
     }
 
     if (!credentials) {
-      if (firstRateLimitedCredentials) {
-        return rateLimitedProviderResponse(
-          firstRateLimitedCredentials.providerId,
-          firstRateLimitedCredentials.credentials
-        );
-      }
       return errorResponse(
         HTTP_STATUS.BAD_REQUEST,
         `No credentials configured for any search provider. Add an API key for a search provider (${Object.keys(SEARCH_PROVIDERS).join(", ")}) in the dashboard.`
       );
     }
 
-    // Find alternate for failover — must bind credentials to the matched provider.
-    // Exclude fallback-only providers; they are only used by the last-resort step.
+    // Find alternate for failover — must bind credentials to the matched provider
     const otherIds = Object.values(SEARCH_PROVIDERS)
-      .filter((provider) => !provider.fallbackOnly && supportsSearchType(provider, body.search_type))
+      .filter((provider) => supportsSearchType(provider, body.search_type))
       .sort((a, b) => a.costPerQuery - b.costPerQuery)
       .map((p) => p.id)
       .filter((id) => id !== providerConfig.id);
@@ -224,27 +181,10 @@ async function postHandler(request: Request, context: unknown) {
     for (const pid of otherIds) {
       const altConfig = getSearchProvider(pid);
       const creds = altConfig ? await resolveSearchExecutionCredentials(altConfig) : null;
-      if (isAllRateLimitedCredentials(creds)) continue;
       if (creds) {
         alternateProviderId = pid;
         alternateCredentials = creds;
         break;
-      }
-    }
-
-    // Last-resort: guarantee a free no-key fallback (e.g. duckduckgo-free) as the
-    // failover so out-of-the-box search still works when no credentialed provider
-    // is configured. Only used when no real alternate was found above.
-    if (!alternateProviderId) {
-      for (const provider of Object.values(SEARCH_PROVIDERS)) {
-        if (!provider.fallbackOnly || provider.id === providerConfig.id) continue;
-        if (!supportsSearchType(provider, body.search_type)) continue;
-        const fallbackCreds = await resolveSearchExecutionCredentials(provider);
-        if (fallbackCreds && !isAllRateLimitedCredentials(fallbackCreds)) {
-          alternateProviderId = provider.id;
-          alternateCredentials = fallbackCreds;
-          break;
-        }
       }
     }
   }
@@ -338,5 +278,3 @@ class SearchError extends Error {
     this.statusCode = statusCode;
   }
 }
-
-export const POST = withInjectionGuard(postHandler);

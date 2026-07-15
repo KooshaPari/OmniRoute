@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import {
   getPricing,
   getPricingWithSources,
@@ -15,9 +14,6 @@ import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
  * Get current pricing configuration (merged user + defaults)
  */
 export async function GET(request: Request) {
-  const authError = await requireManagementAuth(request);
-  if (authError) return authError;
-
   try {
     const includeSources = new URL(request.url).searchParams.get("includeSources") === "1";
     if (includeSources) {
@@ -38,9 +34,6 @@ export async function GET(request: Request) {
  * Body: { provider: { model: { input: number, output: number, cached: number, ... } } }
  */
 export async function PATCH(request) {
-  const authError = await requireManagementAuth(request);
-  if (authError) return authError;
-
   let rawBody;
   try {
     rawBody = await request.json();
@@ -77,9 +70,6 @@ export async function PATCH(request) {
  * Query params: ?provider=xxx&model=yyy (optional)
  */
 export async function DELETE(request) {
-  const authError = await requireManagementAuth(request);
-  if (authError) return authError;
-
   try {
     const { searchParams } = new URL(request.url);
     const provider = searchParams.get("provider");

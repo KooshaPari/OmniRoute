@@ -4,9 +4,12 @@ export { APP_CONFIG, THEME_CONFIG } from "./appConfig";
 export const PROVIDER_ENDPOINTS = {
   agentrouter: "https://agentrouter.org/v1/chat/completions",
   openrouter: "https://openrouter.ai/api/v1/chat/completions",
+<<<<<<< Updated upstream
   dgrid: "https://api.dgrid.ai/v1/chat/completions",
   bai: "https://api.b.ai/v1/chat/completions",
   qiniu: "https://api.qnaigc.com/v1/chat/completions",
+=======
+>>>>>>> Stashed changes
   glm: "https://api.z.ai/api/anthropic/v1/messages",
   glmt: "https://api.z.ai/api/anthropic/v1/messages",
   "bailian-coding-plan": "https://coding-intl.dashscope.aliyuncs.com/apps/anthropic/v1/messages",
@@ -16,10 +19,6 @@ export const PROVIDER_ENDPOINTS = {
   minimax: "https://api.minimax.io/anthropic/v1/messages",
   "minimax-cn": "https://api.minimaxi.com/anthropic/v1/messages",
   crof: "https://crof.ai/v1/chat/completions",
-  zenmux: "https://zenmux.ai/api/v1/chat/completions",
-  openadapter: "https://api.openadapter.in/v1/chat/completions",
-  dit: "https://api.dit.ai/v1/chat/completions",
-  tokenrouter: "https://api.tokenrouter.com/v1/chat/completions",
   openai: "https://api.openai.com/v1/chat/completions",
   anthropic: "https://api.anthropic.com/v1/messages",
   gemini: "https://generativelanguage.googleapis.com/v1beta/models",
@@ -27,7 +26,7 @@ export const PROVIDER_ENDPOINTS = {
 
 // Re-export from providers.js for backward compatibility
 export {
-  NOAUTH_PROVIDERS,
+  FREE_PROVIDERS,
   OAUTH_PROVIDERS,
   APIKEY_PROVIDERS,
   WEB_COOKIE_PROVIDERS,

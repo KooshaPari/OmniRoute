@@ -6,65 +6,18 @@ export interface CompressionResult {
   saved: number;
 }
 
+const CODE_INDICATORS =
+  /(?:^|\n)\s*(?:import\s|export\s|function\s|class\s|const\s|let\s|var\s|return\s|if\s*\(|for\s*\(|while\s*\()/;
+const GREP_LINE_RE = /^[\w./-]+:\d+:/m;
 const ANSI_RE = /\x1b\[[0-9;]*[a-zA-Z]/g;
 const SHELL_PROMPT_RE = /\$\s/;
 const JSON_PREFIX_RE = /^\s*[{[]/;
-const COMPRESSED_MARKER_RE = /^\[COMPRESSED:/;
-
-function isCodeLikeLine(rawLine: string): boolean {
-  const line = rawLine.trimStart();
-  return (
-    line.startsWith("import ") ||
-    line.startsWith("export ") ||
-    line.startsWith("function ") ||
-    line.startsWith("class ") ||
-    line.startsWith("const ") ||
-    line.startsWith("let ") ||
-    line.startsWith("var ") ||
-    line.startsWith("return ") ||
-    line.startsWith("if(") ||
-    line.startsWith("if (") ||
-    line.startsWith("for(") ||
-    line.startsWith("for (") ||
-    line.startsWith("while(") ||
-    line.startsWith("while (")
-  );
-}
-
-function parseGrepLinePath(line: string): string | null {
-  const firstColon = line.indexOf(":");
-  if (firstColon <= 0) return null;
-
-  const secondColon = line.indexOf(":", firstColon + 1);
-  if (secondColon === -1) return null;
-
-  const lineNumber = line.slice(firstColon + 1, secondColon);
-  if (!lineNumber || ![...lineNumber].every((char) => char >= "0" && char <= "9")) {
-    return null;
-  }
-
-  const filePath = line.slice(0, firstColon);
-  if (!filePath || /\s/.test(filePath)) return null;
-  return filePath;
-}
-
-function hasErrorLikeOutput(content: string): boolean {
-  const lower = content.toLowerCase();
-  return (
-    lower.includes("error:") ||
-    lower.includes("error ") ||
-    lower.includes("[error]") ||
-    lower.includes("exception:") ||
-    lower.includes("exception ") ||
-    lower.includes("[exception]") ||
-    lower.includes("traceback")
-  );
-}
+const ERROR_RE = /(?:Error|Exception|Traceback)[:\s]/i;
 
 function compressFileContent(content: string): string | null {
   const lines = content.split("\n");
   if (lines.length < 3) return null;
-  if (!lines.some(isCodeLikeLine)) return null;
+  if (!CODE_INDICATORS.test(content)) return null;
   const keep = 20;
   const tail = 5;
   if (lines.length <= keep + tail) return content;
@@ -76,12 +29,12 @@ function compressFileContent(content: string): string | null {
 
 function compressGrepSearch(content: string): string | null {
   const lines = content.split("\n");
-  const grepLines = lines.filter((line) => parseGrepLinePath(line) !== null);
+  const grepLines = lines.filter((l) => GREP_LINE_RE.test(l));
   if (grepLines.length === 0) return null;
   const paths = new Set<string>();
   for (const line of grepLines) {
-    const filePath = parseGrepLinePath(line);
-    if (filePath) paths.add(filePath);
+    const match = line.match(/^([\w./-]+):\d+:/);
+    if (match) paths.add(match[1]);
   }
   const top30 = grepLines.slice(0, 30);
   const remaining = grepLines.length - top30.length;
@@ -146,7 +99,7 @@ function compressJson(content: string): string | null {
 }
 
 function compressErrorMessage(content: string): string | null {
-  if (!hasErrorLikeOutput(content)) return null;
+  if (!ERROR_RE.test(content)) return null;
   const lines = content.split("\n");
   const errorLine = lines[0] || "";
   const stackLines = lines.slice(1);
@@ -159,68 +112,6 @@ function compressErrorMessage(content: string): string | null {
 
 function estimateTokens(text: string): number {
   return Math.ceil(text.length / 4);
-}
-
-/** Minimal shape of an Anthropic `tool_result` content block. */
-export interface AnthropicToolResultBlock {
-  type: "tool_result";
-  tool_use_id?: string;
-  content?: string | Array<{ type?: string; text?: string; [key: string]: unknown }>;
-  [key: string]: unknown;
-}
-
-export function isAnthropicToolResultBlock(value: unknown): value is AnthropicToolResultBlock {
-  return (
-    !!value &&
-    typeof value === "object" &&
-    (value as { type?: unknown }).type === "tool_result"
-  );
-}
-
-/**
- * Compress the text inside an Anthropic-shape `tool_result` content block,
- * reusing the same per-type strategies as OpenAI-shape tool messages. The
- * `tool_use_id` and block type are preserved exactly; only the inner text is
- * compressed. Returns the (possibly unchanged) block plus tokens saved.
- */
-export function compressAnthropicToolResultBlock(
-  block: AnthropicToolResultBlock,
-  opts: ToolStrategiesConfig
-): { block: AnthropicToolResultBlock; saved: number } {
-  const content = block.content;
-
-  if (typeof content === "string") {
-    if (!content || COMPRESSED_MARKER_RE.test(content)) return { block, saved: 0 };
-    const result = compressToolResult(content, opts);
-    if (result.strategy === "none" || result.saved <= 0) return { block, saved: 0 };
-    return { block: { ...block, content: result.compressed }, saved: result.saved };
-  }
-
-  if (Array.isArray(content)) {
-    let saved = 0;
-    let changed = false;
-    const nextContent = content.map((part) => {
-      if (
-        !part ||
-        typeof part !== "object" ||
-        part.type !== "text" ||
-        typeof part.text !== "string"
-      ) {
-        return part;
-      }
-      const text = part.text;
-      if (!text || COMPRESSED_MARKER_RE.test(text)) return part;
-      const result = compressToolResult(text, opts);
-      if (result.strategy === "none" || result.saved <= 0) return part;
-      saved += result.saved;
-      changed = true;
-      return { ...part, text: result.compressed };
-    });
-    if (!changed) return { block, saved: 0 };
-    return { block: { ...block, content: nextContent }, saved };
-  }
-
-  return { block, saved: 0 };
 }
 
 export function compressToolResult(content: string, opts: ToolStrategiesConfig): CompressionResult {

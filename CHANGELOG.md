@@ -1,7 +1,13 @@
 # Changelog
 
+All notable changes to this project will be documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
 ## [Unreleased]
 
+<<<<<<< Updated upstream
 ### 📝 Documentation
 
 - **governance:** add `CODEOWNERS` defaulting to `@KooshaPari` (so PRs without a more specific owner rule get auto-assigned to the org owner).
@@ -601,19 +607,21 @@ Um agradecimento especial a todos que contribuíram com código, revisões e tes
 - **CLI**: Refactored architecture to use Commander.js as framework. Monolith `bin/cli-commands.mjs` (2853 lines) removed — commands now live individually in `bin/cli/commands/`. No breaking changes in normal usage; all previously listed subcommands continue working.
 - **API keys**: keys without explicit rate-limit rules continue to receive the legacy default safety net (`1000/day`, `5000/week`, `20000/month`). Operators that need the previous uncapped behavior can set `DEFAULT_RATE_LIMIT_PER_DAY=0`; positive values scale the daily/weekly/monthly defaults from that daily limit.
 - **Cloud features**: fresh installations now start with Cloud disabled by default. Existing deployments with a persisted `cloudEnabled` setting are unchanged; operators can enable Cloud again from Dashboard settings.
+=======
+### Added
+
+### Changed
+
+### Deprecated
+>>>>>>> Stashed changes
 
 ### Removed
 
-- `bin/cli-commands.mjs` — replaced by modular structure in `bin/cli/commands/`.
-- `bin/cli/index.mjs` — replaced by `bin/cli/program.mjs` + `bin/cli/commands/registry.mjs`.
-- `bin/cli/args.mjs` — replaced by Commander.js native parsing support.
-
-- **refactor(@omniroute/opencode-provider):** complete rewrite of the npm helper. The `1.0.0` artifact was non-functional — `index.js` re-exported from `.ts` (unrunnable at install time) and the emitted shape didn't match the OpenCode `https://opencode.ai/config.json` schema. The new release ships a real `tsup` build (CJS + ESM + `.d.ts`), schema-correct output (`npm: "@ai-sdk/openai-compatible"`, with `models` catalog), `baseURL` deduplication (no more `/v1/v1`), input validation, 13 unit tests, and full documentation in [`docs/frameworks/OPENCODE.md`](docs/frameworks/OPENCODE.md). Versioned as `0.1.0` to signal the pre-1.0 reset.
-- **chore(npm):** [`@omniroute/opencode-provider@0.1.0`](https://www.npmjs.com/package/@omniroute/opencode-provider) published to npmjs.com under the new `@omniroute` org. Install with `npm install --save-dev @omniroute/opencode-provider`.
-- **BREAKING**: dropped Node 20.x support. Minimum Node version is now 22.22.2 (or 24.0.0+). Required because http-proxy-middleware 4.x requires `node >=22.15.0`. Users on Node 20 must upgrade — see [`package.json` engines field](package.json) and the README Node badge.
+### Fixed
 
 ### Security
 
+<<<<<<< Updated upstream
 - **fix(oauth/windsurf):** Windsurf Firebase token refresh now reads `WINDSURF_CONFIG.firebaseApiKey` instead of `process.env.WINDSURF_FIREBASE_API_KEY` directly.
 - **fix(kiro/translator):** assistant-first conversations no longer collide on a single `conversationId`.
 - **fix(utils/publicCreds):** `decodePublicCred()` no longer silently mangles raw credential overrides that don't match `RAW_VALUE_PATTERN`.
@@ -6468,44 +6476,13 @@ OmniRoute now automatically refreshes model lists for connected providers every 
 ## [2.3.8] - 2026-03-12
 
 ## [2.3.9] - 2026-03-12
+=======
+## [0.1.0] - 2026-06-14
+>>>>>>> Stashed changes
 
 ### Added
 
-- **/v1/completions**: New legacy OpenAI completions endpoint — accepts both `prompt` string and `messages` array, normalizes to chat format automatically
-- **EndpointPage**: Now shows all 3 OpenAI-compatible endpoint types: Chat Completions, Responses API, and Legacy Completions
-- **i18n**: Added `completionsLegacy/completionsLegacyDesc` to 30 language files
+- Initial release with version tracking.
 
-### Fixed
-
-- **OAuthModal**: Fix `[object Object]` displayed on all OAuth connection errors — properly extract `.message` from error response objects in all 3 `throw new Error(data.error)` calls (exchange, device-code, authorize)
-- Affects Cline, Codex, GitHub, Qwen, Kiro, and all other OAuth providers
-
-## [2.3.7] - 2026-03-12
-
-### Fixed
-
-- **Cline OAuth**: Add `decodeURIComponent` before base64 decode so URL-encoded auth codes from the callback URL are parsed correctly, fixing "invalid or expired authorization code" errors on remote (LAN IP) setups
-- **Cline OAuth**: `mapTokens` now populates `name = firstName + lastName || email` so Cline accounts show real user names instead of "Account #ID"
-- **OAuth account names**: All OAuth exchange flows (exchange, poll, poll-callback) now normalize `name = email` when name is missing, so every OAuth account shows its email as the display label in the Providers dashboard
-- **OAuth account names**: Removed sequential "Account N" fallback in `db/providers.ts` — accounts with no email/name now use a stable ID-based label via `getAccountDisplayName()` instead of a sequential number that changes when accounts are deleted
-
-## [2.3.6] - 2026-03-12
-
-### Fixed
-
-- **Provider test batch**: Fixed Zod schema to accept `providerId: null` (frontend sends null for non-provider modes); was incorrectly returning "Invalid request" for all batch tests
-- **Provider test modal**: Fixed `[object Object]` display by normalizing API error objects to strings before rendering in `setTestResults` and `ProviderTestResultsView`
-- **i18n**: Added missing keys `cliTools.toolDescriptions.opencode`, `cliTools.toolDescriptions.kiro`, `cliTools.guides.opencode`, `cliTools.guides.kiro` to `en.json`
-- **i18n**: Synchronized 1111 missing keys across all 29 non-English language files using English values as fallbacks
-
-## [2.3.5] - 2026-03-11
-
-### Fixed
-
-- **@swc/helpers**: Added permanent `postinstall` fix to copy `@swc/helpers` into the standalone app's `node_modules` — prevents MODULE_NOT_FOUND crash on global npm installs
-
-## [2.3.4] - 2026-03-10
-
-### Added
-
-- Multiple provider integrations and dashboard improvements
+[Unreleased]: https://github.com/KooshaPari/Melosviz/compare/0.1.0...HEAD
+[0.1.0]: https://github.com/KooshaPari/Melosviz/releases/tag/0.1.0

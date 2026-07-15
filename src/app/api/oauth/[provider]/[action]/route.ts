@@ -4,16 +4,17 @@ import {
   getProvider,
   generateAuthData,
   exchangeTokens,
-  finalizeTokens,
   requestDeviceCode,
   pollForToken,
-  resolveBrowserOAuthRedirectUri,
 } from "@/lib/oauth/providers";
+<<<<<<< Updated upstream
 import {
   persistOAuthConnection,
   buildOAuthConnectionCreatePayload,
 } from "@/lib/oauth/connectionPersistence";
 import { createDeviceFlowTicket, getDeviceFlowTicketStatus } from "@/lib/oauth/deviceFlowTickets";
+=======
+>>>>>>> Stashed changes
 import {
   createProviderConnection,
   updateProviderConnection,
@@ -24,22 +25,19 @@ import {
 import { getConsistentMachineId } from "@/shared/utils/machineId";
 import { syncToCloud } from "@/lib/cloudSync";
 import { startLocalServer } from "@/lib/oauth/utils/server";
-import { runWithProxyContextOrDirect } from "@omniroute/open-sse/utils/proxyFetch.ts";
+import { runWithProxyContext } from "@omniroute/open-sse/utils/proxyFetch.ts";
 import {
   jsonObjectSchema,
-  oauthDeviceCompleteSchema,
   oauthExchangeSchema,
-  oauthImportTokenSchema,
   oauthPollSchema,
 } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
-import { isAuthRequired, isAuthenticated } from "@/shared/utils/apiAuth";
-import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
 
 // Use globalThis to persist callback server state across Next.js HMR reloads
 if (!globalThis.__codexCallbackState) {
   globalThis.__codexCallbackState = null;
 }
+<<<<<<< Updated upstream
 // Windsurf / Devin CLI PKCE callback server state (separate from Codex)
 if (!globalThis.__windsurfCallbackState) {
   globalThis.__windsurfCallbackState = null;
@@ -67,6 +65,8 @@ const RETIRED_PKCE_PROVIDERS = new Set(["windsurf", "devin-cli"]);
 
 /** Providers that allow direct import of a raw API token (no OAuth exchange). */
 const IMPORT_TOKEN_PROVIDERS = new Set(["windsurf", "devin-cli", "grok-cli"]);
+=======
+>>>>>>> Stashed changes
 
 /**
  * Constant-time string comparison to prevent timing-oracle attacks (CWE-208).
@@ -81,26 +81,6 @@ function safeEqual(a: string | null | undefined, b: string | null | undefined): 
 }
 
 /**
- * Resolve the externally reachable base URL for public share links. Prefers the
- * configured public base URL; otherwise derives it from forwarded headers so the
- * link points at the host the operator actually serves (not an internal origin).
- */
-function resolvePublicBaseUrl(request: Request): string {
-  const env = process.env.NEXT_PUBLIC_BASE_URL || process.env.OMNIROUTE_PUBLIC_BASE_URL;
-  if (env && env.trim()) return env.trim().replace(/\/+$/, "");
-  const host = request.headers.get("x-forwarded-host") || request.headers.get("host");
-  const proto = request.headers.get("x-forwarded-proto") || "https";
-  if (host) return `${proto}://${host}`;
-  return new URL(request.url).origin;
-}
-
-async function requireOAuthRouteAuth(request: Request) {
-  if (!(await isAuthRequired(request))) return null;
-  if (await isAuthenticated(request)) return null;
-  return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-}
-
-/**
  * Dynamic OAuth API Route
  * Handles: authorize, exchange, device-code, poll, start-callback-server, poll-callback
  */
@@ -111,6 +91,7 @@ export async function GET(
   request: Request,
   { params }: { params: Promise<{ provider: string; action: string }> }
 ) {
+<<<<<<< Updated upstream
   // Phase 1 hotfix (2026-05-29): retired PKCE flows return 410 Gone BEFORE auth.
   // The action permanently does not exist for these providers regardless of who
   // is asking — answering 401 first would mislead callers into thinking the
@@ -143,14 +124,14 @@ export async function GET(
   const authResponse = await requireOAuthRouteAuth(request);
   if (authResponse) return authResponse;
 
+=======
+>>>>>>> Stashed changes
   try {
     const { provider, action } = await params;
     const { searchParams } = new URL(request.url);
 
     if (action === "authorize") {
-      const requestedRedirectUri =
-        searchParams.get("redirect_uri") || "http://localhost:8080/callback";
-      const redirectUri = resolveBrowserOAuthRedirectUri(provider, requestedRedirectUri);
+      const redirectUri = searchParams.get("redirect_uri") || "http://localhost:8080/callback";
       const authData = generateAuthData(provider, redirectUri);
       if (provider === "qoder" && !authData.authUrl) {
         return NextResponse.json({
@@ -158,19 +139,6 @@ export async function GET(
           supported: false,
           error:
             "Qoder browser OAuth is experimental and disabled by default. Configure QODER_OAUTH_* environment variables or use a Personal Access Token.",
-        });
-      }
-      // #3861: GitLab Duo needs a self-registered OAuth app. Without a client_id,
-      // buildAuthUrl returns null — surface a clear setup message instead of a 500.
-      if (provider === "gitlab-duo" && !authData.authUrl) {
-        return NextResponse.json({
-          ...authData,
-          supported: false,
-          error:
-            "GitLab Duo OAuth is not configured. Register an OAuth application at " +
-            "https://gitlab.com/-/profile/applications with redirect URI " +
-            'http://localhost:20128/callback and scopes "ai_features read_user", then set ' +
-            "GITLAB_DUO_OAUTH_CLIENT_ID (and optionally GITLAB_DUO_OAUTH_CLIENT_SECRET) and restart.",
         });
       }
       return NextResponse.json(authData);
@@ -199,8 +167,7 @@ export async function GET(
         provider === "kiro" ||
         provider === "amazon-q" ||
         provider === "kimi-coding" ||
-        provider === "kilocode" ||
-        provider === "codebuddy-cn"
+        provider === "kilocode"
       ) {
         // GitHub, Kiro/Amazon Q, Kimi Coding, and KiloCode don't use PKCE for device code
         if ((provider === "kiro" || provider === "amazon-q") && startUrl) {
@@ -215,17 +182,15 @@ export async function GET(
             ssoOidcEndpoint: `https://oidc.${region}.amazonaws.com`,
           };
 
-          deviceData = await runWithProxyContextOrDirect(proxy, () =>
+          deviceData = await runWithProxyContext(proxy, () =>
             (requestDeviceCode as any)(provider, null, providerOverrideConfig)
           );
         } else {
-          deviceData = await runWithProxyContextOrDirect(proxy, () =>
-            (requestDeviceCode as any)(provider)
-          );
+          deviceData = await runWithProxyContext(proxy, () => (requestDeviceCode as any)(provider));
         }
       } else {
         // Qwen and other providers use PKCE
-        deviceData = await runWithProxyContextOrDirect(proxy, () =>
+        deviceData = await runWithProxyContext(proxy, () =>
           requestDeviceCode(provider, authData.codeChallenge)
         );
       }
@@ -240,63 +205,48 @@ export async function GET(
       return await handleStartCallbackServer(provider, searchParams);
     }
 
-    if (action === "public-link-status") {
-      // Dashboard polls this (authenticated) to learn when the external visitor
-      // finished the device flow, so it can notify + refresh the connections.
-      const token = searchParams.get("token");
-      if (!token) {
-        return NextResponse.json({ error: "Missing token" }, { status: 400 });
-      }
-      const { status, result } = getDeviceFlowTicketStatus(token);
-      return NextResponse.json({ status, connection: result });
-    }
-
     return NextResponse.json({ error: "Unknown action" }, { status: 400 });
   } catch (error) {
-    console.error("OAuth GET error:", error);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    console.log("OAuth GET error:", error);
+    return NextResponse.json({ error: (error as any).message }, { status: 500 });
   }
 }
 
 /**
- * Start PKCE callback server for Codex, Windsurf, or Devin CLI.
- * Codex uses fixed port 1455; Windsurf/Devin CLI use a random free port (port 0).
- * Returns the auth URL and stores codeVerifier for later exchange.
+ * Start Codex callback server on port 1455
+ * Returns the auth URL and stores codeVerifier for later exchange
  */
 async function handleStartCallbackServer(provider: string, searchParams: URLSearchParams) {
-  if (!PKCE_CALLBACK_PROVIDERS.has(provider)) {
+  if (provider !== "codex") {
     return NextResponse.json(
-      { error: `Callback server not supported for provider: ${provider}` },
+      { error: "Callback server only supported for codex" },
       { status: 400 }
     );
   }
 
-  const isWindsurf = provider === "windsurf" || provider === "devin-cli";
-  const stateKey = isWindsurf ? "__windsurfCallbackState" : "__codexCallbackState";
-
   // Clean up existing server if any
-  if (globalThis[stateKey]?.close) {
+  if (globalThis.__codexCallbackState?.close) {
     try {
-      globalThis[stateKey].close();
+      globalThis.__codexCallbackState.close();
     } catch (e) {
       /* ignore */
     }
   }
-  globalThis[stateKey] = null;
+  globalThis.__codexCallbackState = null;
 
   try {
-    // Codex: fixed port 1455. Windsurf/Devin CLI: OS-assigned random port (0)
-    const serverPort = isWindsurf ? 0 : 1455;
+    // Start temp server on port 1455
     const { port, close } = await startLocalServer((params) => {
-      if (globalThis[stateKey]) {
-        globalThis[stateKey].callbackParams = params;
+      // Write directly to globalThis so it survives module reloads
+      if (globalThis.__codexCallbackState) {
+        globalThis.__codexCallbackState.callbackParams = params;
       }
-    }, serverPort);
+    }, 1455);
 
     const redirectUri = `http://localhost:${port}/auth/callback`;
     const authData = generateAuthData(provider, redirectUri);
 
-    globalThis[stateKey] = {
+    globalThis.__codexCallbackState = {
       callbackParams: null,
       close,
       port,
@@ -308,13 +258,13 @@ async function handleStartCallbackServer(provider: string, searchParams: URLSear
     // Auto-cleanup after 5 minutes
     const startedAt = Date.now();
     setTimeout(() => {
-      if (globalThis[stateKey]?.startedAt === startedAt) {
+      if (globalThis.__codexCallbackState?.startedAt === startedAt) {
         try {
           close();
         } catch (e) {
           /* ignore */
         }
-        globalThis[stateKey] = null;
+        globalThis.__codexCallbackState = null;
       }
     }, 300000);
 
@@ -325,8 +275,7 @@ async function handleStartCallbackServer(provider: string, searchParams: URLSear
       serverPort: port,
     });
   } catch (error) {
-    console.error("OAuth start-callback-server error:", error);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    return NextResponse.json({ error: (error as any).message }, { status: 500 });
   }
 }
 
@@ -336,54 +285,8 @@ export async function POST(
   request: Request,
   { params }: { params: Promise<{ provider: string; action: string }> }
 ) {
-  // Phase 1 hotfix (2026-05-29): retired PKCE flows return 410 Gone BEFORE auth.
-  // See GET handler comment.
-  try {
-    const earlyParams = await params;
-    if (
-      RETIRED_PKCE_PROVIDERS.has(earlyParams.provider) &&
-      earlyParams.action === "poll-callback"
-    ) {
-      return NextResponse.json(
-        {
-          error:
-            `Browser OAuth disabled for ${earlyParams.provider} — use import-token via ` +
-            `/api/oauth/${earlyParams.provider}/import-token. ` +
-            `In the Windsurf/VS Code IDE, run the "Windsurf: Provide Auth Token" command ` +
-            `(or click the Jupyter "Get Windsurf Authentication Token" button), then copy+paste the shown token. ` +
-            `Opening https://windsurf.com/show-auth-token directly only shows a "Redirecting" page — the IDE must initiate the ?state=... flow.`,
-        },
-        { status: 410 }
-      );
-    }
-  } catch {
-    /* fall through to normal handling */
-  }
-
-  const authResponse = await requireOAuthRouteAuth(request);
-  if (authResponse) return authResponse;
-
   try {
     const { provider, action } = await params;
-
-    // Phase 1 hotfix (2026-05-29): retired PKCE flows return 410 Gone before
-    // body parsing. windsurf/devin-cli `poll-callback` is permanently retired
-    // because the upstream PKCE endpoint returns 404. Use /import-token
-    // (handled later in this same handler) for those providers instead.
-    if (RETIRED_PKCE_PROVIDERS.has(provider) && action === "poll-callback") {
-      return NextResponse.json(
-        {
-          error:
-            `Browser OAuth disabled for ${provider} — use import-token via ` +
-            `/api/oauth/${provider}/import-token. ` +
-            `In the Windsurf/VS Code IDE, run the "Windsurf: Provide Auth Token" command ` +
-            `(or click the Jupyter "Get Windsurf Authentication Token" button), then copy+paste the shown token. ` +
-            `Opening https://windsurf.com/show-auth-token directly only shows a "Redirecting" page — the IDE must initiate the ?state=... flow.`,
-        },
-        { status: 410 }
-      );
-    }
-
     let rawBody: any = {};
     try {
       rawBody = await request.json();
@@ -420,18 +323,6 @@ export async function POST(
         return NextResponse.json({ error: validation.error }, { status: 400 });
       }
       body = validation.data;
-    } else if (action === "import-token") {
-      const validation = validateBody(oauthImportTokenSchema, rawBody);
-      if (isValidationFailure(validation)) {
-        return NextResponse.json({ error: validation.error }, { status: 400 });
-      }
-      body = validation.data;
-    } else if (action === "device-complete") {
-      const validation = validateBody(oauthDeviceCompleteSchema, rawBody);
-      if (isValidationFailure(validation)) {
-        return NextResponse.json({ error: validation.error }, { status: 400 });
-      }
-      body = validation.data;
     }
 
     if (action === "exchange") {
@@ -460,7 +351,7 @@ export async function POST(
       const proxy = await resolveProxyForProvider(provider);
 
       // Exchange code for tokens (through proxy if configured)
-      const tokenData = await runWithProxyContextOrDirect(proxy, () =>
+      const tokenData = await runWithProxyContext(proxy, () =>
         exchangeTokens(provider, code, redirectUri, codeVerifier, normalizedState)
       );
 
@@ -527,19 +418,14 @@ export async function POST(
 
       // Poll for token (through proxy if configured)
       let result;
-      if (
-        provider === "github" ||
-        provider === "kimi-coding" ||
-        provider === "kilocode" ||
-        provider === "codebuddy-cn"
-      ) {
+      if (provider === "github" || provider === "kimi-coding" || provider === "kilocode") {
         // For providers that don't use PKCE (GitHub, Kimi Coding, KiloCode), don't pass codeVerifier
-        result = await runWithProxyContextOrDirect(proxy, () =>
+        result = await runWithProxyContext(proxy, () =>
           (pollForToken as any)(provider, deviceCode)
         );
       } else if (provider === "kiro" || provider === "amazon-q") {
         // Kiro needs extraData (clientId, clientSecret) from device code response
-        result = await runWithProxyContextOrDirect(proxy, () =>
+        result = await runWithProxyContext(proxy, () =>
           (pollForToken as any)(provider, deviceCode, null, extraData)
         );
       } else {
@@ -547,7 +433,7 @@ export async function POST(
         if (!codeVerifier) {
           return NextResponse.json({ error: "Missing code verifier" }, { status: 400 });
         }
-        result = await runWithProxyContextOrDirect(proxy, () =>
+        result = await runWithProxyContext(proxy, () =>
           (pollForToken as any)(provider, deviceCode, codeVerifier)
         );
       }
@@ -620,20 +506,15 @@ export async function POST(
     if (action === "poll-callback") {
       const { connectionId } = body;
 
-      // poll-callback is supported for all PKCE callback providers
-      if (!PKCE_CALLBACK_PROVIDERS.has(provider)) {
+      // Poll for Codex callback server result
+      if (provider !== "codex") {
         return NextResponse.json(
-          {
-            error: `poll-callback only supported for PKCE callback providers: ${[...PKCE_CALLBACK_PROVIDERS].join(", ")}`,
-          },
+          { error: "poll-callback only supported for codex" },
           { status: 400 }
         );
       }
 
-      // Windsurf and Devin CLI share __windsurfCallbackState; Codex uses its own slot
-      const stateKey = provider === "codex" ? "__codexCallbackState" : "__windsurfCallbackState";
-
-      if (!globalThis[stateKey]) {
+      if (!globalThis.__codexCallbackState) {
         return NextResponse.json({
           success: false,
           error: "no_server",
@@ -641,13 +522,13 @@ export async function POST(
         });
       }
 
-      if (!globalThis[stateKey].callbackParams) {
+      if (!globalThis.__codexCallbackState.callbackParams) {
         return NextResponse.json({ success: false, pending: true });
       }
 
       // Callback received! Extract code and exchange for tokens
-      const params = globalThis[stateKey].callbackParams;
-      const { redirectUri, codeVerifier, close } = globalThis[stateKey];
+      const params = globalThis.__codexCallbackState.callbackParams;
+      const { redirectUri, codeVerifier, close } = globalThis.__codexCallbackState;
 
       // Clean up server
       try {
@@ -655,7 +536,7 @@ export async function POST(
       } catch (e) {
         /* ignore */
       }
-      globalThis[stateKey] = null;
+      globalThis.__codexCallbackState = null;
 
       if (params.error) {
         return NextResponse.json({
@@ -678,7 +559,7 @@ export async function POST(
         const proxy = await resolveProxyForProvider(provider);
 
         // Exchange code for tokens (through proxy if configured)
-        const tokenData = await runWithProxyContextOrDirect(proxy, () =>
+        const tokenData = await runWithProxyContext(proxy, () =>
           exchangeTokens(provider, params.code, redirectUri, codeVerifier, params.state)
         );
 
@@ -734,14 +615,11 @@ export async function POST(
           },
         });
       } catch (exchangeErr: any) {
-        console.error("OAuth exchange error:", exchangeErr);
-        return NextResponse.json(
-          { success: false, error: "Internal server error" },
-          { status: 500 }
-        );
+        return NextResponse.json({ success: false, error: exchangeErr.message }, { status: 500 });
       }
     }
 
+<<<<<<< Updated upstream
     if (action === "import-token") {
       const { token, connectionId } = body;
 
@@ -887,10 +765,12 @@ export async function POST(
       });
     }
 
+=======
+>>>>>>> Stashed changes
     return NextResponse.json({ error: "Unknown action" }, { status: 400 });
   } catch (error) {
-    console.error("OAuth POST error:", error);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    console.log("OAuth POST error:", error);
+    return NextResponse.json({ error: (error as any).message }, { status: 500 });
   }
 }
 

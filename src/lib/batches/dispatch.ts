@@ -25,7 +25,7 @@ async function getHandler(endpoint: SupportedBatchEndpoint): Promise<BatchRouteH
   return handler;
 }
 
-async function dispatchBatchApiRequest({
+export async function dispatchBatchApiRequest({
   endpoint,
   body,
   apiKey,
@@ -47,7 +47,3 @@ async function dispatchBatchApiRequest({
   });
   return await handler(request);
 }
-
-export const dispatch = {
-  dispatchBatchApiRequest,
-};

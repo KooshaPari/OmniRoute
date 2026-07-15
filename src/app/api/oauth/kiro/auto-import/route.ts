@@ -1,91 +1,32 @@
 import { NextResponse } from "next/server";
+import { readFile, readdir } from "fs/promises";
 import { homedir } from "os";
 import { join } from "path";
 import { isAuthRequired, isAuthenticated } from "@/shared/utils/apiAuth";
-import {
-  createProviderConnection,
-  getProviderConnections,
-  updateProviderConnection,
-  isCloudEnabled,
-  resolveProxyForProvider,
-} from "@/models";
-import { syncToCloud } from "@/lib/cloudSync";
-import { getConsistentMachineId } from "@/shared/utils/machineId";
-import { KiroService } from "@/lib/oauth/services/kiro";
-import { runWithProxyContext } from "@omniroute/open-sse/utils/proxyFetch.ts";
 
 /**
  * GET /api/oauth/kiro/auto-import
+ * Auto-detect and extract Kiro refresh token from AWS SSO cache.
  *
- * Auto-import Kiro credentials from kiro-cli's SQLite database.
- * Supports both personal Builder ID and enterprise SSO (IDC/profileArn).
- *
- * Falls back to ~/.aws/sso/cache if kiro-cli SQLite is not found.
- *
- * 🔒 Auth-guarded: requires JWT cookie or Bearer API key.
+ * 🔒 Auth-guarded: requires JWT cookie or Bearer API key (finding #258-5).
  */
 export async function GET(request: Request) {
-  if (await isAuthRequired(request)) {
+  if (await isAuthRequired()) {
     if (!(await isAuthenticated(request))) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
   }
 
-  const { searchParams } = new URL(request.url);
-  const targetProvider = searchParams.get("targetProvider") === "amazon-q" ? "amazon-q" : "kiro";
-
-  // Try kiro-cli SQLite first
-  const sqliteResult = await tryKiroCliSqlite();
-  if (sqliteResult.found) {
-    return await saveAndRespond(sqliteResult, targetProvider, request);
-  }
-
-  // Fall back to ~/.aws/sso/cache (social auth / manual token)
-  const cacheResult = await tryAwsSsoCache(targetProvider);
-  if (cacheResult.found) {
-    return await saveAndRespond(cacheResult, targetProvider, request);
-  }
-
-  return NextResponse.json({
-    found: false,
-    error:
-      "Kiro credentials not found. " +
-      "Run `kiro-cli login --use-device-flow` then retry, " +
-      "or use the Import Token option in the dashboard.",
-    triedPaths: [...(sqliteResult.triedPaths ?? []), cacheResult.triedPath].filter(Boolean),
-  });
-}
-
-// ── kiro-cli SQLite reader ────────────────────────────────────────────────────
-
-async function tryKiroCliSqlite(): Promise<{
-  found: boolean;
-  triedPaths?: string[];
-  refreshToken?: string;
-  accessToken?: string;
-  expiresAt?: string;
-  clientId?: string;
-  clientSecret?: string;
-  region?: string;
-  profileArn?: string;
-  source?: string;
-}> {
-  // Build list of candidate DB paths to probe in order.
-  const candidatePaths: string[] = [join(homedir(), ".local/share/kiro-cli/data.sqlite3")];
-  if (process.env.APPDATA) {
-    candidatePaths.push(join(process.env.APPDATA, "kiro", "storage.db"));
-  }
-
-  let Database: any;
   try {
-    Database = (await import("better-sqlite3")).default;
-  } catch {
-    return { found: false, triedPaths: candidatePaths };
-  }
+    const { searchParams } = new URL(request.url);
+    const targetProvider = searchParams.get("targetProvider") === "amazon-q" ? "amazon-q" : "kiro";
+    const providerLabel = targetProvider === "amazon-q" ? "Amazon Q" : "Kiro";
+    const cachePath = join(homedir(), ".aws/sso/cache");
 
-  for (const dbPath of candidatePaths) {
-    let db: any;
+    // Try to read cache directory
+    let files;
     try {
+<<<<<<< Updated upstream
       db = new Database(dbPath, { readonly: true, fileMustExist: true });
     } catch {
       // File does not exist or cannot be opened — try next candidate.
@@ -473,36 +414,72 @@ async function saveAndRespond(
         name: connectionName,
         providerSpecificData,
         testStatus: "active",
+=======
+      files = await readdir(cachePath);
+    } catch (error) {
+      return NextResponse.json({
+        found: false,
+        error: `AWS SSO cache not found. Please login to ${providerLabel} first.`,
+>>>>>>> Stashed changes
       });
-    } else {
-      await createProviderConnection({
-        provider: targetProvider,
-        authType: "oauth",
-        accessToken,
-        refreshToken,
-        expiresAt,
-        email: email || null,
-        name: connectionName,
-        providerSpecificData,
-        testStatus: "active",
-      } as any);
     }
 
-    if (isCloudEnabled()) {
-      const machineId = await getConsistentMachineId();
-      await syncToCloud(machineId).catch(() => {});
+    // Look for kiro-auth-token.json or any .json file with refreshToken
+    let refreshToken = null;
+    let foundFile = null;
+
+    // First try kiro-auth-token.json
+    const preferredTokenFile =
+      targetProvider === "amazon-q" ? "amazon-q-auth-token.json" : "kiro-auth-token.json";
+    if (files.includes(preferredTokenFile)) {
+      try {
+        const content = await readFile(join(cachePath, preferredTokenFile), "utf-8");
+        const data = JSON.parse(content);
+        if (data.refreshToken && data.refreshToken.startsWith("aorAAAAAG")) {
+          refreshToken = data.refreshToken;
+          foundFile = preferredTokenFile;
+        }
+      } catch (error) {
+        // Continue to search other files
+      }
+    }
+
+    // If not found, search all .json files
+    if (!refreshToken) {
+      for (const file of files) {
+        if (!file.endsWith(".json")) continue;
+
+        try {
+          const content = await readFile(join(cachePath, file), "utf-8");
+          const data = JSON.parse(content);
+
+          // Look for Kiro refresh token (starts with aorAAAAAG)
+          if (data.refreshToken && data.refreshToken.startsWith("aorAAAAAG")) {
+            refreshToken = data.refreshToken;
+            foundFile = file;
+            break;
+          }
+        } catch (error) {
+          // Skip invalid JSON files
+          continue;
+        }
+      }
+    }
+
+    if (!refreshToken) {
+      return NextResponse.json({
+        found: false,
+        error: `${providerLabel} token not found in AWS SSO cache. Please login to ${providerLabel} first.`,
+      });
     }
 
     return NextResponse.json({
       found: true,
-      source: result.source,
-      email: email || null,
-      profileArn: profileArn || null,
-      region: result.region || null,
-      message: "Kiro credentials imported successfully.",
+      refreshToken,
+      source: foundFile,
     });
-  } catch (error: any) {
-    console.error("[kiro auto-import] save error:", error);
-    return NextResponse.json({ found: false, error: "Internal server error" }, { status: 500 });
+  } catch (error) {
+    console.log("Kiro auto-import error:", error);
+    return NextResponse.json({ found: false, error: error.message }, { status: 500 });
   }
 }

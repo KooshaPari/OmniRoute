@@ -1,7 +1,30 @@
-# ── Common base with runtime deps ──────────────────────────────────────────
-FROM node:24-trixie-slim AS base
+# Stage 1: Build dependencies
+FROM python:3.12-slim-bookworm AS builder
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    gcc \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /build
+
+COPY requirements.txt .
+
+RUN pip install --no-cache-dir --prefix=/install -r requirements.txt
+
+# Stage 2: Runtime image
+FROM python:3.12-slim-bookworm AS runtime
+
+RUN groupadd --gid 1000 fastapi && \
+    useradd --uid 1000 --gid fastapi --create-home --shell /bin/bash fastapi
+
+COPY --from=builder /install /usr/local
+
 WORKDIR /app
 
+<<<<<<< Updated upstream
 # `apt-get upgrade` pulls the security-patched versions of the Debian (trixie)
 # base-image packages at build time — clears the subset of container-scan CVEs
 # (perl / util-linux / systemd / ncurses / zlib / tar / sqlite / shadow / pam …)
@@ -26,15 +49,15 @@ RUN npm install -g npm@latest \
 
 # ── Builder ────────────────────────────────────────────────────────────────
 FROM base AS builder
+=======
+COPY --chown=fastapi:fastapi . .
 
-# Build tools for native module compilation
-# apt-get update needed here because base's rm -rf clears the shared cache
-RUN --mount=type=cache,target=/var/cache/apt,sharing=shared \
-  --mount=type=cache,target=/var/lib/apt/lists,sharing=shared \
-  apt-get update \
-  && apt-get install -y --no-install-recommends python3 make g++ \
-  && rm -rf /var/lib/apt/lists/*
+USER fastapi
+>>>>>>> Stashed changes
 
+EXPOSE 8000
+
+<<<<<<< Updated upstream
 COPY package*.json ./
 # Workspace package manifests MUST be present before `npm ci` so npm materializes
 # the workspace and installs its *workspace-only* deps (e.g. safe-regex,
@@ -205,3 +228,9 @@ RUN --mount=type=cache,target=/root/.npm \
   npm install -g --no-audit --no-fund @openai/codex @anthropic-ai/claude-code droid openclaw@latest
 
 USER node
+=======
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD python -c "import urllib.request, sys; sys.exit(0 if urllib.request.urlopen('http://localhost:8000/health').status == 200 else 1)"
+
+CMD ["python", "-m", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+>>>>>>> Stashed changes

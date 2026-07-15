@@ -1,4 +1,5 @@
 import { z } from "zod";
+<<<<<<< Updated upstream
 import { ACCOUNT_FALLBACK_STRATEGY_VALUES, ROUTING_STRATEGY_VALUES } from "@/shared/constants/routingStrategies";
 import { SUPPORTED_BATCH_ENDPOINTS } from "@/shared/constants/batchEndpoints";
 import { MAX_REQUEST_BODY_LIMIT_MB, MIN_REQUEST_BODY_LIMIT_MB } from "@/shared/constants/bodySize";
@@ -8,6 +9,13 @@ import { HIDEABLE_SIDEBAR_ITEM_IDS } from "@/shared/constants/sidebarVisibility"
 import { isForbiddenUpstreamHeaderName, isForbiddenCustomHeaderName } from "@/shared/constants/upstreamHeaders";
 import { MAX_TIMER_TIMEOUT_MS } from "@/shared/utils/runtimeTimeouts";
 import { comboRuntimeExtensionShape, promoteZeroLatencyConfig } from "./schemas/comboRuntimeExtensions";
+=======
+import { SUPPORTED_BATCH_ENDPOINTS } from "@/shared/constants/batchEndpoints";
+import { COMBO_CONFIG_MODES } from "@/shared/constants/comboConfigMode";
+import { isLocalProvider } from "@/shared/constants/providers";
+import { HIDEABLE_SIDEBAR_ITEM_IDS } from "@/shared/constants/sidebarVisibility";
+import { isForbiddenUpstreamHeaderName } from "@/shared/constants/upstreamHeaders";
+>>>>>>> Stashed changes
 
 function isHttpUrl(value: string): boolean {
   try {
@@ -19,7 +27,11 @@ function isHttpUrl(value: string): boolean {
 }
 
 const CODEX_REASONING_EFFORT_VALUES = new Set(["none", "low", "medium", "high", "xhigh"]);
+<<<<<<< Updated upstream
 const REQUEST_DEFAULT_SERVICE_TIER_VALUES = new Set(["default", "priority", "fast", "flex"]);
+=======
+const REQUEST_DEFAULT_SERVICE_TIER_VALUES = new Set(["priority", "fast"]);
+>>>>>>> Stashed changes
 
 function validateProviderSpecificData(
   data: Record<string, unknown> | undefined,
@@ -58,6 +70,7 @@ function validateProviderSpecificData(
     });
   }
 
+<<<<<<< Updated upstream
   const region = data.region;
   if (
     region !== undefined &&
@@ -71,6 +84,8 @@ function validateProviderSpecificData(
     });
   }
 
+=======
+>>>>>>> Stashed changes
   const openaiStoreEnabled = data.openaiStoreEnabled;
   if (openaiStoreEnabled !== undefined && typeof openaiStoreEnabled !== "boolean") {
     ctx.addIssue({
@@ -142,7 +157,11 @@ function validateProviderSpecificData(
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           message:
+<<<<<<< Updated upstream
             "providerSpecificData.requestDefaults.serviceTier must be one of default, priority, fast, flex when provided",
+=======
+            "providerSpecificData.requestDefaults.serviceTier must be priority when provided",
+>>>>>>> Stashed changes
           path: ["requestDefaults", "serviceTier"],
         });
       }
@@ -244,6 +263,7 @@ function validateProviderSpecificData(
       });
     }
   }
+<<<<<<< Updated upstream
 
   const clientProfile = data.clientProfile;
   if (clientProfile !== undefined && clientProfile !== null) {
@@ -260,11 +280,17 @@ function validateProviderSpecificData(
       });
     }
   }
+=======
+>>>>>>> Stashed changes
 }
 
 // Re-export validation helpers from dedicated module to avoid webpack barrel-file
 // optimization bug that truncates exports from large files.
 export { validateBody, isValidationFailure } from "./helpers";
+<<<<<<< Updated upstream
+=======
+export type { ValidationResult } from "./helpers";
+>>>>>>> Stashed changes
 
 // ──── Provider Schemas ────
 
@@ -286,7 +312,14 @@ export const createProviderSchema = z
   })
   .superRefine((data, ctx) => {
     const apiKey = typeof data.apiKey === "string" ? data.apiKey.trim() : "";
+<<<<<<< Updated upstream
     const apiKeyOptional = providerAllowsOptionalApiKey(data.provider);
+=======
+    const apiKeyOptional =
+      data.provider === "searxng-search" ||
+      data.provider === "petals" ||
+      isLocalProvider(data.provider);
+>>>>>>> Stashed changes
     if (!apiKeyOptional && apiKey.length === 0) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
@@ -311,6 +344,7 @@ export const createProviderSchema = z
     }
   });
 
+<<<<<<< Updated upstream
 export const bulkCreateProviderSchema = z
   .object({
     provider: z.string().min(1).max(100),
@@ -503,12 +537,17 @@ export const importAgyAuthBulkSchema = z.object({
   overwriteExisting: z.boolean().optional(),
 });
 
+=======
+>>>>>>> Stashed changes
 // ──── API Key Schemas ────
 
 export const createKeySchema = z.object({
   name: z.string().min(1, "Name is required").max(200),
   noLog: z.boolean().optional(),
+<<<<<<< Updated upstream
   scopes: z.array(z.string().trim().min(1).max(64)).max(32).optional(),
+=======
+>>>>>>> Stashed changes
 });
 
 export const createSyncTokenSchema = z.object({
@@ -546,6 +585,7 @@ const comboModelEntry = z.union([
   comboRefStepInputSchema,
 ]);
 
+<<<<<<< Updated upstream
 const shadowRoutingSchema = z
   .object({
     enabled: z.boolean().optional(),
@@ -569,6 +609,24 @@ const evalRoutingSchema = z
   .strict();
 
 export const comboStrategySchema = z.enum(ROUTING_STRATEGY_VALUES);
+=======
+export const comboStrategySchema = z.enum([
+  "priority",
+  "weighted",
+  "round-robin",
+  "context-relay",
+  "random",
+  "least-used",
+  "cost-optimized",
+  "strict-random",
+  "auto",
+  "fill-first",
+  // #729 schema fixes for combo edit/save
+  "p2c",
+  "lkgp",
+  "context-optimized",
+]);
+>>>>>>> Stashed changes
 
 const scoringWeightsSchema = z
   .object({
@@ -579,10 +637,13 @@ const scoringWeightsSchema = z
     taskFit: z.number().min(0).max(1),
     stability: z.number().min(0).max(1),
     tierPriority: z.number().min(0).max(1).optional().default(0.05),
+<<<<<<< Updated upstream
     tierAffinity: z.number().min(0).max(1).optional().default(0.05),
     specificityMatch: z.number().min(0).max(1).optional().default(0.05),
     contextAffinity: z.number().min(0).max(1).optional().default(0.08),
     resetWindowAffinity: z.number().min(0).max(1).optional().default(0),
+=======
+>>>>>>> Stashed changes
   })
   .optional();
 
@@ -602,6 +663,7 @@ const compositeTiersSchema = z
   })
   .strict();
 
+<<<<<<< Updated upstream
 const compressionModeSchema = z.enum([
   "off",
   "lite",
@@ -623,13 +685,23 @@ const slaRoutingPolicySchema = z
   .strict();
 
 export const comboRuntimeConfigSchema = z
+=======
+const compressionModeSchema = z.enum(["off", "lite", "standard", "aggressive", "ultra"]);
+const comboCompressionOverrideSchema = z.union([z.literal(""), compressionModeSchema]);
+
+const comboRuntimeConfigSchema = z
+>>>>>>> Stashed changes
   .object({
     strategy: comboStrategySchema.optional(),
     maxRetries: z.coerce.number().int().min(0).max(10).optional(),
     retryDelayMs: z.coerce.number().int().min(0).max(60000).optional(),
+<<<<<<< Updated upstream
     fallbackDelayMs: z.coerce.number().int().min(0).max(60000).optional(),
     timeoutMs: z.coerce.number().int().min(1000).optional(),
     targetTimeoutMs: z.coerce.number().int().min(0).max(MAX_TIMER_TIMEOUT_MS).optional(),
+=======
+    timeoutMs: z.coerce.number().int().min(1000).optional(),
+>>>>>>> Stashed changes
     concurrencyPerModel: z.coerce.number().int().min(1).max(20).optional(),
     queueTimeoutMs: z.coerce.number().int().min(1000).max(120000).optional(),
     healthCheckEnabled: z.boolean().optional(),
@@ -640,6 +712,7 @@ export const comboRuntimeConfigSchema = z
     maxMessagesForSummary: z.coerce.number().int().min(5).max(100).optional(),
     maxComboDepth: z.coerce.number().int().min(1).max(10).optional(),
     trackMetrics: z.boolean().optional(),
+<<<<<<< Updated upstream
     reasoningTokenBufferEnabled: z.boolean().optional(),
     compressionMode: compressionModeSchema.optional(),
     failoverBeforeRetry: z.boolean().optional(),
@@ -651,6 +724,9 @@ export const comboRuntimeConfigSchema = z
     fallbackCompressionMode: compressionModeSchema.optional(),
     fallbackCompressionThreshold: z.coerce.number().int().min(0).max(2_000_000).optional(),
     predictiveTtftMs: z.coerce.number().int().min(0).max(300000).optional(),
+=======
+    compressionMode: compressionModeSchema.optional(),
+>>>>>>> Stashed changes
     // Auto-Combo / LKGP Extensions
     candidatePool: z.array(z.string().min(1)).optional(),
     weights: scoringWeightsSchema.optional(),
@@ -658,6 +734,7 @@ export const comboRuntimeConfigSchema = z
     budgetCap: z.number().positive().optional(),
     explorationRate: z.number().min(0).max(1).optional(),
     routerStrategy: z.string().optional(),
+<<<<<<< Updated upstream
     slaTargetP95Ms: z.coerce.number().int().positive().max(300000).optional(),
     slaMaxErrorRate: z.coerce.number().min(0).max(1).optional(),
     slaMaxCostPer1MTokens: z.coerce.number().positive().max(1000000).optional(),
@@ -717,6 +794,18 @@ const comboNameSchema = z
 export const createComboSchema = z.object({
   name: comboNameSchema,
   description: z.string().max(1000).optional(),
+=======
+    compositeTiers: compositeTiersSchema.optional(),
+  })
+  .strict();
+
+export const createComboSchema = z.object({
+  name: z
+    .string()
+    .min(1, "Name is required")
+    .max(100)
+    .regex(/^[a-zA-Z0-9_/.-]+$/, "Name can only contain letters, numbers, -, _, / and ."),
+>>>>>>> Stashed changes
   models: z.array(comboModelEntry).optional().default([]),
   strategy: comboStrategySchema.optional().default("priority"),
   config: comboRuntimeConfigSchema.optional(),
@@ -730,7 +819,25 @@ export const createComboSchema = z.object({
 // ──── Settings Schemas ────
 // FASE-01: Removed .passthrough() — only explicitly listed fields are accepted
 
+<<<<<<< Updated upstream
 const settingsFallbackStrategySchema = z.enum(ACCOUNT_FALLBACK_STRATEGY_VALUES);
+=======
+const settingsFallbackStrategySchema = z.enum([
+  "priority",
+  "weighted",
+  "round-robin",
+  "context-relay",
+  "fill-first",
+  "p2c",
+  "random",
+  "least-used",
+  "cost-optimized",
+  "strict-random",
+  "auto",
+  "context-optimized",
+  "lkgp",
+]);
+>>>>>>> Stashed changes
 
 export const updateSettingsSchema = z.object({
   newPassword: z.string().min(1).max(200).optional(),
@@ -749,6 +856,7 @@ export const updateSettingsSchema = z.object({
   hideEndpointCloudflaredTunnel: z.boolean().optional(),
   hideEndpointTailscaleFunnel: z.boolean().optional(),
   hideEndpointNgrokTunnel: z.boolean().optional(),
+<<<<<<< Updated upstream
   preferClaudeCodeForUnprefixedClaudeModels: z.boolean().optional(),
   pinProviderQuotaToHome: z.boolean().optional(),
   showQuickStartOnHome: z.boolean().optional(),
@@ -765,18 +873,26 @@ export const updateSettingsSchema = z.object({
     })
     .optional(),
   codexSessionAffinityTtlMs: z.number().int().min(0).max(86_400_000).optional(),
+=======
+  bruteForceProtection: z.boolean().optional(),
+  hiddenSidebarItems: z.array(z.enum(HIDEABLE_SIDEBAR_ITEM_IDS)).optional(),
+  comboConfigMode: z.enum(COMBO_CONFIG_MODES).optional(),
+>>>>>>> Stashed changes
   // Routing settings (#134)
   fallbackStrategy: settingsFallbackStrategySchema.optional(),
   wildcardAliases: z.array(z.object({ pattern: z.string(), target: z.string() })).optional(),
   stickyRoundRobinLimit: z.number().int().min(0).max(1000).optional(),
   requestRetry: z.number().int().min(0).max(10).optional(),
   maxRetryIntervalSec: z.number().int().min(0).max(300).optional(),
+<<<<<<< Updated upstream
   maxBodySizeMb: z
     .number()
     .int()
     .min(MIN_REQUEST_BODY_LIMIT_MB)
     .max(MAX_REQUEST_BODY_LIMIT_MB)
     .optional(),
+=======
+>>>>>>> Stashed changes
   // Auto intent classifier settings (multilingual routing)
   intentDetectionEnabled: z.boolean().optional(),
   intentSimpleMaxWords: z.number().int().min(1).max(500).optional(),
@@ -787,6 +903,7 @@ export const updateSettingsSchema = z.object({
   mcpEnabled: z.boolean().optional(),
   a2aEnabled: z.boolean().optional(),
   wsAuth: z.boolean().optional(),
+<<<<<<< Updated upstream
 
   // Qdrant integration
   qdrantEnabled: z.boolean().optional(),
@@ -795,6 +912,8 @@ export const updateSettingsSchema = z.object({
   qdrantApiKey: z.string().max(500).optional(),
   qdrantCollection: z.string().max(200).optional(),
   qdrantEmbeddingModel: z.string().max(200).optional(),
+=======
+>>>>>>> Stashed changes
 });
 
 // ──── Auth Schemas ────
@@ -912,6 +1031,7 @@ export const v1CountTokensSchema = z
   })
   .catchall(z.unknown());
 
+<<<<<<< Updated upstream
 export const setBudgetSchema = z.object({
   apiKeyId: z.string().trim().min(1, "apiKeyId is required"),
   // #3537: a limit of 0 means "no limit for this period" (checkBudget only enforces when
@@ -944,11 +1064,28 @@ export const setTokenLimitSchema = z
       .int("tokenLimit must be an integer")
       .positive("tokenLimit must be greater than zero"),
     resetInterval: z.enum(["daily", "weekly", "monthly"]).default("monthly"),
+=======
+export const setBudgetSchema = z
+  .object({
+    apiKeyId: z.string().trim().min(1, "apiKeyId is required"),
+    dailyLimitUsd: z.coerce.number().positive("dailyLimitUsd must be greater than zero").optional(),
+    weeklyLimitUsd: z.coerce
+      .number()
+      .positive("weeklyLimitUsd must be greater than zero")
+      .optional(),
+    monthlyLimitUsd: z.coerce
+      .number()
+      .positive("monthlyLimitUsd must be greater than zero")
+      .optional(),
+    warningThreshold: z.coerce.number().min(0).max(1).optional(),
+    resetInterval: z.enum(["daily", "weekly", "monthly"]).optional(),
+>>>>>>> Stashed changes
     resetTime: z
       .string()
       .trim()
       .regex(/^\d{2}:\d{2}$/, "resetTime must be in HH:MM format")
       .optional(),
+<<<<<<< Updated upstream
     enabled: z.boolean().default(true),
   })
   .superRefine((value, ctx) => {
@@ -957,6 +1094,18 @@ export const setTokenLimitSchema = z
         code: z.ZodIssueCode.custom,
         message: "scopeValue is required unless scopeType is 'global'",
         path: ["scopeValue"],
+=======
+  })
+  .superRefine((value, ctx) => {
+    const hasAnyLimit = [value.dailyLimitUsd, value.weeklyLimitUsd, value.monthlyLimitUsd].some(
+      (entry) => typeof entry === "number" && Number.isFinite(entry) && entry > 0
+    );
+    if (!hasAnyLimit) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "At least one budget limit must be provided",
+        path: ["dailyLimitUsd"],
+>>>>>>> Stashed changes
       });
     }
   });
@@ -1039,7 +1188,10 @@ export const providerModelMutationSchema = z.object({
       "chat-completions",
       "responses",
       "embeddings",
+<<<<<<< Updated upstream
       "rerank",
+=======
+>>>>>>> Stashed changes
       "audio-transcriptions",
       "audio-speech",
       "images-generations",
@@ -1050,21 +1202,29 @@ export const providerModelMutationSchema = z.object({
       z.enum([
         "chat",
         "embeddings",
+<<<<<<< Updated upstream
         "rerank",
         "images",
         "audio",
         "video",
+=======
+        "images",
+        "audio",
+>>>>>>> Stashed changes
         "audio-transcriptions",
         "audio-speech",
         "images-generations",
       ])
     )
     .default(["chat"]),
+<<<<<<< Updated upstream
   // #2905: optional per-model wire format override for custom models (e.g. a
   // custom opencode-go model that must use the Anthropic Messages shape).
   targetFormat: z
     .enum(["openai", "openai-responses", "claude", "gemini", "gemini-cli", "antigravity"])
     .optional(),
+=======
+>>>>>>> Stashed changes
   normalizeToolCallId: z.boolean().optional(),
   preserveOpenAIDeveloperRole: z.boolean().nullable().optional(),
   upstreamHeaders: upstreamHeadersRecordSchema.nullable().optional(),
@@ -1124,17 +1284,21 @@ const connectionCooldownProfileSchema = z
   .object({
     baseCooldownMs: z.number().int().min(0).optional(),
     useUpstreamRetryHints: z.boolean().optional(),
+<<<<<<< Updated upstream
     // Issue #2100 follow-up: per-profile toggle for upstream 429 hint trust.
     // `null` is an explicit unset sentinel — PATCH handler deletes the key
     // from stored settings so the per-provider default resolves at runtime.
     // `undefined` (key omitted) means "leave existing value unchanged".
     useUpstream429BreakerHints: z.boolean().nullable().optional(),
+=======
+>>>>>>> Stashed changes
     maxBackoffSteps: z.number().int().min(0).optional(),
   })
   .strict();
 
 const providerBreakerProfileSchema = z
   .object({
+<<<<<<< Updated upstream
     failureThreshold: z.number().int().min(1).max(1000).optional(),
     degradationThreshold: z.number().int().min(1).max(1000).optional(),
     resetTimeoutMs: z.number().int().min(1000).optional(),
@@ -1154,6 +1318,12 @@ const providerBreakerProfileSchema = z
       });
     }
   });
+=======
+    failureThreshold: z.number().int().min(1).optional(),
+    resetTimeoutMs: z.number().int().min(1000).optional(),
+  })
+  .strict();
+>>>>>>> Stashed changes
 
 const waitForCooldownSettingsSchema = z
   .object({
@@ -1163,6 +1333,7 @@ const waitForCooldownSettingsSchema = z
   })
   .strict();
 
+<<<<<<< Updated upstream
 const providerCooldownSettingsSchema = z
   .object({
     enabled: z.boolean().optional(),
@@ -1184,6 +1355,8 @@ const providerCooldownSettingsSchema = z
     }
   });
 
+=======
+>>>>>>> Stashed changes
 export const updateResilienceSchema = z
   .object({
     requestQueue: requestQueueSettingsSchema.optional(),
@@ -1202,7 +1375,10 @@ export const updateResilienceSchema = z
       .strict()
       .optional(),
     waitForCooldown: waitForCooldownSettingsSchema.optional(),
+<<<<<<< Updated upstream
     providerCooldown: providerCooldownSettingsSchema.optional(),
+=======
+>>>>>>> Stashed changes
     profiles: z
       .object({
         oauth: legacyResilienceProfileSchema.optional(),
@@ -1219,7 +1395,10 @@ export const updateResilienceSchema = z
       !value.connectionCooldown &&
       !value.providerBreaker &&
       !value.waitForCooldown &&
+<<<<<<< Updated upstream
       !value.providerCooldown &&
+=======
+>>>>>>> Stashed changes
       !value.profiles &&
       !value.defaults
     ) {
@@ -1246,12 +1425,15 @@ export const pricingSyncRequestSchema = z
   })
   .strict();
 
+<<<<<<< Updated upstream
 export const intelligenceSyncRequestSchema = z
   .object({
     dryRun: z.boolean().optional(),
   })
   .strict();
 
+=======
+>>>>>>> Stashed changes
 const taskRoutingModelMapSchema = z
   .object({
     coding: z.string().max(200).optional(),
@@ -1345,19 +1527,27 @@ export const updateRequireLoginSchema = z
 
 export const updateSystemPromptSchema = z
   .object({
+<<<<<<< Updated upstream
     prompt: z.string().max(50000).optional(), // legacy compat
     prefixPrompt: z.string().max(50000).optional(),
     suffixPrompt: z.string().max(50000).optional(),
+=======
+    prompt: z.string().max(50000).optional(),
+>>>>>>> Stashed changes
     enabled: z.boolean().optional(),
   })
   .strict()
   .superRefine((value, ctx) => {
+<<<<<<< Updated upstream
     if (
       value.prompt === undefined &&
       value.prefixPrompt === undefined &&
       value.suffixPrompt === undefined &&
       value.enabled === undefined
     ) {
+=======
+    if (value.prompt === undefined && value.enabled === undefined) {
+>>>>>>> Stashed changes
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         message: "No valid fields to update",
@@ -1370,7 +1560,11 @@ export const updateThinkingBudgetSchema = z
   .object({
     mode: z.enum(["passthrough", "auto", "custom", "adaptive"]).optional(),
     customBudget: z.coerce.number().int().min(0).max(131072).optional(),
+<<<<<<< Updated upstream
     effortLevel: z.enum(["none", "low", "medium", "high", "xhigh", "max"]).optional(),
+=======
+    effortLevel: z.enum(["none", "low", "medium", "high"]).optional(),
+>>>>>>> Stashed changes
     baseBudget: z.coerce.number().int().min(0).max(131072).optional(),
     complexityMultiplier: z.coerce.number().min(0).optional(),
   })
@@ -1553,6 +1747,7 @@ export const testProxySchema = z.object({
   }),
 });
 
+<<<<<<< Updated upstream
 const inlineProxyAssignmentSchema = z
   .object({
     scope: z.enum(["global", "provider", "account", "combo", "key"]),
@@ -1570,12 +1765,19 @@ const inlineProxyAssignmentSchema = z
   });
 
 const proxyRegistryFieldsSchema = z
+=======
+export const createProxyRegistrySchema = z
+>>>>>>> Stashed changes
   .object({
     name: z.string().trim().min(1, "name is required").max(120),
     type: z
       .preprocess(
         (value) => (typeof value === "string" ? value.trim().toLowerCase() : value),
+<<<<<<< Updated upstream
         z.enum(["http", "https", "socks5", "vercel"])
+=======
+        z.enum(["http", "https", "socks5"])
+>>>>>>> Stashed changes
       )
       .optional()
       .default("http"),
@@ -1586,6 +1788,7 @@ const proxyRegistryFieldsSchema = z
     region: z.string().trim().max(64).nullable().optional(),
     notes: z.string().trim().max(1000).nullable().optional(),
     status: z.enum(["active", "inactive"]).optional().default("active"),
+<<<<<<< Updated upstream
     source: z.enum(["manual", "oneproxy", "dashboard-custom", "vercel-relay"]).optional(),
     // Address-family egress policy (#3777): "auto" keeps the prior dual-stack behavior;
     // "ipv4"/"ipv6" pin the connection to that family (no v4 leak under an IPv6-only proxy).
@@ -1606,11 +1809,23 @@ export const updateProxyRegistrySchema = proxyRegistryFieldsSchema
     assignment: inlineProxyAssignmentSchema.optional(),
   })
   .strict();
+=======
+  })
+  .strict();
+
+export const updateProxyRegistrySchema = createProxyRegistrySchema.partial().extend({
+  id: z.string().trim().min(1, "id is required"),
+});
+>>>>>>> Stashed changes
 
 export const bulkImportProxiesSchema = z
   .object({
     items: z
+<<<<<<< Updated upstream
       .array(proxyRegistryFieldsSchema)
+=======
+      .array(createProxyRegistrySchema)
+>>>>>>> Stashed changes
       .min(1, "At least one proxy is required")
       .max(100, "Maximum 100 proxies per import"),
   })
@@ -1699,6 +1914,7 @@ export const oauthPollSchema = z.object({
   extraData: z.unknown().optional(),
 });
 
+<<<<<<< Updated upstream
 /** Import a raw API token (e.g. WINDSURF_API_KEY) without going through the browser OAuth flow. */
 export const oauthImportTokenSchema = z.object({
   token: z.string().trim().min(1, "Token is required"),
@@ -1721,11 +1937,14 @@ export const oauthDeviceCompleteSchema = z.object({
   connectionId: z.string().optional(),
 });
 
+=======
+>>>>>>> Stashed changes
 export const cursorImportSchema = z.object({
   accessToken: z.string().trim().min(1, "Access token is required"),
   machineId: z.string().trim().optional(),
 });
 
+<<<<<<< Updated upstream
 export const traeImportSchema = z.object({
   accessToken: z.string().trim().min(1, "Cloud-IDE-JWT access token is required"),
   webId: z.string().trim().optional(),
@@ -1739,6 +1958,10 @@ export const traeImportSchema = z.object({
 export const kiroImportSchema = z.object({
   refreshToken: z.string().trim().min(1, "Refresh token is required"),
   region: z.string().trim().default("us-east-1"),
+=======
+export const kiroImportSchema = z.object({
+  refreshToken: z.string().trim().min(1, "Refresh token is required"),
+>>>>>>> Stashed changes
 });
 
 export const kiroSocialExchangeSchema = z.object({
@@ -1786,8 +2009,17 @@ export const cloudSyncActionSchema = z.object({
 
 export const updateComboSchema = z
   .object({
+<<<<<<< Updated upstream
     name: comboNameSchema.optional(),
     description: z.string().max(1000).optional(),
+=======
+    name: z
+      .string()
+      .min(1, "Name is required")
+      .max(100)
+      .regex(/^[a-zA-Z0-9_/.-]+$/, "Name can only contain letters, numbers, -, _, / and .")
+      .optional(),
+>>>>>>> Stashed changes
     models: z.array(comboModelEntry).optional(),
     strategy: comboStrategySchema.optional(),
     config: comboRuntimeConfigSchema.optional(),
@@ -1796,13 +2028,20 @@ export const updateComboSchema = z
     system_message: z.string().max(50000).optional(),
     tool_filter_regex: z.string().max(1000).optional(),
     context_cache_protection: z.boolean().optional(),
+<<<<<<< Updated upstream
     context_length: z.number().int().min(1000).max(2000000).optional().nullable(),
+=======
+    context_length: z.number().int().min(1000).max(2000000).optional(),
+>>>>>>> Stashed changes
     compressionOverride: comboCompressionOverrideSchema.optional(),
   })
   .superRefine((value, ctx) => {
     if (
       value.name === undefined &&
+<<<<<<< Updated upstream
       value.description === undefined &&
+=======
+>>>>>>> Stashed changes
       value.models === undefined &&
       value.strategy === undefined &&
       value.config === undefined &&
@@ -1926,12 +2165,16 @@ export const updateKeyPermissionsSchema = z
   .object({
     name: z.string().trim().min(1).max(200).optional(),
     allowedModels: z.array(z.string().trim().min(1)).max(1000).optional(),
+<<<<<<< Updated upstream
     blockedModels: z.array(z.string().trim().min(1)).max(1000).optional(),
     allowedCombos: z.array(z.string().trim().min(1).max(200)).max(500).optional(),
+=======
+>>>>>>> Stashed changes
     allowedConnections: z.array(z.string().uuid()).max(100).optional(),
     noLog: z.boolean().optional(),
     autoResolve: z.boolean().optional(),
     isActive: z.boolean().optional(),
+<<<<<<< Updated upstream
     throttleDelayMs: z.number().int().min(0).max(300000).optional(),
     isBanned: z.boolean().optional(),
     expiresAt: z.string().datetime().nullable().optional(),
@@ -1951,17 +2194,25 @@ export const updateKeyPermissionsSchema = z
     allowedEndpoints: z.array(z.string().trim().min(1).max(64)).max(20).optional(),
     streamDefaultMode: z.enum(["legacy", "json"]).optional(),
     disableNonPublicModels: z.boolean().optional(),
+=======
+    maxSessions: z.number().int().min(0).max(10000).optional(),
+    accessSchedule: z.union([accessScheduleSchema, z.null()]).optional(),
+>>>>>>> Stashed changes
   })
   .superRefine((value, ctx) => {
     if (
       value.name === undefined &&
       value.allowedModels === undefined &&
+<<<<<<< Updated upstream
       value.blockedModels === undefined &&
       value.allowedCombos === undefined &&
+=======
+>>>>>>> Stashed changes
       value.allowedConnections === undefined &&
       value.noLog === undefined &&
       value.autoResolve === undefined &&
       value.isActive === undefined &&
+<<<<<<< Updated upstream
       value.throttleDelayMs === undefined &&
       value.isBanned === undefined &&
       value.expiresAt === undefined &&
@@ -1971,6 +2222,10 @@ export const updateKeyPermissionsSchema = z
       value.scopes === undefined &&
       value.allowedEndpoints === undefined &&
       value.streamDefaultMode === undefined
+=======
+      value.maxSessions === undefined &&
+      value.accessSchedule === undefined
+>>>>>>> Stashed changes
     ) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
@@ -1980,6 +2235,7 @@ export const updateKeyPermissionsSchema = z
     }
   });
 
+<<<<<<< Updated upstream
 // Reuse the canonical upstream-headers record schema (control-char / whitespace
 // / ":" / 128-name / 4096-value / max-16 guards) so per-provider custom headers
 // inherit the same hardening as `modelCompat.upstreamHeaders` — then additionally
@@ -1995,6 +2251,8 @@ const customHeadersSchema = upstreamHeadersRecordSchema
   .nullable()
   .optional();
 
+=======
+>>>>>>> Stashed changes
 export const createProviderNodeSchema = z
   .object({
     name: z.string().trim().min(1, "Name is required"),
@@ -2014,7 +2272,10 @@ export const createProviderNodeSchema = z
     compatMode: z.enum(["cc"]).optional(),
     chatPath: z.string().trim().startsWith("/").max(500).optional().or(z.literal("")),
     modelsPath: z.string().trim().startsWith("/").max(500).optional().or(z.literal("")),
+<<<<<<< Updated upstream
     customHeaders: customHeadersSchema,
+=======
+>>>>>>> Stashed changes
   })
   .superRefine((value, ctx) => {
     const nodeType = value.type || "openai-compatible";
@@ -2043,7 +2304,10 @@ export const updateProviderNodeSchema = z.object({
   baseUrl: z.string().trim().min(1, "Base URL is required"),
   chatPath: z.string().trim().startsWith("/").max(500).optional().or(z.literal("")),
   modelsPath: z.string().trim().startsWith("/").max(500).optional().or(z.literal("")),
+<<<<<<< Updated upstream
   customHeaders: customHeadersSchema,
+=======
+>>>>>>> Stashed changes
 });
 
 export const providerNodeValidateSchema = z.object({
@@ -2074,6 +2338,7 @@ export const updateProviderConnectionSchema = z
     healthCheckInterval: z.coerce.number().int().min(0).optional(),
     group: z.union([z.string().max(100), z.null()]).optional(),
     maxConcurrent: z.union([z.null(), z.coerce.number().int().min(0)]).optional(),
+<<<<<<< Updated upstream
     // Per-window quota cutoffs. Map keys are window names (e.g. "window5h",
     // "window7d"); values are 0-100 integers, or null to clear that window's
     // override (the API route merges this into the existing map and prunes
@@ -2108,6 +2373,8 @@ export const updateProviderConnectionSchema = z
       .optional(),
     proxyEnabled: z.boolean().optional(),
     perKeyProxyEnabled: z.boolean().optional(),
+=======
+>>>>>>> Stashed changes
     // Partial patch of per-connection provider-specific settings (e.g. quota toggles)
     providerSpecificData: z
       .record(z.string(), z.unknown())
@@ -2132,7 +2399,10 @@ export const providersBatchTestSchema = z
       "provider",
       "oauth",
       "free",
+<<<<<<< Updated upstream
       "no-auth",
+=======
+>>>>>>> Stashed changes
       "apikey",
       "compatible",
       "all",
@@ -2141,6 +2411,7 @@ export const providersBatchTestSchema = z
       "audio",
       "local",
       "upstream-proxy",
+<<<<<<< Updated upstream
       "cloud-agent",
       "ide",
       "selected",
@@ -2149,6 +2420,11 @@ export const providersBatchTestSchema = z
     providerId: z.string().trim().min(1).nullable().optional(),
     // Explicit connection IDs to test — required when mode=selected
     connectionIds: z.array(z.string().trim().min(1)).max(100).nullable().optional(),
+=======
+    ]),
+    // Frontend may send null when mode != 'provider' — accept and treat as missing
+    providerId: z.string().trim().min(1).nullable().optional(),
+>>>>>>> Stashed changes
   })
   .superRefine((value, ctx) => {
     // Treat null same as undefined
@@ -2160,6 +2436,7 @@ export const providersBatchTestSchema = z
         path: ["providerId"],
       });
     }
+<<<<<<< Updated upstream
     const ids = value.connectionIds ?? null;
     if (value.mode === "selected" && (!ids || ids.length === 0)) {
       ctx.addIssue({
@@ -2176,6 +2453,10 @@ export const batchUpdateProviderConnectionsSchema = z.object({
   isActive: z.boolean(),
 });
 
+=======
+  });
+
+>>>>>>> Stashed changes
 export const validateProviderApiKeySchema = z
   .object({
     provider: z.string().trim().min(1, "Provider and API key required"),
@@ -2183,7 +2464,10 @@ export const validateProviderApiKeySchema = z
     validationModelId: z.string().trim().optional(),
     customUserAgent: z.string().trim().max(500).optional(),
     baseUrl: z.string().trim().url().optional(),
+<<<<<<< Updated upstream
     region: z.string().trim().max(64).optional(),
+=======
+>>>>>>> Stashed changes
     cx: z.string().trim().max(500).optional(),
   })
   .superRefine((data, ctx) => {
@@ -2240,8 +2524,12 @@ export const v1betaGeminiGenerateSchema = z
   });
 
 export const cliMitmStartSchema = z.object({
+<<<<<<< Updated upstream
   apiKey: z.string().trim().min(1).nullable().optional(),
   keyId: z.string().trim().min(1).nullable().optional(),
+=======
+  apiKey: z.string().trim().min(1, "Missing apiKey"),
+>>>>>>> Stashed changes
   sudoPassword: z.string().optional(),
 });
 
@@ -2302,6 +2590,7 @@ export const codexProfileNameSchema = z.object({
 });
 
 export const codexProfileIdSchema = z.object({
+<<<<<<< Updated upstream
   // profileId is interpolated into a filesystem path (`<PROFILES_DIR>/<id>.json`).
   // Constrain to a safe slug charset so request bodies cannot smuggle path
   // separators or `..` segments and escape PROFILES_DIR (path traversal).
@@ -2311,15 +2600,22 @@ export const codexProfileIdSchema = z.object({
     .min(1, "profileId is required")
     .regex(/^[a-zA-Z0-9._-]+$/, "profileId contains invalid characters")
     .refine((v) => v !== "." && v !== "..", "profileId is invalid"),
+=======
+  profileId: z.string().trim().min(1, "profileId is required"),
+>>>>>>> Stashed changes
 });
 
 export const guideSettingsSaveSchema = z
   .object({
     baseUrl: z.string().trim().min(1).optional(),
+<<<<<<< Updated upstream
     // #3552: the CLI tool cards post `apiKey: null` in cloud mode (the real key is resolved
     // server-side from keyId), and `z.string().optional()` rejected null → 400. Normalize
     // null → undefined so validation passes and the keyId/default path is used.
     apiKey: z.preprocess((v) => (v === null ? undefined : v), z.string().optional()),
+=======
+    apiKey: z.string().optional(),
+>>>>>>> Stashed changes
     model: z.string().trim().min(1, "Model is required").optional(),
     models: z.array(z.string().trim().min(1, "Models must be non-empty")).min(1).optional(),
     modelLabels: z.record(z.string(), z.string().trim().min(1)).optional(),
@@ -2351,12 +2647,18 @@ export const v1SearchSchema = z
         "tavily-search",
         "google-pse-search",
         "linkup-search",
+<<<<<<< Updated upstream
         "ollama-search",
         "searchapi-search",
         "youcom-search",
         "searxng-search",
         "zai-search",
         "duckduckgo-free",
+=======
+        "searchapi-search",
+        "youcom-search",
+        "searxng-search",
+>>>>>>> Stashed changes
       ])
       .optional(),
     max_results: z.coerce.number().int().min(1).max(100).default(5),
@@ -2508,6 +2810,7 @@ export const v1BatchCreateSchema = z.object({
     })
     .optional(),
 });
+<<<<<<< Updated upstream
 
 // ── Web Fetch ─────────────────────────────────────────────────────────────────
 
@@ -2533,3 +2836,5 @@ export const zedImportSchema = z.object({
 });
 
 export type ConfirmedAccount = z.infer<typeof confirmedAccountSchema>;
+=======
+>>>>>>> Stashed changes

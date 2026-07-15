@@ -9,6 +9,7 @@
 
 import { generatePKCE, generateState } from "./utils/pkce";
 import { PROVIDERS } from "./providers/index";
+<<<<<<< Updated upstream
 import { resolvePublicCred } from "@omniroute/open-sse/utils/publicCreds.ts";
 
 const GOOGLE_BROWSER_PROVIDERS = new Set(["antigravity", "agy"]);
@@ -87,6 +88,8 @@ export function resolveBrowserOAuthRedirectUri(
     return redirectUri;
   }
 }
+=======
+>>>>>>> Stashed changes
 
 /**
  * Get provider handler
@@ -100,6 +103,7 @@ export function getProvider(name) {
 }
 
 /**
+<<<<<<< Updated upstream
  * Generate auth data for a provider.
  *
  * Returns `{ supported: false, error }` (no `authUrl`) for providers whose
@@ -107,29 +111,20 @@ export function getProvider(name) {
  * 2026-05 rebrand, where the legacy PKCE endpoint at app.devin.ai returns 404.
  * Callers (UI / API route) should surface the `error` string and route the
  * user to the import-token flow instead.
+=======
+ * Get all provider names
+ */
+export function getProviderNames() {
+  return Object.keys(PROVIDERS);
+}
+
+/**
+ * Generate auth data for a provider
+>>>>>>> Stashed changes
  */
 export function generateAuthData(providerName, redirectUri) {
   const provider = getProvider(providerName);
   const { codeVerifier, codeChallenge, state } = generatePKCE();
-
-  if (provider.flowType === "import_token") {
-    const error =
-      providerName === "windsurf" || providerName === "devin-cli"
-        ? "Browser login disabled — paste token from https://windsurf.com/show-auth-token instead. Phase 2 will restore Firebase OAuth via app.devin.ai successor."
-        : `Browser login is disabled for ${providerName}. Use the import-token flow instead.`;
-    return {
-      authUrl: undefined,
-      state: undefined,
-      codeVerifier: undefined,
-      codeChallenge: undefined,
-      redirectUri,
-      flowType: provider.flowType,
-      fixedPort: provider.fixedPort,
-      callbackPath: provider.callbackPath || "/callback",
-      supported: false,
-      error,
-    };
-  }
 
   let authUrl;
   if (provider.flowType === "device_code") {
@@ -165,23 +160,6 @@ export async function exchangeTokens(providerName, code, redirectUri, codeVerifi
     codeVerifier,
     state
   );
-
-  let extra = null;
-  if (provider.postExchange) {
-    extra = await provider.postExchange(tokens);
-  }
-
-  return provider.mapTokens(tokens, extra);
-}
-
-/**
- * Finalize tokens obtained out-of-band (e.g. the browser-driven Codex device
- * flow, where the browser performs the auth.openai.com exchange because the
- * server's datacenter IP is blocked). Runs the provider's postExchange +
- * mapTokens — the same tail as exchangeTokens — without an HTTP token exchange.
- */
-export async function finalizeTokens(providerName, tokens) {
-  const provider = getProvider(providerName);
 
   let extra = null;
   if (provider.postExchange) {

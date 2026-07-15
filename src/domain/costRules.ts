@@ -17,7 +17,6 @@ import {
   loadBudget,
   loadCostEntries,
   loadCostEntriesInRange,
-  loadCostTotal,
   saveBudget,
   saveBudgetResetLog,
 } from "../lib/db/domainState";
@@ -239,7 +238,7 @@ function getActiveBudgetLimit(budget: NormalizedBudgetConfig): number {
 function getBudgetWindowTotal(apiKeyId: string, periodStartAt: number): number {
   try {
     return (
-      loadCostTotal(apiKeyId, periodStartAt) +
+      sumEntries(toCostEntries(loadCostEntries(apiKeyId, periodStartAt))) +
       spendBatchWriter.getPendingCostTotal(apiKeyId, periodStartAt)
     );
   } catch {

@@ -1,5 +1,4 @@
 import { handleImageGeneration } from "@omniroute/open-sse/handlers/imageGeneration.ts";
-import { withInjectionGuard } from "@/middleware/promptInjectionGuard";
 import {
   getProviderCredentials,
   clearRecoveredProviderState,
@@ -20,12 +19,7 @@ import { enforceApiKeyPolicy } from "@/shared/utils/apiKeyPolicy";
 import { v1ImageGenerationSchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 
-import { getAllCustomModels, resolveProxyForConnection } from "@/lib/localDb";
-import { resolveImageRouteModel } from "@/lib/images/imageRouteModel";
-import { runWithProxyContext } from "@omniroute/open-sse/utils/proxyFetch.ts";
-import { attachOmniRouteMetaHeaders } from "@/domain/omnirouteResponseMeta";
-import { calculateModalCost } from "@/lib/usage/costCalculator";
-import { generateRequestId } from "@/shared/utils/requestId";
+import { getAllCustomModels } from "@/lib/localDb";
 
 /**
  * Handle CORS preflight
@@ -122,7 +116,7 @@ function publicBaseUrlHeaders(headers: Headers): Record<string, string> {
   return out;
 }
 
-async function postHandler(request, context) {
+export async function POST(request) {
   let rawBody;
   try {
     rawBody = await request.json();
@@ -136,17 +130,10 @@ async function postHandler(request, context) {
     return errorResponse(HTTP_STATUS.BAD_REQUEST, validation.error.message);
   }
   const body = validation.data;
-  const startTime = Date.now();
 
   // Enforce API key policies (model restrictions + budget limits)
   const policy = await enforceApiKeyPolicy(request, body.model);
   if (policy.rejection) return policy.rejection;
-
-  // #3205/#3215: resolve a combo/alias name (`image`) or a user-prefixed custom image
-  // model (`myImg/gpt-image-2`) to its internal `<nodeId>/<model>` form so the
-  // custom-model lookup and handler's resolvedProvider extraction resolve correctly.
-  // Built-in and already-internal ids pass through unchanged. Shared with /images/edits.
-  body.model = await resolveImageRouteModel(body.model);
 
   // Parse model to get provider
   let { provider } = parseImageModel(body.model);
@@ -239,53 +226,20 @@ async function postHandler(request, context) {
     }
   }
 
-  // Resolve proxy for the connection if credentials exist (#1904)
-  let proxyInfo = null;
-  if (credentials?.connectionId) {
-    try {
-      proxyInfo = await resolveProxyForConnection(credentials.connectionId);
-    } catch {
-      log.debug("PROXY", `Failed to resolve proxy for image provider: ${provider}`);
-    }
-  }
-
-  const generateImage = () =>
-    handleImageGeneration({
-      body,
-      credentials,
-      log,
-      ...(isCustomModel && { resolvedProvider: provider }),
-      signal: request.signal,
-      clientHeaders: publicBaseUrlHeaders(request.headers),
-    });
-
-  // Execute with proxy context when available, direct otherwise (#1904)
-  const result = await (credentials?.connectionId
-    ? runWithProxyContext(proxyInfo?.proxy || null, generateImage).catch((err: any) => ({
-        success: false,
-        status: err.statusCode || 500,
-        error: err.message,
-      }))
-    : generateImage());
+  const result = await handleImageGeneration({
+    body,
+    credentials,
+    log,
+    ...(isCustomModel && { resolvedProvider: provider }),
+    signal: request.signal,
+    clientHeaders: publicBaseUrlHeaders(request.headers),
+  });
 
   if (result.success) {
     await clearRecoveredProviderState(credentials);
-    const n = Math.max(
-      Number(body.n) || 1,
-      (result as { data?: { data?: unknown[] } }).data?.data?.length || 0
-    );
-    const costUsd = await calculateModalCost("image", provider, body.model, { n });
-    const headers = new Headers({ "Content-Type": "application/json" });
-    attachOmniRouteMetaHeaders(headers, {
-      provider,
-      model: body.model,
-      costUsd,
-      latencyMs: Date.now() - startTime,
-      requestId: generateRequestId(),
-    });
-    return new Response(JSON.stringify((result as { data: unknown }).data), {
+    return new Response(JSON.stringify((result as any).data), {
       status: 200,
-      headers,
+      headers: { "Content-Type": "application/json" },
     });
   }
 
@@ -295,5 +249,3 @@ async function postHandler(request, context) {
     headers: { "Content-Type": "application/json" },
   });
 }
-
-export const POST = withInjectionGuard(postHandler);

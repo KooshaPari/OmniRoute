@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
+<<<<<<< Updated upstream
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import { compressionPreviewConfigSchema } from "@/shared/validation/compressionConfigSchemas";
 import {
@@ -19,10 +20,13 @@ import { countTextTokens } from "@/shared/utils/tiktokenCounter";
 import { ensureEngineBreakdown } from "@omniroute/open-sse/services/compression/engineBreakdown";
 import { summarizeEncoderCandidates } from "@omniroute/open-sse/services/compression/engines/headroom/encoderComparison";
 import { DEFAULT_MIN_ROWS } from "@omniroute/open-sse/services/compression/engines/headroom/smartcrusher";
+=======
+import { enforceApiKeyPolicy } from "@/shared/utils/apiKeyPolicy";
+import { applyCompression } from "@omniroute/open-sse/services/compression/strategySelector";
+import type { CompressionMode } from "@omniroute/open-sse/services/compression/types";
+>>>>>>> Stashed changes
 
-export const PreviewCompressionConfigSchema = compressionPreviewConfigSchema;
-
-export const PreviewRequestSchema = z.object({
+const PreviewRequestSchema = z.object({
   messages: z
     .array(
       z.object({
@@ -31,6 +35,7 @@ export const PreviewRequestSchema = z.object({
       })
     )
     .min(1),
+<<<<<<< Updated upstream
   mode: z
     .enum(["off", "lite", "standard", "aggressive", "ultra", "rtk", "stacked"])
     .optional()
@@ -58,6 +63,9 @@ export const PreviewRequestSchema = z.object({
   // "ultra" uses scoreToken (0–1); "universal" uses kept/removed from the diff.
   // Omit to skip heatmap computation (normal preview path — no extra cost).
   heatmap: z.enum(["ultra", "universal"]).optional(),
+=======
+  mode: z.enum(["off", "lite", "standard", "aggressive", "ultra"]),
+>>>>>>> Stashed changes
 });
 
 function countTokens(text: string): number {
@@ -165,8 +173,8 @@ async function dispatchCompression(
 }
 
 export async function POST(req: Request) {
-  const authError = await requireManagementAuth(req);
-  if (authError) return authError;
+  const policy = await enforceApiKeyPolicy(req, "settings");
+  if (policy.rejection) return policy.rejection;
 
   let body: unknown;
   try {
@@ -183,16 +191,21 @@ export async function POST(req: Request) {
     );
   }
 
+<<<<<<< Updated upstream
   const { messages, mode, engineId, pipeline, config, fidelityGate, fuzzyDedup, riskGate, quantumLock, heatmap: heatmapMode } =
     parsed.data;
   const effectiveMode: CompressionMode =
     engineId || pipeline ? "stacked" : (mode as CompressionMode);
+=======
+  const { messages, mode } = parsed.data;
+>>>>>>> Stashed changes
   const originalText = messagesToText(messages);
   const originalTokens = countTokens(originalText);
 
   try {
     const start = Date.now();
     const requestBody = { messages };
+<<<<<<< Updated upstream
     const result = await dispatchCompression(requestBody as Record<string, unknown>, {
       engineId,
       pipeline,
@@ -203,6 +216,9 @@ export async function POST(req: Request) {
       riskGate,
       quantumLock,
     });
+=======
+    const result = await applyCompression(requestBody as Record<string, unknown>, mode);
+>>>>>>> Stashed changes
     const durationMs = Date.now() - start;
 
     const compressedMessages = (result.body.messages ?? messages) as Array<{
@@ -214,6 +230,7 @@ export async function POST(req: Request) {
     const tokensSaved = Math.max(0, originalTokens - compressedTokens);
     const savingsPct = originalTokens > 0 ? Math.round((tokensSaved / originalTokens) * 100) : 0;
     const techniquesUsed: string[] = result.stats?.techniquesUsed ?? [];
+<<<<<<< Updated upstream
     const engineBreakdown = result.stats ? ensureEngineBreakdown(result.stats) : [];
     const diff = buildCompressionPreviewDiff(
       originalText,
@@ -226,6 +243,8 @@ export async function POST(req: Request) {
     const encoderComparison = headroomParticipates(engineId, pipeline, effectiveMode)
       ? summarizeEncoderCandidates(messages, DEFAULT_MIN_ROWS, countTextTokens)
       : null;
+=======
+>>>>>>> Stashed changes
 
     return NextResponse.json({
       encoderComparison,
@@ -240,6 +259,7 @@ export async function POST(req: Request) {
       riskGate: riskGateStatsOf(result),
       quantumLock: quantumLockStatsOf(result),
       durationMs,
+<<<<<<< Updated upstream
       mode: effectiveMode,
       intensity: null,
       outputMode: null,
@@ -258,13 +278,12 @@ export async function POST(req: Request) {
       validationErrors: diff.validationErrors,
       fallbackApplied: diff.fallbackApplied,
       ...(diff.heatmap ? { heatmap: diff.heatmap } : {}),
+=======
+>>>>>>> Stashed changes
     });
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : String(err);
     console.error("[/api/compression/preview]", msg);
-    return NextResponse.json(
-      { error: "Compression failed", details: sanitizeErrorMessage(msg) },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Compression failed", details: msg }, { status: 500 });
   }
 }

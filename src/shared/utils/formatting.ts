@@ -5,8 +5,6 @@
  * Prevents copy-paste duplication and provides a single source of truth.
  */
 
-import { maskEmail } from "./maskEmail";
-
 /**
  * Format an ISO date string to a localized time string (HH:MM:SS).
  * @param {string} isoString - ISO 8601 date string
@@ -59,25 +57,15 @@ export function maskSegment(value: string | null | undefined, start = 2, end = 2
  */
 export function maskAccount(account: string | null | undefined, emailsVisible: boolean) {
   if (!account || account === "-") return "-";
-  if (emailsVisible) return account;
   const atIdx = account.indexOf("@");
   if (atIdx > 3) {
-    return maskEmail(account);
+    if (emailsVisible) return account;
+    return account.slice(0, 3) + "***" + account.slice(atIdx);
   }
   if (account.length > 8) {
     return account.slice(0, 5) + "***";
   }
   return account;
-}
-
-export function stableAccountSuffix(account: string | null | undefined): string {
-  if (!account || account === "-") return "0000";
-  let hash = 0x811c9dc5;
-  for (let i = 0; i < account.length; i++) {
-    hash ^= account.charCodeAt(i);
-    hash = Math.imul(hash, 0x01000193) >>> 0;
-  }
-  return hash.toString(16).padStart(8, "0").slice(0, 4);
 }
 
 /**
@@ -135,6 +123,7 @@ export function formatCost(usd: number | null | undefined): string {
 
 export const fmtCost = formatCost;
 
+<<<<<<< Updated upstream
 export function formatCostAbbreviated(usd: number | null | undefined): string {
   const value = Number(usd || 0);
   if (!Number.isFinite(value) || value === 0) return "$0";
@@ -160,6 +149,8 @@ export function formatCostAbbreviated(usd: number | null | undefined): string {
   return `${sign}$${abs.toFixed(2)}`;
 }
 
+=======
+>>>>>>> Stashed changes
 /**
  * Truncate a URL for compact display.
  * @param {string} url - Full URL

@@ -1,5 +1,5 @@
 import { CORS_HEADERS, handleCorsOptions } from "@/shared/utils/cors";
-import { createFile, listFiles, formatFileResponse, countFiles } from "@/lib/localDb";
+import { createFile, listFiles, formatFileResponse } from "@/lib/localDb";
 import { NextResponse } from "next/server";
 import { getApiKeyRequestScope } from "@/app/api/v1/_helpers/apiKeyScope";
 
@@ -94,7 +94,6 @@ export async function GET(request: Request) {
 
   const hasMore = files.length > limit;
   const data = files.slice(0, limit);
-  const totalCount = countFiles({ apiKeyId: apiKeyId || undefined, purpose });
 
   return NextResponse.json(
     {
@@ -103,7 +102,6 @@ export async function GET(request: Request) {
       first_id: data.length > 0 ? data[0].id : null,
       last_id: data.length > 0 ? data.at(-1).id : null,
       has_more: hasMore,
-      total_count: totalCount,
     },
     { headers: CORS_HEADERS }
   );

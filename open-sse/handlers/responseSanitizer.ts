@@ -42,8 +42,11 @@ const ALLOWED_RESPONSES_USAGE_FIELDS = new Set([
 type JsonRecord = Record<string, unknown>;
 type ParseOptions = { parseTextualReasoningTags?: boolean };
 
+<<<<<<< Updated upstream
 export const OMIT_STREAMING_CHUNK_MARKER = "__omniroute_omit_streaming_chunk";
 
+=======
+>>>>>>> Stashed changes
 function toRecord(value: unknown): JsonRecord | null {
   if (!value || typeof value !== "object" || Array.isArray(value)) return null;
   return value as JsonRecord;
@@ -57,6 +60,7 @@ function toNumber(value: unknown): number | undefined {
   return typeof value === "number" && Number.isFinite(value) ? value : undefined;
 }
 
+<<<<<<< Updated upstream
 function deleteOpenAICompatibleReasoningFields(record: JsonRecord): void {
   delete record.reasoning_content;
   delete record.reasoning;
@@ -197,12 +201,74 @@ function containsTextualToolCallContent(content: unknown): boolean {
     typeof content === "string" &&
     TEXTUAL_TOOL_CALL_HEADER.test(stripInternalToolEnvelopeText(content))
   );
+=======
+function hasVisibleMessageContent(content: unknown): boolean {
+  if (typeof content === "string") {
+    return content.trim().length > 0;
+  }
+
+  if (!Array.isArray(content)) return false;
+
+  return content.some((contentPart) => {
+    const part = toRecord(contentPart);
+    if (!part) return false;
+    if (typeof part.text === "string" && part.text.trim().length > 0) return true;
+    if (typeof part.content === "string" && part.content.trim().length > 0) return true;
+    const partType = toString(part.type);
+    return Boolean(partType && partType !== "thinking" && partType !== "reasoning");
+  });
+}
+
+// Matches <think>...</think> blocks and <thinking>...</thinking> (greedy, dotAll)
+const THINK_TAG_REGEX = /<(?:think|thinking)>([\s\S]*?)<\/(?:think|thinking)>/gi;
+
+// #638, #727: Collapse runs of 2+ consecutive newlines into \n\n
+// Tool call responses from thinking models often accumulate excessive newlines
+const EXCESSIVE_NEWLINES = /\n{2,}/g;
+function collapseExcessiveNewlines(text: string): string {
+  return text.replace(EXCESSIVE_NEWLINES, "\n\n");
+}
+
+/**
+ * Extract <think> blocks from text content and return separated parts.
+ * @returns {{ content: string, thinking: string | null }}
+ */
+export function extractThinkingFromContent(text: string): {
+  content: string;
+  thinking: string | null;
+} {
+  if (!text || typeof text !== "string") {
+    return { content: text || "", thinking: null };
+  }
+
+  const thinkingParts: string[] = [];
+  let hasThinkTags = false;
+
+  const cleaned = text.replace(THINK_TAG_REGEX, (_, thinkContent) => {
+    hasThinkTags = true;
+    const trimmed = thinkContent.trim();
+    if (trimmed) {
+      thinkingParts.push(trimmed);
+    }
+    return "";
+  });
+
+  if (!hasThinkTags) {
+    return { content: text, thinking: null };
+  }
+
+  return {
+    content: cleaned.trim(),
+    thinking: thinkingParts.length > 0 ? thinkingParts.join("\n\n") : null,
+  };
+>>>>>>> Stashed changes
 }
 
 /**
  * Sanitize a non-streaming OpenAI ChatCompletion response.
  * Strips non-standard fields and normalizes required fields.
  */
+<<<<<<< Updated upstream
 export interface SanitizeOpenAIResponseOptions {
   /**
    * When true, unconditionally remove `reasoning_content` from every choice
@@ -229,6 +295,11 @@ export function sanitizeOpenAIResponse(
   if (!bodyRecord) return body;
   const stripReasoning = options.stripReasoning === true;
   const parseTextualReasoningTags = options.parseTextualReasoningTags === true;
+=======
+export function sanitizeOpenAIResponse(body: unknown): unknown {
+  const bodyRecord = toRecord(body);
+  if (!bodyRecord) return body;
+>>>>>>> Stashed changes
 
   // Build sanitized response with only allowed top-level fields
   const sanitized: JsonRecord = {};
@@ -241,6 +312,7 @@ export function sanitizeOpenAIResponse(
 
   // Sanitize choices
   if (Array.isArray(bodyRecord.choices)) {
+<<<<<<< Updated upstream
     sanitized.choices = bodyRecord.choices.map((choice, idx) => {
       const sanitizedChoice = sanitizeChoice(choice, idx, { parseTextualReasoningTags });
       const message = toRecord(sanitizedChoice.message);
@@ -257,6 +329,9 @@ export function sanitizeOpenAIResponse(
       }
       return sanitizedChoice;
     });
+=======
+    sanitized.choices = bodyRecord.choices.map((choice, idx) => sanitizeChoice(choice, idx));
+>>>>>>> Stashed changes
   } else {
     sanitized.choices = [];
   }
@@ -335,11 +410,15 @@ export function sanitizeResponsesApiResponse(body: unknown): unknown {
 /**
  * Sanitize a single choice object.
  */
+<<<<<<< Updated upstream
 function sanitizeChoice(
   choice: unknown,
   defaultIndex: number,
   options: ParseOptions = {}
 ): JsonRecord {
+=======
+function sanitizeChoice(choice: unknown, defaultIndex: number): JsonRecord {
+>>>>>>> Stashed changes
   const choiceRecord = toRecord(choice);
   const sanitized: JsonRecord = {
     index: defaultIndex,
@@ -355,7 +434,11 @@ function sanitizeChoice(
   }
 
   if (choiceRecord?.message !== undefined) {
+<<<<<<< Updated upstream
     sanitized.message = sanitizeMessage(choiceRecord.message, options);
+=======
+    sanitized.message = sanitizeMessage(choiceRecord.message);
+>>>>>>> Stashed changes
   }
   if (choiceRecord?.delta !== undefined) {
     sanitized.delta = sanitizeMessage(choiceRecord.delta, options);
@@ -368,6 +451,7 @@ function sanitizeChoice(
   return sanitized;
 }
 
+<<<<<<< Updated upstream
 function sanitizeMessageContent(msgRecord: JsonRecord, options: ParseOptions = {}): JsonRecord {
   if (typeof msgRecord.content === "string") {
     const strippedContent = stripInternalToolEnvelopeText(msgRecord.content);
@@ -417,6 +501,85 @@ function sanitizeMessage(msg: unknown, options: ParseOptions = {}): unknown {
   copyOpenAICompatibleReasoningFields(msgRecord, sanitized);
   applyTextualToolCallSanitization(sanitized, msgRecord);
 
+=======
+/**
+ * Sanitize a message object, extracting <think> tags if present.
+ */
+function sanitizeMessage(msg: unknown): unknown {
+  const msgRecord = toRecord(msg);
+  if (!msgRecord) return msg;
+
+  const sanitized: JsonRecord = {};
+
+  // Copy only allowed fields
+  if (msgRecord.role) sanitized.role = msgRecord.role;
+  if (msgRecord.refusal !== undefined) sanitized.refusal = msgRecord.refusal;
+
+  // Handle content — extract <think> tags
+  if (typeof msgRecord.content === "string") {
+    const { content, thinking } = extractThinkingFromContent(msgRecord.content);
+    sanitized.content = collapseExcessiveNewlines(content);
+
+    // Set reasoning_content from <think> tags (if not already set)
+    if (thinking && !msgRecord.reasoning_content) {
+      sanitized.reasoning_content = thinking;
+    }
+  } else if (msgRecord.content !== undefined) {
+    sanitized.content = msgRecord.content;
+  }
+
+  // Preserve existing reasoning_content (from providers that natively support it)
+  if (msgRecord.reasoning_content && !sanitized.reasoning_content) {
+    sanitized.reasoning_content = msgRecord.reasoning_content;
+  }
+
+  // Handle 'reasoning' field alias (some providers use this instead of reasoning_content)
+  if (
+    msgRecord.reasoning &&
+    typeof msgRecord.reasoning === "string" &&
+    !sanitized.reasoning_content
+  ) {
+    sanitized.reasoning_content = msgRecord.reasoning;
+  }
+
+  // Handle reasoning_details[] array (StepFun/OpenRouter format)
+  // Structure: [{ type: "reasoning.text", text: "...", format: "unknown", index: 0 }]
+  if (Array.isArray(msgRecord.reasoning_details) && !sanitized.reasoning_content) {
+    const reasoningParts: string[] = [];
+    for (const detail of msgRecord.reasoning_details) {
+      const detailObj = detail && typeof detail === "object" ? (detail as JsonRecord) : null;
+      if (!detailObj) continue;
+      const detailType = typeof detailObj.type === "string" ? detailObj.type : "";
+      const detailText =
+        typeof detailObj.text === "string"
+          ? detailObj.text
+          : typeof detailObj.content === "string"
+            ? detailObj.content
+            : "";
+      if (
+        detailText &&
+        (detailType === "reasoning" ||
+          detailType === "reasoning.text" ||
+          detailType === "thinking" ||
+          detailType === "")
+      ) {
+        reasoningParts.push(detailText);
+      }
+    }
+    if (reasoningParts.length > 0) {
+      sanitized.reasoning_content = reasoningParts.join("");
+    }
+  }
+
+  // Non-streaming responses should not expose both visible content and reasoning_content.
+  // Some clients drop the visible assistant text or render duplicated panels when both fields
+  // are present in the final payload. Keep reasoning_content only for reasoning-only messages.
+  if (sanitized.reasoning_content !== undefined && hasVisibleMessageContent(sanitized.content)) {
+    delete sanitized.reasoning_content;
+  }
+
+  // Preserve tool_calls
+>>>>>>> Stashed changes
   if (msgRecord.tool_calls) {
     sanitized.tool_calls = msgRecord.tool_calls;
   }
@@ -554,6 +717,7 @@ function normalizeResponsesId(id: unknown): string {
   return `resp_${id}`;
 }
 
+<<<<<<< Updated upstream
 function sanitizeResponsesStreamingOutputItem(item: unknown): JsonRecord | null {
   const itemRecord = toRecord(item);
   if (!itemRecord) return null;
@@ -717,6 +881,8 @@ function sanitizeResponsesStreamingEvent(parsedRecord: JsonRecord): JsonRecord {
   return sanitized;
 }
 
+=======
+>>>>>>> Stashed changes
 function sanitizeResponsesOutput(output: unknown): JsonRecord[] {
   if (!Array.isArray(output)) return [];
 
@@ -795,7 +961,7 @@ function sanitizeResponsesMessageContent(content: unknown): JsonRecord[] {
     return [
       {
         type: "output_text",
-        text: collapseExcessiveNewlines(stripInternalToolEnvelopeText(content)),
+        text: collapseExcessiveNewlines(content),
         annotations: [],
       },
     ];
@@ -810,7 +976,7 @@ function sanitizeResponsesMessageContent(content: unknown): JsonRecord[] {
         if (typeof part === "string") {
           return {
             type: "output_text",
-            text: collapseExcessiveNewlines(stripInternalToolEnvelopeText(part)),
+            text: collapseExcessiveNewlines(part),
             annotations: [],
           };
         }
@@ -826,9 +992,7 @@ function sanitizeResponsesMessageContent(content: unknown): JsonRecord[] {
         return {
           ...partRecord,
           type: "output_text",
-          text: collapseExcessiveNewlines(
-            stripInternalToolEnvelopeText(toString(partRecord.text) || "")
-          ),
+          text: collapseExcessiveNewlines(toString(partRecord.text) || ""),
           annotations: Array.isArray(partRecord.annotations) ? partRecord.annotations : [],
         };
       }
@@ -951,20 +1115,11 @@ export function sanitizeStreamingChunk(parsed: unknown): unknown {
   const parsedRecord = toRecord(parsed);
   if (!parsedRecord) return parsed;
 
-  const eventType = toString(parsedRecord.type) || "";
-  if (eventType.startsWith("response.") || parsedRecord.object === "response") {
-    return sanitizeResponsesStreamingEvent(parsedRecord);
-  }
-
   // Build sanitized chunk
   const sanitized: JsonRecord = {};
 
-  // Keep only standard fields — normalize id to string to avoid AI_InvalidResponseDataError
-  if (parsedRecord.id !== undefined && parsedRecord.id !== null) {
-    sanitized.id = normalizeResponseId(
-      typeof parsedRecord.id === "string" ? parsedRecord.id : String(parsedRecord.id)
-    );
-  }
+  // Keep only standard fields
+  if (parsedRecord.id !== undefined) sanitized.id = parsedRecord.id;
   sanitized.object = toString(parsedRecord.object) || "chat.completion.chunk";
   if (parsedRecord.created !== undefined) sanitized.created = parsedRecord.created;
   if (parsedRecord.model !== undefined) sanitized.model = parsedRecord.model;
@@ -989,6 +1144,7 @@ export function sanitizeStreamingChunk(parsed: unknown): unknown {
                 ? collapseExcessiveNewlines(stripZeroWidthText(deltaRecord.content))
                 : deltaRecord.content;
           }
+<<<<<<< Updated upstream
           copyOpenAICompatibleReasoningFields(deltaRecord, delta);
           // Parity with the non-streaming path: strip the zero-width joiners that the
           // request side injects into agent words. copyOpenAICompatibleReasoningFields
@@ -996,20 +1152,32 @@ export function sanitizeStreamingChunk(parsed: unknown): unknown {
           for (const reasoningKey of ["reasoning_content", "reasoning", "reasoning_text"]) {
             if (typeof delta[reasoningKey] === "string") {
               delta[reasoningKey] = stripZeroWidthText(delta[reasoningKey] as string);
+=======
+          if (deltaRecord.reasoning_content !== undefined) {
+            delta.reasoning_content = deltaRecord.reasoning_content;
+          } else if (typeof deltaRecord.reasoning === "string" && deltaRecord.reasoning) {
+            // Alias: some providers use 'reasoning' instead of 'reasoning_content'
+            delta.reasoning_content = deltaRecord.reasoning;
+          } else if (Array.isArray(deltaRecord.reasoning_details)) {
+            // StepFun/OpenRouter: reasoning_details[{type:"reasoning.text", text:"..."}]
+            const parts: string[] = [];
+            for (const detail of deltaRecord.reasoning_details) {
+              const d = detail && typeof detail === "object" ? (detail as JsonRecord) : null;
+              if (!d) continue;
+              const text =
+                typeof d.text === "string"
+                  ? d.text
+                  : typeof d.content === "string"
+                    ? d.content
+                    : "";
+              if (text) parts.push(text);
+            }
+            if (parts.length > 0) {
+              delta.reasoning_content = parts.join("");
+>>>>>>> Stashed changes
             }
           }
-          if (deltaRecord.tool_calls !== undefined) {
-            delta.tool_calls = Array.isArray(deltaRecord.tool_calls)
-              ? deltaRecord.tool_calls.map((tc) => {
-                  const t = toRecord(tc);
-                  if (!t) return tc;
-                  if (t.id !== undefined && t.id !== null && typeof t.id !== "string") {
-                    return { ...t, id: String(t.id) };
-                  }
-                  return t;
-                })
-              : deltaRecord.tool_calls;
-          }
+          if (deltaRecord.tool_calls !== undefined) delta.tool_calls = deltaRecord.tool_calls;
           if (deltaRecord.function_call !== undefined)
             delta.function_call = deltaRecord.function_call;
           c.delta = delta;

@@ -13,7 +13,6 @@ export {
   createProviderConnection,
   updateProviderConnection,
   deleteProviderConnection,
-  deleteProviderConnections,
   deleteProviderConnectionsByProvider,
   reorderProviderConnections,
   cleanupProviderConnections,
@@ -21,7 +20,6 @@ export {
   // Provider Nodes
   getProviderNodes,
   getProviderNodeById,
-  resolveProviderNodeForConnection,
   createProviderNode,
   updateProviderNode,
   deleteProviderNode,
@@ -30,9 +28,6 @@ export {
   setConnectionRateLimitUntil,
   isConnectionRateLimited,
   getRateLimitedConnections,
-
-  // T05 startup recovery: clear stale transient cooldowns left by a prior crash
-  clearStaleCrashCooldowns,
 
   // T13: Stale quota display fix (zero out usage after window resets)
   getEffectiveQuotaUsage,
@@ -44,7 +39,6 @@ export {
   getModelAliases,
   setModelAlias,
   deleteModelAlias,
-  deleteModelAliasesForProvider,
 
   // MITM Alias
   getMitmAlias,
@@ -64,16 +58,12 @@ export {
   getModelPreserveOpenAIDeveloperRole,
   getModelUpstreamExtraHeaders,
   getModelIsHidden,
-  setModelIsHidden,
-  getHiddenModelsByProvider,
 
   // Synced Available Models
   getSyncedAvailableModels,
   getAllSyncedAvailableModels,
   replaceSyncedAvailableModelsForConnection,
   deleteSyncedAvailableModelsForConnection,
-  deleteSyncedAvailableModelsForProvider,
-  removeSyncedAvailableModel,
 } from "./db/models";
 
 export type { ModelCompatPerProtocol, ModelCompatPatch, SyncedAvailableModel } from "./db/models";
@@ -83,7 +73,6 @@ export {
   getCombos,
   getComboById,
   getComboByName,
-  getComboByNameInsensitive,
   createCombo,
   updateCombo,
   reorderCombos,
@@ -91,6 +80,7 @@ export {
 } from "./db/combos";
 
 export * from "./db/compressionCacheStats";
+<<<<<<< Updated upstream
 export * from "./db/compressionBudgetForecast";
 export * from "./db/compressionCombos";
 export * from "./db/compressionRunTelemetry";
@@ -102,6 +92,8 @@ export * from "./db/providerHealthHistory";
 export * from "./db/routingDecisions";
 export * from "./db/trafficShadow";
 export * from "./db/virtualKeys";
+=======
+>>>>>>> Stashed changes
 
 export {
   // API Keys
@@ -112,7 +104,6 @@ export {
   validateApiKey,
   getApiKeyMetadata,
   updateApiKeyPermissions,
-  regenerateApiKey,
   isModelAllowedForKey,
   clearApiKeyCaches,
   resetApiKeyState,
@@ -169,21 +160,11 @@ export {
 export type { PricingSource, PricingSourceMap } from "./db/settings";
 
 export {
-  getDatabaseSettings,
-  getUserDatabaseSettings,
-  updateDatabaseSettings,
-} from "./db/databaseSettings";
-
-export type { UserDatabaseSettings } from "./db/databaseSettings";
-
-export {
   // Proxy Registry
   listProxies,
   getProxyById,
   createProxy,
-  createProxyAndAssign,
   updateProxy,
-  updateProxyAndAssign,
   upsertProxy,
   deleteProxyById,
   getProxyAssignments,
@@ -191,7 +172,6 @@ export {
   assignProxyToScope,
   resolveProxyForConnectionFromRegistry,
   resolveProxyForProvider,
-  resolveProxyForScopeFromRegistry,
   migrateLegacyProxyConfigToRegistry,
   getProxyHealthStats,
   bulkAssignProxyToScope,
@@ -214,25 +194,10 @@ export {
   backupDbFile,
   cleanupDbBackups,
   getDbBackupMaxFiles,
-  setDbBackupMaxFiles,
   getDbBackupRetentionDays,
-  setDbBackupRetentionDays,
   listDbBackups,
   restoreDbBackup,
-  // Export-All / Import helpers (#3500 slice 5)
-  exportAllSummaryRows,
-  getTableNamesFromAdapter,
-  countImportedRows,
 } from "./db/backup";
-
-export type { ExportAllRows } from "./db/backup";
-
-export {
-  // Skills DB operations (#3500 slice 5)
-  updateSkill,
-} from "./db/skills";
-
-export type { SkillPatch } from "./db/skills";
 
 export {
   // Read Cache (cached wrappers for hot-read paths)
@@ -242,7 +207,6 @@ export {
   getCachedLKGP,
   setCachedLKGP,
   invalidateDbCache,
-  getCombosCacheVersion,
 } from "./db/readCache";
 
 export {
@@ -285,7 +249,7 @@ export {
   getFile,
   getFileContent,
   listFiles,
-  countFiles,
+  updateFileStatus,
   formatFileResponse,
   deleteFile,
 } from "./db/files";
@@ -296,9 +260,9 @@ export {
   getBatch,
   updateBatch,
   listBatches,
-  countBatches,
   getPendingBatches,
   getTerminalBatches,
+<<<<<<< Updated upstream
   ensureBatchItemCheckpoints,
   countBatchItemCheckpoints,
   listBatchItemCheckpoints,
@@ -307,6 +271,8 @@ export {
   markBatchItemError,
   deleteBatch,
   deleteCompletedBatches,
+=======
+>>>>>>> Stashed changes
 } from "./db/batches";
 
 export type { FileRecord } from "./db/files";
@@ -326,10 +292,7 @@ export {
   disableWebhooksWithHighFailures,
 } from "./db/webhooks";
 
-export type { Webhook, WebhookKind } from "./db/webhooks";
-
-export { insertDelivery, getDeliveries } from "./db/webhookDeliveries";
-export type { WebhookDelivery } from "./db/webhookDeliveries";
+export type { Webhook } from "./db/webhooks";
 
 export {
   saveQuotaSnapshot,
@@ -338,9 +301,12 @@ export {
   cleanupOldSnapshots,
 } from "./db/quotaSnapshots";
 
+<<<<<<< Updated upstream
 export * from "./db/sessionAccountAffinity";
 export * from "./db/quotaResetEvents";
 
+=======
+>>>>>>> Stashed changes
 export type { QuotaSnapshotRow, ProviderUtilizationPoint } from "@/shared/types/utilization";
 
 export {
@@ -352,8 +318,6 @@ export {
   updateToolHealth,
   updateToolVersion,
   setToolStatus,
-  getServiceRow,
-  updateServiceField,
 } from "./db/versionManager";
 
 export {
@@ -407,10 +371,14 @@ export {
   setReasoningCache,
   getReasoningCache,
   deleteReasoningCache,
+  cleanupExpiredReasoning,
+  getReasoningCacheStats,
+  getReasoningCacheEntries,
   clearAllReasoningCache,
 } from "./db/reasoningCache";
 
 export type { ReasoningCacheEntry, ReasoningCacheStats } from "./db/reasoningCache";
+<<<<<<< Updated upstream
 
 export {
   // 1proxy Integration (#1788)
@@ -772,3 +740,5 @@ export type {
 // proxy_logs — export query (#3500 slice 4)
 // ---------------------------------------------------------------------------
 export { exportProxyLogsSince } from "./db/proxyLogs";
+=======
+>>>>>>> Stashed changes

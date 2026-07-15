@@ -5,37 +5,11 @@ import {
   backupDbFile,
   cleanupDbBackups,
   getDbBackupMaxFiles,
-  setDbBackupMaxFiles,
   getDbBackupRetentionDays,
-  setDbBackupRetentionDays,
 } from "@/lib/localDb";
 import { dbBackupCleanupSchema, dbBackupRestoreSchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 import { isAuthenticated } from "@/shared/utils/apiAuth";
-import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
-
-async function readOptionalJsonBody(request: NextRequest | Request): Promise<unknown> {
-  try {
-    const text = await request.text();
-    return text.trim() ? JSON.parse(text) : {};
-  } catch {
-    throw new Error("Invalid JSON body");
-  }
-}
-
-function persistDbBackupRetentionSettings(input: { keepLatest?: number; retentionDays?: number }) {
-  const keepLatest = input.keepLatest ?? getDbBackupMaxFiles();
-  const retentionDays = input.retentionDays ?? getDbBackupRetentionDays();
-
-  if (input.keepLatest !== undefined) {
-    setDbBackupMaxFiles(input.keepLatest);
-  }
-  if (input.retentionDays !== undefined) {
-    setDbBackupRetentionDays(input.retentionDays);
-  }
-
-  return { keepLatest, retentionDays };
-}
 
 /**
  * PUT /api/db-backups — Trigger a manual backup snapshot.
@@ -54,7 +28,7 @@ export async function PUT(request: NextRequest) {
     return NextResponse.json({ created: true, ...result });
   } catch (error) {
     console.error("[API] Error creating manual backup:", error);
-    return NextResponse.json({ error: sanitizeErrorMessage(error) }, { status: 500 });
+    return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
 
@@ -72,7 +46,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ backups });
   } catch (error) {
     console.error("[API] Error listing DB backups:", error);
-    return NextResponse.json({ error: sanitizeErrorMessage(error) }, { status: 500 });
+    return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
 
@@ -112,47 +86,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(result);
   } catch (error) {
     console.error("[API] Error restoring DB backup:", error);
-    return NextResponse.json({ error: sanitizeErrorMessage(error) }, { status: 500 });
-  }
-}
-
-/**
- * PATCH /api/db-backups — Save database backup retention settings.
- * Body: { keepLatest?: number, retentionDays?: number }
- */
-export async function PATCH(request: NextRequest) {
-  if (!(await isAuthenticated(request))) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
-  let rawBody: unknown = {};
-  try {
-    rawBody = await readOptionalJsonBody(request);
-  } catch {
-    return NextResponse.json(
-      {
-        error: {
-          message: "Invalid request",
-          details: [{ field: "body", message: "Invalid JSON body" }],
-        },
-      },
-      { status: 400 }
-    );
-  }
-
-  try {
-    const validation = validateBody(dbBackupCleanupSchema, rawBody);
-    if (isValidationFailure(validation)) {
-      return NextResponse.json({ error: validation.error }, { status: 400 });
-    }
-
-    return NextResponse.json({
-      saved: true,
-      ...persistDbBackupRetentionSettings(validation.data),
-    });
-  } catch (error) {
-    console.error("[API] Error saving DB backup retention settings:", error);
-    return NextResponse.json({ error: sanitizeErrorMessage(error) }, { status: 500 });
+    return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
 
@@ -160,14 +94,15 @@ export async function PATCH(request: NextRequest) {
  * DELETE /api/db-backups — Cleanup old database backups.
  * Body: { keepLatest?: number, retentionDays?: number }
  */
-export async function DELETE(request: NextRequest) {
+export async function DELETE(request) {
   if (!(await isAuthenticated(request))) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  let rawBody: unknown = {};
+  let rawBody = {};
   try {
-    rawBody = await readOptionalJsonBody(request);
+    const text = await request.text();
+    if (text.trim()) rawBody = JSON.parse(text);
   } catch {
     return NextResponse.json(
       {
@@ -186,7 +121,8 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: validation.error }, { status: 400 });
     }
 
-    const { keepLatest, retentionDays } = persistDbBackupRetentionSettings(validation.data);
+    const keepLatest = validation.data.keepLatest ?? getDbBackupMaxFiles();
+    const retentionDays = validation.data.retentionDays ?? getDbBackupRetentionDays();
     const result = cleanupDbBackups({ maxFiles: keepLatest, retentionDays });
     return NextResponse.json({
       cleaned: true,
@@ -196,6 +132,6 @@ export async function DELETE(request: NextRequest) {
     });
   } catch (error) {
     console.error("[API] Error cleaning DB backups:", error);
-    return NextResponse.json({ error: sanitizeErrorMessage(error) }, { status: 500 });
+    return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }

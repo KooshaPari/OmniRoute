@@ -35,25 +35,12 @@ function buildComboTestResult(target: Record<string, unknown>, partial: Record<s
 async function testComboTarget(target: Record<string, unknown>, baseInternalUrl: string, internalApiKey: string | null): Promise<Record<string, unknown> | null> {
   const startTime = Date.now();
   try {
-    // Issue #2359: combo entries with a malformed/missing modelStr surfaced
-    // as `e.startsWith is not a function` / similar TypeError 500s. Coerce
-    // defensively at the boundary so the test path returns a clean error
-    // instead of crashing the request handler.
-    const modelStr = typeof target?.modelStr === "string" ? target.modelStr : "";
-    if (!modelStr) {
-      return buildComboTestResult(target, {
-        status: "error",
-        error: "Combo step is missing a model id (modelStr). Re-save the combo to refresh it.",
-        latencyMs: 0,
-      });
-    }
-    const modelLower = modelStr.toLowerCase();
     const isEmbedding =
-      modelLower.includes("embedding") ||
-      modelLower.includes("bge-") ||
-      modelLower.includes("text-embed");
+      target.modelStr.toLowerCase().includes("embedding") ||
+      target.modelStr.toLowerCase().includes("bge-") ||
+      target.modelStr.toLowerCase().includes("text-embed");
     const internalUrl = `${baseInternalUrl}/v1/${isEmbedding ? "embeddings" : "chat/completions"}`;
-    const testBody = buildComboTestRequestBody(modelStr, isEmbedding);
+    const testBody = buildComboTestRequestBody(target.modelStr, isEmbedding);
 
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 20000);

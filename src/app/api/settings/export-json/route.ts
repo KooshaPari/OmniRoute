@@ -7,29 +7,19 @@ import {
   getApiKeys,
 } from "@/lib/localDb";
 import { isAuthRequired, isAuthenticated } from "@/shared/utils/apiAuth";
-import {
-  getAllUsageHistory,
-  getAllDomainCostHistory,
-  getAllDomainBudgets,
-} from "@/lib/db/usageAnalytics";
 
 /**
  * GET /api/settings/export-json
- * Exports a legacy OmniRoute-compatible JSON backup.
+ * Exports a legacy 9router compatible JSON backup.
  */
 export async function GET(request: Request) {
-  if (await isAuthRequired(request)) {
+  if (await isAuthRequired()) {
     if (!(await isAuthenticated(request))) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
   }
 
   try {
-    const url = new URL(request.url);
-    // Telemetry/history tables grow indefinitely and inflate backups.
-    // Exclude them by default — opt-in with ?includeHistory=true (#2125).
-    const includeHistory = url.searchParams.get("includeHistory") === "true";
-
     const rawSettings = await getSettings();
 
     // REDACT sensitive security keys to maintain Zero-Trust posture
@@ -42,7 +32,7 @@ export async function GET(request: Request) {
     const combos = await getCombos();
     const apiKeys = await getApiKeys();
 
-    const exportData: Record<string, unknown> = {
+    const exportData = {
       settings: safeSettings,
       providerConnections,
       providerNodes,
@@ -51,19 +41,9 @@ export async function GET(request: Request) {
       // Metadata to identify export version
       _meta: {
         exportedAt: new Date().toISOString(),
-        version: "omniroute-v3-legacy-export",
-        includesHistory: includeHistory,
-      },
+        version: "omniroute-v3-legacy-export"
+      }
     };
-
-    // Only include telemetry/history tables when explicitly requested.
-    // These tables (usage_history, domain_cost_history, domain_budgets) can contain
-    // thousands of rows and make the config backup grow to many MBs.
-    if (includeHistory) {
-      exportData.usageHistory = getAllUsageHistory();
-      exportData.domainCostHistory = getAllDomainCostHistory();
-      exportData.domainBudgets = getAllDomainBudgets();
-    }
 
     return new NextResponse(JSON.stringify(exportData, null, 2), {
       status: 200,

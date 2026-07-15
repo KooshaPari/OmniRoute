@@ -2,7 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import type { RequestPipelinePayloads } from "@omniroute/open-sse/utils/requestLogger.ts";
 import { resolveDataDir } from "../dataPaths";
-import { getCallLogPipelineMaxSizeBytes, isChatDebugFileEnabled } from "../logEnv";
+import { getCallLogPipelineMaxSizeBytes } from "../logEnv";
 
 const isCloud = typeof globalThis.caches === "object" && globalThis.caches !== null;
 const isBuildPhase = process.env.NEXT_PHASE === "phase-production-build";
@@ -19,7 +19,7 @@ const STREAM_CHUNKS_OMITTED_FOR_SIZE_LIMIT =
 export type CallLogDetailState = "none" | "ready" | "missing" | "corrupt" | "legacy-inline";
 
 export type CallLogArtifact = {
-  schemaVersion: 5;
+  schemaVersion: 4;
   summary: {
     id: string;
     timestamp: string;
@@ -38,7 +38,6 @@ export type CallLogArtifact = {
       cacheRead: number | null;
       cacheWrite: number | null;
       reasoning: number | null;
-      compressed: number | null;
     };
     requestType: string | null;
     sourceFormat: string | null;
@@ -59,11 +58,6 @@ export type CallLogArtifactWriteResult = {
   relPath: string;
   sizeBytes: number;
   sha256: string;
-};
-
-export type PurgeCallLogArtifactDirectoryResult = {
-  deletedArtifacts: number;
-  errors: number;
 };
 
 export function buildArtifactRelativePath(timestamp: string, id: string) {
@@ -156,37 +150,32 @@ function serializeFinalSizeLimitFallback(artifact: CallLogArtifact, maxBytes: nu
 }
 
 function serializeArtifactForStorage(artifact: CallLogArtifact): string {
-  // Debug mode: write full untruncated payload
-  if (isChatDebugFileEnabled()) {
-    return JSON.stringify(artifact, null, 2);
-  }
-
   const maxBytes = getArtifactMaxBytes(artifact);
-  // Single-pass, non-pretty serialization on the hot path. Artifacts are machine-read via
-  // JSON.parse (readCallArtifact), so pretty-printing only doubled the bytes and CPU of
-  // serializing large request/response bodies on every request — a contributor to the
-  // CPU-runaway. The debug path above keeps pretty output for human inspection.
-  const serialized = JSON.stringify(artifact);
+  const serialized = JSON.stringify(artifact, null, 2);
   if (Buffer.byteLength(serialized) <= maxBytes) {
     return serialized;
   }
 
-  const truncated = JSON.stringify(truncateArtifactForStorage(artifact));
+  const truncated = JSON.stringify(truncateArtifactForStorage(artifact), null, 2);
   if (Buffer.byteLength(truncated) <= maxBytes) {
     return truncated;
   }
 
-  const withoutPipeline = JSON.stringify(omitOversizedPipeline(artifact));
+  const withoutPipeline = JSON.stringify(omitOversizedPipeline(artifact), null, 2);
   if (Buffer.byteLength(withoutPipeline) <= maxBytes) {
     return withoutPipeline;
   }
 
-  const minimal = JSON.stringify({
-    ...omitOversizedPipeline(artifact),
-    requestBody: OMITTED_FOR_SIZE_LIMIT,
-    responseBody: OMITTED_FOR_SIZE_LIMIT,
-    error: artifact.error ? OMITTED_FOR_SIZE_LIMIT : null,
-  });
+  const minimal = JSON.stringify(
+    {
+      ...omitOversizedPipeline(artifact),
+      requestBody: OMITTED_FOR_SIZE_LIMIT,
+      responseBody: OMITTED_FOR_SIZE_LIMIT,
+      error: artifact.error ? OMITTED_FOR_SIZE_LIMIT : null,
+    },
+    null,
+    2
+  );
   if (Buffer.byteLength(minimal) <= maxBytes) {
     return minimal;
   }
@@ -311,27 +300,4 @@ export function listCallLogArtifactFiles(baseDir = CALL_LOGS_DIR) {
       }
     })
     .sort((a, b) => b.mtimeMs - a.mtimeMs);
-}
-
-export function purgeCallLogArtifactDirectory(
-  baseDir = CALL_LOGS_DIR
-): PurgeCallLogArtifactDirectoryResult {
-  const result = { deletedArtifacts: 0, errors: 0 };
-  if (!baseDir || !fs.existsSync(baseDir)) return result;
-
-  try {
-    result.deletedArtifacts = listCallLogArtifactFiles(baseDir).length;
-  } catch {
-    result.deletedArtifacts = 0;
-  }
-
-  try {
-    fs.rmSync(baseDir, { recursive: true, force: true });
-  } catch (error) {
-    console.error("[callLogArtifacts] Failed to purge call log artifacts:", error);
-    result.deletedArtifacts = 0;
-    result.errors++;
-  }
-
-  return result;
 }

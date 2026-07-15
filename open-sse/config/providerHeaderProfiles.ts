@@ -11,7 +11,11 @@ export const GITHUB_COPILOT_OPENAI_INTENT = "conversation-panel";
 export const GITHUB_COPILOT_DEFAULT_INITIATOR = "user";
 export const GITHUB_COPILOT_USER_AGENT_LIBRARY = "electron-fetch";
 
+<<<<<<< Updated upstream
 export const QWEN_CLI_VERSION = "0.19.3";
+=======
+export const QWEN_CLI_VERSION = "0.15.4";
+>>>>>>> Stashed changes
 export const QWEN_STAINLESS_LANG = "js";
 export const QWEN_STAINLESS_PACKAGE_VERSION = "5.11.0";
 export const QWEN_STAINLESS_RETRY_COUNT = "1";
@@ -26,7 +30,11 @@ export const KIRO_AMZ_USER_AGENT = "aws-sdk-js/3.0.0 kiro-ide/1.0.0";
 export const KIRO_STREAMING_TARGET =
   "AmazonCodeWhispererStreamingService.GenerateAssistantResponse";
 
+<<<<<<< Updated upstream
 export const CURSOR_REGISTRY_VERSION = "3.9";
+=======
+export const CURSOR_REGISTRY_VERSION = "3.2.14";
+>>>>>>> Stashed changes
 
 export function getGitHubCopilotChatHeaders(
   accept = "application/json",
@@ -46,25 +54,25 @@ export function getGitHubCopilotChatHeaders(
   };
 }
 
-export function getRuntimePlatform(): string {
+function getRuntimePlatform(): string {
   return typeof process !== "undefined" && typeof process.platform === "string"
     ? process.platform
     : "unknown";
 }
 
-export function getRuntimeArch(): string {
+function getRuntimeArch(): string {
   return typeof process !== "undefined" && typeof process.arch === "string"
     ? process.arch
     : "unknown";
 }
 
-export function getRuntimeVersion(): string {
+function getRuntimeVersion(): string {
   return typeof process !== "undefined" && typeof process.version === "string"
     ? process.version
     : "unknown";
 }
 
-export function normalizeStainlessPlatform(platform: string = getRuntimePlatform()): string {
+function normalizeStainlessPlatform(platform: string = getRuntimePlatform()): string {
   const normalized = platform.toLowerCase();
   if (normalized.includes("ios")) return "iOS";
   if (normalized === "android") return "Android";
@@ -76,7 +84,7 @@ export function normalizeStainlessPlatform(platform: string = getRuntimePlatform
   return normalized ? `Other:${normalized}` : "Unknown";
 }
 
-export function normalizeStainlessArch(arch: string = getRuntimeArch()): string {
+function normalizeStainlessArch(arch: string = getRuntimeArch()): string {
   if (arch === "x32") return "x32";
   if (arch === "x86_64" || arch === "x64") return "x64";
   if (arch === "arm") return "arm";
@@ -184,5 +192,19 @@ export function getCursorRegistryHeaders(
     "connect-protocol-version": "1",
     "Content-Type": "application/connect+proto",
     "User-Agent": getCursorUserAgent(version),
+  };
+}
+
+export function getCursorUsageHeaders(
+  accessToken: string,
+  version = CURSOR_REGISTRY_VERSION
+): Record<string, string> {
+  const userAgent = getCursorUserAgent(version);
+  return {
+    Authorization: `Bearer ${accessToken}`,
+    Accept: "application/json",
+    "User-Agent": userAgent,
+    "x-cursor-client-version": version,
+    "x-cursor-user-agent": userAgent,
   };
 }
