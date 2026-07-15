@@ -1,0 +1,43 @@
+name: v4 release readiness
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - ".github/workflows/v4-release-readiness.yml"
+      - ".github/workflows/release.yml"
+      - "config/release/v4-readiness.json"
+      - "scripts/release/validate-v4-release-readiness.mjs"
+      - "apps/web/package.json"
+      - "apps/bff/package.json"
+      - "apps/desktop/package.json"
+      - "apps/desktop/src-tauri/tauri.conf.json"
+      - "apps/desktop/src-tauri/Cargo.toml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: v4-release-readiness-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      - name: Generate evidence-backed readiness report
+        run: node scripts/release/validate-v4-release-readiness.mjs
+      - name: Validate report shape
+        run: |
+          node -e "const r=require('./release-readiness/v4-release-readiness.json'); if(r.schemaVersion!==1||!Array.isArray(r.findings)||r.findings.length<1) process.exit(1)"
+      - name: Upload readiness report
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: v4-release-readiness-${{ github.sha }}
+          path: release-readiness/v4-release-readiness.json
+          if-no-files-found: error
+          retention-days: 14
+          include-hidden-files: false
