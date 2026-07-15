@@ -1,4 +1,8 @@
 name: gitleaks-fleet
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 on:
   schedule: [{ cron: "0 1 * * *" }]
   workflow_dispatch: {}
