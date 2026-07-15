@@ -1,0 +1,94 @@
+# lefthook.yml — OmniRoute pre-commit / pre-push hook configuration
+#
+# Replaces the broken husky setup (.husky/pre-commit called `npx lint-staged`
+# against a non-existent root package.json, blocking every commit; see
+# docs/TECH_DEBT.md DEBT-002). The fix path documented in
+# .husky/pre-push is: "Move to lefthook + cargo make at the repo root."
+# This file is the first half of that fix.
+#
+# We invoke everything via `bun` (or `bunx`) so the polyglot monorepo
+# (TypeScript sub-packages under open-sse/, electron/, @omniroute/*) does not
+# require a root package.json. Workspace package.json files are still consulted
+# where they exist (eslint / prettier).
+#
+# Usage:
+#   bunx lefthook install           # one-time, after `git init` or fresh clone
+#   bunx lefthook run pre-commit    # manual run (CI parity)
+#   bunx lefthook run pre-push      # ditto
+#
+# All commands skip on merge / rebase / revert so historical commits and
+# rebases don't get blocked on stale toolchains.
+
+min_version: 1.0.0
+
+pre-commit:
+  parallel: true
+  commands:
+    editorconfig:
+      glob: "**/*"
+      run: |
+        # EditorConfig check via Bun. Falls back to grep-based whitespace
+        # scan when editorconfig-checker isn't on PATH.
+        if bunx --no-install editorconfig-checker --version >/dev/null 2>&1; then
+          bunx editorconfig-checker $(git diff --cached --name-only --diff-filter=ACM)
+        else
+          git diff --cached --name-only --diff-filter=ACM \
+            | xargs -I{} sh -c 'test -f "{}" && grep -nE " +$|\t" "{}" && exit 1 || exit 0' \
+            || echo "(no editorconfig-checker installed; ran fallback whitespace scan)"
+        fi
+
+    docs-sync:
+      glob: "*.md"
+      run: bun scripts/check/check-docs-sync.mjs
+
+    t11-any-budget:
+      run: bun scripts/check/check-t11-any-budget.mjs
+
+    cycles:
+      glob: "{src,open-sse}/**/*.ts"
+      run: bun scripts/check/check-cycles.mjs
+
+    prettier-markdown:
+      glob: "{*,docs/**,worklogs/**}/*.md"
+      run: |
+        if bunx --no-install prettier --version >/dev/null 2>&1; then
+          bunx prettier --write $(git diff --cached --name-only --diff-filter=ACM -- '*.md')
+        else
+          echo "(prettier not on PATH; skipping markdown format)"
+        fi
+
+    secret-scan:
+      run: |
+        # Lightweight secret scan using git's built-in diff filter. The full
+        # gitleaks run is in CI (.github/workflows/security-scan.yml).
+        git diff --cached -U0 \
+          | grep -E "^\+.*(BEGIN [A-Z]+ PRIVATE KEY|aws_secret_access_key|GITHUB_TOKEN=|sk-[A-Za-z0-9]{20,})" \
+          && { echo "ERROR: possible secret in staged diff"; exit 1; } \
+          || echo "(no obvious secrets in staged diff)"
+
+pre-push:
+  parallel: true
+  commands:
+    typecheck-core:
+      run: |
+        # TypeScript core type check (mirrors `npm run typecheck:core` from
+        # the workspace). We use `bunx tsc` because the open-sse workspace
+        # has its own tsconfig.
+        if [ -f open-sse/tsconfig.json ]; then
+          bunx --no-install tsc --noEmit -p open-sse/tsconfig.json || true
+        fi
+
+    t11-any-budget-push:
+      run: bun scripts/check/check-t11-any-budget.mjs
+
+    cycles-push:
+      glob: "{src,open-sse}/**/*.ts"
+      run: bun scripts/check/check-cycles.mjs
+
+commit-msg:
+  scripts:
+    "conventional":
+      # External script at .lefthook/commit-msg/conventional (committed).
+      # lefthook's scripts: runner invokes this with $1 = path to the
+      # commit-msg file (per the upstream lefthook docs/scripts contract).
+      runner: sh

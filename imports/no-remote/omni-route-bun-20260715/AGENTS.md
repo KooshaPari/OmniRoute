@@ -1,0 +1,1000 @@
+# omniroute — Agent Guidelines
+
+## Project
+
+Unified AI proxy/router — route any LLM through one endpoint. Multi-provider support
+with **231 provider entries** (OpenAI, Anthropic, Gemini, DeepSeek, Groq, xAI, Mistral, Fireworks,
+Cohere, NVIDIA, Cerebras, Pollinations, Puter, Cloudflare AI, HuggingFace, DeepInfra,
+SambaNova, Meta Llama API, Moonshot AI, AI21 Labs, Databricks, Snowflake, and many more)
+with **MCP Server** (87 tools), **A2A v0.3 Protocol**, and **Electron desktop app**.
+
+> **Live counts (v3.8.31)**: providers 231 · MCP tools 87 · MCP scopes 30 · A2A skills 6 ·
+> open-sse services 115 · routing strategies 15 · auto-combo scoring factors 9 ·
+> DB modules 83 · DB migrations 97 · base tables 17 · search providers 11 ·
+> i18n locales 42. **Refresh with `npm run check:docs-all`.**
+
+## Doc Accuracy Discipline (read before writing any doc)
+
+> **If `grep -rn "name" src/ open-sse/ bin/` returns nothing, the name does not exist. Do not document it.**
+
+The recurring failure mode in AI-generated docs is _plausible-but-unverified specifics_.
+Every claim in a `.md` file under `docs/` should be verifiable against the source.
+
+**Rules (enforced by `npm run check:fabricated-docs`):**
+
+1. **Never state an API name, endpoint, path, CLI command, or env var without grepping for it first.**
+   ```bash
+   grep -rn "theName" src/ open-sse/ bin/
+   # 0 hits → do not document
+   ```
+2. **Never write a line count, file size, migration count, provider count, or strategy count from memory.**
+   ```bash
+   wc -l <file>           # exact line count
+   ls <dir>/*.ts | wc -l  # file count
+   ```
+3. **Every code example should be copy-pasted from real usage or actually run** — not synthesized.
+   Link to a real call site (`path:line`) instead of inventing a signature.
+4. **Prefer citing real source (`file.ts:line`) over paraphrasing behavior** — verifiable and self-correcting.
+5. **A shorter doc that is 100% accurate beats a comprehensive one with fabrications.**
+   Wrong docs cost more than missing docs, because people trust and act on them.
+
+The script `scripts/check/check-fabricated-docs.mjs` extracts every route path, env var, hook
+name, function name, and file reference from `docs/**/*.md` and verifies each one against the
+codebase. Run it locally before pushing docs; it runs in CI via `npm run check:docs-all`.
+
+## Stack
+
+- **Runtime**: Next.js 16 (App Router), Node.js `>=22.0.0 <23 || >=24.0.0 <27`, ES Modules (`"type": "module"`)
+- **Language**: TypeScript 6.0 (`src/`) + JavaScript (`open-sse/`, `electron/`)
+- **Database**: better-sqlite3 (SQLite) — `DATA_DIR` configurable, default `~/.omniroute/`
+- **Streaming**: SSE via `open-sse` internal workspace package
+- **Styling**: Tailwind CSS v4
+- **i18n**: next-intl with 42 locales (`src/i18n/messages/`) — refresh with `ls src/i18n/messages/*.json | wc -l`
+- **Desktop**: Electron (cross-platform: Windows, macOS, Linux)
+- **Schemas**: Zod v4 for all API / MCP input validation
+
+---
+
+## Build, Lint, and Test Commands
+
+| Command                             | Description                                                        |
+| ----------------------------------- | ------------------------------------------------------------------ |
+| `npm run dev`                       | Start Next.js dev server                                           |
+| `npm run build`                     | Production build: `next build` → `.build/next/` + assemble `dist/` |
+| `npm run build:release`             | Clean rebuild + HEAD sentinel (`dist/BUILD_SHA`) — use for deploy  |
+| `npm run start`                     | Run production build                                               |
+| `npm run build:cli`                 | Build CLI package                                                  |
+| `npm run lint`                      | ESLint on all source files                                         |
+| `npm run typecheck:core`            | TypeScript core type checking                                      |
+| `npm run typecheck:noimplicit:core` | Strict checking (no implicit any)                                  |
+| `npm run check`                     | Run lint + test                                                    |
+| `npm run check:cycles`              | Check for circular dependencies                                    |
+| `npm run electron:dev`              | Run Electron app in dev mode                                       |
+| `npm run electron:build`            | Build Electron app for current OS                                  |
+
+**Build output layout:**
+
+| Directory | Purpose                                            | Gitignored |
+| --------- | -------------------------------------------------- | ---------- |
+| `src/`    | Application source (TypeScript / TSX)              | No         |
+| `.build/` | Build intermediates (`distDir = .build/next`)      | Yes        |
+| `dist/`   | Shippable bundle assembled by `assembleStandalone` | Yes        |
+
+The pipeline is a single `next build` pass — intermediates land in `.build/next/`, the
+assembled bundle in `dist/`. VPS deploys rsync `dist/` into the remote
+`/usr/lib/node_modules/omniroute/app/` directory (VPS image path is unchanged).
+
+### Running Tests
+
+```bash
+# All tests (unit + vitest + ecosystem + e2e)
+npm run test:all
+
+# Single test file (Node.js native test runner — most tests use this)
+node --import tsx/esm --test tests/unit/your-file.test.ts
+node --import tsx/esm --test tests/unit/plan3-p0.test.ts
+node --import tsx/esm --test tests/unit/fixes-p1.test.ts
+node --import tsx/esm --test tests/unit/security-fase01.test.ts
+
+# Integration tests
+node --import tsx/esm --test tests/integration/*.test.ts
+
+# Vitest (MCP server, autoCombo)
+npm run test:vitest
+
+# E2E with Playwright
+npm run test:e2e
+
+# Protocol clients E2E (MCP transports, A2A)
+npm run test:protocols:e2e
+
+# Ecosystem compatibility tests
+npm run test:ecosystem
+
+# Coverage (see CONTRIBUTING.md)
+npm run test:coverage
+```
+
+**For authoritative coverage requirements, test execution, and PR gates, see [`CONTRIBUTING.md`](CONTRIBUTING.md#running-tests).**
+
+---
+
+## Code Style Guidelines
+
+### Formatting (Prettier — enforced via lint-staged)
+
+2 spaces · semicolons required · double quotes (`"`) · 100 char width · es5 trailing commas.
+Always run `prettier --write` on changed files.
+
+### TypeScript
+
+- **Target**: ES2022 · **Module**: `esnext` · **Resolution**: `bundler`
+- `strict: false` — prefer explicit types, don't rely on inference
+- Path aliases: `@/*` → `src/`, `@omniroute/open-sse` → `open-sse/`, `@omniroute/open-sse/*` → `open-sse/*`
+
+### ESLint Rules
+
+- **Security (error, everywhere)**: `no-eval`, `no-implied-eval`, `no-new-func`
+- **Relaxed in `open-sse/` and `tests/`**: `@typescript-eslint/no-explicit-any` = warn
+- React hooks rules and `@next/next/no-assign-module-variable` disabled in `open-sse/` and `tests/`
+
+### Naming
+
+| Element             | Convention                       | Example                              |
+| ------------------- | -------------------------------- | ------------------------------------ |
+| Files               | camelCase / kebab-case           | `chatCore.ts`, `tokenHealthCheck.ts` |
+| React components    | PascalCase                       | `Dashboard.tsx`, `ProviderCard.tsx`  |
+| Functions/variables | camelCase                        | `getHealth()`, `switchCombo()`       |
+| Constants           | UPPER_SNAKE                      | `MAX_RETRIES`, `DEFAULT_TIMEOUT`     |
+| Interfaces          | PascalCase (`I` prefix optional) | `ProviderConfig`                     |
+| Enums               | PascalCase (members too)         | `LogLevel.Error`                     |
+
+### Imports
+
+- **Order**: external → internal (`@/`, `@omniroute/open-sse`) → relative (`./`, `../`)
+- **No barrel imports** from `localDb.ts` — import from the specific `db/` module instead
+
+### Error Handling
+
+- try/catch with specific error types; always log with context (pino logger)
+- Never silently swallow errors in SSE streams — use abort signals for cleanup
+- Return proper HTTP status codes (4xx client, 5xx server)
+
+### Security
+
+- **NEVER** commit API keys, secrets, or credentials
+- Validate all user inputs with Zod schemas
+- Auth middleware required on all API routes
+- Never log SQLite encryption keys
+- Sanitize user content (dompurify for HTML)
+- **Public upstream OAuth identifiers** (Gemini / Antigravity / Windsurf-style client_id/secret + Firebase Web keys extracted from public CLIs): use `resolvePublicCred()` from `open-sse/utils/publicCreds.ts`, **never** as string literals. Full pattern in `docs/security/PUBLIC_CREDS.md`.
+- **Error responses** (HTTP / SSE / executor / MCP): use `buildErrorBody()` or `sanitizeErrorMessage()` from `open-sse/utils/error.ts`, **never** put raw `err.stack` / `err.message` in a Response body. Full pattern in `docs/security/ERROR_SANITIZATION.md`.
+- **`exec()` / `spawn()` with runtime values**: pass via the `env` option, **never** string-interpolate paths/values into the script body. Reference: `src/mitm/cert/install.ts::updateNssDatabases`.
+- Prefer secure-by-default libraries when available — see [tldrsec/awesome-secure-defaults](https://github.com/tldrsec/awesome-secure-defaults) for the curated list (Helmet.js, DOMPurify, ssrf-req-filter, safe-regex, Google Tink, etc.).
+
+---
+
+## Architecture
+
+### Data Layer (`src/lib/db/`)
+
+All persistence uses SQLite through **83 domain-specific modules** in `src/lib/db/`. Top modules:
+
+- Core: `core.ts`, `migrationRunner.ts`, `encryption.ts`, `stateReset.ts`
+- Providers / catalog: `providers.ts`, `models.ts`, `providerLimits.ts`, `compressionAnalytics.ts`
+- Routing: `combos.ts`, `modelComboMappings.ts`, `domainState.ts`, `commandCodeAuth.ts`
+- Auth: `apiKeys.ts`, `secrets.ts`, `registeredKeys.ts`, `sessionAccountAffinity.ts`
+- Usage / billing: `quotaSnapshots.ts`, `creditBalance.ts`, `usage*.ts`, `compressionCacheStats.ts`
+- Storage: `backup.ts`, `cleanup.ts`, `jsonMigration.ts`, `healthCheck.ts`, `databaseSettings.ts`
+- Extension modules: `evals.ts`, `webhooks.ts`, `reasoningCache.ts`, `readCache.ts`, `tierConfig.ts`, `compressionCombos.ts`, `compressionScheduler.ts`, `batches.ts`, `files.ts`, `syncTokens.ts`, `proxies.ts`, `oneproxy.ts`, `upstreamProxy.ts`, `versionManager.ts`, `cliToolState.ts`, `prompts.ts`, `detailedLogs.ts`, `contextHandoffs.ts`, `compression.ts`, `stats.ts`
+
+Live count: `ls src/lib/db/*.ts | wc -l` (currently 83). Drift detection: `npm run check:docs-counts`.
+Schema migrations live in `db/migrations/` (**97 files** as of v3.8.24) and run via `migrationRunner.ts`.
+`src/lib/localDb.ts` is a **re-export layer only** — never add logic there.
+
+#### DB Internals
+
+- **`core.ts`**: `getDbInstance()` returns a singleton `better-sqlite3` instance with WAL
+  journaling. `SCHEMA_SQL` defines **17 base tables** (verify with `grep -c "CREATE TABLE" src/lib/db/core.ts` minus 1 for the bookkeeping `_omniroute_migrations` table). Helpers: `rowToCamel`, `encryptConnectionFields`.
+- **`migrationRunner.ts`**: Applies versioned SQL files from `db/migrations/` inside transactions.
+  Tracks applied migrations in `_omniroute_migrations` table.
+- **Migrations**: 97 files (`001_initial_schema.sql` → `099_*.sql`).
+  Each migration is idempotent and runs in a transaction. Live count: `ls src/lib/db/migrations/*.sql | wc -l`.
+- **Domain modules** import `getDbInstance()` from `core.ts` for all CRUD operations.
+  Each module owns a specific table/set of tables (e.g., `providers.ts` → `provider_connections`,
+  `combos.ts` → `combos`). Encryption helpers protect sensitive fields at rest.
+- **`localDb.ts`** re-exports all domain modules — consumers import from here for convenience.
+
+### API Route Layer (`src/app/api/v1/`)
+
+Next.js App Router routes — each follows a consistent pattern:
+
+```
+Route → CORS preflight → Body validation (Zod) → Optional auth (extractApiKey/isValidApiKey)
+  → API key policy enforcement (enforceApiKeyPolicy) → Handler delegation (open-sse)
+```
+
+| Route                           | Handler                   | Notes                                                         |
+| ------------------------------- | ------------------------- | ------------------------------------------------------------- |
+| `chat/completions/route.ts`     | `handleChat()`            | + prompt injection guard (clones request)                     |
+| `responses/route.ts`            | `handleChat()` (unified)  | Responses API format                                          |
+| `embeddings/route.ts`           | `handleEmbedding()`       | Model listing + creation                                      |
+| `images/generations/route.ts`   | `handleImageGeneration()` | Model listing + creation                                      |
+| `audio/transcriptions/route.ts` | audio handler             | Multipart form data                                           |
+| `audio/speech/route.ts`         | TTS handler               | Binary audio response                                         |
+| `videos/generations/route.ts`   | video handler             | ComfyUI/SD WebUI                                              |
+| `music/generations/route.ts`    | music handler             | ComfyUI workflows                                             |
+| `moderations/route.ts`          | moderation handler        | Content safety                                                |
+| `rerank/route.ts`               | rerank handler            | Document relevance                                            |
+| `search/route.ts`               | search handler            | Web search (12 providers per `open-sse/handlers/search.ts:6`) |
+
+**No global Next.js middleware file** — interception is route-specific. Auth is optional
+(controlled by `REQUIRE_API_KEY` env). Prompt injection guard is unique to chat completions.
+
+### Request Pipeline (`open-sse/`)
+
+The `open-sse/` workspace is the core streaming engine. Full request flow:
+
+```
+Client Request
+  → src/app/api/v1/.../route.ts (Next.js route)
+    → open-sse/handlers/chatCore.ts::handleChatCore()
+      → Semantic/signature cache check
+      → Rate limit check (rateLimitManager)
+      → Combo routing? → open-sse/services/combo.ts::handleComboChat()
+        → resolveComboTargets() → ordered ResolvedComboTarget[]
+        → For each target: handleSingleModel() (wraps chatCore)
+      → translateRequest() (open-sse/translator/)
+        → Convert source format (e.g., OpenAI) → target format (e.g., Claude)
+      → getExecutor() → provider-specific executor instance
+        → executor.execute() (BaseExecutor → DefaultExecutor or provider-specific)
+          → buildUrl() + buildHeaders() + transformRequest()
+          → fetch() to upstream provider
+          → Retry logic with exponential backoff
+      → Response translation back to client format
+      → If Responses API: responsesTransformer.ts TransformStream
+  → SSE stream or JSON response to client
+```
+
+**Handlers** (`open-sse/handlers/`): `chatCore.ts`, `responsesHandler.ts`, `embeddings.ts`,
+`imageGeneration.ts`, `videoGeneration.ts`, `musicGeneration.ts`, `audioSpeech.ts`,
+`audioTranscription.ts`, `moderations.ts`, `rerank.ts`, `search.ts`.
+
+**Upstream headers**: merged after default auth; same header name replaces executor value.
+**T5 intra-family fallback** recomputes headers using only the fallback model id.
+Forbidden header names: `src/shared/constants/upstreamHeaders.ts` — keep sanitize,
+Zod schemas, and unit tests aligned when editing.
+
+### Provider Categories
+
+- **Free** (4): Qoder AI, Qwen Code, Gemini CLI (deprecated), Kiro AI
+- **OAuth** (14): Claude Code, Antigravity, Codex, GitHub Copilot, Cursor, Kimi Coding, Kilo Code, Cline, Qwen (⚠️ free tier discontinued 2026-04-15), Kiro, Qoder, Gemini, Windsurf (v3.8), GitLab Duo (v3.8)
+- **API Key** (120+): OpenAI, Anthropic, Gemini, DeepSeek, Groq, xAI, Mistral, Perplexity,
+  Together, Fireworks, Cerebras, Cohere, NVIDIA, Nebius, SiliconFlow, Hyperbolic,
+  HuggingFace, OpenRouter, Vertex AI, Cloudflare AI, Scaleway, AI/ML API, Pollinations,
+  Puter, Longcat, Alibaba, Kimi, Minimax, Blackbox, Synthetic, Kilo Gateway,
+  Z.AI, GLM, Deepgram, AssemblyAI, ElevenLabs, Cartesia, PlayHT, Inworld,
+  NanoBanana, SD WebUI, ComfyUI, Ollama Cloud, Perplexity Search, Serper, Brave, Exa,
+  Tavily, OpenCode Zen/Go, Bailian Coding Plan, DeepInfra, Vercel AI Gateway,
+  Lambda AI, SambaNova, nScale, OVHcloud AI, Baseten, PublicAI, Moonshot AI,
+  Meta Llama API, v0 (Vercel), Morph, Featherless AI, FriendliAI, LlamaGate,
+  Galadriel, Weights & Biases Inference, Volcengine, AI21 Labs, Venice.ai,
+  Codestral, Upstage, Maritalk, Xiaomi MiMo, Inference.net, NanoGPT, Predibase,
+  Bytez, Heroku AI, Databricks, Snowflake Cortex, GigaChat (Sber), CrofAI,
+  AgentRouter, ChatGPT Web, Baidu Qianfan, AWS Polly, RunwayML, GitLab Duo,
+  Amazon Q, Empower, Poe, and many more.
+- **Self-Hosted** (8+): LM Studio, vLLM, Lemonade, Llamafile, Triton, Docker Model Runner, Xinference, Oobabooga
+- **Custom**: OpenAI-compatible (`openai-compatible-*`) and Anthropic-compatible (`anthropic-compatible-*`) prefixes
+
+Providers are registered in `src/shared/constants/providers.ts` with Zod validation at module load.
+
+### Executors (`open-sse/executors/`)
+
+Provider-specific request executors: `base.ts`, `default.ts`, `cursor.ts`, `codex.ts`,
+`antigravity.ts`, `github.ts`, `gemini-cli.ts`, `kiro.ts`, `qoder.ts`, `vertex.ts`,
+`cloudflare-ai.ts`, `opencode.ts`, `pollinations.ts`, `puter.ts`.
+
+#### Executor Internals
+
+- **`base.ts`** (`BaseExecutor`): Abstract base with `buildUrl()`, `buildHeaders()`,
+  `transformRequest()`, retry logic (exponential backoff), and `execute()`. Subclasses
+  override URL/header/transform methods for provider-specific behavior.
+- **`default.ts`** (`DefaultExecutor extends BaseExecutor`): Handles most OpenAI-compatible
+  providers. Reads provider config from `providerRegistry.ts` to resolve base URL, auth
+  header format, and request transformations.
+- **`getExecutor()`** (`executors/index.ts`): Factory that returns the correct executor
+  instance based on provider ID. Provider-specific executors (Cursor, Codex, Vertex, etc.)
+  override only what differs from the default.
+
+### Translator (`open-sse/translator/`)
+
+Translates between API formats (OpenAI-format ↔ Anthropic, Gemini, etc.).
+Includes request/response translators with helpers for image handling.
+
+#### Translator Internals
+
+- **`translator/index.ts`**: Exports `translateRequest()` and format constants. Called by
+  `chatCore.ts` before executor dispatch.
+- **Flow**: `translateRequest(body, sourceFormat, targetFormat)` → detects source format
+  (OpenAI, Anthropic, Gemini) → applies the matching translator module → returns
+  transformed body ready for the target provider.
+- **Response translation** runs in reverse after upstream response, converting back to
+  the client's expected format.
+
+### Transformer (`open-sse/transformer/`)
+
+`responsesTransformer.ts` — transforms Responses API format to/from Chat Completions format.
+
+#### Transformer Internals
+
+- **`createResponsesApiTransformStream()`**: Returns a `TransformStream` that converts
+  Chat Completions SSE chunks (`data: {"choices":[...]}`) into Responses API SSE events
+  (`response.output_item.added`, `response.output_text.delta`, etc.).
+- Used when the client sends a Responses API request: the request is internally converted
+  to Chat Completions format, dispatched normally, and the response is piped through this
+  transform stream before reaching the client.
+
+### Services (`open-sse/services/`)
+
+115 service modules in `open-sse/services/` (top-level only; 184 including sub-dirs like `autoCombo/` and `compression/`). Refresh: `ls open-sse/services/*.ts | wc -l`. Key modules:
+`combo.ts` (routing engine), `usage.ts`, `tokenRefresh.ts`,
+`rateLimitManager.ts`, `accountFallback.ts`, `sessionManager.ts`, `wildcardRouter.ts`,
+`autoCombo/`, `intentClassifier.ts`, `taskAwareRouter.ts`, `thinkingBudget.ts`,
+`contextManager.ts`, `modelDeprecation.ts`, `modelFamilyFallback.ts`,
+`emergencyFallback.ts`, `workflowFSM.ts`, `backgroundTaskDetector.ts`, `ipFilter.ts`,
+`signatureCache.ts`, `volumeDetector.ts`, `contextHandoff.ts`, `compression/` (prompt
+compression pipeline), and more.
+
+#### Prompt Compression Pipeline (`compression/`)
+
+Modular prompt compression that runs proactively before the existing reactive context manager.
+
+- **`strategySelector.ts`**: Selects compression mode based on config, compression combo assignments,
+  combo overrides, auto-trigger thresholds, and defaults. Priority: assigned compression combo >
+  combo override > auto-trigger > default mode > off.
+- **`lite.ts`**: 5 lite-mode techniques: `collapseWhitespace`, `dedupSystemPrompt`,
+  `compressToolResults`, `removeRedundantContent`, `replaceImageUrls`. Target: 10-15% savings at
+  <1ms latency.
+- **`caveman.ts` / `cavemanRules.ts`**: Caveman-style semantic condensation backed by built-in
+  rules plus file-loaded language packs under `compression/rules/`.
+- **`engines/rtk/`**: Rule-based terminal/tool-output compression inspired by RTK patterns. Detects
+  command output classes, applies JSON filter packs, deduplicates repeated lines, strips ANSI/code
+  noise, and preserves errors/actionable context. The RTK JSON DSL supports replace,
+  match-output short-circuit, strip/keep, per-line truncation, head/tail/max-line truncation,
+  inline tests, trust-gated project/global custom filters, and optional redacted raw-output
+  retention for authenticated recovery.
+- **`engines/registry.ts`**: Registers engines (`caveman`, `rtk`) and powers stacked pipelines.
+- **`stats.ts`**: Per-request compression stats tracking (original tokens, compressed tokens,
+  savings %, techniques used, engine breakdown, compression combo id).
+- **`types.ts`**: `CompressionMode` (off/lite/standard/aggressive/ultra/rtk/stacked),
+  `CompressionConfig`, `CompressionStats`, `CompressionResult`.
+- DB settings in `src/lib/db/compression.ts`, compression combos in
+  `src/lib/db/compressionCombos.ts`, API routes under `src/app/api/settings/compression/`,
+  `src/app/api/context/*`, and preview/language-pack routes under `src/app/api/compression/*`.
+
+#### Combo Routing Engine (`combo.ts`)
+
+- **`handleComboChat()`**: Entry point for combo-routed requests. Receives the combo config
+  and iterates through targets in order until one succeeds or all fail.
+- **`resolveComboTargets()`**: Expands a combo configuration into an ordered array of
+  `ResolvedComboTarget[]`, each specifying provider + model + account + credentials.
+- **Strategies** (15): priority, weighted, fill-first, round-robin, P2C, random, least-used, reset-aware (v3.8),
+  reset-window, cost-optimized, strict-random, auto, lkgp, context-optimized, context-relay. Source: `ROUTING_STRATEGY_VALUES` in `src/shared/constants/routingStrategies.ts`.
+- Each target calls **`handleSingleModel()`** which wraps `handleChatCore()` with
+  per-target error handling and circuit breaker checks.
+
+### Domain Layer (`src/domain/`)
+
+Policy engine modules: `policyEngine.ts`, `comboResolver.ts`, `costRules.ts`,
+`degradation.ts`, `fallbackPolicy.ts`, `lockoutPolicy.ts`, `modelAvailability.ts`,
+`providerExpiration.ts`, `quotaCache.ts`, `responses.ts`, `configAudit.ts`.
+
+### MCP Server (`open-sse/mcp-server/`)
+
+**87 tools** total (`TOTAL_MCP_TOOL_COUNT`, `open-sse/mcp-server/server.ts`): a 33-entry base registry (`MCP_TOOLS` in `schemas/tools.ts`, bundling the core / cache / compression / 1proxy / advanced tools) **plus** standalone module sets — memory (3), skill (4), agentSkill (3), gamification (8), plugin (8), notion (6), obsidian (22). 3 transports (stdio / SSE / Streamable HTTP). Scoped auth (30 scopes — see `OMNIROUTE_MCP_SCOPES`), Zod schemas. See [`docs/frameworks/MCP-SERVER.md`](docs/frameworks/MCP-SERVER.md).
+
+**Core tools** (20): get_health, list_combos, get_combo_metrics, switch_combo, check_quota,
+route_request, cost_report, list_models_catalog, web_search, simulate_route, set_budget_guard,
+set_routing_strategy, set_resilience_profile, test_combo, get_provider_metrics,
+best_combo_for_task, explain_route, get_session_snapshot, db_health_check, sync_pricing.
+
+**Cache tools** (2): cache_stats, cache_flush.
+
+**Compression tools** (5): compression_status, compression_configure, set_compression_engine,
+list_compression_combos, compression_combo_stats.
+
+**1proxy tools** (3): oneproxy_fetch, oneproxy_rotate, oneproxy_stats.
+
+**Memory tools** (3): memory_search, memory_add, memory_clear.
+
+**Skill tools** (4): skills_list, skills_enable, skills_execute, skills_executions.
+
+**Agent-skill tools** (3): A2A skill discovery / invocation bridges.
+
+**Gamification tools** (8): levels, badges, leaderboard, and community-federation queries.
+
+**Plugin tools** (8): plugin marketplace listing, install/enable/disable, and runtime inspection.
+
+**Notion tools** (6) + **Obsidian tools** (22): knowledge-base read/write integrations (the largest tool family — vault search, note CRUD, WebDAV-backed file ops).
+
+#### MCP Internals
+
+- **Tool registration**: Each tool is an object with `{ name, description, inputSchema: ZodSchema,
+handler: async (args) => {...} }`. Zod validates inputs before the handler fires.
+- **`createMcpServer()`** and **`startMcpStdio()`** exported from `mcp-server/index.ts`.
+  `createMcpServer()` wires all tool sets; `startMcpStdio()` launches the stdio transport.
+- **Transports**: stdio (CLI `omniroute --mcp`), SSE (`/api/mcp/sse`), Streamable HTTP
+  (`/api/mcp/stream`). All share the same tool/scope engine.
+- **Scopes** (30): Control which tool categories an API key can access. Enforcement happens
+  before handler dispatch.
+- **Audit**: Every tool invocation is logged to SQLite (`mcp_audit` table) with tool name,
+  args, success/failure, API key attribution, and timestamp.
+
+### A2A Server (`src/lib/a2a/`)
+
+JSON-RPC 2.0, SSE streaming, Task Manager with TTL cleanup.
+Agent Card at `/.well-known/agent.json`.
+Skills (6): `smartRouting.ts`, `quotaManagement.ts`, `providerDiscovery.ts`,
+`costAnalysis.ts`, `healthReport.ts`, `listCapabilities.ts`.
+
+#### A2A Internals
+
+- **`taskManager.ts`**: State machine lifecycle for tasks: `submitted → working →
+completed | failed | canceled`. Tasks have TTL and are cleaned up automatically.
+- **JSON-RPC methods**: `message/send` (sync), `message/stream` (SSE), `tasks/get`,
+  `tasks/cancel`. Dispatched via `POST /a2a`.
+- **Skills**: Registered in a DB-backed registry. Each skill receives task context
+  (messages, metadata) and returns structured results. `quotaManagement.ts` summarizes
+  quota; `smartRouting.ts` recommends routing decisions.
+- **Agent Card**: `/.well-known/agent.json` exposes capabilities, skills, and metadata
+  for client auto-discovery.
+
+#### A2A skill implementations (status, refreshed 2026-06-24)
+
+All 8 A2A skills are fully implemented as of `e4d751ed1` (2026-06-20). The DEBT-006
+"5/7 stubbed" status in earlier versions of this table was **stale** — it was
+written on 2026-06-18 before PRs #83/#86/#87/#72 landed.
+
+| Skill | Lines | Implemented | Notes |
+|---|---|---|---|
+| `smartRouting.ts` | 736 | 2026-06-20 (#83) | composes `combo.ts::resolveComboTargets()` output as the recommendation payload. |
+| `quotaManagement.ts` | 400 | 2026-06-20 (#86) | pairs with `open-sse/services/rateLimitManager.ts`; TPM/TPD token-bucket (DEBT-001 dependency) resolved. |
+| `providerDiscovery.ts` | 530 | 2026-06-20 (#? — commit `2763f11d5`) | reads `src/shared/constants/providers.ts` (Zod-validated single source of truth). |
+| `costAnalysis.ts` | 254 | 2026-06-18 (L5-109) | resolves pricing via `getPricingForModel()`, computes cost via `calculateCostFromTokens()`, accepts canonical/legacy token field names, estimates tokens from message length, emits `proceed` / `switch_model` / `estimate_only` recommendation when `budget_usd` cap exceeded. Tests: `tests/unit/a2a-cost-analysis.test.ts` (8 vitest cases). |
+| `healthReport.ts` | 718 | 2026-06-20 (#87) | pulls from `mcp_audit` table (last 1000 invocations, failure-rate per tool). |
+| `listCapabilities.ts` | 72 | 2026-06-20 (commit `6bad368dc`) | derives from `A2A_SKILL_HANDLERS` registry at `src/lib/a2a/taskExecution.ts`. |
+| `agentDispatch.ts` | 223 | 2026-06-18 (L5-109 cherry-pick) | added in `feat/a2a-agent-dispatch-clean`. Doc: `docs/frameworks/A2A-SERVER.md`. Env: `.env.example`. |
+| `mintVirtualKey.ts` | 235 | 2026-06-20 (B5/B9) | bifrost virtual-key minting skill (fork-only). |
+
+Stub count: **0/8** (DEBT-006 closed). All 9 sub-items of DEBT-006 resolved
+between L5-109 and L5-115.
+
+### ACP Module (`src/lib/acp/`)
+
+Agent Communication Protocol registry and manager.
+
+### Memory System (`src/lib/memory/`)
+
+Extraction, injection, retrieval, summarization, and store modules for persistent
+conversational memory across sessions.
+
+### Skills System (`src/lib/skills/`)
+
+Extensible skill framework: registry, executor, sandbox, built-in skills,
+custom skill support, interception, and injection.
+
+#### Skills Internals
+
+- **`registry.ts`**: DB-backed skill registration and discovery. Skills have metadata
+  (name, description, version, enabled status) stored in SQLite.
+- **`executor.ts`**: Execution engine with configurable timeout and retry logic.
+  Receives skill name + input, looks up the skill, runs it in the sandbox.
+- **`sandbox.ts`**: Isolation layer for custom (user-provided) skills. Limits resource
+  access and execution time.
+- **Built-in skills**: Ship with OmniRoute (e.g., quota management, routing). Located
+  alongside the registry.
+- **Interception/Injection**: Skills can intercept requests in the pipeline (pre/post
+  processing) or inject context into prompts.
+
+### Compliance (`src/lib/compliance/`)
+
+Policy index for compliance enforcement.
+
+### MITM Proxy (`src/mitm/`)
+
+MITM proxy capability with certificate management, DNS handling, and target routing.
+
+### Middleware (`src/middleware/`)
+
+Request middleware including `promptInjectionGuard.ts`.
+
+### Guardrails (`src/lib/guardrails/`)
+
+Hot-reloadable guardrails framework (3 built-in: pii-masker, prompt-injection, vision-bridge). Fail-open; per-request opt-out via header. See [`docs/security/GUARDRAILS.md`](docs/security/GUARDRAILS.md).
+
+### Cloud Agents (`src/lib/cloudAgent/`)
+
+`CloudAgentBase` abstract class + 3 agents (codex-cloud, devin, jules). Tasks persisted in `cloud_agent_tasks`; management auth required. See [`docs/frameworks/CLOUD_AGENT.md`](docs/frameworks/CLOUD_AGENT.md).
+
+### Evals (`src/lib/evals/`)
+
+Generic eval framework: `evalRunner.ts`, `runtime.ts`. Targets: combo / model / suite-default. See [`docs/frameworks/EVALS.md`](docs/frameworks/EVALS.md).
+
+### Webhooks (`src/lib/webhookDispatcher.ts`)
+
+HMAC-signed delivery, exponential backoff, auto-disable after 10 failures. 7 event types. See [`docs/frameworks/WEBHOOKS.md`](docs/frameworks/WEBHOOKS.md).
+
+### Authorization Pipeline (`src/server/authz/`)
+
+`classify → policies → enforce`. 3 route classes (PUBLIC / CLIENT_API / MANAGEMENT). See [`docs/architecture/AUTHZ_GUIDE.md`](docs/architecture/AUTHZ_GUIDE.md).
+
+### Reasoning Replay (`src/lib/db/reasoningCache.ts` + `open-sse/services/reasoningCache.ts`)
+
+Hybrid in-memory + SQLite cache for `reasoning_content`. Re-injects on multi-turn for strict providers (DeepSeek V4, Kimi K2, Qwen-Thinking, GLM, xiaomi-mimo). See [`docs/routing/REASONING_REPLAY.md`](docs/routing/REASONING_REPLAY.md).
+
+### Tunnels (`src/lib/{cloudflaredTunnel,ngrokTunnel}.ts` + `src/app/api/tunnels/`)
+
+Cloudflare Quick/Named, ngrok, Tailscale Funnel. See [`docs/ops/TUNNELS_GUIDE.md`](docs/ops/TUNNELS_GUIDE.md).
+
+### Adding a New Provider
+
+1. Register in `src/shared/constants/providers.ts`
+2. Add executor in `open-sse/executors/` (if custom logic needed)
+3. Add translator in `open-sse/translator/` (if non-OpenAI format)
+4. Add OAuth config in `src/lib/oauth/constants/oauth.ts` (if OAuth-based)
+5. Add models in `open-sse/config/providerRegistry.ts`
+
+---
+
+## Subdirectory AGENTS.md Files
+
+- **[`src/lib/db/AGENTS.md`](src/lib/db/AGENTS.md)** — SQLite persistence, domain modules, migrations
+- **[`open-sse/services/AGENTS.md`](open-sse/services/AGENTS.md)** — Routing engine, combo resolution, strategy selection
+
+## Reference Documentation (docs/)
+
+For any non-trivial change, read the matching deep-dive first:
+
+| Area                                       | Doc                                                                                                                                 |
+| ------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------- |
+| Repo navigation                            | [`docs/architecture/REPOSITORY_MAP.md`](docs/architecture/REPOSITORY_MAP.md)                                                        |
+| Architecture                               | [`docs/architecture/ARCHITECTURE.md`](docs/architecture/ARCHITECTURE.md)                                                            |
+| Engineering reference                      | [`docs/architecture/CODEBASE_DOCUMENTATION.md`](docs/architecture/CODEBASE_DOCUMENTATION.md)                                        |
+| Auto-Combo (12-factor, 15 strategies)      | [`docs/routing/AUTO-COMBO.md`](docs/routing/AUTO-COMBO.md)                                                                          |
+| Resilience (3 layers)                      | [`docs/architecture/RESILIENCE_GUIDE.md`](docs/architecture/RESILIENCE_GUIDE.md)                                                    |
+| Skills                                     | [`docs/frameworks/SKILLS.md`](docs/frameworks/SKILLS.md)                                                                            |
+| Memory                                     | [`docs/frameworks/MEMORY.md`](docs/frameworks/MEMORY.md)                                                                            |
+| Cloud agents                               | [`docs/frameworks/CLOUD_AGENT.md`](docs/frameworks/CLOUD_AGENT.md)                                                                  |
+| Guardrails                                 | [`docs/security/GUARDRAILS.md`](docs/security/GUARDRAILS.md)                                                                        |
+| Evals                                      | [`docs/frameworks/EVALS.md`](docs/frameworks/EVALS.md)                                                                              |
+| Compliance                                 | [`docs/security/COMPLIANCE.md`](docs/security/COMPLIANCE.md)                                                                        |
+| Webhooks                                   | [`docs/frameworks/WEBHOOKS.md`](docs/frameworks/WEBHOOKS.md)                                                                        |
+| Authz                                      | [`docs/architecture/AUTHZ_GUIDE.md`](docs/architecture/AUTHZ_GUIDE.md)                                                              |
+| Stealth                                    | [`docs/security/STEALTH_GUIDE.md`](docs/security/STEALTH_GUIDE.md)                                                                  |
+| Reasoning replay                           | [`docs/routing/REASONING_REPLAY.md`](docs/routing/REASONING_REPLAY.md)                                                              |
+| Agent protocols (A2A / ACP / Cloud)        | [`docs/frameworks/AGENT_PROTOCOLS_GUIDE.md`](docs/frameworks/AGENT_PROTOCOLS_GUIDE.md)                                              |
+| MCP server                                 | [`docs/frameworks/MCP-SERVER.md`](docs/frameworks/MCP-SERVER.md)                                                                    |
+| A2A server                                 | [`docs/frameworks/A2A-SERVER.md`](docs/frameworks/A2A-SERVER.md)                                                                    |
+| API reference                              | [`docs/reference/API_REFERENCE.md`](docs/reference/API_REFERENCE.md) + [`docs/openapi.yaml`](docs/openapi.yaml) |
+| Provider catalog (auto-generated)          | [`docs/reference/PROVIDER_REFERENCE.md`](docs/reference/PROVIDER_REFERENCE.md)                                                      |
+| Tunnels                                    | [`docs/ops/TUNNELS_GUIDE.md`](docs/ops/TUNNELS_GUIDE.md)                                                                            |
+| Electron desktop                           | [`docs/guides/ELECTRON_GUIDE.md`](docs/guides/ELECTRON_GUIDE.md)                                                                    |
+| Release flow                               | [`docs/ops/RELEASE_CHECKLIST.md`](docs/ops/RELEASE_CHECKLIST.md)                                                                    |
+| Quality gates (35 gates, allowlist policy) | [`docs/architecture/QUALITY_GATES.md`](docs/architecture/QUALITY_GATES.md)                                                          |
+| Cluster opt-in profiles (memory, bifrost)  | [`docs/architecture/cluster-decisions.md`](docs/architecture/cluster-decisions.md)                                                  |
+
+---
+
+## Fork / Upstream Workflow
+
+This repository is a fork of `diegosouzapw/OmniRoute`. Keep fork-only operational
+changes (for example GHCR image publishing, personal deployment workflows, or local
+automation) out of upstream contribution PRs.
+
+When preparing a PR for upstream, always start the work branch from `upstream/main`,
+not from this fork's `main`:
+
+```bash
+git fetch upstream
+git switch -c <branch-name> upstream/main
+```
+
+Only cherry-pick or reapply the changes intended for the upstream PR.
+
+---
+
+## Review Focus
+
+- **DB ops** go through `src/lib/db/` modules, never raw SQL in routes
+- **Provider requests** flow through `open-sse/handlers/`
+- **MCP/A2A pages** are tabs inside `/dashboard/endpoint`, not standalone routes
+- **No memory leaks** in SSE streams (abort signals, cleanup)
+- **Rate limit headers** must be parsed correctly
+- All API inputs validated with **Zod schemas**
+- **Provider constants** validated at module load via Zod (`src/shared/validation/providerSchema.ts`)
+- **Pricing data** syncs from LiteLLM via `src/lib/pricingSync.ts`
+- **Memory/Skills** are cross-cutting: affect MCP tools, request pipeline, and A2A skills
+- **⛔ NEVER close a contributor's PR** after using their code — always merge via GitHub so they get credit. See `.agents/workflows/review-prs.md` for full policy.
+
+---
+
+## Recent Changes (L5-109 fork-cleanup, 2026-06-18)
+
+This section tracks changes that landed in the `chore/l5-109-omniroute-fork-cleanup-2026-06-18`
+branch (PR #72). It is **fork-only operational** — DO NOT include in any upstream PR
+to `diegosouzapw/OmniRoute`.
+
+### New top-level files (added this session)
+
+| Path | Purpose |
+|---|---|
+| `STATUS.md` | Per-repo current state per monorepo standard |
+| `worklogs/2026-06-18-L5-109-fork-cleanup.md` | Session worklog (L5-109) |
+| `tests/unit/a2a-cost-analysis.test.ts` | 8 vitest cases for cost-analysis skill |
+
+### New `.github/` files (cherry-picked)
+
+| Path | Source branch | Purpose |
+|---|---|---|
+| `.github/CODEOWNERS` | `chore/codeowners-default-reviewer` | Default reviewer `@KooshaPari/core` |
+| `.github/dependabot.yml` | `chore/codeowners-default-reviewer` | Weekly Dependabot cadence |
+| `.github/workflows/scorecard.yml` | `chore/codeowners-default-reviewer` | OpenSSF Scorecard |
+| `.github/workflows/audit-ratchet.yml` | `chore/audit-ratchet-2026-06-16` | Ratchet 30-pillar audit score |
+
+### Updated `.github/`
+
+- `README.md` (cherry-picked: `6862653cf` from `chore/editorconfig2`)
+- `.editorconfig` (cherry-picked: from `chore/editorconfig`)
+- `.gitignore` (cherry-picked: from `chore/gitignore-hardening`; `.svelte-kit/`, `.turbo/`, `__pycache__/`)
+- `.gitattributes` (cherry-picked: from `chore/editorconfig2`)
+- `.devcontainer/devcontainer.json` (cherry-picked: from `chore/dx-2026-06-08`)
+
+### Updated `docs/`
+
+- `SPEC.md` — full v8/v3.9.0 spec (~180 lines; was 25-line placeholder)
+- `PLAN.md` — 9 v8 work items + 3 v9 items + 3 milestones
+- `ADR.md` — 30 ADRs (was 6-line stub); **ADR-026 introduces Bifrost disambiguation**
+- `docs/ROUTING-CONVERGENCE-STATUS.md` — canonical routing + Bifrost disambiguation
+- `docs/TECH_DEBT.md` — 20 tracked items (4 P1, 7 P2, 9 P3) from real `rg TODO/FIXME/XXX` scan
+- `docs/OKR.md` — already comprehensive; touched in cherry-pick
+- `docs/COST.md` — already comprehensive; touched in cherry-pick
+
+### Updated root config
+
+- `Justfile` — added dev / coverage / typecheck / fmt recipes (cherry-picked from `chore/2nd-hygiene-2026-06-08`)
+- `src/lib/a2a/skills/costAnalysis.ts` — implemented (closes DEBT-006 partial)
+- `src/shared/utils/formatting.ts` — added + tests (cherry-picked from `integration/consolidate`)
+
+### Branch / worktree cleanup
+
+- Deleted 8 dead `worktree-agent-*` worktrees (local + remote)
+- Deleted ~12 stale already-merged remote branches (`chore/4th-hygiene-*`, `chore/citation-*`, `docs/contributing`, etc.)
+- Pruned `origin` refs
+
+### Bifrost disambiguation (ADR-026)
+
+**`Bifrost`** appears in two distinct contexts and they are NOT the same:
+
+1. **OmniRoute Bifrost** — the internal "Bifrost" routing subsystem (a product name within this codebase, used in `docs/ROUTING-CONVERGENCE-STATUS.md` for the canonical routing layer). This is what most of this repo's code/docs mean by "Bifrost".
+2. **`Bifrost` (network protocol)** — an unrelated external agent-network protocol. Not used by OmniRoute. See `ADR.md` § ADR-026 for the full disambiguation block.
+
+When writing docs or ADRs, always use the full qualified form ("OmniRoute Bifrost" or "Bifrost network protocol") on first mention.
+
+### DEBT-006 follow-ups
+
+**DEBT-006 is closed** as of L5-115 (2026-06-24). All 8 A2A skills are
+implemented; the table above has the per-skill PR/date references. The
+"5 a2a skills still stubbed" list previously carried in this section
+was stale as of 2026-06-20.
+
+Next targets for the Q3-2026 OKR Objective 2 (policy primitives shipped per
+quarter) move to other DEBT-### items, primarily:
+
+- **DEBT-001** — TPM/TPD token-bucket in `rateLimitManager.ts` (now unblocked
+  after `quotaManagement.ts` shipped; needs scheduler work).
+- **DEBT-002** — pre-commit + pre-push hooks ported to lefthook
+  (`lefthook.yml`, hooks installed via `lefthook install`; husky shims
+  retained as a fallback when lefthook is unavailable on PATH).
+  Pre-push is no longer a no-op — it now runs the typecheck-core / t11 /
+  cycles matrix. **Closed 2026-06-25.**
+- Open items 3, 4, 5, 6, 7 in `docs/TECH_DEBT.md`.
+
+### Fork-only policy reminder
+
+When sending PRs to `diegosouzapw/OmniRoute`, do **not** include:
+
+- `STATUS.md` (this is a per-repo KP artifact)
+- `worklogs/2026-06-18-L5-109-fork-cleanup.md` (KP session worklog)
+- `.github/CODEOWNERS`, `.github/dependabot.yml`, `.github/workflows/scorecard.yml`, `.github/workflows/audit-ratchet.yml` (KP-specific)
+- `.devcontainer/devcontainer.json` (KP-specific dev environment)
+- `docs/intent/OmniRoute.md`, `docs/boundary/OmniRoute.md` (auto-propagated from `phenotype-registry`)
+- `tests/unit/a2a-cost-analysis.test.ts` (test depends on KP-side pricing catalog)
+- `src/lib/a2a/skills/costAnalysis.ts` (tested against KP pricing catalog; upstream has its own)
+
+The costAnalysis skill implementation is the only candidate that may be safely upstreamed as-is, because it imports from the upstream-maintained `@/shared/constants/pricing` catalog. To upstream it: rebase `chore/l5-109-omniroute-fork-cleanup-2026-06-18` onto `upstream/main` first, then create a PR with only the costAnalysis files.
+
+---
+
+## Recent Changes (L5-110 Bifrost Tier-1 Router, 2026-06-18)
+
+This section tracks the L5-110 changes (ADR-031 decision: adopt Bifrost
+as Tier-1 router) added to the same branch (`chore/l5-109-omniroute-fork-cleanup-2026-06-18`,
+PR #72). It is **fork-only operational** — DO NOT include in any upstream PR
+to `diegosouzapw/OmniRoute` unless the upstream maintainer explicitly
+requests Bifrost integration (in which case, rebase onto `upstream/main`
+first per the fork-only policy).
+
+### Decision summary (ADR-031)
+
+OmniRoute's underlying Tier-1 router infrastructure is migrating from
+TypeScript (`open-sse/executors/`) to Go (`maximhq/bifrost`, MIT, ~6k LOC).
+Rationale, alternatives considered, and the full comparison matrix are in
+[`docs/adr/0031-bifrost-tier1-router.md`](docs/adr/0031-bifrost-tier1-router.md).
+
+**Why Bifrost (selected)** vs LiteLLM, sglang, vllm, portkey, haproxy,
+hand-rolled Rust/Zig/Mojo:
+
+| Candidate | Verdict |
+|---|---|
+| `maximhq/bifrost` (Go, MIT, ~6k LOC, 23+ providers, MCP client, virtual keys, budget mgmt, semantic cache) | **SELECTED** |
+| `BerriAI/litellm` (Python, ~100k LOC, ~400 providers) | rejected (Python perf + over-broad surface) |
+| `portkey-ai/gateway` (TypeScript, ~30k LOC, ~20 providers) | rejected (TS perf ceiling = same as ours) |
+| `sglang-router` / `vllm` (inference-engine routers) | rejected (wrong layer; only useful if self-hosting large models) |
+| `haproxy` / `envoy` / gRPC | rejected (L4/L7; no provider semantics) |
+| Hand-rolled Rust | rejected (6+ months to match Bifrost feature parity) |
+| Hand-rolled Zig | rejected (no ecosystem for HTTP/JSON providers) |
+| Hand-rolled Mojo | rejected (pre-1.0 alpha) |
+
+### New files (L5-110)
+
+| Path | Lines | Purpose |
+|---|---|---|
+| `open-sse/executors/bifrost.ts` | 238 | `BifrostBackendExecutor` — Tier-1 router executor. Forwards requests to Bifrost's `/v1/chat/completions`. Env-gated (`BIFROST_ENABLED=1`). |
+| `open-sse/executors/bifrostProviderMap.ts` | 267 | OmniRoute → Bifrost provider ID translation. 23 first-class Bifrost providers + 50+ OmniRoute aliases/passthroughs + web-cookie unsupported list. |
+| `tests/unit/bifrost-backend.test.ts` | 353 | vitest suite (12 cases): map correctness, env gating, health check, execute() body shape, header forwarding, model override. |
+| `docs/adr/0031-bifrost-tier1-router.md` | MADR format | Full ADR (context, decision, alternatives, consequences). |
+| `docs/frameworks/BIFROST-BACKEND.md` | 229 | Operator-facing usage guide (activation, provider matrix, migration phases). |
+| `worklogs/2026-06-18-L5-110-bifrost-tier1-router.md` | 226 | L5-110 session worklog. |
+
+### Updated files (L5-110)
+
+- `ADR.md` — added ADR-031 entry to the top-level index (with MADR pointer).
+- `SPEC.md` § 3 — Architecture Overview updated to v8.1 (2-tier Bifrost/OmniRoute diagram).
+- `PLAN.md` § 2.5 — added v8.1 Bifrost track (B1–B9, comparison matrix, decision review schedule).
+- `docs/ROUTING-CONVERGENCE-STATUS.md` — added "Tier-1 / Tier-2 Router Split" section with rationale + drop-in swap phases.
+
+### Activation (Phase 1, backwards-compat)
+
+```bash
+# Run Bifrost (Go gateway) somewhere on the network.
+./bifrost --config config.yaml  # listens on 127.0.0.1:8080 by default
+
+# In OmniRoute's environment, opt in to Bifrost-backed routing:
+export BIFROST_ENABLED=1
+export BIFROST_BASE_URL=http://127.0.0.1:8080  # default if unset
+```
+
+When `BIFROST_ENABLED` is unset or `0`, `BifrostBackendExecutor.execute()`
+throws and the caller falls back to the legacy `open-sse/handlers/chatCore.ts`
+path. **Zero behavior change for existing deployments.**
+
+### Per-provider routing (Phase 1)
+
+Two opt-in paths to route a provider through Bifrost:
+
+**Option A**: per-provider `providerSpecificData.bifrostMode = true`
+**Option B**: per-provider `upstream_proxy_config.type = "bifrost"`
+
+When a provider is configured for Bifrost, the corresponding
+`BifrostBackendExecutor` is instantiated and forwards requests to
+`${BIFROST_BASE_URL}/v1/chat/completions` with the following headers:
+
+| Header | Source |
+|---|---|
+| `Content-Type: application/json` | fixed |
+| `X-Bifrost-Provider: <bifrostId>` | from `bifrostProviderMap.resolveBifrostProviderId()` |
+| `X-OmniRoute-Provider: <this.provider>` | from executor instance |
+| `Authorization: Bearer <key>` | from `credentials.apiKey` or `credentials.accessToken` |
+| Any user-supplied `upstreamExtraHeaders` | merged on top |
+
+### Provider support matrix (highlights)
+
+- **First-class APIs** (1:1 Bifrost match): openai, anthropic, gemini,
+  bedrock, cohere, mistral, groq, together, fireworks, openrouter, azure,
+  vertex, perplexity, deepseek, xai, ollama, voyage.
+- **Legacy aliases**: `claude → anthropic`, `gpt → openai`,
+  `palm/palm2/bard → gemini`.
+- **Azure deployment-name override**: `azure-gpt4` strips Azure deployment
+  names to Bifrost's model-id namespace (`gpt-4o-deployment-prod` → `gpt-4o`).
+- **Unsupported** (stay on legacy chatCore): web-cookie providers
+  (`claude-web`, `chatgpt-web`, etc.) and custom CLI executors
+  (`cliproxyapi`, `cursor`, `codex`, `trae`, `qoder`, `kiro`, etc.).
+
+### Future phases (B1–B9, see PLAN.md § 2.5)
+
+| Phase | Item | Status |
+|---|---|---|
+| B1 | Pick canonical Bifrost copy (3 vendored) | 🔄 this turn |
+| B2 | `BifrostBackendExecutor` + provider map | ✅ this PR |
+| B3 | (covered by B2) | ✅ this PR |
+| B4 | `bifrostModels` SQL table + migration | ☐ Q3 2026 |
+| B5 | Virtual-key minting UI + cost tracking | ☐ Q3 2026 |
+| B6 | Traffic shadow (5% → 25% → 100% over 14 days) | ☐ Q3 2026 |
+| B7 | Migration playbook (`docs/operations/bifrost-migration.md`) | ☐ Q3 2026 |
+| B8 | Bifrost MCP client integration | ☐ Q4 2026 |
+| B9 | Kill switch (fallback to chatCore if SLOs fail 7d) | 🔄 spec only |
+
+### Decision review schedule
+
+- **30 days post-B6**: compare p99 latency, error rate, cost between Bifrost
+  and `open-sse/handlers/chatCore.ts`. If Bifrost underperforms by >20% on
+  any axis, revert B6 and re-evaluate.
+- **90 days post-B6**: commit to Bifrost long-term (would require a 1-year
+  SLT agreement with `maximhq`) or fork-and-modify.
+
+### Three "bifrost" referents (now resolved)
+
+| # | Referent | Status (post-ADR-031) |
+|---|---|---|
+| 1 | `KooshaPari/bifrost` repo | NOW ACTIVE: Tier-1 router (vendored `maximhq/bifrost`) |
+| 2 | `bifrost-routing` crate in `phenoRouterMonitor` | Deprecated stub — mark `@deprecated`, remove from fleet inventory |
+| 3 | Internal "bifrost" routing subsystem (mentioned in some docs) | Replace with "Tier-1 router" or "Bifrost" (now precise) |
+
+### Fork-only policy (extended for L5-110)
+
+When sending PRs to `diegosouzapw/OmniRoute`, do **not** include
+(extension of L5-109 policy):
+
+- `open-sse/executors/bifrost.ts` (depends on KP-side `KooshaPari/bifrost` fork)
+- `open-sse/executors/bifrostProviderMap.ts` (KP-specific provider surface)
+- `tests/unit/bifrost-backend.test.ts` (KP-specific test suite)
+- `docs/adr/0031-bifrost-tier1-router.md` (KP-specific ADR)
+- `docs/frameworks/BIFROST-BACKEND.md` (KP-specific operator guide)
+- `worklogs/2026-06-18-L5-110-bifrost-tier1-router.md` (KP session worklog)
+
+The BifrostBackend executor could theoretically be upstreamed if
+`diegosouzapw/OmniRoute` later adopts `maximhq/bifrost`, but for now
+the upstream doesn't depend on Bifrost and shipping this would create
+a broken import. Keep it fork-only.
+
+---
+
+## Recent Changes (L5-111 Bifrost model catalog cache, B4 of v8.1, 2026-06-18)
+
+Implements **B4** of the v8.1 Bifrost Tier-1 router rollout
+([`PLAN.md` § 2.5.2](../../plans/2026-06-17-v7-dag-stable.md),
+[`docs/adr/0031-bifrost-tier1-router.md`](docs/adr/0031-bifrost-tier1-router.md)).
+Adds a stale-tolerant local cache for Bifrost's `/v1/models` response,
+backed by SQLite (migration 100). Eliminates the implicit
+"ask Bifrost on every dispatch" pattern.
+
+### New files (L5-111)
+
+| File | Lines | Purpose |
+|---|---|---|
+| `src/lib/db/migrations/100_bifrost_models.sql` | 57 | Schema: `bifrost_models` + `bifrost_models_meta` tables, indexes on `(provider)` and `(expires_at)`. |
+| `src/lib/db/bifrostModels.ts` | 508 | CRUD: `getBifrostModel`, `listBifrostModelsForProvider`, `refreshBifrostModels`, `purgeExpiredBifrostModels`, `purgeBifrostModelsByProvider`, `getBifrostModelMeta`, `listBifrostModelMeta`, `recordBifrostFetch`. Custom `BifrostCacheError`. |
+| `tests/unit/bifrost-models-db.test.ts` | 464 | Node test runner; 25 cases across 6 describe blocks. |
+
+### Cache contract
+
+- **TTL:** default 1 hour, overridable per refresh (`ttlSeconds`).
+- **Stale-tolerant reads:** `getBifrostModel(provider, id)` returns `null` for expired rows; pass `includeExpired=true` to bypass.
+- **Partial-success:** fetcher returning some unparseable entries still upserts the parseable ones (status: `partial`). Set `allowPartial=false` to reject.
+- **Error observability:** every fetch records `bifrost_models_meta.last_status` ∈ {`ok`, `error`, `partial`} with `last_error` for `error`.
+- **Hard cap:** responses > 5,000 entries are rejected (defense against runaway providers).
+
+### Wiring (next session, B5+)
+
+The bifrost executor (`open-sse/executors/bifrost.ts`) currently
+hits Bifrost's `/v1/models` directly. Wiring it to read from this
+cache is B5+ work. Until then, the cache is populated by:
+- `refreshBifrostModels(provider, fetcher)` — operator-called on schedule.
+- Future: a cron in `src/lib/jobs/` that calls `refreshBifrostModels`
+  for all 24 providers once an hour.
+
+### Fork-only policy (extended for L5-111)
+
+`src/lib/db/bifrostModels.ts` and migration `100_bifrost_models.sql`
+are **KP-only**. They depend on the bifrostProviderMap and the
+fork-only executor. Do not upstream unless `diegosouzapw/OmniRoute`
+adopts the same Tier-1 Bifrost strategy.
+
+---
+
+## Recent Changes (L5-113 B7 Bifrost migration playbook, 2026-06-19)
+
+| Task | Title | Status |
+|---|---|---|
+| **B7** | Bifrost migration playbook | ✅ **DONE 2026-06-19** |
+
+### Deliverable: `docs/operations/bifrost-migration.md` (89 lines)
+
+Complete 4-phase migration plan for moving LLM-routing from the legacy
+TypeScript `chatCore` path to Bifrost Tier-1:
+
+| Phase | Title | Key action | Hold/revert criteria |
+|---|---|---|---|
+| 0 | Pre-flight | Install Bifrost, seed model cache, baseline shadow metrics | 24h stable shadow (B6) |
+| 1 | Read-through | Dispatcher reads Bifrost for model catalog, still routes via `chatCore` | `chatCore` p50/90/99 unchanged |
+| 2 | Write-through | All traffic through Bifrost; `chatCore` as failover | >2% error increase → Phase-1 revert |
+| 3 | Retirement | Remove `chatCore` as default; Bifrost is sole path | Any regression → Phase-2 revert |
+
+Also covers:
+- **Rollback plan** — per-phase `git revert`, config flip, DNS flip
+- **Validation gates** — shadow health, model coverage, latency, error rate, cost
+- **Owner assignment** — each phase has a named owner with PR link
+- **Production readiness checklist** — 12 items (monitoring, logging, alerting,
+  on-call runbook, chaos test, security scan, license review, cost baseline,
+  upstream cache, load test, rollback test, sign-off)
+
+Refs: `docs/adr/0031-bifrost-tier1-router.md`, `docs/frameworks/BIFROST-BACKEND.md`,
+`PLAN.md` § 2.5.2 (B7).
+
+---
+
+## Recent Changes (B9 Bifrost kill switch + security, 2026-06-20)
+
+**PR #95** — `feat(bifrost): B9 kill switch + security scanning (close-out of v8.1 track)`.
+Closes the final v8.1 Bifrost track item.
+
+| File | Lines | Purpose |
+|---|---|---|
+| `open-sse/services/bifrostKillSwitch.ts` | 401 | Auto-fallback when Bifrost degrades |
+| `tests/unit/bifrost-kill-switch.test.ts` | 299 | 11 test cases, 6 describe blocks |
+| `.github/workflows/security-scan.yml` | 120 | Trivy + cargo-audit + npm-audit (weekly cron, SARIF) |
+| `.github/workflows/sbom.yml` | 64 | CycloneDX SBOM on every release |
+
+**Public API (`bifrostKillSwitch.ts`):**
+
+- `isKillSwitchActive()` — true if any trip condition is currently active
+- `evaluateKillSwitch()` — runs all trip checks, returns active trips
+- `tripKillSwitch(reason)` / `resetKillSwitch(actor)`
+- `recordBifrostMetric(metric)` — feed the trip-check signals
+
+**Auto-trip thresholds (all overridable via env):**
+
+- p99 latency > 5000ms
+- Error rate > 2%
+- Cost ratio > 2x baseline
+- Consecutive failures >= 10
+- Recent 4xx rate > 5%
+
+State management: trip can be auto-triggered, manually tripped by an operator, or auto-reset when metrics recover. Cooldown prevents flapping.
+
+**Wiring (next session, post-merge):** `bifrost.ts` will call
+`recordBifrostMetric()` after every request, and `isKillSwitchActive()`
+before each request to decide whether to fall back to `chatCore`.
+~10 lines change in `open-sse/executors/bifrost.ts`.
+
+**Supersedes PR #94** — closed because the original branch was based on
+a stale pre-B6 state and contained 18 accidental deletions of
+`chatCore.ts`, `trafficShadow.ts`, `openapi.yaml`, `INCIDENT_RESPONSE.md`,
+etc. The 4 B9 files were preserved from /tmp/b9-backup and re-committed
+on a fresh branch from `origin/main`.
+
+**Extended fork-only policy (B9 additions):**
+
+- ❌ Never push `vendor/bifrost/` source tree (only `VENDOR.md` + `.gitkeep`)
+- ❌ Never push worktrees (`worktree-agent-*`); clean up at session end
+- ❌ Never rebase a branch on a pre-B6 state (always rebase on `origin/main`)
+
+Refs: `docs/adr/0031-bifrost-tier1-router.md`, `PLAN.md` § 2.5.2 (B9),
+`docs/frameworks/BIFROST-BACKEND.md`.
+
+---
+
+## Cross-references
+
+- [`SPEC.md`](SPEC.md) — v8 spec (v3.9.0 in flight)
+- [`PLAN.md`](PLAN.md) — v8/v9 roadmap
+- [`ADR.md`](ADR.md) — 30 ADRs
+- [`STATUS.md`](STATUS.md) — per-repo current state
+- [`docs/ROUTING-CONVERGENCE-STATUS.md`](docs/ROUTING-CONVERGENCE-STATUS.md) — Bifrost disambiguation + canonical routing
+- [`docs/TECH_DEBT.md`](docs/TECH_DEBT.md) — 20 tracked items
+- [`docs/OKR.md`](docs/OKR.md) — Q3 2026 OKRs
+- [`docs/COST.md`](docs/COST.md) — cost attribution
+- [`worklogs/2026-06-18-L5-109-fork-cleanup.md`](worklogs/2026-06-18-L5-109-fork-cleanup.md) — session worklog
+
+# hook-smoke
+## hook smoke for lefthook validation
