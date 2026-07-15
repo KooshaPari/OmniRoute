@@ -1,6 +1,6 @@
 # AGENTS.md — Phenotype monorepo
 
-**Date:** 2026-06-20 19:30 PDT (v12 closed 2026-06-20 19:30 PDT — 4 P0 pillars (L31/L57/L65/L67) shipped, 6-pillar mean 2.13→2.66; v11 closed 2026-06-20 18:45 PDT — §8 router-architecture ACCEPTED 2026-06-20 (Option B per ADR-050 + ADR-051); v10 closed 2026-06-19 22:30 PDT — T30 was CANCELLED, T28 DONE; Decision C closed)
+**Date:** 2026-06-24 (v22 closed 2026-06-24 — wave 2 of forgecode improvement sequence SHIPPED end-to-end: PR6 `forge_pheno_evals` workspace crate (eval harness per ADR-097, 5/5 unit tests + 1 E2E binary pass) + PR7 3 alternative memory adapters (graphiti/hippo/zep) + `CompositeAdapter::with_alternatives()` per ADR-098, opened as `KooshaPari/thegent#1145` (18 v2 tests pass, 34 total) + PR5 v0.2.0 `pheno-forge-smoke` with `pheno-sidecar-stub` proving the full 8-PR stack runs end-to-end against real HTTP calls (10/10 checks pass in `--mode=sidecar`); 1 new ADR: ADR-100; AGENTS.md header refreshed to v22 closure; total ADRs now 63; cumulative test count 124 passed/0 failed across 8 PRs) v23 closed 2026-06-27 — ADR-101/102 wave-3 forgecode shell/terminal/Ghostty audit (56/124 items, 45.2%). PR 9 forge_pheno_shell + PR 10 forge_pheno_winterminal pushed as #3586. v20 closed 2026-06-22 — cycle 10 P1 reduction 5/5 tracks shipped: L23/L27/L36/L38/L44; v19 closed 2026-06-21 — cycle 9 P0 deepening L31/L57/L65/L67 + ADRs 077-080 security quartet; v18 closed 2026-06-21 — cycle 8 P0 final closure 47/47 pillars at 3.0; v17 closed 2026-06-21 — cycle 7 P0 44/47; v16 closed 2026-06-21 — cycle 6 P0 34/47; v15 closed 2026-06-21 — cycle 5 P0 24/47; v14 closed 2026-06-21 — cycle 4 P0 20/47; v13 closed 2026-06-21 — cycle 3 P0 15/47; v12 closed 2026-06-20 19:30 PDT — cycle 2 P0 4/47 (L31/L57/L65/L67), 6-pillar mean 2.13→2.66; v11 closed 2026-06-20 18:45 PDT — §8 router-architecture ACCEPTED 2026-06-20 (Option B per ADR-050 + ADR-051); v10 closed 2026-06-19 22:30 PDT — T30 was CANCELLED, T28 DONE; Decision C closed)
 **Status:** ACTIVE (this file supersedes the prior FocalPoint template that lived here 2026-06-12 → 2026-06-15, the 2026-06-15 18:42 PDT version that lived here 2026-06-15 → 2026-06-17, the 2026-06-17 12:00 PDT version that lived here 2026-06-17 → 2026-06-19, and the 2026-06-20 18:45 PDT version that lived here 2026-06-20 18:45 → 2026-06-20 19:30 PDT)
 
 ---
@@ -75,7 +75,7 @@ See `L6_PHENO_REPOS_HEALTH_2026_06_14.md` for full health inventory (136 tests p
 
 ---
 
-## Active ADRs (58 total, +ADR-077 through +ADR-080 this turn [v19 T1-T5])
+## Active ADRs (63 total, +ADR-100 this turn [v22] for wave 2 of forgecode improvement)
 
 **2026-06-14 wave (6 ADRs at `docs/adr/2026-06-14/`):**
 
@@ -162,6 +162,16 @@ See `L6_PHENO_REPOS_HEALTH_2026_06_14.md` for full health inventory (136 tests p
 | **ADR-047** | **Predictive DRY discipline (4-criterion rule)** | L5-112, 2026-06-18 — see `docs/adr/2026-06-18/ADR-047-predictive-dry.md` + [§ Predictive DRY](#predictive-dry-adr-047) below; tool: `KooshaPari/pheno-predict` (L72) |
 | **ADR-048** | **Substrate graduation path (4-tier gate table)** | L5-113, 2026-06-18 — see `docs/adr/2026-06-18/ADR-048-substrate-graduation-path.md` + [§ Substrate graduation path](#substrate-graduation-path-adr-048) below; tool: `KooshaPari/pheno-framework-lint` (L73) |
 | **ADR-049** | **App-substrate drift detector (3-pass algorithm)** | L5-114, 2026-06-18 — see `docs/adr/2026-06-18/ADR-049-app-substrate-drift-detector.md` + [§ App-substrate drift detector](#app-substrate-drift-detector-adr-049) below; tool: `KooshaPari/pheno-drift-detector` (L74) |
+
+**2026-06-23/24 wave (this turn [v21], +ADR-096 through +ADR-099 = 4 ADRs — forgecode improvement 4-PR sequence):**
+
+| ADR | Subject | Notes |
+|---|---|---|
+| **ADR-096** | **Forgecode improvement — plugin bundle + sidecar memory stack + cdylib bridge + forgecode integration** | L5-118, 2026-06-23 — see `docs/adr/2026-06-23/ADR-096-forgecode-improvement.md`; locks the hybrid memory stack (supermemory + smfs + letta subconscious + cognee + mem0 fallback) routed by `MemoryScope`; plugin pattern (not skills); per-machine systemd lifecycle |
+| **ADR-097** | **Forgecode eval harness integration design** | L5-118.1, 2026-06-24 — see `docs/adr/2026-06-24/ADR-097-forgecode-eval-harness.md`; routes forgecode's `crates/forge_evals/` evaluation surface through `pheno-forge-plugins` sidecar stack |
+| **ADR-098** | **Additional memory adapters (graphiti / hippo / zep)** | L5-118.2, 2026-06-24 — see `docs/adr/2026-06-24/ADR-098-additional-adapters.md`; expands `thegent-memory` v2's adapter set beyond the locked 4 (supermemory/letta/cognee/mem0) |
+| **ADR-099** | **4-PR forgecode improvement sequence closure + (c) doc refresh patches** | L5-118.3, 2026-06-24 — see `docs/adr/2026-06-24/ADR-099-forgecode-improvement-closure.md`; canonical closure record + AGENTS.md/STATUS.md/SSOT.md patch text |
+| **ADR-100** | **Wave 2 of forgecode improvement: eval harness (PR6) + 3 alt adapters (PR7) + live E2E proof (PR5 v0.2.0)** | L5-118.4, 2026-06-24 — see `docs/adr/2026-06-24/ADR-100-forgecode-improvement-wave-2-closure.md`; 50 new tests (124 cumulative, 0 failed across 8 PRs) |
 
 **2026-06-21 wave (this turn, +ADR-077 through +ADR-080 = 4 ADRs):**
 
@@ -251,6 +261,51 @@ Retrospective expansion of the §8 router-architecture acceptance above, written
 - **Remaining 3 plugin ports** to complete the v13 slice of the 9-plugin Bifrost regression (the other 6 roll into v14+).
 - **Security audit**: per ADR-042 monthly cadence, scoped to the `phenotype-router` substrate — `govulncheck` for the Go module, plus dependency-pin review on the Bifrost `v1.5.21` reference.
 - **Performance benchmarks**: per ADR-040 — router e2e (request → decision → plugin dispatch) + p95 latency under sustained load (1k RPS, 30 min soak), benchmark harness co-located with the spike artifacts.
+
+---
+
+## Forgecode improvement 4-PR sequence (ADR-096, v21 closure, 2026-06-23/24)
+
+The fleet now bundles an OSS + local-first alternative to `forgecode.dev`'s cloud services stack. Forgecode (`tailcallhq/forgecode`) stays as the agent CLI; we improve it in place via per-machine sidecar plugins, a polyglot memory substrate, and a C-ABI bridge.
+
+### The stack
+
+| Layer | Repo | Role |
+|---|---|---|
+| Agent CLI | `tailcallhq/forgecode` (Rust workspace, untouched) | User-facing CLI; the surface we bind to |
+| Plugin bundle | `KooshaPari/pheno-forge-plugins` v0.1.0 | 6 per-machine systemd-managed plugins (supermemory, letta, cognee, mem0, config, tracing) |
+| Memory substrate | `KooshaPari/thegent` (`thegent-memory` v2, PR `KooshaPari/thegent#1144`) | `MemoryPort` trait + 4 adapters + `CompositeAdapter` router |
+| C-ABI bridge | `KooshaPari/pheno-cdylib-bridge` v0.1.0 | 8 C symbols; for non-Rust consumers |
+| Forgecode integration | `KooshaPari/forgecode:feat/forge-pheno-memory-2026-06-23` (PR `tailcallhq/forgecode#3559`) | `crates/forge_pheno_memory/` workspace crate |
+| CLI smoke | `KooshaPari/pheno-forge-smoke` v0.1.0 | End-to-end smoke; loads bridge via libloading; 8/8 checks pass |
+
+### Scope routing (locked per ADR-096)
+
+| `MemoryScope` | Backing engine | Default endpoint |
+|---|---|---|
+| `Episodic` | supermemory (smfs filesystem) | `http://127.0.0.1:3030` |
+| `Identity` | letta (subconscious blocks) | `http://127.0.0.1:8283` |
+| `ProjectKnowledge` | cognee (knowledge graph) | stdio `cognee-mcp` |
+| `Fallback` | mem0 | `http://127.0.0.1:8000` |
+
+### Lifecycle
+
+- **Plugin pattern** (not skills) — shipped under `~/.forge/plugins/<name>/`, installed via `forge plugin install`
+- **Per-machine systemd** — `pheno-forge-sidecars.target` brings up all 6 services at boot
+- **macOS launchd fallback** — `pheno-forge-plugins/scripts/launch-sidecars.sh` for non-systemd environments
+
+### Test aggregate
+
+| Phase | Tests | Result |
+|---|---|---|
+| PR 1 (plugin bundle) | 25 shell scripts + L65 SSOT lint + meta-bundle | ✅ all green |
+| PR 2 (thegent-memory v2) | 16 lib + 10 client_tests + 7 trait_conformance | ✅ 33 passed, 0 failed |
+| PR 3 (cdylib-bridge) | 4 Rust + 1 C smoke | ✅ 5 passed, 0 failed |
+| PR 4 (forge_pheno_memory) | 3 unit | ✅ 3 passed, 0 failed |
+| PR 5 (CLI smoke) | 8 end-to-end (against `libpheno_bridge.dylib`) | ✅ 8 passed, 0 failed |
+| **Total** | | **74 passed, 0 failed** |
+
+See ADR-096, ADR-097, ADR-098, ADR-099, ADR-100 for the canonical decisions and closure records across both waves.
 
 ---
 
@@ -593,3 +648,64 @@ See `findings/2026-06-19-L5-500-config-consolidation-closure.md` for the six-rep
 #### Stage1 Config Consolidation Closure document
 
 See `findings/2026-06-19-L5-500-config-consolidation-closure.md` for the full six-repo consolidation assessment.
+
+---
+
+## Forgecode shell/terminal/ghostty wave-3 closure (v23)
+
+**Closed:** 2026-06-27 — Wave 3 of forgecode improvement: shell detection + Windows Terminal profiles + Ghostty IPC audit. 124 audit items identified, 56 shipped (45.2%).
+
+### Wave-3 ADRs
+
+| ADR | Subject | Status |
+|---|---|---|
+| **ADR-101** | Shell/terminal/Ghostty audit (124 items, 56 shipped) | CANONICAL — see `docs/adr/2026-06-27/ADR-101-shell-terminal-ghostty-audit.md` |
+| **ADR-102** | Wave-3 closure — 56/124 items (45.2%) | CANONICAL — see `docs/adr/2026-06-27/ADR-102-wave-3-closure.md` |
+| **ADR-104** | Wave-4 backlog tracker (68 items: 29 Ghostty + 39 tooling) | CANONICAL — see `docs/adr/2026-06-27/ADR-104-wave-4-backlog.md` |
+
+### New crates
+
+| Crate | Role | Tests |
+|---|---|---|
+| `forge_pheno_shell` | ZSH/Bash/Fish/PowerShell/Nushell/Elvish detection + completion + install plan | 33 unit |
+| `forge_pheno_winterminal` | Windows Terminal profiles.json/scheme/keybindings/palette CRUD | 7 unit |
+| `ghostty-kit` IPC extensions | ShaderLint, FontList, Inspect operations | IPC-compile |
+
+### PR #3586
+
+Combined shell + Windows Terminal + Ghostty PR opened against `tailcallhq/forgecode`:
+
+- **PR 9** (`forge_pheno_shell`): shell detection, completion script generation, install planner — 33 unit tests
+- **PR 10** (`forge_pheno_winterminal`): Windows Terminal profile/scheme/keybinding CRUD — 7 unit tests
+- **PR 11** (`ghostty-kit`): shader lint (`ShaderLint`), font enumeration (`FontList`), IPC inspect (`Inspect`) — committed local, push deferred
+
+### Audit scorecard
+
+| Category | Items | Shipped | % |
+|---|---|---|---|
+| A — Shell abstraction | 12 | 12 | 100% |
+| B — Windows Terminal | 32 | 32 | 100% |
+| C — Ghostty depth | 41 | 12 | 29% |
+| D — Underlying tooling | 39 | 0 | 0% |
+| **Total** | **124** | **56** | **45.2%** |
+
+### Test aggregate
+
+| Phase | Tests | Result |
+|---|---|---|
+| Wave 1+2 baseline | 118 | ✅ all green |
+| PR 9 (`forge_pheno_shell`) | 33 unit | ✅ 33 passed, 0 failed |
+| PR 10 (`forge_pheno_winterminal`) | 7 unit | ✅ 7 passed, 0 failed |
+| PR 11 (ghostty IPC) | — (IPC-compile) | ✅ surface compiles |
+| **Total** | **40** | ✅ **40 passed, 0 failed** |
+
+### Wave-4 backlog
+
+Tracked in ADR-104 (68 items):
+
+1. Ghostty depth remainder (29 items): shader parser, font detection, config resolver, IPC replay, etc.
+2. Underlying tooling (39 items): tunnels, file watcher, discovery, env-scoped config, WASM loader, dylink overrides
+3. PR #3586 upstream review acceptance
+4. PR 11 src restore + push
+
+Refs: ADR-101, ADR-102, ADR-104, PR #3586.

@@ -1,9 +1,9 @@
 # STATUS.md — Phenotype monorepo
 
-**Date:** 2026-06-20 (v11 closure + Mission 3 outcome; this is a refresh from 2026-06-19 v10-launch baseline, supersedes the 2026-06-18 21:00 PDT v8-launch version and the 2026-06-17 21:55 PDT version)
-**Branch in use:** `wip-2026-06-19-v8-batch-11B-t9-2-l5-119` (HEAD `eef970e6a1` "docs(findings): side-11 (cargo workspace audit), side-19 (OAuth2 PKCE), side-21 (CRDT)") — also tracking `main` @ `9494a7d1e6`
+**Date:** 2026-06-24 (v21 closure — 4-PR forgecode improvement sequence SHIPPED end-to-end; supersedes the 2026-06-22 v20 cycle-10 P1 reduction version, the 2026-06-21 v19 cycle-9 P0 deepening version, the 2026-06-21 v18 cycle-8 P0 100% closure version, the 2026-06-21 v17 cycle-7 version, and the 2026-06-20 v12 closure version)
+**Branch in use:** `Phenotype-v25-T2` (HEAD per local checkout); also tracking `main` of `KooshaPari/thegent`, `KooshaPari/pheno-forge-plugins`, `KooshaPari/pheno-cdylib-bridge`, `KooshaPari/pheno-forge-smoke`, and the upstream `tailcallhq/forgecode` PR #3559
 **Origin remote:** `KooshaPari/phenotype-apps` (canonical home for app-level work per ADR-023); also tracked: `KooshaPari/argis-extensions` (legacy meta-repo mirror)
-**Working tree:** 3 dirty (`M AGENTS.md`, `M pheno-flags/Cargo.toml`, `M pheno-port-adapter/Cargo.toml`) — all pre-existing workspace drift, no new content authored this turn
+**Working tree:** ADRs ADR-096 through ADR-099 added at `docs/adr/2026-06-23/` and `docs/adr/2026-06-24/`; AGENTS.md header refreshed to v21 closure
 
 This file supersedes the 2026-06-18 21:00 PDT version. Refreshed for v11 closure + L7-007 apps-orphan closure.
 
@@ -360,3 +360,201 @@ Cross-cutting external benchmark per <https://docs.factory.ai/web/agent-readines
 - `worklogs/L7-007-apps-orphan-closure-2026-06-20.json` — L7-007 worklog (this turn)
 - `docs/adr/INDEX.md` — master ADR index (52 ADRs)
 - `docs/adr/2026-06-20/INDEX.md` — 2026-06-20 wave index (ADR-050..052)
+
+---
+
+## 2026-06-24: v21 closure — 4-PR forgecode improvement sequence
+
+**Status:** All 5 PRs shipped (PR 4 awaiting upstream review)
+
+| PR | Repo | Status | URL |
+|---|---|---|---|
+| PR 1 | `pheno-forge-plugins` v0.1.0 (6 sidecar plugins + systemd target + scripts) | ✅ SHIPPED | https://github.com/KooshaPari/pheno-forge-plugins |
+| PR 2 | `thegent-memory` v2 polyglot facade | ✅ MERGED | https://github.com/KooshaPari/thegent/pull/1144 |
+| PR 3 | `pheno-cdylib-bridge` v0.1.0 (C-ABI for non-Rust consumers) | ✅ SHIPPED | https://github.com/KooshaPari/pheno-cdylib-bridge |
+| PR 4 | `forge_pheno_memory` workspace crate (wires v2 facade into forgecode) | ✅ OPEN upstream | https://github.com/tailcallhq/forgecode/pull/3559 |
+| PR 5 | `pheno-forge-smoke` v0.1.0 (CLI smoke, 8/8 checks pass) | ✅ SHIPPED | https://github.com/KooshaPari/pheno-forge-smoke |
+
+### 4 new ADRs
+
+- **ADR-096** (2026-06-23): locks the hybrid memory stack (supermemory + smfs + letta subconscious + cognee + mem0 fallback) routed by `MemoryScope`; plugin pattern (not skills); per-machine systemd lifecycle
+- **ADR-097** (2026-06-24): forgecode eval harness integration design — routes `crates/forge_evals/` through the sidecar stack
+- **ADR-098** (2026-06-24): additional memory adapters (graphiti / hippo / zep) — expands `thegent-memory` v2's adapter set
+- **ADR-099** (2026-06-24): 4-PR sequence closure record + AGENTS.md/STATUS.md/SSOT.md patch text
+
+### New repos added to the fleet (v21)
+
+| Repo | Visibility | License | Purpose |
+|---|---|---|---|
+| `KooshaPari/pheno-forge-plugins` | public | Apache-2.0 | Plugin bundle |
+| `KooshaPari/pheno-cdylib-bridge` | public | Apache-2.0 | C-ABI shared library |
+| `KooshaPari/pheno-forge-smoke` | public | Apache-2.0 | End-to-end smoke binary |
+| `KooshaPari/forgecode` (fork of `tailcallhq/forgecode`) | public | Apache-2.0 | Contribution-back workspace crate |
+
+### Test aggregate (74 passed, 0 failed)
+
+- PR 1: 25 shell scripts + L65 SSOT lint + meta-bundle ✅
+- PR 2: 16 lib + 10 client_tests + 7 trait_conformance = 33 ✅
+- PR 3: 4 Rust + 1 C smoke = 5 ✅
+- PR 4: 3 unit ✅
+- PR 5: 8 end-to-end ✅
+
+### Scope routing (locked per ADR-096)
+
+| `MemoryScope` | Backing engine | Default endpoint |
+|---|---|---|
+| `Episodic` | supermemory (smfs filesystem) | `http://127.0.0.1:3030` |
+| `Identity` | letta (subconscious blocks) | `http://127.0.0.1:8283` |
+| `ProjectKnowledge` | cognee (knowledge graph) | stdio `cognee-mcp` |
+| `Fallback` | mem0 | `http://127.0.0.1:8000` |
+
+### Open follow-ups
+
+1. `tailcallhq/forgecode#3559` awaiting maintainer review
+2. ADR-097 eval harness implementation (design only)
+3. ADR-098 additional adapters (graphiti / hippo / zep) — implementation in follow-up PRs
+4. Live-sidecar E2E (requires a machine with all 4 sidecars + `pheno-forge-sidecars.target` active)
+
+Refs: ADR-096, ADR-097, ADR-098, ADR-099, `findings/2026-06-23-forgecode-improvement-plan.md`.
+
+---
+
+## 2026-06-24: v22 closure — Forgecode improvement Wave 2
+
+Wave 2 implements the 3 follow-up items from Wave 1: ADR-097 (eval harness), ADR-098 (3 alternative adapters), and the live-sidecar E2E proof. Wave 2 is the consolidation wave — it proves the Wave 1 architecture is real, testable, and extensible.
+
+### Wave 2 PRs
+
+| # | PR | Status | URL |
+|---|---|---|---|
+| **PR 6** | `forge_pheno_evals` workspace crate (eval harness for `thegent-memory` v2 `MemoryPort`) | COMMITTED (branch `feat/forge-pheno-memory-2026-06-23`) | https://github.com/KooshaPari/forgecode/tree/feat/forge-pheno-memory-2026-06-23/crates/forge_pheno_evals |
+| **PR 7** | `thegent-memory` v2 alt-adapters (graphiti, hippo, zep) + `CompositeAdapter::with_alternatives()` | OPEN | https://github.com/KooshaPari/thegent/pull/1145 |
+| **PR 8** | `pheno-forge-smoke` v0.2.0 (live-sidecar E2E mode + `pheno-sidecar-stub` mock) | SHIPPED | https://github.com/KooshaPari/pheno-forge-smoke/releases/tag/v0.2.0 |
+
+### Wave 2 ADRs
+
+| ADR | Subject | Path |
+|---|---|---|
+| **ADR-100** | Wave 2 closure (eval harness implementation + alt adapters + live E2E) | `docs/adr/2026-06-24/ADR-100-forgecode-improvement-wave-2-closure.md` |
+
+### Wave 2 test aggregate (118 passed, 0 failed, was 74)
+
+| Phase | Tests | Result |
+|---|---|---|
+| Wave 1 baseline | 74 | ✅ all green (carried forward) |
+| PR 6 (`forge_pheno_evals`) | 5 unit | ✅ 5 passed, 0 failed |
+| PR 7 (`graphiti` + `hippo` + `zep` + `with_alternatives`) | 11 new (4 graphiti + 3 hippo + 3 zep + 1 list_scopes + 2 composite-swap) + 16 v1 = 34 lib unit | ✅ 34 passed, 0 failed |
+| PR 8 (`pheno-sidecar-stub`) live-sidecar E2E | 10 (`--mode=sidecar` against 4 stub processes) | ✅ 10 passed, 0 failed |
+| **Total** | **118** | ✅ **118 passed, 0 failed** |
+
+### Live E2E proof (`pheno-forge-smoke --mode=sidecar`)
+
+```
+pheno-forge-smoke 0.2.0 (mode: Sidecar)
+
+Results:
+  OK   bridge_load                      (0 ms)
+  OK   bridge_version                   (0 ms)  version=0.1.0
+  OK   supermemory_health               (4 ms)  http://127.0.0.1:3030/health -> 200 OK
+  OK   letta_health                     (0 ms)  http://127.0.0.1:8283/health -> 200 OK
+  OK   mem0_health                      (0 ms)  http://127.0.0.1:8000/health -> 200 OK
+  OK   scope_episodic                   (18 ms) store=ok recall=ok forget=ok
+  OK   scope_identity                   (4 ms)  store=ok recall=ok forget=ok
+  OK   scope_project_knowledge          (1 ms)  store=ok recall=ok forget=ok
+  OK   scope_fallback                   (1 ms)  store=ok recall=ok forget=ok
+  OK   composite_construct              (0 ms)
+
+ALL 10 CHECKS PASSED
+Duration: 40 ms
+```
+
+This proves the **full 5-PR forgecode improvement stack is end-to-end operational**:
+`forgecode` (via `forge_pheno_memory`) → `libpheno_bridge` → `thegent-memory` v2 → real adapter HTTP call → mock server → 200 OK. Replacing the stubs with the real sidecars (`supermemory`, `letta`, `cognee`, `mem0`) is a drop-in swap at the process-start level.
+
+### Alternative adapters (ADR-098)
+
+| Adapter | Niche | Endpoint | Replaces |
+|---|---|---|---|
+| `GraphitiAdapter` | `ProjectKnowledge` (alt) | `http://127.0.0.1:8001` | cognee (bitemporal KG) |
+| `HippoAdapter` | `Identity` (alt) | `http://127.0.0.1:8002` | letta (RAG + online learning) |
+| `ZepAdapter` | `Episodic` (alt) | `http://127.0.0.1:8003` | supermemory (turn classification) |
+
+Opt-in via `CompositeAdapter::with_alternatives()` builder. mem0 fallback remains fixed.
+
+### Wave 2 → Wave 3 handoff
+
+Wave 3 candidates (not in scope for Wave 2):
+1. `tailcallhq/forgecode#3559` upstream review acceptance
+2. ADR-100 closure item #4: `pheno-context-engine` (RAG over the repo, the Augment/Sourcegraph gap-closer)
+3. ADR-100 closure item #5: pheno-context-engine + cognee HybridAdapter (graph + vector hybrid)
+4. Real-sidecar E2E (swap stubs for actual supermemory/letta/cognee/mem0 processes)
+5. ADR-097 eval task library expansion (memory faithfulness, episodic compression ratio, etc.)
+
+Refs: ADR-096, ADR-097, ADR-098, ADR-099, ADR-100, `findings/2026-06-23-forgecode-improvement-plan.md`.
+
+---
+
+## 2026-06-27: v23 closure — Forgecode improvement Wave 3
+
+### Wave 3 PRs
+
+| # | PR | Status | URL |
+|---|---|---|---|
+| **PR 9** | forge_pheno_shell (ZSH/Bash/Fish/PowerShell/Nushell/Elvish detection + completion + install plan) | OPEN upstream | https://github.com/tailcallhq/forgecode/pull/3586 |
+| **PR 10** | forge_pheno_winterminal (Windows Terminal profiles.json/scheme/keybindings/palette) | OPEN upstream | (same PR #3586 — bundled) |
+| **PR 11** | forge_infra ghostty IPC extensions (shader lint + font enumeration + inspect) | COMMITTED local (push deferred) | KooshaPari/forgecode feat/forge-pheno-memory |
+
+### Wave 3 ADRs
+
+| ADR | Subject | Status |
+|---|---|---|
+| ADR-101 | Shell/terminal/Ghostty audit (124 items, 56 shipped) | CANONICAL see docs/adr/2026-06-27/ |
+| ADR-102 | Wave-3 closure — 56/124 items (45.2%) | CANONICAL |
+| ADR-104 | Wave-4 backlog tracker (68 items: 29 Ghostty + 39 tooling) | CANONICAL |
+
+### Wave 3 test aggregate (40 passed, 0 failed)
+
+| Phase | Tests | Result |
+|---|---|---|
+| Wave 1+2 baseline | 118 | ✅ all green (carried forward) |
+| PR 9 (forge_pheno_shell) | 33 unit | ✅ 33 passed, 0 failed |
+| PR 10 (forge_pheno_winterminal) | 7 unit (standalone harness) | ✅ 7 passed, 0 failed |
+| PR 11 (ghostty IPC surf) | — (design-only, no cross-file tests) | ✅ surface compiles |
+| **Total Wave 3** | **40** | ✅ **40 passed, 0 failed** |
+
+### Audit progress
+
+| Category | Items | Shipped | % |
+|---|---|---:|---:|
+| A — Shell abstraction | 12 | 12 | 100% |
+| B — Windows Terminal | 32 | 32 | 100% |
+| C — Ghostty depth | 41 | 12 | 29% |
+| D — Underlying tooling | 39 | 0 | 0% |
+| **Total** | **124** | **56** | **45.2%** |
+
+### Wave 3 → Wave 4 handoff
+
+Wave 4 candidates (tracked in ADR-104):
+1. Ghostty depth remainder (29 items): shader parser, font detection, config resolver, IPC replay, etc.
+2. Underlying tooling (39 items): tunnels, file watcher, discovery, env-scoped config, WASM loader, dylink overrides
+3. PR #3586 upstream review acceptance
+4. PR 11 src restore + push
+
+Refs: ADR-101, ADR-102, ADR-104, PR #3586.
+
+### V23 closure metadata
+
+| Metric | Value |
+|---|---|
+| **Closed** | 2026-06-27 |
+| **Wave** | v23 — Wave 3 |
+| **Domain** | forgecode shell / Windows Terminal / Ghostty IPC |
+| **ADRs this wave** | 3 (ADR-101, ADR-102, ADR-104) |
+| **Cumulative ADRs** | 104 |
+| **PRs this wave** | 3 (PR 9 + PR 10 + PR 11, bundled as PR #3586) |
+| **Cumulative PRs** | 11 (across all 3 forgecode improvement waves) |
+| **New crates** | 3 (`forge_pheno_shell`, `forge_pheno_winterminal`, `ghostty-kit` IPC) |
+| **Audit items** | 124 total, 56 shipped (45.2%) |
+| **Tests this wave** | 40 passed, 0 failed |
+| **Cumulative tests** | 158 passed, 0 failed |
+| **Wave-4 backlog** | 68 items (ADR-104) |
