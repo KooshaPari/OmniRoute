@@ -14,31 +14,31 @@ is the polyrepo-level marker).
 ## Exact text to insert
 
 ```markdown
-
 ---
 
 ## SPINE: phenotype-apps
 
 **ROLE:** apps-catalog spine (meta-portfolio)
 **OWNS:**
-  - The catalog of every Phenotype app
-  - The thin runtime that can launch any catalogued app
-  - Per-app source-of-truth lives in the app's own repo; this spine
-    only owns the catalog metadata and the launcher
-**DEPENDS-ON:**
-  - Every per-app repo (one-way pull; catalog refs, not code copies)
-  - `launcher/` (Rust + Go binary, lives here)
-  - `phenotype-org-audits` (consumes its registry to know which apps exist)
-**DEPENDED-ON-BY:**
-  - Human operator (one-stop "what apps exist")
-  - BytePort control plane (proposed: `byteport apps pull phenotype-apps:catalog/apps.toml`)
-  - substrate dispatch (reads catalog to know which apps can run on what compute)
-**RELEASE-CADENCE:** continuous (catalog updates on app merge); launcher
+
+- The catalog of every Phenotype app
+- The thin runtime that can launch any catalogued app
+- Per-app source-of-truth lives in the app's own repo; this spine
+  only owns the catalog metadata and the launcher
+  **DEPENDS-ON:**
+- Every per-app repo (one-way pull; catalog refs, not code copies)
+- `launcher/` (Rust + Go binary, lives here)
+- `phenotype-org-audits` (consumes its registry to know which apps exist)
+  **DEPENDED-ON-BY:**
+- Human operator (one-stop "what apps exist")
+- BytePort control plane (proposed: `byteport apps pull phenotype-apps:catalog/apps.toml`)
+- substrate dispatch (reads catalog to know which apps can run on what compute)
+  **RELEASE-CADENCE:** continuous (catalog updates on app merge); launcher
   releases on tagged schedule
-**SUCCESS-METRIC:**
-  - 100% of Phenotype apps have an entry here
-  - zero `*-Nth` duplicates older than 90 days
-  - every app has a working `byteport apps install <name>` path
+  **SUCCESS-METRIC:**
+- 100% of Phenotype apps have an entry here
+- zero `*-Nth` duplicates older than 90 days
+- every app has a working `byteport apps install <name>` path
 
 ## Catalog
 
@@ -51,19 +51,19 @@ See `catalog/apps.toml.schema.md` for the field reference.
 The apps launcher (Rust + Go) lives in `launcher/`. It is a thin
 wrapper that reads `catalog/apps.toml`, resolves the per-app git URL
 and ref, and either:
-  (a) clones + builds + runs locally, or
-  (b) hands off to BytePort (via `byteport apps install <name>`).
+(a) clones + builds + runs locally, or
+(b) hands off to BytePort (via `byteport apps install <name>`).
 
 The launcher is intentionally a small binary (target <= 500 lines of
 runtime glue; the heavy lifting is delegated to the per-app repos).
 
 ---
-
 ```
 
 ## Verification
 
 After insertion:
+
 ```
 grep -c 'SPINE: phenotype-apps' phenotype-apps/README.md
 # expect: 1
@@ -74,6 +74,7 @@ wc -l phenotype-apps/README.md
 ## Push
 
 Commit inside phenotype-apps:
+
 ```
 cd phenotype-apps
 git add README.md catalog/apps.toml launcher/

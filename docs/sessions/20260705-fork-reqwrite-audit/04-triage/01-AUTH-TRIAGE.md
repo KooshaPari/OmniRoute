@@ -5,6 +5,7 @@
 Both signals come from the repos themselves, not from external judgment:
 
 1. **AuthKit/README.md** (current state, branch `main`, 23 files, Rust crate):
+
    > "AuthKit is the canonical Rust auth boundary in the KooshaPari phenotype
    > ecosystem. It is the successor to the now-archived `Authvault`
    > repository and absorbs the FRs that landed in `Authvault` worktrees but
@@ -21,27 +22,27 @@ AuthKit already, or is intentionally abandoned.
 
 ## Side-by-side
 
-| Aspect                | AuthKit                                                | Authvault                                            |
-|-----------------------|--------------------------------------------------------|------------------------------------------------------|
-| Files (excluding .git)| 23 (lean Rust crate)                                   | 324 (umbrella with FRs/, docs/, fuzz/, examples/, okf/, typescript/) |
-| Primary artifact      | authkit Rust crate (src/lib.rs, src/domain/, src/middleware/) | Hexagonal framework + authkit/ subtree + TS lib + examples + benches |
-| Stack                 | Rust (axum/tower), nightly pinned, ci: clippy+fmt+cargo-deny | Rust + TypeScript, AI-DD metaproject, badges "AI-Slop Inside" |
-| FRs                   | FR-AUTHV-018 SHIPPED, AUT-SOTA-001..007 PLANNED         | FRs/ folder (12 dirs); the canonical matrix was here |
-| Status                | Active, PRs landing                                    | Archived in c7994b9, no PRs landing                  |
-| Worktrees             | None                                                   | Authvault-2nd, Authvault-3rd, etc. (preserved as archival copies) |
-| Migration path        | This IS the migration target                          | "add this dependency" instructions for Authvault users |
+| Aspect                 | AuthKit                                                       | Authvault                                                            |
+| ---------------------- | ------------------------------------------------------------- | -------------------------------------------------------------------- |
+| Files (excluding .git) | 23 (lean Rust crate)                                          | 324 (umbrella with FRs/, docs/, fuzz/, examples/, okf/, typescript/) |
+| Primary artifact       | authkit Rust crate (src/lib.rs, src/domain/, src/middleware/) | Hexagonal framework + authkit/ subtree + TS lib + examples + benches |
+| Stack                  | Rust (axum/tower), nightly pinned, ci: clippy+fmt+cargo-deny  | Rust + TypeScript, AI-DD metaproject, badges "AI-Slop Inside"        |
+| FRs                    | FR-AUTHV-018 SHIPPED, AUT-SOTA-001..007 PLANNED               | FRs/ folder (12 dirs); the canonical matrix was here                 |
+| Status                 | Active, PRs landing                                           | Archived in c7994b9, no PRs landing                                  |
+| Worktrees              | None                                                          | Authvault-2nd, Authvault-3rd, etc. (preserved as archival copies)    |
+| Migration path         | This IS the migration target                                  | "add this dependency" instructions for Authvault users               |
 
 ## What is in Authvault that is NOT in AuthKit (and the disposition)
 
-| Authvault artifact               | Disposition                                                                 |
-|----------------------------------|-----------------------------------------------------------------------------|
-| authkit/ subtree                 | Compare to canonical AuthKit; if it diverges, merge FRs into AuthKit/specs/  |
-| typescript/phenotype-auth-ts/    | Decide separately: keep as a TS sibling, or absorb into AuthKit's docs/     |
-| FRs/ (12 functional reqs)        | If any AUT-SOTA-* in AuthKit does not cover these, port the FR text         |
-| docs/, examples/, fuzz/          | Move unique content to AuthKit/docs/ (single source of truth)               |
-| benches/                         | Keep -- AuthKit can grow a benches/ at the same layout                      |
-| okf/, .config/, .agileplus/      | Audit on demand; likely all governance glue, no code                        |
-| Worktree copies (-2nd, -3rd)     | Archive snapshot only; do not delete; do not update                        |
+| Authvault artifact            | Disposition                                                                 |
+| ----------------------------- | --------------------------------------------------------------------------- |
+| authkit/ subtree              | Compare to canonical AuthKit; if it diverges, merge FRs into AuthKit/specs/ |
+| typescript/phenotype-auth-ts/ | Decide separately: keep as a TS sibling, or absorb into AuthKit's docs/     |
+| FRs/ (12 functional reqs)     | If any AUT-SOTA-* in AuthKit does not cover these, port the FR text         |
+| docs/, examples/, fuzz/       | Move unique content to AuthKit/docs/ (single source of truth)               |
+| benches/                      | Keep -- AuthKit can grow a benches/ at the same layout                      |
+| okf/, .config/, .agileplus/   | Audit on demand; likely all governance glue, no code                        |
+| Worktree copies (-2nd, -3rd)  | Archive snapshot only; do not delete; do not update                         |
 
 ## Caller scan (top-10 per term, after excluding audit/registry)
 

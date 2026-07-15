@@ -73,16 +73,16 @@
 
 ## 2. FFI / interop reality check (mid-2026)
 
-| From → To | Mechanism | Production-ready? |
-|---|---|---|
+| From → To         | Mechanism                                                 | Production-ready?                              |
+| ----------------- | --------------------------------------------------------- | ---------------------------------------------- |
 | Rust → TypeScript | `napi-rs` (preferred), `neon`, `wasm-bindgen` for browser | Yes — many production npm packages are napi-rs |
-| Go → TypeScript | `wazero` (WASM) or `goja` (Go-in-JS) | Workable but not great |
-| TypeScript → Rust | `napi-rs` (same as above) | Yes |
-| Go → Rust | `cgo` + `extern "C"` | Yes but ugly |
-| Rust → Go | `cgo` consuming a `cdylib` | Yes but ugly |
-| Zig → Rust | `extern "C"` from Zig, `bindgen` in Rust | Yes (clean) |
-| Rust → Zig | `extern "C"` from Rust, `@cImport` in Zig | Yes (clean) |
-| Mojo → anything | Not stable | No |
+| Go → TypeScript   | `wazero` (WASM) or `goja` (Go-in-JS)                      | Workable but not great                         |
+| TypeScript → Rust | `napi-rs` (same as above)                                 | Yes                                            |
+| Go → Rust         | `cgo` + `extern "C"`                                      | Yes but ugly                                   |
+| Rust → Go         | `cgo` consuming a `cdylib`                                | Yes but ugly                                   |
+| Zig → Rust        | `extern "C"` from Zig, `bindgen` in Rust                  | Yes (clean)                                    |
+| Rust → Zig        | `extern "C"` from Rust, `@cImport` in Zig                 | Yes (clean)                                    |
+| Mojo → anything   | Not stable                                                | No                                             |
 
 **Bottom line:** FFI between Rust and TS is clean in 2026 (napi-rs). FFI between Rust and Go is possible but the build matrix doubles. FFI between any pair that includes Mojo is not yet stable.
 
@@ -90,13 +90,13 @@ For the OmniRoute rewrite, the **cleanest interop story is pure Rust + a thin na
 
 ## 3. Migration ergonomics
 
-| Path | Lines to rewrite | Effort (rough, single engineer) | Risk |
-|---|---|---|---|
-| TypeScript → Rust | ~170k src + ~181k open-sse = **~350k LOC** | 12-18 months with 4-agent fleet | Medium (high if no shim) |
-| TypeScript → Go | ~350k LOC | 8-12 months (Go is faster to write) | Medium (high if no shim) |
-| TypeScript → Rust + Go split | ~350k LOC | 10-14 months (FFI cost) | Higher (split-brain) |
-| TypeScript → Rust + Zig FFI | ~350k LOC + Zig adapters | 14-20 months (Zig ecosystem cost) | Highest |
-| TypeScript → Mojo | ~350k LOC | "Infeasible" (no HTTP stack) | N/A |
+| Path                         | Lines to rewrite                           | Effort (rough, single engineer)     | Risk                     |
+| ---------------------------- | ------------------------------------------ | ----------------------------------- | ------------------------ |
+| TypeScript → Rust            | ~170k src + ~181k open-sse = **~350k LOC** | 12-18 months with 4-agent fleet     | Medium (high if no shim) |
+| TypeScript → Go              | ~350k LOC                                  | 8-12 months (Go is faster to write) | Medium (high if no shim) |
+| TypeScript → Rust + Go split | ~350k LOC                                  | 10-14 months (FFI cost)             | Higher (split-brain)     |
+| TypeScript → Rust + Zig FFI  | ~350k LOC + Zig adapters                   | 14-20 months (Zig ecosystem cost)   | Highest                  |
+| TypeScript → Mojo            | ~350k LOC                                  | "Infeasible" (no HTTP stack)        | N/A                      |
 
 The pure-Rust path is the **slowest to write** but the **cleanest runtime story**. The user's scaffolded workspace confirms this is the chosen path.
 
@@ -110,19 +110,21 @@ The pure-Rust path is the **slowest to write** but the **cleanest runtime story*
 
 ## 5. Final recommendation — CONFIRM pure Rust; MODIFY D7
 
-| Concern | Prior D7 (tentative) | Recommended (this audit) | Why |
-|---|---|---|---|
-| Hot path | Rust | **Rust (unchanged)** | Performance, safety, ecosystem |
-| Orchestration | Go | **Rust (omni-server crate)** | Avoids second language, leverages axum |
-| SDK glue | TypeScript | **TypeScript (stays in TS for desktop + opencode-plugin)** | The SDK is consumed by the Electron app and OpenCode plugin; rewriting in Rust adds a binding layer for no gain |
-| FFI | Zig | **Drop Zig. Use napi-rs if any FFI is needed.** | Zig has no HTTP ecosystem in 2026 |
-| Mojo | Not used | **Not used (confirmed)** | No production HTTP stack |
+| Concern       | Prior D7 (tentative) | Recommended (this audit)                                   | Why                                                                                                             |
+| ------------- | -------------------- | ---------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| Hot path      | Rust                 | **Rust (unchanged)**                                       | Performance, safety, ecosystem                                                                                  |
+| Orchestration | Go                   | **Rust (omni-server crate)**                               | Avoids second language, leverages axum                                                                          |
+| SDK glue      | TypeScript           | **TypeScript (stays in TS for desktop + opencode-plugin)** | The SDK is consumed by the Electron app and OpenCode plugin; rewriting in Rust adds a binding layer for no gain |
+| FFI           | Zig                  | **Drop Zig. Use napi-rs if any FFI is needed.**            | Zig has no HTTP ecosystem in 2026                                                                               |
+| Mojo          | Not used             | **Not used (confirmed)**                                   | No production HTTP stack                                                                                        |
 
 **The user's scaffolded `omniroute-rust/Cargo.toml` already implements the recommended split:**
+
 - Rust: omni-core, omni-protocol, omni-storage, omni-translator, omni-router, omni-compression, omni-server, omni-mcp, omni-a2a, omni-telemetry, omni-cli, omni-sdk
 - TypeScript (stays): `bin/cli/`, `electron/`, `@omniroute/opencode-plugin`, `@omniroute/opencode-provider` (deprecated)
 
 **v1 sequencing:**
+
 1. **v1 (Rust):** All 12 omni-* crates. The HTTP server, the router, the storage, the MCP server, the A2A server, the CLI, and the SDK. Target: feature-complete with the TS fork.
 2. **v1.5 (Rust):** Bifrost as the canonical router (replaces `omni-router` with `bifrost`). Per ADR-001.
 3. **v2 (Rust):** Performance hardening, cost attribution, KV-cache reuse, canary routing.
@@ -130,22 +132,22 @@ The pure-Rust path is the **slowest to write** but the **cleanest runtime story*
 
 ## 6. Cost model (T-shirt sizing)
 
-| Scope | T-shirt | Calendar (4-agent fleet) | Notes |
-|---|---|---|---|
-| `omni-core` (foundation) | S | already done (682 lines) | The scaffold is correct |
-| `omni-protocol` (wire types) | M | 2-3 weeks | Schema definitions |
-| `omni-storage` (sqlx) | L | 4-6 weeks | 80 SQL migrations to port |
-| `omni-translator` (format detection) | L | 4-6 weeks | OpenAI/Claude/Gemini/Codex formats |
-| `omni-router` (provider adapters) | XL | 8-12 weeks | 149 provider registries |
-| `omni-compression` (5 engines) | L | 4-6 weeks | adaptive/aggressive/caveman/lite/ultra |
-| `omni-server` (axum) | L | 4-6 weeks | 538 Next.js routes |
-| `omni-mcp` (rmcp) | M | 2-4 weeks | 22 MCP tools |
-| `omni-a2a` | S | 1-2 weeks | 6 A2A skills |
-| `omni-telemetry` (OTel) | M | 2-3 weeks | tracing + metrics + audit |
-| `omni-cli` (clap) | M | 2-3 weeks | 81 commands + 32 api-commands |
-| `omni-sdk` (client) | S | 1-2 weeks | HTTP client wrapper |
-| `bifrost` (canonical router, separate) | XL | 8-12 weeks | Lives in pheno/bifrost |
-| **Total v1** | **XL+** | **~30-40 weeks** (with 4-agent fleet, 4-slot ceiling) | Stretches to 60+ weeks if single-agent |
+| Scope                                  | T-shirt | Calendar (4-agent fleet)                              | Notes                                  |
+| -------------------------------------- | ------- | ----------------------------------------------------- | -------------------------------------- |
+| `omni-core` (foundation)               | S       | already done (682 lines)                              | The scaffold is correct                |
+| `omni-protocol` (wire types)           | M       | 2-3 weeks                                             | Schema definitions                     |
+| `omni-storage` (sqlx)                  | L       | 4-6 weeks                                             | 80 SQL migrations to port              |
+| `omni-translator` (format detection)   | L       | 4-6 weeks                                             | OpenAI/Claude/Gemini/Codex formats     |
+| `omni-router` (provider adapters)      | XL      | 8-12 weeks                                            | 149 provider registries                |
+| `omni-compression` (5 engines)         | L       | 4-6 weeks                                             | adaptive/aggressive/caveman/lite/ultra |
+| `omni-server` (axum)                   | L       | 4-6 weeks                                             | 538 Next.js routes                     |
+| `omni-mcp` (rmcp)                      | M       | 2-4 weeks                                             | 22 MCP tools                           |
+| `omni-a2a`                             | S       | 1-2 weeks                                             | 6 A2A skills                           |
+| `omni-telemetry` (OTel)                | M       | 2-3 weeks                                             | tracing + metrics + audit              |
+| `omni-cli` (clap)                      | M       | 2-3 weeks                                             | 81 commands + 32 api-commands          |
+| `omni-sdk` (client)                    | S       | 1-2 weeks                                             | HTTP client wrapper                    |
+| `bifrost` (canonical router, separate) | XL      | 8-12 weeks                                            | Lives in pheno/bifrost                 |
+| **Total v1**                           | **XL+** | **~30-40 weeks** (with 4-agent fleet, 4-slot ceiling) | Stretches to 60+ weeks if single-agent |
 
 ## 7. Risks and unknowns
 
@@ -154,4 +156,3 @@ The pure-Rust path is the **slowest to write** but the **cleanest runtime story*
 - **R-LE-3:** Go 1.25+ might add a feature that makes Go orchestration strictly better. The user has chosen Rust; the cost of reversing this is high. Defer to v3.
 - **R-LE-4:** The OpenCode plugin (`@omniroute/opencode-plugin`) is in TypeScript and is the live IDE integration. If the Rust SDK does not expose the same surface, the plugin breaks. This is a contract that must be locked before v1 ships.
 - **R-LE-5:** The TS fork's `bin/omniroute.mjs` is a Node 22+ binary. The Rust `omni-cli` is a single static binary. The transition from Node to static binary changes the deploy story; ops docs must be updated.
-

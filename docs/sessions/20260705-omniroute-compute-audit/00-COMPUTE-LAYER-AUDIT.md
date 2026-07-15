@@ -11,25 +11,26 @@
 
 ## 1. Module health
 
-| Crate              | src LOC | tests LOC | coverage | health | critical risk                          |
-|--------------------|---------|-----------|----------|--------|----------------------------------------|
-| omni-core          |     708 |       102 | ~14%     | ok     | none (foundation)                      |
-| omni-translator    |    1120 |       180 | ~16%     | ok     | only 4 of 7+ format pairs covered      |
-| omni-protocol      |    2723 |         0 |   0%     | wip    | wire types untested; spec drift risk   |
-| omni-storage       |    1535 |         0 |   0%     | wip    | repos untested; migration runner untested |
-| omni-server        |    2833 |         0 |   0%     | wip    | **auth unwired (TODO v1_combos.rs:26,67)** |
-| omni-router        |     434 |         0 |   0%     | stub   | trait exists, registry missing         |
-| omni-compression   |     684 |         0 |   0%     | wip    | RTK + Caveman engines untested         |
-| omni-telemetry     |     529 |         0 |   0%     | wip    | span/metrics/audit untested            |
-| omni-cli           |    1096 |         0 |   0%     | ok     | clap wiring ok, command logic untested |
-| omni-sdk           |     625 |         0 |   0%     | stub   | Rust client SDK untested               |
-| omni-a2a           |      74 |         0 |   0%     | stub   | basically empty                        |
-| omni-mcp           |      62 |         0 |   0%     | stub   | basically empty                        |
-| **TOTAL**          |  12,720 |       282 | ~2.2% avg | wip   | **10/12 crates have zero tests**       |
+| Crate            | src LOC | tests LOC | coverage  | health | critical risk                              |
+| ---------------- | ------- | --------- | --------- | ------ | ------------------------------------------ |
+| omni-core        | 708     | 102       | ~14%      | ok     | none (foundation)                          |
+| omni-translator  | 1120    | 180       | ~16%      | ok     | only 4 of 7+ format pairs covered          |
+| omni-protocol    | 2723    | 0         | 0%        | wip    | wire types untested; spec drift risk       |
+| omni-storage     | 1535    | 0         | 0%        | wip    | repos untested; migration runner untested  |
+| omni-server      | 2833    | 0         | 0%        | wip    | **auth unwired (TODO v1_combos.rs:26,67)** |
+| omni-router      | 434     | 0         | 0%        | stub   | trait exists, registry missing             |
+| omni-compression | 684     | 0         | 0%        | wip    | RTK + Caveman engines untested             |
+| omni-telemetry   | 529     | 0         | 0%        | wip    | span/metrics/audit untested                |
+| omni-cli         | 1096    | 0         | 0%        | ok     | clap wiring ok, command logic untested     |
+| omni-sdk         | 625     | 0         | 0%        | stub   | Rust client SDK untested                   |
+| omni-a2a         | 74      | 0         | 0%        | stub   | basically empty                            |
+| omni-mcp         | 62      | 0         | 0%        | stub   | basically empty                            |
+| **TOTAL**        | 12,720  | 282       | ~2.2% avg | wip    | **10/12 crates have zero tests**           |
 
 ## 2. Foundation slice (commit 53f6fbb08) -- 155 files, 14,344 insertions
 
 What landed (verified via `git log -1 --stat`):
+
 - 12-crate workspace skeleton (Cargo workspace resolver 2)
 - Wire types: openai, anthropic, gemini, codex, a2a in omni-protocol
 - Translator: 4 format pairs (openai<->anthropic, openai<->gemini, openai->codex, plus streaming)
@@ -72,6 +73,7 @@ HTTP request
 ## 5. File decomposition health
 
 **Foundation slice is exemplary here -- 0 files over 500 lines.** Compared to the TS fork (50+ files over 500 lines, max 5828), the Rust port is starting clean. Keep this discipline:
+
 - `crates/omni-server/src/dispatcher.rs` (40k bytes, ~1100 LOC) -- largest; will need decomposition as it grows. Target: 5 dispatcher concerns in 5 files.
 - `crates/omni-server/src/state.rs` (~250 LOC) -- acceptable for now.
 - All executors under 300 LOC. Good.
@@ -105,6 +107,7 @@ Each file target: < 350 LOC, hard ceiling 500.
 ## 7. 6-week execution slice (to "optimal/mature/enterprise/prod grade")
 
 **Week 1 -- foundation hardening (P0)**
+
 - W1.1 Wire auth middleware end-to-end. Replace `Option<AuthKey> = None` in `v1_combos.rs:26` and `:67` with real `Extension<AuthKey>` from a tower layer that validates the API key against `omni-storage::repo::api_key`. Add tests for: missing key, invalid key, revoked key, expired key, key per tenant.
 - W1.2 Add `omni-server/tests/auth.rs` covering all 11+ CLI endpoints reject unauthenticated requests.
 - W1.3 Lock the spec. Create `docs/spec/SPEC-LOCK-3.8.31.md` enumerating the 538 TS fork routes; mark which the Rust port must implement for parity.
@@ -112,6 +115,7 @@ Each file target: < 350 LOC, hard ceiling 500.
 - W1.5 Set up `tests/integration/smoke.rs` with 7 happy-path tests against a local axum server.
 
 **Week 2 -- storage + protocol test coverage (P0)**
+
 - W2.1 Write `omni-storage/tests/repo/api_key.rs` covering insert/get/list/revoke/rotate.
 - W2.2 Write `omni-storage/tests/repo/call_log.rs` covering insert/query/stats.
 - W2.3 Write `omni-storage/tests/repo/tenant.rs` covering create/scope.
@@ -119,6 +123,7 @@ Each file target: < 350 LOC, hard ceiling 500.
 - W2.5 Write `omni-protocol/tests/` covering all 5 protocol wire types with golden fixtures (round-trip serialize/deserialize, edge cases, missing fields).
 
 **Week 3 -- server handlers + executors test coverage (P0)**
+
 - W3.1 `omni-server/tests/handlers/v1_combos.rs` -- the 7 most common combo flows.
 - W3.2 `omni-server/tests/handlers/openai.rs` -- chat completions, streaming, non-streaming, function calls.
 - W3.3 `omni-server/tests/handlers/anthropic.rs` -- messages API parity.
@@ -126,6 +131,7 @@ Each file target: < 350 LOC, hard ceiling 500.
 - W3.5 `omni-server/tests/middleware/auth.rs` -- the 6 auth failure modes (W1.1).
 
 **Week 4 -- router + compression (P1)**
+
 - W4.1 omni-router: implement executor registry, capability negotiation, fallback cascade.
 - W4.2 omni-router: cost-aware + latency-aware selector.
 - W4.3 omni-compression: port RTK engine from TS fork; add round-trip tests with golden fixtures.
@@ -133,6 +139,7 @@ Each file target: < 350 LOC, hard ceiling 500.
 - W4.5 omni-compression: token-savings measurement harness.
 
 **Week 5 -- telemetry + observability (P1)**
+
 - W5.1 omni-telemetry: OTel OTLP exporter (gRPC + HTTP).
 - W5.2 omni-telemetry: Prometheus metrics endpoint on `/metrics`.
 - W5.3 omni-server: wire `tower-http::trace::TraceLayer` end-to-end.
@@ -140,6 +147,7 @@ Each file target: < 350 LOC, hard ceiling 500.
 - W5.5 omni-server: SLO definitions (TTFT p50/p99, error rate, queue depth).
 
 **Week 6 -- CLI + SDK + a2a + mcp (P2)**
+
 - W6.1 omni-cli: tests for every subcommand (11 commands).
 - W6.2 omni-sdk: Rust client SDK with retry/backoff/cancellation; tests.
 - W6.3 omni-a2a: A2A v0.3 implementation + conformance tests.
@@ -150,22 +158,22 @@ Each file target: < 350 LOC, hard ceiling 500.
 
 The Rust port has **282 test LOC across 2 files**. The TS fork has 1924 test files. To reach parity-class coverage:
 
-| Crate              | current tests | target tests | gap                          |
-|--------------------|---------------|--------------|------------------------------|
-| omni-core          | 1 file        | 3 files      | 2 (ids, executor, errors)    |
-| omni-translator    | 1 file        | 5 files      | 4 (each format pair + streaming) |
-| omni-protocol      | 0             | 6 files      | 6 (5 protocols + shared)     |
-| omni-storage       | 0             | 5 files      | 3 repos + migrations + pool  |
-| omni-server        | 0             | 12 files     | 7 handlers + 2 executors + 3 middleware |
-| omni-router        | 0             | 4 files      | registry, selector, cascade, breaker |
-| omni-compression   | 0             | 5 files      | 4 engines + bench            |
-| omni-telemetry     | 0             | 4 files      | span, metrics, audit, otel   |
-| omni-cli           | 0             | 11 files     | one per subcommand           |
-| omni-sdk           | 0             | 3 files      | client, retry, cancel        |
-| omni-a2a           | 0             | 2 files      | protocol + conformance       |
-| omni-mcp           | 0             | 2 files      | server + tools               |
-| integration        | 0             | 3 files      | smoke, parity, soak          |
-| **TOTAL**          | **2**         | **65**       | **63 test files to add**     |
+| Crate            | current tests | target tests | gap                                     |
+| ---------------- | ------------- | ------------ | --------------------------------------- |
+| omni-core        | 1 file        | 3 files      | 2 (ids, executor, errors)               |
+| omni-translator  | 1 file        | 5 files      | 4 (each format pair + streaming)        |
+| omni-protocol    | 0             | 6 files      | 6 (5 protocols + shared)                |
+| omni-storage     | 0             | 5 files      | 3 repos + migrations + pool             |
+| omni-server      | 0             | 12 files     | 7 handlers + 2 executors + 3 middleware |
+| omni-router      | 0             | 4 files      | registry, selector, cascade, breaker    |
+| omni-compression | 0             | 5 files      | 4 engines + bench                       |
+| omni-telemetry   | 0             | 4 files      | span, metrics, audit, otel              |
+| omni-cli         | 0             | 11 files     | one per subcommand                      |
+| omni-sdk         | 0             | 3 files      | client, retry, cancel                   |
+| omni-a2a         | 0             | 2 files      | protocol + conformance                  |
+| omni-mcp         | 0             | 2 files      | server + tools                          |
+| integration      | 0             | 3 files      | smoke, parity, soak                     |
+| **TOTAL**        | **2**         | **65**       | **63 test files to add**                |
 
 ## 9. Commands run (audit trail, abbreviated)
 

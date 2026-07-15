@@ -12,35 +12,35 @@ Insert immediately AFTER the AI-DD-META block at the top of
 ## Exact text to insert
 
 ```markdown
-
 ---
 
 ## SPINE: phenotype-org-audits
 
 **ROLE:** audit/inventory spine
 **OWNS:**
-  - 165-repo master registry (`inventory/AUTHORITATIVE_REPO_INVENTORY.md`)
-  - Quarterly audit snapshots (`audits/<YYYY>/<YYYY-MM-DD>/`)
-  - Governance adoption metrics (`metrics/COVERAGE_V3.md`,
-    `metrics/UPLIFT_REPORT.md`, `metrics/SYSTEMIC_ISSUES.md`)
-  - Cross-repo systemic-issue catalog
-  - GitHub remote inventory (`inventory/github_remote_inventory.md`)
-  - Deleted-traces catalog (`inventory/deleted_traces.md`)
-**DEPENDS-ON:**
-  - `phenotype-tooling` (aggregator; symlink to be vendored per
-    risk R-1 in 02-ORG-AUDITS-PLAN.md)
-  - git, GitHub API (read-only)
-  - Local checkout of every catalogued repo (for audit snapshots)
-**DEPENDED-ON-BY:**
-  - substrate (consumes registry to build dispatch manifests)
-  - AgilePlus (consumes audit results for cockpit freshness)
-  - Human operator (governance decisions, portfolio strategy)
-**RELEASE-CADENCE:** quarterly; ad-hoc on demand
-**SUCCESS-METRIC:**
-  - Zero stale entries (every catalogued repo touched within 30 days)
-  - Every catalogued repo has a 30-day audit snapshot
-  - Governance adoption increases quarter-over-quarter (visible in
-    `metrics/UPLIFT_REPORT.md`)
+
+- 165-repo master registry (`inventory/AUTHORITATIVE_REPO_INVENTORY.md`)
+- Quarterly audit snapshots (`audits/<YYYY>/<YYYY-MM-DD>/`)
+- Governance adoption metrics (`metrics/COVERAGE_V3.md`,
+  `metrics/UPLIFT_REPORT.md`, `metrics/SYSTEMIC_ISSUES.md`)
+- Cross-repo systemic-issue catalog
+- GitHub remote inventory (`inventory/github_remote_inventory.md`)
+- Deleted-traces catalog (`inventory/deleted_traces.md`)
+  **DEPENDS-ON:**
+- `phenotype-tooling` (aggregator; symlink to be vendored per
+  risk R-1 in 02-ORG-AUDITS-PLAN.md)
+- git, GitHub API (read-only)
+- Local checkout of every catalogued repo (for audit snapshots)
+  **DEPENDED-ON-BY:**
+- substrate (consumes registry to build dispatch manifests)
+- AgilePlus (consumes audit results for cockpit freshness)
+- Human operator (governance decisions, portfolio strategy)
+  **RELEASE-CADENCE:** quarterly; ad-hoc on demand
+  **SUCCESS-METRIC:**
+- Zero stale entries (every catalogued repo touched within 30 days)
+- Every catalogued repo has a 30-day audit snapshot
+- Governance adoption increases quarter-over-quarter (visible in
+  `metrics/UPLIFT_REPORT.md`)
 
 ## How to read this repo
 
@@ -61,12 +61,12 @@ seven polyrepo spines with their charter one-liners. Every spine
 contributes a one-liner here.
 
 ---
-
 ```
 
 ## Verification
 
 After insertion:
+
 ```
 grep -c 'SPINE: phenotype-org-audits' phenotype-org-audits/README.md
 # expect: 1
@@ -75,6 +75,7 @@ grep -c 'SPINE: phenotype-org-audits' phenotype-org-audits/README.md
 ## Push
 
 Commit inside phenotype-org-audits:
+
 ```
 cd phenotype-org-audits
 git add README.md

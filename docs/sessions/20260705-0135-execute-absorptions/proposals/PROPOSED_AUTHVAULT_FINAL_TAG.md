@@ -9,7 +9,7 @@ Status: PROPOSED -- parent will apply per controlled step
 Create `Authvault/CHANGELOG.md` (currently absent -- `ls Authvault` shows
 `_typos.toml ADR.md AGENTS.md ARCHIVED.md authkit` only) with the entry:
 
-```markdown
+````markdown
 # Changelog
 
 ## authvault-final -- 2026-07-05
@@ -48,6 +48,7 @@ If you arrived here looking for the canonical home, see:
 [dependencies]
 authkit = { git = "https://github.com/KooshaPari/AuthKit", tag = "authkit-sota-v1" }
 ```
+````
 
 Replace every `use authvault::...` import with the matching
 `use authkit::...` import. The 1:1 mapping is documented in
@@ -67,17 +68,20 @@ the URL will still resolve to this snapshot.
 ### No further commits
 
 No code changes. No PRs. No agent work. No re-open.
+
 ```
 
 ## Action 2: tag
 
 ```
+
 cd Authvault
 git add CHANGELOG.md
 git commit -m "chore: final CHANGELOG entry (authvault-final, 2026-07-05)"
 git tag authvault-final
-git push origin main   # the CHANGELOG commit
-git push origin authvault-final   # the tag
+git push origin main # the CHANGELOG commit
+git push origin authvault-final # the tag
+
 ```
 
 ## Action 3: GitHub archive (out of local scope)
@@ -85,8 +89,11 @@ git push origin authvault-final   # the tag
 After the tag is pushed:
 
 ```
+
 gh repo edit KooshaPari/Authvault --enable-issues=false
+
 # Then GitHub web UI: Settings -> Danger Zone -> Archive this repository.
+
 ```
 
 The `gh repo archive` command does not exist; the web UI is the
@@ -101,3 +108,4 @@ documents the migration.
 - AuthKit still needs `migrations/from-authvault.md` written and
   the FR traceability table extended. That is a separate PR
   inside AuthKit; tracked in 05-MIGRATION-CHECKLIST.md Phase 1.
+```

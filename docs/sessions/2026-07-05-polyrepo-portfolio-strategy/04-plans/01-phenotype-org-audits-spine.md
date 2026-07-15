@@ -65,8 +65,8 @@ worklogs/). The promotion is mostly a clarification and a lock-in.
 
 ## Risks
 
-| Risk | Mitigation |
-|------|------------|
-| Auditors land in a sub-repo and miss the spine | Each sub-repo README gets a one-line "part of the phenotype-org-audits spine" note |
-| Pillar numbering drifts across repos | Pillar IDs are owned by this spine; sub-repos must use them as-is |
-| Spine becomes a dumping ground | Quarterly review: any directory that has not had meaningful activity in 90 days is consolidated or archived |
+| Risk                                           | Mitigation                                                                                                  |
+| ---------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| Auditors land in a sub-repo and miss the spine | Each sub-repo README gets a one-line "part of the phenotype-org-audits spine" note                          |
+| Pillar numbering drifts across repos           | Pillar IDs are owned by this spine; sub-repos must use them as-is                                           |
+| Spine becomes a dumping ground                 | Quarterly review: any directory that has not had meaningful activity in 90 days is consolidated or archived |

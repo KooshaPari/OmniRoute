@@ -2,7 +2,7 @@
 
 > **Oracle version:** 1.0  
 > **Source derivation:** `origin/main` at `6c20fea`  
-> **Status:** Spec-first oracle — acceptance skeletons exist at `docs/specs/acceptance/`  
+> **Status:** Spec-first oracle — acceptance skeletons exist at `docs/specs/acceptance/`
 
 ---
 
@@ -15,6 +15,7 @@
 **Acceptance criterion:** `list_presets()` returns a `List[str]` containing at least the names `"ambient"`, `"cinematic"`, `"classical"`, `"edm"`, `"jazz"`, and `"world"`, sorted alphabetically.
 
 **Traceability:**
+
 - Source: `backend/src/melosviz/presets/__init__.py:45-47` — `list_presets()` implementation
 - Source: `backend/src/melosviz/presets/__init__.py:35-42` — `BUILTIN_PRESETS` constant
 
@@ -27,6 +28,7 @@
 **Acceptance criterion:** Calling `load_preset("cinematic")` returns the `melosviz.presets.cinematic` module. Calling `load_preset("unknown")` raises `KeyError` with a message listing available presets.
 
 **Traceability:**
+
 - Source: `backend/src/melosviz/presets/__init__.py:50-63` — `load_preset()` implementation
 - Source: `backend/src/melosviz/presets/__init__.py:59` — `KeyError` raised for unknown names
 
@@ -39,6 +41,7 @@
 **Acceptance criterion:** Calling `cinematic.apply(RenderSpec())` returns a `RenderSpec` whose `.metadata["preset"]` equals `"cinematic"`, `.palette` contains exactly 6 color strings (the `CINEMATIC_PALETTE`), `.layers` is a non-empty list of layer dicts, `.keyframes` is a non-empty list of keyframe dicts, and `.timeline` is extended with at least 3 section entries.
 
 **Traceability:**
+
 - Source: `backend/src/melosviz/presets/cinematic.py:68-91` — `apply()` function
 - Source: `backend/src/melosviz/presets/cinematic.py:17-24` — `CINEMATIC_PALETTE` constant
 - Source: `backend/src/melosviz/presets/cinematic.py:27-56` — `_layers()` helper
@@ -54,6 +57,7 @@
 **Acceptance criterion:** `from melosviz.presets import ThemePresetRegistry` succeeds and `ThemePresetRegistry` is a callable class.
 
 **Traceability:**
+
 - Source: `backend/src/melosviz/presets/__init__.py:32` — re-export `from .registry import ThemePresetRegistry`
 
 ---
@@ -65,6 +69,7 @@
 **Acceptance criterion:** `melosviz.presets.__all__` is a list containing exactly `"BUILTIN_PRESETS"`, `"ThemePresetRegistry"`, `"list_presets"`, and `"load_preset"`.
 
 **Traceability:**
+
 - Source: `backend/src/melosviz/presets/__init__.py:66-71` — `__all__` list
 
 ---
@@ -76,6 +81,7 @@
 **Acceptance criterion:** Calling `export_video(RenderSpec(), format="mp4", output_dir=tmpdir)` returns a `Path` with `.suffix == ".mp4"`, the file exists on disk, is non-empty, and the ffmpeg command contains `"libx264"` and `"yuv420p"`.
 
 **Traceability:**
+
 - Test: `backend/tests/test_video_exporter.py:114-157` — MP4 tests exercising the contract
 
 ---
@@ -87,6 +93,7 @@
 **Acceptance criterion:** Calling `export_video(RenderSpec(), format="webm", output_dir=tmpdir)` returns a `Path` with `.suffix == ".webm"`, the file exists, is non-empty, and the ffmpeg command contains `"libvpx-vp9"`.
 
 **Traceability:**
+
 - Test: `backend/tests/test_video_exporter.py:199-224` — WebM tests
 
 ---
@@ -98,6 +105,7 @@
 **Acceptance criterion:** Calling `export_video(RenderSpec(), output_dir=tmpdir)` returns a file with `.suffix == ".mp4"`.
 
 **Traceability:**
+
 - Test: `backend/tests/test_video_exporter.py:231-235` — default format test
 
 ---
@@ -109,6 +117,7 @@
 **Acceptance criterion:** `export_video(RenderSpec(), format="MP4")` and `export_video(RenderSpec(), format="Mp4")` and `export_video(RenderSpec(), format="WEBM")` all succeed and produce files with correct lowercase extensions.
 
 **Traceability:**
+
 - Test: `backend/tests/test_video_exporter.py:238-261` — uppercase and mixed-case tests
 
 ---
@@ -120,6 +129,7 @@
 **Acceptance criterion:** Calling `export_video(RenderSpec(), format="avi")` raises `RenderExportError` and `subprocess.run` is never called.
 
 **Traceability:**
+
 - Test: `backend/tests/test_video_exporter.py:254-261` — unknown format rejection
 
 ---
@@ -131,6 +141,7 @@
 **Acceptance criterion:** Calling `export_video(RenderSpec(), output_dir=tmpdir/"nested"/"out")` succeeds and the nested directory is created and contains the output file.
 
 **Traceability:**
+
 - Test: `backend/tests/test_video_exporter.py:279-306` — output directory handling tests
 
 ---
@@ -142,6 +153,7 @@
 **Acceptance criterion:** `export_video(RenderSpec(), output_dir=str(tmpdir/"from-str"))` succeeds.
 
 **Traceability:**
+
 - Test: `backend/tests/test_video_exporter.py:290-297` — string output_dir test
 
 ---
@@ -153,6 +165,7 @@
 **Acceptance criterion:** When `_resolve_ffmpeg_binary` raises `FFMpegNotFoundError`, the error propagates and `subprocess.run` is never called.
 
 **Traceability:**
+
 - Test: `backend/tests/test_video_exporter.py:431-441` — binary resolution failure propagation
 
 ---
@@ -164,6 +177,7 @@
 **Acceptance criterion:** A mock ffmpeg with `returncode=1` causes `RenderExportError`; the error message contains the stderr text.
 
 **Traceability:**
+
 - Test: `backend/tests/test_video_exporter.py:367-389` — non-zero exit and stderr message tests
 
 ---
@@ -175,6 +189,7 @@
 **Acceptance criterion:** A mock that returns `returncode=0` without writing a file raises `RenderExportError`. A mock that writes an empty file (0 bytes) also raises `RenderExportError`.
 
 **Traceability:**
+
 - Test: `backend/tests/test_video_exporter.py:392-415` — missing and empty output file tests
 
 ---
@@ -186,6 +201,7 @@
 **Acceptance criterion:** `is_ffmpeg_available()` returns `True` or `False` (always a `bool`, never raises).
 
 **Traceability:**
+
 - Test: `backend/tests/test_video_exporter.py:476-479` — boolean return type test
 
 ---
@@ -197,6 +213,7 @@
 **Acceptance criterion:** The ffmpeg command includes `-framerate`, an `-i` argument ending in `frame_%05d.png`, and the pattern points to an absolute path.
 
 **Traceability:**
+
 - Test: `backend/tests/test_video_exporter.py:142-180` — PNG input pattern and tempdir tests
 
 ---
@@ -208,6 +225,7 @@
 **Acceptance criterion:** `"export_video" in video_exporter.__all__`, `"RenderExportError" in video_exporter.__all__`, and `"FFMpegNotFoundError" in video_exporter.__all__` are all true.
 
 **Traceability:**
+
 - Test: `backend/tests/test_video_exporter.py:464-473` — module exports test
 
 ---
@@ -219,6 +237,7 @@
 **Acceptance criterion:** After a successful export, `caplog.records` contains at least one record at level `INFO` whose message contains `"export_video"`.
 
 **Traceability:**
+
 - Test: `backend/tests/test_video_exporter.py:449-461` — logging test
 
 ---
@@ -230,6 +249,7 @@
 **Acceptance criterion:** Files `assets/brand/favicon.svg` and `assets/brand/icon.svg` exist, are valid SVG documents, and contain `<svg` root elements.
 
 **Traceability:**
+
 - Files: `assets/brand/favicon.svg`, `assets/brand/icon.svg`
 
 ---
@@ -241,6 +261,7 @@
 **Acceptance criterion:** The workflow file `.github/workflows/gitleaks.yml` exists and contains a job that runs `gitleaks detect`.
 
 **Traceability:**
+
 - File: `.github/workflows/gitleaks.yml`
 
 ---
@@ -252,6 +273,7 @@
 **Acceptance criterion:** The workflow file `.github/workflows/scorecard.yml` exists and contains a job using `openssf/scorecard-action`.
 
 **Traceability:**
+
 - File: `.github/workflows/scorecard.yml`
 
 ---
@@ -265,6 +287,7 @@
 **Acceptance criterion:** A static import analysis of `backend/src/melosviz/presets/` shows zero imports from packages outside the standard library (stdlib modules: `importlib`, `os`, `sys`, `types`, `typing` are all stdlib).
 
 **Traceability:**
+
 - Source: `backend/src/melosviz/presets/__init__.py:14-18` — all imports are stdlib
 - Source: `backend/src/melosviz/presets/cinematic.py:12` — all imports are stdlib (aside from `..analysis.models` which is intra-package)
 
@@ -275,6 +298,7 @@
 **Acceptance criterion:** Every test in `test_video_exporter.py` that calls `export_video` patches either `melosviz.render.video_exporter.subprocess.run` or `_resolve_ffmpeg_binary`.
 
 **Traceability:**
+
 - Test: `backend/tests/test_video_exporter.py:85-107` — patch helpers `_patch_success()`, `_patch_resolve()`, `_patch_resolve_raises()`
 - All test functions use these patch context managers.
 
@@ -285,6 +309,7 @@
 **Acceptance criterion:** The `kwargs` passed to `subprocess.run` contain `timeout=120`.
 
 **Traceability:**
+
 - Test: `backend/tests/test_video_exporter.py:342-351` — timeout capture test
 
 ### NFR-4: Subprocess Invoked Exactly Once Per Export
@@ -294,6 +319,7 @@
 **Acceptance criterion:** After one call to `export_video`, `mock_run.call_count == 1`.
 
 **Traceability:**
+
 - Test: `backend/tests/test_video_exporter.py:354-359` — single invocation test
 
 ### NFR-5: RenderSpec Accepts Empty and Populated States
@@ -303,6 +329,7 @@
 **Acceptance criterion:** `export_video(RenderSpec(), ...)` and `export_video(RenderSpec(metadata=..., palette=..., layers=...), ...)` both succeed and produce non-empty output files.
 
 **Traceability:**
+
 - Test: `backend/tests/test_video_exporter.py:487-514` — empty and populated RenderSpec tests
 
 ### NFR-6: Sys.path Manipulation for Cross-Package Imports
@@ -312,4 +339,5 @@
 **Acceptance criterion:** When `backend/src` is not already on `sys.path`, loading `melosviz.presets` inserts it at position 0, enabling `from melosviz.analysis.models import RenderSpec` to succeed.
 
 **Traceability:**
+
 - Source: `backend/src/melosviz/presets/__init__.py:25-28` — `sys.path.insert(0, _SRC_ROOT)`

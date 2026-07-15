@@ -3,6 +3,7 @@
 ## Risks (with mitigations)
 
 ### R-1 -- AtomsBot or KaskMan has silent dependents in the polyrepo
+
 **Risk:** the caller scan was capped at 10 files per term; deeper scan may
 uncover tooling that imports AtomsBot or KaskMan code.
 **Mitigation:** Phase 5 verification re-runs the caller scan with a higher
@@ -12,6 +13,7 @@ substrate for dispatch-adjacent code) before the strict-pause banner is
 applied to the archived repo.
 
 ### R-2 -- GitHub archive flag is not enough; admins can unarchive
+
 **Risk:** the user said "stops being unpaused" -- there is a history of
 admins/agents un-archiving these repos.
 **Mitigation:** the strict-pause README banner is the human/agent-readable
@@ -20,6 +22,7 @@ added to the AI-DD-META block in the existing AI-DD-managed repos so the
 next agent to touch the dir sees the banner before any other content.
 
 ### R-3 -- KaskMan has 226 files; vendor-snapshotting takes time
+
 **Risk:** archiving KaskMan without a snapshot loses the dashboard scripts
 and claude-flow permanently.
 **Mitigation:** the migration checklist Phase 2b explicitly vendors
@@ -29,6 +32,7 @@ mirror; history lives in the original KaskMan repo, which is archived
 (not deleted).
 
 ### R-4 -- phenotype-apps has 324+ entries, prune is destructive
+
 **Risk:** pruning the *-Nth duplicates may break worktree expectations
 elsewhere in the polyrepo.
 **Mitigation:** the prune moves duplicates (does not hard-delete); the
@@ -36,6 +40,7 @@ preservation target is phenotype-org-audits/archive/<app>/. If a worktree
 breaks, restore from there.
 
 ### R-5 -- Two "spines" claim the same role
+
 **Risk:** the user wrote "phenotype-org-audits -> one of the spine repos"
 -- a literal reading could mean "fold it into a spine", not "make it one".
 **Mitigation:** this audit argues for the "make it a spine" reading and
@@ -45,6 +50,7 @@ is pheno (workspace umbrella) -- not substrate, AgilePlus, or any other
 specialized spine.
 
 ### R-6 -- The apps-extract branch on phenotype-apps is in flight
+
 **Risk:** the active branch is apps-extract, which suggests the meta-repo
 is being deliberately shrunk. Our prune-and-vendor actions may collide with
 the extract work.

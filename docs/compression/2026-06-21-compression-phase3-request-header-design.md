@@ -34,7 +34,7 @@ decision. From the code map:
   (`selectCompressionStrategy`, `selectCompressionPlan`, `getEffectiveMode`, `applyCompression`).
   Its `resolveBasePlan` only calls `resolveCompressionPlan` in **two** of five precedence
   paths (routing-combo override and the `enginesExplicit` derived-default). The
-  **active-profile** and **auto-trigger** paths short-circuit and `return` *before* those
+  **active-profile** and **auto-trigger** paths short-circuit and `return` _before_ those
   calls. So merely threading `header` into the existing `resolveCompressionPlan` calls would
   **not** give the header top precedence — it would be silently ignored whenever an active
   profile is set (the common case after Phase 2). The header must be evaluated at the **top**
@@ -59,12 +59,12 @@ decision. From the code map:
 convention. Parsed alongside the other omniroute request headers. Keyword values and the
 `engine:` prefix are case-insensitive. Values:
 
-| Value | Meaning |
-|---|---|
-| `off` | No compression for this request. |
-| `default` | The **panel-derived Default** plan, deterministically — ignores active profile, routing override, **and** auto-trigger. |
-| `engine:<id>` | A single engine, when that engine is enabled in config (e.g. `engine:rtk`). |
-| `<combo>` | A named combo. Matched **by name (case-insensitive) first, then by exact id**. |
+| Value         | Meaning                                                                                                                 |
+| ------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| `off`         | No compression for this request.                                                                                        |
+| `default`     | The **panel-derived Default** plan, deterministically — ignores active profile, routing override, **and** auto-trigger. |
+| `engine:<id>` | A single engine, when that engine is enabled in config (e.g. `engine:rtk`).                                             |
+| `<combo>`     | A named combo. Matched **by name (case-insensitive) first, then by exact id**.                                          |
 
 **Decision A — combo matched by name:** because the stored `id` is a UUID, the ergonomic
 header value is the combo's **name** (e.g. `my-fast-combo`). Names are not unique in the DB,
@@ -106,7 +106,7 @@ which precedence layer decided the plan:
 
 `request-header` | `routing-override` | `active-profile` | `auto-trigger` | `default` | `off`
 
-`mode` answers *what* compression runs; `source` answers *who* decided. The field is
+`mode` answers _what_ compression runs; `source` answers _who_ decided. The field is
 optional so Phase 1/2 callers and snapshots are unaffected. chatCore reads `plan.source`
 (+ `plan.mode`) to build the response header.
 
@@ -186,20 +186,20 @@ responses. The header is informational only and never affects routing.
   current `headerToPlan`: returns `null`).
 - **Gating:** the header is honored **unconditionally**, like `x-omniroute-no-memory`.
   Rationale: it only affects the compression of the **client's own request**. The worst case
-  is a client opting *itself out* of compression (`off`), which increases only that client's
+  is a client opting _itself out_ of compression (`off`), which increases only that client's
   own upstream token count — there is no cross-tenant, security, or cost-shifting concern.
 
 ---
 
 ## 6. Components (units & responsibilities)
 
-| Unit | Responsibility | Depends on |
-|---|---|---|
-| `resolveCompressionHeader` (`chatCore/headers.ts`) | Read the raw header value off the wire. | `getHeaderValueCaseInsensitive` |
-| `resolveBasePlan` + `headerToPlan` (`strategySelector.ts` / `resolveCompressionPlan.ts`) | Interpret the value, evaluate header-first precedence, return `{ mode, stackedPipeline, source }`. | config, combos map (pure) |
-| `DerivedPlan.source` (`deriveDefaultPlan.ts` type) | Carry which layer decided. | — |
-| `OMNIROUTE_RESPONSE_HEADERS.compression` (`shared/constants/headers.ts`) | Name the response header. | — |
-| chatCore wiring (`chatCore.ts`) | Parse, thread `header`, build id+name combo map, capture `{mode,source}`, emit response header. | all of the above |
+| Unit                                                                                     | Responsibility                                                                                     | Depends on                      |
+| ---------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------- | ------------------------------- |
+| `resolveCompressionHeader` (`chatCore/headers.ts`)                                       | Read the raw header value off the wire.                                                            | `getHeaderValueCaseInsensitive` |
+| `resolveBasePlan` + `headerToPlan` (`strategySelector.ts` / `resolveCompressionPlan.ts`) | Interpret the value, evaluate header-first precedence, return `{ mode, stackedPipeline, source }`. | config, combos map (pure)       |
+| `DerivedPlan.source` (`deriveDefaultPlan.ts` type)                                       | Carry which layer decided.                                                                         | —                               |
+| `OMNIROUTE_RESPONSE_HEADERS.compression` (`shared/constants/headers.ts`)                 | Name the response header.                                                                          | —                               |
+| chatCore wiring (`chatCore.ts`)                                                          | Parse, thread `header`, build id+name combo map, capture `{mode,source}`, emit response header.    | all of the above                |
 
 ---
 

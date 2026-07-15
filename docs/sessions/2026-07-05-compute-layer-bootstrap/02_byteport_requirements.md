@@ -9,7 +9,9 @@ BytePort is NOT in scope for this session -- but the SDK work
 (defined in the spec) IS shaped by what BytePort needs.
 
 ================================================================================
+
 ## 1. BytePort surface summary
+
 ================================================================================
 
 BytePort is an Infrastructure-as-Code deployment + portfolio UX platform.
@@ -20,6 +22,7 @@ MicroVM runtime, registers endpoints with a portfolio site, and uses an
 LLM to generate showcase metadata.
 
 Tenets (from CHARTER.md):
+
 1. One manifest, one source of truth (`odin.nvms`).
 2. Deploys are reproducible.
 3. Portfolio is first-class, not an afterthought.
@@ -35,21 +38,21 @@ locked") reinforces it.
 
 ### Crate map (10 Rust crates + 1 Go backend)
 
-| Crate / module | Role |
-|----------------|------|
-| `frontend/web` | SvelteKit web dashboard |
-| `frontend/web/src-tauri` | Tauri desktop shell + Rust integration |
-| `backend/byteport` | Go domain logic + server-side coordination |
-| `backend/nvms` | Go `nvms` Spin/Fermyon wasm module -- deploy/terminate HTTP API on port 3000 |
-| `crates/byteport-cli` | `byteport` CLI binary |
-| `crates/byteport-dag` | DAG foundation for Phenotype compute/infra (epic F) |
-| `crates/byteport-engine` | **Pluggable deployment-engine abstraction (Phase 3A of byteport-evolution-v1)** -- THE seam where the compute SDK plugs in |
-| `crates/byteport-otel` | OpenTelemetry instrumentation (metrics, tracing, OTLP) |
-| `crates/byteport-registry-adapter` | Invokes `phenotype-registry` `grade.sh` and parses JSON |
-| `crates/byteport-transport` | Transport abstraction (`thiserror` 2.0) |
-| `crates/pheno-dag` | Reusable DAG unit abstraction: lifecycle, YAML executor, automation gates |
-| `crates/phenotype-types` | **Shared type definitions** (OCI instance records, path helpers, canonical data models) -- the existing `phenotype-types` seat! |
-| `crates/integration` | Wires pheno-errors, pheno-tracing, pheno-config |
+| Crate / module                     | Role                                                                                                                            |
+| ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| `frontend/web`                     | SvelteKit web dashboard                                                                                                         |
+| `frontend/web/src-tauri`           | Tauri desktop shell + Rust integration                                                                                          |
+| `backend/byteport`                 | Go domain logic + server-side coordination                                                                                      |
+| `backend/nvms`                     | Go `nvms` Spin/Fermyon wasm module -- deploy/terminate HTTP API on port 3000                                                    |
+| `crates/byteport-cli`              | `byteport` CLI binary                                                                                                           |
+| `crates/byteport-dag`              | DAG foundation for Phenotype compute/infra (epic F)                                                                             |
+| `crates/byteport-engine`           | **Pluggable deployment-engine abstraction (Phase 3A of byteport-evolution-v1)** -- THE seam where the compute SDK plugs in      |
+| `crates/byteport-otel`             | OpenTelemetry instrumentation (metrics, tracing, OTLP)                                                                          |
+| `crates/byteport-registry-adapter` | Invokes `phenotype-registry` `grade.sh` and parses JSON                                                                         |
+| `crates/byteport-transport`        | Transport abstraction (`thiserror` 2.0)                                                                                         |
+| `crates/pheno-dag`                 | Reusable DAG unit abstraction: lifecycle, YAML executor, automation gates                                                       |
+| `crates/phenotype-types`           | **Shared type definitions** (OCI instance records, path helpers, canonical data models) -- the existing `phenotype-types` seat! |
+| `crates/integration`               | Wires pheno-errors, pheno-tracing, pheno-config                                                                                 |
 
 ### Public SDK shape
 
@@ -63,10 +66,13 @@ locked") reinforces it.
 - **TypeScript SDK** (frontend): SvelteKit + Tauri.
 
 ================================================================================
+
 ## 2. Compute primitives BytePort already uses
+
 ================================================================================
 
 Direct dependencies (from `BytePort/backend/go.mod`):
+
 - `github.com/aws/aws-sdk-go-v2` v1.41.5
 - `github.com/aws/aws-sdk-go-v2/service/secretsmanager` v1.41.5
 - `github.com/gin-gonic/gin` v1.10.0 (HTTP server)
@@ -76,6 +82,7 @@ Direct dependencies (from `BytePort/backend/go.mod`):
 - `github.com/google/uuid` (ids)
 
 Implicit assumptions (from `BytePort/STATUS.md`):
+
 - `backend/nvms/main.go:25-35` -- `validateAction` has its auth
   middleware commented out. Auth is incomplete; the compute SDK
   must NOT rely on the existing auth path.
@@ -90,6 +97,7 @@ is NO multi-cloud adapter -- this is the gap the compute SDK
 fills.
 
 References in the code (from `rg "nvms|nanovms|pheno.compose" BytePort/`):
+
 - `BytePort/ARCHITECTURE.md:19` documents the `backend/nvms` module
 - `BytePort/STATUS.md:10,17,41-44` describes the current state +
   known TODOs
@@ -105,7 +113,9 @@ References in the code (from `rg "nvms|nanovms|pheno.compose" BytePort/`):
   `odin.nvms` references in metadata
 
 ================================================================================
+
 ## 3. Compute primitives BytePort needs that don't exist
+
 ================================================================================
 
 The spec defines the target SDK. BytePort needs (in priority order):
@@ -156,7 +166,9 @@ The spec defines the target SDK. BytePort needs (in priority order):
    backend already provides local execution; the SDK wraps it.
 
 ================================================================================
+
 ## 4. Contract surface for the compute layer
+
 ================================================================================
 
 This is the byteport-engine contract. The `ComputeProvider` trait
@@ -261,7 +273,9 @@ TypeScript surface is for SDK consumers that want to embed
 compute operations in their own web apps.
 
 ================================================================================
+
 ## 5. Top 3 things BytePort is missing for the multi-cloud promise
+
 ================================================================================
 
 ### 5.1 No `byteport-engine` adapter wired to the SDK
@@ -306,30 +320,34 @@ SDK's PolicyGate trait is the right hook, but it needs the
 WorkOS session to flow through.
 
 ================================================================================
+
 ## 6. Migration path for BytePort
+
 ================================================================================
 
 BytePort is the user-owned surface; this session does NOT execute
 the migration. The path is documented here so the SDK implementers
 know what to expect.
 
-| Step | What lands in BytePort | What lands in the SDK |
-|------|------------------------|------------------------|
-| 1 | Adopt `phenotype-types` from BytePort (no change) | nanovms + PhenoCompose consume from there |
-| 2 | (no change) | Add `ComputeProvider` trait + 3 impls (Fly, AWS Fargate, Vercel) |
-| 3 | Wire `byteport-engine` adapter to `pheno-compute-core` | Publish `pheno-compute-core` as a path dep |
-| 4 | Translate `odin.nvms` -> `WorkloadSpec` (From impl) | (no change) |
-| 5 | Surface `ProviderCapabilities` in SvelteKit dashboard | (no change) |
-| 6 | Wire WorkOS session -> `PolicyContext` | (no change) |
-| 7 | Wire `byteport-otel` -> `EventSink` | Publish `pheno-compute-observe` crate |
-| 8 | Uncomment auth middleware in `backend/nvms/main.go` | (no change) |
+| Step | What lands in BytePort                                 | What lands in the SDK                                            |
+| ---- | ------------------------------------------------------ | ---------------------------------------------------------------- |
+| 1    | Adopt `phenotype-types` from BytePort (no change)      | nanovms + PhenoCompose consume from there                        |
+| 2    | (no change)                                            | Add `ComputeProvider` trait + 3 impls (Fly, AWS Fargate, Vercel) |
+| 3    | Wire `byteport-engine` adapter to `pheno-compute-core` | Publish `pheno-compute-core` as a path dep                       |
+| 4    | Translate `odin.nvms` -> `WorkloadSpec` (From impl)    | (no change)                                                      |
+| 5    | Surface `ProviderCapabilities` in SvelteKit dashboard  | (no change)                                                      |
+| 6    | Wire WorkOS session -> `PolicyContext`                 | (no change)                                                      |
+| 7    | Wire `byteport-otel` -> `EventSink`                    | Publish `pheno-compute-observe` crate                            |
+| 8    | Uncomment auth middleware in `backend/nvms/main.go`    | (no change)                                                      |
 
 After step 8, BytePort is multi-cloud. Before step 8, the
 multi-cloud promise is partially delivered (the SDK is there,
 the dashboard is not, the auth is incomplete).
 
 ================================================================================
+
 ## 7. Open questions
+
 ================================================================================
 
 ### For the sponsor
@@ -375,4 +393,3 @@ the dashboard is not, the auth is incomplete).
 3. **BytePort auth middleware.** `STATUS.md:41` flags the
    commented-out auth. Recommend: open a `byteport` issue
    to track it, but the SDK work does not depend on it.
-

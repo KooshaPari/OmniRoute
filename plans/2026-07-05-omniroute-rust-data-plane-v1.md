@@ -1,4 +1,5 @@
 # OmniRoute Rust Data Plane — Seed Spec v1
+
 **2026-07-05** | Part of `plans/2026-07-04-omniroute-fork-rewrite-v1.md` Phase 2—4
 
 ---
@@ -8,13 +9,13 @@
 The TypeScript data plane (`open-sse/handlers/chatCore.ts` + `open-sse/executors/`)
 hits fundamental performance ceilings against the Tier-1 routing mission:
 
-| Dimension | TypeScript (current) | Rust (target) | Gap |
-|-----------|---------------------|---------------|-----|
-| P99 latency (chat completion, non-stream) | ~320ms | ~50ms | 6.4× |
-| In-flight requests per worker | ~2,000 | ~50,000 | 25× |
-| GC pause (max) | ~120ms (V8) | ~0μs | — |
-| Memory per active connection | ~128 KB | ~8 KB | 16× |
-| Warm startup | ~2.8 s (tsx load) | ~80 ms | 35× |
+| Dimension                                 | TypeScript (current) | Rust (target) | Gap  |
+| ----------------------------------------- | -------------------- | ------------- | ---- |
+| P99 latency (chat completion, non-stream) | ~320ms               | ~50ms         | 6.4× |
+| In-flight requests per worker             | ~2,000               | ~50,000       | 25×  |
+| GC pause (max)                            | ~120ms (V8)          | ~0μs          | —    |
+| Memory per active connection              | ~128 KB              | ~8 KB         | 16×  |
+| Warm startup                              | ~2.8 s (tsx load)    | ~80 ms        | 35×  |
 
 The **Rust data plane** does NOT replace the Next.js control plane. It replaces
 the hot path: provider HTTP dispatch, SSE decode/re-encode, credential
@@ -45,6 +46,7 @@ Rust data plane (standalone binary "omniroute-routed")
 ```
 
 **Communication:**
+
 - Next.js routes `/v1/*` with `x-omniroute-rust: 1` header to
   `http://u:/tmp/omniroute-rust.sock/<path>` — bypasses the TS executor layer.
 - Metadata (API key, connection ID, internal routing hint) carried via
@@ -56,7 +58,7 @@ Rust data plane (standalone binary "omniroute-routed")
 
 ## 2. Crate Structure
 
-```
+````
 crates/
 ├── omniroute-core/           # No deps on tokio/hyper — pure types + traits
 │   ├── src/
@@ -142,7 +144,7 @@ pub trait Provider: Send + Sync + std::fmt::Debug {
     /// Liveness check — confirms credentials are valid without spending tokens.
     async fn ping(&self, ctx: &Context) -> Result<(), ProviderError>;
 }
-```
+````
 
 **Key design decision:** `chat_completion_stream` takes a `mpsc::Sender` rather
 than returning a `Stream`. This mirrors the Go `<-chan StreamChunk` semantics
@@ -608,13 +610,13 @@ impl Server {
 
 Routes (all OpenAI-compatible):
 
-| Path | Method | Auth | Response |
-|------|--------|------|---------|
-| `/v1/chat/completions` | POST | `x-omniroute-api-key` | SSE stream or JSON |
-| `/v1/models` | GET | `x-omniroute-api-key` | JSON model catalog |
-| `/healthz` | GET | none | `200 OK` |
-| `/readyz` | GET | none | `200` or `503` + provider health |
-| `/metrics` | GET | none | Prometheus text format |
+| Path                   | Method | Auth                  | Response                         |
+| ---------------------- | ------ | --------------------- | -------------------------------- |
+| `/v1/chat/completions` | POST   | `x-omniroute-api-key` | SSE stream or JSON               |
+| `/v1/models`           | GET    | `x-omniroute-api-key` | JSON model catalog               |
+| `/healthz`             | GET    | none                  | `200 OK`                         |
+| `/readyz`              | GET    | none                  | `200` or `503` + provider health |
+| `/metrics`             | GET    | none                  | Prometheus text format           |
 
 ---
 
@@ -645,53 +647,53 @@ pub fn encode_sse(chunk: &StreamChunk) -> String {
 
 ### Phase 2 — Minimal Viable Data Plane (target: 3 weeks)
 
-| Task | Description | Deliverable |
-|------|-------------|-------------|
-| 2-A | Scaffold `crates/omniroute-*` with Cargo.toml (minimal dep set) | `cargo check` green |
-| 2-B | Port core types + `Provider` trait from Go native client | `omniroute-core`, 0 warnings |
-| 2-C | `OpenAIProvider` (non-streaming only) + `Registry` | `omniroute-provider` |
-| 2-D | `/v1/chat/completions` non-stream handler (hyper + Unix socket) | `omniroute-runtime` |
-| 2-E | `/v1/models` catalog relay | `omniroute-runtime` |
-| 2-F | `/healthz`, `/readyz`, retry with exponential backoff | `omniroute-runtime` |
-| 2-G | End-to-end test: curl `/v1/chat/completions` against mock provider | Pass |
+| Task | Description                                                        | Deliverable                  |
+| ---- | ------------------------------------------------------------------ | ---------------------------- |
+| 2-A  | Scaffold `crates/omniroute-*` with Cargo.toml (minimal dep set)    | `cargo check` green          |
+| 2-B  | Port core types + `Provider` trait from Go native client           | `omniroute-core`, 0 warnings |
+| 2-C  | `OpenAIProvider` (non-streaming only) + `Registry`                 | `omniroute-provider`         |
+| 2-D  | `/v1/chat/completions` non-stream handler (hyper + Unix socket)    | `omniroute-runtime`          |
+| 2-E  | `/v1/models` catalog relay                                         | `omniroute-runtime`          |
+| 2-F  | `/healthz`, `/readyz`, retry with exponential backoff              | `omniroute-runtime`          |
+| 2-G  | End-to-end test: curl `/v1/chat/completions` against mock provider | Pass                         |
 
 ### Phase 3 — Streaming + Go ↔ Rust IPC (2 weeks)
 
-| Task | Description |
-|------|-------------|
-| 3-A | Wire SSE decode/re-encode for streaming responses |
-| 3-B | `chat_completion_stream` with mpsc::Sender pattern |
-| 3-C | Anthropic adapter (Claude format) — mirrors `native-clients/omniroute-go/internal/provider/anthropic/anthropic.go` |
-| 3-D | Gemini adapter — mirrors `omniroute-go/internal/provider/gemini/gemini.go` |
-| 3-E | Polyglot binding T3-N (napi-rs): expose `omniroute_core::chat_completion` to TS |
-| 3-F | Bifrost Go gateway → Rust data plane migration (Go Bifrost executor calls Rust instead of TS) |
+| Task | Description                                                                                                        |
+| ---- | ------------------------------------------------------------------------------------------------------------------ |
+| 3-A  | Wire SSE decode/re-encode for streaming responses                                                                  |
+| 3-B  | `chat_completion_stream` with mpsc::Sender pattern                                                                 |
+| 3-C  | Anthropic adapter (Claude format) — mirrors `native-clients/omniroute-go/internal/provider/anthropic/anthropic.go` |
+| 3-D  | Gemini adapter — mirrors `omniroute-go/internal/provider/gemini/gemini.go`                                         |
+| 3-E  | Polyglot binding T3-N (napi-rs): expose `omniroute_core::chat_completion` to TS                                    |
+| 3-F  | Bifrost Go gateway → Rust data plane migration (Go Bifrost executor calls Rust instead of TS)                      |
 
 ### Phase 4 — Production Hardening (2 weeks)
 
-| Task | Description |
-|------|-------------|
-| 4-A | Zig hot-path shim: validate `ChatRequest` JSON → `ChatRequest` Rust struct conversion (~50μs) |
-| 4-B | Mojo kernels (gated on Mojo ≥ v1.0): `usage_extractor` for token counting |
-| 4-C | Circuit breaker per provider (10-consecutive-failure threshold, matches `bifrostKillSwitch.ts`) |
-| 4-D | Metrics: `prometheus` crate exports provider latency p50/p99, request count, error rate |
-| 4-E | `cargo audit` + `cargo deny` CI workflow (mirrors `.github/workflows/security-scan.yml`) |
-| 4-F | `panic = "abort"` build profile for production binary |
+| Task | Description                                                                                     |
+| ---- | ----------------------------------------------------------------------------------------------- |
+| 4-A  | Zig hot-path shim: validate `ChatRequest` JSON → `ChatRequest` Rust struct conversion (~50μs)   |
+| 4-B  | Mojo kernels (gated on Mojo ≥ v1.0): `usage_extractor` for token counting                       |
+| 4-C  | Circuit breaker per provider (10-consecutive-failure threshold, matches `bifrostKillSwitch.ts`) |
+| 4-D  | Metrics: `prometheus` crate exports provider latency p50/p99, request count, error rate         |
+| 4-E  | `cargo audit` + `cargo deny` CI workflow (mirrors `.github/workflows/security-scan.yml`)        |
+| 4-F  | `panic = "abort"` build profile for production binary                                           |
 
 ---
 
 ## 10. Dependency Budget (Phase 2 Only)
 
-| Crate | Why |
-|-------|-----|
-| `tokio` (full) | Async runtime — required |
-| `hyper` | HTTP server — required |
-| `reqwest` | HTTP client (provider calls) — required |
-| `serde` + `serde_json` | Types — required |
-| `thiserror` | Typed errors — required |
-| `tracing` + `tracing-subscriber` | Logging — required |
-| `prometheus` | Metrics export — Phase 3 |
-| `napi-derive` / `napi` | T3-N TS FFI — Phase 3 |
-| `redis` | Optional caching (model catalog) — Phase 4 |
+| Crate                            | Why                                        |
+| -------------------------------- | ------------------------------------------ |
+| `tokio` (full)                   | Async runtime — required                   |
+| `hyper`                          | HTTP server — required                     |
+| `reqwest`                        | HTTP client (provider calls) — required    |
+| `serde` + `serde_json`           | Types — required                           |
+| `thiserror`                      | Typed errors — required                    |
+| `tracing` + `tracing-subscriber` | Logging — required                         |
+| `prometheus`                     | Metrics export — Phase 3                   |
+| `napi-derive` / `napi`           | T3-N TS FFI — Phase 3                      |
+| `redis`                          | Optional caching (model catalog) — Phase 4 |
 
 **Phase 2 total (compile-time, stripped):** ~12 MB binary (hyper + tokio + reqwest
 static TLS). No Zig/Mojo/C bindings in Phase 2.
@@ -740,28 +742,28 @@ mod tests {
 
 ## 12. File Inventory (Phase 2 Seed)
 
-| File | Lines | Purpose |
-|------|-------|---------|
-| `crates/omniroute-core/src/provider.rs` | ~40 | `Provider` trait |
-| `crates/omniroute-core/src/types.rs` | ~140 | ChatRequest, ChatResponse, StreamChunk, Model, Context |
-| `crates/omniroute-core/src/error.rs` | ~60 | `ProviderError` enum + `is_retryable()` |
-| `crates/omniroute-core/src/usage.rs` | ~30 | Token counting helpers |
-| `crates/omniroute-core/src/credentials.rs` | ~40 | API key injection into Context |
-| `crates/omniroute-core/src/lib.rs` | ~15 | Re-exports |
-| `crates/omniroute-core/Cargo.toml` | ~25 | Dependencies |
-| `crates/omniroute-provider/src/openai.rs` | ~80 | OpenAI adapter (non-stream + stream stub) |
-| `crates/omniroute-provider/src/registry.rs` | ~35 | Runtime provider registry |
-| `crates/omniroute-provider/src/lib.rs` | ~15 | Re-exports |
-| `crates/omniroute-provider/Cargo.toml` | ~20 | Dependencies |
-| `crates/omniroute-runtime/src/server.rs` | ~50 | hyper Server on Unix socket |
-| `crates/omniroute-runtime/src/chat.rs` | ~80 | `/v1/chat/completions` handler |
-| `crates/omniroute-runtime/src/models.rs` | ~30 | `/v1/models` handler |
-| `crates/omniroute-runtime/src/health.rs` | ~30 | `/healthz`, `/readyz` |
-| `crates/omniroute-runtime/src/retry.rs` | ~30 | Exponential backoff |
-| `crates/omniroute-runtime/src/lib.rs` | ~10 | Re-exports |
-| `crates/omniroute-runtime/Cargo.toml` | ~20 | Dependencies |
-| `Cargo.toml` (workspace) | ~30 | Members + [workspace.dependencies] |
-| **Total** | **~690** | 14 source files + 4 Cargo.toml |
+| File                                        | Lines    | Purpose                                                |
+| ------------------------------------------- | -------- | ------------------------------------------------------ |
+| `crates/omniroute-core/src/provider.rs`     | ~40      | `Provider` trait                                       |
+| `crates/omniroute-core/src/types.rs`        | ~140     | ChatRequest, ChatResponse, StreamChunk, Model, Context |
+| `crates/omniroute-core/src/error.rs`        | ~60      | `ProviderError` enum + `is_retryable()`                |
+| `crates/omniroute-core/src/usage.rs`        | ~30      | Token counting helpers                                 |
+| `crates/omniroute-core/src/credentials.rs`  | ~40      | API key injection into Context                         |
+| `crates/omniroute-core/src/lib.rs`          | ~15      | Re-exports                                             |
+| `crates/omniroute-core/Cargo.toml`          | ~25      | Dependencies                                           |
+| `crates/omniroute-provider/src/openai.rs`   | ~80      | OpenAI adapter (non-stream + stream stub)              |
+| `crates/omniroute-provider/src/registry.rs` | ~35      | Runtime provider registry                              |
+| `crates/omniroute-provider/src/lib.rs`      | ~15      | Re-exports                                             |
+| `crates/omniroute-provider/Cargo.toml`      | ~20      | Dependencies                                           |
+| `crates/omniroute-runtime/src/server.rs`    | ~50      | hyper Server on Unix socket                            |
+| `crates/omniroute-runtime/src/chat.rs`      | ~80      | `/v1/chat/completions` handler                         |
+| `crates/omniroute-runtime/src/models.rs`    | ~30      | `/v1/models` handler                                   |
+| `crates/omniroute-runtime/src/health.rs`    | ~30      | `/healthz`, `/readyz`                                  |
+| `crates/omniroute-runtime/src/retry.rs`     | ~30      | Exponential backoff                                    |
+| `crates/omniroute-runtime/src/lib.rs`       | ~10      | Re-exports                                             |
+| `crates/omniroute-runtime/Cargo.toml`       | ~20      | Dependencies                                           |
+| `Cargo.toml` (workspace)                    | ~30      | Members + [workspace.dependencies]                     |
+| **Total**                                   | **~690** | 14 source files + 4 Cargo.toml                         |
 
 ---
 
@@ -771,6 +773,7 @@ This spec is the **Phase 2–4 decomposition** of the OmniRoute fork plan
 (`plans/2026-07-04-omniroute-fork-rewrite-v1.md`).
 
 Key alignments:
+
 - **§2.2 Phase 2 (Rust data plane seed)** — directly mapped to the 3 phases above
 - **§3 Stack discipline** — Zig/Mojo shims explicitly staged in Phase 4, not Phase 2
 - **§5 Task 5D (FastMCP bridge)** — uses `phenotype-port-adapter-shim` as the Rust↔Python T3-P edge
@@ -808,4 +811,3 @@ Key alignments:
 4. **Mojo gating** — Mojo v1.0 was expected mid-2026. If Mojo v1.0 ships,
    Phase 4 Mojo usage extractor can start immediately. Otherwise Zig shim is the
    fallback for the same hot path (token counting).
-

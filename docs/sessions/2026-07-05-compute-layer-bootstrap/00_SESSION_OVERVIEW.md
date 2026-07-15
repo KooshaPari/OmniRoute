@@ -12,13 +12,13 @@
 
 ## Owns (this session)
 
-| Domain | Owner | Action |
-|--------|-------|--------|
-| Compute-layer stack (nanovms, PhenoCompose, Eidolon, KDesktopVirt, Tracely) | this session | audit, plan, evolve to mature/enterprise |
-| Absorptions (phenodag->AgilePlus/Tracera, AtomsBot/GDK/KaskMan archive, Authvault delete) | this session | execute per root 01-06 plans |
-| org-audits + apps spine-promote | this session | execute per root 02 + 03 plans |
-| BytePort surface | USER (not this session) | we provide compute primitives, they own the surface |
-| OmniRoute fork | USER (not this session) | skip until after item 6 (absorptions complete) |
+| Domain                                                                                    | Owner                   | Action                                              |
+| ----------------------------------------------------------------------------------------- | ----------------------- | --------------------------------------------------- |
+| Compute-layer stack (nanovms, PhenoCompose, Eidolon, KDesktopVirt, Tracely)               | this session            | audit, plan, evolve to mature/enterprise            |
+| Absorptions (phenodag->AgilePlus/Tracera, AtomsBot/GDK/KaskMan archive, Authvault delete) | this session            | execute per root 01-06 plans                        |
+| org-audits + apps spine-promote                                                           | this session            | execute per root 02 + 03 plans                      |
+| BytePort surface                                                                          | USER (not this session) | we provide compute primitives, they own the surface |
+| OmniRoute fork                                                                            | USER (not this session) | skip until after item 6 (absorptions complete)      |
 
 ## Stack preferences (sponsor)
 
@@ -33,6 +33,7 @@
 ## What "compute layer" means here
 
 A polyrepo of compute primitives that BytePort will sit on top of. It must:
+
 1. Provide container + microVM + unikernel orchestration across multiple substrates
 2. Abstract AWS / GCP / Vercel / Supabase / Fly / bare-metal / local as fungible providers
 3. Expose a stable Rust+Go surface SDK
@@ -41,12 +42,12 @@ A polyrepo of compute primitives that BytePort will sit on top of. It must:
 
 ## Subagent lanes (this turn)
 
-| Lane | Agent | Goal |
-|------|-------|------|
-| compute-stack-audit | audit-1 | Map current state of nanovms / PhenoCompose / Eidolon / KDesktopVirt / Tracely: maturity, gaps, redundancies, deps |
-| byteport-requirements | audit-2 | What compute primitives does BytePort need that don't yet exist? Cross-ref with BytePort ARCHITECTURE.md |
-| multi-cloud-research | audit-3 | Web research: AWS/GCP/Vercel/Supabase/Fly compute patterns, microVM orchestration 2026, polyrepo compute SDK design |
-| absorption-execution | audit-4 | Apply root plans 01-06: Authvault tag+archive, AtomsBot/KaskMan/GDK strict-pause banners, phenodag redirect, org-audits+apps spine charter blocks |
+| Lane                  | Agent   | Goal                                                                                                                                              |
+| --------------------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| compute-stack-audit   | audit-1 | Map current state of nanovms / PhenoCompose / Eidolon / KDesktopVirt / Tracely: maturity, gaps, redundancies, deps                                |
+| byteport-requirements | audit-2 | What compute primitives does BytePort need that don't yet exist? Cross-ref with BytePort ARCHITECTURE.md                                          |
+| multi-cloud-research  | audit-3 | Web research: AWS/GCP/Vercel/Supabase/Fly compute patterns, microVM orchestration 2026, polyrepo compute SDK design                               |
+| absorption-execution  | audit-4 | Apply root plans 01-06: Authvault tag+archive, AtomsBot/KaskMan/GDK strict-pause banners, phenodag redirect, org-audits+apps spine charter blocks |
 
 ## Success criteria (this session)
 
@@ -55,4 +56,3 @@ A polyrepo of compute primitives that BytePort will sit on top of. It must:
 - A spec for the next-generation compute SDK exists with cross-provider abstractions
 - Cockpit reports updated on every step
 - Parent agent remains in coordinator mode, does NOT hand-edit code
-

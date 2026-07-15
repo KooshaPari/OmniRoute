@@ -34,73 +34,73 @@ OmniRoute rewrite audit+plan     ##########  ~100%  6/6 deliverables done
 
 ## State-of-the-fork (verified on disk 2026-07-05 03:45Z)
 
-| Surface | Value | Source |
-|---|---|---|
-| HEAD | 16b0af995 | `git log --oneline -1` |
-| Branch | fix/caddy-lb-policy-forwarded-headers | (4 ahead, 148 behind origin) |
-| TS LOC (src/ + open-sse/) | ~351k | file count + line count |
-| .test files | 1917 | `find tests -name '*.test.ts' \| wc -l` |
-| API routes (Next.js) | 538 files in src/app/api/ | `find src/app/api -name 'route.ts' \| wc -l` |
-| API subdirs | 87 | matches AGENTS.md "87" claim — this is the actual 87 number |
-| Provider registries | 149 dirs in open-sse/config/providers/registry/ | `find ... -type d \| wc -l` |
-| MCP tools | 22 (NOT 87) | `open-sse/mcp-server/schemas/tools.ts` self-declares 22 |
-| CLI subcommands | 81 in bin/cli/commands/ | `ls bin/cli/commands \| wc -l` |
-| CLI api-commands | 32 in bin/cli/api-commands/ (AUTO-GENERATED) | `ls bin/cli/api-commands \| wc -l` |
-| Routing strategies | 17 in ROUTING_STRATEGY_VALUES | `src/shared/constants/routingStrategies.ts` |
-| Auto-routing strategies | 8 in AUTO_ROUTING_STRATEGY_VALUES | same file |
-| Env vars in .env.example | 1811 lines | `wc -l .env.example` |
-| SQL migrations | 80 in src/lib/db/*.sql | `find ... -name '*.sql' \| wc -l` |
-| phenotype-* crates | 67 in pheno/crates/ | `find pheno -name 'Cargo.toml' \| wc -l` |
-| omniroute-rust crates | 12 (1 with code, 11 empty) | from `omniroute-rust/Cargo.toml` |
-| omniroute-rust lines (omni-core) | 682 | from `find ... -name '*.rs' \| xargs cat \| wc -l` |
-| Rust toolchain | 1.86.0 | `rust-toolchain.toml` |
+| Surface                          | Value                                           | Source                                                      |
+| -------------------------------- | ----------------------------------------------- | ----------------------------------------------------------- |
+| HEAD                             | 16b0af995                                       | `git log --oneline -1`                                      |
+| Branch                           | fix/caddy-lb-policy-forwarded-headers           | (4 ahead, 148 behind origin)                                |
+| TS LOC (src/ + open-sse/)        | ~351k                                           | file count + line count                                     |
+| .test files                      | 1917                                            | `find tests -name '*.test.ts' \| wc -l`                     |
+| API routes (Next.js)             | 538 files in src/app/api/                       | `find src/app/api -name 'route.ts' \| wc -l`                |
+| API subdirs                      | 87                                              | matches AGENTS.md "87" claim — this is the actual 87 number |
+| Provider registries              | 149 dirs in open-sse/config/providers/registry/ | `find ... -type d \| wc -l`                                 |
+| MCP tools                        | 22 (NOT 87)                                     | `open-sse/mcp-server/schemas/tools.ts` self-declares 22     |
+| CLI subcommands                  | 81 in bin/cli/commands/                         | `ls bin/cli/commands \| wc -l`                              |
+| CLI api-commands                 | 32 in bin/cli/api-commands/ (AUTO-GENERATED)    | `ls bin/cli/api-commands \| wc -l`                          |
+| Routing strategies               | 17 in ROUTING_STRATEGY_VALUES                   | `src/shared/constants/routingStrategies.ts`                 |
+| Auto-routing strategies          | 8 in AUTO_ROUTING_STRATEGY_VALUES               | same file                                                   |
+| Env vars in .env.example         | 1811 lines                                      | `wc -l .env.example`                                        |
+| SQL migrations                   | 80 in src/lib/db/*.sql                          | `find ... -name '*.sql' \| wc -l`                           |
+| phenotype-* crates               | 67 in pheno/crates/                             | `find pheno -name 'Cargo.toml' \| wc -l`                    |
+| omniroute-rust crates            | 12 (1 with code, 11 empty)                      | from `omniroute-rust/Cargo.toml`                            |
+| omniroute-rust lines (omni-core) | 682                                             | from `find ... -name '*.rs' \| xargs cat \| wc -l`          |
+| Rust toolchain                   | 1.86.0                                          | `rust-toolchain.toml`                                       |
 
 ## Key corrections to the prior session's claims
 
-| Prior claim | Verified reality | Action |
-|---|---|---|
-| AGENTS.md: "231 providers" | 149 provider registries on disk (the 231 number may double-count sub-variants like `gemini/web`, `gemini/cli`) | Use 149 in the rewrite; flag for verification |
-| AGENTS.md: "87 MCP tools" | 22 MCP tools per the actual schema file | Use 22; the "87" is the API subdir count, not MCP tools |
-| AGENTS.md: "30 MCP scopes" | Not yet verified by grep; needs verification | Flag for PR-1 |
-| AGENTS.md: "OpenAI-compatible endpoints..." | 538 Next.js route files; the OpenAI-compat surface is a subset (~30 endpoints) | Use 538 as the porting target count |
-| D7 (prior): "Rust hot + Go orch + TS glue + Zig FFI; Mojo not used" | The actual scaffold (`omniroute-rust/Cargo.toml`) is **pure Rust**, no Go, no Zig | **D7 MODIFIED**: confirm pure-Rust everywhere; the scaffold is the commitment |
-| D8 (prior): "Strangler-fig, parallel-run 1 quarter behind feature flag" | Validated; the 6-phase plan in 04-STRATEGY.md implements this | D8 KEPT |
+| Prior claim                                                             | Verified reality                                                                                               | Action                                                                        |
+| ----------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
+| AGENTS.md: "231 providers"                                              | 149 provider registries on disk (the 231 number may double-count sub-variants like `gemini/web`, `gemini/cli`) | Use 149 in the rewrite; flag for verification                                 |
+| AGENTS.md: "87 MCP tools"                                               | 22 MCP tools per the actual schema file                                                                        | Use 22; the "87" is the API subdir count, not MCP tools                       |
+| AGENTS.md: "30 MCP scopes"                                              | Not yet verified by grep; needs verification                                                                   | Flag for PR-1                                                                 |
+| AGENTS.md: "OpenAI-compatible endpoints..."                             | 538 Next.js route files; the OpenAI-compat surface is a subset (~30 endpoints)                                 | Use 538 as the porting target count                                           |
+| D7 (prior): "Rust hot + Go orch + TS glue + Zig FFI; Mojo not used"     | The actual scaffold (`omniroute-rust/Cargo.toml`) is **pure Rust**, no Go, no Zig                              | **D7 MODIFIED**: confirm pure-Rust everywhere; the scaffold is the commitment |
+| D8 (prior): "Strangler-fig, parallel-run 1 quarter behind feature flag" | Validated; the 6-phase plan in 04-STRATEGY.md implements this                                                  | D8 KEPT                                                                       |
 
 ## The 6 deliverables (this turn)
 
-| # | File | Lines | Key finding |
-|---|---|---|---|
-| 01 | `01-inventory/00-INVENTORY.md` | 318 | Full surface map; 149 providers, 22 MCP tools (NOT 87), 538 routes, 17 routing strategies |
-| 02 | `02-language-eval/00-EVAL.md` | 157 | D7 modified to pure-Rust; Mojo confirmed no-prod-HTTP; Zig no ecosystem; Go not needed |
-| 03 | `03-architecture-research/00-SURVEY.md` | 233 | 8 gateways surveyed; 11 patterns; Bifrost named ref; layered design matches omni-* crates |
-| 04 | `04-migration-strategy/00-STRATEGY.md` | 274 | 6 phases; shadow → per-tenant → per-model → weighted → full → decommission; 24 weeks; kill switch <30s |
-| 05 | `05-requirements/00-REQUIREMENTS.md` | 260 | 50+ FRs across 10 areas; 25+ NFRs (perf, rel, sec, obs, maint, comp); 8 risks + 7 uncertainties |
-| 06 | `06-plan/00-PLAN.md` | 166 | 30 PRs over 24 weeks; risk gates; kill switch matrix; Cargo dep additions per PR |
+| #   | File                                    | Lines | Key finding                                                                                            |
+| --- | --------------------------------------- | ----- | ------------------------------------------------------------------------------------------------------ |
+| 01  | `01-inventory/00-INVENTORY.md`          | 318   | Full surface map; 149 providers, 22 MCP tools (NOT 87), 538 routes, 17 routing strategies              |
+| 02  | `02-language-eval/00-EVAL.md`           | 157   | D7 modified to pure-Rust; Mojo confirmed no-prod-HTTP; Zig no ecosystem; Go not needed                 |
+| 03  | `03-architecture-research/00-SURVEY.md` | 233   | 8 gateways surveyed; 11 patterns; Bifrost named ref; layered design matches omni-* crates              |
+| 04  | `04-migration-strategy/00-STRATEGY.md`  | 274   | 6 phases; shadow → per-tenant → per-model → weighted → full → decommission; 24 weeks; kill switch <30s |
+| 05  | `05-requirements/00-REQUIREMENTS.md`    | 260   | 50+ FRs across 10 areas; 25+ NFRs (perf, rel, sec, obs, maint, comp); 8 risks + 7 uncertainties        |
+| 06  | `06-plan/00-PLAN.md`                    | 166   | 30 PRs over 24 weeks; risk gates; kill switch matrix; Cargo dep additions per PR                       |
 
 ## Top 10 decisions for sponsor sign-off
 
-| # | Decision | Recommendation | Default if no answer |
-|---|---|---|---|
-| D-omni-01 | Calendar start | 2026-08-01 (after absorptions settle) | 2026-08-01 |
-| D-omni-02 | Bifrost pivot in v1 or v1.5 | v1.5 | v1.5 |
-| D-omni-03 | Provider count in v1 | 30 (curated) + 119 deferred to v1.5 | 30 |
-| D-omni-04 | Postgres in v1 | no (SQLite-only) | no |
-| D-omni-05 | Chaos engineering in scope | yes | yes |
-| D-omni-06 | i18n (42 locales) in v1 | no (v1.5) | no |
-| D-omni-07 | tproxy native module in scope | no (v2) | no |
-| D-omni-08 | OpenCode plugin as first-class consumer | yes — lock contract in PR-2 | yes |
-| D-omni-09 | TUI + tray in CLI | yes (ratatui + tao) | yes |
-| D-omni-10 | Weekly standup cadence | weekly | weekly |
+| #         | Decision                                | Recommendation                        | Default if no answer |
+| --------- | --------------------------------------- | ------------------------------------- | -------------------- |
+| D-omni-01 | Calendar start                          | 2026-08-01 (after absorptions settle) | 2026-08-01           |
+| D-omni-02 | Bifrost pivot in v1 or v1.5             | v1.5                                  | v1.5                 |
+| D-omni-03 | Provider count in v1                    | 30 (curated) + 119 deferred to v1.5   | 30                   |
+| D-omni-04 | Postgres in v1                          | no (SQLite-only)                      | no                   |
+| D-omni-05 | Chaos engineering in scope              | yes                                   | yes                  |
+| D-omni-06 | i18n (42 locales) in v1                 | no (v1.5)                             | no                   |
+| D-omni-07 | tproxy native module in scope           | no (v2)                               | no                   |
+| D-omni-08 | OpenCode plugin as first-class consumer | yes — lock contract in PR-2           | yes                  |
+| D-omni-09 | TUI + tray in CLI                       | yes (ratatui + tao)                   | yes                  |
+| D-omni-10 | Weekly standup cadence                  | weekly                                | weekly               |
 
 ## Top 5 risks (sponsor awareness)
 
-| # | Risk | Mitigation |
-|---|---|---|
-| R-omni-1 | 149 provider adapter port is the bottleneck | Curate 30 in v1, parallelize across 4 agents |
-| R-omni-2 | Shared SQLite during migration is risky | Additive migrations only during migration; per AGENTS.md "no backwards compat shims" applies AFTER Phase 5 |
-| R-omni-3 | Bifrost pivot might break omni-router design | `RouterPort` abstraction in `omni-core` decouples the two |
-| R-omni-4 | OpenCode plugin might break if /v1/models shape changes | Lock contract in PR-2 before any provider work |
-| R-omni-5 | 4-concurrency-slot ceiling is binding | Slot-aware scheduling; prioritize parallel lanes |
+| #        | Risk                                                    | Mitigation                                                                                                 |
+| -------- | ------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| R-omni-1 | 149 provider adapter port is the bottleneck             | Curate 30 in v1, parallelize across 4 agents                                                               |
+| R-omni-2 | Shared SQLite during migration is risky                 | Additive migrations only during migration; per AGENTS.md "no backwards compat shims" applies AFTER Phase 5 |
+| R-omni-3 | Bifrost pivot might break omni-router design            | `RouterPort` abstraction in `omni-core` decouples the two                                                  |
+| R-omni-4 | OpenCode plugin might break if /v1/models shape changes | Lock contract in PR-2 before any provider work                                                             |
+| R-omni-5 | 4-concurrency-slot ceiling is binding                   | Slot-aware scheduling; prioritize parallel lanes                                                           |
 
 ## Cross-project dependencies (for the cockpit tree)
 
@@ -140,6 +140,7 @@ OmniRoute Rust rewrite
 ## Prior session context (preserved from the prior turn's close)
 
 The prior turn created the `20260705-fork-reqwrite-audit/` session with:
+
 - 6 triage documents (01-AUTH-TRIAGE through 06-RISKS-AND-OPEN-QUESTIONS) at 04-triage/
 - 00-MASTER-SYNTHESIS.md
 - The 7 strict-pause archive banners (AtomsBot, GDK, KaskMan variants)
@@ -148,4 +149,3 @@ The prior turn created the `20260705-fork-reqwrite-audit/` session with:
 The prior turn explicitly stated OmniRoute was "out of root scope" but **the user has since overridden that in the current prompt** ("you own all backend\api\sdk\cli etc non-frontend aspects of that fork"). This session folder (`20260705-omniroute-backend-rewrite/`) was created by the prior turn specifically to be "yours" — the OmniRoute lane.
 
 The current turn produces the deep audit + plan that the prior turn deferred. The audit material is in this session folder. The actual code work (PR-1..PR-31) is gated on sponsor sign-off.
-

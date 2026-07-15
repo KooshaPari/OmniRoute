@@ -10,15 +10,15 @@ Scope: repository-level work control plane, organization/project WBS, gap/QA tra
 
 ## Evidence Snapshot
 
-| surface | observed state | evidence | grade |
-| --- | --- | --- | --- |
-| `work/WORK.md` | Text ledger has a cross-repo DAG, 75 concrete tasks, 7 WBS rows, 7 gap rows, and an evidence log | `wc -l work/WORK.md`; `rg '^\- \[ \] T|^\| WBS-|^\| GAP-|^\| 2026-' work/WORK.md` | B- |
-| `work/agileplus-work.db` | Schema supports projects, modules, features, work packages, dependencies, evidence, audit events, snapshots, policies, metrics, and devices | `sqlite3 work/agileplus-work.db '.tables'`; `sqlite_master` query | A (schema) / F (population) |
-| WorkDB population | No rows returned from `features` and related control-plane tables during this audit | `sqlite3 work/agileplus-work.db 'select count(*) from features; ...'` | F |
-| Unique handoff | `2026-07-04-tracera-agileplus-native-oci-handoff.md` is not present in this checkout | `rg --files work` | ❌ missing |
-| Cross-repo ownership | Ledger names OmniRoute, Tracera, AgilePlus, Civis, BytePort, and pheno but has no canonical repo inventory with branch, path, owner, or grade | `sed -n '1,220p' work/WORK.md` | C |
-| Status machine | Text states are documented, but there is no verified sync/check command connecting Markdown rows to WorkDB rows | `rg -n 'sync|workdb|work_packages|audit_log|evidence' work . --glob '!**/node_modules/**'` | D |
-| Gap/QA matrix | Existing matrix covers seven queue/cockpit gaps, but not Python retirement, Bun TS7, native OCI, Vercel, desktop installs, Caddy/Tailscale, or end-to-end deployment | `rg -n '^\| GAP-' work/WORK.md` | C |
+| surface                  | observed state                                                                                                                                                       | evidence                                                              | grade                       |
+| ------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------- | --------------------------- |
+| `work/WORK.md`           | Text ledger has a cross-repo DAG, 75 concrete tasks, 7 WBS rows, 7 gap rows, and an evidence log                                                                     | `wc -l work/WORK.md`; `rg '^\- \[ \] T                                | ^\| WBS-                    | ^\| GAP-      | ^\| 2026-' work/WORK.md` | B-                                             |
+| `work/agileplus-work.db` | Schema supports projects, modules, features, work packages, dependencies, evidence, audit events, snapshots, policies, metrics, and devices                          | `sqlite3 work/agileplus-work.db '.tables'`; `sqlite_master` query     | A (schema) / F (population) |
+| WorkDB population        | No rows returned from `features` and related control-plane tables during this audit                                                                                  | `sqlite3 work/agileplus-work.db 'select count(*) from features; ...'` | F                           |
+| Unique handoff           | `2026-07-04-tracera-agileplus-native-oci-handoff.md` is not present in this checkout                                                                                 | `rg --files work`                                                     | ❌ missing                  |
+| Cross-repo ownership     | Ledger names OmniRoute, Tracera, AgilePlus, Civis, BytePort, and pheno but has no canonical repo inventory with branch, path, owner, or grade                        | `sed -n '1,220p' work/WORK.md`                                        | C                           |
+| Status machine           | Text states are documented, but there is no verified sync/check command connecting Markdown rows to WorkDB rows                                                      | `rg -n 'sync                                                          | workdb                      | work_packages | audit_log                | evidence' work . --glob '!**/node_modules/**'` | D   |
+| Gap/QA matrix            | Existing matrix covers seven queue/cockpit gaps, but not Python retirement, Bun TS7, native OCI, Vercel, desktop installs, Caddy/Tailscale, or end-to-end deployment | `rg -n '^\| GAP-' work/WORK.md`                                       | C                           |
 
 ## Findings
 
@@ -53,26 +53,26 @@ state. A verifier must make both agree before a task can be shown as `ok`.
 These IDs are intentionally new and do not overwrite existing `T001`-`T075` or `WBS-001`-
 `WBS-007` rows. They are proposed for the next merge into `work/WORK.md` and WorkDB.
 
-| id | phase | owner | state | depends_on | deliverable | acceptance / evidence |
-| --- | --- | --- | --- | --- | --- | --- |
-| AUD-WBS-001 | control-plane | root | todo | - | Canonical repo ownership index | `work/repos-index.json` validates; each repo has path, branch, HEAD, owner, grade, runtime, deploy state |
-| AUD-WBS-002 | control-plane | root | todo | AUD-WBS-001 | Markdown↔SQLite identity map | Every active `T*`, `WBS-*`, `GAP-*`, and `FR-*` row has a stable WorkDB ID; duplicate IDs fail verifier |
-| AUD-WBS-003 | control-plane | root | todo | AUD-WBS-002 | WorkDB population/import | `projects`, `modules`, `features`, `work_packages`, and `wp_dependencies` have rows matching the ledger; import is idempotent |
-| AUD-WBS-004 | control-plane | root | todo | AUD-WBS-003 | Evidence writer/verifier | Each `ok` transition stores command, exit code, artifact path, SHA, timestamp, and freshness; stale evidence downgrades state |
-| AUD-WBS-005 | control-plane | root | todo | AUD-WBS-004 | Cockpit tick generator | One command emits top bracket, tree bars, DAG, agent table, and next actions from WorkDB, not hand-counted prose |
-| AUD-WBS-006 | control-plane | root | todo | AUD-WBS-005 | Drift CI gate | CI/local gate exits nonzero for orphan Markdown rows, orphan WorkDB rows, missing evidence, invalid dependencies, or stale `ok` claims |
-| AUD-WBS-007 | org-audit | root | todo | AUD-WBS-001 | Organization/project grade rubric | Grade each repo on build, tests, lint, security, deploy, ownership, and evidence freshness with weighted score |
-| AUD-WBS-008 | org-audit | root | todo | AUD-WBS-007 | Cross-project dependency graph | Graph records ownership and runtime edges: Tracera↔AgilePlus↔OmniRoute↔Civis↔BytePort↔pheno |
-| AUD-WBS-009 | tracera-audit | Tracera owner | todo | AUD-WBS-003 | FR inventory and QA matrix | Every Tracera FR maps to source, test, security/perf checks, owner, state, and evidence artifact |
-| AUD-WBS-010 | tracera-runtime | Tracera owner | todo | AUD-WBS-009 | Python-core retirement boundary | Inventory Python modules; classify as Rust/Go/Zig/Mojo core or minimal FastMCP/edge; removal criteria are test-backed |
-| AUD-WBS-011 | agileplus-audit | AgilePlus owner | todo | AUD-WBS-003 | AgilePlus FR/gap closure matrix | Cargo/API/DB/OCI/client gaps map to implementation and current command evidence |
-| AUD-WBS-012 | ts7-preview | frontend owner | todo | AUD-WBS-003 | Bun TS7 preview matrix | Bun/tsgo/oxlint/oxc/TS7 preview claims map to scripts, lockfile, tests, and compatibility evidence |
-| AUD-WBS-013 | native-oci | platform owner | todo | AUD-WBS-011 | Apple Container + WSL OCI deployment matrix | Build, run, health, restart, logs, ports, and image digest captured for macOS and Windows WSL native OCI |
-| AUD-WBS-014 | edge-deploy | deploy owner | todo | AUD-WBS-013 | Caddy/Tailscale/Vercel matrix | Caddy routes, Tailscale/OpenSSH transport, Vercel build/functions, and health checks are separately evidenced |
-| AUD-WBS-015 | clients | desktop owner | todo | AUD-WBS-014 | macOS/Windows client install matrix | Install, launch, first-run, update, uninstall, and health evidence for each local desktop/client surface |
-| AUD-WBS-016 | qa | QA owner | todo | AUD-WBS-009,AUD-WBS-011 | Risk-weighted regression plan | P0/P1 gaps have tests; aggregate gate, focused gates, security scan, performance baseline, and deploy smoke are recorded |
-| AUD-WBS-017 | recovery | root | todo | AUD-WBS-002 | Recover or recreate missing unique handoff | Git search either restores the handoff or a new evidence-backed handoff replaces it with provenance note |
-| AUD-WBS-018 | publication | root | todo | AUD-WBS-006,AUD-WBS-016 | Release/handoff bundle | Green evidence bundle, changed-file review, deployment URLs, client install status, and next-owner assignments |
+| id          | phase           | owner           | state | depends_on              | deliverable                                 | acceptance / evidence                                                                                                                  |
+| ----------- | --------------- | --------------- | ----- | ----------------------- | ------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| AUD-WBS-001 | control-plane   | root            | todo  | -                       | Canonical repo ownership index              | `work/repos-index.json` validates; each repo has path, branch, HEAD, owner, grade, runtime, deploy state                               |
+| AUD-WBS-002 | control-plane   | root            | todo  | AUD-WBS-001             | Markdown↔SQLite identity map                | Every active `T*`, `WBS-*`, `GAP-*`, and `FR-*` row has a stable WorkDB ID; duplicate IDs fail verifier                                |
+| AUD-WBS-003 | control-plane   | root            | todo  | AUD-WBS-002             | WorkDB population/import                    | `projects`, `modules`, `features`, `work_packages`, and `wp_dependencies` have rows matching the ledger; import is idempotent          |
+| AUD-WBS-004 | control-plane   | root            | todo  | AUD-WBS-003             | Evidence writer/verifier                    | Each `ok` transition stores command, exit code, artifact path, SHA, timestamp, and freshness; stale evidence downgrades state          |
+| AUD-WBS-005 | control-plane   | root            | todo  | AUD-WBS-004             | Cockpit tick generator                      | One command emits top bracket, tree bars, DAG, agent table, and next actions from WorkDB, not hand-counted prose                       |
+| AUD-WBS-006 | control-plane   | root            | todo  | AUD-WBS-005             | Drift CI gate                               | CI/local gate exits nonzero for orphan Markdown rows, orphan WorkDB rows, missing evidence, invalid dependencies, or stale `ok` claims |
+| AUD-WBS-007 | org-audit       | root            | todo  | AUD-WBS-001             | Organization/project grade rubric           | Grade each repo on build, tests, lint, security, deploy, ownership, and evidence freshness with weighted score                         |
+| AUD-WBS-008 | org-audit       | root            | todo  | AUD-WBS-007             | Cross-project dependency graph              | Graph records ownership and runtime edges: Tracera↔AgilePlus↔OmniRoute↔Civis↔BytePort↔pheno                                            |
+| AUD-WBS-009 | tracera-audit   | Tracera owner   | todo  | AUD-WBS-003             | FR inventory and QA matrix                  | Every Tracera FR maps to source, test, security/perf checks, owner, state, and evidence artifact                                       |
+| AUD-WBS-010 | tracera-runtime | Tracera owner   | todo  | AUD-WBS-009             | Python-core retirement boundary             | Inventory Python modules; classify as Rust/Go/Zig/Mojo core or minimal FastMCP/edge; removal criteria are test-backed                  |
+| AUD-WBS-011 | agileplus-audit | AgilePlus owner | todo  | AUD-WBS-003             | AgilePlus FR/gap closure matrix             | Cargo/API/DB/OCI/client gaps map to implementation and current command evidence                                                        |
+| AUD-WBS-012 | ts7-preview     | frontend owner  | todo  | AUD-WBS-003             | Bun TS7 preview matrix                      | Bun/tsgo/oxlint/oxc/TS7 preview claims map to scripts, lockfile, tests, and compatibility evidence                                     |
+| AUD-WBS-013 | native-oci      | platform owner  | todo  | AUD-WBS-011             | Apple Container + WSL OCI deployment matrix | Build, run, health, restart, logs, ports, and image digest captured for macOS and Windows WSL native OCI                               |
+| AUD-WBS-014 | edge-deploy     | deploy owner    | todo  | AUD-WBS-013             | Caddy/Tailscale/Vercel matrix               | Caddy routes, Tailscale/OpenSSH transport, Vercel build/functions, and health checks are separately evidenced                          |
+| AUD-WBS-015 | clients         | desktop owner   | todo  | AUD-WBS-014             | macOS/Windows client install matrix         | Install, launch, first-run, update, uninstall, and health evidence for each local desktop/client surface                               |
+| AUD-WBS-016 | qa              | QA owner        | todo  | AUD-WBS-009,AUD-WBS-011 | Risk-weighted regression plan               | P0/P1 gaps have tests; aggregate gate, focused gates, security scan, performance baseline, and deploy smoke are recorded               |
+| AUD-WBS-017 | recovery        | root            | todo  | AUD-WBS-002             | Recover or recreate missing unique handoff  | Git search either restores the handoff or a new evidence-backed handoff replaces it with provenance note                               |
+| AUD-WBS-018 | publication     | root            | todo  | AUD-WBS-006,AUD-WBS-016 | Release/handoff bundle                      | Green evidence bundle, changed-file review, deployment URLs, client install status, and next-owner assignments                         |
 
 ## Gap / QA Matrix Additions
 

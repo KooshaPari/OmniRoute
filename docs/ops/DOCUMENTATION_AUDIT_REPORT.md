@@ -23,28 +23,28 @@ lastUpdated: 2026-06-13
 
 ## 1. Números canônicos REAIS (a fonte de verdade de cada um)
 
-| Métrica                               | **Valor real**                                       | Fonte de verdade (como medir)                                                     | README         | AGENTS.md | CLAUDE.md  | docs/README.md              | Wiki Home | Site              |
+| Métrica | **Valor real** | Fonte de verdade (como medir) | README | AGENTS.md | CLAUDE.md | docs/README.md | Wiki Home | Site |
 | ------------------------------------- | ---------------------------------------------------- | --------------------------------------------------------------------------------- | -------------- | --------- | ---------- | --------------------------- | --------- | ----------------- | --- |
-| **Providers (total)**                 | **223**                                              | `scripts/docs/gen-provider-reference.ts` → `PROVIDER_REFERENCE.md` ("unique IDs") | ❌ 177         | ❌ 232    | ❌ "160+"  | (n/a)                       | ❌ 212+   | via gerador       |
-| **Providers c/ free tier**            | **103** `hasFree:true` / **98** pesquisados c/ quota | `grep hasFree:true providers.ts` / `FREE_TIERS.md`                                | ⚠️ "50+"       | —         | —          | —                           | ⚠️ "50+"  | —                 |
-| **Free forever**                      | **11** (a revalidar)                                 | README claim — sem fonte programática                                             | "11"           | —         | —          | —                           | —         | —                 |
-| **Test files (unit)**                 | **1.574**                                            | `find tests/unit -name '*.test.ts'`                                               | —              | —         | —          | —                           | —         | —                 |
-| **Test files (integration)**          | **76**                                               | `find tests/integration`                                                          | —              | —         | —          | —                           | —         | —                 |
-| **Test files (total)**                | **~1.660** (+46 em src/open-sse)                     | find global                                                                       | —              | —         | —          | —                           | —         | —                 |
-| **Test cases (aprox)**                | **~16.000**                                          | `grep -E '(test                                                                   | it)\(' tests/` | —         | —          | —                           | —         | —                 | —   |
-| **`unit/` test files (CONTRIBUTING)** | **1.574**                                            | —                                                                                 | —              | —         | —          | ❌ **CONTRIBUTING diz 122** | —         | —                 |
-| **API endpoints (route.ts)**          | **502**                                              | `find src/app/api -name route.ts`                                                 | —              | —         | —          | —                           | —         | —                 |
-| **Endpoints `/v1` (OpenAI-compat)**   | **75**                                               | `find src/app/api/v1 -name route.ts`                                              | —              | —         | —          | —                           | —         | —                 |
-| **MCP tools**                         | **87** (33 base + módulos)                           | `schemas/tools.ts` = 33 base; +memory/skill/notion/obsidian/gamification/plugin   | ✅ 87          | ✅ 87     | ✅ 87      | —                           | ❌ 37     | —                 |
-| **MCP scopes**                        | **30** (16 base em tools.ts)                         | `scopeEnforcement.ts` + módulos                                                   | —              | ✅ 30     | ✅ 30      | —                           | —         | —                 |
-| **Routing strategies**                | **15**                                               | `open-sse/services/combo.ts` (gate valida)                                        | ✅ 15          | ✅ 15     | ✅ 15      | ❌ 14                       | ❌ 14     | —                 |
-| **Auto-combo scoring factors**        | **9** (label) / engine multifator                    | `AUTO-COMBO.md`                                                                   | "9"            | "12"      | "9-factor" | ❌ "9-factor"               | —         | —                 |
-| **i18n locales**                      | **42** (+en = 43)                                    | `config/i18n.json`                                                                | —              | ✅ 42     | —          | ❌ 40                       | ❌ "40+"  | ✅ 40 (LANGUAGES) |
-| **Executors**                         | **60**                                               | gate valida ✓                                                                     | —              | ✅        | —          | —                           | —         | —                 |
-| **A2A skills**                        | **6**                                                | gate valida ✓                                                                     | ✅             | ✅        | ✅         | —                           | —         | —                 |
-| **Cloud agents**                      | **3**                                                | gate valida ✓                                                                     | ✅             | —         | —          | —                           | —         | —                 |
-| **OAuth flows / providers**           | **16** flows / **19** providers OAuth                | gate (16) vs `PROVIDER_REFERENCE` (19)                                            | —              | —         | —          | —                           | —         | —                 |
-| **DB modules / migrations**           | **83 / 97**                                          | gate/CLAUDE ✓                                                                     | —              | ✅        | ✅         | —                           | —         | —                 |
+| **Providers (total)** | **223** | `scripts/docs/gen-provider-reference.ts` → `PROVIDER_REFERENCE.md` ("unique IDs") | ❌ 177 | ❌ 232 | ❌ "160+" | (n/a) | ❌ 212+ | via gerador |
+| **Providers c/ free tier** | **103** `hasFree:true` / **98** pesquisados c/ quota | `grep hasFree:true providers.ts` / `FREE_TIERS.md` | ⚠️ "50+" | — | — | — | ⚠️ "50+" | — |
+| **Free forever** | **11** (a revalidar) | README claim — sem fonte programática | "11" | — | — | — | — | — |
+| **Test files (unit)** | **1.574** | `find tests/unit -name '*.test.ts'` | — | — | — | — | — | — |
+| **Test files (integration)** | **76** | `find tests/integration` | — | — | — | — | — | — |
+| **Test files (total)** | **~1.660** (+46 em src/open-sse) | find global | — | — | — | — | — | — |
+| **Test cases (aprox)** | **~16.000** | `grep -E '(test                                                                   | it)\(' tests/` | — | — | — | — | — | — |
+| **`unit/` test files (CONTRIBUTING)** | **1.574** | — | — | — | — | ❌ **CONTRIBUTING diz 122** | — | — |
+| **API endpoints (route.ts)** | **502** | `find src/app/api -name route.ts` | — | — | — | — | — | — |
+| **Endpoints `/v1` (OpenAI-compat)** | **75** | `find src/app/api/v1 -name route.ts` | — | — | — | — | — | — |
+| **MCP tools** | **87** (33 base + módulos) | `schemas/tools.ts` = 33 base; +memory/skill/notion/obsidian/gamification/plugin | ✅ 87 | ✅ 87 | ✅ 87 | — | ❌ 37 | — |
+| **MCP scopes** | **30** (16 base em tools.ts) | `scopeEnforcement.ts` + módulos | — | ✅ 30 | ✅ 30 | — | — | — |
+| **Routing strategies** | **15** | `open-sse/services/combo.ts` (gate valida) | ✅ 15 | ✅ 15 | ✅ 15 | ❌ 14 | ❌ 14 | — |
+| **Auto-combo scoring factors** | **9** (label) / engine multifator | `AUTO-COMBO.md` | "9" | "12" | "9-factor" | ❌ "9-factor" | — | — |
+| **i18n locales** | **42** (+en = 43) | `config/i18n.json` | — | ✅ 42 | — | ❌ 40 | ❌ "40+" | ✅ 40 (LANGUAGES) |
+| **Executors** | **60** | gate valida ✓ | — | ✅ | — | — | — | — |
+| **A2A skills** | **6** | gate valida ✓ | ✅ | ✅ | ✅ | — | — | — |
+| **Cloud agents** | **3** | gate valida ✓ | ✅ | — | — | — | — | — |
+| **OAuth flows / providers** | **16** flows / **19** providers OAuth | gate (16) vs `PROVIDER_REFERENCE` (19) | — | — | — | — | — | — |
+| **DB modules / migrations** | **83 / 97** | gate/CLAUDE ✓ | — | ✅ | ✅ | — | — | — |
 
 > ⚠️ **Inconsistências de número que precisam de decisão de produto (não só correção mecânica):**
 >

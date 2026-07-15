@@ -42,6 +42,7 @@ Order matters. Do not parallelize; some steps depend on others.
 See 04-ARCHIVE-PLAN.md for the full per-repo actions. Sequenced:
 
 ### 2a -- AtomsBot (canonical)
+
 - [ ] cd /Users/kooshapari/CodeProjects/Phenotype/repos/phenotype-apps/AtomsBot-2nd
 - [ ] Prepend banner to README.md (see 04-ARCHIVE-PLAN.md).
 - [ ] Commit: chore: strict-pause archive notice (AtomsBot, 2026-07-05).
@@ -51,6 +52,7 @@ See 04-ARCHIVE-PLAN.md for the full per-repo actions. Sequenced:
 - [ ] On the GitHub web UI: Settings -> Danger Zone -> Archive this repository.
 
 ### 2b -- KaskMan
+
 - [ ] cd /Users/kooshapari/CodeProjects/Phenotype/repos/KaskMan
 - [ ] Prepend banner to README.md.
 - [ ] Vendor claude-flow and dashboard-*.js into
@@ -61,17 +63,20 @@ See 04-ARCHIVE-PLAN.md for the full per-repo actions. Sequenced:
 - [ ] GitHub web UI: Archive.
 
 ### 2c -- GDK mirrors (all copies)
+
 - [ ] For each empty GDK worktree copy, paste the banner into a new
       README.md (or delete the dir if the parent allows).
 - [ ] The canonical phenotype-apps/GDK/README.md already has the banner;
       no change.
 
 ### 2d -- AtomsBot worktree copies
+
 - [ ] Same as 2c, but for each AtomsBot-Nth/ empty copy.
 
 ## Phase 3 -- phenotype-org-audits and phenotype-apps SPINE-promote
 
 ### 3a -- phenotype-org-audits
+
 - [ ] Add the spine charter block (see 02-ORG-AUDITS-PLAN.md) to the top
       of phenotype-apps/README.md, above the AI-DD-META block.
 - [ ] Replace the tooling/aggregator/ symlink with a vendored copy.
@@ -82,6 +87,7 @@ See 04-ARCHIVE-PLAN.md for the full per-repo actions. Sequenced:
 - [ ] Commit, push.
 
 ### 3b -- phenotype-apps
+
 - [ ] Add the spine charter block to phenotype-apps/README.md.
 - [ ] Prune the *-Nth duplicates older than 90 days. Move pruned copies
       under phenotype-org-audits/archive/<app>/.
@@ -94,11 +100,7 @@ See 04-ARCHIVE-PLAN.md for the full per-repo actions. Sequenced:
 ## Phase 4 -- update the registry
 
 - [ ] In phenotype-org-audits/inventory/AUTHORITATIVE_REPO_INVENTORY.md,
-      update the status of:
-      - Authvault -> ARCHIVED, redirects to AuthKit
-      - AtomsBot -> ARCHIVED, strict pause
-      - KaskMan -> ARCHIVED, strict pause
-      - GDK -> ARCHIVED, strict pause (already correct, verify)
+      update the status of: - Authvault -> ARCHIVED, redirects to AuthKit - AtomsBot -> ARCHIVED, strict pause - KaskMan -> ARCHIVED, strict pause - GDK -> ARCHIVED, strict pause (already correct, verify)
 - [ ] In phenotype-org-audits/inventory/deleted_traces.md, add the
       per-repo decision rationale and pointer to this session.
 - [ ] In phenotype-org-audits/metrics/SYSTEMIC_ISSUES.md, add a new

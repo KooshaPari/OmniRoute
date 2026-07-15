@@ -19,36 +19,36 @@
 
 ## Codebase scale (grep-verified)
 
-| Surface | Files | Lines (approx) | Note |
-|---|---|---|---|
-| `src/` (excl `src/app/`) | 862 .ts | ~170k | non-frontend backend |
-| `src/app/` (frontend + API) | many | many | mixed: Next.js routes + UI |
-| `open-sse/` | 778 .ts | ~181k | services + provider config |
-| `@omniroute/opencode-plugin` | 3 src .ts | n/a | OpenCode IDE plugin |
-| `@omniroute/opencode-provider` | 1 src .ts | n/a | DEPRECATED per its package.json |
-| `tests/` | 1917 .test.ts | n/a | Node `--test` runner |
-| `pheno/crates/` (phenotype-*) | 67 Cargo.toml | n/a | shared Rust primitives (already in place) |
-| `omniroute-rust/crates/` | 12 Cargo.toml | 682 in `omni-core` only | **target workspace, 1/12 crates has code** |
-| `src/lib/db/*.sql` | 80 | n/a | SQLite schema migrations |
-| `migrations/` (top-level) | 0 | 0 | DB migrations live in `src/lib/db/` (not top-level) |
+| Surface                        | Files         | Lines (approx)          | Note                                                |
+| ------------------------------ | ------------- | ----------------------- | --------------------------------------------------- |
+| `src/` (excl `src/app/`)       | 862 .ts       | ~170k                   | non-frontend backend                                |
+| `src/app/` (frontend + API)    | many          | many                    | mixed: Next.js routes + UI                          |
+| `open-sse/`                    | 778 .ts       | ~181k                   | services + provider config                          |
+| `@omniroute/opencode-plugin`   | 3 src .ts     | n/a                     | OpenCode IDE plugin                                 |
+| `@omniroute/opencode-provider` | 1 src .ts     | n/a                     | DEPRECATED per its package.json                     |
+| `tests/`                       | 1917 .test.ts | n/a                     | Node `--test` runner                                |
+| `pheno/crates/` (phenotype-*)  | 67 Cargo.toml | n/a                     | shared Rust primitives (already in place)           |
+| `omniroute-rust/crates/`       | 12 Cargo.toml | 682 in `omni-core` only | **target workspace, 1/12 crates has code**          |
+| `src/lib/db/*.sql`             | 80            | n/a                     | SQLite schema migrations                            |
+| `migrations/` (top-level)      | 0             | 0                       | DB migrations live in `src/lib/db/` (not top-level) |
 
 ## 1. CLI surface — `bin/`
 
 ### Entry points (`bin/`)
 
-| File | Role | Production? |
-|---|---|---|
-| `bin/omniroute.mjs` | Primary CLI (Commander) | Yes |
-| `bin/omniroute.mjs --mcp` | MCP stdio server (same binary, mode-switch) | Yes |
-| `bin/reset-password.mjs` | Recovery | Yes |
-| `bin/mcp-server.mjs` | MCP server (legacy?) | Yes (per package.json `bin`) |
-| `bin/restore-data.sh` / `bin/restore-policies.sh` / `bin/snapshot-data.sh` | Backup/recovery | Yes |
-| `bin/rollback.sh` | Atomic rollback | Yes |
-| `bin/_ops-common.sh` | Shared shell helpers | Yes |
-| `bin/cold-start-bench.sh` | Bench harness | Dev |
-| `bin/cli/*.mjs` (28 files) | CLI library (commander, i18n, sqlite, etc.) | Yes |
-| `bin/cli/commands/*.mjs` (81 files) | CLI subcommands (one per file) | Yes |
-| `bin/cli/api-commands/*.mjs` (32 files) | **AUTO-GENERATED** from `docs/openapi.yaml` (see header `// AUTO-GENERATED from docs/openapi.yaml. Do not edit.`) | Yes |
+| File                                                                       | Role                                                                                                              | Production?                  |
+| -------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- | ---------------------------- |
+| `bin/omniroute.mjs`                                                        | Primary CLI (Commander)                                                                                           | Yes                          |
+| `bin/omniroute.mjs --mcp`                                                  | MCP stdio server (same binary, mode-switch)                                                                       | Yes                          |
+| `bin/reset-password.mjs`                                                   | Recovery                                                                                                          | Yes                          |
+| `bin/mcp-server.mjs`                                                       | MCP server (legacy?)                                                                                              | Yes (per package.json `bin`) |
+| `bin/restore-data.sh` / `bin/restore-policies.sh` / `bin/snapshot-data.sh` | Backup/recovery                                                                                                   | Yes                          |
+| `bin/rollback.sh`                                                          | Atomic rollback                                                                                                   | Yes                          |
+| `bin/_ops-common.sh`                                                       | Shared shell helpers                                                                                              | Yes                          |
+| `bin/cold-start-bench.sh`                                                  | Bench harness                                                                                                     | Dev                          |
+| `bin/cli/*.mjs` (28 files)                                                 | CLI library (commander, i18n, sqlite, etc.)                                                                       | Yes                          |
+| `bin/cli/commands/*.mjs` (81 files)                                        | CLI subcommands (one per file)                                                                                    | Yes                          |
+| `bin/cli/api-commands/*.mjs` (32 files)                                    | **AUTO-GENERATED** from `docs/openapi.yaml` (see header `// AUTO-GENERATED from docs/openapi.yaml. Do not edit.`) | Yes                          |
 
 ### Top-level CLI flags (from `bin/cli/program.mjs`)
 
@@ -85,6 +85,7 @@ The HTTP server is a **Next.js App Router** app. Routes are file-based under `sr
 `music, chatgpt-web, _helpers, messages, embeddings, chat, images, web, combos, quotas, completions, providers, responses, management, agents, models, search, videos, audio, accounts, registered-keys, me, files, api, _shared, rerank, relay, batches, antigravity`.
 
 Critical endpoints (file evidence):
+
 - `src/app/api/v1/chat/completions/route.ts` — main OpenAI-compatible entry
 - `src/app/api/v1/responses/route.ts` — OpenAI Responses API
 - `src/app/api/v1/embeddings/route.ts`
@@ -99,17 +100,17 @@ Critical endpoints (file evidence):
 
 ### File sizes on hot paths (top 7)
 
-| File | Lines | Role |
-|---|---|---|
-| `src/lib/providers/validation.ts` | 3867 | Per-provider request/response validation |
-| `src/app/api/providers/[id]/models/route.ts` | 2592 | Per-provider model list |
-| `src/sse/services/auth.ts` | 2335 | SSE auth for streaming responses |
-| `src/app/api/v1/models/catalog.ts` | 1614 | Main model catalog |
-| `src/sse/handlers/chat.ts` | 1551 | Chat SSE handler (hot path) |
-| `src/lib/db/core.ts` | 1519 | DB core |
-| `src/lib/db/apiKeys.ts` | 1412 | API key management |
-| `src/lib/db/models.ts` | 1258 | Models persistence |
-| `src/lib/db/migrationRunner.ts` | 1228 | SQLite migration runner |
+| File                                         | Lines | Role                                     |
+| -------------------------------------------- | ----- | ---------------------------------------- |
+| `src/lib/providers/validation.ts`            | 3867  | Per-provider request/response validation |
+| `src/app/api/providers/[id]/models/route.ts` | 2592  | Per-provider model list                  |
+| `src/sse/services/auth.ts`                   | 2335  | SSE auth for streaming responses         |
+| `src/app/api/v1/models/catalog.ts`           | 1614  | Main model catalog                       |
+| `src/sse/handlers/chat.ts`                   | 1551  | Chat SSE handler (hot path)              |
+| `src/lib/db/core.ts`                         | 1519  | DB core                                  |
+| `src/lib/db/apiKeys.ts`                      | 1412  | API key management                       |
+| `src/lib/db/models.ts`                       | 1258  | Models persistence                       |
+| `src/lib/db/migrationRunner.ts`              | 1228  | SQLite migration runner                  |
 
 ## 3. Provider surface
 
@@ -152,6 +153,7 @@ ADR-001 + `src/lib/a2a/*` define A2A. Per AGENTS.md: 6 A2A skills. `open-sse/mcp
 ## 6. SDK surface
 
 Public SDKs:
+
 - `@omniroute/opencode-plugin` — OpenCode IDE plugin (current, recommended)
 - `@omniroute/opencode-provider` — DEPRECATED (per its package.json description)
 - TypeScript consumers: `bin/cli/` itself consumes the `src/lib/*` modules directly via `tsx` import (see `bin/omniroute.mjs` `await import("tsx/esm")`).
@@ -181,6 +183,7 @@ Notable db modules (sample): `accessTokens, apiKeys, apiKeyGroups, agentBridgeBy
 - `tests/unit/router-eval.test.ts` + `router-eval-cli.test.ts` — tests
 
 The eval surface is real and well-developed. Two key patterns:
+
 - `eval/runner.ts` style (per prior session notes)
 - `eval/report.ts` style (per prior session notes)
 - `compression/harness/replay.ts` — replay pattern for evals
@@ -198,6 +201,7 @@ Env var count (rough): 425 unique env var names found in `src/` + `open-sse/` + 
 ## 10. Build/release surface
 
 `package.json` scripts (sampled):
+
 - `dev`, `start`, `build`, `build:secure`, `build:cli`, `build:release`
 - `build:native:tproxy` — compiles the `tproxy` native module via node-gyp
 - `lint`, `lint:md`, `lint:prose`
@@ -209,6 +213,7 @@ Env var count (rough): 425 unique env var names found in `src/` + `open-sse/` + 
 - `release:sync-changelog-i18n`
 
 The Rust target must:
+
 1. `cargo build --workspace` (already in `omniroute-rust/README.md`)
 2. `cargo test --workspace`
 3. `cargo run -p omni-cli -- serve --port 9090`
@@ -216,20 +221,20 @@ The Rust target must:
 
 ## 11. Cross-cutting concerns
 
-| Concern | Location | Rust target |
-|---|---|---|
-| Errors | `src/lib/errors/*` + `src/shared/contracts/*` | `omni-core::error` (already exists) |
-| Auth (API keys, OAuth, JWT) | `src/server/auth/*`, `src/lib/auth/*`, `src/lib/oauth/*` | `omni-server` + `omni-a2a` |
-| AuthZ (scopes, peer stamps, route guard) | `src/server/authz/*` | `omni-server` |
-| Rate limiting | `src/lib/quota/*`, `pheno-*/crates/phenotype-rate-limit` | `phenotype-rate-limit` (already in Cargo.toml) |
-| Resilience (circuit breaker, retry) | `src/lib/resilience/*`, `pheno-*/crates/phenotype-retry` | `phenotype-retry` |
-| Caching (KV-cache reuse, prompt cache) | `src/lib/promptCache/*`, `pheno-*/crates/phenotype-cache-adapter` | `phenotype-cache-adapter` |
-| Logging | `src/lib/monitoring/*`, `pheno-*/crates/phenotype-logging` | `phenotype-logging` |
-| Crypto (key encryption, secrets) | `src/lib/security/*`, `src/cli/encryption.mjs` | `phenotype-crypto` |
-| Config | `src/lib/config/*` | `phenotype-config-loader` + `phenotype-shared-config` |
-| Cost (pricing, attribution) | `src/lib/spend/*`, `pheno-*/crates/phenotype-cost-core` | `phenotype-cost-core` |
-| OTel / telemetry | `src/lib/monitoring/*` | `omni-telemetry` (empty crate) |
-| Compliance | `src/lib/compliance/*` | `omni-telemetry` or new `omni-compliance` |
+| Concern                                  | Location                                                          | Rust target                                           |
+| ---------------------------------------- | ----------------------------------------------------------------- | ----------------------------------------------------- |
+| Errors                                   | `src/lib/errors/*` + `src/shared/contracts/*`                     | `omni-core::error` (already exists)                   |
+| Auth (API keys, OAuth, JWT)              | `src/server/auth/*`, `src/lib/auth/*`, `src/lib/oauth/*`          | `omni-server` + `omni-a2a`                            |
+| AuthZ (scopes, peer stamps, route guard) | `src/server/authz/*`                                              | `omni-server`                                         |
+| Rate limiting                            | `src/lib/quota/*`, `pheno-*/crates/phenotype-rate-limit`          | `phenotype-rate-limit` (already in Cargo.toml)        |
+| Resilience (circuit breaker, retry)      | `src/lib/resilience/*`, `pheno-*/crates/phenotype-retry`          | `phenotype-retry`                                     |
+| Caching (KV-cache reuse, prompt cache)   | `src/lib/promptCache/*`, `pheno-*/crates/phenotype-cache-adapter` | `phenotype-cache-adapter`                             |
+| Logging                                  | `src/lib/monitoring/*`, `pheno-*/crates/phenotype-logging`        | `phenotype-logging`                                   |
+| Crypto (key encryption, secrets)         | `src/lib/security/*`, `src/cli/encryption.mjs`                    | `phenotype-crypto`                                    |
+| Config                                   | `src/lib/config/*`                                                | `phenotype-config-loader` + `phenotype-shared-config` |
+| Cost (pricing, attribution)              | `src/lib/spend/*`, `pheno-*/crates/phenotype-cost-core`           | `phenotype-cost-core`                                 |
+| OTel / telemetry                         | `src/lib/monitoring/*`                                            | `omni-telemetry` (empty crate)                        |
+| Compliance                               | `src/lib/compliance/*`                                            | `omni-telemetry` or new `omni-compliance`             |
 
 ## 12. Hot paths (Rust target)
 
@@ -253,6 +258,7 @@ The Rust target must:
 ## 14. The bifrost pivot (ADR-001)
 
 `src/domain/router/port.ts` is the **hexagonal port** for canonical LLM routing:
+
 > "ADR-001: OmniRoute is the canonical routing project; the routing core is replaced with bifrost."
 
 `bifrost` is a Cargo crate under `pheno/` (currently empty — just `.github/workflows/`). It will house the canonical router. `omniroute-router` will depend on `bifrost`.
@@ -261,20 +267,20 @@ The Rust target must:
 
 12-crate Cargo workspace. **Only `omni-core` has code** (682 lines, 7 files). The rest are empty `Cargo.toml` + empty `src/` dirs.
 
-| Crate | Purpose | State |
-|---|---|---|
-| `omni-core` | errors, config, executor trait, ids, model, provider | **682 lines (DONE)** |
-| `omni-protocol` | OpenAI/Claude/Gemini/Codex wire types | empty |
-| `omni-storage` | sqlx SQLite + migrations | empty |
-| `omni-translator` | format detection + translation registry | empty |
-| `omni-router` | executor registry + routing | empty |
-| `omni-compression` | RTK + Caveman + Aggressive engines | empty |
-| `omni-server` | axum HTTP server, OpenAI-compat, SSE | empty |
-| `omni-mcp` | MCP server + tools (rmcp 0.2) | empty |
-| `omni-a2a` | A2A protocol | empty |
-| `omni-telemetry` | OTel + metrics + audit | empty |
-| `omni-cli` | clap CLI (omniroute binary) | empty |
-| `omni-sdk` | Rust client SDK | empty |
+| Crate              | Purpose                                              | State                |
+| ------------------ | ---------------------------------------------------- | -------------------- |
+| `omni-core`        | errors, config, executor trait, ids, model, provider | **682 lines (DONE)** |
+| `omni-protocol`    | OpenAI/Claude/Gemini/Codex wire types                | empty                |
+| `omni-storage`     | sqlx SQLite + migrations                             | empty                |
+| `omni-translator`  | format detection + translation registry              | empty                |
+| `omni-router`      | executor registry + routing                          | empty                |
+| `omni-compression` | RTK + Caveman + Aggressive engines                   | empty                |
+| `omni-server`      | axum HTTP server, OpenAI-compat, SSE                 | empty                |
+| `omni-mcp`         | MCP server + tools (rmcp 0.2)                        | empty                |
+| `omni-a2a`         | A2A protocol                                         | empty                |
+| `omni-telemetry`   | OTel + metrics + audit                               | empty                |
+| `omni-cli`         | clap CLI (omniroute binary)                          | empty                |
+| `omni-sdk`         | Rust client SDK                                      | empty                |
 
 ### Key dependencies already chosen (in workspace Cargo.toml)
 
@@ -315,4 +321,3 @@ The Rust target must:
 8. The Electron desktop — out of scope per the user's note; the SDK crate `omni-sdk` must work for the desktop consumer.
 9. The compression engines — 5 named (adaptive, aggressive, caveman, lite, ultra). All must be ported to Rust as the `omni-compression` crate; this is a substantial standalone project.
 10. The doc-accuracy discipline (`check:fabricated-docs` script) — must be re-implemented in the Rust rewrite. The discipline is the contract; the script is the enforcement.
-

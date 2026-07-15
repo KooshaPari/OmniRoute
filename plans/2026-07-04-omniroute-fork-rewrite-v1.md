@@ -3,6 +3,7 @@
 > **For agentic workers:** REQUIRED SUB-SKILL: Use subagent-driven-development (recommended) or executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 >
 > **Language Preference (decision-tree ordering for optimality):**
+>
 > 1. **Zig** — first pick where Rust memory model / binary size / C-ABI is suboptimal
 > 2. **Mojo** — first pick where ML/AI kernel-level optimization matters
 > 3. **Rust** — broad systems coverage, single-binary deploys, tokio/axum/tonic
@@ -17,6 +18,7 @@
 **Architecture:** 2-tier split — Tier-1 (data plane: high-throughput provider dispatch, streaming, retries) in Rust with Zig hot-path shims and optional Mojo kernels; Tier-2 (control plane: policy engine, dashboard, MCP, A2A, admin) in TypeScript/Next.js with Python FastMCP bridge. Bifrost Go gateway as interim Tier-1 during Rust migration. Polyglot binding per [ADR-032](../docs/adr/0032-polyglot-binding-tiers.md) (Accepted 2026-07-04): T1 HTTP sidecar (default), T2 UDS RPC, T3 native ABI FFI (`napi-rs` Node↔Rust, `cgo` Node↔Go, `pyo3` Python↔Rust).
 
 **Tech Stack:**
+
 - **Rust** (tokio/axum/tonic/hyper) — data plane core, FFI bridge (`napi-rs`)
 - **Zig** — hot-path shims (SSE chunking, regex prefilter, custom allocators)
 - **Mojo** — ML kernels (tokenization scoring, future on-device inference)
@@ -38,43 +40,44 @@ What this plan does: **aligns the fork with the canonical substrate** by extract
 
 From [`docs/adr/0032-polyglot-binding-tiers.md`](../docs/adr/0032-polyglot-binding-tiers.md) (ADR-032 Polyglot Binding Tiers, Accepted 2026-07-04) and `SPEC.md` §17:
 
-| Tier | Mechanism | Overhead | Hot-path fit |
-|---|---|---|---|
-| **T1** | HTTP sidecar (`fetch()` over TCP loopback) | ~1-2 ms | Tier-1 router (`BifrostBackendExecutor`), dashboards |
-| **T2** | Unix-domain-socket (UDS) RPC — JSON-RPC / Cap'n Proto / FlatBuffers | ~50-200 µs | Compression, translator, MCP client, guardrails |
-| **T3** | Native ABI FFI — `napi-rs` (Node↔Rust), `cgo` (Node↔Go), `pyo3` (Python↔Rust) | ~1-10 µs | SSE chunking, combo scoring, tokenization, regex prefilter |
+| Tier   | Mechanism                                                                     | Overhead   | Hot-path fit                                               |
+| ------ | ----------------------------------------------------------------------------- | ---------- | ---------------------------------------------------------- |
+| **T1** | HTTP sidecar (`fetch()` over TCP loopback)                                    | ~1-2 ms    | Tier-1 router (`BifrostBackendExecutor`), dashboards       |
+| **T2** | Unix-domain-socket (UDS) RPC — JSON-RPC / Cap'n Proto / FlatBuffers           | ~50-200 µs | Compression, translator, MCP client, guardrails            |
+| **T3** | Native ABI FFI — `napi-rs` (Node↔Rust), `cgo` (Node↔Go), `pyo3` (Python↔Rust) | ~1-10 µs   | SSE chunking, combo scoring, tokenization, regex prefilter |
 
 **Per-edge migration plan (from SPEC.md §17.4 / §17.10):**
 
-| Edge | Current | Target tier | Crate |
-|---|---|---|---|
-| Combo scorer (12-factor Auto-Combo, SIMD) | TS in-process | **T3 (FFI)** | `crates/omniroute-ffi/crates/combo-scorer/` (exists) |
-| SSE chunking | TS `while(true)` loop | **T3 (FFI)** | `crates/omniroute-ffi/crates/sse-chunking/` (exists) |
-| Semantic cache lookup | SQLite | **T3 (FFI)** | `crates/omniroute-ffi/crates/signature-cache/` (exists) |
-| Format translation (OpenAI↔Anthropic↔Gemini) | TS in-process | **T3 (FFI)** | new `crates/translator-ffi/` |
-| Rate-limit token-bucket (DEBT-001) | TS in-process | **T3 (FFI)** | new `crates/quota-ffi/` |
-| Reasoning replay | SQLite | **T3 (FFI)** | new `crates/reasoning-replay-ffi/` |
-| Prompt compression (lite/caveman/rtk) | TS in-process | **T2 (UDS RPC)** | `Tokn::tokenledger::compression` + UDS server |
-| Guardrails (pii/injection/vision) | TS in-process | **T2 (UDS RPC)** | `Tokn::tokenledger::guardrails` + UDS server |
-| MCP server tool dispatch (co-located) | JSON-RPC over HTTP/SSE | **T2 (UDS RPC when co-located)** | new `crates/mcp-uds-server/` |
+| Edge                                         | Current                | Target tier                      | Crate                                                   |
+| -------------------------------------------- | ---------------------- | -------------------------------- | ------------------------------------------------------- |
+| Combo scorer (12-factor Auto-Combo, SIMD)    | TS in-process          | **T3 (FFI)**                     | `crates/omniroute-ffi/crates/combo-scorer/` (exists)    |
+| SSE chunking                                 | TS `while(true)` loop  | **T3 (FFI)**                     | `crates/omniroute-ffi/crates/sse-chunking/` (exists)    |
+| Semantic cache lookup                        | SQLite                 | **T3 (FFI)**                     | `crates/omniroute-ffi/crates/signature-cache/` (exists) |
+| Format translation (OpenAI↔Anthropic↔Gemini) | TS in-process          | **T3 (FFI)**                     | new `crates/translator-ffi/`                            |
+| Rate-limit token-bucket (DEBT-001)           | TS in-process          | **T3 (FFI)**                     | new `crates/quota-ffi/`                                 |
+| Reasoning replay                             | SQLite                 | **T3 (FFI)**                     | new `crates/reasoning-replay-ffi/`                      |
+| Prompt compression (lite/caveman/rtk)        | TS in-process          | **T2 (UDS RPC)**                 | `Tokn::tokenledger::compression` + UDS server           |
+| Guardrails (pii/injection/vision)            | TS in-process          | **T2 (UDS RPC)**                 | `Tokn::tokenledger::guardrails` + UDS server            |
+| MCP server tool dispatch (co-located)        | JSON-RPC over HTTP/SSE | **T2 (UDS RPC when co-located)** | new `crates/mcp-uds-server/`                            |
 
 ### 0.1 Codebase Inventory
 
-| Measure | Count | Notes |
-|---------|-------|-------|
-| Total files (git-tracked) | ~5,771 | across src/, open-sse/, electron/, tests/ |
-| TypeScript/TSX | ~4,577 files (79%) | Primary language — everything |
-| SQL migrations | 97 files | src/lib/db/migrations/ |
-| DB domain modules | 83 files | src/lib/db/*.ts |
-| Providers | 231 entries | src/shared/constants/providers.ts |
-| MCP tools | 87 | open-sse/mcp-server/ |
-| Routing strategies | 17 | combo.ts + fusion |
-| A2A skills | 8 | src/lib/a2a/skills/ |
-| i18n locales | 42 | src/i18n/messages/ |
+| Measure                   | Count              | Notes                                     |
+| ------------------------- | ------------------ | ----------------------------------------- |
+| Total files (git-tracked) | ~5,771             | across src/, open-sse/, electron/, tests/ |
+| TypeScript/TSX            | ~4,577 files (79%) | Primary language — everything             |
+| SQL migrations            | 97 files           | src/lib/db/migrations/                    |
+| DB domain modules         | 83 files           | src/lib/db/*.ts                           |
+| Providers                 | 231 entries        | src/shared/constants/providers.ts         |
+| MCP tools                 | 87                 | open-sse/mcp-server/                      |
+| Routing strategies        | 17                 | combo.ts + fusion                         |
+| A2A skills                | 8                  | src/lib/a2a/skills/                       |
+| i18n locales              | 42                 | src/i18n/messages/                        |
 
 ### 0.2 Architecture Audit
 
 **Current Stack (TypeScript monolith):**
+
 ```
 Client → Next.js API Route (/v1/chat/completions)
   → Zod validation → Auth → Policy check
@@ -85,6 +88,7 @@ Client → Next.js API Route (/v1/chat/completions)
 ```
 
 **Strengths:**
+
 - Massive provider coverage (231) and MCP tool surface (87)
 - Sophisticated combo routing with 17 strategies
 - Rich ecosystem: A2A, MCP, webhooks, guardrails, evals, skills, memory
@@ -92,6 +96,7 @@ Client → Next.js API Route (/v1/chat/completions)
 - Strong test coverage infrastructure (~48 quality gate scripts)
 
 **Weaknesses:**
+
 - TypeScript data plane has performance ceiling (V8 single-threaded, GC pauses)
 - Next.js monolith conflates API gateway, dashboard, and agent protocols
 - 83 DB modules with 97 migrations is unwieldy — schema drift risk
@@ -103,6 +108,7 @@ Client → Next.js API Route (/v1/chat/completions)
 ### 0.3 Bifrost (Go Gateway) Assessment
 
 **Current Bifrost integration (Phase 1 complete):**
+
 - `open-sse/executors/bifrost.ts` — BifrostBackendExecutor (238 lines)
 - `bifrostProviderMap.ts` — 23 first-class Bifrost providers + 50+ aliases
 - Kill switch: `open-sse/services/bifrostKillSwitch.ts` (401 lines)
@@ -110,6 +116,7 @@ Client → Next.js API Route (/v1/chat/completions)
 - Migration playbook: `docs/operations/bifrost-migration.md`
 
 **Assessment:** Bifrost is a well-chosen interim Tier-1. Go is the right pragmatic choice for now. Long-term (post-Rust data plane completion), Bifrost should be either:
+
 - (a) Replaced by a native Rust tier-1, or
 - (b) Kept as Go if the Rust team decides it's not worth re-implementing
 
@@ -119,13 +126,13 @@ Client → Next.js API Route (/v1/chat/completions)
 
 Per the user's directive, certain languages are **forced edges** (the ecosystem dictates the choice, not preference):
 
-| Forced edge | Why forced | Integration tier |
-|---|---|---|
-| **Python (FastMCP)** | FastMCP is the canonical MCP server framework used by the Anthropic ecosystem; agents/clients expect it | T3 (pyo3 Rust↔Python FFI) |
-| **TypeScript** | MCP and A2A server tooling widely authored in TS; Anthropic SDK reference impl is TS | T1/T2 (HTTP, UDS) |
-| **WAT/WASM** | Browser-side execution, edge functions | T1 (HTTP) |
-| **SQL** | Declarative queries — no substitute | n/a (within Rust `rusqlite` or `sqlx`) |
-| **Bash/Shell** | System tooling glue | n/a (build/test scripts) |
+| Forced edge          | Why forced                                                                                              | Integration tier                       |
+| -------------------- | ------------------------------------------------------------------------------------------------------- | -------------------------------------- |
+| **Python (FastMCP)** | FastMCP is the canonical MCP server framework used by the Anthropic ecosystem; agents/clients expect it | T3 (pyo3 Rust↔Python FFI)              |
+| **TypeScript**       | MCP and A2A server tooling widely authored in TS; Anthropic SDK reference impl is TS                    | T1/T2 (HTTP, UDS)                      |
+| **WAT/WASM**         | Browser-side execution, edge functions                                                                  | T1 (HTTP)                              |
+| **SQL**              | Declarative queries — no substitute                                                                     | n/a (within Rust `rusqlite` or `sqlx`) |
+| **Bash/Shell**       | System tooling glue                                                                                     | n/a (build/test scripts)               |
 
 **Decision rule:** When a forced edge exists, we do NOT write a wrapper in our preferred language. We **integrate** at the binding tier (T1/T2/T3) that minimizes overhead and preserves the forced-edge tool's ecosystem.
 
@@ -133,20 +140,21 @@ Per the user's directive, certain languages are **forced edges** (the ecosystem 
 
 For each new component, run this decision tree in order. First match wins:
 
-| Question | If yes → | If no → |
-|---|---|---|
-| Q1: Is there a forced edge (FastMCP, MCP-TS, WAT)? | **Use forced edge** at T1/T2/T3 | Continue |
-| Q2: Is this an ML kernel / on-device inference? | **Mojo** (when ≥v1.0 ships) | Continue |
-| Q3: Is binary size <100KB, C-ABI required, or compile-time codegen needed? | **Zig** | Continue |
-| Q4: Memory safety + perf + single-binary + tokio ecosystem? | **Rust** | Continue |
-| Q5: Massive SDK ecosystem (cloud), goroutine fanout, quick scaffolding? | **Go** | Continue |
-| Q6: UI / dashboard / agent protocol surface? | **TypeScript** | **Reconsider scope** |
+| Question                                                                   | If yes →                        | If no →              |
+| -------------------------------------------------------------------------- | ------------------------------- | -------------------- |
+| Q1: Is there a forced edge (FastMCP, MCP-TS, WAT)?                         | **Use forced edge** at T1/T2/T3 | Continue             |
+| Q2: Is this an ML kernel / on-device inference?                            | **Mojo** (when ≥v1.0 ships)     | Continue             |
+| Q3: Is binary size <100KB, C-ABI required, or compile-time codegen needed? | **Zig**                         | Continue             |
+| Q4: Memory safety + perf + single-binary + tokio ecosystem?                | **Rust**                        | Continue             |
+| Q5: Massive SDK ecosystem (cloud), goroutine fanout, quick scaffolding?    | **Go**                          | Continue             |
+| Q6: UI / dashboard / agent protocol surface?                               | **TypeScript**                  | **Reconsider scope** |
 
 ---
 
 ## Phase 1: Control-Plane/Data-Plane Separation (Weeks 1-4)
 
 ### Objective
+
 Extract the request/data path from the Next.js monolith into its own Rust service while keeping the dashboard, MCP, A2A, and admin in TypeScript.
 
 ### Architecture Target
@@ -178,6 +186,7 @@ Extract the request/data path from the Next.js monolith into its own Rust servic
 ### Task 1A: Rust Router Crate Scaffold
 
 **Files:**
+
 - Create: `crates/omniroute-router/Cargo.toml`
 - Create: `crates/omniroute-router/src/lib.rs`
 - Create: `crates/omniroute-router/src/executor.rs`
@@ -187,6 +196,7 @@ Extract the request/data path from the Next.js monolith into its own Rust servic
 - Modify: `Cargo.toml` (workspace member)
 
 - [ ] **Step 1: Create workspace member + Cargo.toml**
+
   ```toml
   [package]
   name = "omniroute-router"
@@ -205,10 +215,11 @@ Extract the request/data path from the Next.js monolith into its own Rust servic
   reqwest = { version = "0.12", features = ["stream", "json"] }
   opentelemetry = "0.32"
   ```
+
   Run: `cargo check -p omniroute-router`
 
 - [ ] **Step 2: Define core types**
-  Create `types.rs` with RouteRequest, RouteResponse, RouteError, Message, etc.
+      Create `types.rs` with RouteRequest, RouteResponse, RouteError, Message, etc.
 
 - [ ] **Step 3: Define Executor trait**
   ```rust
@@ -227,11 +238,13 @@ Extract the request/data path from the Next.js monolith into its own Rust servic
 ### Task 1B: gRPC Bridge (Next.js ↔ Rust)
 
 **Files:**
+
 - Create: `proto/omniroute.proto`
 - Create: `crates/omniroute-router/src/grpc_server.rs`
 - Create: `src/lib/grpc-client.ts`
 
 - [ ] **Step 1: Define protobuf schema**
+
   ```protobuf
   service OmniRoute {
       rpc RouteChat (RouteChatRequest) returns (RouteChatResponse);
@@ -241,32 +254,34 @@ Extract the request/data path from the Next.js monolith into its own Rust servic
   ```
 
 - [ ] **Step 2: Implement gRPC server in Rust**
-  Wire into axum server, register tonic service.
+      Wire into axum server, register tonic service.
 
 - [ ] **Step 3: Implement gRPC client in TypeScript**
-  `@grpc/grpc-js` client that Next.js calls instead of `handleChatCore()`.
+      `@grpc/grpc-js` client that Next.js calls instead of `handleChatCore()`.
 
 - [ ] **Step 4: Integration test**
-  Run Next.js dev + Rust gRPC server, verify round-trip route.
+      Run Next.js dev + Rust gRPC server, verify round-trip route.
 
 ### Task 1C: Bifrost Adapter in Rust
 
 **Files:**
+
 - Create: `crates/omniroute-router/src/bifrost_adapter.rs`
 - Modify: `crates/omniroute-router/src/executor.rs`
 
 - [ ] **Step 1: Port Bifrost executor from TypeScript to Rust**
-  Translate `open-sse/executors/bifrost.ts` logic into Rust `BifrostAdapter`.
+      Translate `open-sse/executors/bifrost.ts` logic into Rust `BifrostAdapter`.
 
 - [ ] **Step 2: Port provider map**
-  Translate `bifrostProviderMap.ts` to Rust (~200 lines). Use `phf` compile-time maps.
+      Translate `bifrostProviderMap.ts` to Rust (~200 lines). Use `phf` compile-time maps.
 
 - [ ] **Step 3: Port kill switch**
-  Translate `bifrostKillSwitch.ts` to Rust. Thresholds: p99 > 5s, error rate > 2%, consecutive failures >= 10.
+      Translate `bifrostKillSwitch.ts` to Rust. Thresholds: p99 > 5s, error rate > 2%, consecutive failures >= 10.
 
 ### Task 1D: Remaining Executors Port
 
 **Files:**
+
 - Create: `crates/omniroute-router/src/executors/default.rs`
 - Create: `crates/omniroute-router/src/executors/gemini.rs`
 - Create: `crates/omniroute-router/src/executors/anthropic.rs`
@@ -282,6 +297,7 @@ Extract the request/data path from the Next.js monolith into its own Rust servic
 ### Task 2A: Combo Routing Engine
 
 **Files:**
+
 - Create: `crates/omniroute-router/src/combo.rs`
 - Create: `crates/omniroute-router/src/strategies.rs`
 
@@ -292,6 +308,7 @@ Extract the request/data path from the Next.js monolith into its own Rust servic
 ### Task 2B: Translator Engine
 
 **Files:**
+
 - Create: `crates/omniroute-router/src/translator.rs`
 - Create: `crates/omniroute-router/src/translators/openai.rs`
 - Create: `crates/omniroute-router/src/translators/anthropic.rs`
@@ -304,6 +321,7 @@ Extract the request/data path from the Next.js monolith into its own Rust servic
 ### Task 2C: Streaming Engine
 
 **Files:**
+
 - Create: `crates/omniroute-router/src/streaming.rs`
 - Create: `crates/omniroute-router/src/sse.rs`
 
@@ -314,6 +332,7 @@ Extract the request/data path from the Next.js monolith into its own Rust servic
 ### Task 2D: Resilience Patterns
 
 **Files:**
+
 - Create: `crates/omniroute-router/src/circuit_breaker.rs`
 - Create: `crates/omniroute-router/src/rate_limiter.rs`
 - Create: `crates/omniroute-router/src/retry.rs`
@@ -325,12 +344,14 @@ Extract the request/data path from the Next.js monolith into its own Rust servic
 ### Task 2E: Zig Hot-Path Shims (T3-Z binding)
 
 **Rationale:** Per decision tree Q3, Zig is the **first pick** when:
+
 - SSE chunking throughput is the bottleneck (~50–100µs per chunk in Rust; Zig can hit <10µs)
 - Regex prefilter (PII patterns, prompt-injection patterns) needs C-ABI for `regex` C libs
 - Custom allocator needed (arena for SSE buffer pools, off-heap for token streams)
 - Compile-time codegen produces faster lookup tables than `phf`
 
 **Files:**
+
 - Create: `crates/omniroute-shims-zig/Cargo.toml`
 - Create: `crates/omniroute-shims-zig/build.rs`
 - Create: `crates/omniroute-shims-zig/src/lib.rs` (Rust FFI wrapper)
@@ -339,10 +360,12 @@ Extract the request/data path from the Next.js monolith into its own Rust servic
 - Create: `crates/omniroute-shims-zig/zig/arena_allocator.zig`
 
 - [ ] **Step 1: Set up Zig build via `zigbuild` crate**
+
   ```toml
   [build-dependencies]
   zigbuild = "0.11"
   ```
+
   Cargo invokes `zig build-lib` for the static library; Rust `extern "C"` blocks call into it.
 
 - [ ] **Step 2: Implement SSE chunker in Zig**
@@ -370,6 +393,7 @@ Extract the request/data path from the Next.js monolith into its own Rust servic
 ### Task 3A: Rust DB Core
 
 **Files:**
+
 - Create: `crates/omniroute-db/Cargo.toml`
 - Create: `crates/omniroute-db/src/lib.rs`
 - Create: `crates/omniroute-db/src/core.rs`
@@ -394,23 +418,27 @@ Extract the request/data path from the Next.js monolith into its own Rust servic
 ## Phase 4: Production Hardening (Weeks 13-16)
 
 ### Task 4A: OpenTelemetry & Observability
+
 - [ ] OTLP export from Rust data plane (traces + metrics)
 - [ ] Structured logging (tracing + json)
 - [ ] p99 latency histograms per provider per model
 - [ ] Health check endpoint (gRPC + HTTP)
 
 ### Task 4B: Configuration & Deployment
+
 - [ ] Single config file (TOML) covering both Rust + TypeScript
 - [ ] Docker compose for full stack (Rust + Next.js + Bifrost)
 - [ ] CLI tool for installation/upgrade (Rust)
 
 ### Task 4C: Security Hardening
+
 - [ ] Secrets management (env/file/keyring)
 - [ ] TLS termination (Rust data plane)
 - [ ] Auth token validation in Rust (shared JWT secret)
 - [ ] Rate limiting per API key (enforced in Rust)
 
 ### Task 4D: Performance Optimization
+
 - [ ] Connection pooling to upstream providers
 - [ ] Response caching (semantic cache in Rust)
 - [ ] Request deduplication for identical concurrent requests
@@ -423,6 +451,7 @@ Extract the request/data path from the Next.js monolith into its own Rust servic
 ### Task 5A: Bifrost Graduation
 
 **Two paths:**
+
 - **Path A (pragmatic):** Bifrost stays as Go Tier-1; Rust feeds through it via T1 HTTP (current) or T6 `cgo` (after F6 ships, 2027 Q1)
 - **Path B (preferred):** Absorb Bifrost into Rust native
 
@@ -436,6 +465,7 @@ Extract the request/data path from the Next.js monolith into its own Rust servic
 After F6 (`cgo` in-process Bifrost Go SDK, 2027 Q1), Bifrost becomes an in-process library. T1 HTTP overhead (~1-2 ms) is eliminated. Rust calls Go via `cgo` directly.
 
 **Files:**
+
 - Create: `crates/omniroute-bifrost-bridge/Cargo.toml`
 - Create: `crates/omniroute-bifrost-bridge/build.rs`
 - Create: `crates/omniroute-bifrost-bridge/src/lib.rs`
@@ -455,6 +485,7 @@ After F6 (`cgo` in-process Bifrost Go SDK, 2027 Q1), Bifrost becomes an in-proce
 ### Task 5C: Mojo ML Kernels (T3-M binding)
 
 **Rationale:** Per decision tree Q2, Mojo is the **first pick** when ML kernel-level optimization matters. OmniRoute's ML-relevant hot paths:
+
 - Tokenization scoring (for cost prediction, combo scoring)
 - Future: on-device inference for routing decisions
 - Future: speculative decoding for compatible providers
@@ -462,6 +493,7 @@ After F6 (`cgo` in-process Bifrost Go SDK, 2027 Q1), Bifrost becomes an in-proce
 **Constraint:** Mojo is pre-1.0. This task is **gated** until Mojo ≥v1.0 ships. Until then, this slot is held by Rust with `tch`/`candle` ML libraries.
 
 **Files (planned, gated on Mojo v1.0):**
+
 - Create: `crates/omniroute-ml-kernels/Cargo.toml`
 - Create: `crates/omniroute-ml-kernels/build.rs`
 - Create: `crates/omniroute-ml-kernels/src/lib.rs` (FFI loader)
@@ -484,6 +516,7 @@ After F6 (`cgo` in-process Bifrost Go SDK, 2027 Q1), Bifrost becomes an in-proce
 ### Task 5D: FastMCP Bridge (T3-P binding)
 
 **Rationale:** Per the forced-edge audit (§0.4), **Python FastMCP is forced** because:
+
 - Anthropic's MCP ecosystem widely adopts FastMCP as the reference Python impl
 - Agents/clients expect FastMCP-style tool definitions (`@mcp.tool()` decorators)
 - The Python ML ecosystem (NumPy, scikit-learn, transformers) is the de-facto standard for tool augmentation
@@ -491,6 +524,7 @@ After F6 (`cgo` in-process Bifrost Go SDK, 2027 Q1), Bifrost becomes an in-proce
 **Strategy:** Run a FastMCP server **in-process** (not as separate Python process) via `pyo3`. Python code calls Rust data plane through `pyo3` FFI. Rust exports Python-callable functions for tool execution.
 
 **Files:**
+
 - Create: `crates/omniroute-fastmcp/Cargo.toml`
 - Create: `crates/omniroute-fastmcp/src/lib.rs` (pyo3 module)
 - Create: `crates/omniroute-fastmcp/python/omniroute_fastmcp/server.py`
@@ -549,6 +583,7 @@ pyo3 = { version = "0.21", features = ["auto-initialize"] }
 - [ ] **Step 6: Audit log parity** — Python invocations also write to `mcp_audit` table via Rust FFI
 
 **Why in-process vs separate Python process?** Running FastMCP in-process via `pyo3`:
+
 - Eliminates T1 HTTP overhead (~1-2 ms per call)
 - Shares Rust data plane state (no IPC serialization of combo configs, caches, etc.)
 - Single deployment unit (one binary boots both Rust + embedded Python)
@@ -584,16 +619,16 @@ Phase 1A → Phase 1B → Phase 2A → Phase 2B → Phase 3A → Phase 4A
 
 ## Risk Register
 
-| Risk | Likelihood | Impact | Mitigation |
-|------|-----------|--------|------------|
-| Rust migration stalls (too much TS code) | Medium | High | Phase incrementally, ship each phase independently |
-| Bifrost upstream diverges | Low | Medium | Pin specific commit, maintain fork |
-| TypeScript/Rust dual-runtime complexity | High | Medium | Clear gRPC contract, well-defined ownership boundaries |
-| Performance regression vs pure TS | Low | Medium | Benchmark gates per phase, measure p50/p95/p99 |
-| Zig shims don't outperform Rust baselines | High | Low | Auto-fallback to Rust; deprecate shims |
-| Mojo v1.0 ships late / kernels underperform | High | Low | Task 5C is gated; Rust + `candle` covers gap |
-| Python interpreter not present at deploy time | Low | Medium | pyo3 fallback to TS MCP tools; documented in README |
-| FastMCP framework breaks (API drift) | Medium | Medium | Pin FastMCP version; mirror tools in TS MCP server as redundant |
+| Risk                                          | Likelihood | Impact | Mitigation                                                      |
+| --------------------------------------------- | ---------- | ------ | --------------------------------------------------------------- |
+| Rust migration stalls (too much TS code)      | Medium     | High   | Phase incrementally, ship each phase independently              |
+| Bifrost upstream diverges                     | Low        | Medium | Pin specific commit, maintain fork                              |
+| TypeScript/Rust dual-runtime complexity       | High       | Medium | Clear gRPC contract, well-defined ownership boundaries          |
+| Performance regression vs pure TS             | Low        | Medium | Benchmark gates per phase, measure p50/p95/p99                  |
+| Zig shims don't outperform Rust baselines     | High       | Low    | Auto-fallback to Rust; deprecate shims                          |
+| Mojo v1.0 ships late / kernels underperform   | High       | Low    | Task 5C is gated; Rust + `candle` covers gap                    |
+| Python interpreter not present at deploy time | Low        | Medium | pyo3 fallback to TS MCP tools; documented in README             |
+| FastMCP framework breaks (API drift)          | Medium     | Medium | Pin FastMCP version; mirror tools in TS MCP server as redundant |
 
 ---
 

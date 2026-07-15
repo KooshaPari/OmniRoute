@@ -23,24 +23,24 @@ The release artifact is a **single `omniroute` binary** built by `cargo xtask`, 
 
 ## 2. Language assignment matrix
 
-| Subsystem | Language | Rationale |
-|---|---|---|
-| HTTP server (chat, embeddings, models, MCP, A2A) | Rust (axum) | Lowest per-request overhead, first-class SSE, mature ecosystem |
-| Streaming parsers (SSE, JSON-lines, multipart) | Zig (via Rust FFI) | Zero-copy, simd-json, 5-10× faster than serde_json for the read path |
-| Provider adapters (160+) | Rust | The catalog is data; one registry crate; one translator crate |
-| Auth / session / API keys | Rust | Encryption lives here; no FFI for secrets |
-| DB / persistence (SQLite) | Rust (rusqlite) | Bundled SQLite, same `.sql` migration files, no driver mismatch |
-| CLI | Go (cobra) | Cross-compiles to every Node target, fast startup, easy distribution |
-| SDK | Go | `go install github.com/.../omniroute@latest`; clients in any language can vendor the generated OpenAPI |
-| Compression (RTK, Caveman) | Rust | Stream-friendly, lives next to the SSE layer |
-| MITM / tproxy (Linux) | Zig (FFI from Rust) | Ports the existing C code 1:1; same `.node` ABI available for the transition |
-| MCP server | Rust (`rmcp`) | Official Rust SDK; protocol-correctness matters |
-| A2A server | Rust (custom) | A2A is JSON-RPC over HTTP; axum handles it |
-| Embeddings / semantic cache | Rust (`ort` crate, ONNX Runtime) | ONNX is the 2026 stable path; Mojo is deferred |
-| Electron desktop | TS (unchanged) | The shell just talks HTTP; rewrite the server, not the shell |
-| Dashboard (Next.js) | TS (unchanged) | Out of scope for v1 |
-| OpenAPI / docs | Rust (`utoipa`) | Generates the same `openapi.yaml` the TS layer already validates |
-| Observability | Rust (`tracing` + `tracing-opentelemetry` + `opentelemetry-otlp`) | Single OTel collector; TS forwards via `node-otel` |
+| Subsystem                                        | Language                                                          | Rationale                                                                                              |
+| ------------------------------------------------ | ----------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| HTTP server (chat, embeddings, models, MCP, A2A) | Rust (axum)                                                       | Lowest per-request overhead, first-class SSE, mature ecosystem                                         |
+| Streaming parsers (SSE, JSON-lines, multipart)   | Zig (via Rust FFI)                                                | Zero-copy, simd-json, 5-10× faster than serde_json for the read path                                   |
+| Provider adapters (160+)                         | Rust                                                              | The catalog is data; one registry crate; one translator crate                                          |
+| Auth / session / API keys                        | Rust                                                              | Encryption lives here; no FFI for secrets                                                              |
+| DB / persistence (SQLite)                        | Rust (rusqlite)                                                   | Bundled SQLite, same `.sql` migration files, no driver mismatch                                        |
+| CLI                                              | Go (cobra)                                                        | Cross-compiles to every Node target, fast startup, easy distribution                                   |
+| SDK                                              | Go                                                                | `go install github.com/.../omniroute@latest`; clients in any language can vendor the generated OpenAPI |
+| Compression (RTK, Caveman)                       | Rust                                                              | Stream-friendly, lives next to the SSE layer                                                           |
+| MITM / tproxy (Linux)                            | Zig (FFI from Rust)                                               | Ports the existing C code 1:1; same `.node` ABI available for the transition                           |
+| MCP server                                       | Rust (`rmcp`)                                                     | Official Rust SDK; protocol-correctness matters                                                        |
+| A2A server                                       | Rust (custom)                                                     | A2A is JSON-RPC over HTTP; axum handles it                                                             |
+| Embeddings / semantic cache                      | Rust (`ort` crate, ONNX Runtime)                                  | ONNX is the 2026 stable path; Mojo is deferred                                                         |
+| Electron desktop                                 | TS (unchanged)                                                    | The shell just talks HTTP; rewrite the server, not the shell                                           |
+| Dashboard (Next.js)                              | TS (unchanged)                                                    | Out of scope for v1                                                                                    |
+| OpenAPI / docs                                   | Rust (`utoipa`)                                                   | Generates the same `openapi.yaml` the TS layer already validates                                       |
+| Observability                                    | Rust (`tracing` + `tracing-opentelemetry` + `opentelemetry-otlp`) | Single OTel collector; TS forwards via `node-otel`                                                     |
 
 ---
 
@@ -48,59 +48,59 @@ The release artifact is a **single `omniroute` binary** built by `cargo xtask`, 
 
 ### 3.1 Rust
 
-| Concern | Library | Version | Why | Alternatives |
-|---|---|---|---|---|
-| HTTP server | `axum` | 0.8 | Tower ecosystem, first-class SSE, Tokio-native | `actix-web` (faster but diverges), `hyper` only (too low-level) |
-| Async runtime | `tokio` | 1.x | The default; required by axum | `smol` (smaller but smaller ecosystem) |
-| SQLite | `rusqlite` | 0.32 with `bundled` feature | Same SQL files; no driver mismatch | `sqlx` (async-only, overkill for hot path), `libsql-client` (server mode only) |
-| Migrations | `rusqlite_migration` | 1.x | Reads the existing 116 SQL files; no rewrite | `sqlx::migrate!` (tied to sqlx) |
-| Serde | `serde` + `serde_json` | 1.x | Standard | `sonic-rs`, `simd-json` (faster, but only worth it for the read path — use in Zig) |
-| Allocator | `mimalloc` (global) | 0.1 | Best general-purpose allocator for 2026 | `jemalloc` (slower on modern Linux), `rpmalloc` |
-| HTTP client (provider egress) | `reqwest` (rustls) | 0.12 | rustls avoids the OpenSSL dep | `hyper` only (no connection pooling) |
-| TLS | `rustls` | 0.23 | Pure Rust, no system OpenSSL | `native-tls` (Linux dep hell) |
-| CLI (xtask) | `clap` | 4.x | De-facto standard | `argh` (smaller) |
-| Config | `figment` | 0.10 | Reads the existing `.env` + YAML | `config` crate (older API) |
-| Logging / tracing | `tracing` + `tracing-subscriber` + `tracing-opentelemetry` | latest | Structured, spans, OTel export | `slog` (older) |
-| Metrics | `metrics` + `metrics-exporter-prometheus` | latest | Prometheus pull | `prometheus` crate directly (more boilerplate) |
-| SSE | `axum::response::sse` | built-in | Native to axum | `eventsource-stream` (lower-level) |
-| WebSocket | `axum::extract::ws` | built-in | Native | `tungstenite` (lower-level) |
-| MCP | `rmcp` | 0.x | Official Rust SDK | Hand-rolled (don't) |
-| JSON-RPC | `jsonrpsee` | 0.24 | A2A / ACP server | `tower-jsonrpsee` (newer) |
-| FFI (Rust → C ABI) | `cbindgen` | 0.27 | Generate `*.h` for Go/Zig | `uniffi` (different model) |
-| ONNX | `ort` | 2.x | ONNX Runtime bindings; v1 inference path | `tract` (pure Rust, smaller models only) |
-| Crypto | `ring` | 0.17 | Fast, audited, used by `rustls` | `aws-lc-rs` (newer) |
-| Compression (zstd) | `zstd` | 0.13 | Standard | — |
-| DB encryption | `rusqlite` + `sqlcipher` feature | — | Optional; matches the existing `dataPaths.ts` encrypted mode | — |
-| Errors | `thiserror` (lib) + `anyhow` (bin) | 1.x / 1.x | Idiomatic | — |
-| Time | `time` + `time-macros` | 0.3 | Stable, no std re-export surprise | `chrono` (in maintenance) |
-| UUID | `uuid` | 1.x | Standard | `ulid` (sortable, optional) |
-| Async traits | `async-trait` | 0.1 | Still needed for some tower middleware | Native async fn in trait (Rust 1.75+, but trait objects need this) |
+| Concern                       | Library                                                    | Version                     | Why                                                          | Alternatives                                                                       |
+| ----------------------------- | ---------------------------------------------------------- | --------------------------- | ------------------------------------------------------------ | ---------------------------------------------------------------------------------- |
+| HTTP server                   | `axum`                                                     | 0.8                         | Tower ecosystem, first-class SSE, Tokio-native               | `actix-web` (faster but diverges), `hyper` only (too low-level)                    |
+| Async runtime                 | `tokio`                                                    | 1.x                         | The default; required by axum                                | `smol` (smaller but smaller ecosystem)                                             |
+| SQLite                        | `rusqlite`                                                 | 0.32 with `bundled` feature | Same SQL files; no driver mismatch                           | `sqlx` (async-only, overkill for hot path), `libsql-client` (server mode only)     |
+| Migrations                    | `rusqlite_migration`                                       | 1.x                         | Reads the existing 116 SQL files; no rewrite                 | `sqlx::migrate!` (tied to sqlx)                                                    |
+| Serde                         | `serde` + `serde_json`                                     | 1.x                         | Standard                                                     | `sonic-rs`, `simd-json` (faster, but only worth it for the read path — use in Zig) |
+| Allocator                     | `mimalloc` (global)                                        | 0.1                         | Best general-purpose allocator for 2026                      | `jemalloc` (slower on modern Linux), `rpmalloc`                                    |
+| HTTP client (provider egress) | `reqwest` (rustls)                                         | 0.12                        | rustls avoids the OpenSSL dep                                | `hyper` only (no connection pooling)                                               |
+| TLS                           | `rustls`                                                   | 0.23                        | Pure Rust, no system OpenSSL                                 | `native-tls` (Linux dep hell)                                                      |
+| CLI (xtask)                   | `clap`                                                     | 4.x                         | De-facto standard                                            | `argh` (smaller)                                                                   |
+| Config                        | `figment`                                                  | 0.10                        | Reads the existing `.env` + YAML                             | `config` crate (older API)                                                         |
+| Logging / tracing             | `tracing` + `tracing-subscriber` + `tracing-opentelemetry` | latest                      | Structured, spans, OTel export                               | `slog` (older)                                                                     |
+| Metrics                       | `metrics` + `metrics-exporter-prometheus`                  | latest                      | Prometheus pull                                              | `prometheus` crate directly (more boilerplate)                                     |
+| SSE                           | `axum::response::sse`                                      | built-in                    | Native to axum                                               | `eventsource-stream` (lower-level)                                                 |
+| WebSocket                     | `axum::extract::ws`                                        | built-in                    | Native                                                       | `tungstenite` (lower-level)                                                        |
+| MCP                           | `rmcp`                                                     | 0.x                         | Official Rust SDK                                            | Hand-rolled (don't)                                                                |
+| JSON-RPC                      | `jsonrpsee`                                                | 0.24                        | A2A / ACP server                                             | `tower-jsonrpsee` (newer)                                                          |
+| FFI (Rust → C ABI)            | `cbindgen`                                                 | 0.27                        | Generate `*.h` for Go/Zig                                    | `uniffi` (different model)                                                         |
+| ONNX                          | `ort`                                                      | 2.x                         | ONNX Runtime bindings; v1 inference path                     | `tract` (pure Rust, smaller models only)                                           |
+| Crypto                        | `ring`                                                     | 0.17                        | Fast, audited, used by `rustls`                              | `aws-lc-rs` (newer)                                                                |
+| Compression (zstd)            | `zstd`                                                     | 0.13                        | Standard                                                     | —                                                                                  |
+| DB encryption                 | `rusqlite` + `sqlcipher` feature                           | —                           | Optional; matches the existing `dataPaths.ts` encrypted mode | —                                                                                  |
+| Errors                        | `thiserror` (lib) + `anyhow` (bin)                         | 1.x / 1.x                   | Idiomatic                                                    | —                                                                                  |
+| Time                          | `time` + `time-macros`                                     | 0.3                         | Stable, no std re-export surprise                            | `chrono` (in maintenance)                                                          |
+| UUID                          | `uuid`                                                     | 1.x                         | Standard                                                     | `ulid` (sortable, optional)                                                        |
+| Async traits                  | `async-trait`                                              | 0.1                         | Still needed for some tower middleware                       | Native async fn in trait (Rust 1.75+, but trait objects need this)                 |
 
 ### 3.2 Go
 
-| Concern | Library | Notes |
-|---|---|---|
-| HTTP framework | stdlib `net/http` + `chi` (router) | Stdlib is enough; chi for clean middleware chaining |
-| SQLite | `modernc.org/sqlite` (pure Go) | No cgo; cross-compiles trivially; same SQL as the Rust side |
-| Migrations | `golang-migrate/migrate` | Reads the same SQL files |
-| Logging | `log/slog` (stdlib, Go 1.21+) | Structured, fast | `zap` (Uber) |
-| CLI | `spf13/cobra` | Standard | `urfave/cli` |
-| Config | `knadh/koanf` | Reads `.env` + YAML + TOML | `spf13/viper` (older API) |
-| Protobuf | `vtprotobuf` (codegen) + `protobuf` (runtime) | Fast, drop-in | `buf` (different build model) |
-| Process supervision | stdlib `os/exec` + the existing `bin/cli/runtime/processSupervisor.mjs` pattern | Port the supervisor concept to Go |
-| IPC (Go → Rust) | C-ABI via `cgo` calling the Rust `cdylib` | One `pkg/omniroute/bridge` package wraps the C calls |
-| Testing | stdlib `testing` + `testify` | Standard | — |
-| Release | `go install` + `goreleaser` | Standard | — |
+| Concern             | Library                                                                         | Notes                                                       |
+| ------------------- | ------------------------------------------------------------------------------- | ----------------------------------------------------------- |
+| HTTP framework      | stdlib `net/http` + `chi` (router)                                              | Stdlib is enough; chi for clean middleware chaining         |
+| SQLite              | `modernc.org/sqlite` (pure Go)                                                  | No cgo; cross-compiles trivially; same SQL as the Rust side |
+| Migrations          | `golang-migrate/migrate`                                                        | Reads the same SQL files                                    |
+| Logging             | `log/slog` (stdlib, Go 1.21+)                                                   | Structured, fast                                            | `zap` (Uber)                  |
+| CLI                 | `spf13/cobra`                                                                   | Standard                                                    | `urfave/cli`                  |
+| Config              | `knadh/koanf`                                                                   | Reads `.env` + YAML + TOML                                  | `spf13/viper` (older API)     |
+| Protobuf            | `vtprotobuf` (codegen) + `protobuf` (runtime)                                   | Fast, drop-in                                               | `buf` (different build model) |
+| Process supervision | stdlib `os/exec` + the existing `bin/cli/runtime/processSupervisor.mjs` pattern | Port the supervisor concept to Go                           |
+| IPC (Go → Rust)     | C-ABI via `cgo` calling the Rust `cdylib`                                       | One `pkg/omniroute/bridge` package wraps the C calls        |
+| Testing             | stdlib `testing` + `testify`                                                    | Standard                                                    | —                             |
+| Release             | `go install` + `goreleaser`                                                     | Standard                                                    | —                             |
 
 ### 3.3 Zig
 
-| Concern | Library | Notes |
-|---|---|---|
-| Build | `zig build` (0.13+) | Native to Zig |
-| FFI to Rust | `extern "C"` + `cbindgen`-generated `*.h` | Rust exposes `cdylib`; Zig imports |
-| JSON | `std.json` (parsing) | Good enough for the SSE framing layer |
-| HTTP server (debug only) | `zap` (research-stage) | Don't use in production; Zig is **only** the FFI/shim layer in v1 |
-| tproxy | port the existing `src/mitm/tproxy/native/` C to Zig 1:1 | The only piece of code we actually port to Zig in v1 |
+| Concern                  | Library                                                  | Notes                                                             |
+| ------------------------ | -------------------------------------------------------- | ----------------------------------------------------------------- |
+| Build                    | `zig build` (0.13+)                                      | Native to Zig                                                     |
+| FFI to Rust              | `extern "C"` + `cbindgen`-generated `*.h`                | Rust exposes `cdylib`; Zig imports                                |
+| JSON                     | `std.json` (parsing)                                     | Good enough for the SSE framing layer                             |
+| HTTP server (debug only) | `zap` (research-stage)                                   | Don't use in production; Zig is **only** the FFI/shim layer in v1 |
+| tproxy                   | port the existing `src/mitm/tproxy/native/` C to Zig 1:1 | The only piece of code we actually port to Zig in v1              |
 
 ### 3.4 Mojo
 
@@ -242,6 +242,7 @@ omniroute/
 ```
 
 `just release` runs:
+
 1. `cargo build --release -p omniroute-bridge` (Rust cdylib)
 2. `cargo build --release -p omniroute-xtask` (the bundler binary)
 3. `zig build` (Zig cdylib)
@@ -284,14 +285,14 @@ Single artifact. One `PATH` entry. Same UX as the current `omniroute` CLI.
 
 Realistic targets based on published benchmarks from LiteLLM (Python, comparable) and from `axum` + `tokio` (Rust, generally 2-3× LiteLLM at the same hardware):
 
-| Workload | Target | Reference |
-|---|---|---|
-| `POST /v1/chat/completions` (non-streaming, 1k tokens in/out) | p50 < 50ms overhead | LiteLLM p50 ~80-120ms |
-| `POST /v1/chat/completions` (streaming) | TTFB < 100ms; sustained > 5k tok/s per connection | axum SSE throughput |
-| Provider failover (3-provider combo) | < 200ms added latency | Combo engine in `src/lib/combos/` |
-| CLI startup | < 50ms cold | Go + Rust FFI |
-| DB ops (insert call_log) | p99 < 5ms | `rusqlite` batched WAL |
-| Memory at 10k concurrent streams | < 4 GB RSS | mimalloc + axum steady state |
+| Workload                                                      | Target                                            | Reference                         |
+| ------------------------------------------------------------- | ------------------------------------------------- | --------------------------------- |
+| `POST /v1/chat/completions` (non-streaming, 1k tokens in/out) | p50 < 50ms overhead                               | LiteLLM p50 ~80-120ms             |
+| `POST /v1/chat/completions` (streaming)                       | TTFB < 100ms; sustained > 5k tok/s per connection | axum SSE throughput               |
+| Provider failover (3-provider combo)                          | < 200ms added latency                             | Combo engine in `src/lib/combos/` |
+| CLI startup                                                   | < 50ms cold                                       | Go + Rust FFI                     |
+| DB ops (insert call_log)                                      | p99 < 5ms                                         | `rusqlite` batched WAL            |
+| Memory at 10k concurrent streams                              | < 4 GB RSS                                        | mimalloc + axum steady state      |
 
 Add an HTTP-level benchmark to Phase 1 (`tests/perf/` with `k6` or `drill`); currently the repo has no HTTP-level benchmark.
 
@@ -299,13 +300,13 @@ Add an HTTP-level benchmark to Phase 1 (`tests/perf/` with `k6` or `drill`); cur
 
 ## 11. Migration strategy (5 phases, one go/no-go gate each)
 
-| Phase | Scope | Gate |
-|---|---|---|
-| **0 — Toolchain** | rust/ and go/ directories; `just build` produces a placeholder `dist/omniroute` | `just build` works on macOS, Linux x86_64, Linux aarch64 |
-| **1 — Data plane** | `omniroute-db` (rusqlite + 116 migrations), `omniroute-bridge` (cdylib), Go CLI calls into Rust for `data dir`, `db status`, `db backup`. CLI parity for `bin/omniroute.mjs` data commands. | All 47 data-related CLI commands pass byte-for-byte where possible, semantically equivalent otherwise; the existing 1917 TS tests still pass |
+| Phase                                     | Scope                                                                                                                                                                                                                                                  | Gate                                                                                                                                                                                              |
+| ----------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **0 — Toolchain**                         | rust/ and go/ directories; `just build` produces a placeholder `dist/omniroute`                                                                                                                                                                        | `just build` works on macOS, Linux x86_64, Linux aarch64                                                                                                                                          |
+| **1 — Data plane**                        | `omniroute-db` (rusqlite + 116 migrations), `omniroute-bridge` (cdylib), Go CLI calls into Rust for `data dir`, `db status`, `db backup`. CLI parity for `bin/omniroute.mjs` data commands.                                                            | All 47 data-related CLI commands pass byte-for-byte where possible, semantically equivalent otherwise; the existing 1917 TS tests still pass                                                      |
 | **2 — Request plane (port the hot path)** | `omniroute-router` (axum), `omniroute-providers` (codegen from `open-sse/config/`), `omniroute-auth`, `omniroute-compression`. The Rust binary runs `/v1/chat/completions` and friends; the Next.js dashboard still serves the UI and proxies to Rust. | A golden-set replay test runs 10k real chat requests through the Rust server; outputs match the TS server byte-for-byte for non-streaming, semantic-equivalent for streaming; p50 < 50ms overhead |
-| **3 — Streaming + MITM + Zig** | `omniroute-mitm` (Zig tproxy port), SSE parser in Zig, MCP/A2A in Rust, embeddings via `ort`. | Linux MITM tproxy works on `IP_TRANSPARENT`; SSE parser passes the fuzz suite; `rmcp` server is protocol-conformant |
-| **4 — Retire the Next.js server** | Drop the Next.js server; ship a single Rust binary. Keep the Electron shell. | Full end-to-end smoke passes on a clean install; the 1917 TS tests are ported to `cargo test` and pass; release artifact is a single binary per platform |
+| **3 — Streaming + MITM + Zig**            | `omniroute-mitm` (Zig tproxy port), SSE parser in Zig, MCP/A2A in Rust, embeddings via `ort`.                                                                                                                                                          | Linux MITM tproxy works on `IP_TRANSPARENT`; SSE parser passes the fuzz suite; `rmcp` server is protocol-conformant                                                                               |
+| **4 — Retire the Next.js server**         | Drop the Next.js server; ship a single Rust binary. Keep the Electron shell.                                                                                                                                                                           | Full end-to-end smoke passes on a clean install; the 1917 TS tests are ported to `cargo test` and pass; release artifact is a single binary per platform                                          |
 
 The full IPC audit (subagent C) and the migration sequencing are in `03_BOUNDARY_IPC_FFI.md`.
 

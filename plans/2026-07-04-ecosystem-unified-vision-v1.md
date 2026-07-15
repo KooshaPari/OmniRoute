@@ -11,9 +11,10 @@ This document is the **north star** for everything in `/Users/kooshapari/CodePro
 
 ## 1. The Mission
 
-> **Phenotype** is a self-hosted, AI-native, enterprise-grade infrastructure platform that abstracts away the *how* of running software so that anyone — from indie developers to Fortune 500 teams — can ship, deploy, observe, and orchestrate applications and AI agents on any hardware, with the same primitives as AWS/GCP/Vercel/Supabase but **without lock-in**.
+> **Phenotype** is a self-hosted, AI-native, enterprise-grade infrastructure platform that abstracts away the _how_ of running software so that anyone — from indie developers to Fortune 500 teams — can ship, deploy, observe, and orchestrate applications and AI agents on any hardware, with the same primitives as AWS/GCP/Vercel/Supabase but **without lock-in**.
 
 **Concretely:**
+
 - One declarative file (`odin.nvms`) describes application + infrastructure + portfolio + agent configuration.
 - One command (`byteport deploy`) ships it from repo to live URL.
 - One control plane (`BytePort`) manages everything that runs.
@@ -106,14 +107,14 @@ The user's explicit preference, restated precisely:
 
 Before the decision tree applies, identify **forced edges** — places where the ecosystem dictates the language choice regardless of preference:
 
-| Forced edge | Why forced | Integration tier (per [ADR-032](../../docs/adr/0032-polyglot-binding-tiers.md), Accepted 2026-07-04) |
-|---|---|---|
-| **Python (FastMCP)** | FastMCP is the canonical MCP server framework; Anthropic ecosystem expects it | **T3-P** (`pyo3` Rust↔Python FFI, in-process) |
-| **Python (ML wizards)** | scikit-learn / pandas / transformers ecosystem is the de-facto for ML-augmented tooling | **T3-P** (`pyo3`) or **T2** (UDS RPC) |
-| **TypeScript (UI, MCP, A2A)** | No UI alternative at the velocity needed; Anthropic SDK reference impl is TS | **T1** (HTTP) or **T2** (UDS RPC) |
-| **WAT/WASM** | Browser-side execution, edge functions | **T1** (HTTP) |
-| **SQL** | Declarative queries — no substitute | n/a (within Rust `sqlx` or `rusqlite`) |
-| **Bash/Shell** | System tooling glue | n/a (build/test scripts) |
+| Forced edge                   | Why forced                                                                              | Integration tier (per [ADR-032](../../docs/adr/0032-polyglot-binding-tiers.md), Accepted 2026-07-04) |
+| ----------------------------- | --------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| **Python (FastMCP)**          | FastMCP is the canonical MCP server framework; Anthropic ecosystem expects it           | **T3-P** (`pyo3` Rust↔Python FFI, in-process)                                                        |
+| **Python (ML wizards)**       | scikit-learn / pandas / transformers ecosystem is the de-facto for ML-augmented tooling | **T3-P** (`pyo3`) or **T2** (UDS RPC)                                                                |
+| **TypeScript (UI, MCP, A2A)** | No UI alternative at the velocity needed; Anthropic SDK reference impl is TS            | **T1** (HTTP) or **T2** (UDS RPC)                                                                    |
+| **WAT/WASM**                  | Browser-side execution, edge functions                                                  | **T1** (HTTP)                                                                                        |
+| **SQL**                       | Declarative queries — no substitute                                                     | n/a (within Rust `sqlx` or `rusqlite`)                                                               |
+| **Bash/Shell**                | System tooling glue                                                                     | n/a (build/test scripts)                                                                             |
 
 **Decision rule:** When a forced edge exists, we do NOT write a wrapper in our preferred language. We **integrate** at the binding tier (T1/T2/T3) that minimizes overhead and preserves the forced-edge tool's ecosystem.
 
@@ -121,18 +122,19 @@ Before the decision tree applies, identify **forced edges** — places where the
 
 For each new component, run this tree in order. First match wins:
 
-| Question | If yes → | If no → |
-|---|---|---|
-| Q1: Is there a forced edge (FastMCP, ML wizards, WAT, TS UI)? | **Use forced edge** at T1/T2/T3 | Continue |
-| Q2: Is this an ML kernel / on-device inference / ML-augmented scoring? | **Mojo** (when ≥v1.0 ships; otherwise Rust + `candle` or Python) | Continue |
-| Q3: Is binary size <100KB, C-ABI required, kernelspace bridging, or compile-time codegen needed? | **Zig** | Continue |
-| Q4: Memory safety + perf + single-binary + tokio ecosystem? | **Rust** | Continue |
-| Q5: Massive SDK ecosystem (cloud), goroutine fanout, NVMS-style service? | **Go** | Continue |
-| Q6: UI / dashboard / agent protocol surface? | **TypeScript/SvelteKit/Next.js** | **Reconsider scope** |
+| Question                                                                                         | If yes →                                                         | If no →              |
+| ------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------- | -------------------- |
+| Q1: Is there a forced edge (FastMCP, ML wizards, WAT, TS UI)?                                    | **Use forced edge** at T1/T2/T3                                  | Continue             |
+| Q2: Is this an ML kernel / on-device inference / ML-augmented scoring?                           | **Mojo** (when ≥v1.0 ships; otherwise Rust + `candle` or Python) | Continue             |
+| Q3: Is binary size <100KB, C-ABI required, kernelspace bridging, or compile-time codegen needed? | **Zig**                                                          | Continue             |
+| Q4: Memory safety + perf + single-binary + tokio ecosystem?                                      | **Rust**                                                         | Continue             |
+| Q5: Massive SDK ecosystem (cloud), goroutine fanout, NVMS-style service?                         | **Go**                                                           | Continue             |
+| Q6: UI / dashboard / agent protocol surface?                                                     | **TypeScript/SvelteKit/Next.js**                                 | **Reconsider scope** |
 
 ### 3.2 Rust — High-volume systems language (largest portion)
 
 **Where:**
+
 - BytePort control plane (Phase 7+)
 - OmniRoute data plane (Phase 1+)
 - All CLI tools (`byteport`, `pheno-*`)
@@ -142,6 +144,7 @@ For each new component, run this tree in order. First match wins:
 - ML kernel fallback (`candle`, `tch`) until Mojo ≥v1.0
 
 **Why Rust wins the largest volume:**
+
 - Memory safety + performance = correct at scale
 - Single binary deployments (`cargo build --release`)
 - tokio ecosystem is unmatched (axum, tonic, hyper, reqwest)
@@ -152,6 +155,7 @@ For each new component, run this tree in order. First match wins:
 ### 3.3 Go — High-volume pragmatic services (second largest portion)
 
 **Where:**
+
 - NanoVMS core runtime (already Go)
 - Bifrost vendored gateway (already Go, until F6 `cgo` bridge ships)
 - Cloud SDK wrappers (AWS/GCP/Azure)
@@ -159,6 +163,7 @@ For each new component, run this tree in order. First match wins:
 - `cgo` callable from Rust via F6 bridge (2027 Q1)
 
 **Why Go wins the second-largest volume:**
+
 - Massive cloud SDK ecosystem (AWS, GCP, Azure, K8s, Terraform)
 - Goroutines + channels map naturally to request fanout
 - Smaller learning curve for casual contributors
@@ -168,6 +173,7 @@ For each new component, run this tree in order. First match wins:
 ### 3.4 TypeScript / Next.js / SvelteKit — Tier-3 only
 
 **Where:**
+
 - OmniRoute dashboard (Next.js 16)
 - BytePort frontend (SvelteKit 2 + Svelte 5 + Tailwind 4)
 - MCP server tooling (TypeScript) — coexists with FastMCP Python
@@ -175,6 +181,7 @@ For each new component, run this tree in order. First match wins:
 - Frontend-only portfolio sites
 
 **Why:**
+
 - Fast iteration
 - Massive component libraries
 - Familiar to most developers
@@ -184,11 +191,13 @@ For each new component, run this tree in order. First match wins:
 ### 3.5 Zig — High-leverage hot-path shims (small portion, big impact)
 
 **Where (concrete):**
+
 - `crates/omniroute-shims-zig/` — SSE chunker, regex prefilter, arena allocator (OmniRoute fork plan §Task 2E)
 - `crates/byteport-shims-zig/` — MicroVM shim, manifest validator, buildpack cache (BytePort evolution plan §Task 5D)
 - Future: kernelspace/embedded bridging, Wasmtime alternatives if Rust too heavy
 
 **Why Zig earns first-pick at hot paths:**
+
 - Binary size <100KB when needed
 - C ABI without overhead (Rust FFI is fast but not zero-cost for C interop)
 - Compile-time code generation without macros (cleaner than Rust `const fn` limits)
@@ -200,17 +209,20 @@ For each new component, run this tree in order. First match wins:
 ### 3.6 Mojo — High-leverage ML kernels (small portion, big impact, gated)
 
 **Where (concrete, planned):**
+
 - `crates/omniroute-ml-kernels/mojo/` — tokenizer scoring, combo routing (OmniRoute fork plan §Task 5C)
 - `crates/byteport-ml-kernels/mojo/` — cost prediction, anomaly detection (BytePort evolution plan §Task 5E)
 - Future: on-device inference for routing decisions, speculative decoding
 
 **Why Mojo earns first-pick for ML kernels:**
+
 - Native ML primitives (no `candle` indirection)
 - GPU/TPU-ready when available
 - `comptime` evaluation beats `candle` Rust for inference shape
 - Designed for the exact workload ML kernels represent
 
 **Gating constraint:** Mojo is pre-1.0. Tasks 5C and 5E are **gated** until Mojo ≥v1.0 ships. Until then, the slot is held by:
+
 - Rust `candle` or `tch` for inference
 - Python scikit-learn via `pyo3` for ML wizards
 
@@ -219,18 +231,21 @@ For each new component, run this tree in order. First match wins:
 ### 3.7 Python — Forced edge for FastMCP + ML wizards (small portion, ecosystem-locked)
 
 **Where (concrete, planned):**
+
 - `crates/omniroute-fastmcp/` — FastMCP server (OmniRoute fork plan §Task 5D)
 - `crates/byteport-fastmcp/` — FastMCP server (BytePort evolution plan §Task 5C)
 - ML-augmented deploy wizards (cost prediction, log anomaly detection)
 - Future: third-party tool plugins written by community (Python is the lowest-barrier authoring language)
 
 **Why Python is forced:**
+
 - FastMCP is the de-facto MCP framework; agents/clients expect `@mcp.tool()` decorator-style definitions
 - Anthropic ecosystem widely adopts FastMCP
 - NumPy / scikit-learn / pandas / transformers are the de-facto ML stack — we cannot replace them
 - Lowest barrier to entry for community-contributed tools (encourages ecosystem growth)
 
 **Integration tier:** **T3-P** (`pyo3` Rust↔Python FFI, in-process via `maturin` wheel build).
+
 - Eliminates T1 HTTP overhead (~1-2 ms per call)
 - Shares Rust state (no IPC serialization)
 - Single deployment unit (one binary boots Rust + embedded Python)
@@ -293,22 +308,27 @@ Per the user's directive, BytePort becomes a "100% owned Surface" that is a comb
 BytePort sits on top of five layers; it does NOT replace them. It orchestrates and abstracts.
 
 ### Layer 1: Hardware Abstraction — PhenoCompose + NanoVMS
+
 - Hardware-agnostic MicroVM runtime (Firecracker, gVisor, WASM)
 - Process supervision, network plumbing, volume management
 - Already exists: `nanovms/` (Go), `PhenoCompose/` (Rust/Go hybrid)
 
 ### Layer 2: Container Runtimes — Docker / Podman / containerd
+
 - Standard container primitives when MicroVM isn't needed
 - Drop-in support for any Docker-style image
 
 ### Layer 3: Cluster Orchestrators — Kubernetes, Nomad, Proxmox
+
 - Optional; activated for enterprise scale
 
 ### Layer 4: Network — Tailscale, Cloudflare Tunnel, ngrok
+
 - Service mesh + secure ingress without port-forwarding
 - Already integrated in OmniRoute fork (`src/lib/{cloudflaredTunnel,ngrokTunnel}.ts`)
 
 ### Layer 5: Observability — OpenTelemetry, Prometheus, Grafana, Loki
+
 - OTLP-based tracing everywhere
 - Metrics + structured logs as universal protocol
 
@@ -316,11 +336,11 @@ BytePort sits on top of five layers; it does NOT replace them. It orchestrates a
 
 ## 6. The Three Repos That Define The Stack
 
-| Repo | Purpose | Phase |
-|------|---------|-------|
-| **`BytePort/`** | Enterprise control surface | Active work |
-| **`OmniRoute/` (fork)** | AI proxy/router | Active work |
-| **`PhenoCompose/` + `nanovms/`** | Execution/runtime | Pre-existing |
+| Repo                             | Purpose                    | Phase        |
+| -------------------------------- | -------------------------- | ------------ |
+| **`BytePort/`**                  | Enterprise control surface | Active work  |
+| **`OmniRoute/` (fork)**          | AI proxy/router            | Active work  |
+| **`PhenoCompose/` + `nanovms/`** | Execution/runtime          | Pre-existing |
 
 These three repos cooperate. The user's directive: **I own BytePort, I own non-frontend OmniRoute aspects, PhenoCompose/NanoVMS sit below.**
 
@@ -333,6 +353,7 @@ BytePort ──► PhenoCompose (Rust crates for engine dispatch)
 ```
 
 Specifically:
+
 - **BytePort's "Firecracker engine"** delegates to **PhenoCompose's** KVMS driver, which talks to **NanoVMS's** Go service.
 - **BytePort's AI features** (LLM-powered portfolio descriptions, deploy wizards) call through **OmniRoute** for any provider selection. This means a user can use Anthropic for portfolio text generation and GPT-4o for status summaries, routed through OmniRoute's combo engine.
 - **BytePort's MCP server** shares tool style with **OmniRoute's MCP server** (both use the same `mcp-tools` patterns). Each ships a **TS MCP server** (T1 HTTP) and a **FastMCP Python server** (T3-P `pyo3`) so community authors can pick their preferred binding tier per [ADR-032](../../docs/adr/0032-polyglot-binding-tiers.md).
@@ -344,10 +365,12 @@ Specifically:
 ## 7. The Portfolio / Ecosystem Mandate
 
 Per the user's directive, BytePort must be both:
+
 - (a) **A portfolio** (showcase deployed projects)
 - (b) **Part of a portfolio/ecosystem**
 
 The "ecosystem" includes:
+
 - Phenotype monorepo (this `repos/`)
 - AgnosticPari / MidlDifi (kernel-level infrastructure, hint at `pheno-port-adapter`, `pheno-cdylib-bridge`)
 - All `pheno-*` projects for governance, tracing, config, context, errors, schema, llms-txt, drift detection
@@ -361,19 +384,20 @@ BytePort's role: surface a unified dashboard, API, and CLI for these. The user (
 
 ## 8. The Roadmap (Master View)
 
-| Quarter | Focus |
-|---------|-------|
+| Quarter           | Focus                                                                                                                              |
+| ----------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
 | **Q3 2026** (now) | OmniRoute Rust data plane (4 weeks) → BytePort v1.0 gaps closed → Phase 2 multi-tenant → Phase 3 multi-engine first 4 of 7 engines |
-| **Q4 2026** | Phase 4-6 (logs, agents, templates) → Rust control plane migration begins |
-| **Q1 2027** | Cross-cloud adapter (Phase 8) → Federation (Phase 9) → Enterprise SSO → Marketplace launch |
-| **Q2 2027** | Public SaaS offering (with self-host parity) → first 100 paying orgs |
-| **Q3 2027+** | Federation at scale → cross-cloud cost optimization → agent-native multi-org coordination |
+| **Q4 2026**       | Phase 4-6 (logs, agents, templates) → Rust control plane migration begins                                                          |
+| **Q1 2027**       | Cross-cloud adapter (Phase 8) → Federation (Phase 9) → Enterprise SSO → Marketplace launch                                         |
+| **Q2 2027**       | Public SaaS offering (with self-host parity) → first 100 paying orgs                                                               |
+| **Q3 2027+**      | Federation at scale → cross-cloud cost optimization → agent-native multi-org coordination                                          |
 
 ---
 
 ## 9. The Quality Bar
 
 Every layer in this stack must be:
+
 - **Production-grade**: 99.99% SLA target; graceful degradation; zero-downtime deploys
 - **Observable**: OTLP traces everywhere; Prometheus metrics; structured logs; cost attribution
 - **Secure by default**: Argon2id passwords; AES-256-GCM credentials; SSRF-safe HTTP; auth on every endpoint; rate limiting; audit log
@@ -386,23 +410,24 @@ Every layer in this stack must be:
 
 ## 10. Quick Reference — Where To Find What
 
-| I want to... | Look here |
-|--------------|-----------|
-| Understand OmniRoute's rewrite plan | `plans/2026-07-04-omniroute-fork-rewrite-v1.md` |
-| Understand BytePort's evolution plan | `plans/2026-07-04-byteport-evolution-v1.md` |
-| Understand the high-level ecosystem vision | This document |
-| Add a new provider to OmniRoute | OmniRoute fork README + `src/shared/constants/providers.ts` |
-| Add a new deployment engine to BytePort | BytePort evolution plan § Phase 3A |
-| Add a new MCP tool to OmniRoute | `open-sse/mcp-server/tools/` |
-| Add a new MCP tool to BytePort | `backend/internal/infrastructure/mcp/tools/` (after Phase 5) |
-| Add an OpenTelemetry export | Already wired via `pheno-otel` |
-| Add a new top-level Phenotype project | Update `phenotype-registry/index.ts`, then run `agileplus specify` |
+| I want to...                               | Look here                                                          |
+| ------------------------------------------ | ------------------------------------------------------------------ |
+| Understand OmniRoute's rewrite plan        | `plans/2026-07-04-omniroute-fork-rewrite-v1.md`                    |
+| Understand BytePort's evolution plan       | `plans/2026-07-04-byteport-evolution-v1.md`                        |
+| Understand the high-level ecosystem vision | This document                                                      |
+| Add a new provider to OmniRoute            | OmniRoute fork README + `src/shared/constants/providers.ts`        |
+| Add a new deployment engine to BytePort    | BytePort evolution plan § Phase 3A                                 |
+| Add a new MCP tool to OmniRoute            | `open-sse/mcp-server/tools/`                                       |
+| Add a new MCP tool to BytePort             | `backend/internal/infrastructure/mcp/tools/` (after Phase 5)       |
+| Add an OpenTelemetry export                | Already wired via `pheno-otel`                                     |
+| Add a new top-level Phenotype project      | Update `phenotype-registry/index.ts`, then run `agileplus specify` |
 
 ---
 
 ## 11. Required Reads Before Any Sub-Agent Work
 
 When a sub-agent is dispatched:
+
 1. **Read this document first** to understand context.
 2. **Read the relevant repo's CLAUDE.md and AGENTS.md.**
 3. **Read the relevant repo's SPEC.md and PLAN.md.**
@@ -432,4 +457,4 @@ These are the tenets that survive any individual PR debate:
 
 ---
 
-*Last Updated: 2026-07-04 · Owner: Koosha · Next review: 2026-09-04 (Q3 OKRs)*
+_Last Updated: 2026-07-04 · Owner: Koosha · Next review: 2026-09-04 (Q3 OKRs)_

@@ -7,10 +7,10 @@ points, and the seams where a next-gen SDK will (or will not) cleanly fit.
 Ground truth: the actual code, not the readme banners. Every claim below is
 backed by a file path. Maturity labels use 4 levels:
 
-  SCAFFOLD  - declared, no body, or empty stub
-  ACTIVE    - has real code, growing, not enterprise
-  MATURE    - stable shape, tests, docs, used by callers
-  SHIPPING  - consumed by production in another repo
+SCAFFOLD - declared, no body, or empty stub
+ACTIVE - has real code, growing, not enterprise
+MATURE - stable shape, tests, docs, used by callers
+SHIPPING - consumed by production in another repo
 
 Sibling context: the parent agent /root has 13 PRs already in flight for the
 absorption + spine work (A: org-audits, A2: KaskMan, B: apps+archives, C:
@@ -20,7 +20,9 @@ None of those are compute-layer SDK work; they are absorb+spine. The compute
 SDK is the next layer that grows on top of those PRs landing.
 
 ================================================================================
+
 ## 1. nanovms -- the compute primitive (Go)
+
 ================================================================================
 
 Role: the actual compute substrate. Multi-platform VM, container, WASM, and
@@ -57,6 +59,7 @@ nanovms/
 ### Maturity: ACTIVE (on the way to MATURE)
 
 Evidence the structure is real:
+
 - `internal/domain/sandbox.go` has the canonical SandboxType/VMFlavor/SandboxLayer
   enums with full doc comments and JSON tags
 - `internal/ports/ports.go` defines SandboxPort / VMFlavorPort /
@@ -119,6 +122,7 @@ Evidence the structure is real:
 
 KEEP, do not fold. The hexagonal architecture is the right shape. Two
 specific actions:
+
 - Extract the OCI `Reference` parser from PhenoCompose into a new shared
   `phenotype-types` crate (this is what the comment in `oci.rs` already
   promises). Both nanovms and PhenoCompose consume from there.
@@ -127,7 +131,9 @@ specific actions:
   and nanovms does not yet have.
 
 ================================================================================
+
 ## 2. PhenoCompose -- the orchestration layer (Rust ports)
+
 ================================================================================
 
 Role: hexagonal Rust ports + cross-language bindings. Sits between nanovms
@@ -166,6 +172,7 @@ PhenoCompose/
 ### Maturity: ACTIVE (with one CRITICAL gap)
 
 Evidence the shape is real:
+
 - `port-runtime/src/lib.rs` defines `Runtime: Send + Sync` with spawn/stop/
   status. The doc comments are exhaustive (4 paragraphs on idempotency,
   object-safety, error model). This is the model the rest of the port
@@ -232,6 +239,7 @@ Evidence the shape is real:
 ### Recommendation
 
 KEEP and EVOLVE. Two specific actions:
+
 - Move the OCI parser + Manifest + PortError into a new shared
   `phenotype-types` crate. Mark `port-types` as deprecated with a
   compile-time `#[deprecated]` re-export.
@@ -239,7 +247,9 @@ KEEP and EVOLVE. Two specific actions:
   object-safe, idempotent, with explicit `ProviderCapabilities`.
 
 ================================================================================
+
 ## 3. Eidolon -- desktop + mobile runtime (Rust)
+
 ================================================================================
 
 Role: the runtime shell for desktop and mobile applications. Sits
@@ -265,6 +275,7 @@ Eidolon/
 ### Maturity: ACTIVE -> MATURE (Phase 3 spec+test+trace, 80% per README)
 
 Evidence the docs are unusually mature for a polyrepo member:
+
 - 10 top-level docs subdirectories covering every concern (architecture
   decision records, security posture, formal specs, boundary contracts,
   operations runbooks, session logs, intent statements, worklogs,
@@ -310,7 +321,9 @@ nanovms/pheno-compose compute primitives -- verify and document that
 link.
 
 ================================================================================
+
 ## 4. KDesktopVirt -- desktop automation tier (Rust)
+
 ================================================================================
 
 Role: desktop automation (window management, scripted UI flows) on top
@@ -328,6 +341,7 @@ KDesktopVirt/
 ### Maturity: ACTIVE (70% per README work-state)
 
 Evidence the scope is real:
+
 - Workspace + cli_tools is the conventional Rust CLI layout
 - README work-state: "ACTIVE -- Desktop-automation tier; now the home
   for the automation port traits" -- 70% complete
@@ -359,7 +373,9 @@ trait in the PhenoCompose style. It is not a compute primitive; it
 sits beside the desktop runtime and consumes the same ports.
 
 ================================================================================
+
 ## 5. Tracely -- observability (Rust)
+
 ================================================================================
 
 Role: unified observability (traces, metrics, logs) with export to
@@ -381,6 +397,7 @@ Tracely/
 ### Maturity: BETA (70% per README work-state)
 
 Evidence the shape is right:
+
 - Two main crates (core + sentinel) with clear separation
 - Cross-language piece (`pheno-logging-zig`) for non-Rust callers
 - "Sentinel" is the SLO/error-budget pattern -- an enterprise
@@ -419,7 +436,9 @@ deploy. The Go and Python SDKs need observability bridges; the
 Zig bridge alone is insufficient.
 
 ================================================================================
+
 ## 6. Tracera -- the trace spine (Rust + frontend)
+
 ================================================================================
 
 Role: the trace storage and query layer. Tracely is the producer,
@@ -442,6 +461,7 @@ Tracera/
 ```
 
 ### Maturity: SCAFFOLDING (the repo shows 0 files in earlier ls,
+
 but Cargo.toml + 3 crates with src/ are present -- "0 files" was
 a stale count from before scaffolding landed)
 
@@ -474,7 +494,9 @@ storage + query. The trace UI is a BytePort concern. After the
 PR-F/L/T land, the frontend can move to BytePort.
 
 ================================================================================
+
 ## 7. Cross-cutting: where the seams leak
+
 ================================================================================
 
 The audit's 6 repos look like a coherent compute layer on paper.
@@ -482,6 +504,7 @@ In practice there are 7 cross-cutting seams that need attention
 before the compute layer is enterprise-grade.
 
 ### Seam 1: OCI types live in two places
+
 - PhenoCompose `port-types/src/oci.rs` has the canonical `Reference`
   parser
 - nanovms has `OCIImage` in `internal/domain/` (different shape)
@@ -493,6 +516,7 @@ from both nanovms (Go) and PhenoCompose (Rust). This is the most
 concrete early win.
 
 ### Seam 2: No CloudProvider abstraction
+
 Both nanovms and PhenoCompose have local-execution ports but no
 cloud-provider port. BytePort's CHARTER already commits to a
 multi-cloud future (the tenets mention "self-hosted, not cloud-
@@ -504,6 +528,7 @@ in lockstep. Implement against Fly.io first (its Machines API is
 exactly the right shape), then AWS Fargate, then Vercel/Supabase.
 
 ### Seam 3: Two hexagonal architectures
+
 nanovms is a Go hexagonal architecture. PhenoCompose is a Rust
 hexagonal architecture. The shapes are parallel but the names
 and methods are not synchronized. `SandboxPort.Create` (Go) and
@@ -514,6 +539,7 @@ sister document, `04_compute_architecture_spec.md`) and treat
 any drift as a bug.
 
 ### Seam 4: No scheduler, no policy gate
+
 The ports are one-shot. There is no "given this workload spec,
 where should it go?" decision point. BytePort's tenet 4 ("local
 dev == production") implies the scheduler should be deterministic
@@ -524,6 +550,7 @@ the default policy: "deploy to local if no provider is configured,
 else to the cheapest provider that meets the spec".
 
 ### Seam 5: Observability not auto-instrumented
+
 Tracely exists but does not auto-instrument nanovms or PhenoCompose.
 This means every workload emits traces only if the caller
 explicitly wraps it.
@@ -533,12 +560,14 @@ Fix: in the SandboxPort and Runtime traits, add an optional
 emits lifecycle events; Tracely listens.
 
 ### Seam 6: The frontend is a polyrepo member
+
 Tracera's frontend is in the trace repo. The compute layer should
 be backend-only -- the frontend is a BytePort concern.
 
 Fix: after PR-F/L/T land, move the frontend out of Tracera.
 
 ### Seam 7: The "AI-DD-META" banner is everywhere
+
 Most polyrepo members carry the "AI-Only-Maintained, Slop Expected"
 banner. This is fine for a learning metaproject but is a barrier
 to enterprise adoption. The contract should be: "this code meets
@@ -552,7 +581,9 @@ badge from the READMEs of the production-tier repos
 the experimental crates only.
 
 ================================================================================
+
 ## 8. Recommended next steps (ordered, with critical path)
+
 ================================================================================
 
 Critical path is the smallest set of work that gets the compute
@@ -598,7 +629,9 @@ observability (Tracely), and machine-readable capabilities
 enterprise / prod grade" the user asked for.
 
 ================================================================================
+
 ## 9. What this audit did NOT cover (follow-up lanes)
+
 ================================================================================
 
 - **The `cmd/nanovms/main.go` "Deunan" struct body.** Confirmed to
@@ -621,4 +654,3 @@ enterprise / prod grade" the user asked for.
 
 These are all 30-minute follow-ups; the parent agent's
 subagent lanes are the right place to dispatch them.
-

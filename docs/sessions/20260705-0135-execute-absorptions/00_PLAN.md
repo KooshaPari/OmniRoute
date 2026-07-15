@@ -32,21 +32,21 @@ OmniRoute work is explicitly deferred per "5 yes skip omni till after 6".
 
 ## PR table (verified via `gh pr list` at 2026-07-05 07:58Z)
 
-| # | Repo | PR | Title | State | Action |
-|---|------|-----|-------|-------|--------|
-| A | Tracera | #723 | spec: spec 008 (Tracera) | OPEN MERGEABLE | land first (lowest risk) |
-| B | Tracera | #725 | feat(spec-008-P1): port phenodag atomic claim + heartbeat + lifecycle | OPEN MERGEABLE | land second (depends on A) |
-| C | Tracera | #726 | feat(spec-008-P2): port phenodag dedup + sqlite + scanner + export + beads + status + init | OPEN MERGEABLE | land third (depends on B) |
-| D | AgilePlus | #895 | spec: absorb phenodag PM/cockpit concerns (presets, dashboard, commits) into AgilePlus spec 008 | OPEN CONFLICTING | resolve + land (stale main; rebase onto current main) |
-| E | phenodag | #29 | docs: thin redirector -- phenodag absorbed into Tracera + AgilePlus | OPEN CONFLICTING | resolve + land last (docs only) |
+| #   | Repo      | PR   | Title                                                                                           | State            | Action                                                |
+| --- | --------- | ---- | ----------------------------------------------------------------------------------------------- | ---------------- | ----------------------------------------------------- |
+| A   | Tracera   | #723 | spec: spec 008 (Tracera)                                                                        | OPEN MERGEABLE   | land first (lowest risk)                              |
+| B   | Tracera   | #725 | feat(spec-008-P1): port phenodag atomic claim + heartbeat + lifecycle                           | OPEN MERGEABLE   | land second (depends on A)                            |
+| C   | Tracera   | #726 | feat(spec-008-P2): port phenodag dedup + sqlite + scanner + export + beads + status + init      | OPEN MERGEABLE   | land third (depends on B)                             |
+| D   | AgilePlus | #895 | spec: absorb phenodag PM/cockpit concerns (presets, dashboard, commits) into AgilePlus spec 008 | OPEN CONFLICTING | resolve + land (stale main; rebase onto current main) |
+| E   | phenodag  | #29  | docs: thin redirector -- phenodag absorbed into Tracera + AgilePlus                             | OPEN CONFLICTING | resolve + land last (docs only)                       |
 
 ## Lanes (this rev, parallel)
 
-| # | Lane              | Agent role  | Deliverable                                                                                          | Slot |
-|---|-------------------|-------------|------------------------------------------------------------------------------------------------------|------|
-| L1 | archiver-spine    | docs-coder  | KaskMan verify; phenotype-org-audits spine charter + REGISTRY.md + symlink fix; phenotype-apps spine charter + INDEX.md commit + catalog.toml + Nth prune; inventory/deleted_traces/SYSTEMIC_ISSUES/UPLIFT_REPORT updates | 1 |
-| L2 | PR-merger         | rust-coder  | land Tracera#723, #725, #726; resolve + land AgilePlus#895; resolve + land phenodag#29; all PRs closed and merged to main | 2 |
-| L3 | root-manager      | parent (me) | coordinate, verify, commit, push, finalize phenodag 1-release retirement timeline, final cockpit      | root |
+| #   | Lane           | Agent role  | Deliverable                                                                                                                                                                                                               | Slot |
+| --- | -------------- | ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---- |
+| L1  | archiver-spine | docs-coder  | KaskMan verify; phenotype-org-audits spine charter + REGISTRY.md + symlink fix; phenotype-apps spine charter + INDEX.md commit + catalog.toml + Nth prune; inventory/deleted_traces/SYSTEMIC_ISSUES/UPLIFT_REPORT updates | 1    |
+| L2  | PR-merger      | rust-coder  | land Tracera#723, #725, #726; resolve + land AgilePlus#895; resolve + land phenodag#29; all PRs closed and merged to main                                                                                                 | 2    |
+| L3  | root-manager   | parent (me) | coordinate, verify, commit, push, finalize phenodag 1-release retirement timeline, final cockpit                                                                                                                          | root |
 
 Slot 4: held in reserve for any spec-008 AgilePlus code port (AP-PHENO-001..005
 Rust implementation) that the sponsor wants in-scope. If the user signals
@@ -69,10 +69,10 @@ turn and document the gap in 05_KNOWN_ISSUES.
 - R-2: phenodag#29 conflict on CHANGELOG.md only; docs-only rebase trivial
 - R-3: Tracera#725 introduces new SQLite migration (0006); check SQL on review
 - R-4: phenotype-apps has staged changes (ARCHIVE.md, INDEX.md, .gitignore,
-       AtomsBot-2nd/README.md) from prior session; L1 should inspect and
-       continue, NOT discard
+  AtomsBot-2nd/README.md) from prior session; L1 should inspect and
+  continue, NOT discard
 - R-5: AgilePlus has 95 files uncommitted; L2 must NOT touch them, only
-       rebase/merge the PR cleanly
+  rebase/merge the PR cleanly
 
 ## Verification
 

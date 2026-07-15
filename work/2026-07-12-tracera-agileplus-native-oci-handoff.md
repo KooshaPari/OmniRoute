@@ -12,25 +12,25 @@ Finish Tracera and AgilePlus functional requirements and defect gaps end to end;
 
 ## Current Evidence Baseline
 
-| surface | state | evidence | owner | next transition |
-|---|---|---|---|---|
-| root ledger | wip | `work/WORK.md` exists; not modified in this pass | root | merge only on operator request |
-| Tracera | wip | `Tracera/` and `pheno/Tracera/` both exist; dirty trees require containment | tracera | canonical repo selection + full gate |
-| AgilePlus | wip | `AgilePlus/` and `pheno/agileplus/` both exist | agileplus | canonical repo selection + deploy proof |
-| Python core retirement | plan | no completion claim until boundary inventory is current | tracera | classify every Python import |
-| native OCI | verify | Apple Container and WSLC scripts exist in prior handoff history; current checkout needs rerun | platform | rerun build/up/health |
-| frontend | plan | Bun workspace surfaces exist in Tracera | frontend | run Bun unit/build/type gates |
-| Vercel | plan | no current deployment proof in this checkout | release | inspect config, deploy only after gates |
-| local clients | plan | macOS/Windows install paths not reverified this turn | clients | package/install/health smoke |
+| surface                | state  | evidence                                                                                      | owner     | next transition                         |
+| ---------------------- | ------ | --------------------------------------------------------------------------------------------- | --------- | --------------------------------------- |
+| root ledger            | wip    | `work/WORK.md` exists; not modified in this pass                                              | root      | merge only on operator request          |
+| Tracera                | wip    | `Tracera/` and `pheno/Tracera/` both exist; dirty trees require containment                   | tracera   | canonical repo selection + full gate    |
+| AgilePlus              | wip    | `AgilePlus/` and `pheno/agileplus/` both exist                                                | agileplus | canonical repo selection + deploy proof |
+| Python core retirement | plan   | no completion claim until boundary inventory is current                                       | tracera   | classify every Python import            |
+| native OCI             | verify | Apple Container and WSLC scripts exist in prior handoff history; current checkout needs rerun | platform  | rerun build/up/health                   |
+| frontend               | plan   | Bun workspace surfaces exist in Tracera                                                       | frontend  | run Bun unit/build/type gates           |
+| Vercel                 | plan   | no current deployment proof in this checkout                                                  | release   | inspect config, deploy only after gates |
+| local clients          | plan   | macOS/Windows install paths not reverified this turn                                          | clients   | package/install/health smoke            |
 
 ## 2026-07-14 Control-Plane Evidence
 
-| id | state | evidence | result | next |
-|---|---|---|---|---|
-| ORG-003 | ok | `python -m unittest -v work/tests/test_ledger_import.py` | 2/2 pass: idempotence, duplicate-root recovery, and orphan dependency rejection | add drift/reconciliation tests |
-| ORG-006 | wip | `python -m work.tools.ledger_import` | WorkDB seeded from `forward-work.json` and `qa-matrix.json` | preserve full source state/QA fields |
-| ORG-007 | wip | `sqlite3 work/agileplus-work.db 'pragma foreign_key_check'` | no foreign-key violations reported | add freshness/metadata verifier |
-| AUD-WBS-003 | ok | importer output | `projects=1 modules=6 features=7 work_packages=7 dependencies=4 evidence=19` | make import/export diff stable |
+| id          | state | evidence                                                    | result                                                                          | next                                 |
+| ----------- | ----- | ----------------------------------------------------------- | ------------------------------------------------------------------------------- | ------------------------------------ |
+| ORG-003     | ok    | `python -m unittest -v work/tests/test_ledger_import.py`    | 2/2 pass: idempotence, duplicate-root recovery, and orphan dependency rejection | add drift/reconciliation tests       |
+| ORG-006     | wip   | `python -m work.tools.ledger_import`                        | WorkDB seeded from `forward-work.json` and `qa-matrix.json`                     | preserve full source state/QA fields |
+| ORG-007     | wip   | `sqlite3 work/agileplus-work.db 'pragma foreign_key_check'` | no foreign-key violations reported                                              | add freshness/metadata verifier      |
+| AUD-WBS-003 | ok    | importer output                                             | `projects=1 modules=6 features=7 work_packages=7 dependencies=4 evidence=19`    | make import/export diff stable       |
 
 The importer lives at `work/tools/ledger_import.py`; its regression tests are
 `work/tests/test_ledger_import.py`. It intentionally does not modify `work/WORK.md`.
@@ -40,26 +40,26 @@ complete QA/state provenance in WorkDB metadata before treating cockpit state as
 
 ## Canonical Checkout Evidence
 
-| project | canonical path | origin | branch | HEAD | dirty entries | decision |
-|---|---|---|---|---|---:|---|
-| Tracera | `Tracera/` | `git@github.com:KooshaPari/Tracera.git` | `feat/spec-008-p1-claim-heartbeat-lifecycle` | `c726e4849` | 57 | use this path; preserve current work |
-| AgilePlus | `AgilePlus/` | `git@github.com:KooshaPari/AgilePlus.git` | `feat/dashboard-ux-audit-p0` | `b288ac6` | 27 | use this path; preserve current work |
+| project   | canonical path | origin                                    | branch                                       | HEAD        | dirty entries | decision                             |
+| --------- | -------------- | ----------------------------------------- | -------------------------------------------- | ----------- | ------------: | ------------------------------------ |
+| Tracera   | `Tracera/`     | `git@github.com:KooshaPari/Tracera.git`   | `feat/spec-008-p1-claim-heartbeat-lifecycle` | `c726e4849` |            57 | use this path; preserve current work |
+| AgilePlus | `AgilePlus/`   | `git@github.com:KooshaPari/AgilePlus.git` | `feat/dashboard-ux-audit-p0`                 | `b288ac6`   |            27 | use this path; preserve current work |
 
 Evidence command: `git -C <repo> remote get-url origin; git -C <repo> branch --show-current; git -C <repo> rev-parse --short HEAD; git -C <repo> status --short | wc -l`.
 
 ## 2026-07-14 Runtime / Deploy Gap Evidence
 
-| gap | severity | current evidence | owner | exit evidence |
-|---|---|---|---|---|
-| Tracera Rust formatting drift | P1 | `just format` reports diffs in `tracera-edge/src/lib.rs`, `tracera-server/src/cost_tracking.rs`, and `tracera-server/src/ingest.rs` | Tracera | clean `cargo fmt --check` after ownership review |
-| Tracera Bun test gate is non-existent | P0 | frontend root has no `test`; web app test is `echo "No tests configured"` | frontend | real Bun test script + nontrivial tests |
-| Tracera workflow commands are untracked | P1 | `Justfile` and `AGENTS.md` are dirty/untracked | Tracera | committed command surface + CI proof |
-| Tracera Compose cannot build as written | P0 | `docker-compose.yml` parses but references missing `Dockerfile`; only `Dockerfile.local` exists | platform | `docker compose build` proof |
-| Tracera selfhost secret boundary | blocked | Compose needs `CF_TUNNEL_TOKEN` interpolation | platform | supplied secret + redacted deploy proof |
-| Apple native OCI | verify | `/usr/local/bin/container` exists | platform | build/run/digest/health evidence |
-| Caddy | verify | `/opt/homebrew/bin/caddy` exists | platform | config validate + route smoke |
-| WSLC / Traefik | absent | command discovery found neither | platform | install/availability decision before deploy |
-| AgilePlus root Vercel surface | absent | no root Vercel config found | release | explicit incompatible/alternative surface decision |
+| gap                                     | severity | current evidence                                                                                                                    | owner    | exit evidence                                      |
+| --------------------------------------- | -------- | ----------------------------------------------------------------------------------------------------------------------------------- | -------- | -------------------------------------------------- |
+| Tracera Rust formatting drift           | P1       | `just format` reports diffs in `tracera-edge/src/lib.rs`, `tracera-server/src/cost_tracking.rs`, and `tracera-server/src/ingest.rs` | Tracera  | clean `cargo fmt --check` after ownership review   |
+| Tracera Bun test gate is non-existent   | P0       | frontend root has no `test`; web app test is `echo "No tests configured"`                                                           | frontend | real Bun test script + nontrivial tests            |
+| Tracera workflow commands are untracked | P1       | `Justfile` and `AGENTS.md` are dirty/untracked                                                                                      | Tracera  | committed command surface + CI proof               |
+| Tracera Compose cannot build as written | P0       | `docker-compose.yml` parses but references missing `Dockerfile`; only `Dockerfile.local` exists                                     | platform | `docker compose build` proof                       |
+| Tracera selfhost secret boundary        | blocked  | Compose needs `CF_TUNNEL_TOKEN` interpolation                                                                                       | platform | supplied secret + redacted deploy proof            |
+| Apple native OCI                        | verify   | `/usr/local/bin/container` exists                                                                                                   | platform | build/run/digest/health evidence                   |
+| Caddy                                   | verify   | `/opt/homebrew/bin/caddy` exists                                                                                                    | platform | config validate + route smoke                      |
+| WSLC / Traefik                          | absent   | command discovery found neither                                                                                                     | platform | install/availability decision before deploy        |
+| AgilePlus root Vercel surface           | absent   | no root Vercel config found                                                                                                         | release  | explicit incompatible/alternative surface decision |
 
 The immediate critical path is: real Tracera Bun test surface -> committed workflow surface ->
 Dockerfile/Compose repair -> native OCI build and health -> Caddy route smoke -> WSLC availability ->
@@ -186,18 +186,18 @@ No item is `ok` without current evidence. Historical evidence is explicitly labe
 
 ## 2026-07-14 Runtime and Deploy Evidence
 
-| gap | severity | current evidence | owner | exit evidence |
-|---|---|---|---|---|
-| Tracera Rust formatting drift | P1 | `just format` reports diffs in `tracera-edge/src/lib.rs`, `tracera-server/src/cost_tracking.rs`, and `tracera-server/src/ingest.rs` | Tracera | clean `cargo fmt --check` after ownership review |
-| Tracera Bun test gate is non-existent | P0 | frontend root has no `test`; web app test is `echo "No tests configured"` | frontend | real Bun test script and nontrivial tests |
-| Tracera workflow commands are untracked | P1 | `Justfile` and `AGENTS.md` are dirty/untracked | Tracera | committed command surface and CI proof |
-| Tracera Compose cannot build as written | P0 | `docker-compose.yml` parses but references missing `Dockerfile`; only `Dockerfile.local` exists | platform | `docker compose build` proof |
-| Tracera self-host secret boundary | blocked | self-host Compose requires `CF_TUNNEL_TOKEN` interpolation | platform | supplied secret and redacted deploy proof |
-| AgilePlus root Dockerfile release path | P0 | builds excluded `agileplus-cli` and copies absent `rust/`; `Dockerfile.rust` builds active workspace | AgilePlus | workspace activation plus executable image health proof |
-| Apple native OCI | verify | `/usr/local/bin/container` exists | platform | build/run/digest/health evidence |
-| Caddy | verify | `/opt/homebrew/bin/caddy` exists and Tracera self-host Caddyfile exists | platform | config validate and route smoke |
-| WSLC / Traefik | absent | command discovery found neither; no project config | platform | availability decision before Windows deploy |
-| AgilePlus root Vercel surface | absent | no root `vercel.json` found | release | explicit incompatible or alternative surface decision |
+| gap                                     | severity | current evidence                                                                                                                    | owner     | exit evidence                                           |
+| --------------------------------------- | -------- | ----------------------------------------------------------------------------------------------------------------------------------- | --------- | ------------------------------------------------------- |
+| Tracera Rust formatting drift           | P1       | `just format` reports diffs in `tracera-edge/src/lib.rs`, `tracera-server/src/cost_tracking.rs`, and `tracera-server/src/ingest.rs` | Tracera   | clean `cargo fmt --check` after ownership review        |
+| Tracera Bun test gate is non-existent   | P0       | frontend root has no `test`; web app test is `echo "No tests configured"`                                                           | frontend  | real Bun test script and nontrivial tests               |
+| Tracera workflow commands are untracked | P1       | `Justfile` and `AGENTS.md` are dirty/untracked                                                                                      | Tracera   | committed command surface and CI proof                  |
+| Tracera Compose cannot build as written | P0       | `docker-compose.yml` parses but references missing `Dockerfile`; only `Dockerfile.local` exists                                     | platform  | `docker compose build` proof                            |
+| Tracera self-host secret boundary       | blocked  | self-host Compose requires `CF_TUNNEL_TOKEN` interpolation                                                                          | platform  | supplied secret and redacted deploy proof               |
+| AgilePlus root Dockerfile release path  | P0       | builds excluded `agileplus-cli` and copies absent `rust/`; `Dockerfile.rust` builds active workspace                                | AgilePlus | workspace activation plus executable image health proof |
+| Apple native OCI                        | verify   | `/usr/local/bin/container` exists                                                                                                   | platform  | build/run/digest/health evidence                        |
+| Caddy                                   | verify   | `/opt/homebrew/bin/caddy` exists and Tracera self-host Caddyfile exists                                                             | platform  | config validate and route smoke                         |
+| WSLC / Traefik                          | absent   | command discovery found neither; no project config                                                                                  | platform  | availability decision before Windows deploy             |
+| AgilePlus root Vercel surface           | absent   | no root `vercel.json` found                                                                                                         | release   | explicit incompatible or alternative surface decision   |
 
 Critical path: real Tracera Bun test surface -> committed workflow surface -> Compose/Dockerfile repair -> native OCI build and health -> Caddy route smoke -> WSLC availability -> Vercel compatibility decision -> desktop install proof.
 

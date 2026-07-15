@@ -8,15 +8,15 @@
 
 ## 1. PRs opened this turn (7 total)
 
-| PR | Repo | URL | What |
-|---|---|---|---|
-| A | phenotype-org-audits | https://github.com/KooshaPari/phenotype-org-audits/pull/76 | spine charter + SPINE-INDEX |
-| B | phenotype-apps | https://github.com/KooshaPari/phenotype-apps/pull/153 | spine charter + SPINE-INDEX + ARCHIVE + 7 subproject strict-pause banners |
-| C | Authvault | https://github.com/KooshaPari/Authvault/pull/109 | deprecation banner pointing to AuthKit |
-| D | AuthKit | https://github.com/KooshaPari/AuthKit/pull/8 | docs/migrations/from-authvault.md + README link |
-| E | phenodag | https://github.com/KooshaPari/phenodag/pull/29 | 1-release thin redirector to Tracera + AgilePlus |
-| F | Tracera | https://github.com/KooshaPari/Tracera/pull/723 | spec 008: absorb phenodag trace concerns (DAG/queue/claim/dedup) |
-| G | AgilePlus | https://github.com/KooshaPari/AgilePlus/pull/895 | spec 008: absorb phenodag PM/cockpit concerns (presets, dashboard, commits) |
+| PR  | Repo                 | URL                                                        | What                                                                        |
+| --- | -------------------- | ---------------------------------------------------------- | --------------------------------------------------------------------------- |
+| A   | phenotype-org-audits | https://github.com/KooshaPari/phenotype-org-audits/pull/76 | spine charter + SPINE-INDEX                                                 |
+| B   | phenotype-apps       | https://github.com/KooshaPari/phenotype-apps/pull/153      | spine charter + SPINE-INDEX + ARCHIVE + 7 subproject strict-pause banners   |
+| C   | Authvault            | https://github.com/KooshaPari/Authvault/pull/109           | deprecation banner pointing to AuthKit                                      |
+| D   | AuthKit              | https://github.com/KooshaPari/AuthKit/pull/8               | docs/migrations/from-authvault.md + README link                             |
+| E   | phenodag             | https://github.com/KooshaPari/phenodag/pull/29             | 1-release thin redirector to Tracera + AgilePlus                            |
+| F   | Tracera              | https://github.com/KooshaPari/Tracera/pull/723             | spec 008: absorb phenodag trace concerns (DAG/queue/claim/dedup)            |
+| G   | AgilePlus            | https://github.com/KooshaPari/AgilePlus/pull/895           | spec 008: absorb phenodag PM/cockpit concerns (presets, dashboard, commits) |
 
 All 7 PRs are DRAFT. They are awaiting sponsor review and merge.
 
@@ -122,31 +122,31 @@ recoveries made during the gap.
 
 ### 9.1 PR state delta vs section 1
 
-| PR | Section-1 status | Current status | Note |
-|---|---|---|---|
-| A | `#76` DRAFT | MERGED 2026-07-05 04:00:30Z | spine charter landed |
-| B | `#153` DRAFT | MERGED | spine + 7 archives landed |
-| C | `#109` DRAFT | MERGED 2026-07-05 04:04Z | Authvault deprecation |
-| D | `#8` DRAFT | MERGED 2026-07-05 04:02:55Z | AuthKit migration guide |
-| E | `#29` DRAFT | MERGED | phenodag redirector |
-| F | `#723` DRAFT | MERGED | Tracera spec 008 + P1 (#725) + P2 (#727) |
-| G | `#895` DRAFT | MERGED | AgilePlus spec 008 |
+| PR  | Section-1 status | Current status              | Note                                     |
+| --- | ---------------- | --------------------------- | ---------------------------------------- |
+| A   | `#76` DRAFT      | MERGED 2026-07-05 04:00:30Z | spine charter landed                     |
+| B   | `#153` DRAFT     | MERGED                      | spine + 7 archives landed                |
+| C   | `#109` DRAFT     | MERGED 2026-07-05 04:04Z    | Authvault deprecation                    |
+| D   | `#8` DRAFT       | MERGED 2026-07-05 04:02:55Z | AuthKit migration guide                  |
+| E   | `#29` DRAFT      | MERGED                      | phenodag redirector                      |
+| F   | `#723` DRAFT     | MERGED                      | Tracera spec 008 + P1 (#725) + P2 (#727) |
+| G   | `#895` DRAFT     | MERGED                      | AgilePlus spec 008                       |
 
 ### 9.2 New merges since handoff (gap work)
 
-| PR | What | When |
-|---|---|---|
-| nanovms#81 | R-A P1 52→62+ compute layer | MERGED 2026-07-05 05:41Z |
-| nanovms#82 | R-A P2 62→75+ compute layer | MERGED 2026-07-05 23:12Z |
-| PhenoCompose#80 | R-A P1 55→65+ compute layer | MERGED 2026-07-05 05:42Z |
-| PhenoCompose#82 | R-A P2 retry (lost PR #81 recovered) | MERGED 2026-07-05 23:24Z |
-| PhenoCompose#83 | R-A P3 file-size mandate (port-types lib.rs) | MERGED 2026-07-06 |
-| PhenoCompose#84 | R-A P3 r2 (secret-file-adapter + port-di) | MERGED 2026-07-06 05:12Z |
-| Tracera#734 | TS schema mismatch (Phase D) | MERGED 2026-07-05 |
-| Tracera#735 | tokens.css palette library (5-family canonical) | MERGED 2026-07-06 00:58Z |
-| Tracera#737 | recover ITIL Problem-management domain model | MERGED 2026-07-06 |
-| Tracera#736 / #738 / #739 | L104/L101/L105 brand + docs media | MERGED 2026-07-06 |
-| AgilePlus#906-911 | tokens + ap okf + ap cockpit reader + brand/docs | MERGED 2026-07-06 |
+| PR                        | What                                             | When                     |
+| ------------------------- | ------------------------------------------------ | ------------------------ |
+| nanovms#81                | R-A P1 52→62+ compute layer                      | MERGED 2026-07-05 05:41Z |
+| nanovms#82                | R-A P2 62→75+ compute layer                      | MERGED 2026-07-05 23:12Z |
+| PhenoCompose#80           | R-A P1 55→65+ compute layer                      | MERGED 2026-07-05 05:42Z |
+| PhenoCompose#82           | R-A P2 retry (lost PR #81 recovered)             | MERGED 2026-07-05 23:24Z |
+| PhenoCompose#83           | R-A P3 file-size mandate (port-types lib.rs)     | MERGED 2026-07-06        |
+| PhenoCompose#84           | R-A P3 r2 (secret-file-adapter + port-di)        | MERGED 2026-07-06 05:12Z |
+| Tracera#734               | TS schema mismatch (Phase D)                     | MERGED 2026-07-05        |
+| Tracera#735               | tokens.css palette library (5-family canonical)  | MERGED 2026-07-06 00:58Z |
+| Tracera#737               | recover ITIL Problem-management domain model     | MERGED 2026-07-06        |
+| Tracera#736 / #738 / #739 | L104/L101/L105 brand + docs media                | MERGED 2026-07-06        |
+| AgilePlus#906-911         | tokens + ap okf + ap cockpit reader + brand/docs | MERGED 2026-07-06        |
 
 ### 9.3 GitHub-archived (confirmed 2026-07-07)
 
@@ -194,6 +194,7 @@ in this toolchain combo has been killed by automated safety systems.
 **Action:** phenotype-org-audits#78 (1-line CI fix) MERGED as commit 1c0b906.
 
 **Path taken:**
+
 1. Original PR opened 2026-07-06 00:58:40Z as DRAFT with 4 commits / 14 files / 7216+ / 0-.
 2. Resume detected state=DRAFT, mergeable=CONFLICTING (dirty).
 3. Force-marked Ready; squash blocked (merge commit cannot be cleanly created).
@@ -217,6 +218,7 @@ That is consistent with the doc consolidation policy in
 `repos/AGENTS.md` ("no temporal doc accumulation").
 
 **Lane status as of 2026-07-07 01:14Z:**
+
 - Root-lane PRs merged this session: 22+
 - Root-lane PRs open: 0
 - Root-lane PRs lost: 1 (PhenoCompose#81, recovered as #82)
@@ -232,10 +234,12 @@ No action required until then.
 ## 11. UPDATE 2026-07-07 06:19Z (resumed; do-all-next)
 
 **Action:** Two compute-layer PRs landed via this resume turn:
+
 1. **PhenoCompose#85** — `feat/daemon-serve-token-api`... wait, no: `feat/scorecard-lift-p3-85-r2` — refactor: decompose secret-file-adapter + port-di (P3 lift round 2). **MERGED 2026-07-07 06:15:34Z** via `--admin --squash --delete-branch` (CI mergeStateStatus=UNSTABLE, pre-existing failures on main; mergeable=MERGEABLE).
 2. **nanovms#84** — `feat/daemon-serve-token-api`: feat(daemon): scaffold serve+token subcommands + internal/api+listen+token packages. **MERGED 2026-07-07 06:19:39Z** via `--admin --squash --delete-branch`. 7 files / 721+ / 8-. UDS at `/tmp/omniroute/nvms.sock` (T2 binding tier for byteport-engine NVMS adapter).
 
 **Path taken for nanovms#84:**
+
 1. Detected uncommitted work on stale `feat/scorecard-lift-p2-75` branch (last touched 2026-07-06 20:56 — ~9h old; produced by earlier round-3 in-flight attempt).
 2. Files: `cmd/nvms/main.go` (+85/-8) + new `internal/api/{router.go,router_test.go}` + `internal/listen/{listen.go,listen_test.go}` + `internal/token/{token.go,token_test.go}`.
 3. Verified quality: `go build ./...` clean, `go vet ./...` clean, `go test ./internal/{api,listen,token}/...` 3/3 pass.
@@ -256,6 +260,7 @@ are pre-existing infrastructure/dependency issues, not caused by the PR diff.
 merge is the correct path.
 
 **Subagent management this turn:**
+
 - `/root/nanovms_p3_round2` — INTERRUPTED. Its work (sandbox.go decomposition) already landed via PR #83; the round-2 daemon work was duplicated by my direct path.
 - `/root/phenocompose_p3_round2` — completed naturally (PR #85 was its output).
 
@@ -265,6 +270,7 @@ The `## Process Safety -- Codex|Forge + Claude|Ghostty (NEVER KILL)` rule in
 this toolchain combo was killed by automated safety systems this turn.
 
 **Cumulative session state as of 2026-07-07 06:19Z:**
+
 - Root-lane PRs merged: 24+ (#76, #77, #153, #109, #8, #29, #723, #725, #727, #734, #735, #736, #737, #738, #739, #895, #906-911, #81, #82, #80, #82, #83, #84, #78, #85, #84(nanovms))
 - Root-lane PRs open: 0
 - Root-lane PRs lost: 1 (PhenoCompose#81, recovered as PhenoCompose#82)
@@ -272,6 +278,7 @@ this toolchain combo was killed by automated safety systems this turn.
 - Phenodag archive clock: target ~2026-07-12
 
 **What's left in root lane:**
+
 1. Phenodag archive clock: 1 release from 2026-07-05 → target ~2026-07-12. No action until then.
 2. (Out of root) BytePort Surface + identity evolution — owner: BytePort team.
 3. (Out of root) OmniRoute Rust rewrite — owner: OmniRoute team.
@@ -283,15 +290,17 @@ this toolchain combo was killed by automated safety systems this turn.
 **Action:** nanovms#85 MERGED 2026-07-07 06:26:20Z (commit ab47061).
 
 **Decomposition:** mac.go (401 lines, monolithic) → 4 files (max 196 lines):
-- `mac.go` (84)            — Adapter struct + NewAdapter + Name + SupportedTiers
-- `lifecycle.go` (196)     — Create + Start + Stop + Delete + Status + Exec + Pull
-- `lister.go` (106)        — List + listLima/listHyperKit/listFirecracker
-- `sandbox_layer.go` (48)  — applySandboxLayer (gVisor/sRAMP/wasmtime)
+
+- `mac.go` (84) — Adapter struct + NewAdapter + Name + SupportedTiers
+- `lifecycle.go` (196) — Create + Start + Stop + Delete + Status + Exec + Pull
+- `lister.go` (106) — List + listLima/listHyperKit/listFirecracker
+- `sandbox_layer.go` (48) — applySandboxLayer (gVisor/sRAMP/wasmtime)
 
 Plus 10 unit tests for the pure functions (Name, SupportedTiers, struct field
 preservation). This package previously had zero tests.
 
 **Validation:**
+
 - `go build ./...` clean
 - `go vet ./...` clean
 - `go test ./internal/adapters/mac/...` 10/10 pass
@@ -299,6 +308,7 @@ preservation). This package previously had zero tests.
 **Continuation:** Next decomposition candidate is `internal/adapters/windows/windows.go` (325 lines) or `internal/adapters/process/process.go` (297 lines).
 
 **Cumulative session state as of 2026-07-07 06:26Z:**
+
 - Root-lane PRs merged: 25+
 - Root-lane PRs open: 0
 - Root-lane PRs lost: 1 (PhenoCompose#81, recovered as PhenoCompose#82)
@@ -306,6 +316,7 @@ preservation). This package previously had zero tests.
 - Phenodag archive clock: target ~2026-07-12
 
 **What's left in root lane:**
+
 1. Phenodag archive clock: 1 release from 2026-07-05 → target ~2026-07-12. No action until then.
 2. (Out of root) BytePort Surface + identity evolution — owner: BytePort team.
 3. (Out of root) OmniRoute Rust rewrite — owner: OmniRoute team.
@@ -322,9 +333,9 @@ already landed; only 2 PRs were open.
 
 **Actions this turn (2 PRs, both admin-merged):**
 
-| PR | What | Why | Merge method | Time |
-|---|---|---|---|---|
-| phenodag#30 | fix(docs): restore proper redirector banner in README (41L, 1 file) | PR #29 was supposed to add the deprecation banner to README.md but the merge artifact was 0 bytes. This restores the 41-line banner with archive target 2026-07-12, absorption map (DAG/queue/claim → Tracera, PM/cockpit → AgilePlus), and timeline. All security pass (Socket, SonarCloud, Semgrep, GitGuardian, CodeQL). | `--merge` (admin) | 19:43:19Z |
+| PR          | What                                                                                                                        | Why                                                                                                                                                                                                                                                                                                                                                                                                                                            | Merge method       | Time      |
+| ----------- | --------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------ | --------- |
+| phenodag#30 | fix(docs): restore proper redirector banner in README (41L, 1 file)                                                         | PR #29 was supposed to add the deprecation banner to README.md but the merge artifact was 0 bytes. This restores the 41-line banner with archive target 2026-07-12, absorption map (DAG/queue/claim → Tracera, PM/cockpit → AgilePlus), and timeline. All security pass (Socket, SonarCloud, Semgrep, GitGuardian, CodeQL).                                                                                                                    | `--merge` (admin)  | 19:43:19Z |
 | Tracera#737 | recover: restore ITIL Problem-management domain model (Rust port from Python original at 2ece64691f) — 5 files, +2451/-1645 | Recovers a domain model that was deleted during the Python→Rust migration. Pattern: struct + 3 Store trait methods in `store.rs` (+92/-1) → SQLite + PG impls (+219/-1 and +197/-1) → migration `0007_create_problems.sql` (+57) → ~20 HTTP route handlers in `main.rs` (+1886/-1642 — removes obsolete Python-stubs glue). All CI green (CodeQL, rust-analyze, security-audit, Snyk, Semgrep, Socket, SonarCloud, CodeRabbit, Vercel deploy). | `--squash` (admin) | 19:43:45Z |
 
 `Tracera#737` required `--squash` because the repo's GitHub settings block merge commits
@@ -341,18 +352,19 @@ already landed; only 2 PRs were open.
 
 **All brief items (D1–D8) verified COMPLETE in this lane:**
 
-| # | Item | State | Evidence |
-|---|---|---|---|
-| D1 | AuthKit KEEP, Authvault archive | ✓ DONE | Authvault archived 2026-07-05T04:54:25Z; AuthKit kept (PKCE work shipped in commit 064b310) |
-| D2 | phenotype-org-audits spine | ✓ DONE | #76, #77, #78 merged; `chore/spine-charter` (latest 2026-07-07 01:14:20Z) |
-| D3 | Phenodag redirector + spec-level absorption | ✓ DONE | phenodag#29 (redirector), #30 (banner restore); Tracera#723/#725/#727, #737 (spec 008 + recovery); AgilePlus#895 (spec 008) |
-| D4 | AtomsBot / GDK / KaskMan archive | ✓ DONE | 3 repos GH-archived + 7 strict-pause banners in phenotype-apps#153 |
-| D5 | BytePort scope (Surface + identity) | ⊘ out-of-root | (other team owns) |
-| D6 | Subagent quota (default) | ✓ DONE | (4 slots managed this session) |
-| D7 | OmniRoute language split (Rust+Go both) | ⊘ out-of-root | (other team owns; plan at `docs/sessions/20260705-omniroute-backend-rewrite/`) |
-| D8 | Migration start (P0–P3, skip OmniRoute) | ✓ DONE | all P0–P3 closed; P4 polish deferred (orphaned subagent, no P4 work on disk) |
+| #   | Item                                        | State         | Evidence                                                                                                                    |
+| --- | ------------------------------------------- | ------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| D1  | AuthKit KEEP, Authvault archive             | ✓ DONE        | Authvault archived 2026-07-05T04:54:25Z; AuthKit kept (PKCE work shipped in commit 064b310)                                 |
+| D2  | phenotype-org-audits spine                  | ✓ DONE        | #76, #77, #78 merged; `chore/spine-charter` (latest 2026-07-07 01:14:20Z)                                                   |
+| D3  | Phenodag redirector + spec-level absorption | ✓ DONE        | phenodag#29 (redirector), #30 (banner restore); Tracera#723/#725/#727, #737 (spec 008 + recovery); AgilePlus#895 (spec 008) |
+| D4  | AtomsBot / GDK / KaskMan archive            | ✓ DONE        | 3 repos GH-archived + 7 strict-pause banners in phenotype-apps#153                                                          |
+| D5  | BytePort scope (Surface + identity)         | ⊘ out-of-root | (other team owns)                                                                                                           |
+| D6  | Subagent quota (default)                    | ✓ DONE        | (4 slots managed this session)                                                                                              |
+| D7  | OmniRoute language split (Rust+Go both)     | ⊘ out-of-root | (other team owns; plan at `docs/sessions/20260705-omniroute-backend-rewrite/`)                                              |
+| D8  | Migration start (P0–P3, skip OmniRoute)     | ✓ DONE        | all P0–P3 closed; P4 polish deferred (orphaned subagent, no P4 work on disk)                                                |
 
 **Out-of-root work (not mine, not started this turn):**
+
 - BytePort Surface + identity evolution — owner: BytePort team
 - OmniRoute Rust rewrite — owner: OmniRoute team
 - Phenodag GitHub archive on 2026-07-12 — owner: phenodag admin (one-time scheduled action)
@@ -368,6 +380,7 @@ and is consuming a slot but no compute. Will self-resolve on session end.
 **All 15 root-lane PRs landed. Lane is CLOSED.**
 
 ### Merged (15 total)
+
 - phenotype-org-audits#76 (spine charter), #77 (KaskMan vendor), #78 (spine charter v2)
 - phenotype-apps#153 (spine + 7 subproject archives)
 - Authvault#109 (deprecation banner) -- repo archived
@@ -379,10 +392,12 @@ and is consuming a slot but no compute. Will self-resolve on session end.
 - PhenoCompose#80 (P1 55->65), #82 (P2 65->75), #83 (P3 port-types decompose), #84 (P3 round-2 secret-file-adapter), #85 (P3 pheno-config extract), #86 (audit_scorecard.json post-P3 71/C)
 
 ### Open / Draft / Closed-not-merged
+
 - nanovms#87: closed as superseded by #86
 - PhenoCompose#81: closed (lost during prior rebase; #82 retry landed)
 
 ### GitHub-archived (4)
+
 - Authvault: archived 2026-07-05
 - AtomsBot: archived 2026-07-05
 - GDK: archived 2026-07-05
@@ -390,13 +405,14 @@ and is consuming a slot but no compute. Will self-resolve on session end.
 - phenodag: archived 2026-07-08 (NEW this turn)
 
 ### Outstanding (out of root scope or scheduled)
+
 - nanovms dep bump for 4 Dependabot vulns: DEFERRED (vitepress 1.3 -> 1.6 broke Vue compiler in docs/journeys/game-automation.md; needs docs cleanup PR first)
 - BytePort evolution: OUT OF SCOPE (D5: BOTH after absorptions done)
 - OmniRoute Rust rewrite: OUT OF SCOPE (D7: BOTH after absorptions done)
 
 ### Final scorecard snapshot
-| Repo | Pre-P1 | Post-P3 | Delta |
-|---|---|---|---|
-| nanovms | 7/F (grade_B42) | 69.5/D (audit_scorecard.json post-#86) | +62.5 |
-| PhenoCompose | 49/D | 71/C (audit_scorecard.json post-#86) | +22 |
 
+| Repo         | Pre-P1          | Post-P3                                | Delta |
+| ------------ | --------------- | -------------------------------------- | ----- |
+| nanovms      | 7/F (grade_B42) | 69.5/D (audit_scorecard.json post-#86) | +62.5 |
+| PhenoCompose | 49/D            | 71/C (audit_scorecard.json post-#86)   | +22   |

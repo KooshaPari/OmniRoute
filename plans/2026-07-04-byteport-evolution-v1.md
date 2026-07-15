@@ -3,6 +3,7 @@
 > **For agentic workers:** REQUIRED SUB-SKILL: Use subagent-driven-development (recommended) or executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 >
 > **Language Preference (decision-tree ordering for optimality):**
+>
 > 1. **Zig** — first pick where Rust memory model / binary size / C-ABI is suboptimal (MicroVM shims, kernelspace bridging)
 > 2. **Mojo** — first pick where ML/AI kernel-level optimization matters (cost prediction, portfolio image generation, log anomaly detection)
 > 3. **Rust** — control plane API, CLI, secrets, manifest engine, MCP/A2A servers, FFI bridges, Tauri shells, buildpacks
@@ -17,6 +18,7 @@
 **Architecture:** 3-layer architecture — (1) Rust control plane API (separate from Go NVMS service); (2) Pluggable deployment engines (Docker, K8s, Firecracker via NanoVMS, Lambda, etc.); (3) Multi-tenant secure secrets + observability. Zig hot-path shims in critical inner loops (manifest parse, buildpack cache lookup, secret derivation). Python FastMCP server for agent integration. Frontend: SvelteKit 2 + Tauri 2 shell.
 
 **Tech Stack:**
+
 - **Rust** (axum + sqlx + tonic + OpenTelemetry) — control plane, CLI, manifest, secrets, MCP/A2A servers, buildpacks, Tauri shell, FFI bridges (`napi-rs`)
 - **Zig** — MicroVM shims, kernelspace bridging, custom allocators for buildpack cache
 - **Mojo** — ML kernels for cost prediction, portfolio generation (when ≥v1.0 ships)
@@ -33,24 +35,25 @@
 
 ### 0.1 Codebase Inventory
 
-| Component | Location | Language | Status |
-|-----------|----------|----------|--------|
-| Backend (legacy) | `backend/byteport/` | Go 1.25 | Removed (PR fix/remove-dead-auth-stack) |
-| Backend (live) | `backend/` | Go 1.25 | Go/Gin/GORM/SQLite, WorkOS AuthKit, AWS SDK, NVMS proxy |
-| NVMS service | `backend/nvms/` | Go 1.25 | Spin/Fermyon wasm module, port 3000 |
-| byteport-cli | `crates/byteport-cli/` | Rust | CLI binary with DAG, OTel, transport crates |
-| byteport-dag | `crates/byteport-dag/` | Rust | DAG execution engine |
-| byteport-otel | `crates/byteport-otel/` | Rust | OpenTelemetry instrumentation |
-| byteport-transport | `crates/byteport-transport/` | Rust | Upload transport abstraction |
-| byteport-registry-adapter | `crates/byteport-registry-adapter/` | Rust | phenotype-registry adapter |
-| phenotype-types | `crates/phenotype-types/` | Rust | Shared Phenotype types |
-| Frontend | `frontend/web/` | SvelteKit 2 + Svelte 5 + Tailwind 4 | Admin UI |
-| Desktop shell | `frontend/web/src-tauri/` | Rust + Tauri 2 | Desktop/mobile shell |
-| FFI | `ffi/macos-share/`, `ffi/android-companion/`, `ffi/linux-dbus/` | Rust | Cross-platform FFI |
+| Component                 | Location                                                        | Language                            | Status                                                  |
+| ------------------------- | --------------------------------------------------------------- | ----------------------------------- | ------------------------------------------------------- |
+| Backend (legacy)          | `backend/byteport/`                                             | Go 1.25                             | Removed (PR fix/remove-dead-auth-stack)                 |
+| Backend (live)            | `backend/`                                                      | Go 1.25                             | Go/Gin/GORM/SQLite, WorkOS AuthKit, AWS SDK, NVMS proxy |
+| NVMS service              | `backend/nvms/`                                                 | Go 1.25                             | Spin/Fermyon wasm module, port 3000                     |
+| byteport-cli              | `crates/byteport-cli/`                                          | Rust                                | CLI binary with DAG, OTel, transport crates             |
+| byteport-dag              | `crates/byteport-dag/`                                          | Rust                                | DAG execution engine                                    |
+| byteport-otel             | `crates/byteport-otel/`                                         | Rust                                | OpenTelemetry instrumentation                           |
+| byteport-transport        | `crates/byteport-transport/`                                    | Rust                                | Upload transport abstraction                            |
+| byteport-registry-adapter | `crates/byteport-registry-adapter/`                             | Rust                                | phenotype-registry adapter                              |
+| phenotype-types           | `crates/phenotype-types/`                                       | Rust                                | Shared Phenotype types                                  |
+| Frontend                  | `frontend/web/`                                                 | SvelteKit 2 + Svelte 5 + Tailwind 4 | Admin UI                                                |
+| Desktop shell             | `frontend/web/src-tauri/`                                       | Rust + Tauri 2                      | Desktop/mobile shell                                    |
+| FFI                       | `ffi/macos-share/`, `ffi/android-companion/`, `ffi/linux-dbus/` | Rust                                | Cross-platform FFI                                      |
 
 ### 0.2 Architecture Audit
 
 **Current Architecture:**
+
 ```
 User → SvelteKit + Tauri 2 Shell (port 5173 dev)
   → Go Backend API (Gin, port 8081)
@@ -64,6 +67,7 @@ User → SvelteKit + Tauri 2 Shell (port 5173 dev)
 ```
 
 **Strengths:**
+
 - Self-hosted, no cloud lock-in (tenet 6)
 - Encrypted-at-rest with Argon2id (tenet 8)
 - SSRF-safe by default (tenet 7)
@@ -74,6 +78,7 @@ User → SvelteKit + Tauri 2 Shell (port 5173 dev)
 - Live authentication: WorkOS AuthKit (in progress)
 
 **Weaknesses:**
+
 - Single-user assumption baked into data models (User UUID as primary key throughout)
 - AWS is hardcoded as the deploy target (`backend/byteport/lib/manifest.go` references AWS SDK)
 - No multi-tenancy: cannot host multiple organizations/users on one instance
@@ -90,18 +95,18 @@ User → SvelteKit + Tauri 2 Shell (port 5173 dev)
 
 **Existing players (what BytePort must match or exceed):**
 
-| Platform | Specialty | BytePort Advantage |
-|----------|-----------|-------------------|
-| **Vercel** | Frontend/SaaS deploys | Self-host; multi-engine (Docker, K8s, Firecracker); Linux anywhere |
-| **Supabase** | Backend-as-Service | Can deploy to user's own infra; not cloud-hosted lock-in |
-| **Railway** | App deploys | Self-host; LLM-aware (manifest can include model configs) |
-| **Render** | Backend services | Self-host; multi-engine |
-| **Coolify** | Self-hostable Heroku/Netlify/Vercel | Multi-engine vs Docker-only; LLM-aware; portfolio generation |
-| **Dokku** | Self-hostable PaaS | Same as Coolify; modern UX vs 12-factor old-school |
-| **CapRover** | Self-hostable PaaS | Same; better DAG-based orchestration |
-| **Portainer** | Container management | Better application-stack abstraction |
-| **Dagger** | CI/CD as code | Built-in DAG; stronger IaC semantics |
-| **Terraform / Pulumi** | IaC | Application + infra combined in one manifest |
+| Platform               | Specialty                           | BytePort Advantage                                                 |
+| ---------------------- | ----------------------------------- | ------------------------------------------------------------------ |
+| **Vercel**             | Frontend/SaaS deploys               | Self-host; multi-engine (Docker, K8s, Firecracker); Linux anywhere |
+| **Supabase**           | Backend-as-Service                  | Can deploy to user's own infra; not cloud-hosted lock-in           |
+| **Railway**            | App deploys                         | Self-host; LLM-aware (manifest can include model configs)          |
+| **Render**             | Backend services                    | Self-host; multi-engine                                            |
+| **Coolify**            | Self-hostable Heroku/Netlify/Vercel | Multi-engine vs Docker-only; LLM-aware; portfolio generation       |
+| **Dokku**              | Self-hostable PaaS                  | Same as Coolify; modern UX vs 12-factor old-school                 |
+| **CapRover**           | Self-hostable PaaS                  | Same; better DAG-based orchestration                               |
+| **Portainer**          | Container management                | Better application-stack abstraction                               |
+| **Dagger**             | CI/CD as code                       | Built-in DAG; stronger IaC semantics                               |
+| **Terraform / Pulumi** | IaC                                 | Application + infra combined in one manifest                       |
 
 **Differentiator:** BytePort's enterprise edge is its **multi-engine + LLM-aware + portfolio-generating** combination. Few platforms offer all three. Add multi-tenancy, secrets management, observability, and agent integration (MCP/A2A), and BytePort becomes the canonical Phenotype control plane.
 
@@ -109,14 +114,14 @@ User → SvelteKit + Tauri 2 Shell (port 5173 dev)
 
 Per the user's directive, certain languages are **forced edges** (the ecosystem dictates the choice, not preference):
 
-| Forced edge | Why forced | Integration tier |
-|---|---|---|
-| **Python (FastMCP)** | FastMCP is the canonical MCP server framework used by the Anthropic ecosystem; agents/clients expect it | T3 (`pyo3` Rust↔Python FFI) |
-| **Python (ML deploy wizards)** | scikit-learn / pandas / transformers ecosystem is the de-facto for ML-augmented tooling | T3 (`pyo3`) or T2 (UDS) |
-| **TypeScript (UI)** | SvelteKit/Next.js dashboard — no UI alternative at the velocity needed | T1/T2 (HTTP, UDS) |
-| **WAT/WASM** | Browser-side execution, edge functions (Vercel adapter) | T1 (HTTP) |
-| **SQL** | Declarative queries — no substitute | n/a (within Rust `sqlx`) |
-| **Bash/Shell** | System tooling glue | n/a (build/test scripts) |
+| Forced edge                    | Why forced                                                                                              | Integration tier            |
+| ------------------------------ | ------------------------------------------------------------------------------------------------------- | --------------------------- |
+| **Python (FastMCP)**           | FastMCP is the canonical MCP server framework used by the Anthropic ecosystem; agents/clients expect it | T3 (`pyo3` Rust↔Python FFI) |
+| **Python (ML deploy wizards)** | scikit-learn / pandas / transformers ecosystem is the de-facto for ML-augmented tooling                 | T3 (`pyo3`) or T2 (UDS)     |
+| **TypeScript (UI)**            | SvelteKit/Next.js dashboard — no UI alternative at the velocity needed                                  | T1/T2 (HTTP, UDS)           |
+| **WAT/WASM**                   | Browser-side execution, edge functions (Vercel adapter)                                                 | T1 (HTTP)                   |
+| **SQL**                        | Declarative queries — no substitute                                                                     | n/a (within Rust `sqlx`)    |
+| **Bash/Shell**                 | System tooling glue                                                                                     | n/a (build/test scripts)    |
 
 **Decision rule:** When a forced edge exists, we do NOT write a wrapper in our preferred language. We **integrate** at the binding tier (T1/T2/T3) that minimizes overhead and preserves the forced-edge tool's ecosystem.
 
@@ -124,35 +129,36 @@ Per the user's directive, certain languages are **forced edges** (the ecosystem 
 
 For each new component, run this decision tree in order. First match wins:
 
-| Question | If yes → | If no → |
-|---|---|---|
-| Q1: Is there a forced edge (FastMCP, ML wizards, WAT)? | **Use forced edge** at T1/T2/T3 | Continue |
-| Q2: Is this an ML kernel / portfolio generation / cost prediction? | **Mojo** (when ≥v1.0 ships) | Continue |
-| Q3: Is binary size <100KB, C-ABI required, or kernelspace bridging? | **Zig** | Continue |
-| Q4: Memory safety + perf + single-binary + tokio ecosystem? | **Rust** | Continue |
-| Q5: Massive SDK ecosystem (cloud), goroutine fanout, NVMS-style service? | **Go** | Continue |
-| Q6: UI / dashboard / agent protocol surface? | **TypeScript/SvelteKit** | **Reconsider scope** |
+| Question                                                                 | If yes →                        | If no →              |
+| ------------------------------------------------------------------------ | ------------------------------- | -------------------- |
+| Q1: Is there a forced edge (FastMCP, ML wizards, WAT)?                   | **Use forced edge** at T1/T2/T3 | Continue             |
+| Q2: Is this an ML kernel / portfolio generation / cost prediction?       | **Mojo** (when ≥v1.0 ships)     | Continue             |
+| Q3: Is binary size <100KB, C-ABI required, or kernelspace bridging?      | **Zig**                         | Continue             |
+| Q4: Memory safety + perf + single-binary + tokio ecosystem?              | **Rust**                        | Continue             |
+| Q5: Massive SDK ecosystem (cloud), goroutine fanout, NVMS-style service? | **Go**                          | Continue             |
+| Q6: UI / dashboard / agent protocol surface?                             | **TypeScript/SvelteKit**        | **Reconsider scope** |
 
 ### 0.6 Goals & Vision (Enterprise Control Surface)
 
 BytePort's evolving scope:
 
-| v1.0 (current) | v2.0 (this plan) | v3.0 (long-term) |
-|----------------|------------------|------------------|
-| Single-user IaC + Portfolio | Multi-tenant enterprise control surface | Cross-cloud orchestration platform |
-| AWS-only deploy | Multi-engine (AWS, Docker, K8s, Firecracker via NanoVMS) | Multi-cloud abstraction (AWS/GCP/Azure/Vercel/Supabase) |
-| Go/Gin/GORM/SQLite | Rust + Go split; Postgres option | Distributed state store + event sourcing |
-| SvelteKit UI | SvelteKit UI + Tauri + Mobile | Polished dashboard + CLI + VSCode extension |
-| WorkOS AuthKit | WorkOS + OIDC + SAML/SSO + passkeys | Full enterprise SSO integration |
-| No agent protocol | MCP server + A2A agent card | First-class agent registry |
-| No orgs | Teams + organizations + RBAC | Full org/admin/user hierarchy |
-| Single-VM self-host | Multi-node orchestration | Federated control plane |
+| v1.0 (current)              | v2.0 (this plan)                                         | v3.0 (long-term)                                        |
+| --------------------------- | -------------------------------------------------------- | ------------------------------------------------------- |
+| Single-user IaC + Portfolio | Multi-tenant enterprise control surface                  | Cross-cloud orchestration platform                      |
+| AWS-only deploy             | Multi-engine (AWS, Docker, K8s, Firecracker via NanoVMS) | Multi-cloud abstraction (AWS/GCP/Azure/Vercel/Supabase) |
+| Go/Gin/GORM/SQLite          | Rust + Go split; Postgres option                         | Distributed state store + event sourcing                |
+| SvelteKit UI                | SvelteKit UI + Tauri + Mobile                            | Polished dashboard + CLI + VSCode extension             |
+| WorkOS AuthKit              | WorkOS + OIDC + SAML/SSO + passkeys                      | Full enterprise SSO integration                         |
+| No agent protocol           | MCP server + A2A agent card                              | First-class agent registry                              |
+| No orgs                     | Teams + organizations + RBAC                             | Full org/admin/user hierarchy                           |
+| Single-VM self-host         | Multi-node orchestration                                 | Federated control plane                                 |
 
 ---
 
 ## Phase 1: Foundation Hardening (Weeks 1-3)
 
 ### Objective
+
 Close the gaps identified in the audit, ship Phase 0/1/2 PRs that were declared in PLAN.md.
 
 ### Task 1A: Governance Reset (PR #1 - in progress)
@@ -166,6 +172,7 @@ Close the gaps identified in the audit, ship Phase 0/1/2 PRs that were declared 
 ### Task 1B: Security & Reliability Floor (PR #2 - queued)
 
 **Files:**
+
 - Modify: `backend/internal/infrastructure/persistence/postgres/deployment_repository.go`
 - Modify: `backend/internal/infrastructure/http/handlers/deployment_handler.go`
 - Modify: `backend/internal/infrastructure/http/handlers/terminate.go`
@@ -187,6 +194,7 @@ Close the gaps identified in the audit, ship Phase 0/1/2 PRs that were declared 
 ### Task 1C: NVMS Manifest Engine (PR #3)
 
 **Files:**
+
 - Create: `backend/internal/infrastructure/manifest/parser.go`
 - Create: `backend/internal/infrastructure/manifest/schema.go`
 - Create: `backend/internal/infrastructure/manifest/parser_test.go`
@@ -205,6 +213,7 @@ Close the gaps identified in the audit, ship Phase 0/1/2 PRs that were declared 
 ### Task 1D: Backend Hardening (PR #4)
 
 **Files:**
+
 - Modify: `backend/internal/infrastructure/http/middleware/auth.go`
 - Modify: `backend/internal/infrastructure/clients/credential_validator.go`
 - Create: `backend/internal/infrastructure/observability/`
@@ -232,17 +241,20 @@ Close the gaps identified in the audit, ship Phase 0/1/2 PRs that were declared 
 ## Phase 2: Multi-Tenant Foundation (Weeks 4-8)
 
 ### Objective
+
 Add organizations, teams, roles, RBAC. This unlocks enterprise self-hosting.
 
 ### Task 2A: Data Model Migration to Multi-Tenancy
 
 **Files:**
+
 - Modify: `backend/internal/infrastructure/persistence/postgres/models.go`
 - Modify: `backend/internal/infrastructure/persistence/sqlite/models.go` (new)
 - Create: `backend/internal/infrastructure/migrations/002_multi_tenant.sql`
 - Modify: All `*_repository.go` files
 
 - [ ] **Step 1: Add Organization, Team, Membership tables**
+
   ```sql
   CREATE TABLE organizations (
       id UUID PRIMARY KEY,
@@ -270,6 +282,7 @@ Add organizations, teams, roles, RBAC. This unlocks enterprise self-hosting.
   ```
 
 - [ ] **Step 2: Add organization_id to projects, instances, secrets**
+
   ```sql
   ALTER TABLE projects ADD COLUMN organization_id UUID REFERENCES organizations(id);
   ALTER TABLE instances ADD COLUMN organization_id UUID REFERENCES organizations(id);
@@ -282,6 +295,7 @@ Add organizations, teams, roles, RBAC. This unlocks enterprise self-hosting.
 ### Task 2B: WorkOS Multi-Tenant Integration
 
 **Files:**
+
 - Modify: `backend/internal/infrastructure/auth/workos_service.go`
 - Create: `backend/internal/infrastructure/auth/org_resolver.go`
 - Modify: `backend/internal/infrastructure/http/middleware/auth.go`
@@ -294,6 +308,7 @@ Add organizations, teams, roles, RBAC. This unlocks enterprise self-hosting.
 ### Task 2C: RBAC Enforcement
 
 **Files:**
+
 - Create: `backend/internal/infrastructure/auth/rbac.go`
 - Modify: `backend/internal/infrastructure/http/middleware/auth.go`
 
@@ -318,6 +333,7 @@ Add organizations, teams, roles, RBAC. This unlocks enterprise self-hosting.
 ### Task 2D: Frontend Team Switcher
 
 **Files:**
+
 - Modify: `frontend/web/src/routes/dashboard/+page.svelte`
 - Create: `frontend/web/src/lib/stores/teamContext.ts`
 - Modify: `frontend/web/src/lib/components/TopNav.svelte`
@@ -331,11 +347,13 @@ Add organizations, teams, roles, RBAC. This unlocks enterprise self-hosting.
 ## Phase 3: Multi-Engine Deployment (Weeks 9-14)
 
 ### Objective
+
 Move beyond AWS-only deploys. Add Docker, K8s, Firecracker (NanoVMS), and a generic "container" engine that abstracts Vercel/Supabase-like platforms.
 
 ### Task 3A: Engine Abstraction Layer
 
 **Files:**
+
 - Create: `backend/internal/application/deployment/engine/engine.go`
 - Create: `backend/internal/application/deployment/engine/types.go`
 - Create: `backend/internal/application/deployment/engine/local/`
@@ -347,6 +365,7 @@ Move beyond AWS-only deploys. Add Docker, K8s, Firecracker (NanoVMS), and a gene
 - Create: `backend/internal/application/deployment/engine/registry.go`
 
 - [ ] **Step 1: Define Engine trait**
+
   ```go
   type Engine interface {
       Name() string
@@ -373,11 +392,12 @@ Move beyond AWS-only deploys. Add Docker, K8s, Firecracker (NanoVMS), and a gene
 ### Task 3B: Manifest Engine Schema Extension
 
 **Files:**
+
 - Modify: `backend/internal/infrastructure/manifest/schema.go`
 
 - [ ] **Step 1: Add `engine` field** to manifest root:
   ```yaml
-  ENGINE: docker  # or firecracker, kubernetes, vercel, supabase, local
+  ENGINE: docker # or firecracker, kubernetes, vercel, supabase, local
   ENGINE_CONFIG:
     replicas: 3
     resources:
@@ -391,10 +411,12 @@ Move beyond AWS-only deploys. Add Docker, K8s, Firecracker (NanoVMS), and a gene
 ### Task 3C: Engine-Specific Buildpacks
 
 **Files:**
+
 - Create: `backend/internal/application/buildpack/`
 - Modify: `backend/internal/infrastructure/manifest/schema.go`
 
 - [ ] **Step 1: Define buildpack abstraction**
+
   ```go
   type Buildpack interface {
       Detect(manifest *Manifest) bool
@@ -412,6 +434,7 @@ Move beyond AWS-only deploys. Add Docker, K8s, Firecracker (NanoVMS), and a gene
 ### Task 4A: Real-Time Log Streaming
 
 **Files:**
+
 - Create: `backend/internal/application/logs/`
 - Modify: `backend/internal/infrastructure/http/handlers/`
 
@@ -427,6 +450,7 @@ Move beyond AWS-only deploys. Add Docker, K8s, Firecracker (NanoVMS), and a gene
 ### Task 4B: Metrics + Tracing
 
 **Files:**
+
 - Modify: `backend/main.go`
 - Create: `backend/internal/infrastructure/observability/`
 
@@ -437,6 +461,7 @@ Move beyond AWS-only deploys. Add Docker, K8s, Firecracker (NanoVMS), and a gene
 ### Task 4C: Cost Tracking
 
 **Files:**
+
 - Create: `backend/internal/application/billing/`
 - Modify: `backend/internal/infrastructure/persistence/postgres/usage_repository.go`
 
@@ -450,11 +475,13 @@ Move beyond AWS-only deploys. Add Docker, K8s, Firecracker (NanoVMS), and a gene
 ## Phase 5: Agent Integration (Weeks 19-22)
 
 ### Objective
+
 Make BytePort addressable from AI agents via MCP and A2A — so agents can deploy, manage, observe.
 
 ### Task 5A: MCP Server
 
 **Files:**
+
 - Create: `backend/internal/infrastructure/mcp/server.go`
 - Create: `backend/internal/infrastructure/mcp/tools/`
 - Create: `backend/internal/infrastructure/mcp/scopes.go`
@@ -487,6 +514,7 @@ Make BytePort addressable from AI agents via MCP and A2A — so agents can deplo
 ### Task 5B: A2A Agent Card
 
 **Files:**
+
 - Create: `backend/internal/infrastructure/a2a/agent_card.go`
 - Create: `backend/internal/infrastructure/a2a/handler.go`
 
@@ -500,6 +528,7 @@ Make BytePort addressable from AI agents via MCP and A2A — so agents can deplo
 ### Task 5C: Python FastMCP Server (T3-P binding)
 
 **Rationale:** Per the forced-edge audit (§0.4), **Python FastMCP is forced** because:
+
 - FastMCP is the canonical MCP server framework used by the Anthropic ecosystem
 - Agents/clients expect `@mcp.tool()` decorator-style tool definitions
 - The Python ML ecosystem (NumPy, scikit-learn, transformers) enables ML-augmented deploy wizards (cost prediction, log anomaly detection)
@@ -507,10 +536,12 @@ Make BytePort addressable from AI agents via MCP and A2A — so agents can deplo
 **Strategy:** Run FastMCP server **in-process** via `pyo3` Rust↔Python FFI. Python code calls Rust control plane primitives through `pyo3`. Rust exports Python-callable functions for tool execution. After Phase 7's Rust migration, FastMCP binds directly to the Rust binary.
 
 **Files (Go phase — before Rust migration):**
+
 - Create: `backend/internal/infrastructure/mcp/fastmcp_bridge.go`
 - Modify: `backend/internal/infrastructure/mcp/server.go`
 
 **Files (Rust phase — after Phase 7):**
+
 - Create: `crates/byteport-fastmcp/Cargo.toml`
 - Create: `crates/byteport-fastmcp/src/lib.rs` (pyo3 module)
 - Create: `crates/byteport-fastmcp/python/byteport_fastmcp/server.py`
@@ -589,6 +620,7 @@ maturin = "1.5"
 - [ ] **Step 7: Audit log parity** — Python invocations also write to audit table
 
 **Why in-process vs separate Python process?** Running FastMCP in-process via `pyo3`:
+
 - Eliminates T1 HTTP overhead (~1-2 ms per call)
 - Shares Rust control-plane state (no IPC serialization of org context, RBAC checks, etc.)
 - Single deployment unit (one binary boots both Rust + embedded Python)
@@ -598,12 +630,14 @@ maturin = "1.5"
 ### Task 5D: Zig Hot-Path Shims (T3-Z binding)
 
 **Rationale:** Per decision tree Q3, Zig is the **first pick** for BytePort when:
+
 - MicroVM shim layer needs C-ABI for Firecracker/gVisor/WASM runtimes
 - Buildpack cache lookup is a hot path (called per layer fetch)
 - Custom allocator needed (arena for manifest parse, off-heap for log buffer pools)
 - Manifest validation can be 10× faster with Zig compile-time codegen
 
 **Files (post Phase 7 Rust migration):**
+
 - Create: `crates/byteport-shims-zig/Cargo.toml`
 - Create: `crates/byteport-shims-zig/build.rs`
 - Create: `crates/byteport-shims-zig/src/lib.rs` (Rust FFI wrapper)
@@ -625,6 +659,7 @@ maturin = "1.5"
 ### Task 5E: Mojo ML Kernels (T3-M binding)
 
 **Rationale:** Per decision tree Q2, Mojo is the **first pick** for ML kernel-level work:
+
 - Cost prediction (per-deployment) — trained on historical `usage_repository.go` data
 - Portfolio image generation / description (already uses LLM, but image classification needs ML)
 - Log anomaly detection (deploy failure clustering)
@@ -633,6 +668,7 @@ maturin = "1.5"
 **Constraint:** Mojo is pre-1.0. This task is **gated** until Mojo ≥v1.0 ships. Until then, this slot is held by Rust with `tch`/`candle` ML libraries + Python (via `pyo3`) for scikit-learn models.
 
 **Files (planned, gated on Mojo v1.0):**
+
 - Create: `crates/byteport-ml-kernels/Cargo.toml`
 - Create: `crates/byteport-ml-kernels/build.rs`
 - Create: `crates/byteport-ml-kernels/src/lib.rs` (FFI loader)
@@ -659,6 +695,7 @@ maturin = "1.5"
 ### Task 6A: Template System
 
 **Files:**
+
 - Create: `backend/internal/application/templates/`
 - Modify: `backend/internal/infrastructure/persistence/postgres/`
 
@@ -677,11 +714,13 @@ maturin = "1.5"
 ## Phase 7: Rust Control Plane Migration (Weeks 27-36)
 
 ### Objective
+
 Replace Go backend with Rust for performance, safety, and ecosystem consistency.
 
 ### Task 7A: Rust Crate Scaffold
 
 **Files:**
+
 - Create: `crates/byteport-core/Cargo.toml`
 - Modify: `Cargo.toml` (workspace)
 
@@ -691,20 +730,20 @@ Replace Go backend with Rust for performance, safety, and ecosystem consistency.
 
 ### Task 7B: Decompose Backend into Rust Crates
 
-| Concern | Rust crate | Binding to other languages |
-|---------|-----------|---|
-| HTTP routing | `byteport-control` | n/a (Rust core) |
-| DB models | `byteport-db` | n/a (Rust + sqlx) |
-| Auth (WorkOS + RBAC) | `byteport-auth` | n/a (Rust) |
-| Secrets encryption | `byteport-secrets` | T3-Z (Zig hot path for Argon2id) |
-| Engine dispatch | `byteport-engines` | T1 (HTTP to NVMS Go service) |
-| MCP server | `byteport-mcp` | T3-P (FastMCP Python via `pyo3`) |
-| A2A handler | `byteport-a2a` | n/a (Rust + JSON-RPC) |
-| Manifest parser | `byteport-manifest` | T3-Z (Zig validator for hot path) |
-| FastMCP bridge | `byteport-fastmcp` | T3-P (`pyo3` Rust↔Python) |
-| Zig shims | `byteport-shims-zig` | T3-Z (C-ABI to Rust) |
-| ML kernels | `byteport-ml-kernels` | T3-M (`libloading` to Mojo shared lib) |
-| Cloud providers | `byteport-providers` | T1 (HTTP to AWS/GCP/Azure REST APIs) |
+| Concern              | Rust crate            | Binding to other languages             |
+| -------------------- | --------------------- | -------------------------------------- |
+| HTTP routing         | `byteport-control`    | n/a (Rust core)                        |
+| DB models            | `byteport-db`         | n/a (Rust + sqlx)                      |
+| Auth (WorkOS + RBAC) | `byteport-auth`       | n/a (Rust)                             |
+| Secrets encryption   | `byteport-secrets`    | T3-Z (Zig hot path for Argon2id)       |
+| Engine dispatch      | `byteport-engines`    | T1 (HTTP to NVMS Go service)           |
+| MCP server           | `byteport-mcp`        | T3-P (FastMCP Python via `pyo3`)       |
+| A2A handler          | `byteport-a2a`        | n/a (Rust + JSON-RPC)                  |
+| Manifest parser      | `byteport-manifest`   | T3-Z (Zig validator for hot path)      |
+| FastMCP bridge       | `byteport-fastmcp`    | T3-P (`pyo3` Rust↔Python)              |
+| Zig shims            | `byteport-shims-zig`  | T3-Z (C-ABI to Rust)                   |
+| ML kernels           | `byteport-ml-kernels` | T3-M (`libloading` to Mojo shared lib) |
+| Cloud providers      | `byteport-providers`  | T1 (HTTP to AWS/GCP/Azure REST APIs)   |
 
 ### Task 7C: Dual-Write Compatibility Period
 
@@ -719,11 +758,13 @@ Replace Go backend with Rust for performance, safety, and ecosystem consistency.
 ## Phase 8: Cross-Cloud Adapter (Weeks 37-42)
 
 ### Objective
+
 Abstract AWS/GCP/Azure/Vercel/Supabase/cloud behind a single interface. Same manifest deploys anywhere.
 
 ### Task 8A: Resource Provider Abstraction
 
 **Files:**
+
 - Create: `crates/byteport-providers/src/aws.rs`
 - Create: `crates/byteport-providers/src/gcp.rs`
 - Create: `crates/byteport-providers/src/azure.rs`
@@ -735,6 +776,7 @@ Abstract AWS/GCP/Azure/Vercel/Supabase/cloud behind a single interface. Same man
 - Create: `crates/byteport-providers/src/local.rs`
 
 - [ ] **Step 1: Define `ResourceProvider` trait**
+
   ```rust
   #[async_trait]
   pub trait ResourceProvider: Send + Sync {
@@ -752,17 +794,18 @@ Abstract AWS/GCP/Azure/Vercel/Supabase/cloud behind a single interface. Same man
 ### Task 8B: Cross-Cloud Manifest Format
 
 **Files:**
+
 - Modify: `crates/byteport-manifest/src/schema.rs`
 
 ```yaml
 INFRASTRUCTURE:
   compute:
-    provider: aws        # aws, gcp, azure, hetzner, digitalocean, vercel, supabase
-    engine: firecracker  # which engine runs the workload
+    provider: aws # aws, gcp, azure, hetzner, digitalocean, vercel, supabase
+    engine: firecracker # which engine runs the workload
     region: us-east-1
     instance_type: t3.micro
   database:
-    provider: supabase   # managed Postgres
+    provider: supabase # managed Postgres
     name: my-db
   storage:
     provider: aws
@@ -799,46 +842,46 @@ INFRASTRUCTURE:
 
 ## File Map
 
-| Path | Purpose | Phase | Language |
-|------|---------|-------|----------|
-| `backend/internal/infrastructure/manifest/` | Manifest parser | 1C | Go (later Rust) |
-| `backend/internal/infrastructure/auth/rbac.go` | RBAC | 2C | Go (later Rust) |
-| `backend/internal/application/deployment/engine/` | Engine abstraction | 3A | Go (later Rust) |
-| `backend/internal/application/buildpack/` | Buildpacks | 3C | Go (later Rust) |
-| `backend/internal/application/logs/` | Real-time logs | 4A | Go (later Rust) |
-| `backend/internal/application/billing/` | Cost tracking | 4C | Go (later Rust) |
-| `backend/internal/infrastructure/mcp/` | MCP server | 5A | Go (then mirrored in FastMCP Python) |
-| `backend/internal/infrastructure/a2a/` | A2A handler | 5B | Go (later Rust) |
-| `backend/internal/infrastructure/mcp/fastmcp_bridge.go` | FastMCP bridge | 5C | Go ↔ Python |
-| `backend/internal/application/templates/` | Templates | 6A | Go (later Rust) |
-| `crates/byteport-core/` | Rust control plane | 7A | Rust |
-| `crates/byteport-control/` | HTTP routing | 7B | Rust |
-| `crates/byteport-secrets/` | Secrets encryption | 7B | Rust + Zig shim |
-| `crates/byteport-agents/` | MCP/A2A | 7B | Rust |
-| `crates/byteport-fastmcp/` | FastMCP Python bridge | 7B | Rust + Python (pyo3) |
-| `crates/byteport-shims-zig/` | Zig hot-path shims | 7B | Zig + Rust FFI |
-| `crates/byteport-ml-kernels/` | Mojo ML kernels | 7B | Mojo (gated) + Rust fallback |
-| `crates/byteport-providers/` | Cloud providers | 8A | Rust |
-| `crates/byteport-federation/` | Multi-node | 9A | Rust |
-| `frontend/web/src/routes/` | SvelteKit routes | various | SvelteKit/TypeScript |
-| `frontend/web/src/lib/components/` | Svelte components | various | Svelte 5/TypeScript |
-| `frontend/web/src-tauri/` | Tauri shell | various | Rust + Tauri 2 |
+| Path                                                    | Purpose               | Phase   | Language                             |
+| ------------------------------------------------------- | --------------------- | ------- | ------------------------------------ |
+| `backend/internal/infrastructure/manifest/`             | Manifest parser       | 1C      | Go (later Rust)                      |
+| `backend/internal/infrastructure/auth/rbac.go`          | RBAC                  | 2C      | Go (later Rust)                      |
+| `backend/internal/application/deployment/engine/`       | Engine abstraction    | 3A      | Go (later Rust)                      |
+| `backend/internal/application/buildpack/`               | Buildpacks            | 3C      | Go (later Rust)                      |
+| `backend/internal/application/logs/`                    | Real-time logs        | 4A      | Go (later Rust)                      |
+| `backend/internal/application/billing/`                 | Cost tracking         | 4C      | Go (later Rust)                      |
+| `backend/internal/infrastructure/mcp/`                  | MCP server            | 5A      | Go (then mirrored in FastMCP Python) |
+| `backend/internal/infrastructure/a2a/`                  | A2A handler           | 5B      | Go (later Rust)                      |
+| `backend/internal/infrastructure/mcp/fastmcp_bridge.go` | FastMCP bridge        | 5C      | Go ↔ Python                          |
+| `backend/internal/application/templates/`               | Templates             | 6A      | Go (later Rust)                      |
+| `crates/byteport-core/`                                 | Rust control plane    | 7A      | Rust                                 |
+| `crates/byteport-control/`                              | HTTP routing          | 7B      | Rust                                 |
+| `crates/byteport-secrets/`                              | Secrets encryption    | 7B      | Rust + Zig shim                      |
+| `crates/byteport-agents/`                               | MCP/A2A               | 7B      | Rust                                 |
+| `crates/byteport-fastmcp/`                              | FastMCP Python bridge | 7B      | Rust + Python (pyo3)                 |
+| `crates/byteport-shims-zig/`                            | Zig hot-path shims    | 7B      | Zig + Rust FFI                       |
+| `crates/byteport-ml-kernels/`                           | Mojo ML kernels       | 7B      | Mojo (gated) + Rust fallback         |
+| `crates/byteport-providers/`                            | Cloud providers       | 8A      | Rust                                 |
+| `crates/byteport-federation/`                           | Multi-node            | 9A      | Rust                                 |
+| `frontend/web/src/routes/`                              | SvelteKit routes      | various | SvelteKit/TypeScript                 |
+| `frontend/web/src/lib/components/`                      | Svelte components     | various | Svelte 5/TypeScript                  |
+| `frontend/web/src-tauri/`                               | Tauri shell           | various | Rust + Tauri 2                       |
 
 ---
 
 ## Risk Register
 
-| Risk | Likelihood | Impact | Mitigation |
-|------|-----------|--------|------------|
-| WorkOS org mapping breaks auth | Medium | High | Keep dual-auth period with PASETO as fallback |
-| Multi-tenant data leaks | High | Critical | Aggressive scoping tests, audit every query |
-| Cloud provider API divergence | High | Medium | Comprehensive integration tests, contract tests |
-| Rust migration too slow | Medium | Medium | Phase gates; ship each phase as standalone |
-| Cost calculation errors | Medium | High | Test against known reference workloads |
-| Zig shims don't outperform Rust baselines | High | Low | Auto-fallback to Rust; deprecate shims |
-| Mojo v1.0 ships late / kernels underperform | High | Low | Task 5E is gated; Rust + `candle` or Python scikit-learn covers gap |
-| Python interpreter not present at deploy time | Low | Medium | pyo3 fallback to Go MCP tools; documented in README |
-| FastMCP framework breaks (API drift) | Medium | Medium | Pin FastMCP version; mirror tools in Go MCP server as redundant |
+| Risk                                          | Likelihood | Impact   | Mitigation                                                          |
+| --------------------------------------------- | ---------- | -------- | ------------------------------------------------------------------- |
+| WorkOS org mapping breaks auth                | Medium     | High     | Keep dual-auth period with PASETO as fallback                       |
+| Multi-tenant data leaks                       | High       | Critical | Aggressive scoping tests, audit every query                         |
+| Cloud provider API divergence                 | High       | Medium   | Comprehensive integration tests, contract tests                     |
+| Rust migration too slow                       | Medium     | Medium   | Phase gates; ship each phase as standalone                          |
+| Cost calculation errors                       | Medium     | High     | Test against known reference workloads                              |
+| Zig shims don't outperform Rust baselines     | High       | Low      | Auto-fallback to Rust; deprecate shims                              |
+| Mojo v1.0 ships late / kernels underperform   | High       | Low      | Task 5E is gated; Rust + `candle` or Python scikit-learn covers gap |
+| Python interpreter not present at deploy time | Low        | Medium   | pyo3 fallback to Go MCP tools; documented in README                 |
+| FastMCP framework breaks (API drift)          | Medium     | Medium   | Pin FastMCP version; mirror tools in Go MCP server as redundant     |
 
 ---
 

@@ -33,24 +33,25 @@ lastUpdated: 2026-06-21
 
 ## File Structure
 
-| File | Responsibility | Change |
-|---|---|---|
-| `open-sse/services/compression/deriveDefaultPlan.ts` | `DerivedPlan` type + new `CompressionSource` union + optional `source`. | Modify |
-| `open-sse/services/compression/strategySelector.ts` | `planFromHeader` interpreter, header-first precedence in `resolveBasePlan`, `source` tagging, `formatCompressionMeta`, thread `header` through public selectors. | Modify |
-| `open-sse/services/compression/resolveCompressionPlan.ts` | Remove the dormant `header` branch + `headerToPlan` + `ResolveCtx.header`. | Modify |
-| `open-sse/handlers/chatCore/headers.ts` | `resolveCompressionHeader` parser. | Modify |
-| `src/shared/constants/headers.ts` | `compression` response-header name. | Modify |
-| `open-sse/handlers/chatCore.ts` | Parse header, add name keys to `namedCombos`, thread `header`, capture `{mode,source}`, emit response header at both sites. | Modify |
-| `tests/unit/compression/compression-header-dispatch.test.ts` | Resolver + `planFromHeader` + `source` + precedence + `formatCompressionMeta`. | Create |
-| `tests/unit/chatcore-headers.test.ts` | `resolveCompressionHeader` parsing. | Modify |
-| `docs/reference/API_REFERENCE.md`, `docs/compression/COMPRESSION_GUIDE.md` | Document the header. | Modify |
-| `config/quality/file-size-baseline.json` | Rebaseline chatCore if it crosses its pin. | Modify (if needed) |
+| File                                                                       | Responsibility                                                                                                                                                   | Change             |
+| -------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------ |
+| `open-sse/services/compression/deriveDefaultPlan.ts`                       | `DerivedPlan` type + new `CompressionSource` union + optional `source`.                                                                                          | Modify             |
+| `open-sse/services/compression/strategySelector.ts`                        | `planFromHeader` interpreter, header-first precedence in `resolveBasePlan`, `source` tagging, `formatCompressionMeta`, thread `header` through public selectors. | Modify             |
+| `open-sse/services/compression/resolveCompressionPlan.ts`                  | Remove the dormant `header` branch + `headerToPlan` + `ResolveCtx.header`.                                                                                       | Modify             |
+| `open-sse/handlers/chatCore/headers.ts`                                    | `resolveCompressionHeader` parser.                                                                                                                               | Modify             |
+| `src/shared/constants/headers.ts`                                          | `compression` response-header name.                                                                                                                              | Modify             |
+| `open-sse/handlers/chatCore.ts`                                            | Parse header, add name keys to `namedCombos`, thread `header`, capture `{mode,source}`, emit response header at both sites.                                      | Modify             |
+| `tests/unit/compression/compression-header-dispatch.test.ts`               | Resolver + `planFromHeader` + `source` + precedence + `formatCompressionMeta`.                                                                                   | Create             |
+| `tests/unit/chatcore-headers.test.ts`                                      | `resolveCompressionHeader` parsing.                                                                                                                              | Modify             |
+| `docs/reference/API_REFERENCE.md`, `docs/compression/COMPRESSION_GUIDE.md` | Document the header.                                                                                                                                             | Modify             |
+| `config/quality/file-size-baseline.json`                                   | Rebaseline chatCore if it crosses its pin.                                                                                                                       | Modify (if needed) |
 
 ---
 
 ## Task 1: Header interpreter, precedence, and `source` in the resolver
 
 **Files:**
+
 - Modify: `open-sse/services/compression/deriveDefaultPlan.ts`
 - Modify: `open-sse/services/compression/strategySelector.ts`
 - Modify: `open-sse/services/compression/resolveCompressionPlan.ts`
@@ -75,7 +76,10 @@ import {
 } from "../../../open-sse/services/compression/types.ts";
 
 const combos = {
-  c1: [{ engine: "rtk", intensity: "standard" }, { engine: "caveman", intensity: "full" }],
+  c1: [
+    { engine: "rtk", intensity: "standard" },
+    { engine: "caveman", intensity: "full" },
+  ],
   "fast combo": [{ engine: "lite" }],
 };
 
@@ -116,7 +120,10 @@ describe("planFromHeader (Phase 3)", () => {
   });
 
   it("<combo> matches by name (case-insensitive) and by id", () => {
-    assert.deepEqual(planFromHeader(cfg(), "FAST COMBO", combos)?.stackedPipeline, combos["fast combo"]);
+    assert.deepEqual(
+      planFromHeader(cfg(), "FAST COMBO", combos)?.stackedPipeline,
+      combos["fast combo"]
+    );
     assert.deepEqual(planFromHeader(cfg(), "c1", combos)?.stackedPipeline, combos.c1);
   });
 
@@ -168,7 +175,15 @@ describe("header precedence in resolveBasePlan (Phase 3)", () => {
 describe("source on non-header paths", () => {
   it("routing-override / active-profile / auto-trigger / default / off", () => {
     assert.equal(
-      selectCompressionPlan(cfg({ comboOverrides: { r: "lite" } }), "r", 0, undefined, undefined, combos, null).source,
+      selectCompressionPlan(
+        cfg({ comboOverrides: { r: "lite" } }),
+        "r",
+        0,
+        undefined,
+        undefined,
+        combos,
+        null
+      ).source,
       "routing-override"
     );
     assert.equal(planWithHeader(cfg({ activeComboId: "c1" }), null).source, "active-profile");
@@ -177,7 +192,8 @@ describe("source on non-header paths", () => {
       "auto-trigger"
     );
     assert.equal(
-      planWithHeader(cfg({ enginesExplicit: true, engines: { rtk: { enabled: true } } }), null).source,
+      planWithHeader(cfg({ enginesExplicit: true, engines: { rtk: { enabled: true } } }), null)
+        .source,
       "default"
     );
     assert.equal(planWithHeader(cfg({ enabled: false }), null).source, "off");
@@ -206,12 +222,7 @@ In `open-sse/services/compression/deriveDefaultPlan.ts`, replace the `DerivedPla
 
 ```ts
 export type CompressionSource =
-  | "request-header"
-  | "routing-override"
-  | "active-profile"
-  | "auto-trigger"
-  | "default"
-  | "off";
+  "request-header" | "routing-override" | "active-profile" | "auto-trigger" | "default" | "off";
 
 export interface DerivedPlan {
   mode: string;
@@ -266,7 +277,11 @@ In `open-sse/services/compression/strategySelector.ts`:
 (a) Update the `DerivedPlan` import to also bring `CompressionSource`:
 
 ```ts
-import { deriveDefaultPlan, type DerivedPlan, type CompressionSource } from "./deriveDefaultPlan.ts";
+import {
+  deriveDefaultPlan,
+  type DerivedPlan,
+  type CompressionSource,
+} from "./deriveDefaultPlan.ts";
 ```
 
 (b) Add these helpers (place them just above `resolveBasePlan`):
@@ -435,6 +450,7 @@ git commit -m "feat(compression): header-first resolver + plan source (Phase 3 c
 ## Task 2: `resolveCompressionHeader` parser
 
 **Files:**
+
 - Modify: `open-sse/handlers/chatCore/headers.ts`
 - Test: `tests/unit/chatcore-headers.test.ts`
 
@@ -449,8 +465,14 @@ import assert from "node:assert/strict";
 
 describe("resolveCompressionHeader", () => {
   it("reads the raw value case-insensitively and trims it", () => {
-    assert.equal(resolveCompressionHeader({ "x-omniroute-compression": "  engine:rtk " }), "engine:rtk");
-    assert.equal(resolveCompressionHeader(new Headers({ "X-OmniRoute-Compression": "off" })), "off");
+    assert.equal(
+      resolveCompressionHeader({ "x-omniroute-compression": "  engine:rtk " }),
+      "engine:rtk"
+    );
+    assert.equal(
+      resolveCompressionHeader(new Headers({ "X-OmniRoute-Compression": "off" })),
+      "off"
+    );
   });
 
   it("returns null when absent or blank", () => {
@@ -502,6 +524,7 @@ git commit -m "feat(compression): resolveCompressionHeader parser (Phase 3)"
 ## Task 3: chatCore wiring + response header
 
 **Files:**
+
 - Modify: `src/shared/constants/headers.ts`
 - Modify: `open-sse/handlers/chatCore.ts`
 
@@ -520,13 +543,17 @@ In `src/shared/constants/headers.ts`, add the `compression` entry to `OMNIROUTE_
 In `open-sse/handlers/chatCore.ts`, line 7, add `resolveCompressionHeader` to the existing import from `./chatCore/headers.ts`:
 
 ```ts
-import { getHeaderValueCaseInsensitive, isNoMemoryRequested, resolveCompressionHeader } from "./chatCore/headers.ts";
+import {
+  getHeaderValueCaseInsensitive,
+  isNoMemoryRequested,
+  resolveCompressionHeader,
+} from "./chatCore/headers.ts";
 ```
 
 Near the other compression-scoped `let`s (~line 1321, beside `let cavemanOutputModeApplied = false;`), add:
 
 ```ts
-  let compressionResponseMeta: string | null = null;
+let compressionResponseMeta: string | null = null;
 ```
 
 - [ ] **Step 3: Parse the header and add name keys to the combos map**
@@ -534,26 +561,26 @@ Near the other compression-scoped `let`s (~line 1321, beside `let cavemanOutputM
 In the compression block, replace the `namedCombos` build (~line 1373) so it keys by **both** id and lowercased name, and parse the header right after:
 
 ```ts
-      let namedCombos: Record<string, CompressionPipelineStep[]> = {};
-      try {
-        const { listCompressionCombos } = await import("../../src/lib/db/compressionCombos.ts");
-        namedCombos = Object.fromEntries(
-          listCompressionCombos().flatMap((c) => [
-            [c.id, c.pipeline],
-            [c.name.toLowerCase(), c.pipeline],
-          ])
-        );
-      } catch (err) {
-        log?.debug?.(
-          "COMPRESSION",
-          "Named combos load skipped: " + (err instanceof Error ? err.message : String(err))
-        );
-      }
-      // Phase 3: per-request override. Unknown values fall through in the resolver (never error).
-      const compressionHeader = resolveCompressionHeader(clientRawRequest?.headers ?? null);
-      if (compressionHeader) {
-        log?.debug?.("COMPRESSION", `x-omniroute-compression header: ${compressionHeader}`);
-      }
+let namedCombos: Record<string, CompressionPipelineStep[]> = {};
+try {
+  const { listCompressionCombos } = await import("../../src/lib/db/compressionCombos.ts");
+  namedCombos = Object.fromEntries(
+    listCompressionCombos().flatMap((c) => [
+      [c.id, c.pipeline],
+      [c.name.toLowerCase(), c.pipeline],
+    ])
+  );
+} catch (err) {
+  log?.debug?.(
+    "COMPRESSION",
+    "Named combos load skipped: " + (err instanceof Error ? err.message : String(err))
+  );
+}
+// Phase 3: per-request override. Unknown values fall through in the resolver (never error).
+const compressionHeader = resolveCompressionHeader(clientRawRequest?.headers ?? null);
+if (compressionHeader) {
+  log?.debug?.("COMPRESSION", `x-omniroute-compression header: ${compressionHeader}`);
+}
 ```
 
 (The active-profile lookup keys on `config.activeComboId`, always a UUID/slug id, so the added name keys are inert for it — one map serves both paths. A combo named `off`/`default` cannot be selected by name because the keyword branches run first; note this in the docs.)
@@ -563,27 +590,27 @@ In the compression block, replace the `namedCombos` build (~line 1373) so it key
 Append `compressionHeader` as the last argument to `selectCompressionStrategy` (~line 1532) and `selectCompressionPlan` (~line 1601):
 
 ```ts
-      const modeBeforeOutputTransform = selectCompressionStrategy(
-        config,
-        compressionComboKey,
-        estimatedTokens,
-        body as Record<string, unknown>,
-        { provider, targetFormat, model: effectiveModel },
-        namedCombos,
-        compressionHeader
-      );
+const modeBeforeOutputTransform = selectCompressionStrategy(
+  config,
+  compressionComboKey,
+  estimatedTokens,
+  body as Record<string, unknown>,
+  { provider, targetFormat, model: effectiveModel },
+  namedCombos,
+  compressionHeader
+);
 ```
 
 ```ts
-      const compressionPlan = selectCompressionPlan(
-        config,
-        compressionComboKey,
-        estimatedTokens,
-        compressionInputBody,
-        { provider, targetFormat, model: effectiveModel },
-        namedCombos,
-        compressionHeader
-      );
+const compressionPlan = selectCompressionPlan(
+  config,
+  compressionComboKey,
+  estimatedTokens,
+  compressionInputBody,
+  { provider, targetFormat, model: effectiveModel },
+  namedCombos,
+  compressionHeader
+);
 ```
 
 - [ ] **Step 5: Capture the resolved meta**
@@ -591,7 +618,7 @@ Append `compressionHeader` as the last argument to `selectCompressionStrategy` (
 Immediately after `const mode = compressionPlan.mode as CompressionConfig["defaultMode"];` (~line 1609), add (importing `formatCompressionMeta` alongside the other strategySelector imports destructured at ~line 1349):
 
 ```ts
-      compressionResponseMeta = formatCompressionMeta(compressionPlan);
+compressionResponseMeta = formatCompressionMeta(compressionPlan);
 ```
 
 And add `formatCompressionMeta` to the destructured import from `../services/compression/strategySelector.ts` (~line 1349):
@@ -605,17 +632,17 @@ And add `formatCompressionMeta` to the destructured import from `../services/com
 In the non-streaming JSON path, right after the `attachOmniRouteMetaHeaders(responseHeaders, { ... });` call (~line 4582), add:
 
 ```ts
-    if (compressionResponseMeta) {
-      responseHeaders[OMNIROUTE_RESPONSE_HEADERS.compression] = compressionResponseMeta;
-    }
+if (compressionResponseMeta) {
+  responseHeaders[OMNIROUTE_RESPONSE_HEADERS.compression] = compressionResponseMeta;
+}
 ```
 
 In the streaming path, right after the `responseHeaders` object literal closes (the `};` after `"x-omniroute-request-id": pendingRequestId,`, ~line 4708), add:
 
 ```ts
-  if (compressionResponseMeta) {
-    responseHeaders[OMNIROUTE_RESPONSE_HEADERS.compression] = compressionResponseMeta;
-  }
+if (compressionResponseMeta) {
+  responseHeaders[OMNIROUTE_RESPONSE_HEADERS.compression] = compressionResponseMeta;
+}
 ```
 
 - [ ] **Step 7: Typecheck + cycle/source guard**
@@ -643,6 +670,7 @@ git commit -m "feat(compression): wire x-omniroute-compression header + response
 ## Task 4: Docs + file-size + full validation
 
 **Files:**
+
 - Modify: `docs/reference/API_REFERENCE.md`
 - Modify: `docs/compression/COMPRESSION_GUIDE.md`
 - Modify (if needed): `config/quality/file-size-baseline.json`
@@ -651,23 +679,23 @@ git commit -m "feat(compression): wire x-omniroute-compression header + response
 
 In `docs/reference/API_REFERENCE.md`, near the `x-omniroute-no-memory` documentation, add a section:
 
-````markdown
+```markdown
 ### `x-omniroute-compression`
 
 Per-request override of the compression plan. Highest precedence — beats the routing-combo
 override, the active profile, auto-trigger, and the panel Default. Values:
 
-| Value | Effect |
-|-------|--------|
-| `off` | No compression for this request. |
-| `default` | The panel-derived Default profile (ignores the active profile). |
-| `engine:<id>` | A single engine when enabled, e.g. `engine:rtk`. |
-| `<combo>` | A named combo, matched by name (case-insensitive) first, then by id. |
+| Value         | Effect                                                               |
+| ------------- | -------------------------------------------------------------------- |
+| `off`         | No compression for this request.                                     |
+| `default`     | The panel-derived Default profile (ignores the active profile).      |
+| `engine:<id>` | A single engine when enabled, e.g. `engine:rtk`.                     |
+| `<combo>`     | A named combo, matched by name (case-insensitive) first, then by id. |
 
 Unknown values are ignored (the request is never rejected). The applied plan is echoed in the
 `X-OmniRoute-Compression: <mode>; source=<source>` response header. The master compression
 switch is a hard gate: when compression is disabled globally, this header cannot enable it.
-````
+```
 
 - [ ] **Step 2: Document the header (compression guide)**
 
@@ -690,6 +718,7 @@ Expected: PASS. If it reports `chatCore.ts: <actual> > <frozen>`, update `config
 - [ ] **Step 5: Run the full validation suite**
 
 Run each and confirm exit 0 / green:
+
 - `npm run typecheck:core`
 - `npm run lint`
 - `npm run check:cycles`
@@ -711,6 +740,7 @@ git commit -m "docs(compression): document x-omniroute-compression header + file
 ## Self-Review (run by the author after writing)
 
 **1. Spec coverage**
+
 - §2 contract (off/default/engine/combo, unknown→ignore) → Task 1 `planFromHeader` + tests. ✓
 - Decision A (name-first combo) → Task 1 `planFromHeader` `combos[lower] ?? combos[h]` + Task 3 name-key map + test. ✓
 - Decision B (bypass auto-trigger) → Task 1 header-first in `resolveBasePlan` + test. ✓

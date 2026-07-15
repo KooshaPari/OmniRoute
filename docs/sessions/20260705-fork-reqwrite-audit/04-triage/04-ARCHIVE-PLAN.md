@@ -25,7 +25,7 @@ docs/sessions/2026-07-05-polyrepo-portfolio-strategy/06-archive/
 for the canonical rationale.
 
 If you arrived here looking for an active home for this work, the answer is:
-*there is no active home*. This codebase is preserved for historical
+_there is no active home_. This codebase is preserved for historical
 reference only. Do not open issues, do not send PRs, do not run agents on
 this directory. The owning subproject has been deprecated and will not be
 revived.
@@ -50,13 +50,13 @@ phenotype-portfolio-2026-07
 
 ## Per-repo application
 
-| Repo                          | Canonical README location              | Action                                          |
-|-------------------------------|----------------------------------------|-------------------------------------------------|
-| AtomsBot (canonical)          | phenotype-apps/AtomsBot-2nd/README.md  | Replace README top with the banner above.       |
-| AtomsBot (worktree copies)    | phenotype-apps/AtomsBot/ (empty), AtomsBot-3rd/, -4th/, -5th/ | Symlink to the canonical AtomsBot-2nd README; or paste the banner if symlink is too cute. |
-| GDK (already archived)        | phenotype-apps/GDK/README.md           | Already correct; no change.                     |
-| GDK (other copies)            | phenotype-apps-L39-wt/GDK/, AgilePlus/GDK/, pheno/GDK/, phenotype-registry/GDK/ | All show 0 files; replace the (empty) README with the banner, or delete the empty dir if the parent repo permits. |
-| KaskMan (top-level)           | KaskMan/README.md                      | Replace README top with the banner above.       |
+| Repo                       | Canonical README location                                                       | Action                                                                                                            |
+| -------------------------- | ------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| AtomsBot (canonical)       | phenotype-apps/AtomsBot-2nd/README.md                                           | Replace README top with the banner above.                                                                         |
+| AtomsBot (worktree copies) | phenotype-apps/AtomsBot/ (empty), AtomsBot-3rd/, -4th/, -5th/                   | Symlink to the canonical AtomsBot-2nd README; or paste the banner if symlink is too cute.                         |
+| GDK (already archived)     | phenotype-apps/GDK/README.md                                                    | Already correct; no change.                                                                                       |
+| GDK (other copies)         | phenotype-apps-L39-wt/GDK/, AgilePlus/GDK/, pheno/GDK/, phenotype-registry/GDK/ | All show 0 files; replace the (empty) README with the banner, or delete the empty dir if the parent repo permits. |
+| KaskMan (top-level)        | KaskMan/README.md                                                               | Replace README top with the banner above.                                                                         |
 
 ## Sub-steps
 
@@ -86,6 +86,7 @@ phenotype-portfolio-2026-07
 ### Step 3 -- GDK mirrors (zero-file copies)
 
 For each of:
+
 - phenotype-apps/GDK/ (already has the banner; verify, no change)
 - phenotype-apps-L39-wt/GDK/
 - AgilePlus/GDK/
@@ -100,6 +101,7 @@ populate it with a single README.md containing only the banner.
 ### Step 4 -- AtomsBot worktree copies (other than the canonical)
 
 For each of:
+
 - phenotype-apps/AtomsBot/ (0 files)
 - phenotype-apps/AtomsBot-3rd/, -4th/, -5th/
 - phenotype-apps-L39-wt/AtomsBot/, -2nd/, ...

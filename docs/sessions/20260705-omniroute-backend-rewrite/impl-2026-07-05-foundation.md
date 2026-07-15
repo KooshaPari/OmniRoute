@@ -21,31 +21,32 @@
 
 ### PR-3: omni-protocol (Foundation wire types) — 2949 lines
 
-| File | LOC | Purpose |
-|---|---|---|
-| `src/lib.rs` | 76 | WireFormat enum + module wiring |
-| `src/shared.rs` | 150 | RequestId, Role, StopReason, UsageBucket, Timestamp |
-| `src/openai/mod.rs` | 29 | OpenAI module wiring |
-| `src/openai/common.rs` | 301 | Role, Message, ContentPart, Tool, ToolChoice, ResponseFormat, Usage |
-| `src/openai/chat.rs` | 227 | ChatCompletionRequest / Response / Chunk (SSE) |
-| `src/openai/responses.rs` | 225 | OpenAI Responses API (`/v1/responses`) |
-| `src/openai/embeddings.rs` | 110 | EmbeddingRequest / Response / EmbeddingValue |
-| `src/openai/models.rs` | 70 | Model + ModelList (`/v1/models`) |
-| `src/openai/error.rs` | 70 | ApiError + ApiErrorEnvelope |
-| `src/claude/mod.rs` | 13 | Claude module wiring |
-| `src/claude/common.rs` | 122 | SystemPrompt, ThinkingConfig, ClaudeUsage |
-| `src/claude/messages.rs` | 227 | MessagesRequest / Response + ContentBlock enum (8 variants) |
-| `src/claude/stream.rs` | 132 | MessagesStreamEvent (tagged enum) + delta types |
-| `src/gemini/mod.rs` | 13 | Gemini module wiring |
-| `src/gemini/config.rs` | 151 | GenerationConfig, SafetySettings, ThinkingConfig |
-| `src/gemini/parts.rs` | 199 | Part, Content, FunctionCall, FileData, Tool, FunctionDeclaration |
-| `src/gemini/generate.rs` | 191 | GenerateContentRequest / Response / Candidate / UsageMetadata |
-| `src/codex/mod.rs` | 176 | CodexRequest / Response / SandboxPolicy |
-| `src/a2a/mod.rs` | 235 | AgentCard, Task, Message, Part, Artifact (A2A v0.3 minimal) |
+| File                       | LOC | Purpose                                                             |
+| -------------------------- | --- | ------------------------------------------------------------------- |
+| `src/lib.rs`               | 76  | WireFormat enum + module wiring                                     |
+| `src/shared.rs`            | 150 | RequestId, Role, StopReason, UsageBucket, Timestamp                 |
+| `src/openai/mod.rs`        | 29  | OpenAI module wiring                                                |
+| `src/openai/common.rs`     | 301 | Role, Message, ContentPart, Tool, ToolChoice, ResponseFormat, Usage |
+| `src/openai/chat.rs`       | 227 | ChatCompletionRequest / Response / Chunk (SSE)                      |
+| `src/openai/responses.rs`  | 225 | OpenAI Responses API (`/v1/responses`)                              |
+| `src/openai/embeddings.rs` | 110 | EmbeddingRequest / Response / EmbeddingValue                        |
+| `src/openai/models.rs`     | 70  | Model + ModelList (`/v1/models`)                                    |
+| `src/openai/error.rs`      | 70  | ApiError + ApiErrorEnvelope                                         |
+| `src/claude/mod.rs`        | 13  | Claude module wiring                                                |
+| `src/claude/common.rs`     | 122 | SystemPrompt, ThinkingConfig, ClaudeUsage                           |
+| `src/claude/messages.rs`   | 227 | MessagesRequest / Response + ContentBlock enum (8 variants)         |
+| `src/claude/stream.rs`     | 132 | MessagesStreamEvent (tagged enum) + delta types                     |
+| `src/gemini/mod.rs`        | 13  | Gemini module wiring                                                |
+| `src/gemini/config.rs`     | 151 | GenerationConfig, SafetySettings, ThinkingConfig                    |
+| `src/gemini/parts.rs`      | 199 | Part, Content, FunctionCall, FileData, Tool, FunctionDeclaration    |
+| `src/gemini/generate.rs`   | 191 | GenerateContentRequest / Response / Candidate / UsageMetadata       |
+| `src/codex/mod.rs`         | 176 | CodexRequest / Response / SandboxPolicy                             |
+| `src/a2a/mod.rs`           | 235 | AgentCard, Task, Message, Part, Artifact (A2A v0.3 minimal)         |
 
 **Tests:** 46 passing, 0 failing.
 **Conventions:** `#![forbid(unsafe_code)]`, `Send + Sync`, `Debug + Clone + Serialize + Deserialize + PartialEq`, doc comments on every public type, tagged enums for SSE event unions, `#[serde(other)]` fallthroughs for forward compat.
 **Forward-compat features:**
+
 - `ContentBlock::Unknown` for new Anthropic block types.
 - `ResponseStreamEvent::Unknown` for new OpenAI Responses stream events.
 - `Part::CodeExecutionResult` for Gemini code-exec tool.
@@ -53,31 +54,31 @@
 
 ### PR-4: omni-storage (SQLite + repos) — 2308 lines
 
-| File | LOC | Purpose |
-|---|---|---|
-| `src/lib.rs` | 23 | Module declarations + re-exports |
-| `src/error.rs` | 41 | StorageError (thiserror) + From→omni_core::Error |
-| `src/pool.rs` | 168 | StoragePool (WAL mode, FK on, busy_timeout=5s) + open_test() |
-| `src/ids.rs` | 124 | 10 typed UUID newtypes (WorkspaceId, ApiKeyId, ...) with `sn_` / `ak_` / `tn_` prefixes |
-| `src/models.rs` | 188 | Tenant, Workspace, ApiKey, ProviderRecord, ModelRecord, CallLog, Combo, FeatureFlag |
-| `src/schema.rs` | 57 | `table_exists`, `list_tables`, `schema_version` |
-| `src/migrations.rs` | 32 | tokio::OnceCell-based async migrator; `run()` clones for re-use |
-| `src/repo/mod.rs` | 27 | `ListParams` shared filter |
-| `src/repo/tenant.rs` | 247 | Full CRUD + count + duplicate-slug detection |
-| `src/repo/api_key.rs` | 290 | Full CRUD + revoke + touch_last_used + by-hash lookup |
-| `src/repo/call_log.rs` | 350 | Insert + list_by_tenant + list_by_request_id + aggregate (success/errors/tokens/cost) |
-| `migrations/20260705000001_tenants.sql` | 13 | tenants table + indexes |
-| `migrations/20260705000002_workspaces.sql` | 11 | workspaces (FK tenants) |
-| `migrations/20260705000003_api_keys.sql` | 14 | api_keys (FK workspaces, key_hash unique) |
-| `migrations/20260705000004_provider_records.sql` | 13 | provider_records (encrypted cred) |
-| `migrations/20260705000005_model_records.sql` | 16 | model_records (capabilities, cost) |
-| `migrations/20260705000006_call_logs.sql` | 22 | call_logs (hot-path: status, time, cost) |
-| `migrations/20260705000007_combos.sql` | 11 | combos (routing strategies) |
-| `migrations/20260705000008_feature_flags.sql` | 7 | per-tenant flags |
-| `migrations/20260705000009_call_log_stats.sql` | 8 | aggregated stats table |
-| `migrations/20260705000010_combo_forecasts.sql` | 9 | model scoring cache |
-| `migrations/20260705000011_sessions.sql` | 11 | sessions (request_count, last_seen) |
-| `migrations/20260705000012_global_config.sql` | 6 | k/v runtime config |
+| File                                             | LOC | Purpose                                                                                 |
+| ------------------------------------------------ | --- | --------------------------------------------------------------------------------------- |
+| `src/lib.rs`                                     | 23  | Module declarations + re-exports                                                        |
+| `src/error.rs`                                   | 41  | StorageError (thiserror) + From→omni_core::Error                                        |
+| `src/pool.rs`                                    | 168 | StoragePool (WAL mode, FK on, busy_timeout=5s) + open_test()                            |
+| `src/ids.rs`                                     | 124 | 10 typed UUID newtypes (WorkspaceId, ApiKeyId, ...) with `sn_` / `ak_` / `tn_` prefixes |
+| `src/models.rs`                                  | 188 | Tenant, Workspace, ApiKey, ProviderRecord, ModelRecord, CallLog, Combo, FeatureFlag     |
+| `src/schema.rs`                                  | 57  | `table_exists`, `list_tables`, `schema_version`                                         |
+| `src/migrations.rs`                              | 32  | tokio::OnceCell-based async migrator; `run()` clones for re-use                         |
+| `src/repo/mod.rs`                                | 27  | `ListParams` shared filter                                                              |
+| `src/repo/tenant.rs`                             | 247 | Full CRUD + count + duplicate-slug detection                                            |
+| `src/repo/api_key.rs`                            | 290 | Full CRUD + revoke + touch_last_used + by-hash lookup                                   |
+| `src/repo/call_log.rs`                           | 350 | Insert + list_by_tenant + list_by_request_id + aggregate (success/errors/tokens/cost)   |
+| `migrations/20260705000001_tenants.sql`          | 13  | tenants table + indexes                                                                 |
+| `migrations/20260705000002_workspaces.sql`       | 11  | workspaces (FK tenants)                                                                 |
+| `migrations/20260705000003_api_keys.sql`         | 14  | api_keys (FK workspaces, key_hash unique)                                               |
+| `migrations/20260705000004_provider_records.sql` | 13  | provider_records (encrypted cred)                                                       |
+| `migrations/20260705000005_model_records.sql`    | 16  | model_records (capabilities, cost)                                                      |
+| `migrations/20260705000006_call_logs.sql`        | 22  | call_logs (hot-path: status, time, cost)                                                |
+| `migrations/20260705000007_combos.sql`           | 11  | combos (routing strategies)                                                             |
+| `migrations/20260705000008_feature_flags.sql`    | 7   | per-tenant flags                                                                        |
+| `migrations/20260705000009_call_log_stats.sql`   | 8   | aggregated stats table                                                                  |
+| `migrations/20260705000010_combo_forecasts.sql`  | 9   | model scoring cache                                                                     |
+| `migrations/20260705000011_sessions.sql`         | 11  | sessions (request_count, last_seen)                                                     |
+| `migrations/20260705000012_global_config.sql`    | 6   | k/v runtime config                                                                      |
 
 **Tests:** 17 passing, 0 failing.
 **Repo pattern:** `#[async_trait] trait` + `SqliteXRepo { pool }` + free fn `x_repo(pool) -> Box<dyn XRepo>`. Errors map to `omni_core::Error` with `NotFound` / `Conflict` / `Db` kinds.
@@ -113,12 +114,12 @@ cargo test  -p omni-storage     # 17 passed; 0 failed
 
 ## Cross-project status (compact)
 
-| Lane | State | Notes |
-|---|---|---|
-| **TS fork** (this repo) | 367K LOC, 522 routes, 149 providers, 22 MCP tools | unchanged; remains the spec source for adapters |
-| **omniroute-rust** (this PR) | 2/12 crates have real code, 2 pass full test suites | foundation laid; translator + server next |
+| Lane                             | State                                                                  | Notes                                                                             |
+| -------------------------------- | ---------------------------------------------------------------------- | --------------------------------------------------------------------------------- |
+| **TS fork** (this repo)          | 367K LOC, 522 routes, 149 providers, 22 MCP tools                      | unchanged; remains the spec source for adapters                                   |
+| **omniroute-rust** (this PR)     | 2/12 crates have real code, 2 pass full test suites                    | foundation laid; translator + server next                                         |
 | **omniroute-go** (parallel lane) | 19/19 tests, 4-platform static binaries, distroless docker @ 0b17bc7cc | `lane_d_compression` finished; `lane_b_protocol` + `lane_e_storage` still running |
-| **substrate-omniroute-adapter** | exists, scaffolded | unchanged |
+| **substrate-omniroute-adapter**  | exists, scaffolded                                                     | unchanged                                                                         |
 
 ## Parallel-lane context (other agents' final answer this turn)
 

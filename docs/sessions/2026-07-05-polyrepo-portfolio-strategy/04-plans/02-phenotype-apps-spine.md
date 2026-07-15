@@ -46,14 +46,14 @@ DAG_100, FLEET_DAG.db, etc.). The promotion is to:
 
 ## Sub-project status map (initial)
 
-| Sub-project | Status | Action |
-|-------------|--------|--------|
-| AtomsBot | empty | archive README (done 2026-07-05) |
-| AtomsBot-2nd | active, Discord<->GitHub bridge | strict pause + archive banner (done 2026-07-05) |
-| AtomsBot-3rd/4th/5th | empty | archive README (done 2026-07-05) |
-| GDK | empty | archive README (done 2026-07-05) |
-| KaskMan | empty | archive README (done 2026-07-05) |
-| (other 300+) | varies | leave as-is; classify in INDEX.md |
+| Sub-project          | Status                          | Action                                          |
+| -------------------- | ------------------------------- | ----------------------------------------------- |
+| AtomsBot             | empty                           | archive README (done 2026-07-05)                |
+| AtomsBot-2nd         | active, Discord<->GitHub bridge | strict pause + archive banner (done 2026-07-05) |
+| AtomsBot-3rd/4th/5th | empty                           | archive README (done 2026-07-05)                |
+| GDK                  | empty                           | archive README (done 2026-07-05)                |
+| KaskMan              | empty                           | archive README (done 2026-07-05)                |
+| (other 300+)         | varies                          | leave as-is; classify in INDEX.md               |
 
 ---
 
@@ -81,8 +81,8 @@ DAG_100, FLEET_DAG.db, etc.). The promotion is to:
 
 ## Risks
 
-| Risk | Mitigation |
-|------|------------|
-| Sub-projects lose discoverability once archived | ARCHIVE.md is the canonical list; INDEX.md cross-links |
-| A sub-project owner comes back asking "where did my repo go?" | The archive READMEs point at the polyrepo strategy session docs |
-| The spine becomes too large to navigate | Subdivide into 4-6 logical groups (apps/agents/data/infra/observability/legacy) over time |
+| Risk                                                          | Mitigation                                                                                |
+| ------------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
+| Sub-projects lose discoverability once archived               | ARCHIVE.md is the canonical list; INDEX.md cross-links                                    |
+| A sub-project owner comes back asking "where did my repo go?" | The archive READMEs point at the polyrepo strategy session docs                           |
+| The spine becomes too large to navigate                       | Subdivide into 4-6 logical groups (apps/agents/data/infra/observability/legacy) over time |

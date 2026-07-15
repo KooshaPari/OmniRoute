@@ -62,12 +62,12 @@ stale -- it has not absorbed the work its worktrees produced.
 
 ## Risks of the decision
 
-| Risk | Mitigation |
-|------|------------|
-| A downstream consumer still depends on Authvault's HTTP surface | Search for `Authvault` / `authvault` imports across the polyrepo before archive. If found, add a deprecation shim to AuthKit's re-exports. |
-| FRs/audit reports reference Authvault FR IDs (e.g. FR-AUTHV-018) | Keep the FR ID naming. AuthKit already preserves `FR-AUTHV-018`. The "AUTHV" namespace stays meaningful as historical lineage. |
-| Public API parity | Authvault exposes an HTTP/REST surface; AuthKit exposes Rust traits + axum middleware. Document the migration path in AuthKit README. |
-| GitHub repo deletion is irreversible at the org level | Convert to public archive (read-only) BEFORE any deletion. Add `archived: true` flag, README banner, then never push. |
+| Risk                                                             | Mitigation                                                                                                                                 |
+| ---------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| A downstream consumer still depends on Authvault's HTTP surface  | Search for `Authvault` / `authvault` imports across the polyrepo before archive. If found, add a deprecation shim to AuthKit's re-exports. |
+| FRs/audit reports reference Authvault FR IDs (e.g. FR-AUTHV-018) | Keep the FR ID naming. AuthKit already preserves `FR-AUTHV-018`. The "AUTHV" namespace stays meaningful as historical lineage.             |
+| Public API parity                                                | Authvault exposes an HTTP/REST surface; AuthKit exposes Rust traits + axum middleware. Document the migration path in AuthKit README.      |
+| GitHub repo deletion is irreversible at the org level            | Convert to public archive (read-only) BEFORE any deletion. Add `archived: true` flag, README banner, then never push.                      |
 
 ---
 
@@ -85,6 +85,7 @@ stale -- it has not absorbed the work its worktrees produced.
 ## Counter-argument considered
 
 Could Authvault be the keeper and AuthKit archived? No:
+
 - AuthKit has the actively maintained code, the merged PRs, and a spec
   traceability table.
 - Authvault's worktrees were abandoned (the "archive marker" in c7994b9).

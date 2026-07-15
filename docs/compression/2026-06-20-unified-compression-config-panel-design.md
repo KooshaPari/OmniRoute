@@ -10,8 +10,8 @@ lastUpdated: 2026-06-20
 **Base branch:** `release/v3.8.31`
 **Goal:** Make `/dashboard/context/settings` the single management panel for the master
 on/off and each compression engine's on/off + level, deriving the default pipeline from
-those toggles. Keep the Combos page solely for *chaining* (ordered named pipelines) +
-selecting the globally-active profile, and the per-engine pages solely for *detailed*
+those toggles. Keep the Combos page solely for _chaining_ (ordered named pipelines) +
+selecting the globally-active profile, and the per-engine pages solely for _detailed_
 config. Plan for (but phase) multiple named profiles with an active selector and a
 per-request override header.
 
@@ -25,23 +25,24 @@ duplication:
 - **`/api/settings/compression`** (DB `key_value` ns=`compression`, via `src/lib/db/compression.ts`)
   holds: `enabled` (master), `defaultMode`, `autoTriggerTokens`, `cavemanConfig`,
   `cavemanOutputMode`, `rtkConfig`, `aggressive`, `ultra`, language config, etc.
-- **`/api/context/combos/default`** (the *default combo pipeline*) holds the per-engine
+- **`/api/context/combos/default`** (the _default combo pipeline_) holds the per-engine
   `enabled` + config for the **structural** engines (lite, headroom, session-dedup, ccr,
   llmlingua, aggressive, ultra) as pipeline steps. The per-engine detail pages
   (`EngineConfigPage.tsx`) read/write here via `setEngineInDefaultCombo`.
-- **`compression_combos`** table holds *named* pipelines assigned to routing combos.
+- **`compression_combos`** table holds _named_ pipelines assigned to routing combos.
 
 Concrete duplications (from the UI audit):
+
 - Caveman on/off in **3** places (TokenSaverCard, CompressionSettingsTab, CavemanContextPageClient).
 - Caveman intensity in **3**; RTK intensity in **2**; Caveman output mode in **2**.
 - `lite/session-dedup/headroom/ccr/llmlingua` on/off **absent** from the central settings —
-  only on their per-engine page (which writes the *default combo*, not the central config).
+  only on their per-engine page (which writes the _default combo_, not the central config).
 
 So "is engine X on?" is answered inconsistently (central config for caveman/rtk; default
 combo for the structural engines), and the **Combos page edits the same default pipeline**
 that a central panel would — the conceptual overlap the redesign must remove.
 
-Out of scope as a *config* surface: `dashboard/compression/studio` is the Compression
+Out of scope as a _config_ surface: `dashboard/compression/studio` is the Compression
 Studio (waterfall/cockpit analytics), not toggles — untouched.
 
 Engines (the 10 stackable units): `lite, caveman, aggressive, ultra, rtk, headroom,
@@ -54,17 +55,18 @@ headroom 15, caveman 20, aggressive 30, llmlingua 35, ultra 40).
 
 ## 2. Design principles — the boundary
 
-| Surface | Concept | Owns | Never does |
-|---|---|---|---|
-| **Panel** (`context/settings`) | "My **Default**: what is on + level" | master on/off; per-engine on/off + level | ordering/chaining; per-route assignment |
-| **Combos** (`context/combos`, menu #2) | "Named **profiles**: chaining + which is active + per-route assignment" | create/edit ordered named pipelines; pick the globally-active profile; assign to routing combos | engine on/off (inherits the active profile's membership) |
-| **Per-engine pages** (menu, after combos) | "Deep config of one engine" | filters, rules, language packs, thresholds | on/off; level (those live in the panel) |
+| Surface                                   | Concept                                                                 | Owns                                                                                            | Never does                                               |
+| ----------------------------------------- | ----------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------- | -------------------------------------------------------- |
+| **Panel** (`context/settings`)            | "My **Default**: what is on + level"                                    | master on/off; per-engine on/off + level                                                        | ordering/chaining; per-route assignment                  |
+| **Combos** (`context/combos`, menu #2)    | "Named **profiles**: chaining + which is active + per-route assignment" | create/edit ordered named pipelines; pick the globally-active profile; assign to routing combos | engine on/off (inherits the active profile's membership) |
+| **Per-engine pages** (menu, after combos) | "Deep config of one engine"                                             | filters, rules, language packs, thresholds                                                      | on/off; level (those live in the panel)                  |
 
 **No duplication rule:** the **Panel owns the Default profile** (membership + level, order
-auto-derived by `stackPriority`). A **Combo is a *named alternative* profile** (membership
-+ level + *explicit order*). Different scopes (the one default vs named alternatives) — not
-the same object edited twice. The editable "default combo" store is **removed**; the
-default pipeline becomes **derived** from the panel.
+auto-derived by `stackPriority`). A **Combo is a _named alternative_ profile** (membership
+
+- level + _explicit order_). Different scopes (the one default vs named alternatives) — not
+  the same object edited twice. The editable "default combo" store is **removed**; the
+  default pipeline becomes **derived** from the panel.
 
 ---
 
@@ -92,22 +94,23 @@ level), replacing the editable default-combo store:
 ```ts
 interface EngineToggle {
   enabled: boolean;
-  level?: string;     // caveman/cavemanOutput: lite|full|ultra ; rtk: minimal|standard|aggressive ; others: undefined
+  level?: string; // caveman/cavemanOutput: lite|full|ultra ; rtk: minimal|standard|aggressive ; others: undefined
 }
 interface CompressionConfig {
-  enabled: boolean;                         // master
-  engines: Record<CompressionEngineId, EngineToggle>;   // NEW — the Default profile
-  activeComboId: string | null;             // NEW — null/"default" = derived default; else a compression_combos id
+  enabled: boolean; // master
+  engines: Record<CompressionEngineId, EngineToggle>; // NEW — the Default profile
+  activeComboId: string | null; // NEW — null/"default" = derived default; else a compression_combos id
   autoTriggerTokens: number;
-  autoTriggerMode?: CompressionMode;        // kept (auto-trigger still selects a profile/mode on large prompts)
+  autoTriggerMode?: CompressionMode; // kept (auto-trigger still selects a profile/mode on large prompts)
   preserveSystemPrompt: boolean;
-  comboOverrides: Record<string, CompressionMode>;   // existing per-routing-combo override
+  comboOverrides: Record<string, CompressionMode>; // existing per-routing-combo override
   // detailed per-engine config keeps living in its existing sub-objects
   // (cavemanConfig, rtkConfig, aggressive, ultra, …) — edited by the per-engine pages.
 }
 ```
 
 **Deriving the Default pipeline** from `engines` (pure function `deriveDefaultPlan`):
+
 - master `enabled === false` → `off`.
 - 0 engines enabled → `off`.
 - exactly 1 enabled and it is a single-mode engine (`lite|caveman|aggressive|ultra|rtk`) →
@@ -118,7 +121,7 @@ interface CompressionConfig {
 
 The **stored `defaultMode` field** and the editable default combo
 (`/api/context/combos/default`, `setEngineInDefaultCombo`) are **removed**; the default is
-derived from `engines`. (The `CompressionMode` *type* persists — `comboOverrides`,
+derived from `engines`. (The `CompressionMode` _type_ persists — `comboOverrides`,
 `autoTriggerMode`, and the resolver's output still use it; only the stored `defaultMode`
 field is dropped.) A DB migration backfills `engines` from the current `defaultMode` +
 default-combo steps + caveman/rtk config so existing installs keep their behavior.
@@ -134,6 +137,7 @@ migration 056) — surfaced in the panel as a row that writes there, with a scop
 
 `x-omniroute-compression: <value>` (mirrors the `x-omniroute-no-memory`/`no-cache` pattern,
 PR #4290; parsed in the request pipeline alongside the other omniroute headers). Values:
+
 - `off` → no compression for this request.
 - `default` → the derived Default profile.
 - `<combo-name|id>` → that named combo.
@@ -151,10 +155,11 @@ fall-through.
 
 A single client component (replacing the scattered `CompressionSettingsTab` +
 `CompressionTokenSaverCard` toggles):
+
 - **Master** on/off at top.
 - **Engine grid** (one row per engine, ordered by `stackPriority` so the row order mirrors
   run order): `[engine name + short desc]  [on/off toggle]  [level selector if applicable]
-  [→ detail page]`. Level selector appears only for engines with levels
+[→ detail page]`. Level selector appears only for engines with levels
   (caveman lite|full|ultra, rtk minimal|standard|aggressive; caveman output mode as its own row).
 - **General** (auto-trigger tokens, preserve-system-prompt) below the grid.
 - Reads/writes the `engines` map + master via `GET/PUT /api/settings/compression` (single
@@ -207,8 +212,8 @@ plans later.
 
 - **Phase 1 (core consolidation):** the `engines` map + `deriveDefaultPlan` + migration;
   the engine-grid panel; remove scattered/duplicate toggles; per-engine pages lose on/off;
-  menu reorder. Delivers the single-panel goal. *No behavior change for existing installs
-  (migration backfills).*
+  menu reorder. Delivers the single-panel goal. _No behavior change for existing installs
+  (migration backfills)._
 - **Phase 2 (profiles):** multiple named combos + the `activeComboId` active-profile selector.
 - **Phase 3 (header):** the `x-omniroute-compression` per-request override.
 

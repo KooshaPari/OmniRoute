@@ -19,11 +19,11 @@ Contract version: `v1` (pinned — see Evolution Rules below).
 }
 ```
 
-| Field      | Type            | Required | Notes                           |
-| ---------- | --------------- | -------- | ------------------------------- |
-| `object`   | `string`        | yes      | always `"list"`                 |
-| `data`     | `ModelV1[]`     | yes      | ordered array of model entries  |
-| `has_more` | `boolean`       | no       | `false` if absent               |
+| Field      | Type             | Required | Notes                           |
+| ---------- | ---------------- | -------- | ------------------------------- |
+| `object`   | `string`         | yes      | always `"list"`                 |
+| `data`     | `ModelV1[]`      | yes      | ordered array of model entries  |
+| `has_more` | `boolean`        | no       | `false` if absent               |
 | `last_id`  | `string \| null` | no       | cursor for pagination, optional |
 
 ### `ModelV1` (single model entry)
@@ -46,21 +46,21 @@ Contract version: `v1` (pinned — see Evolution Rules below).
 }
 ```
 
-| Field             | Type                  | Required | Notes                                     |
-| ----------------- | --------------------- | -------- | ----------------------------------------- |
-| `id`              | `string`              | yes      | canonical model identifier                |
-| `object`          | `string`              | yes      | always `"model"`                          |
-| `created`         | `i64` (unix ts)       | yes      | model creation / release timestamp        |
-| `owned_by`        | `string`              | yes      | provider / organization                   |
-| `display_name`    | `string \| null`      | no       | human-readable label, optional            |
-| `context_length`  | `i64`                 | yes      | maximum context window in tokens          |
-| `max_input_tokens`| `i64 \| null`         | no       | per-request input limit, optional         |
-| `max_output_tokens`| `i64 \| null`        | no       | per-request output limit, optional        |
-| `input_modalities`| `string[]`            | no       | e.g. `["text", "image"]`                 |
-| `output_modalities`| `string[]`           | no       | e.g. `["text"]`                          |
-| `release_date`    | `string \| null`      | no       | ISO 8601 date, optional                   |
-| `api_format`      | `string \| null`      | no       | e.g. `"anthropic"`, `"openai"`, optional  |
-| `capabilities`    | `ModelCapabilitiesV1` | no       | defaults to all-`false` if absent         |
+| Field               | Type                  | Required | Notes                                    |
+| ------------------- | --------------------- | -------- | ---------------------------------------- |
+| `id`                | `string`              | yes      | canonical model identifier               |
+| `object`            | `string`              | yes      | always `"model"`                         |
+| `created`           | `i64` (unix ts)       | yes      | model creation / release timestamp       |
+| `owned_by`          | `string`              | yes      | provider / organization                  |
+| `display_name`      | `string \| null`      | no       | human-readable label, optional           |
+| `context_length`    | `i64`                 | yes      | maximum context window in tokens         |
+| `max_input_tokens`  | `i64 \| null`         | no       | per-request input limit, optional        |
+| `max_output_tokens` | `i64 \| null`         | no       | per-request output limit, optional       |
+| `input_modalities`  | `string[]`            | no       | e.g. `["text", "image"]`                 |
+| `output_modalities` | `string[]`            | no       | e.g. `["text"]`                          |
+| `release_date`      | `string \| null`      | no       | ISO 8601 date, optional                  |
+| `api_format`        | `string \| null`      | no       | e.g. `"anthropic"`, `"openai"`, optional |
+| `capabilities`      | `ModelCapabilitiesV1` | no       | defaults to all-`false` if absent        |
 
 ### `ModelCapabilitiesV1`
 

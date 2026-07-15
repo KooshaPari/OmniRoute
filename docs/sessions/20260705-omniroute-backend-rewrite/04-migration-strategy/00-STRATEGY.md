@@ -166,16 +166,16 @@ if header == 'auto' (default):
 
 When both stacks process a request, divergence detection compares:
 
-| Field | Comparison | Note |
-|---|---|---|
-| Response status | `==` | Hard requirement |
-| Response body hash | SHA256 `==` | For non-streaming |
-| First-chunk latency | `within 10%` | For streaming |
-| Final-chunk content | SHA256 `==` | For streaming |
-| Chunk count | `within 5%` | For streaming |
-| Total response time | `within 20%` | Soft check |
-| Token count | `within 5%` | Soft check |
-| Headers | `Set` equality | Required (cache-control, x-request-id) |
+| Field               | Comparison     | Note                                   |
+| ------------------- | -------------- | -------------------------------------- |
+| Response status     | `==`           | Hard requirement                       |
+| Response body hash  | SHA256 `==`    | For non-streaming                      |
+| First-chunk latency | `within 10%`   | For streaming                          |
+| Final-chunk content | SHA256 `==`    | For streaming                          |
+| Chunk count         | `within 5%`    | For streaming                          |
+| Total response time | `within 20%`   | Soft check                             |
+| Token count         | `within 5%`    | Soft check                             |
+| Headers             | `Set` equality | Required (cache-control, x-request-id) |
 
 **Divergence log:** `usage_history` table gains a `divergence_*` column set. A separate `divergences` table records every divergence with full request/response capture for postmortem.
 
@@ -235,29 +235,29 @@ When both stacks process a request, divergence detection compares:
 
 ## 7. Risk gates per phase
 
-| Phase | Risk gate | Threshold | Action on breach |
-|---|---|---|---|
-| 0 (shadow) | Divergence rate | > 5% | Pause shadow; analyze divergences |
-| 1 (per-tenant) | Per-tenant p99 +5% for 5 min | Yes | Disable that tenant's canary |
-| 1 | Per-tenant error rate +0.5% | Yes | Disable that tenant's canary |
-| 2 (per-model) | Same as Phase 1, per model | Yes | Disable that model's canary |
-| 3 (weighted) | Aggregate p99 +5% | Yes | Drop traffic % by 50% |
-| 3 | Aggregate error rate +0.1% | Yes | Drop traffic % by 50% |
-| 3 | Aggregate divergence > 0.5% | Yes | Drop traffic % to 0% |
-| 4 (full) | Same as Phase 3, but rollback to Phase 3 | Yes | Roll back |
-| 5 (decommission) | N/A | N/A | git revert |
+| Phase            | Risk gate                                | Threshold | Action on breach                  |
+| ---------------- | ---------------------------------------- | --------- | --------------------------------- |
+| 0 (shadow)       | Divergence rate                          | > 5%      | Pause shadow; analyze divergences |
+| 1 (per-tenant)   | Per-tenant p99 +5% for 5 min             | Yes       | Disable that tenant's canary      |
+| 1                | Per-tenant error rate +0.5%              | Yes       | Disable that tenant's canary      |
+| 2 (per-model)    | Same as Phase 1, per model               | Yes       | Disable that model's canary       |
+| 3 (weighted)     | Aggregate p99 +5%                        | Yes       | Drop traffic % by 50%             |
+| 3                | Aggregate error rate +0.1%               | Yes       | Drop traffic % by 50%             |
+| 3                | Aggregate divergence > 0.5%              | Yes       | Drop traffic % to 0%              |
+| 4 (full)         | Same as Phase 3, but rollback to Phase 3 | Yes       | Roll back                         |
+| 5 (decommission) | N/A                                      | N/A       | git revert                        |
 
 ## 8. Calendar (4-concurrency-slot fleet)
 
-| Phase | Weeks | Cumulative | Parallel agents (max 4) | Notes |
-|---|---|---|---|---|
-| 0 (shadow) | 4 | 4 | 4 | Build shadow infrastructure; port 30 provider adapters; port omni-server to serve shadow-only |
-| 1 (per-tenant) | 4 | 8 | 4 | Add feature flag system; port 50 more provider adapters; test with internal tenants |
-| 2 (per-model) | 4 | 12 | 4 | Port 50 more; add chaos engineering scripts |
-| 3 (weighted) | 6 | 18 | 4 | All 149 provider adapters ported; perf hardening; chaos testing |
-| 4 (full) | 4 | 22 | 2 | Ops docs; on-call training; monitoring dashboards |
-| 5 (decommission) | 2 | 24 | 1 | TS fork delete PR; final cleanup |
-| **Total v1** | **24 weeks** | 24 | avg 3.5 | Q3 2026 → Q1 2027 ship |
+| Phase            | Weeks        | Cumulative | Parallel agents (max 4) | Notes                                                                                         |
+| ---------------- | ------------ | ---------- | ----------------------- | --------------------------------------------------------------------------------------------- |
+| 0 (shadow)       | 4            | 4          | 4                       | Build shadow infrastructure; port 30 provider adapters; port omni-server to serve shadow-only |
+| 1 (per-tenant)   | 4            | 8          | 4                       | Add feature flag system; port 50 more provider adapters; test with internal tenants           |
+| 2 (per-model)    | 4            | 12         | 4                       | Port 50 more; add chaos engineering scripts                                                   |
+| 3 (weighted)     | 6            | 18         | 4                       | All 149 provider adapters ported; perf hardening; chaos testing                               |
+| 4 (full)         | 4            | 22         | 2                       | Ops docs; on-call training; monitoring dashboards                                             |
+| 5 (decommission) | 2            | 24         | 1                       | TS fork delete PR; final cleanup                                                              |
+| **Total v1**     | **24 weeks** | 24         | avg 3.5                 | Q3 2026 → Q1 2027 ship                                                                        |
 
 **Calendar target:** if we start 2026-07-15, v1 ships 2027-01-01. Realistic for a 4-slot fleet, with the existing scaffold providing ~12 weeks of lead time on `omni-core`, `omni-protocol`, `omni-storage` design.
 
@@ -271,4 +271,3 @@ When both stacks process a request, divergence detection compares:
 4. **Is the i18n (42 locales) deferred to v1.5?** Recommend yes; not on the critical path.
 5. **Is the tproxy native module in scope?** Per Phase 0-5 above, deferred to v2. Confirm.
 6. **Should the OpenCode plugin be a "first-class consumer" of the rewrite?** It already lives in TypeScript. The plugin must consume the same `/v1/models` API that the Rust server exposes. Confirm or specify the contract.
-

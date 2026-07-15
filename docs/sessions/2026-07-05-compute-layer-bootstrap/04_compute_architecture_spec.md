@@ -7,12 +7,15 @@ Companion: `01_compute_stack_audit.md` (the audit that motivates this spec).
 
 This spec defines the target architecture for the next-generation
 compute layer SDK. The 13 in-flight PRs (A-L) handle the absorption
-+ spine work; this spec covers the SDK work that grows on top of
-those landing. The two are decoupled: the absorption work can land
-without the SDK, and the SDK can be built without the absorption.
+
+- spine work; this spec covers the SDK work that grows on top of
+  those landing. The two are decoupled: the absorption work can land
+  without the SDK, and the SDK can be built without the absorption.
 
 ================================================================================
+
 ## 1. Vision
+
 ================================================================================
 
 The Phenotype compute layer is a polyrepo of Rust + Go + Zig + Mojo
@@ -23,6 +26,7 @@ bare-metal directly. The user (sponsor) is responsible for the
 surfaces; this SDK is the substrate.
 
 Five-year trajectory:
+
 - 2026 (now): the SDK exists as a polyrepo with a clean trait
   surface, 3 cloud providers (Fly, AWS Fargate, Vercel/Supabase
   Edge), and 1 microVM target (Nanos). BytePort and Eidolon adopt
@@ -42,6 +46,7 @@ Five-year trajectory:
   data center is a fallback, not the default.
 
 Non-negotiable design principles:
+
 1. **No cloud SDK in user code.** A consumer writes against a
    trait; the trait is implemented per cloud. The consumer never
    imports `aws-sdk-*` or `cloud.google.com/go/compute`.
@@ -59,7 +64,9 @@ Non-negotiable design principles:
    pulls everything.
 
 ================================================================================
+
 ## 2. Layer model
+
 ================================================================================
 
 ```
@@ -103,6 +110,7 @@ Non-negotiable design principles:
 ```
 
 Each box has:
+
 - **role**: one-line description
 - **language**: Rust / Go / Zig / Mojo / TS
 - **API surface**: the public types and functions exposed
@@ -125,7 +133,9 @@ PolicyGate decisions are logged; the workload lifecycle is a
 metric.
 
 ================================================================================
+
 ## 3. Core traits (Rust)
+
 ================================================================================
 
 The Rust trait surface is the canonical one. Go and Zig ports
@@ -447,24 +457,28 @@ pub enum LogLevel { Trace, Debug, Info, Warn, Error }
 ```
 
 ================================================================================
+
 ## 4. Provider matrix (v1 target)
+
 ================================================================================
 
-| Provider | Isolation | Cold start | Cost/vCPU-h | SDK surface | v1 priority |
-|----------|-----------|------------|-------------|-------------|--------------|
-| Fly.io   | Container, MicroVm (Firecracker) | ~500ms | $0.0000026 | Machines REST | P0 |
-| AWS Fargate | Container | ~30s | $0.04048 | AWS SDK (Rust: aws-sdk-fargate) | P0 |
-| AWS Lambda | Wasm (custom runtime) | ~100ms | $0.0000166 per request | AWS SDK | P1 |
-| Vercel Functions | Container (Node/Deno/Go/Python/Rust) | ~50ms | $0.60 per 1M requests | REST + vercel.json | P0 |
-| Supabase Edge | Wasm (Deno) | ~5ms | $2 per 1M requests | REST | P1 |
-| Local (nanovms) | All (Container/MicroVm/Unikernel/Wasm) | <100ms | $0 | in-process | P0 |
-| Hetzner | Container (via Docker) | ~60s | $0.005 | REST | P2 |
+| Provider         | Isolation                              | Cold start | Cost/vCPU-h            | SDK surface                     | v1 priority |
+| ---------------- | -------------------------------------- | ---------- | ---------------------- | ------------------------------- | ----------- |
+| Fly.io           | Container, MicroVm (Firecracker)       | ~500ms     | $0.0000026             | Machines REST                   | P0          |
+| AWS Fargate      | Container                              | ~30s       | $0.04048               | AWS SDK (Rust: aws-sdk-fargate) | P0          |
+| AWS Lambda       | Wasm (custom runtime)                  | ~100ms     | $0.0000166 per request | AWS SDK                         | P1          |
+| Vercel Functions | Container (Node/Deno/Go/Python/Rust)   | ~50ms      | $0.60 per 1M requests  | REST + vercel.json              | P0          |
+| Supabase Edge    | Wasm (Deno)                            | ~5ms       | $2 per 1M requests     | REST                            | P1          |
+| Local (nanovms)  | All (Container/MicroVm/Unikernel/Wasm) | <100ms     | $0                     | in-process                      | P0          |
+| Hetzner          | Container (via Docker)                 | ~60s       | $0.005                 | REST                            | P2          |
 
 P0 ships in v0.1 (3 months). P1 ships in v0.5 (6 months). P2 is
 v1.0 (12 months).
 
 ================================================================================
+
 ## 5. Go SDK surface
+
 ================================================================================
 
 The Go SDK is the same trait surface in Go syntax. Since the
@@ -539,7 +553,9 @@ local execution. This keeps the Rust SDK pure-Rust (no cgo) and
 reuses the existing nanovms codebase.
 
 ================================================================================
+
 ## 6. TypeScript / WASM surface
+
 ================================================================================
 
 The TypeScript surface is generated from the Rust types via
@@ -559,25 +575,33 @@ export interface ComputeProvider {
   delete(handle: WorkloadHandle): Promise<void>;
 }
 
-export class FlyProvider implements ComputeProvider { /* ... */ }
-export class AwsFargateProvider implements ComputeProvider { /* ... */ }
-export class VercelProvider implements ComputeProvider { /* ... */ }
-export class LocalProvider implements ComputeProvider { /* ... */ }
+export class FlyProvider implements ComputeProvider {
+  /* ... */
+}
+export class AwsFargateProvider implements ComputeProvider {
+  /* ... */
+}
+export class VercelProvider implements ComputeProvider {
+  /* ... */
+}
+export class LocalProvider implements ComputeProvider {
+  /* ... */
+}
 
 // Usage example
-import { FlyProvider, Scheduler, WorkloadSpec } from '@pheno/compute';
+import { FlyProvider, Scheduler, WorkloadSpec } from "@pheno/compute";
 
 const fly = new FlyProvider({ token: process.env.FLY_TOKEN });
 const scheduler = new CheapestProvider([fly]);
 const handle = await scheduler.place({
-  image: { registry: null, repository: 'my-app', tag: '1.2.3' },
-  name: 'my-app-prod',
+  image: { registry: null, repository: "my-app", tag: "1.2.3" },
+  name: "my-app-prod",
   resources: { cpuMillicores: 1000, memoryMib: 512 },
-  isolation: 'container',
+  isolation: "container",
   env: [],
-  ports: [{ containerPort: 8080, protocol: 'tcp' }],
+  ports: [{ containerPort: 8080, protocol: "tcp" }],
   volumes: [],
-  tags: [['env', 'prod']],
+  tags: [["env", "prod"]],
 });
 console.log(`Deployed: ${handle.endpoints[0].url}`);
 ```
@@ -587,7 +611,9 @@ generation is part of the build (not a hand-maintained file), so
 drift is impossible.
 
 ================================================================================
+
 ## 7. Crate layout
+
 ================================================================================
 
 New polyrepo member: `pheno-compute` (the SDK workspace). The
@@ -623,6 +649,7 @@ The number is high but each crate is small (target 200-400 lines)
 and independently publishable.
 
 Migration from current state:
+
 - `pheno-compute-core` consumes `phenotype-types` (extracted from
   PhenoCompose/port-types in step 1 of the audit's next-steps).
 - `pheno-compute-core` defines the CloudProvider port (Rust
@@ -633,6 +660,7 @@ Migration from current state:
   the EventSink impl.
 
 What happens to PhenoCompose port-* crates:
+
 - `port-types` -> deprecated, re-exports from `pheno-compute-types`
 - `port-runtime` -> stays; becomes an internal trait used by
   `pheno-compute-local` (and not the public SDK surface)
@@ -647,6 +675,7 @@ What happens to PhenoCompose port-* crates:
   default impl for local dev
 
 What happens to nanovms:
+
 - nanovms stays. The Go binary `nvms` is the local-execution
   backend. The Rust SDK calls it via subprocess.
 - The CloudProviderPort is added to nanovms (Go interface) so
@@ -655,25 +684,28 @@ What happens to nanovms:
   port set grows.
 
 ================================================================================
+
 ## 8. Migration path from current state
+
 ================================================================================
 
 The "no backwards compat shims" rule from the user's AGENTS.md
 means: clean break, no transition period. Each migration step
 removes the old path entirely.
 
-| Step | What lands | What is removed |
-|------|------------|-----------------|
-| 1. Extract `phenotype-types` | New `phenotype-types` crate with OCI Reference + Manifest + PortError. nanovms and PhenoCompose consume from it. | PhenoCompose `port-types/src/oci.rs` body. |
-| 2. Add `CloudProvider` Rust trait | New trait in `pheno-compute-core`. Fly.io impl in `pheno-compute-fly`. | Nothing (additive). |
-| 3. Add `CloudProviderPort` Go interface | New interface in nanovms `internal/ports/`. Fly.io impl in `internal/adapters/fly/`. | Nothing (additive). |
-| 4. Add `Scheduler` + `PolicyGate` | New traits in `pheno-compute-core`. Default impls in `pheno-compute-scheduler` + `pheno-compute-policy`. | Nothing (additive). |
-| 5. Wire `EventSink` -> Tracely | New `pheno-compute-observe` crate. nanovms and PhenoCompose emit via EventSink. | Direct Tracely calls in caller code. |
-| 6. Add `ProviderCapabilities` | New struct in `pheno-compute-types` (Rust) + nanovms `internal/domain/` (Go). | Ad-hoc capability checks. |
-| 7. Move Tracera frontend out | Move `frontend/` from Tracera to BytePort (or its own repo). | Tracera's frontend dir. |
-| 8. Remove "Slop Expected" badge | Doc-only PR. | The badge from production-tier READMEs. |
+| Step                                    | What lands                                                                                                       | What is removed                            |
+| --------------------------------------- | ---------------------------------------------------------------------------------------------------------------- | ------------------------------------------ |
+| 1. Extract `phenotype-types`            | New `phenotype-types` crate with OCI Reference + Manifest + PortError. nanovms and PhenoCompose consume from it. | PhenoCompose `port-types/src/oci.rs` body. |
+| 2. Add `CloudProvider` Rust trait       | New trait in `pheno-compute-core`. Fly.io impl in `pheno-compute-fly`.                                           | Nothing (additive).                        |
+| 3. Add `CloudProviderPort` Go interface | New interface in nanovms `internal/ports/`. Fly.io impl in `internal/adapters/fly/`.                             | Nothing (additive).                        |
+| 4. Add `Scheduler` + `PolicyGate`       | New traits in `pheno-compute-core`. Default impls in `pheno-compute-scheduler` + `pheno-compute-policy`.         | Nothing (additive).                        |
+| 5. Wire `EventSink` -> Tracely          | New `pheno-compute-observe` crate. nanovms and PhenoCompose emit via EventSink.                                  | Direct Tracely calls in caller code.       |
+| 6. Add `ProviderCapabilities`           | New struct in `pheno-compute-types` (Rust) + nanovms `internal/domain/` (Go).                                    | Ad-hoc capability checks.                  |
+| 7. Move Tracera frontend out            | Move `frontend/` from Tracera to BytePort (or its own repo).                                                     | Tracera's frontend dir.                    |
+| 8. Remove "Slop Expected" badge         | Doc-only PR.                                                                                                     | The badge from production-tier READMEs.    |
 
 After step 8, the compute layer has:
+
 - A single type system (`phenotype-types`).
 - A multi-cloud provider abstraction (`CloudProvider` Rust,
   `CloudProviderPort` Go).
@@ -686,13 +718,16 @@ After step 8, the compute layer has:
 This is the minimum bar for "mature / enterprise / prod grade".
 
 ================================================================================
+
 ## 9. Observability + policy
+
 ================================================================================
 
 ### 9.1 Observability
 
 Tracely plugs in as the default `EventSink` impl. Every
 `ComputeProvider` method call emits:
+
 - a trace span (start, end, attrs: provider, workload, region)
 - a metric (counter `pheno_compute_<op>_total`,
   histogram `pheno_compute_<op>_duration_seconds`)
@@ -743,6 +778,7 @@ impl PolicyGate for ProdPolicy {
 ### 9.3 Audit trail
 
 Every `place` call is logged with:
+
 - actor (from `PolicyContext.actor`)
 - workspace (from `PolicyContext.workspace`)
 - spec (without env / secrets)
@@ -755,13 +791,16 @@ The audit log is a structured log line; consumers can ship it
 to any log aggregator. Tracely's exporter handles the rest.
 
 ================================================================================
+
 ## 10. Security model
+
 ================================================================================
 
 ### 10.1 Threat model summary
 
 The compute layer is the substrate that runs user code. The
 threats are:
+
 - **T1: Malicious workload escapes its isolation.** A container
   with a kernel exploit breaks out and accesses the host or
   other workloads. Mitigated by isolation level (Container vs
@@ -777,8 +816,8 @@ threats are:
   per-workspace rate limits in the Scheduler.
 - **T4: Supply chain.** A malicious dependency in the SDK or
   in a cloud adapter exfiltrates data. Mitigated by `cargo-deny`
-  + `cargo-audit` in CI, vendored Go dependencies in nanovms,
-  and pinned versions in `Cargo.lock` / `go.sum`.
+  - `cargo-audit` in CI, vendored Go dependencies in nanovms,
+    and pinned versions in `Cargo.lock` / `go.sum`.
 - **T5: API key compromise.** The provider API key is stolen
   and used to deploy workloads outside the policy. Mitigated by
   short-lived tokens (where the provider supports them), the
@@ -803,6 +842,7 @@ threats are:
 ### 10.3 Secret handling
 
 Secrets are NEVER:
+
 - In the `WorkloadSpec` struct.
 - In environment variables at compile time.
 - In a log line, audit log, or trace span.
@@ -810,6 +850,7 @@ Secrets are NEVER:
 - In a test fixture (use mocks).
 
 Secrets are:
+
 - In a `SecretSpec` with a `SecretRef::File` (path on the
   host) or `SecretRef::Provider(name, key)` (provider-native
   secret store). The provider resolves the ref at deploy time.
@@ -818,7 +859,9 @@ Secrets are:
   only references it.
 
 ================================================================================
+
 ## 11. Versioning + release plan
+
 ================================================================================
 
 ### 11.1 Semver strategy
@@ -872,6 +915,7 @@ Secrets are:
 
 The user wrote: "the optimal/mature/enterprise/prod grade version".
 The bar is:
+
 - Stable trait surface (no breaking changes between minors).
 - 95% test coverage on the trait surface and the scheduler.
 - 80% test coverage on each provider adapter.
@@ -885,7 +929,9 @@ The bar is:
   PolicyGate mandatory in production.
 
 ================================================================================
+
 ## 12. Open questions
+
 ================================================================================
 
 ### 12.1 For the sponsor (Koosha)
@@ -931,8 +977,8 @@ The bar is:
 ### 12.3 Unresolved design questions
 
 1. **Multi-region placement.** The Scheduler picks one provider
-   + region per workload. Some workloads want replicas across
-   multiple regions. The trait surface does not yet model this.
+   - region per workload. Some workloads want replicas across
+     multiple regions. The trait surface does not yet model this.
 2. **Stateful workloads.** Volumes are modeled as `VolumeMount`,
    but the create / attach / detach lifecycle is not.
 3. **Networking.** The trait surface has `ports` and
@@ -946,7 +992,9 @@ The bar is:
    region is down". Defer to v1.0.
 
 ================================================================================
+
 ## 13. What this spec does NOT do
+
 ================================================================================
 
 To keep the scope tight:
@@ -965,4 +1013,3 @@ To keep the scope tight:
 
 These are all explicit out-of-scope statements, not omissions.
 Each one is a candidate for a follow-up spec.
-

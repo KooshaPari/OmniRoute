@@ -79,14 +79,14 @@ A **3-tier distributed mesh** where:
 
 ### Key Outcomes
 
-| Outcome | Metric | Target |
-|---|---|---|
-| Horizontal scaling | Nodes in fleet | 3→50+ per region |
-| Auto-scaling convergence | Time to scale | Manual→90s |
-| p50 latency reduction | Response time | 800ms→400ms |
-| Fleet availability | Uptime | 99.9%→99.99% |
-| Config propagation | Global sync | N/A→5s |
-| Cost efficiency | $/request | -15% via predictive scaling |
+| Outcome                  | Metric         | Target                      |
+| ------------------------ | -------------- | --------------------------- |
+| Horizontal scaling       | Nodes in fleet | 3→50+ per region            |
+| Auto-scaling convergence | Time to scale  | Manual→90s                  |
+| p50 latency reduction    | Response time  | 800ms→400ms                 |
+| Fleet availability       | Uptime         | 99.9%→99.99%                |
+| Config propagation       | Global sync    | N/A→5s                      |
+| Cost efficiency          | $/request      | -15% via predictive scaling |
 
 ---
 
@@ -96,36 +96,38 @@ A **3-tier distributed mesh** where:
 
 **Codebase**: v3.8.31, Next.js 16 + TypeScript + Rust data plane + Electron desktop
 
-| Component | Lines (approx) | Deploy Model | Scaling Model |
-|---|---|---|---|
-| Next.js App (TS) | 50K+ | Single container | Manual replica |
-| Open-SSE Engine | 115 service modules | Bundled with app | N/A |
-| Rust Data Plane | 3 crates | Separate container (UDS) | Manual replica |
-| MCP Server | 87 tools | Bundled | N/A |
-| A2A Server | 8 skills | Bundled | N/A |
-| Electron Desktop | N/A | Standalone | N/A |
+| Component        | Lines (approx)      | Deploy Model             | Scaling Model  |
+| ---------------- | ------------------- | ------------------------ | -------------- |
+| Next.js App (TS) | 50K+                | Single container         | Manual replica |
+| Open-SSE Engine  | 115 service modules | Bundled with app         | N/A            |
+| Rust Data Plane  | 3 crates            | Separate container (UDS) | Manual replica |
+| MCP Server       | 87 tools            | Bundled                  | N/A            |
+| A2A Server       | 8 skills            | Bundled                  | N/A            |
+| Electron Desktop | N/A                 | Standalone               | N/A            |
 
 **Existing Load Balancing** (`src/shared/constants/routingStrategies.ts:1-17`):
 
-| Strategy | SOTA Alignment | Gap |
-|---|---|---|
-| `priority` | Static ordered | No EWMA |
-| `weighted` | Weighted random | No per-node system load |
-| `round-robin` | Rotary | No connection count awareness |
-| `p2c` | **Power of Two Choices** | Missing EWMA smoothing |
-| `least-used` | Usage-aware | Missing node health factor |
-| `cost-optimized` | Cost-aware | No cross-region cost |
-| `auto` | 9-factor scoring + bandit | Missing system load factor |
-| `lkgp` | Session affinity | No consistent hashing |
-| `context-optimized` | Session-aware | No ring-based stickiness |
+| Strategy            | SOTA Alignment            | Gap                           |
+| ------------------- | ------------------------- | ----------------------------- |
+| `priority`          | Static ordered            | No EWMA                       |
+| `weighted`          | Weighted random           | No per-node system load       |
+| `round-robin`       | Rotary                    | No connection count awareness |
+| `p2c`               | **Power of Two Choices**  | Missing EWMA smoothing        |
+| `least-used`        | Usage-aware               | Missing node health factor    |
+| `cost-optimized`    | Cost-aware                | No cross-region cost          |
+| `auto`              | 9-factor scoring + bandit | Missing system load factor    |
+| `lkgp`              | Session affinity          | No consistent hashing         |
+| `context-optimized` | Session-aware             | No ring-based stickiness      |
 
 **Existing Resilience** (`docs/architecture/RESILIENCE_GUIDE.md`):
+
 - 3-layer: provider CB → connection cooldown → model lockout
 - Shadow routing (`shadowRouting.ts:1-178`)
 - Hedged requests (`combo.ts:1842-1868`)
 - Bifrost kill switch (`open-sse/services/bifrostKillSwitch.ts:401`)
 
 **Existing Deployment**:
+
 - Docker Compose: Profiles (base/web/cli/host/cliproxyapi) + sidecars (Redis, OTEL, Rust)
 - K8s: 2-replica deployment + metrics service
 - Fly.io: Single-region, auto-stop/start, 1GB machine
@@ -135,16 +137,16 @@ A **3-tier distributed mesh** where:
 
 **Codebase**: Go 1.26, ~20K LOC, `github.com/kooshapari/bifrost-extensions`
 
-| Component | Lines (approx) | Capability |
-|---|---|---|
-| **CLI** (9 commands) | 500+ | Server, Deploy, Config, Plugin, Migrate, Dataset |
-| **API Server** | 3 surfaces | REST (OpenAI), Connect/gRPC, GraphQL |
-| **Plugins** (9) | 7 packages | Intelligent Router, Smart Fallback, Context Folding, Voyage |
+| Component              | Lines (approx)  | Capability                                                  |
+| ---------------------- | --------------- | ----------------------------------------------------------- |
+| **CLI** (9 commands)   | 500+            | Server, Deploy, Config, Plugin, Migrate, Dataset            |
+| **API Server**         | 3 surfaces      | REST (OpenAI), Connect/gRPC, GraphQL                        |
+| **Plugins** (9)        | 7 packages      | Intelligent Router, Smart Fallback, Context Folding, Voyage |
 | **Intelligent Router** | 7-step pipeline | Semantic + ArchRouter + RouteLLM + MIRT + 3-Pillar + Pareto |
-| **Cost Engine** | 3 files | 6 billing models, 6 limit types, quota enforcement |
-| **Config** | 5 files | Viper-based, hot-reload, Vault + AES-GCM, versioning |
-| **Infra** | 6 modules | Redis, NATS, Neo4j, Upstash, Hatchet, Circuit Breaker |
-| **Deploy Targets** | 5 platforms | Fly.io, Vercel, Railway, Render, Homebox |
+| **Cost Engine**        | 3 files         | 6 billing models, 6 limit types, quota enforcement          |
+| **Config**             | 5 files         | Viper-based, hot-reload, Vault + AES-GCM, versioning        |
+| **Infra**              | 6 modules       | Redis, NATS, Neo4j, Upstash, Hatchet, Circuit Breaker       |
+| **Deploy Targets**     | 5 platforms     | Fly.io, Vercel, Railway, Render, Homebox                    |
 
 **Key Architectural Pattern**: Clean extension layer — consumes `maximhq/bifrost` as Go module without modification. Plugin interface (`bifrost/core/schemas/schemas.go:290-296`) enables injection at TransportInterceptor/PreHook/PostHook points.
 
@@ -229,15 +231,15 @@ Each node runs a **container group**:
 
 ### 3.3 Cross-Node Communication Matrix
 
-| Channel | Protocol | TLS | Transport | Purpose |
-|---|---|---|---|---|
-| Global LB → Node | HTTP/2 | mTLS optional | Internet | Request distribution |
-| Node ↔ Node | Connect/gRPC | mTLS | Mesh (Istio/LinkerD) | State sync, handoff |
-| Node → Mgmt Plane | gRPC stream | mTLS | Dedicated/NATS | Telemetry, health |
-| Mgmt Plane → Node | REST/SSE | mTLS | NATS/Direct | Config push, kill-switch |
-| Node ↔ Redis | RESP | TLS | Cluster | Distributed rate limiting |
-| Node ↔ PostgreSQL | pgx (TCP) | TLS | Pool | Persistent state |
-| Node ↔ NATS | NATS protocol | TLS | Cluster | Async jobs |
+| Channel           | Protocol      | TLS           | Transport            | Purpose                   |
+| ----------------- | ------------- | ------------- | -------------------- | ------------------------- |
+| Global LB → Node  | HTTP/2        | mTLS optional | Internet             | Request distribution      |
+| Node ↔ Node       | Connect/gRPC  | mTLS          | Mesh (Istio/LinkerD) | State sync, handoff       |
+| Node → Mgmt Plane | gRPC stream   | mTLS          | Dedicated/NATS       | Telemetry, health         |
+| Mgmt Plane → Node | REST/SSE      | mTLS          | NATS/Direct          | Config push, kill-switch  |
+| Node ↔ Redis      | RESP          | TLS           | Cluster              | Distributed rate limiting |
+| Node ↔ PostgreSQL | pgx (TCP)     | TLS           | Pool                 | Persistent state          |
+| Node ↔ NATS       | NATS protocol | TLS           | Cluster              | Async jobs                |
 
 ---
 
@@ -285,16 +287,16 @@ Each node runs a **container group**:
 
 ```typescript
 interface EwmaConfig {
-  alpha: number;     // Smoothing factor (default 0.3)
-  beta: number;      // Peak decay (default 0.5)
-  halfLife: number;  // Time-weight decay in ms (default 30_000)
+  alpha: number; // Smoothing factor (default 0.3)
+  beta: number; // Peak decay (default 0.5)
+  halfLife: number; // Time-weight decay in ms (default 30_000)
 }
 
 interface EwmaState {
-  value: number;       // E[T] — exponentially weighted moving average
-  peak: number;        // P[T] — peak EWMA (decays slower)
-  variance: number;    // V[T] — exponentially weighted variance
-  lastUpdate: number;  // Timestamp for time-decay correction
+  value: number; // E[T] — exponentially weighted moving average
+  peak: number; // P[T] — peak EWMA (decays slower)
+  variance: number; // V[T] — exponentially weighted variance
+  lastUpdate: number; // Timestamp for time-decay correction
 }
 
 function updateEwma(state: EwmaState, observation: number, config: EwmaConfig): void {
@@ -325,24 +327,20 @@ function getP2CTargetScore(
   target: ResolvedComboTarget,
   metrics: ComboMetrics,
   ewma: Map<string, EwmaState>,
-  nodeHealth: NodeHealthReport | null,
+  nodeHealth: NodeHealthReport | null
 ): number {
   const breakerState = getCircuitBreaker(target.provider)?.getStatus()?.state;
   if (breakerState === "OPEN") return -Infinity;
 
   // Use EWMA latency instead of raw avgLatencyMs
   const ewmaState = ewma.get(target.id);
-  const latencyScore = ewmaState
-    ? 1 / Math.log10(ewmaState.value + 10)
-    : 0.25;
+  const latencyScore = ewmaState ? 1 / Math.log10(ewmaState.value + 10) : 0.25;
 
   const successScore = (metrics?.byModel?.[target.modelStr]?.successRate ?? 50) / 100;
   const breakerPenalty = breakerState === "HALF_OPEN" ? 0.25 : 0;
 
   // System load multiplier
-  const healthMultiplier = nodeHealth
-    ? (0.3 + 0.7 * nodeHealth.compositeScore)
-    : 1.0;
+  const healthMultiplier = nodeHealth ? 0.3 + 0.7 * nodeHealth.compositeScore : 1.0;
 
   return (successScore + latencyScore - breakerPenalty) * healthMultiplier;
 }
@@ -355,19 +353,22 @@ New routing strategy for session-stickiness without centralized state:
 ```typescript
 // Jump consistent hash (Google, 2014): O(log n), minimal redistribution
 function jumpConsistentHash(key: string, numTargets: number): number {
-  const hash = hashString(key);  // xxhash or similar
+  const hash = hashString(key); // xxhash or similar
   let b = -1n;
   let j = 0n;
   while (j < BigInt(numTargets)) {
     b = j;
     const r = BigInt(hash) + BigInt(0x9e3779b97f4a7c15n) * (b + 1n);
-    j = BigInt(Math.floor(Number(BigInt(1n << 31n) / (r & BigInt(0xffffffffn))) * Math.log2(Number(b + 2n))));
+    j = BigInt(
+      Math.floor(Number(BigInt(1n << 31n) / (r & BigInt(0xffffffffn))) * Math.log2(Number(b + 2n)))
+    );
   }
   return Number(b);
 }
 ```
 
 **Scenarios enabled**:
+
 1. **Session stickiness**: `session_id → node` — same session always hits same node (KV/prompt cache)
 2. **Prefix-based routing**: `prompt_hash % N → node` — repeated system prompts land on warm nodes
 3. **Provider-affinity**: `provider+model_hash % N → node` — model-specific load distribution
@@ -400,14 +401,14 @@ function jumpConsistentHash(key: string, numTargets: number): number {
 
 Metrics for scaling decisions:
 
-| Metric | Reactive HPA Threshold | Predictive Horizon | Data Window |
-|---|---|---|---|
-| Queue depth (in-flight req) | >100 avg over 30s | 15min | 7 days |
-| Token throughput | >100K tok/s | 30min | 14 days |
-| Error rate | >3% over 5min | N/A | N/A |
-| p95 latency | >3s over 5min | 15min | 7 days |
-| CPU utilization | >70% over 2min | 30min | 14 days |
-| Memory utilization | >80% over 2min | 30min | 14 days |
+| Metric                      | Reactive HPA Threshold | Predictive Horizon | Data Window |
+| --------------------------- | ---------------------- | ------------------ | ----------- |
+| Queue depth (in-flight req) | >100 avg over 30s      | 15min              | 7 days      |
+| Token throughput            | >100K tok/s            | 30min              | 14 days     |
+| Error rate                  | >3% over 5min          | N/A                | N/A         |
+| p95 latency                 | >3s over 5min          | 15min              | 7 days      |
+| CPU utilization             | >70% over 2min         | 30min              | 14 days     |
+| Memory utilization          | >80% over 2min         | 30min              | 14 days     |
 
 ---
 
@@ -415,12 +416,12 @@ Metrics for scaling decisions:
 
 ### 5.1 Topology Options by Scale
 
-| Topology | Nodes | Bifrost | Redis | DB | Use Case | Est. Cost/mo |
-|---|---|---|---|---|---|---|
-| **Single Node** | 1 OmniRoute + 1 Bifrost | Embedded | SQLite | SQLite | Dev, personal | $0-10 |
-| **Small HA** | 3 OmniRoute + 2 Bifrost | Per node | Sentinel | pg bouncer | Team, staging | $100-300 |
-| **Regional Active** | 10+ OmniRoute + 3 Bifrost | Per node | Cluster | pg replicas | Production | $500-3K |
-| **Global Mesh** | 50+/region × 3 | 5+/region × 3 | Global | CockroachDB | Enterprise | $5K-20K |
+| Topology            | Nodes                     | Bifrost       | Redis    | DB          | Use Case      | Est. Cost/mo |
+| ------------------- | ------------------------- | ------------- | -------- | ----------- | ------------- | ------------ |
+| **Single Node**     | 1 OmniRoute + 1 Bifrost   | Embedded      | SQLite   | SQLite      | Dev, personal | $0-10        |
+| **Small HA**        | 3 OmniRoute + 2 Bifrost   | Per node      | Sentinel | pg bouncer  | Team, staging | $100-300     |
+| **Regional Active** | 10+ OmniRoute + 3 Bifrost | Per node      | Cluster  | pg replicas | Production    | $500-3K      |
+| **Global Mesh**     | 50+/region × 3            | 5+/region × 3 | Global   | CockroachDB | Enterprise    | $5K-20K      |
 
 ### 5.2 K8s Production Manifest (Recommended)
 
@@ -433,11 +434,11 @@ metadata:
   name: omniroute
   namespace: omniroute
 spec:
-  replicas: 3  # HPA will override
+  replicas: 3 # HPA will override
   strategy:
     type: RollingUpdate
     rollingUpdate:
-      maxUnavailable: 0   # Zero-downtime
+      maxUnavailable: 0 # Zero-downtime
       maxSurge: 1
   selector:
     matchLabels:
@@ -457,8 +458,8 @@ spec:
         - name: omniroute
           image: ghcr.io/kooshapari/omniroute:latest
           ports:
-            - containerPort: 20128  # Dashboard + API
-            - containerPort: 9099   # Management agent
+            - containerPort: 20128 # Dashboard + API
+            - containerPort: 9099 # Management agent
           env:
             - name: NODE_NAME
               valueFrom:
@@ -628,16 +629,16 @@ spec:
 
 All pages under `/dashboard/fleet/`:
 
-| Page | Route | Key Components | Real-Time |
-|---|---|---|---|
-| **Fleet Topology** | `/fleet/topology` | Force-directed graph, cluster rings, node health badges | SSE stream |
-| **Node List** | `/fleet/nodes` | DataTable (hostname, region, health, load, uptime) | Poll 5s |
-| **Node Detail** | `/fleet/nodes/:id` | Health gauges, system metrics sparklines, process metrics, active requests, logs | WS stream |
-| **Config Editor** | `/fleet/config` | YAML/JSON editor with Monaco, diff view, validation, apply/rollback | On save |
-| **Deploy Manager** | `/fleet/deploy` | Deployments timeline, rollout progress per node, canary config | SSE |
-| **Scaling Policies** | `/fleet/scaling` | Policy list, metric selector, threshold sliders, scaling history chart | Poll 10s |
-| **Alert Rules** | `/fleet/alerts` | Alert rules CRUD, firing alerts, silences, alert history | WS stream |
-| **Fleet Actions** | `/fleet/actions` | Drain, restart, config refresh, kill-switch per node or cluster | Immediate |
+| Page                 | Route              | Key Components                                                                   | Real-Time  |
+| -------------------- | ------------------ | -------------------------------------------------------------------------------- | ---------- |
+| **Fleet Topology**   | `/fleet/topology`  | Force-directed graph, cluster rings, node health badges                          | SSE stream |
+| **Node List**        | `/fleet/nodes`     | DataTable (hostname, region, health, load, uptime)                               | Poll 5s    |
+| **Node Detail**      | `/fleet/nodes/:id` | Health gauges, system metrics sparklines, process metrics, active requests, logs | WS stream  |
+| **Config Editor**    | `/fleet/config`    | YAML/JSON editor with Monaco, diff view, validation, apply/rollback              | On save    |
+| **Deploy Manager**   | `/fleet/deploy`    | Deployments timeline, rollout progress per node, canary config                   | SSE        |
+| **Scaling Policies** | `/fleet/scaling`   | Policy list, metric selector, threshold sliders, scaling history chart           | Poll 10s   |
+| **Alert Rules**      | `/fleet/alerts`    | Alert rules CRUD, firing alerts, silences, alert history                         | WS stream  |
+| **Fleet Actions**    | `/fleet/actions`   | Drain, restart, config refresh, kill-switch per node or cluster                  | Immediate  |
 
 ### 6.3 CLI Commands
 
@@ -777,16 +778,16 @@ service FleetService {
 
 Five new MCP tools in `open-sse/mcp-server/server.ts`:
 
-| Tool | Description | Input Schema | Auth Scope |
-|---|---|---|---|
-| `fleet_list_nodes` | List all fleet nodes with status | `{ region?: string, status?: string }` | fleet:read |
-| `fleet_get_node` | Get detailed node info | `{ node_id: string }` | fleet:read |
-| `fleet_drain_node` | Gracefully drain node | `{ node_id: string, reason?: string }` | fleet:write |
-| `fleet_push_config` | Push config to nodes | `{ config: object, nodes?: string[] }` | fleet:admin |
-| `fleet_get_health` | Fleet health summary | `{}` | fleet:read |
-| `fleet_create_policy` | Create scaling policy | `{ name, metric, threshold, min, max }` | fleet:admin |
-| `fleet_trigger_rollout` | Trigger fleet rollout | `{ version, strategy: "rolling"|"canary" }` | fleet:deploy |
-| `fleet_rollback` | Rollback deployment | `{ deploy_id: string }` | fleet:deploy |
+| Tool                    | Description                      | Input Schema                            | Auth Scope   |
+| ----------------------- | -------------------------------- | --------------------------------------- | ------------ |
+| `fleet_list_nodes`      | List all fleet nodes with status | `{ region?: string, status?: string }`  | fleet:read   |
+| `fleet_get_node`        | Get detailed node info           | `{ node_id: string }`                   | fleet:read   |
+| `fleet_drain_node`      | Gracefully drain node            | `{ node_id: string, reason?: string }`  | fleet:write  |
+| `fleet_push_config`     | Push config to nodes             | `{ config: object, nodes?: string[] }`  | fleet:admin  |
+| `fleet_get_health`      | Fleet health summary             | `{}`                                    | fleet:read   |
+| `fleet_create_policy`   | Create scaling policy            | `{ name, metric, threshold, min, max }` | fleet:admin  |
+| `fleet_trigger_rollout` | Trigger fleet rollout            | `{ version, strategy: "rolling"         | "canary" }`  | fleet:deploy |
+| `fleet_rollback`        | Rollback deployment              | `{ deploy_id: string }`                 | fleet:deploy |
 
 ---
 
@@ -1009,93 +1010,93 @@ GPU Metrics Flow:
 
 ### Phase 0: Foundation (Weeks 1-3) — 12 items
 
-| # | Task | File(s) | Deliverable | Owner |
-|---|---|---|---|---|
-| 0.1 | Node health agent (Rust) | `crates/omniroute-agent/` | Binary <5MB, system metrics, health endpoints | Rust |
-| 0.2 | EWMA tracker implementation | `open-sse/services/combo/ewmaTracker.ts` | EwmaState, updateEwma(), integrated into P2C | TS |
-| 0.3 | System load adapter | `open-sse/services/combo/systemLoadAdapter.ts` | SystemLoadAdapter class, health score compute | TS |
-| 0.4 | Consistent hashing strategy | `open-sse/services/combo/consistentHashStrategy.ts` | New strategy, jump hash, session affinity | TS |
-| 0.5 | Fleet DB schema + migrations | `src/lib/db/migrations/101-105_*.sql` | fleet_nodes, fleet_config, scaling_policies tables | TS |
-| 0.6 | Fleet node CRUD | `src/lib/db/fleetNodes.ts`, `fleetConfig.ts` | Data access layer for fleet state | TS |
-| 0.7 | Prometheus metric export (agent) | `crates/omniroute-agent/src/metrics.rs` | /metrics endpoint, 10 metric families | Rust |
-| 0.8 | KEDA ScaledObject manifest | `deploy/k8s/fleet/scaled-object.yaml` | KEDA Prometheus scaler config | Ops |
-| 0.9 | VPA manifest | `deploy/k8s/fleet/vpa.yaml` | VPA recommendation profile | Ops |
-| 0.10 | Spot node PDB | `deploy/k8s/fleet/pdb.yaml` | PodDisruptionBudget 50% min | Ops |
-| 0.11 | Fleet health check types (protobuf) | `src/lib/fleet/proto/` | Shared types for REST/gRPC/MCP | TS |
-| 0.12 | Testing: EWMA + P2C benchmark | `tests/unit/fleet/ewma-benchmark.test.ts` | Validates EWMA reduces tail latency | TS |
+| #    | Task                                | File(s)                                             | Deliverable                                        | Owner |
+| ---- | ----------------------------------- | --------------------------------------------------- | -------------------------------------------------- | ----- |
+| 0.1  | Node health agent (Rust)            | `crates/omniroute-agent/`                           | Binary <5MB, system metrics, health endpoints      | Rust  |
+| 0.2  | EWMA tracker implementation         | `open-sse/services/combo/ewmaTracker.ts`            | EwmaState, updateEwma(), integrated into P2C       | TS    |
+| 0.3  | System load adapter                 | `open-sse/services/combo/systemLoadAdapter.ts`      | SystemLoadAdapter class, health score compute      | TS    |
+| 0.4  | Consistent hashing strategy         | `open-sse/services/combo/consistentHashStrategy.ts` | New strategy, jump hash, session affinity          | TS    |
+| 0.5  | Fleet DB schema + migrations        | `src/lib/db/migrations/101-105_*.sql`               | fleet_nodes, fleet_config, scaling_policies tables | TS    |
+| 0.6  | Fleet node CRUD                     | `src/lib/db/fleetNodes.ts`, `fleetConfig.ts`        | Data access layer for fleet state                  | TS    |
+| 0.7  | Prometheus metric export (agent)    | `crates/omniroute-agent/src/metrics.rs`             | /metrics endpoint, 10 metric families              | Rust  |
+| 0.8  | KEDA ScaledObject manifest          | `deploy/k8s/fleet/scaled-object.yaml`               | KEDA Prometheus scaler config                      | Ops   |
+| 0.9  | VPA manifest                        | `deploy/k8s/fleet/vpa.yaml`                         | VPA recommendation profile                         | Ops   |
+| 0.10 | Spot node PDB                       | `deploy/k8s/fleet/pdb.yaml`                         | PodDisruptionBudget 50% min                        | Ops   |
+| 0.11 | Fleet health check types (protobuf) | `src/lib/fleet/proto/`                              | Shared types for REST/gRPC/MCP                     | TS    |
+| 0.12 | Testing: EWMA + P2C benchmark       | `tests/unit/fleet/ewma-benchmark.test.ts`           | Validates EWMA reduces tail latency                | TS    |
 
 **Validation Gate**: Agent reports metrics; EWMA + P2C beats vanilla P2C in p99 by 10%; consistent hashing routes session IDs to stable targets.
 
 ### Phase 1: Management Plane (Weeks 4-7) — 14 items
 
-| # | Task | File(s) | Deliverable |
-|---|---|---|---|
-| 1.1 | Fleet REST API v2 | `src/app/api/v2/fleet/*/route.ts` | Full CRUD, SSE stream |
-| 1.2 | Fleet gRPC service | `src/lib/fleet/grpc/server.ts` | Connect/gRPC server |
-| 1.3 | gRPC client SDK | `src/lib/fleet/grpc/client.ts` | Client library for nodes |
-| 1.4 | NATS config sync | `src/lib/fleet/configSync.ts` | Config push/subscribe via JetStream |
-| 1.5 | CLI: fleet commands | `bin/fleet.mjs` (or extend omniroute.mjs) | 10+ subcommands |
-| 1.6 | GUI: fleet topology page | `src/app/dashboard/fleet/topology/page.tsx` | Force-directed graph, health badges |
-| 1.7 | GUI: node list page | `src/app/dashboard/fleet/nodes/page.tsx` | DataTable, filters, search |
-| 1.8 | GUI: node detail page | `src/app/dashboard/fleet/nodes/[id]/page.tsx` | Gauges, sparklines, logs |
-| 1.9 | GUI: config editor page | `src/app/dashboard/fleet/config/page.tsx` | Monaco editor, diff, validation |
-| 1.10 | GUI: deploy manager page | `src/app/dashboard/fleet/deploy/page.tsx` | Timeline, rollout progress |
-| 1.11 | GUI: scaling policies page | `src/app/dashboard/fleet/scaling/page.tsx` | Policy CRUD, chart |
-| 1.12 | GUI: alerts page | `src/app/dashboard/fleet/alerts/page.tsx` | Rules, firing, silences |
-| 1.13 | MCP: fleet tools | `open-sse/mcp-server/tools/fleet.ts` | 8 new MCP tools |
-| 1.14 | argis-ext: fleet CLI + gRPC | `cmd/bifrost/cli/fleet.go`, `api/fleet_handlers.go` | bifrost fleet join/leave/status |
+| #    | Task                        | File(s)                                             | Deliverable                         |
+| ---- | --------------------------- | --------------------------------------------------- | ----------------------------------- |
+| 1.1  | Fleet REST API v2           | `src/app/api/v2/fleet/*/route.ts`                   | Full CRUD, SSE stream               |
+| 1.2  | Fleet gRPC service          | `src/lib/fleet/grpc/server.ts`                      | Connect/gRPC server                 |
+| 1.3  | gRPC client SDK             | `src/lib/fleet/grpc/client.ts`                      | Client library for nodes            |
+| 1.4  | NATS config sync            | `src/lib/fleet/configSync.ts`                       | Config push/subscribe via JetStream |
+| 1.5  | CLI: fleet commands         | `bin/fleet.mjs` (or extend omniroute.mjs)           | 10+ subcommands                     |
+| 1.6  | GUI: fleet topology page    | `src/app/dashboard/fleet/topology/page.tsx`         | Force-directed graph, health badges |
+| 1.7  | GUI: node list page         | `src/app/dashboard/fleet/nodes/page.tsx`            | DataTable, filters, search          |
+| 1.8  | GUI: node detail page       | `src/app/dashboard/fleet/nodes/[id]/page.tsx`       | Gauges, sparklines, logs            |
+| 1.9  | GUI: config editor page     | `src/app/dashboard/fleet/config/page.tsx`           | Monaco editor, diff, validation     |
+| 1.10 | GUI: deploy manager page    | `src/app/dashboard/fleet/deploy/page.tsx`           | Timeline, rollout progress          |
+| 1.11 | GUI: scaling policies page  | `src/app/dashboard/fleet/scaling/page.tsx`          | Policy CRUD, chart                  |
+| 1.12 | GUI: alerts page            | `src/app/dashboard/fleet/alerts/page.tsx`           | Rules, firing, silences             |
+| 1.13 | MCP: fleet tools            | `open-sse/mcp-server/tools/fleet.ts`                | 8 new MCP tools                     |
+| 1.14 | argis-ext: fleet CLI + gRPC | `cmd/bifrost/cli/fleet.go`, `api/fleet_handlers.go` | bifrost fleet join/leave/status     |
 
 **Validation Gate**: Can list nodes, view health, push config, edit policies from all 3 surfaces (CLI/GUI/API).
 
 ### Phase 2: Elastic Scaling (Weeks 8-10) — 10 items
 
-| # | Task | File(s) | Deliverable |
-|---|---|---|---|
-| 2.1 | KEDA ScaledObject per cluster | `deploy/k8s/fleet/keda/*.yaml` | Canary + production profiles |
-| 2.2 | Custom metric export (TS) | `open-sse/services/metrics/export.ts` | Queue depth, throughput, error rate |
-| 2.3 | HPA with custom metrics | `deploy/k8s/fleet/hpa.yaml` | HPA manifest referencing Prometheus |
-| 2.4 | Reactive scaler controller | `src/lib/scaling/reactiveScaler.ts` | Desired replicas from current metric |
-| 2.5 | Scaling policy evaluation engine | `src/lib/scaling/policyEngine.ts` | Evaluate all policies → actions |
-| 2.6 | Predictive scaler (stub) | `src/lib/scaling/predictiveScaler.ts` | Interface + Prophet connector |
-| 2.7 | Spot instance drain handler | `crates/omniroute-agent/src/control.rs` | Pre-drain hook, connection drain |
-| 2.8 | Kill switch integration | `open-sse/services/bifrostKillSwitch.ts` | Auto-reset on scale-up |
-| 2.9 | argis-ext: scaling cost optimizer | `costengine/scaling.go` | Cost-aware scale recommendations |
-| 2.10 | Testing: scaling convergence | `tests/fleet/scaling-convergence.test.ts` | Validates scale-up/scale-down timing |
+| #    | Task                              | File(s)                                   | Deliverable                          |
+| ---- | --------------------------------- | ----------------------------------------- | ------------------------------------ |
+| 2.1  | KEDA ScaledObject per cluster     | `deploy/k8s/fleet/keda/*.yaml`            | Canary + production profiles         |
+| 2.2  | Custom metric export (TS)         | `open-sse/services/metrics/export.ts`     | Queue depth, throughput, error rate  |
+| 2.3  | HPA with custom metrics           | `deploy/k8s/fleet/hpa.yaml`               | HPA manifest referencing Prometheus  |
+| 2.4  | Reactive scaler controller        | `src/lib/scaling/reactiveScaler.ts`       | Desired replicas from current metric |
+| 2.5  | Scaling policy evaluation engine  | `src/lib/scaling/policyEngine.ts`         | Evaluate all policies → actions      |
+| 2.6  | Predictive scaler (stub)          | `src/lib/scaling/predictiveScaler.ts`     | Interface + Prophet connector        |
+| 2.7  | Spot instance drain handler       | `crates/omniroute-agent/src/control.rs`   | Pre-drain hook, connection drain     |
+| 2.8  | Kill switch integration           | `open-sse/services/bifrostKillSwitch.ts`  | Auto-reset on scale-up               |
+| 2.9  | argis-ext: scaling cost optimizer | `costengine/scaling.go`                   | Cost-aware scale recommendations     |
+| 2.10 | Testing: scaling convergence      | `tests/fleet/scaling-convergence.test.ts` | Validates scale-up/scale-down timing |
 
 **Validation Gate**: KEDA scales pods on queue depth spike (2x in 3min); spot interruption triggers graceful drain; predictive stub returns forecast.
 
 ### Phase 3: Multi-Cluster Federation (Weeks 11-14) — 11 items
 
-| # | Task | File(s) | Deliverable |
-|---|---|---|---|
-| 3.1 | Cross-cluster state sync | `src/lib/fleet/stateSync.ts` | NATS JetStream replicated state |
-| 3.2 | Region-aware routing | `src/lib/fleet/regionRouter.ts` | Latency steering by region |
-| 3.3 | Global LB config (Terraform) | `deploy/terraform/global-lb/` | Cloudflare + Route53 + health checks |
-| 3.4 | Edge POP lite routing | Cloudflare Worker or Fly.io | Model cache, rate limit, redirect |
-| 3.5 | Canary deploy engine | `src/lib/fleet/deployManager.ts` | Weighted DNS, traffic splitting |
-| 3.6 | Rollback automation | `src/lib/fleet/deployManager.ts` (extend) | Auto-rollback on error rate spike |
-| 3.7 | argis-ext: deploy automation | `cmd/bifrost/cli/deploy/` | Fleet-aware deploy commands |
-| 3.8 | Fleet-wide shadow routing | `shadowRouting.ts` (extend) | Per-fleet shadow config |
-| 3.9 | Geo-distributed testing | `tests/fleet/cross-region.test.ts` | Active-active failover test |
-| 3.10 | Multi-region cost analysis | `costengine/distributed.go` | Cross-region cost comparison |
-| 3.11 | Chaos testing setup | `tests/fleet/chaos/` | Chaos Mesh experiments |
+| #    | Task                         | File(s)                                   | Deliverable                          |
+| ---- | ---------------------------- | ----------------------------------------- | ------------------------------------ |
+| 3.1  | Cross-cluster state sync     | `src/lib/fleet/stateSync.ts`              | NATS JetStream replicated state      |
+| 3.2  | Region-aware routing         | `src/lib/fleet/regionRouter.ts`           | Latency steering by region           |
+| 3.3  | Global LB config (Terraform) | `deploy/terraform/global-lb/`             | Cloudflare + Route53 + health checks |
+| 3.4  | Edge POP lite routing        | Cloudflare Worker or Fly.io               | Model cache, rate limit, redirect    |
+| 3.5  | Canary deploy engine         | `src/lib/fleet/deployManager.ts`          | Weighted DNS, traffic splitting      |
+| 3.6  | Rollback automation          | `src/lib/fleet/deployManager.ts` (extend) | Auto-rollback on error rate spike    |
+| 3.7  | argis-ext: deploy automation | `cmd/bifrost/cli/deploy/`                 | Fleet-aware deploy commands          |
+| 3.8  | Fleet-wide shadow routing    | `shadowRouting.ts` (extend)               | Per-fleet shadow config              |
+| 3.9  | Geo-distributed testing      | `tests/fleet/cross-region.test.ts`        | Active-active failover test          |
+| 3.10 | Multi-region cost analysis   | `costengine/distributed.go`               | Cross-region cost comparison         |
+| 3.11 | Chaos testing setup          | `tests/fleet/chaos/`                      | Chaos Mesh experiments               |
 
 **Validation Gate**: Can deploy to 3 regions; region failover <60s; canary deployment routes 5% traffic.
 
 ### Phase 4: Advanced Optimization (Weeks 15-18) — 10 items
 
-| # | Task | File(s) | Deliverable |
-|---|---|---|---|
-| 4.1 | GPU-aware routing | `gpuAwareAdapter.ts`, `nvidia-metrics` | GPU mem/temp → routing weight |
-| 4.2 | NUMA-aware dispatch | `crates/omniroute-agent/src/numa.rs` | NUMA topology discovery, thread binding |
-| 4.3 | Predictive scaling (full) | `predictiveScaler.ts` | Prophet model training + inference |
-| 4.4 | Cost-optimized distributed routing | `costengine/distributed.go` | Cross-region cost optimization |
-| 4.5 | Hybrid cloud-edge GA | Cloudflare Worker | Production edge POP routing |
-| 4.6 | Fleet-wide chaos GA | Chaos Mesh | Automated fault injection |
-| 4.7 | Thermal-aware scheduling | `crates/omniroute-agent` | Thermal throttle detection |
-| 4.8 | TCP BBR congestion control | sysctl config | Network optimization |
-| 4.9 | Fleet analytics dashboard | `src/app/dashboard/fleet/analytics/` | Cost trends, capacity planning |
-| 4.10 | Final SOTA audit + report | `docs/fleet/SOTA-AUDIT.md` | Gap analysis vs research |
+| #    | Task                               | File(s)                                | Deliverable                             |
+| ---- | ---------------------------------- | -------------------------------------- | --------------------------------------- |
+| 4.1  | GPU-aware routing                  | `gpuAwareAdapter.ts`, `nvidia-metrics` | GPU mem/temp → routing weight           |
+| 4.2  | NUMA-aware dispatch                | `crates/omniroute-agent/src/numa.rs`   | NUMA topology discovery, thread binding |
+| 4.3  | Predictive scaling (full)          | `predictiveScaler.ts`                  | Prophet model training + inference      |
+| 4.4  | Cost-optimized distributed routing | `costengine/distributed.go`            | Cross-region cost optimization          |
+| 4.5  | Hybrid cloud-edge GA               | Cloudflare Worker                      | Production edge POP routing             |
+| 4.6  | Fleet-wide chaos GA                | Chaos Mesh                             | Automated fault injection               |
+| 4.7  | Thermal-aware scheduling           | `crates/omniroute-agent`               | Thermal throttle detection              |
+| 4.8  | TCP BBR congestion control         | sysctl config                          | Network optimization                    |
+| 4.9  | Fleet analytics dashboard          | `src/app/dashboard/fleet/analytics/`   | Cost trends, capacity planning          |
+| 4.10 | Final SOTA audit + report          | `docs/fleet/SOTA-AUDIT.md`             | Gap analysis vs research                |
 
 **Validation Gate**: Predictive scaling MAE <20%; cost optimization saves 15%; GPU-aware routing prevents OOM.
 
@@ -1105,57 +1106,57 @@ GPU Metrics Flow:
 
 ### 9.1 From Academic Research
 
-| Paper | Year | Key Insight | Integration | Phase |
-|---|---|---|---|---|
-| "Power of Two Choices" (Mitzenmacher) | 2001 | O(log log n) with 2 samples | EWMA + P2C enhancement | 0 |
-| "The Tail at Scale" (Dean &amp; Barroso) | 2013 | Hedged requests 10x tail reduction | True hedge (fire-all-take-first) | 2 |
-| "Maglev" (Eisenbud et al.) | 2016 | Consistent hashing, bounded load | Jump consistent hash strategy | 0 |
-| "Large-Scale Cluster Management at Google with Borg" (Verma et al.) | 2015 | Resource estimation, priority preemption | System load factoring | 0 |
-| "Autopilot" (Rzadca et al.) | 2020 | ML-based resource prediction | Predictive scaling | 4 |
-| "Omega: flexible, scalable schedulers" (Schwarzkopf et al.) | 2013 | Parallel scheduling, shared state | Parallel scaling decisions | 2 |
-| "Shard Manager" (Wu et al.) | 2019 | FSM-driven shard management | Fleet node state machine | 1 |
+| Paper                                                               | Year | Key Insight                              | Integration                      | Phase |
+| ------------------------------------------------------------------- | ---- | ---------------------------------------- | -------------------------------- | ----- |
+| "Power of Two Choices" (Mitzenmacher)                               | 2001 | O(log log n) with 2 samples              | EWMA + P2C enhancement           | 0     |
+| "The Tail at Scale" (Dean &amp; Barroso)                            | 2013 | Hedged requests 10x tail reduction       | True hedge (fire-all-take-first) | 2     |
+| "Maglev" (Eisenbud et al.)                                          | 2016 | Consistent hashing, bounded load         | Jump consistent hash strategy    | 0     |
+| "Large-Scale Cluster Management at Google with Borg" (Verma et al.) | 2015 | Resource estimation, priority preemption | System load factoring            | 0     |
+| "Autopilot" (Rzadca et al.)                                         | 2020 | ML-based resource prediction             | Predictive scaling               | 4     |
+| "Omega: flexible, scalable schedulers" (Schwarzkopf et al.)         | 2013 | Parallel scheduling, shared state        | Parallel scaling decisions       | 2     |
+| "Shard Manager" (Wu et al.)                                         | 2019 | FSM-driven shard management              | Fleet node state machine         | 1     |
 
 ### 9.2 From Production Systems
 
-| System | Pattern | Adoption | Phase |
-|---|---|---|---|
-| **Google Borg** | Resource estimation + oversubscription | Health agent + system load factors | 0 |
-| **Netflix/Zuul** | Dynamic routing rules, pressure-based weights | EwmaTracker + PeakEwma | 0 |
-| **Lyft/Envoy** | P2C + EWMA, outlier detection, panic threshold | KEDA + HPA, outlier ejection | 0/2 |
-| **AWS ALB** | Least outstanding requests, slow start | Connection pool depth metric | 0 |
-| **Kubernetes HPA/VPA** | Custom metrics, stabilization windows | KEDA ScaledObject, scaling policies | 2 |
-| **KEDA** | Event-driven scaling, formula composability | Prometheus scaler, queue depth | 2 |
-| **Cloudflare** | Anycast global LB, edge workers | Edge POP lite routing | 3 |
+| System                 | Pattern                                        | Adoption                            | Phase |
+| ---------------------- | ---------------------------------------------- | ----------------------------------- | ----- |
+| **Google Borg**        | Resource estimation + oversubscription         | Health agent + system load factors  | 0     |
+| **Netflix/Zuul**       | Dynamic routing rules, pressure-based weights  | EwmaTracker + PeakEwma              | 0     |
+| **Lyft/Envoy**         | P2C + EWMA, outlier detection, panic threshold | KEDA + HPA, outlier ejection        | 0/2   |
+| **AWS ALB**            | Least outstanding requests, slow start         | Connection pool depth metric        | 0     |
+| **Kubernetes HPA/VPA** | Custom metrics, stabilization windows          | KEDA ScaledObject, scaling policies | 2     |
+| **KEDA**               | Event-driven scaling, formula composability    | Prometheus scaler, queue depth      | 2     |
+| **Cloudflare**         | Anycast global LB, edge workers                | Edge POP lite routing               | 3     |
 
 ### 9.3 Novel Contributions from This Plan
 
-| Novel Element | Description | SOTA Basis |
-|---|---|---|
-| **System-Load-Weighted P2C** | P2C scoring × composite system health | Extension of Mitzenmacher + Borg |
-| **AI-Specific Composite Health** | CPU+mem+IO+net+GPU+request-depth | Custom for LLM proxy workload |
-| **Cost-Optimized Distributed Routing** | Cross-region $/request optimization | Extension of OmniRoute cost strategy |
-| **Fleet Management MCP Tools** | Fleet ops via AI agent tools | Novel — no AI proxy offers this |
-| **Edge POP Lite Routing** | Cloudflare Workers + full region | Custom hybrid cloud-edge architecture |
-| **Adaptive Predictive Scaling** | Prophet + reactive hybrid | Autopilot-inspired for LLM traffic |
+| Novel Element                          | Description                           | SOTA Basis                            |
+| -------------------------------------- | ------------------------------------- | ------------------------------------- |
+| **System-Load-Weighted P2C**           | P2C scoring × composite system health | Extension of Mitzenmacher + Borg      |
+| **AI-Specific Composite Health**       | CPU+mem+IO+net+GPU+request-depth      | Custom for LLM proxy workload         |
+| **Cost-Optimized Distributed Routing** | Cross-region $/request optimization   | Extension of OmniRoute cost strategy  |
+| **Fleet Management MCP Tools**         | Fleet ops via AI agent tools          | Novel — no AI proxy offers this       |
+| **Edge POP Lite Routing**              | Cloudflare Workers + full region      | Custom hybrid cloud-edge architecture |
+| **Adaptive Predictive Scaling**        | Prophet + reactive hybrid             | Autopilot-inspired for LLM traffic    |
 
 ---
 
 ## 10. Risk Assessment &amp; Mitigation
 
-| Risk | Probability | Impact | Mitigation | Phase |
-|---|---|---|---|---|
-| **EWMA tuning incorrect** | Medium | Medium | Auto-tune α/β via bandit over 7 days; default α=0.3, β=0.5 | 0 |
-| **Distributed state inconsistency** | Medium | High | NATS JetStream ordered delivery; leader-based config; drift detection every 60s | 1 |
-| **Agent overhead on host** | Low | Low | Rust binary <5MB, 1s poll interval, no syscalls on hot path | 0 |
-| **Cross-region latency** | High | Medium | Edge POP lite routing + cloud region; DNS latency steering | 3 |
-| **Spot interruption** | Medium | Medium | Pre-drain hook, 2-min window, kill-switch auto-fallback | 2 |
-| **Config explosion** | Low | High | Versioned SHA-256; drift detection; auto-rollback on validation failure | 1 |
-| **Scaling oscillation** | Medium | Medium | HPA stabilization windows (scale-up 60s, scale-down 300s); KEDA cooldown 60s | 2 |
-| **gRPC backpressure** | Low | Medium | Per-node flow control; NATS buffering for offline nodes | 1 |
-| **GPU memory fragmentation** | Low | Medium | Route by GPU mem %; defragmentation on low-util window | 4 |
-| **Predictive model drift** | Medium | Medium | Weekly retraining; fallback to reactive on MAE > 20% | 4 |
-| **MCP tool security** | Low | High | Fleet scopes: fleet:read/write/admin/deploy; separate from provider scopes | 1 |
-| **Operator error (bad config)** | Medium | High | Dry-run validation, config diff preview, auto-rollback on error spike | 1 |
+| Risk                                | Probability | Impact | Mitigation                                                                      | Phase |
+| ----------------------------------- | ----------- | ------ | ------------------------------------------------------------------------------- | ----- |
+| **EWMA tuning incorrect**           | Medium      | Medium | Auto-tune α/β via bandit over 7 days; default α=0.3, β=0.5                      | 0     |
+| **Distributed state inconsistency** | Medium      | High   | NATS JetStream ordered delivery; leader-based config; drift detection every 60s | 1     |
+| **Agent overhead on host**          | Low         | Low    | Rust binary <5MB, 1s poll interval, no syscalls on hot path                     | 0     |
+| **Cross-region latency**            | High        | Medium | Edge POP lite routing + cloud region; DNS latency steering                      | 3     |
+| **Spot interruption**               | Medium      | Medium | Pre-drain hook, 2-min window, kill-switch auto-fallback                         | 2     |
+| **Config explosion**                | Low         | High   | Versioned SHA-256; drift detection; auto-rollback on validation failure         | 1     |
+| **Scaling oscillation**             | Medium      | Medium | HPA stabilization windows (scale-up 60s, scale-down 300s); KEDA cooldown 60s    | 2     |
+| **gRPC backpressure**               | Low         | Medium | Per-node flow control; NATS buffering for offline nodes                         | 1     |
+| **GPU memory fragmentation**        | Low         | Medium | Route by GPU mem %; defragmentation on low-util window                          | 4     |
+| **Predictive model drift**          | Medium      | Medium | Weekly retraining; fallback to reactive on MAE > 20%                            | 4     |
+| **MCP tool security**               | Low         | High   | Fleet scopes: fleet:read/write/admin/deploy; separate from provider scopes      | 1     |
+| **Operator error (bad config)**     | Medium      | High   | Dry-run validation, config diff preview, auto-rollback on error spike           | 1     |
 
 ---
 
@@ -1163,33 +1164,33 @@ GPU Metrics Flow:
 
 ### 11.1 Key Performance Indicators
 
-| KPI | Baseline | Phase 1 | Phase 2 | Phase 4 |
-|---|---|---|---|---|
-| **p50 latency** | 800ms | 700ms | 550ms | 400ms |
-| **p99 latency** | 5s | 4s | 2.5s | 1.5s |
-| **Error rate** | 3% | 2% | 1% | 0.5% |
-| **Throughput/node** | 100 req/s | 200 req/s | 500 req/s | 2000 req/s |
-| **Nodes per cluster** | 1-2 | 3-10 | 10-50 | 50-200 |
-| **Config propagation** | N/A | 10s | 5s global | 2s global |
-| **Scale-up time** | Manual | 5min | 90s | 60s |
-| **Fleet availability** | 99.9% | 99.95% | 99.99% | 99.995% |
-| **Node utilization balance** | N/A | ±30% | ±15% | ±10% |
+| KPI                          | Baseline  | Phase 1   | Phase 2   | Phase 4    |
+| ---------------------------- | --------- | --------- | --------- | ---------- |
+| **p50 latency**              | 800ms     | 700ms     | 550ms     | 400ms      |
+| **p99 latency**              | 5s        | 4s        | 2.5s      | 1.5s       |
+| **Error rate**               | 3%        | 2%        | 1%        | 0.5%       |
+| **Throughput/node**          | 100 req/s | 200 req/s | 500 req/s | 2000 req/s |
+| **Nodes per cluster**        | 1-2       | 3-10      | 10-50     | 50-200     |
+| **Config propagation**       | N/A       | 10s       | 5s global | 2s global  |
+| **Scale-up time**            | Manual    | 5min      | 90s       | 60s        |
+| **Fleet availability**       | 99.9%     | 99.95%    | 99.99%    | 99.995%    |
+| **Node utilization balance** | N/A       | ±30%      | ±15%      | ±10%       |
 
 ### 11.2 Validation Gates
 
-| Gate | Phase | Criteria | Measurement |
-|---|---|---|---|
-| **G0: Agent works** | 0 | System metrics within 2% of `top`/`free` | Compare readings, N=100 |
-| **G1: EWMA beats P2C** | 0 | p99 -10% vs vanilla P2C over 7 days | A/B test, 50% traffic each |
-| **G2: Consistent hashing** | 0 | 90%+ session stickiness rate | Same session → same node |
-| **G3: Fleet API** | 1 | 100% CRUD coverage at 200 req/s | Load test |
-| **G4: Config push** | 1 | 5 nodes synced in <10s | Timestamp comparison |
-| **G5: KEDA scaling** | 2 | Pods double in 3min of queue depth spike | Load generation |
-| **G6: Spot drain** | 2 | 0 dropped requests during drain | Load + spot simulation |
-| **G7: Cross-region failover** | 3 | <60s to full recovery, <5% errors | Region kill test |
-| **G8: Canary deploy** | 3 | 5% traffic to canary, auto-rollback on 3% error rate | Deploy experiment |
-| **G9: Predictive scaling** | 4 | MAE <20% vs actual | 14-day history replay |
-| **G10: GPU routing** | 4 | 0 OOM events from GPU over-allocation | 7-day stress test |
+| Gate                          | Phase | Criteria                                             | Measurement                |
+| ----------------------------- | ----- | ---------------------------------------------------- | -------------------------- |
+| **G0: Agent works**           | 0     | System metrics within 2% of `top`/`free`             | Compare readings, N=100    |
+| **G1: EWMA beats P2C**        | 0     | p99 -10% vs vanilla P2C over 7 days                  | A/B test, 50% traffic each |
+| **G2: Consistent hashing**    | 0     | 90%+ session stickiness rate                         | Same session → same node   |
+| **G3: Fleet API**             | 1     | 100% CRUD coverage at 200 req/s                      | Load test                  |
+| **G4: Config push**           | 1     | 5 nodes synced in <10s                               | Timestamp comparison       |
+| **G5: KEDA scaling**          | 2     | Pods double in 3min of queue depth spike             | Load generation            |
+| **G6: Spot drain**            | 2     | 0 dropped requests during drain                      | Load + spot simulation     |
+| **G7: Cross-region failover** | 3     | <60s to full recovery, <5% errors                    | Region kill test           |
+| **G8: Canary deploy**         | 3     | 5% traffic to canary, auto-rollback on 3% error rate | Deploy experiment          |
+| **G9: Predictive scaling**    | 4     | MAE <20% vs actual                                   | 14-day history replay      |
+| **G10: GPU routing**          | 4     | 0 OOM events from GPU over-allocation                | 7-day stress test          |
 
 ### 11.3 Success Criteria
 
@@ -1340,16 +1341,16 @@ infra/nats/config_sync.go
 
 ### B. Dependencies
 
-| Package | Version | For | Phase |
-|---|---|---|---|
-| `@nats-io/nats.js` | ^2.x | NATS JetStream | 0 |
-| `@opentelemetry/sdk-metrics` | ^2.x | Custom metrics | 0 |
-| `xxhash-wasm` | ^1.x | Consistent hashing (already a dep) | 0 |
-| `sysinfo` (Rust) | ^0.x | System metrics | 0 |
-| `tokio` (Rust) | ^1.x | Async agent runtime | 0 |
-| `axum` (Rust) | ^0.x | Agent HTTP server | 0 |
-| `prophet-rs` (Rust) | ^0.x (or Python thrift) | Predictive scaling | 4 |
+| Package                      | Version                 | For                                | Phase |
+| ---------------------------- | ----------------------- | ---------------------------------- | ----- |
+| `@nats-io/nats.js`           | ^2.x                    | NATS JetStream                     | 0     |
+| `@opentelemetry/sdk-metrics` | ^2.x                    | Custom metrics                     | 0     |
+| `xxhash-wasm`                | ^1.x                    | Consistent hashing (already a dep) | 0     |
+| `sysinfo` (Rust)             | ^0.x                    | System metrics                     | 0     |
+| `tokio` (Rust)               | ^1.x                    | Async agent runtime                | 0     |
+| `axum` (Rust)                | ^0.x                    | Agent HTTP server                  | 0     |
+| `prophet-rs` (Rust)          | ^0.x (or Python thrift) | Predictive scaling                 | 4     |
 
 ---
 
-*End of Plan — v1.0 — 2026-07-08*
+_End of Plan — v1.0 — 2026-07-08_

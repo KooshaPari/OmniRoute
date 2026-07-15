@@ -7,15 +7,15 @@
 
 ## Top-line decisions
 
-| # | Repo                       | Decision                          | Rationale (one line)                                                                 |
-|---|----------------------------|-----------------------------------|--------------------------------------------------------------------------------------|
-| 1 | `AuthKit`                  | KEEP (canonical, Rust crate)      | README declares it the successor to Authvault; absorbs FR-AUTHV-018 + AUT-SOTA-001..007 |
-| 2 | `Authvault`                | DELETE                            | Self-archived in commit c7994b9; AuthKit is the successor; nothing left to merge     |
-| 3 | `phenotype-org-audits`     | SPINE (audit/inventory spine)     | 165-repo canonical inventory + quarterly audits; not foldable into any other spine   |
-| 4 | `phenotype-apps`           | SPINE (apps catalog spine)        | Meta-portfolio of 324+ sub-repos; the portfolio/ecosystem surface of the polyrepo     |
-| 5 | `AtomsBot` (AtomsBot-2nd)  | ARCHIVE (strict pause)            | Discord<->GitHub bridge done at 80%; user directive: stop being unpaused              |
-| 6 | `GDK` (all copies)         | ARCHIVE (strict pause)            | phenotype-apps/GDK already has the canonical pause notice; mirror it on every copy   |
-| 7 | `KaskMan`                  | ARCHIVE (strict pause)            | Broad R&D platform, 50% complete, exploratory; user directive: stop being unpaused    |
+| #   | Repo                      | Decision                      | Rationale (one line)                                                                    |
+| --- | ------------------------- | ----------------------------- | --------------------------------------------------------------------------------------- |
+| 1   | `AuthKit`                 | KEEP (canonical, Rust crate)  | README declares it the successor to Authvault; absorbs FR-AUTHV-018 + AUT-SOTA-001..007 |
+| 2   | `Authvault`               | DELETE                        | Self-archived in commit c7994b9; AuthKit is the successor; nothing left to merge        |
+| 3   | `phenotype-org-audits`    | SPINE (audit/inventory spine) | 165-repo canonical inventory + quarterly audits; not foldable into any other spine      |
+| 4   | `phenotype-apps`          | SPINE (apps catalog spine)    | Meta-portfolio of 324+ sub-repos; the portfolio/ecosystem surface of the polyrepo       |
+| 5   | `AtomsBot` (AtomsBot-2nd) | ARCHIVE (strict pause)        | Discord<->GitHub bridge done at 80%; user directive: stop being unpaused                |
+| 6   | `GDK` (all copies)        | ARCHIVE (strict pause)        | phenotype-apps/GDK already has the canonical pause notice; mirror it on every copy      |
+| 7   | `KaskMan`                 | ARCHIVE (strict pause)        | Broad R&D platform, 50% complete, exploratory; user directive: stop being unpaused      |
 
 ## Spine inventory (after this decision)
 

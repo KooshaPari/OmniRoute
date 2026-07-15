@@ -172,38 +172,38 @@ The user's scaffolded workspace at `omniroute-rust/` is the right architecture. 
 
 ## 3. Pattern-by-pattern comparison
 
-| Pattern | P0/P1/P2 | Recommendation | Source-of-truth |
-|---|---|---|---|
-| **Provider abstraction** | P0 | Bifrost-style: `Provider` trait + per-provider `Adapter` (one file per provider). 149 files. | `omni-core::provider` (exists) |
-| **Streaming chunk format** | P0 | Raw SSE passthrough for OpenAI-compat; normalized internal `StreamEvent` for the translator. | `omni-core::executor::StreamEvent` (exists) |
-| **Fallback** | P0 | Cascade (try A, fall to B, fall to C) + weighted random + cost-aware. Configurable per combo. | `src/shared/constants/routingStrategies.ts` (17 strategies) |
-| **Retry** | P0 | Per-error-class retry, exponential backoff + jitter, idempotency-key. | `phenotype-retry` (in workspace) |
-| **Rate limiting** | P0 | Per-token + per-tenant + per-model, token bucket, sliding window. | `phenotype-rate-limit` (in workspace) |
-| **Circuit breaker** | P0 | Per-provider, per-model, per-tenant; half-open probe; success-rate window. | `src/lib/resilience/*` (TS) → port to Rust |
-| **Observability** | P0 | OTel + structured logs (tracing) + request ID + trace propagation + cost tokens. | `omni-telemetry` (empty) |
-| **Cost attribution** | P0 | Token counting (provider-specific tables), cache hits, batch discounts. | `phenotype-cost-core` (in workspace) |
-| **KV-cache reuse** | P1 | Gateway-side dedup of identical prompts; model-side prompt-cache headers. | `src/lib/promptCache/*` (TS) |
-| **Canary / blue-green** | P1 | Per-tenant, per-model, per-prompt-version routing. Feature flag at the gateway. | New in v1.5 |
-| **Eval hooks** | P0 | Pre-request, post-request, post-stream; shadow traffic; regression checks. | `scripts/compression-eval/*` + `scripts/router-eval/*` (TS) → port |
-| **A2A protocol** | P0 | 6 skills; v0.3 protocol. | `omni-a2a` (empty) |
-| **MCP server** | P0 | 22 tools; stdio + HTTP transports. | `omni-mcp` (empty, rmcp 0.2) |
-| **Compression (5 engines)** | P0 | adaptive / aggressive / caveman / lite / ultra. | `omni-compression` (empty) |
-| **CLI** | P0 | 81 commands + 32 api-commands. clap. | `omni-cli` (empty) |
-| **SDK (HTTP client)** | P1 | `omni-sdk` as a thin HTTP client + types. | `omni-sdk` (empty) |
-| **i18n** | P2 | 42 locales. Use `fluent` or `unic-langid`. | New in v1.5 |
-| **Search providers** | P1 | 11 search providers (e.g. web search). | `src/lib/search/*` (TS) → port |
-| **Web fetch / proxy** | P1 | `/v1/web/fetch` endpoint. | `src/app/api/v1/web/fetch/route.ts` |
-| **Embedding** | P0 | OpenAI-compatible `/v1/embeddings` route. | `src/app/api/v1/embeddings/route.ts` |
-| **Audio (TTS/STT)** | P0 | OpenAI-compatible `/v1/audio/*` routes. | `src/app/api/v1/audio/*` |
-| **Images (gen/edit)** | P0 | OpenAI-compatible `/v1/images/*` routes. | `src/app/api/v1/images/*` |
-| **Video (gen)** | P1 | OpenAI-compatible `/v1/videos/*` route. | `src/app/api/v1/videos/*` |
-| **Music (gen)** | P2 | `/v1/music/generations` route. | `src/app/api/v1/music/generations/route.ts` |
-| **Files** | P1 | OpenAI-compatible `/v1/files` route. | `src/app/api/v1/files/route.ts` |
-| **Batches** | P1 | OpenAI-compatible `/v1/batches` route. | `src/app/api/v1/batches/*` |
-| **Rerank** | P1 | Cohere-compatible rerank. | `src/app/api/v1/rerank/*` |
-| **Moderations** | P1 | OpenAI-compatible moderations. | `src/app/api/v1/moderations/*` |
-| **OAuth flow** | P1 | `/v1/oauth/*` and AuthKit integration. | `src/lib/oauth/*` (TS) |
-| **Antigravity** | P2 | `/v1/antigravity/*` (custom). | `src/app/api/v1/antigravity/*` |
+| Pattern                     | P0/P1/P2 | Recommendation                                                                                | Source-of-truth                                                    |
+| --------------------------- | -------- | --------------------------------------------------------------------------------------------- | ------------------------------------------------------------------ |
+| **Provider abstraction**    | P0       | Bifrost-style: `Provider` trait + per-provider `Adapter` (one file per provider). 149 files.  | `omni-core::provider` (exists)                                     |
+| **Streaming chunk format**  | P0       | Raw SSE passthrough for OpenAI-compat; normalized internal `StreamEvent` for the translator.  | `omni-core::executor::StreamEvent` (exists)                        |
+| **Fallback**                | P0       | Cascade (try A, fall to B, fall to C) + weighted random + cost-aware. Configurable per combo. | `src/shared/constants/routingStrategies.ts` (17 strategies)        |
+| **Retry**                   | P0       | Per-error-class retry, exponential backoff + jitter, idempotency-key.                         | `phenotype-retry` (in workspace)                                   |
+| **Rate limiting**           | P0       | Per-token + per-tenant + per-model, token bucket, sliding window.                             | `phenotype-rate-limit` (in workspace)                              |
+| **Circuit breaker**         | P0       | Per-provider, per-model, per-tenant; half-open probe; success-rate window.                    | `src/lib/resilience/*` (TS) → port to Rust                         |
+| **Observability**           | P0       | OTel + structured logs (tracing) + request ID + trace propagation + cost tokens.              | `omni-telemetry` (empty)                                           |
+| **Cost attribution**        | P0       | Token counting (provider-specific tables), cache hits, batch discounts.                       | `phenotype-cost-core` (in workspace)                               |
+| **KV-cache reuse**          | P1       | Gateway-side dedup of identical prompts; model-side prompt-cache headers.                     | `src/lib/promptCache/*` (TS)                                       |
+| **Canary / blue-green**     | P1       | Per-tenant, per-model, per-prompt-version routing. Feature flag at the gateway.               | New in v1.5                                                        |
+| **Eval hooks**              | P0       | Pre-request, post-request, post-stream; shadow traffic; regression checks.                    | `scripts/compression-eval/*` + `scripts/router-eval/*` (TS) → port |
+| **A2A protocol**            | P0       | 6 skills; v0.3 protocol.                                                                      | `omni-a2a` (empty)                                                 |
+| **MCP server**              | P0       | 22 tools; stdio + HTTP transports.                                                            | `omni-mcp` (empty, rmcp 0.2)                                       |
+| **Compression (5 engines)** | P0       | adaptive / aggressive / caveman / lite / ultra.                                               | `omni-compression` (empty)                                         |
+| **CLI**                     | P0       | 81 commands + 32 api-commands. clap.                                                          | `omni-cli` (empty)                                                 |
+| **SDK (HTTP client)**       | P1       | `omni-sdk` as a thin HTTP client + types.                                                     | `omni-sdk` (empty)                                                 |
+| **i18n**                    | P2       | 42 locales. Use `fluent` or `unic-langid`.                                                    | New in v1.5                                                        |
+| **Search providers**        | P1       | 11 search providers (e.g. web search).                                                        | `src/lib/search/*` (TS) → port                                     |
+| **Web fetch / proxy**       | P1       | `/v1/web/fetch` endpoint.                                                                     | `src/app/api/v1/web/fetch/route.ts`                                |
+| **Embedding**               | P0       | OpenAI-compatible `/v1/embeddings` route.                                                     | `src/app/api/v1/embeddings/route.ts`                               |
+| **Audio (TTS/STT)**         | P0       | OpenAI-compatible `/v1/audio/*` routes.                                                       | `src/app/api/v1/audio/*`                                           |
+| **Images (gen/edit)**       | P0       | OpenAI-compatible `/v1/images/*` routes.                                                      | `src/app/api/v1/images/*`                                          |
+| **Video (gen)**             | P1       | OpenAI-compatible `/v1/videos/*` route.                                                       | `src/app/api/v1/videos/*`                                          |
+| **Music (gen)**             | P2       | `/v1/music/generations` route.                                                                | `src/app/api/v1/music/generations/route.ts`                        |
+| **Files**                   | P1       | OpenAI-compatible `/v1/files` route.                                                          | `src/app/api/v1/files/route.ts`                                    |
+| **Batches**                 | P1       | OpenAI-compatible `/v1/batches` route.                                                        | `src/app/api/v1/batches/*`                                         |
+| **Rerank**                  | P1       | Cohere-compatible rerank.                                                                     | `src/app/api/v1/rerank/*`                                          |
+| **Moderations**             | P1       | OpenAI-compatible moderations.                                                                | `src/app/api/v1/moderations/*`                                     |
+| **OAuth flow**              | P1       | `/v1/oauth/*` and AuthKit integration.                                                        | `src/lib/oauth/*` (TS)                                             |
+| **Antigravity**             | P2       | `/v1/antigravity/*` (custom).                                                                 | `src/app/api/v1/antigravity/*`                                     |
 
 ### P0 / P1 / P2 counts
 
@@ -230,4 +230,3 @@ The user's scaffolded workspace at `omniroute-rust/` is the right architecture. 
 5. **Is the `tproxy` native module in scope?** Currently node-gyp in `src/mitm/tproxy/native/`. If yes, the `omni-server` crate will need a native dependency. Recommendation: defer to v2 (HTTP proxy via axum is sufficient for the LLM gateway use case).
 6. **Is the i18n surface (42 locales) in scope for v1?** It is P2. Recommendation: defer; the LLM gateway does not need 42 locales in the response, only in admin/UI.
 7. **Is Antigravity in scope?** Per `src/app/api/v1/antigravity/*`. Recommendation: P2; the user has not named it.
-

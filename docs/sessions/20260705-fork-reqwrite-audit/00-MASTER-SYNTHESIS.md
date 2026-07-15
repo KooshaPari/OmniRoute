@@ -27,32 +27,32 @@ Polyrepo audit+plan     ########....  ~78%   4/7 lanes done, 3/3 deep audits wip
 
 ## Source-of-truth files (this turn)
 
-| Lane | File | Bytes | Status |
-|------|------|-------|--------|
-| L4   | `04-triage/01-AUTH-TRIAGE.md` | 5390 | DONE |
-| L5   | `04-triage/02-ORG-AUDITS-PLAN.md` | 4326 | DONE |
-| L5'  | `2026-07-05-polyrepo-portfolio-strategy/04-plans/01-phenotype-org-audits-spine.md` | 2813 | DONE (prior subagent) |
-| L6   | `04-triage/03-APPS-PLAN.md` | 3598 | DONE |
-| L6'  | `2026-07-05-polyrepo-portfolio-strategy/04-plans/02-phenotype-apps-spine.md` | 3357 | DONE (prior subagent) |
-| L7   | `04-triage/04-ARCHIVE-PLAN.md` | 5465 | DONE |
-| L7'  | `2026-07-05-polyrepo-portfolio-strategy/05-decisions/01-authvault-vs-authkit.md` | 4112 | DONE (prior subagent) |
-| ALL  | `04-triage/00-EXECUTIVE-SUMMARY.md` | 4436 | DONE |
-| OPS  | `04-triage/05-MIGRATION-CHECKLIST.md` | 6006 | DONE (5 phases, ready to execute) |
-| RISK | `04-triage/06-RISKS-AND-OPEN-QUESTIONS.md` | 4957 | DONE (R-1..R-6, 6 open Qs) |
-| L1-L3 wip | `01-omniroute/*.md`, `02-byteport/*.md`, `03-phenodag/*.md` | -- | IN FLIGHT |
+| Lane      | File                                                                               | Bytes | Status                            |
+| --------- | ---------------------------------------------------------------------------------- | ----- | --------------------------------- |
+| L4        | `04-triage/01-AUTH-TRIAGE.md`                                                      | 5390  | DONE                              |
+| L5        | `04-triage/02-ORG-AUDITS-PLAN.md`                                                  | 4326  | DONE                              |
+| L5'       | `2026-07-05-polyrepo-portfolio-strategy/04-plans/01-phenotype-org-audits-spine.md` | 2813  | DONE (prior subagent)             |
+| L6        | `04-triage/03-APPS-PLAN.md`                                                        | 3598  | DONE                              |
+| L6'       | `2026-07-05-polyrepo-portfolio-strategy/04-plans/02-phenotype-apps-spine.md`       | 3357  | DONE (prior subagent)             |
+| L7        | `04-triage/04-ARCHIVE-PLAN.md`                                                     | 5465  | DONE                              |
+| L7'       | `2026-07-05-polyrepo-portfolio-strategy/05-decisions/01-authvault-vs-authkit.md`   | 4112  | DONE (prior subagent)             |
+| ALL       | `04-triage/00-EXECUTIVE-SUMMARY.md`                                                | 4436  | DONE                              |
+| OPS       | `04-triage/05-MIGRATION-CHECKLIST.md`                                              | 6006  | DONE (5 phases, ready to execute) |
+| RISK      | `04-triage/06-RISKS-AND-OPEN-QUESTIONS.md`                                         | 4957  | DONE (R-1..R-6, 6 open Qs)        |
+| L1-L3 wip | `01-omniroute/*.md`, `02-byteport/*.md`, `03-phenodag/*.md`                        | --    | IN FLIGHT                         |
 
 ## Decisions awaiting sponsor (6 quick yes/no)
 
-| # | Decision | Recommendation |
-|---|----------|----------------|
-| D1 | Keep AuthKit, delete Authvault | YES (AuthKit README self-declares successor; c7994b9 self-archive marker) |
-| D2 | Promote `phenotype-org-audits` as audit/inventory spine | YES (165-repo registry, no other spine can host whole-org view) |
-| D3 | Promote `phenotype-apps` as apps-catalog spine | YES (324+ entries, meta-portfolio, one-stop catalog) |
-| D4 | Archive AtomsBot/GDK/KaskMan with strict-pause README + GitHub Archived | YES (banner template already exists in phenotype-apps/GDK/README.md) |
-| D5 | Byteport scope: Surface only, or Surface + identity? | Surface only; integrate with AuthKit for identity |
-| D6 | Phenodag deletion: hard-archive or thin-redirector for 1 release? | thin redirector for 1 release, then archive |
-| D7 | OmniRoute language split | Rust hot-path + Go orchestration + TS SDK glue + Zig FFI; Mojo not used (no production HTTP stack 2026-07) |
-| D8 | Strangler-fig for OmniRoute rewrite | YES; parallel-run 1 quarter behind feature flag |
+| #   | Decision                                                                | Recommendation                                                                                             |
+| --- | ----------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| D1  | Keep AuthKit, delete Authvault                                          | YES (AuthKit README self-declares successor; c7994b9 self-archive marker)                                  |
+| D2  | Promote `phenotype-org-audits` as audit/inventory spine                 | YES (165-repo registry, no other spine can host whole-org view)                                            |
+| D3  | Promote `phenotype-apps` as apps-catalog spine                          | YES (324+ entries, meta-portfolio, one-stop catalog)                                                       |
+| D4  | Archive AtomsBot/GDK/KaskMan with strict-pause README + GitHub Archived | YES (banner template already exists in phenotype-apps/GDK/README.md)                                       |
+| D5  | Byteport scope: Surface only, or Surface + identity?                    | Surface only; integrate with AuthKit for identity                                                          |
+| D6  | Phenodag deletion: hard-archive or thin-redirector for 1 release?       | thin redirector for 1 release, then archive                                                                |
+| D7  | OmniRoute language split                                                | Rust hot-path + Go orchestration + TS SDK glue + Zig FFI; Mojo not used (no production HTTP stack 2026-07) |
+| D8  | Strangler-fig for OmniRoute rewrite                                     | YES; parallel-run 1 quarter behind feature flag                                                            |
 
 ## Top risks (sponsor awareness)
 

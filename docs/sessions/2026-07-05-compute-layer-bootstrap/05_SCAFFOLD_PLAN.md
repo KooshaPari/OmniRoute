@@ -37,17 +37,17 @@ members = [
 ]
 ```
 
-| Crate | Purpose (1 line) | Depends on | Depended on by |
-|---|---|---|---|
-| `pheno-compute-core` | Trait surface, schema types, Scheduler, PolicyGate, EventSink | (none in workspace; serde, async-trait, thiserror, tracing) | Every other crate |
-| `pheno-compute-fly` | Fly.io Machines API adapter | `pheno-compute-core`, `reqwest` | BytePort, Eidolon |
-| `pheno-compute-aws` | AWS Fargate / Lambda / App Runner adapter | `pheno-compute-core`, `aws-sdk-ecs`, `aws-sdk-lambda` | BytePort |
-| `pheno-compute-vercel` | Vercel Functions + Edge adapter | `pheno-compute-core`, `reqwest` | BytePort |
-| `pheno-compute-supabase` | Supabase Edge Functions adapter | `pheno-compute-core`, `reqwest` | BytePort |
-| `pheno-compute-local` | Local Docker / Podman / nanovms adapter | `pheno-compute-core`, `bollard`, `nanovms-sys` | CLI, dev laptop |
-| `pheno-compute-bare` | Hetzner / OVH / bare-metal via SSH | `pheno-compute-core`, `russh` | BytePort (Tier 3+) |
-| `pheno-compute-ffi` | C-ABI bridge for Go (cgo) and Zig | `pheno-compute-core`, `cbindgen` | Go SDK, Zig shims |
-| `pheno-compute-wasm` | WASM target (browser + edge worker) | `pheno-compute-core`, `wasm-bindgen` | Browser-based dashboards |
+| Crate                    | Purpose (1 line)                                              | Depends on                                                  | Depended on by           |
+| ------------------------ | ------------------------------------------------------------- | ----------------------------------------------------------- | ------------------------ |
+| `pheno-compute-core`     | Trait surface, schema types, Scheduler, PolicyGate, EventSink | (none in workspace; serde, async-trait, thiserror, tracing) | Every other crate        |
+| `pheno-compute-fly`      | Fly.io Machines API adapter                                   | `pheno-compute-core`, `reqwest`                             | BytePort, Eidolon        |
+| `pheno-compute-aws`      | AWS Fargate / Lambda / App Runner adapter                     | `pheno-compute-core`, `aws-sdk-ecs`, `aws-sdk-lambda`       | BytePort                 |
+| `pheno-compute-vercel`   | Vercel Functions + Edge adapter                               | `pheno-compute-core`, `reqwest`                             | BytePort                 |
+| `pheno-compute-supabase` | Supabase Edge Functions adapter                               | `pheno-compute-core`, `reqwest`                             | BytePort                 |
+| `pheno-compute-local`    | Local Docker / Podman / nanovms adapter                       | `pheno-compute-core`, `bollard`, `nanovms-sys`              | CLI, dev laptop          |
+| `pheno-compute-bare`     | Hetzner / OVH / bare-metal via SSH                            | `pheno-compute-core`, `russh`                               | BytePort (Tier 3+)       |
+| `pheno-compute-ffi`      | C-ABI bridge for Go (cgo) and Zig                             | `pheno-compute-core`, `cbindgen`                            | Go SDK, Zig shims        |
+| `pheno-compute-wasm`     | WASM target (browser + edge worker)                           | `pheno-compute-core`, `wasm-bindgen`                        | Browser-based dashboards |
 
 **PR-1 lands only 4 of these:** `pheno-compute-core`, `pheno-compute-fly`,
 `pheno-compute-local`, `pheno-compute-ffi`. The others are PR-3+ per
@@ -318,6 +318,7 @@ PR-2 adds a `tokio::sync::Semaphore` if concurrency pressure emerges.
 `ProviderCapabilities`.**
 
 Justification (3 lines):
+
 - proto3 has a stable wire format, code generation for Rust/Go/Zig, and
   is the 2026 default for cross-language polyrepo APIs.
 - The Cargo workspace already vendors `tonic` and `prost` for the
@@ -440,15 +441,15 @@ same for `--provider vercel` and `--provider supabase`.
 
 ## 6. Deferral (out of v1, with revisit)
 
-| Item | Why deferred | Revisit |
-|---|---|---|
-| `pheno-compute-bare` (Hetzner / OVH / SSH) | SSH-based deploys need a different transport (no HTTP API). Different error model. Risk of scope creep. | After PR-3 lands; the local-provider pattern is the right template. |
-| `pheno-compute-wasm` (browser target) | Browser compute means running providers in the browser via WASM, which is a totally different product surface. | After the desktop polyglot spec (Eidolon) lands. |
-| Mojo backend | Per 04_compute_architecture_spec.md section 3.4: Mojo's stable C-ABI is not landed in 2026; ONNX-in-Rust (`ort`) is the 2026 path. | When Mojo ships a stable C-ABI and at least one Tier-1 inference backend (estimate: 2027). |
-| Scheduler sophistication (cost-based, region-affinity) | PR-2 lands a "first-fit" Scheduler. Cost-based scheduling needs pricing data the SDK does not have. | After BytePort ships its first 3 multi-cloud deployments. |
-| PolicyGate DSL (rego / cedar) | Hard-coded rules in PR-2; a DSL is overkill for v1. | When the rule count exceeds ~20. |
-| `pheno-compute-supabase` cross-region replication | Supabase Edge is single-region; multi-region is a 2027 Supabase feature. | 2027+ per Supabase roadmap. |
-| `pheno-compute-oci` (Oracle Cloud) | Same shape as AWS Fargate; not in v1 because no Phenotype workload needs OCI in 2026. | If/when a sponsor workload requires OCI. |
+| Item                                                   | Why deferred                                                                                                                       | Revisit                                                                                    |
+| ------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
+| `pheno-compute-bare` (Hetzner / OVH / SSH)             | SSH-based deploys need a different transport (no HTTP API). Different error model. Risk of scope creep.                            | After PR-3 lands; the local-provider pattern is the right template.                        |
+| `pheno-compute-wasm` (browser target)                  | Browser compute means running providers in the browser via WASM, which is a totally different product surface.                     | After the desktop polyglot spec (Eidolon) lands.                                           |
+| Mojo backend                                           | Per 04_compute_architecture_spec.md section 3.4: Mojo's stable C-ABI is not landed in 2026; ONNX-in-Rust (`ort`) is the 2026 path. | When Mojo ships a stable C-ABI and at least one Tier-1 inference backend (estimate: 2027). |
+| Scheduler sophistication (cost-based, region-affinity) | PR-2 lands a "first-fit" Scheduler. Cost-based scheduling needs pricing data the SDK does not have.                                | After BytePort ships its first 3 multi-cloud deployments.                                  |
+| PolicyGate DSL (rego / cedar)                          | Hard-coded rules in PR-2; a DSL is overkill for v1.                                                                                | When the rule count exceeds ~20.                                                           |
+| `pheno-compute-supabase` cross-region replication      | Supabase Edge is single-region; multi-region is a 2027 Supabase feature.                                                           | 2027+ per Supabase roadmap.                                                                |
+| `pheno-compute-oci` (Oracle Cloud)                     | Same shape as AWS Fargate; not in v1 because no Phenotype workload needs OCI in 2026.                                              | If/when a sponsor workload requires OCI.                                                   |
 
 ---
 

@@ -20,14 +20,14 @@ Scope: backend, API, SDK, CLI. Excluded: Electron/PWA/web frontend.
 
 ## Lane layout
 
-| # | Lane | Subdir | Mission | Status |
-|---|------|--------|---------|--------|
-| 01 | Inventory | 01-inventory | Enumerate every endpoint, provider, MCP tool, CLI cmd, SDK export in the fork | wip |
-| 02 | Language eval | 02-language-eval | Web research: rust/go/zig/mojo for LLM-gateway workloads (mid-2026) | wip |
-| 03 | Architecture research | 03-architecture-research | SOTA LLM gateway patterns: Bifrost, Portkey, Helicone, LiteLLM, OpenRouter, Cloudflare/Vercel AI Gateway | wip |
-| 04 | Migration strategy | 04-migration-strategy | Strangler-fig / parallel-run patterns; case studies; feature flag strategy | wip |
-| 05 | Requirements | 05-requirements | Spec-level functional + non-functional requirements (FRs/NFRs/ARUs) | queued |
-| 06 | Plan | 06-plan | Sequenced PRs, dependencies, risk gates, kill switches | queued |
+| #   | Lane                  | Subdir                   | Mission                                                                                                  | Status |
+| --- | --------------------- | ------------------------ | -------------------------------------------------------------------------------------------------------- | ------ |
+| 01  | Inventory             | 01-inventory             | Enumerate every endpoint, provider, MCP tool, CLI cmd, SDK export in the fork                            | wip    |
+| 02  | Language eval         | 02-language-eval         | Web research: rust/go/zig/mojo for LLM-gateway workloads (mid-2026)                                      | wip    |
+| 03  | Architecture research | 03-architecture-research | SOTA LLM gateway patterns: Bifrost, Portkey, Helicone, LiteLLM, OpenRouter, Cloudflare/Vercel AI Gateway | wip    |
+| 04  | Migration strategy    | 04-migration-strategy    | Strangler-fig / parallel-run patterns; case studies; feature flag strategy                               | wip    |
+| 05  | Requirements          | 05-requirements          | Spec-level functional + non-functional requirements (FRs/NFRs/ARUs)                                      | queued |
+| 06  | Plan                  | 06-plan                  | Sequenced PRs, dependencies, risk gates, kill switches                                                   | queued |
 
 ## Pre-decided (sponsor-stated, awaiting verification)
 

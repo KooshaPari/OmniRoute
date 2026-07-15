@@ -10,14 +10,14 @@ overwhelmingly supports the first reading.
 
 Survey of the existing spine candidates and their roles:
 
-| Spine candidate | Role                                          | Can it absorb org-audits? |
-|-----------------|-----------------------------------------------|---------------------------|
-| substrate       | dispatch (3 drivers x 6 engines)              | No -- different concern   |
-| AgilePlus       | control plane (cockpit)                       | No -- cockpit is per-task |
-| Tracera         | trace (inferred)                               | No -- trace vs inventory  |
-| pheno           | workspace umbrella                            | Possible but bloats pheno |
-| phenotype-infra | infra workspace                                | No -- infra vs inventory  |
-| phenotype-apps  | apps catalog (meta-portfolio)                  | No -- apps vs inventory   |
+| Spine candidate | Role                             | Can it absorb org-audits? |
+| --------------- | -------------------------------- | ------------------------- |
+| substrate       | dispatch (3 drivers x 6 engines) | No -- different concern   |
+| AgilePlus       | control plane (cockpit)          | No -- cockpit is per-task |
+| Tracera         | trace (inferred)                 | No -- trace vs inventory  |
+| pheno           | workspace umbrella               | Possible but bloats pheno |
+| phenotype-infra | infra workspace                  | No -- infra vs inventory  |
+| phenotype-apps  | apps catalog (meta-portfolio)    | No -- apps vs inventory   |
 
 Folding org-audits into any of the above creates a new dependency that does
 not exist today. org-audits is a CONSUMER of the polyrepo state, not a

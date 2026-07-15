@@ -15,7 +15,7 @@ the Phenotype portfolio. It is the public-facing "control panel" the way
 AWS Console is for AWS or Vercel Dashboard is for Vercel.
 
 **BytePort is not** a competitor to AWS or a re-implementation of cloud
-primitives. It is a *thin* control plane that fronts whichever host system
+primitives. It is a _thin_ control plane that fronts whichever host system
 is best for the workload: NVMS microVMs for system-level isolation,
 PhenoCompose for container workloads, host-bare for metal, plus delegates
 to AWS / GCP / Vercel / Supabase / Cloudflare for things that are not
@@ -31,27 +31,27 @@ containment surface for it.
 
 ## 2. Surface map
 
-| AWS / GCP / Vercel / Supabase surface | BytePort equivalent | Backing impl |
-|---------------------------------------|---------------------|---------------|
-| EC2 / GCE / bare metal | `bp.compute.instance` | NVMS microVMs OR host-bare |
-| ECS / GKE / Cloud Run | `bp.compute.service` | PhenoCompose containers |
-| Lambda / Cloud Functions | `bp.compute.lambda` | substrate + WASM OR host-bare scripts |
-| S3 / GCS / Supabase Storage | `bp.storage.object` | Stashly + (S3/GCS backend) |
-| EBS / Persistent Disk | `bp.storage.block` | NVMS volume OR host-bare LVM |
-| DynamoDB / Firestore | `bp.storage.kv` | substrate-kv OR DataKit |
-| SQS / Pub-Sub | `bp.queue` | substrate-queue OR Pine events |
-| ALB / NLB | `bp.network.l4` | host-bare haproxy/envoy OR cloud LB |
-| API Gateway / Cloudflare | `bp.network.l7` | byteport-transport + WAF |
-| Route 53 / Cloud DNS | `bp.network.dns` | substrate + provider-aware |
-| CloudWatch / Stackdriver | `bp.observe.metrics` | ObservabilityKit (OTel) |
-| CloudWatch Logs | `bp.observe.logs` | byteport-otel |
-| X-Ray / Cloud Trace | `bp.observe.traces` | Tracera |
-| Cognito / Auth0 / Clerk | `bp.identity.user` | AuthKit (auth/session/JWT) |
-| Secrets Manager | `bp.identity.secret` | AuthKit KMS module (PLANNED AUT-SOTA-005) |
-| IAM / RBAC | `bp.identity.rbac` | AuthKit + substrate-policy |
-| CloudFormation / Terraform | `bp.deploy.manifest` | odin.nvms + bp deploy |
-| Vercel/Netlify (frontend) | `bp.deploy.frontend` | byteport-cli + Vercel/Cloudflare Pages |
-| Vercel/Supabase (data) | `bp.deploy.data` | DataKit + Supabase adapter |
+| AWS / GCP / Vercel / Supabase surface | BytePort equivalent   | Backing impl                              |
+| ------------------------------------- | --------------------- | ----------------------------------------- |
+| EC2 / GCE / bare metal                | `bp.compute.instance` | NVMS microVMs OR host-bare                |
+| ECS / GKE / Cloud Run                 | `bp.compute.service`  | PhenoCompose containers                   |
+| Lambda / Cloud Functions              | `bp.compute.lambda`   | substrate + WASM OR host-bare scripts     |
+| S3 / GCS / Supabase Storage           | `bp.storage.object`   | Stashly + (S3/GCS backend)                |
+| EBS / Persistent Disk                 | `bp.storage.block`    | NVMS volume OR host-bare LVM              |
+| DynamoDB / Firestore                  | `bp.storage.kv`       | substrate-kv OR DataKit                   |
+| SQS / Pub-Sub                         | `bp.queue`            | substrate-queue OR Pine events            |
+| ALB / NLB                             | `bp.network.l4`       | host-bare haproxy/envoy OR cloud LB       |
+| API Gateway / Cloudflare              | `bp.network.l7`       | byteport-transport + WAF                  |
+| Route 53 / Cloud DNS                  | `bp.network.dns`      | substrate + provider-aware                |
+| CloudWatch / Stackdriver              | `bp.observe.metrics`  | ObservabilityKit (OTel)                   |
+| CloudWatch Logs                       | `bp.observe.logs`     | byteport-otel                             |
+| X-Ray / Cloud Trace                   | `bp.observe.traces`   | Tracera                                   |
+| Cognito / Auth0 / Clerk               | `bp.identity.user`    | AuthKit (auth/session/JWT)                |
+| Secrets Manager                       | `bp.identity.secret`  | AuthKit KMS module (PLANNED AUT-SOTA-005) |
+| IAM / RBAC                            | `bp.identity.rbac`    | AuthKit + substrate-policy                |
+| CloudFormation / Terraform            | `bp.deploy.manifest`  | odin.nvms + bp deploy                     |
+| Vercel/Netlify (frontend)             | `bp.deploy.frontend`  | byteport-cli + Vercel/Cloudflare Pages    |
+| Vercel/Supabase (data)                | `bp.deploy.data`      | DataKit + Supabase adapter                |
 
 **Pattern:** every BytePort surface has a single canonical API; backing
 impls are pluggable via a `provider` field. Default is the Phenotype
@@ -108,6 +108,7 @@ BytePort (Surface)
 ```
 
 **Lifted-from-existing layout (BytePort today):**
+
 - `byteport-cli`, `byteport-dag`, `byteport-otel`, `byteport-registry-adapter`,
   `byteport-transport`, `pheno-dag`, `phenotype-types` are the existing
   Rust crates. They become the `cli/`, `compute/dag` (temp), `observe/logs`,
@@ -121,36 +122,36 @@ BytePort (Surface)
 
 ## 4. Absorptions IN
 
-| Capability | Source repo | Target BytePort module | Migration path |
-|------------|-------------|------------------------|----------------|
-| Auth/session/JWT | AuthKit | `identity/user`, `identity/session` | Reuse existing crate; wire into bp.api middleware |
-| OIDC + WebAuthn + TOTP + DPoP + KMS | AuthKit (PLANNED AUT-SOTA-001..007) | `identity/*` | Reuse as features land |
-| RBAC policies | substrate-policy | `identity/rbac` | Embed in bp.control |
-| Audit log | substrate-audit | `control/audit` | Embed in bp.control |
-| Dispatch / orchestrator | substrate | `control/orchestration` | Embed in bp.control |
-| Agent dispatch CLI | thegent | `cli/thegent-bridge` | New module in bp.cli |
-| Trace spine | Tracera | `observe/traces` | Reuse Tracera SDK; wire OTel export |
-| Container runtime | PhenoCompose | `compute/container` | Reuse PhenoCompose SDK |
-| MicroVM runtime | NVMS | `compute/microvm` | Reuse NVMS Go module + Rust shim |
-| Config | Configra + Conft | `deploy/manifest` (config section) | Consolidate into odin.nvms |
-| AI gateway | OmniRoute | `compute/lambda` (AI inference slot) | Embed as provider via byteport-transport |
-| Events | Pine | `storage/queue` | Reuse Pine as plug |
-| Helpers | Sidekick | scattered utilities | Re-import as `bp.util` |
-| OTel | ObservabilityKit | `observe/metrics`, `observe/logs` | Reuse |
-| Alerting | KWatch | `observe/alerts` (v2) | New, gated |
-| Data / migrations | DataKit | `deploy/data`, `storage/block` | Reuse for state mgmt |
-| Object storage | Stashly | `storage/object` | Reuse; add cloud plugs |
-| VCS-aware deploys | PhenoVCS | `deploy/roll` (v2) | Optional v2; n/a v1 |
-| Viz / portfolio | MelosViz | `portfolio/site` (optional) | Optional v2 |
-| Test framework | TestingKit | `cli/test` | New, gated |
-| Bench | HeliosBench | `cli/bench` | New, gated |
-| Portfolio catalog | phenotype-apps | `portfolio/catalog` | Read-only dependency |
+| Capability                          | Source repo                         | Target BytePort module               | Migration path                                    |
+| ----------------------------------- | ----------------------------------- | ------------------------------------ | ------------------------------------------------- |
+| Auth/session/JWT                    | AuthKit                             | `identity/user`, `identity/session`  | Reuse existing crate; wire into bp.api middleware |
+| OIDC + WebAuthn + TOTP + DPoP + KMS | AuthKit (PLANNED AUT-SOTA-001..007) | `identity/*`                         | Reuse as features land                            |
+| RBAC policies                       | substrate-policy                    | `identity/rbac`                      | Embed in bp.control                               |
+| Audit log                           | substrate-audit                     | `control/audit`                      | Embed in bp.control                               |
+| Dispatch / orchestrator             | substrate                           | `control/orchestration`              | Embed in bp.control                               |
+| Agent dispatch CLI                  | thegent                             | `cli/thegent-bridge`                 | New module in bp.cli                              |
+| Trace spine                         | Tracera                             | `observe/traces`                     | Reuse Tracera SDK; wire OTel export               |
+| Container runtime                   | PhenoCompose                        | `compute/container`                  | Reuse PhenoCompose SDK                            |
+| MicroVM runtime                     | NVMS                                | `compute/microvm`                    | Reuse NVMS Go module + Rust shim                  |
+| Config                              | Configra + Conft                    | `deploy/manifest` (config section)   | Consolidate into odin.nvms                        |
+| AI gateway                          | OmniRoute                           | `compute/lambda` (AI inference slot) | Embed as provider via byteport-transport          |
+| Events                              | Pine                                | `storage/queue`                      | Reuse Pine as plug                                |
+| Helpers                             | Sidekick                            | scattered utilities                  | Re-import as `bp.util`                            |
+| OTel                                | ObservabilityKit                    | `observe/metrics`, `observe/logs`    | Reuse                                             |
+| Alerting                            | KWatch                              | `observe/alerts` (v2)                | New, gated                                        |
+| Data / migrations                   | DataKit                             | `deploy/data`, `storage/block`       | Reuse for state mgmt                              |
+| Object storage                      | Stashly                             | `storage/object`                     | Reuse; add cloud plugs                            |
+| VCS-aware deploys                   | PhenoVCS                            | `deploy/roll` (v2)                   | Optional v2; n/a v1                               |
+| Viz / portfolio                     | MelosViz                            | `portfolio/site` (optional)          | Optional v2                                       |
+| Test framework                      | TestingKit                          | `cli/test`                           | New, gated                                        |
+| Bench                               | HeliosBench                         | `cli/bench`                          | New, gated                                        |
+| Portfolio catalog                   | phenotype-apps                      | `portfolio/catalog`                  | Read-only dependency                              |
 
-**Rule of thumb for what gets absorbed:** if the source repo is a *generic
-building block* (AuthKit, substrate, NVMS, PhenoCompose, ObservabilityKit,
+**Rule of thumb for what gets absorbed:** if the source repo is a _generic
+building block_ (AuthKit, substrate, NVMS, PhenoCompose, ObservabilityKit,
 Tracera, DataKit, Stashly, Pine), it gets absorbed as a BytePort module
-or a plug. If it is *Phenotype-portfolio-specific* (phenotype-apps,
-MelosViz), it gets *referenced* not absorbed. If it is a *one-off tool*
+or a plug. If it is _Phenotype-portfolio-specific_ (phenotype-apps,
+MelosViz), it gets _referenced_ not absorbed. If it is a _one-off tool_
 (HeliosBench, TestingKit, KWatch), it gets absorbed as a CLI subcommand
 under `bp.<verb>`, not a top-level surface.
 
@@ -174,6 +175,7 @@ under `bp.<verb>`, not a top-level surface.
 ## 6. Phased plan (8 phases)
 
 ### Phase 1 — Foundation + byteport-cli unification (4 weeks)
+
 - **Scope:** consolidate `byteport-cli` and `byteport-dag` into a single
   CLI crate; add `bp deploy` and `bp status`; wire AuthKit middleware.
 - **Deliverables:** single `byteport-cli` crate (≤2k lines, split into
@@ -184,6 +186,7 @@ under `bp.<verb>`, not a top-level surface.
   code paths; ship small, no compat shims.
 
 ### Phase 2 — Identity plane (3 weeks)
+
 - **Scope:** wire AuthKit fully into `bp.identity.*`. Add `bp iam`
   subcommand (list/create/delete users, rotate keys).
 - **Deliverables:** `bp.identity.user`, `bp.identity.session`,
@@ -195,6 +198,7 @@ under `bp.<verb>`, not a top-level surface.
   the version that ships them; if not shipped, gate.
 
 ### Phase 3 — Compute plane (5 weeks)
+
 - **Scope:** `bp.compute.microvm` (NVMS), `bp.compute.container`
   (PhenoCompose), `bp.compute.bare` (metal). Pluggable.
 - **Deliverables:** three compute modules + `bp compute ls/up/destroy`
@@ -207,6 +211,7 @@ under `bp.<verb>`, not a top-level surface.
   PhenoCompose/NVMS teams.
 
 ### Phase 4 — Storage plane (3 weeks)
+
 - **Scope:** `bp.storage.object` (Stashly + S3 plug), `bp.storage.kv`
   (DataKit + Dynamo plug), `bp.storage.queue` (substrate + SQS plug).
 - **Deliverables:** three storage modules + `bp storage ls/get/put` CLI.
@@ -216,6 +221,7 @@ under `bp.<verb>`, not a top-level surface.
   in v1.5.
 
 ### Phase 5 — Network plane (4 weeks)
+
 - **Scope:** `bp.network.l4` (envoy + cloud LB), `bp.network.l7`
   (byteport-transport), `bp.network.dns` (substrate + cloud DNS).
 - **Deliverables:** three network modules; TLS termination; WAF rules
@@ -225,6 +231,7 @@ under `bp.<verb>`, not a top-level surface.
 - **Risks:** L7 deep stack; phase this with byteport-transport maintainer.
 
 ### Phase 6 — Observe plane (3 weeks)
+
 - **Scope:** `bp.observe.metrics` (OTel via ObservabilityKit),
   `bp.observe.logs` (structured + byteport-otel),
   `bp.observe.traces` (Tracera SDK).
@@ -236,6 +243,7 @@ under `bp.<verb>`, not a top-level surface.
   compute providers.
 
 ### Phase 7 — Deploy + portfolio (4 weeks)
+
 - **Scope:** `bp.deploy.manifest` (odin.nvms), `bp.deploy.plan` (dry-run),
   `bp.deploy.apply`, `bp.deploy.roll`; `bp.portfolio.catalog` (read from
   phenotype-apps), `bp.portfolio.site`, `bp.portfolio.ai`.
@@ -248,6 +256,7 @@ under `bp.<verb>`, not a top-level surface.
   better as a separate site repo).
 
 ### Phase 8 — Polish + public preview (2 weeks)
+
 - **Scope:** operator UX pass, docs, examples, community feedback.
 - **Deliverables:** docs site (byteport.dev), 10+ example projects,
   `bp init` wizard, public preview.
@@ -285,18 +294,18 @@ under `bp.<verb>`, not a top-level surface.
 
 ## 8. ADR-style decision log
 
-| # | Decision | Rationale | Status |
-|---|----------|-----------|--------|
-| AD-1 | BytePort is a Surface, not a re-impl of cloud primitives | It is the operator's control panel for the Phenotype portfolio | proposed |
-| AD-2 | Back every surface with a pluggable provider (NVMS / PhenoCompose / substrate / cloud) | Operator can pick the right tool; default = in-house | proposed |
-| AD-3 | AuthKit is THE identity plane (no Authvault-style alternatives) | D1 already settled this; consistency | proposed |
-| AD-4 | substrate is THE control plane (dispatch + RBAC + audit) | Already built; reuse | proposed |
-| AD-5 | Tracera is THE trace plane | Tracera spec-008 in flight; reuse | proposed |
-| AD-6 | ObservabilityKit is THE OTel plane | OTel is the API surface; ObservabilityKit is the Phenotype wrapper | proposed |
-| AD-7 | Frontend stays in BytePort repo (Tauri + Svelte) | No benefit to splitting | proposed |
-| AD-8 | Portfolio site is a separate repo | Different lifecycle; can ship without BytePort | proposed |
-| AD-9 | Phased 8-phase plan, 28 weeks, Gantt-style | Predictable; can pause between phases | proposed |
-| AD-10 | License stays BSL for v1.0 | Matches Phenotype portfolio default; review at v1.5 | proposed |
+| #     | Decision                                                                               | Rationale                                                          | Status   |
+| ----- | -------------------------------------------------------------------------------------- | ------------------------------------------------------------------ | -------- |
+| AD-1  | BytePort is a Surface, not a re-impl of cloud primitives                               | It is the operator's control panel for the Phenotype portfolio     | proposed |
+| AD-2  | Back every surface with a pluggable provider (NVMS / PhenoCompose / substrate / cloud) | Operator can pick the right tool; default = in-house               | proposed |
+| AD-3  | AuthKit is THE identity plane (no Authvault-style alternatives)                        | D1 already settled this; consistency                               | proposed |
+| AD-4  | substrate is THE control plane (dispatch + RBAC + audit)                               | Already built; reuse                                               | proposed |
+| AD-5  | Tracera is THE trace plane                                                             | Tracera spec-008 in flight; reuse                                  | proposed |
+| AD-6  | ObservabilityKit is THE OTel plane                                                     | OTel is the API surface; ObservabilityKit is the Phenotype wrapper | proposed |
+| AD-7  | Frontend stays in BytePort repo (Tauri + Svelte)                                       | No benefit to splitting                                            | proposed |
+| AD-8  | Portfolio site is a separate repo                                                      | Different lifecycle; can ship without BytePort                     | proposed |
+| AD-9  | Phased 8-phase plan, 28 weeks, Gantt-style                                             | Predictable; can pause between phases                              | proposed |
+| AD-10 | License stays BSL for v1.0                                                             | Matches Phenotype portfolio default; review at v1.5                | proposed |
 
 ---
 

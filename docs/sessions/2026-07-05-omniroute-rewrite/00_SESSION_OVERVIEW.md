@@ -40,22 +40,22 @@ Rewrite the OmniRoute fork's backend (api/sdk/cli/server/middleware/db/providers
 
 ## Key decisions
 
-| Decision | Rationale |
-|---|---|
-| Rust for the request path | Lowest per-request overhead, first-class SSE, mature ecosystem |
-| Go for the CLI and SDK | Cross-compiles to every Node target, fast startup, easy distribution |
-| Zig for the SSE parser and the tproxy | Zero-copy, simd-json, ports the existing C 1:1 |
-| Mojo deferred | 2026 production-readiness uncertain; ONNX via `ort` covers embeddings |
-| `capnproto` for internal IPC | Zero-copy, schema-stable, mature in both Rust and Go |
-| Single binary via `omniroute-xtask` | One artifact, one `PATH` entry, same UX as today |
-| Side branch for Phase 0 | Avoids colliding with active PR286 / process-safety-rule work |
+| Decision                              | Rationale                                                             |
+| ------------------------------------- | --------------------------------------------------------------------- |
+| Rust for the request path             | Lowest per-request overhead, first-class SSE, mature ecosystem        |
+| Go for the CLI and SDK                | Cross-compiles to every Node target, fast startup, easy distribution  |
+| Zig for the SSE parser and the tproxy | Zero-copy, simd-json, ports the existing C 1:1                        |
+| Mojo deferred                         | 2026 production-readiness uncertain; ONNX via `ort` covers embeddings |
+| `capnproto` for internal IPC          | Zero-copy, schema-stable, mature in both Rust and Go                  |
+| Single binary via `omniroute-xtask`   | One artifact, one `PATH` entry, same UX as today                      |
+| Side branch for Phase 0               | Avoids colliding with active PR286 / process-safety-rule work         |
 
 ## Active branches
 
-| Branch | Owner | Purpose |
-|---|---|---|
+| Branch                                  | Owner           | Purpose                    |
+| --------------------------------------- | --------------- | -------------------------- |
 | `fix/caddy-lb-policy-forwarded-headers` | current (PR286) | active work — DO NOT TOUCH |
-| `chore/polyglot-rewrite-foundation` | this session | Phase 0 toolchain skeleton |
+| `chore/polyglot-rewrite-foundation`     | this session    | Phase 0 toolchain skeleton |
 
 ## Constraints
 
@@ -91,13 +91,13 @@ Total: ~6-9 months for a single senior engineer; 3-4 months with a 3-person team
 
 ## Files in this session
 
-| File | Lines | Status |
-|---|---|---|
-| `00_SESSION_OVERVIEW.md` | this | written |
-| `01_TS_BACKEND_INVENTORY.md` | 327 | written |
-| `02_POLYGLOT_ARCHITECTURE.md` | 323 | written |
-| `03_BOUNDARY_IPC_FFI.md` | 321 | written |
-| `04_PHASE_0_SKELETON.md` | (next) | will summarize what landed in this turn |
+| File                          | Lines  | Status                                  |
+| ----------------------------- | ------ | --------------------------------------- |
+| `00_SESSION_OVERVIEW.md`      | this   | written                                 |
+| `01_TS_BACKEND_INVENTORY.md`  | 327    | written                                 |
+| `02_POLYGLOT_ARCHITECTURE.md` | 323    | written                                 |
+| `03_BOUNDARY_IPC_FFI.md`      | 321    | written                                 |
+| `04_PHASE_0_SKELETON.md`      | (next) | will summarize what landed in this turn |
 
 ## Cockpit policy
 

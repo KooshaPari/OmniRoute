@@ -12,6 +12,7 @@
 > around it; you do not own byteport nor omniroute, solely the absorptions."
 
 **Implications:**
+
 - I do not own BytePort or OmniRoute. They have their own owners / robust
   internal sub-ecosystems.
 - My lane is **absorptions only**:
@@ -27,29 +28,30 @@
 
 ## Sponsor decisions on D1-D6 (transcribed)
 
-| # | Decision | Sponsor response |
-|---|----------|------------------|
-| 1 | D1 KEEP AuthKit, DELETE Authvault | **YES** |
-| 2 | D5 Byteport scope: Surface only, or Surface + identity? | **BOTH** (Surface + identity) but AFTER absorption works done |
-| 3 | D6 Phenodag deletion: hard-archive or thin redirector? | **YES to redirector** (thin redirector for 1 release, then archive) |
-| 4 | D7 OmniRoute language split | same as #2 (BOTH but AFTER absorptions) |
-| 5 | D8 Migration start | **YES** start P0-P3 today, **SKIP OmniRoute work** until after #6 (subagent quota) |
-| 6 | D? Subagent quota (let all 3 finish, or interrupt?) | default: let all 3 finish |
+| #   | Decision                                                | Sponsor response                                                                   |
+| --- | ------------------------------------------------------- | ---------------------------------------------------------------------------------- |
+| 1   | D1 KEEP AuthKit, DELETE Authvault                       | **YES**                                                                            |
+| 2   | D5 Byteport scope: Surface only, or Surface + identity? | **BOTH** (Surface + identity) but AFTER absorption works done                      |
+| 3   | D6 Phenodag deletion: hard-archive or thin redirector?  | **YES to redirector** (thin redirector for 1 release, then archive)                |
+| 4   | D7 OmniRoute language split                             | same as #2 (BOTH but AFTER absorptions)                                            |
+| 5   | D8 Migration start                                      | **YES** start P0-P3 today, **SKIP OmniRoute work** until after #6 (subagent quota) |
+| 6   | D? Subagent quota (let all 3 finish, or interrupt?)     | default: let all 3 finish                                                          |
 
 ---
 
 ## Lanes (UPDATED to corrected scope)
 
-| # | Lane | Repo | Owner | Status |
-|---|------|------|-------|--------|
-| 1 | Authvault absorption (D1) | repos/Authvault -> repos/AuthKit | root | DONE this turn |
-| 2 | Phenodag absorption (D3 yes-redirector) | repos/phenodag -> Tracera/AgilePlus | subagent (deep) | 80% done, FR map ready |
-| 3 | phenotype-org-audits spine (D2) | repos/phenotype-org-audits | root | DONE this turn |
-| 4 | phenotype-apps spine (D2) | repos/phenotype-apps | root | DONE this turn |
-| 5 | AtomsBot / GDK / Kaskman archive (D4) | subdirs of phenotype-apps/ | root | DONE this turn (7 banners placed) |
-| 6 | Subagent quota resolution | - | root | interrupt OmniRoute, free slot for research |
+| #   | Lane                                    | Repo                                | Owner           | Status                                      |
+| --- | --------------------------------------- | ----------------------------------- | --------------- | ------------------------------------------- |
+| 1   | Authvault absorption (D1)               | repos/Authvault -> repos/AuthKit    | root            | DONE this turn                              |
+| 2   | Phenodag absorption (D3 yes-redirector) | repos/phenodag -> Tracera/AgilePlus | subagent (deep) | 80% done, FR map ready                      |
+| 3   | phenotype-org-audits spine (D2)         | repos/phenotype-org-audits          | root            | DONE this turn                              |
+| 4   | phenotype-apps spine (D2)               | repos/phenotype-apps                | root            | DONE this turn                              |
+| 5   | AtomsBot / GDK / Kaskman archive (D4)   | subdirs of phenotype-apps/          | root            | DONE this turn (7 banners placed)           |
+| 6   | Subagent quota resolution               | -                                   | root            | interrupt OmniRoute, free slot for research |
 
 **Not in my lane (corrected):**
+
 - BytePort (owned elsewhere; my interaction limited to using it as a Surface
   once it's expanded with identity post-absorptions)
 - OmniRoute (owned elsewhere; no rewrite work from me, no migration planning
@@ -74,7 +76,6 @@
      - PR-D: cross-link sweep for Authvault -> AuthKit redirects
 5. Coordinate with apps-extract branch (R-C) before PR-B lands.
 
-
 ---
 
 ## Process Safety Note (sponsor directive 2026-07-05 03:46 UTC)
@@ -95,4 +96,3 @@ canonical contract for all agent behavior in this repo). The rule:
   pattern matching on the parent terminal.
 
 See the AGENTS.md section for the full rule, scope, and recovery steps.
-

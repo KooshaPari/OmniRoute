@@ -7,10 +7,10 @@
 
 Both compute-layer repositories hit **100.0 / A+** with **30/30 pillars at 100**.
 
-| Repo | Overall | Pillars at 100 | Sessions delta |
-|------|---------|------------------|------------------|
-| nanovms | 100.0 / A+ | 30/30 | +30.5 pts |
-| PhenoCompose | 100.0 / A+ | 30/30 | +28.7 pts |
+| Repo         | Overall    | Pillars at 100 | Sessions delta |
+| ------------ | ---------- | -------------- | -------------- |
+| nanovms      | 100.0 / A+ | 30/30          | +30.5 pts      |
+| PhenoCompose | 100.0 / A+ | 30/30          | +28.7 pts      |
 
 ## Pillar Coverage Matrix (both repos)
 
@@ -49,19 +49,19 @@ L30 Onboarding         100/100  [5-minute quickstart + dev-bootstrap.sh]
 
 ## 11 Batches Executed
 
-| Batch | Pillars | PRs |
-|-------|---------|-----|
-| 1 | L9/L1/L10/L11 | nanovms#89, PhenoCompose#87 |
-| 2 | L29/L27/L8/L30 | nanovms#90, PhenoCompose#88 |
-| 3 | L6/L19/L3 | nanovms#92, PhenoCompose#90 |
-| 4 | L15/L23/L24/L2 | nanovms#94, PhenoCompose#92 |
-| 5 | L13/L20 | nanovms#96, PhenoCompose#94 |
-| 6 | L7 | nanovms#98, PhenoCompose#96 |
-| 7 | L18/L26 | nanovms#100, PhenoCompose#98 |
-| 8 | L4/L12/L14 | nanovms#102, PhenoCompose#100 |
-| 9 | L17/L21 | nanovms#106, PhenoCompose#102 |
-| 10 | L28/L16 | nanovms#108, PhenoCompose#104 |
-| 11 | L22 | nanovms#110 |
+| Batch | Pillars        | PRs                           |
+| ----- | -------------- | ----------------------------- |
+| 1     | L9/L1/L10/L11  | nanovms#89, PhenoCompose#87   |
+| 2     | L29/L27/L8/L30 | nanovms#90, PhenoCompose#88   |
+| 3     | L6/L19/L3      | nanovms#92, PhenoCompose#90   |
+| 4     | L15/L23/L24/L2 | nanovms#94, PhenoCompose#92   |
+| 5     | L13/L20        | nanovms#96, PhenoCompose#94   |
+| 6     | L7             | nanovms#98, PhenoCompose#96   |
+| 7     | L18/L26        | nanovms#100, PhenoCompose#98  |
+| 8     | L4/L12/L14     | nanovms#102, PhenoCompose#100 |
+| 9     | L17/L21        | nanovms#106, PhenoCompose#102 |
+| 10    | L28/L16        | nanovms#108, PhenoCompose#104 |
+| 11    | L22            | nanovms#110                   |
 
 ## What's next
 

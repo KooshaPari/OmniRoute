@@ -4,17 +4,17 @@ Status: PROPOSALS WRITTEN, NOT YET APPLIED. The parent agent (or sponsor)
 must apply each proposal in `proposals/` per the controlled step. No code
 or README has been modified by this audit.
 
-| Action | Repo / Path | Local change | Pushed | Archived (GH) | Notes |
-|---|---|---|---|---|---|
-| archive banner | `phenotype-apps/AtomsBot/README.md` | already present | n/a | pending gh auth | confirmed in 04-ARCHIVE-PLAN.md |
-| archive banner | `phenotype-apps/AtomsBot-2nd..5th/README.md` | PROPOSED in `proposals/PROPOSED_BANNER_ATOMSBOT_NTH.md` | no | n/a | dirs currently empty; banner copy from canonical |
-| archive banner | `KaskMan/README.md` | already present | n/a | pending gh auth | confirmed |
-| archive banner | `phenotype-apps/GDK/README.md` | already present | n/a | pending gh auth | confirmed; has the full kill-switch body |
-| spine charter | `phenotype-apps/README.md` | PROPOSED in `proposals/PROPOSED_CHARTER_phenotype_apps.md` | no | n/a | insert after AI-DD-META block |
-| spine charter | `phenotype-org-audits/README.md` | PROPOSED in `proposals/PROPOSED_CHARTER_phenotype_org_audits.md` | no | n/a | insert after AI-DD-META block |
-| Authvault final | `Authvault/CHANGELOG.md` | PROPOSED in `proposals/PROPOSED_AUTHVAULT_FINAL_TAG.md` | no | pending gh web-UI archive | tag `authvault-final` |
-| AuthKit migration guide | `AuthKit/migrations/from-authvault.md` | not started | no | n/a | separate PR inside AuthKit |
-| AtomsBot/GDK/KaskMan GH archive | KooshaPari/AtomsBot + GDK + KaskMan | n/a | n/a | BLOCKED -- no gh auth in this session | requires `gh` CLI auth + web UI |
+| Action                          | Repo / Path                                  | Local change                                                     | Pushed | Archived (GH)                         | Notes                                            |
+| ------------------------------- | -------------------------------------------- | ---------------------------------------------------------------- | ------ | ------------------------------------- | ------------------------------------------------ |
+| archive banner                  | `phenotype-apps/AtomsBot/README.md`          | already present                                                  | n/a    | pending gh auth                       | confirmed in 04-ARCHIVE-PLAN.md                  |
+| archive banner                  | `phenotype-apps/AtomsBot-2nd..5th/README.md` | PROPOSED in `proposals/PROPOSED_BANNER_ATOMSBOT_NTH.md`          | no     | n/a                                   | dirs currently empty; banner copy from canonical |
+| archive banner                  | `KaskMan/README.md`                          | already present                                                  | n/a    | pending gh auth                       | confirmed                                        |
+| archive banner                  | `phenotype-apps/GDK/README.md`               | already present                                                  | n/a    | pending gh auth                       | confirmed; has the full kill-switch body         |
+| spine charter                   | `phenotype-apps/README.md`                   | PROPOSED in `proposals/PROPOSED_CHARTER_phenotype_apps.md`       | no     | n/a                                   | insert after AI-DD-META block                    |
+| spine charter                   | `phenotype-org-audits/README.md`             | PROPOSED in `proposals/PROPOSED_CHARTER_phenotype_org_audits.md` | no     | n/a                                   | insert after AI-DD-META block                    |
+| Authvault final                 | `Authvault/CHANGELOG.md`                     | PROPOSED in `proposals/PROPOSED_AUTHVAULT_FINAL_TAG.md`          | no     | pending gh web-UI archive             | tag `authvault-final`                            |
+| AuthKit migration guide         | `AuthKit/migrations/from-authvault.md`       | not started                                                      | no     | n/a                                   | separate PR inside AuthKit                       |
+| AtomsBot/GDK/KaskMan GH archive | KooshaPari/AtomsBot + GDK + KaskMan          | n/a                                                              | n/a    | BLOCKED -- no gh auth in this session | requires `gh` CLI auth + web UI                  |
 
 ## What's done (before this audit, by prior sessions)
 

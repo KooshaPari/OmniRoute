@@ -13,6 +13,7 @@ $ gh auth status
 ```
 
 Cannot run:
+
 - `gh repo edit KooshaPari/Authvault --enable-issues=false`
 - `gh repo edit KooshaPari/AtomsBot --description "[ARCHIVED]..." --add-topic ...`
 - `gh repo edit KooshaPari/KaskMan --description "[ARCHIVED]..." --add-topic ...`
@@ -25,6 +26,7 @@ that has the token.
 ## B-2: GitHub web-UI archive cannot be automated
 
 `gh repo archive` does not exist. The only path is:
+
 1. `gh repo edit ... --enable-issues=false`
 2. Web UI: Settings -> Danger Zone -> Archive this repository.
 

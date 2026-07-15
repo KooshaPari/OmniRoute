@@ -9,12 +9,13 @@
 - AuthKit README self-declares successor to Authvault.
 - AuthKit shipped FR-AUTHV-018 (PKCE).
 - Authvault main was at c7994b9 (`chore: mark Authvault as archived —
-  absorbed into AuthKit`).
+absorbed into AuthKit`).
 - Decision D1 = YES: KEEP AuthKit, DELETE Authvault.
 
 ## What the actual git state shows (RIGHT NOW, 2026-07-05 03:51 UTC)
 
 ### Authvault (origin/main at 3c659fe)
+
 - 3c659fe ci: pin nightly toolchain + apply rustfmt-nightly (#92)
 - 7897e08 feat(pkce): GAP-008 PKCE state→session binding at middleware (#94)
 - 51b17b0 feat-middleware-gap010 (#93)
@@ -26,9 +27,10 @@
   JWT, RBAC/ABAC, and multi-tenant support."
 
 ### AuthKit (origin/main at ... 3 commits ahead of local)
+
 - Local HEAD: bc74d31 `wip/local-dump-20260626: auto-commit before cleanup`
 - Last meaningful commit: 064b310 `feat: AuthKit initial landing —
-  FR-AUTHV-018 PKCE state binding`
+FR-AUTHV-018 PKCE state binding`
 - Behind origin/main by 3 commits (which are likely the GAP-008/010 work).
 - GitHub API: `archived: false`, `open_issues_count: 0`, language=Rust.
 
@@ -90,15 +92,16 @@ archive marker was at HEAD. The state has changed since that yes.
 ## The OmniRoute audit hand-off (NOT my lane)
 
 Location:
-  `docs/sessions/20260705-omniroute-backend-rewrite/`
-  - 00-MASTER-SYNTHESIS.md
-  - 00-SESSION-OVERVIEW.md
-  - 01-inventory/
-  - 02-language-eval/
-  - 03-architecture-research/
-  - 04-migration-strategy/
-  - 05-requirements/
-  - 06-plan/
+`docs/sessions/20260705-omniroute-backend-rewrite/`
+
+- 00-MASTER-SYNTHESIS.md
+- 00-SESSION-OVERVIEW.md
+- 01-inventory/
+- 02-language-eval/
+- 03-architecture-research/
+- 04-migration-strategy/
+- 05-requirements/
+- 06-plan/
 
 Summary: 30 PRs / 24 weeks, pure-Rust, 12 omniroute-rust crates (1 with
 code), Bifrost v1.5 pivot, kill switch <30s, 4-slot ceiling respected.
@@ -113,19 +116,19 @@ The OmniRoute team owns this. Root will not act on it.
 Pick one:
 
 A. **Port GAP-008/010 from Authvault to AuthKit, THEN archive Authvault.**
-   This is the cleanest "delete Authvault" path. ~3 PRs to AuthKit + 1
-   archive PR to Authvault. ~2-3 days of work.
+This is the cleanest "delete Authvault" path. ~3 PRs to AuthKit + 1
+archive PR to Authvault. ~2-3 days of work.
 
 B. **Re-merge Authvault work into AuthKit via a real PR series, then
-   delete Authvault.** Same as A but with proper code review on the
-   AuthKit side.
+delete Authvault.** Same as A but with proper code review on the
+AuthKit side.
 
 C. **Reconsider D1: keep BOTH, mark Authvault as "frozen at GAP-008/010"
-   with a redirect to AuthKit for new work.** This is a soft archive,
-   not a hard one. No code loss, no destructive op.
+with a redirect to AuthKit for new work.** This is a soft archive,
+not a hard one. No code loss, no destructive op.
 
 D. **Hard delete Authvault, accept losing GAP-008/010 and the 4 open
-   issues.** Fastest, most destructive. NOT recommended.
+issues.** Fastest, most destructive. NOT recommended.
 
 E. **Escalate to user-in-the-loop, defer all D1 work until they return.**
 
@@ -146,4 +149,3 @@ clean end-state.
   charter would race with that.
 - `AuthKit/` is 3 commits behind origin/main on the same GAP-008/010
   work. Pulling will fast-forward.
-

@@ -13,10 +13,10 @@ phenotype-apps/AtomsBot/ (which already has the banner).
 ## Action
 
 For each of:
-  phenotype-apps/AtomsBot-2nd/README.md
-  phenotype-apps/AtomsBot-3rd/README.md
-  phenotype-apps/AtomsBot-4th/README.md
-  phenotype-apps/AtomsBot-5th/README.md
+phenotype-apps/AtomsBot-2nd/README.md
+phenotype-apps/AtomsBot-3rd/README.md
+phenotype-apps/AtomsBot-4th/README.md
+phenotype-apps/AtomsBot-5th/README.md
 
 Create the file (currently absent; the dir is empty) with the exact content
 of phenotype-apps/AtomsBot/README.md, byte-for-byte. Reason: the canonical
