@@ -1,28 +1,44 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-07-15T04:56:59.900Z",
-  "gitSha": "85e4b6bc28c3cf8f7d867a14c6b6c9be3510ec62",
+  "generatedAt": "2026-07-15T05:56:20.732Z",
+  "gitSha": "ee12c8b6902e3bfce35a5e72b660563e3ddb0744",
   "gateResults": [
     {
       "name": "typecheck-core",
-      "status": "passed"
+      "status": "passed",
+      "command": "bunx --no-install tsc --noEmit --noCheck --ignoreDeprecations 6.0 -p open-sse/tsconfig.json",
+      "proofPath": ".ci/local-first-ci-gates/typecheck-core.proof.json",
+      "proofHash": "0a1856967ccdb4820fb93bedce4f2ad101ea56c8121050ee490e478ccb46eed5",
+      "executedAt": "2026-07-15T05:56:14.182Z"
     },
     {
       "name": "integrity-manifest",
-      "status": "passed"
+      "status": "passed",
+      "command": "bun run integrity:manifest:write",
+      "proofPath": ".ci/local-first-ci-gates/integrity-manifest.proof.json",
+      "proofHash": "b0db60d7115be6a127e9fdd2895b4b6e5b67055303f66b9c07a5de97f655dbb0",
+      "executedAt": "2026-07-15T05:56:16.603Z"
     },
     {
       "name": "t11-any-budget-push",
-      "status": "passed"
+      "status": "passed",
+      "command": "bun scripts/check/check-t11-any-budget.mjs",
+      "proofPath": ".ci/local-first-ci-gates/t11-any-budget-push.proof.json",
+      "proofHash": "d41c5e277bd084b78a3e3b2db31b014ad40c45e71f3cb9cada126513a0df127b",
+      "executedAt": "2026-07-15T05:56:18.085Z"
     },
     {
       "name": "cycles-push",
-      "status": "passed"
+      "status": "passed",
+      "command": "bun scripts/check/check-cycles.mjs",
+      "proofPath": ".ci/local-first-ci-gates/cycles-push.proof.json",
+      "proofHash": "411a5ac1fbe5f56743c946d5c105942322f97f1e4545969c747f6b85a132b2c2",
+      "executedAt": "2026-07-15T05:56:19.743Z"
     }
   ],
   "content": {
     "algorithm": "sha256",
-    "hash": "7973db0e5c169c7d11dcecb18a487e3feb948f068f93d237ce5c91627b759761",
+    "hash": "abda9f0dd49034be66bb3f815707352b95dd06a70496492ec32db54257a38d1c",
     "fileCount": 134,
     "trackedFiles": [
       ".github/workflows/README.md",

@@ -18,6 +18,14 @@ Local development pre-push checks now emit committed per-gate proof artifacts in
 The workflow at `.github/workflows/local-first-ci.yml` verifies this manifest on `push` and on PRs
 that carry the `local-first-ci` label, and fails PRs that have stale/mismatched artifacts.
 Manifests require exact `gitSha` parity with the current `HEAD`; ancestors are not accepted.
+The manifest and proofs are local attestations of gate execution from this repository state.
+They do **not** prove that GitHub-hosted jobs executed in your environment.
+A `.ci/local-first-ci-gates/*` entry is expected to be reproducibly regenerated on a clean
+checkout by running `bunx lefthook run pre-push && bun run local-ci:attest:write` (after reviewing
+local changes) and committing both the manifest and the
+`*.proof.json`/`*.log.txt` files together.
+When the manifest is stale, verification prints the exact regeneration command instead of silently
+accepting the old state.
 CI-heavy workflows are label-gated at the job level and run on PRs only when explicitly
 allowed via `ci-billing-exception`; this makes paid workflow execution explicit.
 

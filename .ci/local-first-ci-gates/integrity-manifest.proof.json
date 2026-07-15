@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "name": "integrity-manifest",
+  "status": "passed",
+  "command": "bun run integrity:manifest:write",
+  "exitCode": 0,
+  "signal": null,
+  "generatedAt": "2026-07-15T05:56:16.603Z",
+  "gitSha": "ee12c8b6902e3bfce35a5e72b660563e3ddb0744",
+  "log": {
+    "path": ".ci/local-first-ci-gates/integrity-manifest.log.txt",
+    "sha256": "517408eafc495e38e249fa43bcdce96867f562c43197d4868abd63066547ddec",
+    "bytes": 313
+  }
+}

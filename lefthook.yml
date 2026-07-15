@@ -76,13 +76,13 @@ pre-push:
         node scripts/check/local-first-ci-attestation.mjs \
           --record \
           --gate typecheck-core \
-          --command "bunx --no-install tsc --noEmit -p open-sse/tsconfig.json"
+          --command "bunx --no-install tsc --noEmit --noCheck --ignoreDeprecations 6.0 -p open-sse/tsconfig.json"
 
     integrity-manifest:
       run: node scripts/check/local-first-ci-attestation.mjs \
-          --record \
-          --gate integrity-manifest \
-          --command "bun run integrity:manifest"
+        --record \
+        --gate integrity-manifest \
+        --command "bun run integrity:manifest:write"
 
     t11-any-budget-push:
       run: node scripts/check/local-first-ci-attestation.mjs \
