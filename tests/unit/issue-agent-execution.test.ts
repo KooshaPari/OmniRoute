@@ -107,3 +107,69 @@ test("recorded triage marks timeout as timed_out terminal state", async () => {
   assert.equal(response.timedOutMs, 5);
   assert.equal(response.terminalError, "Execution timed out after 5ms");
 });
+
+test("recorded triage classifies unknown failures as failed", async () => {
+  const run = createRecordedTriageRun({
+    issueUrl: "https://github.com/KooshaPari/OmniRoute/issues/5980",
+    recordedContext: {
+      title: "Failure behavior",
+      body: "Trigger failure terminal mapping.",
+    },
+  });
+
+  const response = await executeRecordedTriageChatCompletion(
+    {
+      run,
+      timeoutMs: 5_000,
+      routingPolicy: "quality",
+    },
+    async () =>
+      new Response(
+        JSON.stringify({
+          error: { message: "downstream service is unavailable" },
+        }),
+        {
+          status: 502,
+          headers: { "Content-Type": "application/json" },
+        }
+      )
+  );
+
+  assert.equal(response.status, 502);
+  assert.equal(response.terminalState, "failed");
+  assert.equal(response.completionStatus, "failed");
+  assert.equal(response.terminalError, "downstream service is unavailable");
+  assert.deepEqual(response.body, {
+    error: { message: "downstream service is unavailable" },
+  });
+});
+
+test("recorded triage maps non-standard budget stop text into budget_stopped", async () => {
+  const run = createRecordedTriageRun({
+    issueUrl: "https://github.com/KooshaPari/OmniRoute/issues/5980",
+    recordedContext: {
+      title: "Budget stop via regex",
+      body: "Route this through budget-exhaust text matching.",
+    },
+  });
+
+  const response = await executeRecordedTriageChatCompletion(
+    {
+      run,
+      model: "gpt-4.1-mini",
+      provider: "openai",
+      routingPolicy: "quality",
+      timeoutMs: 5_000,
+    },
+    async () =>
+      new Response("BUDGET EXHAUST cap has been reached for this key", {
+        status: 429,
+        headers: { "Content-Type": "text/plain" },
+      })
+  );
+
+  assert.equal(response.status, 429);
+  assert.equal(response.terminalState, "budget_stopped");
+  assert.equal(response.completionStatus, "budget_stopped");
+  assert.equal(response.terminalError, "BUDGET EXHAUST cap has been reached for this key");
+});
