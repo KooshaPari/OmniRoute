@@ -1,7 +1,10 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { appendIssueAgentAuditRecord } from "@/lib/issueAgent/audit";
-import { executeRecordedTriageChatCompletion } from "@/lib/issueAgent/execution";
+import {
+  executeRecordedTriageChatCompletion,
+  RecordedTriageTimeoutError,
+} from "@/lib/issueAgent/execution";
 import { normalizeGitHubIssueExport } from "@/lib/issueAgent/githubExport";
 import { createRecordedTriageRun } from "@/lib/issueAgent/recordedTriage";
 import { POST as postChatCompletion } from "@/app/api/v1/chat/completions/route";
@@ -98,6 +101,12 @@ export async function POST(request: Request) {
       { status: completion.status }
     );
   } catch (error) {
+    if (error instanceof RecordedTriageTimeoutError) {
+      return NextResponse.json(
+        { error: error.message, code: "ISSUE_AGENT_TIMEOUT" },
+        { status: 504 }
+      );
+    }
     const message = error instanceof Error ? error.message : "Invalid issue-agent request";
     return NextResponse.json({ error: message }, { status: 400 });
   }

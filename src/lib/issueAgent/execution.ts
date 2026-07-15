@@ -15,6 +15,13 @@ export interface RecordedTriageChatCompletion {
   body: unknown;
 }
 
+export class RecordedTriageTimeoutError extends Error {
+  constructor(timeoutMs: number) {
+    super(`Issue Agent triage timed out after ${timeoutMs}ms`);
+    this.name = "RecordedTriageTimeoutError";
+  }
+}
+
 const DEFAULT_MODEL = "auto/quality";
 const DEFAULT_TIMEOUT_MS = 60_000;
 const MAX_TIMEOUT_MS = 120_000;
@@ -69,7 +76,8 @@ export async function executeRecordedTriageChatCompletion(
   post: ChatCompletionsPost
 ): Promise<RecordedTriageChatCompletion> {
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), resolveTimeoutMs(input));
+  const timeoutMs = resolveTimeoutMs(input);
+  const timeout = setTimeout(() => controller.abort(), timeoutMs);
   const routingPolicy = configuredString(
     input.routingPolicy,
     "OMNIROUTE_ISSUE_AGENT_ROUTING_POLICY"
@@ -95,6 +103,11 @@ export async function executeRecordedTriageChatCompletion(
     );
 
     return { status: response.status, body: await response.json() };
+  } catch (error) {
+    if (error instanceof Error && error.name === "AbortError") {
+      throw new RecordedTriageTimeoutError(timeoutMs);
+    }
+    throw error;
   } finally {
     clearTimeout(timeout);
   }

@@ -85,3 +85,31 @@ test("issue-agent live triage traverses the normal chat-completions POST route",
   assert.match(JSON.stringify(providerRequest.messages), /#5980/);
   assert.equal((body.completion as Record<string, unknown>).id, "chatcmpl-issue-agent-route");
 });
+
+test("issue-agent preserves the normal chat route provider failure response", async () => {
+  await seedOpenAiConnection();
+  globalThis.fetch = async () =>
+    Response.json(
+      { error: { message: "provider rate limited", type: "rate_limit_error" } },
+      { status: 429 }
+    );
+
+  const response = await issueAgentRoute.POST(
+    new Request("http://localhost/api/issue-agent/runs", {
+      method: "POST",
+      body: JSON.stringify({
+        mode: "recorded-triage",
+        issueUrl: "https://github.com/KooshaPari/OmniRoute/issues/5980",
+        recordedContext: { body: "Preserve upstream errors for triage." },
+        provider: "openai",
+        model: "gpt-4.1",
+      }),
+    })
+  );
+  const body = (await response.json()) as Record<string, unknown>;
+
+  assert.equal(response.status, 429);
+  assert.deepEqual(body.completion, {
+    error: { message: "provider rate limited", type: "rate_limit_error" },
+  });
+});

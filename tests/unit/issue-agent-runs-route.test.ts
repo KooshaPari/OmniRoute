@@ -4,7 +4,14 @@ import { mkdtempSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
-import { GET, POST } from "../../src/app/api/issue-agent/runs/route.ts";
+// Bun evaluates test files in one process. Set DATA_DIR before importing the
+// route so its import-time dependencies never probe the developer's real DB.
+const TEST_DATA_DIR =
+  process.env.DATA_DIR ?? mkdtempSync(join(tmpdir(), "issue-agent-runs-route-"));
+process.env.DATA_DIR = TEST_DATA_DIR;
+process.env.APP_LOG_TO_FILE = "false";
+
+const { GET, POST } = await import("../../src/app/api/issue-agent/runs/route.ts");
 
 async function json(response: Response): Promise<Record<string, unknown>> {
   return (await response.json()) as Record<string, unknown>;
@@ -89,7 +96,10 @@ test("issue-agent run is disabled by default", async () => {
     const response = await POST(
       new Request("http://localhost/api/issue-agent/runs", {
         method: "POST",
-        body: JSON.stringify({ mode: "recorded-triage", issueUrl: "https://github.com/x/y/issues/1" }),
+        body: JSON.stringify({
+          mode: "recorded-triage",
+          issueUrl: "https://github.com/x/y/issues/1",
+        }),
       })
     );
     const body = await json(response);
