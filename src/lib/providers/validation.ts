@@ -15,7 +15,7 @@ import {
   addModelsSuffix,
   resolveBaseUrl,
 } from "./validation/urlHelpers";
-import { STANDARD_USER_AGENT, directHttpsRequest } from "./validation/headers";
+import { applyCustomUserAgent } from "./validation/headers";
 import { toValidationErrorResult } from "./validation/transport";
 import {
   validateOpenAILikeProvider,
@@ -46,35 +46,36 @@ export async function validateWebCookieProvider({
   apiKey,
   providerSpecificData = {},
 }: any) {
+  const entry = (WEB_COOKIE_PROVIDERS as Record<string, { website?: string } | undefined>)[
+    provider
+  ];
+  if (!entry) {
+    return { valid: false, error: "Provider validation not supported", unsupported: true };
+  }
+
+  const cookie = typeof apiKey === "string" ? apiKey.trim() : "";
+  if (!cookie) {
+    return {
+      valid: false,
+      error: "Cookie is required for web-cookie provider validation",
+      unsupported: false,
+    };
+  }
+
   try {
-    const entry = getRegistryEntry(provider);
-    if (!entry) {
-      return { valid: false, error: "Provider not found in registry", unsupported: true };
-    }
-
-    // For web-cookie providers, apiKey contains the cookie string
-    const cookie = (apiKey || "").trim();
-    if (!cookie) {
-      return { valid: false, error: "Cookie required for web-cookie provider", unsupported: false };
-    }
-
-    // Attempt a minimal request to check if the session is valid
-    // Use /models endpoint or a minimal completion request depending on the provider
-    const baseUrl = entry.baseUrl || "";
-    const testUrl = `${baseUrl}/models`;
-
-    const res = await directHttpsRequest(
-      testUrl,
-      {
-        method: "GET",
-        headers: {
-          "User-Agent": STANDARD_USER_AGENT,
+    const url = new URL("/models", entry.website || "https://example.com").toString();
+    const response = await globalThis.fetch(url, {
+      method: "GET",
+      headers: applyCustomUserAgent(
+        {
+          Accept: "application/json",
+          Cookie: cookie,
         },
-      },
-      10_000
-    );
+        providerSpecificData
+      ),
+    });
 
-    if (res.status === 401 || res.status === 403) {
+    if (response.status === 401 || response.status === 403) {
       return {
         valid: false,
         error: "SESSION_EXPIRED",
@@ -83,11 +84,8 @@ export async function validateWebCookieProvider({
       };
     }
 
-    // Any other response (200, 404, 405, 429, ...) means the cookie was accepted —
-    // a 401/403 from the /models probe is the only definitive "session expired" signal
-    // for web-cookie auth, so a non-auth status is treated as a valid session.
     return { valid: true, error: null, unsupported: false };
-  } catch (error: any) {
+  } catch (error: unknown) {
     return toValidationErrorResult(error);
   }
 }
@@ -153,7 +151,7 @@ function validateAntigravityProvider(providerSpecificData: any) {
 }
 
 function buildAnthropicValidationHeaders(entry: any, apiKey: string): Record<string, string> {
-  const headers = { ...(entry.headers || {}) };
+  const headers = { ...entry.headers };
   const authHeader = (entry.authHeader || "").toLowerCase();
   if (authHeader === "x-api-key") headers["x-api-key"] = apiKey;
   else headers.Authorization = `Bearer ${apiKey}`;
