@@ -22,12 +22,12 @@ on:
   push:
     branches: [main]
 
-if: ${{ github.event_name != "push" && (github.event_name != "pull_request" || contains(github.event.pull_request.labels.*.name, "ci-billing-exception")) }}
 permissions:
   contents: read
 
 jobs:
   qgate:
+    if: ${{ github.event_name != "push" && (github.event_name != "pull_request" || contains(github.event.pull_request.labels.*.name, "ci-billing-exception")) }}
     continue-on-error: true   # remove once coverage ≥60%
 
     runs-on: ubuntu-24.04   # Linux standard only — no billed runners
@@ -56,4 +56,5 @@ jobs:
           name: coverage-lcov
           path: coverage/lcov.info
           retention-days: 14
+
 

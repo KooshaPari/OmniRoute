@@ -10,7 +10,6 @@ on:
       - "v*"
   workflow_dispatch:
 
-if: ${{ github.event_name != "push" && (github.event_name != "pull_request" || contains(github.event.pull_request.labels.*.name, "ci-billing-exception")) }}
 permissions:
   contents: read
   packages: write
@@ -21,7 +20,7 @@ env:
 jobs:
   build:
     name: Build and Push Fork Image
-    if: github.repository == 'kang-heewon/OmniRoute'
+    if: github.repository == 'kang-heewon/OmniRoute' && github.event_name != "push" && (github.event_name != "pull_request" || contains(github.event.pull_request.labels.*.name, "ci-billing-exception"))
     runs-on: ubuntu-24.04
     steps:
       - name: Checkout
@@ -67,4 +66,5 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
 

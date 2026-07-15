@@ -28,13 +28,12 @@ on:
         type: boolean
         default: false
 
-if: ${{ github.event_name != "push" && (github.event_name != "pull_request" || contains(github.event.pull_request.labels.*.name, "ci-billing-exception")) }}
 jobs:
   prepare:
     name: Resolve Docker release metadata
     # This workflow publishes the upstream Docker Hub image. Forks publish
     # their own GHCR image through build-fork.yml instead.
-    if: github.repository == 'diegosouzapw/omniroute'
+    if: github.repository == 'diegosouzapw/omniroute' && github.event_name != "push" && (github.event_name != "pull_request" || contains(github.event.pull_request.labels.*.name, "ci-billing-exception"))
     runs-on: ubuntu-24.04
     outputs:
       version: ${{ steps.version.outputs.version }}
@@ -124,7 +123,7 @@ jobs:
   build:
     name: Build Docker (${{ matrix.platform }})
     needs: prepare
-    if: needs.prepare.outputs.skip != 'true'
+    if: needs.prepare.outputs.skip != 'true' && github.event_name != "push" && (github.event_name != "pull_request" || contains(github.event.pull_request.labels.*.name, "ci-billing-exception"))
     runs-on: ${{ matrix.runner }}
     strategy:
       fail-fast: false
@@ -201,7 +200,7 @@ jobs:
     needs:
       - prepare
       - build
-    if: needs.prepare.outputs.skip != 'true'
+    if: needs.prepare.outputs.skip != 'true' && github.event_name != "push" && (github.event_name != "pull_request" || contains(github.event.pull_request.labels.*.name, "ci-billing-exception"))
     runs-on: ubuntu-24.04
     permissions:
       contents: read
@@ -299,4 +298,5 @@ jobs:
           repository: diegosouzapw/omniroute
           short-description: "OmniRoute — Unified AI proxy. Route any LLM through one endpoint."
           readme-filepath: ./README.md
+
 

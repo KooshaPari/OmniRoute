@@ -18,9 +18,9 @@ on:
         required: false
         default: '0'
 
-if: ${{ github.event_name != "push" && (github.event_name != "pull_request" || contains(github.event.pull_request.labels.*.name, "ci-billing-exception")) }}
 jobs:
   release:
+    if: ${{ github.event_name != "push" && (github.event_name != "pull_request" || contains(github.event.pull_request.labels.*.name, "ci-billing-exception")) }}
     name: Release ${{ github.ref_name || inputs.ref }}
     runs-on: ubuntu-24.04
     timeout-minutes: 20
@@ -62,4 +62,5 @@ jobs:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
         run: |
           proccompose cutover ${{ inputs.rollout || 1 }}
+
 

@@ -31,7 +31,6 @@ on:
         required: true
         type: string
 
-if: ${{ github.event_name != "push" && (github.event_name != "pull_request" || contains(github.event.pull_request.labels.*.name, "ci-billing-exception")) }}
 permissions:
   contents: read
 
@@ -40,7 +39,7 @@ jobs:
   # Job 1 — Lock the release branch when a Release is published.
   # ─────────────────────────────────────────────────────────────────────────
   lock-branch:
-    if: github.event_name == 'release' || github.event_name == 'workflow_dispatch'
+    if: ${{ github.event_name == 'release' || github.event_name == 'workflow_dispatch' }}
     runs-on: ubuntu-24.04
     steps:
       - name: Lock release/<tag> branch
@@ -97,7 +96,7 @@ jobs:
   # (PAT missing, race window, workflow bug) and pages the operator.
   # ─────────────────────────────────────────────────────────────────────────
   guard-no-push-after-release:
-    if: github.event_name == 'push'
+    if: ${{ github.event_name == 'push' }}
     runs-on: ubuntu-24.04
     steps:
       - name: Reject push if matching release tag exists
@@ -124,4 +123,5 @@ jobs:
           fi
 
           echo "✅ No release tag for ${TAG} yet — push is OK."
+
 

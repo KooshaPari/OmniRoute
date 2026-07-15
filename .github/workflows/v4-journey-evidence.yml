@@ -12,7 +12,6 @@ on:
       - "playwright.config.ts"
   workflow_dispatch:
 
-if: ${{ github.event_name != "push" && (github.event_name != "pull_request" || contains(github.event.pull_request.labels.*.name, "ci-billing-exception")) }}
 permissions:
   contents: read
 
@@ -22,6 +21,7 @@ concurrency:
 
 jobs:
   capture:
+    if: ${{ github.event_name != "push" && (github.event_name != "pull_request" || contains(github.event.pull_request.labels.*.name, "ci-billing-exception")) }}
     name: Capture anonymous home smoke
     runs-on: ubuntu-24.04
     timeout-minutes: 15
@@ -103,4 +103,5 @@ jobs:
           if-no-files-found: warn
           retention-days: 14
           include-hidden-files: false
+
 

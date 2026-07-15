@@ -12,7 +12,6 @@ on:
     - cron: "0 8 * * 1"  # Every Monday at 08:00 UTC
   workflow_dispatch:
 
-if: ${{ github.event_name != "push" && (github.event_name != "pull_request" || contains(github.event.pull_request.labels.*.name, "ci-billing-exception")) }}
 permissions:
   contents: read
 
@@ -25,6 +24,7 @@ env:
 
 jobs:
   sbom:
+    if: ${{ github.event_name != "push" && (github.event_name != "pull_request" || contains(github.event.pull_request.labels.*.name, "ci-billing-exception")) }}
     name: Generate SBOM (CycloneDX)
     runs-on: ubuntu-24.04
     timeout-minutes: 10
@@ -63,4 +63,5 @@ jobs:
           name: omniroute-sbom-spdx
           path: omniroute-sbom.spdx.json
           retention-days: 90
+
 

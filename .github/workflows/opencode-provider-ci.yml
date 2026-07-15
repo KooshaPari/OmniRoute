@@ -12,7 +12,6 @@ on:
     types: [opened, synchronize, reopened, ready_for_review]
   workflow_dispatch:
 
-if: ${{ github.event_name != "push" && (github.event_name != "pull_request" || contains(github.event.pull_request.labels.*.name, "ci-billing-exception")) }}
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
@@ -26,6 +25,7 @@ defaults:
 
 jobs:
   test:
+    if: ${{ github.event_name != "push" && (github.event_name != "pull_request" || contains(github.event.pull_request.labels.*.name, "ci-billing-exception")) }}
     name: Test (Node ${{ matrix.node }})
     runs-on: ubuntu-24.04
     strategy:
@@ -43,6 +43,7 @@ jobs:
       - run: npm test
 
   build:
+    if: ${{ github.event_name != "push" && (github.event_name != "pull_request" || contains(github.event.pull_request.labels.*.name, "ci-billing-exception")) }}
     name: Build
     runs-on: ubuntu-24.04
     needs: test
@@ -60,4 +61,5 @@ jobs:
           name: opencode-provider-dist
           path: "@omniroute/opencode-provider/dist"
           retention-days: 7
+
 

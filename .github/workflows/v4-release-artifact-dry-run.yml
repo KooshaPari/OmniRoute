@@ -16,7 +16,6 @@ on:
       - "v*"
   workflow_dispatch:
 
-if: ${{ github.event_name != "push" && (github.event_name != "pull_request" || contains(github.event.pull_request.labels.*.name, "ci-billing-exception")) }}
 permissions:
   contents: read
 
@@ -26,6 +25,7 @@ concurrency:
 
 jobs:
   artifacts:
+    if: ${{ github.event_name != "push" && (github.event_name != "pull_request" || contains(github.event.pull_request.labels.*.name, "ci-billing-exception")) }}
     name: Build dry-run artifacts
     runs-on: ubuntu-24.04
     timeout-minutes: 12
@@ -84,4 +84,5 @@ jobs:
           if-no-files-found: error
           retention-days: 14
           include-hidden-files: false
+
 

@@ -14,9 +14,9 @@ on:
         required: true
         type: string
 
-if: ${{ github.event_name != "push" && (github.event_name != "pull_request" || contains(github.event.pull_request.labels.*.name, "ci-billing-exception")) }}
 jobs:
   validate:
+    if: ${{ github.event_name != "push" && (github.event_name != "pull_request" || contains(github.event.pull_request.labels.*.name, "ci-billing-exception")) }}
     name: Validate version
     runs-on: ubuntu-24.04
     permissions:
@@ -48,6 +48,7 @@ jobs:
           echo "✓ Valid version: $VERSION"
 
   build:
+    if: ${{ github.event_name != "push" && (github.event_name != "pull_request" || contains(github.event.pull_request.labels.*.name, "ci-billing-exception")) }}
     name: Build Electron (${{ matrix.platform }})
     needs: validate
     runs-on: ${{ matrix.runner }}
@@ -187,6 +188,7 @@ jobs:
           path: release-assets/
 
   release:
+    if: ${{ github.event_name != "push" && (github.event_name != "pull_request" || contains(github.event.pull_request.labels.*.name, "ci-billing-exception")) }}
     name: Create Release
     needs: [validate, build]
     runs-on: ubuntu-24.04
@@ -240,6 +242,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   publish-npm:
+    if: ${{ github.event_name != "push" && (github.event_name != "pull_request" || contains(github.event.pull_request.labels.*.name, "ci-billing-exception")) }}
     name: Publish to npm
     needs: [validate, release]
     uses: ./.github/workflows/npm-publish.yml
@@ -248,4 +251,5 @@ jobs:
       tag: latest
     secrets:
       NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+
 
