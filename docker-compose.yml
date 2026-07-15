@@ -48,6 +48,34 @@ x-common: &common
     start_period: 15s
 
 services:
+  # ── Caddy (canonical ingress) ────────────────────────────────────
+  caddy:
+    image: docker.io/library/caddy:2-alpine
+    container_name: omniroute-caddy
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      - CADDY_UI_UPSTREAM=${CADDY_UI_UPSTREAM:-omniroute-base:20128}
+      - CADDY_API_UPSTREAM=${CADDY_API_UPSTREAM:-omniroute-base:20129}
+    ports:
+      - "${CADDY_HTTP_PORT:-20128}:20128"
+      - "${CADDY_ADMIN_PORT:-20130}:20130"
+    volumes:
+      - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://127.0.0.1:20128/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    profiles:
+      - base
+      - web
+      - cli
+      - host
+
   # ── Redis (Rate Limiter Backend) ──────────────────────────────────
   redis:
     image: docker.io/library/redis:7-alpine
@@ -72,9 +100,9 @@ services:
       context: .
       target: runner-base
     image: omniroute:base
-    ports:
-      - "${DASHBOARD_PORT:-20128}:${DASHBOARD_PORT:-20128}"
-      - "${API_PORT:-20129}:${API_PORT:-20129}"
+    expose:
+      - "${DASHBOARD_PORT:-20128}"
+      - "${API_PORT:-20129}"
     profiles:
       - base
 
@@ -89,9 +117,9 @@ services:
       context: .
       target: runner-web
     image: omniroute:web
-    ports:
-      - "${DASHBOARD_PORT:-20128}:${DASHBOARD_PORT:-20128}"
-      - "${API_PORT:-20129}:${API_PORT:-20129}"
+    expose:
+      - "${DASHBOARD_PORT:-20128}"
+      - "${API_PORT:-20129}"
     profiles:
       - web
 
@@ -103,9 +131,9 @@ services:
       context: .
       target: runner-cli
     image: omniroute:cli
-    ports:
-      - "${DASHBOARD_PORT:-20128}:${DASHBOARD_PORT:-20128}"
-      - "${API_PORT:-20129}:${API_PORT:-20129}"
+    expose:
+      - "${DASHBOARD_PORT:-20128}"
+      - "${API_PORT:-20129}"
     volumes:
       - ./data:/app/data
       - /var/run/docker.sock:/var/run/docker.sock
@@ -122,9 +150,9 @@ services:
       context: .
       target: runner-base
     image: omniroute:base
-    ports:
-      - "${DASHBOARD_PORT:-20128}:${DASHBOARD_PORT:-20128}"
-      - "${API_PORT:-20129}:${API_PORT:-20129}"
+    expose:
+      - "${DASHBOARD_PORT:-20128}"
+      - "${API_PORT:-20129}"
     environment:
       - DATA_DIR=/app/data
       - PORT=${PORT:-20128}
@@ -233,6 +261,10 @@ services:
       - cliproxyapi
 
 volumes:
+  caddy-data:
+    name: omniroute-caddy-data
+  caddy-config:
+    name: omniroute-caddy-config
   cliproxyapi-data:
     name: cliproxyapi-data
   redis-data:

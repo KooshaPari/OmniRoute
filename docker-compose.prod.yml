@@ -27,6 +27,28 @@
 # ──────────────────────────────────────────────────────────────────────
 
 services:
+  caddy:
+    image: caddy:2-alpine
+    container_name: omniroute-caddy-prod
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      - CADDY_UI_UPSTREAM=${CADDY_UI_UPSTREAM:-omniroute-prod:20128}
+      - CADDY_API_UPSTREAM=${CADDY_API_UPSTREAM:-omniroute-prod:20129}
+    ports:
+      - "${PROD_CADDY_HTTP_PORT:-20130}:20128"
+      - "${PROD_CADDY_ADMIN_PORT:-20132}:20130"
+    volumes:
+      - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-prod-data:/data
+      - caddy-prod-config:/config
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://127.0.0.1:20128/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
   # ── Redis (Rate Limiter Backend) ──────────────────────────────────
   redis:
     image: redis:8.6.2-alpine
@@ -61,9 +83,9 @@ services:
       - API_HOST=${API_HOST:-0.0.0.0}
       - HOSTNAME=0.0.0.0
       - DATA_DIR=/app/data
-    ports:
-      - "${PROD_DASHBOARD_PORT:-20130}:${DASHBOARD_PORT:-${PORT:-20128}}"
-      - "${PROD_API_PORT:-20131}:${API_PORT:-20129}"
+    expose:
+      - "${DASHBOARD_PORT:-${PORT:-20128}}"
+      - "${API_PORT:-20129}"
     volumes:
       - omniroute-prod-data:/app/data
     healthcheck:
@@ -74,6 +96,10 @@ services:
       start_period: 15s
 
 volumes:
+  caddy-prod-data:
+    name: omniroute-caddy-prod-data
+  caddy-prod-config:
+    name: omniroute-caddy-prod-config
   omniroute-prod-data:
     name: omniroute-prod-data
   redis-prod-data:
