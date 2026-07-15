@@ -1802,11 +1802,6 @@
       "count": 6
     }
   },
-  "tests/unit/provider-scoped-models-route.test.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 7
-    }
-  },
   "tests/unit/provider-validation-hardening.test.ts": {
     "@typescript-eslint/no-explicit-any": {
       "count": 6
