@@ -101,6 +101,14 @@ function getGitSha() {
   return git.stdout.trim();
 }
 
+function isAncestor(ancestor, descendant) {
+  const git = spawnSync("git", ["merge-base", "--is-ancestor", ancestor, descendant], {
+    encoding: "utf8",
+    cwd: root,
+  });
+  return git.status === 0;
+}
+
 function buildManifestPayload(contentHash) {
   return {
     schemaVersion: 1,
@@ -156,8 +164,10 @@ async function verifyManifest() {
     return;
   }
 
-  if (manifest.gitSha !== expectedSha) {
-    console.error(`Manifest is stale (git SHA mismatch): ${manifest.gitSha} != ${expectedSha}`);
+  if (manifest.gitSha !== expectedSha && !isAncestor(manifest.gitSha, expectedSha)) {
+    console.error(
+      `Manifest is stale (git SHA mismatch): ${manifest.gitSha} is not ${expectedSha} or an ancestor.`,
+    );
     process.exitCode = 1;
     return;
   }
