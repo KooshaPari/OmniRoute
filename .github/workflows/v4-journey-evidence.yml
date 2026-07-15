@@ -39,7 +39,7 @@ jobs:
 
       - name: Install locked dependencies
         run: |
-          bun install --frozen-lockfile --ignore-scripts
+          npm ci --ignore-scripts --no-audit --no-fund
           bun install --frozen-lockfile --cwd packages/api-contracts --ignore-scripts
           bun install --frozen-lockfile --cwd apps/bff --ignore-scripts
           bun install --frozen-lockfile --cwd apps/web --ignore-scripts
@@ -58,7 +58,7 @@ jobs:
       - name: Start BFF and web preview
         run: |
           mkdir -p journey-evidence/service-logs
-          (cd apps/bff && bun run start) >journey-evidence/service-logs/bff.log 2>&1 &
+          (cd apps/bff && PORT=4322 bun run start) >journey-evidence/service-logs/bff.log 2>&1 &
           echo $! > journey-evidence/service-logs/bff.pid
           (cd apps/web && bun run preview --host 127.0.0.1 --port 4321) >journey-evidence/service-logs/web.log 2>&1 &
           echo $! > journey-evidence/service-logs/web.pid
