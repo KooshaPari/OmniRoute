@@ -24,6 +24,18 @@ test("provider plugin manifest registry resolves providers by alias", () => {
   assert.equal(byAlias.id, withAlias.id);
 });
 
+test("provider plugin manifest registry uses alias for provider-prefix model lookups", () => {
+  const manifest = generateProviderPluginManifest();
+  const withAlias = manifest.providers.find((provider) => provider.alias);
+  assert.ok(withAlias?.alias);
+  assert.ok(withAlias.models.length > 0);
+
+  const exampleModel = withAlias.models[0];
+  const resolved = getProviderPluginManifestEntryForModel(`${withAlias.alias}/${exampleModel.id}`);
+  assert.ok(resolved);
+  assert.equal(resolved.id, withAlias.id);
+});
+
 test("provider plugin manifest registry resolves model to owning provider", () => {
   const entryByModel = getProviderPluginManifestEntryForModel("gpt-5.6");
 
