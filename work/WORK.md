@@ -1,4 +1,4 @@
-[Civis:blocked | quality manifest stale | powers/bevy repairs required]
+[Civis:wip | local repair stack integrated | full quality gate running | PR #1382 stale/conflicting]
 
 # Civis Work Ledger
 
@@ -8,77 +8,108 @@ This top section is the sole active control plane for this file. Scope is Civis 
 OmniRoute, Tracera, AgilePlus, DesktopDeploy, Vercel, or other polyrepo lane below the archive
 marker may set Civis priority, state, ownership, or release readiness.
 
-- `.ci/quality-manifest.json` attests stale SHA `5066ab663...` while the recorded Civis HEAD is
-  `4706ac1b8`; regenerate it only after current quality gates pass.
-- PR #1382 remains gated pending current Civis verification evidence.
+- Live Civis is branch `codex/civis-engine-server-sync` at `86e583f436523a635d6d4a3ca8d60e22110e3a7c`.
+  Its only working-tree change observed on 2026-07-14 is an unstaged
+  `.ci/quality-manifest.json`; no staged or untracked paths were reported. Linked worktrees were
+  inventoried with `git worktree list --porcelain` and left untouched.
+- PR #1382 is still open as a draft, but its remote head is the older `63a067121` against base
+  `f828a0091`; GitHub reports `CONFLICTING` / `DIRTY`. Its last check set is dated 2026-07-10 and
+  includes failing oracle, quality-manifest, cargo-deny, compile, and governance gates; it does not
+  validate the current local repair stack.
+- Committed `.ci/quality-manifest.json` still attests `5066ab663`; the concurrent dirty copy attests
+  `329d46dfd` and records a failed `civis_3d_verify`. Neither attests current HEAD `86e583f43`, so
+  manifest regeneration and verification remain open.
 - `civ-voxel` pins `KooshaPari/phenotype-gfx` at `7ed27211554f`; local dependency checkout dirt is
   not evidence against the immutable pin.
-- `crates/powers/src/registry.rs` contains incompatible `PowerRegistry` models. Preserve the
-  66-power catalog, 37 Live powers, public APIs, serialization, and consumer behavior in repair.
-- Civis commit `facc1f822` is not merge-ready: `clients/bevy-ref/src/bin/bevy_window.rs` retains a
-  stray `}` near the recorded line 1632 and requires a superseding validated repair.
-- All evidence above is a revalidation queue, not an `ok` claim. An active task closes only with
-  a dated command, CI URL, PR, commit, or exact path recorded in this governing section.
+- Powers repair `a06645930` (`fix(powers): restore authoritative static registry`), focused watch
+  formatting `e29ac933c`, superseding Bevy repair `6da41821f` (`fix(bevy): reconcile reference
+  client source`), and workspace rustfmt normalization `412ee0cac` are ancestors of current HEAD.
+  The stale powers and stray-brace blockers no longer describe the live branch.
+- The integrated follow-on stack through `86e583f43` repairs AI, climate, server seed behavior,
+  needs/species fixtures, planet, legends, voxel, economy/build/diplomacy, and agents strict-clippy
+  roots. Commit presence is integration evidence, not proof of the authoritative full gate.
+- At the 2026-07-14 observation, a separate operator's
+  `bash scripts/quality/emit-quality-manifest.sh` -> `just civis-3d-verify` run was still active in
+  `cargo check --workspace`. Do not promote it to green or commit its manifest output until the
+  command exits and the manifest verifies against current HEAD.
+- An active task closes only with a dated command, CI URL, PR, commit, or exact path recorded in
+  this governing section. `[~]` means the evidence is real but the task's exit condition is not
+  fully proven.
 
 ## Active Civis Tasks
 
-- [ ] CV001 Record the current Civis branch, HEAD, and worktree status.
-- [ ] CV002 Inventory Civis linked worktrees without modifying them.
-- [ ] CV003 Identify protected staged and untracked Civis paths.
-- [ ] CV004 Verify the active PR #1382 head and base SHAs.
-- [ ] CV005 Capture current PR #1382 checks and review state.
-- [ ] CV006 Compare the quality-manifest SHA with current Civis HEAD.
+- [x] CV001 Record the current Civis branch, HEAD, and worktree status.
+- [x] CV002 Inventory Civis linked worktrees without modifying them.
+- [x] CV003 Identify protected staged and untracked Civis paths.
+- [x] CV004 Verify the active PR #1382 head and base SHAs.
+- [x] CV005 Capture current PR #1382 checks and review state.
+- [x] CV006 Compare the quality-manifest SHA with current Civis HEAD.
 - [ ] CV007 Document every quality-manifest input and generator command.
-- [ ] CV008 Run the quality-manifest verifier before regeneration.
-- [ ] CV009 Classify each current Civis quality-gate failure.
+- [~] CV008 Run the quality-manifest verifier before regeneration. Current full run is still active.
+- [~] CV009 Classify each current Civis quality-gate failure. Stale manifest/PR failures are
+  classified; current full-run disposition is pending.
 - [ ] CV010 Assign an owner and exit condition to every blocking failure.
-- [ ] CV011 Reproduce the powers registry compiler failure in isolation.
-- [ ] CV012 Map all `PowerRegistry` definitions and consumers.
-- [ ] CV013 Select the canonical static registry model from current APIs.
-- [ ] CV014 Remove the divergent registry model without compatibility shims.
-- [ ] CV015 Preserve all 66 required powers in the repaired catalog.
-- [ ] CV016 Preserve the 37 required Live powers in the repaired catalog.
-- [ ] CV017 Preserve registry lookup and iteration public APIs.
-- [ ] CV018 Preserve power serialization and deserialization contracts.
-- [ ] CV019 Preserve synergy module reachability from registry consumers.
-- [ ] CV020 Preserve cooldown module reachability from registry consumers.
+- [x] CV011 Reproduce the powers registry compiler failure in isolation.
+- [x] CV012 Map all `PowerRegistry` definitions and consumers.
+- [x] CV013 Select the canonical static registry model from current APIs.
+- [x] CV014 Remove the divergent registry model without compatibility shims.
+- [~] CV015 Preserve all 66 required powers in the repaired catalog. Repair integrated; current
+  full-gate proof is pending.
+- [~] CV016 Preserve the 37 required Live powers in the repaired catalog. Repair integrated;
+  current full-gate proof is pending.
+- [~] CV017 Preserve registry lookup and iteration public APIs. Repair integrated; consumer gate
+  remains in progress.
+- [~] CV018 Preserve power serialization and deserialization contracts. Repair integrated;
+  round-trip proof is not attached.
+- [~] CV019 Preserve synergy module reachability from registry consumers. Repair integrated;
+  consumer proof is not attached.
+- [~] CV020 Preserve cooldown module reachability from registry consumers. Repair integrated;
+  consumer proof is not attached.
 - [ ] CV021 Add a test asserting the 66-power catalog count.
 - [ ] CV022 Add a test asserting the 37 Live-power count.
 - [ ] CV023 Add representative registry lookup tests.
 - [ ] CV024 Add registry serialization round-trip tests.
 - [ ] CV025 Add consumer-level tests for synergy behavior.
 - [ ] CV026 Add consumer-level tests for cooldown behavior.
-- [ ] CV027 Reject registry repairs that weaken oracle thresholds.
-- [ ] CV028 Run focused powers crate formatting checks.
+- [x] CV027 Reject registry repairs that weaken oracle thresholds.
+- [~] CV028 Run focused powers crate formatting checks. Workspace normalization is integrated;
+  current `--check` result is pending.
 - [ ] CV029 Run focused powers crate lint checks.
 - [ ] CV030 Run focused powers crate tests.
-- [ ] CV031 Reproduce the Bevy window parse failure at current HEAD.
-- [ ] CV032 Inspect the recorded stray brace near line 1632.
-- [ ] CV033 Compare `facc1f822` with its parent and current Civis HEAD.
-- [ ] CV034 Create a superseding isolated Bevy window repair.
-- [ ] CV035 Preserve all Bevy window event handlers during repair.
-- [ ] CV036 Preserve Bevy window state transitions during repair.
-- [ ] CV037 Run rustfmt on the repaired Bevy window source.
-- [ ] CV038 Run focused Bevy reference-client compilation.
+- [x] CV031 Reproduce the Bevy window parse failure at current HEAD.
+- [x] CV032 Inspect the recorded stray brace near line 1632.
+- [x] CV033 Compare `facc1f822` with its parent and current Civis HEAD.
+- [x] CV034 Create a superseding isolated Bevy window repair.
+- [~] CV035 Preserve all Bevy window event handlers during repair. Superseding repair is integrated;
+  full behavioral proof is pending.
+- [~] CV036 Preserve Bevy window state transitions during repair. Superseding repair is integrated;
+  full behavioral proof is pending.
+- [x] CV037 Run rustfmt on the repaired Bevy window source.
+- [~] CV038 Run focused Bevy reference-client compilation. Current workspace compile is in progress.
 - [ ] CV039 Run focused Bevy reference-client tests.
-- [ ] CV040 Record why `facc1f822` must not merge unchanged.
-- [ ] CV041 Verify the phenotype-voxel git pin resolves at `7ed27211554f`.
+- [x] CV040 Record why `facc1f822` must not merge unchanged.
+- [x] CV041 Verify the phenotype-voxel git pin resolves at `7ed27211554f`.
 - [ ] CV042 Build `phenotype-voxel` at the pinned revision.
 - [ ] CV043 Build `civ-voxel` against the immutable pin.
 - [ ] CV044 Build `civ-engine` after voxel dependencies pass.
 - [ ] CV045 Build the Civis server after engine gates pass.
 - [ ] CV046 Build Civis protocol crates after engine gates pass.
 - [ ] CV047 Build Civis Bevy clients after server and protocol gates pass.
-- [ ] CV048 Record the exact dependency build order and results.
-- [ ] CV049 Verify no local phenotype-gfx dirt affects pinned builds.
+- [~] CV048 Record the exact dependency build order and results. Order is recorded; current results
+  are pending.
+- [x] CV049 Verify no local phenotype-gfx dirt affects pinned builds.
 - [ ] CV050 Audit Cargo.lock changes for intentional dependency movement.
 - [ ] CV051 Run workspace metadata validation.
-- [ ] CV052 Run workspace formatting validation without bulk rewrites.
-- [ ] CV053 Split formatting debt into independently reviewable batches.
-- [ ] CV054 Validate the single-file `civ-watch` formatting batch.
-- [ ] CV055 Run focused clippy for every touched crate.
-- [ ] CV056 Run focused tests for every touched crate.
-- [ ] CV057 Run the authoritative Civis workspace build gate.
+- [~] CV052 Run workspace formatting validation without bulk rewrites. Normalization is integrated;
+  current validation is pending.
+- [x] CV053 Split formatting debt into independently reviewable batches.
+- [~] CV054 Validate the single-file `civ-watch` formatting batch. Commit is integrated; explicit
+  validation output is not attached.
+- [~] CV055 Run focused clippy for every touched crate. Repair commits cover named clippy roots;
+  every touched crate is not yet proven.
+- [~] CV056 Run focused tests for every touched crate. Focused test repairs are integrated; every
+  touched crate is not yet proven.
+- [~] CV057 Run the authoritative Civis workspace build gate. `cargo check --workspace` is active.
 - [ ] CV058 Run the authoritative Civis workspace test gate.
 - [ ] CV059 Run the authoritative Civis workspace lint gate.
 - [ ] CV060 Scan touched Civis files for secrets and credential leakage.
@@ -89,18 +120,21 @@ marker may set Civis priority, state, ownership, or release readiness.
 - [ ] CV065 Regenerate the quality manifest only after green gates.
 - [ ] CV066 Re-run the manifest verifier against regenerated output.
 - [ ] CV067 Confirm the regenerated manifest attests current HEAD.
-- [ ] CV068 Attach dated command evidence for each green gate.
+- [~] CV068 Attach dated command evidence for each green gate. Dated live command evidence is
+  attached; no current full green claim is made.
 - [ ] CV069 Re-run PR #1382 checks on the verified commit.
-- [ ] CV070 Resolve or explicitly gate every remaining PR #1382 failure.
+- [~] CV070 Resolve or explicitly gate every remaining PR #1382 failure. The stale remote failures
+  are gated from local readiness; refreshed checks are still required.
 - [ ] CV071 Review PR #1382 diff for scope and unrelated churn.
 - [ ] CV072 Review PR #1382 for generated artifact correctness.
 - [ ] CV073 Review PR #1382 for dependency and supply-chain risk.
-- [ ] CV074 Record commit and PR links for each validated slice.
+- [~] CV074 Record commit and PR links for each validated slice. Integrated commit IDs and PR #1382
+  state are recorded; per-slice links remain incomplete.
 - [ ] CV075 Ensure each slice has an accountable owner and exit condition.
 - [ ] CV076 Merge only slices with current green evidence.
 - [ ] CV077 Verify post-merge Civis default-branch checks.
-- [ ] CV078 Record residual Civis blockers without promoting them to `ok`.
-- [ ] CV079 Publish the Civis-only release-readiness decision.
+- [x] CV078 Record residual Civis blockers without promoting them to `ok`.
+- [x] CV079 Publish the Civis-only release-readiness decision.
 - [ ] CV080 Close the Civis ledger only after owner acceptance and green CI.
 
 ## Parked Polyrepo Archive
