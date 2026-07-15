@@ -4,7 +4,8 @@ on:
   workflow_dispatch: {}
 jobs:
   audit:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux, x64]
     steps:
       - uses: actions/checkout@v4
       - run: echo "SBOM license audit — review new dependency licenses"
+

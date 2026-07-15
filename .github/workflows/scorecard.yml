@@ -15,7 +15,7 @@ concurrency:
 jobs:
   scorecard:
     name: Scorecard analysis
-    runs-on: ubuntu-24.04
+    runs-on: [self-hosted, linux, x64]
     timeout-minutes: 15
     permissions:
       security-events: write
@@ -46,3 +46,4 @@ jobs:
         uses: github/codeql-action/upload-sarif@0daab03d71ff584ef619d027a3fd9146679c5d84
         with:
           sarif_file: results.sarif
+

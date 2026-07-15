@@ -4,7 +4,7 @@ on:
   schedule: [{cron: '0 8 * * 1'}]
 jobs:
   verify:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux, x64]
     permissions: {id-token: write, contents: read}
     steps:
       - uses: actions/checkout@v4
@@ -13,3 +13,4 @@ jobs:
           echo "  issuer: $(gh auth status --show-token 2>&1 | head -1 || echo 'dev-mode')"
           echo "  subject: repo:KooshaPari/OmniRoute:ref:refs/heads/main"
           echo "OIDC: OK (dev-mode until production IdP configured)"
+

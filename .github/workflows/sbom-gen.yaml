@@ -23,7 +23,7 @@ env:
 jobs:
   sbom-gen:
     name: Generate CycloneDX SBOM
-    runs-on: ubuntu-24.04
+    runs-on: [self-hosted, linux, x64]
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
@@ -41,3 +41,4 @@ jobs:
           name: omniroute-sbom-cyclonedx
           path: omniroute-sbom.cdx.json
           retention-days: 90
+

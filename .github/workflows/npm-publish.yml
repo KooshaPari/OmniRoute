@@ -45,7 +45,7 @@ env:
 
 jobs:
   publish:
-    runs-on: ubuntu-24.04
+    runs-on: [self-hosted, linux, x64]
     permissions:
       contents: read
       id-token: write
@@ -173,7 +173,7 @@ jobs:
           echo "✅ Action finished for GitHub Packages"
 
   publish-opencode-plugin:
-    runs-on: ubuntu-24.04
+    runs-on: [self-hosted, linux, x64]
     permissions:
       contents: read
       packages: write
@@ -215,3 +215,4 @@ jobs:
           fi
           npm publish --access public --ignore-scripts
           echo "✅ Published ${PKG_NAME}@${PKG_VERSION}"
+

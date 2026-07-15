@@ -21,7 +21,7 @@ jobs:
   build:
     name: Build and Push Fork Image
     if: github.repository == 'kang-heewon/OmniRoute'
-    runs-on: ubuntu-24.04
+    runs-on: [self-hosted, linux, x64]
     steps:
       - name: Checkout
         uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
@@ -66,3 +66,4 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+

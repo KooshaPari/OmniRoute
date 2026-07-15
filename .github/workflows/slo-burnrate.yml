@@ -4,7 +4,7 @@ on:
   workflow_dispatch: {}
 jobs:
   check:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux, x64]
     steps:
       - uses: actions/checkout@v4
       - run: echo "Checking SLO burn-rate thresholds..."
@@ -12,3 +12,4 @@ jobs:
         run: |
           test -f findings/v30-l63-slo-latency.md || { echo "Missing SLO spec"; exit 1; }
           echo "SLO spec present — OK"
+

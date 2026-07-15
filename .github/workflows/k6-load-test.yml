@@ -31,7 +31,7 @@ permissions:
 jobs:
   k6-run:
     name: k6 ${{ inputs.scenario || 'smoke' }}
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux, x64]
     timeout-minutes: 30
     env:
       SCENARIO: ${{ inputs.scenario || 'smoke' }}
@@ -66,3 +66,4 @@ jobs:
           echo "The ${SCENARIO} test against ${TARGET} breached the error budget." >> "$GITHUB_STEP_SUMMARY"
           echo "Check the workflow logs or re-run with \`scenario: ${SCENARIO}\` and \`target: ${TARGET}\`." >> "$GITHUB_STEP_SUMMARY"
           exit 1
+

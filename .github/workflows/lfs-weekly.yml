@@ -4,9 +4,10 @@ on:
   workflow_dispatch: {}
 jobs:
   track:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux, x64]
     steps:
       - uses: actions/checkout@v4
       - run: |
           echo "LFS file tracking check — verify all .gitattributes patterns are respected"
           git lfs track 2>/dev/null || echo "LFS not configured (dev-mode PASS)"
+

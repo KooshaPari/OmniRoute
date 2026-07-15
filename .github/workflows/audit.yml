@@ -18,7 +18,7 @@ concurrency:
 jobs:
   analyze:
     name: Analyze (JavaScript / TypeScript)
-    runs-on: ubuntu-24.04
+    runs-on: [self-hosted, linux, x64]
     timeout-minutes: 15
     permissions:
       security-events: write
@@ -40,3 +40,4 @@ jobs:
         uses: github/codeql-action/analyze@0daab03d71ff584ef619d027a3fd9146679c5d84
         with:
           category: "/language:javascript-typescript"
+

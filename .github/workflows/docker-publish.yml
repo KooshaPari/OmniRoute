@@ -34,7 +34,7 @@ jobs:
     # This workflow publishes the upstream Docker Hub image. Forks publish
     # their own GHCR image through build-fork.yml instead.
     if: github.repository == 'diegosouzapw/omniroute'
-    runs-on: ubuntu-24.04
+    runs-on: [self-hosted, linux, x64]
     outputs:
       version: ${{ steps.version.outputs.version }}
       promote_latest: ${{ steps.version.outputs.promote_latest }}
@@ -130,10 +130,10 @@ jobs:
       matrix:
         include:
           - platform: linux/amd64
-            runner: ubuntu-24.04
+            runner: [self-hosted, linux, x64]
             arch: amd64
           - platform: linux/arm64
-            runner: ubuntu-24.04-arm
+            runner: [self-hosted, linux, arm64]
             arch: arm64
     env:
       IMAGE_NAME: diegosouzapw/omniroute
@@ -201,7 +201,7 @@ jobs:
       - prepare
       - build
     if: needs.prepare.outputs.skip != 'true'
-    runs-on: ubuntu-24.04
+    runs-on: [self-hosted, linux, x64]
     permissions:
       contents: read
       packages: write
@@ -298,3 +298,4 @@ jobs:
           repository: diegosouzapw/omniroute
           short-description: "OmniRoute — Unified AI proxy. Route any LLM through one endpoint."
           readme-filepath: ./README.md
+
