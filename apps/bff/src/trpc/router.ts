@@ -25,7 +25,7 @@ export const appRouter = router({
 
   providers: router({
     list: publicProcedure.query(() => []),
-    byId: publicProcedure.input(z.object({ id: z.string() })).query(({ input }) => null),
+    byId: publicProcedure.input(z.object({ id: z.string() })).query(({ input: _input }) => null),
     create: publicProcedure.input(ProviderSchema).mutation(({ input }) => ({ ok: true, provider: input })),
     delete: publicProcedure.input(z.object({ id: z.string() })).mutation(() => ({ ok: true })),
   }),
@@ -50,7 +50,7 @@ export const appRouter = router({
 
   keys: router({
     list: publicProcedure.query(() => []),
-    create: publicProcedure.input(z.object({ name: z.string() })).mutation(({ input }) => ({ ok: true })),
+    create: publicProcedure.input(z.object({ name: z.string() })).mutation(({ input: _input }) => ({ ok: true })),
     revoke: publicProcedure.input(z.object({ id: z.string() })).mutation(() => ({ ok: true })),
   }),
 

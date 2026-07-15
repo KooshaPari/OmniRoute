@@ -1,12 +1,12 @@
 <script lang="ts">
   import { SvelteFlow, Background, Controls, MiniMap, type Node, type Edge } from '@xyflow/svelte';
   import '@xyflow/svelte/dist/style.css';
-import RouterNode from './nodes/RouterNode.svelte';
-import ModelCardNode from './nodes/ModelCardNode.svelte';
-import ConditionNode from './nodes/ConditionNode.svelte';
-import FallbackNode from './nodes/FallbackNode.svelte';
-import QuotaBucketNode from './nodes/QuotaBucketNode.svelte';
-import RejectNode from './nodes/RejectNode.svelte';
+  import RouterNode from './nodes/RouterNode.svelte';
+  import ModelCardNode from './nodes/ModelCardNode.svelte';
+  import ConditionNode from './nodes/ConditionNode.svelte';
+  import FallbackNode from './nodes/FallbackNode.svelte';
+  import QuotaBucketNode from './nodes/QuotaBucketNode.svelte';
+  import RejectNode from './nodes/RejectNode.svelte';
 
   type ComboNodeData = {
     label: string;
@@ -19,10 +19,12 @@ import RejectNode from './nodes/RejectNode.svelte';
   let {
     primaryModel,
     fallbackModels = [],
+    costBudget = 0,
     onchange,
   }: {
     primaryModel: string;
     fallbackModels: string[];
+    costBudget?: number;
     onchange?: (nodes: ComboNode[], edges: Edge[]) => void;
   } = $props();
 
@@ -75,7 +77,9 @@ import RejectNode from './nodes/RejectNode.svelte';
     nodes = initialNodes;
     edges = initialEdges;
   });
-  $effect(() => { onchange?.(nodes, edges); });
+  $effect(() => {
+    onchange?.(nodes, edges);
+  });
 
   const nodeTypes = {
     router: RouterNode,
@@ -102,4 +106,7 @@ import RejectNode from './nodes/RejectNode.svelte';
 </div>
 <p class="text-xs text-gray-500 mt-2">
   Drag nodes to rearrange. Edit edges by clicking. Visual representation of the same ComboNode[] / Edge[] arrays stored in the combos editor form above.
+  {#if costBudget > 0}
+    <span class="ml-2">Cost budget: ${costBudget}</span>
+  {/if}
 </p>

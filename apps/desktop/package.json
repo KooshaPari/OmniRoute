@@ -11,7 +11,7 @@
   "scripts": {
     "dev": "tauri dev",
     "build": "tauri build",
-    "typecheck": "node -e \"process.exit(0)\""
+    "typecheck": "node -e \"console.log('desktop shell has no TypeScript sources; Cargo check is authoritative')\""
   },
   "dependencies": {
     "@tauri-apps/api": "^2.0.0",
