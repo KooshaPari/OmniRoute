@@ -1,0 +1,34 @@
+# CODEOWNERS — default reviewers for this repository.
+# Order matters: later rules override earlier ones.
+
+* @KooshaPari
+
+# Governance / meta
+/.github/                @KooshaPari
+/SECURITY.md             @KooshaPari
+/CODEOWNERS              @KooshaPari
+/.github/CODEOWNERS      @KooshaPari
+
+# Per-ecosystem drill-down
+/rust/                    @KooshaPari
+/electron/                @KooshaPari
+/open-sse/                @KooshaPari
+/desktop-electrobun/      @KooshaPari
+/docs/                    @KooshaPari
+/crates/                  @KooshaPari
+
+# CI ownership
+/.github/workflows/       @KooshaPari
+
+# Renames policy — Gate 1+ artifacts
+/docs/RENAMES-STRATEGY.md @KooshaPari
+/docs/FORK.md             @KooshaPari
+/docs/NOTICE.md           @KooshaPari
+/install.sh               @KooshaPari
+/install.ps1              @KooshaPari
+/bin/argismonitor.mjs     @KooshaPari
+/bin/omniroute.mjs        @KooshaPari
+
+# Publishing — Gate 4 artifacts
+/.github/workflows/argismonitor-publish.yml @KooshaPari
+/.github/branch-protection.main.json       @KooshaPari

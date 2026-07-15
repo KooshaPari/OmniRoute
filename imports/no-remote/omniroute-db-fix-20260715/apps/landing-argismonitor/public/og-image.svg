@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#0b0f14"/>
+      <stop offset="1" stop-color="#161b22"/>
+    </linearGradient>
+    <linearGradient id="arg" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#58a6ff"/>
+      <stop offset="1" stop-color="#a371f7"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <g transform="translate(80,180)">
+    <text font-family="ui-sans-serif, system-ui, -apple-system" font-size="86" font-weight="800" fill="url(#arg)">ArgisMonitor</text>
+    <text y="80" font-family="ui-sans-serif, system-ui, -apple-system" font-size="32" font-weight="500" fill="#8b949e">formerly OmniRoute — Unified AI router</text>
+    <text y="200" font-family="ui-monospace, SFMono-Regular, Menlo" font-size="24" fill="#e6edf3">npm i -g argismonitor</text>
+    <text y="260" font-family="ui-monospace, SFMono-Regular, Menlo" font-size="20" fill="#8b949e">160+ providers · MCP/A2A · AI-DD / HITL-less · Phenotype.</text>
+  </g>
+  <g transform="translate(80,560)">
+    <text font-family="ui-sans-serif, system-ui" font-size="20" fill="#8b949e">argismonitor.phenotype.space</text>
+  </g>
+</svg>
