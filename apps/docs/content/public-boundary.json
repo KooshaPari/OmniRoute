@@ -1,0 +1,52 @@
+{
+  "schemaVersion": 1,
+  "site": {
+    "title": "OmniRoute documentation",
+    "description": "Task-oriented documentation scaffold for the v4 product surface.",
+    "status": "scaffold"
+  },
+  "sections": [
+    {
+      "slug": "evaluate",
+      "title": "Evaluate",
+      "description": "Product overview, verified capabilities, comparisons, and trust information.",
+      "publishable": false
+    },
+    {
+      "slug": "quickstart",
+      "title": "Quickstart",
+      "description": "Prerequisites, installation, first verified request, and uninstall.",
+      "publishable": false
+    },
+    {
+      "slug": "journeys",
+      "title": "Journeys",
+      "description": "Reproducible user workflows backed by deterministic evidence.",
+      "publishable": false
+    },
+    {
+      "slug": "concepts",
+      "title": "Concepts",
+      "description": "Architecture, providers, routing, resilience, authentication, and protocols.",
+      "publishable": false
+    },
+    {
+      "slug": "reference",
+      "title": "Reference",
+      "description": "Generated API, provider, CLI, environment, and configuration reference.",
+      "publishable": false
+    },
+    {
+      "slug": "operations",
+      "title": "Operations",
+      "description": "Deployment, monitoring, recovery, security hardening, and upgrades.",
+      "publishable": false
+    },
+    {
+      "slug": "contribute",
+      "title": "Contribute",
+      "description": "Development setup, testing, architecture decisions, and project policies.",
+      "publishable": false
+    }
+  ]
+}
