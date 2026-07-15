@@ -1,0 +1,25 @@
+[package]
+name = "omni-a2a"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+description = "OmniRoute A2A protocol: agent discovery, task lifecycle"
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
+serde      = { workspace = true }
+serde_json = { workspace = true }
+parking_lot = { workspace = true }
+indexmap   = { workspace = true }
+thiserror  = { workspace = true }
+async-trait= { workspace = true }
+tracing    = { workspace = true }
+tokio      = { workspace = true }
+uuid       = { workspace = true, features = ["v4", "v7", "serde"] }
+chrono     = { workspace = true }
+axum       = { workspace = true }
+omni-core     = { path = "../omni-core" }
+omni-protocol = { path = "../omni-protocol" }

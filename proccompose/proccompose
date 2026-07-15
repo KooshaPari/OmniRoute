@@ -230,7 +230,7 @@ cmd_doctor() {
 }
 
 cmd_status_json() {
-  cmd_status | python3 -c "
+  cmd_status 2>/dev/null | python3 -c "
 import sys, json
 out = {'services': {}}
 for line in sys.stdin:
@@ -240,27 +240,88 @@ out['yaml_file'] = '$YAML_FILE'
 print(json.dumps(out, indent=2))
 "
 }
+
+cmd_unlock() {
+  local home="${PROCCOMPOSE_HOME:-$HOME/.proccompose}"
+  rm -f "$home/.lock"
+  ok "unlocked"
+}
+
+cmd_init() {
+  if [[ -f "$YAML_FILE" ]]; then
+    err "proccompose.yaml already exists - refusing to clobber"
+    exit 1
+  fi
+  local script_dir
+  script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" 2>/dev/null && pwd)
+  if [[ -f "$script_dir/proccompose.example.yaml" ]]; then
+    cp "$script_dir/proccompose.example.yaml" "$YAML_FILE"
+    ok "initialized $YAML_FILE"
+  else
+    err "could not find proccompose.example.yaml in $script_dir"
+    exit 1
+  fi
+}
+
+cmd_releases() {
+  local home="${PROCCOMPOSE_HOME:-$HOME/.proccompose}"
+  if [[ ! -d "$home/releases" ]]; then
+    log "no releases recorded yet"
+    return 0
+  fi
+  log "recorded releases in $home/releases:"
+  for f in "$home/releases"/*.json; do
+    if [[ -f "$f" ]]; then
+      cat "$f"
+      echo ""
+    fi
+  done
+}
+
+cmd_dry_run() {
+  log "validating..."
+  cmd_validate
+  log "execution plan:"
+  cmd_plan
+  log "health snapshot:"
+  cmd_status || true
+  log "prerequisites:"
+  cmd_doctor || true
+}
+
 case "${1:-help}" in
-  up)        cmd_up ;;
-  down)      cmd_down ;;
-  status)    cmd_status ;;
-  cutover)   shift; cmd_cutover "${@}" ;;
-  url)       cmd_url ;;
-  logs)      shift; cmd_logs "${@}" ;;
-  validate)  cmd_validate ;;
-  plan)      cmd_plan ;;
-  help|*)    cat <<USAGE
+  up)          cmd_up ;;
+  down)        cmd_down ;;
+  status)      cmd_status ;;
+  cutover)     shift; cmd_cutover "${@}" ;;
+  url)         cmd_url ;;
+  logs)        shift; cmd_logs "${@}" ;;
+  validate)    cmd_validate ;;
+  plan)        cmd_plan ;;
+  doctor)      cmd_doctor ;;
+  status-json) cmd_status_json ;;
+  unlock)      cmd_unlock ;;
+  init)        cmd_init ;;
+  releases)    cmd_releases ;;
+  dry-run)     cmd_dry_run ;;
+  help|*)      cat <<USAGE
 proccompose - argismonitor v4 process composition
 
 USAGE:
   proccompose up                 bring up the whole stack (deploy + serve + expose + Vercel)
   proccompose down               stop desktop services
   proccompose status             health snapshot
+  proccompose status-json        health snapshot in JSON format
   proccompose cutover <pct>      flip OMNI_WEB_STACK_ROLLOUT (1/10/50/100)
   proccompose url                print the current BFF URL
   proccompose logs <bff|gateway|nextjs>   tail a service log
   proccompose validate            validate the YAML against the current state
   proccompose plan               print the resolved execution plan
+  proccompose doctor             check prerequisites before up
+  proccompose init               initialize proccompose.yaml from example
+  proccompose unlock             release the execution lock
+  proccompose releases           list recorded releases
+  proccompose dry-run            validate, plan, and check prerequisites
 
 REQUIRES:
   - pheno-compute-layer (~/bin/pheno) for Tailscale SSH to desktop

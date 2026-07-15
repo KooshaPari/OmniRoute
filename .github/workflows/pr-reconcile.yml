@@ -1,0 +1,127 @@
+name: PR Reconcile
+
+on:
+  pull_request:
+    types:
+      - opened
+      - synchronize
+      - reopened
+      - ready_for_review
+  pull_request_review:
+    types:
+      - submitted
+  issue_comment:
+    types:
+      - created
+  workflow_run:
+    workflows:
+      - CodeQL
+      - semgrep
+      - Scorecard supply-chain security
+      - Security Scan
+      - SBOM Generation
+      - DAST smoke (PR)
+      - Mutation Redundancy (disableBail, on-demand)
+      - pillar-checks
+    types:
+      - completed
+
+permissions:
+  actions: read
+  checks: read
+  contents: read
+  issues: read
+  pull-requests: read
+
+concurrency:
+  group: >-
+    ${{ github.workflow }}-${{
+      github.event.pull_request.number ||
+      github.event.issue.number ||
+      github.event.workflow_run.pull_requests[0].number ||
+      github.run_id
+    }}
+  cancel-in-progress: true
+
+jobs:
+  reconcile:
+    name: Collect and Dispatch
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    if: >-
+      ${{
+        github.event_name == 'pull_request' ||
+        github.event_name == 'pull_request_review' ||
+        (github.event_name == 'issue_comment' && github.event.issue.pull_request) ||
+        (github.event_name == 'workflow_run' &&
+          github.event.workflow_run.event == 'pull_request' &&
+          github.event.workflow_run.name != 'PR Reconcile' &&
+          github.event.workflow_run.conclusion != 'skipped' &&
+          github.event.workflow_run.pull_requests[0].number)
+      }}
+    env:
+      GITHUB_TOKEN: ${{ github.token }}
+      KILO_RECONCILE_WEBHOOK_URL: ${{ secrets.KILO_RECONCILE_WEBHOOK_URL }}
+      KILO_RECONCILE_WEBHOOK_TOKEN: ${{ secrets.KILO_RECONCILE_WEBHOOK_TOKEN }}
+      PR_RECONCILE_EVENT_PATH: ${{ github.event_path }}
+      PR_RECONCILE_EVENT_NAME: ${{ github.event_name }}
+      PR_RECONCILE_REPOSITORY: ${{ github.repository }}
+      PR_RECONCILE_RUN_ID: ${{ github.run_id }}
+      PR_RECONCILE_RUN_ATTEMPT: ${{ github.run_attempt }}
+      PR_RECONCILE_DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+    steps:
+      - name: Checkout trusted workflow code
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          persist-credentials: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Collect reconciliation payload
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts/pr-reconcile
+          node --import tsx scripts/pr-reconcile/cli.ts collect \
+            --event-path "$PR_RECONCILE_EVENT_PATH" \
+            --event-name "$PR_RECONCILE_EVENT_NAME" \
+            --repository "$PR_RECONCILE_REPOSITORY" \
+            --run-id "$PR_RECONCILE_RUN_ID" \
+            --run-attempt "$PR_RECONCILE_RUN_ATTEMPT" \
+            --output artifacts/pr-reconcile/payload.json
+
+      - name: Dispatch or dry run
+        run: |
+          set -euo pipefail
+          DISPATCH_ARGS=(
+            --payload artifacts/pr-reconcile/payload.json
+          )
+
+          if [ -z "${KILO_RECONCILE_WEBHOOK_URL}" ]; then
+            DISPATCH_ARGS+=(--dry-run)
+            echo "::notice::KILO_RECONCILE_WEBHOOK_URL is not configured; running PR reconciliation in dry-run mode."
+          else
+            DISPATCH_ARGS+=(--webhook-url "${KILO_RECONCILE_WEBHOOK_URL}")
+          fi
+
+          node --import tsx scripts/pr-reconcile/cli.ts dispatch "${DISPATCH_ARGS[@]}"
+
+      - name: Upload reconciliation payload
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: pr-reconcile-${{ github.run_id }}-${{ github.run_attempt }}
+          path: artifacts/pr-reconcile/
+          if-no-files-found: ignore
+          retention-days: 14

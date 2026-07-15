@@ -1,0 +1,26 @@
+{
+  "name": "@omniroute/ffi-win32-x64",
+  "version": "3.8.43",
+  "description": "OmniRoute FFI prebuilt artifacts — Windows x64.",
+  "license": "MIT",
+  "files": [
+    "index.js",
+    "index.d.ts",
+    "native/"
+  ],
+  "main": "index.js",
+  "types": "index.d.ts",
+  "os": [
+    "win32"
+  ],
+  "cpu": [
+    "x64"
+  ],
+  "engines": {
+    "node": ">=22.0.0 <23 || >=24.0.0 <27"
+  },
+  "private": true,
+  "scripts": {
+    "postinstall": "node ./scripts/postinstall.mjs"
+  }
+}

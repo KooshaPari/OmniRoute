@@ -1,0 +1,38 @@
+[package]
+name = "omni-cli"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+description = "OmniRoute CLI: omniroute binary (clap)"
+
+[[bin]]
+name = "omniroute"
+path = "src/main.rs"
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
+serde      = { workspace = true }
+serde_json = { workspace = true }
+thiserror  = { workspace = true }
+anyhow     = { workspace = true }
+clap       = { workspace = true }
+tokio      = { workspace = true }
+tracing    = { workspace = true }
+tracing-subscriber = { workspace = true }
+dotenvy    = { workspace = true }
+chrono     = { workspace = true }
+uuid       = { workspace = true }
+omni-core       = { path = "../omni-core" }
+omni-protocol   = { path = "../omni-protocol" }
+omni-storage    = { path = "../omni-storage" }
+omni-translator = { path = "../omni-translator" }
+omni-router     = { path = "../omni-router" }
+omni-compression= { path = "../omni-compression" }
+omni-server     = { path = "../omni-server" }
+omni-mcp        = { path = "../omni-mcp" }
+omni-a2a        = { path = "../omni-a2a" }
+omni-telemetry  = { path = "../omni-telemetry" }
+omni-sdk        = { path = "../omni-sdk" }

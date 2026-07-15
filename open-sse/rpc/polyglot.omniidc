@@ -1,0 +1,327 @@
+// Polyglot RPC IDL — OmniRoute F1 (ADR-032)
+// ============================================
+//
+// Single IDL shared by the JSON-RPC-over-UDS layer, the FFI manifests, and
+// the in-process callers. Each `service` block pins one hot-path edge's
+// input and output shapes; generated language bindings (TypeScript, Rust,
+// Go) live in `open-sse/rpc/bindings/`.
+//
+// Wire format: line-delimited JSON-RPC for T2 (simple, schema-versioned by
+// `polyglot.v1.version`). T3 FFI uses the same shapes JSON-encoded as the
+// crate input/output buffers.
+//
+// Schema versioning:
+//   - `polyglot.v1.version` is incremented when the wire shape changes.
+//   - Crate `version()` symbol must match `OMNIROUTE_FFI_ABI_VERSION` env.
+//   - Bumping the version requires a new namespace (e.g. `polyglot.v2`).
+//
+// Authoring conventions:
+//   - One service per hot-path edge. Method names are stable identifiers.
+//   - Inputs are `{ field: type }` records, never primitive strings.
+//   - Outputs always include a `version` field (so consumers can negotiate
+//     schema evolution without a refetch).
+
+syntax = "vnd.omniroute.polyglot.v1";
+
+package omniroute.polyglot.v1;
+
+// Compression services ----------------------------------------------------
+
+service compression {
+  method "lite.collapseWhitespace" {
+    input: CompressionLiteRequest;
+    output: CompressionLiteResponse;
+  }
+  method "lite.compressToolResults" {
+    input: CompressionToolResultRequest;
+    output: CompressionToolResultResponse;
+  }
+  method "lite.dedupSystemPrompt" {
+    input: CompressionSystemPromptRequest;
+    output: CompressionSystemPromptResponse;
+  }
+  method "lite.removeRedundantContent" {
+    input: CompressionRedundantRequest;
+    output: CompressionRedundantResponse;
+  }
+  method "lite.replaceImageUrls" {
+    input: CompressionImageUrlsRequest;
+    output: CompressionImageUrlsResponse;
+  }
+  method "rtk.compressTerminalOutput" {
+    input: RtkCompressionRequest;
+    output: RtkCompressionResponse;
+  }
+}
+
+message CompressionLiteRequest {
+  field body: ChatBody;
+  field preserveSystemPrompt: bool = false;
+  field supportsVision: bool?;
+}
+
+message CompressionLiteResponse {
+  field body: ChatBody;
+  field applied: bool;
+  field technique: string;
+  field originalTokens: u32;
+  field compressedTokens: u32;
+  field version: u32 = 1;
+}
+
+message CompressionToolResultRequest {
+  field body: ChatBody;
+  field maxContentChars: u32 = 8192;
+}
+
+message CompressionToolResultResponse {
+  field body: ChatBody;
+  field applied: bool;
+  field technique: string;
+}
+
+message CompressionSystemPromptRequest {
+  field body: ChatBody;
+  field canonicalSystemPrompt: string;
+}
+
+message CompressionSystemPromptResponse {
+  field body: ChatBody;
+  field applied: bool;
+  field technique: string;
+}
+
+message CompressionRedundantRequest {
+  field body: ChatBody;
+}
+
+message CompressionRedundantResponse {
+  field body: ChatBody;
+  field applied: bool;
+  field technique: string;
+}
+
+message CompressionImageUrlsRequest {
+  field body: ChatBody;
+  field provider: string;
+  field model: string;
+}
+
+message CompressionImageUrlsResponse {
+  field body: ChatBody;
+  field applied: bool;
+  field technique: string;
+  field stripped: u32;
+}
+
+message RtkCompressionRequest {
+  field output: string;
+  field tool: string;
+  field rulesVersion: string = "v1";
+}
+
+message RtkCompressionResponse {
+  field output: string;
+  field savingsPct: f32;
+  field technique: string;
+}
+
+message ChatBody {
+  field messages: List<ChatMessage>;
+}
+
+message ChatMessage {
+  field role: string;
+  field content: string;
+}
+
+// Guardrails services -----------------------------------------------------
+
+service guardrails {
+  method "pii.mask" {
+    input: PiiMaskRequest;
+    output: PiiMaskResponse;
+  }
+  method "injection.detect" {
+    input: InjectionDetectRequest;
+    output: InjectionDetectResponse;
+  }
+}
+
+message PiiMaskRequest {
+  field text: string;
+  field mode: string = "redact"; // redact | replace | block
+  field locale: string = "en-US";
+}
+
+message PiiMaskResponse {
+  field text: string;
+  field modified: bool;
+  field matches: List<PiiMatch>;
+  field durationMicros: u32;
+}
+
+message PiiMatch {
+  field kind: string;
+  field start: u32;
+  field end: u32;
+  field replacement: string;
+}
+
+message InjectionDetectRequest {
+  field text: string;
+  field sensitivity: f32 = 0.7;
+}
+
+message InjectionDetectResponse {
+  field safe: bool;
+  field matches: List<InjectionMatch>;
+  field score: f32;
+  field durationMicros: u32;
+}
+
+message InjectionMatch {
+  field pattern: string;
+  field start: u32;
+  field end: u32;
+  field severity: f32;
+}
+
+// Cache services (T3 FFI) --------------------------------------------------
+
+service cache {
+  method "semantic.lookup" {
+    input: SemanticLookupRequest;
+    output: SemanticLookupResponse;
+  }
+  method "reasoning.replay" {
+    input: ReasoningReplayRequest;
+    output: ReasoningReplayResponse;
+  }
+}
+
+message SemanticLookupRequest {
+  field prompt: string;
+  field simhashThreshold: u32 = 8; // Hamming distance.
+  field maxEntries: u32 = 32;
+}
+
+message SemanticLookupResponse {
+  field hit: bool;
+  field entryId: string?;
+  field value: string?;
+  field similarity: f32;
+  field durationMicros: u32;
+}
+
+message ReasoningReplayRequest {
+  field provider: string;
+  field model: string;
+  field conversationId: string;
+  field turnIndex: u32;
+}
+
+message ReasoningReplayResponse {
+  field replayed: bool;
+  field content: string?;
+  field source: string; // memory | db | miss
+  field durationMicros: u32;
+}
+
+// Combo scoring service (T3 FFI / SIMD) ------------------------------------
+
+service scoring {
+  method "combo.scoreSimd" {
+    input: ComboScoreRequest;
+    output: ComboScoreResponse;
+  }
+}
+
+message ComboScoreRequest {
+  field candidates: List<ComboCandidate>;
+  field weights: ComboWeights;
+}
+
+message ComboWeights {
+  field quota: f32;
+  field health: f32;
+  field costInv: f32;
+  field latencyInv: f32;
+  field taskFit: f32;
+  field stability: f32;
+  field tierPriority: f32;
+  field tierAffinity: f32;
+  field specificityMatch: f32;
+  field contextAffinity: f32;
+  field resetWindowAffinity: f32;
+  field connectionDensity: f32;
+}
+
+message ComboCandidate {
+  field id: string;
+  field quotaRemaining: f32;
+  field quotaTotal: f32;
+  field costPer1MTokens: f32;
+  field p95LatencyMs: f32;
+  field latencyStdDev: f32;
+  field errorRate: f32;
+  field taskFit: f32;
+  field stability: f32;
+  field tierPriority: f32;
+  field tierAffinity: f32;
+  field specificityMatch: f32;
+  field contextAffinity: f32;
+  field resetWindowAffinity: f32;
+  field connectionDensity: f32;
+  field circuitBreakerState: u8; // 0=CLOSED, 1=HALF_OPEN, 2=OPEN
+}
+
+message ComboScoreResponse {
+  field scored: List<ComboScored>;
+  field totalDurationMicros: u32;
+}
+
+message ComboScored {
+  field id: string;
+  field score: f32;
+}
+
+// SSE chunking service (T3 FFI / futures::stream) -------------------------
+
+service sse {
+  method "chunk.sseStream" {
+    input: SseChunkRequest;
+    output: SseChunkResponse;
+  }
+}
+
+message SseChunkRequest {
+  field rawBody: string;
+  field maxChunkBytes: u32 = 4096;
+  field keepOpen: bool = true;
+}
+
+message SseChunkResponse {
+  field chunks: List<string>;
+  field totalBytes: u32;
+  field durationMicros: u32;
+}
+
+// Bundle manifest (every FFI crate ships this) ---------------------------
+
+service manifest {
+  method "manifest.version" {
+    input: Empty;
+    output: ManifestVersion;
+  }
+}
+
+message Empty {}
+
+message ManifestVersion {
+  field crate: string;
+  field abiVersion: u32;
+  field buildTriple: string;
+  field gitSha: string;
+  field builtAt: string;
+}

@@ -1,0 +1,36 @@
+// F — Prometheus recording rules for polyglot tier observations.
+// Deploy to: /etc/prometheus/rules/polyglot-tiers.yml
+//
+// These rules aggregate the per-flip counter into per-edge-tier rates and
+// compute the effective "adoption ratio" (how much traffic runs on T2/T3 vs T1).
+
+groups:
+  - name: polyglot_tiers
+    interval: 15s
+    rules:
+      # Flip rate per (old_tier, new_tier) pair — how often edges change tier
+      - record: polyglot:tier_changes:rate5m
+        expr: |
+          rate(polyglot_tier_decisions_total{}[5m])
+          by (old_tier, new_tier, reason)
+
+      # Current tier breakdown — how many edges run on each tier right now
+      - record: polyglot:current_tiers:count
+        expr: |
+          count(polyglot_current_tier{} == 1) or
+          count(polyglot_current_tier{} == 2) or
+          count(polyglot_current_tier{} == 3)
+
+      # Adoption ratio T2+T3 / total edges (target: >0.90 after rollout)
+      - record: polyglot:tier_adoption_ratio
+        expr: |
+          (count(polyglot_current_tier{} > 1) or vector(0))
+          /
+          (count(polyglot_current_tier{}) or vector(1))
+
+      # P50 / P95 reconcile sweep duration — how fast tier resolution runs
+      - record: polyglot:sweep_duration:quantile_over_1h
+        expr: |
+          histogram_quantile(0.95,
+            sum(rate(polyglot_tier_decisions_duration_seconds_bucket{actor="polyglot_reconciler"}[1h])) by (le)
+          )

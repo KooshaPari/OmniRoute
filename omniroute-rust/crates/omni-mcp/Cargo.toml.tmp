@@ -1,0 +1,30 @@
+[package]
+name = "omni-mcp"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+description = "OmniRoute MCP server: 25+ tools across combos/memory/skills/agents/pool/compression"
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
+serde      = { workspace = true }
+serde_json = { workspace = true }
+indexmap   = { workspace = true }
+thiserror  = { workspace = true }
+async-trait= { workspace = true }
+tracing    = { workspace = true }
+tokio      = { workspace = true }
+uuid       = { workspace = true, features = ["v4", "serde"] }
+chrono     = { workspace = true }
+rmcp       = { workspace = true }
+axum       = { workspace = true }
+schemars   = { workspace = true }
+omni-core       = { path = "../omni-core" }
+omni-protocol   = { path = "../omni-protocol" }
+omni-translator = { path = "../omni-translator" }
+omni-router     = { path = "../omni-router" }
+omni-storage    = { path = "../omni-storage" }
+omni-compression= { path = "../omni-compression" }

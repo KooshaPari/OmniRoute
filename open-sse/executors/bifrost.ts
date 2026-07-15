@@ -56,6 +56,8 @@ import {
   BIFROST_KILLSWITCH_ACTIVE,
 } from "../services/bifrostKillSwitch.ts";
 import { withBifrostSpan } from "../observability/bifrostSpan.ts";
+import { sendUdsJsonRpc } from "../rpc/udsClient.ts";
+import { usePolyglotForEdge } from "../rpc/polyglotHotPath.ts";
 
 const DEFAULT_HOST = "127.0.0.1";
 const DEFAULT_PORT = 8080;
@@ -134,10 +136,27 @@ export class BifrostNoFallbackError extends Error {
  * BaseExecutor's session pool / API key rotator / token refresh, because
  * Bifrost manages all of that internally. The executor's only job is to
  * forward the request to the local Bifrost process.
+ *
+ * Transport selection (env-gated):
+ *   T1 (default): HTTP POST to `${BIFROST_BASE_URL}/v1/chat/completions`
+ *   T2: Unix-domain socket JSON-RPC (via `invokeUdsEdge`)
+ *   T3: In-process Go SDK (deferred until bifrost v1.0 GA — 2027 Q1)
+ *
+ * Activate via env:
+ *   OMNIRoute_BIROST_POLYGLOT_ENABLED=true  # enables T2 (UDS) transport
+ *   OMNIROUTE_BIROST_UDS_SOCKET=...         # default: DATA_DIR/bifrost.sock
  */
 export class BifrostBackendExecutor extends BaseExecutor {
-  constructor(provider: string, config: ConstructorParameters<typeof BaseExecutor>[1]) {
+  private readonly usePolyglotT2: boolean;
+  private readonly udsSocketPath: string;
+  constructor(
+    provider: string,
+    config: ConstructorParameters<typeof BaseExecutor>[1],
+    opts?: { usePolyglotT2?: boolean; udsSocketPath?: string },
+  ) {
     super(provider, config);
+    this.usePolyglotT2 = opts?.usePolyglotT2 ?? false;
+    this.udsSocketPath = opts?.udsSocketPath ?? "";
   }
 
   /**
@@ -154,6 +173,20 @@ export class BifrostBackendExecutor extends BaseExecutor {
    *    shape so chatCore's SSE parsing + response post-processing work
    *    unchanged.
    */
+    // ---- Polyglot T2 (UDS) dispatch ----
+    if (this.usePolyglotT2 && this.udsSocketPath) {
+      try {
+        const { tier } = await usePolyglotForEdge("bifrost.bridge");
+        if (tier === "T2" || tier === "T3") {
+          const result = await sendUdsJsonRpc(this.udsSocketPath, "bifrost.chat", request.body, 5000);
+          if (result.ok) return { status: 200, body: JSON.stringify(result.data) };
+          this.logger.warn("bifrost: UDS dispatch returned error, falling back to HTTP");
+        }
+      } catch (e) {
+        this.logger.warn("bifrost: polyglot UDS dispatch failed, falling back to HTTP:", e);
+      }
+    }
+
   async execute(input: ExecuteInput): Promise<{
     response: Response;
     url: string;

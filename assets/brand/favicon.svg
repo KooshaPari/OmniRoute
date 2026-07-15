@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32" role="img" aria-label="Melosviz">
+  <defs>
+    <linearGradient id="f-bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0e1116"/>
+      <stop offset="1" stop-color="#090a0c"/>
+    </linearGradient>
+  </defs>
+  <rect width="32" height="32" rx="6" fill="url(#f-bg)"/>
+  <!-- wave bars left -->
+  <rect x="3"  y="13" width="1.4" height="6"  rx="0.4" fill="#ec4899"/>
+  <rect x="5.5" y="11" width="1.4" height="10" rx="0.4" fill="#ec4899"/>
+  <rect x="8"  y="8"  width="1.4" height="16" rx="0.4" fill="#ec4899"/>
+  <rect x="10.5" y="11" width="1.4" height="10" rx="0.4" fill="#ec4899"/>
+  <rect x="13"  y="14" width="1.4" height="4"  rx="0.4" fill="#ec4899"/>
+  <!-- diamond right -->
+  <polygon points="16,16 22,11 28,16 22,21" fill="#7ebab5"/>
+  <polygon points="16,16 22,11 22,16" fill="#a7d4cf" fill-opacity="0.3"/>
+  <polygon points="22,16 28,16 22,21" fill="#3a8d87" fill-opacity="0.3"/>
+  <!-- bars right -->
+  <rect x="17" y="14" width="1.4" height="4"  rx="0.4" fill="#7ebab5" opacity="0.6"/>
+  <rect x="19.5" y="13" width="1.4" height="6"  rx="0.4" fill="#7ebab5" opacity="0.6"/>
+  <rect x="24.5" y="13" width="1.4" height="6"  rx="0.4" fill="#7ebab5" opacity="0.6"/>
+  <rect x="27" y="14" width="1.4" height="4"  rx="0.4" fill="#7ebab5" opacity="0.6"/>
+  <!-- note -->
+  <line x1="25" y1="4" x2="25" y2="8" stroke="#ec4899" stroke-width="0.6"/>
+  <line x1="25" y1="4" x2="27.5" y2="3" stroke="#ec4899" stroke-width="0.6"/>
+  <ellipse cx="24.3" cy="8.3" rx="1.2" ry="0.9" fill="#ec4899" transform="rotate(-20 24.3 8.3)"/>
+</svg>

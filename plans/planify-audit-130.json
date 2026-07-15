@@ -1,0 +1,1095 @@
+{
+  "meta": {
+    "repo": "Planify",
+    "repo_path": "/tmp/planify-tmp/",
+    "github_url": "https://github.com/KooshaPari/Planify",
+    "upstream": "https://github.com/makeplane/plane",
+    "layer": "Application/UI",
+    "audit_date": "2026-07-07",
+    "taxonomy_version": "v2.2",
+    "total_pillars": 130,
+    "stub_status": "Stub — only README.md + UPSTREAM.md exist; no source code"
+  },
+  "layer_weights": {
+    "L1_L10_Core_Engineering": 0.8,
+    "L11_L20_Deps_Errors_Logging_Config_Data": 1.0,
+    "L21_L30_Testing_Release_Migration_Infra_Cost": 1.0,
+    "L31_L40_Deployment_Packaging": 0.8,
+    "L41_L50_Distribution_Channels": 2.0,
+    "L51_L60_Visual_Polish": 2.0,
+    "L61_L70_Developer_Experience": 1.0,
+    "L71_L80_End_User_Experience": 2.0,
+    "L81_L90_Agent_Readiness": 1.0,
+    "L91_L100_Documentation_Community": 1.0,
+    "L101_L110_Compute_Specific": 0.2,
+    "L111_L120_Beyond_Compute": 1.0,
+    "L121_L130_Cross_Platform_Native_FFI": 1.0
+  },
+  "pillars": [
+    {
+      "id": "L1",
+      "name": "Architecture",
+      "score": 0,
+      "weight": 0.8,
+      "severity": "Critical",
+      "rationale": "No code, modules, or architectural boundaries exist. README mentions 'Dashboard UI' and 'Backend API & storage (AgilePlus)' at a concept level only."
+    },
+    {
+      "id": "L2",
+      "name": "Dev Loop",
+      "score": 5,
+      "weight": 0.8,
+      "severity": "Critical",
+      "rationale": "README documents 4-step setup (seed, install deps, build/test, deploy). No actual watch-mode, hot-reload, or dev loop infrastructure."
+    },
+    {
+      "id": "L3",
+      "name": "Agent Loop",
+      "score": 0,
+      "weight": 0.8,
+      "severity": "Critical",
+      "rationale": "No CLI, no MCP server, no A2A protocol, no agent tooling of any kind."
+    },
+    {
+      "id": "L4",
+      "name": "Observability",
+      "score": 0,
+      "weight": 0.8,
+      "severity": "Critical",
+      "rationale": "No structured logs, metrics, traces, dashboards, or alerting."
+    },
+    {
+      "id": "L5",
+      "name": "Security",
+      "score": 0,
+      "weight": 0.8,
+      "severity": "Critical",
+      "rationale": "No SBOM, no SAST, no signed commits, no security policy, no .gitignore."
+    },
+    {
+      "id": "L6",
+      "name": "Performance",
+      "score": 0,
+      "weight": 0.8,
+      "severity": "Critical",
+      "rationale": "No benchmark harness, no perf budgets, no p50/p99 tracking."
+    },
+    {
+      "id": "L7",
+      "name": "Extensibility",
+      "score": 0,
+      "weight": 0.8,
+      "severity": "Critical",
+      "rationale": "No plugin system, hooks, custom adapters, or theming."
+    },
+    {
+      "id": "L8",
+      "name": "Compliance",
+      "score": 2,
+      "weight": 0.8,
+      "severity": "High",
+      "rationale": "No LICENSE file committed. Upstream Plane.so uses Apache 2.0. Fork heritage noted in README but no copyright attribution or license tracking."
+    },
+    {
+      "id": "L9",
+      "name": "Complexity",
+      "score": 0,
+      "weight": 0.8,
+      "severity": "Critical",
+      "rationale": "No code to measure complexity against."
+    },
+    {
+      "id": "L10",
+      "name": "Type Safety",
+      "score": 0,
+      "weight": 0.8,
+      "severity": "Critical",
+      "rationale": "No TypeScript configuration, no tsconfig.json, no type definitions."
+    },
+    {
+      "id": "L11",
+      "name": "Dependencies",
+      "score": 0,
+      "weight": 1.0,
+      "severity": "Critical",
+      "rationale": "No package.json, no lockfile, no dependency management of any kind."
+    },
+    {
+      "id": "L12",
+      "name": "Error Handling",
+      "score": 0,
+      "weight": 1.0,
+      "severity": "Critical",
+      "rationale": "No code, no typed errors, no error context propagation."
+    },
+    {
+      "id": "L13",
+      "name": "Logging",
+      "score": 0,
+      "weight": 1.0,
+      "severity": "Critical",
+      "rationale": "No logging infrastructure."
+    },
+    {
+      "id": "L14",
+      "name": "Data Layer",
+      "score": 0,
+      "weight": 1.0,
+      "severity": "Critical",
+      "rationale": "No ORM, no migrations, no DB schema, no data layer."
+    },
+    {
+      "id": "L15",
+      "name": "API Surface",
+      "score": 0,
+      "weight": 1.0,
+      "severity": "Critical",
+      "rationale": "No API routes, no OpenAPI spec, no request validation."
+    },
+    {
+      "id": "L16",
+      "name": "Frontend",
+      "score": 0,
+      "weight": 1.0,
+      "severity": "Critical",
+      "rationale": "No components, no design system, no accessibility, no responsive layout. Upstream Plane.so has a full component library."
+    },
+    {
+      "id": "L17",
+      "name": "I18n/A11y",
+      "score": 0,
+      "weight": 1.0,
+      "severity": "Critical",
+      "rationale": "No translations, no locale detection, no a11y audit."
+    },
+    {
+      "id": "L18",
+      "name": "Concurrency",
+      "score": 0,
+      "weight": 1.0,
+      "severity": "Critical",
+      "rationale": "No async code infrastructure."
+    },
+    {
+      "id": "L19",
+      "name": "Memory",
+      "score": 0,
+      "weight": 1.0,
+      "severity": "Critical",
+      "rationale": "No memory management, no leak detection."
+    },
+    {
+      "id": "L20",
+      "name": "Config",
+      "score": 0,
+      "weight": 1.0,
+      "severity": "Critical",
+      "rationale": "No env files, no config schema, no .env.example (upstream has one)."
+    },
+    {
+      "id": "L21",
+      "name": "Testing Depth",
+      "score": 0,
+      "weight": 1.0,
+      "severity": "Critical",
+      "rationale": "No test files, no test framework, no test infrastructure."
+    },
+    {
+      "id": "L22",
+      "name": "Fuzzing",
+      "score": 0,
+      "weight": 1.0,
+      "severity": "Low",
+      "rationale": "No fuzzing harness. Reasonable to defer until application logic exists."
+    },
+    {
+      "id": "L23",
+      "name": "Release",
+      "score": 2,
+      "weight": 1.0,
+      "severity": "High",
+      "rationale": "Two commits exist with conventional-ish commit messages. No release infrastructure, no semver tag, no changelog."
+    },
+    {
+      "id": "L24",
+      "name": "Migration",
+      "score": 0,
+      "weight": 1.0,
+      "severity": "Critical",
+      "rationale": "No upstream seeding done (blocking dependency). No data/API migration infra."
+    },
+    {
+      "id": "L25",
+      "name": "Vendor Lockin",
+      "score": 10,
+      "weight": 1.0,
+      "severity": "Medium",
+      "rationale": "Repo is explicitly a fork of Plane.so — acknowledged in README. Fork relationship documented. Upstream seeding pattern avoids lock-in. Points for explicit documentation of provenance."
+    },
+    {
+      "id": "L26",
+      "name": "Event Driven",
+      "score": 0,
+      "weight": 1.0,
+      "severity": "Low",
+      "rationale": "No event system. Will come from upstream Plane architecture."
+    },
+    {
+      "id": "L27",
+      "name": "Infrastructure",
+      "score": 5,
+      "weight": 1.0,
+      "severity": "High",
+      "rationale": "Vercel deployment mentioned in README. No IaC, no Dockerfile, no k8s manifests. Upstream has docker-compose files."
+    },
+    {
+      "id": "L28",
+      "name": "Cost Efficiency",
+      "score": 0,
+      "weight": 1.0,
+      "severity": "Low",
+      "rationale": "No cost tracking or budgets defined."
+    },
+    {
+      "id": "L29",
+      "name": "Monitoring",
+      "score": 0,
+      "weight": 1.0,
+      "severity": "High",
+      "rationale": "No dashboards, alerting, or monitoring infrastructure."
+    },
+    {
+      "id": "L30",
+      "name": "Onboarding",
+      "score": 5,
+      "weight": 1.0,
+      "severity": "Medium",
+      "rationale": "Getting started section in README covers 4 steps. No quickstart script, no sample app, no interactive tutorial. Upstream Plane.so has full documentation."
+    },
+    {
+      "id": "L31",
+      "name": "Packaging",
+      "score": 2,
+      "weight": 0.8,
+      "severity": "High",
+      "rationale": "Vercel deployment mentioned. No Dockerfile, no container image, no multi-arch."
+    },
+    {
+      "id": "L32",
+      "name": "Distribution",
+      "score": 0,
+      "weight": 0.8,
+      "severity": "Medium",
+      "rationale": "No package registry, no GHCR, no npm publishing."
+    },
+    {
+      "id": "L33",
+      "name": "Install",
+      "score": 0,
+      "weight": 0.8,
+      "severity": "High",
+      "rationale": "No one-line install script. Manual 4-step process described in README."
+    },
+    {
+      "id": "L34",
+      "name": "Update",
+      "score": 0,
+      "weight": 0.8,
+      "severity": "Medium",
+      "rationale": "No auto-update, no delta updates, no rollback."
+    },
+    {
+      "id": "L35",
+      "name": "Reproducibility",
+      "score": 0,
+      "weight": 0.8,
+      "severity": "High",
+      "rationale": "No lockfile, no hermetic builds. Will come from upstream seeding (pnpm-lock.yaml)."
+    },
+    {
+      "id": "L36",
+      "name": "Portability",
+      "score": 0,
+      "weight": 0.8,
+      "severity": "Medium",
+      "rationale": "No platform-specific testing. Upstream targets Linux + macOS."
+    },
+    {
+      "id": "L37",
+      "name": "Container Quality",
+      "score": 0,
+      "weight": 0.8,
+      "severity": "Medium",
+      "rationale": "No Dockerfile, no container optimization."
+    },
+    {
+      "id": "L38",
+      "name": "Signing & Trust",
+      "score": 0,
+      "weight": 0.8,
+      "severity": "Low",
+      "rationale": "No cosign, no sigstore, no key management."
+    },
+    {
+      "id": "L39",
+      "name": "Artifact Storage",
+      "score": 0,
+      "weight": 0.8,
+      "severity": "Low",
+      "rationale": "No artifact versioning or storage."
+    },
+    {
+      "id": "L40",
+      "name": "Installer UX",
+      "score": 0,
+      "weight": 0.8,
+      "severity": "Medium",
+      "rationale": "No installer, no progress bar."
+    },
+    {
+      "id": "L41",
+      "name": "CLI UX",
+      "score": 0,
+      "weight": 2.0,
+      "severity": "Medium",
+      "rationale": "No CLI. Web frontend only."
+    },
+    {
+      "id": "L42",
+      "name": "Desktop App",
+      "score": 0,
+      "weight": 2.0,
+      "severity": "Medium",
+      "rationale": "No desktop app. Web-only frontend."
+    },
+    {
+      "id": "L43",
+      "name": "Mobile App",
+      "score": 0,
+      "weight": 2.0,
+      "severity": "Medium",
+      "rationale": "No mobile app, no PWA manifest."
+    },
+    {
+      "id": "L44",
+      "name": "Web App",
+      "score": 2,
+      "weight": 2.0,
+      "severity": "High",
+      "rationale": "Deployment target is Vercel web app. No PWA support, no offline mode, no deep links yet."
+    },
+    {
+      "id": "L45",
+      "name": "Tauri Shell",
+      "score": 0,
+      "weight": 2.0,
+      "severity": "Low",
+      "rationale": "No Tauri desktop shell. Upstream does not use Tauri."
+    },
+    {
+      "id": "L46",
+      "name": "Electron",
+      "score": 0,
+      "weight": 2.0,
+      "severity": "Low",
+      "rationale": "No Electron shell. Not in scope."
+    },
+    {
+      "id": "L47",
+      "name": "System Integration",
+      "score": 0,
+      "weight": 2.0,
+      "severity": "Low",
+      "rationale": "No OS integration (shortcuts, URL handlers, file dialogs)."
+    },
+    {
+      "id": "L48",
+      "name": "Notifications",
+      "score": 0,
+      "weight": 2.0,
+      "severity": "Medium",
+      "rationale": "No notification system."
+    },
+    {
+      "id": "L49",
+      "name": "Update Channels",
+      "score": 0,
+      "weight": 2.0,
+      "severity": "Low",
+      "rationale": "No update channel management."
+    },
+    {
+      "id": "L50",
+      "name": "Hardware/Edge",
+      "score": 0,
+      "weight": 2.0,
+      "severity": "Low",
+      "rationale": "No ARM/RPi/IoT deployment targets."
+    },
+    {
+      "id": "L51",
+      "name": "Splash Screen",
+      "score": 0,
+      "weight": 2.0,
+      "severity": "Medium",
+      "rationale": "No branded splash. Will come from upstream seeding."
+    },
+    {
+      "id": "L52",
+      "name": "Animations",
+      "score": 0,
+      "weight": 2.0,
+      "severity": "Medium",
+      "rationale": "No animation system or micro-interactions."
+    },
+    {
+      "id": "L53",
+      "name": "Custom Art",
+      "score": 0,
+      "weight": 2.0,
+      "severity": "Medium",
+      "rationale": "No branded mascot or custom artwork."
+    },
+    {
+      "id": "L54",
+      "name": "Animated Art",
+      "score": 0,
+      "weight": 2.0,
+      "severity": "Low",
+      "rationale": "No animated art or generative visuals."
+    },
+    {
+      "id": "L55",
+      "name": "Icons",
+      "score": 0,
+      "weight": 2.0,
+      "severity": "Medium",
+      "rationale": "No app icon, favicon, or platform icons."
+    },
+    {
+      "id": "L56",
+      "name": "Typography",
+      "score": 0,
+      "weight": 2.0,
+      "severity": "Medium",
+      "rationale": "No font system, no webfont loading."
+    },
+    {
+      "id": "L57",
+      "name": "Color System",
+      "score": 0,
+      "weight": 2.0,
+      "severity": "High",
+      "rationale": "No design tokens, no color palette, no dark mode."
+    },
+    {
+      "id": "L58",
+      "name": "Theming",
+      "score": 0,
+      "weight": 2.0,
+      "severity": "Medium",
+      "rationale": "No theme system. Upstream Plane has light/dark mode."
+    },
+    {
+      "id": "L59",
+      "name": "Brand Consistency",
+      "score": 5,
+      "weight": 2.0,
+      "severity": "High",
+      "rationale": "Phenotype branding established at README level. 'Planify' name, logo mention in README, links to phenotype.space. No OG images or social cards."
+    },
+    {
+      "id": "L60",
+      "name": "Visual Regression",
+      "score": 0,
+      "weight": 2.0,
+      "severity": "Medium",
+      "rationale": "No snapshot tests or visual regression testing."
+    },
+    {
+      "id": "L61",
+      "name": "Contributing",
+      "score": 15,
+      "weight": 1.0,
+      "severity": "High",
+      "rationale": "Setup documented in README with 4 steps. Links to upstream Plane.so. No CONTRIBUTING.md, no code style guide, no code review process documented."
+    },
+    {
+      "id": "L62",
+      "name": "Testing for Devs",
+      "score": 0,
+      "weight": 1.0,
+      "severity": "Critical",
+      "rationale": "No test infrastructure, no test data factories."
+    },
+    {
+      "id": "L63",
+      "name": "Debug",
+      "score": 0,
+      "weight": 1.0,
+      "severity": "High",
+      "rationale": "No debug configurations, no breakpoints config."
+    },
+    {
+      "id": "L64",
+      "name": "Profiling",
+      "score": 0,
+      "weight": 1.0,
+      "severity": "Low",
+      "rationale": "No profiling tools configured."
+    },
+    {
+      "id": "L65",
+      "name": "Refactor Safety",
+      "score": 0,
+      "weight": 1.0,
+      "severity": "Medium",
+      "rationale": "No type-driven refactoring, no dead code detection."
+    },
+    {
+      "id": "L66",
+      "name": "Code Search",
+      "score": 0,
+      "weight": 1.0,
+      "severity": "Low",
+      "rationale": "No search tools configured beyond IDE defaults."
+    },
+    {
+      "id": "L67",
+      "name": "Knowledge Sharing",
+      "score": 5,
+      "weight": 1.0,
+      "severity": "Medium",
+      "rationale": "README covers architecture overview and purpose. No ADRs, no runbooks, no postmortems."
+    },
+    {
+      "id": "L68",
+      "name": "Tooling Integration",
+      "score": 0,
+      "weight": 1.0,
+      "severity": "High",
+      "rationale": "No ESLint, no Prettier, no LSP config, no editor setup."
+    },
+    {
+      "id": "L69",
+      "name": "Documentation",
+      "score": 10,
+      "weight": 1.0,
+      "severity": "High",
+      "rationale": "README.md (34 lines) + UPSTREAM.md (20 lines) exist. Covers purpose, architecture, setup, and upstream seeding. No auto-generated docs, no examples."
+    },
+    {
+      "id": "L70",
+      "name": "Issues/PRs",
+      "score": 5,
+      "weight": 1.0,
+      "severity": "Medium",
+      "rationale": "GitHub issues available via repository. No issue templates, no PR templates, no label system."
+    },
+    {
+      "id": "L71",
+      "name": "First-Run",
+      "score": 0,
+      "weight": 2.0,
+      "severity": "High",
+      "rationale": "No zero-config startup, no demo mode, no value-in-30s flow."
+    },
+    {
+      "id": "L72",
+      "name": "Onboarding",
+      "score": 0,
+      "weight": 2.0,
+      "severity": "High",
+      "rationale": "No onboarding flow, no interactive tutorial, no progressive disclosure."
+    },
+    {
+      "id": "L73",
+      "name": "Empty States",
+      "score": 0,
+      "weight": 2.0,
+      "severity": "Medium",
+      "rationale": "No empty state illustrations or prompts."
+    },
+    {
+      "id": "L74",
+      "name": "Error UX",
+      "score": 0,
+      "weight": 2.0,
+      "severity": "High",
+      "rationale": "No error UX patterns, no helpful error messages."
+    },
+    {
+      "id": "L75",
+      "name": "Performance UX",
+      "score": 0,
+      "weight": 2.0,
+      "severity": "High",
+      "rationale": "No loading states, no skeleton screens, no optimistic updates."
+    },
+    {
+      "id": "L76",
+      "name": "Accessibility",
+      "score": 0,
+      "weight": 2.0,
+      "severity": "Critical",
+      "rationale": "No WCAG compliance, no ARIA, no keyboard navigation patterns."
+    },
+    {
+      "id": "L77",
+      "name": "Multi-locale",
+      "score": 0,
+      "weight": 2.0,
+      "severity": "Medium",
+      "rationale": "No i18n infrastructure."
+    },
+    {
+      "id": "L78",
+      "name": "Multi-platform",
+      "score": 0,
+      "weight": 2.0,
+      "severity": "Medium",
+      "rationale": "No cross-platform sync or cloud backup."
+    },
+    {
+      "id": "L79",
+      "name": "Offline-first",
+      "score": 0,
+      "weight": 2.0,
+      "severity": "Medium",
+      "rationale": "No offline support, no local cache, no sync."
+    },
+    {
+      "id": "L80",
+      "name": "Personalization",
+      "score": 0,
+      "weight": 2.0,
+      "severity": "Medium",
+      "rationale": "No preferences, no custom themes, no custom shortcuts."
+    },
+    {
+      "id": "L81",
+      "name": "Solo-Operation",
+      "score": 5,
+      "weight": 1.0,
+      "severity": "Medium",
+      "rationale": "README readable by agents — describes repo purpose, architecture, and setup clearly. No AGENTS.md, no CLAUDE.md."
+    },
+    {
+      "id": "L82",
+      "name": "Bug Detection",
+      "score": 0,
+      "weight": 1.0,
+      "severity": "High",
+      "rationale": "No static analysis, no runtime checks."
+    },
+    {
+      "id": "L83",
+      "name": "User Story Gap",
+      "score": 0,
+      "weight": 1.0,
+      "severity": "Medium",
+      "rationale": "No story coverage matrix."
+    },
+    {
+      "id": "L84",
+      "name": "Friction Detection",
+      "score": 0,
+      "weight": 1.0,
+      "severity": "Low",
+      "rationale": "No UX friction logging."
+    },
+    {
+      "id": "L85",
+      "name": "Polish Awareness",
+      "score": 0,
+      "weight": 1.0,
+      "severity": "Low",
+      "rationale": "No visual regression tests or animation budgets."
+    },
+    {
+      "id": "L86",
+      "name": "Continuous Audit",
+      "score": 0,
+      "weight": 1.0,
+      "severity": "High",
+      "rationale": "This audit is the first. No automated audit pipeline."
+    },
+    {
+      "id": "L87",
+      "name": "Self-Healing",
+      "score": 0,
+      "weight": 1.0,
+      "severity": "Low",
+      "rationale": "No retry logic, no circuit breakers."
+    },
+    {
+      "id": "L88",
+      "name": "Learning Loop",
+      "score": 0,
+      "weight": 1.0,
+      "severity": "Low",
+      "rationale": "No feedback collection or user surveys."
+    },
+    {
+      "id": "L89",
+      "name": "Cost Awareness",
+      "score": 0,
+      "weight": 1.0,
+      "severity": "Low",
+      "rationale": "No cost tracking or budgets."
+    },
+    {
+      "id": "L90",
+      "name": "Explainability",
+      "score": 0,
+      "weight": 1.0,
+      "severity": "Medium",
+      "rationale": "No decision traces or audit trails."
+    },
+    {
+      "id": "L91",
+      "name": "README Quality",
+      "score": 30,
+      "weight": 1.0,
+      "severity": "Medium",
+      "rationale": "README covers: project description, status (stub), deployment targets, architecture overview, getting started steps, and ecosystem links. Missing: badges, screenshots, examples, CI status, license badge. Scores above average for stub quality."
+    },
+    {
+      "id": "L92",
+      "name": "API Docs",
+      "score": 0,
+      "weight": 1.0,
+      "severity": "Medium",
+      "rationale": "No API documentation. Upstream Plane.so has API docs."
+    },
+    {
+      "id": "L93",
+      "name": "Architecture Docs",
+      "score": 15,
+      "weight": 1.0,
+      "severity": "Medium",
+      "rationale": "README includes architecture section describing Planify as web frontend to AgilePlus. Mentions shared domain models and Phenotype ecosystem. No diagrams or C4 model."
+    },
+    {
+      "id": "L94",
+      "name": "Tutorial Series",
+      "score": 0,
+      "weight": 1.0,
+      "severity": "Low",
+      "rationale": "No tutorials."
+    },
+    {
+      "id": "L95",
+      "name": "Cookbook",
+      "score": 0,
+      "weight": 1.0,
+      "severity": "Low",
+      "rationale": "No recipes or common-tasks guide."
+    },
+    {
+      "id": "L96",
+      "name": "ADR System",
+      "score": 0,
+      "weight": 1.0,
+      "severity": "Medium",
+      "rationale": "No ADR system. Will need to document forking decisions."
+    },
+    {
+      "id": "L97",
+      "name": "Roadmap",
+      "score": 10,
+      "weight": 1.0,
+      "severity": "Medium",
+      "rationale": "README explicitly notes stub status. UPSTREAM.md documents seeding plan. No formal roadmap with milestones or release schedule."
+    },
+    {
+      "id": "L98",
+      "name": "Changelog",
+      "score": 0,
+      "weight": 1.0,
+      "severity": "Medium",
+      "rationale": "No changelog. Two commits exist but no structured release notes."
+    },
+    {
+      "id": "L99",
+      "name": "Community",
+      "score": 10,
+      "weight": 1.0,
+      "severity": "Medium",
+      "rationale": "README links to AgilePlus repo and phenotype.space. References upstream Plane.so community. No dedicated forum, discord, or CoC for Planify itself."
+    },
+    {
+      "id": "L100",
+      "name": "Support",
+      "score": 0,
+      "weight": 1.0,
+      "severity": "Medium",
+      "rationale": "No support portal, no SLA, no issue tracker configuration."
+    },
+    {
+      "id": "L101",
+      "name": "Hypervisor Support",
+      "score": 0,
+      "weight": 0.2,
+      "severity": "Low",
+      "rationale": "N/A for web frontend. Compute layer handled by Phenotype infra."
+    },
+    {
+      "id": "L102",
+      "name": "Container Runtime",
+      "score": 0,
+      "weight": 0.2,
+      "severity": "Low",
+      "rationale": "N/A for web frontend."
+    },
+    {
+      "id": "L103",
+      "name": "WASM Runtime",
+      "score": 0,
+      "weight": 0.2,
+      "severity": "Low",
+      "rationale": "N/A for web frontend."
+    },
+    {
+      "id": "L104",
+      "name": "OS Distribution",
+      "score": 0,
+      "weight": 0.2,
+      "severity": "Low",
+      "rationale": "N/A for web frontend."
+    },
+    {
+      "id": "L105",
+      "name": "Kernel Features",
+      "score": 0,
+      "weight": 0.2,
+      "severity": "Low",
+      "rationale": "N/A for web frontend."
+    },
+    {
+      "id": "L106",
+      "name": "Init System",
+      "score": 0,
+      "weight": 0.2,
+      "severity": "Low",
+      "rationale": "N/A for web frontend."
+    },
+    {
+      "id": "L107",
+      "name": "Scheduling",
+      "score": 0,
+      "weight": 0.2,
+      "severity": "Low",
+      "rationale": "N/A for web frontend."
+    },
+    {
+      "id": "L108",
+      "name": "Networking",
+      "score": 0,
+      "weight": 0.2,
+      "severity": "Low",
+      "rationale": "N/A for web frontend."
+    },
+    {
+      "id": "L109",
+      "name": "Storage",
+      "score": 0,
+      "weight": 0.2,
+      "severity": "Low",
+      "rationale": "N/A for web frontend."
+    },
+    {
+      "id": "L110",
+      "name": "Secrets",
+      "score": 0,
+      "weight": 0.2,
+      "severity": "Low",
+      "rationale": "N/A for web frontend."
+    },
+    {
+      "id": "L111",
+      "name": "Marketplace",
+      "score": 0,
+      "weight": 1.0,
+      "severity": "Low",
+      "rationale": "No plugin or theme marketplace."
+    },
+    {
+      "id": "L112",
+      "name": "Billing/Quota",
+      "score": 0,
+      "weight": 1.0,
+      "severity": "Low",
+      "rationale": "No billing or quota system."
+    },
+    {
+      "id": "L113",
+      "name": "Multi-tenancy",
+      "score": 0,
+      "weight": 1.0,
+      "severity": "Medium",
+      "rationale": "Upstream Plane.so has multi-tenant architecture. Not yet seeded."
+    },
+    {
+      "id": "L114",
+      "name": "Compliance/SOC2",
+      "score": 0,
+      "weight": 1.0,
+      "severity": "Low",
+      "rationale": "No compliance documentation or controls."
+    },
+    {
+      "id": "L115",
+      "name": "Disaster Recovery",
+      "score": 0,
+      "weight": 1.0,
+      "severity": "Low",
+      "rationale": "No backup/restore or DR plan."
+    },
+    {
+      "id": "L116",
+      "name": "Upgrade Path",
+      "score": 0,
+      "weight": 1.0,
+      "severity": "High",
+      "rationale": "No upgrade mechanism. Upstream seeding is the first 'upgrade' — no process documented."
+    },
+    {
+      "id": "L117",
+      "name": "Webhooks/API Integration",
+      "score": 2,
+      "weight": 1.0,
+      "severity": "Medium",
+      "rationale": "README mentions integration with AgilePlus. No webhook system, no API versioning."
+    },
+    {
+      "id": "L118",
+      "name": "SDK",
+      "score": 0,
+      "weight": 1.0,
+      "severity": "Medium",
+      "rationale": "No SDK. Upstream may provide API access."
+    },
+    {
+      "id": "L119",
+      "name": "SLA/Uptime",
+      "score": 0,
+      "weight": 1.0,
+      "severity": "Low",
+      "rationale": "No SLA definitions or status page."
+    },
+    {
+      "id": "L120",
+      "name": "Performance Budget",
+      "score": 0,
+      "weight": 1.0,
+      "severity": "Medium",
+      "rationale": "No performance budgets defined or tracked."
+    },
+    {
+      "id": "L121",
+      "name": "macOS Native FFI",
+      "score": 0,
+      "weight": 1.0,
+      "severity": "Low",
+      "rationale": "N/A for web frontend. No native macOS integration needed."
+    },
+    {
+      "id": "L122",
+      "name": "iOS Native FFI",
+      "score": 0,
+      "weight": 1.0,
+      "severity": "Low",
+      "rationale": "N/A for web frontend."
+    },
+    {
+      "id": "L123",
+      "name": "Windows Native FFI",
+      "score": 0,
+      "weight": 1.0,
+      "severity": "Low",
+      "rationale": "N/A for web frontend."
+    },
+    {
+      "id": "L124",
+      "name": "Linux Native FFI",
+      "score": 0,
+      "weight": 1.0,
+      "severity": "Low",
+      "rationale": "N/A for web frontend."
+    },
+    {
+      "id": "L125",
+      "name": "Android Native FFI",
+      "score": 0,
+      "weight": 1.0,
+      "severity": "Low",
+      "rationale": "N/A for web frontend."
+    },
+    {
+      "id": "L126",
+      "name": "BSD/illumos Native FFI",
+      "score": 0,
+      "weight": 1.0,
+      "severity": "Low",
+      "rationale": "N/A for web frontend."
+    },
+    {
+      "id": "L127",
+      "name": "FFI Build & Toolchain",
+      "score": 0,
+      "weight": 1.0,
+      "severity": "Low",
+      "rationale": "N/A for web frontend."
+    },
+    {
+      "id": "L128",
+      "name": "Cross-Compile Matrix",
+      "score": 0,
+      "weight": 1.0,
+      "severity": "Low",
+      "rationale": "N/A for web frontend."
+    },
+    {
+      "id": "L129",
+      "name": "Native Notification Surfaces",
+      "score": 0,
+      "weight": 1.0,
+      "severity": "Low",
+      "rationale": "N/A for web frontend."
+    },
+    {
+      "id": "L130",
+      "name": "System Service Integration",
+      "score": 0,
+      "weight": 1.0,
+      "severity": "Low",
+      "rationale": "N/A for web frontend."
+    }
+  ],
+  "totals": {
+    "raw_unweighted_score": 145,
+    "raw_unweighted_max": 13000,
+    "raw_unweighted_percent": 1.12,
+    "weighted_score": 150.2,
+    "weighted_max": 14800,
+    "weighted_percent": 1.01,
+    "letter_grade": "F",
+    "letter_grade_description": "F (<55%) — Stub: only foundational metadata exists"
+  },
+  "severity_counts": {
+    "Critical": 16,
+    "High": 25,
+    "Medium": 37,
+    "Low": 52
+  },
+  "top_scores": [
+    {"pillar": "L91", "name": "README Quality", "score": 30},
+    {"pillar": "L61", "name": "Contributing", "score": 15},
+    {"pillar": "L93", "name": "Architecture Docs", "score": 15},
+    {"pillar": "L97", "name": "Roadmap", "score": 10},
+    {"pillar": "L25", "name": "Vendor Lockin", "score": 10},
+    {"pillar": "L69", "name": "Documentation", "score": 10},
+    {"pillar": "L99", "name": "Community", "score": 10}
+  ]
+}

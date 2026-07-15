@@ -12,7 +12,8 @@
     "build": "bun --filter '*' build",
     "test": "bun --filter '*' test",
     "typecheck": "bun --filter '*' typecheck",
-    "lint": "oxlint ."
+    "lint": "oxlint .",
+    "check:work-traceability": "node scripts/check-work-traceability.mjs"
   },
   "devDependencies": {
     "oxlint": "^1.0.0",

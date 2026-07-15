@@ -1,0 +1,49 @@
+// F — Alerting rules for polyglot binding tiers.
+// Deploy to: /etc/prometheus/rules/polyglot-alerts.yml
+
+groups:
+  - name: polyglot_tier_alerts
+    interval: 30s
+    rules:
+      # P0: All edges fell back to T1 (HTTP) — kills performance wins
+      - alert: PolyglotAllEdgesOnT1
+        expr: |
+          count(polyglot_current_tier{} == 1) > 15
+        for: 2m
+        labels:
+          severity: critical
+          pagerduty: omniroute-polyglot
+        annotations:
+          summary: "All {{ $value }} polyglot edges back to T1 (HTTP)"
+          runbook: "docs/adr/0032-polyglot-binding-tiers.md#appendix-f---production-runbook"
+
+      # P1: Tier cascade (10+ changes in 5m) — likely a kill-switch event
+      - alert: PolyglotCascadeDetected
+        expr: |
+          polyglot:tier_changes:rate5m > 10
+        for: 1m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High rate of polyglot tier changes"
+          description: "{{ $value }} changes/5m — possible kill-switch cascade"
+
+      # P2: Reconciler sweep taking too long
+      - alert: PolyglotSweepSlow
+        expr: |
+          polyglot:sweep_duration:quantile_over_1h > 5.0
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Polyglot reconciler sweep p95 > 5s"
+
+      # P3: Tier adoption below 0.8 (should be >0.9 post-rollout)
+      - alert: PolyglotLowAdoption
+        expr: |
+          polyglot:tier_adoption_ratio < 0.8
+        for: 10m
+        labels:
+          severity: info
+        annotations:
+          summary: "Polyglot adoption ratio {{ $value | humanize }} — below 0.8 target"

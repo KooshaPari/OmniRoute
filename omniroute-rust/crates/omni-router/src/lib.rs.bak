@@ -1,0 +1,33 @@
+//! OmniRoute router: provider registry, routing strategies, circuit breaker.
+//!
+//! Routing decisions are made per-request based on a `RoutingContext` and a
+//! chosen `Strategy`. The router picks one (or more) executors, executes them
+//! with a circuit breaker per provider, and returns the first success.
+
+#![forbid(unsafe_code)]
+#![warn(clippy::all, clippy::pedantic)]
+#![allow(clippy::module_name_repetitions)]
+
+pub mod breaker;
+pub mod provider_registry;
+pub mod strategy;
+pub mod router;
+
+pub use breaker::{Breaker, BreakerState};
+pub use provider_registry::{ProviderHandle, ProviderRegistry};
+pub use router::{Router, RoutingContext, RoutingDecision};
+pub use strategy::{RouteScore, Strategy};
+
+use thiserror::Error;
+
+#[derive(Debug, Error)]
+pub enum RouterError {
+    #[error("no provider available for {0}")]
+    NoProvider(String),
+    #[error("circuit open for {0}")]
+    CircuitOpen(String),
+    #[error("all providers failed: {0}")]
+    AllFailed(String),
+}
+
+pub type Result<T> = std::result::Result<T, RouterError>;

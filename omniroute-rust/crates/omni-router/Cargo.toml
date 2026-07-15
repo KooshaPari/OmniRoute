@@ -1,0 +1,27 @@
+[package]
+name = "omni-router"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+description = "OmniRoute router: provider registry, routing strategies, circuit breaker"
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
+serde      = { workspace = true }
+serde_json = { workspace = true }
+thiserror  = { workspace = true }
+anyhow     = { workspace = true }
+async-trait= { workspace = true }
+tokio      = { workspace = true }
+tracing    = { workspace = true }
+parking_lot = { workspace = true }
+rand       = { workspace = true }
+omni-core     = { path = "../omni-core" }
+omni-protocol = { path = "../omni-protocol" }
+omni-translator = { path = "../omni-translator" }
+
+[dev-dependencies]
+pretty_assertions = { workspace = true }

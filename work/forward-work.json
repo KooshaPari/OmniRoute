@@ -1,0 +1,27 @@
+{
+  "schema_version": "1.0",
+  "generated_at": "2026-07-14",
+  "source_ledger": "work/WORK.md",
+  "objective": "Advance the polyrepo validation and handoff DAG with machine-checkable evidence.",
+  "states": ["todo", "wip", "ok", "blocked", "defer", "hold"],
+  "lanes": [
+    {"id": "LANE-CONTROL", "name": "Control plane and evidence", "owner": "root", "state": "wip"},
+    {"id": "LANE-OMNIROUTE", "name": "OmniRoute CI and quality", "owner": "root", "state": "wip"},
+    {"id": "LANE-RUNTIME", "name": "High-performance runtime and client surfaces", "owner": "root", "state": "todo"},
+    {"id": "LANE-AGILEPLUS", "name": "AgilePlus cockpit and review loop", "owner": "AgilePlus owner", "state": "wip"},
+    {"id": "LANE-CIVIS", "name": "Civis verification", "owner": "Civis owner", "state": "blocked"},
+    {"id": "LANE-PUBLISH", "name": "Publication and handoff", "owner": "root", "state": "wip"}
+  ],
+  "work_items": [
+    {"id": "WBS-001", "lane": "LANE-OMNIROUTE", "phase": "queue/merge", "owner": "root", "state": "ok", "depends_on": [], "deliverable": "PR #6856 merged", "evidence": ["gh api repos/diegosouzapw/OmniRoute/pulls/6856"]},
+    {"id": "WBS-002", "lane": "LANE-OMNIROUTE", "phase": "queue/merge", "owner": "root", "state": "defer", "depends_on": ["WBS-001"], "deliverable": "PR #6855 oldest open lane", "evidence": ["gh api repos/diegosouzapw/OmniRoute/pulls/6855"]},
+    {"id": "WBS-003", "lane": "LANE-OMNIROUTE", "phase": "queue/merge", "owner": "root", "state": "defer", "depends_on": ["WBS-002"], "deliverable": "PR #6794 packaged-electron fix", "evidence": ["gh api repos/diegosouzapw/OmniRoute/pulls/6794"]},
+    {"id": "WBS-004", "lane": "LANE-OMNIROUTE", "phase": "provider/CI", "owner": "root", "state": "ok", "depends_on": ["WBS-001"], "deliverable": "xAI exact-cost validation follow-up", "evidence": ["commit 8574e9d78", "PR #6856"]},
+    {"id": "WBS-005", "lane": "LANE-AGILEPLUS", "phase": "cockpit", "owner": "AgilePlus owner", "state": "wip", "depends_on": [], "deliverable": "ownership bracket persistence", "evidence": ["historical commit 418e597"]},
+    {"id": "WBS-006", "lane": "LANE-AGILEPLUS", "phase": "review-loop", "owner": "review-loop owner", "state": "wip", "depends_on": ["WBS-005"], "deliverable": "deterministic final-cycle regression", "evidence": ["historical commit 9d16bba"]},
+    {"id": "WBS-007", "lane": "LANE-CIVIS", "phase": "verification", "owner": "Civis owner", "state": "blocked", "depends_on": [], "deliverable": "quality-manifest SHA repair", "evidence": [".ci/quality-manifest.json audit"]},
+    {"id": "WBS-008", "lane": "LANE-OMNIROUTE", "phase": "release-contract", "owner": "root", "state": "wip", "depends_on": [], "deliverable": "deterministic package, OpenAPI, and changelog release contract", "evidence": ["node scripts/check/check-docs-sync.mjs", "current mismatch: package.json 0.1.0; docs/openapi.yaml and CHANGELOG.md 3.8.44", "planned regression: tests/unit/check-docs-sync-release.test.mjs"]},
+    {"id": "WBS-009", "lane": "LANE-OMNIROUTE", "phase": "i18n/localization-gate", "owner": "i18n gate owner", "state": "wip", "depends_on": ["WBS-008"], "deliverable": "structural and configured-locale localization gates", "evidence": ["scripts/check/check-docs-sync.mjs", "node scripts/i18n/check-ui-keys-coverage.mjs --json: below 80% for most configured locales", "node scripts/i18n/check-translation-drift.mjs --strict --json: missing .i18n-state.json", "planned regression: tests/unit/check-docs-sync-release.test.mjs"]},
+    {"id": "WBS-010", "lane": "LANE-OMNIROUTE", "phase": "i18n/mirror-repair", "owner": "i18n gate owner", "state": "wip", "depends_on": ["WBS-009"], "deliverable": "restore the configured Finnish llm.txt mirror", "evidence": ["docs/i18n/fi/llm.txt is missing", "npm run check:docs-sync -- --scope mirrors"]}
+  ]
+}

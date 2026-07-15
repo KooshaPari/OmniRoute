@@ -1,0 +1,25 @@
+[package]
+name = "omni-translator"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+description = "OmniRoute protocol translator: format detection + translation registry"
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
+serde      = { workspace = true }
+serde_json = { workspace = true }
+indexmap   = { workspace = true }
+thiserror  = { workspace = true }
+async-trait= { workspace = true }
+tracing    = { workspace = true }
+omni-core     = { path = "../omni-core" }
+omni-protocol = { path = "../omni-protocol" }
+
+[dev-dependencies]
+pretty_assertions = { workspace = true }
+insta       = { workspace = true }
+proptest    = { workspace = true }
