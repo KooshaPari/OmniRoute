@@ -7,8 +7,12 @@ import { resolveEmbeddingSource, embed } from "./embedding";
 import { getVectorStore } from "./vectorStore";
 import { getMemorySettings } from "./settings";
 import { stats as embeddingCacheStats } from "./embedding/cache";
-import { getQdrantConfig, checkQdrantHealth, searchSemanticMemory } from "./qdrant";
 import type { MemoryEngineStatus } from "@/shared/schemas/memory";
+import {
+  searchSemanticMemory,
+  getQdrantConfig,
+  checkQdrantHealth,
+} from "./qdrant";
 
 const log = logger("MEMORY_RETRIEVAL");
 

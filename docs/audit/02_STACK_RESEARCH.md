@@ -91,7 +91,7 @@ WebSocket: `axum-extra::ws::WebSocket` (tokio-tungstenite under the hood). Produ
 ### 1.10 CLI
 
 - `clap` 4.5 with `derive`. User already standardizes on this (clap-ext workspace, pheno-forge-smoke).
-- Subcommand pattern: `omniroute start`, `omniroute mcp`, `omniroute providers list`, `omniroute migrate`, etc.
+- Subcommand pattern: `start`, `mcp`, `providers list`, etc.; CLI command examples in this document are advisory for the Rust-sidecar plan and should be validated against the active TS/TSX binary.
 - `dialoguer` for prompts, `indicatif` for progress, `tokio-graceful-shutdown` for the long-running server stop path.
 
 ### 1.11 Distribution
@@ -115,7 +115,7 @@ WebSocket: `axum-extra::ws::WebSocket` (tokio-tungstenite under the hood). Produ
 - **`axum::response::sse::Sse`** with `KeepAlive::new().interval(Duration::from_secs(15))` — backpressure-safe.
 - **`async-stream`** macro to convert imperative code into a `Stream`.
 - **`tokio-stream`** for stream combinators (`StreamExt::timeout`, `StreamExt::chunks_timeout`).
-- For 100k+ open SSE connections: tune tokio worker count, use `SO_REUSEPORT` on the listener, `epoll`-based reactor. Production-feasible.
+- For 100k+ open SSE connections: tune tokio worker count, use socket-address reuse settings, `epoll`-based reactor. Production-feasible.
 
 ### 1.14 Risk / known pain points
 

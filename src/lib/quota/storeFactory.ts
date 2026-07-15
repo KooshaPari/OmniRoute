@@ -4,13 +4,23 @@
  * Driver selection precedence (highest to lowest):
  *   1. DB setting `quotaStore.driver` (read via getSettings())
  *   2. Env `QUOTA_STORE_DRIVER`
- *   3. Default: "sqlite"
+ *   3. Default: "keyv"   ← NEW 2026-07: prefers embedded keyv (zero sidecar)
  *
- * Redis URL precedence:
+ * Driver values:
+ *   - "keyv"   — embedded KV via @keyv/sqlite (zero sidecar, Redis-API shape)
+ *   - "sqlite" — embedded SQLite (legacy, kept for backwards compat)
+ *   - "redis"  — external Redis via ioredis (legacy, requires REDIS_URL)
+ *
+ * KV URL precedence (for driver=keyv):
+ *   1. DB setting `quotaStore.kvUrl`
+ *   2. Env `QUOTA_STORE_KV_URL`
+ *   3. Default: `keyv-sqlite://default`  ← NEW 2026-07: persistent local file
+ *
+ * Redis URL precedence (for driver=redis):
  *   1. DB setting `quotaStore.redisUrl`
  *   2. Env `QUOTA_STORE_REDIS_URL`
  *
- * If driver=redis but URL is absent/invalid → fallback to sqlite + pino.warn.
+ * If a sidecar driver is selected without a URL → fallback to keyv + persist warning.
  * Never throws — always returns a valid QuotaStore.
  *
  * Part of: Group B — Quota Sharing Engine (plan 22, frente F6).
@@ -39,6 +49,7 @@ export function resetQuotaStoreSingleton(): void {
 interface QuotaStoreSettings {
   driver?: string;
   redisUrl?: string;
+  kvUrl?: string;
 }
 
 async function readDbSettings(): Promise<QuotaStoreSettings> {
@@ -53,6 +64,7 @@ async function readDbSettings(): Promise<QuotaStoreSettings> {
       return {
         driver: typeof obj.driver === "string" ? obj.driver : undefined,
         redisUrl: typeof obj.redisUrl === "string" ? obj.redisUrl : undefined,
+        kvUrl: typeof obj.kvUrl === "string" ? obj.kvUrl : undefined,
       };
     }
   } catch {
@@ -78,14 +90,17 @@ export async function getQuotaStore(): Promise<QuotaStore> {
   const dbSettings = await readDbSettings();
 
   const driver =
-    dbSettings.driver ?? process.env.QUOTA_STORE_DRIVER ?? "sqlite";
+    dbSettings.driver ?? process.env.QUOTA_STORE_DRIVER ?? "keyv";
 
   const redisUrl =
     dbSettings.redisUrl ?? process.env.QUOTA_STORE_REDIS_URL ?? "";
 
+  const kvUrl =
+    dbSettings.kvUrl ?? process.env.QUOTA_STORE_KV_URL ?? "keyv-sqlite://default";
+
   if (driver === "redis") {
     if (!redisUrl) {
-      log.warn("QUOTA_STORE_DRIVER=redis but no Redis URL configured — falling back to sqlite");
+      log.warn("QUOTA_STORE_DRIVER=redis but no Redis URL configured — falling back to keyv");
     } else {
       try {
         const { getRedisQuotaStore } = await import("./redisQuotaStore");
@@ -98,17 +113,33 @@ export async function getQuotaStore(): Promise<QuotaStore> {
       } catch (err) {
         log.warn(
           { err: (err as Error)?.message },
-          "Redis QuotaStore unavailable — falling back to sqlite"
+          "Redis QuotaStore unavailable — falling back to keyv"
         );
-        // Fall through to sqlite
+        // Fall through to keyv
       }
     }
   }
 
-  // Default: SQLite
+  if (driver === "keyv") {
+    try {
+      const { getKeyvQuotaStore } = await import("./keyvQuotaStore");
+      const store = getKeyvQuotaStore(kvUrl);
+      _store = store;
+      log.info({ kvUrl }, "QuotaStore: using embedded keyv driver (no sidecar)");
+      return _store;
+    } catch (err) {
+      log.warn(
+        { err: (err as Error)?.message },
+        "keyv QuotaStore unavailable — falling back to SQLite"
+      );
+      // Fall through to SQLite
+    }
+  }
+
+  // Default / unknown driver → SQLite (legacy fallback)
   const { getSqliteQuotaStore } = await import("./sqliteQuotaStore");
   _store = getSqliteQuotaStore();
-  log.info("QuotaStore: using SQLite driver");
+  log.info("QuotaStore: using SQLite driver (legacy)");
   return _store;
 }
 

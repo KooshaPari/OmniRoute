@@ -138,6 +138,116 @@ function toNumberOrZero(value: unknown): number {
   return typeof value === "number" ? value : 0;
 }
 
+function toDbTextOrNull(value: unknown): string | null {
+  return typeof value === "string" ? value : null;
+}
+
+function toDbInteger(value: unknown, fallback = 0): number {
+  if (typeof value === "number" && Number.isFinite(value)) return Math.trunc(value);
+  if (typeof value === "string") {
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? Math.trunc(parsed) : fallback;
+  }
+  return fallback;
+}
+
+function toDbNumberOrNull(value: unknown): number | null {
+  if (value === null || value === undefined) return null;
+  if (typeof value === "number" && Number.isFinite(value)) return Math.trunc(value);
+  if (typeof value === "string") {
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? Math.trunc(parsed) : null;
+  }
+  return null;
+}
+
+function sanitizeWriteBackToConnection(connection: JsonRecord): void {
+  if (connection.provider !== undefined) {
+    connection.provider = toDbTextOrNull(connection.provider);
+  }
+  if (connection.authType !== undefined) {
+    connection.authType = toDbTextOrNull(connection.authType) || "oauth";
+  }
+  if (connection.name !== undefined) {
+    connection.name = toDbTextOrNull(connection.name);
+  }
+  if (connection.email !== undefined) {
+    connection.email = toDbTextOrNull(connection.email);
+  }
+  if (connection.priority !== undefined) {
+    connection.priority = toDbInteger(connection.priority, 0);
+  }
+  if (connection.testStatus !== undefined) {
+    connection.testStatus = toDbTextOrNull(connection.testStatus);
+  }
+  if (connection.errorCode !== undefined) {
+    connection.errorCode =
+      typeof connection.errorCode === "number" || typeof connection.errorCode === "string"
+        ? connection.errorCode
+        : null;
+  }
+  if (connection.lastError !== undefined) {
+    connection.lastError = toDbTextOrNull(connection.lastError);
+  }
+  if (connection.lastErrorAt !== undefined) {
+    connection.lastErrorAt = toDbTextOrNull(connection.lastErrorAt);
+  }
+  if (connection.lastErrorType !== undefined) {
+    connection.lastErrorType = toDbTextOrNull(connection.lastErrorType);
+  }
+  if (connection.lastErrorSource !== undefined) {
+    connection.lastErrorSource = toDbTextOrNull(connection.lastErrorSource);
+  }
+  if (connection.backoffLevel !== undefined) {
+    connection.backoffLevel = toDbInteger(connection.backoffLevel, 0);
+  }
+  if (connection.rateLimitedUntil !== undefined) {
+    connection.rateLimitedUntil = toDbTextOrNull(connection.rateLimitedUntil);
+  }
+  if (connection.healthCheckInterval !== undefined) {
+    connection.healthCheckInterval = toDbNumberOrNull(connection.healthCheckInterval);
+  }
+  if (connection.lastHealthCheckAt !== undefined) {
+    connection.lastHealthCheckAt = toDbTextOrNull(connection.lastHealthCheckAt);
+  }
+  if (connection.lastTested !== undefined) {
+    connection.lastTested = toDbTextOrNull(connection.lastTested);
+  }
+  if (connection.apiKey !== undefined) {
+    connection.apiKey = toDbTextOrNull(connection.apiKey);
+  }
+  if (connection.idToken !== undefined) {
+    connection.idToken = toDbTextOrNull(connection.idToken);
+  }
+  if (connection.expiresIn !== undefined) {
+    connection.expiresIn = toDbNumberOrNull(connection.expiresIn);
+  }
+  if (connection.displayName !== undefined) {
+    connection.displayName = toDbTextOrNull(connection.displayName);
+  }
+  if (connection.globalPriority !== undefined) {
+    connection.globalPriority = toDbNumberOrNull(connection.globalPriority);
+  }
+  if (connection.defaultModel !== undefined) {
+    connection.defaultModel = toDbTextOrNull(connection.defaultModel);
+  }
+  if (connection.tokenType !== undefined) {
+    connection.tokenType = toDbTextOrNull(connection.tokenType);
+  }
+  if (connection.consecutiveUseCount !== undefined) {
+    connection.consecutiveUseCount = toDbInteger(connection.consecutiveUseCount, 0);
+  }
+  if (connection.lastUsedAt !== undefined) {
+    connection.lastUsedAt = toDbTextOrNull(connection.lastUsedAt);
+  }
+  if (connection.group !== undefined) {
+    connection.group = toDbTextOrNull(connection.group);
+  }
+  if (connection.maxConcurrent !== undefined) {
+    connection.maxConcurrent = toDbNumberOrNull(connection.maxConcurrent);
+  }
+}
+
 // ──────────────── Provider Connections ────────────────
 
 export async function getProviderConnections(filter: JsonRecord = {}) {
@@ -346,7 +456,7 @@ export async function createProviderConnection(data: JsonRecord) {
   }
 
   // Auto-increment priority
-  let connectionPriority = data.priority;
+  let connectionPriority = toDbInteger(data.priority, 0);
   if (!connectionPriority) {
     const max = db
       .prepare("SELECT MAX(priority) as maxP FROM provider_connections WHERE provider = ?")
@@ -471,51 +581,60 @@ function _insertConnectionRow(db: DbLike, conn: JsonRecord) {
   `
   ).run({
     id: conn.id,
-    provider: conn.provider,
-    authType: conn.authType || null,
-    name: conn.name || null,
-    email: conn.email || null,
-    priority: conn.priority || 0,
+    provider: toDbTextOrNull(conn.provider),
+    authType: toDbTextOrNull(conn.authType) || "oauth",
+    name: toDbTextOrNull(conn.name),
+    email: toDbTextOrNull(conn.email),
+    priority: toDbInteger(conn.priority, 0),
     isActive: conn.isActive === false ? 0 : 1,
-    accessToken: conn.accessToken || null,
-    refreshToken: conn.refreshToken || null,
-    expiresAt: conn.expiresAt || null,
-    tokenExpiresAt: conn.tokenExpiresAt || null,
-    scope: conn.scope || null,
-    projectId: conn.projectId || null,
-    testStatus: conn.testStatus || null,
-    errorCode: conn.errorCode || null,
-    lastError: conn.lastError || null,
-    lastErrorAt: conn.lastErrorAt || null,
-    lastErrorType: conn.lastErrorType || null,
-    lastErrorSource: conn.lastErrorSource || null,
-    backoffLevel: conn.backoffLevel || 0,
-    rateLimitedUntil: conn.rateLimitedUntil || null,
-    healthCheckInterval: conn.healthCheckInterval || null,
-    lastHealthCheckAt: conn.lastHealthCheckAt || null,
-    lastTested: conn.lastTested || null,
-    apiKey: conn.apiKey || null,
-    idToken: conn.idToken || null,
+    accessToken: toDbTextOrNull(conn.accessToken),
+    refreshToken: toDbTextOrNull(conn.refreshToken),
+    expiresAt: toDbTextOrNull(conn.expiresAt),
+    tokenExpiresAt: toDbTextOrNull(conn.tokenExpiresAt),
+    scope: toDbTextOrNull(conn.scope),
+    projectId: toDbTextOrNull(conn.projectId),
+    testStatus: toDbTextOrNull(conn.testStatus),
+    errorCode:
+      typeof conn.errorCode === "number" || typeof conn.errorCode === "string"
+        ? conn.errorCode
+        : null,
+    lastError: toDbTextOrNull(conn.lastError),
+    lastErrorAt: toDbTextOrNull(conn.lastErrorAt),
+    lastErrorType: toDbTextOrNull(conn.lastErrorType),
+    lastErrorSource: toDbTextOrNull(conn.lastErrorSource),
+    backoffLevel: toDbInteger(conn.backoffLevel, 0),
+    rateLimitedUntil: toDbTextOrNull(conn.rateLimitedUntil),
+    healthCheckInterval: toDbNumberOrNull(conn.healthCheckInterval),
+    lastHealthCheckAt: toDbTextOrNull(conn.lastHealthCheckAt),
+    lastTested: toDbTextOrNull(conn.lastTested),
+    apiKey: toDbTextOrNull(conn.apiKey),
+    idToken: toDbTextOrNull(conn.idToken),
     providerSpecificData: conn.providerSpecificData
       ? JSON.stringify(conn.providerSpecificData)
       : null,
-    expiresIn: conn.expiresIn || null,
-    displayName: conn.displayName || null,
-    globalPriority: conn.globalPriority || null,
-    defaultModel: conn.defaultModel || null,
-    tokenType: conn.tokenType || null,
-    consecutiveUseCount: conn.consecutiveUseCount || 0,
+    expiresIn: toDbNumberOrNull(conn.expiresIn),
+    displayName: toDbTextOrNull(conn.displayName),
+    globalPriority: toDbNumberOrNull(conn.globalPriority),
+    defaultModel: toDbTextOrNull(conn.defaultModel),
+    tokenType: toDbTextOrNull(conn.tokenType),
+    consecutiveUseCount: toDbInteger(conn.consecutiveUseCount, 0),
     rateLimitProtection:
       conn.rateLimitProtection === true || conn.rateLimitProtection === 1 ? 1 : 0,
-    lastUsedAt: conn.lastUsedAt || null,
-    group: conn.group || null,
-    maxConcurrent: conn.maxConcurrent ?? null,
+    lastUsedAt: toDbTextOrNull(conn.lastUsedAt),
+    group: toDbTextOrNull(conn.group),
+    maxConcurrent: toDbNumberOrNull(conn.maxConcurrent),
     proxyEnabled: normalizeBooleanColumn(conn.proxyEnabled, true) ? 1 : 0,
     perKeyProxyEnabled: normalizeBooleanColumn(conn.perKeyProxyEnabled, false) ? 1 : 0,
     quotaWindowThresholdsJson: serializeJsonField(conn.quotaWindowThresholds),
     rateLimitOverridesJson: serializeJsonField(conn.rateLimitOverrides),
-    createdAt: conn.createdAt,
-    updatedAt: conn.updatedAt,
+    createdAt:
+      typeof conn.createdAt === "string" && conn.createdAt.length > 0
+        ? conn.createdAt
+        : new Date().toISOString(),
+    updatedAt:
+      typeof conn.updatedAt === "string" && conn.updatedAt.length > 0
+        ? conn.updatedAt
+        : new Date().toISOString(),
   });
 }
 
@@ -549,45 +668,48 @@ function _updateConnectionRow(db: DbLike, id: string, data: JsonRecord) {
   `
   ).run({
     id,
-    provider: data.provider,
-    authType: data.authType || null,
-    name: data.name || null,
-    email: data.email || null,
-    priority: data.priority || 0,
+    provider: toDbTextOrNull(data.provider),
+    authType: toDbTextOrNull(data.authType),
+    name: toDbTextOrNull(data.name),
+    email: toDbTextOrNull(data.email),
+    priority: toDbInteger(data.priority, 0),
     isActive: data.isActive === false ? 0 : 1,
-    accessToken: data.accessToken || null,
-    refreshToken: data.refreshToken || null,
-    expiresAt: data.expiresAt || null,
-    tokenExpiresAt: data.tokenExpiresAt || null,
-    scope: data.scope || null,
-    projectId: data.projectId || null,
-    testStatus: data.testStatus || null,
-    errorCode: data.errorCode || null,
-    lastError: data.lastError || null,
-    lastErrorAt: data.lastErrorAt || null,
-    lastErrorType: data.lastErrorType || null,
-    lastErrorSource: data.lastErrorSource || null,
-    backoffLevel: data.backoffLevel || 0,
-    rateLimitedUntil: data.rateLimitedUntil || null,
-    healthCheckInterval: data.healthCheckInterval || null,
-    lastHealthCheckAt: data.lastHealthCheckAt || null,
-    lastTested: data.lastTested || null,
-    apiKey: data.apiKey || null,
-    idToken: data.idToken || null,
+    accessToken: toDbTextOrNull(data.accessToken),
+    refreshToken: toDbTextOrNull(data.refreshToken),
+    expiresAt: toDbTextOrNull(data.expiresAt),
+    tokenExpiresAt: toDbTextOrNull(data.tokenExpiresAt),
+    scope: toDbTextOrNull(data.scope),
+    projectId: toDbTextOrNull(data.projectId),
+    testStatus: toDbTextOrNull(data.testStatus),
+    errorCode:
+      typeof data.errorCode === "number" || typeof data.errorCode === "string"
+        ? data.errorCode
+        : null,
+    lastError: toDbTextOrNull(data.lastError),
+    lastErrorAt: toDbTextOrNull(data.lastErrorAt),
+    lastErrorType: toDbTextOrNull(data.lastErrorType),
+    lastErrorSource: toDbTextOrNull(data.lastErrorSource),
+    backoffLevel: toDbInteger(data.backoffLevel, 0),
+    rateLimitedUntil: toDbTextOrNull(data.rateLimitedUntil),
+    healthCheckInterval: toDbNumberOrNull(data.healthCheckInterval),
+    lastHealthCheckAt: toDbTextOrNull(data.lastHealthCheckAt),
+    lastTested: toDbTextOrNull(data.lastTested),
+    apiKey: toDbTextOrNull(data.apiKey),
+    idToken: toDbTextOrNull(data.idToken),
     providerSpecificData: data.providerSpecificData
       ? JSON.stringify(data.providerSpecificData)
       : null,
-    expiresIn: data.expiresIn || null,
-    displayName: data.displayName || null,
-    globalPriority: data.globalPriority || null,
-    defaultModel: data.defaultModel || null,
-    tokenType: data.tokenType || null,
-    consecutiveUseCount: data.consecutiveUseCount || 0,
+    expiresIn: toDbNumberOrNull(data.expiresIn),
+    displayName: toDbTextOrNull(data.displayName),
+    globalPriority: toDbNumberOrNull(data.globalPriority),
+    defaultModel: toDbTextOrNull(data.defaultModel),
+    tokenType: toDbTextOrNull(data.tokenType),
+    consecutiveUseCount: toDbInteger(data.consecutiveUseCount, 0),
     rateLimitProtection:
       data.rateLimitProtection === true || data.rateLimitProtection === 1 ? 1 : 0,
-    lastUsedAt: data.lastUsedAt || null,
-    group: data.group || null,
-    maxConcurrent: data.maxConcurrent ?? null,
+    lastUsedAt: toDbTextOrNull(data.lastUsedAt),
+    group: toDbTextOrNull(data.group),
+    maxConcurrent: toDbNumberOrNull(data.maxConcurrent),
     quotaWindowThresholdsJson: serializeJsonField(data.quotaWindowThresholds),
     proxyEnabled: normalizeBooleanColumn(data.proxyEnabled, true) ? 1 : 0,
     perKeyProxyEnabled: normalizeBooleanColumn(data.perKeyProxyEnabled, false) ? 1 : 0,
@@ -621,6 +743,7 @@ export async function updateProviderConnection(id: string, data: JsonRecord) {
   if ("rateLimitOverrides" in merged) {
     merged.rateLimitOverrides = sanitizeRateLimitOverrides(merged.rateLimitOverrides);
   }
+  sanitizeWriteBackToConnection(merged);
   _updateConnectionRow(db, id, encryptConnectionFields({ ...merged }));
   backupDbFile("pre-write");
   invalidateDbCache("connections"); // Bust connections read cache

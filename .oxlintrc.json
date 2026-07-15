@@ -1,0 +1,65 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "plugins": ["typescript", "unicorn", "oxc"],
+  "categories": {
+    "correctness": "error",
+    "suspicious": "error",
+    "pedantic": "off",
+    "perf": "off",
+    "style": "off",
+    "restriction": "off",
+    "nursery": "off"
+  },
+  "rules": {
+    "no-eval": "error",
+    "no-implied-eval": "error",
+    "no-new-func": "error",
+    "no-restricted-imports": [
+      "error",
+      {
+        "paths": [
+          {
+            "name": "prop-types",
+            "message": "PropTypes are deprecated. Use TypeScript types/interfaces instead."
+          }
+        ]
+      }
+    ]
+  },
+  "overrides": [
+    {
+      "files": ["open-sse/**/*.ts", "tests/**/*.mjs", "tests/**/*.ts"],
+      "rules": {
+        "no-explicit-any": "allow",
+        "no-unused-vars": "allow"
+      }
+    }
+  ],
+  "ignorePatterns": [
+    ".next/**",
+    ".build/**",
+    "src/.next/**",
+    "out/**",
+    "build/**",
+    "dist/**",
+    "coverage/**",
+    "next-env.d.ts",
+    "scripts/**",
+    "bin/**",
+    "node_modules/**",
+    ".worktrees/**",
+    ".claude/**",
+    ".omnivscodeagent/**",
+    "vscode-extension/**",
+    "_references/**",
+    "_mono_repo/**",
+    "electron/**",
+    "docs/**",
+    "open-sse/mcp-server/dist/**",
+    "playwright-report/**",
+    "test-results/**",
+    "app/**",
+    "app.__qa_backup/**",
+    "clipr/**"
+  ]
+}

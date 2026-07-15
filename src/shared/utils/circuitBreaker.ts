@@ -14,6 +14,75 @@
  *   DEGRADED  — Failure rate elevated, requests pass through but warnings logged
  *   OPEN      — Requests are short-circuited
  *   HALF_OPEN — Probing: limited requests allowed to test recovery
+ *
+ * ─────────────────────────────────────────────────────────────────────────────
+ * TODO(tools/opossum-migration) — tracked in PR backlog (P2)
+ *
+ * Goal: collapse this file's `CircuitBreaker` class onto `opossum` (the de-facto
+ * Node circuit breaker) while preserving custom semantics that opossum does
+ * not model natively:
+ *
+ *   1. `DEGRADED` state — opossum models CLOSED / OPEN / HALF_OPEN only. The
+ *      60%-of-failureThreshold DEGRADED warning state must remain a thin
+ *      upstream wrapper that wraps a standard opossum breaker in observer mode,
+ *      OR a sibling breaker ("DEGRADED tracker") that fires warnings and leaves
+ *      the primary CLOSED state alone.
+ *
+ *   2. Per-kind thresholds (`kindThresholds`, `cooldownByKind`) — opossum has a
+ *      single `errorFilterPercentage`. Per-kind thresholds are best implemented
+ *      as a *dispatcher* that routes failure classified by `classifyError()`
+ *      (see `src/shared/utils/classify429.ts`) to one of N child opossum
+ *      breakers (e.g. `cb:rate_limit`, `cb:transient`, `cb:quota`), with the
+ *      primary breaker deriving its state from `max(children.states)`.
+ *
+ *   3. Adaptive backoff escalation (`openCycleCount`, `maxBackoffMultiplier`) —
+ *      opossum supports `timeout` / `resetTimeout` per breaker. Escalation can
+ *      be implemented by mutating `resetTimeout` on `open` event listeners, but
+ *      persistence across restarts (currently via `domainState.ts`) requires
+ *      serializing the escalation factor.
+ *
+ *   4. DB persistence (`saveCircuitBreakerState`, `loadCircuitBreakerState`) —
+ *      opossum does not persist. The persistence layer must remain a thin
+ *      wrapper that snapshots `{ state, failureCount, lastFailureTime,
+ *      openCycleCount, kindFailureCounts }` on every transition.
+ *
+ *   5. Registry (`getCircuitBreaker`, `getAllCircuitBreakerStatuses`,
+ *      `resetAllCircuitBreakers`, periodic sweep in
+ *      `src/shared/utils/circuitBreaker.ts:485`) — opossum has no built-in
+ *      registry. Maintain our existing `Map<name, CircuitBreaker>`. Cap at
+ *      `MAX_REGISTRY_SIZE = 500` and cold-evict as today.
+ *
+ *   6. `CircuitBreakerOpenError` — opossum throws on `fire()` while open, but
+ *      the error type / retry-after metadata differ. Keep our error class as
+ *      the public surface; translate from opossum's `EOPENBREAKER` rejection.
+ *
+ *   7. `isLocalStreamLifecycleError` helper (line 39 below) — independent of
+ *      the breaker class. Keep as-is, but wire as opossum's `errorFilter`
+ *      option.
+ *
+ * Migration shape (proposed):
+ *
+ *   class OpossumBreaker {
+ *     private primary: opossum;
+ *     private degraded: DegradationTracker;
+ *     private children: Map<FailureKind, opossum>;
+ *     private persistence: BreakerPersistence;
+ *     ...
+ *     async execute<T>(fn: () => Promise<T>): Promise<T> {
+ *       this.degraded.observe();
+ *       return this.primary.fire(fn);
+ *     }
+ *   }
+ *
+ * Rollout plan: dual-run for 14 days. Shadow opossum alongside the existing
+ * implementation, compare `getStatus().state` after every transition, log
+ * divergences, then flip on a date stamp.
+ *
+ * Risk: 41 consumer files reference `CircuitBreaker` / `getCircuitBreaker`
+ * (incl. MCP tools, dashboard widgets, db/domainState.ts schema). Migration
+ * must preserve public class names + `getCircuitBreaker(name, opts)` +
+ * `getAllCircuitBreakerStatuses()` + `resetAllCircuitBreakers()` signatures.
+ * ─────────────────────────────────────────────────────────────────────────────
  */
 
 import {
@@ -24,6 +93,7 @@ import {
   deleteAllCircuitBreakerStates,
 } from "../../lib/db/domainState";
 import type { FailureKind } from "./classify429";
+import CircuitBreakerOpossum from "opossum";
 
 /**
  * #4602 — Detect a LOCAL stream-lifecycle error that must NOT count as a
@@ -607,5 +677,610 @@ export function resetAllCircuitBreakers() {
     deleteAllCircuitBreakerStates();
   } catch {
     // Non-critical
+  }
+}
+
+// ─── Opossum shadow adapter (migration step 1) ──────────────────────────────
+//
+// Feature flag: `CIRCUIT_BREAKER_OPOSSUM_SHADOW=1` enables passive dual-run of
+// an `opossum` circuit breaker alongside the hand-rolled primary. The shadow
+// does NOT short-circuit requests; it only observes state transitions and logs
+// divergences. After 14 days of clean divergence (or near-zero divergence)
+// this can be promoted to the primary backend.
+//
+// The shadow exposes the same (failureThreshold, resetTimeout, errorFilter)
+// surface that the migration plan at lines 19–85 describes; DEGRADED state is
+// folded to CLOSED in the shadow (opossum has no DEGRADED), and the divergence
+// detector compares only the 3 core states (CLOSED / OPEN / HALF_OPEN).
+//
+// See `tests/unit/shared/utils/opossum-shadow.test.ts` for behavior contract.
+
+export interface OpossumShadowStats {
+  readonly enabled: boolean;
+  readonly fires: number;
+  readonly divergences: number;
+  readonly opossumOpens: number;
+  readonly primaryOpens: number;
+}
+
+const shadowStatsInternal = {
+  enabled: process.env.CIRCUIT_BREAKER_OPOSSUM_SHADOW === "1",
+  fires: 0,
+  divergences: 0,
+  opossumOpens: 0,
+  primaryOpens: 0,
+};
+
+/** Test-only: read the live opossum-shadow telemetry counters. */
+export function __getOpossumShadowStatsForTests(): OpossumShadowStats {
+  return { ...shadowStatsInternal };
+}
+
+/** Test-only: reset the opossum-shadow telemetry counters. */
+export function __resetOpossumShadowStatsForTests(): void {
+  shadowStatsInternal.fires = 0;
+  shadowStatsInternal.divergences = 0;
+  shadowStatsInternal.opossumOpens = 0;
+  shadowStatsInternal.primaryOpens = 0;
+}
+
+function mapOpossumState(opossum: CircuitBreakerOpossum): "CLOSED" | "OPEN" | "HALF_OPEN" {
+  // opossum 10.x exposes `.opened` and `.halfOpen` boolean flags. Compose to
+  // a string for divergence comparison. (`.closed` is the default.)
+  if (opossum.opened) return "OPEN";
+  if (opossum.halfOpen) return "HALF_OPEN";
+  return "CLOSED";
+}
+
+function foldPrimaryStateToCore(
+  state: CircuitState
+): "CLOSED" | "OPEN" | "HALF_OPEN" {
+  // DEGRADED is unique to the hand-rolled breaker; for divergence comparison
+  // it folds into CLOSED (the breaker is still serving traffic).
+  if (state === STATE.DEGRADED) return "CLOSED";
+  return state as "CLOSED" | "OPEN" | "HALF_OPEN";
+}
+
+/**
+ * Run `fn` through a fresh opossum breaker built from the primary's
+ * current threshold configuration. Records state-transition divergences
+ * for telemetry. NEVER short-circuits the call — opossum's `fire()` is
+ * used here only to drive opossum's internal state machine, and the
+ * primary breaker still owns the request semantics.
+ */
+export async function runOpossumShadow<T>(
+  primary: CircuitBreaker,
+  fn: () => Promise<T>
+): Promise<T> {
+  if (!shadowStatsInternal.enabled) {
+    return fn();
+  }
+
+  // Snapshot primary thresholds at call time; opossum mirrors them.
+  const errorThresholdPercentage =
+    primary.failureThreshold > 0
+      ? Math.max(1, Math.floor((100 * 1) / primary.failureThreshold))
+      : 50;
+  const opossumBreaker = new CircuitBreakerOpossum(fn, {
+    name: `shadow:${primary.name}`,
+    timeout: 30_000,
+    errorThresholdPercentage,
+    resetTimeout: primary.resetTimeout,
+    errorFilter: (err: unknown) =>
+      primary.isFailure ? !primary.isFailure(err) : false,
+    rollingCountTimeout: 10_000,
+    rollingCountBuckets: 10,
+    volumeThreshold: Math.max(1, Math.floor(primary.failureThreshold / 2)),
+  });
+
+  const previousOpossumState = mapOpossumState(opossumBreaker);
+  const previousPrimaryState = foldPrimaryStateToCore(primary.state);
+
+  try {
+    const result = await opossumBreaker.fire();
+    shadowStatsInternal.fires++;
+    const opossumState = mapOpossumState(opossumBreaker);
+    const primaryState = foldPrimaryStateToCore(primary.state);
+    if (opossumState !== previousOpossumState) {
+      if (opossumState === "OPEN") shadowStatsInternal.opossumOpens++;
+    }
+    if (
+      opossumState !== primaryState &&
+      // Ignore transient single-fire disagreements — only count material
+      // divergence (one breaker open, the other closed for >0 fires).
+      shadowStatsInternal.fires > 1
+    ) {
+      shadowStatsInternal.divergences++;
+      // Lightweight stderr log; pino can subscribe via a future PR.
+      if (process.env.CIRCUIT_BREAKER_OPOSSUM_SHADOW_VERBOSE === "1") {
+        process.stderr.write(
+          `[opossum-shadow] divergence on "${primary.name}": ` +
+            `opossum=${opossumState} primary=${primaryState}\n`
+        );
+      }
+    }
+    return result;
+  } catch (err) {
+    shadowStatsInternal.fires++;
+    const opossumState = mapOpossumState(opossumBreaker);
+    if (opossumState === "OPEN") shadowStatsInternal.opossumOpens++;
+    if (opossumState !== foldPrimaryStateToCore(primary.state) && shadowStatsInternal.fires > 1) {
+      shadowStatsInternal.divergences++;
+      if (process.env.CIRCUIT_BREAKER_OPOSSUM_SHADOW_VERBOSE === "1") {
+        process.stderr.write(
+          `[opossum-shadow] divergence (on error) on "${primary.name}": ` +
+            `opossum=${opossumState} primary=${primary.state}\n`
+        );
+      }
+    }
+    throw err;
+  } finally {
+    // No-op: each shadow invocation uses a short-lived breaker to avoid
+    // leaking opossum state across requests. A future iteration can pool
+    // shadows per `primary.name` if memory becomes a concern.
+    void previousPrimaryState;
+  }
+}
+
+// ─── Per-kind child breaker persistence ──────────────────────────────────────
+
+/**
+ * Build a namespaced child state name for DB persistence.
+ * Uses the convention `{primaryName}#child:{kind}` to scope child states
+ * under the primary breaker in the `domain_circuit_breakers` table.
+ */
+function childStateDbName(primaryName: string, kind: FailureKind): string {
+  return `${primaryName}#child:${kind}`;
+}
+
+/** Persist a child breaker's state using the existing domainState table. */
+export function saveChildBreakerState(
+  primaryName: string,
+  kind: FailureKind,
+  state: { state: string; failureCount: number; lastFailureTime: number | null },
+): void {
+  saveCircuitBreakerState(childStateDbName(primaryName, kind), {
+    state: state.state,
+    failureCount: state.failureCount,
+    lastFailureTime: state.lastFailureTime,
+    options: { kind, primaryName },
+  });
+}
+
+/** Load a child breaker's state from the DB. Returns null when absent. */
+export function loadChildBreakerState(
+  primaryName: string,
+  kind: FailureKind,
+): { state: string; failureCount: number; lastFailureTime: number | null } | null {
+  const raw = loadCircuitBreakerState(childStateDbName(primaryName, kind));
+  if (!raw) return null;
+  return {
+    state: raw.state,
+    failureCount: raw.failureCount,
+    lastFailureTime: raw.lastFailureTime,
+  };
+}
+
+/** Delete all child breaker states scoped to a given primary breaker. */
+export function deleteChildBreakerStates(primaryName: string): void {
+  try {
+    const all = loadAllCircuitBreakerStates();
+    const prefix = `${primaryName}#child:`;
+    for (const record of all) {
+      if (record.name.startsWith(prefix)) {
+        deleteCircuitBreakerState(record.name);
+      }
+    }
+  } catch {
+    // Non-critical
+  }
+}
+
+// ─── Per-FailureKind child breaker snapshot ──────────────────────────────────
+
+export interface ChildBreakerSnapshot {
+  kind: FailureKind;
+  opossumState: "CLOSED" | "OPEN" | "HALF_OPEN";
+  stats: {
+    failures: number;
+    successes: number;
+    rejects: number;
+    fires: number;
+    timeouts: number;
+  };
+}
+
+function createChildBreakerAction(kind: FailureKind) {
+  return (shouldFail: boolean) => {
+    if (shouldFail) {
+      return Promise.reject(new Error(`child-breaker:${kind}`));
+    }
+    return Promise.resolve(undefined as unknown as "child-breaker:kind:success");
+  };
+}
+
+function childErrorThreshold(primaryThreshold: number): number {
+  if (primaryThreshold <= 0) return 50;
+  return Math.max(1, Math.floor((100 * 1) / primaryThreshold));
+}
+
+function childVolumeThreshold(primaryThreshold: number): number {
+  return Math.max(1, Math.floor(primaryThreshold / 2));
+}
+
+/**
+ * Aggregate child breaker states into a single severity level.
+ *
+ * Severity (ascending): CLOSED < DEGRADED < HALF_OPEN < OPEN.
+ * - Any child OPEN → OPEN
+ * - Any child HALF_OPEN (and none OPEN) → HALF_OPEN
+ * - Total child failures >= degradationThreshold → DEGRADED
+ * - Otherwise → CLOSED
+ */
+function aggregateChildStates(
+  children: Map<FailureKind, CircuitBreakerOpossum>,
+  degradationThreshold: number,
+): "CLOSED" | "DEGRADED" | "OPEN" | "HALF_OPEN" {
+  let anyOpen = false;
+  let anyHalfOpen = false;
+  let totalFailures = 0;
+
+  for (const child of children.values()) {
+    if ((child as unknown as { opened: boolean }).opened) anyOpen = true;
+    if ((child as unknown as { halfOpen: boolean }).halfOpen) anyHalfOpen = true;
+    const s = (child as unknown as { stats: { failures: number } }).stats;
+    totalFailures += s?.failures ?? 0;
+  }
+
+  if (anyOpen) return "OPEN";
+  if (anyHalfOpen) return "HALF_OPEN";
+  if (totalFailures >= degradationThreshold) return "DEGRADED";
+  return "CLOSED";
+}
+
+/**
+ * Manages per-{@link FailureKind} child opossum circuit breakers alongside a
+ * primary hand-rolled {@link CircuitBreaker}. Each child independently tracks
+ * failures of one kind; the primary's state can be derived as the max across
+ * children via {@link getAggregatedState}.
+ *
+ * Child breakers use a dummy "driver" action — callers invoke
+ * {@link recordOutcome} with a kind and success/failure, and the helper fires
+ * the child's action with the appropriate signal to drive opossum's rolling
+ * stats and state machine.
+ *
+ * Persistence follows the `domainState.ts` pattern: child states persist as
+ * `{primaryName}#child:{kind}` rows in the `domain_circuit_breakers` table
+ * and are restored on construction when `persistence` is enabled.
+ */
+export class CircuitBreakerOpossumFactory {
+  readonly primary: CircuitBreaker;
+  private children: Map<FailureKind, CircuitBreakerOpossum>;
+  private opts: { persistence: boolean };
+
+  constructor(
+    primary: CircuitBreaker,
+    options?: { persistence?: boolean },
+  ) {
+    this.primary = primary;
+    this.opts = { persistence: options?.persistence ?? true };
+    this.children = new Map();
+    this._initialize();
+  }
+
+  // ── Public API ──────────────────────────────────────────────────────────
+
+  /**
+   * Record an outcome (success/failure) through the child breaker for the
+   * given kind. Drives the opossum state machine so the child opens/closes
+   * based on its own rolling failure window.
+   */
+  async recordOutcome(kind: FailureKind, isSuccess: boolean): Promise<void> {
+    const child = this.children.get(kind);
+    if (!child) return;
+    try {
+      await (child as unknown as { fire: (...args: unknown[]) => Promise<unknown> }).fire(!isSuccess);
+    } catch {
+      // Expected — fire() rejects on timeout / open-circuit or
+      // when the dummy action itself rejects (simulated failure).
+    }
+  }
+
+  /**
+   * Return the aggregated state across all child breakers.
+   *
+   * Severity order (ascending):
+   * CLOSED < DEGRADED < HALF_OPEN < OPEN
+   */
+  getAggregatedState(): "CLOSED" | "DEGRADED" | "OPEN" | "HALF_OPEN" {
+    return aggregateChildStates(this.children, this.primary.degradationThreshold);
+  }
+
+  /** Get snapshots of all child breakers. */
+  getChildSnapshots(): ChildBreakerSnapshot[] {
+    const snapshots: ChildBreakerSnapshot[] = [];
+    for (const [kind, child] of this.children) {
+      const c = child as unknown as {
+        opened: boolean;
+        halfOpen: boolean;
+        stats: {
+          failures: number;
+          successes: number;
+          rejects: number;
+          fires: number;
+          timeouts: number;
+        };
+      };
+      snapshots.push({
+        kind,
+        opossumState: c.opened ? "OPEN" : c.halfOpen ? "HALF_OPEN" : "CLOSED",
+        stats: {
+          failures: c.stats?.failures ?? 0,
+          successes: c.stats?.successes ?? 0,
+          rejects: c.stats?.rejects ?? 0,
+          fires: c.stats?.fires ?? 0,
+          timeouts: c.stats?.timeouts ?? 0,
+        },
+      });
+    }
+    return snapshots;
+  }
+
+  /** Get a single child breaker, or `undefined` if no child for this kind. */
+  getChild(kind: FailureKind): CircuitBreakerOpossum | undefined {
+    return this.children.get(kind);
+  }
+
+  /** Reset all child breakers to CLOSED and delete their persisted states. */
+  reset(): void {
+    for (const child of this.children.values()) {
+      (child as unknown as { close: () => void }).close();
+    }
+    if (this.opts.persistence) {
+      deleteChildBreakerStates(this.primary.name);
+    }
+  }
+
+  /** Return the number of child breakers managed. */
+  get size(): number {
+    return this.children.size;
+  }
+
+  /** Iterable over all managed child breakers. */
+  *[Symbol.iterator](): IterableIterator<[FailureKind, CircuitBreakerOpossum]> {
+    yield* this.children.entries();
+  }
+
+  // ── Internal ────────────────────────────────────────────────────────────
+
+  private _initialize(): void {
+    for (const kind of ["rate_limit", "quota_exhausted", "transient"] as FailureKind[]) {
+      this._createChild(kind);
+    }
+    if (this.opts.persistence) {
+      this._restoreFromDb();
+    }
+  }
+
+  private _createChild(kind: FailureKind): void {
+    const childName = childStateDbName(this.primary.name, kind);
+    const child = new CircuitBreakerOpossum(createChildBreakerAction(kind), {
+      name: childName,
+      timeout: false,
+      errorThresholdPercentage: childErrorThreshold(this.primary.failureThreshold),
+      resetTimeout: this.primary.resetTimeout,
+      rollingCountTimeout: 10_000,
+      rollingCountBuckets: 10,
+      volumeThreshold: childVolumeThreshold(this.primary.failureThreshold),
+      enabled: true,
+    });
+
+    // Persist on every state transition when enabled.
+    if (this.opts.persistence) {
+      const c = child as unknown as { on: (event: string, handler: () => void) => void };
+      c.on("open", () => {
+        try {
+          saveChildBreakerState(this.primary.name, kind, {
+            state: "OPEN",
+            failureCount: (child as unknown as { stats: { failures: number } }).stats?.failures ?? 0,
+            lastFailureTime: Date.now(),
+          });
+        } catch {
+          // Non-critical — persistence is best-effort
+        }
+      });
+      c.on("close", () => {
+        try {
+          saveChildBreakerState(this.primary.name, kind, {
+            state: "CLOSED",
+            failureCount: (child as unknown as { stats: { failures: number } }).stats?.failures ?? 0,
+            lastFailureTime: null,
+          });
+        } catch {
+          // Non-critical — persistence is best-effort
+        }
+      });
+      c.on("halfOpen", () => {
+        try {
+          saveChildBreakerState(this.primary.name, kind, {
+            state: "HALF_OPEN",
+            failureCount: (child as unknown as { stats: { failures: number } }).stats?.failures ?? 0,
+            lastFailureTime: Date.now(),
+          });
+        } catch {
+          // Non-critical — persistence is best-effort
+        }
+      });
+    }
+
+    this.children.set(kind, child);
+  }
+
+  private _restoreFromDb(): void {
+    try {
+      for (const kind of ["rate_limit", "quota_exhausted", "transient"] as FailureKind[]) {
+        const saved = loadChildBreakerState(this.primary.name, kind);
+        if (!saved) continue;
+        const child = this.children.get(kind);
+        if (!child) continue;
+        if (saved.state === "OPEN") {
+          (child as unknown as { open: () => void }).open();
+        }
+        // HALF_OPEN is transient — the timer would have expired so we
+        // restore as CLOSED and let the next failure drive the state.
+      }
+    } catch {
+      // DB not ready yet
+    }
+  }
+}
+
+// ─── Per-kind shadow telemetry (factory-aware) ──────────────────────────────
+
+/**
+ * Per-kind divergence entry tracked in the extended shadow telemetry.
+ */
+export interface PerKindDivergenceEntry {
+  readonly kind: FailureKind;
+  readonly divergences: number;
+  readonly opossumOpens: number;
+}
+
+/**
+ * Extended shadow stats including per-kind information.
+ * Builds on the base {@link OpossumShadowStats} without modifying it.
+ */
+export interface OpossumShadowStatsV2 extends OpossumShadowStats {
+  readonly perKind: Record<FailureKind, PerKindDivergenceEntry>;
+}
+
+const perKindStatsInternal: Record<
+  FailureKind,
+  { divergences: number; opossumOpens: number }
+> = {
+  rate_limit: { divergences: 0, opossumOpens: 0 },
+  quota_exhausted: { divergences: 0, opossumOpens: 0 },
+  transient: { divergences: 0, opossumOpens: 0 },
+};
+
+/** Test-only: read the factory-aware shadow telemetry. */
+export function __getOpossumShadowStatsV2ForTests(): OpossumShadowStatsV2 {
+  const base = __getOpossumShadowStatsForTests();
+  return {
+    ...base,
+    perKind: {
+      rate_limit: { ...perKindStatsInternal.rate_limit, kind: "rate_limit" },
+      quota_exhausted: {
+        ...perKindStatsInternal.quota_exhausted,
+        kind: "quota_exhausted",
+      },
+      transient: { ...perKindStatsInternal.transient, kind: "transient" },
+    },
+  };
+}
+
+/** Test-only: reset the factory-aware shadow telemetry counters. */
+export function __resetOpossumShadowStatsV2ForTests(): void {
+  __resetOpossumShadowStatsForTests();
+  perKindStatsInternal.rate_limit = { divergences: 0, opossumOpens: 0 };
+  perKindStatsInternal.quota_exhausted = { divergences: 0, opossumOpens: 0 };
+  perKindStatsInternal.transient = { divergences: 0, opossumOpens: 0 };
+}
+
+/**
+ * Compute the "expected" primary state for a given failure kind based on
+ * the primary breaker's `kindFailureCounts` and `kindThresholds`.
+ *
+ * Used by the factory-aware shadow to detect if the opossum child breaker
+ * diverges from what the hand-rolled logic would produce.
+ */
+function expectedKindState(
+  primary: CircuitBreaker,
+  kind: FailureKind,
+): "CLOSED" | "OPEN" {
+  const kindCount = primary.kindFailureCounts[kind] ?? 0;
+  const kindCfg = primary.kindThresholds[kind];
+  const threshold = kindCfg?.threshold ?? primary.failureThreshold;
+  if (kindCfg?.immediateOpen && kindCount >= threshold) return "OPEN";
+  if (kindCount >= threshold) return "OPEN";
+  return "CLOSED";
+}
+
+/**
+ * Run `fn` through the primary breaker while simultaneously routing
+ * outcomes through the factory's per-kind child breakers. Detects
+ * per-kind state divergences and records them in the extended shadow
+ * telemetry (`__getOpossumShadowStatsV2ForTests`).
+ *
+ * NEVER short-circuits — the factory is passive observer only, consistent
+ * with the `runOpossumShadow()` contract.
+ */
+export async function runOpossumShadowFactory<T>(
+  primary: CircuitBreaker,
+  factory: CircuitBreakerOpossumFactory,
+  fn: () => Promise<T>,
+  classifyError?: ((error: unknown) => FailureKind | undefined) | null,
+): Promise<T> {
+  if (!shadowStatsInternal.enabled) {
+    return fn();
+  }
+
+  let kind: FailureKind | undefined;
+
+  try {
+    const result = await fn();
+    shadowStatsInternal.fires++;
+
+    // On success, record success through each child breaker to keep their
+    // statistical windows aligned with the healthy state.
+    for (const k of ["rate_limit", "quota_exhausted", "transient"] as FailureKind[]) {
+      await factory.recordOutcome(k, true);
+    }
+
+    return result;
+  } catch (error) {
+    shadowStatsInternal.fires++;
+
+    // Classify the error to determine which child breaker to drive.
+    try {
+      kind =
+        classifyError?.(error) ??
+        primary.classifyError?.(error) ??
+        undefined;
+    } catch {
+      // If classifyError throws, skip per-kind tracking for this fire.
+    }
+
+    if (kind) {
+      await factory.recordOutcome(kind, false);
+
+      // Check per-kind divergence.
+      const child = factory.getChild(kind);
+      const childCasted = child as unknown as {
+        opened: boolean;
+        halfOpen: boolean;
+      } | undefined;
+      if (childCasted) {
+        const childState = childCasted.opened
+          ? "OPEN"
+          : childCasted.halfOpen
+            ? "HALF_OPEN"
+            : "CLOSED";
+        const expected = expectedKindState(primary, kind);
+
+        if (childState === "OPEN" && expected !== "OPEN") {
+          perKindStatsInternal[kind].divergences++;
+        } else if (childState !== "OPEN" && expected === "OPEN") {
+          perKindStatsInternal[kind].divergences++;
+        }
+
+        if (childState === "OPEN") {
+          perKindStatsInternal[kind].opossumOpens++;
+          shadowStatsInternal.opossumOpens++;
+        }
+      }
+    }
+
+    throw error;
   }
 }

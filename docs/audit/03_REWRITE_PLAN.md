@@ -48,10 +48,10 @@ The fork's `src/app/api/v1/relay/chat/completions/bifrost/route.ts` is the TS ho
 
 - `omni-server/src/handlers/relay_bifrost.rs` — POST `/v1/chat/completions/bifrost` (or `/v1/relay/chat/completions/bifrost` to match the existing path) that:
   - Authenticates the request (reuse the auth pipeline in `omni-server/src/auth.rs`)
-  - Forwards the JSON body to `${BIFROST_BASE_URL}/v1/chat/completions` via `reqwest`
+  - Forwards the JSON body to the Bifrost base URL + `/v1/chat/completions` via `reqwest`
   - Streams the SSE response back to the client (use `axum::body::Body::from_stream` + `async_stream`)
   - On 502/504, returns the `X-Bifrost-Fallback` header pointing to the TS fallback (deprecate the TS route in slice 10)
-- Config: `BIFROST_BASE_URL`, `BIFROST_TIMEOUT_MS`, `BIFROST_MAX_RETRIES` (from env via `figment`)
+- Config: Bifrost base URL and timeout in environment/configuration (consistent with the existing `BIFROST_BASE_URL`/`BIFROST_TIMEOUT_MS` pattern)
 - Add `reqwest-eventsource` dep for upstream SSE parsing if we need to reframe chunks
 - Test: a `wiremock` (or `httpmock`) integration test that records the upstream call + asserts the SSE stream comes through
 - **Acceptance**: round-trip curl works against a local mock Bifrost, identical response shape to the TS route, p99 < 50ms added latency vs. direct Bifrost
@@ -91,7 +91,7 @@ The 9 formats × request + response = 18 translator pairs. The Rust `omni-transl
 
 - Audit the 97 TS migrations in `src/lib/db/migrations/`
 - Port the canonical schema to `omni-storage/src/migrations/` using `sqlx::migrate!`
-- Write a one-way TS → Rust data exporter (read the TS SQLite, write to the Rust SQLite via `sqlx`); idempotent; runs as `omniroute migrate --from=ts --to=rust`
+- Write a one-way TS → Rust data exporter (read the TS SQLite, write to the Rust SQLite via `sqlx`); idempotent migration command to run that transition from `ts` to `rust`.
 - Add an integration test that runs both migrations on a fixture DB and asserts the row counts + critical hashes match
 - **Acceptance**: a production-size TS DB (1 GB, 1M call_logs) migrates to Rust in < 5 min, zero data loss, all FKs preserved
 
@@ -146,7 +146,7 @@ Each executor: trait impl + tests + integration test against a recorded wire fix
   - `cert.rs` — dynamic cert gen via `rcgen`
   - `manager.rs` — runtime + stub (matches `src/mitm/manager.runtime.ts` + `manager.stub.ts`)
   - `dns.rs` — DNS resolution + DNS-over-HTTPS
-  - `tproxy.rs` — transparent proxy (Linux `IP_TRANSPARENT` socket; macOS `pf` rule)
+- `tproxy.rs` — transparent proxy (Linux socket-level transparent mode; macOS `pf` rule)
   - `inspector.rs` — request/response inspector
   - `system_commands.rs` — privileged command channel
   - `upstream_trust.rs` — upstream cert pinning
@@ -246,7 +246,7 @@ Concurrency budget: 4 subagents at any time. Phases 1-3 need lanes A+B+D. Phase 
 | `axum 0.7 → 0.8` migration of the user's `AuthKit` crate blocks lane A | Pin axum 0.7 in `omni-server` for now, upgrade after slice 1.2 (or in parallel)                                                                                              |
 | 97 TS migrations contain data shape drift the audit didn't catch       | Slice 3.1 includes a row-level hash diff; any drift becomes a known-delta                                                                                                    |
 | 25 executors are not enough to cut over from Bifrost                   | Slice 4.x is staged; operators flip per-provider; 25 covers ~90% of production traffic per `freeProviderRankings.ts`                                                         |
-| The TS `tsx/esm` runtime in the CLI is hard to drop                    | Slice 8 includes a one-time `omniroute init` that re-runs from a compiled Rust binary; the old `omniroute.mjs` stays as a thin shim that calls the Rust binary for 1 release |
+| The TS `tsx/esm` runtime in the CLI is hard to drop                    | Slice 8 includes a one-time CLI bootstrap path that re-runs from a compiled Rust binary; the old `omniroute.mjs` stays as a thin shim that calls the Rust binary for 1 release |
 | MCP scope enforcement in TS is a deep pattern (30 scopes × 94 tools)   | Port scope table as data, not as code; mirror in `omni-mcp/src/scopes.rs`                                                                                                    |
 | Bifrost sidecar upgrade (Maxim's roadmap)                              | Slice 1.2 keeps the TS fallback route available; one env flip switches between the Rust and TS relays                                                                        |
 | Cargo workspace compile time grows past 90s                            | `sccache` + `mold` linker + `--target-dir` in CI                                                                                                                             |

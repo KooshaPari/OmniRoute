@@ -63,7 +63,16 @@ async function verifyChecksum(filePath: string, expectedSha256: string): Promise
     stream.on("end", resolve);
     stream.on("error", reject);
   });
-  return hash.digest("hex").toLowerCase() === expectedSha256.toLowerCase();
+  const actual = hash.digest("hex").toLowerCase();
+  const expected = expectedSha256.toLowerCase();
+  if (actual.length !== expected.length) {
+    // Length-mismatch: still perform a constant-time compare against a
+    // scratch buffer so the length-oracle does not leak via timing.
+    const scratch = Buffer.alloc(actual.length);
+    crypto.timingSafeEqual(Buffer.from(actual), scratch);
+    return false;
+  }
+  return crypto.timingSafeEqual(Buffer.from(actual), Buffer.from(expected));
 }
 
 function findBinaryInDir(dir: string): string | null {

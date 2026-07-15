@@ -18,23 +18,14 @@ import {
   resolveResilienceSettings,
   type RequestQueueSettings,
 } from "../../src/lib/resilience/settings";
-
-interface LearnedLimitEntry {
-  provider: string;
-  connectionId: string;
-  lastUpdated: number;
-  limit?: number;
-  remaining?: number;
-  minTime?: number;
-}
-
-interface LimiterUpdateSettings {
-  maxConcurrent?: number | null;
-  minTime: number;
-  reservoir?: number | null;
-  reservoirRefreshAmount?: number | null;
-  reservoirRefreshInterval?: number | null;
-}
+import {
+  extractRateLimitSignal,
+  parseResetTime,
+  signalToLimiterUpdates,
+  type RateLimitSignal,
+} from "./rateLimitHeaders.ts";
+import type { LearnedLimitEntry, LimiterUpdateSettings } from "./rateLimitTypes.ts";
+import { LearnedLimitStore, loadLearnedLimits, type AppliedLimiterRegistry } from "./learnedLimitStore.ts";
 
 type JsonRecord = Record<string, unknown>;
 
@@ -78,14 +69,15 @@ const enabledConnections = new Set<string>();
 // Populated from provider_connections.rateLimitOverrides on startup and refresh.
 const connectionRateLimitOverrides = new Map<string, Record<string, number>>();
 
-// Store learned limits for persistence (debounced)
-const learnedLimits: Record<string, LearnedLimitEntry> = {};
-const MAX_LEARNED_LIMITS = 200;
+// Learned-limit persistence extracted to learnedLimitStore.ts (PR-K, 2026-07-06).
+// The store handles debounced JSON serialization, ring-buffer capping, and
+// stale-entry filtering on load. The orchestrator only sees a small surface
+// (`recordLearnedLimit`, `flushLearnedLimitsForTests`, etc.) wired below.
+const learnedLimitStore = new LearnedLimitStore();
+
 const INACTIVE_LIMITER_MS = 10 * 60 * 1000;
 const limiterLastUsed = new Map<string, number>();
-let persistTimer: ReturnType<typeof setTimeout> | null = null;
 const pendingAsyncOperations = new Set<Promise<unknown>>();
-const PERSIST_DEBOUNCE_MS = 60_000; // Debounce persistence to every 60s max
 
 // Track initialization
 let initialized = false;
@@ -599,99 +591,8 @@ export async function withRateLimit(provider, connectionId, model, fn, signal = 
 }
 
 // ─── Header Parsing ──────────────────────────────────────────────────────────
-
-/**
- * Standard headers used by most providers (OpenAI, Fireworks, etc.)
- */
-const STANDARD_HEADERS = {
-  limit: "x-ratelimit-limit-requests",
-  remaining: "x-ratelimit-remaining-requests",
-  reset: "x-ratelimit-reset-requests",
-  limitTokens: "x-ratelimit-limit-tokens",
-  remainingTokens: "x-ratelimit-remaining-tokens",
-  resetTokens: "x-ratelimit-reset-tokens",
-  retryAfter: "retry-after",
-  overLimit: "x-ratelimit-over-limit",
-};
-
-/**
- * Anthropic uses custom headers
- */
-const ANTHROPIC_HEADERS = {
-  limit: "anthropic-ratelimit-requests-limit",
-  remaining: "anthropic-ratelimit-requests-remaining",
-  reset: "anthropic-ratelimit-requests-reset",
-  limitTokens: "anthropic-ratelimit-input-tokens-limit",
-  remainingTokens: "anthropic-ratelimit-input-tokens-remaining",
-  resetTokens: "anthropic-ratelimit-input-tokens-reset",
-  retryAfter: "retry-after",
-};
-
-/**
- * Parse a reset time string into milliseconds.
- * Formats: "1s", "1m", "1h", "1ms", "60", ISO date, Unix timestamp
- */
-function parseResetTime(value) {
-  if (!value) return null;
-
-  // Duration strings: "1s", "500ms", "1m30s"
-  const durationMatch = value.match(/^(?:(\d+)h)?(?:(\d+)m(?!s))?(?:(\d+)s)?(?:(\d+)ms)?$/);
-  if (durationMatch) {
-    const [, h, m, s, ms] = durationMatch;
-    return (
-      (parseInt(h || 0) * 3600 + parseInt(m || 0) * 60 + parseInt(s || 0)) * 1000 +
-      parseInt(ms || 0)
-    );
-  }
-
-  // Pure number: assume seconds
-  const num = parseFloat(value);
-  if (!isNaN(num) && num > 0) {
-    // If it looks like a Unix timestamp (> year 2025)
-    if (num > 1700000000) {
-      return Math.max(0, num * 1000 - Date.now());
-    }
-    return num * 1000;
-  }
-
-  // ISO date string
-  try {
-    const date = new Date(value);
-    if (!isNaN(date.getTime())) {
-      return Math.max(0, date.getTime() - Date.now());
-    }
-  } catch {}
-
-  return null;
-}
-
-function toPlainHeaders(headers: unknown): Record<string, string> {
-  if (!headers) return {};
-  const plain: Record<string, string> = {};
-  const obj = headers as Record<string, unknown>;
-  if (typeof obj.forEach === "function") {
-    try {
-      (obj.forEach as (cb: (v: string, k: string) => void) => void)((v: string, k: string) => {
-        plain[k.toLowerCase()] = v;
-      });
-      return plain;
-    } catch {}
-  }
-  if (typeof obj.entries === "function") {
-    try {
-      for (const [k, v] of (obj.entries as () => Iterable<[string, string]>)()) {
-        plain[k.toLowerCase()] = v;
-      }
-      return plain;
-    } catch {}
-  }
-  try {
-    for (const [k, v] of Object.entries(obj)) {
-      plain[k.toLowerCase()] = v == null ? "" : String(v);
-    }
-  } catch {}
-  return plain;
-}
+// Header constants and parsers live in `./rateLimitHeaders.ts` (pure, unit-tested).
+// The orchestrator below consumes `extractRateLimitSignal` and `parseResetTime`.
 
 /**
  * Update rate limiter based on API response headers.
@@ -707,25 +608,12 @@ export function updateFromHeaders(provider, connectionId, headers, status, model
   if (!enabledConnections.has(connectionId)) return;
   if (!headers) return;
 
-  const plainHeaders = toPlainHeaders(headers);
+  const signal: RateLimitSignal = extractRateLimitSignal(headers, status, provider);
   const limiter = getLimiter(provider, connectionId, model);
-  const headerMap =
-    provider === "claude" || provider === "anthropic" ? ANTHROPIC_HEADERS : STANDARD_HEADERS;
 
-  // Get header values (handle both Headers object and plain object)
-  const getHeader = (name: string) => {
-    return plainHeaders[name.toLowerCase()] || null;
-  };
-
-  const limit = parseInt(getHeader(headerMap.limit));
-  const remaining = parseInt(getHeader(headerMap.remaining));
-  const resetStr = getHeader(headerMap.reset);
-  const retryAfterStr = getHeader(headerMap.retryAfter);
-  const overLimit = getHeader(STANDARD_HEADERS.overLimit);
-
-  // Handle 429 — rate limited
-  if (status === 429) {
-    const retryAfterMs = parseResetTime(retryAfterStr) || 60000; // Default 60s
+  // Handle 429 — rate limited (hard eviction + reconnect)
+  if (signal.isHardLimit) {
+    const retryAfterMs = signal.retryAfterMs ?? signal.resetMs ?? 60_000;
     const counts = limiter.counts();
     const limiterKey = getLimiterKey(provider, connectionId, model);
     logRateLimit(
@@ -750,7 +638,7 @@ export function updateFromHeaders(provider, connectionId, headers, status, model
   }
 
   // Handle "over limit" soft warning (Fireworks)
-  if (overLimit === "yes") {
+  if (signal.overLimit) {
     logRateLimit(
       `⚠️ [RATE-LIMIT] ${provider}:${connectionId.slice(0, 8)} — near capacity, slowing down`
     );
@@ -760,40 +648,27 @@ export function updateFromHeaders(provider, connectionId, headers, status, model
     return;
   }
 
-  // Normal response — update limiter from headers
-  if (!isNaN(limit) && limit > 0) {
-    const resetMs = parseResetTime(resetStr) || 60000;
+  // Normal response — delegate limiter-update math to the pure signalToLimiterUpdates helper
+  const updates = signalToLimiterUpdates(signal);
+  if (updates !== null) {
+    limiter.updateSettings(updates as LimiterUpdateSettings);
 
-    // Calculate optimal minTime from RPM limit
-    const minTime = Math.max(0, Math.floor(60000 / limit) - 10); // Small buffer
-
-    const updates: LimiterUpdateSettings = { minTime };
-
-    // If remaining is low (< 10% of limit), set reservoir to throttle immediately
-    if (!isNaN(remaining)) {
-      if (remaining < limit * 0.1) {
-        updates.reservoir = remaining;
-        updates.reservoirRefreshAmount = limit;
-        updates.reservoirRefreshInterval = resetMs;
-        logRateLimit(
-          `⚠️ [RATE-LIMIT] ${provider}:${connectionId.slice(0, 8)} — ${remaining}/${limit} remaining, throttling`
-        );
-      } else if (remaining > limit * 0.5) {
-        // Plenty of headroom — relax the limiter
-        updates.minTime = 0;
-        updates.reservoir = null;
-        updates.reservoirRefreshAmount = null;
-        updates.reservoirRefreshInterval = null;
-      }
+    // Log the low-headroom throttling transition for observability
+    if (updates.reservoir != null && signal.remaining != null && signal.limit != null) {
+      logRateLimit(
+        `⚠️ [RATE-LIMIT] ${provider}:${connectionId.slice(0, 8)} — ${signal.remaining}/${signal.limit} remaining, throttling`
+      );
     }
-
-    limiter.updateSettings(updates);
 
     // Persist learned limits (debounced)
     recordLearnedLimit(
       provider,
       connectionId,
-      { limit, remaining, minTime: updates.minTime },
+      {
+        limit: signal.limit ?? undefined,
+        remaining: signal.remaining ?? undefined,
+        minTime: typeof updates.minTime === "number" ? updates.minTime : undefined,
+      },
       model
     );
   }
@@ -846,65 +721,41 @@ export function getAllRateLimitStatus() {
  * Get all learned limits (for dashboard display).
  */
 export function getLearnedLimits() {
-  return { ...learnedLimits };
+  return learnedLimitStore.getAll();
 }
 
 // ─── Persistence ────────────────────────────────────────────────────────────
+// Persistence, debouncing, stale-entry filtering, and ring-buffer capping all
+// live in `./learnedLimitStore.ts`. The orchestrator only sees `record`,
+// `flush`, `load`, and `getAll` through the store instance.
 
-async function persistLearnedLimitsNow() {
-  try {
-    const { updateSettings } = await import("@/lib/db/settings");
-    await updateSettings({ learnedRateLimits: JSON.stringify(learnedLimits) });
-    logRateLimit(
-      `💾 [RATE-LIMIT] Persisted learned limits for ${Object.keys(learnedLimits).length} provider(s)`
-    );
-  } catch (err) {
-    errorRateLimit("[RATE-LIMIT] Failed to persist learned limits:", err.message);
-  }
-}
-
-/**
- * Record a learned limit for debounced persistence.
- */
 function recordLearnedLimit(
   provider: string,
   connectionId: string,
-  limits: Partial<Omit<LearnedLimitEntry, "provider" | "connectionId" | "lastUpdated">>,
+  limits: Partial<Omit<LearnedLimitEntry, "provider" | "connectionId" | "lastUpdated" | "model">>,
   model: string | null = null
 ) {
   const key = getLimiterKey(provider, connectionId, model);
-  learnedLimits[key] = {
-    ...limits,
-    provider,
-    connectionId,
-    lastUpdated: Date.now(),
-  };
-
-  // Debounce: save at most once per PERSIST_DEBOUNCE_MS
-  if (!persistTimer) {
-    persistTimer = setTimeout(async () => {
-      persistTimer = null;
-      await trackAsyncOperation(persistLearnedLimitsNow());
-    }, PERSIST_DEBOUNCE_MS);
-  }
+  learnedLimitStore.record(
+    key,
+    {
+      provider,
+      connectionId,
+      ...limits,
+    },
+    model
+  );
 }
 
 export async function __flushLearnedLimitsForTests() {
-  if (persistTimer) {
-    clearTimeout(persistTimer);
-    persistTimer = null;
-  }
-  await trackAsyncOperation(persistLearnedLimitsNow());
+  await learnedLimitStore.flush();
   if (pendingAsyncOperations.size > 0) {
     await Promise.allSettled(Array.from(pendingAsyncOperations));
   }
 }
 
 export async function __resetRateLimitManagerForTests() {
-  if (persistTimer) {
-    clearTimeout(persistTimer);
-    persistTimer = null;
-  }
+  learnedLimitStore.reset();
 
   // Collect and await all disconnect() Promises so Bottleneck's internal
   // yieldLoop(0) calls settle before the next test starts. Not awaiting
@@ -920,10 +771,6 @@ export async function __resetRateLimitManagerForTests() {
   lastDispatchAt.clear();
   limiterLastUsed.clear();
   shutdownHandlersRegistered = false;
-
-  for (const key of Object.keys(learnedLimits)) {
-    delete learnedLimits[key];
-  }
 
   if (pendingAsyncOperations.size > 0) {
     await Promise.allSettled(Array.from(pendingAsyncOperations));
@@ -951,55 +798,31 @@ export async function __getLimiterStateForTests(provider, connectionId, model = 
 }
 
 /**
+ * Adapter that exposes the orchestrator's limiters through the
+ * AppliedLimiterRegistry interface expected by loadLearnedLimits().
+ */
+const limiterRegistry: AppliedLimiterRegistry = {
+  has(connectionId: string): boolean {
+    return enabledConnections.has(connectionId);
+  },
+  get(key: string) {
+    const limiter = limiters.get(key);
+    if (!limiter) return undefined;
+    return {
+      updateSettings: (settings) => {
+        limiter.updateSettings(settings);
+      },
+    };
+  },
+};
+
+/**
  * Load persisted learned limits on startup.
  */
 async function loadPersistedLimits() {
-  try {
-    const { getSettings } = await import("@/lib/db/settings");
-    const settings = await getSettings();
-    const raw = settings?.learnedRateLimits;
-    if (typeof raw !== "string" || raw.trim().length === 0) return;
-
-    const parsed = toRecord(JSON.parse(raw) as unknown);
-    let count = 0;
-
-    for (const [key, dataRaw] of Object.entries(parsed)) {
-      const data = toRecord(dataRaw);
-      const lastUpdated = toNumber(data.lastUpdated, 0);
-      // Skip stale entries (older than 24h)
-      if (lastUpdated > 0 && Date.now() - lastUpdated > 24 * 60 * 60 * 1000) continue;
-
-      const connectionId = typeof data.connectionId === "string" ? data.connectionId : "";
-      const provider = typeof data.provider === "string" ? data.provider : "";
-      const limit = toNumber(data.limit, 0);
-      const remaining = toNumber(data.remaining, 0);
-      const minTime = toNumber(data.minTime, 0);
-
-      learnedLimits[key] = {
-        provider,
-        connectionId,
-        lastUpdated,
-        ...(limit > 0 ? { limit } : {}),
-        ...(remaining >= 0 ? { remaining } : {}),
-        ...(minTime >= 0 ? { minTime } : {}),
-      };
-
-      // Apply to limiter if it exists and has rate limit enabled
-      if (connectionId && enabledConnections.has(connectionId)) {
-        const limiter = limiters.get(key);
-        if (limiter && limit > 0) {
-          const inferredMinTime = minTime || Math.max(0, Math.floor(60000 / limit) - 10);
-          limiter.updateSettings({ minTime: inferredMinTime });
-          count++;
-        }
-      }
-    }
-
-    if (count > 0) {
-      logRateLimit(`📥 [RATE-LIMIT] Restored ${count} learned rate limit(s) from persistence`);
-    }
-  } catch (err) {
-    errorRateLimit("[RATE-LIMIT] Failed to load persisted limits:", err.message);
+  const { applied, loaded } = await loadLearnedLimits(learnedLimitStore, limiterRegistry);
+  if (applied > 0) {
+    logRateLimit(`📥 [RATE-LIMIT] Restored ${applied} learned rate limit(s) from persistence (${loaded} entries)`);
   }
 }
 

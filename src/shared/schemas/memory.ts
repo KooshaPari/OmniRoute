@@ -16,7 +16,12 @@ export const MemorySettingsExtendedSchema = z
     staticEnabled: z.boolean().optional(),
     rerankEnabled: z.boolean().optional(),
     rerankProviderModel: z.string().nullable().optional(),
-    vectorStore: z.enum(["sqlite-vec", "qdrant", "auto"]).optional(),
+    vectorStore: z
+      .enum(["sqlite-vec", "qdrant", "auto"])
+      .optional()
+      .describe(
+        "Legacy: 'qdrant' is accepted but routes through sqlite-vec (migration 2026-07)."
+      ),
   })
   .strict();
 
@@ -96,10 +101,10 @@ export const MemoryEngineStatusSchema = z.object({
     reason: z.string(),
   }),
   qdrant: z.object({
-    enabled: z.boolean(),
-    healthy: z.boolean().nullable(),
-    latencyMs: z.number().nullable(),
-    error: z.string().nullable(),
+    enabled: z.literal(false),
+    healthy: z.null(),
+    latencyMs: z.null(),
+    error: z.null(),
   }),
   rerank: z.object({
     enabled: z.boolean(),
@@ -120,7 +125,7 @@ export const RetrievePreviewResultSchema = z.object({
       content: z.string(),
       score: z.number(),
       tokens: z.number(),
-      tier: z.enum(["fts5", "vector", "hybrid-rrf", "qdrant"]),
+      tier: z.enum(["fts5", "vector", "hybrid-rrf"]),
       vecScore: z.number().nullable(),
       ftsScore: z.number().nullable(),
     })
@@ -128,7 +133,9 @@ export const RetrievePreviewResultSchema = z.object({
   resolution: z.object({
     embeddingSource: z.enum(["remote", "static", "transformers"]).nullable(),
     embeddingModel: z.string().nullable(),
-    vectorStore: z.enum(["sqlite-vec", "qdrant", "none"]),
+    vectorStore: z
+      .enum(["sqlite-vec", "qdrant", "none"])
+      .describe("Legacy: 'qdrant' routes through sqlite-vec (migration 2026-07)."),
     strategyUsed: z.enum(["exact", "semantic", "hybrid"]),
     rerankApplied: z.boolean(),
     fallbackReason: z.string().nullable(),

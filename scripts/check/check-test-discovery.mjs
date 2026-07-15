@@ -74,6 +74,15 @@ export const COLLECTORS = [
     glob: "open-sse/services/__tests__/antigravity-quota-family.test.ts",
     sources: ["vitest.mcp.config.ts"],
   },
+  // Node/Vitest suite in tests/unit/open-sse was moved from older locations and runs under vitest.config.ts.
+  { glob: "tests/unit/open-sse/**/*.test.ts", sources: ["vitest.config.ts"] },
+  // Node/Vitest suite in tests/unit/plugins was added for signing/marketplace key tests.
+  { glob: "tests/unit/plugins/**/*.test.ts", sources: ["vitest.config.ts"] },
+  // Compression adapter suites (including moved translator-friendly UI tests) are routed in full Vitest runs.
+  {
+    glob: "tests/unit/compression/adapters/**/*.test.tsx",
+    sources: ["vitest.config.ts"],
+  },
   { glob: "tests/unit/autoCombo/**/*.test.ts", sources: ["vitest.mcp.config.ts"] },
   { glob: "tests/unit/encryption.spec.ts", sources: ["vitest.mcp.config.ts"] },
   { glob: "src/shared/components/**/*.test.tsx", sources: ["vitest.mcp.config.ts"] },

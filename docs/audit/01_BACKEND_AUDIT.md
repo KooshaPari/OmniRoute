@@ -133,7 +133,7 @@ JSON-RPC 2.0 at `POST /a2a`; REST at `/api/a2a/*`. Agent Card at `/.well-known/a
 
 `open-sse/translator/` is the format-conversion engine. Each `*to*.ts` file in `request/` and `response/` is a bidirectional translator between two formats (e.g. `openai-to-claude.ts` request, `claude-to-openai.ts` response). `formats.ts` enumerates 9 canonical formats; `registry.ts` registers them at startup; `index.ts` (`bootstrapTranslatorRegistry`) wires it.
 
-Streaming translation (`open-sse/translator/streaming.ts`) handles SSE chunk-by-chunk conversion between formats. The `caveman` and `rtk` compression engines (`open-sse/compression/*` — RTK, Caveman, Aggressive, Adaptive, plus `pipeline.rs`/`pipeline.ts` and `preservers`) are applied in the translator pipeline when enabled per-combo.
+Streaming translation (`open-sse/translator/response/openai-responses.ts` and `open-sse/translator/index.ts`) handles SSE chunk-by-chunk conversion between formats. The `caveman` and `rtk` compression engines (`open-sse/compression/*` — RTK, Caveman, Aggressive, Adaptive, plus `pipeline.rs`/`pipeline.ts` and `preservers`) are applied in the translator pipeline when enabled per-combo.
 
 ## 6. State and storage
 
@@ -216,7 +216,7 @@ A real MITM HTTPS proxy: cert generation, DNS resolution, transparent proxy (tpr
 | OpenAI Chat Completions         | upstream         | `open-sse/handlers/chatCore`                                          |
 | OpenAI Responses                | upstream         | `open-sse/handlers/responsesHandler`                                  |
 | Anthropic Messages              | upstream         | `open-sse/handlers/anthropic`                                         |
-| Gemini GenerateContent          | upstream         | `open-sse/translator/openai-to-gemini.ts`                             |
+| Gemini GenerateContent          | upstream         | `open-sse/translator/request/openai-to-gemini.ts`                             |
 | MCP JSON-RPC 2.0                | Anthropic        | `open-sse/mcp-server/server.ts`                                       |
 | A2A JSON-RPC 2.0 v0.3           | Linux Foundation | `src/lib/a2a/taskExecution.ts`                                        |
 | OpenAI-compatible MCP responses | fork-only        | `open-sse/executors/openaiCompatibleRouting.ts`                       |

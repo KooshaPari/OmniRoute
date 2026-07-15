@@ -436,8 +436,11 @@ export default function A2ADashboardPage() {
               </thead>
               <tbody>
                 {tasksData.tasks.map((task) => {
-                  const fsmPhase =
-                    task.metadata?.fsmPhase || (task.metadata?.workflowFSM as any)?.currentPhase;
+                  // FSM phase is populated when a workflow executor writes to
+                  // task.metadata.fsmPhase. The legacy `workflowFSM` object branch
+                  // was removed in the workflowFSM.ts cleanup (no producer exists);
+                  // persisted records carry fsmPhase only.
+                  const fsmPhase = task.metadata?.fsmPhase;
                   let fsmBadgeColor = "bg-gray-500/15 text-gray-500";
                   if (fsmPhase === "plan" || fsmPhase === "plan_review")
                     fsmBadgeColor = "bg-purple-500/15 text-purple-500";

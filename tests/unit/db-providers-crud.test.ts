@@ -258,6 +258,41 @@ test("deleteProviderConnections with empty array returns 0", async () => {
   assert.equal(deleted, 0);
 });
 
+test("updateProviderConnection sanitizes malformed scalar fields", async () => {
+  const connection = await providersDb.createProviderConnection({
+    provider: "openai",
+    authType: "apikey",
+    name: "MalformedUpdate",
+    apiKey: "sk-mock",
+    priority: 10,
+    backoffLevel: 5,
+  });
+
+  const malformed = {
+    backoffLevel: {} as unknown,
+    errorCode: {} as unknown,
+    testStatus: {} as unknown,
+    priority: {} as unknown,
+    group: {} as unknown,
+  };
+
+  const updated = await providersDb.updateProviderConnection((connection as any).id, malformed);
+
+  assert.notEqual(updated, null);
+  const fetched = await providersDb.getProviderConnectionById((connection as any).id);
+
+  assert.equal((updated as any).backoffLevel, 0);
+  assert.equal((fetched as any).backoffLevel, 0);
+  assert.equal((updated as any).errorCode, undefined);
+  assert.equal((fetched as any).errorCode, undefined);
+  assert.equal((updated as any).testStatus, undefined);
+  assert.equal((fetched as any).testStatus, undefined);
+  assert.equal((updated as any).priority, 0);
+  assert.equal((fetched as any).priority, 1);
+  assert.equal((updated as any).group, undefined);
+  assert.equal((fetched as any).group, undefined);
+});
+
 test("provider node CRUD supports filter, update and delete", async () => {
   const customNode = await providersDb.createProviderNode({
     type: "custom",

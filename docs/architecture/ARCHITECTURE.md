@@ -464,7 +464,7 @@ A finite-state-machine driven router layered above combo selection to direct
 traffic based on the detected workflow stage (planning, execution,
 review) and background-task affinity.
 
-- Workflow FSM: `open-sse/services/workflowFSM.ts`
+- Workflow state transitions: `open-sse/services/taskAwareRouter.ts`
 - Task-aware router: `open-sse/services/taskAwareRouter.ts`
 - Background task detector: `open-sse/services/backgroundTaskDetector.ts`
 - Intent classifier: `open-sse/services/intentClassifier.ts`

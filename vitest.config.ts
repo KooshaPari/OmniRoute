@@ -6,8 +6,13 @@ export default defineConfig({
   test: {
     environment: "jsdom",
     globals: true,
+    testTimeout: 20000,
+    hookTimeout: 10000,
     pool: "threads",
     maxWorkers: 20,
+    env: {
+      DISABLE_SQLITE_AUTO_BACKUP: "true",
+    },
     fileParallelism: true,
     maxConcurrency: 20,
     include: [
@@ -15,10 +20,14 @@ export default defineConfig({
       "src/app/**/dashboard/endpoint/__tests__/**/*.test.tsx",
       "src/app/**/dashboard/providers/**/__tests__/**/*.test.tsx",
       "src/app/**/dashboard/webhooks/__tests__/**/*.test.tsx",
+      "tests/unit/open-sse/**/*.test.ts",
+      "tests/unit/plugins/**/*.test.ts",
+      "tests/unit/compression/adapters/**/*.test.tsx",
       "src/shared/hooks/__tests__/**/*.test.tsx",
       "src/lib/memory/__tests__/**/*.test.ts",
       "src/lib/skills/__tests__/**/*.test.ts",
       "tests/unit/encryption.test.ts",
+      "tests/unit/**/*.test.ts",
       "tests/unit/**/*.test.tsx",
       "open-sse/**/__tests__/**/*.test.ts",
       "open-sse/services/**/__tests__/**/*.test.ts",

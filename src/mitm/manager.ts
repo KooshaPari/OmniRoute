@@ -1,4 +1,4 @@
-import { spawn, type ChildProcess } from "child_process";
+import { Worker } from "worker_threads";
 import path from "path";
 import fs from "fs";
 import { resolveMitmDataDir } from "./dataDir.ts";
@@ -53,8 +53,7 @@ export function interpretMitmStartupError(stderr: string, port: number): string 
 }
 
 // Store server process
-let serverProcess: ChildProcess | null = null;
-let serverPid: number | null = null;
+let serverProcess: Worker | null = null;
 
 // Set when getMitmStatus() finds a stale PID file (server died without clean
 // teardown). The dashboard surfaces this to offer a one-click Repair. Cleared
@@ -180,16 +179,6 @@ const urlPath =
 
 const cwdPath = path.join(process.cwd(), "src", "mitm", "server.cjs");
 const MITM_SERVER_PATH = fs.existsSync(cwdPath) ? cwdPath : urlPath;
-
-// Check if a PID is alive
-function isProcessAlive(pid: number): boolean {
-  try {
-    process.kill(pid, 0);
-    return true;
-  } catch {
-    return false;
-  }
-}
 
 /**
  * Enumerate every hostname OmniRoute may have written to /etc/hosts during
@@ -318,7 +307,9 @@ export function installCleanupHandlers(): void {
   _cleanupHandlersInstalled = true;
   const onSignal = (signal: string) => {
     try {
-      if (serverProcess && !serverProcess.killed) serverProcess.kill("SIGTERM");
+      if (serverProcess) {
+        serverProcess.terminate().catch(() => {});
+      }
     } catch {
       // ignore
     }
@@ -341,30 +332,9 @@ export async function getMitmStatus(): Promise<{
   certExists: boolean;
   orphanedStateDetected: boolean;
 }> {
-  // Check in-memory process first, then fallback to PID file
-  let running = serverProcess !== null && !serverProcess.killed;
-  let pid = serverPid;
-
-  if (!running) {
-    try {
-      if (fs.existsSync(PID_FILE)) {
-        const savedPid = parseInt(fs.readFileSync(PID_FILE, "utf-8").trim(), 10);
-        if (savedPid && isProcessAlive(savedPid)) {
-          running = true;
-          pid = savedPid;
-        } else {
-          // Stale PID file: the server died without clean teardown. We cannot
-          // run privileged cleanup here (no sudo password in a status read),
-          // so flag it for the dashboard to offer a one-click Repair. (Gap 7.)
-          fs.unlinkSync(PID_FILE);
-          _orphanedStateDetected = true;
-          log.warn("Stale MITM PID file found — system state may be orphaned (offer Repair).");
-        }
-      }
-    } catch {
-      // Ignore
-    }
-  }
+  // Check in-memory process
+  let running = serverProcess !== null;
+  let pid: number | null = null;
 
   // Check DNS configuration
   let dnsConfigured = false;
@@ -528,7 +498,7 @@ export async function startMitm(
     }
   }
 
-  serverProcess = spawn(process.execPath, [MITM_SERVER_PATH], {
+  serverProcess = new Worker(MITM_SERVER_PATH, {
     env: {
       ...process.env,
       ROUTER_API_KEY: apiKey,
@@ -536,44 +506,29 @@ export async function startMitm(
       INSPECTOR_INTERNAL_INGEST_TOKEN: ingestToken,
       NODE_ENV: "production",
     },
-    detached: false,
-    stdio: ["ignore", "pipe", "pipe"],
+    stdout: true,
+    stderr: true,
   });
-
-  const proc = serverProcess;
-  serverPid = proc.pid ?? null;
-
-  // Save PID to file
-  if (serverPid !== null) {
-    fs.writeFileSync(PID_FILE, String(serverPid));
-  }
 
   // Buffer recent stderr so a startup failure can be reported with its real
   // cause (capped to avoid unbounded growth on a chatty/looping process). (#3606)
   let stderrBuffer = "";
 
   // Log server output
-  proc.stdout?.on("data", (data) => {
+  const wrk = serverProcess;
+  wrk.stdout?.on("data", (data) => {
     log.info({ source: "mitm-server" }, data.toString().trim());
   });
 
-  proc.stderr?.on("data", (data) => {
+  wrk.stderr?.on("data", (data) => {
     const chunk = data.toString();
     stderrBuffer = (stderrBuffer + chunk).slice(-4000);
     log.error({ source: "mitm-server" }, chunk.trim());
   });
 
-  proc.on("exit", (code) => {
-    log.info({ exitCode: code }, "MITM server exited");
+  wrk.on("exit", (exitCode) => {
+    log.info({ exitCode }, "MITM server exited");
     serverProcess = null;
-    serverPid = null;
-
-    // Remove PID file
-    try {
-      fs.unlinkSync(PID_FILE);
-    } catch (error) {
-      // Ignore
-    }
   });
 
   // Wait and verify server actually started
@@ -586,7 +541,7 @@ export async function startMitm(
       }
     }, 2000);
 
-    proc.on("exit", () => {
+    wrk.on("exit", () => {
       clearTimeout(timeout);
       if (!resolved) {
         resolved = true;
@@ -596,7 +551,7 @@ export async function startMitm(
 
     // Fail fast on any "❌" diagnostic line from server.cjs (covers EADDRINUSE,
     // EACCES, missing ROUTER_API_KEY, and any other server.on("error") cause).
-    proc.stderr?.on("data", (data) => {
+    wrk.stderr?.on("data", (data) => {
       const msg = data.toString();
       if (msg.includes("❌")) {
         clearTimeout(timeout);
@@ -614,7 +569,7 @@ export async function startMitm(
 
   return {
     running: true,
-    pid: serverPid,
+    pid: null,
     certTrusted,
   };
 }
@@ -624,36 +579,14 @@ export async function startMitm(
  * @param {string} sudoPassword - Sudo password for DNS cleanup
  */
 export async function stopMitm(sudoPassword: string): Promise<{ running: false; pid: null }> {
-  // 1. Kill server process (in-memory or from PID file)
-  const proc = serverProcess;
-  if (proc && !proc.killed) {
+  // 1. Terminate the Worker (no PID file fallback needed — Workers are in-process)
+  if (serverProcess) {
     log.info("Stopping MITM server...");
-    proc.kill("SIGTERM");
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    if (!proc.killed) {
-      proc.kill("SIGKILL");
-    }
+    await Promise.race([
+      serverProcess.terminate(),
+      new Promise((resolve) => setTimeout(resolve, 1000)),
+    ]);
     serverProcess = null;
-    serverPid = null;
-  } else {
-    // Fallback: kill by PID file
-    try {
-      if (fs.existsSync(PID_FILE)) {
-        const savedPid = parseInt(fs.readFileSync(PID_FILE, "utf-8").trim(), 10);
-        if (savedPid && isProcessAlive(savedPid)) {
-          log.info({ pid: savedPid }, "Killing MITM server by PID...");
-          process.kill(savedPid, "SIGTERM");
-          await new Promise((resolve) => setTimeout(resolve, 1000));
-          if (isProcessAlive(savedPid)) {
-            process.kill(savedPid, "SIGKILL");
-          }
-        }
-      }
-    } catch {
-      // Ignore
-    }
-    serverProcess = null;
-    serverPid = null;
   }
 
   // 2. Remove DNS entries — Antigravity defaults PLUS every agent + custom host

@@ -1,16 +1,17 @@
+// @vitest-environment node
 /**
  * tests/unit/quota-store-factory.test.ts
  *
  * Coverage for src/lib/quota/storeFactory.ts:
- *   - Default driver = sqlite
+ *   - Default driver = keyv (uses @keyv/sqlite, no sidecar)
  *   - Env override QUOTA_STORE_DRIVER=redis + URL → redis store (if ioredis available)
- *   - Driver redis + URL absent → fallback sqlite
+ *   - Driver redis + URL absent → fallback keyv
  *   - Singleton: multiple calls return same instance
  *   - resetQuotaStoreSingleton() resets
  */
 
-import test from "node:test";
-import assert from "node:assert/strict";
+import { describe, it, beforeEach, afterEach, afterAll, beforeAll, expect } from "vitest";
+;
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
@@ -43,7 +44,7 @@ async function resetStorage() {
 const origDriver = process.env.QUOTA_STORE_DRIVER;
 const origRedisUrl = process.env.QUOTA_STORE_REDIS_URL;
 
-test.beforeEach(async () => {
+beforeEach(async () => {
   await resetStorage();
   // Reset env
   delete process.env.QUOTA_STORE_DRIVER;
@@ -53,7 +54,7 @@ test.beforeEach(async () => {
   resetQuotaStoreSingleton();
 });
 
-test.after(async () => {
+afterAll(async () => {
   core.resetDbInstance();
   if (fs.existsSync(TEST_DATA_DIR)) {
     fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
@@ -67,31 +68,33 @@ test.after(async () => {
 
 // ─── Default driver ──────────────────────────────────────────────────────────
 
-test("storeFactory: default driver is sqlite", async () => {
+it("storeFactory: default driver is keyv", async () => {
   const { getQuotaStore, resetQuotaStoreSingleton } = await import("../../src/lib/quota/storeFactory.ts");
   resetQuotaStoreSingleton();
+  delete process.env.QUOTA_STORE_DRIVER; // ensure default branch
 
   const store = await getQuotaStore();
-  assert.ok(store, "Should return a store");
-  // SQLite store has consume/peek/poolUsage/clear
-  assert.ok(typeof store.consume === "function");
-  assert.ok(typeof store.peek === "function");
-  assert.ok(typeof store.poolUsage === "function");
-  assert.ok(typeof store.clear === "function");
+  expect(store, "Should return a store");
+  // The store surface is identical regardless of driver (keyv/sqlite/redis all
+  // implement QuotaStore).
+  expect(typeof store.consume === "function");
+  expect(typeof store.peek === "function");
+  expect(typeof store.poolUsage === "function");
+  expect(typeof store.clear === "function");
 });
 
 // ─── Singleton behaviour ─────────────────────────────────────────────────────
 
-test("storeFactory: multiple calls return same singleton", async () => {
+it("storeFactory: multiple calls return same singleton", async () => {
   const { getQuotaStore, resetQuotaStoreSingleton } = await import("../../src/lib/quota/storeFactory.ts");
   resetQuotaStoreSingleton();
 
   const store1 = await getQuotaStore();
   const store2 = await getQuotaStore();
-  assert.strictEqual(store1, store2);
+  expect(store1, store2);
 });
 
-test("storeFactory: resetQuotaStoreSingleton() creates new instance on next call", async () => {
+it("storeFactory: resetQuotaStoreSingleton() creates new instance on next call", async () => {
   const { getQuotaStore, resetQuotaStoreSingleton } = await import("../../src/lib/quota/storeFactory.ts");
   resetQuotaStoreSingleton();
 
@@ -101,12 +104,12 @@ test("storeFactory: resetQuotaStoreSingleton() creates new instance on next call
 
   // After reset, a new instance is created (may or may not be the same object
   // since singleton is re-created — but the important thing is it doesn't throw)
-  assert.ok(store2, "Should return a new store after reset");
+  expect(store2, "Should return a new store after reset");
 });
 
 // ─── Redis driver + no URL → fallback sqlite ─────────────────────────────────
 
-test("storeFactory: QUOTA_STORE_DRIVER=redis without URL → fallback to sqlite", async () => {
+it("storeFactory: QUOTA_STORE_DRIVER=redis without URL → fallback to sqlite", async () => {
   const { getQuotaStore, resetQuotaStoreSingleton } = await import("../../src/lib/quota/storeFactory.ts");
   resetQuotaStoreSingleton();
 
@@ -115,26 +118,26 @@ test("storeFactory: QUOTA_STORE_DRIVER=redis without URL → fallback to sqlite"
 
   // Should not throw — should fall back to sqlite
   const store = await getQuotaStore();
-  assert.ok(store, "Should return a valid store (sqlite fallback)");
-  assert.ok(typeof store.consume === "function");
+  expect(store, "Should return a valid store (sqlite fallback)");
+  expect(typeof store.consume === "function");
 });
 
 // ─── Unknown driver → fallback sqlite ────────────────────────────────────────
 
-test("storeFactory: unknown driver value → falls back to sqlite silently", async () => {
+it("storeFactory: unknown driver value → falls back to sqlite silently", async () => {
   const { getQuotaStore, resetQuotaStoreSingleton } = await import("../../src/lib/quota/storeFactory.ts");
   resetQuotaStoreSingleton();
 
   (process.env as Record<string, string>).QUOTA_STORE_DRIVER = "memcached";
 
   const store = await getQuotaStore();
-  assert.ok(store, "Should return sqlite store as fallback");
-  assert.ok(typeof store.consume === "function");
+  expect(store, "Should return sqlite store as fallback");
+  expect(typeof store.consume === "function");
 });
 
 // ─── Redis driver + invalid URL (ioredis not installed) → fallback ────────────
 
-test("storeFactory: QUOTA_STORE_DRIVER=redis with invalid URL → fallback or throws gracefully", async () => {
+it("storeFactory: QUOTA_STORE_DRIVER=redis with invalid URL → fallback or throws gracefully", async () => {
   const { getQuotaStore, resetQuotaStoreSingleton } = await import("../../src/lib/quota/storeFactory.ts");
   resetQuotaStoreSingleton();
 
@@ -146,6 +149,6 @@ test("storeFactory: QUOTA_STORE_DRIVER=redis with invalid URL → fallback or th
   // If not installed: factory falls back to sqlite.
   // Either way, no throw — returns a valid store.
   const store = await getQuotaStore();
-  assert.ok(store, "Should always return a valid store");
-  assert.ok(typeof store.consume === "function");
+  expect(store, "Should always return a valid store");
+  expect(typeof store.consume === "function");
 });

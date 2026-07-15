@@ -50,7 +50,6 @@
     "tests/unit/shared/components/KiroAuthModal.test.tsx",
     "tests/unit/shared/components/ProxyConfigModal.test.tsx",
     "tests/unit/translator-friendly-advanced-section.test.tsx",
-    "tests/unit/translator-friendly-compression.test.tsx",
     "tests/unit/translator-friendly-concept-card.test.tsx",
     "tests/unit/translator-friendly-integration.test.tsx",
     "tests/unit/translator-friendly-monitor-tab.test.tsx",

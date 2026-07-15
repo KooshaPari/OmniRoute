@@ -1,6 +1,5 @@
 import figlet from "figlet";
 import gradient from "gradient-string";
-import chalkAnimation from "chalk-animation";
 
 /**
  * Display banner
@@ -29,16 +28,16 @@ export function showSimpleBanner() {
 }
 
 /**
- * Display success animation
+ * Display success — uses gradient.rainbow (no animated frame renderer
+ * needed; chalk-animation dropped because it pulls in tween + dependencies
+ * just for a one-shot rainbow; `gradient-string` provides the same effect
+ * in pure-string form).
  */
 export async function showSuccess(message: string) {
-  return new Promise<void>((resolve) => {
-    const animation = chalkAnimation.rainbow(`\n✨ ${message}\n`);
-    setTimeout(() => {
-      animation.stop();
-      resolve();
-    }, 1000);
-  });
+  const rainbow = gradient.rainbow(`\n✨ ${message}\n`);
+  console.log(rainbow);
+  // Brief pause preserves the original UX intent (non-blocking display window)
+  return new Promise<void>((resolve) => setTimeout(resolve, 200));
 }
 
 /**

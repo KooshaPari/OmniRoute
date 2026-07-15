@@ -1,0 +1,9 @@
+{
+  "indentStyle": "space",
+  "indentWidth": 2,
+  "lineWidth": 100,
+  "quotes": "double",
+  "semicolons": true,
+  "trailingCommas": "es5",
+  "ignorePatterns": ["node_modules/**", ".build/**", "dist/**", "coverage/**"]
+}

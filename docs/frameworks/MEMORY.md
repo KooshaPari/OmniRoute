@@ -580,7 +580,7 @@ default TTL 5 min).
   - `src/app/api/memory/summarize/route.ts`
   - `src/app/api/memory/reindex/route.ts`
   - `src/app/api/settings/memory/route.ts`
-  - `src/app/api/settings/qdrant/route.ts` + sub-routes
+- `src/app/api/settings/memory/route.ts` and `src/app/api/settings/memory` sub-routes
   - `src/app/(dashboard)/dashboard/memory/` — Studio UI (page + components +
     tabs + hooks)
   - `open-sse/handlers/chatCore.ts` (injection / extraction wiring)

@@ -38,8 +38,16 @@ export const PlanUpsertSchema = z.object({
 });
 
 export const QuotaStoreSettingsSchema = z.object({
-  driver: z.enum(["sqlite", "redis"]),
+  driver: z.enum(["sqlite", "redis", "keyv"]),
   redisUrl: z.string().url().nullable().optional(),
+  /**
+   * Keyv URL — only used when `driver === "keyv"`.
+   * Examples:
+   *   keyv://memory
+   *   keyv://sqlite/var/lib/omniroute/kv.sqlite
+   *   keyv://sqlite?path=/tmp/omniroute-kv.sqlite&table=quota
+   */
+  kvUrl: z.string().min(1).nullable().optional(),
 });
 
 export const QuotaPreviewQuerySchema = z.object({
