@@ -10,7 +10,7 @@ permissions:
   contents: read
 jobs:
   dast-smoke:
-    runs-on: [self-hosted, linux, x64]
+    runs-on: ubuntu-latest
     # ADVISORY while this new gate matures (repo convention: advisory -> blocking).
     # Flip to blocking (remove continue-on-error) once it's proven stable across a few PRs.
     continue-on-error: true
