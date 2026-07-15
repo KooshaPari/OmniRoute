@@ -28,4 +28,36 @@ test("appendIssueAgentAuditRecord writes redacted JSONL under explicit data dir"
   assert.equal(row.dryRun, true);
   assert.doesNotMatch(payload, /sk-secret/);
   assert.match(payload, /\[REDACTED\]/);
+  assert.equal(row.state, "accepted");
+});
+
+test("appendIssueAgentAuditRecord supports explicit terminal lifecycle metadata", async () => {
+  const dataDir = mkdtempSync(join(tmpdir(), "issue-agent-audit-terminal-"));
+  const run = createRecordedTriageRun({
+    issueUrl: "https://github.com/KooshaPari/OmniRoute/issues/77",
+    recordedContext: {
+      title: "Need timing fix",
+      body: "timed out",
+    },
+  });
+
+  await appendIssueAgentAuditRecord(run, { dataDir, state: "running" });
+  const terminal = await appendIssueAgentAuditRecord(run, {
+    dataDir,
+    state: "timed_out",
+    terminalState: "timed_out",
+    terminalError: "Execution timed out",
+    durationMs: 120,
+    completionStatus: "timed_out",
+  });
+
+  const payload = readFileSync(terminal.path, "utf8").trim().split("\n");
+  const last = JSON.parse(payload[payload.length - 1]!) as Record<string, unknown>;
+
+  assert.equal(payload.length, 2);
+  assert.equal(last.state, "timed_out");
+  assert.equal(last.terminalState, "timed_out");
+  assert.equal(last.completionStatus, "timed_out");
+  assert.equal(last.durationMs, 120);
+  assert.equal(last.terminalError, "Execution timed out");
 });

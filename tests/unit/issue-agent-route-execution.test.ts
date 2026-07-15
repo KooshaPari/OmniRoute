@@ -75,6 +75,7 @@ test("issue-agent live triage traverses the normal chat-completions POST route",
   const body = (await response.json()) as Record<string, unknown>;
 
   assert.equal(response.status, 200);
+  assert.equal(body.state, "succeeded");
   assert.equal(body.runner, "omniroute-chat-completions");
   assert.equal(fetchCalls.length, 1, "only the external provider boundary is mocked");
   assert.match(fetchCalls[0]!.url, /\/chat\/completions$/);
@@ -84,4 +85,19 @@ test("issue-agent live triage traverses the normal chat-completions POST route",
   assert.equal(providerRequest.stream, false);
   assert.match(JSON.stringify(providerRequest.messages), /#5980/);
   assert.equal((body.completion as Record<string, unknown>).id, "chatcmpl-issue-agent-route");
+  assert.equal(body.terminalState, "succeeded");
+
+  const auditPath = body.auditPath as string;
+  const lines = await fs.promises.readFile(auditPath, "utf8");
+  const rows = lines.trim().split("\n").filter(Boolean);
+  assert.equal(rows.length, 3);
+
+  const accepted = JSON.parse(rows[0]!) as Record<string, unknown>;
+  const running = JSON.parse(rows[1]!) as Record<string, unknown>;
+  const terminal = JSON.parse(rows[2]!) as Record<string, unknown>;
+
+  assert.equal(accepted.state, "accepted");
+  assert.equal(running.state, "running");
+  assert.equal(terminal.state, "succeeded");
+  assert.equal(terminal.terminalState, "succeeded");
 });

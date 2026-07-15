@@ -73,11 +73,13 @@ export async function POST(request: Request) {
       issueUrl: parsed.issueUrl ?? normalized?.issueUrl,
       recordedContext: parsed.recordedContext ?? normalized?.recordedContext,
     });
-    const audit = await appendIssueAgentAuditRecord(run);
+
+    const acceptedAudit = await appendIssueAgentAuditRecord(run, { state: "accepted" });
     if (run.dryRun) {
-      return NextResponse.json({ ...run, auditPath: audit.path });
+      return NextResponse.json({ ...run, auditPath: acceptedAudit.path });
     }
 
+    const runningAudit = await appendIssueAgentAuditRecord(run, { state: "running" });
     const completion = await executeRecordedTriageChatCompletion(
       {
         run,
@@ -88,14 +90,35 @@ export async function POST(request: Request) {
       },
       postChatCompletion
     );
+    await appendIssueAgentAuditRecord(run, {
+      state: completion.terminalState,
+      terminalState: completion.terminalState,
+      completionStatus: completion.completionStatus,
+      durationMs: completion.durationMs,
+      terminalError: completion.terminalError,
+      error: completion.terminalError,
+    });
+
+    const responseStatus =
+      completion.terminalState === "timed_out"
+        ? 408
+        : completion.terminalState === "budget_stopped"
+          ? 429
+          : completion.status;
+
     return NextResponse.json(
       {
         ...run,
         runner: "omniroute-chat-completions",
-        auditPath: audit.path,
+        state: completion.terminalState,
+        completionStatus: completion.completionStatus,
+        terminalState: completion.terminalState,
+        terminalError: completion.terminalError,
+        timedOutMs: completion.timedOutMs,
+        auditPath: runningAudit.path,
         completion: completion.body,
       },
-      { status: completion.status }
+      { status: responseStatus }
     );
   } catch (error) {
     const message = error instanceof Error ? error.message : "Invalid issue-agent request";

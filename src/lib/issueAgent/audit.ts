@@ -3,10 +3,25 @@ import { join } from "node:path";
 import { homedir } from "node:os";
 
 import type { RecordedTriageRun } from "./recordedTriage";
+import type { IssueAgentTerminalState } from "@/lib/issueAgent/execution";
+
+export type IssueAgentAuditState =
+  | "accepted"
+  | "running"
+  | "succeeded"
+  | "failed"
+  | "timed_out"
+  | "budget_stopped";
 
 export interface IssueAgentAuditOptions {
   dataDir?: string;
   now?: Date;
+  state?: IssueAgentAuditState;
+  terminalState?: IssueAgentTerminalState;
+  completionStatus?: string;
+  durationMs?: number;
+  terminalError?: string;
+  error?: string;
 }
 
 export interface IssueAgentAuditResult {
@@ -26,6 +41,7 @@ export async function appendIssueAgentAuditRecord(
   const auditPath = join(auditDir, "audit.jsonl");
   const row = {
     ts: (options.now ?? new Date()).toISOString(),
+    state: options.state ?? "accepted",
     runId: run.runId,
     mode: run.mode,
     repository: run.repository,
@@ -35,6 +51,11 @@ export async function appendIssueAgentAuditRecord(
     runner: run.runner,
     context: run.context,
     steps: run.steps,
+    terminalState: options.terminalState,
+    completionStatus: options.completionStatus,
+    durationMs: options.durationMs,
+    terminalError: options.terminalError,
+    error: options.error,
   };
 
   await mkdir(auditDir, { recursive: true });
