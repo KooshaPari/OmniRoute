@@ -1,6 +1,6 @@
 import createNextIntlPlugin from "next-intl/plugin";
 import { createMDX } from "fumadocs-mdx/next";
-import { dirname } from "node:path";
+import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const withNextIntl = createNextIntlPlugin("./src/i18n/request.ts");
@@ -227,11 +227,21 @@ const nextConfig = {
     // TODO: Re-enable after fixing all sub-component useTranslations scope issues
     ignoreBuildErrors: true,
   },
-  webpack(config, { webpack }) {
+  webpack(config, { webpack, isServer }) {
     config.ignoreWarnings = [
       ...(config.ignoreWarnings || []),
       isNextIntlExtractorDynamicImportWarning,
     ];
+    if (isServer) {
+      config.resolve = config.resolve || {};
+      config.resolve.alias = {
+        ...(config.resolve.alias || {}),
+        "monaco-editor/esm/vs/editor/editor.api": join(
+          projectRoot,
+          "src/shared/components/monaco-server.stub.ts"
+        ),
+      };
+    }
     config.optimization = config.optimization || {};
     config.optimization.splitChunks = {
       ...config.optimization.splitChunks,

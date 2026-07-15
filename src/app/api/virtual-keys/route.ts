@@ -17,6 +17,26 @@ import {
 } from "@/lib/db/virtualKeys";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import * as log from "@/sse/utils/logger";
+import { z } from "zod";
+
+const mintVirtualKeySchema = z
+  .object({
+    tenantId: z.string().min(1).optional(),
+    tenant_id: z.string().min(1).optional(),
+    label: z.string().optional(),
+    allowedModels: z.array(z.string()).optional(),
+    allowed_models: z.array(z.string()).optional(),
+    maxCostUsd: z.number().nonnegative().nullable().optional(),
+    max_cost_usd: z.number().nonnegative().nullable().optional(),
+    maxRpd: z.number().int().nonnegative().nullable().optional(),
+    max_rpd: z.number().int().nonnegative().nullable().optional(),
+    expiresAt: z.string().min(1).nullable().optional(),
+    expires_at: z.string().min(1).nullable().optional(),
+  })
+  .refine((body) => Boolean(body.tenantId ?? body.tenant_id), {
+    message: "tenantId is required",
+    path: ["tenantId"],
+  });
 
 function asString(value: unknown): string | null {
   return typeof value === "string" && value.length > 0 ? value : null;
@@ -91,7 +111,15 @@ export async function POST(request: Request) {
   if (!rawBody || typeof rawBody !== "object") {
     return NextResponse.json({ error: "Body must be a JSON object" }, { status: 400 });
   }
-  const body = rawBody as Record<string, unknown>;
+  const parsed = mintVirtualKeySchema.safeParse(rawBody);
+  if (!parsed.success) {
+    const firstIssue = parsed.error.issues[0];
+    return NextResponse.json(
+      { error: firstIssue?.message ?? "Invalid virtual key body" },
+      { status: 400 },
+    );
+  }
+  const body = parsed.data;
 
   const tenantId = asString(body["tenantId"] ?? body["tenant_id"]);
   if (!tenantId) {

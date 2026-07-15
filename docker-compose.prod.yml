@@ -27,6 +27,24 @@
 # ──────────────────────────────────────────────────────────────────────
 
 services:
+  # ── Gateway: Caddy canonical front door ───────────────────────────
+  loadbalancer:
+    image: docker.io/library/caddy:2
+    container_name: omniroute-lb-prod
+    restart: unless-stopped
+    ports:
+      - "${PROD_CADDY_PORT:-20130}:20128"
+    volumes:
+      - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
+    environment:
+      - CADDY_PORT=20128
+      - CADDY_API_UPSTREAM=${CADDY_API_UPSTREAM:-omniroute-prod:20129}
+      - CADDY_API_HEALTH_URI=${CADDY_API_HEALTH_URI:-/v1/models}
+      - CADDY_UI_UPSTREAMS=${CADDY_UI_UPSTREAMS:-omniroute-prod:20128}
+      - CADDY_UI_HEALTH_URI=${CADDY_UI_HEALTH_URI:-/v1/models}
+    depends_on:
+      - omniroute-prod
+
   # ── Redis (Rate Limiter Backend) ──────────────────────────────────
   redis:
     image: redis:8.6.2-alpine
@@ -61,9 +79,9 @@ services:
       - API_HOST=${API_HOST:-0.0.0.0}
       - HOSTNAME=0.0.0.0
       - DATA_DIR=/app/data
-    ports:
-      - "${PROD_DASHBOARD_PORT:-20130}:${DASHBOARD_PORT:-${PORT:-20128}}"
-      - "${PROD_API_PORT:-20131}:${API_PORT:-20129}"
+    expose:
+      - "${DASHBOARD_PORT:-${PORT:-20128}}"
+      - "${API_PORT:-20129}"
     volumes:
       - omniroute-prod-data:/app/data
     healthcheck:
