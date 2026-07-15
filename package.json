@@ -222,7 +222,7 @@
     "postinstall": "node scripts/build/postinstall.mjs",
     "uninstall": "node scripts/build/uninstall.mjs",
     "uninstall:full": "node scripts/build/uninstall.mjs --full",
-    "prepare": "husky",
+    "prepare": "node -e \"console.log('INFO: husky removed in favor of Lefthook; install hooks with: bunx --no-install lefthook install')\"",
     "system-info": "node scripts/dev/system-info.mjs",
     "build:cli-api": "node --import tsx/esm scripts/cli/generate-api-commands.mjs",
     "release:contributors": "node scripts/release/gen-contributors.mjs",
@@ -230,6 +230,8 @@
     "build:tokn-ffi": "cd packages/tokn && node scripts/build.mjs",
     "test:tokn": "tsx --test src/lib/tokn/__tests__/*.test.ts",
     "ci:v4:lint": "bunx oxlint@1.74.0 apps packages",
+    "integrity:manifest": "node scripts/check/verify-integrity-manifest.mjs",
+    "integrity:manifest:write": "node scripts/check/verify-integrity-manifest.mjs --write",
     "ci:v4:typecheck": "bun run --cwd apps/web typecheck && bun run --cwd apps/bff typecheck",
     "ci:v4:typecheck:ts7": "bun run --cwd packages/api-contracts typecheck:ts7 && bun run --cwd packages/design-tokens typecheck:ts7 && bun run --cwd apps/bff typecheck:ts7 && bun run --cwd apps/web typecheck:ts7",
     "ci:v4:test": "bun --filter \"./apps/*\" test"
