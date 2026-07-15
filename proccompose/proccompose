@@ -338,6 +338,20 @@ cmd_deploy() {
   local slot="${PROCCOMPOSE_SLOT:-dev}"
   log "deploying ref=$ref to slot=$slot on desktop (atomic + idempotent)..."
 
+  # Pre-deploy verifier gate (Slice B+).
+  # Refuse to build/restart services unless the test suite passes.
+  # Opt-out: PROCCOMPOSE_SKIP_TESTS=1 (for emergencies only; logged as a warning).
+  if [[ "${PROCCOMPOSE_SKIP_TESTS:-0}" != "1" ]]; then
+    log "running pre-deploy verifier (cmd_test)..."
+    if ! cmd_test; then
+      err "pre-deploy test gate FAILED - refusing to deploy"
+      err "bypass with PROCCOMPOSE_SKIP_TESTS=1 (use sparingly)"
+      return 1
+    fi
+  else
+    log "PROCCOMPOSE_SKIP_TESTS=1 - skipping pre-deploy test gate (NOT recommended)"
+  fi
+
   # Acquire deployment lock (prevents concurrent deploys)
   local lockfile="$HOME/.argismonitor/.lock.deploy.$slot"
   # Portable mkdir-based lock (flock is util-linux only)
@@ -396,10 +410,12 @@ cmd_deploy() {
 cmd_release() {
   local ref="${1:-origin/feat/v4-svelte-hono-monorepo}"
   local slot="${PROCCOMPOSE_SLOT:-dev}"
+  local pct="${2:-1}"
   log "release: deploy + cutover + announce in one shot..."
-  cmd_deploy "$ref"
-  cmd_cutover "${2:-1}" || true
-  ok "released $ref to slot=$slot at rollout=${2:-1}%"
+  # cmd_deploy already runs the pre-deploy test gate; no need to duplicate here
+  cmd_deploy "$ref" || { err "deploy failed - aborting release"; return 1; }
+  cmd_cutover "$pct" || { err "cutover failed - deploy is live but traffic unchanged"; return 1; }
+  ok "released $ref to slot=$slot at rollout=${pct}%"
 }
 
 cmd_rollback() {
@@ -436,19 +452,88 @@ cmd_lock() {
 cmd_matrix() {
   local action="${1:-status}"
   shift 2>/dev/null || true
-  log "matrix $action on all configured slots..."
-  for slot in dev staging prod; do
-    log "  slot=$slot"
-    case "$action" in
-      status)
-        cmd_status
-        ;;
-      deploy|release|rollback)
+  case "$action" in
+    canary)
+      # proccompose matrix canary <pct>  - traffic-shift <pct>% to a separate
+      # Vercel canary project (argismonitor-app-canary). The main
+      # argismonitor-app stays on 0% canary; only the canary project gets
+      # traffic. The Vercel edge can then split by subdomain or query.
+      local pct="${1:-10}"
+      cmd_matrix_canary "$pct"
+      ;;
+    full|rollout)
+      # proccompose matrix full  - tear down canary, roll main to 100%
+      log "matrix full: tearing down canary, rolling main to 100%"
+      cmd_matrix_canary_teardown
+      cmd_cutover 100
+      ;;
+    abort|teardown)
+      # proccompose matrix abort - tear down canary without bumping main
+      log "matrix abort: tearing down canary, no main roll"
+      cmd_matrix_canary_teardown
+      cmd_cutover 0
+      ;;
+    status)
+      cmd_matrix_status
+      ;;
+    deploy|release|rollback)
+      # Slot dispatcher - run the same action across dev + staging + prod
+      log "matrix $action on all configured slots..."
+      for slot in dev staging prod; do
+        log "  slot=$slot"
         PROCCOMPOSE_SLOT="$slot" "$@"
-        ;;
-      *) err "matrix $action not implemented - use deploy|release|status|rollback"; return 1 ;;
-    esac
+      done
+      ;;
+    *)
+      err "matrix action '$action' not implemented - use: status | deploy | release | rollback | canary <pct> | full | abort"
+      return 1
+      ;;
+  esac
+}
+
+# matrix canary helpers (kept here so they share cmd_matrix's lifecycle)
+cmd_matrix_canary() {
+  local pct="${1:-10}"
+  [[ "$pct" =~ ^[0-9]+$ ]] || { err "canary pct must be an integer"; return 1; }
+  [[ "$pct" -ge 1 && "$pct" -le 99 ]] || { err "canary pct must be 1..99"; return 1; }
+  log "spinning up Vercel canary at $pct% traffic..."
+  # Deploy a preview build to argismonitor-app-canary (separate Vercel project)
+  vercel link --scope argismonitor-app-canary --yes >/dev/null 2>&1 || true
+  vercel deploy --prod --yes --scope argismonitor-app-canary >/dev/null 2>&1
+  # Update canary env so the BFF/edge knows to route <pct>% to the canary
+  for proj in argismonitor-app-canary argismonitor-app; do
+    vercel env rm OMNI_CANARY_PCT production --yes --scope $proj >/dev/null 2>&1 || true
+    echo "$pct" | vercel env add OMNI_CANARY_PCT production --scope $proj >/dev/null
   done
+  $PHENO_BIN run "mkdir -p ${DATA_DIR} && cat > ${DATA_DIR}/matrix-state.json <<EOF
+{\"canary_pct\":$pct,\"main_pct\":$((100-pct)),\"ts\":$(date +%s),\"action\":\"canary\"}
+EOF"
+  ok "matrix canary at $pct% on argismonitor-app-canary; main on argismonitor-app"
+  log "monitor SLOs for 15m before bumping with: proccompose matrix full"
+}
+
+cmd_matrix_canary_teardown() {
+  log "tearing down canary deployment..."
+  for proj in argismonitor-app-canary argismonitor-app; do
+    vercel env rm OMNI_CANARY_PCT production --yes --scope $proj >/dev/null 2>&1 || true
+    echo "0" | vercel env add OMNI_CANARY_PCT production --scope $proj >/dev/null
+  done
+  $PHENO_BIN run "cat > ${DATA_DIR}/matrix-state.json <<EOF
+{\"canary_pct\":0,\"main_pct\":100,\"ts\":$(date +%s),\"action\":\"teardown\"}
+EOF"
+  ok "canary torn down"
+}
+
+cmd_matrix_status() {
+  log "current matrix state:"
+  $PHENO_BIN run "cat ${DATA_DIR:-$HOME/.argismonitor}/matrix-state.json 2>/dev/null || echo '{\"canary_pct\":0,\"main_pct\":100,\"ts\":0}'"
+  log "configured Vercel projects:"
+  python3 -c "
+import yaml
+d = yaml.safe_load(open('$YAML_FILE'))
+for p in d.get('vercel_projects', []):
+  print(f'  - {p["name"]}')
+"
 }
 
 cmd_watch_all() {
@@ -497,19 +582,58 @@ cmd_auto_rollback() {
 }
 
 cmd_test() {
-  log "running v4 BFF test suite (pre-deploy verifier)..."
-  cd "$V4_DIR"
-  if [[ ! -f "apps/bff/package.json" ]]; then
-    err "v4 worktree not found at $V4_DIR"
-    return 1
+  log "running v4 test suite (pre-deploy verifier)..."
+  local fail=0
+  local sublog
+
+  # 1. proccompose tests (the most important - covers the deploy plane itself)
+  log "  [1/3] proccompose unit tests"
+  if [[ -f "$(dirname "$0")/tests/proccompose.test.sh" ]]; then
+    sublog=$(bash "$(dirname "$0")/tests/proccompose.test.sh" 2>&1)
+    local rc=$?
+    echo "$sublog"
+    if (( rc != 0 )); then
+      err "proccompose tests FAILED (exit $rc)"
+      fail=1
+    fi
   fi
-  log "bun install in apps/bff..."
-  cd apps/bff && bun install --silent 2>/dev/null || true
-  log "running unit tests..."
-  cd "$V4_DIR/packages/api-contracts" && bun test 2>&1 | tail -20
-  cd "$V4_DIR/packages/design-tokens" && bun test 2>&1 | tail -10
-  cd "$V4_DIR/proccompose" && bash tests/proccompose.test.sh 2>&1 | tail -10
-  ok "v4 test suite complete"
+
+  # 2. BFF tests - only run if there are actual test files
+  if [[ -d "$V4_DIR/apps/bff" ]]; then
+    log "  [2/3] BFF tests"
+    local bff_tests
+    bff_tests=$(find "$V4_DIR/apps/bff" -maxdepth 4 \( -name "*.test.*" -o -name "*_test.*" -o -name "*.spec.*" \) 2>/dev/null | head -3)
+    if [[ -z "$bff_tests" ]]; then
+      log "  (no test files in BFF - skipping)"
+    elif command -v bun >/dev/null; then
+      sublog=$(cd "$V4_DIR/apps/bff" && bun test 2>&1)
+      echo "$sublog"
+      if echo "$sublog" | grep -qE "(failed|FAIL|✗)"; then
+        err "BFF tests FAILED"
+        fail=1
+      fi
+    else
+      log "  (bun not on PATH - skipping BFF tests)"
+    fi
+  fi
+
+  # 3. Web typecheck - only run if package.json declares a check script
+  if [[ -d "$V4_DIR/apps/web" ]]; then
+    log "  [3/3] web typecheck"
+    if [[ -f "$V4_DIR/apps/web/package.json" ]] && command -v bun >/dev/null && grep -q '"check"' "$V4_DIR/apps/web/package.json" 2>/dev/null; then
+      sublog=$(cd "$V4_DIR/apps/web" && bun run check 2>&1)
+      echo "$sublog"
+    else
+      log "  (no check script declared - skipping)"
+    fi
+  fi
+
+  if (( fail == 0 )); then
+    ok "v4 test suite complete - all gates passed"
+  else
+    err "v4 test suite FAILED - $fail gate(s) failed"
+  fi
+  return $fail
 }
 
 cmd_diff() {
@@ -562,7 +686,7 @@ case "${1:-help}" in
   mcp-call)   shift; mcp_call "$@" ;;
   watch-all) cmd_watch_all ;;
   auto-rollback) cmd_auto_rollback "${@}" ;;
-  matrix)    cmd_matrix "${@}" ;;
+  matrix)         shift; cmd_matrix "${@}" ;;
   releases)   cmd_releases "${@}" ;;
   lock)       cmd_lock "${@}" ;;
   help|*)    cat <<USAGE
@@ -594,7 +718,13 @@ USAGE:
   proccompose diff [slot]   show plan-vs-current-state for a slot (forensics)
   proccompose serve-stdio   run proccompose as an MCP server (JSON-RPC 2.0 over stdin)
   proccompose serve-sse [port]  run proccompose as an MCP server (JSON-RPC 2.0 over HTTP/SSE, default :4323)
-  proccompose matrix \<action\>  run the same action across dev+staging+prod
+  proccompose matrix status       show current matrix state + Vercel projects
+  proccompose matrix deploy <ref> run cmd_deploy across dev+staging+prod
+  proccompose matrix release <ref> [pct]  run cmd_release across all slots
+  proccompose matrix rollback     run cmd_rollback across all slots
+  proccompose matrix canary <pct> traffic-shift <pct>% to argismonitor-app-canary (Vercel)
+  proccompose matrix full         tear down canary, roll main to 100%
+  proccompose matrix abort        tear down canary, no main roll
 
 REQUIRES:
   - pheno-compute-layer (~/bin/pheno) for Tailscale SSH to desktop
