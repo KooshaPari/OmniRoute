@@ -20,7 +20,7 @@ concurrency:
 jobs:
   gitleaks:
     name: Secrets Scan (Gitleaks)
-    runs-on: [self-hosted, linux, x64]
+    runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
       contents: read
@@ -41,7 +41,7 @@ jobs:
 
   deps-audit:
     name: Dependency Audit (npm)
-    runs-on: [self-hosted, linux, x64]
+    runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
       - name: Checkout repository
@@ -64,7 +64,7 @@ jobs:
 
   codeql:
     name: CodeQL Analysis
-    runs-on: [self-hosted, linux, x64]
+    runs-on: ubuntu-latest
     timeout-minutes: 15
     permissions:
       security-events: write
@@ -89,7 +89,7 @@ jobs:
 
   ossf-scorecard:
     name: OpenSSF Scorecard
-    runs-on: [self-hosted, linux, x64]
+    runs-on: ubuntu-latest
     timeout-minutes: 15
     permissions:
       security-events: write
