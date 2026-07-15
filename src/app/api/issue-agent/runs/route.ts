@@ -6,6 +6,7 @@ import { normalizeGitHubIssueExport } from "@/lib/issueAgent/githubExport";
 import { createRecordedTriageRun } from "@/lib/issueAgent/recordedTriage";
 import { POST as postChatCompletion } from "@/app/api/v1/chat/completions/route";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
+import type { RecordedTriageExecutionInput, RecordedTriageChatCompletion } from "@/lib/issueAgent/execution";
 
 const issueAgentRunRequestSchema = z.object({
   mode: z.string().optional(),
@@ -20,6 +21,15 @@ const issueAgentRunRequestSchema = z.object({
 });
 
 const ENABLED_VALUES = new Set(["1", "true", "yes", "on"]);
+
+export const issueAgentRouteExecutor = {
+  async executeRecordedTriageChatCompletion(
+    input: RecordedTriageExecutionInput,
+    post: (request: Request) => Promise<Response>
+  ): Promise<RecordedTriageChatCompletion> {
+    return executeRecordedTriageChatCompletion(input, post);
+  },
+};
 
 function isIssueAgentEnabled(): boolean {
   return ENABLED_VALUES.has((process.env.OMNIROUTE_ISSUE_AGENT_ENABLED ?? "").toLowerCase());
@@ -80,7 +90,7 @@ export async function POST(request: Request) {
     }
 
     const runningAudit = await appendIssueAgentAuditRecord(run, { state: "running" });
-    const completion = await executeRecordedTriageChatCompletion(
+    const completion = await issueAgentRouteExecutor.executeRecordedTriageChatCompletion(
       {
         run,
         model: parsed.model,
