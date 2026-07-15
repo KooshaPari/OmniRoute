@@ -65,7 +65,10 @@ jobs:
           registry-url: https://registry.npmjs.org
 
       - name: Install dependencies (skip scripts to avoid heavy build)
-        run: npm install --ignore-scripts --no-audit --no-fund
+        run: npm ci --ignore-scripts --no-audit --no-fund
+
+      - name: Verify publication identity and tarball metadata
+        run: node scripts/check/check-publication-preflight.mjs
 
       - name: Resolve version, dist-tag and skip flag
         id: resolve
@@ -110,21 +113,28 @@ jobs:
             fi
           fi
 
-          # 3) Skip-if-already-published. NOTE: do NOT pass `--silent` to
+          # 3) Resolve the public registry identity from the manifest, then skip if published.
+          PACKAGE_NAME="$(node -p \"require('./package.json').name\")"
+          if [ -z "$PACKAGE_NAME" ]; then
+            echo "Root package name is empty; refusing to publish." >&2
+            exit 1
+          fi
+
+          # NOTE: do NOT pass `--silent` to
           #    `npm view` — it suppresses stdout and breaks the grep, which
           #    caused old releases (3.2.8) to be re-published and steal
           #    dist-tag `latest`. See incident notes in CHANGELOG.
-          PUBLISHED="$(npm view "omniroute@${VERSION}" version 2>/dev/null || true)"
+          PUBLISHED="$(npm view "${PACKAGE_NAME}@${VERSION}" version 2>/dev/null || true)"
           SKIP="false"
           if [ "$PUBLISHED" = "$VERSION" ]; then
-            echo "⚠️ omniroute@${VERSION} is already on npm — skipping publish."
+            echo "⚠️ ${PACKAGE_NAME}@${VERSION} is already on npm — skipping publish."
             SKIP="true"
           fi
 
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
           echo "tag=$TAG"          >> "$GITHUB_OUTPUT"
           echo "skip=$SKIP"        >> "$GITHUB_OUTPUT"
-          echo "📦 Resolved omniroute@$VERSION dist-tag=$TAG skip=$SKIP"
+          echo "📦 Resolved ${PACKAGE_NAME}@$VERSION dist-tag=$TAG skip=$SKIP"
 
       - name: Sync package.json version
         if: steps.resolve.outputs.skip != 'true'
