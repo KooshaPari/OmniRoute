@@ -1,0 +1,58 @@
+/**
+ * API: Model-Combo Mappings (#563)
+ * GET  — List all mappings
+ * POST — Create a new mapping
+ */
+
+import { NextResponse } from "next/server";
+import { z } from "zod";
+import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
+import { createModelComboMapping, getModelComboMappings } from "@/lib/localDb";
+import { validatedJsonBody } from "@/shared/validation/helpers";
+
+const createMappingSchema = z.object({
+  pattern: z.string().min(1, "Pattern is required").max(500),
+  comboId: z.string().min(1, "ComboId is required"),
+  priority: z.number().int().optional().default(0),
+  enabled: z.boolean().optional().default(true),
+  description: z.string().max(1000).optional().default(""),
+});
+
+export async function GET(request: Request) {
+  const authError = await requireManagementAuth(request);
+  if (authError) return authError;
+
+  try {
+    const mappings = await getModelComboMappings();
+    return NextResponse.json({ mappings });
+  } catch (error: any) {
+    console.error("Failed to list model-combo mappings:", error);
+    return NextResponse.json({ error: "Failed to list model-combo mappings" }, { status: 500 });
+  }
+}
+
+export async function POST(request: Request) {
+  const authError = await requireManagementAuth(request);
+  if (authError) return authError;
+
+  try {
+    const parsed = await validatedJsonBody(request, createMappingSchema);
+    if (!parsed.success) {
+      return parsed.response;
+    }
+
+    const { data } = parsed;
+    const mapping = await createModelComboMapping({
+      pattern: data.pattern.trim(),
+      comboId: data.comboId,
+      priority: data.priority,
+      enabled: data.enabled,
+      description: data.description,
+    });
+
+    return NextResponse.json({ mapping }, { status: 201 });
+  } catch (error: any) {
+    console.error("Failed to create model-combo mapping:", error);
+    return NextResponse.json({ error: "Failed to create model-combo mapping" }, { status: 500 });
+  }
+}

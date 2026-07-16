@@ -1,0 +1,509 @@
+# OmniRoute (Suomi)
+
+🌐 **Languages:** 🇺🇸 [English](../../../llm.txt) · 🇸🇦 [ar](../ar/llm.txt) · 🇧🇬 [bg](../bg/llm.txt) · 🇧🇩 [bn](../bn/llm.txt) · 🇨🇿 [cs](../cs/llm.txt) · 🇩🇰 [da](../da/llm.txt) · 🇩🇪 [de](../de/llm.txt) · 🇪🇸 [es](../es/llm.txt) · 🇮🇷 [fa](../fa/llm.txt) · 🇫🇮 [fi](../fi/llm.txt) · 🇫🇷 [fr](../fr/llm.txt) · 🇮🇳 [gu](../gu/llm.txt) · 🇮🇱 [he](../he/llm.txt) · 🇮🇳 [hi](../hi/llm.txt) · 🇭🇺 [hu](../hu/llm.txt) · 🇮🇩 [id](../id/llm.txt) · 🇮🇳 [in](../in/llm.txt) · 🇮🇹 [it](../it/llm.txt) · 🇯🇵 [ja](../ja/llm.txt) · 🇰🇷 [ko](../ko/llm.txt) · 🇮🇳 [mr](../mr/llm.txt) · 🇲🇾 [ms](../ms/llm.txt) · 🇳🇱 [nl](../nl/llm.txt) · 🇳🇴 [no](../no/llm.txt) · 🇵🇭 [phi](../phi/llm.txt) · 🇵🇱 [pl](../pl/llm.txt) · 🇵🇹 [pt](../pt/llm.txt) · 🇧🇷 [pt-BR](../pt-BR/llm.txt) · 🇷🇴 [ro](../ro/llm.txt) · 🇷🇺 [ru](../ru/llm.txt) · 🇸🇰 [sk](../sk/llm.txt) · 🇸🇪 [sv](../sv/llm.txt) · 🇰🇪 [sw](../sw/llm.txt) · 🇮🇳 [ta](../ta/llm.txt) · 🇮🇳 [te](../te/llm.txt) · 🇹🇭 [th](../th/llm.txt) · 🇹🇷 [tr](../tr/llm.txt) · 🇺🇦 [uk-UA](../uk-UA/llm.txt) · 🇵🇰 [ur](../ur/llm.txt) · 🇻🇳 [vi](../vi/llm.txt) · 🇨🇳 [zh-CN](../zh-CN/llm.txt)
+
+---
+
+> OmniRoute is a free, open-source AI Gateway that acts as a universal API proxy for multi-provider LLMs. It provides smart routing, automatic fallback, load balancing, and format translation across 248 AI providers — all through a single OpenAI-compatible endpoint. Includes a built-in MCP Server (94 tools), A2A v0.3 protocol, Memory/Skills systems, Cloud Agents (codex-cloud, devin, jules), Guardrails framework, and an Electron desktop app.
+
+## Overview
+
+OmniRoute solves the problem of managing multiple AI provider subscriptions, quotas, and rate limits. It sits between your AI-powered tools (IDE agents, CLI tools) and AI providers, routing requests intelligently through a 4-tier fallback system: Subscription → API Key → Cheap → Free.
+
+**Key value:** One endpoint (`http://localhost:20128/v1`), unlimited models, zero downtime, minimal cost.
+
+**Current version:** 3.8.47
+
+## Tech Stack
+
+- **Runtime:** Node.js `>=22.0.0 <23 || >=24.0.0 <27`, ES Modules (`"type": "module"`)
+- **Framework:** Next.js 16 (App Router) with TypeScript 6
+- **Database:** SQLite via better-sqlite3 (local, zero-config, 110+ migrations)
+- **State management:** Zustand (client), SQLite (server persistence)
+- **UI:** React 19, Tailwind CSS 4, Recharts for analytics, @lobehub/icons for 130+ provider SVG icons
+- **Auth:** OAuth 2.0 (PKCE) for providers, bcrypt for local user auth
+- **Schemas:** Zod v4 for all API / MCP input validation
+- **Background jobs:** Custom token health check scheduler, 24h model auto-sync
+- **Streaming:** Server-Sent Events (SSE) for real-time proxy responses
+- **Proxy engine:** Custom pipeline with format translation, circuit breaker, rate limiting, auto-combo engine
+- **i18n:** next-intl with 40+ languages
+- **Desktop:** Electron (cross-platform: Windows, macOS, Linux)
+- **Package:** Published on npm (`omniroute`) and Docker Hub (`diegosouzapw/omniroute`)
+
+## Project Structure
+
+```
+/
+├── src/                          # Main application source
+│   ├── app/                      # Next.js App Router pages and API routes
+│   │   ├── (dashboard)/          # Dashboard UI pages
+│   │   │   └── dashboard/
+│   │   │       ├── agents/       # ACP Agents dashboard (CLI agent detection + custom agents)
+│   │   │       ├── analytics/    # Usage analytics and charts
+│   │   │       ├── api-manager/  # API key management
+│   │   │       ├── audit/        # Audit logs
+│   │   │       ├── auto-combo/   # Auto-combo engine dashboard
+│   │   │       ├── cache/        # Cache dashboard (semantic cache stats)
+│   │   │       ├── cli-tools/    # CLI tool configuration (Claude Code, Codex, etc.)
+│   │   │       ├── combos/       # Model combo management (18 strategies + 4 templates)
+│   │   │       ├── costs/        # Cost tracking per provider/model
+│   │   │       ├── endpoint/     # Unified: Endpoint Proxy, MCP, A2A, API Endpoints tabs
+│   │   │       ├── health/       # System health (uptime, circuit breakers, latency)
+│   │   │       ├── limits/       # Rate limits dashboard
+│   │   │       ├── logs/         # Request, Proxy, Audit, Console logs (tabbed)
+│   │   │       ├── media/        # Image/video/music generation + transcription
+│   │   │       ├── memory/       # Memory system dashboard
+│   │   │       ├── onboarding/   # Onboarding wizard
+│   │   │       ├── playground/   # Model playground (Monaco editor, streaming)
+│   │   │       ├── providers/    # Provider management (OAuth + API key + free)
+│   │   │       ├── search-tools/ # Search tools configuration
+│   │   │       ├── settings/     # Settings tabs (General, Appearance, Security, Routing, Resilience, Advanced)
+│   │   │       ├── skills/       # Skills system dashboard
+│   │   │       ├── translator/   # Format translator + debug tools
+│   │   │       └── usage/        # Usage history
+│   │   ├── api/                  # REST API endpoints (51 route directories)
+│   │   │   ├── v1/               # OpenAI-compatible API (chat, completions, models, embeddings,
+│   │   │   │                     #   images, audio, videos, music, moderations, rerank, search,
+│   │   │   │                     #   responses, messages, registered-keys, quotas, accounts)
+│   │   │   ├── v1beta/           # Gemini-compatible API
+│   │   │   ├── a2a/              # A2A agent management API
+│   │   │   ├── acp/              # ACP agent management API
+│   │   │   ├── oauth/            # OAuth flows per provider
+│   │   │   ├── providers/        # Provider CRUD and batch testing
+│   │   │   ├── models/           # Dashboard model listing and aliases
+│   │   │   ├── combos/           # Combo CRUD (multi-model fallback chains)
+│   │   │   ├── memory/           # Memory system API
+│   │   │   ├── skills/           # Skills system API
+│   │   │   ├── evals/            # Eval runner API
+│   │   │   ├── mcp/              # MCP HTTP transport API
+│   │   │   ├── search/           # Search provider API
+│   │   │   ├── webhooks/         # Webhook management
+│   │   │   ├── tunnels/          # Cloudflare tunnel management
+│   │   │   └── ...               # Other endpoints (usage, logs, health, settings, pricing, etc.)
+│   │   ├── landing/              # Landing page
+│   │   ├── login/                # Login page
+│   │   ├── forgot-password/      # Password recovery
+│   │   ├── status/               # Status page
+│   │   └── docs/                 # In-app documentation
+│   ├── domain/                   # Domain types and policy engine
+│   │   ├── policyEngine.ts       # Central policy engine
+│   │   ├── comboResolver.ts      # Combo resolution logic
+│   │   ├── costRules.ts          # Cost calculation rules
+│   │   ├── degradation.ts        # Graceful degradation
+│   │   ├── fallbackPolicy.ts     # Fallback behavior
+│   │   ├── lockoutPolicy.ts      # Account lockout logic
+│   │   ├── modelAvailability.ts  # Model availability checks
+│   │   ├── providerExpiration.ts # Provider credential expiration
+│   │   ├── quotaCache.ts         # Quota caching layer
+│   │   ├── configAudit.ts        # Configuration auditing
+│   │   └── responses.ts          # Domain response types
+│   ├── i18n/                     # Internationalization
+│   │   └── messages/             # 40+ language JSON files
+│   ├── lib/                      # Core libraries
+│   │   ├── a2a/                  # Agent-to-Agent v0.3 protocol server
+│   │   │   ├── skills/           # A2A skills (quotaManagement, smartRouting)
+│   │   │   ├── taskManager.ts    # Task lifecycle with TTL cleanup
+│   │   │   └── streaming.ts      # SSE streaming for A2A
+│   │   ├── acp/                  # Agent Communication Protocol registry and manager
+│   │   ├── compliance/           # Compliance policy engine
+│   │   ├── db/                   # SQLite database layer (99 modules + migrations)
+│   │   │   ├── core.ts           # Database initialization, connection, schema
+│   │   │   ├── providers.ts      # Provider connection CRUD
+│   │   │   ├── models.ts         # Model catalog management
+│   │   │   ├── combos.ts         # Combo configuration
+│   │   │   ├── apiKeys.ts        # API key management
+│   │   │   ├── settings.ts       # Settings persistence
+│   │   │   ├── backup.ts         # Database backup/restore
+│   │   │   ├── proxies.ts        # Proxy registry
+│   │   │   ├── prompts.ts        # Prompt templates
+│   │   │   ├── webhooks.ts       # Webhook subscriptions
+│   │   │   ├── detailedLogs.ts   # Detailed request logging
+│   │   │   ├── domainState.ts    # Domain state persistence
+│   │   │   ├── registeredKeys.ts # Registered API keys with quotas
+│   │   │   ├── quotaSnapshots.ts # Quota snapshot history
+│   │   │   ├── modelComboMappings.ts # Model-to-combo mappings
+│   │   │   ├── cliToolState.ts   # CLI tool state tracking
+│   │   │   ├── encryption.ts     # Data encryption
+│   │   │   ├── readCache.ts      # Read-through cache layer
+│   │   │   ├── secrets.ts        # Secrets management
+│   │   │   ├── stateReset.ts     # State reset utilities
+│   │   │   ├── migrationRunner.ts # Schema migration runner
+│   │   │   └── migrations/       # 117 versioned SQL migration files
+│   │   ├── evals/                # Eval runner and scheduler
+│   │   ├── memory/               # Persistent conversational memory
+│   │   │   ├── extraction.ts     # Memory extraction from conversations
+│   │   │   ├── injection.ts      # Memory injection into context
+│   │   │   ├── retrieval.ts      # Memory retrieval/search
+│   │   │   ├── store.ts          # Memory persistence layer
+│   │   │   └── summarization.ts  # Memory summarization
+│   │   ├── oauth/                # OAuth providers, services, and utilities
+│   │   │   ├── constants/        # Default OAuth credentials (overridable via env)
+│   │   │   ├── providers/        # Provider-specific OAuth configs
+│   │   │   ├── services/         # Provider-specific token exchange logic
+│   │   │   └── utils/            # PKCE, callback server, token helpers
+│   │   ├── plugins/              # Plugin system
+│   │   ├── skills/               # Extensible skill framework
+│   │   │   ├── registry.ts       # Skill registration
+│   │   │   ├── executor.ts       # Skill execution engine
+│   │   │   ├── sandbox.ts        # Skill sandbox environment
+│   │   │   ├── builtin/          # Built-in skills
+│   │   │   ├── interception.ts   # Skill request interception
+│   │   │   └── injection.ts      # Skill context injection
+│   │   ├── usage/                # Usage tracking system
+│   │   │   ├── callLogs.ts       # Call log persistence
+│   │   │   ├── costCalculator.ts # Cost calculation engine
+│   │   │   └── usageHistory.ts   # Usage history queries
+│   │   ├── cloudSync.ts          # Cloud sync via Cloudflare Workers
+│   │   ├── cloudflaredTunnel.ts  # Cloudflare tunnel management
+│   │   ├── pricingSync.ts        # LiteLLM pricing data sync
+│   │   ├── semanticCache.ts      # Semantic caching layer
+│   │   ├── tokenHealthCheck.ts   # Background OAuth token refresh scheduler
+│   │   ├── webhookDispatcher.ts  # Webhook event dispatcher
+│   │   └── localDb.ts            # Unified re-export layer for all DB modules
+│   ├── middleware/               # Request middleware
+│   │   └── promptInjectionGuard.ts # Prompt injection detection
+│   ├── mitm/                     # MITM proxy capability
+│   │   ├── cert/                 # Certificate management
+│   │   ├── dns/                  # DNS handling
+│   │   ├── targets/              # Target routing
+│   │   └── manager.ts            # MITM proxy manager
+│   ├── shared/                   # Shared utilities, components, and constants
+│   │   ├── components/           # Reusable UI components (Card, Badge, Button, Modal, Sidebar, ProviderIcon, etc.)
+│   │   ├── constants/            # Provider definitions (248), model lists, pricing, routing strategies, MCP scopes
+│   │   ├── contracts/            # Shared API contracts
+│   │   ├── hooks/                # React hooks
+│   │   ├── middleware/           # Shared middleware utilities
+│   │   ├── schemas/              # Shared Zod schemas
+│   │   ├── services/             # Shared services
+│   │   ├── types/                # Shared TypeScript types
+│   │   ├── validation/           # Zod schemas (settings, providers, routes)
+│   │   └── utils/                # Helpers (auth, CORS, error codes, machine ID)
+│   ├── sse/                      # SSE proxy pipeline
+│   │   ├── services/             # Auth resolution, format translation, response handling
+│   │   └── middleware/           # Rate limiting, circuit breaker, caching, idempotency
+│   ├── store/                    # Zustand client-side stores (theme, providers, etc.)
+│   └── types/                    # TypeScript type definitions
+├── open-sse/                     # Standalone SSE server (npm workspace)
+│   ├── config/                   # Model registries (providerRegistry, embedding, image, audio, video,
+│   │                             #   music, rerank, moderation, search, CLI fingerprints, Ollama models)
+│   ├── executors/                # Provider-specific request executors (78 executor modules)
+│   │   ├── base.ts               # Base executor with shared logic
+│   │   ├── default.ts            # Default OpenAI-compatible executor
+│   │   ├── cursor.ts             # Cursor IDE (protobuf + checksum)
+│   │   ├── codex.ts              # OpenAI Codex CLI
+│   │   ├── antigravity.ts        # Antigravity IDE
+│   │   ├── github.ts             # GitHub Copilot
+│   │   ├── kiro.ts               # Kiro AI
+│   │   ├── qoder.ts              # Qoder AI
+│   │   ├── vertex.ts             # Vertex AI (Service Account JSON)
+│   │   ├── cloudflare-ai.ts      # Cloudflare Workers AI
+│   │   ├── opencode.ts           # OpenCode Zen/Go
+│   │   ├── pollinations.ts       # Pollinations AI
+│   │   └── puter.ts              # Puter AI
+│   ├── handlers/                 # Request handlers per API type (11 handlers)
+│   │   ├── chatCore.ts           # Main chat completions handler
+│   │   ├── responsesHandler.ts   # OpenAI Responses API handler
+│   │   ├── embeddings.ts         # Embedding generation
+│   │   ├── imageGeneration.ts    # Image generation (GPT-Image, FLUX, SD, etc.)
+│   │   ├── videoGeneration.ts    # Video generation
+│   │   ├── musicGeneration.ts    # Music generation
+│   │   ├── audioSpeech.ts        # Text-to-speech
+│   │   ├── audioTranscription.ts # Speech-to-text (Whisper, Deepgram, AssemblyAI)
+│   │   ├── moderations.ts        # Content moderation
+│   │   ├── rerank.ts             # Reranking API
+│   │   └── search.ts             # Web search API
+│   ├── mcp-server/               # Built-in MCP server (94 tools, 3 transports: stdio/SSE/streamable-HTTP)
+│   │   ├── server.ts             # MCP server core (tool registration, scope enforcement)
+│   │   ├── tools/                # Tool implementations (advancedTools, memoryTools, skillTools)
+│   │   ├── schemas/              # Zod input schemas (tools, audit, a2a)
+│   │   ├── scopeEnforcement.ts   # Scope-based access control (30 scopes)
+│   │   ├── audit.ts              # Tool call audit logging
+│   │   ├── runtimeHeartbeat.ts   # MCP runtime heartbeat
+│   │   └── httpTransport.ts      # HTTP transport handler
+│   ├── services/                 # 140+ service modules
+│   │   ├── combo.ts              # Core routing engine
+│   │   ├── usage.ts              # Usage tracking
+│   │   ├── tokenRefresh.ts       # OAuth token refresh
+│   │   ├── rateLimitManager.ts   # Rate limit management
+│   │   ├── accountFallback.ts    # Multi-account fallback
+│   │   ├── sessionManager.ts     # Session management
+│   │   ├── wildcardRouter.ts     # Wildcard model routing
+│   │   ├── autoCombo/            # Auto-combo engine (12-factor scoring, bandit exploration)
+│   │   ├── intentClassifier.ts   # Request intent classification
+│   │   ├── taskAwareRouter.ts    # Task-aware routing
+│   │   ├── thinkingBudget.ts     # Thinking budget management
+│   │   ├── contextManager.ts     # Context window management
+│   │   ├── modelDeprecation.ts   # Model deprecation handling
+│   │   ├── modelFamilyFallback.ts # Intra-family model fallback
+│   │   ├── emergencyFallback.ts  # Emergency fallback
+│   │   ├── workflowFSM.ts        # Workflow state machine
+│   │   ├── backgroundTaskDetector.ts # Background task detection
+│   │   ├── ipFilter.ts           # IP-based access control
+│   │   ├── signatureCache.ts     # CLI signature caching
+│   │   ├── volumeDetector.ts     # Request volume detection
+│   │   ├── contextHandoff.ts    # Context relay handoff generation and injection
+│   │   ├── codexQuotaFetcher.ts # Codex quota fetching for context-relay
+│   │   └── ...                   # Additional services (14 more modules)
+│   ├── transformer/              # Responses API transformer
+│   │   └── responsesTransformer.ts
+│   ├── translator/               # Format translators (OpenAI ↔ Claude ↔ Gemini ↔ Responses ↔ Ollama ↔ DeepSeek)
+│   │   ├── request/              # Request translators per provider
+│   │   ├── response/             # Response translators per provider
+│   │   ├── helpers/              # Translation helpers
+│   │   └── image/                # Image format translation
+│   └── utils/                    # 22 utility modules (stream, TLS, proxy, logging, etc.)
+├── electron/                     # Electron desktop app (cross-platform)
+│   ├── main.js                   # Electron main process
+│   ├── preload.js                # Preload script (IPC bridge)
+│   └── assets/                   # App icons and assets
+├── tests/                        # Test suites
+│   ├── unit/                     # 2,700+ unit test files
+│   ├── integration/              # Integration tests
+│   ├── e2e/                      # Playwright E2E tests
+│   ├── security/                 # Security tests
+│   ├── translator/               # Translator-specific tests
+│   └── load/                     # Load tests
+├── docs/                         # Documentation
+│   ├── i18n/                     # 43-language translated docs
+│   ├── architecture/             # ARCHITECTURE.md, CODEBASE_DOCUMENTATION.md, REPOSITORY_MAP.md, AUTHZ_GUIDE.md, RESILIENCE_GUIDE.md, QUALITY_GATES.md
+│   ├── reference/                # API_REFERENCE.md, PROVIDER_REFERENCE.md, CLI-TOOLS.md
+│   ├── frameworks/               # MCP-SERVER.md (94 tools), A2A-SERVER.md, SKILLS.md, MEMORY.md, CLOUD_AGENT.md, EVALS.md, WEBHOOKS.md
+│   ├── routing/                  # AUTO-COMBO.md (12-factor scoring), REASONING_REPLAY.md
+│   ├── security/                 # GUARDRAILS.md, COMPLIANCE.md, STEALTH_GUIDE.md, PUBLIC_CREDS.md, ERROR_SANITIZATION.md
+│   ├── guides/                   # USER_GUIDE.md, TROUBLESHOOTING.md, ELECTRON_GUIDE.md, I18N.md
+│   ├── ops/                      # RELEASE_CHECKLIST.md, TUNNELS_GUIDE.md, VM deployment
+│   ├── openapi.yaml              # OpenAPI specification
+│   └── screenshots/              # Dashboard screenshots
+├── bin/                          # CLI entry points (omniroute, reset-password)
+├── scripts/                      # Build and utility scripts
+└── .env.example                  # Environment variable template
+```
+
+## Key Features (v3.8.47)
+
+### Core Proxy
+- **248 AI providers** with automatic format translation
+- **Provider categories**: Free (90+ free tiers), OAuth, API Key, Self-Hosted, Custom (OpenAI/Anthropic-compatible)
+- **18 routing strategies**: priority, weighted, round-robin, fill-first, p2c, random, least-used, cost-optimized, reset-aware, reset-window, headroom, strict-random, auto, lkgp, context-optimized, context-relay, fusion, pipeline
+- **4-tier fallback**: Subscription → API Key → Cheap → Free
+- **Context Relay strategy**: Session handoff summaries on account rotation for continuity
+- **Auto-combo engine**: Self-healing routing optimization with **12-factor scoring** (see `docs/routing/AUTO-COMBO.md`), bandit exploration, progressive cooldown
+- **Semantic caching** with cache hit/miss headers
+- **Idempotency** with configurable dedup window
+- **3-layer resilience**: Provider Circuit Breaker / Connection Cooldown / Model Lockout
+- **Provider Icons**: 130+ provider logos via `@lobehub/icons` (SVG) with PNG fallback
+- **Model Auto-Sync**: 24h scheduler refreshes model lists for 16 providers
+- **Registered Keys API**: Auto-provision API keys via `POST /api/v1/registered-keys` with quota enforcement
+- **Memory System**: Persistent conversational memory with extraction, injection, retrieval, and summarization
+- **Skills System**: Extensible skill framework with registry, executor, sandbox, built-in and custom skills
+- **Cloud Agents**: Codex Cloud, Devin, Jules — autonomous coding agents with task lifecycle management
+- **Guardrails Framework**: Hot-reloadable registry with vision-bridge, pii-masker, prompt-injection (priority-ordered)
+- **MITM Proxy**: Certificate management, DNS handling, and target routing
+- **Cloudflare Tunnels**: Managed tunnel creation for remote access
+- **Coverage gate**: ratchet vs `quality-baseline.json`; absolute floor 60% statements/lines/functions/branches
+
+### Security
+- **Data Loss Prevention**: SQLite migration safety bounds abort startup on dangerous massive schema overrides. Pre-migration `VACUUM INTO` backups isolate rollback snapshots.
+- **CodeQL security**: Fixed 10+ CodeQL alerts (polynomial-redos, insecure-randomness, shell-injection, SSRF, incomplete URLs)
+- **Web Crypto session IDs**: `generateSessionId` uses `crypto.getRandomValues()` instead of `Math.random()`
+- **Route validation**: All API routes validated with Zod v4 schemas + `validateBody()`
+- **omniModel tag sanitization**: Internal `<omniModel>` tags never leak to clients in SSE streams
+- **TLS Fingerprint Spoofing** — Browser-like TLS fingerprint to reduce bot detection
+- **CLI Fingerprint Matching** — Per-provider request signature matching
+- **Prompt injection guard** — Request middleware detection
+- **Provider constants validated at module load** via Zod (`src/shared/validation/providerSchema.ts`)
+- **PII sanitizer** — Sensitive data scrubbing in logs
+
+### Dashboard Pages (23 sections)
+- **Providers** — OAuth, API key, and free provider management with ProviderIcon SVG icons
+- **Combos** — Multi-model combo builder with 4 templates (Free Stack, High Availability, Cost Saver, Balanced) + 18 strategies
+- **Auto-Combo** — Auto-combo engine dashboard with scoring metrics
+- **Analytics** — Token consumption, cost, heatmaps, distributions
+- **Health** — Uptime, memory, latency percentiles, circuit breakers
+- **Logs** — Request, Proxy, Audit, Console (tabbed)
+- **Audit** — Audit trail and compliance logging
+- **Costs** — Cost tracking per provider/model
+- **Limits** — Rate limit monitoring
+- **Cache** — Semantic cache statistics and management
+- **CLI Tools** — One-click configuration for 10+ AI CLI tools
+- **CLI Agents** — Grid of 14+ built-in agents with ProviderIcon and install detection + custom agent registration
+- **Playground** — Test any model with Monaco editor, streaming responses
+- **Media** — Image/video/music generation (GPT-Image, FLUX, etc.) + audio transcription (up to 2GB files)
+- **Search Tools** — Search provider configuration and testing
+- **Memory** — Memory system management and visualization
+- **Skills** — Skills framework management and execution
+- **Translator** — Format debugging: playground, chat tester, test bench, live monitor
+- **Settings** — General, Appearance (7 color themes), Security (TLS/CLI fingerprint, IP filter), Routing, Resilience, Advanced
+- **Endpoint** — Unified: Endpoint Proxy, MCP Server, A2A Server, API Endpoints (tabbed)
+- **Onboarding** — Setup wizard for new users
+- **Usage** — Usage history and analytics
+- **API Manager** — API key management with scoped permissions
+
+### Protocol Support
+- **OpenAI-compatible** — `/v1/chat/completions`, `/v1/models`, `/v1/embeddings`, `/v1/images/generations`, `/v1/audio/transcriptions`, `/v1/audio/speech`, `/v1/moderations`, `/v1/rerank`, `/v1/videos/generations`, `/v1/music/generations`
+- **Anthropic** — `/v1/messages`, `/v1/messages/count_tokens`
+- **OpenAI Responses** — `/v1/responses`
+- **Gemini** — `/v1beta/models`, `/v1beta/models/{...path}`
+- **Ollama** — `/v1/api/chat`, `/api/tags`
+- **Search** — `/v1/search` (Perplexity, Serper, Brave, Exa, Tavily)
+- **MCP** — 94-tool MCP server with scope-based auth (3 transports: stdio, SSE, streamable HTTP)
+- **A2A** — Agent-to-Agent v0.3 protocol (JSON-RPC 2.0, 5 skills: smart-routing, quota-management, provider-discovery, cost-analysis, health-report)
+- **ACP** — Agent Communication Protocol registry and manager
+
+### MCP Server (94 Tools)
+
+94 tools across modules: **34 base** (health, combos, quotas, routing, cost, models, cache,
+diagnostics) plus **memory**, **skill**, **agentSkill**, **pool**, **notion**, **obsidian**,
+**gamification**, and **plugin** modules. Full per-tool inventory:
+`docs/frameworks/MCP-SERVER.md`.
+
+**MCP Auth Scopes (30):** e.g. `read:health`, `read:combos`, `write:combos`, `read:quota`,
+`read:usage`, `read:models`, `execute:completions`, `execute:search`, `write:budget`,
+`write:resilience`, plus memory/skills/pool/plugin scopes — full list in
+`docs/frameworks/MCP-SERVER.md`.
+
+### Provider Categories
+
+**Free Providers (4):** Qoder AI, Qwen Code (deprecated), Kiro AI, Windsurf
+
+**OAuth Providers (14):** Claude Code, Antigravity, OpenAI Codex, GitHub Copilot, Cursor IDE, Kimi Coding, Kilo Code, Cline, Qwen, Kiro, Qoder, Gemini, Windsurf, GitLab Duo
+
+**API Key Providers (48+):** OpenAI, Anthropic, Gemini (Google AI Studio), DeepSeek, Groq, xAI (Grok), Mistral, Perplexity, Together AI, Fireworks AI, Cerebras, Cohere, NVIDIA NIM, Nebius AI, SiliconFlow, Hyperbolic, HuggingFace, OpenRouter, Vertex AI, Cloudflare Workers AI, Scaleway AI, AI/ML API, Pollinations AI, Puter AI, LongCat AI, Alibaba, Alibaba (China), Kimi, Kimi Coding (API Key), Minimax, Minimax (China), Blackbox AI, Synthetic, Kilo Gateway, Z.AI, GLM Coding, Deepgram, AssemblyAI, ElevenLabs, Cartesia, PlayHT, Inworld, NanoBanana, SD WebUI, ComfyUI, Ollama Cloud, Perplexity Search, Serper Search, Brave Search, Exa Search, Tavily Search, OpenCode Zen, OpenCode Go, Alibaba Coding Plan
+
+**Custom Providers:** OpenAI-compatible (`openai-compatible-*`) and Anthropic-compatible (`anthropic-compatible-*`) with custom base URLs
+
+### Internationalization
+- 40+ languages for UI (all dashboard pages)
+- 40 translated documentation sets in docs/i18n/
+- Language switcher in documentation
+
+## Key Architectural Decisions
+
+1. **OpenAI-compatible API surface:** All incoming requests follow the OpenAI API format. This makes OmniRoute a drop-in replacement for any tool that supports custom OpenAI endpoints.
+
+2. **Provider abstraction via format translators:** Each AI provider has a translator in `open-sse/translator/` that converts between OpenAI format and the provider's native format transparently.
+
+3. **Connection-based provider model:** Providers are stored as "connections" in SQLite. Each connection has an `id`, `provider`, `authType` (oauth/apikey/free), `isActive` flag, and credentials. Multiple connections per provider for multi-account rotation.
+
+4. **Combo system for fallback:** Users create "combos" — ordered lists of `provider/model` pairs. The proxy tries each in order until one succeeds. Supports 18 strategies including auto-combo with self-healing and context-relay for session continuity.
+
+5. **SSE proxy pipeline:** The proxy pipeline is middleware-based: request → auth resolution → rate limiting → circuit breaker → format translation → upstream call → response translation → SSE streaming back to client.
+
+6. **SQLite for persistence:** All state (providers, combos, logs, settings, API keys, memory, skills) stored in a single SQLite database via 99 domain-specific modules. All DB operations go through `src/lib/db/` modules, never raw SQL in routes.
+
+7. **OAuth with PKCE:** OAuth flows use PKCE for security. Token refresh handled by background job (`tokenHealthCheck.ts`).
+
+8. **ProviderIcon component:** Unified icon system using `@lobehub/icons` (130+ SVG) with PNG fallback and generic icon fallback chain. Used on providers, dashboard, and agents pages.
+
+9. **DB architecture:** `localDb.ts` is a re-export layer only — real logic lives in 99 `src/lib/db/` modules with 117 SQL migrations.
+
+10. **Upstream headers:** Custom headers merged in executors after default auth; same header name replaces executor value. Forbidden header names in `src/shared/constants/upstreamHeaders.ts`.
+
+11. **Memory/Skills cross-cutting systems:** Memory and Skills affect the MCP tools, request pipeline, and A2A skills. Memory provides persistent context across sessions; Skills provide extensible tool execution with sandbox isolation.
+
+12. **Domain policy engine:** `src/domain/` contains policy engine modules (policyEngine, comboResolver, costRules, degradation, fallbackPolicy, lockoutPolicy, modelAvailability, providerExpiration, quotaCache, configAudit) that govern routing decisions independently from the pipeline.
+
+13. **Provider constants validated at load:** All provider definitions validated via Zod schemas at module load time (`src/shared/validation/providerSchema.ts`). Invalid providers fail fast.
+
+## Main Flows
+
+### Proxy Request Flow
+1. Client sends OpenAI-format request to `/v1/chat/completions`
+2. API key validation
+3. Model resolution: direct model or combo lookup
+4. For combos: iterate through models with selected strategy
+5. Auth resolution: get credentials for the target provider
+6. Format translation: OpenAI → provider native format
+7. CLI fingerprint matching (if enabled for provider)
+8. Upstream request with circuit breaker and rate limiting
+9. Response translation: provider → OpenAI format
+10. omniModel tag sanitization (strip internal tags)
+11. SSE streaming back to client
+12. Memory extraction (if memory system enabled)
+13. Usage logging and cost calculation
+
+### OAuth Flow
+1. Dashboard initiates `/api/oauth/[provider]/authorize`
+2. User completes OAuth login in browser
+3. Callback hits `/api/oauth/[provider]/exchange`
+4. Tokens stored as a provider connection in SQLite
+5. Background job refreshes tokens before expiry
+
+## Important Notes for LLMs
+
+1. **Two model endpoints exist:** `/api/models` (dashboard, all models) and `/v1/models` (OpenAI-compatible, active only).
+
+2. **Provider IDs vs aliases:** Providers have both an ID (`claude`, `github`) and a short alias (`cc`, `gh`). Models are referenced as `alias/model-name` (e.g., `cc/claude-opus-4-6`).
+
+3. **The `open-sse/` directory is a separate npm workspace** with its own config, handlers, executors, translators, and services.
+
+4. **Environment variables:** All configuration is in `.env` (from `.env.example`). Key vars: `PORT`, `NEXT_PUBLIC_BASE_URL`, `API_KEY`, `ADMIN_PASSWORD`.
+
+5. **Database layer:** Operations go through `src/lib/db/` modules (99 domain-specific files, 117 migrations). `localDb.ts` is re-exports only — add new functions to the proper `db/*.ts` module.
+
+6. **Tests** use Node.js built-in test runner + Vitest. Run `npm test`. Vitest for MCP/autoCombo (`npm run test:vitest`). Playwright for E2E (`npm run test:e2e`). Coverage gate: ratchet vs `quality-baseline.json`, absolute floor 60% statements/lines/functions/branches.
+
+7. **MCP and A2A pages are embedded as tabs inside `/dashboard/endpoint`**, not standalone routes.
+
+8. **ACP agents** are in `src/lib/acp/registry.ts` with detection cache. Custom agents stored via settings DB.
+
+9. **Auto-combo engine** in `open-sse/services/autoCombo/` — **12-factor scoring** (weights and factors in `docs/routing/AUTO-COMBO.md`), 4 mode packs, bandit exploration, progressive cooldown.
+
+10. **Docker:** Dockerfile has two targets: `runner-base` and `runner-cli`. `docker-compose.yml` for dev (3 profiles), `docker-compose.prod.yml` for production (port 20130).
+
+11. **Electron desktop app** in `electron/` with main.js and preload.js. Build with `npm run electron:build` (supports Windows, macOS, Linux).
+
+12. **Pricing data** syncs from LiteLLM via `src/lib/pricingSync.ts`. Use `sync_pricing` MCP tool or API endpoint.
+
+13. **Memory system** in `src/lib/memory/` provides extraction, injection, retrieval, summarization, and persistent store. Exposed via MCP memory tools and `/api/memory/ API.
+
+14. **Skills system** in `src/lib/skills/` provides registry, executor, sandbox isolation, built-in skills, custom skill support, request interception, and context injection. Exposed via MCP skill tools and `/api/skills/` API.
+
+15. **Zod v4** is used for all validation. Import from `zod` package. Provider schemas validated at module load time.
+
+16. **Context Relay** strategy (`context-relay`) is split across two layers: `combo.ts` decides if a handoff should be generated after a successful turn; `chat.ts` injects the handoff only after account resolution. Handoff data lives in `context_handoffs` SQLite table. Config: `handoffThreshold`, `handoffModel`, `handoffProviders`.
+
+17. **Proxy enforcement** is now comprehensive: token health checks resolve proxy per connection, provider validation wraps in `runWithProxyContext`, and proxy dispatchers use `undici.fetch()` instead of the Node built-in `fetch()` to avoid dispatcher incompatibilities on Node 22.
+
+18. **Node.js 24+ compatibility**: The login page (`/api/settings/require-login`) detects the Node.js version and sends `nodeVersion`/`nodeCompatible` fields. The login UI renders a warning banner when `nodeCompatible` is false.
+
+19. **Cloud Agents** in `src/lib/cloudAgent/` — three external autonomous coding agents (Codex Cloud, Devin, Jules) with task lifecycle endpoints under `/api/v1/agents/tasks/`. Require management auth, not client auth.
+
+20. **Guardrails framework** in `src/lib/guardrails/` — hot-reloadable registry. Built-ins (priority-ordered): `vision-bridge` (5) → `pii-masker` (10) → `prompt-injection` (20). Fail-open model: exceptions never block traffic. Per-request opt-out via `x-omniroute-disabled-guardrails` header.
+
+21. **Authz pipeline** (`src/server/authz/`): every request is classified as `PUBLIC`, `CLIENT_API`, or `MANAGEMENT`, then run through policy + enforce stages. See `docs/architecture/AUTHZ_GUIDE.md`.
+
+22. **Three resilience layers** are distinct (do not conflate them):
+    - **Provider Circuit Breaker** (`src/shared/utils/circuitBreaker.ts`) — whole-provider scope.
+    - **Connection Cooldown** (`src/sse/services/auth.ts::markAccountUnavailable`) — one key/account scope.
+    - **Model Lockout** (`open-sse/services/accountFallback.ts`) — provider + connection + model scope.
+
+## v3.8.x Highlights
+
+- **248-provider catalog** with 90+ free tiers, one-click account imports, and bulk key add
+- **18 routing strategies** — including `fusion` (parallel panel + judge synthesis), `pipeline`, `reset-aware`, `reset-window`, `headroom`, and `context-relay`
+- **12-factor Auto-Combo scoring** with bandit exploration and progressive cooldown
+- **MCP server expanded to 94 tools / 30 scopes** (base + memory/skill/agentSkill/pool/notion/obsidian/gamification/plugin modules)
+- **Cloud Agents** (Codex Cloud, Devin, Jules), **Guardrails**, **Evals**, **Webhooks**, **Compliance** frameworks
+- **Embedded services** manager (install/start/stop bundled services from the dashboard)
+- **Prompt compression** (RTK + Caveman codecs) saving up to ~95% tokens on eligible traffic
+- Full changelog: `CHANGELOG.md`
+
+## Links
+
+- Repository: https://github.com/diegosouzapw/OmniRoute
+- Website: https://omniroute.online
+- npm: https://www.npmjs.com/package/omniroute
+- Docker Hub: https://hub.docker.com/r/diegosouzapw/omniroute
+- Documentation: See `/docs/` directory
+
+### Documentation Index
+
+- **Architecture & Reference**: `docs/architecture/ARCHITECTURE.md`, `docs/architecture/CODEBASE_DOCUMENTATION.md`, `docs/architecture/REPOSITORY_MAP.md`, `docs/reference/API_REFERENCE.md`, `docs/reference/PROVIDER_REFERENCE.md`, `docs/reference/openapi.yaml`
+- **Operator guides**: `docs/guides/USER_GUIDE.md`, `docs/reference/CLI-TOOLS.md`, `docs/guides/TROUBLESHOOTING.md`, `docs/ops/COVERAGE_PLAN.md`
+- **Protocols**: `docs/frameworks/MCP-SERVER.md`, `docs/frameworks/A2A-SERVER.md`, `docs/frameworks/AGENT_PROTOCOLS_GUIDE.md`, `docs/frameworks/CLOUD_AGENT.md`
+- **Routing & resilience**: `docs/routing/AUTO-COMBO.md`, `docs/architecture/RESILIENCE_GUIDE.md`
+- **Security**: `docs/architecture/AUTHZ_GUIDE.md`, `docs/security/GUARDRAILS.md`, `docs/security/COMPLIANCE.md`, `docs/security/STEALTH_GUIDE.md`
+- **Extensibility**: `docs/frameworks/SKILLS.md`, `docs/frameworks/MEMORY.md`, `docs/frameworks/EVALS.md`, `docs/frameworks/WEBHOOKS.md`, `docs/routing/REASONING_REPLAY.md`
+- **Platform**: `docs/guides/ELECTRON_GUIDE.md`, `docs/ops/TUNNELS_GUIDE.md`
+- **AI agents**: `CLAUDE.md`, `AGENTS.md`, `GEMINI.md`
