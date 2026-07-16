@@ -2190,7 +2190,7 @@ export async function handleChatCore({
   };
   const resolveBifrostStreamRouteTargetOnce = (responseUrl: string | null | undefined) => {
     if (!isBifrostResponseUrl(responseUrl)) return null;
-    return resolveBifrostStreamRouteTarget(provider, model);
+    return resolveBifrostStreamRouteTarget(provider, effectiveModel);
   };
   const getExecutionCredentials = () =>
     resolveExecutionCredentialsFor({

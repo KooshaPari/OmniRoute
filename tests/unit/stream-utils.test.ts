@@ -184,6 +184,36 @@ test("createSSEStream passthrough emits ttft once in successful completion", asy
   assert.match(text, /"content":"hello"/);
 });
 
+test("createSSEStream passthrough preserves upstream bytes while still computing ttft from first emitted payload", async () => {
+  const payload = {
+    id: "chatcmpl_ttf_bytes",
+    object: "chat.completion.chunk",
+    created: 1,
+    model: "gpt-4.1-mini",
+    choices: [{ index: 0, delta: { content: "hello" }, finish_reason: null }],
+    usage: { prompt_tokens: 1, completion_tokens: 1, total_tokens: 2 },
+  };
+  const upstreamChunk = `event: data_event\ndata: ${JSON.stringify(payload)}\n\n`;
+  let onCompletePayload = null;
+  const text = await readTransformed([upstreamChunk, "data: [DONE]\n\n"], {
+    mode: "passthrough",
+    sourceFormat: FORMATS.OPENAI,
+    provider: "openai",
+    model: "gpt-4.1-mini",
+    body: { messages: [{ role: "user", content: "hello" }] },
+    onComplete(payload) {
+      onCompletePayload = payload;
+    },
+  });
+
+  const expected = `data: ${JSON.stringify(payload)}`;
+  const dataLine = text.split("\n").find((line) => line.startsWith("data: "));
+  assert.equal(typeof onCompletePayload.ttft, "number");
+  assert.equal(dataLine, expected);
+  assert.match(text, /event: data_event/);
+  assert.match(text, /"content":"hello"/);
+});
+
 test("createSSEStream passthrough leaves ttft unset when no upstream payload was emitted", async () => {
   let onCompletePayload = null;
   const text = await readTransformed(["data: [DONE]\n\n"], {
