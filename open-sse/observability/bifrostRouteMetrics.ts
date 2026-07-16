@@ -9,6 +9,7 @@
 
 const MAX_KEY_CAPACITY = 512;
 const MAX_SAMPLES_PER_KEY = 64;
+const DEFAULT_MIN_SAMPLES_FOR_RELIABILITY = 4;
 
 export interface BifrostRouteOutcomeInput {
   provider: string;
@@ -36,6 +37,23 @@ export interface BifrostRouteOutcomeStats {
   lastError: string | null;
   updatedAtMs: number;
 }
+
+export interface BifrostRouteProjectedOutcome {
+  provider: string;
+  model: string;
+  e2eLatencyMs: number;
+  health: number | undefined;
+  failureRate: number;
+  stability: number | undefined;
+  sampleCount: number;
+  updatedAtMs: number;
+}
+
+export interface BifrostRouteProjectionOptions {
+  minimumSamplesForReliability?: number;
+}
+
+type MetricProjectionInput = BifrostRouteOutcomeStats | null | undefined;
 
 interface OutcomeSample {
   timestampMs: number;
@@ -180,6 +198,81 @@ function nowMs(): number {
   return Date.now();
 }
 
+function clamp01(value: number): number {
+  if (!Number.isFinite(value)) return 0;
+  if (value < 0) return 0;
+  if (value > 1) return 1;
+  return value;
+}
+
+function normalizeMinimumSamples(value: number | undefined): number {
+  const parsed = typeof value === "number" && Number.isFinite(value) ? Math.floor(value) : DEFAULT_MIN_SAMPLES_FOR_RELIABILITY;
+  return Math.max(1, parsed);
+}
+
+function computeStabilityFromLatency(avgLatencyMs: number, p95LatencyMs: number): number | undefined {
+  if (!Number.isFinite(avgLatencyMs) || !Number.isFinite(p95LatencyMs)) return undefined;
+  if (avgLatencyMs <= 0) return undefined;
+  if (p95LatencyMs < 0) return undefined;
+
+  const dispersion = Math.abs(p95LatencyMs - avgLatencyMs) / avgLatencyMs;
+  return clamp01(1 - dispersion);
+}
+
+function computeFailureRate(successRate: number): number {
+  if (!Number.isFinite(successRate)) return 0;
+  return clamp01(1 - successRate);
+}
+
+function isValidStats(stats: MetricProjectionInput): stats is BifrostRouteOutcomeStats {
+  if (!stats) return false;
+  if (typeof stats.provider !== "string" || typeof stats.model !== "string") return false;
+  if (!Number.isFinite(stats.sampleCount) || stats.sampleCount < 0) return false;
+  if (!Number.isFinite(stats.updatedAtMs) || stats.updatedAtMs < 0) return false;
+  if (!Number.isFinite(stats.successRate)) return false;
+  if (!Number.isFinite(stats.avgLatencyMs) || !Number.isFinite(stats.p95LatencyMs)) return false;
+  return true;
+}
+
+export function projectBifrostRouteMetrics(
+  stats: BifrostRouteOutcomeStats,
+  options: BifrostRouteProjectionOptions = {}
+): BifrostRouteProjectedOutcome | null {
+  if (!isValidStats(stats)) return null;
+
+  const sampleCount = stats.sampleCount;
+  const e2eLatencyMs = stats.sampleCount > 0 && Number.isFinite(stats.p95LatencyMs)
+    ? stats.p95LatencyMs
+    : stats.avgLatencyMs;
+  const successRate = clamp01(stats.successRate);
+  const failureRate = computeFailureRate(successRate);
+
+  const minimumSamples = normalizeMinimumSamples(options.minimumSamplesForReliability);
+  if (sampleCount < minimumSamples) {
+    return {
+      provider: stats.provider,
+      model: stats.model,
+      e2eLatencyMs,
+      health: undefined,
+      failureRate,
+      stability: undefined,
+      sampleCount,
+      updatedAtMs: stats.updatedAtMs,
+    };
+  }
+
+  return {
+    provider: stats.provider,
+    model: stats.model,
+    e2eLatencyMs,
+    health: successRate,
+    failureRate,
+    stability: computeStabilityFromLatency(stats.avgLatencyMs, stats.p95LatencyMs),
+    sampleCount,
+    updatedAtMs: stats.updatedAtMs,
+  };
+}
+
 export function recordBifrostRouteOutcome(input: BifrostRouteOutcomeInput): void {
   const provider = safeProviderModel(input.provider, DEFAULT_PROVIDER);
   const model = safeProviderModel(input.model, DEFAULT_MODEL);
@@ -215,6 +308,28 @@ export function getBifrostRouteMetrics(
   const state = metricsMap.get(key);
   if (!state) return null;
   return buildStats(state);
+}
+
+export function getProjectedBifrostRouteMetrics(
+  provider: string,
+  model: string,
+  options: BifrostRouteProjectionOptions = {}
+): BifrostRouteProjectedOutcome | null {
+  const stats = getBifrostRouteMetrics(provider, model);
+  return projectBifrostRouteMetrics(stats, options);
+}
+
+export function getAllProjectedBifrostRouteMetrics(
+  options: BifrostRouteProjectionOptions = {}
+): BifrostRouteProjectedOutcome[] {
+  const all: BifrostRouteProjectedOutcome[] = [];
+  for (const stats of getAllBifrostRouteMetrics()) {
+    const projected = projectBifrostRouteMetrics(stats, options);
+    if (projected !== null) {
+      all.push(projected);
+    }
+  }
+  return all;
 }
 
 export function getAllBifrostRouteMetrics(): BifrostRouteOutcomeStats[] {

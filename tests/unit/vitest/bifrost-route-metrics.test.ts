@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach } from "vitest";
 import {
   getBifrostRouteMetrics,
   getAllBifrostRouteMetrics,
+  getProjectedBifrostRouteMetrics,
   recordBifrostRouteOutcome,
   resetBifrostRouteMetricsForTest,
 } from "../../../open-sse/observability/bifrostRouteMetrics.ts";
@@ -107,5 +108,151 @@ describe("bifrostRouteMetrics", () => {
     expect(getBifrostRouteMetrics("provider-1", "model")).toBeNull();
     expect(getBifrostRouteMetrics("provider-511", "model")).not.toBeNull();
     expect(getBifrostRouteMetrics("provider-512", "model")).not.toBeNull();
+  });
+
+  it("projects raw stats into e2e latency, failure rate, health, stability, sample count, and timestamp", () => {
+    recordBifrostRouteOutcome({
+      provider: "anthropic",
+      model: "claude-3.5",
+      status: 200,
+      latencyMs: 100,
+      timestampMs: makeTimestamp(1),
+    });
+    recordBifrostRouteOutcome({
+      provider: "anthropic",
+      model: "claude-3.5",
+      status: 500,
+      latencyMs: 120,
+      timestampMs: makeTimestamp(2),
+      error: "temporary failure",
+    });
+    recordBifrostRouteOutcome({
+      provider: "anthropic",
+      model: "claude-3.5",
+      status: 200,
+      latencyMs: 140,
+      timestampMs: makeTimestamp(3),
+    });
+    recordBifrostRouteOutcome({
+      provider: "anthropic",
+      model: "claude-3.5",
+      status: 200,
+      latencyMs: 160,
+      timestampMs: makeTimestamp(4),
+    });
+
+    const metrics = getProjectedBifrostRouteMetrics("anthropic", "claude-3.5");
+    expect(metrics).not.toBeNull();
+    expect(metrics?.provider).toBe("anthropic");
+    expect(metrics?.model).toBe("claude-3.5");
+    expect(metrics?.sampleCount).toBe(4);
+    expect(metrics?.e2eLatencyMs).toBe(160);
+    expect(metrics?.failureRate).toBeCloseTo(1 - 0.75);
+    expect(metrics?.health).toBeCloseTo(0.75);
+    expect(metrics?.stability).toBeCloseTo(0.77, 2);
+    expect(metrics?.updatedAtMs).toBe(makeTimestamp(4));
+  });
+
+  it("returns undefined health and stability below the default minimum sample threshold", () => {
+    recordBifrostRouteOutcome({
+      provider: "openai",
+      model: "gpt-4o-mini",
+      status: 200,
+      latencyMs: 100,
+      timestampMs: makeTimestamp(1),
+    });
+    recordBifrostRouteOutcome({
+      provider: "openai",
+      model: "gpt-4o-mini",
+      status: 200,
+      latencyMs: 110,
+      timestampMs: makeTimestamp(2),
+    });
+    recordBifrostRouteOutcome({
+      provider: "openai",
+      model: "gpt-4o-mini",
+      status: 500,
+      latencyMs: 120,
+      timestampMs: makeTimestamp(3),
+      error: "timeout",
+    });
+
+    const metrics = getProjectedBifrostRouteMetrics("openai", "gpt-4o-mini");
+    expect(metrics).not.toBeNull();
+    expect(metrics?.sampleCount).toBe(3);
+    expect(metrics?.health).toBeUndefined();
+    expect(metrics?.stability).toBeUndefined();
+    expect(metrics?.e2eLatencyMs).toBe(120);
+    expect(metrics?.failureRate).toBeCloseTo(1 / 3);
+  });
+
+  it("derives stable and unstable dispersion-based stability values", () => {
+    recordBifrostRouteOutcome({
+      provider: "gemini",
+      model: "gemini-2.0-flash",
+      status: 200,
+      latencyMs: 100,
+      timestampMs: makeTimestamp(1),
+    });
+    recordBifrostRouteOutcome({
+      provider: "gemini",
+      model: "gemini-2.0-flash",
+      status: 200,
+      latencyMs: 110,
+      timestampMs: makeTimestamp(2),
+    });
+    recordBifrostRouteOutcome({
+      provider: "gemini",
+      model: "gemini-2.0-flash",
+      status: 200,
+      latencyMs: 115,
+      timestampMs: makeTimestamp(3),
+    });
+    recordBifrostRouteOutcome({
+      provider: "gemini",
+      model: "gemini-2.0-flash",
+      status: 200,
+      latencyMs: 120,
+      timestampMs: makeTimestamp(4),
+    });
+
+    const stable = getProjectedBifrostRouteMetrics("gemini", "gemini-2.0-flash");
+    expect(stable).not.toBeNull();
+    expect(stable?.health).toBeCloseTo(1);
+    expect(stable?.stability).toBeCloseTo(0.92, 2);
+
+    recordBifrostRouteOutcome({
+      provider: "gemini",
+      model: "gemini-2.0-flash-flaky",
+      status: 200,
+      latencyMs: 20,
+      timestampMs: makeTimestamp(10),
+    });
+    recordBifrostRouteOutcome({
+      provider: "gemini",
+      model: "gemini-2.0-flash-flaky",
+      status: 200,
+      latencyMs: 25,
+      timestampMs: makeTimestamp(11),
+    });
+    recordBifrostRouteOutcome({
+      provider: "gemini",
+      model: "gemini-2.0-flash-flaky",
+      status: 200,
+      latencyMs: 1000,
+      timestampMs: makeTimestamp(12),
+    });
+    recordBifrostRouteOutcome({
+      provider: "gemini",
+      model: "gemini-2.0-flash-flaky",
+      status: 200,
+      latencyMs: 1000,
+      timestampMs: makeTimestamp(13),
+    });
+
+    const unstable = getProjectedBifrostRouteMetrics("gemini", "gemini-2.0-flash-flaky");
+    expect(unstable).not.toBeNull();
+    expect(unstable?.health).toBeCloseTo(1);
+    expect(unstable?.stability).toBeLessThan(0.05);
   });
 });
