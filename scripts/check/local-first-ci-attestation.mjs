@@ -2,7 +2,7 @@
 
 import { createHash } from "node:crypto";
 import { createReadStream, existsSync } from "node:fs";
-import { mkdir, readFile, readdir, stat, writeFile } from "node:fs/promises";
+import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { spawnSync } from "node:child_process";
 import { resolve, relative } from "node:path";
 import { pathToFileURL } from "node:url";
@@ -29,26 +29,68 @@ const requiredGates = [
     command: "bun scripts/check/check-cycles.mjs",
   },
 ];
-const trackedRoots = [
-  ".github/workflows",
-  "lefthook.yml",
-  "package.json",
-  "package-lock.json",
-  "scripts/check",
-];
-const ignoredDirectories = new Set([".git", "node_modules", "dist", "build", "coverage"]);
+const excludedTrackedPrefixes = [".ci/"];
 const MODE_RECORD = "--record";
 const MODE_WRITE = "--write";
 
-function getGitSha() {
-  const git = spawnSync("git", ["rev-parse", "HEAD"], {
+export function sourceTreeDigestFromLsTree(value) {
+  const separator = value.includes("\0") ? "\0" : /\r?\n/u;
+  return textSha256(
+    value
+      .split(separator)
+      .filter(Boolean)
+      .filter((entry) => {
+        const tab = entry.indexOf("\t");
+        const path = tab === -1 ? "" : entry.slice(tab + 1).replaceAll("\\", "/");
+        return isAttestedTrackedPath(path);
+      })
+      .sort()
+      .join("\n"),
+  );
+}
+
+export function isAttestedTrackedPath(path) {
+  const normalized = String(path).replaceAll("\\", "/").replace(/^\.\//u, "");
+  return normalized !== ".ci" && !excludedTrackedPrefixes.some((prefix) => normalized.startsWith(prefix));
+}
+
+export function trackedInputPathsFromLsFiles(value) {
+  const separator = value.includes("\0") ? "\0" : /\r?\n/u;
+  return value
+    .split(separator)
+    .filter(Boolean)
+    .map((path) => path.replaceAll("\\", "/"))
+    .filter(isAttestedTrackedPath)
+    .sort();
+}
+
+export function evidenceBindingFailures({
+  proof,
+  actualLogHash,
+  expectedInputHash,
+  expectedSourceTreeHash,
+  manifestProofHash,
+  actualProofHash,
+}) {
+  const failures = [];
+  if (actualLogHash && proof.log?.sha256 !== actualLogHash) failures.push("log hash mismatch");
+  if (expectedInputHash && proof.input?.hash !== expectedInputHash) failures.push("input hash mismatch");
+  if (expectedSourceTreeHash && proof.input?.sourceTreeSha256 !== expectedSourceTreeHash) {
+    failures.push("source-tree hash mismatch");
+  }
+  if (manifestProofHash && actualProofHash !== manifestProofHash) failures.push("proof hash mismatch");
+  return failures;
+}
+
+function buildSourceTreeDigest() {
+  const tree = spawnSync("git", ["ls-tree", "-r", "-z", "--full-tree", "HEAD"], {
     encoding: "utf8",
     cwd: root,
   });
-  if (git.status !== 0) {
-    throw new Error(`Could not read git SHA: ${git.stderr}`);
+  if (tree.status !== 0) {
+    throw new Error(`Could not read attestation input tree: ${tree.stderr}`);
   }
-  return git.stdout.trim();
+  return sourceTreeDigestFromLsTree(tree.stdout);
 }
 
 function getFlagValue(flag) {
@@ -77,53 +119,26 @@ function textSha256(value) {
   return createHash("sha256").update(value, "utf8").digest("hex");
 }
 
-async function collectFiles(targetPath) {
-  const fullPath = resolve(root, targetPath);
-  const stats = await stat(fullPath);
-  if (!stats.isDirectory()) {
-    return [targetPath];
-  }
-
-  const entries = await readdir(fullPath, { withFileTypes: true });
-  const files = [];
-  for (const entry of entries) {
-    if (entry.isDirectory()) {
-      if (ignoredDirectories.has(entry.name)) {
-        continue;
-      }
-      const child = await collectFiles(`${targetPath}/${entry.name}`);
-      files.push(...child);
-      continue;
-    }
-    if (entry.isFile()) {
-      files.push(`${targetPath}/${entry.name}`);
-    }
-  }
-
-  return files;
-}
-
 async function buildIntegrityDigest() {
-  const files = [];
-  for (const tracked of trackedRoots) {
+  const listed = spawnSync("git", ["ls-files", "-z", "--cached"], {
+    encoding: "utf8",
+    cwd: root,
+  });
+  if (listed.status !== 0) {
+    throw new Error(`Could not enumerate tracked attestation inputs: ${listed.stderr}`);
+  }
+  const files = trackedInputPathsFromLsFiles(listed.stdout);
+
+  const digestEntries = [];
+  for (const file of files) {
     try {
-      files.push(...(await collectFiles(tracked)));
+      digestEntries.push(`${file}:${await fileSha256(resolve(root, file))}`);
     } catch (error) {
       if (error.code === "ENOENT") {
-        throw new Error(`Tracked manifest root does not exist: ${tracked}`);
+        throw new Error(`Tracked attestation input is missing from the filesystem: ${file}`);
       }
       throw error;
     }
-  }
-
-  const digestEntries = [];
-  const digests = await Promise.all(
-    files
-      .sort()
-      .map(async (file) => ({ path: file, digest: await fileSha256(resolve(root, file)) })),
-  );
-  for (const entry of digests) {
-    digestEntries.push(`${entry.path}:${entry.digest}`);
   }
 
   const digest = createHash("sha256").update(digestEntries.sort().join("\n")).digest("hex");
@@ -152,6 +167,8 @@ function normalizeProofStatus(status) {
 }
 
 async function runGate(gate, command) {
+  const input = await buildIntegrityDigest();
+  const sourceTreeSha256 = buildSourceTreeDigest();
   const startedAt = new Date().toISOString();
   const result = spawnSync(command, {
     encoding: "utf8",
@@ -168,7 +185,8 @@ async function runGate(gate, command) {
     `finishedAt: ${finishedAt}`,
     `exitCode: ${result.status}`,
     `signal: ${result.signal ?? "none"}`,
-    `gitSha: ${getGitSha()}`,
+    `inputSha256: ${input.hash}`,
+    `sourceTreeSha256: ${sourceTreeSha256}`,
     "stdout:",
     result.stdout || "",
     "stderr:",
@@ -177,14 +195,19 @@ async function runGate(gate, command) {
   await writeFile(logPath, `${logPayload}\n`);
 
   const proof = {
-    schemaVersion: 1,
+    schemaVersion: 2,
     name: gate.name,
     status: result.status === 0 ? "passed" : "failed",
     command: gate.command,
     exitCode: result.status,
     signal: result.signal ?? null,
     generatedAt: new Date().toISOString(),
-    gitSha: getGitSha(),
+    input: {
+      algorithm: "sha256",
+      hash: input.hash,
+      fileCount: input.fileCount,
+      sourceTreeSha256,
+    },
     log: {
       path: logRelativePath,
       sha256: await fileSha256(logPath),
@@ -238,8 +261,14 @@ async function loadGateProof(gateName) {
   }
 
   const proofHash = textSha256(raw);
-  if (!proof.gitSha || proof.gitSha.trim().length !== 40) {
-    throw new Error(`Missing or invalid git SHA in proof for ${gateName}`);
+  if (proof.schemaVersion !== 2) {
+    throw new Error(`Unsupported proof schemaVersion for ${gateName}: ${proof.schemaVersion}`);
+  }
+  if (proof.input?.algorithm !== "sha256" || !/^[a-f0-9]{64}$/.test(proof.input?.hash || "")) {
+    throw new Error(`Missing or invalid input digest in proof for ${gateName}`);
+  }
+  if (!/^[a-f0-9]{64}$/.test(proof.input?.sourceTreeSha256 || "")) {
+    throw new Error(`Missing or invalid source-tree digest in proof for ${gateName}`);
   }
 
   const proofLogPath = proof?.log?.path ? resolve(root, proof.log.path) : logPath;
@@ -248,7 +277,7 @@ async function loadGateProof(gateName) {
   }
 
   const actualLogHash = await fileSha256(proofLogPath);
-  if (proof.log?.sha256 !== actualLogHash) {
+  if (evidenceBindingFailures({ proof, actualLogHash }).length > 0) {
     throw new Error(`Proof log hash mismatch for ${gateName}`);
   }
 
@@ -258,12 +287,19 @@ async function loadGateProof(gateName) {
   };
 }
 
-async function buildGateResults(expectedSha) {
+async function buildGateResults(expectedInputHash, expectedSourceTreeHash) {
   const gateResults = [];
   for (const gate of requiredGates) {
     const { proof, proofHash } = await loadGateProof(gate.name);
-    if (proof.gitSha !== expectedSha) {
-      throw new Error(`Gate ${gate.name} proof SHA mismatch: ${proof.gitSha} (required ${expectedSha})`);
+    if (proof.input.hash !== expectedInputHash) {
+      throw new Error(
+        `Gate ${gate.name} proof input mismatch: ${proof.input.hash} (required ${expectedInputHash})`,
+      );
+    }
+    if (proof.input.sourceTreeSha256 !== expectedSourceTreeHash) {
+      throw new Error(
+        `Gate ${gate.name} proof source-tree mismatch: ${proof.input.sourceTreeSha256} (required ${expectedSourceTreeHash})`,
+      );
     }
     gateResults.push({
       name: gate.name,
@@ -279,18 +315,18 @@ async function buildGateResults(expectedSha) {
 
 async function writeManifest() {
   const contentHash = await buildIntegrityDigest();
-  const expectedSha = getGitSha();
-  const gateResults = await buildGateResults(expectedSha);
+  const sourceTreeSha256 = buildSourceTreeDigest();
+  const gateResults = await buildGateResults(contentHash.hash, sourceTreeSha256);
   const manifest = {
-    schemaVersion: 1,
+    schemaVersion: 2,
     generatedAt: new Date().toISOString(),
-    gitSha: expectedSha,
     gateResults,
     content: {
       algorithm: "sha256",
       hash: contentHash.hash,
       fileCount: contentHash.fileCount,
       trackedFiles: contentHash.trackedFiles,
+      sourceTreeSha256,
     },
   };
   await mkdir(resolve(root, ".ci"), { recursive: true });
@@ -302,7 +338,7 @@ async function writeManifest() {
 
 async function verifyManifest() {
   const expectedContent = await buildIntegrityDigest();
-  const expectedSha = getGitSha();
+  const expectedSourceTreeSha256 = buildSourceTreeDigest();
   let manifest;
   try {
     manifest = JSON.parse(await readFile(manifestPath, "utf8"));
@@ -328,16 +364,8 @@ async function verifyManifest() {
     return;
   }
 
-  if (manifest.schemaVersion !== 1) {
+  if (manifest.schemaVersion !== 2) {
     console.error(`Unsupported manifest schemaVersion: ${manifest.schemaVersion}`);
-    process.exitCode = 1;
-    return;
-  }
-
-  if (manifest.gitSha !== expectedSha) {
-    console.error(
-      `Manifest SHA mismatch. Manifest: ${manifest.gitSha}, expected: ${expectedSha}. Regenerate and commit with: bunx lefthook run pre-push && bun run local-ci:attest:write`,
-    );
     process.exitCode = 1;
     return;
   }
@@ -347,6 +375,11 @@ async function verifyManifest() {
     console.error(
       "Re-run and commit with: bunx lefthook run pre-push && bun run local-ci:attest:write",
     );
+    process.exitCode = 1;
+    return;
+  }
+  if (manifest.content.sourceTreeSha256 !== expectedSourceTreeSha256) {
+    console.error("Manifest source-tree hash mismatch.");
     process.exitCode = 1;
     return;
   }
@@ -378,20 +411,22 @@ async function verifyManifest() {
       continue;
     }
 
-    if (proof.gitSha !== expectedSha) {
-      proofValidationFailures.push(`Proof ${requiredGate.name} gitSha mismatch: ${proof.gitSha} (expected ${expectedSha})`);
-    }
+    const bindingFailures = evidenceBindingFailures({
+      proof,
+      expectedInputHash: expectedContent.hash,
+      expectedSourceTreeHash: expectedSourceTreeSha256,
+      manifestProofHash: result.proofHash,
+      actualProofHash: proofHash,
+    });
+    proofValidationFailures.push(
+      ...bindingFailures.map((failure) => `Proof ${requiredGate.name} ${failure}`),
+    );
 
     if (result.proofPath) {
       const proofPath = resolve(root, result.proofPath);
       if (!existsSync(proofPath)) {
         proofValidationFailures.push(`Missing manifest-referenced proof artifact for ${requiredGate.name}`);
       }
-    }
-    if (result.proofHash !== proofHash) {
-      proofValidationFailures.push(
-        `Manifest proofHash mismatch for ${requiredGate.name}: manifest ${result.proofHash} vs actual ${proofHash}`,
-      );
     }
   }
 
@@ -404,7 +439,7 @@ async function verifyManifest() {
   }
 
   console.log(
-    `local-first-ci manifest verified for ${manifest.gitSha} with ${manifest.content.fileCount} files and ${manifest.gateResults.length} gate proofs.`,
+    `local-first-ci manifest verified for input ${manifest.content.hash} with ${manifest.content.fileCount} files and ${manifest.gateResults.length} gate proofs.`,
   );
 }
 

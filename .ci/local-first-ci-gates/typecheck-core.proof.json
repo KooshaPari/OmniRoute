@@ -1,15 +1,20 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "name": "typecheck-core",
   "status": "passed",
   "command": "bunx --no-install tsc --noEmit --noCheck --ignoreDeprecations 6.0 -p open-sse/tsconfig.json",
   "exitCode": 0,
   "signal": null,
-  "generatedAt": "2026-07-15T20:49:01.043Z",
-  "gitSha": "fd4a52a24d46e4f927b4cdf44770e8aac8c7e1d2",
+  "generatedAt": "2026-07-16T06:59:47.215Z",
+  "input": {
+    "algorithm": "sha256",
+    "hash": "e1ee5b21d9b7bde167c054926b2b7ca6c47d2a34a64540fc4cac71420bcb6422",
+    "fileCount": 8448,
+    "sourceTreeSha256": "9ccd59c6683bb04bbec97c98ba3ba53a1264a7acdc2db1803239697c7cd75f4d"
+  },
   "log": {
     "path": ".ci/local-first-ci-gates/typecheck-core.log.txt",
-    "sha256": "448042887f9361e7ed238e5d57bf46e066a308b630cbe1f5e83e4cd74695d9a0",
-    "bytes": 266
+    "sha256": "d06275586424fd495d7390da55eaa3b7c186b46a9a73082faf3face4ffc240f0",
+    "bytes": 377
   }
 }

@@ -1,15 +1,20 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "name": "integrity-manifest",
   "status": "passed",
   "command": "bun run integrity:manifest:write",
   "exitCode": 0,
   "signal": null,
-  "generatedAt": "2026-07-15T20:48:52.983Z",
-  "gitSha": "fd4a52a24d46e4f927b4cdf44770e8aac8c7e1d2",
+  "generatedAt": "2026-07-16T07:00:43.375Z",
+  "input": {
+    "algorithm": "sha256",
+    "hash": "e1ee5b21d9b7bde167c054926b2b7ca6c47d2a34a64540fc4cac71420bcb6422",
+    "fileCount": 8448,
+    "sourceTreeSha256": "9ccd59c6683bb04bbec97c98ba3ba53a1264a7acdc2db1803239697c7cd75f4d"
+  },
   "log": {
     "path": ".ci/local-first-ci-gates/integrity-manifest.log.txt",
-    "sha256": "38b771f4e1d4a485175def3972105f86240b73f851525f88d19113b460f6b45d",
-    "bytes": 314
+    "sha256": "89f7556d1116e9d4c0021d45b9609c5cbd4670116e8df95e1b8ffef49a4616df",
+    "bytes": 425
   }
 }

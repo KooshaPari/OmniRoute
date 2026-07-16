@@ -17,8 +17,13 @@ Local development pre-push checks now emit committed per-gate proof artifacts in
 (`*.proof.json` + `*.log.txt`) and a manifest at `.ci/local-first-ci-manifest.json`.
 The workflow at `.github/workflows/local-first-ci.yml` verifies this manifest on `push` and on PRs
 that carry the `local-first-ci` label, and fails PRs that have stale/mismatched artifacts.
-Manifests require exact `gitSha` parity with the current `HEAD`; ancestors are not accepted.
-The manifest and proofs are local attestations of gate execution from this repository state.
+Manifests and proofs require exact SHA-256 parity with every tracked repository file except the
+generated `.ci/` evidence itself. That single exclusion prevents proofs and their manifest from
+invalidating their own provenance; product source, tests, configuration, workflows, manifests,
+lockfiles, documentation, and other tracked inputs remain covered. Additions, deletions, renames,
+content changes, and filesystem drift make the evidence stale. Commit ancestry is not used as proof
+of content identity. The manifest and proofs are local attestations of gate execution against that
+exact repository-input digest.
 They do **not** prove that GitHub-hosted jobs executed in your environment.
 A `.ci/local-first-ci-gates/*` entry is expected to be reproducibly regenerated on a clean
 checkout by running `bunx lefthook run pre-push && bun run local-ci:attest:write` (after reviewing

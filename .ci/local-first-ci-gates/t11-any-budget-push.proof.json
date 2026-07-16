@@ -1,15 +1,20 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "name": "t11-any-budget-push",
   "status": "passed",
   "command": "bun scripts/check/check-t11-any-budget.mjs",
   "exitCode": 0,
   "signal": null,
-  "generatedAt": "2026-07-15T20:48:54.890Z",
-  "gitSha": "fd4a52a24d46e4f927b4cdf44770e8aac8c7e1d2",
+  "generatedAt": "2026-07-16T07:01:22.914Z",
+  "input": {
+    "algorithm": "sha256",
+    "hash": "e1ee5b21d9b7bde167c054926b2b7ca6c47d2a34a64540fc4cac71420bcb6422",
+    "fileCount": 8448,
+    "sourceTreeSha256": "9ccd59c6683bb04bbec97c98ba3ba53a1264a7acdc2db1803239697c7cd75f4d"
+  },
   "log": {
     "path": ".ci/local-first-ci-gates/t11-any-budget-push.log.txt",
-    "sha256": "093eb6903e8334a9590e2e769c3cb158e0f3dfae872510048444fba55d680486",
-    "bytes": 7582
+    "sha256": "ec3b2b7d836d94249ff4a5e894c88c0ce27178dcf3162c44909cd83512ebd766",
+    "bytes": 7693
   }
 }

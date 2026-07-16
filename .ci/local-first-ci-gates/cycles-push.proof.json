@@ -1,15 +1,20 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "name": "cycles-push",
   "status": "passed",
   "command": "bun scripts/check/check-cycles.mjs",
   "exitCode": 0,
   "signal": null,
-  "generatedAt": "2026-07-15T20:48:58.473Z",
-  "gitSha": "fd4a52a24d46e4f927b4cdf44770e8aac8c7e1d2",
+  "generatedAt": "2026-07-16T07:02:35.600Z",
+  "input": {
+    "algorithm": "sha256",
+    "hash": "e1ee5b21d9b7bde167c054926b2b7ca6c47d2a34a64540fc4cac71420bcb6422",
+    "fileCount": 8448,
+    "sourceTreeSha256": "9ccd59c6683bb04bbec97c98ba3ba53a1264a7acdc2db1803239697c7cd75f4d"
+  },
   "log": {
     "path": ".ci/local-first-ci-gates/cycles-push.log.txt",
-    "sha256": "3b56cc6849ad0743ebfbbc7af696c51307a2c036429cff1091f1efecee22fcf1",
-    "bytes": 359
+    "sha256": "c2d9cf3a1d445ed42575b21f116b5de73cbcf745b252eebb69e7f114b118dc9e",
+    "bytes": 470
   }
 }
