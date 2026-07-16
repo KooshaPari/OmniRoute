@@ -107,4 +107,75 @@ describe("bifrostRouteMetrics DB persistence", () => {
     assert.equal(freshProjected?.sampleCount, 4);
     assert.equal(freshProjected?.health, 1);
   });
+
+  it("merges independent snapshots for the same provider-model key without dropping prior samples", async () => {
+    const now = makeTimestamp();
+
+    metrics.recordBifrostRouteOutcome({
+      provider: "openai",
+      model: "gpt-4o-mini",
+      status: 200,
+      latencyMs: 80,
+      ttftMs: null,
+      outputTokens: null,
+      generationDurationMs: null,
+      timestampMs: now - 2_000,
+    });
+    await metrics.flushBifrostRouteMetricsPersistenceForTest();
+
+    metrics.resetBifrostRouteMetricsForTest();
+    metrics.recordBifrostRouteOutcome({
+      provider: "openai",
+      model: "gpt-4o-mini",
+      status: 500,
+      latencyMs: 120,
+      error: "transient transport failure",
+      ttftMs: null,
+      outputTokens: null,
+      generationDurationMs: null,
+      timestampMs: now - 1_000,
+    });
+    await metrics.flushBifrostRouteMetricsPersistenceForTest();
+
+    const persisted = db.loadBifrostRouteMetricSamples();
+    assert.equal(persisted.length, 1);
+    assert.equal(persisted[0].samples.length, 2);
+    assert.equal(persisted[0].samples[0].timestampMs, now - 2_000);
+    assert.equal(persisted[0].samples[1].timestampMs, now - 1_000);
+  });
+
+  it("deduplicates repeated persistence of the same sample set by stable sample identity", async () => {
+    const base = makeTimestamp(10_000);
+
+    metrics.recordBifrostRouteOutcome({
+      provider: "anthropic",
+      model: "claude-3.5",
+      status: 200,
+      latencyMs: 95,
+      ttftMs: 30,
+      outputTokens: 100,
+      generationDurationMs: 500,
+      timestampMs: base,
+    });
+    await metrics.flushBifrostRouteMetricsPersistenceForTest();
+
+    metrics.resetBifrostRouteMetricsForTest();
+    metrics.recordBifrostRouteOutcome({
+      provider: "anthropic",
+      model: "claude-3.5",
+      status: 200,
+      latencyMs: 95,
+      ttftMs: 30,
+      outputTokens: 100,
+      generationDurationMs: 500,
+      timestampMs: base,
+    });
+    await metrics.flushBifrostRouteMetricsPersistenceForTest();
+
+    const persisted = db.loadBifrostRouteMetricSamples();
+    assert.equal(persisted.length, 1);
+    assert.equal(persisted[0].samples.length, 1);
+    assert.equal(persisted[0].samples[0].status, 200);
+    assert.equal(persisted[0].samples[0].latencyMs, 95);
+  });
 });
