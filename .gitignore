@@ -1,0 +1,28 @@
+# Worktree dirs (each subdir is a worktree of another repo)
+worktrees/
+wtrees/
+wt/
+
+# Never track nested git artifacts
+**/.git/
+**/.git
+**/.git-*/
+**/.gitmodules
+
+# Build outputs and caches
+target/
+node_modules/
+__pycache__/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.tox/
+.venv/
+venv/
+.next/
+dist/
+out/
+build/
+
+# OS
+.DS_Store
