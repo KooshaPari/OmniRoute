@@ -360,6 +360,7 @@ function computeBifrostStreamOutcomeRecord(params: {
   shouldRecordViaBifrost: boolean;
   provider: string;
   model: string;
+  connectionId?: string | null;
   status: number;
   startTime: number;
   ttft?: number | null;
@@ -369,6 +370,7 @@ function computeBifrostStreamOutcomeRecord(params: {
     shouldRecord: params.shouldRecordViaBifrost,
     provider: params.provider,
     model: params.model,
+    connectionId: params.connectionId,
     status: params.status,
     startTime: params.startTime,
     ttft: params.ttft,
@@ -4125,6 +4127,7 @@ export async function handleChatCore({
         shouldRecordViaBifrost: true,
         provider: bifrostStreamRouteTarget.provider,
         model: bifrostStreamRouteTarget.model,
+        connectionId: getCurrentConnectionId(),
         status: failureResponse.status,
         startTime,
         streamUsage: undefined,
@@ -4193,6 +4196,7 @@ export async function handleChatCore({
       if (streamFailureCompletionRecorded) return;
       streamFailureCompletionRecorded = true;
     }
+    const streamConnectionId = getCurrentConnectionId();
     if (shouldRecordBifrostStreamOutcome && bifrostStreamRouteTarget) {
       const skipOutcome = shouldSkipBifrostStreamOutcome({
         status: normalizedStreamStatus,
@@ -4207,6 +4211,7 @@ export async function handleChatCore({
         shouldRecordViaBifrost: true,
         provider: bifrostStreamRouteTarget.provider,
         model: bifrostStreamRouteTarget.model,
+        connectionId: streamConnectionId,
         status: normalizedStreamStatus,
         startTime,
         ttft,
@@ -4221,7 +4226,6 @@ export async function handleChatCore({
       }
     }
     const cacheUsageLogMeta = buildCacheUsageLogMeta(streamUsage);
-    const streamConnectionId = getCurrentConnectionId();
 
     if (normalizedStreamStatus === 200) {
       void maybeSyncClaudeExtraUsageState({
