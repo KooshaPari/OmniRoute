@@ -393,12 +393,11 @@ export class BifrostBackendExecutor extends BaseExecutor {
     );
 
     // ── execute + record observation (B9.1) ──────────────────────
-    // We measure latency around the fetch and always record an
-    // observation. `ok` is true on 2xx and false on any other status or
-    // thrown error. The kill switch uses these to auto-trip when
-    // thresholds (p99 latency, error rate, cost ratio) are exceeded. The
-    // fetch itself is wrapped in a Bifrost OTel span (B10) so Tier-1/Tier-2
-    // traces stay unified via the injected `traceparent`.
+    // For streaming requests, successful route outcomes are recorded by
+    // chatCore's stream completion callback; only transport failures are
+    // recorded here so they are not lost when `execute` rejects before the
+    // stream pipeline starts. Non-streaming requests keep full observation
+    // recording here.
     const startTime = Date.now();
     let response: Response;
     const shouldRecordRouteOutcome = !input.stream;
@@ -427,16 +426,14 @@ export class BifrostBackendExecutor extends BaseExecutor {
       // Fetch threw (network error, abort, timeout). Record a failed
       // observation and re-throw. The dispatcher will handle the error.
       const latencyMs = Date.now() - startTime;
-      if (shouldRecordRouteOutcome) {
-        recordBifrostRouteOutcome({
-          provider: this.provider,
-          model,
-          status: null,
-          latencyMs,
-          ok: false,
-          error: err,
-        });
-      }
+      recordBifrostRouteOutcome({
+        provider: this.provider,
+        model,
+        status: null,
+        latencyMs,
+        ok: false,
+        error: err,
+      });
       if (!isKillSwitchDisabled()) {
         recordObservation({
           timestamp: Date.now(),

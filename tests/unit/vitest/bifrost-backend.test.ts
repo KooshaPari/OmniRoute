@@ -636,7 +636,30 @@ describe("BifrostBackendExecutor route outcome metrics integration", () => {
     expect(stats?.lastError).toBe("transport failed");
   });
 
-  it("does not record Bifrost route outcomes for stream requests", async () => {
+  it("records a failure metric when stream transport throws before response", async () => {
+    const mockFetch = vi.fn().mockRejectedValue(new Error("transport failed"));
+    globalThis.fetch = mockFetch as unknown as typeof fetch;
+
+    const exec = new BifrostBackendExecutor("openai", {});
+    await expect(
+      exec.execute({
+        model: "gpt-4o",
+        body: { model: "gpt-4o", messages: [] },
+        stream: true,
+        credentials: { apiKey: "sk-test" },
+      }),
+    ).rejects.toThrow("transport failed");
+
+    const stats = getBifrostRouteMetrics("openai", "gpt-4o");
+    expect(stats).not.toBeNull();
+    expect(stats?.sampleCount).toBe(1);
+    expect(stats?.successCount).toBe(0);
+    expect(stats?.failureCount).toBe(1);
+    expect(stats?.lastStatus).toBe(null);
+    expect(stats?.lastError).toBe("transport failed");
+  });
+
+  it("does not record Bifrost route outcomes for successful stream requests in the executor", async () => {
     const mockFetch = vi.fn().mockResolvedValue(new Response("{}", { status: 200 }));
     globalThis.fetch = mockFetch as unknown as typeof fetch;
 
