@@ -73,6 +73,12 @@ type ProviderModelSummary = {
   model?: string;
 };
 
+type TopologyProvider = {
+  id: string;
+  provider: string;
+  name?: string;
+};
+
 const PROVIDER_ALIAS_TO_ID = new Map(
   Object.entries(AI_PROVIDERS)
     .flatMap(([providerId, providerInfo]) =>
@@ -116,14 +122,12 @@ export default function HomePageClient({ machineId }: HomePageClientProps) {
     Array<{ id?: string; prefix?: string; name?: string }>
   >([]);
 
-  // Live in-flight requests for Provider Topology pulse animation (#3507)
-  const { activeRequests: liveActiveRequests } = useLiveRequests();
-
   const [versionInfo, setVersionInfo] = useState<VersionInfo | null>(null);
   const [updating, setUpdating] = useState(false);
 
   // Platform detection and download links for Electron
-  const platform = typeof globalThis.window === "undefined" ? undefined : globalThis.window.electronAPI?.platform;
+  const platform =
+    typeof globalThis.window === "undefined" ? undefined : globalThis.window.electronAPI?.platform;
   const electronDownload = useMemo(() => {
     const latest = versionInfo?.latest || "";
     const cleanLatest = latest.replace(/^v/, "");
@@ -171,7 +175,8 @@ export default function HomePageClient({ machineId }: HomePageClientProps) {
   }>({ status: "idle" });
 
   useEffect(() => {
-    if (!isElectron || typeof globalThis.window === "undefined" || !globalThis.window.electronAPI) return;
+    if (!isElectron || typeof globalThis.window === "undefined" || !globalThis.window.electronAPI)
+      return;
 
     // Trigger initial check silently on mount
     globalThis.window.electronAPI.checkForUpdates().catch((err: any) => {
@@ -199,6 +204,7 @@ export default function HomePageClient({ machineId }: HomePageClientProps) {
   const [showProviderTopologyOnHome, setShowProviderTopologyOnHome] = useState(true); // default on
   const [autoRefreshProviderQuota, setAutoRefreshProviderQuota] = useState(false);
   const [autoRefreshProviderQuotaInterval, setAutoRefreshProviderQuotaInterval] = useState(180);
+  const [appearanceSettingsLoaded, setAppearanceSettingsLoaded] = useState(false);
 
   useEffect(() => {
     // Fetch the pin settings (lightweight)
@@ -225,6 +231,9 @@ export default function HomePageClient({ machineId }: HomePageClientProps) {
       })
       .catch(() => {
         /* ignore — defaults stay */
+      })
+      .finally(() => {
+        setAppearanceSettingsLoaded(true);
       });
   }, []);
 
@@ -236,10 +245,9 @@ export default function HomePageClient({ machineId }: HomePageClientProps) {
 
   const fetchData = useCallback(async () => {
     try {
-      const [provRes, modelsRes, metricsRes, versionRes] = await Promise.all([
+      const [provRes, modelsRes, versionRes] = await Promise.all([
         fetch("/api/providers"),
         fetch("/api/models"),
-        fetch("/api/provider-metrics"),
         fetch("/api/system/version"),
       ]);
       if (provRes.ok) {
@@ -249,10 +257,6 @@ export default function HomePageClient({ machineId }: HomePageClientProps) {
       if (modelsRes.ok) {
         const modelsData = await modelsRes.json();
         setModels(modelsData.models || []);
-      }
-      if (metricsRes.ok) {
-        const metricsData = await metricsRes.json();
-        setProviderMetrics(metricsData.metrics || {});
       }
       if (versionRes.ok) {
         const versionData = await versionRes.json();
@@ -278,6 +282,10 @@ export default function HomePageClient({ machineId }: HomePageClientProps) {
   }, []);
 
   useEffect(() => {
+    if (!appearanceSettingsLoaded || !showProviderTopologyOnHome) {
+      return;
+    }
+
     let cancelled = false;
     let timeoutId: ReturnType<typeof setTimeout> | null = null;
     let controller: AbortController | null = null;
@@ -317,7 +325,7 @@ export default function HomePageClient({ machineId }: HomePageClientProps) {
       if (timeoutId) clearTimeout(timeoutId);
       controller?.abort();
     };
-  }, []);
+  }, [appearanceSettingsLoaded, showProviderTopologyOnHome]);
 
   // T07: Check for unhealthy API keys and show notification (once per session)
   const notifiedUnhealthyKeys = useRef<Set<string>>(new Set());
@@ -1061,9 +1069,7 @@ export default function HomePageClient({ machineId }: HomePageClientProps) {
       {pinProviderQuotaToHome && (
         <Suspense fallback={<CardSkeleton />}>
           <ProviderQuotaWidget
-            autoRefreshInterval={
-              autoRefreshProviderQuota ? autoRefreshProviderQuotaInterval : 0
-            }
+            autoRefreshInterval={autoRefreshProviderQuota ? autoRefreshProviderQuotaInterval : 0}
           />
         </Suspense>
       )}
@@ -1181,9 +1187,8 @@ export default function HomePageClient({ machineId }: HomePageClientProps) {
               </span>
             </div>
           </div>
-          <ProviderTopology
+          <ProviderTopologySection
             providers={topologyProviders}
-            activeRequests={selectActiveRequests(liveActiveRequests)}
             lastProvider={lastProvider}
             errorProvider={errorProvider}
           />
@@ -1199,6 +1204,28 @@ export default function HomePageClient({ machineId }: HomePageClientProps) {
         />
       )}
     </div>
+  );
+}
+
+function ProviderTopologySection({
+  providers,
+  lastProvider,
+  errorProvider,
+}: {
+  providers: TopologyProvider[];
+  lastProvider: string;
+  errorProvider: string;
+}) {
+  // Live in-flight requests are only needed while the topology widget is mounted.
+  const { activeRequests: liveActiveRequests } = useLiveRequests();
+
+  return (
+    <ProviderTopology
+      providers={providers}
+      activeRequests={selectActiveRequests(liveActiveRequests)}
+      lastProvider={lastProvider}
+      errorProvider={errorProvider}
+    />
   );
 }
 
