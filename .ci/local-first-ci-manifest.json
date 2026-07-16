@@ -1,44 +1,44 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-07-16T20:41:32.295Z",
+  "generatedAt": "2026-07-16T10:30:47.558Z",
   "gateResults": [
     {
       "name": "typecheck-core",
       "status": "passed",
       "command": "bunx --no-install tsc --noEmit --noCheck --ignoreDeprecations 6.0 -p open-sse/tsconfig.json",
       "proofPath": ".ci/local-first-ci-gates/typecheck-core.proof.json",
-      "proofHash": "1e2566658a0a373e38469d3a440f9f02bd446c9cd6be80678188ae2c15c6c775",
-      "executedAt": "2026-07-16T20:39:31.594Z"
+      "proofHash": "ead4625175354f505b81e1ffbecf8d1079091694d08fc2003a54584e3c6abe27",
+      "executedAt": "2026-07-16T10:30:26.384Z"
     },
     {
       "name": "integrity-manifest",
       "status": "passed",
       "command": "bun run integrity:manifest:write",
       "proofPath": ".ci/local-first-ci-gates/integrity-manifest.proof.json",
-      "proofHash": "33d1cde0e17292937c42c98e9c7c592848f70d2f35b604600926a378455b10df",
-      "executedAt": "2026-07-16T20:39:52.045Z"
+      "proofHash": "ff63dce2ee18fd7b25b550fe348100509ec51b2f9f1d9a53da458294caccdc5f",
+      "executedAt": "2026-07-16T10:30:31.771Z"
     },
     {
       "name": "t11-any-budget-push",
       "status": "passed",
       "command": "bun scripts/check/check-t11-any-budget.mjs",
       "proofPath": ".ci/local-first-ci-gates/t11-any-budget-push.proof.json",
-      "proofHash": "93b2b3cb778b530dedf20c220659491429f34fa7ce005b0fc5bb7db5a8fb7fce",
-      "executedAt": "2026-07-16T20:40:27.157Z"
+      "proofHash": "fb97fd5c295505a8a3cb3830b5c7f60d761bd01258cde884fa2de186713eedd9",
+      "executedAt": "2026-07-16T10:30:34.634Z"
     },
     {
       "name": "cycles-push",
       "status": "passed",
       "command": "bun scripts/check/check-cycles.mjs",
       "proofPath": ".ci/local-first-ci-gates/cycles-push.proof.json",
-      "proofHash": "ddb05ba1bd51078ec388f50299dec45f01758edd3092839aceb7b6a5afa5c22e",
-      "executedAt": "2026-07-16T20:41:10.350Z"
+      "proofHash": "e667244189ed8fd01650a53a253d055c869fe1069bf95709c6f6b73c14956189",
+      "executedAt": "2026-07-16T10:30:38.436Z"
     }
   ],
   "content": {
     "algorithm": "sha256",
-    "hash": "6458642f431bbca0c33bb97fca99042fee523535f69b6ef45434d6ea6bc3ab2e",
-    "fileCount": 8457,
+    "hash": "ec6c2cf0c5db6f0f96cb9f7352f0b5bca0854e1cf4b089741d4e4016fc59d7d6",
+    "fileCount": 8455,
     "trackedFiles": [
       ".coderabbit.yaml",
       ".devcontainer/devcontainer.json",
@@ -2796,8 +2796,6 @@
       "scripts/check/lib/allowlist.mjs",
       "scripts/check/local-first-ci-attestation.mjs",
       "scripts/check/local-first-ci-attestation.test.mjs",
-      "scripts/check/local-first-ci-mode.mjs",
-      "scripts/check/local-first-ci-mode.test.mjs",
       "scripts/check/test-report-summary.mjs",
       "scripts/check/verify-integrity-manifest.mjs",
       "scripts/ci/should-promote-latest.sh",
@@ -8295,7 +8293,6 @@
       "tests/unit/ui/provider-breaker-health-hook.test.tsx",
       "tests/unit/ui/provider-plan-config.test.tsx",
       "tests/unit/ui/provider-quota-widget-auto-refresh-label-4611.test.tsx",
-      "tests/unit/ui/provider-stats-bifrost-connections.test.tsx",
       "tests/unit/ui/providerCascadeNode.test.tsx",
       "tests/unit/ui/qdrant-config-card.test.tsx",
       "tests/unit/ui/quantumLockBadge.test.tsx",
@@ -8458,6 +8455,7 @@
       "tests/unit/webshare-sync.test.ts",
       "tests/unit/wildcard-router.test.ts",
       "tests/unit/windsurf-devin-executors.test.ts",
+      "tests/unit/workflow-expressions.test.ts",
       "tests/unit/xai-translators.test.ts",
       "tests/unit/xiaomi-mimo-provider.test.ts",
       "tests/unit/xiaomi-mimo-selftrack-usage.test.ts",
@@ -8498,6 +8496,6 @@
       "worklogs/2026-06-25-L5-119-b9-dispatcher-fallback.md",
       "worklogs/L5-209-v48-envelope-expansion-2026-06-30.json"
     ],
-    "sourceTreeSha256": "db8f4cf3fc96d22e55df7a137af2cd4e0ea67869c67b8c9852f25e935d32f7a6"
+    "sourceTreeSha256": "a19a8f4c1b86e1c2912a58f476fc7c686d1f7a18a854363a9d200f214b6649af"
   }
 }
