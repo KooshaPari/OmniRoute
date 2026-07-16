@@ -13,12 +13,13 @@ on:
         options:
           - live
           - verify
+          - record
 
 permissions:
   contents: read
 
 concurrency:
-  group: local-first-ci-${{ github.workflow }}-${{ github.event.pull_request.head.sha || github.sha }}
+  group: local-first-ci-${{ github.workflow }}-${{ github.event_name }}-${{ github.event.pull_request.head.sha || github.sha }}
   cancel-in-progress: true
 
 jobs:

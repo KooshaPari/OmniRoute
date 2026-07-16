@@ -10,7 +10,9 @@ export function resolveLocalFirstMode({ eventName, refName, defaultBranch, dispa
   }
   if (eventName === "pull_request") return "live";
   if (eventName === "workflow_dispatch") {
-    if (dispatchMode === "live" || dispatchMode === "verify") return dispatchMode;
+    if (dispatchMode === "live" || dispatchMode === "verify" || dispatchMode === "record") {
+      return dispatchMode;
+    }
     throw new Error(`unsupported workflow_dispatch mode: ${dispatchMode || "<empty>"}`);
   }
   throw new Error(`unsupported Local-First CI event: ${eventName || "<empty>"}`);

@@ -9,6 +9,7 @@ const cases = [
   ["pull request runs gates live", "pull_request", "123/merge", "main", undefined, "live"],
   ["manual live dispatch runs gates live", "workflow_dispatch", "main", "main", "live", "live"],
   ["manual audit dispatch verifies committed evidence", "workflow_dispatch", "main", "main", "verify", "verify"],
+  ["manual record dispatch emits exact-tree evidence", "workflow_dispatch", "main", "main", "record", "record"],
 ];
 
 for (const [name, eventName, refName, defaultBranch, dispatchMode, expected] of cases) {
@@ -32,7 +33,7 @@ test("unsupported events, invalid metadata, and invalid dispatch modes fail clos
         eventName: "workflow_dispatch",
         refName: "main",
         defaultBranch: "main",
-        dispatchMode: "record",
+        dispatchMode: "unsupported",
       }),
     /unsupported workflow_dispatch mode/u,
   );

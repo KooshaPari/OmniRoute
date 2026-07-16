@@ -24,6 +24,7 @@ The workflow at `.github/workflows/local-first-ci.yml` has two fail-closed modes
 | Push to a non-default branch | `live` | Same live gate and test execution as a pull request |
 | Manual dispatch (`live`) | `live` | Same live gate and test execution for operator diagnosis |
 | Manual dispatch (`verify`) | `verify` | Audit the committed snapshot; stale evidence fails closed |
+| Manual dispatch (`record`) | `record` | Regenerate, verify, and upload exact-tree evidence for the selected commit without changing the branch |
 | Any other event or inconsistent branch metadata | rejected | The terminal aggregate fails closed |
 
 Live mode does not require a branch to commit regenerated `.ci` evidence. Record mode regenerates
