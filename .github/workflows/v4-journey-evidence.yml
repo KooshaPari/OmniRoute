@@ -44,6 +44,9 @@ jobs:
       - name: Install locked dependencies
         run: |
           npm ci --ignore-scripts --no-audit --no-fund
+          # The root devDependency installs an uninitialized Bun npm shim when
+          # scripts are disabled. Remove it so the pinned setup-bun binary is
+          # not shadowed during package-local build and start scripts.
           rm -rf node_modules/bun node_modules/.bin/bun
           test "$(bun --version)" = "1.3.14"
           bun install --frozen-lockfile --cwd packages/api-contracts --ignore-scripts
@@ -124,3 +127,7 @@ jobs:
           if-no-files-found: warn
           retention-days: 14
           include-hidden-files: false
+<<<<<<< HEAD
+=======
+
+>>>>>>> 3eeeb5053f (ci: refresh journey evidence lifecycle)
