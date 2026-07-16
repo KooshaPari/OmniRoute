@@ -133,7 +133,6 @@ function buildStats(state: OutcomeRing): BifrostRouteOutcomeStats {
   let validTtftSamples = 0;
   let outputTokenSum = 0;
   let generationDurationMsSum = 0;
-  let validTpsSamples = 0;
 
   for (const sample of ordered) {
     if (sample.ok) successCount += 1;
@@ -144,14 +143,9 @@ function buildStats(state: OutcomeRing): BifrostRouteOutcomeStats {
       ttftSum += sample.ttftMs;
       validTtftSamples += 1;
     }
-    if (
-      sample.ttftMs !== null &&
-      sample.outputTokens !== null &&
-      sample.generationDurationMs !== null
-    ) {
+    if (sample.outputTokens !== null && sample.generationDurationMs !== null) {
       outputTokenSum += sample.outputTokens;
       generationDurationMsSum += sample.generationDurationMs;
-      validTpsSamples += 1;
     }
   }
 
@@ -160,7 +154,7 @@ function buildStats(state: OutcomeRing): BifrostRouteOutcomeStats {
   const sample = ordered.at(-1);
   const avgTtftMs = validTtftSamples > 0 ? ttftSum / validTtftSamples : null;
   const avgTokensPerSecond =
-    validTpsSamples > 0 && generationDurationMsSum > 0
+    generationDurationMsSum > 0
       ? (outputTokenSum / generationDurationMsSum) * 1000
       : null;
 

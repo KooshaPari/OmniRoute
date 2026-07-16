@@ -73,22 +73,6 @@ test("Bifrost streaming payload omits generationDuration when TTFT is not positi
 
 test("Bifrost completion recording is gated when stream outcome should not be recorded", () => {
   const target = resolveBifrostStreamRouteTarget("openai", "gpt-4o");
-  const recordingPayload = buildBifrostStreamOutcomePayload({
-    shouldRecord: true,
-    provider: target.provider,
-    model: target.model,
-    status: 200,
-    startTime: 1000,
-    ttft: 100,
-    streamUsage: { output: 15 },
-    now: () => 1500,
-  });
-  if (recordingPayload) {
-    recordBifrostRouteOutcome(recordingPayload);
-  }
-  const before = getBifrostRouteMetrics(target.provider, target.model);
-  assert.equal(before?.sampleCount, 1);
-
   const payload = buildBifrostStreamOutcomePayload({
     shouldRecord: false,
     provider: target.provider,
@@ -104,5 +88,26 @@ test("Bifrost completion recording is gated when stream outcome should not be re
     recordBifrostRouteOutcome(payload);
   }
   const after = getBifrostRouteMetrics(target.provider, target.model);
-  assert.equal(after?.sampleCount, 1);
+  assert.equal(after, null);
+});
+
+test("Bifrost completion recording occurs exactly once per shouldRecord=true payload", () => {
+  const target = resolveBifrostStreamRouteTarget("openai", "gpt-4o");
+  const payload = buildBifrostStreamOutcomePayload({
+    shouldRecord: true,
+    provider: target.provider,
+    model: target.model,
+    status: 200,
+    startTime: 1000,
+    ttft: 100,
+    streamUsage: { output: 15 },
+    now: () => 1500,
+  });
+
+  if (payload) {
+    recordBifrostRouteOutcome(payload);
+  }
+
+  const stats = getBifrostRouteMetrics(target.provider, target.model);
+  assert.equal(stats?.sampleCount, 1);
 });

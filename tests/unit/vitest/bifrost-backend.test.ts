@@ -635,4 +635,21 @@ describe("BifrostBackendExecutor route outcome metrics integration", () => {
     expect(stats?.lastStatus).toBe(null);
     expect(stats?.lastError).toBe("transport failed");
   });
+
+  it("does not record Bifrost route outcomes for stream requests", async () => {
+    const mockFetch = vi.fn().mockResolvedValue(new Response("{}", { status: 200 }));
+    globalThis.fetch = mockFetch as unknown as typeof fetch;
+
+    const exec = new BifrostBackendExecutor("openai", {});
+    const result = await exec.execute({
+      model: "gpt-4o",
+      body: { model: "gpt-4o", messages: [] },
+      stream: true,
+      credentials: { apiKey: "sk-test" },
+    });
+
+    expect(result.response.status).toBe(200);
+    const stats = getBifrostRouteMetrics("openai", "gpt-4o");
+    expect(stats).toBeNull();
+  });
 });
