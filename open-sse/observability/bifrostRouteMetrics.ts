@@ -10,6 +10,8 @@
 const MAX_KEY_CAPACITY = 512;
 const MAX_SAMPLES_PER_KEY = 64;
 const DEFAULT_MIN_SAMPLES_FOR_RELIABILITY = 4;
+const BIFROST_METRICS_PROJECTION_WINDOW_MS = 15 * 60 * 1000;
+const MIN_PROJECTION_WINDOW_MS = 1_000;
 
 export interface BifrostRouteOutcomeInput {
   provider: string;
@@ -58,6 +60,8 @@ export interface BifrostRouteProjectedOutcome {
 
 export interface BifrostRouteProjectionOptions {
   minimumSamplesForReliability?: number;
+  projectionWindowMs?: number;
+  nowMs?: number;
 }
 
 type MetricProjectionInput = BifrostRouteOutcomeStats | null | undefined;
@@ -270,6 +274,18 @@ function computeFailureRate(successRate: number): number {
   return clamp01(1 - successRate);
 }
 
+function normalizeProjectionWindowMs(value: number | undefined): number {
+  const parsed =
+    typeof value === "number" && Number.isFinite(value)
+      ? Math.floor(value)
+      : BIFROST_METRICS_PROJECTION_WINDOW_MS;
+  return Math.max(MIN_PROJECTION_WINDOW_MS, parsed);
+}
+
+function normalizeProjectionNowMs(value: number | undefined): number {
+  return typeof value === "number" && Number.isFinite(value) ? Math.floor(value) : nowMs();
+}
+
 function isValidStats(stats: MetricProjectionInput): stats is BifrostRouteOutcomeStats {
   if (!stats) return false;
   if (typeof stats.provider !== "string" || typeof stats.model !== "string") return false;
@@ -280,6 +296,83 @@ function isValidStats(stats: MetricProjectionInput): stats is BifrostRouteOutcom
   if (stats.avgTtftMs !== null && !Number.isFinite(stats.avgTtftMs)) return false;
   if (stats.avgTokensPerSecond !== null && !Number.isFinite(stats.avgTokensPerSecond)) return false;
   return true;
+}
+
+function buildStatsFromSamples(
+  provider: string,
+  model: string,
+  orderedSamples: OutcomeSample[]
+): BifrostRouteOutcomeStats {
+  let successCount = 0;
+  let failureCount = 0;
+  let latencySum = 0;
+  const latencies: number[] = [];
+  let ttftSum = 0;
+  let validTtftSamples = 0;
+  let outputTokenSum = 0;
+  let generationDurationMsSum = 0;
+
+  for (const sample of orderedSamples) {
+    if (sample.ok) successCount += 1;
+    else failureCount += 1;
+    latencySum += sample.latencyMs;
+    latencies.push(sample.latencyMs);
+    if (sample.ttftMs !== null) {
+      ttftSum += sample.ttftMs;
+      validTtftSamples += 1;
+    }
+    if (sample.outputTokens !== null && sample.generationDurationMs !== null) {
+      outputTokenSum += sample.outputTokens;
+      generationDurationMsSum += sample.generationDurationMs;
+    }
+  }
+
+  const sampleCount = orderedSamples.length;
+  const avgLatencyMs = sampleCount > 0 ? Math.round(latencySum / sampleCount) : 0;
+  const sample = orderedSamples.at(-1);
+
+  return {
+    provider,
+    model,
+    sampleCount,
+    successCount,
+    failureCount,
+    successRate: sampleCount > 0 ? successCount / sampleCount : 0,
+    avgLatencyMs,
+    p95LatencyMs: computeP95(latencies),
+    avgTtftMs: validTtftSamples > 0 ? ttftSum / validTtftSamples : null,
+    avgTokensPerSecond:
+      generationDurationMsSum > 0
+        ? (outputTokenSum / generationDurationMsSum) * 1000
+        : null,
+    lastStatus: sample?.status ?? null,
+    lastError: sample?.error ?? null,
+    updatedAtMs: sample?.timestampMs ?? nowMs(),
+  };
+}
+
+function buildFreshStatsFromState(
+  state: OutcomeRing,
+  options: BifrostRouteProjectionOptions = {}
+): BifrostRouteOutcomeStats | null {
+  const now = normalizeProjectionNowMs(options.nowMs);
+  const projectionWindowMs = normalizeProjectionWindowMs(options.projectionWindowMs);
+  const cutoffMs = now - projectionWindowMs;
+  const orderedSamples = getOrderedSamples(state);
+  const freshSamples = orderedSamples.filter((sample) => sample.timestampMs >= cutoffMs);
+
+  if (freshSamples.length === 0) return null;
+
+  return buildStatsFromSamples(state.provider, state.model, freshSamples);
+}
+
+function projectBifrostRouteStats(
+  state: OutcomeRing,
+  options: BifrostRouteProjectionOptions
+): BifrostRouteProjectedOutcome | null {
+  const stats = buildFreshStatsFromState(state, options);
+  if (!stats) return null;
+  return projectBifrostRouteMetrics(stats, options);
 }
 
 export function projectBifrostRouteMetrics(
@@ -370,16 +463,21 @@ export function getProjectedBifrostRouteMetrics(
   model: string,
   options: BifrostRouteProjectionOptions = {}
 ): BifrostRouteProjectedOutcome | null {
-  const stats = getBifrostRouteMetrics(provider, model);
-  return projectBifrostRouteMetrics(stats, options);
+  const key = normalizeKey(
+    safeProviderModel(provider, DEFAULT_PROVIDER),
+    safeProviderModel(model, DEFAULT_MODEL),
+  );
+  const state = metricsMap.get(key);
+  if (!state) return null;
+  return projectBifrostRouteStats(state, options);
 }
 
 export function getAllProjectedBifrostRouteMetrics(
   options: BifrostRouteProjectionOptions = {}
 ): BifrostRouteProjectedOutcome[] {
   const all: BifrostRouteProjectedOutcome[] = [];
-  for (const stats of getAllBifrostRouteMetrics()) {
-    const projected = projectBifrostRouteMetrics(stats, options);
+  for (const state of metricsMap.values()) {
+    const projected = projectBifrostRouteStats(state, options);
     if (projected !== null) {
       all.push(projected);
     }

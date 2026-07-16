@@ -141,7 +141,9 @@ describe("bifrostRouteMetrics", () => {
       timestampMs: makeTimestamp(4),
     });
 
-    const metrics = getProjectedBifrostRouteMetrics("anthropic", "claude-3.5");
+    const metrics = getProjectedBifrostRouteMetrics("anthropic", "claude-3.5", {
+      nowMs: makeTimestamp(10),
+    });
     expect(metrics).not.toBeNull();
     expect(metrics?.provider).toBe("anthropic");
     expect(metrics?.model).toBe("claude-3.5");
@@ -177,13 +179,69 @@ describe("bifrostRouteMetrics", () => {
       error: "timeout",
     });
 
-    const metrics = getProjectedBifrostRouteMetrics("openai", "gpt-4o-mini");
+    const metrics = getProjectedBifrostRouteMetrics("openai", "gpt-4o-mini", {
+      nowMs: makeTimestamp(10),
+    });
     expect(metrics).not.toBeNull();
     expect(metrics?.sampleCount).toBe(3);
     expect(metrics?.health).toBeUndefined();
     expect(metrics?.stability).toBeUndefined();
     expect(metrics?.e2eLatencyMs).toBe(120);
     expect(metrics?.failureRate).toBeCloseTo(1 / 3);
+  });
+
+  it("returns null projection when only stale samples remain inside the bounded freshness window", () => {
+    const nowMs = 1_700_000_000_000;
+
+    recordBifrostRouteOutcome({
+      provider: "anthropic",
+      model: "claude-stale-only",
+      status: 200,
+      latencyMs: 100,
+      timestampMs: nowMs - 120_000,
+    });
+    recordBifrostRouteOutcome({
+      provider: "anthropic",
+      model: "claude-stale-only",
+      status: 200,
+      latencyMs: 80,
+      timestampMs: nowMs - 125_000,
+    });
+
+    const metrics = getProjectedBifrostRouteMetrics("anthropic", "claude-stale-only", {
+      projectionWindowMs: 30_000,
+      nowMs,
+    });
+
+    expect(metrics).toBeNull();
+  });
+
+  it("prefers fresh samples and ignores stale samples when projecting metrics", () => {
+    const nowMs = 1_700_000_000_000;
+
+    recordBifrostRouteOutcome({
+      provider: "openai",
+      model: "gpt-fresh-vs-stale",
+      status: 200,
+      latencyMs: 400,
+      timestampMs: nowMs - 120_000,
+    });
+    recordBifrostRouteOutcome({
+      provider: "openai",
+      model: "gpt-fresh-vs-stale",
+      status: 200,
+      latencyMs: 80,
+      timestampMs: nowMs - 1_000,
+    });
+
+    const metrics = getProjectedBifrostRouteMetrics("openai", "gpt-fresh-vs-stale", {
+      projectionWindowMs: 15_000,
+      nowMs,
+    });
+
+    expect(metrics).not.toBeNull();
+    expect(metrics?.sampleCount).toBe(1);
+    expect(metrics?.e2eLatencyMs).toBe(80);
   });
 
   it("derives stable and unstable dispersion-based stability values", () => {
@@ -216,7 +274,9 @@ describe("bifrostRouteMetrics", () => {
       timestampMs: makeTimestamp(4),
     });
 
-    const stable = getProjectedBifrostRouteMetrics("gemini", "gemini-2.0-flash");
+    const stable = getProjectedBifrostRouteMetrics("gemini", "gemini-2.0-flash", {
+      nowMs: makeTimestamp(5),
+    });
     expect(stable).not.toBeNull();
     expect(stable?.health).toBeCloseTo(1);
     expect(stable?.stability).toBeCloseTo(0.92, 2);
@@ -250,7 +310,9 @@ describe("bifrostRouteMetrics", () => {
       timestampMs: makeTimestamp(13),
     });
 
-    const unstable = getProjectedBifrostRouteMetrics("gemini", "gemini-2.0-flash-flaky");
+    const unstable = getProjectedBifrostRouteMetrics("gemini", "gemini-2.0-flash-flaky", {
+      nowMs: makeTimestamp(14),
+    });
     expect(unstable).not.toBeNull();
     expect(unstable?.health).toBeCloseTo(1);
     expect(unstable?.stability).toBeLessThan(0.05);
@@ -288,7 +350,9 @@ describe("bifrostRouteMetrics", () => {
       timestampMs: makeTimestamp(3),
     });
 
-    const metrics = getProjectedBifrostRouteMetrics("gemini", "gemini-2.0-flash-tts");
+    const metrics = getProjectedBifrostRouteMetrics("gemini", "gemini-2.0-flash-tts", {
+      nowMs: makeTimestamp(4),
+    });
 
     expect(metrics).not.toBeNull();
     expect(metrics?.avgTtftMs).toBeCloseTo(50);
@@ -323,7 +387,9 @@ describe("bifrostRouteMetrics", () => {
       timestampMs: makeTimestamp(3),
     });
 
-    const metrics = getProjectedBifrostRouteMetrics("anthropic", "claude-3.5-partial");
+    const metrics = getProjectedBifrostRouteMetrics("anthropic", "claude-3.5-partial", {
+      nowMs: makeTimestamp(4),
+    });
 
     expect(metrics).not.toBeNull();
     expect(metrics?.avgTtftMs).toBeCloseTo((30 + 50) / 2);
@@ -372,7 +438,9 @@ describe("bifrostRouteMetrics", () => {
       timestampMs: makeTimestamp(3),
     });
 
-    const metrics = getProjectedBifrostRouteMetrics("openai", "gpt-4o-noisy");
+    const metrics = getProjectedBifrostRouteMetrics("openai", "gpt-4o-noisy", {
+      nowMs: makeTimestamp(4),
+    });
 
     expect(metrics).not.toBeNull();
     expect(metrics?.avgTtftMs).toBeNull();

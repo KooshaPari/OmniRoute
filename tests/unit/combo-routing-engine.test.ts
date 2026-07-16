@@ -899,6 +899,123 @@ test("handleComboChat performance strategy does not let low-sample targets outra
   assert.equal(result.status, 500);
 });
 
+test("handleComboChat performance strategy ignores stale-only metric projection and keeps order for non-fresh targets", async () => {
+  recordBifrostRouteOutcome({
+    provider: "openai",
+    model: "perf-stale-only",
+    status: 200,
+    latencyMs: 10,
+    timestampMs: 1,
+  });
+  recordBifrostRouteOutcome({
+    provider: "anthropic",
+    model: "perf-stale-only-fallback",
+    status: 200,
+    latencyMs: 5,
+    timestampMs: 2,
+  });
+  recordBifrostRouteOutcome({
+    provider: "google",
+    model: "perf-fresh",
+    status: 200,
+    latencyMs: 75,
+  });
+  recordBifrostRouteOutcome({
+    provider: "google",
+    model: "perf-fresh",
+    status: 200,
+    latencyMs: 75,
+  });
+  recordBifrostRouteOutcome({
+    provider: "google",
+    model: "perf-fresh",
+    status: 200,
+    latencyMs: 75,
+  });
+  recordBifrostRouteOutcome({
+    provider: "google",
+    model: "perf-fresh",
+    status: 200,
+    latencyMs: 75,
+  });
+
+  const calls: any[] = [];
+  await handleComboChat({
+    body: {},
+    combo: {
+      name: "performance-stale-only-fallback",
+      strategy: "performance",
+      models: [
+        "openai/perf-stale-only",
+        "anthropic/perf-stale-only-fallback",
+        "google/perf-fresh",
+      ],
+      config: { maxRetries: 0 },
+    },
+    handleSingleModel: async (_body: any, modelStr: any) => {
+      calls.push(modelStr);
+      return errorResponse(500, "forced fallback");
+    },
+    isModelAvailable: async () => true,
+    log: createLog(),
+    settings: null,
+    relayOptions: null as any,
+    allCombos: null,
+  });
+
+  assert.deepEqual(calls, [
+    "google/perf-fresh",
+    "openai/perf-stale-only",
+    "anthropic/perf-stale-only-fallback",
+  ]);
+});
+
+test("handleComboChat performance strategy preserves original ordering when all projections are stale", async () => {
+  recordBifrostRouteOutcome({
+    provider: "google",
+    model: "perf-stale-old-1",
+    status: 200,
+    latencyMs: 15,
+    timestampMs: 1,
+  });
+  recordBifrostRouteOutcome({
+    provider: "openai",
+    model: "perf-stale-old-2",
+    status: 200,
+    latencyMs: 20,
+    timestampMs: 2,
+  });
+  recordBifrostRouteOutcome({
+    provider: "anthropic",
+    model: "perf-stale-old-3",
+    status: 200,
+    latencyMs: 10,
+    timestampMs: 3,
+  });
+
+  const calls: any[] = [];
+  await handleComboChat({
+    body: {},
+    combo: {
+      name: "performance-stale-only-order-regression",
+      strategy: "performance",
+      models: ["google/perf-stale-old-1", "openai/perf-stale-old-2", "anthropic/perf-stale-old-3"],
+      config: { maxRetries: 0 },
+    },
+    handleSingleModel: async (_body: any, modelStr: any) => {
+      calls.push(modelStr);
+      return errorResponse(500, "forced fallback");
+    },
+    isModelAvailable: async () => true,
+    log: createLog(),
+    settings: null,
+    relayOptions: null as any,
+    allCombos: null,
+  });
+
+  assert.deepEqual(calls, ["google/perf-stale-old-1", "openai/perf-stale-old-2", "anthropic/perf-stale-old-3"]);
+});
+
 test("handleComboChat performance strategy preserves stable order for tie-scoring projections", async () => {
   seedProjectedOutcomes("openai", "perf-tie-a", [
     { status: 200, latencyMs: 50 },
