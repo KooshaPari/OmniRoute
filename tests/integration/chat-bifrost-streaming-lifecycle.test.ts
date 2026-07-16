@@ -107,7 +107,7 @@ async function readSse(response: Response): Promise<string> {
   return out;
 }
 
-test("Bifrost streaming lifecycle records successful outcome sample(s)", async () => {
+test("Bifrost streaming lifecycle records exactly one successful outcome sample", async () => {
   await h.seedConnection("openai", { apiKey: "sk-openai-bifrost-stream" });
   const apiKey = await h.seedApiKey();
 
@@ -133,15 +133,14 @@ test("Bifrost streaming lifecycle records successful outcome sample(s)", async (
   const streamText = await readSse(response);
   assert.match(streamText, /bifrost stream output/);
   assert.match(streamText, /data: \[DONE\]/);
-  assert.ok(fetchCalls >= 1, "stream request and instrumentation should produce at least one upstream call");
+  assert.ok(fetchCalls >= 1, "stream request and lifecycle instrumentation should invoke upstream fetch at least once");
 
   const target = resolveBifrostStreamRouteTarget("openai", "gpt-4o-mini");
   const stats = getBifrostRouteMetrics(target.provider, target.model);
   assert.ok(stats);
-  assert.ok(stats?.sampleCount && stats.sampleCount > 0);
-  assert.ok(stats?.successCount > 0);
+  assert.equal(stats?.sampleCount, 1);
+  assert.equal(stats?.successCount, 1);
   assert.equal(stats?.failureCount, 0);
-  assert.equal(stats?.successCount, stats?.sampleCount);
   assert.equal(stats?.lastStatus, 200);
   assert.ok(stats?.avgLatencyMs >= 0);
   assert.ok(stats?.avgTtftMs === null || stats?.avgTtftMs >= 0);
