@@ -171,9 +171,11 @@ function capturePendingPersistenceSnapshot(key: string, state: OutcomeRing): voi
 function getPendingPersistenceSamples(key: string, state: OutcomeRing | null): OutcomeSample[] {
   const snapshot = pendingPersistenceSnapshots.get(key);
   const merged =
-    snapshot === undefined || !state
+    state === null
       ? (snapshot?.samples ?? [])
-      : [...snapshot.samples, ...getOrderedSamples(state)];
+      : snapshot === undefined
+        ? getOrderedSamples(state)
+        : [...snapshot.samples, ...getOrderedSamples(state)];
 
   return limitSamplesToKeyCapacity(merged);
 }
