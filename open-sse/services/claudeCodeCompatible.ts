@@ -188,13 +188,12 @@ export function buildClaudeCodeCompatibleHeaders(
   stream = false,
   sessionId?: string | null
 ): Record<string, string> {
-  void stream;
   // These headers intentionally mirror Claude Code's wire image closely.
   // For CC-compatible relays, passing the upstream's client-gating checks is
   // more important than forwarding arbitrary caller-specific header shapes.
   return {
     "Content-Type": "application/json",
-    Accept: "application/json",
+    Accept: stream ? "text/event-stream" : "application/json",
     Authorization: `Bearer ${apiKey}`,
     "anthropic-version": CLAUDE_CODE_COMPATIBLE_ANTHROPIC_VERSION,
     "anthropic-beta": CLAUDE_CODE_COMPATIBLE_ANTHROPIC_BETA,

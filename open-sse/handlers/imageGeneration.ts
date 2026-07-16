@@ -424,6 +424,9 @@ export async function handleImageGeneration({
     });
   }
 
+<<<<<<< Updated upstream
+=======
+>>>>>>> Stashed changes
 =======
 >>>>>>> Stashed changes
   return handleOpenAIImageGeneration({ model, provider, providerConfig, body, credentials, log });

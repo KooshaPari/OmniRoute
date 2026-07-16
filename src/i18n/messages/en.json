@@ -1275,8 +1275,11 @@
     "noConnections": "No connections yet — add one from the provider page.",
     "loading": "Loading...",
     "suggestedModels": "Suggested models from provider"
+<<<<<<< Updated upstream
 =======
     "musicDescription": "Compose music using Stable Audio Open or MusicGen via ComfyUI."
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
   },
   "search": {
@@ -3944,6 +3947,20 @@
     "modelsDevInfoOrder": "User Override → models.dev → LiteLLM → Hardcoded Default",
     "systemTheme": "System Theme",
     "debugToggle": "Enable Debug Mode",
+<<<<<<< Updated upstream
+=======
+    "logToolSourcesToggle": "Log Tool Sources",
+    "logToolSourcesDescription": "Emit a diagnostic log line per request summarizing tool count and MCP/hosted/client source breakdown.",
+    "homePinProviderQuotaToHome": "Pin Information to Home Page",
+    "homeProviderQuotaLimits": "Provider Quota Limits",
+    "homeProviderQuotaLimitsDesc": "Pin the Provider Quota status container (with Refresh All button) to the top of the Home page.",
+    "homeQuickStart": "Quick Start",
+    "homeQuickStartDesc": "Show the Quick Start panel on the Home page.",
+    "homeProviderTopology": "Provider Topology",
+    "homeProviderTopologyDesc": "Show the Provider Topology on the Home page.",
+    "accountEmailVisibility": "Account email visibility",
+    "accountEmailVisibilityDesc": "Show full account emails across providers, combos, logs, quota, and playground screens. Turn this off to mask them by default.",
+>>>>>>> Stashed changes
     "sidebarVisibilityToggle": "Show Sidebar Items",
     "enableCache": "Enable Cache",
     "cacheTTL": "Cache TTL",
@@ -5473,6 +5490,8 @@
     "autoRefresh": "Auto-refresh",
     "refreshAll": "Refresh All",
     "loadingQuotas": "Loading...",
+    "showMoreQuotas": "Show {count} more",
+    "showLessQuotas": "Show less",
     "account": "Account",
     "modelQuotas": "Model Quotas",
     "lastUsed": "Last Refreshed",

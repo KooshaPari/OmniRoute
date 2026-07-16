@@ -66,6 +66,31 @@ export const EMBEDDING_PROVIDERS: Record<string, EmbeddingProvider> = {
     ],
   },
 
+<<<<<<< Updated upstream
+=======
+  "vercel-ai-gateway": {
+    id: "vercel-ai-gateway",
+    baseUrl: "https://ai-gateway.vercel.sh/v1/embeddings",
+    authType: "apikey",
+    authHeader: "bearer",
+    models: [
+      { id: "text-embedding-3-small", name: "Text Embedding 3 Small", dimensions: 1536 },
+      { id: "text-embedding-3-large", name: "Text Embedding 3 Large", dimensions: 3072 },
+    ],
+  },
+
+  upstage: {
+    id: "upstage",
+    baseUrl: "https://api.upstage.ai/v1/embeddings",
+    authType: "apikey",
+    authHeader: "bearer",
+    models: [
+      { id: "embedding-query", name: "Embedding Query", dimensions: 4096 },
+      { id: "embedding-passage", name: "Embedding Passage", dimensions: 4096 },
+    ],
+  },
+
+>>>>>>> Stashed changes
   mistral: {
     id: "mistral",
     baseUrl: "https://api.mistral.ai/v1/embeddings",

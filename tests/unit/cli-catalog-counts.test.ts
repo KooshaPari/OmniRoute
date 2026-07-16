@@ -30,7 +30,11 @@ test(`CLI_TOOLS has exactly ${EXPECTED_AGENT_COUNT} agent entries`, () => {
   );
 });
 
+<<<<<<< Updated upstream
 test("CLI_TOOLS total code entries (including none) equals 23 (19 visible + 4 none)", () => {
+=======
+test("CLI_TOOLS total code entries (including none) equals 24 (20 visible + 4 none)", () => {
+>>>>>>> Stashed changes
   // code-none entries: antigravity, kiro, cursor (app), hermes (simple guide)
   const codeNone = codeAll.filter((t) => t.baseUrlSupport === "none");
   assert.equal(
@@ -38,11 +42,19 @@ test("CLI_TOOLS total code entries (including none) equals 23 (19 visible + 4 no
     4,
     `Expected 4 code entries with baseUrlSupport='none', got ${codeNone.length}: ${codeNone.map((t) => t.id).join(", ")}`
   );
+<<<<<<< Updated upstream
   assert.equal(codeAll.length, 23, `Expected 23 total code entries, got ${codeAll.length}`);
 });
 
 test("CLI_TOOLS total (code + agent) = 29", () => {
   assert.equal(all.length, 29, `Expected 29 total entries, got ${all.length}`);
+=======
+  assert.equal(codeAll.length, 24, `Expected 24 total code entries, got ${codeAll.length}`);
+});
+
+test("CLI_TOOLS total (code + agent) = 30", () => {
+  assert.equal(all.length, 30, `Expected 30 total entries, got ${all.length}`);
+>>>>>>> Stashed changes
 });
 
 test("All code-none entries have configType mitm OR are legacy excluded entries", () => {
@@ -66,7 +78,11 @@ test("All agent entries have baseUrlSupport 'full' or 'partial' (no agent is 'no
   }
 });
 
+<<<<<<< Updated upstream
 test("The 19 visible code entries match D15 list exactly (+ codewhale)", () => {
+=======
+test("The 20 visible code entries match D15 list exactly (+ crush + codewhale)", () => {
+>>>>>>> Stashed changes
   const d15List = new Set([
     "claude",
     "codex",
@@ -87,6 +103,7 @@ test("The 19 visible code entries match D15 list exactly (+ codewhale)", () => {
     "smelt",
     "pi",
     "custom",
+    "crush",
   ]);
   const visibleIds = new Set(codeVisible.map((t) => t.id));
   for (const id of d15List) {

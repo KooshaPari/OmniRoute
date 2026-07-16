@@ -143,7 +143,11 @@ const executors = {
   "zenmux-free": new ZenmuxFreeExecutor(),
   zmf: new ZenmuxFreeExecutor(), // Alias for zenmux-free
   auggie: new AuggieExecutor(),
+<<<<<<< Updated upstream
 =======
+>>>>>>> Stashed changes
+=======
+  xai: new XaiExecutor(),
 >>>>>>> Stashed changes
 };
 

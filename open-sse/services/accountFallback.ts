@@ -35,6 +35,9 @@ import { getCodexModelScope } from "../config/codexQuotaScopes.ts";
 import { getQuotaScopedModelForProvider } from "./antigravityQuotaFamily.ts";
 import { isRpdExhausted, isRpmExhausted } from "./geminiRateLimitTracker.ts";
 import { parseRetryHintFromJsonBody } from "./retryAfterJson.ts";
+<<<<<<< Updated upstream
+=======
+>>>>>>> Stashed changes
 =======
 >>>>>>> Stashed changes
 
@@ -710,6 +713,7 @@ function parseDelayString(value) {
 }
 
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 // T07: parse retry time from error text body with combined "XhYmZs" format.
 export function parseRetryFromErrorText(errorText: unknown): number | null {
 =======
@@ -723,9 +727,16 @@ export function parseRetryFromErrorText(errorText: unknown): number | null {
  */
 export function parseRetryFromErrorText(errorText) {
 >>>>>>> Stashed changes
+=======
+// T07: parse retry time from error text body with combined "XhYmZs" format.
+export function parseRetryFromErrorText(errorText: unknown): number | null {
+>>>>>>> Stashed changes
   if (!errorText || typeof errorText !== "string") return null;
 
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
+=======
+>>>>>>> Stashed changes
   const bodyHintMs = parseRetryHintFromJsonBody(msg, MAX_PROVIDER_COOLDOWN_MS);
   if (bodyHintMs !== null) return bodyHintMs;
 

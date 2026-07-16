@@ -350,8 +350,20 @@ function resolveModelByProviderInference(modelId, extendedContext) {
   }
 
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
   // Fallback for newly released OpenAI-family model IDs that may not be in the local catalog yet.
   if (/^gpt-/i.test(modelId) || /^o1/i.test(modelId) || /^o3/i.test(modelId)) {
+=======
+  // Fallback for newly released OpenAI-family model IDs that may not be in the local
+  // catalog yet. This must only fire when NO known provider catalogs the model id —
+  // otherwise it hijacks cataloged open-weight models like "gpt-oss-120b" (served by
+  // fireworks/cerebras/scaleway/byteplus) into provider "openai", which does not carry
+  // them (#5852).
+  if (
+    providers.length === 0 &&
+    (/^gpt-/i.test(modelId) || /^o1/i.test(modelId) || /^o3/i.test(modelId))
+  ) {
+>>>>>>> Stashed changes
     return {
       provider: "openai",
       model: modelId,

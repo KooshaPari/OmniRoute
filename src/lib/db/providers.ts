@@ -315,6 +315,7 @@ export async function createProviderConnection(data: JsonRecord) {
     // and no stable long-lived identity to safely dedup against — matching
     // on email alone here would risk silently overwriting an existing full
     // oauth connection for the same account.
+<<<<<<< Updated upstream
 =======
   } else if (data.authType === "apikey" && data.name) {
     existing =
@@ -323,6 +324,8 @@ export async function createProviderConnection(data: JsonRecord) {
           "SELECT * FROM provider_connections WHERE provider = ? AND auth_type = 'apikey' AND name = ?"
         )
         .get(data.provider, data.name) as JsonRecord | undefined) || null;
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
   }
 

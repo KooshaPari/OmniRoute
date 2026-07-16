@@ -13,6 +13,9 @@ import {
 } from "./accountFallback.ts";
 import { errorResponse, unavailableResponse } from "../utils/error.ts";
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
+=======
+>>>>>>> Stashed changes
 import { buildTargetTimeoutRunner } from "./combo/targetTimeoutRunner.ts";
 import {
   recordComboIntent,
@@ -42,11 +45,14 @@ import { getHiddenModelsByProvider } from "@/models";
 import { resolveModelLockoutSettings } from "../../src/lib/resilience/modelLockoutSettings";
 import { fetchCodexQuota } from "./codexQuotaFetcher.ts";
 import { evaluateQuotaCutoff, getQuotaFetcher, type QuotaInfo } from "./quotaPreflight.ts";
+<<<<<<< Updated upstream
 =======
 import { recordComboIntent, recordComboRequest, getComboMetrics } from "./comboMetrics.ts";
 import { resolveComboConfig, getDefaultComboConfig } from "./comboConfig.ts";
 import { maybeGenerateHandoff, resolveContextRelayConfig } from "./contextHandoff.ts";
 import { fetchCodexQuota } from "./codexQuotaFetcher.ts";
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
 import * as semaphore from "./rateLimitSemaphore.ts";
 import { getCircuitBreaker } from "../../src/shared/utils/circuitBreaker";
@@ -1364,6 +1370,7 @@ export async function handleComboChat({
     comboTargetTimeoutMs,
     log,
   });
+<<<<<<< Updated upstream
 =======
 }) {
   const strategy = combo.strategy || "priority";
@@ -1544,6 +1551,8 @@ export async function handleComboChat({
       }
     : handleSingleModel;
   // ─────────────────────────────────────────────────────────────────────────
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
 
   // Route to pinned model if context caching specifies one (Fix #679)

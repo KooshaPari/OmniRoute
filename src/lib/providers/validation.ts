@@ -3354,8 +3354,14 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
       }
     },
     jules: validateJulesProvider,
+<<<<<<< Updated upstream
     // auggie is a fully local, credential-less CLI passthrough; there is no API
     // key to check upstream. Confirm the local CLI is installed and runnable.
+=======
+    // auggie is a fully local, credential-less CLI passthrough — there is no API
+    // key to check upstream. The only meaningful validation is confirming the
+    // `auggie` binary is installed and runnable on this machine.
+>>>>>>> Stashed changes
     auggie: async () => {
       const { checkAuggieCliVersion } = await import(
         "@omniroute/open-sse/executors/auggie.ts"
@@ -3367,6 +3373,46 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
           error: result.error || "Auggie CLI not found. Install it and run `auggie login`.",
           unsupported: false,
         };
+<<<<<<< Updated upstream
+=======
+      }
+      return { valid: true, error: null, unsupported: false, method: result.version };
+    },
+    qoder: async ({ apiKey, providerSpecificData }: any) => {
+      // Bifurcate validation: PAT tokens use Cosy auth against api1.qoder.sh;
+      // regular API keys validate against dashscope (OpenAI-compatible endpoint).
+      const key = (apiKey || "").trim();
+      if (key.startsWith("pt-")) {
+        return validateQoderCliPat({ apiKey: key, providerSpecificData });
+      }
+      // Non-PAT token → validate against dashscope (Alibaba Cloud).
+      // The executor routes these tokens to dashscope.aliyuncs.com, so the
+      // validation must test against dashscope, NOT the Cosy PAT endpoint.
+      try {
+        const dashscopeUrl = "https://dashscope.aliyuncs.com/compatible-mode/v1/models";
+        const res = await validationRead(
+          dashscopeUrl,
+          {
+            headers: {
+              Authorization: `Bearer ${key}`,
+            },
+          },
+          false
+        );
+        if (res.ok) return { valid: true, error: null };
+        if (res.status === 401 || res.status === 403) {
+          return {
+            valid: false,
+            error:
+              "Invalid Qoder API key. Make sure you're using a valid API key from Qoder / Alibaba Cloud Dashscope.",
+          };
+        }
+        // 4xx/5xx other than auth — treat as valid bypass to prevent false
+        // negatives from transient dashscope issues (consistent with PAT path).
+        return { valid: true, error: null };
+      } catch (err: unknown) {
+        return toValidationErrorResult(err);
+>>>>>>> Stashed changes
       }
       return { valid: true, error: null, unsupported: false, method: result.version };
     },
