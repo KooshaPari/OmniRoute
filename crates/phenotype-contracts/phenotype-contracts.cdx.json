@@ -1,0 +1,50 @@
+{
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.3",
+  "version": 1,
+  "serialNumber": "urn:uuid:52cc1c94-d9d7-4871-a6b0-c6a42283263f",
+  "metadata": {
+    "timestamp": "2026-06-28T19:27:45.231777000Z",
+    "tools": [
+      {
+        "vendor": "CycloneDX",
+        "name": "cargo-cyclonedx",
+        "version": "0.5.9"
+      }
+    ],
+    "component": {
+      "type": "library",
+      "bom-ref": "path+file:///Users/kooshapari/CodeProjects/Phenotype/repos/phenotype-apps-L39-wt/crates/phenotype-contracts#0.0.12",
+      "name": "phenotype-contracts",
+      "version": "0.0.12",
+      "scope": "required",
+      "licenses": [
+        {
+          "expression": "MIT OR Apache-2.0"
+        }
+      ],
+      "purl": "pkg:cargo/phenotype-contracts@0.0.12?download_url=file://.",
+      "components": [
+        {
+          "type": "library",
+          "bom-ref": "path+file:///Users/kooshapari/CodeProjects/Phenotype/repos/phenotype-apps-L39-wt/crates/phenotype-contracts#0.0.12 bin-target-0",
+          "name": "phenotype_contracts",
+          "version": "0.0.12",
+          "purl": "pkg:cargo/phenotype-contracts@0.0.12?download_url=file://.#src/lib.rs"
+        }
+      ]
+    },
+    "properties": [
+      {
+        "name": "cdx:rustc:sbom:target:triple",
+        "value": "aarch64-apple-darwin"
+      }
+    ]
+  },
+  "components": [],
+  "dependencies": [
+    {
+      "ref": "path+file:///Users/kooshapari/CodeProjects/Phenotype/repos/phenotype-apps-L39-wt/crates/phenotype-contracts#0.0.12"
+    }
+  ]
+}
