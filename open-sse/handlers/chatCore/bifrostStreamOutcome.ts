@@ -12,6 +12,32 @@ export interface BifrostStreamOutcomeRecord {
   generationDurationMs?: number;
 }
 
+export interface BifrostStreamOutcomeFilter {
+  status: number;
+  streamError?: unknown;
+  streamErrorCode?: unknown;
+}
+
+export function shouldSkipBifrostStreamOutcome(input: BifrostStreamOutcomeFilter): boolean {
+  if (!Number.isFinite(input.status) || input.status !== 499) {
+    return false;
+  }
+
+  if (input.streamErrorCode === "client_disconnected") {
+    return true;
+  }
+
+  if (typeof input.streamError === "string") {
+    return input.streamError.toLowerCase().includes("client disconnected");
+  }
+
+  if (input.streamError instanceof Error) {
+    return input.streamError.message.toLowerCase().includes("client disconnected");
+  }
+
+  return false;
+}
+
 export function resolveBifrostStreamRouteTarget(
   provider: string,
   model: string,

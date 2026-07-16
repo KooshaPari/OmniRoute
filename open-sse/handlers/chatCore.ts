@@ -158,6 +158,7 @@ import {
   buildBifrostStreamOutcomePayload,
   resolveBifrostStreamRouteTarget,
   type BifrostStreamOutcomeRecord,
+  shouldSkipBifrostStreamOutcome,
 } from "./chatCore/bifrostStreamOutcome.ts";
 import { wrapReadableStreamWithFinalize } from "./chatCore/streamFinalize.ts";
 import { buildCacheUsageLogMeta } from "./chatCore/cacheUsageMeta.ts";
@@ -4193,6 +4194,15 @@ export async function handleChatCore({
       streamFailureCompletionRecorded = true;
     }
     if (shouldRecordBifrostStreamOutcome && bifrostStreamRouteTarget) {
+      const skipOutcome = shouldSkipBifrostStreamOutcome({
+        status: normalizedStreamStatus,
+        streamError,
+        streamErrorCode,
+      });
+      if (skipOutcome) {
+        return;
+      }
+
       const payload = computeBifrostStreamOutcomeRecord({
         shouldRecordViaBifrost: true,
         provider: bifrostStreamRouteTarget.provider,
