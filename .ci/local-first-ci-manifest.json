@@ -1,44 +1,44 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-07-16T08:20:14.877Z",
+  "generatedAt": "2026-07-16T09:59:11.118Z",
   "gateResults": [
     {
       "name": "typecheck-core",
       "status": "passed",
       "command": "bunx --no-install tsc --noEmit --noCheck --ignoreDeprecations 6.0 -p open-sse/tsconfig.json",
       "proofPath": ".ci/local-first-ci-gates/typecheck-core.proof.json",
-      "proofHash": "3ce30175057039bfbe14c243094315a5ac5bfc11396741139271b3fda783607a",
-      "executedAt": "2026-07-16T08:01:34.945Z"
+      "proofHash": "c643f9e22d5f26467dff0fcc05306d1937c3af1595853708f389cc4f9691afb8",
+      "executedAt": "2026-07-16T09:51:50.984Z"
     },
     {
       "name": "integrity-manifest",
       "status": "passed",
       "command": "bun run integrity:manifest:write",
       "proofPath": ".ci/local-first-ci-gates/integrity-manifest.proof.json",
-      "proofHash": "734a5726a63d6c0594b71557d507b7d161b3960e3bb9b6570b0957e5e57a9bf1",
-      "executedAt": "2026-07-16T08:02:07.590Z"
+      "proofHash": "75b90bed0aab9da58c353c4e378a81af05d5d82221fd0ae8d58d55970acc6eb1",
+      "executedAt": "2026-07-16T09:49:13.095Z"
     },
     {
       "name": "t11-any-budget-push",
       "status": "passed",
       "command": "bun scripts/check/check-t11-any-budget.mjs",
       "proofPath": ".ci/local-first-ci-gates/t11-any-budget-push.proof.json",
-      "proofHash": "c251638fa9a87b3e6c87446384b9a698ec41a843ccdd2dd5ab95c0a230e5ccf7",
-      "executedAt": "2026-07-16T08:02:45.880Z"
+      "proofHash": "9dc8d38ab11c850b5e412c059f1542670b23f6eff1a63c86fa2ba9b0834cfb25",
+      "executedAt": "2026-07-16T09:49:23.938Z"
     },
     {
       "name": "cycles-push",
       "status": "passed",
       "command": "bun scripts/check/check-cycles.mjs",
       "proofPath": ".ci/local-first-ci-gates/cycles-push.proof.json",
-      "proofHash": "10aef6715f4f940827df18317068c042c5a848875043b3de491d1328f4801267",
-      "executedAt": "2026-07-16T08:05:12.579Z"
+      "proofHash": "748c31183cb5a4de936e6d1eae077d5fd522806362806d6b3a6f4bf119f1ff3f",
+      "executedAt": "2026-07-16T09:49:21.308Z"
     }
   ],
   "content": {
     "algorithm": "sha256",
-    "hash": "44c917fc2474fc907ebf04f655291f4de867e2b8195d8d0f6cdc4e7c68bf7232",
-    "fileCount": 8451,
+    "hash": "59a15486a1e36443b1fdce5066e7fc46de566b1bf497e0fa132ad4cd11c2b139",
+    "fileCount": 8456,
     "trackedFiles": [
       ".coderabbit.yaml",
       ".devcontainer/devcontainer.json",
@@ -2796,6 +2796,8 @@
       "scripts/check/lib/allowlist.mjs",
       "scripts/check/local-first-ci-attestation.mjs",
       "scripts/check/local-first-ci-attestation.test.mjs",
+      "scripts/check/local-first-ci-mode.mjs",
+      "scripts/check/local-first-ci-mode.test.mjs",
       "scripts/check/test-report-summary.mjs",
       "scripts/check/verify-integrity-manifest.mjs",
       "scripts/ci/should-promote-latest.sh",
@@ -3794,6 +3796,7 @@
       "src/app/api/oauth/kiro/social-authorize/route.ts",
       "src/app/api/oauth/kiro/social-exchange/route.ts",
       "src/app/api/oauth/trae/import/route.ts",
+      "src/app/api/observability/bifrost-route-metrics/route.ts",
       "src/app/api/openapi/spec/route.ts",
       "src/app/api/openapi/try/route.ts",
       "src/app/api/playground/improve-prompt/route.ts",
@@ -4621,6 +4624,7 @@
       "src/lib/db/migrations/123_create_proxy_assignments.sql",
       "src/lib/db/migrations/124_bifrost_route_metrics.sql",
       "src/lib/db/migrations/125_bifrost_route_metrics_sample_id.sql",
+      "src/lib/db/migrations/126_bifrost_route_metrics_connection_id.sql",
       "src/lib/db/modelComboMappings.ts",
       "src/lib/db/modelContextOverrides.ts",
       "src/lib/db/modelIntelligence.ts",
@@ -5827,6 +5831,7 @@
       "tests/unit/api-manager-usage-command.test.ts",
       "tests/unit/api-parse-response.test.ts",
       "tests/unit/api/authz-inventory.test.ts",
+      "tests/unit/api/bifrost-route-metrics-route.test.ts",
       "tests/unit/api/cli-tools/detect.test.ts",
       "tests/unit/api/combo-002-first-field.test.ts",
       "tests/unit/api/combo-error-response.test.ts",
@@ -8492,6 +8497,6 @@
       "worklogs/2026-06-25-L5-119-b9-dispatcher-fallback.md",
       "worklogs/L5-209-v48-envelope-expansion-2026-06-30.json"
     ],
-    "sourceTreeSha256": "2e4673fe2a1f7bfb504e68a31fe29cff6debba155ad6dbcd05e39f562a510346"
+    "sourceTreeSha256": "ab6fa536e274ac4a742d58215d0e45aee883bff4e7402323156d6d6b96337772"
   }
 }
