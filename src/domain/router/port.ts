@@ -27,6 +27,62 @@ export type ProviderName =
 
 export type FitnessTier = "best-reasoning" | "cheapest" | "moderate" | "balanced";
 
+export type RoutingMode = "priority" | "latency" | "reliability" | "performance";
+
+export interface PerformanceRoutingMetrics {
+  /** Lower TTFT values rank better in performance mode. */
+  ttftMs?: number;
+  /** Higher TPS values rank better in performance mode. */
+  tps?: number;
+  /** Lower end-to-end latency values rank better in performance mode. */
+  e2eLatencyMs?: number;
+  /** Higher health values rank better in performance mode. */
+  health?: number;
+  /** Lower failure-rate values rank better in performance mode. */
+  failureRate?: number;
+  /** Higher stability values rank better in performance mode. */
+  stability?: number;
+}
+
+export interface ProviderRuntimeMetrics {
+  /** Lower latency values rank better in latency mode. */
+  latencyMs?: number;
+  /** Higher reliability values rank better in reliability mode. */
+  reliability?: number;
+  ttftMs?: PerformanceRoutingMetrics["ttftMs"];
+  tps?: PerformanceRoutingMetrics["tps"];
+  e2eLatencyMs?: PerformanceRoutingMetrics["e2eLatencyMs"];
+  health?: PerformanceRoutingMetrics["health"];
+  failureRate?: PerformanceRoutingMetrics["failureRate"];
+  stability?: PerformanceRoutingMetrics["stability"];
+  /** Optional model-specific performance overrides keyed by model id. */
+  modelMetrics?: Partial<Record<string, PerformanceRoutingMetrics>>;
+}
+
+export interface PerformanceWeights {
+  /** Weight for TTFT component in composite performance scoring. */
+  ttftMs: number;
+  /** Weight for TPS component in composite performance scoring. */
+  tps: number;
+  /** Weight for E2E latency component in composite performance scoring. */
+  e2eLatencyMs: number;
+  /** Weight for health component in composite performance scoring. */
+  health: number;
+  /** Weight for failure-rate component in composite performance scoring. */
+  failureRate: number;
+  /** Weight for stability component in composite performance scoring. */
+  stability: number;
+}
+
+export const DEFAULT_PERFORMANCE_WEIGHTS: PerformanceWeights = {
+  ttftMs: 0.15,
+  tps: 0.2,
+  e2eLatencyMs: 0.25,
+  health: 0.2,
+  failureRate: 0.15,
+  stability: 0.05,
+};
+
 export interface RouteRequest {
   /** Canonical model string (e.g. "gpt-4o", "claude-opus-4-5"). */
   model: string;
@@ -101,6 +157,12 @@ export interface RouterPort {
 export interface RouterConfig {
   /** Ordered list of providers to try. First healthy one wins. */
   providerPriority: ProviderName[];
+  /** Runtime provider ordering strategy. */
+  routingMode?: RoutingMode;
+  /** Optional injected metrics for runtime routing decisions. */
+  providerMetrics?: Partial<Record<ProviderName, ProviderRuntimeMetrics>>;
+  /** Optional performance mode metric weights for composite scoring. */
+  performanceWeights?: Partial<PerformanceWeights>;
   /** Map of fitnessTier → preferred provider (overrides priority list). */
   tierOverrides?: Partial<Record<FitnessTier, ProviderName>>;
   /** Default request timeout in milliseconds. */
@@ -111,6 +173,7 @@ export interface RouterConfig {
 
 export const DEFAULT_ROUTER_CONFIG: RouterConfig = {
   providerPriority: ["openai", "anthropic", "groq"],
+  routingMode: "priority",
   timeoutMs: 30_000,
   enableFallback: true,
 };

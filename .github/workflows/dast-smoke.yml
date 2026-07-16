@@ -10,6 +10,7 @@ permissions:
   contents: read
 jobs:
   dast-smoke:
+    if: ${{ github.event_name != 'push' && (github.event_name != 'pull_request' || contains(github.event.pull_request.labels.*.name, 'ci-billing-exception')) }}
     runs-on: ubuntu-latest
     # ADVISORY while this new gate matures (repo convention: advisory -> blocking).
     # Flip to blocking (remove continue-on-error) once it's proven stable across a few PRs.
@@ -64,3 +65,5 @@ jobs:
           name: dast-smoke-logs
           path: server.log
           retention-days: 7
+
+

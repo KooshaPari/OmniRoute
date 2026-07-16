@@ -13,6 +13,40 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
+vi.mock("@opentelemetry/api", () => {
+  const span = {
+    setAttribute: () => undefined,
+    setStatus: () => undefined,
+    spanContext: () => ({
+      traceId: "00000000000000000000000000000000",
+      spanId: "0000000000000000",
+      traceFlags: 0,
+    }),
+    end: () => undefined,
+    recordException: () => undefined,
+  };
+
+  return {
+    SpanStatusCode: {
+      OK: 1,
+      ERROR: 2,
+    },
+    SpanKind: {
+      CLIENT: 1,
+    },
+    trace: {
+      getTracer: () => ({
+        startSpan: () => span,
+      }),
+      setSpan: (_ctx: unknown) => _ctx,
+    },
+    context: {
+      active: () => ({}),
+      setSpan: () => ({}),
+      with: (_ctx: unknown, fn: () => Promise<unknown>) => fn(),
+    },
+  };
+});
 import {
   BIFROST_PROVIDER_IDS,
   BIFROST_PROVIDER_MAP,
@@ -30,6 +64,10 @@ import {
   dispatchBifrostWithFallback,
   shouldRouteViaBifrost,
 } from "../../../open-sse/executors/bifrost.ts";
+import {
+  getBifrostRouteMetrics,
+  resetBifrostRouteMetricsForTest,
+} from "../../../open-sse/observability/bifrostRouteMetrics.ts";
 import { BaseExecutor } from "../../../open-sse/executors/base.ts";
 
 describe("bifrostProviderMap", () => {
@@ -468,34 +506,35 @@ describe("dispatchBifrostWithFallback", () => {
 
   it("falls back to the legacy executor when the kill switch trips for the resolved provider", async () => {
     process.env.BIFROST_ENABLED = "1";
-    globalThis.fetch = vi.fn(); // BifrostBackendExecutor must NOT call fetch
+    const mockFetch = vi.fn().mockResolvedValue(new Response("{}", { status: 200 }));
+    globalThis.fetch = mockFetch as unknown as typeof fetch;
 
     const { forceActivate, forceDeactivate, resetProvider } = await import(
       "../../../open-sse/services/bifrostKillSwitch.ts"
     );
-    forceDeactivate("openai");
-    forceActivate("openai");
+    try {
+      forceDeactivate("openai");
+      forceActivate("openai");
 
-    const exec = new BifrostBackendExecutor("openai", {});
-    const input = {
-      model: "gpt-4o",
-      body: { model: "gpt-4o", messages: [] },
-      stream: false,
-      credentials: { apiKey: "sk-test" },
-    };
+      const exec = new BifrostBackendExecutor("openai", {});
+      const input = {
+        model: "gpt-4o",
+        body: { model: "gpt-4o", messages: [] },
+        stream: false,
+        credentials: { apiKey: "sk-test" },
+      };
 
-    const result = await dispatchBifrostWithFallback(exec, input);
-    // getExecutor("openai") returns DefaultExecutor which extends BaseExecutor
-    // and returns the standard { response, url, headers, transformedBody } shape.
-    expect(result).toBeDefined();
-    expect(result.response).toBeInstanceOf(Response);
-    expect(result.url).toContain("openai");
-
-    // fetch must NOT have been called by BifrostBackendExecutor (kill switch threw)
-    expect(globalThis.fetch).not.toHaveBeenCalled();
-
-    forceDeactivate("openai");
-    resetProvider("openai");
+      const result = await dispatchBifrostWithFallback(exec, input);
+      // getExecutor("openai") returns DefaultExecutor which extends BaseExecutor
+      // and returns the standard { response, url, headers, transformedBody } shape.
+      expect(result).toBeDefined();
+      expect(result.response).toBeInstanceOf(Response);
+      expect(result.url).toContain("openai");
+      expect(mockFetch).toHaveBeenCalledTimes(1);
+    } finally {
+      forceDeactivate("openai");
+      resetProvider("openai");
+    }
   });
 
   it("propagates non-kill-switch errors unchanged (no fallback for unrelated failures)", async () => {
@@ -524,5 +563,174 @@ describe("dispatchBifrostWithFallback", () => {
     expect(err.message).toContain("openai");
     expect(err.message).toContain("kill switch tripped");
     expect(err).toBeInstanceOf(Error);
+  });
+});
+
+describe("BifrostBackendExecutor route outcome metrics integration", () => {
+  const originalBifrostEnabled = process.env.BIFROST_ENABLED;
+  const originalBifrostBaseUrl = process.env.BIFROST_BASE_URL;
+  const originalFetch = globalThis.fetch;
+
+  beforeEach(async () => {
+    process.env.BIFROST_ENABLED = "1";
+    process.env.BIFROST_BASE_URL = "http://bifrost.test:8080";
+    resetBifrostRouteMetricsForTest();
+    const { forceDeactivate, resetProvider } = await import(
+      "../../../open-sse/services/bifrostKillSwitch.ts"
+    );
+    forceDeactivate("openai");
+    resetProvider("openai");
+  });
+
+  afterEach(() => {
+    if (originalBifrostEnabled === undefined) delete process.env.BIFROST_ENABLED;
+    else process.env.BIFROST_ENABLED = originalBifrostEnabled;
+    if (originalBifrostBaseUrl === undefined) delete process.env.BIFROST_BASE_URL;
+    else process.env.BIFROST_BASE_URL = originalBifrostBaseUrl;
+    globalThis.fetch = originalFetch;
+    resetBifrostRouteMetricsForTest();
+  });
+
+  it("records a success metric for completed Bifrost responses", async () => {
+    const mockFetch = vi.fn().mockResolvedValue(new Response("{}", { status: 200 }));
+    globalThis.fetch = mockFetch as unknown as typeof fetch;
+
+    const exec = new BifrostBackendExecutor("openai", {});
+    const result = await exec.execute({
+      model: "gpt-4o",
+      body: { model: "gpt-4o", messages: [] },
+      stream: false,
+      credentials: { apiKey: "sk-test" },
+    });
+
+    expect(result.response.status).toBe(200);
+    const stats = getBifrostRouteMetrics("openai", "gpt-4o");
+    expect(stats).not.toBeNull();
+    expect(stats?.sampleCount).toBe(1);
+    expect(stats?.successCount).toBe(1);
+    expect(stats?.failureCount).toBe(0);
+    expect(stats?.lastStatus).toBe(200);
+    expect(stats?.lastError).toBeNull();
+  });
+
+  it.each([400, 401, 402, 403])(
+    "does not record a route metric when Bifrost returns HTTP %i",
+    async (status) => {
+      const mockFetch = vi.fn().mockResolvedValue(new Response("{}", { status }));
+      globalThis.fetch = mockFetch as unknown as typeof fetch;
+
+      const exec = new BifrostBackendExecutor("openai", {});
+      const result = await exec.execute({
+        model: "gpt-4o",
+        body: { model: "gpt-4o", messages: [] },
+        stream: false,
+        credentials: { apiKey: "sk-test" },
+      });
+
+      expect(result.response.status).toBe(status);
+      expect(getBifrostRouteMetrics("openai", "gpt-4o")).toBeNull();
+    }
+  );
+
+  it("records one failure metric when Bifrost returns HTTP 404", async () => {
+    const mockFetch = vi.fn().mockResolvedValue(new Response("{}", { status: 404 }));
+    globalThis.fetch = mockFetch as unknown as typeof fetch;
+
+    const exec = new BifrostBackendExecutor("openai", {});
+    const result = await exec.execute({
+      model: "gpt-4o",
+      body: { model: "gpt-4o", messages: [] },
+      stream: false,
+      credentials: { apiKey: "sk-test" },
+    });
+
+    expect(result.response.status).toBe(404);
+    const stats = getBifrostRouteMetrics("openai", "gpt-4o");
+    expect(stats?.sampleCount).toBe(1);
+    expect(stats?.failureCount).toBe(1);
+    expect(stats?.lastStatus).toBe(404);
+  });
+
+  it("records one failure metric when Bifrost returns HTTP 503", async () => {
+    const mockFetch = vi.fn().mockResolvedValue(new Response("{}", { status: 503 }));
+    globalThis.fetch = mockFetch as unknown as typeof fetch;
+
+    const exec = new BifrostBackendExecutor("openai", {});
+    const result = await exec.execute({
+      model: "gpt-4o",
+      body: { model: "gpt-4o", messages: [] },
+      stream: false,
+      credentials: { apiKey: "sk-test" },
+    });
+
+    expect(result.response.status).toBe(503);
+    const stats = getBifrostRouteMetrics("openai", "gpt-4o");
+    expect(stats?.sampleCount).toBe(1);
+    expect(stats?.successCount).toBe(0);
+    expect(stats?.failureCount).toBe(1);
+    expect(stats?.lastStatus).toBe(503);
+  });
+
+  it("records a failure metric when upstream transport throws", async () => {
+    const mockFetch = vi.fn().mockRejectedValue(new Error("transport failed"));
+    globalThis.fetch = mockFetch as unknown as typeof fetch;
+
+    const exec = new BifrostBackendExecutor("openai", {});
+    await expect(
+      exec.execute({
+        model: "gpt-4o",
+        body: { model: "gpt-4o", messages: [] },
+        stream: false,
+        credentials: { apiKey: "sk-test" },
+      }),
+    ).rejects.toThrow("transport failed");
+
+    const stats = getBifrostRouteMetrics("openai", "gpt-4o");
+    expect(stats).not.toBeNull();
+    expect(stats?.sampleCount).toBe(1);
+    expect(stats?.successCount).toBe(0);
+    expect(stats?.failureCount).toBe(1);
+    expect(stats?.lastStatus).toBe(null);
+    expect(stats?.lastError).toBe("transport failed");
+  });
+
+  it("records a failure metric when stream transport throws before response", async () => {
+    const mockFetch = vi.fn().mockRejectedValue(new Error("transport failed"));
+    globalThis.fetch = mockFetch as unknown as typeof fetch;
+
+    const exec = new BifrostBackendExecutor("openai", {});
+    await expect(
+      exec.execute({
+        model: "gpt-4o",
+        body: { model: "gpt-4o", messages: [] },
+        stream: true,
+        credentials: { apiKey: "sk-test" },
+      }),
+    ).rejects.toThrow("transport failed");
+
+    const stats = getBifrostRouteMetrics("openai", "gpt-4o");
+    expect(stats).not.toBeNull();
+    expect(stats?.sampleCount).toBe(1);
+    expect(stats?.successCount).toBe(0);
+    expect(stats?.failureCount).toBe(1);
+    expect(stats?.lastStatus).toBe(null);
+    expect(stats?.lastError).toBe("transport failed");
+  });
+
+  it("does not record Bifrost route outcomes for successful stream requests in the executor", async () => {
+    const mockFetch = vi.fn().mockResolvedValue(new Response("{}", { status: 200 }));
+    globalThis.fetch = mockFetch as unknown as typeof fetch;
+
+    const exec = new BifrostBackendExecutor("openai", {});
+    const result = await exec.execute({
+      model: "gpt-4o",
+      body: { model: "gpt-4o", messages: [] },
+      stream: true,
+      credentials: { apiKey: "sk-test" },
+    });
+
+    expect(result.response.status).toBe(200);
+    const stats = getBifrostRouteMetrics("openai", "gpt-4o");
+    expect(stats).toBeNull();
   });
 });

@@ -7,6 +7,8 @@ const TIER_SCORES: Record<ModelTier, number> = {
   free: 0.0,
 };
 
+const MIN_SAMPLES_FOR_FULL_RELIABILITY = 8;
+
 const CATEGORY_WEIGHTS: Record<
   ModelCategory,
   { tier: number; speed: number; success: number; cost: number }
@@ -78,18 +80,60 @@ export class Categorizer {
 
   calculateFitness(assessment: ModelAssessment, category: ModelCategory): number {
     const weights = CATEGORY_WEIGHTS[category];
+    const reliabilityScale = this.getReliabilityScale(assessment);
     const tierScore = TIER_SCORES[assessment.tier];
     const speedScore =
       assessment.latencyP50 !== null ? Math.max(0, 1 - assessment.latencyP50 / 15000) : 0.5;
     const successScore = assessment.successRate;
+    const confidenceAdjustedSpeed = this.applyReliabilityDamp(speedScore, reliabilityScale);
+    const confidenceAdjustedSuccess = this.applyReliabilityDamp(successScore, reliabilityScale);
     const costScore = 0.5;
 
     return (
       weights.tier * tierScore +
-      weights.speed * speedScore +
-      weights.success * successScore +
+      weights.speed * confidenceAdjustedSpeed +
+      weights.success * confidenceAdjustedSuccess +
       weights.cost * costScore
     );
+  }
+
+  private getReliabilityScale(assessment: ModelAssessment): number {
+    const sampleCount = this.getSampleCount(assessment);
+
+    if (sampleCount == null) {
+      return 1;
+    }
+
+    if (!Number.isFinite(sampleCount) || sampleCount < 0) {
+      return 1;
+    }
+
+    if (sampleCount >= MIN_SAMPLES_FOR_FULL_RELIABILITY) {
+      return 1;
+    }
+
+    if (sampleCount === 0) {
+      return 0;
+    }
+
+    return sampleCount / MIN_SAMPLES_FOR_FULL_RELIABILITY;
+  }
+
+  private getSampleCount(assessment: ModelAssessment): number | null {
+    if (typeof assessment.probeCount === "number") {
+      return assessment.probeCount;
+    }
+
+    if (typeof assessment.sampleCount === "number") {
+      return assessment.sampleCount;
+    }
+
+    return null;
+  }
+
+  private applyReliabilityDamp(value: number, reliabilityScale: number): number {
+    const clamped = Math.min(1, Math.max(0, reliabilityScale));
+    return 0.5 + (value - 0.5) * clamped;
   }
 
   calculateAllFitness(assessment: ModelAssessment): Record<string, number> {

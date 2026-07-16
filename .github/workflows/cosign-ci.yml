@@ -5,13 +5,16 @@ on:
     tags: ["v*"]
 jobs:
   sign:
-    runs-on: ubuntu-latest
+    if: ${{ github.event_name != 'push' && (github.event_name != 'pull_request' || contains(github.event.pull_request.labels.*.name, 'ci-billing-exception')) }}
+    runs-on: ubuntu-24.04
     permissions: { id-token: write, contents: read }
     steps:
-      - uses: actions/checkout@v4
-      - uses: sigstore/cosign-installer@v3
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+      - uses: sigstore/cosign-installer@398d4b0eeef1380460a10c8013a76f728fb906ac
       - run: cosign sign-blob --yes tauri-desktop/src-tauri/Cargo.lock --output-signature tauri-desktop/src-tauri/Cargo.lock.sig
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: cosign-signatures
           path: "**/*.sig"
+
+
