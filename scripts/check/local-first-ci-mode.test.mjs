@@ -36,6 +36,7 @@ for (const [name, eventName, refName, defaultBranch, dispatchMode, expected] of 
 }
 
 test("unsupported events, invalid metadata, and invalid dispatch modes fail closed", () => {
+  assert.equal(typeof resolveLocalFirstMode, "function");
   assert.throws(
     () => resolveLocalFirstMode({ eventName: "schedule", refName: "main", defaultBranch: "main" }),
     /unsupported Local-First CI event/u

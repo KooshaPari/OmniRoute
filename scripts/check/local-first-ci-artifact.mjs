@@ -19,7 +19,7 @@ async function filesUnder(directory) {
     if (entry.isDirectory()) files.push(...(await filesUnder(path)));
     else if (entry.isFile()) files.push(path);
   }
-  return files.sort();
+  return files.sort((left, right) => left.localeCompare(right, "en"));
 }
 
 function sha256(value) {
