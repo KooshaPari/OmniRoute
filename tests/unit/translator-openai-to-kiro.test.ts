@@ -961,7 +961,7 @@ test("OpenAI -> Kiro serializes non-string role:tool content to non-empty text (
 });
 
 // Only Claude models support images in Kiro. Non-Claude Kiro models
-// (deepseek-3.2, minimax-m2.5, glm-5, qwen3-coder-next, auto-kiro) must NOT
+// (deepseek-3.2, minimax-m3, glm-5, qwen3-coder-next, auto-kiro) must NOT
 // receive image attachments — attaching them is wrong for those models.
 const PNG_DATA_URL = "data:image/png;base64,aGVsbG8=";
 
@@ -1012,7 +1012,7 @@ test("OpenAI -> Kiro drops images for non-Claude models (deepseek)", () => {
 });
 
 test("OpenAI -> Kiro drops images for non-Claude models (glm / auto-kiro)", () => {
-  for (const model of ["glm-5", "minimax-m2.5", "qwen3-coder-next", "auto-kiro"]) {
+  for (const model of ["glm-5", "minimax-m3", "qwen3-coder-next", "auto-kiro"]) {
     const result = buildImageRequest(model);
     const images = result.conversationState.currentMessage.userInputMessage.images;
     assert.ok(

@@ -127,14 +127,14 @@ test("107 never touches user-authored (non-qtSd/) combos", () => {
 
 test("107 is idempotent (second run is a no-op)", () => {
   const db = makeDb();
-  insertCombo(db, "c1", "qtSd/grp/minimax/MiniMax-M2.7", "fill-first");
+  insertCombo(db, "c1", "qtSd/grp/minimax/MiniMax-M3", "fill-first");
 
   db.exec(MIGRATION_107);
-  const afterFirst = dataOf(db, "qtSd/grp/minimax/MiniMax-M2.7");
+  const afterFirst = dataOf(db, "qtSd/grp/minimax/MiniMax-M3");
   db.exec(MIGRATION_107);
-  const afterSecond = dataOf(db, "qtSd/grp/minimax/MiniMax-M2.7");
+  const afterSecond = dataOf(db, "qtSd/grp/minimax/MiniMax-M3");
 
-  assert.equal(strategyOf(db, "qtSd/grp/minimax/MiniMax-M2.7"), "quota-share");
+  assert.equal(strategyOf(db, "qtSd/grp/minimax/MiniMax-M3"), "quota-share");
   assert.deepEqual(afterFirst, afterSecond, "second run must not change the row");
   db.close();
 });

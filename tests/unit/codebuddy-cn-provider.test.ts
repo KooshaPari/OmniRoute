@@ -47,7 +47,7 @@ test("codebuddy-cn registry entry has expected shape", () => {
     "glm-5v-turbo",
     "glm-4.7",
     "minimax-m3",
-    "minimax-m2.7",
+    "minimax-m3",
     "kimi-k2.7",
     "kimi-k2.6",
     "kimi-k2.5",

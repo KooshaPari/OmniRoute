@@ -22,7 +22,7 @@ export const KNOWN_MODEL_PRICING: Record<string, ModelPricing> = {
   "deepseek-reasoner": { inputCostPer1M: 0.55, outputCostPer1M: 2.19, isFree: false },
   "glm-4.7": { inputCostPer1M: 0.6, outputCostPer1M: 0.6, isFree: false },
   "glm-5.1": { inputCostPer1M: 0.5, outputCostPer1M: 0.5, isFree: false },
-  "minimax-m2.1": { inputCostPer1M: 0.2, outputCostPer1M: 0.2, isFree: false },
+  "minimax-m3": { inputCostPer1M: 0.2, outputCostPer1M: 0.2, isFree: false },
   "grok-4-fast": { inputCostPer1M: 0.2, outputCostPer1M: 0.5, isFree: false },
   "kimi-k2-thinking": { inputCostPer1M: 0, outputCostPer1M: 0, isFree: true },
   "qwen3-coder-plus": { inputCostPer1M: 0, outputCostPer1M: 0, isFree: true },

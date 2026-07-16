@@ -713,7 +713,7 @@ podman compose --profile base up -d
 |---|---|---|
 | 💳 **訂閱** | Claude Code Pro / Codex / Copilot | $10–200/月 |
 | 🔑 **API 金鑰（免費層）** | NVIDIA NIM、Cerebras、Groq | **免費** |
-| 💰 **廉價** | GLM-5 $0.5/1M · MiniMax M2.5 $0.3/1M | 幾分錢 |
+| 💰 **廉價** | GLM-5 $0.5/1M · MiniMax M3 $0.3/1M | 幾分錢 |
 | 🆓 **永久免費** | Kiro、Qoder、Qwen、Pollinations、LongCat | **$0** |
 
 **$0 免費堆疊 — 組合成一個不可中斷的 Combo：**

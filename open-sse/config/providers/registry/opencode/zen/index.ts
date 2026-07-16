@@ -68,8 +68,8 @@ export const opencode_zenProvider: RegistryEntry = {
     // ── MiniMax ────────────────────────────────────────────────
     // #3110: MiniMax M3 — frontier coding model with 1M context
     { id: "minimax-m3", name: "MiniMax M3", contextLength: 1048576, supportsVision: true },
-    { id: "minimax-m2.5", name: "MiniMax M2.5" },
-    { id: "minimax-m2.7", name: "MiniMax M2.7" },
+    { id: "minimax-m3", name: "MiniMax M3" },
+    { id: "minimax-m3", name: "MiniMax M3" },
 
     // ── Kimi / Moonshot ────────────────────────────────────────
     { id: "kimi-k2.5", name: "Kimi K2.5" },
@@ -86,7 +86,7 @@ export const opencode_zenProvider: RegistryEntry = {
 
     // ── Free Tier ──────────────────────────────────────────────
     { id: "deepseek-v4-flash-free", name: "DeepSeek V4 Flash Free", supportsReasoning: true },
-    { id: "minimax-m2.5-free", name: "MiniMax M2.5 Free", contextLength: 204800 },
+    { id: "minimax-m3-free", name: "MiniMax M3 Free", contextLength: 204800 },
     { id: "nemotron-3-super-free", name: "Nemotron 3 Super Free", contextLength: 1000000 },
     {
       id: "qwen3.6-plus-free",

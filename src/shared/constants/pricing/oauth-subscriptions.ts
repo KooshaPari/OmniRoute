@@ -548,20 +548,12 @@ export const DEFAULT_PRICING_OAUTH = {
       reasoning: 1.1,
       cache_creation: 0.27,
     },
-    "minimax-m2.1": {
+    "minimax-m3": {
       input: 0.4,
       output: 1.6,
       cached: 0.1,
       reasoning: 1.6,
       cache_creation: 0.4,
-    },
-    // MiniMax M2.5 — cheaper than M2.1, reasoning + tools
-    "minimax-m2.5": {
-      input: 0.27,
-      output: 0.95,
-      cached: 0.135,
-      reasoning: 1.425,
-      cache_creation: 0.27,
     },
     "glm-5": {
       input: 1.0,

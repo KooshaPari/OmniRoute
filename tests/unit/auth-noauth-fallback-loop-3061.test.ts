@@ -37,7 +37,7 @@ test.after(() => {
 // ── Happy path preserved: first selection (nothing excluded) still works ──
 
 test("#3061 opencode no-auth: first selection returns synthetic noauth (happy path preserved)", async () => {
-  const creds = await getProviderCredentials("opencode", null, null, "minimax-m2.5-free");
+  const creds = await getProviderCredentials("opencode", null, null, "minimax-m3-free");
   assert.ok(creds, "opencode must resolve to synthetic no-auth credentials on first selection");
   assert.equal((creds as { connectionId?: string }).connectionId, "noauth");
   assert.equal((creds as { apiKey?: unknown }).apiKey, null);
@@ -59,7 +59,7 @@ test("#3061 mimocode no-auth: first selection returns synthetic noauth (happy pa
 // ── The fix: once "noauth" is excluded, selection MUST stop (return null) ──
 
 test("#3061 opencode no-auth: excluding 'noauth' returns null (breaks the fallback loop)", async () => {
-  const creds = await getProviderCredentials("opencode", null, null, "minimax-m2.5-free", {
+  const creds = await getProviderCredentials("opencode", null, null, "minimax-m3-free", {
     excludeConnectionIds: ["noauth"],
   });
   assert.equal(

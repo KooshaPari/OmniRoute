@@ -32,7 +32,7 @@ export const opencodeProvider: RegistryEntry = {
       contextLength: 1048576,
       supportsVision: true,
     },
-    { id: "minimax-m2.5-free", name: "MiniMax M2.5 Free", contextLength: 204800 },
+    { id: "minimax-m3-free", name: "MiniMax M3 Free", contextLength: 204800 },
     { id: "ling-2.6-1t-free", name: "Ling 2.6 Free", contextLength: 262000 },
     {
       id: "trinity-large-preview-free",

@@ -254,7 +254,7 @@ test("getStaticModelsForProvider returns correct model IDs for bailian-coding-pl
     "qwen3-max-2026-01-23",
     "kimi-k2.5",
     "glm-5",
-    "MiniMax-M2.5",
+    "MiniMax-M3",
   ];
 
   const actualIds = models.map((m) => m.id);

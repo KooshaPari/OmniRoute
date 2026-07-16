@@ -83,8 +83,8 @@ export const codebuddy_cnProvider: RegistryEntry = {
       supportsVision: true,
     },
     {
-      id: "minimax-m2.7",
-      name: "MiniMax-M2.7",
+      id: "minimax-m3",
+      name: "MiniMax-M3",
       contextLength: 200000,
       maxOutputTokens: 48000,
       supportsReasoning: true,

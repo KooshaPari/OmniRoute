@@ -95,7 +95,7 @@ describe("OpencodeExecutor", () => {
     });
 
     it("routes opencode zen default models to chat completions", async () => {
-      const minimaxResult = await zenExecutor.execute(createInput("minimax-m2.5-free"));
+      const minimaxResult = await zenExecutor.execute(createInput("minimax-m3-free"));
       assert.equal(minimaxResult.url, "https://opencode.ai/zen/v1/chat/completions");
       assert.equal(fetchCalls[0].url, "https://opencode.ai/zen/v1/chat/completions");
 
@@ -110,14 +110,14 @@ describe("OpencodeExecutor", () => {
 
     it("routes claude target format models to messages endpoint", async () => {
       const m27Result = await goExecutor.execute(
-        createInput("minimax-m2.7", true, { apiKey: "claude-key" })
+        createInput("minimax-m3", true, { apiKey: "claude-key" })
       );
       assert.equal(m27Result.url, "https://opencode.ai/zen/go/v1/messages");
       assert.equal(fetchCalls[0].url, "https://opencode.ai/zen/go/v1/messages");
       assert.equal(m27Result.headers["anthropic-version"], "2023-06-01");
 
       const m25Result = await goExecutor.execute(
-        createInput("minimax-m2.5", true, { apiKey: "claude-key" })
+        createInput("minimax-m3", true, { apiKey: "claude-key" })
       );
       assert.equal(m25Result.url, "https://opencode.ai/zen/go/v1/messages");
       assert.equal(fetchCalls[1].url, "https://opencode.ai/zen/go/v1/messages");
@@ -192,7 +192,7 @@ describe("OpencodeExecutor", () => {
 
     it("adds anthropic version for claude target format", async () => {
       const result = await goExecutor.execute(
-        createInput("minimax-m2.7", true, { apiKey: "claude-key" })
+        createInput("minimax-m3", true, { apiKey: "claude-key" })
       );
 
       assert.deepEqual(result.headers, {
@@ -215,7 +215,7 @@ describe("OpencodeExecutor", () => {
     });
 
     it("omits authorization when credentials are missing", async () => {
-      const result = await zenExecutor.execute(createInput("minimax-m2.5-free", true, null));
+      const result = await zenExecutor.execute(createInput("minimax-m3-free", true, null));
 
       assert.deepEqual(result.headers, {
         "Content-Type": "application/json",
@@ -324,7 +324,7 @@ describe("OpencodeExecutor", () => {
         { apiKey: "claude-key" },
         true,
         { "User-Agent": "opencode/1.0" },
-        "minimax-m2.7"
+        "minimax-m3"
       );
       assert.equal(headers["User-Agent"], "opencode/1.0");
       assert.equal(headers["x-api-key"], "claude-key");
@@ -411,7 +411,7 @@ describe("OpencodeExecutor", () => {
           "x-opencode-session": "sess-claude",
           "User-Agent": "opencode/1.0",
         },
-        "minimax-m2.7"
+        "minimax-m3"
       );
       assert.equal(headers["x-opencode-session"], "sess-claude");
       assert.equal(headers["x-api-key"], "claude-key");

@@ -29,7 +29,7 @@ export const bluesmindsProvider: RegistryEntry = {
     { id: "kimi-k2-thinking", name: "Kimi K2 Thinking" },
     { id: "glm-4.7", name: "GLM 4.7" },
     { id: "glm-4-flash", name: "GLM 4 Flash" },
-    { id: "minimax-m2.5", name: "MiniMax M2.5" },
+    { id: "minimax-m3", name: "MiniMax M3" },
     // VIP models (cost pi credits)
     { id: "claude-opus-4-5", name: "Claude Opus 4.5 (VIP)", contextLength: 200000 },
     { id: "gemini-2.5-pro", name: "Gemini 2.5 Pro (VIP)", contextLength: 1048576 },

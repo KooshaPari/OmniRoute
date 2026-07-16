@@ -30,8 +30,8 @@ const PINNED_COMMAND_CODE_MODELS = [
   "moonshotai/Kimi-K2.5",
   "zai-org/GLM-5.1",
   "zai-org/GLM-5",
-  "MiniMaxAI/MiniMax-M2.7",
-  "MiniMaxAI/MiniMax-M2.5",
+  "MiniMaxAI/MiniMax-M3",
+  "MiniMaxAI/MiniMax-M3",
   "Qwen/Qwen3.6-Max-Preview",
   "Qwen/Qwen3.6-Plus",
 ];

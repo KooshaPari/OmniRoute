@@ -418,22 +418,6 @@ export const MODEL_SPECS: Record<string, ModelSpec> = {
     aliases: ["MiniMax-M3", "MiniMaxAI/MiniMax-M3"],
   },
 
-  // ── MiniMax M2.x (200K context family) ───────────────────────────
-  "minimax-m2.7": {
-    maxOutputTokens: 131072,
-    contextWindow: 204800,
-    supportsThinking: true,
-    supportsTools: true,
-    aliases: ["MiniMax-M2.7", "MiniMaxAI/MiniMax-M2.7"],
-  },
-  "minimax-m2.5": {
-    maxOutputTokens: 131072,
-    contextWindow: 200000,
-    supportsThinking: true,
-    supportsTools: true,
-    aliases: ["MiniMax-M2.5"],
-  },
-
   // ── DeepSeek V4 (1M context, 384K max output) ────────────────────
   "deepseek-v4-pro": {
     maxOutputTokens: 384000,
@@ -464,7 +448,7 @@ export function getModelSpec(modelId: string): ModelSpec | undefined {
   if (MODEL_SPECS[modelId]) return MODEL_SPECS[modelId];
 
   // Case-insensitive lookups: upstream model ids are often capitalized
-  // (e.g. "MiniMax-M2.7") while specs/aliases use lowercase ids (#3141).
+  // (e.g. "MiniMax-M3") while specs/aliases use lowercase ids (#3141).
   const lower = modelId.toLowerCase();
 
   // Exact match (case-insensitive)

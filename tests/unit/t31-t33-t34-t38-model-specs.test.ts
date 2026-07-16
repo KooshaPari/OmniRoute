@@ -113,10 +113,10 @@ test("opencode-go family: context/output caps match upstream provider docs", () 
   assert.equal(getModelSpec("glm-5").contextWindow, 200000);
 
   // MiniMax M2.x: ~200K context, 131K output
-  assert.equal(getModelSpec("minimax-m2.7").contextWindow, 204800);
-  assert.equal(getModelSpec("minimax-m2.7").maxOutputTokens, 131072);
-  assert.equal(getModelSpec("minimax-m2.5").contextWindow, 200000);
-  assert.equal(getModelSpec("MiniMax-M2.5").contextWindow, 200000);
+  assert.equal(getModelSpec("minimax-m3").contextWindow, 204800);
+  assert.equal(getModelSpec("minimax-m3").maxOutputTokens, 131072);
+  assert.equal(getModelSpec("minimax-m3").contextWindow, 200000);
+  assert.equal(getModelSpec("MiniMax-M3").contextWindow, 200000);
 
   // DeepSeek V4: 1M context, 384K output
   assert.equal(getModelSpec("deepseek-v4-pro").contextWindow, 1000000);
@@ -136,8 +136,8 @@ test("opencode-go family: capMaxOutputTokens grants full upstream budget", () =>
   assert.equal(capMaxOutputTokens("qwen3-max-2026-01-23", 100000), 65536);
   assert.equal(capMaxOutputTokens("kimi-k2.5", 300000), 262144);
   assert.equal(capMaxOutputTokens("glm-5.1", 200000), 128000);
-  assert.equal(capMaxOutputTokens("minimax-m2.7", 200000), 131072);
-  assert.equal(capMaxOutputTokens("MiniMax-M2.5", 200000), 131072);
+  assert.equal(capMaxOutputTokens("minimax-m3", 200000), 131072);
+  assert.equal(capMaxOutputTokens("MiniMax-M3", 200000), 131072);
   assert.equal(capMaxOutputTokens("deepseek-v4-pro", 500000), 384000);
   assert.equal(capMaxOutputTokens("hy3-preview", 300000), 262144);
 });

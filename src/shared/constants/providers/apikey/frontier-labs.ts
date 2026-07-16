@@ -85,7 +85,7 @@ export const APIKEY_PROVIDERS_FRONTIER = {
     textIcon: "BB",
     website: "https://blackbox.ai",
     hasFree: true,
-    freeNote: "Free tier: unlimited basic chat plus Minimax-M2.5, no credit card required",
+    freeNote: "Free tier: unlimited basic chat plus Minimax-M3, no credit card required",
   },
   xai: {
     id: "xai",

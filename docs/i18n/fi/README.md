@@ -714,7 +714,7 @@ Combo: "always-on"
   1. cc/claude-opus-4-7
   2. cx/gpt-5.2-codex
   3. glm/glm-4.7
-  4. minimax/MiniMax-M2.1
+  4. minimax/MiniMax-M3
   5. if/kimi-k2-thinking
 
 Outcome: deep fallback depth for deadline-critical workloads
@@ -1148,8 +1148,8 @@ When minimized, OmniRoute lives in your system tray with quick actions:
 |                     | OpenRouter                  | Pay-per-use               | None             | 100+ models aggr.                 |
 | **💰 CHEAP**        | GLM-5 (via Z.AI) 🆕         | $0.5/1M                   | Daily 10AM       | 128K output, newest flagship      |
 |                     | GLM-4.7                     | $0.6/1M                   | Daily 10AM       | Budget backup                     |
-|                     | MiniMax M2.5 🆕             | $0.3/1M input             | 5-hour rolling   | Reasoning + agentic tasks         |
-|                     | MiniMax M2.1                | $0.2/1M                   | 5-hour rolling   | Cheapest option                   |
+|                     | MiniMax M3 🆕             | $0.3/1M input             | 5-hour rolling   | Reasoning + agentic tasks         |
+|                     | MiniMax M3                | $0.2/1M                   | 5-hour rolling   | Cheapest option                   |
 |                     | Kimi K2.5 (Moonshot API) 🆕 | Pay-per-use               | None             | Direct Moonshot API access        |
 |                     | Kimi K2                     | $9/mo flat                | 10M tokens/mo    | Predictable cost                  |
 | **🆓 FREE**         | Qoder                       | **$0**                    | Unlimited        | 5 models unlimited                |
@@ -1160,7 +1160,7 @@ When minimized, OmniRoute lives in your system tray with quick actions:
 |                     | Cloudflare Workers AI 🆕    | **$0** (10K Neurons/day)  | ~150 resp/day    | 50+ models, global edge           |
 |                     | Scaleway AI 🆕              | **$0** (1M tokens total)  | Rate limited     | EU/GDPR, Qwen3 235B, Llama 70B    |
 
-> 🆕 **New models added (Mar 2026):** Grok-4 Fast family at $0.20/$0.50/M (benchmarked at 1143ms — 30% faster than Gemini 2.5 Flash), GLM-5 via Z.AI with 128K output, MiniMax M2.5 reasoning, DeepSeek V3.2 updated pricing, Kimi K2.5 via Moonshot direct API.
+> 🆕 **New models added (Mar 2026):** Grok-4 Fast family at $0.20/$0.50/M (benchmarked at 1143ms — 30% faster than Gemini 2.5 Flash), GLM-5 via Z.AI with 128K output, MiniMax M3 reasoning, DeepSeek V3.2 updated pricing, Kimi K2.5 via Moonshot direct API.
 
 **💡 $0 Combo Stack — The Complete Free Setup:**
 
@@ -1204,7 +1204,7 @@ Cerebras (cerebras/)   → Llama/Qwen world-fastest — 1M tok/day
 | `kimi-k2-thinking` | `if/`  | **Unlimited** | No reported cap |
 | `qwen3-coder-plus` | `if/`  | **Unlimited** | No reported cap |
 | `deepseek-r1`      | `if/`  | **Unlimited** | No reported cap |
-| `minimax-m2.1`     | `if/`  | **Unlimited** | No reported cap |
+| `minimax-m3`     | `if/`  | **Unlimited** | No reported cap |
 | `kimi-k2`          | `if/`  | **Unlimited** | No reported cap |
 
 > Recommended connection method: **Personal Access Token + `qodercli`**. Browser OAuth is
@@ -1362,7 +1362,7 @@ OmniRoute v3.6 is built as an operational platform, not just a relay proxy.
 | ------------------------------------ | ------------------------------------------------------------------------------------------- |
 | ⚡ **Grok-4 Fast Family**            | xAI models at $0.20/$0.50/M — benchmarked 1143ms (30% faster than Gemini 2.5 Flash)         |
 | 🧠 **GLM-5 via Z.AI**                | 128K output context, $0.5/1M — newest flagship from the GLM family                          |
-| 🔮 **MiniMax M2.5**                  | Reasoning + agentic tasks at $0.30/1M — significant upgrade from M2.1                       |
+| 🔮 **MiniMax M3**                  | Reasoning + agentic tasks at $0.30/1M — significant upgrade from M2.1                       |
 | 🎯 **toolCalling Flag per Model**    | Per-model `toolCalling: true/false` in registry — AutoCombo skips non-tool-capable models   |
 | 🌍 **Multilingual Intent Detection** | PT/ZH/ES/AR keywords in AutoCombo scoring — better model selection for non-English content  |
 | 📊 **Benchmark-Driven Fallbacks**    | Real p95 latency from live requests feeds combo scoring — AutoCombo learns from actual data |
@@ -1751,13 +1751,13 @@ Models:
 
 **Pro Tip:** Coding Plan offers 3× quota at 1/7 cost! Reset daily 10:00 AM.
 
-### MiniMax M2.1 (5h reset, $0.20/1M)
+### MiniMax M3 (5h reset, $0.20/1M)
 
 1. Sign up: [MiniMax](https://www.minimax.io/)
 2. Get API key
 3. Dashboard → Add API Key
 
-**Use:** `minimax/MiniMax-M2.1`
+**Use:** `minimax/MiniMax-M3`
 
 **Pro Tip:** Cheapest option for long context (1M tokens)!
 
@@ -1829,7 +1829,7 @@ Name: premium-coding
 Models:
   1. cc/claude-opus-4-7 (Subscription primary)
   2. glm/glm-4.7 (Cheap backup, $0.6/1M)
-  3. minimax/MiniMax-M2.1 (Cheapest fallback, $0.20/1M)
+  3. minimax/MiniMax-M3 (Cheapest fallback, $0.20/1M)
 
 Use in CLI: premium-coding
 ```

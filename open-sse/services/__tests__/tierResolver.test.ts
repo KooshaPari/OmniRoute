@@ -100,7 +100,7 @@ describe("TierResolver", () => {
     });
 
     it("classifies MiniMax as cheap ($0.20/M < $1.00/M)", () => {
-      const result = classifyTier("minimax", "minimax-m2.1");
+      const result = classifyTier("minimax", "minimax-m3");
       assert.equal(result.tier, PROVIDER_TIER.CHEAP);
       assert.ok(result.costPer1MInput <= 1.0);
     });
@@ -184,7 +184,7 @@ describe("TierResolver", () => {
         { provider: "openai", model: "gpt-4o" },
         { provider: "deepseek", model: "deepseek-chat" },
         { provider: "glm", model: "glm-4.7" },
-        { provider: "minimax", model: "minimax-m2.1" },
+        { provider: "minimax", model: "minimax-m3" },
         { provider: "anthropic", model: "claude-opus-4-7" },
         { provider: "groq", model: "llama-3.3-70b" },
         { provider: "qoder", model: "kimi-k2-thinking" },

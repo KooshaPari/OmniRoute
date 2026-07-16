@@ -38,7 +38,7 @@ Complete guide for configuring providers, creating combos, integrating CLI tools
 |                     | Cohere            | Pay per use | None             | Command R+ RAG       |
 |                     | NVIDIA NIM        | Pay per use | None             | Enterprise models    |
 | **💰 CHEAP**        | GLM-4.7           | $0.6/1M     | Daily 10AM       | Budget backup        |
-|                     | MiniMax M2.1      | $0.2/1M     | 5-hour rolling   | Cheapest option      |
+|                     | MiniMax M3      | $0.2/1M     | 5-hour rolling   | Cheapest option      |
 |                     | Kimi K2           | $9/mo flat  | 10M tokens/mo    | Predictable cost     |
 | **🆓 FREE**         | Qoder             | $0          | Unlimited        | 8 models free        |
 |                     | Qwen              | $0          | Unlimited        | 3 models free        |
@@ -85,7 +85,7 @@ Combo: "always-on"
   1. cc/claude-opus-4-7        (best quality)
   2. cx/gpt-5.2-codex          (second subscription)
   3. glm/glm-4.7               (cheap, resets daily)
-  4. minimax/MiniMax-M2.1      (cheapest, 5h reset)
+  4. minimax/MiniMax-M3      (cheapest, 5h reset)
   5. if/kimi-k2-thinking       (free unlimited)
 
 Result: 5 layers of fallback = zero downtime
@@ -99,7 +99,7 @@ Monthly cost: $20-200 (subscriptions) + $10-20 (backup)
 ```
 Combo: "openclaw-free"
   1. if/glm-4.7                (unlimited free)
-  2. if/minimax-m2.1           (unlimited free)
+  2. if/minimax-m3           (unlimited free)
   3. if/kimi-k2-thinking       (unlimited free)
 
 Monthly cost: $0
@@ -164,12 +164,12 @@ Models:
 
 **Use:** `glm/glm-4.7` — **Pro Tip:** Coding Plan offers 3× quota at 1/7 cost! Reset daily 10:00 AM.
 
-#### MiniMax M2.1 (5h reset, $0.20/1M)
+#### MiniMax M3 (5h reset, $0.20/1M)
 
 1. Sign up: [MiniMax](https://www.minimax.io/)
 2. Get API key → Dashboard → Add API Key
 
-**Use:** `minimax/MiniMax-M2.1` — **Pro Tip:** Cheapest option for long context (1M tokens)!
+**Use:** `minimax/MiniMax-M3` — **Pro Tip:** Cheapest option for long context (1M tokens)!
 
 #### Kimi K2 ($9/month flat)
 
@@ -219,7 +219,7 @@ Name: premium-coding
 Models:
   1. cc/claude-opus-4-7 (Subscription primary)
   2. glm/glm-4.7 (Cheap backup, $0.6/1M)
-  3. minimax/MiniMax-M2.1 (Cheapest fallback, $0.20/1M)
+  3. minimax/MiniMax-M3 (Cheapest fallback, $0.20/1M)
 
 Use in CLI: premium-coding
 ```
@@ -547,7 +547,7 @@ For the full environment variable reference, see the [README](../README.md).
 
 **GLM (`glm/`)** — $0.6/1M: `glm/glm-4.7`
 
-**MiniMax (`minimax/`)** — $0.2/1M: `minimax/MiniMax-M2.1`
+**MiniMax (`minimax/`)** — $0.2/1M: `minimax/MiniMax-M3`
 
 **Qoder (`if/`)** — FREE: `if/kimi-k2-thinking`, `if/qwen3-coder-plus`, `if/deepseek-r1`
 

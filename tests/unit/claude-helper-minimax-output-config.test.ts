@@ -11,7 +11,7 @@ import { prepareClaudeRequest } from "../../open-sse/translator/helpers/claudeHe
 
 describe("prepareClaudeRequest output_config stripping for MiniMax", () => {
   const buildBody = () => ({
-    model: "MiniMax-M2.7",
+    model: "MiniMax-M3",
     system: [{ type: "text", text: "You are helpful." }],
     messages: [{ role: "user", content: [{ type: "text", text: "continue" }] }],
     max_tokens: 1024,

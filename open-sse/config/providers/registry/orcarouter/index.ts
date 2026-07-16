@@ -69,8 +69,8 @@ export const orcarouterProvider: RegistryEntry = {
       maxOutputTokens: 384000,
     },
     {
-      id: "minimax/minimax-m2.7",
-      name: "MiniMax M2.7",
+      id: "minimax/minimax-m3",
+      name: "MiniMax M3",
       toolCalling: true,
       supportsReasoning: true,
       contextLength: 204800,

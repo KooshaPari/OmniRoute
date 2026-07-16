@@ -62,7 +62,7 @@ const STATIC_MODEL_PROVIDERS: Record<string, () => Array<{ id: string; name: str
     { id: "qwen3-max-2026-01-23", name: "Qwen3 Max" },
     { id: "kimi-k2.5", name: "Kimi K2.5(vision)" },
     { id: "glm-5", name: "GLM 5" },
-    { id: "MiniMax-M2.5", name: "MiniMax M2.5" },
+    { id: "MiniMax-M3", name: "MiniMax M3" },
   ],
   gitlab: () => [{ id: "gitlab-duo-code-suggestions", name: "GitLab Duo Code Suggestions" }],
   nlpcloud: () =>

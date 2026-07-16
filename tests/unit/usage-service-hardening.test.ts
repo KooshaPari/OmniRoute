@@ -1042,7 +1042,7 @@ test("usage service covers MiniMax usage parsing, documented endpoint fallback a
           plan_name: "MiniMax Coding Plan Lite",
           model_remains: [
             {
-              model_name: "MiniMax-M2.7",
+              model_name: "MiniMax-M3",
               remains_time: 300_000,
               current_interval_total_count: 1500,
               current_interval_usage_count: 1100,
@@ -1117,7 +1117,7 @@ test("usage service treats MiniMax token-plan counts as used usage", async () =>
         base_resp: { status_code: 0, status_msg: "ok" },
         model_remains: [
           {
-            model_name: "MiniMax-M2.7",
+            model_name: "MiniMax-M3",
             remains_time: 300_000,
             current_interval_total_count: 15000,
             current_interval_usage_count: 13,

@@ -28,8 +28,8 @@ export const fireworksProvider: RegistryEntry = {
     { id: "gpt-oss-20b", name: "OpenAI gpt-oss-20b" },
     { id: "kimi-k2p5", name: "Kimi K2.5" },
     { id: "kimi-k2p6", name: "Kimi K2.6" },
-    { id: "minimax-m2p5", name: "MiniMax M2.5" },
-    { id: "minimax-m2p7", name: "MiniMax M2.7" },
+    { id: "minimax-m2p5", name: "MiniMax M3" },
+    { id: "minimax-m3", name: "MiniMax M3" },
     { id: "qwen3p6-plus", name: "Qwen3.6 Plus" },
   ],
 };

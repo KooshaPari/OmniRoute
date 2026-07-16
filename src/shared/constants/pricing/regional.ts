@@ -87,54 +87,24 @@ export const DEFAULT_PRICING_REGIONAL = {
       reasoning: 3.0,
       cache_creation: 0.5,
     },
-    "minimax-m2.1": {
+    "minimax-m3": {
       input: 0.5,
       output: 2.0,
       cached: 0.25,
       reasoning: 3.0,
       cache_creation: 0.5,
     },
-    "MiniMax-M2.1": {
+    "MiniMax-M3": {
       input: 0.5,
       output: 2.0,
       cached: 0.25,
       reasoning: 3.0,
       cache_creation: 0.5,
     },
-    // MiniMax M2.5 — mais barato que M2.1, reasoning + tools
-    // Context: 204.800 tokens | Max Output: 16.384 tokens
-    "minimax-m2.5": {
-      input: 0.27,
-      output: 0.95,
-      cached: 0.135,
-      reasoning: 1.425,
-      cache_creation: 0.27,
-    },
-    "MiniMax-M2.5": {
-      input: 0.27,
-      output: 0.95,
-      cached: 0.135,
-      reasoning: 1.425,
-      cache_creation: 0.27,
-    },
-    // T12: MiniMax M2.7 — new default model (sub2api PR #1120)
-    // Upgraded from M2.5, same API endpoint api.minimax.io
+    // MiniMax M3 — frontier coding model, 1M context (sub2api PR #1120)
+    // Upgraded from M2.5/M2.7, same API endpoint api.minimax.io
     // Pricing estimated, check https://platform.minimaxi.com/document/Price
-    "minimax-m2.7": {
-      input: 0.4,
-      output: 1.6,
-      cached: 0.2,
-      reasoning: 2.4,
-      cache_creation: 0.4,
-    },
-    "MiniMax-M2.7": {
-      input: 0.4,
-      output: 1.6,
-      cached: 0.2,
-      reasoning: 2.4,
-      cache_creation: 0.4,
-    },
-    "minimax-m2.7-highspeed": {
+    "minimax-m3-highspeed": {
       input: 0.4,
       output: 1.6,
       cached: 0.2,

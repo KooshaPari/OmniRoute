@@ -711,7 +711,7 @@ Combo: "always-on"
   1. cc/claude-opus-4-7
   2. cx/gpt-5.2-codex
   3. glm/glm-4.7
-  4. minimax/MiniMax-M2.1
+  4. minimax/MiniMax-M3
   5. if/kimi-k2-thinking
 
 Outcome: deep fallback depth for deadline-critical workloads
@@ -1145,8 +1145,8 @@ Saat diminimalkan, OmniRoute ada di baki sistem Anda dengan tindakan cepat:
 |                     | OpenRouter                  | Bayar per penggunaan                | None             | 100+ models aggr.                 |
 | **💰 CHEAP**        | GLM-5 (via Z.AI) 🆕         | $0.5/1M                             | Daily 10AM       | 128K output, newest flagship      |
 |                     | GLM-4.7                     | $0.6/1M                             | Daily 10AM       | Budget backup                     |
-|                     | MiniMax M2.5 🆕             | $0.3/1M input                       | 5-hour rolling   | Reasoning + agentic tasks         |
-|                     | MiniMax M2.1                | $0.2/1M                             | 5-hour rolling   | Cheapest option                   |
+|                     | MiniMax M3 🆕             | $0.3/1M input                       | 5-hour rolling   | Reasoning + agentic tasks         |
+|                     | MiniMax M3                | $0.2/1M                             | 5-hour rolling   | Cheapest option                   |
 |                     | Kimi K2.5 (Moonshot API) 🆕 | Bayar per penggunaan                | None             | Direct Moonshot API access        |
 |                     | Kimi K2                     | $9/mo flat                          | 10M tokens/mo    | Predictable cost                  |
 | **🆓 FREE**         | Qoder                       | **$0**                              | Unlimited        | 5 models unlimited                |
@@ -1157,7 +1157,7 @@ Saat diminimalkan, OmniRoute ada di baki sistem Anda dengan tindakan cepat:
 |                     | Cloudflare Workers AI 🆕    | **$0** (10K Neurons/day)            | ~150 resp/day    | 50+ model, keunggulan global      |
 |                     | Scaleway AI 🆕              | **$0** (1M tokens total)            | Rate limited     | EU/GDPR, Qwen3 235B, Llama 70B    |
 
-> 🆕 **Model baru ditambahkan (Mar 2026):** Keluarga Grok-4 Fast seharga $0,20/$0,50/M (dibandingkan pada 1143ms — 30% lebih cepat dibandingkan Gemini 2.5 Flash), GLM-5 melalui Z.AI dengan output 128K, penalaran MiniMax M2.5, harga DeepSeek V3.2 yang diperbarui, Kimi K2.5 melalui API langsung Moonshot.
+> 🆕 **Model baru ditambahkan (Mar 2026):** Keluarga Grok-4 Fast seharga $0,20/$0,50/M (dibandingkan pada 1143ms — 30% lebih cepat dibandingkan Gemini 2.5 Flash), GLM-5 melalui Z.AI dengan output 128K, penalaran MiniMax M3, harga DeepSeek V3.2 yang diperbarui, Kimi K2.5 melalui API langsung Moonshot.
 
 **💡 Tumpukan Kombo $0 — Penyiapan Gratis Lengkap:**
 
@@ -1201,7 +1201,7 @@ Cerebras (cerebras/)   → Llama/Qwen world-fastest — 1M tok/day
 | `kimi-k2-thinking` | `if/`  | **Unlimited** | No reported cap |
 | `qwen3-coder-plus` | `if/`  | **Unlimited** | No reported cap |
 | `deepseek-r1`      | `if/`  | **Unlimited** | No reported cap |
-| `minimax-m2.1`     | `if/`  | **Unlimited** | No reported cap |
+| `minimax-m3`     | `if/`  | **Unlimited** | No reported cap |
 | `kimi-k2`          | `if/`  | **Unlimited** | No reported cap |
 
 > Metode koneksi yang disarankan: **Token Akses Pribadi + `qodercli`**. Peramban OAuth adalah
@@ -1359,7 +1359,7 @@ OmniRoute v3.6 dibangun sebagai platform operasional, bukan hanya proxy relai.
 | --------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
 | ⚡ **Grok-4 Fast Family**               | xAI models at $0.20/$0.50/M — benchmarked 1143ms (30% faster than Gemini 2.5 Flash)                         |
 | 🧠 **GLM-5 via Z.AI**                   | Konteks keluaran 128 ribu, $0,5/1 juta — andalan terbaru dari keluarga GLM                                  |
-| 🔮 **MiniMax M2.5**                     | Penalaran + tugas agen seharga $0,30/1 juta — peningkatan signifikan dari M2.1                              |
+| 🔮 **MiniMax M3**                     | Penalaran + tugas agen seharga $0,30/1 juta — peningkatan signifikan dari M2.1                              |
 | 🎯 **alat Memanggil Bendera per Model** | Per model `toolCalling: true/false` di registri — AutoCombo melewatkan model yang tidak mendukung alat      |
 | 🌍 **Multilingual Intent Detection**    | Kata kunci PT/ZH/ES/AR dalam penilaian AutoCombo — pemilihan model yang lebih baik untuk konten non-Inggris |
 | 📊 **Benchmark-Driven Fallbacks**       | Latensi p95 nyata dari penilaian kombo umpan permintaan langsung — AutoCombo belajar dari data aktual       |
@@ -1748,13 +1748,13 @@ Models:
 
 **Tips Pro:** Paket Coding menawarkan 3× kuota dengan biaya 1/7! Reset setiap hari pukul 10.00.
 
-### MiniMax M2.1 (Reset 5 jam, $0.20/1M)
+### MiniMax M3 (Reset 5 jam, $0.20/1M)
 
 1. Daftar: [MiniMax](https://www.minimax.io/)
 2. Dapatkan kunci API
 3. Dasbor → Tambahkan Kunci API
 
-**Use:** `minimax/MiniMax-M2.1`
+**Use:** `minimax/MiniMax-M3`
 
 **Kiat Pro:** Opsi termurah untuk konteks panjang (1 juta token)!
 
@@ -1826,7 +1826,7 @@ Name: premium-coding
 Models:
   1. cc/claude-opus-4-7 (Subscription primary)
   2. glm/glm-4.7 (Cheap backup, $0.6/1M)
-  3. minimax/MiniMax-M2.1 (Cheapest fallback, $0.20/1M)
+  3. minimax/MiniMax-M3 (Cheapest fallback, $0.20/1M)
 
 Use in CLI: premium-coding
 ```

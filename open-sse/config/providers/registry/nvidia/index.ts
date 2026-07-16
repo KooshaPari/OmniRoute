@@ -11,9 +11,9 @@ export const nvidiaProvider: RegistryEntry = {
   models: [
     { id: "z-ai/glm-5.1", name: "GLM 5.1" },
     // #3329: minimaxai/minimax-m3 removed — NVIDIA NIM does not host it yet
-    // (every request 404s), while minimax-m2.7 on the same provider works.
+    // (every request 404s), while minimax-m3 on the same provider works.
     // Re-add only once NVIDIA actually serves it.
-    { id: "minimaxai/minimax-m2.7", name: "MiniMax M2.7" },
+    { id: "minimaxai/minimax-m3", name: "MiniMax M3" },
     { id: "google/gemma-4-31b-it", name: "Gemma 4 31B" },
     { id: "mistralai/mistral-small-4-119b-2603", name: "Mistral Small 4 2603" },
     { id: "mistralai/mistral-large-3-675b-instruct-2512", name: "Mistral Large 3 675B" },

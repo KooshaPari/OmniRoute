@@ -38,7 +38,7 @@ Panduan lengkap untuk mengonfigurasi penyedia, membuat combo, mengintegrasikan a
 |                  | Cohere            | Bayar pakai | Tidak ada       | RAG Command R+              |
 |                  | NVIDIA NIM        | Bayar pakai | Tidak ada       | Model enterprise            |
 | **💰 MURAH**     | GLM-4.7           | $0.6/1M     | Harian pukul 10 | Cadangan hemat              |
-|                  | MiniMax M2.1      | $0.2/1M     | Bergulir 5 jam  | Pilihan termurah            |
+|                  | MiniMax M3      | $0.2/1M     | Bergulir 5 jam  | Pilihan termurah            |
 |                  | Kimi K2           | $9/bln flat | 10M token/bln   | Biaya yang dapat diprediksi |
 | **🆓 GRATIS**    | Qoder             | $0          | Tidak terbatas  | 8 model gratis              |
 |                  | Qwen              | $0          | Tidak terbatas  | 3 model gratis              |
@@ -84,7 +84,7 @@ Combo: "always-on"
   1. cc/claude-opus-4-7        (kualitas terbaik)
   2. cx/gpt-5.2-codex          (langganan kedua)
   3. glm/glm-4.7               (murah, reset harian)
-  4. minimax/MiniMax-M2.1      (termurah, reset 5 jam)
+  4. minimax/MiniMax-M3      (termurah, reset 5 jam)
   5. if/kimi-k2-thinking       (gratis tanpa batas)
 
 Hasil: 5 lapis fallback = nol downtime
@@ -98,7 +98,7 @@ Biaya bulanan: $20-200 (langganan) + $10-20 (cadangan)
 ```
 Combo: "openclaw-free"
   1. if/glm-4.7                (gratis tanpa batas)
-  2. if/minimax-m2.1           (gratis tanpa batas)
+  2. if/minimax-m3           (gratis tanpa batas)
   3. if/kimi-k2-thinking       (gratis tanpa batas)
 
 Biaya bulanan: $0
@@ -161,12 +161,12 @@ Models:
 
 **Gunakan:** `glm/glm-4.7` — **Tips Pro:** Coding Plan menawarkan kuota 3× dengan biaya 1/7! Reset setiap hari pukul 10:00.
 
-#### MiniMax M2.1 (Reset 5 jam, $0.20/1M)
+#### MiniMax M3 (Reset 5 jam, $0.20/1M)
 
 1. Daftar: [MiniMax](https://www.minimax.io/)
 2. Dapatkan kunci API → Dasbor → Tambahkan Kunci API
 
-**Gunakan:** `minimax/MiniMax-M2.1` — **Tips Pro:** Pilihan termurah untuk konteks panjang (1M token)!
+**Gunakan:** `minimax/MiniMax-M3` — **Tips Pro:** Pilihan termurah untuk konteks panjang (1M token)!
 
 #### Kimi K2 ($9/bulan flat)
 
@@ -216,7 +216,7 @@ Name: premium-coding
 Models:
   1. cc/claude-opus-4-7 (Langganan utama)
   2. glm/glm-4.7 (Cadangan murah, $0.6/1M)
-  3. minimax/MiniMax-M2.1 (Fallback termurah, $0.20/1M)
+  3. minimax/MiniMax-M3 (Fallback termurah, $0.20/1M)
 
 Use in CLI: premium-coding
 ```
@@ -543,7 +543,7 @@ Untuk referensi variabel lingkungan lengkap, lihat [README](../README.md).
 
 **GLM (`glm/`)** — $0.6/1M: `glm/glm-4.7`
 
-**MiniMax (`minimax/`)** — $0.2/1M: `minimax/MiniMax-M2.1`
+**MiniMax (`minimax/`)** — $0.2/1M: `minimax/MiniMax-M3`
 
 **Qoder (`if/`)** — GRATIS: `if/kimi-k2-thinking`, `if/qwen3-coder-plus`, `if/deepseek-r1`
 

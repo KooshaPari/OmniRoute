@@ -14,7 +14,7 @@ import { prepareClaudeRequest } from "../../open-sse/translator/helpers/claudeHe
 
 describe("prepareClaudeRequest tool-shape normalization for non-Anthropic providers", () => {
   const buildBody = () => ({
-    model: "MiniMax-M2.7",
+    model: "MiniMax-M3",
     messages: [{ role: "user", content: [{ type: "text", text: "hi" }] }],
     max_tokens: 256,
     tools: [

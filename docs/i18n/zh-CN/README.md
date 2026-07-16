@@ -719,7 +719,7 @@ podman compose --profile base up -d
 | ------------------------- | ---------------------------------------- | ---------- |
 | 💳 **订阅**               | Claude Code Pro / Codex / Copilot        | $10–200/月 |
 | 🔑 **API 密钥（免费层）** | NVIDIA NIM、Cerebras、Groq               | **免费**   |
-| 💰 **廉价**               | GLM-5 $0.5/1M · MiniMax M2.5 $0.3/1M     | 几分钱     |
+| 💰 **廉价**               | GLM-5 $0.5/1M · MiniMax M3 $0.3/1M     | 几分钱     |
 | 🆓 **永久免费**           | Kiro、Qoder、Qwen、Pollinations、LongCat | **$0**     |
 
 **$0 免费堆栈 — 组合成一个不可中断的 Combo：**

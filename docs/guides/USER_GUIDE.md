@@ -52,7 +52,7 @@ Complete guide for configuring providers, creating combos, integrating CLI tools
 |                     | NVIDIA NIM        | Pay per use | None           | Enterprise models    |
 |                     | Baidu Qianfan     | Pay per use | None           | ERNIE models         |
 | **💰 CHEAP**        | GLM-4.7           | $0.6/1M     | Daily 10AM     | Budget backup        |
-|                     | MiniMax M2.1      | $0.2/1M     | 5-hour rolling | Cheapest option      |
+|                     | MiniMax M3      | $0.2/1M     | 5-hour rolling | Cheapest option      |
 |                     | Kimi K2           | $9/mo flat  | 10M tokens/mo  | Predictable cost     |
 | **🆓 FREE**         | Qoder             | $0          | Unlimited      | 8 models free        |
 |                     | Qwen              | $0          | Unlimited      | 3 models free        |
@@ -98,7 +98,7 @@ Combo: "always-on"
   1. cc/claude-opus-4-7        (best quality)
   2. cx/gpt-5.5                (second subscription)
   3. glm/glm-4.7               (cheap, resets daily)
-  4. minimax/MiniMax-M2.1      (cheapest, 5h reset)
+  4. minimax/MiniMax-M3      (cheapest, 5h reset)
   5. if/kimi-k2       (free unlimited)
 
 Result: 5 layers of fallback = zero downtime
@@ -183,12 +183,12 @@ Models:
 
 **Use:** `glm/glm-4.7` — **Pro Tip:** Coding Plan offers 3× quota at 1/7 cost! Reset daily 10:00 AM.
 
-#### MiniMax M2.1 (5h reset, $0.20/1M)
+#### MiniMax M3 (5h reset, $0.20/1M)
 
 1. Sign up: [MiniMax](https://www.minimax.io)
 2. Get API key → Dashboard → Add API Key
 
-**Use:** `minimax/MiniMax-M2.1` — **Pro Tip:** Cheapest option for long context (1M tokens)!
+**Use:** `minimax/MiniMax-M3` — **Pro Tip:** Cheapest option for long context (1M tokens)!
 
 #### Kimi K2 ($9/month flat)
 
@@ -241,7 +241,7 @@ Name: premium-coding
 Models:
   1. cc/claude-opus-4-7 (Subscription primary)
   2. glm/glm-4.7 (Cheap backup, $0.6/1M)
-  3. minimax/MiniMax-M2.7 (Cheapest fallback, $0.3/1M)
+  3. minimax/MiniMax-M3 (Cheapest fallback, $0.3/1M)
 
 Use in CLI: premium-coding
 ```
@@ -572,7 +572,7 @@ For the full environment variable reference, see the [README](../README.md).
 
 **GitHub Copilot (`gh/`)** — OAuth: `gh/gpt-5.5`, `gh/gpt-5.4`, `gh/gpt-5.4-mini`, `gh/gpt-5-mini`, `gh/gpt-5.3-codex`, `gh/claude-opus-4.7`, `gh/claude-opus-4.6`, `gh/claude-opus-4-5-20251101`, `gh/claude-sonnet-4.6`, `gh/claude-sonnet-4.5`, `gh/claude-haiku-4.5`, `gh/gemini-3.1-pro-preview`, `gh/gemini-3-flash-preview`, `gh/oswe-vscode-prime`
 
-**Kiro (`kr/`)** — FREE OAuth: `kr/auto-kiro`, `kr/claude-opus-4.7`, `kr/claude-opus-4.6`, `kr/claude-sonnet-4.6`, `kr/claude-sonnet-4.5`, `kr/claude-haiku-4.5`, `kr/deepseek-3.2`, `kr/minimax-m2.5`, `kr/minimax-m2.1`, `kr/glm-5`, `kr/qwen3-coder-next`
+**Kiro (`kr/`)** — FREE OAuth: `kr/auto-kiro`, `kr/claude-opus-4.7`, `kr/claude-opus-4.6`, `kr/claude-sonnet-4.6`, `kr/claude-sonnet-4.5`, `kr/claude-haiku-4.5`, `kr/deepseek-3.2`, `kr/minimax-m3`, `kr/minimax-m3`, `kr/glm-5`, `kr/qwen3-coder-next`
 
 **Qoder (`if/`)** — FREE OAuth: `if/kimi-k2-0905`, `if/kimi-k2`, `if/qwen3-coder-plus`, `if/qwen3-max`, `if/qwen3-max-preview`, `if/qwen3-vl-plus`, `if/qwen3-32b`, `if/qwen3-235b-a22b-thinking-2507`, `if/qwen3-235b-a22b-instruct`, `if/qwen3-235b`, `if/deepseek-v3.2`, `if/deepseek-v3`, `if/deepseek-r1`, `if/qoder-rome-30ba3b`
 
@@ -580,7 +580,7 @@ For the full environment variable reference, see the [README](../README.md).
 
 **GLM (`glm/`, `glm-cn/`, `zai/`, `glmt/`)** — $0.2–0.6/1M: `glm/glm-5.1`, `glm/glm-5`, `glm/glm-5-turbo`, `glm/glm-4.7`, `glm/glm-4.7-flash`, `glm/glm-4.6`, `glm/glm-4.6v`, `glm/glm-4.5`, `glm/glm-4.5v`, `glm/glm-4.5-air`
 
-**MiniMax (`minimax/`, `minimax-cn/`)** — $0.2/1M: `minimax/MiniMax-M2.7`, `minimax/MiniMax-M2.7-highspeed`, `minimax/MiniMax-M2.5`, `minimax/MiniMax-M2.5-highspeed`
+**MiniMax (`minimax/`, `minimax-cn/`)** — $0.2/1M: `minimax/MiniMax-M3`, `minimax/MiniMax-M3`, `minimax/MiniMax-M3`, `minimax/MiniMax-M3`
 
 **Kimi (`kimi/`, `kimi-coding/`, `kimi-coding-apikey/`)** — $9/mo flat or per-use: `kimi/kimi-k2.6`, `kimi/kimi-k2.5`
 
@@ -596,23 +596,23 @@ For the full environment variable reference, see the [README](../README.md).
 
 **Together AI (`together/`)** — Open-source: `together/meta-llama/Llama-3.3-70B-Instruct-Turbo-Free` (free), `together/meta-llama/Llama-Vision-Free`, `together/deepseek-ai/DeepSeek-R1-Distill-Llama-70B-Free`, `together/deepseek-ai/DeepSeek-R1`, `together/Qwen/Qwen3-235B-A22B`, `together/meta-llama/Llama-4-Maverick-17B-128E-Instruct-FP8`
 
-**Fireworks AI (`fireworks/`)** — Fast inference: `fireworks/accounts/fireworks/models/kimi-k2p6`, `fireworks/accounts/fireworks/models/minimax-m2p7`, `fireworks/accounts/fireworks/models/qwen3p6-plus`, `fireworks/accounts/fireworks/models/glm-5p1`, `fireworks/accounts/fireworks/models/deepseek-v4-pro`
+**Fireworks AI (`fireworks/`)** — Fast inference: `fireworks/accounts/fireworks/models/kimi-k2p6`, `fireworks/accounts/fireworks/models/minimax-m3`, `fireworks/accounts/fireworks/models/qwen3p6-plus`, `fireworks/accounts/fireworks/models/glm-5p1`, `fireworks/accounts/fireworks/models/deepseek-v4-pro`
 
 **Cerebras (`cerebras/`)** — Wafer-scale: `cerebras/zai-glm-4.7`, `cerebras/gpt-oss-120b`
 
 **Cohere (`cohere/`)** — RAG-focused: `cohere/command-a-reasoning-08-2025`, `cohere/command-a-vision-07-2025`, `cohere/command-a-03-2025`, `cohere/command-r-08-2024`
 
-**NVIDIA NIM (`nvidia/`)** — Enterprise: `nvidia/z-ai/glm-5.1`, `nvidia/minimaxai/minimax-m2.7`, `nvidia/google/gemma-4-31b-it`, `nvidia/mistralai/mistral-small-4-119b-2603`, `nvidia/mistralai/mistral-large-3-675b-instruct-2512`, `nvidia/qwen/qwen3.5-397b-a17b`, `nvidia/deepseek-ai/deepseek-v4-pro`, `nvidia/openai/gpt-oss-120b`, `nvidia/nvidia/nemotron-3-super-120b-a12b`
+**NVIDIA NIM (`nvidia/`)** — Enterprise: `nvidia/z-ai/glm-5.1`, `nvidia/minimaxai/minimax-m3`, `nvidia/google/gemma-4-31b-it`, `nvidia/mistralai/mistral-small-4-119b-2603`, `nvidia/mistralai/mistral-large-3-675b-instruct-2512`, `nvidia/qwen/qwen3.5-397b-a17b`, `nvidia/deepseek-ai/deepseek-v4-pro`, `nvidia/openai/gpt-oss-120b`, `nvidia/nvidia/nemotron-3-super-120b-a12b`
 
 **Baidu Qianfan (`qianfan/`)** — ERNIE: `qianfan/ernie-5.1`, `qianfan/ernie-5.0-thinking-latest`, `qianfan/ernie-x1.1`
 
-**Ollama Cloud (`ollama-cloud/`)**: `ollama-cloud/deepseek-v4-pro`, `ollama-cloud/deepseek-v4-flash`, `ollama-cloud/kimi-k2.6`, `ollama-cloud/glm-5.1`, `ollama-cloud/minimax-m2.7`, `ollama-cloud/gemma4:31b`, `ollama-cloud/qwen3.5:397b`
+**Ollama Cloud (`ollama-cloud/`)**: `ollama-cloud/deepseek-v4-pro`, `ollama-cloud/deepseek-v4-flash`, `ollama-cloud/kimi-k2.6`, `ollama-cloud/glm-5.1`, `ollama-cloud/minimax-m3`, `ollama-cloud/gemma4:31b`, `ollama-cloud/qwen3.5:397b`
 
 **Gemini (Google Cloud `gemini/`)**: Synced live per API key from Google — no static list. Connect a key in **Dashboard → Providers** then use **Available Models** to import the current catalog (e.g. `gemini/gemini-3-pro`, `gemini/gemini-3-flash`).
 
 **Other compatible providers** (selected): `cohere`, `databricks`, `snowflake`, `together`, `vertex`, `alibaba`, `alibaba-cn`, `bedrock` (via `aws-bedrock`), `azure-ai`, `openrouter` (passthrough catalog), `siliconflow`, `hyperbolic`, `huggingface`, `featherless-ai`, `cloudflare-ai`, `scaleway`, `deepinfra`, `vercel-ai-gateway`, `bazaarlink`, `friendliai`, `nous-research`, `reka`, `volcengine`, `ai21`, `gigachat`. Each maintains its own model list in `providerRegistry.ts` and can be auto-synced when the provider exposes a `/models` endpoint.
 
-**Note on model IDs:** OmniRoute uses provider-native IDs (`claude-opus-4-8`, `gpt-5.5`, `glm-5.1`, `MiniMax-M2.7`, `kimi-k2.5`, `grok-4.20-0309-reasoning`). Some IDs include dotted versions because that is how the upstream API expects them. If a model is not listed above, run `omniroute models --search <term>` or hit `GET /api/models/catalog` to confirm availability.
+**Note on model IDs:** OmniRoute uses provider-native IDs (`claude-opus-4-8`, `gpt-5.5`, `glm-5.1`, `MiniMax-M3`, `kimi-k2.5`, `grok-4.20-0309-reasoning`). Some IDs include dotted versions because that is how the upstream API expects them. If a model is not listed above, run `omniroute models --search <term>` or hit `GET /api/models/catalog` to confirm availability.
 
 </details>
 

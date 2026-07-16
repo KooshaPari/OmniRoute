@@ -82,9 +82,9 @@ test("T28: volcengine (Ark) catalog includes DeepSeek V4 models", () => {
 });
 
 test("T28: new catalog models resolve through getModelInfoCore", async () => {
-  const minimax = await getModelInfoCore("minimax/MiniMax-M2.7", {});
+  const minimax = await getModelInfoCore("minimax/MiniMax-M3", {});
   assert.equal(minimax.provider, "minimax");
-  assert.equal(minimax.model, "MiniMax-M2.7");
+  assert.equal(minimax.model, "MiniMax-M3");
 
   const flashLite = await getModelInfoCore("gemini/gemini-3.1-flash-lite-preview", {});
   assert.equal(flashLite.provider, "gemini");
