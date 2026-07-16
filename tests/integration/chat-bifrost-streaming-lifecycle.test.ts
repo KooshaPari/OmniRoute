@@ -6,9 +6,7 @@ import {
   getBifrostRouteMetrics,
   resetBifrostRouteMetricsForTest,
 } from "../../open-sse/observability/bifrostRouteMetrics.ts";
-import {
-  resolveBifrostStreamRouteTarget,
-} from "../../open-sse/handlers/chatCore/bifrostStreamOutcome.ts";
+import { resolveBifrostStreamRouteTarget } from "../../open-sse/handlers/chatCore/bifrostStreamOutcome.ts";
 
 let h: Awaited<ReturnType<typeof createChatPipelineHarness>>;
 
@@ -123,7 +121,7 @@ async function readSse(response: Response): Promise<string> {
 }
 
 test("Bifrost streaming lifecycle records exactly one successful outcome sample", async () => {
-  await h.seedConnection("openai", { apiKey: "sk-openai-bifrost-stream" });
+  const connection = await h.seedConnection("openai", { apiKey: "sk-openai-bifrost-stream" });
   const apiKey = await h.seedApiKey();
 
   let fetchCalls = 0;
@@ -135,6 +133,7 @@ test("Bifrost streaming lifecycle records exactly one successful outcome sample"
   const response = await h.handleChat(
     h.buildRequest({
       authKey: apiKey.key,
+      headers: { "x-omniroute-connection": connection.id },
       body: {
         model: "openai/gpt-4o-mini",
         stream: true,
@@ -148,10 +147,13 @@ test("Bifrost streaming lifecycle records exactly one successful outcome sample"
   const streamText = await readSse(response);
   assert.match(streamText, /bifrost stream output/);
   assert.match(streamText, /data: \[DONE\]/);
-  assert.ok(fetchCalls >= 1, "stream request and lifecycle instrumentation should invoke upstream fetch at least once");
+  assert.ok(
+    fetchCalls >= 1,
+    "stream request and lifecycle instrumentation should invoke upstream fetch at least once"
+  );
 
   const target = resolveBifrostStreamRouteTarget("openai", "gpt-4o-mini");
-  const stats = getBifrostRouteMetrics(target.provider, target.model);
+  const stats = getBifrostRouteMetrics(target.provider, target.model, connection.id);
   assert.ok(stats);
   assert.equal(stats?.sampleCount, 1);
   assert.equal(stats?.successCount, 1);
@@ -163,6 +165,7 @@ test("Bifrost streaming lifecycle records exactly one successful outcome sample"
     stats?.avgTokensPerSecond === null || stats?.avgTokensPerSecond >= 0,
     "avgTokensPerSecond should be present or explicitly unavailable"
   );
+  assert.equal(getBifrostRouteMetrics(target.provider, target.model), null);
 });
 
 test("Bifrost stream readiness failures record one failed outcome sample", async () => {
@@ -191,7 +194,7 @@ test("Bifrost stream readiness failures record one failed outcome sample", async
   assert.equal(body.error.code, "STREAM_EARLY_EOF");
 
   const target = resolveBifrostStreamRouteTarget("openai", "gpt-4.1");
-  const stats = getBifrostRouteMetrics(target.provider, target.model);
+  const stats = getBifrostRouteMetrics(target.provider, target.model, connection.id);
   assert.ok(stats);
   assert.equal(stats?.sampleCount, 1);
   assert.equal(stats?.successCount, 0);
@@ -199,4 +202,5 @@ test("Bifrost stream readiness failures record one failed outcome sample", async
   assert.equal(stats?.lastStatus, 502);
   assert.equal(typeof stats?.lastError, "string");
   assert.match(stats?.lastError, /Stream ended before producing a non-ping SSE event/);
+  assert.equal(getBifrostRouteMetrics(target.provider, target.model), null);
 });
