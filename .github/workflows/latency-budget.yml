@@ -31,8 +31,21 @@ env:
   BASELINE_BRANCH: origin/main
 
 jobs:
+  control:
+    name: Plan latency evidence
+    runs-on: ubuntu-latest
+    outputs:
+      authorized: ${{ steps.plan.outputs.authorized }}
+    steps:
+      - name: Determine whether paid evidence is authorized
+        id: plan
+        env:
+          PAID_EVIDENCE_AUTHORIZED: ${{ github.event_name == 'workflow_dispatch' || contains(github.event.pull_request.labels.*.name, 'ci-billing-exception') }}
+        run: echo "authorized=$PAID_EVIDENCE_AUTHORIZED" >> "$GITHUB_OUTPUT"
+
   budget-check:
-    if: ${{ github.event_name != 'push' && (github.event_name != 'pull_request' || contains(github.event.pull_request.labels.*.name, 'ci-billing-exception')) }}
+    needs: control
+    if: ${{ needs.control.outputs.authorized == 'true' }}
     name: REST endpoint budget check
     runs-on: ubuntu-latest
     steps:
@@ -106,7 +119,8 @@ jobs:
 
   budget-regression:
     name: REST endpoint latency regression
-    if: github.event_name == 'workflow_dispatch' || (github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'ci-billing-exception'))
+    needs: control
+    if: ${{ needs.control.outputs.authorized == 'true' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v4.2.2
@@ -179,14 +193,19 @@ jobs:
     if: ${{ always() }}
     name: Latency budget result
     runs-on: ubuntu-latest
-    needs: [budget-check, budget-regression]
+    needs: [control, budget-check, budget-regression]
     steps:
       - name: Report latency evidence status
         run: |
           echo "budget-check: ${{ needs.budget-check.result }}"
           echo "budget-regression: ${{ needs.budget-regression.result }}"
 
-          if [ "${{ github.event_name }}" = "pull_request" ] && [ "${{ contains(github.event.pull_request.labels.*.name, 'ci-billing-exception') }}" != "true" ]; then
+          if [ "${{ needs.control.result }}" != "success" ]; then
+            echo "::error::Latency evidence authorization control did not complete successfully"
+            exit 1
+          fi
+
+          if [ "${{ needs.control.outputs.authorized }}" != "true" ]; then
             if [ "${{ needs.budget-check.result }}" != "skipped" ] || [ "${{ needs.budget-regression.result }}" != "skipped" ]; then
               echo "::error::Unlabeled PR unexpectedly ran paid latency evidence"
               exit 1
@@ -200,4 +219,3 @@ jobs:
             exit 1
           fi
           echo "All latency budget gates passed with latency evidence"
-
