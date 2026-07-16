@@ -102,6 +102,12 @@ const DEFAULT_MODEL = "unknown-model";
 const pendingPersistenceKeys = new Set<string>();
 let persistenceTimer: ReturnType<typeof setTimeout> | null = null;
 let isPersisting = false;
+let hydrationState: "not_attempted" | "attempted" | "hydrated" = "not_attempted";
+let hydrationAttempts = 0;
+
+interface BifrostRouteMetricsHydrationOptions {
+  force?: boolean;
+}
 
 function queuePersistence(key?: string): void {
   if (typeof key === "string") {
@@ -205,7 +211,8 @@ function hydrateBifrostRouteMetricsFromDb(): void {
         provider: item.provider,
         model: item.model,
         samples,
-        writeIndex: Math.max(0, Math.min(samples.length, MAX_SAMPLES_PER_KEY)) % MAX_SAMPLES_PER_KEY,
+        writeIndex:
+          Math.max(0, Math.min(samples.length, MAX_SAMPLES_PER_KEY)) % MAX_SAMPLES_PER_KEY,
         updatedAtMs: item.updatedAtMs,
       });
     }
@@ -219,7 +226,30 @@ function hydrateBifrostRouteMetricsFromDb(): void {
   }
 }
 
-hydrateBifrostRouteMetricsFromDb();
+export function initializeBifrostRouteMetricsFromStorage(
+  options: BifrostRouteMetricsHydrationOptions = {}
+): void {
+  const force = options.force === true;
+  if (!force && hydrationState !== "not_attempted") return;
+
+  if (force) {
+    hydrationState = "not_attempted";
+    hydrationAttempts = 0;
+  }
+
+  hydrationAttempts += 1;
+  try {
+    hydrateBifrostRouteMetricsFromDb();
+    hydrationState = "hydrated";
+  } catch (error: unknown) {
+    hydrationState = "attempted";
+    const message = error instanceof Error ? error.message : String(error);
+    console.warn(
+      "[BifrostRouteMetrics] Startup persistence hydration failed; continuing from in-memory state.",
+      message
+    );
+  }
+}
 
 function normalizeKey(provider: string, model: string): string {
   return `${provider}\u0000${model}`;
@@ -289,9 +319,7 @@ function buildStats(state: OutcomeRing): BifrostRouteOutcomeStats {
   const sample = ordered.at(-1);
   const avgTtftMs = validTtftSamples > 0 ? ttftSum / validTtftSamples : null;
   const avgTokensPerSecond =
-    generationDurationMsSum > 0
-      ? (outputTokenSum / generationDurationMsSum) * 1000
-      : null;
+    generationDurationMsSum > 0 ? (outputTokenSum / generationDurationMsSum) * 1000 : null;
 
   return {
     provider: state.provider,
@@ -387,11 +415,17 @@ function clamp01(value: number): number {
 }
 
 function normalizeMinimumSamples(value: number | undefined): number {
-  const parsed = typeof value === "number" && Number.isFinite(value) ? Math.floor(value) : DEFAULT_MIN_SAMPLES_FOR_RELIABILITY;
+  const parsed =
+    typeof value === "number" && Number.isFinite(value)
+      ? Math.floor(value)
+      : DEFAULT_MIN_SAMPLES_FOR_RELIABILITY;
   return Math.max(1, parsed);
 }
 
-function computeStabilityFromLatency(avgLatencyMs: number, p95LatencyMs: number): number | undefined {
+function computeStabilityFromLatency(
+  avgLatencyMs: number,
+  p95LatencyMs: number
+): number | undefined {
   if (!Number.isFinite(avgLatencyMs) || !Number.isFinite(p95LatencyMs)) return undefined;
   if (avgLatencyMs <= 0) return undefined;
   if (p95LatencyMs < 0) return undefined;
@@ -473,9 +507,7 @@ function buildStatsFromSamples(
     p95LatencyMs: computeP95(latencies),
     avgTtftMs: validTtftSamples > 0 ? ttftSum / validTtftSamples : null,
     avgTokensPerSecond:
-      generationDurationMsSum > 0
-        ? (outputTokenSum / generationDurationMsSum) * 1000
-        : null,
+      generationDurationMsSum > 0 ? (outputTokenSum / generationDurationMsSum) * 1000 : null,
     lastStatus: sample?.status ?? null,
     lastError: sample?.error ?? null,
     updatedAtMs: sample?.timestampMs ?? nowMs(),
@@ -513,9 +545,10 @@ export function projectBifrostRouteMetrics(
   if (!isValidStats(stats)) return null;
 
   const sampleCount = stats.sampleCount;
-  const e2eLatencyMs = stats.sampleCount > 0 && Number.isFinite(stats.p95LatencyMs)
-    ? stats.p95LatencyMs
-    : stats.avgLatencyMs;
+  const e2eLatencyMs =
+    stats.sampleCount > 0 && Number.isFinite(stats.p95LatencyMs)
+      ? stats.p95LatencyMs
+      : stats.avgLatencyMs;
   const successRate = clamp01(stats.successRate);
   const failureRate = computeFailureRate(successRate);
 
@@ -554,11 +587,12 @@ export function recordBifrostRouteOutcome(input: BifrostRouteOutcomeInput): void
   const model = safeProviderModel(input.model, DEFAULT_MODEL);
   const status = normalizeStatus(input.status);
   const latencyMs = ensureMs(input.latencyMs, 0);
-  const ok = typeof input.ok === "boolean"
-    ? input.ok
-    : status !== null
-      ? status >= 200 && status < 300
-      : false;
+  const ok =
+    typeof input.ok === "boolean"
+      ? input.ok
+      : status !== null
+        ? status >= 200 && status < 300
+        : false;
 
   const sample: OutcomeSample = {
     timestampMs: ensureMs(input.timestampMs, nowMs()),
@@ -579,11 +613,11 @@ export function recordBifrostRouteOutcome(input: BifrostRouteOutcomeInput): void
 
 export function getBifrostRouteMetrics(
   provider: string,
-  model: string,
+  model: string
 ): BifrostRouteOutcomeStats | null {
   const key = normalizeKey(
     safeProviderModel(provider, DEFAULT_PROVIDER),
-    safeProviderModel(model, DEFAULT_MODEL),
+    safeProviderModel(model, DEFAULT_MODEL)
   );
   const state = metricsMap.get(key);
   if (!state) return null;
@@ -597,7 +631,7 @@ export function getProjectedBifrostRouteMetrics(
 ): BifrostRouteProjectedOutcome | null {
   const key = normalizeKey(
     safeProviderModel(provider, DEFAULT_PROVIDER),
-    safeProviderModel(model, DEFAULT_MODEL),
+    safeProviderModel(model, DEFAULT_MODEL)
   );
   const state = metricsMap.get(key);
   if (!state) return null;
@@ -639,5 +673,19 @@ export async function flushBifrostRouteMetricsPersistenceForTest(): Promise<void
 }
 
 export function hydrateBifrostRouteMetricsFromStorageForTest(): void {
-  hydrateBifrostRouteMetricsFromDb();
+  initializeBifrostRouteMetricsFromStorage({ force: true });
+}
+
+export function getBifrostRouteMetricsHydrationStateForTest():
+  "not_attempted" | "attempted" | "hydrated" {
+  return hydrationState;
+}
+
+export function getBifrostRouteMetricsHydrationAttemptsForTest(): number {
+  return hydrationAttempts;
+}
+
+export function resetBifrostRouteMetricsHydrationStateForTest(): void {
+  hydrationState = "not_attempted";
+  hydrationAttempts = 0;
 }
