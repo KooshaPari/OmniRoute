@@ -362,43 +362,37 @@ export class BifrostAdapter implements RouterPort {
 
   private _resolvePerformanceWeights(): PerformanceWeights {
     const configured = this.routerConfig.performanceWeights ?? {};
-    const merged: PerformanceWeights = {
-      ...DEFAULT_PERFORMANCE_WEIGHTS,
-      ...configured,
-    };
-    const active: Array<[keyof PerformanceWeights, number]> = Object.entries(merged).map(([key, weight]) => {
-      const value = Number(weight);
-      if (value > 0) {
-        return [key as keyof PerformanceWeights, value];
+    const resolved: Record<keyof PerformanceWeights, number> = {} as Record<
+      keyof PerformanceWeights,
+      number
+    >;
+
+    for (const key of Object.keys(DEFAULT_PERFORMANCE_WEIGHTS) as Array<keyof PerformanceWeights>) {
+      if (Object.prototype.hasOwnProperty.call(configured, key)) {
+        const rawValue = Number(configured[key]);
+        resolved[key] = Number.isFinite(rawValue) && rawValue >= 0 ? rawValue : 0;
+      } else {
+        resolved[key] = DEFAULT_PERFORMANCE_WEIGHTS[key];
       }
-      return undefined;
-    }).filter((entry): entry is [keyof PerformanceWeights, number] => Boolean(entry));
-
-    if (active.length === 0) {
-      return DEFAULT_PERFORMANCE_WEIGHTS;
     }
 
-    const totalWeight = active.reduce((sum, [, value]) => sum + value, 0);
-    if (!Number.isFinite(totalWeight) || totalWeight <= 0) {
-      return DEFAULT_PERFORMANCE_WEIGHTS;
-    }
-
-    const normalized = active.reduce<Record<keyof PerformanceWeights, number>>(
-      (acc, [key, value]) => {
-        acc[key] = value / totalWeight;
-        return acc;
-      },
-      {} as Record<keyof PerformanceWeights, number>,
+    const positiveWeightTotal = Object.values(resolved).reduce(
+      (sum, value) => (value > 0 ? sum + value : sum),
+      0,
     );
 
-    return {
-      ttftMs: normalized.ttftMs ?? DEFAULT_PERFORMANCE_WEIGHTS.ttftMs,
-      tps: normalized.tps ?? 0,
-      e2eLatencyMs: normalized.e2eLatencyMs ?? 0,
-      health: normalized.health ?? 0,
-      failureRate: normalized.failureRate ?? 0,
-      stability: normalized.stability ?? 0,
-    };
+    if (!Number.isFinite(positiveWeightTotal) || positiveWeightTotal <= 0) {
+      return resolved;
+    }
+
+    return Object.entries(resolved).reduce(
+      (acc, [key, value]) => {
+        const metricKey = key as keyof PerformanceWeights;
+        acc[metricKey] = value > 0 ? value / positiveWeightTotal : 0;
+        return acc;
+      },
+      { ...resolved } as PerformanceWeights,
+    );
   }
 
   private _getPerformanceMetric(
@@ -455,7 +449,7 @@ export class BifrostAdapter implements RouterPort {
         }
 
         const values = finiteMetricProviders.get(metric.key) ?? [];
-        if (values.length === 0) {
+        if (values.length < 2) {
           continue;
         }
 

@@ -358,6 +358,86 @@ test("BifrostAdapter: performance mode uses composite metric scoring", async () 
   });
 });
 
+test("BifrostAdapter: explicit ttftMs:0 is treated as intentional and contributes no ranking", async () => {
+  const adapter = new BifrostAdapter({
+    baseUrl: "http://bifrost-test",
+    router: {
+      providerPriority: ["openai", "anthropic"],
+      routingMode: "performance",
+      performanceWeights: {
+        ttftMs: 0,
+      },
+      providerMetrics: {
+        openai: { ttftMs: 80, tps: 100 },
+        anthropic: { ttftMs: 1, tps: 100 },
+      },
+    },
+  });
+
+  let firstProvider: string | null = null;
+  await withFetch(async (_url, init) => {
+    firstProvider = (init?.headers as Record<string, string>)?.["x-provider"] ?? null;
+    return jsonResponse(FAKE_BIFROST_RESPONSE, 200, { "x-provider": firstProvider ?? "" });
+  }, async () => {
+    const result = await adapter.route(makeReq());
+    assert.equal(result.ok, true);
+    assert.equal(firstProvider, "openai");
+  });
+});
+
+test("BifrostAdapter: negative performanceWeights values are ignored, not replaced by defaults", async () => {
+  const adapter = new BifrostAdapter({
+    baseUrl: "http://bifrost-test",
+    router: {
+      providerPriority: ["openai", "anthropic"],
+      routingMode: "performance",
+      performanceWeights: {
+        ttftMs: -1,
+      },
+      providerMetrics: {
+        openai: { ttftMs: 80 },
+        anthropic: { ttftMs: 1 },
+      },
+    },
+  });
+
+  let firstProvider: string | null = null;
+  await withFetch(async (_url, init) => {
+    firstProvider = (init?.headers as Record<string, string>)?.["x-provider"] ?? null;
+    return jsonResponse(FAKE_BIFROST_RESPONSE, 200, { "x-provider": firstProvider ?? "" });
+  }, async () => {
+    const result = await adapter.route(makeReq());
+    assert.equal(result.ok, true);
+    assert.equal(firstProvider, "openai");
+  });
+});
+
+test("BifrostAdapter: single-value/sparse metric sets do not create unearned advantage", async () => {
+  const adapter = new BifrostAdapter({
+    baseUrl: "http://bifrost-test",
+    router: {
+      providerPriority: ["anthropic", "openai", "groq"],
+      routingMode: "performance",
+      providerMetrics: {
+        openai: { ttftMs: 80 },
+        groq: {},
+        anthropic: {},
+      },
+      enableFallback: false,
+    },
+  });
+
+  let firstProvider: string | null = null;
+  await withFetch(async (_url, init) => {
+    firstProvider = (init?.headers as Record<string, string>)?.["x-provider"] ?? null;
+    return jsonResponse(FAKE_BIFROST_RESPONSE, 200, { "x-provider": firstProvider ?? "" });
+  }, async () => {
+    const result = await adapter.route(makeReq());
+    assert.equal(result.ok, true);
+    assert.equal(firstProvider, "anthropic");
+  });
+});
+
 test("BifrostAdapter: performance mode applies model-specific metric override", async () => {
   const adapter = new BifrostAdapter({
     baseUrl: "http://bifrost-test",
