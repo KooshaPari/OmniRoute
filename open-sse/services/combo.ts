@@ -2,7 +2,7 @@
  * Shared combo (model combo) handling with fallback support
  * Supports: priority, weighted, round-robin, random, least-used, cost-optimized,
  * reset-aware, reset-window, strict-random, auto, fill-first, p2c, lkgp,
- * context-optimized, context-relay, and fusion strategies
+ * context-optimized, context-relay, performance, and fusion strategies
  */
 
 import {
@@ -30,6 +30,7 @@ import {
   getDefaultComboConfig,
   resolveComboQueueDepth,
 } from "./comboConfig.ts";
+import { getProjectedBifrostRouteMetrics } from "../observability/bifrostRouteMetrics.ts";
 import {
   maybeGenerateHandoff,
   maybeGenerateUniversalHandoff,
@@ -241,6 +242,65 @@ function calculateTargetContextAffinity(
   if (target.connectionId === sessionConnectionId) return 1;
   if (!target.connectionId) return 0.5;
   return 0.1;
+}
+
+function orderTargetsByProjectedBifrostPerformance(targets: ResolvedComboTarget[]): ResolvedComboTarget[] {
+  const scored: Array<{
+    target: ResolvedComboTarget;
+    originalIndex: number;
+    e2eLatencyMs: number;
+    health: number;
+    failureRate: number;
+    stability: number;
+  }> = [];
+  const noComparable: ResolvedComboTarget[] = [];
+
+  targets.forEach((target, index) => {
+    const parsed = parseModel(target.modelStr);
+    const model = parsed.model || target.modelStr;
+    const projection = getProjectedBifrostRouteMetrics(target.provider, model);
+
+    if (
+      projection?.health === undefined ||
+      projection.stability === undefined ||
+      Number.isNaN(projection.e2eLatencyMs) ||
+      Number.isNaN(projection.health) ||
+      Number.isNaN(projection.failureRate) ||
+      Number.isNaN(projection.stability)
+    ) {
+      noComparable.push(target);
+      return;
+    }
+
+    scored.push({
+      target,
+      originalIndex: index,
+      e2eLatencyMs: projection.e2eLatencyMs,
+      health: projection.health,
+      failureRate: projection.failureRate,
+      stability: projection.stability,
+    });
+  });
+
+  if (scored.length === 0) return targets;
+
+  scored.sort((a, b) => {
+    const latencyDiff = a.e2eLatencyMs - b.e2eLatencyMs;
+    if (latencyDiff !== 0) return latencyDiff;
+
+    const healthDiff = b.health - a.health;
+    if (healthDiff !== 0) return healthDiff;
+
+    const failureDiff = a.failureRate - b.failureRate;
+    if (failureDiff !== 0) return failureDiff;
+
+    const stabilityDiff = b.stability - a.stability;
+    if (stabilityDiff !== 0) return stabilityDiff;
+
+    return a.originalIndex - b.originalIndex;
+  });
+
+  return [...scored.map((entry) => entry.target), ...noComparable];
 }
 
 function getBootstrapLatencyMs(modelId: string): number {
@@ -1378,6 +1438,9 @@ export async function handleComboChat({
   } else if (strategy === "least-used") {
     orderedTargets = sortTargetsByUsage(orderedTargets, combo.name);
     log.info("COMBO", `Least-used ordering: ${orderedTargets[0]?.modelStr} has fewest requests`);
+  } else if (strategy === "performance") {
+    orderedTargets = orderTargetsByProjectedBifrostPerformance(orderedTargets);
+    log.info("COMBO", `Performance ordering: ${orderedTargets[0]?.modelStr} is first by projected metrics`);
   } else if (strategy === "cost-optimized") {
     orderedTargets = await sortTargetsByCost(orderedTargets);
     if (config.manifestRouting === true) {
